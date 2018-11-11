@@ -1,0 +1,122 @@
+/*--------------------------------------------------------------------
+REEF3D
+Copyright 2008-2018 Hans Bihs
+
+This file is part of REEF3D.
+
+REEF3D is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+--------------------------------------------------------------------
+--------------------------------------------------------------------*/
+
+#include"heat_RK2.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"discrete.h"
+#include"diffusion.h"
+#include"ioflow.h"
+#include"turbulence.h"
+#include"solver.h"
+#include"fluid_update_fsf_heat.h"
+
+heat_RK2::heat_RK2(lexer* p, fdm* a, ghostcell *pgc, heat *&pheat) : bcheat(p), heat_print(p,a), thermdiff(p)
+{
+	gcval_heat=80;
+}
+
+heat_RK2::~heat_RK2()
+{
+}
+
+void heat_RK2::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow)
+{
+    field4 ark1(p);
+    
+    // Step 1
+    starttime=pgc->timer();
+    diff_update(p,a,pgc);
+
+    clearrhs(p,a,pgc);
+    pdisc->start(p,a,T,4,a->u,a->v,a->w);
+	pdiff->diff_scalar(p,a,pgc,psolv,T,thermdiff,p->sigT,1.0);
+
+	LOOP
+	ark1(i,j,k) = T(i,j,k)
+				+ p->dt*a->L(i,j,k);
+	
+	pdiff->idiff_scalar(p,a,pgc,psolv,ark1,thermdiff,p->sigT,1.0);
+    bcheat_start(p,a,pgc,ark1);
+	pgc->start4(p,ark1,gcval_heat);
+
+
+// Step 2
+    clearrhs(p,a,pgc);
+    pdisc->start(p,a,ark1,4,a->u,a->v,a->w);
+	pdiff->diff_scalar(p,a,pgc,psolv,ark1,thermdiff,p->sigT,0.5);
+
+	LOOP
+	T(i,j,k) = 0.5*T(i,j,k)
+				+ 0.5*ark1(i,j,k)
+				+ 0.5*p->dt*a->L(i,j,k);
+				
+	pdiff->diff_scalar(p,a,pgc,psolv,T,thermdiff,p->sigT,0.5);
+    bcheat_start(p,a,pgc,T);
+	pgc->start4(p,T,gcval_heat);
+
+	pflow->periodic(T,p);
+	pupdate->start(p,a,pgc);
+
+	p->heattime=pgc->timer()-starttime;
+
+}
+
+void heat_RK2::ttimesave(lexer *p, fdm* a)
+{
+}
+
+void heat_RK2::diff_update(lexer *p, fdm *a, ghostcell *pgc)
+{
+    double alpha_air = p->H2;
+	double alpha_water = p->H1;
+    double H;
+    double epsi=p->F45*p->dx;
+    
+    LOOP
+	{
+		if(a->phi(i,j,k)>epsi)
+		H=1.0;
+
+		if(a->phi(i,j,k)<-epsi)
+		H=0.0;
+
+		if(fabs(a->phi(i,j,k))<=epsi)
+		H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
+
+
+		thermdiff(i,j,k)= alpha_water*H + alpha_air*(1.0-H);
+	}
+    
+    pgc->start4(p,thermdiff,1);
+}
+
+void heat_RK2::clearrhs(lexer *p, fdm *a, ghostcell *pgc)
+{
+    int n=0;
+	LOOP
+	{
+    a->L(i,j,k)=0.0;
+	a->rhsvec.V[n]=0.0;
+	++n;
+	}
+}

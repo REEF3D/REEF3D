@@ -1,0 +1,147 @@
+/*--------------------------------------------------------------------
+REEF3D
+Copyright 2008-2018 Hans Bihs
+
+This file is part of REEF3D.
+
+REEF3D is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+--------------------------------------------------------------------
+--------------------------------------------------------------------*/
+
+#include"mgcslice4a.h"
+#include"cart4.h"
+#include"lexer.h"
+#include"fdm.h"
+
+void mgcslice4a::make_ggc(lexer* p)
+{
+	p->ggcslsize4a=1;
+	p->Iarray(p->ggcsl4a,p->ggcslsize4a,3);
+}
+
+void mgcslice4a::fill_ggc(lexer* p)
+{
+	int q,qq,n,nn,a;
+	int check;
+	
+	p->Iarray(p->ggcslmem4a,imax*jmax);
+
+//--------------------------
+//WALL1
+
+	GCSL4ALOOP
+	{
+        i=p->gcbsl4a[n][0];
+		j=p->gcbsl4a[n][1];
+
+		if(p->gcbsl4a[n][3]==1)
+		for(q=0;q<p->margin;++q)
+        p->ggcslmem4a[(i-imin-q-1)*jmax + (j-jmin)]+=1;
+
+		if(p->gcbsl4a[n][3]==4)
+		for(q=0;q<p->margin;++q)
+		p->ggcslmem4a[(i-imin+q+1)*jmax + (j-jmin)]+=1;
+
+		if(p->gcbsl4a[n][3]==3)
+		for(q=0;q<p->margin;++q)
+        p->ggcslmem4a[(i-imin)*jmax + (j-jmin-q-1)]+=1;
+
+		if(p->gcbsl4a[n][3]==2)
+		for(q=0;q<p->margin;++q)
+		p->ggcslmem4a[(i-imin)*jmax + (j-jmin+q+1)]+=1;
+
+	}
+
+// count entries
+	p->ggcslcount4a=0;
+	a=0;
+	for(i=0;i<imax;++i)
+	for(j=0;j<jmax;++j)
+	{
+        if(p->ggcslmem4a[a]>1)
+        ++p->ggcslcount4a;
+
+	++a;
+	}
+	
+	p->Iresize(p->ggcsl4a,p->ggcslsize4a,p->ggcslcount4a*3, 3, 3);
+	p->ggcslsize4a=p->ggcslcount4a*3;
+
+//--------------------------
+//WALL2
+	n=0;
+	QQGCSL4ALOOP
+	{
+        i=p->gcbsl4a[qq][0];
+		j=p->gcbsl4a[qq][1];
+
+		if(p->gcbsl4a[qq][3]==1)
+		for(q=0;q<p->margin;++q)
+		if(p->ggcslmem4a[(i-imin-q-1)*jmax + (j-jmin)]>1)
+        {
+            if(p->ggcslmem4a[(i-imin-q-1)*jmax + (j-jmin)]<10)
+            {
+             p->ggcslmem4a[(i-imin-q-1)*jmax + (j-jmin)]=n+10;
+			 p->ggcsl4a[n][0]=i-q-1;
+			 p->ggcsl4a[n][1]=j;
+			 ++n;
+            }
+        }
+
+        if(p->gcbsl4a[qq][3]==4)
+        for(q=0;q<p->margin;++q)
+		if(p->ggcslmem4a[(i-imin+q+1)*jmax + (j-jmin)]>1)
+        {
+            if(p->ggcslmem4a[(i-imin+q+1)*jmax + (j-jmin)]<10)
+            {
+            p->ggcslmem4a[(i-imin+q+1)*jmax + (j-jmin)]=n+10;
+			p->ggcsl4a[n][0]=i+q+1;
+			p->ggcsl4a[n][1]=j;
+			++n;
+            }
+        }
+
+        if(p->gcbsl4a[qq][3]==3)
+        for(q=0;q<p->margin;++q)
+		if(p->ggcslmem4a[(i-imin)*jmax + (j-jmin-q-1)]>1)
+        {
+            if(p->ggcslmem4a[(i-imin)*jmax + (j-jmin-q-1)]<10)
+            {
+            p->ggcslmem4a[(i-imin)*jmax + (j-jmin-q-1)]=n+10;
+			p->ggcsl4a[n][0]=i;
+			p->ggcsl4a[n][1]=j-q-1;
+			++n;
+            }
+        }
+
+		if(p->gcbsl4a[qq][3]==2)
+		for(q=0;q<p->margin;++q)
+		if(p->ggcslmem4a[(i-imin)*jmax + (j-jmin+q+1)]>1)
+        {
+            if(p->ggcslmem4a[(i-imin)*jmax + (j-jmin+q+1)]<10)
+            {
+            p->ggcslmem4a[(i-imin)*jmax + (j-jmin+q+1)]=n+10;
+			p->ggcsl4a[n][0]=i;
+			p->ggcsl4a[n][1]=j+q+1;
+			++n;
+            }
+        }
+	}
+	p->ggcslcount4a=n;
+
+
+	p->del_Iarray(p->ggcslmem4a,imax*jmax);
+}
+
+

@@ -1,0 +1,56 @@
+/*--------------------------------------------------------------------
+REEF3D
+Copyright 2008-2018 Hans Bihs
+
+This file is part of REEF3D.
+
+REEF3D is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+--------------------------------------------------------------------
+--------------------------------------------------------------------*/
+
+#include"wave_lib_precalc.h"
+#include"wave_lib_parameters.h"
+#include"increment.h"
+
+#ifndef WAVE_LIB_STOKES_5TH_SH_H_
+#define WAVE_LIB_STOKES_5TH_SH_H_
+
+using namespace std;
+
+class wave_lib_Stokes_5th_SH : public wave_lib_precalc, public wave_lib_parameters, public increment
+{
+public:
+    wave_lib_Stokes_5th_SH(lexer*, ghostcell*);
+	virtual ~wave_lib_Stokes_5th_SH();
+
+    double wave_horzvel(lexer*,double,double,double);
+    
+    virtual double wave_u(lexer*,double,double,double);
+    virtual double wave_v(lexer*,double,double,double);
+    virtual double wave_w(lexer*,double,double,double);
+    virtual double wave_eta(lexer*,double,double);
+    virtual double wave_fi(lexer*,double,double,double);
+    
+    
+    virtual void parameters(lexer*,ghostcell*);
+    
+private:
+    double a11,a22,a31,a33,a42,a44,a51,a53,a55;
+    double b22,b31,b42,b44,b53,b55;
+    double e2,e4;
+    double singamma,cosgamma;
+
+};
+
+#endif

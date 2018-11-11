@@ -1,0 +1,64 @@
+/*--------------------------------------------------------------------
+REEF3D
+Copyright 2008-2018 Hans Bihs
+
+This file is part of REEF3D.
+
+REEF3D is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+--------------------------------------------------------------------
+--------------------------------------------------------------------*/
+
+#include"multiphase_f.h"
+#include"freesurface_header.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"discrete.h"
+#include"solver.h"
+#include"ioflow.h"
+#include"reini.h"
+#include"picard.h"
+#include"fluid_update_multiphase.h"
+#include"picard_f.h"
+#include"picard_lsm.h"
+#include"picard_void.h"
+#include"print_wsf.h"
+
+multiphase_f::multiphase_f(lexer* p, fdm *a, ghostcell* pgc) : ls1(p), ls2(p)
+{
+	logic(p,a,pgc);
+	
+	pwsf1=new print_wsf(p,a,pgc,1);
+	pwsf2=new print_wsf(p,a,pgc,2);
+}
+
+multiphase_f::~multiphase_f()
+{
+}
+
+void multiphase_f::start(lexer *p, fdm *a, ghostcell *pgc, discrete *pmpdisc, solver *psolv, ioflow *pflow, reini* preini2, particlecorr* ppart, printer *pprint)
+{
+	pfsf1->start(a,p,pmpdisc,psolv,pgc,pflow,preini,ppart,ls1);
+	pfsf2->start(a,p,pmpdisc,psolv,pgc,pflow,preini,ppart,ls2);	
+	
+	update(p,a,pgc);
+}
+
+void multiphase_f::timesave(lexer *p, fdm *a, ghostcell *pgc)
+{
+	pfsf1->ltimesave(p,a,ls1);
+	pfsf2->ltimesave(p,a,ls2);
+	
+}
+

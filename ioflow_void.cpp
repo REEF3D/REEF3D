@@ -1,0 +1,492 @@
+/*--------------------------------------------------------------------
+REEF3D
+Copyright 2008-2018 Hans Bihs
+
+This file is part of REEF3D.
+
+REEF3D is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+--------------------------------------------------------------------
+--------------------------------------------------------------------*/
+
+#include"ioflow_void.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"fdm2D.h"
+#include"vrans_v.h"
+#include"vrans_f.h"
+#include"rheology_v.h"
+#include"rheology_f.h"
+#include"turbulence.h"
+
+ioflow_v::ioflow_v(lexer *p, ghostcell *pgc) : flowfile_in(p,pgc)
+{
+	tanphi=0.0;
+    if(p->W101>0)
+    tanphi=tan(p->W102_phi*(PI/180.0));
+}
+
+ioflow_v::~ioflow_v()
+{
+}
+
+void ioflow_v::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
+{
+}
+
+void ioflow_v::periodic(field& b, lexer *p)
+{
+}
+
+void ioflow_v::discharge(lexer *p, fdm* a, ghostcell* pgc)
+{
+}
+
+void ioflow_v::inflow(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, field &w)
+{
+    if(p->I230>0)
+    ff_inflow(p,a,pgc,u,v,w);
+    
+    prheo->filltau(p,a,pgc);
+}
+
+void ioflow_v::rkinflow(lexer *p, fdm* a, ghostcell* pgc, field&, field&, field&)
+{
+}
+
+void ioflow_v::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
+{
+    if(p->I230>0)
+    ff_waterlevel(p,a,pgc,a->phi);
+}
+
+void ioflow_v::fsfrkout(lexer *p, fdm *a, ghostcell *pgc, field& f)
+{
+}
+
+void ioflow_v::fsfrkin(lexer *p, fdm *a, ghostcell *pgc, field& f)
+{
+}
+
+void ioflow_v::fsfrkoutV(lexer *p, fdm *a, ghostcell *pgc, vec& f)
+{
+}
+
+void ioflow_v::fsfrkinV(lexer *p, fdm *a, ghostcell *pgc, vec& f)
+{
+}
+
+void ioflow_v::fsfrkoutVa(lexer *p, fdm *a, ghostcell *pgc, vec& f)
+{
+}
+
+void ioflow_v::fsfrkinVa(lexer *p, fdm *a, ghostcell *pgc, vec& f)
+{
+}
+
+void ioflow_v::iogcb_update(lexer *p, fdm *a, ghostcell *pgc)
+{
+}
+
+void  ioflow_v::isource(lexer *p, fdm *a, ghostcell *pgc)
+{
+	NLOOP4
+	a->rhsvec.V[n]=0.0;
+	
+    double porousterm;
+
+	count=0;
+    if(p->B240>0 && p->B241==1)
+    ULOOP
+	{
+		// porous media
+		porousterm=0.0;
+		for(n=0;n<p->B240;++n)
+		{
+			if(p->pos_x() >= p->B240_xs[n] && p->pos_x() < p->B240_xe[n])
+			if(p->pos_y() >= p->B240_ys[n] && p->pos_y() < p->B240_ye[n])
+			if(p->pos_z() >= p->B240_zs[n] && p->pos_z() < p->B240_ze[n])
+			porousterm=p->B240_D[n]*a->visc(i,j,k)*a->u(i,j,k) + 0.5*p->B240_C[n]*a->u(i,j,k)*fabs(a->u(i,j,k));
+		}
+	
+    a->rhsvec.V[count] -= porousterm;
+	++count;
+	}
+    
+    //VRANS
+	pvrans->u_source(p,a);
+    
+    //Rheology
+    prheo->u_source(p,a);
+}
+
+void  ioflow_v::jsource(lexer *p, fdm *a, ghostcell *pgc)
+{
+	NLOOP4
+	a->rhsvec.V[n]=0.0;
+	
+    double porousterm;
+
+	count=0;
+    if(p->B240>0 && p->B242==1)
+    VLOOP
+	{
+		// porous media
+		porousterm=0.0;
+		for(n=0;n<p->B240;++n)
+		{
+			if(p->pos_x() >= p->B240_xs[n] && p->pos_x() < p->B240_xe[n])
+			if(p->pos_y() >= p->B240_ys[n] && p->pos_y() < p->B240_ye[n])
+			if(p->pos_z() >= p->B240_zs[n] && p->pos_z() < p->B240_ze[n])
+			porousterm=p->B240_D[n]*a->visc(i,j,k)*a->v(i,j,k) + 0.5*p->B240_C[n]*a->v(i,j,k)*fabs(a->v(i,j,k));
+		}
+	
+    a->rhsvec.V[count] -= porousterm;
+	++count;
+	}
+    
+    //VRANS
+	pvrans->v_source(p,a);
+    
+    //Rheology
+    prheo->v_source(p,a);
+}
+
+void  ioflow_v::ksource(lexer *p, fdm *a, ghostcell *pgc)
+{
+	NLOOP4
+	a->rhsvec.V[n]=0.0;
+	
+    double porousterm;
+	
+	count=0;
+    if(p->B240>0 && p->B243==1)
+    WLOOP
+	{
+		// porous media
+		porousterm=0.0;
+		for(n=0;n<p->B240;++n)
+		{
+			if(p->pos_x() >= p->B240_xs[n] && p->pos_x() < p->B240_xe[n])
+			if(p->pos_y() >= p->B240_ys[n] && p->pos_y() < p->B240_ye[n])
+			if(p->pos_z() >= p->B240_zs[n] && p->pos_z() < p->B240_ze[n])
+			porousterm=p->B240_D[n]*a->visc(i,j,k)*a->w(i,j,k) + 0.5*p->B240_C[n]*a->w(i,j,k)*fabs(a->w(i,j,k));
+		}
+
+    a->rhsvec.V[count] -= porousterm;
+	++count;
+	}
+    
+    //VRANS
+	pvrans->w_source(p,a);
+    
+    //Rheology
+    prheo->w_source(p,a);
+}
+
+void ioflow_v::pressure_io(lexer *p, fdm *a, ghostcell* pgc)
+{
+}
+
+void ioflow_v::turbulence_io(lexer *p, fdm* a, ghostcell* pgc)
+{
+}
+
+void ioflow_v::u_relax(lexer *p, fdm *a, ghostcell *pgc, field &uvel)
+{
+	double epsi,H,fbval;
+	double fbval_up,fbval_down;
+	
+	epsi = 2.1*p->dx;
+	
+	if(p->X10==1 && p->X18==1)
+	ULOOP
+	{
+		fbval = 0.5*(a->fb(i-1,j,k)+a->fb(i,j,k));
+		
+		if(fbval>epsi)
+		H=1.0;
+
+		if(fbval<-epsi)
+		H=0.0;
+
+		if(fabs(fbval)<=epsi)
+		H=0.5*(1.0 + fbval/epsi + (1.0/PI)*sin((PI*fbval)/epsi));	
+		
+		fbval_up = 0.5*(a->fb(i,j,k)+a->fb(i+1,j,k));
+		fbval_down = 0.5*(a->fb(i-2,j,k)+a->fb(i-1,j,k));
+		
+		if(fbval_up<0.0 || fbval_down<0.0)
+		a->u(i,j,k) = H*a->u(i,j,k) + (1.0-H)*(p->ufbi + (p->pos_z()-p->zg)*p->qfbi - (p->pos_y()-p->yg)*p->rfbi);
+		
+	}
+}
+
+void ioflow_v::v_relax(lexer *p, fdm *a, ghostcell *pgc, field &vvel)
+{
+	double epsi,H,fbval;
+	double fbval_up,fbval_down;
+	
+	epsi = 2.1*p->dx;
+	
+	if(p->X10==1 && p->X18==1)
+	VLOOP
+	{
+		fbval = 0.5*(a->fb(i,j-1,k)+a->fb(i,j,k));
+		
+		if(fbval>epsi)
+		H=1.0;
+
+		if(fbval<-epsi)
+		H=0.0;
+
+		if(fabs(fbval)<=epsi)
+		H=0.5*(1.0 + fbval/epsi + (1.0/PI)*sin((PI*fbval)/epsi));	
+		
+		fbval_up = 0.5*(a->fb(i,j,k)+a->fb(i,j+1,k));
+		fbval_down = 0.5*(a->fb(i,j-2,k)+a->fb(i,j-1,k));
+		
+		if(fbval_up<0.0 || fbval_down<0.0)
+		a->v(i,j,k) = H*a->v(i,j,k) + (1.0-H)*(p->vfbi + (p->pos_x()-p->xg)*p->rfbi - (p->pos_z()-p->zg)*p->pfbi);
+		
+	}
+}
+
+void ioflow_v::w_relax(lexer *p, fdm *a, ghostcell *pgc, field &wvel)
+{
+	
+	double epsi,H,fbval;
+	double fbval_up,fbval_down;
+	
+	epsi = 2.1*p->dx;
+	
+	if(p->X10==1 && p->X18==1)
+	WLOOP
+	{
+		fbval = 0.5*(a->fb(i,j,k-1)+a->fb(i,j,k));
+		
+		if(fbval>epsi)
+		H=1.0;
+
+		if(fbval<-epsi)
+		H=0.0;
+
+		if(fabs(fbval)<=epsi)
+		H=0.5*(1.0 + fbval/epsi + (1.0/PI)*sin((PI*fbval)/epsi));	
+		
+		fbval_up = 0.5*(a->fb(i,j,k)+a->fb(i,j,k+1));
+		fbval_down = 0.5*(a->fb(i,j,k-2)+a->fb(i,j,k-1));
+		
+		if(fbval_up<0.0 || fbval_down<0.0)
+		a->w(i,j,k) = H*a->w(i,j,k) + (1.0-H)*(p->wfbi + (p->pos_y()-p->yg)*p->pfbi - (p->pos_x()-p->xg)*p->qfbi);
+		
+	}
+}
+
+void ioflow_v::p_relax(lexer *p, fdm *a, ghostcell *pgc, field &press)
+{
+    /*double tau0,tau,pval,phival,H,gamma;
+    double epsi = 1.6*p->dx;
+    
+    if(p->W1
+    LOOP
+    {
+        phival = a->phi(i,j,k);
+    
+        if(phival>epsi)
+        H=1.0;
+
+        if(phival<-epsi)
+        H=0.0;
+
+        if(fabs(phival)<=epsi)
+        H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));   
+    
+    
+        // get gamma from rheology
+        
+        if(p->W101==0)
+        tau0=p->W96;
+        
+        if(p->W101==1)  // HB-C dry sand
+        tau0=tanphi*pval + p->W102_c;
+        
+        if(p->W101==2)  // HB-C dry sand, without MAX -> issues with negative viscosity and Hypre
+        tau0 = (tanphi*pval + p->W102_c)*(1.0-exp(-p->W103*gamma));
+            
+        if(p->W101==3)  // HB-C hydrostatic  - MAX added for cells on the interface.
+        tau0 = MAX(0.0,tanphi*pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));    // rho_water = 1000.0, new input?
+            
+        if(p->W101==4)  // HB-C shear rate generated excess pore pressure
+        tau0 = MAX(0.0,tanphi*pval*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));    // m_p is new input W 104 
+            
+        if(p->W101==5)  // HB-C linear shear rate coupling, max given by pressure
+        tau0 = MAX(0.0,tanphi*MAX(0.0,pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k)-p->W104*gamma) + p->W102_c)*(1.0-exp(-p->W103*gamma));    // m_u also use new input W 104
+
+        if(p->count==0)
+        tau0=p->W96;
+        
+        // get tau from rheology
+        
+        if(tau<tau0)
+        a->press(i,j,k) = H*a->phi(i,j,k)*a->ro(i,j,k)*fabs(p->W22) + (1.0-H)*a->press(i,j,k);
+        
+        
+    }*/
+}
+
+void ioflow_v::phi_relax(lexer *p, ghostcell *pgc, field &f)
+{
+}
+
+void ioflow_v::fi_relax(lexer *p, ghostcell *pgc, field &f, field &phi)
+{
+}
+
+void ioflow_v::fivec_relax(lexer *p, ghostcell *pgc, double *f)
+{
+}
+
+void ioflow_v::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
+{
+}
+
+void ioflow_v::eta_relax(lexer *p, ghostcell *pgc, slice &f)
+{
+}
+
+void ioflow_v::um_relax(lexer *p, ghostcell *pgc, slice &P, slice &bed, slice &eta)
+{
+}
+
+void ioflow_v::vm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta)
+{
+}
+
+void ioflow_v::wm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta)
+{
+}
+
+void ioflow_v::ws_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta)
+{
+}
+
+void ioflow_v::pm_relax(lexer *p, ghostcell *pgc, slice &f)
+{
+}
+
+double ioflow_v::wave_fsf(lexer *p, ghostcell *pgc, double x)
+{
+    double val=0.0;
+
+    return val;
+}
+
+int ioflow_v::iozonecheck(lexer *p, fdm*a)
+{	
+	int check =1;
+	
+	return check;
+}
+
+void ioflow_v::inflow_walldist(lexer *p, fdm *a, ghostcell *pgc, discrete *pdisc, reini *preini, ioflow *pflow)
+{
+}
+
+void ioflow_v::discharge2D(lexer *p, fdm2D* b, ghostcell* pgc)
+{
+}
+
+void ioflow_v::Qin2D(lexer *p, fdm2D* b, ghostcell* pgc)
+{
+}
+
+void ioflow_v::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
+{
+}
+
+void ioflow_v::inflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &bed, slice &eta)
+{
+}
+
+void ioflow_v::rkinflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &bed, slice &eta)
+{
+}
+
+void ioflow_v::isource2D(lexer *p, fdm2D* b, ghostcell* pgc)
+{
+	SLICELOOP1
+	b->F(i,j)=0.0;
+}
+
+void ioflow_v::jsource2D(lexer *p, fdm2D* b, ghostcell* pgc)
+{
+	SLICELOOP2
+	b->G(i,j)=0.0;
+}
+
+void ioflow_v::ini(lexer *p, fdm* a, ghostcell* pgc)
+{
+    if(p->B269==0)
+	pvrans = new vrans_v(p,a,pgc);
+	
+	if(p->B269==1)
+	pvrans = new vrans_f(p,a,pgc);
+    
+    if(p->W90==0)
+    prheo = new rheology_v(p,a);
+    
+    if(p->W90==1)
+    prheo = new rheology_f(p,a);
+}
+
+void ioflow_v::full_initialize2D(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+}
+
+void ioflow_v::flowfile(lexer *p, fdm* a, ghostcell* pgc, turbulence *pturb)
+{
+}
+
+void ioflow_v::wavegen_precalc(lexer *p, ghostcell *pgc)
+{
+    
+}
+
+void ioflow_v::wavegen_precalc_ini(lexer *p, ghostcell *pgc)
+{
+    
+}
+
+void ioflow_v::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    
+}
+
+void ioflow_v::wavegen_2D_precalc_ini(lexer *p, ghostcell *pgc)
+{
+    
+}
+
+void ioflow_v::ini2D(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+}
+
+void ioflow_v::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+{
+}
+
+void ioflow_v::veltimesave(lexer *p, fdm *a, ghostcell *pgc)
+{
+    
+}

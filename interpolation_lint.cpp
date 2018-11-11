@@ -1,0 +1,220 @@
+/*--------------------------------------------------------------------
+REEF3D
+Copyright 2008-2018 Hans Bihs
+
+This file is part of REEF3D.
+
+REEF3D is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+--------------------------------------------------------------------
+--------------------------------------------------------------------*/
+
+#include"interpolation.h"
+#include"field.h"
+#include"lexer.h"
+#include"fdm.h"
+
+double interpolation::lint1(field& b, int& i,int& j, int& k, double wa, double wb, double wc)
+{
+    v1=v2=v3=v4=v5=v6=v7=v8=0.0;
+
+pip=4;
+    if(p->flag[IJK]>TOPO)
+    v1=b(i,j,k);
+    if(p->flag[IJp1K]>TOPO)
+    v2=b(i,j+1,k);
+    if(p->flag[Ip2JK]>TOPO)
+    v3=b(i+1,j,k);
+    if(p->flag[Ip1Jp1K]>TOPO)
+    v4=b(i+1,j+1,k);
+    if(p->flag[IJKp1]>TOPO)
+    v5=b(i,j,k+1);
+    if(p->flag[IJp1Kp1]>TOPO)
+    v6=b(i,j+1,k+1);
+    if(p->flag[Ip1JKp1]>TOPO)
+    v7=b(i+1,j,k+1);
+    if(p->flag[Ip1JKp1]>TOPO)
+    v8=b(i+1,j+1,k+1);
+pip=0;
+
+    x1 = wa*v1 + (1.0-wa)*v3;
+    x2 = wa*v2 + (1.0-wa)*v4;
+
+    x3 = wa*v5 + (1.0-wa)*v7;
+    x4 = wa*v6 + (1.0-wa)*v8;
+
+    y1 = wb*x1 +(1.0-wb)*x2;
+    y2 = wb*x3 +(1.0-wb)*x4;
+
+    value = wc*y1 +(1.0-wc)*y2;
+
+ return value;
+}
+
+double interpolation::lint2(field& b, int& i,int& j, int& k, double wa, double wb, double wc)
+{
+    v1=v2=v3=v4=v5=v6=v7=v8=0.0;
+
+pip=4;
+    if(p->flag[IJK]>TOPO)
+    v1=b(i,j,k);
+    if(p->flag[IJp1K]>TOPO)
+    v2=b(i,j+1,k);
+    if(p->flag[Ip2JK]>TOPO)
+    v3=b(i+1,j,k);
+    if(p->flag[Ip1Jp1K]>TOPO)
+    v4=b(i+1,j+1,k);
+    if(p->flag[IJKp1]>TOPO)
+    v5=b(i,j,k+1);
+    if(p->flag[IJp1Kp1]>TOPO)
+    v6=b(i,j+1,k+1);
+    if(p->flag[Ip1JKp1]>TOPO)
+    v7=b(i+1,j,k+1);
+    if(p->flag[Ip1JKp1]>TOPO)
+    v8=b(i+1,j+1,k+1);
+pip=0;
+
+
+    x1 = wa*v1 + (1.0-wa)*v3;
+    x2 = wa*v2 + (1.0-wa)*v4;
+
+    x3 = wa*v5 + (1.0-wa)*v7;
+    x4 = wa*v6 + (1.0-wa)*v8;
+
+    y1 = wb*x1 +(1.0-wb)*x2;
+    y2 = wb*x3 +(1.0-wb)*x4;
+
+    value = wc*y1 +(1.0-wc)*y2;
+
+ return value;
+}
+
+double interpolation::lint3(field& b, int& i,int& j, int& k, double wa, double wb, double wc)
+{
+    v1=v2=v3=v4=v5=v6=v7=v8=0.0;
+
+pip=4;
+    if(p->flag[IJK]>TOPO)
+    v1=b(i,j,k);
+    if(p->flag[IJp1K]>TOPO)
+    v2=b(i,j+1,k);
+    if(p->flag[Ip2JK]>TOPO)
+    v3=b(i+1,j,k);
+    if(p->flag[Ip1Jp1K]>TOPO)
+    v4=b(i+1,j+1,k);
+    if(p->flag[IJKp1]>TOPO)
+    v5=b(i,j,k+1);
+    if(p->flag[IJp1Kp1]>TOPO)
+    v6=b(i,j+1,k+1);
+    if(p->flag[Ip1JKp1]>TOPO)
+    v7=b(i+1,j,k+1);
+    if(p->flag[Ip1JKp1]>TOPO)
+    v8=b(i+1,j+1,k+1);
+pip=0;
+
+    x1 = wa*v1 + (1.0-wa)*v3;
+    x2 = wa*v2 + (1.0-wa)*v4;
+
+    x3 = wa*v5 + (1.0-wa)*v7;
+    x4 = wa*v6 + (1.0-wa)*v8;
+
+    y1 = wb*x1 +(1.0-wb)*x2;
+    y2 = wb*x3 +(1.0-wb)*x4;
+
+    value = wc*y1 +(1.0-wc)*y2;
+
+ return value;
+}
+
+double interpolation::lint4(field& f, int& i,int& j, int& k, double wa, double wb, double wc)
+{
+    v1=v2=v3=v4=v5=v6=v7=v8=0.0;
+
+pip=5;
+    x1 = wa*f(i,j,k)   + (1.0-wa)*f(i+1,j,k);
+    x2 = wa*f(i,j+1,k) + (1.0-wa)*f(i+1,j+1,k);
+
+    x3 = wa*f(i,j,k+1)   + (1.0-wa)*f(i+1,j,k+1);
+    x4 = wa*f(i,j+1,k+1) + (1.0-wa)*f(i+1,j+1,k+1);
+
+    y1 = wb*x1 +(1.0-wb)*x2;
+    y2 = wb*x3 +(1.0-wb)*x4;
+pip=0;
+
+
+    value = wc*y1 +(1.0-wc)*y2;
+
+pip=0;
+ return value;
+
+}
+
+double interpolation::lint4phi(fdm *a, field& b, int& i,int& j, int& k, double wa, double wb, double wc)
+{	
+	double epphi2=0.6*p->DXM;
+    v1=v2=v3=v4=v5=v6=v7=v8= p->phimean-p->pos_z();
+
+	pip=4;
+    if(a->topo(i,j,k)>-epphi && a->topo(i,j,k)>-epphi && a->fb(i,j,k)>-epphi2)
+    v1=b(i,j,k);
+    if(a->topo(i,j+1,k)>-epphi && a->fb(i,j+1,k)>-epphi2)
+    v2=b(i,j+1,k);
+    if(a->topo(i+1,j,k)>-epphi && a->fb(i+1,j,k)>-epphi2)
+    v3=b(i+1,j,k);
+    if(a->topo(i+1,j+1,k)>-epphi && a->fb(i+1,j+1,k)>-epphi2)
+    v4=b(i+1,j+1,k);
+    if(a->topo(i,j,k+1)>-epphi && a->fb(i,j,k+1)>-epphi2)
+    v5=b(i,j,k+1);
+    if(a->topo(i,j+1,k+1)>-epphi && a->fb(i,j+1,k+1)>-epphi2)
+    v6=b(i,j+1,k+1);
+    if(a->topo(i+1,j,k+1)>-epphi && a->fb(i+1,j,k+1)>-epphi2)
+    v7=b(i+1,j,k+1);
+    if(a->topo(i+1,j+1,k+1)>-epphi && a->fb(i+1,j+1,k+1)>-epphi2)
+    v8=b(i+1,j+1,k+1);
+    pip=0;
+
+    x1 = wa*v1 + (1.0-wa)*v3;
+    x2 = wa*v2 + (1.0-wa)*v4;
+
+    x3 = wa*v5 + (1.0-wa)*v7;
+    x4 = wa*v6 + (1.0-wa)*v8;
+
+    y1 = wb*x1 +(1.0-wb)*x2;
+    y2 = wb*x3 +(1.0-wb)*x4;
+
+    value = wc*y1 +(1.0-wc)*y2;
+
+
+ return value;
+
+}
+
+double interpolation::lint_a(field& f, int& i,int& j, int& k, double wa, double wb, double wc)
+{
+pip=4;
+
+    x1 = wa*f(i,j,k)   + (1.0-wa)*f(i+1,j,k);
+    x2 = wa*f(i,j+1,k) + (1.0-wa)*f(i+1,j+1,k);
+
+    x3 = wa*f(i,j,k+1)   + (1.0-wa)*f(i+1,j,k+1);
+    x4 = wa*f(i,j+1,k+1) + (1.0-wa)*f(i+1,j+1,k+1);
+
+    y1 = wb*x1 +(1.0-wb)*x2;
+    y2 = wb*x3 +(1.0-wb)*x4;
+pip=0;
+
+    value = wc*y1 +(1.0-wc)*y2;
+
+ return value;
+
+}

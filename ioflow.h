@@ -1,0 +1,106 @@
+/*--------------------------------------------------------------------
+REEF3D
+Copyright 2008-2018 Hans Bihs
+
+This file is part of REEF3D.
+
+REEF3D is fra->eps software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Fra->eps Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. Sa->eps the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
+--------------------------------------------------------------------
+--------------------------------------------------------------------*/
+
+class lexer;
+class fdm;
+class ghostcell;
+class field;
+class vec;
+class discrete;
+class reini;
+class slice;
+class fdm2D;
+class fdm_fnpf;
+class turbulence;
+
+using namespace std;
+
+#ifndef IOFLOW_H_
+#define IOFLOW_H_
+
+class ioflow
+{
+public:
+    virtual void gcio_update(lexer*,fdm*,ghostcell*)=0;
+	virtual void inflow_walldist(lexer*,fdm*,ghostcell*,discrete*,reini*,ioflow*)=0;
+	virtual void periodic(field&, lexer*)=0;
+	virtual void discharge(lexer*,fdm*,ghostcell*)=0;
+	virtual void inflow(lexer*,fdm*,ghostcell*,field&,field&,field&)=0;
+	virtual void rkinflow(lexer*,fdm*,ghostcell*,field&,field&,field&)=0;
+	virtual void fsfinflow(lexer*,fdm*,ghostcell*)=0;
+	virtual void fsfrkin(lexer*,fdm*,ghostcell*,field&)=0;
+	virtual void fsfrkout(lexer*,fdm*,ghostcell*,field&)=0;
+	virtual void fsfrkinV(lexer*,fdm*,ghostcell*,vec&)=0;
+	virtual void fsfrkoutV(lexer*,fdm*,ghostcell*,vec&)=0;
+	virtual void fsfrkinVa(lexer*,fdm*,ghostcell*,vec&)=0;
+	virtual void fsfrkoutVa(lexer*,fdm*,ghostcell*,vec&)=0;
+    virtual void iogcb_update(lexer*,fdm*,ghostcell*)=0;
+    virtual void isource(lexer*,fdm*,ghostcell*)=0;
+    virtual void jsource(lexer*,fdm*,ghostcell*)=0;
+    virtual void ksource(lexer*,fdm*,ghostcell*)=0;
+    virtual void pressure_io(lexer*,fdm*,ghostcell*)=0;
+    virtual void turbulence_io(lexer*,fdm*,ghostcell*)=0;
+    virtual void veltimesave(lexer*,fdm*,ghostcell*)=0;
+    
+    virtual void flowfile(lexer*,fdm*,ghostcell*,turbulence*)=0;
+    
+    
+    virtual void wavegen_precalc(lexer*,ghostcell*)=0;
+    virtual void wavegen_precalc_ini(lexer*,ghostcell*)=0;
+    virtual void u_relax(lexer*,fdm*,ghostcell*,field&)=0;
+    virtual void v_relax(lexer*,fdm*,ghostcell*,field&)=0;
+    virtual void w_relax(lexer*,fdm*,ghostcell*,field&)=0;
+    virtual void p_relax(lexer*,fdm*,ghostcell*,field&)=0;
+	virtual void phi_relax(lexer*,ghostcell*,field&)=0;
+    virtual void fi_relax(lexer*,ghostcell*,field&,field&)=0;
+    virtual void fivec_relax(lexer*, ghostcell*, double*)=0;
+    virtual void fifsf_relax(lexer*, ghostcell*, slice&)=0;
+    virtual void eta_relax(lexer*,ghostcell*,slice&)=0;
+    virtual void um_relax(lexer*,ghostcell*,slice&,slice&,slice&)=0;
+    virtual void vm_relax(lexer*,ghostcell*,slice&,slice&,slice&)=0;
+	virtual void wm_relax(lexer*,ghostcell*,slice&,slice&,slice&)=0;
+    virtual void ws_relax(lexer*,ghostcell*,slice&,slice&,slice&)=0;
+	virtual void pm_relax(lexer*,ghostcell*,slice&)=0;
+    
+    virtual void wavegen_2D_precalc(lexer*,fdm2D*,ghostcell*)=0;
+    virtual void wavegen_2D_precalc_ini(lexer*,ghostcell*)=0;
+    
+    virtual void discharge2D(lexer*,fdm2D*,ghostcell*)=0;
+    virtual void Qin2D(lexer*,fdm2D*,ghostcell*)=0;
+	virtual void Qout2D(lexer*,fdm2D*,ghostcell*)=0;
+    virtual void inflow2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&)=0;
+	virtual void rkinflow2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&)=0;
+	virtual void isource2D(lexer*,fdm2D*,ghostcell*)=0;
+    virtual void jsource2D(lexer*,fdm2D*,ghostcell*)=0;
+	virtual void full_initialize2D(lexer*,fdm2D*,ghostcell*)=0;
+    
+    virtual void ini(lexer*,fdm*,ghostcell*)=0;
+    virtual void ini_fnpf(lexer*,fdm_fnpf*,ghostcell*)=0;
+    virtual void ini2D(lexer*,fdm2D*,ghostcell*)=0;
+    
+
+    virtual double wave_fsf(lexer*,ghostcell*,double)=0;
+	
+	virtual int iozonecheck(lexer*,fdm*)=0;
+	
+};
+
+#endif
