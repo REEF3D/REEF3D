@@ -217,9 +217,9 @@ void sixdof_f::solve_quaternion
 )
 {
 	// Symplectic integration using 2nd-order Strömer-Verlet scheme
-	
+
 	// Linear momentum
-	
+/*	
 	e_[7] = e_[7] + p->dt/Mfb*e_[10] + p->dt*p->dt/(2.0*Mfb)*Xe;
 	e_[8] = e_[8] + p->dt/Mfb*e_[11] + p->dt*p->dt/(2.0*Mfb)*Ye;
 	e_[9] = e_[9] + p->dt/Mfb*e_[12] + p->dt*p->dt/(2.0*Mfb)*Ze;
@@ -279,11 +279,11 @@ void sixdof_f::solve_quaternion
 	{		
 		e_[i] = i < 4 ? e1[i] : (e_[i] + p->dt*L_[i]);
 	}
-	
+*/	
 
 	
     // RK4 scheme
-/*
+
 	std::vector<double> e1 = e_;
 	std::vector<double> e2 = e_;
 	std::vector<double> e3 = e_; 
@@ -322,7 +322,7 @@ void sixdof_f::solve_quaternion
 	{
 		e_[i] += 1.0/6.0*(e1[i] + 2.0*e2[i] + 2.0*e3[i] + p->dt*L_[i]); 
 	}	
-*/
+
 
 
 	//fluidUpdate(p,a,pgc,pmom,pflow,pfsf,pfsfdisc,psolv,preini,ppart,false,1);      
