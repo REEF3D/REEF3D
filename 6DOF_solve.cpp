@@ -279,6 +279,7 @@ void sixdof_f::solve_quaternion
 	{		
 		e_[i] = i < 4 ? e1[i] : (e_[i] + p->dt*L_[i]);
 	}
+
 */	
 
 	
