@@ -168,11 +168,10 @@ void sixdof_f::geometry_refinement(lexer *p)
 	tri_y_r.reserve(3*tricount);
 	tri_z_r.reserve(3*tricount);	
 	
-	vector<double> tri_new(3,0.0);
+	tri_x_r.resize(tricount,vector<double>(3,0.0));
+	tri_y_r.resize(tricount,vector<double>(3,0.0));
+	tri_z_r.resize(tricount,vector<double>(3,0.0));
 	
-	tri_x_r.resize(tricount,tri_new);
-	tri_y_r.resize(tricount,tri_new);
-	tri_z_r.resize(tricount,tri_new);
 	
 	for (int i = 0; i < tricount; i++)
 	{

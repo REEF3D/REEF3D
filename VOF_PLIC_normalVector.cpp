@@ -258,13 +258,7 @@ void VOF_PLIC::calcNormalLS(fdm* a, lexer* p)
 		+ nzCoeff[i][j][k][22]*(a->vof(i-1,j+1,k-1) - a->vof(i,j,k))
 		+ nzCoeff[i][j][k][23]*(a->vof(i-1,j-1,k-1) - a->vof(i,j,k))
 		+ nzCoeff[i][j][k][24]*(a->vof(i,j+1,k-1) - a->vof(i,j,k))
-		+ nzCoeff[i][j][k][25]*(a->vof(i,j-1,k-1) - a->vof(i,j,k)));
-		
-		
-nx(i,j,k) = 0.0;
-ny(i,j,k) = 0.0;	
-
-nz(i,j,k) = -1*(a->vof(i,j,k+1) - a->vof(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]);		
+		+ nzCoeff[i][j][k][25]*(a->vof(i,j-1,k-1) - a->vof(i,j,k)));	
 }
 
 
@@ -279,12 +273,6 @@ void VOF_PLIC::calcNormalWENO(fdm* a, lexer* p)
 
 void VOF_PLIC::calcNormalPhi(fdm* a, lexer* p)
 {
-    //- WENO gradient scheme
-    nx(i,j,k) = - normvec_x(a, a->phi);
-    ny(i,j,k) = - normvec_y(a, a->phi);
-    nz(i,j,k) = - normvec_z(a, a->phi); 
-
-/*
     nx(i,j,k) = 
         (a->phi(i-1,j-1,k-1)+a->phi(i-1,j-1,k+1)+a->phi(i-1,j+1,k-1)
         +a->phi(i-1,j+1,k+1)+2.0*(a->phi(i-1,j-1,k)+a->phi(i-1,j+1,k)
@@ -307,10 +295,7 @@ void VOF_PLIC::calcNormalPhi(fdm* a, lexer* p)
         +a->phi(i,j-1,k-1)+a->phi(i,j+1,k-1))+4.0*a->phi(i,j,k-1)) 
         - ( a->phi(i-1,j-1,k+1)+a->phi(i-1,j+1,k+1)+a->phi(i+1,j-1,k+1)
         +a->phi(i+1,j+1,k+1)+2.0*(a->phi(i-1,j,k+1)+a->phi(i+1,j,k+1)
-        +a->phi(i,j-1,k+1)+a->phi(i,j+1,k+1))+4.0*a->phi(i,j,k+1));
-
-
-*/   
+        +a->phi(i,j-1,k+1)+a->phi(i,j+1,k+1))+4.0*a->phi(i,j,k+1)); 
 }
 
 

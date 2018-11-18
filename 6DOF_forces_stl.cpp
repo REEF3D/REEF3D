@@ -170,14 +170,14 @@ void sixdof_f::forces_stl(lexer* p, fdm *a, ghostcell *pgc)
 	Ye += a->gj*Mfb;
 	Ze += a->gk*Mfb;
 
-
+/*
 if (p->mpirank == 0) cout<<"Changed force calc"<<endl;
 	double r = 0.0762;
 	double d = 0.01;
 
 	double hprime = p->zg - 0.8;
 
-	double h = r - abs(hprime);
+	double h = r - fabs(hprime);
 
 	double s = 2*sqrt(2*r*h-h*h);
 
@@ -201,7 +201,7 @@ if (p->mpirank == 0) cout<<"Changed force calc"<<endl;
 	Ke = 0.0;
 	Me = 0.0;
 	Ne = 0.0;
-
+*/
 
 
 	// Print results

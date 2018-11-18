@@ -47,9 +47,33 @@ void fluid_update_vof::start(lexer *p, fdm* a, ghostcell* pgc)
 
 	LOOP
 	{
-        epsi = p->F45*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
+        double fx,fy,fz,fn;
         
-		H=a->vof(i,j,k);
+        fx = fabs((a->phi(i+1,j,k) - a->phi(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]));
+        fy = fabs((a->phi(i,j+1,k) - a->phi(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]));
+        fz = fabs((a->phi(i,j,k+1) - a->phi(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]));
+        
+        fn = sqrt(fx*fx + fy*fy + fz*fz);
+        
+        fn = fn > 1.0e-20 ? fn : 1.0e20;
+        
+        fx = fx/fn;
+        fy = fy/fn;
+        fz = fz/fn;
+        
+        epsi = p->F45*(fx*p->DXN[IP]+fy*p->DYN[JP]+fz*p->DZN[KP]);
+        
+		if(a->phi(i,j,k)>epsi)
+		H=1.0;
+
+		if(a->phi(i,j,k)<-epsi)
+		H=0.0;
+
+		if(fabs(a->phi(i,j,k))<=epsi)
+		H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
+        
+        
+//		H=a->vof(i,j,k);	
 
 		H=MAX(H,0.0);
 		H=MIN(H,1.0);
