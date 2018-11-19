@@ -23,7 +23,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-
+# grseg 
+# gsg
 wave_lib_cnoidal_shallow::wave_lib_cnoidal_shallow(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc) 
 { 
     parameters(p,pgc);
