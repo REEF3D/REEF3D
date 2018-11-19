@@ -164,7 +164,7 @@ void sixdof_f::forces_stl(lexer* p, fdm *a, ghostcell *pgc)
 	Ne = pgc->globalsum(Ne);
 
 
-	// Add gravity forces
+	// Add gravity force
 	
 	Xe += a->gi*Mfb;
 	Ye += a->gj*Mfb;
