@@ -38,7 +38,7 @@ void mooring_DGSEM::facenodegen(lexer *p, double xS, double xE)
 
 void mooring_DGSEM::getqp(lexer *p)
 {
-	p->Darray(r, P+1);	
+	p->Darray(r, P+1);
 
 	r[0] = -1.0;
 	r[P] = 1.0;
