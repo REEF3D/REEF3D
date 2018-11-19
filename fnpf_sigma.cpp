@@ -171,7 +171,7 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsf
         if(p->flag7[FIp1JK]<0 || i==p->knox-1)
         p->sigz[FIp1JK] = p->sigz[FIJK];
         
-        if(p->flag7[FIJm1K]<0 || j==0)
+        if(p->flag7[FIJm1K]<0 || j==0)
         p->sigz[FIJm1K] = p->sigz[FIJK];
         
         if(p->flag7[FIJp1K]<0 || j==p->knoy-1)
