@@ -17,7 +17,5 @@ obj
 .codelite/refactoring.db
 REEF3D.batch_build
 REEF3D.mk
-REEF3D.txt
 *.workspace.session
-*.txt
 REEF3D.txt
