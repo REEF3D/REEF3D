@@ -59,19 +59,6 @@ benchmark_disk::benchmark_disk(lexer *p, fdm *a)
 	}
 
 
-    LOOP
-	{
-		a->vof(i,j,k) = 0.0;	
-
-		if (p->pos_z() >= -0.0 && p->pos_z() <= 0.7)
-		{
-			a->vof(i,j,k) = 1.0;
-		}
-		
-		a->test(i,j,k) = a->vof(i,j,k);
-	}
-
-
 
 	// Inverse field
 	if(p->F151==1)
@@ -102,9 +89,9 @@ void benchmark_disk::start(lexer* p, fdm *a, ghostcell *pgc, discrete *pdisc )
 {
     LOOP
     {
-		a->u(i,j,k) = 0.0;//-2.0*PI*p->pos_z();
+		a->u(i,j,k) = -2.0*PI*p->pos_z();
 		a->v(i,j,k) = 0.0;
-		a->w(i,j,k) = -1.0;//2.0*PI*p->pos_x();
+		a->w(i,j,k) = 2.0*PI*p->pos_x();
     }
 
     pgc->start1(p,a->u,10);

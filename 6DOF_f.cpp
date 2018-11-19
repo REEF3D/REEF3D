@@ -33,6 +33,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"reinidisc_fsf.h"
 #include"momentum_FSI.h"
 
+//#include"array"
+
 sixdof_f::sixdof_f
 (
 	lexer *p, 
@@ -161,4 +163,93 @@ void sixdof_f::start
 		if(p->mpirank==0)
 		cout<<"6DOF time: "<<setprecision(3)<<pgc->timer()-starttime<<endl;
     }   
+	
+/*
+starttime=pgc->timer();	
+	
+	double** testarray;
+	p->Darray(testarray,1000,1000);
+	
+	
+	for (int i = 0; i < 1000; i++)
+	{
+		for (int j = 0; j < 1000; j++)
+		{
+			testarray[i][j] =std::rand();
+		}
+	}
+	
+	
+cout<<"Test time array: "<<setprecision(5)<<pgc->timer()-starttime<<endl;		
+
+
+starttime=pgc->timer();	
+	
+	vector<vector < double > > test(1000, vector<double>(1000));
+	
+	for (int i = 0; i < 1000; i++)
+	{
+		for (int j = 0; j < 1000; j++)
+		{
+			test[i][j] =std::rand();
+		}
+	}
+	
+cout<<"Test time vector initialised: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
+	
+
+starttime=pgc->timer();	
+	
+	vector<double > testvector;
+	testvector.resize(100000);
+	
+	for (int i = 0; i < 100000; i++)
+	{
+	//	testvector[i].resize(1000);
+		
+	//	for (int j = 0; j < 1000; j++)
+		{
+			testvector[i] = std::rand();
+		}
+	}
+	
+cout<<"Test time vector reserved: "<<setprecision(5)<<pgc->timer()-starttime<<endl;	
+
+
+starttime=pgc->timer();	
+	
+	vector<double> testvector2(1,0.0);
+	
+	for (int i = 0; i < 100000; i++)
+	{
+		testvector2.push_back(std::rand());
+	}
+	
+cout<<"Test time vector push_back from zero: "<<setprecision(5)<<pgc->timer()-starttime<<endl;	
+
+
+
+starttime=pgc->timer();	
+	
+	std::array<double, 36000> myArray;
+
+	for (int i = 0; i < 1000; i++)
+	{
+		for (int j = 0; j < 1000; j++)
+		{
+			myArray[i][j] = std::rand();
+		}
+	}
+	
+	double val;
+		for(int qn=0; qn<1000; ++qn)
+	for(n=0; n<p->cellnum; ++n)
+	myArray[n]=0.0;
+	
+	for(int qn=0; qn<1000; ++qn)
+	for(n=0; n<p->cellnum; ++n)
+	val=myArray[n];
+	
+cout<<"Test time std::array: "<<setprecision(5)<<pgc->timer()-starttime<<endl;	
+*/
 }
