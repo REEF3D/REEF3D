@@ -129,7 +129,7 @@ void hypre_aij::fillbackvec(lexer *p, fdm *a, field &f, vec &xvec, int var)
 	HYPRE_IJVectorGetValues(x, p->N4_row, rows, a->xvec.V);
 	
         n=0;
-        LOOP
+        FLUIDLOOP
         {
         f(i,j,k)=xvec.V[n];
         ++n;

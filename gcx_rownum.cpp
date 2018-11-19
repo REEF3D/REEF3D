@@ -28,7 +28,7 @@ void ghostcell::rownum4_update(lexer* p, fdm* a,fieldint &rownum4)
 	p->N4_row=0;
 	p->N4_col=0;
 
-    LOOP
+    FLUIDLOOP
 	{
     rownum4(i,j,k)=p->N4_row;
     ++p->N4_row;
@@ -37,7 +37,7 @@ void ghostcell::rownum4_update(lexer* p, fdm* a,fieldint &rownum4)
 
     rangex(p,p->range_row4,p->N4_row);
 
-	LOOP
+	FLUIDLOOP
     rownum4(i,j,k)+=p->range_row4[p->mpirank];
 
 }
