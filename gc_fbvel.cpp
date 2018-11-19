@@ -41,7 +41,7 @@ void ghostcell::fbvel1(lexer *p,field& f, double dist, int gcv, int bc, int cs)
 	
 	if(cs==1)
 	for(q=0;q<margin;++q)
-	f(i-q-1,j,k)=vel;
+	f(i-q-1,j,k)=velpar;
 
 	if(cs==2)
 	for(q=0;q<margin;++q)
@@ -53,7 +53,7 @@ void ghostcell::fbvel1(lexer *p,field& f, double dist, int gcv, int bc, int cs)
 
 	if(cs==4)
 	for(q=0;q<margin;++q)
-	f(i+q+1,j,k)=vel;
+	f(i+q+1,j,k)=velpar;
 
 	if(cs==5)
 	for(q=0;q<margin;++q)
@@ -147,23 +147,23 @@ void ghostcell::fbvel1(lexer *p,field& f, double dist, int gcv, int bc, int cs)
 
 	if(p->X34==1)
     {
-	if(cs==1&&bc==43)
-	f(i-1,j,k)=0.5*(vel+f(i,j,k));
+        if(cs==1&&bc==43)
+        f(i-1,j,k)=0.5*(vel+f(i,j,k));
 
-	if(cs==2&&bc==43)
-	f(i,j+1,k)=0.5*(velpar+f(i,j,k));
+        if(cs==2&&bc==43)
+        f(i,j+1,k)=0.5*(velpar+f(i,j,k));
 
-	if(cs==3&&bc==43)
-	f(i,j-1,k)=0.5*(velpar+f(i,j,k));
+        if(cs==3&&bc==43)
+        f(i,j-1,k)=0.5*(velpar+f(i,j,k));
 
-	if(cs==4&&bc==43)
-	f(i+1,j,k)=0.5*(vel+f(i,j,k));
+        if(cs==4&&bc==43)
+        f(i+1,j,k)=0.5*(vel+f(i,j,k));
 
-	if(cs==5&&bc==43)
-	f(i,j,k-1)=0.5*(velpar+f(i,j,k));
+        if(cs==5&&bc==43)
+        f(i,j,k-1)=0.5*(velpar+f(i,j,k));
 
-	if(cs==6&&bc==43)
-	f(i,j,k+1)=0.5*(velpar+f(i,j,k));
+        if(cs==6&&bc==43)
+        f(i,j,k+1)=0.5*(velpar+f(i,j,k));
     }
 }
 
@@ -188,11 +188,11 @@ void ghostcell::fbvel2(lexer *p,field& f, double dist, int gcv, int bc, int cs)
 	
 	if(cs==2)
 	for(q=0;q<margin;++q)
-	f(i,j+q+1,k)=vel;
+	f(i,j+q+1,k)=velpar;
 
 	if(cs==3)
 	for(q=0;q<margin;++q)
-	f(i,j-q-1,k)=vel;
+	f(i,j-q-1,k)=velpar;
 
 	if(cs==4)
 	for(q=0;q<margin;++q)
@@ -292,23 +292,23 @@ void ghostcell::fbvel2(lexer *p,field& f, double dist, int gcv, int bc, int cs)
 	
     if(p->X34==1)
     {
-	if(cs==1&&bc==43)
-	f(i-1,j,k)=0.5*(velpar+f(i,j,k));
+        if(cs==1&&bc==43)
+        f(i-1,j,k)=0.5*(velpar+f(i,j,k));
 
-	if(cs==2&&bc==43)
-	f(i,j+1,k)=0.5*(vel+f(i,j,k));
+        if(cs==2&&bc==43)
+        f(i,j+1,k)=0.5*(vel+f(i,j,k));
 
-	if(cs==3&&bc==43)
-	f(i,j-1,k)=0.5*(vel+f(i,j,k));
+        if(cs==3&&bc==43)
+        f(i,j-1,k)=0.5*(vel+f(i,j,k));
 
-	if(cs==4&&bc==43)
-	f(i+1,j,k)=0.5*(vel+f(i,j,k));
+        if(cs==4&&bc==43)
+        f(i+1,j,k)=0.5*(vel+f(i,j,k));
 
-	if(cs==5&&bc==43)
-	f(i,j,k-1)=0.5*(velpar+f(i,j,k));
+        if(cs==5&&bc==43)
+        f(i,j,k-1)=0.5*(velpar+f(i,j,k));
 
-	if(cs==6&&bc==43)
-	f(i,j,k+1)=0.5*(velpar+f(i,j,k));
+        if(cs==6&&bc==43)
+        f(i,j,k+1)=0.5*(velpar+f(i,j,k));
     }
 }
 
@@ -345,11 +345,11 @@ void ghostcell::fbvel3(lexer *p,field& f, double dist, int gcv, int bc, int cs)
 
 	if(cs==5)
 	for(q=0;q<margin;++q)
-	f(i,j,k-q-1)=vel;
+	f(i,j,k-q-1)=velpar;
 
 	if(cs==6)
 	for(q=0;q<margin;++q)
-	f(i,j,k+q+1)=vel;
+	f(i,j,k+q+1)=velpar;
 	
 	
 	if(p->X31==4)
@@ -437,23 +437,23 @@ void ghostcell::fbvel3(lexer *p,field& f, double dist, int gcv, int bc, int cs)
 	
 	if(p->X34==1)
     {
-	if(cs==1&&bc==43)
-	f(i-1,j,k)=0.5*(velpar+f(i,j,k));
+        if(cs==1&&bc==43)
+        f(i-1,j,k)=0.5*(velpar+f(i,j,k));
 
-	if(cs==2&&bc==43)
-	f(i,j+1,k)=0.5*(velpar+f(i,j,k));
+        if(cs==2&&bc==43)
+        f(i,j+1,k)=0.5*(velpar+f(i,j,k));
 
-	if(cs==3&&bc==43)
-	f(i,j-1,k)=0.5*(velpar+f(i,j,k));
+        if(cs==3&&bc==43)
+        f(i,j-1,k)=0.5*(velpar+f(i,j,k));
 
-	if(cs==4&&bc==43)
-	f(i+1,j,k)=0.5*(velpar+f(i,j,k));
+        if(cs==4&&bc==43)
+        f(i+1,j,k)=0.5*(velpar+f(i,j,k));
 
-	if(cs==5&&bc==43)
-	f(i,j,k-1)=0.5*(vel+f(i,j,k));
+        if(cs==5&&bc==43)
+        f(i,j,k-1)=0.5*(vel+f(i,j,k));
 
-	if(cs==6&&bc==43)
-	f(i,j,k+1)=0.5*(vel+f(i,j,k));
+        if(cs==6&&bc==43)
+        f(i,j,k+1)=0.5*(vel+f(i,j,k));
 	}
 	
 }

@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"field4.h"
 #include"vec.h"
 #include"vector"
-#include"array"
+//#include"array"
 
 void driver::vec_test(lexer *p, fdm *a, ghostcell *pgc, field &f)
 {	
@@ -45,11 +45,11 @@ void driver::vec_test(lexer *p, fdm *a, ghostcell *pgc, field &f)
 	//std::size_t groesse = 36000;
 	cout<<p->cellnum<<endl;
 	
-	std::array<double, 36000> stdarray;
+	//std::array<double, 36000> stdarray;
 	
 	//--
 	starttime = pgc->timer();
-	
+	/*
 	for(qn=0; qn<1000; ++qn)
 	for(n=0; n<p->cellnum; ++n)
 	stdarray[n]=0.0;
@@ -57,7 +57,7 @@ void driver::vec_test(lexer *p, fdm *a, ghostcell *pgc, field &f)
 	for(qn=0; qn<1000; ++qn)
 	for(n=0; n<p->cellnum; ++n)
 	val=stdarray[n];
-	
+	*/
 	t6 = pgc->timer() - starttime;		
 	
 	starttime = pgc->timer();
