@@ -76,14 +76,14 @@ void VOF_PLIC::reconstructPlane(fdm* a, lexer* p)
 
 
 	//- Normalise plane
-
-    double sum = nx(i,j,k) + ny(i,j,k) + nz(i,j,k);// + pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP],1.0/3.0)*1e-5;
 	
-	sum = sum > 1.0e-20 ? sum : 1.0e20;
+    double sum = 
+		nx(i,j,k) + ny(i,j,k) + nz(i,j,k) 
+		+ 1.0e-4*pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP],1.0/3.0);
 	
-    nx(i,j,k) /= sum;
-    ny(i,j,k) /= sum;
-    nz(i,j,k) /= sum;		
+    nx(i,j,k) = nx(i,j,k)/sum;
+    ny(i,j,k) = ny(i,j,k)/sum;
+    nz(i,j,k) = nz(i,j,k)/sum;		
 
 
 	//-  Calculating alpha from n and vof according to Scardovelli p.234
@@ -196,6 +196,8 @@ double VOF_PLIC::calcAlpha
 	{
 		alpha = 1.0 - alpha;
 	}
-
+	
+if (alpha > 1.0) cout<<alpha<<endl;	
+	
 	return alpha;
 }

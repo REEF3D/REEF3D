@@ -25,13 +25,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"field4.h"
 #include"vec.h"
-#include"vector"
-//#include"array"
 
 void driver::vec_test(lexer *p, fdm *a, ghostcell *pgc, field &f)
 {	
 	int qn,n;
-	double t1,t2,t3,t4,t5,t6;
+	double t1,t2,t3,t4;
 	
 	
 	vec vec(p);
@@ -40,25 +38,6 @@ void driver::vec_test(lexer *p, fdm *a, ghostcell *pgc, field &f)
 	double val;
 	
 	p->Darray(d,p->cellnum);
-	
-	vector<double> stdvector(p->cellnum,0.0);
-	//std::size_t groesse = 36000;
-	cout<<p->cellnum<<endl;
-	
-	//std::array<double, 36000> stdarray;
-	
-	//--
-	starttime = pgc->timer();
-	/*
-	for(qn=0; qn<1000; ++qn)
-	for(n=0; n<p->cellnum; ++n)
-	stdarray[n]=0.0;
-	
-	for(qn=0; qn<1000; ++qn)
-	for(n=0; n<p->cellnum; ++n)
-	val=stdarray[n];
-	*/
-	t6 = pgc->timer() - starttime;		
 	
 	starttime = pgc->timer();
 	
@@ -111,29 +90,14 @@ void driver::vec_test(lexer *p, fdm *a, ghostcell *pgc, field &f)
 	
 	t4 = pgc->timer() - starttime;
 	
-	//--
-	starttime = pgc->timer();
-	
-	for(qn=0; qn<1000; ++qn)
-	for(n=0; n<p->cellnum; ++n)
-	stdvector[n]=0.0;
-	
-	for(qn=0; qn<1000; ++qn)
-	for(n=0; n<p->cellnum; ++n)
-	val=stdvector[n];
-	
-	t5 = pgc->timer() - starttime;	
-	
-	
 	t1=pgc->globalmax(t1);
 	t2=pgc->globalmax(t2);
 	t3=pgc->globalmax(t3);
 	t4=pgc->globalmax(t4);
-	t5=pgc->globalmax(t5);
-	t6=pgc->globalmax(t6);
+	
 	
 	if(p->mpirank==0)
-	cout<<"t_field: "<<setprecision(15)<<t1<<"  t_field.V: "<<setprecision(9)<<t2<<"\n  t_vec: "<<setprecision(9)<<t3<<"  t_double: "<<setprecision(9)<<t4<<"    "<<"  t_stdvector: "<<setprecision(9)<<t5<<"  t_stdarray: "<<setprecision(9)<<t6<<endl;
+	cout<<"t_field: "<<setprecision(9)<<t1<<"  t_field.V: "<<setprecision(9)<<t2<<"  t_vec: "<<setprecision(9)<<t3<<"  t_double: "<<setprecision(9)<<t4<<"    "<<endl;
 }
 
 void driver::func_test(lexer *p, fdm *a, ghostcell *pgc, field &f)

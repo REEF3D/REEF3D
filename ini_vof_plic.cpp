@@ -63,7 +63,6 @@ if(p->F58_4>0.0)
 	if(r<=p->F58_4)
 	a->vof(i,j,k)=1.0;
 	}
-	
 }
 
 if(p->F60>-1.0e20)
@@ -106,7 +105,7 @@ p->phimean=p->F60;
 
 
     //- Initialise distance function at start of simulation
-    /*p->F40 = 23;
+    p->F40 = 23;
     if(p->F70 > 0 || p->F71 > 0 || p->F72 > 0)
     {
         iniphi_box(p, a, pgc);
@@ -114,11 +113,5 @@ p->phimean=p->F60;
     else
     {
         iniphi(a, p, pgc);
-    } */
-
-	LOOP
-	{
-		a->test(i,j,k) = a->vof(i,j,k);
-	} 
-	pgc->start4(p,a->test,50);
+    }    
 }

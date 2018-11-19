@@ -80,31 +80,31 @@ void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsfbc 
 void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsfbc *pf, slice &eta)
 {
     FLOOP
-    p->sigx[FIJK] = (1.0 - p->sig[FIJK])*(pf->Bx(i,j)/c->WL(i,j)) - p->sig[FIJK]*(pf->Ex(i,j)/c->WL(i,j));
+    p->sigx[FIJK] = (1.0 - p->sig[FIJK])*(c->Bx(i,j)/c->WL(i,j)) - p->sig[FIJK]*(c->Ex(i,j)/c->WL(i,j));
     
     FLOOP
-    p->sigy[FIJK] = (1.0 - p->sig[FIJK])*(pf->By(i,j)/c->WL(i,j)) - p->sig[FIJK]*(pf->Ey(i,j)/c->WL(i,j));
+    p->sigy[FIJK] = (1.0 - p->sig[FIJK])*(c->By(i,j)/c->WL(i,j)) - p->sig[FIJK]*(c->Ey(i,j)/c->WL(i,j));
     
     FLOOP
     p->sigz[FIJK] = 1.0/c->WL(i,j);
     
     FLOOP
-    p->sigxx[FIJK] = ((1.0 - p->sig[FIJK])/c->WL(i,j))*(pf->Bxx(i,j) - pow(pf->Bx(i,j),2.0)/c->WL(i,j)) // xx
+    p->sigxx[FIJK] = ((1.0 - p->sig[FIJK])/c->WL(i,j))*(c->Bxx(i,j) - pow(c->Bx(i,j),2.0)/c->WL(i,j)) // xx
     
-                  - (p->sig[FIJK]/c->WL(i,j))*(pf->Exx(i,j) - pow(pf->Ex(i,j),2.0)/c->WL(i,j))
+                  - (p->sig[FIJK]/c->WL(i,j))*(c->Exx(i,j) - pow(c->Ex(i,j),2.0)/c->WL(i,j))
                   
-                  - (p->sigx[FIJK]/c->WL(i,j))*(pf->Bx(i,j) + pf->Ex(i,j))*0.0
+                  - (p->sigx[FIJK]/c->WL(i,j))*(c->Bx(i,j) + c->Ex(i,j))*0.0
                   
-                  - ((1.0 - 2.0*p->sig[FIJK])/pow(c->WL(i,j),2.0))*(pf->Bx(i,j)*pf->Ex(i,j))
+                  - ((1.0 - 2.0*p->sig[FIJK])/pow(c->WL(i,j),2.0))*(c->Bx(i,j)*c->Ex(i,j))
                   
                   
-                  + ((1.0 - p->sig[FIJK])/c->WL(i,j))*(pf->Byy(i,j) - pow(pf->By(i,j),2.0)/c->WL(i,j)) // yy
+                  + ((1.0 - p->sig[FIJK])/c->WL(i,j))*(c->Byy(i,j) - pow(c->By(i,j),2.0)/c->WL(i,j)) // yy
     
-                  - (p->sig[FIJK]/c->WL(i,j))*(pf->Eyy(i,j) - pow(pf->Ey(i,j),2.0)/c->WL(i,j))
+                  - (p->sig[FIJK]/c->WL(i,j))*(c->Eyy(i,j) - pow(c->Ey(i,j),2.0)/c->WL(i,j))
                   
-                  - (p->sigy[FIJK]/c->WL(i,j))*(pf->By(i,j) + pf->Ey(i,j))*0.0
+                  - (p->sigy[FIJK]/c->WL(i,j))*(c->By(i,j) + c->Ey(i,j))*0.0
                   
-                  - ((1.0 - 2.0*p->sig[FIJK])/pow(c->WL(i,j),2.0))*(pf->By(i,j)*pf->Ey(i,j));
+                  - ((1.0 - 2.0*p->sig[FIJK])/pow(c->WL(i,j),2.0))*(c->By(i,j)*c->Ey(i,j));
     
     SLICELOOP4
     {
@@ -164,7 +164,25 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsf
     }
     
     FLOOP
+    {
+        if(p->flag7[FIm1JK]<0 || i==0)
+        p->sigz[FIm1JK] = p->sigz[FIJK];
+        
+        if(p->flag7[FIp1JK]<0 || i==p->knox-1)
+        p->sigz[FIp1JK] = p->sigz[FIJK];
+        
+        if(p->flag7[FIJm1K]<0 || j==0)
+        p->sigz[FIJm1K] = p->sigz[FIJK];
+        
+        if(p->flag7[FIJp1K]<0 || j==p->knoy-1)
+        p->sigz[FIJp1K] = p->sigz[FIJK];
+    }
+    
+    
+    FLOOP
     p->ZSN[FIJK] = p->ZN[KP]*(c->eta(i,j) + p->wd - c->bed(i,j)) + c->bed(i,j);
+    
+    
     
 
 }

@@ -357,7 +357,7 @@ void wave_lib_spectrum::amplitudes_focused(lexer *p)
     double Sw_sum;
     
     // Amplitudes
-	if(p->B82==1)
+	if(p->B82==1 || p->B82==11)
 	{
     Sw_sum=0.0;
     
@@ -368,15 +368,15 @@ void wave_lib_spectrum::amplitudes_focused(lexer *p)
 	Ai[n] = (p->wAs*Si[n]*dw[n])/Sw_sum;
 	}
     
-    if(p->B82==2)
+    if(p->B82==2 || p->B82==12)
 	for(n=0;n<p->wN;++n)
 	Ai[n] = sqrt(2.0*Si[n]*dw[n]);
 	
-	if(p->B82==3)
+	if(p->B82==3 || p->B82==13)
 	for(n=0;n<p->wN;++n)
 	Ai[n] = (2.0*PI*p->B83)/(ki[n]);
 	
-	if(p->B82==4)
+	if(p->B82==4 || p->B82==14)
 	for(n=0;n<p->wN;++n)
 	Ai[n] = p->wAs;
 	
@@ -394,8 +394,13 @@ void wave_lib_spectrum::phases_irregular(lexer *p)
 void wave_lib_spectrum::phases_focused(lexer *p)
 {
     // make phases
+    if(p->B82<11)
     for(int n=0;n<p->wN;++n)
 	ei[n]  = ki[n]*p->B81_1 - wi[n]*p->B81_2;
+    
+    if(p->B82>=11)
+    for(int n=0;n<p->wN;++n)
+	ei[n]  = ki[n]*p->B81_1 - wi[n]*p->B81_2 + PI;
 }
 
 void wave_lib_spectrum::print_spectrum(lexer *p)

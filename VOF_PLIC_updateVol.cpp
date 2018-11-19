@@ -119,6 +119,8 @@ void VOF_PLIC::updateVolumeFraction
 					m1,
 					m2
 				);
+				
+		double test = calcV2(p);
 	}
 	else if (sweep == 1)
 	{

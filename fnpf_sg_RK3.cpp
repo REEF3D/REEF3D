@@ -194,11 +194,6 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, di
     pgc->start4(p,c->test,50);
 
     velcalc_sig(p,c,pgc,c->Fi);
-    
-    /*
-    k=0;
-    SLICELOOP4
-    cout<<c->Fi[FIJKp1]<<" "<<c->Fi[FIJK]<<" "<<c->Fi[FIJKm1]<<endl;*/
 }
 
 void fnpf_sg_RK3::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc)

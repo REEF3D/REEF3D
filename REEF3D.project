@@ -1031,9 +1031,9 @@
             <File Name="mooring_QuasiStatic.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="DGSEM">
-            <File Name="mooring_DGSEM_mesh_eigen.cpp"/>
+            <File Name="mooring_DGSEM_mesh_eigen.cpp" ExcludeProjConfig="Release;"/>
             <File Name="mooring_DGSEM_limiter.cpp"/>
-            <File Name="mooring_DGSEM_mesh.cpp" ExcludeProjConfig="Release;"/>
+            <File Name="mooring_DGSEM_mesh.cpp" ExcludeProjConfig=""/>
             <File Name="mooring_DGSEM_print.cpp"/>
             <File Name="mooring_DGSEM_L.cpp"/>
             <File Name="mooring_DGSEM_ini.cpp"/>

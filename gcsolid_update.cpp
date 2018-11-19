@@ -121,6 +121,7 @@ void ghostcell::solid_update(lexer *p, fdm *a)
     
     //cout<<p->mpirank<<" GCB4_COUNT:  "<<p->gcb4_count<<endl;
     
+    
     if(p->mpirank==0)
     cout<<endl;
 }

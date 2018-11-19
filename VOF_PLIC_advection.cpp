@@ -48,17 +48,17 @@ void VOF_PLIC::advectPlane
 	
 	if (sweep == 0)
 	{
-		nx(i, j, k) /= (1.0 + (Q2 - Q1));
+		nx(i, j, k) /= (1.0 - Q1 + Q2);
 		alpha(i, j, k) += nx(i, j, k)*Q1;
 	}
 	else if (sweep == 1)
 	{
-		ny(i, j, k) /= (1.0 + (Q2 - Q1));
+		ny(i, j, k) /= (1.0 - Q1 + Q2);
 		alpha(i, j, k) += ny(i, j, k)*Q1;
 	}
 	else
 	{
-		nz(i, j, k) /= (1.0 + (Q2 - Q1));
+		nz(i, j, k) /= (1.0 - Q1 + Q2);
 		alpha(i, j, k) += nz(i, j, k)*Q1;
 	}
 }
@@ -74,7 +74,8 @@ void VOF_PLIC::calcFlux(fdm* a, lexer* p, double& Q1, double& Q2, int sweep)
 		velr = a->u(i, j, k);
 
 		Q1 = ((velr - vell)*vell*p->dt*p->dt/(2.0*p->DXN[IP]) + vell*p->dt)/p->DXN[IP];
-		Q2 = ((velr - vell)*velr*p->dt*p->dt/(2.0*p->DXN[IP]) + velr*p->dt)/p->DXN[IP];			
+		Q2 = ((velr - vell)*velr*p->dt*p->dt/(2.0*p->DXN[IP]) + velr*p->dt)/p->DXN[IP];	
+		
 	}
 	else if (sweep == 1)
 	{
@@ -90,7 +91,7 @@ void VOF_PLIC::calcFlux(fdm* a, lexer* p, double& Q1, double& Q2, int sweep)
 		velr = a->w(i, j, k);
 
 		Q1 = ((velr - vell)*vell*p->dt*p->dt/(2.0*p->DZN[KP]) + vell*p->dt)/p->DZN[KP];
-		Q2 = ((velr - vell)*velr*p->dt*p->dt/(2.0*p->DZN[KP]) + velr*p->dt)/p->DZN[KP];
-	}
+		Q2 = ((velr - vell)*velr*p->dt*p->dt/(2.0*p->DZN[KP]) + velr*p->dt)/p->DZN[KP];	
+	}	
 }
 	

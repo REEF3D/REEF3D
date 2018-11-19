@@ -48,11 +48,7 @@ public:
 
     double ivel1,ivel2,jvel1,jvel2,kvel;
     
-    slice4 Fx,Fy;
-    slice4 Ex,Ey;
-    slice4 Exx,Eyy;
-    slice4 Bx,By;
-    slice4 Bxx,Byy;
+    
 };
 
 #endif

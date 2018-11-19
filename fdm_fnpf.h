@@ -51,6 +51,13 @@ public:
     slice4 Fifsf,Fibed,Fz;
     slice4 K;
     sliceint4 etaloc;
+    
+    slice4 Fx,Fy;
+    slice4 Ex,Ey;
+    slice4 Exx,Eyy;
+    slice4 Bx,By;
+    slice4 Bxx,Byy;
+    
 
 	
     vec rhsvec;

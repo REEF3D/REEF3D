@@ -119,6 +119,19 @@ void driver::loop_cfd(fdm* a)
         ptstep->start(a,p,pgc,pturb);
         p->simtime+=p->dt;
         
+        
+        GC6LOOP
+        {
+         i = p->gcb4[n][0];
+         j = p->gcb4[n][1];
+         k = p->gcb4[n][2];
+        
+        if(p->gcb4[n][3]!=2 && p->gcb4[n][3]!=3)
+        a->test(i,j,k) = 1.0;
+        }
+        
+        
+        
         // printer
         pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
 

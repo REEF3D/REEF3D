@@ -123,8 +123,8 @@ void ghostcell::gcfb_update(lexer *p, fdm *a)
 //-------------------
 
     gcfb_velupdate(p,a,cellmem1,cellcount1,0.0,0.0,0.5*p->dx,1);
-    //gcfb_velupdate(p,a,cellmem2,cellcount2,0.0,0.5*p->dx,0.0,2);
-    //gcfb_velupdate(p,a,cellmem3,cellcount3,0.5*p->dx,0.0,0.0,3);
+    gcfb_velupdate(p,a,cellmem2,cellcount2,0.0,0.5*p->dx,0.0,2);
+    gcfb_velupdate(p,a,cellmem3,cellcount3,0.5*p->dx,0.0,0.0,3);
 	//gcfb_scalarupdate(p,a,cellmem4,cellcount4,a->press);
 	
 //-------------------

@@ -19,13 +19,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-/*
-	gcb: i,j,k,side,bctype
-    gcd: distance to solid
-*/
-
-
-
 #include <mpi.h>
 #include"norm_vec.h"
 #include"boundarycheck.h"

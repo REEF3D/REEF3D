@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/liceonephases/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_sg_bed_update.h"
+ #include"fnpf_sg_bed_update.h"
 #include"fnpf_sg_fsfbc.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
@@ -49,19 +49,17 @@ void fnpf_sg_bed_update::bedbc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double
     k=0;
     SLICELOOP4
     {
-    bcval =   (pf->Bx(i,j)*(Fi[FIp1JK]-Fi[FIm1JK])/(p->DXP[IP] + p->DXP[IM1])
+    bcval =   (c->Bx(i,j)*(c->Fi[FIp1JK]-c->Fi[FIm1JK])/(p->DXP[IP] + p->DXP[IM1])
     
-            +  pf->By(i,j)*(Fi[FIJp1K]-Fi[FIJm1K])/(p->DYP[JP] + p->DYP[JM1]));
+            +  c->By(i,j)*(c->Fi[FIJp1K]-c->Fi[FIJm1K])/(p->DYP[JP] + p->DYP[JM1]));
             
-    denom = p->sigz[FIJK] + pf->Bx(i,j)*p->sigx[FIJK] + pf->By(i,j)*p->sigy[FIJK];
+    denom =  p->sigz[FIJK] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
     
-   // if(p->pos_x()>6.0 && p->pos_x()<10.0)
-    //cout<<Fi[FIJK]<<" "<<bcval<<endl;
     
-    //Fi[FIJK]   = -(bcval/denom)*(1.0*p->DZP[KP]) + Fi[FIJKp1];
-    Fi[FIJKm1] = +(bcval/denom)*(2.0*p->DZP[KP]) + Fi[FIJK];
-    Fi[FIJKm2] = -(bcval/denom)*(3.0*p->DZP[KP]) + Fi[FIJK];
-    Fi[FIJKm3] = -(bcval/denom)*(4.0*p->DZP[KP]) + Fi[FIJK];
+    //Fi[FIJK]   = (bcval/denom)*(1.0*p->DZP[KP]) + Fi[FIJKp1];
+    Fi[FIJKm1] = (bcval/denom)*(2.0*p->DZP[KP]) + Fi[FIJKp1];
+    Fi[FIJKm2] = (bcval/denom)*(3.0*p->DZP[KP]) + Fi[FIJKp1];
+    Fi[FIJKm3] = (bcval/denom)*(4.0*p->DZP[KP]) + Fi[FIJKp1];
     }
 }
 

@@ -58,7 +58,6 @@ void fnpf_sg_fsf_update::etaloc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
 void fnpf_sg_fsf_update::fsfbc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Fifsf, double *Fi)
 {
-    
     FFILOOP4
     {
         Fi[FIJK]   = Fifsf(i,j);

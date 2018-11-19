@@ -777,6 +777,7 @@ void driver::logic()
     if(p->I11==1 )
     potflow = new potential_f(p);
 
+
 // Benchmark
     if(p->F150==0)
     pbench = new benchmark_void;
@@ -912,7 +913,7 @@ void driver::logic()
 	if(p->A10==4)
     loop_nsewave(a);
     
-    if(p->A10==5 && p->X10 == 1 && p->X13 >= 1 && p->N40==0) 
+    if(p->A10==5 && p->X10 == 1 && p->X13 >= 1) 
 	{
 		loop_cfd_fsi(a);
 	}

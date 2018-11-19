@@ -37,8 +37,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_ddx_cds2.h"
 #include"fnpf_ddx_cds4.h"
 
-fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : Fx(p),Fy(p),Ex(p),Ey(p),
-                                                                Exx(p),Eyy(p),Bx(p),By(p),Bxx(p),Byy(p)
+fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) 
 {    
     if(p->A311==0)
     pdisc = new fnpf_voiddisc(p);
@@ -81,22 +80,25 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     jvel2 = (Fifsf(i,j+1) - Fifsf(i,j))/p->DYP[JP];
     
     
-    Fx(i,j) = pdisc->sx(p,Fifsf,ivel1,ivel2);
-    Fy(i,j) = pdisc->sy(p,Fifsf,jvel1,jvel2);
+    c->Fx(i,j) = pdisc->sx(p,Fifsf,ivel1,ivel2);
+    c->Fy(i,j) = pdisc->sy(p,Fifsf,jvel1,jvel2);
     
-    Ex(i,j) = pdisc->sx(p,eta,ivel1,ivel2);
-    Ey(i,j) = pdisc->sy(p,eta,jvel1,jvel2);
+    c->Ex(i,j) = pdisc->sx(p,eta,ivel1,ivel2);
+    c->Ey(i,j) = pdisc->sy(p,eta,jvel1,jvel2);
     
     
-    Exx(i,j) = pddx->sxx(p,eta);
-    Eyy(i,j) = pddx->syy(p,eta);
+    c->Exx(i,j) = pddx->sxx(p,eta);
+    c->Eyy(i,j) = pddx->syy(p,eta);
     
-    Bx(i,j) = pdisc->sx(p,c->depth,ivel1,ivel2);
-    By(i,j) = pdisc->sy(p,c->depth,jvel1,jvel2);
+    c->Bx(i,j) = pdisc->sx(p,c->depth,ivel1,ivel2);
+    c->By(i,j) = pdisc->sy(p,c->depth,jvel1,jvel2);
     
-    Bxx(i,j) = pddx->sxx(p,c->depth);
-    Byy(i,j) = pddx->syy(p,c->depth);
+    c->Bxx(i,j) = pddx->sxx(p,c->depth);
+    c->Byy(i,j) = pddx->syy(p,c->depth);
     }
+    
+    pgc->gcsl_start4(p,c->Bx,1);
+    pgc->gcsl_start4(p,c->By,1);
     
 }
 
@@ -114,17 +116,17 @@ void fnpf_sg_fsfbc::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
 void fnpf_sg_fsfbc::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     SLICELOOP4
-    c->K(i,j) =  - Fx(i,j)*Ex(i,j) - Fy(i,j)*Ey(i,j) 
+    c->K(i,j) =  - c->Fx(i,j)*c->Ex(i,j) - c->Fy(i,j)*c->Ey(i,j) 
     
-                 + c->Fz(i,j)*(1.0 + pow(Ex(i,j),2.0) + pow(Ey(i,j),2.0));
+                 + c->Fz(i,j)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0));
 }
 
 void fnpf_sg_fsfbc::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
 {
     SLICELOOP4
-    c->K(i,j) =  - 0.5*pow(Fx(i,j),2.0) - 0.5*pow(Fy(i,j),2.0) 
+    c->K(i,j) =  - 0.5*pow(c->Fx(i,j),2.0) - 0.5*pow(c->Fy(i,j),2.0) 
     
-                 + 0.5*pow(c->Fz(i,j),2.0)*(1.0 + pow(Ex(i,j),2.0) + pow(Ey(i,j),2.0)) - fabs(p->W22)*eta(i,j);
+                 + 0.5*pow(c->Fz(i,j),2.0)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0)) - fabs(p->W22)*eta(i,j);
 }
 
 
