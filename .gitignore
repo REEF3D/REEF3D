@@ -18,4 +18,4 @@ obj
 REEF3D.batch_build
 REEF3D.mk
 *.workspace.session
-REEF3D.txt
+*.txt
