@@ -38,6 +38,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 #define FSCHECK  if(p->flag7[FIJK]<=0)
 #define FPCHECK  if(p->flag7[FIJK]>0)
 #define SCHECK  if(p->flag4[IJK]<0)
+#define SFLUIDCHECK  if(p->flag4[IJK]<AIR)
 #define USCHECK  if(p->flag1[UIJK]<0)
 #define VSCHECK  if(p->flag2[VIJK]<0)
 #define WSCHECK  if(p->flag3[WIJK]<0)

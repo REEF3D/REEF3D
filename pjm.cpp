@@ -111,9 +111,7 @@ void pjm::wcorr(fdm* a, lexer* p, field& wvel,double alpha)
  
 void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
 {
-    
-	double uvel,vvel,wvel;
-	
+
     NLOOP4
 	a->rhsvec.V[n]=0.0;
 	
@@ -131,7 +129,6 @@ void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,dou
     pip=0;
 }
  
-
 void pjm::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
 {
 	pgc->start1(p,u,gcval_u);
