@@ -71,7 +71,7 @@ void lexer::lexer_gridspacing()
     for(k=-marge;k<knoz+marge;++k)
     DZP[KP] = 0.5*(ZN[KP2]+ZN[KP1]) - 0.5*(ZN[KP1]+ZN[KP]);
     
-    DXM = dx;
+    DXM = 0.0;
     
     int count=0;
     
@@ -94,5 +94,4 @@ void lexer::lexer_gridspacing()
     }
     
     DXM /= double(count); 
-    
 }
