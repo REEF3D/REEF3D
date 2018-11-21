@@ -53,9 +53,6 @@ void ghostcell::nse3(lexer *p, fdm *a, field &f, int gcv)
         zp = p->pos3_z() + nz*(1.0*fabs(lsv)+2.0*p->DZN[KP]);
   
         f(i,j,k) = p->ccipol3(f, xp, yp, zp);  
-
-        //if(p->mpirank==0)
-        //cout<<" xp: "<<nx<<" yp: "<<yp<<" zp: "<<zp<<" lsm: "<<lsv/p->DXP[IP]<<" |  "<<p->ccipol3(f, xp, yp, zp)<<" "<<p->ccipol4_a(a->phi, xp, yp, zp)<<endl;
         }
 
     }

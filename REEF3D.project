@@ -621,6 +621,7 @@
         <File Name="solver_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="HYPRE">
+        <File Name="hypre_sstruct.h"/>
         <File Name="hypre_aij.h"/>
         <File Name="hypre_struct.h"/>
       </VirtualDirectory>
@@ -1059,7 +1060,7 @@
           <File Name="6DOF_ray_z.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Force">
-          <File Name="6DOF_forces_lsm.cpp"/>
+          <File Name="6DOF_force_lsm.cpp"/>
           <File Name="6DOF_forces_stl.cpp"/>
           <File Name="6DOF_forces.cpp"/>
           <File Name="6DOF_forces_triang.cpp"/>
@@ -1946,6 +1947,7 @@
       <File Name="pjm_nse.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
+      <VirtualDirectory Name="HYPRE SStruct"/>
       <VirtualDirectory Name="CG">
         <File Name="bicgstab.cpp"/>
       </VirtualDirectory>

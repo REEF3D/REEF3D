@@ -31,7 +31,7 @@ void hypre_struct::fill_matrix4(lexer* p,fdm* a, ghostcell* pgc, field &f)
     fieldint4 cval4(p);
     
     count=0;
-    LOOP
+    FLUIDLOOP
     {
     cval4(i,j,k)=count;
     ++count;
@@ -45,7 +45,7 @@ void hypre_struct::fill_matrix4(lexer* p,fdm* a, ghostcell* pgc, field &f)
     count=0;
     KJILOOP
     {
-		PCHECK
+		PFLUIDCHECK
 		{
 		n=cval4(i,j,k);
         
@@ -71,7 +71,7 @@ void hypre_struct::fill_matrix4(lexer* p,fdm* a, ghostcell* pgc, field &f)
 		++count; 
 		}     
 		
-		SCHECK
+		SFLUIDCHECK
 		{
 		values[count]=1.0;
 		++count;
@@ -104,10 +104,10 @@ void hypre_struct::fill_matrix4(lexer* p,fdm* a, ghostcell* pgc, field &f)
     count=0;
 	KJILOOP
 	{
-		PCHECK
+		PFLUIDCHECK
 		values[count] = f(i,j,k);
 		
-		SCHECK
+		SFLUIDCHECK
 		values[count] = 0.0;
 	
     ++count;
@@ -120,13 +120,13 @@ void hypre_struct::fill_matrix4(lexer* p,fdm* a, ghostcell* pgc, field &f)
     count=0; 
 	KJILOOP
 	{
-		PCHECK
+		PFLUIDCHECK
 		{
 		n=cval4(i,j,k);
 		values[count] = a->rhsvec.V[n];
 		}
 		
-		SCHECK
+		SFLUIDCHECK
 		values[count] = 0.0;
 
     ++count;
@@ -143,7 +143,7 @@ void hypre_struct::fillbackvec4(lexer *p, field &f, vec &xvec, int var)
         count=0;
         KJILOOP
         {
-		PCHECK
+		PFLUIDCHECK
         f(i,j,k)=values[count];
 		
         ++count;

@@ -55,7 +55,7 @@ void ghostcell::nse4(lexer *p, fdm *a, field &f, int gcv)
         zp = p->pos_z() + nz*(1.0*fabs(lsv)+0.5*dx);
 
         
-        val = p->ccipol4(f, xp, yp, zp);
+        val = 0.0;p->ccipol4(f, xp, yp, zp);
         
         f(i,j,k) =  -val;
         }
