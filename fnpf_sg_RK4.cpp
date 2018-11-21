@@ -90,9 +90,6 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, di
     frk(i,j)  = c->Fifsf(i,j) + 0.5*frk1(i,j);
     }
     
-    SLICELOOP4
-    en(i,j) = erk(i,j);
-    
     pflow->eta_relax(p,pgc,erk);
     pgc->gcsl_start4(p,erk,gcval_eta);
     pflow->fifsf_relax(p,pgc,frk);
@@ -108,9 +105,13 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, di
     
     // solve Fi
     pflow->fivec_relax(p,pgc,c->Fi);
+    pgc->start7V(p,c->Fi,250);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
     pgc->start7V(p,c->Fi,250);
     pf->fsfwvel(p,c,pgc,erk,frk);
+    
+    SLICELOOP4
+    en(i,j) = erk(i,j);
 
 // Step 2
     // fsf eta
@@ -131,9 +132,6 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, di
     frk(i,j)  = c->Fifsf(i,j) + 0.5*frk2(i,j);
     }
     
-    SLICELOOP4
-    en(i,j) = erk(i,j);
-    
     pflow->eta_relax(p,pgc,erk);
     pgc->gcsl_start4(p,erk,gcval_eta);
     pflow->fifsf_relax(p,pgc,frk);
@@ -149,9 +147,13 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, di
     
     // solve Fi
     pflow->fivec_relax(p,pgc,c->Fi);
+    pgc->start7V(p,c->Fi,250);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
     pgc->start7V(p,c->Fi,250);
     pf->fsfwvel(p,c,pgc,erk,frk);
+    
+    SLICELOOP4
+    en(i,j) = erk(i,j);
     
 // Step 3
     // fsf eta
@@ -187,6 +189,7 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, di
     
     // solve Fi
     pflow->fivec_relax(p,pgc,c->Fi);
+    pgc->start7V(p,c->Fi,250);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
     pgc->start7V(p,c->Fi,250);
     pf->fsfwvel(p,c,pgc,erk,frk);
@@ -219,6 +222,7 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, di
     
     // solve Fi
     pflow->fivec_relax(p,pgc,c->Fi);
+    pgc->start7V(p,c->Fi,250);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
     pgc->start7V(p,c->Fi,250);
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
@@ -226,6 +230,8 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, di
     LOOP
     c->test(i,j,k) = c->Fifsf(i,j);
 
+    pflow->eta_relax(p,pgc,c->eta);
+    pflow->fifsf_relax(p,pgc,c->Fifsf);
     
     velcalc_sig(p,c,pgc,c->Fi);
 }
@@ -240,6 +246,7 @@ void fnpf_sg_RK4::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     sigma_update(p,c,pgc,pf,c->eta);
     
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
+    
 
     LOOP
     c->test(i,j,k) = c->Fz(i,j);
