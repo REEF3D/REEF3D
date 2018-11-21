@@ -12,11 +12,10 @@ Debug
 bin
 lib
 obj
-.codelite/.tern-port   
-.codelite/REEF3D.tags  
+.codelite/.tern-port
+.codelite/REEF3D.tags
 .codelite/refactoring.db
 REEF3D.batch_build
 REEF3D.mk
 *.workspace.session
 *.txt
-REEF3D.txt
