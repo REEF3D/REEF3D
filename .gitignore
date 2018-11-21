@@ -18,8 +18,5 @@ obj
 REEF3D.batch_build
 REEF3D.mk
 *.workspace.session
-<<<<<<< HEAD
 REEF3D.txt
-=======
 *.txt
->>>>>>> parent of 62d0020... test
