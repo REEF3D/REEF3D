@@ -70,7 +70,6 @@ fnpf_sg_RK3::~fnpf_sg_RK3()
 
 void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, discrete *pdisc, ioflow *pflow, reini *preini, onephase* poneph)
 {	
-    int qn;
 // Step 1
     // fsf eta
     pf->kfsfbc(p,c,pgc);

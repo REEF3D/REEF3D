@@ -25,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 
-fnpf_timestep::fnpf_timestep(lexer* p):epsi(1.0e-19),maxtimestep(p->N49),c0_orig(p->N47)
+fnpf_timestep::fnpf_timestep(lexer* p):epsi(1.0e-3),maxtimestep(p->N49),c0_orig(p->N47)
 {
 }
 
@@ -91,6 +91,8 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
 
     
    	p->dt=p->N47*cw;
+
+    
 	p->dt=pgc->timesync(p->dt);
 
 	p->dt=MIN(p->dt,maxtimestep);
@@ -119,6 +121,8 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
 
 
 	p->dt=p->N47*cu;
+
+    
 	p->dt=pgc->timesync(p->dt);
 	p->dt_old=p->dt;
 

@@ -100,7 +100,6 @@ double fnpf_weno::sz(lexer *p, double *f, double kvel1, double kvel2)
 {
     return (-(25.0/12.0)*f[FIJK] + 4.0*f[FIJKm1] - 3.0*f[FIJKm2] + (4.0/3.0)*f[FIJKm3] - 0.25*f[FIJKm4])
           /(-(25.0/12.0)*p->ZP[KP] + 4.0*p->ZP[KM1] - 3.0*p->ZP[KM2] + (4.0/3.0)*p->ZP[KM3] - 0.25*p->ZP[KM4]); 
-          
     
     /*return (-(25.0/12.0)*f[FIJKp1] + 4.0*f[FIJK] - 3.0*f[FIJKm1] + (4.0/3.0)*f[FIJKm2] - 0.25*f[FIJKm3])
           /(-(25.0/12.0)*p->ZP[KP1] + 4.0*p->ZP[KP] - 3.0*p->ZP[KM1] + (4.0/3.0)*p->ZP[KM2] - 0.25*p->ZP[KM3]);*/
