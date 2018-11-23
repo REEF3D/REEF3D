@@ -54,7 +54,7 @@ public:
     virtual void fillxvec3(lexer*,fdm*,field&);
     virtual void fillxvec4(lexer*,fdm*,field&);
 	virtual void fillbackvec(lexer*,fdm*,field&,vec&,int);
-    virtual void fillbackvec_F(lexer*,field&,vec&,int);
+    
     
     void make_grid(lexer*,fdm*, ghostcell*);
     void delete_grid(lexer*,ghostcell*);
@@ -62,16 +62,18 @@ public:
     void fill_matrix_13p(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix_19p(lexer*,fdm*, ghostcell*,field&);
     
+    
     void create_solvers(lexer*,ghostcell*);
     void delete_solvers(lexer*,ghostcell*);
     
     // FNPF Laplace solver 
     virtual void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int, int, double);
     void make_grid_F(lexer*, ghostcell*);
-    void fill_matrix_F(lexer*,ghostcell*, matrix_diag&,field&);
-    void fill_matrix_F_13p(lexer*, ghostcell*, matrix_diag&,field&);
-    void fill_matrix_F_19p(lexer*, ghostcell*, matrix_diag&,field&);
+    void fill_matrix_F(lexer*,ghostcell*, matrix_diag&,double*,double*,vec&);
+    void fill_matrix_F_13p(lexer*, ghostcell*, matrix_diag&,double*,double*,vec&);
+    void fill_matrix_F_19p(lexer*, ghostcell*, matrix_diag&,double*,double*,vec&);
 	
+    virtual void fillbackvec_F(lexer*,double*,double*,int);
     
 private:
     

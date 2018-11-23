@@ -28,9 +28,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void hypre_aij::make_grid_F(lexer* p, ghostcell* pgc)
 {
+    
     fieldint4 rownum4(p);
     
-    //pgc->rownum4_update(p,a,rownum4);
+    pgc->rownum7_update(p,rownum4);
     //pgc->facenbx(p,rownum4,p->range_row4);
         
      p->range_col4[0]=0;

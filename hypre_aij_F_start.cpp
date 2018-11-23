@@ -30,18 +30,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void hypre_aij::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var, int gcv, double stop_crit)
 {     
+    double *xvec;
+    
+    p->Darray(xvec,p->knox*p->knoy*p->knoz);
 
     make_grid_F(p,pgc);
     create_solvers(p,pgc);
     
     if(var<=5)
-	fill_matrix_F(p,pgc,M,f);
+	fill_matrix_F(p,pgc,M,f,xvec,rhsvec);
     
     if(var==6)
-	fill_matrix_F_13p(p,pgc,M,f);
+	fill_matrix_F_13p(p,pgc,M,f,xvec,rhsvec);
     
     if(var==7)
-	fill_matrix_F_19p(p,pgc,M,f);
+	fill_matrix_F_19p(p,pgc,M,f,xvec,rhsvec);
   
 
     if(p->N10==21)
@@ -91,22 +94,23 @@ void hypre_aij::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_
     
 	p->solveriter=num_iterations;
 	
-	fillbackvec(p,a,f,xvec,var);
+	fillbackvec_F(p,f,xvec,var);
     
     delete_solvers(p,pgc);
     delete_grid(p,pgc);
-          
+    
+    p->del_Darray(xvec,p->knox*p->knoy*p->knoz);
 }
 
 
-void hypre_aij::fillbackvec_F(lexer *p, field &f, vec &xvec, int var)
+void hypre_aij::fillbackvec_F(lexer *p, double *f, double *xvec, int var)
 {
-	HYPRE_IJVectorGetValues(x, p->N4_row, rows, xvec.V);
+	HYPRE_IJVectorGetValues(x, p->N4_row, rows, xvec);
 	
         n=0;
-        FLUIDLOOP
+        FLOOP
         {
-        f(i,j,k)=xvec.V[n];
+        f[FIJK]=xvec[n];
         ++n;
         }
 }

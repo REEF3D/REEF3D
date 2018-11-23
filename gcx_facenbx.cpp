@@ -21,6 +21,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"ghostcell.h"
 #include"lexer.h"
+#include"fieldint.h"
 
 void ghostcell::facenbx(lexer* p,fieldint& cv, int* range)
 {

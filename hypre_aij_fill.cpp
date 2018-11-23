@@ -119,7 +119,7 @@ void hypre_aij::fill_matrix_13p(lexer* p,fdm* a, ghostcell* pgc, field &f)
 {
     fieldint4 rownum4(p);
     
-    pgc->rownum4_update(p,a,rownum4);
+    pgc->rownum4_update(p,rownum4);
     pgc->facenbx(p,rownum4,p->range_row4);
     
     HYPRE_IJMatrixInitialize(A);
@@ -255,7 +255,7 @@ void hypre_aij::fill_matrix_19p(lexer* p,fdm* a, ghostcell* pgc, field &f)
 {
     fieldint4 rownum4(p);
     
-    pgc->rownum4_update(p,a,rownum4);
+    pgc->rownum4_update(p,rownum4);
     pgc->facenbx(p,rownum4,p->range_row4);
     
     HYPRE_IJMatrixInitialize(A);
