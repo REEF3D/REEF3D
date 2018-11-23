@@ -349,6 +349,10 @@ void ioflow_v::phi_relax(lexer *p, ghostcell *pgc, field &f)
 {
 }
 
+void ioflow_v::vof_relax(lexer *p, ghostcell *pgc, field &f)
+{
+}
+
 void ioflow_v::fi_relax(lexer *p, ghostcell *pgc, field &f, field &phi)
 {
 }

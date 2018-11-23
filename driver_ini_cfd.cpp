@@ -122,12 +122,19 @@ cout<<"starting driver_ini"<<endl;
     pini->iniphi_io(a,p,pgc);
 	pflow->gcio_update(p,a,pgc);
 	pflow->pressure_io(p,a,pgc);
-    for(int qn=0;qn<20;++qn)
-    pflow->phi_relax(p,pgc,a->phi);
-	preini->start(a,p, a->phi, pgc, pflow);
-	pfsf->update(p,a,pgc,a->phi);
-	pini->iniphi_surfarea(p,a,pgc);
-    
+
+    if (p->F80 > 0)
+    {
+        pflow->vof_relax(p,pgc,a->vof);
+    }
+    else
+    {
+        for(int qn=0;qn<20;++qn)
+        pflow->phi_relax(p,pgc,a->phi);
+        preini->start(a,p, a->phi, pgc, pflow);
+        pfsf->update(p,a,pgc,a->phi);
+        pini->iniphi_surfarea(p,a,pgc);
+    }
 	
 	ppart->setup(p,a,pgc);
 	pini->iniphi_io(a,p,pgc);

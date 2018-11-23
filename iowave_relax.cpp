@@ -342,6 +342,68 @@ void iowave::phi_relax(lexer *p, ghostcell *pgc, field& f)
     {
         xg = xgen(p);
         yg = ygen(p);
+        dg = distgen(p);
+        db = distbeach(p);
+        
+        if(p->pos_z()<=p->phimean)
+        z=-(fabs(p->phimean-p->pos_z()));
+            
+        if(p->pos_z()>p->phimean)
+        z=(fabs(p->phimean-p->pos_z()));
+            
+        // Wave Generation
+        if(p->B98==1 && h_switch==1)
+        {
+            // Zone 1
+            if(dg<dist1)
+            {
+            f(i,j,k) = ra1(p,dg) * lsval[count] + (1.0-ra1(p,dg))*f(i,j,k);
+            ++count;
+            }
+            
+            // Zone 2
+            if(dg>=dist1 && dg<dist2)
+            {
+            f(i,j,k) = ra2(p,dg) * lsval[count] + (1.0-ra2(p,dg))*f(i,j,k);
+            ++count;
+            }
+        }
+
+        if(p->B98==2 && h_switch==1)
+        {
+            // Zone 1
+            if(dg<dist1)
+            {
+            f(i,j,k) = (1.0-rb1(p,dg))*ramp(p) * lsval[count] + rb1(p,dg) * f(i,j,k);
+            ++count;
+            }
+        }
+            
+        // Numerical Beach
+        if(p->B99==1)
+        {
+            // Zone 3
+            if(db<dist3)
+            f(i,j,k) = (1.0-ra3(p,db)) * (p->phimean-p->pos_z()) + ra3(p,db)*f(i,j,k);
+        }
+            
+        if(p->B99==2)
+        {
+            // Zone 3
+            if(db<dist3)
+            f(i,j,k) = (1.0-rb3(p,db)) * (p->phimean-p->pos_z()) + rb3(p,db)*f(i,j,k);
+        }
+    }
+}
+
+
+void iowave::vof_relax(lexer *p, ghostcell *pgc, field& f)
+{
+    count=0;
+    FLUIDLOOP
+    {
+        xg = xgen(p);
+        yg = ygen(p);
 		dg = distgen(p);
 		db = distbeach(p);
         
@@ -349,8 +411,18 @@ void iowave::phi_relax(lexer *p, ghostcell *pgc, field& f)
         z=-(fabs(p->phimean-p->pos_z()));
 		
 		if(p->pos_z()>p->phimean)
-        z=(fabs(p->phimean-p->pos_z()));
-		
+        z=(fabs(p->phimean-p->pos_z()));	
+
+        if ((eta(i,j) + p->phimean) > p->pos_z())
+        {
+            lsval[count] = 1.0;
+        }
+        else
+        {
+            lsval[count] = 0.0;  
+        }  
+        
+      
 		// Wave Generation
         if(p->B98==1 && h_switch==1)
         {
@@ -395,6 +467,8 @@ void iowave::phi_relax(lexer *p, ghostcell *pgc, field& f)
         }
     }
 }
+
+
 
 void iowave::fi_relax(lexer *p, ghostcell *pgc, field& f, field& phi)
 {

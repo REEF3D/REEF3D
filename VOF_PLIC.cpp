@@ -98,16 +98,6 @@ void VOF_PLIC::start
         sSweep = 0;
     }
 
-/*
-    if (p->count==1)
-    {
-        LOOP
-        {
-            a->phi(i,j,k) = sqrt(pow(fabs(p->pos_x()),2) + pow(fabs(p->pos_z() - 0.5),2)) - 0.3;
-        }
-    }
-*/
-
     double Q1, Q2;
 
     // x-sweep (0), y-sweep (1), z-sweep (2)
@@ -115,12 +105,8 @@ void VOF_PLIC::start
     {
         LOOP
         {
-   //         p->DXN[IP] = 0.012;
-   //         p->DZN[KP] = 0.012;
-
             //- Calculate left and right fluxes Q1 and Q2
             calcFlux(a, p, Q1, Q2, sweep);
-
 
 
             //- PLIC loop
@@ -176,9 +162,9 @@ void VOF_PLIC::start
     //- Distribute ls function
     //pgc->start4(p,a->phi,gcval_frac);
 
-
+ //   pflow->phi_relax(p,pgc,a->vof);
+//	pgc->start4(p,a->vof,gcval_frac);
     pflow->periodic(a->vof,p);
-
     pupdate->start(p,a,pgc);
 
     p->lsmtime=pgc->timer()-starttime;

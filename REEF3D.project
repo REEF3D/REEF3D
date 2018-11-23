@@ -1432,12 +1432,12 @@
         <File Name="VOF_IM1.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VOF PLIC">
+        <File Name="VOF_PLIC_inilsVOF.cpp"/>
         <File Name="VOF_PLIC_updateVol.cpp"/>
         <File Name="VOF_PLIC_redistance.cpp"/>
         <File Name="VOF_PLIC_reconstruction.cpp"/>
         <File Name="VOF_PLIC_normalVector.cpp"/>
         <File Name="VOF_PLIC_advection.cpp"/>
-        <File Name="VOF_PLC_inilsVOF.cpp"/>
         <File Name="VOF_PLIC.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="One Phase">

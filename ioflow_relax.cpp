@@ -120,6 +120,12 @@ void ioflow_f::phi_relax(lexer *p, ghostcell *pgc, field &f)
     }
 }
 
+
+void ioflow_f::vof_relax(lexer *p, ghostcell *pgc, field &f)
+{
+}
+
+
 void ioflow_f::fi_relax(lexer *p, ghostcell *pgc, field &f, field &phi)
 {
 }
