@@ -161,16 +161,7 @@ void lexer::read_control()
 		case 'B': control>>numint;
 				switch(numint)
 				{
-				case  5: control>>B5;
-						 clear(c,numint);
-						 break;
-				case  6: control>>B6;
-						 clear(c,numint);
-						 break;
 				case 10: control>>B10;
-						 clear(c,numint);
-						 break;
-			    case 11: control>>B11;
 						 clear(c,numint);
 						 break;
                 case 19: control>>B19;
@@ -179,27 +170,10 @@ void lexer::read_control()
 				case 20: control>>B20;
 						 clear(c,numint);
 						 break;
-                case 21: control>>B21;
-						 clear(c,numint);
-						 break;
-                case 22: control>>B22;
-						 clear(c,numint);
-						 break;
-                case 23: control>>B23;
-						 clear(c,numint);
-						 break;
-                case 24: control>>B24;
-						 clear(c,numint);
-						 break;
-				case 25: control>>B25;
-						 clear(c,numint);
-						 break;
 				case 26: control>>B26;
 						 clear(c,numint);
 						 break;
-				case 27: control>>B27;
-						 clear(c,numint);
-						 break;
+
 				case 28: control>>B28;
 						 clear(c,numint);
 						 break;

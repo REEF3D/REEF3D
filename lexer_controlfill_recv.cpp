@@ -137,31 +137,13 @@ void lexer::ctrlrecv()
 	dd++;
 	
 	
-    B5  = ictrl[ii];
-	ii++;
-	B6  = dctrl[dd];
-	dd++;
     B10 = ictrl[ii];
-	ii++;
-    B11 = ictrl[ii];
 	ii++;
     B19 = ictrl[ii];
 	ii++;
     B20 = ictrl[ii];
 	ii++;
-    B21 = ictrl[ii];
-	ii++;
-    B22 = ictrl[ii];
-	ii++;
-    B23 = ictrl[ii];
-	ii++;
-    B24 = ictrl[ii];
-	ii++;
-	B25 = ictrl[ii];
-	ii++;
 	B26 = ictrl[ii];
-	ii++;
-	B27 = ictrl[ii];
 	ii++;
 	B28 = ictrl[ii];
 	ii++;

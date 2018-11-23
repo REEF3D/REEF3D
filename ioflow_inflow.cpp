@@ -130,8 +130,6 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
 	
     // bed shear stress and bed shear velocity
         ks=p->B50;
-        if(p->B5==2)
-        ks=0.00001;
         H=B=depth+0.5*p->dx;
         M=26.0/pow(ks,(1.0/6.0));
         I=pow(p->Ui/(M*pow(H,(2.0/3.0))),2.0);
@@ -143,9 +141,6 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
 		
 		shearvel = p->Ui/(2.5*log((11.0*H/ks)));
 
-
-    if(p->B5==1)
-    {
         for(n=0;n<p->gcin_count;n++)
         {
         i=p->gcin[n][0];
@@ -154,19 +149,7 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
 
             u(i-1,j,k)=u(i-2,j,k)=u(i-3,j,k)= (1.0-p->B65)*p->Ui + p->B65*(shearvel*2.5*log(MAX(30.0*MIN(walldin[n],dmax)/ks,1.0)));
         }
-    }
 
-    if(p->B5==2)
-    {
-        for(n=0;n<p->gcin_count;n++)
-        {
-        i=p->gcin[n][0];
-        j=p->gcin[n][1];
-        k=p->gcin[n][2];
-
-            u(i-1,j,k)=u(i-2,j,k)=u(i-3,j,k)= (1.0-p->B65)*p->Ui + p->B65*(shearvel*2.5*log(MAX(9.0*MIN(walldin[n],dmax)*shearvel/visc,2.0)));
-        }
-    }
 
     // calculate discharge and correct velocities
     for(int q=0; q<5; ++q)

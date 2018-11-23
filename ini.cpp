@@ -63,19 +63,10 @@ void lexer::ini_default()
     A440=1.6;    // double epsi for depth integration
     
     // Boundary Conditions
-	B5=1;			// int rough/smooth wall law
-	B6=3.0;			// double factor for d50 for the caluclation for ks in the velocity and turbulence wall laws
 	B10=0;			// int wall laws velocities on/off
-	B11=1;			// int wall laws k-epsilon on/off
     B19=0;			// int direct forcing for solid walls
 	B20=2;			// int slip or no-slip boundary condition for velocity
-	B21=1;          // int slip or no-slip boundary condition for  k,w,e
-	B22=1;          // int gc extrapolation or no-slip
-	B23=2;          // int wall bc momentum dist or dx
-	B24=2;          // int wall bc turbulence dist or dx
-	B25=0;			// int direct forcing
 	B26=1;			// int boundary condition implementation level set method
-	B27=1;			// int wall function type for velocities
 	B28=0;			// int extend pressure along bed boundary
 	B29=0.5;		// double gamma for gc image point
 	B30=0;			// int inflow crossection via cbc

@@ -180,47 +180,15 @@ void ghostcell::gcini(lexer* p)
     gclabel_wtopo=4;
     }
 
-    if(p->B21==1)
-    {
     gclabel_k=4;
     gclabel_e=4;
-    }
 
-    if(p->B21==2)
-    {
-    gclabel_k=5;
-    gclabel_e=5;
-    }
-
-    if(p->B22==1)
-    {
     gclabel_u_orth=1;
     gclabel_v_orth=1;
     gclabel_w_orth=1;
     gclabel_press=4;
-	gclabel_vel=5;
-    }
-
-    if(p->B22==2||p->B22==0)
-    {
-    gclabel_u_orth=5;
-    gclabel_v_orth=5;
-    gclabel_w_orth=5;
-    gclabel_press=4;
-	gclabel_vel=5;
-    }
+	gclabel_vel=5;        
 	
-	if(p->B22==3)
-    {
-    gclabel_u_orth=1;
-    gclabel_v_orth=1;
-    gclabel_w_orth=1;
-    gclabel_press=8;
-	gclabel_vel=1;
-    }
-        
-	
-	forcing=p->B25;
 	
 	if(p->B26==1 || p->B26==3)
 	gclabel_lsm=4;

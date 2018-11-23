@@ -415,7 +415,6 @@ private:
 	int gclabel_u_out, gclabel_v_out, gclabel_w_out;
 	int gclabel_vel;
 	int rank;
-	int forcing;
 	int nb[6],stag[6],rtag[6];
 	int **isend,**irecv;
 	double **dsend,**drecv;
