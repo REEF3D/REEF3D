@@ -45,7 +45,6 @@ public:
 	hypre_aij(lexer*,fdm*,ghostcell*);
 	virtual ~hypre_aij();
 	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, vec&, int, int, double);
-    virtual void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int, int, double);
     
 	virtual void solve(lexer*,fdm*, ghostcell*, vec&, vec&, int, int, int&, int, double, cpt&);
 	virtual void setup(lexer*,fdm*, ghostcell*,int, cpt&);
@@ -55,18 +54,25 @@ public:
     virtual void fillxvec3(lexer*,fdm*,field&);
     virtual void fillxvec4(lexer*,fdm*,field&);
 	virtual void fillbackvec(lexer*,fdm*,field&,vec&,int);
-    
+    virtual void fillbackvec_F(lexer*,field&,vec&,int);
     
     void make_grid(lexer*,fdm*, ghostcell*);
-    void delete_grid(lexer*,fdm*, ghostcell*);
+    void delete_grid(lexer*,ghostcell*);
 	void fill_matrix(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix_13p(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix_19p(lexer*,fdm*, ghostcell*,field&);
+    
+    void create_solvers(lexer*,ghostcell*);
+    void delete_solvers(lexer*,ghostcell*);
+    
+    // FNPF Laplace solver 
+    virtual void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int, int, double);
+    void make_grid_F(lexer*, ghostcell*);
+    void fill_matrix_F(lexer*,ghostcell*, matrix_diag&,field&);
+    void fill_matrix_F_13p(lexer*, ghostcell*, matrix_diag&,field&);
+    void fill_matrix_F_19p(lexer*, ghostcell*, matrix_diag&,field&);
 	
-	void create_solvers(lexer*,fdm*,ghostcell*);
-    void delete_solvers(lexer*,fdm*,ghostcell*);
-
-
+    
 private:
     
 // HYPRE 

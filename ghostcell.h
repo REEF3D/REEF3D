@@ -77,7 +77,7 @@ public:
 	void parapls(lexer*,double**,double**,int*,int*);
 
 //  Update
-	void facenbx(lexer*, fdm*, fieldint&, int*);
+	void facenbx(lexer*, fieldint&, int*);
 	void flagx(lexer*,int*);
     void flagx7(lexer*,int*);
     void sigmax(lexer*,fdm*,double*);
@@ -100,7 +100,7 @@ public:
     void cvalupdate4a(lexer*,fdm*,fieldint&);
     void cvalupdate6(lexer*,fdm*,fieldint&);
     
-    void rownum4_update(lexer*,fdm*,fieldint&);
+    void rownum4_update(lexer*,fieldint&);
 
 	
 	void cval_gcb1(lexer*,fdm*,fieldint&);

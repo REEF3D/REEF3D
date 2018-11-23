@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 
 
-void hypre_aij::create_solvers(lexer* p,fdm* a, ghostcell* pgc)
+void hypre_aij::create_solvers(lexer* p, ghostcell* pgc)
 {
     if(p->N10==21)
     {
@@ -107,7 +107,7 @@ void hypre_aij::create_solvers(lexer* p,fdm* a, ghostcell* pgc)
     
 }
 
-void hypre_aij::delete_solvers(lexer* p,fdm* a, ghostcell* pgc)
+void hypre_aij::delete_solvers(lexer* p, ghostcell* pgc)
 {
     if(p->N10==21)
     HYPRE_ParCSRPCGDestroy(solver);

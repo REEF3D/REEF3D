@@ -21,9 +21,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"ghostcell.h"
 #include"lexer.h"
-#include"fdm.h"
 
-void ghostcell::rownum4_update(lexer* p, fdm* a,fieldint &rownum4)
+void ghostcell::rownum4_update(lexer* p,fieldint &rownum4)
 {
 	p->N4_row=0;
 	p->N4_col=0;
@@ -39,6 +38,5 @@ void ghostcell::rownum4_update(lexer* p, fdm* a,fieldint &rownum4)
 
 	FLUIDLOOP
     rownum4(i,j,k)+=p->range_row4[p->mpirank];
-
 }
 

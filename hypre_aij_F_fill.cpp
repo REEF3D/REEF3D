@@ -27,8 +27,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 
 
-void hypre_aij::fill_matrix(lexer* p,fdm* a, ghostcell* pgc, field &f)
+void hypre_aij::fill_matrix_F(lexer* p, ghostcell* pgc, matrix_diag &M, field &f)
 {
+    
     fieldint4 rownum4(p);
     
     pgc->rownum4_update(p,rownum4);
@@ -39,7 +40,7 @@ void hypre_aij::fill_matrix(lexer* p,fdm* a, ghostcell* pgc, field &f)
 	{
 	count=0;
 	
-	val[count] = a->M.p[n];
+	val[count] = M.p[n];
 	col[count] = rownum4(i,j,k);
 	rownum = rownum4(i,j,k);
 	++count;
@@ -47,42 +48,42 @@ void hypre_aij::fill_matrix(lexer* p,fdm* a, ghostcell* pgc, field &f)
 	
     if(p->flag4[Im1JK]>0)
 	{
-	val[count] = a->M.s[n];
+	val[count] = M.s[n];
 	col[count] = rownum4(i-1,j,k);
 	++count;
 	}
     
     if(p->flag4[Ip1JK]>0)
 	{
-	val[count] = a->M.n[n];
+	val[count] = M.n[n];
 	col[count] = rownum4(i+1,j,k);
 	++count;
 	}
     
     if(p->flag4[IJm1K]>0)
 	{
-	val[count] = a->M.e[n];
+	val[count] = M.e[n];
 	col[count] = rownum4(i,j-1,k);
 	++count;
 	}
     
     if(p->flag4[IJp1K]>0)
 	{
-	val[count] = a->M.w[n];
+	val[count] = M.w[n];
 	col[count] = rownum4(i,j+1,k);
 	++count;
 	}
     
     if(p->flag4[IJKm1]>0)
 	{
-	val[count] = a->M.b[n];
+	val[count] = M.b[n];
 	col[count] = rownum4(i,j,k-1);
 	++count;
 	}
     
     if(p->flag4[IJKp1]>0)
 	{
-	val[count] = a->M.t[n];
+	val[count] = M.t[n];
 	col[count] = rownum4(i,j,k+1);
 	++count;
 	}
@@ -100,7 +101,7 @@ void hypre_aij::fill_matrix(lexer* p,fdm* a, ghostcell* pgc, field &f)
 	n=0;
 	LOOP
 	{
-		a->xvec.V[n] = f(i,j,k);
+		xvec.V[n] = f(i,j,k);
 		rows[n] = rownum4(i,j,k);
 	++n;
 	}
@@ -119,7 +120,7 @@ void hypre_aij::fill_matrix_13p(lexer* p,fdm* a, ghostcell* pgc, field &f)
 {
     fieldint4 rownum4(p);
     
-    pgc->rownum4_update(p,a,rownum4);
+    pgc->rownum4_update(p,rownum4);
     pgc->facenbx(p,rownum4,p->range_row4);
     
     HYPRE_IJMatrixInitialize(A);
@@ -131,7 +132,7 @@ void hypre_aij::fill_matrix_13p(lexer* p,fdm* a, ghostcell* pgc, field &f)
 	{
 	count=0;
 	
-	val[count] = a->M.p[n];
+	val[count] = M.p[n];
 	col[count] = rownum4(i,j,k);
 	rownum = rownum4(i,j,k);
 	++count;
@@ -139,42 +140,42 @@ void hypre_aij::fill_matrix_13p(lexer* p,fdm* a, ghostcell* pgc, field &f)
 	
     if(p->flag4[Im1JK]>0)
 	{
-	val[count] = a->M.s[n];
+	val[count] = M.s[n];
 	col[count] = rownum4(i-1,j,k);
 	++count;
 	}
     
     if(p->flag4[Ip1JK]>0)
 	{
-	val[count] = a->M.n[n];
+	val[count] = M.n[n];
 	col[count] = rownum4(i+1,j,k);
 	++count;
 	}
     
     if(p->flag4[IJm1K]>0)
 	{
-	val[count] = a->M.e[n];
+	val[count] = M.e[n];
 	col[count] = rownum4(i,j-1,k);
 	++count;
 	}
     
     if(p->flag4[IJp1K]>0)
 	{
-	val[count] = a->M.w[n];
+	val[count] = M.w[n];
 	col[count] = rownum4(i,j+1,k);
 	++count;
 	}
     
     if(p->flag4[IJKm1]>0)
 	{
-	val[count] = a->M.b[n];
+	val[count] = M.b[n];
 	col[count] = rownum4(i,j,k-1);
 	++count;
 	}
     
     if(p->flag4[IJKp1]>0)
 	{
-	val[count] = a->M.t[n];
+	val[count] = M.t[n];
 	col[count] = rownum4(i,j,k+1);
 	++count;
 	}
@@ -183,42 +184,42 @@ void hypre_aij::fill_matrix_13p(lexer* p,fdm* a, ghostcell* pgc, field &f)
     // -- 
     if(p->flag4[Im2JK]>0)
 	{
-	val[count] = a->M.ss[n];
+	val[count] = M.ss[n];
 	col[count] = rownum4(i-2,j,k);
 	++count;
 	}
     
     if(p->flag4[Ip2JK]>0)
 	{
-	val[count] = a->M.nn[n];
+	val[count] = M.nn[n];
 	col[count] = rownum4(i+2,j,k);
 	++count;
 	}
     
     if(p->flag4[IJm2K]>0)
 	{
-	val[count] = a->M.ee[n];
+	val[count] = M.ee[n];
 	col[count] = rownum4(i,j-2,k);
 	++count;
 	}
     
     if(p->flag4[IJp2K]>0)
 	{
-	val[count] = a->M.ww[n];
+	val[count] = M.ww[n];
 	col[count] = rownum4(i,j+2,k);
 	++count;
 	}
     
     if(p->flag4[IJKm2]>0)
 	{
-	val[count] = a->M.bb[n];
+	val[count] = M.bb[n];
 	col[count] = rownum4(i,j,k-2);
 	++count;
 	}
     
     if(p->flag4[IJKp2]>0)
 	{
-	val[count] = a->M.tt[n];
+	val[count] = M.tt[n];
 	col[count] = rownum4(i,j,k+2);
 	++count;
 	}
@@ -255,7 +256,7 @@ void hypre_aij::fill_matrix_19p(lexer* p,fdm* a, ghostcell* pgc, field &f)
 {
     fieldint4 rownum4(p);
     
-    pgc->rownum4_update(p,a,rownum4);
+    pgc->rownum4_update(p,rownum4);
     pgc->facenbx(p,rownum4,p->range_row4);
     
     HYPRE_IJMatrixInitialize(A);
@@ -267,7 +268,7 @@ void hypre_aij::fill_matrix_19p(lexer* p,fdm* a, ghostcell* pgc, field &f)
 	{
 	count=0;
 	
-	val[count] = a->M.p[n];
+	val[count] = M.p[n];
 	col[count] = rownum4(i,j,k);
 	rownum = rownum4(i,j,k);
 	++count;
@@ -275,42 +276,42 @@ void hypre_aij::fill_matrix_19p(lexer* p,fdm* a, ghostcell* pgc, field &f)
 	
     if(p->flag4[Im1JK]>0)
 	{
-	val[count] = a->M.s[n];
+	val[count] = M.s[n];
 	col[count] = rownum4(i-1,j,k);
 	++count;
 	}
     
     if(p->flag4[Ip1JK]>0)
 	{
-	val[count] = a->M.n[n];
+	val[count] = M.n[n];
 	col[count] = rownum4(i+1,j,k);
 	++count;
 	}
     
     if(p->flag4[IJm1K]>0)
 	{
-	val[count] = a->M.e[n];
+	val[count] = M.e[n];
 	col[count] = rownum4(i,j-1,k);
 	++count;
 	}
     
     if(p->flag4[IJp1K]>0)
 	{
-	val[count] = a->M.w[n];
+	val[count] = M.w[n];
 	col[count] = rownum4(i,j+1,k);
 	++count;
 	}
     
     if(p->flag4[IJKm1]>0)
 	{
-	val[count] = a->M.b[n];
+	val[count] = M.b[n];
 	col[count] = rownum4(i,j,k-1);
 	++count;
 	}
     
     if(p->flag4[IJKp1]>0)
 	{
-	val[count] = a->M.t[n];
+	val[count] = M.t[n];
 	col[count] = rownum4(i,j,k+1);
 	++count;
 	}
@@ -319,42 +320,42 @@ void hypre_aij::fill_matrix_19p(lexer* p,fdm* a, ghostcell* pgc, field &f)
     // -- 
     if(p->flag4[Im2JK]>0)
 	{
-	val[count] = a->M.ss[n];
+	val[count] = M.ss[n];
 	col[count] = rownum4(i-2,j,k);
 	++count;
 	}
     
     if(p->flag4[Ip2JK]>0)
 	{
-	val[count] = a->M.nn[n];
+	val[count] = M.nn[n];
 	col[count] = rownum4(i+2,j,k);
 	++count;
 	}
     
     if(p->flag4[IJm2K]>0)
 	{
-	val[count] = a->M.ee[n];
+	val[count] = M.ee[n];
 	col[count] = rownum4(i,j-2,k);
 	++count;
 	}
     
     if(p->flag4[IJp2K]>0)
 	{
-	val[count] = a->M.ww[n];
+	val[count] = M.ww[n];
 	col[count] = rownum4(i,j+2,k);
 	++count;
 	}
     
     if(p->flag4[IJKm2]>0)
 	{
-	val[count] = a->M.bb[n];
+	val[count] = M.bb[n];
 	col[count] = rownum4(i,j,k-2);
 	++count;
 	}
     
     if(p->flag4[IJKp2]>0)
 	{
-	val[count] = a->M.tt[n];
+	val[count] = M.tt[n];
 	col[count] = rownum4(i,j,k+2);
 	++count;
 	}
@@ -363,42 +364,42 @@ void hypre_aij::fill_matrix_19p(lexer* p,fdm* a, ghostcell* pgc, field &f)
     // -- 
     if(p->flag4[Im3JK]>0)
 	{
-	val[count] = a->M.sss[n];
+	val[count] = M.sss[n];
 	col[count] = rownum4(i-3,j,k);
 	++count;
 	}
     
     if(p->flag4[Ip3JK]>0)
 	{
-	val[count] = a->M.nnn[n];
+	val[count] = M.nnn[n];
 	col[count] = rownum4(i+3,j,k);
 	++count;
 	}
     
     if(p->flag4[IJm3K]>0)
 	{
-	val[count] = a->M.eee[n];
+	val[count] = M.eee[n];
 	col[count] = rownum4(i,j-3,k);
 	++count;
 	}
     
     if(p->flag4[IJp3K]>0)
 	{
-	val[count] = a->M.www[n];
+	val[count] = M.www[n];
 	col[count] = rownum4(i,j+3,k);
 	++count;
 	}
     
     if(p->flag4[IJKm3]>0)
 	{
-	val[count] = a->M.bbb[n];
+	val[count] = M.bbb[n];
 	col[count] = rownum4(i,j,k-3);
 	++count;
 	}
     
     if(p->flag4[IJKp3]>0)
 	{
-	val[count] = a->M.ttt[n];
+	val[count] = M.ttt[n];
 	col[count] = rownum4(i,j,k+3);
 	++count;
 	}

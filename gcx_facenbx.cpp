@@ -21,9 +21,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"ghostcell.h"
 #include"lexer.h"
-#include"fdm.h"
 
-void ghostcell::facenbx(lexer* p, fdm* a, fieldint& cv, int* range)
+void ghostcell::facenbx(lexer* p,fieldint& cv, int* range)
 {
     count=0;
     for(n=0;n<p->gcpara1_count;++n)

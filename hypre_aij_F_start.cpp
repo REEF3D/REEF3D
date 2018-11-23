@@ -28,30 +28,20 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"field.h"
 #include"vec.h"
 
-hypre_aij::hypre_aij(lexer* p,fdm* a,ghostcell *pgc)
-{	
-    int vecsize=p->knox*p->knoy*p->knoz;
-    
-    p->Iarray(rows,vecsize);
-}
+void hypre_aij::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var, int gcv, double stop_crit)
+{     
 
-hypre_aij::~hypre_aij()
-{
-}
-
-void hypre_aij::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, vec& rhsvec, int var, int gcv, double stop_crit)
-{
-    make_grid(p,a,pgc);
+    make_grid_F(p,pgc);
     create_solvers(p,pgc);
     
     if(var<=5)
-	fill_matrix(p,a,pgc,f);
+	fill_matrix_F(p,pgc,M,f);
     
     if(var==6)
-	fill_matrix_13p(p,a,pgc,f);
+	fill_matrix_F_13p(p,pgc,M,f);
     
     if(var==7)
-	fill_matrix_19p(p,a,pgc,f);
+	fill_matrix_F_19p(p,pgc,M,f);
   
 
     if(p->N10==21)
@@ -105,23 +95,11 @@ void hypre_aij::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, vec&
     
     delete_solvers(p,pgc);
     delete_grid(p,pgc);
+          
 }
 
 
-void hypre_aij::setup(lexer* p,fdm* a, ghostcell* pgc, int var, cpt &C)
-{
-}
-
-void hypre_aij::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit, cpt &C)
-{
-	
-	numiter=0;
-	p->solveriter=0;
-
-	p->solveriter=numiter;		
-}
-
-void hypre_aij::fillbackvec(lexer *p, fdm *a, field &f, vec &xvec, int var)
+void hypre_aij::fillbackvec_F(lexer *p, field &f, vec &xvec, int var)
 {
 	HYPRE_IJVectorGetValues(x, p->N4_row, rows, xvec.V);
 	
@@ -133,20 +111,6 @@ void hypre_aij::fillbackvec(lexer *p, fdm *a, field &f, vec &xvec, int var)
         }
 }
 
-void hypre_aij::fillxvec1(lexer* p, fdm* a, field& f)
-{
-}
-	
-void hypre_aij::fillxvec2(lexer* p, fdm* a, field& f)
-{
-}
-	
-void hypre_aij::fillxvec3(lexer* p, fdm* a, field& f)
-{
-}
-	
-void hypre_aij::fillxvec4(lexer* p, fdm* a, field& f)
-{
-}
+
 
 #endif

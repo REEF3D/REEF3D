@@ -1963,6 +1963,9 @@
         <File Name="solver_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="HYPRE AIJ">
+        <File Name="hypre_aij_F_grid.cpp"/>
+        <File Name="hypre_aij_F_fill.cpp"/>
+        <File Name="hypre_aij_F_start.cpp"/>
         <File Name="hypre_aij.cpp"/>
         <File Name="hypre_aij_grid.cpp"/>
         <File Name="hypre_aij_fill.cpp"/>
