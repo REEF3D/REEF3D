@@ -28,7 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"diffusion.h"
 #include"ioflow.h"
 #include"kepsilon.h"
-#include"discrete.h"
+#include"convection.h"
 
 LES_smagorinsky::LES_smagorinsky(lexer* p, fdm* a) : LES(p,a)
 {
@@ -40,7 +40,7 @@ LES_smagorinsky::~LES_smagorinsky()
 {
 }
 
-void LES_smagorinsky::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
+void LES_smagorinsky::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
 {
     LOOP
     a->eddyv(i,j,k) = pow(p->dx*c_sgs,2.0) * strainterm(p,a);

@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"sflow_discrete.h"
+#include"sflow_convection.h"
 #include"increment.h"
 
 class sflow_flux;
@@ -30,7 +30,7 @@ class sflow_fluxlim;
 
 using namespace std;
 
-class sflow_hires : public sflow_discrete, public increment
+class sflow_hires : public sflow_convection, public increment
 {
 
 public:

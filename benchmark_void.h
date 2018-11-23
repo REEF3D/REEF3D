@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 class fdm;
 class lexer;
-class discrete;
+class convection;
 class ghostcell;
 
 #ifndef BENCHMARK_VOID_H_
@@ -39,7 +39,7 @@ public:
     benchmark_void();
 	virtual ~benchmark_void();
 
-	virtual void start(lexer*, fdm*, ghostcell*, discrete*);
+	virtual void start(lexer*, fdm*, ghostcell*, convection*);
 
 
 };

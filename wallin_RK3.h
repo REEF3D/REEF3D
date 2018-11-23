@@ -33,7 +33,7 @@ class wallin_RK3 : public kepsilon_RK3, public wallin
 public:
 	wallin_RK3(lexer *,fdm*,ghostcell*);
 	virtual ~wallin_RK3();
-	virtual void start(fdm*, lexer*, discrete*, diffusion*, solver*, ghostcell*, ioflow*);
+	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*);
 	virtual void aniso(fdm*);
 	virtual double tau(fdm*);
     

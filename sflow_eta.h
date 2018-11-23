@@ -54,7 +54,7 @@ private:
 	
     double wd_criterion;
     
-	sflow_eta_weno *pdisc;
+	sflow_eta_weno *pconvec;
 	sflow_hxy_disc *phxy;
 	
 	slice4 Lab;

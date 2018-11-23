@@ -21,7 +21,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 class lexer;
 class fdm;
-class discrete;
+class convection;
 class ghostcell;
 class ioflow;
 class reinitopo;
@@ -41,7 +41,7 @@ class sediment
 {
 public:
 
-	virtual void start(lexer*, fdm*, discrete*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*, bedload*)=0;
+	virtual void start(lexer*, fdm*, convection*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*, bedload*)=0;
 	virtual void update(lexer*,fdm*,ghostcell*,ioflow*)=0;
     virtual void relax(lexer*,fdm*,ghostcell*)=0;
     virtual void ini(lexer*,fdm*,ghostcell*)=0;

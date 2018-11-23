@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"discrete.h"
+#include"convection.h"
 #include"weno_nug_func.h"
 
 class flux;
@@ -29,7 +29,7 @@ class flux;
 
 using namespace std;
 
-class weno_hj_nug : public discrete, public weno_nug_func
+class weno_hj_nug : public convection, public weno_nug_func
 {
 public:
 	weno_hj_nug(lexer*);

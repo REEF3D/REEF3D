@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 class fdm;
 class lexer;
-class discrete;
+class convection;
 class ghostcell;
 
 #ifndef BENCHMARK_VORTEX3D_H_
@@ -39,7 +39,7 @@ public:
     benchmark_vortex3D(lexer*,fdm*);
 	virtual ~benchmark_vortex3D();
 
-	virtual void start(lexer*, fdm*, ghostcell*, discrete*);
+	virtual void start(lexer*, fdm*, ghostcell*, convection*);
 
 
 };

@@ -36,7 +36,7 @@ class wallin_IM2kw : public komega_IM2, public wallin
 public:
 	wallin_IM2kw(lexer *,fdm*,ghostcell*,multiphase*);
 	virtual ~wallin_IM2kw();
-	virtual void start(fdm*, lexer*, discrete*, diffusion*, solver*, ghostcell*, ioflow*);
+	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*);
 	virtual void aniso(fdm*);
 	virtual double tau(fdm*);
     

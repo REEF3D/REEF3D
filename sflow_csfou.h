@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"sflow_discrete.h"
+#include"sflow_convection.h"
 #include"increment.h"
 
 class sflow_flux;
@@ -30,7 +30,7 @@ using namespace std;
 #ifndef SFLOW_CSFOU_H_
 #define SFLOW_CSFOU_H_
 
-class sflow_csfou : public sflow_discrete, public increment
+class sflow_csfou : public sflow_convection, public increment
 {
 public:
 	sflow_csfou(lexer*,fdm2D*);

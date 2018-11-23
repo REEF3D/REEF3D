@@ -21,7 +21,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 class fdm;
 class lexer;
-class discrete;
+class convection;
 class diffusion;
 class solver;
 class ghostcell;

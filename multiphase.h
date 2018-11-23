@@ -21,7 +21,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 class fdm;
 class lexer;
-class discrete;
+class convection;
 class solver;
 class ghostcell;
 class ioflow;
@@ -41,8 +41,8 @@ class multiphase
 {
 public:
 
-	virtual void start(lexer*,fdm*,ghostcell*,discrete*,solver*,ioflow*,reini*,particlecorr*,printer*)=0;
-	virtual void ini(lexer*,fdm*,ghostcell*,ioflow*,printer*,discrete*,solver*)=0;
+	virtual void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particlecorr*,printer*)=0;
+	virtual void ini(lexer*,fdm*,ghostcell*,ioflow*,printer*,convection*,solver*)=0;
 	virtual void timesave(lexer*,fdm*,ghostcell*)=0;
 	virtual void update(lexer*,fdm*,ghostcell*)=0;
 	

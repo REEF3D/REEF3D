@@ -34,12 +34,12 @@ solid::~solid()
 {
 }
 
-void solid::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, discrete* pdisc, reinitopo* preto)
+void solid::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection* pconvec, reinitopo* preto)
 {
 
 	solid_topo(p,a,pgc);
 
-    preto->start(a,p,a->solid,pdisc,pgc);
+    preto->start(a,p,a->solid,pconvec,pgc);
 
     pgc->solid_update(p,a);
     pflow->iogcb_update(p,a,pgc);

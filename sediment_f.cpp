@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"discrete.h"
+#include"convection.h"
 #include"ioflow.h"
 #include"topo.h"
 #include"reinitopo.h"
@@ -60,30 +60,30 @@ sediment_f::~sediment_f()
 {
 }
 
-void sediment_f::start(lexer *p, fdm *a, discrete *pdisc, ghostcell *pgc, ioflow *pflow,
+void sediment_f::start(lexer *p, fdm *a, convection *pconvec, ghostcell *pgc, ioflow *pflow,
                                     topo *ptopo, reinitopo *preto, suspended *psusp, bedload *pbed)
 {
 	if((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47))
 	{
 		
 		if(p->S42==1 && p->count%p->S44==0)
-		sediment_algorithm(p,a,pdisc,pgc,pflow,ptopo,preto,psusp,pbed);
+		sediment_algorithm(p,a,pconvec,pgc,pflow,ptopo,preto,psusp,pbed);
 		
 		if(p->S42==2 && p->simtime>=p->sedsimtime)
 		{
-		sediment_algorithm(p,a,pdisc,pgc,pflow,ptopo,preto,psusp,pbed);
+		sediment_algorithm(p,a,pconvec,pgc,pflow,ptopo,preto,psusp,pbed);
 		p->sedsimtime = p->simtime + p->S46;
 		}
 		
 		if(p->S42==3  && p->simtime/p->wT>=p->sedwavetime)
 		{
-		sediment_algorithm(p,a,pdisc,pgc,pflow,ptopo,preto,psusp,pbed);
+		sediment_algorithm(p,a,pconvec,pgc,pflow,ptopo,preto,psusp,pbed);
 		p->sedwavetime = p->simtime/p->wT + p->S48;
 		}
 	}
 }
 
-void sediment_f::sediment_algorithm(lexer *p, fdm *a, discrete *pdisc, ghostcell *pgc, ioflow *pflow,
+void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghostcell *pgc, ioflow *pflow,
                                     topo *ptopo, reinitopo *preto, suspended *psusp, bedload *pbed)
 {
     starttime=pgc->timer();
@@ -110,7 +110,7 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, discrete *pdisc, ghostcell
 	filter(p,a,pgc,a->bedload,p->S102,p->S103);
     
     // Exner
-    ptopo->start(a,p,pdisc,pgc,preto);
+    ptopo->start(a,p,pconvec,pgc,preto);
 
     // sandslide
     pslide->start(p,a,pgc);
@@ -121,7 +121,7 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, discrete *pdisc, ghostcell
 	filter(p,a,pgc,a->bedzh,p->S100,p->S101);
 	
 	topo_zh_update(p,a,pgc);
-    preto->start(a,p,a->topo,pdisc,pgc);	
+    preto->start(a,p,a->topo,pconvec,pgc);	
 
     pgc->start1(p,a->u,10);
 	pgc->start2(p,a->v,11);

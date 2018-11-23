@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"discrete.h"
+#include"convection.h"
 #include"solver.h"
 #include"ghostcell.h"
 #include"ioflow.h"
@@ -49,27 +49,27 @@ VOF_IM1::VOF_IM1(lexer* p, fdm *a, ghostcell* pgc, heat *pheat):gradient(p),phin
 
 	pupdate = new fluid_update_vof(p,a,pgc);
 	
-	ppdisc = new hric(p);
+	ppconvec = new hric(p);
 }
 
 VOF_IM1::~VOF_IM1()
 {
 }
 
-void VOF_IM1::start(fdm* a,lexer* p, discrete* pdisc,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particlecorr* ppart, field &F)
+void VOF_IM1::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particlecorr* ppart, field &F)
 {
     pflow->fsfinflow(p,a,pgc);
 
 // Step 1
     starttime=pgc->timer();
     clearrhs(p,a);
-	pdisc->start(p,a,a->phi,4,a->u,a->v,a->w);
+	pconvec->start(p,a,a->phi,4,a->u,a->v,a->w);
     timesource(p,a,pflow);
 	psolv->start(p,a,pgc,a->phi,a->xvec,a->rhsvec,4,gcval_frac,p->F19);
 	pflow->phi_relax(p,pgc,a->phi);
 	pgc->start4(p,a->phi,gcval_frac);
 
-    //compression(p,a,pgc,pdisc,a->phi,1.0);
+    //compression(p,a,pgc,pconvec,a->phi,1.0);
 	
 
 	pgc->start4(p,a->phi,gcval_frac);
@@ -128,7 +128,7 @@ void VOF_IM1::clearrhs(lexer* p, fdm* a)
     }
 }
 
-void VOF_IM1::compression(lexer* p, fdm *a, ghostcell *pgc, discrete *pdisc, field &f, double alpha)
+void VOF_IM1::compression(lexer* p, fdm *a, ghostcell *pgc, convection *pconvec, field &f, double alpha)
 {
 	double di,dj,dk, dnorm,nx,ny,nz;
     double umax,vmax,wmax;
@@ -270,7 +270,7 @@ void VOF_IM1::compression(lexer* p, fdm *a, ghostcell *pgc, discrete *pdisc, fie
     LOOP
 	a->L(i,j,k)=0.0;
 
-    ppdisc->start(p,a,F,5,uc,vc,wc);
+    ppconvec->start(p,a,F,5,uc,vc,wc);
 
     LOOP
     f(i,j,k)+=p->dt*a->L(i,j,k);

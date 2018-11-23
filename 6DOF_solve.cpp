@@ -210,7 +210,7 @@ void sixdof_f::solve_quaternion
 	momentum *pmom,
 	ioflow* pflow,
 	freesurface* pfsf,
-	discrete *pfsfdisc,
+	convection *pfsfdisc,
 	solver *psolv,
 	reini *preini,
 	particlecorr *ppart

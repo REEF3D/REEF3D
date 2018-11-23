@@ -30,7 +30,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"heat_header.h"
 #include"concentration_header.h"
 #include"benchmark_header.h"
-#include"discrete_header.h"
+#include"convection_header.h"
 #include"solver_header.h"
 #include"field_header.h"
 #include"6DOF_header.h"
@@ -85,14 +85,14 @@ void driver::loop_cfd(fdm* a)
             pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,ppart,a->phi);
             poneph->update(p,a,pgc,pflow);
             pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow);
-            pheat->start(a,p,pdisc,pdiff,psolv,pgc,pflow);
+            pheat->start(a,p,pconvec,pdiff,psolv,pgc,pflow);
 			 pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
             psusp->start(a,p,pconcdisc,psuspdiff,psolv,pgc,pflow);
-			 pmp->start(p,a,pgc,pmpdisc,psolv,pflow,preini,ppart,pprint);
+			 pmp->start(p,a,pgc,pmpconvec,psolv,pflow,preini,ppart,pprint);
             }
 				
 		// Sediment Computation
-        psed->start(p,a,pdisc,pgc,pflow,ptopo,preto,psusp,pbed);
+        psed->start(p,a,pconvec,pgc,pflow,ptopo,preto,psusp,pbed);
 		
 		p6dof->start(p,a,pgc,pmom,pflow,pfsf,pfsfdisc,psolv,preini,ppart);
         pflow->u_relax(p,a,pgc,a->u);
@@ -100,7 +100,7 @@ void driver::loop_cfd(fdm* a)
 		pflow->w_relax(p,a,pgc,a->w);
 		pfsf->update(p,a,pgc,a->phi);
         pmom->start(p,a,pgc,pmom); 
-        pbench->start(p,a,pgc,pdisc);
+        pbench->start(p,a,pgc,pconvec);
         }
 		
         //save previous timestep

@@ -28,7 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"diffusion.h"
 #include"ioflow.h"
 #include"kepsilon.h"
-#include"discrete.h"
+#include"convection.h"
 
 kepsilon_void::kepsilon_void(lexer* p, fdm* a, ghostcell *pgc)
 {
@@ -38,7 +38,7 @@ kepsilon_void::~kepsilon_void()
 {
 }
 
-void kepsilon_void::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
+void kepsilon_void::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
 {
 }
 void kepsilon_void::isource(lexer* p, fdm* a)

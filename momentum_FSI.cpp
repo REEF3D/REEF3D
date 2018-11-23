@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 #include"bcmom.h"
-#include"discrete.h"
+#include"convection.h"
 #include"diffusion.h"
 #include"pressure.h"
 #include"poisson.h"
@@ -36,7 +36,7 @@ momentum_FSI::momentum_FSI
 (
     lexer *p, 
     fdm *a, 
-    discrete *pdiscrete, 
+    convection *pconvection, 
     diffusion *pdiffusion, 
     pressure* ppressure, 
     poisson* ppoisson,
@@ -51,7 +51,7 @@ momentum_FSI::momentum_FSI
 	gcval_v=11;
 	gcval_w=12;
 
-	pdisc=pdiscrete;
+	pconvec=pconvection;
 	pdiff=pdiffusion;
 	ppress=ppressure;
 	ppois=ppoisson;
@@ -363,7 +363,7 @@ void momentum_FSI::getF(lexer *p, fdm *a, ghostcell *pgc, field &uvel, field &vv
 	bcmom_start(a,p,pgc,pturb,uvel,gcval_u);
 	ppress->upgrad(p,a);
 	irhs(p,a,pgc,uvel,uvel,vvel,wvel,1.0);
-	pdisc->start(p,a,uvel,1,uvel,vvel,wvel);
+	pconvec->start(p,a,uvel,1,uvel,vvel,wvel);
 	pdiff->diff_u(p,a,pgc,psolv,uvel,vvel,wvel,1.0);    							// adds implicit diffusion
     
 	p->utime=pgc->timer()-starttime;
@@ -383,7 +383,7 @@ void momentum_FSI::getG(lexer *p, fdm *a, ghostcell *pgc, field &uvel, field &vv
 	bcmom_start(a,p,pgc,pturb,vvel,gcval_v);
 	ppress->vpgrad(p,a);
 	jrhs(p,a,pgc,vvel,uvel,vvel,wvel,1.0);
-	pdisc->start(p,a,vvel,2,uvel,vvel,wvel);
+	pconvec->start(p,a,vvel,2,uvel,vvel,wvel);
 	pdiff->diff_v(p,a,pgc,psolv,uvel,vvel,wvel,1.0); 
 
 	p->vtime=pgc->timer()-starttime; 
@@ -403,7 +403,7 @@ void momentum_FSI::getH(lexer *p, fdm *a, ghostcell *pgc, field &uvel, field &vv
 	bcmom_start(a,p,pgc,pturb,wvel,gcval_w);
 	ppress->wpgrad(p,a);
 	krhs(p,a,pgc,wvel,uvel,vvel,wvel,1.0);	
-	pdisc->start(p,a,wvel,3,uvel,vvel,wvel);	
+	pconvec->start(p,a,wvel,3,uvel,vvel,wvel);	
 	pdiff->diff_w(p,a,pgc,psolv,uvel,vvel,wvel,1.0); 
   
  

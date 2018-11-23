@@ -23,14 +23,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
-#include"sflow_discrete.h"
+#include"sflow_convection.h"
 #include"sflow_pressure.h"
 #include"sflow_diffusion.h"
 #include"sflow_fsf.h"
 #include"ioflow.h"
 #include"solver2D.h"
 
-sflow_momentum_AB2::sflow_momentum_AB2(lexer *p, fdm2D *b, sflow_discrete *pdiscrete, sflow_diffusion *ppdiff, sflow_pressure* ppressure,
+sflow_momentum_AB2::sflow_momentum_AB2(lexer *p, fdm2D *b, sflow_convection *pconvection, sflow_diffusion *ppdiff, sflow_pressure* ppressure,
                                                     solver2D *psolver, solver2D *ppoissonsolver, ioflow *pioflow, sflow_fsf *pfreesurf)
                                                     :Pab(p),Qab(p)
 {
@@ -40,7 +40,7 @@ sflow_momentum_AB2::sflow_momentum_AB2(lexer *p, fdm2D *b, sflow_discrete *pdisc
 	gcval_urk=20;
 	gcval_vrk=21;
 
-	pdisc=pdiscrete;
+	pconvec=pconvection;
 	pdiff=ppdiff;
 	ppress=ppressure;
 	psolv=psolver;
@@ -66,7 +66,7 @@ void sflow_momentum_AB2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	pflow->isource2D(p,b,pgc);
 	ppress->upgrad(p,b,b->eta);
 	irhs(p,b,pgc,b->P,1.0);
-	pdisc->start(p,b,b->P,1,b->P,b->Q);
+	pconvec->start(p,b,b->P,1,b->P,b->Q);
 	pdiff->diff_u(p,b,pgc,psolv,b->P,1.0);
 	
     p->utime=pgc->timer()-starttime;
@@ -77,7 +77,7 @@ void sflow_momentum_AB2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	pflow->jsource2D(p,b,pgc);
 	ppress->vpgrad(p,b,b->eta);
 	jrhs(p,b,pgc,b->Q,1.0);
-	pdisc->start(p,b,b->Q,2,b->P,b->Q);
+	pconvec->start(p,b,b->Q,2,b->P,b->Q);
 	pdiff->diff_v(p,b,pgc,psolv,b->Q,1.0);
 
     p->vtime=pgc->timer()-starttime;

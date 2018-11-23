@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include"field4.h"
-#include"discrete.h"
+#include"convection.h"
 #include"ioflow.h"
 #include"solver.h"
 #include"reini.h"
@@ -68,10 +68,8 @@ fnpf_sg_RK3::~fnpf_sg_RK3()
 {
 }
 
-void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, discrete *pdisc, ioflow *pflow, reini *preini, onephase* poneph)
+void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
 {	
-    int iter=1;
-    int qn;
 // Step 1
     // fsf eta
     pf->kfsfbc(p,c,pgc);
@@ -101,12 +99,8 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, di
     // solve Fi
     pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,250);
-    for(qn=0;qn<iter;++qn)
-    {
     plap->start(p,c,pgc,psolv,pf,c->Fi);
-    bedbc_sig(p,c,pgc,c->Fi,pf);
     pgc->start7V(p,c->Fi,250);
-    }
     pf->fsfwvel(p,c,pgc,erk1,frk1);
 
 // Step 2
@@ -138,12 +132,8 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, di
     // solve Fi
     pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,250);
-    for(qn=0;qn<iter;++qn)
-    {
     plap->start(p,c,pgc,psolv,pf,c->Fi);
-    bedbc_sig(p,c,pgc,c->Fi,pf);
     pgc->start7V(p,c->Fi,250);
-    }
     pf->fsfwvel(p,c,pgc,erk2,frk2);
 
 // Step 3 
@@ -175,21 +165,15 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, di
     // solve Fi
     pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,250);
-    for(qn=0;qn<iter;++qn)
-    {
     plap->start(p,c,pgc,psolv,pf,c->Fi);
-    bedbc_sig(p,c,pgc,c->Fi,pf);
     pgc->start7V(p,c->Fi,250);
-    }
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
 
-
-    pflow->eta_relax(p,pgc,c->eta);
-    pflow->fifsf_relax(p,pgc,c->Fifsf);
-    
-    
     LOOP
     c->test(i,j,k) = c->Fifsf(i,j);
+    
+    pflow->eta_relax(p,pgc,c->eta);
+    pflow->fifsf_relax(p,pgc,c->Fifsf);
     
     pgc->start4(p,c->test,50);
 

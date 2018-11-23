@@ -29,7 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ioflow.h"
 #include"komega.h"
 #include"multiphase.h"
-#include"discrete.h"
+#include"convection.h"
 
 komega_IM2::komega_IM2(lexer* p, fdm* a, ghostcell *pgc, multiphase *pmp) : ikomega(p,a,pgc,pmp),kn(p),knn(p),en(p),enn(p)
 {
@@ -47,7 +47,7 @@ komega_IM2::~komega_IM2()
 {
 }
 
-void komega_IM2::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
+void komega_IM2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
 {
 	Pk_update(p,a,pgc);
 	wallf_update(p,a,pgc,wallf);
@@ -55,7 +55,7 @@ void komega_IM2::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,solve
 //kin
     starttime=pgc->timer();
 	clearrhs(p,a);
-    pdisc->start(p,a,kin,4,a->u,a->v,a->w);
+    pconvec->start(p,a,kin,4,a->u,a->v,a->w);
 	pdiff->idiff_scalar(p,a,pgc,psolv,kin,a->visc,kw_sigma_k,1.0);
 	kinsource(p,a);
 	timesource(p,a,kn,knn);
@@ -71,7 +71,7 @@ void komega_IM2::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,solve
 //omega
     starttime=pgc->timer();
 	clearrhs(p,a);
-    pdisc->start(p,a,eps,4,a->u,a->v,a->w);
+    pconvec->start(p,a,eps,4,a->u,a->v,a->w);
 	pdiff->diff_scalar(p,a,pgc,psolv,eps,a->visc,kw_sigma_w,1.0);
 	epssource(p,a);
 	timesource(p,a,en,enn);

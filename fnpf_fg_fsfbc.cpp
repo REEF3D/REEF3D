@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 #include"field4.h"
-#include"discrete.h"
+#include"convection.h"
 #include"ioflow.h"
 #include"solver.h"
 #include"reini.h"
@@ -38,19 +38,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 fnpf_fg_fsfbc::fnpf_fg_fsfbc(lexer *p, fdm *a, ghostcell *pgc) : Fx(p),Fy(p),Fz(p),Ex(p),Ey(p)
 {    
     if(p->A311==0)
-    pdisc = new fnpf_voiddisc(p);
+    pconvec = new fnpf_voiddisc(p);
     
     if(p->A311==2)
-    pdisc = new fnpf_cds2(p);
+    pconvec = new fnpf_cds2(p);
     
     if(p->A311==3)
-    pdisc = new fnpf_cds4(p);
+    pconvec = new fnpf_cds4(p);
     
     if(p->A311==4)
-    pdisc = new fnpf_weno(p);
+    pconvec = new fnpf_weno(p);
     
     if(p->A311==6)
-    pdisc = new fnpf_cds6(p);
+    pconvec = new fnpf_cds6(p);
 }
 
 fnpf_fg_fsfbc::~fnpf_fg_fsfbc()
@@ -71,12 +71,12 @@ void fnpf_fg_fsfbc::fsfdisc(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice 
     kvel =  (Fi(i,j,k) - Fi(i,j,k-1))/p->DZP[KM1];
     
     
-    Fx(i,j) = pdisc->sx(p,Fifsf,ivel1,ivel2);
-    Fy(i,j) = pdisc->sy(p,Fifsf,jvel1,jvel2);
-    Fz(i,j) = pdisc->fz(p,Fi,kvel,kvel);
+    Fx(i,j) = pconvec->sx(p,Fifsf,ivel1,ivel2);
+    Fy(i,j) = pconvec->sy(p,Fifsf,jvel1,jvel2);
+    Fz(i,j) = pconvec->fz(p,Fi,kvel,kvel);
     
-    Ex(i,j) = pdisc->sx(p,eta,ivel1,ivel2);
-    Ey(i,j) = pdisc->sy(p,eta,jvel1,jvel2);
+    Ex(i,j) = pconvec->sx(p,eta,ivel1,ivel2);
+    Ey(i,j) = pconvec->sy(p,eta,jvel1,jvel2);
     }
 }
 

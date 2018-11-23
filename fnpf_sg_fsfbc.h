@@ -24,7 +24,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 
 class fnpf_sg_laplace;
 class field;
-class fnpf_discrete;
+class fnpf_convection;
 class fnpf_ddx;
 
 using namespace std;
@@ -43,7 +43,7 @@ public:
     void dfsfbc(lexer*,fdm_fnpf*,ghostcell*,slice&);
     void fsfwvel(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
 
-    fnpf_discrete *pdisc;
+    fnpf_convection *pconvec;
     fnpf_ddx *pddx;
 
     double ivel1,ivel2,jvel1,jvel2,kvel;

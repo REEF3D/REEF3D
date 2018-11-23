@@ -34,7 +34,7 @@ geotopo::~geotopo()
 {
 }
 
-void geotopo::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, discrete* pdisc, reinitopo* preto)
+void geotopo::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection* pconvec, reinitopo* preto)
 {
     dat(p,a,pgc);
     box(p,a,pgc);
@@ -44,7 +44,7 @@ void geotopo::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, discrete* p
 	//solid_topo(p,a,pgc);
     
 
-    preto->start(a,p,a->topo,pdisc,pgc);
+    preto->start(a,p,a->topo,pconvec,pgc);
 
     pgc->topo_update(p,a);
     pflow->iogcb_update(p,a,pgc);

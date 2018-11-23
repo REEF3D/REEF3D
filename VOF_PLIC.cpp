@@ -25,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"discrete.h"
+#include"convection.h"
 #include"solver.h"
 #include"ghostcell.h"
 #include"freesurface_header.h"
@@ -74,7 +74,7 @@ void VOF_PLIC::start
 (
     fdm* a,
     lexer* p, 
-    discrete* pdisc,
+    convection* pconvec,
     solver* psolv, 
     ghostcell* pgc,
     ioflow* pflow, 
@@ -121,6 +121,10 @@ void VOF_PLIC::start
             //- Calculate left and right fluxes Q1 and Q2
             calcFlux(a, p, Q1, Q2, sweep);
                 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> hans_dev
                 
             //- PLIC loop
             vof1(i, j, k) = 0.0;
@@ -203,6 +207,80 @@ void VOF_PLIC::start
     {
         reini_->start(a,p,a->phi,pgc,pflow);
     }
+<<<<<<< HEAD
+=======
+=======
+				
+			//- PLIC loop
+			vof1(i, j, k) = 0.0;
+			vof2(i, j, k) = 0.0;
+			vof3(i, j, k) = 0.0;
+
+			if (a->vof(i, j, k) >= 1.0)
+			{				
+				// Fluxes leave and enter cell in a straight manner
+				vof1(i, j, k) = max(-Q1, 0.0);
+				vof2(i, j, k) = 1.0 - max(Q1, 0.0) + min(Q2, 0.0);
+				vof3(i, j, k) = max(Q2, 0.0);
+			}
+			else
+			{
+				// Reconstruct plane in cell
+				reconstructPlane(a, p);
+				
+				// Advect interface using Lagrangian approach
+				advectPlane(a, p, Q1, Q2, sweep);
+				
+				// Update volume fraction
+				updateVolumeFraction(a, p, Q1, Q2, sweep);
+			}
+		}
+	       
+		
+		//- Distribute volume fractions
+		pgc->start4(p,vof1,gcval_frac);
+		pgc->start4(p,vof2,gcval_frac);
+		pgc->start4(p,vof3,gcval_frac);
+
+
+		//- Calculate updated vof from volume fractions and distribute
+		updateVOF(a, p, sweep);
+		pgc->start4(p,a->vof,gcval_frac);
+
+		
+		//- Change sweep
+		if (sweep < 2)
+		{
+			sweep++;
+		}
+		else
+		{
+			sweep = 0;
+		} 
+	}
+	
+	//- Redistance distance function from updated plane equations
+	// redistance(a, p, pconvec, pgc, pflow, 20);
+	//- Distribute ls function
+	// pgc->start4(p,a->phi,gcval_frac); 
+
+
+	pflow->periodic(a->vof,p);
+
+	pupdate->start(p,a,pgc);
+
+	p->lsmtime=pgc->timer()-starttime;
+	
+	if(p->mpirank==0)
+	cout<<"vofplictime: "<<setprecision(3)<<p->lsmtime<<endl;
+	
+	
+	LOOP
+	{
+		a->test(i,j,k) = a->vof(i,j,k);
+	}
+>>>>>>> hans_dev
+>>>>>>> hans_dev
 }
 
 

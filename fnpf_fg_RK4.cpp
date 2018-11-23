@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 #include"field4.h"
-#include"discrete.h"
+#include"convection.h"
 #include"ioflow.h"
 #include"solver.h"
 #include"reini.h"
@@ -69,7 +69,7 @@ fnpf_fg_RK4::~fnpf_fg_RK4()
 {
 }
 
-void fnpf_fg_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, discrete *pdisc, ioflow *pflow, reini *preini, onephase* poneph)
+void fnpf_fg_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
 {	
 
 // Step 1

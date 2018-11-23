@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"discrete.h"
+#include"convection.h"
 #include"fillvec.h"
 
 class flux;
@@ -30,7 +30,7 @@ class cpt;
 
 using namespace std;
 
-class weno_hj : public discrete, public fillvec
+class weno_hj : public convection, public fillvec
 {
 public:
 	weno_hj(lexer*);

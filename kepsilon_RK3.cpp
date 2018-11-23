@@ -28,7 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"diffusion.h"
 #include"ioflow.h"
 #include"kepsilon.h"
-#include"discrete.h"
+#include"convection.h"
 
 kepsilon_RK3::kepsilon_RK3(lexer* p, fdm* a, ghostcell *pgc) : kepsilon(p,a,pgc)
 {
@@ -49,7 +49,7 @@ kepsilon_RK3::~kepsilon_RK3()
 {
 }
 
-void kepsilon_RK3::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
+void kepsilon_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
 {	
     field4 ark1(p),ark2(p);
     field4 brk1(p),brk2(p);
@@ -62,7 +62,7 @@ void kepsilon_RK3::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,sol
 
 	kinsource(p,a,kin,eps);
 	bckeps_start(a,p,kin,eps,gcval_kin);
-	pdisc->start(p,a,kin,4,a->u,a->v,a->w);
+	pconvec->start(p,a,kin,4,a->u,a->v,a->w);
 	pdiff->diff_scalar(p,a,pgc,psolv,kin,a->visc,ke_sigma_k,1.0);
 
 	LOOP
@@ -78,7 +78,7 @@ void kepsilon_RK3::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,sol
 	starttime=pgc->timer();
 
 	epssource(p,a,kin,eps);
-	pdisc->start(p,a,eps,4,a->u,a->v,a->w);
+	pconvec->start(p,a,eps,4,a->u,a->v,a->w);
 	pdiff->diff_scalar(p,a,pgc,psolv,eps,a->visc,ke_sigma_e,1.0);
 
 	LOOP
@@ -98,7 +98,7 @@ void kepsilon_RK3::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,sol
 
 	kinsource(p,a,kin,eps);
 	bckeps_start(a,p,kin,eps,gcval_kin);
-	pdisc->start(p,a,ark1,4,a->u,a->v,a->w);
+	pconvec->start(p,a,ark1,4,a->u,a->v,a->w);
 	pdiff->diff_scalar(p,a,pgc,psolv,ark1,a->visc,ke_sigma_k,0.25);
 
 	LOOP
@@ -114,7 +114,7 @@ void kepsilon_RK3::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,sol
 	starttime=pgc->timer();
 
 	epssource(p,a,kin,eps);
-	pdisc->start(p,a,brk1,4,a->u,a->v,a->w);
+	pconvec->start(p,a,brk1,4,a->u,a->v,a->w);
 	pdiff->diff_scalar(p,a,pgc,psolv,brk1,a->visc,ke_sigma_e,0.25);
 
 	LOOP
@@ -134,7 +134,7 @@ void kepsilon_RK3::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,sol
 
 	kinsource(p,a,kin,eps);
 	bckeps_start(a,p,kin,eps,gcval_kin);
-	pdisc->start(p,a,ark2,4,a->u,a->v,a->w);
+	pconvec->start(p,a,ark2,4,a->u,a->v,a->w);
 	pdiff->diff_scalar(p,a,pgc,psolv,ark2,a->visc,ke_sigma_k,2.0/3.0);
 
 	LOOP
@@ -150,7 +150,7 @@ void kepsilon_RK3::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,sol
 	starttime=pgc->timer();
 
 	epssource(p,a,kin,eps);
-	pdisc->start(p,a,brk2,4,a->u,a->v,a->w);
+	pconvec->start(p,a,brk2,4,a->u,a->v,a->w);
 	pdiff->diff_scalar(p,a,pgc,psolv,brk2,a->visc,ke_sigma_e,2.0/3.0);
 
 	LOOP

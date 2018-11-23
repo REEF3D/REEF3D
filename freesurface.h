@@ -21,7 +21,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 class fdm;
 class lexer;
-class discrete;
+class convection;
 class solver;
 class ghostcell;
 class ioflow;
@@ -38,7 +38,7 @@ class freesurface
 {
 public:
 
-	virtual void start(fdm*,lexer*, discrete*, solver*, ghostcell*,ioflow*, reini*, particlecorr*,field&)=0;
+	virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particlecorr*,field&)=0;
 	virtual void ltimesave(lexer*,fdm*,field&)=0;
     virtual void update(lexer*,fdm*,ghostcell*,field&)=0;
 

@@ -31,7 +31,7 @@ class levelset_void : public freesurface
 public:
 	levelset_void(lexer*, fdm*, ghostcell*);
 	virtual ~levelset_void();
-	virtual void start(fdm*,lexer*, discrete*, solver*, ghostcell*,ioflow*, reini*, particlecorr*,field&);
+	virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particlecorr*,field&);
 	virtual void ltimesave(lexer*,fdm*,field&);
     virtual void update(lexer*,fdm*,ghostcell*,field&);
 

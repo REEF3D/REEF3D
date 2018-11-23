@@ -28,7 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"diffusion.h"
 #include"ioflow.h"
 #include"komega.h"
-#include"discrete.h"
+#include"convection.h"
 
 komega_RK3::komega_RK3(lexer* p, fdm* a, ghostcell *pgc) : komega(p,a,pgc)
 {
@@ -49,7 +49,7 @@ komega_RK3::~komega_RK3()
 {
 }
 
-void komega_RK3::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
+void komega_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
 {	
     field4 ark1(p),ark2(p);
     field4 brk1(p),brk2(p);
@@ -63,7 +63,7 @@ void komega_RK3::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,solve
 	kinsource(p,a,pgc,kin,eps);
     bckeps_start(a,p,kin,eps,gcval_kin);
     rhs(p,a,pgc);
-    pdisc->start(p,a,kin,4,a->u,a->v,a->w);
+    pconvec->start(p,a,kin,4,a->u,a->v,a->w);
 	pdiff->diff_scalar(p,a,pgc,psolv,kin,a->visc,kw_sigma_k,1.0);
 
 	LOOP
@@ -80,7 +80,7 @@ void komega_RK3::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,solve
 
 	epssource(p,a,pgc,kin,eps);
     rhs(p,a,pgc);
-	pdisc->start(p,a,eps,4,a->u,a->v,a->w);
+	pconvec->start(p,a,eps,4,a->u,a->v,a->w);
 	pdiff->diff_scalar(p,a,pgc,psolv,eps,a->visc,kw_sigma_w,1.0);
 
 	LOOP
@@ -101,7 +101,7 @@ void komega_RK3::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,solve
 	kinsource(p,a,pgc,kin,eps);
     bckeps_start(a,p,kin,eps,gcval_kin);
     rhs(p,a,pgc);
-    pdisc->start(p,a,ark1,4,a->u,a->v,a->w);
+    pconvec->start(p,a,ark1,4,a->u,a->v,a->w);
 	pdiff->diff_scalar(p,a,pgc,psolv,ark1,a->visc,kw_sigma_k,0.25);
 
 	LOOP
@@ -118,7 +118,7 @@ void komega_RK3::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,solve
 
 	epssource(p,a,pgc,kin,eps);
     rhs(p,a,pgc);
-	pdisc->start(p,a,brk1,4,a->u,a->v,a->w);
+	pconvec->start(p,a,brk1,4,a->u,a->v,a->w);
 	pdiff->diff_scalar(p,a,pgc,psolv,brk1,a->visc,kw_sigma_w,0.25);
 
 	LOOP
@@ -139,7 +139,7 @@ void komega_RK3::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,solve
 	kinsource(p,a,pgc,kin,eps);
     bckeps_start(a,p,kin,eps,gcval_kin);
     rhs(p,a,pgc);
-    pdisc->start(p,a,ark2,4,a->u,a->v,a->w);
+    pconvec->start(p,a,ark2,4,a->u,a->v,a->w);
 	pdiff->diff_scalar(p,a,pgc,psolv,ark2,a->visc,kw_sigma_k,2.0/3.0);
 
 	LOOP
@@ -156,7 +156,7 @@ void komega_RK3::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,solve
 
 	epssource(p,a,pgc,kin,eps);
     rhs(p,a,pgc);
-	pdisc->start(p,a,brk2,4,a->u,a->v,a->w);
+	pconvec->start(p,a,brk2,4,a->u,a->v,a->w);
 	pdiff->diff_scalar(p,a,pgc,psolv,brk2,a->visc,kw_sigma_w,2.0/3.0);
 
 	LOOP

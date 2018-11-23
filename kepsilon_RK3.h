@@ -33,7 +33,7 @@ public:
 	kepsilon_RK3(lexer*,fdm*,ghostcell*);
 	virtual ~kepsilon_RK3();
 
-	virtual void start(fdm*, lexer*, discrete*, diffusion*, solver*, ghostcell*, ioflow*);
+	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*);
 	virtual void ktimesave(lexer*, fdm*, ghostcell*);
 	virtual void etimesave(lexer*, fdm*, ghostcell*);
 

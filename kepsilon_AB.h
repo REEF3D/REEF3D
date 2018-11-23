@@ -34,7 +34,7 @@ class kepsilon_AB : public kepsilon
 public:
 	kepsilon_AB(lexer*,fdm*,ghostcell*);
 	virtual ~kepsilon_AB();
-	virtual void start(fdm*, lexer*, discrete*, diffusion*, solver*, ghostcell*, ioflow*);
+	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*);
 	virtual void ktimesave(lexer*, fdm*, ghostcell*);
 	virtual void etimesave(lexer*, fdm*, ghostcell*);
 

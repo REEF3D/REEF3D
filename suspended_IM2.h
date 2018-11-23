@@ -36,7 +36,7 @@ class suspended_IM2 : public suspended, public ibcsusp, public isusprhs
 public:
 	suspended_IM2(lexer *, fdm*,turbulence*);
 	virtual ~suspended_IM2();
-	virtual void start(fdm*, lexer*, discrete*, diffusion*, solver*, ghostcell*, ioflow*);
+	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*);
 	virtual void ctimesave(lexer*, fdm*);
 
 	field4 concn,concnn;

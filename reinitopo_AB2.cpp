@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"discrete.h"
+#include"convection.h"
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"picard_f.h"
@@ -62,7 +62,7 @@ reinitopo_AB2::~reinitopo_AB2()
 {
 }
 
-void reinitopo_AB2::start(fdm* a,lexer* p,field& b, discrete* pdisc, ghostcell* pgc)
+void reinitopo_AB2::start(fdm* a,lexer* p,field& b, convection* pconvec, ghostcell* pgc)
 {
 
 	sizeM=p->sizeM4;

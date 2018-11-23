@@ -63,46 +63,46 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->A215==0)
     {
         if(p->A211==0)
-        pdisc = new sflow_voidconv(p);
+        pconvec = new sflow_voidconv(p);
         
         if(p->A211==1)
-        pdisc = new sflow_fou(p);
+        pconvec = new sflow_fou(p);
         
         if(p->A211==4)
-        pdisc = new sflow_weno_flux(p);
+        pconvec = new sflow_weno_flux(p);
         
         if(p->A211==5)
-        pdisc = new sflow_weno_hj(p);
+        pconvec = new sflow_weno_hj(p);
         
         if(p->A211==6)
-        pdisc = new sflow_hires(p,6);
+        pconvec = new sflow_hires(p,6);
         
         if(p->A211==7)
-        pdisc = new sflow_hires(p,7);
+        pconvec = new sflow_hires(p,7);
         
         if(p->A211==8)
-        pdisc = new sflow_hires(p,8);
+        pconvec = new sflow_hires(p,8);
     }
     
     if(p->A215==1)
     {
         if(p->A211==0)
-        pdisc = new sflow_voidconv(p);
+        pconvec = new sflow_voidconv(p);
         
         if(p->A211==1)
-        pdisc = new sflow_cfou(p,b);
+        pconvec = new sflow_cfou(p,b);
         
         if(p->A211==4 ||p->A211==5)
-        pdisc = new sflow_weno_cflux(p,b);
+        pconvec = new sflow_weno_cflux(p,b);
         
         if(p->A211==6)
-        pdisc = new sflow_chires(p,b,6);
+        pconvec = new sflow_chires(p,b,6);
         
         if(p->A211==7)
-        pdisc = new sflow_chires(p,b,7);
+        pconvec = new sflow_chires(p,b,7);
         
         if(p->A211==8)
-        pdisc = new sflow_chires(p,b,8);
+        pconvec = new sflow_chires(p,b,8);
     }
     
     // filter
@@ -161,16 +161,16 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 	
 	if(p->A210==3)
-	pmom = new sflow_momentum_RK3(p,b,pdisc,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,pbouss);
+	pmom = new sflow_momentum_RK3(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,pbouss);
     
     if(p->A210==4)
-	pmom = new sflow_momentum_RK4(p,b,pdisc,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,pbouss);
+	pmom = new sflow_momentum_RK4(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,pbouss);
 	
     if(p->A210==11)
-	pmom = new sflow_momentum_AB2(p,b,pdisc,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf);
+	pmom = new sflow_momentum_AB2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf);
 	
 	if(p->A210==12)
-	pmom = new sflow_momentum_RK2(p,b,pdisc,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf);
+	pmom = new sflow_momentum_RK2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf);
 
 	
     

@@ -21,7 +21,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 class lexer;
 class fdm;
-class discrete;
+class convection;
 class ghostcell;
 class reinitopo;
 class slice;
@@ -35,7 +35,7 @@ class topo
 {
 public:
 
-	virtual void start(fdm*,lexer*, discrete*, ghostcell*,reinitopo*)=0;
+	virtual void start(fdm*,lexer*, convection*, ghostcell*,reinitopo*)=0;
 
 };
 

@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"discrete.h"
+#include"convection.h"
 #include"solver.h"
 #include"ghostcell.h"
 #include"ioflow.h"
@@ -39,7 +39,7 @@ void VOF_PLIC::redistance
 (
 	fdm* a, 
 	lexer* p, 
-	discrete* pdisc, 
+	convection* pconvec, 
 	ghostcell* pgc, 
 	ioflow* pflow, 
 	int bandWidth

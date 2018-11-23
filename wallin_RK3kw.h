@@ -34,7 +34,7 @@ class wallin_RK3kw : public komega_RK3, wallin
 public:
 	wallin_RK3kw(lexer *,fdm*,ghostcell*);
 	virtual ~wallin_RK3kw();
-	virtual void start(fdm*, lexer*, discrete*, diffusion*, solver*, ghostcell*, ioflow*);
+	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*);
 	virtual void aniso(fdm*);
 	virtual double tau(fdm*);
     

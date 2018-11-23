@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"discrete.h"
+#include"convection.h"
 #include"solver.h"
 #include"ghostcell.h"
 #include"ioflow.h"
@@ -94,7 +94,7 @@ levelset_RK3::~levelset_RK3()
 {
 }
 
-void levelset_RK3::start(fdm* a,lexer* p, discrete* pdisc,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particlecorr* ppart, field &ls)
+void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particlecorr* ppart, field &ls)
 {
     pflow->fsfinflow(p,a,pgc);
     pflow->fsfrkin(p,a,pgc,ark1);
@@ -111,7 +111,7 @@ void levelset_RK3::start(fdm* a,lexer* p, discrete* pdisc,solver* psolv, ghostce
     FLUIDLOOP
 	a->L(i,j,k)=0.0;
 
-	pdisc->start(p,a,ls,4,a->u,a->v,a->w);
+	pconvec->start(p,a,ls,4,a->u,a->v,a->w);
 	
 
 	FLUIDLOOP
@@ -128,7 +128,7 @@ void levelset_RK3::start(fdm* a,lexer* p, discrete* pdisc,solver* psolv, ghostce
     FLUIDLOOP
 	a->L(i,j,k)=0.0;
 
-	pdisc->start(p,a,ark1,4,a->u,a->v,a->w);
+	pconvec->start(p,a,ark1,4,a->u,a->v,a->w);
 
 	FLUIDLOOP
 	ark2(i,j,k) = 0.75*ls(i,j,k)
@@ -145,7 +145,7 @@ void levelset_RK3::start(fdm* a,lexer* p, discrete* pdisc,solver* psolv, ghostce
     FLUIDLOOP
 	a->L(i,j,k)=0.0;
 
-	pdisc->start(p,a,ark2,4,a->u,a->v,a->w);
+	pconvec->start(p,a,ark2,4,a->u,a->v,a->w);
 
 	FLUIDLOOP
 	ls(i,j,k) =     (1.0/3.0)*ls(i,j,k)

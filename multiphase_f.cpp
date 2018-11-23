@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"discrete.h"
+#include"convection.h"
 #include"solver.h"
 #include"ioflow.h"
 #include"reini.h"
@@ -47,10 +47,10 @@ multiphase_f::~multiphase_f()
 {
 }
 
-void multiphase_f::start(lexer *p, fdm *a, ghostcell *pgc, discrete *pmpdisc, solver *psolv, ioflow *pflow, reini* preini2, particlecorr* ppart, printer *pprint)
+void multiphase_f::start(lexer *p, fdm *a, ghostcell *pgc, convection *pmpconvec, solver *psolv, ioflow *pflow, reini* preini2, particlecorr* ppart, printer *pprint)
 {
-	pfsf1->start(a,p,pmpdisc,psolv,pgc,pflow,preini,ppart,ls1);
-	pfsf2->start(a,p,pmpdisc,psolv,pgc,pflow,preini,ppart,ls2);	
+	pfsf1->start(a,p,pmpconvec,psolv,pgc,pflow,preini,ppart,ls1);
+	pfsf2->start(a,p,pmpconvec,psolv,pgc,pflow,preini,ppart,ls2);	
 	
 	update(p,a,pgc);
 }

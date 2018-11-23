@@ -434,7 +434,7 @@ void iowave::awa_update(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void iowave::inflow_walldist(lexer *p, fdm *a, ghostcell *pgc, discrete *pdisc, reini *preini, ioflow *pflow)
+void iowave::inflow_walldist(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec, reini *preini, ioflow *pflow)
 {
 }
 

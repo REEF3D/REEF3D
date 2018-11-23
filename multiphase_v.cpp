@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"discrete.h"
+#include"convection.h"
 #include"solver.h"
 #include"ioflow.h"
 #include"reini.h"
@@ -42,11 +42,11 @@ multiphase_v::~multiphase_v()
 {
 }
 
-void multiphase_v::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, printer *pprint, discrete *pdisc, solver *psolv)
+void multiphase_v::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, printer *pprint, convection *pconvec, solver *psolv)
 {
 }
 
-void multiphase_v::start(lexer *p, fdm *a, ghostcell *pgc, discrete *pdisc, solver *psolv, ioflow *pflow, reini* preini, particlecorr* ppart, printer *pprint)
+void multiphase_v::start(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec, solver *psolv, ioflow *pflow, reini* preini, particlecorr* ppart, printer *pprint)
 {
 }
 

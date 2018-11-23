@@ -21,7 +21,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 class lexer;
 class fdm;
-class discrete;
+class convection;
 class diffusion;
 class solver;
 class ghostcell;
@@ -36,7 +36,7 @@ class suspended
 {
 public:
 
-	virtual void start(fdm*, lexer*, discrete*, diffusion*, solver*, ghostcell*, ioflow*)=0;
+	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*)=0;
 	virtual void ctimesave(lexer*, fdm*)=0;
 
 };

@@ -21,7 +21,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 class fdm;
 class lexer;
-class discrete;
+class convection;
 class diffusion;
 class solver;
 class ghostcell;
@@ -38,7 +38,7 @@ class concentration
 {
 public:
 
-	virtual void start(fdm*, lexer*, discrete*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*)=0;
+	virtual void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*)=0;
 	virtual void ini(lexer*, fdm*, ghostcell*, concentration *pconcentration)=0;
 	virtual void ttimesave(lexer*, fdm*)=0;
 

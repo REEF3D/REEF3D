@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"discrete.h"
+#include"convection.h"
 #include"diffusion.h"
 #include"ioflow.h"
 #include"turbulence.h"
@@ -39,13 +39,13 @@ concentration_AB::~concentration_AB()
 {
 }
 
-void concentration_AB::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff, turbulence *pturb, solver* psolv, ghostcell* pgc, ioflow* pflow)
+void concentration_AB::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, turbulence *pturb, solver* psolv, ghostcell* pgc, ioflow* pflow)
 {
 
     starttime=pgc->timer();
     
     clearrhs(p,a,pgc);
-	pdisc->start(p,a,C,4,a->u,a->v,a->w);
+	pconvec->start(p,a,C,4,a->u,a->v,a->w);
 	pdiff->diff_scalar(p,a,pgc,psolv,C,a->visc,1.0,1.0);
 
 	if(p->count==1)

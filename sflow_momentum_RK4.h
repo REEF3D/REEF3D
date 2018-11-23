@@ -25,7 +25,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 #include"slice4.h"
 #include"increment.h"
 
-class sflow_discrete;
+class sflow_convection;
 class sflow_fsf;
 class sflow_diffusion;
 class sflow_boussinesq;
@@ -38,7 +38,7 @@ using namespace std;
 class sflow_momentum_RK4 : public sflow_momentum, public increment
 {
 public:
-	sflow_momentum_RK4(lexer*, fdm2D*, sflow_discrete*, sflow_diffusion*, sflow_pressure*, solver2D*, solver2D*, ioflow*, sflow_fsf*, sflow_boussinesq *ppbouss);
+	sflow_momentum_RK4(lexer*, fdm2D*, sflow_convection*, sflow_diffusion*, sflow_pressure*, solver2D*, solver2D*, ioflow*, sflow_fsf*, sflow_boussinesq *ppbouss);
 	virtual ~sflow_momentum_RK4();
 	virtual void start(lexer*, fdm2D*, ghostcell*);
 
@@ -55,7 +55,7 @@ private:
 	int gcval_urk, gcval_vrk, gcval_wrk,gcval_eta;
 	double starttime;
 
-	sflow_discrete *pdisc;
+	sflow_convection *pconvec;
 	sflow_diffusion *pdiff;
 	sflow_pressure *ppress;
 	solver2D *psolv;

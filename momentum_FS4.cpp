@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 #include"bcmom.h"
-#include"discrete.h"
+#include"convection.h"
 #include"diffusion.h"
 #include"pressure.h"
 #include"poisson.h"
@@ -32,7 +32,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"turbulence.h"
 #include"solver.h"
 
-momentum_FS4::momentum_FS4(lexer *p, fdm *a, discrete *pdiscrete, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
+momentum_FS4::momentum_FS4(lexer *p, fdm *a, convection *pconvection, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
                                                     turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow)
                                                     :bcmom(p),urk1(p),vrk1(p),wrk1(p),urk2(p),vrk2(p),wrk2(p),urk3(p),vrk3(p),wrk3(p),
                                                     urk(p),vrk(p),wrk(p)
@@ -45,7 +45,7 @@ momentum_FS4::momentum_FS4(lexer *p, fdm *a, discrete *pdiscrete, diffusion *pdi
 	gcval_vrk=21;
 	gcval_wrk=22;
 
-	pdisc=pdiscrete;
+	pconvec=pconvection;
 	pdiff=pdiffusion;
 	ppress=ppressure;
 	ppois=ppoisson;
@@ -79,7 +79,7 @@ void momentum_FS4::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,a);
 	irhs(p,a);
-	pdisc->start(p,a,a->u,1,a->u,a->v,a->w);
+	pconvec->start(p,a,a->u,1,a->u,a->v,a->w);
     pdiff->diff_u(p,a,pgc,psolv,a->u,a->v,a->w,0.5);
 
 	ULOOP
@@ -98,7 +98,7 @@ void momentum_FS4::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
 	ppress->vpgrad(p,a);
 	jrhs(p,a);
-	pdisc->start(p,a,a->v,2,a->u,a->v,a->w);
+	pconvec->start(p,a,a->v,2,a->u,a->v,a->w);
 	pdiff->diff_v(p,a,pgc,psolv,a->u,a->v,a->w,0.5);
 
 	VLOOP
@@ -117,7 +117,7 @@ void momentum_FS4::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
 	ppress->wpgrad(p,a);
 	krhs(p,a);
-	pdisc->start(p,a,a->w,3,a->u,a->v,a->w);
+	pconvec->start(p,a,a->w,3,a->u,a->v,a->w);
 	pdiff->diff_w(p,a,pgc,psolv,a->u,a->v,a->w,0.5);
 
 	WLOOP
@@ -152,7 +152,7 @@ void momentum_FS4::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	bcmom_start(a,p,pgc,pturb,urk,gcval_u);
 	ppress->upgrad(p,a);
 	irhs(p,a);
-	pdisc->start(p,a,urk,1,urk,vrk,wrk);
+	pconvec->start(p,a,urk,1,urk,vrk,wrk);
 	pdiff->diff_u(p,a,pgc,psolv,urk,vrk,wrk,0.5);
 
 	ULOOP
@@ -171,7 +171,7 @@ void momentum_FS4::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	bcmom_start(a,p,pgc,pturb,vrk,gcval_v);
 	ppress->vpgrad(p,a);
 	jrhs(p,a);
-	pdisc->start(p,a,vrk,2,urk,vrk,wrk);
+	pconvec->start(p,a,vrk,2,urk,vrk,wrk);
 	pdiff->diff_v(p,a,pgc,psolv,urk,vrk,wrk,0.5);
 
 	VLOOP
@@ -190,7 +190,7 @@ void momentum_FS4::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
 	ppress->wpgrad(p,a);
 	krhs(p,a);
-	pdisc->start(p,a,wrk,3,urk,vrk,wrk);
+	pconvec->start(p,a,wrk,3,urk,vrk,wrk);
 	pdiff->diff_w(p,a,pgc,psolv,urk,vrk,wrk,0.5);
 
 	WLOOP
@@ -225,7 +225,7 @@ void momentum_FS4::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	bcmom_start(a,p,pgc,pturb,urk,gcval_u);
 	ppress->upgrad(p,a);
 	irhs(p,a);
-	pdisc->start(p,a,urk,1,urk,vrk,wrk);
+	pconvec->start(p,a,urk,1,urk,vrk,wrk);
 	pdiff->diff_u(p,a,pgc,psolv,urk,vrk,wrk,1.0);
 
 	ULOOP
@@ -244,7 +244,7 @@ void momentum_FS4::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	bcmom_start(a,p,pgc,pturb,vrk,gcval_v);
 	ppress->vpgrad(p,a);
 	jrhs(p,a);
-	pdisc->start(p,a,vrk,2,urk,vrk,wrk);
+	pconvec->start(p,a,vrk,2,urk,vrk,wrk);
 	pdiff->diff_v(p,a,pgc,psolv,urk,vrk,wrk,1.0);
 
 	VLOOP
@@ -263,7 +263,7 @@ void momentum_FS4::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	bcmom_start(a,p,pgc,pturb,wrk,gcval_w);
 	ppress->wpgrad(p,a);
 	krhs(p,a);
-	pdisc->start(p,a,wrk,3,urk,vrk,wrk);
+	pconvec->start(p,a,wrk,3,urk,vrk,wrk);
 	pdiff->diff_w(p,a,pgc,psolv,urk,vrk,wrk,1.0);
 
 	WLOOP
@@ -298,7 +298,7 @@ void momentum_FS4::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	bcmom_start(a,p,pgc,pturb,urk,gcval_u);
 	ppress->upgrad(p,a);
 	irhs(p,a);
-	pdisc->start(p,a,urk,1,urk,vrk,wrk);
+	pconvec->start(p,a,urk,1,urk,vrk,wrk);
 	pdiff->diff_u(p,a,pgc,psolv,urk,vrk,wrk,1.0);
 
 	ULOOP
@@ -314,7 +314,7 @@ void momentum_FS4::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	bcmom_start(a,p,pgc,pturb,vrk,gcval_v);
 	ppress->vpgrad(p,a);
 	jrhs(p,a);
-	pdisc->start(p,a,vrk,2,urk,vrk,wrk);
+	pconvec->start(p,a,vrk,2,urk,vrk,wrk);
 	pdiff->diff_v(p,a,pgc,psolv,urk,vrk,wrk,1.0);
 
     VLOOP
@@ -330,7 +330,7 @@ void momentum_FS4::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	bcmom_start(a,p,pgc,pturb,wrk,gcval_w);
 	ppress->wpgrad(p,a);
 	krhs(p,a);
-	pdisc->start(p,a,wrk,3,urk,vrk,wrk);
+	pconvec->start(p,a,wrk,3,urk,vrk,wrk);
 	pdiff->diff_w(p,a,pgc,psolv,urk,vrk,wrk,1.0);
 
 	WLOOP

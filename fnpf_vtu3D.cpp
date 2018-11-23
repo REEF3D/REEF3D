@@ -128,8 +128,7 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
         
         
     // Gages
-    if(p->mpirank==0)
-    pvtu(p,pgc);
+    
     
     if((p->P52>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P52>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
     pwsfline->start(p,c,pgc,pflow,c->eta);
@@ -138,7 +137,8 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 {
     
-    
+    if(p->mpirank==0)
+    pvtu(p,pgc);
 
     name_iter(p,pgc);
 	

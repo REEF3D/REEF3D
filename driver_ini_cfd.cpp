@@ -29,7 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"pressure_header.h"
 #include"fdm_header.h"
 #include"sediment_header.h"
-#include"discrete_header.h"
+#include"convection_header.h"
 #include"solver_header.h"
 #include"field_header.h"
 #include"heat_header.h"
@@ -67,14 +67,14 @@ cout<<"starting driver_ini"<<endl;
     if(p->G39==1)
     {
     solid solid_object(p,a,pgc);
-    solid_object.start(p,a,pgc,pflow,pdisc,preto);
+    solid_object.start(p,a,pgc,pflow,pconvec,preto);
     }
     
     // Geotopo
     if((p->G50>0 && p->G51>0) || p->G60>0 || p->G61>0)
     {
     geotopo gtopo(p,a,pgc);
-    gtopo.start(p,a,pgc,pflow,pdisc,preto);
+    gtopo.start(p,a,pgc,pflow,pconvec,preto);
     }
     
 	// 6DOF
@@ -86,7 +86,7 @@ cout<<"starting driver_ini"<<endl;
     psed->ini(p,a,pgc);
     for(int qn=0;qn<5;++qn)
     psed->relax(p,a,pgc);
-    preto->start(a,p,a->topo,pdisc,pgc);
+    preto->start(a,p,a->topo,pconvec,pgc);
     psed->update(p,a,pgc,pflow);
     }
     
@@ -95,9 +95,9 @@ cout<<"starting driver_ini"<<endl;
     
 	starttime=pgc->timer();
     if(p->B60>0 || p->T36==2)
-	pgc->walldistance(p,a,pgc,pdisc,preini,pflow,a->walld);
+	pgc->walldistance(p,a,pgc,pconvec,preini,pflow,a->walld);
 	
-	pflow->inflow_walldist(p,a,pgc,pdisc,preini,pflow);
+	pflow->inflow_walldist(p,a,pgc,pconvec,preini,pflow);
 	
 	double walltime=pgc->timer()-starttime;
 	
@@ -115,7 +115,7 @@ cout<<"starting driver_ini"<<endl;
     pnse->ini(p,a,pgc,pflow);
 	
     pheat->heat_ini(p,a,pgc,pheat);
-	pmp->ini(p,a,pgc,pflow,pprint,pdisc,psolv);
+	pmp->ini(p,a,pgc,pflow,pprint,pconvec,psolv);
 	pconc->ini(p,a,pgc,pconc);
 
     ptstep->ini(a,p,pgc);

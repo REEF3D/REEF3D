@@ -21,7 +21,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 class fdm;
 class lexer;
-class discrete;
+class convection;
 class diffusion;
 class solver;
 class ghostcell;
@@ -37,7 +37,7 @@ class heat
 {
 public:
 
-	virtual void start(fdm*, lexer*, discrete*, diffusion*, solver*, ghostcell*, ioflow*)=0;
+	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*)=0;
 	virtual void ttimesave(lexer*, fdm*)=0;
     
     virtual void diff_update(lexer*, fdm*, ghostcell *pgc)=0;

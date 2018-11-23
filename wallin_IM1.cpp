@@ -28,7 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"solver.h"
 #include"diffusion.h"
 #include"ioflow.h"
-#include"discrete.h"
+#include"convection.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -41,9 +41,9 @@ wallin_IM1::wallin_IM1(lexer* p, fdm* a, ghostcell *pgc): kepsilon_IM1(p,a,pgc),
 wallin_IM1::~wallin_IM1()
 {
 }
-void wallin_IM1::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
+void wallin_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
 {
-	kepsilon_IM1::start(a,p,pdisc,pdiff,psolv,pgc,pflow);
+	kepsilon_IM1::start(a,p,pconvec,pdiff,psolv,pgc,pflow);
 
 	LOOP
 	{

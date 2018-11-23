@@ -29,6 +29,6 @@ reinitopo_void::~reinitopo_void()
 {
 }
 
-void reinitopo_void::start(fdm* a,lexer* p,field& b, discrete* pdisc, ghostcell* pgc)
+void reinitopo_void::start(fdm* a,lexer* p,field& b, convection* pconvec, ghostcell* pgc)
 {
 }

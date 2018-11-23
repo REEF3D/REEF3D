@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"solver.h"
 #include"diffusion.h"
 #include"ioflow.h"
-#include"discrete.h"
+#include"convection.h"
 #include"multiphase.h"
 
 wallin_IM1kw::wallin_IM1kw(lexer* p, fdm* a, ghostcell *pgc, multiphase *pmp): komega_IM1(p,a,pgc,pmp),wallin(p,a),cmu(cmu)
@@ -39,9 +39,9 @@ wallin_IM1kw::~wallin_IM1kw()
 {
 }
 
-void wallin_IM1kw::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
+void wallin_IM1kw::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
 {
-	komega_IM1::start(a,p,pdisc,pdiff,psolv,pgc,pflow);
+	komega_IM1::start(a,p,pconvec,pdiff,psolv,pgc,pflow);
 
 	LOOP
 	{

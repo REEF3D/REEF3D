@@ -26,12 +26,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"bcmom.h"
 #include"ioflow.h"
 #include"turbulence.h"
-#include"discrete.h"
+#include"convection.h"
 #include"diffusion.h"
 #include"pressure.h"
 #include"solver.h"
 
-momentum_IM1::momentum_IM1(lexer *p, fdm *a, ghostcell *pgc, discrete *pdiscrete, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
+momentum_IM1::momentum_IM1(lexer *p, fdm *a, ghostcell *pgc, convection *pconvection, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
                                                     turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow)
                          : ibcmom(p),un(p),vn(p),wn(p)
 {
@@ -43,7 +43,7 @@ momentum_IM1::momentum_IM1(lexer *p, fdm *a, ghostcell *pgc, discrete *pdiscrete
 	vtimesave(p,a,pgc);
 	wtimesave(p,a,pgc);
 
-	pdisc=pdiscrete;
+	pconvec=pconvection;
 	pdiff=pdiffusion;
 	ppress=ppressure;
 	ppois=ppoisson;
@@ -71,7 +71,7 @@ void momentum_IM1::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	starttime=pgc->timer();
 	clearrhs(p,a);
 	pturb->isource(p,a);
-	pdisc->start(p,a,a->u,1,a->u,a->v,a->w);
+	pconvec->start(p,a,a->u,1,a->u,a->v,a->w);
 	pdiff->diff_u(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
 	pflow->isource(p,a,pgc);
     ibcmom_start(a,p,pgc,pturb,a->u,gcval_u);
@@ -90,7 +90,7 @@ void momentum_IM1::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	starttime=pgc->timer();
 	clearrhs(p,a);
 	pturb->jsource(p,a);
-	pdisc->start(p,a,a->v,2,a->u,a->v,a->w);
+	pconvec->start(p,a,a->v,2,a->u,a->v,a->w);
 	pdiff->diff_v(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
 	pflow->jsource(p,a,pgc);
     ibcmom_start(a,p,pgc,pturb,a->v,gcval_v);
@@ -109,7 +109,7 @@ void momentum_IM1::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	starttime=pgc->timer();
 	clearrhs(p,a);
 	pturb->ksource(p,a);
-	pdisc->start(p,a,a->w,3,a->u,a->v,a->w);
+	pconvec->start(p,a,a->w,3,a->u,a->v,a->w);
 	pdiff->diff_w(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
 	pflow->ksource(p,a,pgc);
     ibcmom_start(a,p,pgc,pturb,a->w,gcval_w);

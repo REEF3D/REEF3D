@@ -29,12 +29,12 @@ fnpf_sg_void::~fnpf_sg_void()
 {
 }
 
-void fnpf_sg_void::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, discrete *pdisc, ioflow *pflow, reini *preini, onephase* poneph)
+void fnpf_sg_void::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
 {	
 	
 }
 
-void fnpf_sg_void::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc,ioflow *pflow, reini *preini, discrete *pdisc)
+void fnpf_sg_void::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc,ioflow *pflow, reini *preini, convection *pconvec)
 {	
 }
 

@@ -27,7 +27,7 @@ class field;
 class vec;
 class fdm_fnpf;
 class fnpf_ddx;
-class fnpf_discrete;
+class fnpf_convection;
 class fnpf_sg_fsfbc;
 
 using namespace std;
@@ -46,7 +46,7 @@ public:
 
 private: 
     
-    fnpf_discrete *pdisc;
+    fnpf_convection *pconvec;
     fnpf_ddx *pddx;
 };
 

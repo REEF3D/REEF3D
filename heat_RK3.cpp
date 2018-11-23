@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"discrete.h"
+#include"convection.h"
 #include"diffusion.h"
 #include"ioflow.h"
 #include"turbulence.h"
@@ -39,7 +39,7 @@ heat_RK3::~heat_RK3()
 {
 }
 
-void heat_RK3::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow)
+void heat_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow)
 {
     field4 ark1(p),ark2(p);
 
@@ -48,7 +48,7 @@ void heat_RK3::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff, solver
     diff_update(p,a,pgc);
     
     clearrhs(p,a,pgc);
-    pdisc->start(p,a,T,4,a->u,a->v,a->w);
+    pconvec->start(p,a,T,4,a->u,a->v,a->w);
 	pdiff->diff_scalar(p,a,pgc,psolv,T,thermdiff,p->sigT,1.0);
 
 	LOOP
@@ -61,7 +61,7 @@ void heat_RK3::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff, solver
 
 // Step 2
     clearrhs(p,a,pgc);
-    pdisc->start(p,a,ark1,4,a->u,a->v,a->w);
+    pconvec->start(p,a,ark1,4,a->u,a->v,a->w);
 	pdiff->diff_scalar(p,a,pgc,psolv,ark1,thermdiff,p->sigT, 0.25);
 
 	LOOP
@@ -75,7 +75,7 @@ void heat_RK3::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff, solver
 
 // Step 3
     clearrhs(p,a,pgc);
-    pdisc->start(p,a,ark2,4,a->u,a->v,a->w);
+    pconvec->start(p,a,ark2,4,a->u,a->v,a->w);
 	pdiff->diff_scalar(p,a,pgc,psolv,ark2,thermdiff,p->sigT, 2.0/3.0);
 
 	LOOP

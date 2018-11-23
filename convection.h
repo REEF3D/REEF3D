@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -19,25 +19,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"discrete.h"
-#include"increment.h"
+class lexer;
+class fdm;
+class fieldint;
+class field;
 
-#ifndef DISCRETE_VOID_H_
-#define DISCRETE_VOID_H_
+#ifndef CONVECTION_H_
+#define CONVECTION_H_
 
 using namespace std;
 
-class discrete_void : public discrete, public increment
+class convection
 {
-
 public:
 
-	discrete_void (lexer *);
-	virtual ~discrete_void();
-
-	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
-
-private:
+virtual void start(lexer*,fdm*,field&,int,field&,field&,field&)=0;
 
 };
 

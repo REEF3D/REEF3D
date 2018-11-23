@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"solver.h"
 #include"diffusion.h"
 #include"ioflow.h"
-#include"discrete.h"
+#include"convection.h"
 
 wallin_RK3::wallin_RK3(lexer* p, fdm* a, ghostcell *pgc) : kepsilon_RK3(p,a,pgc),wallin(p,a),cmu(p->cmu)
 {
@@ -38,9 +38,9 @@ wallin_RK3::~wallin_RK3()
 {
 }
 
-void wallin_RK3::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
+void wallin_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
 {
-	kepsilon_RK3::start(a,p,pdisc,pdiff,psolv,pgc,pflow);
+	kepsilon_RK3::start(a,p,pconvec,pdiff,psolv,pgc,pflow);
 
 	LOOP
 	{

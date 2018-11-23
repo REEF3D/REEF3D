@@ -43,7 +43,7 @@ public:
 	iowave(lexer*, ghostcell*);
 	virtual ~iowave();
 	virtual void gcio_update(lexer*,fdm*,ghostcell*);
-	virtual void inflow_walldist(lexer*,fdm*,ghostcell*,discrete*,reini*,ioflow*);
+	virtual void inflow_walldist(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*);
 	virtual void periodic(field&, lexer*);
 	virtual void fsfinflow(lexer*,fdm*,ghostcell*);
 	virtual void discharge(lexer*,fdm*,ghostcell*);

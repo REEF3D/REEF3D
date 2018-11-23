@@ -38,12 +38,12 @@ public:
     sediment_f(lexer*,turbulence*);
 	virtual ~sediment_f();
 
-	virtual void start(lexer*, fdm*, discrete*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*, bedload*);
+	virtual void start(lexer*, fdm*, convection*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*, bedload*);
 	virtual void update(lexer*,fdm*,ghostcell*,ioflow*);
     virtual void relax(lexer*,fdm*,ghostcell*);
     virtual void ini(lexer*,fdm*,ghostcell*);
 	virtual double bedshear_point(lexer*,fdm*,ghostcell*);
-	void sediment_algorithm(lexer*, fdm*, discrete*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*, bedload*);
+	void sediment_algorithm(lexer*, fdm*, convection*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*, bedload*);
     
 	void fill_bss(lexer*,fdm*,ghostcell*);
     void fill_bedk(lexer*,fdm*,ghostcell*);

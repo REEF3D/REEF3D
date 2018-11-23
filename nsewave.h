@@ -20,7 +20,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 
-class discrete;
+class convection;
 class pressure;
 class solver;
 class fdm;
@@ -44,7 +44,7 @@ using namespace std;
 class nsewave 
 {
 public:    
-    virtual void start(lexer*, fdm*, ghostcell*, momentum*, diffusion*, turbulence*, discrete*, 
+    virtual void start(lexer*, fdm*, ghostcell*, momentum*, diffusion*, turbulence*, convection*, 
                         pressure*, poisson*, solver*, solver*, ioflow*)=0;
     
     virtual void ini(lexer*, fdm*, ghostcell*, ioflow*)=0;

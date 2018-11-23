@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"discrete.h"
+#include"convection.h"
 #include"diffusion.h"
 #include"ioflow.h"
 #include"turbulence.h"
@@ -39,12 +39,12 @@ heat_IM1::~heat_IM1()
 {
 }
 
-void heat_IM1::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow)
+void heat_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow)
 {
     starttime=pgc->timer();
     diff_update(p,a,pgc);
     clearrhs(p,a,pgc);
-    pdisc->start(p,a,T,4,a->u,a->v,a->w);
+    pconvec->start(p,a,T,4,a->u,a->v,a->w);
 	pdiff->idiff_scalar(p,a,pgc,psolv,T,thermdiff,p->sigT,1.0);
 	timesource(p,a,T);
 	psolv->start(p,a,pgc,T,a->xvec,a->rhsvec,4,gcval_heat,p->N43);

@@ -31,7 +31,7 @@ class topo_void : public topo
 public:
 	topo_void(lexer*, fdm*, ghostcell*);
 	virtual ~topo_void();
-	virtual void start(fdm*,lexer*, discrete*, ghostcell*,reinitopo*);
+	virtual void start(fdm*,lexer*, convection*, ghostcell*,reinitopo*);
 };
 
 #endif
