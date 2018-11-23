@@ -35,7 +35,7 @@ nsewave_v::~nsewave_v()
 }
 
 void nsewave_v::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusion *pdiff, turbulence *pturb,
-                      discrete* pdisc, pressure *ppress, poisson *ppois, solver *ppoissonsolv, solver *psolv, 
+                      convection* pconvec, pressure *ppress, poisson *ppois, solver *ppoissonsolv, solver *psolv, 
                       ioflow* pflow)
 {
 }

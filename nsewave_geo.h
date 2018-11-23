@@ -43,7 +43,7 @@ public:
     nsewave_geo(lexer*, fdm*, ghostcell*,heat*&,concentration*&);
 	virtual ~nsewave_geo();
     
-    virtual void start(lexer*, fdm*, ghostcell*, momentum*, diffusion*, turbulence*, discrete*, 
+    virtual void start(lexer*, fdm*, ghostcell*, momentum*, diffusion*, turbulence*, convection*, 
                         pressure*, poisson*, solver*, solver*, ioflow*);
     virtual void ini(lexer*, fdm*, ghostcell*, ioflow*);
 	void ltimesave(lexer*,fdm*,slice&);

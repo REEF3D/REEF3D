@@ -27,7 +27,7 @@ class ghostcell;
 class momentum;
 class ioflow;
 class freesurface;
-class discrete;
+class convection;
 class solver;
 class reini;
 class particlecorr;
@@ -41,7 +41,7 @@ class sixdof_void : public sixdof
 {
 public:
 
-	virtual void start(lexer*, fdm*, ghostcell*, momentum*, ioflow*, freesurface*,discrete*,solver*,reini*,particlecorr*);
+	virtual void start(lexer*, fdm*, ghostcell*, momentum*, ioflow*, freesurface*,convection*,solver*,reini*,particlecorr*);
 	virtual void initialize(lexer*, fdm*, ghostcell*);
 };
 

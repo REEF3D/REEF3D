@@ -24,7 +24,7 @@ class fdm;
 class ghostcell;
 class field;
 class vec;
-class discrete;
+class convection;
 class reini;
 class slice;
 class fdm2D;
@@ -40,7 +40,7 @@ class ioflow
 {
 public:
     virtual void gcio_update(lexer*,fdm*,ghostcell*)=0;
-	virtual void inflow_walldist(lexer*,fdm*,ghostcell*,discrete*,reini*,ioflow*)=0;
+	virtual void inflow_walldist(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*)=0;
 	virtual void periodic(field&, lexer*)=0;
 	virtual void discharge(lexer*,fdm*,ghostcell*)=0;
 	virtual void inflow(lexer*,fdm*,ghostcell*,field&,field&,field&)=0;

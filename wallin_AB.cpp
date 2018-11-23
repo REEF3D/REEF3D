@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"solver.h"
 #include"diffusion.h"
 #include"ioflow.h"
-#include"discrete.h"
+#include"convection.h"
 
 wallin_AB::wallin_AB(lexer* p, fdm* a, ghostcell *pgc) : kepsilon_AB(p,a,pgc),wallin(p,a),cmu(p->cmu)
 {
@@ -37,9 +37,9 @@ wallin_AB::wallin_AB(lexer* p, fdm* a, ghostcell *pgc) : kepsilon_AB(p,a,pgc),wa
 wallin_AB::~wallin_AB()
 {
 }
-void wallin_AB::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
+void wallin_AB::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
 {
-	kepsilon_AB::start(a,p,pdisc,pdiff,psolv,pgc,pflow);
+	kepsilon_AB::start(a,p,pconvec,pdiff,psolv,pgc,pflow);
 
 	LOOP
 	{

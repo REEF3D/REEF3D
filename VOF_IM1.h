@@ -40,13 +40,13 @@ class VOF_IM1 : public freesurface, gradient
 public:
 	VOF_IM1(lexer*, fdm*, ghostcell*,heat*);
 	virtual ~VOF_IM1();
-	virtual void start(fdm*,lexer*, discrete*, solver*, ghostcell*,ioflow*, reini*, particlecorr*,field&);
+	virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particlecorr*,field&);
 	virtual void ltimesave(lexer*,fdm*,field&);
 	virtual void update(lexer*,fdm*,ghostcell*,field&);
 	void timesource(lexer*,fdm*,ioflow*);
 
 
-	void compression(lexer*,fdm*,ghostcell*,discrete*,field&,double);
+	void compression(lexer*,fdm*,ghostcell*,convection*,field&,double);
 
 private:
     fluid_update *pupdate;
@@ -60,7 +60,7 @@ private:
 	double starttime;
 	void clearrhs(lexer*,fdm*);
 	
-	discrete *ppdisc;
+	convection *ppconvec;
 };
 #endif
 

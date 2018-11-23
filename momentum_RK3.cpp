@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 #include"bcmom.h"
-#include"discrete.h"
+#include"convection.h"
 #include"diffusion.h"
 #include"pressure.h"
 #include"poisson.h"
@@ -32,7 +32,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"turbulence.h"
 #include"solver.h"
 
-momentum_RK3::momentum_RK3(lexer *p, fdm *a, discrete *pdiscrete, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
+momentum_RK3::momentum_RK3(lexer *p, fdm *a, convection *pconvection, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
                                                     turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow)
                                                     :bcmom(p),urk1(p),urk2(p),vrk1(p),vrk2(p),wrk1(p),wrk2(p)
 {
@@ -44,7 +44,7 @@ momentum_RK3::momentum_RK3(lexer *p, fdm *a, discrete *pdiscrete, diffusion *pdi
 	gcval_vrk=21;
 	gcval_wrk=22;
 
-	pdisc=pdiscrete;
+	pconvec=pconvection;
 	pdiff=pdiffusion;
 	ppress=ppressure;
 	ppois=ppoisson;
@@ -79,7 +79,7 @@ void momentum_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	ppress->upgrad(p,a);
 	irhs(p,a,pgc,a->u,a->u,a->v,a->w,1.0);
     udiscstart=pgc->timer();
-	pdisc->start(p,a,a->u,1,a->u,a->v,a->w);
+	pconvec->start(p,a,a->u,1,a->u,a->v,a->w);
     udisctime=pgc->timer()-udiscstart;
 	pdiff->diff_u(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
 
@@ -97,7 +97,7 @@ void momentum_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
 	ppress->vpgrad(p,a);
 	jrhs(p,a,pgc,a->v,a->u,a->v,a->w,1.0);
-	pdisc->start(p,a,a->v,2,a->u,a->v,a->w);
+	pconvec->start(p,a,a->v,2,a->u,a->v,a->w);
 	pdiff->diff_v(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
 
 	VLOOP
@@ -114,7 +114,7 @@ void momentum_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
 	ppress->wpgrad(p,a);
 	krhs(p,a,pgc,a->w,a->u,a->v,a->w,1.0);
-	pdisc->start(p,a,a->w,3,a->u,a->v,a->w);
+	pconvec->start(p,a,a->w,3,a->u,a->v,a->w);
 	pdiff->diff_w(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
 
 	WLOOP
@@ -157,7 +157,7 @@ void momentum_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	ppress->upgrad(p,a);
 	irhs(p,a,pgc,urk1,urk1,vrk1,wrk1,0.25);
     udiscstart=pgc->timer();
-	pdisc->start(p,a,urk1,1,urk1,vrk1,wrk1);
+	pconvec->start(p,a,urk1,1,urk1,vrk1,wrk1);
     udisctime+=pgc->timer()-udiscstart;
 	pdiff->diff_u(p,a,pgc,psolv,urk1,vrk1,wrk1,0.25);
 
@@ -175,7 +175,7 @@ void momentum_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
 	ppress->vpgrad(p,a);
 	jrhs(p,a,pgc,vrk1,urk1,vrk1,wrk1,0.25);
-	pdisc->start(p,a,vrk1,2,urk1,vrk1,wrk1);
+	pconvec->start(p,a,vrk1,2,urk1,vrk1,wrk1);
 	pdiff->diff_v(p,a,pgc,psolv,urk1,vrk1,wrk1,0.25);
 
 	VLOOP
@@ -192,7 +192,7 @@ void momentum_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
 	ppress->wpgrad(p,a);
 	krhs(p,a,pgc,wrk1,urk1,vrk1,wrk1,0.25);
-	pdisc->start(p,a,wrk1,3,urk1,vrk1,wrk1);
+	pconvec->start(p,a,wrk1,3,urk1,vrk1,wrk1);
 	pdiff->diff_w(p,a,pgc,psolv,urk1,vrk1,wrk1,0.25);
 
 	WLOOP
@@ -233,7 +233,7 @@ void momentum_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	ppress->upgrad(p,a);
 	irhs(p,a,pgc,urk2,urk2,vrk2,wrk2,2.0/3.0);
     udiscstart=pgc->timer();
-	pdisc->start(p,a,urk2,1,urk2,vrk2,wrk2);
+	pconvec->start(p,a,urk2,1,urk2,vrk2,wrk2);
     udisctime+=pgc->timer()-udiscstart;
 	pdiff->diff_u(p,a,pgc,psolv,urk2,vrk2,wrk2,2.0/3.0);
 
@@ -251,7 +251,7 @@ void momentum_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
 	ppress->vpgrad(p,a);
 	jrhs(p,a,pgc,vrk2,urk2,vrk2,wrk2,2.0/3.0);
-	pdisc->start(p,a,vrk2,2,urk2,vrk2,wrk2);
+	pconvec->start(p,a,vrk2,2,urk2,vrk2,wrk2);
 	pdiff->diff_v(p,a,pgc,psolv,urk2,vrk2,wrk2,2.0/3.0);
 
 	VLOOP
@@ -268,7 +268,7 @@ void momentum_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
 	ppress->wpgrad(p,a);
 	krhs(p,a,pgc,wrk2,urk2,vrk2,wrk2,2.0/3.0);
-	pdisc->start(p,a,wrk2,3,urk2,vrk2,wrk2);
+	pconvec->start(p,a,wrk2,3,urk2,vrk2,wrk2);
 	pdiff->diff_w(p,a,pgc,psolv,urk2,vrk2,wrk2,2.0/3.0);
 
 	WLOOP

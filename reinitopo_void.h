@@ -31,7 +31,7 @@ class reinitopo_void : public reinitopo
 public:
 	reinitopo_void();
 	virtual ~reinitopo_void();
-	virtual void start(fdm*,lexer*,field&, discrete*,  ghostcell*);
+	virtual void start(fdm*,lexer*,field&, convection*,  ghostcell*);
 };
 
 #endif

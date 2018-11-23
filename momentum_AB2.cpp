@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 #include"bcmom.h"
-#include"discrete.h"
+#include"convection.h"
 #include"diffusion.h"
 #include"pressure.h"
 #include"poisson.h"
@@ -32,7 +32,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"turbulence.h"
 #include"solver.h"
 
-momentum_AB2::momentum_AB2(lexer *p, fdm *a, discrete *pdiscrete, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
+momentum_AB2::momentum_AB2(lexer *p, fdm *a, convection *pconvection, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
                                                     turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow)
                                                     :bcmom(p),uab(p),vab(p),wab(p)
 {
@@ -40,7 +40,7 @@ momentum_AB2::momentum_AB2(lexer *p, fdm *a, discrete *pdiscrete, diffusion *pdi
 	gcval_v=11;
 	gcval_w=12;
 
-	pdisc=pdiscrete;
+	pconvec=pconvection;
 	pdiff=pdiffusion;
 	ppress=ppressure;
 	ppois=ppoisson;
@@ -70,7 +70,7 @@ void momentum_AB2::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,a);
 	irhs(p,a,pgc,a->u,a->u,a->v,a->w,1.0);
-	pdisc->start(p,a,a->u,1,a->u,a->v,a->w);
+	pconvec->start(p,a,a->u,1,a->u,a->v,a->w);
 	pdiff->diff_u(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
 	p->utime=pgc->timer()-starttime;
 
@@ -83,7 +83,7 @@ void momentum_AB2::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
 	ppress->vpgrad(p,a);
 	jrhs(p,a,pgc,a->v,a->u,a->v,a->w,1.0);
-	pdisc->start(p,a,a->v,2,a->u,a->v,a->w);
+	pconvec->start(p,a,a->v,2,a->u,a->v,a->w);
 	pdiff->diff_v(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
 	p->vtime=pgc->timer()-starttime;
 
@@ -96,7 +96,7 @@ void momentum_AB2::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
 	ppress->wpgrad(p,a);
 	krhs(p,a,pgc,a->w,a->u,a->v,a->w,1.0);
-	pdisc->start(p,a,a->w,3,a->u,a->v,a->w);
+	pconvec->start(p,a,a->w,3,a->u,a->v,a->w);
 	pdiff->diff_w(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
 	p->wtime=pgc->timer()-starttime;
 	

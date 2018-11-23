@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"looping.h"
-#include"discrete.h"
+#include"convection.h"
 #include"increment.h"
 
 class flux;
@@ -30,7 +30,7 @@ class flux;
 
 using namespace std;
 
-class iweno_flux : public discrete, public increment
+class iweno_flux : public convection, public increment
 {
 public:
 	iweno_flux (lexer*);

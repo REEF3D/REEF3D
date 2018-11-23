@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"discrete.h"
+#include"convection.h"
 #include"diffusion.h"
 #include"ioflow.h"
 #include"turbulence.h"
@@ -38,11 +38,11 @@ suspended_IM2::~suspended_IM2()
 {
 }
 
-void suspended_IM2::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow)
+void suspended_IM2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow)
 {
     starttime=pgc->timer();
     clearrhs(p,a);
-    pdisc->start(p,a,a->conc,4,a->u,a->v,a->w);
+    pconvec->start(p,a,a->conc,4,a->u,a->v,a->w);
 	pdiff->idiff_scalar(p,a,pgc,psolv,a->conc,a->visc,1.0,1.0);
 	isuspsource(p,a,a->conc);
 	timesource(p,a,a->conc);

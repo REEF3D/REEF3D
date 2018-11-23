@@ -35,7 +35,7 @@ class reinitopo_AB2 : public reinitopo, gradient
 public:
 	reinitopo_AB2(lexer* p);
 	virtual ~reinitopo_AB2();
-	virtual void start(fdm*,lexer*,field&, discrete*,ghostcell*);
+	virtual void start(fdm*,lexer*,field&, convection*,ghostcell*);
 
 	int *sizeM;
 

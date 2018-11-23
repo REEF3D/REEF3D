@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"discrete.h"
+#include"convection.h"
 #include"diffusion.h"
 #include"ioflow.h"
 #include"turbulence.h"
@@ -39,7 +39,7 @@ suspended_RK3::~suspended_RK3()
 }
 
 
-void suspended_RK3::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow)
+void suspended_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow)
 {
     field4 ark1(p),ark2(p);
     
@@ -47,7 +47,7 @@ void suspended_RK3::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff, s
     starttime=pgc->timer();
 
     suspsource(p,a,a->conc);
-    pdisc->start(p,a,a->conc,4,a->u,a->v,a->w);
+    pconvec->start(p,a,a->conc,4,a->u,a->v,a->w);
 	pdiff->diff_scalar(p,a,pgc,psolv,a->conc,a->visc,1.0,1.0);
 
 	LOOP
@@ -61,7 +61,7 @@ void suspended_RK3::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff, s
 
 // Step 2
     suspsource(p,a,a->conc);
-    pdisc->start(p,a,ark1,4,a->u,a->v,a->w);
+    pconvec->start(p,a,ark1,4,a->u,a->v,a->w);
 	pdiff->diff_scalar(p,a,pgc,psolv,ark1,a->visc,1.0,0.25);
 
 	LOOP
@@ -76,7 +76,7 @@ void suspended_RK3::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff, s
 
 // Step 3
     suspsource(p,a,a->conc);
-    pdisc->start(p,a,ark2,4,a->u,a->v,a->w);
+    pconvec->start(p,a,ark2,4,a->u,a->v,a->w);
 	pdiff->diff_scalar(p,a,pgc,psolv,ark2,a->visc,1.0,2.0/3.0);
 
 	LOOP

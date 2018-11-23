@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"discrete.h"
+#include"convection.h"
 #include"ioflow.h"
 #include"topo.h"
 #include"reinitopo.h"
@@ -40,7 +40,7 @@ sediment_void::~sediment_void()
 
 }
 
-void sediment_void::start(lexer *p, fdm *a, discrete *pdisc, ghostcell *pgc, ioflow *pflow,
+void sediment_void::start(lexer *p, fdm *a, convection *pconvec, ghostcell *pgc, ioflow *pflow,
                                         topo *ptopo, reinitopo *preto, suspended *psusp, bedload *pbed)
 {
 

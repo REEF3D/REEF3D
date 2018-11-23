@@ -31,10 +31,10 @@ along with this program; if not, see <http://www.gnu.org/liceonephases/>.
 fnpf_sg_bed_update::fnpf_sg_bed_update(lexer *p) 
 {    
     if(p->A313==2)
-    pdisc = new fnpf_cds2(p);
+    pconvec = new fnpf_cds2(p);
     
     if(p->A313==3)
-    pdisc = new fnpf_cds4(p);
+    pconvec = new fnpf_cds4(p);
 }
 
 fnpf_sg_bed_update::~fnpf_sg_bed_update()

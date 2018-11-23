@@ -42,7 +42,7 @@ class VOF_PLIC : public freesurface, gradient, norm_vec
 public:
 	VOF_PLIC(lexer*, fdm*, ghostcell*,heat*);
 	virtual ~VOF_PLIC();
-	virtual void start(fdm*,lexer*, discrete*, solver*, ghostcell*,ioflow*, reini*, particlecorr*,field&);
+	virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particlecorr*,field&);
 	virtual void ltimesave(lexer*,fdm*,field&);
 	virtual void update(lexer*,fdm*,ghostcell*,field&);
 	
@@ -71,7 +71,7 @@ private:
 	double calcV2(lexer*);
 	double F3(const double&);
 	
-    void redistance(fdm*, lexer*, discrete*, ghostcell*,ioflow*,int);
+    void redistance(fdm*, lexer*, convection*, ghostcell*,ioflow*,int);
     int calcBoundaryPoint(fdm*, lexer*, int, int, int, field4&);
     int calcProjectionPoint(fdm*, lexer*, double&, double&, double&, int, int, int, field4&);
 	void calcSegmentPoint(fdm*, lexer*, double, double, double, int, int, int, field4&);

@@ -142,8 +142,6 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 
     name_iter(p,pgc);
 	
-    
-    cout<<p->mpirank<<"  printcount: "<<printcount<<endl;
 	// Open File
 	ofstream result;
 	result.open(name, ios::binary);

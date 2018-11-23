@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"reini_walld.h"
 
 
-void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, discrete *pdisc, reini *preini, ioflow *pflow,  field& walldist)
+void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec, reini *preini, ioflow *pflow,  field& walldist)
 {
 	int ic,jc,kc;
 	double xdist,ydist,zdist;

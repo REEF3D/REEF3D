@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ioflow.h"
 #include"reini.h"
 
-void multiphase_f::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, printer *pprint, discrete *pdisc, solver *psolv)
+void multiphase_f::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, printer *pprint, convection *pconvec, solver *psolv)
 {	
 	int istart, iend, jstart, jend, kstart, kend;
     int qn;

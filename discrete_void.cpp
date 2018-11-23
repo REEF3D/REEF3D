@@ -19,19 +19,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"discrete_void.h"
+#include"convection_void.h"
 #include"lexer.h"
 #include"fdm.h"
 
-discrete_void::discrete_void (lexer *p)
+convection_void::convection_void (lexer *p)
 {
 }
 
-discrete_void::~discrete_void()
+convection_void::~convection_void()
 {
 }
 
-void discrete_void::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel, field& wvel)
+void convection_void::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel, field& wvel)
 {
 	int count=0;
 	LOOP

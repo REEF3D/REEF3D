@@ -25,7 +25,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 #include"field2.h"
 #include"field3.h"
 
-class discrete;
+class convection;
 class diffusion;
 class pressure;
 class turbulence;
@@ -40,7 +40,7 @@ using namespace std;
 class momentum_IM1 : public momentum, public ibcmom
 {
 public:
-	momentum_IM1(lexer*, fdm*, ghostcell*, discrete*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*);
+	momentum_IM1(lexer*, fdm*, ghostcell*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*);
 	virtual ~momentum_IM1();
 	virtual void start(lexer*, fdm*, ghostcell*, momentum*);
 	virtual void utimesave(lexer*, fdm*, ghostcell*);
@@ -69,7 +69,7 @@ private:
 	double t;
 	double starttime;
 
-	discrete *pdisc;
+	convection *pconvec;
 	diffusion *pdiff;
 	pressure *ppress;
 	poisson *ppois;

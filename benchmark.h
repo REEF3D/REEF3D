@@ -21,7 +21,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 class fdm;
 class lexer;
-class discrete;
+class convection;
 class ghostcell;
 
 #ifndef BENCHMARK_H_
@@ -34,7 +34,7 @@ class benchmark
 
 public:
 
-	virtual void start(lexer*, fdm*, ghostcell*, discrete*)=0;
+	virtual void start(lexer*, fdm*, ghostcell*, convection*)=0;
 
 };
 

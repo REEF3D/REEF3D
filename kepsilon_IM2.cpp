@@ -28,7 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"diffusion.h"
 #include"ioflow.h"
 #include"kepsilon.h"
-#include"discrete.h"
+#include"convection.h"
 
 kepsilon_IM2::kepsilon_IM2(lexer* p, fdm* a, ghostcell *pgc) : ikepsilon(p,a,pgc),kn(p),knn(p),en(p),enn(p)
 {
@@ -46,7 +46,7 @@ kepsilon_IM2::~kepsilon_IM2()
 {
 }
 
-void kepsilon_IM2::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
+void kepsilon_IM2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
 {
 	Pk_update(p,a,pgc);
 	wallf_update(p,a,pgc,wallf);
@@ -54,7 +54,7 @@ void kepsilon_IM2::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,sol
 // kin
     starttime=pgc->timer();
 	clearrhs(p,a);
-    pdisc->start(p,a,kin,4,a->u,a->v,a->w);
+    pconvec->start(p,a,kin,4,a->u,a->v,a->w);
 	pdiff->idiff_scalar(p,a,pgc,psolv,kin,a->visc,ke_sigma_k,1.0);
 	kinsource(p,a);
 	timesource(p,a,kn,knn);
@@ -69,7 +69,7 @@ void kepsilon_IM2::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,sol
 // eps
     starttime=pgc->timer();
 	clearrhs(p,a);
-    pdisc->start(p,a,eps,4,a->u,a->v,a->w);
+    pconvec->start(p,a,eps,4,a->u,a->v,a->w);
 	pdiff->idiff_scalar(p,a,pgc,psolv,eps,a->visc,ke_sigma_e,1.0);
 	epssource(p,a);
 	timesource(p,a,en,enn);

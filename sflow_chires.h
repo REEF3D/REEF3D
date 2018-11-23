@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"sflow_discrete.h"
+#include"sflow_convection.h"
 #include"increment.h"
 
 class sflow_flux;
@@ -31,7 +31,7 @@ class fdm2D;
 
 using namespace std;
 
-class sflow_chires : public sflow_discrete, public increment
+class sflow_chires : public sflow_convection, public increment
 {
 
 public:

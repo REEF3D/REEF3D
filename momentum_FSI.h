@@ -25,7 +25,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 #include"field2.h"
 #include"field3.h"
 #include"field4.h"
-#include"discrete.h"
+#include"convection.h"
 #include"diffusion.h"
 #include"pressure.h"
 #include"poisson.h"
@@ -40,7 +40,7 @@ using namespace std;
 class momentum_FSI : public momentum, public bcmom
 {
 public:
-	momentum_FSI(lexer*, fdm*, discrete*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*);
+	momentum_FSI(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*);
 	virtual ~momentum_FSI();
 	virtual void start(lexer*, fdm*, ghostcell*, momentum*);
 	virtual void utimesave(lexer*, fdm*, ghostcell*);
@@ -74,7 +74,7 @@ private:
 	field3 wn, Hp, Hn, Hnn, Hnnn;
     double dtn, dtnn, dtnnn;
 
-	discrete *pdisc;
+	convection *pconvec;
 	diffusion *pdiff;
 	pressure *ppress;
 	poisson *ppois;

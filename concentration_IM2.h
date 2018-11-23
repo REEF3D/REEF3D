@@ -37,7 +37,7 @@ public:
     concentration_IM2(lexer *, fdm*, ghostcell*);
 	virtual ~concentration_IM2();
 
-	virtual void start(fdm*, lexer*, discrete*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*);
+	virtual void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*);
 	virtual void ttimesave(lexer*, fdm*);
 
 	field4 Cn,Cnn;

@@ -34,7 +34,7 @@ class wallin_ABkw : public komega_AB, public wallin
 public:
 	wallin_ABkw(lexer *,fdm*,ghostcell*);
 	virtual ~wallin_ABkw();
-	virtual void start(fdm*, lexer*, discrete*, diffusion*, solver*, ghostcell*, ioflow*);
+	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*);
 	virtual void aniso(fdm*);
 	virtual double tau(fdm*);
     

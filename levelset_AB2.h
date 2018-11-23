@@ -39,7 +39,7 @@ class levelset_AB2 : public freesurface, gradient
 public:
 	levelset_AB2(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
 	virtual ~levelset_AB2();
-	virtual void start(fdm*,lexer*, discrete*, solver*, ghostcell*,ioflow*, reini*, particlecorr*,field&);
+	virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particlecorr*,field&);
 	virtual void ltimesave(lexer*,fdm*,field&);
     virtual void update(lexer*,fdm*,ghostcell*,field&);
 

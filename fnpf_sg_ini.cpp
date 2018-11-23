@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include"reini.h"
-#include"discrete.h"
+#include"convection.h"
 #include"ioflow.h"
 
 fnpf_sg_ini::fnpf_sg_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_sg_fsf_update(p,c,pgc), fnpf_sg_bed_update(p)

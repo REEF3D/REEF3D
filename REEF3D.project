@@ -196,12 +196,13 @@
         <File Name="interpolation.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Convection">
+        <File Name="convection_void.h"/>
+        <File Name="convection.h"/>
         <File Name="weno3_flux.h"/>
         <File Name="weno3_hj.h"/>
         <File Name="iweno_hj_nug.h"/>
         <File Name="weno_hj_nug.h"/>
         <File Name="weno_flux_nug.h"/>
-        <File Name="discrete.h"/>
         <File Name="fou.h"/>
         <File Name="ifou.h"/>
         <File Name="iquick.h"/>
@@ -226,7 +227,6 @@
         <File Name="hires.h"/>
         <File Name="ihires.h"/>
         <File Name="iweno_flux.h"/>
-        <File Name="discrete_void.h"/>
         <File Name="cds2_alt.h"/>
         <File Name="hric.h"/>
         <File Name="cicsam.h"/>
@@ -372,7 +372,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
       <VirtualDirectory Name="Driver">
-        <File Name="discrete_header.h"/>
+        <File Name="convection_header.h"/>
         <File Name="fdm_header.h"/>
         <File Name="field_header.h"/>
         <File Name="freesurface_header.h"/>
@@ -755,6 +755,7 @@
           <File Name="fnpf_fg_laplace_cds2.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Discrete">
+          <File Name="fnpf_convection.h"/>
           <VirtualDirectory Name="DDX">
             <File Name="fnpf_ddx_cds4.h"/>
             <File Name="fnpf_ddx_cds2.h"/>
@@ -762,7 +763,6 @@
           </VirtualDirectory>
           <File Name="fnpf_cds6.h"/>
           <File Name="fnpf_voiddisc.h"/>
-          <File Name="fnpf_discrete.h"/>
           <File Name="fnpf_weno.h"/>
           <File Name="fnpf_cds2.h"/>
           <File Name="fnpf_cds4.h"/>
@@ -831,12 +831,12 @@
             <File Name="sflow_diffusion_void.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Convection">
+            <File Name="sflow_convection.h"/>
             <File Name="sflow_voidconv.h"/>
             <File Name="sflow_cfou.h"/>
             <File Name="sflow_weno_cflux.h"/>
             <File Name="sflow_weno_flux.h"/>
             <File Name="sflow_fou.h"/>
-            <File Name="sflow_discrete.h"/>
             <File Name="sflow_weno_hj.h"/>
             <File Name="sflow_csfou.h"/>
             <File Name="sflow_hires.h"/>

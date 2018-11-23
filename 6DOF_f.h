@@ -44,10 +44,10 @@ using namespace std;
 class sixdof_f : public sixdof, public gradient
 {
 public:
-	sixdof_f(lexer*, fdm*, ghostcell*, momentum*, ioflow*, freesurface*,discrete*,solver*,reini*,particlecorr*);
+	sixdof_f(lexer*, fdm*, ghostcell*, momentum*, ioflow*, freesurface*,convection*,solver*,reini*,particlecorr*);
 	virtual ~sixdof_f();
 	
-	virtual void start(lexer*, fdm*, ghostcell*, momentum*, ioflow*, freesurface*,discrete*,solver*,reini*,particlecorr*);
+	virtual void start(lexer*, fdm*, ghostcell*, momentum*, ioflow*, freesurface*,convection*,solver*,reini*,particlecorr*);
 	virtual void initialize(lexer*, fdm*, ghostcell*);
 	virtual void ini_parameter(lexer*, fdm*, ghostcell*);
 	virtual void interface(lexer*, bool);
@@ -116,7 +116,7 @@ private:
 	void netForces(lexer*, fdm*, ghostcell*);
 	
 	void solve(lexer*,fdm*,ghostcell*);
-	void solve_quaternion(lexer*,fdm*,ghostcell*,momentum*,ioflow*,freesurface*,discrete*,solver*,reini*,particlecorr*);
+	void solve_quaternion(lexer*,fdm*,ghostcell*,momentum*,ioflow*,freesurface*,convection*,solver*,reini*,particlecorr*);
     std::vector<double> get_R(const std::vector<double> &);
 	std::vector<double> get_e(const std::vector<double> &, const std::vector<double> &);
 	std::vector<double> get_h(const std::vector<double> &, const std::vector<double> &);
@@ -130,7 +130,7 @@ private:
 	
 	
 	void solidUpdate(lexer*,fdm*,ghostcell*,const std::vector<double>&,bool);
-	void fluidUpdate(lexer*, fdm*, ghostcell*, momentum*, ioflow*, freesurface*,discrete*,solver*,reini*,particlecorr*,bool,int);
+	void fluidUpdate(lexer*, fdm*, ghostcell*, momentum*, ioflow*, freesurface*,convection*,solver*,reini*,particlecorr*,bool,int);
 	void forceUpdate(lexer*,fdm*,ghostcell*);
 	
 	// ------ 

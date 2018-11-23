@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"fdm.h"
-#include"discrete.h"
+#include"convection.h"
 #include"ghostcell.h"
 
 using namespace std;
@@ -32,7 +32,7 @@ class reinitopo
 {
 public:
 
-	virtual void start(fdm*,lexer*,field&, discrete*, ghostcell*)=0;
+	virtual void start(fdm*,lexer*,field&, convection*, ghostcell*)=0;
 
 };
 

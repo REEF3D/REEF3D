@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_discrete.h"
+#include"fnpf_convection.h"
 #include"increment.h"
 
 #ifndef FNPF_VOIDDISC_H_
@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 using namespace std;
 
-class fnpf_voiddisc : public fnpf_discrete, public increment
+class fnpf_voiddisc : public fnpf_convection, public increment
 {
 public:
 	fnpf_voiddisc(lexer*);

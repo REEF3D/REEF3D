@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include"field4.h"
-#include"discrete.h"
+#include"convection.h"
 #include"ioflow.h"
 #include"solver.h"
 #include"reini.h"
@@ -40,19 +40,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) 
 {    
     if(p->A311==0)
-    pdisc = new fnpf_voiddisc(p);
+    pconvec = new fnpf_voiddisc(p);
     
     if(p->A311==2)
-    pdisc = new fnpf_cds2(p);
+    pconvec = new fnpf_cds2(p);
     
     if(p->A311==3)
-    pdisc = new fnpf_cds4(p);
+    pconvec = new fnpf_cds4(p);
     
     if(p->A311==4)
-    pdisc = new fnpf_weno(p);
+    pconvec = new fnpf_weno(p);
     
     if(p->A311==6)
-    pdisc = new fnpf_cds6(p);
+    pconvec = new fnpf_cds6(p);
     
     if(p->A312==2)
     pddx = new fnpf_ddx_cds2(p);
@@ -73,25 +73,23 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     // fi
     FFILOOP4
     {
-    ivel1 = (Fifsf(i,j) - Fifsf(i-1,j))/p->DXP[IM1];
-    ivel2 = (Fifsf(i+1,j) - Fifsf(i,j))/p->DXP[IP];
+
     
-    jvel1 = (Fifsf(i,j) - Fifsf(i,j-1))/p->DYP[JM1];
-    jvel2 = (Fifsf(i,j+1) - Fifsf(i,j))/p->DYP[JP];
+    ivel1 = ivel2 = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);    
+    jvel1 = jvel2 = (Fifsf(i,j+1) - Fifsf(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
     
+    c->Fx(i,j) = pconvec->sx(p,Fifsf,ivel1,ivel2);
+    c->Fy(i,j) = pconvec->sy(p,Fifsf,jvel1,jvel2);
     
-    c->Fx(i,j) = pdisc->sx(p,Fifsf,ivel1,ivel2);
-    c->Fy(i,j) = pdisc->sy(p,Fifsf,jvel1,jvel2);
-    
-    c->Ex(i,j) = pdisc->sx(p,eta,ivel1,ivel2);
-    c->Ey(i,j) = pdisc->sy(p,eta,jvel1,jvel2);
+    c->Ex(i,j) = pconvec->sx(p,eta,ivel1,ivel2);
+    c->Ey(i,j) = pconvec->sy(p,eta,jvel1,jvel2);
     
     
     c->Exx(i,j) = pddx->sxx(p,eta);
     c->Eyy(i,j) = pddx->syy(p,eta);
     
-    c->Bx(i,j) = pdisc->sx(p,c->depth,ivel1,ivel2);
-    c->By(i,j) = pdisc->sy(p,c->depth,jvel1,jvel2);
+    c->Bx(i,j) = pconvec->sx(p,c->depth,ivel1,ivel2);
+    c->By(i,j) = pconvec->sy(p,c->depth,jvel1,jvel2);
     
     c->Bxx(i,j) = pddx->sxx(p,c->depth);
     c->Byy(i,j) = pddx->syy(p,c->depth);
@@ -109,7 +107,7 @@ void fnpf_sg_fsfbc::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     {
     kvel =  p->sigz[FIJK]*(c->Fi[FIJK] - c->Fi[FIJKm1])/p->DZP[KM1];
 
-    c->Fz(i,j) = p->sigz[FIJK]*pdisc->sz(p,c->Fi,kvel,kvel);
+    c->Fz(i,j) = p->sigz[FIJK]*pconvec->sz(p,c->Fi,kvel,kvel);
     }
 }
 

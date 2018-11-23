@@ -35,7 +35,7 @@ class vec;
 class cpt;
 class density;
 class reini;
-class discrete;
+class convection;
 class ioflow;
 
 #ifndef GHOSTCELL_H_
@@ -246,7 +246,7 @@ public:
     void gatherv_double(double *, int, double *, int*, int*);
     void bcast_double(double *, int);
     //Utilities
-    void walldistance(lexer*,fdm*,ghostcell*,discrete*,reini*,ioflow*,field&);
+    void walldistance(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*,field&);
 	void walld_inflow(lexer*,fdm*,ghostcell*,double*);
 	void walld_outflow(lexer*,fdm*,ghostcell*,double*);
     void gcwait(lexer*);

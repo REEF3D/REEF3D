@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"solver.h"
 #include"diffusion.h"
 #include"ioflow.h"
-#include"discrete.h"
+#include"convection.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -40,9 +40,9 @@ wallin_ABkw::wallin_ABkw(lexer* p, fdm* a, ghostcell *pgc) : komega_AB(p,a,pgc),
 wallin_ABkw::~wallin_ABkw()
 {
 }
-void wallin_ABkw::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
+void wallin_ABkw::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
 {
-	komega_AB::start(a,p,pdisc,pdiff,psolv,pgc,pflow);
+	komega_AB::start(a,p,pconvec,pdiff,psolv,pgc,pflow);
 
 	LOOP
 	{

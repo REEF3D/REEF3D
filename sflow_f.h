@@ -35,7 +35,7 @@ class ioflow;
 class sflow_fsf;
 class sflow_vtp;
 class sflow_vtp_bed;
-class sflow_discrete;
+class sflow_convection;
 class sflow_diffusion;
 class sflow_boussinesq;
 class sflow_filter;
@@ -71,7 +71,7 @@ private:
 	sflow_fsf *pfsf;
 	sflow_vtp *pprint;
 	sflow_vtp_bed *pprintbed;
-	sflow_discrete *pdisc;
+	sflow_convection *pconvec;
 	sflow_diffusion *pdiff;
     sflow_boussinesq *pbouss;
     sflow_filter *pfilter;

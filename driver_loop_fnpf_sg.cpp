@@ -30,7 +30,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"heat_header.h"
 #include"concentration_header.h"
 #include"benchmark_header.h"
-#include"discrete_header.h"
+#include"convection_header.h"
 #include"solver_header.h"
 #include"field_header.h"
 #include"6DOF_header.h"

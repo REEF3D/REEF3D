@@ -39,7 +39,7 @@ public:
 	fnpf_fg_RK4(lexer*, fdm*, ghostcell*);
 	virtual ~fnpf_fg_RK4();
     
-    virtual void start(lexer*, fdm*, ghostcell*, solver*, discrete*, ioflow*, reini*,onephase*);
+    virtual void start(lexer*, fdm*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*);
     virtual void ini(lexer*, fdm*, ghostcell*, ioflow*, reini*, onephase*);
     virtual void inidisc(lexer*, fdm*, ghostcell*);
     

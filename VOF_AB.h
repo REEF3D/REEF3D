@@ -28,7 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 class picard;
 class heat;
-class discrete;
+class convection;
 class fluid_update;
 
 using namespace std;
@@ -41,11 +41,11 @@ class VOF_AB : public freesurface, gradient
 public:
 	VOF_AB(lexer*, fdm*, ghostcell*,heat*);
 	virtual ~VOF_AB();
-	virtual void start(fdm*,lexer*, discrete*, solver*, ghostcell*,ioflow*, reini*, particlecorr*,field&);
+	virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particlecorr*,field&);
 	virtual void ltimesave(lexer*,fdm*,field&);
 	virtual void update(lexer*,fdm*,ghostcell*,field&);
 
-	void compression(lexer*,fdm*,ghostcell*,discrete*,field&,double);
+	void compression(lexer*,fdm*,ghostcell*,convection*,field&,double);
 	
 private:
     fluid_update *pupdate;
@@ -59,7 +59,7 @@ private:
 	int gcval_frac;
 	double starttime;
 	
-	discrete *ppdisc;
+	convection *ppconvec;
 };
 #endif
 

@@ -29,7 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"pressure_header.h"
 #include"fdm_header.h"
 #include"sediment_header.h"
-#include"discrete_header.h"
+#include"convection_header.h"
 #include"solver_header.h"
 #include"field_header.h"
 #include"heat_header.h"
@@ -68,14 +68,14 @@ cout<<"starting driver_ini_FNPF"<<endl;
     if(p->G39==1)
     {
     solid solid_object(p,a,pgc);
-    solid_object.start(p,a,pgc,pflow,pdisc,preto);
+    solid_object.start(p,a,pgc,pflow,pconvec,preto);
     }
     
     // Geotopo
     if((p->G50>0 && p->G51>0) || p->G60>0 || p->G61>0)
     {
     geotopo gtopo(p,a,pgc);
-    gtopo.start(p,a,pgc,pflow,pdisc,preto);
+    gtopo.start(p,a,pgc,pflow,pconvec,preto);
     }*/
     
     SLICELOOP4

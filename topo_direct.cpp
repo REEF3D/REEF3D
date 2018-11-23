@@ -45,7 +45,7 @@ topo_direct::~topo_direct()
 {
 }
 
-void topo_direct::start(fdm* a,lexer* p, discrete* pdisc, ghostcell* pgc,reinitopo* preto)
+void topo_direct::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,reinitopo* preto)
 {
     starttime=pgc->timer();
 	

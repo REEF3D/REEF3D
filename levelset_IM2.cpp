@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"discrete.h"
+#include"convection.h"
 #include"solver.h"
 #include"ghostcell.h"
 #include"ioflow.h"
@@ -96,7 +96,7 @@ levelset_IM2::~levelset_IM2()
 {
 }
 
-void levelset_IM2::start(fdm* a,lexer* p, discrete* pdisc,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particlecorr* ppart, field &ls)
+void levelset_IM2::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particlecorr* ppart, field &ls)
 {
     pflow->fsfinflow(p,a,pgc);
     ppicard->volcalc(p,a,pgc,ls);
@@ -106,7 +106,7 @@ void levelset_IM2::start(fdm* a,lexer* p, discrete* pdisc,solver* psolv, ghostce
 
     starttime=pgc->timer();
     clearrhs(p,a);
-	pdisc->start(p,a,ls,4,a->u,a->v,a->w);
+	pconvec->start(p,a,ls,4,a->u,a->v,a->w);
 	timesource(p,a,pflow);
 	psolv->start(p,a,pgc,ls,a->xvec,a->rhsvec,4,gcval_phi,p->F19);
 	pflow->phi_relax(p,pgc,ls);

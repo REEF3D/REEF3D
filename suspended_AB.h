@@ -36,7 +36,7 @@ class suspended_AB : public suspended, public bcsusp, public susprhs
 public:
 	suspended_AB(lexer *, fdm*,turbulence*);
 	virtual ~suspended_AB();
-	virtual void start(fdm*, lexer*, discrete*, diffusion*, solver*, ghostcell*, ioflow*);
+	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*);
 	virtual void ctimesave(lexer*, fdm*);
 
 	field4 cab;

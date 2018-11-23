@@ -35,7 +35,7 @@ class suspended_RK2 : public suspended, public bcsusp, public susprhs
 public:
 	suspended_RK2(lexer *, fdm*,turbulence*);
 	virtual ~suspended_RK2();
-	virtual void start(fdm*, lexer*, discrete*, diffusion*, solver*, ghostcell*, ioflow*);
+	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*);
 	virtual void ctimesave(lexer*, fdm*);
 
 	int gcval_susp;

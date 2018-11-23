@@ -33,7 +33,7 @@ public:
     heat_void(lexer *, fdm*, ghostcell*);
 	virtual ~heat_void();
 
-	virtual void start(fdm*, lexer*, discrete*, diffusion*, solver*, ghostcell*, ioflow*);
+	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*);
 	virtual void ttimesave(lexer*, fdm*);
     
     virtual void diff_update(lexer*, fdm*, ghostcell*);

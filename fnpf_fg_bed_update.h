@@ -24,7 +24,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/liceonephases/>.
 #include"slice4.h"
 
 class field;
-class fnpf_discrete;
+class fnpf_convection;
 
 using namespace std;
 
@@ -42,7 +42,7 @@ public:
 
 private: 
     
-    fnpf_discrete *pdisc;
+    fnpf_convection *pconvec;
 
 
 };

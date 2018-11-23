@@ -41,7 +41,7 @@ sixdof_f::sixdof_f
 	momentum *pmom,
 	ioflow* pflow,
 	freesurface* pfsf,
-	discrete* pfsfdisc,
+	convection* pfsfdisc,
 	solver* psolv,
 	reini* preini,
 	particlecorr* ppart
@@ -79,7 +79,7 @@ void sixdof_f::start
 	momentum *pmom,
 	ioflow *pflow,
 	freesurface *pfsf,
-	discrete *pfsfdisc,
+	convection *pfsfdisc,
 	solver *psolv,
 	reini *preini,
 	particlecorr *ppart

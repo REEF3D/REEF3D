@@ -29,7 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"pressure_header.h"
 #include"fdm_header.h"
 #include"sediment_header.h"
-#include"discrete_header.h"
+#include"convection_header.h"
 #include"solver_header.h"
 #include"field_header.h"
 #include"heat_header.h"

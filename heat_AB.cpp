@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"discrete.h"
+#include"convection.h"
 #include"diffusion.h"
 #include"ioflow.h"
 #include"turbulence.h"
@@ -39,7 +39,7 @@ heat_AB::~heat_AB()
 {
 }
 
-void heat_AB::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow)
+void heat_AB::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow)
 {
 
     starttime=pgc->timer();
@@ -47,7 +47,7 @@ void heat_AB::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff, solver*
     diff_update(p,a,pgc);
 
     clearrhs(p,a,pgc);
-	pdisc->start(p,a,T,4,a->u,a->v,a->w);
+	pconvec->start(p,a,T,4,a->u,a->v,a->w);
 	pdiff->diff_scalar(p,a,pgc,psolv,T,thermdiff,p->sigT,1.0);
 
 	if(p->count==1)

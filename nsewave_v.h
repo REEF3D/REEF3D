@@ -33,7 +33,7 @@ public:
     nsewave_v(lexer*, fdm*, ghostcell*,heat*&,concentration*&);
 	virtual ~nsewave_v();
     
-    virtual void start(lexer*, fdm*, ghostcell*, momentum*, diffusion*, turbulence*, discrete*, 
+    virtual void start(lexer*, fdm*, ghostcell*, momentum*, diffusion*, turbulence*, convection*, 
                         pressure*, poisson*, solver*, solver*, ioflow*);
     virtual void ini(lexer*, fdm*, ghostcell*, ioflow*);
 	void ltimesave(lexer*,fdm*,slice&);

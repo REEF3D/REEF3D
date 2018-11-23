@@ -19,7 +19,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"discrete_void.h"
+#include"convection_void.h"
 #include"fou.h"
 #include"ifou.h"
 #include"cds2.h"

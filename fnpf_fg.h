@@ -23,7 +23,7 @@ class lexer;
 class fdm;
 class ghostcell;
 class solver;
-class discrete;
+class convection;
 class ioflow;
 class reini;
 class onephase;
@@ -36,7 +36,7 @@ using namespace std;
 class fnpf_fg
 {
 public:
-	virtual void start(lexer*, fdm*, ghostcell*, solver*, discrete*, ioflow*, reini*,onephase*)=0;
+	virtual void start(lexer*, fdm*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*)=0;
     virtual void ini(lexer*, fdm*, ghostcell*, ioflow*, reini*, onephase*)=0;
     virtual void inidisc(lexer*, fdm*, ghostcell*)=0;
 

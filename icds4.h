@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"discrete.h"
+#include"convection.h"
 #include"increment.h"
 
 class flux;
@@ -29,7 +29,7 @@ class flux;
 
 using namespace std;
 
-class icds4 : public discrete,  public increment
+class icds4 : public convection,  public increment
 {
 
 public:

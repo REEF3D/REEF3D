@@ -32,7 +32,7 @@ class topo_direct : public topo, topo_vel
 public:
 	topo_direct(lexer*, fdm*, ghostcell*,turbulence*);
 	virtual ~topo_direct();
-	virtual void start(fdm*,lexer*, discrete*, ghostcell*,reinitopo*);
+	virtual void start(fdm*,lexer*, convection*, ghostcell*,reinitopo*);
 
 
 private:

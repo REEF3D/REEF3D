@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"discrete.h"
+#include"convection.h"
 #include"diffusion.h"
 #include"pressure.h"
 #include"poisson.h"
@@ -115,21 +115,21 @@ void momentum_IM1::clearrhs(lexer* p, fdm* a)
 
 void momentum_IM1::fillaij1(lexer *p, fdm *a, ghostcell *pgc, solver *psolv)
 {
-	pdisc->start(p,a,a->u,1,a->u,a->v,a->w);
+	pconvec->start(p,a,a->u,1,a->u,a->v,a->w);
 	pdiff->diff_u(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
     usource(p,a);
 }
 
 void momentum_IM1::fillaij2(lexer *p, fdm *a, ghostcell *pgc, solver *psolv)
 {
-	pdisc->start(p,a,a->v,2,a->u,a->v,a->w);
+	pconvec->start(p,a,a->v,2,a->u,a->v,a->w);
 	pdiff->diff_v(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
     vsource(p,a);
 }
 
 void momentum_IM1::fillaij3(lexer *p, fdm *a, ghostcell *pgc, solver *psolv)
 {
-	pdisc->start(p,a,a->w,3,a->u,a->v,a->w);
+	pconvec->start(p,a,a->w,3,a->u,a->v,a->w);
 	pdiff->diff_w(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
     wsource(p,a);
 }

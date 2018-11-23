@@ -33,8 +33,8 @@ public:
 	fnpf_fg_void();
 	virtual ~fnpf_fg_void();
     
-    virtual void start(lexer*, fdm*, ghostcell*, solver*, discrete*, ioflow*, reini*,onephase*);
-    virtual void ini(lexer*, fdm*, ghostcell*, ioflow*, reini*, discrete*);
+    virtual void start(lexer*, fdm*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*);
+    virtual void ini(lexer*, fdm*, ghostcell*, ioflow*, reini*, convection*);
     virtual void inidisc(lexer*, fdm*, ghostcell*);
     
 

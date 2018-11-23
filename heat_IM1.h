@@ -36,7 +36,7 @@ public:
     heat_IM1(lexer *, fdm*, ghostcell*,heat*&);
 	virtual ~heat_IM1();
 
-	virtual void start(fdm*, lexer*, discrete*, diffusion*, solver*, ghostcell*, ioflow*);
+	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*);
 	virtual void ttimesave(lexer*, fdm*);
     virtual void diff_update(lexer*, fdm*, ghostcell*);
 

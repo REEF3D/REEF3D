@@ -20,20 +20,27 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 class lexer;
-class fdm2D;
+class field;
 class slice;
 class sliceint;
+class vec;
 
 using namespace std;
 
-#ifndef SFLOW_DISCRETE_H_
-#define SFLOW_DISCRETE_H_
+#ifndef FNPF_CONVECTION_H_
+#define FNPF_CONVECTION_H_
 
-class sflow_discrete
+class fnpf_convection
 {
 public:
 
-virtual void start(lexer*,fdm2D*,slice&,int,slice&,slice&)=0;
+    virtual double fx(lexer*, field&, double, double)=0;
+	virtual double fy(lexer*, field&, double, double)=0;
+	virtual double fz(lexer*, field&, double, double)=0;
+    
+    virtual double sx(lexer*, slice&, double, double)=0;
+	virtual double sy(lexer*, slice&, double, double)=0;
+    virtual double sz(lexer*, double*, double, double)=0;
 
 };
 

@@ -28,7 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"diffusion.h"
 #include"ioflow.h"
 #include"komega.h"
-#include"discrete.h"
+#include"convection.h"
 
 komega_AB::komega_AB(lexer* p, fdm* a, ghostcell *pgc) : komega(p,a,pgc),kab(p),eab(p)
 {
@@ -46,7 +46,7 @@ komega_AB::~komega_AB()
 {
 }
 
-void komega_AB::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
+void komega_AB::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
 {
 	Pk_update(p,a,pgc);
 	wallf_update(p,a,pgc,wallf);
@@ -56,7 +56,7 @@ void komega_AB::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,solver
 
 	kinsource(p,a,pgc,kin,eps);
 	bckeps_start(a,p,kin,eps,gcval_kin);
-	pdisc->start(p,a,kin,4,a->u,a->v,a->w);
+	pconvec->start(p,a,kin,4,a->u,a->v,a->w);
 	pdiff->diff_scalar(p,a,pgc,psolv,kin,a->visc,kw_sigma_k,1.0);
 
 	if(p->count==1)
@@ -80,7 +80,7 @@ void komega_AB::start(fdm* a, lexer* p, discrete* pdisc, diffusion* pdiff,solver
     starttime=pgc->timer();
 
 	epssource(p,a,pgc,kin,eps);
-	pdisc->start(p,a,eps,4,a->u,a->v,a->w);
+	pconvec->start(p,a,eps,4,a->u,a->v,a->w);
 	pdiff->diff_scalar(p,a,pgc,psolv,eps,a->visc,kw_sigma_w,1.0);
 
 	if(p->count==1)

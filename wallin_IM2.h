@@ -33,7 +33,7 @@ class wallin_IM2 : public kepsilon_IM2, public wallin
 public:
 	wallin_IM2(lexer *,fdm*,ghostcell*);
 	virtual ~wallin_IM2();
-	virtual void start(fdm*, lexer*, discrete*, diffusion*, solver*, ghostcell*, ioflow*);
+	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*);
 	virtual void aniso(fdm*);
 	virtual double tau(fdm*);
         

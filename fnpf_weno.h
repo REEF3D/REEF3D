@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_discrete.h"
+#include"fnpf_convection.h"
 #include"increment.h"
 #include"ddweno_f_nug.h"
 
@@ -28,7 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 using namespace std;
 
-class fnpf_weno : public fnpf_discrete, public increment, public ddweno_f_nug
+class fnpf_weno : public fnpf_convection, public increment, public ddweno_f_nug
 {
 public:
 	fnpf_weno(lexer*);

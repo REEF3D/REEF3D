@@ -25,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"discrete.h"
+#include"convection.h"
 #include"solver.h"
 #include"ghostcell.h"
 #include"freesurface_header.h"
@@ -74,7 +74,7 @@ void VOF_PLIC::start
 (
     fdm* a,
     lexer* p, 
-    discrete* pdisc,
+    convection* pconvec,
     solver* psolv, 
     ghostcell* pgc,
     ioflow* pflow, 
@@ -171,7 +171,7 @@ void VOF_PLIC::start
 	}
 	
 	//- Redistance distance function from updated plane equations
-	// redistance(a, p, pdisc, pgc, pflow, 20);
+	// redistance(a, p, pconvec, pgc, pflow, 20);
 	//- Distribute ls function
 	// pgc->start4(p,a->phi,gcval_frac); 
 

@@ -52,7 +52,7 @@ sflow_eta::sflow_eta(lexer *p, fdm2D *b , ghostcell *pgc) : Lab(p)
 
     pgc->gcsl_start4(p,b->eta,gcval_eta);
 	
-	pdisc = new sflow_eta_weno(p);
+	pconvec = new sflow_eta_weno(p);
 	
 	if(p->A241==1)
 	phxy = new sflow_hxy_fou(p);

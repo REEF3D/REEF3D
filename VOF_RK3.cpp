@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"discrete.h"
+#include"convection.h"
 #include"solver.h"
 #include"ghostcell.h"
 #include"ioflow.h"
@@ -50,14 +50,14 @@ VOF_RK3::VOF_RK3(lexer* p, fdm *a, ghostcell* pgc, heat *pheat):gradient(p),uc(p
 
 	pupdate = new fluid_update_vof(p,a,pgc);
 	
-	ppdisc = new hric(p);
+	ppconvec = new hric(p);
 }
 
 VOF_RK3::~VOF_RK3()
 {
 }
 
-void VOF_RK3::start(fdm* a,lexer* p, discrete* pdisc,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particlecorr* ppart, field &F)
+void VOF_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particlecorr* ppart, field &F)
 {
     field4 ark1(p),ark2(p);
     
@@ -73,13 +73,13 @@ void VOF_RK3::start(fdm* a,lexer* p, discrete* pdisc,solver* psolv, ghostcell* p
     LOOP
 	a->L(i,j,k)=0.0;
 
-	pdisc->start(p,a,a->phi,4,a->u,a->v,a->w);
+	pconvec->start(p,a,a->phi,4,a->u,a->v,a->w);
 
 	LOOP
 	ark1(i,j,k) = a->phi(i,j,k)
 				+ p->dt*a->L(i,j,k);
 
-    compression(p,a,pgc,pdisc,ark1,1.0);
+    compression(p,a,pgc,pconvec,ark1,1.0);
 
 	pgc->start4(p,ark1,gcval_frac);
 
@@ -88,14 +88,14 @@ void VOF_RK3::start(fdm* a,lexer* p, discrete* pdisc,solver* psolv, ghostcell* p
     LOOP
 	a->L(i,j,k)=0.0;
 
-	pdisc->start(p,a,ark1,4,a->u,a->v,a->w);
+	pconvec->start(p,a,ark1,4,a->u,a->v,a->w);
 
 	LOOP
 	ark2(i,j,k) = 0.75*a->phi(i,j,k)
 				+ 0.25*ark1(i,j,k)
 				+ 0.25*p->dt*a->L(i,j,k);
 
-    compression(p,a,pgc,pdisc,ark2,0.25);
+    compression(p,a,pgc,pconvec,ark2,0.25);
 
 	pgc->start4(p,ark2,gcval_frac);
 
@@ -104,7 +104,7 @@ void VOF_RK3::start(fdm* a,lexer* p, discrete* pdisc,solver* psolv, ghostcell* p
     LOOP
 	a->L(i,j,k)=0.0;
 
-	pdisc->start(p,a,ark2,4,a->u,a->v,a->w);
+	pconvec->start(p,a,ark2,4,a->u,a->v,a->w);
 
 
 	LOOP
@@ -112,7 +112,7 @@ void VOF_RK3::start(fdm* a,lexer* p, discrete* pdisc,solver* psolv, ghostcell* p
 				  + (2.0/3.0)*ark2(i,j,k)
 				  + (2.0/3.0)*p->dt*a->L(i,j,k);
 
-    compression(p,a,pgc,pdisc,a->phi,1.0);
+    compression(p,a,pgc,pconvec,a->phi,1.0);
 	
 
 	pgc->start4(p,a->phi,gcval_frac);
@@ -137,7 +137,7 @@ void VOF_RK3::update(lexer *p, fdm *a, ghostcell *pgc, field &F)
     pupdate->start(p,a,pgc);
 }
 
-void VOF_RK3::compression(lexer* p, fdm *a, ghostcell *pgc, discrete *pdisc, field &f, double alpha)
+void VOF_RK3::compression(lexer* p, fdm *a, ghostcell *pgc, convection *pconvec, field &f, double alpha)
 {
 	double di,dj,dk, dnorm,nx,ny,nz;
     double umax,vmax,wmax;
@@ -279,7 +279,7 @@ void VOF_RK3::compression(lexer* p, fdm *a, ghostcell *pgc, discrete *pdisc, fie
     LOOP
 	a->L(i,j,k)=0.0;
 
-    ppdisc->start(p,a,F,5,uc,vc,wc);
+    ppconvec->start(p,a,F,5,uc,vc,wc);
 
     LOOP
     f(i,j,k)+=p->dt*a->L(i,j,k);

@@ -93,7 +93,7 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 
 }
 
-void ioflow_f::inflow_walldist(lexer *p, fdm *a, ghostcell *pgc, discrete *pdisc, reini *preini, ioflow *pflow)
+void ioflow_f::inflow_walldist(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec, reini *preini, ioflow *pflow)
 {
 
 	p->del_Darray(walldin, walldin_size);

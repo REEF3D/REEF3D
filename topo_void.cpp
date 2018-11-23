@@ -33,7 +33,7 @@ topo_void::~topo_void()
 {
 }
 
-void topo_void::start(fdm* a,lexer* p,discrete* pdisc, ghostcell* pgc,reinitopo* preto)
+void topo_void::start(fdm* a,lexer* p,convection* pconvec, ghostcell* pgc,reinitopo* preto)
 {
 }
 

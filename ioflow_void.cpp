@@ -399,7 +399,7 @@ int ioflow_v::iozonecheck(lexer *p, fdm*a)
 	return check;
 }
 
-void ioflow_v::inflow_walldist(lexer *p, fdm *a, ghostcell *pgc, discrete *pdisc, reini *preini, ioflow *pflow)
+void ioflow_v::inflow_walldist(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec, reini *preini, ioflow *pflow)
 {
 }
 

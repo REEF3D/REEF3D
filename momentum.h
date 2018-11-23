@@ -22,7 +22,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 class lexer;
 class fdm;
 class ghostcell;
-class discrete;
+class convection;
 class diffusion;
 class solver;
 class ghostcell;
