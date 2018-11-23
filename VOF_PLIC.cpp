@@ -121,7 +121,6 @@ void VOF_PLIC::start
             //- Calculate left and right fluxes Q1 and Q2
             calcFlux(a, p, Q1, Q2, sweep);
                 
-<<<<<<< HEAD
                 
             //- PLIC loop
             vof1(i, j, k) = 0.0;
