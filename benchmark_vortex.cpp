@@ -78,6 +78,23 @@ benchmark_vortex::benchmark_vortex(lexer *p, fdm *a)
 		a->ro(i,j,k)= p->W1*H + p->W3*(1.0-H);
 		a->visc(i,j,k)= p->W2*H + p->W4*(1.0-H);
 	}
+
+
+    LOOP
+	{
+		a->vof(i,j,k) = 0.0;
+		
+		double r = sqrt(pow(p->pos_x() - xc, 2.0) + pow(p->pos_z() - yc, 2.0));
+		if (r <= radius)
+		{
+			a->vof(i,j,k) = 1.0;
+		}
+		
+		a->test(i,j,k) = a->vof(i,j,k);		
+	}
+
+    
+    
 }
 
 benchmark_vortex::~benchmark_vortex()
@@ -106,7 +123,28 @@ void benchmark_vortex::start(lexer* p, fdm *a, ghostcell *pgc, discrete *pdisc )
 
     pgc->start1(p,a->u,10);
     pgc->start2(p,a->v,11);
+    
+    
+    
 
+    LOOP
+    {
+        if (p->simtime < 3.0)
+        {
+            a->u(i,j,k) = -2.0*cos(PI*p->pos_z())*pow(sin(PI*p->pos_x()),2)*sin(PI*p->pos_z());
+            a->v(i,j,k) = 0.0;
+            a->w(i,j,k) = 2.0*cos(PI*p->pos_x())*pow(sin(PI*p->pos_z()),2)*sin(PI*p->pos_x());
+        }
+        else
+        {
+            a->u(i,j,k) = 2.0*cos(PI*p->pos_z())*pow(sin(PI*p->pos_x()),2)*sin(PI*p->pos_z());
+            a->v(i,j,k) = 0.0;
+            a->w(i,j,k) = -2.0*cos(PI*p->pos_x())*pow(sin(PI*p->pos_z()),2)*sin(PI*p->pos_x());
+        }
+    }
 
+    pgc->start1(p,a->u,10);
+    pgc->start2(p,a->v,11);
+	pgc->start2(p,a->w,12);
 
 }

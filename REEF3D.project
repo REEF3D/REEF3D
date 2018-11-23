@@ -1060,7 +1060,7 @@
           <File Name="6DOF_ray_z.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Force">
-          <File Name="6DOF_force_lsm.cpp"/>
+          <File Name="6DOF_forces_lsm.cpp"/>
           <File Name="6DOF_forces_stl.cpp"/>
           <File Name="6DOF_forces.cpp"/>
           <File Name="6DOF_forces_triang.cpp"/>
