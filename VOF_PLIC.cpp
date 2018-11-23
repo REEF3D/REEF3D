@@ -199,7 +199,10 @@ void VOF_PLIC::start
         }
     }
     
-    reini_->start(a,p,a->phi,pgc,pflow);
+    for (int tt = 0; tt < 3; tt++)
+    {
+        reini_->start(a,p,a->phi,pgc,pflow);
+    }
 }
 
 
