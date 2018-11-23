@@ -38,9 +38,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 VOF_PLIC::VOF_PLIC
 (
-    lexer* p, 
-    fdm *a, 
-    ghostcell* pgc, 
+    lexer* p,
+    fdm *a,
+    ghostcell* pgc,
     heat *pheat
 ):gradient(p),norm_vec(p),alpha(p),nx(p),ny(p),nz(p),vof1(p),vof2(p),vof3(p)
 {
@@ -57,11 +57,11 @@ VOF_PLIC::VOF_PLIC
     gcval_frac=74;
 
     pupdate = new fluid_update_vof(p,a,pgc);
-    
+
     reini_ = new reini_RK3(p,1);
-    
+
     sSweep = -1;
-    
+
     ininorVecLS(p);
 }
 
@@ -73,18 +73,18 @@ VOF_PLIC::~VOF_PLIC()
 void VOF_PLIC::start
 (
     fdm* a,
-    lexer* p, 
+    lexer* p,
     convection* pconvec,
-    solver* psolv, 
+    solver* psolv,
     ghostcell* pgc,
-    ioflow* pflow, 
-    reini* preini, 
-    particlecorr* ppart, 
+    ioflow* pflow,
+    reini* preini,
+    particlecorr* ppart,
     field &F
 )
 {
     pflow->fsfinflow(p,a,pgc);
-    
+
     starttime=pgc->timer();
 
     int sweep = 0;
@@ -96,10 +96,10 @@ void VOF_PLIC::start
     else
     {
         sSweep = 0;
-    } 
+    }
 
-/*    
-    if (p->count==1) 	
+/*
+    if (p->count==1)
     {
         LOOP
         {
@@ -114,25 +114,22 @@ void VOF_PLIC::start
     for (int nSweep = 0; nSweep < 3; nSweep++)
     {
         LOOP
-        {	
+        {
    //         p->DXN[IP] = 0.012;
    //         p->DZN[KP] = 0.012;
-            
+
             //- Calculate left and right fluxes Q1 and Q2
             calcFlux(a, p, Q1, Q2, sweep);
-                
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> hans_dev
-                
+
+
+
             //- PLIC loop
             vof1(i, j, k) = 0.0;
             vof2(i, j, k) = 0.0;
             vof3(i, j, k) = 0.0;
 
             if (a->vof(i, j, k) >= 0.999)
-            {		
+            {
                 // Fluxes leave and enter cell in a straight manner
                 vof1(i, j, k) = max(-Q1, 0.0);
                 vof2(i, j, k) = 1.0 - max(Q1, 0.0) + min(Q2, 0.0);
@@ -142,16 +139,16 @@ void VOF_PLIC::start
             {
                 // Reconstruct plane in cell
                 reconstructPlane(a, p);
-                
+
                 // Advect interface using Lagrangian approach
                 advectPlane(a, p, Q1, Q2, sweep);
-                
+
                 // Update volume fraction
                 updateVolumeFraction(a, p, Q1, Q2, sweep);
             }
         }
-           
-        
+
+
         //- Distribute volume fractions
         pgc->start4(p,vof1,gcval_frac);
         pgc->start4(p,vof2,gcval_frac);
@@ -162,7 +159,7 @@ void VOF_PLIC::start
         updateVOF(a, p, sweep);
         pgc->start4(p,a->vof,gcval_frac);
 
-        
+
         //- Change sweep
         if (sweep < 2)
         {
@@ -171,13 +168,13 @@ void VOF_PLIC::start
         else
         {
             sweep = 0;
-        } 
+        }
     }
-    
+
     //- Redistance distance function from updated plane equations
     //redistance(a, p, pdisc, pgc, pflow, 20);
     //- Distribute ls function
-    //pgc->start4(p,a->phi,gcval_frac); 
+    //pgc->start4(p,a->phi,gcval_frac);
 
 
     pflow->periodic(a->vof,p);
@@ -185,14 +182,14 @@ void VOF_PLIC::start
     pupdate->start(p,a,pgc);
 
     p->lsmtime=pgc->timer()-starttime;
-    
+
     if(p->mpirank==0)
     cout<<"vofplictime: "<<setprecision(3)<<p->lsmtime<<endl;
-    
+
     LOOP
     {
         a->test(i,j,k) = a->vof(i,j,k);
-        
+
         if (a->vof(i,j,k) > 0.5)
         {
             a->phi(i,j,k) = 1.0;
@@ -202,85 +199,12 @@ void VOF_PLIC::start
             a->phi(i,j,k) = -1.0;
         }
     }
-    
+
     for (int tt = 0; tt < 3; tt++)
     {
         reini_->start(a,p,a->phi,pgc,pflow);
     }
-<<<<<<< HEAD
-=======
-=======
-				
-			//- PLIC loop
-			vof1(i, j, k) = 0.0;
-			vof2(i, j, k) = 0.0;
-			vof3(i, j, k) = 0.0;
 
-			if (a->vof(i, j, k) >= 1.0)
-			{				
-				// Fluxes leave and enter cell in a straight manner
-				vof1(i, j, k) = max(-Q1, 0.0);
-				vof2(i, j, k) = 1.0 - max(Q1, 0.0) + min(Q2, 0.0);
-				vof3(i, j, k) = max(Q2, 0.0);
-			}
-			else
-			{
-				// Reconstruct plane in cell
-				reconstructPlane(a, p);
-				
-				// Advect interface using Lagrangian approach
-				advectPlane(a, p, Q1, Q2, sweep);
-				
-				// Update volume fraction
-				updateVolumeFraction(a, p, Q1, Q2, sweep);
-			}
-		}
-	       
-		
-		//- Distribute volume fractions
-		pgc->start4(p,vof1,gcval_frac);
-		pgc->start4(p,vof2,gcval_frac);
-		pgc->start4(p,vof3,gcval_frac);
-
-
-		//- Calculate updated vof from volume fractions and distribute
-		updateVOF(a, p, sweep);
-		pgc->start4(p,a->vof,gcval_frac);
-
-		
-		//- Change sweep
-		if (sweep < 2)
-		{
-			sweep++;
-		}
-		else
-		{
-			sweep = 0;
-		} 
-	}
-	
-	//- Redistance distance function from updated plane equations
-	// redistance(a, p, pconvec, pgc, pflow, 20);
-	//- Distribute ls function
-	// pgc->start4(p,a->phi,gcval_frac); 
-
-
-	pflow->periodic(a->vof,p);
-
-	pupdate->start(p,a,pgc);
-
-	p->lsmtime=pgc->timer()-starttime;
-	
-	if(p->mpirank==0)
-	cout<<"vofplictime: "<<setprecision(3)<<p->lsmtime<<endl;
-	
-	
-	LOOP
-	{
-		a->test(i,j,k) = a->vof(i,j,k);
-	}
->>>>>>> hans_dev
->>>>>>> hans_dev
 }
 
 
@@ -291,12 +215,11 @@ void VOF_PLIC::ltimesave(lexer* p, fdm *a, field &F)
 
 void VOF_PLIC::update
 (
-    lexer *p, 
-    fdm *a, 
-    ghostcell *pgc, 
+    lexer *p,
+    fdm *a,
+    ghostcell *pgc,
     field &F
 )
 {
     pupdate->start(p,a,pgc);
 }
-
