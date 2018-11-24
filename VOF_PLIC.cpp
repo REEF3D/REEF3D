@@ -162,8 +162,8 @@ void VOF_PLIC::start
     //- Distribute ls function
     //pgc->start4(p,a->phi,gcval_frac);
 
- //   pflow->phi_relax(p,pgc,a->vof);
-//	pgc->start4(p,a->vof,gcval_frac);
+    pflow->vof_relax(p,pgc,a->vof);
+	pgc->start4(p,a->vof,gcval_frac);
     pflow->periodic(a->vof,p);
     pupdate->start(p,a,pgc);
 
@@ -178,15 +178,15 @@ void VOF_PLIC::start
 
         if (a->vof(i,j,k) > 0.5)
         {
-            a->phi(i,j,k) = 1.0;
+            a->phi(i,j,k) = 0.1;
         }
         else
         {
-            a->phi(i,j,k) = -1.0;
+            a->phi(i,j,k) = -0.1;
         }
     }
 
-    for (int tt = 0; tt < 3; tt++)
+    for (int tt = 0; tt < 10; tt++)
     {
         reini_->start(a,p,a->phi,pgc,pflow);
     }

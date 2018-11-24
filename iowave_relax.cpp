@@ -412,32 +412,52 @@ void iowave::vof_relax(lexer *p, ghostcell *pgc, field& f)
 		
 		if(p->pos_z()>p->phimean)
         z=(fabs(p->phimean-p->pos_z()));	
-
-        if ((eta(i,j) + p->phimean) > p->pos_z())
-        {
-            lsval[count] = 1.0;
-        }
-        else
-        {
-            lsval[count] = 0.0;  
-        }  
-        
-      
+  
+        double fl = (eta(i-1,j)*p->DXN[IP] + eta(i,j)*p->DXN[IM1])/(p->DXN[IP] + p->DXN[IM1]) + p->phimean;
+        double fr = (eta(i,j)*p->DXN[IP] + eta(i+1,j)*p->DXN[IP1])/(p->DXN[IP] + p->DXN[IP1]) + p->phimean;
+        double fc = (fl + fr)/2.0;
+                
 		// Wave Generation
         if(p->B98==1 && h_switch==1)
         {
             // Zone 1
             if(dg<dist1)
             {
-            f(i,j,k) = ra1(p,dg) * lsval[count] + (1.0-ra1(p,dg))*f(i,j,k);
-            ++count;
+                if (MIN(fl,fr) >= p->pos_z() + p->DZN[KP]/2.0)
+                {
+                    lsval[count] = 1.0;
+                }
+                else if (MAX(fl,fr) <= p->pos_z() - p->DZN[KP]/2.0)
+                {
+                    lsval[count] = 0.0;
+                }
+                else
+                {
+                    lsval[count] = (fc - p->pos_z() + p->DZN[KP]/2.0)/p->DZN[KP];
+                }
+
+                f(i,j,k) = ra1(p,dg) * lsval[count] + (1.0-ra1(p,dg))*f(i,j,k);
+                ++count;
             }
 
             // Zone 2
             if(dg>=dist1 && dg<dist2)
             {
-            f(i,j,k) = ra2(p,dg) * lsval[count] + (1.0-ra2(p,dg))*f(i,j,k);
-            ++count;
+                if (MIN(fl,fr) >= p->pos_z() + p->DZN[KP]/2.0)
+                {
+                    lsval[count] = 1.0;
+                }
+                else if (MAX(fl,fr) <= p->pos_z() - p->DZN[KP]/2.0)
+                {
+                    lsval[count] = 0.0;
+                }
+                else
+                {
+                    lsval[count] = (fc - p->pos_z() + p->DZN[KP]/2.0)/p->DZN[KP];
+                }
+               
+                f(i,j,k) = ra2(p,dg) * lsval[count] + (1.0-ra2(p,dg))*f(i,j,k);
+                ++count;
             }
 		}
 
@@ -446,24 +466,71 @@ void iowave::vof_relax(lexer *p, ghostcell *pgc, field& f)
             // Zone 1
             if(dg<dist1)
             {
-            f(i,j,k) = (1.0-rb1(p,dg))*ramp(p) * lsval[count] + rb1(p,dg) * f(i,j,k);
-            ++count;
+                if (MIN(fl,fr) >= p->pos_z() + p->DZN[KP]/2.0)
+                {
+                    lsval[count] = 1.0;
+                }
+                else if (MAX(fl,fr) <= p->pos_z() - p->DZN[KP]/2.0)
+                {
+                    lsval[count] = 0.0;
+                }
+                else
+                {
+                    lsval[count] = (fc - p->pos_z() + p->DZN[KP]/2.0)/p->DZN[KP];
+                }
+                
+                f(i,j,k) = (1.0-rb1(p,dg))*ramp(p) * lsval[count] + rb1(p,dg) * f(i,j,k);
+                ++count;
             }
 		}
-		
+        
+        
+        fc = p->phimean;
+		double value;
+        
 		// Numerical Beach
 		if(p->B99==1)
 		{
 		      // Zone 3
             if(db<dist3)
-            f(i,j,k) = (1.0-ra3(p,db)) * (p->phimean-p->pos_z()) + ra3(p,db)*f(i,j,k);
+            {
+                if (fc >= p->pos_z() + p->DZN[KP]/2.0)
+                {
+                    value = 1.0;
+                }
+                else if (fc <= p->pos_z() - p->DZN[KP]/2.0)
+                {
+                    value = 0.0;
+                }
+                else 
+                {
+                    value = (fc - p->pos_z() + p->DZN[KP]/2.0)/p->DZN[KP];
+                }
+            
+                f(i,j,k) = (1.0-ra3(p,db)) * value + ra3(p,db)*f(i,j,k);
+            }
         }
 		
 		if(p->B99==2)
 		{
             // Zone 3
             if(db<dist3)
-            f(i,j,k) = (1.0-rb3(p,db)) * (p->phimean-p->pos_z()) + rb3(p,db)*f(i,j,k);
+            {
+                if (fc >= p->pos_z() + p->DZN[KP]/2.0)
+                {
+                    value = 1.0;
+                }
+                else if (fc <= p->pos_z() - p->DZN[KP]/2.0)
+                {
+                    value = 0.0;
+                }
+                else 
+                {
+                    value = (fc - p->pos_z() + p->DZN[KP]/2.0)/p->DZN[KP];
+                }
+
+                f(i,j,k) = (1.0-rb3(p,db)) * value + rb3(p,db)*f(i,j,k);
+            }
         }
     }
 }

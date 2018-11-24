@@ -71,9 +71,6 @@ void fluid_update_vof::start(lexer *p, fdm* a, ghostcell* pgc)
 
 		if(fabs(a->phi(i,j,k))<=epsi)
 		H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
-        
-        
-//		H=a->vof(i,j,k);	
 
 		H=MAX(H,0.0);
 		H=MIN(H,1.0);
