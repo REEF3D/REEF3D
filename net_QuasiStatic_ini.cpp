@@ -29,7 +29,7 @@ void net_QuasiStatic::initialize(lexer *p, fdm *a, ghostcell *pgc)
 {
     // Input data
  
- 
+ /*
 	// Net wall
     L = 1.0;        // length of net in y-direction
     b = 1.0;        // length of net in x-direction 
@@ -49,10 +49,10 @@ void net_QuasiStatic::initialize(lexer *p, fdm *a, ghostcell *pgc)
     phi = 0.0;
     theta = 89.999;
     psi = 0.0;
+*/
 
 
-
-/*  Hanging net 
+//  Hanging net 
 
     L = 1.0;        // length of net in y-direction
     b = 1.0;        // length of net in x-direction 
@@ -61,18 +61,18 @@ void net_QuasiStatic::initialize(lexer *p, fdm *a, ghostcell *pgc)
     m = 8;          // number of meshes in y-direction   
 
     lm = 0.13;     	// length of mesh in [m]
-    EA = 1e5;           // Elasticity
-    d_c = 0.02;         // diameter
-    rho_c = 7800;       // density material
-    w = 0.05;          // weight per meter
+    EA = 1e9;           // Elasticity
+    d_c = 0.002;         // diameter
+    rho_c = 1100;       // density material
+    w = 0.01;          // weight per meter
 
-    origin_x = 3.0;
+    origin_x = 1.0;
     origin_y = 0.75;
     origin_z = 1.3;
     phi = 0.0;
     theta = 0.0;
     psi = 0.0;
-*/
+
  
     if (2*n*lm < (b / sin(atan(b/L))))
     {

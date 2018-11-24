@@ -63,13 +63,6 @@ updateVel(p, a, pgc, 2);
 		// Calculating force directions and coefficients
 		for (int j = 0; j < nf; j++)
 		{
-			v[Pi[j]][0] = 1e-10;
-			v[Pi[j]][1] = 0;
-			v[Pi[j]][2] = 0;
-			v[Ni[j]][0] = 1e-10;
-			v[Ni[j]][1] = 0;
-			v[Ni[j]][2] = 0;
-			
 			val_x = (v[Pi[j]][0] + v[Ni[j]][0])/2.0;
 			val_y = (v[Pi[j]][1] + v[Ni[j]][1])/2.0;
 			val_z = (v[Pi[j]][2] + v[Ni[j]][2])/2.0;
