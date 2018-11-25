@@ -30,7 +30,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void hypre_aij::fill_matrix_F(lexer* p, ghostcell* pgc, matrix_diag &M, double *f, double *xvec, vec &rhsvec)
 {
     
-    fieldint4 rownum4(p);
+    int* rownum7;
     
     pgc->rownum7_update(p,rownum4);
     pgc->facenbx(p,rownum4,p->range_row4);
@@ -41,50 +41,50 @@ void hypre_aij::fill_matrix_F(lexer* p, ghostcell* pgc, matrix_diag &M, double *
 	count=0;
 	
 	val[count] = M.p[n];
-	col[count] = rownum4(i,j,k);
-	rownum = rownum4(i,j,k);
+	col[count] = rownum7[FIJK];
+	rownum = rownum7[FIJK];
 	++count;
 	
 	
     if(p->flag4[Im1JK]>0)
 	{
 	val[count] = M.s[n];
-	col[count] = rownum4(i-1,j,k);
+	col[count] = rownum7[FIm1JK];
 	++count;
 	}
     
     if(p->flag4[Ip1JK]>0)
 	{
 	val[count] = M.n[n];
-	col[count] = rownum4(i+1,j,k);
+	col[count] = rownum7[FIp1JK];
 	++count;
 	}
     
     if(p->flag4[IJm1K]>0)
 	{
 	val[count] = M.e[n];
-	col[count] = rownum4(i,j-1,k);
+	col[count] = rownum7[FIJm1K];
 	++count;
 	}
     
     if(p->flag4[IJp1K]>0)
 	{
 	val[count] = M.w[n];
-	col[count] = rownum4(i,j+1,k);
+	col[count] = rownum7[FIJp1K];
 	++count;
 	}
     
     if(p->flag4[IJKm1]>0)
 	{
 	val[count] = M.b[n];
-	col[count] = rownum4(i,j,k-1);
+	col[count] = rownum7[FIJKm1];
 	++count;
 	}
     
     if(p->flag4[IJKp1]>0)
 	{
 	val[count] = M.t[n];
-	col[count] = rownum4(i,j,k+1);
+	col[count] = rownum7[FIJKp1];
 	++count;
 	}
 	

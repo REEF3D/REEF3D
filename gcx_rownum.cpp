@@ -41,20 +41,20 @@ void ghostcell::rownum4_update(lexer* p,fieldint &rownum4)
     rownum4(i,j,k)+=p->range_row4[p->mpirank];
 }
 
-void ghostcell::rownum7_update(lexer* p,fieldint &rownum4)
+void ghostcell::rownum7_update(lexer* p, int *rownum7)
 {
-	p->N4_row=0;
-	p->N4_col=0;
+	int N7_row=0;
+	int N7_col=0;
 
-    FLUIDLOOP
+    FLOOP
 	{
-    rownum4(i,j,k)=p->N4_row;
-    ++p->N4_row;
-	++p->N4_col;
+    rownum7[FIJK]=p->N4_row;
+    ++N7_row;
+	++N7_col;
 	}
 
     rangex(p,p->range_row4,p->N4_row);
 
 	FLUIDLOOP
-    rownum4(i,j,k)+=p->range_row4[p->mpirank];
+    rownum7[FIJK]+=p->range_row4[p->mpirank];
 }

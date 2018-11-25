@@ -101,7 +101,7 @@ public:
     void cvalupdate6(lexer*,fdm*,fieldint&);
     
     void rownum4_update(lexer*,fieldint&);
-    void rownum7_update(lexer*,fieldint&);
+    void rownum7_update(lexer*,int*);
 
 	
 	void cval_gcb1(lexer*,fdm*,fieldint&);
