@@ -64,22 +64,18 @@ void sixdof_f::mooringForces(lexer *p, fdm* a, ghostcell *pgc)
 		{
 			std::vector<double> point(3,0.0);
 				
-			for(n=0; n<tricount; ++n)
-			{
-				for(int q=0; q<3; q++)
-				{
-					point[0] = X311_xen[i];
-					point[1] = X311_yen[i];
-					point[2] = X311_zen[i];
+			point[0] = X311_xen[i];
+			point[1] = X311_yen[i];
+			point[2] = X311_zen[i];
 					
-					point = rotation_R(point);
+			point = rotation_R(point);
 					
-					p->X311_xe[i] = point[0] + xg;
-					p->X311_ye[i] = point[1] + yg;
-					p->X311_ze[i] = point[2] + zg;
-				}
-			}				
+			p->X311_xe[i] = point[0] + xg;
+			p->X311_ye[i] = point[1] + yg;
+			p->X311_ze[i] = point[2] + zg;
 		}
+
+cout<<p->X311_xe[i]<<" "<<p->X311_ye[i]<<" "<<p->X311_ze[i]<<endl;
 
 		// Advance in time
 		pmooring[i]->start(p, a, pgc);

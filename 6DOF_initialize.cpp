@@ -110,9 +110,9 @@ void sixdof_f::initialize(lexer *p, fdm *a, ghostcell *pgc)
 				pmooring.push_back(new mooring_DGSEM(i));
 			}
 		
-			X311_xen[i] = p->X311_xs[i];
-			X311_yen[i] = p->X311_ys[i];
-			X311_zen[i] = p->X311_zs[i];
+			X311_xen[i] = p->X311_xe[i] - xg;
+			X311_yen[i] = p->X311_ye[i] - yg;
+			X311_zen[i] = p->X311_ze[i] - zg;
 		
 			pmooring[i]->initialize(p,a,pgc);
 		}

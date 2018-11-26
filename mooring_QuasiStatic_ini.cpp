@@ -108,7 +108,6 @@ void mooring_QuasiStatic::initialize(lexer *p, fdm *a, ghostcell *pgc)
 		f[j][2] = dz/magDist;			
 	}
 	
-	
 	// Initialise communication 
 	ini_parallel(p, a, pgc);
 }

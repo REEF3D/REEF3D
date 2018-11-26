@@ -54,11 +54,11 @@ private:
 	
 	// Runtime
 	vector< vector<double> > solveGauss(vector< vector<double> >, vector< vector<double> >);
-    void updateVel(lexer*, fdm*, ghostcell*, int);
-	void getVel(lexer*, fdm*, ghostcell*);
-    vector<double> getC(double);
+        void updateVel(lexer*, fdm*, ghostcell*, int);
+ 	void getVel(lexer*, fdm*, ghostcell*);
+        vector<double> getC(double);
 	void bottomContact(lexer*);
-    void print(lexer*);
+        void print(lexer*);
 	void buildLine(lexer*);
 	
 	// ------ 
@@ -77,7 +77,7 @@ private:
 	double *x, *y, *z;
 	
 	// Fields
-    vector< vector<double> > u_, v_, w_, A, B, f, R, v;
+        vector< vector<double> > u_, v_, w_, A, B, f, R, v;
 	
 	// Forces
 	double *T, *Fb;
