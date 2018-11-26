@@ -29,7 +29,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void hypre_aij::fill_matrix_F(lexer* p, ghostcell* pgc, matrix_diag &M, double *f, double *xvec, vec &rhsvec)
 {
-    
     int* rownum7;
     p->Iarray(rownum7,p->imax*p->jmax*(p->kmax+2));
     
@@ -40,8 +39,7 @@ void hypre_aij::fill_matrix_F(lexer* p, ghostcell* pgc, matrix_diag &M, double *
 	FLOOP
 	{
 	count=0;
-	
-	val[count] = M.p[n];
+	val[count] = M.p[n];	
 	col[count] = rownum7[FIJK];
 	rownum = rownum7[FIJK];
 	++count;
@@ -104,8 +102,6 @@ void hypre_aij::fill_matrix_F(lexer* p, ghostcell* pgc, matrix_diag &M, double *
 	{
 		xvec[n] = f[FIJK];
 		rows[n] = rownum7[FIJK];
-        
-        cout<<xvec[n]<<endl;
 	++n;
 	}
 

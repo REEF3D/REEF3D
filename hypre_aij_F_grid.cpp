@@ -52,6 +52,8 @@ void hypre_aij::make_grid_F(lexer* p, ghostcell* pgc)
 	HYPRE_IJVectorCreate(pgc->mpi_comm, p->range_row7[p->mpirank], p->range_col7[p->mpirank+1], &x);
     HYPRE_IJVectorSetObjectType(x, HYPRE_PARCSR);
     HYPRE_IJVectorInitialize(x);
+    
+    p->del_Iarray(rownum7,p->imax*p->jmax*(p->kmax+2));
 }
 
 

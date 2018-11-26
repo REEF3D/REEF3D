@@ -97,7 +97,7 @@ void hypre_aij::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_
 	fillbackvec_F(p,f,xvec,var);
     
     delete_solvers(p,pgc);
-    delete_grid(p,pgc);
+    delete_grid(p,pgc); 
     
     p->del_Darray(xvec,p->knox*p->knoy*(p->knoz+1));
 }
@@ -105,7 +105,7 @@ void hypre_aij::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_
 
 void hypre_aij::fillbackvec_F(lexer *p, double *f, double *xvec, int var)
 {
-	HYPRE_IJVectorGetValues(x, p->N4_row, rows, xvec);
+	HYPRE_IJVectorGetValues(x, p->N7_row, rows, xvec);
 	
         n=0;
         FLOOP
