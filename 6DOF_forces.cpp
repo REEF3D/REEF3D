@@ -75,8 +75,6 @@ void sixdof_f::mooringForces(lexer *p, fdm* a, ghostcell *pgc)
 			p->X311_ze[i] = point[2] + zg;
 		}
 
-cout<<p->X311_xe[i]<<" "<<p->X311_ye[i]<<" "<<p->X311_ze[i]<<endl;
-
 		// Advance in time
 		pmooring[i]->start(p, a, pgc);
 			
