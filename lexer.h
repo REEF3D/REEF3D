@@ -92,6 +92,7 @@ public:
     int headernum;
 	int boundl;
     int N4,N4_row,N4_col;
+    int N7,N7_row,N7_col;
 	double originx,originy,originz;
     double endx,endy,endz;
 	double global_xmin,global_ymin,global_zmin;
@@ -190,8 +191,8 @@ public:
 	int stencil;	
 
 	// Solver
-	int *colnum,*range1,*range2,*range3,*range4,*rownum;
-    int *range_col4,*range_row4;
+	int *colnum;
+    int *range_col4,*range_row4,*range_col7,*range_row7;
 	int *sizeM1,*sizeM2,*sizeM3,*sizeM4,*sizeM4a,*sizeM6;
     int *sizeS1,*sizeS2,*sizeS4; 
 	int mglevel_max,*MGL;

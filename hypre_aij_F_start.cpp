@@ -32,18 +32,18 @@ void hypre_aij::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_
 {     
     double *xvec;
     
-    p->Darray(xvec,p->knox*p->knoy*p->knoz);
+    p->Darray(xvec,p->knox*p->knoy*(p->knoz+1));
 
     make_grid_F(p,pgc);
     create_solvers(p,pgc);
     
-    if(var<=5)
+    if(var==7)
 	fill_matrix_F(p,pgc,M,f,xvec,rhsvec);
     
-    if(var==6)
+    if(var==8)
 	fill_matrix_F_13p(p,pgc,M,f,xvec,rhsvec);
     
-    if(var==7)
+    if(var==9)
 	fill_matrix_F_19p(p,pgc,M,f,xvec,rhsvec);
   
 
@@ -99,7 +99,7 @@ void hypre_aij::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_
     delete_solvers(p,pgc);
     delete_grid(p,pgc);
     
-    p->del_Darray(xvec,p->knox*p->knoy*p->knoz);
+    p->del_Darray(xvec,p->knox*p->knoy*(p->knoz+1));
 }
 
 

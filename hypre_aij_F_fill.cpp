@@ -31,12 +31,13 @@ void hypre_aij::fill_matrix_F(lexer* p, ghostcell* pgc, matrix_diag &M, double *
 {
     
     int* rownum7;
+    p->Iarray(rownum7,p->imax*p->jmax*(p->kmax+2));
     
-    pgc->rownum7_update(p,rownum4);
-    pgc->facenbx(p,rownum4,p->range_row4);
+    pgc->rownum7_update(p,rownum7);
+    pgc->flagx7(p,rownum7);
 
 	n=0;
-	LOOP
+	FLOOP
 	{
 	count=0;
 	
@@ -46,42 +47,42 @@ void hypre_aij::fill_matrix_F(lexer* p, ghostcell* pgc, matrix_diag &M, double *
 	++count;
 	
 	
-    if(p->flag4[Im1JK]>0)
+    if(p->flag7[Im1JK]>0)
 	{
 	val[count] = M.s[n];
 	col[count] = rownum7[FIm1JK];
 	++count;
 	}
     
-    if(p->flag4[Ip1JK]>0)
+    if(p->flag7[Ip1JK]>0)
 	{
 	val[count] = M.n[n];
 	col[count] = rownum7[FIp1JK];
 	++count;
 	}
     
-    if(p->flag4[IJm1K]>0)
+    if(p->flag7[IJm1K]>0)
 	{
 	val[count] = M.e[n];
 	col[count] = rownum7[FIJm1K];
 	++count;
 	}
     
-    if(p->flag4[IJp1K]>0)
+    if(p->flag7[IJp1K]>0)
 	{
 	val[count] = M.w[n];
 	col[count] = rownum7[FIJp1K];
 	++count;
 	}
     
-    if(p->flag4[IJKm1]>0)
+    if(p->flag7[IJKm1]>0)
 	{
 	val[count] = M.b[n];
 	col[count] = rownum7[FIJKm1];
 	++count;
 	}
     
-    if(p->flag4[IJKp1]>0)
+    if(p->flag7[IJKp1]>0)
 	{
 	val[count] = M.t[n];
 	col[count] = rownum7[FIJKp1];
@@ -99,128 +100,133 @@ void hypre_aij::fill_matrix_F(lexer* p, ghostcell* pgc, matrix_diag &M, double *
 	
     // vec
 	n=0;
-	LOOP
+	FLOOP
 	{
-		xvec[n] = (i,j,k);
-		rows[n] = rownum4(i,j,k);
+		xvec[n] = f[FIJK];
+		rows[n] = rownum7[FIJK];
+        
+        cout<<xvec[n]<<endl;
 	++n;
 	}
 
-	HYPRE_IJVectorSetValues(b, p->N4_row, rows, rhsvec.V);
-	HYPRE_IJVectorSetValues(x, p->N4_row, rows, xvec);
+	HYPRE_IJVectorSetValues(b, p->N7_row, rows, rhsvec.V);
+	HYPRE_IJVectorSetValues(x, p->N7_row, rows, xvec);
 	
 	HYPRE_IJVectorAssemble(b);
     HYPRE_IJVectorGetObject(b, (void **) &par_b);
     HYPRE_IJVectorAssemble(x);
     HYPRE_IJVectorGetObject(x, (void **) &par_x);
+    
+    p->del_Iarray(rownum7,p->imax*p->jmax*(p->kmax+2));
 }
 
 
 void hypre_aij::fill_matrix_F_13p(lexer* p, ghostcell* pgc, matrix_diag &M, double *f, double *xvec, vec &rhsvec)
 {
-    fieldint4 rownum4(p);
+    int* rownum7;
+    p->Iarray(rownum7,p->imax*p->jmax*(p->kmax+2));
     
-    pgc->rownum7_update(p,rownum4);
-    pgc->facenbx(p,rownum4,p->range_row4);
+    pgc->rownum7_update(p,rownum7);
+    pgc->flagx7(p,rownum7);
     
     HYPRE_IJMatrixInitialize(A);
     HYPRE_IJVectorInitialize(x);
     HYPRE_IJVectorInitialize(b);
     
 	n=0;
-	LOOP
+	FLOOP
 	{
 	count=0;
 	
 	val[count] = M.p[n];
-	col[count] = rownum4(i,j,k);
-	rownum = rownum4(i,j,k);
+	col[count] = rownum7[FIJK];
+	rownum = rownum7[FIJK];
 	++count;
 	
 	
-    if(p->flag4[Im1JK]>0)
+    if(p->flag7[Im1JK]>0)
 	{
 	val[count] = M.s[n];
-	col[count] = rownum4(i-1,j,k);
+	col[count] = rownum7[FIm1JK];
 	++count;
 	}
     
-    if(p->flag4[Ip1JK]>0)
+    if(p->flag7[Ip1JK]>0)
 	{
 	val[count] = M.n[n];
-	col[count] = rownum4(i+1,j,k);
+	col[count] = rownum7[FIp1JK];
 	++count;
 	}
     
-    if(p->flag4[IJm1K]>0)
+    if(p->flag7[IJm1K]>0)
 	{
 	val[count] = M.e[n];
-	col[count] = rownum4(i,j-1,k);
+	col[count] = rownum7[FIJm1K];
 	++count;
 	}
     
-    if(p->flag4[IJp1K]>0)
+    if(p->flag7[IJp1K]>0)
 	{
 	val[count] = M.w[n];
-	col[count] = rownum4(i,j+1,k);
+	col[count] = rownum7[FIJp1K];
 	++count;
 	}
     
-    if(p->flag4[IJKm1]>0)
+    if(p->flag7[IJKm1]>0)
 	{
 	val[count] = M.b[n];
-	col[count] = rownum4(i,j,k-1);
+	col[count] = rownum7[FIJKm1];
 	++count;
 	}
     
-    if(p->flag4[IJKp1]>0)
+    if(p->flag7[IJKp1]>0)
 	{
 	val[count] = M.t[n];
-	col[count] = rownum4(i,j,k+1);
+	col[count] = rownum7[FIJKp1];
 	++count;
 	}
     
     
     // -- 
-    if(p->flag4[Im2JK]>0)
+    if(p->flag7[Im2JK]>0)
 	{
 	val[count] = M.ss[n];
-	col[count] = rownum4(i-2,j,k);
+	col[count] = rownum7[FIm2JK];
 	++count;
 	}
     
-    if(p->flag4[Ip2JK]>0)
+    if(p->flag7[Ip2JK]>0)
 	{
 	val[count] = M.nn[n];
-	col[count] = rownum4(i+2,j,k);
+	col[count] = rownum7[FIp2JK];
 	++count;
 	}
     
-    if(p->flag4[IJm2K]>0)
+    if(p->flag7[IJm2K]>0)
 	{
 	val[count] = M.ee[n];
-	col[count] = rownum4(i,j-2,k);
+	col[count] = rownum7[FIJm2K];
 	++count;
 	}
     
-    if(p->flag4[IJp2K]>0)
+    if(p->flag7[IJp2K]>0)
 	{
 	val[count] = M.ww[n];
-	col[count] = rownum4(i,j+2,k);
+	col[count] = rownum7[FIJp2K];
 	++count;
 	}
     
-    if(p->flag4[IJKm2]>0)
+    if(p->flag7[IJKm2]>0)
 	{
 	val[count] = M.bb[n];
-	col[count] = rownum4(i,j,k-2);
+	col[count] = rownum7[FIJKm2];
 	++count;
 	}
     
-    if(p->flag4[IJKp2]>0)
+    if(p->flag7[IJKp2]>0)
 	{
 	val[count] = M.tt[n];
-	col[count] = rownum4(i,j,k+2);
+	col[count] = rownum7[FIJKp2];
 	++count;
 	}
 
@@ -236,171 +242,174 @@ void hypre_aij::fill_matrix_F_13p(lexer* p, ghostcell* pgc, matrix_diag &M, doub
 	
     // vec
 	n=0;
-	LOOP
+	FLOOP
 	{
 		xvec[n] = f[FIJK];
-		rows[n] = rownum4(i,j,k);
+		rows[n] = rownum7[FIJK];
 	++n;
 	}
 
-	HYPRE_IJVectorSetValues(b, p->N4_row, rows, rhsvec.V);
-	HYPRE_IJVectorSetValues(x, p->N4_row, rows, xvec);
+	HYPRE_IJVectorSetValues(b, p->N7_row, rows, rhsvec.V);
+	HYPRE_IJVectorSetValues(x, p->N7_row, rows, xvec);
 	
 	HYPRE_IJVectorAssemble(b);
     HYPRE_IJVectorGetObject(b, (void **) &par_b);
     HYPRE_IJVectorAssemble(x);
     HYPRE_IJVectorGetObject(x, (void **) &par_x);
+    
+    p->del_Iarray(rownum7,p->imax*p->jmax*(p->kmax+2));
 }
 
 void hypre_aij::fill_matrix_F_19p(lexer* p, ghostcell* pgc, matrix_diag &M, double *f, double *xvec, vec &rhsvec)
 {
-    fieldint4 rownum4(p);
+    int* rownum7;
+    p->Iarray(rownum7,p->imax*p->jmax*(p->kmax+2));
     
-    pgc->rownum7_update(p,rownum4);
-    pgc->facenbx(p,rownum4,p->range_row4);
+    pgc->rownum7_update(p,rownum7);
+    pgc->flagx7(p,rownum7);
     
     HYPRE_IJMatrixInitialize(A);
     HYPRE_IJVectorInitialize(x);
     HYPRE_IJVectorInitialize(b);
     
 	n=0;
-	LOOP
+	FLOOP
 	{
 	count=0;
 	
 	val[count] = M.p[n];
-	col[count] = rownum4(i,j,k);
-	rownum = rownum4(i,j,k);
+	col[count] = rownum7[FIJK];
+	rownum = rownum7[FIJK];
 	++count;
 	
 	
-    if(p->flag4[Im1JK]>0)
+    if(p->flag7[Im1JK]>0)
 	{
 	val[count] = M.s[n];
-	col[count] = rownum4(i-1,j,k);
+	col[count] = rownum7[FIm1JK];
 	++count;
 	}
     
-    if(p->flag4[Ip1JK]>0)
+    if(p->flag7[Ip1JK]>0)
 	{
 	val[count] = M.n[n];
-	col[count] = rownum4(i+1,j,k);
+	col[count] = rownum7[FIp1JK];
 	++count;
 	}
     
-    if(p->flag4[IJm1K]>0)
+    if(p->flag7[IJm1K]>0)
 	{
 	val[count] = M.e[n];
-	col[count] = rownum4(i,j-1,k);
+	col[count] = rownum7[FIJm1K];
 	++count;
 	}
     
-    if(p->flag4[IJp1K]>0)
+    if(p->flag7[IJp1K]>0)
 	{
 	val[count] = M.w[n];
-	col[count] = rownum4(i,j+1,k);
+	col[count] = rownum7[FIJp1K];
 	++count;
 	}
     
-    if(p->flag4[IJKm1]>0)
+    if(p->flag7[IJKm1]>0)
 	{
 	val[count] = M.b[n];
-	col[count] = rownum4(i,j,k-1);
+	col[count] = rownum7[FIJKm1];
 	++count;
 	}
     
-    if(p->flag4[IJKp1]>0)
+    if(p->flag7[IJKp1]>0)
 	{
 	val[count] = M.t[n];
-	col[count] = rownum4(i,j,k+1);
+	col[count] = rownum7[FIJKp1];
 	++count;
 	}
     
     
     // -- 
-    if(p->flag4[Im2JK]>0)
+    if(p->flag7[Im2JK]>0)
 	{
 	val[count] = M.ss[n];
-	col[count] = rownum4(i-2,j,k);
+	col[count] = rownum7[FIm2JK];
 	++count;
 	}
     
-    if(p->flag4[Ip2JK]>0)
+    if(p->flag7[Ip2JK]>0)
 	{
 	val[count] = M.nn[n];
-	col[count] = rownum4(i+2,j,k);
+	col[count] = rownum7[FIp2JK];
 	++count;
 	}
     
-    if(p->flag4[IJm2K]>0)
+    if(p->flag7[IJm2K]>0)
 	{
 	val[count] = M.ee[n];
-	col[count] = rownum4(i,j-2,k);
+	col[count] = rownum7[FIJm2K];
 	++count;
 	}
     
-    if(p->flag4[IJp2K]>0)
+    if(p->flag7[IJp2K]>0)
 	{
 	val[count] = M.ww[n];
-	col[count] = rownum4(i,j+2,k);
+	col[count] = rownum7[FIJp2K];
 	++count;
 	}
     
-    if(p->flag4[IJKm2]>0)
+    if(p->flag7[IJKm2]>0)
 	{
 	val[count] = M.bb[n];
-	col[count] = rownum4(i,j,k-2);
+	col[count] = rownum7[FIJKm2];
 	++count;
 	}
     
-    if(p->flag4[IJKp2]>0)
+    if(p->flag7[IJKp2]>0)
 	{
 	val[count] = M.tt[n];
-	col[count] = rownum4(i,j,k+2);
+	col[count] = rownum7[FIJKp2];
 	++count;
 	}
     
     
     // -- 
-    if(p->flag4[Im3JK]>0)
+    if(p->flag7[Im3JK]>0)
 	{
 	val[count] = M.sss[n];
-	col[count] = rownum4(i-3,j,k);
+	col[count] = rownum7[FIm3JK];
 	++count;
 	}
     
-    if(p->flag4[Ip3JK]>0)
+    if(p->flag7[Ip3JK]>0)
 	{
 	val[count] = M.nnn[n];
-	col[count] = rownum4(i+3,j,k);
+	col[count] = rownum7[FIp3JK];
 	++count;
 	}
     
-    if(p->flag4[IJm3K]>0)
+    if(p->flag7[IJm3K]>0)
 	{
 	val[count] = M.eee[n];
-	col[count] = rownum4(i,j-3,k);
+	col[count] = rownum7[FIJm3K];
 	++count;
 	}
     
-    if(p->flag4[IJp3K]>0)
+    if(p->flag7[IJp3K]>0)
 	{
 	val[count] = M.www[n];
-	col[count] = rownum4(i,j+3,k);
+	col[count] = rownum7[FIJp3K];
 	++count;
 	}
     
-    if(p->flag4[IJKm3]>0)
+    if(p->flag7[IJKm3]>0)
 	{
 	val[count] = M.bbb[n];
-	col[count] = rownum4(i,j,k-3);
+	col[count] = rownum7[FIJKm3];
 	++count;
 	}
     
-    if(p->flag4[IJKp3]>0)
+    if(p->flag7[IJKp3]>0)
 	{
 	val[count] = M.ttt[n];
-	col[count] = rownum4(i,j,k+3);
+	col[count] = rownum7[FIJKp3];
 	++count;
 	}
 	
@@ -415,20 +424,22 @@ void hypre_aij::fill_matrix_F_19p(lexer* p, ghostcell* pgc, matrix_diag &M, doub
 	
     // vec
 	n=0;
-	LOOP
+	FLOOP
 	{
 		xvec[n] = f[FIJK];
-		rows[n] = rownum4(i,j,k);
+		rows[n] = rownum7[FIJK];
 	++n;
 	}
 
-	HYPRE_IJVectorSetValues(b, p->N4_row, rows, rhsvec.V);
-	HYPRE_IJVectorSetValues(x, p->N4_row, rows, xvec);
+	HYPRE_IJVectorSetValues(b, p->N7_row, rows, rhsvec.V);
+	HYPRE_IJVectorSetValues(x, p->N7_row, rows, xvec);
 	
 	HYPRE_IJVectorAssemble(b);
     HYPRE_IJVectorGetObject(b, (void **) &par_b);
     HYPRE_IJVectorAssemble(x);
     HYPRE_IJVectorGetObject(x, (void **) &par_x);
+    
+    p->del_Iarray(rownum7,p->imax*p->jmax*(p->kmax+2));
 }
 
 #endif

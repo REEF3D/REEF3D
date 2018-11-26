@@ -53,20 +53,11 @@ int ii,jj;
     sizeM6[n]=0;
     }
 	
-	Iarray(range1, M10+5);
-	Iarray(range2, M10+5);
-	Iarray(range3, M10+5);
-	Iarray(range4, M10+5);
 	Iarray(range_row4, M10+5);
 	Iarray(range_col4, M10+5);
+	Iarray(range_row7, M10+5);
+	Iarray(range_col7, M10+5);
 
-    for(int n=0;n<M10+5;++n)
-    {
-	range1[n]=1e9;
-	range2[n]=1e9;
-	range3[n]=1e9;
-	range4[n]=1e9;
-    }
 }
 
 void lexer::vellast()

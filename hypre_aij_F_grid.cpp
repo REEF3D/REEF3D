@@ -29,25 +29,27 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void hypre_aij::make_grid_F(lexer* p, ghostcell* pgc)
 {
     
-    int *rownum7;
+    int* rownum7;
+    p->Iarray(rownum7,p->imax*p->jmax*(p->kmax+2));
     
     pgc->rownum7_update(p,rownum7);
-    //pgc->facenbx(p,rownum4,p->range_row4);
-        
-     p->range_col4[0]=0;
-    for(n=1;n<=p->M10;++n)
-    p->range_col4[n]=p->range_row4[n]-1;
+    pgc->flagx7(p,rownum7);
     
         
-    HYPRE_IJMatrixCreate(pgc->mpi_comm, p->range_row4[p->mpirank], p->range_col4[p->mpirank+1], p->range_row4[p->mpirank], p->range_col4[p->mpirank+1], &A);
+     p->range_col7[0]=0;
+    for(n=1;n<=p->M10;++n)
+    p->range_col7[n]=p->range_row7[n]-1;
+    
+        
+    HYPRE_IJMatrixCreate(pgc->mpi_comm, p->range_row7[p->mpirank], p->range_col7[p->mpirank+1], p->range_row7[p->mpirank], p->range_col7[p->mpirank+1], &A);
 	HYPRE_IJMatrixSetObjectType(A, HYPRE_PARCSR);
 	HYPRE_IJMatrixInitialize(A);
 
-	HYPRE_IJVectorCreate(pgc->mpi_comm, p->range_row4[p->mpirank], p->range_col4[p->mpirank+1], &b);
+	HYPRE_IJVectorCreate(pgc->mpi_comm, p->range_row7[p->mpirank], p->range_col7[p->mpirank+1], &b);
     HYPRE_IJVectorSetObjectType(b, HYPRE_PARCSR);
     HYPRE_IJVectorInitialize(b);
 	
-	HYPRE_IJVectorCreate(pgc->mpi_comm, p->range_row4[p->mpirank], p->range_col4[p->mpirank+1], &x);
+	HYPRE_IJVectorCreate(pgc->mpi_comm, p->range_row7[p->mpirank], p->range_col7[p->mpirank+1], &x);
     HYPRE_IJVectorSetObjectType(x, HYPRE_PARCSR);
     HYPRE_IJVectorInitialize(x);
 }
