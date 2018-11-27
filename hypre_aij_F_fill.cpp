@@ -232,7 +232,6 @@ void hypre_aij::fill_matrix_F_13p(lexer* p, ghostcell* pgc, matrix_diag &M, doub
 	++n;
 	}
 	
-	
 	HYPRE_IJMatrixAssemble(A);
 	HYPRE_IJMatrixGetObject(A, (void**) &parcsr_A);
 	
