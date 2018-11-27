@@ -59,5 +59,4 @@ void hypre_aij::delete_grid(lexer* p, ghostcell* pgc)
 }
 
 
-
 #endif

@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 
 
-void hypre_aij::fill_matrix(lexer* p,fdm* a, ghostcell* pgc, field &f)
+void hypre_aij::fill_matrix_7p(lexer* p,fdm* a, ghostcell* pgc, field &f)
 {
     fieldint4 rownum4(p);
     

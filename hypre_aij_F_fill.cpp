@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 
 
-void hypre_aij::fill_matrix_F(lexer* p, ghostcell* pgc, matrix_diag &M, double *f, double *xvec, vec &rhsvec)
+void hypre_aij::fill_matrix_F_7p(lexer* p, ghostcell* pgc, matrix_diag &M, double *f, double *xvec, vec &rhsvec)
 {
     int* rownum7;
     p->Iarray(rownum7,p->imax*p->jmax*(p->kmax+2));
@@ -43,44 +43,44 @@ void hypre_aij::fill_matrix_F(lexer* p, ghostcell* pgc, matrix_diag &M, double *
 	col[count] = rownum7[FIJK];
 	rownum = rownum7[FIJK];
 	++count;
+
 	
-	
-    if(p->flag7[Im1JK]>0)
+    if(p->flag7[FIm1JK]>0)
 	{
 	val[count] = M.s[n];
 	col[count] = rownum7[FIm1JK];
 	++count;
 	}
     
-    if(p->flag7[Ip1JK]>0)
+    if(p->flag7[FIp1JK]>0)
 	{
 	val[count] = M.n[n];
 	col[count] = rownum7[FIp1JK];
 	++count;
 	}
     
-    if(p->flag7[IJm1K]>0)
+    if(p->flag7[FIJm1K]>0)
 	{
 	val[count] = M.e[n];
 	col[count] = rownum7[FIJm1K];
 	++count;
 	}
     
-    if(p->flag7[IJp1K]>0)
+    if(p->flag7[FIJp1K]>0)
 	{
 	val[count] = M.w[n];
 	col[count] = rownum7[FIJp1K];
 	++count;
 	}
     
-    if(p->flag7[IJKm1]>0)
+    if(p->flag7[FIJKm1]>0)
 	{
 	val[count] = M.b[n];
 	col[count] = rownum7[FIJKm1];
 	++count;
 	}
     
-    if(p->flag7[IJKp1]>0)
+    if(p->flag7[FIJKp1]>0)
 	{
 	val[count] = M.t[n];
 	col[count] = rownum7[FIJKp1];
@@ -140,42 +140,42 @@ void hypre_aij::fill_matrix_F_13p(lexer* p, ghostcell* pgc, matrix_diag &M, doub
 	++count;
 	
 	
-    if(p->flag7[Im1JK]>0)
+    if(p->flag7[FIm1JK]>0)
 	{
 	val[count] = M.s[n];
 	col[count] = rownum7[FIm1JK];
 	++count;
 	}
     
-    if(p->flag7[Ip1JK]>0)
+    if(p->flag7[FIp1JK]>0)
 	{
 	val[count] = M.n[n];
 	col[count] = rownum7[FIp1JK];
 	++count;
 	}
     
-    if(p->flag7[IJm1K]>0)
+    if(p->flag7[FIJm1K]>0)
 	{
 	val[count] = M.e[n];
 	col[count] = rownum7[FIJm1K];
 	++count;
 	}
     
-    if(p->flag7[IJp1K]>0)
+    if(p->flag7[FIJp1K]>0)
 	{
 	val[count] = M.w[n];
 	col[count] = rownum7[FIJp1K];
 	++count;
 	}
     
-    if(p->flag7[IJKm1]>0)
+    if(p->flag7[FIJKm1]>0)
 	{
 	val[count] = M.b[n];
 	col[count] = rownum7[FIJKm1];
 	++count;
 	}
     
-    if(p->flag7[IJKp1]>0)
+    if(p->flag7[FIJKp1]>0)
 	{
 	val[count] = M.t[n];
 	col[count] = rownum7[FIJKp1];
@@ -184,42 +184,42 @@ void hypre_aij::fill_matrix_F_13p(lexer* p, ghostcell* pgc, matrix_diag &M, doub
     
     
     // -- 
-    if(p->flag7[Im2JK]>0)
+    if(p->flag7[FIm2JK]>0)
 	{
 	val[count] = M.ss[n];
 	col[count] = rownum7[FIm2JK];
 	++count;
 	}
     
-    if(p->flag7[Ip2JK]>0)
+    if(p->flag7[FIp2JK]>0)
 	{
 	val[count] = M.nn[n];
 	col[count] = rownum7[FIp2JK];
 	++count;
 	}
     
-    if(p->flag7[IJm2K]>0)
+    if(p->flag7[FIJm2K]>0)
 	{
 	val[count] = M.ee[n];
 	col[count] = rownum7[FIJm2K];
 	++count;
 	}
     
-    if(p->flag7[IJp2K]>0)
+    if(p->flag7[FIJp2K]>0)
 	{
 	val[count] = M.ww[n];
 	col[count] = rownum7[FIJp2K];
 	++count;
 	}
     
-    if(p->flag7[IJKm2]>0)
+    if(p->flag7[FIJKm2]>0)
 	{
 	val[count] = M.bb[n];
 	col[count] = rownum7[FIJKm2];
 	++count;
 	}
     
-    if(p->flag7[IJKp2]>0)
+    if(p->flag7[FIJKp2]>0)
 	{
 	val[count] = M.tt[n];
 	col[count] = rownum7[FIJKp2];
@@ -279,42 +279,42 @@ void hypre_aij::fill_matrix_F_19p(lexer* p, ghostcell* pgc, matrix_diag &M, doub
 	++count;
 	
 	
-    if(p->flag7[Im1JK]>0)
+    if(p->flag7[FIm1JK]>0)
 	{
 	val[count] = M.s[n];
 	col[count] = rownum7[FIm1JK];
 	++count;
 	}
     
-    if(p->flag7[Ip1JK]>0)
+    if(p->flag7[FIp1JK]>0)
 	{
 	val[count] = M.n[n];
 	col[count] = rownum7[FIp1JK];
 	++count;
 	}
     
-    if(p->flag7[IJm1K]>0)
+    if(p->flag7[FIJm1K]>0)
 	{
 	val[count] = M.e[n];
 	col[count] = rownum7[FIJm1K];
 	++count;
 	}
     
-    if(p->flag7[IJp1K]>0)
+    if(p->flag7[FIJp1K]>0)
 	{
 	val[count] = M.w[n];
 	col[count] = rownum7[FIJp1K];
 	++count;
 	}
     
-    if(p->flag7[IJKm1]>0)
+    if(p->flag7[FIJKm1]>0)
 	{
 	val[count] = M.b[n];
 	col[count] = rownum7[FIJKm1];
 	++count;
 	}
     
-    if(p->flag7[IJKp1]>0)
+    if(p->flag7[FIJKp1]>0)
 	{
 	val[count] = M.t[n];
 	col[count] = rownum7[FIJKp1];
@@ -323,42 +323,42 @@ void hypre_aij::fill_matrix_F_19p(lexer* p, ghostcell* pgc, matrix_diag &M, doub
     
     
     // -- 
-    if(p->flag7[Im2JK]>0)
+    if(p->flag7[FIm2JK]>0)
 	{
 	val[count] = M.ss[n];
 	col[count] = rownum7[FIm2JK];
 	++count;
 	}
     
-    if(p->flag7[Ip2JK]>0)
+    if(p->flag7[FIp2JK]>0)
 	{
 	val[count] = M.nn[n];
 	col[count] = rownum7[FIp2JK];
 	++count;
 	}
     
-    if(p->flag7[IJm2K]>0)
+    if(p->flag7[FIJm2K]>0)
 	{
 	val[count] = M.ee[n];
 	col[count] = rownum7[FIJm2K];
 	++count;
 	}
     
-    if(p->flag7[IJp2K]>0)
+    if(p->flag7[FIJp2K]>0)
 	{
 	val[count] = M.ww[n];
 	col[count] = rownum7[FIJp2K];
 	++count;
 	}
     
-    if(p->flag7[IJKm2]>0)
+    if(p->flag7[FIJKm2]>0)
 	{
 	val[count] = M.bb[n];
 	col[count] = rownum7[FIJKm2];
 	++count;
 	}
     
-    if(p->flag7[IJKp2]>0)
+    if(p->flag7[FIJKp2]>0)
 	{
 	val[count] = M.tt[n];
 	col[count] = rownum7[FIJKp2];
@@ -367,42 +367,42 @@ void hypre_aij::fill_matrix_F_19p(lexer* p, ghostcell* pgc, matrix_diag &M, doub
     
     
     // -- 
-    if(p->flag7[Im3JK]>0)
+    if(p->flag7[FIm3JK]>0)
 	{
 	val[count] = M.sss[n];
 	col[count] = rownum7[FIm3JK];
 	++count;
 	}
     
-    if(p->flag7[Ip3JK]>0)
+    if(p->flag7[FIp3JK]>0)
 	{
 	val[count] = M.nnn[n];
 	col[count] = rownum7[FIp3JK];
 	++count;
 	}
     
-    if(p->flag7[IJm3K]>0)
+    if(p->flag7[FIJm3K]>0)
 	{
 	val[count] = M.eee[n];
 	col[count] = rownum7[FIJm3K];
 	++count;
 	}
     
-    if(p->flag7[IJp3K]>0)
+    if(p->flag7[FIJp3K]>0)
 	{
 	val[count] = M.www[n];
 	col[count] = rownum7[FIJp3K];
 	++count;
 	}
     
-    if(p->flag7[IJKm3]>0)
+    if(p->flag7[FIJKm3]>0)
 	{
 	val[count] = M.bbb[n];
 	col[count] = rownum7[FIJKm3];
 	++count;
 	}
     
-    if(p->flag7[IJKp3]>0)
+    if(p->flag7[FIJKp3]>0)
 	{
 	val[count] = M.ttt[n];
 	col[count] = rownum7[FIJKp3];

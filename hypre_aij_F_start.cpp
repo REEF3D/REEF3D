@@ -38,7 +38,7 @@ void hypre_aij::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_
     create_solvers(p,pgc);
     
     if(var==7)
-	fill_matrix_F(p,pgc,M,f,xvec,rhsvec);
+	fill_matrix_F_7p(p,pgc,M,f,xvec,rhsvec);
     
     if(var==8)
 	fill_matrix_F_13p(p,pgc,M,f,xvec,rhsvec);
@@ -93,6 +93,8 @@ void hypre_aij::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_
 	} 
     
 	p->solveriter=num_iterations;
+    p->final_res = final_res_norm;
+    
 	
 	fillbackvec_F(p,f,xvec,var);
     
