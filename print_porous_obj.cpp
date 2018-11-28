@@ -25,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 
 
-void print_porous::box(lexer *p, fdm *a, ghostcell *pgc,int rank)
+void print_porous::box(lexer *p, fdm *a, ghostcell *pgc, int rank)
 {
 	double xs,ys,zs,xe,ye,ze;
 	int vertice_start=vertice_num;
@@ -127,6 +127,138 @@ void print_porous::box(lexer *p, fdm *a, ghostcell *pgc,int rank)
 	polygon[polygon_num][3] = 7 + vertice_start;
 	numvert[polygon_num] = 4;
 	++polygon_num;
+}
+
+void print_porous::cylinder_z(lexer *p, fdm *a, ghostcell *pgc, int rank)
+{
+	int vertice_start=vertice_num;
+    
+    double U,ds,phi;
+	double xm,ym,z1,z2;
+	double r;
+	int snum;
+	
+	xm=p->B274_xc[rank];
+    ym=p->B274_yc[rank];
+	
+	z1=p->B274_zs[rank];
+	z2=p->B274_ze[rank];
+	
+    r=p->B274_r[rank]; 
+	
+
+	U = 2.0 * PI * r;
+	
+	ds = 0.2*(U*p->DXM);
+	
+	snum = int(U/ds);
+    
+cout<<"snum: "<<snum<<" U: "<<U<<" ds: "<<ds<<" r: "<<r<<endl;
+// Vertices	
+	ds = (2.0*PI)/double(snum);
+	
+	phi=0.0;
+		
+    
+    for(n=0;n<snum;++n)
+	{
+	//bottom circle
+	vertice[vertice_num][0] = xm;
+	vertice[vertice_num][1] = ym;
+	vertice[vertice_num][2] = z1;
+    ++vertice_num;
+	
+	vertice[vertice_num][0] = xm + r*cos(phi);
+	vertice[vertice_num][1] = ym + r*sin(phi);
+	vertice[vertice_num][2] = z1;
+    ++vertice_num;
+	
+	vertice[vertice_num][0] = xm + r*cos(phi+ds);
+	vertice[vertice_num][1] = ym + r*sin(phi+ds);
+	vertice[vertice_num][2] = z1;
+	++vertice_num;
+    
+		
+	//top circle
+	vertice[vertice_num][0] = xm;
+	vertice[vertice_num][1] = ym;
+	vertice[vertice_num][2] = z2;
+    ++vertice_num;
+	
+	vertice[vertice_num][0] = xm + r*cos(phi);
+	vertice[vertice_num][1] = ym + r*sin(phi);
+	vertice[vertice_num][2] = z2;
+    ++vertice_num;
+	
+	vertice[vertice_num][0] = xm + r*cos(phi+ds);
+	vertice[vertice_num][1] = ym + r*sin(phi+ds);
+	vertice[vertice_num][2] = z2;
+	++vertice_num;
+	
+	//side		
+	// 1st triangle
+	vertice[vertice_num][0] = xm + r*cos(phi);
+	vertice[vertice_num][1] = ym + r*sin(phi);
+	vertice[vertice_num][2] = z1;
+    ++vertice_num;
+	
+	vertice[vertice_num][0] = xm + r*cos(phi+ds);
+	vertice[vertice_num][1] = ym + r*sin(phi+ds);
+	vertice[vertice_num][2] = z2;
+    ++vertice_num;
+	
+	vertice[vertice_num][0] = xm + r*cos(phi+ds);
+	vertice[vertice_num][1] = ym + r*sin(phi+ds);
+	vertice[vertice_num][2] = z1;
+	++vertice_num;
+	
+	// 2nd triangle
+	vertice[vertice_num][0] = xm + r*cos(phi);
+	vertice[vertice_num][1] = ym + r*sin(phi);
+	vertice[vertice_num][2] = z1;
+    ++vertice_num;
+	
+	vertice[vertice_num][0] = xm + r*cos(phi+ds);
+	vertice[vertice_num][1] = ym + r*sin(phi+ds);
+	vertice[vertice_num][2] = z2;
+    ++vertice_num;
+	
+	vertice[vertice_num][0] = xm + r*cos(phi);
+	vertice[vertice_num][1] = ym + r*sin(phi);
+	vertice[vertice_num][2] = z2;
+	++vertice_num;
+		
+	phi+=ds;
+    
+    // Polygon
+    polygon[polygon_num][0] = 0 + n*12 + vertice_start;
+	polygon[polygon_num][1] = 1 + n*12 + vertice_start;
+	polygon[polygon_num][2] = 2 + n*12 + vertice_start;
+	numvert[polygon_num] = 3;
+	++polygon_num;
+    
+    // Polygon
+    polygon[polygon_num][0] = 3 + n*12 + vertice_start;
+	polygon[polygon_num][1] = 4 + n*12 + vertice_start;
+	polygon[polygon_num][2] = 5 + n*12 + vertice_start;
+	numvert[polygon_num] = 3;
+	++polygon_num;
+    
+    // Polygon
+    polygon[polygon_num][0] = 6 + n*12 + vertice_start;
+	polygon[polygon_num][1] = 7 + n*12 + vertice_start;
+	polygon[polygon_num][2] = 8 + n*12 + vertice_start;
+	numvert[polygon_num] = 3;
+	++polygon_num;
+    
+    // Polygon
+    polygon[polygon_num][0] = 9 + n*12 + vertice_start;
+	polygon[polygon_num][1] = 10 + n*12 + vertice_start;
+	polygon[polygon_num][2] = 11 + n*12 + vertice_start;
+	numvert[polygon_num] = 3;
+	++polygon_num;
+	}
+    
 }
 
 void print_porous::wedge_x(lexer *p, fdm *a, ghostcell *pgc,int rank)

@@ -142,7 +142,7 @@ print_interface::print_interface(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p)
     if(p->P101>0)
 	pslosh=new sloshing_force(p,a,pgc);
 	
-	if(p->B270>0 || p->B281>0 || p->B291>0)
+	if(p->B270>0 || p->B274>0 || p->B281>0 || p->B291>0)
 	{
 	ppor=new print_porous(p,a,pgc);
 	ppor->start(p,a,pgc);

@@ -56,6 +56,22 @@ void vrans_f::initialize(lexer *p, fdm *a, ghostcell *pgc)
 	alpha(i,j,k) = p->B270_alpha[qn];
 	beta(i,j,k) = p->B270_beta[qn];
 	}
+    
+    // Vertical Cylinder
+    for(qn=0;qn<p->B274;++qn)
+    ALOOP
+    {
+        double  r = sqrt( pow(p->XP[IP]-p->B274_xc[qn],2.0)+pow(p->YP[JP]-p->B274_yc[qn],2.0));
+        
+        if(r<=p->B274_r[qn] && p->pos_z()>p->B274_zs[qn] && p->pos_z()<=p->B274_ze[qn])
+        {
+        a->porosity(i,j,k)= p->B274_n[qn];
+        porpart(i,j,k) = p->B274_d50[qn];
+        alpha(i,j,k) = p->B274_alpha[qn];
+        beta(i,j,k) = p->B274_beta[qn];
+        }
+    }
+
 	
 	// Wedge x-dir
     for(qn=0;qn<p->B281;++qn)
