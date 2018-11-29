@@ -178,11 +178,11 @@ void VOF_PLIC::start
 
         if (a->vof(i,j,k) > 0.5)
         {
-            a->phi(i,j,k) = 0.1;
+            a->phi(i,j,k) = 1.0;
         }
         else
         {
-            a->phi(i,j,k) = -0.1;
+            a->phi(i,j,k) = -1.0;
         }
     }
 
