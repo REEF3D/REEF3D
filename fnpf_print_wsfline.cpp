@@ -256,7 +256,7 @@ void fnpf_print_wsfline::ini_location(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         ILOOP
         {
 
-        jloc[q]=conv((p->P52_y[q]-p->originy)/p->dx);
+        jloc[q]=p->posc_j(p->P52_y[q]);
 
         if(jloc[n]>=0 && jloc[n]<p->knoy)
         flag[q][count]=1;
