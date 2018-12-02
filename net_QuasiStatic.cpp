@@ -41,34 +41,47 @@ void net_QuasiStatic::start
 {
 	double val_x, val_y, val_z, val_mag, vel_mag;
 
-// Reconstruct current net
-buildNet(p);
-		
-// Calculating velocities at knots
-updateVel(p, a, pgc, 0);
-updateVel(p, a, pgc, 1);	
-updateVel(p, a, pgc, 2);
+    // Reconstruct current net
+    buildNet(p);
+            
+    // Calculating velocities at knots
+    updateVel(p, a, pgc, 0);
+    updateVel(p, a, pgc, 1);	
+    updateVel(p, a, pgc, 2);
+
 
 	// Solving the system of equations
 	for (int i = 1; i < 500; i++)
 	{	
-		// Reconstruct current net
-		// buildNet(p);
-		
-		// Calculating velocities at knots
-		// updateVel(p, a, pgc, 0);
-		// updateVel(p, a, pgc, 1);	
-		// updateVel(p, a, pgc, 2);
-	
 		// Calculating force directions and coefficients
 		for (int j = 0; j < nf; j++)
 		{
+            
 			val_x = (v[Pi[j]][0] + v[Ni[j]][0])/2.0;
 			val_y = (v[Pi[j]][1] + v[Ni[j]][1])/2.0;
 			val_z = (v[Pi[j]][2] + v[Ni[j]][2])/2.0;
 			
 			vel_mag = sqrt(val_x*val_x + val_y*val_y + val_z*val_z);
 
+			double vt = val_x*fi[j][0] + val_y*fi[j][1] + val_z*fi[j][2];
+			double vt_mag = fabs(vt);
+
+			e_d[j][0] = vt_mag*vt*fi[j][0];
+			e_d[j][1] = vt_mag*vt*fi[j][1];
+			e_d[j][2] = vt_mag*vt*fi[j][2];
+
+			double vvtt_x = val_x - vt*fi[j][0];
+			double vvtt_y = val_y - vt*fi[j][1];
+			double vvtt_z = val_z - vt*fi[j][2];
+			
+			vt_mag = sqrt(vvtt_x*vvtt_x + vvtt_y*vvtt_y + vvtt_z*vvtt_z);
+			
+			e_l[j][0] = vt_mag*vvtt_x;
+			e_l[j][1] = vt_mag*vvtt_y;
+			e_l[j][2] = vt_mag*vvtt_z;
+
+
+            /*
 			e[j][0] = val_x/vel_mag;	
 			e[j][1] = val_y/vel_mag;	
 			e[j][2] = val_z/vel_mag;
@@ -124,18 +137,7 @@ updateVel(p, a, pgc, 2);
 			{
 				getC(acos(arg), c[j]);
 			}
-				
-			
-/*
-			if (p->mpirank == 0) 
-			{
-				cout<<c[j][0]<<" "<<c[j][1]<<" "<<c[j][2]<<endl;	
-				cout<<fi[j][0]<<" "<<fi[j][1]<<" "<<fi[j][2]<<endl;
-				cout<<e_d[j][0]<<" "<<e_d[j][1]<<" "<<e_d[j][2]<<endl;
-				cout<<e_q[j][0]<<" "<<e_q[j][1]<<" "<<e_q[j][2]<<endl;
-				cout<<e_l[j][0]<<" "<<e_l[j][1]<<" "<<e_l[j][2]<<endl;
-		
-			}*/
+            */
 		}		
 		
 		// Fill right-hand side
@@ -161,20 +163,16 @@ updateVel(p, a, pgc, 2);
 				Bh[index][1] = B[index][1];
 				Bh[index][2] = B[index][2];		
 
-//if (p->mpirank == 0) cout<<setprecision(8)<<Bh[index][2]<<endl;
-	
 				for (int k = 0; k < 4; k++)
 				{
 					int nfKik = nfK[index][k]; 	
 
-					vel_mag = sqrt(v[index][0]*v[index][0] + v[index][1]*v[index][1] + v[index][2]*v[index][2]);
+					double cdt = 1.0;
+					double cdn = 0.1;
 					
-					double cd = 1.0;
-					double cl = 0.1;
-					
-					Bh[index][0] += p->W1/2.0*vel_mag*d_c*l[nfKik]/2.0*(cd*e_d[nfKik][0] + cl*e_l[nfKik][0]);
-					Bh[index][1] += p->W1/2.0*vel_mag*d_c*l[nfKik]/2.0*(cd*e_d[nfKik][1] + cl*e_l[nfKik][1]);
-					Bh[index][2] += p->W1/2.0*vel_mag*d_c*l[nfKik]/2.0*(cd*e_d[nfKik][2] + cl*e_l[nfKik][2]);
+					Bh[index][0] += p->W1/2.0*d_c*l[nfKik]/2.0*(cdt*e_d[nfKik][0] + cdn*e_l[nfKik][0]);
+					Bh[index][1] += p->W1/2.0*d_c*l[nfKik]/2.0*(cdt*e_d[nfKik][1] + cdn*e_l[nfKik][1]);
+					Bh[index][2] += p->W1/2.0*d_c*l[nfKik]/2.0*(cdt*e_d[nfKik][2] + cdn*e_l[nfKik][2]);
 
 /*
 					Bh[index][0] += 0.5*p->W1*v[index][0]*v[index][0]*d_c*l[nfKik]/2.0*
@@ -199,8 +197,7 @@ updateVel(p, a, pgc, 2);
 						);
 */
 				}
-				
-//if (p->mpirank == 0) cout<<setprecision(8)<<Bh[index][2]<<endl;				
+							
 				index++;
 			}
 		} 
@@ -242,11 +239,6 @@ x_eigen = A_eigen.lu().solve(B_eigen);
 			
 			if (norm > maxnorm) maxnorm = norm;
 		}
-/*
-			if (p->mpirank == 0)
-			{
-				cout<<"Number of iterations = "<<i<<setprecision(5)<<" with error = "<<fabs(maxnorm - 1.0)<<endl;
-			}*/
 			
 		if (fabs(maxnorm - 1.0) < 1e-3)
 		{
