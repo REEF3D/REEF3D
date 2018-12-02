@@ -29,7 +29,7 @@ void net_QuasiStatic::initialize(lexer *p, fdm *a, ghostcell *pgc)
 {
     // Input data
  
- /*
+ 
 	// Net wall
     L = 1.0;        // length of net in y-direction
     b = 1.0;        // length of net in x-direction 
@@ -40,20 +40,20 @@ void net_QuasiStatic::initialize(lexer *p, fdm *a, ghostcell *pgc)
     lm = 0.11;     	// length of mesh in [m]
     EA = 1e9;       // Elasticity
     d_c = 0.002;    // diameter
-    rho_c = 900;    // density material
+    rho_c = 1000;    // density material
     w = 0.01;       // weight per meter in air
 
-    origin_x = 3.0;
+    origin_x = 1.0;
     origin_y = 0.75;
-    origin_z = 1.3;
+    origin_z = 0.2;
     phi = 0.0;
-    theta = 89.999;
+    theta = 89.999*PI/180;
     psi = 0.0;
-*/
+
 
 
 //  Hanging net 
-
+/*
     L = 1.0;        // length of net in y-direction
     b = 1.0;        // length of net in x-direction 
 
@@ -72,7 +72,7 @@ void net_QuasiStatic::initialize(lexer *p, fdm *a, ghostcell *pgc)
     phi = 0.0;
     theta = 0.0;
     psi = 0.0;
-
+*/
  
     if (2*n*lm < (b / sin(atan(b/L))))
     {
@@ -441,7 +441,7 @@ void net_QuasiStatic::stretch()
         K[j][0] = a*(cos(psi)*cos(theta)) + b*(cos(theta)*sin(psi)) - c*sin(theta);
         K[j][1] = a*(cos(psi)*sin(phi)*sin(theta)-cos(phi)*sin(psi)) + b*(cos(phi)*cos(psi)+sin(phi)*sin(psi)*sin(theta)) + c*(cos(theta)*sin(phi));
         K[j][2] = a*(sin(phi)*sin(psi)+cos(phi)*cos(psi)*sin(theta)) + b*(cos(phi)*sin(psi)*sin(theta)-cos(psi)*sin(phi)) + c*(cos(phi)*cos(theta)); 
-        
+
         K[j][0] += origin_x;
         K[j][1] += origin_y;
         K[j][2] += origin_z;	
