@@ -258,7 +258,7 @@ void fnpf_print_wsfline::ini_location(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
         jloc[q]=p->posc_j(p->P52_y[q]);
 
-        if(jloc[n]>=0 && jloc[n]<p->knoy)
+        if(jloc[q]>=0 && jloc[q]<p->knoy)
         flag[q][count]=1;
 
         ++count;

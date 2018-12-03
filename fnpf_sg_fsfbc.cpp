@@ -95,7 +95,6 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     
     pgc->gcsl_start4(p,c->Bx,1);
     pgc->gcsl_start4(p,c->By,1);
-    
 }
 
 void fnpf_sg_fsfbc::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
