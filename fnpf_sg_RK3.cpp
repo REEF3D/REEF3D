@@ -101,6 +101,7 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pgc->start7V(p,c->Fi,250);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
     pgc->start7V(p,c->Fi,250);
+    //fsfbc_sig(p,c,pgc,frk1,c->Fi);
     pf->fsfwvel(p,c,pgc,erk1,frk1);
 
 // Step 2
@@ -134,6 +135,7 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pgc->start7V(p,c->Fi,250);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
     pgc->start7V(p,c->Fi,250);
+    //fsfbc_sig(p,c,pgc,frk2,c->Fi);
     pf->fsfwvel(p,c,pgc,erk2,frk2);
 
 // Step 3 
@@ -167,6 +169,7 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pgc->start7V(p,c->Fi,250);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
     pgc->start7V(p,c->Fi,250);
+    //fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
 
     LOOP
