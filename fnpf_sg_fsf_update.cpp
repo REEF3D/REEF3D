@@ -60,7 +60,7 @@ void fnpf_sg_fsf_update::fsfbc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice 
 {
     FFILOOP4
     {
-        //Fi[FIJK]   = Fifsf(i,j);
+        Fi[FIJK]   = Fifsf(i,j);
         Fi[FIJKp1] = Fifsf(i,j);
         Fi[FIJKp2] = Fifsf(i,j);  
         Fi[FIJKp3] = Fifsf(i,j);
@@ -99,7 +99,6 @@ void fnpf_sg_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, doub
     
     LOOP
     {
-	//c->w(i,j,k) = ((c->Fi4(i,j,k)-c->Fi4(i,j,k-1))/(p->DZP[KM1]))*p->sigz[FIJK];
     c->w(i,j,k) = ((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]))*p->sigz[FIJK];
     }
     

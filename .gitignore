@@ -20,3 +20,4 @@ REEF3D.mk
 *.workspace.session
 *.txt
 *.DS_Store
+.DS_Store

@@ -93,7 +93,7 @@ void fnpf_print_wsf::height_gauge(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &
     i=iloc[n];
     j=jloc[n];
 	
-			wsf[n] = f(i,j);// pgc->gcsl_ccipol4(p,f,x[n],y[n]);
+			wsf[n] = f(i,j);
 
     }
 	
@@ -115,8 +115,8 @@ void fnpf_print_wsf::ini_location(lexer *p, fdm_fnpf *c)
 {
     for(n=0;n<gauge_num;++n)
     {
-    iloc[n]=conv((x[n]-p->originx)/p->dx);
-    jloc[n]=conv((y[n]-p->originy)/p->dx);
+    iloc[n] = p->posc_i(x[n]); 
+    jloc[n] = p->posc_j(y[n]); 
 
     if(iloc[n]>=0 && iloc[n]<p->knox)
     if(jloc[n]>=0 && jloc[n]<p->knoy)

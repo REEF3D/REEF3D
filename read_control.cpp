@@ -161,16 +161,7 @@ void lexer::read_control()
 		case 'B': control>>numint;
 				switch(numint)
 				{
-				case  5: control>>B5;
-						 clear(c,numint);
-						 break;
-				case  6: control>>B6;
-						 clear(c,numint);
-						 break;
 				case 10: control>>B10;
-						 clear(c,numint);
-						 break;
-			    case 11: control>>B11;
 						 clear(c,numint);
 						 break;
                 case 19: control>>B19;
@@ -179,27 +170,10 @@ void lexer::read_control()
 				case 20: control>>B20;
 						 clear(c,numint);
 						 break;
-                case 21: control>>B21;
-						 clear(c,numint);
-						 break;
-                case 22: control>>B22;
-						 clear(c,numint);
-						 break;
-                case 23: control>>B23;
-						 clear(c,numint);
-						 break;
-                case 24: control>>B24;
-						 clear(c,numint);
-						 break;
-				case 25: control>>B25;
-						 clear(c,numint);
-						 break;
 				case 26: control>>B26;
 						 clear(c,numint);
 						 break;
-				case 27: control>>B27;
-						 clear(c,numint);
-						 break;
+
 				case 28: control>>B28;
 						 clear(c,numint);
 						 break;
@@ -484,6 +458,10 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
                case 270: ++B270;
+						 B269=1;
+						 clear(c,numint);
+						 break;
+               case 274: ++B274;
 						 B269=1;
 						 clear(c,numint);
 						 break;
@@ -1917,6 +1895,16 @@ void lexer::read_control()
 	Darray(B270_alpha,B270);
 	Darray(B270_beta,B270);
     
+	Darray(B274_xc,B274);
+	Darray(B274_yc,B274);
+	Darray(B274_zs,B274);
+	Darray(B274_ze,B274);
+	Darray(B274_r,B274);
+    Darray(B274_n,B274);
+    Darray(B274_d50,B274);
+	Darray(B274_alpha,B274);
+	Darray(B274_beta,B274);
+    
     Darray(B281_xs,B281);
 	Darray(B281_xe,B281);
 	Darray(B281_ys,B281);
@@ -2255,6 +2243,7 @@ void lexer::read_control()
     int countB108=0;
 	int countB240=0;
     int countB270=0;
+    int countB274=0;
     int countB281=0;
     int countB291=0;
     int countB310=0;
@@ -2349,6 +2338,10 @@ void lexer::read_control()
 						 break;
                 case 270: control>>B270_xs[countB270]>>B270_xe[countB270]>>B270_ys[countB270]>>B270_ye[countB270]>>B270_zs[countB270]>>B270_ze[countB270]>>B270_n[countB270]>>B270_d50[countB270]>>B270_alpha[countB270]>>B270_beta[countB270];
                         ++countB270;
+						 clear(c,numint);
+						 break;
+                case 274: control>>B274_xc[countB274]>>B274_yc[countB274]>>B274_zs[countB274]>>B274_ze[countB274]>>B274_r[countB274]>>B274_n[countB274]>>B274_d50[countB274]>>B274_alpha[countB274]>>B274_beta[countB274];
+                        ++countB274;
 						 clear(c,numint);
 						 break;
                 case 281: control>>B281_xs[countB281]>>B281_xe[countB281]>>B281_ys[countB281]>>B281_ye[countB281]>>B281_zs[countB281]>>B281_ze[countB281]>>B281_n[countB281]>>B281_d50[countB281]>>B281_alpha[countB281]>>B281_beta[countB281];

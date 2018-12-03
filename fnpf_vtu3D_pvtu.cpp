@@ -28,7 +28,6 @@ void fnpf_vtu3D::pvtu(lexer *p, ghostcell* pgc)
 {	
 	int num=0;
     
-    cout<<p->mpirank<<"  ppvtu_rintcount: "<<printcount<<endl;
 
     if(p->P15==1)
     num = printcount;

@@ -27,12 +27,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 
 
-void hypre_aij::fill_matrix(lexer* p,fdm* a, ghostcell* pgc, field &f)
+void hypre_aij::fill_matrix_7p(lexer* p,fdm* a, ghostcell* pgc, field &f)
 {
     fieldint4 rownum4(p);
     
-    pgc->rownum4_update(p,a,rownum4);
-    pgc->facenbx(p,a,rownum4,p->range_row4);
+    pgc->rownum4_update(p,rownum4);
+    pgc->facenbx(p,rownum4,p->range_row4);
 
 	n=0;
 	LOOP
@@ -119,8 +119,8 @@ void hypre_aij::fill_matrix_13p(lexer* p,fdm* a, ghostcell* pgc, field &f)
 {
     fieldint4 rownum4(p);
     
-    pgc->rownum4_update(p,a,rownum4);
-    pgc->facenbx(p,a,rownum4,p->range_row4);
+    pgc->rownum4_update(p,rownum4);
+    pgc->facenbx(p,rownum4,p->range_row4);
     
     HYPRE_IJMatrixInitialize(A);
     HYPRE_IJVectorInitialize(x);
@@ -255,8 +255,8 @@ void hypre_aij::fill_matrix_19p(lexer* p,fdm* a, ghostcell* pgc, field &f)
 {
     fieldint4 rownum4(p);
     
-    pgc->rownum4_update(p,a,rownum4);
-    pgc->facenbx(p,a,rownum4,p->range_row4);
+    pgc->rownum4_update(p,rownum4);
+    pgc->facenbx(p,rownum4,p->range_row4);
     
     HYPRE_IJMatrixInitialize(A);
     HYPRE_IJVectorInitialize(x);

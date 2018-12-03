@@ -92,6 +92,7 @@ public:
     int headernum;
 	int boundl;
     int N4,N4_row,N4_col;
+    int N7,N7_row,N7_col;
 	double originx,originy,originz;
     double endx,endy,endz;
 	double global_xmin,global_ymin,global_zmin;
@@ -190,8 +191,8 @@ public:
 	int stencil;	
 
 	// Solver
-	int *colnum,*range1,*range2,*range3,*range4,*rownum;
-    int *range_col4,*range_row4;
+	int *colnum;
+    int *range_col4,*range_row4,*range_col7,*range_row7;
 	int *sizeM1,*sizeM2,*sizeM3,*sizeM4,*sizeM4a,*sizeM6;
     int *sizeS1,*sizeS2,*sizeS4; 
 	int mglevel_max,*MGL;
@@ -265,9 +266,9 @@ public:
     double A440;
     
 	// boundary conditions
-	int B5,B10,B11,B19,B20,B21,B22,B23,B24,B25,B26,B27,B28,B30,B60,B61,B62,B63,B64,B67,B68,B69,B70,B71,B74,B75,B76,B77,B78,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B98,B99,B101,B106,B107,B110;
+	int B10,B19,B20,B26,B28,B30,B60,B61,B62,B63,B64,B67,B68,B69,B70,B71,B74,B75,B76,B77,B78,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B98,B99,B101,B106,B107,B110;
 	int B121,B136,B180,B191,B192,B210,B240,B241,B242,B243;
-	double B6,B29,B50,B51,B52,B53,B54,B55,B56,B65,B66_1,B66_2,B81_1,B81_2,B83,B117,B87_1,B87_2,B88;
+	double B29,B50,B51,B52,B53,B54,B55,B56,B65,B66_1,B66_2,B81_1,B81_2,B83,B117,B87_1,B87_2,B88;
 	double B91_1,B91_2,B91_3,B93_1,B93_2,B93_3,B96_1,B96_2,B96_3,B97,B102,B103,B104,B105_1,B105_2,B105_3,B110_d,B118,B119;
 	double *B67_val,*B67_dist,*B67_b,*B67_x,*B67_y;
 	double *B68_val,*B68_dist,*B68_b,*B68_x,*B68_y;
@@ -296,6 +297,8 @@ public:
     double B260,B264,B267;
     int B269,B270;
     double *B270_xs, *B270_xe, *B270_ys, *B270_ye, *B270_zs, *B270_ze, *B270_n, *B270_d50, *B270_alpha, *B270_beta;
+    int B274;
+    double *B274_xc,*B274_yc,*B274_zs,*B274_ze,*B274_r, *B274_n, *B274_d50, *B274_alpha, *B274_beta;
     int B281;
     double *B281_xs, *B281_xe, *B281_ys, *B281_ye, *B281_zs, *B281_ze, *B281_n, *B281_d50, *B281_alpha, *B281_beta;
 	int B291;

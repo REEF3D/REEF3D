@@ -34,7 +34,23 @@ print_porous::print_porous(lexer* p, fdm *a, ghostcell *pgc)
 	
 	vertice_alloc = p->B270*8 + p->B281*8 + p->B291*8 + p->B310*8;
 	polygon_alloc = p->B270*6 + p->B281*6 + p->B291*6 + p->B310*6;
+    
+    for(n=0; n<p->B274;++n)
+	{
+    
+    double U,ds;
+    int snum;
+	U = 2.0 * PI * p->B274_r[n];
 	
+	ds = 0.2*(U*p->DXM);
+	
+	snum = int(U/ds);
+	
+	vertice_alloc+=12*snum;
+    polygon_alloc+=4*snum;
+	}
+    
+cout<<vertice_alloc<<" "<<polygon_alloc<<endl;
 	p->Darray(vertice,vertice_alloc,3);
 	p->Iarray(polygon,polygon_alloc,4);
 	p->Iarray(numvert,polygon_alloc);
@@ -56,6 +72,11 @@ void print_porous::objects(lexer *p, fdm *a, ghostcell *pgc)
 	
 	for(qn=0;qn<p->B270;++qn)
 	box(p,a,pgc,qn);
+    
+    for(qn=0;qn<p->B274;++qn)
+	cylinder_z(p,a,pgc,qn);
+    
+    cout<<vertice_num<<" "<<polygon_num<<endl;
 	
 	for(qn=0;qn<p->B281;++qn)
 	wedge_x(p,a,pgc,qn);

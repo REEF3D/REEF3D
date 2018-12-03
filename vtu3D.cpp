@@ -164,7 +164,7 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
     if(p->P101>0)
 	pslosh=new sloshing_force(p,a,pgc);
 	
-	if(p->B270>0 || p->B281>0 || p->B291>0 || p->B310>0 || p->B311>0)
+	if(p->B270>0 || p->B274>0 || p->B281>0 || p->B291>0 || p->B310>0 || p->B311>0)
 	{
 	ppor=new print_porous(p,a,pgc);
 	ppor->start(p,a,pgc);

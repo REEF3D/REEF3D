@@ -77,7 +77,7 @@ public:
 	void parapls(lexer*,double**,double**,int*,int*);
 
 //  Update
-	void facenbx(lexer*, fdm*, fieldint&, int*);
+	void facenbx(lexer*, fieldint&, int*);
 	void flagx(lexer*,int*);
     void flagx7(lexer*,int*);
     void sigmax(lexer*,fdm*,double*);
@@ -100,7 +100,8 @@ public:
     void cvalupdate4a(lexer*,fdm*,fieldint&);
     void cvalupdate6(lexer*,fdm*,fieldint&);
     
-    void rownum4_update(lexer*,fdm*,fieldint&);
+    void rownum4_update(lexer*,fieldint&);
+    void rownum7_update(lexer*,int*);
 
 	
 	void cval_gcb1(lexer*,fdm*,fieldint&);
@@ -415,7 +416,6 @@ private:
 	int gclabel_u_out, gclabel_v_out, gclabel_w_out;
 	int gclabel_vel;
 	int rank;
-	int forcing;
 	int nb[6],stag[6],rtag[6];
 	int **isend,**irecv;
 	double **dsend,**drecv;

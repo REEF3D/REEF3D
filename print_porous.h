@@ -41,6 +41,7 @@ public:
 	virtual void objects(lexer*,fdm*,ghostcell*);
 	
     virtual void box(lexer*,fdm*,ghostcell*,int);
+    virtual void cylinder_z(lexer*,fdm*,ghostcell*,int);
 	virtual void wedge_x(lexer*,fdm*,ghostcell*,int);
     virtual void plate_x(lexer*,fdm*,ghostcell*,int);
     

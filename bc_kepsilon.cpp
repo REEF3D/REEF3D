@@ -37,14 +37,14 @@ void bc_kepsilon::bckeps_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
 {
 	int q;
 
-	if((gcval==20 || gcval==21) && p->B11>0 && (p->B5==1||p->B5==2))
+	if(gcval==20 || gcval==21)
 	{
 		QGC4LOOP
 		if(p->gcb4[q][4]==5 || p->gcb4[q][4]==21 || p->gcb4[q][4]==22 || p->gcb4[q][4]==41 || p->gcb4[q][4]==42 || p->gcb4[q][4]==43)
 		wall_law_kin(a,p,kin,eps,p->gcb4[q][0], p->gcb4[q][1], p->gcb4[q][2], p->gcb4[q][3], p->gcb4[q][4], p->gcd4[q]);
 	}
 
-	if((gcval==30 || gcval==31) && p->B11>0 && (p->B5==1||p->B5==2))
+	if(gcval==30 || gcval==31)
 	{
 		QGC4LOOP
 		if(p->gcb4[q][4]==5 || p->gcb4[q][4]==21 || p->gcb4[q][4]==22 || p->gcb4[q][4]==41 || p->gcb4[q][4]==42 || p->gcb4[q][4]==43)
@@ -57,11 +57,7 @@ void bc_kepsilon::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int 
 {
     double uvel,vvel,wvel;
 
-    if(p->B24==1)
-    dist=MAX(0.1*p->dx,dist);
-    
-    if(p->B24==2)
-    dist=0.5*p->dx;
+    dist=0.5*p->DXM;
 
 	i=ii;
 	j=jj;
@@ -83,21 +79,11 @@ void bc_kepsilon::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int 
 
         u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
 
-	if(p->B5==1)
-	{
+
 		if(30.0*dist<ks)
 		dist=ks/30.0;
 
 		uplus = (1.0/kappa)*MAX(0.01,log(30.0*(dist/ks)));
-	}
-
-	if(p->B5==2)
-	{
-    ustar=sqrt(fabs((0.5*a->visc(i,j,k)+0.5*a->visc(i,j-1,k))*u_abs/dist));
-    value=((9.0*dist*ustar)/(0.5*a->visc(i,j,k)+0.5*a->visc(i,j-1,k)));
-    value=MAX(value,1.0);
-	uplus=(1.0/kappa)*MAX(0.01,log(value));
-	}
 
 	tau=(u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
 
@@ -107,11 +93,7 @@ void bc_kepsilon::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int 
 
 void bc_kepsilon::wall_law_eps(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj,int kk,int cs,int bc, double dist)
 {
-    if(p->B24==1)
-    dist=MAX(0.1*p->dx,dist);
-    
-    if(p->B24==2)
-    dist=0.5*p->dx;
+    dist=0.5*p->DXM;
 
 	i=ii;
 	j=jj;

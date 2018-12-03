@@ -1032,7 +1032,7 @@
             <File Name="mooring_QuasiStatic.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="DGSEM">
-            <File Name="mooring_DGSEM_mesh_eigen.cpp" ExcludeProjConfig=""/>
+            <File Name="mooring_DGSEM_mesh_eigen.cpp" ExcludeProjConfig="Release;"/>
             <File Name="mooring_DGSEM_limiter.cpp"/>
             <File Name="mooring_DGSEM_mesh.cpp" ExcludeProjConfig=""/>
             <File Name="mooring_DGSEM_print.cpp"/>
@@ -1963,6 +1963,9 @@
         <File Name="solver_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="HYPRE AIJ">
+        <File Name="hypre_aij_F_grid.cpp"/>
+        <File Name="hypre_aij_F_fill.cpp"/>
+        <File Name="hypre_aij_F_start.cpp"/>
         <File Name="hypre_aij.cpp"/>
         <File Name="hypre_aij_grid.cpp"/>
         <File Name="hypre_aij_fill.cpp"/>
