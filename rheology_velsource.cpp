@@ -28,8 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void rheology_f::u_source(lexer *p, fdm *a)
 {
     double pval;
-
-   
+    
     // Force base F = A*tau
  
     count=0;
@@ -115,6 +114,10 @@ void rheology_f::u_source(lexer *p, fdm *a)
     
     double pval1,pval2;
     double tau01,tau02;
+    double fxx,fxy,fxz;
+    double pvalx1,pvalx2,pvaly1,pvaly2,pvalz1,pvalz2;
+    double pvaldxx1,pvaldxx2,pvaldxy1,pvaldxy2,pvaldxz1,pvaldxz2;
+    double pvaldyx1,pvaldyx2,pvaldyy1,pvaldyy2,pvaldyz1,pvaldyz2;
     
     
     count=0;
@@ -208,7 +211,7 @@ void rheology_f::u_source(lexer *p, fdm *a)
         
         f = fabs(a->u(i,j,k))>1.0e-20?(a->u(i,j,k)/fabs(a->u(i,j,k))):0.0;
         
-        a->rhsvec.V[count] += H*((tau02-tau01)/(p->dx*0.5*(a->ro(i,j,k)+a->ro(i+1,j,k))));
+        a->rhsvec.V[count] += H*((tau02-tau01)/(p->dx*0.5*(a->ro(i,j,k)+a->ro(i+1,j,k)))); // *f ?
 
         ++count;
 	}
@@ -228,11 +231,111 @@ void rheology_f::u_source(lexer *p, fdm *a)
 
         if(fabs(phival)<=epsi)
         H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi)); 
+        // PFo: Adding direction to the yield stress gradient below. Should be *f for each term, where f = (pu_idx_j)/fabs(pu_idx_j) 
+        // f(pwdx)*tau_x-term, f(pwdy)*tau_y-term, f(pwdz)*tau_z-term - PFo not sure how to write this
+        // Try with u_x first instead: f = (a->u(i,j,k)/fabs(a->u(i,j,k)))
         
-        a->rhsvec.V[count] += H*((tau_x(i+1,j,k)-tau_x(i,j,k) 
-                                + 0.5*(tau_y(i,j+1,k)+tau_y(i+1,j+1,k)) - 0.5*(tau_y(i,j-1,k)+tau_y(i+1,j-1,k))
-                                + 0.5*(tau_z(i,j,k+1)+tau_z(i+1,j,k+1)) - 0.5*(tau_z(i,j,k-1)+tau_z(i+1,j,k-1))   )
-                                /(p->dx*0.5*(a->ro(i,j,k)+a->ro(i+1,j,k))));
+        fxx = fabs(pudx(p,a))>1.0e-20?(pudx(p,a)/fabs(pudx(p,a))):0.0; // pudx
+        fxy = fabs(pudy(p,a))>1.0e-20?(pudy(p,a)/sqrt(pudy(p,a)*pudy(p,a)+pwdy(p,a)*pwdy(p,a))):0.0; // pudy
+        fxz = fabs(pudz(p,a))>1.0e-20?(pudz(p,a)/sqrt(pudz(p,a)*pudz(p,a)+pvdz(p,a)*pvdz(p,a))):0.0; // pudz
+
+        // (Hydrostatic) pressure at cell surfaces, based on level set function:
+
+        //pvalx1 = 0.5*(a->phi(i,j,k)+a->phi(i-1,j,k))*0.5*(a->ro(i,j,k)+a->ro(i-1,j,k))*fabs(p->W22);
+        //pvalx2 = 0.5*(a->phi(i+1,j,k)+a->phi(i,j,k))*0.5*(a->ro(i+1,j,k)+a->ro(i,j,k))*fabs(p->W22);
+//        pvaly1 = 0.5*(a->phi(i,j,k)+a->phi(i,j-1,k))*0.5*(a->ro(i,j,k)+a->ro(i,j-1,k))*fabs(p->W22);
+//        pvaly2 = 0.5*(a->phi(i,j+1,k)+a->phi(i,j,k))*0.5*(a->ro(i,j+1,k)+a->ro(i,j,k))*fabs(p->W22);
+//        pvalz1 = 0.5*(a->phi(i,j,k)+a->phi(i,j,k-1))*0.5*(a->ro(i,j,k)+a->ro(i,j,k-1))*fabs(p->W22);
+//        pvalz2 = 0.5*(a->phi(i,j,k+1)+a->phi(i,j,k))*0.5*(a->ro(i,j,k+1)+a->ro(i,j,k))*fabs(p->W22);
+        
+        // (Hydrostatic) pressure X-gradient (dp/dx) at cell surfaces, based on level set function:
+
+        //pvaldxx1 = fabs(p->W22)*(a->phi(i,j,k)*a->ro(i,j,k) - a->phi(i-1,j,k)*a->ro(i-1,j,k))/(p->dx);
+        //pvaldxx2 = fabs(p->W22)*(a->phi(i+1,j,k)*a->ro(i+1,j,k) - a->phi(i,j,k)*a->ro(i,j,k))/(p->dx);
+//        pvaldxy1 = fabs(p->W22)*(0.5*(a->phi(i+1,j-1,k)+a->phi(i+1,j,k))*0.5*(a->ro(i+1,j-1,k)+a->ro(i+1,j,k)) 
+//        - 0.5*(a->phi(i-1,j-1,k)+a->phi(i-1,j,k))*0.5*(a->ro(i-1,j-1,k)+a->ro(i-1,j,k)))/(2*p->dx);
+//        pvaldxy2 = fabs(p->W22)*(0.5*(a->phi(i+1,j,k)+a->phi(i+1,j+1,k))*0.5*(a->ro(i+1,j,k)+a->ro(i+1,j+1,k)) 
+//        - 0.5*(a->phi(i-1,j,k)+a->phi(i-1,j+1,k))*0.5*(a->ro(i-1,j,k)+a->ro(i-1,j+1,k)))/(2*p->dx);
+//        pvaldxz1 = fabs(p->W22)*(0.5*(a->phi(i+1,j,k-1)+a->phi(i+1,j,k))*0.5*(a->ro(i+1,j,k-1)+a->ro(i+1,j,k)) 
+//        - 0.5*(a->phi(i-1,j,k-1)+a->phi(i-1,j,k))*0.5*(a->ro(i-1,j,k-1)+a->ro(i-1,j,k)))/(2*p->dx);
+//        pvaldxz2 = fabs(p->W22)*(0.5*(a->phi(i+1,j,k)+a->phi(i+1,j,k+1))*0.5*(a->ro(i+1,j,k)+a->ro(i+1,j,k+1)) 
+//        - 0.5*(a->phi(i-1,j,k)+a->phi(i-1,j,k+1))*0.5*(a->ro(i-1,j,k)+a->ro(i-1,j,k+1)))/(2*p->dx);
+        
+        // (Hydrostatic) pressure Y-gradient (dp/dy) at cell surfaces, based on level set function:
+
+        //pvaldyx1 = fabs(p->W22)*(0.5*(a->phi(i-1,j+1,k)+a->phi(i,j+1,k))*0.5*(a->ro(i-1,j+1,k)+a->ro(i,j+1,k)) 
+        //- 0.5*(a->phi(i-1,j-1,k)+a->phi(i,j-1,k))*0.5*(a->ro(i-1,j-1,k)+a->ro(i,j-1,k)))/(2*p->dx);
+        //pvaldyx2 = fabs(p->W22)*(0.5*(a->phi(i,j+1,k)+a->phi(i+1,j+1,k))*0.5*(a->ro(i,j+1,k)+a->ro(i+1,j+1,k)) 
+        //- 0.5*(a->phi(i,j-1,k)+a->phi(i+1,j-1,k))*0.5*(a->ro(i,j-1,k)+a->ro(i+1,j-1,k)))/(2*p->dx);
+//        pvaldyy1 = fabs(p->W22)*(a->phi(i,j,k)*a->ro(i,j,k) - a->phi(i,j-1,k)*a->ro(i,j-1,k))/(p->dx);
+//        pvaldyy2 = fabs(p->W22)*(a->phi(i,j+1,k)*a->ro(i,j+1,k) - a->phi(i,j,k)*a->ro(i,j,k))/(p->dx);
+        //pvaldyz1 = fabs(p->W22)*(0.5*(a->phi(i,j+1,k-1)+a->phi(i,j+1,k))*0.5*(a->ro(i,j+1,k-1)+a->ro(i,j+1,k)) 
+        //- 0.5*(a->phi(i,j-1,k-1)+a->phi(i,j-1,k))*0.5*(a->ro(i,j-1,k-1)+a->ro(i,j-1,k)))/(2*p->dx);
+        //pvaldyz2 = fabs(p->W22)*(0.5*(a->phi(i,j+1,k)+a->phi(i,j+1,k+1))*0.5*(a->ro(i,j+1,k)+a->ro(i,j+1,k+1)) 
+        //- 0.5*(a->phi(i,j-1,k)+a->phi(i,j-1,k+1))*0.5*(a->ro(i,j-1,k)+a->ro(i,j-1,k+1)))/(2*p->dx);
+
+        // Pressure at cell surfaces, based on dynamic pressure:
+
+        pvalx1 = 0.5*(a->press(i,j,k)+a->press(i-1,j,k));
+        pvalx2 = 0.5*(a->press(i+1,j,k)+a->press(i,j,k));
+        pvaly1 = 0.5*(a->press(i,j,k)+a->press(i,j-1,k));
+        pvaly2 = 0.5*(a->press(i,j+1,k)+a->press(i,j,k));
+        pvalz1 = 0.5*(a->press(i,j,k)+a->press(i,j,k-1));
+        pvalz2 = 0.5*(a->press(i,j,k+1)+a->press(i,j,k));
+        
+        // Pressure X-gradient (dp/dx) at cell surfaces, based on dynamic pressure:
+
+        //pvaldxx1 = ;
+        //pvaldxx2 = ;
+        //pvaldxy1 = (0.5*(a->press(i+1,j-1,k)+a->press(i+1,j,k))  
+        //- 0.5*(a->press(i-1,j-1,k)+a->press(i-1,j,k)))/(2*p->dx);
+        //pvaldxy2 = (0.5*(a->press(i+1,j,k)+a->press(i+1,j+1,k)) 
+        //- 0.5*(a->press(i-1,j,k)+a->press(i-1,j+1,k)))/(2*p->dx);
+        //pvaldxz1 = (0.5*(a->press(i+1,j,k-1)+a->press(i+1,j,k)) 
+        //- 0.5*(a->press(i-1,j,k-1)+a->press(i-1,j,k)))/(2*p->dx);
+        //pvaldxz2 = (0.5*(a->press(i+1,j,k)+a->press(i+1,j,k+1)) 
+        //- 0.5*(a->press(i-1,j,k)+a->press(i-1,j,k+1)))/(2*p->dx);
+        
+        // Pressure Y-gradient (dp/dy) at cell surfaces, based on dynamic pressure:
+
+        //pvaldyx1 = ;
+        //pvaldyx2 = ;
+        //pvaldyy1 = (a->press(i,j,k) - a->press(i,j-1,k))/(p->dx);
+        //pvaldyy2 = (a->press(i,j+1,k) - a->press(i,j,k))/(p->dx);
+        //pvaldyz1 = ;
+        //pvaldyz2 = ;
+
+        
+        //x-direction: dtau_zx (k+1 - k) + dtau_yx (j+1 - j)
+        //y-direction: dtau_zy (k+1 - k) + dtau_xy (i+1 - i)
+        //z-direction: dtau_xz (i+1 - i) + dtau_yz (j+1 - j)
+        
+        // Gradient based, uten tau_fill, bruk p-values directly uten å gå via tau_fill. Comparable? correct??
+        
+//        a->rhsvec.V[count] += H*( 
+//                                 (-(pvaldyy1+pvaldxy2)*pvaly2/(0.5*(a->ro(i,j,k)+a->ro(i,j+1,k))*fabs(p->W22)) + (pvaldyy1+pvaldxy1)*pvaly1/(0.5*(a->ro(i,j,k)+a->ro(i,j-1,k))*fabs(p->W22))) //dtau_yx (j+1 - j) - temp: ro(i,j,k) instead of average, sum dp/dx and dp/dy instead of better term
+//                                 +(-(pvaldxz2*pvalz2/(0.5*(a->ro(i,j,k)+a->ro(i,j,k+1))*fabs(p->W22))) + (pvaldxz1*pvalz1/(0.5*(a->ro(i,j,k)+a->ro(i,j,k-1))*fabs(p->W22))))  //dtau_zx (k+1 - k) - temp: ro(i,j,k) instead of average
+//                                )/(p->dx*0.5*(a->ro(i,j,k)+a->ro(i+1,j,k)));
+       
+//        a->rhsvec.V[count] += H* (MIN(fxx*...,-pvaldyy1...)+MIN(fxx*...,-pvaldyy2...)
+//                                fxx*tau_x(i+1,j,k)      - fxx*tau_x(i,j,k)
+//                                
+//                                -(pvaldyy1+pvaldxy2)*pvaly2/(0.5*(a->ro(i,j,k)+a->ro(i,j+1,k))*fabs(p->W22))  + (pvaldyy1+pvaldxy1)*pvaly1/(0.5*(a->ro(i,j,k)+a->ro(i,j-1,k))*fabs(p->W22))
+//                                +fxy*0.5*(tau_y(i,j+1,k)+tau_y(i+1,j+1,k)) - fxy*0.5*(tau_y(i,j-1,k)+tau_y(i+1,j-1,k))
+//                                
+//                                -(pvaldxz2*pvalz2/(0.5*(a->ro(i,j,k)+a->ro(i,j,k+1))*fabs(p->W22))) + (pvaldxz1*pvalz1/(0.5*(a->ro(i,j,k)+a->ro(i,j,k-1))*fabs(p->W22)))
+//                                +fxz*0.5*(tau_z(i,j,k+1)+tau_z(i+1,j,k+1)) - fxz*0.5*(tau_z(i,j,k-1)+tau_z(i+1,j,k-1))
+//                                +)
+//                                /(p->dx*0.5*(a->ro(i,j,k)+a->ro(i+1,j,k)));
+                         
+        a->rhsvec.V[count] += H*tanphi*(fxx*(pvalx2 - pvalx1) 
+                                + fxy*(pvaly2 - pvaly1)
+                                + fxz*(pvalz2 - pvalz1)   )
+                                /(p->dx*(a->ro(i,j,k)));
+        //a->rhsvec.V[count] += H*((tau_x(i+1,j,k)-tau_x(i,j,k) 
+        //                        + 0.5*(tau_y(i,j+1,k)+tau_y(i+1,j+1,k)) - 0.5*(tau_y(i,j-1,k)+tau_y(i+1,j-1,k))
+        //                        + 0.5*(tau_z(i,j,k+1)+tau_z(i+1,j,k+1)) - 0.5*(tau_z(i,j,k-1)+tau_z(i+1,j,k-1))   )
+        //                        /(p->dx*0.5*(a->ro(i,j,k)+a->ro(i+1,j,k))));
 
         ++count;
     }
@@ -241,6 +344,10 @@ void rheology_f::u_source(lexer *p, fdm *a)
 void rheology_f::v_source(lexer *p, fdm *a)
 {
     double pval;
+    double fyx,fyy,fyz;
+    double pvalx1,pvalx2,pvaly1,pvaly2,pvalz1,pvalz2;
+    double pvaldxx1,pvaldxx2,pvaldxy1,pvaldxy2,pvaldxz1,pvaldxz2;
+    double pvaldyx1,pvaldyx2,pvaldyy1,pvaldyy2,pvaldyz1,pvaldyz2;    
     
     count=0;
     if(p->W110>=2)
@@ -333,10 +440,64 @@ void rheology_f::v_source(lexer *p, fdm *a)
         if(fabs(phival)<=epsi)
         H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi)); 
         
-        a->rhsvec.V[count] += H*((0.5*(tau_x(i+1,j,k)+tau_x(i+1,j+1,k)) - 0.5*(tau_x(i-1,j,k)+tau_x(i-1,j+1,k))
-                                + tau_y(i,j+1,k)-tau_y(i,j,k) 
-                                + 0.5*(tau_z(i,j,k+1)+tau_z(i,j+1,k+1)) - 0.5*(tau_z(i,j,k-1)+tau_z(i,j+1,k-1))    )
-                                /(p->dx*0.5*(a->ro(i,j,k)+a->ro(i,j,k+1))));
+        // PFo: f = (a->v(i,j,k)/fabs(a->v(i,j,k)))        
+        fyx = fabs(pvdx(p,a))>1.0e-20?(pvdx(p,a)/sqrt(pvdx(p,a)*pvdx(p,a)+pwdx(p,a)*pwdx(p,a))):0.0; // pvdx pudx(p,a)
+        fyy = fabs(pvdy(p,a))>1.0e-20?(pvdy(p,a)/fabs(pvdy(p,a))):0.0; // pvdy
+        fyz = fabs(pvdz(p,a))>1.0e-20?(pvdz(p,a)/sqrt(pvdz(p,a)*pvdz(p,a)+pudz(p,a)*pudz(p,a))):0.0; // pvdz
+
+        // (Hydrostatic) pressure at cell surfaces, based on level set function:
+
+        pvalx1 = 0.5*(a->press(i,j,k)+a->press(i-1,j,k));
+        pvalx2 = 0.5*(a->press(i+1,j,k)+a->press(i,j,k));
+        pvaly1 = 0.5*(a->press(i,j,k)+a->press(i,j-1,k));
+        pvaly2 = 0.5*(a->press(i,j+1,k)+a->press(i,j,k));
+        pvalz1 = 0.5*(a->press(i,j,k)+a->press(i,j,k-1));
+        pvalz2 = 0.5*(a->press(i,j,k+1)+a->press(i,j,k));
+        
+        // (Hydrostatic) pressure X-gradient (dp/dx) at cell surfaces, based on level set function:
+
+        //pvaldxx1 = (a->press(i,j,k) - a->press(i-1,j,k))/(p->dx);
+        //pvaldxx2 = (a->press(i+1,j,k) - a->press(i,j,k))/(p->dx);
+        //pvaldxy1 = ;
+        //pvaldxy2 = ;
+        //pvaldxz1 = ;
+        //pvaldxz2 = ;
+        
+        // (Hydrostatic) pressure Y-gradient (dp/dy) at cell surfaces, based on level set function:
+
+        //pvaldyx1 = (0.5*(a->press(i-1,j+1,k)+a->press(i,j+1,k)) 
+        //- 0.5*(a->press(i-1,j-1,k)+a->press(i,j-1,k)))/(2*p->dx);
+        //pvaldyx2 = (0.5*(a->press(i,j+1,k)+a->press(i+1,j+1,k)) 
+        //- 0.5*(a->press(i,j-1,k)+a->press(i+1,j-1,k)))/(2*p->dx);
+        //pvaldyy1 = ;
+        //pvaldyy2 = ;
+        //pvaldyz1 = (0.5*(a->press(i,j+1,k-1)+a->press(i,j+1,k)) 
+        //- 0.5*(a->press(i,j-1,k-1)+a->press(i,j-1,k)))/(2*p->dx);
+        //pvaldyz2 = (0.5*(a->press(i,j+1,k)+a->press(i,j+1,k+1)) 
+        //- 0.5*(a->press(i,j-1,k)+a->press(i,j-1,k+1)))/(2*p->dx);
+        
+        //x-direction: dtau_zx (k+1 - k) + dtau_yx (j+1 - j)
+        //y-direction: dtau_zy (k+1 - k) + dtau_xy (i+1 - i)
+        //z-direction: dtau_xz (i+1 - i) + dtau_yz (j+1 - j)
+
+//        a->rhsvec.V[count] += H*( 
+//                                 (-(pvaldyx2+pvaldxx2)*pvalx2/(0.5*(a->ro(i,j,k)+a->ro(i+1,j,k))*fabs(p->W22)) + (pvaldyx1+pvaldxx1)*pvalx1/(0.5*(a->ro(i,j,k)+a->ro(i-1,j,k))*fabs(p->W22))) //dtau_xy (i+1 - i) - temp: ro(i,j,k) instead of average, sum dp/dx and dp/dy instead of better term
+//                                 +(-(pvaldyz2*pvalz2/(0.5*(a->ro(i,j,k)+a->ro(i,j,k+1))*fabs(p->W22))) + (pvaldyz1*pvalz1/(0.5*(a->ro(i,j,k)+a->ro(i,j,k-1))*fabs(p->W22))))  //dtau_zy (k+1 - k) - temp: ro(i,j,k) instead of average
+//                                )/(p->dx*0.5*(a->ro(i,j,k)+a->ro(i,j+1,k)));
+
+        a->rhsvec.V[count] += H*tanphi*(fyx*(pvalx2 - pvalx1) 
+                                + fyy*(pvaly2 - pvaly1)
+                                + fyz*(pvalz2 - pvalz1)   )
+                                /(p->dx*(a->ro(i,j,k)));
+      
+        //a->rhsvec.V[count] += H*((fyx*(0.5*(tau_x(i+1,j,k)+tau_x(i+1,j+1,k)) - 0.5*(tau_x(i-1,j,k)+tau_x(i-1,j+1,k)))
+        //                        + fyy*(tau_y(i,j+1,k)-tau_y(i,j,k)) 
+        //                        + fyz*(0.5*(tau_z(i,j,k+1)+tau_z(i,j+1,k+1)) - 0.5*(tau_z(i,j,k-1)+tau_z(i,j+1,k-1)))    )
+        //                        /(p->dx*0.5*(a->ro(i,j,k)+a->ro(i,j,k+1))));
+        //a->rhsvec.V[count] += H*((0.5*(tau_x(i+1,j,k)+tau_x(i+1,j+1,k)) - 0.5*(tau_x(i-1,j,k)+tau_x(i-1,j+1,k))
+        //                        + tau_y(i,j+1,k)-tau_y(i,j,k) 
+        //                        + 0.5*(tau_z(i,j,k+1)+tau_z(i,j+1,k+1)) - 0.5*(tau_z(i,j,k-1)+tau_z(i,j+1,k-1))    )
+        //                        /(p->dx*0.5*(a->ro(i,j,k)+a->ro(i,j,k+1))));
 
         ++count;
     }
@@ -427,6 +588,10 @@ void rheology_f::w_source(lexer *p, fdm *a)
     
     double pval1,pval2;
     double tau01,tau02;
+    double fzx,fzy,fzz;
+    double pvalx1,pvalx2,pvaly1,pvaly2,pvalz1,pvalz2;
+    double pvaldxx1,pvaldxx2,pvaldxy1,pvaldxy2,pvaldxz1,pvaldxz2;
+    double pvaldyx1,pvaldyx2,pvaldyy1,pvaldyy2,pvaldyz1,pvaldyz2;
     
     count=0;
     if(p->W110==4 || p->W110==5)
@@ -519,7 +684,7 @@ void rheology_f::w_source(lexer *p, fdm *a)
         
         f = fabs(a->w(i,j,k))>1.0e-20?(a->w(i,j,k)/fabs(a->w(i,j,k))):0.0;
         
-        a->rhsvec.V[count] += H*((tau02-tau01)/(p->dx*0.5*(a->ro(i,j,k)+a->ro(i,j,k+1))));
+        a->rhsvec.V[count] += H*((tau02-tau01)/(p->dx*0.5*(a->ro(i,j,k)+a->ro(i,j,k+1)))); // PFo: Missing "*f" ?
 
         ++count;
 	}
@@ -540,10 +705,60 @@ void rheology_f::w_source(lexer *p, fdm *a)
         if(fabs(phival)<=epsi)
         H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi)); 
         
-        a->rhsvec.V[count] += H*((0.5*(tau_x(i+1,j,k)+tau_x(i+1,j,k+1)) - 0.5*(tau_x(i-1,j,k)+tau_x(i-1,j,k+1))
-                                + 0.5*(tau_y(i,j+1,k)+tau_y(i,j+1,k+1)) - 0.5*(tau_y(i,j-1,k)+tau_y(i,j-1,k+1))
-                                + tau_z(i+1,j,k) - tau_z(i,j,k)    )
-                                /(p->dx*0.5*(a->ro(i,j,k)+a->ro(i,j,k+1))));
+        // f = (a->w(i,j,k)/fabs(a->w(i,j,k)))
+        fzx = fabs(pwdx(p,a))>1.0e-20?(pwdx(p,a)/sqrt(pwdx(p,a)*pwdx(p,a)+pvdx(p,a)*pvdx(p,a))):0.0; // pwdx
+        fzy = fabs(pwdy(p,a))>1.0e-20?(pwdy(p,a)/sqrt(pwdy(p,a)*pwdy(p,a)+pudy(p,a)*pudy(p,a))):0.0; // pwdy
+        fzz = fabs(pwdz(p,a))>1.0e-20?(pwdz(p,a)/fabs(pwdz(p,a))):0.0; // pwdz
+        
+        // (Hydrostatic) pressure at cell surfaces, based on level set function:
+
+        pvalx1 = 0.5*(a->press(i,j,k)+a->press(i-1,j,k));
+        pvalx2 = 0.5*(a->press(i+1,j,k)+a->press(i,j,k));
+        pvaly1 = 0.5*(a->press(i,j,k)+a->press(i,j-1,k));
+        pvaly2 = 0.5*(a->press(i,j+1,k)+a->press(i,j,k));
+        pvalz1 = 0.5*(a->press(i,j,k)+a->press(i,j,k-1));
+        pvalz2 = 0.5*(a->press(i,j,k+1)+a->press(i,j,k));
+        
+        // (Hydrostatic) pressure X-gradient (dp/dx) at cell surfaces, based on level set function:
+
+        //pvaldxx1 = (a->press(i,j,k) - a->press(i-1,j,k))/(p->dx);
+        //pvaldxx2 = (a->press(i+1,j,k) - a->press(i,j,k))/(p->dx);
+        //pvaldxy1 = ;
+        //pvaldxy2 = ;
+        //pvaldxz1 = ;
+        //pvaldxz2 = ;
+        
+        // (Hydrostatic) pressure Y-gradient (dp/dy) at cell surfaces, based on level set function:
+
+        //pvaldyx1 = ;
+        //pvaldyx2 = ;
+        //pvaldyy1 = (a->press(i,j,k) - a->press(i,j-1,k))/(p->dx);
+        //pvaldyy2 = (a->press(i,j+1,k) - a->press(i,j,k))/(p->dx);
+        //pvaldyz1 = ;
+        //pvaldyz2 = ;
+        
+        //x-direction: dtau_zx (k+1 - k) + dtau_yx (j+1 - j)
+        //y-direction: dtau_zy (k+1 - k) + dtau_xy (i+1 - i)
+        //z-direction: dtau_xz (i+1 - i) + dtau_yz (j+1 - j)
+
+//        a->rhsvec.V[count] += H*( 
+//                                 (-(pvaldxx2*pvalx2/(0.5*(a->ro(i,j,k)+a->ro(i+1,j,k))*fabs(p->W22))) + (pvaldxx1*pvalx1/(0.5*(a->ro(i,j,k)+a->ro(i-1,j,k))*fabs(p->W22)))) //dtau_xz (i+1 - i) - temp: ro(i,j,k) instead of average, sum dp/dx and dp/dy instead of better term
+//                                 +(-(pvaldyy2*pvaly2/(0.5*(a->ro(i,j,k)+a->ro(i,j+1,k))*fabs(p->W22))) + (pvaldyy1*pvaly1/(0.5*(a->ro(i,j,k)+a->ro(i,j-1,k))*fabs(p->W22))))  //dtau_yz (j+1 - j) - temp: ro(i,j,k) instead of average
+//                                )/(p->dx*0.5*(a->ro(i,j,k)+a->ro(i,j,k+1)));
+
+        a->rhsvec.V[count] += H*tanphi*(fzx*(pvalx2 - pvalx1) 
+                                + fzy*(pvaly2 - pvaly1)
+                                + fzz*(pvalz2 - pvalz1)   )
+                                /(p->dx*(a->ro(i,j,k)));
+        
+        //a->rhsvec.V[count] += H*((fzx*(0.5*(tau_x(i+1,j,k)+tau_x(i+1,j,k+1)) - 0.5*(tau_x(i-1,j,k)+tau_x(i-1,j,k+1)))
+        //                        + fzy*(0.5*(tau_y(i,j+1,k)+tau_y(i,j+1,k+1)) - 0.5*(tau_y(i,j-1,k)+tau_y(i,j-1,k+1)))
+        //                        + fzz*(tau_z(i,j,k+1) - tau_z(i,j,k))    ) 
+        //                        /(p->dx*0.5*(a->ro(i,j,k)+a->ro(i,j,k+1))));
+        //a->rhsvec.V[count] += H*((0.5*(tau_x(i+1,j,k)+tau_x(i+1,j,k+1)) - 0.5*(tau_x(i-1,j,k)+tau_x(i-1,j,k+1))
+        //                        + 0.5*(tau_y(i,j+1,k)+tau_y(i,j+1,k+1)) - 0.5*(tau_y(i,j-1,k)+tau_y(i,j-1,k+1))
+        //                        + tau_z(i+1,j,k) - tau_z(i,j,k)    )
+        //                        /(p->dx*0.5*(a->ro(i,j,k)+a->ro(i,j,k+1))));
 
         ++count;
     }

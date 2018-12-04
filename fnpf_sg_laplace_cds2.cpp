@@ -40,16 +40,9 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
     double sigxyz2;
     double ab,denom;
     double fbxm,fbxp,fbym,fbyp;
-    int qn=0;
-    int iter=1;
     p->poissoniter=0;
     p->poissontime=0.0;
-    
-    do
-    {
-    // KBEDBC
-    //pbed->bedbc_sig(p,c,pgc,c->Fi,pf);
-    
+
 	n=0;
     FLOOP
 	{
@@ -90,8 +83,6 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
 	{
         if(p->flag7[FIJK]>0)
         {
-            
-            
         
             if(p->flag7[FIm1JK]<0)
             {
@@ -128,7 +119,6 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             if(p->flag7[FIJKm1]<0)
             {
             ab = - (pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[FIJK],2.0))/(p->DZP[KM1]*p->DZN[KP])  - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]);
-            
             
             denom = p->sigz[FIJK] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
             
@@ -181,8 +171,6 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
     p->poissoniter+=p->solveriter;
     p->poissontime+=endtime-starttime;
     
-    ++qn;
-    }while(qn<iter && p->final_res>1.0e-6);
     
 	if(p->mpirank==0 && innercounter==p->N50-1 && (p->count%p->P12==0))
 	cout<<"Fi_iter: "<<p->poissoniter<<" Final_residual: "<<p->final_res<<"  Fi_time: "<<setprecision(3)<<p->poissontime<<endl;
