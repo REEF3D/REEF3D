@@ -1973,6 +1973,8 @@
         <File Name="hypre_aij_solvers.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="HYPRE Struct">
+        <File Name="hypre_struct_solve.cpp"/>
+        <File Name="hypre_struct_createsolvers.cpp"/>
         <File Name="hypre_struct_fill7.cpp"/>
         <File Name="hypre_struct_fill3.cpp"/>
         <File Name="hypre_struct_fill2.cpp"/>
@@ -1980,7 +1982,6 @@
         <File Name="hypre_struct_fill1.cpp"/>
         <File Name="hypre_struct.cpp"/>
         <File Name="hypre_struct_grid.cpp"/>
-        <File Name="hypre_struct_solvers.cpp"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Turbulence">
