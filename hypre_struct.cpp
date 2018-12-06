@@ -96,7 +96,6 @@ void hypre_struct::start_solver1234(lexer* p,fdm* a, ghostcell* pgc, field &f, v
     fillbackvec4(p,f,xvec,var);
 	
 	delete_solver1234(p,pgc);
-    
 }
 
 void hypre_struct::start_solver5(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, vec& rhsvec, int var)
@@ -127,14 +126,31 @@ void hypre_struct::start_solver7(lexer* p, ghostcell* pgc, double *f, vec& rhs, 
 
     fill_matrix7(p,pgc,f,rhs,M);
 
-
     solve(p);
-
 
 	p->solveriter=num_iterations;
     p->final_res = final_res_norm;
         
     fillbackvec7(p,f,var);
+	
+	delete_solver5(p,pgc);
+}
+
+void hypre_struct::start_solver8(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
+{
+    numiter=0;
+	p->solveriter=0;
+	
+    create_solver5(p,pgc);
+
+    fill_matrix8(p,pgc,f,rhs,M);
+
+    solve(p);
+
+	p->solveriter=num_iterations;
+    p->final_res = final_res_norm;
+        
+    fillbackvec8(p,f,var);
 	
 	delete_solver5(p,pgc);
 }

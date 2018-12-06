@@ -1973,6 +1973,7 @@
         <File Name="hypre_aij_solvers.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="HYPRE Struct">
+        <File Name="hypre_struct_fill8.cpp"/>
         <File Name="hypre_struct_solve.cpp"/>
         <File Name="hypre_struct_createsolvers.cpp"/>
         <File Name="hypre_struct_fill7.cpp"/>

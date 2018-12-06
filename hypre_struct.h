@@ -49,6 +49,7 @@ public:
     virtual void start_solver1234(lexer*,fdm*, ghostcell*, field&, vec&, vec&,int);
     virtual void start_solver5(lexer*,fdm*, ghostcell*, field&, vec&, vec&,int);
     virtual void start_solver7(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
+    virtual void start_solver8(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     
     virtual void solve(lexer*);
     virtual void solve1234(lexer*);
@@ -70,6 +71,7 @@ public:
     void fill_matrix3(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix4(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix7(lexer*, ghostcell*,double*, vec&, matrix_diag&);
+    void fill_matrix8(lexer*, ghostcell*,double*, vec&, matrix_diag&);
 
     virtual void fillbackvec1(lexer*,field&,vec&,int);
     virtual void fillbackvec2(lexer*,field&,vec&,int);
@@ -77,6 +79,7 @@ public:
     virtual void fillbackvec4(lexer*,field&,vec&,int);
 
     virtual void fillbackvec7(lexer*,double*,int);
+    virtual void fillbackvec8(lexer*,double*,int);
 	
 	void create_solver1234(lexer*,ghostcell*);
     void delete_solver1234(lexer*,ghostcell*);
