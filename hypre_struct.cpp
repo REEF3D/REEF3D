@@ -49,18 +49,18 @@ hypre_struct::~hypre_struct()
 void hypre_struct::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, vec& rhsvec, int var, int gcv, double stop_crit)
 {
     if(var>=1 && var<=4)
-    solve1234(p,a,pgc,f,xvec,rhsvec,var);
+    start_solver1234(p,a,pgc,f,xvec,rhsvec,var);
     
     if(var==5)
-    solve5(p,a,pgc,f,xvec,rhsvec,var);
+    start_solver5(p,a,pgc,f,xvec,rhsvec,var);
 }
 
 void hypre_struct::startF(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var, int gcv, double stop_crit)
 {
-    solve7(p,pgc,f,rhs,M,var);
+    start_solver7(p,pgc,f,rhs,M,var);
 }
 
-void hypre_struct::solve1234(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, vec& rhsvec, int var)
+void hypre_struct::start_solver1234(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, vec& rhsvec, int var)
 {
     numiter=0;
 	p->solveriter=0;
@@ -80,14 +80,7 @@ void hypre_struct::solve1234(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xve
     fill_matrix4(p,a,pgc,f);
     
     
-    HYPRE_StructBiCGSTABSetup(solver, A, b, x);
-    HYPRE_StructBiCGSTABSolve(solver, A, b, x);
-    
-    HYPRE_StructBiCGSTABGetNumIterations(solver, &num_iterations);
-	HYPRE_StructBiCGSTABGetFinalRelativeResidualNorm(solver, &final_res_norm);
-    
-    
-    p->solveriter=num_iterations;
+    solve1234(p);
         
     
     if(var==1)
@@ -103,10 +96,9 @@ void hypre_struct::solve1234(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xve
     fillbackvec4(p,f,xvec,var);
 	
 	delete_solver1234(p,pgc);
-    
 }
 
-void hypre_struct::solve5(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, vec& rhsvec, int var)
+void hypre_struct::start_solver5(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, vec& rhsvec, int var)
 {
 	numiter=0;
 	p->solveriter=0;
@@ -115,72 +107,8 @@ void hypre_struct::solve5(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, 
 
     fill_matrix4(p,a,pgc,f);
 
-
-    if(p->N10==11)
-    {
-    HYPRE_StructPCGSetup(solver, A, b, x);
-    HYPRE_StructPCGSolve(solver, A, b, x);
-    
-    HYPRE_StructPCGGetNumIterations(solver, &num_iterations);
-	HYPRE_StructPCGGetFinalRelativeResidualNorm(solver, &final_res_norm);
-    }
-    
-    if(p->N10==12)
-    {
-    HYPRE_StructGMRESSetup(solver, A, b, x);
-    HYPRE_StructGMRESSolve(solver, A, b, x);
-    
-    HYPRE_StructGMRESGetNumIterations(solver, &num_iterations);
-	HYPRE_StructGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
-    }
-    
-    if(p->N10==13)
-    {
-    HYPRE_StructLGMRESSetup(solver, A, b, x);
-    HYPRE_StructLGMRESSolve(solver, A, b, x);
-    
-    HYPRE_StructLGMRESGetNumIterations(solver, &num_iterations);
-	HYPRE_StructLGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
-    }
-    
-    if(p->N10==14)
-    {
-    HYPRE_StructBiCGSTABSetup(solver, A, b, x);
-    HYPRE_StructBiCGSTABSolve(solver, A, b, x);
-    
-    HYPRE_StructBiCGSTABGetNumIterations(solver, &num_iterations);
-	HYPRE_StructBiCGSTABGetFinalRelativeResidualNorm(solver, &final_res_norm);
-    }
+    solve(p);
 	
-	if(p->N10==15 || p->N10==16 || p->N10==17)
-    {
-    HYPRE_StructHybridSetup(solver, A, b, x);
-    HYPRE_StructHybridSolve(solver, A, b, x);
-    
-    HYPRE_StructHybridGetNumIterations(solver, &num_iterations);
-	HYPRE_StructHybridGetFinalRelativeResidualNorm(solver, &final_res_norm);
-    }
-    
-    if(p->N10==18)
-    {
-    HYPRE_StructPFMGSetup(solver, A, b, x);
-    HYPRE_StructPFMGSolve(solver, A, b, x);
-    
-    HYPRE_StructPFMGGetNumIterations(solver, &num_iterations);
-	HYPRE_StructPFMGGetFinalRelativeResidualNorm(solver, &final_res_norm);
-    }
-    
-    if(p->N10==19)
-    {
-    HYPRE_StructSMGSetup(solver, A, b, x);
-    HYPRE_StructSMGSolve(solver, A, b, x);
-    
-    HYPRE_StructSMGGetNumIterations(solver, &num_iterations);
-	HYPRE_StructSMGGetFinalRelativeResidualNorm(solver, &final_res_norm);
-    }
-
-	
-
 	p->solveriter=num_iterations;
         
     fillbackvec4(p,f,xvec,var);
@@ -189,7 +117,7 @@ void hypre_struct::solve5(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, 
 }
 
 
-void hypre_struct::solve7(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
+void hypre_struct::start_solver7(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
 {
     numiter=0;
 	p->solveriter=0;
@@ -198,75 +126,31 @@ void hypre_struct::solve7(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_
 
     fill_matrix7(p,pgc,f,rhs,M);
 
-
-    if(p->N10==11)
-    {
-    HYPRE_StructPCGSetup(solver, A, b, x);
-    HYPRE_StructPCGSolve(solver, A, b, x);
-    
-    HYPRE_StructPCGGetNumIterations(solver, &num_iterations);
-	HYPRE_StructPCGGetFinalRelativeResidualNorm(solver, &final_res_norm);
-    }
-    
-    if(p->N10==12)
-    {
-    HYPRE_StructGMRESSetup(solver, A, b, x);
-    HYPRE_StructGMRESSolve(solver, A, b, x);
-    
-    HYPRE_StructGMRESGetNumIterations(solver, &num_iterations);
-	HYPRE_StructGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
-    }
-    
-    if(p->N10==13)
-    {
-    HYPRE_StructLGMRESSetup(solver, A, b, x);
-    HYPRE_StructLGMRESSolve(solver, A, b, x);
-    
-    HYPRE_StructLGMRESGetNumIterations(solver, &num_iterations);
-	HYPRE_StructLGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
-    }
-    
-    if(p->N10==14)
-    {
-    HYPRE_StructBiCGSTABSetup(solver, A, b, x);
-    HYPRE_StructBiCGSTABSolve(solver, A, b, x);
-    
-    HYPRE_StructBiCGSTABGetNumIterations(solver, &num_iterations);
-	HYPRE_StructBiCGSTABGetFinalRelativeResidualNorm(solver, &final_res_norm);
-    }
-	
-	if(p->N10==15 || p->N10==16 || p->N10==17)
-    {
-    HYPRE_StructHybridSetup(solver, A, b, x);
-    HYPRE_StructHybridSolve(solver, A, b, x);
-    
-    HYPRE_StructHybridGetNumIterations(solver, &num_iterations);
-	HYPRE_StructHybridGetFinalRelativeResidualNorm(solver, &final_res_norm);
-    }
-    
-    if(p->N10==18)
-    {
-    HYPRE_StructPFMGSetup(solver, A, b, x);
-    HYPRE_StructPFMGSolve(solver, A, b, x);
-    
-    HYPRE_StructPFMGGetNumIterations(solver, &num_iterations);
-	HYPRE_StructPFMGGetFinalRelativeResidualNorm(solver, &final_res_norm);
-    }
-    
-    if(p->N10==19)
-    {
-    HYPRE_StructSMGSetup(solver, A, b, x);
-    HYPRE_StructSMGSolve(solver, A, b, x);
-    
-    HYPRE_StructSMGGetNumIterations(solver, &num_iterations);
-	HYPRE_StructSMGGetFinalRelativeResidualNorm(solver, &final_res_norm);
-    }
-
+    solve(p);
 
 	p->solveriter=num_iterations;
     p->final_res = final_res_norm;
         
     fillbackvec7(p,f,var);
+	
+	delete_solver5(p,pgc);
+}
+
+void hypre_struct::start_solver8(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
+{
+    numiter=0;
+	p->solveriter=0;
+	
+    create_solver5(p,pgc);
+
+    fill_matrix8(p,pgc,f,rhs,M);
+
+    solve(p);
+
+	p->solveriter=num_iterations;
+    p->final_res = final_res_norm;
+        
+    fillbackvec8(p,f,var);
 	
 	delete_solver5(p,pgc);
 }

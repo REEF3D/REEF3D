@@ -28,6 +28,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void hypre_struct::make_grid(lexer* p,fdm* a, ghostcell* pgc)
 {
+    int kend=0;
+    
+    if(p->A10==3 && p->A300==1)
+    kend=1;
+    
     // grid
     ilower[0] = p->origin_i;
     ilower[1] = p->origin_j;
@@ -35,7 +40,7 @@ void hypre_struct::make_grid(lexer* p,fdm* a, ghostcell* pgc)
     
     iupper[0] = p->knox+p->origin_i-1;
     iupper[1] = p->knoy+p->origin_j-1;
-    iupper[2] = p->knoz+p->origin_k-1+p->flast;
+    iupper[2] = p->knoz+p->origin_k-1+kend;
     
     HYPRE_StructGridCreate(pgc->mpi_comm, 3, &grid);
     HYPRE_StructGridSetExtents(grid, ilower, iupper);

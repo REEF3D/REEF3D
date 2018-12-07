@@ -19,23 +19,23 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_sg_laplace_cds2.h"
+#include"fnpf_sg_laplace_cds2_v2.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include"solver.h"
 #include"fnpf_sg_bed_update.h"
 
-fnpf_sg_laplace_cds2::fnpf_sg_laplace_cds2(lexer *p) 
+fnpf_sg_laplace_cds2_v2::fnpf_sg_laplace_cds2_v2(lexer *p) 
 {
     pbed = new fnpf_sg_bed_update(p);
 }
 
-fnpf_sg_laplace_cds2::~fnpf_sg_laplace_cds2()
+fnpf_sg_laplace_cds2_v2::~fnpf_sg_laplace_cds2_v2()
 {
 }
 
-void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,fnpf_sg_fsfbc *pf, double *f)
+void fnpf_sg_laplace_cds2_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,fnpf_sg_fsfbc *pf, double *f)
 {
     double sigxyz2;
     double ab,denom;
@@ -107,10 +107,22 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             c->M.w[n] = 0.0;
             }
             
+            if(p->flag7[FIJKp2]<0 && p->flag7[FIJKp1]>0)
+            {
+            c->rhsvec.V[n] -= c->M.t[n]*f[FIJKp2];
+            c->M.t[n] = 0.0;
+            }
+            
             if(p->flag7[FIJKp1]<0)
             {
-            c->rhsvec.V[n] -= c->M.t[n]*f[FIJKp1];
+            c->rhsvec.V[n] = 0.0;
+            c->M.p[n] = 1.0;
             c->M.t[n] = 0.0;
+            c->M.b[n] = 0.0;
+            c->M.n[n] = 0.0;
+            c->M.s[n] = 0.0;
+            c->M.e[n] = 0.0;
+            c->M.w[n] = 0.0;
             }
             
             
@@ -140,9 +152,6 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
                             
             
             //--
-<<<<<<< HEAD
-            c->rhsvec.V[n] =  2.0*p->sigx[FIJK]*(f[FIp1JKp1] - f[FIm1JKp1] - fbxp + fbxm)
-=======
             c->rhsvec.V[n] -=  2.0*p->sigx[FIJK]*(f[FIp1JKp1] - f[FIm1JKp1] - f[FIp1JKm1] + f[FIm1JKm1])
                     /((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir
                     
@@ -150,7 +159,6 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
                     /((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
                     
             c->rhsvec.V[n] +=  2.0*p->sigx[FIJK]*(f[FIp1JKp1] - f[FIm1JKp1] - fbxp + fbxm)
->>>>>>> 5e2f54e3e39b80eefba95a762d81ebe0e4167de6
                     /((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir
                     
                     + 2.0*p->sigy[FIJK]*(f[FIJp1Kp1] - f[FIJm1Kp1] - fbyp + fbym)

@@ -747,6 +747,7 @@
           <File Name="fnpf_sg_ini.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
+          <File Name="fnpf_sg_laplace_cds2_v2.h"/>
           <File Name="fnpf_fg_laplace.h"/>
           <File Name="fnpf_sg_laplace.h"/>
           <File Name="fnpf_sg_laplace_cds4.h"/>
@@ -1972,6 +1973,9 @@
         <File Name="hypre_aij_solvers.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="HYPRE Struct">
+        <File Name="hypre_struct_fill8.cpp"/>
+        <File Name="hypre_struct_solve.cpp"/>
+        <File Name="hypre_struct_createsolvers.cpp"/>
         <File Name="hypre_struct_fill7.cpp"/>
         <File Name="hypre_struct_fill3.cpp"/>
         <File Name="hypre_struct_fill2.cpp"/>
@@ -1979,7 +1983,6 @@
         <File Name="hypre_struct_fill1.cpp"/>
         <File Name="hypre_struct.cpp"/>
         <File Name="hypre_struct_grid.cpp"/>
-        <File Name="hypre_struct_solvers.cpp"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Turbulence">
@@ -2130,6 +2133,7 @@
           <File Name="fnpf_sg_ini.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
+          <File Name="fnpf_sg_laplace_cds2_v2.cpp"/>
           <File Name="fnpf_sg_laplace_cds4.cpp"/>
           <File Name="fnpf_sg_laplace_cds2.cpp"/>
           <File Name="fnpf_fg_laplace_cds4.cpp"/>
