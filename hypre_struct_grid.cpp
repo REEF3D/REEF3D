@@ -31,7 +31,7 @@ void hypre_struct::make_grid(lexer* p,fdm* a, ghostcell* pgc)
     int kend=0;
     
     if(p->A10==3 && p->A300==1)
-    kend=1;
+    kend=0;
     
     // grid
     ilower[0] = p->origin_i;

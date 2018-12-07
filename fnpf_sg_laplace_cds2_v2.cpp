@@ -44,7 +44,7 @@ void fnpf_sg_laplace_cds2_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
     p->poissontime=0.0;
 
 	n=0;
-    FLOOP
+    LOOP
 	{
     sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[FIJK],2.0);
     
@@ -78,7 +78,7 @@ void fnpf_sg_laplace_cds2_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
     
     
     n=0;
-	FLOOP
+	LOOP
 	{
         if(p->flag7[FIJK]>0)
         {
@@ -113,6 +113,7 @@ void fnpf_sg_laplace_cds2_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
             c->M.t[n] = 0.0;
             }
             
+            /*
             if(p->flag7[FIJKp1]<0)
             {
             c->rhsvec.V[n] = 0.0;
@@ -123,7 +124,9 @@ void fnpf_sg_laplace_cds2_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
             c->M.s[n] = 0.0;
             c->M.e[n] = 0.0;
             c->M.w[n] = 0.0;
-            }
+            
+            //f[FIJK]=0.0;
+            }*/
             
             
             // KBEDBC
@@ -182,7 +185,7 @@ void fnpf_sg_laplace_cds2_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
 	}
     
     double starttime=pgc->timer();
-    psolv->startF(p,pgc,f,c->rhsvec,c->M,7,250,p->N44);
+    psolv->startF(p,pgc,f,c->rhsvec,c->M,8,250,p->N44);
     double endtime=pgc->timer();
     
     p->poissoniter+=p->solveriter;

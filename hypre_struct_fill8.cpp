@@ -24,18 +24,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #ifdef HYPRE_COMPILATION
 #include"lexer.h"
 #include"ghostcell.h"
+#include"fieldint4.h"
 #include"matrix_diag.h"
 
 void hypre_struct::fill_matrix8(lexer* p, ghostcell* pgc, double *f, vec &rhs, matrix_diag &M)
 {
-    int *cval;
-    
-    p->Iarray(cval,p->imax*p->jmax*(p->kmax+2));
+    fieldint4 cval4(p);
     
     count=0;
-    FLOOP
+    FLUIDLOOP
     {
-    cval[FIJK]=count;
+    cval4(i,j,k)=count;
     ++count;
     }
     
@@ -45,11 +44,11 @@ void hypre_struct::fill_matrix8(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
     stencil_indices[j] = j;
 
     count=0;
-    FKJILOOP
+    KJILOOP
     {
-		FPCHECK
+		PFLUIDCHECK
 		{
-		n=cval[FIJK];
+		n=cval4(i,j,k);
         
 		values[count]=M.p[n];
 		++count;
@@ -104,7 +103,7 @@ void hypre_struct::fill_matrix8(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
     
     // vec
     count=0;
-	FKJILOOP
+	KJILOOP
 	{
 		FPCHECK
 		values[count] = f[FIJK];
@@ -120,11 +119,11 @@ void hypre_struct::fill_matrix8(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
     
     
     count=0; 
-	FKJILOOP
+	KJILOOP
 	{
 		FPCHECK
 		{
-		n=cval[FIJK];
+		n=cval4(i,j,k);
 		values[count] = rhs.V[n];
 		}
 		
@@ -137,7 +136,6 @@ void hypre_struct::fill_matrix8(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
     HYPRE_StructVectorSetBoxValues(b, ilower, iupper, values);
     HYPRE_StructVectorAssemble(b);
     
-    p->del_Iarray(cval,p->imax*p->jmax*(p->kmax+1));
 }
 
 void hypre_struct::fillbackvec8(lexer *p, double *f, int var)
@@ -145,7 +143,7 @@ void hypre_struct::fillbackvec8(lexer *p, double *f, int var)
 	HYPRE_StructVectorGetBoxValues(x, ilower, iupper, values);
 	
         count=0;
-        FKJILOOP
+        KJILOOP
         {
 		 FPCHECK
         f[FIJK]=values[count];

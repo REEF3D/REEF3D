@@ -19,21 +19,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_sg_laplace_cds4.h"
+#include"fnpf_sg_laplace_cds4_v2.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"solver.h"
 #include"ghostcell.h"
 
-fnpf_sg_laplace_cds4::fnpf_sg_laplace_cds4() 
+fnpf_sg_laplace_cds4_v2::fnpf_sg_laplace_cds4_v2() 
 {
 }
 
-fnpf_sg_laplace_cds4::~fnpf_sg_laplace_cds4()
+fnpf_sg_laplace_cds4_v2::~fnpf_sg_laplace_cds4_v2()
 {
 }
 
-void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_sg_fsfbc *pf, double *f)
+void fnpf_sg_laplace_cds4_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_sg_fsfbc *pf, double *f)
 {
     // see p. 1130-1132
     
@@ -44,7 +44,7 @@ void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
     
     // 4th-order
 	n=0;
-    FLOOP
+    LOOP
 	{
     sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[FIJK],2.0);
     
@@ -105,7 +105,7 @@ void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
 	}
     
     n=0;
-	FLOOP
+	LOOP
 	{
         if(p->flag7[FIJK]>0)
         {
@@ -134,9 +134,9 @@ void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             c->M.w[n] = 0.0;
             }
             
-            if(p->flag7[FIJKp1]<0)
+            if(p->flag7[FIJKp2]<0)
             {
-            c->rhsvec.V[n] -= c->M.t[n]*f[FIJKp1];
+            c->rhsvec.V[n] -= c->M.t[n]*f[FIJKp2];
             c->M.t[n] = 0.0;
             }
             
@@ -172,9 +172,9 @@ void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             c->M.bb[n] = 0.0;
             }*/
             
-            if(p->flag7[FIJKp2]<0)
+            if(p->flag7[FIJKp3]<0 && p->flag7[FIJKp2]>0)
             {
-            c->rhsvec.V[n] -= c->M.tt[n]*f[FIJKp2];
+            c->rhsvec.V[n] -= c->M.tt[n]*f[FIJKp3];
             c->M.tt[n] = 0.0;
             }
             
@@ -254,7 +254,7 @@ void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
     
     
     double starttime=pgc->timer();
-    psolv->startF(p,pgc,f,c->rhsvec,c->M,9,250,p->N44);
+    psolv->startF(p,pgc,f,c->rhsvec,c->M,10,250,p->N44);
     double endtime=pgc->timer();
     
     p->poissoniter=p->solveriter;

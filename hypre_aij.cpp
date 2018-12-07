@@ -44,7 +44,7 @@ hypre_aij::~hypre_aij()
 
 void hypre_aij::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, vec& rhsvec, int var, int gcv, double stop_crit)
 {
-    make_grid(p,a,pgc);
+    make_grid(p,pgc);
     create_solvers(p,pgc);
     
     if(var<=5)

@@ -747,6 +747,7 @@
           <File Name="fnpf_sg_ini.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
+          <File Name="fnpf_sg_laplace_cds4_v2.h"/>
           <File Name="fnpf_sg_laplace_cds2_v2.h"/>
           <File Name="fnpf_fg_laplace.h"/>
           <File Name="fnpf_sg_laplace.h"/>
@@ -2133,6 +2134,7 @@
           <File Name="fnpf_sg_ini.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
+          <File Name="fnpf_sg_laplace_cds4_v2.cpp"/>
           <File Name="fnpf_sg_laplace_cds2_v2.cpp"/>
           <File Name="fnpf_sg_laplace_cds4.cpp"/>
           <File Name="fnpf_sg_laplace_cds2.cpp"/>

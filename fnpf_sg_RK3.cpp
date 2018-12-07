@@ -30,6 +30,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_sg_laplace_cds2.h"
 #include"fnpf_sg_laplace_cds2_v2.h"
 #include"fnpf_sg_laplace_cds4.h"
+#include"fnpf_sg_laplace_cds4_v2.h"
 #include"onephase.h"
 #include"fnpf_sg_fsfbc.h"
 
@@ -60,7 +61,7 @@ fnpf_sg_RK3::fnpf_sg_RK3(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_sg_ini(p,
     plap = new fnpf_sg_laplace_cds2_v2(p);
     
     if(p->A320==2)
-    plap = new fnpf_sg_laplace_cds4;
+    plap = new fnpf_sg_laplace_cds4_v2;
     
     pf = new fnpf_sg_fsfbc(p,c,pgc);
 }
@@ -101,6 +102,7 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,250);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
+    fsfbc_sig(p,c,pgc,frk1,c->Fi);
     pgc->start7V(p,c->Fi,250);
     pf->fsfwvel(p,c,pgc,erk1,frk1);
 
@@ -134,6 +136,7 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,250);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
+    fsfbc_sig(p,c,pgc,frk2,c->Fi);
     pgc->start7V(p,c->Fi,250);
     pf->fsfwvel(p,c,pgc,erk2,frk2);
 
@@ -167,6 +170,7 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,250);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
+    fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
     pgc->start7V(p,c->Fi,250);
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
 

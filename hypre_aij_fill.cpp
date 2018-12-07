@@ -122,10 +122,6 @@ void hypre_aij::fill_matrix_13p(lexer* p,fdm* a, ghostcell* pgc, field &f)
     pgc->rownum4_update(p,rownum4);
     pgc->facenbx(p,rownum4,p->range_row4);
     
-    HYPRE_IJMatrixInitialize(A);
-    HYPRE_IJVectorInitialize(x);
-    HYPRE_IJVectorInitialize(b);
-    
 	n=0;
 	LOOP
 	{

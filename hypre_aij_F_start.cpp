@@ -33,17 +33,25 @@ void hypre_aij::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_
     double *xvec;
     
     p->Darray(xvec,p->knox*p->knoy*(p->knoz+1));
-
+    
+    if(var==7||var==9||var==11)
     make_grid_F(p,pgc);
+    
+    if(var==8||var==10||var==12)
+    make_grid(p,pgc);
+    
     create_solvers(p,pgc);
     
     if(var==7)
 	fill_matrix_F_7p(p,pgc,M,f,xvec,rhsvec);
     
     if(var==8)
-	fill_matrix_F_13p(p,pgc,M,f,xvec,rhsvec);
+	fill_matrix_F_7p_v2(p,pgc,M,f,xvec,rhsvec);
     
     if(var==9)
+	fill_matrix_F_13p(p,pgc,M,f,xvec,rhsvec);
+    
+    if(var==10)
 	fill_matrix_F_19p(p,pgc,M,f,xvec,rhsvec);
   
 
@@ -95,8 +103,11 @@ void hypre_aij::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_
 	p->solveriter=num_iterations;
     p->final_res = final_res_norm;
     
-	
+	if(var==7||var==9||var==11)
 	fillbackvec_F(p,f,xvec,var);
+    
+    if(var==8||var==10||var==12)
+    fillbackvec_F_v2(p,f,xvec,var);
     
     delete_solvers(p,pgc);
     delete_grid(p,pgc); 
@@ -111,6 +122,18 @@ void hypre_aij::fillbackvec_F(lexer *p, double *f, double *xvec, int var)
 	
         n=0;
         FLOOP
+        {
+        f[FIJK]=xvec[n];
+        ++n;
+        }
+}
+
+void hypre_aij::fillbackvec_F_v2(lexer *p, double *f, double *xvec, int var)
+{
+	HYPRE_IJVectorGetValues(x, p->N4_row, rows, xvec);
+	
+        n=0;
+        LOOP
         {
         f[FIJK]=xvec[n];
         ++n;

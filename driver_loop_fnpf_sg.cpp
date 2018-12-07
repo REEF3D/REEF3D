@@ -66,13 +66,13 @@ void driver::loop_fnpf_sg()
 
         // PFLOW
 		ppfsg->start(p,c,pgc,plapsolv,pfsfdisc,pflow,preini,poneph);
+        
+        // printer
+        pfprint->start(p,c,pgc,pflow);
 
         //timestep control
         pftstep->start(c,p,pgc);
         p->simtime+=p->dt;
-        
-        // printer
-        pfprint->start(p,c,pgc,pflow);
 
         // Shell-Printout
         if(p->mpirank==0)

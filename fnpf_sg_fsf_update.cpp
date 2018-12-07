@@ -60,7 +60,7 @@ void fnpf_sg_fsf_update::fsfbc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice 
 {
     FFILOOP4
     {
-        //Fi[FIJK]   = Fifsf(i,j);
+        Fi[FIJK]   = Fifsf(i,j);
         Fi[FIJKp1] = Fifsf(i,j);
         Fi[FIJKp2] = Fifsf(i,j);  
         Fi[FIJKp3] = Fifsf(i,j);

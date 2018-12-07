@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-void hypre_aij::make_grid(lexer* p,fdm* a, ghostcell* pgc)
+void hypre_aij::make_grid(lexer* p,ghostcell* pgc)
 {
     fieldint4 rownum4(p);
     
