@@ -165,12 +165,6 @@ void fnpf_sg_laplace_cds4_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
             c->M.ww[n] = 0.0;
             }
             
-            /*
-            if(p->flag7[FIJKm2]<0)
-            {
-            c->rhsvec.V[n] -= c->M.bb[n]*f[FIJKm2];
-            c->M.bb[n] = 0.0;
-            }*/
             
             if(p->flag7[FIJKp3]<0 && p->flag7[FIJKp2]>0)
             {

@@ -393,7 +393,7 @@ void hypre_aij::fill_matrix_F_13p_v2(lexer* p, ghostcell* pgc, matrix_diag &M, d
 	++count;
 	}
     
-    if(p->flag7[FIJKp1]>0)
+    if(p->flag7[FIJKp1]>0 && p->flag7[FIJKp2]>0)
 	{
 	val[count] = M.t[n];
 	col[count] = rownum4(i,j,k+1);
@@ -437,7 +437,7 @@ void hypre_aij::fill_matrix_F_13p_v2(lexer* p, ghostcell* pgc, matrix_diag &M, d
 	++count;
 	}
     
-    if(p->flag7[FIJKp2]>0)
+    if(p->flag7[FIJKp2]>0 && p->flag7[FIJKp3]>0)
 	{
 	val[count] = M.tt[n];
 	col[count] = rownum4(i,j,k+2);
