@@ -31,7 +31,7 @@ void hypre_aij::make_grid(lexer* p,ghostcell* pgc)
     fieldint4 rownum4(p);
     
     pgc->rownum4_update(p,rownum4);
-    pgc->facenbx(p,rownum4,p->range_row4);
+    pgc->gcparaxint(p,rownum4,4);
         
      p->range_col4[0]=0;
     for(n=1;n<=p->M10;++n)

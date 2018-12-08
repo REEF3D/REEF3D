@@ -52,6 +52,9 @@ void hypre_aij::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_
 	fill_matrix_F_13p(p,pgc,M,f,xvec,rhsvec);
     
     if(var==10)
+	fill_matrix_F_13p_v2(p,pgc,M,f,xvec,rhsvec);
+    
+    if(var==11)
 	fill_matrix_F_19p(p,pgc,M,f,xvec,rhsvec);
   
 

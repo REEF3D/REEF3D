@@ -1497,6 +1497,7 @@
         <File Name="gcibm_distguard.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Parallel">
+        <File Name="gcx_paraxint.cpp"/>
         <File Name="gcx_flagx7.cpp"/>
         <File Name="gcx_parax7co.cpp"/>
         <File Name="gcx_parax7.cpp"/>

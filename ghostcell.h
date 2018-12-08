@@ -227,6 +227,7 @@ public:
 
 // PARALLEL
     void gcparax(lexer*, field&, int);
+    void gcparaxint(lexer*, fieldint&, int);
     void gcparax_test(lexer*, int);
     void gcparax_generic(lexer*, field&, int*, int***);
     void gcparacox_generic(lexer*, field&, int*, int***);

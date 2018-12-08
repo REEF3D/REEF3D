@@ -344,7 +344,7 @@ void hypre_aij::fill_matrix_F_13p_v2(lexer* p, ghostcell* pgc, matrix_diag &M, d
     fieldint4 rownum4(p);
     
     pgc->rownum4_update(p,rownum4);
-    pgc->facenbx(p,rownum4,p->range_row4);
+    pgc->gcparaxint(p,rownum4,4);
 
     
 	n=0;
