@@ -174,6 +174,7 @@ void fnpf_sg_laplace_cds4_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
             
             
             // KBEDBC
+            
             if(p->flag7[FIJKm1]<0)
             {
             sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[FIJK],2.0);
