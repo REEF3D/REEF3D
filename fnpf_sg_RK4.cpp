@@ -62,7 +62,7 @@ fnpf_sg_RK4::fnpf_sg_RK4(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_sg_ini(p,
     plap = new fnpf_sg_laplace_cds2_v2(p);
     
     if(p->A320==2)
-    plap = new fnpf_sg_laplace_cds4_v2;
+    plap = new fnpf_sg_laplace_cds4;
     
     pf = new fnpf_sg_fsfbc(p,c,pgc);
 }
