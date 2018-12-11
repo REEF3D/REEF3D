@@ -45,7 +45,7 @@ reinitopo_RK3::reinitopo_RK3(lexer* p) : epsi(p->F45*p->dx),f(p),frk1(p),frk2(p)
 	gcval_topo=153;
 	
 	if(p->S50==4)
-	gcval_topo=154;
+	gcval_topo=150;
 
 	gcval_initopo=150;
 	
@@ -144,6 +144,7 @@ void reinitopo_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostcel
     if(p->count>0)
 	pgc->start4a(p,b,gcval_topo);
 
+    
     
 	p->reinitime+=pgc->timer()-starttime;
 }

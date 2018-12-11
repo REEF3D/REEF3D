@@ -31,12 +31,6 @@ void initialize::topoini(lexer *p, fdm *a, ghostcell *pgc)
     ALOOP
 	a->topo(i,j,k)=1.0;
 
-	ALOOP
-    if(p->XN[IP]>=p->S51 && p->XN[IP]<p->S54
-	&& p->YN[JP]>=p->S52 && p->YN[JP]<p->S55
-	&& p->ZN[KP]>=p->S53 && p->ZN[KP]<p->S56)
-	a->topo(i,j,k)=-1.0;
-
 
     if(p->S57>-1.0e20)
     ALOOP

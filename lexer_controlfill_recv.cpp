@@ -1052,18 +1052,6 @@ void lexer::ctrlrecv()
 	dd++;
     S50 = ictrl[ii];
 	ii++;
-    S51 = dctrl[dd];
-	dd++;
-    S52 = dctrl[dd];
-	dd++;
-    S53 = dctrl[dd];
-	dd++;
-    S54 = dctrl[dd];
-	dd++;
-    S55 = dctrl[dd];
-	dd++;
-    S56 = dctrl[dd];
-	dd++;
     S57 = dctrl[dd];
 	dd++;
     S60 = dctrl[dd];

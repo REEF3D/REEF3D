@@ -542,12 +542,6 @@ void lexer::ini_default()
 	S47=1.0;			// double t/T, before sediment transport starts
 	S48=0.1;			// int nt/T between bed calculation
     S50=4;                  // int bc phi, 1: inflow fix or 2: outflow fix, 3: both fix
-	S51=-1.0e7;		          // double i-dir zero level set start
-	S52=-1.0e7;	        	 // double j-dir zero level set start
-	S53=-1.0e7;		         // double k-dir zero level set start
-	S54=1.0e7;		     // double i-dir zero level set end
-	S55=1.0e7;		     // double j-dir zero level set end
-	S56=1.0e7;		     // double k-dir zero level set end
 	S57=-1.0e20;        // double ini z-dir
     S60=0;                  // int time stepping for suspended sediments
     S71=-1.0e20;                 // int x start of erosion

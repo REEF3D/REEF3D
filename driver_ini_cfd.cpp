@@ -88,6 +88,7 @@ cout<<"starting driver_ini"<<endl;
     psed->relax(p,a,pgc);
     preto->start(a,p,a->topo,pconvec,pgc);
     psed->update(p,a,pgc,pflow);
+    pgc->start4a(p,a->topo,150);
     }
     
     pflow->ini(p,a,pgc);
@@ -166,7 +167,6 @@ cout<<"starting driver_ini"<<endl;
 	pgc->start3(p,a->w,12);
 
     pgc->start4(p,a->press,40);
-	pgc->dgcpol(p,a->topo,p->dgc4,p->dgc4_count,14);
 	a->topo.ggcpol(p);
 	
 	if(p->I40==1)

@@ -26,18 +26,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void sediment_f::ini(lexer *p, fdm *a,ghostcell *pgc)
 {
-	double h;
+	double h,h1;
 
 	ILOOP
     JLOOP
 	{
-		//h=1.0e20;
 		KLOOP
 		PBASECHECK
 		{
-		if(a->topo(i,j,k-1)<0.0 && a->topo(i,j,k)>0.0)
-        h = p->ZP[KP]*fabs(a->topo(i,j,k-1)) + p->ZP[KM1]*fabs(a->topo(i,j,k));
-		//h = MIN(h,p->ZN[KP]);	
+        if(a->topo(i,j,k-1)<0.0 && a->topo(i,j,k)>0.0)
+        h = (a->topo(i,j,k-1)*p->DZP[KP])/(a->topo(i,j,k)-a->topo(i,j,k-1)) + p->pos_z();
 		}
 		
 		a->bedzh(i,j)=h;

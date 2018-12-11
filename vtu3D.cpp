@@ -225,7 +225,7 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
 	a->phi.ggcpol(p);
 	a->fb.ggcpol(p);
     a->test.ggcpol(p);
-    a->topo.ggcpol(p);
+   // a->topo.ggcpol(p);
     
 		
 		// Print out based on iteration
@@ -403,7 +403,7 @@ void vtu3D::print_vtu(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *p
 	a->phi.ggcpol(p);
 	a->fb.ggcpol(p);
     a->test.ggcpol(p);
-    a->topo.ggcpol(p);
+    //a->topo.ggcpol(p);
     
     print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
 }

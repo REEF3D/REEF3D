@@ -1058,18 +1058,6 @@ void lexer::ctrlsend()
 	dd++;
     ictrl[ii] = S50;
 	ii++;
-    dctrl[dd] = S51;
-	dd++;
-    dctrl[dd] = S52;
-	dd++;
-    dctrl[dd] = S53;
-	dd++;
-    dctrl[dd] = S54;
-	dd++;
-    dctrl[dd] = S55;
-	dd++;
-    dctrl[dd] = S56;
-	dd++;
     dctrl[dd] = S57;
 	dd++;
     dctrl[dd] = S60;
