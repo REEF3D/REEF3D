@@ -97,9 +97,35 @@ void pjm::ucorr(fdm* a, lexer* p, field& uvel,double alpha)
 
 void pjm::vcorr(fdm* a, lexer* p, field& vvel,double alpha)
 {	
-	VLOOP
+    
+    double grad2, grad4,grad0;
+    double PJM,PJP,PJ;
+    
+    
+    VLOOP
+    {
+    PJM = (a->press(i,j-1,k)*0.5*p->DYN[JP] + a->press(i,j,k)*0.5*p->DYN[JM1])/p->DYP[JM1];
+    PJ  = (a->press(i,j,k)*0.5*p->DYN[JP1] + a->press(i,j+1,k)*0.5*p->DYN[JP])/p->DYP[JP];
+    PJP = (a->press(i,j+1,k)*0.5*p->DYN[JP2] + a->press(i,j+2,k)*0.5*p->DYN[JP1])/p->DYP[JP1];
+    
+    grad2 = (PJP*p->DYN[JP]*p->DYN[JP] - PJM*p->DYN[JP1]*p->DYN[JP1] + PJ*(p->DYN[JP1]*p->DYN[JP1] - p->DYN[JP]*p->DYN[JP]))
+          /(0.5*p->DYN[JP1]*p->DYN[JP]*(p->DYN[JP1]+p->DYN[JP]));
+          
+          
+    grad4 = (-a->press(i,j+2,k) + 27.0*a->press(i,j+1,k) - 27.0*a->press(i,j,k) + a->press(i,j-1,k))
+          /(-p->YP[JP2] + 27.0*p->YP[JP1] - 27.0*p->YP[JP] + p->YP[JM1]);
+          
+    grad0 = (a->press(i,j+1,k)-a->press(i,j,k))/p->DYP[JP];
+    
+    
+	
+	vvel(i,j,k) -= (alpha*p->dt*CPOR2*PORVAL2*grad4)/(roface(p,a,0,1,0));
+    }
+    
+    /*VLOOP
 	vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*((a->press(i,j+1,k)-a->press(i,j,k))
-	/(p->DYP[JP]*roface(p,a,0,1,0)));
+	/(p->DYP[JP]*roface(p,a,0,1,0)));*/
+
 }
 
 void pjm::wcorr(fdm* a, lexer* p, field& wvel,double alpha)

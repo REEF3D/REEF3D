@@ -709,7 +709,7 @@ void driver::logic()
 
 //poisson scheme for pressure
 	if(p->D30<9 && p->F10==2)
-	ppois = new poisson_NUG(p);
+	ppois = new poisson_f(p);
     
     if(p->D30<9 && p->F10==1)
 	ppois = new poisson_nse(p);
