@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"pjm.h"
+#include"pjm_4th.h"
 #include"lexer.h"
 #include"fdm.h" 
 #include"ghostcell.h"
@@ -28,7 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"momentum.h"
 #include"ioflow.h"
  
-pjm::pjm(lexer* p, fdm *a) : density(p)
+pjm_4th::pjm_4th(lexer* p, fdm *a) : density(p)
 {
     if(p->B76==0)
     gcval_press=40;  
@@ -53,11 +53,11 @@ pjm::pjm(lexer* p, fdm *a) : density(p)
 	gcval_w=9;
 }
 
-pjm::~pjm()
+pjm_4th::~pjm_4th()
 {
 }
 
-void pjm::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, momentum *pmom, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
+void pjm_4th::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, momentum *pmom, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
 {
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<".";
@@ -88,28 +88,40 @@ void pjm::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, mo
     
 }
 
-void pjm::ucorr(fdm* a, lexer* p, field& uvel,double alpha)
+void pjm_4th::ucorr(fdm* a, lexer* p, field& uvel,double alpha)
 {	
 	ULOOP
-	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((a->press(i+1,j,k)-a->press(i,j,k))
-	/(p->DXP[IP]*roface(p,a,1,0,0)));
+    {
+    grad4 = (-a->press(i+2,j,k) + 27.0*a->press(i+1,j,k) - 27.0*a->press(i,j,k) + a->press(i-1,j,k))
+          /(-p->XP[IP2] + 27.0*p->XP[IP1] - 27.0*p->XP[IP] + p->XP[IM1]);
+       
+	uvel(i,j,k) -= (alpha*p->dt*CPOR1*PORVAL1*grad4)/(roface(p,a,1,0,0));
+    }
 }
 
-void pjm::vcorr(fdm* a, lexer* p, field& vvel,double alpha)
-{	 
+void pjm_4th::vcorr(fdm* a, lexer* p, field& vvel,double alpha)
+{	
     VLOOP
-    vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))
-    /(p->DYP[JP]*(roface(p,a,0,1,0)));
+    {    
+    grad4 = (-a->press(i,j+2,k) + 27.0*a->press(i,j+1,k) - 27.0*a->press(i,j,k) + a->press(i,j-1,k))
+          /(-p->YP[JP2] + 27.0*p->YP[JP1] - 27.0*p->YP[JP] + p->YP[JM1]);
+          
+	vvel(i,j,k) -= (alpha*p->dt*CPOR2*PORVAL2*grad4)/(roface(p,a,0,1,0));
+    }
 }
 
-void pjm::wcorr(fdm* a, lexer* p, field& wvel,double alpha)
+void pjm_4th::wcorr(fdm* a, lexer* p, field& wvel,double alpha)
 {	
 	WLOOP
-	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))
-	/(p->DZP[KP]*roface(p,a,0,0,1)));
+    {    
+    grad4 = (-a->press(i,j,k+2) + 27.0*a->press(i,j,k+1) - 27.0*a->press(i,j,k) + a->press(i,j,k-1))
+          /(-p->ZP[KP2] + 27.0*p->ZP[KP1] - 27.0*p->ZP[KP] + p->ZP[KM1]);
+          
+	wvel(i,j,k) -= (alpha*p->dt*CPOR3*PORVAL3*grad4)/(roface(p,a,0,0,1));
+    }
 }
  
-void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
+void pjm_4th::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
 {
 
     NLOOP4
@@ -129,7 +141,7 @@ void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,dou
     pip=0;
 }
  
-void pjm::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
+void pjm_4th::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
 {
 	pgc->start1(p,u,gcval_u);
 	pgc->start2(p,v,gcval_v);
@@ -140,7 +152,7 @@ void pjm::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field 
 	w.ggcpol(p);
 }
 
-void pjm::pressure_norm(lexer*p, fdm* a, ghostcell* pgc)
+void pjm_4th::pressure_norm(lexer*p, fdm* a, ghostcell* pgc)
 {
     double sum=0.0;
 
@@ -155,31 +167,31 @@ void pjm::pressure_norm(lexer*p, fdm* a, ghostcell* pgc)
     a->press(i,j,k)-=sum;
 }
 
-void pjm::upgrad(lexer*p,fdm* a)
+void pjm_4th::upgrad(lexer*p,fdm* a)
 {
 }
 
-void pjm::vpgrad(lexer*p,fdm* a)
+void pjm_4th::vpgrad(lexer*p,fdm* a)
 {
 }
 
-void pjm::wpgrad(lexer*p,fdm* a)
+void pjm_4th::wpgrad(lexer*p,fdm* a)
 {
 }
 
-void pjm::fillapu(lexer*p,fdm* a)
+void pjm_4th::fillapu(lexer*p,fdm* a)
 {
 }
 
-void pjm::fillapv(lexer*p,fdm* a)
+void pjm_4th::fillapv(lexer*p,fdm* a)
 {
 }
 
-void pjm::fillapw(lexer*p,fdm* a)
+void pjm_4th::fillapw(lexer*p,fdm* a)
 {
 }
 
-void pjm::ptimesave(lexer *p, fdm *a, ghostcell *pgc)
+void pjm_4th::ptimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 

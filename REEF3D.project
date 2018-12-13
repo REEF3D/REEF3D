@@ -584,6 +584,7 @@
       <File Name="momentum_FSFC_FS3.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Pressure">
+      <File Name="pjm_4th.h"/>
       <File Name="pjm_fsi.h"/>
       <File Name="pjm_corr.h"/>
       <VirtualDirectory Name="Poisson">
@@ -1929,6 +1930,7 @@
       <File Name="momentum_FSFC_FS3.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Pressure">
+      <File Name="pjm_4th.cpp"/>
       <File Name="pjm_fsi.cpp"/>
       <File Name="pjm_corr.cpp"/>
       <VirtualDirectory Name="Poisson">

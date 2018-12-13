@@ -699,6 +699,9 @@ void driver::logic()
 	
 	if(p->D30==4)
 	ppress = new pjm_fsi(p,a);
+    
+    if(p->D30==5)
+	ppress = new pjm_4th(p,a);
 
 	if(p->D30==11)
 	ppress = new simple(p,a);
