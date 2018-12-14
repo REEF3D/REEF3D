@@ -32,7 +32,7 @@ matrix_diag::matrix_diag(lexer *pp)
 	pp->Darray(b,pp->veclength);
 	pp->Darray(p,pp->veclength);
     
-    if(pp->A320>=2)
+    if(pp->A320>=2 ||pp->D30==5)
     {
     pp->Darray(nn,pp->veclength);
     pp->Darray(ss,pp->veclength);

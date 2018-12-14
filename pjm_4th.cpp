@@ -69,7 +69,7 @@ void pjm_4th::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc
 	
         starttime=pgc->timer();
 
-    psolv->start(p,a,pgc,a->press,a->xvec,a->rhsvec,5,gcval_press,p->N44);
+    psolv->start(p,a,pgc,a->press,a->xvec,a->rhsvec,6,gcval_press,p->N44);
 	
         endtime=pgc->timer();
     
@@ -132,11 +132,26 @@ void pjm_4th::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w
     count=0;
     LOOP
     {
+    a->rhsvec.V[count] =  (- (u(i+1,j,k) + 27.0*u(i,j,k) - 27.0*u(i-1,j,k) + u(i-2,j,k))
+                           /(-p->XN[IP1] + 27.0*p->XN[IP] - 27.0*p->XN[IM1] + p->XN[IM2])
+                           
+                          - (v(i,j+1,k) + 27.0*v(i,j,k) - 27.0*v(i,j-1,k) + v(i,j-2,k))
+                           /(-p->YN[JP1] + 27.0*p->YN[JP] - 27.0*p->YN[JM1] + p->YN[JM2])
+                           
+                          - (w(i,j,k+1) + 27.0*w(i,j,k) - 27.0*w(i,j,k-1) + w(i,j,k-2))
+                           /(-p->ZN[KP1] + 27.0*p->ZN[KP] - 27.0*p->ZN[KM1] + p->ZN[KM2]))/(alpha*p->dt);
+                        
+    ++count;
+    }
+    /*
+    count=0;
+    LOOP
+    {
     a->rhsvec.V[count] =  -(u(i,j,k)-u(i-1,j,k))/(alpha*p->dt*p->DXN[IP])
 						   -(v(i,j,k)-v(i,j-1,k))/(alpha*p->dt*p->DYN[JP])
 						   -(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DZN[KP]);
     ++count;
-    }
+    }*/
     
     pip=0;
 }

@@ -60,7 +60,7 @@ double fnpf_cds2::sy(lexer *p, slice &f, double jvel1, double jvel2)
 
 double fnpf_cds2::sz(lexer *p, double *f, double kvel1, double kvel2)
 {
-    return (-1.5*f[FIJK] + 2.0*f[FIJKm1] - 0.5*f[FIJKm2])/(-1.5*p->ZP[KP] + 2.0*p->ZP[KM1] - 0.5*p->ZP[KM2]);
+    return (-1.5*f[FIJK] + 2.0*f[FIJKm1] - 0.5*f[FIJKm2])/(-1.5*p->ZN[KP] + 2.0*p->ZN[KM1] - 0.5*p->ZN[KM2]);
 }
 
 

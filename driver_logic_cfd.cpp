@@ -711,7 +711,10 @@ void driver::logic()
 	
 
 //poisson scheme for pressure
-	if(p->D30<9 && p->F10==2)
+	if(p->D30<5 && p->F10==2)
+	ppois = new poisson_f(p);
+    
+    if(p->D30==5 && p->F10==2)
 	ppois = new poisson_f(p);
     
     if(p->D30<9 && p->F10==1)
