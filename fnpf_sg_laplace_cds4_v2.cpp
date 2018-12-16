@@ -177,12 +177,12 @@ void fnpf_sg_laplace_cds4_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
             c->rhsvec.V[n] -= c->M.ww[n]*f[FIJK];
             c->M.ww[n] = 0.0;
             }
-            
+            /*
             if(p->flag7[FIJKm2]<0)
             {
             c->rhsvec.V[n] -= c->M.bb[n]*f[FIJKm2];
             c->M.bb[n] = 0.0;
-            }
+            }*/
             
             if(p->flag7[FIJKp3]<0)
             {
@@ -214,12 +214,12 @@ void fnpf_sg_laplace_cds4_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
             c->rhsvec.V[n] -= c->M.www[n]*f[FIJK];
             c->M.www[n] = 0.0;
             }
-            
+            /*
             if(p->flag7[FIJKm3]<0)
             {
             c->rhsvec.V[n] -= c->M.bbb[n]*f[FIJKm3];
             c->M.bbb[n] = 0.0;
-            }
+            }*/
             
             if(p->flag7[FIJKp4]<0)
             {
