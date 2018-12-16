@@ -54,6 +54,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define KM3 (k - 3 + marge)
 #define KM4 (k - 4 + marge)
 #define KM5 (k - 5 + marge)
+#define KM6 (k - 6 + marge)
 
 #define IIP (ii + marge)
 #define IIP1 (ii + 1 + marge)

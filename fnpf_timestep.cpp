@@ -84,7 +84,7 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
         
     FLOOP
     {
-    dx = MIN3(p->DXN[IP],p->DYN[JP],p->DZP[KP]);
+    dx = MIN3(p->DXN[IP],p->DYN[JP],p->DZN[KP]);
 
     cw = MIN(cw, 1.0/((fabs(p->wmax)/dx)));
     }
