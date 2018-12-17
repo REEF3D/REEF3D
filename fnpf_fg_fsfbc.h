@@ -45,7 +45,7 @@ public:
 
     fnpf_convection *pconvec;
 
-    double ivel1,ivel2,jvel1,jvel2,kvel;
+    double ivel,jvel,kvel;
     
     slice4 Fx,Fy,Fz;
     slice4 Ex,Ey;

@@ -19,21 +19,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_sg_laplace_cds4_v2.h"
+#include"fnpf_sg_laplace_cds4_v3.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"solver.h"
 #include"ghostcell.h"
 
-fnpf_sg_laplace_cds4_v2::fnpf_sg_laplace_cds4_v2() 
+fnpf_sg_laplace_cds4_v3::fnpf_sg_laplace_cds4_v3() 
 {
 }
 
-fnpf_sg_laplace_cds4_v2::~fnpf_sg_laplace_cds4_v2()
+fnpf_sg_laplace_cds4_v3::~fnpf_sg_laplace_cds4_v3()
 {
 }
 
-void fnpf_sg_laplace_cds4_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_sg_fsfbc *pf, double *f)
+void fnpf_sg_laplace_cds4_v3::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_sg_fsfbc *pf, double *f)
 {
     // see p. 1130-1132
     
@@ -68,39 +68,30 @@ void fnpf_sg_laplace_cds4_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
         Z4 = (-p->ZN[KP] + 27.0*p->ZN[KM1] -27.0*p->ZN[KM2] + p->ZN[KM3])*Z0;
         
 
-        c->M.p[n] = (1.0/X1 + 729.0/X2 + 729.0/X3 + 1.0/X4)*p->x_dir 
-                 + (1.0/Y1 + 729.0/Y2 + 729.0/Y3 + 1.0/Y4)*p->y_dir 
-                 + sigxyz2*(1.0/Z1 + 729.0/Z2 + 729.0/Z3 + 1.0/Z4)*p->z_dir;
+        c->M.p[n] = 2.5/p->DXN[IP]*p->x_dir 
+                  + 2.5/p->DYN[JP]*p->y_dir 
+                  + sigxyz2*2.5/p->DZN[KP]*p->z_dir; 
         
         
-        c->M.n[n] = -(27.0/X1 + 729.0/X2 + 27.0/X3)*p->x_dir;
-        c->M.s[n] = -(27.0/X2 + 729.0/X3 + 27.0/X4)*p->x_dir;
+        c->M.n[n] = -(4.0/3.0)/p->DXN[IP]*p->x_dir; 
+        c->M.s[n] = -(4.0/3.0)/p->DXN[IP]*p->x_dir;
 
-        c->M.w[n] = -(27.0/Y1 + 729.0/Y2 + 27.0/Y3)*p->y_dir;
-        c->M.e[n] = -(27.0/Y2 + 729.0/Y3 + 27.0/Y4)*p->y_dir;
+        c->M.w[n] = -(4.0/3.0)/p->DYN[JP]*p->y_dir; 
+        c->M.e[n] = -(4.0/3.0)/p->DYN[JP]*p->y_dir; 
 
-        c->M.t[n] = -(sigxyz2*(27.0/Z1 + 729.0/Z2 + 27.0/Z3) + p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
-        c->M.b[n] = -(sigxyz2*(27.0/Z2 + 729.0/Z3 + 27.0/Z4) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
+        c->M.t[n] = -(sigxyz2*(4.0/3.0)/p->DZN[KP]  + p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
+        c->M.b[n] = -(sigxyz2*(4.0/3.0)/p->DZN[KP] - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
         
         
-        c->M.nn[n] = (27.0/X1 + 27.0/X2)*p->x_dir; 
-        c->M.ss[n] = (27.0/X3 + 27.0/X4)*p->x_dir;
+        c->M.nn[n] = (1.0/12.0)/p->DXN[IP]*p->x_dir;
+        c->M.ss[n] = (1.0/12.0)/p->DXN[IP]*p->x_dir;
         
-        c->M.ww[n] = (27.0/Y1 + 27.0/Y2)*p->y_dir;
-        c->M.ee[n] = (27.0/Y3 + 27.0/Y4)*p->y_dir;
+        c->M.ww[n] = (1.0/12.0)/p->DYN[JP]*p->y_dir;
+        c->M.ee[n] = (1.0/12.0)/p->DYN[JP]*p->y_dir;
          
-        c->M.tt[n] = sigxyz2*(27.0/Z1 + 27.0/Z2)*p->z_dir; 
-        c->M.bb[n] = sigxyz2*(27.0/Z3 + 27.0/Z4)*p->z_dir;
+        c->M.tt[n] = sigxyz2*(1.0/12.0)/p->DZN[KP]*p->z_dir; 
+        c->M.bb[n] = sigxyz2*(1.0/12.0)/p->DZN[KP]*p->z_dir; 
         
-        c->M.nnn[n] = -(1.0/X1)*p->x_dir; 
-        c->M.sss[n] = -(1.0/X4)*p->x_dir;
-        
-        c->M.www[n] = -(1.0/Y1)*p->y_dir;
-        c->M.eee[n] = -(1.0/Y4)*p->y_dir;
-         
-        c->M.ttt[n] = -sigxyz2*(1.0/Z1)*p->z_dir; 
-        c->M.bbb[n] = -sigxyz2*(1.0/Z4)*p->z_dir;
-                    
             
         c->rhsvec.V[n] = 2.0*p->sigx[IJK]*(f[FIp1JKp1] - f[FIm1JKp1] - f[FIp1JKm1] + f[FIm1JKm1])
                         /((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir
@@ -196,7 +187,7 @@ void fnpf_sg_laplace_cds4_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
             }
             
             //-------
-            if(p->flag7[FIm3JK]<0)
+            /*if(p->flag7[FIm3JK]<0)
             {
             c->rhsvec.V[n] -= c->M.sss[n]*f[FIJK];
             c->M.sss[n] = 0.0;
@@ -230,7 +221,7 @@ void fnpf_sg_laplace_cds4_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
             {
             c->rhsvec.V[n] -= c->M.ttt[n]*f[FIJKp3];
             c->M.ttt[n] = 0.0;
-            }
+            }*/
             
   /*         
         // KBEDBC
@@ -363,7 +354,7 @@ void fnpf_sg_laplace_cds4_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
     
     
     double starttime=pgc->timer();
-    psolv->startF(p,pgc,f,c->rhsvec,c->M,12,250,p->N44);
+    psolv->startF(p,pgc,f,c->rhsvec,c->M,10,250,p->N44);
     double endtime=pgc->timer();
     
     p->poissoniter=p->solveriter;

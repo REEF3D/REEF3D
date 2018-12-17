@@ -46,7 +46,7 @@ public:
     fnpf_convection *pconvec;
     fnpf_ddx *pddx;
 
-    double ivel1,ivel2,jvel1,jvel2,kvel;
+    double ivel,jvel,kvel;
     
     
 };

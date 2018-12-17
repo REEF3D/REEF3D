@@ -79,9 +79,9 @@ void fnpf_sg_laplace_cds2_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
     
     n=0;
 	LOOP
+    if(p->flag7[FIJK]>0)
 	{
-        if(p->flag7[FIJK]>0)
-        {
+        
         
             if(p->flag7[FIm1JK]<0)
             {
@@ -94,18 +94,36 @@ void fnpf_sg_laplace_cds2_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
             c->rhsvec.V[n] -= c->M.n[n]*f[FIJK];
             c->M.n[n] = 0.0;
             }
-            
+            /*
             if(p->flag7[FIJm1K]<0)
             {
             c->rhsvec.V[n] -= c->M.e[n]*f[FIJK];
             c->M.e[n] = 0.0;
-            }
-            
+             
             if(p->flag7[FIJp1K]<0)
             {
             c->rhsvec.V[n] -= c->M.w[n]*f[FIJK];
             c->M.w[n] = 0.0;
             }
+            }*/
+            
+            if(p->flag7[FIJm1K]<0)
+            {
+            c->M.w[n] += -1.0/(p->DYP[JM1]*p->DYN[JM1])*p->y_dir;
+            c->M.e[n] = 0.0;
+            }
+            
+            if(p->flag7[FIJp1K]<0)
+            {
+            c->M.e[n] += -1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+            c->M.w[n] = 0.0;
+            }
+            /*
+            if(p->flag7[FIJKm1]<0)
+            {
+            c->rhsvec.V[n] -= c->M.b[n]*f[FIJKm1];
+            c->M.b[n] = 0.0;
+            }*/
             
             if(p->flag7[FIJKp2]<0 && p->flag7[FIJKp1]>0)
             {
@@ -167,7 +185,6 @@ void fnpf_sg_laplace_cds2_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
             
             c->M.b[n] = 0.0;
             }
-        }
 	++n;
 	}
     

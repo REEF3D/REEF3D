@@ -38,9 +38,9 @@ public:
 	virtual double fy(lexer*, field&, double, double)=0;
 	virtual double fz(lexer*, field&, double, double)=0;
     
-    virtual double sx(lexer*, slice&, double, double)=0;
-	virtual double sy(lexer*, slice&, double, double)=0;
-    virtual double sz(lexer*, double*, double, double)=0;
+    virtual double sx(lexer*, slice&, double)=0;
+	virtual double sy(lexer*, slice&, double)=0;
+    virtual double sz(lexer*, double*)=0;
 
 };
 

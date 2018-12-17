@@ -51,19 +51,19 @@ double fnpf_cds4::fz(lexer *p, field &f, double kvel1, double kvel2)
           /(-(25.0/12.0)*p->ZP[KP1] + 4.0*p->ZP[KP] - 3.0*p->ZP[KM1] + (4.0/3.0)*p->ZP[KM2] - 0.25*p->ZP[KM3]);
 }
 
-double fnpf_cds4::sx(lexer *p, slice &f, double ivel1, double ivel2)
+double fnpf_cds4::sx(lexer *p, slice &f, double ivel)
 {
     return (-f(i+2,j) + 8.0*f(i+1,j) - 8.0*f(i-1,j) + f(i-2,j))
           /(-p->XP[IP2] + 8.0*p->XP[IP1] - 8.0*p->XP[IM1] + p->XP[IM2]);
 }
 
-double fnpf_cds4::sy(lexer *p, slice &f, double jvel1, double jvel2)
+double fnpf_cds4::sy(lexer *p, slice &f, double jvel)
 {
     return (-f(i,j+2) + 8.0*f(i,j+1) - 8.0*f(i,j-1) + f(i,j-2))
           /(-p->YP[JP2] + 8.0*p->YP[JP1] - 8.0*p->YP[JM1] + p->YP[JM2]);   
 }
 
-double fnpf_cds4::sz(lexer *p, double *f, double kvel1, double kvel2)
+double fnpf_cds4::sz(lexer *p, double *f)
 {
    // return (-(25.0/12.0)*f[FIJKp1] + 4.0*f[FIJK] - 3.0*f[FIJKm1] + (4.0/3.0)*f[FIJKm2] - 0.25*f[FIJKm3])
    //       /(-(25.0/12.0)*p->ZN[KP1] + 4.0*p->ZN[KP] - 3.0*p->ZN[KM1] + (4.0/3.0)*p->ZN[KM2] - 0.25*p->ZN[KM3]);

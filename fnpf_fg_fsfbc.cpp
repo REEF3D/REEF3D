@@ -62,21 +62,15 @@ void fnpf_fg_fsfbc::fsfdisc(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice 
     // fi
     FILOOP4
     {
-    ivel1 = (Fifsf(i,j) - Fifsf(i-1,j))/p->DXP[IM1];
-    ivel2 = (Fifsf(i+1,j) - Fifsf(i,j))/p->DXP[IP];
+    ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);    
+    jvel = (Fifsf(i,j+1) - Fifsf(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
     
-    jvel1 = (Fifsf(i,j) - Fifsf(i,j-1))/p->DYP[JM1];
-    jvel2 = (Fifsf(i,j+1) - Fifsf(i,j))/p->DYP[JP];
-    
-    kvel =  (Fi(i,j,k) - Fi(i,j,k-1))/p->DZP[KM1];
-    
-    
-    Fx(i,j) = pconvec->sx(p,Fifsf,ivel1,ivel2);
-    Fy(i,j) = pconvec->sy(p,Fifsf,jvel1,jvel2);
+    Fx(i,j) = pconvec->sx(p,Fifsf,ivel);
+    Fy(i,j) = pconvec->sy(p,Fifsf,jvel);
     Fz(i,j) = pconvec->fz(p,Fi,kvel,kvel);
     
-    Ex(i,j) = pconvec->sx(p,eta,ivel1,ivel2);
-    Ey(i,j) = pconvec->sy(p,eta,jvel1,jvel2);
+    Ex(i,j) = pconvec->sx(p,eta,ivel);
+    Ey(i,j) = pconvec->sy(p,eta,jvel);
     }
 }
 

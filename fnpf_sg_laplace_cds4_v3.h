@@ -19,31 +19,27 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_convection.h"
+#include"fnpf_sg_laplace.h"
 #include"increment.h"
 
-#ifndef FNPF_CDS2_H_
-#define FNPF_CDS2_H_
+#ifndef FNPF_SG_LAPLACE_CDS4_V3_H_
+#define FNPF_SG_LAPLACE_CDS4_V3_H_
 
 using namespace std;
 
-class fnpf_cds2 : public fnpf_convection, public increment
+class fnpf_sg_laplace_cds4_v3 : public fnpf_sg_laplace, public increment
 {
 public:
-	fnpf_cds2(lexer*);
-	virtual ~fnpf_cds2();
+    fnpf_sg_laplace_cds4_v3 ();
+	virtual ~fnpf_sg_laplace_cds4_v3();
 
-    virtual double fx(lexer*, field&, double, double);
-	virtual double fy(lexer*, field&, double, double);
-	virtual double fz(lexer*, field&, double, double);
+    virtual void start(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_sg_fsfbc*,double*);
     
-    virtual double sx(lexer*, slice&, double);
-	virtual double sy(lexer*, slice&, double);
-    virtual double sz(lexer*, double*);
-
 private:
-   
-
+    
+    double X1,X2,X3,X4,X0;
+    double Y1,Y2,Y3,Y4,Y0;
+    double Z1,Z2,Z3,Z4,Z0;
 };
 
 #endif

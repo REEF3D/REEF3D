@@ -48,17 +48,17 @@ double fnpf_cds2::fz(lexer *p, field &f, double kvel1, double kvel2)
     return (-1.5*f(i,j,k+1) + 2.0*f(i,j,k) - 0.5*f(i,j,k-1))/(-1.5*p->ZP[KP1] + 2.0*p->ZP[KP] - 0.5*p->ZP[KM1]);
 }
 
-double fnpf_cds2::sx(lexer *p, slice &f, double ivel1, double ivel2)
+double fnpf_cds2::sx(lexer *p, slice &f, double ivel)
 {
     return (f(i+1,j)-f(i-1,j))/(p->DXN[IP]+p->DXN[IM1]);
 }
 
-double fnpf_cds2::sy(lexer *p, slice &f, double jvel1, double jvel2)
+double fnpf_cds2::sy(lexer *p, slice &f, double jvel)
 {
     return (f(i,j+1)-f(i,j-1))/(p->DYN[JP]+p->DYN[JM1]);    
 }
 
-double fnpf_cds2::sz(lexer *p, double *f, double kvel1, double kvel2)
+double fnpf_cds2::sz(lexer *p, double *f)
 {
     return (-1.5*f[FIJK] + 2.0*f[FIJKm1] - 0.5*f[FIJKm2])/(-1.5*p->ZN[KP] + 2.0*p->ZN[KM1] - 0.5*p->ZN[KM2]);
 }

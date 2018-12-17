@@ -70,33 +70,33 @@ double fnpf_weno::fz(lexer *p, field &f, double kvel1, double kvel2)
     return grad;
 }
 
-double fnpf_weno::sx(lexer *p, slice &f, double ivel1, double ivel2)
+double fnpf_weno::sx(lexer *p, slice &f, double ivel)
 {
     grad=0.0;
     
-    if(0.5*(ivel1+ivel2)>0.0)
+    if(ivel>0.0)
     grad=dswenox(f,1.0);
     
-    if(0.5*(ivel1+ivel2)<0.0)
+    if(ivel<0.0)
     grad=dswenox(f,-1.0);
     
     return grad;
 }
 
-double fnpf_weno::sy(lexer *p, slice &f, double jvel1, double jvel2)
+double fnpf_weno::sy(lexer *p, slice &f, double jvel)
 {
     grad=0.0;
     
-    if(0.5*(jvel1+jvel2)>0.0)
+    if(jvel>0.0)
     grad=dswenoy(f,1.0);
     
-    if(0.5*(jvel1+jvel2)<0.0)
+    if(jvel<0.0)
     grad=dswenoy(f,-1.0);
     
     return grad;   
 }
 
-double fnpf_weno::sz(lexer *p, double *f, double kvel1, double kvel2)
+double fnpf_weno::sz(lexer *p, double *f)
 {
     return (-(25.0/12.0)*f[FIJK] + 4.0*f[FIJKm1] - 3.0*f[FIJKm2] + (4.0/3.0)*f[FIJKm3] - 0.25*f[FIJKm4])
           /(-(25.0/12.0)*p->ZN[KP] + 4.0*p->ZN[KM1] - 3.0*p->ZN[KM2] + (4.0/3.0)*p->ZN[KM3] - 0.25*p->ZN[KM4]); 

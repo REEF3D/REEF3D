@@ -151,6 +151,12 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     HYPRE_StructSMGSetNumPostRelax(solver,1);
     }
     
+    if(p->N11==10)
+    {
+    HYPRE_StructJacobiCreate(pgc->mpi_comm, &precond);
+    HYPRE_StructJacobiSetMaxIter(precond,1);
+    }
+    
     if(p->N11==11)
     {
     HYPRE_StructPFMGCreate(pgc->mpi_comm, &precond);
@@ -193,12 +199,18 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     }
 	  
     
+    if(p->N10==11 && p->N11==10)
+    HYPRE_StructPCGSetPrecond(solver, HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup, precond);
+    
     if(p->N10==11 && p->N11==11)
     HYPRE_StructPCGSetPrecond(solver, HYPRE_StructPFMGSolve, HYPRE_StructPFMGSetup, precond);
     
     if(p->N10==11 && p->N11==12)
     HYPRE_StructPCGSetPrecond(solver, HYPRE_StructSMGSolve, HYPRE_StructSMGSetup, precond);
     
+    
+    if(p->N10==12 && p->N11==10)
+    HYPRE_StructGMRESSetPrecond(solver, HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup, precond);
     
     if(p->N10==12 && p->N11==11)
     HYPRE_StructGMRESSetPrecond(solver, HYPRE_StructPFMGSolve, HYPRE_StructPFMGSetup, precond);
@@ -207,12 +219,18 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     HYPRE_StructGMRESSetPrecond(solver, HYPRE_StructSMGSolve, HYPRE_StructSMGSetup, precond);
     
     
+    if(p->N10==13 && p->N11==10)
+    HYPRE_StructLGMRESSetPrecond(solver, HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup, precond);
+    
     if(p->N10==13 && p->N11==11)
     HYPRE_StructLGMRESSetPrecond(solver, HYPRE_StructPFMGSolve, HYPRE_StructPFMGSetup, precond);
     
     if(p->N10==13 && p->N11==12)
     HYPRE_StructLGMRESSetPrecond(solver, HYPRE_StructSMGSolve, HYPRE_StructSMGSetup, precond);
     
+    
+    if(p->N10==14 && p->N11==10)
+    HYPRE_StructBiCGSTABSetPrecond(solver, HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup, precond);
     
     if(p->N10==14 && p->N11==11)
     HYPRE_StructBiCGSTABSetPrecond(solver, HYPRE_StructPFMGSolve, HYPRE_StructPFMGSetup, precond);
