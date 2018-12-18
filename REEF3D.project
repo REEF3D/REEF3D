@@ -720,7 +720,12 @@
           <File Name="fnpf_fg_fsfbc.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
-          <File Name="fnpf_timestep.h"/>
+          <VirtualDirectory Name="Time">
+            <File Name="fnpf_timestep.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Discrete Weights">
+            <File Name="fnpf_discrete_weights.h"/>
+          </VirtualDirectory>
           <File Name="fdm_fnpf.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Update">
@@ -2097,6 +2102,9 @@
           <File Name="fnpf_fg_fsfbc.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Discrete Weights">
+            <File Name="fnpf_discrete_weights.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Time">
             <File Name="fnpf_timestep.cpp"/>
           </VirtualDirectory>
@@ -2150,7 +2158,7 @@
           <File Name="fnpf_fg_laplace_cds4.cpp"/>
           <File Name="fnpf_fg_laplace_cds2.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Discrete">
+        <VirtualDirectory Name="Convect">
           <VirtualDirectory Name="DDX">
             <File Name="fnpf_ddx_cds4.cpp"/>
             <File Name="fnpf_ddx_cds2.cpp"/>

@@ -113,7 +113,8 @@ void driver::driver_ini_fnpf_sg()
     pflow->eta_relax(p,pgc,c->eta);
     pflow->fivec_relax(p,pgc,c->Fi);
     pflow->fifsf_relax(p,pgc,c->Fifsf);
-
+    pgc->start7V(p,c->Fi,250);
+    
     ppfsg->inidisc(p,c,pgc);
 
 	pfprint->start(p,c,pgc,pflow);
