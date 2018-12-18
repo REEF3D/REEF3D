@@ -158,8 +158,6 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	pprintbed = new sflow_vtp_bed(p,b);
 	
 	// momentum
-	
-	
 	if(p->A210==3)
 	pmom = new sflow_momentum_RK3(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,pbouss);
     

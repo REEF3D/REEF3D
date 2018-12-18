@@ -42,7 +42,7 @@ void sflow_boussinesq_abbott::ini(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, 
 
 void sflow_boussinesq_abbott::psi1(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q, slice &eta, double alpha)
 {
-    if(p->count==1)
+    if(p->count==0)
     ini(p,b,pgc,P,Q);
     
     SLICELOOP1
@@ -52,7 +52,7 @@ void sflow_boussinesq_abbott::psi1(lexer *p, fdm2D *b, ghostcell *pgc, slice &P,
     
     // add to source
     SLICELOOP1
-    b->F(i,j) += ((1.0/3.0)*pow(b->hx(i,j),2.0)*(Pxx(i,j) - Pxx_n(i,j)))/(alpha*p->dt);
+    b->F(i,j) += ((1.0/3.0)*pow(b->depth(i,j),2.0)*(Pxx(i,j) - Pxx_n(i,j)))/(alpha*p->dt);
 }
 
 void sflow_boussinesq_abbott::psi2(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q, slice &eta, double alpha)
@@ -64,22 +64,22 @@ void sflow_boussinesq_abbott::psi2(lexer *p, fdm2D *b, ghostcell *pgc, slice &P,
     
     // add to source
     SLICELOOP2
-    b->G(i,j) += (1.0/3.0)*pow(b->hy(i,j),2.0)*(Qyy(i,j) - Qyy_n(i,j))/(alpha*p->dt);
+    b->G(i,j) += (1.0/3.0)*pow(b->depth(i,j),2.0)*(Qyy(i,j) - Qyy_n(i,j))/(alpha*p->dt);
 }
 
 void sflow_boussinesq_abbott::psi1_calc(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q, slice &eta, double alpha)
 {
     SLICELOOP1
-    Pxx(i,j) =b->test(i,j)= (P(i+1,j) - 2.0*P(i,j) + P(i-1,j))/(p->dx*p->dx);
+    Pxx(i,j) = (P(i+1,j) - 2.0*P(i,j) + P(i-1,j))/(p->dx*p->dx);
+    
+    //SLICELOOP1
+    //Pxx(i,j) = (b->hp(i+1,j)*(P(i+1,j) - P(i,j)) - b->hp(i,j)*(P(i,j) - P(i-1,j)))/(p->dx*p->dx);
+    
     
     if(p->mpirank==0)
     {
     Pxx(0,0)  = 0.0;
     }
-    
-    /*for(int qn=0;qn<500;++qn)
-    SLICELOOP1
-    Pxx(i,j) = 0.25*Pxx(i+1,j) + 0.5*Pxx(i,j) + 0.25*Pxx(i-1,j);*/
 }
 
 void sflow_boussinesq_abbott::psi2_calc(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q, slice &eta, double alpha)
