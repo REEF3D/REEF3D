@@ -19,6 +19,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
+/*
+    Reference:
+    Bengt Fornberg, Generation of Finite Difference Formulas on Arbitrarily Spaced Grids, 
+    Mathematics of Compuation, 51, 184, 1988, pp. 699-706
+*/
+
 #include"fnpf_convection.h"
 #include"increment.h"
 
@@ -33,9 +39,7 @@ public:
 	fnpf_discrete_weights(lexer*);
 	virtual ~fnpf_discrete_weights();
 
-    void ck_weights_x(lexer*, double*, int, int);
-	void ck_weights_y(lexer*, double*, int, int);
-    void ck_weights_z(lexer*, double*, int, int);
+    void ck_weights(lexer*, double*, int, int, int);
 
 private:
    
@@ -43,3 +47,12 @@ private:
 };
 
 #endif
+
+
+
+
+
+
+
+
+
