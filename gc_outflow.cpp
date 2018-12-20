@@ -40,7 +40,7 @@ void ghostcell::outflow(lexer *p, field& f, int gcv, int bc, int cs)
 
 	if(cs==4)
 	for(q=0;q<margin;++q)
-	f(i+q+1,j,k)=f(i,j,k) - (DT/p->dx)*p->Uo*(f(i,j,k)-f(i-1,j,k));
+	f(i+q+1,j,k)=MAX(0.0, f(i,j,k) - (DT/p->dx)*p->Uo*(f(i,j,k)-f(i-1,j,k)));
 
 	if(cs==5)
 	for(q=0;q<margin;++q)
