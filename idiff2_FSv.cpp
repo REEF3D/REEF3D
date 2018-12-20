@@ -43,6 +43,7 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 
 	count=0;
     if(p->j_dir==1)
+    {
     VLOOP
     {
 	ev_ijk=a->eddyv(i,j,k);
@@ -74,7 +75,6 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 				  + CPOR2/(alpha*p->dt);
 				  
 	a->rhsvec.V[count] += ((u(i,j+1,k)-u(i,j,k))*visc_ddx_p - (u(i-1,j+1,k)-u(i-1,j,k))*visc_ddx_m)/(p->DYP[JP]*p->DXN[IP])
-
 						+  ((w(i,j+1,k)-w(i,j,k))*visc_ddz_p - (w(i,j+1,k-1)-w(i,j,k-1))*visc_ddz_m)/(p->DYP[JP]*p->DZN[KP])
 									
 						+  a->M.p[count]*v(i,j,k)*(1.0/p->N54-1.0)
@@ -96,6 +96,7 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 
 
 	psolv->start(p,a,pgc,v,a->xvec,a->rhsvec,2,gcval_v,p->D29);
+    }
     
 	time=pgc->timer()-starttime;
 	p->viter=p->solveriter;

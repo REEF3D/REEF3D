@@ -73,7 +73,10 @@ void fnpf_discrete_weights::ck_weights(lexer *p, double *ck, int kval, int nval,
     integer  :: i, j, k, mn*/
 
     // ini
-    c1 = 1.0;
+    
+    
+    
+    /*c1 = 1.0;
     c4 = x[0] - z;
     c = 0.0;
     c[0][0] = 1.0;
@@ -113,6 +116,9 @@ void fnpf_discrete_weights::ck_weights(lexer *p, double *ck, int kval, int nval,
 end module
 }
 
+
+
+
 n=length(x); c=zeros(m+1,n); c1=1; c4=x(1)-z; c(1,1)=1;
 for i=2:n
    mn=min(i,m+1); c2=1; c5=c4; c4=x(i)-z;
@@ -128,5 +134,9 @@ for i=2:n
    c1=c2;
 end
 
+
+*/
+
+}
 
 

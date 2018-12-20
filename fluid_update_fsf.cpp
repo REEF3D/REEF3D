@@ -48,19 +48,7 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
 	LOOP
 	{
   
-        double fx,fy,fz,fn;
-        
-        fx = fabs((a->phi(i+1,j,k) - a->phi(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]));
-        fy = fabs((a->phi(i,j+1,k) - a->phi(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]));
-        fz = fabs((a->phi(i,j,k+1) - a->phi(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]));
-        
-        fn = sqrt(fx*fx + fy*fy + fz*fz);
-        
-        fx = fx/fn;
-        fy = fy/fn;
-        fz = fz/fn;
-        
-        epsi = p->F45*(fx*p->DXN[IP]+fy*p->DYN[JP]+fz*p->DZN[KP]);
+       epsi = p->F45*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
         
 		if(a->phi(i,j,k)>epsi)
 		H=1.0;
