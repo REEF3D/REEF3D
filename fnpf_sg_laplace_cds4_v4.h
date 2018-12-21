@@ -19,40 +19,25 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-/*
-    Reference:
-    Bengt Fornberg, Generation of Finite Difference Formulas on Arbitrarily Spaced Grids, 
-    Mathematics of Compuation, 51, 184, 1988, pp. 699-706
-*/
-
-#include"fnpf_convection.h"
+#include"fnpf_sg_laplace.h"
 #include"increment.h"
 
-#ifndef FNPF_DISCRETE_WEIGHTS_H_
-#define FNPF_DISCRETE_WEIGHTS_H_
+#ifndef FNPF_SG_LAPLACE_CDS4_V4_H_
+#define FNPF_SG_LAPLACE_CDS4_V4_H_
 
 using namespace std;
 
-class fnpf_discrete_weights : public increment
+class fnpf_sg_laplace_cds4_v4 : public fnpf_sg_laplace, public increment
 {
 public:
-	fnpf_discrete_weights(lexer*);
-	virtual ~fnpf_discrete_weights();
+    fnpf_sg_laplace_cds4_v4 (lexer*);
+	virtual ~fnpf_sg_laplace_cds4_v4();
 
-    void ck_weights(lexer*, double**, double *, int, int, int, int);
-
+    virtual void start(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_sg_fsfbc*,double*);
+    
 private:
     
-
+    double **ckx,**cky,**ckz;
 };
 
 #endif
-
-
-
-
-
-
-
-
-
