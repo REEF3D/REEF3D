@@ -146,12 +146,12 @@ void fnpf_sg_laplace_cds4_v4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
             
             if(p->flag7[FIJKp2]<0)
             {
-            c->rhsvec.V[n] -= c->M.t[n]*f[FIJKp1];
+            c->rhsvec.V[n] -= c->M.t[n]*f[FIJKp2];
             c->M.t[n] = 0.0;
             }
             
             
-            //--
+           //--
             if(p->flag7[FIm2JK]<0)
             {
             c->rhsvec.V[n] -= c->M.ss[n]*f[FIJK];
@@ -198,7 +198,7 @@ void fnpf_sg_laplace_cds4_v4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
             
             if(p->flag7[FIJKp3]<0)
             {
-            c->rhsvec.V[n] -= c->M.tt[n]*f[FIJKp2];
+            c->rhsvec.V[n] -= c->M.tt[n]*f[FIJKp3];
             c->M.tt[n] = 0.0;
             }
             
@@ -216,10 +216,10 @@ void fnpf_sg_laplace_cds4_v4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
             // bb
             denom = p->sigz[FIJK] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
             
-            c->M.n[n] += abb*(p->DZN[KP]+p->DZN[KM1])*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
+           /* c->M.n[n] += abb*(p->DZN[KP]+p->DZN[KM1])*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
             c->M.s[n] += -abb*(p->DZN[KP]+p->DZN[KM1])*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
             c->M.e[n] += abb*(p->DZN[KP]+p->DZN[KM1])*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
-            c->M.w[n] += -abb*(p->DZN[KP]+p->DZN[KM1])*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
+            c->M.w[n] += -abb*(p->DZN[KP]+p->DZN[KM1])*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));*/
             c->M.p[n] += abb;
             c->M.bb[n] = 0.0;
             }
@@ -229,6 +229,7 @@ void fnpf_sg_laplace_cds4_v4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
             if(p->flag7[FIJKm2]<0 && p->flag7[FIJKm1]<0)
             {
             denom = p->sigz[FIJK] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
+            
             // b
             fbxp = f[FIp1JKp1] + (2.0*p->DZP[KP]*(c->Bx(i+1,j)*((c->Fi[FIp2JK]-c->Fi[FIJK])/(p->DXP[IP] + p->DXP[IM1]))
                                                  +c->By(i+1,j)*((c->Fi[FIp1Jp1K]-c->Fi[FIp1Jm1K])/(p->DYP[JP] + p->DYP[JM1]))))
@@ -269,9 +270,7 @@ void fnpf_sg_laplace_cds4_v4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
             c->M.t[n] += ab;
             c->M.b[n] = 0.0;
 
-            // bb
-            //denom = p->sigz[FIJK] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
-            
+            // bb 
             distfac = 2.0;
             
             c->M.n[n] += abb*distfac*(p->DZN[KP]+p->DZN[KP1])*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
@@ -292,6 +291,7 @@ void fnpf_sg_laplace_cds4_v4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
     
     p->poissoniter=p->solveriter;
     p->poissontime=endtime-starttime;
+    
 	if(p->mpirank==0 && innercounter==p->N50-1 && (p->count%p->P12==0))
 	cout<<"Fi_iter: "<<p->solveriter<<"  Fi_time: "<<setprecision(3)<<p->poissontime<<endl;
 }
