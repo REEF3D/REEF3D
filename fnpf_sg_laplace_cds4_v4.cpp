@@ -36,7 +36,7 @@ fnpf_sg_laplace_cds4_v4::fnpf_sg_laplace_cds4_v4(lexer *p)
     
     dw.ck_weights(p, ckx, p->XP, p->knox, 2, 4, 1);
     dw.ck_weights(p, cky, p->YP, p->knoy, 2, 4, 2);
-    dw.ck_weights(p, ckz, p->ZN, p->knoz+1, 2, 4, 3);
+    dw.ck_weights(p, ckz, p->ZN, p->knoz, 2, 4, 3);
 }
 
 fnpf_sg_laplace_cds4_v4::~fnpf_sg_laplace_cds4_v4()
@@ -111,19 +111,6 @@ void fnpf_sg_laplace_cds4_v4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
             c->M.n[n] = 0.0;
             }
             
-            /*
-            if(p->flag7[FIJm1K]<0)
-            {
-            c->rhsvec.V[n] -= c->M.e[n]*f[FIJK];
-            c->M.e[n] = 0.0;
-            }
-            
-            if(p->flag7[FIJp1K]<0)
-            {
-            c->rhsvec.V[n] -= c->M.w[n]*f[FIJK];
-            c->M.w[n] = 0.0;
-            }*/
-            
             if(p->flag7[FIJm1K]<0)
             {
             c->M.p[n] += c->M.e[n];
@@ -135,14 +122,6 @@ void fnpf_sg_laplace_cds4_v4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
             c->M.p[n] += c->M.w[n];
             c->M.w[n] = 0.0;
             }
-            
-            /*
-            if(p->flag7[FIJKm1]<0)
-            {
-            c->rhsvec.V[n] -= c->M.b[n]*f[FIJKm1];
-            c->M.b[n] = 0.0;
-            }
-            */
             
             if(p->flag7[FIJKp2]<0)
             {
@@ -164,19 +143,6 @@ void fnpf_sg_laplace_cds4_v4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
             c->M.nn[n] = 0.0;
             }
             
-            /*
-            if(p->flag7[FIJm2K]<0)
-            {
-            c->rhsvec.V[n] -= c->M.ee[n]*f[FIJK];
-            c->M.ee[n] = 0.0;
-            }
-            
-            if(p->flag7[FIJp2K]<0)
-            {
-            c->rhsvec.V[n] -= c->M.ww[n]*f[FIJK];
-            c->M.ww[n] = 0.0;
-            }*/
-            
             if(p->flag7[FIJm2K]<0)
             {
             c->M.p[n] += c->M.ee[n];
@@ -188,14 +154,7 @@ void fnpf_sg_laplace_cds4_v4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
             c->M.p[n] += c->M.ww[n];
             c->M.ww[n] = 0.0;
             }
-            
-            /*
-            if(p->flag7[FIJKm2]<0)
-            {
-            c->rhsvec.V[n] -= c->M.bb[n]*f[FIJKm2];
-            c->M.bb[n] = 0.0;
-            }*/
-            
+
             if(p->flag7[FIJKp3]<0)
             {
             c->rhsvec.V[n] -= c->M.tt[n]*f[FIJKp3];
@@ -216,10 +175,10 @@ void fnpf_sg_laplace_cds4_v4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
             // bb
             denom = p->sigz[FIJK] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
             
-           /* c->M.n[n] += abb*(p->DZN[KP]+p->DZN[KM1])*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
+            c->M.n[n] += abb*(p->DZN[KP]+p->DZN[KM1])*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
             c->M.s[n] += -abb*(p->DZN[KP]+p->DZN[KM1])*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
             c->M.e[n] += abb*(p->DZN[KP]+p->DZN[KM1])*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
-            c->M.w[n] += -abb*(p->DZN[KP]+p->DZN[KM1])*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));*/
+            c->M.w[n] += -abb*(p->DZN[KP]+p->DZN[KM1])*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
             c->M.p[n] += abb;
             c->M.bb[n] = 0.0;
             }
@@ -272,13 +231,13 @@ void fnpf_sg_laplace_cds4_v4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
 
             // bb 
             distfac = 2.0;
-            
+            /*
             c->M.n[n] += abb*distfac*(p->DZN[KP]+p->DZN[KP1])*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
             c->M.s[n] += -abb*distfac*(p->DZN[KP]+p->DZN[KP1])*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
             c->M.e[n] += abb*distfac*(p->DZN[KP]+p->DZN[KP1])*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
             c->M.w[n] += -abb*distfac*(p->DZN[KP]+p->DZN[KP1])*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
             c->M.tt[n] += abb;
-            c->M.bb[n] = 0.0;
+            c->M.bb[n] = 0.0;*/
             }
         }
 	++n;
