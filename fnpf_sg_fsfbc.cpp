@@ -55,10 +55,16 @@ fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     pconvec = new fnpf_cds6(p);
     
     if(p->A312==2)
+    {
     pddx = new fnpf_ddx_cds2(p);
+    pdx = new fnpf_cds2(p);
+    }
     
     if(p->A312==3)
+    {
     pddx = new fnpf_ddx_cds4(p);
+    pdx = new fnpf_cds4(p);
+    }
 }
 
 fnpf_sg_fsfbc::~fnpf_sg_fsfbc()
@@ -86,8 +92,8 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     c->Exx(i,j) = pddx->sxx(p,eta);
     c->Eyy(i,j) = pddx->syy(p,eta);
     
-    c->Bx(i,j) = pconvec->sx(p,c->depth,ivel);
-    c->By(i,j) = pconvec->sy(p,c->depth,jvel);
+    c->Bx(i,j) = pdx->sx(p,c->depth,ivel);
+    c->By(i,j) = pdx->sy(p,c->depth,jvel);
     
     c->Bxx(i,j) = pddx->sxx(p,c->depth);
     c->Byy(i,j) = pddx->syy(p,c->depth);

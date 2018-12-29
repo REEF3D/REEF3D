@@ -44,6 +44,7 @@ public:
     void fsfwvel(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
 
     fnpf_convection *pconvec;
+    fnpf_convection *pdx;
     fnpf_ddx *pddx;
 
     double ivel,jvel,kvel;

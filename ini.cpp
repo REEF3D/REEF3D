@@ -55,8 +55,8 @@ void lexer::ini_default()
     A300=1;      // int sigma or fixed grid
     A310=3;		  // int time scheme for FNPF velocities
     A311=4;		  // int convection scheme for FNPF velocities
-    A312=2;      // int discretization for second-order gradient
-    A313=2;      // int discretization for bed bc
+    A312=3;      // int discretization for second-order gradient
+    A313=3;      // int discretization for bed bc
     A320=1;		  // int time scheme for FNPF velocities
     
     A410=1;      // int scheme eta       
