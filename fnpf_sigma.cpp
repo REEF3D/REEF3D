@@ -180,7 +180,7 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsf
     
     
     FLOOP
-    p->ZSN[FIJK] = p->ZN[KP]*(c->eta(i,j) + p->wd - c->bed(i,j)) + c->bed(i,j);
+    p->ZSN[FIJK] = p->ZN[KP]*(eta(i,j) + p->wd);
     
     
     

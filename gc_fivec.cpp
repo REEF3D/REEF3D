@@ -23,8 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 
 void ghostcell::fivec(lexer *p, double *f)
-{
-	
+{	
     FLOOP
     {
         if(p->flag7[FIm1JK]<0)
@@ -54,13 +53,6 @@ void ghostcell::fivec(lexer *p, double *f)
         f[FIJp2K] = f[FIJK];
         f[FIJp3K] = f[FIJK];
         }
-        /*
-        if(p->flag7[FIJKm1]<0)
-        {
-        f[FIJKm1] = f[FIJK];
-        f[FIJKm2] = f[FIJK];
-        f[FIJKm3] = f[FIJK];
-        }*/
     }
 }
 

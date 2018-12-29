@@ -110,11 +110,11 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     sigma_update(p,c,pgc,pf,erk);
     
     // Set Boundary Conditions
+    pflow->fivec_relax(p,pgc,c->Fi);
     fsfbc_sig(p,c,pgc,frk,c->Fi);
     bedbc_sig(p,c,pgc,c->Fi,pf);
     
     // solve Fi
-    pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,250);
     fsfbc_sig(p,c,pgc,frk,c->Fi);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
@@ -153,11 +153,11 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     sigma_update(p,c,pgc,pf,erk);
     
     // Set Boundary Conditions
+    pflow->fivec_relax(p,pgc,c->Fi);
     fsfbc_sig(p,c,pgc,frk,c->Fi);
     bedbc_sig(p,c,pgc,c->Fi,pf);
     
     // solve Fi
-    pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,250);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
     fsfbc_sig(p,c,pgc,frk,c->Fi);
@@ -196,11 +196,11 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     sigma_update(p,c,pgc,pf,erk);
     
     // Set Boundary Conditions
+    pflow->fivec_relax(p,pgc,c->Fi);
     fsfbc_sig(p,c,pgc,frk,c->Fi);
     bedbc_sig(p,c,pgc,c->Fi,pf);
     
     // solve Fi
-    pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,250);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
     fsfbc_sig(p,c,pgc,frk,c->Fi);
@@ -230,11 +230,11 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     sigma_update(p,c,pgc,pf,c->eta);
     
     // Set Boundary Conditions
+    pflow->fivec_relax(p,pgc,c->Fi);
     fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
     bedbc_sig(p,c,pgc,c->Fi,pf);
     
     // solve Fi
-    pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,250);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
     fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
@@ -266,6 +266,9 @@ void fnpf_sg_RK4::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     c->test(i,j,k) = c->Fz(i,j);
     
     pgc->start4(p,c->test,50);
+    
+    bedbc_sig(p,c,pgc,c->Fi,pf);
+    velcalc_sig(p,c,pgc,c->Fi);
 
 }
 

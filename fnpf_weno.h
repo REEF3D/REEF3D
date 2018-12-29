@@ -43,6 +43,7 @@ public:
     virtual double sz(lexer*, double*);
 
 private:
+    double **ckz;
 
 
 };

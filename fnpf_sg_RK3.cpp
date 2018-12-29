@@ -103,15 +103,13 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     sigma_update(p,c,pgc,pf,erk1);
   
     // Set Boundary Conditions
+    pflow->fivec_relax(p,pgc,c->Fi);
     fsfbc_sig(p,c,pgc,frk1,c->Fi);
     bedbc_sig(p,c,pgc,c->Fi,pf);
    
     // solve Fi
-    pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,250);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
-    fsfbc_sig(p,c,pgc,frk1,c->Fi);
-    pgc->start7V(p,c->Fi,250);
     pf->fsfwvel(p,c,pgc,erk1,frk1);
 
 // Step 2
@@ -137,15 +135,13 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     sigma_update(p,c,pgc,pf,erk2);
     
     // Set Boundary Conditions
+    pflow->fivec_relax(p,pgc,c->Fi);
     fsfbc_sig(p,c,pgc,frk2,c->Fi);
     bedbc_sig(p,c,pgc,c->Fi,pf);
     
     // solve Fi
-    pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,250);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
-    fsfbc_sig(p,c,pgc,frk2,c->Fi);
-    pgc->start7V(p,c->Fi,250);
     pf->fsfwvel(p,c,pgc,erk2,frk2);
 
 // Step 3 
@@ -171,15 +167,13 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     sigma_update(p,c,pgc,pf,c->eta);
     
     // Set Boundary Conditions
+    pflow->fivec_relax(p,pgc,c->Fi);
     fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
     bedbc_sig(p,c,pgc,c->Fi,pf);
     
     // solve Fi
-    pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,250);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
-    fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
-    pgc->start7V(p,c->Fi,250);
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
 
     LOOP
@@ -190,6 +184,7 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     
     pgc->start4(p,c->test,50);
 
+    bedbc_sig(p,c,pgc,c->Fi,pf);
     velcalc_sig(p,c,pgc,c->Fi);
 }
 
@@ -209,5 +204,7 @@ void fnpf_sg_RK3::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     c->test(i,j,k) = c->Fz(i,j);
     
     pgc->start4(p,c->test,50);
+    
+    velcalc_sig(p,c,pgc,c->Fi);
 }
 

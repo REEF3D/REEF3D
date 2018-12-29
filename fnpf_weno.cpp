@@ -22,9 +22,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_weno.h"
 #include"lexer.h"
 #include"vec.h"
+#include"fnpf_discrete_weights.h"
 
 fnpf_weno::fnpf_weno(lexer* p) :  ddweno_f_nug(p)
 {
+    p->Darray(ckz,p->knoz+1+4*marge,5);
+    
+    fnpf_discrete_weights dw(p);
+
+    dw.ck_weights(p, ckz, p->ZN, p->knoz+1, 1, 4, 6);
 }
 
 fnpf_weno::~fnpf_weno()
@@ -98,10 +104,11 @@ double fnpf_weno::sy(lexer *p, slice &f, double jvel)
 
 double fnpf_weno::sz(lexer *p, double *f)
 {
-    return (-(25.0/12.0)*f[FIJK] + 4.0*f[FIJKm1] - 3.0*f[FIJKm2] + (4.0/3.0)*f[FIJKm3] - 0.25*f[FIJKm4])
-          /(-(25.0/12.0)*p->ZN[KP] + 4.0*p->ZN[KM1] - 3.0*p->ZN[KM2] + (4.0/3.0)*p->ZN[KM3] - 0.25*p->ZN[KM4]); 
+    grad = (ckz[p->knoz][4]*f[FIJK] + ckz[p->knoz][3]*f[FIJKm1] + ckz[p->knoz][2]*f[FIJKm2] + ckz[p->knoz][1]*f[FIJKm3] + ckz[p->knoz][0]*f[FIJKm4]);
+    
+    return grad;
+    
     /*
-    return (-(25.0/12.0)*f[FIJKp1] + 4.0*f[FIJK] - 3.0*f[FIJKm1] + (4.0/3.0)*f[FIJKm2] - 0.25*f[FIJKm3])
-          /(-(25.0/12.0)*p->ZN[KP1] + 4.0*p->ZN[KP] - 3.0*p->ZN[KM1] + (4.0/3.0)*p->ZN[KM2] - 0.25*p->ZN[KM3]);
-           */ 
+    return (-(25.0/12.0)*f[FIJK] + 4.0*f[FIJKm1] - 3.0*f[FIJKm2] + (4.0/3.0)*f[FIJKm3] - 0.25*f[FIJKm4])
+          /(-(25.0/12.0)*p->ZN[KP] + 4.0*p->ZN[KM1] - 3.0*p->ZN[KM2] + (4.0/3.0)*p->ZN[KM3] - 0.25*p->ZN[KM4]);*/
 }
