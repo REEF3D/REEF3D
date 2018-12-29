@@ -75,9 +75,6 @@ void fnpf_discrete_weights::ck_weights(lexer *p, double **ck, double *pos, int n
         {
             nd = accuracy;
             
-            //if(p->mpirank==0)
-            //cout<<" qn: "<<qn<<" z: "<<z<<endl;
-            
             for(r=0;r<nd;++r)
             x[r] = pos[qn+marge - 2 + r];
             
@@ -88,11 +85,16 @@ void fnpf_discrete_weights::ck_weights(lexer *p, double **ck, double *pos, int n
         for(r=0;r<nd;++r)
         x[r] = pos[qn+marge-accuracy + r];
         
-        
+        //if(p->mpirank==0)
+            //cout<<" qn: "<<qn<<" z: "<<z<<endl;
+            
+        //---------------------
+        // Algorithm
         c1 = 1.0;
         c4 = x[0] - z;
-        for(r=0;r<nd+1; ++r)
-        for(s=0;s<nd+1; ++s)
+        for(r=0;r<=nd; ++r)
+        for(s=0;s<=nd; ++s)
+            
         c[r][s] = 0.0;
         
         c[0][0] = 1.0;
@@ -125,8 +127,11 @@ void fnpf_discrete_weights::ck_weights(lexer *p, double **ck, double *pos, int n
           }
           c1 = c2;
         }
+
+        //------------------------
+        
   
-    // write into ct array:
+        // write into ct array:
         for(r=0;r<nd;++r)
         ck[qn+marge][r] = -c[r][2];
         
@@ -147,6 +152,14 @@ void fnpf_discrete_weights::ck_weights(lexer *p, double **ck, double *pos, int n
         ck[qn+marge][r] = -c[r][2];
         }
         
+        
+        if(id==6)
+        for(r=0;r<nd;++r)
+        ck[qn+marge][r] = c[r][1];
+        
+        
+        
+        // Debug Print
         /*
         if(id==3)
         if(p->mpirank==0)
@@ -155,10 +168,6 @@ void fnpf_discrete_weights::ck_weights(lexer *p, double **ck, double *pos, int n
         cout<<ck[qn+marge][r]<<" ";
         cout<<endl;
         }*/
-        
-        if(id==6)
-        for(r=0;r<nd;++r)
-        ck[qn+marge][r] = c[r][1];
         
         if(id==6)
         if(p->mpirank==0)
