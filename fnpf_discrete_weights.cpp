@@ -58,8 +58,8 @@ void fnpf_discrete_weights::ck_weights(lexer *p, double **ck, double *pos, int n
         for(r=0;r<nd;++r)
         x[r] = pos[qn+marge-accuracy/2 + r];
         
-        // fill bed
-        if(id==3 && qn==0)
+        // fill beginning
+        if((id==1||id==2||id==3) && qn==0)
         {
             nd = accuracy; 
             
@@ -68,7 +68,16 @@ void fnpf_discrete_weights::ck_weights(lexer *p, double **ck, double *pos, int n
             
         }
         
-        // fill fsf
+        // fill end
+        if((id==1||id==2||id==3) && qn==numpt-1)
+        {
+            nd = accuracy;
+            
+            for(r=0;r<nd;++r)
+            x[r] = pos[qn+marge - 2 + r];
+            
+        }
+        
         if(id==3 && qn==numpt-1)
         {
             nd = accuracy;
@@ -131,8 +140,8 @@ void fnpf_discrete_weights::ck_weights(lexer *p, double **ck, double *pos, int n
         for(r=0;r<nd;++r)
         ck[qn+marge][r] = -c[r][2];
         
-        // write bed stencils
-        if(id==3 && qn==0)
+        // write beginning stencils
+        if((id==1||id==2||id==3) && qn==0)
         {
         ck[qn+marge][0] = 0.0;
         
@@ -140,8 +149,8 @@ void fnpf_discrete_weights::ck_weights(lexer *p, double **ck, double *pos, int n
         ck[qn+marge][r+1] = -c[r][2];
         }
         
-        // write fsf stencils
-        if(id==3 && qn==numpt-1)
+        // write end stencils
+        if((id==1||id==2||id==3) && qn==numpt-1)
         {
         
         for(r=0;r<nd;++r)

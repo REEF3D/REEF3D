@@ -85,6 +85,9 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     c->Fx(i,j) = pconvec->sx(p,Fifsf,ivel);
     c->Fy(i,j) = pconvec->sy(p,Fifsf,jvel);
     
+    //c->Vx(i,j) = pdx->sx(p,Fifsf,ivel);
+    //c->Vy(i,j) = pdx->sy(p,Fifsf,jvel);
+    
     c->Ex(i,j) = pconvec->sx(p,eta,ivel);
     c->Ey(i,j) = pconvec->sy(p,eta,jvel);
     
@@ -123,7 +126,7 @@ void fnpf_sg_fsfbc::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 void fnpf_sg_fsfbc::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
 {
     SLICELOOP4
-    c->K(i,j) =  - 0.5*pow(c->Fx(i,j),2.0) - 0.5*pow(c->Fy(i,j),2.0) 
+    c->K(i,j) =  - 0.5*c->Fx(i,j)*c->Fx(i,j) - 0.5*c->Fy(i,j)*c->Fy(i,j) 
     
                  + 0.5*pow(c->Fz(i,j),2.0)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0)) - fabs(p->W22)*eta(i,j);
 }

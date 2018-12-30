@@ -118,6 +118,7 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pgc->start7V(p,c->Fi,250);
     fsfbc_sig(p,c,pgc,frk,c->Fi);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
+    pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,250);
     pf->fsfwvel(p,c,pgc,erk,frk);
     
@@ -161,6 +162,7 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pgc->start7V(p,c->Fi,250);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
     fsfbc_sig(p,c,pgc,frk,c->Fi);
+    pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,250);
     pf->fsfwvel(p,c,pgc,erk,frk);
     
@@ -204,6 +206,7 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pgc->start7V(p,c->Fi,250);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
     fsfbc_sig(p,c,pgc,frk,c->Fi);
+    pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,250);
     pf->fsfwvel(p,c,pgc,erk,frk);
 
@@ -238,6 +241,7 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pgc->start7V(p,c->Fi,250);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
     fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
+    pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,250);
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
 

@@ -443,6 +443,8 @@ void hypre_aij::fill_matrix_F_13p_v2(lexer* p, ghostcell* pgc, matrix_diag &M, d
 	col[count] = rownum4(i,j,k+2);
 	++count;
 	}
+    
+    //
 
 	
 	HYPRE_IJMatrixSetValues(A, 1, &count, &rownum, col, val);

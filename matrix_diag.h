@@ -36,6 +36,8 @@ public:
     void resize(lexer*,int,int);
 
 	double *n,*s,*e,*w,*b,*t,*p;
+    double *nb,*nt,*sb,*st;
+    double *wb,*wt,*eb,*et;
     double *nn,*ss,*ee,*ww,*bb,*tt;
     double *nnn,*sss,*eee,*www,*bbb,*ttt;
 
