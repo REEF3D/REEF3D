@@ -19,28 +19,30 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-class lexer;
+#include"fnpf_sg_laplace.h"
+#include"increment.h"
 
-#ifndef MATRIX_DIAG_H_
-#define MATRIX_DIAG_H_
+class fnpf_sg_bed_update;
+
+#ifndef FNPF_SG_LAPLACE_CDS4_V5_H_
+#define FNPF_SG_LAPLACE_CDS4_V5_H_
 
 using namespace std;
 
-class matrix_diag
+class fnpf_sg_laplace_cds4_v5 : public fnpf_sg_laplace, public increment
 {
 public:
+    fnpf_sg_laplace_cds4_v5 (lexer*);
+	virtual ~fnpf_sg_laplace_cds4_v5();
 
-    matrix_diag(lexer*);
-    virtual ~matrix_diag();
+    virtual void start(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_sg_fsfbc*,double*);
     
-    void resize(lexer*,int,int);
-
-	double *n,*s,*e,*w,*b,*t,*p;
-    double *nn,*ss,*ee,*ww,*bb,*tt;
-    double *nnn,*sss,*eee,*www,*bbb,*ttt;
-
+private:
+    
+    double **ckx,**cky,**ckz;
+    fnpf_sg_bed_update *pbed;
+    
+    int bc;
 };
 
 #endif
-
-

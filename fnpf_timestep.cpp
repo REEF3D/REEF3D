@@ -102,6 +102,8 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
     //cw = MIN3(cu,cv,cw);
     
    	p->dt=p->N47*cw;
+    
+    //p->dt=MIN(1.1*p->dt_old,p->dt);
 
     
 	p->dt=pgc->timesync(p->dt);

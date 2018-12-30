@@ -33,6 +33,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_sg_laplace_cds4_v2.h"
 #include"fnpf_sg_laplace_cds4_v3.h"
 #include"fnpf_sg_laplace_cds4_v4.h"
+#include"fnpf_sg_laplace_cds4_v5.h"
 #include"onephase.h"
 #include"fnpf_sg_fsfbc.h"
 
@@ -71,6 +72,9 @@ fnpf_sg_RK4::fnpf_sg_RK4(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_sg_ini(p,
     
     if(p->A320==4)
     plap = new fnpf_sg_laplace_cds4_v4(p);
+    
+    if(p->A320==5)
+    plap = new fnpf_sg_laplace_cds4_v5(p);
     
     pf = new fnpf_sg_fsfbc(p,c,pgc);
 }

@@ -41,22 +41,12 @@ matrix_diag::matrix_diag(lexer *pp)
 	pp->Darray(tt,pp->veclength);
 	pp->Darray(bb,pp->veclength);
     
-    pp->Darray(nt,pp->veclength);
-    pp->Darray(nb,pp->veclength);
-    pp->Darray(st,pp->veclength);
-    pp->Darray(sb,pp->veclength);
-    pp->Darray(wt,pp->veclength);
-    pp->Darray(wb,pp->veclength);
-    pp->Darray(et,pp->veclength);
-    pp->Darray(eb,pp->veclength);
-
-    
-    pp->Darray(nnn,pp->veclength);
+    /*pp->Darray(nnn,pp->veclength);
     pp->Darray(sss,pp->veclength);
 	pp->Darray(eee,pp->veclength);
 	pp->Darray(www,pp->veclength);
 	pp->Darray(ttt,pp->veclength);
-	pp->Darray(bbb,pp->veclength);
+	pp->Darray(bbb,pp->veclength);*/
     }
     
 }
