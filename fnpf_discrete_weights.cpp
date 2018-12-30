@@ -52,9 +52,7 @@ void fnpf_discrete_weights::ck_weights(lexer *p, double **ck, double *pos, int n
     for(int qn=0;qn<numpt;++qn)
     {
         nd = accuracy+1; 
-        
         z = pos[qn+marge];
-        
         
         //fill x regular
         for(r=0;r<nd;++r)
@@ -84,9 +82,7 @@ void fnpf_discrete_weights::ck_weights(lexer *p, double **ck, double *pos, int n
         if(id==6)
         for(r=0;r<nd;++r)
         x[r] = pos[qn+marge-accuracy + r];
-        
-        //if(p->mpirank==0)
-            //cout<<" qn: "<<qn<<" z: "<<z<<endl;
+ 
             
         //---------------------
         // Algorithm
