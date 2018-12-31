@@ -1251,11 +1251,11 @@
         <File Name="flux_face_FOU_vrans.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Gradient">
-        <File Name="curvddx.cpp"/>
+        <File Name="gradient_dfweno.cpp"/>
+        <File Name="gradient_curvddx.cpp"/>
+        <File Name="gradient_momdx.cpp"/>
+        <File Name="gradient_momscalar.cpp"/>
         <File Name="gradient.cpp"/>
-        <File Name="momdx.cpp"/>
-        <File Name="momscalar.cpp"/>
-        <File Name="dfweno.cpp"/>
         <File Name="gradient_ddweno.cpp"/>
         <File Name="gradient_dslweno.cpp"/>
       </VirtualDirectory>

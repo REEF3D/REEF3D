@@ -105,7 +105,7 @@ void driver::logic()
 	pconvec=new weno3_hj(p);
     
     if(p->D10==9 && p->N40<=10)
-	pconvec=new weno_flux_N(p);
+	pconvec=new weno_flux(p);
 	
 	if(p->D10>=10 && p->D10<30 && p->N40<=10)
 	pconvec=new hires(p,p->D10);

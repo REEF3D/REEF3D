@@ -26,6 +26,172 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"reini_walld.h"
 
 
+
+void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pdisc, reini *preini, ioflow *pflow,  field& walldist)
+{
+	int ic,jc,kc;
+	double xdist,ydist,zdist;
+	
+	MALOOP
+    walldist(i,j,k)=0.0;
+	
+	LOOP
+    walldist(i,j,k)=1.0e9;
+	
+	pgc->gcparax(p,walldist,4);
+	
+	GC4LOOP
+	{
+	ic=p->gcb4[n][0];
+	jc=p->gcb4[n][1];
+	kc=p->gcb4[n][2];	
+	
+
+	
+	if(p->gcb4[n][4]==5 || p->gcb4[n][4]==21 || p->gcb4[n][4]==22)
+	{
+		
+		if(p->gcb4[n][3]==1)
+		for(i=ic;i<p->knox;++i)
+		{
+		j=jc;
+		k=kc;
+		xdist = fabs(double(i-ic)*p->dx) + 0.5*p->dx;
+		PCHECK
+		walldist(i,j,k)=MIN(walldist(i,j,k),xdist);
+		}
+		
+		if(p->gcb4[n][3]==3)
+		for(j=jc;j<p->knoy;++j)
+		{
+		i=ic;
+		k=kc;
+		ydist = fabs(double(j-jc)*p->dx) + 0.5*p->dx;
+		PCHECK
+		walldist(i,j,k)=MIN(walldist(i,j,k),ydist);
+		}
+		
+		if(p->gcb4[n][3]==5)
+		for(k=kc;k<p->knoz;++k)
+		{
+		i=ic;
+		j=jc;
+		zdist = fabs(double(k-kc)*p->dx) + 0.5*p->dx;
+		PCHECK
+		walldist(i,j,k)=MIN(walldist(i,j,k),zdist);
+		}
+		
+		if(p->gcb4[n][3]==4)
+		for(i=0;i<=ic;++i)
+		{
+		j=jc;
+		k=kc;
+		xdist = fabs(double(i-ic)*p->dx) + 0.5*p->dx;
+		PCHECK
+		walldist(i,j,k)=MIN(walldist(i,j,k),xdist);
+		}
+		
+		if(p->gcb4[n][3]==2)
+		for(j=0;j<=jc;++j)
+		{
+		i=ic;
+		k=kc;
+		ydist = fabs(double(j-jc)*p->dx) + 0.5*p->dx;
+		PCHECK
+		walldist(i,j,k)=MIN(walldist(i,j,k),ydist);
+		}
+		
+		if(p->gcb4[n][3]==6)
+		for(k=0;k<=kc;++k)
+		{
+		i=ic;
+		j=jc;
+		zdist = fabs(double(k-kc)*p->dx) + 0.5*p->dx;
+		PCHECK
+		walldist(i,j,k)=MIN(walldist(i,j,k),zdist);
+		}
+	}
+	}
+	//LOOP
+	//walldist(i,j,k)=1.0;
+	
+	pgc->gcparax(p,walldist,4);
+	
+	gcparavoidx(p,walldist,4);
+	gcparacox(p,walldist,4);
+	gcparacox(p,walldist,4);
+	
+	
+	// calculate global position of gcb cell
+	count=0;
+
+    GC4LOOP
+    if(p->gcb4[n][4]==5|| p->gcb4[n][4]==21 || p->gcb4[n][4]==22)
+    {
+    i=p->gcb4[n][0];
+    j=p->gcb4[n][1];
+    k=p->gcb4[n][2];
+	
+	if(p->gcb4[n][3]==1)
+	walldist(i-1,j,k)=-0.5*p->dx;  
+
+	if(p->gcb4[n][3]==4)
+	walldist(i+1,j,k)=-0.5*p->dx;   
+
+	if(p->gcb4[n][3]==3)
+	walldist(i,j-1,k)=-0.5*p->dx;   
+	
+	if(p->gcb4[n][3]==2)
+	walldist(i,j+1,k)=-0.5*p->dx; 
+	
+	if(p->gcb4[n][3]==5)
+	walldist(i,j,k-1)=-0.5*p->dx; 
+	
+	if(p->gcb4[n][3]==6)
+	walldist(i,j,k+1)=-0.5*p->dx; 
+    }
+	
+	
+	reini_walld reini(p,a);
+	
+	reini.start(a,p,walldist,pgc,pflow);
+
+	pgc->gcparax(p,walldist,4);
+	
+	gcparavoidx(p,walldist,4);
+	gcparacox(p,walldist,4);
+	gcparacox(p,walldist,4);
+	
+	GC4LOOP
+    if(p->gcb4[n][4]==5|| p->gcb4[n][4]==21 || p->gcb4[n][4]==22)
+    {
+    i=p->gcb4[n][0];
+    j=p->gcb4[n][1];
+    k=p->gcb4[n][2];
+	
+	if(p->gcb4[n][3]==1)
+	walldist(i-1,j,k)=0.0;  
+
+	if(p->gcb4[n][3]==4)
+	walldist(i+1,j,k)=0.0;   
+
+	if(p->gcb4[n][3]==3)
+	walldist(i,j-1,k)=0.0;   
+	
+	if(p->gcb4[n][3]==2)
+	walldist(i,j+1,k)=0.0; 
+	
+	if(p->gcb4[n][3]==5)
+	walldist(i,j,k-1)=0.0; 
+	
+	if(p->gcb4[n][3]==6)
+	walldist(i,j,k+1)=0.0; 
+    }
+	
+}
+
+
+/*
 void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec, reini *preini, ioflow *pflow,  field& walldist)
 {
 	int ic,jc,kc;
@@ -118,7 +284,7 @@ void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pconv
 	
 	gcparavoidx(p,walldist,4);
 	gcparacox(p,walldist,4);	
-	preini->start(a,p,walldist,pgc,pflow);
+	//preini->start(a,p,walldist,pgc,pflow);
 
 	pgc->gcparax(p,walldist,4);
 	
@@ -152,4 +318,4 @@ void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pconv
 	walldist(i,j,k+1)=0.0; 
     }
 	
-}
+}*/

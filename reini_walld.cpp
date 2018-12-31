@@ -105,7 +105,7 @@ void reini_walld::start(fdm* a,lexer* p,field& b, ghostcell* pgc,ioflow* pflow)
         }
     }
 
-	pgc->gcparaxvec(p,f,5);
+	pgc->gcparaxvec(p,f,4);
 	dt=0.5*p->dx;
 	reiniter=2*int(p->maxlength/(dt));
 
@@ -137,7 +137,7 @@ void reini_walld::start(fdm* a,lexer* p,field& b, ghostcell* pgc,ioflow* pflow)
 	f.V[I_J_K_4]=0.5*p->dx;
 	}
 	
-	pgc->gcparaxvec(p,f,5);
+	pgc->gcparaxvec(p,f,4);
 	}
 
     // backfill
