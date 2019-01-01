@@ -1542,6 +1542,7 @@
         <File Name="gctopo_update.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CDS Grid">
+        <File Name="gc_column_pt_update.cpp"/>
         <File Name="gc_column_pt.cpp"/>
         <File Name="gc_cval_gcb.cpp"/>
         <File Name="gc_cval_update.cpp"/>

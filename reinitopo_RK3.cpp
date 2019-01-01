@@ -96,8 +96,6 @@ void reinitopo_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostcel
 	if(p->count>0)
 	step(p,a);
 
-
-
     for(int q=0;q<reiniter;++q)
     {
 	// Step 1
@@ -157,8 +155,7 @@ void reinitopo_RK3::step(lexer* p, fdm *a)
 }
 
 void reinitopo_RK3::time_preproc(lexer* p)
-{
-	
+{	
     n=0;
 	ALOOP
 	{

@@ -130,7 +130,8 @@ void reinidisc_fsf::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *
 	dz=ddwenoz(a,b,-1.0,C);
 
 	if(zplus*lsSig>0.0 && zmin*lsSig<0.0)
-	dz=0.0;						
+	dz=0.0;	
+					
 
 	dnorm=sqrt(dx*dx + dy*dy + dz*dz);
 	

@@ -106,7 +106,7 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
     // bedload
     pbed->start(p,a,pgc);
 	
-	if(p->S102>0)
+	//if(p->S102>0)
 	filter(p,a,pgc,a->bedload,p->S102,p->S103);
     
     // Exner
@@ -121,7 +121,7 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
 	filter(p,a,pgc,a->bedzh,p->S100,p->S101);
 	
 	topo_zh_update(p,a,pgc);
-    //preto->start(a,p,a->topo,pconvec,pgc);	
+    preto->start(a,p,a->topo,pconvec,pgc);	
 
     pgc->start1(p,a->u,10);
 	pgc->start2(p,a->v,11);

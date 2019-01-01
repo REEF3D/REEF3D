@@ -92,9 +92,7 @@ void weno_nug_func::precalc_cf(lexer* p)
                   
     cfz[KP][0][2] = ((p->ZN[KP2]-p->ZN[KP1])/(p->ZN[KP3]-p->ZN[KM2])) 
                   * ((p->ZN[KP3]-p->ZN[KP1])/(p->ZN[KP2]-p->ZN[KM2]));
-                  
-   // cout<<" is2: "<<cfz[KP][0][0]<<" "<<isfz[KP][0][4][1]<<" "<<cfz[KP][0][2]<<endl;
-                  
+                                 
     // kmax
     cfz[KP][0][3] = ((p->ZN[KP1]-p->ZN[KP])/(p->ZN[KP4]-p->ZN[KM1])) 
                   * ((p->ZN[KP1]-p->ZN[KM1])/(p->ZN[KP4]-p->ZN[KP]));
@@ -106,7 +104,6 @@ void weno_nug_func::precalc_cf(lexer* p)
     cfz[KP][0][5] = ((p->ZN[KP3]-p->ZN[KP1])/(p->ZN[KP4]-p->ZN[KM1])) 
                   * ((p->ZN[KP4]-p->ZN[KP1])/(p->ZN[KP3]-p->ZN[KM1]));
     }
-    
     
 //-------------------------------------------------------------------------
 // XP
