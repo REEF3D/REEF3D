@@ -27,8 +27,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ioflow.h"
 #include"solver.h"
 #include"reini.h"
-#include"fnpf_sg_laplace_cds2_v2.h"
-#include"fnpf_sg_laplace_cds4_v4.h"
+#include"fnpf_sg_laplace_cds2.h"
+#include"fnpf_sg_laplace_cds4.h"
 #include"onephase.h"
 #include"fnpf_sg_fsfbc.h"
 
@@ -56,10 +56,10 @@ fnpf_sg_RK3::fnpf_sg_RK3(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_sg_ini(p,
     gcval_fifsf = 50;
     
     if(p->A320==1)
-    plap = new fnpf_sg_laplace_cds2_v2(p);
+    plap = new fnpf_sg_laplace_cds2(p);
     
     if(p->A320==2)
-    plap = new fnpf_sg_laplace_cds4_v4(p);
+    plap = new fnpf_sg_laplace_cds4(p);
     
     pf = new fnpf_sg_fsfbc(p,c,pgc);
 }

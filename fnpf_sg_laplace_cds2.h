@@ -24,16 +24,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 class fnpf_sg_bed_update;
 
-#ifndef LAPLACE_FNPF_SG_CDS2_V2_H_
-#define LAPLACE_FNPF_SG_CDS2_V2_H_
+#ifndef LAPLACE_FNPF_SG_CDS2_H_
+#define LAPLACE_FNPF_SG_CDS2_H_
 
 using namespace std;
 
-class fnpf_sg_laplace_cds2_v2 : public fnpf_sg_laplace, public increment
+class fnpf_sg_laplace_cds2 : public fnpf_sg_laplace, public increment
 {
 public:
-    fnpf_sg_laplace_cds2_v2 (lexer*);
-	virtual ~fnpf_sg_laplace_cds2_v2();
+    fnpf_sg_laplace_cds2 (lexer*);
+	virtual ~fnpf_sg_laplace_cds2();
 
     virtual void start(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_sg_fsfbc*,double*);
     

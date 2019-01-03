@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_sg_laplace_cds4_v4.h"
+#include"fnpf_sg_laplace_cds4.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"solver.h"
@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_discrete_weights.h"
 #include"fnpf_sg_bed_update.h"
 
-fnpf_sg_laplace_cds4_v4::fnpf_sg_laplace_cds4_v4(lexer *p) 
+fnpf_sg_laplace_cds4::fnpf_sg_laplace_cds4(lexer *p) 
 {
     p->Darray(ckx,p->knox+1+4*marge,5);
     p->Darray(cky,p->knoy+1+4*marge,5);
@@ -45,11 +45,11 @@ fnpf_sg_laplace_cds4_v4::fnpf_sg_laplace_cds4_v4(lexer *p)
 }
 
 
-fnpf_sg_laplace_cds4_v4::~fnpf_sg_laplace_cds4_v4()
+fnpf_sg_laplace_cds4::~fnpf_sg_laplace_cds4()
 {
 }
 
-void fnpf_sg_laplace_cds4_v4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_sg_fsfbc *pf, double *f)
+void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_sg_fsfbc *pf, double *f)
 {
     // see p. 1130-1132
     

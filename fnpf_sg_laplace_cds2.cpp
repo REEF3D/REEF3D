@@ -19,23 +19,23 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_sg_laplace_cds2_v2.h"
+#include"fnpf_sg_laplace_cds2.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include"solver.h"
 #include"fnpf_sg_bed_update.h"
 
-fnpf_sg_laplace_cds2_v2::fnpf_sg_laplace_cds2_v2(lexer *p) 
+fnpf_sg_laplace_cds2::fnpf_sg_laplace_cds2(lexer *p) 
 {
     pbed = new fnpf_sg_bed_update(p);
 }
 
-fnpf_sg_laplace_cds2_v2::~fnpf_sg_laplace_cds2_v2()
+fnpf_sg_laplace_cds2::~fnpf_sg_laplace_cds2()
 {
 }
 
-void fnpf_sg_laplace_cds2_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,fnpf_sg_fsfbc *pf, double *f)
+void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,fnpf_sg_fsfbc *pf, double *f)
 {
     double sigxyz2;
     double ab,denom;
