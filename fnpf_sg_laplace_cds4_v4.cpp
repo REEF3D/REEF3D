@@ -39,7 +39,7 @@ fnpf_sg_laplace_cds4_v4::fnpf_sg_laplace_cds4_v4(lexer *p)
     dw.ck_weights(p, cky, p->YP, p->knoy, 2, 4, 2);
     dw.ck_weights(p, ckz, p->ZN, p->knoz, 2, 4, 3);
     
-    bc=2;
+    bc=4;
     
     pbed = new fnpf_sg_bed_update(p);
 }
@@ -255,7 +255,7 @@ void fnpf_sg_laplace_cds4_v4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
             c->M.ss[n] += ab*dist*c->Bx(i,j)/(denom*xdelta); 
 
    
-             c->M.e[n] += -8.0*ab*dist*c->By(i,j)/(denom*ydelta);
+            c->M.e[n] += -8.0*ab*dist*c->By(i,j)/(denom*ydelta);
             c->M.ee[n] += ab*dist*c->By(i,j)/(denom*ydelta);
             
             c->M.w[n] += 8.0*ab*dist*c->By(i,j)/(denom*ydelta);
@@ -275,7 +275,7 @@ void fnpf_sg_laplace_cds4_v4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
             xdelta = (-p->XP[IP2] + 8.0*p->XP[IP1] - 8.0*p->XP[IM1] + p->XP[IM2]);
             ydelta = (-p->YP[JP2] + 8.0*p->YP[JP1] - 8.0*p->YP[JM1] + p->YP[JM2]);  
             
-            dist = -(1.0/3.0)*p->ZN[KM1] - (1.0/2.0)*p->ZN[KP] + p->ZN[KP1] - (1.0/6.0)*p->ZN[KP2];
+            dist = -(1.0/3.0)*p->ZN[KM2] - (1.0/2.0)*p->ZN[KM1] + p->ZN[KP] - (1.0/6.0)*p->ZN[KP1];
             
 
             c->M.n[n] += abb*24.0*dist*c->Bx(i,j)/(denom*xdelta);

@@ -173,7 +173,7 @@ void fnpf_discrete_weights::ck_weights(lexer *p, double **ck, double *pos, int n
         cout<<ck[qn+marge][r]<<" ";
         cout<<endl;
         }*/
-        
+        /*
         if(id==6)
         if(p->mpirank==0)
         {
@@ -182,7 +182,7 @@ void fnpf_discrete_weights::ck_weights(lexer *p, double **ck, double *pos, int n
         cout<<endl;
         
         //cout<<"z: "<<z<<endl;
-        }
+        }*/
         
         
         
