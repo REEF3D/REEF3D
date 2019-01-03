@@ -97,7 +97,7 @@ void fillvec::fillxvec1(lexer* p, fdm* a, field& f)
     j=p->gcpara1[q][1];
     k=p->gcpara1[q][2];
     
-    n=p->gcpara1[q][7];
+    n=p->gcpara1[q][9];
         
         if(p->gcpara1[q][3]==1)
         {
@@ -113,7 +113,7 @@ void fillvec::fillxvec1(lexer* p, fdm* a, field& f)
     j=p->gcpara2[q][1];
     k=p->gcpara2[q][2];
         
-    n=p->gcpara2[q][7];
+    n=p->gcpara2[q][9];
         
         if(p->gcpara2[q][3]==1)
         {
@@ -129,7 +129,7 @@ void fillvec::fillxvec1(lexer* p, fdm* a, field& f)
     j=p->gcpara3[q][1];
     k=p->gcpara3[q][2];
         
-    n=p->gcpara3[q][7];
+    n=p->gcpara3[q][9];
         
         if(p->gcpara3[q][3]==1)
         {
@@ -145,7 +145,7 @@ void fillvec::fillxvec1(lexer* p, fdm* a, field& f)
     j=p->gcpara4[q][1];
     k=p->gcpara4[q][2];
         
-    n=p->gcpara4[q][7];
+    n=p->gcpara4[q][9];
         
         if(p->gcpara4[q][3]==1)
         {
@@ -161,7 +161,7 @@ void fillvec::fillxvec1(lexer* p, fdm* a, field& f)
     j=p->gcpara5[q][1];
     k=p->gcpara5[q][2];
         
-    n=p->gcpara5[q][7];
+    n=p->gcpara5[q][9];
         
         if(p->gcpara5[q][3]==1)
         {
@@ -177,7 +177,7 @@ void fillvec::fillxvec1(lexer* p, fdm* a, field& f)
     j=p->gcpara6[q][1];
     k=p->gcpara6[q][2];
         
-    n=p->gcpara6[q][7];
+    n=p->gcpara6[q][9];
         
         if(p->gcpara6[q][3]==1)
         {
@@ -253,7 +253,7 @@ void fillvec::fillxvec2(lexer* p, fdm* a, field& f)
     j=p->gcpara1[q][1];
     k=p->gcpara1[q][2];
         
-    n=p->gcpara1[q][8];
+    n=p->gcpara1[q][9];
         
         if(p->gcpara1[q][3]==1)
         {
@@ -269,7 +269,7 @@ void fillvec::fillxvec2(lexer* p, fdm* a, field& f)
     j=p->gcpara2[q][1];
     k=p->gcpara2[q][2];
         
-    n=p->gcpara2[q][8];
+    n=p->gcpara2[q][10];
         
         if(p->gcpara2[q][3]==1)
         {
@@ -285,7 +285,7 @@ void fillvec::fillxvec2(lexer* p, fdm* a, field& f)
     j=p->gcpara3[q][1];
     k=p->gcpara3[q][2];
         
-    n=p->gcpara3[q][8];
+    n=p->gcpara3[q][10];
         
         if(p->gcpara3[q][3]==1)
         {
@@ -301,7 +301,7 @@ void fillvec::fillxvec2(lexer* p, fdm* a, field& f)
     j=p->gcpara4[q][1];
     k=p->gcpara4[q][2];
         
-    n=p->gcpara4[q][8];
+    n=p->gcpara4[q][10];
         
         if(p->gcpara4[q][3]==1)
         {
@@ -317,7 +317,7 @@ void fillvec::fillxvec2(lexer* p, fdm* a, field& f)
     j=p->gcpara5[q][1];
     k=p->gcpara5[q][2];
         
-    n=p->gcpara5[q][8];
+    n=p->gcpara5[q][10];
         
         if(p->gcpara5[q][3]==1)
         {
@@ -333,7 +333,7 @@ void fillvec::fillxvec2(lexer* p, fdm* a, field& f)
     j=p->gcpara6[q][1];
     k=p->gcpara6[q][2];
         
-    n=p->gcpara6[q][8];
+    n=p->gcpara6[q][10];
         
         if(p->gcpara6[q][3]==1)
         {
@@ -409,7 +409,7 @@ void fillvec::fillxvec3(lexer* p, fdm* a, field& f)
     j=p->gcpara1[q][1];
     k=p->gcpara1[q][2];
         
-    n=p->gcpara1[q][9];
+    n=p->gcpara1[q][11];
         
         if(p->gcpara1[q][3]==1)
         {
@@ -425,7 +425,7 @@ void fillvec::fillxvec3(lexer* p, fdm* a, field& f)
     j=p->gcpara2[q][1];
     k=p->gcpara2[q][2];
         
-    n=p->gcpara2[q][9];
+    n=p->gcpara2[q][11];
         
         if(p->gcpara2[q][3]==1)
         {
@@ -441,7 +441,7 @@ void fillvec::fillxvec3(lexer* p, fdm* a, field& f)
     j=p->gcpara3[q][1];
     k=p->gcpara3[q][2];
         
-    n=p->gcpara3[q][9];
+    n=p->gcpara3[q][11];
         
         if(p->gcpara3[q][3]==1)
         {
@@ -457,7 +457,7 @@ void fillvec::fillxvec3(lexer* p, fdm* a, field& f)
     j=p->gcpara4[q][1];
     k=p->gcpara4[q][2];
         
-    n=p->gcpara4[q][9];
+    n=p->gcpara4[q][11];
         
         if(p->gcpara4[q][3]==1)
         {
@@ -473,7 +473,7 @@ void fillvec::fillxvec3(lexer* p, fdm* a, field& f)
     j=p->gcpara5[q][1];
     k=p->gcpara5[q][2];
         
-    n=p->gcpara5[q][9];
+    n=p->gcpara5[q][11];
         
         if(p->gcpara5[q][3]==1)
         {
@@ -489,7 +489,7 @@ void fillvec::fillxvec3(lexer* p, fdm* a, field& f)
     j=p->gcpara6[q][1];
     k=p->gcpara6[q][2];
         
-    n=p->gcpara6[q][9];
+    n=p->gcpara6[q][11];
         
         if(p->gcpara6[q][3]==1)
         {
@@ -565,7 +565,7 @@ void fillvec::fillxvec4(lexer* p, fdm* a, field& f)
     j=p->gcpara1[q][1];
     k=p->gcpara1[q][2];
         
-    n=p->gcpara1[q][10];
+    n=p->gcpara1[q][12];
         
         if(p->gcpara1[q][3]==1)
         {
@@ -581,7 +581,7 @@ void fillvec::fillxvec4(lexer* p, fdm* a, field& f)
     j=p->gcpara2[q][1];
     k=p->gcpara2[q][2];
         
-    n=p->gcpara2[q][10];
+    n=p->gcpara2[q][12];
         
         if(p->gcpara2[q][3]==1)
         {
@@ -597,7 +597,7 @@ void fillvec::fillxvec4(lexer* p, fdm* a, field& f)
     j=p->gcpara3[q][1];
     k=p->gcpara3[q][2];
         
-    n=p->gcpara3[q][10];
+    n=p->gcpara3[q][12];
         
         if(p->gcpara3[q][3]==1)
         {
@@ -612,6 +612,8 @@ void fillvec::fillxvec4(lexer* p, fdm* a, field& f)
     i=p->gcpara4[q][0];
     j=p->gcpara4[q][1];
     k=p->gcpara4[q][2];
+    
+    n=p->gcpara4[q][12];
         
         if(p->gcpara4[q][3]==1)
         for(n=0;n<margin;++n)
@@ -627,7 +629,7 @@ void fillvec::fillxvec4(lexer* p, fdm* a, field& f)
     j=p->gcpara5[q][1];
     k=p->gcpara5[q][2];
         
-    n=p->gcpara5[q][10];
+    n=p->gcpara5[q][12];
         
         if(p->gcpara5[q][3]==1)
         {
@@ -643,7 +645,7 @@ void fillvec::fillxvec4(lexer* p, fdm* a, field& f)
     j=p->gcpara6[q][1];
     k=p->gcpara6[q][2];
         
-    n=p->gcpara6[q][10];
+    n=p->gcpara6[q][12];
         
         if(p->gcpara6[q][3]==1)
         {
