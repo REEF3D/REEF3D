@@ -35,7 +35,7 @@ fnpf_timestep::~fnpf_timestep()
 
 void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
 {
-    double depthmax=-10.0;
+    double depthmax=0.0;
 
 
     p->umax=p->vmax=p->wmax=p->viscmax=irsm=jrsm=krsm=0.0;
@@ -88,18 +88,24 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
     SLICELOOP4
     p->wmax = MAX(fabs(c->Fz(i,j)),p->wmax);
     
-    p->wmax = MAX3(p->wmax,p->umax,p->vmax);
+    p->wmax=pgc->globalmax(p->wmax);
+    
+    //p->wmax = MAX3(p->wmax,p->umax,p->vmax);
         
     FLOOP
     {
+    if(p->y_dir==1)
     dx = MIN3(p->DXN[IP],p->DYN[JP],p->DZN[KP]);
+    
+    if(p->y_dir==0)
+    dx = MIN(p->DXN[IP],p->DZN[KP]);
 
-    cu = MIN(cu, 1.0/((fabs(p->umax+0.0*sqrt(9.81*depthmax))/dx)));
-    cv = MIN(cv, 1.0/((fabs(p->vmax+0.0*sqrt(9.81*depthmax))/dx)));
+    cu = MIN(cu, 1.0/((fabs(p->umax + 1.0*sqrt(9.81*depthmax))/dx)));
+    cv = MIN(cv, 1.0/((fabs(p->vmax + 1.0*sqrt(9.81*depthmax))/dx)));
     cw = MIN(cw, 1.0/((fabs(p->wmax)/dx)));
     }
 
-    //cw = MIN3(cu,cv,cw);
+    cw = MIN3(cu,cv,cw);
     
    	p->dt=p->N47*cw;
     
@@ -116,7 +122,23 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
 void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
 {
 	p->umax=p->vmax=p->wmax=p->viscmax=-1e19;
-	p->umax=p->W10;
+	
+    LOOP
+	p->umax=MAX(p->umax,fabs(c->u(i,j,k)));
+
+	p->umax=pgc->globalmax(p->umax);
+
+
+	LOOP
+	p->vmax=MAX(p->vmax,fabs(c->v(i,j,k)));
+
+	p->vmax=pgc->globalmax(p->vmax);
+
+
+	LOOP
+	p->wmax=MAX(p->wmax,fabs(c->w(i,j,k)));
+
+	p->wmax=pgc->globalmax(p->wmax);
 	
 	p->umax=MAX(p->umax,2.0*p->ufbmax);
 	p->umax=MAX(p->umax,2.0*p->vfbmax);
@@ -127,6 +149,7 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
 	p->umax=MAX(p->umax,2.0*p->X210_w);
 
 	p->dt=p->dx/(p->umax+epsi);
+    
 
     p->umax+=5.0;
 
