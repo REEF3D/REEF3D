@@ -27,7 +27,6 @@ fdm_fnpf::fdm_fnpf(lexer *p) : u(p),v(p),w(p),press(p),Fi4(p),Fifsf(p),Fibed(p),
                               nodeval(p),eta(p),etaloc(p),
                               eta_n(p),WL(p),bed(p),depth(p),Fz(p),K(p),
                               Fx(p),Fy(p),
-                              Vx(p),Vy(p),
                               Ex(p),Ey(p),Exx(p),Eyy(p),
                               Bx(p),By(p),Bxx(p),Byy(p),
                               rhsvec(p),M(p)

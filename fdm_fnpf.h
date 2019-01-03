@@ -53,7 +53,6 @@ public:
     sliceint4 etaloc;
     
     slice4 Fx,Fy;
-    slice4 Vx,Vy;
     slice4 Ex,Ey;
     slice4 Exx,Eyy;
     slice4 Bx,By;

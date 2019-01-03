@@ -31,6 +31,8 @@ fnpf_weno::fnpf_weno(lexer* p) :  ddweno_f_nug(p)
     fnpf_discrete_weights dw(p);
 
     dw.ck_weights(p, ckz, p->ZN, p->knoz+1, 1, 4, 6);
+    
+    
 }
 
 fnpf_weno::~fnpf_weno()
@@ -108,6 +110,8 @@ double fnpf_weno::sz(lexer *p, double *f)
     grad = (ckz[p->knoz+marge][4]*f[FIJK] + ckz[p->knoz+marge][3]*f[FIJKm1] + ckz[p->knoz+marge][2]*f[FIJKm2] + ckz[p->knoz+marge][1]*f[FIJKm3] + ckz[p->knoz+marge][0]*f[FIJKm4]);
     
     //grad = (ckz[p->knoz+marge][6]*f[FIJK] + ckz[p->knoz+marge][5]*f[FIJKm1] + ckz[p->knoz+marge][4]*f[FIJKm2] + ckz[p->knoz+marge][3]*f[FIJKm3] + ckz[p->knoz+marge][2]*f[FIJKm4] + ckz[p->knoz+marge][1]*f[FIJKm5] + ckz[p->knoz+marge][0]*f[FIJKm6]);
+    
+    /*
     if(p->mpirank==0 && i==2 &&p->count<2) 
     {
     cout<<"GRAD: "<<grad<<" . ";
@@ -122,7 +126,7 @@ double fnpf_weno::sz(lexer *p, double *f)
 
     cout<<"ckz_tabl: "<<(25.0/12.0)/dx2<<" "<<-4.0/dx2<<" "<<3.0/dx2<<" "<<-(4.0/3.0)/dx2<<" "<<(1.0/4.0)/dx2<<" "<<endl<<endl;
     }
-    return grad;
+    return grad;*/
     
     /*
     return (-(25.0/12.0)*f[FIJK] + 4.0*f[FIJKm1] - 3.0*f[FIJKm2] + (4.0/3.0)*f[FIJKm3] - 0.25*f[FIJKm4])
