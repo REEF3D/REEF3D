@@ -289,12 +289,20 @@ double wave_lib_irregular_1st::wave_eta_time_cos(lexer *p, int n)
 double wave_lib_irregular_1st::wave_fi(lexer *p, double x, double y, double z)
 {
 
+    fi=0.0;
+	
+	for(n=0;n<p->wN;++n)
+	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->simtime) - ei[n];
+	
+
+    for(n=0;n<p->wN;++n)
+    fi += ((wi[n]*Ai[n])/ki[n])*(cosh(ki[n]*(wd+z))/sinh(ki[n]*wd) ) * sin(Ti[n]);
+    
     return fi;
 }
 
 double wave_lib_irregular_1st::wave_fi_space_sin(lexer *p, double x, double y, double z, int n)
 {
-    
     return fi;
 }
 

@@ -26,3 +26,4 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 
 #include"hypre_aij.h"
 #include"hypre_struct.h"
+#include"hypre_sstruct.h"

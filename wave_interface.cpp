@@ -185,7 +185,6 @@ double wave_interface::wave_h(lexer *p, ghostcell *pgc, double x, double y, doub
     return lsv;
 }
 
-
 double wave_interface::wave_fi(lexer *p, ghostcell *pgc, double x, double y, double z)
 {
 	starttime=pgc->timer();

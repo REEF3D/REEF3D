@@ -259,7 +259,7 @@ public:
     double A223,A244_val,A245_val,A247,A249;
     
     // FNPF
-    int A300,A310,A311,A312,A313,A320;
+    int A300,A310,A311,A312,A313,A320,A321;
     
     // NSEWAVE
     int A410;

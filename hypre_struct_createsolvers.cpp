@@ -28,7 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void hypre_struct::create_solver1234(lexer* p,ghostcell* pgc)
 {
-
+    // solver for velocities and other scalar variables, e.g. turbulence
     HYPRE_StructBiCGSTABCreate(pgc->mpi_comm, &solver);
     HYPRE_StructBiCGSTABSetMaxIter(solver, p->N46);
     HYPRE_StructBiCGSTABSetTol(solver, p->D29);
@@ -52,6 +52,8 @@ void hypre_struct::delete_solver1234(lexer* p,ghostcell* pgc)
 
 void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
 {
+    // solver for pressure poisson and potential laplace equation
+    
     if(p->N10==11)
     {
     HYPRE_StructPCGCreate(pgc->mpi_comm, &solver);

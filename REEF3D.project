@@ -1960,7 +1960,19 @@
       <File Name="pjm_nse.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
-      <VirtualDirectory Name="HYPRE SStruct"/>
+      <VirtualDirectory Name="HYPRE SStruct">
+        <File Name="hypre_sstruct_solve.cpp"/>
+        <File Name="hypre_sstruct_grid.cpp"/>
+        <File Name="hypre_struct_fill10.cpp"/>
+        <File Name="hypre_sstruct_fill8.cpp"/>
+        <File Name="hypre_sstruct_fill7.cpp"/>
+        <File Name="hypre_sstruct_fill4.cpp"/>
+        <File Name="hypre_sstruct_fill3.cpp"/>
+        <File Name="hypre_sstruct_fill2.cpp"/>
+        <File Name="hypre_sstruct_fill1.cpp"/>
+        <File Name="hypre_sstruct_createsolvers.cpp"/>
+        <File Name="hypre_sstruct.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="CG">
         <File Name="bicgstab.cpp"/>
       </VirtualDirectory>

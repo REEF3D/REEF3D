@@ -58,6 +58,7 @@ void lexer::ini_default()
     A312=3;      // int discretization for second-order gradient
     A313=3;      // int discretization for bed bc
     A320=1;		  // int time scheme for FNPF velocities
+    A321=1;      // int boundary condition order for 4th-order Laplace equation
     
     A410=1;      // int scheme eta       
     A440=1.6;    // double epsi for depth integration

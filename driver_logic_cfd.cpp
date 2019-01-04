@@ -752,13 +752,18 @@ void driver::logic()
 	ppoissonsolv = new bicgstab(p,a,pgc,p->N11);
 	
 	#ifdef HYPRE_COMPILATION
-	if(p->N10>10 && p->N10<=20)
+	if(p->N10>=10 && p->N10<20)
 	ppoissonsolv = new hypre_struct(p,a,pgc);
 	#endif
     
     #ifdef HYPRE_COMPILATION
-	if(p->N10>20 && p->N10<=30)
+	if(p->N10>=20 && p->N10<30)
 	ppoissonsolv = new hypre_aij(p,a,pgc);
+	#endif
+    
+    #ifdef HYPRE_COMPILATION
+	if(p->N10>=30 && p->N10<40)
+	ppoissonsolv = new hypre_sstruct(p,a,pgc);
 	#endif
 
     //psolv=ppoissonsolv;

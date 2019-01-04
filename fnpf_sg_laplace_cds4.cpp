@@ -39,7 +39,7 @@ fnpf_sg_laplace_cds4::fnpf_sg_laplace_cds4(lexer *p)
     dw.ck_weights(p, cky, p->YP, p->knoy, 2, 4, 2);
     dw.ck_weights(p, ckz, p->ZN, p->knoz, 2, 4, 3);
     
-    bc=4;
+    bc=2;
     
     pbed = new fnpf_sg_bed_update(p);
 }
@@ -179,7 +179,7 @@ void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             abb = c->M.bb[n];
             
             // ------
-            if(p->flag7[FIJKm2]<0 && p->flag7[FIJKm1]>0 && bc==2)
+            if(p->flag7[FIJKm2]<0 && p->flag7[FIJKm1]>0 && p->A321==1)
             {
             // bb
             denom = p->sigz[FIJK] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
@@ -207,40 +207,10 @@ void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
 
 
             // ------
-            if(p->flag7[FIJKm2]<0 && p->flag7[FIJKm1]<0 && bc==2)
+            if(p->flag7[FIJKm2]<0 && p->flag7[FIJKm1]<0 && p->A321==1)
             {
             denom = p->sigz[FIJK] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
             
-            // b
-            fbxp = f[FIp1JKp1] + (2.0*p->DZN[KP]*(c->Bx(i+1,j)*((c->Fi[FIp2JK]-c->Fi[FIJK])/(p->DXP[IP] + p->DXP[IM1]))
-                                                 +c->By(i+1,j)*((c->Fi[FIp1Jp1K]-c->Fi[FIp1Jm1K])/(p->DYP[JP] + p->DYP[JM1]))))
-                                /(p->sigz[FIp1JK] + c->Bx(i+1,j)*p->sigx[FIp1JK] + c->By(i+1,j)*p->sigy[FIp1JK]);
-            
-            fbxm = f[FIm1JKp1] + (2.0*p->DZN[KP]*(c->Bx(i-1,j)*((c->Fi[FIJK]-c->Fi[FIm2JK])/(p->DXP[IP] + p->DXP[IM1]))
-                                                 +c->By(i-1,j)*((c->Fi[FIm1Jp1K]-c->Fi[FIm1Jm1K])/(p->DYP[JP] + p->DYP[JM1]))))
-                                /(p->sigz[FIm1JK] + c->Bx(i-1,j)*p->sigx[FIm1JK] + c->By(i-1,j)*p->sigy[FIm1JK]);
-            
-            fbyp = f[FIJp1Kp1] + (2.0*p->DZN[KP]*(c->Bx(i,j+1)*((c->Fi[FIp1Jp1K]-c->Fi[FIm1Jp1K])/(p->DXP[IP] + p->DXP[IM1]))
-                                                 +c->By(i,j+1)*((c->Fi[FIJp2K]-c->Fi[FIJK])/(p->DYP[JP] + p->DYP[JM1]))))
-                                /(p->sigz[FIJp1K] + c->Bx(i,j+1)*p->sigx[FIJp1K] + c->By(i,j+1)*p->sigy[FIJp1K]);
-            
-            fbym = f[FIJm1Kp1] + (2.0*p->DZN[KP]*(c->Bx(i,j-1)*((c->Fi[FIp1Jm1K]-c->Fi[FIm1Jm1K])/(p->DXP[IP] + p->DXP[IM1]))
-                                                 +c->By(i,j-1)*((c->Fi[FIJK]-c->Fi[FIJm2K])/(p->DYP[JP] + p->DYP[JM1]))))
-                                /(p->sigz[FIJm1K] + c->Bx(i,j-1)*p->sigx[FIJm1K] + c->By(i,j-1)*p->sigy[FIJm1K]);
-                                                 
-            
-            //--
-            c->rhsvec.V[n] -= 2.0*p->sigx[IJK]*(f[FIp1JKp1] - f[FIm1JKp1] - f[FIp1JKm1] + f[FIm1JKm1])
-                        /((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir
-                        
-                        +2.0*p->sigy[IJK]*(f[FIJp1Kp1] - f[FIJm1Kp1] - f[FIJp1Km1] + f[FIJm1Km1])
-                        /((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
-                    
-            c->rhsvec.V[n] +=  2.0*p->sigx[FIJK]*(f[FIp1JKp1] - f[FIm1JKp1] - fbxp + fbxm)
-                    /((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir
-                    
-                    + 2.0*p->sigy[FIJK]*(f[FIJp1Kp1] - f[FIJm1Kp1] - fbyp + fbym)
-                    /((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
                     
     
             xdelta = (-p->XP[IP2] + 8.0*p->XP[IP1] - 8.0*p->XP[IM1] + p->XP[IM2]);
@@ -267,7 +237,7 @@ void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             
             
             
-            if(p->flag7[FIJKm2]<0 && p->flag7[FIJKm1]>0 && bc==4)
+            if(p->flag7[FIJKm2]<0 && p->flag7[FIJKm1]>0 && p->A321==2)
             {
             // bb
             denom = p->sigz[FIJK] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
@@ -275,8 +245,8 @@ void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             xdelta = (-p->XP[IP2] + 8.0*p->XP[IP1] - 8.0*p->XP[IM1] + p->XP[IM2]);
             ydelta = (-p->YP[JP2] + 8.0*p->YP[JP1] - 8.0*p->YP[JM1] + p->YP[JM2]);  
             
-            dist = -(1.0/3.0)*p->ZN[KM2] - (1.0/2.0)*p->ZN[KM1] + p->ZN[KP] - (1.0/6.0)*p->ZN[KP1];
-            
+            //dist = -(1.0/3.0)*p->ZN[KM2] - (1.0/2.0)*p->ZN[KM1] + p->ZN[KP] - (1.0/6.0)*p->ZN[KP1];
+            dist = -(1.0/3.0)*p->ZN[KM1] - (1.0/2.0)*p->ZN[KP] + p->ZN[KP1] - (1.0/6.0)*p->ZN[KP2];
 
             c->M.n[n] += abb*24.0*dist*c->Bx(i,j)/(denom*xdelta);
             c->M.nn[n] += -abb*3.0*dist*c->Bx(i,j)/(denom*xdelta); 
@@ -299,41 +269,9 @@ void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             
             
             
-            if(p->flag7[FIJKm2]<0 && p->flag7[FIJKm1]<0 && bc==4)
+            if(p->flag7[FIJKm2]<0 && p->flag7[FIJKm1]<0 && p->A321==2)
             {
             denom = p->sigz[FIJK] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
-            
-            // b
-            fbxp = f[FIp1JKp1] + (2.0*p->DZP[KP]*(c->Bx(i+1,j)*((c->Fi[FIp2JK]-c->Fi[FIJK])/(p->DXP[IP] + p->DXP[IM1]))
-                                                 +c->By(i+1,j)*((c->Fi[FIp1Jp1K]-c->Fi[FIp1Jm1K])/(p->DYP[JP] + p->DYP[JM1]))))
-                                /(p->sigz[FIp1JK] + c->Bx(i+1,j)*p->sigx[FIp1JK] + c->By(i+1,j)*p->sigy[FIp1JK]);
-            
-            fbxm = f[FIm1JKp1] + (2.0*p->DZP[KP]*(c->Bx(i-1,j)*((c->Fi[FIJK]-c->Fi[FIm2JK])/(p->DXP[IP] + p->DXP[IM1]))
-                                                 +c->By(i-1,j)*((c->Fi[FIm1Jp1K]-c->Fi[FIm1Jm1K])/(p->DYP[JP] + p->DYP[JM1]))))
-                                /(p->sigz[FIm1JK] + c->Bx(i-1,j)*p->sigx[FIm1JK] + c->By(i-1,j)*p->sigy[FIm1JK]);
-            
-            fbyp = f[FIJp1Kp1] + (2.0*p->DZP[KP]*(c->Bx(i,j+1)*((c->Fi[FIp1Jp1K]-c->Fi[FIm1Jp1K])/(p->DXP[IP] + p->DXP[IM1]))
-                                                 +c->By(i,j+1)*((c->Fi[FIJp2K]-c->Fi[FIJK])/(p->DYP[JP] + p->DYP[JM1]))))
-                                /(p->sigz[FIJp1K] + c->Bx(i,j+1)*p->sigx[FIJp1K] + c->By(i,j+1)*p->sigy[FIJp1K]);
-            
-            fbym = f[FIJm1Kp1] + (2.0*p->DZP[KP]*(c->Bx(i,j-1)*((c->Fi[FIp1Jm1K]-c->Fi[FIm1Jm1K])/(p->DXP[IP] + p->DXP[IM1]))
-                                                 +c->By(i,j-1)*((c->Fi[FIJK]-c->Fi[FIJm2K])/(p->DYP[JP] + p->DYP[JM1]))))
-                                /(p->sigz[FIJm1K] + c->Bx(i,j-1)*p->sigx[FIJm1K] + c->By(i,j-1)*p->sigy[FIJm1K]);
-                                                 
-            
-            //--
-            c->rhsvec.V[n] -=  2.0*p->sigx[FIJK]*(f[FIp1JKp1] - f[FIm1JKp1] - f[FIp1JKm1] + f[FIm1JKm1])
-                    /((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir
-                    
-                    + 2.0*p->sigy[FIJK]*(f[FIJp1Kp1] - f[FIJm1Kp1] - f[FIJp1Km1] + f[FIJm1Km1])
-                    /((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
-                    
-            c->rhsvec.V[n] +=  2.0*p->sigx[FIJK]*(f[FIp1JKp1] - f[FIm1JKp1] - fbxp + fbxm)
-                    /((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir
-                    
-                    + 2.0*p->sigy[FIJK]*(f[FIJp1Kp1] - f[FIJm1Kp1] - fbyp + fbym)
-                    /((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
-              
 
             
             xdelta = (-p->XP[IP2] + 8.0*p->XP[IP1] - 8.0*p->XP[IM1] + p->XP[IM2]);
@@ -359,31 +297,6 @@ void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             c->M.t[n] += 3.0*ab;
             c->M.tt[n]+= -0.5*ab;
             c->M.b[n] = 0.0;
-            
-            
-            /*
-            xdelta = (p->DXP[IP] + p->DXP[IM1]);
-            ydelta = (p->DXP[IP] + p->DXP[IM1]);  
-            
-            dist = -(1.0/3.0)*p->ZN[KM1] - (1.0/2.0)*p->ZN[KP] + p->ZN[KP1] - (1.0/6.0)*p->ZN[KP2];
-            
-
-            c->M.n[n] += ab*3.0*dist*c->Bx(i,j)/(denom*xdelta);
-
-            c->M.s[n] += -ab*3.0*dist*c->Bx(i,j)/(denom*xdelta);
-        
-            c->M.e[n] += ab*3.0*dist*c->By(i,j)/(denom*ydelta); 
-     
-            c->M.w[n] += -ab*3.0*dist*c->By(i,j)/(denom*ydelta);
-     
-            
-            c->M.p[n] += -(3.0/2.0)*ab;
-            c->M.t[n] += 3.0*ab;
-            c->M.tt[n]+= -0.5*ab;
-            c->M.b[n] = 0.0;*/
-            
-        
-
             }
         }
 	++n;
