@@ -28,6 +28,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"vec.h"
 #include"_hypre_utilities.h"
 #include"HYPRE_sstruct_ls.h"
+#include"HYPRE_parcsr_ls.h"
+#include"HYPRE_krylov.h"
+#include"HYPRE.h"
  
 class cpt;
  
@@ -92,21 +95,36 @@ public:
 
 private:
     
-// HYPRE 
-   HYPRE_SStructGrid     grid;
-   HYPRE_SStructStencil  stencil;
-   HYPRE_SStructMatrix   A;
-   HYPRE_SStructVector   b;
-   HYPRE_SStructVector   x;
-   HYPRE_SStructSolver   solver;
-   HYPRE_SStructSolver   precond;
+//  HYPRE 
+    HYPRE_SStructGrid     grid;
+    HYPRE_SStructGraph    graph;
+    HYPRE_SStructStencil  stencil;
+    HYPRE_SStructMatrix   A;
+    HYPRE_SStructVector   b;
+    HYPRE_SStructVector   x;
+    HYPRE_SStructSolver   solver;
+    HYPRE_SStructSolver   precond;
+    HYPRE_Solver solver_csr, precond_csr;
+    HYPRE_SStructVariable vartypes[1];
+    
+    HYPRE_ParCSRMatrix    par_A;
+    HYPRE_ParVector       par_b;
+    HYPRE_ParVector       par_x;
+   
+    int kend;
+    int numparts;
+    int part;
+    int dimensions;
+    int variable;
+    int numvar;
+    int object_type;
    
 
 	int *ilower,*iupper;
     double *values;
     int num_iterations;
     double final_res_norm;
-	int stencil_indices[7];
+	int stencil_indices[13];
 	int nentries;
    
 	int numiter,count,q;

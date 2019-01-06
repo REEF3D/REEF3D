@@ -121,8 +121,8 @@ void lexer::ini_default()
 	B96_2=0.0;      // double dist2 for wave relax
 	B96_3=0.0;      // double dist3 for wave relax
 	B97=0.0;        // double wave direction in degree
-	B98=1;          // int type of wave generation
-	B99=1;			// int type of numerical beach
+	B98=0;          // int type of wave generation
+	B99=0;			// int type of numerical beach
 	B101=0;        // int ramp function wave geneartion
 	B102=1.0;        // double factor ramp function wave generation
 	B103=0.6;        // double factor1 for relaxation into air phase

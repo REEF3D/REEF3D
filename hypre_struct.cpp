@@ -39,7 +39,11 @@ hypre_struct::hypre_struct(lexer* p,fdm* a,ghostcell *pgc)
     p->Iarray(iupper,3);
     p->Darray(values,vecsize*7);
     
+    if(p->j_dir==1 || p->A10!=3)
     make_grid(p,a,pgc);	
+    
+    if(p->j_dir==0 && p->A10==3)
+    make_grid_2Dvert(p,a,pgc);
 }
 
 hypre_struct::~hypre_struct()
@@ -147,7 +151,11 @@ void hypre_struct::start_solver8(lexer* p, ghostcell* pgc, double *f, vec& rhs, 
 	
     create_solver5(p,pgc);
 
+    if(p->j_dir==1 || p->A10!=3)
     fill_matrix8(p,pgc,f,rhs,M);
+    
+    if(p->j_dir==0 && p->A10==3)
+    fill_matrix8_2Dvert(p,pgc,f,rhs,M);
 
     solve(p);
 

@@ -47,7 +47,7 @@ void hypre_sstruct::solve(lexer* p)
 {
 	p->solveriter=0;
 
-    if(p->N10==11)
+    if(p->N10==31)
     {
     HYPRE_SStructPCGSetup(solver, A, b, x);
     HYPRE_SStructPCGSolve(solver, A, b, x);
@@ -56,7 +56,7 @@ void hypre_sstruct::solve(lexer* p)
 	HYPRE_SStructPCGGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
     
-    if(p->N10==12)
+    if(p->N10==32)
     {
     HYPRE_SStructGMRESSetup(solver, A, b, x);
     HYPRE_SStructGMRESSolve(solver, A, b, x);
@@ -65,7 +65,7 @@ void hypre_sstruct::solve(lexer* p)
 	HYPRE_SStructGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
     
-    if(p->N10==13)
+    if(p->N10==33)
     {
     HYPRE_SStructLGMRESSetup(solver, A, b, x);
     HYPRE_SStructLGMRESSolve(solver, A, b, x);
@@ -74,7 +74,7 @@ void hypre_sstruct::solve(lexer* p)
 	HYPRE_SStructLGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
     
-    if(p->N10==14)
+    if(p->N10==34)
     {
     HYPRE_SStructBiCGSTABSetup(solver, A, b, x);
     HYPRE_SStructBiCGSTABSolve(solver, A, b, x);
@@ -83,31 +83,13 @@ void hypre_sstruct::solve(lexer* p)
 	HYPRE_SStructBiCGSTABGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
 	
-	if(p->N10==15 || p->N10==16 || p->N10==17)
+    if(p->N10==38)
     {
-    HYPRE_SStructHybridSetup(solver, A, b, x);
-    HYPRE_SStructHybridSolve(solver, A, b, x);
+    HYPRE_SStructSysPFMGSetup(solver, A, b, x);
+    HYPRE_SStructSysPFMGSolve(solver, A, b, x);
     
-    HYPRE_SStructHybridGetNumIterations(solver, &num_iterations);
-	HYPRE_SStructHybridGetFinalRelativeResidualNorm(solver, &final_res_norm);
-    }
-    
-    if(p->N10==18)
-    {
-    HYPRE_SStructPFMGSetup(solver, A, b, x);
-    HYPRE_SStructPFMGSolve(solver, A, b, x);
-    
-    HYPRE_SStructPFMGGetNumIterations(solver, &num_iterations);
-	HYPRE_SStructPFMGGetFinalRelativeResidualNorm(solver, &final_res_norm);
-    }
-    
-    if(p->N10==19)
-    {
-    HYPRE_SStructSMGSetup(solver, A, b, x);
-    HYPRE_SStructSMGSolve(solver, A, b, x);
-    
-    HYPRE_SStructSMGGetNumIterations(solver, &num_iterations);
-	HYPRE_SStructSMGGetFinalRelativeResidualNorm(solver, &final_res_norm);
+    HYPRE_SStructSysPFMGGetNumIterations(solver, &num_iterations);
+	HYPRE_SStructSysPFMGGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
     
 	p->solveriter=num_iterations;

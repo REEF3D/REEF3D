@@ -19,25 +19,26 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"hypre_sstruct.h"
+#include"hypre_struct.h"
 
 #ifdef HYPRE_COMPILATION
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
+#include"fieldint4.h"
+#include"matrix_diag.h"
 
-void hypre_sstruct::fill_matrix3(lexer* p,fdm* a, ghostcell* pgc, field &f)
+void hypre_struct::fill_matrix8_2Dvert(lexer* p, ghostcell* pgc, double *f, vec &rhs, matrix_diag &M)
 {
-    fieldint3 cval3(p);
+    fieldint4 cval4(p);
     
     count=0;
-    WFLUIDLOOP
+    FLUIDLOOP
     {
-    cval3(i,j,k)=count;
+    cval4(i,j,k)=count;
     ++count;
     }
     
-    nentries=7;
+    nentries=5;
     
     for (j = 0; j < nentries; j++)
     stencil_indices[j] = j;
@@ -45,41 +46,29 @@ void hypre_sstruct::fill_matrix3(lexer* p,fdm* a, ghostcell* pgc, field &f)
     count=0;
     KJILOOP
     {
-		WCHECK
+		PFLUIDCHECK
 		{
-		n=cval3(i,j,k);
+		n=cval4(i,j,k);
         
-		values[count]=a->M.p[n];
+		values[count]=M.p[n];
 		++count;
 		
-		values[count]=a->M.s[n];
+		values[count]=M.s[n];
 		++count;
 		
-		values[count]=a->M.n[n];
+		values[count]=M.n[n];
+		++count;
+
+		values[count]=M.b[n];
 		++count;
 		
-		values[count]=a->M.e[n];
-		++count;
-		
-		values[count]=a->M.w[n];
-		++count;
-		
-		values[count]=a->M.b[n];
-		++count;
-		
-		values[count]=a->M.t[n];
+		values[count]=M.t[n];
 		++count; 
 		}     
 		
-		WSCHECK
+		FSCHECK
 		{
 		values[count]=1.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
 		++count;
 		
 		values[count]=0.0;
@@ -96,58 +85,45 @@ void hypre_sstruct::fill_matrix3(lexer* p,fdm* a, ghostcell* pgc, field &f)
 		}    
     }
 	
-    HYPRE_SStructMatrixSetBoxValues(A, part, ilower, iupper, variable, nentries, stencil_indices, values);
-    HYPRE_SStructMatrixAssemble(A);
+    HYPRE_StructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, values);
+    HYPRE_StructMatrixAssemble(A);
     
     
     // vec
     count=0;
 	KJILOOP
 	{
-		WCHECK
-		values[count] = f(i,j,k);
+		FPCHECK
+		values[count] = f[FIJK];
 		
-		WSCHECK
+		FSCHECK
 		values[count] = 0.0;
 	
     ++count;
     }
 
-    HYPRE_SStructVectorSetBoxValues(x, part, ilower, iupper, variable, values);
-    HYPRE_SStructVectorAssemble(x);
+    HYPRE_StructVectorSetBoxValues(x, ilower, iupper, values);
+    HYPRE_StructVectorAssemble(x);
     
     
     count=0; 
 	KJILOOP
 	{
-		WCHECK
+		FPCHECK
 		{
-		n=cval3(i,j,k);
-		values[count] = a->rhsvec.V[n];
+		n=cval4(i,j,k);
+		values[count] = rhs.V[n];
 		}
 		
-		WSCHECK
+		FSCHECK
 		values[count] = 0.0;
 
     ++count;
     }
     
-    HYPRE_SStructVectorSetBoxValues(b, part, ilower, iupper, variable, values);
-    HYPRE_SStructVectorAssemble(b);
-}
-
-void hypre_sstruct::fillbackvec3(lexer *p, field &f, vec &xvec, int var)
-{
-	HYPRE_SStructVectorGetBoxValues(x, part, ilower, iupper, variable, values);
-	
-        count=0;
-        KJILOOP
-        {
-		WCHECK
-        f(i,j,k)=values[count];
-		
-        ++count;
-        }
+    HYPRE_StructVectorSetBoxValues(b, ilower, iupper, values);
+    HYPRE_StructVectorAssemble(b);
+    
 }
 
 #endif

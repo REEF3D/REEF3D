@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"increment.h"
 #include"vec.h"
 #include"_hypre_utilities.h"
-#include"HYPRE_struct_ls.h"
+#include"HYPRE_sstruct_ls.h"
  
 class cpt;
  
@@ -65,6 +65,7 @@ public:
     
     
     void make_grid(lexer*,fdm*, ghostcell*);
+    void make_grid_2Dvert(lexer*,fdm*, ghostcell*);
     
     void fill_matrix1(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix2(lexer*,fdm*, ghostcell*,field&);
@@ -72,6 +73,7 @@ public:
     void fill_matrix4(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix7(lexer*, ghostcell*,double*, vec&, matrix_diag&);
     void fill_matrix8(lexer*, ghostcell*,double*, vec&, matrix_diag&);
+    void fill_matrix8_2Dvert(lexer*, ghostcell*,double*, vec&, matrix_diag&);
 
     virtual void fillbackvec1(lexer*,field&,vec&,int);
     virtual void fillbackvec2(lexer*,field&,vec&,int);

@@ -96,9 +96,8 @@ void hypre_sstruct::fill_matrix1(lexer* p,fdm* a, ghostcell* pgc, field &f)
 		}    
     }
 	
-    HYPRE_SStructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, values);
+    HYPRE_SStructMatrixSetBoxValues(A, part, ilower, iupper, variable, nentries, stencil_indices, values);
     HYPRE_SStructMatrixAssemble(A);
-    
     
     // vec
     count=0;
@@ -113,7 +112,7 @@ void hypre_sstruct::fill_matrix1(lexer* p,fdm* a, ghostcell* pgc, field &f)
     ++count;
     }
 
-    HYPRE_SStructVectorSetBoxValues(x, ilower, iupper, values);
+    HYPRE_SStructVectorSetBoxValues(x, part, ilower, iupper, variable, values);
     HYPRE_SStructVectorAssemble(x);
     
     
@@ -132,13 +131,13 @@ void hypre_sstruct::fill_matrix1(lexer* p,fdm* a, ghostcell* pgc, field &f)
     ++count;
     }
     
-    HYPRE_SStructVectorSetBoxValues(b, ilower, iupper, values);
+    HYPRE_SStructVectorSetBoxValues(b, part, ilower, iupper, variable, values);
     HYPRE_SStructVectorAssemble(b);
 }
 
 void hypre_sstruct::fillbackvec1(lexer *p, field &f, vec &xvec, int var)
 {
-	HYPRE_SStructVectorGetBoxValues(x, ilower, iupper, values);
+	HYPRE_SStructVectorGetBoxValues(x, part, ilower, iupper, variable, values);
 	
         count=0;
         KJILOOP

@@ -37,7 +37,7 @@ hypre_sstruct::hypre_sstruct(lexer* p,fdm* a,ghostcell *pgc)
     
     p->Iarray(ilower,3);
     p->Iarray(iupper,3);
-    p->Darray(values,vecsize*7);
+    p->Darray(values,vecsize*13);
     
     if(p->A320!=2)
     make_grid_7p(p,a,pgc);	
@@ -66,6 +66,9 @@ void hypre_sstruct::startF(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix
     
     if(var==8)
     start_solver8(p,pgc,f,rhs,M,var);
+    
+    if(var==10)
+    start_solver10(p,pgc,f,rhs,M,var);
 }
 
 void hypre_sstruct::start_solver1234(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, vec& rhsvec, int var)
@@ -171,6 +174,7 @@ void hypre_sstruct::start_solver10(lexer* p, ghostcell* pgc, double *f, vec& rhs
     create_solver5(p,pgc);
 
     fill_matrix10(p,pgc,f,rhs,M);
+
 
     solve(p);
 

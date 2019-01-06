@@ -98,7 +98,7 @@ void hypre_sstruct::fill_matrix7(lexer* p, ghostcell* pgc, double *f, vec &rhs, 
 		}    
     }
 	
-    HYPRE_SStructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, values);
+    HYPRE_SStructMatrixSetBoxValues(A, part, ilower, iupper, variable, nentries, stencil_indices, values);
     HYPRE_SStructMatrixAssemble(A);
     
     
@@ -115,7 +115,7 @@ void hypre_sstruct::fill_matrix7(lexer* p, ghostcell* pgc, double *f, vec &rhs, 
     ++count;
     }
 
-    HYPRE_SStructVectorSetBoxValues(x, ilower, iupper, values);
+    HYPRE_SStructVectorSetBoxValues(x, part, ilower, iupper, variable, values);
     HYPRE_SStructVectorAssemble(x);
     
     
@@ -134,7 +134,7 @@ void hypre_sstruct::fill_matrix7(lexer* p, ghostcell* pgc, double *f, vec &rhs, 
     ++count;
     }
     
-    HYPRE_SStructVectorSetBoxValues(b, ilower, iupper, values);
+    HYPRE_SStructVectorSetBoxValues(b, part, ilower, iupper, variable, values);
     HYPRE_SStructVectorAssemble(b);
     
     p->del_Iarray(cval,p->imax*p->jmax*(p->kmax+1));
@@ -142,7 +142,7 @@ void hypre_sstruct::fill_matrix7(lexer* p, ghostcell* pgc, double *f, vec &rhs, 
 
 void hypre_sstruct::fillbackvec7(lexer *p, double *f, int var)
 {
-	HYPRE_SStructVectorGetBoxValues(x, ilower, iupper, values);
+	HYPRE_SStructVectorGetBoxValues(x, part, ilower, iupper, variable, values);
 	
         count=0;
         FKJILOOP

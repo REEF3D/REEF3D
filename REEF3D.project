@@ -1997,6 +1997,7 @@
         <File Name="hypre_aij_solvers.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="HYPRE Struct">
+        <File Name="hypre_struct_fill8_2D.cpp"/>
         <File Name="hypre_struct_fill8.cpp"/>
         <File Name="hypre_struct_solve.cpp"/>
         <File Name="hypre_struct_createsolvers.cpp"/>
