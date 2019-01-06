@@ -60,7 +60,7 @@ void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
             // Zone 1
             if(dg<dist1)
             {
-            //cout<<"DG: "<<dg<<" XG: "<<xg<<" rb1: "<<rb1(p,dg)<<endl;
+            //cout<<"DG: "<<dg<<" XG: "<<xg<<" rb1: "<<rb1(p,dg)<<" eta: "<<etaval[count]<<endl;
             f(i,j) = (1.0-rb1(p,dg))*ramp(p)*etaval[count] + rb1(p,dg) * f(i,j);
             ++count;
             }

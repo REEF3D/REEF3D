@@ -114,11 +114,16 @@ void wave_lib_spectrum::wavepackets_parameters(lexer *p)
 	for(int n=0;n<p->wN;++n)
 	Asum+=Ai[n];
 	
+    
 	fac = p->wAs/Asum;
 
 	for(int n=0;n<p->wN;++n)
+    {
 	Ai[n]*=fac;	
-	
+    
+    cout<<"Ai[n]: "<<Ai[n]<<endl;
+	}
+    
 	// Wave number
 	w=ws;
 	for(int n=0;n<p->wN;++n)
