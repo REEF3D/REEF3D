@@ -225,6 +225,36 @@ double wave_lib_irregular_2nd_b::wave_fi(lexer *p, double x, double y, double z)
 {
     double fi;
     
+    for(n=0;n<p->wN;++n)
+	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->simtime) - ei[n];
+	
+	// 1st-order
+	for(n=0;n<p->wN;++n)
+        
+    fi +=  ((wi[n]*Ai[n])/ki[n])*(cosh(ki[n]*(wd+z))/sinh(ki[n]*wd) ) * sin(Ti[n]);
+    vel += wi[n]*Ai[n]* (cosh(ki[n]*(wd+z))/sinh(ki[n]*wd) ) * cos(Ti[n]) * sinbeta[n];
+    
+    // 2nd-order
+    for(n=0;n<p->wN-1;++n)
+    for(m=n+1;m<p->wN;++m)
+    {
+    denom1 = Dplus[n][m]*cosh((ki[n]+ki[m])*wd);
+    denom2 = Dminus[n][m]*cosh((ki[n]-ki[m])*wd);
+    denom1 = fabs(denom1)>1.0e-20?denom1:1.0e20;
+    denom2 = fabs(denom2)>1.0e-20?denom2:1.0e20;
+    
+    vel += (ki[n]+ki[m])*Ai[n]*Ai[m]*((Gplus[n][m]*cosh((ki[n]+ki[m])*(z+wd)))/denom1)*cos(Ti[n]+Ti[m])*(sinbeta[n]*cosbeta[m] + cosbeta[n]*sinbeta[m])
+        +  (ki[n]-ki[m])*Ai[n]*Ai[m]*((Gminus[n][m]*cosh((ki[n]-ki[m])*(z+wd)))/denom2)*cos(Ti[n]-Ti[m])*(sinbeta[n]*cosbeta[m] - cosbeta[n]*sinbeta[m]);
+    }
+    
+    for(n=0;n<p->wN;++n)
+    {
+     denom3 = Dplus[n][n]*cosh(2.0*ki[n]*wd); 
+     denom3 = fabs(denom3)>1.0e-20?denom3:1.0e20;
+     
+     vel += ki[n]*Ai[n]*Ai[n]*((Gplus[n][n]*cosh(2.0*ki[n]*(z+wd)))/denom3)*cos(2.0*Ti[n]);
+    }
+    
     return fi;
 }
 

@@ -202,7 +202,7 @@ double wave_interface::wave_eta(lexer *p, ghostcell *pgc, double x, double y)
 {
     starttime=pgc->timer();
 	
-    double eta=p->phimean;
+    double eta=0.0;
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
     eta = pwave->wave_eta(p,x,y);
