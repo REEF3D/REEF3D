@@ -47,6 +47,8 @@ public:
     virtual void parameters(lexer*,ghostcell*);
     
 private: 
+    double wave_A_plus(double,double,double,double);
+	double wave_A_minus(double,double,double,double);
     double wave_D_plus(double,double,double,double);
 	double wave_D_minus(double,double,double,double);
 	double wave_G_plus(double,double,double,double);
@@ -56,7 +58,7 @@ private:
 	double wave_F_plus(double,double,double,double);
 	double wave_F_minus(double,double,double,double);
     
-    double **Dplus,**Dminus,**Gplus,**Gminus,**Hplus,**Hminus,**Fplus,**Fminus;
+    double **Aplus,**Aminus,**Dplus,**Dminus,**Gplus,**Gminus,**Hplus,**Hminus,**Fplus,**Fminus;
     int m;
     double singamma,cosgamma;
     double T,vel,eta,fi;
