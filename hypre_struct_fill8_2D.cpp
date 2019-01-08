@@ -29,15 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void hypre_struct::fill_matrix8_2Dvert(lexer* p, ghostcell* pgc, double *f, vec &rhs, matrix_diag &M)
 {
-    fieldint4 cval4(p);
-    
-    count=0;
-    FLUIDLOOP
-    {
-    cval4(i,j,k)=count;
-    ++count;
-    }
-    
+
     nentries=5;
     
     for (j = 0; j < nentries; j++)
@@ -84,6 +76,7 @@ void hypre_struct::fill_matrix8_2Dvert(lexer* p, ghostcell* pgc, double *f, vec 
 		++count;  
 		}    
     }
+    
 	
     HYPRE_StructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, values);
     HYPRE_StructMatrixAssemble(A);

@@ -300,6 +300,7 @@ public:
 	
     // BCs
     void gcsl_neumann(slice&,int,int,int);
+    void gcsl_neumann_x(slice&,int,int,int);
     void gcsl_neumann_int(sliceint&,int,int,int);
 	void gcsl_noslip(slice&,int,int,int);
     void gcsl_sommerfeld(lexer*,slice&,int,int,int);
@@ -383,6 +384,7 @@ public:
 	void gravity_press(lexer*,field&,double,int,int,int);
     void kinematic_bed(lexer*,field&,double,int,int,int);
     void fivec(lexer*,double*);
+    void fivec2D(lexer*,double*);
 		
 	void gcV_neumann(vec&,int,int,int,int);
 	void gcV_lsm(lexer*,vec&, double,int,int,int,int);

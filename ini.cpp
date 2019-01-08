@@ -408,7 +408,7 @@ void lexer::ini_default()
 	N41=1.0e+19; 	// double total time
 	N42=3;			// int RK3 scheme
 	N43=1.0e-6;     // double stopping criteria convection-diffusion
-	N44=1.0e-10;     // double stopping criteria pressure
+	N44=1.0e-8;     // double stopping criteria pressure
 	N45=1e8;		// max outer iter
 	N46=250;		// int max number of solver iterations
 	N47=0.3;		// doubel relaxation factor for time stepping

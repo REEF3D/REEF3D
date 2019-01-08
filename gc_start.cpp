@@ -208,7 +208,11 @@ void ghostcell::start6V(lexer *p, vec &x, int gcv)
 
 void ghostcell::start7V(lexer *p, double *x, int gcv)
 {
+    if(gcv==250)
     fivec(p,x);
+    
+    if(gcv==150)
+    fivec2D(p,x);
     
 	if(p->M10>0)
     {

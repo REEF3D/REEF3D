@@ -28,15 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"matrix_diag.h"
 
 void hypre_struct::fill_matrix8(lexer* p, ghostcell* pgc, double *f, vec &rhs, matrix_diag &M)
-{
-    fieldint4 cval4(p);
-    
-    count=0;
-    FLUIDLOOP
-    {
-    cval4(i,j,k)=count;
-    ++count;
-    }
+{    
     
     nentries=7;
     

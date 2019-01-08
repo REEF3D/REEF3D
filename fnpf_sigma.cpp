@@ -38,7 +38,7 @@ void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsfbc 
     p->Darray(p->sig,p->imax*p->jmax*(p->kmax+1));
     p->Darray(p->sigx,p->imax*p->jmax*(p->kmax+1));
     p->Darray(p->sigy,p->imax*p->jmax*(p->kmax+1));
-    p->Darray(p->sigz,p->imax*p->jmax*(p->kmax+1));
+    p->Darray(p->sigz,p->imax*p->jmax);
     p->Darray(p->sigxx,p->imax*p->jmax*(p->kmax+1));
     
     FLOOP
@@ -85,8 +85,8 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsf
     FLOOP
     p->sigy[FIJK] = (1.0 - p->sig[FIJK])*(c->By(i,j)/c->WL(i,j)) - p->sig[FIJK]*(c->Ey(i,j)/c->WL(i,j));
     
-    FLOOP
-    p->sigz[FIJK] = 1.0/c->WL(i,j);
+    SLICELOOP4
+    p->sigz[IJ] = 1.0/c->WL(i,j);
     
     FLOOP
     p->sigxx[FIJK] = ((1.0 - p->sig[FIJK])/c->WL(i,j))*(c->Bxx(i,j) - pow(c->Bx(i,j),2.0)/c->WL(i,j)) // xx
@@ -163,19 +163,20 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsf
         } 
     }
     
-    FLOOP
+    k=p->knoz;
+    SLICELOOP4
     {
         if(p->flag7[FIm1JK]<0 || i==0)
-        p->sigz[FIm1JK] = p->sigz[FIJK];
+        p->sigz[Im1J] = p->sigz[IJ];
         
         if(p->flag7[FIp1JK]<0 || i==p->knox-1)
-        p->sigz[FIp1JK] = p->sigz[FIJK];
+        p->sigz[Ip1J] = p->sigz[IJ];
         
         if(p->flag7[FIJm1K]<0 || j==0)
-        p->sigz[FIJm1K] = p->sigz[FIJK];
+        p->sigz[IJm1] = p->sigz[IJ];
         
         if(p->flag7[FIJp1K]<0 || j==p->knoy-1)
-        p->sigz[FIJp1K] = p->sigz[FIJK];
+        p->sigz[IJp1] = p->sigz[IJ];
     }
     
     

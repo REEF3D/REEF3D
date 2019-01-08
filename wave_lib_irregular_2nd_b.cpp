@@ -290,7 +290,7 @@ void wave_lib_irregular_2nd_b::parameters(lexer *p, ghostcell *pgc)
     p->Darray(cosh_2k,p->wN*p->wN);
     p->Darray(sinh_4kh,p->wN*p->wN);
     
-    count=0;
+    int count=0;
     for(n=0;n<p->wN-1;++n)
     for(m=n+1;m<p->wN;++m)
     {

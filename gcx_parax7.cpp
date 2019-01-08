@@ -25,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void ghostcell::gcparax7(lexer* p,double *f,int gcv)
 {
-    paramargin=margin;
+    paramargin=2;//margin;
 
 //  FILL SEND
     count=0;
@@ -40,8 +40,8 @@ void ghostcell::gcparax7(lexer* p,double *f,int gcv)
         ++count;
         send1[count] = f[FIp1JK];  
         ++count;
-        send1[count] = f[FIp2JK];  
-        ++count;
+        //send1[count] = f[FIp2JK];  
+        //++count;
 
     }
 
@@ -56,8 +56,8 @@ void ghostcell::gcparax7(lexer* p,double *f,int gcv)
         ++count;
         send3[count] = f[FIJp1K];  
         ++count;
-        send3[count] = f[FIJp2K];  
-        ++count;
+        //send3[count] = f[FIJp2K];  
+        //++count;
     }
 
     count=0;
@@ -71,8 +71,8 @@ void ghostcell::gcparax7(lexer* p,double *f,int gcv)
         ++count;
         send4[count] = f[FIm1JK];  
         ++count;
-        send4[count] = f[FIm2JK];  
-        ++count;
+        //send4[count] = f[FIm2JK];  
+        //++count;
 	}
 
     count=0;
@@ -86,8 +86,8 @@ void ghostcell::gcparax7(lexer* p,double *f,int gcv)
         ++count;
         send2[count] = f[FIJm1K];  
         ++count;
-        send2[count] = f[FIJm2K];  
-        ++count;
+        //send2[count] = f[FIJm2K];  
+        //++count;
 	}
 
 
@@ -137,8 +137,8 @@ void ghostcell::gcparax7(lexer* p,double *f,int gcv)
         ++count;
         f[FIm2JK] = recv1[count];
         ++count;
-        f[FIm3JK] = recv1[count];
-        ++count;
+        //f[FIm3JK] = recv1[count];
+        //++count;
         
     }
 
@@ -153,8 +153,8 @@ void ghostcell::gcparax7(lexer* p,double *f,int gcv)
         ++count;
         f[FIJm2K] = recv3[count];
         ++count;
-        f[FIJm3K] = recv3[count];
-        ++count;
+        //f[FIJm3K] = recv3[count];
+        //++count;
 	}
 
     count=0;
@@ -168,8 +168,8 @@ void ghostcell::gcparax7(lexer* p,double *f,int gcv)
         ++count;
         f[FIp2JK] = recv4[count];
         ++count;
-        f[FIp3JK] = recv4[count];
-        ++count;
+        //f[FIp3JK] = recv4[count];
+        //++count;
 	}
 
     count=0;
@@ -183,8 +183,8 @@ void ghostcell::gcparax7(lexer* p,double *f,int gcv)
         ++count;
         f[FIJp2K] = recv2[count];
         ++count;
-        f[FIJp3K] = recv2[count];
-        ++count;
+        //f[FIJp3K] = recv2[count];
+        //++count;
 	}
 
 }

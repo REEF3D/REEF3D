@@ -29,6 +29,8 @@ void iowave::fnpf_precalc_relax_ini(lexer *p, ghostcell *pgc)
     // count number of relax points
     // allocate double* array
     
+    int dbcount=0;
+    
     upt_count=vpt_count=wpt_count=ppt_count=ept_count=0;
     
     if(p->B89==1)
@@ -45,6 +47,7 @@ void iowave::fnpf_precalc_relax_ini(lexer *p, ghostcell *pgc)
     FLOOP
     {
 		dg = distgen(p); 
+        db = distbeach(p); 
 
 		// Wave Generation
         if(p->B98==1)
@@ -65,6 +68,12 @@ void iowave::fnpf_precalc_relax_ini(lexer *p, ghostcell *pgc)
             ++ppt_count;
 
 		}
+        
+        if(p->B99==2||p->B99==4)
+		{
+            if(db<dist3)
+            ++dbcount;
+        }
     }	
 
 // ETA ------------------------------------------------
@@ -96,6 +105,8 @@ void iowave::fnpf_precalc_relax_ini(lexer *p, ghostcell *pgc)
     // precalc array alloc
     p->Darray(etaval,ept_count);
     p->Darray(Fival,ppt_count);
+    p->Darray(rb1val,ppt_count);
+    p->Darray(rb3val,dbcount);
     p->Darray(Fifsfval,ept_count);
     
     if(p->B89==1) 

@@ -36,10 +36,15 @@ fnpf_sg_RK3::fnpf_sg_RK3(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_sg_ini(p,
                                                       erk1(p),erk2(p),frk1(p),frk2(p)
 {
     gcval=250;
+    if(p->j_dir==0)
+     gcval=150;
+   
     gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;
     
+    
+    // 3D
     if(p->F50==1)
 	gcval_eta = 51;
     
@@ -54,6 +59,27 @@ fnpf_sg_RK3::fnpf_sg_RK3(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_sg_ini(p,
     
     gcval_eta = 50;
     gcval_fifsf = 50;
+    
+    // 2D
+    if(p->j_dir==0)
+    {
+    if(p->F50==1)
+	gcval_eta = 151;
+    
+    if(p->F50==2)
+	gcval_eta = 152;
+    
+    if(p->F50==3)
+	gcval_eta = 153;
+    
+    if(p->F50==4)
+	gcval_eta = 154;
+    
+    gcval_eta = 150;
+    gcval_fifsf = 150;
+    }
+    
+    
     
     if(p->A320==1)
     plap = new fnpf_sg_laplace_cds2(p);
@@ -73,7 +99,7 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
 // Step 1
     // fsf eta
     pf->kfsfbc(p,c,pgc);
-
+    
     SLICELOOP4
 	erk1(i,j) = c->eta(i,j) + p->dt*c->K(i,j);
     
@@ -92,11 +118,20 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pf->fsfdisc(p,c,pgc,erk1,frk1);
     sigma_update(p,c,pgc,pf,erk1);
   
+  double starttime=pgc->timer();
     // Set Boundary Conditions
     pflow->fivec_relax(p,pgc,c->Fi);
+    
+    
     fsfbc_sig(p,c,pgc,frk1,c->Fi);
     bedbc_sig(p,c,pgc,c->Fi,pf);
    
+   double endtime=pgc->timer();
+    
+    if(p->mpirank==0 && (p->count%p->P12==0))
+	cout<<"BENCH_time: "<<setprecision(3)<<endtime-starttime<<endl;
+    
+    
     // solve Fi
     pgc->start7V(p,c->Fi,250);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
@@ -191,6 +226,7 @@ void fnpf_sg_RK3::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     etaloc_sig(p,c,pgc);
     fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
     sigma_ini(p,c,pgc,pf,c->eta);
+    pf->fsfdisc_ini(p,c,pgc,c->eta,c->Fifsf);
     pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
     sigma_update(p,c,pgc,pf,c->eta);
     

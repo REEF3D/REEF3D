@@ -84,6 +84,29 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
     if((bc==21||bc==3) && (gcv==51||gcv==52||gcv==53||gcv==54))
 	return 4;
     
+    
+    // eta 150
+    else
+    if((bc==1||bc==6) && (gcv==152||gcv==154))
+	return 14;
+    
+    
+    else
+    if((bc==2||bc==7)&&(gcv==151||gcv==154))
+	return 14;
+    
+    else
+    if(bc==8 && (gcv==151||gcv==152||gcv==153||gcv==154) &&p->B99==3)
+	return 14;
+    
+    else
+    if(bc==8 && (gcv==151||gcv==152||gcv==153||gcv==154) &&p->B99==4)
+	return 8;
+    
+    else
+    if((bc==21||bc==3) && (gcv==151||gcv==152||gcv==153||gcv==154))
+	return 14;
+    
     else
     return -1;
     
@@ -100,6 +123,9 @@ void ghostcell::gcsldistro4(lexer *p, slice &f, int ii, int jj, int nn, double d
 
 	if(bc_label==4)
 	gcsl_neumann(f,gcv,bc,cs);
+    
+    if(bc_label==14)
+	gcsl_neumann_x(f,gcv,bc,cs);
     
     if(bc_label==5)
 	gcsl_noslip(f,gcv,bc,cs);

@@ -26,6 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"solver.h"
 #include"increment.h"
 #include"vec.h"
+#include"fieldint4.h"
 #include"_hypre_utilities.h"
 #include"HYPRE_sstruct_ls.h"
  
@@ -51,7 +52,7 @@ public:
     virtual void start_solver7(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     virtual void start_solver8(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     
-    virtual void solve(lexer*);
+    virtual void solve(lexer*,ghostcell*);
     virtual void solve1234(lexer*);
     
 	virtual void solve(lexer*,fdm*, ghostcell*, vec&, vec&, int, int, int&, int, double, cpt&);
@@ -111,6 +112,9 @@ private:
 	int nentries;
    
 	int numiter,count,q;
+    
+    
+    fieldint4 cval4;
 
 };
 

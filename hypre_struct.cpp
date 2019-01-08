@@ -28,7 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"field.h"
 #include"vec.h"
 
-hypre_struct::hypre_struct(lexer* p,fdm* a,ghostcell *pgc)
+hypre_struct::hypre_struct(lexer* p,fdm* a,ghostcell *pgc) : cval4(p)
 {	
     int vecsize=p->knox*p->knoy*p->knoz; 
     
@@ -44,6 +44,14 @@ hypre_struct::hypre_struct(lexer* p,fdm* a,ghostcell *pgc)
     
     if(p->j_dir==0 && p->A10==3)
     make_grid_2Dvert(p,a,pgc);
+    
+    
+    count=0;
+    FLUIDLOOP
+    {
+    cval4(i,j,k)=count;
+    ++count;
+    }
 }
 
 hypre_struct::~hypre_struct()
@@ -115,7 +123,7 @@ void hypre_struct::start_solver5(lexer* p,fdm* a, ghostcell* pgc, field &f, vec&
 
     fill_matrix4(p,a,pgc,f);
 
-    solve(p);
+    solve(p,pgc);
 	
 	p->solveriter=num_iterations;
         
@@ -134,7 +142,7 @@ void hypre_struct::start_solver7(lexer* p, ghostcell* pgc, double *f, vec& rhs, 
 
     fill_matrix7(p,pgc,f,rhs,M);
 
-    solve(p);
+    solve(p,pgc);
 
 	p->solveriter=num_iterations;
     p->final_res = final_res_norm;
@@ -157,7 +165,7 @@ void hypre_struct::start_solver8(lexer* p, ghostcell* pgc, double *f, vec& rhs, 
     if(p->j_dir==0 && p->A10==3)
     fill_matrix8_2Dvert(p,pgc,f,rhs,M);
 
-    solve(p);
+    solve(p,pgc);
 
 	p->solveriter=num_iterations;
     p->final_res = final_res_norm;

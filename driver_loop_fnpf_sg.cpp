@@ -69,7 +69,7 @@ void driver::loop_fnpf_sg()
         
         // printer
         pfprint->start(p,c,pgc,pflow);
-
+        
         //timestep control
         pftstep->start(c,p,pgc);
         p->simtime+=p->dt;
@@ -98,11 +98,7 @@ void driver::loop_fnpf_sg()
 		cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
         cout<<"timer per step: "<<setprecision(3)<<p->itertime<<endl;
         }
-        
-        // Write log files
-        mainlog(p);
-        maxlog(p);
-        solverlog(p);
+    
         }
     p->gctime=0.0;
     p->xtime=0.0;
@@ -115,6 +111,7 @@ void driver::loop_fnpf_sg()
 	cout<<endl<<"******************************"<<endl<<endl;
 
 	cout<<"modelled time: "<<p->simtime<<endl;
+    cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
 	cout << endl;
 
     mainlogout.close();

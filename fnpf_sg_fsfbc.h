@@ -39,6 +39,7 @@ public:
 	virtual ~fnpf_sg_fsfbc();
     
     void fsfdisc(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
+    void fsfdisc_ini(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
     void kfsfbc(lexer*,fdm_fnpf*,ghostcell*);
     void dfsfbc(lexer*,fdm_fnpf*,ghostcell*,slice&);
     void fsfwvel(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
@@ -48,6 +49,7 @@ public:
     fnpf_ddx *pddx;
 
     double ivel,jvel,kvel;
+    
     
     
 };

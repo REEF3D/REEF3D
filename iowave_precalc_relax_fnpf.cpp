@@ -26,6 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
 {
     double fsfloc;
+    int dbcount;
     
     
     // pre-calc every iteration
@@ -72,6 +73,7 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
     
     
     count=0;
+    dbcount=0;
     FLOOP
     {
         xg = xgen(p);
@@ -106,9 +108,20 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
             if(dg<dist1)
             { 
             Fival[count] = wave_fi(p,pgc,xg,yg,z);
+            rb1val[count] = rb1(p,dg);
             ++count;
             }
 		}
+        
+        if(p->B99==2||p->B99==4)
+		{
+            // Zone 3
+            if(db<dist3)
+            {
+            rb3val[dbcount] = rb3(p,db);
+            ++dbcount;
+            }
+        }
     }
 
 

@@ -53,7 +53,7 @@ void fnpf_sg_bed_update::bedbc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double
     
             +  c->By(i,j)*(c->Fi[FIJp1K]-c->Fi[FIJm1K])/(p->DYP[JP] + p->DYP[JM1]));
             
-    denom =  p->sigz[FIJK] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
+    denom =  p->sigz[IJ] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
     
     Fi[FIJKm1] = (bcval/denom)*(2.0*p->DZP[KP]) + Fi[FIJK];
     Fi[FIJKm2] = (bcval/denom)*(3.0*p->DZP[KP]) + Fi[FIJK];

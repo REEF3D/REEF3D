@@ -54,6 +54,8 @@ private:
 
     fnpf_sg_laplace *plap;
     fnpf_sg_fsfbc *pf;
+    
+    int gcval_sl;
 
 };
 

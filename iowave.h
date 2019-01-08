@@ -212,6 +212,7 @@ private:
     int wave_comp;
     int upt_count,vpt_count,wpt_count,ppt_count,ept_count;
     double *uval,*vval,*wval,*etaval,*lsval,*Fival,*Fifsfval;
+    double *rb1val,*rb3val;
     
     double **uval_S_sin,**vval_S_sin,**wval_S_sin,**etaval_S_sin,**Fival_S_sin;
     double **uval_S_cos,**vval_S_cos,**wval_S_cos,**etaval_S_cos,**Fival_S_cos;
@@ -222,7 +223,6 @@ private:
     double zloc1,zloc2,zloc3,zloc4;
 
     
-	
 	double **wsfmax;
     
     double Apor,Bpor,porval,partval;

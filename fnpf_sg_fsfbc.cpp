@@ -65,6 +65,14 @@ fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     pddx = new fnpf_ddx_cds4(p);
     pdx = new fnpf_cds4(p);
     }
+    
+    
+    FFILOOP4
+    {
+    c->Fy(i,j) = 0.0;
+    c->Ey(i,j) = 0.0;
+    c->Eyy(i,j) = 0.0;
+    }
 }
 
 fnpf_sg_fsfbc::~fnpf_sg_fsfbc()
@@ -77,6 +85,7 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     c->WL(i,j) = eta(i,j) + p->wd - c->bed(i,j);
     
     // fi
+    if(p->i_dir==1 && p->j_dir==1)
     FFILOOP4
     {
     ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);    
@@ -90,9 +99,28 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     
     c->Exx(i,j) = pddx->sxx(p,eta);
     c->Eyy(i,j) = pddx->syy(p,eta);
+    }
     
-    c->Bx(i,j) = pdx->sx(p,c->depth,ivel);
-    c->By(i,j) = pdx->sy(p,c->depth,jvel);
+    if(p->i_dir==1 && p->j_dir==0)
+    FFILOOP4
+    {
+    ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);    
+    
+    c->Fx(i,j) = pconvec->sx(p,Fifsf,ivel);
+    
+    c->Ex(i,j) = pconvec->sx(p,eta,ivel);
+    
+    c->Exx(i,j) = pddx->sxx(p,eta);
+    }
+
+}
+
+void fnpf_sg_fsfbc::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
+{
+    FFILOOP4
+    {
+    c->Bx(i,j) = pdx->sx(p,c->depth,1.0);
+    c->By(i,j) = pdx->sy(p,c->depth,1.0);
     
     c->Bxx(i,j) = pddx->sxx(p,c->depth);
     c->Byy(i,j) = pddx->syy(p,c->depth);
@@ -106,7 +134,7 @@ void fnpf_sg_fsfbc::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
 {
     // fi
     FFILOOP4
-    c->Fz(i,j) = p->sigz[FIJK]*pconvec->sz(p,c->Fi);
+    c->Fz(i,j) = p->sigz[IJ]*pconvec->sz(p,c->Fi);
 }
 
 void fnpf_sg_fsfbc::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)

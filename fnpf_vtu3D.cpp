@@ -68,39 +68,6 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     // Gages
 	if(p->P51>0)
 	pwsf->height_gauge(p,c,pgc,c->eta);
-    
-    
-    
-    //
-    pgc->start4(p,c->u,110);
-    pgc->start4(p,c->v,111);
-	pgc->start4(p,c->w,112);
-    pgc->gcsl_start4(p,c->WL,50);
-    pgc->gcsl_start4(p,c->bed,50);
-    pgc->start4(p,c->test,50);
-	
-	pgc->dgcpol(p,c->u,p->dgc1,p->dgc1_count,11);
-	pgc->dgcpol(p,c->v,p->dgc2,p->dgc2_count,12);
-	pgc->dgcpol(p,c->w,p->dgc3,p->dgc3_count,13);
-    pgc->dgcpol(p,c->test,p->dgc4,p->dgc4_count,14);
-    pgc->dgcpol(p,c->Fi4,p->dgc4,p->dgc4_count,14);
-    pgc->dgcslpol(p,c->WL,p->dgcsl4,p->dgcsl4_count,14);
-    pgc->dgcslpol(p,c->bed,p->dgcsl4,p->dgcsl4_count,14);
-	
-	c->u.ggcpol(p);
-	c->v.ggcpol(p);
-	c->w.ggcpol(p);
-    c->Fi4.ggcpol(p);
-    c->WL.ggcpol(p);
-    c->test.ggcpol(p);
-    
-    i=-1;
-    j=-1;
-    if(i+p->origin_i==-1 && j+p->origin_j==-1 )
-    c->WL(i,j) = c->WL(i+1,j+1);
-
-    c->Fi4.ggcpol(p);
-    c->test.ggcpol(p);
   
 		// Print out based on iteration
         if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)
@@ -136,6 +103,36 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 
 void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 {
+     //
+    pgc->start4(p,c->u,110);
+    pgc->start4(p,c->v,111);
+	pgc->start4(p,c->w,112);
+    pgc->gcsl_start4(p,c->WL,50);
+    pgc->gcsl_start4(p,c->bed,50);
+    pgc->start4(p,c->test,50);
+	
+	pgc->dgcpol(p,c->u,p->dgc1,p->dgc1_count,11);
+	pgc->dgcpol(p,c->v,p->dgc2,p->dgc2_count,12);
+	pgc->dgcpol(p,c->w,p->dgc3,p->dgc3_count,13);
+    pgc->dgcpol(p,c->test,p->dgc4,p->dgc4_count,14);
+    pgc->dgcpol(p,c->Fi4,p->dgc4,p->dgc4_count,14);
+    pgc->dgcslpol(p,c->WL,p->dgcsl4,p->dgcsl4_count,14);
+    pgc->dgcslpol(p,c->bed,p->dgcsl4,p->dgcsl4_count,14);
+	
+	c->u.ggcpol(p);
+	c->v.ggcpol(p);
+	c->w.ggcpol(p);
+    c->Fi4.ggcpol(p);
+    c->WL.ggcpol(p);
+    c->test.ggcpol(p);
+    
+    i=-1;
+    j=-1;
+    if(i+p->origin_i==-1 && j+p->origin_j==-1 )
+    c->WL(i,j) = c->WL(i+1,j+1);
+    
+    
+    //----------
     
     if(p->mpirank==0)
     pvtu(p,pgc);
