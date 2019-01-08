@@ -59,6 +59,8 @@ private:
 	double wave_F_minus(double,double,double,double);
     
     double **Aplus,**Aminus,**Dplus,**Dminus,**Gplus,**Gminus,**Hplus,**Hminus,**Fplus,**Fminus;
+    
+    double *cosh_kpk,*cosh_kmk,*cosh_2k,*sinh_4kh;
     int m;
     double singamma,cosgamma;
     double T,vel,eta,fi;
