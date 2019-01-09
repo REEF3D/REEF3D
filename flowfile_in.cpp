@@ -173,7 +173,6 @@ void flowfile_in::ff_inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
     }
 }
 
-
 void flowfile_in::ff_waterlevel(lexer *p, fdm* a, ghostcell* pgc, field& ls)
 {
     double lsval;

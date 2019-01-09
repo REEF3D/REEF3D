@@ -182,6 +182,10 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="FDM">
+      <VirtualDirectory Name="ioCoupling">
+        <File Name="potentialfile_in.h"/>
+        <File Name="flowfile_in.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="DDWENO">
         <File Name="ddweno_f_nug.h"/>
         <File Name="weno3_nug_func.h"/>
@@ -277,7 +281,6 @@
         <File Name="ioflow_void.h"/>
         <File Name="iowave.h"/>
         <File Name="ioflow.h"/>
-        <File Name="flowfile_in.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Normal Vector">
         <File Name="norm_vec.h"/>
@@ -1142,6 +1145,22 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="FDM">
+      <VirtualDirectory Name="ioCoupling">
+        <VirtualDirectory Name="PotentialFile In">
+          <File Name="potentialfile_in_read.cpp"/>
+          <File Name="potential_file_in_ipol.cpp"/>
+          <File Name="potentialfile_in_header.cpp"/>
+          <File Name="potentialfile_in_filename.cpp"/>
+          <File Name="potentialfile_in.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="FlowFile In">
+          <File Name="flowfile_in_read.cpp"/>
+          <File Name="flowfile_in_ipol.cpp"/>
+          <File Name="flowfile_in_header.cpp"/>
+          <File Name="flowfile_in_filename.cpp"/>
+          <File Name="flowfile_in.cpp"/>
+        </VirtualDirectory>
+      </VirtualDirectory>
       <VirtualDirectory Name="DDWENO">
         <File Name="ddweno_f_nug.cpp"/>
         <File Name="weno3_nug_func_precalc_weights.cpp"/>
@@ -1329,13 +1348,6 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Void">
           <File Name="ioflow_void.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="FlowFile In">
-          <File Name="flowfile_in_header.cpp"/>
-          <File Name="flowfile_in.cpp"/>
-          <File Name="flowfile_in_read.cpp"/>
-          <File Name="flowfile_in_ipol.cpp"/>
-          <File Name="flowfile_in_filename.cpp"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Normal Vector">
@@ -2137,6 +2149,9 @@
           <File Name="fnpf_fg_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="PotentialFile Out">
+            <File Name="potentialfile.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="VTU">
             <File Name="fnpf_vtu3D_pvtu.cpp"/>
             <File Name="fnpf_vtu3D_header.cpp"/>

@@ -47,7 +47,6 @@ void flowfile_out::initialize(lexer *p, fdm *a, ghostcell *pgc)
     elnum = Ni*Nj*Nk;
     
     
-    
     p->Darray(U,p->P230,elnum);
 	p->Darray(V,p->P230,elnum);
 	p->Darray(W,p->P230,elnum);
