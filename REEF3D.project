@@ -1147,8 +1147,8 @@
     <VirtualDirectory Name="FDM">
       <VirtualDirectory Name="ioCoupling">
         <VirtualDirectory Name="PotentialFile In">
+          <File Name="potentialfile_in_ipol.cpp"/>
           <File Name="potentialfile_in_read.cpp"/>
-          <File Name="potential_file_in_ipol.cpp"/>
           <File Name="potentialfile_in_header.cpp"/>
           <File Name="potentialfile_in_filename.cpp"/>
           <File Name="potentialfile_in.cpp"/>
