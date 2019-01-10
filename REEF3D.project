@@ -749,6 +749,7 @@
           <File Name="fnpf_fg_RK3.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <File Name="potentialfile_out.h"/>
           <File Name="fnpf_print_wsfline.h"/>
           <File Name="fnpf_print_wsf.h"/>
           <File Name="fnpf_fsf_vtp.h"/>
@@ -2150,6 +2151,10 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
           <VirtualDirectory Name="PotentialFile Out">
+            <File Name="potentialfile_out_write.cpp"/>
+            <File Name="potentialfile_out_header.cpp"/>
+            <File Name="potentialfile_filename.cpp"/>
+            <File Name="potentialfile_out_ini.cpp"/>
             <File Name="potentialfile.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTU">
