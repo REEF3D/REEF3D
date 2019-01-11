@@ -184,6 +184,11 @@ void reinifluid_RK4::start(fdm* a,lexer* p,field& b, ghostcell* pgc, ioflow* pfl
 	p->reinitime+=pgc->timer()-starttime;
 }
 
+void reinifluid_RK4::startV(fdm* a,lexer* p,vec &f, ghostcell* pgc,ioflow* pflow)
+{ 
+    
+}
+
 void reinifluid_RK4::step(fdm* a, lexer* p)
 {
 	reiniter=p->F44;

@@ -24,6 +24,7 @@ class lexer;
 class ghostcell;
 class ioflow;
 class field;
+class vec;
 
 using namespace std;
 
@@ -35,6 +36,7 @@ class reini
 public:
 
 	virtual void start(fdm*,lexer*,field&,ghostcell*,ioflow*)=0;
+    virtual void startV(fdm*,lexer*,vec&,ghostcell*,ioflow*)=0;
 };
 
 #endif

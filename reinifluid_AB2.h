@@ -39,6 +39,7 @@ public:
     
 	virtual ~reinifluid_AB2();
 	virtual void start(fdm*,lexer*,field&,ghostcell*,ioflow*);
+    virtual void startV(fdm*,lexer*,vec&,ghostcell*,ioflow*);
 
 	int *sizeM;
     vec f,dab,L,dt;

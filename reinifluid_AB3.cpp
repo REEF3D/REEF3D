@@ -150,7 +150,11 @@ void reinifluid_AB3::start(fdm* a,lexer* p,field& b, ghostcell* pgc,ioflow* pflo
 	ppicard->correct_ls(p,a,pgc,a->phi);
 	
 	p->reinitime+=pgc->timer()-starttime;
+}
 
+void reinifluid_AB3::startV(fdm* a,lexer* p,vec &f, ghostcell* pgc,ioflow* pflow)
+{ 
+    
 }
 
 void reinifluid_AB3::step(fdm* a, lexer *p)

@@ -122,6 +122,9 @@ void directreini::start(fdm* a,lexer* p,field& b, ghostcell* pgc,ioflow* pflow)
 	p->reinitime=pgc->timer()-starttime;
 }
 
-
+void directreini::startV(fdm* a,lexer* p,vec &f, ghostcell* pgc,ioflow* pflow)
+{ 
+    
+}
 
 

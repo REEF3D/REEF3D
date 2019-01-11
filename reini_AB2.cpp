@@ -150,7 +150,11 @@ void reini_AB2::start(fdm* a,lexer* p,field& b, ghostcell* pgc,ioflow* pflow)
 	ppicard->correct_ls(p,a,pgc,a->phi);
 	
 	p->reinitime+=pgc->timer()-starttime;
+}
 
+void reini_AB2::startV(fdm* a,lexer* p,vec &f, ghostcell* pgc,ioflow* pflow)
+{ 
+    
 }
 
 void reini_AB2::step(lexer *p, fdm *a)

@@ -69,15 +69,10 @@ reinifluid_AB2::reinifluid_AB2(lexer* p, fdm *a):f(p),dab(p),L(p),dt(p)
     time_preproc(p);
 }
 
-
-
 reinifluid_AB2::~reinifluid_AB2()
-
 {
 
 }
-
-
 
 void reinifluid_AB2::start(fdm* a,lexer* p,field& b, ghostcell* pgc,ioflow* pflow)
 
@@ -156,6 +151,11 @@ void reinifluid_AB2::start(fdm* a,lexer* p,field& b, ghostcell* pgc,ioflow* pflo
 	
 	p->reinitime+=pgc->timer()-starttime;
 
+}
+
+void reinifluid_AB2::startV(fdm* a,lexer* p,vec &f, ghostcell* pgc,ioflow* pflow)
+{ 
+    
 }
 
 void reinifluid_AB2::step(fdm* a, lexer *p)

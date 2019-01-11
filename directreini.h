@@ -28,6 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 class picard;
 class fieldint;
+class vec;
 
 using namespace std;
 
@@ -40,6 +41,7 @@ public:
 	directreini(lexer* p, fdm *a);
 	virtual ~directreini();
 	virtual void start(fdm*,lexer*,field&, ghostcell*,ioflow*);
+    virtual void startV(fdm*,lexer*,vec&,ghostcell*,ioflow*);
 	
 	virtual void vtp(lexer*,fdm*,ghostcell*);
 	virtual void name_iter(lexer*,fdm*,ghostcell*);

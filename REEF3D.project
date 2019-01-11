@@ -318,6 +318,7 @@
         <File Name="directreini.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Level Set">
+        <File Name="levelset_RK3_V.h"/>
         <File Name="levelset_IM1.h"/>
         <File Name="levelset_IM2.h"/>
         <File Name="levelset_RK3.h"/>
@@ -1401,6 +1402,7 @@
         <File Name="directreini_correction.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Level Set">
+        <File Name="levelset_RK3_V.cpp"/>
         <File Name="levelset_IM1.cpp"/>
         <File Name="levelset_IM2.cpp"/>
         <File Name="levelset_RK3.cpp"/>

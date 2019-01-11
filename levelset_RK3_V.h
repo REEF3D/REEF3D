@@ -19,27 +19,36 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"reini_void.h"
+#include"freesurface.h"
+#include"gradient.h"
+#include"field4.h"
 
-reini_void::reini_void(lexer* p)
+class picard;
+class heat;
+class concentration;
+class fluid_update;
+
+using namespace std;
+
+#ifndef LEVELSET_RK3_V_H_
+#define LEVELSET_RK3_V_H_
+
+class levelset_RK3_V : public freesurface, gradient
 {
-}
+public:
+	levelset_RK3_V(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
+	virtual ~levelset_RK3_V();
+	virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particlecorr*,field&);
+	virtual void ltimesave(lexer*,fdm*,field&);
+    virtual void update(lexer*,fdm*,ghostcell*,field&);
 
-reini_void::~reini_void()
-{
-}
-
-void reini_void::start(fdm* a,lexer* p,field& b, ghostcell* pgc,ioflow* pflow)
-{
-}
-
-void reini_void::startV(fdm* a,lexer* p,vec &f, ghostcell* pgc,ioflow* pflow)
-{ 
+private:
+    fluid_update *pupdate;
+    picard *ppicard;
     
-}
+    field4 ark1,ark2;
 
-void reini_void::update(fdm* a, lexer* p,ghostcell* pgc)
-{
-}
-
-
+	int gcval_phi;
+	double starttime;
+};
+#endif

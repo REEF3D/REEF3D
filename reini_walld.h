@@ -37,6 +37,7 @@ public:
 	reini_walld(lexer* p, fdm *a);
 	virtual ~reini_walld();
 	virtual void start(fdm*,lexer*,field&,ghostcell*,ioflow*);
+    virtual void startV(fdm*,lexer*,vec&,ghostcell*,ioflow*);
 
 	int *sizeM;
     vec f,dab,L;

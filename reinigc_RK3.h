@@ -38,6 +38,7 @@ public:
 	reinigc_RK3(lexer* p, fdm *a);
 	virtual ~reinigc_RK3();
 	virtual void start(fdm*,lexer*,field&,ghostcell*,ioflow*);
+    virtual void startV(fdm*,lexer*,vec&,ghostcell*,ioflow*);
 
 	double dstx, dsty, dstz, dnorm, sign;
 	double sx,sy,sz,snorm,op;

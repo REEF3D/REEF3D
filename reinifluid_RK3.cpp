@@ -87,8 +87,7 @@ reinifluid_RK3::~reinifluid_RK3()
 
 void reinifluid_RK3::start(fdm* a,lexer* p,field& b,ghostcell* pgc,ioflow* pflow)
 { 
-    starttime=pgc->timer();
-	
+    
 	sizeM=p->sizeM4;
 	
 	ppicard->volcalc(p,a,pgc,a->phi);
@@ -101,7 +100,33 @@ void reinifluid_RK3::start(fdm* a,lexer* p,field& b,ghostcell* pgc,ioflow* pflow
 	}
     
 	pgc->start4V(p,f,gcval_iniphi);
-	
+    
+    
+    startV(a,p,f,pgc,pflow);
+    
+    
+    // backfill
+	n=0;
+	FLUIDLOOP
+	{
+	b(i,j,k)=f.V[n];
+	++n;
+	}
+    
+	if(p->count==0)
+	pgc->start4(p,b,gcval_iniphi);
+    
+    if(p->count>0)
+	pgc->start4(p,b,gcval_phi);
+    
+    ppicard->correct_ls(p,a,pgc,a->phi);
+     
+}
+
+void reinifluid_RK3::startV(fdm* a,lexer* p,vec &f, ghostcell* pgc,ioflow* pflow)
+{ 
+    starttime=pgc->timer();
+    
 	if(p->count==0)
 	{
     if(p->mpirank==0)
@@ -159,23 +184,10 @@ void reinifluid_RK3::start(fdm* a,lexer* p,field& b,ghostcell* pgc,ioflow* pflow
 	pgc->start4V(p,f,gcval_phi);
 	}
 	
-	// backfill
-	n=0;
-	FLUIDLOOP
-	{
-	b(i,j,k)=f.V[n];
-	++n;
-	}
-    
-	if(p->count==0)
-	pgc->start4(p,b,gcval_iniphi);
-    
-    if(p->count>0)
-	pgc->start4(p,b,gcval_phi);
 	
-	ppicard->correct_ls(p,a,pgc,a->phi);
-	
-	p->reinitime+=pgc->timer()-starttime;
+
+    
+    p->reinitime+=pgc->timer()-starttime;  
 }
 
 

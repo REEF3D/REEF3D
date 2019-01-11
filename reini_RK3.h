@@ -38,6 +38,7 @@ public:
 	reini_RK3(lexer* p,int);
 	virtual ~reini_RK3();
 	virtual void start(fdm*,lexer*,field&,ghostcell*,ioflow*);
+    virtual void startV(fdm*,lexer*,vec&,ghostcell*,ioflow*);
 
 	int *sizeM;
 	vec f,frk1,frk2,L,dt;

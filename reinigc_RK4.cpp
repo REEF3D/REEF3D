@@ -155,6 +155,11 @@ void reinigc_RK4::start(fdm* a,lexer* p,field& b,ghostcell* pgc,ioflow* pflow)
 	p->reinitime=pgc->timer()-starttime;
 }
 
+void reinigc_RK4::startV(fdm* a,lexer* p,vec &f, ghostcell* pgc,ioflow* pflow)
+{ 
+    
+}
+
 void reinigc_RK4::disc(lexer *p,fdm* a, ghostcell *pgc, field& b)
 {
     LOOP

@@ -157,6 +157,11 @@ void reini_AB3::start(fdm* a,lexer* p,field& b, ghostcell* pgc,ioflow* pflow)
 
 }
 
+void reini_AB3::startV(fdm* a,lexer* p,vec &f, ghostcell* pgc,ioflow* pflow)
+{ 
+    
+}
+
 void reini_AB3::step(lexer *p, fdm *a)
 {
 	reiniter=p->F44+2;

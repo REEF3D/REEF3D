@@ -143,6 +143,11 @@ void reinivc_RK3::start(fdm* a,lexer* p,field& b, ghostcell* pgc,ioflow* pflow)
 	p->reinitime=pgc->timer()-starttime;
 }
 
+void reinivc_RK3::startV(fdm* a,lexer* p,vec &f, ghostcell* pgc,ioflow* pflow)
+{ 
+    
+}
+
 void reinivc_RK3::interface_cells(lexer *p, fdm* a, field& b)
 {
 	int check;
