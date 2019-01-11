@@ -19,60 +19,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fdm2D.h"
+#include"idiff2_FS_2D.h"
 #include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"solver.h"
 
-fdm2D::fdm2D(lexer *p)
-			:eta(p),eta_n(p),
-            P(p),Pn(p),Q(p),Qn(p),
-            F(p),G(p),L(p),
-            ws(p),wb(p),
-            press(p),
-            eddyv(p),kin(p),eps(p),
-            geo(p),bed(p),depth(p),
-            bednode(p),
-			 hx(p),hy(p),hp(p),
-			 xvec(p),rhsvec(p),M(p),
-            dpx(p),dpy(p),test(p),
-            breaking(p),breaking_print(p),
-            wet4(p),
-			 nodeval(p),
-			 cmu(0.09)
+void idiff2_FS_2D::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u, field &v, field &w, double alpha)
 {
-
-	inverse=1.0/p->dx;
-	deltax=p->dx;
-
-	maxF=0.0;
-	maxG=0.0; 
-	maxK=0.0;
-	maxE=0.0;
-
-	sigT=0.9;
-
-	gi=p->W20;
-	gj=p->W21;
-	gk=p->W22;
-
-    
-    C1.allocate(p);
-    C2.allocate(p);
-    C4.allocate(p);
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

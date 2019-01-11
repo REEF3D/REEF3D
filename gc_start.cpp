@@ -52,6 +52,9 @@ void ghostcell::start1(lexer *p, field& f, int gcv)
 
 void ghostcell::start2(lexer *p, field& f, int gcv)
 {
+    
+    if(p->j_dir==1)
+    {
     if(p->F10==1)
     nse2(p,a,f,gcv);
     
@@ -75,6 +78,7 @@ void ghostcell::start2(lexer *p, field& f, int gcv)
     
     if(p->F10==1)
     nse2(p,a,f,gcv);
+    }
 }
 
 void ghostcell::start3(lexer *p, field& f, int gcv)

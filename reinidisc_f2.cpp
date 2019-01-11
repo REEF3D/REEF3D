@@ -81,6 +81,8 @@ void reinidisc_f2::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *s
 	dx=0.0;
 
 // y
+    if(p->j_dir==1)
+    {
 	ymin=(lsv-b.V[I_Jm1_K])/p->DYP[JM1];
 	yplus=(b.V[I_Jp1_K]-lsv)/p->DYP[JP];
 	
@@ -92,6 +94,7 @@ void reinidisc_f2::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *s
 
 	if(yplus*lsSig>0.0 && ymin*lsSig<0.0)
 	dy=0.0;
+    }
 
 // z
 	zmin=(lsv-b.V[I_J_Km1])/p->DZP[KM1];

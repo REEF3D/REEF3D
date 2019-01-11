@@ -69,9 +69,13 @@ public:
     void make_grid_2Dvert(lexer*,fdm*, ghostcell*);
     
     void fill_matrix1(lexer*,fdm*, ghostcell*,field&);
+    void fill_matrix1_2Dvert(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix2(lexer*,fdm*, ghostcell*,field&);
+    void fill_matrix2_2Dvert(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix3(lexer*,fdm*, ghostcell*,field&);
+    void fill_matrix3_2Dvert(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix4(lexer*,fdm*, ghostcell*,field&);
+    void fill_matrix4_2Dvert(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix7(lexer*, ghostcell*,double*, vec&, matrix_diag&);
     void fill_matrix8(lexer*, ghostcell*,double*, vec&, matrix_diag&);
     void fill_matrix8_2Dvert(lexer*, ghostcell*,double*, vec&, matrix_diag&);

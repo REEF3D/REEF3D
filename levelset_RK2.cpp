@@ -117,8 +117,6 @@ void levelset_RK2::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 	pflow->phi_relax(p,pgc,ark1);
 	
 	pgc->start4(p,ark1,gcval_phi);
-	if(p->F48==1)
-	preini->start(a,p,ark1, pgc, pflow);
 
 // Step 2
     LOOP

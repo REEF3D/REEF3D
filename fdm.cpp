@@ -63,13 +63,9 @@ fdm::fdm(lexer *p)
 	p->Iarray(ccedge,p->facetnum*4);
     
     
-    if(p->N40>10 || p->D20>=2)
-    {
     C1.allocate(p);
     C2.allocate(p);
     C3.allocate(p);
-    }
-    
     C4.allocate(p);
     C4a.allocate(p);
     C6.allocate(p);

@@ -99,12 +99,9 @@ void ghostcell::solid_update(lexer *p, fdm *a)
 
     column_pt_resize(p,a);
     
-    if(p->N40>10 || p->D20>=2)
-    {
     column_pt1_update(p,a);
     column_pt2_update(p,a);
     column_pt3_update(p,a);
-    }
     column_pt4_update(p,a);
 
    // a->press.resize(p);

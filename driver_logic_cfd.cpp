@@ -351,8 +351,11 @@ void driver::logic()
 	if(p->D20==1 && p->N40<=10)
 	pdiff=new ediff2(p);
 	
-	if(p->D20>=2 && p->N40<=10)
+	if(p->D20>=2 && p->N40<=10 && p->j_dir==1)
 	pdiff=new idiff2_FS(p);
+    
+    if(p->D20>=2 && p->N40<=10 && p->j_dir==0)
+	pdiff=new idiff2_FS_2D(p);
 
 	if(p->N40>10)
 	pdiff=new idiff2(p);
@@ -725,7 +728,7 @@ void driver::logic()
 	
 
 //Solver
-	if(p->N8==0)
+	/*if(p->N8==0)
 	psolv = new solver_void(p,a,pgc);
 	
 	if(p->N8==1)
@@ -735,7 +738,7 @@ void driver::logic()
 	psolv = new sip(p,a,pgc);
 	
 	if(p->N8==3)
-	psolv = new bicgstab(p,a,pgc,p->N9);
+	psolv = new bicgstab(p,a,pgc,p->N9);*/
 	
     
 //Poison Solver	
@@ -766,10 +769,10 @@ void driver::logic()
 	ppoissonsolv = new hypre_sstruct(p,a,pgc);
 	#endif
 
-    //psolv=ppoissonsolv;
+    psolv=ppoissonsolv;
 
 //IOFlow
-	if(p->B60==0 && p->B90==0 && p->B180==0 )
+	if(p->B60==0 && p->B90==0 && p->B180==0)
 	pflow = new ioflow_v(p,pgc);
 
 	if(p->B60>=1)

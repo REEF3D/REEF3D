@@ -39,10 +39,10 @@ hypre_struct::hypre_struct(lexer* p,fdm* a,ghostcell *pgc) : cval4(p)
     p->Iarray(iupper,3);
     p->Darray(values,vecsize*7);
     
-    if(p->j_dir==1 || p->A10!=3)
+    if(p->j_dir==1)
     make_grid(p,a,pgc);	
     
-    if(p->j_dir==0 && p->A10==3)
+    if(p->j_dir==0)
     make_grid_2Dvert(p,a,pgc);
     
     
@@ -84,16 +84,40 @@ void hypre_struct::start_solver1234(lexer* p,fdm* a, ghostcell* pgc, field &f, v
 	create_solver1234(p,pgc);
     
     if(var==1)
-    fill_matrix1(p,a,pgc,f);
+    {
+        if(p->j_dir==1)
+        fill_matrix1(p,a,pgc,f);
+        
+        if(p->j_dir==0)
+        fill_matrix1_2Dvert(p,a,pgc,f);
+    }
     
     if(var==2)
-    fill_matrix2(p,a,pgc,f);
+    {
+        if(p->j_dir==1)
+        fill_matrix2(p,a,pgc,f);
+        
+        if(p->j_dir==0)
+        fill_matrix2_2Dvert(p,a,pgc,f);
+    }
     
     if(var==3)
-    fill_matrix3(p,a,pgc,f);
+    {
+        if(p->j_dir==1)
+        fill_matrix3(p,a,pgc,f);
+        
+        if(p->j_dir==0)
+        fill_matrix3_2Dvert(p,a,pgc,f);
+    }
     
     if(var==4)
-    fill_matrix4(p,a,pgc,f);
+    {
+        if(p->j_dir==1)
+        fill_matrix4(p,a,pgc,f);
+        
+        if(p->j_dir==0)
+        fill_matrix4_2Dvert(p,a,pgc,f);
+    }
     
     
     solve1234(p);
@@ -120,8 +144,12 @@ void hypre_struct::start_solver5(lexer* p,fdm* a, ghostcell* pgc, field &f, vec&
 	p->solveriter=0;
 	
     create_solver5(p,pgc);
-
+    
+    if(p->j_dir==1)
     fill_matrix4(p,a,pgc,f);
+    
+    if(p->j_dir==0)
+    fill_matrix4_2Dvert(p,a,pgc,f);
 
     solve(p,pgc);
 	
@@ -159,10 +187,10 @@ void hypre_struct::start_solver8(lexer* p, ghostcell* pgc, double *f, vec& rhs, 
 	
     create_solver5(p,pgc);
 
-    if(p->j_dir==1 || p->A10!=3)
+    if(p->j_dir==1)
     fill_matrix8(p,pgc,f,rhs,M);
     
-    if(p->j_dir==0 && p->A10==3)
+    if(p->j_dir==0)
     fill_matrix8_2Dvert(p,pgc,f,rhs,M);
 
     solve(p,pgc);

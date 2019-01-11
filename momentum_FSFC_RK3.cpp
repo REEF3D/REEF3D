@@ -159,8 +159,6 @@ void momentum_FSFC_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	
 	pgc->start4(p,ark1,gcval_phi);
     
-	if(p->F48==1)
-	preini->start(a,p,ark1, pgc, pflow);
     
     pupdate->start(p,a,pgc);*/
 
@@ -254,9 +252,6 @@ void momentum_FSFC_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	
 	pgc->start4(p,ark1,gcval_phi);
     
-	if(p->F48==1)
-	preini->start(a,p,ark1, pgc, pflow);
-    
     pupdate->start(p,a,pgc);
     
 
@@ -277,8 +272,6 @@ void momentum_FSFC_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	pflow->phi_relax(p,pgc,ark2,0.25);
 	
 	pgc->start4(p,ark2,gcval_phi);
-	if(p->F48==1)
-	preini->start(a,p,ark2, pgc, pflow);
     
     pupdate->start(p,a,pgc);*/
 	
@@ -368,8 +361,6 @@ void momentum_FSFC_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	pflow->phi_relax(p,pgc,ark2);
 	
 	pgc->start4(p,ark2,gcval_phi);
-	if(p->F48==1)
-	preini->start(a,p,ark2, pgc, pflow);
     
     pupdate->start(p,a,pgc);
 

@@ -121,8 +121,6 @@ void levelset_RK4::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 				
 	pflow->phi_relax(p,pgc,ark1);
 
-    if(p->F48==1)
-	preini->start(a,p,ark1, pgc, pflow);
 	pgc->start4(p,ark1,gcval_phi);
 
 
@@ -139,8 +137,6 @@ void levelset_RK4::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 	
 	pflow->phi_relax(p,pgc,ark2);
 
-    if(p->F48==1)
-	preini->start(a,p,ark2, pgc, pflow);
 	pgc->start4(p,ark2,gcval_phi);
 
 
@@ -157,8 +153,6 @@ void levelset_RK4::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 				
 	pflow->phi_relax(p,pgc,ark3);
 
-    if(p->F48==1)
-	preini->start(a,p,ark3, pgc, pflow);
 	pgc->start4(p,ark3,gcval_phi);
 
 

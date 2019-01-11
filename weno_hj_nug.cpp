@@ -82,7 +82,12 @@ double weno_hj_nug::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& v
         pflux->v_flux(a,ipol,vvel,jadvec,jvel2);
         pflux->w_flux(a,ipol,wvel,kadvec,kvel2);
 		
-		L = -iadvec*fx(p,a,b,uvel,ipol,iadvec) - jadvec*fy(p,a,b,vvel,ipol,jadvec) - kadvec*fz(p,a,b,wvel,ipol,kadvec);
+		L = -iadvec*fx(p,a,b,uvel,ipol,iadvec);
+        
+        if(p->j_dir==1)
+        L -= jadvec*fy(p,a,b,vvel,ipol,jadvec);
+        
+        L -= kadvec*fz(p,a,b,wvel,ipol,kadvec);
         
 		return L;
 }

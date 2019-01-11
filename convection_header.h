@@ -32,8 +32,10 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 #include"weno_hj.h"
 #include"weno_hj_N.h"
 #include"weno_hj_nug.h"
+#include"weno_hj_N_nug.h"
 #include"weno_flux.h"
 #include"weno_flux_nug.h"
+#include"weno_flux_N_nug.h"
 #include"weno_flux_N.h"
 #include"iweno_flux.h"
 #include"iweno_hj.h"
@@ -44,6 +46,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 #include"ediff2.h"
 #include"idiff2.h"
 #include"idiff2_FS.h"
+#include"idiff2_FS_2D.h"
 
 #include"hires.h"
 #include"ihires.h"

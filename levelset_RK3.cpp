@@ -121,9 +121,7 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 	pflow->phi_relax(p,pgc,ark1);
 	
 	pgc->start4(p,ark1,gcval_phi);
-	if(p->F48==1)
-	preini->start(a,p,ark1, pgc, pflow);
-
+    
 // Step 2
     FLUIDLOOP
 	a->L(i,j,k)=0.0;
@@ -138,8 +136,6 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 	pflow->phi_relax(p,pgc,ark2);
 	
 	pgc->start4(p,ark2,gcval_phi);
-	if(p->F48==1)
-	preini->start(a,p,ark2, pgc, pflow);
 
 // Step 3
     FLUIDLOOP

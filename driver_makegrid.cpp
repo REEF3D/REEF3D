@@ -124,13 +124,9 @@ void driver::makegrid_cds()
 	
 	pgc->sizeM_update(p,a);
     
-    if(p->N40>10 || p->D20>=2)
-    {
 	pgc->column_pt1_update(p,a);
     pgc->column_pt2_update(p,a);
-    pgc->column_pt3_update(p,a);
-    }
-    
+    pgc->column_pt3_update(p,a);    
     pgc->column_pt4_update(p,a);
     pgc->column_pt4a_update(p,a);
     pgc->column_pt6_update(p,a);

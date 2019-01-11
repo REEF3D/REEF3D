@@ -200,6 +200,8 @@
         <File Name="interpolation.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Convection">
+        <File Name="weno_hj_N_nug.h"/>
+        <File Name="weno_flux_N_nug.h"/>
         <File Name="convection_void.h"/>
         <File Name="convection.h"/>
         <File Name="weno3_flux.h"/>
@@ -241,6 +243,7 @@
         <File Name="weno_hj_N.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Diffusion">
+        <File Name="idiff2_FS_2D.h"/>
         <File Name="diff_void.h"/>
         <File Name="diffusion.h"/>
         <File Name="ediff2.h"/>
@@ -1195,6 +1198,8 @@
         <File Name="interpolation_ipol.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Convection">
+        <File Name="weno_hj_N_nug.cpp"/>
+        <File Name="weno_flux_N_nug.cpp"/>
         <File Name="weno3_flux.cpp"/>
         <File Name="weno3_hj.cpp"/>
         <File Name="iweno_hj_nug.cpp"/>
@@ -1234,6 +1239,10 @@
         <File Name="weno_hj_N.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Diffusion">
+        <File Name="idiff_FS_2D-scalar.cpp"/>
+        <File Name="idiff2_FSu_2D.cpp"/>
+        <File Name="idiff2_FSw_2D.cpp"/>
+        <File Name="idiff2_FSv_2D.cpp"/>
         <File Name="diff_void.cpp"/>
         <File Name="ediff2.cpp"/>
         <File Name="idiff2_FSu.cpp"/>
@@ -2010,6 +2019,10 @@
         <File Name="hypre_aij_solvers.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="HYPRE Struct">
+        <File Name="hypre_struct_fill3_2D.cpp"/>
+        <File Name="hypre_struct_fill2_2D.cpp"/>
+        <File Name="hypre_struct_fill1_2D.cpp"/>
+        <File Name="hypre_struct_fill4_2D.cpp"/>
         <File Name="hypre_struct_fill8_2D.cpp"/>
         <File Name="hypre_struct_fill8.cpp"/>
         <File Name="hypre_struct_solve.cpp"/>

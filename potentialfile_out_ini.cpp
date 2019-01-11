@@ -26,10 +26,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/stat.h>
 #include<sys/types.h>
 
-
 void potentialfile_out::write_data(lexer *p, fdm *a, ghostcell *pgc)
 {
-    
     // PRINT DATA
             i=iloc[n];
             j=0;

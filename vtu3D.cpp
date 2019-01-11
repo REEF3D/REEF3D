@@ -198,36 +198,7 @@ void vtu3D::ini(lexer* p, fdm* a, ghostcell* pgc)
 
 void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
-    pgc->start4(p,a->test,1);
-    pgc->start4(p,a->solid,150);
     
-    
-	pgc->dgcpol(p,a->u,p->dgc1,p->dgc1_count,11);
-	pgc->dgcpol(p,a->v,p->dgc2,p->dgc2_count,12);
-	pgc->dgcpol(p,a->w,p->dgc3,p->dgc3_count,13);
-	pgc->dgcpol(p,a->press,p->dgc4,p->dgc4_count,14);
-	pgc->dgcpol(p,a->eddyv,p->dgc4,p->dgc4_count,14);
-	pgc->dgcpol(p,a->phi,p->dgc4,p->dgc4_count,14);
-	pgc->dgcpol(p,a->ro,p->dgc4,p->dgc4_count,14);
-	pgc->dgcpol(p,a->visc,p->dgc4,p->dgc4_count,14);
-	pgc->dgcpol(p,a->conc,p->dgc4,p->dgc4_count,14);
-    pgc->dgcpol(p,a->test,p->dgc4,p->dgc4_count,14);
-	
-	a->u.ggcpol(p);
-	a->v.ggcpol(p);
-	a->w.ggcpol(p);
-	a->press.ggcpol(p);
-	a->eddyv.ggcpol(p);
-	a->phi.ggcpol(p);
-	a->conc.ggcpol(p);
-	a->ro.ggcpol(p);
-	a->visc.ggcpol(p);
-	a->phi.ggcpol(p);
-	a->fb.ggcpol(p);
-    a->test.ggcpol(p);
-   // a->topo.ggcpol(p);
-    
-		
 		// Print out based on iteration
         if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)
 		{
@@ -410,30 +381,49 @@ void vtu3D::print_vtu(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *p
 
 void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
-    if(p->mpirank==0)
-    pvtu(a,p,pgc,pturb,pheat,pdata,pconc,pmp,psed);
-
-    
-	pgc->gcparacox(p,a->phi,50);
-	pgc->gcparacox(p,a->phi,50);
-
-	pgc->gcparacox(p,a->topo,150);
-	pgc->gcparacox(p,a->topo,150);
-    
+    pgc->start4(p,a->test,1);
+    pgc->start4(p,a->solid,150);
     
     pgc->start1(p,a->u,110);
     pgc->start2(p,a->v,111);
 	pgc->start3(p,a->w,112);
 	
+    
 	pgc->dgcpol(p,a->u,p->dgc1,p->dgc1_count,11);
 	pgc->dgcpol(p,a->v,p->dgc2,p->dgc2_count,12);
 	pgc->dgcpol(p,a->w,p->dgc3,p->dgc3_count,13);
+	pgc->dgcpol(p,a->press,p->dgc4,p->dgc4_count,14);
+	pgc->dgcpol(p,a->eddyv,p->dgc4,p->dgc4_count,14);
+	pgc->dgcpol(p,a->phi,p->dgc4,p->dgc4_count,14);
+	pgc->dgcpol(p,a->ro,p->dgc4,p->dgc4_count,14);
+	pgc->dgcpol(p,a->visc,p->dgc4,p->dgc4_count,14);
+	pgc->dgcpol(p,a->conc,p->dgc4,p->dgc4_count,14);
+    pgc->dgcpol(p,a->test,p->dgc4,p->dgc4_count,14);
 	
 	a->u.ggcpol(p);
 	a->v.ggcpol(p);
 	a->w.ggcpol(p);
-
+	a->press.ggcpol(p);
+	a->eddyv.ggcpol(p);
+	a->phi.ggcpol(p);
+	a->conc.ggcpol(p);
+	a->ro.ggcpol(p);
+	a->visc.ggcpol(p);
+	a->phi.ggcpol(p);
+	a->fb.ggcpol(p);
+    a->test.ggcpol(p);
     
+    pgc->gcparacox(p,a->phi,50);
+	pgc->gcparacox(p,a->phi,50);
+
+	pgc->gcparacox(p,a->topo,150);
+	pgc->gcparacox(p,a->topo,150);
+    
+    
+    
+    if(p->mpirank==0)
+    pvtu(a,p,pgc,pturb,pheat,pdata,pconc,pmp,psed);
+
 
     name_iter(a,p,pgc);
     header(a,p,pgc);
