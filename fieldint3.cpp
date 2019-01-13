@@ -96,23 +96,9 @@ int & fieldint3::operator()(int ii, int jj, int kk)
         
         if(di==0 && dj==0 && dk==0 && pip==5)
 		{
-			dk+=1;
+			dk=1;
             if(pp->gcorig3[pp->mgc3[iter]-10][5][dk]==0)
-            {
-            if(dk>2)
-            if(pp->gcorig3[pp->mgc3[iter]-10][5][dk-1]==1)
-			return gcfeld[pp->mgc3[iter]-10][5][dk-1];
-            
-            if(dk>2)
-            if(pp->gcorig3[pp->mgc3[iter]-10][5][dk-2]==1)
-			return gcfeld[pp->mgc3[iter]-10][5][dk-2];
-            
-            if(dk>1)
-            if(pp->gcorig3[pp->mgc3[iter]-10][5][dk-1]==1)
-			return gcfeld[pp->mgc3[iter]-10][5][dk-1];
-            
             return V[iter];
-            }
 			
 			if(pp->gcorig3[pp->mgc3[iter]-10][5][dk]==1)
 			return gcfeld[pp->mgc3[iter]-10][5][dk];
@@ -123,7 +109,9 @@ int & fieldint3::operator()(int ii, int jj, int kk)
         
         if(di==0 && dj==0 && dk==0 && pip==3)
 		dk=1;
-
+        
+        if(dk==0 && pip==3)
+		dk=1;
 	  
 //1
 		if(di<0 && ((dj==0 && dk==0) || pip==1))

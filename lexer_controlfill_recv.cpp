@@ -137,6 +137,12 @@ void lexer::ctrlrecv()
 	dd++;
     I232 = dctrl[dd];
 	dd++;
+    I240 = ictrl[ii];
+	ii++;
+    I241 = dctrl[dd];
+	dd++;
+    I242 = dctrl[dd];
+	dd++;
 	
 	
     B10 = ictrl[ii];
@@ -981,6 +987,8 @@ void lexer::ctrlrecv()
 	P212 = dctrl[dd];
 	dd++;
     P230 = ictrl[ii];
+	ii++;
+    P240 = ictrl[ii];
 	ii++;
 	P351 = ictrl[ii];
 	ii++;
@@ -1899,6 +1907,11 @@ void lexer::ctrlrecv()
 	{
     Darray(P230_x,P230);  
 	}
+    
+    if(P240>0)
+	{
+    Darray(P240_x,P240);  
+	}
 	
 	if(P351>0)
 	{
@@ -2680,6 +2693,12 @@ void lexer::ctrlrecv()
     for(n=0;n<P230;++n)
     {
     P230_x[n] = dctrl[dd];
+    dd++;
+    }
+    
+    for(n=0;n<P240;++n)
+    {
+    P240_x[n] = dctrl[dd];
     dd++;
     }
 	

@@ -23,9 +23,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 
-flux_face_CDS2::flux_face_CDS2(lexer *p)
+flux_face_CDS2::flux_face_CDS2(lexer *pp)
 {
-
+p=pp;
 }
 
 flux_face_CDS2::~flux_face_CDS2()
@@ -34,6 +34,7 @@ flux_face_CDS2::~flux_face_CDS2()
 
 void flux_face_CDS2::u_flux(fdm* a,int ipol, field& uvel, double &uflux1, double &uflux2)
 {
+    
 	if(ipol==1)
 	{
     pip=1;
@@ -41,7 +42,40 @@ void flux_face_CDS2::u_flux(fdm* a,int ipol, field& uvel, double &uflux1, double
 	uflux2= 0.5*(uvel(i,j,k)+uvel(i+1,j,k));
 	pip=0;
 	}
+    
+    /*
+    if(ipol==1)
+	{
+        pip=1;
+        
+        if(p->flag1[UIm1JK]>0)
+        {
+        if(0.5*(uvel(i,j,k)+uvel(i-1,j,k)) >= 0.0)
+        uflux1 = uvel(i-1,j,k);
+        
+        if(0.5*(uvel(i,j,k)+uvel(i-1,j,k)) < 0.0)
+        uflux1 = uvel(i,j,k);
+        }
+        
+        if(p->flag1[UIm1JK]<0)
+        uflux1= 0.5*(uvel(i,j,k)+uvel(i-1,j,k));
+        
+        
+        if(p->flag1[UIp1JK]>0)
+        {
+        if(0.5*(uvel(i,j,k)+uvel(i+1,j,k)) >= 0.0)
+        uflux2 = uvel(i,j,k);
+        
+        if(0.5*(uvel(i,j,k)+uvel(i+1,j,k)) < 0.0)
+        uflux2 = uvel(i+1,j,k);
+        }
+        
+        if(p->flag1[UIp1JK]<0)
+        uflux2= 0.5*(uvel(i,j,k)+uvel(i+1,j,k));
 
+        pip=0;
+	}*/
+    
 	if(ipol==2)
 	{
 	pip=1;
@@ -60,8 +94,10 @@ void flux_face_CDS2::u_flux(fdm* a,int ipol, field& uvel, double &uflux1, double
 
 	if(ipol==4)
 	{
+    pip=1;
 	uflux1= uvel(i-1,j,k);
 	uflux2= uvel(i,j,k);
+    pip=0;
 	}
 
 }

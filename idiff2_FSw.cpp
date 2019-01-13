@@ -74,8 +74,8 @@ void idiff2_FS::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 				  + visc_ddy_m/(p->DYP[JM1]*p->DYN[JP])
 				  + CPOR3/(alpha*p->dt);
 				  
-	a->rhsvec.V[count] += ((u(i,j,k+1)-u(i,j,k))*visc_ddx_p - (u(i-1,j,k+1)-u(i-1,j,k))*visc_ddx_m)/(p->DZP[KP]*p->DXN[IP])
-						+  ((v(i,j,k+1)-v(i,j,k))*visc_ddy_p - (v(i,j-1,k+1)-v(i,j-1,k))*visc_ddy_m)/(p->DZP[KP]*p->DYN[JP])
+	a->rhsvec.V[count] += ((a->u(i,j,k+1)-u(i,j,k))*visc_ddx_p - (u(i-1,j,k+1)-u(i-1,j,k))*visc_ddx_m)/(p->DZP[KP]*p->DXN[IP])
+						+  ((a->v(i,j,k+1)-v(i,j,k))*visc_ddy_p - (v(i,j-1,k+1)-v(i,j-1,k))*visc_ddy_m)/(p->DZP[KP]*p->DYN[JP])
 									
 						+  a->M.p[count]*w(i,j,k)*(1.0/p->N54-1.0)
 						+ (CPOR3*w(i,j,k))/(alpha*p->dt);
@@ -92,6 +92,48 @@ void idiff2_FS::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 	 a->M.t[count] = -2.0*(vfm*visc_i_j_kp+ev_i_j_kp)/(p->DZN[KP]*p->DZP[KP]);
 	 
 	 ++count;
+	}
+    
+    n=0;
+    WLOOP
+	{
+		if(p->flag3[Im1JK]<0)
+		{
+		a->rhsvec.V[n] -= a->M.s[n]*w(i-1,j,k);
+		a->M.s[n] = 0.0;
+		}
+		
+		if(p->flag3[Ip1JK]<0)
+		{
+		a->rhsvec.V[n] -= a->M.n[n]*w(i+1,j,k);
+		a->M.n[n] = 0.0;
+		}
+		
+		if(p->flag3[IJm1K]<0)
+		{
+		a->rhsvec.V[n] -= a->M.e[n]*w(i,j-1,k);
+		a->M.e[n] = 0.0;
+		}
+		
+		if(p->flag3[IJp1K]<0)
+		{
+		a->rhsvec.V[n] -= a->M.w[n]*w(i,j+1,k);
+		a->M.w[n] = 0.0;
+		}
+		
+		if(p->flag3[IJKm1]<0)
+		{
+		a->rhsvec.V[n] -= a->M.b[n]*w(i,j,k-1);
+		a->M.b[n] = 0.0;
+		}
+		
+		if(p->flag3[IJKp1]<0)
+		{
+		a->rhsvec.V[n] -= a->M.t[n]*w(i,j,k+1);
+		a->M.t[n] = 0.0;
+		}
+
+	++n;
 	}
     
 	

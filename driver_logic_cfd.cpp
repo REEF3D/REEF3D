@@ -728,7 +728,8 @@ void driver::logic()
 	
 
 //Solver
-	/*if(p->N8==0)
+    /*
+	if(p->N8==0)
 	psolv = new solver_void(p,a,pgc);
 	
 	if(p->N8==1)

@@ -122,23 +122,9 @@ double & field1::operator()(int ii, int jj, int kk)
         
         if(di==0 && dj==0 && dk==0 && pip==5)
 		{
-			di+=1;
+			di=1;
             if(pp->gcorig1[pp->mgc1[iter]-10][3][di]==0)
-            {
-            if(di>2)
-            if(pp->gcorig1[pp->mgc1[iter]-10][3][di-1]==1)
-			return gcfeld[pp->mgc1[iter]-10][3][di-1];
-            
-            if(di>2)
-            if(pp->gcorig1[pp->mgc1[iter]-10][3][di-2]==1)
-			return gcfeld[pp->mgc1[iter]-10][3][di-2];
-            
-            if(di>1)
-            if(pp->gcorig1[pp->mgc1[iter]-10][3][di-1]==1)
-			return gcfeld[pp->mgc1[iter]-10][3][di-1];
-            
             return V[iter];
-            }
 			
 			if(pp->gcorig1[pp->mgc1[iter]-10][3][di]==1)
 			return gcfeld[pp->mgc1[iter]-10][3][di];
@@ -148,6 +134,9 @@ double & field1::operator()(int ii, int jj, int kk)
 		return V[iter];
         
         if(di==0 && dj==0 && dk==0 && pip==1)
+		di=1;
+        
+        if(di==0 && pip==1)
 		di=1;
 
 	  
@@ -293,7 +282,7 @@ double & field1::operator()(int ii, int jj, int kk)
 			return gcfeld[pp->mgc1[iter]-10][5][dk];
 		}
 
-
+ //cout<<"field1: "<<V[iter]<<" di: "<<di<<" dj: "<<dj<<" dk: "<<dk<<" pip: "<<pip<<endl;
 	return V[iter];
 
 }

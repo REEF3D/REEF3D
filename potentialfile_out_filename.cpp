@@ -21,14 +21,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"potentialfile_out.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_fnpf.h"
 #include"ghostcell.h"
 
-void potentialfile_out::filename(lexer *p, fdm *a, ghostcell *pgc)
-{
-	
+void potentialfile_out::filename(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+{	
 	int num;
-	
 
     num = p->count;
 

@@ -26,6 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ioflow.h"
 #include"fnpf_print_wsf.h"
 #include"fnpf_print_wsfline.h"
+#include"potentialfile_out.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -57,6 +58,9 @@ fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
     pwsf=new fnpf_print_wsf(p,c);
     
     pwsfline=new fnpf_print_wsfline(p,c,pgc);
+    
+    if(p->P230>0)
+    ppotentialfile = new potentialfile_out(p,c,pgc);
 }
 
 fnpf_vtu3D::~fnpf_vtu3D()

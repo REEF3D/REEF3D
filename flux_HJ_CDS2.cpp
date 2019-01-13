@@ -36,7 +36,9 @@ void flux_HJ_CDS2::u_flux(fdm* a,int ipol, field& uvel, double &uflux1, double &
 {
 	if(ipol==1)
 	{
+    pip=1;
 	uflux1 = uvel(i,j,k);
+    pip=0;
 	}
 
 	if(ipol==2)
@@ -57,7 +59,6 @@ void flux_HJ_CDS2::u_flux(fdm* a,int ipol, field& uvel, double &uflux1, double &
 	{
     pip=1;
 	uflux1 = 0.5*(uvel(i,j,k) + uvel(i-1,j,k));
-    //uflux1 = (1.0/16.0)*(-uvel(i-2,j,k) + 9.0*uvel(i-1,j,k) + 9.0*uvel(i,j,k) - uvel(i,j,k+1))*(1.0/a->porosity(i,j,k));
 	pip=0;
 	}
 }
@@ -73,7 +74,9 @@ void flux_HJ_CDS2::v_flux(fdm* a,int ipol,field&vvel, double &vflux1, double &vf
 
 	if(ipol==2)
 	{
+    pip=2;
 	vflux1 = vvel(i,j,k);
+    pip=0;
 	}
 
 	if(ipol==3)
@@ -87,7 +90,6 @@ void flux_HJ_CDS2::v_flux(fdm* a,int ipol,field&vvel, double &vflux1, double &vf
 	{
     pip=2;
 	vflux1 = 0.5*(vvel(i,j,k) + vvel(i,j-1,k));
-    //jadvec = (1.0/16.0)*(-vvel(i,j-2,k) + 9.0*vvel(i,j-1,k) + 9.0*vvel(i,j,k) - vvel(i,j+1,k))*(1.0/a->porosity(i,j,k));
     pip=0;
 	}
 }
@@ -111,14 +113,15 @@ void flux_HJ_CDS2::w_flux(fdm* a,int ipol,field& wvel, double &wflux1, double &w
 
 	if(ipol==3)
 	{
+    pip=3;
 	wflux1 = wvel(i,j,k);
+    pip=0;
 	}
 
 	if(ipol==4)
 	{
     pip=3;
 	wflux1 = 0.5*(wvel(i,j,k) + wvel(i,j,k-1));
-    //kadvec = (1.0/16.0)*(-wvel(i,j,k-2) + 9.0*wvel(i,j,k-1) + 9.0*wvel(i,j,k) - wvel(i,j,k+1))*(1.0/a->porosity(i,j,k));
     pip=0;
 	}
 }

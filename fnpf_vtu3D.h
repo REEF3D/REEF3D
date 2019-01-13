@@ -25,6 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 class fdm_fnpf;
 class fnpf_print_wsf;
 class fnpf_print_wsfline;
+class potentialfile_out;
 class ioflow;
 
 #ifndef FNPF_VTU3D_H_
@@ -59,6 +60,7 @@ private:
     
     fnpf_print_wsf *pwsf;
     fnpf_print_wsfline *pwsfline;
+    potentialfile_out *ppotentialfile;
 };
 
 #endif

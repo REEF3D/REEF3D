@@ -387,6 +387,9 @@ public:
     int I230;
     double I231;
     double I232;
+    int I240;
+    double I241;
+    double I242;
 
 	// Numerical Options
 	int N5,N8,N9,N10,N11,N12,N13,N14,N15,N16,N40,N42,N45,N46,N48,N50,N52,N57_1,N57_2,N58,N60,N71,N72,N73;
@@ -417,8 +420,8 @@ public:
 	double *P123_y,*P124_x;
 	double *P125_x,*P125_y;
 	double P182,P212;
-    int P230;
-    double *P230_x;
+    int P230,P240;
+    double *P230_x,*P240_x;
 	double *P351_x,*P351_y;
 	double *P352_x,*P352_y;
 

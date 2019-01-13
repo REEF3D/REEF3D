@@ -2166,11 +2166,11 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
           <VirtualDirectory Name="PotentialFile Out">
+            <File Name="potentialfile_out_filename.cpp"/>
+            <File Name="potentialfile_out.cpp"/>
             <File Name="potentialfile_out_write.cpp"/>
             <File Name="potentialfile_out_header.cpp"/>
-            <File Name="potentialfile_filename.cpp"/>
             <File Name="potentialfile_out_ini.cpp"/>
-            <File Name="potentialfile.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTU">
             <File Name="fnpf_vtu3D_pvtu.cpp"/>

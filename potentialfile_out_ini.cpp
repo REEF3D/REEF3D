@@ -21,100 +21,67 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"potentialfile_out.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void potentialfile_out::write_data(lexer *p, fdm *a, ghostcell *pgc)
+void potentialfile_out::initialize(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    // PRINT DATA
-            i=iloc[n];
-            j=0;
-        
-        
-            for(k=0;k<Nk;++k)
-            {
-            ffn = float(p->XP[IP]);
-            fileout[n].write((char*)&ffn, sizeof (float));
-            }
-            
-            for(k=0;k<Nk;++k)
-            {
-            ffn = float(p->YP[JP]);
-            fileout[n].write((char*)&ffn, sizeof (float));
-            }
-            
-            for(k=0;k<Nk;++k)
-            {
-            ffn = float(p->ZP[KP]);
-            fileout[n].write((char*)&ffn, sizeof (float));
-            }
-            
-            for(k=0;k<Nk;++k)
-            {
-            if(flag[n][k]==1)
-            ffn = float(a->u(i,j,k));//0.5*(a->u(i,j,k) + a->u(i+1,j,k);
-            
-            if(flag[n][k]==0)
-            ffn=0.0;
-            
-            fileout[n].write((char*)&ffn, sizeof (float));
-            }
-            
-            for(k=0;k<Nk;++k)
-            {
-            if(flag[n][k]==1)
-            ffn = float(a->v(i,j,k));//0.5*(a->v(i,j,k) + a->v(i,j+1,k);
-            
-            if(flag[n][k]==0)
-            ffn=0.0;
-            
-            fileout[n].write((char*)&ffn, sizeof (float));
-            }
-            
-            for(k=0;k<Nk;++k)
-            {
-            if(flag[n][k]==1)
-            ffn = float(a->w(i,j,k));//0.5*(a->w(i,j,k) + a->w(i,j,k+1));
-            
-            if(flag[n][k]==0)
-            ffn=0.0;
-            
-            fileout[n].write((char*)&ffn, sizeof (float));
-            }
-            
-            for(k=0;k<Nk;++k)
-            {
-            if(flag[n][k]==1)
-            ffn = float(a->press(i,j,k));
-            
-            if(flag[n][k]==0)
-            ffn=0.0;
-            
-            fileout[n].write((char*)&ffn, sizeof (float));
-            }
-            
-            for(k=0;k<Nk;++k)
-            {
-            if(flag[n][k]==1)
-            ffn = float(a->phi(i,j,k));
-            
-            if(flag[n][k]==0)
-            ffn=0.0;
-            
-            fileout[n].write((char*)&ffn, sizeof (float));
-            }
-            
-		fileout[n].close();
-		
+    filecount=0;
+    
+    if(p->mpirank==0 && p->P14==1)
+	mkdir("./REEF3D_FlowFile",0777);
+	
+	if(p->mpirank==0 && p->P230>0)
+	cout<<"FlowFile: "<<probenum<<endl;
+
+	fileout = new ofstream[p->P230];
+    headerout = new ofstream[p->P230];
+
+    
+    Ni = 1;
+    Nj = 1;
+    Nk = p->knoz;
+
+    elnum = Ni*Nj*Nk;
+    
+    
+    p->Darray(U,p->P230,elnum);
+	p->Darray(V,p->P230,elnum);
+	p->Darray(W,p->P230,elnum);
+	p->Darray(P,p->P230,elnum);
+	p->Darray(K,p->P230,elnum);
+	p->Darray(E,p->P230,elnum);
+	p->Darray(VT,p->P230,elnum);
+	p->Darray(LS,p->P230,elnum);
+
+
+	p->Iarray(flag,p->P230,elnum);
+    p->Iarray(iloc,p->P230);
+    
+    for(n=0;n<p->P230;++n)
+    iloc[n] = p->posf_i(p->P230_x[n]);
     
 }
 
+void potentialfile_out::ini_location(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+{
 
-
-
-
-
-
+	
+	for(n=0;n<p->P230;++n)
+	for(k=0;k<p->knoz;++k)
+	flag[n][k]=0;
+    
+    i=0;
+    j=0;
+    for(n=0;n<p->P230;++n)
+    {
+    i=iloc[n];
+   
+        for(k=0;k<p->knoz;++k)
+        PCHECK
+        flag[n][k]=1;
+    }
+}
 

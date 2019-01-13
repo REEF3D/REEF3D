@@ -389,6 +389,9 @@ void lexer::ini_default()
     I230=0;         // int read 2D flowfile
     I231=0.0;       // double delta z for 2D/3D flowfile
     I232=0.0;       // double delta t for 2D/3D flowfile
+    I240=0;         // int read 2D flowfile
+    I241=0.0;       // double delta z for 2D/3D flowfile
+    I242=0.0;       // double delta t for 2D/3D flowfile
 
     // Nunmerics
 	N5=1;			// int true 2D
@@ -506,6 +509,7 @@ void lexer::ini_default()
 	P211=1;		  // int ith iteration export printed
 	P212=-1.0;       // double time between export file printout in seconds
     P230=0;         // int print flowfile
+    P240=0;         // int print potentialfile
 	P351=0;             // int print out wsf lsm1
 	P352=0;             // int print out wsf lsm2
 	

@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<fstream>
 
 class lexer;
-class fdm;
+class fdm_fnpf;
 class ghostcell;
 class field;
 class turbulence;
@@ -37,21 +37,21 @@ using namespace std;
 class potentialfile_out : public boundarycheck
 {
 public:
-    potentialfile_out(lexer*,fdm*,ghostcell*);
+    potentialfile_out(lexer*,fdm_fnpf*,ghostcell*);
 	virtual ~potentialfile_out();
 
-	void start(lexer*, fdm*, ghostcell*,turbulence*);
+	void start(lexer*, fdm_fnpf*, ghostcell*,turbulence*);
 
 
 private:
-    void filename(lexer*,fdm*,ghostcell*);
-    void header_file(lexer*, fdm*, ghostcell*);
-    void header_file_ini(lexer*, fdm*, ghostcell*);
+    void filename(lexer*,fdm_fnpf*,ghostcell*);
+    void header_file(lexer*, fdm_fnpf*, ghostcell*);
+    void header_file_ini(lexer*, fdm_fnpf*, ghostcell*);
     
-    void initialize(lexer*, fdm*, ghostcell*);
-    void ini_location(lexer*, fdm*, ghostcell*);
+    void initialize(lexer*, fdm_fnpf*, ghostcell*);
+    void ini_location(lexer*, fdm_fnpf*, ghostcell*);
     
-    void write_data(lexer*, fdm*, ghostcell*);
+    void write_data(lexer*, fdm_fnpf*, ghostcell*);
 
     
     

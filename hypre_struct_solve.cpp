@@ -47,10 +47,6 @@ void hypre_struct::solve(lexer* p, ghostcell *pgc)
 {
 	p->solveriter=0;
     
-    double starttime=pgc->timer();
-    
-    
-
     if(p->N10==11)
     {
     HYPRE_StructPCGSetup(solver, A, b, x);
@@ -117,16 +113,6 @@ void hypre_struct::solve(lexer* p, ghostcell *pgc)
 	p->solveriter=num_iterations;
     p->final_res = final_res_norm;
     
-    
-    double endtime=pgc->timer();
-    
-
-    double hypretime;
-    
-    hypretime=endtime-starttime;
-    
-    if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"hypre_time: "<<setprecision(3)<<hypretime<<endl;
 }
 
 #endif

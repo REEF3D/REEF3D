@@ -123,23 +123,9 @@ double & field2::operator()(int ii, int jj, int kk)
         
         if(di==0 && dj==0 && dk==0 && pip==5)
 		{
-			dj+=1;
+			dj=1;
             if(pp->gcorig2[pp->mgc2[iter]-10][1][dj]==0)
-            {
-            if(dj>2)
-            if(pp->gcorig2[pp->mgc2[iter]-10][1][dj-1]==1)
-			return gcfeld[pp->mgc2[iter]-10][1][dj-1];
-            
-            if(dj>2)
-            if(pp->gcorig2[pp->mgc2[iter]-10][1][dj-2]==1)
-			return gcfeld[pp->mgc2[iter]-10][1][dj-2];
-            
-            if(dj>1)
-            if(pp->gcorig2[pp->mgc2[iter]-10][1][dj-1]==1)
-			return gcfeld[pp->mgc2[iter]-10][1][dj-1];
-            
             return V[iter];
-            }
 			
 			if(pp->gcorig2[pp->mgc2[iter]-10][1][dj]==1)
 			return gcfeld[pp->mgc2[iter]-10][1][dj];
@@ -149,6 +135,9 @@ double & field2::operator()(int ii, int jj, int kk)
 		return V[iter];
         
         if(di==0 && dj==0 && dk==0 && pip==2)
+		dj=1;
+        
+        if(dj==0 && pip==2)
 		dj=1;
 
 	  

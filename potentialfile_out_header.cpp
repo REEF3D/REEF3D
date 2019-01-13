@@ -21,12 +21,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"potentialfile_out.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void potentialfile_out::header_file_ini(lexer *p, fdm *a, ghostcell *pgc)
+void potentialfile_out::header_file_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     if(p->mpirank==0)
     for(n=0;n<p->P230;++n)
@@ -76,7 +76,7 @@ void potentialfile_out::header_file_ini(lexer *p, fdm *a, ghostcell *pgc)
     }
 }
 
-void potentialfile_out::header_file(lexer *p, fdm *a, ghostcell *pgc)
+void potentialfile_out::header_file(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {   
     headerout[n].open(headername, ios::binary | ios::app);
     
