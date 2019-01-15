@@ -59,7 +59,7 @@ private:
     char headername[450];
 
     int **flag;
-    double **U,**V,**W,**P,**K,**E,**VT,**LS;
+    double **U,**V,**W,**E;;
     int n,q;
     int count;
     int elnum;
@@ -67,7 +67,7 @@ private:
 	const int probenum;
 	const double eps;
     ofstream *fileout;
-    ofstream *headerout;
+    ofstream headerout;
 
 	double xloc,yloc,zloc;
 	double xp,yp,zp;

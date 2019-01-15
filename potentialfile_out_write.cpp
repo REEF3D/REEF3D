@@ -30,11 +30,18 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void potentialfile_out::write_data(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     
+    /*
+     * bedlevel SWL
+number of vertical points n
+sig_1….sig_n
+t  eta  U1……U2  W1…..W2  	*/
+    
     // PRINT DATA
-            i=iloc[n];
-            j=0;
+    
+    /*
+    ffn = float(p->);
+    fileout[n].write((char*)&ffn, sizeof (float));
         
-        /*
             for(k=0;k<Nk;++k)
             {
             ffn = float(p->XP[IP]);
@@ -106,11 +113,11 @@ void potentialfile_out::write_data(lexer *p, fdm_fnpf *c, ghostcell *pgc)
             ffn=0.0;
             
             fileout[n].write((char*)&ffn, sizeof (float));
-            }*/
+            }
             
 		fileout[n].close();
 		
-    
+    */
 }
 
 

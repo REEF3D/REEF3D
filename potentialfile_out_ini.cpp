@@ -31,57 +31,18 @@ void potentialfile_out::initialize(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     filecount=0;
     
     if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_FlowFile",0777);
+	mkdir("./REEF3D_PotentialFile",0777);
 	
 	if(p->mpirank==0 && p->P230>0)
-	cout<<"FlowFile: "<<probenum<<endl;
+	cout<<"PotentialFile: "<<probenum<<endl;
 
 	fileout = new ofstream[p->P230];
-    headerout = new ofstream[p->P230];
-
-    
-    Ni = 1;
-    Nj = 1;
-    Nk = p->knoz;
-
-    elnum = Ni*Nj*Nk;
-    
-    
-    p->Darray(U,p->P230,elnum);
-	p->Darray(V,p->P230,elnum);
-	p->Darray(W,p->P230,elnum);
-	p->Darray(P,p->P230,elnum);
-	p->Darray(K,p->P230,elnum);
-	p->Darray(E,p->P230,elnum);
-	p->Darray(VT,p->P230,elnum);
-	p->Darray(LS,p->P230,elnum);
-
-
-	p->Iarray(flag,p->P230,elnum);
-    p->Iarray(iloc,p->P230);
-    
-    for(n=0;n<p->P230;++n)
-    iloc[n] = p->posf_i(p->P230_x[n]);
     
 }
 
 void potentialfile_out::ini_location(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
 
-	
-	for(n=0;n<p->P230;++n)
-	for(k=0;k<p->knoz;++k)
-	flag[n][k]=0;
-    
-    i=0;
-    j=0;
-    for(n=0;n<p->P230;++n)
-    {
-    i=iloc[n];
-   
-        for(k=0;k<p->knoz;++k)
-        PCHECK
-        flag[n][k]=1;
-    }
+
 }
 

@@ -52,13 +52,7 @@ void potentialfile_out::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, turbulence 
 
     if(p->P15==2)
     num = p->count;
-    
-    for(n=0;n<p->P230;++n)
-    if(p->mpirank==0)
-	{
-        // header file
-        header_file(p,c,pgc);
-    }
+
 
 	for(n=0;n<p->P230;++n)
     if(p->P230_x[n]>=p->originx && p->P230_x[n]<p->endx)

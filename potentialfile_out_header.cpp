@@ -33,59 +33,36 @@ void potentialfile_out::header_file_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     {
     // open file
     if(p->P14==0)
-    sprintf(headername,"REEF3D-flowheader-%d.r3d",n+1);
+    sprintf(headername,"REEF3D-potentialheader.r3d");
 			
     if(p->P14==1)
-    sprintf(headername,"./REEF3D_FlowFile/REEF3D-flowheader-%d.r3d",n+1);
+    sprintf(headername,"./REEF3D_FlowFile/REEF3D-potentialheader.r3d");
 		
     // openfile
-    headerout[n].open(headername, ios::binary);
+    headerout.open(headername, ios::binary);
     }
     
      // header
     if(p->mpirank==0)
-    for(n=0;n<p->P230;++n)
-    {  
-        // xs,xe,ys,ye,zs,ze
-        ddn=p->global_xmin;
-        headerout[n].write((char*)&ddn, sizeof (double));
-        ddn=p->global_xmax;
-        headerout[n].write((char*)&ddn, sizeof (double));
-        ddn=p->global_ymin;
-        headerout[n].write((char*)&ddn, sizeof (double));
-        ddn=p->global_ymax;
-        headerout[n].write((char*)&ddn, sizeof (double));
-        ddn=p->global_zmin;
-        headerout[n].write((char*)&ddn, sizeof (double));
-        ddn=p->global_zmax;
-        headerout[n].write((char*)&ddn, sizeof (double));
+    {
+        iin=p->P230;
+        headerout.write((char*)&iin, sizeof (int));
         
-        // dx
-        ddn=p->dx;
-        headerout[n].write((char*)&ddn, sizeof (double));
-   
-        // Ni,Nj,Nk | Ni*Nj*Nk = elnum_all
-        iin=Ni;
-        headerout[n].write((char*)&iin, sizeof (int));
-        iin=Nj;
-        headerout[n].write((char*)&iin, sizeof (int));
-        iin=Nk;
-        headerout[n].write((char*)&iin, sizeof (int));
-        
-    headerout[n].close();
+        for(n=0;n<p->P230;++n)
+        {  
+           
+            iin=n;
+            headerout.write((char*)&iin, sizeof (int));
+            ffn=float(p->P230_x[n]);
+            headerout.write((char*)&iin, sizeof (float));
+
+            
+        headerout.close();
+        }
     }
 }
 
 void potentialfile_out::header_file(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {   
-    headerout[n].open(headername, ios::binary | ios::app);
-    
-    iin=p->count;
-    headerout[n].write((char*)&iin, sizeof (int));
-        
-    ddn = p->simtime;
-    headerout[n].write((char*)&ddn, sizeof (double));
-    
-    headerout[n].close();
 }
 
