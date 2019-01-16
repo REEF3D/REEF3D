@@ -58,9 +58,7 @@ void potentialfile_out::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, turbulence 
     if(p->P230_x[n]>=p->originx && p->P230_x[n]<p->endx)
 	{
 
-        // filename
-        filename(p,c,pgc);
-        fileout[n].open(name, ios::binary);
+        
         
         // write
         write_data(p,c,pgc);

@@ -29,7 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void potentialfile_out::header_file_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     if(p->mpirank==0)
-    for(n=0;n<p->P230;++n)
+    for(n=0;n<p->P240;++n)
     {
     // open file
     if(p->P14==0)
@@ -45,15 +45,15 @@ void potentialfile_out::header_file_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
      // header
     if(p->mpirank==0)
     {
-        iin=p->P230;
+        iin=p->P240;
         headerout.write((char*)&iin, sizeof (int));
         
-        for(n=0;n<p->P230;++n)
+        for(n=0;n<p->P240;++n)
         {  
            
             iin=n;
             headerout.write((char*)&iin, sizeof (int));
-            ffn=float(p->P230_x[n]);
+            ffn=float(p->P240_x[n]);
             headerout.write((char*)&iin, sizeof (float));
 
             

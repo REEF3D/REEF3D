@@ -60,7 +60,7 @@ private:
 
     int **flag;
     double **U,**V,**W,**E;;
-    int n,q;
+    int n,q,qn;
     int count;
     int elnum;
     int *iloc;
