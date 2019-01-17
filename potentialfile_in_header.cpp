@@ -32,10 +32,10 @@ void potentialfile_in::header_read(lexer *p, ghostcell *pgc)
 {
     // Open File
 	if(p->P14==0)
-    sprintf(name,"REEF3D-flowheader-%d.r3d",p->I230);
+    sprintf(name,"REEF3D-potentialheader-%d.r3d",p->I240);
 			
     if(p->P14==1)
-    sprintf(name,"./REEF3D_FlowFile/REEF3D-flowheader-%d.r3d",p->I230);
+    sprintf(name,"./REEF3D_PotentialFile/REEF3D-potentialheader-%d.r3d",p->I240);
 	
     
     // count entries
@@ -43,21 +43,10 @@ void potentialfile_in::header_read(lexer *p, ghostcell *pgc)
     
     entrycount=0;
     
-    headerfile.read((char*)&ddn, sizeof (double));
-    headerfile.read((char*)&ddn, sizeof (double));
-    headerfile.read((char*)&ddn, sizeof (double));
-    headerfile.read((char*)&ddn, sizeof (double));
-    headerfile.read((char*)&ddn, sizeof (double));
-    headerfile.read((char*)&ddn, sizeof (double));
-    headerfile.read((char*)&ddn, sizeof (double));
-    headerfile.read((char*)&iin, sizeof (int));
-    headerfile.read((char*)&iin, sizeof (int));
-    headerfile.read((char*)&iin, sizeof (int));
-
     while(!headerfile.eof())
 	{
-    headerfile.read((char*)&iin, sizeof (int));
     headerfile.read((char*)&ddn, sizeof (double));
+    headerfile.read((char*)&iin, sizeof (int));
     ++entrycount;
     }
     headerfile.close();
@@ -66,7 +55,7 @@ void potentialfile_in::header_read(lexer *p, ghostcell *pgc)
     p->Iarray(iter,entrycount);
     p->Darray(simtime,entrycount);
     
-    // count entries
+    // read entries
     headerfile.open(name, ios::binary);
     
     q=0;
@@ -133,22 +122,38 @@ void potentialfile_in::header_read(lexer *p, ghostcell *pgc)
     q0 = iter[0];
     q1 = iter[1];
     
-    // Open File 0
+    // Open File 
 	if(p->P14==0)
-    sprintf(name0,"REEF3D-flowfile-%d-%d.r3d",p->I230,q0);
+    sprintf(name0,"REEF3D-potentialfile-%d-%d.r3d",p->I230,q0);
 			
     if(p->P14==1)
-    sprintf(name0,"./REEF3D_FlowFile/REEF3D-flowfile-%d-%d.r3d",p->I230,q0);
+    sprintf(name,"./REEF3D_PotentialFile/REEF3D-flowfile-%d-%d.r3d",p->I230,q0);
     
-    flowfile0.open(name0, ios::binary);
+    flowfile.open(name, ios::binary);
+    
+    
+    
+    // start reading 
+    i=iloc[n];
+    j=0;
+    
+    for(n=0;n<p->P240;++n)
+    if(p->P240_x[n]>=p->originx && p->P240_x[n]<p->endx)
+	{
 
-    // Open File 1
-	if(p->P14==0)
-    sprintf(name1,"REEF3D-flowfile-%d-%d.r3d",p->I230,q1);
-			
-    if(p->P14==1)
-    sprintf(name1,"./REEF3D_FlowFile/REEF3D-flowfile-%d-%d.r3d",p->I230,q1);
+        ffn = float(c->bed(i,j));
+        fileout[n].write((char*)&ffn, sizeof (float));
+        
+        iin=p->knoz;
+        fileout[n].write((char*)&iin, sizeof (int));
+        
+        for(qn=0;qn<p->knoz+1;++qn)
+        {
+        ffn = float(p->ZN[KP]);
+        fileout[n].write((char*)&ffn, sizeof (float));
+        }
+    }
     
-    flowfile1.open(name1, ios::binary);
+
 
 }

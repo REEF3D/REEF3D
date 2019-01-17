@@ -45,9 +45,6 @@ void potentialfile_out::header_file_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
      // header
     if(p->mpirank==0)
     {
-        iin=p->P240;
-        headerout.write((char*)&iin, sizeof (int));
-        
         for(n=0;n<p->P240;++n)
         {  
            
