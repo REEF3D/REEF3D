@@ -56,8 +56,7 @@ private:
      int conv(double);
      
      ifstream headerfile;
-     ifstream flowfile0;
-     ifstream flowfile1;
+     ifstream potentialfile;
 
     char name[400];
     char name0[400];
@@ -67,7 +66,7 @@ private:
 	int iin;
 	double ddn;
 	int printcount,entrycount;
-    int q, count;
+    int q, qn, count;
     int q0,q1;
     double t0,t1,tn;
     int q0n,q1n;
@@ -75,16 +74,16 @@ private:
     double deltax;
     int dk,maxk;
     
+    double bedlevel,waterlevel;
+    
     int Ni,Nj,Nk;
     double xs,xe,ys,ye,zs,ze;
     
     //data
     int *iter;
-    double *simtime;
-    double **X0,**Y0,**Z0;
-    double **X1,**Y1,**Z1;
-    double **U0,**V0,**W0,**P0,**LS0;
-    double **U1,**V1,**W1,**P1,**LS1;
+    double *xloc,*simtime;
+    double *T,*S,*E;
+    double **U,**W;
      
     
 };

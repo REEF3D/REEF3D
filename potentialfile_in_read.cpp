@@ -32,6 +32,107 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void potentialfile_in::read0(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 {    
     
+    
+    // Open File 
+	if(p->P14==0)
+    sprintf(name0,"REEF3D-potentialfile-%d-%d.r3d",p->I230,q0);
+			
+    if(p->P14==1)
+    sprintf(name,"./REEF3D_PotentialFile/REEF3D-flowfile-%d-%d.r3d",p->I230,q0);
+    
+    
+    // read header part
+    potentialfile.open(name, ios::binary);
+
+    while(!potentialfile.eof())
+	{
+    potentialfile.read((char*)&ffn, sizeof (float));
+    bedlevel = ffn;
+    
+    potentialfile.read((char*)&ffn, sizeof (float));
+    waterlevel = ffn;
+    
+    potentialfile.read((char*)&iin, sizeof (int));
+    Nk = iin;
+    
+    p->Darray(S,Nk);
+    
+        for(qn=0; qn<Nk; ++qn)
+        {
+        potentialfile.read((char*)&ffn, sizeof (float));
+        S[qn]=ffn;
+        }
+    }
+    potentialfile.close();
+    
+    
+    
+    
+    
+    
+    // count entries
+    potentialfile.open(name, ios::binary);
+    
+    entrycount=0;
+    
+    potentialfile.read((char*)&ffn, sizeof (float));
+    potentialfile.read((char*)&ffn, sizeof (float));
+    potentialfile.read((char*)&iin, sizeof (int));
+    
+    for(qn=0; qn<Nk; ++qn)
+    potentialfile.read((char*)&ffn, sizeof (float));
+
+    
+    while(!potentialfile.eof())
+	{
+    for(qn=0; qn<2+2*Nk; ++qn)
+    potentialfile.read((char*)&ffn, sizeof (float));
+    
+    ++entrycount;
+    }
+    potentialfile.close();
+    
+    
+    
+    // allocate data
+    p->Darray(T,entrycount);
+    p->Darray(E,entrycount);
+    
+    p->Darray(U,entrycount,Nk);
+    p->Darray(W,entrycount,Nk);
+    
+    
+    t0 = T[0];
+    t1 = T[1];
+
+    
+    // start reading 
+    potentialfile.read((char*)&ffn, sizeof (float));
+    xloc[n]=ffn;
+
+
+
+/*
+        ffn = float(c->bed(i,j));
+        fileout[n].write((char*)&ffn, sizeof (float));
+        
+        iin=p->knoz;
+        fileout[n].write((char*)&iin, sizeof (int));
+        
+        for(qn=0;qn<p->knoz+1;++qn)
+        {
+        ffn = float(p->ZN[KP]);
+        fileout[n].write((char*)&ffn, sizeof (float));
+        }
+*/
+    
+
+    
+   
+
+
+ 
+    /*
     for(j=0;j<Nj;++j)
     for(k=0;k<Nk;++k)
     {
@@ -86,73 +187,6 @@ void potentialfile_in::read0(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb
     {
     flowfile0.read((char*)&ffn, sizeof (float));
     LS0[j][k]=double(ffn);
-    }
+    }*/
 }
     
- void potentialfile_in::read1(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
-{      
-    // read ff1
-    for(j=0;j<Nj;++j)
-    for(k=0;k<Nk;++k)
-    {
-    flowfile1.read((char*)&ffn, sizeof (float));
-    X1[j][k]=double(ffn);
-    }
-    
-    for(j=0;j<Nj;++j)
-    for(k=0;k<Nk;++k)
-    {
-    flowfile1.read((char*)&ffn, sizeof (float));
-    Y1[j][k]=double(ffn);
-    }
-    
-    for(j=0;j<Nj;++j)
-    for(k=0;k<Nk;++k)
-    {
-    flowfile1.read((char*)&ffn, sizeof (float));
-    Z1[j][k]=double(ffn);
-    }
-    
-    for(j=0;j<Nj;++j)
-    for(k=0;k<Nk;++k)
-    {
-    flowfile1.read((char*)&ffn, sizeof (float));
-    U1[j][k]=double(ffn);
-    }
-    
-    for(j=0;j<Nj;++j)
-    for(k=0;k<Nk;++k)
-    {
-    flowfile1.read((char*)&ffn, sizeof (float));
-    V1[j][k]=double(ffn);
-    }
-    
-    for(j=0;j<Nj;++j)
-    for(k=0;k<Nk;++k)
-    {
-    flowfile1.read((char*)&ffn, sizeof (float));
-    W1[j][k]=double(ffn);
-    }
-    
-    for(j=0;j<Nj;++j)
-    for(k=0;k<Nk;++k)
-    {
-    flowfile1.read((char*)&ffn, sizeof (float));
-    P1[j][k]=double(ffn);
-    }
-    
-    for(j=0;j<Nj;++j)
-    for(k=0;k<Nk;++k)
-    {
-    flowfile1.read((char*)&ffn, sizeof (float));
-    LS1[j][k]=double(ffn);
-    }
-
-}
-
-
-
-
-
-
-

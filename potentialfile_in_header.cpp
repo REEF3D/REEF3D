@@ -45,115 +45,34 @@ void potentialfile_in::header_read(lexer *p, ghostcell *pgc)
     
     while(!headerfile.eof())
 	{
-    headerfile.read((char*)&ddn, sizeof (double));
     headerfile.read((char*)&iin, sizeof (int));
+    headerfile.read((char*)&ffn, sizeof (float));
+    
     ++entrycount;
     }
     headerfile.close();
 
     //alloocate arrays
     p->Iarray(iter,entrycount);
-    p->Darray(simtime,entrycount);
+    p->Darray(xloc,entrycount);
     
     // read entries
-    headerfile.open(name, ios::binary);
+	headerfile.open(name, ios::binary);
     
-    q=0;
-    headerfile.read((char*)&ddn, sizeof (double));
-    xs=ddn;
-    headerfile.read((char*)&ddn, sizeof (double));
-    xe=ddn;
-    headerfile.read((char*)&ddn, sizeof (double));
-    ys=ddn;
-    headerfile.read((char*)&ddn, sizeof (double));
-    ye=ddn;
-    headerfile.read((char*)&ddn, sizeof (double));
-    zs=ddn;
-    headerfile.read((char*)&ddn, sizeof (double));
-    ze=ddn;
-    headerfile.read((char*)&ddn, sizeof (double));
-    deltax=ddn;
-    headerfile.read((char*)&iin, sizeof (int));
-    Ni=iin;
-    headerfile.read((char*)&iin, sizeof (int));
-    Nj=iin;
-    headerfile.read((char*)&iin, sizeof (int));
-    Nk=iin;
-
-
-//cout<<p->mpirank<<" Ni: "<<Ni<<" Nj: "<<Nj<<" Nk: "<<Nk<<endl;
-
+    n=0;
     while(!headerfile.eof())
 	{
     headerfile.read((char*)&iin, sizeof (int));
-    iter[q] = iin;
+    iter[n]=iin;
+    headerfile.read((char*)&ffn, sizeof (float));
+    xloc[n]=ffn;
     
-    headerfile.read((char*)&ddn, sizeof (double));
-    simtime[q] = double(ddn);
-    
-    //cout<<p->mpirank<<" IT: "<<iter[q]<<" time: "<<simtime[q]<<endl;
-    ++q;
+    ++n;
     }
     headerfile.close();
 
-    // allocate data
-    p->Darray(X0,Nj,Nk);
-    p->Darray(Y0,Nj,Nk);
-    p->Darray(Z0,Nj,Nk);
-    p->Darray(U0,Nj,Nk);
-    p->Darray(V0,Nj,Nk);
-    p->Darray(W0,Nj,Nk);
-    p->Darray(LS0,Nj,Nk);
-    p->Darray(P0,Nj,Nk);
-    
-    
-    p->Darray(X1,Nj,Nk);
-    p->Darray(Y1,Nj,Nk);
-    p->Darray(Z1,Nj,Nk);
-    p->Darray(U1,Nj,Nk);
-    p->Darray(V1,Nj,Nk);
-    p->Darray(W1,Nj,Nk);
-    p->Darray(LS1,Nj,Nk);
-    p->Darray(P1,Nj,Nk);
-    
-    
-    t0 = simtime[0];
-    t1 = simtime[1];
-    q0 = iter[0];
-    q1 = iter[1];
-    
-    // Open File 
-	if(p->P14==0)
-    sprintf(name0,"REEF3D-potentialfile-%d-%d.r3d",p->I230,q0);
-			
-    if(p->P14==1)
-    sprintf(name,"./REEF3D_PotentialFile/REEF3D-flowfile-%d-%d.r3d",p->I230,q0);
-    
-    flowfile.open(name, ios::binary);
-    
-    
-    
-    // start reading 
-    i=iloc[n];
-    j=0;
-    
-    for(n=0;n<p->P240;++n)
-    if(p->P240_x[n]>=p->originx && p->P240_x[n]<p->endx)
-	{
 
-        ffn = float(c->bed(i,j));
-        fileout[n].write((char*)&ffn, sizeof (float));
-        
-        iin=p->knoz;
-        fileout[n].write((char*)&iin, sizeof (int));
-        
-        for(qn=0;qn<p->knoz+1;++qn)
-        {
-        ffn = float(p->ZN[KP]);
-        fileout[n].write((char*)&ffn, sizeof (float));
-        }
-    }
-    
 
+    
 
 }

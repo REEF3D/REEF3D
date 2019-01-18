@@ -49,6 +49,7 @@ potentialfile_in::~potentialfile_in()
 
 void potentialfile_in::flowfile_start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 {
+    
     if(p->gcin_count>0)
     {
         q0n=q0;
