@@ -34,6 +34,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_cds4.h"
 #include"fnpf_cds6.h"
 #include"fnpf_weno.h"
+#include"fnpf_wenoflux.h"
 #include"fnpf_ddx_cds2.h"
 #include"fnpf_ddx_cds4.h"
 
@@ -107,9 +108,7 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);    
     
     c->Fx(i,j) = pconvec->sx(p,Fifsf,ivel);
-    
     c->Ex(i,j) = pconvec->sx(p,eta,ivel);
-    
     c->Exx(i,j) = pddx->sxx(p,eta);
     }
 

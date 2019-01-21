@@ -98,9 +98,7 @@ void sflow_eta::start(lexer* p, fdm2D* b, ghostcell* pgc, ioflow* pflow, slice &
     pflow->eta_relax(p,pgc,b->eta);
     pgc->gcsl_start4(p,b->eta,gcval_eta);
     }
-
 }
-
 
 void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slice &Q, slice &ws, slice &etark)
 {

@@ -49,7 +49,7 @@ potentialfile_in::~potentialfile_in()
 
 void potentialfile_in::flowfile_start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 {
-    
+    /*
     if(p->gcin_count>0)
     {
         q0n=q0;
@@ -99,10 +99,7 @@ void potentialfile_in::flowfile_start(lexer *p, fdm *a, ghostcell *pgc, turbulen
         
         // read ff0
         // read ff1
-        /*
-        cout<<p->mpirank<<" X0: "<<X0[0][5]<<" X1: "<<X1[0][5]<<p->mpirank<<" Z0: "<<Z0[0][9]<<" Z1: "<<Z1[0][9]<<endl;
-        cout<<p->mpirank<<" U0: "<<U0[0][5]<<" U1: "<<U1[0][5]<<p->mpirank<<" LS0: "<<LS0[0][9]<<" LS1: "<<LS1[0][9]<<endl;
-        cout<<p->mpirank<<" W0: "<<W0[0][5]<<" W1: "<<W1[0][5]<<p->mpirank<<" P0: "<<P0[0][9]<<" P1: "<<P1[0][9]<<endl;*/
+        
         
         deltaT = simtime[q1]-simtime[q0];
 
@@ -111,14 +108,16 @@ void potentialfile_in::flowfile_start(lexer *p, fdm *a, ghostcell *pgc, turbulen
     
     }
     
-    /*cout<<"t0: "<<simtime[q0]<<" t1: "<<simtime[q1]<<endl;
-    cout<<"t0: "<<t0<<" t1: "<<t1<<endl;*/
+    //cout<<"t0: "<<simtime[q0]<<" t1: "<<simtime[q1]<<endl;
+    //cout<<"t0: "<<t0<<" t1: "<<t1<<endl;
+    */
     
 }
 
 
 void potentialfile_in::ff_inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {
+    /*
     double uval,vval,wval,pval;
     
     for(n=0;n<p->gcin_count;n++)
@@ -171,11 +170,12 @@ void potentialfile_in::ff_inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, fie
     a->press(i-3,j,k)=pval;
     }
     
-    }
+    }*/
 }
 
 void potentialfile_in::ff_waterlevel(lexer *p, fdm* a, ghostcell* pgc, field& ls)
 {
+    /*
     double lsval;
     double xp,yp,zp;
    
@@ -195,7 +195,7 @@ void potentialfile_in::ff_waterlevel(lexer *p, fdm* a, ghostcell* pgc, field& ls
     ls(i-3,j,k)=lsval;
     }
     }
-    
+    */
 }
 
 int potentialfile_in::conv(double a)
