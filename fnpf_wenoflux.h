@@ -44,7 +44,7 @@ public:
 
 private:
     double **ckz;
-
+    double ivel1,ivel2;
 
 };
 

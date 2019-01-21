@@ -686,6 +686,10 @@
       <File Name="turbulence.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Waves">
+      <VirtualDirectory Name="NHFLOW">
+        <File Name="nhflow_f.h"/>
+        <File Name="nhflow.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Wave Lib">
         <File Name="wave_lib_flap_eta.h"/>
         <File Name="wave_lib.h"/>
@@ -2094,6 +2098,9 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Waves">
+      <VirtualDirectory Name="NHFLOW">
+        <File Name="nhflow_f.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Wave Lib">
         <File Name="wave_lib_flap_eta.cpp"/>
         <VirtualDirectory Name="Interface">

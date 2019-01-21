@@ -125,11 +125,11 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     
     fsfbc_sig(p,c,pgc,frk1,c->Fi);
     bedbc_sig(p,c,pgc,c->Fi,pf);
-   
+   /*
    double endtime=pgc->timer();
     
     if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"BENCH_time: "<<setprecision(3)<<endtime-starttime<<endl;
+	cout<<"BENCH_time: "<<setprecision(3)<<endtime-starttime<<endl;*/
     
     
     // solve Fi

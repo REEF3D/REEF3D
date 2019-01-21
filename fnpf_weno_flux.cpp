@@ -81,12 +81,23 @@ double fnpf_wenoflux::fz(lexer *p, field &f, double kvel1, double kvel2)
 double fnpf_wenoflux::sx(lexer *p, slice &f, double ivel)
 {
     grad=0.0;
-    
-    if(ivel>0.0)
-    grad=dswenox(f,1.0);
-    
-    if(ivel<0.0)
-    grad=dswenox(f,-1.0);
+        
+        ivel1 = 0.0;
+        ivel2 = 0.0;
+		/*
+		i-=1;
+		fu1 = fx(p,a,b,uvel,ipol,ivel1);
+		i+=1;
+		
+		fu2 = fx(p,a,b,uvel,ipol,ivel2);
+
+
+		
+		
+		L =   - ((ivel2*fu2-ivel1*fu1)/DX[IP]) 
+		      - ((jvel2*fv2-jvel1*fv1)/DY[JP]) 
+			  - ((kvel2*fw2-kvel1*fw1)/DZ[KP]);
+			  */
     
     return grad;
 }
@@ -106,29 +117,9 @@ double fnpf_wenoflux::sy(lexer *p, slice &f, double jvel)
 
 double fnpf_wenoflux::sz(lexer *p, double *f)
 {
-    double dx2;
-    grad = (ckz[p->knoz+marge][4]*f[FIJK] + ckz[p->knoz+marge][3]*f[FIJKm1] + ckz[p->knoz+marge][2]*f[FIJKm2] + ckz[p->knoz+marge][1]*f[FIJKm3] + ckz[p->knoz+marge][0]*f[FIJKm4]);
-    
-    //grad = (ckz[p->knoz+marge][6]*f[FIJK] + ckz[p->knoz+marge][5]*f[FIJKm1] + ckz[p->knoz+marge][4]*f[FIJKm2] + ckz[p->knoz+marge][3]*f[FIJKm3] + ckz[p->knoz+marge][2]*f[FIJKm4] + ckz[p->knoz+marge][1]*f[FIJKm5] + ckz[p->knoz+marge][0]*f[FIJKm6]);
-    
-    /*
-    if(p->mpirank==0 && i==2 &&p->count<2) 
-    {
-    cout<<"GRAD: "<<grad<<" . ";
-    
-    cout<<((25.0/12.0)*f[FIJK] - 4.0*f[FIJKm1] + 3.0*f[FIJKm2] - (4.0/3.0)*f[FIJKm3] + 0.25*f[FIJKm4])
-          /((25.0/12.0)*p->ZN[KP] - 4.0*p->ZN[KM1] + 3.0*p->ZN[KM2] - (4.0/3.0)*p->ZN[KM3] + 0.25*p->ZN[KM4])<<endl;
-    
-    dx2 =  ((25.0/12.0)*p->ZN[KP] - 4.0*p->ZN[KM1] + 3.0*p->ZN[KM2] - (4.0/3.0)*p->ZN[KM3] + 0.25*p->ZN[KM4]);
-    
-    cout<<"ckz_forn: "<<ckz[p->knoz+marge][4]<<" "<<ckz[p->knoz+marge][3]<<" "<<ckz[p->knoz+marge][2]<<" "<<ckz[p->knoz+marge][1]<<" "<<ckz[p->knoz+marge][0]<<endl;
-    cout<<"dx^2: "<<dx2<<endl;
 
-    cout<<"ckz_tabl: "<<(25.0/12.0)/dx2<<" "<<-4.0/dx2<<" "<<3.0/dx2<<" "<<-(4.0/3.0)/dx2<<" "<<(1.0/4.0)/dx2<<" "<<endl<<endl;
-    }
-    return grad;*/
+    grad = (ckz[p->knoz+marge][4]*f[FIJK] + ckz[p->knoz+marge][3]*f[FIJKm1] + ckz[p->knoz+marge][2]*f[FIJKm2] 
+          + ckz[p->knoz+marge][1]*f[FIJKm3] + ckz[p->knoz+marge][0]*f[FIJKm4]);
     
-    /*
-    return (-(25.0/12.0)*f[FIJK] + 4.0*f[FIJKm1] - 3.0*f[FIJKm2] + (4.0/3.0)*f[FIJKm3] - 0.25*f[FIJKm4])
-          /(-(25.0/12.0)*p->ZN[KP] + 4.0*p->ZN[KM1] - 3.0*p->ZN[KM2] + (4.0/3.0)*p->ZN[KM3] - 0.25*p->ZN[KM4]);*/
+    return grad;   
 }

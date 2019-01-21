@@ -55,6 +55,8 @@ fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(p->A311==6)
     pconvec = new fnpf_cds6(p);
     
+    pdh = new fnpf_wenoflux(p);
+    
     if(p->A312==2)
     {
     pddx = new fnpf_ddx_cds2(p);
@@ -72,6 +74,7 @@ fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     {
     c->Fy(i,j) = 0.0;
     c->Ey(i,j) = 0.0;
+    c->Hy(i,j) = 0.0;
     c->Eyy(i,j) = 0.0;
     }
 }
@@ -100,6 +103,8 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     
     c->Exx(i,j) = pddx->sxx(p,eta);
     c->Eyy(i,j) = pddx->syy(p,eta);
+    
+    
     }
     
     if(p->i_dir==1 && p->j_dir==0)

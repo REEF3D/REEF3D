@@ -57,6 +57,7 @@ public:
     slice4 Exx,Eyy;
     slice4 Bx,By;
     slice4 Bxx,Byy;
+    slice4 Hx,Hy;
     
 
 	

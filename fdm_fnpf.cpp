@@ -29,6 +29,7 @@ fdm_fnpf::fdm_fnpf(lexer *p) : u(p),v(p),w(p),press(p),Fi4(p),Fifsf(p),Fibed(p),
                               Fx(p),Fy(p),
                               Ex(p),Ey(p),Exx(p),Eyy(p),
                               Bx(p),By(p),Bxx(p),Byy(p),
+                              Hx(p),Hy(p),
                               rhsvec(p),M(p)
 {
     p->Iarray(pvccnode,p->facetnum*4,8);
