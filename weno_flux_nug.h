@@ -43,12 +43,12 @@ private:
 	virtual double fx(lexer*, fdm*, field&, field&, int, double);
 	virtual double fy(lexer*, fdm*, field&, field&, int, double);
 	virtual double fz(lexer*, fdm*, field&, field&, int, double);
-	void iqmin(lexer*, fdm*, field&, field&, int);
-	void jqmin(lexer*, fdm*, field&, field&, int);
-	void kqmin(lexer*, fdm*, field&, field&, int);
-	void iqmax(lexer*, fdm*, field&, field&, int);
-	void jqmax(lexer*, fdm*, field&, field&, int);
-	void kqmax(lexer*, fdm*, field&, field&, int);
+	void iqmin(lexer*, field&, field&, int);
+	void jqmin(lexer*, field&, field&, int);
+	void kqmin(lexer*, field&, field&, int);
+	void iqmax(lexer*, field&, field&, int);
+	void jqmax(lexer*, field&, field&, int);
+	void kqmax(lexer*, field&, field&, int);
 
 
 	double L,grad;

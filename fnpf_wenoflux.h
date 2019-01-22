@@ -21,14 +21,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"fnpf_convection.h"
 #include"increment.h"
-#include"ddweno_f_nug.h"
+#include"weno_nug_func.h"
 
 #ifndef FNPF_WENOFLUX_H_
 #define FNPF_WENOFLUX_H_
 
 using namespace std;
 
-class fnpf_wenoflux : public fnpf_convection, public increment, public ddweno_f_nug
+class fnpf_wenoflux : public fnpf_convection, public increment, public weno_nug_func
 {
 public:
 	fnpf_wenoflux(lexer*);
@@ -43,8 +43,18 @@ public:
     virtual double sz(lexer*, double*);
 
 private:
+    double ffx(lexer *p, slice &f, double advec);
+    
+    
+    void iqmin(lexer*, slice&);
+	void jqmin(lexer*, slice&);
+	void iqmax(lexer*, slice&);
+	void jqmax(lexer*, slice&);
+    
+    
     double **ckz;
     double ivel1,ivel2;
+    double grad;
 
 };
 
