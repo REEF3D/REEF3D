@@ -25,6 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"field4.h"
 #include"convection.h"
+#include"convection.h"
 #include"ioflow.h"
 #include"solver.h"
 #include"reini.h"
@@ -100,6 +101,9 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     
     c->Ex(i,j) = pconvec->sx(p,eta,ivel);
     c->Ey(i,j) = pconvec->sy(p,eta,jvel);
+    
+    //c->Hx(i,j) = pdh->sx(p,eta,Fifsf);
+    //c->Hy(i,j) = pdh->sy(p,eta,Fifsf);
     
     c->Exx(i,j) = pddx->sxx(p,eta);
     c->Eyy(i,j) = pddx->syy(p,eta);

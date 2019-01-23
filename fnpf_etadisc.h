@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -19,42 +19,27 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_etadisc.h"
-#include"increment.h"
-#include"weno_nug_func.h"
-
-#ifndef FNPF_WENOFLUX_H_
-#define FNPF_WENOFLUX_H_
+class lexer;
+class field;
+class slice;
+class sliceint;
+class vec;
 
 using namespace std;
 
-class fnpf_wenoflux : public fnpf_etadisc, public increment, public weno_nug_func
+#ifndef FNPF_ETADISC_H_
+#define FNPF_ETADISC_H_
+
+class fnpf_etadisc
 {
 public:
-	fnpf_wenoflux(lexer*);
-	virtual ~fnpf_wenoflux();
 
-    virtual double sx(lexer*, slice&, slice&);
-	virtual double sy(lexer*, slice&, slice&);
-
-
-private:
-    double ffx(lexer *p, slice &f, double advec);
-    double ffy(lexer *p, slice &f, double advec);
-    
-    
-    void iqmin(lexer*, slice&);
-	void jqmin(lexer*, slice&);
-	void iqmax(lexer*, slice&);
-	void jqmax(lexer*, slice&);
-    
-    
-    double **ckz;
-    double ivel1,ivel2,jvel1,jvel2;
-    double grad;
-    
-    double fu1,fu2,fv1,fv2;
+    virtual double sx(lexer*, slice&, slice&)=0;
+	virtual double sy(lexer*, slice&, slice&)=0;
 
 };
 
 #endif
+
+
+

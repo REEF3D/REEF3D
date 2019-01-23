@@ -26,6 +26,7 @@ class fnpf_sg_laplace;
 class field;
 class fnpf_convection;
 class fnpf_ddx;
+class fnpf_etadisc;
 
 using namespace std;
 
@@ -46,7 +47,7 @@ public:
 
     fnpf_convection *pconvec;
     fnpf_convection *pdx;
-    fnpf_convection *pdh;
+    fnpf_etadisc *pdh;
     fnpf_ddx *pddx;
 
     double ivel,jvel,kvel;
