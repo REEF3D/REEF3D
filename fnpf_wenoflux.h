@@ -41,7 +41,7 @@ public:
 private:
     double ffx(lexer *p, slice &f, double advec);
     double ffy(lexer *p, slice &f, double advec);
-    
+
     
     void iqmin(lexer*, slice&);
 	void jqmin(lexer*, slice&);
