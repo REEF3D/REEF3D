@@ -59,6 +59,16 @@ void lexer::ini_default()
     A313=3;      // int discretization for bed bc
     A320=1;		  // int time scheme for FNPF velocities
     A321=1;      // int boundary condition order for 4th-order Laplace equation
+    A343=1;      // int turn on wetting-drying
+    A344=1;      // int absolute wetting criterion
+    A344_val=0.00005; // double absolute wetting criterion value
+    A345=0;      // int dx-based relative wetting citerion
+    A345_val=0.001; // double dx-based relative wetting citerion value
+    A346=1;      // int turn on breaking
+    A347=0.6;    // double breaking parameter alpha
+    A348=0;      // int turn on breaking persistence
+    A349=0.3;    // double breaking persistence parameter beta
+    
     
     A410=1;      // int scheme eta       
     A440=1.6;    // double epsi for depth integration

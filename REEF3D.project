@@ -727,7 +727,6 @@
       </VirtualDirectory>
       <VirtualDirectory Name="FNPF">
         <VirtualDirectory Name="FSFBC">
-          <File Name="fnpf_sg_wetdry.h"/>
           <File Name="fnpf_sg_fsfbc.h"/>
           <File Name="fnpf_fg_fsfbc.h"/>
         </VirtualDirectory>

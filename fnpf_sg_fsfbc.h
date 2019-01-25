@@ -44,6 +44,8 @@ public:
     void kfsfbc(lexer*,fdm_fnpf*,ghostcell*);
     void dfsfbc(lexer*,fdm_fnpf*,ghostcell*,slice&);
     void fsfwvel(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
+    
+    void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
 
     fnpf_convection *pconvec;
     fnpf_convection *pdx;
@@ -52,6 +54,7 @@ public:
 
     double ivel,jvel,kvel;
     
+    double wd_criterion;
     
     
 };

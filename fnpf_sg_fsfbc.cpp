@@ -78,6 +78,15 @@ fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     c->Hy(i,j) = 0.0;
     c->Eyy(i,j) = 0.0;
     }
+    
+    
+    wd_criterion=0.00005;
+    
+    if(p->A244==1)
+    wd_criterion=p->A244_val;
+    
+    if(p->A245==1)
+    wd_criterion=p->A245_val*p->dx;
 }
 
 fnpf_sg_fsfbc::~fnpf_sg_fsfbc()
@@ -136,6 +145,9 @@ void fnpf_sg_fsfbc::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
     
     pgc->gcsl_start4(p,c->Bx,1);
     pgc->gcsl_start4(p,c->By,1);
+    
+    SLICELOOP4
+    c->wet(i,j)=1;
 }
 
 void fnpf_sg_fsfbc::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
