@@ -26,46 +26,22 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void fnpf_sg_fsfbc::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf) 
 {  
-    SLICELOOP4
-    c->wet(i,j)=1;
-    
-    
-    
-    /*
-    if(p->A243>=1)
+
+    if(p->A343>=1)
     {
       SLICELOOP4
       {
-          if(b->hp(i,j)>=wd_criterion)
-          b->wet4(i,j)=1;
+          if(c->WL(i,j)>=wd_criterion)
+          c->wet(i,j)=1;
               
-          if(b->hp(i,j)<wd_criterion)
+          if(c->WL(i,j)<wd_criterion)
           {
-           ws(i,j)=0.0; 
-           b->ws(i,j)=0.0;
-           //b->wb(i,j)=0.0;
-           b->wet4(i,j)=0;
+           c->wet(i,j)=0;
           }
       }
       
-      pgc->gcsl_start4int(p,b->wet4,50);
+      pgc->gcsl_start4int(p,c->wet,50);
       
-      
-      SLICELOOP1
-      //if(b->wet4(i,j)==0)
-      if(b->hx(i,j)<wd_criterion)
-      {
-       b->P(i,j)=0.0; 
-       P(i,j)=0.0; 
-      }
-      
-      SLICELOOP2
-      //if(b->wet4(i,j)==0)
-      if(b->hy(i,j)<wd_criterion)
-      {
-       b->Q(i,j)=0.0; 
-       Q(i,j)=0.0; 
-      }
-    }*/
+    }
     
 }

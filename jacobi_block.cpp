@@ -71,7 +71,7 @@ void jacobi_block::start(lexer* p,fdm* a, ghostcell* pgc, field& xfield, vec& xv
 	finalize(p,a,xfield,xvec,var);
 }
 
-void jacobi_block::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var, int gcv, double stop_crit)
+void jacobi_block::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var, int gcv, double stop_crit)
 {
 }
 

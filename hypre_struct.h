@@ -45,12 +45,12 @@ public:
 	virtual ~hypre_struct();
     
 	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, vec&, int, int, double);
-    virtual void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int, int, double);
+    virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int, int, double);
     
     virtual void start_solver1234(lexer*,fdm*, ghostcell*, field&, vec&, vec&,int);
     virtual void start_solver5(lexer*,fdm*, ghostcell*, field&, vec&, vec&,int);
     virtual void start_solver7(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
-    virtual void start_solver8(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
+    virtual void start_solver8(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int);
     
     virtual void solve(lexer*,ghostcell*);
     virtual void solve1234(lexer*);
@@ -77,8 +77,8 @@ public:
     void fill_matrix4(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix4_2Dvert(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix7(lexer*, ghostcell*,double*, vec&, matrix_diag&);
-    void fill_matrix8(lexer*, ghostcell*,double*, vec&, matrix_diag&);
-    void fill_matrix8_2Dvert(lexer*, ghostcell*,double*, vec&, matrix_diag&);
+    void fill_matrix8(lexer*, fdm_fnpf*, ghostcell*,double*, vec&, matrix_diag&);
+    void fill_matrix8_2Dvert(lexer*, fdm_fnpf*, ghostcell*,double*, vec&, matrix_diag&);
 
     virtual void fillbackvec1(lexer*,field&,vec&,int);
     virtual void fillbackvec2(lexer*,field&,vec&,int);
@@ -86,7 +86,7 @@ public:
     virtual void fillbackvec4(lexer*,field&,vec&,int);
 
     virtual void fillbackvec7(lexer*,double*,int);
-    virtual void fillbackvec8(lexer*,double*,int);
+    virtual void fillbackvec8(lexer*,fdm_fnpf*,double*,int);
 	
 	void create_solver1234(lexer*,ghostcell*);
     void delete_solver1234(lexer*,ghostcell*);

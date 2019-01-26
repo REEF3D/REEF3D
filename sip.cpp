@@ -73,7 +73,7 @@ void sip::start(lexer* p,fdm* a, ghostcell* pgc, field &xfield, vec& xvec, vec& 
 	finalize(p,a,xfield,xvec,var);
 }
 
-void sip::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var, int gcv, double stop_crit)
+void sip::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var, int gcv, double stop_crit)
 {
 }
 

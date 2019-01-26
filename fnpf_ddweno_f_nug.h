@@ -1,0 +1,67 @@
+/*--------------------------------------------------------------------
+REEF3D
+Copyright 2008-2019 Hans Bihs
+
+This file is part of REEF3D.
+
+REEF3D is fra->eps software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Fra->eps Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. Sa->eps the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
+--------------------------------------------------------------------
+--------------------------------------------------------------------*/
+
+#include"increment.h"
+#include"weno_nug_func.h"
+
+class fdm_fnpf;
+class field;
+class slice;
+class lexer;
+class ghostcell;
+class vec;
+class cpt;
+
+#ifndef FNPF_DDWENO_F_NUG_H_
+#define FNPF_DDWENO_F_NUG_H_
+
+using namespace std;
+
+class fnpf_ddweno_f_nug : public weno_nug_func
+{
+public:
+
+	 fnpf_ddweno_f_nug(lexer*,fdm_fnpf*);
+	 ~fnpf_ddweno_f_nug();
+
+     double dswenox(slice&, double);
+	 double dswenoy(slice&, double);
+
+    void isqmin(slice&);
+	void jsqmin(slice&);
+	void isqmax(slice&);
+	void jsqmax(slice&);
+    
+    void is_wd_x_min();
+    void is_wd_x_max();
+    void is_wd_y_min();
+    void is_wd_y_max();
+
+    
+    double grad;
+    double *DX,*DY,*DZ;
+    
+private:
+    lexer *p;
+    fdm_fnpf *c;
+};
+
+#endif

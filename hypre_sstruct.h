@@ -47,7 +47,7 @@ public:
 	virtual ~hypre_sstruct();
     
 	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, vec&, int, int, double);
-    virtual void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int, int, double);
+    virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int, int, double);
     
     virtual void start_solver1234(lexer*,fdm*, ghostcell*, field&, vec&, vec&,int);
     virtual void start_solver5(lexer*,fdm*, ghostcell*, field&, vec&, vec&,int);

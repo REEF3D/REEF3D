@@ -56,7 +56,7 @@ void jacobi_scaling::start(lexer* p,fdm* a, ghostcell* pgc, field &xfield, vec& 
 {
 }
 
-void jacobi_scaling::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var, int gcv, double stop_crit)
+void jacobi_scaling::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var, int gcv, double stop_crit)
 {                    
 }
 	

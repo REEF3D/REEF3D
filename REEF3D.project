@@ -774,7 +774,10 @@
           <File Name="fnpf_fg_laplace_cds4.h"/>
           <File Name="fnpf_fg_laplace_cds2.h"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Discrete">
+        <VirtualDirectory Name="Convect">
+          <VirtualDirectory Name="DDWENO">
+            <File Name="fnpf_ddweno_f_nug.h"/>
+          </VirtualDirectory>
           <File Name="fnpf_etadisc.h"/>
           <File Name="fnpf_wenoflux.h"/>
           <File Name="fnpf_convection.h"/>
@@ -2212,6 +2215,9 @@
           <File Name="fnpf_fg_laplace_cds2.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <VirtualDirectory Name="DDWENO">
+            <File Name="fnpf_ddweno_f_nug.cpp"/>
+          </VirtualDirectory>
           <File Name="fnpf_wenoflux.cpp"/>
           <VirtualDirectory Name="DDX">
             <File Name="fnpf_ddx_cds4.cpp"/>

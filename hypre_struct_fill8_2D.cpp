@@ -23,11 +23,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #ifdef HYPRE_COMPILATION
 #include"lexer.h"
+#include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include"fieldint4.h"
 #include"matrix_diag.h"
 
-void hypre_struct::fill_matrix8_2Dvert(lexer* p, ghostcell* pgc, double *f, vec &rhs, matrix_diag &M)
+void hypre_struct::fill_matrix8_2Dvert(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec &rhs, matrix_diag &M)
 {
 
     nentries=5;
@@ -38,7 +39,7 @@ void hypre_struct::fill_matrix8_2Dvert(lexer* p, ghostcell* pgc, double *f, vec 
     count=0;
     KJILOOP
     {
-		PFLUIDCHECK
+		PWDFLUIDCHECK
 		{
 		n=cval4(i,j,k);
         
@@ -58,7 +59,7 @@ void hypre_struct::fill_matrix8_2Dvert(lexer* p, ghostcell* pgc, double *f, vec 
 		++count; 
 		}     
 		
-		FSCHECK
+		FSWDCHECK
 		{
 		values[count]=1.0;
 		++count;
@@ -86,10 +87,10 @@ void hypre_struct::fill_matrix8_2Dvert(lexer* p, ghostcell* pgc, double *f, vec 
     count=0;
 	KJILOOP
 	{
-		FPCHECK
+		FPWDCHECK
 		values[count] = f[FIJK];
 		
-		FSCHECK
+		FSWDCHECK
 		values[count] = 0.0;
 	
     ++count;
@@ -102,13 +103,13 @@ void hypre_struct::fill_matrix8_2Dvert(lexer* p, ghostcell* pgc, double *f, vec 
     count=0; 
 	KJILOOP
 	{
-		FPCHECK
+		FPWDCHECK
 		{
 		n=cval4(i,j,k);
 		values[count] = rhs.V[n];
 		}
 		
-		FSCHECK
+		FSWDCHECK
 		values[count] = 0.0;
 
     ++count;

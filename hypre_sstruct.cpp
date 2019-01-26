@@ -59,7 +59,7 @@ void hypre_sstruct::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, 
     start_solver5(p,a,pgc,f,xvec,rhsvec,var);
 }
 
-void hypre_sstruct::startF(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var, int gcv, double stop_crit)
+void hypre_sstruct::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var, int gcv, double stop_crit)
 {
     if(var==7)
     start_solver7(p,pgc,f,rhs,M,var);

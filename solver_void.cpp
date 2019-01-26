@@ -29,7 +29,7 @@ void solver_void::start(lexer* p,fdm* a, ghostcell* pgc, field& xfield, vec& xve
 {
 }
 
-void solver_void::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var, int gcv, double stop_crit)
+void solver_void::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var, int gcv, double stop_crit)
 {
 }
 
