@@ -25,6 +25,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"fnpf_sg_fsfbc.h"
 
+#define WLVL (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0-20)
+
 fnpf_sigma::fnpf_sigma(lexer *p, fdm_fnpf *c, ghostcell *pgc) 
 {
 }
@@ -69,7 +71,7 @@ void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsfbc 
 	c->bed(i,j) = p->bed[IJ];
     
     SLICELOOP4
-    c->WL(i,j) = c->eta(i,j) + p->wd - c->bed(i,j);
+    c->WL(i,j) = MAX(0.0,c->eta(i,j) + p->wd - c->bed(i,j));
     
     SLICELOOP4
 	c->depth(i,j) = p->wd - c->bed(i,j);
@@ -80,31 +82,31 @@ void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsfbc 
 void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsfbc *pf, slice &eta)
 {
     FLOOP
-    p->sigx[FIJK] = (1.0 - p->sig[FIJK])*(c->Bx(i,j)/c->WL(i,j)) - p->sig[FIJK]*(c->Ex(i,j)/c->WL(i,j));
+    p->sigx[FIJK] = (1.0 - p->sig[FIJK])*(c->Bx(i,j)/WLVL) - p->sig[FIJK]*(c->Ex(i,j)/WLVL);
     
     FLOOP
-    p->sigy[FIJK] = (1.0 - p->sig[FIJK])*(c->By(i,j)/c->WL(i,j)) - p->sig[FIJK]*(c->Ey(i,j)/c->WL(i,j));
+    p->sigy[FIJK] = (1.0 - p->sig[FIJK])*(c->By(i,j)/WLVL) - p->sig[FIJK]*(c->Ey(i,j)/WLVL);
     
     SLICELOOP4
-    p->sigz[IJ] = 1.0/c->WL(i,j);
+    p->sigz[IJ] = 1.0/WLVL;
     
     FLOOP
-    p->sigxx[FIJK] = ((1.0 - p->sig[FIJK])/c->WL(i,j))*(c->Bxx(i,j) - pow(c->Bx(i,j),2.0)/c->WL(i,j)) // xx
+    p->sigxx[FIJK] = ((1.0 - p->sig[FIJK])/WLVL)*(c->Bxx(i,j) - pow(c->Bx(i,j),2.0)/WLVL) // xx
     
-                  - (p->sig[FIJK]/c->WL(i,j))*(c->Exx(i,j) - pow(c->Ex(i,j),2.0)/c->WL(i,j))
+                  - (p->sig[FIJK]/WLVL)*(c->Exx(i,j) - pow(c->Ex(i,j),2.0)/WLVL)
                   
-                  - (p->sigx[FIJK]/c->WL(i,j))*(c->Bx(i,j) + c->Ex(i,j))
+                  - (p->sigx[FIJK]/WLVL)*(c->Bx(i,j) + c->Ex(i,j))
                   
-                  - ((1.0 - 2.0*p->sig[FIJK])/pow(c->WL(i,j),2.0))*(c->Bx(i,j)*c->Ex(i,j))
+                  - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(c->Bx(i,j)*c->Ex(i,j))
                   
                   
-                  + ((1.0 - p->sig[FIJK])/c->WL(i,j))*(c->Byy(i,j) - pow(c->By(i,j),2.0)/c->WL(i,j)) // yy
+                  + ((1.0 - p->sig[FIJK])/WLVL)*(c->Byy(i,j) - pow(c->By(i,j),2.0)/WLVL) // yy
     
-                  - (p->sig[FIJK]/c->WL(i,j))*(c->Eyy(i,j) - pow(c->Ey(i,j),2.0)/c->WL(i,j))
+                  - (p->sig[FIJK]/WLVL)*(c->Eyy(i,j) - pow(c->Ey(i,j),2.0)/WLVL)
                   
-                  - (p->sigy[FIJK]/c->WL(i,j))*(c->By(i,j) + c->Ey(i,j))
+                  - (p->sigy[FIJK]/WLVL)*(c->By(i,j) + c->Ey(i,j))
                   
-                  - ((1.0 - 2.0*p->sig[FIJK])/pow(c->WL(i,j),2.0))*(c->By(i,j)*c->Ey(i,j));
+                  - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(c->By(i,j)*c->Ey(i,j));
     
     SLICELOOP4
     {

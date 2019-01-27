@@ -44,7 +44,7 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
     p->poissontime=0.0;
 
 	n=0;
-    FILOOPWD
+    LOOP
 	{
     sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
     
@@ -79,20 +79,22 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
     
     
     n=0;
-	FILOOPWD
+	LOOP
     if(p->flag7[FIJK]>0)
 	{
         
         
             if(p->flag7[FIm1JK]<0 || c->wet(i-1,j)==0)
             {
-            c->rhsvec.V[n] -= c->M.s[n]*f[FIJK];
+            //c->rhsvec.V[n] -= c->M.s[n]*f[FIJK];
+            c->M.p[n] += -1.0/(p->DXP[IM1]*p->DXN[IM1])*p->x_dir;
             c->M.s[n] = 0.0;
             }
             
             if(p->flag7[FIp1JK]<0 || c->wet(i+1,j)==0)
             {
-            c->rhsvec.V[n] -= c->M.n[n]*f[FIJK];
+            //c->rhsvec.V[n] -= c->M.n[n]*f[FIJK];
+            c->M.p[n] += -1.0/(p->DXP[IM1]*p->DXN[IP])*p->x_dir;
             c->M.n[n] = 0.0;
             }
 

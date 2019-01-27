@@ -381,6 +381,9 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	{
     zcoor = p->ZN[KP1]*c->WL(i,j) + c->bed(i,j); 
     
+    if(c->wet(i,j)==0)
+    zcoor=c->bed(i,j);
+    
     ffn=float( (p->XN[IP1]-p->B192_3)*cos(theta_y*sin(phase)) - (zcoor-p->B192_4)*sin(theta_y*sin(phase)) + p->B192_3);
 	result.write((char*)&ffn, sizeof (float));
 

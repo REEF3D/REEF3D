@@ -115,22 +115,16 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pgc->gcsl_start4(p,frk1,gcval_fifsf);
     
     // fsfdisc and sigma update
+    pf->wetdry(p,c,pgc,erk1,frk1);
     pf->fsfdisc(p,c,pgc,erk1,frk1);
     sigma_update(p,c,pgc,pf,erk1);
   
-  double starttime=pgc->timer();
     // Set Boundary Conditions
     pflow->fivec_relax(p,pgc,c->Fi);
     
     
     fsfbc_sig(p,c,pgc,frk1,c->Fi);
     bedbc_sig(p,c,pgc,c->Fi,pf);
-   /*
-   double endtime=pgc->timer();
-    
-    if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"BENCH_time: "<<setprecision(3)<<endtime-starttime<<endl;*/
-    
     
     // solve Fi
     pgc->start7V(p,c->Fi,250);
@@ -158,6 +152,7 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pgc->gcsl_start4(p,frk2,gcval_fifsf);
     
     // fsfdisc and sigma update
+    pf->wetdry(p,c,pgc,erk2,frk2);
     pf->fsfdisc(p,c,pgc,erk2,frk2);
     sigma_update(p,c,pgc,pf,erk2);
     
@@ -192,6 +187,7 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
     
     // fsfdisc and sigma update
+    pf->wetdry(p,c,pgc,c->eta,c->Fifsf);
     pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
     sigma_update(p,c,pgc,pf,c->eta);
     
@@ -206,9 +202,17 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,250);
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
-
+    
+    /*
     LOOP
-    c->test(i,j,k) = c->Fifsf(i,j);
+    c->test(i,j,k) = c->Fifsf(i,j);*/
+    
+    LOOP
+    c->test(i,j,k)=1.0;
+    
+    LOOP
+    if(c->wet(i,j)==0)
+    c->test(i,j,k)=0.0;
     
     pflow->eta_relax(p,pgc,c->eta);
     pflow->fifsf_relax(p,pgc,c->Fifsf);
@@ -227,6 +231,7 @@ void fnpf_sg_RK3::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
     sigma_ini(p,c,pgc,pf,c->eta);
     pf->fsfdisc_ini(p,c,pgc,c->eta,c->Fifsf);
+    pf->wetdry(p,c,pgc,c->eta,c->Fifsf);
     pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
     sigma_update(p,c,pgc,pf,c->eta);
     

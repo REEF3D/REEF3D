@@ -28,17 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"vec.h"
 #include"cpt.h"
 
-fnpf_ddweno_f_nug::fnpf_ddweno_f_nug(lexer* pp,fdm_fnpf *cc):weno_nug_func(pp)
-{
-    p=pp;
-    c=cc;
-}
-
-fnpf_ddweno_f_nug::~fnpf_ddweno_f_nug()
-{
-}
-
-double fnpf_ddweno_f_nug::dswenox(slice& f, double uw)
+double fnpf_ddweno_f_nug::ddwenox(field& f, double uw)
 {
     DX = p->DXP;
     DY = p->DYP;
@@ -49,7 +39,7 @@ double fnpf_ddweno_f_nug::dswenox(slice& f, double uw)
 
 	if(uw>0.0)
 	{
-	isqmin(f);
+	iqmin(f);
 	is_min_x();
 	weight_min_x();
 
@@ -62,10 +52,9 @@ double fnpf_ddweno_f_nug::dswenox(slice& f, double uw)
 
 	if(uw<0.0)
 	{
-	isqmax(f);
+	iqmax(f);
 	is_max_x();
 	weight_max_x();
-    
     
     
 	grad = w1x*(q4 + qfx[IP][uf][3][0]*(q3-q4) + qfx[IP][uf][3][1]*(q5-q4))
@@ -78,7 +67,7 @@ double fnpf_ddweno_f_nug::dswenox(slice& f, double uw)
 	return grad;
 }
 
-double fnpf_ddweno_f_nug::dswenoy(slice& f, double uw)
+double fnpf_ddweno_f_nug::ddwenoy(field& f, double uw)
 {
     DX = p->DXP;
     DY = p->DYP;
@@ -89,7 +78,7 @@ double fnpf_ddweno_f_nug::dswenoy(slice& f, double uw)
 
 	if(uw>0.0)
 	{
-	jsqmin(f);
+	jqmin(f);
 	is_min_y();
 	weight_min_y();
 	
@@ -102,7 +91,7 @@ double fnpf_ddweno_f_nug::dswenoy(slice& f, double uw)
 
 	if(uw<0.0)
 	{
-	jsqmax(f);
+	jqmax(f);
 	is_max_y();
 	weight_max_y();
 	
@@ -116,58 +105,97 @@ double fnpf_ddweno_f_nug::dswenoy(slice& f, double uw)
 	return grad;
 }
 
-void fnpf_ddweno_f_nug::isqmin(slice& f)
+double fnpf_ddweno_f_nug::ddwenoz(field& f, double uw)
+{
+    DX = p->DXP;
+    DY = p->DYP;
+    DZ = p->DZP;
+    wf=0;
+    
+    
+	grad=0.0;
+
+	if(uw>0.0)
+	{
+	kqmin(f);
+	is_min_z();
+	weight_min_z();
+
+	grad = w1z*(q4 + qfz[KP][wf][0][0]*(q3-q4) - qfz[KP][wf][0][1]*(q5-q4))
+    
+         + w2z*(q3 + qfz[KP][wf][1][0]*(q4-q3) - qfz[KP][wf][1][1]*(q2-q3))
+          
+         + w3z*(q2 + qfz[KP][wf][2][0]*(q1-q2) + qfz[KP][wf][2][1]*(q3-q2));
+	}
+
+
+	if(uw<0.0)
+	{
+	kqmax(f);
+	is_max_z();
+	weight_max_z();
+    
+	grad = w1z*(q4 + qfz[KP][wf][3][0]*(q3-q4) - qfz[KP][wf][3][1]*(q5-q4))
+    
+         + w2z*(q3 + qfz[KP][wf][4][0]*(q2-q3) - qfz[KP][wf][4][1]*(q4-q3))
+          
+         + w3z*(q2 + qfz[KP][wf][5][0]*(q3-q2) + qfz[KP][wf][5][1]*(q1-q2));
+	}
+    
+	return grad;
+}
+
+void fnpf_ddweno_f_nug::iqmin(field& f)
 {	
-	q1 = (f(i-2,j)-f(i-3,j))/DX[IM3];
-	q2 = (f(i-1,j)-f(i-2,j))/DX[IM2];
-	q3 = (f(i,j)-f(i-1,j))/DX[IM1];
-	q4 = (f(i+1,j)-f(i,j))/DX[IP];
-	q5 = (f(i+2,j)-f(i+1,j))/DX[IP1];
+	q1 = (f(i-2,j,k)-f(i-3,j,k))/DX[IM3];
+	q2 = (f(i-1,j,k)-f(i-2,j,k))/DX[IM2];
+	q3 = (f(i,j,k)-f(i-1,j,k))/DX[IM1];
+	q4 = (f(i+1,j,k)-f(i,j,k))/DX[IP];
+	q5 = (f(i+2,j,k)-f(i+1,j,k))/DX[IP1];
 }
 
-void fnpf_ddweno_f_nug::jsqmin(slice& f)
+void fnpf_ddweno_f_nug::jqmin(field& f)
 {
-	q1 = (f(i,j-2)-f(i,j-3))/DY[JM3];
-	q2 = (f(i,j-1)-f(i,j-2))/DY[JM2];
-	q3 = (f(i,j)-f(i,j-1))/DY[JM1];
-	q4 = (f(i,j+1)-f(i,j))/DY[JP];
-	q5 = (f(i,j+2)-f(i,j+1))/DY[JP1];
+	q1 = (f(i,j-2,k)-f(i,j-3,k))/DY[JM3];
+	q2 = (f(i,j-1,k)-f(i,j-2,k))/DY[JM2];
+	q3 = (f(i,j,k)-f(i,j-1,k))/DY[JM1];
+	q4 = (f(i,j+1,k)-f(i,j,k))/DY[JP];
+	q5 = (f(i,j+2,k)-f(i,j+1,k))/DY[JP1];
 }
 
-void fnpf_ddweno_f_nug::isqmax(slice& f)
+void fnpf_ddweno_f_nug::kqmin(field& f)
 {
-    q1 = (f(i-1,j)-f(i-2,j))/DX[IM2];
-	q2 = (f(i,j)-f(i-1,j))/DX[IM1];
-	q3 = (f(i+1,j)-f(i,j))/DX[IP];
-	q4 = (f(i+2,j)-f(i+1,j))/DX[IP1];
-	q5 = (f(i+3,j)-f(i+2,j))/DX[IP2];
+	q1 = (f(i,j,k-2)-f(i,j,k-3))/DZ[KM3];
+	q2 = (f(i,j,k-1)-f(i,j,k-2))/DZ[KM2];
+	q3 = (f(i,j,k)-f(i,j,k-1))/DZ[KM1];
+	q4 = (f(i,j,k+1)-f(i,j,k))/DZ[KP];
+	q5 = (f(i,j,k+2)-f(i,j,k+1))/DZ[KP1];
 }
 
-void fnpf_ddweno_f_nug::jsqmax(slice& f)
+void fnpf_ddweno_f_nug::iqmax(field& f)
 {
-	q1 = (f(i,j-1)-f(i,j-2))/DY[JM2];
-	q2 = (f(i,j)-f(i,j-1))/DY[JM1];
-	q3 = (f(i,j+1)-f(i,j))/DY[JP];
-	q4 = (f(i,j+2)-f(i,j+1))/DY[JP1];
-	q5 = (f(i,j+3)-f(i,j+2))/DY[JP2];
+    q1 = (f(i-1,j,k)-f(i-2,j,k))/DX[IM2];
+	q2 = (f(i,j,k)-f(i-1,j,k))/DX[IM1];
+	q3 = (f(i+1,j,k)-f(i,j,k))/DX[IP];
+	q4 = (f(i+2,j,k)-f(i+1,j,k))/DX[IP1];
+	q5 = (f(i+3,j,k)-f(i+2,j,k))/DX[IP2];
 }
 
-void fnpf_ddweno_f_nug::is_wd_x_min()
+void fnpf_ddweno_f_nug::jqmax(field& f)
 {
-    
+	q1 = (f(i,j-1,k)-f(i,j-2,k))/DY[JM2];
+	q2 = (f(i,j,k)-f(i,j-1,k))/DY[JM1];
+	q3 = (f(i,j+1,k)-f(i,j,k))/DY[JP];
+	q4 = (f(i,j+2,k)-f(i,j+1,k))/DY[JP1];
+	q5 = (f(i,j+3,k)-f(i,j+2,k))/DY[JP2];
 }
 
-void fnpf_ddweno_f_nug::is_wd_x_max()
+void fnpf_ddweno_f_nug::kqmax(field& f)
 {
-    
+	q1 = (f(i,j,k-1)-f(i,j,k-2))/DZ[KM2];
+	q2 = (f(i,j,k)-f(i,j,k-1))/DZ[KM1];
+	q3 = (f(i,j,k+1)-f(i,j,k))/DZ[KP];
+	q4 = (f(i,j,k+2)-f(i,j,k+1))/DZ[KP1];
+	q5 = (f(i,j,k+3)-f(i,j,k+2))/DZ[KP2];
 }
 
-void fnpf_ddweno_f_nug::is_wd_y_min()
-{
-    
-}
-
-void fnpf_ddweno_f_nug::is_wd_y_max()
-{
-    
-}

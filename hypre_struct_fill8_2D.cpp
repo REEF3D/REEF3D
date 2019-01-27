@@ -44,6 +44,8 @@ void hypre_struct::fill_matrix8_2Dvert(lexer* p, fdm_fnpf* c, ghostcell* pgc, do
 		n=cval4(i,j,k);
         
 		values[count]=M.p[n];
+
+        //cout<<M.p[n]<<" ";
 		++count;
 		
 		values[count]=M.s[n];

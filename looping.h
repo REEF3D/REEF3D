@@ -51,7 +51,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 
 #define FKJILOOP FKLOOP FJLOOP FILOOP
 
-#define WETDRYCHK if(c->wet(i,j)==0)
+#define WETDRYCHK if(c->wet(i,j)>0)
 #define FILOOPWD ILOOP JLOOP KLOOP WETDRYCHK PCHECK
 
 #define PLAINLOOP ILOOP JLOOP KLOOP
@@ -138,9 +138,9 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 #define WFLUIDCHECK  if(p->flag3[WIJK]>=AIR)
 #define PFLUIDCHECK  if(p->flag4[IJK]>=AIR)
     
-#define PWDFLUIDCHECK  if(p->flag4[IJK]>=AIR && c->wet(i,j)>0)
-#define FSWDCHECK  if(p->flag7[FIJK]<=0 || c->wet(i,j)==0)
-#define FPWDCHECK  if(p->flag7[FIJK]>0  && c->wet(i,j)>0)
+#define PWDFLUIDCHECK  if(p->flag4[IJK]>=AIR && c->wet(i,j)>0)
+#define FSWDCHECK  if(p->flag7[FIJK]<=0 || c->wet(i,j)==0)
+#define FPWDCHECK  if(p->flag7[FIJK]>0  && c->wet(i,j)>0)
 
 #define UFLUIDLOOP IULOOP JULOOP KULOOP UFLUIDCHECK
 #define VFLUIDLOOP IVLOOP JVLOOP KVLOOP VFLUIDCHECK

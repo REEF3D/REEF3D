@@ -41,9 +41,22 @@ public:
 
 	 fnpf_ddweno_f_nug(lexer*,fdm_fnpf*);
 	 ~fnpf_ddweno_f_nug();
-
-     double dswenox(slice&, double);
-	 double dswenoy(slice&, double);
+    
+    // field
+    double ddwenox(field&, double);
+    double ddwenoy(field&, double);
+    double ddwenoz(field&, double);
+     
+    void iqmin(field&);
+    void jqmin(field&);
+    void kqmin(field&);
+	void iqmax(field&);
+	void jqmax(field&);
+	void kqmax(field&);
+     
+    // slice
+    double dswenox(slice&, double);
+    double dswenoy(slice&, double);
 
     void isqmin(slice&);
 	void jsqmin(slice&);

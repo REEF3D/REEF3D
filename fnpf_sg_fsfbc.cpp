@@ -35,6 +35,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_cds4.h"
 #include"fnpf_cds6.h"
 #include"fnpf_weno.h"
+#include"fnpf_weno_wd.h"
 #include"fnpf_wenoflux.h"
 #include"fnpf_ddx_cds2.h"
 #include"fnpf_ddx_cds4.h"
@@ -53,10 +54,13 @@ fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(p->A311==4)
     pconvec = new fnpf_weno(p);
     
+    if(p->A311==5)
+    pconvec = new fnpf_weno_wd(p,c);
+    
     if(p->A311==6)
     pconvec = new fnpf_cds6(p);
     
-    pdh = new fnpf_wenoflux(p);
+    pdh = new fnpf_weno(p);
     
     if(p->A312==2)
     {
@@ -82,10 +86,10 @@ fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     wd_criterion=0.00005;
     
-    if(p->A244==1)
+    if(p->A344==1)
     wd_criterion=p->A244_val;
     
-    if(p->A245==1)
+    if(p->A345==1)
     wd_criterion=p->A245_val*p->dx;
 }
 
@@ -96,7 +100,7 @@ fnpf_sg_fsfbc::~fnpf_sg_fsfbc()
 void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
 {
     SLICELOOP4
-    c->WL(i,j) = eta(i,j) + p->wd - c->bed(i,j);
+    c->WL(i,j) = MAX(0.0,c->eta(i,j) + p->wd - c->bed(i,j));
     
     // fi
     if(p->i_dir==1 && p->j_dir==1)
@@ -108,11 +112,8 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     c->Fx(i,j) = pconvec->sx(p,Fifsf,ivel);
     c->Fy(i,j) = pconvec->sy(p,Fifsf,jvel);
     
-    c->Ex(i,j) = pconvec->sx(p,eta,ivel);
-    c->Ey(i,j) = pconvec->sy(p,eta,jvel);
-    
-    //c->Hx(i,j) = pdh->sx(p,eta,Fifsf);
-    //c->Hy(i,j) = pdh->sy(p,eta,Fifsf);
+    c->Ex(i,j) = pdh->sx(p,eta,ivel);
+    c->Ey(i,j) = pdh->sy(p,eta,jvel);
     
     c->Exx(i,j) = pddx->sxx(p,eta);
     c->Eyy(i,j) = pddx->syy(p,eta);
@@ -126,7 +127,7 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);    
     
     c->Fx(i,j) = pconvec->sx(p,Fifsf,ivel);
-    c->Ex(i,j) = pconvec->sx(p,eta,ivel);
+    c->Ex(i,j) = pdh->sx(p,eta,ivel);
     c->Exx(i,j) = pddx->sxx(p,eta);
     }
 
@@ -148,6 +149,8 @@ void fnpf_sg_fsfbc::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
     
     SLICELOOP4
     c->wet(i,j)=1;
+    
+    pgc->gcsl_start4int(p,c->wet,50);
 }
 
 void fnpf_sg_fsfbc::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)

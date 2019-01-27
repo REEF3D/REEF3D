@@ -49,7 +49,7 @@ public:
 
     fnpf_convection *pconvec;
     fnpf_convection *pdx;
-    fnpf_etadisc *pdh;
+    fnpf_convection *pdh;
     fnpf_ddx *pddx;
 
     double ivel,jvel,kvel;
