@@ -30,9 +30,14 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     SLICELOOP4
     {
             diss(i,j)=0.0;
+            c->breaking(i,j)=0;
             
             if( (eta(i,j)-eta_n(i,j))/(alpha*p->dt) > p->A347*sqrt(9.81*c->WL(i,j)))
-            diss(i,j)=1.86;
+            {
+            cout<<"BREAKING !!!!!!!!!!!!!!!!!!!!!"<<endl;
+            diss(i,j)=0.5;
+            c->breaking(i,j)=1;
+            }
     }
     
     
