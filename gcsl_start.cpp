@@ -122,6 +122,8 @@ void ghostcell::gcsl_start4int(lexer *p, sliceint &f, int gcv)
     {
     starttime=timer();
 	gcslparax_int(p,f,4);
+    gcslparacox_int(p,f,gcv);
+	gcslparacox_int(p,f,gcv);
 	endtime=timer();
 	p->xtime+=endtime-starttime;
     }
