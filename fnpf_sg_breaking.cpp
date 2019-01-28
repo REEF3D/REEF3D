@@ -19,34 +19,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fdm_fnpf.h"
+#include"fnpf_sg_fsfbc.h"
 #include"lexer.h"
+#include"fdm_fnpf.h"
+#include"ghostcell.h"
 
-fdm_fnpf::fdm_fnpf(lexer *p) : u(p),v(p),w(p),press(p),Fi4(p),Fifsf(p),Fibed(p),
-                              test(p),
-                              nodeval(p),eta(p),etaloc(p),wet(p),breaking(p),
-                              eta_n(p),WL(p),bed(p),depth(p),Fz(p),K(p),
-                              Fx(p),Fy(p),
-                              Ex(p),Ey(p),Exx(p),Eyy(p),
-                              Bx(p),By(p),Bxx(p),Byy(p),
-                              Hx(p),Hy(p),
-                              rhsvec(p),M(p)
+void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &eta_n, double alpha)
 {
-    p->Iarray(pvccnode,p->facetnum*4,8);
-	p->Iarray(ccedge,p->facetnum*4);
+    if(p->A346==1)
+    SLICELOOP4
+    {
+            diss(i,j)=0.0;
+            
+            if( (eta(i,j)-eta_n(i,j))/(alpha*p->dt) > p->A347*sqrt(9.81*c->WL(i,j)))
+            diss(i,j)=1.86;
+    }
     
-    p->Darray(Fi,p->imax*p->jmax*(p->kmax+2));
+    
+    
+    
+    
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

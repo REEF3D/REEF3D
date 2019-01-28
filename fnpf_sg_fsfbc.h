@@ -46,6 +46,7 @@ public:
     void fsfwvel(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
     
     void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
+    void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,double);
 
     fnpf_convection *pconvec;
     fnpf_convection *pdx;
@@ -56,6 +57,8 @@ public:
     
     double wd_criterion;
     
+private:
+    slice4 diss,Fxx,Fyy;
     
 };
 

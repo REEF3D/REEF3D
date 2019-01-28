@@ -105,7 +105,7 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             c->M.e[n] = 0.0;
             }
             
-            if(p->flag7[FIJp1K]<0 || c->wet(i,j-1)==0)
+            if(p->flag7[FIJp1K]<0 || c->wet(i,j+1)==0)
             {
             c->M.p[n] += -1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
             c->M.w[n] = 0.0;

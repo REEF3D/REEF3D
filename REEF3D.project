@@ -2151,6 +2151,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="FNPF">
         <VirtualDirectory Name="FSFBC">
+          <File Name="fnpf_sg_breaking.cpp"/>
           <File Name="fnpf_sg_wetdry.cpp"/>
           <File Name="fnpf_sg_fsfbc.cpp"/>
           <File Name="fnpf_fg_fsfbc.cpp"/>
