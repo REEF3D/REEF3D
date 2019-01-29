@@ -560,6 +560,7 @@ void wave_lib_Stokes_5th::parameters(lexer *p, ghostcell *pgc)
 
     a55 = (-6.0*S*S*S + 272.0*pow(S,4.0) - 1552.0*pow(S,5.0) + 852.0*pow(S,6.0) + 2029.0*pow(S,7.0) + 430.0*pow(S,8.0))
           /(64.0*sinh(wk*wd)*(3.0 + 2.0*S)*(4.0 + S)*pow(C,6.0));
+          
 
 
     b22 = ((cosh(wk*wd)/sinh(wk*wd))*(1.0 + 2.0*S))/(2.0*C);

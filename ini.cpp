@@ -64,7 +64,7 @@ void lexer::ini_default()
     A344_val=0.00005; // double absolute wetting criterion value
     A345=0;      // int dx-based relative wetting citerion
     A345_val=0.001; // double dx-based relative wetting citerion value
-    A346=1;      // int turn on breaking
+    A346=0;      // int turn on breaking
     A347=0.6;    // double breaking parameter alpha
     A348=0;      // int turn on breaking persistence
     A349=0.3;    // double breaking persistence parameter beta
