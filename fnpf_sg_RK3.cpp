@@ -207,16 +207,16 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pgc->start7V(p,c->Fi,250);
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
     
-    /*
-    LOOP
-    c->test(i,j,k) = c->Fifsf(i,j);*/
     
+    LOOP
+    c->test(i,j,k) = c->Fifsf(i,j);
+    /*
     LOOP
     c->test(i,j,k)=1.0;
     
     LOOP
     if(c->breaking(i,j)==0)
-    c->test(i,j,k)=0.0;
+    c->test(i,j,k)=0.0;*/
     
     pflow->eta_relax(p,pgc,c->eta);
     pflow->fifsf_relax(p,pgc,c->Fifsf);

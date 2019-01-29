@@ -48,23 +48,27 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
 // maximum velocities
 
     SLICELOOP4
+    FPWDCHECK
 	depthmax=MAX(depthmax,c->depth(i,j));
 	
 	depthmax=pgc->globalmax(depthmax);
 
 	LOOP
+    FPWDCHECK
 	p->umax=MAX(p->umax,fabs(c->u(i,j,k)));
 
 	p->umax=pgc->globalmax(p->umax);
 
 
 	LOOP
+    FPWDCHECK
 	p->vmax=MAX(p->vmax,fabs(c->v(i,j,k)));
 
 	p->vmax=pgc->globalmax(p->vmax);
 
 
 	LOOP
+    FPWDCHECK
 	p->wmax=MAX(p->wmax,fabs(c->w(i,j,k)));
 
 	p->wmax=pgc->globalmax(p->wmax);
@@ -86,6 +90,7 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
     
     
     SLICELOOP4
+    FPWDCHECK
     p->wmax = MAX(fabs(c->Fz(i,j)),p->wmax);
     
     p->wmax=pgc->globalmax(p->wmax);

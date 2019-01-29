@@ -160,7 +160,12 @@ void fnpf_sg_fsfbc::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
 {
     // fi
     FFILOOP4
+    {
     c->Fz(i,j) = p->sigz[IJ]*pconvec->sz(p,c->Fi);
+    
+    if(eta(i,j) + p->wd - c->bed(i,j) < 0.001)
+    c->Fz(i,j) = 0.0;
+    }
 }
 
 void fnpf_sg_fsfbc::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)

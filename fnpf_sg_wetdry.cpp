@@ -26,29 +26,33 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void fnpf_sg_fsfbc::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf) 
 {  
-    if(p->A343>=1)
-    {
+    
       SLICELOOP4
-      {
+      {     
+          c->wet(i,j)=1;
+          
           //if(p->count<1)
-          if(eta(i,j) + p->wd - c->bed(i,j) >= wd_criterion)
-          {
+          if(p->A343>=1)
+          {  
+          if(eta(i,j) + p->wd - c->bed(i,j) < wd_criterion)
+          c->wet(i,j)=0;
+          
+          
+          if(eta(i-1,j)>eta(i,j) || eta(i+1,j)>eta(i,j) || eta(i,j-1)>eta(i,j) || eta(i,j+2)>eta(i,j))
+          c->wet(i,j)=1;
+            
+            /*
             if(c->wet(i,j)==0)
             {
             cout<<"WETTING !!!!!!!!!!!!!!!!!!!!!"<<endl;
-            
-            /*Fifsf(i,j) = Fifsf(i-1,j);
-            FKLOOP
-            c->Fi[IJK] = c->Fi[Im1JK];*/
-            }
-          c->wet(i,j)=1;
+            }*/
+          
           
           }
               
-          if(eta(i,j) + p->wd - c->bed(i,j) < wd_criterion)
-          c->wet(i,j)=0;
+          
+    
       }
-      
       pgc->gcsl_start4int(p,c->wet,50);
-    }
+    
 }
