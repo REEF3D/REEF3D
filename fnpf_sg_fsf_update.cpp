@@ -83,21 +83,28 @@ void fnpf_sg_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, doub
 {
     
     LOOP
+    FPWDCHECK
     c->Fi4(i,j,k) = 0.5*(c->Fi[FIJK]+c->Fi[FIJKp1]);
     
     pgc->start4(p,c->Fi4,250);
     
     LOOP
+    c->u(i,j,k)=c->v(i,j,k)=c->w(i,j,k)=0.0;
+    
+    LOOP
+    FPWDCHECK
     {
-    c->u(i,j,k) = (c->Fi4(i+1,j,k)-c->Fi4(i,j,k))/(p->DXP[IP]) + p->sigx[FIJK]*((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]));
+    c->u(i,j,k) = (c->Fi4(i,j,k)-c->Fi4(i-1,j,k))/(p->DXP[IM1]) + p->sigx[FIJK]*((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]));
     }
     
     LOOP
+    FPWDCHECK
     {
 	c->v(i,j,k) = ((c->Fi4(i,j+1,k)-c->Fi4(i,j,k))/(p->DYP[JP]))+ p->sigy[FIJK]*((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]));
     }
     
     LOOP
+    FPWDCHECK
     {
     c->w(i,j,k) = ((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]))*p->sigz[IJ];
     }

@@ -46,7 +46,8 @@ public:
     void fsfwvel(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
     
     void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
-    void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,double);
+    void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
+    void filter(lexer*, fdm_fnpf*,ghostcell*, slice&);
 
     fnpf_convection *pconvec;
     fnpf_convection *pdx;

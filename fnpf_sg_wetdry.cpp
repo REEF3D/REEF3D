@@ -37,7 +37,7 @@ void fnpf_sg_fsfbc::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
           if(eta(i,j) + p->wd - c->bed(i,j) < wd_criterion)
           c->wet(i,j)=0;
           
-          
+          if(p->A343>=2)
           if(eta(i-1,j)>eta(i,j) || eta(i+1,j)>eta(i,j) || eta(i,j-1)>eta(i,j) || eta(i,j+1)>eta(i,j))
           c->wet(i,j)=1;  
           }          
@@ -50,7 +50,7 @@ void fnpf_sg_fsfbc::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
       SLICELOOP4
       {     
 
-          if(p->A343>=2)
+          if(p->A343>=3)
           { 
           if(c->wet(i,j)==1)
           if((eta(i,j)<eta(i-1,j) && c->wet(i-1,j)==0) 
