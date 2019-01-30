@@ -209,7 +209,7 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     
     
     LOOP
-    c->test(i,j,k) = c->Fifsf(i,j);
+    c->test(i,j,k) = c->Fz(i,j);
     /*
     LOOP
     c->test(i,j,k)=1.0;

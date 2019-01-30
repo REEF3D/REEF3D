@@ -39,7 +39,6 @@ void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, s
           {
            ws(i,j)=0.0; 
            b->ws(i,j)=0.0;
-           //b->wb(i,j)=0.0;
            b->wet4(i,j)=0;
           }
       }
@@ -48,7 +47,6 @@ void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, s
       
       
       SLICELOOP1
-      //if(b->wet4(i,j)==0)
       if(b->hx(i,j)<wd_criterion)
       {
        b->P(i,j)=0.0; 
@@ -56,7 +54,6 @@ void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, s
       }
       
       SLICELOOP2
-      //if(b->wet4(i,j)==0)
       if(b->hy(i,j)<wd_criterion)
       {
        b->Q(i,j)=0.0; 
