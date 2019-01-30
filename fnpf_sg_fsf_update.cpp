@@ -94,7 +94,7 @@ void fnpf_sg_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, doub
     LOOP
     FPWDCHECK
     {
-    c->u(i,j,k) = (c->Fi4(i,j,k)-c->Fi4(i-1,j,k))/(p->DXP[IM1]) + p->sigx[FIJK]*((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]));
+    c->u(i,j,k) = (c->Fi4(i+1,j,k)-c->Fi4(i-1,j,k))/(p->DXP[IP]+p->DXP[IM1]) + p->sigx[FIJK]*((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]));
     }
     
     LOOP

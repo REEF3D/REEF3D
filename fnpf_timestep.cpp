@@ -98,16 +98,17 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
     //p->wmax = MAX3(p->wmax,p->umax,p->vmax);
         
     FLOOP
+    FPWDCHECK
     {
     if(p->y_dir==1)
-    dx = MIN3(p->DXN[IP],p->DYN[JP],p->DZN[KP]);
+    dx = MIN(p->DXN[IP],p->DYN[JP]);
     
     if(p->y_dir==0)
-    dx = MIN(p->DXN[IP],p->DZN[KP]);
-
+    dx = p->DXN[IP];
+    
     cu = MIN(cu, 1.0/((fabs(p->umax + 1.0*sqrt(9.81*depthmax))/dx)));
     cv = MIN(cv, 1.0/((fabs(p->vmax + 1.0*sqrt(9.81*depthmax))/dx)));
-    cw = MIN(cw, 1.0/((fabs(p->wmax)/dx)));
+    //cw = MIN(cw, 1.0/((fabs(p->wmax)/dx)));
     }
 
     cw = MIN3(cu,cv,cw);
@@ -156,7 +157,7 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
 	p->dt=p->dx/(p->umax+epsi);
     
 
-    p->umax+=5.0;
+    p->umax+=10.0;
 
 	cu= + 2.0/((p->umax/p->dx)+sqrt(pow(p->umax/p->dx,2.0)+(4.0*sqrt(fabs(c->gi) + fabs(c->gj) +fabs(c->gk)))/p->dx));
 
