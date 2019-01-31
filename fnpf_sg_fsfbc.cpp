@@ -40,7 +40,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_ddx_cds2.h"
 #include"fnpf_ddx_cds4.h"
 
-fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : diss(p), Fxx(p), Fyy(p)
+fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : diss(p)
 {    
     if(p->A311==0)
     pconvec = new fnpf_voiddisc(p);
@@ -81,7 +81,6 @@ fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : diss(p), F
     c->Ey(i,j) = 0.0;
     c->Hy(i,j) = 0.0;
     c->Eyy(i,j) = 0.0;
-    Fyy(i,j) = 0.0;
     }
     
     
@@ -118,9 +117,6 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     
     c->Exx(i,j) = pddx->sxx(p,eta);
     c->Eyy(i,j) = pddx->syy(p,eta);
-    
-    //Fxx(i,j) = pddx->sxx(p,Fifsf);
-    //Fyy(i,j) = pddx->syy(p,Fifsf);
     }
     
     if(p->i_dir==1 && p->j_dir==0)
@@ -131,7 +127,6 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     c->Fx(i,j) = pconvec->sx(p,Fifsf,ivel);
     c->Ex(i,j) = pdh->sx(p,eta,ivel);
     c->Exx(i,j) = pddx->sxx(p,eta);
-    //Fxx(i,j) = pddx->sxx(p,Fifsf);
     }
 
 }

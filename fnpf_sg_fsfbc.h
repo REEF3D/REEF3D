@@ -59,7 +59,7 @@ public:
     double wd_criterion;
     
 private:
-    slice4 diss,Fxx,Fyy;
+    slice4 diss;
     
 };
 
