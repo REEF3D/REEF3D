@@ -102,10 +102,10 @@ void fnpf_sg_fsfbc::filter(lexer *p, fdm_fnpf *c,ghostcell *pgc, slice &f)
 		for(int qqn=0;qqn<inner_iter;++qqn)
 		{
             dhp = hp - f(i,j);
-            dhs = hp - f(i-1,j);
-            dhn = hp - f(i+1,j);
-            dhe = hp - f(i,j-1);
-            dhw = hp - f(i,j+1);
+            dhs = hs - f(i-1,j);
+            dhn = hn - f(i+1,j);
+            dhe = he - f(i,j-1);
+            dhw = hw - f(i,j+1);
             
             dhp = 0.5*dhp+ 0.125*(dhs + dhn + dhe + dhw);
             f(i,j) += dhp;
