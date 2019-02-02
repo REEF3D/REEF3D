@@ -56,8 +56,6 @@ public:
 
     double ivel,jvel,kvel;
     
-    double wd_criterion;
-    
 private:
     slice4 diss;
     

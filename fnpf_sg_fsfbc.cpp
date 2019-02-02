@@ -84,13 +84,13 @@ fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : diss(p)
     }
     
     
-    wd_criterion=0.00005;
+    c->wd_criterion=0.00005;
     
     if(p->A344==1)
-    wd_criterion=p->A244_val;
+    c->wd_criterion=p->A244_val;
     
     if(p->A345==1)
-    wd_criterion=p->A245_val*p->dx;
+    c->wd_criterion=p->A245_val*p->dx;
 }
 
 fnpf_sg_fsfbc::~fnpf_sg_fsfbc()
@@ -158,19 +158,18 @@ void fnpf_sg_fsfbc::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     {
     c->Fz(i,j) = p->sigz[IJ]*pconvec->sz(p,c->Fi);
     
-    if(eta(i,j) + p->wd - c->bed(i,j) < wd_criterion)
+    if(eta(i,j) + p->wd - c->bed(i,j) < c->wd_criterion)
     c->Fz(i,j) = 0.0;
     }
 }
 
 void fnpf_sg_fsfbc::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
+
     SLICELOOP4
-    {
     c->K(i,j) =  - c->Fx(i,j)*c->Ex(i,j) - c->Fy(i,j)*c->Ey(i,j) 
     
                  + c->Fz(i,j)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0));
-    }
 }
 
 void fnpf_sg_fsfbc::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
@@ -179,7 +178,6 @@ void fnpf_sg_fsfbc::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
     c->K(i,j) =  - 0.5*c->Fx(i,j)*c->Fx(i,j) - 0.5*c->Fy(i,j)*c->Fy(i,j) 
     
                  + 0.5*pow(c->Fz(i,j),2.0)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0)) - fabs(p->W22)*eta(i,j);
-
 }
 
 

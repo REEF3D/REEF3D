@@ -154,6 +154,9 @@ public:
 
     void fnpf_precalc_relax(lexer*,ghostcell*);
     void fnpf_precalc_relax_ini(lexer*,ghostcell*);
+    void fnpf_precalc_dirichlet(lexer*,ghostcell*);
+    void fnpf_precalc_dirichlet_ini(lexer*,ghostcell*);
+    //virtual void dirichlet_wavegen_fnpf(lexer*,fdm*,ghostcell*,field&,field&,field&);
 	
 
 private:

@@ -103,6 +103,22 @@ void driver::driver_ini_fnpf_sg()
 	SLICELOOP4
 	c->bed(i,j) = p->bed[IJ];
     
+    
+    // bc
+    SLICELOOP4
+    c->bc(i,j)=0;
+    
+    pgc->gcsl_start4int(p,c->bc,50);
+    
+    for(n=0;n<p->gcin_count;n++)
+    if(p->gcin[n][3]>0)
+    {
+    i=p->gcin[n][0];
+    j=p->gcin[n][1];
+    
+    c->bc(i-1,j)=1;
+    }
+    
     pgc->gcsl_start4(p,c->bed,50);
     
     pflow->ini_fnpf(p,c,pgc);

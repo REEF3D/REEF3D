@@ -1329,8 +1329,12 @@
           <File Name="ioflow_ini.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="ioWave">
-          <File Name="iowave_precalc_relax_fnpf.cpp"/>
-          <File Name="iowave_precalc_ini_fnpf.cpp"/>
+          <VirtualDirectory Name="FNPF">
+            <File Name="iowave_dirichlet-wavegen-fnpf.cpp"/>
+            <File Name="iowave_precalc_dirichlet_fnpf.cpp"/>
+            <File Name="iowave_precalc_relax_fnpf.cpp"/>
+            <File Name="iowave_precalc_ini_fnpf.cpp"/>
+          </VirtualDirectory>
           <File Name="iowave_precalc_decomp_time.cpp"/>
           <File Name="iowave_precalc_decomp_space.cpp"/>
           <File Name="iowave_precalc_decomp_dirichlet.cpp"/>

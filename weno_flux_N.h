@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2016 Hans Bihs
+Copyright 2008-2019 Hans Bihs
 
 This file is part of REEF3D.
 

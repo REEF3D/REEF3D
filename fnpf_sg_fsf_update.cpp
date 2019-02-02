@@ -94,13 +94,27 @@ void fnpf_sg_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, doub
     LOOP
     FPWDCHECK
     {
+    if(c->wet(i-1,j)==1 && c->wet(i+1,j)==1)
     c->u(i,j,k) = (c->Fi4(i+1,j,k)-c->Fi4(i-1,j,k))/(p->DXP[IP]+p->DXP[IM1]) + p->sigx[FIJK]*((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]));
+    
+    if(c->wet(i-1,j)==0 && c->wet(i+1,j)==1)
+    c->u(i,j,k) = (c->Fi4(i+1,j,k)-c->Fi4(i,j,k))/(p->DXP[IP]) + p->sigx[FIJK]*((c->Fi[FIJKp1]-c->Fi[FIJK])/(p->DZP[KP]));
+    
+    if(c->wet(i-1,j)==1 && c->wet(i+1,j)==0)
+    c->u(i,j,k) = (c->Fi4(i,j,k)-c->Fi4(i-1,j,k))/(p->DXP[IM1]) + p->sigx[FIJK]*((c->Fi[FIJK]-c->Fi[FIJKm1])/(p->DZP[KM1]));
     }
     
     LOOP
     FPWDCHECK
     {
-	c->v(i,j,k) = ((c->Fi4(i,j+1,k)-c->Fi4(i,j,k))/(p->DYP[JP]))+ p->sigy[FIJK]*((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]));
+    if(c->wet(i,j-1)==1 && c->wet(i,j+1)==1)
+	c->v(i,j,k) = ((c->Fi4(i,j+1,k)-c->Fi4(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1]))+ p->sigy[FIJK]*((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]));
+    
+    if(c->wet(i,j-1)==0 && c->wet(i,j+1)==1)
+	c->v(i,j,k) = ((c->Fi4(i,j+1,k)-c->Fi4(i,j,k))/(p->DYP[JP]))+ p->sigy[FIJK]*((c->Fi[FIJKp1]-c->Fi[FIJK])/(p->DZP[KP]));
+    
+    if(c->wet(i,j-1)==1 && c->wet(i,j+1)==0)
+	c->v(i,j,k) = ((c->Fi4(i,j,k)-c->Fi4(i,j-1,k))/(p->DYP[JM1]))+ p->sigy[FIJK]*((c->Fi[FIJK]-c->Fi[FIJKm1])/(p->DZP[KM1]));
     }
     
     LOOP

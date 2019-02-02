@@ -28,63 +28,63 @@ class ghostcell;
 
 using namespace std;
 
-class wave_lib_spectrum 
+class wave_lib_spectrum
 {
 public:
     wave_lib_spectrum();
 	virtual ~wave_lib_spectrum();
-    
+
     void irregular_parameters(lexer*);
     double wave_spectrum(lexer*, double);
 	void wavepackets_parameters(lexer*);
-	
+
 	double PM(lexer*, double);
 	double JONSWAP(lexer*, double);
     double Goda_JONSWAP(lexer*, double);
 	double Torsethaugen(lexer*, double);
 	double spectrum_file(lexer*, double);
-	
+
 	void spectrum_file_read(lexer*);
-    
+
     void amplitudes_irregular(lexer*);
     void amplitudes_focused(lexer*);
-    
+
     void phases_irregular(lexer*);
     void phases_focused(lexer*);
-    
+
     void directional_spreading(lexer*);
     double spreading_function(lexer*,double,double);
-    
+
     void print_spectrum(lexer*);
     void print_amplitude_spectrum(lexer*);
     void print_components(lexer*);
-    
-    
-     double *Si,*Ai,*Li,*ki,*Ti,*wi,*ei,*ww,*cdf,*wee,*dee,*Sn;
-    int NN;
+
+
+    double *Si,*Ai,*Li,*ki,*Ti,*wi,*ei,*ww,*cdf,*wee,*dee,*Sn;
+    int NN, ND;
 	double wp,ws,we,*dw;
-    
+
     // directional spreading
-    double *beta,*cosbeta,*sinbeta,*Dn,*Dcdf,*Ddee,*betat;    
+    double *beta,*cosbeta,*sinbeta,*Dn,*Dcdf,*Ddee,*betat;
     double dbeta;
-    
+
     // recon
     void recon_read(lexer*, ghostcell*);
     void recon_parameters(lexer*, ghostcell*);
     int wavenum;
     double ts,te;
     double **recon;
-    
+
 private:
     double S,Sval,sigma;
     double wL0,k0,S0;
     double s_f,G_0;
     double beta_J;
-	
-	int ptnum;
-    int numcomp, numcomp2;
 
-	
+	int ptnum;
+    int numcomp;
+
+
 	double **spectrum;
 };
 

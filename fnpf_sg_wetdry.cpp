@@ -25,8 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 
 void fnpf_sg_fsfbc::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf) 
-{  
-    
+{   
       SLICELOOP4
       {     
           c->wet(i,j)=1;
@@ -34,11 +33,12 @@ void fnpf_sg_fsfbc::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
 
           if(p->A343>=1)
           {  
-          if(eta(i,j) + p->wd - c->bed(i,j) < wd_criterion)
+          if(eta(i,j) + p->wd - c->bed(i,j) < c->wd_criterion)
           c->wet(i,j)=0;
           
           if(p->A343>=2)
-          if(eta(i-1,j)>eta(i,j) || eta(i+1,j)>eta(i,j) || eta(i,j-1)>eta(i,j) || eta(i,j+1)>eta(i,j))
+          if(c->eta(i-1,j)>c->eta(i,j)+c->wd_criterion || c->eta(i+1,j)>c->eta(i,j)+c->wd_criterion
+          || c->eta(i,j-1)>c->eta(i,j)+c->wd_criterion || c->eta(i,j+1)>c->eta(i,j)+c->wd_criterion)
           c->wet(i,j)=1;  
           }          
              
@@ -46,20 +46,22 @@ void fnpf_sg_fsfbc::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
       
       pgc->gcsl_start4int(p,c->wet,50);
       
-      
+      if(p->A343>=3)
       SLICELOOP4
       {     
 
-          if(p->A343>=3)
-          { 
           if(c->wet(i,j)==1)
-          if((eta(i,j)<eta(i-1,j) && c->wet(i-1,j)==0) 
-          || (eta(i,j)<eta(i+1,j)  && c->wet(i+1,j)==0) 
-          || (eta(i,j)<eta(i,j-1)  && c->wet(i,j-1)==0) 
-          || (eta(i,j)<eta(i,j+1) && c->wet(i,j+1)==0) )
+          if((c->eta(i,j)<c->eta(i-1,j) && c->wet(i-1,j)==0) 
+          || (c->eta(i,j)<c->eta(i+1,j)  && c->wet(i+1,j)==0) 
+          || (c->eta(i,j)<c->eta(i,j-1)  && c->wet(i,j-1)==0) 
+          || (c->eta(i,j)<c->eta(i,j+1) && c->wet(i,j+1)==0) )
           c->wet(i,j)=0;          
-          } 
       }
+      
+      if(p->A343>=4)
+      SLICELOOP4
+      if(c->wet(i,j)==0)
+      eta(i,j) = 0.0;
       
       pgc->gcsl_start4int(p,c->wet,50);
     
