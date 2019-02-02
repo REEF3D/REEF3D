@@ -26,6 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void ghostcell::gcsl_neumann(slice& f, int gcv, int bc, int cs)
 {
+    
 	if(cs==1)
 	for(q=0;q<margin;++q)
 	f(i-q-1,j)=f(i,j);

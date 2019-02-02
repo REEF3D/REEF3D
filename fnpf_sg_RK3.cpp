@@ -96,7 +96,8 @@ fnpf_sg_RK3::~fnpf_sg_RK3()
 
 void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
 {	
-
+    pflow->inflow_fnpf(p,pgc,c->Fi,c->Fifsf);
+    
 // Step 1
     // fsf eta
     pf->kfsfbc(p,c,pgc);
@@ -136,6 +137,8 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pf->fsfwvel(p,c,pgc,erk1,frk1);
 
 // Step 2
+    pflow->inflow_fnpf(p,pgc,c->Fi,frk1);
+    
     // fsf eta
     pf->kfsfbc(p,c,pgc);
     
@@ -172,6 +175,8 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pf->fsfwvel(p,c,pgc,erk2,frk2);
 
 // Step 3 
+    pflow->inflow_fnpf(p,pgc,c->Fi,frk2);
+    
     // fsf eta
     pf->kfsfbc(p,c,pgc);
     
@@ -208,15 +213,16 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
     
     
-    //LOOP
-    //c->test(i,j,k) = c->Fz(i,j);
+    LOOP
+    c->test(i,j,k) = c->Fz(i,j);
     
+    /*
     LOOP
     c->test(i,j,k)=1.0;
     
     LOOP
     if(c->breaking(i,j)==0)
-    c->test(i,j,k)=0.0;
+    c->test(i,j,k)=0.0;*/
     
     pflow->eta_relax(p,pgc,c->eta);
     pflow->fifsf_relax(p,pgc,c->Fifsf);

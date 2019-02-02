@@ -123,21 +123,15 @@ void driver::driver_ini_fnpf_sg()
     
     
     pflow->ini_fnpf(p,c,pgc);
-    cout<<p->mpirank<<" FNPF  001"<<endl;
     pftstep->ini(c,p,pgc);
 
     ppfsg->ini(p,c,pgc,pflow,preini,poneph);  // --- 
     pflow->eta_relax(p,pgc,c->eta);
     pflow->fivec_relax(p,pgc,c->Fi);
-    cout<<p->mpirank<<" FNPF  004"<<endl;
     pflow->fifsf_relax(p,pgc,c->Fifsf);
-    cout<<p->mpirank<<" FNPF  005"<<endl;
     pgc->gcsl_start4(p,c->eta,50);
-    cout<<p->mpirank<<" FNPF  006"<<endl;
     pgc->gcsl_start4(p,c->Fifsf,50);
-    cout<<p->mpirank<<" FNPF  007"<<endl;
     pgc->start7V(p,c->Fi,250);
-    cout<<p->mpirank<<" FNPF  008"<<endl;
     
     
     ppfsg->inidisc(p,c,pgc);

@@ -127,10 +127,22 @@ void iowave::fnpf_precalc_relax_ini(lexer *p, ghostcell *pgc)
 
 void iowave::fnpf_precalc_dirichlet_ini(lexer *p, ghostcell *pgc)
 {    
+    int dbcount;
+    
+    upt_count=vpt_count=wpt_count=ppt_count=ept_count=dbcount=0;
     
     
-    upt_count=vpt_count=wpt_count=ppt_count=ept_count=0;
-    
+    // FI ------------------------------------------------
+    FLOOP
+    {
+        db = distbeach(p); 
+        
+        if(p->B99==2||p->B99==4)
+		{
+            if(db<dist3)
+            ++dbcount;
+        }
+    }	
     
     for(n=0;n<p->gcslin_count;n++)
     {
@@ -156,6 +168,8 @@ void iowave::fnpf_precalc_dirichlet_ini(lexer *p, ghostcell *pgc)
     p->Darray(Fival,ppt_count);
     p->Darray(Fifsfval,ept_count);
     p->Darray(uval,upt_count);
+    
+    p->Darray(rb3val,dbcount);
     
     if(p->B89==1) 
     {

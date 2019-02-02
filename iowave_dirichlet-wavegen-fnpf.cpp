@@ -34,6 +34,8 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, ghostcell* pgc, double *Fi, slice 
         j=p->gcslin[n][1];
         
         Fifsf(i-1,j) = Fifsf(i,j) - Fifsfval[count]*p->DXP[IM1];
+        Fifsf(i-2,j) = Fifsf(i,j) - Fifsfval[count]*p->DXP[IM1];
+        Fifsf(i-3,j) = Fifsf(i,j) - Fifsfval[count]*p->DXP[IM1];
         
         ++count;
     }

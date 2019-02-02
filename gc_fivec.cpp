@@ -25,13 +25,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void ghostcell::fivec(lexer *p, double *f)
 {	
     FLOOP
-    {
+    {  
+        if(p->B98!=3)
         if(p->flag7[FIm1JK]<0)
         {
         f[FIm1JK] = f[FIJK];
         f[FIm2JK] = f[FIJK];
         f[FIm3JK] = f[FIJK];
         }
+          
         
         if(p->flag7[FIp1JK]<0)
         {

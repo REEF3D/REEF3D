@@ -25,7 +25,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
 {
-    cout<<p->mpirank<<" FNPF  001"<<endl;
     double fsfloc;
     
         count=0;
