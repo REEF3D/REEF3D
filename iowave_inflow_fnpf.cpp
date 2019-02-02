@@ -22,52 +22,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"iowave.h"
 #include"lexer.h"
 #include"ghostcell.h"
-
-void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
+ 
+void iowave::inflow_fnpf(lexer *p, ghostcell *pgc, double *Fi,slice &Fifsf)
 {
-    cout<<p->mpirank<<" FNPF  001"<<endl;
-    double fsfloc;
     
-        count=0;
-		for(n=0;n<p->gcslin_count;n++)
-        {
-        i=p->gcslin[n][0];
-        j=p->gcslin[n][1];
-        
-        x=xgen(p);
-        y=ygen(p);
-        x1=xgen1(p);
-        y2=ygen2(p);
-        
-
-        eta(i,j) = wave_eta(p,pgc,x,y);
-        etaval[count] = eta(i,j);
-        
-        z = eta(i,j);
-        Fifsfval[count] = wave_u(p,pgc,xg,yg,z);
-        ++count;
-        }
-        
-        count=0;
-		for(n=0;n<p->gcslin_count;n++)
-        {
-        i=p->gcslin[n][0];
-        j=p->gcslin[n][1];
-        
-        x=xgen(p);
-        y=ygen(p);
-        x1=xgen1(p);
-        y2=ygen2(p);
-        
-            FKLOOP
-            {
-            z=p->ZSN[FIJK]-p->phimean;
-            
-            Fival[count] = wave_u(p,pgc,xg,yg,z);
-            ++count;
-            }
-        }
-        
+    if(p->B98==3)
+	dirichlet_wavegen_fnpf(p,pgc,Fi,Fifsf);
+    
+    
+    
 }
-
-

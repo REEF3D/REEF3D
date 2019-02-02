@@ -934,7 +934,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 
 	for(n=0;n<p->ccptnum;++n)
 	{
-	ffn=float(p->ccpoint[n][2]+p->originz);
+	ffn=float(p->ccpoint[n][2]);
 	result.write((char*)&ffn, sizeof (float));
 	}
     

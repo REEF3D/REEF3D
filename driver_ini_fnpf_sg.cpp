@@ -103,6 +103,7 @@ void driver::driver_ini_fnpf_sg()
 	SLICELOOP4
 	c->bed(i,j) = p->bed[IJ];
     
+    pgc->gcsl_start4(p,c->bed,50);
     
     // bc
     SLICELOOP4
@@ -118,20 +119,26 @@ void driver::driver_ini_fnpf_sg()
     
     c->bc(i-1,j)=1;
     }
+    pgc->gcsl_start4int(p,c->bc,50);
     
-    pgc->gcsl_start4(p,c->bed,50);
     
     pflow->ini_fnpf(p,c,pgc);
-    
+    cout<<p->mpirank<<" FNPF  001"<<endl;
     pftstep->ini(c,p,pgc);
 
     ppfsg->ini(p,c,pgc,pflow,preini,poneph);  // --- 
     pflow->eta_relax(p,pgc,c->eta);
     pflow->fivec_relax(p,pgc,c->Fi);
+    cout<<p->mpirank<<" FNPF  004"<<endl;
     pflow->fifsf_relax(p,pgc,c->Fifsf);
+    cout<<p->mpirank<<" FNPF  005"<<endl;
     pgc->gcsl_start4(p,c->eta,50);
+    cout<<p->mpirank<<" FNPF  006"<<endl;
     pgc->gcsl_start4(p,c->Fifsf,50);
+    cout<<p->mpirank<<" FNPF  007"<<endl;
     pgc->start7V(p,c->Fi,250);
+    cout<<p->mpirank<<" FNPF  008"<<endl;
+    
     
     ppfsg->inidisc(p,c,pgc);
 

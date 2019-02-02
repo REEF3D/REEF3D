@@ -101,6 +101,8 @@ double wave_lib_linear::wave_fi(lexer *p, double x, double y, double z)
     
     fi = ((ww*0.5*wH)/(wk))*( cosh(wk*(wd+z))/sinh(wk*wd) ) * sin(teta);
     
+    vel = ww*wa*( cosh(wk*(wd+z))/sinh(wk*wd) ) * cos(teta);
+    
     return fi;
 }
 

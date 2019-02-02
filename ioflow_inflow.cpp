@@ -282,3 +282,8 @@ void ioflow_f::rkinflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, fi
 void ioflow_f::flowfile(lexer *p, fdm* a, ghostcell* pgc, turbulence *pturb)
 {
 }
+
+void ioflow_f::inflow_fnpf(lexer *p, ghostcell *pgc, double *Fi,slice &Fifsf)
+{
+
+}

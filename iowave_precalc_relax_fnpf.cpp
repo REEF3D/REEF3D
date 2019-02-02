@@ -75,51 +75,58 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
     count=0;
     dbcount=0;
     FLOOP
+    FILOOP 
+    FJLOOP 
     {
         xg = xgen(p);
         yg = ygen(p);
         dg = distgen(p);
 		db = distbeach(p);
         
-        z=p->ZSN[FIJK]-p->phimean;
-
-        
-		// Wave Generation
-        if(p->B98==1 && f_switch==1)
+        FKLOOP 
+        FPCHECK
         {
-            // Zone 1
-            if(dg<dist1)
-            {
-            Fival[count] = wave_fi(p,pgc,xg,yg,z);
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            { 
-            Fival[count] = wave_fi(p,pgc,xg,yg,z);
-            ++count;
-            }
-		}
-		
-		if(p->B98==2 && f_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            { 
-            Fival[count] = wave_fi(p,pgc,xg,yg,z);
-            rb1val[count] = rb1(p,dg);
-            ++count;
-            }
-		}
         
-        if(p->B99==2||p->B99==4)
-		{
-            // Zone 3
-            if(db<dist3)
+            z=p->ZSN[FIJK]-p->phimean;
+
+            
+            // Wave Generation
+            if(p->B98==1 && f_switch==1)
             {
-            rb3val[dbcount] = rb3(p,db);
-            ++dbcount;
+                // Zone 1
+                if(dg<dist1)
+                {
+                Fival[count] = wave_fi(p,pgc,xg,yg,z);
+                ++count;
+                }
+
+                // Zone 2
+                if(dg>=dist1 && dg<dist2)
+                { 
+                Fival[count] = wave_fi(p,pgc,xg,yg,z);
+                ++count;
+                }
+            }
+            
+            if(p->B98==2 && f_switch==1)
+            {
+                // Zone 1
+                if(dg<dist1)
+                { 
+                Fival[count] = wave_fi(p,pgc,xg,yg,z);
+                rb1val[count] = rb1(p,dg);
+                ++count;
+                }
+            }
+            
+            if(p->B99==2||p->B99==4)
+            {
+                // Zone 3
+                if(db<dist3)
+                {
+                rb3val[dbcount] = rb3(p,db);
+                ++dbcount;
+                }
             }
         }
     }

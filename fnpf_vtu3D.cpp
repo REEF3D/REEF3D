@@ -339,13 +339,13 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPLOOP
 	{
-	ffn=float(p->pos_z()+0.5*p->dx);
+	ffn=float(p->ZN[KP1]*c->WL(i,j) + c->bed(i,j));
 	result.write((char*)&ffn, sizeof (float));
 	}
 
 	for(n=0;n<p->ccptnum;++n)
 	{
-	ffn=float(p->ccpoint[n][2]+p->originz);
+	ffn=float(p->ccpoint[n][2]);
 	result.write((char*)&ffn, sizeof (float));
 	}
     

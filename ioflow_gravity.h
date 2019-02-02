@@ -92,6 +92,7 @@ public:
     
     virtual void ini(lexer*,fdm*,ghostcell*);
     virtual void ini_fnpf(lexer*,fdm_fnpf*,ghostcell*);
+    virtual void inflow_fnpf(lexer*,ghostcell*,double*,slice&);
     virtual void ini2D(lexer*,fdm2D*,ghostcell*);
 	
 	

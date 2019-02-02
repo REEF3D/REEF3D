@@ -99,6 +99,13 @@ double wave_lib_Stokes_2nd::wave_fi(lexer *p, double x, double y, double z)
 {
     double fi;
     
+	teta = wk*x-ww*(p->simtime) + pshift;
+
+    fi = ((ww*wa)/wk)*( cosh(wk*(wd+z))/sinh(wk*(wd)) ) * sin(teta)
+    
+         + (3.0/8.0)*ww*wa*wa*( cosh(2.0*wk*(wd+z))/pow(sinh(wk*(wd)),4.0) ) * sin(2.0*teta);
+
+
     return fi;
 }
 
