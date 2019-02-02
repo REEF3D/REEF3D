@@ -23,11 +23,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"ghostcell.h"
  
-void iowave::inflow_fnpf(lexer *p, ghostcell *pgc, double *Fi,slice &Fifsf)
+void iowave::inflow_fnpf(lexer *p, ghostcell *pgc, double *Fi,slice &Fifsf, slice &eta)
 {
     
     if(p->B98==3)
-	dirichlet_wavegen_fnpf(p,pgc,Fi,Fifsf);
+	dirichlet_wavegen_fnpf(p,pgc,Fi,Fifsf,eta);
     
     
     

@@ -495,7 +495,7 @@ void ioflow_v::veltimesave(lexer *p, fdm *a, ghostcell *pgc)
     
 }
 
-void ioflow_v::inflow_fnpf(lexer *p, ghostcell *pgc, double *Fi,slice &Fifsf)
+void ioflow_v::inflow_fnpf(lexer *p, ghostcell *pgc, double *Fi,slice &Fifsf, slice &eta)
 {
 
 }

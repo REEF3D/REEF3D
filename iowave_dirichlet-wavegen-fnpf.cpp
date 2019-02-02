@@ -25,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 
 
-void iowave::dirichlet_wavegen_fnpf(lexer *p, ghostcell* pgc, double *Fi, slice &Fifsf)
+void iowave::dirichlet_wavegen_fnpf(lexer *p, ghostcell* pgc, double *Fi, slice &Fifsf, slice &eta)
 {
     count=0;
     for(n=0;n<p->gcslin_count;n++)
@@ -34,8 +34,12 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, ghostcell* pgc, double *Fi, slice 
         j=p->gcslin[n][1];
         
         Fifsf(i-1,j) = Fifsf(i,j) - Fifsfval[count]*p->DXP[IM1];
-        Fifsf(i-2,j) = Fifsf(i,j) - Fifsfval[count]*p->DXP[IM1];
-        Fifsf(i-3,j) = Fifsf(i,j) - Fifsfval[count]*p->DXP[IM1];
+        Fifsf(i-2,j) = Fifsf(i,j) - Fifsfval[count]*2.0*p->DXP[IM1];
+        Fifsf(i-3,j) = Fifsf(i,j) - Fifsfval[count]*3.0*p->DXP[IM1];
+        
+        eta(i-1,j) = etaval[count];
+        eta(i-2,j) = etaval[count];
+        eta(i-3,j) = etaval[count];
         
         ++count;
     }
