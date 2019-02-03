@@ -40,6 +40,7 @@ wave_lib_piston::wave_lib_piston(lexer *p, ghostcell *pgc) : wave_lib_parameters
 	
     singamma = sin((p->B105_1)*(PI/180.0));
     cosgamma = cos((p->B105_1)*(PI/180.0));
+    
 }
 
 wave_lib_piston::~wave_lib_piston()
@@ -79,8 +80,6 @@ double wave_lib_piston::wave_horzvel(lexer *p, double x, double y, double z)
 	
 	vel = (kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]);
     
-    //cout<<p->simtime<<" timecount_old: "<<timecount_old<<" timecount: "<<timecount<<" PISTON_UVAL: "<<vel<<endl;
-
     return vel;
 }
 
@@ -105,6 +104,8 @@ double wave_lib_piston::wave_eta(lexer *p, double x, double y)
 double wave_lib_piston::wave_fi(lexer *p, double x, double y, double z)
 {
     double fi;
+
+    fi = (x-p->global_xmin)*wave_horzvel(p,x,y,z);
     
     return fi;
 }

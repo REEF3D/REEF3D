@@ -365,6 +365,10 @@ void ioflow_v::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
 {
 }
 
+void ioflow_v::Fz_relax(lexer *p, ghostcell *pgc, slice& f)
+{
+}
+
 void ioflow_v::eta_relax(lexer *p, ghostcell *pgc, slice &f)
 {
 }

@@ -127,6 +127,8 @@ double wave_lib_flap::wave_eta(lexer *p, double x, double y)
 double wave_lib_flap::wave_fi(lexer *p, double x, double y, double z)
 {
     double fi;
+
+    fi = (x-p->global_xmin)*wave_horzvel(p,x,y,z);
     
     return fi;
 }

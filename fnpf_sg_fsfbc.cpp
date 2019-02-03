@@ -102,6 +102,8 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     SLICELOOP4
     c->WL(i,j) = MAX(0.0,c->eta(i,j) + p->wd - c->bed(i,j));
     
+    pgc->gcsl_start4(p,c->WL,50);
+    
     // fi
     if(p->i_dir==1 && p->j_dir==1)
     FFILOOP4

@@ -689,8 +689,6 @@ void iowave::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
 		dg = distgen(p);
 		db = distbeach(p); 
         
-        H=G=1.0;
-        
         z = eta(i,j);
 		
 		// Wave Generation
@@ -738,3 +736,28 @@ void iowave::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
         }
     }
 }
+
+void iowave::Fz_relax(lexer *p, ghostcell *pgc, slice& f)
+{
+    count=0;
+    SLICELOOP4
+    {
+		db = distbeach(p); 
+        
+		// Numerical Beach
+		if(p->B99==1)
+		{
+            // Zone 3
+            if(db<dist3)
+            f(i,j) = ra3(p,db)*f(i,j);
+        }
+
+        if(p->B99==2||p->B99==4)
+		{
+            // Zone 3
+            if(db<dist3)
+            f(i,j) = rb3(p,db)*f(i,j);
+        }
+    }
+}
+

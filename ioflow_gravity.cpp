@@ -252,6 +252,11 @@ void ioflow_gravity::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
 {
 }
 
+void ioflow_gravity::Fz_relax(lexer *p, ghostcell *pgc, slice& f)
+{
+}
+
+
 void ioflow_gravity::eta_relax(lexer *p, ghostcell *pgc, slice &f)
 {
 }
