@@ -52,10 +52,16 @@ fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : diss(p)
     pconvec = new fnpf_cds4(p);
     
     if(p->A311==4)
+    {
     pconvec = new fnpf_weno(p);
+    pdh = new fnpf_weno(p);
+    }
     
     if(p->A311==5)
+    {
     pconvec = new fnpf_weno_wd(p,c);
+    pdh = new fnpf_weno(p);
+    }
     
     if(p->A311==6)
     pconvec = new fnpf_cds6(p);
