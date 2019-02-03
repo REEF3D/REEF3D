@@ -55,7 +55,6 @@ void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
 
         if(p->B98==2 && h_switch==1)
         {
-            cout<<"HALLO #####"<<endl;
             // Zone 1
             if(dg<dist1)
             { 
