@@ -182,7 +182,7 @@ iowave::iowave(lexer *p, ghostcell *pgc) : wave_interface(p,pgc),flowfile_in(p,p
 	h_switch=1;
     f_switch=0;
 	
-	if(p->B92==21 || p->B92==22 || p->B92==22)
+	if(p->B92==21 || p->B92==22 || p->B92==23)
 	{
 	u_switch=1;
 	v_switch=1;
@@ -214,7 +214,7 @@ iowave::iowave(lexer *p, ghostcell *pgc) : wave_interface(p,pgc),flowfile_in(p,p
         h_switch=1;
         f_switch=1;
         
-        if(p->B92==21 || p->B92==22 || p->B92==22)
+        if(p->B92==21 || p->B92==22 || p->B92==23)
         {
         u_switch=0;
         v_switch=0;
