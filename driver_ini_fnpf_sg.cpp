@@ -46,6 +46,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/stat.h>
 #include<sys/types.h>
 
+#define WLVL (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0-20)
+
 void driver::driver_ini_fnpf_sg()
 {
     // count cells
@@ -100,10 +102,24 @@ void driver::driver_ini_fnpf_sg()
     }*/
     
     // bed ini
-	SLICELOOP4
+    SLICELOOP4
 	c->bed(i,j) = p->bed[IJ];
     
     pgc->gcsl_start4(p,c->bed,50);
+    
+    // eta ini
+	SLICELOOP4
+	c->eta(i,j) = 0.0;
+
+    pgc->gcsl_start4(p,c->eta,50);
+    
+     SLICELOOP4
+    c->WL(i,j) = MAX(0.0,c->eta(i,j) + p->wd - c->bed(i,j));
+    
+    p->Darray(p->sigz,p->imax*p->jmax);
+    
+    SLICELOOP4
+    p->sigz[IJ] = 1.0/WLVL;
     
     pflow->ini_fnpf(p,c,pgc);
     pftstep->ini(c,p,pgc);
