@@ -161,7 +161,6 @@ void driver::loop_cfd(fdm* a)
 	p->field4time=0.0;
     
     stop(p,a,pgc);
-	
 	}
 
 	if(p->mpirank==0)

@@ -99,7 +99,6 @@ void flux_face_CDS2::u_flux(fdm* a,int ipol, field& uvel, double &uflux1, double
 	uflux2= uvel(i,j,k);
     pip=0;
 	}
-
 }
 
 void flux_face_CDS2::v_flux(fdm* a, int ipol, field& vvel, double &vflux1, double &vflux2)
