@@ -28,7 +28,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"flux_face_FOU_vrans.h"
 #include"flux_face_QOU.h"
 
-weno_flux_nug::weno_flux_nug(lexer* p):weno_nug_func(p)
+weno_flux_nug::weno_flux_nug(lexer* p):weno_nug_func(p), tttw(13.0/12.0),fourth(1.0/4.0),third(1.0/3.0),
+			sevsix(7.0/6.0),elvsix(11.0/6.0),sixth(1.0/6.0),fivsix(5.0/6.0),tenth(1.0/10.0),
+			sixten(6.0/10.0),treten(3.0/10.0)
 {
     
     if(p->B269==0)
@@ -165,6 +167,19 @@ double weno_flux_nug::fx(lexer *p,fdm *a, field& b, field& uvel, int ipol, doubl
          + w3x*(q2 + qfx[IP][uf][5][0]*(q3-q2) - qfx[IP][uf][5][1]*(q1-q2));
 	}
     
+    is(b);
+	alpha();
+	weight();
+    
+    if(p->mpirank==0)
+    {
+    if(advec<0.0)
+    cout<<ipol<<"  WENO + "<<w1x<<" "<<w1<<" | "<<w2x<<" "<<w2<<" | "<<w3x<<" "<<w3<<endl;
+    
+    if(advec>0.0)
+    cout<<ipol<<"  WENO - "<<w1x<<" "<<w3<<" | "<<w2x<<" "<<w2<<" | "<<w3x<<" "<<w1<<endl;
+    }
+    
 	return grad;
 }
 
@@ -197,6 +212,19 @@ double weno_flux_nug::fy(lexer *p,fdm *a, field& b, field& vvel, int ipol, doubl
           
          + w3y*(q2 + qfy[JP][vf][5][0]*(q3-q2) + qfy[JP][vf][5][1]*(q1-q2));
 	}
+    /*
+    is(b);
+	alpha();
+	weight();
+    
+    if(p->mpirank==0)
+    {
+    if(advec<0.0)
+    cout<<ipol<<"  WENO + "<<w1y<<" "<<w1<<" | "<<w2y<<" "<<w2<<" | "<<w3y<<" "<<w3<<endl;
+    
+    if(advec>0.0)
+    cout<<ipol<<"  WENO - "<<w1y<<" "<<w3<<" | "<<w2y<<" "<<w2<<" | "<<w3y<<" "<<w1<<endl;
+    }*/
 	
 	return grad;
 }
@@ -289,6 +317,28 @@ void weno_flux_nug::kqmax(lexer *p, field& f, field& wvel, int ipol)
 }
 
 
+void weno_flux_nug::is(field& f)
+{
+	is1 = tttw*pow(q1 - 2.0*q2 + q3, 2.0) + fourth*pow(q1 - 4.0*q2 + 3.0*q3, 2.0);
+	is2 = tttw*pow(q2 - 2.0*q3 + q4, 2.0) + fourth*pow(q2 - q4, 2.0);
+	is3 = tttw*pow(q3 - 2.0*q4 + q5, 2.0) + fourth*pow(3.0*q3 - 4.0*q4 + q5, 2.0);
+}
+
+void weno_flux_nug::alpha()
+{
+    double eps = 0.000001; 
+    
+	alpha1=tenth/pow(eps+is1,2.0);
+	alpha2=sixten/pow(eps+is2,2.0);
+	alpha3=treten/pow(eps+is3,2.0);
+}
+
+void weno_flux_nug::weight()
+{
+	w1=alpha1/(alpha1+alpha2+alpha3);
+	w2=alpha2/(alpha1+alpha2+alpha3);
+	w3=alpha3/(alpha1+alpha2+alpha3);
+}
 
 
 

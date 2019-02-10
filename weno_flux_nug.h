@@ -61,6 +61,19 @@ private:
     
     flux *pflux;
     
+    
+    
+    // debug
+    void is(field&);
+	void alpha();
+	void weight();
+    double is1,is2,is3;
+	double alpha1,alpha2,alpha3;
+	double w1,w2,w3;
+    
+    const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
+	const double sixten,treten;
+    
 
 };
 

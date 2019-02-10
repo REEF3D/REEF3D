@@ -96,7 +96,7 @@ int & fieldint4a::operator()(int ii, int jj, int kk)
 
 	  
 //1
-		if(di<0 && ((dj==0 && dk==0) || pip==1))
+		if(di<0 && ((dj==0 && dk==0) ))
 		{
 			if(pp->gcorig4a[pp->mgc4a[iter]-10][0][-di]==0)
             {

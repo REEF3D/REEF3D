@@ -22,7 +22,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"weno_nug_func.h"
 #include"looping.h"
 #include<math.h>
-
+/*
+    q1 = f(i-2,j,k);
+	q2 = f(i-1,j,k);
+	q3 = f(i,j,k);
+	q4 = f(i+1,j,k);
+	q5 = f(i+2,j,k);
+    
+    
+    q1 = f(i-1,j,k);
+	q2 = f(i,j,k);
+	q3 = f(i+1,j,k);
+	q4 = f(i+2,j,k);
+	q5 = f(i+3,j,k);*/
 
 // IS ----
 void weno_nug_func::is_min_x()
