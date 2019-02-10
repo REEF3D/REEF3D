@@ -48,6 +48,12 @@ void ghostcell::start1(lexer *p, field& f, int gcv)
     
     if(p->F10==1)
     nse1(p,a,f,gcv);
+    
+    if(p->Y40==1  || p->Y40==3)
+    dgcpol(p,f,p->dgc1,p->dgc1_count,11);
+        
+    if(p->Y40==2  || p->Y40==3)
+    f.ggcpol(p);
 }
 
 void ghostcell::start2(lexer *p, field& f, int gcv)
@@ -79,6 +85,12 @@ void ghostcell::start2(lexer *p, field& f, int gcv)
     if(p->F10==1)
     nse2(p,a,f,gcv);
     }
+    
+    if(p->Y40==1  || p->Y40==3)
+    dgcpol(p,f,p->dgc2,p->dgc2_count,12);
+        
+    if(p->Y40==2  || p->Y40==3)
+    f.ggcpol(p);
 }
 
 void ghostcell::start3(lexer *p, field& f, int gcv)
@@ -106,6 +118,12 @@ void ghostcell::start3(lexer *p, field& f, int gcv)
     
     if(p->F10==1)
     nse3(p,a,f,gcv);
+    
+    if(p->Y40==1  || p->Y40==3)
+    dgcpol(p,f,p->dgc3,p->dgc3_count,13);
+        
+    if(p->Y40==2  || p->Y40==3)
+    f.ggcpol(p);
 }
 
 void ghostcell::start4(lexer *p, field &f, int gcv)
@@ -133,6 +151,13 @@ void ghostcell::start4(lexer *p, field &f, int gcv)
     
     if(p->F10==1)
     nse4(p,a,f,gcv);
+    
+    
+    if(p->Y40==1  || p->Y40==3)
+    dgcpol(p,f,p->dgc4,p->dgc4_count,14);
+        
+    if(p->Y40==2  || p->Y40==3)
+    f.ggcpol(p);
 }
 
 void ghostcell::start4a(lexer *p, field& f, int gcv)
@@ -154,6 +179,9 @@ void ghostcell::start4a(lexer *p, field& f, int gcv)
 	gcdistro4a(p,f,p->gcb4a[qq][0], p->gcb4a[qq][1], p->gcb4a[qq][2], p->gcb4a[qq][5], p->gcd4a[qq], gcv, p->gcb4a[qq][4], p->gcb4a[qq][3]);
 	endtime=timer();
 	p->gctime+=endtime-starttime;
+    
+    
+    
 }
 
 void ghostcell::start4V(lexer *p, vec &x, int gcv)

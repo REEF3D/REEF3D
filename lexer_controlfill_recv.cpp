@@ -1452,7 +1452,9 @@ void lexer::ctrlrecv()
     X320 = ictrl[ii];
 	ii++;
 	
-	Y50 = ictrl[ii];
+	Y40 = ictrl[ii];
+	ii++;
+    Y50 = ictrl[ii];
 	ii++;
 	Y60 = ictrl[ii];
 	ii++;

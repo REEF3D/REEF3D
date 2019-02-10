@@ -497,7 +497,7 @@ public:
     
 	
 	// Grid
-	int Y50,Y60,Y71,Y72,Y73,Y74;
+	int Y40,Y50,Y60,Y71,Y72,Y73,Y74;
 
 	// time + iterations
 	int inneriter,count,solveriter,preconiter;

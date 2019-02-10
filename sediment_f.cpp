@@ -65,7 +65,6 @@ void sediment_f::start(lexer *p, fdm *a, convection *pconvec, ghostcell *pgc, io
 {
 	if((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47))
 	{
-		
 		if(p->S42==1 && p->count%p->S44==0)
 		sediment_algorithm(p,a,pconvec,pgc,pflow,ptopo,preto,psusp,pbed);
 		

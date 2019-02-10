@@ -687,7 +687,8 @@ void lexer::ini_default()
 	X320=0;     // int number of nets
 	
 	// Developer 
-	Y50=5;
+	Y40=0;
+    Y50=5;
 	Y60=0;
     Y71=0;  // int turn on/off solid gcparax
     Y72=0;  // int turn on/off solid gcparax
