@@ -1803,6 +1803,9 @@ void lexer::read_control()
 		case 'Y': control>>numint;
 				switch(numint)
 				{
+               case 40: control>>Y40;
+						 clear(c,numint);
+						 break;
 				case 50: control>>Y50;
 						 clear(c,numint);
 						 break;

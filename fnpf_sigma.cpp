@@ -40,7 +40,7 @@ void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsfbc 
     p->Darray(p->sig,p->imax*p->jmax*(p->kmax+1));
     p->Darray(p->sigx,p->imax*p->jmax*(p->kmax+1));
     p->Darray(p->sigy,p->imax*p->jmax*(p->kmax+1));
-    p->Darray(p->sigz,p->imax*p->jmax);
+    
     p->Darray(p->sigxx,p->imax*p->jmax*(p->kmax+1));
     
     FLOOP
@@ -77,6 +77,9 @@ void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsfbc 
 	c->depth(i,j) = p->wd - c->bed(i,j);
     
     pgc->gcsl_start4(p,c->depth,50);
+    
+    SLICELOOP4
+    p->sigz[IJ] = 1.0/WLVL;
 }
 
 void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsfbc *pf, slice &eta)

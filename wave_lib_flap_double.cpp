@@ -70,6 +70,9 @@ double wave_lib_flap_double::wave_horzvel(lexer *p, double x, double y, double z
     double vel,fac,dX;
 	
 	z=p->pos_z();
+    
+    if(p->A10==3 && p->A300==1)
+    z/=p->sigz[IJ];
 
     if(p->simtime<ts || p->simtime>te)
 	return 0.0;
@@ -151,6 +154,8 @@ double wave_lib_flap_double::wave_fi(lexer *p, double x, double y, double z)
     double fi;
 
     fi = (x-p->global_xmin)*wave_horzvel(p,x,y,z);
+    
+    //cout<<"FI: "<<wave_horzvel(p,x,y,z)<<endl;
     
     return fi;
 }

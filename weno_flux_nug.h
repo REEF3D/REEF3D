@@ -50,7 +50,6 @@ private:
 	void jqmax(lexer*, field&, field&, int);
 	void kqmax(lexer*, field&, field&, int);
 
-
 	double L,grad;
 
 	double gradx, grady, gradz;
@@ -60,7 +59,6 @@ private:
 
     
     flux *pflux;
-    
 
 };
 

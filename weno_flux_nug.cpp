@@ -100,6 +100,7 @@ double weno_flux_nug::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field&
         pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
         pflux->w_flux(a,ipol,wvel,kvel1,kvel2);
         
+        
         fv1=fv2=0.0;
 		
 		i-=1;
@@ -190,19 +191,22 @@ double weno_flux_nug::fy(lexer *p,fdm *a, field& b, field& vvel, int ipol, doubl
 	is_max_y();
 	weight_max_y();
 	
-	grad = w1y*(q4 + qfy[JP][vf][3][0]*(q3-q4) - qfy[JP][vf][3][1]*(q5-q4))
+	grad = w1y*(q4 + qfy[JP][vf][3][0]*(q3-q4) + qfy[JP][vf][3][1]*(q5-q4))
     
          + w2y*(q3 + qfy[JP][vf][4][0]*(q2-q3) - qfy[JP][vf][4][1]*(q4-q3))
           
-         + w3y*(q2 + qfy[JP][vf][5][0]*(q3-q2) + qfy[JP][vf][5][1]*(q1-q2));
+         + w3y*(q2 + qfy[JP][vf][5][0]*(q3-q2) - qfy[JP][vf][5][1]*(q1-q2));
 	}
-	
+
 	return grad;
 }
 
 double weno_flux_nug::fz(lexer *p,fdm *a, field& b, field& wvel, int ipol, double advec)
 {
     grad = 0.0;
+    
+    double gz1,gz2,gz3;
+    double g1,g2,g3;
 
 	if(advec>0.0)
 	{
@@ -210,6 +214,7 @@ double weno_flux_nug::fz(lexer *p,fdm *a, field& b, field& wvel, int ipol, doubl
 	is_min_z();
 	weight_min_z();
 	
+    
 	grad = w1z*(q4 + qfz[KP][wf][0][0]*(q3-q4) - qfz[KP][wf][0][1]*(q5-q4))
     
          + w2z*(q3 + qfz[KP][wf][1][0]*(q4-q3) - qfz[KP][wf][1][1]*(q2-q3))
@@ -223,12 +228,14 @@ double weno_flux_nug::fz(lexer *p,fdm *a, field& b, field& wvel, int ipol, doubl
 	is_max_z();
 	weight_max_z();
 	
-	grad = w1z*(q4 + qfz[KP][wf][3][0]*(q3-q4) - qfz[KP][wf][3][1]*(q5-q4))
+	grad = w1z*(q4 + qfz[KP][wf][3][0]*(q3-q4) + qfz[KP][wf][3][1]*(q5-q4))
     
          + w2z*(q3 + qfz[KP][wf][4][0]*(q2-q3) - qfz[KP][wf][4][1]*(q4-q3))
           
-         + w3z*(q2 + qfz[KP][wf][5][0]*(q3-q2) + qfz[KP][wf][5][1]*(q1-q2));
+         + w3z*(q2 + qfz[KP][wf][5][0]*(q3-q2) - qfz[KP][wf][5][1]*(q1-q2));
 	}
+
+    
 
 	return grad;
 }
@@ -286,8 +293,5 @@ void weno_flux_nug::kqmax(lexer *p, field& f, field& wvel, int ipol)
 	q4 = f(i,j,k+2);
 	q5 = f(i,j,k+3);
 }
-
-
-
 
 

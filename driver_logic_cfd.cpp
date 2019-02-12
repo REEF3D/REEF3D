@@ -728,7 +728,7 @@ void driver::logic()
 	
 
 //Solver
-    /*
+    
 	if(p->N8==0)
 	psolv = new solver_void(p,a,pgc);
 	
@@ -739,7 +739,7 @@ void driver::logic()
 	psolv = new sip(p,a,pgc);
 	
 	if(p->N8==3)
-	psolv = new bicgstab(p,a,pgc,p->N9);*/
+	psolv = new bicgstab(p,a,pgc,p->N9);
 	
     
 //Poison Solver	
@@ -770,7 +770,7 @@ void driver::logic()
 	ppoissonsolv = new hypre_sstruct(p,a,pgc);
 	#endif
 
-    psolv=ppoissonsolv;
+    //psolv=ppoissonsolv;
 
 //IOFlow
 	if(p->B60==0 && p->B90==0 && p->B180==0)
