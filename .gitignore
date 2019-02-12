@@ -21,3 +21,4 @@ REEF3D.mk
 *.txt
 *.DS_Store
 .DS_Store
+doxydoc*
