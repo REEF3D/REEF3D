@@ -95,10 +95,10 @@ fnpf_sg_RK3::~fnpf_sg_RK3()
 }
 
 void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
-{	
-    pflow->inflow_fnpf(p,pgc,c->Fi,c->Fifsf,c->eta);
-    
+{	    
 // Step 1
+    pflow->inflow_fnpf(p,pgc,c->Fi,c->Uin,c->Fifsf,c->eta);
+    
     // fsf eta
     pf->kfsfbc(p,c,pgc);
     
@@ -137,7 +137,7 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pf->fsfwvel(p,c,pgc,erk1,frk1);
 
 // Step 2
-    pflow->inflow_fnpf(p,pgc,c->Fi,frk1,erk1);
+    pflow->inflow_fnpf(p,pgc,c->Fi,c->Uin,frk1,erk1);
     
     // fsf eta
     pf->kfsfbc(p,c,pgc);
@@ -175,7 +175,7 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pf->fsfwvel(p,c,pgc,erk2,frk2);
 
 // Step 3 
-    pflow->inflow_fnpf(p,pgc,c->Fi,frk2,erk2);
+    pflow->inflow_fnpf(p,pgc,c->Fi,c->Uin,frk2,erk2);
     
     // fsf eta
     pf->kfsfbc(p,c,pgc);

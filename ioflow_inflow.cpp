@@ -283,7 +283,7 @@ void ioflow_f::flowfile(lexer *p, fdm* a, ghostcell* pgc, turbulence *pturb)
 {
 }
 
-void ioflow_f::inflow_fnpf(lexer *p, ghostcell *pgc, double *Fi,slice &Fifsf, slice &eta)
+void ioflow_f::inflow_fnpf(lexer *p, ghostcell *pgc, double *Fi, double *Uin,slice &Fifsf, slice &eta)
 {
 
 }

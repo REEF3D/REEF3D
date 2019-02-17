@@ -166,6 +166,7 @@ void iowave::fnpf_precalc_dirichlet_ini(lexer *p, ghostcell *pgc)
     // precalc array alloc
     p->Darray(etaval,ept_count);
     p->Darray(Fival,ppt_count);
+    p->Darray(Uinval,ppt_count);
     p->Darray(Fifsfval,ept_count);
     p->Darray(uval,upt_count);
     

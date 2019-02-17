@@ -74,7 +74,7 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
     
     count=0;
     dbcount=0;
-    FLOOP
+
     FILOOP 
     FJLOOP 
     {

@@ -107,6 +107,22 @@ void driver::driver_ini_fnpf_sg()
     
     pgc->gcsl_start4(p,c->bed,50);
     
+    // bc ini
+    SLICELOOP4
+	c->bc(i,j) = 0;
+    
+    pgc->gcsl_start4int(p,c->bc,50);
+    
+    for(n=0;n<p->gcslin_count;n++)
+    {
+    i=p->gcslin[n][0];
+    j=p->gcslin[n][1];
+
+    c->bc(i-1,j) = 1;
+    }
+    
+    
+    
     // eta ini
 	SLICELOOP4
 	c->eta(i,j) = 0.0;

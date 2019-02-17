@@ -25,21 +25,23 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 
 
-void iowave::dirichlet_wavegen_fnpf(lexer *p, ghostcell* pgc, double *Fi, slice &Fifsf, slice &eta)
+void iowave::dirichlet_wavegen_fnpf(lexer *p, ghostcell* pgc, double *Fi, double *Uin, slice &Fifsf, slice &eta)
 {
+    // 
     count=0;
     for(n=0;n<p->gcslin_count;n++)
     {
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
         
-        Fifsf(i-1,j) = Fifsf(i,j) - Fifsfval[count]*p->DXP[IM1];
-        Fifsf(i-2,j) = Fifsf(i,j) - Fifsfval[count]*2.0*p->DXP[IM1];
-        Fifsf(i-3,j) = Fifsf(i,j) - Fifsfval[count]*3.0*p->DXP[IM1];
+        Fifsf(i-1,j) = Fifsf(i,j)*0.0 - Fifsfval[count]*1.0*p->DXP[IM1];
+        Fifsf(i-2,j) = Fifsf(i,j)*0.0 - Fifsfval[count]*2.0*p->DXP[IM1];
+        Fifsf(i-3,j) = Fifsf(i,j)*0.0 - Fifsfval[count]*3.0*p->DXP[IM1];
         
+        /*
         eta(i-1,j) = etaval[count];
         eta(i-2,j) = etaval[count];
-        eta(i-3,j) = etaval[count];
+        eta(i-3,j) = etaval[count];*/
         
         ++count;
     }
@@ -53,7 +55,22 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, ghostcell* pgc, double *Fi, slice 
         
         FKLOOP
         {
-        Fi[FIm1JK] = Fi[FIJK] - Fival[count]*p->DXP[IM1];
+        Fi[FIm1JK] = Fi[FIJK]*0.0 - Fival[count]*p->DXP[IM1];
+        
+        ++count;
+        }
+    }
+    
+    // Uin
+    count=0;
+    for(n=0;n<p->gcslin_count;n++)
+    {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
+        
+        FKLOOP
+        {
+        Uin[FIm1JK] = Uinval[count];
         
         ++count;
         }

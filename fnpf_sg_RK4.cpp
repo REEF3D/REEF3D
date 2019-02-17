@@ -71,7 +71,10 @@ fnpf_sg_RK4::~fnpf_sg_RK4()
 
 void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
 {	
+    
 // Step 1
+    pflow->inflow_fnpf(p,pgc,c->Fi,c->Uin,c->Fifsf,c->eta);
+    
     // fsf eta
     pf->kfsfbc(p,c,pgc);
 
@@ -116,6 +119,8 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     en(i,j) = erk(i,j);
 
 // Step 2
+    pflow->inflow_fnpf(p,pgc,c->Fi,c->Uin,frk,erk);
+    
     // fsf eta
     pf->kfsfbc(p,c,pgc);
     
@@ -160,6 +165,8 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     en(i,j) = erk(i,j);
     
 // Step 3
+    pflow->inflow_fnpf(p,pgc,c->Fi,c->Uin,frk,erk);
+    
     // fsf eta
     pf->kfsfbc(p,c,pgc);
     
@@ -201,6 +208,8 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pf->fsfwvel(p,c,pgc,erk,frk);
 
 // Step 4 
+    pflow->inflow_fnpf(p,pgc,c->Fi,c->Uin,frk,erk);
+    
     // fsf eta
     pf->kfsfbc(p,c,pgc);
     

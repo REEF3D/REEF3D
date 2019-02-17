@@ -26,6 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
 {
     double fsfloc;
+    int dbcount;
     
         count=0;
 		for(n=0;n<p->gcslin_count;n++)
@@ -66,6 +67,51 @@ void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
             ++count;
             }
         }
+        
+        // Uin
+        count=0;
+		for(n=0;n<p->gcslin_count;n++)
+        {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
+        
+        xg=xgen(p);
+        yg=ygen(p);
+        x1=xgen1(p);
+        y2=ygen2(p);
+        
+            FKLOOP
+            {
+            z=p->ZSN[FIJK]-p->phimean;
+            
+            Uinval[count] = wave_u(p,pgc,xg,yg,z);
+            ++count;
+            }
+        }
+        
+        
+    count=0;
+    FILOOP 
+    FJLOOP 
+    {
+
+		db = distbeach(p);
+        
+        FKLOOP 
+        FPCHECK
+        {
+                    
+            if(p->B99==2||p->B99==4)
+            {
+                // Zone 3
+                if(db<dist3)
+                {
+                rb3val[count] = rb3(p,db);
+                ++count;
+                }
+            }
+        }
+    }
         
 }
 

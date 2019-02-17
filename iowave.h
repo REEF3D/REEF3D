@@ -152,12 +152,12 @@ public:
     
     
     // FNPF
-    virtual void inflow_fnpf(lexer*,ghostcell*,double*,slice&,slice&);
+    virtual void inflow_fnpf(lexer*,ghostcell*,double*,double*,slice&,slice&);
     void fnpf_precalc_relax(lexer*,ghostcell*);
     void fnpf_precalc_relax_ini(lexer*,ghostcell*);
     void fnpf_precalc_dirichlet(lexer*,ghostcell*);
     void fnpf_precalc_dirichlet_ini(lexer*,ghostcell*);
-    void dirichlet_wavegen_fnpf(lexer*,ghostcell*,double*,slice&,slice&);
+    void dirichlet_wavegen_fnpf(lexer*,ghostcell*,double*,double*,slice&,slice&);
 	
 
 private:
@@ -215,7 +215,7 @@ private:
     // relax pre-calc
     int wave_comp;
     int upt_count,vpt_count,wpt_count,ppt_count,ept_count;
-    double *uval,*vval,*wval,*etaval,*lsval,*Fival,*Fifsfval;
+    double *uval,*vval,*wval,*etaval,*lsval,*Fival,*Fifsfval,*Uinval;
     double *rb1val,*rb3val;
     
     double **uval_S_sin,**vval_S_sin,**wval_S_sin,**etaval_S_sin,**Fival_S_sin;

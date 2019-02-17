@@ -381,7 +381,7 @@ void ioflow_gravity::veltimesave(lexer *p, fdm *a, ghostcell *pgc)
     
 }
 
-void ioflow_gravity::inflow_fnpf(lexer *p, ghostcell *pgc, double *Fi,slice &Fifsf, slice &eta)
+void ioflow_gravity::inflow_fnpf(lexer *p, ghostcell *pgc, double *Fi, double *Uin,slice &Fifsf, slice &eta)
 {
 
 }

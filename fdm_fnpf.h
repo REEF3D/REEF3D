@@ -50,7 +50,7 @@ public:
     slice4 bed,depth;
     slice4 Fifsf,Fibed,Fz;
     slice4 K;
-    sliceint4 etaloc,wet,breaking;
+    sliceint4 etaloc,wet,breaking,bc;
     
     slice4 Fx,Fy;
     slice4 Ex,Ey;
@@ -62,7 +62,7 @@ public:
 
 	
     vec rhsvec;
-    double *Fi;
+    double *Fi,*Uin;
 
 	matrix_diag M;    
     
