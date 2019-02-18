@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
 {   
     // general Neuman
-    if(gcv==40 || gcv==50 || gcv==1)
+    if(gcv==40 || gcv==50 || gcv==1 )
 	return 4;
     
     // vertical w
@@ -61,8 +61,17 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
 	if(bc==2 && (gcv==41  || gcv==44))
 	return 4;*/
     
+    // Fifsf 60
+    else
+    if(gcv==60 && (p->B98==2 || (p->B98==3 && bc!=6)))
+    return 4;
     
-    // eta 50
+    // eta 55
+    else
+    if(gcv==55 && (p->B98==2 || (p->B98==3 && bc!=6)))
+    return 4;
+    
+    
     else
     if((bc==1||bc==6) && (gcv==52||gcv==54))
 	return 4;
@@ -84,8 +93,18 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
     if((bc==21||bc==3) && (gcv==51||gcv==52||gcv==53||gcv==54))
 	return 4;
     
+    // Fifsf
+    else
+    if(gcv==160 && (p->B98==2 || (p->B98==3 && bc!=6)))
+    return 14;
+    
     
     // eta 150
+    else
+    if(gcv==155 && (p->B98==2 || (p->B98==3 && bc!=6)))
+    return 14;
+    
+    
     else
     if((bc==1||bc==6) && (gcv==152||gcv==154))
 	return 14;

@@ -45,38 +45,14 @@ fnpf_sg_RK3::fnpf_sg_RK3(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_sg_ini(p,
     
     
     // 3D
-    if(p->F50==1)
-	gcval_eta = 51;
-    
-    if(p->F50==2)
-	gcval_eta = 52;
-    
-    if(p->F50==3)
-	gcval_eta = 53;
-    
-    if(p->F50==4)
-	gcval_eta = 54;
-    
-    gcval_eta = 50;
-    gcval_fifsf = 50;
+    gcval_eta = 55;
+    gcval_fifsf = 60;
     
     // 2D
     if(p->j_dir==0)
     {
-    if(p->F50==1)
-	gcval_eta = 151;
-    
-    if(p->F50==2)
-	gcval_eta = 152;
-    
-    if(p->F50==3)
-	gcval_eta = 153;
-    
-    if(p->F50==4)
-	gcval_eta = 154;
-    
-    gcval_eta = 150;
-    gcval_fifsf = 150;
+    gcval_eta = 155;
+    gcval_fifsf = 160;
     }
     
     

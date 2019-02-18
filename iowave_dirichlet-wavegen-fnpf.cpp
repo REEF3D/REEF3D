@@ -38,10 +38,13 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, ghostcell* pgc, double *Fi, double
         Fifsf(i-2,j) = Fifsf(i,j)*0.0 - Fifsfval[count]*2.0*p->DXP[IM1];
         Fifsf(i-3,j) = Fifsf(i,j)*0.0 - Fifsfval[count]*3.0*p->DXP[IM1];
         
-        /*
+        
+        if(h_switch==1)
+        {
         eta(i-1,j) = etaval[count];
         eta(i-2,j) = etaval[count];
-        eta(i-3,j) = etaval[count];*/
+        eta(i-3,j) = etaval[count];
+        }
         
         ++count;
     }
