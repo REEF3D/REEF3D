@@ -41,20 +41,16 @@ fnpf_sg_RK4::fnpf_sg_RK4(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_sg_ini(p,
 	gcval_v=11;
 	gcval_w=12;
     
-    if(p->F50==1)
-	gcval_eta = 51;
+    // 3D
+    gcval_eta = 55;
+    gcval_fifsf = 60;
     
-    if(p->F50==2)
-	gcval_eta = 52;
-    
-    if(p->F50==3)
-	gcval_eta = 53;
-    
-    if(p->F50==4)
-	gcval_eta = 54;
-    
-    gcval_eta = 50;
-    gcval_fifsf = 50;
+    // 2D
+    if(p->j_dir==0)
+    {
+    gcval_eta = 155;
+    gcval_fifsf = 160;
+    }
     
     if(p->A320==1)
     plap = new fnpf_sg_laplace_cds2(p);

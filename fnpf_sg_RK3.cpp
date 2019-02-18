@@ -43,7 +43,6 @@ fnpf_sg_RK3::fnpf_sg_RK3(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_sg_ini(p,
 	gcval_v=11;
 	gcval_w=12;
     
-    
     // 3D
     gcval_eta = 55;
     gcval_fifsf = 60;
@@ -54,7 +53,6 @@ fnpf_sg_RK3::fnpf_sg_RK3(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_sg_ini(p,
     gcval_eta = 155;
     gcval_fifsf = 160;
     }
-    
     
     
     if(p->A320==1)
