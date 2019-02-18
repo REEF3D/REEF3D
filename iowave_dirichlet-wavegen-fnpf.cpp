@@ -34,9 +34,9 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, ghostcell* pgc, double *Fi, double
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
         
-        Fifsf(i-1,j) = Fifsf(i,j)*0.0 - Fifsfval[count]*1.0*p->DXP[IM1];
-        Fifsf(i-2,j) = Fifsf(i,j)*0.0 - Fifsfval[count]*2.0*p->DXP[IM1];
-        Fifsf(i-3,j) = Fifsf(i,j)*0.0 - Fifsfval[count]*3.0*p->DXP[IM1];
+        Fifsf(i-1,j) = Fifsf(i,j) - Fifsfval[count]*1.0*p->DXP[IM1];
+        Fifsf(i-2,j) = Fifsf(i,j) - Fifsfval[count]*2.0*p->DXP[IM1];
+        Fifsf(i-3,j) = Fifsf(i,j) - Fifsfval[count]*3.0*p->DXP[IM1];
         
         
         if(h_switch==1)
@@ -58,7 +58,7 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, ghostcell* pgc, double *Fi, double
         
         FKLOOP
         {
-        Fi[FIm1JK] = Fi[FIJK]*0.0 - Fival[count]*p->DXP[IM1];
+        Fi[FIm1JK] = Fi[FIJK] - Fival[count]*p->DXP[IM1];
         
         ++count;
         }
