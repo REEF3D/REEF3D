@@ -54,10 +54,10 @@ void lexer::ini_default()
     
     A300=1;      // int sigma or fixed grid
     A310=3;		  // int time scheme for FNPF velocities
-    A311=4;		  // int convection scheme for FNPF velocities
+    A311=5;		  // int convection scheme for FNPF velocities
     A312=2;      // int discretization for second-order gradient
     A313=3;      // int discretization for bed bc
-    A320=1;		  // int time scheme for FNPF velocities
+    A320=1;		  // int order of Laplace equation
     A321=1;      // int boundary condition order for 4th-order Laplace equation
     A343=1;      // int turn on wetting-drying
     A344=1;      // int absolute wetting criterion
@@ -68,6 +68,8 @@ void lexer::ini_default()
     A347=0.6;    // double breaking parameter alpha
     A348=0;      // int turn on breaking persistence
     A349=0.3;    // double breaking persistence parameter beta
+    A350=5;      // int breaking filter outer iter
+    A351=2;      // int breaking filter inner iter
     
     
     A410=1;      // int scheme eta       

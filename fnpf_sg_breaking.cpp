@@ -34,8 +34,6 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
             
             if( (eta(i,j)-eta_n(i,j))/(alpha*p->dt) > p->A347*sqrt(9.81*c->WL(i,j)))
             {
-            //cout<<"BREAKING !!!!!!!!!!!!!!!!!!!!!"<<endl;
-            //diss(i,j)=0.5;
             c->breaking(i,j)=1;
             }
     }
@@ -58,8 +56,8 @@ void fnpf_sg_fsfbc::filter(lexer *p, fdm_fnpf *c,ghostcell *pgc, slice &f)
     double he,hw,hn,hs,hp;
     double dhe, dhw, dhn, dhs,dhp;
     
-    int outer_iter = 5;
-    int inner_iter = 2;
+    int outer_iter = p->A350;
+    int inner_iter = p->A351;
     
     if(p->j_dir==0)
 	for(int qn=0;qn<outer_iter;++qn)

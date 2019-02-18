@@ -52,22 +52,16 @@ fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : diss(p)
     pconvec = new fnpf_cds4(p);
     
     if(p->A311==4)
-    {
     pconvec = new fnpf_weno(p);
-    pdh = new fnpf_weno(p);
-    }
     
     if(p->A311==5)
-    {
     pconvec = new fnpf_weno_wd(p,c);
-    pdh = new fnpf_weno(p);
-    }
-    
+
     if(p->A311==6)
     pconvec = new fnpf_cds6(p);
     
-    pdh = new fnpf_weno_wd(p,c);
-    
+
+    // ---
     if(p->A312==2)
     {
     pddx = new fnpf_ddx_cds2(p);
@@ -120,8 +114,8 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     c->Fx(i,j) = pconvec->sx(p,Fifsf,ivel);
     c->Fy(i,j) = pconvec->sy(p,Fifsf,jvel);
     
-    c->Ex(i,j) = pdh->sx(p,eta,ivel);
-    c->Ey(i,j) = pdh->sy(p,eta,jvel);
+    c->Ex(i,j) = pconvec->sx(p,eta,ivel);
+    c->Ey(i,j) = pconvec->sy(p,eta,jvel);
     
     c->Exx(i,j) = pddx->sxx(p,eta);
     c->Eyy(i,j) = pddx->syy(p,eta);
@@ -133,7 +127,7 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);    
     
     c->Fx(i,j) = pconvec->sx(p,Fifsf,ivel);
-    c->Ex(i,j) = pdh->sx(p,eta,ivel);
+    c->Ex(i,j) = pconvec->sx(p,eta,ivel);
     c->Exx(i,j) = pddx->sxx(p,eta);
     }
 
