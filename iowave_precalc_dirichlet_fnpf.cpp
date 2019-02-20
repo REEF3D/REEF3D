@@ -26,7 +26,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
 {
     double fsfloc;
-    int dbcount;
     
         count=0;
 		for(n=0;n<p->gcslin_count;n++)
@@ -60,6 +59,7 @@ void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
         y2=ygen2(p);
         
             FKLOOP
+            FPCHECK
             {
             z=p->ZSN[FIJK]-p->phimean;
             
@@ -81,6 +81,7 @@ void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
         y2=ygen2(p);
         
             FKLOOP
+            FPCHECK
             {
             z=p->ZSN[FIJK]-p->phimean;
             

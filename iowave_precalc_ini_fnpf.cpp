@@ -127,7 +127,7 @@ void iowave::fnpf_precalc_relax_ini(lexer *p, ghostcell *pgc)
 
 void iowave::fnpf_precalc_dirichlet_ini(lexer *p, ghostcell *pgc)
 {    
-    int dbcount;
+    int dbcount=0;
     
     upt_count=vpt_count=wpt_count=ppt_count=ept_count=dbcount=0;
     
