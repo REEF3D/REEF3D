@@ -67,11 +67,11 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, ghostcell* pgc, double *Fi, double
         FKLOOP
         FPCHECK
         {
-        if(eta(i,j)<=etaval[count] || h_switch==0)
+        //if(eta(i,j)<=etaval[count] || h_switch==0)
         Fi[FIm1JK] = Fi[FIJK] - Fival[count]*p->DXP[IM1];
         
-        if(eta(i,j)>etaval[count] && h_switch==1)
-        Fi[FIm1JK] = Fi[FIJK];
+        //if(eta(i,j)>etaval[count] && h_switch==1)
+        //Fi[FIm1JK] = Fi[FIJK];
         
         ++count;
         }
@@ -86,8 +86,8 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, ghostcell* pgc, double *Fi, double
         
         FKLOOP
         FPCHECK
-        {
-        Uin[FIm1JK] = Uinval[count];
+        {// add eta guard
+        Uin[FIm1JK] = Uinval[count]; 
         
         ++count;
         }
