@@ -47,26 +47,32 @@ void mgc1::fill_ggc(lexer* p)
 
 		if(p->gcb1[n][3]==1)
 		for(q=0;q<p->margin;++q)
+        if(p->flag1[(i+q-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]<0)
         cart1::ggcmem[(i-imin-q-1)*jmax*kmax + (j-jmin)*kmax + k-kmin]+=1;
 
 		if(p->gcb1[n][3]==4)
 		for(q=0;q<p->margin;++q)
+        if(p->flag1[(i-q-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]<0)
 		cart1::ggcmem[(i-imin+q+1)*jmax*kmax + (j-jmin)*kmax + k-kmin]+=1;
 
 		if(p->gcb1[n][3]==3)
 		for(q=0;q<p->margin;++q)
+        if(p->flag1[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin-q)*p->kmax + k-p->kmin]<0)
         cart1::ggcmem[(i-imin)*jmax*kmax + (j-jmin-q-1)*kmax + k-kmin]+=1;
 
 		if(p->gcb1[n][3]==2)
 		for(q=0;q<p->margin;++q)
+            if(p->flag1[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin+q)*p->kmax + k-p->kmin]<0)
 		cart1::ggcmem[(i-imin)*jmax*kmax + (j-jmin+q+1)*kmax + k-kmin]+=1;
 
 		if(p->gcb1[n][3]==5)
 		for(q=0;q<p->margin;++q)
+            if(p->flag1[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-q]<0)
 		cart1::ggcmem[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin-q-1]+=1;
 
 		if(p->gcb1[n][3]==6)
 		for(q=0;q<p->margin;++q)
+        if(p->flag1[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+q]<0)
 		cart1::ggcmem[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin+q+1]+=1;
 	}
 

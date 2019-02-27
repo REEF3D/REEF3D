@@ -124,8 +124,8 @@ double & field1::operator()(int ii, int jj, int kk)
 			di=1;
             if(pp->gcorig1[pp->mgc1[iter]-10][3][di]==0)
             {
-            cout<<V[iter]<<" "<<pp->flag1[iter]<<endl;
-            return zero;
+            //cout<<V[iter]<<" "<<pp->flag1[iter]<<endl;
+            return V[iter];
             }
 			
 			if(pp->gcorig1[pp->mgc1[iter]-10][3][di]==1)
