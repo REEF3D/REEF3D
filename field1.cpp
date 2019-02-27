@@ -102,6 +102,7 @@ void field1::fieldgcalloc(lexer *p)
 
 double & field1::operator()(int ii, int jj, int kk)
 {
+    
 
     if(pp->mgc1[(ii-imin)*jmax*kmax + (jj-jmin)*kmax + kk-kmin]<2)
 	return V[(ii-imin)*jmax*kmax + (jj-jmin)*kmax + kk-kmin];
@@ -117,7 +118,7 @@ double & field1::operator()(int ii, int jj, int kk)
 		if(pip==4)
 		return V[iter];
         
-        
+        double zero=0.0;
         if(di==0 && dj==0 && dk==0 && pip==5)
 		{
 			di=1;
