@@ -44,7 +44,6 @@ void mgc1::makemgc(lexer* p)
 	//make gcdir
 	p->gcdirsize1=1;	
     p->Iarray(p->gcorig1, p->gcdirsize1, 6,4);
-
 }
 
 void mgc1::mgcsetup(lexer* p)

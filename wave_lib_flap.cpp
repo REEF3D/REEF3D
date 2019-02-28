@@ -69,10 +69,7 @@ double wave_lib_flap::wave_horzvel(lexer *p, double x, double y, double z)
 {
     double vel,fac;
 	
-	z=p->pos_z();
-    
-    if(p->A10==3 && p->A300==1)
-    z/=p->sigz[IJ];
+	z+=p->wd;
 
     if(p->simtime<ts || p->simtime>te)
 	return 0.0;
@@ -103,7 +100,7 @@ double wave_lib_flap::wave_w(lexer *p, double x, double y, double z)
     if(p->B115==0)
     return 0.0;
 	
-	z=p->pos_z();
+	z+=p->wd;
 
     if(p->simtime<ts || p->simtime>te)
 	return 0.0;
