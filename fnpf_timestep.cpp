@@ -106,8 +106,8 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
     if(p->y_dir==0)
     dx = p->DXN[IP];
     
-    cu = MIN(cu, 1.0/((fabs(p->umax + 1.0*sqrt(9.81*depthmax))/dx)));
-    cv = MIN(cv, 1.0/((fabs(p->vmax + 1.0*sqrt(9.81*depthmax))/dx)));
+    cu = MIN(cu, 1.0/((fabs(MAX(p->umax, 1.0*sqrt(9.81*depthmax)))/dx)));
+    cv = MIN(cv, 1.0/((fabs(MAX(p->vmax, 1.0*sqrt(9.81*depthmax)))/dx)));
     //cw = MIN(cw, 1.0/((fabs(p->wmax)/dx)));
     }
 

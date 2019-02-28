@@ -48,26 +48,32 @@ void mgc4::fill_ggc(lexer* p)
 
 		if(p->gcb4[n][3]==1)
 		for(q=0;q<p->margin;++q)
+        if(p->flag4[(i-p->imin-q-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]<0)
         cart4::ggcmem[(i-imin-q-1)*jmax*kmax + (j-jmin)*kmax + k-kmin]+=1;
 
 		if(p->gcb4[n][3]==4)
 		for(q=0;q<p->margin;++q)
+        if(p->flag4[(i-p->imin+q+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]<0)
 		cart4::ggcmem[(i-imin+q+1)*jmax*kmax + (j-jmin)*kmax + k-kmin]+=1;
 
 		if(p->gcb4[n][3]==3)
 		for(q=0;q<p->margin;++q)
+        if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin-q-1)*p->kmax + k-p->kmin]<0)
         cart4::ggcmem[(i-imin)*jmax*kmax + (j-jmin-q-1)*kmax + k-kmin]+=1;
 
 		if(p->gcb4[n][3]==2)
 		for(q=0;q<p->margin;++q)
+        if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin+q+1)*p->kmax + k-p->kmin]<0)
 		cart4::ggcmem[(i-imin)*jmax*kmax + (j-jmin+q+1)*kmax + k-kmin]+=1;
 
 		if(p->gcb4[n][3]==5)
 		for(q=0;q<p->margin;++q)
+        if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-q-1]<0)
 		cart4::ggcmem[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin-q-1]+=1;
 
 		if(p->gcb4[n][3]==6)
 		for(q=0;q<p->margin;++q)
+        if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+q+1]<0)
 		cart4::ggcmem[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin+q+1]+=1;
 	}
 

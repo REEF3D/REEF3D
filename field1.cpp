@@ -125,6 +125,9 @@ double & field1::operator()(int ii, int jj, int kk)
             if(pp->gcorig1[pp->mgc1[iter]-10][3][di]==0)
             {
             //cout<<V[iter]<<" "<<pp->flag1[iter]<<endl;
+            //if(pp->mpirank==1)
+            //return zero;
+            
             return V[iter];
             }
 			

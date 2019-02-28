@@ -149,6 +149,60 @@ void pjm::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field 
 	u.ggcpol(p);
 	v.ggcpol(p);
 	w.ggcpol(p);
+    
+    
+    
+    /*
+    if(p->mpirank==1)
+    {
+    j=25;
+    k=27;
+    //cout<<p->knoz<<" | "<<endl;
+    for(i=0;i<p->knox;++i)
+    cout<<p->flag1[IJK]<<" ";
+    
+    cout<<endl;
+    
+    for(i=0;i<p->knox;++i)
+    cout<<p->mgc1[IJK]<<"  ";
+    
+    cout<<endl;
+    
+    for(i=0;i<p->knox;++i)
+    cout<<u(i,j,k)<<"  ";
+    
+    cout<<endl;
+    cout<<endl;
+    }*/
+    
+    /*
+    if(p->mpirank==1)
+    {
+    ULOOP
+    if(p->mgc1[IJK]>1)
+    cout<<p->mgc1[IJK]<<" MGC: "<<i<<" "<<j<<" "<<k<<endl;
+    
+    }*/
+    
+    
+    if(p->mpirank==1)
+    {
+    i=p->knox-1;
+    j=29;
+    k=28;
+    
+    cout<<" MGC1: "<<p->mgc1[IJK]<<" "<<p->mgc1[Im1JK]<<" "<<p->mgc1[Im2JK]<<" "<<p->mgc1[Im3JK]<<" "<<endl;
+    
+    cout<<" FLAG1: "<<p->flag1[IJK]<<" "<<p->flag1[Im1JK]<<" "<<p->flag1[Im2JK]<<" "<<p->flag1[Im3JK]<<" "<<endl;
+    
+    cout<<" U: "<<u(i,j,k)<<" "<<u(i-1,j,k)<<" "<<u(i-2,j,k)<<" "<<endl;
+    
+
+    
+    
+    cout<<endl;
+    }
+    
 }
 
 void pjm::pressure_norm(lexer*p, fdm* a, ghostcell* pgc)
