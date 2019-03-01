@@ -123,13 +123,7 @@ double & field1::operator()(int ii, int jj, int kk)
 		{
 			di=1;
             if(pp->gcorig1[pp->mgc1[iter]-10][3][di]==0)
-            {
-            //cout<<V[iter]<<" "<<pp->flag1[iter]<<endl;
-            //if(pp->mpirank==1)
-            //return zero;
-            
             return V[iter];
-            }
 			
 			if(pp->gcorig1[pp->mgc1[iter]-10][3][di]==1)
 			return gcfeld[pp->mgc1[iter]-10][3][di];
@@ -137,15 +131,6 @@ double & field1::operator()(int ii, int jj, int kk)
         
         if(di==0 && dj==0 && dk==0)
 		return V[iter];
-		/*
-		if(di==0 && dj==0 && dk==0 && pip!=1)
-		return V[iter];
-        
-        if(di==0 && dj==0 && dk==0 && pip==1)
-		di=1;
-        
-        if(di==0 && pip==1)
-		di=1;*/
 	  
 //1
 		if(di<0 && ((dj==0 && dk==0) || pip==1))

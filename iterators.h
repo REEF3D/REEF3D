@@ -366,6 +366,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define IJKm3  (i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-3
 #define IJKp3  (i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+3
 
+#define Im4JK  (i-p->imin-4)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin
+#define IJKm4  (i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-4
+
 #define Im1Jm1K  (i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin
 #define Im1Jp1K  (i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin
 #define Ip1Jm1K  (i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin

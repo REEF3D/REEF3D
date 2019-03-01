@@ -28,18 +28,6 @@ void ghostcell::start1(lexer *p, field& f, int gcv)
     if(p->F10==1)
     nse1(p,a,f,gcv);
     
-	//  MPI Boundary Swap
-    if(p->M10>0)
-    {
-    starttime=timer();
-	gcparax(p,f,1);
-	gcparavoidx(p,f,gcv);
-	gcparacox(p,f,gcv);
-	gcparacox(p,f,gcv);
-	endtime=timer();
-	p->xtime+=endtime-starttime;
-    }
-    
     starttime=timer();
 	QQGC1LOOP
 	gcdistro1(p,f,p->gcb1[qq][0], p->gcb1[qq][1], p->gcb1[qq][2], p->gcb1[qq][5], p->gcd1[qq], gcv, p->gcb1[qq][4], p->gcb1[qq][3]);
@@ -54,6 +42,18 @@ void ghostcell::start1(lexer *p, field& f, int gcv)
         
     if(p->Y40==2  || p->Y40==3)
     f.ggcpol(p);
+    
+    //  MPI Boundary Swap
+    if(p->M10>0)
+    {
+    starttime=timer();
+	gcparax(p,f,1);
+	gcparavoidx(p,f,gcv);
+	gcparacox(p,f,gcv);
+	gcparacox(p,f,gcv);
+	endtime=timer();
+	p->xtime+=endtime-starttime;
+    }
 }
 
 void ghostcell::start2(lexer *p, field& f, int gcv)
@@ -63,18 +63,6 @@ void ghostcell::start2(lexer *p, field& f, int gcv)
     {
     if(p->F10==1)
     nse2(p,a,f,gcv);
-    
-	//  MPI Boundary Swap
-    if(p->M10>0)
-    {
-    starttime=timer();
-	gcparax(p,f,2);
-	gcparavoidx(p,f,gcv);
-	gcparacox(p,f,gcv);
-	gcparacox(p,f,gcv);
-	endtime=timer();
-	p->xtime+=endtime-starttime;
-    }
     
     starttime=timer();
 	QQGC2LOOP
@@ -91,24 +79,24 @@ void ghostcell::start2(lexer *p, field& f, int gcv)
         
     if(p->Y40==2  || p->Y40==3)
     f.ggcpol(p);
-}
-
-void ghostcell::start3(lexer *p, field& f, int gcv)
-{
-    if(p->F10==1)
-    nse3(p,a,f,gcv);
     
-	//  MPI Boundary Swap
+    //  MPI Boundary Swap
     if(p->M10>0)
     {
     starttime=timer();
-	gcparax(p,f,3);
+	gcparax(p,f,2);
 	gcparavoidx(p,f,gcv);
 	gcparacox(p,f,gcv);
 	gcparacox(p,f,gcv);
 	endtime=timer();
 	p->xtime+=endtime-starttime;
     }
+}
+
+void ghostcell::start3(lexer *p, field& f, int gcv)
+{
+    if(p->F10==1)
+    nse3(p,a,f,gcv);
     
     starttime=timer();
     QQGC3LOOP
@@ -124,24 +112,25 @@ void ghostcell::start3(lexer *p, field& f, int gcv)
         
     if(p->Y40==2  || p->Y40==3)
     f.ggcpol(p);
-}
-
-void ghostcell::start4(lexer *p, field &f, int gcv)
-{
-    if(p->F10==1)
-    nse4(p,a,f,gcv);
     
-	//  MPI Boundary Swap
+    
+    //  MPI Boundary Swap
     if(p->M10>0)
     {
     starttime=timer();
-	gcparax(p,f,4);
+	gcparax(p,f,3);
 	gcparavoidx(p,f,gcv);
 	gcparacox(p,f,gcv);
 	gcparacox(p,f,gcv);
 	endtime=timer();
 	p->xtime+=endtime-starttime;
     }
+}
+
+void ghostcell::start4(lexer *p, field &f, int gcv)
+{
+    if(p->F10==1)
+    nse4(p,a,f,gcv);
 	
 	starttime=timer();
 	QQGC4LOOP
@@ -158,11 +147,29 @@ void ghostcell::start4(lexer *p, field &f, int gcv)
         
     if(p->Y40==2  || p->Y40==3)
     f.ggcpol(p);
+    
+    //  MPI Boundary Swap
+    if(p->M10>0)
+    {
+    starttime=timer();
+	gcparax(p,f,4);
+	gcparavoidx(p,f,gcv);
+	gcparacox(p,f,gcv);
+	gcparacox(p,f,gcv);
+	endtime=timer();
+	p->xtime+=endtime-starttime;
+    }
 }
 
 void ghostcell::start4a(lexer *p, field& f, int gcv)
 {
-//  MPI Boundary Swap
+    starttime=timer();
+	QQGC4ALOOP
+	gcdistro4a(p,f,p->gcb4a[qq][0], p->gcb4a[qq][1], p->gcb4a[qq][2], p->gcb4a[qq][5], p->gcd4a[qq], gcv, p->gcb4a[qq][4], p->gcb4a[qq][3]);
+	endtime=timer();
+	p->gctime+=endtime-starttime;
+    
+    //  MPI Boundary Swap
     if(p->M10>0)
     {
     starttime=timer();
@@ -172,39 +179,34 @@ void ghostcell::start4a(lexer *p, field& f, int gcv)
 	gcparacox(p,f,gcv);
 	endtime=timer();
 	p->xtime+=endtime-starttime;
-    }
-    
-    starttime=timer();
-	QQGC4ALOOP
-	gcdistro4a(p,f,p->gcb4a[qq][0], p->gcb4a[qq][1], p->gcb4a[qq][2], p->gcb4a[qq][5], p->gcd4a[qq], gcv, p->gcb4a[qq][4], p->gcb4a[qq][3]);
-	endtime=timer();
-	p->gctime+=endtime-starttime;
-    
-    
-    
+    }    
 }
 
 void ghostcell::start4V(lexer *p, vec &x, int gcv)
 {
-	if(p->M10>0)
+    starttime=timer();
+    QQGC4LOOP
+	gcdistro4V(p,a,x,p->gcb4[qq][0],p->gcb4[qq][1], p->gcb4[qq][2], p->gcd4[qq], gcv, p->gcb4[qq][4], p->gcb4[qq][3], p->gcb4[qq][5]);
+	endtime=timer();
+	p->gctime+=endtime-starttime;
+    
+    if(p->M10>0)
     {
     starttime=timer();
 	gcparaxvec(p,x,4);
 	endtime=timer();
 	p->xtime+=endtime-starttime;
     }
-    
-    starttime=timer();
-    QQGC4LOOP
-	gcdistro4V(p,a,x,p->gcb4[qq][0],p->gcb4[qq][1], p->gcb4[qq][2], p->gcd4[qq], gcv, p->gcb4[qq][4], p->gcb4[qq][3], p->gcb4[qq][5]);
-	endtime=timer();
-	p->gctime+=endtime-starttime;
 }
 
 void ghostcell::start4aV(lexer *p, vec &x, int gcv)
 {
     starttime=timer();
 
+	QQGC4ALOOP
+	gcdistro4aV(p,a,x,p->gcb4a[qq][0],p->gcb4a[qq][1], p->gcb4a[qq][2], p->gcd4a[qq], gcv, p->gcb4a[qq][4], p->gcb4a[qq][3], p->gcb4a[qq][5]);
+	endtime=timer();
+    
     if(p->M10>0)
     {
     starttime=timer();
@@ -212,10 +214,6 @@ void ghostcell::start4aV(lexer *p, vec &x, int gcv)
 	endtime=timer();
 	p->xtime+=endtime-starttime;
     }
-    
-	QQGC4ALOOP
-	gcdistro4aV(p,a,x,p->gcb4a[qq][0],p->gcb4a[qq][1], p->gcb4a[qq][2], p->gcd4a[qq], gcv, p->gcb4a[qq][4], p->gcb4a[qq][3], p->gcb4a[qq][5]);
-	endtime=timer();
     
 	p->gctime+=endtime-starttime;
 }

@@ -157,8 +157,7 @@ void mgc4::fillmgc(lexer* p)
 			p->mgc4[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin+n+1]=p->gcextra4;
 			++p->gcextra4;
         }
-	}
-	    
+	}	    
 }
 
 void mgc4::gcdirfill(lexer* p)

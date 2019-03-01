@@ -78,14 +78,13 @@ void pjm::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, mo
 	ucorr(a,p,uvel,alpha);
 	vcorr(a,p,vvel,alpha);
 	wcorr(a,p,wvel,alpha);
-
+    
     p->poissoniter=p->solveriter;
 
 	p->poissontime=endtime-starttime;
 
 	if(p->mpirank==0 && innercounter==p->N50-1 && (p->count%p->P12==0))
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
-    
 }
 
 void pjm::ucorr(fdm* a, lexer* p, field& uvel,double alpha)
@@ -111,7 +110,6 @@ void pjm::wcorr(fdm* a, lexer* p, field& wvel,double alpha)
  
 void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
 {
-
     NLOOP4
 	a->rhsvec.V[n]=0.0;
 	
@@ -125,18 +123,6 @@ void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,dou
 						   -(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DZN[KP]);
     ++count;
     }
-    
-    LOOP
-    {
-    a->test(i,j,k) =  -(u(i,j,k)-u(i-1,j,k))/(alpha*p->dt*p->DXN[IP])
-    
-    -(v(i,j,k)-v(i,j-1,k))/(alpha*p->dt*p->DYN[JP])
-						  
-                        
-						   -(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DZN[KP]);
-
-    }
-    
     pip=0;
 }
  
@@ -149,60 +135,6 @@ void pjm::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field 
 	u.ggcpol(p);
 	v.ggcpol(p);
 	w.ggcpol(p);
-    
-    
-    
-    /*
-    if(p->mpirank==1)
-    {
-    j=25;
-    k=27;
-    //cout<<p->knoz<<" | "<<endl;
-    for(i=0;i<p->knox;++i)
-    cout<<p->flag1[IJK]<<" ";
-    
-    cout<<endl;
-    
-    for(i=0;i<p->knox;++i)
-    cout<<p->mgc1[IJK]<<"  ";
-    
-    cout<<endl;
-    
-    for(i=0;i<p->knox;++i)
-    cout<<u(i,j,k)<<"  ";
-    
-    cout<<endl;
-    cout<<endl;
-    }*/
-    
-    /*
-    if(p->mpirank==1)
-    {
-    ULOOP
-    if(p->mgc1[IJK]>1)
-    cout<<p->mgc1[IJK]<<" MGC: "<<i<<" "<<j<<" "<<k<<endl;
-    
-    }*/
-    
-    
-    if(p->mpirank==1)
-    {
-    i=p->knox-1;
-    j=29;
-    k=28;
-    
-    cout<<" MGC1: "<<p->mgc1[IJK]<<" "<<p->mgc1[Im1JK]<<" "<<p->mgc1[Im2JK]<<" "<<p->mgc1[Im3JK]<<" "<<endl;
-    
-    cout<<" FLAG1: "<<p->flag1[IJK]<<" "<<p->flag1[Im1JK]<<" "<<p->flag1[Im2JK]<<" "<<p->flag1[Im3JK]<<" "<<endl;
-    
-    cout<<" U: "<<u(i,j,k)<<" "<<u(i-1,j,k)<<" "<<u(i-2,j,k)<<" "<<endl;
-    
-
-    
-    
-    cout<<endl;
-    }
-    
 }
 
 void pjm::pressure_norm(lexer*p, fdm* a, ghostcell* pgc)

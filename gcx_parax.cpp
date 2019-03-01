@@ -25,6 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void ghostcell::gcparax(lexer* p,field& f,int gcv)
 {
+    pip=4;
     paramargin=margin;
 
 //  FILL SEND
@@ -111,7 +112,8 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
         ++count;
         }
 	}
-
+    
+    pip=0;
 
 //  SEND / RECEIVE
 
@@ -164,34 +166,11 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
     j=p->gcpara1[q][1];
     k=p->gcpara1[q][2];
         
-        //if((gcv!=1 || p->mpirank!=2) || j!=25)
-        
-        //if(gcv!=1 || p->mpirank!=2)
-        
-        //if((gcv!=1 || p->mpirank!=2) || j!=25 || k!=26)
-        
         for(n=0;n<paramargin;++n)
         {
-        //if((gcv!=1 || p->mpirank!=2) || j!=29 || k!=28)
         f(i-n-1,j,k)=recv1[count];
-        
-       // if(gcv==1 && p->mpirank==2 && j==25 && k==26)
-        //cout<<"GCX1: "<<recv1[count]<<endl;
-        
         ++count;
         }
-        
-        
-            
-            
-        /*
-        if(gcv==1 && p->mpirank==2)
-        for(n=0;n<paramargin;++n)
-        {
-        if(p->flag1[(i-n-1-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]<0)
-        f(i-n-1,j,k)=recv1[count];
-        ++count;
-        }*/
     }
 
     count=0;
