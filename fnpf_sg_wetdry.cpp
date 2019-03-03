@@ -38,7 +38,7 @@ void fnpf_sg_fsfbc::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
           if(p->A343>=2)
           if((eta(i-1,j)>eta(i,j)  && c->wet(i-1,j)==1)
           || (eta(i+1,j)>eta(i,j)  && c->wet(i+1,j)==1)
-          || (eta(i,j-1)>eta(i,j)   && c->wet(i,j-1)==1)
+          || (eta(i,j-1)>eta(i,j)   && c->wet(i,j-1)==1)
           || (eta(i,j+1)>eta(i,j)  && c->wet(i,j+1)==1))
           c->wet(i,j)=1;  
           }          
@@ -52,7 +52,7 @@ void fnpf_sg_fsfbc::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
           if(c->wet(i,j)==1)
           if((eta(i,j)<eta(i-1,j) && c->wet(i-1,j)==0) 
           || (eta(i,j)<eta(i+1,j)  && c->wet(i+1,j)==0) 
-          || (eta(i,j)<eta(i,j-1)  && c->wet(i,j-1)==0) 
+          || (eta(i,j)<eta(i,j-1)  && c->wet(i,j-1)==0) 
           || (eta(i,j)<eta(i,j+1) && c->wet(i,j+1)==0) )
           c->wet(i,j)=0;          
       }
