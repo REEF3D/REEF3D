@@ -119,10 +119,13 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
 
     
 	p->dt=pgc->timesync(p->dt);
-
+    if (p->N48 == 0) {
+        p->dt=maxtimestep;
+    }
+    else{
 	p->dt=MIN(p->dt,maxtimestep);
-	p->turbtimestep=p->dt;
-
+    }
+    p->turbtimestep=p->dt;
 }
 
 void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
