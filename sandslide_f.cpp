@@ -93,7 +93,6 @@ void sandslide_f::start(lexer *p, fdm * a, ghostcell *pgc)
 
 void sandslide_f::slide(lexer *p, fdm * a, ghostcell *pgc)
 {
-
 		k = a->bedk(i,j);
 		
 		slope(p,a,pgc,teta,alpha,gamma,phi);
