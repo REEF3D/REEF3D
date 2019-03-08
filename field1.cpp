@@ -118,7 +118,6 @@ double & field1::operator()(int ii, int jj, int kk)
 		if(pip==4)
 		return V[iter];
         
-        double zero=0.0;
         if(di==0 && dj==0 && dk==0 && pip==5)
 		{
 			di=1;
