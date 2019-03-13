@@ -58,7 +58,7 @@ void fluid_update_fsf_concentration::start(lexer *p, fdm* a, ghostcell* pgc)
         epsi = p->F45*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
         
         
-		if(a->phi(i,j,k)>(p->F45))
+		if(a->phi(i,j,k)>epsi)
 		H=1.0;
 
 		if(a->phi(i,j,k)<-epsi)
