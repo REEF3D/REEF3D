@@ -758,6 +758,7 @@
           <File Name="fnpf_fg_RK3.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <File Name="fnpf_print_wsfline_y.h"/>
           <File Name="potentialfile_out.h"/>
           <File Name="fnpf_print_wsfline.h"/>
           <File Name="fnpf_print_wsf.h"/>
@@ -2200,6 +2201,7 @@
             <File Name="fnpf_vtu3D_header.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="WSF">
+            <File Name="fnpf_print_wsfline_y.cpp"/>
             <File Name="fnpf_print_wsfline.cpp"/>
             <File Name="fnpf_print_wsf.cpp"/>
           </VirtualDirectory>
