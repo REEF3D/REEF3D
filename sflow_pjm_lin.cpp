@@ -183,8 +183,7 @@ void sflow_pjm_lin::rhs(lexer *p, fdm2D* b, slice &P, slice &Q, slice &w, double
                            + (Q(i,j) - Q(i,j-1))*(b->hp(i,j)))/(alpha*p->dt*p->dx)
                            
                            -2.0*(w(i,j) + 0.25*(P(i,j)+P(i-1,j))*(b->depth(i+1,j)-b->depth(i-1,j))/p->dx
-                
-                                         + 0.25*(Q(i,j)+Q(i,j-1))*(b->depth(i,j+1)-b->depth(i,j-1))/p->dx
+                                        + 0.25*(Q(i,j)+Q(i,j-1))*(b->depth(i,j+1)-b->depth(i,j-1))/p->dx
                            
                            )   /(alpha*p->dt);
                            

@@ -151,7 +151,7 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             c->rhsvec.V[n] -= c->M.t[n]*f[FIJKp2];
             c->M.t[n] = 0.0;
             }
-            
+ 
             // KBEDBC
             if(p->flag7[FIJKm1]<0)
             {
