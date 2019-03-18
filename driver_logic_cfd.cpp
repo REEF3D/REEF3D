@@ -738,9 +738,12 @@ void driver::logic()
 	if(p->N8==2)
 	psolv = new sip(p,a,pgc);
 	
-	if(p->N8==3)
+	if(p->N8==3 && p->j_dir==0)
+	psolv = new bicgstab_2D(p,a,pgc,p->N9);
+    
+    if(p->N8==3 && p->j_dir==1)
 	psolv = new bicgstab(p,a,pgc,p->N9);
-	
+
     
 //Poison Solver	
 	if(p->N10==0)

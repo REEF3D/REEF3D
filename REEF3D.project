@@ -616,6 +616,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
       <VirtualDirectory Name="CG">
+        <File Name="bicgstab_2D.h"/>
         <File Name="bicgstab.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sparse Matrix">
@@ -2014,6 +2015,7 @@
         <File Name="hypre_sstruct.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CG">
+        <File Name="bicgstab_2D.cpp"/>
         <File Name="bicgstab.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sparse Matrix">

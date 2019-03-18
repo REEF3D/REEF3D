@@ -23,6 +23,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 #include"jacobi_block.h"
 #include"sip.h"
 #include"bicgstab.h"
+#include"bicgstab_2D.h"
 
 #include"hypre_aij.h"
 #include"hypre_struct.h"
