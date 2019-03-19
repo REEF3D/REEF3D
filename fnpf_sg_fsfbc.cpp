@@ -40,7 +40,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_ddx_cds2.h"
 #include"fnpf_ddx_cds4.h"
 
-fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : diss(p)
+fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : diss(p), EEx(p),EEy(p)
 {    
     if(p->A311==0)
     pconvec = new fnpf_voiddisc(p);
@@ -55,7 +55,10 @@ fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : diss(p)
     pconvec = new fnpf_weno(p);
     
     if(p->A311==5)
+    {
     pconvec = new fnpf_weno_wd(p,c);
+    }
+    pdf = new fnpf_wenoflux(p);
 
     if(p->A311==6)
     pconvec = new fnpf_cds6(p);
@@ -114,6 +117,9 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     c->Fx(i,j) = pconvec->sx(p,Fifsf,ivel);
     c->Fy(i,j) = pconvec->sy(p,Fifsf,jvel);
     
+    EEx(i,j) = pdf->sx(p,eta,c->Fx);
+    EEy(i,j) = pdf->sy(p,eta,c->Fy);
+    
     c->Ex(i,j) = pconvec->sx(p,eta,ivel);
     c->Ey(i,j) = pconvec->sy(p,eta,jvel);
     
@@ -127,6 +133,7 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);    
     
     c->Fx(i,j) = pconvec->sx(p,Fifsf,ivel);
+    EEx(i,j) = pdf->sx(p,eta,c->Fx);
     c->Ex(i,j) = pconvec->sx(p,eta,ivel);
     c->Exx(i,j) = pddx->sxx(p,eta);
     }
@@ -160,7 +167,8 @@ void fnpf_sg_fsfbc::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     {
     c->Fz(i,j) = p->sigz[IJ]*pconvec->sz(p,c->Fi);
     
-    if(eta(i,j) + p->wd - c->bed(i,j) < c->wd_criterion)
+    //if(eta(i,j) + p->wd - c->bed(i,j) < c->wd_criterion)
+    if(c->wet(i,j)==0)
     c->Fz(i,j) = 0.0;
     }
 }
@@ -169,7 +177,8 @@ void fnpf_sg_fsfbc::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
 
     SLICELOOP4
-    c->K(i,j) =  - c->Fx(i,j)*c->Ex(i,j) - c->Fy(i,j)*c->Ey(i,j) 
+    c->K(i,j) =  //- c->Fx(i,j)*c->Ex(i,j) - c->Fy(i,j)*c->Ey(i,j) 
+                - EEx(i,j) - EEy(i,j)
     
                  + c->Fz(i,j)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0));
 }

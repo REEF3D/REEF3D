@@ -50,6 +50,7 @@ public:
     void filter(lexer*, fdm_fnpf*,ghostcell*, slice&);
 
     fnpf_convection *pconvec;
+    fnpf_etadisc *pdf;
     fnpf_convection *pdx;
     fnpf_ddx *pddx;
 
@@ -57,6 +58,7 @@ public:
     
 private:
     slice4 diss;
+    slice4 EEx,EEy;
     
 };
 
