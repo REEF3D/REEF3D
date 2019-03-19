@@ -114,11 +114,13 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);    
     jvel = (Fifsf(i,j+1) - Fifsf(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
     
+    EEx(i,j) = pdf->sx(p,eta,c->Fx);
+    EEy(i,j) = pdf->sy(p,eta,c->Fy);
+    
     c->Fx(i,j) = pconvec->sx(p,Fifsf,ivel);
     c->Fy(i,j) = pconvec->sy(p,Fifsf,jvel);
     
-    EEx(i,j) = pdf->sx(p,eta,c->Fx);
-    EEy(i,j) = pdf->sy(p,eta,c->Fy);
+    
     
     c->Ex(i,j) = pconvec->sx(p,eta,ivel);
     c->Ey(i,j) = pconvec->sy(p,eta,jvel);
