@@ -26,6 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ioflow.h"
 #include"fnpf_print_wsf.h"
 #include"fnpf_print_wsfline.h"
+#include"fnpf_print_wsfline_y.h"
 #include"potentialfile_out.h"
 #include<sys/stat.h>
 #include<sys/types.h>
@@ -58,6 +59,8 @@ fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
     pwsf=new fnpf_print_wsf(p,c);
     
     pwsfline=new fnpf_print_wsfline(p,c,pgc);
+    
+    pwsfline_y=new fnpf_print_wsfline_y(p,c,pgc);
     
     if(p->P230>0)
     ppotentialfile = new potentialfile_out(p,c,pgc);
@@ -97,12 +100,12 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 		printtime_wT[qn]+=p->P35_dt[qn];
 		}
         
-        
     // Gages
-    
-    
     if((p->P52>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P52>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
     pwsfline->start(p,c,pgc,pflow,c->eta);
+    
+    if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
+    pwsfline_y->start(p,c,pgc,pflow,c->eta);
 }
 
 void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
