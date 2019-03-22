@@ -35,15 +35,15 @@ fnpf_print_wsfline_y::fnpf_print_wsfline_y(lexer *p, fdm_fnpf *c, ghostcell *pgc
     maxknoy=pgc->globalimax(p->knoy);
     sumknoy=pgc->globalisum(maxknoy);
 	
-    p->Darray(yloc,p->P56+1,maxknoy);
-    p->Darray(wsf,p->P56+1,maxknoy);
-    p->Iarray(flag,p->P56+1,maxknoy);
-	p->Iarray(wsfpoints,p->P56+1);
+    p->Darray(yloc,p->P56+2,maxknoy);
+    p->Darray(wsf,p->P56+2,maxknoy);
+    p->Iarray(flag,p->P56+2,maxknoy);
+	p->Iarray(wsfpoints,p->P56+2);
 	
 
-    p->Darray(yloc_all,p->P56+1,sumknoy);
-    p->Darray(wsf_all,p->P56+1,sumknoy);
-	p->Iarray(flag_all,p->P56+1,sumknoy);
+    p->Darray(yloc_all,p->P56+2,sumknoy);
+    p->Darray(wsf_all,p->P56+2,sumknoy);
+	p->Iarray(flag_all,p->P56+2,sumknoy);
 	p->Iarray(rowflag,sumknoy);
 
     for(q=0;q<p->P56;++q)
@@ -211,6 +211,7 @@ void fnpf_print_wsfline_y::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *
 			if(check==1)
 			rowflag[n]=1;
 		}
+        
 
         for(n=0;n<sumknoy;++n)
         {
@@ -250,9 +251,10 @@ void fnpf_print_wsfline_y::ini_location(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     int check,count;
     
-    count=0;
+    
     for(q=0;q<p->P56;++q)
     {
+        count=0;
         JLOOP
         {
 
@@ -260,7 +262,6 @@ void fnpf_print_wsfline_y::ini_location(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
         if(iloc[q]>=0 && iloc[q]<p->knox)
         flag[q][count]=1;
-
         ++count;
         }
     }

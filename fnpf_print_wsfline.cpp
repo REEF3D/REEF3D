@@ -35,15 +35,15 @@ fnpf_print_wsfline::fnpf_print_wsfline(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     maxknox=pgc->globalimax(p->knox);
     sumknox=pgc->globalisum(maxknox);
 	
-    p->Darray(xloc,p->P52+1,maxknox);
-    p->Darray(wsf,p->P52+1,maxknox);
-    p->Iarray(flag,p->P52+1,maxknox);
-	p->Iarray(wsfpoints,p->P52+1);
+    p->Darray(xloc,p->P52+2,maxknox);
+    p->Darray(wsf,p->P52+2,maxknox);
+    p->Iarray(flag,p->P52+2,maxknox);
+	p->Iarray(wsfpoints,p->P52+2);
 	
 
-    p->Darray(xloc_all,p->P52+1,sumknox);
-    p->Darray(wsf_all,p->P52+1,sumknox);
-	p->Iarray(flag_all,p->P52+1,sumknox);
+    p->Darray(xloc_all,p->P52+2,sumknox);
+    p->Darray(wsf_all,p->P52+2,sumknox);
+	p->Iarray(flag_all,p->P52+2,sumknox);
 	p->Iarray(rowflag,sumknox);
 
     for(q=0;q<p->P52;++q)
@@ -175,7 +175,6 @@ void fnpf_print_wsfline::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pf
         }
     }
 	
-	
 	for(q=0;q<p->P52;++q)
     wsfpoints[q]=sumknox;
 	
@@ -192,7 +191,6 @@ void fnpf_print_wsfline::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pf
         sort(xloc_all[q], wsf_all[q], flag_all[q], 0, wsfpoints[q]-1);
         remove_multientry(p,xloc_all[q], wsf_all[q], flag_all[q], wsfpoints[q]); 
         }
-		
     }
 	
     // write to file
@@ -211,14 +209,17 @@ void fnpf_print_wsfline::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pf
 			if(check==1)
 			rowflag[n]=1;
 		}
+        
 
         for(n=0;n<sumknox;++n)
         {
+            
 			check=0;
 		    for(q=0;q<p->P52;++q)
 			{
 				if(flag_all[q][n]>0 && xloc_all[q][n]<1.0e20)
 				{
+
 				wsfout<<setprecision(5)<<xloc_all[q][n]<<" \t ";
 				wsfout<<setprecision(5)<<wsf_all[q][n]<<" \t  ";
 				
@@ -233,7 +234,6 @@ void fnpf_print_wsfline::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pf
 				{
 					wsfout<<setprecision(5)<<" \t ";
 					wsfout<<setprecision(5)<<" \t ";
-					
 				}
 			}
 
@@ -241,7 +241,7 @@ void fnpf_print_wsfline::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pf
 			if(check==1)
             wsfout<<endl;
         }
-
+        
     wsfout.close();
     }
 }
@@ -250,9 +250,10 @@ void fnpf_print_wsfline::ini_location(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     int check,count;
     
-    count=0;
+    
     for(q=0;q<p->P52;++q)
     {
+        count=0;
         ILOOP
         {
 
