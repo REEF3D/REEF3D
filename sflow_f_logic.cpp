@@ -150,7 +150,7 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	// solver
 	ppoissonsolv = new hypre_struct2D(p,b,pgc);
     
-    psolv = new sflow_bicgstab(p,b,pgc,p->N9);
+    psolv = new sflow_bicgstab(p,b,pgc);
     
 	// ioflow
 	pflow = new iowave(p,pgc);
