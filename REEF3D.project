@@ -798,11 +798,31 @@
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <VirtualDirectory Name="Sediment">
+          <VirtualDirectory Name="Bedlevel">
+            <File Name="sflow_sed_bedlevel.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Suspended"/>
+          <VirtualDirectory Name="Sandslide">
+            <File Name="sflow_sed_sandslide.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Bedload">
+            <File Name="sflow_sed_bedload_MPM.h"/>
+            <File Name="sflow_sed_bedload_vanRijn.h"/>
+            <File Name="sflow_sed_bedload_EF.h"/>
+            <File Name="sflow_sed_bedload.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Bedshear">
+            <File Name="sflow_sed_bedshear.h"/>
+            <File Name="sflow_sed_bedslope.h"/>
+          </VirtualDirectory>
           <File Name="sflow_sediment_v.h"/>
           <File Name="sflow_sediment_f.h"/>
           <File Name="sflow_sediment.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
+          <VirtualDirectory Name="BC">
+            <File Name="sflow_roughness.h"/>
+          </VirtualDirectory>
           <File Name="sflow_momentum_RK3.h"/>
           <File Name="sflow_momentum.h"/>
           <File Name="sflow_momentum_RK4.h"/>
@@ -832,6 +852,8 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
+          <File Name="sflow_turb_prandtl.h"/>
+          <File Name="sflow_turb_keps_IM1.h"/>
           <File Name="sflow_turbulence.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Solver">
@@ -845,7 +867,7 @@
           </VirtualDirectory>
           <File Name="solver2D.h"/>
           <VirtualDirectory Name="CG">
-            <File Name="bicgstab2D.h"/>
+            <File Name="sflow_bicgstab.h"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
@@ -2246,15 +2268,29 @@
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <VirtualDirectory Name="Sediment">
-          <File Name="sflow_sediment_exner.cpp"/>
-          <File Name="sflow_sediment_sandslide.cpp"/>
-          <File Name="sflow_sediment_bedslope.cpp"/>
-          <File Name="sflow_sediment_bedload.cpp"/>
-          <File Name="sflow_sediment_bedshear.cpp"/>
+          <VirtualDirectory Name="Sandslide">
+            <File Name="sflow_sed_sandslide.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Bedlevel">
+            <File Name="sflow_sed_exner.cpp"/>
+            <File Name="sflow_sed_bedslope.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Suspended"/>
+          <VirtualDirectory Name="Bedshear">
+            <File Name="sflow_sed_bedshear.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Bedload">
+            <File Name="sflow_sed_MPM.cpp"/>
+            <File Name="sflow_sed_vanRijn.cpp"/>
+            <File Name="sflow_sed_EF.cpp"/>
+          </VirtualDirectory>
           <File Name="sflow_sediment_v.cpp"/>
           <File Name="sflow_sediment_f.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
+          <VirtualDirectory Name="sflow_roughness.cpp">
+            <File Name="sflow_roughness.cpp"/>
+          </VirtualDirectory>
           <File Name="sflow_momentum_RK3.cpp"/>
           <File Name="sflow_momentum_RK4.cpp"/>
           <File Name="sflow_momentum_AB2.cpp"/>
@@ -2280,7 +2316,10 @@
           <File Name="sflow_eta_wetdry.cpp"/>
           <File Name="sflow_eta_breaking.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Turbulence"/>
+        <VirtualDirectory Name="Turbulence">
+          <File Name="sflow_turb_prandtl.cpp"/>
+          <File Name="sflow_turb_keps_IM1.cpp"/>
+        </VirtualDirectory>
         <File Name="sflow_f.cpp"/>
         <File Name="sflow_v.cpp"/>
         <VirtualDirectory Name="Solver">
@@ -2296,7 +2335,7 @@
             <File Name="vec2D.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="CG">
-            <File Name="bicgstab2D.cpp"/>
+            <File Name="sflow_bicgstab.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">

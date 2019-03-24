@@ -25,6 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"iowave.h"
 #include"hypre_struct2D.h"
+#include"sflow_bicgstab.h"
 #include"sflow_etimestep.h"
 #include"sflow_fou.h"
 #include"sflow_cfou.h"
@@ -148,6 +149,8 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 	// solver
 	ppoissonsolv = new hypre_struct2D(p,b,pgc);
+    
+    psolv = new sflow_bicgstab(p,b,pgc,p->N9);
     
 	// ioflow
 	pflow = new iowave(p,pgc);
