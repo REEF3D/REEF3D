@@ -21,7 +21,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"sflow_bicgstab.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm2D.h"
 #include"ghostcell.h"
 #include"solver_void.h"
 #include"jacobi_scaling.h"
@@ -39,11 +39,11 @@ sflow_bicgstab::~sflow_bicgstab()
 {
 }
 
-void sflow_bicgstab::setup(lexer* p,fdm* a, ghostcell* pgc, int var, cpt &C)
+void sflow_bicgstab::setup(lexer* p,fdm2D* b, ghostcell* pgc, int var, cpt2D &C)
 {
 }
 
-void sflow_bicgstab::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, vec& rhsvec, int var, int gcv, double stop_crit)
+void sflow_bicgstab::start(lexer* p, fdm2D* b, ghostcell* pgc, slice &f, vec2D& xvec, vec2D& rhsvec, int var, int gcv, double stop_crit)
 {
 	p->preconiter=0;
 	
