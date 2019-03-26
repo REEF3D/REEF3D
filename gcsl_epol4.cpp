@@ -31,8 +31,12 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
     
     // vertical w
     else
-	if(gcv==12)
+	if(gcv==12 && bc!=1)
 	return 4;
+    
+    else
+	if(gcv==12 && bc==1)
+	return 5;
     
     
     // pressure 40
