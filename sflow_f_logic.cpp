@@ -20,39 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"sflow_f.h"
-#include"lexer.h"
-#include"fdm2D.h"
-#include"ghostcell.h"
-#include"iowave.h"
-#include"hypre_struct2D.h"
-#include"sflow_bicgstab.h"
-#include"sflow_etimestep.h"
-#include"sflow_fou.h"
-#include"sflow_cfou.h"
-#include"sflow_weno_flux.h"
-#include"sflow_weno_cflux.h"
-#include"sflow_weno_hj.h"
-#include"sflow_hires.h"
-#include"sflow_chires.h"
-#include"sflow_voidconv.h"
-#include"sflow_eta.h"
-#include"sflow_momentum_RK3.h"
-#include"sflow_momentum_RK2.h"
-#include"sflow_momentum_RK4.h"
-#include"sflow_momentum_AB2.h"
-#include"sflow_hydrostatic.h"
-#include"sflow_vtp.h"
-#include"sflow_vtp_bed.h"
-#include"sflow_diffusion_void.h"
-#include"sflow_ediff.h"
-#include"sflow_pjm_lin.h"
-#include"sflow_pjm_quad.h"
-#include"sflow_pjm_sw.h"
-#include"sflow_boussinesq_void.h"
-#include"sflow_boussinesq_abbott.h"
-#include"sflow_boussinesq_peregrine.h"
-#include"sflow_boussinesq_madsen92.h"
-#include"sflow_filter.h"
+#include"sflow_header.h"
 
 void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 {	
@@ -119,6 +87,9 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 	if(p->A212==1)
 	pdiff =  new sflow_ediff(p);
+    
+    if(p->A212==2)
+	pdiff =  new sflow_idiff(p);
 	
 	// pressure
     if(p->A220==0)

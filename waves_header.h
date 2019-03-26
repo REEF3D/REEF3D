@@ -20,7 +20,8 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 
-#include"sflow_header.h"
+#include"sflow_v.h"
+#include"sflow_f.h"
 #include"nsewave_v.h"
 #include"nsewave_f.h"
 #include"nsewave_geo.h"

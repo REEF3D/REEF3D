@@ -393,7 +393,6 @@
         <File Name="6DOF_header.h"/>
         <File Name="concentration_header.h"/>
         <File Name="waves_header.h"/>
-        <File Name="sflow_header.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
         <VirtualDirectory Name="Field">
@@ -797,6 +796,12 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
+        <VirtualDirectory Name="Main">
+          <File Name="sflow_header.h"/>
+          <File Name="sflow_v.h"/>
+          <File Name="sflow_f.h"/>
+          <File Name="sflow.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Sediment">
           <VirtualDirectory Name="Bedlevel">
             <File Name="sflow_sed_bedlevel.h"/>
@@ -876,6 +881,7 @@
           </VirtualDirectory>
           <File Name="fdm2D.h"/>
           <VirtualDirectory Name="Diffusion">
+            <File Name="sflow_idiff.h"/>
             <File Name="sflow_diffusion.h"/>
             <File Name="sflow_ediff.h"/>
             <File Name="sflow_diffusion_void.h"/>
@@ -919,9 +925,6 @@
             <File Name="sflow_flux_face_FOU.h"/>
           </VirtualDirectory>
         </VirtualDirectory>
-        <File Name="sflow.h"/>
-        <File Name="sflow_f.h"/>
-        <File Name="sflow_v.h"/>
         <VirtualDirectory Name="Print">
           <File Name="sflow_printer.h"/>
           <File Name="sflow_print_wsf.h"/>
@@ -2365,6 +2368,7 @@
           </VirtualDirectory>
           <File Name="fdm2D.cpp"/>
           <VirtualDirectory Name="Diffusion">
+            <File Name="sflow_idiff.cpp"/>
             <File Name="sflow_ediff.cpp"/>
             <File Name="sflow_diffusion_void.cpp"/>
           </VirtualDirectory>
