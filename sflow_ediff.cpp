@@ -36,9 +36,9 @@ void sflow_ediff::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
     double visc=p->W2;
     double dudx,dvdy,dudy,dvdx;
     
-    
 	SLICELOOP1
     {
+    /*
     if(p->A260==1)
     {
     dudx = (b->P(i+1,j) - b->P(i-1,j))/(2.0*p->dx);
@@ -47,9 +47,9 @@ void sflow_ediff::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
     dvdx = (0.5*(b->Q(i+1,j)+b->Q(i+1,j-1)) - 0.5*(b->Q(i,j)+b->Q(i,j-1)))/(p->dx);
     
     visc = 4.0*sqrt(2.0*pow(dudx,2.0) + 2.0*pow(dvdy,2.0) + pow(dudy+dvdx,2.0))+ p->W2;
-    }
+    }*/
     
-	b->F(i,j) +=  (visc/(p->dx*p->dx))*(f(i+1,j) - 2.0*f(i,j) + f(i-1,j)
+	b->F(i,j) +=  ((visc+0.5*(b->eddyv(i,j) + b->eddyv(i+1,j)))/(p->dx*p->dx))*(f(i+1,j) - 2.0*f(i,j) + f(i-1,j)
 									    + f(i,j+1) - 2.0*f(i,j) + f(i,j-1));
                                         
     }
@@ -63,6 +63,7 @@ void sflow_ediff::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
     
 	SLICELOOP2
     {
+        /*
         if(p->A260==1)
         {
         dudx = (0.5*(b->P(i+1,j+1)+b->P(i+1,j)) - 0.5*(b->P(i,j)+b->P(i,j)))/(p->dx);
@@ -71,9 +72,9 @@ void sflow_ediff::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
         dvdx = (b->Q(i+1,j) - b->Q(i-1,j))/(2.0*p->dx);
         
         visc = 4.0*sqrt(2.0*pow(dudx,2.0) + 2.0*pow(dvdy,2.0) + pow(dudy+dvdx,2.0))+ p->W2;
-        }
+        }*/
         
-	b->G(i,j) +=  (visc/(p->dx*p->dx))*(f(i+1,j) - 2.0*f(i,j) + f(i-1,j)
+	b->G(i,j) +=  ((visc+0.5*(b->eddyv(i,j) + b->eddyv(i,j+1)))/(p->dx*p->dx))*(f(i+1,j) - 2.0*f(i,j) + f(i-1,j)
 									    + f(i,j+1) - 2.0*f(i,j) + f(i,j-1));
     }
 }
