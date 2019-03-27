@@ -1634,6 +1634,7 @@
         <File Name="gcsolid_dist.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Slice">
+        <File Name="gcxsl_paraxvec2D.cpp"/>
         <File Name="gcxsl_paracox_int.cpp"/>
         <File Name="gcsl_outflow.cpp"/>
         <File Name="gcsl_sommerfeld.cpp"/>

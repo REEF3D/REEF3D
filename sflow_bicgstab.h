@@ -58,7 +58,7 @@ private:
     //cg
     vec2D sj,rj,r0,vj,tj,pj,precoeff,ph,sh;
 	
-	int *sizeM,*range;
+	int *sizeS,*range;
 
 	const double epsi;
 
