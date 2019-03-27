@@ -23,10 +23,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
-#include"solver_void.h"
-#include"jacobi_scaling.h"
-#include"jacobi_block.h"
-#include"sip.h"
 
 sflow_bicgstab::sflow_bicgstab(lexer* p,fdm2D* b,ghostcell *pgc):sj(p),rj(p),r0(p),vj(p),tj(p),pj(p),precoeff(p),
 												ph(p),sh(p),epsi(1e-19)
@@ -46,32 +42,32 @@ void sflow_bicgstab::setup(lexer* p,fdm2D* b, ghostcell* pgc, int var, cpt2D &C)
 void sflow_bicgstab::start(lexer* p, fdm2D* b, ghostcell* pgc, slice &f, vec2D& xvec, vec2D& rhsvec, int var, int gcv, double stop_crit)
 {
 	p->preconiter=0;
-	/*
+	
 	if(var==1)
     {
-	fillxvec1(p,a,f);
+	fillxvec1(p,b,f);
     sizeS=p->sizeS1;
 	precon=precon123;
-	solve(p,a,pgc,xvec,rhsvec,var,gcv,p->solveriter,p->N46,stop_crit,a->C1);
+	solve(p,b,pgc,xvec,rhsvec,var,gcv,p->solveriter,p->N46,stop_crit,b->C1);
     }
 	
 	if(var==2)
     {
-	fillxvec2(p,a,f);
+	fillxvec2(p,b,f);
     sizeS=p->sizeS2;
 	precon=precon123;
-	solve(p,a,pgc,xvec,rhsvec,var,gcv,p->solveriter,p->N46,stop_crit,a->C2);
+	solve(p,b,pgc,xvec,rhsvec,var,gcv,p->solveriter,p->N46,stop_crit,b->C2);
     }
 	
-	if(var==3var==4||var==5)
+	if(var==3||var==4||var==5)
     {
-	fillxvec4(p,a,f);
+	fillxvec4(p,b,f);
     sizeS=p->sizeS4;
 	precon=precon4;
-	solve(p,a,pgc,xvec,rhsvec,var,gcv,p->solveriter,p->N46,stop_crit,a->C4);
+	solve(p,b,pgc,xvec,rhsvec,var,gcv,p->solveriter,p->N46,stop_crit,b->C4);
     }
 	
-	finalize(p,a,f,xvec,var);*/
+	finalize(p,b,f,xvec,var);
 }
 
 	
@@ -85,11 +81,10 @@ void sflow_bicgstab::solve(lexer* p,fdm2D* b, ghostcell* pgc, vec2D& xvec, vec2D
 	// -----------------
 
  restart:
-    r_j=norm_r0=0.0;
-	gcupdate(p,a,pgc,xvec,var,gcv,solveriter);		
+    r_j=norm_r0=0.0;	
 	pgc->gcparaxvec(p,xvec,var);
 	
-	matvec_axb(p,a,xvec,rj,C);
+	matvec_axb(p,b,xvec,rj,C);
 	
 	NSLICELOOP
 	{
@@ -111,10 +106,9 @@ void sflow_bicgstab::solve(lexer* p,fdm2D* b, ghostcell* pgc, vec2D& xvec, vec2D
 		// -------------------------
 		precon->solve(p,b,pgc,ph,pj,var,240,p->preconiter,p->N13,p->N18,C);
 		pgc->gcparaxvec(p,ph,var);		
-		gcupdate(p,a,pgc,ph,var,240,solveriter);		
 		// -------------------------
 		
-		matvec_std(p,a,ph,vj,C);
+		matvec_std(p,b,ph,vj,C);
 		
 		NSLICELOOP
 		{
@@ -131,7 +125,7 @@ void sflow_bicgstab::solve(lexer* p,fdm2D* b, ghostcell* pgc, vec2D& xvec, vec2D
 
 	if(fabs(sigma) <= (1.0e-12*(norm_vj*norm_r0)))
 	{	
-		residual=res_calc(p,a,xvec,pgc,C);
+		residual=res_calc(p,b,xvec,pgc,C);
 		++solveriter;
 
 		goto restart;
@@ -139,7 +133,7 @@ void sflow_bicgstab::solve(lexer* p,fdm2D* b, ghostcell* pgc, vec2D& xvec, vec2D
 
     if((fabs(alpha)*norm_vj/(norm_rj==0?1.0e-15:norm_rj))<=0.08)
 	{
-		residual=res_calc(p,a,xvec,pgc,C);
+		residual=res_calc(p,b,xvec,pgc,C);
 		++solveriter;
 
 		goto restart;
@@ -158,12 +152,11 @@ void sflow_bicgstab::solve(lexer* p,fdm2D* b, ghostcell* pgc, vec2D& xvec, vec2D
     if(norm_sj>stop_crit)
 	{
 		// -------------------------
-		precon->solve(p,a,pgc,sh,sj,var,240,p->preconiter,p->N13,p->N18,C);
+		precon->solve(p,b,pgc,sh,sj,var,240,p->preconiter,p->N13,p->N18,C);
         pgc->gcparaxvec(p,sh,var);		
-		gcupdate(p,a,pgc,sh,var,240,solveriter);
 		// -------------------------
 
-		matvec_std(p,a,sh,tj,C);
+		matvec_std(p,b,sh,tj,C);
 		
 		w1=w2=0.0;
 		
@@ -239,15 +232,13 @@ void sflow_bicgstab::matvec_axb(lexer *p,fdm2D* b, vec &x, vec &y, cpt &C)
 {
 	NSLICELOOP
 	{
-	y.V[n]  = a->rhsvec.V[n]
+	y.V[n]  = b->rhsvec.V[n]
 
-			-(a->M.p[n]*x.V[I_J_K]
-			+ a->M.n[n]*x.V[Ip1_J_K] 
-			+ a->M.s[n]*x.V[Im1_J_K]
-			+ a->M.w[n]*x.V[I_Jp1_K]
-			+ a->M.e[n]*x.V[I_Jm1_K]
-			+ a->M.t[n]*x.V[I_J_Kp1]
-			+ a->M.b[n]*x.V[I_J_Km1]);
+			-(b->M.p[n]*x.V[I_J_K]
+			+ b->M.n[n]*x.V[Ip1_J_K] 
+			+ b->M.s[n]*x.V[Im1_J_K]
+			+ b->M.w[n]*x.V[I_Jp1_K]
+			+ b->M.e[n]*x.V[I_Jm1_K]);
 	}
 }
 
@@ -255,13 +246,11 @@ void sflow_bicgstab::matvec_std(lexer *p,fdm2D* b, vec &x, vec &y, cpt &C)
 {
 	NSLICELOOP
 	{
-	y.V[n]      = a->M.p[n]*x.V[I_J_K]
-				+ a->M.n[n]*x.V[Ip1_J_K] 
-				+ a->M.s[n]*x.V[Im1_J_K]
-				+ a->M.w[n]*x.V[I_Jp1_K]
-				+ a->M.e[n]*x.V[I_Jm1_K]
-				+ a->M.t[n]*x.V[I_J_Kp1]
-				+ a->M.b[n]*x.V[I_J_Km1];
+	y.V[n]      = b->M.p[n]*x.V[I_J_K]
+				+ b->M.n[n]*x.V[Ip1_J_K] 
+				+ b->M.s[n]*x.V[Im1_J_K]
+				+ b->M.w[n]*x.V[I_Jp1_K]
+				+ b->M.e[n]*x.V[I_Jm1_K];
 	}
 }
 
@@ -272,15 +261,13 @@ double sflow_bicgstab::res_calc(lexer *p, fdm *a, vec &x, ghostcell *pgc, cpt &C
 
 	NSLICELOOP
 	{	
-	y  = a->rhsvec.V[n]
+	y  = b->rhsvec.V[n]
 
-		-(a->M.p[n]*x.V[n]
-		+ a->M.n[n]*x.V[Ip1_J_K] 
-		+ a->M.s[n]*x.V[Im1_J_K]
-		+ a->M.w[n]*x.V[I_Jp1_K]
-		+ a->M.e[n]*x.V[I_Jm1_K]
-		+ a->M.t[n]*x.V[I_J_Kp1]
-		+ a->M.b[n]*x.V[I_J_Km1]);
+		-(b->M.p[n]*x.V[n]
+		+ b->M.n[n]*x.V[Ip1_J_K] 
+		+ b->M.s[n]*x.V[Im1_J_K]
+		+ b->M.w[n]*x.V[I_Jp1_K]
+		+ b->M.e[n]*x.V[I_Jm1_K]);
 
 	resi+=y*y;
 	}
@@ -295,32 +282,14 @@ void sflow_bicgstab::gcpara_update(lexer* p, vec &x, ghostcell* pgc)
 {
 }
 
-void sflow_bicgstab::gcupdate(lexer *p, fdm *a, ghostcell *pgc, vec &x, int var, int gcv, int solveriter)
-{
-	if(p->N15==3 && gcv>=40 && gcv<=45)
-	pgc->start4V(p,x,241);
-	
-	if(gcv>=40 && gcv<=45 && (p->N15==1||p->N15==2) && p->count<=p->N16)
-	pgc->start4V(p,x,240);
-	
-	if(p->N15==4 && gcv>=40 && gcv<=45)
-	pgc->start4V(p,x,240);
-	
-	if(p->N15==5 && gcv>=40 && gcv<=45 && solveriter<5) 
-	pgc->start4V(p,x,240);
-	
-	if(gcv==49) 
-	pgc->start4V(p,x,49);
-}
-
 void sflow_bicgstab::fillxvec1(lexer* p, fdm2D* b, slice& f)
 {
 	int count,q;
 	
 	count=0;
-    ULOOP
+    SLICELOOP1
     {
-    a->xvec.V[count]=f(i,j,k);
+    b->xvec.V[count]=f(i,j);
     ++count;
     }
 
@@ -328,47 +297,32 @@ void sflow_bicgstab::fillxvec1(lexer* p, fdm2D* b, slice& f)
     {
     i=p->gcb1[n][0];
     j=p->gcb1[n][1];
-    k=p->gcb1[n][2];
 
         if(p->gcb1[n][3]==1)
         for(q=0;q<margin;++q)
         {
-        a->xvec.V[count]=f(i-1-q,j,k);
+        b->xvec.V[count]=f(i-1-q,j);
         ++count;
         }
 
         if(p->gcb1[n][3]==2)
         for(q=0;q<margin;++q)
         {
-        a->xvec.V[count]=f(i,j+1+q,k);
+        b->xvec.V[count]=f(i,j+1+q);
         ++count;
         }
 
         if(p->gcb1[n][3]==3)
         for(q=0;q<margin;++q)
         {
-        a->xvec.V[count]=f(i,j-1-q,k);
+        b->xvec.V[count]=f(i,j-1-q);
         ++count;
         }
 
         if(p->gcb1[n][3]==4)
         for(q=0;q<margin;++q)
         {
-        a->xvec.V[count]=f(i+1+q,j,k);
-        ++count;
-        }
-
-        if(p->gcb1[n][3]==5)
-        for(q=0;q<margin;++q)
-        {
-        a->xvec.V[count]=f(i,j,k-1-q);
-        ++count;
-        }
-
-        if(p->gcb1[n][3]==6)
-        for(q=0;q<margin;++q)
-        {
-        a->xvec.V[count]=f(i,j,k+1+q);
+        b->xvec.V[count]=f(i+1+q,j);
         ++count;
         }
     }
@@ -379,9 +333,9 @@ void sflow_bicgstab::fillxvec2(lexer* p, fdm2D* b, slice& f)
 	int count,q;
 	
 	count=0;
-    VLOOP
+    SLICELOOP2
     {
-    a->xvec.V[count]=f(i,j,k);
+    b->xvec.V[count]=f(i,j);
     ++count;
     }
 
@@ -389,108 +343,32 @@ void sflow_bicgstab::fillxvec2(lexer* p, fdm2D* b, slice& f)
     {
     i=p->gcb2[n][0];
     j=p->gcb2[n][1];
-    k=p->gcb2[n][2];
 
         if(p->gcb2[n][3]==1)
         for(q=0;q<margin;++q)
         {
-        a->xvec.V[count]=f(i-1-q,j,k);
+        b->xvec.V[count]=f(i-1-q,j);
         ++count;
         }
 
         if(p->gcb2[n][3]==2)
         for(q=0;q<margin;++q)
         {
-        a->xvec.V[count]=f(i,j+1+q,k);
+        b->xvec.V[count]=f(i,j+1+q);
         ++count;
         }
 
         if(p->gcb2[n][3]==3)
         for(q=0;q<margin;++q)
         {
-        a->xvec.V[count]=f(i,j-1-q,k);
+        b->xvec.V[count]=f(i,j-1-q);
         ++count;
         }
 
         if(p->gcb2[n][3]==4)
         for(q=0;q<margin;++q)
         {
-        a->xvec.V[count]=f(i+1+q,j,k);
-        ++count;
-        }
-
-        if(p->gcb2[n][3]==5)
-        for(q=0;q<margin;++q)
-        {
-        a->xvec.V[count]=f(i,j,k-1-q);
-        ++count;
-        }
-
-        if(p->gcb2[n][3]==6)
-        for(q=0;q<margin;++q)
-        {
-        a->xvec.V[count]=f(i,j,k+1+q);
-        ++count;
-        }
-    }
-}
-
-void sflow_bicgstab::fillxvec3(lexer* p, fdm2D* b, slice& f)
-{
-	int count,q;
-	
-	count=0;
-    WLOOP
-    {
-    a->xvec.V[count]=f(i,j,k);
-    ++count;
-    }
-
-    GC3LOOP
-    {
-    i=p->gcb3[n][0];
-    j=p->gcb3[n][1];
-    k=p->gcb3[n][2];
-
-        if(p->gcb3[n][3]==1)
-        for(q=0;q<margin;++q)
-        {
-        a->xvec.V[count]=f(i-1-q,j,k);
-        ++count;
-        }
-
-        if(p->gcb3[n][3]==2)
-        for(q=0;q<margin;++q)
-        {
-        a->xvec.V[count]=f(i,j+1+q,k);
-        ++count;
-        }
-
-        if(p->gcb3[n][3]==3)
-        for(q=0;q<margin;++q)
-        {
-        a->xvec.V[count]=f(i,j-1-q,k);
-        ++count;
-        }
-
-        if(p->gcb3[n][3]==4)
-        for(q=0;q<margin;++q)
-        {
-        a->xvec.V[count]=f(i+1+q,j,k);
-        ++count;
-        }
-
-        if(p->gcb3[n][3]==5)
-        for(q=0;q<margin;++q)
-        {
-        a->xvec.V[count]=f(i,j,k-1-q);
-        ++count;
-        }
-
-        if(p->gcb3[n][3]==6)
-        for(q=0;q<margin;++q)
-        {
-        a->xvec.V[count]=f(i,j,k+1+q);
+        b->xvec.V[count]=f(i+1+q,j);
         ++count;
         }
     }
@@ -501,9 +379,9 @@ void sflow_bicgstab::fillxvec4(lexer* p, fdm2D* b, slice& f)
 	int count,q;
 	
 	count=0;
-    LOOP
+    SLICELOOP4
     {
-    a->xvec.V[count]=f(i,j,k);
+    b->xvec.V[count]=f(i,j);
     ++count;
     }
 
@@ -511,61 +389,46 @@ void sflow_bicgstab::fillxvec4(lexer* p, fdm2D* b, slice& f)
     {
     i=p->gcb4[n][0];
     j=p->gcb4[n][1];
-    k=p->gcb4[n][2];
 
         if(p->gcb4[n][3]==1)
         for(q=0;q<margin;++q)
         {
-        a->xvec.V[count]=f(i-1-q,j,k);
+        b->xvec.V[count]=f(i-1-q,j);
         ++count;
         }
 
         if(p->gcb4[n][3]==2)
         for(q=0;q<margin;++q)
         {
-        a->xvec.V[count]=f(i,j+1+q,k);
+        b->xvec.V[count]=f(i,j+1+q);
         ++count;
         }
 
         if(p->gcb4[n][3]==3)
         for(q=0;q<margin;++q)
         {
-        a->xvec.V[count]=f(i,j-1-q,k);
+        b->xvec.V[count]=f(i,j-1-q);
         ++count;
         }
 
         if(p->gcb4[n][3]==4)
         for(q=0;q<margin;++q)
         {
-        a->xvec.V[count]=f(i+1+q,j,k);
-        ++count;
-        }
-
-        if(p->gcb4[n][3]==5)
-        for(q=0;q<margin;++q)
-        {
-        a->xvec.V[count]=f(i,j,k-1-q);
-        ++count;
-        }
-
-        if(p->gcb4[n][3]==6)
-        for(q=0;q<margin;++q)
-        {
-        a->xvec.V[count]=f(i,j,k+1+q);
+        b->xvec.V[count]=f(i+1+q,j);
         ++count;
         }
     }
 }
 
 
-void sflow_bicgstab::finalize(lexer *p, fdm *a, field &f, vec &xvec, int var)
+void sflow_bicgstab::finalize(lexer *p, fdm2D *b, slice &f, vec2D &xvec, int var)
 {
 	if(var==1)
     {
         count=0;
-        ULOOP
+        SLICELOOP1
         {
-        f(i,j,k)=xvec.V[count];
+        f(i,j)=xvec.V[count];
         ++count;
         }
     }
@@ -573,29 +436,19 @@ void sflow_bicgstab::finalize(lexer *p, fdm *a, field &f, vec &xvec, int var)
 	if(var==2)
     {
         count=0;
-        VLOOP
+        SLICELOOP2
         {
-        f(i,j,k)=xvec.V[count];
+        f(i,j)=xvec.V[count];
         ++count;
         }
     }
 	
-	if(var==3)
+	if(var==3 || var==4)
     {
         count=0;
-        WLOOP
+        SLICELOOP4
         {
-        f(i,j,k)=xvec.V[count];
-        ++count;
-        }
-    }
-	
-	if(var==4)
-    {
-        count=0;
-        LOOP
-        {
-        f(i,j,k)=xvec.V[count];
+        f(i,j)=xvec.V[count];
         ++count;
         }
     }
