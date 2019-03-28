@@ -32,7 +32,9 @@ class fieldint;
 class slice;
 class sliceint;
 class vec;
+class vec2D;
 class cpt;
+class cpt2D;
 class density;
 class reini;
 class convection;
@@ -162,6 +164,10 @@ public:
     int column2D_pt1_count(lexer*,fdm2D*);
     int column2D_pt2_count(lexer*,fdm2D*);
     int column2D_pt4_count(lexer*,fdm2D*);
+    
+    void cval_gcslpara1(lexer*,fdm2D*,sliceint&);
+    void cval_gcslpara2(lexer*,fdm2D*,sliceint&);
+    void cval_gcslpara4(lexer*,fdm2D*,sliceint&);
     
     
     void column2D_pt_resize(lexer*,fdm2D*);
@@ -314,6 +320,8 @@ public:
     void gcslparacox_int(lexer*, sliceint&, int);
     void gcslwait(lexer*);
     void gcslflagx(lexer*, int*);
+    void gcslparaxvec(lexer*, fdm2D*, vec2D&, int);
+	void gcslparaxvec_slr(lexer*, vec2D&, cpt2D&,int);
 
 
     double mini1(fdm*,lexer*, field&);

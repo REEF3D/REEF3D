@@ -21,25 +21,26 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"ghostcell.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm2D.h"
+#include"vec2D.h"
 
-void ghostcell::gcparaxvec(lexer* p, vec &x, int gcv)
+void ghostcell::gcparaxvec(lexer* p, fdm2D *b, vec2D &x, int gcv)
 {
 	
 	if(gcv==1)
-	gcparaxvec_slr(p,x,a->C1,1);
+	gcparaxvec_slr(p,x,b->C1,1);
 	
 	if(gcv==2)
-	gcparaxvec_slr(p,x,a->C2,2);
+	gcparaxvec_slr(p,x,b->C2,2);
 	
     if(gcv==3)
-	gcparaxvec_slr(p,x,a->C3,3);
+	gcparaxvec_slr(p,x,b->C3,3);
 	
 	if(gcv==4)
-	gcparaxvec_slr(p,x,a->C4,4);
+	gcparaxvec_slr(p,x,b->C4,4);
 }
 	
-void ghostcell::gcparaxvec_slr(lexer* p, vec &x, cpt &C, int gcv)
+void ghostcell::gcparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
 {
 	starttime=timer();
 	
@@ -50,7 +51,7 @@ void ghostcell::gcparaxvec_slr(lexer* p, vec &x, cpt &C, int gcv)
     for(q=0;q<p->gcpara1_count;++q)
     {
     n=p->gcpara1[q][8+gcv];
-    
+  
         
         if(p->gcpara1[q][2+gcv]==1 || gcv==6)
         {

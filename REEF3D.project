@@ -1659,6 +1659,7 @@
         <File Name="gcsl_setbc.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CDS Grid2D">
+        <File Name="gc_cval2D_parax.cpp"/>
         <File Name="gc_column2D_pt_count.cpp"/>
         <File Name="gc_column2D_pt.cpp"/>
         <File Name="gc_cval2D_update.cpp"/>
