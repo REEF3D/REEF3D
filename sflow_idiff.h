@@ -45,7 +45,9 @@ public:
     
 private:
     int count;
+    int gcval_u,gcval_v;
     double visc;
+    double starttime,time;
 
 };
 
