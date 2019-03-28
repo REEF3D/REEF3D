@@ -58,12 +58,12 @@ public:
 	void start3(lexer*,field&, int);
 	void start4(lexer*,field&, int);
 	void start4a(lexer*,field&, int);
-	
+
 	void start4V(lexer*,vec&,int);
 	void start4aV(lexer*,vec&,int);
     void start6V(lexer*,vec&,int);
     void start7V(lexer*,double*, int);
-    
+
 
 	void final();
 	double globalsum(double);
@@ -89,7 +89,7 @@ public:
 	void dgcini2(lexer*);
 	void dgcini3(lexer*);
 	void dgcini4(lexer*);
-    
+
     void dgcslini1(lexer*);
 	void dgcslini2(lexer*);
 	void dgcslini3(lexer*);
@@ -101,77 +101,77 @@ public:
 	void cvalupdate4(lexer*,fdm*,fieldint&);
     void cvalupdate4a(lexer*,fdm*,fieldint&);
     void cvalupdate6(lexer*,fdm*,fieldint&);
-    
+
     void rownum4_update(lexer*,fieldint&);
     void rownum7_update(lexer*,int*);
 
-	
+
 	void cval_gcb1(lexer*,fdm*,fieldint&);
     void cval_gcb2(lexer*,fdm*,fieldint&);
     void cval_gcb3(lexer*,fdm*,fieldint&);
     void cval_gcb4(lexer*,fdm*,fieldint&);
     void cval_gcb4a(lexer*,fdm*,fieldint&);
     void cval_gcb6(lexer*,fdm*,fieldint&);
-    
+
 	void cval_gcpara1(lexer*,fdm*,fieldint&);
     void cval_gcpara2(lexer*,fdm*,fieldint&);
     void cval_gcpara3(lexer*,fdm*,fieldint&);
     void cval_gcpara4(lexer*,fdm*,fieldint&);
     void cval_gcpara4a(lexer*,fdm*,fieldint&);
     void cval_gcpara6(lexer*,fdm*,fieldint&);
-    
+
     void column_pt1_update(lexer*,fdm*);
     void column_pt2_update(lexer*,fdm*);
     void column_pt3_update(lexer*,fdm*);
     void column_pt4_update(lexer*,fdm*);
     void column_pt4a_update(lexer*,fdm*);
     void column_pt6_update(lexer*,fdm*);
-	
+
 	void column_pt1(lexer*,fdm*,fieldint&);
 	void column_pt2(lexer*,fdm*,fieldint&);
 	void column_pt3(lexer*,fdm*,fieldint&);
 	void column_pt4(lexer*,fdm*,fieldint&);
     void column_pt4a(lexer*,fdm*,fieldint&);
     void column_pt6(lexer*,fdm*,fieldint&);
-    
+
     int column_pt1_count(lexer*,fdm*);
 	int column_pt2_count(lexer*,fdm*);
 	int column_pt3_count(lexer*,fdm*);
 	int column_pt4_count(lexer*,fdm*);
     int column_pt4a_count(lexer*,fdm*);
     int column_pt6_count(lexer*,fdm*);
-    
-    
+
+
     void column_pt_resize(lexer*,fdm*);
-	
+
 	void sizeM_update(lexer*,fdm*);
-    
+
     void fdm_update(fdm*);
-    
+
 // 2D CPT
     void cval2Dupdate1(lexer*,sliceint&);
     void cval2Dupdate2(lexer*,sliceint&);
     void cval2Dupdate4(lexer*,sliceint&);
-    
+
     void column2D_pt1_update(lexer*,fdm2D*);
     void column2D_pt2_update(lexer*,fdm2D*);
     void column2D_pt4_update(lexer*,fdm2D*);
-    
+
     void column2D_pt1(lexer*,fdm2D*,sliceint&);
     void column2D_pt2(lexer*,fdm2D*,sliceint&);
     void column2D_pt4(lexer*,fdm2D*,sliceint&);
-    
+
     int column2D_pt1_count(lexer*,fdm2D*);
     int column2D_pt2_count(lexer*,fdm2D*);
     int column2D_pt4_count(lexer*,fdm2D*);
-    
+
     void cval_gcslpara1(lexer*,fdm2D*,sliceint&);
     void cval_gcslpara2(lexer*,fdm2D*,sliceint&);
     void cval_gcslpara4(lexer*,fdm2D*,sliceint&);
-    
-    
+
+
     void column2D_pt_resize(lexer*,fdm2D*);
-    
+
     void sizeS_update(lexer*);
 
 // solid update
@@ -201,7 +201,7 @@ public:
 	void gctopo_scalarupdate(lexer*, fdm*, int **, int, field&);
 
 
-	
+
 // 6DOF update
 	void gcfb_update(lexer*,fdm*);
 	void gcfb_buildflag(lexer*,fdm*, int**, int&);
@@ -216,12 +216,12 @@ public:
 	void gcfb_scalarupdate(lexer*, fdm*, int **, int, field&);
     void gcfb_update_extra_gcb(lexer*,fdm*,field&);
     void gcb_generic(lexer* p,field& f,int *gcb_count, int ***gcb);
-    
+
 // Forcing
     void forcing1(lexer*,fdm*,field&,field&,field&,field&,double);
 	void forcing2(lexer*,fdm*,field&,field&,field&,field&,double);
 	void forcing3(lexer*,fdm*,field&,field&,field&,field&,double);
-	
+
 // IBM
     void distguard(lexer*);
     void ccstateflag(lexer*,fdm*);
@@ -259,9 +259,9 @@ public:
 	void walld_outflow(lexer*,fdm*,ghostcell*,double*);
     void gcwait(lexer*);
     void gcwait7(lexer*);
-    
+
     MPI_Comm mpi_comm;
-    
+
 // Slice
     // epol
     void gcsl_start1(lexer*,slice&, int);
@@ -269,25 +269,27 @@ public:
 	void gcsl_start3(lexer*,slice&, int);
 	void gcsl_start4(lexer*,slice&, int);
 	void gcsl_start4a(lexer*,slice&, int);
-    
+
     void gcsl_start4int(lexer*,sliceint&, int);
-    
+
+    void gcsl_start4V(lexer*,fdm2D*,vec2D&, int);
+
     void gcsldistro1(lexer*, slice&,int, int, int, double, int, int, int);
 	void gcsldistro2(lexer*, slice&,int, int, int, double, int, int, int);
 	void gcsldistro3(lexer*, slice&,int, int, int, double, int, int, int);
 	void gcsldistro4(lexer*, slice&,int, int, int, double, int, int, int);
 	void gcsldistro4a(lexer*, slice&,int, int, int, double, int, int, int);
-    
+
     void gcsldistro4int(lexer*, sliceint&,int, int, int, double, int, int, int);
-    
+
     int gcsleval1(lexer*,int,int,int);
 	int gcsleval2(lexer*,int,int,int);
 	int gcsleval3(lexer*,int,int,int);
 	int gcsleval4(lexer*,int,int,int);
 	int gcsleval4a(lexer*,int,int,int);
-	
+
 	void gcsl_tpflag(lexer*);
-    
+
     double gcsl_ipol1(lexer*,fdm2D*,slice&);
     double gcsl_ipol2(lexer*,fdm2D*,slice&);
 	double gcsl_ipol1a(lexer*,fdm2D*,slice&);
@@ -295,15 +297,15 @@ public:
     double gcsl_ipol4(lexer*,slice&);
     double gcsl_ipol4eta(lexer*,fdm2D*,slice&);
     double gcsl_ipolint(lexer*,fdm2D*,sliceint&);
-    
+
 	double gcsl_ccipol4(lexer*,slice&,double,double);
 	double gcsl_lint4(lexer*,slice&,int&,int&,double,double);
-    
+
     void gcsl_setbc1(lexer*);
     void gcsl_setbc2(lexer*);
     void gcsl_setbc4(lexer*);
     void gcsl_setbcio(lexer*);
-	
+
     // BCs
     void gcsl_neumann(slice&,int,int,int);
     void gcsl_neumann_x(slice&,int,int,int);
@@ -311,8 +313,8 @@ public:
 	void gcsl_noslip(slice&,int,int,int);
     void gcsl_sommerfeld(lexer*,slice&,int,int,int);
     void gcsl_outflow(lexer*,slice&,int,int,int);
-    
-    
+
+
     // parallel
     void gcslparax(lexer*, slice&, int);
     void gcslparax_int(lexer*, sliceint&, int);
@@ -320,8 +322,8 @@ public:
     void gcslparacox_int(lexer*, sliceint&, int);
     void gcslwait(lexer*);
     void gcslflagx(lexer*, int*);
-    void gcslparaxvec(lexer*, fdm2D*, vec2D&, int);
-	void gcslparaxvec_slr(lexer*, vec2D&, cpt2D&,int);
+    void gcparaxvec2D(lexer*, fdm2D*, vec2D&, int);
+    void gcparaxvec_slr(lexer*, vec2D&,cpt2D&,int);
 
 
     double mini1(fdm*,lexer*, field&);
@@ -338,19 +340,19 @@ public:
 
     int ii,jj,kk;
     int ic,jc,kc;
-    
+
     double dx;
-    
+
     int imin,imax,jmax,jmin,kmin,kmax;
-	
-    
-    
+
+
+
 	void gcdistro1(lexer *p,field&,int, int, int, int, double, int, int, int);
 	void gcdistro2(lexer *p,field&,int, int, int, int, double, int, int, int);
 	void gcdistro3(lexer *p,field&,int, int, int, int, double, int, int, int);
 	void gcdistro4(lexer *p,field&,int, int, int, int, double, int, int, int);
 	void gcdistro4a(lexer *p,field&,int, int, int, int, double, int, int, int);
-    
+
 	void gcdistro4V(lexer *p,fdm*, vec&, int, int, int, double, int, int, int, int);
     void gcdistro4aV(lexer *p,fdm*, vec&, int, int, int, double, int, int, int, int);
 
@@ -359,12 +361,12 @@ public:
 	int gceval3(lexer*,int,int,int);
 	int gceval4(lexer*,int,int,int);
 	int gceval4a(lexer*,int,int,int);
-    
+
     void nse1(lexer*, fdm*, field&, int);
     void nse2(lexer*, fdm*, field&, int);
     void nse3(lexer*, fdm*, field&, int);
     void nse4(lexer*, fdm*, field&, int);
-    
+
     void nse1_conv(lexer*, fdm*, field&, int, double);
     void nse2_conv(lexer*, fdm*, field&, int, double);
     void nse3_conv(lexer*, fdm*, field&, int, double);
@@ -394,12 +396,12 @@ public:
     void kinematic_bed(lexer*,field&,double,int,int,int);
     void fivec(lexer*,double*);
     void fivec2D(lexer*,double*);
-		
+
 	void gcV_neumann(vec&,int,int,int,int);
 	void gcV_lsm(lexer*,vec&, double,int,int,int,int);
     void gcV_neumann_all(vec&, int,int,int,int);
 
-	
+
 private:
     const int size;
     const int tag1,tag2,tag3,tag4,tag5,tag6;
@@ -432,22 +434,22 @@ private:
 	int **isend,**irecv;
 	double **dsend,**drecv;
 	double *trecv;
-	
+
 	density *pdens;
-    
+
     double originx,originy,originz;
 
 // PARALLEL
-    
+
 
 	MPI_Request sreq1,sreq2,sreq3,sreq4,sreq5,sreq6;
 	MPI_Request rreq1,rreq2,rreq3,rreq4,rreq5,rreq6;
-	
+
 	MPI_Request sreq[6],rreq[6];
 
 
 	MPI_Status status;
-	
+
 
 	int tag;
 	double **send,**recv;
@@ -463,18 +465,17 @@ private:
 	int gcx_count[6];
 
 	double epphi;
-    
+
     double v1,v2,v3,v4;
     double wa,wb;
     double x1,x2;
     double value;
-	
+
 // 6DOF
 	int ***gcbfb,*gcbfb_count;
 	int ***gcxfb,*gcxfb_count;
-    
+
     fdm *a;
 
 };
 #endif
-

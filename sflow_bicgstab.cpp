@@ -47,7 +47,6 @@ void sflow_bicgstab::start(lexer* p, fdm2D* b, ghostcell* pgc, slice &f, vec2D& 
     {
 	fillxvec1(p,b,f);
     sizeS=p->sizeS1;
-	precon=precon123;
 	solve(p,b,pgc,xvec,rhsvec,var,gcv,p->solveriter,p->N46,stop_crit,b->C1);
     }
 	
@@ -55,7 +54,6 @@ void sflow_bicgstab::start(lexer* p, fdm2D* b, ghostcell* pgc, slice &f, vec2D& 
     {
 	fillxvec2(p,b,f);
     sizeS=p->sizeS2;
-	precon=precon123;
 	solve(p,b,pgc,xvec,rhsvec,var,gcv,p->solveriter,p->N46,stop_crit,b->C2);
     }
 	
@@ -63,7 +61,6 @@ void sflow_bicgstab::start(lexer* p, fdm2D* b, ghostcell* pgc, slice &f, vec2D& 
     {
 	fillxvec4(p,b,f);
     sizeS=p->sizeS4;
-	precon=precon4;
 	solve(p,b,pgc,xvec,rhsvec,var,gcv,p->solveriter,p->N46,stop_crit,b->C4);
     }
 	
@@ -77,12 +74,12 @@ void sflow_bicgstab::solve(lexer* p,fdm2D* b, ghostcell* pgc, vec2D& xvec, vec2D
 	residual = 1.0e9;
 
 	// -----------------
-	precon->setup(p,b,pgc,var,C);
+	precon_setup(p,b,pgc,var,C);
 	// -----------------
 
  restart:
     r_j=norm_r0=0.0;	
-	pgc->gcparaxvec(p,xvec,var);
+	pgc->gcparaxvec2D(p,b,xvec,var);
 	
 	matvec_axb(p,b,xvec,rj,C);
 	
@@ -104,8 +101,8 @@ void sflow_bicgstab::solve(lexer* p,fdm2D* b, ghostcell* pgc, vec2D& xvec, vec2D
 	    norm_rj=0.0;
 		
 		// -------------------------
-		precon->solve(p,b,pgc,ph,pj,var,240,p->preconiter,p->N13,p->N18,C);
-		pgc->gcparaxvec(p,ph,var);		
+		precon_solve(p,b,pgc,ph,pj,var,240,p->preconiter,p->N13,p->N18,C);
+		pgc->gcparaxvec2D(p,b,ph,var);		
 		// -------------------------
 		
 		matvec_std(p,b,ph,vj,C);
@@ -152,8 +149,8 @@ void sflow_bicgstab::solve(lexer* p,fdm2D* b, ghostcell* pgc, vec2D& xvec, vec2D
     if(norm_sj>stop_crit)
 	{
 		// -------------------------
-		precon->solve(p,b,pgc,sh,sj,var,240,p->preconiter,p->N13,p->N18,C);
-        pgc->gcparaxvec(p,sh,var);		
+		precon_solve(p,b,pgc,sh,sj,var,240,p->preconiter,p->N13,p->N18,C);
+        pgc->gcparaxvec2D(p,b,sh,var);		
 		// -------------------------
 
 		matvec_std(p,b,sh,tj,C);
@@ -224,11 +221,11 @@ void sflow_bicgstab::solve(lexer* p,fdm2D* b, ghostcell* pgc, vec2D& xvec, vec2D
 	ph.V[n]=0.0;
 	sh.V[n]=0.0;
 	}
-	pgc->start4V(p,ph,240);
-	pgc->start4V(p,sh,240);
+	pgc->gcsl_start4V(p,b,ph,240);
+	pgc->gcsl_start4V(p,b,sh,240);
 }
 
-void sflow_bicgstab::matvec_axb(lexer *p,fdm2D* b, vec &x, vec &y, cpt &C)
+void sflow_bicgstab::matvec_axb(lexer *p,fdm2D* b, vec2D &x, vec2D &y, cpt2D &C)
 {
 	NSLICELOOP
 	{
@@ -242,7 +239,7 @@ void sflow_bicgstab::matvec_axb(lexer *p,fdm2D* b, vec &x, vec &y, cpt &C)
 	}
 }
 
-void sflow_bicgstab::matvec_std(lexer *p,fdm2D* b, vec &x, vec &y, cpt &C)
+void sflow_bicgstab::matvec_std(lexer *p,fdm2D* b, vec2D &x, vec2D &y, cpt2D &C)
 {
 	NSLICELOOP
 	{
@@ -254,7 +251,7 @@ void sflow_bicgstab::matvec_std(lexer *p,fdm2D* b, vec &x, vec &y, cpt &C)
 	}
 }
 
-double sflow_bicgstab::res_calc(lexer *p, fdm *a, vec &x, ghostcell *pgc, cpt &C)
+double sflow_bicgstab::res_calc(lexer *p, fdm2D *b, vec2D &x, ghostcell *pgc, cpt2D &C)
 {
 	double y;
 	double resi=0.0;
@@ -278,9 +275,6 @@ double sflow_bicgstab::res_calc(lexer *p, fdm *a, vec &x, ghostcell *pgc, cpt &C
 }
 
 
-void sflow_bicgstab::gcpara_update(lexer* p, vec &x, ghostcell* pgc)
-{
-}
 
 void sflow_bicgstab::fillxvec1(lexer* p, fdm2D* b, slice& f)
 {
@@ -454,10 +448,10 @@ void sflow_bicgstab::finalize(lexer *p, fdm2D *b, slice &f, vec2D &xvec, int var
     }
 }
 
-void hypre_struct2D::precon_setup(lexer* p,fdm2D* b, ghostcell* pgc, int var, cpt2D &C)
+void sflow_bicgstab::precon_setup(lexer* p,fdm2D* b, ghostcell* pgc, int var, cpt2D &C)
 {
 }
 
-void hypre_struct2D::precon_solve(lexer* p,fdm2D* b, ghostcell* pgc, vec2D& xvec, vec2D& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit, cpt2D &C)
+void sflow_bicgstab::precon_solve(lexer* p,fdm2D* b, ghostcell* pgc, vec2D& xvec, vec2D& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit, cpt2D &C)
 {
 }

@@ -22,37 +22,33 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"lexer.h"
 #include"fdm2D.h"
-#include"vec2D.h"
 
-void ghostcell::gcparaxvec(lexer* p, fdm2D *b, vec2D &x, int gcv)
+void ghostcell::gcparaxvec2D(lexer* p, fdm2D *b, vec2D &x, int gcv)
 {
-	
+
 	if(gcv==1)
 	gcparaxvec_slr(p,x,b->C1,1);
-	
+
 	if(gcv==2)
 	gcparaxvec_slr(p,x,b->C2,2);
-	
-    if(gcv==3)
-	gcparaxvec_slr(p,x,b->C3,3);
-	
-	if(gcv==4)
+
+	if(gcv==3 || gcv==4)
 	gcparaxvec_slr(p,x,b->C4,4);
 }
-	
+
 void ghostcell::gcparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
 {
 	starttime=timer();
-	
+
     paramargin=3;
-	
+
 //  FILL SEND
     count=0;
     for(q=0;q<p->gcpara1_count;++q)
     {
     n=p->gcpara1[q][8+gcv];
-  
-        
+
+
         if(p->gcpara1[q][2+gcv]==1 || gcv==6)
         {
         send1[count]=x.V[I_J_K];
@@ -60,19 +56,19 @@ void ghostcell::gcparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
 
         send1[count]=x.V[Ip1_J_K];
         ++count;
-        
+
         send1[count]=x.V[Ip2_J_K];
         ++count;
         }
-        
+
     }
-	
+
 	count=0;
 	for(q=0;q<p->gcpara2_count;++q)
 	{
     n=p->gcpara2[q][8+gcv];
 
-        
+
         if(p->gcpara2[q][2+gcv]==1 || gcv==6)
         {
         send2[count]=x.V[I_J_K];
@@ -80,11 +76,11 @@ void ghostcell::gcparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
 
         send2[count]=x.V[I_Jm1_K];
         ++count;
-  
+
         send2[count]=x.V[I_Jm2_K];
         ++count;
         }
-        
+
 	}
 
     count=0;
@@ -92,21 +88,21 @@ void ghostcell::gcparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
     {
     n=p->gcpara3[q][8+gcv];
 
-        
+
         if(p->gcpara3[q][2+gcv]==1 || gcv==6)
         {
         send3[count]=x.V[I_J_K];
         ++count;
-        
+
         send3[count]=x.V[I_Jp1_K];
         ++count;
-     
+
         send3[count]=x.V[I_Jp2_K];
         ++count;
         }
-        
+
     }
-	
+
 	count=0;
 	for(q=0;q<p->gcpara4_count;++q)
 	{
@@ -125,41 +121,6 @@ void ghostcell::gcparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
         }
 	}
 
-    count=0;
-	for(q=0;q<p->gcpara5_count;++q)
-	{
-    n=p->gcpara5[q][8+gcv];
-        
-        if(p->gcpara5[q][2+gcv]==1 || gcv==6)
-        {
-        send5[count]=x.V[I_J_K];
-        ++count;
-
-        send5[count]=x.V[I_J_Kp1];
-        ++count;
-
-        send5[count]=x.V[I_J_Kp2];
-        ++count;
-        }
-	}
-
-    count=0;
-	for(q=0;q<p->gcpara6_count;++q)
-	{
-	n=p->gcpara6[q][8+gcv];
-        
-        if(p->gcpara6[q][2+gcv]==1 || gcv==6)
-        {
-        send6[count]=x.V[I_J_K];
-        ++count;
-
-        send6[count]=x.V[I_J_Km1];
-        ++count;
-
-        send6[count]=x.V[I_J_Km2];
-        ++count;
-        }
-	}
 
 
 //  SEND / RECEIVE
@@ -188,18 +149,6 @@ void ghostcell::gcparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
 	MPI_Irecv(recv2,p->gcpara2_count*paramargin,MPI_DOUBLE,p->nb2,tag3,mpi_comm,&rreq2);
     }
 
-    if(p->gcpara5_count>0)
-    {
-	MPI_Isend(send5,p->gcpara5_count*paramargin,MPI_DOUBLE,p->nb5,tag5,mpi_comm,&sreq5);
-	MPI_Irecv(recv5,p->gcpara5_count*paramargin,MPI_DOUBLE,p->nb5,tag6,mpi_comm,&rreq5);
-    }
-
-    if(p->gcpara6_count>0)
-    {
-	MPI_Isend(send6,p->gcpara6_count*paramargin,MPI_DOUBLE,p->nb6,tag6,mpi_comm,&sreq6);
-	MPI_Irecv(recv6,p->gcpara6_count*paramargin,MPI_DOUBLE,p->nb6,tag5,mpi_comm,&rreq6);
-    }
-
 //  WAIT
 
     gcwait(p);
@@ -210,7 +159,7 @@ void ghostcell::gcparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
     for(q=0;q<p->gcpara1_count;++q)
     {
     n=p->gcpara1[q][8+gcv];
-        
+
         if(p->gcpara1[q][2+gcv]==1 || gcv==6)
         {
         x.V[Im1_J_K]=recv1[count];
@@ -222,7 +171,7 @@ void ghostcell::gcparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
         x.V[Im3_J_K]=recv1[count];
         ++count;
         }
-        
+
     }
 
     count=0;
@@ -237,17 +186,17 @@ void ghostcell::gcparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
 
         x.V[I_Jp2_K]=recv2[count];
         ++count;
-        
+
         x.V[I_Jp3_K]=recv2[count];
         ++count;
         }
-	}	
-	
+	}
+
 	count=0;
 	for(q=0;q<p->gcpara3_count;++q)
 	{
     n=p->gcpara3[q][8+gcv];
-        
+
         if(p->gcpara3[q][2+gcv]==1 || gcv==6)
         {
         x.V[I_Jm1_K]=recv3[count];
@@ -255,7 +204,7 @@ void ghostcell::gcparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
 
         x.V[I_Jm2_K]=recv3[count];
         ++count;
-        
+
         x.V[I_Jm3_K]=recv3[count];
         ++count;
         }
@@ -265,7 +214,7 @@ void ghostcell::gcparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
 	for(q=0;q<p->gcpara4_count;++q)
 	{
     n=p->gcpara4[q][8+gcv];
-        
+
         if(p->gcpara4[q][2+gcv]==1 || gcv==6)
         {
         x.V[Ip1_J_K]=recv4[count];
@@ -273,48 +222,12 @@ void ghostcell::gcparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
 
         x.V[Ip2_J_K]=recv4[count];
         ++count;
-        
+
         x.V[Ip3_J_K]=recv4[count];
         ++count;
         }
 	}
-	
-	count=0;
-    for(q=0;q<p->gcpara5_count;++q)
-    {
-    n=p->gcpara5[q][8+gcv];
-        
-        if(p->gcpara5[q][2+gcv]==1 || gcv==6)
-        {
-        x.V[I_J_Km1]=recv5[count];
-        ++count;
-    
-        x.V[I_J_Km2]=recv5[count];
-        ++count;
 
-        x.V[I_J_Km3]=recv5[count];
-        ++count;
-        }
-    }
-
-    count=0;
-	for(q=0;q<p->gcpara6_count;++q)
-	{
-    n=p->gcpara6[q][8+gcv];
-        
-        if(p->gcpara6[q][2+gcv]==1 || gcv==6)
-        {
-        x.V[I_J_Kp1]=recv6[count];
-        ++count;
-  
-        x.V[I_J_Kp2]=recv6[count];
-        ++count;
-
-        x.V[I_J_Kp3]=recv6[count];
-        ++count;
-        }
-	}
 	endtime=timer();
 	p->xtime+=endtime-starttime;
 }
-
