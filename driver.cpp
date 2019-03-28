@@ -36,7 +36,7 @@ driver::driver(int& argc, char **argv)
     {
     cout<<endl<<"REEF3D (c) 2008-2019 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl; 
-    cout<<endl<<"v_190326" <<endl<<endl;         
+    cout<<endl<<"v_190328" <<endl<<endl;         
     }
     
 	p->lexer_read();
@@ -160,6 +160,7 @@ void driver::sf_driver()
 	cout<<"initialize fdm"<<endl;
     
     b=new fdm2D(p);
+    bb=b;
 
     psflow = new sflow_f(p,b,pgc);
 	

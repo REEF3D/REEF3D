@@ -27,7 +27,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 sflow_bicgstab::sflow_bicgstab(lexer* p,fdm2D* b,ghostcell *pgc):sj(p),rj(p),r0(p),vj(p),tj(p),pj(p),precoeff(p),
 												ph(p),sh(p),epsi(1e-19)
 {	
-	
 	margin=3;
 }
 
@@ -454,4 +453,7 @@ void sflow_bicgstab::precon_setup(lexer* p,fdm2D* b, ghostcell* pgc, int var, cp
 
 void sflow_bicgstab::precon_solve(lexer* p,fdm2D* b, ghostcell* pgc, vec2D& xvec, vec2D& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit, cpt2D &C)
 {
+	NSLICELOOP
+	xvec.V[n] = -rhsvec.V[n]/(b->M.p[n]+epsi);	
+	
 }

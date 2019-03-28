@@ -39,8 +39,8 @@ public:
 	sflow_diffusion_void(lexer*);
 	virtual ~sflow_diffusion_void();
 
-	virtual void diff_u(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, double);
-	virtual void diff_v(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, double);
+	virtual void diff_u(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, double);
+	virtual void diff_v(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, double);
 
 };
 

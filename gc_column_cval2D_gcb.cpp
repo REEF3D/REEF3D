@@ -19,34 +19,40 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"sflow_diffusion.h"
-#include"increment.h"
+#include"ghostcell.h"
+#include"lexer.h"
+#include"fdm2D.h"
 
-class lexer;
-class fdm2D;
-class ghostcell;
-class solver2D;
-class slice;
-class sliceint;
-
-#ifndef SFLOW_IDIFF_H_
-#define SLFOW_IDIFF_H_
-
-using namespace std;
-
-class sflow_idiff : public sflow_diffusion, public increment
+void ghostcell::cval2D_gcb1(lexer* p, fdm2D* b, sliceint &cval)
 {
-public:
-	sflow_idiff(lexer*);
-	virtual ~sflow_idiff();
+	GCSL1LOOP
+    {
+    i=p->gcbsl1[n][0];
+    j=p->gcbsl1[n][1];
+	
+	p->gcbsl1[n][5]=cval(i,j);
+	}
+}
 
-	virtual void diff_u(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, double);
-	virtual void diff_v(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, double);
-    
-private:
-    int count;
-    double visc;
+void ghostcell::cval2D_gcb2(lexer* p, fdm2D* b, sliceint &cval)
+{
+	GCSL2LOOP
+    {
+    i=p->gcbsl2[n][0];
+    j=p->gcbsl2[n][1];
+	
+	p->gcbsl2[n][5]=cval(i,j);
+	}
+}
 
-};
+void ghostcell::cval2D_gcb4(lexer* p, fdm2D* b, sliceint &cval)
+{
+	GCSL4LOOP
+    {
+    i=p->gcbsl4[n][0];
+    j=p->gcbsl4[n][1];
+	
+	p->gcbsl4[n][5]=cval(i,j);
+	}
+}
 
-#endif

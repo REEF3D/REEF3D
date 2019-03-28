@@ -31,6 +31,7 @@ void ghostcell::column2D_pt1_update(lexer* p, fdm2D* b)
     sliceint1 cval1(p);
     cval2Dupdate1(p,cval1);	
 	column2D_pt1(p,b,cval1);
+    cval_gcslpara1(p,b,cval1);
 }
 
 void ghostcell::column2D_pt2_update(lexer* p, fdm2D* b)
@@ -38,6 +39,7 @@ void ghostcell::column2D_pt2_update(lexer* p, fdm2D* b)
     sliceint2 cval2(p);
     cval2Dupdate2(p,cval2);	
 	column2D_pt2(p,b,cval2);
+    cval_gcslpara2(p,b,cval2);
 }
 
 void ghostcell::column2D_pt4_update(lexer* p, fdm2D* b)
@@ -45,6 +47,7 @@ void ghostcell::column2D_pt4_update(lexer* p, fdm2D* b)
     sliceint4 cval4(p);
     cval2Dupdate4(p,cval4);	
 	column2D_pt4(p,b,cval4);
+    cval_gcslpara4(p,b,cval4);
 }
 
 void ghostcell::column2D_pt1(lexer* p, fdm2D* b, sliceint &cval1)

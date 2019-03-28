@@ -169,7 +169,10 @@ public:
     void cval_gcslpara2(lexer*,fdm2D*,sliceint&);
     void cval_gcslpara4(lexer*,fdm2D*,sliceint&);
 
-
+    void cval2D_gcb1(lexer*, fdm2D*, sliceint&);
+    void cval2D_gcb2(lexer*, fdm2D*, sliceint&);
+    void cval2D_gcb4(lexer*, fdm2D*, sliceint&);
+    
     void column2D_pt_resize(lexer*,fdm2D*);
 
     void sizeS_update(lexer*);
@@ -279,6 +282,8 @@ public:
 	void gcsldistro3(lexer*, slice&,int, int, int, double, int, int, int);
 	void gcsldistro4(lexer*, slice&,int, int, int, double, int, int, int);
 	void gcsldistro4a(lexer*, slice&,int, int, int, double, int, int, int);
+    
+    void gcsldistro4V(lexer*, vec2D&,int, int, int, double, int, int, int,int);
 
     void gcsldistro4int(lexer*, sliceint&,int, int, int, double, int, int, int);
 
@@ -306,13 +311,17 @@ public:
     void gcsl_setbc4(lexer*);
     void gcsl_setbcio(lexer*);
 
-    // BCs
+    // Slice BCs
     void gcsl_neumann(slice&,int,int,int);
     void gcsl_neumann_x(slice&,int,int,int);
     void gcsl_neumann_int(sliceint&,int,int,int);
 	void gcsl_noslip(slice&,int,int,int);
     void gcsl_sommerfeld(lexer*,slice&,int,int,int);
     void gcsl_outflow(lexer*,slice&,int,int,int);
+    
+    void gcsl_neumannV(vec2D&,int,int,int,int);
+    void gcsl_neumannV_x(vec2D&,int,int,int,int);
+	void gcsl_noslipV(vec2D&,int,int,int,int);
 
 
     // parallel
@@ -323,7 +332,7 @@ public:
     void gcslwait(lexer*);
     void gcslflagx(lexer*, int*);
     void gcparaxvec2D(lexer*, fdm2D*, vec2D&, int);
-    void gcparaxvec_slr(lexer*, vec2D&,cpt2D&,int);
+    void gcslparaxvec_slr(lexer*, vec2D&,cpt2D&,int);
 
 
     double mini1(fdm*,lexer*, field&);

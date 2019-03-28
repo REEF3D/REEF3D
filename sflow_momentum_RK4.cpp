@@ -104,7 +104,7 @@ void sflow_momentum_RK4::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	ppress->upgrad(p,b,b->eta,b->eta);
 	irhs(p,b,pgc,b->P,0.5);
 	pconvec->start(p,b,b->P,1,b->P,b->Q);
-	pdiff->diff_u(p,b,pgc,psolv,b->P,0.5);
+	pdiff->diff_u(p,b,pgc,psolv,b->P,b->Q,0.5);
 
 	SLICELOOP1
 	{
@@ -125,7 +125,7 @@ void sflow_momentum_RK4::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	ppress->vpgrad(p,b,etark,b->eta);
 	jrhs(p,b,pgc,b->Q,0.5);
 	pconvec->start(p,b,b->Q,2,b->P,b->Q);
-	pdiff->diff_v(p,b,pgc,psolv,b->Q,0.5);
+	pdiff->diff_v(p,b,pgc,psolv,b->P,b->Q,0.5);
 
 	SLICELOOP2
 	{
@@ -196,7 +196,7 @@ void sflow_momentum_RK4::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	ppress->upgrad(p,b,b->eta,etan);
 	irhs(p,b,pgc,Prk,0.5);
 	pconvec->start(p,b,Prk,1,Prk,Qrk);
-	pdiff->diff_u(p,b,pgc,psolv,Prk,0.5);
+	pdiff->diff_u(p,b,pgc,psolv,Prk,Qrk,0.5);
 
 	SLICELOOP1
 	{
@@ -217,7 +217,7 @@ void sflow_momentum_RK4::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	ppress->vpgrad(p,b,etark,etan);
 	jrhs(p,b,pgc,Qrk,0.5);
 	pconvec->start(p,b,Qrk,2,Prk,Qrk);
-	pdiff->diff_v(p,b,pgc,psolv,Qrk,0.5);
+	pdiff->diff_v(p,b,pgc,psolv,Prk,Qrk,0.5);
 
 	SLICELOOP2
 	{
@@ -288,7 +288,7 @@ void sflow_momentum_RK4::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	ppress->upgrad(p,b,b->eta,etan);
 	irhs(p,b,pgc,Prk,1.0);
 	pconvec->start(p,b,Prk,1,Prk,Qrk);
-	pdiff->diff_u(p,b,pgc,psolv,Prk,1.0);
+	pdiff->diff_u(p,b,pgc,psolv,Prk,Qrk,1.0);
 
 	SLICELOOP1
 	{
@@ -309,7 +309,7 @@ void sflow_momentum_RK4::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	ppress->vpgrad(p,b,etark,etan);
 	jrhs(p,b,pgc,Qrk,1.0);
 	pconvec->start(p,b,Qrk,2,Prk,Qrk);
-	pdiff->diff_v(p,b,pgc,psolv,Qrk,1.0);
+	pdiff->diff_v(p,b,pgc,psolv,Prk,Qrk,1.0);
 
 	SLICELOOP2
 	{
@@ -381,7 +381,7 @@ void sflow_momentum_RK4::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	ppress->upgrad(p,b,etan,etark);
 	irhs(p,b,pgc,Prk,1.0);
 	pconvec->start(p,b,Prk,1,Prk,Qrk);
-	pdiff->diff_u(p,b,pgc,psolv,Prk,1.0);
+	pdiff->diff_u(p,b,pgc,psolv,Prk,Qrk,1.0);
 
 	SLICELOOP1
 	b->P(i,j) = b->P(i,j) + (1.0/6.0)*(Prk1(i,j) + 2.0*Prk2(i,j) + 2.0*Prk3(i,j) + p->dt*b->F(i,j));
@@ -399,7 +399,7 @@ void sflow_momentum_RK4::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	ppress->vpgrad(p,b,b->eta,etark);
 	jrhs(p,b,pgc,Qrk,1.0);
 	pconvec->start(p,b,Qrk,2,Prk,Qrk);
-	pdiff->diff_v(p,b,pgc,psolv,Qrk,1.0);
+	pdiff->diff_v(p,b,pgc,psolv,Prk,Qrk,1.0);
 
 	SLICELOOP2
 	b->Q(i,j) = b->Q(i,j) + (1.0/6.0)*(Qrk1(i,j) + 2.0*Qrk2(i,j) + 2.0*Qrk3(i,j) + p->dt*b->G(i,j));

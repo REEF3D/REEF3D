@@ -20,6 +20,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 class fdm;
+class fdm2D;
 
 #ifndef INCREMENT_H_
 #define INCREMENT_H_
@@ -36,5 +37,6 @@ class increment
 	static int pip;
     static int marge;
 	static fdm *aa;
+    static fdm2D *bb;
 };
 #endif

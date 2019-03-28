@@ -21,13 +21,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"ghostcell.h"
 #include"lexer.h"
-#include"fdm.h"
-#include"cart1.h"
-#include"cart2.h"
-#include"cart3.h"
-#include"cart4.h"
+#include"fdm2D.h"
 
-void ghostcell::cval_gcslpara1(lexer* p, fdm* a, sliceint &cval1)
+void ghostcell::cval_gcslpara1(lexer* p, fdm2D* b, sliceint &cval1)
 {
 	for(n=0;n<p->gcslpara1_count;++n)
     if(p->gcslpara1[n][3]==1)
@@ -66,7 +62,7 @@ void ghostcell::cval_gcslpara1(lexer* p, fdm* a, sliceint &cval1)
 	}
 }
 
-void ghostcell::cval_gcslpara2(lexer* p, fdm* a, sliceint &cval2)
+void ghostcell::cval_gcslpara2(lexer* p, fdm2D* b, sliceint &cval2)
 {
 	for(n=0;n<p->gcslpara1_count;++n)
     if(p->gcslpara1[n][4]==1)
@@ -105,7 +101,7 @@ void ghostcell::cval_gcslpara2(lexer* p, fdm* a, sliceint &cval2)
 	}
 }
 
-void ghostcell::cval_gcslpara4(lexer* p, fdm* a, sliceint &cval4)
+void ghostcell::cval_gcslpara4(lexer* p, fdm2D* b, sliceint &cval4)
 {
 	for(n=0;n<p->gcslpara1_count;++n)
     if(p->gcslpara1[n][6]==1)

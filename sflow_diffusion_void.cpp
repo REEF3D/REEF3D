@@ -31,13 +31,13 @@ sflow_diffusion_void::~sflow_diffusion_void()
 {
 }
 
-void sflow_diffusion_void::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &f, double alpha)
+void sflow_diffusion_void::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &u, slice &v, double alpha)
 {
 
 
 }
 
-void sflow_diffusion_void::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &f, double alpha)
+void sflow_diffusion_void::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &u, slice &v, double alpha)
 {
 
 
