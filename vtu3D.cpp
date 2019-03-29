@@ -266,7 +266,7 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
         for(n=0;n<p->P81;++n)
         pforce[n]->start(p,a,pgc);
         
-        if(p->count==0 && p->P81>0)
+        if((p->count==0 || p->count==p->count_statestart) && p->P81>0)
         for(n=0;n<p->P81;++n)
         pforcesolid[n]->ini(p,a,pgc);
     

@@ -51,7 +51,7 @@ void state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 	result.open(name, ios::binary);
 	
     result.read((char*)&iin, sizeof (int));
-	p->count=iin;
+	p->count=p->count_statestart=iin;
 	
     result.read((char*)&iin, sizeof (int));
 	p->printcount=iin;

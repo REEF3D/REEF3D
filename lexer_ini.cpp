@@ -39,6 +39,7 @@ void lexer::lexer_ini()
 
     uiter=viter=witer=0;
     kiniter=epsiter=poissoniter=lsmiter=suspiter=topoiter=0;
+    count_statestart=-1;
 
     phimean=0.0;
     phiout=0.0;

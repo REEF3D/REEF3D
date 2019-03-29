@@ -500,7 +500,7 @@ public:
 	int Y40,Y50,Y60,Y71,Y72,Y73,Y74;
 
 	// time + iterations
-	int inneriter,count,solveriter,preconiter;
+	int inneriter,count,solveriter,preconiter,count_statestart;
     double final_res;
 	double dt,veltimestep,turbtimestep,dt_old,turbtimestep_old,maxkappa,simtime,viscmax;
 	double mindt,maxdt;
