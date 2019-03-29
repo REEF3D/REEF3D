@@ -35,6 +35,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_boussinesq_void.h"
 #include"sflow_boussinesq_peregrine.h"
 #include"sflow_filter.h"
+#include"sflow_turbulence.h"
 #include<iostream>
 #include<fstream>
 #include<sys/stat.h>
@@ -88,11 +89,15 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 		double mtime=pgc->timer()-temptime;
 		
 		temptime=pgc->timer();
-		pfsf->start(p,b,pgc,pflow,b->P,b->Q,1.0);
+		//pfsf->start(p,b,pgc,pflow,b->P,b->Q,1.0);
 		double ftime=pgc->timer()-temptime;
         
         //pfilter->filter(p,b,pgc);
         
+        // turbulence
+        pturb->start(p,b,pgc,pconvec,pdiff,psolv,pflow);
+        
+    
         int count=0;
         SLICELOOP4
         if(b->breaking(i,j)>0)

@@ -857,6 +857,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
+          <File Name="sflow_turb_void.h"/>
           <File Name="sflow_turb_prandtl.h"/>
           <File Name="sflow_turb_keps_IM1.h"/>
           <File Name="sflow_turbulence.h"/>
@@ -2323,6 +2324,7 @@
           <File Name="sflow_eta_breaking.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
+          <File Name="sflow_turb_void.cpp"/>
           <File Name="sflow_turb_prandtl.cpp"/>
           <File Name="sflow_turb_keps_IM1.cpp"/>
         </VirtualDirectory>

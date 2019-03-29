@@ -20,13 +20,39 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 #include"ioflow_f.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
+#include"slice.h"
 
 void ioflow_f::inflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &bed, slice &eta)
 {
+    for(n=0;n<p->gcslin_count;n++)
+    {
+    i=p->gcslin[n][0];
+    j=p->gcslin[n][1];
+
+        P(i-1,j)=p->Ui;
+        P(i-2,j)=p->Ui;
+        P(i-3,j)=p->Ui;
+		
+		Q(i-1,j)=0.0;
+        Q(i-2,j)=0.0;
+        Q(i-3,j)=0.0;
+    }
 }
 
 void ioflow_f::rkinflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &bed, slice &eta)
 {
+    for(n=0;n<p->gcslin_count;n++)
+    {
+    i=p->gcslin[n][0];
+    j=p->gcslin[n][1];
+
+        P(i-1,j)=p->Ui;
+        P(i-2,j)=p->Ui;
+        P(i-3,j)=p->Ui;
+		
+		Q(i-1,j)=0.0;
+        Q(i-2,j)=0.0;
+        Q(i-3,j)=0.0;
+    }
 }

@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -19,28 +19,26 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-class fdm2D;
-class lexer;
-class sflow_convection;
-class sflow_diffusion;
-class solver2D;
-class ghostcell;
-class ioflow;
+#include"sflow_turb_void.h"
+#include"lexer.h"
+#include"fdm2D.h"
 
-
-#ifndef SFLOW_TURBULENCE_H_
-#define SFLOW_TURBULENCE_H_
-
-using namespace std;
-
-class sflow_turbulence
+sflow_turb_void::sflow_turb_void(lexer* p)
 {
+}
 
-public:
-	virtual void start(lexer*, fdm2D*, ghostcell*, sflow_convection*, sflow_diffusion*, solver2D*, ioflow*)=0;
-	virtual void ktimesave(lexer*, fdm2D*, ghostcell*)=0;
-	virtual void etimesave(lexer*, fdm2D*, ghostcell*)=0;
-	
-};
+sflow_turb_void::~sflow_turb_void()
+{
+}
 
-#endif
+void sflow_turb_void::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convection *pconvec, sflow_diffusion *pdiff, solver2D *psolv, ioflow *pflow)
+{
+}
+
+void sflow_turb_void::ktimesave(lexer* p, fdm2D *b, ghostcell *pgc)
+{
+}
+
+void sflow_turb_void::etimesave(lexer* p, fdm2D *b, ghostcell *pgc)
+{
+}

@@ -19,27 +19,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-class fdm2D;
-class lexer;
-class sflow_convection;
-class sflow_diffusion;
-class solver2D;
-class ghostcell;
-class ioflow;
+#include"sflow_turbulence.h"
+#include"increment.h"
 
-
-#ifndef SFLOW_TURBULENCE_H_
-#define SFLOW_TURBULENCE_H_
+#ifndef SFLOW_TURB_VOID_H_
+#define SFLOW_TURB_VOID_H_
 
 using namespace std;
 
-class sflow_turbulence
+class sflow_turb_void : public sflow_turbulence, public increment
 {
 
 public:
-	virtual void start(lexer*, fdm2D*, ghostcell*, sflow_convection*, sflow_diffusion*, solver2D*, ioflow*)=0;
-	virtual void ktimesave(lexer*, fdm2D*, ghostcell*)=0;
-	virtual void etimesave(lexer*, fdm2D*, ghostcell*)=0;
+    sflow_turb_void(lexer*);
+	virtual ~sflow_turb_void();
+    
+	virtual void start(lexer*, fdm2D*, ghostcell*, sflow_convection*, sflow_diffusion*, solver2D*, ioflow*);
+	virtual void ktimesave(lexer*, fdm2D*, ghostcell*);
+	virtual void etimesave(lexer*, fdm2D*, ghostcell*);
 	
 };
 

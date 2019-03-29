@@ -178,7 +178,6 @@ void ghostcell::gcsldistro4int(lexer *p, sliceint &f, int ii, int jj, int nn, do
     i=ii;
 	j=jj;
 	n=nn;
-	
 
 	gcsl_neumann_int(f,gcv,bc,cs);    
 }

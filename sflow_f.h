@@ -39,6 +39,7 @@ class sflow_convection;
 class sflow_diffusion;
 class sflow_boussinesq;
 class sflow_filter;
+class sflow_turbulence;
 
 using namespace std;
 
@@ -75,6 +76,7 @@ private:
 	sflow_diffusion *pdiff;
     sflow_boussinesq *pbouss;
     sflow_filter *pfilter;
+    sflow_turbulence *pturb;
 	
 	double starttime, endtime;
 };

@@ -42,7 +42,7 @@ int ghostcell::gcsleval2(lexer *p, int gcv, int bc, int cs)
 //Inflow none
     else
 	if((bc==1) && (gcv==11||gcv==21||gcv==2) && (cs==1||cs==4||cs==5||cs==6))
-	return 5;
+	return -1;
     
 //Outflow
 	else

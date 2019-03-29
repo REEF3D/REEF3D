@@ -29,19 +29,18 @@ void ghostcell::gcsl_outflow(lexer *p, slice& f, int gcv, int bc, int cs)
 	// normal flow
 	if(cs==1)
 	for(q=0;q<margin;++q)
-	f(i-q-1,j)=MIN(0.0, f(i,j) - (DT/p->dx)*p->Uo*(f(i+1,j)-f(i,j)));
+	f(i-q-1,j)= f(i,j) - (DT/p->dx)*p->Uo*(f(i+1,j)-f(i,j));
 
 	if(cs==2)
 	for(q=0;q<margin;++q)
-	f(i,j+q+1)=MAX(0.0, f(i,j) - (DT/p->dx)*p->Uo*(f(i,j)-f(i,j-1)));
+	f(i,j+q+1)= f(i,j) - (DT/p->dx)*p->Uo*(f(i,j)-f(i,j-1));
 
 	if(cs==3)
 	for(q=0;q<margin;++q)
-	f(i,j-q-1)=MIN(0.0, f(i,j) - (DT/p->dx)*p->Uo*(f(i,j+1)-f(i,j)));
+	f(i,j-q-1)= f(i,j) - (DT/p->dx)*p->Uo*(f(i,j+1)-f(i,j));
 
 	if(cs==4)
 	for(q=0;q<margin;++q)
-	f(i+q+1,j)=MAX(0.0, f(i,j) - (DT/p->dx)*p->Uo*(f(i,j)-f(i-1,j)));
-
+	f(i+q+1,j)= f(i,j) - (DT/p->dx)*p->Uo*(f(i,j)-f(i-1,j));
 }
 

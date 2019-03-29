@@ -117,14 +117,29 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     
     if(p->A230==3)
     pbouss = new sflow_boussinesq_madsen92(p,b);
+    
+    // diffusion
+	if(p->A260==0)
+	pturb =  new sflow_turb_void(p);
+    
+    if(p->A260==3)
+	pturb =  new sflow_turb_prandtl(p);
 	
 	// solver
 	ppoissonsolv = new hypre_struct2D(p,b,pgc);
     
     psolv = new sflow_bicgstab(p,b,pgc);
     
-	// ioflow
-	pflow = new iowave(p,pgc);
+    //IOFlow
+	if(p->B60==0 && p->B90==0)
+	pflow = new ioflow_v(p,pgc);
+
+	if(p->B60>=1)
+	pflow = new ioflow_f(p,pgc);
+
+	if(p->B90>=1)
+	pflow= new iowave(p,pgc);
+
 	
 	// printer
 	pprint = new sflow_vtp(p,b,pgc);

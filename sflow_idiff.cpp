@@ -37,7 +37,6 @@ sflow_idiff::~sflow_idiff()
 
 void sflow_idiff::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &u, slice &v, double alpha)
 {
-    
     starttime=pgc->timer();
    
     SLICELOOP1
@@ -45,7 +44,7 @@ void sflow_idiff::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
 	visc = p->W2 + 0.5*(b->eddyv(i,j) + b->eddyv(i+1,j));
 
         
-	b->M.p[count] =  4.0*visc/(p->dx*p->dx);
+	b->M.p[count] =  6.0*visc/(p->dx*p->dx);
                    
 				   + 1.0/(alpha*p->dt);
 				  
@@ -59,8 +58,8 @@ void sflow_idiff::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
 	 b->M.s[count] = -2.0*visc/(p->dx*p->dx);
 	 b->M.n[count] = -2.0*visc/(p->dx*p->dx);
 	 
-	 b->M.e[count] = -2.0*visc/(p->dx*p->dx);
-	 b->M.w[count] = -2.0*visc/(p->dx*p->dx);
+	 b->M.e[count] = -visc/(p->dx*p->dx);
+	 b->M.w[count] = -visc/(p->dx*p->dx);
  
 	 ++count;
 	}
@@ -78,21 +77,6 @@ void sflow_idiff::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
 
 void sflow_idiff::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &u, slice &v, double alpha)
 {
-    SLICELOOP2
-    {
-        
-	b->G(i,j) +=  ((visc+0.5*(b->eddyv(i,j) + b->eddyv(i,j+1)))/(p->dx*p->dx))*
-    
-                (     (v(i+1,j) - 2.0*v(i,j) + v(i-1,j))
-                + 2.0*(v(i,j+1) - 2.0*v(i,j) + v(i,j-1))
-                
-                + (u(i,j+1)-v(i,j)) - (v(i-1,j+1)-v(i-1,j)));
-    }
-    
-    
-    
-    
-    // -- x
     starttime=pgc->timer();
    
     SLICELOOP2
@@ -100,7 +84,7 @@ void sflow_idiff::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
 	visc = p->W2 + 0.5*(b->eddyv(i,j) + b->eddyv(i,j+1));
 
         
-	b->M.p[count] =  4.0*visc/(p->dx*p->dx);
+	b->M.p[count] =  6.0*visc/(p->dx*p->dx);
                    
 				   + 1.0/(alpha*p->dt);
 				  
@@ -111,8 +95,8 @@ void sflow_idiff::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
 									
 	 b->M.p[count] /= p->N54;
 	 
-	 b->M.s[count] = -2.0*visc/(p->dx*p->dx);
-	 b->M.n[count] = -2.0*visc/(p->dx*p->dx);
+	 b->M.s[count] = -visc/(p->dx*p->dx);
+	 b->M.n[count] = -visc/(p->dx*p->dx);
 	 
 	 b->M.e[count] = -2.0*visc/(p->dx*p->dx);
 	 b->M.w[count] = -2.0*visc/(p->dx*p->dx);
