@@ -45,7 +45,7 @@ void sflow_turb_prandtl::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convect
     
     dvdx = (0.5*(b->Q(i+1,j)+b->Q(i+1,j-1)) - 0.5*(b->Q(i-1,j)+b->Q(i-1,j-1)))/(2.0*p->dx);
     
-    b->eddyv(i,j) = p->wd*p->wd*4.0*sqrt(2.0*pow(dudx,2.0) + 2.0*pow(dvdy,2.0) + pow(dudy+dvdx,2.0));
+    b->eddyv(i,j) = pow(p->wd*p->wd,2.0)*sqrt(2.0*pow(dudx,2.0) + 2.0*pow(dvdy,2.0) + pow(dudy+dvdx,2.0));
     }
 }
 
