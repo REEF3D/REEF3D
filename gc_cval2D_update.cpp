@@ -15,7 +15,7 @@ FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program; if not, see <http://www.gnu.org/licenses/>.
+along with this program; if not, see <http:www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
@@ -77,7 +77,7 @@ void ghostcell::cval2Dupdate1(lexer* p, sliceint &cval1)
     i=p->gcslpara1[n][0];
     j=p->gcslpara1[n][1];
         
-        if(p->gcslpara1[n][6]==1)
+        if(p->gcslpara1[n][3]==1)
 		for(q=0;q<margin;++q)
         {
         cval1(i-1-q,j)=count;
@@ -90,7 +90,7 @@ void ghostcell::cval2Dupdate1(lexer* p, sliceint &cval1)
     i=p->gcslpara2[n][0];
     j=p->gcslpara2[n][1];
         
-        if(p->gcslpara2[n][6]==1)
+        if(p->gcslpara2[n][3]==1)
 		for(q=0;q<margin;++q)
         {
         cval1(i,j+1+q)=count;
@@ -103,7 +103,7 @@ void ghostcell::cval2Dupdate1(lexer* p, sliceint &cval1)
     i=p->gcslpara3[n][0];
     j=p->gcslpara3[n][1];
         
-        if(p->gcslpara3[n][6]==1)
+        if(p->gcslpara3[n][3]==1)
 		for(q=0;q<margin;++q)
         {
         cval1(i,j-1-q)=count;
@@ -116,7 +116,7 @@ void ghostcell::cval2Dupdate1(lexer* p, sliceint &cval1)
     i=p->gcslpara4[n][0];
     j=p->gcslpara4[n][1];
     
-        if(p->gcslpara4[n][6]==1)
+        if(p->gcslpara4[n][3]==1)
 		for(q=0;q<margin;++q)
         {
         cval1(i+1+q,j)=count;
@@ -176,7 +176,7 @@ void ghostcell::cval2Dupdate2(lexer* p, sliceint &cval2)
     i=p->gcslpara1[n][0];
     j=p->gcslpara1[n][1];
         
-        if(p->gcslpara1[n][6]==1)
+        if(p->gcslpara1[n][4]==1)
 		for(q=0;q<margin;++q)
         {
         cval2(i-1-q,j)=count;
@@ -189,7 +189,7 @@ void ghostcell::cval2Dupdate2(lexer* p, sliceint &cval2)
     i=p->gcslpara2[n][0];
     j=p->gcslpara2[n][1];
         
-        if(p->gcslpara2[n][6]==1)
+        if(p->gcslpara2[n][4]==1)
 		for(q=0;q<margin;++q)
         {
         cval2(i,j+1+q)=count;
@@ -202,7 +202,7 @@ void ghostcell::cval2Dupdate2(lexer* p, sliceint &cval2)
     i=p->gcslpara3[n][0];
     j=p->gcslpara3[n][1];
         
-        if(p->gcslpara3[n][6]==1)
+        if(p->gcslpara3[n][4]==1)
 		for(q=0;q<margin;++q)
         {
         cval2(i,j-1-q)=count;
@@ -215,7 +215,7 @@ void ghostcell::cval2Dupdate2(lexer* p, sliceint &cval2)
     i=p->gcslpara4[n][0];
     j=p->gcslpara4[n][1];
     
-        if(p->gcslpara4[n][6]==1)
+        if(p->gcslpara4[n][4]==1)
 		for(q=0;q<margin;++q)
         {
         cval2(i+1+q,j)=count;
@@ -223,7 +223,6 @@ void ghostcell::cval2Dupdate2(lexer* p, sliceint &cval2)
         }
 	}
 }
-
 
 void ghostcell::cval2Dupdate4(lexer* p, sliceint &cval4)
 {

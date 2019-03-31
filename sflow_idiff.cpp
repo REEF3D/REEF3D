@@ -38,32 +38,64 @@ sflow_idiff::~sflow_idiff()
 void sflow_idiff::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &u, slice &v, double alpha)
 {
     starttime=pgc->timer();
-   
+    
+    n=0;
     SLICELOOP1
     {
 	visc = p->W2 + 0.5*(b->eddyv(i,j) + b->eddyv(i+1,j));
 
         
-	b->M.p[count] =  6.0*visc/(p->dx*p->dx);
+	b->M.p[n] =  6.0*visc/(p->dx*p->dx)
                    
 				   + 1.0/(alpha*p->dt);
-				  
-	b->rhsvec.V[count] += (visc/(p->dx*p->dx))*((v(i+1,j)-v(i,j)) - (v(i+1,j-1)-v(i,j-1)))
+    
+	b->rhsvec.V[n] = (visc/(p->dx*p->dx))*((v(i+1,j)-v(i,j)) - (v(i+1,j-1)-v(i,j-1)))
 									
-						 + b->M.p[count]*u(i,j)*(1.0/p->N54-1.0)
+						 + b->M.p[n]*u(i,j)*(1.0/p->N54-1.0)
+                         
 						 + (u(i,j))/(alpha*p->dt);
-									
-	 b->M.p[count] /= p->N54;
+
+	 b->M.p[n] /= p->N54;
 	 
-	 b->M.s[count] = -2.0*visc/(p->dx*p->dx);
-	 b->M.n[count] = -2.0*visc/(p->dx*p->dx);
+	 b->M.s[n] = -2.0*visc/(p->dx*p->dx);
+	 b->M.n[n] = -2.0*visc/(p->dx*p->dx);
 	 
-	 b->M.e[count] = -visc/(p->dx*p->dx);
-	 b->M.w[count] = -visc/(p->dx*p->dx);
+	 b->M.e[n] = -visc/(p->dx*p->dx);
+	 b->M.w[n] = -visc/(p->dx*p->dx);
  
-	 ++count;
+	 ++n;
 	}
     
+    
+    n=0;
+    SLICELOOP1
+    {
+        if(p->flagslice1[Im1J]<0)
+		{
+		b->rhsvec.V[n] -= b->M.s[n]*u(i-1,j);
+		b->M.s[n] = 0.0;
+		}
+		
+		if(p->flagslice1[Ip1J]<0)
+		{
+		b->rhsvec.V[n] -= b->M.n[n]*u(i+1,j);
+		b->M.n[n] = 0.0;
+		}
+		
+		if(p->flagslice1[IJm1]<0)
+		{
+		b->rhsvec.V[n] -= b->M.e[n]*u(i,j-1);
+		b->M.e[n] = 0.0;
+		}
+		
+		if(p->flagslice1[IJp1]<0)
+		{
+		b->rhsvec.V[n] -= b->M.w[n]*u(i,j+1);
+		b->M.w[n] = 0.0;
+		}
+ 
+	++n;
+	}
     
 	psolv->start(p,b,pgc,u,b->xvec,b->rhsvec,1,gcval_u,p->D29);
     
@@ -79,31 +111,61 @@ void sflow_idiff::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
 {
     starttime=pgc->timer();
    
+    n=0;
     SLICELOOP2
     {
 	visc = p->W2 + 0.5*(b->eddyv(i,j) + b->eddyv(i,j+1));
 
         
-	b->M.p[count] =  6.0*visc/(p->dx*p->dx);
+	b->M.p[n] =  6.0*visc/(p->dx*p->dx)
                    
 				   + 1.0/(alpha*p->dt);
 				  
-	b->rhsvec.V[count] += (visc/(p->dx*p->dx))*((u(i,j+1)-u(i,j)) - (v(i-1,j+1)-v(i-1,j)))
+	b->rhsvec.V[n] = (visc/(p->dx*p->dx))*((u(i,j+1)-u(i,j)) - (u(i-1,j+1)-u(i-1,j)))
 									
-						 + b->M.p[count]*v(i,j)*(1.0/p->N54-1.0)
+						 + b->M.p[n]*v(i,j)*(1.0/p->N54-1.0)
 						 + (v(i,j))/(alpha*p->dt);
 									
-	 b->M.p[count] /= p->N54;
+	 b->M.p[n] /= p->N54;
 	 
-	 b->M.s[count] = -visc/(p->dx*p->dx);
-	 b->M.n[count] = -visc/(p->dx*p->dx);
+	 b->M.s[n] = -visc/(p->dx*p->dx);
+	 b->M.n[n] = -visc/(p->dx*p->dx);
 	 
-	 b->M.e[count] = -2.0*visc/(p->dx*p->dx);
-	 b->M.w[count] = -2.0*visc/(p->dx*p->dx);
+	 b->M.e[n] = -2.0*visc/(p->dx*p->dx);
+	 b->M.w[n] = -2.0*visc/(p->dx*p->dx);
  
-	 ++count;
+	 ++n;
 	}
     
+    n=0;
+    SLICELOOP2
+    {
+        if(p->flagslice2[Im1J]<0)
+		{
+		b->rhsvec.V[n] -= b->M.s[n]*v(i-1,j);
+		b->M.s[n] = 0.0;
+		}
+		
+		if(p->flagslice2[Ip1J]<0)
+		{
+		b->rhsvec.V[n] -= b->M.n[n]*v(i+1,j);
+		b->M.n[n] = 0.0;
+		}
+		
+		if(p->flagslice2[IJm1]<0)
+		{
+		b->rhsvec.V[n] -= b->M.e[n]*v(i,j-1);
+		b->M.e[n] = 0.0;
+		}
+		
+		if(p->flagslice2[IJp1]<0)
+		{
+		b->rhsvec.V[n] -= b->M.w[n]*v(i,j+1);
+		b->M.w[n] = 0.0;
+		}
+ 
+	++n;
+	}
     
 	psolv->start(p,b,pgc,v,b->xvec,b->rhsvec,2,gcval_v,p->D29);
     

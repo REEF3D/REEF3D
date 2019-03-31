@@ -27,6 +27,8 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 #include"ioflow_void.h"
 #include"hypre_struct2D.h"
 #include"sflow_bicgstab.h"
+#include"sflow_jacobi_block.h"
+
 #include"sflow_etimestep.h"
 #include"sflow_fou.h"
 #include"sflow_cfou.h"

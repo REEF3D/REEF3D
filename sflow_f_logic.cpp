@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 {	
-	
+    
 	// timestep
 	ptime = new sflow_etimestep(p,b);
 	
@@ -129,6 +129,8 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	ppoissonsolv = new hypre_struct2D(p,b,pgc);
     
     psolv = new sflow_bicgstab(p,b,pgc);
+    
+    //psolv = new sflow_jacobi_block(p,b,pgc);
     
     //IOFlow
 	if(p->B60==0 && p->B90==0)

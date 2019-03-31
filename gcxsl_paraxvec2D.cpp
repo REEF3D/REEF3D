@@ -25,7 +25,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void ghostcell::gcparaxvec2D(lexer* p, fdm2D *b, vec2D &x, int gcv)
 {
-
 	if(gcv==1)
 	gcslparaxvec_slr(p,x,b->C1,1);
 
@@ -49,7 +48,7 @@ void ghostcell::gcslparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
     n=p->gcslpara1[q][8+gcv];
 
 
-        if(p->gcslpara1[q][2+gcv]==1 || gcv==6)
+        if(p->gcslpara1[q][2+gcv]==1)
         {
         send1[count]=x.V[I_J];
         ++count;
@@ -60,7 +59,6 @@ void ghostcell::gcslparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
         send1[count]=x.V[Ip2_J];
         ++count;
         }
-
     }
 
 	count=0;
@@ -69,7 +67,7 @@ void ghostcell::gcslparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
     n=p->gcslpara2[q][8+gcv];
 
 
-        if(p->gcslpara2[q][2+gcv]==1 || gcv==6)
+        if(p->gcslpara2[q][2+gcv]==1)
         {
         send2[count]=x.V[I_J];
         ++count;
@@ -80,7 +78,6 @@ void ghostcell::gcslparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
         send2[count]=x.V[I_Jm2];
         ++count;
         }
-
 	}
 
     count=0;
@@ -89,7 +86,7 @@ void ghostcell::gcslparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
     n=p->gcslpara3[q][8+gcv];
 
 
-        if(p->gcslpara3[q][2+gcv]==1 || gcv==6)
+        if(p->gcslpara3[q][2+gcv]==1)
         {
         send3[count]=x.V[I_J];
         ++count;
@@ -100,7 +97,6 @@ void ghostcell::gcslparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
         send3[count]=x.V[I_Jp2];
         ++count;
         }
-
     }
 
 	count=0;
@@ -108,7 +104,7 @@ void ghostcell::gcslparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
 	{
     n=p->gcslpara4[q][8+gcv];
 
-        if(p->gcslpara4[q][2+gcv]==1 || gcv==6)
+        if(p->gcslpara4[q][2+gcv]==1)
         {
         send4[count]=x.V[I_J];
         ++count;
@@ -160,7 +156,7 @@ void ghostcell::gcslparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
     {
     n=p->gcslpara1[q][8+gcv];
 
-        if(p->gcslpara1[q][2+gcv]==1 || gcv==6)
+        if(p->gcslpara1[q][2+gcv]==1)
         {
         x.V[Im1_J]=recv1[count];
         ++count;
@@ -179,7 +175,7 @@ void ghostcell::gcslparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
 	{
     n=p->gcslpara2[q][8+gcv];
 
-        if(p->gcslpara2[q][2+gcv]==1 || gcv==6)
+        if(p->gcslpara2[q][2+gcv]==1)
         {
         x.V[I_Jp1]=recv2[count];
         ++count;
@@ -197,7 +193,7 @@ void ghostcell::gcslparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
 	{
     n=p->gcslpara3[q][8+gcv];
 
-        if(p->gcslpara3[q][2+gcv]==1 || gcv==6)
+        if(p->gcslpara3[q][2+gcv]==1)
         {
         x.V[I_Jm1]=recv3[count];
         ++count;
@@ -207,6 +203,7 @@ void ghostcell::gcslparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
 
         x.V[I_Jm3]=recv3[count];
         ++count;
+        
         }
 	}
 
@@ -215,7 +212,7 @@ void ghostcell::gcslparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
 	{
     n=p->gcslpara4[q][8+gcv];
 
-        if(p->gcslpara4[q][2+gcv]==1 || gcv==6)
+        if(p->gcslpara4[q][2+gcv]==1)
         {
         x.V[Ip1_J]=recv4[count];
         ++count;
@@ -225,8 +222,14 @@ void ghostcell::gcslparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
 
         x.V[Ip3_J]=recv4[count];
         ++count;
+        
+        //if(p->mpirank==0)
+        //cout<<n<<" . "<<Ip1_J<<" "<<Ip2_J<<" "<<Ip3_J<<" "<<endl;
         }
 	}
+    
+    //if(p->mpirank==0)
+    //cout<<endl<<endl;
 
 	endtime=timer();
 	p->xtime+=endtime-starttime;

@@ -111,7 +111,7 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 	 a->M.t[count] = -visc_ddz_p/(p->DZP[KP]*p->DZN[KP]);
 	 
 	 ++count;
-	}
+	 }
     
     n=0;
 	ULOOP

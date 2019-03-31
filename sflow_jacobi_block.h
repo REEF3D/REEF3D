@@ -28,26 +28,20 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 using namespace std;
 
-#ifndef SFLOW_BICGSTAB_H_
-#define SFLOW_BICGSTAB_H_
+#ifndef SFLOW_JACOBI_BLOCK_H_
+#define SFLOW_JACOBI_BLOCK_H_
 
-class sflow_bicgstab : public solver2D, public increment
+class sflow_jacobi_block : public solver2D, public increment
 {
 public:
 
-	sflow_bicgstab(lexer*,fdm2D*,ghostcell*);
-	virtual ~sflow_bicgstab();
+	sflow_jacobi_block(lexer*,fdm2D*,ghostcell*);
+	virtual ~sflow_jacobi_block();
 	virtual void start(lexer*,fdm2D*, ghostcell*, slice&, vec2D&, vec2D&, int, int, double);
 	virtual void solve(lexer*,fdm2D*, ghostcell*, vec2D&, vec2D&, int, int, int&, int, double, cpt2D&);
 	virtual void setup(lexer*,fdm2D*, ghostcell*,int, cpt2D&);
     
 private:
-    
-    void precon_solve(lexer*,fdm2D*, ghostcell*, vec2D&, vec2D&, int, int, int&, int, double, cpt2D&);
-	void precon_setup(lexer*,fdm2D*, ghostcell*,int, cpt2D&);
-    
-    void matvec_axb(lexer*,fdm2D*, vec2D&, vec2D&, cpt2D&);
-    void matvec_std(lexer*,fdm2D*, vec2D&, vec2D&, cpt2D&);
     
     double res_calc(lexer*, fdm2D*, vec2D&, ghostcell*, cpt2D&);
     
@@ -59,24 +53,15 @@ private:
     
 
     int num_iterations;
-    double final_res_norm;
-	int stencil_indices[7];
-	int nentries;
+    double final_res_norm,residual;
    
-	int numiter,count,q;
+	int numiter,count,q,qn;
+    const double epsi;
     
-    
-    //cg
-    vec2D sj,rj,r0,vj,tj,pj,precoeff,ph,sh,aii;
-	
-	int *sizeS,*range;
+    int *sizeS,*range;
 
-	const double epsi;
 
 	int margin;
-	
-	double alpha,beta,w1,w2,w,residual,norm_vj,norm_r0,norm_sj,norm_rj ;
-    double r_j1, r_j, sigma ;
 
 };
 

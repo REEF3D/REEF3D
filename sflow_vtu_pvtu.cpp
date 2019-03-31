@@ -90,8 +90,8 @@ void sflow_vtp::pvtu(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 	result<<"<PPointData>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"wb\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"eddyv\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"depth\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"breaking\"/>"<<endl;

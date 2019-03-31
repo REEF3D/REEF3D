@@ -22,6 +22,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_turb_prandtl.h"
 #include"lexer.h"
 #include"fdm2D.h"
+#include"ghostcell.h"
 
 sflow_turb_prandtl::sflow_turb_prandtl(lexer* p)
 {
@@ -47,6 +48,8 @@ void sflow_turb_prandtl::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convect
     
     b->eddyv(i,j) = pow(p->wd*p->wd,2.0)*sqrt(2.0*pow(dudx,2.0) + 2.0*pow(dvdy,2.0) + pow(dudy+dvdx,2.0));
     }
+    
+    pgc->gcsl_start4(p,b->eddyv,50);
 }
 
 void sflow_turb_prandtl::ktimesave(lexer* p, fdm2D *b, ghostcell *pgc)

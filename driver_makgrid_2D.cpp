@@ -82,9 +82,9 @@ void driver::makegrid2D(lexer *p, ghostcell *pgc)
     pgc->gcsl_setbc4(p);
     pgc->gcsl_setbcio(p);
     
-    pgc->dgcslini1(p);
+    /*pgc->dgcslini1(p);
 	pgc->dgcslini2(p);
-	pgc->dgcslini4(p);
+	pgc->dgcslini4(p);*/
 }
  
 void driver::makegrid2D_cds(lexer *p, ghostcell *pgc, fdm2D *b)
@@ -95,8 +95,11 @@ void driver::makegrid2D_cds(lexer *p, ghostcell *pgc, fdm2D *b)
     
     pgc->sizeS_update(p);
     
-
+    pgc->gcxslupdate(p);
+     
 	pgc->column2D_pt1_update(p,b);
     pgc->column2D_pt2_update(p,b);
     pgc->column2D_pt4_update(p,b);    
+    
+    
 }

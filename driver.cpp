@@ -36,7 +36,7 @@ driver::driver(int& argc, char **argv)
     {
     cout<<endl<<"REEF3D (c) 2008-2019 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl; 
-    cout<<endl<<"v_190329" <<endl<<endl;         
+    cout<<endl<<"v_190331" <<endl<<endl;         
     }
     
 	p->lexer_read();
@@ -164,6 +164,8 @@ void driver::sf_driver()
 
     psflow = new sflow_f(p,b,pgc);
 	
+    makegrid2D_cds(p,pgc,b);
+    
 	psflow->start(p,b,pgc);
 }
 

@@ -333,6 +333,7 @@ public:
     void gcslflagx(lexer*, int*);
     void gcparaxvec2D(lexer*, fdm2D*, vec2D&, int);
     void gcslparaxvec_slr(lexer*, vec2D&,cpt2D&,int);
+    void gcxslupdate(lexer*);
 
 
     double mini1(fdm*,lexer*, field&);

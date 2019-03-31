@@ -98,6 +98,9 @@ void ghostcell::cval_gcslpara2(lexer* p, fdm2D* b, sliceint &cval2)
     j=p->gcslpara4[n][1];
 	
 	p->gcslpara4[n][10]=cval2(i,j);		
+    
+    //if(p->mpirank==0)
+    //cout<<n<<" . "<<cval2(i,j)<<endl;
 	}
 }
 
@@ -109,7 +112,7 @@ void ghostcell::cval_gcslpara4(lexer* p, fdm2D* b, sliceint &cval4)
     i=p->gcslpara1[n][0];
     j=p->gcslpara1[n][1];
 		
-	p->gcslpara1[n][11]=cval4(i,j);		
+	p->gcslpara1[n][12]=cval4(i,j);		
 	}
 	
 	for(n=0;n<p->gcslpara2_count;++n)
@@ -118,7 +121,7 @@ void ghostcell::cval_gcslpara4(lexer* p, fdm2D* b, sliceint &cval4)
     i=p->gcslpara2[n][0];
     j=p->gcslpara2[n][1];
 	
-	p->gcslpara2[n][11]=cval4(i,j);		
+	p->gcslpara2[n][12]=cval4(i,j);		
 	}
 	
 	for(n=0;n<p->gcslpara3_count;++n)
@@ -127,7 +130,7 @@ void ghostcell::cval_gcslpara4(lexer* p, fdm2D* b, sliceint &cval4)
     i=p->gcslpara3[n][0];
     j=p->gcslpara3[n][1];
 	
-	p->gcslpara3[n][11]=cval4(i,j);	
+	p->gcslpara3[n][12]=cval4(i,j);	
 	}
 	
 	for(n=0;n<p->gcslpara4_count;++n)
@@ -136,7 +139,7 @@ void ghostcell::cval_gcslpara4(lexer* p, fdm2D* b, sliceint &cval4)
     i=p->gcslpara4[n][0];
     j=p->gcslpara4[n][1];
 	
-	p->gcslpara4[n][11]=cval4(i,j);		
+	p->gcslpara4[n][12]=cval4(i,j);		
 	}
 	
 

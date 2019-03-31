@@ -873,6 +873,7 @@
           </VirtualDirectory>
           <File Name="solver2D.h"/>
           <VirtualDirectory Name="CG">
+            <File Name="sflow_jacobi_block.h"/>
             <File Name="sflow_bicgstab.h"/>
           </VirtualDirectory>
         </VirtualDirectory>
@@ -1635,6 +1636,7 @@
         <File Name="gcsolid_dist.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Slice">
+        <File Name="gcxsl_update.cpp"/>
         <File Name="gcxsl_paraxvec2D.cpp"/>
         <File Name="gcxsl_paracox_int.cpp"/>
         <File Name="gcsl_outflow.cpp"/>
@@ -2343,6 +2345,7 @@
             <File Name="vec2D.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="CG">
+            <File Name="sflow_jacobi_block.cpp"/>
             <File Name="sflow_bicgstab.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>

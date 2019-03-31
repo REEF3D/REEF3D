@@ -68,10 +68,10 @@ void ghostcell::column2D_pt1(lexer* p, fdm2D* b, sliceint &cval1)
 	
 	GGCSL1LOOP
     {
-    i=p->gcb1[g][0];
-    j=p->gcb1[g][1];
+    i=p->gcbsl1[g][0];
+    j=p->gcbsl1[g][1];
 
-        if(p->gcb1[g][3]==1)
+        if(p->gcbsl1[g][3]==1)
         for(q=0;q<margin;++q)
         {
 			if(q<margin-1)
@@ -83,7 +83,7 @@ void ghostcell::column2D_pt1(lexer* p, fdm2D* b, sliceint &cval1)
         ++n;
         }
 
-        if(p->gcb1[g][3]==2)
+        if(p->gcbsl1[g][3]==2)
         for(q=0;q<margin;++q)
         {
 			if(q<margin-1)
@@ -95,7 +95,7 @@ void ghostcell::column2D_pt1(lexer* p, fdm2D* b, sliceint &cval1)
         ++n;
         }
 
-        if(p->gcb1[g][3]==3)
+        if(p->gcbsl1[g][3]==3)
         for(q=0;q<margin;++q)
         {
 			if(q<margin-1)
@@ -107,7 +107,7 @@ void ghostcell::column2D_pt1(lexer* p, fdm2D* b, sliceint &cval1)
         ++n;
         }
 
-        if(p->gcb1[g][3]==4)
+        if(p->gcbsl1[g][3]==4)
         for(q=0;q<margin;++q)
         {
 			if(q<margin-1)
@@ -120,13 +120,12 @@ void ghostcell::column2D_pt1(lexer* p, fdm2D* b, sliceint &cval1)
         }
     }
 	
-
 	for(g=0;g<p->gcslpara1_count;++g)
     {
     i=p->gcslpara1[g][0];
     j=p->gcslpara1[g][1];
         
-        if(p->gcslpara1[g][6]==1)
+        if(p->gcslpara1[g][3]==1)
 		for(q=0;q<margin;++q)
 		{
 			if(q<margin-1)
@@ -144,7 +143,7 @@ void ghostcell::column2D_pt1(lexer* p, fdm2D* b, sliceint &cval1)
     i=p->gcslpara2[g][0];
     j=p->gcslpara2[g][1];
         
-        if(p->gcslpara2[g][6]==1)
+        if(p->gcslpara2[g][3]==1)
 		for(q=0;q<margin;++q)   
 		{
 			if(q<margin-1)
@@ -162,7 +161,7 @@ void ghostcell::column2D_pt1(lexer* p, fdm2D* b, sliceint &cval1)
     i=p->gcslpara3[g][0];
     j=p->gcslpara3[g][1];
         
-        if(p->gcslpara3[g][6]==1)
+        if(p->gcslpara3[g][3]==1)
 		for(q=0;q<margin;++q)   
 		{
 			if(q<margin-1)
@@ -180,7 +179,7 @@ void ghostcell::column2D_pt1(lexer* p, fdm2D* b, sliceint &cval1)
     i=p->gcslpara4[g][0];
     j=p->gcslpara4[g][1];
         
-        if(p->gcslpara4[g][6]==1)
+        if(p->gcslpara4[g][3]==1)
 		for(q=0;q<margin;++q)
 		{
 			if(q<margin-1)
@@ -192,9 +191,7 @@ void ghostcell::column2D_pt1(lexer* p, fdm2D* b, sliceint &cval1)
 		++n;
 		}
 	}
-
 }
-
 
 void ghostcell::column2D_pt2(lexer* p, fdm2D* b, sliceint &cval2)
 {
@@ -212,12 +209,12 @@ void ghostcell::column2D_pt2(lexer* p, fdm2D* b, sliceint &cval2)
 	++n;
 	}
 	
-	GGCSL4LOOP
+	GGCSL2LOOP
     {
-    i=p->gcb2[g][0];
-    j=p->gcb2[g][1];
+    i=p->gcbsl2[g][0];
+    j=p->gcbsl2[g][1];
 
-        if(p->gcb2[g][3]==1)
+        if(p->gcbsl2[g][3]==1)
         for(q=0;q<margin;++q)
         {
 			if(q<margin-1)
@@ -229,7 +226,7 @@ void ghostcell::column2D_pt2(lexer* p, fdm2D* b, sliceint &cval2)
         ++n;
         }
 
-        if(p->gcb2[g][3]==2)
+        if(p->gcbsl2[g][3]==2)
         for(q=0;q<margin;++q)
         {
 			if(q<margin-1)
@@ -241,7 +238,7 @@ void ghostcell::column2D_pt2(lexer* p, fdm2D* b, sliceint &cval2)
         ++n;
         }
 
-        if(p->gcb2[g][3]==3)
+        if(p->gcbsl2[g][3]==3)
         for(q=0;q<margin;++q)
         {
 			if(q<margin-1)
@@ -253,7 +250,7 @@ void ghostcell::column2D_pt2(lexer* p, fdm2D* b, sliceint &cval2)
         ++n;
         }
 
-        if(p->gcb2[g][3]==4)
+        if(p->gcbsl2[g][3]==4)
         for(q=0;q<margin;++q)
         {
 			if(q<margin-1)
@@ -272,7 +269,7 @@ void ghostcell::column2D_pt2(lexer* p, fdm2D* b, sliceint &cval2)
     i=p->gcslpara1[g][0];
     j=p->gcslpara1[g][1];
         
-        if(p->gcslpara1[g][6]==1)
+        if(p->gcslpara1[g][4]==1)
 		for(q=0;q<margin;++q)
 		{
 			if(q<margin-1)
@@ -290,7 +287,7 @@ void ghostcell::column2D_pt2(lexer* p, fdm2D* b, sliceint &cval2)
     i=p->gcslpara2[g][0];
     j=p->gcslpara2[g][1];
         
-        if(p->gcslpara2[g][6]==1)
+        if(p->gcslpara2[g][4]==1)
 		for(q=0;q<margin;++q)   
 		{
 			if(q<margin-1)
@@ -308,7 +305,7 @@ void ghostcell::column2D_pt2(lexer* p, fdm2D* b, sliceint &cval2)
     i=p->gcslpara3[g][0];
     j=p->gcslpara3[g][1];
         
-        if(p->gcslpara3[g][6]==1)
+        if(p->gcslpara3[g][4]==1)
 		for(q=0;q<margin;++q)   
 		{
 			if(q<margin-1)
@@ -326,7 +323,7 @@ void ghostcell::column2D_pt2(lexer* p, fdm2D* b, sliceint &cval2)
     i=p->gcslpara4[g][0];
     j=p->gcslpara4[g][1];
         
-        if(p->gcslpara4[g][6]==1)
+        if(p->gcslpara4[g][4]==1)
 		for(q=0;q<margin;++q)
 		{
 			if(q<margin-1)
@@ -338,9 +335,7 @@ void ghostcell::column2D_pt2(lexer* p, fdm2D* b, sliceint &cval2)
 		++n;
 		}
 	}
-
 }
-
 
 void ghostcell::column2D_pt4(lexer* p, fdm2D* b, sliceint &cval4)
 {
@@ -360,10 +355,10 @@ void ghostcell::column2D_pt4(lexer* p, fdm2D* b, sliceint &cval4)
 	
 	GGCSL4LOOP
     {
-    i=p->gcb4[g][0];
-    j=p->gcb4[g][1];
+    i=p->gcbsl4[g][0];
+    j=p->gcbsl4[g][1];
 
-        if(p->gcb4[g][3]==1)
+        if(p->gcbsl4[g][3]==1)
         for(q=0;q<margin;++q)
         {
 			if(q<margin-1)
@@ -375,7 +370,7 @@ void ghostcell::column2D_pt4(lexer* p, fdm2D* b, sliceint &cval4)
         ++n;
         }
 
-        if(p->gcb4[g][3]==2)
+        if(p->gcbsl4[g][3]==2)
         for(q=0;q<margin;++q)
         {
 			if(q<margin-1)
@@ -387,7 +382,7 @@ void ghostcell::column2D_pt4(lexer* p, fdm2D* b, sliceint &cval4)
         ++n;
         }
 
-        if(p->gcb4[g][3]==3)
+        if(p->gcbsl4[g][3]==3)
         for(q=0;q<margin;++q)
         {
 			if(q<margin-1)
@@ -399,7 +394,7 @@ void ghostcell::column2D_pt4(lexer* p, fdm2D* b, sliceint &cval4)
         ++n;
         }
 
-        if(p->gcb4[g][3]==4)
+        if(p->gcbsl4[g][3]==4)
         for(q=0;q<margin;++q)
         {
 			if(q<margin-1)

@@ -144,9 +144,9 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
     result<<"<PointData >"<<endl;
     result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"wb\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"pressure\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-	result<<"<DataArray type=\"Float32\" Name=\"pressure\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"eddyv\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"elevation\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -205,14 +205,6 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	result.write((char*)&ffn, sizeof (float));
 	}
 
-    //  wb
-	iin=4*(p->pointnum2D);
-	result.write((char*)&iin, sizeof (int));
-	TPSLICELOOP
-	{
-	ffn=float(pgc->gcsl_ipol4(p,b->test));
-	result.write((char*)&ffn, sizeof (float));
-	}
 	
 	//  Pressure
 	iin=4*(p->pointnum2D);
@@ -220,6 +212,15 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	TPSLICELOOP
 	{
 	ffn=float(pgc->gcsl_ipol4(p,b->press));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
+    //  eddyv
+	iin=4*(p->pointnum2D);
+	result.write((char*)&iin, sizeof (int));
+	TPSLICELOOP
+	{
+	ffn=float(pgc->gcsl_ipol4(p,b->eddyv));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
