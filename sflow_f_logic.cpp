@@ -124,6 +124,13 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     
     if(p->A260==3)
 	pturb =  new sflow_turb_prandtl(p);
+    
+    // Sediment
+    if(p->A270=0)
+    psed = new sflow_sediment_v(p,b);
+    
+    if(p->A270=1)
+    psed = new sflow_sediment_f(p,b);
 	
 	// solver
 	ppoissonsolv = new hypre_struct2D(p,b,pgc);

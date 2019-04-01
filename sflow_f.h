@@ -40,6 +40,7 @@ class sflow_diffusion;
 class sflow_boussinesq;
 class sflow_filter;
 class sflow_turbulence;
+class sflow_sediment;
 
 using namespace std;
 
@@ -77,6 +78,7 @@ private:
     sflow_boussinesq *pbouss;
     sflow_filter *pfilter;
     sflow_turbulence *pturb;
+    sflow_sediment *psed;
 	
 	double starttime, endtime;
 };

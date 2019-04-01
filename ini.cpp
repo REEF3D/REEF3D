@@ -53,6 +53,7 @@ void lexer::ini_default()
     A248=0;      // int turn on breaking persistence
     A249=0.3;    // double breaking persistence parameter beta
     A260=0;      // int turbulence model
+    A270=0;      // int sediment transport
     
     A300=1;      // int sigma or fixed grid
     A310=3;		  // int time scheme for FNPF velocities

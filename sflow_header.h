@@ -62,6 +62,10 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 #include"sflow_boussinesq_madsen92.h"
 #include"sflow_filter.h"
 
+#include"sflow_sediment_f.h"
+#include"sflow_sediment_v.h"
+
+
 
 
 
