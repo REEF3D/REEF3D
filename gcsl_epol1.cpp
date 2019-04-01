@@ -32,7 +32,7 @@ int ghostcell::gcsleval1(lexer *p, int gcv, int bc, int cs)
 //Wall
 	// Parallel
 	if((bc==21||bc==22||bc==7||bc==5)&&(cs==2||cs==3||cs==5||cs==6)&&(gcv==10||gcv==1||gcv==20))
-	return 4;
+	return gclabel_u;
 	
     // Orthogonal
 	else
@@ -45,7 +45,7 @@ int ghostcell::gcsleval1(lexer *p, int gcv, int bc, int cs)
 //Outflow
 	else
 	if((bc==2)&&(cs==1||cs==4) && (gcv==10||gcv==20||gcv==1))
-	return 7;
+	return 4;
 
 //Symmetry
 	else

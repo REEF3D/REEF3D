@@ -77,6 +77,8 @@ void sflow_vtp::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow)
 
 void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 {	
+    b->eta.ggcpol(p);
+    
 	if(p->mpirank==0)
     pvtu(p,b,pgc);
     

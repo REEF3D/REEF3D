@@ -28,6 +28,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_diffusion.h"
 #include"sflow_fsf.h"
 #include"sflow_boussinesq.h"
+#include"sflow_rough_manning.h"
+#include"sflow_rough_void.h"
 #include"ioflow.h"
 #include"solver2D.h"
 
@@ -66,6 +68,12 @@ sflow_momentum_RK4::sflow_momentum_RK4(lexer *p, fdm2D *b, sflow_convection *pco
 	pflow=pioflow;
 	pfsf=pfreesurf;
     pbouss=ppbouss;
+    
+    if(p->A218==0)
+    prough = new sflow_rough_void(p);
+    
+    if(p->A218==1)
+    prough = new sflow_rough_manning(p);
 }
 
 sflow_momentum_RK4::~sflow_momentum_RK4()

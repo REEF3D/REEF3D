@@ -32,7 +32,7 @@ int ghostcell::gcsleval2(lexer *p, int gcv, int bc, int cs)
 //Wall
     // Parallel	
 	if((bc==21||bc==22||bc==7||bc==6||bc==5||bc==1)&&(cs==1||cs==4||cs==5||cs==6)&&(gcv==11||gcv==21||gcv==2))
-	return 4;
+	return gclabel_v;
 	
     // Orthogonal
 	else

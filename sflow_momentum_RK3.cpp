@@ -28,6 +28,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_diffusion.h"
 #include"sflow_fsf.h"
 #include"sflow_boussinesq.h"
+#include"sflow_rough_manning.h"
+#include"sflow_rough_void.h"
 #include"ioflow.h"
 #include"solver2D.h"
 
@@ -65,6 +67,12 @@ sflow_momentum_RK3::sflow_momentum_RK3(lexer *p, fdm2D *b, sflow_convection *pco
 	pflow=pioflow;
 	pfsf=pfreesurf;
     pbouss=ppbouss;
+    
+    if(p->A218==0)
+    prough = new sflow_rough_void(p);
+    
+    if(p->A218==1)
+    prough = new sflow_rough_manning(p);
 }
 
 sflow_momentum_RK3::~sflow_momentum_RK3()
@@ -99,6 +107,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
     // U
 	starttime=pgc->timer();
 	pflow->isource2D(p,b,pgc); 
+    prough->u_source(p,b,b->P);
     pbouss->psi1(p,b,pgc,b->P,b->Q,b->eta,1.0);
 	ppress->upgrad(p,b,etark1,b->eta);
 	irhs(p,b,pgc,b->P,1.0);
@@ -118,6 +127,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	starttime=pgc->timer();
 
 	pflow->jsource2D(p,b,pgc);
+    prough->v_source(p,b,b->Q);
     pbouss->psi2(p,b,pgc,b->P,b->Q,b->eta,1.0);
 	ppress->vpgrad(p,b,etark1,b->eta);
 	jrhs(p,b,pgc,b->Q,1.0);
@@ -185,6 +195,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	starttime=pgc->timer();
 
 	pflow->isource2D(p,b,pgc);
+    prough->u_source(p,b,Prk1);
     pbouss->psi1(p,b,pgc,Prk1,Qrk1,etark1,0.25);
 	ppress->upgrad(p,b,etark2,etark1);
 	irhs(p,b,pgc,Prk1,0.25);
@@ -205,6 +216,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	starttime=pgc->timer();
 
 	pflow->jsource2D(p,b,pgc);
+    prough->v_source(p,b,Qrk1);
     pbouss->psi2(p,b,pgc,Prk1,Qrk1,etark1,0.25);
 	ppress->vpgrad(p,b,etark2,etark1);
 	jrhs(p,b,pgc,Qrk1,0.25);
@@ -272,6 +284,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	starttime=pgc->timer();
 
 	pflow->isource2D(p,b,pgc);
+    prough->u_source(p,b,Prk2);
     pbouss->psi1(p,b,pgc,Prk2,Qrk2,etark2,2.0/3.0);
 	ppress->upgrad(p,b,b->eta,etark2);
 	irhs(p,b,pgc,Prk2,2.0/3.0);
@@ -291,6 +304,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	starttime=pgc->timer();
 
 	pflow->jsource2D(p,b,pgc);
+    prough->v_source(p,b,Qrk2);
     pbouss->psi2(p,b,pgc,Prk2,Qrk2,etark2,2.0/3.0);
 	ppress->vpgrad(p,b,b->eta,etark2);
 	jrhs(p,b,pgc,Qrk2,2.0/3.0);

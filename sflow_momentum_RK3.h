@@ -29,6 +29,7 @@ class sflow_convection;
 class sflow_fsf;
 class sflow_diffusion;
 class sflow_boussinesq;
+class sflow_roughness;
 
 using namespace std;
 
@@ -64,6 +65,7 @@ private:
 	ioflow *pflow;
 	sflow_fsf *pfsf;
     sflow_boussinesq *pbouss;
+    sflow_roughness *prough;
 };
 
 #endif

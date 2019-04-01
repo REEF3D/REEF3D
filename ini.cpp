@@ -25,13 +25,15 @@ void lexer::ini_default()
 {
     // Hydrodynamic Models
     A10=5;       // int turn on wave models
-    A209=5;      // int interpolation sweeps for bed
+    A209=2;      // int interpolation sweeps for bed
 	A210=3;		  // int time scheme for SFLOW velocities
 	A211=4;		  // int convection scheme for SLOW velocities
 	A212=0;		  // int diffusion treatment for SLOW velocities
     A214=1;      // int convection for vertical velocity
     A215=0;      // int conservative discretization
     A216=2;      // int convection veolcity
+    A217=1;      // int slip or no-slip boundary conditions
+    A218=0;      // int turn on roughness
     A219=1;      // int additional courant number constraint
 	A220=1;		  // int pressure scheme for SFLOW
 	A221=1;		  // int include hydrostatic pressure for SFLOW

@@ -19,22 +19,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-class lexer;
-class fdm2D;
-class slice;
+#include"sflow_roughness.h"
+#include"increment.h"
+#include"slice4.h"
 
-#ifndef SFLOW_ROUGHNESS_H_
-#define SFLOW_ROUGHNESS_H_
+#ifndef SFLOW_ROUGH_VOID_H_
+#define SFLOW_ROUGH_VOID_H_
 
 using namespace std;
 
-class sflow_roughness 
+class sflow_rough_void : public sflow_roughness
 {
 
 public:
-
-	virtual void u_source(lexer*, fdm2D*, slice&)=0;
-    virtual void v_source(lexer*, fdm2D*, slice&)=0;
+    sflow_rough_void(lexer*);
+	virtual ~sflow_rough_void();
+    
+	virtual void u_source(lexer*, fdm2D*, slice&);
+    virtual void v_source(lexer*, fdm2D*, slice&);
 
 };
 

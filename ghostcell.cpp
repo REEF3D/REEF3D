@@ -261,6 +261,22 @@ void ghostcell::gcini(lexer* p)
     gclabel_lsm_in=0;
     //gclabel_press_in=0;
     }
+    
+    
+    // sflow slip/no-slip
+    if(p->A217==1)
+    {
+    gclabel_u=4;
+    gclabel_v=4;
+    }
+
+    if(p->A217==2)
+    {
+    gclabel_u=5;
+    gclabel_v=5;
+    }
+    
+    
 	
     epphi=1.6*p->DXM;
 	
