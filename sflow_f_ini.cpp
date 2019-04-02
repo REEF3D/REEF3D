@@ -122,14 +122,8 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     
 	pgc->gcsl_start4(p,b->depth,50);
 	
-	SLICELOOP4
-	{
-    b->wb(i,j) = -0.25*(b->P(i,j)+b->P(i-1,j))*(b->depth(i+1,j)-b->depth(i-1,j))/p->dx
-                
-                -0.25*(b->Q(i,j)+b->Q(i,j-1))*(b->depth(i,j+1)-b->depth(i,j-1))/p->dx;
-				
+	SLICELOOP4		
 	b->ws(i,j) = 0.0;
-	}
     
     SLICELOOP4
     b->eta_n(i,j) = b->eta(i,j);
@@ -142,7 +136,12 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 	pgc->gcsl_start2(p,b->Q,11);
 	pgc->gcsl_start4(p,b->eta,50);
     pgc->gcsl_start4(p,b->hp,50);
+    
+    //roughness ini
+    SLICELOOP4
+    b->ks(i,j) = p->B50;
 	
+    // print
 	print_debug(p,b,pgc);
     pprint->start(p,b,pgc,pflow);
 

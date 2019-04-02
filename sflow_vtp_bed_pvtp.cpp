@@ -90,7 +90,7 @@ void sflow_vtp_bed::pvtu(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 	result<<"<PPointData>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"waterlevel\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"wb\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"bedload\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
 	result<<"</PPointData>"<<endl;

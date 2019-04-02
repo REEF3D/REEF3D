@@ -126,10 +126,10 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	pturb =  new sflow_turb_prandtl(p);
     
     // Sediment
-    if(p->A270=0)
+    if(p->S10==0)
     psed = new sflow_sediment_v(p,b);
     
-    if(p->A270=1)
+    if(p->S10==1)
     psed = new sflow_sediment_f(p,b);
 	
 	// solver

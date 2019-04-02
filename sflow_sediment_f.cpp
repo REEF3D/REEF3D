@@ -26,8 +26,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"slice1.h"
 #include"slice2.h"
  
-sflow_sediment_f::sflow_sediment_f(lexer* p, fdm2D *b) : tau(p),taucr(p),qb(p),alpha(p),teta(p),gamma(p),phi(p)
+sflow_sediment_f::sflow_sediment_f(lexer* p, fdm2D *b) : tau(p),taucr(p),alpha(p),teta(p),gamma(p),phi(p),topovel(p)
 {
+    p->sedtime=0.0;
 }
 
 sflow_sediment_f::~sflow_sediment_f()
@@ -61,12 +62,15 @@ void sflow_sediment_f::start(lexer *p, fdm2D *b, ghostcell *pgc)
 }
 
 void sflow_sediment_f::sediment_algorithm(lexer *p, fdm2D *b, ghostcell *pgc)
-{/*
+{
+    starttime=pgc->timer();
+    
     // bedslope
     bedslope(p,b,pgc);
     
     // bedshear
     bedshear(p,b,pgc);
+    shields(p,b,pgc);
 
     // bedload
     bedload(p,b,pgc);
@@ -75,6 +79,13 @@ void sflow_sediment_f::sediment_algorithm(lexer *p, fdm2D *b, ghostcell *pgc)
     exner(p,b,pgc);
     
     // sandslide
-    sandslide(p,b,pgc);*/
+    sandslide(p,b,pgc);
+    
+    
+    if(p->mpirank==0 && p->count>0)
+    cout<<"Sediment Timestep: "<<p->dtsed<<" Sediment Total Timestep: "<<p->dtsed<<"  Total Time: "<<setprecision(7)<<p->sedtime<<endl;
+
+	if(p->mpirank==0)
+    cout<<"Sediment Time: "<<setprecision(5)<<pgc->timer()-starttime<<endl<<endl;
 }
 

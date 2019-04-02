@@ -55,7 +55,7 @@ public:
     slice1 P,Pn,F;
     slice2 Q,Qn,G;
     slice4 L;
-    slice4 ws,wb;
+    slice4 ws;
     slice4 press;
     slice4 eddyv,kin,eps;
 	slice1 hx;
@@ -70,6 +70,8 @@ public:
     slice4 breaking_print;
     
     sliceint4 wet4;
+    
+    slice4 ks,qb;
 	
 	vec2D xvec,rhsvec;
 

@@ -36,6 +36,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_boussinesq_peregrine.h"
 #include"sflow_filter.h"
 #include"sflow_turbulence.h"
+#include"sflow_sediment.h"
 #include<iostream>
 #include<fstream>
 #include<sys/stat.h>
@@ -97,7 +98,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         // turbulence
         pturb->start(p,b,pgc,pconvec,pdiff,psolv,pflow);
         
-    
+        // breaking waves
         int count=0;
         SLICELOOP4
         if(b->breaking(i,j)>0)
@@ -107,14 +108,18 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         }
         pgc->gcsl_start4(p,b->breaking_print,1);
     
-    count=pgc->globalisum(count);
-    
-    if(p->mpirank==0 && (p->count%p->P12==0))
-    cout<<"breaking: "<<count<<endl;
-    
-    if(p->A248==0)
-    SLICELOOP4
-    b->breaking(i,j)=0;
+        count=pgc->globalisum(count);
+        
+        if(p->mpirank==0 && (p->count%p->P12==0))
+        cout<<"breaking: "<<count<<endl;
+        
+        if(p->A248==0)
+        SLICELOOP4
+        b->breaking(i,j)=0;
+        
+        // sediment transport
+        psed->start(p,b,pgc);
+        pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
 		
         //timestep control
         ptime->start(p,b,pgc);

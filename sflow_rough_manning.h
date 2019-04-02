@@ -39,7 +39,6 @@ public:
     virtual void v_source(lexer*, fdm2D*, slice&);
 
 private:
-	slice4 ks;
     
     double cf,manning;
 };

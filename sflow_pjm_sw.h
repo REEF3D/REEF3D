@@ -59,7 +59,7 @@ private:
 	double solvtime,ptime;
     double wd_criterion;
     
-    slice4 wsn,wbn;
+    slice4 wb,wsn,wbn;
 	sflow_weno_hj *disc;
 
 };

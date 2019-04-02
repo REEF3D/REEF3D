@@ -45,7 +45,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define HPX (0.5*(HP + HPI))
 #define HPY (0.5*(HP + HPJ))
  
-sflow_pjm_sw::sflow_pjm_sw(lexer* p, fdm2D *b) : wsn(p), wbn(p)
+sflow_pjm_sw::sflow_pjm_sw(lexer* p, fdm2D *b) : wb(p), wsn(p), wbn(p)
 {
     if(p->B76==0)
     gcval_press=40;  
@@ -93,9 +93,9 @@ void sflow_pjm_sw::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, io
 	starttime=pgc->timer();
 	
     pgc->gcsl_start4(p,ws,12);
-	pgc->gcsl_start4(p,b->wb,12);
+	pgc->gcsl_start4(p,wb,12);
     ws.ggcpol(p);
-    b->wb.ggcpol(p);
+    wb.ggcpol(p);
     
     rhs(p,b,P,Q,ws,alpha);
 	pgc->gcsl_start4(p,b->press,gcval_press);
@@ -121,7 +121,7 @@ void sflow_pjm_sw::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, io
 	vcorr(p,b,Q,eta,alpha);
     wcorr(p,b, alpha, P, Q, ws);
 	pgc->gcsl_start4(p,ws,12);
-	pgc->gcsl_start4(p,b->wb,12);
+	pgc->gcsl_start4(p,wb,12);
 
     p->poissoniter=p->solveriter;
 
@@ -169,16 +169,16 @@ void sflow_pjm_sw::wcorr(lexer* p, fdm2D* b,double alpha, slice &P, slice &Q, sl
 void sflow_pjm_sw::wcalc(lexer* p, fdm2D* b,double alpha, slice &P, slice &Q, slice &ws)
 {	
     SLICELOOP4
-    wbn(i,j) = b->wb(i,j);
+    wbn(i,j) = wb(i,j);
 
 	
 	SLICELOOP4
-    b->wb(i,j) = -0.25*(P(i,j)+P(i-1,j))*(b->depth(i+1,j)-b->depth(i-1,j))/p->dx
+    wb(i,j) = -0.25*(P(i,j)+P(i-1,j))*(b->depth(i+1,j)-b->depth(i-1,j))/p->dx
                 
                 -0.25*(Q(i,j)+Q(i,j-1))*(b->depth(i,j+1)-b->depth(i,j-1))/p->dx;
 	
     SLICELOOP4
-	ws(i,j) += -(b->wb(i,j)-wbn(i,j));
+	ws(i,j) += -(wb(i,j)-wbn(i,j));
 }
 
 void sflow_pjm_sw::rhs(lexer *p, fdm2D* b, slice &u, slice &v, slice &ws, double alpha)
@@ -192,7 +192,7 @@ void sflow_pjm_sw::rhs(lexer *p, fdm2D* b, slice &u, slice &v, slice &ws, double
     b->rhsvec.V[count] =   -((u(i,j) - u(i-1,j))*(b->hp(i,j))
                            + (v(i,j) - v(i,j-1))*(b->hp(i,j)))/(alpha*p->dt*p->dx)
                            
-                           -(ws(i,j)-b->wb(i,j))/(alpha*p->dt);
+                           -(ws(i,j)-wb(i,j))/(alpha*p->dt);
     ++count;
     }
 }

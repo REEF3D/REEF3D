@@ -24,7 +24,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm2D.h" 
 #include"ghostcell.h"
 
-void sflow_sediment_f::sandslide(lexer *p, fdm2D *b, ghostcell *pgc)
+void sflow_sediment_f::shields(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+    double r;
     
+    SLICELOOP4
+    {
+    r = 1.0;
+    taucr(i,j) = (p->S30*fabs(p->W22)*(p->S22-p->W1))*p->S20*r;
+    }
 }

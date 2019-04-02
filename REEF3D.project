@@ -2288,6 +2288,7 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Suspended"/>
           <VirtualDirectory Name="Bedshear">
+            <File Name="sflow_sed_shields.cpp"/>
             <File Name="sflow_sed_bedshear.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Bedload">

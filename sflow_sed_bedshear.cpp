@@ -23,11 +23,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm2D.h" 
 #include"ghostcell.h"
-#include"slice1.h"
-#include"slice2.h"
+
+#define HP (fabs(b->hp(i,j))>1.0e-20?b->hp(i,j):1.0e20)
  
 void sflow_sediment_f::bedshear(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+    double ux,vy,uabs,cf,manning;
+    
+    SLICELOOP4
+    {
+    ux = 0.5*(b->P(i,j) + b->P(i+1,j));
+    vy = 0.5*(b->Q(i,j) + b->Q(i,j+1));
+    uabs = sqrt(ux*ux + vy*vy);
+    
+    manning = pow(b->ks(i,j),1.0/6.0)/26.0;
+    cf = pow(manning,2.0)/pow(HP,1.0/3.0);
+    
+    tau(i,j) = p->W1*9.81*cf*uabs*uabs; 
+    }
     
     
 }

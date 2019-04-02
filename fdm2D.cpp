@@ -26,7 +26,7 @@ fdm2D::fdm2D(lexer *p)
 			:eta(p),eta_n(p),
             P(p),Pn(p),Q(p),Qn(p),
             F(p),G(p),L(p),
-            ws(p),wb(p),
+            ws(p),
             press(p),
             eddyv(p),kin(p),eps(p),
             geo(p),bed(p),depth(p),
@@ -37,7 +37,8 @@ fdm2D::fdm2D(lexer *p)
             breaking(p),breaking_print(p),
             wet4(p),
 			 nodeval(p),
-			 cmu(0.09)
+			 cmu(0.09),
+             ks(p),qb(p)
 {
 
 	inverse=1.0/p->dx;

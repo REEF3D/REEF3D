@@ -48,13 +48,19 @@ private:
     
     void bedslope(lexer*, fdm2D*, ghostcell*);
     void bedshear(lexer*, fdm2D*, ghostcell*);
+    void shields(lexer*, fdm2D*, ghostcell*);
     void bedshear_slope(lexer*, fdm2D*, ghostcell*);
+    
     void bedload(lexer*, fdm2D*, ghostcell*);
+    void bedload_vanRijn(lexer*, fdm2D*, ghostcell*);
+    
     void exner(lexer*, fdm2D*, ghostcell*);
     void sandslide(lexer*, fdm2D*, ghostcell*);
     
     
-    slice4 tau,taucr,qb,alpha,teta,gamma,phi;
+    slice4 tau,taucr,alpha,teta,gamma,phi,topovel;
+    
+    double starttime;
     
 };
 
