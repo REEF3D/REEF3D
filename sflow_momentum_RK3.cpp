@@ -103,6 +103,9 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
     pfsf->breaking(p,b,pgc,etark1,b->eta,1.0);
     pflow->eta_relax(p,pgc,etark1);
     pgc->gcsl_start4(p,etark1,gcval_eta);
+    
+    // topo
+    // call sediment step 1
 
     // U
 	starttime=pgc->timer();

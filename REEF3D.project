@@ -803,6 +803,9 @@
           <File Name="sflow.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sediment">
+          <File Name="sflow_sediment_RKv.h"/>
+          <File Name="sflow_sediment_RK.h"/>
+          <File Name="sflow_sediment_RK3.h"/>
           <VirtualDirectory Name="Bedlevel">
             <File Name="sflow_sed_bedlevel.h"/>
           </VirtualDirectory>
@@ -2279,6 +2282,8 @@
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <VirtualDirectory Name="Sediment">
+          <File Name="sflow_sediment_RKv.cpp"/>
+          <File Name="sflow_sediment_RK3.cpp"/>
           <VirtualDirectory Name="Sandslide">
             <File Name="sflow_sed_sandslide.cpp"/>
           </VirtualDirectory>
