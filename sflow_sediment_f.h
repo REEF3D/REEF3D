@@ -41,24 +41,24 @@ public:
 	virtual ~sflow_sediment_f();
 
 	virtual void ini(lexer*, fdm2D*, ghostcell*);
-    virtual void start(lexer*, fdm2D*, ghostcell*);
+    virtual void start(lexer*, fdm2D*, ghostcell*, slice&, slice&,slice&);
     
 private:
-    void sediment_algorithm(lexer*, fdm2D*, ghostcell*);
+    void sediment_algorithm(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&);
     
-    void bedslope(lexer*, fdm2D*, ghostcell*);
-    void bedshear(lexer*, fdm2D*, ghostcell*);
+    void bedslope(lexer*, fdm2D*, ghostcell*, slice&, slice&);
+    void bedshear(lexer*, fdm2D*, ghostcell*, slice&, slice&);
     void shields(lexer*, fdm2D*, ghostcell*);
     void bedshear_slope(lexer*, fdm2D*, ghostcell*);
     
     void bedload(lexer*, fdm2D*, ghostcell*);
     void bedload_vanRijn(lexer*, fdm2D*, ghostcell*);
     
-    void exner(lexer*, fdm2D*, ghostcell*);
-    void sandslide(lexer*, fdm2D*, ghostcell*);
+    void exner(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&);
+    void sandslide(lexer*, fdm2D*, ghostcell*, slice&, slice&);
     
     
-    slice4 tau,taucr,alpha,teta,gamma,phi,topovel;
+    slice4 tau,taucr,alpha,teta,gamma,phi;
     
     double starttime;
     

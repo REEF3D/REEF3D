@@ -35,7 +35,7 @@ class sflow_sediment
 public:
 
 	virtual void ini(lexer*, fdm2D*, ghostcell*)=0;
-    virtual void start(lexer*, fdm2D*, ghostcell*)=0;
+    virtual void start(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&)=0;
     
 };
 

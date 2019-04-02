@@ -71,7 +71,7 @@ public:
     
     sliceint4 wet4;
     
-    slice4 ks,qb;
+    slice4 ks,qb,topovel;
 	
 	vec2D xvec,rhsvec;
 

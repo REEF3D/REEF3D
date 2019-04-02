@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm2D.h" 
 #include"ghostcell.h"
 
-void sflow_sediment_f::exner(lexer *p, fdm2D *b, ghostcell *pgc)
+void sflow_sediment_f::exner(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q, slice &topovel)
 {
     double uvel,vvel,u_abs;
 	double signx,signy;
@@ -35,11 +35,11 @@ void sflow_sediment_f::exner(lexer *p, fdm2D *b, ghostcell *pgc)
 	if(p->pos_x()>=p->S71 && p->pos_x()<=p->S72)
 	{						
         pip=1;
-        uvel=0.5*(b->P(i,j)+b->P(i-1,j));
+        uvel=0.5*(P(i,j)+P(i-1,j));
         pip=0;
 
         pip=2;
-        vvel=0.5*(b->Q(i,j)+b->Q(i,j-1));
+        vvel=0.5*(Q(i,j)+Q(i,j-1));
         pip=0;
 		
 		u_abs = sqrt(uvel*uvel + vvel*vvel);
@@ -48,34 +48,29 @@ void sflow_sediment_f::exner(lexer *p, fdm2D *b, ghostcell *pgc)
 	
 		
 	dqx=dqy=0.0;
-
-    dqx = (b->qb(i+1,j)-b->qb(i-1,j))/(2.0*p->dx);
-    dqy = (b->qb(i,j+1)-b->qb(i,j-1))/(2.0*p->dx);
+    
+    //dqx = (b->qb(i+1,j)-b->qb(i-1,j))/(2.0*p->dx);
+    //dqy = (b->qb(i,j+1)-b->qb(i,j-1))/(2.0*p->dx);
+    
+    if(signx>=0.0)
+    dqx = (b->qb(i,j)-b->qb(i-1,j))/(p->dx);
+    
+    if(signx<0.0)
+    dqx = (b->qb(i+1,j)-b->qb(i,j))/(p->dx);
+    
+    if(signy>=0.0)
+    dqy = (b->qb(i,j)-b->qb(i,j-1))/(p->dx);
+    
+    if(signy<0.0)
+    dqy = (b->qb(i,j+1)-b->qb(i,j))/(p->dx);
 		
 	// Exner equation
     topovel(i,j) =  -(1.0/(1.0-p->S24))*(dqx*signx + dqy*signy); 
 	}
     
     // timestep
-    maxvel=0.0;
+    
 	SLICELOOP4
-	maxvel = MAX(fabs(topovel(i,j)),maxvel);	
-    
-    if(p->S15==0)
-    p->dtsed=MIN(p->S13, (p->S14*p->dx)/(fabs(maxvel)>1.0e-15?maxvel:1.0e-15));
+	p->maxtopovel = MAX(fabs(topovel(i,j)),p->maxtopovel);	
 
-    if(p->S15==1)
-    p->dtsed=MIN(p->dt, (p->S14*p->dx)/(fabs(maxvel)>1.0e-15?maxvel:1.0e-15));
-    
-    if(p->S15==2)
-    p->dtsed=p->S13;
-    
-    p->dtsed=pgc->timesync(p->dtsed);
-    
-     p->sedtime+=p->dtsed;
-     
-    // bedchange
-    SLICELOOP4
-    b->bed(i,j) += p->dtsed*topovel(i,j);
-    
 }

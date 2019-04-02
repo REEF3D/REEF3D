@@ -25,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm2D.h" 
 #include"ghostcell.h"
 
-void sflow_sediment_f::bedslope(lexer *p, fdm2D *b, ghostcell *pgc)
+void sflow_sediment_f::bedslope(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q)
 {
     double uvel,vvel;
     double nx,ny,nz,norm;

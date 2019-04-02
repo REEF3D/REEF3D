@@ -39,7 +39,7 @@ void sflow_sediment_v::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     
 }
 
-void sflow_sediment_v::start(lexer *p, fdm2D *b, ghostcell *pgc)
+void sflow_sediment_v::start(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q, slice &topovel)
 {
     
 }

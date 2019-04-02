@@ -118,7 +118,28 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         b->breaking(i,j)=0;
         
         // sediment transport
-        psed->start(p,b,pgc);
+        psed->start(p,b,pgc,b->P,b->Q,b->topovel);
+        
+        // timestep calculation
+        if(p->S15==0)
+        p->dtsed=MIN(p->S13, (p->S14*p->dx)/(fabs(p->maxtopovel)>1.0e-15?p->maxtopovel:1.0e-15));
+
+        if(p->S15==1)
+        p->dtsed=MIN(p->dt, (p->S14*p->dx)/(fabs(p->maxtopovel)>1.0e-15?p->maxtopovel:1.0e-15));
+        
+        if(p->S15==2)
+        p->dtsed=p->S13;
+        
+        p->dtsed=pgc->timesync(p->dtsed);
+        
+        p->sedtime+=p->dtsed;
+        
+        p->maxtopovel=0.0;
+        
+        // bedchange
+        SLICELOOP4
+        b->bed(i,j) = p->dtsed*b->topovel(i,j);
+    
         pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
 		
         //timestep control

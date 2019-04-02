@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"slice1.h"
 #include"slice2.h"
  
-sflow_sediment_f::sflow_sediment_f(lexer* p, fdm2D *b) : tau(p),taucr(p),alpha(p),teta(p),gamma(p),phi(p),topovel(p)
+sflow_sediment_f::sflow_sediment_f(lexer* p, fdm2D *b) : tau(p),taucr(p),alpha(p),teta(p),gamma(p),phi(p)
 {
     p->sedtime=0.0;
 }
@@ -40,52 +40,52 @@ void sflow_sediment_f::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     
 }
 
-void sflow_sediment_f::start(lexer *p, fdm2D *b, ghostcell *pgc)
+void sflow_sediment_f::start(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q, slice &topovel)
 {
     if((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47))
 	{
 		if(p->S42==1 && p->count%p->S44==0)
-		sediment_algorithm(p,b,pgc);
+		sediment_algorithm(p,b,pgc,P,Q,topovel);
 		
 		if(p->S42==2 && p->simtime>=p->sedsimtime)
 		{
-		sediment_algorithm(p,b,pgc);
+		sediment_algorithm(p,b,pgc,P,Q,topovel);
 		p->sedsimtime = p->simtime + p->S46;
 		}
 		
 		if(p->S42==3  && p->simtime/p->wT>=p->sedwavetime)
 		{
-		sediment_algorithm(p,b,pgc);
+		sediment_algorithm(p,b,pgc,P,Q,topovel);
 		p->sedwavetime = p->simtime/p->wT + p->S48;
 		}
 	}
 }
 
-void sflow_sediment_f::sediment_algorithm(lexer *p, fdm2D *b, ghostcell *pgc)
+void sflow_sediment_f::sediment_algorithm(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q, slice &topovel)
 {
     starttime=pgc->timer();
     
     // bedslope
-    bedslope(p,b,pgc);
+    bedslope(p,b,pgc,P,Q);
     
     // bedshear
-    bedshear(p,b,pgc);
+    bedshear(p,b,pgc,P,Q);
     shields(p,b,pgc);
 
     // bedload
     bedload(p,b,pgc);
     
     // exner
-    exner(p,b,pgc);
+    exner(p,b,pgc,P,Q,topovel);
     
     // sandslide
-    sandslide(p,b,pgc);
+    sandslide(p,b,pgc,P,Q);
     
     
     if(p->mpirank==0 && p->count>0)
-    cout<<"Sediment Timestep: "<<p->dtsed<<" Sediment Total Timestep: "<<p->dtsed<<"  Total Time: "<<setprecision(7)<<p->sedtime<<endl;
+    cout<<"Sediment Timestep: "<<p->dtsed<<"  Total Time: "<<setprecision(7)<<p->sedtime<<endl;
 
 	if(p->mpirank==0)
-    cout<<"Sediment Time: "<<setprecision(5)<<pgc->timer()-starttime<<endl<<endl;
+    cout<<"Sediment Time: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
 }
 

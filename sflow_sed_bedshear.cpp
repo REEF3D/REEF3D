@@ -26,14 +26,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #define HP (fabs(b->hp(i,j))>1.0e-20?b->hp(i,j):1.0e20)
  
-void sflow_sediment_f::bedshear(lexer *p, fdm2D *b, ghostcell *pgc)
+void sflow_sediment_f::bedshear(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q)
 {
     double ux,vy,uabs,cf,manning;
     
     SLICELOOP4
     {
-    ux = 0.5*(b->P(i,j) + b->P(i+1,j));
-    vy = 0.5*(b->Q(i,j) + b->Q(i,j+1));
+    ux = 0.5*(P(i,j) + P(i+1,j));
+    vy = 0.5*(Q(i,j) + Q(i,j+1));
     uabs = sqrt(ux*ux + vy*vy);
     
     manning = pow(b->ks(i,j),1.0/6.0)/26.0;

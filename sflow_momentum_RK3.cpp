@@ -32,6 +32,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_rough_void.h"
 #include"ioflow.h"
 #include"solver2D.h"
+#include"sflow_sediment_RK3.h"
+#include"sflow_sediment_RKv.h"
 
 sflow_momentum_RK3::sflow_momentum_RK3(lexer *p, fdm2D *b, sflow_convection *pconvection, sflow_diffusion *ppdiff, sflow_pressure* ppressure,
                                                     solver2D *psolver, solver2D *ppoissonsolver, ioflow *pioflow, sflow_fsf *pfreesurf,
@@ -73,6 +75,12 @@ sflow_momentum_RK3::sflow_momentum_RK3(lexer *p, fdm2D *b, sflow_convection *pco
     
     if(p->A218==1)
     prough = new sflow_rough_manning(p);
+    
+    if(p->S10!=2)
+    psedstep = new sflow_sediment_RKv(p,b);
+    
+    if(p->S10==2)
+    psedstep = new sflow_sediment_RK3(p,b);
 }
 
 sflow_momentum_RK3::~sflow_momentum_RK3()
@@ -88,8 +96,11 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 //Step 1
 //--------------------------------------------------------	
-    // eta
+    // sediment
+    psedstep->step1(p,b,pgc,b->P,b->Q,1.0);
+    pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
     
+    // fsf
     pfsf->wetdry(p,b,pgc,b->P,b->Q,b->ws);
     
     SLICELOOP4
@@ -104,8 +115,6 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
     pflow->eta_relax(p,pgc,etark1);
     pgc->gcsl_start4(p,etark1,gcval_eta);
     
-    // topo
-    // call sediment step 1
 
     // U
 	starttime=pgc->timer();
@@ -179,7 +188,11 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 
 //Step 2
 //--------------------------------------------------------
-    // eta
+    // sediment
+    psedstep->step2(p,b,pgc,Prk1,Qrk1,0.25);
+    pfsf->depth_update(p,b,pgc,Prk1,Qrk1,wrk1,etark1);
+    
+    // fsf
     pfsf->wetdry(p,b,pgc,Prk1,Qrk1,wrk1);
     
     SLICELOOP4
@@ -266,10 +279,13 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
     
 //Step 3
 //--------------------------------------------------------
+    // sediment
+    psedstep->step3(p,b,pgc,Prk2,Qrk2,(2.0/3.0));
+    pfsf->depth_update(p,b,pgc,Prk2,Qrk2,wrk2,etark2);
     
+    //fsf
     pfsf->wetdry(p,b,pgc,Prk2,Qrk2,wrk2);
     
-    // eta
     SLICELOOP4
     b->eta(i,j) = (1.0/3.0)*b->eta(i,j) + (2.0/3.0)*etark2(i,j)
     

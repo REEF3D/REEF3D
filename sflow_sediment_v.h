@@ -40,7 +40,7 @@ public:
 	virtual ~sflow_sediment_v();
 
 	virtual void ini(lexer*, fdm2D*, ghostcell*);
-    virtual void start(lexer*, fdm2D*, ghostcell*);
+    virtual void start(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&);
     
 };
 

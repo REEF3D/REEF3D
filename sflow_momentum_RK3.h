@@ -30,6 +30,7 @@ class sflow_fsf;
 class sflow_diffusion;
 class sflow_boussinesq;
 class sflow_roughness;
+class sflow_sediment_RK;
 
 using namespace std;
 
@@ -66,6 +67,7 @@ private:
 	sflow_fsf *pfsf;
     sflow_boussinesq *pbouss;
     sflow_roughness *prough;
+    sflow_sediment_RK *psedstep;
 };
 
 #endif
