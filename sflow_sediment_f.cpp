@@ -25,10 +25,20 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"slice1.h"
 #include"slice2.h"
+#include"fnpf_weno.h"
  
-sflow_sediment_f::sflow_sediment_f(lexer* p, fdm2D *b) : tau(p),taucr(p),alpha(p),teta(p),gamma(p),phi(p)
+sflow_sediment_f::sflow_sediment_f(lexer* p, fdm2D *b) : tau(p),taucr(p),alpha(p),teta(p),gamma(p),phi(p),topovel1(p),topovel2(p)
 {
     p->sedtime=0.0;
+    
+    pdx = new fnpf_weno(p);
+    
+    
+    SLICELOOP4
+    {
+    topovel2(i,j)=0.0;
+    topovel1(i,j)=0.0;
+    }
 }
 
 sflow_sediment_f::~sflow_sediment_f()
@@ -74,9 +84,11 @@ void sflow_sediment_f::sediment_algorithm(lexer *p, fdm2D *b, ghostcell *pgc, sl
 
     // bedload
     bedload(p,b,pgc);
+	filter(p,b,pgc,b->qb,p->S102,p->S103);
     
     // exner
     exner(p,b,pgc,P,Q,topovel);
+	filter(p,b,pgc,b->bed,p->S100,p->S101);
     
     // sandslide
     sandslide(p,b,pgc,P,Q);

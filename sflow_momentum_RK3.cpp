@@ -96,10 +96,6 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 //Step 1
 //--------------------------------------------------------	
-    // sediment
-    psedstep->step1(p,b,pgc,b->P,b->Q,1.0);
-    pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
-    
     // fsf
     pfsf->wetdry(p,b,pgc,b->P,b->Q,b->ws);
     
@@ -184,14 +180,14 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	pgc->gcsl_start1(p,Prk1,gcval_urk);
 	pgc->gcsl_start2(p,Qrk1,gcval_vrk);
     pgc->gcsl_start4(p,wrk1,gcval_wrk);
-
+    
+    // sediment
+    psedstep->step1(p,b,pgc,Prk1,Qrk1,1.0);
+    pfsf->depth_update(p,b,pgc,Prk1,Qrk1,wrk1,etark1);
 
 //Step 2
 //--------------------------------------------------------
-    // sediment
-    psedstep->step2(p,b,pgc,Prk1,Qrk1,0.25);
-    pfsf->depth_update(p,b,pgc,Prk1,Qrk1,wrk1,etark1);
-    
+
     // fsf
     pfsf->wetdry(p,b,pgc,Prk1,Qrk1,wrk1);
     
@@ -276,12 +272,12 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	pgc->gcsl_start2(p,Qrk2,gcval_vrk);
     pgc->gcsl_start4(p,wrk2,gcval_wrk);
 
+    // sediment
+    psedstep->step2(p,b,pgc,Prk2,Qrk2,0.25);
+    pfsf->depth_update(p,b,pgc,Prk2,Qrk2,wrk2,etark2);
     
 //Step 3
 //--------------------------------------------------------
-    // sediment
-    psedstep->step3(p,b,pgc,Prk2,Qrk2,(2.0/3.0));
-    pfsf->depth_update(p,b,pgc,Prk2,Qrk2,wrk2,etark2);
     
     //fsf
     pfsf->wetdry(p,b,pgc,Prk2,Qrk2,wrk2);
@@ -369,11 +365,15 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	pgc->gcsl_start2(p,b->Q,gcval_v);
     pgc->gcsl_start4(p,b->ws,gcval_w);
 
-
     pfsf->breaking_persist(p,b,pgc,b->eta,b->eta_n,1.0);
     
     SLICELOOP4
     b->eta_n(i,j) = b->eta(i,j);
+    
+    
+    // sediment
+    psedstep->step3(p,b,pgc,b->P,b->Q,(2.0/3.0));
+    pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
 }
 
 void sflow_momentum_RK3::irhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &f, double alpha)

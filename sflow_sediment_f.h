@@ -27,6 +27,7 @@ class lexer;
 class fdm2D;
 class ghostcell;
 class solver2D;
+class fnpf_convection;
 
 using namespace std;
 
@@ -57,10 +58,15 @@ private:
     void exner(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&);
     void sandslide(lexer*, fdm2D*, ghostcell*, slice&, slice&);
     
+    void filter(lexer*, fdm2D*, ghostcell*,slice&,int,int);
+    
     
     slice4 tau,taucr,alpha,teta,gamma,phi;
+    slice4 topovel1,topovel2;
     
     double starttime;
+    
+    fnpf_convection *pdx;
     
 };
 

@@ -268,18 +268,27 @@ void sflow_pjm_lin::poisson(lexer*p, fdm2D* b, double alpha)
 
 void sflow_pjm_lin::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 {
-        if(p->A221==1)
+        if(p->A221>=1)
         SLICELOOP1
         b->F(i,j) -= fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) 
                                  - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->dx); 
+        
+        if(p->A221==2)                         
+        SLICELOOP1
+        b->F(i,j)+= fabs(p->W22)*(b->depth(i+1,j)-b->depth(i,j))/(p->dx);
+                                 
 }
 
 void sflow_pjm_lin::vpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 {
-        if(p->A221==1)
+        if(p->A221>=1)
         SLICELOOP2
         b->G(i,j) -= fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) 
                                  - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->dx); 
+                                 
+        if(p->A221==2)
+        SLICELOOP2
+        b->G(i,j)+= fabs(p->W22)*(b->depth(i,j+1)-b->depth(i,j))/(p->dx);
 }
 
 void sflow_pjm_lin::wpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
