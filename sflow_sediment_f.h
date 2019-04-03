@@ -48,6 +48,7 @@ private:
     void sediment_algorithm(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&);
     
     void bedslope(lexer*, fdm2D*, ghostcell*, slice&, slice&);
+    void bednode(lexer*, fdm2D*, ghostcell*);
     void bedshear(lexer*, fdm2D*, ghostcell*, slice&, slice&);
     void shields(lexer*, fdm2D*, ghostcell*);
     void bedshear_slope(lexer*, fdm2D*, ghostcell*);
@@ -67,6 +68,8 @@ private:
     double starttime;
     
     fnpf_convection *pdx;
+    
+    double delta, midphi;
     
 };
 

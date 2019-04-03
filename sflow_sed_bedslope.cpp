@@ -1,4 +1,3 @@
-
 /*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2019 Hans Bihs
@@ -29,8 +28,13 @@ void sflow_sediment_f::bedslope(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, sl
 {
     double uvel,vvel;
     double nx,ny,nz,norm;
-    double nx0,ny0;
+    double nx0,ny0,nz0;
+    double ax,ay,az;
+    double bx,by,bz;
     double beta;
+    
+    // bednode update
+    bednode(p,b,pgc);
     
     SLICELOOP4
     {
@@ -73,56 +77,43 @@ void sflow_sediment_f::bedslope(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, sl
 	if(fabs(uvel)<=1.0e-10 && fabs(vvel)<=1.0e-10)
 	beta = 0.0;
     
-    
     // n = b x c
     
-    //nx = 
-   
-	/*
-    // bed normal
-	nx0=(b->depth(i+1,j)-b->depth(i-1,j))/(2.0*p->dx);
+    ax = p->XN[IP1] - p->XN[IP];
+    ay = 0.0;
+    az = b->bednode(i+1,j) -  b->bednode(i,j);
     
-    if(p->flag4[Im1JK]==OBJ)
-    nx0=(b->depth(i+1,j)-b->depth(i,j))/(p->dx);
+    bx = 0.0;
+    by = p->YN[JP1] - p->YN[JP];
+    bz = b->bednode(i,j+1) -  b->bednode(i,j);
     
-    if(p->flag4[Ip1JK]==OBJ)
-    nx0=(b->depth(i,j)-b->depth(i-1,j))/(p->dx);
+    nx0 = ay*bz - az*by;
+    ny0 = az*bx - ax*bz;
+    nz0 = ax*by - ay*bx;
     
-    
-	ny0=(b->depth(i,j+1)-b->depth(i,j-1))/(2.0*p->dx);
-    
-    if(p->flag4[IJm1K]==OBJ)
-    ny0=(b->depth(i,j+1)-b->depth(i,j))/(p->dx);
-    
-    if(p->flag4[IJp1K]==OBJ)
-    ny0=(b->depth(i,j)-b->depth(i,j-1))/(p->dx);
-    
-    
-	nz =(b->depth(i,j,k+1)-b->depth(i,j,k-1))/(2.0*p->dx);
 
-	norm=sqrt(nx0*nx0 + ny0*ny0 + nz*nz);
+	norm=sqrt(nx0*nx0 + ny0*ny0 + nz0*nz0);
 	
 	nx0/=norm>1.0e-20?norm:1.0e20;
 	ny0/=norm>1.0e-20?norm:1.0e20;
-	nz /=norm>1.0e-20?norm:1.0e20;
+	nz0/=norm>1.0e-20?norm:1.0e20;
 	
     // rotate bed normal
-	
 	beta=-beta;
     nx = (cos(beta)*nx0-sin(beta)*ny0);
 	ny = (sin(beta)*nx0+cos(beta)*ny0);
     
-    teta  = atan(nx/(fabs(nz)>1.0e-15?nz:1.0e20));
-    alpha = atan(ny/(fabs(nz)>1.0e-15?nz:1.0e20));
+    teta(i,j)  = atan(nx/(fabs(nz)>1.0e-15?nz:1.0e20));
+    alpha(i,j) = atan(ny/(fabs(nz)>1.0e-15?nz:1.0e20));
 
     if(fabs(nx)<1.0e-10 && fabs(ny)<1.0e-10)
-    gamma=0.0;
+    gamma(i,j)=0.0;
 
 	if(fabs(nx)>=1.0e-10 || fabs(ny)>=1.0e-10)
-	gamma = PI*0.5 - acos(	(nx*nx + ny*ny + nz*0.0)/( sqrt(nx*nx + ny*ny + nz*nz )*sqrt(nx*nx + ny*ny + nz*0.0))+1e-20);
+	gamma(i,j) = PI*0.5 - acos(	(nx*nx + ny*ny + nz*0.0)/( sqrt(nx*nx + ny*ny + nz*nz )*sqrt(nx*nx + ny*ny + nz*0.0))+1e-20);
 	
 
-	phi = midphi + (teta/(fabs(gamma)>1.0e-20?gamma:1.0e20))*delta;*/
+	phi(i,j) = midphi + (teta(i,j)/(fabs(gamma(i,j))>1.0e-20?gamma(i,j):1.0e20))*delta;
     }
 }
 	
