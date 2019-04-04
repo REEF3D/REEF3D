@@ -80,6 +80,17 @@ private:
     double fac1,fac2;
     int slidecount;
     
+    // relax
+    void relax_ini(lexer*, fdm2D*);
+    void relax(lexer*, fdm2D*,ghostcell*);
+    virtual double rf(lexer*, fdm2D*,ghostcell*);
+
+	double distcalc(lexer*,double, double, double);
+	double r1(lexer*, double, double);
+	
+	double *tan_betaS73,*betaS73,*dist_S73;
+	double val;
+    
 };
 
 #endif

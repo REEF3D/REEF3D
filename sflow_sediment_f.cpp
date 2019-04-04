@@ -43,6 +43,8 @@ sflow_sediment_f::sflow_sediment_f(lexer* p, fdm2D *b) : tau(p),taucr(p),alpha(p
     
     midphi=p->S81*(PI/180.0);
     delta=p->S82*(PI/180.0);
+    
+    relax_ini(p,b);
 }
 
 sflow_sediment_f::~sflow_sediment_f()
