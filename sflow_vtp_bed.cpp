@@ -119,7 +119,11 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	offset[n]=offset[n-1]+4*(p->pointnum2D)*3+4;
 	++n;
 	
-	// wb
+	// bedload
+	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
+    
+    // bedchange
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
 	
@@ -156,6 +160,8 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
     result<<"<DataArray type=\"Float32\" Name=\"waterlevel\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"bedload\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"bedchange\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	result<<"<DataArray type=\"Float32\" Name=\"pressure\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -212,12 +218,21 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	result.write((char*)&ffn, sizeof (float));
 	}
 
-    //  qb
+    //  bedload
 	iin=4*(p->pointnum2D);
 	result.write((char*)&iin, sizeof (int));
 	TPSLICELOOP
 	{
 	ffn=float(pgc->gcsl_ipol4(p,b->qb));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
+    //  bedchange
+	iin=4*(p->pointnum2D);
+	result.write((char*)&iin, sizeof (int));
+	TPSLICELOOP
+	{
+	ffn=float(pgc->gcsl_ipol4(p,b->zb));
 	result.write((char*)&ffn, sizeof (float));
 	}
 	
@@ -226,7 +241,7 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
 	TPSLICELOOP
 	{
-	ffn=float(pgc->gcsl_ipol4(p,b->press));
+	ffn=float(pgc->gcsl_ipol4(p,b->test));
 	result.write((char*)&ffn, sizeof (float));
 	}
     

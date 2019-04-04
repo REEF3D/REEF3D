@@ -52,7 +52,7 @@ void sandslide_f::start(lexer *p, fdm * a, ghostcell *pgc)
     ALOOP
     {
     slope(p,a,pgc,teta,alpha,gamma,phi);
-    a->test(i,j,k)=phi*180.0/PI;
+    //a->test(i,j,k)=phi*180.0/PI;
     }
     
 

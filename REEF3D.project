@@ -2288,6 +2288,7 @@
             <File Name="sflow_sed_sandslide.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Bedlevel">
+            <File Name="sflow_bedchange_update.cpp"/>
             <File Name="sflow_sed_bednode.cpp"/>
             <File Name="sflow_sed_relax.cpp"/>
             <File Name="sflow_bed_filter.cpp"/>

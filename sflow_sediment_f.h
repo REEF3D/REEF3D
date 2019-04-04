@@ -52,17 +52,24 @@ private:
     void bedshear(lexer*, fdm2D*, ghostcell*, slice&, slice&);
     void shields(lexer*, fdm2D*, ghostcell*);
     void bedshear_slope(lexer*, fdm2D*, ghostcell*);
+    void dey_ana(lexer*,fdm2D*,ghostcell*);
+    void dey_emp(lexer*,fdm2D*,ghostcell*);
+    void parker(lexer*,fdm2D*,ghostcell*);
+    void fredsoe_long(lexer*,fdm2D*,ghostcell*);
     
     void bedload(lexer*, fdm2D*, ghostcell*);
     void bedload_vanRijn(lexer*, fdm2D*, ghostcell*);
     
     void exner(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&);
+    void bedchange_update(lexer*, fdm2D*, ghostcell*);
+    
     void sandslide(lexer*, fdm2D*, ghostcell*, slice&, slice&);
+    void slide(lexer*, fdm2D*, ghostcell*);
     
     void filter(lexer*, fdm2D*, ghostcell*,slice&,int,int);
     
     
-    slice4 tau,taucr,alpha,teta,gamma,phi;
+    slice4 tau,taucr,alpha,teta,gamma,phi,fh,red;
     slice4 topovel1,topovel2;
     
     double starttime;
@@ -70,6 +77,8 @@ private:
     fnpf_convection *pdx;
     
     double delta, midphi;
+    double fac1,fac2;
+    int slidecount;
     
 };
 

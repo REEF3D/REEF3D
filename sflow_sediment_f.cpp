@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"slice2.h"
 #include"fnpf_weno.h"
  
-sflow_sediment_f::sflow_sediment_f(lexer* p, fdm2D *b) : tau(p),taucr(p),alpha(p),teta(p),gamma(p),phi(p),topovel1(p),topovel2(p)
+sflow_sediment_f::sflow_sediment_f(lexer* p, fdm2D *b) : tau(p),taucr(p),alpha(p),teta(p),gamma(p),phi(p),topovel1(p),topovel2(p),fh(p),red(p)
 {
     p->sedtime=0.0;
     
@@ -38,6 +38,7 @@ sflow_sediment_f::sflow_sediment_f(lexer* p, fdm2D *b) : tau(p),taucr(p),alpha(p
     {
     topovel2(i,j)=0.0;
     topovel1(i,j)=0.0;
+    red(i,j)=1.0;
     }
     
     midphi=p->S81*(PI/180.0);
@@ -78,10 +79,8 @@ void sflow_sediment_f::sediment_algorithm(lexer *p, fdm2D *b, ghostcell *pgc, sl
 {
     starttime=pgc->timer();
     
-    // bedslope
-    bedslope(p,b,pgc,P,Q);
-    
     // bedshear
+    bedslope(p,b,pgc,P,Q);
     bedshear(p,b,pgc,P,Q);
     shields(p,b,pgc);
 
@@ -94,7 +93,10 @@ void sflow_sediment_f::sediment_algorithm(lexer *p, fdm2D *b, ghostcell *pgc, sl
 	filter(p,b,pgc,b->bed,p->S100,p->S101);
     
     // sandslide
+    bedslope(p,b,pgc,P,Q);
     sandslide(p,b,pgc,P,Q);
+    
+    bedchange_update(p,b,pgc);   
     
     
     if(p->mpirank==0 && p->count>0)

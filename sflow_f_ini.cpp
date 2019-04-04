@@ -103,7 +103,10 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 	for(int qn=0; qn<p->A209;++qn)
 	SLICELOOP4
-	b->bed(i,j) = 0.5*b->bed(i,j) + 0.125*(b->bed(i-1,j) +b->bed(i+1,j) +b->bed(i,j-1) +b->bed(i,j+1) );
+	b->bed(i,j) = b->bed0(i,j) = 0.5*b->bed(i,j) + 0.125*(b->bed(i-1,j) +b->bed(i+1,j) +b->bed(i,j-1) +b->bed(i,j+1) );
+    
+    SLICELOOP4
+    b->zb(i,j) = 0.0;
 	
 	// depth ini
     
@@ -136,6 +139,8 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 	pgc->gcsl_start2(p,b->Q,11);
 	pgc->gcsl_start4(p,b->eta,50);
     pgc->gcsl_start4(p,b->hp,50);
+    pgc->gcsl_start4(p,b->bed,50);
+    pgc->gcsl_start4(p,b->zb,50);
     
     //roughness ini
     SLICELOOP4

@@ -81,18 +81,22 @@ void sflow_sediment_f::bedslope(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, sl
     
     ax = p->XN[IP1] - p->XN[IP];
     ay = 0.0;
-    az = b->bednode(i+1,j) -  b->bednode(i,j);
+    //az = b->bednode(i,j-1) -  b->bednode(i-1,j-1);
+    az = b->bed(i+1,j) -  b->bed(i-1,j);
     
     bx = 0.0;
     by = p->YN[JP1] - p->YN[JP];
-    bz = b->bednode(i,j+1) -  b->bednode(i,j);
+    //bz = b->bednode(i-1,j) -  b->bednode(i-1,j-1);
+    bz = b->bed(i,j+1) -  b->bednode(i,j-1);
     
     nx0 = ay*bz - az*by;
     ny0 = az*bx - ax*bz;
     nz0 = ax*by - ay*bx;
     
-
+    
 	norm=sqrt(nx0*nx0 + ny0*ny0 + nz0*nz0);
+    
+   
 	
 	nx0/=norm>1.0e-20?norm:1.0e20;
 	ny0/=norm>1.0e-20?norm:1.0e20;
@@ -102,15 +106,16 @@ void sflow_sediment_f::bedslope(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, sl
 	beta=-beta;
     nx = (cos(beta)*nx0-sin(beta)*ny0);
 	ny = (sin(beta)*nx0+cos(beta)*ny0);
+    nz = nz0;
     
     teta(i,j)  = atan(nx/(fabs(nz)>1.0e-15?nz:1.0e20));
     alpha(i,j) = atan(ny/(fabs(nz)>1.0e-15?nz:1.0e20));
-
+    
     if(fabs(nx)<1.0e-10 && fabs(ny)<1.0e-10)
     gamma(i,j)=0.0;
 
 	if(fabs(nx)>=1.0e-10 || fabs(ny)>=1.0e-10)
-	gamma(i,j) = PI*0.5 - acos(	(nx*nx + ny*ny + nz*0.0)/( sqrt(nx*nx + ny*ny + nz*nz )*sqrt(nx*nx + ny*ny + nz*0.0))+1e-20);
+	gamma(i,j) = PI*0.5 - acos(	(nx*nx + ny*ny + nz*0.0)/(sqrt(nx*nx + ny*ny + nz*nz )*sqrt(nx*nx + ny*ny + nz*0.0))+1e-20);
 	
 
 	phi(i,j) = midphi + (teta(i,j)/(fabs(gamma(i,j))>1.0e-20?gamma(i,j):1.0e20))*delta;

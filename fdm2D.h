@@ -63,7 +63,7 @@ public:
 	slice4 hp,dpx,dpy;
     slice4 test;
     
-    slice4 geo,bed,depth;
+    slice4 geo,bed,bed0,zb,depth;
     slice5 bednode;
     sliceint5 nodeval;
     sliceint4 breaking; 
