@@ -44,7 +44,7 @@ void ghostcell::gcsl_start1(lexer *p, slice &f, int gcv)
 	p->xtime+=endtime-starttime;
     }
     
-    dgcslpol(p,f,p->dgcsl1,p->dgcsl1_count,11);
+    dgcslpol1(p,f);
 }
 
 void ghostcell::gcsl_start2(lexer *p, slice &f, int gcv)
@@ -68,7 +68,7 @@ void ghostcell::gcsl_start2(lexer *p, slice &f, int gcv)
 	p->xtime+=endtime-starttime;
     }
     
-    dgcslpol(p,f,p->dgcsl2,p->dgcsl2_count,12);
+    dgcslpol2(p,f);
 }
 
 void ghostcell::gcsl_start3(lexer *p, slice &f, int gcv)
@@ -110,7 +110,7 @@ void ghostcell::gcsl_start4(lexer *p, slice &f, int gcv)
 	p->xtime+=endtime-starttime;
     }
     
-    dgcslpol(p,f,p->dgcsl4,p->dgcsl4_count,14);
+    dgcslpol4(p,f);
 }
 
 void ghostcell::gcsl_start4int(lexer *p, sliceint &f, int gcv)

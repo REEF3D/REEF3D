@@ -38,10 +38,11 @@ void sflow_turb_prandtl::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convect
     double refl;
     
 	SLICELOOP4
+    if(p->mpirank!=0 || i>5)
     {
   
     dudx = (b->P(i,j) - b->P(i-1,j))/(p->dx);
-    dvdy = (b->Q(i,j)+b->Q(i,j-1))/(p->dx);
+    dvdy = (b->Q(i,j) - b->Q(i,j-1))/(p->dx);
     
     dudy = (0.5*(b->P(i,j+1)+b->P(i-1,j+1)) - (b->P(i,j-1)+b->P(i-1,j-1)))/(2.0*p->dx);
     

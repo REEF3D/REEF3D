@@ -76,6 +76,9 @@ public:
 	void globalctrl(lexer*);
 	void dgcpol(lexer*,field&, int**,int, int);
     void dgcslpol(lexer*, slice&, int**,int, int);
+    void dgcslpol1(lexer*, slice&);
+    void dgcslpol2(lexer*, slice&);
+    void dgcslpol4(lexer*, slice&);
 	void parapls(lexer*,double**,double**,int*,int*);
 
 //  Update

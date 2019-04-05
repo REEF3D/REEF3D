@@ -23,8 +23,77 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"slice.h"
 
-void ghostcell::dgcslpol(lexer* p,slice& f,int **dgc, int dgc_count, int gcv)
+void ghostcell::dgcslpol1(lexer* p,slice& f)
 {
+
+    for(n=0;n<p->dgcsl1_count;++n)
+    {
+    i=p->dgcsl1[n][0];
+    j=p->dgcsl1[n][1];
+
+
+    if(p->dgcsl1[n][2]==1)
+    f(i-1,j-1) = f(i,j);
+    
+    if(p->dgcsl1[n][2]==2)
+    f(i+1,j-1) = f(i,j);
+    
+    if(p->dgcsl1[n][2]==3)
+    f(i+1,j+1) = f(i,j);
+    
+    if(p->dgcsl1[n][2]==4)
+    f(i-1,j+1) = f(i,j);
+    }
+}
+
+void ghostcell::dgcslpol2(lexer* p,slice& f)
+{
+
+    for(n=0;n<p->dgcsl2_count;++n)
+    {
+    i=p->dgcsl2[n][0];
+    j=p->dgcsl2[n][1];
+
+
+    if(p->dgcsl2[n][2]==1)
+    f(i-1,j-1) = f(i,j);
+    
+    if(p->dgcsl2[n][2]==2)
+    f(i+1,j-1) = f(i,j);
+    
+    if(p->dgcsl2[n][2]==3)
+    f(i+1,j+1) = f(i,j);
+    
+    if(p->dgcsl2[n][2]==4)
+    f(i-1,j+1) = f(i,j);
+    }
+}
+
+void ghostcell::dgcslpol4(lexer* p,slice& f)
+{
+
+    for(n=0;n<p->dgcsl4_count;++n)
+    {
+    i=p->dgcsl4[n][0];
+    j=p->dgcsl4[n][1];
+
+
+    if(p->dgcsl4[n][2]==1)
+    f(i-1,j-1) = f(i,j);
+    
+    if(p->dgcsl4[n][2]==2)
+    f(i+1,j-1) = f(i,j);
+    
+    if(p->dgcsl4[n][2]==3)
+    f(i+1,j+1) = f(i,j);
+    
+    if(p->dgcsl4[n][2]==4)
+    f(i-1,j+1) = f(i,j);
+    }
+}
+
+void ghostcell::dgcslpol(lexer* p,slice& f,int **dgc, int dgc_count,int gcv)
+{/*
     double val0,val1,val2,val3,val4;
     int aa,bb,cc;
     int acheck,bcheck;
@@ -93,5 +162,5 @@ void ghostcell::dgcslpol(lexer* p,slice& f,int **dgc, int dgc_count, int gcv)
         f(i+aa,j+bb)=0.5*(val1+val2+val3+val4);
 
     }
-    }
+    }*/
 }
