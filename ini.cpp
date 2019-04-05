@@ -73,6 +73,7 @@ void lexer::ini_default()
     A349=0.3;    // double breaking persistence parameter beta
     A350=5;      // int breaking filter outer iter
     A351=2;      // int breaking filter inner iter
+    A352=1;      // int breaking filter width
     
     
     A410=1;      // int scheme eta       
