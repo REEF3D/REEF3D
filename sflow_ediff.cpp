@@ -62,3 +62,8 @@ void sflow_ediff::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
                 + (u(i,j+1)-u(i,j)) - (u(i-1,j+1)-u(i-1,j)));
     }
 }
+
+void sflow_ediff::diff_scalar(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &f, double sig, double alpha)
+{
+    
+}

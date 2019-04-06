@@ -65,7 +65,7 @@ void komega_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,s
 	p->kintime=pgc->timer()-starttime;
 	p->kiniter=p->solveriter;
 	if(p->mpirank==0 && (innercounter==p->N50-1 || p->N52==0) && (p->count%p->P12==0))
-	cout<<"kiniter: "<<p->kiniter<<"  kintime: "<<setprecision(3)<<p->kintime<<endl;
+	cout<<"kin_iter: "<<p->kiniter<<"  kin_time: "<<setprecision(3)<<p->kintime<<endl;
 
 //omega
     starttime=pgc->timer();
@@ -81,7 +81,7 @@ void komega_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,s
 	p->epstime=pgc->timer()-starttime;
 	p->epsiter=p->solveriter;
 	if(p->mpirank==0 && (innercounter==p->N50-1 || p->N52==0) && (p->count%p->P12==0))
-	cout<<"epsiter: "<<p->epsiter<<"  epstime: "<<setprecision(3)<<p->epstime<<endl;
+	cout<<"omega_iter: "<<p->epsiter<<"  omega_time: "<<setprecision(3)<<p->epstime<<endl;
 
 	eddyvisc(p,a,pgc);
 	

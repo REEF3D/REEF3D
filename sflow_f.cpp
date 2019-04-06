@@ -120,6 +120,10 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         // sediment transport
         psed->start(p,b,pgc,b->P,b->Q,b->topovel);
         pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
+        
+        // timesave
+        pturb->ktimesave(p,b,pgc);
+        pturb->etimesave(p,b,pgc);
 		
         //timestep control
         ptime->start(p,b,pgc);

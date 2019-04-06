@@ -43,7 +43,6 @@ private:
     void wenoloop3(lexer*,fdm*,field&,int,field&,field&,field&);
     void wenoloop4(lexer*,fdm*,field&,int,field&,field&,field&);
 
-    void is_calc(field&);
 	void is_south(field&);
 	void is_north(field&);
 	void is_east(field&);

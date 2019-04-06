@@ -130,6 +130,19 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
     if((bc==21||bc==3) && (gcv==151||gcv==152||gcv==153||gcv==154))
 	return 14;
     
+    // Turbulence
+	else
+	if(gcv==20)
+	return 4;
+    
+    else
+	if(gcv==24)
+	return 4;
+    
+    else
+	if(gcv==30)
+	return 4;
+    
     else
     return -1;
 }

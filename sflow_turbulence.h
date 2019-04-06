@@ -26,7 +26,7 @@ class sflow_diffusion;
 class solver2D;
 class ghostcell;
 class ioflow;
-
+class slice;
 
 #ifndef SFLOW_TURBULENCE_H_
 #define SFLOW_TURBULENCE_H_

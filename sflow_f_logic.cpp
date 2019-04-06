@@ -122,6 +122,9 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	if(p->A260==0)
 	pturb =  new sflow_turb_void(p);
     
+    if(p->A260==2)
+	pturb =  new sflow_turb_kw_IM1(p);
+    
     if(p->A260==3)
 	pturb =  new sflow_turb_prandtl(p);
     

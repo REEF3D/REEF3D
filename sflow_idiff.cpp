@@ -176,3 +176,33 @@ void sflow_idiff::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
 	if(p->mpirank==0 && innercounter==p->N50-1 && p->D21==1 && (p->count%p->P12==0))
 	cout<<"vdiffiter: "<<p->uiter<<"  vdifftime: "<<setprecision(3)<<time<<endl;
 }
+
+void sflow_idiff::diff_scalar(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &f, double sig, double alpha)
+{
+    count=0;
+
+    sqd = (1.0/(p->dx*p->dx));
+
+	SLICELOOP4
+	{
+	ev_ij=b->eddyv(i,j);
+	visc_ij=p->W2;
+
+	b->M.p[count]  +=   0.5*sqd*(vft*visc_ij+b->eddyv(i+1,j)/sig + vft*visc_ij+ev_ij/sig)
+    
+					+   0.5*sqd*(vft*visc_ij+ev_ij/sig + vft*visc_ij+b->eddyv(i-1,j)/sig)
+                    
+					+   0.5*sqd*(vft*visc_ij+b->eddyv(i,j+1)/sig + vft*visc_ij+ev_ij/sig)
+                    
+					+   0.5*sqd*(vft*visc_ij+ev_ij/sig + vft*visc_ij+b->eddyv(i,j-1)/sig);
+
+	 
+	 b->M.s[count] -= 0.5*sqd*(vft*visc_ij+ev_ij/sig + vft*visc_ij+b->eddyv(i-1,j)/sig);
+	 b->M.n[count] -= 0.5*sqd*(vft*visc_ij+b->eddyv(i+1,j)/sig + vft*visc_ij+ev_ij/sig);
+	 
+	 b->M.e[count] -= 0.5*sqd*(vft*visc_ij+ev_ij/sig + vft*visc_ij+b->eddyv(i,j-1)/sig);
+	 b->M.w[count] -= 0.5*sqd*(vft*visc_ij+b->eddyv(i,j+1)/sig + vft*visc_ij+ev_ij/sig);
+
+	 ++count;
+	}
+}
