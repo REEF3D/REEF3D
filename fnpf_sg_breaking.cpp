@@ -26,8 +26,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &eta_n, slice &Fifsf, double alpha)
 {
-    int ii,jj;
-    
     if(p->A346==1 && p->count>1)
     SLICELOOP4
     {
@@ -44,21 +42,10 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     if(p->A346==1)
     SLICELOOP4
     {
-        if(c->breaking(i,j)==1)
+        if(c->breaking(i,j)==1 || c->breaking(i-1,j)==1 || c->breaking(i+1,j)==1 || c->breaking(i,j-1)==1 || c->breaking(i,j+1)==1)
         {
-        ii=i;
-        jj=j;
-        
-            for(i=MAX(0,ii-p->A352);i<MIN(p->knox,ii+p->A352); ++i)
-            for(j=MAX(0,jj-p->A352);j<MIN(p->knoy,jj+p->A352); ++j)
-            PSLICECHECK4
-            {
-             filter(p,c,pgc,eta);
-             filter(p,c,pgc,Fifsf);
-            }
-         
-         i=ii;
-         j=jj;
+         filter(p,c,pgc,eta);
+         filter(p,c,pgc,Fifsf);
         }   
     }
     
@@ -93,8 +80,6 @@ void fnpf_sg_fsfbc::filter(lexer *p, fdm_fnpf *c,ghostcell *pgc, slice &f)
             dhp = 0.5*dhp+ 0.25*(dhs + dhn);
             f(i,j) += dhp;
 		}
-        
-        pgc->gcslparax(p,f,4);
     }
     
     
@@ -123,9 +108,5 @@ void fnpf_sg_fsfbc::filter(lexer *p, fdm_fnpf *c,ghostcell *pgc, slice &f)
             dhp = 0.5*dhp+ 0.125*(dhs + dhn + dhe + dhw);
             f(i,j) += dhp;
 		}
-        
-        pgc->gcslparax(p,f,4);
     }
-    
-    
 }

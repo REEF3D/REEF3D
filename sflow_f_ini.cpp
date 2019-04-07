@@ -32,6 +32,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_vtp.h"
 #include"sflow_vtp_bed.h"
 #include"sflow_boussinesq.h"
+#include"sflow_sediment.h"
 
 void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 {	
@@ -145,6 +146,9 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     //roughness ini
     SLICELOOP4
     b->ks(i,j) = p->B50;
+    
+    //sediment ini
+    psed->ini(p,b,pgc);
 	
     // print
 	print_debug(p,b,pgc);

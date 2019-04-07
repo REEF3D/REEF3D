@@ -53,7 +53,7 @@ sflow_sediment_f::~sflow_sediment_f()
 
 void sflow_sediment_f::ini(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    
+    relax(p,b,pgc);
 }
 
 void sflow_sediment_f::start(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q, slice &topovel)
@@ -97,6 +97,8 @@ void sflow_sediment_f::sediment_algorithm(lexer *p, fdm2D *b, ghostcell *pgc, sl
     // sandslide
     bedslope(p,b,pgc,P,Q);
     sandslide(p,b,pgc,P,Q);
+    
+    relax(p,b,pgc);
     
     bedchange_update(p,b,pgc);   
     

@@ -38,11 +38,8 @@ void sflow_sediment_f::relax_ini(lexer *p, fdm2D *b)
 	tan_betaS73[n] = tan(betaS73[n]);
 }
 
-
-
 void sflow_sediment_f::relax(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    
 	double relax,distot,distcount,zhval;
 	
 	if(p->S73>0)
@@ -84,7 +81,6 @@ void sflow_sediment_f::relax(lexer *p, fdm2D *b, ghostcell *pgc)
 			}
 		}
     }
-	
 }
 
 double sflow_sediment_f::rf(lexer *p, fdm2D *b, ghostcell *pgc)
@@ -104,7 +100,6 @@ double sflow_sediment_f::rf(lexer *p, fdm2D *b, ghostcell *pgc)
 			++distcount;
 			}
 		}
-		
 		
 		for(n=0;n<p->S73;++n)
 		{
@@ -147,7 +142,5 @@ double sflow_sediment_f::distcalc(lexer *p, double x0, double y0, double tan_bet
 	
 	return dist;
 }
-
-
 
 
