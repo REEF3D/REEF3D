@@ -22,3 +22,4 @@ REEF3D.mk
 *.DS_Store
 .DS_Store
 doxydoc*
+compile_commands.json
