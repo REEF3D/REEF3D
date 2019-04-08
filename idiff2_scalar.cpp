@@ -26,9 +26,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void idiff2::idiff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &b, field &visc, double sig, double alpha)
 {
-     count=0;
+    count=0;
 
-     sqd = (1.0/(p->dx*p->dx));
+    sqd = (1.0/(p->dx*p->dx));
 
 	LOOP
 	{
@@ -57,7 +57,6 @@ void idiff2::idiff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 	 
 	 ++count;
 	}
-
 }
 
 void idiff2::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &b, field &visc, double sig, double alpha)

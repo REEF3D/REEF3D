@@ -183,7 +183,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
     
     // sediment
     psedstep->step1(p,b,pgc,Prk1,Qrk1,1.0);
-    pfsf->depth_update(p,b,pgc,Prk1,Qrk1,wrk1,etark1);
+    //pfsf->depth_update(p,b,pgc,Prk1,Qrk1,wrk1,etark1);
 
 //Step 2
 //--------------------------------------------------------
@@ -274,7 +274,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 
     // sediment
     psedstep->step2(p,b,pgc,Prk2,Qrk2,0.25);
-    pfsf->depth_update(p,b,pgc,Prk2,Qrk2,wrk2,etark2);
+    //pfsf->depth_update(p,b,pgc,Prk2,Qrk2,wrk2,etark2);
     
 //Step 3
 //--------------------------------------------------------
@@ -373,7 +373,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
     
     // sediment
     psedstep->step3(p,b,pgc,b->P,b->Q,(2.0/3.0));
-    pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
+    //pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
 }
 
 void sflow_momentum_RK3::irhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &f, double alpha)

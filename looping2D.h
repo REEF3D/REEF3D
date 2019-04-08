@@ -33,6 +33,10 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 #define PSLICECHECK4  if(p->flagslice4[IJ]>0)
 #define SLICELOOP4 ILOOP JLOOP  PSLICECHECK4
 
+#define IREVLOOP	for(i=p->knox-1; i>=0; --i)
+#define JREVLOOP	for(j=p->knoy-1; j>=0; --j)
+#define SLICELOOPREV4 IREVLOOP JREVLOOP  PSLICECHECK4
+
 #define PSLICECHECK4E  if(p->flagslice4[IJ]>=-1)
 #define SLICELOOP4E ILOOP JLOOP  PSLICECHECK4
 

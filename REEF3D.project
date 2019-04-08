@@ -862,6 +862,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
+          <File Name="sflow_turb_kw_IM1.h"/>
           <File Name="sflow_turb_void.h"/>
           <File Name="sflow_turb_prandtl.h"/>
           <File Name="sflow_turb_keps_IM1.h"/>
@@ -894,6 +895,7 @@
             <File Name="sflow_diffusion_void.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Convection">
+            <File Name="sflow_iweno_hj.h"/>
             <File Name="sflow_convection.h"/>
             <File Name="sflow_voidconv.h"/>
             <File Name="sflow_cfou.h"/>
@@ -2339,6 +2341,7 @@
           <File Name="sflow_eta_breaking.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
+          <File Name="sflow_turb_kw_IM1.cpp"/>
           <File Name="sflow_turb_void.cpp"/>
           <File Name="sflow_turb_prandtl.cpp"/>
           <File Name="sflow_turb_keps_IM1.cpp"/>
@@ -2367,10 +2370,10 @@
             <File Name="sflow_filter.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Convection">
+            <File Name="sflow_iweno_hj.cpp"/>
             <File Name="sflow_voidconv.cpp"/>
             <File Name="sflow_cfou.cpp"/>
             <File Name="sflow_weno_cflux.cpp"/>
-            <File Name="sflow_flux.cpp"/>
             <File Name="sflow_weno_flux.cpp"/>
             <File Name="sflow_fou.cpp"/>
             <File Name="sflow_weno_hj.cpp"/>

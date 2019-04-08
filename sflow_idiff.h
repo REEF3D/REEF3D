@@ -42,12 +42,16 @@ public:
 
 	virtual void diff_u(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, double);
 	virtual void diff_v(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, double);
+    virtual void diff_scalar(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, double, double);
     
 private:
     int count;
     int gcval_u,gcval_v;
     double visc;
     double starttime,time;
+    
+    double vfm,vft;
+    double ev_ij, visc_ij,sqd;
 
 };
 

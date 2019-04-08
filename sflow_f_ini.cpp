@@ -32,6 +32,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_vtp.h"
 #include"sflow_vtp_bed.h"
 #include"sflow_boussinesq.h"
+#include"sflow_sediment.h"
 
 void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 {	
@@ -83,7 +84,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 	// eta ini
 	pflow->eta_relax(p,pgc,b->eta);
     pgc->gcsl_start4(p,b->eta,50);
-	
+    
 	// P,Q ini
 	pflow->um_relax(p,pgc,b->P,b->bed,b->eta);
 	pflow->vm_relax(p,pgc,b->Q,b->bed,b->eta);
@@ -130,6 +131,9 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     
     SLICELOOP4
     b->eta_n(i,j) = b->eta(i,j);
+
+    
+    pgc->gcsl_start4(p,b->eta_n,50);
     
     SLICELOOP4
 	b->hp(i,j) = MAX(b->eta(i,j) + p->wd - b->bed(i,j),0.0);
@@ -142,9 +146,59 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     pgc->gcsl_start4(p,b->bed,50);
     pgc->gcsl_start4(p,b->zb,50);
     
+    // fix outflow fsf
+    if(p->F62>-1.0e20)
+    {
+        for(n=0;n<p->gcslout_count;n++)
+        {
+        i=p->gcslout[n][0];
+        j=p->gcslout[n][1];
+        
+        b->eta(i+1,j) = -p->F60+p->F62;
+        b->eta(i+2,j) = -p->F60+p->F62;
+        b->eta(i+3,j) = -p->F60+p->F62;
+        
+        b->hp(i+1,j) = MAX(b->eta(i+1,j) + p->wd - b->bed(i,j),0.0);
+        b->hp(i+2,j) = MAX(b->eta(i+2,j) + p->wd - b->bed(i,j),0.0);
+        b->hp(i+3,j) = MAX(b->eta(i+3,j) + p->wd - b->bed(i,j),0.0);
+        }
+    
+    
+        GCSL1LOOP
+        {
+        i = p->gcbsl1[n][0];
+        j = p->gcbsl1[n][1];
+    
+            if(p->gcbsl1[n][4]==2)
+            {
+            b->hx(i+1,j) = MAX(-p->F60+p->F62 + p->wd - b->bed(i,j),0.0);
+            b->hx(i+2,j) = MAX(-p->F60+p->F62 + p->wd - b->bed(i,j),0.0);
+            b->hx(i+3,j) = MAX(-p->F60+p->F62 + p->wd - b->bed(i,j),0.0);
+            }
+        } 
+        
+        GCSL2LOOP
+        {
+        i = p->gcbsl2[n][0];
+        j = p->gcbsl2[n][1];
+
+            if(p->gcbsl2[n][4]==2)
+            {
+            b->hy(i+1,j) = MAX(-p->F60+p->F62 + p->wd - b->bed(i,j),0.0);
+            b->hy(i+2,j) = MAX(-p->F60+p->F62 + p->wd - b->bed(i,j),0.0);
+            b->hy(i+3,j) = MAX(-p->F60+p->F62 + p->wd - b->bed(i,j),0.0);
+            }
+        } 
+    }
+    
+    
+    
     //roughness ini
     SLICELOOP4
     b->ks(i,j) = p->B50;
+    
+    //sediment ini
+    psed->ini(p,b,pgc);
 	
     // print
 	print_debug(p,b,pgc);
@@ -152,10 +206,6 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 
 	pprintbed->start(p,b,pgc);
     
-    SLICELOOP4
-    b->eta_n(i,j) = b->eta(i,j);
-    
-    pgc->gcsl_start4(p,b->eta_n,50);
     
     
     // Boussinesq ini

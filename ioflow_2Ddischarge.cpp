@@ -58,10 +58,10 @@ void ioflow_f::Qin2D(lexer *p, fdm2D* b, ghostcell* pgc)
     i=p->gcslin[n][0];
     j=p->gcslin[n][1];
     
-        area = p->dx*b->hp(i,j);
+        area = p->dx*b->hp(i+1,j);
         
         Ai+=area;
-        p->Qi+=area*b->P(i-1,j);
+        p->Qi+=area*b->P(i,j);
     }
     
     Ai=pgc->globalsum(Ai);
