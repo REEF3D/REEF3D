@@ -38,7 +38,6 @@ void sflow_turb_prandtl::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convect
     double refl;
     
 	SLICELOOP4
-    //if(p->mpirank!=0 || i>5)
     {
     dudx=dvdy=dudy=dvdx=0.0;
     
