@@ -258,7 +258,7 @@ public:
     int A260;
     double A261;
     int A270;
-    double A223,A244_val,A245_val,A247,A249;
+    double A223,A244_val,A245_val,A247,A249,A251;
     
     // FNPF
     int A300,A310,A311,A312,A313,A320,A321,A343,A344,A345,A346,A348,A350,A351,A352;

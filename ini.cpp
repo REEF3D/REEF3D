@@ -52,6 +52,7 @@ void lexer::ini_default()
     A247=0.6;    // double breaking parameter alpha
     A248=0;      // int turn on breaking persistence
     A249=0.3;    // double breaking persistence parameter beta
+    A251=0.0;    // double fsf-slope in x-dir
     A260=0;      // int turbulence model
     A261=0.267;  // double length scale factor
     A270=0;      // int sediment transport

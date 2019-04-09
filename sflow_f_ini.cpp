@@ -73,7 +73,9 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     ptime->ini(p,b ,pgc);
     
     SLICELOOP4
-    b->eta(i,j)=0.0;
+    {
+    b->eta(i,j)= -p->A251*(p->XP[IP]-p->global_xmin);
+    }
     
     SLICELOOP4
     b->wet4(i,j)=1;
