@@ -321,6 +321,7 @@ public:
 	void gcsl_noslip(slice&,int,int,int);
     void gcsl_sommerfeld(lexer*,slice&,int,int,int);
     void gcsl_outflow(lexer*,slice&,int,int,int);
+    void gcsl_outflow_fsf(lexer*,slice&,int,int,int);
     
     void gcsl_neumannV(vec2D&,int,int,int,int);
     void gcsl_neumannV_x(vec2D&,int,int,int,int);

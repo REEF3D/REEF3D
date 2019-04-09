@@ -65,9 +65,9 @@ int ghostcell::gcsleval1(lexer *p, int gcv, int bc, int cs)
     if((bc==1||bc==6)&&(gcv==52||gcv==54))
 	return 4;
     
-    /*else
+    else
     if((bc==2||bc==7)&&(gcv==51||gcv==54))
-	return 4;*/
+	return 9;
     
     else
     if(bc==2)
@@ -111,5 +111,8 @@ void ghostcell::gcsldistro1(lexer *p, slice &f, int ii, int jj, int nn, double d
     
     if(bc_label==8)
 	gcsl_sommerfeld(p,f,gcv,bc,cs);
+    
+    if(bc_label==9)
+	gcsl_outflow_fsf(p,f,gcv,bc,cs);
     
 }
