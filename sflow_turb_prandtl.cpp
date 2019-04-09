@@ -53,7 +53,7 @@ void sflow_turb_prandtl::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convect
     if(p->flagslice2[Ip1J]>0 && p->flagslice2[Ip1Jm1]>0 && p->flagslice2[Im1J]>0 && p->flagslice2[Im1Jm1]>0)
     dvdx = (0.5*(b->Q(i+1,j)+b->Q(i+1,j-1)) - 0.5*(b->Q(i-1,j)+b->Q(i-1,j-1)))/(2.0*p->dx);
     
-    refl = 0.4*0.267*b->hp(i,j);
+    refl = 0.4*p->A261*b->hp(i,j);
  
     b->eddyv(i,j) = pow(refl,2.0)*sqrt(2.0*pow(dudx,2.0) + 2.0*pow(dvdy,2.0) + pow(dudy+dvdx,2.0));
     }
