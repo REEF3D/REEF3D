@@ -57,6 +57,7 @@ void sflow_hxy_fou::start(lexer* p, slice& hx, slice& hy, slice& depth, slice& e
     hx(i,j) = MAX(eta(i,j),eta(i+1,j)) + MIN(depth(i,j), depth(i+1,j));
 	}
     
+    if(p->F50==1 || p->F50==4)
     for(n=0;n<p->gcslout_count;n++)
     {
     i=p->gcslout[n][0];
