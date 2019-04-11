@@ -42,8 +42,8 @@ double fnpf_wenoflux::sx(lexer *p, slice &f, slice &Fifsf)
 {
     grad=0.0;
         
-        //ivel1 = (Fifsf(i,j) - Fifsf(i-1,j))/(p->DXP[IM1]);
-        //ivel2 = (Fifsf(i+1,j) - Fifsf(i,j))/(p->DXP[IP]);
+        ivel1 = (Fifsf(i,j) - Fifsf(i-1,j))/(p->DXP[IM1]);
+        ivel2 = (Fifsf(i+1,j) - Fifsf(i,j))/(p->DXP[IP]);
         
         
         //ivel1 = (-Fifsf(i+1,j) + 27.0*Fifsf(i,j) - 27.0*Fifsf(i-1,j) + Fifsf(i-2,j))/(-p->XP[IP1] + 27.0*p->XP[IP] - 27.0*p->XP[IM1] + p->XP[IM2]);

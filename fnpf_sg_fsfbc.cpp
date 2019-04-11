@@ -58,7 +58,7 @@ fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : diss(p), E
     {
     pconvec = new fnpf_weno_wd(p,c);
     }
-    pdf = new fnpf_wenoflux(p);
+    //pdf = new fnpf_wenoflux(p);
 
     if(p->A311==6)
     pconvec = new fnpf_cds6(p);
@@ -107,7 +107,7 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     
     pgc->gcsl_start4(p,c->WL,50);
     
-    // fi
+    // 3D
     if(p->i_dir==1 && p->j_dir==1)
     FFILOOP4
     {
@@ -124,6 +124,7 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     c->Eyy(i,j) = pddx->syy(p,eta);
     }
     
+    // 2D
     if(p->i_dir==1 && p->j_dir==0)
     FFILOOP4
     {
@@ -131,6 +132,7 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     
     c->Fx(i,j) = pconvec->sx(p,Fifsf,ivel);
     c->Ex(i,j) = pconvec->sx(p,eta,ivel);
+    
     c->Exx(i,j) = pddx->sxx(p,eta);
     }
 
@@ -171,7 +173,6 @@ void fnpf_sg_fsfbc::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
 
 void fnpf_sg_fsfbc::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-
     SLICELOOP4
     c->K(i,j) =  - c->Fx(i,j)*c->Ex(i,j) - c->Fy(i,j)*c->Ey(i,j) 
     
