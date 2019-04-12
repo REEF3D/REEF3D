@@ -19,13 +19,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"sflow_vtp.h"
+#include"fnpf_vtp_fsf.h"
 #include"lexer.h"
-#include"fdm2D.h"
+#include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include<string>
 
-void sflow_vtp::name_iter(lexer *p, fdm2D* b, ghostcell* pgc)
+void fnpf_vtp_fsf::name_iter(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 {	
     int num=0;
 
@@ -40,105 +40,105 @@ if(p->P14==0)
 	if(p->mpirank<9)
 	{
 		if(num<10)
-		sprintf(name,"REEF3D-SFLOW-00000%d-0000%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-00000%d-0000%d.vtp",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"REEF3D-SFLOW-0000%d-0000%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-0000%d-0000%d.vtp",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"REEF3D-SFLOW-000%d-0000%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-000%d-0000%d.vtp",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"REEF3D-SFLOW-00%d-0000%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-00%d-0000%d.vtp",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"REEF3D-SFLOW-0%d-0000%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-0%d-0000%d.vtp",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"REEF3D-SFLOW-%d-0000%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-%d-0000%d.vtp",num,p->mpirank+1);
 	}
 
 	if(p->mpirank<99&&p->mpirank>8)
 	{
 		if(num<10)
-		sprintf(name,"REEF3D-SFLOW-00000%d-000%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-00000%d-000%d.vtp",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"REEF3D-SFLOW-0000%d-000%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-0000%d-000%d.vtp",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"REEF3D-SFLOW-000%d-000%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-000%d-000%d.vtp",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"REEF3D-SFLOW-00%d-000%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-00%d-000%d.vtp",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"REEF3D-SFLOW-0%d-000%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-0%d-000%d.vtp",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"REEF3D-SFLOW-%d-000%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-%d-000%d.vtp",num,p->mpirank+1);
 	}
 	if(p->mpirank<999&&p->mpirank>98)
 	{
 		if(num<10)
-		sprintf(name,"REEF3D-SFLOW-00000%d-00%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-00000%d-00%d.vtp",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"REEF3D-SFLOW-0000%d-00%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-0000%d-00%d.vtp",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"REEF3D-SFLOW-000%d-00%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-000%d-00%d.vtp",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"REEF3D-SFLOW-00%d-00%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-00%d-00%d.vtp",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"REEF3D-SFLOW-0%d-00%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-0%d-00%d.vtp",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"REEF3D-SFLOW-%d-00%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-%d-00%d.vtp",num,p->mpirank+1);
 	}
 
 	if(p->mpirank<9999&&p->mpirank>998)
 	{
 		if(num<10)
-		sprintf(name,"REEF3D-SFLOW-00000%d-0%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-00000%d-0%d.vtp",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"REEF3D-SFLOW-0000%d-0%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-0000%d-0%d.vtp",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"REEF3D-SFLOW-000%d-0%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-000%d-0%d.vtp",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"REEF3D-SFLOW-00%d-0%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-00%d-0%d.vtp",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"REEF3D-SFLOW-0%d-0%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-0%d-0%d.vtp",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"REEF3D-SFLOW-%d-0%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-%d-0%d.vtp",num,p->mpirank+1);
 	}
 
 	if(p->mpirank>9998)
 	{
 		if(num<10)
-		sprintf(name,"REEF3D-SFLOW-00000%d-%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-00000%d-%d.vtp",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"REEF3D-SFLOW-0000%d-%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-0000%d-%d.vtp",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"REEF3D-SFLOW-000%d-%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-000%d-%d.vtp",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"REEF3D-SFLOW-00%d-%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-00%d-%d.vtp",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"REEF3D-SFLOW-0%d-%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-0%d-%d.vtp",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"REEF3D-SFLOW-%d-%d.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-FNPF-FSF-%d-%d.vtp",num,p->mpirank+1);
 	}
 }
 
@@ -147,105 +147,105 @@ if(p->P14==1)
 	if(p->mpirank<9)
 	{
 		if(num<10)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-00000%d-0000%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-00000%d-0000%d.vtp",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-0000%d-0000%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-0000%d-0000%d.vtp",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-000%d-0000%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-000%d-0000%d.vtp",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-00%d-0000%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-00%d-0000%d.vtp",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-0%d-0000%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-0%d-0000%d.vtp",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-%d-0000%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-%d-0000%d.vtp",num,p->mpirank+1);
 	}
 
 	if(p->mpirank<99&&p->mpirank>8)
 	{
 		if(num<10)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-00000%d-000%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-00000%d-000%d.vtp",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-0000%d-000%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-0000%d-000%d.vtp",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-000%d-000%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-000%d-000%d.vtp",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-00%d-000%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-00%d-000%d.vtp",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-0%d-000%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-0%d-000%d.vtp",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-%d-000%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-%d-000%d.vtp",num,p->mpirank+1);
 	}
 	if(p->mpirank<999&&p->mpirank>98)
 	{
 		if(num<10)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-00000%d-00%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-00000%d-00%d.vtp",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-0000%d-00%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-0000%d-00%d.vtp",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-000%d-00%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-000%d-00%d.vtp",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-00%d-00%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-00%d-00%d.vtp",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-0%d-00%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-0%d-00%d.vtp",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-%d-00%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-%d-00%d.vtp",num,p->mpirank+1);
 	}
 
 	if(p->mpirank<9999&&p->mpirank>998)
 	{
 		if(num<10)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-00000%d-0%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-00000%d-0%d.vtp",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-0000%d-0%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-0000%d-0%d.vtp",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-000%d-0%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-000%d-0%d.vtp",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-00%d-0%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-00%d-0%d.vtp",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-0%d-0%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-0%d-0%d.vtp",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-%d-0%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-%d-0%d.vtp",num,p->mpirank+1);
 	}
 
 	if(p->mpirank>9998)
 	{
 		if(num<10)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-00000%d-%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-00000%d-%d.vtp",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-0000%d-%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-0000%d-%d.vtp",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-000%d-%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-000%d-%d.vtp",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-00%d-%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-00%d-%d.vtp",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-0%d-%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-0%d-%d.vtp",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"./REEF3D_SFLOW_VTP/REEF3D-SFLOW-%d-%d.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-%d-%d.vtp",num,p->mpirank+1);
 	}
 }
 

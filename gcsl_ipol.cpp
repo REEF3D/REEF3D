@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm2D.h"
 #include"slice.h"
              
-double ghostcell::gcsl_ipol1(lexer* p, fdm2D *b, slice &f)
+double ghostcell::gcsl_ipol1(lexer* p, slice &f)
 {
     v1=v2=0;
 
@@ -40,7 +40,7 @@ double ghostcell::gcsl_ipol1(lexer* p, fdm2D *b, slice &f)
     return value;
 }
 
-double ghostcell::gcsl_ipol2(lexer* p, fdm2D *b, slice &f)
+double ghostcell::gcsl_ipol2(lexer* p, slice &f)
 {
     v1=v2=0;
 
@@ -56,7 +56,7 @@ double ghostcell::gcsl_ipol2(lexer* p, fdm2D *b, slice &f)
     return value;
 }
 
-double ghostcell::gcsl_ipol1a(lexer* p, fdm2D *b, slice &f)
+double ghostcell::gcsl_ipol1a(lexer* p, slice &f)
 {
     v1=v2=0;
 
@@ -70,7 +70,7 @@ double ghostcell::gcsl_ipol1a(lexer* p, fdm2D *b, slice &f)
     return value;
 }
 
-double ghostcell::gcsl_ipol2a(lexer* p, fdm2D *b, slice &f)
+double ghostcell::gcsl_ipol2a(lexer* p, slice &f)
 {
     v1=v2=0;
 
@@ -103,7 +103,7 @@ double ghostcell::gcsl_ipol4(lexer* p, slice &f)
     return value;
 }
 
-double ghostcell::gcsl_ipol4eta(lexer* p, fdm2D *b, slice &f)
+double ghostcell::gcsl_ipol4eta(lexer* p, slice &f)
 {
     double bedvalue;
     
@@ -151,7 +151,7 @@ double ghostcell::gcsl_ipol4eta(lexer* p, fdm2D *b, slice &f)
     return value;
 }
 
-double ghostcell::gcsl_ipolint(lexer* p, fdm2D *b, sliceint &f)
+double ghostcell::gcsl_ipolint(lexer* p, sliceint &f)
 {
     v1=v2=v3=v4=0;
 

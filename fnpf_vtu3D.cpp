@@ -262,26 +262,26 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPLOOP
 	{
-	ffn=float(p->ipol1(c->u));
+	ffn=float(p->ipol4(c->u));
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(p->ipol2(c->v));
+	ffn=float(p->ipol4(c->v));
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(p->ipol3(c->w));
+	ffn=float(p->ipol4(c->w));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
 
 	for(n=0;n<p->ccptnum;++n)
 	{
-	ffn=float(p->ccipol1(c->u,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
+	ffn=float(p->ccipol4(c->u,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(p->ccipol2(c->v,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
+	ffn=float(p->ccipol4(c->v,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(p->ccipol3(c->w,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
+	ffn=float(p->ccipol4(c->w,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
 	result.write((char*)&ffn, sizeof (float));
 
 	}

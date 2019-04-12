@@ -23,8 +23,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
-#include"sflow_print_wsf.h"
-#include"sflow_print_wsfline.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -53,13 +51,13 @@ void fnpf_vtp_fsf::start(lexer *p, fdm_fnpf *c, ghostcell* pgc, ioflow *pflow)
 	// Print out based on iteration
     if((p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)  || (p->count==0 &&  p->P30<0.0))
     {
-    print2D(p,b,pgc);
+    print2D(p,c,pgc);
     }
 		
     // Print out based on time
     if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==1) || (p->count==0 &&  p->P30>0.0))
     {
-    print2D(p,b,pgc);
+    print2D(p,c,pgc);
 		
     p->printtime+=p->P30;
     }
@@ -68,12 +66,12 @@ void fnpf_vtp_fsf::start(lexer *p, fdm_fnpf *c, ghostcell* pgc, ioflow *pflow)
 
 void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 {	
-    b->eta.ggcpol(p);
+    c->eta.ggcpol(p);
     
 	if(p->mpirank==0)
-    pvtu(p,b,pgc);
+    pvtu(p,c,pgc);
     
-	name_iter(p,b,pgc);
+	name_iter(p,c,pgc);
 	
 	
 	// Open File
@@ -91,14 +89,6 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	
 	// velocity
 	offset[n]=offset[n-1]+4*(p->pointnum2D)*3+4;
-	++n;
-	
-	// wb
-	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
-	
-    // pressure
-	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
     
     // elevation
@@ -175,7 +165,7 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	ffn=float(float(j+1)*p->dx+p->originy);
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(pgc->gcsl_ipol4eta(p,b,b->eta)+p->wd);
+	ffn=float(pgc->gcsl_ipol4eta(p,c->eta)+p->wd);
 	result.write((char*)&ffn, sizeof (float));
 	}
 	
@@ -184,13 +174,14 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
 	{
-	ffn=float(pgc->gcsl_ipol1a(p,b,b->P));
+    k = p->knoz-1;
+	ffn=float(p->ipol4(c->u));
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(pgc->gcsl_ipol2a(p,b,b->Q));
+	ffn=float(p->ipol4(c->v));
 	result.write((char*)&ffn, sizeof (float));
 	
-	ffn=float(pgc->gcsl_ipol4(p,b->ws));
+	ffn=float(p->ipol4(c->w));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -199,7 +190,7 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
 	{
-	ffn=float(pgc->gcsl_ipol4(p,b->eta)+p->wd);
+	ffn=float(pgc->gcsl_ipol4(p,c->eta)+p->wd);
 	result.write((char*)&ffn, sizeof (float));
 	}
 	
@@ -208,7 +199,7 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
 	TPSLICELOOP
 	{
-	ffn=float(pgc->gcsl_ipol4(p,b->depth));
+	ffn=float(pgc->gcsl_ipol4(p,c->depth));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -217,7 +208,7 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
 	TPSLICELOOP
 	{
-	ffn=float(pgc->gcsl_ipol4(p,b->breaking_print));
+	ffn=float(pgc->gcsl_ipol4(p,c->breaking));
 	result.write((char*)&ffn, sizeof (float));
 	}
 
