@@ -726,9 +726,7 @@ void driver::logic()
 	if(p->D30>10 && p->D30<20)
 	ppois = new presscorr(p);
 	
-
 //Solver
-    
 	if(p->N8==0)
 	psolv = new solver_void(p,a,pgc);
 	
@@ -744,7 +742,6 @@ void driver::logic()
     if(p->N8==3 && p->j_dir==1)
 	psolv = new bicgstab(p,a,pgc,p->N9);
 
-    
 //Poison Solver	
 	if(p->N10==0)
 	ppoissonsolv = new solver_void(p,a,pgc);

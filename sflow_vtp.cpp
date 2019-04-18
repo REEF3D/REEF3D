@@ -188,7 +188,7 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	ffn=float(float(j+1)*p->dx+p->originy);
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(pgc->gcsl_ipol4eta(p,b,b->eta)+p->wd);
+	ffn=float(pgc->gcsl_ipol4eta(p,b->eta,b->bed)+p->wd);
 	result.write((char*)&ffn, sizeof (float));
 	}
 	
@@ -197,10 +197,10 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
 	{
-	ffn=float(pgc->gcsl_ipol1a(p,b,b->P));
+	ffn=float(pgc->gcsl_ipol1a(p,b->P));
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(pgc->gcsl_ipol2a(p,b,b->Q));
+	ffn=float(pgc->gcsl_ipol2a(p,b->Q));
 	result.write((char*)&ffn, sizeof (float));
 	
 	ffn=float(pgc->gcsl_ipol4(p,b->ws));

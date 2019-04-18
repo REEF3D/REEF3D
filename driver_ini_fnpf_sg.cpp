@@ -121,6 +121,32 @@ void driver::driver_ini_fnpf_sg()
     c->bc(i-1,j) = 1;
     }
     
+    // 2D mesh
+   count=0;
+	p->pointnum2D=0;
+	p->cellnum2D=0;
+	p->polygon_sum=0;
+    
+    
+    TPSLICELOOP  
+	{
+	++count;
+	++p->pointnum2D;
+	c->nodeval2D(i,j)=count;
+    }
+	
+	SLICEBASELOOP
+	++p->polygon_sum;
+	
+	p->polygon_sum *=2;
+
+	SLICELOOP4
+	++p->cellnum2D;
+    
+    SLICELOOP4
+	++p->cellnum2D;
+
+    p->cellnumtot2D=pgc->globalisum(p->cellnum2D);
     
     
     // eta ini

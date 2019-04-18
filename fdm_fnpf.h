@@ -23,6 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fieldint5.h"
 #include"slice4.h"
 #include"sliceint4.h"
+#include"sliceint5.h"
 #include"increment.h"
 #include"vec.h"
 #include"matrix_diag.h"
@@ -58,6 +59,9 @@ public:
     slice4 Bx,By;
     slice4 Bxx,Byy;
     slice4 Hx,Hy;
+    
+    sliceint5 nodeval2D;
+    slice4 breaking_print;
     
 
 	

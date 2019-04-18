@@ -103,7 +103,7 @@ double ghostcell::gcsl_ipol4(lexer* p, slice &f)
     return value;
 }
 
-double ghostcell::gcsl_ipol4eta(lexer* p, slice &f)
+double ghostcell::gcsl_ipol4eta(lexer* p, slice &f, slice &bed)
 {
     double bedvalue;
     
@@ -131,13 +131,13 @@ double ghostcell::gcsl_ipol4eta(lexer* p, slice &f)
     
     //bed
     pip=4;
-    v1=b->bed(i,j);
+    v1=bed(i,j);
 
-    v2=b->bed(i+1,j);
+    v2=bed(i+1,j);
 
-    v3=b->bed(i,j+1);
+    v3=bed(i,j+1);
 
-    v4=b->bed(i+1,j+1);
+    v4=bed(i+1,j+1);
     pip=0;
 
     bedvalue = 0.25*(v1+v2+v3+v4);

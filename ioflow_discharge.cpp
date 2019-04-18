@@ -60,16 +60,16 @@ void ioflow_f::Qin(lexer *p, fdm* a, ghostcell* pgc)
     j=p->gcin[n][1];
     k=p->gcin[n][2];
 
-        if(a->phi(i,j,k)>-0.5*p->dx-1.0e-20 && a->topo(i,j,k)>0.0)
+        if(a->phi(i,j,k)>-0.5*p->DZN[KP]-1.0e-20 && a->topo(i,j,k)>0.0)
         {
-            if(a->phi(i,j,k)>=0.5*p->dx)
-            area=p->dx*p->dx;
+            if(a->phi(i,j,k)>=0.5*(p->DZN[KP1]-p->DZN[KP]))
+            area=p->DYN[JP]*p->DZN[KP];
 
             if(a->phi(i,j,k)<0.5*p->dx && a->phi(i,j,k)>0.0*p->dx)
-            area=p->dx*(p->dx*0.5 + a->phi(i,j,k));
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i,j,k));
 			
 			if(a->phi(i,j,k)>=-0.5*p->dx -1.0e-20 && a->phi(i,j,k)<=0.0*p->dx)
-            area=p->dx*(p->dx*0.5 - a->phi(i,j,k));
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 - a->phi(i,j,k));
 
 
             Ai+=area;
@@ -112,13 +112,13 @@ void ioflow_f::Qout(lexer *p, fdm* a, ghostcell* pgc)
         {
 
             if(a->phi(i+1,j,k)>=0.5*p->dx)
-            area=p->dx*p->dx;
+            area=p->DYN[JP]*p->DZN[KP];
 
             if(a->phi(i+1,j,k)<0.5*p->dx && a->phi(i+1,j,k)>0.0*p->dx)
-            area=p->dx*(p->dx*0.5 + a->phi(i+1,j,k));
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i+1,j,k));
 			
 			if(a->phi(i+1,j,k)>=-0.5*p->dx-1.0e-20 && a->phi(i+1,j,k)<=0.0*p->dx)
-            area=p->dx*(p->dx*0.5 - a->phi(i+1,j,k));
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 - a->phi(i+1,j,k));
 
             Ao+=area;
             p->Qo+=area*a->u(i+1,j,k);

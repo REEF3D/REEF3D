@@ -165,7 +165,7 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	ffn=float(float(j+1)*p->dx+p->originy);
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(pgc->gcsl_ipol4eta(p,c->eta)+p->wd);
+	ffn=float(pgc->gcsl_ipol4eta(p,c->eta,c->bed)+p->wd);
 	result.write((char*)&ffn, sizeof (float));
 	}
 	
@@ -208,7 +208,8 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
 	TPSLICELOOP
 	{
-	ffn=float(pgc->gcsl_ipol4(p,c->breaking));
+        
+	ffn=float(pgc->gcsl_ipol4(p,c->breaking_print));
 	result.write((char*)&ffn, sizeof (float));
 	}
 
@@ -218,24 +219,24 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     SLICEBASELOOP
 	{
 	// Triangle 1
-	iin=int(b->nodeval(i-1,j-1))-1;
+	iin=int(c->nodeval2D(i-1,j-1))-1;
 	result.write((char*)&iin, sizeof (int));
 
-	iin=int(b->nodeval(i,j-1))-1;
+	iin=int(c->nodeval2D(i,j-1))-1;
 	result.write((char*)&iin, sizeof (int));
 
-	iin=int(b->nodeval(i,j))-1;
+	iin=int(c->nodeval2D(i,j))-1;
 	result.write((char*)&iin, sizeof (int));
 	
 	
 	// Triangle 2
-	iin=int(b->nodeval(i-1,j-1))-1;
+	iin=int(c->nodeval2D(i-1,j-1))-1;
 	result.write((char*)&iin, sizeof (int));
 
-	iin=int(b->nodeval(i,j))-1;
+	iin=int(c->nodeval2D(i,j))-1;
 	result.write((char*)&iin, sizeof (int));
 
-	iin=int(b->nodeval(i-1,j))-1;
+	iin=int(c->nodeval2D(i-1,j))-1;
 	result.write((char*)&iin, sizeof (int));
 	}
     

@@ -303,7 +303,7 @@ public:
 	double gcsl_ipol1a(lexer*,slice&);
     double gcsl_ipol2a(lexer*,slice&);
     double gcsl_ipol4(lexer*,slice&);
-    double gcsl_ipol4eta(lexer*,slice&);
+    double gcsl_ipol4eta(lexer*,slice&,slice&);
     double gcsl_ipolint(lexer*,sliceint&);
 
 	double gcsl_ccipol4(lexer*,slice&,double,double);
