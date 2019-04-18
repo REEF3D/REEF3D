@@ -57,7 +57,6 @@ public:
     double ivel,jvel,kvel;
     
 private:
-    slice4 diss;
     slice4 EEx,EEy;
     
 };

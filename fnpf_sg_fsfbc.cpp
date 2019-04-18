@@ -40,7 +40,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_ddx_cds2.h"
 #include"fnpf_ddx_cds4.h"
 
-fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : diss(p), EEx(p),EEy(p)
+fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : EEx(p),EEy(p)
 {    
     if(p->A311==0)
     pconvec = new fnpf_voiddisc(p);
