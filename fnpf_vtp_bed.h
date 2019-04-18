@@ -19,55 +19,43 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"printer.h"
 #include"increment.h"
 
+class lexer;
 class fdm_fnpf;
-class fnpf_print_wsf;
-class fnpf_print_wsfline;
-class fnpf_print_wsfline_y;
-class fnpf_vtp_fsf;
-class fnpf_vtp_bed;
-class potentialfile_out;
+class ghostcell;
 class ioflow;
-
-#ifndef FNPF_VTU3D_H_
-#define FNPF_VTU3D_H_
 
 using namespace std;
 
-class fnpf_vtu3D : public increment
+#ifndef FNPF_VTP_BED_H_
+#define FNPF_VTP_BED_H_
+
+class fnpf_vtp_bed : public increment
 {
-
 public:
-	fnpf_vtu3D(lexer*,fdm_fnpf*,ghostcell*);
-	virtual ~fnpf_vtu3D();
-	virtual void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*);
-    
+	fnpf_vtp_bed(lexer*,fdm_fnpf*,ghostcell*);
+	virtual ~fnpf_vtp_bed();
+	
+    virtual void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*);
+    virtual void print2D(lexer*,fdm_fnpf*,ghostcell*);
+	
 private:
-    void print_vtu(lexer*,fdm_fnpf*,ghostcell*);
-    void pvtu(lexer*,ghostcell*);
-    void name_iter(lexer*,ghostcell*);
-    void name_time(lexer*,ghostcell*);
-    void piecename(lexer*,ghostcell*, int);
-
-    char name[200],pname[200],epsvar[200];
+	
+	void etend(lexer*,fdm_fnpf*,ghostcell*);
+	void pvtu(lexer*,fdm_fnpf*,ghostcell*);
+	void name_iter(lexer*,fdm_fnpf*,ghostcell*);
+    void piecename(lexer*,fdm_fnpf*,ghostcell*,int);
+	
+	
+	char name[200],pname[200];
     int n,iin,offset[200];
     float ffn;
-    int gcval_phi,gcval_phiext;
-	double *printtime_wT;
-    double phase;
-    double zcoor;
-    
-    int printcount;
-    
-    fnpf_print_wsf *pwsf;
-    fnpf_print_wsfline *pwsfline;
-    fnpf_print_wsfline_y *pwsfline_y;
-    potentialfile_out *ppotentialfile;
-    fnpf_vtp_fsf *pfsf;
-    fnpf_vtp_bed *pbed;
+	
+	double xs_local,ys_local,zs_local,xe_local,ye_local,ze_local;
+	double xs_global,ys_global,zs_global,xe_global,ye_global,ze_global;
+	
+
 };
 
 #endif
-

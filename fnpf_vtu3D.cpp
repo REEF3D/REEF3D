@@ -27,6 +27,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_print_wsf.h"
 #include"fnpf_print_wsfline.h"
 #include"fnpf_print_wsfline_y.h"
+#include"fnpf_vtp_fsf.h"
+#include"fnpf_vtp_bed.h"
 #include"potentialfile_out.h"
 #include<sys/stat.h>
 #include<sys/types.h>
@@ -64,6 +66,11 @@ fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
     
     if(p->P230>0)
     ppotentialfile = new potentialfile_out(p,c,pgc);
+    
+    if(p->P180==1)
+	pfsf = new fnpf_vtp_fsf(p,c,pgc);
+    
+    pbed = new fnpf_vtp_bed(p,c,pgc);
 }
 
 fnpf_vtu3D::~fnpf_vtu3D()
@@ -100,6 +107,23 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 		printtime_wT[qn]+=p->P35_dt[qn];
 		}
         
+        // Print FSF
+		if(p->count%p->P181==0 && p->P182<0.0 && p->P180==1)
+        {
+		pfsf->start(p,c,pgc,pflow);
+        }
+		
+		if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P180==1) || (p->count==0 &&  p->P182>0.0))
+        {
+        pfsf->start(p,c,pgc,pflow);
+        p->fsfprinttime+=p->P182;
+        }
+        
+        // Print BED
+        if(p->count==0)
+		pbed->start(p,c,pgc,pflow);
+        
+        
     // Gages
     if((p->P52>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P52>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
     pwsfline->start(p,c,pgc,pflow,c->eta);
@@ -110,12 +134,22 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 
 void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 {
+    SLICELOOP4
+    {
+    if(c->breaking(i,j)==1)
+    c->breaking_print(i,j)=1.0;
+        
+    if(c->breaking(i,j)==0)
+    c->breaking_print(i,j)=0.0;   
+    }
+    
      //
     pgc->start4(p,c->u,110);
     pgc->start4(p,c->v,111);
 	pgc->start4(p,c->w,112);
     pgc->gcsl_start4(p,c->WL,50);
     pgc->gcsl_start4(p,c->bed,50);
+    pgc->gcsl_start4(p,c->breaking_print,50);
     pgc->start4(p,c->test,50);
 	
 	pgc->dgcpol(p,c->u,p->dgc1,p->dgc1_count,11);
@@ -124,6 +158,7 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     pgc->dgcpol(p,c->test,p->dgc4,p->dgc4_count,14);
     pgc->dgcpol(p,c->Fi4,p->dgc4,p->dgc4_count,14);
     pgc->dgcslpol(p,c->WL,p->dgcsl4,p->dgcsl4_count,14);
+    pgc->dgcslpol(p,c->breaking_print,p->dgcsl4,p->dgcsl4_count,14);
     pgc->dgcslpol(p,c->bed,p->dgcsl4,p->dgcsl4_count,14);
 	
 	c->u.ggcpol(p);
@@ -132,6 +167,7 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     c->Fi4.ggcpol(p);
     c->WL.ggcpol(p);
     c->test.ggcpol(p);
+    c->breaking_print.ggcpol(p);
     
     i=-1;
     j=-1;

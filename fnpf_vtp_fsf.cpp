@@ -48,20 +48,7 @@ fnpf_vtp_fsf::~fnpf_vtp_fsf()
 
 void fnpf_vtp_fsf::start(lexer *p, fdm_fnpf *c, ghostcell* pgc, ioflow *pflow)
 {	
-	// Print out based on iteration
-    if((p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)  || (p->count==0 &&  p->P30<0.0))
-    {
     print2D(p,c,pgc);
-    }
-		
-    // Print out based on time
-    if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==1) || (p->count==0 &&  p->P30>0.0))
-    {
-    print2D(p,c,pgc);
-		
-    p->printtime+=p->P30;
-    }
-	
 }
 
 void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
@@ -159,10 +146,10 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     TPSLICELOOP
 	{
     
-	ffn=float(float(i+1)*p->dx+p->originx);
+	ffn=float(p->XN[IP1]);
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(float(j+1)*p->dx+p->originy);
+	ffn=float(p->YN[JP1]);
 	result.write((char*)&ffn, sizeof (float));
 
 	ffn=float(pgc->gcsl_ipol4eta(p,c->eta,c->bed)+p->wd);
