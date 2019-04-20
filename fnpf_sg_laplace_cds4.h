@@ -35,7 +35,7 @@ public:
     fnpf_sg_laplace_cds4 (lexer*);
 	virtual ~fnpf_sg_laplace_cds4();
 
-    virtual void start(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_sg_fsfbc*,double*);
+    virtual void start(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_sg_fsf*,double*);
     
 private:
     

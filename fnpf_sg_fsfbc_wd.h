@@ -19,44 +19,49 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_sg.h"
-#include"fnpf_sg_ini.h"
-#include"fnpf_sigma.h"
+#include"fnpf_sg_fsf.h"
 #include"slice4.h"
 
 class fnpf_sg_laplace;
-class fnpf_sg_fsf;
 class field;
+class fnpf_convection;
+class fnpf_ddx;
+class fnpf_etadisc;
 
 using namespace std;
 
-#ifndef FNPF_SG_RK3_H_
-#define FNPF_SG_RK3_H_
+#ifndef FNPF_SG_FSFBC_WD_H_
+#define FNPF_SG_FSFBC_WD_H_
 
-class fnpf_sg_RK3 : public fnpf_sg_ini, public fnpf_sigma
+class fnpf_sg_fsfbc_wd : public fnpf_sg_fsf, public increment 
 {
 public:
-	fnpf_sg_RK3(lexer*, fdm_fnpf*, ghostcell*);
-	virtual ~fnpf_sg_RK3();
+	fnpf_sg_fsfbc_wd(lexer*, fdm_fnpf*, ghostcell*);
+	virtual ~fnpf_sg_fsfbc_wd();
     
-    virtual void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*);
-    virtual void inidisc(lexer*, fdm_fnpf*, ghostcell*);
+    virtual void fsfdisc(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
+    virtual void fsfdisc_ini(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
+    virtual void kfsfbc(lexer*,fdm_fnpf*,ghostcell*);
+    virtual void dfsfbc(lexer*,fdm_fnpf*,ghostcell*,slice&);
+    virtual void fsfwvel(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
+    virtual void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
+    virtual void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
+    
+    
+    void filter(lexer*, fdm_fnpf*,ghostcell*, slice&);
+
+    fnpf_convection *pconvec;
+    fnpf_convection *pconeta;
+    fnpf_etadisc *pdf;
+    fnpf_convection *pdx;
+    fnpf_ddx *pddx;
+
+    double ivel,jvel,kvel;
     
 private:
-
-    int gcval,gcval_u,gcval_v,gcval_w;
-    int gcval_eta,gcval_fifsf;
-    int hypre_type;
-    double starttime,endtime;
-
-    slice4 erk1,erk2;
-    slice4 frk1,frk2;
-
-    fnpf_sg_laplace *plap;
-    fnpf_sg_fsf *pf;
+    slice4 EEx,EEy;
+    slice4 FFx,FFy;
     
-    int gcval_sl;
-
 };
 
 #endif

@@ -28,7 +28,7 @@ class vec;
 class fdm_fnpf;
 class fnpf_ddx;
 class fnpf_convection;
-class fnpf_sg_fsfbc;
+class fnpf_sg_fsf;
 
 using namespace std;
 
@@ -41,7 +41,7 @@ public:
     fnpf_sg_bed_update(lexer*);
 	virtual ~fnpf_sg_bed_update();
     
-    virtual void bedbc_sig(lexer*, fdm_fnpf*, ghostcell*,double*,fnpf_sg_fsfbc*);
+    virtual void bedbc_sig(lexer*, fdm_fnpf*, ghostcell*,double*,fnpf_sg_fsf*);
     virtual void waterdepth(lexer*, fdm_fnpf*, ghostcell*);
 
 private: 

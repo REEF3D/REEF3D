@@ -31,6 +31,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_sg_laplace_cds4.h"
 #include"onephase.h"
 #include"fnpf_sg_fsfbc.h"
+#include"fnpf_sg_fsfbc_wd.h"
 
 fnpf_sg_RK4::fnpf_sg_RK4(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_sg_ini(p,c,pgc),fnpf_sigma(p,c,pgc),
                                                       erk1(p),erk2(p),erk3(p),erk(p),en(p),
@@ -58,7 +59,11 @@ fnpf_sg_RK4::fnpf_sg_RK4(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_sg_ini(p,
     if(p->A320==2)
     plap = new fnpf_sg_laplace_cds4(p);
     
+    if(p->A343==0)
     pf = new fnpf_sg_fsfbc(p,c,pgc);
+    
+    if(p->A343>=1)
+    pf = new fnpf_sg_fsfbc_wd(p,c,pgc);
 }
 
 fnpf_sg_RK4::~fnpf_sg_RK4()

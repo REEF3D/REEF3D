@@ -25,7 +25,7 @@ class field;
 class ghostcell;
 class solver;
 class vec;
-class fnpf_sg_fsfbc;
+class fnpf_sg_fsf;
 
 #ifndef FNPF_SG_LAPLACE_H_
 #define FNPF_SG_LAPLACE_H_
@@ -36,7 +36,7 @@ class fnpf_sg_laplace
 {
 public:
 
-    virtual void start(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_sg_fsfbc*,double*)=0;
+    virtual void start(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_sg_fsf*,double*)=0;
 
 };
 

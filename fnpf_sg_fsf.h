@@ -19,44 +19,32 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_sg.h"
-#include"fnpf_sg_ini.h"
-#include"fnpf_sigma.h"
-#include"slice4.h"
-
+class lexer;
+class ghostcell;
+class fdm_fnpf;
 class fnpf_sg_laplace;
-class fnpf_sg_fsf;
-class field;
+class slice;
+class fnpf_convection;
+class fnpf_ddx;
+class fnpf_etadisc;
 
 using namespace std;
 
-#ifndef FNPF_SG_RK3_H_
-#define FNPF_SG_RK3_H_
+#ifndef FNPF_SG_FSF_H_
+#define FNPF_SG_FSF_H_
 
-class fnpf_sg_RK3 : public fnpf_sg_ini, public fnpf_sigma
+class fnpf_sg_fsf 
 {
 public:
-	fnpf_sg_RK3(lexer*, fdm_fnpf*, ghostcell*);
-	virtual ~fnpf_sg_RK3();
+   
+    virtual void fsfdisc(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&)=0;
+    virtual void fsfdisc_ini(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&)=0;
+    virtual void kfsfbc(lexer*,fdm_fnpf*,ghostcell*)=0;
+    virtual void dfsfbc(lexer*,fdm_fnpf*,ghostcell*,slice&)=0;
+    virtual void fsfwvel(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&)=0;
+    virtual void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&)=0;
+    virtual void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double)=0;
     
-    virtual void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*);
-    virtual void inidisc(lexer*, fdm_fnpf*, ghostcell*);
-    
-private:
-
-    int gcval,gcval_u,gcval_v,gcval_w;
-    int gcval_eta,gcval_fifsf;
-    int hypre_type;
-    double starttime,endtime;
-
-    slice4 erk1,erk2;
-    slice4 frk1,frk2;
-
-    fnpf_sg_laplace *plap;
-    fnpf_sg_fsf *pf;
-    
-    int gcval_sl;
-
 };
 
 #endif

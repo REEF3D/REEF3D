@@ -26,7 +26,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 class lexer;
 class fdm_fnpf;
 class ghostcell;
-class fnpf_sg_fsfbc;
+class fnpf_sg_fsf;
 
 using namespace std;
 
@@ -39,8 +39,8 @@ public:
 	fnpf_sigma(lexer*, fdm_fnpf*, ghostcell*);
 	virtual ~fnpf_sigma();
     
-    virtual void sigma_ini(lexer*, fdm_fnpf*, ghostcell*, fnpf_sg_fsfbc*, slice&);
-    virtual void sigma_update(lexer*, fdm_fnpf*, ghostcell*, fnpf_sg_fsfbc*, slice&);
+    virtual void sigma_ini(lexer*, fdm_fnpf*, ghostcell*, fnpf_sg_fsf*, slice&);
+    virtual void sigma_update(lexer*, fdm_fnpf*, ghostcell*, fnpf_sg_fsf*, slice&);
         
 private:
 

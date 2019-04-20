@@ -19,7 +19,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_sg.h"
+#include"fnpf_sg_fsf.h"
 #include"slice4.h"
 
 class fnpf_sg_laplace;
@@ -33,23 +33,25 @@ using namespace std;
 #ifndef FNPF_SG_FSFBC_H_
 #define FNPF_SG_FSFBC_H_
 
-class fnpf_sg_fsfbc : public increment 
+class fnpf_sg_fsfbc : public fnpf_sg_fsf, public increment 
 {
 public:
 	fnpf_sg_fsfbc(lexer*, fdm_fnpf*, ghostcell*);
 	virtual ~fnpf_sg_fsfbc();
     
-    void fsfdisc(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
-    void fsfdisc_ini(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
-    void kfsfbc(lexer*,fdm_fnpf*,ghostcell*);
-    void dfsfbc(lexer*,fdm_fnpf*,ghostcell*,slice&);
-    void fsfwvel(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
+    virtual void fsfdisc(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
+    virtual void fsfdisc_ini(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
+    virtual void kfsfbc(lexer*,fdm_fnpf*,ghostcell*);
+    virtual void dfsfbc(lexer*,fdm_fnpf*,ghostcell*,slice&);
+    virtual void fsfwvel(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
+    virtual void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
+    virtual void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
     
-    void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
-    void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
+    
     void filter(lexer*, fdm_fnpf*,ghostcell*, slice&);
 
     fnpf_convection *pconvec;
+    fnpf_convection *pconeta;
     fnpf_etadisc *pdf;
     fnpf_convection *pdx;
     fnpf_ddx *pddx;
@@ -57,7 +59,7 @@ public:
     double ivel,jvel,kvel;
     
 private:
-    slice4 EEx,EEy;
+
     
 };
 

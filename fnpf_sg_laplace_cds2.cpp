@@ -35,7 +35,7 @@ fnpf_sg_laplace_cds2::~fnpf_sg_laplace_cds2()
 {
 }
 
-void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,fnpf_sg_fsfbc *pf, double *f)
+void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,fnpf_sg_fsf *pf, double *f)
 {
     double sigxyz2;
     double ab,denom;

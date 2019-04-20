@@ -25,7 +25,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 #include"slice4.h"
 
 class fnpf_sg_laplace;
-class fnpf_sg_fsfbc;
+class fnpf_sg_fsf;
 class field;
 
 using namespace std;
@@ -53,7 +53,7 @@ private:
     slice4 frk1,frk2,frk3,frk;
 
     fnpf_sg_laplace *plap;
-    fnpf_sg_fsfbc *pf;
+    fnpf_sg_fsf *pf;
 
 };
 

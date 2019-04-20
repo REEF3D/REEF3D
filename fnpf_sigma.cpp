@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
-#include"fnpf_sg_fsfbc.h"
+#include"fnpf_sg_fsf.h"
 
 #define WLVL (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0-20)
 
@@ -35,7 +35,7 @@ fnpf_sigma::~fnpf_sigma()
 {
 }
 
-void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsfbc *pf, slice &eta)
+void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsf *pf, slice &eta)
 {	
     p->Darray(p->sig,p->imax*p->jmax*(p->kmax+1));
     p->Darray(p->sigx,p->imax*p->jmax*(p->kmax+1));
@@ -82,7 +82,7 @@ void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsfbc 
     p->sigz[IJ] = 1.0/WLVL;
 }
 
-void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsfbc *pf, slice &eta)
+void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsf *pf, slice &eta)
 {
     FLOOP
     p->sigx[FIJK] = (1.0 - p->sig[FIJK])*(c->Bx(i,j)/WLVL) - p->sig[FIJK]*(c->Ex(i,j)/WLVL);

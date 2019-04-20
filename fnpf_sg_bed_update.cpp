@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/liceonephases/>.
 --------------------------------------------------------------------*/
 
  #include"fnpf_sg_bed_update.h"
-#include"fnpf_sg_fsfbc.h"
+#include"fnpf_sg_fsf.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
@@ -41,7 +41,7 @@ fnpf_sg_bed_update::~fnpf_sg_bed_update()
 {
 }
 
-void fnpf_sg_bed_update::bedbc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *Fi, fnpf_sg_fsfbc *pf)
+void fnpf_sg_bed_update::bedbc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *Fi, fnpf_sg_fsf *pf)
 {
     // Calculate gradients
     
