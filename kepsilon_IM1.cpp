@@ -83,9 +83,6 @@ void kepsilon_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff
 	cout<<"epsiter: "<<p->epsiter<<"  epstime: "<<setprecision(3)<<p->epstime<<endl;
 
 	eddyvisc(a,p,pgc);
-
-	pflow->periodic(kin,p);
-	pflow->periodic(eps,p);
 	pgc->start4(p,a->eddyv,24);
 }
 

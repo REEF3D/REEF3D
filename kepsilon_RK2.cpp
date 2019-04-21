@@ -129,10 +129,6 @@ void kepsilon_RK2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff
 	p->epstime+=pgc->timer()-starttime;
 
 	eddyvisc(a,p,kin,eps,pgc);
-	
-
-	pflow->periodic(kin,p);
-	pflow->periodic(eps,p);
 	pgc->start4(p,a->eddyv,24);
 }
 

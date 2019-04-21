@@ -24,8 +24,6 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 #include"momentum_RK2.h"
 #include"momentum_RK3.h"
 #include"momentum_RK4.h"
-#include"momentum_MK3.h"
-#include"momentum_MF3.h"
 #include"momentum_AB2.h"
 #include"momentum_IM1.h"
 #include"momentum_IM2.h"

@@ -622,7 +622,7 @@ void bicgstab_2D::finalize(lexer *p, fdm *a, field &f, vec &xvec, int var)
         }
     }
 	
-	if(var==4)
+	if(var==4 || var==5)
     {
         count=0;
         LOOP

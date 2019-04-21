@@ -62,7 +62,7 @@ void sip::start(lexer* p,fdm* a, ghostcell* pgc, field &xfield, vec& xvec, vec& 
 	solve(p,a,pgc,xvec,rhsvec,var,gcv,p->solveriter,p->N46,stop_crit,a->C3);
     }
 	
-	if(var==4)
+	if(var==4 || var==5)
     {
 	fillxvec4(p,a,xfield);
 	pgc->gcparaxvec(p,xvec,var); 

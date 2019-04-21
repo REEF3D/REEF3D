@@ -87,7 +87,6 @@ void concentration_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* 
     bc_concentration_start(p,a,pgc,C);
 	pgc->start4(p,C,gcval_concentration);
 
-	pflow->periodic(C,p);
 	pupdate->start(p,a,pgc);
 
 	p->susptime=pgc->timer()-starttime;

@@ -163,8 +163,6 @@ void levelset_RK3_V::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, g
     ppicard->correct_ls(p,a,pgc,ls);
 	ppart->picardmove(p,a,pgc);
 
-	pflow->periodic(ls,p);
-
 	pupdate->start(p,a,pgc);
 
 	if(p->mpirank==0 && (p->count%p->P12==0))

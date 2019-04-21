@@ -84,9 +84,6 @@ void komega_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,s
 	cout<<"omega_iter: "<<p->epsiter<<"  omega_time: "<<setprecision(3)<<p->epstime<<endl;
 
 	eddyvisc(p,a,pgc);
-	
-	pflow->periodic(kin,p);
-	pflow->periodic(eps,p);
 	pgc->start4(p,a->eddyv,24);
 }
 

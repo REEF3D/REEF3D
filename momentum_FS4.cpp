@@ -355,10 +355,6 @@ void momentum_FS4::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	pgc->start1(p,a->u,gcval_u);
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
-
-	pflow->periodic(a->u,p);
-	pflow->periodic(a->v,p);
-	pflow->periodic(a->w,p);
 }
 
 void momentum_FS4::ucorr(lexer *p, fdm *a, double alpha, field& uvel)

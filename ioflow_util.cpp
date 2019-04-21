@@ -124,25 +124,6 @@ void ioflow_f::inflow_walldist(lexer *p, fdm *a, ghostcell *pgc, convection *pco
     }
 }
 
-
-void ioflow_f::periodic(field& b, lexer *p)
-{
-	if(p->B210==1 && p->count>0)
-	{
-        for(int n=0;n<p->gcb4_count;++n)
-        if(p->gcb4[n][4]==1)
-        {
-        i=p->gcb4[n][0];
-        j=p->gcb4[n][1];
-        k=p->gcb4[n][2];
-
-        b(i-1,j,k)=b(p->knox-1,j,k);
-        b(i-2,j,k)=b(p->knox-1,j,k);
-        b(i-3,j,k)=b(p->knox-1,j,k);
-        }
-	}
-}
-
 void ioflow_f::iogcb_update(lexer *p, fdm *a, ghostcell *pgc)
 {
     int count1,count2;

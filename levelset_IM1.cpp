@@ -126,7 +126,6 @@ void levelset_IM1::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
     ppicard->correct_ls(p,a,pgc,ls);
 	ppart->picardmove(p,a,pgc);
 
-	pflow->periodic(ls,p);
 	pupdate->start(p,a,pgc);
     
 	if(p->mpirank==0 && (innercounter==p->N50-1 || p->N52==0) && (p->count%p->P12==0))

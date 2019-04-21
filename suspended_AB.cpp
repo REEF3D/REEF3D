@@ -64,7 +64,6 @@ void suspended_AB::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff
     sedfsf(p,a,a->conc);
 	pgc->start4(p,a->conc,gcval_susp);
 
-	pflow->periodic(a->conc,p);
 	p->susptime=pgc->timer()-starttime;
 }
 

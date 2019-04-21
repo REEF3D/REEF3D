@@ -44,10 +44,6 @@ void ioflow_v::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void ioflow_v::periodic(field& b, lexer *p)
-{
-}
-
 void ioflow_v::discharge(lexer *p, fdm* a, ghostcell* pgc)
 {
 }

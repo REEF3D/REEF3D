@@ -40,7 +40,6 @@ public:
 	virtual ~ioflow_f();
 	virtual void gcio_update(lexer*,fdm*,ghostcell*);
 	virtual void inflow_walldist(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*);
-	virtual void periodic(field&, lexer*);
 	virtual void discharge(lexer*,fdm*,ghostcell*);
 	virtual void Qin(lexer*,fdm*,ghostcell*);
 	virtual void Qout(lexer*,fdm*,ghostcell*);

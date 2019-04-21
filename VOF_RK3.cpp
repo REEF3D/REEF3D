@@ -117,9 +117,6 @@ void VOF_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcel
 
 	pgc->start4(p,a->phi,gcval_frac);
 
-
-	pflow->periodic(a->phi,p);
-
 	pupdate->start(p,a,pgc);
 
 	p->lsmtime=pgc->timer()-starttime;

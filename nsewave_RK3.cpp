@@ -350,10 +350,6 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	pgc->start1(p,a->u,gcval_u);
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
-
-	pflow->periodic(a->u,p);
-	pflow->periodic(a->v,p);
-	pflow->periodic(a->w,p);
     
     // Calculate Eta
     eta_disc(p,a,pgc,a->u,a->v);

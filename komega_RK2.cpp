@@ -129,9 +129,6 @@ void komega_RK2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,s
 	p->epstime+=pgc->timer()-starttime;
 
 	eddyvisc(p,a,kin,eps,pgc);
-
-	pflow->periodic(kin,p);
-	pflow->periodic(eps,p);
 	pgc->start4(p,a->eddyv,24);
 }
 

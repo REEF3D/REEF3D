@@ -87,7 +87,6 @@ void heat_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, so
     bcheat_start(p,a,pgc,T);
 	pgc->start4(p,T,gcval_heat);
 
-	pflow->periodic(T,p);
 	pupdate->start(p,a,pgc);
 
 	p->susptime=pgc->timer()-starttime;

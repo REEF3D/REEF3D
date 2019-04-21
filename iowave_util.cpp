@@ -132,10 +132,6 @@ void iowave::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 	awa_ini(p,a,pgc);
 }
 
-void iowave::periodic(field& b, lexer *p)
-{
-}
-
 void iowave::iogcb_update(lexer *p, fdm *a, ghostcell *pgc)
 {
     int count1,count2;

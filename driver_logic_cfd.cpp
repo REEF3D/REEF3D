@@ -897,12 +897,6 @@ void driver::logic()
 	if(p->N40==7)
 	pmom = new momentum_FS4(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
     
-    if(p->N40==8)
-	pmom = new momentum_MK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
-    
-    if(p->N40==9)
-	pmom = new momentum_MF3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
-
 	if(p->N40==11)
 	pmom = new momentum_IM1(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
 

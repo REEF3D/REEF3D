@@ -584,8 +584,6 @@
       <File Name="momentum_void.h"/>
       <File Name="momentum_RK2.h"/>
       <File Name="momentum_AB2.h"/>
-      <File Name="momentum_MK3.h"/>
-      <File Name="momentum_MF3.h"/>
       <File Name="momentum_FSFC_RK3.h"/>
       <File Name="momentum_FSFC_FS3.h"/>
     </VirtualDirectory>
@@ -2011,8 +2009,6 @@
       <File Name="momentum_void.cpp"/>
       <File Name="momentum_RK2.cpp"/>
       <File Name="momentum_AB2.cpp"/>
-      <File Name="momentum_MK3.cpp"/>
-      <File Name="momentum_MF3.cpp"/>
       <File Name="momentum_FS3.cpp"/>
       <File Name="momentum_FSFC_RK3.cpp"/>
       <File Name="momentum_FSFC_FS3.cpp"/>

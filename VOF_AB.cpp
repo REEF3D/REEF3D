@@ -89,13 +89,8 @@ void VOF_AB::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell
 	pgc->start4(p,a->phi,gcval_frac);
 
 
-	pflow->periodic(a->phi,p);
-
 	pupdate->start(p,a,pgc);
-	/*
-	pgc->start1(p,a,a->u,10);
-    pgc->start2(p,a,a->v,11);
-	pgc->start3(p,a,a->w,12);*/
+
 
 	p->lsmtime=pgc->timer()-starttime;
 	

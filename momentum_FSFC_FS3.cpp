@@ -355,9 +355,7 @@ void momentum_FSFC_FS3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 
     ppicard->correct_ls(p,a,pgc,a->phi);
 	//ppart->picardmove(p,a,pgc);
-
-	pflow->periodic(a->phi,p);
-
+    
 	pupdate->start(p,a,pgc);
 
 

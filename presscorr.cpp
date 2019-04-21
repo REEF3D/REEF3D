@@ -62,8 +62,51 @@ void presscorr::istart(lexer* p, fdm* a, field &apu, field &apv, field &apw, fie
          a->M.n[n]    = -1.0/(roface(p,a,1,0,0)*(apu(i,j,k)>1.0e-8?apu(i,j,k):(1.0/p->dt))*p->DXP[IP]*p->DXN[IP])*p->x_dir;
      ++n;
 	}
+    
+    
+    n=0;
+	LOOP
+	{
+		if(p->flag4[Im1JK]<0)
+		{
+		a->rhsvec.V[n] -= a->M.s[n]*pcorr(i-1,j,k);
+		a->M.s[n] = 0.0;
+		}
+		
+		if(p->flag4[Ip1JK]<0)
+		{
+		a->rhsvec.V[n] -= a->M.n[n]*pcorr(i+1,j,k);
+		a->M.n[n] = 0.0;
+		}
+		
+		if(p->flag4[IJm1K]<0)
+		{
+		a->rhsvec.V[n] -= a->M.e[n]*pcorr(i,j-1,k);
+		a->M.e[n] = 0.0;
+		}
+		
+		if(p->flag4[IJp1K]<0)
+		{
+		a->rhsvec.V[n] -= a->M.w[n]*pcorr(i,j+1,k);
+		a->M.w[n] = 0.0;
+		}
+		
+		if(p->flag4[IJKm1]<0)
+		{
+		a->rhsvec.V[n] -= a->M.b[n]*pcorr(i,j,k-1);
+		a->M.b[n] = 0.0;
+		}
+		
+		if(p->flag4[IJKp1]<0)
+		{
+		a->rhsvec.V[n] -= a->M.t[n]*pcorr(i,j,k+1);
+		a->M.t[n] = 0.0;
+		}
+
+	++n;
+	}
 }
 
-void presscorr::estart(lexer* p,fdm* a, field &press)
+void presscorr::estart(lexer* p,fdm* a, field &pcorr)
 {
 }
