@@ -25,8 +25,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"poisson.h"
 #include"solver.h"
-#include"cart4.h"
-#include"momentum.h"
 #include"ioflow.h"
 
 simple::simple(lexer* p,fdm *a) : density(p),apu(p),apv(p),apw(p),pcorr(p)
@@ -130,6 +128,7 @@ void simple::rhs(lexer *p, fdm* a, ghostcell *pgc, field& u, field& v, field& w,
 {
     pip=p->Y50;
     
+    count=0;
     LOOP
     {
     a->rhsvec.V[count] =  -(u(i,j,k)-u(i-1,j,k))/(p->DXN[IP])
@@ -156,19 +155,19 @@ void simple::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, fie
 void simple::upgrad(lexer*p,fdm* a)
 {	
     ULOOP
-	a->F(i,j,k)-=PORVAL1*(a->press(i+1,j,k)-a->press(i,j,k))/(p->dx*roface(p,a,1,0,0));
+	a->F(i,j,k)-=PORVAL1*(a->press(i+1,j,k)-a->press(i,j,k))/(p->DXP[IP]*roface(p,a,1,0,0));
 }
 
 void simple::vpgrad(lexer*p,fdm* a)
 {
     VLOOP
-	a->G(i,j,k)-=PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))/(p->dx*roface(p,a,0,1,0));
+	a->G(i,j,k)-=PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))/(p->DYP[JP]*roface(p,a,0,1,0));
 }
 
 void simple::wpgrad(lexer*p,fdm* a)
 {
     WLOOP
-	a->H(i,j,k)-=PORVAL3*(a->press(i,j,k+1)-a->press(i,j,k))/(p->dx*roface(p,a,0,0,1));
+	a->H(i,j,k)-=PORVAL3*(a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*roface(p,a,0,0,1));
 }
 
 void simple::fillapu(lexer*p,fdm* a)

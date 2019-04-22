@@ -238,6 +238,7 @@ void piso::rhs(lexer *p, fdm* a, ghostcell *pgc, field& u, field& v, field& w, d
 {
     pip=p->Y50;
 
+    count=0;
     LOOP
     {
     a->rhsvec.V[count] =  -(u(i,j,k)-u(i-1,j,k))/(alpha*p->dt*p->DXN[IP])

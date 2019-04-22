@@ -59,7 +59,6 @@ momentum_IM1::~momentum_IM1()
 
 void momentum_IM1::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 {
-
     pflow->discharge(p,a,pgc);
 	pflow->inflow(p,a,pgc,a->u,a->v,a->w);
 	
