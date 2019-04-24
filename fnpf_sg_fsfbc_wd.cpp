@@ -151,7 +151,6 @@ void fnpf_sg_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta
     
     c->Exx(i,j) = pddx->sxx(p,eta);
     }
-
 }
 
 void fnpf_sg_fsfbc_wd::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
@@ -180,8 +179,7 @@ void fnpf_sg_fsfbc_wd::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta
     FFILOOP4
     {
     c->Fz(i,j) = p->sigz[IJ]*pconvec->sz(p,c->Fi);
-    
-    //if(eta(i,j) + p->wd - c->bed(i,j) < c->wd_criterion)
+
     if(c->wet(i,j)==0)
     c->Fz(i,j) = 0.0;
     }
@@ -195,12 +193,12 @@ void fnpf_sg_fsfbc_wd::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     {
     dEdF_x = c->Fx(i,j)*c->Ex(i,j);
     dEdF_y = c->Fy(i,j)*c->Ey(i,j);
- /*
+ 
     if(c->wet(i,j)==0 || c->wet(i-1,j)==0 || c->wet(i+1,j)==0)
     dEdF_x = EEx(i,j);
     
     if(c->wet(i,j)==0 || c->wet(i-1,j)==0 || c->wet(i+1,j)==0)
-    dEdF_y = EEy(i,j);*/
+    dEdF_y = EEy(i,j);
 
         
     c->K(i,j) =  - dEdF_x - dEdF_y

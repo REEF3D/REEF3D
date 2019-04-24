@@ -46,6 +46,8 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
 	n=0;
     LOOP
 	{
+    if(c->wet(i,j)==1)
+    {
     sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
     
     
@@ -74,6 +76,30 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
                     
                     + 2.0*p->sigy[FIJK]*(f[FIJp1Kp1] - f[FIJm1Kp1] - f[FIJp1Km1] + f[FIJm1Km1])
                     /((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
+    }
+	++n;
+	}
+    
+    n=0;
+    LOOP
+	{
+
+    if(c->wet(i,j)==0)
+    {
+	c->M.p[n]  =  1.0;
+
+
+   	c->M.n[n] = 0.0;
+	c->M.s[n] = 0.0;
+
+	c->M.w[n] = 0.0;
+	c->M.e[n] = 0.0;
+
+	c->M.t[n] = 0.0;
+	c->M.b[n] = 0.0;
+    
+	c->rhsvec.V[n] =  0.0;
+    }
 	++n;
 	}
     
@@ -82,6 +108,8 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
 	LOOP
     if(p->flag7[FIJK]>0)
 	{
+            if(c->wet(i,j)==1)
+            {
         
             // south
             if(p->flag7[FIm1JK]<0 && c->wet(i-1,j)==1 && c->bc(i-1,j)==0)
@@ -160,18 +188,19 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             ab = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]));
             
             denom = p->sigz[IJ] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
-            
-            if(c->bed(i,j) < p->wd-c->wd_criterion)
+
+            if(c->bed(i,j) < p->wd+50.0*c->wd_criterion)
+            //if(c->wet(i,j)==1)
             {
-                if(c->wet(i+1,j)==1 && c->bed(i+1,j) < p->wd-50.0*c->wd_criterion && c->bed(i+2,j) < p->wd-50.0*c->wd_criterion)
-                if(c->wet(i-1,j)==1 && c->bed(i-1,j) < p->wd-50.0*c->wd_criterion && c->bed(i-2,j) < p->wd-50.0*c->wd_criterion)
+                if(c->wet(i+1,j)==1)// && c->bed(i+1,j) < p->wd-50.0*c->wd_criterion && c->bed(i+2,j) < p->wd-50.0*c->wd_criterion)
+                if(c->wet(i-1,j)==1)// && c->bed(i-1,j) < p->wd-50.0*c->wd_criterion && c->bed(i-2,j) < p->wd-50.0*c->wd_criterion)
                 {
                 c->M.n[n] += ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                 c->M.s[n] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                 }
                 
-                if(c->wet(i,j-1)==1 && c->bed(i,j-1) < p->wd-50.0*c->wd_criterion && c->bed(i,j-2) < p->wd-50.0*c->wd_criterion)
-                if(c->wet(i,j+1)==1 && c->bed(i,j+1) < p->wd-50.0*c->wd_criterion && c->bed(i,j+2) < p->wd-50.0*c->wd_criterion)
+                if(c->wet(i,j-1)==1)// && c->bed(i,j-1) < p->wd-50.0*c->wd_criterion && c->bed(i,j-2) < p->wd-50.0*c->wd_criterion)
+                if(c->wet(i,j+1)==1)// && c->bed(i,j+1) < p->wd-50.0*c->wd_criterion && c->bed(i,j+2) < p->wd-50.0*c->wd_criterion)
                 {
                 c->M.e[n] += ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
                 c->M.w[n] += -ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
@@ -180,6 +209,7 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             
             c->M.t[n] += ab;
             c->M.b[n] = 0.0;
+            }
             }
 	++n;
 	}

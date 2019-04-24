@@ -46,7 +46,7 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     SLICELOOP4
     {
             
-            if( (eta(i+1,j)-eta(i-1,j))/(p->DXP[IM1] + p->DXP[IP])   < -1.25)
+            if( (eta(i+1,j)-eta(i-1,j))/(p->DXP[IM1] + p->DXP[IP])   < -p->A348)
             {
                 c->breaking(i,j)=1;
                 c->breaking(i-1,j)=1;
@@ -54,7 +54,7 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
                 c->breaking(i-3,j)=1;
             }
             
-            if( (eta(i+1,j)-eta(i-1,j))/(p->DXP[IM1] + p->DXP[IP])   > 1.25)
+            if( (eta(i+1,j)-eta(i-1,j))/(p->DXP[IM1] + p->DXP[IP])   > p->A348)
             {
                 c->breaking(i,j)=1;
                 c->breaking(i+1,j)=1;
@@ -62,7 +62,7 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
                 c->breaking(i+3,j)=1;
             }
             
-            if( (eta(i,j+1)-eta(i,j-1))/(p->DYP[JM1] + p->DYP[JP])   < -1.25)
+            if( (eta(i,j+1)-eta(i,j-1))/(p->DYP[JM1] + p->DYP[JP])   < -p->A348)
             {
                 c->breaking(i,j)=1;
                 c->breaking(i,j-1)=1;
@@ -71,7 +71,7 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
              
             }
             
-            if( (eta(i,j+1)-eta(i,j-1))/(p->DYP[JM1] + p->DYP[JP])    > 1.25)
+            if( (eta(i,j+1)-eta(i,j-1))/(p->DYP[JM1] + p->DYP[JP])    > p->A348)
             {
                 c->breaking(i,j)=1;
                 c->breaking(i,j+1)=1;

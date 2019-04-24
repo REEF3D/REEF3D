@@ -50,13 +50,12 @@ void fnpf_sg_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta,
       SLICELOOP4
       {     
           if(c->wet(i,j)==1)
-          if((eta(i,j)<eta(i-1,j) && c->wet(i-1,j)==0) 
+          if((eta(i,j)<eta(i-1,j)  && c->wet(i-1,j)==0) 
           || (eta(i,j)<eta(i+1,j)  && c->wet(i+1,j)==0) 
           || (eta(i,j)<eta(i,j-1)  && c->wet(i,j-1)==0) 
-          || (eta(i,j)<eta(i,j+1) && c->wet(i,j+1)==0) )
+          || (eta(i,j)<eta(i,j+1)  && c->wet(i,j+1)==0) )
           {
           c->wet(i,j)=0;  
-          //eta(i,j)=0.0;
           }   
       }
 
