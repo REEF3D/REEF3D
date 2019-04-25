@@ -35,13 +35,17 @@ void fnpf_sg_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta,
           if(eta(i,j) + p->wd - c->bed(i,j) < c->wd_criterion)
           c->wet(i,j)=0;
           
-          if(p->A343==2 || p->A343==4)
-          if((eta(i-1,j)>eta(i,j)  && c->wet(i-1,j)==1)
-          || (eta(i+1,j)>eta(i,j)  && c->wet(i+1,j)==1)
-          || (eta(i,j-1)>eta(i,j)  && c->wet(i,j-1)==1)
-          || (eta(i,j+1)>eta(i,j)  && c->wet(i,j+1)==1))
-          c->wet(i,j)=1;  
-          }          
+              if(p->A343==2 || p->A343==4)
+              if(c->wet(i,j)==0)
+              if((eta(i-1,j)>eta(i,j)  && c->wet(i-1,j)==1)
+              || (eta(i+1,j)>eta(i,j)  && c->wet(i+1,j)==1)
+              || (eta(i,j-1)>eta(i,j)  && c->wet(i,j-1)==1)
+              || (eta(i,j+1)>eta(i,j)  && c->wet(i,j+1)==1))
+              {
+              c->wet(i,j)=1;  
+              eta(i,j)=c->wd_criterion;
+              }      
+          }    
       }
       
       pgc->gcsl_start4int(p,c->wet,50);
@@ -56,6 +60,7 @@ void fnpf_sg_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta,
           || (eta(i,j)<eta(i,j+1)  && c->wet(i,j+1)==0) )
           {
           c->wet(i,j)=0;  
+          eta(i,j)=c->wd_criterion*0.5;
           }   
       }
 
