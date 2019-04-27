@@ -120,6 +120,12 @@ void fnpf_ddweno_f_nug::isqmin(slice& f)
 {	
     q1=q2=q3=q4=q5=0.0;
     
+    if(c->wet(i-2,j)>0 && c->wet(i-3,j)>0) 
+    if(c->wet(i-1,j)>0 && c->wet(i-2,j)>0) 
+    if(c->wet(i-1,j)>0 && c->wet(i,j)>0)
+    if(c->wet(i+1,j)>0 && c->wet(i,j)>0)
+    if(c->wet(i+2,j)>0 && c->wet(i+1,j)>0)
+    {
     if(c->wet(i-2,j)>0 && c->wet(i-3,j)>0)
 	q1 = (f(i-2,j)-f(i-3,j))/DX[IM3];
     
@@ -134,12 +140,19 @@ void fnpf_ddweno_f_nug::isqmin(slice& f)
     
     if(c->wet(i+2,j)>0 && c->wet(i+1,j)>0)
 	q5 = (f(i+2,j)-f(i+1,j))/DX[IP1];
+    }
 }
 
 void fnpf_ddweno_f_nug::jsqmin(slice& f)
 {
     q1=q2=q3=q4=q5=0.0;
     
+    if(c->wet(i,j-2)>0 && c->wet(i,j-3)>0)  
+    if(c->wet(i,j-1)>0 && c->wet(i,j-2)>0)
+    if(c->wet(i,j)>0 && c->wet(i,j-1)>0) 
+    if(c->wet(i,j+1)>0 && c->wet(i,j)>0)
+    if(c->wet(i,j+2)>0 && c->wet(i,j+1)>0)
+    {
     if(c->wet(i,j-2)>0 && c->wet(i,j-3)>0)
 	q1 = (f(i,j-2)-f(i,j-3))/DY[JM3];
     
@@ -154,11 +167,19 @@ void fnpf_ddweno_f_nug::jsqmin(slice& f)
     
     if(c->wet(i,j+2)>0 && c->wet(i,j+1)>0)
 	q5 = (f(i,j+2)-f(i,j+1))/DY[JP1];
+    }
 }
 
 void fnpf_ddweno_f_nug::isqmax(slice& f)
 {
     q1=q2=q3=q4=q5=0.0;
+    
+    if(c->wet(i-1,j)>0 && c->wet(i-2,j)>0)
+    if(c->wet(i,j)>0 && c->wet(i-1,j)>0) 
+    if(c->wet(i+1,j)>0 && c->wet(i,j)>0) 
+    if(c->wet(i+2,j)>0 && c->wet(i+1,j)>0) 
+    if(c->wet(i+3,j)>0 && c->wet(i+2,j)>0)
+    {
     
     if(c->wet(i-1,j)>0 && c->wet(i-2,j)>0)
     q1 = (f(i-1,j)-f(i-2,j))/DX[IM2];
@@ -174,12 +195,20 @@ void fnpf_ddweno_f_nug::isqmax(slice& f)
     
     if(c->wet(i+3,j)>0 && c->wet(i+2,j)>0)
 	q5 = (f(i+3,j)-f(i+2,j))/DX[IP2];
+    }
 }
 
 void fnpf_ddweno_f_nug::jsqmax(slice& f)
 {
     q1=q2=q3=q4=q5=0.0;
     
+    
+    if(c->wet(i,j-1)>0 && c->wet(i,j-2)>0) 
+    if(c->wet(i,j)>0 && c->wet(i,j-1)>0)
+    if(c->wet(i,j+1)>0 && c->wet(i,j)>0)
+    if(c->wet(i,j+2)>0 && c->wet(i,j+1)>0)
+    if(c->wet(i,j+3)>0 && c->wet(i,j+2)>0)
+    {
     if(c->wet(i,j-1)>0 && c->wet(i,j-2)>0)
 	q1 = (f(i,j-1)-f(i,j-2))/DY[JM2];
     
@@ -194,6 +223,7 @@ void fnpf_ddweno_f_nug::jsqmax(slice& f)
     
     if(c->wet(i,j+3)>0 && c->wet(i,j+2)>0)
 	q5 = (f(i,j+3)-f(i,j+2))/DY[JP2];
+    }
 }
 
 void fnpf_ddweno_f_nug::is_wd_x_min()

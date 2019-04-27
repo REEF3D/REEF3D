@@ -68,7 +68,6 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
                 c->breaking(i,j-1)=1;
                 c->breaking(i,j-2)=1;
                 c->breaking(i,j-3)=1;
-             
             }
             
             if( (eta(i,j+1)-eta(i,j-1))/(p->DYP[JM1] + p->DYP[JP])    > p->A348)
@@ -78,8 +77,6 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
                 c->breaking(i,j+2)=1;
                 c->breaking(i,j+3)=1;
             }
-            
-            
     }
 
     
@@ -92,7 +89,6 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
          filter(p,c,pgc,Fifsf);
         }   
     }
-    
 }
 
 void fnpf_sg_fsfbc::filter(lexer *p, fdm_fnpf *c,ghostcell *pgc, slice &f)

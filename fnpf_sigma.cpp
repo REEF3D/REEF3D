@@ -27,6 +27,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #define WLVL (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0-20)
 
+#define WLVLDRY (0.01*c->wd_criterion)
+
 fnpf_sigma::fnpf_sigma(lexer *p, fdm_fnpf *c, ghostcell *pgc) 
 {
 }
@@ -84,16 +86,40 @@ void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsf *p
 
 void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsf *pf, slice &eta)
 {
+    // sigx
     FLOOP
+    {
+    if(c->wet(i,j)==1)
     p->sigx[FIJK] = (1.0 - p->sig[FIJK])*(c->Bx(i,j)/WLVL) - p->sig[FIJK]*(c->Ex(i,j)/WLVL);
     
+    if(c->wet(i,j)==0)
+    p->sigx[FIJK] = (1.0 - p->sig[FIJK])*(c->Bx(i,j)/WLVLDRY) - p->sig[FIJK]*(c->Bx(i,j)/WLVLDRY);
+    }
+    
+    // sigy
     FLOOP
+    {
+    if(c->wet(i,j)==1)
     p->sigy[FIJK] = (1.0 - p->sig[FIJK])*(c->By(i,j)/WLVL) - p->sig[FIJK]*(c->Ey(i,j)/WLVL);
     
+    if(c->wet(i,j)==0)
+    p->sigy[FIJK] = (1.0 - p->sig[FIJK])*(c->By(i,j)/WLVLDRY) - p->sig[FIJK]*(c->By(i,j)/WLVLDRY);
+    }
+    
+    // sigz
     SLICELOOP4
+    {
+    if(c->wet(i,j)==1)
     p->sigz[IJ] = 1.0/WLVL;
     
+    if(c->wet(i,j)==0)
+    p->sigz[IJ] = 1.0/WLVLDRY;
+    }
+    
+    // sigxx
     FLOOP
+    {
+    if(c->wet(i,j)==1)
     p->sigxx[FIJK] = ((1.0 - p->sig[FIJK])/WLVL)*(c->Bxx(i,j) - pow(c->Bx(i,j),2.0)/WLVL) // xx
     
                   - (p->sig[FIJK]/WLVL)*(c->Exx(i,j) - pow(c->Ex(i,j),2.0)/WLVL)
@@ -110,7 +136,28 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsf
                   - (p->sigy[FIJK]/WLVL)*(c->By(i,j) + c->Ey(i,j))
                   
                   - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(c->By(i,j)*c->Ey(i,j));
+                  
+                  
+    if(c->wet(i,j)==0)
+    p->sigxx[FIJK] = ((1.0 - p->sig[FIJK])/WLVLDRY)*(c->Bxx(i,j) - pow(c->Bx(i,j),2.0)/WLVLDRY) // xx
     
+                  - (p->sig[FIJK]/WLVLDRY)*(c->Bxx(i,j) - pow(c->Bx(i,j),2.0)/WLVLDRY)
+                  
+                  - (p->sigx[FIJK]/WLVLDRY)*(c->Bx(i,j) + c->Bx(i,j))
+                  
+                  - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVLDRY,2.0))*(c->Bx(i,j)*c->Bx(i,j))
+                  
+                  
+                  + ((1.0 - p->sig[FIJK])/WLVLDRY)*(c->Byy(i,j) - pow(c->By(i,j),2.0)/WLVLDRY) // yy
+    
+                  - (p->sig[FIJK]/WLVLDRY)*(c->Byy(i,j) - pow(c->By(i,j),2.0)/WLVLDRY)
+                  
+                  - (p->sigy[FIJK]/WLVLDRY)*(c->By(i,j) + c->By(i,j))
+                  
+                  - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVLDRY,2.0))*(c->By(i,j)*c->By(i,j));
+    }
+    
+    // sig BC
     SLICELOOP4
     {
         k=0;
@@ -188,9 +235,6 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsf
     FLOOP
     p->ZSN[FIJK] = p->ZN[KP]*(eta(i,j) + p->wd);
     
-    
-    
-
 }
 
 

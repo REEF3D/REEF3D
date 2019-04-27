@@ -200,7 +200,6 @@ void fnpf_sg_fsfbc_wd::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(c->wet(i,j)==0 || c->wet(i-1,j)==0 || c->wet(i+1,j)==0)
     dEdF_y = EEy(i,j);*/
 
-        
     c->K(i,j) =  - dEdF_x - dEdF_y
     
                  + c->Fz(i,j)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0));
