@@ -76,6 +76,9 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
                     
                     + 2.0*p->sigy[FIJK]*(f[FIJp1Kp1] - f[FIJm1Kp1] - f[FIJp1Km1] + f[FIJm1Km1])
                     /((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
+                    
+    //if(c->wet(i-1,j)==0 || c->wet(i+1,j)==0 || c->wet(i,j-1)==0 || c->wet(i,j+1)==0) 
+    //c->rhsvec.V[n] = 0.0;
     }
 	++n;
 	}
@@ -120,6 +123,7 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             
             if(c->wet(i-1,j)==0)
             {
+            //c->rhsvec.V[n] -= c->M.s[n]*f[FIJK];
             c->M.p[n] += -1.0/(p->DXP[IM1]*p->DXN[IM1])*p->x_dir;
             c->M.s[n] = 0.0;
             }
@@ -140,6 +144,7 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             
             if(c->wet(i+1,j)==0)
             {
+            //c->rhsvec.V[n] -= c->M.n[n]*f[FIJK];
             c->M.p[n] += -1.0/(p->DXP[IM1]*p->DXN[IP])*p->x_dir;
             c->M.n[n] = 0.0;
             }
@@ -154,6 +159,7 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             
             if(c->wet(i,j-1)==0)
             {
+            //c->rhsvec.V[n] -= c->M.e[n]*f[FIJK];
             c->M.p[n] += -1.0/(p->DYP[JM1]*p->DYN[JM1])*p->y_dir;
             c->M.e[n] = 0.0;
             }
@@ -168,6 +174,7 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             
             if(c->wet(i,j+1)==0)
             {
+            //c->rhsvec.V[n] -= c->M.w[n]*f[FIJK];
             c->M.p[n] += -1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
             c->M.w[n] = 0.0;
             }
@@ -189,32 +196,22 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             
             denom = p->sigz[IJ] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
 
-                //if(c->bed(i,j) < p->wd+5.0*c->wd_criterion)
-                {
-                    //if(c->wet(i+1,j)==1)
-                    //if(c->wet(i-1,j)==1)
+                    if(c->wet(i+1,j)==1 && c->wet(i-1,j)==1)
                     {
                     c->M.n[n] +=  ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     c->M.s[n] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     }
                     
-                    //if(c->wet(i,j-1)==1)
-                    //if(c->wet(i,j+1)==1)
+                    if(c->wet(i,j-1)==1 && c->wet(i,j+1)==1)
                     {
                     c->M.e[n] +=  ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
                     c->M.w[n] += -ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
                     }
                 
-                }
+                
                 c->M.t[n] += ab;
                 c->M.b[n] = 0.0;
-               /* }
-                
-                if(c->bed(i,j) >= p->wd+50.0*c->wd_criterion)
-                {
-                c->M.p[n] +=-(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]));
-                c->M.b[n] = 0.0;
-                }*/
+
             }
             }
 	++n;

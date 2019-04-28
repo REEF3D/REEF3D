@@ -47,7 +47,7 @@ void fnpf_fg_fsf_update::fsfupdate(lexer *p, fdm *a, ghostcell *pgc, ioflow *pfl
 
     pgc->start4(p,a->phi,50);
     
-    // uopdate onephase
+    // update onephase
     poneph->update(p,a,pgc,pflow);
 }
 
