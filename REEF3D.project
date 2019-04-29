@@ -731,6 +731,9 @@
           <File Name="fnpf_fg_fsfbc.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Coastline">
+            <File Name="fnpf_sg_coastline.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Time">
             <File Name="fnpf_timestep.h"/>
           </VirtualDirectory>
@@ -2204,6 +2207,10 @@
           <File Name="fnpf_fg_fsfbc.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Coastline">
+            <File Name="fnpf_sg_coastline_reini.cpp"/>
+            <File Name="fnpf_sg_coastline.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Discrete Weights">
             <File Name="fnpf_discrete_weights.cpp"/>
           </VirtualDirectory>
