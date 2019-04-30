@@ -82,6 +82,8 @@ double iowave::rb3(lexer *p, double x)
     x=MAX(x,0.0);
     
     r = 1.0 - (pow(1.0 + (pow(x,p->B119))/4000.0, 4000.0)-1.0)*expinverse;
+    
+   // r = 1.0 - (exp(pow(x,p->B119))-1.0)/(exp(1.0)-1.0);
 	
 	return r;
 }

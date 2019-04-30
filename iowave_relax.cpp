@@ -102,14 +102,14 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
 		{
             // Zone 3
             if(db<dist3)
-            uvel(i,j,k) = (1.0-ra3(p,db))*0.0 + ra3(p,db)*uvel(i,j,k);
+            uvel(i,j,k) = ra3(p,db)*uvel(i,j,k);
         }
 
         if(p->B99==2||p->B99==4)
 		{
             // Zone 3
             if(db<dist3)
-            uvel(i,j,k) = (1.0-rb3(p,db))*0.0 + rb3(p,db)*uvel(i,j,k);
+            uvel(i,j,k) = rb3(p,db)*uvel(i,j,k);
         }
     }
 }
@@ -603,7 +603,7 @@ void iowave::fi_relax(lexer *p, ghostcell *pgc, field& f, field& phi)
             ++count;
             }
 		}
-		
+		/*
 		// Numerical Beach
 		if(p->B99==1)
 		{
@@ -617,7 +617,7 @@ void iowave::fi_relax(lexer *p, ghostcell *pgc, field& f, field& phi)
             // Zone 3
             if(db<dist3)
             f(i,j,k) = (1.0-rb3(p,db))*0.0 + rb3(p,db)*f(i,j,k);
-        }
+        }*/
     }
 }
 
@@ -660,7 +660,7 @@ void iowave::fivec_relax(lexer *p, ghostcell *pgc, double *f)
 		}
 		
 		// Numerical Beach
-		if(p->B99==1)
+		/*if(p->B99==1)
 		{
             // Zone 3
             if(db<dist3)
@@ -675,7 +675,7 @@ void iowave::fivec_relax(lexer *p, ghostcell *pgc, double *f)
             f[FIJK] = rb3val[dbcount]*f[FIJK];
             ++dbcount;
             }
-        }
+        }*/
     }
 }
 
@@ -732,7 +732,7 @@ void iowave::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
 		{
             // Zone 3
             if(db<dist3)
-            f(i,j) = rb3(p,db)*f(i,j);
+            f(i,j) = ra3(p,db)*f(i,j);
         }
     }
 }
@@ -743,7 +743,7 @@ void iowave::Fz_relax(lexer *p, ghostcell *pgc, slice& f)
     SLICELOOP4
     {
 		db = distbeach(p); 
-        
+
 		// Numerical Beach
 		if(p->B99==1)
 		{

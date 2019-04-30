@@ -69,14 +69,14 @@ void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
 		{
 		      // Zone 3
             if(db<dist3)
-            f(i,j) = (1.0-ra3(p,db))*0.0 + ra3(p,db)*f(i,j);
+            f(i,j) = ra3(p,db)*f(i,j);
         }
 		
 		if(p->B99==2)
 		{
             // Zone 3
             if(db<dist3)
-            f(i,j) = (1.0-rb3(p,db))*0.0 + rb3(p,db)*f(i,j);
+            f(i,j) = rb3(p,db)*f(i,j);
         }
     }
 }
@@ -126,14 +126,14 @@ void iowave::um_relax(lexer *p, ghostcell *pgc, slice &P, slice &bed, slice &eta
 		{
             // Zone 3
             if(db<dist3)
-            P(i,j) = (1.0-ra3(p,db))*0.0 + ra3(p,db)*P(i,j);
+            P(i,j) = ra3(p,db)*P(i,j);
         }
 
         if(p->B99==2)
 		{
             // Zone 3
             if(db<dist3)
-            P(i,j) = (1.0-rb3(p,db))*0.0 + rb3(p,db)*P(i,j);
+            P(i,j) = rb3(p,db)*P(i,j);
         }
     }
 }
@@ -182,14 +182,14 @@ void iowave::vm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta
 		{
             // Zone 3
             if(db<dist3)
-            Q(i,j) = (1.0-ra3(p,db))*0.0 + ra3(p,db)*Q(i,j);
+            Q(i,j) = ra3(p,db)*Q(i,j);
         }
 
         if(p->B99==2)
 		{
             // Zone 3
             if(db<dist3)
-            Q(i,j) = (1.0-rb3(p,db))*0.0 + rb3(p,db)*Q(i,j);
+            Q(i,j) = rb3(p,db)*Q(i,j);
         }
     }
 }
