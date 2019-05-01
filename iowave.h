@@ -157,6 +157,7 @@ public:
     void fnpf_precalc_dirichlet(lexer*,ghostcell*);
     void fnpf_precalc_dirichlet_ini(lexer*,ghostcell*);
     void dirichlet_wavegen_fnpf(lexer*,ghostcell*,double*,double*,slice&,slice&);
+    void active_beach2D(lexer*,ghostcell*,double*,double*,slice&,slice&);
 	
 
 private:

@@ -66,7 +66,7 @@ public:
 
 	
     vec rhsvec;
-    double *Fi,*Uin;
+    double *Fi,*Uin,*Uout;
 
 	matrix_diag M;    
     
