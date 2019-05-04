@@ -19,38 +19,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fdm_fnpf.h"
+#include"iowave.h"
 #include"lexer.h"
+#include"ghostcell.h"
 
-fdm_fnpf::fdm_fnpf(lexer *p) : u(p),v(p),w(p),press(p),Fi4(p),Fifsf(p),Fibed(p),
-                              test(p),
-                              nodeval(p),eta(p),etaloc(p),
-                              wet(p),breaking(p),bc(p),
-                              eta_n(p),WL(p),bed(p),depth(p),Fz(p),K(p),
-                              Fx(p),Fy(p),
-                              Ex(p),Ey(p),Exx(p),Eyy(p),
-                              Bx(p),By(p),Bxx(p),Byy(p),
-                              Hx(p),Hy(p),
-                              coastline(p),
-                              nodeval2D(p),breaking_print(p),
-                              rhsvec(p),M(p)
+void iowave::wavegen_precalc_decomp_dirichlet_fnpf(lexer *p, ghostcell *pgc)
 {
-    p->Iarray(pvccnode,p->facetnum*4,8);
-	p->Iarray(ccedge,p->facetnum*4);
-    
-    p->Darray(Fi,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Uin,p->imax*p->jmax*(p->kmax+2));
+   
+
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1370,6 +1370,10 @@
         </VirtualDirectory>
         <VirtualDirectory Name="ioWave">
           <VirtualDirectory Name="FNPF">
+            <File Name="iowave_precalc_decomp_time_fnpf.cpp"/>
+            <File Name="iowave_precalc_decomp_space_fnpf.cpp"/>
+            <File Name="iowave_precalc_decomp_relax_fnpf.cpp"/>
+            <File Name="iowave_precalc_decomp_dirichlet_fnpf.cpp"/>
             <File Name="iowave_active-beach_fnpf.cpp"/>
             <File Name="iowave_inflow_fnpf.cpp"/>
             <File Name="iowave_dirichlet-wavegen-fnpf.cpp"/>

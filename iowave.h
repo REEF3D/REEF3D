@@ -157,7 +157,12 @@ public:
     void fnpf_precalc_dirichlet(lexer*,ghostcell*);
     void fnpf_precalc_dirichlet_ini(lexer*,ghostcell*);
     void dirichlet_wavegen_fnpf(lexer*,ghostcell*,double*,double*,slice&,slice&);
-    void active_beach2D(lexer*,ghostcell*,double*,double*,slice&,slice&);
+    void active_beach_fnpf(lexer*, ghostcell*, double*, double*, slice&, slice&);
+    
+    void wavegen_precalc_decomp_space_fnpf(lexer*,ghostcell*);
+    void wavegen_precalc_decomp_time_fnpf(lexer*,ghostcell*);
+    void wavegen_precalc_decomp_relax_fnpf(lexer*,ghostcell*);
+    void wavegen_precalc_decomp_dirichlet_fnpf(lexer*,ghostcell*);
 	
 
 private:
@@ -218,11 +223,11 @@ private:
     double *uval,*vval,*wval,*etaval,*lsval,*Fival,*Fifsfval,*Uinval;
     double *rb1val,*rb3val;
     
-    double **uval_S_sin,**vval_S_sin,**wval_S_sin,**etaval_S_sin,**Fival_S_sin;
-    double **uval_S_cos,**vval_S_cos,**wval_S_cos,**etaval_S_cos,**Fival_S_cos;
+    double **uval_S_sin,**vval_S_sin,**wval_S_sin,**etaval_S_sin,**Fival_S_sin,**Fifsfval_S_sin;
+    double **uval_S_cos,**vval_S_cos,**wval_S_cos,**etaval_S_cos,**Fival_S_cos,**Fifsfval_S_cos;
     
-    double *uval_T_sin,*vval_T_sin,*wval_T_sin,*etaval_T_sin,*Fival_T_sin;
-    double *uval_T_cos,*vval_T_cos,*wval_T_cos,*etaval_T_cos,*Fival_T_cos;
+    double *uval_T_sin,*vval_T_sin,*wval_T_sin,*etaval_T_sin,*Fival_T_sin,*Fifsfval_T_sin;
+    double *uval_T_cos,*vval_T_cos,*wval_T_cos,*etaval_T_cos,*Fival_T_cos,*Fifsfval_T_cos;
     
     double zloc1,zloc2,zloc3,zloc4;
 

@@ -26,6 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void iowave::active_beach_fnpf(lexer *p, ghostcell* pgc, double *Fi, double *Uout, slice &Fifsf, slice &eta)
 {
+    /*
 		double eta_R,Uc,Un,Vc,Wc,eta_T,eta_M,wsf;
 		double posx,posy,posz,uvel,vvel,uabs,fx,fy,pval,fp;
         double fxdir,fydir;
@@ -404,5 +405,5 @@ void iowave::active_beach_fnpf(lexer *p, ghostcell* pgc, double *Fi, double *Uou
                 d+=p->dx*H;
             }
             a->P(i+1,j)/=d;
-        }
+        }*/
 }

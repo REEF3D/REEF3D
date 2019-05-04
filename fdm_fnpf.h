@@ -59,6 +59,7 @@ public:
     slice4 Bx,By;
     slice4 Bxx,Byy;
     slice4 Hx,Hy;
+    slice4 coastline;
     
     sliceint5 nodeval2D;
     slice4 breaking_print;

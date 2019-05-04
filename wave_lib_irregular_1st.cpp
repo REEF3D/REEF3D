@@ -303,25 +303,34 @@ double wave_lib_irregular_1st::wave_fi(lexer *p, double x, double y, double z)
 
 double wave_lib_irregular_1st::wave_fi_space_sin(lexer *p, double x, double y, double z, int n)
 {
+	Ti[n] = sin(ki[n]*(cosbeta[n]*x + sinbeta[n]*y));
+	
+    fi = ((wi[n]*Ai[n])/ki[n])*(cosh(ki[n]*(wd+z))/sinh(ki[n]*wd) ) * T;
+    
     return fi;
 }
 
 double wave_lib_irregular_1st::wave_fi_space_cos(lexer *p, double x, double y, double z, int n)
 {
+    Ti[n] = cos(ki[n]*(cosbeta[n]*x + sinbeta[n]*y));
+	
+    fi = ((wi[n]*Ai[n])/ki[n])*(cosh(ki[n]*(wd+z))/sinh(ki[n]*wd) ) * T;
     
     return fi;
 }
 
 double wave_lib_irregular_1st::wave_fi_time_sin(lexer *p, int n)
 {
-    
-    return fi;
+    T = sin( -wi[n]*p->simtime - ei[n]);
+	
+    return T;
 }
 
 double wave_lib_irregular_1st::wave_fi_time_cos(lexer *p, int n)
 {
-    
-    return fi;
+    T = sin( -wi[n]*p->simtime - ei[n]);
+	
+    return T;
 }
 
 void wave_lib_irregular_1st::parameters(lexer *p, ghostcell *pgc)

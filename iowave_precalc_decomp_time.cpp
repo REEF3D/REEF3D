@@ -21,7 +21,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"iowave.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
 void iowave::wavegen_precalc_time(lexer *p, ghostcell *pgc)
