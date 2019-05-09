@@ -95,6 +95,7 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
    
     pflow->eta_relax(p,pgc,erk1);
     pgc->gcsl_start4(p,erk1,gcval_eta);
+    pf->coastline(p,c,pgc,erk1);
     pflow->fifsf_relax(p,pgc,frk1);
     pgc->gcsl_start4(p,frk1,gcval_fifsf);
     
@@ -138,6 +139,7 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     
     pflow->eta_relax(p,pgc,erk2);
     pgc->gcsl_start4(p,erk2,gcval_eta);
+    pf->coastline(p,c,pgc,erk2);
     pflow->fifsf_relax(p,pgc,frk2);
     pgc->gcsl_start4(p,frk2,gcval_fifsf);
     
@@ -179,6 +181,7 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     
     pflow->eta_relax(p,pgc,c->eta);
     pgc->gcsl_start4(p,c->eta,gcval_eta);
+    pf->coastline(p,c,pgc,c->eta);
     pflow->fifsf_relax(p,pgc,c->Fifsf);
     pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
     

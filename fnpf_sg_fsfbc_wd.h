@@ -64,7 +64,7 @@ public:
 private:
     double rb3(lexer*,double);
     
-    double dist3,expinverse;
+    double dist3,expinverse,db;
 
     
 };
