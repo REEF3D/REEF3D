@@ -51,7 +51,7 @@ public:
     slice4 bed,depth;
     slice4 Fifsf,Fibed,Fz;
     slice4 K;
-    sliceint4 etaloc,wet,breaking,bc;
+    sliceint4 etaloc,wet,wet_n,breaking,bc;
     
     slice4 Fx,Fy;
     slice4 Ex,Ey;

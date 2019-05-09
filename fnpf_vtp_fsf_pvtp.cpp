@@ -93,6 +93,7 @@ void fnpf_vtp_fsf::pvtu(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"depth\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"breaking\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"coastline\"/>"<<endl;
 	result<<"</PPointData>"<<endl;
 	
 	result<<"<Polys>"<<endl;

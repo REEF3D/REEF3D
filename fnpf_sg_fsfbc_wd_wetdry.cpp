@@ -23,9 +23,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
+#include"fnpf_sg_coastline.h"
 
 void fnpf_sg_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf) 
 {   
+      SLICELOOP4
+      c->wet_n(i,j)=c->wet(i,j);
+      
       SLICELOOP4
       {     
           c->wet(i,j)=1;
@@ -56,4 +60,24 @@ void fnpf_sg_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta,
     
     
       pgc->gcsl_start4int(p,c->wet,50);
+      
+      pcoast->start(p,pgc,c->coastline,c->wet,c->wet_n);
+}
+
+void fnpf_sg_fsfbc_wd::coastline(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 
+{
+    
+    
+}
+
+double fnpf_sg_fsfbc_wd::rb3(lexer *p, double x)
+{
+    double r=0.0;
+
+    x=(dist3-fabs(x))/dist3;
+    x=MAX(x,0.0);
+    
+    r = 1.0 - (pow(1.0 + (pow(x,p->B119))/4000.0, 4000.0)-1.0)*expinverse;
+	
+	return r;
 }

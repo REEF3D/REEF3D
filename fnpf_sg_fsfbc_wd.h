@@ -27,6 +27,7 @@ class field;
 class fnpf_convection;
 class fnpf_ddx;
 class fnpf_etadisc;
+class fnpf_sg_coastline;
 
 using namespace std;
 
@@ -46,6 +47,7 @@ public:
     virtual void fsfwvel(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
     virtual void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
     virtual void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
+    virtual void coastline(lexer*,fdm_fnpf*,ghostcell*,slice&);
     
     
     void filter(lexer*, fdm_fnpf*,ghostcell*, slice&);
@@ -55,12 +57,15 @@ public:
     fnpf_etadisc *pdf;
     fnpf_convection *pdx;
     fnpf_ddx *pddx;
+    fnpf_sg_coastline *pcoast;
 
     double ivel,jvel,kvel;
     
 private:
-    slice4 EEx,EEy;
-    slice4 FFx,FFy;
+    double rb3(lexer*,double);
+    
+    double dist3,expinverse;
+
     
 };
 

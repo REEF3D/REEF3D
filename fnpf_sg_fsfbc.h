@@ -46,6 +46,7 @@ public:
     virtual void fsfwvel(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
     virtual void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
     virtual void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
+    virtual void coastline(lexer*,fdm_fnpf*,ghostcell*,slice&);
     
     
     void filter(lexer*, fdm_fnpf*,ghostcell*, slice&);

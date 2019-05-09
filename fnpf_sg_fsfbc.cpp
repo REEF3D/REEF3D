@@ -186,3 +186,7 @@ void fnpf_sg_fsfbc::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
 void fnpf_sg_fsfbc::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf) 
 {   
 }
+
+void fnpf_sg_fsfbc::coastline(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 
+{   
+}

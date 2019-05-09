@@ -2213,6 +2213,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
           <VirtualDirectory Name="Coastline">
+            <File Name="fnpf_coastline_disc.cpp"/>
             <File Name="fnpf_sg_coastline_reini.cpp"/>
             <File Name="fnpf_sg_coastline.cpp"/>
           </VirtualDirectory>

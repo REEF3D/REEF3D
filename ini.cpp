@@ -64,6 +64,7 @@ void lexer::ini_default()
     A313=3;      // int discretization for bed bc
     A320=1;		  // int order of Laplace equation
     A321=1;      // int boundary condition order for 4th-order Laplace equation
+    A342=0.0;    // double coastline damping distance
     A343=1;      // int turn on wetting-drying
     A344=1;      // int absolute wetting criterion
     A344_val=0.00005; // double absolute wetting criterion value

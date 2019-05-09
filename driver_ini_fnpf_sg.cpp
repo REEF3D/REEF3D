@@ -79,6 +79,43 @@ void driver::driver_ini_fnpf_sg()
 
     if(p->mpirank==0)
     cout<<"number of cells: "<<p->cellnumtot<<endl;
+    
+    
+    
+    // maxcoor
+
+    p->maxlength=-1.0e9;
+    p->xcoormax=-1.0e9;
+    p->xcoormin=1.0e9;
+    p->ycoormax=-1.0e9;
+    p->ycoormin=1.0e9;
+    p->zcoormax=-1.0e9;
+    p->zcoormin=1.0e9;
+
+    LOOP
+    {
+        p->xcoormax = MAX(p->xcoormax,p->XN[IP1]);
+        p->xcoormin = MIN(p->xcoormin,p->XN[IP]);
+        p->ycoormax = MAX(p->ycoormax,p->YN[JP1]);
+        p->ycoormin = MIN(p->ycoormin,p->YN[JP]);
+        p->zcoormax = MAX(p->zcoormax,p->ZN[KP1]);
+        p->zcoormin = MIN(p->zcoormin,p->ZN[KP]);
+     }
+
+     p->maxlength=MAX(p->maxlength,p->xcoormax-p->xcoormin);
+     p->maxlength=MAX(p->maxlength,p->ycoormax-p->ycoormin);
+     p->maxlength=MAX(p->maxlength,p->zcoormax-p->zcoormin);
+
+     p->maxlength=pgc->globalmax(p->maxlength);
+	 
+	 p->xcoormax=pgc->globalmax(p->xcoormax);
+	 p->ycoormax=pgc->globalmax(p->ycoormax);
+	 p->zcoormax=pgc->globalmax(p->zcoormax);
+	 
+	 p->xcoormin=pgc->globalmin(p->xcoormin);
+	 p->ycoormin=pgc->globalmin(p->ycoormin);
+	 p->zcoormin=pgc->globalmin(p->zcoormin);
+     
 
       //  log_ini();
 
@@ -185,7 +222,12 @@ void driver::driver_ini_fnpf_sg()
 	p->wavetime=0.0;
 	p->field4time=0.0;
 
-if(p->mpirank==0)
-cout<<"starting mainloop.FNPF"<<endl;
+     
+     if(p->mpirank==0)
+    cout<<"starting mainloop.FNPF"<<endl;
 
 }
+
+
+
+

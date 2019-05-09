@@ -89,6 +89,10 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     // breaking
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
+    
+    // coastline
+	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
 	
 	// Cells
     offset[n]=offset[n-1] + 4*p->polygon_sum*3+4;
@@ -119,6 +123,8 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	result<<"<DataArray type=\"Float32\" Name=\"depth\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"breaking\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"coastline\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"</PointData>"<<endl;
 
@@ -197,6 +203,15 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	{
         
 	ffn=float(pgc->gcsl_ipol4(p,c->breaking_print));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
+    //  Coastline
+	iin=4*(p->pointnum2D);
+	result.write((char*)&iin, sizeof (int));
+	TPSLICELOOP
+	{
+	ffn=float(pgc->gcsl_ipol4(p,c->coastline));
 	result.write((char*)&ffn, sizeof (float));
 	}
 
