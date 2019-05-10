@@ -96,7 +96,14 @@ fnpf_sg_fsfbc_wd::fnpf_sg_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     pcoast = new fnpf_sg_coastline(p);
     
+    dist3=0.0;
+    
+    if(p->A341>0.0)
+    dist3=p->A341*p->DXM;
+    
+    if(p->A342>0.0)
     dist3=p->A342;
+    
     expinverse = 1.0/(exp(1.0)-1.0);
 }
 
