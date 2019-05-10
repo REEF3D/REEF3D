@@ -63,7 +63,7 @@ void iowave::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     wavegen_precalc_ini(p,pgc);
     
     if(p->B89==1 && (p->B98==1 || p->B98==2))
-    wavegen_precalc_space(p,pgc);
+    wavegen_precalc_decomp_space_fnpf(p,pgc);
 
     wavegen_precalc(p,pgc);
 

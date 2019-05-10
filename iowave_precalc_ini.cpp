@@ -41,7 +41,6 @@ void iowave::wavegen_precalc_ini(lexer *p, ghostcell *pgc)
         
         if(p->B98==3)
         fnpf_precalc_dirichlet_ini(p,pgc);
-
     }
 }
 
