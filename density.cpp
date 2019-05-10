@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 
-density::density(lexer* p) : epsi(p->F45*p->dx), eps(p->D35*p->dx)
+density::density(lexer* p) : epsi(p->F45*p->dx), eps(2.1*p->dx)
 {
 }
 
@@ -294,60 +294,6 @@ double density::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 	
 	return roval;		
 }
-
-double density::ronode(lexer *p, fdm *a, int ipol, int aa, int bb, int cc)
-{
-	ii=jj=kk=0;
-	
-
-	if(ipol==1)
-	ii=1;
-	
-	if(ipol==2)
-	jj=1;
-	
-	if(ipol==3)
-	kk=1;
-	
-		if(p->D34==2)
-		{
-		phival = 0.5*(a->phi(i+aa,j+bb,k+cc) + a->phi(i+aa+ii,j+bb+jj,k+cc+kk));
-		
-		if(phival>epsi)
-		H=1.0;
-
-		if(phival<-epsi)
-		H=0.0;
-
-		if(fabs(phival)<=epsi)
-		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
-			
-		roval = p->W1*H + p->W3*(1.0-H);
-		}
-		
-		// -----
-		
-		if(p->D34==3)
-		roval = 0.5*(a->ro(i+aa,j+bb,k+cc) + a->ro(i+aa+ii,j+bb+jj,k+cc+kk));
-		
-		
-		if(p->D34==7)
-		{
-		H= 0.5*(a->phi(i+aa,j+bb,k+cc) + a->phi(i+aa+ii,j+bb+jj,k+cc+kk));
-
-		H=MAX(H,0.0);
-		H=MIN(H,1.0);
-
-		roval = p->W1*H +   p->W3*(1.0-H);
-		
-		}
-		
-		if(p->D32==8)
-		roval = 0.5*(a->ro(i+ii,j+jj,k+kk) + a->ro(i+aa,j+bb,k+cc));
-		
-	return roval;		
-}
-
 
 
 

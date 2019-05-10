@@ -261,10 +261,6 @@ void lexer::ini_default()
 	D30=1;			// int pressure scheme
 	D31=1;			// int additional correction steps for the PISO solver
 	D32=2;			// int density calculation poisson equation
-	D33=0;			// int density calculation velocity correction
-	D34=3;			// int density calculation convection
-	D35=2.1;		// double eps val for D32 2
-    D36=1;          // int order of conituity discretization
     D38=0;          // int add hydrostatic pressure gradients to NSE 
 	
     // Free Surface

@@ -37,7 +37,6 @@ public:
 	virtual ~density();
 
 	double roface(lexer*,fdm*,int,int,int);
-	double ronode(lexer*,fdm*,int,int,int,int);
 	
 	double H,roval,phival;
 	int ii,jj,kk;
