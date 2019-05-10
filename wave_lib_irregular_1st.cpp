@@ -303,7 +303,7 @@ double wave_lib_irregular_1st::wave_fi(lexer *p, double x, double y, double z)
 
 double wave_lib_irregular_1st::wave_fi_space_sin(lexer *p, double x, double y, double z, int n)
 {
-	Ti[n] = sin(ki[n]*(cosbeta[n]*x + sinbeta[n]*y));
+	T = sin(ki[n]*(cosbeta[n]*x + sinbeta[n]*y));
 	
     fi = ((wi[n]*Ai[n])/ki[n])*(cosh(ki[n]*(wd+z))/sinh(ki[n]*wd) ) * T;
     
@@ -312,7 +312,7 @@ double wave_lib_irregular_1st::wave_fi_space_sin(lexer *p, double x, double y, d
 
 double wave_lib_irregular_1st::wave_fi_space_cos(lexer *p, double x, double y, double z, int n)
 {
-    Ti[n] = cos(ki[n]*(cosbeta[n]*x + sinbeta[n]*y));
+    T = cos(ki[n]*(cosbeta[n]*x + sinbeta[n]*y));
 	
     fi = ((wi[n]*Ai[n])/ki[n])*(cosh(ki[n]*(wd+z))/sinh(ki[n]*wd) ) * T;
     
