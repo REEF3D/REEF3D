@@ -508,6 +508,34 @@ double wave_lib_Stokes_5th::wave_fi_space_sin(lexer *p, double x, double y, doub
     double fi;
     
     return fi;
+    
+    
+    
+    
+    T = wk*x;
+    
+    switch(n)
+    {
+        case 0: vel = 1.0*c0*sqrt(9.81/pow(wk,3.0))*(eps*a11 + pow(eps,3.0)*a31 + pow(eps,5.0)*a51)*sinh(wk*(wd+z))*sin(1.0*T);
+        break;
+         
+        case 1: vel = 2.0*c0*sqrt(9.81/pow(wk,3.0))*(pow(eps,2.0)*a22 + pow(eps,4.0)*a42)*sinh(2.0*wk*(wd+z))*sin(2.0*T);
+        break;
+        
+        case 2: vel = 3.0*c0*sqrt(9.81/pow(wk,3.0))*(pow(eps,3.0)*a33 + pow(eps,5.0)*a53)*sinh(3.0*wk*(wd+z))*sin(3.0*T);
+        break;
+        
+        case 3: vel = 4.0*c0*sqrt(9.81/pow(wk,3.0))*(pow(eps,4.0)*a44)*sinh(4.0*wk*(wd+z))*sin(4.0*T);
+        break;
+        
+        case 4: vel = 5.0*c0*sqrt(9.81/pow(wk,3.0))*(pow(eps,5.0)*a55)*sinh(5.0*wk*(wd+z))*sin(5.0*T);
+        break;
+        
+        default: vel = 0.0;
+        break;
+    }
+
+    return vel;
 }
 
 double wave_lib_Stokes_5th::wave_fi_space_cos(lexer *p, double x, double y, double z, int n)
