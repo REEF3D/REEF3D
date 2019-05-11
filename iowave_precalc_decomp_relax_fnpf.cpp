@@ -104,6 +104,8 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
 
     
     count=0;
+    int dbcount=0;
+    
     FILOOP 
     FJLOOP 
     {
@@ -123,7 +125,7 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
             if(dg<dist1)
             {
             Fival[count]=0.0;
-            // sin(a + b) = sin(a) cos(b) + cos(a) sin(b)
+
             for(qn=0;qn<wave_comp;++qn)
             Fival[count] += Fival_S_cos[count][qn]*Fival_T_sin[qn] + Fival_S_sin[count][qn]*Fival_T_cos[qn];
   
@@ -152,15 +154,26 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
                         
             for(qn=0;qn<wave_comp;++qn)
             Fival[count] += Fival_S_cos[count][qn]*Fival_T_sin[qn] + Fival_S_sin[count][qn]*Fival_T_cos[qn];
-
+            
+            rb1val[count] = rb1(p,dg);
+            
             ++count;
             }
 		}
+        
+        if(p->B99==2||p->B99==4)
+        {
+                // Zone 3
+                if(db<dist3)
+                {
+                rb3val[dbcount] = rb3(p,db);
+                ++dbcount;
+                }
+        }
+            
         }
     }
-    
-    
-    
+     
     
     // pre-calc every iteration
     count=0;
