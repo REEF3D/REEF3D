@@ -48,8 +48,6 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
     count=0;
     SLICELOOP4
     {
-        xg = xgen(p);
-        yg = ygen(p);
 		dg = distgen(p);
 		db = distbeach(p);
 		
@@ -106,31 +104,29 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
 
     
     count=0;
-    FLOOP
+    FILOOP 
+    FJLOOP 
     {
-		
-        xg = xgen(p);
-        yg = ygen(p);
         dg = distgen(p);
 		db = distbeach(p);
+        
+        FKLOOP 
+        FPCHECK
+        {
         
         z=p->ZSN[FIJK]-p->phimean;
 		
 		// Wave Generation
-        if(p->B98==1 && u_switch==1)
+        if(p->B98==1 && f_switch==1)
         {
             // Zone 1
             if(dg<dist1)
             {
             Fival[count]=0.0;
-            
-            if(zloc4<=fsfloc+epsi)
+            // sin(a + b) = sin(a) cos(b) + cos(a) sin(b)
             for(qn=0;qn<wave_comp;++qn)
-            Fival[count] += Fival_S_cos[count][qn]*Fival_T_cos[qn] - Fival_S_sin[count][qn]*Fival_T_sin[qn];
-            
-            if(zloc4>fsfloc+epsi)
-            Fival[count] = 0.0;
-            
+            Fival[count] += Fival_S_cos[count][qn]*Fival_T_sin[qn] + Fival_S_sin[count][qn]*Fival_T_cos[qn];
+  
             ++count;
             }
 
@@ -139,35 +135,28 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
             {
             Fival[count]=0.0;
             
-            if(zloc4<=fsfloc+epsi)
             for(qn=0;qn<wave_comp;++qn)
-            Fival[count] += Fival_S_cos[count][qn]*Fival_T_cos[qn] - Fival_S_sin[count][qn]*Fival_T_sin[qn];
-            
-            if(zloc4>fsfloc+epsi)
-            Fival[count] = 0.0;
+            Fival[count] += Fival_S_cos[count][qn]*Fival_T_sin[qn] + Fival_S_sin[count][qn]*Fival_T_cos[qn];
             
             ++count;
             }
 			
 		}
 		
-		if(p->B98==2 && u_switch==1)
+		if(p->B98==2 && f_switch==1)
         {  
             // Zone 1
             if(dg<dist1)
             {
             Fival[count]=0.0;
-            
-            if(zloc4<=fsfloc+epsi)
+                        
             for(qn=0;qn<wave_comp;++qn)
-            Fival[count] += Fival_S_cos[count][qn]*Fival_T_cos[qn] - Fival_S_sin[count][qn]*Fival_T_sin[qn];
-            
-            if(zloc4>fsfloc+epsi)
-            Fival[count] = 0.0;
-            
+            Fival[count] += Fival_S_cos[count][qn]*Fival_T_sin[qn] + Fival_S_sin[count][qn]*Fival_T_cos[qn];
+
             ++count;
             }
 		}
+        }
     }
     
     
@@ -177,13 +166,11 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
     count=0;
     SLICELOOP4
     {
-        xg = xgen(p);
-        yg = ygen(p);
 		dg = distgen(p);
 		db = distbeach(p);
 		
 		// Wave Generation
-        if(p->B98==1 && h_switch==1)
+        if(p->B98==1 && f_switch==1)
         {
             // Zone 1
             if(dg<dist1)
@@ -191,7 +178,7 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
                 Fifsfval[count] = 0.0;
             
                 for(qn=0;qn<wave_comp;++qn)
-                Fifsfval[count] += Fifsfval_S_cos[count][qn]*Fifsfval_T_cos[qn] - Fifsfval_S_sin[count][qn]*Fifsfval_T_sin[qn];
+                Fifsfval[count] += Fifsfval_S_cos[count][qn]*Fifsfval_T_sin[qn] + Fifsfval_S_sin[count][qn]*Fifsfval_T_cos[qn];
 
             ++count;
             }
@@ -202,13 +189,13 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
                 Fifsfval[count] = 0.0;
                 
                 for(qn=0;qn<wave_comp;++qn)
-                Fifsfval[count] += Fifsfval_S_cos[count][qn]*Fifsfval_T_cos[qn] - Fifsfval_S_sin[count][qn]*Fifsfval_T_sin[qn];
+                Fifsfval[count] += Fifsfval_S_cos[count][qn]*Fifsfval_T_sin[qn] + Fifsfval_S_sin[count][qn]*Fifsfval_T_cos[qn];
 
             ++count;
             }
 		}
 
-        if(p->B98==2 && h_switch==1)
+        if(p->B98==2 && f_switch==1)
         {
             // Zone 1
             if(dg<dist1+3.0*p->dx)
@@ -216,7 +203,7 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
                 Fifsfval[count] = 0.0;
                 
                 for(qn=0;qn<wave_comp;++qn)
-                Fifsfval[count] += Fifsfval_S_cos[count][qn]*Fifsfval_T_cos[qn] - Fifsfval_S_sin[count][qn]*Fifsfval_T_sin[qn];
+                Fifsfval[count] += Fifsfval_S_cos[count][qn]*Fifsfval_T_sin[qn] + Fifsfval_S_sin[count][qn]*Fifsfval_T_cos[qn];
 
             ++count;
             }

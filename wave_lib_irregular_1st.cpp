@@ -328,7 +328,7 @@ double wave_lib_irregular_1st::wave_fi_time_sin(lexer *p, int n)
 
 double wave_lib_irregular_1st::wave_fi_time_cos(lexer *p, int n)
 {
-    T = sin( -wi[n]*p->simtime - ei[n]);
+    T = cos( -wi[n]*p->simtime - ei[n]);
 	
     return T;
 }

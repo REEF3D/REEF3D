@@ -27,6 +27,7 @@ void iowave::wavegen_precalc_decomp_time_fnpf(lexer *p, ghostcell *pgc)
 {
     int qn;
     
+
     for(qn=0;qn<wave_comp;++qn)
     {
     etaval_T_sin[qn] = wave_eta_time_sin(p,pgc,qn);
