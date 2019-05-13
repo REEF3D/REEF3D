@@ -26,7 +26,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void iowave::wavegen_precalc(lexer *p, ghostcell *pgc)
 {
     
-    double starttime=pgc->timer();
     if(p->A10!=3 || p->A300==2)
     {
         if(p->B89==0 )
@@ -75,7 +74,5 @@ void iowave::wavegen_precalc(lexer *p, ghostcell *pgc)
             wavegen_precalc_decomp_dirichlet_fnpf(p,pgc);
         }
     }
-    
-    p->wavetime+=pgc->timer()-starttime;
 }
     

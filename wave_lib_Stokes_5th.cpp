@@ -511,7 +511,7 @@ double wave_lib_Stokes_5th::wave_fi_space_sin(lexer *p, double x, double y, doub
     
     switch(n)
     {
-        case 0: vel = 1.0*c0*sqrt(9.81/pow(wk,3.0))*((eps*a11 + pow(eps,3.0)*a31 + pow(eps,5.0)*a51)*cosh(wk*(wd+z))*sin(1.0*T);
+        case 0: vel = 1.0*c0*sqrt(9.81/pow(wk,3.0))*(eps*a11 + pow(eps,3.0)*a31 + pow(eps,5.0)*a51)*cosh(wk*(wd+z))*sin(1.0*T);
         break;
          
         case 1: vel = 2.0*c0*sqrt(9.81/pow(wk,3.0))*(pow(eps,2.0)*a22 + pow(eps,4.0)*a42)*cosh(2.0*wk*(wd+z))*sin(2.0*T);
@@ -541,7 +541,7 @@ double wave_lib_Stokes_5th::wave_fi_space_cos(lexer *p, double x, double y, doub
     
     switch(n)
     {
-        case 0: vel = 1.0*c0*sqrt(9.81/pow(wk,3.0))*((eps*a11 + pow(eps,3.0)*a31 + pow(eps,5.0)*a51)*cosh(wk*(wd+z))*cos(1.0*T);
+        case 0: vel = 1.0*c0*sqrt(9.81/pow(wk,3.0))*(eps*a11 + pow(eps,3.0)*a31 + pow(eps,5.0)*a51)*cosh(wk*(wd+z))*cos(1.0*T);
         break;
          
         case 1: vel = 2.0*c0*sqrt(9.81/pow(wk,3.0))*(pow(eps,2.0)*a22 + pow(eps,4.0)*a42)*cosh(2.0*wk*(wd+z))*cos(2.0*T);
