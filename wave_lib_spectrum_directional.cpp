@@ -333,7 +333,9 @@ double wave_lib_spectrum::spreading_function(lexer* p, double beta, double w) //
     // Mitsuyasu  // modified
     if(p->B130 == 2)
     {
-        if(p->B134 <=0.0)  // DON NOT USE THIS OPTION B 135, IT IS WRONG
+
+        if(p->B134 <= 0.0)  // DON NOT USE THIS OPTION B 135, IT IS WRONG
+
         {
             if(w <= p->wwp)
                 s_f = p->B135 * pow(w / p->wwp, 5.0);
@@ -342,9 +344,10 @@ double wave_lib_spectrum::spreading_function(lexer* p, double beta, double w) //
                 s_f = p->B135 * pow(w / p->wwp, -2.5);
         }
 
-
-        if(p->B134>0.0)  // USE THIS OPTION B 134, IN THIS CASE, <=85
+        if(p->B134 > 0.0)  // USE THIS OPTION B 134, IN THIS CASE, <=85
+        {
             s_f = p->B134;
+        }
 
         G_0 = pow(2.0, 2.0 * s_f - 1) / PI * pow(tgamma(s_f + 1.0), 2.0) / tgamma(2.0 * s_f + 1.0);
 
