@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B120*(PI/180.0))
+wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B120*(PI/180.0)), order(5)
 { 
     
     p->phiin=p->phimean;
@@ -198,6 +198,20 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
 	wT = p->B93_2;
 	p->wwp = 2.0*PI/p->wTp;
 	}
+    
+    p->Darray(factcos,order);
+    
+    // trig functions
+    for(n=0; n<order; ++n)
+    {
+        factcos[n]=1.0;
+        s=1.0;
+        for(q=1;q<=(2*n);++q)
+        {
+        factcos[n] *= s; 
+        s+=1.0;
+        }
+    }
 	
 }
 
@@ -205,6 +219,69 @@ wave_lib_parameters::~wave_lib_parameters()
 {
 }
 
+double wave_lib_parameters::sinfunc(double x)
+{
+    
+    f = 0.0;
+
+    
+    for(n=0; n<order; ++n)
+    {
+        factorial=1;
+        for(q=1;q<=(2*n+1);++q)
+        factorial *= q; 
+        
+    f += pow(-1.0,n)*pow(x,2*n+1)/(factorial);
+    
+    }
+    
+    return f;
+}
+
+
+double wave_lib_parameters::cosfunc(double x)
+{
+    
+    f = 0.0;
+
+    
+    for(n=0; n<order; ++n)
+    {  
+        r=1.0;
+        for(int qr=1; qr<=n;++qr)
+        r*=-1.0;
+        
+        
+        s=1.0;
+        for(int qr=1; qr<=2*n;++qr)
+        s*=x;
+    
+
+    f += r*s/(factcos[n]);
+    }
+    
+    return f;
+}
+
+double wave_lib_parameters::coshfunc(double x)
+{
+    
+    f = 0.0;
+
+    
+    for(n=0; n<order; ++n)
+    {  
+        
+        s=1.0;
+        for(int qr=1; qr<=2*n;++qr)
+        s*=x;
+    
+
+    f += s/(factcos[n]);
+    }
+    
+    return f;
+}
 
 
 

@@ -70,6 +70,55 @@ wave_lib_irregular_1st::wave_lib_irregular_1st(lexer *p, ghostcell *pgc) : wave_
     
     singamma = sin((p->B105_1)*(PI/180.0));
     cosgamma = cos((p->B105_1)*(PI/180.0));
+    
+    
+    
+    double s=-PI*8.0;
+    double a,b;
+    double s1,s2,e1,e2,t1,t2;
+    t1=t2=0.0;
+    for(int qn=0;qn<321;++qn)
+    {
+    
+    s1 = pgc->timer();
+    a = p->posf_i(s);
+    e1 = pgc->timer();
+    
+    s2 = pgc->timer();
+    b = cosh(s);
+    e2 = pgc->timer();
+    
+    t1 += e1-s1;
+    t2 += e2-s2;
+    
+    if(p->mpirank==0)
+    cout<<s*180.0/PI<<" a: "<<a<<" b: "<<b<<endl;
+        
+    s+=0.05*PI;
+    }
+    
+    
+    t1=t2=0.0;
+    for(int qn=0;qn<4100000;++qn)
+    {
+    
+    s1 = pgc->timer();
+    a = p->posf_i(s);
+    e1 = pgc->timer();
+    
+    s2 = pgc->timer();
+    b = cosh(s);
+    e2 = pgc->timer();
+    
+    t1 += e1-s1;
+    t2 += e2-s2;
+    
+    s+=0.05*PI;
+    }
+    
+    if(p->mpirank==0)
+    cout<<" t1: "<<t1<<" t2: "<<t2<<endl;
+        
 }
 
 wave_lib_irregular_1st::~wave_lib_irregular_1st()

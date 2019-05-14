@@ -36,9 +36,16 @@ public:
     wave_lib_parameters(lexer*, ghostcell*);
 	virtual ~wave_lib_parameters();
     
+    double sinhfunc(double);
+    double coshfunc(double);
+    
+    double sinfunc(double);
+    double cosfunc(double);
+    
     double teta;
     double wk,ww,wd,wa,wH,wL,wf,wT,wL0,k0,S0;
     double wk_temp,ww_temp,wL_temp,wT_temp,wf_temp;
+    
     
     double eps,c0,c2,c4; 
     double S,C;
@@ -55,6 +62,12 @@ private:
 	
     int wtype;
     double diff;
+    
+    double f,r,s;
+    int factorial,q;
+    const int order;
+    
+    double *factcos;
 	
     
 
