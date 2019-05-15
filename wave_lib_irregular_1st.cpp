@@ -72,7 +72,7 @@ wave_lib_irregular_1st::wave_lib_irregular_1st(lexer *p, ghostcell *pgc) : wave_
     cosgamma = cos((p->B105_1)*(PI/180.0));
     
     
-    
+    /*
     double s=-PI*8.0;
     double a,b;
     double s1,s2,e1,e2,t1,t2;
@@ -118,7 +118,7 @@ wave_lib_irregular_1st::wave_lib_irregular_1st(lexer *p, ghostcell *pgc) : wave_
     
     if(p->mpirank==0)
     cout<<" t1: "<<t1<<" t2: "<<t2<<endl;
-        
+        */
 }
 
 wave_lib_irregular_1st::~wave_lib_irregular_1st()
