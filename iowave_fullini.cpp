@@ -183,7 +183,7 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
         if(p->A300==1)
         H=1.0;
 		
-		a->Fi(i,j,k) = wave_fi(p,pgc,xg,0.0,z)*H;
+		a->Fi(i,j,k) = wave_fi(p,pgc,xg,yg,z,0)*H;
 	}
     
     // eta
@@ -207,7 +207,7 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
         
         z = a->eta(i,j);
 
-		a->Fifsf(i,j) = wave_fi(p,pgc,xg,yg,z);
+		a->Fifsf(i,j) = wave_fi(p,pgc,xg,yg,z,0);
     }
     
     FLUIDLOOP
@@ -241,7 +241,7 @@ void iowave::full_initialize_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         
         z = c->eta(i,j);
 
-		c->Fifsf(i,j) = wave_fi(p,pgc,xg,yg,z);
+		c->Fifsf(i,j) = wave_fi(p,pgc,xg,yg,z,0);
     }
 
     
@@ -257,7 +257,7 @@ void iowave::full_initialize_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         
         z = p->ZN[KP]*(c->eta(i,j) + p->wd - c->bed(i,j)) + c->bed(i,j)-p->phimean;
         
-        c->Fi[FIJK] = wave_fi(p,pgc,xg,yg,z);
+        c->Fi[FIJK] = wave_fi(p,pgc,xg,yg,z,0);
       
     }
     

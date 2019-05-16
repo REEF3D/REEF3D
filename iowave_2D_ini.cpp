@@ -28,7 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void iowave::ini2D(lexer *p, fdm2D* b, ghostcell* pgc)
 {
-    if((p->B98==1 || p->B98==2) && p->A10==2)
+    if(p->B98==2  && p->A10==2)
     {
     wavegen_2D_precalc_ini(p,pgc);
     

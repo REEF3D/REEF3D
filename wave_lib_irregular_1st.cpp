@@ -71,54 +71,10 @@ wave_lib_irregular_1st::wave_lib_irregular_1st(lexer *p, ghostcell *pgc) : wave_
     singamma = sin((p->B105_1)*(PI/180.0));
     cosgamma = cos((p->B105_1)*(PI/180.0));
     
-    
-    /*
-    double s=-PI*8.0;
-    double a,b;
-    double s1,s2,e1,e2,t1,t2;
-    t1=t2=0.0;
-    for(int qn=0;qn<321;++qn)
-    {
-    
-    s1 = pgc->timer();
-    a = p->posf_i(s);
-    e1 = pgc->timer();
-    
-    s2 = pgc->timer();
-    b = cosh(s);
-    e2 = pgc->timer();
-    
-    t1 += e1-s1;
-    t2 += e2-s2;
-    
-    if(p->mpirank==0)
-    cout<<s*180.0/PI<<" a: "<<a<<" b: "<<b<<endl;
-        
-    s+=0.05*PI;
-    }
-    
-    
-    t1=t2=0.0;
-    for(int qn=0;qn<4100000;++qn)
-    {
-    
-    s1 = pgc->timer();
-    a = p->posf_i(s);
-    e1 = pgc->timer();
-    
-    s2 = pgc->timer();
-    b = cosh(s);
-    e2 = pgc->timer();
-    
-    t1 += e1-s1;
-    t2 += e2-s2;
-    
-    s+=0.05*PI;
-    }
-    
-    if(p->mpirank==0)
-    cout<<" t1: "<<t1<<" t2: "<<t2<<endl;
-        */
+    p->Darray(sinhkd,p->wN);
+   
+    for(n=0;n<p->wN;++n)
+    sinhkd[n] = sinh(ki[n]*wd);
 }
 
 wave_lib_irregular_1st::~wave_lib_irregular_1st()
@@ -135,7 +91,7 @@ double wave_lib_irregular_1st::wave_u(lexer *p, double x, double y, double z)
 	
 	for(n=0;n<p->wN;++n)
     if(z<=Ai[n]*cos(Ti[n]))
-    vel += wi[n]*Ai[n]* (cosh(ki[n]*(wd+z))/sinh(ki[n]*wd) ) *cos(Ti[n]) * cosbeta[n];
+    vel += wi[n]*Ai[n]* (cosh(ki[n]*(wd+z))/sinhkd[n] ) *cos(Ti[n]) * cosbeta[n];
 
     if(p->B130==0)
     vel*=cosgamma;
@@ -193,7 +149,7 @@ double wave_lib_irregular_1st::wave_v(lexer *p, double x, double y, double z)
 	
 	for(n=0;n<p->wN;++n)
     if(z<=Ai[n]*cos(Ti[n]))
-    vel += wi[n]*Ai[n]* (cosh(ki[n]*(wd+z))/sinh(ki[n]*wd) ) * cos(Ti[n]) * sinbeta[n];
+    vel += wi[n]*Ai[n]* (cosh(ki[n]*(wd+z))/sinhkd[n] ) * cos(Ti[n]) * sinbeta[n];
 	
     if(p->B130==0)
     vel*=singamma;
@@ -250,7 +206,7 @@ double wave_lib_irregular_1st::wave_w(lexer *p, double x, double y, double z)
 
 	for(n=0;n<p->wN;++n)
     if(z<=Ai[n]*cos(Ti[n]))
-    vel += wi[n]*Ai[n]* (sinh(ki[n]*(wd+z))/sinh(ki[n]*wd)) * sin(Ti[n]);
+    vel += wi[n]*Ai[n]* (sinh(ki[n]*(wd+z))/sinhkd[n]) * sin(Ti[n]);
 	
     return vel;
 }
@@ -286,7 +242,6 @@ double wave_lib_irregular_1st::wave_w_time_cos(lexer *p, int n)
 
     return T;
 }
-
 
 // ETA -------------------------------------------------------------
 double wave_lib_irregular_1st::wave_eta(lexer *p, double x, double y)
@@ -335,26 +290,41 @@ double wave_lib_irregular_1st::wave_eta_time_cos(lexer *p, int n)
 }
 
 // FI -------------------------------------------------------------
-double wave_lib_irregular_1st::wave_fi(lexer *p, double x, double y, double z)
+double wave_lib_irregular_1st::wave_fi(lexer *p, double x, double y, double z, int q)
 {
-
     fi=0.0;
-	
-	for(n=0;n<p->wN;++n)
-	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->simtime) - ei[n];
-	
 
     for(n=0;n<p->wN;++n)
-    fi += ((wi[n]*Ai[n])/ki[n])*(cosh(ki[n]*(wd+z))/sinh(ki[n]*wd) ) * sin(Ti[n]);
+    fi += fin[n]*(cosh(ki[n]*(wd+z))/sinhkd[n] ) * fixy[q][n];
     
     return fi;
 }
+
+void wave_lib_irregular_1st::wave_fi_precalc_xy_ini(lexer *p,int num)
+{
+    p->Darray(fixy,num,p->wN);
+    p->Darray(fin,p->wN);
+}
+
+void wave_lib_irregular_1st::wave_fi_precalc_xy(lexer *p, double x, double y, int q)
+{
+    for(n=0;n<p->wN;++n)
+    fixy[q][n] = sin(ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->simtime) - ei[n]);
+}
+
+void wave_lib_irregular_1st::wave_fi_precalc_n(lexer *p)
+{
+    for(n=0;n<p->wN;++n)
+    fin[n] = ((wi[n]*Ai[n])/ki[n]);
+    
+}
+    
 
 double wave_lib_irregular_1st::wave_fi_space_sin(lexer *p, double x, double y, double z, int n)
 {
 	T = sin(ki[n]*(cosbeta[n]*x + sinbeta[n]*y));
 	
-    fi = ((wi[n]*Ai[n])/ki[n])*(cosh(ki[n]*(wd+z))/sinh(ki[n]*wd) ) * T;
+    fi = fin[n]*(cosh(ki[n]*(wd+z))/sinh(ki[n]*wd) ) * T;
     
     return fi;
 }

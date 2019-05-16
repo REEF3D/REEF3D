@@ -222,7 +222,7 @@ double wave_lib_irregular_2nd_b::wave_eta(lexer *p, double x, double y)
     return eta;
 }
 
-double wave_lib_irregular_2nd_b::wave_fi(lexer *p, double x, double y, double z)
+double wave_lib_irregular_2nd_b::wave_fi(lexer *p, double x, double y, double z, int q)
 {
     double fi=0.0;
     
@@ -232,6 +232,7 @@ double wave_lib_irregular_2nd_b::wave_fi(lexer *p, double x, double y, double z)
 	// 1st-order
 	for(n=0;n<p->wN;++n)
     fi +=  ((wi[n]*Ai[n])/ki[n])*(cosh(ki[n]*(wd+z))/sinh(ki[n]*wd) ) * sin(Ti[n]);
+    
     
     // 2nd-order
    /* for(n=0;n<p->wN-1;++n)

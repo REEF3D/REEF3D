@@ -74,7 +74,7 @@ double wave_lib_void::wave_eta(lexer *p, double x, double y)
 }
 
 // FI -------------------------------------------------------------
-double wave_lib_void::wave_fi(lexer *p, double x, double y, double z)
+double wave_lib_void::wave_fi(lexer *p, double x, double y, double z, int q)
 {
     double fi=0.0;
     

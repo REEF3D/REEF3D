@@ -107,7 +107,7 @@ double wave_lib_Stokes_5th_SH::wave_eta(lexer *p, double x, double y)
     return eta;
 }
 
-double wave_lib_Stokes_5th_SH::wave_fi(lexer *p, double x, double y, double z)
+double wave_lib_Stokes_5th_SH::wave_fi(lexer *p, double x, double y, double z, int q)
 {
     double fi;
     

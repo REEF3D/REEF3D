@@ -41,7 +41,7 @@ public:
 	double wave_v(lexer*,ghostcell*,double,double,double);
     double wave_w(lexer*,ghostcell*,double,double,double);
     double wave_h(lexer*,ghostcell*,double,double,double);
-    double wave_fi(lexer*,ghostcell*,double,double,double);
+    double wave_fi(lexer*,ghostcell*,double,double,double,int);
     double wave_eta(lexer*,ghostcell*,double,double);
     double wave_um(lexer*,ghostcell*,double,double);
     double wave_vm(lexer*,ghostcell*,double,double);
@@ -68,6 +68,9 @@ public:
     double wave_eta_time_sin(lexer*,ghostcell*,int);
     double wave_eta_time_cos(lexer*,ghostcell*,int);
     
+    void wave_fi_precalc_xy_ini(lexer*,ghostcell*,int);
+    void wave_fi_precalc_xy(lexer*,ghostcell*,double,double,int);
+    void wave_fi_precalc_n(lexer*,ghostcell*);
     double wave_fi_space_sin(lexer*,ghostcell*,double,double,double,int);
     double wave_fi_space_cos(lexer*,ghostcell*,double,double,double,int);
     double wave_fi_time_sin(lexer*,ghostcell*,int);

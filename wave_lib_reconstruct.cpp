@@ -88,7 +88,7 @@ double wave_lib_reconstruct::wave_eta(lexer *p, double x, double y)
     return vel;
 }
 
-double wave_lib_reconstruct::wave_fi(lexer *p, double x, double y, double z)
+double wave_lib_reconstruct::wave_fi(lexer *p, double x, double y, double z, int q)
 {
     double fi;
     

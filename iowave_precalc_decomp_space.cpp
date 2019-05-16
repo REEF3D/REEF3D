@@ -39,31 +39,6 @@ void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
 		db = distbeach(p);
 		
 		// Wave Generation
-        if(p->B98==1 && h_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1+3.0*p->dx)
-            {
-                for(qn=0;qn<wave_comp;++qn)
-                {
-                etaval_S_sin[count][qn] = wave_eta_space_sin(p,pgc,xg,yg,qn);
-                etaval_S_cos[count][qn] = wave_eta_space_cos(p,pgc,xg,yg,qn);
-                }
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2+3.0*p->dx)
-            {
-                for(qn=0;qn<wave_comp;++qn)
-                {
-                etaval_S_sin[count][qn] = wave_eta_space_sin(p,pgc,xg,yg,qn);
-                etaval_S_cos[count][qn] = wave_eta_space_cos(p,pgc,xg,yg,qn);
-                }
-            ++count;
-            }
-		}
-
         if(p->B98==2 && h_switch==1)
         {
             // Zone 1
@@ -103,31 +78,6 @@ void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
         z = 0.5*(eta(i,j)+eta(i+1,j));
 
 		// Wave Generation
-        if(p->B98==1 && u_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-                for(qn=0;qn<wave_comp;++qn)
-                {
-                uval_S_sin[count][qn] = wave_u_space_sin(p,pgc,xg,yg,z,qn);
-                uval_S_cos[count][qn] = wave_u_space_cos(p,pgc,xg,yg,z,qn);
-                }
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            {
-                for(qn=0;qn<wave_comp;++qn)
-                {
-                uval_S_sin[count][qn] = wave_u_space_sin(p,pgc,xg,yg,z,qn);
-                uval_S_cos[count][qn] = wave_u_space_cos(p,pgc,xg,yg,z,qn);
-                }
-            ++count;
-            }
-		}
-		
 		if(p->B98==2 && u_switch==1)
         {
             // Zone 1
@@ -164,32 +114,7 @@ void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
         if(zloc2>p->phimean+p->wA)
         z = 0.5*(eta(i,j)+eta(i,j+1));
         
-		// Wave Generation
-        if(p->B98==1 && v_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-                for(qn=0;qn<wave_comp;++qn)
-                {
-                vval_S_sin[count][qn] = wave_v_space_sin(p,pgc,xg,yg,z,qn);
-                vval_S_cos[count][qn] = wave_v_space_cos(p,pgc,xg,yg,z,qn);
-                }
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            {
-                for(qn=0;qn<wave_comp;++qn)
-                {
-                vval_S_sin[count][qn] = wave_v_space_sin(p,pgc,xg,yg,z,qn);
-                vval_S_cos[count][qn] = wave_v_space_cos(p,pgc,xg,yg,z,qn);
-                }
-            ++count;
-            }
-		}
-		
+		// Wave Generation		
 		if(p->B98==2 && v_switch==1)
         {
             // Zone 1
@@ -227,31 +152,6 @@ void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
         z = eta(i,j);
         
 		// Wave Generation
-        if(p->B98==1 && w_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-                for(qn=0;qn<wave_comp;++qn)
-                {
-                wval_S_sin[count][qn] = wave_w_space_sin(p,pgc,xg,yg,z,qn);
-                wval_S_cos[count][qn] = wave_w_space_cos(p,pgc,xg,yg,z,qn);
-                }
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            {
-                for(qn=0;qn<wave_comp;++qn)
-                {
-                wval_S_sin[count][qn] = wave_w_space_sin(p,pgc,xg,yg,z,qn);
-                wval_S_cos[count][qn] = wave_w_space_cos(p,pgc,xg,yg,z,qn);
-                }
-            ++count;
-            }
-		}
-		
 		if(p->B98==2 && w_switch==1)
         {
             // Zone 1
@@ -287,32 +187,6 @@ void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
         z=(fabs(p->phimean-zloc4));
 		
 		// Wave Generation
-        if(p->B98==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-                for(qn=0;qn<wave_comp;++qn)
-                {
-                Fival_S_sin[count][qn] = wave_fi_space_sin(p,pgc,xg,yg,z,qn);
-                Fival_S_cos[count][qn] = wave_fi_space_cos(p,pgc,xg,yg,z,qn);
-                }
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            {
-                for(qn=0;qn<wave_comp;++qn)
-                {
-                Fival_S_sin[count][qn] = wave_fi_space_sin(p,pgc,xg,yg,z,qn);
-                Fival_S_cos[count][qn] = wave_fi_space_cos(p,pgc,xg,yg,z,qn);
-                }
-            ++count;
-            }
-			
-		}
-		
 		if(p->B98==2)
         {
             // Zone 1

@@ -36,23 +36,6 @@ void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
         
 
 		// Wave Generation
-        if(p->B98==1 && h_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-            f(i,j) = ra1(p,dg)*etaval[count] + (1.0-ra1(p,dg))*f(i,j);
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            {
-            f(i,j) = ra2(p,dg)*etaval[count] + (1.0-ra2(p,dg))*f(i,j);
-            ++count;
-            }
-		}
-
         if(p->B98==2 && h_switch==1)
         {
             // Zone 1
@@ -94,23 +77,6 @@ void iowave::um_relax(lexer *p, ghostcell *pgc, slice &P, slice &bed, slice &eta
         
     
         // Wave Generation
-        if(p->B98==1 && u_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-            P(i,j) = ra1(p,dg) * uval[count] + (1.0-ra1(p,dg))*P(i,j);
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            {
-            P(i,j) = ra2(p,dg) * uval[count] + (1.0-ra2(p,dg))*P(i,j);
-            ++count;
-            }
-		}
-		
 		if(p->B98==2 && u_switch==1)
         {
             // Zone 1
@@ -149,24 +115,6 @@ void iowave::vm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta
 		db = distbeach(p);
 
         // Wave Generation
-        if(p->B98==1 && v_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-            Q(i,j) = ra1(p,dg) * vval[count]  + (1.0-ra1(p,dg))*Q(i,j);
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            {
-            Q(i,j) = ra2(p,dg) * vval[count] + (1.0-ra2(p,dg))*Q(i,j);
-            ++count;
-            }
-			
-		}
-		
 		if(p->B98==2 && v_switch==1)
         {
             // Zone 1
@@ -206,25 +154,6 @@ void iowave::wm_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta
 		db = distbeach(p);
 
         // Wave Generation
-        if(p->B98==1 && w_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-            W(i,j) = ra1(p,dg) * wval[count]  + (1.0-ra1(p,dg))*W(i,j);
-            ++count;
-            }
-            
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            {
-            W(i,j) = ra2(p,dg) * wval[count] + (1.0-ra2(p,dg))*W(i,j);
-            ++count;
-            }
-			
-		}
-		
 		if(p->B98==2 && w_switch==1)
         {
             // Zone 1
@@ -269,18 +198,6 @@ void iowave::ws_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta
         
         
         // Wave Generation
-        if(p->B98==1 && w_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            W(i,j) = ra1(p,dg) * wval  + (1.0-ra1(p,dg))*W(i,j);
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            W(i,j) = ra2(p,dg) * wval + (1.0-ra2(p,dg))*W(i,j);
-			
-		}
-		
 		if(p->B98==2 && w_switch==1)
         {
             // Zone 1
@@ -316,17 +233,6 @@ void iowave::pm_relax(lexer *p, ghostcell *pgc, slice &f)
 		db = distbeach(p);
 		
 		// Wave Generation
-        if(p->B98==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            f(i,j) = ra1(p,dg)*0.0 + (1.0-ra1(p,dg))*f(i,j);
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            f(i,j) = ra2(p,dg)*0.0 + (1.0-ra2(p,dg))*f(i,j);
-		}
-
         if(p->B98==2)
         {
             // Zone 1

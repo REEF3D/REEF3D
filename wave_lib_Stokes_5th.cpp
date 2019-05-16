@@ -487,7 +487,7 @@ double wave_lib_Stokes_5th::wave_eta_time_cos(lexer *p, int n)
 }
 
 // FI -------------------------------------------------------------
-double wave_lib_Stokes_5th::wave_fi(lexer *p, double x, double y, double z)
+double wave_lib_Stokes_5th::wave_fi(lexer *p, double x, double y, double z, int q)
 {
     double fi;
     
@@ -501,6 +501,21 @@ double wave_lib_Stokes_5th::wave_fi(lexer *p, double x, double y, double z)
          + 5.0*(pow(eps,5.0)*a55)*cosh(5.0*wk*(wd+z))*sin(5.0*T));
         
     return fi;
+}
+
+void wave_lib_Stokes_5th::wave_fi_precalc_xy_ini(lexer*,int)
+{
+    
+}
+
+void wave_lib_Stokes_5th::wave_fi_precalc_xy(lexer*,double,double,int)
+{
+    
+}
+
+void wave_lib_Stokes_5th::wave_fi_precalc_n(lexer*)
+{
+    
 }
 
 double wave_lib_Stokes_5th::wave_fi_space_sin(lexer *p, double x, double y, double z, int n)

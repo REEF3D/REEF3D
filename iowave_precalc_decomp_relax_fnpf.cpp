@@ -50,38 +50,7 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
     {
 		dg = distgen(p);
 		db = distbeach(p);
-		
-		// Wave Generation
-        if(p->B98==1 && h_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-                eta(i,j) = 0.0;
-                etaval[count] = 0.0;
-            
-                for(qn=0;qn<wave_comp;++qn)
-                {
-                eta(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
-                etaval[count] = eta(i,j);
-                }
-            ++count;
-            }
 
-            // Zone 2
-            if(dg>=dist1 && dg<dist2+3.0*p->dx)
-            {
-                eta(i,j) = 0.0;
-                etaval[count] = 0.0;
-                
-                for(qn=0;qn<wave_comp;++qn)
-                {
-                eta(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
-                etaval[count] = eta(i,j);
-                }
-            ++count;
-            }
-		}
 
         if(p->B98==2 && h_switch==1)
         {
@@ -117,33 +86,7 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
         {
         
         z=p->ZSN[FIJK]-p->phimean;
-		
-		// Wave Generation
-        if(p->B98==1 && f_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-            Fival[count]=0.0;
 
-            for(qn=0;qn<wave_comp;++qn)
-            Fival[count] += Fival_S_cos[count][qn]*Fival_T_sin[qn] + Fival_S_sin[count][qn]*Fival_T_cos[qn];
-  
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            {
-            Fival[count]=0.0;
-            
-            for(qn=0;qn<wave_comp;++qn)
-            Fival[count] += Fival_S_cos[count][qn]*Fival_T_sin[qn] + Fival_S_sin[count][qn]*Fival_T_cos[qn];
-            
-            ++count;
-            }
-			
-		}
 		
 		if(p->B98==2 && f_switch==1)
         {  
@@ -183,31 +126,6 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
 		db = distbeach(p);
 		
 		// Wave Generation
-        if(p->B98==1 && f_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-                Fifsfval[count] = 0.0;
-            
-                for(qn=0;qn<wave_comp;++qn)
-                Fifsfval[count] += Fifsfval_S_cos[count][qn]*Fifsfval_T_sin[qn] + Fifsfval_S_sin[count][qn]*Fifsfval_T_cos[qn];
-
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2+3.0*p->dx)
-            {
-                Fifsfval[count] = 0.0;
-                
-                for(qn=0;qn<wave_comp;++qn)
-                Fifsfval[count] += Fifsfval_S_cos[count][qn]*Fifsfval_T_sin[qn] + Fifsfval_S_sin[count][qn]*Fifsfval_T_cos[qn];
-
-            ++count;
-            }
-		}
-
         if(p->B98==2 && f_switch==1)
         {
             // Zone 1

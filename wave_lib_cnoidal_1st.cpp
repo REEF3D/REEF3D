@@ -113,7 +113,7 @@ double wave_lib_cnoidal_1st::wave_eta(lexer *p, double x, double y)
 	return eta;	
 }
 
-double wave_lib_cnoidal_1st::wave_fi(lexer *p, double x, double y, double z)
+double wave_lib_cnoidal_1st::wave_fi(lexer *p, double x, double y, double z, int q)
 {
     double fi;
     

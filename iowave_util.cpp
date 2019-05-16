@@ -31,10 +31,6 @@ int iowave::iozonecheck(lexer *p, fdm*a)
 	
 	dg = distgen(p);
 	db = distbeach(p);
-
-	if(p->B98==1)
-	if(dg<dist2 || db<dist3)
-	check=0;
 	
 	if(p->B98==2)
 	if(dg<dist1 || db<dist3)
