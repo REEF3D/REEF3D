@@ -290,33 +290,17 @@ double wave_lib_irregular_1st::wave_eta_time_cos(lexer *p, int n)
 }
 
 // FI -------------------------------------------------------------
-double wave_lib_irregular_1st::wave_fi(lexer *p, double x, double y, double z, int q)
+double wave_lib_irregular_1st::wave_fi(lexer *p, double x, double y, double z)
 {
     fi=0.0;
+    
+    for(n=0;n<p->wN;++n)
+	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->simtime) - ei[n];
 
     for(n=0;n<p->wN;++n)
-    fi += fin[n]*(cosh(ki[n]*(wd+z))/sinhkd[n] ) * fixy[q][n];
+    fi += ((wi[n]*Ai[n])/ki[n])*(cosh(ki[n]*(wd+z))/sinhkd[n] ) * sin(Ti[n]);
     
     return fi;
-}
-
-void wave_lib_irregular_1st::wave_fi_precalc_xy_ini(lexer *p,int num)
-{
-    p->Darray(fixy,num,p->wN);
-    p->Darray(fin,p->wN);
-}
-
-void wave_lib_irregular_1st::wave_fi_precalc_xy(lexer *p, double x, double y, int q)
-{
-    for(n=0;n<p->wN;++n)
-    fixy[q][n] = sin(ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->simtime) - ei[n]);
-}
-
-void wave_lib_irregular_1st::wave_fi_precalc_n(lexer *p)
-{
-    for(n=0;n<p->wN;++n)
-    fin[n] = ((wi[n]*Ai[n])/ki[n]);
-    
 }
     
 

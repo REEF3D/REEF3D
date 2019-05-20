@@ -487,7 +487,7 @@ double wave_lib_Stokes_5th::wave_eta_time_cos(lexer *p, int n)
 }
 
 // FI -------------------------------------------------------------
-double wave_lib_Stokes_5th::wave_fi(lexer *p, double x, double y, double z, int q)
+double wave_lib_Stokes_5th::wave_fi(lexer *p, double x, double y, double z)
 {
     double fi;
     

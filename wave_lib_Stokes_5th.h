@@ -64,7 +64,7 @@ public:
     virtual double wave_eta_time_sin(lexer*,int);
     virtual double wave_eta_time_cos(lexer*,int);
     
-    virtual double wave_fi(lexer*,double,double,double,int);
+    virtual double wave_fi(lexer*,double,double,double);
     virtual void wave_fi_precalc_xy_ini(lexer*,int);
     virtual void wave_fi_precalc_xy(lexer*,double,double,int);
     virtual void wave_fi_precalc_n(lexer*);

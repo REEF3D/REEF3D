@@ -55,26 +55,6 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
     
     // Fi
     count=0;
-    FILOOP 
-    FJLOOP 
-    {
-        xg = xgen(p);
-        yg = ygen(p);
-        dg = distgen(p);
-		db = distbeach(p);
-        
-        if(p->B98==2 && f_switch==1)
-            {
-                // Zone 1
-                if(dg<dist1)
-                { 
-                wave_fi_precalc_xy(p,pgc,x,y,n);
-                ++count;
-                }
-            }
-    }
-    
-    count=0;
     dbcount=0;
 
     FILOOP 
@@ -98,7 +78,7 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
                 // Zone 1
                 if(dg<dist1)
                 { 
-                Fival[count] = wave_fi(p,pgc,xg,yg,z,0);
+                Fival[count] = wave_fi(p,pgc,xg,yg,z);
                 rb1val[count] = rb1(p,dg);
                 ++count;
                 }
@@ -134,7 +114,7 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
             // Zone 1
             if(dg<dist1)
             { 
-            Fifsfval[count] = wave_fi(p,pgc,xg,yg,z,count);
+            Fifsfval[count] = wave_fi(p,pgc,xg,yg,z);
             
             ++count;
             }

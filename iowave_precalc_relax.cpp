@@ -223,7 +223,7 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
             // Zone 1
             if(dg<dist1)
             { 
-            Fival[count] = wave_fi(p,pgc,xg,yg,z,count);
+            Fival[count] = wave_fi(p,pgc,xg,yg,z);
             ++count;
             }
 		}
@@ -262,7 +262,7 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
             if(dg<dist1)
             { 
             if(zloc4<=fsfloc+epsi)
-            Fival[count] = wave_fi(p,pgc,xg,yg,z,count);
+            Fival[count] = wave_fi(p,pgc,xg,yg,z);
             
             if(zloc4>fsfloc+epsi)
             Fival[count] = 0.0;
@@ -293,7 +293,7 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
             if(dg<dist1)
             { 
             if(zloc4<=fsfloc+epsi || p->A300==1)
-            Fifsfval[count] = wave_fi(p,pgc,xg,yg,z,count);
+            Fifsfval[count] = wave_fi(p,pgc,xg,yg,z);
             
             if(zloc4>fsfloc+epsi && p->A300!=1)
             Fifsfval[count] = 0.0;

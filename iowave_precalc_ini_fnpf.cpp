@@ -105,9 +105,7 @@ void iowave::fnpf_precalc_relax_ini(lexer *p, ghostcell *pgc)
     p->Darray(Fival_T_cos,wave_comp);
     p->Darray(Fifsfval_T_cos,wave_comp);
     }
-    
-    wave_fi_precalc_xy_ini(p,pgc,ept_count);
-    wave_fi_precalc_n(p,pgc);
+
 }
 
 void iowave::fnpf_precalc_dirichlet_ini(lexer *p, ghostcell *pgc)

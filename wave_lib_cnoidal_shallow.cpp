@@ -99,7 +99,7 @@ double wave_lib_cnoidal_shallow::wave_eta(lexer *p, double x, double y)
 	return eta;	
 }
 
-double wave_lib_cnoidal_shallow::wave_fi(lexer *p, double x, double y, double z, int q)
+double wave_lib_cnoidal_shallow::wave_fi(lexer *p, double x, double y, double z)
 {
     double fi;
     

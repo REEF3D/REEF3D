@@ -42,7 +42,7 @@ public:
     virtual double wave_v(lexer*,double,double,double);
     virtual double wave_w(lexer*,double,double,double);
     virtual double wave_eta(lexer*,double,double);
-    virtual double wave_fi(lexer*,double,double,double,int);
+    virtual double wave_fi(lexer*,double,double,double);
     
     
     virtual void parameters(lexer*,ghostcell*);

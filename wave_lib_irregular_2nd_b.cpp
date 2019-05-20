@@ -228,7 +228,7 @@ double wave_lib_irregular_2nd_b::wave_eta(lexer *p, double x, double y)
     return eta;
 }
 
-double wave_lib_irregular_2nd_b::wave_fi(lexer *p, double x, double y, double z, int q)
+double wave_lib_irregular_2nd_b::wave_fi(lexer *p, double x, double y, double z)
 {
     double fi=0.0;
     

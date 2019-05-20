@@ -93,7 +93,7 @@ double wave_lib_deep::wave_eta(lexer *p, double x, double y)
     return eta;
 }
 
-double wave_lib_deep::wave_fi(lexer *p, double x, double y, double z, int q)
+double wave_lib_deep::wave_fi(lexer *p, double x, double y, double z)
 {
     double fi;
     

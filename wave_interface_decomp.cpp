@@ -258,33 +258,6 @@ double wave_interface::wave_eta_time_cos(lexer *p, ghostcell *pgc, int n)
 }
 
 // FI
-void wave_interface::wave_fi_precalc_xy_ini(lexer *p, ghostcell *pgc,int num)
-{
-    starttime=pgc->timer();
-    
-	pwave->wave_fi_precalc_xy_ini(p,num);
-    
-	p->wavetime+=pgc->timer()-starttime;
-}
-
-void wave_interface::wave_fi_precalc_xy(lexer *p, ghostcell *pgc, double x, double y, int n)
-{
-    starttime=pgc->timer();
-    
-	pwave->wave_fi_precalc_xy(p,x,y,n);
-    
-	p->wavetime+=pgc->timer()-starttime;
-}
-
-void wave_interface::wave_fi_precalc_n(lexer *p, ghostcell *pgc)
-{
-    starttime=pgc->timer();
-    
-	pwave->wave_fi_precalc_n(p);
-    
-	p->wavetime+=pgc->timer()-starttime;
-}
-
 double wave_interface::wave_fi_space_sin(lexer *p, ghostcell *pgc, double x, double y, double z, int n)
 {
 	starttime=pgc->timer();
