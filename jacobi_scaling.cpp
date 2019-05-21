@@ -45,7 +45,7 @@ void jacobi_scaling::setup(lexer* p,fdm* a, ghostcell* pgc, int var, cpt &C)
 	if(var==3)
 	sizeM=p->sizeM3;
 	
-	if(var==4||var==5)
+	if(var==4 || var==5)
 	sizeM=p->sizeM4;
 	
 	NLOOP
@@ -74,7 +74,7 @@ void jacobi_scaling::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsv
 	NLOOP
 	xvec.V[n]=rhsvec.V[n]*aii.V[n];	
 	
-	if(var==4||var==5)
+	if(var==4 || var==5)
 	NLOOP
 	xvec.V[n]=rhsvec.V[n]*aii.V[n];
 	
