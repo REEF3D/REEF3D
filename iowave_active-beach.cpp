@@ -48,13 +48,13 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
         
 		
 		// UVEL
-		for(n=0;n<gcawa1_count;++n)
+		for(n=0;n<p->gcslawa1_count;++n)
 		{
-		i=gcawa1[n][0];
-		j=gcawa1[n][1];
+		i=p->gcslawa1[n][0];
+		j=p->gcslawa1[n][1];
 		
 		ii=0;
-		if(gcawa1[n][3]==4)
+		if(p->gcslawa1[n][3]==4)
 		ii=1;
 		
 		wsf=wsfmax[i+ii][j];
@@ -101,22 +101,22 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 		fac1=0.0;
 		
 		aa=bb=0;
-		if(gcawa1[n][2]==1)
+		if(p->gcslawa1[n][2]==1)
         {
 		aa=-1;
 		fx*=-1.0;
         }
         
-		if(gcawa1[n][2]==4)
+		if(p->gcslawa1[n][2]==4)
 		aa=1;
 		
-		if(gcawa1[n][2]==3)
+		if(p->gcslawa1[n][2]==3)
         {
 		bb=-1;
         fx*=-0.0;
         }
 		
-		if(gcawa1[n][2]==2)
+		if(p->gcslawa1[n][2]==2)
         {
 		bb=1;
         fx*=-1.0;
@@ -379,10 +379,10 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
         // NSEWAVE
         
         if(p->A10==4)
-        for(n=0;n<gcawa1_count;++n)
+        for(n=0;n<p->gcslawa1_count;++n)
 		{
-		i=gcawa1[n][0];
-		j=gcawa1[n][1];
+		i=p->gcslawa1[n][0];
+		j=p->gcslawa1[n][1];
             
             a->P(i+1,j)=0.0;
             double d=0.0;
