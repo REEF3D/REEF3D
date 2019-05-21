@@ -101,28 +101,44 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 		fac1=0.0;
 		
 		aa=bb=0;
+<<<<<<< HEAD
 		if(gcawa1[n][2]==1)
+=======
+		if(p->gcslawa1[n][3]==1)
+>>>>>>> parent of d9d77d0... Revert "active beach"
         {
 		aa=-1;
 		fx*=-1.0;
         }
         
+<<<<<<< HEAD
 		if(gcawa1[n][2]==4)
 		aa=1;
 		
 		if(gcawa1[n][2]==3)
+=======
+		if(p->gcslawa1[n][3]==4)
+		aa=1;
+		
+		if(p->gcslawa1[n][3]==3)
+>>>>>>> parent of d9d77d0... Revert "active beach"
         {
 		bb=-1;
         fx*=-0.0;
         }
 		
+<<<<<<< HEAD
 		if(gcawa1[n][2]==2)
+=======
+		if(p->gcslawa1[n][3]==2)
+>>>>>>> parent of d9d77d0... Revert "active beach"
         {
 		bb=1;
         fx*=-1.0;
         }
         
         fx=1.0;
+        
 
 			if(wsf>-1.0e20)
 			KLOOP 
@@ -180,14 +196,14 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 //-----------------------------------------------		
 		// VVEL
 		
-		for(n=0;n<gcawa2_count;++n)
+		for(n=0;n<p->gcslawa2_count;++n)
 		{
-		i=gcawa2[n][0];
-		j=gcawa2[n][1];
+		i=p->gcslawa2[n][0];
+		j=p->gcslawa2[n][1];
 		
 		
 		jj=0;
-		if(gcawa2[n][3]==2)
+		if(p->gcslawa2[n][3]==2)
 		jj=1;
 		
 		wsf=wsfmax[i][j+jj];
@@ -225,28 +241,31 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 		fac1=0.0;
 		
 		aa=bb=0;
-		if(gcawa2[n][2]==1)
+		if(p->gcslawa2[n][3]==1)
         {
 		aa=-1;
         fy*=1.0;
         }
 		
-		if(gcawa2[n][2]==4)
+		if(p->gcslawa2[n][3]==4)
 		aa=1;
 		
-		if(gcawa2[n][2]==3)
+		if(p->gcslawa2[n][3]==3)
         {
 		bb=-1;
         fy*=-1.0;
         }
 		
-		if(gcawa2[n][2]==2)
+		if(p->gcslawa2[n][3]==2)
         {
 		bb=1;
         fy*=-1.0;
         }
         
         fy=0.0; // !
+        
+        if(fabs(fy)<0.05)
+        fy=0.0;
 
 
 			if(wsf>-1.0e20)
@@ -305,23 +324,23 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 		
 		//-----------------------------------------------		
 		// PRESSURE
-		for(n=0;n<gcawa4_count;n++)
+		for(n=0;n<p->gcslout_count;n++)
 		{
-		i=gcawa4[n][0];
-		j=gcawa4[n][1];
+		i=p->gcslout[n][0];
+		j=p->gcslout[n][1];
 		
 		aa=bb=0;
 		
-		if(gcawa4[n][2]==1)
+		if(p->gcslout[n][3]==1)
 		aa=-1;
 		
-		if(gcawa4[n][2]==4)
+		if(p->gcslout[n][3]==4)
 		aa=1;
 		
-		if(gcawa4[n][2]==3)
+		if(p->gcslout[n][3]==3)
 		bb=-1;
 		
-		if(gcawa4[n][2]==2)
+		if(p->gcslout[n][3]==2)
 		bb=1;
 				
 		wsf=wsfmax[i][j];
