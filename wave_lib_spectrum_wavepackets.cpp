@@ -139,8 +139,12 @@ void wave_lib_spectrum::wavepackets_parameters(lexer *p)
 	}
 	
 	// Focused Phases
+
     for(int n=0;n<p->wN;++n)
-	ei[n]  = ki[n]*p->B81_1 - wi[n]*p->B81_2;
+    {
+        ei[n]  = ki[n]*p->B81_1 - wi[n]*p->B81_2;
+    }
+
     
     // Group Velocities
     double duration,duration_tot;
