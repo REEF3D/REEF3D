@@ -48,13 +48,13 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
         
 		
 		// UVEL
-		for(n=0;n<gcawa1_count;++n)
+		for(n=0;n<p->gcslawa1_count;++n)
 		{
-		i=gcawa1[n][0];
-		j=gcawa1[n][1];
+		i=p->gcslawa1[n][0];
+		j=p->gcslawa1[n][1];
 		
 		ii=0;
-		if(gcawa1[n][3]==4)
+		if(p->gcslawa1[n][2]==4)
 		ii=1;
 		
 		wsf=wsfmax[i+ii][j];
@@ -64,8 +64,13 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 		eta_M = wsf-p->wd; 
 		eta_R = eta_M-eta_T;
         
-        //cout<<p->mpirank<<" eta_R: "<<eta_R<<" eta_M: "<<eta_M<<"   wsf: "<<wsf<<endl;
+        if(eta_R>=0.0)
+		fac1=1.0;
 		
+		if(eta_R<0.0)
+		fac1=0.0;
+        //cout<<p->mpirank<<" eta_R: "<<eta_R<<" eta_M: "<<eta_M<<"   wsf: "<<wsf<<endl;
+		/*
 		count=0;
 		uvel=vvel=0.0;
 		KLOOP
@@ -83,8 +88,8 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
         
         // vertical sum uvel and vvel !
 		
-		uvel=uvel/double(count);
-		vvel=vvel/double(count);
+		uvel = uvel/double(count);
+		vvel = vvel/double(count);
 		uabs = sqrt(uvel*uvel + vvel*vvel);
 		
 
@@ -93,53 +98,44 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
         
         fx=(uvel/(uabs>1.0e-10?uabs:1.0e20));
         
-
-		if(eta_R>=0.0)
-		fac1=1.0;
-		
-		if(eta_R<0.0)
-		fac1=0.0;
 		
 		aa=bb=0;
-<<<<<<< HEAD
-		if(gcawa1[n][2]==1)
-=======
 		if(p->gcslawa1[n][3]==1)
->>>>>>> parent of d9d77d0... Revert "active beach"
         {
 		aa=-1;
 		fx*=-1.0;
         }
         
-<<<<<<< HEAD
-		if(gcawa1[n][2]==4)
-		aa=1;
-		
-		if(gcawa1[n][2]==3)
-=======
 		if(p->gcslawa1[n][3]==4)
 		aa=1;
 		
 		if(p->gcslawa1[n][3]==3)
->>>>>>> parent of d9d77d0... Revert "active beach"
         {
 		bb=-1;
         fx*=-0.0;
         }
 		
-<<<<<<< HEAD
-		if(gcawa1[n][2]==2)
-=======
 		if(p->gcslawa1[n][3]==2)
->>>>>>> parent of d9d77d0... Revert "active beach"
         {
 		bb=1;
         fx*=-1.0;
         }
-        
+        */
+        aa=bb=0;
+		if(p->gcslawa1[n][2]==1)
+		aa=-1;
+
+		if(p->gcslawa1[n][2]==4)
+		aa=1;
+		
+		if(p->gcslawa1[n][2]==3)
+		bb=-1;
+ 
+		if(p->gcslawa1[n][2]==2)
+		bb=1;
+
         fx=1.0;
         
-
 			if(wsf>-1.0e20)
 			KLOOP 
 			{
@@ -211,7 +207,15 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 		eta_T = 0.0;
 		eta_M = wsf-p->wd; 
 		eta_R = eta_M-eta_T;
+        
+        if(eta_R>=0.0)
+		fac1=1.0;
 		
+		if(eta_R<0.0)
+		fac1=0.0;
+		
+		
+        /*
 		count=0;
 		uvel=vvel=0.0;
 		KLOOP
@@ -260,12 +264,24 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
         {
 		bb=1;
         fy*=-1.0;
-        }
+        }*/
+        
+        aa=bb=0;
+		if(p->gcslawa2[n][2]==1)
+		aa=-1;
+		
+		if(p->gcslawa2[n][2]==4)
+		aa=1;
+		
+		if(p->gcslawa2[n][2]==3)
+		bb=-1;
+		
+		if(p->gcslawa2[n][2]==2)
+		bb=1;
+ 
         
         fy=0.0; // !
-        
-        if(fabs(fy)<0.05)
-        fy=0.0;
+ 
 
 
 			if(wsf>-1.0e20)
@@ -398,10 +414,10 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
         // NSEWAVE
         
         if(p->A10==4)
-        for(n=0;n<gcawa1_count;++n)
+        for(n=0;n<p->gcslawa1_count;++n)
 		{
-		i=gcawa1[n][0];
-		j=gcawa1[n][1];
+		i=p->gcslawa1[n][0];
+		j=p->gcslawa1[n][1];
             
             a->P(i+1,j)=0.0;
             double d=0.0;
