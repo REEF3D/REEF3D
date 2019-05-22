@@ -26,89 +26,51 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void iowave::active_beach_fnpf(lexer *p, ghostcell* pgc, double *Fi, double *Uout, slice &Fifsf, slice &eta)
 {
-    /*
-		double eta_R,Uc,Un,Vc,Wc,eta_T,eta_M,wsf;
+        double eta_R,Uc,Un,Vc,Wc,eta_T,eta_M,wsf;
 		double posx,posy,posz,uvel,vvel,uabs,fx,fy,pval,fp;
         double fxdir,fydir;
 		double x=0.0;
 		double z=0.0;
 		double fac1,fac,multiplier;
 		int aa,bb,ii,jj;
-        
-		
-		// Fi
-		for(n=0;n<gcawa4_count;n++)
+
+		// UVEL
+		for(n=0;n<p->gcslout_count;++n)
 		{
-		i=gcawa4[n][0];
-		j=gcawa4[n][1];
+		i=p->gcslout[n][0];
+		j=p->gcslout[n][1];
 		
-		wsf=wsfmax[i+ii][j];
-		
+		ii=0;
+		if(p->gcslout[n][3]==4)
+		ii=1;
 		
 		eta_T = 0.0;
 		eta_M = wsf-p->wd; 
 		eta_R = eta_M-eta_T;
         
-        //cout<<p->mpirank<<" eta_R: "<<eta_R<<" eta_M: "<<eta_M<<"   wsf: "<<wsf<<endl;
-		
-		count=0;
-		uvel=vvel=0.0;
-		KLOOP
-        PCHECK
-        {
-			posx=p->XN[IP1];
-			posy=p->YP[JP];
-			posz=p->ZP[KP];
-
-             uvel+=p->ccipol1(a->u,posx,posy,posz);
-			  vvel+=p->ccipol2(a->v,posx,posy,posz);
-			
-			++count;
-        }
-        
-        // vertical sum uvel and vvel !
-		
-		uvel=uvel/double(count);
-		vvel=vvel/double(count);
-		uabs = sqrt(uvel*uvel + vvel*vvel);
-		
-
-		Uc=fx=fy=0.0;
-		
-        
-        fx=(uvel/(uabs>1.0e-10?uabs:1.0e20));
-        
-
-		if(eta_R>=0.0)
+        if(eta_R>=0.0)
 		fac1=1.0;
 		
 		if(eta_R<0.0)
 		fac1=0.0;
-		
-		aa=bb=0;
-		if(gcawa1[n][2]==1)
-        {
+        //cout<<p->mpirank<<" eta_R: "<<eta_R<<" eta_M: "<<eta_M<<"   wsf: "<<wsf<<endl;
+
+
+        aa=bb=0;
+		if(p->gcslout[n][3]==1)
 		aa=-1;
-		fx*=-1.0;
-        }
-        
-		if(gcawa1[n][2]==4)
+		
+		if(p->gcslout[n][3]==4)
 		aa=1;
 		
-		if(gcawa1[n][2]==3)
-        {
+		if(p->gcslout[n][3]==3)
 		bb=-1;
-        fx*=-0.0;
-        }
 		
-		if(gcawa1[n][2]==2)
-        {
+		if(p->gcslout[n][3]==2)
 		bb=1;
-        fx*=-1.0;
-        }
-        
-        fx=1.0;
 
+        fx=1.0;
+        
 			if(wsf>-1.0e20)
 			KLOOP 
 			{
@@ -162,27 +124,26 @@ void iowave::active_beach_fnpf(lexer *p, ghostcell* pgc, double *Fi, double *Uou
 				}
 			}
 		}
-
-		
+	
 		//-----------------------------------------------		
 		// PRESSURE
-		for(n=0;n<gcawa4_count;n++)
+		for(n=0;n<p->gcslout_count;n++)
 		{
-		i=gcawa4[n][0];
-		j=gcawa4[n][1];
+		i=p->gcslout[n][0];
+		j=p->gcslout[n][1];
 		
 		aa=bb=0;
 		
-		if(gcawa4[n][2]==1)
+		if(p->gcslout[n][3]==1)
 		aa=-1;
 		
-		if(gcawa4[n][2]==4)
+		if(p->gcslout[n][3]==4)
 		aa=1;
 		
-		if(gcawa4[n][2]==3)
+		if(p->gcslout[n][3]==3)
 		bb=-1;
 		
-		if(gcawa4[n][2]==2)
+		if(p->gcslout[n][3]==2)
 		bb=1;
 				
 		wsf=wsfmax[i][j];
@@ -209,6 +170,8 @@ void iowave::active_beach_fnpf(lexer *p, ghostcell* pgc, double *Fi, double *Uou
     
         //r=1.0;
 
+		//cout<<p->mpirank<<" eta_R: "<<eta_R<<" x: "<<x<<" r: "<<r<<endl;
+		
 			//if(wsf>-1.0e20)
 			KLOOP 
 			{
@@ -233,7 +196,6 @@ void iowave::active_beach_fnpf(lexer *p, ghostcell* pgc, double *Fi, double *Uou
 			}		
 		}
         
-        
-        */
+
       
 }
