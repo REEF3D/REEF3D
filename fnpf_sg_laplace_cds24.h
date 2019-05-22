@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -19,17 +19,28 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"iowave.h"
-#include"lexer.h"
-#include"ghostcell.h"
- 
-void iowave::inflow_fnpf(lexer *p, ghostcell *pgc, double *Fi, double *Uin, slice &Fifsf, slice &eta)
+#include"fnpf_sg_laplace.h"
+#include"increment.h"
+
+class fnpf_sg_bed_update;
+
+#ifndef FNPF_SG_LAPLACE_CDS24_H_
+#define FNPF_SG_LAPLACE_CDS24_H_
+
+using namespace std;
+
+class fnpf_sg_laplace_cds24 : public fnpf_sg_laplace, public increment
 {
+public:
+    fnpf_sg_laplace_cds24 (lexer*);
+	virtual ~fnpf_sg_laplace_cds24();
+
+    virtual void start(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_sg_fsf*,double*);
     
-    if(p->B98==3)
-	dirichlet_wavegen_fnpf(p,pgc,Fi,Uin,Fifsf,eta);
+private:
     
-    
-    if(p->B99==3||p->B99==4||p->B99==5)
-	active_beach_fnpf(p,pgc,Fi,Uin,Fifsf,eta);
-}
+    double **ckx,**cky,**ckz;
+    fnpf_sg_bed_update *pbed;
+};
+
+#endif

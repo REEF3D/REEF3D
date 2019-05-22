@@ -158,6 +158,14 @@ void driver::driver_ini_fnpf_sg()
     c->bc(i-1,j) = 1;
     }
     
+    for(n=0;n<p->gcslout_count;n++)
+    {
+    i=p->gcslout[n][0];
+    j=p->gcslout[n][1];
+
+    c->bc(i+1,j) = 2;
+    }
+    
     // 2D mesh
    count=0;
 	p->pointnum2D=0;

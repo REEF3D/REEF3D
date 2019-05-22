@@ -24,8 +24,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-void iowave::active_beach_fnpf(lexer *p, ghostcell* pgc, double *Fi, double *Uout, slice &Fifsf, slice &eta)
+void iowave::active_beach_fnpf(lexer *p, ghostcell* pgc, double *Fi, double *Uin, slice &Fifsf, slice &eta)
 {
+    
         double eta_R,Uc,Un,Vc,Wc,eta_T,eta_M,wsf;
 		double posx,posy,posz,uvel,vvel,uabs,fx,fy,pval,fp;
         double fxdir,fydir;
@@ -34,7 +35,7 @@ void iowave::active_beach_fnpf(lexer *p, ghostcell* pgc, double *Fi, double *Uou
 		double fac1,fac,multiplier;
 		int aa,bb,ii,jj;
 
-		// UVEL
+		// U / FI
 		for(n=0;n<p->gcslout_count;++n)
 		{
 		i=p->gcslout[n][0];
@@ -45,15 +46,10 @@ void iowave::active_beach_fnpf(lexer *p, ghostcell* pgc, double *Fi, double *Uou
 		ii=1;
 		
 		eta_T = 0.0;
-		eta_M = wsf-p->wd; 
+		eta_M = eta(i,j); 
 		eta_R = eta_M-eta_T;
         
-        if(eta_R>=0.0)
-		fac1=1.0;
-		
-		if(eta_R<0.0)
-		fac1=0.0;
-        //cout<<p->mpirank<<" eta_R: "<<eta_R<<" eta_M: "<<eta_M<<"   wsf: "<<wsf<<endl;
+        cout<<p->mpirank<<" eta_R: "<<eta_R<<" eta_M: "<<eta_M<<"   eta: "<<eta(i,j)<<endl;
 
 
         aa=bb=0;
@@ -70,15 +66,12 @@ void iowave::active_beach_fnpf(lexer *p, ghostcell* pgc, double *Fi, double *Uou
 		bb=1;
 
         fx=1.0;
-        
+            
+            
 			if(wsf>-1.0e20)
-			KLOOP 
+			FKLOOP 
 			{
-				if(p->pos_z()<=p->phimean)
-				z=-(fabs(p->phimean-p->pos_z()));
-				
-				if(p->pos_z()>p->phimean)
-				z=(fabs(p->phimean-p->pos_z()));
+				z=p->ZSN[FIJK]-p->phimean;
 				
 				if(p->B99==3)
 				Uc=eta_R*sqrt(9.81/p->wd);
@@ -100,102 +93,17 @@ void iowave::active_beach_fnpf(lexer *p, ghostcell* pgc, double *Fi, double *Uou
                }
                    
 
-				if(z<=eta_M)
-				{
-				u(i+1*aa,j+1*bb,k)=Uc*fx;
-				u(i+2*aa,j+2*bb,k)=Uc*fx;
-				u(i+3*aa,j+3*bb,k)=Uc*fx;
-				}
-
-				if(z>=eta_M && z<eta_M+p->F45*p->DZP[KP])
-				{
-				fac=p->B122*(1.0 - fabs(a->phi(i-1,j,k))/p->F45*p->DZP[KP]);
-				
-				u(i+1*aa,j+1*bb,k)=Uc*fx*fac*fac1;
-				u(i+2*aa,j+2*bb,k)=Uc*fx*fac*fac1;
-				u(i+3*aa,j+3*bb,k)=Uc*fx*fac*fac1;
-				}
-
-				if(z>=eta_M+p->F45*p->DZP[KP])
-				{
-				u(i+1*aa,j+1*bb,k)=0.0;
-				u(i+2*aa,j+2*bb,k)=0.0;
-				u(i+3*aa,j+3*bb,k)=0.0;
-				}
+				Uin[FIp1JK]=Uc*fx;
 			}
-		}
-	
-		//-----------------------------------------------		
-		// PRESSURE
-		for(n=0;n<p->gcslout_count;n++)
-		{
-		i=p->gcslout[n][0];
-		j=p->gcslout[n][1];
-		
-		aa=bb=0;
-		
-		if(p->gcslout[n][3]==1)
-		aa=-1;
-		
-		if(p->gcslout[n][3]==4)
-		aa=1;
-		
-		if(p->gcslout[n][3]==3)
-		bb=-1;
-		
-		if(p->gcslout[n][3]==2)
-		bb=1;
-				
-		wsf=wsfmax[i][j];
-        
-        
-        
-        eta_T = 0.0;
-        eta_M = wsf-p->wd; 
-        eta_R = fabs(eta_M-eta_T);
-        
-        double r=0.0;
-        
-        double wH=0.25*p->wH;
-    
-        if(p->B92>30)
-        wH=0.25*p->wHs;
-        
-        wH=MAX(wH,0.5*p->DXM);
+            
+            
+        Fifsf(i+1,j) = Fifsf(i,j) + Uc*fx*1.0*p->DXP[IM1];
+        Fifsf(i+2,j) = Fifsf(i,j) + Uc*fx*2.0*p->DXP[IM1];
+        Fifsf(i+3,j) = Fifsf(i,j) + Uc*fx*3.0*p->DXP[IM1];
 
-        x=fabs(eta_R/(fabs(wH)>1.0e-20?wH:1.0e20));
-        x=MIN(x,1.0);
-        
-        r = -2.0*x*x*x + 3.0*x*x;
-    
-        //r=1.0;
-
-		//cout<<p->mpirank<<" eta_R: "<<eta_R<<" x: "<<x<<" r: "<<r<<endl;
-		
-			//if(wsf>-1.0e20)
-			KLOOP 
-			{
-                            
-                
-			if(p->B78==1)
-			pval=(wsf - p->pos_z()+0.5*p->DZP[KP])*a->ro(i,j,k)*fabs(p->W22);
-			
-			if(p->B78==2)
-			pval=(p->wd - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
-			
-			if(p->B78==3)
-			pval=a->press(i,j,k);
-			
-			a->press(i+1*aa,j+1*bb,k)=r*pval + (1.0-r)*a->press(i,j,k);
-			a->press(i+2*aa,j+2*bb,k)=r*pval + (1.0-r)*a->press(i,j,k);
-			a->press(i+3*aa,j+3*bb,k)=r*pval + (1.0-r)*a->press(i,j,k);
-			
-			a->w(i+1*aa,j+1*bb,k)=0.0;
-			a->w(i+2*aa,j+2*bb,k)=0.0;
-			a->w(i+3*aa,j+3*bb,k)=0.0;
-			}		
 		}
         
+
 
       
 }

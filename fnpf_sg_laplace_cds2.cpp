@@ -145,6 +145,13 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             c->M.n[n] = 0.0;
             }
             
+            if(p->flag7[FIp1JK]<0 && c->bc(i+1,j)==2)
+            {
+            c->rhsvec.V[n] -= c->M.n[n]*c->Uin[FIp1JK]*p->DXP[IP1];
+            c->M.p[n] += c->M.n[n];
+            c->M.n[n] = 0.0;
+            }
+            
 
             // est
             if(p->flag7[FIJm1K]<0 && c->wet(i,j-1)==1)
