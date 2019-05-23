@@ -70,6 +70,12 @@ wave_lib_irregular_2nd_b::wave_lib_irregular_2nd_b(lexer *p, ghostcell *pgc) : w
     
     singamma = sin((p->B105_1)*(PI/180.0));
     cosgamma = cos((p->B105_1)*(PI/180.0));
+    
+    p->Darray(sinhkd,p->wN);
+
+    for(n=0;n<p->wN;++n)
+    sinhkd[n] = sinh(ki[n]*wd);
+
 }
 
 wave_lib_irregular_2nd_b::~wave_lib_irregular_2nd_b()
@@ -87,7 +93,7 @@ double wave_lib_irregular_2nd_b::wave_u(lexer *p, double x, double y, double z)
 	
 	// 1st-order
 	for(n=0;n<p->wN;++n)
-    vel += wi[n]*Ai[n]* (cosh(ki[n]*(wd+z))/sinh(ki[n]*wd) ) * cos(Ti[n]) * cosbeta[n];
+    vel += wi[n]*Ai[n]*(cosh(ki[n]*(wd+z))/sinhkd[n] ) * cos(Ti[n]) * cosbeta[n];
     
     // 2nd-order
     for(n=0;n<p->wN-1;++n)
@@ -108,7 +114,8 @@ double wave_lib_irregular_2nd_b::wave_u(lexer *p, double x, double y, double z)
      denom3 = fabs(denom3)>1.0e-20?denom3:1.0e20;
      
      vel += ki[n]*Ai[n]*Ai[n]*((Gplus[n][n]*cosh(2.0*ki[n]*(z+wd)))/denom3)*cos(2.0*Ti[n]);
-    }    
+    } 
+   
     if(p->B130==0)
     vel*=cosgamma;
 	
@@ -126,7 +133,7 @@ double wave_lib_irregular_2nd_b::wave_v(lexer *p, double x, double y, double z)
 	
 	// 1st-order
 	for(n=0;n<p->wN;++n)
-    vel += wi[n]*Ai[n]* (cosh(ki[n]*(wd+z))/sinh(ki[n]*wd) ) * cos(Ti[n]) * sinbeta[n];
+    vel += wi[n]*Ai[n]* (cosh(ki[n]*(wd+z))/sinhkd[n] ) * cos(Ti[n]) * sinbeta[n];
     
     // 2nd-order
     for(n=0;n<p->wN-1;++n)
@@ -172,7 +179,7 @@ double wave_lib_irregular_2nd_b::wave_w(lexer *p, double x, double y, double z)
     
     // 1st-order
 	for(n=0;n<p->wN;++n)
-    vel += wi[n]*Ai[n]* (sinh(ki[n]*(wd+z))/sinh(ki[n]*wd) ) * sin(Ti[n]);
+    vel += wi[n]*Ai[n]* (sinh(ki[n]*(wd+z))/sinhkd[n] ) * sin(Ti[n]);
     
     // 2nd-order
     for(n=0;n<p->wN-1;++n)
@@ -212,7 +219,7 @@ double wave_lib_irregular_2nd_b::wave_eta(lexer *p, double x, double y)
     // 2nd-order
     for(n=0;n<p->wN-1;++n)
     for(m=n+1;m<p->wN;++m)
-    eta +=  Ai[n]*Ai[m]*Hplus[n][m]*cos(Ti[n]+Ti[m]) 
+    eta +=  Ai[n]*Ai[m]*Hplus[n][m]*cos(Ti[n]+Ti[m])
           + Ai[n]*Ai[m]*Hminus[n][m]*cos(Ti[n]-Ti[m]);
     
     for(n=0;n<p->wN;++n)
@@ -230,19 +237,15 @@ double wave_lib_irregular_2nd_b::wave_fi(lexer *p, double x, double y, double z)
 	
 	// 1st-order
 	for(n=0;n<p->wN;++n)
-    fi +=  ((wi[n]*Ai[n])/ki[n])*(cosh(ki[n]*(wd+z))/sinh(ki[n]*wd) ) * sin(Ti[n]);
+    fi +=  ((wi[n]*Ai[n])/ki[n])*(cosh(ki[n]*(wd+z))/sinhkd[n] ) * sin(Ti[n]);
+    
     
     // 2nd-order
     for(n=0;n<p->wN-1;++n)
     for(m=n+1;m<p->wN;++m)
     {
-    denom1 = Dplus[n][m]*cosh((ki[n]+ki[m])*wd);
-    denom2 = Dminus[n][m]*cosh((ki[n]-ki[m])*wd);
-    denom1 = fabs(denom1)>1.0e-20?denom1:1.0e20;
-    denom2 = fabs(denom2)>1.0e-20?denom2:1.0e20;
-    
-    fi += (ki[n]+ki[m])*Ai[n]*Ai[m]*((Aplus[n][m]*cosh((ki[n]+ki[m])*(z+wd)))/denom1)*sin(Ti[n]+Ti[m])*(sinbeta[n]*cosbeta[m] + cosbeta[n]*sinbeta[m])
-        +  (ki[n]-ki[m])*Ai[n]*Ai[m]*((Aminus[n][m]*cosh((ki[n]-ki[m])*(z+wd)))/denom2)*sin(Ti[n]-Ti[m])*(sinbeta[n]*cosbeta[m] - cosbeta[n]*sinbeta[m]);
+    fi += Ai[n]*Ai[m]*((Aplus[n][m]*cosh((ki[n]+ki[m])*(z+wd))))*sin(Ti[n]+Ti[m])*(sinbeta[n]*cosbeta[m] + cosbeta[n]*sinbeta[m])
+        + Ai[n]*Ai[m]*((Aminus[n][m]*cosh((ki[n]-ki[m])*(z+wd))))*sin(Ti[n]-Ti[m])*(sinbeta[n]*cosbeta[m] - cosbeta[n]*sinbeta[m]);
     }
     
     for(n=0;n<p->wN;++n)
@@ -282,6 +285,8 @@ void wave_lib_irregular_2nd_b::parameters(lexer *p, ghostcell *pgc)
     Fminus[n][m] = wave_F_minus(wi[n],wi[m],ki[n],ki[m]);
     Hplus[n][m] = wave_H_plus(wi[n],wi[m],ki[n],ki[m]);
     Hminus[n][m] = wave_H_minus(wi[n],wi[m],ki[n],ki[m]);
+    
+    //cout<<"k: "<<ki[n]<<" "<<ki[m]<<" w: "<<wi[n]<<" "<<wi[m]<<" H+-: "<<Hplus[n][m]<<" "<<Hminus[n][m]<<" F+-: "<<Fplus[n][m]<<" "<<Fminus[n][m]<<endl;
     }
     
     
@@ -299,20 +304,19 @@ void wave_lib_irregular_2nd_b::parameters(lexer *p, ghostcell *pgc)
     }
 }
 
-
 double wave_lib_irregular_2nd_b::wave_A_plus(double w1, double w2, double k1, double k2)
 {
     double A;
     
     double denom1,denom2;
 	
-	denom1 = wave_D_plus(w1,w2,k1,k2);
+	denom1 = -wave_D_plus(w1,w2,k1,k2);
     denom2 = tanh(k1*wd)*tanh(k2*wd);
     
     denom1 = fabs(denom1)>1.0e-20?denom1:1.0e20;
     denom2 = fabs(denom1)>1.0e-20?denom1:1.0e20;
 	
-	A = -((w1*w2)*(w1+w2)/denom1)*(1.0-1.0/denom2) + (0.5/denom1)*(pow(w1,3.0)/pow(sinh(k1*wd),2.0) + pow(w1,3.0)/pow(sinh(k1*wd),2.0));
+	A = -((w1*w2)*(w1+w2)/denom1)*(1.0-1.0/denom2) + (0.5/denom1)*(pow(w1,3.0)/pow(sinh(k1*wd),2.0) + pow(w2,3.0)/pow(sinh(k2*wd),2.0));
 	
     return A;
 }
@@ -323,13 +327,13 @@ double wave_lib_irregular_2nd_b::wave_A_minus(double w1, double w2, double k1, d
     
     double denom1,denom2;
 	
-	denom1 = wave_D_minus(w1,w2,k1,k2);
+	denom1 = -wave_D_minus(w1,w2,k1,k2);
     denom2 = tanh(k1*wd)*tanh(k2*wd);
     
     denom1 = fabs(denom1)>1.0e-20?denom1:1.0e20;
     denom2 = fabs(denom1)>1.0e-20?denom1:1.0e20;
 	
-	A = ((w1*w2)*(w1-w2)/denom1)*(1.0+1.0/denom2) + (0.5/denom1)*(pow(w1,3.0)/pow(sinh(k1*wd),2.0) - pow(w1,3.0)/pow(sinh(k1*wd),2.0));
+	A = ((w1*w2)*(w1-w2)/denom1)*(1.0+1.0/denom2) + (0.5/denom1)*(pow(w1,3.0)/pow(sinh(k1*wd),2.0) - pow(w2,3.0)/pow(sinh(k2*wd),2.0));
 	
     return A;
 }

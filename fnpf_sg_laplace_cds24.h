@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -19,58 +19,28 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-class lexer;
-class fdm;
-class ghostcell;
-
+#include"fnpf_sg_laplace.h"
 #include"increment.h"
 
-#ifndef WAVE_LIB_PARAMETERS_H_
-#define WAVE_LIB_PARAMETERS_H_
+class fnpf_sg_bed_update;
+
+#ifndef FNPF_SG_LAPLACE_CDS24_H_
+#define FNPF_SG_LAPLACE_CDS24_H_
 
 using namespace std;
 
-class wave_lib_parameters : public increment
+class fnpf_sg_laplace_cds24 : public fnpf_sg_laplace, public increment
 {
 public:
-    wave_lib_parameters(lexer*, ghostcell*);
-	virtual ~wave_lib_parameters();
-    
-    double sinhfunc(double);
-    double coshfunc(double);
-    
-    double sinfunc(double);
-    double cosfunc(double);
-    
-    double teta;
-    double wk,ww,wd,wa,wH,wL,wf,wT,wL0,k0,S0;
-    double wk_temp,ww_temp,wL_temp,wT_temp,wf_temp;
-    
-    
-    double eps,c0,c2,c4; 
-    double S,C;
-    double wC,ubar;
-    double wS;
-    
-    double X0;
-	
-    const double pshift;
-	
-    
-private: 
+    fnpf_sg_laplace_cds24 (lexer*);
+	virtual ~fnpf_sg_laplace_cds24();
 
-	
-    int wtype;
-    double diff;
+    virtual void start(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_sg_fsf*,double*);
     
-    double f,r,s;
-    int factorial,q;
-    const int order;
+private:
     
-    double *factcos;
-	
-    
-
+    double **ckx,**cky,**ckz;
+    fnpf_sg_bed_update *pbed;
 };
 
 #endif

@@ -74,6 +74,9 @@ public:
 private:
     double singamma,cosgamma;    
     double T,vel,eta,fi;
+    
+    double *sinhkd;
+    double **fixy,*fin;
 };
 
 #endif

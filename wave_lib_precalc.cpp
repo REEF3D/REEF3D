@@ -120,6 +120,21 @@ double wave_lib_precalc::wave_eta_time_cos(lexer *p, int n)
 }
 
 // FI -------------------------------------------------------------
+void wave_lib_precalc::wave_fi_precalc_xy_ini(lexer*,int)
+{
+    
+}
+
+void wave_lib_precalc::wave_fi_precalc_xy(lexer*,double,double,int)
+{
+    
+}
+
+void wave_lib_precalc::wave_fi_precalc_n(lexer*)
+{
+    
+}
+    
 double wave_lib_precalc::wave_fi_space_sin(lexer *p, double x, double y, double z, int n)
 {
     

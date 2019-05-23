@@ -166,6 +166,9 @@ iowave::iowave(lexer *p, ghostcell *pgc) : wave_interface(p,pgc),flowfile_in(p,p
 	p->Iarray(gcawa2, gcawa2_count, 4); 
 	p->Iarray(gcawa3, gcawa3_count, 4); 
 	p->Iarray(gcawa4, gcawa4_count, 4); 
+    p->Darray(Uoutval,gcawa4_count);
+    p->Darray(Fioutval, gcawa4_count);
+    p->Darray(Fifsfoutval, gcawa4_count);
 	
 	gcgen1_count=gcgen2_count=gcgen3_count=gcgen4_count=1;
 	p->Iarray(gcgen1, gcgen1_count, 4); 

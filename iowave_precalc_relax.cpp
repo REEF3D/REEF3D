@@ -37,25 +37,6 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
 		db = distbeach(p);
 		
 		// Wave Generation
-        if(p->B98==1 && h_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-            eta(i,j) = wave_eta(p,pgc,xg,yg);
-            etaval[count] = eta(i,j);
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2+3.0*p->dx)
-            {
-            eta(i,j) = wave_eta(p,pgc,xg,yg);
-            etaval[count] = eta(i,j);
-            ++count;
-            }
-		}
-
         if(p->B98==2 && h_switch==1)
         {
             // Zone 1
@@ -94,33 +75,6 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
         z = 0.5*(eta(i,j)+eta(i+1,j));
 		
 		// Wave Generation
-        if(p->B98==1 && u_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-            if(zloc1<=fsfloc+epsi)
-            uval[count] = wave_u(p,pgc,xg,yg,z);
-            
-            if(zloc1>fsfloc+epsi)
-            uval[count] = 0.0;
-            
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            {
-            if(zloc1<=fsfloc+epsi)
-            uval[count] = wave_u(p,pgc,xg,yg,z);
-            
-            if(zloc1>fsfloc+epsi)
-            uval[count] =  0.0;
-        
-            ++count;
-			}
-		}
-		
 		if(p->B98==2 && u_switch==1)
         {
             // Zone 1
@@ -162,33 +116,6 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
         z = 0.5*(eta(i,j)+eta(i,j+1));
 
 		// Wave Generation
-        if(p->B98==1 && v_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-            if(zloc2<=fsfloc+epsi)
-            vval[count] = wave_v(p,pgc,xg,yg,z);
-            
-            if(zloc2>fsfloc+epsi)
-            vval[count] = 0.0;
-            
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            {
-            if(zloc2<=fsfloc+epsi)
-            vval[count] = wave_v(p,pgc,xg,yg,z);
-            
-            if(zloc2>fsfloc+epsi)
-            vval[count] = 0.0;
-            
-            ++count;
-            }
-		}
-		
 		if(p->B98==2 && v_switch==1)
         {
             // Zone 1
@@ -230,34 +157,7 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
         z = eta(i,j);
 
 
-		// Wave Generation
-        if(p->B98==1 && w_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-            if(zloc3<=fsfloc+epsi)
-            wval[count] = wave_w(p,pgc,xg,yg,z);
-            
-            if(zloc3>fsfloc+epsi)
-            wval[count] = 0.0;
-            
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            {
-            if(zloc3<=fsfloc+epsi)
-            wval[count] = wave_w(p,pgc,xg,yg,z);
-            
-            if(zloc3>fsfloc+epsi)
-            wval[count] = 0.0;
-            
-            ++count;
-            }
-		}
-		
+		// Wave Generation		
 		if(p->B98==2 && w_switch==1)
         {
             // Zone 1
@@ -290,25 +190,6 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
         z=(fabs(p->phimean-p->pos_z()));
 		
 		// Wave Generation
-        if(p->B98==1 && h_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-            lsval[count] = eta(i,j)+p->phimean-p->pos_z();
-            
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            {
-            lsval[count] = eta(i,j)+p->phimean-p->pos_z();
-            
-            ++count;
-            }
-		}
-
         if(p->B98==2 && h_switch==1)
         {
             // Zone 1
@@ -337,23 +218,6 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
         z=p->ZSN[FIJK]-p->phimean;
         
 		// Wave Generation
-        if(p->B98==1 && f_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-            Fival[count] = wave_fi(p,pgc,xg,yg,z);
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            { 
-            Fival[count] = wave_fi(p,pgc,xg,yg,z);
-            ++count;
-            }
-		}
-		
 		if(p->B98==2 && f_switch==1)
         {
             // Zone 1
@@ -391,35 +255,7 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
         z = eta(i,j);
         }
 		
-		// Wave Generation
-        if(p->B98==1 && f_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-            if(zloc4<=fsfloc+epsi)
-            Fival[count] = wave_fi(p,pgc,xg,yg,z);
-            
-            if(zloc4>fsfloc+epsi)
-            Fival[count] = 0.0;
-            
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            { 
-            if(zloc4<=fsfloc+epsi)
-            Fival[count] = wave_fi(p,pgc,xg,yg,z);
-            
-            if(zloc4>fsfloc+epsi)
-            Fival[count] = 0.0;
-            
-            ++count;
-            }
-			
-		}
-		
+		// Wave Generation		
 		if(p->B98==2 && f_switch==1)
         {
             // Zone 1
@@ -451,33 +287,6 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
         z = eta(i,j);
 		
 		// Wave Generation
-        if(p->B98==1 && f_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-            if(zloc4<=fsfloc+epsi || p->A300==1)
-            Fifsfval[count] = wave_fi(p,pgc,xg,yg,z);
-            
-            if(zloc4>fsfloc+epsi && p->A300!=1)
-            Fifsfval[count] = 0.0;
-            
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            { 
-            if(zloc4<=fsfloc+epsi || p->A300==1)
-            Fifsfval[count] = wave_fi(p,pgc,xg,yg,z);
-            
-            if(zloc4>fsfloc+epsi && p->A300!=1)
-            Fifsfval[count] = 0.0;
-            
-            ++count;
-            }
-		}
-		
 		if(p->B98==2 && f_switch==1)
         {
             // Zone 1

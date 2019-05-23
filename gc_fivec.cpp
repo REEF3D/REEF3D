@@ -34,7 +34,7 @@ void ghostcell::fivec(lexer *p, double *f)
         f[FIm3JK] = f[FIJK];
         }
           
-        
+        if(p->B99!=3)
         if(p->flag7[FIp1JK]<0)
         {
         f[FIp1JK] = f[FIJK];

@@ -77,8 +77,6 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
                     + 2.0*p->sigy[FIJK]*(f[FIJp1Kp1] - f[FIJm1Kp1] - f[FIJp1Km1] + f[FIJm1Km1])
                     /((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
                     
-    //if(c->wet(i-1,j)==0 || c->wet(i+1,j)==0 || c->wet(i,j-1)==0 || c->wet(i,j+1)==0) 
-    //c->rhsvec.V[n] = 0.0;
     }
 	++n;
 	}
@@ -123,7 +121,6 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             
             if(c->wet(i-1,j)==0)
             {
-            //c->rhsvec.V[n] -= c->M.s[n]*f[FIJK];
             c->M.p[n] += -1.0/(p->DXP[IM1]*p->DXN[IM1])*p->x_dir;
             c->M.s[n] = 0.0;
             }
@@ -144,8 +141,14 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             
             if(c->wet(i+1,j)==0)
             {
-            //c->rhsvec.V[n] -= c->M.n[n]*f[FIJK];
             c->M.p[n] += -1.0/(p->DXP[IM1]*p->DXN[IP])*p->x_dir;
+            c->M.n[n] = 0.0;
+            }
+            
+            if(p->flag7[FIp1JK]<0 && c->bc(i+1,j)==2)
+            {
+            c->rhsvec.V[n] -= c->M.n[n]*c->Uin[FIp1JK]*p->DXP[IP1];
+            c->M.p[n] += c->M.n[n];
             c->M.n[n] = 0.0;
             }
             
@@ -159,7 +162,6 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             
             if(c->wet(i,j-1)==0)
             {
-            //c->rhsvec.V[n] -= c->M.e[n]*f[FIJK];
             c->M.p[n] += -1.0/(p->DYP[JM1]*p->DYN[JM1])*p->y_dir;
             c->M.e[n] = 0.0;
             }
@@ -174,7 +176,6 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             
             if(c->wet(i,j+1)==0)
             {
-            //c->rhsvec.V[n] -= c->M.w[n]*f[FIJK];
             c->M.p[n] += -1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
             c->M.w[n] = 0.0;
             }

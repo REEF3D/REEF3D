@@ -30,5 +30,6 @@ void iowave::inflow_fnpf(lexer *p, ghostcell *pgc, double *Fi, double *Uin, slic
 	dirichlet_wavegen_fnpf(p,pgc,Fi,Uin,Fifsf,eta);
     
     
-    
+    if(p->B99==3||p->B99==4||p->B99==5)
+	active_beach_fnpf(p,pgc,Fi,Uin,Fifsf,eta);
 }

@@ -48,42 +48,9 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
     count=0;
     SLICELOOP4
     {
-        xg = xgen(p);
-        yg = ygen(p);
 		dg = distgen(p);
 		db = distbeach(p);
-		
-		// Wave Generation
-        if(p->B98==1 && h_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-                eta(i,j) = 0.0;
-                etaval[count] = 0.0;
-            
-                for(qn=0;qn<wave_comp;++qn)
-                {
-                eta(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
-                etaval[count] = eta(i,j);
-                }
-            ++count;
-            }
 
-            // Zone 2
-            if(dg>=dist1 && dg<dist2+3.0*p->dx)
-            {
-                eta(i,j) = 0.0;
-                etaval[count] = 0.0;
-                
-                for(qn=0;qn<wave_comp;++qn)
-                {
-                eta(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
-                etaval[count] = eta(i,j);
-                }
-            ++count;
-            }
-		}
 
         if(p->B98==2 && h_switch==1)
         {
@@ -106,109 +73,60 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
 
     
     count=0;
-    FLOOP
+    int dbcount=0;
+    
+    FILOOP 
+    FJLOOP 
     {
-		
-        xg = xgen(p);
-        yg = ygen(p);
         dg = distgen(p);
 		db = distbeach(p);
         
-        z=p->ZSN[FIJK]-p->phimean;
-		
-		// Wave Generation
-        if(p->B98==1 && u_switch==1)
+        FKLOOP 
+        FPCHECK
         {
-            // Zone 1
-            if(dg<dist1)
-            {
-            Fival[count]=0.0;
-            
-            if(zloc4<=fsfloc+epsi)
-            for(qn=0;qn<wave_comp;++qn)
-            Fival[count] += Fival_S_cos[count][qn]*Fival_T_cos[qn] - Fival_S_sin[count][qn]*Fival_T_sin[qn];
-            
-            if(zloc4>fsfloc+epsi)
-            Fival[count] = 0.0;
-            
-            ++count;
-            }
+        
+        z=p->ZSN[FIJK]-p->phimean;
 
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            {
-            Fival[count]=0.0;
-            
-            if(zloc4<=fsfloc+epsi)
-            for(qn=0;qn<wave_comp;++qn)
-            Fival[count] += Fival_S_cos[count][qn]*Fival_T_cos[qn] - Fival_S_sin[count][qn]*Fival_T_sin[qn];
-            
-            if(zloc4>fsfloc+epsi)
-            Fival[count] = 0.0;
-            
-            ++count;
-            }
-			
-		}
 		
-		if(p->B98==2 && u_switch==1)
+		if(p->B98==2 && f_switch==1)
         {  
             // Zone 1
             if(dg<dist1)
             {
             Fival[count]=0.0;
-            
-            if(zloc4<=fsfloc+epsi)
+                        
             for(qn=0;qn<wave_comp;++qn)
-            Fival[count] += Fival_S_cos[count][qn]*Fival_T_cos[qn] - Fival_S_sin[count][qn]*Fival_T_sin[qn];
+            Fival[count] += Fival_S_cos[count][qn]*Fival_T_sin[qn] + Fival_S_sin[count][qn]*Fival_T_cos[qn];
             
-            if(zloc4>fsfloc+epsi)
-            Fival[count] = 0.0;
+            rb1val[count] = rb1(p,dg);
             
             ++count;
             }
 		}
+        
+        if(p->B99==2||p->B99==4)
+        {
+                // Zone 3
+                if(db<dist3)
+                {
+                rb3val[dbcount] = rb3(p,db);
+                ++dbcount;
+                }
+        }
+            
+        }
     }
-    
-    
-    
+     
     
     // pre-calc every iteration
     count=0;
     SLICELOOP4
     {
-        xg = xgen(p);
-        yg = ygen(p);
 		dg = distgen(p);
 		db = distbeach(p);
 		
 		// Wave Generation
-        if(p->B98==1 && h_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-                Fifsfval[count] = 0.0;
-            
-                for(qn=0;qn<wave_comp;++qn)
-                Fifsfval[count] += Fifsfval_S_cos[count][qn]*Fifsfval_T_cos[qn] - Fifsfval_S_sin[count][qn]*Fifsfval_T_sin[qn];
-
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2+3.0*p->dx)
-            {
-                Fifsfval[count] = 0.0;
-                
-                for(qn=0;qn<wave_comp;++qn)
-                Fifsfval[count] += Fifsfval_S_cos[count][qn]*Fifsfval_T_cos[qn] - Fifsfval_S_sin[count][qn]*Fifsfval_T_sin[qn];
-
-            ++count;
-            }
-		}
-
-        if(p->B98==2 && h_switch==1)
+        if(p->B98==2 && f_switch==1)
         {
             // Zone 1
             if(dg<dist1+3.0*p->dx)
@@ -216,7 +134,7 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
                 Fifsfval[count] = 0.0;
                 
                 for(qn=0;qn<wave_comp;++qn)
-                Fifsfval[count] += Fifsfval_S_cos[count][qn]*Fifsfval_T_cos[qn] - Fifsfval_S_sin[count][qn]*Fifsfval_T_sin[qn];
+                Fifsfval[count] += Fifsfval_S_cos[count][qn]*Fifsfval_T_sin[qn] + Fifsfval_S_sin[count][qn]*Fifsfval_T_cos[qn];
 
             ++count;
             }

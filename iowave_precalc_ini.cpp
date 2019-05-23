@@ -27,7 +27,7 @@ void iowave::wavegen_precalc_ini(lexer *p, ghostcell *pgc)
 {
     if(p->A10!=3)
     {
-        if(p->B98==1 || p->B98==2)
+        if(p->B98==2)
         wavegen_precalc_relax_ini(p,pgc);
         
         if(p->B98==3)
@@ -36,12 +36,11 @@ void iowave::wavegen_precalc_ini(lexer *p, ghostcell *pgc)
     
     if(p->A10==3)
     {
-        if(p->B98==1 || p->B98==2)
+        if(p->B98==2)
         fnpf_precalc_relax_ini(p,pgc);
         
         if(p->B98==3)
         fnpf_precalc_dirichlet_ini(p,pgc);
-
     }
 }
 
@@ -68,17 +67,6 @@ void iowave::wavegen_precalc_relax_ini(lexer *p, ghostcell *pgc)
         dg = distgen(p);
         
         // Wave Generation
-        if(p->B98==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            ++upt_count;
-    
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            ++upt_count;
-		}
-		
 		if(p->B98==2)
         {
             // Zone 1
@@ -95,17 +83,6 @@ void iowave::wavegen_precalc_relax_ini(lexer *p, ghostcell *pgc)
 
         
 		// Wave Generation
-        if(p->B98==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            ++vpt_count;
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            ++vpt_count;
-		}
-		
 		if(p->B98==2)
         {
             // Zone 1
@@ -120,17 +97,6 @@ void iowave::wavegen_precalc_relax_ini(lexer *p, ghostcell *pgc)
 		dg = distgen(p); 
 
 		// Wave Generation
-        if(p->B98==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            ++wpt_count;
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            ++wpt_count;
-		}
-		
 		if(p->B98==2)
         {
             // Zone 1
@@ -146,17 +112,6 @@ void iowave::wavegen_precalc_relax_ini(lexer *p, ghostcell *pgc)
 		dg = distgen(p); 
 
 		// Wave Generation
-        if(p->B98==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            ++ppt_count;
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            ++ppt_count;
-		}
-		
 		if(p->B98==2)
         {
             // Zone 1
@@ -172,17 +127,6 @@ void iowave::wavegen_precalc_relax_ini(lexer *p, ghostcell *pgc)
 		dg = distgen(p); 
 
 		// Wave Generation
-        if(p->B98==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            ++ept_count;
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2+3.0*p->dx)
-            ++ept_count;
-		}
-		
 		if(p->B98==2)
         {
             // Zone 1

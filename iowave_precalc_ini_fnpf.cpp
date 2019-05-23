@@ -50,17 +50,6 @@ void iowave::fnpf_precalc_relax_ini(lexer *p, ghostcell *pgc)
         db = distbeach(p); 
 
 		// Wave Generation
-        if(p->B98==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            ++ppt_count;
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            ++ppt_count;
-		}
-		
 		if(p->B98==2)
         {
             // Zone 1
@@ -82,17 +71,6 @@ void iowave::fnpf_precalc_relax_ini(lexer *p, ghostcell *pgc)
 		dg = distgen(p); 
 
 		// Wave Generation
-        if(p->B98==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            ++ept_count;
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2+3.0*p->dx)
-            ++ept_count;
-		}
-		
 		if(p->B98==2)
         {
             // Zone 1
@@ -127,6 +105,7 @@ void iowave::fnpf_precalc_relax_ini(lexer *p, ghostcell *pgc)
     p->Darray(Fival_T_cos,wave_comp);
     p->Darray(Fifsfval_T_cos,wave_comp);
     }
+
 }
 
 void iowave::fnpf_precalc_dirichlet_ini(lexer *p, ghostcell *pgc)

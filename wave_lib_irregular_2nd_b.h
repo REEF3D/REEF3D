@@ -66,6 +66,9 @@ private:
     double T,vel,eta,fi;
     double denom1,denom2,denom3;
     
+    
+    double *sinhkd;
+    
 };
 
 #endif

@@ -40,25 +40,6 @@ void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
 		db = distbeach(p);
 		
 		// Wave Generation
-        if(p->B98==1 && h_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-            eta(i,j) = wave_eta(p,pgc,xg,yg);
-            etaval[count] = eta(i,j);
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2+3.0*p->dx)
-            {
-            eta(i,j) = wave_eta(p,pgc,xg,yg);
-            etaval[count] = eta(i,j);
-            ++count;
-            }
-		}
-
         if(p->B98==2 && h_switch==1)
         {
             // Zone 1
@@ -94,23 +75,6 @@ void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
         u_val/=double(p->B160+1);
 		
 		// Wave Generation
-        if(p->B98==1 && u_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-            uval[count] = u_val;
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            {
-            uval[count] = u_val;
-            ++count;
-            }
-		}
-		
 		if(p->B98==2 && u_switch==1)
         {
             // Zone 1
@@ -141,24 +105,8 @@ void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
         z+=deltaz;
         }
         v_val/=double(p->B160+1);
+        
 		// Wave Generation
-        if(p->B98==1 && v_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-            vval[count] = v_val;
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            {
-            vval[count] = v_val;
-            ++count;
-            }
-		}
-		
 		if(p->B98==2 && v_switch==1)
         {
             // Zone 1
@@ -192,23 +140,6 @@ void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
         
         
 		// Wave Generation
-        if(p->B98==1 && w_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-            wval[count] = w_val;
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            {
-            wval[count] = w_val;
-            ++count;
-            }
-		}
-		
 		if(p->B98==2 && w_switch==1)
         {
             // Zone 1

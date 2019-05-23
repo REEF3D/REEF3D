@@ -54,37 +54,6 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
 		db = distbeach(p);
 		
 		// Wave Generation
-        if(p->B98==1 && h_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-                eta(i,j) = 0.0;
-                etaval[count] = 0.0;
-            
-                for(qn=0;qn<wave_comp;++qn)
-                {
-                eta(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
-                etaval[count] = eta(i,j);
-                }
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2+3.0*p->dx)
-            {
-                eta(i,j) = 0.0;
-                etaval[count] = 0.0;
-                
-                for(qn=0;qn<wave_comp;++qn)
-                {
-                eta(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
-                etaval[count] = eta(i,j);
-                }
-            ++count;
-            }
-		}
-
         if(p->B98==2 && h_switch==1)
         {
             // Zone 1
@@ -130,40 +99,6 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
         z = 0.5*(eta(i,j)+eta(i+1,j));
 		
 		// Wave Generation
-        if(p->B98==1 && u_switch==1)
-        {
-            
-            // Zone 1
-            if(dg<dist1)
-            {
-            uval[count]=0.0;
-            
-            if(zloc1<=fsfloc+epsi)
-            for(qn=0;qn<wave_comp;++qn)
-            uval[count] += uval_S_cos[count][qn]*uval_T_cos[qn] - uval_S_sin[count][qn]*uval_T_sin[qn];
-            
-            if(zloc1>fsfloc+epsi)
-            uval[count] = 0.0;
-            
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            {
-            uval[count]=0.0;
-            
-            if(zloc1<=fsfloc+epsi)
-            for(qn=0;qn<wave_comp;++qn)
-            uval[count] += uval_S_cos[count][qn]*uval_T_cos[qn] - uval_S_sin[count][qn]*uval_T_sin[qn];
-            
-            if(zloc1>fsfloc+epsi)
-            uval[count] = 0.0;
-            
-            ++count;
-            }
-		}
-		
 		if(p->B98==2 && u_switch==1)
         {
             
@@ -211,39 +146,6 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
         z = 0.5*(eta(i,j)+eta(i,j+1));
 
 		// Wave Generation
-        if(p->B98==1 && v_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-            vval[count]=0.0;
-            
-            if(zloc2<=fsfloc+epsi)
-            for(qn=0;qn<wave_comp;++qn)
-            vval[count] += vval_S_cos[count][qn]*vval_T_cos[qn] - vval_S_sin[count][qn]*vval_T_sin[qn];
-            
-            if(zloc2>fsfloc+epsi)
-            vval[count] = 0.0;
-            
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            {
-            vval[count]=0.0;
-            
-            if(zloc2<=fsfloc+epsi)
-            for(qn=0;qn<wave_comp;++qn)
-            vval[count] += vval_S_cos[count][qn]*vval_T_cos[qn] - vval_S_sin[count][qn]*vval_T_sin[qn];
-            
-            if(zloc2>fsfloc+epsi)
-            vval[count] = 0.0;
-            
-            ++count;
-            }
-		}
-		
 		if(p->B98==2 && v_switch==1)
         {
             // Zone 1
@@ -290,39 +192,6 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
 
 
 		// Wave Generation
-        if(p->B98==1 && w_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-            wval[count]=0.0;
-            
-            if(zloc3<=fsfloc+epsi)
-            for(qn=0;qn<wave_comp;++qn)
-            wval[count] += wval_S_cos[count][qn]*wval_T_sin[qn] + wval_S_sin[count][qn]*wval_T_cos[qn];
-            
-            if(zloc3>fsfloc+epsi)
-            wval[count] = 0.0;
-            
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            {
-            wval[count]=0.0;
-            
-            if(zloc3<=fsfloc+epsi)
-            for(qn=0;qn<wave_comp;++qn)
-            wval[count] += wval_S_cos[count][qn]*wval_T_sin[qn] + wval_S_sin[count][qn]*wval_T_cos[qn];
-            
-            if(zloc3>fsfloc+epsi)
-            wval[count] = 0.0;
-            
-            ++count;
-            }
-		}
-		
 		if(p->B98==2 && w_switch==1)
         {
             // Zone 1
@@ -357,25 +226,6 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
         z=(fabs(p->phimean-p->pos_z()));
 		
 		// Wave Generation
-        if(p->B98==1 && h_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-            lsval[count] = eta(i,j)+p->phimean-p->pos_z();
-            
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            {
-            lsval[count] = eta(i,j)+p->phimean-p->pos_z();
-            
-            ++count;
-            }
-		}
-
         if(p->B98==2 && h_switch==1)
         {
             // Zone 1
@@ -414,41 +264,7 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
         if(zloc4>fsfloc)
         z = eta(i,j);
 		
-		// Wave Generation
-        if(p->B98==1 && u_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-            Fival[count]=0.0;
-            
-            if(zloc4<=fsfloc+epsi)
-            for(qn=0;qn<wave_comp;++qn)
-            Fival[count] += Fival_S_cos[count][qn]*Fival_T_cos[qn] - Fival_S_sin[count][qn]*Fival_T_sin[qn];
-            
-            if(zloc4>fsfloc+epsi)
-            Fival[count] = 0.0;
-            
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            {
-            Fival[count]=0.0;
-            
-            if(zloc4<=fsfloc+epsi)
-            for(qn=0;qn<wave_comp;++qn)
-            Fival[count] += Fival_S_cos[count][qn]*Fival_T_cos[qn] - Fival_S_sin[count][qn]*Fival_T_sin[qn];
-            
-            if(zloc4>fsfloc+epsi)
-            Fival[count] = 0.0;
-            
-            ++count;
-            }
-			
-		}
-		
+		// Wave Generation		
 		if(p->B98==2 && u_switch==1)
         {  
             // Zone 1

@@ -36,17 +36,6 @@ void iowave::wavegen_2D_precalc_ini(lexer *p, ghostcell *pgc)
         dg = distgen(p);
         
         // Wave Generation
-        if(p->B98==1 && u_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            ++upt_count;
-    
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            ++upt_count;
-		}
-		
 		if(p->B98==2 && u_switch==1)
         {
             // Zone 1
@@ -63,17 +52,6 @@ void iowave::wavegen_2D_precalc_ini(lexer *p, ghostcell *pgc)
 
         
 		// Wave Generation
-        if(p->B98==1 && v_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            ++vpt_count;
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            ++vpt_count;
-		}
-		
 		if(p->B98==2 && v_switch==1)
         {
             // Zone 1
@@ -88,17 +66,6 @@ void iowave::wavegen_2D_precalc_ini(lexer *p, ghostcell *pgc)
 		dg = distgen(p); 
 
 		// Wave Generation
-        if(p->B98==1 && w_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            ++wpt_count;
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            ++wpt_count;
-		}
-		
 		if(p->B98==2 && w_switch==1)
         {
             // Zone 1
@@ -114,17 +81,6 @@ void iowave::wavegen_2D_precalc_ini(lexer *p, ghostcell *pgc)
 		dg = distgen(p); 
 
 		// Wave Generation
-        if(p->B98==1 && w_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            ++ept_count;
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2+3.0*p->dx)
-            ++ept_count;
-		}
-		
 		if(p->B98==2 && w_switch==1)
         {
             // Zone 1

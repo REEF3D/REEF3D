@@ -73,6 +73,9 @@ void lexer::lexer_ini()
 	
 	ufbi=vfbi=wfbi=0.0;
 	pfbi=qfbi=rfbi=0.0;
+    
+    if(B98==1)
+    B98=2;
 		
 }
 

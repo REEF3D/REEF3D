@@ -39,25 +39,6 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
 		db = distbeach(p);
 		
 		// Wave Generation
-        if(p->B98==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-            eta(i,j) = wave_eta(p,pgc,xg,yg);
-            etaval[count] = eta(i,j);
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2+3.0*p->dx)
-            {
-            eta(i,j) = wave_eta(p,pgc,xg,yg);
-            etaval[count] = eta(i,j);
-            ++count;
-            }
-		}
-
         if(p->B98==2)
         {
             // Zone 1
@@ -72,6 +53,7 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
     pgc->gcsl_start4(p,eta,50);
     
     
+    // Fi
     count=0;
     dbcount=0;
 
@@ -91,23 +73,6 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
 
             
             // Wave Generation
-            if(p->B98==1 && f_switch==1)
-            {
-                // Zone 1
-                if(dg<dist1)
-                {
-                Fival[count] = wave_fi(p,pgc,xg,yg,z);
-                ++count;
-                }
-
-                // Zone 2
-                if(dg>=dist1 && dg<dist2)
-                { 
-                Fival[count] = wave_fi(p,pgc,xg,yg,z);
-                ++count;
-                }
-            }
-            
             if(p->B98==2 && f_switch==1)
             {
                 // Zone 1
@@ -144,25 +109,6 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
         z = eta(i,j);
 		
 		// Wave Generation
-        if(p->B98==1 && f_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-            Fifsfval[count] = wave_fi(p,pgc,xg,yg,z);
-            
-            ++count;
-            }
-
-            // Zone 2
-            if(dg>=dist1 && dg<dist2)
-            { 
-            Fifsfval[count] = wave_fi(p,pgc,xg,yg,z);
-            
-            ++count;
-            }
-		}
-		
 		if(p->B98==2 && f_switch==1)
         {
             // Zone 1

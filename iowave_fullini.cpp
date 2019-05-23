@@ -183,7 +183,7 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
         if(p->A300==1)
         H=1.0;
 		
-		a->Fi(i,j,k) = wave_fi(p,pgc,xg,0.0,z)*H;
+		a->Fi(i,j,k) = wave_fi(p,pgc,xg,yg,z)*H;
 	}
     
     // eta
