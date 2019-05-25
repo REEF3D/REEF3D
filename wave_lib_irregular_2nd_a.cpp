@@ -65,7 +65,7 @@ wave_lib_irregular_2nd_a::wave_lib_irregular_2nd_a(lexer *p, ghostcell *pgc) : w
     cout<<"Wave Tank: 2nd-order irregular waves A; ";
     cout<<";  Hs: "<<p->wHs<<" Tp: "<<p->wTp<<" wp: "<<p->wwp<<endl;
     if(p->B92>40 && p->B92<50)
-    cout<<"Focused Wave   xF: "<<p->B81_1<<" tF: "<<p->B81_2<<endl;
+    cout<<"Focused Wave   xF: "<< p->B81_1 << " yF: " << p->B81_3 <<" tF: "<<p->B81_2<<endl;
     }
     
     singamma = sin((p->B105_1)*(PI/180.0));

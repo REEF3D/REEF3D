@@ -59,7 +59,6 @@ public:
     void print_amplitude_spectrum(lexer*);
     void print_components(lexer*);
 
-
     double *Si,*Ai,*Li,*ki,*Ti,*wi,*ei,*ww,*cdf,*wee,*dee,*Sn;
     int NN, ND;
 	double wp,ws,we,*dw;

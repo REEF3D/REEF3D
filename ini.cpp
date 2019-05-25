@@ -118,6 +118,7 @@ void lexer::ini_default()
 	B79=1.0;	 // double scale factor for pressure outflow
 	B80=-1.0e9;	 // double height threshold for pressure at outlet
 	B81=0;		 // int focussed wave parameter
+    B81_3=0.0;    // double unidirectional focused wave y is condisered 0
     B82=1;      // int type of focus point and time calculation
 	B83=0.0025;  // double wave steepness parameter for focused breaking waves
     B84=1;       // Peak enhance method
