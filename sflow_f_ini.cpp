@@ -72,10 +72,10 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     
     ptime->ini(p,b ,pgc);
     
-    SLICELOOP4
-    {
-    b->eta(i,j)= -p->A251*(p->XP[IP]-p->global_xmin);
-    }
+    
+    
+    // FSF ini
+    ini_fsf(p,b,pgc);
     
     SLICELOOP4
     b->wet4(i,j)=1;
@@ -83,10 +83,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 	
     pflow->ini2D(p,b,pgc);
 	
-	// eta ini
-	pflow->eta_relax(p,pgc,b->eta);
-    pgc->gcsl_start4(p,b->eta,50);
-    
+	
 	// P,Q ini
 	pflow->um_relax(p,pgc,b->P,b->bed,b->eta);
 	pflow->vm_relax(p,pgc,b->Q,b->bed,b->eta);
@@ -113,14 +110,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 	// depth ini
     
-    if(p->F60>-1.0e20)
-    {
-    p->phimean=p->F60;
-    p->phiout=p->F60;
-    p->wd=p->F60;
-    }
     
-	pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
 
     SLICELOOP4
     b->breaking(i,j)=0;
@@ -131,8 +121,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 	SLICELOOP4		
 	b->ws(i,j) = 0.0;
     
-    SLICELOOP4
-    b->eta_n(i,j) = b->eta(i,j);
+    
 
     
     pgc->gcsl_start4(p,b->eta_n,50);
@@ -148,7 +137,75 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     pgc->gcsl_start4(p,b->bed,50);
     pgc->gcsl_start4(p,b->zb,50);
     
-    // fix outflow fsf
+    
+    
+    
+    
+    //roughness ini
+    SLICELOOP4
+    b->ks(i,j) = p->B50;
+    
+    //sediment ini
+    psed->ini(p,b,pgc);
+	
+    // print
+	print_debug(p,b,pgc);
+    pprint->start(p,b,pgc,pflow);
+
+	pprintbed->start(p,b,pgc);
+    
+    
+    
+    // Boussinesq ini
+    pbouss->ini(p,b,pgc,b->P,b->Q);
+}
+
+
+void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
+{
+    int istart,iend,jstart,jend;
+    
+    // depth
+    if(p->F60>-1.0e20)
+    {
+    p->phimean=p->F60;
+    p->phiout=p->F60;
+    p->wd=p->F60;
+    }
+    
+    // eta plain
+    SLICELOOP4
+    b->eta(i,j)=0.0;
+    
+    // eta slope
+    if(p->A251==1)
+    SLICELOOP4
+    {
+    b->eta(i,j)= -p->A251_val*(p->XP[IP]-p->global_xmin);
+    }
+    
+    // eta box area
+    for(int qn=0;qn<p->F72;++qn)
+    {
+		istart = p->posc_i(p->F72_xs[qn]);
+        iend = p->posc_i(p->F72_xe[qn]);
+        
+        jstart = p->posc_j(p->F72_ys[qn]);
+        jend = p->posc_j(p->F72_ye[qn]);
+
+        SLICELOOP4
+        if(i>=istart && i<iend && j>=jstart && j<jend)
+        b->eta(i,j) = p->F72_h[qn]-p->wd;
+
+	}
+    
+     
+     
+     
+     
+     
+     
+     // fix outflow fsf
     if(p->F62>-1.0e20)
     {
         for(n=0;n<p->gcslout_count;n++)
@@ -194,22 +251,18 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     }
     
     
+   
     
-    //roughness ini
+	pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
+    
+    
+    
+    // eta ini
+	pflow->eta_relax(p,pgc,b->eta);
+    pgc->gcsl_start4(p,b->eta,50);
+    
+    // eta_n ini
     SLICELOOP4
-    b->ks(i,j) = p->B50;
+    b->eta_n(i,j) = b->eta(i,j);
     
-    //sediment ini
-    psed->ini(p,b,pgc);
-	
-    // print
-	print_debug(p,b,pgc);
-    pprint->start(p,b,pgc,pflow);
-
-	pprintbed->start(p,b,pgc);
-    
-    
-    
-    // Boussinesq ini
-    pbouss->ini(p,b,pgc,b->P,b->Q);
 }

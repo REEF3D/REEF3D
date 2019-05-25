@@ -62,7 +62,7 @@ public:
 	void start4V(lexer*,vec&,int);
 	void start4aV(lexer*,vec&,int);
     void start6V(lexer*,vec&,int);
-    void start7V(lexer*,double*, int);
+    void start7V(lexer*,double*,sliceint&, int);
 
 
 	void final();
@@ -408,7 +408,7 @@ public:
 	void fbpress(lexer*,field&,double,int,int,int);
 	void gravity_press(lexer*,field&,double,int,int,int);
     void kinematic_bed(lexer*,field&,double,int,int,int);
-    void fivec(lexer*,double*);
+    void fivec(lexer*,double*,sliceint&);
     void fivec2D(lexer*,double*);
 
 	void gcV_neumann(vec&,int,int,int,int);

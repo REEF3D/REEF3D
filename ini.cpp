@@ -31,8 +31,8 @@ void lexer::ini_default()
 	A212=0;		  // int diffusion treatment for SLOW velocities
     A214=1;      // int convection for vertical velocity
     A215=0;      // int conservative discretization
-    A216=2;      // int convection veolcity
-    A217=1;      // int slip or no-slip boundary conditions
+    A216=2;      // int convection velocity
+    A217=2;      // int slip or no-slip boundary conditions
     A218=0;      // int turn on roughness
     A219=1;      // int additional courant number constraint
 	A220=1;		  // int pressure scheme for SFLOW
@@ -44,18 +44,17 @@ void lexer::ini_default()
 	A241=1;		  // int discretization of water level SFLOW
 	A242=0;		  // int hydostatic pressure for shallow areas
     A243=1;      // int turn on wetting-drying
-    A244=1;      // int absolute wetting criterion
     A244_val=0.00005; // double absolute wetting criterion value
+    A244=1;      // int absolute wetting criterion
     A245=0;      // int dx-based relative wetting citerion
     A245_val=0.001; // double dx-based relative wetting citerion value
     A246=1;      // int turn on breaking
     A247=0.6;    // double breaking parameter alpha
     A248=0;      // int turn on breaking persistence
     A249=0.3;    // double breaking persistence parameter beta
-    A251=0.0;    // double fsf-slope in x-dir
+    A251=0;    // double fsf-slope in x-dir
     A260=0;      // int turbulence model
     A261=0.267;  // double length scale factor
-    A270=0;      // int sediment transport
     
     A300=1;      // int sigma or fixed grid
     A310=3;		  // int time scheme for FNPF velocities

@@ -109,11 +109,11 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     bedbc_sig(p,c,pgc,c->Fi,pf);
     
     // solve Fi
-    pgc->start7V(p,c->Fi,250);
+    pgc->start7V(p,c->Fi,c->bc,250);
     fsfbc_sig(p,c,pgc,frk,c->Fi);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
     pflow->fivec_relax(p,pgc,c->Fi);
-    pgc->start7V(p,c->Fi,250);
+    pgc->start7V(p,c->Fi,c->bc,250);
     pf->fsfwvel(p,c,pgc,erk,frk);
     
     SLICELOOP4
@@ -155,11 +155,11 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     bedbc_sig(p,c,pgc,c->Fi,pf);
     
     // solve Fi
-    pgc->start7V(p,c->Fi,250);
+    pgc->start7V(p,c->Fi,c->bc,250);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
     fsfbc_sig(p,c,pgc,frk,c->Fi);
     pflow->fivec_relax(p,pgc,c->Fi);
-    pgc->start7V(p,c->Fi,250);
+    pgc->start7V(p,c->Fi,c->bc,250);
     pf->fsfwvel(p,c,pgc,erk,frk);
     
     SLICELOOP4
@@ -201,11 +201,11 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     bedbc_sig(p,c,pgc,c->Fi,pf);
     
     // solve Fi
-    pgc->start7V(p,c->Fi,250);
+    pgc->start7V(p,c->Fi,c->bc,250);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
     fsfbc_sig(p,c,pgc,frk,c->Fi);
     pflow->fivec_relax(p,pgc,c->Fi);
-    pgc->start7V(p,c->Fi,250);
+    pgc->start7V(p,c->Fi,c->bc,250);
     pf->fsfwvel(p,c,pgc,erk,frk);
 
 // Step 4 
@@ -238,11 +238,11 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     bedbc_sig(p,c,pgc,c->Fi,pf);
     
     // solve Fi
-    pgc->start7V(p,c->Fi,250);
+    pgc->start7V(p,c->Fi,c->bc,250);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
     fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
     pflow->fivec_relax(p,pgc,c->Fi);
-    pgc->start7V(p,c->Fi,250);
+    pgc->start7V(p,c->Fi,c->bc,250);
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
 
     LOOP
@@ -261,7 +261,7 @@ void fnpf_sg_RK4::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
     sigma_update(p,c,pgc,pf,c->eta);
     
-    pgc->start7V(p,c->Fi,250);
+    pgc->start7V(p,c->Fi,c->bc,250);
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
     
 

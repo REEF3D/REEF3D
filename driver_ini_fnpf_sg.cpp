@@ -217,7 +217,7 @@ void driver::driver_ini_fnpf_sg()
     pflow->fifsf_relax(p,pgc,c->Fifsf);
     pgc->gcsl_start4(p,c->eta,50);
     pgc->gcsl_start4(p,c->Fifsf,50);
-    pgc->start7V(p,c->Fi,250);
+    pgc->start7V(p,c->Fi,c->bc,250);
     
     
     ppfsg->inidisc(p,c,pgc);

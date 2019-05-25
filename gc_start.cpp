@@ -20,7 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"lexer.h"
-#include"fdm.h"
+#include"sliceint.h"
+#include"field.h"
 #include"ghostcell.h"
 
 void ghostcell::start1(lexer *p, field& f, int gcv)
@@ -236,10 +237,10 @@ void ghostcell::start6V(lexer *p, vec &x, int gcv)
     }
 }
 
-void ghostcell::start7V(lexer *p, double *x, int gcv)
+void ghostcell::start7V(lexer *p, double *x, sliceint &bc, int gcv)
 {
     if(gcv==250)
-    fivec(p,x);
+    fivec(p,x,bc);
     
     if(gcv==150)
     fivec2D(p,x);
