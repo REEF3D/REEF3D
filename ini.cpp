@@ -494,7 +494,7 @@ void lexer::ini_default()
 	P81=0;            // int force print out
 	P82_x=0.1;        // double reference length in x direction
 	P82_y=0.1;        // double reference length in y direction
-	P83=0.0;		  // double epsi interface threshold for force calculation 
+	P83=-1.6;		  // double epsi interface threshold for force calculation 
 	P84=1.0;		  // double diameter for normalized vertical force calculation
 	P85=0;            // int rectangular force print out
 	P86_x=0.1;        // double reference length in x direction

@@ -39,7 +39,7 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
         wvel=wval[count]*ramp(p);
         
         
-        //cout<<"UVAL: "<<uval[count]<<" k: "<<k<<endl;
+        cout<<"UVAL: "<<uval[count]<<" k: "<<k<<endl;
             
 
 			if(a->phi(i-1,j,k)>=0.0)
