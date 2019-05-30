@@ -43,20 +43,15 @@ void fnpf_state::write(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 	if(p->P40==1)
 	num=0;
     
+    //header
+    header_ini(p,c,pgc);
+    
+    // result file
     filename(p,c,pgc,num);
 	 
 	ofstream result;
 	result.open(name, ios::binary);
 	
-    iin=p->M10;
-    result.write((char*)&iin, sizeof (int));
-    
-	iin=p->count;
-    result.write((char*)&iin, sizeof (int));
-		
-	ddn=p->simtime;
-    result.write((char*)&ddn, sizeof (double));
-    
     // origin_xyz
     ddn=p->originx;
     result.write((char*)&ddn, sizeof (double));

@@ -35,6 +35,8 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 	mkdir("./REEF3D_FNPF_State",0777);
 	
 	printcount=0;
+    
+    header_ini(p,c,pgc);
 }
 
 fnpf_state::~fnpf_state()

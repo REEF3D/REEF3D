@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"increment.h"
+#include<fstream>
 
 class lexer;
 class fdm_fnpf;
@@ -36,17 +37,19 @@ class fnpf_state : public increment
 public:
 	fnpf_state(lexer*,fdm_fnpf*,ghostcell*);
 	virtual ~fnpf_state();
-	virtual void write(lexer*,fdm_fnpf*,ghostcell*);
-    //virtual void header(lexer*,fdm_fnpf*,ghostcell*);
+	void write(lexer*,fdm_fnpf*,ghostcell*);
+    void header_ini(lexer*,fdm_fnpf*,ghostcell*);
+    void header(lexer*,fdm_fnpf*,ghostcell*);
 	
 private:
-    virtual void filename(lexer*,fdm_fnpf*,ghostcell*,int);
+    void filename(lexer*,fdm_fnpf*,ghostcell*,int);
 
     char name[200];
     float ffn;
 	int iin;
 	double ddn;
 	int printcount;
+    ofstream hdout;
     
     
 };
