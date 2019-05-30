@@ -31,7 +31,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void state::write(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 {
- 
     // Open File
 	int num=0;
 

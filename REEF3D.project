@@ -2244,6 +2244,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
           <VirtualDirectory Name="State">
+            <File Name="fnpf_state_header.cpp"/>
             <File Name="fnpf_state_write.cpp"/>
             <File Name="fnpf_state_filename.cpp"/>
             <File Name="fnpf_state.cpp"/>
