@@ -760,6 +760,7 @@
           <File Name="fnpf_fg_RK3.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <File Name="fnpf_state.h"/>
           <File Name="fnpf_vtp_bed.h"/>
           <File Name="fnpf_vtp_fsf.h"/>
           <File Name="fnpf_print_wsfline_y.h"/>
@@ -2242,6 +2243,11 @@
           <File Name="fnpf_fg_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="State">
+            <File Name="fnpf_state_write.cpp"/>
+            <File Name="fnpf_state_filename.cpp"/>
+            <File Name="fnpf_state.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="PotentialFile Out">
             <File Name="potentialfile_out_filename.cpp"/>
             <File Name="potentialfile_out.cpp"/>
