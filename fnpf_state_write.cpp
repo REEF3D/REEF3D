@@ -85,21 +85,21 @@ void fnpf_state::write(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
 
     
-    LOOP
+    ILOOP
     {
-    ffn=p->DXP[IP];
+    ffn=p->XP[IP];
     result.write((char*)&ffn, sizeof (float));
     } 
     
-    LOOP
+    JLOOP
     {
-    ffn=p->DYP[JP];
+    ffn=p->YP[JP];
     result.write((char*)&ffn, sizeof (float));
     } 
     
-    LOOP
+    KLOOP
     {
-    ffn=p->DZP[KP];
+    ffn=p->ZP[KP];
     result.write((char*)&ffn, sizeof (float));
     } 
     
