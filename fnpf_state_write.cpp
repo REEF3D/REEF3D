@@ -109,6 +109,12 @@ void fnpf_state::write(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     result.write((char*)&ffn, sizeof (float));
     } 
     
+    SLICELOOP4
+    {
+    ffn=c->bed(i,j);
+    result.write((char*)&ffn, sizeof (float));
+    } 
+    
     LOOP
     {
     ffn=c->u(i,j,k);
