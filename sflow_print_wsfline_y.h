@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -19,49 +19,52 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"increment.h"
+#include"boundarycheck.h"
+#include<iostream>
+#include<fstream>
 
 class lexer;
 class fdm2D;
 class ghostcell;
+class field;
 class ioflow;
-class sflow_print_wsf;
-class sflow_print_wsfline;
-class sflow_print_wsfline_y;
+class wave_theory;
+class slice;
 
 using namespace std;
 
-#ifndef SFLOW_VTU_H_
-#define SFLOW_VTU_H_
+#ifndef SFLOW_PRINT_WSFLINE_Y_H_
+#define SFLOW_PRINT_WSFLINE_Y_H_
 
-class sflow_vtp : public increment
+class sflow_print_wsfline_y : public boundarycheck
 {
 public:
-	sflow_vtp(lexer*,fdm2D*,ghostcell*);
-	virtual ~sflow_vtp();
-	
-    virtual void start(lexer*,fdm2D*,ghostcell*,ioflow*);
-    virtual void print2D(lexer*,fdm2D*,ghostcell*);
-	
+    sflow_print_wsfline_y(lexer*,fdm2D*,ghostcell*);
+	virtual ~sflow_print_wsfline_y();
+
+	void start(lexer*, fdm2D*, ghostcell*,ioflow*,slice &f);
+
+
 private:
+    void ini_location(lexer*, fdm2D*, ghostcell*);
+    void sort(double*, double*, int*, int,int);
+    void remove_multientry(lexer*,double*, double*, int*, int&);
+
+    int conv(double);
+    int *iloc,**flag,**flag_all,*rowflag,*wsfpoints;
+    double **wsf,**wsf_all;
+    double **yloc, **yloc_all;
+    double *xloc;
+    int n,q;
+    ofstream wsfout;
+
+    double xcoor;
 	
-	void etend(lexer*,fdm2D*,ghostcell*);
-	void pvtu(lexer*,fdm2D*,ghostcell*);
-	void name_iter(lexer*,fdm2D*,ghostcell*);
-    void piecename(lexer*,fdm2D*,ghostcell*,int);
-	
-	
-	char name[200],pname[200];
-    int n,iin,offset[200];
-    float ffn;
-	
-	double xs_local,ys_local,zs_local,xe_local,ye_local,ze_local;
-	double xs_global,ys_global,zs_global,xe_global,ye_global,ze_global;
-	
-	sflow_print_wsf *pwsf;
-    sflow_print_wsfline *pwsfline;
-    sflow_print_wsfline_y *pwsfline_y;
+	wave_theory *pwave;
+
+    int maxknoy,sumknoy;
 
 };
 
 #endif
+

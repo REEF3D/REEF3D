@@ -941,6 +941,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Print">
+          <File Name="sflow_print_wsfline_y.h"/>
           <File Name="sflow_printer.h"/>
           <File Name="sflow_print_wsf.h"/>
           <File Name="sflow_vtp.h"/>
@@ -2445,6 +2446,7 @@
             <File Name="sflow_vtp_bed_pvtp.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Print WSF">
+            <File Name="sflow_print_wsfline_y.cpp"/>
             <File Name="sflow_print_wsf.cpp"/>
             <File Name="sflow_print_wsfline.cpp"/>
           </VirtualDirectory>
