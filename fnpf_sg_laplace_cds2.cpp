@@ -46,38 +46,38 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
 	n=0;
     LOOP
 	{
-    if(c->wet(i,j)==1)
-    {
-    sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
-    
-    
-	c->M.p[n]  =  1.0/(p->DXP[IM1]*p->DXN[IP])*p->x_dir 
-                + 1.0/(p->DXP[IM1]*p->DXN[IM1])*p->x_dir 
-                
-                + 1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir 
-                + 1.0/(p->DYP[JM1]*p->DYN[JM1])*p->y_dir 
-                
-                + (sigxyz2/(p->DZP[KM1]*p->DZN[KP]))*p->z_dir
-                + (sigxyz2/(p->DZP[KM1]*p->DZN[KM1]))*p->z_dir;
-
-
-   	c->M.n[n] = -1.0/(p->DXP[IM1]*p->DXN[IP])*p->x_dir;
-	c->M.s[n] = -1.0/(p->DXP[IM1]*p->DXN[IM1])*p->x_dir;
-
-	c->M.w[n] = -1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
-	c->M.e[n] = -1.0/(p->DYP[JM1]*p->DYN[JM1])*p->y_dir;
-
-	c->M.t[n] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KP])  + p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
-	c->M.b[n] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
-    
-    
-	c->rhsvec.V[n] =  2.0*p->sigx[FIJK]*(f[FIp1JKp1] - f[FIm1JKp1] - f[FIp1JKm1] + f[FIm1JKm1])
-                    /((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir
+        if(c->wet(i,j)==1)
+        {
+        sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
+        
+        
+        c->M.p[n]  =  1.0/(p->DXP[IM1]*p->DXN[IP])*p->x_dir 
+                    + 1.0/(p->DXP[IM1]*p->DXN[IM1])*p->x_dir 
                     
-                    + 2.0*p->sigy[FIJK]*(f[FIJp1Kp1] - f[FIJm1Kp1] - f[FIJp1Km1] + f[FIJm1Km1])
-                    /((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
+                    + 1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir 
+                    + 1.0/(p->DYP[JM1]*p->DYN[JM1])*p->y_dir 
                     
-    }
+                    + (sigxyz2/(p->DZP[KM1]*p->DZN[KP]))*p->z_dir
+                    + (sigxyz2/(p->DZP[KM1]*p->DZN[KM1]))*p->z_dir;
+
+
+        c->M.n[n] = -1.0/(p->DXP[IM1]*p->DXN[IP])*p->x_dir;
+        c->M.s[n] = -1.0/(p->DXP[IM1]*p->DXN[IM1])*p->x_dir;
+
+        c->M.w[n] = -1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+        c->M.e[n] = -1.0/(p->DYP[JM1]*p->DYN[JM1])*p->y_dir;
+
+        c->M.t[n] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KP])  + p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
+        c->M.b[n] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
+        
+        
+        c->rhsvec.V[n] =  2.0*p->sigx[FIJK]*(f[FIp1JKp1] - f[FIm1JKp1] - f[FIp1JKm1] + f[FIm1JKm1])
+                        /((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir
+                        
+                        + 2.0*p->sigy[FIJK]*(f[FIJp1Kp1] - f[FIJm1Kp1] - f[FIJp1Km1] + f[FIJm1Km1])
+                        /((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
+                        
+        }
 	++n;
 	}
     
@@ -115,7 +115,7 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             // south
             if(p->flag7[FIm1JK]<0 && c->wet(i-1,j)==1 && c->bc(i-1,j)==0)
             {
-            c->M.p[n] += -1.0/(p->DXP[IM1]*p->DXN[IM1])*p->x_dir;
+            c->M.p[n] += c->M.s[n];
             c->M.s[n] = 0.0;
             }
             
@@ -135,7 +135,7 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             // north
             if(p->flag7[FIp1JK]<0 && c->wet(i+1,j)==1)
             {
-            c->M.p[n] += -1.0/(p->DXP[IM1]*p->DXN[IP])*p->x_dir;
+            c->M.p[n] += c->M.s[n];
             c->M.n[n] = 0.0;
             }
             
