@@ -36,6 +36,7 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, ghostcell* pgc, double *Fi, double
         
         if(h_switch==1)
         {
+        eta(i,j) = etaval[count];
         eta(i-1,j) = etaval[count];
         eta(i-2,j) = etaval[count];
         eta(i-3,j) = etaval[count];

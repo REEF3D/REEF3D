@@ -30,6 +30,7 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
     
     
     // pre-calc every iteration
+    // eta
     count=0;
     SLICELOOP4
     {
