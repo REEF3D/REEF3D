@@ -41,11 +41,11 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, ghostcell* pgc, double *Fi, double
         eta(i-2,j) = etaval[count];
         eta(i-3,j) = etaval[count];
         }
-        
+        /*
         if(h_switch==0)
         {
         eta(i,j) = eta(i+1,j);
-        }
+        }*/
 
         Fifsf(i-1,j) = Fifsf(i,j) - Fifsfval[count]*1.0*p->DXP[IM1];
         Fifsf(i-2,j) = Fifsf(i,j) - Fifsfval[count]*2.0*p->DXP[IM1];
