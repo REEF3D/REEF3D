@@ -478,6 +478,8 @@ void lexer::ctrlrecv()
 	dd++;
 	C5 = dctrl[dd];
 	dd++;
+    C9 = ictrl[ii];
+	ii++;
     C10 = ictrl[ii];
 	ii++;
 	C15 = ictrl[ii];

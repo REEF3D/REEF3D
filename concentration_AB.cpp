@@ -59,7 +59,6 @@ void concentration_AB::start(fdm* a, lexer* p, convection* pconvec, diffusion* p
 	cab(i,j,k)=a->L(i,j,k);
 	}
 	
-	pdiff->idiff_scalar(p,a,pgc,psolv,C,a->visc,1.0,1.0);
     bc_concentration_start(p,a,pgc,C);
 	pgc->start4(p,C,gcval_concentration);
 

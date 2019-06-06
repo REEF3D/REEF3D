@@ -54,7 +54,6 @@ void concentration_RK2::start(fdm* a, lexer* p, convection* pconvec, diffusion* 
 	ark1(i,j,k) = C(i,j,k)
 				+ p->dt*a->L(i,j,k);
 
-	pdiff->idiff_scalar(p,a,pgc,psolv,ark1,a->visc,1.0,1.0);
     bc_concentration_start(p,a,pgc,ark1);
 	pgc->start4(p,ark1,gcval_concentration);
 
@@ -69,7 +68,6 @@ void concentration_RK2::start(fdm* a, lexer* p, convection* pconvec, diffusion* 
 				+ 0.5*ark1(i,j,k)
 				+ 0.5*p->dt*a->L(i,j,k);
 	
-	pdiff->idiff_scalar(p,a,pgc,psolv,C,a->visc,1.0,0.5);
     bc_concentration_start(p,a,pgc,C);
 	pgc->start4(p,C,gcval_concentration);
 

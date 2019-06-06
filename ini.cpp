@@ -228,6 +228,7 @@ void lexer::ini_default()
 	C3=10.0;		// double density concentration in air
 	C4=0.0;			// double viscosity air + concentration
 	C5=1.0;			// double Schmidt number
+    C9=1;          // int only phase 1 concentration
 	C10=0;          // int concentration transfer on/off
 	C15=0;          // int concentration convection
 	C20=0;          // int concentration diffusion

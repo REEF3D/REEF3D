@@ -32,8 +32,11 @@ bc_concentration::~bc_concentration()
 {
 }
 
-void bc_concentration::bc_concentration_start(lexer* p,fdm* a,ghostcell *pgc,field& b)
+void bc_concentration::bc_concentration_start(lexer* p,fdm* a,ghostcell *pgc, field &C)
 {
+    LOOP
+    if(a->phi(i,j,k)<0.0)
+    C(i,j,k)=0.0;
 
 }
 

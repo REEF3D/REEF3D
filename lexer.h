@@ -313,7 +313,7 @@ public:
 	
     // Concentration Options
 	double C1,C2,C3,C4,C5;
-	int C10,C15,C20;
+	int C9,C10,C15,C20;
 	double C50_1,C50_2;
 	double C51,C52,C53,C54,C55,C56;
 	double C57_1,C57_2,C57_3,C57_4;
