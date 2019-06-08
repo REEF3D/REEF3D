@@ -55,8 +55,6 @@ public:
 	virtual double area(int,int,int);
 	virtual void coefficients(lexer*,fdm*,ghostcell*);
 	virtual void morison(lexer*,fdm*,ghostcell*);
-	virtual double morison_cd(lexer*,fdm*,ghostcell*,double,double);
-	virtual double morison_cm(lexer*,fdm*,ghostcell*,double,double);
     virtual void print(lexer*,fdm*,ghostcell*);
 
 

@@ -1887,8 +1887,6 @@
           <File Name="force_crossarea.cpp"/>
           <File Name="force_forcesurf.cpp"/>
           <File Name="force_morrison.cpp"/>
-          <File Name="force_morrison_cd.cpp"/>
-          <File Name="force_morrison_cm.cpp"/>
           <File Name="force_print.cpp"/>
           <File Name="force_surfarea.cpp"/>
           <File Name="force_velocity.cpp"/>

@@ -60,8 +60,6 @@ momentum_RK3::~momentum_RK3()
 
 void momentum_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 {	
-	double udisctime=0.0;
-    double udiscstart=0.0;
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
 	pflow->rkinflow(p,a,pgc,urk1,vrk1,wrk1);
@@ -78,9 +76,7 @@ void momentum_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,a);
 	irhs(p,a,pgc,a->u,a->u,a->v,a->w,1.0);
-    udiscstart=pgc->timer();
 	pconvec->start(p,a,a->u,1,a->u,a->v,a->w);
-    udisctime=pgc->timer()-udiscstart;
 	pdiff->diff_u(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
 
 	ULOOP
@@ -156,9 +152,7 @@ void momentum_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,a);
 	irhs(p,a,pgc,urk1,urk1,vrk1,wrk1,0.25);
-    udiscstart=pgc->timer();
 	pconvec->start(p,a,urk1,1,urk1,vrk1,wrk1);
-    udisctime+=pgc->timer()-udiscstart;
 	pdiff->diff_u(p,a,pgc,psolv,urk1,vrk1,wrk1,0.25);
 
 	ULOOP
@@ -232,9 +226,7 @@ void momentum_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,a);
 	irhs(p,a,pgc,urk2,urk2,vrk2,wrk2,2.0/3.0);
-    udiscstart=pgc->timer();
 	pconvec->start(p,a,urk2,1,urk2,vrk2,wrk2);
-    udisctime+=pgc->timer()-udiscstart;
 	pdiff->diff_u(p,a,pgc,psolv,urk2,vrk2,wrk2,2.0/3.0);
 
 	ULOOP
@@ -302,7 +294,6 @@ void momentum_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 
 void momentum_RK3::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
-
     pgc->forcing1(p,a,f,uvel,vvel,wvel,alpha);
     
 	n=0;

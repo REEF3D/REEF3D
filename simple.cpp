@@ -48,6 +48,7 @@ void simple::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc,
 
 	LOOP
     pcorr(i,j,k)=0.0;
+    
     pgc->start4(p,pcorr,gcval_pcorr);
     
     ppois->istart(p,a,apu,apv,apw,pcorr);
