@@ -91,7 +91,7 @@ void iquick::aij(lexer* p,fdm* a,field& b,field &F,int ipol, field& uvel, field&
 	pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
     pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
     pflux->w_flux(a,ipol,wvel,kvel1,kvel2);
-
+    
 
 	if(ivel1>=0.0)
 	ul=1.0;

@@ -361,7 +361,8 @@ void bicgstab::fillxvec1(lexer* p, fdm* a, field& f)
     a->xvec.V[count]=f(i,j,k);
     ++count;
     }
-
+    
+    
     GC1LOOP
     {
     i=p->gcb1[n][0];
@@ -410,6 +411,49 @@ void bicgstab::fillxvec1(lexer* p, fdm* a, field& f)
         ++count;
         }
     }
+    
+    /*
+    n=0;
+	ULOOP
+	{
+		if(p->flag1[Im1JK]<0)
+		{
+		a->rhsvec.V[n] -= a->M.s[n]*f(i-1,j,k);
+		a->M.s[n] = 0.0;
+		}
+		
+		if(p->flag1[Ip1JK]<0)
+		{
+		a->rhsvec.V[n] -= a->M.n[n]*f(i+1,j,k);
+		a->M.n[n] = 0.0;
+		}
+		
+		if(p->flag1[IJm1K]<0)
+		{
+		a->rhsvec.V[n] -= a->M.e[n]*f(i,j-1,k);
+		a->M.e[n] = 0.0;
+		}
+		
+		if(p->flag1[IJp1K]<0)
+		{
+		a->rhsvec.V[n] -= a->M.w[n]*f(i,j+1,k);
+		a->M.w[n] = 0.0;
+		}
+		
+		if(p->flag1[IJKm1]<0)
+		{
+		a->rhsvec.V[n] -= a->M.b[n]*f(i,j,k-1);
+		a->M.b[n] = 0.0;
+		}
+		
+		if(p->flag1[IJKp1]<0)
+		{
+		a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1);
+		a->M.t[n] = 0.0;
+		}
+
+	++n;
+	}*/
 }
 
 void bicgstab::fillxvec2(lexer* p, fdm* a, field& f)
@@ -484,6 +528,7 @@ void bicgstab::fillxvec3(lexer* p, fdm* a, field& f)
     ++count;
     }
 
+
     GC3LOOP
     {
     i=p->gcb3[n][0];
@@ -532,6 +577,50 @@ void bicgstab::fillxvec3(lexer* p, fdm* a, field& f)
         ++count;
         }
     }
+    
+    
+    /*
+     n=0;
+    WLOOP
+	{
+		if(p->flag3[Im1JK]<0)
+		{
+		a->rhsvec.V[n] -= a->M.s[n]*f(i-1,j,k);
+		a->M.s[n] = 0.0;
+		}
+		
+		if(p->flag3[Ip1JK]<0)
+		{
+		a->rhsvec.V[n] -= a->M.n[n]*f(i+1,j,k);
+		a->M.n[n] = 0.0;
+		}
+		
+		if(p->flag3[IJm1K]<0)
+		{
+		a->rhsvec.V[n] -= a->M.e[n]*f(i,j-1,k);
+		a->M.e[n] = 0.0;
+		}
+		
+		if(p->flag3[IJp1K]<0)
+		{
+		a->rhsvec.V[n] -= a->M.w[n]*f(i,j+1,k);
+		a->M.w[n] = 0.0;
+		}
+		
+		if(p->flag3[IJKm1]<0)
+		{
+		a->rhsvec.V[n] -= a->M.b[n]*f(i,j,k-1);
+		a->M.b[n] = 0.0;
+		}
+		
+		if(p->flag3[IJKp1]<0)
+		{
+		a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1);
+		a->M.t[n] = 0.0;
+		}
+
+	++n;
+	}*/
 }
 
 void bicgstab::fillxvec4(lexer* p, fdm* a, field& f)
@@ -594,7 +683,6 @@ void bicgstab::fillxvec4(lexer* p, fdm* a, field& f)
         }
     }
 }
-
 
 void bicgstab::finalize(lexer *p, fdm *a, field &f, vec &xvec, int var)
 {

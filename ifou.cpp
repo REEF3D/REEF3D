@@ -114,8 +114,6 @@ void ifou::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, fiel
 	 
 	 a->M.b[count] = -wdir*kvel1/DZ[KM1];
 	 a->M.t[count] =  (1.0-wdir)*kvel2/DZ[KP];
-	 
-      
      
 	 ++count;
 }

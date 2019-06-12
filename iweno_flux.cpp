@@ -64,8 +64,6 @@ iweno_flux::~iweno_flux()
 
 void iweno_flux::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel, field& wvel)
 {
-    count=0;
-
     if(ipol==1)
     wenoloop1(p,a,b,ipol,uvel,vvel,wvel);
 
