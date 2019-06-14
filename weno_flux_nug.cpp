@@ -64,34 +64,70 @@ void weno_flux_nug::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, fie
 {
     uf=vf=wf=0;
     
-    if(ipol==1)
-    {
-    uf=1;
-    ULOOP
-    a->F(i,j,k)+=aij(p,a,b,1,uvel,vvel,wvel,p->DXP,p->DYN,p->DZN);
-    }
-
-    if(ipol==2)
-    {
-    vf=1;
-    VLOOP
-    a->G(i,j,k)+=aij(p,a,b,2,uvel,vvel,wvel,p->DXN,p->DYP,p->DZN);
-    }
-
-    if(ipol==3)
-    {
-    wf=1;
-    WLOOP
-    a->H(i,j,k)+=aij(p,a,b,3,uvel,vvel,wvel,p->DXN,p->DYN,p->DZP);
-    }
-
-    if(ipol==4)
-    FLUIDLOOP
-    a->L(i,j,k)+=aij(p,a,b,4,uvel,vvel,wvel,p->DXN,p->DYN,p->DZN);
     
-    if(ipol==5)
-    LOOP
-    a->L(i,j,k)+=aij(p,a,b,5,uvel,vvel,wvel,p->DXN,p->DYN,p->DZN);
+    if(p->G2==0)
+    {
+        if(ipol==1)
+        {
+        uf=1;
+        ULOOP
+        a->F(i,j,k)+=aij(p,a,b,1,uvel,vvel,wvel,p->DXP,p->DYN,p->DZN);
+        }
+
+        if(ipol==2)
+        {
+        vf=1;
+        VLOOP
+        a->G(i,j,k)+=aij(p,a,b,2,uvel,vvel,wvel,p->DXN,p->DYP,p->DZN);
+        }
+
+        if(ipol==3)
+        {
+        wf=1;
+        WLOOP
+        a->H(i,j,k)+=aij(p,a,b,3,uvel,vvel,wvel,p->DXN,p->DYN,p->DZP);
+        }
+
+        if(ipol==4)
+        FLUIDLOOP
+        a->L(i,j,k)+=aij(p,a,b,4,uvel,vvel,wvel,p->DXN,p->DYN,p->DZN);
+        
+        if(ipol==5)
+        LOOP
+        a->L(i,j,k)+=aij(p,a,b,5,uvel,vvel,wvel,p->DXN,p->DYN,p->DZN);
+    }
+    
+    if(p->G2==1)
+    {
+        if(ipol==1)
+        {
+        uf=1;
+        ULOOP
+        a->F(i,j,k)+=aij_sig(p,a,b,1,uvel,vvel,wvel,p->DXP,p->DYN,p->DZN);
+        }
+
+        if(ipol==2)
+        {
+        vf=1;
+        VLOOP
+        a->G(i,j,k)+=aij_sig(p,a,b,2,uvel,vvel,wvel,p->DXN,p->DYP,p->DZN);
+        }
+
+        if(ipol==3)
+        {
+        wf=1;
+        WLOOP
+        a->H(i,j,k)+=aij_sig(p,a,b,3,uvel,vvel,wvel,p->DXN,p->DYN,p->DZP);
+        }
+
+        if(ipol==4)
+        FLUIDLOOP
+        a->L(i,j,k)+=aij_sig(p,a,b,4,uvel,vvel,wvel,p->DXN,p->DYN,p->DZN);
+        
+        if(ipol==5)
+        LOOP
+        a->L(i,j,k)+=aij_sig(p,a,b,5,uvel,vvel,wvel,p->DXN,p->DYN,p->DZN);
+    }
 }
 
 double weno_flux_nug::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, field& wvel, double *DX,double *DY, double *DZ)
@@ -130,7 +166,46 @@ double weno_flux_nug::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field&
 		L =   - ((ivel2*fu2-ivel1*fu1)/DX[IP]) 
 		      - ((jvel2*fv2-jvel1*fv1)/DY[JP]) 
 			  - ((kvel2*fw2-kvel1*fw1)/DZ[KP]);
-			  
+        
+		return L;
+}
+
+double weno_flux_nug::aij_sig(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, field& wvel, double *DX,double *DY, double *DZ)
+{
+		pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
+        pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
+        pflux->w_flux(a,ipol,wvel,kvel1,kvel2);
+        
+        
+        fv1=fv2=0.0;
+		
+		i-=1;
+		fu1 = fx(p,a,b,uvel,ipol,ivel1);
+		i+=1;
+		
+		fu2 = fx(p,a,b,uvel,ipol,ivel2);
+
+
+		if(p->j_dir==1)
+        {
+		j-=1;
+		fv1 = fy(p,a,b,vvel,ipol,jvel1);
+		j+=1;
+		
+		fv2 = fy(p,a,b,vvel,ipol,jvel2);
+        }
+
+
+		k-=1;
+		fw1 = fz(p,a,b,wvel,ipol,kvel1);
+		k+=1;
+		
+		fw2 = fz(p,a,b,wvel,ipol,kvel2);
+		
+		
+		L =   - ((ivel2*fu2-ivel1*fu1)/DX[IP]) + p->sigmax(p,b,ipol)*0.5*(ivel1+ivel2)
+		      - ((jvel2*fv2-jvel1*fv1)/DY[JP]) + p->sigmay(p,b,ipol)*0.5*(jvel1+jvel2)
+			  - ((kvel2*fw2-kvel1*fw1)/DZ[KP])*p->sigmaz(p,b,ipol);
         
 		return L;
 }

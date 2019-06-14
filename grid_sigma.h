@@ -26,6 +26,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 class lexer;
 class fdm;
 class ghostcell;
+class field;
 
 using namespace std;
 
@@ -35,16 +36,22 @@ using namespace std;
 class grid_sigma : public increment
 {
 public:
-	grid_sigma(lexer*, fdm*, ghostcell*);
+	grid_sigma(lexer*);
 	virtual ~grid_sigma();
     
     virtual void sigma_ini(lexer*, fdm*, ghostcell*, slice&);
     virtual void sigma_update(lexer*, fdm*, ghostcell*, slice&);
     
+    double sigmax(lexer*,field&,int);
+    double sigmay(lexer*,field&,int);
+    double sigmaz(lexer*,field&,int);
+
+    
     slice4 Ex,Ey,Bx,By;
     slice4 Exx,Eyy,Bxx,Byy;
         
 private:
+    double sig;
 
 };
 

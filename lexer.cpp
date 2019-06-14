@@ -22,7 +22,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 
 
-lexer::lexer() : cmu(0.09), position(this), interpolation(this) 
+lexer::lexer() : cmu(0.09), position(this), interpolation(this), grid_sigma(this)
 {
     sigT=0.9;
     

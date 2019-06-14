@@ -352,13 +352,14 @@ void lexer::ini_default()
     F399=0;             // int number of neg ls2 sphere
 
     // Grid
-	G10=3;			// xmargin inflow
-	G11=3;			// ymargin right
-	G12=3;			// zmargin bottom
-	G20=3;			// xmargin outflow
-	G21=3;			// ymargin left
-	G22=3;			// zmargin top
-	G30=3;			// extrapolated ghost cells
+    G2=0;          // int sigma grid
+	G10=3;			// int xmargin inflow
+	G11=3;			// int ymargin right
+	G12=3;			// int zmargin bottom
+	G20=3;			// int xmargin outflow
+	G21=3;			// int ymargin left
+	G22=3;			// int zmargin top
+	G30=3;			// int extrapolated ghost cells
 	G39=0;			// int read flag_solid
     G40=3;         // int reini scheme for topo
 	G50=1;            // int look for geodat points in grid file

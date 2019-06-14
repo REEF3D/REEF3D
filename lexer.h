@@ -29,6 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"looping.h"
 #include"position.h"
 #include"interpolation.h"
+#include"grid_sigma.h"
 #include<fstream>
 
 #ifndef LEXER_H_
@@ -38,7 +39,7 @@ class weno_nug_func;
 
 using namespace std;
 
-class lexer : public increment, public resize_class, public position, public interpolation
+class lexer : public increment, public resize_class, public position, public interpolation, public grid_sigma
 {
 public:
 
@@ -366,7 +367,7 @@ public:
 	
 
 	// Grid Options
-    int G1;
+    int G1,G2;
 	int G10,G11,G12,G20,G21,G22,G30;
 	int G39,G40;
 	int G50, G51,G52,G60, G61,G81,G95;
