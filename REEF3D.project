@@ -395,6 +395,9 @@
         <File Name="waves_header.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
+        <VirtualDirectory Name="Sigma">
+          <File Name="grid_sigma.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Field">
           <VirtualDirectory Name="Cart">
             <File Name="cart1.h"/>
@@ -1706,6 +1709,9 @@
         <File Name="driver_stop.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
+        <VirtualDirectory Name="Sigma">
+          <File Name="grid_sigma.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Field">
           <VirtualDirectory Name="GCB">
             <File Name="gcbcart1.cpp"/>
@@ -1991,6 +1997,7 @@
         <File Name="driver_logic_cfd.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Mainloop">
+        <File Name="driver_loop_nhflow.cpp"/>
         <File Name="driver_loop_cfd_fsi.cpp"/>
         <File Name="driver_loop_fnpf_fg.cpp"/>
         <File Name="driver_loop_fnpf_sg.cpp"/>

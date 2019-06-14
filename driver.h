@@ -57,6 +57,7 @@ class fnpf_fg;
 class fnpf_sg;
 class onephase;
 class nsewave;
+class nhflow;
 class sflow;
 class fnpf_vtu3D;
 class fnpf_timestep;
@@ -82,6 +83,7 @@ public:
     
     void cfd_driver();
 	void nsewave_driver();
+    void nhflow_driver();
     void pfsg_driver();
     void pffg_driver();
     void sf_driver();
@@ -89,6 +91,7 @@ public:
 	void loop_cfd_fsi(fdm*);
 	void loop_cfd(fdm*);
     void loop_nsewave(fdm*);
+    void loop_nhflow(fdm*);
     void loop_fnpf_fg(fdm*);
     void loop_fnpf_sg();
     void loop_sflow(fdm*);
@@ -99,6 +102,7 @@ public:
     void logic_sflow();
     
 	void driver_ini();
+    void driver_ini_nhflow();
     void driver_ini_fnpf_sg();
     void driver_ini_fnpf_fg();
     void driver_ini_sflow();
@@ -168,6 +172,7 @@ public:
     fnpf_fg *ppffg;
     onephase *poneph;
     nsewave *pnse;
+    nhflow *pnhf;
     sflow *psflow;
     fnpf_vtu3D *pfprint; 
     fnpf_timestep* pftstep;

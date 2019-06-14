@@ -921,6 +921,9 @@ void driver::logic()
 	if(p->A10==4)
     loop_nsewave(a);
     
+    if(p->A10==44)
+    loop_nhflow(a);
+    
     if(p->A10==5 && p->X10 == 1 && p->X13 >= 1 && p->N40==0) 
 	{
 		loop_cfd_fsi(a);

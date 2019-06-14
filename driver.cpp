@@ -36,7 +36,7 @@ driver::driver(int& argc, char **argv)
     {
     cout<<endl<<"REEF3D (c) 2008-2019 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl; 
-    cout<<endl<<"v_190612" <<endl<<endl;         
+    cout<<endl<<"v_190614" <<endl<<endl;         
     }
     
 	p->lexer_read();
@@ -74,7 +74,7 @@ driver::driver(int& argc, char **argv)
         pfsg_driver();
     }
     
-    if((p->A10==3 && p->A300==2) || p->A10==4 || p->A10==5)
+    if((p->A10==3 && p->A300==2) || p->A10==4 || p->A10==44 || p->A10==5)
     {
         p->flagini();
         p->gridini();	
@@ -120,6 +120,20 @@ void driver::cfd_driver()
 }
 
 void driver::nsewave_driver()
+{   
+    if(p->mpirank==0)
+	cout<<"initialize fdm"<<endl;
+    
+	a=new fdm(p);
+	
+	aa=a;
+    pgc->fdm_update(a);
+
+    logic();
+}
+
+
+void driver::nhflow_driver()
 {   
     if(p->mpirank==0)
 	cout<<"initialize fdm"<<endl;

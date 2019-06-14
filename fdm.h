@@ -83,6 +83,7 @@ public:
     slice2 Q;
     slice4 bed,bedzh;
     sliceint4 bedk;
+    slice4 wet;
     
     // fnpf
     slice4 eta,eta_n,WL,depth;
@@ -101,6 +102,7 @@ public:
 	cpt C1,C2,C3,C4,C4a,C6;
 
     double maxF,maxG,maxH,maxK,maxE;
+    double wd_criterion;
 	
 	
 	double t1,t2,t3,t4,t5;
