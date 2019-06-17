@@ -106,9 +106,8 @@ double fnpf_weno::sy(lexer *p, slice &f, double jvel)
 
 double fnpf_weno::sz(lexer *p, double *f)
 {
-    double grad = (ckz[p->knoz+marge][4]*f[FIJK] + ckz[p->knoz+marge][3]*f[FIJKm1] + ckz[p->knoz+marge][2]*f[FIJKm2] 
+    grad = (ckz[p->knoz+marge][4]*f[FIJK] + ckz[p->knoz+marge][3]*f[FIJKm1] + ckz[p->knoz+marge][2]*f[FIJKm2] 
           + ckz[p->knoz+marge][1]*f[FIJKm3] + ckz[p->knoz+marge][0]*f[FIJKm4]);
-  
     
     return grad;   
     

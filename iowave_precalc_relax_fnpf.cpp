@@ -79,7 +79,7 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
                 // Zone 1
                 if(dg<dist1)
                 { 
-                Fival[count] = wave_fi(p,pgc,xg,yg,z);
+                //Fival[count] = wave_fi(p,pgc,xg,yg,z);
                 rb1val[count] = rb1(p,dg);
                 ++count;
                 }

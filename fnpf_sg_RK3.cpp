@@ -22,7 +22,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
-#include"field4.h"
 #include"convection.h"
 #include"ioflow.h"
 #include"solver.h"
@@ -82,8 +81,6 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
 {	    
 // Step 1
     pflow->inflow_fnpf(p,pgc,c->Fi,c->Uin,c->Fifsf,c->eta);
-    pflow->eta_relax(p,pgc,c->eta);
-    pflow->fifsf_relax(p,pgc,c->Fifsf);
     
     // fsf eta
     pf->kfsfbc(p,c,pgc);
@@ -122,12 +119,10 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,c->bc,250);
     pf->fsfwvel(p,c,pgc,erk1,frk1);
-    pflow->Fz_relax(p,pgc,c->Fz);
+    //pflow->Fz_relax(p,pgc,c->Fz);
 
 // Step 2
     pflow->inflow_fnpf(p,pgc,c->Fi,c->Uin,frk1,erk1);
-    pflow->eta_relax(p,pgc,erk1);
-    pflow->fifsf_relax(p,pgc,frk1);
     
     // fsf eta
     pf->kfsfbc(p,c,pgc);
@@ -164,12 +159,10 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,c->bc,250);
     pf->fsfwvel(p,c,pgc,erk2,frk2);
-    pflow->Fz_relax(p,pgc,c->Fz);
+    //pflow->Fz_relax(p,pgc,c->Fz);
 
 // Step 3 
     pflow->inflow_fnpf(p,pgc,c->Fi,c->Uin,frk2,erk2);
-    pflow->eta_relax(p,pgc,erk2);
-    pflow->fifsf_relax(p,pgc,frk2);
     
     // fsf eta
     pf->kfsfbc(p,c,pgc);
@@ -206,7 +199,7 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,c->bc,250);
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
-    pflow->Fz_relax(p,pgc,c->Fz);
+    //pflow->Fz_relax(p,pgc,c->Fz);
     
     
     //LOOP
