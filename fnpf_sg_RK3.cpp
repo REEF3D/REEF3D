@@ -38,7 +38,7 @@ fnpf_sg_RK3::fnpf_sg_RK3(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_sg_ini(p,
 {
     gcval=250;
     if(p->j_dir==0)
-     gcval=150;
+    gcval=150;
    
     gcval_u=10;
 	gcval_v=11;
@@ -114,10 +114,10 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     bedbc_sig(p,c,pgc,c->Fi,pf);
     
     // solve Fi
-    pgc->start7V(p,c->Fi,c->bc,250);
+    pgc->start7V(p,c->Fi,c->bc,gcval);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
     pflow->fivec_relax(p,pgc,c->Fi);
-    pgc->start7V(p,c->Fi,c->bc,250);
+    pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,erk1,frk1);
     //pflow->Fz_relax(p,pgc,c->Fz);
 
@@ -154,10 +154,10 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     bedbc_sig(p,c,pgc,c->Fi,pf);
     
     // solve Fi
-    pgc->start7V(p,c->Fi,c->bc,250);
+    pgc->start7V(p,c->Fi,c->bc,gcval);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
     pflow->fivec_relax(p,pgc,c->Fi);
-    pgc->start7V(p,c->Fi,c->bc,250);
+    pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,erk2,frk2);
     //pflow->Fz_relax(p,pgc,c->Fz);
 
@@ -194,10 +194,10 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     bedbc_sig(p,c,pgc,c->Fi,pf);
     
     // solve Fi
-    pgc->start7V(p,c->Fi,c->bc,250);
+    pgc->start7V(p,c->Fi,c->bc,gcval);
     plap->start(p,c,pgc,psolv,pf,c->Fi);
     pflow->fivec_relax(p,pgc,c->Fi);
-    pgc->start7V(p,c->Fi,c->bc,250);
+    pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
     //pflow->Fz_relax(p,pgc,c->Fz);
     
@@ -225,7 +225,7 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
 void fnpf_sg_RK3::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {	
     pgc->gcsl_start4(p,c->eta,gcval_eta);
-    pgc->start7V(p,c->Fi,c->bc,250);
+    pgc->start7V(p,c->Fi,c->bc,gcval);
     etaloc_sig(p,c,pgc);
     fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
     sigma_ini(p,c,pgc,pf,c->eta);

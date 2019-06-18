@@ -144,6 +144,7 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     }
     
      //
+    pgc->start7V(p,c->Fi,c->bc,250);
     pgc->start4(p,c->u,110);
     pgc->start4(p,c->v,111);
 	pgc->start4(p,c->w,112);

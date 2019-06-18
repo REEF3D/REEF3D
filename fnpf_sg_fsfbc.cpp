@@ -80,6 +80,9 @@ fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     c->Ey(i,j) = 0.0;
     c->Hy(i,j) = 0.0;
     c->Eyy(i,j) = 0.0;
+    c->By(i,j) = 0.0;
+    c->Byy(i,j) = 0.0;
+    
     }
     
     
@@ -136,6 +139,8 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
 
 void fnpf_sg_fsfbc::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
 {
+    // 3D
+    if(p->i_dir==1 && p->j_dir==1)
     FFILOOP4
     {
     c->Bx(i,j) = pdx->sx(p,c->depth,1.0);
@@ -143,6 +148,14 @@ void fnpf_sg_fsfbc::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
     
     c->Bxx(i,j) = pddx->sxx(p,c->depth);
     c->Byy(i,j) = pddx->syy(p,c->depth);
+    }
+    
+    // 2D
+    if(p->i_dir==1 && p->j_dir==0)
+    FFILOOP4
+    {
+    c->Bx(i,j) = pdx->sx(p,c->depth,1.0);    
+    c->Bxx(i,j) = pddx->sxx(p,c->depth);
     }
     
     pgc->gcsl_start4(p,c->Bx,1);
