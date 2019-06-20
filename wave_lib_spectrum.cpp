@@ -232,13 +232,13 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
 
     // Equal Energy Method
     if(p->B84==2)
-    {
+        {
         double ddw, sum;
-        double w_low, w_high, cdf_low, cdf_high;
+        double cdf_s, cdf_e, w_low, w_high, cdf_low, cdf_high;
         int m, NN;
 
-        ws=0.75*wp;
-        we=2.0*wp;
+        ws=0.01*wp;
+        we=10.0*wp;
 
        for(n=0;n<numcomp;++n)
         {
@@ -272,13 +272,33 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
             cdf[n]=sum;
         }
 
+        // Create 0.5% - 99.5% caps of the energy
+        cdf_s = 0.005*cdf[NN-1];
+        cdf_e = 0.995*cdf[NN-1];
+
+        for(m=0;m<NN;++m)
+        {
+            if(cdf[m]<=cdf_s)
+            {
+                ws=ww[m];
+            }
+        }
+
+        for(m=(NN-1);m>=0;--m)
+        {
+            if(cdf[m]>=cdf_e)
+            {
+                we=ww[m];
+            }
+        }
+            
         // Create equal energy bins
 
         p->Darray(dee,p->wN);
 
         for(n=0;n<p->wN;++n)
         {
-            dee[n] = cdf[0]+n*(cdf[NN-1]-cdf[0])/double (p->wN-1);
+            dee[n] = cdf_s + double (n)*(cdf_e-cdf_s)/double (p->wN-1);
         }
 
         // Interpolate the corresponding frequencies and frequency intervals at each equal energy bins
@@ -340,7 +360,7 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
 
 void wave_lib_spectrum::amplitudes_irregular(lexer *p)
 {
-    if(p->B84==1 && p->B136!=4)
+    if(p->B84==1)
     {
         // Amplitudes
         for(int n=0;n<p->wN;++n)
@@ -349,7 +369,7 @@ void wave_lib_spectrum::amplitudes_irregular(lexer *p)
         }
     }
 
-    if(p->B84==2 && p->B136==4)
+    if(p->B84==2)
     {
         // Amplitudes
         for(int n=0;n<p->wN;++n)
