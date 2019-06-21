@@ -689,6 +689,9 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Waves">
       <VirtualDirectory Name="NHFLOW">
+        <VirtualDirectory Name="FSF">
+          <File Name="nhflow_fsf.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Diffusion">
           <File Name="idiff2_FS_sig.h"/>
           <File Name="idiff2_FS_2D_sig.h"/>
@@ -2175,6 +2178,9 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Waves">
       <VirtualDirectory Name="NHFLOW">
+        <VirtualDirectory Name="FSF">
+          <File Name="nhflow_fsf.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Diffusion">
           <File Name="idiff2_FSw_sig.cpp"/>
           <File Name="idiff2_FSv_sig.cpp"/>
