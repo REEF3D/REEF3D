@@ -59,15 +59,18 @@ void poisson_sig::estart(lexer* p, fdm *a, field &f)
             a->M.w[n] = -(CPOR2*PORVAL2)/(roface(p,a,0,1,0)*p->DYP[JP]*p->DYN[JP])*p->y_dir;
             a->M.e[n] = -(CPOR2m*PORVAL2m)/(roface(p,a,0,-1,0)*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
 
-            a->M.t[n] = -(sigxyz2*CPOR3*PORVAL3)/(roface(p,a,0,0,1)*p->DZP[KP]*p->DZN[KP])*p->z_dir     + p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
-            a->M.b[n] = -(sigxyz2*CPOR3m*PORVAL3m)/(roface(p,a,0,0,-1)*p->DZP[KM1]*p->DZN[KP])*p->z_dir - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
-            
-            
-            a->rhsvec.V[n] =  2.0*p->sigx[FIJK]*(f[FIp1JKp1] - f[FIm1JKp1] - f[FIp1JKm1] + f[FIm1JKm1])
-                        /((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir
+            a->M.t[n] = -(sigxyz2*CPOR3*PORVAL3)/(roface(p,a,0,0,1)*p->DZP[KP]*p->DZN[KP])*p->z_dir     
+                        + CPOR4*PORVAL4*p->sigxx[FIJK]/(a->ro(i,j,k)*(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
                         
-                        + 2.0*p->sigy[FIJK]*(f[FIJp1Kp1] - f[FIJm1Kp1] - f[FIJp1Km1] + f[FIJm1Km1])
-                        /((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
+            a->M.b[n] = -(sigxyz2*CPOR3m*PORVAL3m)/(roface(p,a,0,0,-1)*p->DZP[KM1]*p->DZN[KP])*p->z_dir 
+                        - CPOR4*PORVAL4*p->sigxx[FIJK]/(a->ro(i,j,k)*(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
+            
+            
+            a->rhsvec.V[n] =  CPOR4*PORVAL4*2.0*p->sigx[FIJK]*(f[FIp1JKp1] - f[FIm1JKp1] - f[FIp1JKm1] + f[FIm1JKm1])
+                        /(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir
+                        
+                        + CPOR4*PORVAL4*2.0*p->sigy[FIJK]*(f[FIJp1Kp1] - f[FIJm1Kp1] - f[FIJp1Km1] + f[FIJm1Km1])
+                        /((a->ro(i,j,k)*p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
         }
             
 	
