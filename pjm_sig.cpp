@@ -118,9 +118,13 @@ void pjm_sig::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w
     count=0;
     LOOP
     {
-    a->rhsvec.V[count] =  -(u(i,j,k)-u(i-1,j,k))/(alpha*p->dt*p->DXN[IP])  +  p->sigmax(p,u,4)
-						   -(v(i,j,k)-v(i,j-1,k))/(alpha*p->dt*p->DYN[JP])  +  p->sigmax(p,v,4)
-						   -(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DZN[KP])  +  p->sigmax(p,w,4);
+    a->rhsvec.V[count] =  -(u(i,j,k)-u(i-1,j,k))/(alpha*p->dt*p->DXN[IP])  
+                            + p->sigx[FIJK]*(0.5*(u(i,j,k+1)+u(i-1,j,k+1))-0.5*(u(i,j,k-1)+u(i-1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1])
+                            
+						   -(v(i,j,k)-v(i,j-1,k))/(alpha*p->dt*p->DYN[JP])  
+                           + p->sigy[FIJK]*(0.5*(v(i,j,k+1)+v(i,j-1,k+1))-0.5*(v(i,j,k-1)+v(i,j-1,k-1)))/(p->DZP[KP]+p->DZP[KP1])
+                           
+						   -(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DZN[KP])*p->sigz[IJ];
     ++count;
     }
     pip=0;
