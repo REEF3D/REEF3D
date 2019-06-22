@@ -26,6 +26,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 #include"nsewave_f.h"
 #include"nsewave_geo.h"
 #include"nsewave_RK3.h"
+#include"nhflow_fsf.h"
 #include"fnpf_fg_v.h"
 #include"fnpf_sg_v.h"
 #include"fnpf_fg_RK3.h"

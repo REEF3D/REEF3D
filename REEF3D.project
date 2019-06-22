@@ -1708,6 +1708,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
       <VirtualDirectory Name="Driver">
+        <File Name="driver_ini_nhflow.cpp"/>
         <File Name="driver_ini_fnpf_fg.cpp"/>
         <File Name="driver_ini_fnpf_sg.cpp"/>
         <File Name="driver_makegrid_fnpf.cpp"/>

@@ -91,21 +91,21 @@ void pjm_sig::ucorr(fdm* a, lexer* p, field& uvel,double alpha)
 {	
 	ULOOP
 	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((a->press(i+1,j,k)-a->press(i,j,k))
-	/(p->DXP[IP]*roface(p,a,1,0,0)) +  p->sigmax(p,a->press,1));
+	/(p->DXP[IP]*roface(p,a,1,0,0)) + p->sigx[FIJK]*(0.5*(a->press(i,j,k+1)+a->press(i+1,j,k+1))-0.5*(a->press(i,j,k-1)+a->press(i+1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
 }
 
 void pjm_sig::vcorr(fdm* a, lexer* p, field& vvel,double alpha)
 {	 
     VLOOP
     vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))
-    /(p->DYP[JP]*(roface(p,a,0,1,0)) +  p->sigmay(p,a->press,2));
+    /(p->DYP[JP]*(roface(p,a,0,1,0)) + p->sigy[FIJK]*(0.5*(a->press(i,j,k+1)+a->press(i,j+1,k+1))-0.5*(a->press(i,j,k-1)+a->press(i,j+1,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
 }
 
 void pjm_sig::wcorr(fdm* a, lexer* p, field& wvel,double alpha)
 {	
 	WLOOP
 	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))
-	/(p->DZP[KP]*roface(p,a,0,0,1)) +  p->sigmaz(p,a->press,3));
+	/(p->DZP[KP]*roface(p,a,0,0,1)))*p->sigz[IJ];
 }
  
 void pjm_sig::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)

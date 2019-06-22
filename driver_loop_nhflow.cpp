@@ -29,11 +29,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sediment_header.h"
 #include"heat_header.h"
 #include"concentration_header.h"
-#include"benchmark_header.h"
+#include"benchmark_header.h"    
 #include"convection_header.h"
 #include"solver_header.h"
 #include"field_header.h"
 #include"6DOF_header.h"
+#include"waves_header.h"
 #include"lexer.h"
 
 
@@ -41,17 +42,15 @@ void driver::loop_nhflow(fdm* a)
 {
 	driver_ini();
     
-
     if(p->mpirank==0)
     cout<<"starting mainloop.NHFLOW"<<endl;
     
-    
-//-----------MAINLOOP NHFLOW----------------------------
+//-----------MAINLOOP NSEWAVE----------------------------
 	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
 	{		
         ++p->count;
         starttime=pgc->timer();
-        
+
         if(p->mpirank==0 && (p->count%p->P12==0))
         {
         cout<<"------------------------------"<<endl;
@@ -77,37 +76,31 @@ void driver::loop_nhflow(fdm* a)
         // outer loop
         for(innercounter=0;innercounter<p->N50;++innercounter)
         {
-            
 			fill_vel(p,a,pgc);
+        
+        // Wave Models
+        pnse->start(p,a,pgc,pmom,pdiff,pturb,pconvec,ppress,ppois,ppoissonsolv,psolv,pflow);
+        poneph->update(p,a,pgc,pflow);
 			
             if(p->N52==1 || innercounter==0)
             {
-            pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,ppart,a->phi);
-            poneph->update(p,a,pgc,pflow);
             pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow);
             pheat->start(a,p,pconvec,pdiff,psolv,pgc,pflow);
-			 pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
+			pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
             psusp->start(a,p,pconcdisc,psuspdiff,psolv,pgc,pflow);
-			 pmp->start(p,a,pgc,pmpconvec,psolv,pflow,preini,ppart,pprint);
+			pmp->start(p,a,pgc,pmpconvec,psolv,pflow,preini,ppart,pprint);
             }
-				
+            
+        
 		// Sediment Computation
         psed->start(p,a,pconvec,pgc,pflow,ptopo,preto,psusp,pbed);
 		
 		p6dof->start(p,a,pgc,pmom,pflow,pfsf,pfsfdisc,psolv,preini,ppart);
-        pflow->u_relax(p,a,pgc,a->u);
-		pflow->v_relax(p,a,pgc,a->v);
-		pflow->w_relax(p,a,pgc,a->w);
-		pfsf->update(p,a,pgc,a->phi);
-        pmom->start(p,a,pgc,pmom); 
+
         pbench->start(p,a,pgc,pconvec);
         }
 		
         //save previous timestep
-        pmom->utimesave(p,a,pgc);
-        pmom->vtimesave(p,a,pgc);
-        pmom->wtimesave(p,a,pgc);
-        pflow->veltimesave(p,a,pgc);
         pfsf->ltimesave(p,a,a->phi);
         pturb->ktimesave(p,a,pgc);
         pturb->etimesave(p,a,pgc);
@@ -118,7 +111,6 @@ void driver::loop_nhflow(fdm* a)
         //timestep control
         ptstep->start(a,p,pgc,pturb);
         p->simtime+=p->dt;
-        
         
         // printer
         pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
@@ -135,18 +127,19 @@ void driver::loop_nhflow(fdm* a)
 		p->meantime=(p->totaltime/double(p->count));
 		p->gcmeantime=(p->gctotaltime/double(p->count));
 		p->Xmeantime=(p->Xtotaltime/double(p->count));
-        
-            if( (p->count%p->P12==0))
-            {
-            if(p->B90>0)
-            cout<<"wavegentime: "<<setprecision(3)<<p->wavetime<<endl;
-            
-            cout<<"reinitime: "<<setprecision(3)<<p->reinitime<<endl;
-            cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
-            cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;		
-            cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
-            cout<<"timer per step: "<<setprecision(3)<<p->itertime<<endl;
-            }
+		
+		if(p->B90>0)
+        if(p->count%p->P12==0)
+        {
+		cout<<"wavegentime: "<<setprecision(3)<<p->wavetime<<endl;
+		
+		cout<<"reinitime: "<<setprecision(3)<<p->reinitime<<endl;
+        cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
+        cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;		
+		cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
+        cout<<"timer per step: "<<setprecision(3)<<p->itertime<<endl;
+        }
+
         // Write log files
         mainlog(p);
         maxlog(p);
@@ -159,7 +152,7 @@ void driver::loop_nhflow(fdm* a)
 	p->reinitime=0.0;
 	p->wavetime=0.0;
 	p->field4time=0.0;
-    
+	
     stop(p,a,pgc);
 	}
 
@@ -168,7 +161,7 @@ void driver::loop_nhflow(fdm* a)
 	cout<<endl<<"******************************"<<endl<<endl;
 
 	cout<<"modelled time: "<<p->simtime<<endl;
-	cout << endl;
+	cout<<endl;
 
     mainlogout.close();
     maxlogout.close();
