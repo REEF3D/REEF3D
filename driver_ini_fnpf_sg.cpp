@@ -63,7 +63,7 @@ void driver::driver_ini_fnpf_sg()
     c->nodeval(i,j,k)=count;
 	}
 
-	FLOOP
+	LOOP
 	++p->cellnum;
     
     LOOP

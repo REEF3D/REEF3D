@@ -45,69 +45,10 @@ nhflow_fsf::nhflow_fsf(lexer *p, fdm *a, ghostcell *pgc, heat *&pheat, concentra
 {
 	peta = new sflow_eta_weno(p);
 	phxy = new sflow_hxy_weno(p);
-	
-	
-	// bed ini
-	SLICELOOP4
-	bed(i,j) = p->bed[IJ];
-	pgc->gcsl_start4(p,bed,50);
-	
-    if(p->F50==1)
-	gcval_phi=51;
 
-	if(p->F50==2)
-	gcval_phi=52;
-
-	if(p->F50==3)
-	gcval_phi=53;
-
-	if(p->F50==4)
-	gcval_phi=54;
-
-	if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90==0)
-	pupdate = new fluid_update_fsf(p,a,pgc);
-	
-	if(p->F30>0 && p->H10==0 && p->W30==1 && p->F300==0 && p->W90==0)
-	pupdate = new fluid_update_fsf_comp(p,a,pgc);
-	
-	if(p->F30>0 && p->H10>0 && p->F300==0 && p->W90==0)
-	pupdate = new fluid_update_fsf_heat(p,a,pgc,pheat);
-	
-	if(p->F30>0 && p->C10>0 && p->F300==0 && p->W90==0)
-	pupdate = new fluid_update_fsf_concentration(p,a,pgc,pconc);
-	
-	if(p->F30>0 && p->F101>0 && p->F300==0 && p->W90==0)
-	pupdate = new fluid_update_fsf_entrain(p,a,pgc,pconc);
-	
-	if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90>0)
-	pupdate = new fluid_update_rheology(p,a,pgc);
-	
-	if(p->F300>0)
 	pupdate = new fluid_update_void();
 
-    pupdate = new fluid_update_fsf(p,a,pgc);
-    
-	if(p->F46==2)
-	ppicard = new picard_f(p);
-
-	if(p->F46==3)
-	ppicard = new picard_lsm(p);
-
-	if(p->F46!=2 && p->F46!=3)
-	ppicard = new picard_void(p);
-    
-    p->phimean=p->F60;
-    
-    SLICELOOP4
-    a->eta(i,j) = 0.0;
-
-    
-    pgc->gcsl_start4(p,a->eta,gcval_phi);
-    
-    LOOP
-    a->phi(i,j,k) = a->eta(i,j) + p->phimean - p->pos_z();
-    
-    pgc->start4(p,a->phi,gcval_phi);
+    //pupdate = new fluid_update_fsf(p,a,pgc);
 }
 
 nhflow_fsf::~nhflow_fsf()
@@ -205,13 +146,6 @@ void nhflow_fsf::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusi
     
     pgc->gcsl_start4(p,a->eta,gcval_phi);
     
-    FLUIDLOOP
-    a->phi(i,j,k) = a->eta(i,j) + p->phimean - p->pos_z();
-    
-    pgc->start4(p,a->phi,gcval_phi);
-    
-    pupdate->start(p,a,pgc);
-    
 }
 
 void nhflow_fsf::ltimesave(lexer* p, fdm *a, slice &ls)
@@ -225,22 +159,6 @@ void nhflow_fsf::update(lexer *p, fdm *a, ghostcell *pgc, slice &f)
 
 void nhflow_fsf::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
 {
-    
-    p->phimean=p->F60;
-    
-    SLICELOOP4
-    a->eta(i,j) = 0.0;
-    
-    pflow->eta_relax(p,pgc,a->eta);
-    
-    pgc->gcsl_start4(p,a->eta,gcval_phi);
-    
-    LOOP
-    a->phi(i,j,k) = a->eta(i,j) + p->phimean - p->pos_z();
-    
-    pgc->start4(p,a->phi,gcval_phi);
-    
-    pupdate->start(p,a,pgc);
 }
 
 

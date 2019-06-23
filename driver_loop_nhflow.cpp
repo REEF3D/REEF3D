@@ -41,6 +41,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void driver::loop_nhflow(fdm* a)
 {
 	driver_ini();
+    driver_ini_nhflow();
     
     if(p->mpirank==0)
     cout<<"starting mainloop.NHFLOW"<<endl;

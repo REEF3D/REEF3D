@@ -1388,17 +1388,25 @@
           <File Name="ioflow_ini.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="ioWave">
+          <VirtualDirectory Name="NHFLOW">
+            <File Name="iowave_nhflow_relax.cpp"/>
+            <File Name="iowave_nhflow_dirichlet.cpp"/>
+            <File Name="iowave_nhflow_precalc_ini.cpp"/>
+            <File Name="iowave_nhflow_inflow.cpp"/>
+            <File Name="iowave_nhflow_dirichlet-wavegen.cpp"/>
+            <File Name="iowave_nhflow_active-beach.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="FNPF">
-            <File Name="iowave_precalc_decomp_time_fnpf.cpp"/>
-            <File Name="iowave_precalc_decomp_space_fnpf.cpp"/>
-            <File Name="iowave_precalc_decomp_relax_fnpf.cpp"/>
-            <File Name="iowave_precalc_decomp_dirichlet_fnpf.cpp"/>
-            <File Name="iowave_active-beach_fnpf.cpp"/>
-            <File Name="iowave_inflow_fnpf.cpp"/>
-            <File Name="iowave_dirichlet-wavegen-fnpf.cpp"/>
-            <File Name="iowave_precalc_dirichlet_fnpf.cpp"/>
-            <File Name="iowave_precalc_relax_fnpf.cpp"/>
-            <File Name="iowave_precalc_ini_fnpf.cpp"/>
+            <File Name="iowave_fnpf_precalc_relax.cpp"/>
+            <File Name="iowave_fnpf_precalc_ini.cpp"/>
+            <File Name="iowave_fnpf_precalc_dirichlet.cpp"/>
+            <File Name="iowave_fnpf_precalc_decomp_time.cpp"/>
+            <File Name="iowave_fnpf_precalc_decomp_space.cpp"/>
+            <File Name="iowave_fnpf_precalc_decomp_relax.cpp"/>
+            <File Name="iowave_fnpf_precalc_decomp_dirichlet.cpp"/>
+            <File Name="iowave_fnpf_inflow.cpp"/>
+            <File Name="iowave_fnpf_dirichlet-wavegen.cpp"/>
+            <File Name="iowave_fnpf_active-beach.cpp"/>
           </VirtualDirectory>
           <File Name="iowave_precalc_decomp_time.cpp"/>
           <File Name="iowave_precalc_decomp_space.cpp"/>
