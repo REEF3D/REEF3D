@@ -1389,10 +1389,10 @@
         </VirtualDirectory>
         <VirtualDirectory Name="ioWave">
           <VirtualDirectory Name="NHFLOW">
-            <File Name="iowave_nhflow_relax.cpp"/>
-            <File Name="iowave_nhflow_dirichlet.cpp"/>
+            <File Name="iowave_nhflow_precalc_relax.cpp"/>
+            <File Name="iowave_nhflow_precalc_inflow.cpp"/>
+            <File Name="iowave_nhflow_precalc_dirichlet.cpp"/>
             <File Name="iowave_nhflow_precalc_ini.cpp"/>
-            <File Name="iowave_nhflow_inflow.cpp"/>
             <File Name="iowave_nhflow_dirichlet-wavegen.cpp"/>
             <File Name="iowave_nhflow_active-beach.cpp"/>
           </VirtualDirectory>

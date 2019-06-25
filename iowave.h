@@ -163,6 +163,15 @@ public:
     void wavegen_precalc_decomp_time_fnpf(lexer*,ghostcell*);
     void wavegen_precalc_decomp_relax_fnpf(lexer*,ghostcell*);
     void wavegen_precalc_decomp_dirichlet_fnpf(lexer*,ghostcell*);
+    
+    // NHFLOW
+    //virtual void nhflow_inflow(lexer*,ghostcell*,double*,double*,slice&,slice&);
+    void nhflow_precalc_relax(lexer*,ghostcell*);
+    void nhflow_precalc_relax_ini(lexer*,ghostcell*);
+    void nhflow_precalc_dirichlet(lexer*,ghostcell*);
+    void nhflow_precalc_dirichlet_ini(lexer*,ghostcell*);
+    void nhflow_dirichlet_wavegen(lexer*,ghostcell*,double*,double*,slice&,slice&);
+    void nhflow_active_beach(lexer*, ghostcell*, double*, double*, slice&, slice&);
 	
 
 private:
