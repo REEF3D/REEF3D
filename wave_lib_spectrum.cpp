@@ -237,8 +237,7 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
         double cdf_s, cdf_e, w_low, w_high, cdf_low, cdf_high;
         int m, NN;
 
-        ws=0.01*wp;
-        we=10.0*wp;
+
 
        for(n=0;n<numcomp;++n)
         {
@@ -247,58 +246,105 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
             cosbeta[n]=1.0;
         }
 
-        // Integration of spectrum
-
-        ddw=0.01;
-        NN=int((we-ws)/ddw)+1;
-
-        p->Darray(Sn,NN);
-        p->Darray(cdf,NN);
-        p->Darray(ww,NN);
-
-        w=ws;
-        for(n=0;n<NN;++n)
+        if(p->B87==1)
         {
-            ww[n]=w;
-            S = wave_spectrum(p,w);
-            Sn[n]=S;
-            w+=ddw;
-        }
+            ws=p->B87_1;
+            we=p->B87_2;
 
-        sum=0.0;
-        for(n=0;n<NN;++n)
-        {
-            sum+=ddw*Sn[n];
-            cdf[n]=sum;
-        }
+            // Integration of spectrum
 
-        // Create 0.5% - 99.5% caps of the energy
-        cdf_s = 0.005*cdf[NN-1];
-        cdf_e = 0.995*cdf[NN-1];
+            ddw=0.01;
+            NN=int((we-ws)/ddw)+1;
 
-        for(m=0;m<NN;++m)
-        {
-            if(cdf[m]<=cdf_s)
+            p->Darray(Sn,NN);
+            p->Darray(cdf,NN);
+            p->Darray(ww,NN);
+
+            w=ws;
+            for(n=0;n<NN;++n)
             {
-                ws=ww[m];
+                ww[n]=w;
+                S = wave_spectrum(p,w);
+                Sn[n]=S;
+                w+=ddw;
             }
-        }
 
-        for(m=(NN-1);m>=0;--m)
-        {
-            if(cdf[m]>=cdf_e)
+            sum=0.0;
+            for(n=0;n<NN;++n)
             {
-                we=ww[m];
+                sum+=ddw*Sn[n];
+                cdf[n]=sum;
             }
-        }
+
+            // Create equal energy bins
+
+            p->Darray(dee,p->wN);
+
+            for(n=0;n<p->wN;++n)
+            {
+                dee[n] = cdf[0]+n*(cdf[NN-1]-cdf[0])/double (p->wN-1);
+            }
+        }   
+
+        if(p->B87==0)
+        {
             
-        // Create equal energy bins
+            ws=0.01*wp;
+            we=10.0*wp;
+    
+            // Integration of spectrum
+    
+            ddw=0.01;
+            NN=int((we-ws)/ddw)+1;
 
-        p->Darray(dee,p->wN);
+            p->Darray(Sn,NN);
+            p->Darray(cdf,NN);
+            p->Darray(ww,NN);
 
-        for(n=0;n<p->wN;++n)
-        {
-            dee[n] = cdf_s + double (n)*(cdf_e-cdf_s)/double (p->wN-1);
+            w=ws;
+            for(n=0;n<NN;++n)
+            {
+                ww[n]=w;
+                S = wave_spectrum(p,w);
+                Sn[n]=S;
+                w+=ddw;
+            }
+    
+            sum=0.0;
+            for(n=0;n<NN;++n)
+            {
+                sum+=ddw*Sn[n];
+                cdf[n]=sum;
+            }
+    
+            // Create 0.5% - 99.5% caps of the energy
+            cdf_s = 0.005*cdf[NN-1];
+            cdf_e = 0.995*cdf[NN-1];
+    
+            for(m=0;m<NN;++m)
+            {
+                if(cdf[m]<=cdf_s)
+                {
+                    ws=ww[m];
+                }
+            }
+
+            for(m=(NN-1);m>=0;--m)
+            {
+                if(cdf[m]>=cdf_e)
+                {
+                we=ww[m];
+                }
+            }
+                
+            // Create equal energy bins
+    
+            p->Darray(dee,p->wN);
+    
+            for(n=0;n<p->wN;++n)
+            {
+                dee[n] = cdf_s + double (n)*(cdf_e-cdf_s)/double (p->wN-1);
+            }
         }
 
         // Interpolate the corresponding frequencies and frequency intervals at each equal energy bins
