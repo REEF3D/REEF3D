@@ -52,7 +52,6 @@ void grid_sigma::sigma_ini(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     p->Darray(p->sigy,p->imax*p->jmax*(p->kmax+1));
     
     p->Darray(p->sigxx,p->imax*p->jmax*(p->kmax+1));
-    p->Darray(p->sigyy,p->imax*p->jmax*(p->kmax+1));
     
     FLOOP
     p->sig[FIJK] =  p->ZN[KP];
@@ -136,10 +135,10 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
                       
                       - (p->sigx[FIJK]/WLVL)*(Bx(i,j) + Ex(i,j))
                       
-                      - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(Bx(i,j)*Ex(i,j));
+                      - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(Bx(i,j)*Ex(i,j))
                       
                       
-        p->sigyy[FIJK] = ((1.0 - p->sig[FIJK])/WLVL)*(Byy(i,j) - pow(By(i,j),2.0)/WLVL) // yy
+                      + ((1.0 - p->sig[FIJK])/WLVL)*(Byy(i,j) - pow(By(i,j),2.0)/WLVL) // yy
         
                       - (p->sig[FIJK]/WLVL)*(Eyy(i,j) - pow(Ey(i,j),2.0)/WLVL)
                       
@@ -157,10 +156,10 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
                       
                       - (p->sigx[FIJK]/WLVLDRY)*(Bx(i,j) + Bx(i,j))
                       
-                      - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVLDRY,2.0))*(Bx(i,j)*Bx(i,j));
+                      - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVLDRY,2.0))*(Bx(i,j)*Bx(i,j))
                       
                       
-         p->sigyy[FIJK] = ((1.0 - p->sig[FIJK])/WLVLDRY)*(Byy(i,j) - pow(By(i,j),2.0)/WLVLDRY) // yy
+                      + ((1.0 - p->sig[FIJK])/WLVLDRY)*(Byy(i,j) - pow(By(i,j),2.0)/WLVLDRY) // yy
         
                       - (p->sig[FIJK]/WLVLDRY)*(Byy(i,j) - pow(By(i,j),2.0)/WLVLDRY)
                       

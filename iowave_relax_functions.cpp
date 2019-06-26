@@ -96,6 +96,11 @@ double iowave::ramp(lexer *p)
     {
     f = p->simtime/(p->B102*p->wT) - (1.0/PI)*sin(PI*(p->simtime/(p->B102*p->wT)));
     }
+    
+    if(p->B101==2 && p->simtime<p->B102)
+    {
+    f = p->simtime/(p->B102) - (1.0/PI)*sin(PI*(p->simtime/(p->B102)));
+    }
 
     return f;
 }

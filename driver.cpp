@@ -36,7 +36,7 @@ driver::driver(int& argc, char **argv)
     {
     cout<<endl<<"REEF3D (c) 2008-2019 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl; 
-    cout<<endl<<"v_190619" <<endl<<endl;         
+    cout<<endl<<"v_190624" <<endl<<endl;         
     }
     
 	p->lexer_read();
@@ -91,6 +91,9 @@ driver::driver(int& argc, char **argv)
         
         if(p->A10==4)
         nsewave_driver();
+        
+        if(p->A10==44)
+        nhflow_driver();
         
         if(p->A10==5)
         cfd_driver();

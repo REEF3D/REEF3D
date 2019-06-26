@@ -21,6 +21,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 
 #include"pressure_void.h"
 #include"pjm.h"
+#include"pjm_sig.h"
 #include"pjm_4th.h"
 #include"pjm_fsm.h"
 #include"pjm_fsi.h"

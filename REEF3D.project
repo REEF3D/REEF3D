@@ -596,7 +596,6 @@
       <File Name="pjm_fsi.h"/>
       <File Name="pjm_corr.h"/>
       <VirtualDirectory Name="Poisson">
-        <File Name="poisson_sig.h"/>
         <File Name="poisson_4th.h"/>
         <File Name="poisson_NUG.h"/>
         <File Name="presscorr.h"/>
@@ -690,6 +689,17 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Waves">
       <VirtualDirectory Name="NHFLOW">
+        <VirtualDirectory Name="FSF">
+          <File Name="nhflow_fsf.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Diffusion">
+          <File Name="idiff2_FS_sig.h"/>
+          <File Name="idiff2_FS_2D_sig.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Pressure">
+          <File Name="pjm_sig.h"/>
+          <File Name="poisson_sig.h"/>
+        </VirtualDirectory>
         <File Name="nhflow_f.h"/>
         <File Name="nhflow.h"/>
       </VirtualDirectory>
@@ -1378,17 +1388,25 @@
           <File Name="ioflow_ini.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="ioWave">
+          <VirtualDirectory Name="NHFLOW">
+            <File Name="iowave_nhflow_precalc_relax.cpp"/>
+            <File Name="iowave_nhflow_precalc_inflow.cpp"/>
+            <File Name="iowave_nhflow_precalc_dirichlet.cpp"/>
+            <File Name="iowave_nhflow_precalc_ini.cpp"/>
+            <File Name="iowave_nhflow_dirichlet-wavegen.cpp"/>
+            <File Name="iowave_nhflow_active-beach.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="FNPF">
-            <File Name="iowave_precalc_decomp_time_fnpf.cpp"/>
-            <File Name="iowave_precalc_decomp_space_fnpf.cpp"/>
-            <File Name="iowave_precalc_decomp_relax_fnpf.cpp"/>
-            <File Name="iowave_precalc_decomp_dirichlet_fnpf.cpp"/>
-            <File Name="iowave_active-beach_fnpf.cpp"/>
-            <File Name="iowave_inflow_fnpf.cpp"/>
-            <File Name="iowave_dirichlet-wavegen-fnpf.cpp"/>
-            <File Name="iowave_precalc_dirichlet_fnpf.cpp"/>
-            <File Name="iowave_precalc_relax_fnpf.cpp"/>
-            <File Name="iowave_precalc_ini_fnpf.cpp"/>
+            <File Name="iowave_fnpf_precalc_relax.cpp"/>
+            <File Name="iowave_fnpf_precalc_ini.cpp"/>
+            <File Name="iowave_fnpf_precalc_dirichlet.cpp"/>
+            <File Name="iowave_fnpf_precalc_decomp_time.cpp"/>
+            <File Name="iowave_fnpf_precalc_decomp_space.cpp"/>
+            <File Name="iowave_fnpf_precalc_decomp_relax.cpp"/>
+            <File Name="iowave_fnpf_precalc_decomp_dirichlet.cpp"/>
+            <File Name="iowave_fnpf_inflow.cpp"/>
+            <File Name="iowave_fnpf_dirichlet-wavegen.cpp"/>
+            <File Name="iowave_fnpf_active-beach.cpp"/>
           </VirtualDirectory>
           <File Name="iowave_precalc_decomp_time.cpp"/>
           <File Name="iowave_precalc_decomp_space.cpp"/>
@@ -1698,6 +1716,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
       <VirtualDirectory Name="Driver">
+        <File Name="driver_ini_nhflow.cpp"/>
         <File Name="driver_ini_fnpf_fg.cpp"/>
         <File Name="driver_ini_fnpf_sg.cpp"/>
         <File Name="driver_makegrid_fnpf.cpp"/>
@@ -2037,7 +2056,6 @@
       <File Name="pjm_fsi.cpp"/>
       <File Name="pjm_corr.cpp"/>
       <VirtualDirectory Name="Poisson">
-        <File Name="poisson_sig.cpp"/>
         <File Name="poisson_4th.cpp"/>
         <File Name="poisson_NUG.cpp"/>
         <File Name="poisson_f.cpp"/>
@@ -2169,6 +2187,21 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Waves">
       <VirtualDirectory Name="NHFLOW">
+        <VirtualDirectory Name="FSF">
+          <File Name="nhflow_fsf.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Diffusion">
+          <File Name="idiff2_FSw_sig.cpp"/>
+          <File Name="idiff2_FSv_sig.cpp"/>
+          <File Name="idiff2_FSu_sig.cpp"/>
+          <File Name="idiff2_FSw_2D_sig.cpp"/>
+          <File Name="idiff2_FSv_2D_sig.cpp"/>
+          <File Name="idiff2_FSu_2D_sig.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Pressure">
+          <File Name="pjm_sig.cpp"/>
+          <File Name="poisson_sig.cpp"/>
+        </VirtualDirectory>
         <File Name="nhflow_f.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Wave Lib">

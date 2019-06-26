@@ -527,6 +527,12 @@ void driver::logic()
     pnse = new nsewave_geo(p,a,pgc,pheat,pconc);
     }
     
+    if(p->A10==44)
+    {
+    if(p->A410==1)
+    pnse = new nhflow_fsf(p,a,pgc,pheat,pconc);
+    }
+    
 
 // Free Surface
     if(p->F10==1)
@@ -685,8 +691,11 @@ void driver::logic()
 	if(p->D30==0)
 	ppress = new pressure_void(p);
 
-	if(p->D30==1 && p->W30==0 && p->F10==2)
+	if(p->D30==1 && p->W30==0 && p->F10==2 && p->G2==0)
 	ppress = new pjm(p,a);
+    
+    if(p->D30==1 && p->W30==0 && p->F10==2 && p->G2==1)
+	ppress = new pjm_sig(p,a);
     
     if(p->D30==1 && p->W30==1 && p->F10==2)
 	ppress = new pjm_comp(p,a,pgc);
