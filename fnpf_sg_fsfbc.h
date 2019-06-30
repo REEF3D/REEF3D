@@ -27,6 +27,7 @@ class field;
 class fnpf_convection;
 class fnpf_ddx;
 class fnpf_etadisc;
+class solver2D;
 
 using namespace std;
 
@@ -47,6 +48,7 @@ public:
     virtual void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
     virtual void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
     virtual void coastline(lexer*,fdm_fnpf*,ghostcell*,slice&);
+    virtual void damping(lexer*,fdm_fnpf*,ghostcell*,slice&,int,double);
     
     
     void filter(lexer*, fdm_fnpf*,ghostcell*, slice&);
@@ -56,10 +58,13 @@ public:
     fnpf_etadisc *pdf;
     fnpf_convection *pdx;
     fnpf_ddx *pddx;
-
-    double ivel,jvel,kvel;
+    solver2D *psolv;
+    
     
 private:
+    double ivel,jvel,kvel;
+    
+    double visc;
 
     
 };

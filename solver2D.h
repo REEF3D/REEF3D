@@ -25,6 +25,7 @@ class ghostcell;
 class slice;
 class vec2D;
 class cpt2D;
+class matrix2D;
 
 using namespace std;
 
@@ -36,9 +37,9 @@ class solver2D
 
 public:
 
-	virtual void start(lexer*,fdm2D*,ghostcell*, slice&, vec2D&, vec2D&, int, int, double)=0;
-	virtual void solve(lexer*,fdm2D*,ghostcell*, vec2D&, vec2D&, int, int, int&, int, double, cpt2D&)=0;
-	virtual void setup(lexer*,fdm2D*,ghostcell*,int,cpt2D&)=0;	
+	virtual void start(lexer*,ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int, int, double, cpt2D&)=0;
+	virtual void solve(lexer*,ghostcell*, matrix2D&, vec2D&, vec2D&, int, int, int&, int, double, cpt2D&)=0;
+	virtual void setup(lexer*,ghostcell*,int,cpt2D&)=0;	
 };
 
 #endif

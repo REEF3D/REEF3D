@@ -23,16 +23,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm2D.h"
 
-void ghostcell::gcparaxvec2D(lexer* p, fdm2D *b, vec2D &x, int gcv)
+void ghostcell::gcparaxvec2D(lexer* p, vec2D &x, int gcv, cpt2D &C)
 {
 	if(gcv==1)
-	gcslparaxvec_slr(p,x,b->C1,1);
+	gcslparaxvec_slr(p,x,C,1);
 
 	if(gcv==2)
-	gcslparaxvec_slr(p,x,b->C2,2);
+	gcslparaxvec_slr(p,x,C,2);
 
 	if(gcv==3 || gcv==4)
-	gcslparaxvec_slr(p,x,b->C4,4);
+	gcslparaxvec_slr(p,x,C,4);
 }
 
 void ghostcell::gcslparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)

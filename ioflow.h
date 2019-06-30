@@ -73,7 +73,7 @@ public:
     virtual void fi_relax(lexer*,ghostcell*,field&,field&)=0;
     virtual void fivec_relax(lexer*, ghostcell*, double*)=0;
     virtual void fifsf_relax(lexer*, ghostcell*, slice&)=0;
-    virtual void Fz_relax(lexer*, ghostcell*, slice&)=0;
+    virtual void visc_relax(lexer*, ghostcell*, slice&)=0;
     virtual void eta_relax(lexer*,ghostcell*,slice&)=0;
     virtual void um_relax(lexer*,ghostcell*,slice&,slice&,slice&)=0;
     virtual void vm_relax(lexer*,ghostcell*,slice&,slice&,slice&)=0;

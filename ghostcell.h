@@ -278,7 +278,7 @@ public:
 
     void gcsl_start4int(lexer*,sliceint&, int);
 
-    void gcsl_start4V(lexer*,fdm2D*,vec2D&, int);
+    void gcsl_start4V(lexer*,vec2D&, int, cpt2D&);
 
     void gcsldistro1(lexer*, slice&,int, int, int, double, int, int, int);
 	void gcsldistro2(lexer*, slice&,int, int, int, double, int, int, int);
@@ -335,7 +335,7 @@ public:
     void gcslparacox_int(lexer*, sliceint&, int);
     void gcslwait(lexer*);
     void gcslflagx(lexer*, int*);
-    void gcparaxvec2D(lexer*, fdm2D*, vec2D&, int);
+    void gcparaxvec2D(lexer*, vec2D&, int,cpt2D&);
     void gcslparaxvec_slr(lexer*, vec2D&,cpt2D&,int);
     void gcxslupdate(lexer*);
 

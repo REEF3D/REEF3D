@@ -48,6 +48,7 @@ public:
     virtual void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
     virtual void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
     virtual void coastline(lexer*,fdm_fnpf*,ghostcell*,slice&);
+    virtual void damping(lexer*,fdm_fnpf*,ghostcell*,slice&,int,double);
     
     
     void filter(lexer*, fdm_fnpf*,ghostcell*, slice&);

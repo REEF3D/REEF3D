@@ -26,6 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sliceint5.h"
 #include"increment.h"
 #include"vec.h"
+#include"vec2D.h"
 #include"matrix_diag.h"
 #include"cpt.h"
 
@@ -60,6 +61,7 @@ public:
     slice4 Bxx,Byy;
     slice4 Hx,Hy;
     slice4 coastline;
+    slice4 vb;
     
     sliceint5 nodeval2D;
     slice4 breaking_print;
@@ -67,6 +69,7 @@ public:
 
 	
     vec rhsvec;
+    vec2D xvec;
     double *Fi,*Uin,*Uout;
 
 	matrix_diag M;    
