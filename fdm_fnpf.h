@@ -28,7 +28,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"vec.h"
 #include"vec2D.h"
 #include"matrix_diag.h"
-#include"cpt.h"
+#include"matrix2D.h"
+#include"cpt2D.h"
 
 class lexer;
 
@@ -66,12 +67,13 @@ public:
     sliceint5 nodeval2D;
     slice4 breaking_print;
     
-
+    cpt2D C4;
 	
     vec rhsvec;
-    vec2D xvec;
+    vec2D xvec,rvec;
     double *Fi,*Uin,*Uout;
 
+    matrix2D N;
 	matrix_diag M;    
     
     int **pvccnode,*ccedge;

@@ -33,13 +33,15 @@ fdm_fnpf::fdm_fnpf(lexer *p) : u(p),v(p),w(p),press(p),Fi4(p),Fifsf(p),Fibed(p),
                               Hx(p),Hy(p),
                               coastline(p),vb(p),
                               nodeval2D(p),breaking_print(p),
-                              rhsvec(p),xvec(p),M(p)
+                              rhsvec(p),rvec(p),xvec(p),N(p),M(p)
 {
     p->Iarray(pvccnode,p->facetnum*4,8);
 	p->Iarray(ccedge,p->facetnum*4);
     
     p->Darray(Fi,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Uin,p->imax*p->jmax*(p->kmax+2));
+    
+    C4.allocate(p);
 }
 
 
