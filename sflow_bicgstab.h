@@ -35,7 +35,7 @@ class sflow_bicgstab : public solver2D, public increment
 {
 public:
 
-	sflow_bicgstab(lexer*,fdm2D*,ghostcell*);
+	sflow_bicgstab(lexer*,ghostcell*);
 	virtual ~sflow_bicgstab();
 	virtual void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int, int, double, cpt2D&);
 	virtual void solve(lexer*, ghostcell*, matrix2D&, vec2D&, vec2D&, int, int, int&, int, double, cpt2D&);

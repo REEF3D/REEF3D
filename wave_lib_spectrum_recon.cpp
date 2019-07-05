@@ -74,7 +74,7 @@ void wave_lib_spectrum::recon_parameters(lexer *p, ghostcell *pgc)
 void wave_lib_spectrum::recon_read(lexer *p, ghostcell* pgc)
 {
 	char name[100];
-	double val,val0,val1,val2;
+	double val,val0,val1,val2,val0n,val1n,val2n;
 	int count;
 	
 	sprintf(name,"waverecon.dat");
@@ -85,12 +85,20 @@ void wave_lib_spectrum::recon_read(lexer *p, ghostcell* pgc)
 	if(!file)
 	cout<<endl<<("no 'waverecon.dat' file found")<<endl<<endl;
 	
+    val0n=val1n=val2n=0.0;
 	count=0;
 	while(!file.eof())
 	{
+    val0n=val0;
+    val1n=val1;
+    val2n=val2;
+    
 	file>>val0>>val1>>val2;
 	++count;
 	}
+    
+    if(val1==val1n && val1==val1n && val2==val2n)
+    --count;
 	
 	file.close();
 
@@ -101,16 +109,15 @@ void wave_lib_spectrum::recon_read(lexer *p, ghostcell* pgc)
 	file.open ("waverecon.dat", ios_base::in);
 	
 	count=0;
-	while(!file.eof())
+	for(int n=0; n<wavenum;++n)
 	{
 	
 	file>>val0>>val1>>val2;
 
-	recon[count][0] = val0;
-	recon[count][1] = val1;
-    recon[count][2] = val2;
-	++count;
-	}
+	recon[n][0] = val0;
+	recon[n][1] = val1;
+    recon[n][2] = val2;
+	}	
     
     
 	

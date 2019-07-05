@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm2D.h"
 #include"ghostcell.h"
 
-sflow_bicgstab::sflow_bicgstab(lexer* p,fdm2D* b,ghostcell *pgc):sj(p),rj(p),r0(p),vj(p),tj(p),pj(p),precoeff(p),
+sflow_bicgstab::sflow_bicgstab(lexer* p,ghostcell *pgc):sj(p),rj(p),r0(p),vj(p),tj(p),pj(p),precoeff(p),
 												ph(p),sh(p),aii(p),epsi(1e-19)
 {	
 	margin=3;

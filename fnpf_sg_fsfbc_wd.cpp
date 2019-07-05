@@ -40,6 +40,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_ddx_cds2.h"
 #include"fnpf_ddx_cds4.h"
 #include"fnpf_sg_coastline.h"
+#include"sflow_bicgstab.h"
 
 fnpf_sg_fsfbc_wd::fnpf_sg_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) 
 {    
@@ -105,6 +106,9 @@ fnpf_sg_fsfbc_wd::fnpf_sg_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     dist3=p->A342;
     
     expinverse = 1.0/(exp(1.0)-1.0);
+    
+    if(p->A350==1)
+    psolv = new sflow_bicgstab(p,pgc);
 }
 
 fnpf_sg_fsfbc_wd::~fnpf_sg_fsfbc_wd()

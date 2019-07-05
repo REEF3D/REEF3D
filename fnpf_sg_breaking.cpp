@@ -78,7 +78,19 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
                 c->breaking(i,j+3)=1;
             }
     }
-
+    
+    if(p->A350==1)
+    {
+        SLICELOOP4
+        c->vb(i,j) = 0.0;
+        
+        SLICELOOP4
+        {   
+            
+            if(c->breaking(i,j)==1 || c->breaking(i-1,j)==1 || c->breaking(i+1,j)==1 || c->breaking(i,j-1)==1 || c->breaking(i,j+1)==1)
+            c->vb(i,j) = p->A365;
+        }
+    }
     
     if(p->A350==2)
     SLICELOOP4
@@ -107,7 +119,6 @@ void fnpf_sg_fsfbc::filter(lexer *p, fdm_fnpf *c,ghostcell *pgc, slice &f)
         hn = f(i+1,j);
 
         // predictor
-
 		f(i,j) = 0.5*hp + 0.25*(hs + hn);
 		
         // corrector

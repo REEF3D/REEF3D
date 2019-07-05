@@ -1710,7 +1710,6 @@
         <File Name="gc_cval2D_parax.cpp"/>
         <File Name="gc_column2D_pt_count.cpp"/>
         <File Name="gc_cval2D_update.cpp"/>
-        <File Name="gc_column2D_pt_resize.cpp"/>
         <File Name="gc_sizeS_update.cpp"/>
       </VirtualDirectory>
     </VirtualDirectory>

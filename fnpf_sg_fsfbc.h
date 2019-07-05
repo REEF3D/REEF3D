@@ -66,6 +66,8 @@ private:
     
     double visc;
 
+
+    slice4 Fxx;
     
 };
 

@@ -36,7 +36,7 @@ driver::driver(int& argc, char **argv)
     {
     cout<<endl<<"REEF3D (c) 2008-2019 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl; 
-    cout<<endl<<"v_190701" <<endl<<endl;         
+    cout<<endl<<"v_190705" <<endl<<endl;         
     }
     
 	p->lexer_read();
@@ -154,9 +154,16 @@ void driver::pfsg_driver()
     if(p->mpirank==0)
 	cout<<"initialize fdm"<<endl;
     
+    p->grid2Dsize();
+    
     c=new fdm_fnpf(p);
     
-    aa=a;
+    
+    p->flagini2D();
+    p->gridini2D();	
+    
+    pgc->sizeS_update(p);
+    pgc->column2D_pt4_update(p,c->C4); 
     
     logic_fnpf_sg();
 }

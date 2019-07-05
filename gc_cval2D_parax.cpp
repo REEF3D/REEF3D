@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm2D.h"
 
-void ghostcell::cval_gcslpara1(lexer* p, fdm2D* b, sliceint &cval1)
+void ghostcell::cval_gcslpara1(lexer* p, sliceint &cval1)
 {
 	for(n=0;n<p->gcslpara1_count;++n)
     if(p->gcslpara1[n][3]==1)
@@ -62,7 +62,7 @@ void ghostcell::cval_gcslpara1(lexer* p, fdm2D* b, sliceint &cval1)
 	}
 }
 
-void ghostcell::cval_gcslpara2(lexer* p, fdm2D* b, sliceint &cval2)
+void ghostcell::cval_gcslpara2(lexer* p, sliceint &cval2)
 {
 	for(n=0;n<p->gcslpara1_count;++n)
     if(p->gcslpara1[n][4]==1)
@@ -104,7 +104,7 @@ void ghostcell::cval_gcslpara2(lexer* p, fdm2D* b, sliceint &cval2)
 	}
 }
 
-void ghostcell::cval_gcslpara4(lexer* p, fdm2D* b, sliceint &cval4)
+void ghostcell::cval_gcslpara4(lexer* p, sliceint &cval4)
 {
 	for(n=0;n<p->gcslpara1_count;++n)
     if(p->gcslpara1[n][6]==1)

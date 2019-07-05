@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm2D.h"
 
-void ghostcell::cval2D_gcb1(lexer* p, fdm2D* b, sliceint &cval)
+void ghostcell::cval2D_gcb1(lexer* p, sliceint &cval)
 {
 	GCSL1LOOP
     {
@@ -34,7 +34,7 @@ void ghostcell::cval2D_gcb1(lexer* p, fdm2D* b, sliceint &cval)
 	}
 }
 
-void ghostcell::cval2D_gcb2(lexer* p, fdm2D* b, sliceint &cval)
+void ghostcell::cval2D_gcb2(lexer* p, sliceint &cval)
 {
 	GCSL2LOOP
     {
@@ -45,7 +45,7 @@ void ghostcell::cval2D_gcb2(lexer* p, fdm2D* b, sliceint &cval)
 	}
 }
 
-void ghostcell::cval2D_gcb4(lexer* p, fdm2D* b, sliceint &cval)
+void ghostcell::cval2D_gcb4(lexer* p, sliceint &cval)
 {
 	GCSL4LOOP
     {

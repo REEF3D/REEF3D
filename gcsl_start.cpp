@@ -158,7 +158,7 @@ void ghostcell::gcsl_start4V(lexer *p, vec2D &f, int gcv, cpt2D &C)
 	
 	starttime=timer();
 	QQGCSL4LOOP
-	gcsldistro4V(p,f,p->gcbsl4[qq][0],p->gcbsl4[qq][1], p->gcbsl4[qq][5], p->gcdsl4[qq], gcv, p->gcbsl4[qq][4], p->gcbsl4[qq][3], p->gcbsl4[qq][5]);
+	gcsldistro4V(p,f,C,p->gcbsl4[qq][0],p->gcbsl4[qq][1], p->gcbsl4[qq][5], p->gcdsl4[qq], gcv, p->gcbsl4[qq][4], p->gcbsl4[qq][3], p->gcbsl4[qq][5]);
 	endtime=timer();
 	p->gctime+=endtime-starttime;
     
