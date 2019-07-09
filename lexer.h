@@ -405,7 +405,7 @@ public:
 
 	// Print options
 	int P10,P11,P12,P14,P15,P17,P18,P19,P20,P23,P24,P25,P26,P27,P28,P29,P35,P40,P41,P50,P51,P52,P53,P54,P56,P59;
-	int P61,P62,P66,P67,P71,P75,P78,P79,P81,P85,P92,P93,P101,P121,P122,P123,P124,P125,P126;
+	int P61,P62,P63,P66,P67,P71,P75,P78,P79,P81,P85,P92,P93,P101,P121,P122,P123,P124,P125,P126;
 	int P150,P151,P152,P180,P181,P191,P210,P211,P351,P352;
 	double P30,P34,P42;
 	double *P35_ts,*P35_te,*P35_dt;
@@ -415,6 +415,7 @@ public:
 	double P55;
 	double *P61_x,*P61_y,*P61_z;
 	double *P62_xs,*P62_ys,*P62_zs,*P62_xe,*P62_ye,*P62_ze;
+    double *P63_x,*P63_y;
 	double *P67_x;
 	double *P81_xs,*P81_xe,*P81_ys,*P81_ye,*P81_zs,*P81_ze;
 	double P82_x, P82_y,P83,P84;

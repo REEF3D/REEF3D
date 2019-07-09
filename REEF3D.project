@@ -956,6 +956,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Print">
+          <File Name="sflow_print_probe_da.h"/>
           <File Name="sflow_print_wsfline_y.h"/>
           <File Name="sflow_printer.h"/>
           <File Name="sflow_print_wsf.h"/>
@@ -1260,6 +1261,8 @@
         <File Name="position_xyz.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Interpolation">
+        <File Name="interpolation_lintsl.cpp"/>
+        <File Name="interpolation_ccslipol.cpp"/>
         <File Name="interpolation_tricubic.cpp"/>
         <File Name="interpolation_lint.cpp"/>
         <File Name="interpolation.cpp"/>
@@ -2477,6 +2480,9 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Print">
+          <VirtualDirectory Name="Probes">
+            <File Name="sflow_print_probe_da.cpp"/>
+          </VirtualDirectory>
           <File Name="sflow_printer.cpp"/>
           <VirtualDirectory Name="VTP">
             <File Name="sflow_vtu_pvtu.cpp"/>

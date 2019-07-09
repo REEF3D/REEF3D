@@ -495,6 +495,7 @@ void lexer::ini_default()
 	P59=0;			  // int print runup
 	P61=0;			  // int print point probes
 	P62=0;			  // int print line probes
+    P63=0;			  // int print depth averaged point probes
 	P66=0;			  // int print discharge to terminal
 	P67=0;			  // int discharge gages in x-direction
     P71=0;           // int print viscosity to vtu

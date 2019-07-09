@@ -19,24 +19,23 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"probe_point.h"
+#include"sflow_print_probe_da.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm2D.h"
 #include"ghostcell.h"
 #include"turbulence.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-probe_point::probe_point(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P61)
+sflow_print_probe_da::sflow_print_probe_da(lexer *p, fdm2D *b, ghostcell *pgc) : probenum(p->P63)
 {
     p->Iarray(iloc,probenum);
 	p->Iarray(jloc,probenum);
-	p->Iarray(kloc,probenum);
 	p->Iarray(flag,probenum);
 	
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_ProbePoint",0777);
+	mkdir("./REEF3D_SFLOW_ProbePoint",0777);
 	
 	pout = new ofstream[probenum];
 	
@@ -47,76 +46,70 @@ probe_point::probe_point(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P61)
 		for(n=0;n<probenum;++n)
 		{
 		if(p->P14==0)
-		sprintf(name,"REEF3D-Probe-Point-%d.dat",n+1);
+		sprintf(name,"REEF3D-SFLOW-Probe-Point-%d.dat",n+1);
 		
 		if(p->P14==1)
-		sprintf(name,"./REEF3D_ProbePoint/REEF3D-Probe-Point-%d.dat",n+1);
+		sprintf(name,"./REEF3D_SFLOW_ProbePoint/REEF3D-SFLOW-Probe-Point-%d.dat",n+1);
 		
 		pout[n].open(name);
 
-	    pout[n]<<"Point Probe ID:  "<<n<<endl<<endl;
-		pout[n]<<"x_coord     y_coord     z_coord"<<endl;
+	    pout[n]<<"Depth Averaged Point Probe ID:  "<<n<<endl<<endl;
+		pout[n]<<"x_coord     y_coord"<<endl;
 		
-		pout[n]<<n+1<<"\t "<<p->P61_x[n]<<"\t "<<p->P61_y[n]<<"\t "<<p->P61_z[n]<<endl;
+		pout[n]<<n+1<<"\t "<<p->P63_x[n]<<"\t "<<p->P63_y[n]<<endl;
 
 		pout[n]<<endl<<endl;
 		
-		pout[n]<<"t \t U \t V \t W \t P \t Kin \t Eps/Omega \t Eddyv"<<endl;
-		
+		pout[n]<<"t \t Um \t Vm \t Wm \t Pm \t eta"<<endl;
 		}
     }
 	
-    ini_location(p,a,pgc);
+    ini_location(p,b,pgc);
 }
 
-probe_point::~probe_point()
+sflow_print_probe_da::~sflow_print_probe_da()
 {
 	for(n=0;n<probenum;++n)
     pout[n].close();
 }
 
-void probe_point::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
+void sflow_print_probe_da::start(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-	double xp,yp,zp;
+	double xp,yp;
 	
 	for(n=0;n<probenum;++n)
 	{
-	uval=vval=wval=pval=kval=eval=edval=-1.0e20;
+	uval=vval=wval=pval=-1.0e20;
 	
 		if(flag[n]>0)
 		{
-		xp=p->P61_x[n];
-		yp=p->P61_y[n];
-		zp=p->P61_z[n];
+		xp=p->P63_x[n];
+		yp=p->P63_y[n];
 		
-		uval = p->ccipol1(a->u, xp, yp, zp);
-		vval = p->ccipol2(a->v, xp, yp, zp);
-		wval = p->ccipol3(a->w, xp, yp, zp);
-		pval = p->ccipol4(a->press, xp, yp, zp);
-		kval = pturb->ccipol_kinval(p, pgc, xp, yp, zp);
-		eval = pturb->ccipol_epsval(p, pgc, xp, yp, zp);
-		edval = p->ccipol4(a->eddyv, xp, yp, zp);
+		uval = p->ccslipol1(b->P, xp, yp);
+		vval = p->ccslipol2(b->Q, xp, yp);
+		wval = p->ccslipol4(b->ws,xp,yp); 
+		pval = p->ccslipol4(b->press,xp,yp);
+        eval = p->ccslipol4(b->eta,xp,yp); 
 		}
 	
 	uval=pgc->globalmax(uval);
 	vval=pgc->globalmax(vval);
 	wval=pgc->globalmax(wval);
 	pval=pgc->globalmax(pval);
-	kval=pgc->globalmax(kval);
-	eval=pgc->globalmax(eval);
-	edval=pgc->globalmax(edval);
-
+    eval=pgc->globalmax(pval);
 	
 	if(p->mpirank==0)
-	pout[n]<<setprecision(9)<<p->simtime<<" \t "<<uval<<" \t "<<vval<<" \t "<<wval<<" \t "<<pval<<" \t "<<kval<<" \t "<<eval<<" \t "<<edval<<endl;
-	}			
+	pout[n]<<setprecision(9)<<p->simtime<<" \t "<<uval<<" \t "<<vval<<" \t "<<wval<<" \t "<<pval<<" \t "<<eval<<endl;
+	}
+			
 }
 
-void probe_point::write(lexer *p, fdm *a, ghostcell *pgc)
+void sflow_print_probe_da::write(lexer *p, fdm2D *b, ghostcell *pgc)
 {
 }
 
-void probe_point::ini_location(lexer *p, fdm *a, ghostcell *pgc)
+void sflow_print_probe_da::ini_location(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     int check;
 
@@ -124,11 +117,15 @@ void probe_point::ini_location(lexer *p, fdm *a, ghostcell *pgc)
     {
     check=0;
     
-    iloc[n]=p->posc_i(p->P61_x[n]);
-    jloc[n]=p->posc_j(p->P61_y[n]);
-	kloc[n]=p->posc_k(p->P61_z[n]);
-
-    check=boundcheck(p,a,iloc[n],jloc[n],kloc[n],0);
+    iloc[n]=p->posc_i(p->P63_x[n]);
+    jloc[n]=p->posc_j(p->P63_y[n]);
+    
+    if(iloc[n]>=0 && iloc[n]<p->knox)
+    if(jloc[n]>=0 && jloc[n]<p->knoy)
+    check=1;
+    
+    PSLICECHECK4
+    check=1;
 
     if(check==1)
     flag[n]=1;

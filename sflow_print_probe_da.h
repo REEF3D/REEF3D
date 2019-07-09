@@ -19,50 +19,41 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"increment.h"
+#include"boundarycheck.h"
+#include<iostream>
+#include<fstream>
 
 class lexer;
 class fdm2D;
 class ghostcell;
-class ioflow;
-class sflow_print_wsf;
-class sflow_print_wsfline;
-class sflow_print_wsfline_y;
-class sflow_print_probe_da;
+class field;
+class turbulence;
 
 using namespace std;
 
-#ifndef SFLOW_VTU_H_
-#define SFLOW_VTU_H_
+#ifndef SFLOW_PRINT_PROBE_DA_H_
+#define SFLOW_PRINT_PROBE_DA_H_
 
-class sflow_vtp : public increment
+class sflow_print_probe_da : public boundarycheck
 {
 public:
-	sflow_vtp(lexer*,fdm2D*,ghostcell*);
-	virtual ~sflow_vtp();
-	
-    virtual void start(lexer*,fdm2D*,ghostcell*,ioflow*);
-    virtual void print2D(lexer*,fdm2D*,ghostcell*);
-	
+    sflow_print_probe_da(lexer*,fdm2D*,ghostcell*);
+	virtual ~sflow_print_probe_da();
+
+	void start(lexer*, fdm2D*, ghostcell*);
+
+
 private:
+    void ini_location(lexer*, fdm2D*, ghostcell*);
+    void write(lexer*, fdm2D*, ghostcell*);
+	char name[100];
+
+    int *iloc,*jloc,*flag;
+    int n,q;
+	const int probenum;
+    ofstream *pout;
 	
-	void etend(lexer*,fdm2D*,ghostcell*);
-	void pvtu(lexer*,fdm2D*,ghostcell*);
-	void name_iter(lexer*,fdm2D*,ghostcell*);
-    void piecename(lexer*,fdm2D*,ghostcell*,int);
-	
-	
-	char name[200],pname[200];
-    int n,iin,offset[200];
-    float ffn;
-	
-	double xs_local,ys_local,zs_local,xe_local,ye_local,ze_local;
-	double xs_global,ys_global,zs_global,xe_global,ye_global,ze_global;
-	
-	sflow_print_wsf *pwsf;
-    sflow_print_wsfline *pwsfline;
-    sflow_print_wsfline_y *pwsfline_y;
-    sflow_print_probe_da *pprobe;
+	double uval,vval,wval,pval,eval;
 
 };
 
