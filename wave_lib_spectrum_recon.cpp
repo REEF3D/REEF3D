@@ -97,7 +97,7 @@ void wave_lib_spectrum::recon_read(lexer *p, ghostcell* pgc)
 	++count;
 	}
     
-    if(val1==val1n && val1==val1n && val2==val2n)
+    if(val0==val0n && val1==val1n && val2==val2n)
     --count;
 	
 	file.close();
@@ -111,7 +111,6 @@ void wave_lib_spectrum::recon_read(lexer *p, ghostcell* pgc)
 	count=0;
 	for(int n=0; n<wavenum;++n)
 	{
-	
 	file>>val0>>val1>>val2;
 
 	recon[n][0] = val0;

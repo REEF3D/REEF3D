@@ -85,6 +85,7 @@ public:
 private:
     double v1,v2,v3,v4,v5,v6,v7,v8;
     double x1,x2,x3,x4,y1,y2;
+    int c1,c2,c3,c4;
     double wa,wb,wc,wx,wy,wz;
     double value;
     double epphi;
