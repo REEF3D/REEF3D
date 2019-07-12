@@ -36,7 +36,7 @@ driver::driver(int& argc, char **argv)
     {
     cout<<endl<<"REEF3D (c) 2008-2019 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl; 
-    cout<<endl<<"v_190711" <<endl<<endl;         
+    cout<<endl<<"v_190712" <<endl<<endl;         
     }
     
 	p->lexer_read();
@@ -134,7 +134,6 @@ void driver::nsewave_driver()
 
     logic();
 }
-
 
 void driver::nhflow_driver()
 {   
