@@ -138,40 +138,13 @@ cout<<"starting driver_ini"<<endl;
         pfsf->update(p,a,pgc,a->phi);        
         pini->iniphi_surfarea(p,a,pgc);
     }
-    if(p->mpirank==0)
-	cout<<"INI 002.1"<<endl;
     
 	ppart->setup(p,a,pgc);
-    if(p->mpirank==0)
-	cout<<"INI 002.2"<<endl;
-    
 	pini->iniphi_io(a,p,pgc);
-    
-    if(p->mpirank==0)
-	cout<<"INI 002.3"<<endl;
-    
 	pflow->discharge(p,a,pgc);
-    
-    if(p->mpirank==0)
-	cout<<"INI 002.4"<<endl;
-    
 	pflow->inflow(p,a,pgc,a->u,a->v,a->w);
-    
-    if(p->mpirank==0)
-	cout<<"INI 002.5"<<endl;
-    
-    
 	potflow->start(a,p,psolv,pgc);
-    
-    if(p->mpirank==0)
-	cout<<"INI 002.6"<<endl;
-    
-    
     pflow->wavegen_precalc(p,pgc);
-    
-    if(p->mpirank==0)
-    cout<<"INI 003"<<endl;
-    
 	if(p->I12>=1)
 	pini->hydrostatic(p,a,pgc);
 
@@ -193,9 +166,6 @@ cout<<"starting driver_ini"<<endl;
 	pgc->start2(p,a->v,11);
 	pgc->start3(p,a->w,12);
 
-    if(p->mpirank==0)
-    cout<<"INI 004"<<endl;
-    
     pgc->start4(p,a->press,40);
     pgc->dgcpol(p,a->topo,p->dgc4,p->dgc4_count,14);
 	a->topo.ggcpol(p);
@@ -227,10 +197,6 @@ cout<<"starting driver_ini"<<endl;
 	p->reinitime=0.0;
 	p->wavetime=0.0;
 	p->field4time=0.0;
-    
-    
-    if(p->mpirank==0)
-    cout<<"INI 005"<<endl;
 
 }
 

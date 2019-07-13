@@ -35,7 +35,6 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 		int aa,bb,ii,jj;
         double H,epsi;
         
-        
         // get the fsf elevation
         LOOP
 		wsfmax[i][j]=-1.0e20;
@@ -59,7 +58,7 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 		ii=1;
 		
 		wsf=wsfmax[i+ii][j];
-		
+        
 		
 		eta_T = 0.0;
 		eta_M = wsf-p->wd; 
@@ -87,9 +86,11 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 
         fx=1.0;
         
-			if(wsf>-1.0e20)
+			if(wsf>-1.0e19)
 			KLOOP 
 			{
+                //cout<<p->mpirank<<" eta_R: "<<eta_R<<" eta_M: "<<eta_M<<"   wsf: "<<wsf<<endl;
+                
 				if(p->pos_z()<=p->phimean)
 				z=-(fabs(p->phimean-p->pos_z()));
 				
@@ -149,6 +150,14 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 				u(i+3*aa,j+3*bb,k)=0.0;
 				}
 			}
+            
+            if(wsf<-1.0e19)
+			KLOOP 
+			{
+            u(i+1*aa,j+1*bb,k)=0.0;
+            u(i+2*aa,j+2*bb,k)=0.0;
+            u(i+3*aa,j+3*bb,k)=0.0;
+            }
 		}
 //-----------------------------------------------		
 		// VVEL
@@ -245,7 +254,7 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
  
 
 
-			if(wsf>-1.0e20)
+			if(wsf>-1.0e19)
 			KLOOP 
 			{
 				if(p->pos_z()<=p->phimean)
@@ -308,6 +317,14 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 				v(i+3*aa,j+3*bb,k)=0.0;
 				}
 			}
+            
+            if(wsf>-1.0e19)
+			KLOOP 
+			{
+            v(i+1*aa,j+1*bb,k)=0.0;
+            v(i+2*aa,j+2*bb,k)=0.0;
+            v(i+3*aa,j+3*bb,k)=0.0;
+            }
 		}
 		
 		//-----------------------------------------------		
@@ -357,6 +374,7 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 
 		//cout<<p->mpirank<<" eta_R: "<<eta_R<<" x: "<<x<<" r: "<<r<<endl;
 		
+            if(wsf>-1.0e19)
 			KLOOP 
 			{
                             
@@ -377,7 +395,13 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 			a->w(i+1*aa,j+1*bb,k)=0.0;
 			a->w(i+2*aa,j+2*bb,k)=0.0;
 			a->w(i+3*aa,j+3*bb,k)=0.0;
-			}		
+			}	
+
+            if(wsf<-1.0e19)
+			KLOOP 
+			{
+            pval=a->press(i,j,k);
+            }
 		}
         
         
