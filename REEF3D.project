@@ -565,7 +565,6 @@
       <File Name="momentum_AB2.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Pressure">
-      <File Name="pjm_4th.h"/>
       <File Name="pjm_fsi.h"/>
       <File Name="pjm_corr.h"/>
       <VirtualDirectory Name="Poisson">
@@ -576,10 +575,8 @@
         <File Name="poisson.h"/>
         <File Name="poisson_nse.h"/>
       </VirtualDirectory>
-      <File Name="piso.h"/>
       <File Name="pressure.h"/>
       <File Name="pressure_void.h"/>
-      <File Name="simple.h"/>
       <File Name="pjm.h"/>
       <VirtualDirectory Name="Density">
         <File Name="density.h"/>
@@ -1974,7 +1971,6 @@
       <File Name="momentum_FS3.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Pressure">
-      <File Name="pjm_4th.cpp"/>
       <File Name="pjm_fsi.cpp"/>
       <File Name="pjm_corr.cpp"/>
       <VirtualDirectory Name="Poisson">
@@ -1984,9 +1980,7 @@
         <File Name="presscorr.cpp"/>
         <File Name="poisson_nse.cpp"/>
       </VirtualDirectory>
-      <File Name="piso.cpp"/>
       <File Name="pressure_void.cpp"/>
-      <File Name="simple.cpp"/>
       <File Name="pjm.cpp"/>
       <VirtualDirectory Name="Density">
         <File Name="density.cpp"/>

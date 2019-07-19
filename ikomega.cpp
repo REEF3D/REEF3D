@@ -276,7 +276,7 @@ void ikomega::epsfsf(lexer *p, fdm* a, ghostcell *pgc)
 
 
 	
-	if(p->T36>0 && p->F300==0)
+	if(p->T36>0)
 	LOOP
 	{
         epsi = p->T38*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);

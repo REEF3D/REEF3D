@@ -274,7 +274,7 @@ public:
 	int B10,B19,B20,B26,B28,B30,B60,B61,B62,B63,B64,B67,B68,B69,B70,B71,B74,B75,B76,B77,B78,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B98,B99,B101,B106,B107,B110;
 	int B121,B136,B180,B191,B192,B210,B240,B241,B242,B243;
 	double B29,B50,B51,B52,B53,B54,B55,B56,B65,B66_1,B66_2,B81_1,B81_2,B81_3,B83,B117,B87_1,B87_2,B88;
-	double B91_1,B91_2,B91_3,B93_1,B93_2,B93_3,B96_1,B96_2,B96_3,B97,B102,B103,B104,B105_1,B105_2,B105_3,B110_d,B118,B119;
+	double B91_1,B91_2,B91_3,B93_1,B93_2,B93_3,B96_1,B96_2,B96_3,B97,B102,B103,B104,B105_1,B105_2,B105_3,B110_d,B119;
 	double *B67_val,*B67_dist,*B67_b,*B67_x,*B67_y;
 	double *B68_val,*B68_dist,*B68_b,*B68_x,*B68_y;
 	double *B69_val,*B69_dist,*B69_b,*B69_x,*B69_y;
@@ -290,7 +290,7 @@ public:
     double B112_zs,B112_z2,B112_ze;
     int B115,B116;
     double B120,B122,B123;
-	double B126,B140_1,B140_2,B140_3;
+	double B140_1,B140_2,B140_3;
     int B130,B133;
     double B131,B132_s,B132_e;
     double B134,B135;
@@ -325,7 +325,7 @@ public:
 	double *C75_x,*C75_z,*C75_a,*C75_s,*C75_l,*C75_v;
 
 	// discretization
-	int D10,D11,D20,D21,D22,D23,D24,D30,D31,D32,D38;
+	int D10,D11,D20,D21,D22,D23,D30,D32,D38;
 	double D29;
 
 	// Free Surface
@@ -348,25 +348,6 @@ public:
 	int F80,F85;
 	double F84;
 	int F101;
-	int F300,F305,F310,F350;
-	double F321,F322,F323,F360,F361,F362;
-	int F369,F370,F371,F374,F375,F378,F379;
-    double *F369_x,*F369_z,*F369_a,*F369_s,*F369_l,*F369_v;
-	double *F370_xs, *F370_xe, *F370_ys, *F370_ye, *F370_zs, *F370_ze;
-	double *F371_xs, *F371_xe, *F371_ys, *F371_ye, *F371_zs, *F371_ze;
-	double *F374_xc, *F374_zc, *F374_r;
-    double *F375_xc, *F375_zc, *F375_r;
-    double *F378_xc, *F378_yc,*F378_zc, *F378_r;
-    double *F379_xc, *F379_yc,*F379_zc, *F379_r;
-	double F380,F381,F382;
-	int F390,F391,F394,F395,F398,F399;
-	double *F390_xs, *F390_xe, *F390_ys, *F390_ye, *F390_zs, *F390_ze;
-	double *F391_xs, *F391_xe, *F391_ys, *F391_ye, *F391_zs, *F391_ze;
-    double *F394_xc, *F394_zc, *F394_r;
-    double *F395_xc, *F395_zc, *F395_r;
-    double *F398_xc, *F398_yc,*F398_zc, *F398_r;
-    double *F399_xc, *F399_yc,*F399_zc, *F399_r;
-	
 
 	// Grid Options
     int G1,G2;

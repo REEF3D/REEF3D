@@ -108,7 +108,7 @@ void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
 	
 	pconc->name_vtu(p,a,pgc,result,offset,n);
     
-    if(p->P24==1 && p->F300==0)
+    if(p->P24==1)
     result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>"<<endl;
     
     if(p->P71==1)

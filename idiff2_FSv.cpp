@@ -31,9 +31,6 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 	
 	double visc_ddx_p,visc_ddx_m,visc_ddz_p,visc_ddz_m;
     
-    if(p->D24==0)
-    alpha=1.0;
-    
     pgc->start2(p,v,gcval_v);
 	 
 	count=0;

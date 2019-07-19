@@ -428,9 +428,6 @@ void lexer::read_control()
                case 117: control>>B117;
 						 clear(c,numint);
 						 break;
-			   case 118: control>>B118;
-						 clear(c,numint);
-						 break;
 			   case 119: control>>B119;
 						 clear(c,numint);
 						 break;
@@ -444,9 +441,6 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
                case 123: control>>B123;
-						 clear(c,numint);
-						 break;
-			   case 126: control>>B126;
 						 clear(c,numint);
 						 break;
                case 130: control>>B130;
@@ -642,16 +636,10 @@ void lexer::read_control()
 				case 23: control>>D23;
 						 clear(c,numint);
 						 break;
-                case 24: control>>D24;
-						 clear(c,numint);
-						 break;
 				case 29: control>>D29;
 						 clear(c,numint);
 						 break;
 				case 30: control>>D30;
-						 clear(c,numint);
-						 break;
-				case 31: control>>D31;
 						 clear(c,numint);
 						 break;
 				case 32: control>>D32;
@@ -803,84 +791,6 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
 				case 151: control>>F151;
-						 clear(c,numint);
-						 break;
-				case 300: control>>F300;
-						 clear(c,numint);
-						 break;
-				case 305: control>>F305;
-						 clear(c,numint);
-						 break;
-				case 310: control>>F310;
-						 clear(c,numint);
-						 break;
-				case 321: control>>F321;
-						 clear(c,numint);
-						 break;
-				case 322: control>>F322;
-						 clear(c,numint);
-						 break;
-				case 323: control>>F323;
-						 clear(c,numint);
-						 break;
-				case 350: control>>F350;
-						 clear(c,numint);
-						 break;
-				case 360: control>>F360;
-						 clear(c,numint);
-						 break;
-				case 361: control>>F361;
-						 clear(c,numint);
-						 break;
-				case 362: control>>F362;
-						 clear(c,numint);
-						 break;
-			    case 369: ++F369;
-						 clear(c,numint);
-						 break;
-				case 370: ++F370;
-						 clear(c,numint);
-						 break;
-				case 371: ++F371;
-						 clear(c,numint);
-						 break;
-               case 374: ++F374;
-						 clear(c,numint);
-						 break;
-               case 375: ++F375;
-						 clear(c,numint);
-						 break;
-               case 378: ++F378;
-						 clear(c,numint);
-						 break;
-               case 379: ++F379;
-						 clear(c,numint);
-						 break;
-				case 380: control>>F380;
-						 clear(c,numint);
-						 break;
-				case 381: control>>F381;
-						 clear(c,numint);
-						 break;
-				case 382: control>>F382;
-						 clear(c,numint);
-						 break;
-				case 390: ++F390;
-						 clear(c,numint);
-						 break;
-				case 391: ++F391;
-						 clear(c,numint);
-						 break;
-               case 394: ++F394;
-						 clear(c,numint);
-						 break;
-               case 395: ++F395;
-						 clear(c,numint);
-						 break;
-               case 398: ++F398;
-						 clear(c,numint);
-						 break;
-               case 399: ++F399;
 						 clear(c,numint);
 						 break;
 				}
@@ -2030,90 +1940,6 @@ void lexer::read_control()
 	
 	Darray(F72_h,F72);
     
-    
-    Darray(F369_x,F369);
-	Darray(F369_z,F369);
-	Darray(F369_a,F369);
-	Darray(F369_s,F369);
-	Darray(F369_l,F369);
-	Darray(F369_v,F369);	
-	
-	Darray(F370_xs,F370);
-	Darray(F370_xe,F370);
-	
-	Darray(F370_ys,F370);
-	Darray(F370_ye,F370);
-	
-	Darray(F370_zs,F370);
-	Darray(F370_ze,F370);
-	
-	
-	Darray(F371_xs,F371);
-	Darray(F371_xe,F371);
-	
-	Darray(F371_ys,F371);
-	Darray(F371_ye,F371);
-	
-	Darray(F371_zs,F371);
-	Darray(F371_ze,F371);
-    
-    Darray(F374_xc,F374);
-	Darray(F374_zc,F374);
-    Darray(F374_r,F374);
-    
-    Darray(F375_xc,F375);
-	Darray(F375_zc,F375);
-    Darray(F375_r,F375);
-    
-    Darray(F378_xc,F378);
-    Darray(F378_yc,F378);
-	Darray(F378_zc,F378);
-    Darray(F378_r,F378);
-    
-    Darray(F379_xc,F379);
-    Darray(F379_yc,F379);
-	Darray(F379_zc,F379);
-    Darray(F379_r,F379);
-	
-
-	Darray(F390_xs,F390);
-	Darray(F390_xe,F390);
-	
-	Darray(F390_ys,F390);
-	Darray(F390_ye,F390);
-	
-	Darray(F390_zs,F390);
-	Darray(F390_ze,F390);
-	
-	
-	Darray(F391_xs,F391);
-	Darray(F391_xe,F391);
-	
-	Darray(F391_ys,F391);
-	Darray(F391_ye,F391);
-	
-	Darray(F391_zs,F391);
-	Darray(F391_ze,F391);
-    
-    Darray(F394_xc,F394);
-	Darray(F394_zc,F394);
-    Darray(F394_r,F394);
-    
-    Darray(F395_xc,F395);
-	Darray(F395_zc,F395);
-    Darray(F395_r,F395);
-    
-    Darray(F398_xc,F398);
-    Darray(F398_yc,F398);
-	Darray(F398_zc,F398);
-    Darray(F398_r,F398);
-    
-    Darray(F399_xc,F399);
-    Darray(F399_yc,F399);
-	Darray(F399_zc,F399);
-    Darray(F399_r,F399);
-	
-
 	// G
 	Darray(G60_xs,G60);
 	Darray(G60_xe,G60);
@@ -2309,19 +2135,6 @@ void lexer::read_control()
 	int countF70=0;
 	int countF71=0;
 	int countF72=0;
-    int countF369=0;
-	int countF370=0;
-	int countF371=0;
-	int countF374=0;
-    int countF375=0;
-    int countF378=0;
-    int countF379=0;
-	int countF390=0;
-	int countF391=0;
-    int countF394=0;
-    int countF395=0;
-    int countF398=0;
-    int countF399=0;
 	int countG60=0;
 	int countG61=0;
 	int countG81=0;
@@ -2443,58 +2256,6 @@ void lexer::read_control()
 						 break;
 				case 72: control>>F72_xs[countF72]>>F72_xe[countF72]>>F72_ys[countF72]>>F72_ye[countF72]>>F72_h[countF72];
                         ++countF72;
-						 clear(c,numint);
-						 break;
-               case 369: control>>F369_x[countF369]>>F369_z[countF369]>>F369_a[countF369]>>F369_s[countF369]>>F369_l[countF369]>>F369_v[countF369];
-                        ++countF369;
-						 clear(c,numint);
-						 break;
-				case 370: control>>F370_xs[countF370]>>F370_xe[countF370]>>F370_ys[countF370]>>F370_ye[countF370]>>F370_zs[countF370]>>F370_ze[countF370];
-                        ++countF370;
-						 clear(c,numint);
-						 break;
-				case 371: control>>F371_xs[countF371]>>F371_xe[countF371]>>F371_ys[countF371]>>F371_ye[countF371]>>F371_zs[countF371]>>F371_ze[countF371];
-                        ++countF371;
-						 clear(c,numint);
-						 break;
-               case 374: control>>F374_xc[countF374]>>F374_zc[countF374]>>F374_r[countF374];
-                        ++countF374;
-						 clear(c,numint);
-						 break;
-               case 375: control>>F375_xc[countF375]>>F375_zc[countF375]>>F375_r[countF375];
-                        ++countF375;
-						 clear(c,numint);
-						 break;
-               case 378: control>>F378_xc[countF378]>>F378_yc[countF378]>>F378_zc[countF378]>>F378_r[countF378];
-                        ++countF378;
-						 clear(c,numint);
-						 break;
-               case 379: control>>F379_xc[countF379]>>F379_yc[countF379]>>F379_zc[countF379]>>F379_r[countF379];
-                        ++countF379;
-						 clear(c,numint);
-						 break;
-				case 390: control>>F390_xs[countF390]>>F390_xe[countF390]>>F390_ys[countF390]>>F390_ye[countF390]>>F390_zs[countF390]>>F390_ze[countF390];
-                        ++countF390;
-						 clear(c,numint);
-						 break;
-				case 391: control>>F391_xs[countF391]>>F391_xe[countF391]>>F391_ys[countF391]>>F391_ye[countF391]>>F391_zs[countF391]>>F391_ze[countF391];
-                        ++countF391;
-						 clear(c,numint);
-						 break;
-               case 394: control>>F394_xc[countF394]>>F394_zc[countF394]>>F394_r[countF394];
-                        ++countF394;
-						 clear(c,numint);
-						 break;
-               case 395: control>>F395_xc[countF395]>>F395_zc[countF395]>>F395_r[countF395];
-                        ++countF395;
-						 clear(c,numint);
-						 break;
-               case 398: control>>F398_xc[countF398]>>F398_yc[countF398]>>F398_zc[countF398]>>F398_r[countF398];
-                        ++countF398;
-						 clear(c,numint);
-						 break;
-               case 399: control>>F399_xc[countF399]>>F399_yc[countF399]>>F399_zc[countF399]>>F399_r[countF399];
-                        ++countF399;
 						 clear(c,numint);
 						 break;
 				}

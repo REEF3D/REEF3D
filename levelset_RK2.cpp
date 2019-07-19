@@ -58,27 +58,24 @@ levelset_RK2::levelset_RK2(lexer* p, fdm *a, ghostcell* pgc, heat *&pheat, conce
 	if(p->F50==4)
 	gcval_phi=54;
 
-	if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90==0)
+	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90==0)
 	pupdate = new fluid_update_fsf(p,a,pgc);
 	
-	if(p->F30>0 && p->H10==0 && p->W30==1 && p->F300==0 && p->W90==0)
+	if(p->F30>0 && p->H10==0 && p->W30==1 && p->W90==0)
 	pupdate = new fluid_update_fsf_comp(p,a,pgc);
 	
-	if(p->F30>0 && p->H10>0 && p->F300==0 && p->W90==0)
+	if(p->F30>0 && p->H10>0 && p->W90==0)
 	pupdate = new fluid_update_fsf_heat(p,a,pgc,pheat);
 	
-	if(p->F30>0 && p->C10>0 && p->F300==0 && p->W90==0)
+	if(p->F30>0 && p->C10>0 && p->W90==0)
 	pupdate = new fluid_update_fsf_concentration(p,a,pgc,pconc);
 	
-	if(p->F30>0 && p->F101>0 && p->F300==0 && p->W90==0)
+	if(p->F30>0 && p->F101>0 && p->W90==0)
 	pupdate = new fluid_update_fsf_entrain(p,a,pgc,pconc);
 	
-	if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90>0)
+	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
 	pupdate = new fluid_update_rheology(p,a,pgc);
 	
-	if(p->F300>0)
-	pupdate = new fluid_update_void();
-
 
 	if(p->F46==2)
 	ppicard = new picard_f(p);

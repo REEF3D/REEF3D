@@ -62,13 +62,13 @@ directreini::directreini(lexer* p, fdm *a):gradient(p),vertice(p), nodeflag(p),d
 	if(p->F46!=1)
 	ppicard = new picard_void(p);
 
-	if(p->F40==11 || p->F310==11)
+	if(p->F40==11)
 	ppreini = new reini_AB2(p,a);
 
-	if(p->F40==13 || p->F310==13)
+	if(p->F40==13)
 	ppreini = new reini_RK3(p,1);
 
-	if(p->F40==14 || p->F310==14)
+	if(p->F40==14)
 	ppreini = new reini_RK4(p,a);
 	
 	p->F49=0;

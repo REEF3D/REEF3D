@@ -462,7 +462,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 		// concentration
 	pconc->offset_vtu(p,a,pgc,result,offset,n);
     	// rho
-	if(p->P24==1 && p->F300==0)
+	if(p->P24==1)
 	{
 	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
 	++n;

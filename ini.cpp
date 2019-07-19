@@ -172,13 +172,11 @@ void lexer::ini_default()
     B115=0;         // int activate vertical velocity component for flap wavemaker theory
     B116=1;         // int x or beta input for flap wavemaker theories
     B117=0.0;		  // double starting time shift for timeseries input
-	B118=6.0;        // double factor in relaxation function 1
 	B119=3.5;        // double factor in relaxation function 2
     B120=-90.0;       // doubel delta t for wave generation
 	B121=1;        // int air velocity on/off in wave relaxation zone
     B122=1.0;        // int air velocity on/off for active wave generation
     B123=0.0;       // double flap AWA hinge location
-	B126=-1.0e20;  // doubel no paddle movement threshold for solitary waves
     B130=0;         // int directional spreading for irregular waves
     B131=0.0;       // double main direction for multidirectional irregular waves
     B132_s=-90.0;  // double start directional spreading
@@ -265,10 +263,8 @@ void lexer::ini_default()
 	D21=0;			// int print out implicit diffusion time and iterations
 	D22=1;			// int turn on molecular diffusion in diffusion discretization for momentum equations
 	D23=1;			// int turn on molecular diffusion in diffusion discretization for turbulence equations
-    D24=1;          // int use RK timestep factor for implicit diffusion
 	D29=1.0e-5;     // double stopping criteria implicit diffusion
 	D30=1;			// int pressure scheme
-	D31=1;			// int additional correction steps for the PISO solver
 	D32=2;			// int density calculation poisson equation
     D38=0;          // int add hydrostatic pressure gradients to NSE 
 	
