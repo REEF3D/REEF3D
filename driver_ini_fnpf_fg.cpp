@@ -95,7 +95,7 @@ cout<<"starting driver_ini_FNPF"<<endl;
     
     ppffg->inidisc(p,a,pgc);
 
-    pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
+    pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
 	pfprint->start(p,c,pgc,pflow);
     
 	p->gctime=0.0;

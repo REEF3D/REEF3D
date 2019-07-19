@@ -22,7 +22,5 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 #include"heat_AB.h"
 #include"heat_RK2.h"
 #include"heat_RK3.h"
-#include"heat_IM1.h"
-#include"heat_IM2.h"
 #include"heat_void.h"
 

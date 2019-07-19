@@ -48,14 +48,7 @@ void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
         
 		
 		// Numerical Beach
-		if(p->B99==1)
-		{
-		      // Zone 3
-            if(db<dist3)
-            f(i,j) = ra3(p,db)*f(i,j);
-        }
-		
-		if(p->B99==2)
+		if(p->B99==1 || p->B99==2)
 		{
             // Zone 3
             if(db<dist3)
@@ -88,14 +81,7 @@ void iowave::um_relax(lexer *p, ghostcell *pgc, slice &P, slice &bed, slice &eta
 		}
 		
 		// Numerical Beach
-		if(p->B99==1)
-		{
-            // Zone 3
-            if(db<dist3)
-            P(i,j) = ra3(p,db)*P(i,j);
-        }
-
-        if(p->B99==2)
+        if(p->B99==1 || p->B99==2)
 		{
             // Zone 3
             if(db<dist3)
@@ -126,14 +112,7 @@ void iowave::vm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta
 		}
 		
 		// Numerical Beach
-		if(p->B99==1)
-		{
-            // Zone 3
-            if(db<dist3)
-            Q(i,j) = ra3(p,db)*Q(i,j);
-        }
-
-        if(p->B99==2)
+        if(p->B99==1 || p->B99==2)
 		{
             // Zone 3
             if(db<dist3)
@@ -165,14 +144,7 @@ void iowave::wm_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta
 		}
 		
 		// Numerical Beach
-		if(p->B99==1)
-		{
-            // Zone 3
-            if(db<dist3)
-            W(i,j) = (1.0-ra3(p,db))*0.0 + ra3(p,db)*W(i,j);
-        }
-
-        if(p->B99==2)
+        if(p->B99==1 || p->B99==2)
 		{
             // Zone 3
             if(db<dist3)
@@ -206,14 +178,7 @@ void iowave::ws_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta
 		}
 		
 		// Numerical Beach
-		if(p->B99==1)
-		{
-            // Zone 3
-            if(db<dist3)
-            W(i,j) = (1.0-ra3(p,db))*0.0 + ra3(p,db)*W(i,j);
-        }
-
-        if(p->B99==2)
+        if(p->B99==1 || p->B99==2)
 		{
             // Zone 3
             if(db<dist3)
@@ -241,14 +206,7 @@ void iowave::pm_relax(lexer *p, ghostcell *pgc, slice &f)
 		}
 		
 		// Numerical Beach
-		if(p->B99==1)
-		{
-		      // Zone 3
-            if(db<dist3)
-            f(i,j) = (1.0-ra3(p,db))*0.0 + ra3(p,db)*f(i,j);
-        }
-		
-		if(p->B99==2)
+		if(p->B99==1 || p->B99==2)
 		{
             // Zone 3
             if(db<dist3)

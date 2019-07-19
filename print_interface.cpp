@@ -41,7 +41,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ioflow.h"
 #include"data.h"
 #include"concentration.h"
-#include"multiphase.h"
 #include"gage_discharge.h"
 #include"fsf_vtp.h"
 #include"state.h"
@@ -162,19 +161,19 @@ print_interface::~print_interface()
 }
 
 
-void print_interface::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+void print_interface::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, sediment *psed)
 {		
 		
 		// Print out based on iteration
         if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)
 		{
-        print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
+        print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,psed);
 		}
 		
 		// Print out based on time
         if(p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==1 || (p->count==0 &&  p->P30>0.0))
         {
-        print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
+        print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,psed);
 		
         p->printtime+=p->P30;
         }
@@ -182,7 +181,7 @@ void print_interface::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, h
 		// Print out based on sediment time
         if(p->simtime>p->sedprinttime && p->P34>0.0 && p->P30<0.0 && p->P10==1 || (p->count==0 &&  p->P34>0.0))
         {
-        print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
+        print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,psed);
 		
         p->sedprinttime+=p->P34;
         }
@@ -192,7 +191,7 @@ void print_interface::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, h
 		for(int qn=0; qn<p->P35; ++qn)
 		if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
 		{
-		print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);	
+		print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,psed);	
 			
 		printtime_wT[qn]+=p->P35_dt[qn];
 		}
@@ -252,8 +251,7 @@ void print_interface::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, h
 		if(p->P125>0)
         pbedshear->bedshear_gauge(p,a,pgc,psed);
 		}
-		
-		pmp->print_file(p,a,pgc);
+    
 		
 		if(p->count%p->P181==0 && p->P182<0.0 && p->P180==1)
 		pfsf->start(p,a,pgc);
@@ -280,7 +278,7 @@ void print_interface::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, h
         }
 }
 
-void print_interface::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+void print_interface::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, solver *psolv, data *pdata, concentration *pconc, sediment *psed)
 {
 	
 	

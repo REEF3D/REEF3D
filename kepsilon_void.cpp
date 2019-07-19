@@ -24,10 +24,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 #include"strain.h"
-#include"solver.h"
-#include"diffusion.h"
-#include"ioflow.h"
-#include"kepsilon.h"
 #include"convection.h"
 
 kepsilon_void::kepsilon_void(lexer* p, fdm* a, ghostcell *pgc)

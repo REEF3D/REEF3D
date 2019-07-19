@@ -35,7 +35,7 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
         
     
     
-     pprint->print_vtu(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
+     pprint->print_vtu(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
      
      pgc->final();
      exit(0);

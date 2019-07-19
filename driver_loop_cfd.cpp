@@ -88,7 +88,6 @@ void driver::loop_cfd(fdm* a)
             pheat->start(a,p,pconvec,pdiff,psolv,pgc,pflow);
 			 pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
             psusp->start(a,p,pconcdisc,psuspdiff,psolv,pgc,pflow);
-			 pmp->start(p,a,pgc,pmpconvec,psolv,pflow,preini,ppart,pprint);
             }
 				
 		// Sediment Computation
@@ -121,7 +120,7 @@ void driver::loop_cfd(fdm* a)
         
         
         // printer
-        pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
+        pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
 
         // Shell-Printout
         if(p->mpirank==0)

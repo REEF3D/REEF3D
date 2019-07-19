@@ -89,7 +89,6 @@ void driver::loop_nhflow(fdm* a)
             pheat->start(a,p,pconvec,pdiff,psolv,pgc,pflow);
 			pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
             psusp->start(a,p,pconcdisc,psuspdiff,psolv,pgc,pflow);
-			pmp->start(p,a,pgc,pmpconvec,psolv,pflow,preini,ppart,pprint);
             }
             
         
@@ -112,9 +111,6 @@ void driver::loop_nhflow(fdm* a)
         //timestep control
         ptstep->start(a,p,pgc,pturb);
         p->simtime+=p->dt;
-        
-        // printer
-        pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
 
         // Shell-Printout
         if(p->mpirank==0)

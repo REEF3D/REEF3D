@@ -22,8 +22,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ikomega.h"
 #include"field4.h"
 
-class multiphase;
-
 using namespace std;
 
 #ifndef KOMEGA_IM1_H_
@@ -32,7 +30,7 @@ using namespace std;
 class komega_IM1 : public ikomega
 {
 public:
-	komega_IM1(lexer *, fdm*, ghostcell*, multiphase*);
+	komega_IM1(lexer *, fdm*, ghostcell*);
 	virtual ~komega_IM1();
 	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*);
 	virtual void ktimesave(lexer*, fdm*, ghostcell*);

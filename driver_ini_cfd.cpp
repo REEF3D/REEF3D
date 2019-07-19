@@ -116,7 +116,6 @@ cout<<"starting driver_ini"<<endl;
     pnse->ini(p,a,pgc,pflow);
 	
     pheat->heat_ini(p,a,pgc,pheat);
-	pmp->ini(p,a,pgc,pflow,pprint,pconvec,psolv);
 	pconc->ini(p,a,pgc,pconc);
 
     ptstep->ini(a,p,pgc);
@@ -176,7 +175,7 @@ cout<<"starting driver_ini"<<endl;
 	pgc->start4(p,a->press,40);
 	
 	//pflow->inflow(p,a,pgc,a->u,a->v,a->w,0.0);
-    pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
+    pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
 
 // ini variables
     for(int qn=0; qn<2; ++qn)

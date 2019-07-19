@@ -104,15 +104,12 @@
       <VirtualDirectory Name="Heat Transfer">
         <VirtualDirectory Name="BC">
           <File Name="bcheat.h"/>
-          <File Name="ibcheat.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Print">
           <File Name="heat_print.h"/>
         </VirtualDirectory>
         <File Name="heat.h"/>
         <File Name="heat_AB.h"/>
-        <File Name="heat_IM1.h"/>
-        <File Name="heat_IM2.h"/>
         <File Name="heat_RK2.h"/>
         <File Name="heat_RK3.h"/>
         <File Name="heat_void.h"/>
@@ -145,12 +142,9 @@
       <VirtualDirectory Name="Concentration">
         <File Name="concentration.h"/>
         <File Name="concentration_AB.h"/>
-        <File Name="concentration_IM1.h"/>
-        <File Name="concentration_IM2.h"/>
         <File Name="concentration_RK2.h"/>
         <File Name="concentration_RK3.h"/>
         <VirtualDirectory Name="BC">
-          <File Name="ibc_concentration.h"/>
           <File Name="bc_concentration.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="IO">
@@ -158,17 +152,7 @@
         </VirtualDirectory>
         <File Name="concentration_void.h"/>
       </VirtualDirectory>
-      <VirtualDirectory Name="Multiphase">
-        <File Name="multiphase.h"/>
-        <File Name="multiphase_f.h"/>
-        <File Name="multiphase_v.h"/>
-      </VirtualDirectory>
-      <VirtualDirectory Name="Air Entrainment">
-        <File Name="air_entrainment_IM1.h"/>
-        <VirtualDirectory Name="BC">
-          <File Name="air_entrainment_ibc.h"/>
-        </VirtualDirectory>
-      </VirtualDirectory>
+      <VirtualDirectory Name="Multiphase"/>
       <VirtualDirectory Name="VRANS">
         <File Name="vrans.h"/>
         <File Name="vrans_f.h"/>
@@ -258,7 +242,6 @@
         <File Name="fluid_update_vof.h"/>
         <File Name="fluid_update_fsf_concentration.h"/>
         <File Name="fluid_update_fsf_comp.h"/>
-        <File Name="fluid_update_multiphase.h"/>
         <File Name="fluid_update_void.h"/>
         <File Name="fluid_update_fsf_entrain.h"/>
         <File Name="fluid_update_rheology.h"/>
@@ -302,8 +285,6 @@
         <File Name="etimestep.h"/>
         <File Name="fixtimestep.h"/>
         <File Name="ietimestep.h"/>
-        <File Name="itimestep.h"/>
-        <File Name="lsmtimestep.h"/>
         <File Name="timestep.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Roughness">
@@ -320,8 +301,6 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Level Set">
         <File Name="levelset_RK3_V.h"/>
-        <File Name="levelset_IM1.h"/>
-        <File Name="levelset_IM2.h"/>
         <File Name="levelset_RK3.h"/>
         <File Name="levelset_RK4.h"/>
         <File Name="levelset_void.h"/>
@@ -363,7 +342,6 @@
       <VirtualDirectory Name="VOF Algebraic">
         <File Name="VOF_RK3.h"/>
         <File Name="VOF_AB.h"/>
-        <File Name="VOF_IM1.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VOF PLIC">
         <File Name="VOF_PLIC.h"/>
@@ -577,19 +555,14 @@
     <VirtualDirectory Name="Momentum">
       <File Name="momentum_FSI.h"/>
       <File Name="bcmom.h"/>
-      <File Name="ibcmom.h"/>
       <File Name="momentum.h"/>
       <File Name="momentum_FS3.h"/>
       <File Name="momentum_FS4.h"/>
-      <File Name="momentum_IM1.h"/>
-      <File Name="momentum_IM2.h"/>
       <File Name="momentum_RK3.h"/>
       <File Name="momentum_RK4.h"/>
       <File Name="momentum_void.h"/>
       <File Name="momentum_RK2.h"/>
       <File Name="momentum_AB2.h"/>
-      <File Name="momentum_FSFC_RK3.h"/>
-      <File Name="momentum_FSFC_FS3.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Pressure">
       <File Name="pjm_4th.h"/>
@@ -639,42 +612,21 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Turbulence">
-      <VirtualDirectory Name="EARSM">
-        <File Name="wallin.h"/>
-        <File Name="wallin_AB.h"/>
-        <File Name="wallin_ABkw.h"/>
-        <File Name="wallin_IM1.h"/>
-        <File Name="wallin_IM1kw.h"/>
-        <File Name="wallin_IM2.h"/>
-        <File Name="wallin_IM2kw.h"/>
-        <File Name="wallin_RK3.h"/>
-        <File Name="wallin_RK3kw.h"/>
-      </VirtualDirectory>
       <VirtualDirectory Name="IO">
         <File Name="rans_io.h"/>
         <File Name="les_io.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Kepsilon">
         <File Name="ikepsilon.h"/>
-        <File Name="kepsilon.h"/>
-        <File Name="kepsilon_AB.h"/>
         <File Name="kepsilon_IM1.h"/>
         <File Name="kepsilon_IM2.h"/>
-        <File Name="kepsilon_RK2.h"/>
-        <File Name="kepsilon_RK3.h"/>
         <File Name="kepsilon_void.h"/>
-        <File Name="bc_kepsilon.h"/>
         <File Name="bc_ikepsilon.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Komega">
         <File Name="ikomega.h"/>
-        <File Name="komega.h"/>
-        <File Name="komega_AB.h"/>
         <File Name="komega_IM1.h"/>
         <File Name="komega_IM2.h"/>
-        <File Name="komega_RK2.h"/>
-        <File Name="komega_RK3.h"/>
-        <File Name="bc_komega.h"/>
         <File Name="bc_ikomega.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="LES">
@@ -1057,15 +1009,12 @@
       <VirtualDirectory Name="Heat Transfer">
         <VirtualDirectory Name="BC">
           <File Name="bcheat.cpp"/>
-          <File Name="ibcheat.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Print">
           <File Name="heat_ini.cpp"/>
           <File Name="heat_print.cpp"/>
         </VirtualDirectory>
         <File Name="heat_AB.cpp"/>
-        <File Name="heat_IM1.cpp"/>
-        <File Name="heat_IM2.cpp"/>
         <File Name="heat_RK2.cpp"/>
         <File Name="heat_RK3.cpp"/>
         <File Name="heat_void.cpp"/>
@@ -1157,13 +1106,10 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Concentration">
         <File Name="concentration_AB.cpp"/>
-        <File Name="concentration_IM1.cpp"/>
-        <File Name="concentration_IM2.cpp"/>
         <File Name="concentration_RK2.cpp"/>
         <File Name="concentration_RK3.cpp"/>
         <VirtualDirectory Name="BC">
           <File Name="bc_concentration.cpp"/>
-          <File Name="ibc_concentration.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Print">
           <File Name="concentration_ini.cpp"/>
@@ -1172,20 +1118,7 @@
         <File Name="concentration_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Multiphase">
-        <File Name="multiphase_f.cpp"/>
-        <VirtualDirectory Name="Void">
-          <File Name="multiphase_v.cpp"/>
-        </VirtualDirectory>
-        <File Name="multiphase_logic.cpp"/>
-        <File Name="multiphase_ini.cpp"/>
-        <File Name="multiphase_update.cpp"/>
-        <File Name="multiphase_io.cpp"/>
-      </VirtualDirectory>
-      <VirtualDirectory Name="Air Entrainment">
-        <File Name="air_entrainment_IM1.cpp"/>
-        <VirtualDirectory Name="BC">
-          <File Name="air_entrainment_ibc.cpp"/>
-        </VirtualDirectory>
+        <VirtualDirectory Name="Void"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VRANS">
         <VirtualDirectory Name="Void">
@@ -1333,7 +1266,6 @@
         <File Name="fluid_update_vof.cpp"/>
         <File Name="fluid_update_fsf_concentration.cpp"/>
         <File Name="fluid_update_fsf_comp.cpp"/>
-        <File Name="fluid_update_multiphase.cpp"/>
         <File Name="fluid_update_void.cpp"/>
         <File Name="fluid_update_fsf_entrain.cpp"/>
         <File Name="fluid_update_rheology.cpp"/>
@@ -1468,8 +1400,6 @@
         <File Name="etimestep.cpp"/>
         <File Name="fixtimestep.cpp"/>
         <File Name="ietimestep.cpp"/>
-        <File Name="itimestep.cpp"/>
-        <File Name="lsmtimestep.cpp"/>
       </VirtualDirectory>
       <File Name="fdm.cpp" ExcludeProjConfig=""/>
       <VirtualDirectory Name="Roughness">
@@ -1495,8 +1425,6 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Level Set">
         <File Name="levelset_RK3_V.cpp"/>
-        <File Name="levelset_IM1.cpp"/>
-        <File Name="levelset_IM2.cpp"/>
         <File Name="levelset_RK3.cpp"/>
         <File Name="levelset_RK4.cpp"/>
         <VirtualDirectory Name="Picard">
@@ -1553,7 +1481,6 @@
       <VirtualDirectory Name="VOF Algebraic">
         <File Name="VOF_RK3.cpp"/>
         <File Name="VOF_AB.cpp"/>
-        <File Name="VOF_IM1.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VOF PLIC">
         <File Name="VOF_PLIC_inilsVOF.cpp"/>
@@ -2037,23 +1964,14 @@
       <File Name="momentum_FSI.cpp"/>
       <VirtualDirectory Name="BC">
         <File Name="bcmom.cpp"/>
-        <File Name="ibcmom.cpp"/>
-      </VirtualDirectory>
-      <VirtualDirectory Name="Velsource">
-        <File Name="velsource_IM1.cpp"/>
-        <File Name="velsource_IM2.cpp"/>
       </VirtualDirectory>
       <File Name="momentum_FS4.cpp"/>
-      <File Name="momentum_IM1.cpp"/>
-      <File Name="momentum_IM2.cpp"/>
       <File Name="momentum_RK3.cpp"/>
       <File Name="momentum_RK4.cpp"/>
       <File Name="momentum_void.cpp"/>
       <File Name="momentum_RK2.cpp"/>
       <File Name="momentum_AB2.cpp"/>
       <File Name="momentum_FS3.cpp"/>
-      <File Name="momentum_FSFC_RK3.cpp"/>
-      <File Name="momentum_FSFC_FS3.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Pressure">
       <File Name="pjm_4th.cpp"/>
@@ -2137,17 +2055,6 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Turbulence">
-      <VirtualDirectory Name="EARSM">
-        <File Name="wallin.cpp"/>
-        <File Name="wallin_AB.cpp"/>
-        <File Name="wallin_ABkw.cpp"/>
-        <File Name="wallin_IM1.cpp"/>
-        <File Name="wallin_IM1kw.cpp"/>
-        <File Name="wallin_IM2.cpp"/>
-        <File Name="wallin_IM2kw.cpp"/>
-        <File Name="wallin_RK3.cpp"/>
-        <File Name="wallin_RK3kw.cpp"/>
-      </VirtualDirectory>
       <VirtualDirectory Name="IO">
         <File Name="les_io.cpp"/>
         <File Name="rans_ini.cpp"/>
@@ -2155,29 +2062,19 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Kepsilon">
         <File Name="ikepsilon.cpp"/>
-        <File Name="kepsilon.cpp"/>
-        <File Name="kepsilon_AB.cpp"/>
         <File Name="kepsilon_IM1.cpp"/>
         <File Name="kepsilon_IM2.cpp"/>
-        <File Name="kepsilon_RK2.cpp"/>
-        <File Name="kepsilon_RK3.cpp"/>
         <File Name="kepsilon_void.cpp"/>
         <VirtualDirectory Name="BC">
           <File Name="bc_ikepsilon.cpp"/>
-          <File Name="bc_kepsilon.cpp"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Komega">
         <File Name="ikomega.cpp"/>
-        <File Name="komega.cpp"/>
-        <File Name="komega_AB.cpp"/>
         <File Name="komega_IM1.cpp"/>
         <File Name="komega_IM2.cpp"/>
-        <File Name="komega_RK2.cpp"/>
-        <File Name="komega_RK3.cpp"/>
         <VirtualDirectory Name="BC">
           <File Name="bc_ikomega.cpp"/>
-          <File Name="bc_komega.cpp"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="LES">

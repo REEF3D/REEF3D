@@ -332,32 +332,6 @@ void lexer::ini_default()
 	F101=0;             // int air entrainment model
 	F150=0;         // int benchmark
 	F151=0;         // int benchmark inverse sign of level set
-	F300=0;			 // int multiphase flow level set
-	F305=5;			 // int multiphase flow lsm convection
-	F310=3;			 // int multiphase flow reini
-	F321=1.6;		 // double epsi12
-	F322=1.6;		 // double epsi13
-	F323=1.6;		 // double epsi23
-	F350=0;			 // int multiphase flow fix level set inflow/outflow
-	F360=-1.0e20;  // double ini x-dir ls1
-	F361=-1.0e20;  // double ini y-dir ls1
-	F362=-1.0e20;  // double ini z-dir ls1
-	F369=0;             // int number of phi 1 ini tiltboxes ls1
-	F370=0;             // int number of phi 1 ini boxes ls1
-	F371=0;             // int number of phi 2 ini boxes ls1
-    F374=0;             // int number of pos ls1 ycyl
-    F375=0;             // int number of neg ls1 ycyl
-    F378=0;             // int number of pos ls1 sphere
-    F379=0;             // int number of neg ls1 sphere
-	F380=-1.0e20;  // double ini x-dir ls2
-	F381=-1.0e20;  // double ini y-dir ls2
-	F382=-1.0e20;  // double ini z-dir ls2
-	F390=0;             // int number of phi 1 ini boxes ls2
-	F391=0;             // int number of phi 2 ini boxes ls2
-    F394=0;             // int number of pos ls2 ycyl
-    F395=0;             // int number of neg ls2 ycyl
-    F398=0;             // int number of pos ls2 sphere
-    F399=0;             // int number of neg ls2 sphere
 
     // Grid
     G2=0;          // int sigma grid
@@ -704,7 +678,7 @@ void lexer::ini_default()
 	X320=0;     // int number of nets
 	
 	// Developer 
-	Y40=0;
+	Y40=3;
     Y50=5;
 	Y60=0;
     Y71=0;  // int turn on/off solid gcparax

@@ -52,7 +52,6 @@ class benchmark;
 class sixdof;
 class data;
 class concentration;
-class multiphase;
 class fnpf_fg;
 class fnpf_sg;
 class onephase;
@@ -145,7 +144,6 @@ public:
 	convection* pconvec;
 	convection* pturbdisc;
 	convection* pfsfdisc;
-	convection* pmpconvec;
 	convection* pconcdisc;
 	turbulence* pturb;
 	solver* psolv;
@@ -167,7 +165,6 @@ public:
 	sixdof* p6dof;
 	data *pdata;
 	concentration *pconc;
-	multiphase *pmp;
     fnpf_sg *ppfsg;
     fnpf_fg *ppffg;
     onephase *poneph;

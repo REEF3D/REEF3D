@@ -53,26 +53,11 @@ void driver::logic()
     if(p->N48==0)
 	ptstep=new fixtimestep(p);
 
-    if(p->N40<=10 && (p->N48==1 || p->N48==3 || p->N48==4)  && (p->D20!=0&&p->D20!=2))
+    if((p->N48==1 || p->N48==3 || p->N48==4)  && (p->D20!=0&&p->D20!=2))
 	ptstep=new etimestep(p);
 	
-	if(p->N40<=10 && (p->N48==1 || p->N48==3 || p->N48==4) && (p->D20==0||p->D20>=2))
+	if((p->N48==1 || p->N48==3 || p->N48==4) && (p->D20==0||p->D20>=2))
 	ptstep=new ietimestep(p);
-
-	if(p->N40>10  && (p->N48==1 || p->N48==3 || p->N48==4))
-	ptstep=new itimestep(p);
- 
-
-	if(p->N48==2)
-	ptstep=new lsmtimestep(p);
-	
-// Multiphase
-	if(p->F300==0)
-	pmp = new multiphase_v();
-	
-	if(p->F300>0)
-	pmp = new multiphase_f(p,a,pgc);
-
 
 //discretization scheme
 
@@ -80,262 +65,125 @@ void driver::logic()
 	if(p->D10==0)
 	pconvec=new convection_void(p);
 
-	if(p->D10==1 && p->N40<=10)
+	if(p->D10==1)
 	pconvec=new fou(p);
 
-	if(p->D10==2 && p->N40<=10)
+	if(p->D10==2)
 	pconvec=new cds2(p);
 
-	if(p->D10==3 && p->N40<=10)
+	if(p->D10==3)
 	pconvec=new quick(p);
 
-	if(p->D10==4 && p->N40<=10)
+	if(p->D10==4)
 	pconvec=new weno_flux_nug(p);
 	
-	if(p->D10==5 && p->N40<=10)
+	if(p->D10==5)
 	pconvec=new weno_hj_nug(p);
 	
-	if(p->D10==6 && p->N40<=10)
+	if(p->D10==6)
 	pconvec=new cds4(p);
     
-    if(p->D10==7 && p->N40<=10)
+    if(p->D10==7)
 	pconvec=new weno3_flux(p);
     
-    if(p->D10==8 && p->N40<=10)
+    if(p->D10==8)
 	pconvec=new weno3_hj(p);
     
-    if(p->D10==9 && p->N40<=10)
+    if(p->D10==9)
 	pconvec=new weno_flux(p);
 	
-	if(p->D10>=10 && p->D10<30 && p->N40<=10)
+	if(p->D10>=10 && p->D10<30)
 	pconvec=new hires(p,p->D10);
-
-
-	if(p->D10==1 && p->N40>10)
-	pconvec=new ifou(p);
-
-	if(p->D10==2 && p->N40>10)
-	pconvec=new icds2(p);
-
-	if(p->D10==3 && p->N40>10)
-	pconvec=new iquick(p);
-
-	if(p->D10==4 && p->N40>10)
-	pconvec=new iweno_flux(p);
-
-	if(p->D10==5 && p->N40>10)
-	pconvec=new iweno_hj(p);
-	
-	if(p->D10==6 && p->N40>10)
-	pconvec=new icds4(p);
-	
-	if(p->D10>=10 && p->D10<30 && p->N40>10)
-	pconvec=new ihires(p,p->D10);
 	
 
 	// Convection Turbulence
 	if(p->T12==0)
 	pturbdisc=new convection_void(p);
 
-	if(p->T12==1 && p->T11<=10)
-	pturbdisc=new fou(p);
-
-	if(p->T12==2 && p->T11<=10)
-	pturbdisc=new cds2(p);
-
-	if(p->T12==3 && p->T11<=10)
-	pturbdisc=new quick(p);
-
-	if(p->T12==4 && p->T11<=10)
-	pturbdisc=new weno_flux(p);
-
-	if(p->T12==5 && p->T11<=10)
-	pturbdisc=new weno_hj(p);
-	
-	if(p->T12==6 && p->T11<=10)
-	pturbdisc=new cds4(p);
-	
-	if(p->T12>=10 && p->T12<30 && p->T11<=10)
-	pturbdisc=new hires(p,p->T12);
-
-
-	if(p->T12==1 && p->T11>10)
+	if(p->T12==1)
 	pturbdisc=new ifou(p);
 
-	if(p->T12==2 && p->T11>10)
+	if(p->T12==2)
 	pturbdisc=new icds2(p);
 
-	if(p->T12==3 && p->T11>10)
+	if(p->T12==3)
 	pturbdisc=new iquick(p);
 
-	if(p->T12==4 && p->T11>10)
+	if(p->T12==4)
 	pturbdisc=new iweno_flux(p);
 
-	if(p->T12==5 && p->T11>10)
+	if(p->T12==5)
 	pturbdisc=new iweno_hj(p);
 	
-	if(p->T12==6 && p->T11>10)
+	if(p->T12==6)
 	pturbdisc=new icds4(p);
 
-	if(p->T12>=10 && p->T12<30 && p->T11>10)
+	if(p->T12>=10 && p->T12<30)
 	pturbdisc=new ihires(p,p->T12);
 	
 	//  Convection FSF
 	if(p->F35==0&&p->F85==0)
 	pfsfdisc=new convection_void(p);
 	
-	if(p->F35==1 && p->F30<=10)
+	if(p->F35==1)
 	pfsfdisc=new fou(p);
 
-	if(p->F35==2 && p->F30<=10)
+	if(p->F35==2)
 	pfsfdisc=new cds2_alt(p);
 
-	if(p->F35==3 && p->F30<=10)
+	if(p->F35==3)
 	pfsfdisc=new quick(p);
 
-	if(p->F35==4 && p->F30<=10)
+	if(p->F35==4)
 	pfsfdisc=new weno_flux(p);
 
-	if(p->F35==5 && p->F30<=10)
+	if(p->F35==5)
 	pfsfdisc=new weno_hj_nug(p);
 	
-	if(p->F35==6 && p->F30<=10)
+	if(p->F35==6)
 	pfsfdisc=new cds4(p);
     
-    if(p->F35==7 && p->F30<=10)
+    if(p->F35==7)
 	pfsfdisc=new weno3_flux(p);
     
-    if(p->F35==8 && p->F30<=10)
+    if(p->F35==8)
 	pfsfdisc=new weno3_hj(p);
 	
-	if(p->F35>=10 && p->F35<30 && p->F30<=10)
+	if(p->F35>=10 && p->F35<30)
 	pfsfdisc=new hires(p,p->F35);
 	
-	if(p->F35>=40 && p->F35<50 && p->F30<=10)
+	if(p->F35>=40 && p->F35<50)
 	pfsfdisc=new hires(p,p->F35);
-
-
-	if(p->F35==1 && p->F30>10)
-	pfsfdisc=new ifou(p);
-
-	if(p->F35==2 && p->F30>10)
-	pfsfdisc=new icds2(p);
-
-	if(p->F35==3 && p->F30>10)
-	pfsfdisc=new iquick(p);
-
-	if(p->F35==4 && p->F30>10)
-	pfsfdisc=new iweno_flux(p);
-
-	if(p->F35==5 && p->F30>10)
-	pfsfdisc=new iweno_hj(p);
-	
-	if(p->F35==6 && p->F30>10)
-	pfsfdisc=new icds4(p);
-	
-	if(p->F35>=10 && p->F35<30 && p->F30>10)
-	pfsfdisc=new ihires(p,p->F35);
-	
-	
-//  Convection Multiphase LSM
-	if(p->F305==0)
-	pmpconvec=new convection_void(p);
-	
-	if(p->F305==1 && p->F300<=10)
-	pmpconvec=new fou(p);
-
-	if(p->F305==2 && p->F300<=10)
-	pmpconvec=new cds2(p);
-
-	if(p->F305==3 && p->F300<=10)
-	pmpconvec=new quick(p);
-
-	if(p->F305==4 && p->F300<=10)
-	pmpconvec=new weno_flux(p);
-
-	if(p->F305==5 && p->F300<=10)
-	pmpconvec=new weno_hj(p);
-	
-	if(p->F305==6 && p->F300<=10)
-	pmpconvec=new cds4(p);
-	
-	if(p->F305>=10 && p->F305<30 && p->F300<=10)
-	pmpconvec=new hires(p,p->F305);
-	
-	if(p->F305>=40 && p->F305<50 && p->F300<=10)
-	pmpconvec=new hires(p,p->F305);
-
-
-	if(p->F305==1 && p->F300>10)
-	pmpconvec=new ifou(p);
-
-	if(p->F305==2 && p->F300>10)
-	pmpconvec=new icds2(p);
-
-	if(p->F305==3 && p->F300>10)
-	pmpconvec=new iquick(p);
-
-	if(p->F305==4 && p->F300>10)
-	pmpconvec=new iweno_flux(p);
-
-	if(p->F305==5 && p->F300>10)
-	pmpconvec=new iweno_hj(p);
-	
-	if(p->F305==6 && p->F300>10)
-	pmpconvec=new icds4(p);
-	
-	if(p->F305>=10 && p->F305<30 && p->F300>10)
-	pmpconvec=new ihires(p,p->F305);
 	
 //  Convection Concentration
 	if(p->C15==0)
 	pconcdisc=new convection_void(p);
 	
-	if(p->C15==1 && p->C10<=10)
+	if(p->C15==1)
 	pconcdisc=new fou(p);
 
-	if(p->C15==2 && p->C10<=10)
+	if(p->C15==2)
 	pconcdisc=new cds2_alt(p);
 
-	if(p->C15==3 && p->C10<=10)
+	if(p->C15==3)
 	pconcdisc=new quick(p);
 
-	if(p->C15==4 && p->C10<=10)
+	if(p->C15==4)
 	pconcdisc=new weno_flux(p);
 
-	if(p->C15==5 && p->C10<=10)
+	if(p->C15==5)
 	pconcdisc=new weno_hj(p);
 	
-	if(p->C15==6 && p->C10<=10)
+	if(p->C15==6)
 	pconcdisc=new cds4(p);
 	
-	if(p->C15>=10 && p->C15<30 && p->C10<=10)
+	if(p->C15>=10 && p->C15<30)
 	pconcdisc=new hires(p,p->C15);
 	
-	if(p->C15>=40 && p->C15<50 && p->C10<=10)
+	if(p->C15>=40 && p->C15<50)
 	pconcdisc=new hires(p,p->C15);
 
 
-	if(p->C15==1 && p->C10>10)
-	pconcdisc=new ifou(p);
-
-	if(p->C15==2 && p->C10>10)
-	pconcdisc=new icds2(p);
-
-	if(p->C15==3 && p->C10>10)
-	pconcdisc=new iquick(p);
-
-	if(p->C15==4 && p->C10>10)
-	pconcdisc=new iweno_flux(p);
-
-	if(p->C15==5 && p->C10>10)
-	pconcdisc=new iweno_hj(p);
-	
-	if(p->C15==6 && p->C10>10)
-	pconcdisc=new icds4(p);
-	
-	if(p->C15>=10 && p->C15<30 && p->C10>10)
-	pconcdisc=new ihires(p,p->C15);
 	
 	if(p->S60==11 || p->S60==12)
 	pconcdisc=new iweno_hj(p);
@@ -356,9 +204,6 @@ void driver::logic()
     
     if(p->D20>=2 && p->N40<=10 && p->j_dir==0)
 	pdiff=new idiff2_FS_2D(p);
-
-	if(p->N40>10)
-	pdiff=new idiff2(p);
 	
 	// turbulence
 	if(p->D20==0 || p->T10==0)
@@ -406,60 +251,19 @@ void driver::logic()
 	pturb = new kepsilon_void(p,a,pgc);
 
 	//ke
-	if((p->T10==1 || p->T10==21) && p->T11==1)
-	pturb = new kepsilon_AB(p,a,pgc);
-
-	if((p->T10==1 || p->T10==21) && p->T11==2)
-	pturb = new kepsilon_RK3(p,a,pgc);
-
-	if((p->T10==1 || p->T10==21) && p->T11==3)
-	pturb = new kepsilon_RK3(p,a,pgc);
-
 	if((p->T10==1 || p->T10==21) && p->T11==11)
 	pturb = new kepsilon_IM1(p,a,pgc);
 
 	if((p->T10==1 || p->T10==21) && p->T11==12)
 	pturb = new kepsilon_IM2(p,a,pgc);
 
-	if(p->T10==11 && p->T11==1)
-	pturb = new wallin_AB(p,a,pgc);
-
-	if(p->T10==11 && p->T11==3)
-	pturb =new wallin_RK3(p,a,pgc);
-
-	if(p->T10==11 && p->T11==11)
-	pturb = new wallin_IM1(p,a,pgc);
-
-	if(p->T10==11 && p->T11==12)
-	pturb = new wallin_IM2(p,a,pgc);
 
     //kw
-    if((p->T10==2 || p->T10==22) && p->T11==1)
-	pturb = new komega_AB(p,a,pgc);
-
-	if((p->T10==2 || p->T10==22) && p->T11==2)
-	pturb = new komega_RK2(p,a,pgc);
-
-	if((p->T10==2 || p->T10==22) && p->T11==3)
-	pturb = new komega_RK3(p,a,pgc);
-
 	if((p->T10==2 || p->T10==22) && p->T11==11)
-	pturb = new komega_IM1(p,a,pgc,pmp);
+	pturb = new komega_IM1(p,a,pgc);
 
 	if((p->T10==2 || p->T10==22) && p->T11==12)
-	pturb = new komega_IM2(p,a,pgc,pmp);
-
-	if(p->T10==12 && p->T11==1)
-	pturb =new wallin_ABkw(p,a,pgc);
-
-	if(p->T10==12 && p->T11==3)
-	pturb =new wallin_RK3kw(p,a,pgc);
-
-	if(p->T10==12 && p->T11==11)
-	pturb =new wallin_IM1kw(p,a,pgc,pmp);
-
-	if(p->T10==12 && p->T11==12)
-	pturb =new wallin_IM2kw(p,a,pgc,pmp);
+	pturb = new komega_IM2(p,a,pgc);
 
     // LES
 	if(p->T10==31)
@@ -480,12 +284,6 @@ void driver::logic()
 
 	if(p->H10==3)
 	pheat =  new heat_RK3(p,a,pgc,pheat);
-
-	if(p->H10==11)
-	pheat =  new heat_IM1(p,a,pgc,pheat);
-
-	if(p->H10==12)
-	pheat =  new heat_IM2(p,a,pgc,pheat);
 	
 // Concentration
     if(p->C10==0 && p->F101==0)
@@ -500,16 +298,9 @@ void driver::logic()
 	if(p->C10==3)
 	pconc =  new concentration_RK3(p,a,pgc);
 
-	if(p->C10==11)
-	pconc =  new concentration_IM1(p,a,pgc);
-
-	if(p->C10==12)
-	pconc =  new concentration_IM2(p,a,pgc);
-	
 // Air Entrainment
     if(p->F101==1)
 	{
-	pconc =  new air_entrainment_IM1(p,a,pgc);
 	pconcdisc=new iweno_hj(p);
 	pconcdiff=new idiff2(p);
 	}
@@ -559,12 +350,6 @@ void driver::logic()
 	if(p->F30==5)
 	pfsf = new levelset_AB3(p,a,pgc,pheat,pconc);
 
-	if(p->F30==11)
-	pfsf = new levelset_IM1(p,a,pgc,pheat,pconc,a->phi);
-
-	if(p->F30==12)
-	pfsf = new levelset_IM2(p,a,pgc,pheat,pconc,a->phi);
-	
 	if(p->F40==0)
 	preini = new reini_void(p);
     
@@ -622,9 +407,6 @@ void driver::logic()
 	
 	if(p->F80==4)
 	pfsf = new VOF_PLIC(p,a,pgc,pheat);
-	
-	if(p->F80==11)
-	pfsf = new VOF_IM1(p,a,pgc,pheat);
     
     
     //  Convection VOF
@@ -715,12 +497,6 @@ void driver::logic()
     if(p->D30==5)
 	ppress = new pjm_4th(p,a);
 
-	if(p->D30==11)
-	ppress = new simple(p,a);
-
-	if(p->D30==12)
-	ppress = new piso(p,a);
-	
 
 //poisson scheme for pressure
 	if(p->D30<5 && p->F10==2)
@@ -897,26 +673,14 @@ void driver::logic()
 	if(p->N40==3 && p->F11==0)
 	pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
     
-    if(p->N40==3 && p->F11==1 && p->F30==3)
-	pmom = new momentum_FSFC_RK3(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsfdisc,preini,pheat,pconc);
-
 	if(p->N40==4)
 	pmom = new momentum_RK4(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
 
 	if(p->N40==6 && p->F11==0)
 	pmom = new momentum_FS3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
     
-     if(p->N40==6 && p->F11==1 && p->F30==3)
-	pmom = new momentum_FSFC_RK3(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsfdisc,preini,pheat,pconc);
-
 	if(p->N40==7)
 	pmom = new momentum_FS4(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
-    
-	if(p->N40==11)
-	pmom = new momentum_IM1(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
-
-	if(p->N40==12)
-	pmom = new momentum_IM2(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
 
 	if(p->N40==0 && p->X10==1 && p->X13==1)
 	pmom = new momentum_FSI(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
