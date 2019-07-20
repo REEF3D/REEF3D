@@ -20,7 +20,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"nodefill.h"
-#include"field.h"
 #include"fieldint5.h"
 #include"field5.h"
 #include<iostream>

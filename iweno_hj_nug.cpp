@@ -18,14 +18,18 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
-/*
+
 #include"iweno_hj_nug.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"flux_HJ_CDS2.h"
 #include"flux_HJ_CDS2_vrans.h"
 
-iweno_hj_nug::iweno_hj_nug(lexer *p):weno_nug_func(p)
+
+iweno_hj_nug::iweno_hj_nug(lexer *p)
+			:tttw(13.0/12.0),fourth(1.0/4.0),third(1.0/3.0),
+			sevsix(7.0/6.0),elvsix(11.0/6.0),sixth(1.0/6.0),fivsix(5.0/6.0),tenth(1.0/10.0),
+			sixten(6.0/10.0),treten(3.0/10.0),epsilon(1.0e-6),deltin (1.0/p->DXM)
 {
     if(p->B269==0)
     pflux = new flux_HJ_CDS2(p);
@@ -204,17 +208,17 @@ void iweno_hj_nug::wenoloop3(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
                 
 			if(iadvec>=0.0)
 			{
-			iqmin(p,a,b,uvel,ipol);
-            is_min_x();
-            weight_min_x();
+			is_south(f);
+			alpha_calc();
+			weight_calc();
 			aij_south(p,a,f,a->H);
 			}
 
 			if(iadvec<0.0)
 			{
-			iqmax(p,a,b,uvel,ipol);
-            is_max_x();
-            weight_max_x();
+			is_north(f);
+			alpha_calc();
+			weight_calc();
 			aij_north(p,a,f,a->H);
 			}
 
@@ -222,17 +226,17 @@ void iweno_hj_nug::wenoloop3(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
 		
 			if(jadvec>=0.0)
 			{
-			jqmin(p,a,b,vvel,ipol);
-            is_min_y();
-            weight_min_y();
+			is_east(f);
+			alpha_calc();
+			weight_calc();
 			aij_east(p,a,f,a->H);
 			}
 
 			if(jadvec<0.0)
 			{
-			jqmax(p,a,b,vvel,ipol);
-            is_max_y();
-            weight_max_y();
+			is_west(f);
+			alpha_calc();
+			weight_calc();
 			aij_west(p,a,f,a->H);
 			}
 
@@ -240,17 +244,17 @@ void iweno_hj_nug::wenoloop3(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
 			
 			if(kadvec>=0.0)
 			{
-			kqmin(p,a,b,wvel,ipol);
-            is_min_z();
-            weight_min_z();
+			is_bottom(f);
+			alpha_calc();
+			weight_calc();
 			aij_bottom(p,a,f,a->H);
 			}
 
 			if(kadvec<0.0)
 			{
-			kqmax(p,a,b,wvel,ipol);
-            is_max_z();
-            weight_max_z();
+			is_top(f);
+			alpha_calc();
+			weight_calc();
 			aij_top(p,a,f,a->H);
 			}
 			
@@ -324,19 +328,14 @@ void iweno_hj_nug::wenoloop4(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
 
 void iweno_hj_nug::aij_south(lexer* p, fdm* a, field &f, field &F)
 {
-	F(i,j,k)    += (w3x*qfx[IP][uf][2][0])*iadvec*DX[IM3]*f(i-3,j,k)
-    
-                qfx[IP][uf][2][0]*(q1
+	F(i,j,k)    += (w1*third)*iadvec*deltin*f(i-3,j,k)
 				 - (w2*sixth + w1*1.5)*iadvec*deltin*f(i-2,j,k)
-                 
 				 + (w3*sixth)*iadvec*deltin*f(i+2,j,k);
 				 
 	a->M.p[count] = (-w3*0.5 + w2*0.5 + w1*elvsix)*iadvec*deltin;
 					 
 	a->M.s[count] = (-w3*third -w2 - w1*3.0)*iadvec*deltin;
 	a->M.n[count] = (w3 + w2*third)*iadvec*deltin;
-    
-
 }
 
 void iweno_hj_nug::aij_north(lexer* p, fdm* a, field &f, field &F)
@@ -399,57 +398,90 @@ void iweno_hj_nug::aij_top(lexer* p, fdm* a, field &f, field &F)
 	a->M.t[count] = (w1*3.0 + w2 + w3*third)*kadvec*deltin;
 }
 
+void iweno_hj_nug::is_south(field& b)
+{
 
-void weno_flux_nug::iqmin(lexer *p,fdm *a, field& f, field& uvel, int ipol)
-{	
-	q1 = f(i-2,j,k);
-	q2 = f(i-1,j,k);
-	q3 = f(i,j,k);
-	q4 = f(i+1,j,k);
-	q5 = f(i+2,j,k);
+	is1 = tttw*pow( ( -b(i-3,j,k) + 3.0*b(i-2,j,k) -3.0*b(i-1,j,k) + b(i,j,k)),2.0)
+		+ fourth*pow( (-b(i-3,j,k) + 5.0*b(i-2,j,k) - 7.0*b(i-1,j,k) + 3.0*b(i,j,k)),2.0);
+
+	is2 = tttw*pow( ( -b(i-2,j,k) + 3.0*b(i-1,j,k) -3.0*b(i,j,k) + b(i+1,j,k)),2.0)
+		+ fourth*pow( (-b(i-2,j,k) + b(i-1,j,k) + b(i,j,k) - b(i+1,j,k)),2.0);
+
+	is3 = tttw*pow( (      -b(i-1,j,k) + 3.0*b(i,j,k) - 3.0*b(i+1,j,k) + b(i+2,j,k)),2.0)
+		+ fourth*pow( (-3.0*b(i-1,j,k) + 7.0*b(i,j,k) - 5.0*b(i+1,j,k) + b(i+2,j,k)),2.0);
 }
 
-void weno_flux_nug::jqmin(lexer *p,fdm *a, field& f, field& vvel, int ipol)
+void iweno_hj_nug::is_north(field& b)
 {
-	q1 = f(i,j-2,k);
-	q2 = f(i,j-1,k);
-	q3 = f(i,j,k);
-	q4 = f(i,j+1,k);
-	q5 = f(i,j+2,k);
+
+	is1 = tttw*pow( (b(i+3,j,k) - 3.0*b(i+2,j,k) + 3.0*b(i+1,j,k) - b(i,j,k)),2.0)
+		+ fourth*pow( (b(i+3,j,k) - 5.0*b(i+2,j,k) + 7.0*b(i+1,j,k) - 3.0*b(i,j,k)),2.0);
+
+	is2 = tttw*pow( (b(i+2,j,k) - 3.0*b(i+1,j,k) + 3.0*b(i,j,k) - b(i-1,j,k)),2.0)
+		+ fourth*pow( (b(i+2,j,k) - b(i+1,j,k) - b(i,j,k) + b(i-1,j,k)),2.0);
+
+	is3 = tttw*pow( (b(i+1,j,k) - 3.0*b(i,j,k) + 3.0*b(i-1,j,k) - b(i-2,j,k)),2.0)
+		+ fourth*pow( (3.0*b(i+1,j,k) - 7.0*b(i,j,k) + 5.0*b(i-1,j,k) - b(i-2,j,k)),2.0);
 }
 
-void weno_flux_nug::kqmin(lexer *p,fdm *a, field& f, field& wvel, int ipol)
+void iweno_hj_nug::is_east(field& b)
 {
-	q1 = f(i,j,k-2);
-	q2 = f(i,j,k-1);
-	q3 = f(i,j,k);
-	q4 = f(i,j,k+1);
-	q5 = f(i,j,k+2);
+	is1 = tttw*pow( (-b(i,j-3,k) + 3.0*b(i,j-2,k) - 3.0*b(i,j-1,k) + b(i,j,k)),2.0)
+		+ fourth*pow( (-b(i,j-3,k) + 5.0*b(i,j-2,k) - 7.0*b(i,j-1,k) + 3.0*b(i,j,k)),2.0);
+
+	is2 = tttw*pow( (-b(i,j-2,k) + 3.0*b(i,j-1,k) - 3.0*b(i,j,k) + b(i,j+1,k)),2.0)
+		+ fourth*pow( (-b(i,j-2,k) + b(i,j-1,k) +b(i,j,k) - b(i,j+1,k)),2.0);
+
+	is3 = tttw*pow( (-b(i,j-1,k) + 3.0*b(i,j,k) - 3.0*b(i,j+1,k) + b(i,j+2,k)),2.0)
+		+ fourth*pow( (-3.0*b(i,j-1,k) + 7.0*b(i,j,k) - 5.0*b(i,j+1,k) + b(i,j+2,k)),2.0);
 }
 
-void weno_flux_nug::iqmax(lexer *p,fdm *a, field& f, field& uvel, int ipol)
+void iweno_hj_nug::is_west(field& b)
 {
-    q1 = f(i-1,j,k);
-	q2 = f(i,j,k);
-	q3 = f(i+1,j,k);
-	q4 = f(i+2,j,k);
-	q5 = f(i+3,j,k);
+	is1 = tttw*pow( (b(i,j+3,k) - 3.0*b(i,j+2,k) + 3.0*b(i,j+1,k) - b(i,j,k)),2.0)
+		+ fourth*pow( (b(i,j+3,k) - 5.0*b(i,j+2,k) + 7.0*b(i,j+1,k) - 3.0*b(i,j,k)),2.0);
+
+	is2 = tttw*pow( (b(i,j+2,k) - 3.0*b(i,j+1,k) + 3.0*b(i,j,k) - b(i,j-1,k)),2.0)
+		+ fourth*pow( (b(i,j+2,k) - b(i,j+1,k) - b(i,j,k) + b(i,j-1,k)),2.0);
+
+	is3 = tttw*pow( (b(i,j+1,k) - 3.0*b(i,j,k) + 3.0*b(i,j-1,k) - b(i,j-2,k)),2.0)
+		+ fourth*pow( (3.0*b(i,j+1,k) - 7.0*b(i,j,k) + 5.0*b(i,j-1,k) - b(i,j-2,k)),2.0);
 }
 
-void weno_flux_nug::jqmax(lexer *p,fdm *a, field& f, field& vvel, int ipol)
+void iweno_hj_nug::is_bottom(field& b)
 {
-	q1 = f(i,j-1,k);
-	q2 = f(i,j,k);
-	q3 = f(i,j+1,k);
-	q4 = f(i,j+2,k);
-	q5 = f(i,j+3,k);
+	is1 = tttw*pow( (-b(i,j,k-3) + 3.0*b(i,j,k-2) -3.0*b(i,j,k-1) + b(i,j,k)),2.0)
+		+ fourth*pow( (-b(i,j,k-3) + 5.0*b(i,j,k-2) - 7.0*b(i,j,k-1) + 3.0*b(i,j,k)),2.0);
+
+	is2 = tttw*pow( (-b(i,j,k-2) + 3.0*b(i,j,k-1) -3.0*b(i,j,k) + b(i,j,k+1)),2.0)
+		+ fourth*pow( (-b(i,j,k-2) + b(i,j,k-1) +b(i,j,k) - b(i,j,k+1)),2.0);
+
+	is3 = tttw*pow( (-b(i,j,k-1) + 3.0*b(i,j,k) - 3.0*b(i,j,k+1) + b(i,j,k+2)),2.0)
+		+ fourth*pow( (-3.0*b(i,j,k-1) + 7.0*b(i,j,k) - 5.0*b(i,j,k+1) + b(i,j,k+2)),2.0);
 }
 
-void weno_flux_nug::kqmax(lexer *p,fdm *a, field& f, field& wvel, int ipol)
+void iweno_hj_nug::is_top(field& b)
 {
-	q1 = f(i,j,k-1);
-	q2 = f(i,j,k);
-	q3 = f(i,j,k+1);
-	q4 = f(i,j,k+2);
-	q5 = f(i,j,k+3);
-}*/
+	is1 = tttw*pow( (b(i,j,k+3) - 3.0*b(i,j,k+2) + 3.0*b(i,j,k+1) - b(i,j,k)),2.0)
+		+ fourth*pow( (b(i,j,k+3) - 5.0*b(i,j,k+2) + 7.0*b(i,j,k+1) - 3.0*b(i,j,k)),2.0);
+
+	is2 = tttw*pow( (b(i,j,k+2) - 3.0*b(i,j,k+1) + 3.0*b(i,j,k) - b(i,j,k-1)),2.0)
+		+ fourth*pow( (b(i,j,k+2) - b(i,j,k+1) - b(i,j,k) + b(i,j,k-1)),2.0);
+
+	is3 = tttw*pow( (b(i,j,k+1) - 3.0*b(i,j,k) + 3.0*b(i,j,k-1) - b(i,j,k-2)),2.0)
+		+ fourth*pow( (3.0*b(i,j,k+1) - 7.0*b(i,j,k) + 5.0*b(i,j,k-1) - b(i,j,k-2)),2.0);
+}
+
+void iweno_hj_nug::alpha_calc()
+{
+	alpha1=tenth/pow(epsilon+is1,2.0);
+	alpha2=sixten/pow(epsilon+is2,2.0);
+	alpha3=treten/pow(epsilon+is3,2.0);
+}
+
+void iweno_hj_nug::weight_calc()
+{
+	w1=alpha1/(alpha1+alpha2+alpha3);
+	w2=alpha2/(alpha1+alpha2+alpha3);
+	w3=alpha3/(alpha1+alpha2+alpha3);
+}

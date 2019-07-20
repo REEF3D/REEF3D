@@ -18,9 +18,9 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
-/*
+
 #include"convection.h"
-#include"weno_nug_func.h"
+#include"increment.h"
 
 class flux;
 
@@ -29,7 +29,7 @@ class flux;
 
 using namespace std;
 
-class iweno_hj_nug : public convection, public weno_nug_func
+class iweno_hj_nug : public convection, public increment
 {
 public:
 	iweno_hj_nug (lexer*);
@@ -43,6 +43,16 @@ private:
     void wenoloop3(lexer*,fdm*,field&,int,field&,field&,field&);
     void wenoloop4(lexer*,fdm*,field&,int,field&,field&,field&);
 
+	void is_south(field&);
+	void is_north(field&);
+	void is_east(field&);
+	void is_west(field&);
+	void is_top(field&);
+	void is_bottom(field&);
+
+	void alpha_calc();
+
+	void weight_calc();
 
 	void aij(fdm*, field&,field&,field&,field&);
 	void aij_south(lexer*,fdm*,field&, field&);
@@ -52,6 +62,8 @@ private:
 	void aij_top(lexer*,fdm*,field&, field&);
 	void aij_bottom(lexer*,fdm*,field&, field&);
 
+	const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
+	const double sixten,treten,epsilon,deltin;
 
 
 	double is1,is2,is3;
@@ -65,10 +77,8 @@ private:
     double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
     double iadvec,jadvec,kadvec;
     
-    double *DX,*DY,*DZ;
-    
     flux *pflux;
 
 };
 
-#endif*/
+#endif
