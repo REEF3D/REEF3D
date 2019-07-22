@@ -37,25 +37,25 @@ public:
 
 	sflow_bicgstab(lexer*,fdm2D*,ghostcell*);
 	virtual ~sflow_bicgstab();
-	virtual void start(lexer*,fdm2D*, ghostcell*, slice&, vec2D&, vec2D&, int, int, double);
-	virtual void solve(lexer*,fdm2D*, ghostcell*, vec2D&, vec2D&, int, int, int&, int, double, cpt2D&);
-	virtual void setup(lexer*,fdm2D*, ghostcell*,int, cpt2D&);
+	virtual void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int, int, double, cpt2D&);
+	virtual void solve(lexer*, ghostcell*, matrix2D&, vec2D&, vec2D&, int, int, int&, int, double, cpt2D&);
+	virtual void setup(lexer*, ghostcell*,int, cpt2D&);
     
 private:
     
-    void precon_solve(lexer*,fdm2D*, ghostcell*, vec2D&, vec2D&, int, int, int&, int, double, cpt2D&);
-	void precon_setup(lexer*,fdm2D*, ghostcell*,int, cpt2D&);
+    void precon_solve(lexer*, ghostcell*, vec2D&, vec2D&, int, int, int&, int, double, cpt2D&);
+	void precon_setup(lexer*, ghostcell*, matrix2D&, int, cpt2D&);
     
-    void matvec_axb(lexer*,fdm2D*, vec2D&, vec2D&, cpt2D&);
-    void matvec_std(lexer*,fdm2D*, vec2D&, vec2D&, cpt2D&);
+    void matvec_axb(lexer*, matrix2D&, vec2D&, vec2D&, vec2D&, cpt2D&);
+    void matvec_std(lexer*, matrix2D&, vec2D&, vec2D&, cpt2D&);
     
-    double res_calc(lexer*, fdm2D*, vec2D&, ghostcell*, cpt2D&);
+    double res_calc(lexer*, ghostcell*, matrix2D&, vec2D&, vec2D&, cpt2D&);
     
-    void fillxvec1(lexer*, fdm2D*, slice&);
-    void fillxvec2(lexer*, fdm2D*, slice&);
-    void fillxvec4(lexer*, fdm2D*, slice&);
+    void fillxvec1(lexer*, slice&, vec2D&);
+    void fillxvec2(lexer*, slice&, vec2D&);
+    void fillxvec4(lexer*, slice&, vec2D&);
     
-    void finalize(lexer*, fdm2D*, slice&, vec2D&, int);
+    void finalize(lexer*, slice&, vec2D&, int);
     
 
     int num_iterations;

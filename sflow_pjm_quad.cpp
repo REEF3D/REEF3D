@@ -115,7 +115,7 @@ void sflow_pjm_quad::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, 
 	
         solvtime=pgc->timer();
 
-    psolv->start(p,b,pgc,b->press,b->xvec,b->rhsvec,4,gcval_press,p->N44);
+    psolv->start(p,pgc,b->press,b->M,b->xvec,b->rhsvec,4,gcval_press,p->N44,b->C4);
 	
         p->poissontime=pgc->timer()-solvtime;
   
@@ -198,9 +198,6 @@ void sflow_pjm_quad::rhs(lexer *p, fdm2D* b, slice &P, slice &Q, slice &ws, doub
 							/(alpha*p->dt);
                            
     ++count;
-    
-    
-    
     }
     
     if(p->A221<2)
@@ -306,33 +303,7 @@ void sflow_pjm_quad::vpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 }
 
 void sflow_pjm_quad::quad_calc(lexer *p,fdm2D *b,slice &P, slice &Q, slice &Pn, slice &Qn, double alpha)
-{
-    /*
-    SLICELOOP1
-    {
-    phi1(i,j) = - ((b->depth(i+1,j)-b->depth(i,j))/p->dx) 
-    
-                                * ((P(i,j)-Pn(i,j))/(alpha*p->dt)
-    
-                                + MAX(0.0,P(i,j))*((P(i,j)-P(i-1,j))/p->dx) + MIN(0.0,P(i,j))*((P(i+1,j)-P(i,j))/p->dx)
-                                + MAX(0.0,0.5*(Q(i,j-1)+Q(i+1,j-1)))*((P(i,j)-P(i,j-1))/p->dx) + MIN(0.0,0.5*(Q(i,j)+Q(i+1,j)))*((P(i,j+1)-P(i,j))/p->dx))
-                                                          
-                - pow(b->P(i,j),2.0)*((b->depth(i+2,j) - b->depth(i+1,j) - b->depth(i,j) + b->depth(i-1,j))/(2.0*p->dx*p->dx));
-    
-    }
-    
-    SLICELOOP2
-    {
-    phi2(i,j) = - ((b->depth(i,j+1)-b->depth(i,j))/p->dx) 
-                                * ((Q(i,j)-Qn(i,j))/(alpha*p->dt)
-    
-                                + MAX(0.0,0.5*(P(i-1,j)+P(i-1,j+1)))*((Q(i,j)-Q(i-1,j))/p->dx) + MIN(0.0,0.5*(P(i,j)+P(i,j+1)))*((Q(i+1,j)-Q(i,j))/p->dx)
-                                + MAX(0.0,Q(i,j))*((Q(i,j)-Q(i,j-1))/p->dx) + MIN(0.0,Q(i,j))*((Q(i,j+1)-Q(i,j))/p->dx))
-                                                          
-                - pow(b->Q(i,j),2.0)*((b->depth(i,j+2) - b->depth(i,j+1) - b->depth(i,j) + b->depth(i,j-1))/(2.0*p->dx*p->dx));
-    
-    }*/
-    
+{    
     double Pval,Pnval;
     double Qval,Qnval;
     
@@ -354,8 +325,6 @@ void sflow_pjm_quad::quad_calc(lexer *p,fdm2D *b,slice &P, slice &Q, slice &Pn, 
                                     * ((Pval-Pnval)/(alpha*p->dt)
                                                                     
                                     + Pval*((P(i,j)-P(i-1,j))/(p->dx)) 
-                                    
-                                    //+ Pval*(P(i-2,j) - 27.0*P(i-1,j) + 27.0*P(i,j) - P(i+1,j))/(24.0*p->dx) 
                                                          
                                     + Qval*((0.5*(P(i,j+1)+P(i-1,j+1))-0.5*(P(i,j-1)+P(i-1,j-1)))/(2.0*p->dx)))
                                                 

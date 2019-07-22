@@ -573,7 +573,7 @@ void iowave::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
     }
 }
 
-void iowave::Fz_relax(lexer *p, ghostcell *pgc, slice& f)
+void iowave::visc_relax(lexer *p, ghostcell *pgc, slice& f)
 {
     count=0;
     SLICELOOP4

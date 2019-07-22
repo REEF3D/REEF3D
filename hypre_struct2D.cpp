@@ -43,7 +43,7 @@ hypre_struct2D::~hypre_struct2D()
 {
 }
 
-void hypre_struct2D::start(lexer* p, fdm2D* b, ghostcell* pgc, slice &f, vec2D& xvec, vec2D& rhsvec, int var, int gcv, double stop_crit)
+void hypre_struct2D::start(lexer* p, ghostcell* pgc, slice &f, matrix2D &M, vec2D& xvec, vec2D& rhsvec, int var, int gcv, double stop_crit, cpt2D &C)
 {
 	numiter=0;
 	p->solveriter=0;
@@ -51,7 +51,7 @@ void hypre_struct2D::start(lexer* p, fdm2D* b, ghostcell* pgc, slice &f, vec2D& 
 	create_solvers(p,pgc);
     
     // fill for cfd
-    fill_matrix(p,b,pgc,f);
+    fill_matrix(p,pgc,M,f,rhsvec);
     
     // fill for potential flow
 	 
@@ -122,22 +122,19 @@ void hypre_struct2D::start(lexer* p, fdm2D* b, ghostcell* pgc, slice &f, vec2D& 
 
 	p->solveriter=num_iterations;
         
-    fillbackvec(p,b,f,xvec,var);
+    fillbackvec(p,f,xvec,var);
 	
 	delete_solvers(p,pgc);
 	 
 }
 
-void hypre_struct2D::setup(lexer* p,fdm2D* b, ghostcell* pgc, int var, cpt2D &C)
+void hypre_struct2D::setup(lexer* p, ghostcell* pgc, int var, cpt2D &C)
 {
 }
 
-void hypre_struct2D::solve(lexer* p,fdm2D* b, ghostcell* pgc, vec2D& xvec, vec2D& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit, cpt2D &C)
+void hypre_struct2D::solve(lexer* p, ghostcell* pgc, matrix2D &M, vec2D& xvec, vec2D& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit, cpt2D &C)
 {
 }
 
-void hypre_struct2D::fillxvec4(lexer* p, fdm2D* b, slice& f)
-{
-}
 
 #endif

@@ -55,7 +55,7 @@ void sflow_turb_kw_IM1::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convecti
     pdiff->diff_scalar(p,b,pgc,psolv,kin,kw_sigma_k,1.0);
 	kin_source(p,b);
 	timesource(p,b,kn);
-    psolv->start(p,b,pgc,kin,b->xvec,b->rhsvec,4,gcval_kin,p->T13);
+    psolv->start(p,pgc,kin,b->M,b->xvec,b->rhsvec,4,gcval_kin,p->T13,b->C4);
     pgc->gcsl_start4(p,kin,gcval_kin);
 	p->kintime=pgc->timer()-starttime;
 	p->kiniter=p->solveriter;
@@ -69,7 +69,7 @@ void sflow_turb_kw_IM1::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convecti
     pdiff->diff_scalar(p,b,pgc,psolv,omega,kw_sigma_w,1.0);
 	omega_source(p,b);
 	timesource(p,b,wn);
-	psolv->start(p,b,pgc,omega,b->xvec,b->rhsvec,4,gcval_omega,p->T13);
+	psolv->start(p,pgc,omega,b->M,b->xvec,b->rhsvec,4,gcval_omega,p->T13,b->C4);
     pgc->gcsl_start4(p,omega,gcval_omega);
 	p->epstime=pgc->timer()-starttime;
 	p->epsiter=p->solveriter;

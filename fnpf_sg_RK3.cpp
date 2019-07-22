@@ -84,6 +84,7 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     
     // fsf eta
     pf->kfsfbc(p,c,pgc);
+    //pf->damping(p,c,pgc,c->eta,1.0);
     
     SLICELOOP4
 	erk1(i,j) = c->eta(i,j) + p->dt*c->K(i,j);
@@ -106,10 +107,8 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pf->fsfdisc(p,c,pgc,erk1,frk1);
     sigma_update(p,c,pgc,pf,erk1);
   
-    // Set Boundary Conditions
+    // Set Boundary Conditions Fi
     pflow->fivec_relax(p,pgc,c->Fi);
-    
-    
     fsfbc_sig(p,c,pgc,frk1,c->Fi);
     bedbc_sig(p,c,pgc,c->Fi,pf);
     
@@ -119,7 +118,6 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,erk1,frk1);
-    //pflow->Fz_relax(p,pgc,c->Fz);
 
 // Step 2
     pflow->inflow_fnpf(p,pgc,c->Fi,c->Uin,frk1,erk1);
@@ -148,7 +146,7 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pf->fsfdisc(p,c,pgc,erk2,frk2);
     sigma_update(p,c,pgc,pf,erk2);
     
-    // Set Boundary Conditions
+    // Set Boundary Conditions Fi
     pflow->fivec_relax(p,pgc,c->Fi);
     fsfbc_sig(p,c,pgc,frk2,c->Fi);
     bedbc_sig(p,c,pgc,c->Fi,pf);
@@ -159,7 +157,6 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,erk2,frk2);
-    //pflow->Fz_relax(p,pgc,c->Fz);
 
 // Step 3 
     pflow->inflow_fnpf(p,pgc,c->Fi,c->Uin,frk2,erk2);
@@ -188,7 +185,7 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
     sigma_update(p,c,pgc,pf,c->eta);
     
-    // Set Boundary Conditions
+    // Set Boundary Conditions Fi
     pflow->fivec_relax(p,pgc,c->Fi);
     fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
     bedbc_sig(p,c,pgc,c->Fi,pf);
@@ -199,7 +196,6 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
-    //pflow->Fz_relax(p,pgc,c->Fz);
     
     
     //LOOP

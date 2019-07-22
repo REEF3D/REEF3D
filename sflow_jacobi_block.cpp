@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm2D.h"
 #include"ghostcell.h"
 
-sflow_jacobi_block::sflow_jacobi_block(lexer* p,fdm2D* b,ghostcell *pgc) : epsi(1e-19)
+sflow_jacobi_block::sflow_jacobi_block(lexer* p,ghostcell *pgc) : epsi(1e-19)
 {	
 	margin=3;
 }
@@ -33,39 +33,39 @@ sflow_jacobi_block::~sflow_jacobi_block()
 {
 }
 
-void sflow_jacobi_block::setup(lexer* p,fdm2D* b, ghostcell* pgc, int var, cpt2D &C)
+void sflow_jacobi_block::setup(lexer* p, ghostcell* pgc, int var, cpt2D &C)
 {
 }
 
-void sflow_jacobi_block::start(lexer* p, fdm2D* b, ghostcell* pgc, slice &f, vec2D& xvec, vec2D& rhsvec, int var, int gcv, double stop_crit)
+void sflow_jacobi_block::start(lexer* p, ghostcell* pgc, slice &f, matrix2D &M ,vec2D& xvec, vec2D& rhsvec, int var, int gcv, double stop_crit, cpt2D &C)
 {
 	p->preconiter=0;
     
 	if(var==1)
     {
-	fillxvec1(p,b,f);
+	fillxvec1(p,f,xvec);
     sizeS=p->sizeS1;
-	solve(p,b,pgc,xvec,rhsvec,var,gcv,p->solveriter,p->N46,stop_crit,b->C1);
+	solve(p,pgc,M,xvec,rhsvec,var,gcv,p->solveriter,p->N46,stop_crit,C);
     }
 	
 	if(var==2)
     {
-	fillxvec2(p,b,f);
+	fillxvec2(p,f,xvec);
     sizeS=p->sizeS2;
-	solve(p,b,pgc,xvec,rhsvec,var,gcv,p->solveriter,p->N46,stop_crit,b->C2);
+	solve(p,pgc,M,xvec,rhsvec,var,gcv,p->solveriter,p->N46,stop_crit,C);
     }
 	
 	if(var==3||var==4)
     {
-	fillxvec4(p,b,f);
+	fillxvec4(p,f,xvec);
     sizeS=p->sizeS4;
-	solve(p,b,pgc,xvec,rhsvec,var,gcv,p->solveriter,p->N46,stop_crit,b->C4);
+	solve(p,pgc,M,xvec,rhsvec,var,gcv,p->solveriter,p->N46,stop_crit,C);
     }
 	
-	finalize(p,b,f,xvec,var);
+	finalize(p,f,xvec,var);
 }
 
-void sflow_jacobi_block::solve(lexer* p,fdm2D* b, ghostcell* pgc, vec2D& xvec, vec2D& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit, cpt2D &C)
+void sflow_jacobi_block::solve(lexer* p, ghostcell* pgc, matrix2D &M,vec2D& xvec, vec2D& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit, cpt2D &C)
 {
 	solveriter=0;
     residual = 1.0e9;
@@ -76,39 +76,39 @@ void sflow_jacobi_block::solve(lexer* p,fdm2D* b, ghostcell* pgc, vec2D& xvec, v
 		{			
 			NSLICELOOP
 			{
-				b->xvec.V[n] = (1.0-p->N17)*b->xvec.V[n]
-				+ p->N17*(b->rhsvec.V[n]-(
-				+ b->M.n[n]*b->xvec.V[Ip1_J] 
-				+ b->M.s[n]*b->xvec.V[Im1_J]
-				+ b->M.w[n]*b->xvec.V[I_Jp1]
-				+ b->M.e[n]*b->xvec.V[I_Jm1]))/(b->M.p[n]+epsi);
+				xvec.V[n] = (1.0-p->N17)*xvec.V[n]
+				+ p->N17*(rhsvec.V[n]-(
+				+ M.n[n]*xvec.V[Ip1_J] 
+				+ M.s[n]*xvec.V[Im1_J]
+				+ M.w[n]*xvec.V[I_Jp1]
+				+ M.e[n]*xvec.V[I_Jm1]))/(M.p[n]+epsi);
 
 			}
 		++solveriter;
 		}
 		
-         pgc->gcparaxvec2D(p,b,b->xvec,var);		
+         pgc->gcparaxvec2D(p,xvec,var,C);		
 		
-		residual=res_calc(p,b,xvec,pgc,C);
+		residual=res_calc(p,pgc,M,xvec,rhsvec,C);
 		
 	
 	}while((residual>=stop_crit) && (solveriter<maxiter));	
 }
 
-double sflow_jacobi_block::res_calc(lexer *p, fdm2D *b, vec2D &x, ghostcell *pgc, cpt2D &C)
+double sflow_jacobi_block::res_calc(lexer *p, ghostcell *pgc, matrix2D &M, vec2D &x, vec2D &rhsvec, cpt2D &C)
 {
 	double y;
 	double resi=0.0;
 
 	NSLICELOOP
 	{	
-	y  = b->rhsvec.V[n]
+	y  = rhsvec.V[n]
 
-		-(b->M.p[n]*x.V[n]
-		+ b->M.n[n]*x.V[Ip1_J] 
-		+ b->M.s[n]*x.V[Im1_J]
-		+ b->M.w[n]*x.V[I_Jp1]
-		+ b->M.e[n]*x.V[I_Jm1]);
+		-(M.p[n]*x.V[n]
+		+ M.n[n]*x.V[Ip1_J] 
+		+ M.s[n]*x.V[Im1_J]
+		+ M.w[n]*x.V[I_Jp1]
+		+ M.e[n]*x.V[I_Jm1]);
 
 	resi+=y*y;
 	}
@@ -118,14 +118,14 @@ double sflow_jacobi_block::res_calc(lexer *p, fdm2D *b, vec2D &x, ghostcell *pgc
 	return resi/double(p->cellnumtot2D);	
 }
 
-void sflow_jacobi_block::fillxvec1(lexer* p, fdm2D* b, slice& f)
+void sflow_jacobi_block::fillxvec1(lexer* p, slice& f, vec2D &xvec)
 {
 	int count,q;
 	
 	count=0;
     SLICELOOP1
     {
-    b->xvec.V[count]=f(i,j);
+    xvec.V[count]=f(i,j);
     ++count;
     }
 
@@ -137,41 +137,41 @@ void sflow_jacobi_block::fillxvec1(lexer* p, fdm2D* b, slice& f)
         if(p->gcbsl1[n][3]==1)
         for(q=0;q<margin;++q)
         {
-        b->xvec.V[count]=f(i-1-q,j);
+        xvec.V[count]=f(i-1-q,j);
         ++count;
         }
 
         if(p->gcbsl1[n][3]==2)
         for(q=0;q<margin;++q)
         {
-        b->xvec.V[count]=f(i,j+1+q);
+        xvec.V[count]=f(i,j+1+q);
         ++count;
         }
 
         if(p->gcbsl1[n][3]==3)
         for(q=0;q<margin;++q)
         {
-        b->xvec.V[count]=f(i,j-1-q);
+        xvec.V[count]=f(i,j-1-q);
         ++count;
         }
 
         if(p->gcbsl1[n][3]==4)
         for(q=0;q<margin;++q)
         {
-        b->xvec.V[count]=f(i+1+q,j);
+        xvec.V[count]=f(i+1+q,j);
         ++count;
         }
     }
 }
 
-void sflow_jacobi_block::fillxvec2(lexer* p, fdm2D* b, slice& f)
+void sflow_jacobi_block::fillxvec2(lexer* p, slice& f, vec2D &xvec)
 {
 	int count,q;
 	
 	count=0;
     SLICELOOP2
     {
-    b->xvec.V[count]=f(i,j);
+    xvec.V[count]=f(i,j);
     ++count;
     }
 
@@ -183,41 +183,41 @@ void sflow_jacobi_block::fillxvec2(lexer* p, fdm2D* b, slice& f)
         if(p->gcbsl2[n][3]==1)
         for(q=0;q<margin;++q)
         {
-        b->xvec.V[count]=f(i-1-q,j);
+        xvec.V[count]=f(i-1-q,j);
         ++count;
         }
 
         if(p->gcbsl2[n][3]==2)
         for(q=0;q<margin;++q)
         {
-        b->xvec.V[count]=f(i,j+1+q);
+        xvec.V[count]=f(i,j+1+q);
         ++count;
         }
 
         if(p->gcbsl2[n][3]==3)
         for(q=0;q<margin;++q)
         {
-        b->xvec.V[count]=f(i,j-1-q);
+        xvec.V[count]=f(i,j-1-q);
         ++count;
         }
 
         if(p->gcbsl2[n][3]==4)
         for(q=0;q<margin;++q)
         {
-        b->xvec.V[count]=f(i+1+q,j);
+        xvec.V[count]=f(i+1+q,j);
         ++count;
         }
     }
 }
 
-void sflow_jacobi_block::fillxvec4(lexer* p, fdm2D* b, slice& f)
+void sflow_jacobi_block::fillxvec4(lexer* p, slice& f, vec2D &xvec)
 {
 	int count,q;
 	
 	count=0;
     SLICELOOP4
     {
-    b->xvec.V[count]=f(i,j);
+    xvec.V[count]=f(i,j);
     ++count;
     }
 
@@ -229,34 +229,34 @@ void sflow_jacobi_block::fillxvec4(lexer* p, fdm2D* b, slice& f)
         if(p->gcbsl4[n][3]==1)
         for(q=0;q<margin;++q)
         {
-        b->xvec.V[count]=f(i-1-q,j);
+        xvec.V[count]=f(i-1-q,j);
         ++count;
         }
 
         if(p->gcbsl4[n][3]==2)
         for(q=0;q<margin;++q)
         {
-        b->xvec.V[count]=f(i,j+1+q);
+        xvec.V[count]=f(i,j+1+q);
         ++count;
         }
 
         if(p->gcbsl4[n][3]==3)
         for(q=0;q<margin;++q)
         {
-        b->xvec.V[count]=f(i,j-1-q);
+        xvec.V[count]=f(i,j-1-q);
         ++count;
         }
 
         if(p->gcbsl4[n][3]==4)
         for(q=0;q<margin;++q)
         {
-        b->xvec.V[count]=f(i+1+q,j);
+        xvec.V[count]=f(i+1+q,j);
         ++count;
         }
     }
 }
 
-void sflow_jacobi_block::finalize(lexer *p, fdm2D *b, slice &f, vec2D &xvec, int var)
+void sflow_jacobi_block::finalize(lexer *p, slice &f, vec2D &xvec, int var)
 {
 	if(var==1)
     {

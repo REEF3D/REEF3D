@@ -138,7 +138,7 @@ void ioflow_f::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
 {
 }
 
-void ioflow_f::Fz_relax(lexer *p, ghostcell *pgc, slice& f)
+void ioflow_f::visc_relax(lexer *p, ghostcell *pgc, slice& f)
 {
 }
 

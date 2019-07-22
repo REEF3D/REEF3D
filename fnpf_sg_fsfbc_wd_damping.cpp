@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -19,27 +19,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-class lexer;
-class fdm2D;
-class ghostcell;
-class slice;
-class vec2D;
-class cpt2D;
-class matrix2D;
+#include"fnpf_sg_fsfbc_wd.h"
+#include"lexer.h"
+#include"fdm_fnpf.h"
+#include"ghostcell.h"
 
-using namespace std;
-
-#ifndef SOLVER2D_H_
-#define SOLVER2D_H_
-
-class solver2D
+void fnpf_sg_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int gcval, double alpha)
 {
-
-public:
-
-	virtual void start(lexer*,ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int, int, double, cpt2D&)=0;
-	virtual void solve(lexer*,ghostcell*, matrix2D&, vec2D&, vec2D&, int, int, int&, int, double, cpt2D&)=0;
-	virtual void setup(lexer*,ghostcell*,int,cpt2D&)=0;	
-};
-
-#endif
+    
+    
+    
+}

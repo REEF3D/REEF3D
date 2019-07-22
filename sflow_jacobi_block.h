@@ -35,21 +35,21 @@ class sflow_jacobi_block : public solver2D, public increment
 {
 public:
 
-	sflow_jacobi_block(lexer*,fdm2D*,ghostcell*);
+	sflow_jacobi_block(lexer*,ghostcell*);
 	virtual ~sflow_jacobi_block();
-	virtual void start(lexer*,fdm2D*, ghostcell*, slice&, vec2D&, vec2D&, int, int, double);
-	virtual void solve(lexer*,fdm2D*, ghostcell*, vec2D&, vec2D&, int, int, int&, int, double, cpt2D&);
-	virtual void setup(lexer*,fdm2D*, ghostcell*,int, cpt2D&);
+	virtual void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int, int, double, cpt2D&);
+	virtual void solve(lexer*, ghostcell*, matrix2D&, vec2D&, vec2D&, int, int, int&, int, double, cpt2D&);
+	virtual void setup(lexer*, ghostcell*,int, cpt2D&);
     
 private:
     
-    double res_calc(lexer*, fdm2D*, vec2D&, ghostcell*, cpt2D&);
+    double res_calc(lexer*, ghostcell*, matrix2D&, vec2D&, vec2D&, cpt2D&);
     
-    void fillxvec1(lexer*, fdm2D*, slice&);
-    void fillxvec2(lexer*, fdm2D*, slice&);
-    void fillxvec4(lexer*, fdm2D*, slice&);
+    void fillxvec1(lexer*, slice&, vec2D&);
+    void fillxvec2(lexer*, slice&, vec2D&);
+    void fillxvec4(lexer*, slice&, vec2D&);
     
-    void finalize(lexer*, fdm2D*, slice&, vec2D&, int);
+    void finalize(lexer*, slice&, vec2D&, int);
     
 
     int num_iterations;

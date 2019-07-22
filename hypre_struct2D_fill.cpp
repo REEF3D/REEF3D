@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"sliceint4.h"
 
-void hypre_struct2D::fill_matrix(lexer* p,fdm2D* b, ghostcell* pgc, slice &f)
+void hypre_struct2D::fill_matrix(lexer* p, ghostcell* pgc, matrix2D &M, slice &f, vec2D &rhsvec)
 {
     sliceint4 cval4(p);
     
@@ -50,19 +50,19 @@ void hypre_struct2D::fill_matrix(lexer* p,fdm2D* b, ghostcell* pgc, slice &f)
 		{
 		n=cval4(i,j);
         
-		values[count]=b->M.p[n];
+		values[count]=M.p[n];
 		++count;
 		
-		values[count]=b->M.s[n];
+		values[count]=M.s[n];
 		++count;
 		
-		values[count]=b->M.n[n];
+		values[count]=M.n[n];
 		++count;
 		
-		values[count]=b->M.e[n];
+		values[count]=M.e[n];
 		++count;
 		
-		values[count]=b->M.w[n];
+		values[count]=M.w[n];
 		++count;
 		}     
 		
@@ -83,9 +83,6 @@ void hypre_struct2D::fill_matrix(lexer* p,fdm2D* b, ghostcell* pgc, slice &f)
 		values[count]=0.0;
 		++count;
 		}    
-         
-        
-       
     }
 	
     HYPRE_StructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, values);
@@ -115,7 +112,7 @@ void hypre_struct2D::fill_matrix(lexer* p,fdm2D* b, ghostcell* pgc, slice &f)
 		PSLICECHECK4
 		{
 		n=cval4(i,j);
-		values[count] = b->rhsvec.V[n];
+		values[count] = rhsvec.V[n];
 		}
 		
 		SSLICECHECK4
@@ -128,7 +125,7 @@ void hypre_struct2D::fill_matrix(lexer* p,fdm2D* b, ghostcell* pgc, slice &f)
     HYPRE_StructVectorAssemble(rhs);
 }
 
-void hypre_struct2D::fillbackvec(lexer *p, fdm2D *b, slice &f, vec2D &xvec, int var)
+void hypre_struct2D::fillbackvec(lexer *p, slice &f, vec2D &xvec, int var)
 {
 	HYPRE_StructVectorGetBoxValues(x, ilower, iupper, values);
 	

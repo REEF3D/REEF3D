@@ -153,7 +153,7 @@ void ghostcell::gcsl_start4a(lexer *p, slice &f, int gcv)
     }
 }
 
-void ghostcell::gcsl_start4V(lexer *p, fdm2D *b, vec2D &f, int gcv)
+void ghostcell::gcsl_start4V(lexer *p, vec2D &f, int gcv, cpt2D &C)
 {
 	
 	starttime=timer();
@@ -166,7 +166,7 @@ void ghostcell::gcsl_start4V(lexer *p, fdm2D *b, vec2D &f, int gcv)
     if(p->M10>0)
     {
     starttime=timer();
-	gcparaxvec2D(p,b,f,4);
+	gcparaxvec2D(p,f,4,C);
 	endtime=timer();
 	p->xtime+=endtime-starttime;
     }

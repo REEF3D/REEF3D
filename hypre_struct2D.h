@@ -39,15 +39,14 @@ public:
 
 	hypre_struct2D(lexer*,fdm2D*,ghostcell*);
 	virtual ~hypre_struct2D();
-	virtual void start(lexer*,fdm2D*, ghostcell*, slice&, vec2D&, vec2D&, int, int, double);
-	virtual void solve(lexer*,fdm2D*, ghostcell*, vec2D&, vec2D&, int, int, int&, int, double, cpt2D&);
-	virtual void setup(lexer*,fdm2D*, ghostcell*,int, cpt2D&);
+	virtual void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int, int, double, cpt2D&);
+	virtual void solve(lexer*, ghostcell*, matrix2D&, vec2D&, vec2D&, int, int, int&, int, double, cpt2D&);
+	virtual void setup(lexer*, ghostcell*,int, cpt2D&);
     
-    void fillxvec4(lexer*,fdm2D*,slice&);
-	void fillbackvec(lexer*,fdm2D*,slice&,vec2D&,int);
+	void fillbackvec(lexer*,slice&,vec2D&,int);
     
     void make_grid(lexer*, ghostcell*);
-	void fill_matrix(lexer*,fdm2D*, ghostcell*,slice&);
+	void fill_matrix(lexer*, ghostcell*, matrix2D&, slice&, vec2D&);
 	
 	void create_solvers(lexer*,ghostcell*);
     void delete_solvers(lexer*,ghostcell*);

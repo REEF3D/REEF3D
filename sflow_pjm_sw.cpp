@@ -104,7 +104,7 @@ void sflow_pjm_sw::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, io
 	
         solvtime=pgc->timer();
 
-    psolv->start(p,b,pgc,b->press,b->xvec,b->rhsvec,4,gcval_press,p->N44);
+    psolv->start(p,pgc,b->press,b->M,b->xvec,b->rhsvec,4,gcval_press,p->N44,b->C4);
 	
         p->poissontime=pgc->timer()-solvtime;
     
