@@ -20,27 +20,31 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"pressure.h"
-#include"density_f.h"
+#include"increment.h"
+
+class density;
+class heat;
+class concentration;
 
 using namespace std;
 
 #ifndef PJM_SIG_H_
 #define PJM_SIG_H_
 
-class pjm_sig : public pressure, public density_f
+class pjm_sig : public pressure, public increment
 {
 
 public:
 
-	pjm_sig(lexer* p, fdm *a);
+	pjm_sig(lexer* p, fdm *a, heat*&, concentration*&);
 	virtual ~pjm_sig();
 
 	virtual void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,momentum*,ioflow*, field&, field&, field&,double);
 	virtual void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 	virtual void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	virtual void ucorr(fdm*,lexer*p,field&,double);
-	virtual void vcorr(fdm*,lexer*p,field&,double);
-	virtual void wcorr(fdm*,lexer*p,field&,double);
+	virtual void ucorr(lexer*p,fdm*,field&,double);
+	virtual void vcorr(lexer*p,fdm*,field&,double);
+	virtual void wcorr(lexer*p,fdm*,field&,double);
 	virtual void upgrad(lexer*,fdm*);
 	virtual void vpgrad(lexer*,fdm*);
 	virtual void ptimesave(lexer*,fdm*,ghostcell*);
@@ -58,6 +62,8 @@ private:
 	int gcval_u, gcval_v, gcval_w;
 	
 	void debug(lexer*,fdm*);
+    
+    density *pd;
 };
 
 

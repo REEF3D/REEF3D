@@ -22,6 +22,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sediment.h"
 #include"topo_vel.h"
 #include"sliceint4.h"
+#include"slice4.h"
+#include"field4a.h"
 
 class sandslide;
 class topo_relax;

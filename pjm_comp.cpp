@@ -34,7 +34,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"density_comp.h"
 #include"density_conc.h"
 #include"density_heat.h"
-#include"denisty_rheology.h"
+#include"density_rheology.h"
 #include"density_vof.h"
  
 pjm_comp::pjm_comp(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc) : ro_n(p)
@@ -46,10 +46,10 @@ pjm_comp::pjm_comp(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentration
 	pd = new density_comp(p);
 	
 	if(p->F30>0 && p->H10>0 && p->W90==0)
-	pd = new density_heat(pheat);
+	pd = new density_heat(p,pheat);
 	
 	if(p->F30>0 && p->C10>0 && p->W90==0)
-	pd = new density_conc(p,conc);
+	pd = new density_conc(p,pconc);
 	
 	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
 	pd = new density_rheology(p);
@@ -106,9 +106,9 @@ void pjm_comp::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
 
 	pgc->start4(p,a->press,gcval_press);
 	
-	ucorr(a,p,uvel,alpha);
-	vcorr(a,p,vvel,alpha);
-	wcorr(a,p,wvel,alpha);
+	ucorr(p,a,uvel,alpha);
+	vcorr(p,a,vvel,alpha);
+	wcorr(p,a,wvel,alpha);
     
     pupdate->start(p,a,pgc);
     ptimesave(p,a,pgc);
@@ -127,21 +127,21 @@ void pjm_comp::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
     }
 }
 
-void pjm_comp::ucorr(fdm* a, lexer* p, field& uvel,double alpha)
+void pjm_comp::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 {	
 	ULOOP
 	uvel(i,j,k) -= alpha*p->dt*((a->press(i+1,j,k)-a->press(i,j,k))
 	/(p->DXP[IP]*pd->roface(p,a,1,0,0)));
 }
 
-void pjm_comp::vcorr(fdm* a, lexer* p, field& vvel,double alpha)
+void pjm_comp::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
 {	
 	VLOOP
 	vvel(i,j,k) -= alpha*p->dt*((a->press(i,j+1,k)-a->press(i,j,k))
 	/(p->DYP[JP]*pd->roface(p,a,0,1,0)));
 }
 
-void pjm_comp::wcorr(fdm* a, lexer* p, field& wvel,double alpha)
+void pjm_comp::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
 {	
 	WLOOP
 	wvel(i,j,k) -= alpha*p->dt*((a->press(i,j,k+1)-a->press(i,j,k))

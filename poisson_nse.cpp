@@ -28,7 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"density_comp.h"
 #include"density_conc.h"
 #include"density_heat.h"
-#include"denisty_rheology.h"
+#include"density_rheology.h"
 #include"density_vof.h"
 
 poisson_nse::poisson_nse(lexer * p, heat *&pheat, concentration *&pconc)
@@ -40,10 +40,10 @@ poisson_nse::poisson_nse(lexer * p, heat *&pheat, concentration *&pconc)
 	pd = new density_comp(p);
 	
 	if(p->F30>0 && p->H10>0 && p->W90==0)
-	pd = new density_heat(pheat);
+	pd = new density_heat(p,pheat);
 	
 	if(p->F30>0 && p->C10>0 && p->W90==0)
-	pd = new density_conc(p,conc);
+	pd = new density_conc(p,pconc);
 	
 	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
 	pd = new density_rheology(p);
@@ -56,7 +56,7 @@ poisson_nse::~poisson_nse()
 {
 }
 
-void poisson_nse::estart(lexer* p, fdm *a, field &press)
+void poisson_nse::start(lexer* p, fdm *a, field &press)
 {
 	n=0;
     FLUIDLOOP
@@ -127,9 +127,5 @@ void poisson_nse::estart(lexer* p, fdm *a, field &press)
 
 	++n;
 	}
-}
-
-void poisson_nse::istart(lexer* p, fdm* a, field &apu, field &apv, field &apw, field &pcorr)
-{
 }
 

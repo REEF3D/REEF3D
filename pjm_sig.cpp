@@ -25,11 +25,37 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"poisson.h"
 #include"solver.h"
-#include"momentum.h"
 #include"ioflow.h"
+#include"heat.h"
+#include"concentration.h"
+#include"density_f.h"
+#include"density_comp.h"
+#include"density_conc.h"
+#include"density_heat.h"
+#include"density_rheology.h"
+#include"density_vof.h"
  
-pjm_sig::pjm_sig(lexer* p, fdm *a) : density_f(p)
+pjm_sig::pjm_sig(lexer* p, fdm *a, heat *&pheat, concentration *&pconc)
 {
+    if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90==0)
+	pd = new density_f(p);
+	
+	if(p->F30>0 && p->H10==0 && p->W30==1 && p->W90==0)
+	pd = new density_comp(p);
+	
+	if(p->F30>0 && p->H10>0 && p->W90==0)
+	pd = new density_heat(p,pheat);
+	
+	if(p->F30>0 && p->C10>0 && p->W90==0)
+	pd = new density_conc(p,pconc);
+	
+	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
+	pd = new density_rheology(p);
+    
+    if(p->F80>0 && p->H10==0 && p->W30==0 && p->W90==0)
+	pd = new density_vof(p);
+    
+    
     if(p->B76==0)
     gcval_press=40;  
 
@@ -65,7 +91,7 @@ void pjm_sig::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc
 	vel_setup(p,a,pgc,uvel,vvel,wvel,alpha);	
     rhs(p,a,pgc,uvel,vvel,wvel,alpha);
 	
-    ppois->estart(p,a,a->press);
+    ppois->start(p,a,a->press);
 	
         starttime=pgc->timer();
 
@@ -75,9 +101,9 @@ void pjm_sig::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc
     
 	pgc->start4(p,a->press,gcval_press);
 	
-	ucorr(a,p,uvel,alpha);
-	vcorr(a,p,vvel,alpha);
-	wcorr(a,p,wvel,alpha);
+	ucorr(p,a,uvel,alpha);
+	vcorr(p,a,vvel,alpha);
+	wcorr(p,a,wvel,alpha);
     
     p->poissoniter=p->solveriter;
 
@@ -87,25 +113,25 @@ void pjm_sig::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
 }
 
-void pjm_sig::ucorr(fdm* a, lexer* p, field& uvel,double alpha)
+void pjm_sig::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 {	
 	ULOOP
 	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((a->press(i+1,j,k)-a->press(i,j,k))
-	/(p->DXP[IP]*roface(p,a,1,0,0)) + p->sigx[FIJK]*(0.5*(a->press(i,j,k+1)+a->press(i+1,j,k+1))-0.5*(a->press(i,j,k-1)+a->press(i+1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
+	/(p->DXP[IP]*pd->roface(p,a,1,0,0)) + p->sigx[FIJK]*(0.5*(a->press(i,j,k+1)+a->press(i+1,j,k+1))-0.5*(a->press(i,j,k-1)+a->press(i+1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
 }
 
-void pjm_sig::vcorr(fdm* a, lexer* p, field& vvel,double alpha)
+void pjm_sig::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
 {	 
     VLOOP
     vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))
-    /(p->DYP[JP]*(roface(p,a,0,1,0)) + p->sigy[FIJK]*(0.5*(a->press(i,j,k+1)+a->press(i,j+1,k+1))-0.5*(a->press(i,j,k-1)+a->press(i,j+1,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
+    /(p->DYP[JP]*(pd->roface(p,a,0,1,0)) + p->sigy[FIJK]*(0.5*(a->press(i,j,k+1)+a->press(i,j+1,k+1))-0.5*(a->press(i,j,k-1)+a->press(i,j+1,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
 }
 
-void pjm_sig::wcorr(fdm* a, lexer* p, field& wvel,double alpha)
+void pjm_sig::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
 {	
 	WLOOP
 	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))
-	/(p->DZP[KP]*roface(p,a,0,0,1)))*p->sigz[IJ];
+	/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
 }
  
 void pjm_sig::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)

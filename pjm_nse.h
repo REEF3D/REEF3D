@@ -20,6 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"pressure.h"
+#include"increment.h"
+
 class heat;
 class concentration;
 class density;
@@ -29,7 +31,7 @@ using namespace std;
 #ifndef PJM_NSE_H_
 #define PJM_NSE_H_
 
-class pjm_nse : public pressure
+class pjm_nse : public pressure, public increment
 {
 
 public:
@@ -40,9 +42,9 @@ public:
 	virtual void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,momentum*,ioflow*, field&, field&, field&,double);
 	virtual void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 	virtual void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	virtual void ucorr(fdm*,lexer*p,field&,double);
-	virtual void vcorr(fdm*,lexer*p,field&,double);
-	virtual void wcorr(fdm*,lexer*p,field&,double);
+	virtual void ucorr(lexer*p,fdm*,field&,double);
+	virtual void vcorr(lexer*p,fdm*,field&,double);
+	virtual void wcorr(lexer*p,fdm*,field&,double);
 	virtual void upgrad(lexer*,fdm*);
 	virtual void vpgrad(lexer*,fdm*);
 	virtual void ptimesave(lexer*,fdm*,ghostcell*);

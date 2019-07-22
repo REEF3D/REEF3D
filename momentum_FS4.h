@@ -59,10 +59,6 @@ private:
 	void jrhs(lexer*,fdm*);
 	void krhs(lexer*,fdm*);
 	
-    virtual void ucorr(lexer*,fdm*,double,field&);
-	virtual void vcorr(lexer*,fdm*,double,field&);
-	virtual void wcorr(lexer*,fdm*,double,field&);
-	
 	int gcval_u, gcval_v, gcval_w;
 	int gcval_urk, gcval_vrk, gcval_wrk;
 	double starttime;

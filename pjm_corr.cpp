@@ -33,7 +33,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"density_comp.h"
 #include"density_conc.h"
 #include"density_heat.h"
-#include"denisty_rheology.h"
+#include"density_rheology.h"
 #include"density_vof.h"
  
 pjm_corr::pjm_corr(lexer* p, fdm *a, heat *&pheat, concentration *&pconc) : pcorr(p)
@@ -45,10 +45,10 @@ pjm_corr::pjm_corr(lexer* p, fdm *a, heat *&pheat, concentration *&pconc) : pcor
 	pd = new density_comp(p);
 	
 	if(p->F30>0 && p->H10>0 && p->W90==0)
-	pd = new density_heat(pheat);
+	pd = new density_heat(p,pheat);
 	
 	if(p->F30>0 && p->C10>0 && p->W90==0)
-	pd = new density_conc(p,conc);
+	pd = new density_conc(p,pconc);
 	
 	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
 	pd = new density_rheology(p);
@@ -108,9 +108,9 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
     presscorr(p,a,pcorr,alpha);
     pgc->start4(p,pcorr,40);
 	
-	ucorr(a,p,uvel,alpha);
-	vcorr(a,p,vvel,alpha);
-	wcorr(a,p,wvel,alpha);
+	ucorr(p,a,uvel,alpha);
+	vcorr(p,a,vvel,alpha);
+	wcorr(p,a,wvel,alpha);
 
     p->poissoniter=p->solveriter;
 
@@ -121,21 +121,21 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
     
 }
 
-void pjm_corr::ucorr(fdm* a, lexer* p, field& uvel,double alpha)
+void pjm_corr::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 {	
 	ULOOP
 	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((pcorr(i+1,j,k)-pcorr(i,j,k))
 	/(p->DXP[IP]*pd->roface(p,a,1,0,0)));
 }
 
-void pjm_corr::vcorr(fdm* a, lexer* p, field& vvel,double alpha)
+void pjm_corr::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
 {	
 	VLOOP
 	vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*((pcorr(i,j+1,k)-pcorr(i,j,k))
 	/(p->DYP[JP]*pd->roface(p,a,0,1,0)));
 }
 
-void pjm_corr::wcorr(fdm* a, lexer* p, field& wvel,double alpha)
+void pjm_corr::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
 {	
 	WLOOP
 	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((pcorr(i,j,k+1)-pcorr(i,j,k))

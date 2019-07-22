@@ -123,9 +123,9 @@ void momentum_FS3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
     
     p->wtime=pgc->timer()-starttime;
 
-	ucorr(p,a,1.0,urk1);
-	vcorr(p,a,1.0,vrk1);
-	wcorr(p,a,1.0,wrk1);
+	ppress->ucorr(p,a,urk1,1.0);
+	ppress->vcorr(p,a,vrk1,1.0);
+	ppress->wcorr(p,a,wrk1,1.0);
 	
 	pflow->u_relax(p,a,pgc,urk1);
 	pflow->v_relax(p,a,pgc,vrk1);
@@ -189,9 +189,9 @@ void momentum_FS3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	
     p->wtime+=pgc->timer()-starttime;
 
-	ucorr(p,a,0.25,urk2);
-	vcorr(p,a,0.25,vrk2);
-	wcorr(p,a,0.25,wrk2);
+	ppress->ucorr(p,a,urk2,0.25);
+	ppress->vcorr(p,a,vrk2,0.25);
+	ppress->wcorr(p,a,wrk2,0.25);
 	
 	pflow->u_relax(p,a,pgc,urk2);
 	pflow->v_relax(p,a,pgc,vrk2);
@@ -276,27 +276,6 @@ void momentum_FS3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	pgc->start3(p,a->w,gcval_w);
 
 	pflow->inflow(p,a,pgc,a->u,a->v,a->w);
-}
-
-void momentum_FS3::ucorr(lexer *p, fdm *a, double alpha, field& uvel)
-{
-    ULOOP
-	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((a->press(i+1,j,k)-a->press(i,j,k))
-	/(p->DXP[IP]*roface(p,a,1,0,0)));
-}
-
-void momentum_FS3::vcorr(lexer *p, fdm *a, double alpha, field& vvel)
-{
-    VLOOP
-	vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*((a->press(i,j+1,k)-a->press(i,j,k))
-	/(p->DYP[JP]*roface(p,a,0,1,0)));
-}
-
-void momentum_FS3::wcorr(lexer *p, fdm *a, double alpha, field& wvel)
-{
-    WLOOP
-	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))
-	/(p->DZP[KP]*roface(p,a,0,0,1)));
 }
 
 void momentum_FS3::irhs(lexer *p, fdm *a)

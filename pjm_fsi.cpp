@@ -33,7 +33,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"density_comp.h"
 #include"density_conc.h"
 #include"density_heat.h"
-#include"denisty_rheology.h"
+#include"density_rheology.h"
 #include"density_vof.h"
  
 pjm_fsi::pjm_fsi(lexer* p, fdm *a, heat *&pheat, concentration *&pconc) 
@@ -45,10 +45,10 @@ pjm_fsi::pjm_fsi(lexer* p, fdm *a, heat *&pheat, concentration *&pconc)
 	pd = new density_comp(p);
 	
 	if(p->F30>0 && p->H10>0 && p->W90==0)
-	pd = new density_heat(pheat);
+	pd = new density_heat(p,pheat);
 	
 	if(p->F30>0 && p->C10>0 && p->W90==0)
-	pd = new density_conc(p,conc);
+	pd = new density_conc(p,pconc);
 	
 	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
 	pd = new density_rheology(p);
@@ -103,9 +103,9 @@ void pjm_fsi::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc
 
 	pgc->start4(p,a->press,gcval_press);
 	
-	ucorr(a,p,uvel,alpha);
-	vcorr(a,p,vvel,alpha);
-	wcorr(a,p,wvel,alpha);
+	ucorr(p,a,uvel,alpha);
+	vcorr(p,a,vvel,alpha);
+	wcorr(p,a,wvel,alpha);
 
 LOOP
 {
@@ -122,21 +122,21 @@ if (fabs(p->pos_x()-0.025)<0.001 && fabs(p->pos_z()-1.05)<0.3) cout<<"with p "<<
     
 }
 
-void pjm_fsi::ucorr(fdm* a, lexer* p, field& uvel,double alpha)
+void pjm_fsi::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 {	
 	ULOOP
 	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((a->press(i+1,j,k)-a->press(i,j,k))
 	/(p->DXP[IP]*pd->roface(p,a,1,0,0)));
 }
 
-void pjm_fsi::vcorr(fdm* a, lexer* p, field& vvel,double alpha)
+void pjm_fsi::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
 {	
 	VLOOP
 	vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*((a->press(i,j+1,k)-a->press(i,j,k))
 	/(p->DYP[JP]*pd->roface(p,a,0,1,0)));
 }
 
-void pjm_fsi::wcorr(fdm* a, lexer* p, field& wvel,double alpha)
+void pjm_fsi::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
 {	
 	WLOOP
 	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))

@@ -22,6 +22,8 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 class fdm;
 class fdm2D;
 
+#include"looping.h"
+
 #ifndef INCREMENT_H_
 #define INCREMENT_H_
 

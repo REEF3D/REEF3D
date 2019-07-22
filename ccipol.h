@@ -19,7 +19,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
+#include"increment.h"
+
+class lexer;
 class fdm;
+class field;
+
 
 #ifndef CCIPOL_H_
 #define CCIPOL_H_

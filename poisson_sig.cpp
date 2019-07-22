@@ -22,16 +22,41 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"poisson_sig.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"heat.h"
+#include"concentration.h"
+#include"density_f.h"
+#include"density_comp.h"
+#include"density_conc.h"
+#include"density_heat.h"
+#include"density_rheology.h"
+#include"density_vof.h"
 
-poisson_sig::poisson_sig(lexer * p) : density_f(p)
+poisson_sig::poisson_sig(lexer * p, heat *&pheat, concentration *&pconc)  
 {
+    if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90==0)
+	pd = new density_f(p);
+	
+	if(p->F30>0 && p->H10==0 && p->W30==1 && p->W90==0)
+	pd = new density_comp(p);
+	
+	if(p->F30>0 && p->H10>0 && p->W90==0)
+	pd = new density_heat(p,pheat);
+	
+	if(p->F30>0 && p->C10>0 && p->W90==0)
+	pd = new density_conc(p,pconc);
+	
+	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
+	pd = new density_rheology(p);
+    
+    if(p->F80>0 && p->H10==0 && p->W30==0 && p->W90==0)
+	pd = new density_vof(p);
 }
 
 poisson_sig::~poisson_sig()
 {
 }
 
-void poisson_sig::estart(lexer* p, fdm *a, field &f)
+void poisson_sig::start(lexer* p, fdm *a, field &f)
 {	
     
     double sigxyz2;
@@ -43,26 +68,26 @@ void poisson_sig::estart(lexer* p, fdm *a, field &f)
         {
             sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
             
-            a->M.p[n]  =   (CPOR1*PORVAL1)/(roface(p,a,1,0,0)*p->DXP[IP]*p->DXN[IP])*p->x_dir
-                        + (CPOR1m*PORVAL1m)/(roface(p,a,-1,0,0)*p->DXP[IM1]*p->DXN[IP])*p->x_dir
+            a->M.p[n]  =   (CPOR1*PORVAL1)/(pd->roface(p,a,1,0,0)*p->DXP[IP]*p->DXN[IP])*p->x_dir
+                        + (CPOR1m*PORVAL1m)/(pd->roface(p,a,-1,0,0)*p->DXP[IM1]*p->DXN[IP])*p->x_dir
                         
-                        + (CPOR2*PORVAL2)/(roface(p,a,0,1,0)*p->DYP[JP]*p->DYN[JP])*p->y_dir
-                        + (CPOR2m*PORVAL2m)/(roface(p,a,0,-1,0)*p->DYP[JM1]*p->DYN[JP])*p->y_dir
+                        + (CPOR2*PORVAL2)/(pd->roface(p,a,0,1,0)*p->DYP[JP]*p->DYN[JP])*p->y_dir
+                        + (CPOR2m*PORVAL2m)/(pd->roface(p,a,0,-1,0)*p->DYP[JM1]*p->DYN[JP])*p->y_dir
                         
-                        + (sigxyz2*CPOR3*PORVAL3)/(roface(p,a,0,0,1)*p->DZP[KP]*p->DZN[KP])*p->z_dir
-                        + (sigxyz2*CPOR3m*PORVAL3m)/(roface(p,a,0,0,-1)*p->DZP[KM1]*p->DZN[KP])*p->z_dir;
+                        + (sigxyz2*CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*p->DZP[KP]*p->DZN[KP])*p->z_dir
+                        + (sigxyz2*CPOR3m*PORVAL3m)/(pd->roface(p,a,0,0,-1)*p->DZP[KM1]*p->DZN[KP])*p->z_dir;
 
 
-            a->M.n[n] = -(CPOR1*PORVAL1)/(roface(p,a,1,0,0)*p->DXP[IP]*p->DXN[IP])*p->x_dir;
-            a->M.s[n] = -(CPOR1m*PORVAL1m)/(roface(p,a,-1,0,0)*p->DXP[IM1]*p->DXN[IP])*p->x_dir;
+            a->M.n[n] = -(CPOR1*PORVAL1)/(pd->roface(p,a,1,0,0)*p->DXP[IP]*p->DXN[IP])*p->x_dir;
+            a->M.s[n] = -(CPOR1m*PORVAL1m)/(pd->roface(p,a,-1,0,0)*p->DXP[IM1]*p->DXN[IP])*p->x_dir;
 
-            a->M.w[n] = -(CPOR2*PORVAL2)/(roface(p,a,0,1,0)*p->DYP[JP]*p->DYN[JP])*p->y_dir;
-            a->M.e[n] = -(CPOR2m*PORVAL2m)/(roface(p,a,0,-1,0)*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+            a->M.w[n] = -(CPOR2*PORVAL2)/(pd->roface(p,a,0,1,0)*p->DYP[JP]*p->DYN[JP])*p->y_dir;
+            a->M.e[n] = -(CPOR2m*PORVAL2m)/(pd->roface(p,a,0,-1,0)*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
 
-            a->M.t[n] = -(sigxyz2*CPOR3*PORVAL3)/(roface(p,a,0,0,1)*p->DZP[KP]*p->DZN[KP])*p->z_dir     
+            a->M.t[n] = -(sigxyz2*CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*p->DZP[KP]*p->DZN[KP])*p->z_dir     
                         + CPOR4*PORVAL4*p->sigxx[FIJK]/(a->ro(i,j,k)*(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
                         
-            a->M.b[n] = -(sigxyz2*CPOR3m*PORVAL3m)/(roface(p,a,0,0,-1)*p->DZP[KM1]*p->DZN[KP])*p->z_dir 
+            a->M.b[n] = -(sigxyz2*CPOR3m*PORVAL3m)/(pd->roface(p,a,0,0,-1)*p->DZP[KM1]*p->DZN[KP])*p->z_dir 
                         - CPOR4*PORVAL4*p->sigxx[FIJK]/(a->ro(i,j,k)*(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
             
             
@@ -122,8 +147,3 @@ void poisson_sig::estart(lexer* p, fdm *a, field &f)
 	++n;
 	}
 }
-
-void poisson_sig::istart(lexer* p, fdm* a, field &apu, field &apv, field &apw, field &pcorr)
-{
-}
-

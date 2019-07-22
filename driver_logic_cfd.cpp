@@ -474,41 +474,41 @@ void driver::logic()
 	ppress = new pressure_void(p);
 
 	if(p->D30==1 && p->W30==0 && p->F10==2 && p->G2==0)
-	ppress = new pjm(p,a);
+	ppress = new pjm(p,a,pheat,pconc);
     
     if(p->D30==1 && p->W30==0 && p->F10==2 && p->G2==1)
-	ppress = new pjm_sig(p,a);
+	ppress = new pjm_sig(p,a,pheat,pconc);
     
     if(p->D30==1 && p->W30==1 && p->F10==2)
-	ppress = new pjm_comp(p,a,pgc);
+	ppress = new pjm_comp(p,a,pgc,pheat,pconc);
     
     if(p->D30==1 && p->F10==1)
-	ppress = new pjm_nse(p,a);
+	ppress = new pjm_nse(p,a,pheat,pconc);
     
     if(p->D30==2)
-	ppress = new pjm_fsm(p,a);
+	ppress = new pjm_fsm(p,a,pheat,pconc);
     
     if(p->D30==3)
-	ppress = new pjm_corr(p,a);
+	ppress = new pjm_corr(p,a,pheat,pconc);
 	
 	if(p->D30==4)
-	ppress = new pjm_fsi(p,a);
+	ppress = new pjm_fsi(p,a,pheat,pconc);
 
 //poisson scheme for pressure
 	if(p->D30<5 && p->F10==2)
     {
     if(p->G2==0)
-	ppois = new poisson_f(p);
+	ppois = new poisson_f(p,pheat,pconc);
     
     if(p->G2==1)
-	ppois = new poisson_sig(p);
+	ppois = new poisson_sig(p,pheat,pconc);
     }
     
     if(p->D30==5 && p->F10==2)
-	ppois = new poisson_f(p);
+	ppois = new poisson_f(p,pheat,pconc);
     
     if(p->D30<9 && p->F10==1)
-	ppois = new poisson_nse(p);
+	ppois = new poisson_nse(p,pheat,pconc);
 	
 //Solver
 	if(p->N8==0)
