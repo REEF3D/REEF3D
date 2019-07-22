@@ -22,9 +22,34 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"poisson_nse.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"heat.h"
+#include"concentration.h"
+#include"density_f.h"
+#include"density_comp.h"
+#include"density_conc.h"
+#include"density_heat.h"
+#include"denisty_rheology.h"
+#include"density_vof.h"
 
-poisson_nse::poisson_nse(lexer * p) : density(p)
+poisson_nse::poisson_nse(lexer * p, heat *&pheat, concentration *&pconc)
 {
+    if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90==0)
+	pd = new density_f(p);
+	
+	if(p->F30>0 && p->H10==0 && p->W30==1 && p->W90==0)
+	pd = new density_comp(p);
+	
+	if(p->F30>0 && p->H10>0 && p->W90==0)
+	pd = new density_heat(pheat);
+	
+	if(p->F30>0 && p->C10>0 && p->W90==0)
+	pd = new density_conc(p,conc);
+	
+	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
+	pd = new density_rheology(p);
+    
+    if(p->F80>0 && p->H10==0 && p->W30==0 && p->W90==0)
+	pd = new density_vof(p);
 }
 
 poisson_nse::~poisson_nse()

@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 
-poisson_sig::poisson_sig(lexer * p) : density(p)
+poisson_sig::poisson_sig(lexer * p) : density_f(p)
 {
 }
 

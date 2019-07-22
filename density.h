@@ -19,8 +19,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"increment.h"
-
 class fdm;
 class lexer;
 
@@ -29,18 +27,11 @@ class lexer;
 
 using namespace std;
 
-class density : virtual public increment
+class density
 {
 
 public:
-    density(lexer*);
-	virtual ~density();
-
-	double roface(lexer*,fdm*,int,int,int);
-	
-	double H,roval,phival;
-	int ii,jj,kk;
-	const double epsi,eps;
+	virtual double roface(lexer*,fdm*,int,int,int)=0;
 
 };
 

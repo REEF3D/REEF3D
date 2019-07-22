@@ -28,7 +28,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fluid_update_fsf_heat.h"
 #include"fluid_update_fsf_comp.h"
 #include"fluid_update_fsf_concentration.h"
-#include"fluid_update_fsf_entrain.h"
 #include"fluid_update_rheology.h"
 #include"fluid_update_void.h"
 #include"picard_f.h"
@@ -75,9 +74,6 @@ nsewave_f::nsewave_f(lexer *p, fdm *a, ghostcell *pgc, heat *&pheat, concentrati
 	
 	if(p->F30>0 && p->C10>0 && p->W90==0)
 	pupdate = new fluid_update_fsf_concentration(p,a,pgc,pconc);
-	
-	if(p->F30>0 && p->F101>0 && p->W90==0)
-	pupdate = new fluid_update_fsf_entrain(p,a,pgc,pconc);
 	
 	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
 	pupdate = new fluid_update_rheology(p,a,pgc);

@@ -20,19 +20,23 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"pressure.h"
-#include"density.h"
+#include"density_f.h"
+
+class heat;
+class concentration;
+class density;
 
 using namespace std;
 
 #ifndef PJM_H_
 #define PJM_H_
 
-class pjm : public pressure, public density
+class pjm : public pressure, public density_f
 {
 
 public:
 
-	pjm(lexer* p, fdm *a);
+	pjm(lexer* p, fdm *a, heat*&, concentration*&);
 	virtual ~pjm();
 
 	virtual void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,momentum*,ioflow*, field&, field&, field&,double);
@@ -56,8 +60,9 @@ private:
 	double starttime,endtime;
 	int count, gcval_press;
 	int gcval_u, gcval_v, gcval_w;
+    
+    density *pd;
 	
-	void debug(lexer*,fdm*);
 };
 
 

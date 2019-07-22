@@ -19,19 +19,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"density.h"
+#include"density_f.h"
 #include"lexer.h"
 #include"fdm.h"
 
-density::density(lexer* p) : epsi(p->F45*p->dx), eps(2.1*p->dx)
+density_f::density_f(lexer* p) : epsi(p->F45*p->dx), eps(2.1*p->dx)
 {
 }
 
-density::~density()
+density_f::~density_f()
 {
 }
 
-double density::roface(lexer *p, fdm *a, int aa, int bb, int cc)
+double density_f::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
     double psi,r,s;
 	

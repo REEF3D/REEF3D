@@ -29,9 +29,6 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 #include"pjm_nse.h"
 #include"poisson_f.h"
 #include"poisson_sig.h"
-#include"poisson_4th.h"
-#include"poisson_NUG.h"
 #include"poisson_nse.h"
-#include"presscorr.h"
 
 

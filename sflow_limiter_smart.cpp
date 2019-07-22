@@ -22,6 +22,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_fluxlim_smart.h"
 #include"lexer.h"
 #include"slice.h"
+#include"looping.h"
 
 sflow_fluxlim_smart::sflow_fluxlim_smart (lexer *p)
 {

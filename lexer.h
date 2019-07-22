@@ -24,13 +24,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<cstdlib>
 #include<iomanip>
 #include<math.h>
-#include"resize.h"
+#include"resize.h"< 
 #include"increment.h"
-#include"looping.h"
 #include"position.h"
 #include"interpolation.h"
 #include"grid_sigma.h"
 #include<fstream>
+#include"looping.h"
 
 #ifndef LEXER_H_
 #define LEXER_H_

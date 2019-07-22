@@ -27,9 +27,36 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"solver.h"
 #include"momentum.h"
 #include"ioflow.h"
+#include"heat.h"
+#include"concentration.h"
+#include"density_f.h"
+#include"density_comp.h"
+#include"density_conc.h"
+#include"density_heat.h"
+#include"denisty_rheology.h"
+#include"density_vof.h"
  
-pjm_corr::pjm_corr(lexer* p, fdm *a) : density(p), pcorr(p)
+pjm_corr::pjm_corr(lexer* p, fdm *a, heat *&pheat, concentration *&pconc) : pcorr(p)
 {
+    if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90==0)
+	pd = new density_f(p);
+	
+	if(p->F30>0 && p->H10==0 && p->W30==1 && p->W90==0)
+	pd = new density_comp(p);
+	
+	if(p->F30>0 && p->H10>0 && p->W90==0)
+	pd = new density_heat(pheat);
+	
+	if(p->F30>0 && p->C10>0 && p->W90==0)
+	pd = new density_conc(p,conc);
+	
+	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
+	pd = new density_rheology(p);
+    
+    if(p->F80>0 && p->H10==0 && p->W30==0 && p->W90==0)
+	pd = new density_vof(p);
+    
+    
     if(p->B76==0)
     gcval_press=40;  
 
@@ -69,7 +96,7 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
     pcorr(i,j,k)=0.0;
     pgc->start4(p,pcorr,40);
 	
-    ppois->estart(p,a,pcorr);
+    ppois->start(p,a,pcorr);
 	
         starttime=pgc->timer();
 
@@ -98,21 +125,21 @@ void pjm_corr::ucorr(fdm* a, lexer* p, field& uvel,double alpha)
 {	
 	ULOOP
 	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((pcorr(i+1,j,k)-pcorr(i,j,k))
-	/(p->DXP[IP]*roface(p,a,1,0,0)));
+	/(p->DXP[IP]*pd->roface(p,a,1,0,0)));
 }
 
 void pjm_corr::vcorr(fdm* a, lexer* p, field& vvel,double alpha)
 {	
 	VLOOP
 	vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*((pcorr(i,j+1,k)-pcorr(i,j,k))
-	/(p->DYP[JP]*roface(p,a,0,1,0)));
+	/(p->DYP[JP]*pd->roface(p,a,0,1,0)));
 }
 
 void pjm_corr::wcorr(fdm* a, lexer* p, field& wvel,double alpha)
 {	
 	WLOOP
 	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((pcorr(i,j,k+1)-pcorr(i,j,k))
-	/(p->DZP[KP]*roface(p,a,0,0,1)));
+	/(p->DZP[KP]*pd->roface(p,a,0,0,1)));
 }
 
 void pjm_corr::presscorr(lexer* p, fdm* a, field& pcorr, double alpha)
@@ -173,19 +200,19 @@ void pjm_corr::pressure_norm(lexer*p, fdm* a, ghostcell* pgc)
 void pjm_corr::upgrad(lexer*p,fdm* a)
 {
     ULOOP
-    a->F(i,j,k)-=PORVAL1*(a->press(i+1,j,k)-a->press(i,j,k))/(p->DXP[IP]*roface(p,a,1,0,0));
+    a->F(i,j,k)-=PORVAL1*(a->press(i+1,j,k)-a->press(i,j,k))/(p->DXP[IP]*pd->roface(p,a,1,0,0));
 }
 
 void pjm_corr::vpgrad(lexer*p,fdm* a)
 {
     VLOOP
-    a->G(i,j,k)-=PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))/(p->DYP[JP]*roface(p,a,0,1,0));
+    a->G(i,j,k)-=PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))/(p->DYP[JP]*pd->roface(p,a,0,1,0));
 }
 
 void pjm_corr::wpgrad(lexer*p,fdm* a)
 {
     WLOOP
-    a->H(i,j,k)-=PORVAL3*(a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*roface(p,a,0,0,1));
+    a->H(i,j,k)-=PORVAL3*(a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1));
 }
 
 void pjm_corr::fillapu(lexer*p,fdm* a)

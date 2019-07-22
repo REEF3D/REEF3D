@@ -19,36 +19,31 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fdm.h"
-#include"looping.h"
-#include"poisson.h"
 #include"density.h"
+#include"increment.h"
 
-#ifndef POISSON_NUG_H_
-#define POISSON_NUG_H_
+class fdm;
+class lexer;
+
+#ifndef DENSITY_RHEOLOGY_H_
+#define DENSITY_RHEOLOGY_H_
+
 
 using namespace std;
 
-
-class poisson_NUG : public poisson, public density
+class density_rheology : public density, virtual public increment
 {
 
 public:
+    density_rheology(lexer*);
+	virtual ~density_rheology();
 
-	poisson_NUG (lexer *);
-	virtual ~poisson_NUG();
+	virtual double roface(lexer*,fdm*,int,int,int);
+	
+	double H,roval,phival;
+	int ii,jj,kk;
+	const double epsi,eps;
 
-	virtual void estart(lexer *,fdm*,field&);
-    virtual void istart(lexer *,fdm*,field&,field&,field&,field&);
-
-private:
-
-	double sqd;
-	int count,n,q;
 };
 
-
 #endif
-
-
-

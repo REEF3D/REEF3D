@@ -20,7 +20,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"weno3_nug_func.h"
-#include"looping.h"
 #include<math.h>
 
 // IS ----

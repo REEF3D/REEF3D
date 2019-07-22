@@ -509,9 +509,6 @@ void driver::logic()
     
     if(p->D30<9 && p->F10==1)
 	ppois = new poisson_nse(p);
-
-	if(p->D30>10 && p->D30<20)
-	ppois = new presscorr(p);
 	
 //Solver
 	if(p->N8==0)

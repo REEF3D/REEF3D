@@ -22,7 +22,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include <mpi.h>
 #include"norm_vec.h"
 #include"boundarycheck.h"
-#include"looping.h"
+
 
 class fdm;
 class fdm2D;
@@ -35,7 +35,7 @@ class vec;
 class vec2D;
 class cpt;
 class cpt2D;
-class density;
+class density_f;
 class reini;
 class convection;
 class ioflow;
@@ -448,7 +448,7 @@ private:
 	double **dsend,**drecv;
 	double *trecv;
 
-	density *pdens;
+	density_f *pdens;
 
     double originx,originy,originz;
 

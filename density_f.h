@@ -19,25 +19,35 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"gradient.h"
-#include"density_f.h"
+#include"density.h"
+#include"increment.h"
 
-#ifndef SURFTENS_H_
-#define SURFTENS_H_
+class fdm;
+class lexer;
+
+#ifndef DENSITY_F_H_
+#define DENSITY_F_H_
+
 
 using namespace std;
 
-class surftens : public gradient, public density_f
+class density_f : public density, virtual public increment
 {
-public:
-	surftens(lexer*);
-	virtual ~surftens();
-	void surface_tension(fdm*,lexer*,field&,int);
 
-private:
-    const double epsi;
-	double tension,dirac,curv;
+public:
+    density_f(lexer*);
+	virtual ~density_f();
+
+	virtual double roface(lexer*,fdm*,int,int,int);
+	
+	double H,roval,phival;
+	int ii,jj,kk;
+	const double epsi,eps;
 
 };
+
 #endif
+
+
+
 

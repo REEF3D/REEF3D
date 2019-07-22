@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 #include"field.h"
-#include"density.h"
+#include"density_f.h"
 
 void ghostcell::forcing2(lexer *p, fdm *a, field& f, field &uvel, field &vvel, field &wvel, double alpha)
 {

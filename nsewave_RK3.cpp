@@ -28,7 +28,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fluid_update_fsf_heat.h"
 #include"fluid_update_fsf_comp.h"
 #include"fluid_update_fsf_concentration.h"
-#include"fluid_update_fsf_entrain.h"
 #include"fluid_update_rheology.h"
 #include"fluid_update_void.h"
 #include"picard_f.h"

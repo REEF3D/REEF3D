@@ -19,33 +19,34 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fdm.h"
-#include"looping.h"
-#include"poisson.h"
 #include"density.h"
+#include"increment.h"
 
-#ifndef PRESSCORR_H_
-#define PRESSCORR_H_
+class fdm;
+class lexer;
+class concentration;
+
+#ifndef DENSITY_CONC_H_
+#define DENSITY_CONC_H_
+
 
 using namespace std;
 
-class presscorr : public poisson, public density
+class density_conc : public density, virtual public increment
 {
 
 public:
+    density_conc(lexer*,concentration*&);
+	virtual ~density_conc();
 
-	presscorr (lexer *);
-	virtual ~presscorr();
-
-	virtual void estart(lexer *,fdm*, field&);
-    virtual void istart(lexer *,fdm*,field&,field&,field&,field&);
-
+	virtual double roface(lexer*,fdm*,int,int,int);
+	
 private:
+	double H,roval,phival;
+	int ii,jj,kk;
+	const double epsi,eps;
 
-	double sqd;
-	int count,n;
+    concentration *pconc;
 };
 
 #endif
-
-

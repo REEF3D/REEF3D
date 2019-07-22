@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -19,30 +19,34 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"pjm.h"
-#include"lexer.h"
-#include"fdm.h"
+#include"density.h"
+#include"increment.h"
 
-void pjm::debug(lexer* p,fdm* a)
+class fdm;
+class lexer;
+class heat;
+
+#ifndef DENSITY_HEAT_H_
+#define DENSITY_HEAT_H_
+
+
+using namespace std;
+
+class density_heat : public density, virtual public increment
 {
 
-    double x,y,z;
+public:
+    density_heat(lexer*,heat*&);
+	virtual ~density_heat();
 
-    char name[100];
-    sprintf(name,"density_debug-%d.dat",p->mpirank+1);
-	ofstream result;
-	result.open(name);
-    count=0;
+	virtual double roface(lexer*,fdm*,int,int,int);
 	
-	
-	LOOP
-	if(i==5)
-	{
-	result<<k<<" "<<roface(p,a,0,0,-1)<<endl;
-		
-		
-	}
-
+	double H,roval,phival;
+	int ii,jj,kk;
+	const double epsi,eps;
     
+    heat *pheat;
 
-}
+};
+
+#endif
