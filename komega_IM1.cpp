@@ -27,11 +27,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"solver.h"
 #include"diffusion.h"
 #include"ioflow.h"
-#include"komega.h"
-#include"multiphase.h"
 #include"convection.h"
 
-komega_IM1::komega_IM1(lexer* p, fdm* a, ghostcell *pgc, multiphase *pmp) : ikomega(p,a,pgc,pmp),kn(p),en(p)
+komega_IM1::komega_IM1(lexer* p, fdm* a, ghostcell *pgc) : ikomega(p,a,pgc),kn(p),en(p)
 {
 	gcval_kin=20;
 	gcval_eps=30;

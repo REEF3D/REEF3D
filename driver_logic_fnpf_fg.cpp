@@ -123,8 +123,6 @@ void driver::logic_fnpf_fg()
     
     psed = new sediment_void();
     
-    pmp = new multiphase_v();
-    
     preini = new reini_void(p);
     
     pfsfdisc=new convection_void(p);

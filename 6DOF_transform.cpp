@@ -20,7 +20,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"6DOF_f.h"
-#include"looping.h"
 #include<math.h>
 
 void sixdof_f::transform_vec_ES(double xvec,double yvec,double zvec,double &xout,double &yout,double &zout)

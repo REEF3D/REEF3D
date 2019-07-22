@@ -136,11 +136,10 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     psed = new sflow_sediment_f(p,b);
 	
 	// solver
-	ppoissonsolv = new hypre_struct2D(p,b,pgc);
+	ppoissonsolv = new hypre_struct2D(p,pgc);
     
-    psolv = new sflow_bicgstab(p,b,pgc);
+    psolv = new sflow_bicgstab(p,pgc);
     
-    //psolv = new sflow_jacobi_block(p,b,pgc);
     
     //IOFlow
 	if(p->B60==0 && p->B90==0)

@@ -23,14 +23,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"lexer.h"
 #include"fdm.h"
-#include"multiphase.h"
 #include"vrans_f.h"
 #include"vrans_v.h"
 
-ikomega::ikomega(lexer* p, fdm* a, ghostcell *pgc, multiphase* pmphase) : rans_io(p,a),bc_ikomega(p)
+ikomega::ikomega(lexer* p, fdm* a, ghostcell *pgc) : rans_io(p,a),bc_ikomega(p)
 {
-	pmp = pmphase;
-    
     if(p->B269==0)
 	pvrans = new vrans_v(p,a,pgc);
 	
@@ -279,7 +276,7 @@ void ikomega::epsfsf(lexer *p, fdm* a, ghostcell *pgc)
 
 
 	
-	if(p->T36>0 && p->F300==0)
+	if(p->T36>0)
 	LOOP
 	{
         epsi = p->T38*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
@@ -293,39 +290,6 @@ void ikomega::epsfsf(lexer *p, fdm* a, ghostcell *pgc)
 	if(dirac>0.0 && p->T36==1)
 	eps(i,j,k) = dirac*2.5*pow(p->cmu,-0.25)*pow(fabs(kin(i,j,k)),0.5)*(1.0/p->T37);
 
-	
-	if(dirac>0.0 && p->T36==2)
-	eps(i,j,k) = dirac*2.5*pow(p->cmu,-0.25)*pow(fabs(kin(i,j,k)),0.5)*(1.0/p->T37 + 1.0/(a->walld(i,j,k)>1.0e-20?a->walld(i,j,k):1.0e20));
-	}
-	
-	// Multiphase Flow
-	if(p->T36>0 && p->F300>0)
-	LOOP
-	{
-        
-    epsi = p->T38*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
-	// ls1
-	/*if(fabs(pmp->ls1val(i,j,k))<epsi)
-	dirac = (0.5/epsi)*(1.0 + cos((PI*pmp->ls1val(i,j,k))/epsi));
-		
-	if(fabs(pmp->ls1val(i,j,k))>=epsi)
-	dirac=0.0;
-	
-	if(dirac>0.0 && p->T36==1)
-	eps(i,j,k) = dirac*2.5*pow(p->cmu,-0.25)*pow(fabs(kin(i,j,k)),0.5)*(1.0/p->T37);
-	
-	if(dirac>0.0 && p->T36==2)
-	eps(i,j,k) = dirac*2.5*pow(p->cmu,-0.25)*pow(fabs(kin(i,j,k)),0.5)*(1.0/p->T37 + 1.0/(a->walld(i,j,k)>1.0e-20?a->walld(i,j,k):1.0e20));
-	*/
-	//ls2
-	if(fabs(pmp->ls2val(i,j,k))<epsi)
-	dirac = (0.5/epsi)*(1.0 + cos((PI*pmp->ls2val(i,j,k))/epsi));
-		
-	if(fabs(pmp->ls2val(i,j,k))>=epsi)
-	dirac=0.0;
-	
-	if(dirac>0.0 && p->T36==1)
-	eps(i,j,k) = dirac*2.5*pow(p->cmu,-0.25)*pow(fabs(kin(i,j,k)),0.5)*(1.0/p->T37);
 	
 	if(dirac>0.0 && p->T36==2)
 	eps(i,j,k) = dirac*2.5*pow(p->cmu,-0.25)*pow(fabs(kin(i,j,k)),0.5)*(1.0/p->T37 + 1.0/(a->walld(i,j,k)>1.0e-20?a->walld(i,j,k):1.0e20));

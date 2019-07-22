@@ -40,7 +40,7 @@ fdm_fnpf::fdm_fnpf(lexer *p) : u(p),v(p),w(p),press(p),Fi4(p),Fifsf(p),Fibed(p),
     
     p->Darray(Fi,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Uin,p->imax*p->jmax*(p->kmax+2));
-    
+
     C4.allocate(p);
 }
 

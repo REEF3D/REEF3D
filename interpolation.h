@@ -24,6 +24,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 class fdm;
 class lexer;
 class field;
+class slice;
 
 #ifndef INTERPOLATION_H_
 #define INTERPOLATION_H_
@@ -70,10 +71,21 @@ public:
     double lint_a(field&,int&,int&,int&,double,double,double);
     
     double tricubic4a(field&,int&,int&,int&,double,double,double);
+    
+    
+    // slice
+    double ccslipol1(slice&,double,double);
+    double ccslipol2(slice&,double,double);
+    double ccslipol4(slice&,double,double);
+    
+    double lintsl1(slice&,int&,int&,double,double);
+    double lintsl2(slice&,int&,int&,double,double);
+    double lintsl4(slice&,int&,int&,double,double);
 
 private:
     double v1,v2,v3,v4,v5,v6,v7,v8;
     double x1,x2,x3,x4,y1,y2;
+    int c1,c2,c3,c4;
     double wa,wb,wc,wx,wy,wz;
     double value;
     double epphi;

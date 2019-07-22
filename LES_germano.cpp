@@ -24,7 +24,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 #include"strain.h"
-#include"kepsilon.h"
 
 LES_germano::LES_germano(lexer* p, fdm* a) : LES(p,a)
 {

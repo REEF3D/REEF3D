@@ -20,9 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"fdm.h"
-#include"looping.h"
 #include"poisson.h"
-#include"density.h"
+#include"density_f.h"
 
 #ifndef POISSON_SIG_H_
 #define POISSON_SIG_H_
@@ -30,7 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 using namespace std;
 
 
-class poisson_sig : public poisson, public density
+class poisson_sig : public poisson, public density_f
 {
 
 public:

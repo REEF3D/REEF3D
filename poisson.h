@@ -32,8 +32,7 @@ class poisson
 {
 public:
 
-virtual void estart(lexer *,fdm*, field&)=0;
-virtual void istart(lexer *,fdm*,field&,field&,field&,field&)=0;
+virtual void start(lexer *,fdm*, field&)=0;
 
 };
 

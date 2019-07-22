@@ -21,7 +21,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"iowave.h"
 #include"lexer.h"
-#include"ghostcell.h"
+#include"looping.h"
 
 void iowave::wavegen_precalc_ini(lexer *p, ghostcell *pgc)
 {

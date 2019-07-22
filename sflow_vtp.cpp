@@ -26,6 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_print_wsf.h"
 #include"sflow_print_wsfline.h"
 #include"sflow_print_wsfline_y.h"
+#include"sflow_print_probe_da.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -48,6 +49,8 @@ sflow_vtp::sflow_vtp(lexer *p, fdm2D *b, ghostcell *pgc)
     pwsfline=new sflow_print_wsfline(p,b,pgc);
     
     pwsfline_y=new sflow_print_wsfline_y(p,b,pgc);
+    
+    pprobe=new sflow_print_probe_da(p,b,pgc);
 }
 
 sflow_vtp::~sflow_vtp()
@@ -79,6 +82,9 @@ void sflow_vtp::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow)
     
     if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
     pwsfline_y->start(p,b,pgc,pflow,b->eta);
+    
+    if(p->P63>0)
+	pprobe->start(p,b,pgc);
 }
 
 void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc)

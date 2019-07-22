@@ -22,7 +22,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include <mpi.h>
 #include"norm_vec.h"
 #include"boundarycheck.h"
-#include"looping.h"
+
 
 class fdm;
 class fdm2D;
@@ -35,7 +35,7 @@ class vec;
 class vec2D;
 class cpt;
 class cpt2D;
-class density;
+class density_f;
 class reini;
 class convection;
 class ioflow;
@@ -156,27 +156,26 @@ public:
     void cval2Dupdate2(lexer*,sliceint&);
     void cval2Dupdate4(lexer*,sliceint&);
 
-    void column2D_pt1_update(lexer*,fdm2D*);
-    void column2D_pt2_update(lexer*,fdm2D*);
-    void column2D_pt4_update(lexer*,fdm2D*);
+    void column2D_pt1_update(lexer*,cpt2D&);
+    void column2D_pt2_update(lexer*,cpt2D&);
+    void column2D_pt4_update(lexer*,cpt2D&);
 
-    void column2D_pt1(lexer*,fdm2D*,sliceint&);
-    void column2D_pt2(lexer*,fdm2D*,sliceint&);
-    void column2D_pt4(lexer*,fdm2D*,sliceint&);
+    void column2D_pt1(lexer*,sliceint&,cpt2D&);
+    void column2D_pt2(lexer*,sliceint&,cpt2D&);
+    void column2D_pt4(lexer*,sliceint&,cpt2D&);
 
-    int column2D_pt1_count(lexer*,fdm2D*);
-    int column2D_pt2_count(lexer*,fdm2D*);
-    int column2D_pt4_count(lexer*,fdm2D*);
+    int column2D_pt1_count(lexer*);
+    int column2D_pt2_count(lexer*);
+    int column2D_pt4_count(lexer*);
 
-    void cval_gcslpara1(lexer*,fdm2D*,sliceint&);
-    void cval_gcslpara2(lexer*,fdm2D*,sliceint&);
-    void cval_gcslpara4(lexer*,fdm2D*,sliceint&);
+    void cval_gcslpara1(lexer*,sliceint&);
+    void cval_gcslpara2(lexer*,sliceint&);
+    void cval_gcslpara4(lexer*,sliceint&);
 
-    void cval2D_gcb1(lexer*, fdm2D*, sliceint&);
-    void cval2D_gcb2(lexer*, fdm2D*, sliceint&);
-    void cval2D_gcb4(lexer*, fdm2D*, sliceint&);
+    void cval2D_gcb1(lexer*, sliceint&);
+    void cval2D_gcb2(lexer*, sliceint&);
+    void cval2D_gcb4(lexer*, sliceint&);
     
-    void column2D_pt_resize(lexer*,fdm2D*);
 
     void sizeS_update(lexer*);
 
@@ -286,7 +285,7 @@ public:
 	void gcsldistro4(lexer*, slice&,int, int, int, double, int, int, int);
 	void gcsldistro4a(lexer*, slice&,int, int, int, double, int, int, int);
     
-    void gcsldistro4V(lexer*, vec2D&,int, int, int, double, int, int, int,int);
+    void gcsldistro4V(lexer*, vec2D&, cpt2D &, int, int, int, double, int, int, int,int);
 
     void gcsldistro4int(lexer*, sliceint&,int, int, int, double, int, int, int);
 
@@ -323,9 +322,9 @@ public:
     void gcsl_outflow(lexer*,slice&,int,int,int);
     void gcsl_outflow_fsf(lexer*,slice&,int,int,int);
     
-    void gcsl_neumannV(vec2D&,int,int,int,int);
-    void gcsl_neumannV_x(vec2D&,int,int,int,int);
-	void gcsl_noslipV(vec2D&,int,int,int,int);
+    void gcsl_neumannV(vec2D&,cpt2D&,int,int,int,int);
+    void gcsl_neumannV_x(vec2D&,cpt2D&,int,int,int,int);
+	void gcsl_noslipV(vec2D&,cpt2D&,int,int,int,int);
 
 
     // parallel
@@ -449,7 +448,7 @@ private:
 	double **dsend,**drecv;
 	double *trecv;
 
-	density *pdens;
+	density_f *pdens;
 
     double originx,originy,originz;
 

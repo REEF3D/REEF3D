@@ -172,13 +172,11 @@ void lexer::ini_default()
     B115=0;         // int activate vertical velocity component for flap wavemaker theory
     B116=1;         // int x or beta input for flap wavemaker theories
     B117=0.0;		  // double starting time shift for timeseries input
-	B118=6.0;        // double factor in relaxation function 1
 	B119=3.5;        // double factor in relaxation function 2
     B120=-90.0;       // doubel delta t for wave generation
 	B121=1;        // int air velocity on/off in wave relaxation zone
     B122=1.0;        // int air velocity on/off for active wave generation
     B123=0.0;       // double flap AWA hinge location
-	B126=-1.0e20;  // doubel no paddle movement threshold for solitary waves
     B130=0;         // int directional spreading for irregular waves
     B131=0.0;       // double main direction for multidirectional irregular waves
     B132_s=-90.0;  // double start directional spreading
@@ -265,10 +263,8 @@ void lexer::ini_default()
 	D21=0;			// int print out implicit diffusion time and iterations
 	D22=1;			// int turn on molecular diffusion in diffusion discretization for momentum equations
 	D23=1;			// int turn on molecular diffusion in diffusion discretization for turbulence equations
-    D24=1;          // int use RK timestep factor for implicit diffusion
 	D29=1.0e-5;     // double stopping criteria implicit diffusion
 	D30=1;			// int pressure scheme
-	D31=1;			// int additional correction steps for the PISO solver
 	D32=2;			// int density calculation poisson equation
     D38=0;          // int add hydrostatic pressure gradients to NSE 
 	
@@ -332,32 +328,6 @@ void lexer::ini_default()
 	F101=0;             // int air entrainment model
 	F150=0;         // int benchmark
 	F151=0;         // int benchmark inverse sign of level set
-	F300=0;			 // int multiphase flow level set
-	F305=5;			 // int multiphase flow lsm convection
-	F310=3;			 // int multiphase flow reini
-	F321=1.6;		 // double epsi12
-	F322=1.6;		 // double epsi13
-	F323=1.6;		 // double epsi23
-	F350=0;			 // int multiphase flow fix level set inflow/outflow
-	F360=-1.0e20;  // double ini x-dir ls1
-	F361=-1.0e20;  // double ini y-dir ls1
-	F362=-1.0e20;  // double ini z-dir ls1
-	F369=0;             // int number of phi 1 ini tiltboxes ls1
-	F370=0;             // int number of phi 1 ini boxes ls1
-	F371=0;             // int number of phi 2 ini boxes ls1
-    F374=0;             // int number of pos ls1 ycyl
-    F375=0;             // int number of neg ls1 ycyl
-    F378=0;             // int number of pos ls1 sphere
-    F379=0;             // int number of neg ls1 sphere
-	F380=-1.0e20;  // double ini x-dir ls2
-	F381=-1.0e20;  // double ini y-dir ls2
-	F382=-1.0e20;  // double ini z-dir ls2
-	F390=0;             // int number of phi 1 ini boxes ls2
-	F391=0;             // int number of phi 2 ini boxes ls2
-    F394=0;             // int number of pos ls2 ycyl
-    F395=0;             // int number of neg ls2 ycyl
-    F398=0;             // int number of pos ls2 sphere
-    F399=0;             // int number of neg ls2 sphere
 
     // Grid
     G2=0;          // int sigma grid
@@ -495,6 +465,7 @@ void lexer::ini_default()
 	P59=0;			  // int print runup
 	P61=0;			  // int print point probes
 	P62=0;			  // int print line probes
+    P63=0;			  // int print depth averaged point probes
 	P66=0;			  // int print discharge to terminal
 	P67=0;			  // int discharge gages in x-direction
     P71=0;           // int print viscosity to vtu
@@ -703,7 +674,7 @@ void lexer::ini_default()
 	X320=0;     // int number of nets
 	
 	// Developer 
-	Y40=0;
+	Y40=3;
     Y50=5;
 	Y60=0;
     Y71=0;  // int turn on/off solid gcparax

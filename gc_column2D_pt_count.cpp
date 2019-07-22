@@ -28,7 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"cart4.h"
 #include"sliceint.h"
 
-int ghostcell::column2D_pt1_count(lexer* p, fdm2D *b)
+int ghostcell::column2D_pt1_count(lexer* p)
 {
     count=0;
 
@@ -100,7 +100,7 @@ int ghostcell::column2D_pt1_count(lexer* p, fdm2D *b)
     return count;
 }
 
-int ghostcell::column2D_pt2_count(lexer* p, fdm2D *b)
+int ghostcell::column2D_pt2_count(lexer* p)
 {
     count=0;
 
@@ -173,7 +173,7 @@ int ghostcell::column2D_pt2_count(lexer* p, fdm2D *b)
 }
 
 
-int ghostcell::column2D_pt4_count(lexer* p, fdm2D *b)
+int ghostcell::column2D_pt4_count(lexer* p)
 {
     count=0;
 

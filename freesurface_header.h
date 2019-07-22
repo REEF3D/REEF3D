@@ -24,8 +24,6 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 #include"levelset_RK2.h"
 #include"levelset_RK3.h"
 #include"levelset_RK4.h"
-#include"levelset_IM1.h"
-#include"levelset_IM2.h"
 #include"levelset_void.h"
 
 #include"reini_RK3.h"
@@ -47,11 +45,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 
 #include"VOF_AB.h"
 #include"VOF_RK3.h"
-#include"VOF_IM1.h"
 #include"VOF_PLIC.h"
-
-#include"multiphase_f.h"
-#include"multiphase_v.h"
 
 #include"onephase_v.h"
 #include"onephase_f.h"

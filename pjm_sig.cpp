@@ -28,7 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"momentum.h"
 #include"ioflow.h"
  
-pjm_sig::pjm_sig(lexer* p, fdm *a) : density(p)
+pjm_sig::pjm_sig(lexer* p, fdm *a) : density_f(p)
 {
     if(p->B76==0)
     gcval_press=40;  

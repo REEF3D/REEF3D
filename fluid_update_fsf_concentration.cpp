@@ -89,7 +89,6 @@ void fluid_update_fsf_concentration::start(lexer *p, fdm* a, ghostcell* pgc)
 	cout<<"Volume 2: "<<p->volume2<<endl;
     }
     ++iocheck;
-
 }
 
 void fluid_update_fsf_concentration::start3(lexer *p, fdm* a, ghostcell* pgc, field &ls1, field &ls2)

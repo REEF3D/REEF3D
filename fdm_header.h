@@ -28,9 +28,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 #include"ioflow_gravity.h"
 #include"etimestep.h"
 #include"ietimestep.h"
-#include"itimestep.h"
 #include"fixtimestep.h"
-#include"lsmtimestep.h"
 #include"pftimestep.h"
 #include"initialize.h"
 

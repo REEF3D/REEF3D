@@ -58,7 +58,7 @@ void iowave::fnpf_precalc_relax_ini(lexer *p, ghostcell *pgc)
 
 		}
         
-        if(p->B99==2||p->B99==4)
+        if(p->B99==1||p->B99==2)
 		{
             if(db<dist3)
             ++dbcount;
@@ -120,7 +120,7 @@ void iowave::fnpf_precalc_dirichlet_ini(lexer *p, ghostcell *pgc)
     {
         db = distbeach(p); 
         
-        if(p->B99==2||p->B99==4)
+        if(p->B99==1||p->B99==2)
 		{
             if(db<dist3)
             ++dbcount;

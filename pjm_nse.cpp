@@ -27,9 +27,36 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"solver.h"
 #include"momentum.h"
 #include"ioflow.h"
+#include"heat.h"
+#include"concentration.h"
+#include"density_f.h"
+#include"density_comp.h"
+#include"density_conc.h"
+#include"density_heat.h"
+#include"denisty_rheology.h"
+#include"density_vof.h"
  
-pjm_nse::pjm_nse(lexer* p, fdm *a) : density(p)
+pjm_nse::pjm_nse(lexer* p, fdm *a, heat *&pheat, concentration *&pconc) 
 {
+    if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90==0)
+	pd = new density_f(p);
+	
+	if(p->F30>0 && p->H10==0 && p->W30==1 && p->W90==0)
+	pd = new density_comp(p);
+	
+	if(p->F30>0 && p->H10>0 && p->W90==0)
+	pd = new density_heat(pheat);
+	
+	if(p->F30>0 && p->C10>0 && p->W90==0)
+	pd = new density_conc(p,conc);
+	
+	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
+	pd = new density_rheology(p);
+    
+    if(p->F80>0 && p->H10==0 && p->W30==0 && p->W90==0)
+	pd = new density_vof(p);
+    
+    
     if(p->B76==0)
     gcval_press=40;  
 
@@ -68,7 +95,7 @@ void pjm_nse::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc
     
     pgc->start4(p,a->press,gcval_press);
     
-    ppois->estart(p,a,a->press);
+    ppois->start(p,a,a->press);
 	
         starttime=pgc->timer();
 

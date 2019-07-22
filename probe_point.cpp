@@ -47,10 +47,10 @@ probe_point::probe_point(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P61)
 		for(n=0;n<probenum;++n)
 		{
 		if(p->P14==0)
-		sprintf(name,"REEF3D-Point-Probe-%d.dat",n+1);
+		sprintf(name,"REEF3D-Probe-Point-%d.dat",n+1);
 		
 		if(p->P14==1)
-		sprintf(name,"./REEF3D_ProbePoint/REEF3D-Point-Probe-%d.dat",n+1);
+		sprintf(name,"./REEF3D_ProbePoint/REEF3D-Probe-Point-%d.dat",n+1);
 		
 		pout[n].open(name);
 
@@ -109,8 +109,7 @@ void probe_point::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 	
 	if(p->mpirank==0)
 	pout[n]<<setprecision(9)<<p->simtime<<" \t "<<uval<<" \t "<<vval<<" \t "<<wval<<" \t "<<pval<<" \t "<<kval<<" \t "<<eval<<" \t "<<edval<<endl;
-	}
-			
+	}			
 }
 
 void probe_point::write(lexer *p, fdm *a, ghostcell *pgc)
@@ -123,6 +122,8 @@ void probe_point::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 
     for(n=0;n<probenum;++n)
     {
+    check=0;
+    
     iloc[n]=p->posc_i(p->P61_x[n]);
     jloc[n]=p->posc_j(p->P61_y[n]);
 	kloc[n]=p->posc_k(p->P61_z[n]);
@@ -131,8 +132,6 @@ void probe_point::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 
     if(check==1)
     flag[n]=1;
-	
-	//cout<<p->mpirank<<" x: "<<p->P61_x[n]<<" y: "<<p->P61_y[n]<<" iloc: "<<iloc[n]<<" jloc: "<<jloc[n]<<" n: "<<n<<" flag: "<<flag[n]<<endl;
     }
 }
 

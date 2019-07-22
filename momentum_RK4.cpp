@@ -124,10 +124,6 @@ void momentum_RK4::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	wrk(i,j,k)  = a->w(i,j,k) + 0.5*wrk1(i,j,k);
 	}
     p->wtime=pgc->timer()-starttime;
-	
-	pgc->start1(p,urk,gcval_urk);
-	pgc->start2(p,vrk,gcval_vrk);
-	pgc->start3(p,wrk,gcval_wrk);
 
     pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pmom,pflow,urk,vrk,wrk,0.5);
@@ -198,10 +194,6 @@ void momentum_RK4::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	wrk(i,j,k)  = a->w(i,j,k) + 0.5*wrk2(i,j,k);
 	}
     p->wtime=pgc->timer()-starttime;
-	
-	pgc->start1(p,urk,gcval_urk);
-	pgc->start2(p,vrk,gcval_vrk);
-	pgc->start3(p,wrk,gcval_wrk);
 
 	pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pmom,pflow,urk,vrk,wrk,0.5);
@@ -272,10 +264,6 @@ void momentum_RK4::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	wrk(i,j,k)  = a->w(i,j,k) + wrk3(i,j,k);
 	}
     p->wtime=pgc->timer()-starttime;
-	
-	pgc->start1(p,urk,gcval_urk);
-	pgc->start2(p,vrk,gcval_vrk);
-	pgc->start3(p,wrk,gcval_wrk);
 
     pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pmom,pflow,urk,vrk,wrk,1.0);
@@ -341,12 +329,6 @@ void momentum_RK4::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 
     p->wtime+=pgc->timer()-starttime;
 
-	pgc->start1(p,a->u,gcval_u);
-	pgc->start2(p,a->v,gcval_v);
-	pgc->start3(p,a->w,gcval_w);
-
-	//--------------------------------------------------------
-	// pressure
     pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pmom,pflow,a->u,a->v,a->w,6.0/6.0);
 
@@ -354,7 +336,6 @@ void momentum_RK4::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	pflow->v_relax(p,a,pgc,a->v);
 	pflow->w_relax(p,a,pgc,a->w);
 	pflow->p_relax(p,a,pgc,a->press);
-
 
 	pgc->start1(p,a->u,gcval_u);
 	pgc->start2(p,a->v,gcval_v);

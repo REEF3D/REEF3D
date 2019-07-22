@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"pressure.h"
-#include"density.h"
+#include"density_f.h"
 
 using namespace std;
 
 #ifndef PJM_SIG_H_
 #define PJM_SIG_H_
 
-class pjm_sig : public pressure, public density
+class pjm_sig : public pressure, public density_f
 {
 
 public:

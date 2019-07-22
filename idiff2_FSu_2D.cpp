@@ -50,8 +50,6 @@ void idiff2_FS_2D::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 	starttime=pgc->timer();
 	double visc_ddy_p,visc_ddy_m,visc_ddz_p,visc_ddz_m;
     
-    if(p->D24==0)
-    alpha=1.0;
     
     pgc->start1(p,u,gcval_u);
 

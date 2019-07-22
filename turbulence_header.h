@@ -19,20 +19,11 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"wallin_AB.h"
-#include"wallin_ABkw.h"
-#include"wallin_RK3.h"
-#include"wallin_RK3kw.h"
-#include"wallin_IM1.h"
-#include"wallin_IM2.h"
-#include"wallin_IM1kw.h"
-#include"wallin_IM2kw.h"
-
-#include"komega_RK2.h"
 #include"komega_IM1.h"
 #include"komega_IM2.h"
 
-#include"kepsilon_RK2.h"
+#include"kepsilon_IM1.h"
+#include"kepsilon_IM2.h"
 #include"kepsilon_void.h"
 
 #include"LES_smagorinsky.h"

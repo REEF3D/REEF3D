@@ -31,6 +31,11 @@ iowave::iowave(lexer *p, ghostcell *pgc) : wave_interface(p,pgc),flowfile_in(p,p
     dist1=p->B96_1;
     dist2=p->B96_2;
     dist3=p->B96_3;
+    
+    dist3_fac=1.0;
+    
+    if(p->B99==1)
+    dist3_fac=2.0;
 	
 
     if(p->B76==0)

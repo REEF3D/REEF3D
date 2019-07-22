@@ -31,8 +31,6 @@ void idiff2_FS_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 	
 	double visc_ddx_p,visc_ddx_m,visc_ddy_p,visc_ddy_m;
     
-    if(p->D24==0)
-    alpha=1.0;
 	
 	count=0;
     

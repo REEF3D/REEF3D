@@ -28,9 +28,36 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"momentum.h"
 #include"ioflow.h"
 #include"fluid_update_fsf_comp.h"
+#include"heat.h"
+#include"concentration.h"
+#include"density_f.h"
+#include"density_comp.h"
+#include"density_conc.h"
+#include"density_heat.h"
+#include"denisty_rheology.h"
+#include"density_vof.h"
  
-pjm_comp::pjm_comp(lexer* p, fdm *a, ghostcell *pgc) : density(p), ro_n(p)
+pjm_comp::pjm_comp(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc) : ro_n(p)
 {
+    if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90==0)
+	pd = new density_f(p);
+	
+	if(p->F30>0 && p->H10==0 && p->W30==1 && p->W90==0)
+	pd = new density_comp(p);
+	
+	if(p->F30>0 && p->H10>0 && p->W90==0)
+	pd = new density_heat(pheat);
+	
+	if(p->F30>0 && p->C10>0 && p->W90==0)
+	pd = new density_conc(p,conc);
+	
+	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
+	pd = new density_rheology(p);
+    
+    if(p->F80>0 && p->H10==0 && p->W30==0 && p->W90==0)
+	pd = new density_vof(p);
+    
+    
     if(p->B76==0)
     gcval_press=40;  
 
@@ -69,7 +96,7 @@ void pjm_comp::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
     density_ini(p,a,pgc);	
     rhs(p,a,pgc,uvel,vvel,wvel,alpha);
 	
-    ppois->estart(p,a,a->press);
+    ppois->start(p,a,a->press);
 	
         starttime=pgc->timer();
 
@@ -104,21 +131,21 @@ void pjm_comp::ucorr(fdm* a, lexer* p, field& uvel,double alpha)
 {	
 	ULOOP
 	uvel(i,j,k) -= alpha*p->dt*((a->press(i+1,j,k)-a->press(i,j,k))
-	/(p->DXP[IP]*roface(p,a,1,0,0)));
+	/(p->DXP[IP]*pd->roface(p,a,1,0,0)));
 }
 
 void pjm_comp::vcorr(fdm* a, lexer* p, field& vvel,double alpha)
 {	
 	VLOOP
 	vvel(i,j,k) -= alpha*p->dt*((a->press(i,j+1,k)-a->press(i,j,k))
-	/(p->DYP[JP]*roface(p,a,0,1,0)));
+	/(p->DYP[JP]*pd->roface(p,a,0,1,0)));
 }
 
 void pjm_comp::wcorr(fdm* a, lexer* p, field& wvel,double alpha)
 {	
 	WLOOP
 	wvel(i,j,k) -= alpha*p->dt*((a->press(i,j,k+1)-a->press(i,j,k))
-	/(p->DZP[KP]*roface(p,a,0,0,1)));
+	/(p->DZP[KP]*pd->roface(p,a,0,0,1)));
 }
 
 void pjm_comp::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)

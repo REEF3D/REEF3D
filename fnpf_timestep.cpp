@@ -95,6 +95,16 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
     
     p->wmax=pgc->globalmax(p->wmax);
     
+    
+    // visc
+    SLICELOOP4
+	p->viscmax=MAX(p->viscmax, c->vb(i,j));
+
+	p->viscmax=pgc->globalmax(p->viscmax);
+    
+    if(p->mpirank==0 && (p->count%p->P12==0) && p->viscmax>0.0)
+	cout<<"viscmax: "<<p->viscmax<<endl;
+    
     //p->wmax = MAX3(p->wmax,p->umax,p->vmax);
         
     FLOOP
@@ -107,7 +117,18 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
     dx = p->DXN[IP];
     
     cu = MIN(cu, 1.0/((fabs(MAX(p->umax, 1.0*sqrt(9.81*depthmax)))/dx)));
+    
+    /*cu = MIN(cu, 2.0/((fabs(MAX(p->umax, 1.0*sqrt(9.81*depthmax)))/dx +  c->vb(i,j)*(6.0/pow(dx,2.0)))
+    
+            +sqrt(pow(p->umax/dx+c->vb(i,j),2.0))));*/
+        
+
     cv = MIN(cv, 1.0/((fabs(MAX(p->vmax, 1.0*sqrt(9.81*depthmax)))/dx)));
+    
+    /*cv = MIN(cv, 2.0/((fabs(MAX(p->vmax, 1.0*sqrt(9.81*depthmax)))/dx +  c->vb(i,j)*(6.0/pow(dx,2.0)))
+    
+            +sqrt(pow(p->vmax/dx+c->vb(i,j),2.0))));*/
+            
     //cw = MIN(cw, 1.0/((fabs(p->wmax)/dx)));
     }
 
@@ -115,16 +136,15 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
     
    	p->dt=p->N47*cw;
     
-    //p->dt=MIN(1.1*p->dt_old,p->dt);
+	p->dt=pgc->timesync(p->dt);
+    
+    if (p->N48==0) 
+    p->dt=maxtimestep;
+    
+    else
+	p->dt=MIN(p->dt,maxtimestep);
 
     
-	p->dt=pgc->timesync(p->dt);
-    if (p->N48 == 0) {
-        p->dt=maxtimestep;
-    }
-    else{
-	p->dt=MIN(p->dt,maxtimestep);
-    }
     p->turbtimestep=p->dt;
 }
 

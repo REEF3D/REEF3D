@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"gradient.h"
-#include"density.h"
+#include"density_f.h"
 
 #ifndef SURFTENS_H_
 #define SURFTENS_H_
 
 using namespace std;
 
-class surftens : public gradient, public density
+class surftens : public gradient, public density_f
 {
 public:
 	surftens(lexer*);

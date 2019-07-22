@@ -78,9 +78,6 @@ double wave_lib_solitary_3rd::wave_horzvel(lexer *p, double x, double y, double 
 						+ e*e*e*((21.0/40.0)*s*s - s*s*t*t - (6.0/5.0)*s*s*s*s*t*t + pow((wd+z)/wd,2.0)*(-(9.0/4.0)*s*s + (15.0/4.0)*s*s*t*t + (15.0/2.0)*s*s*s*s*t*t)
 								 + pow((wd+z)/wd,4.0) * (3.0/8.0)*s*s - (45.0/16.0)*s*s*s*s*t*t)));
 		
-	if(z<-(p->phimean-p->B126))
-	vel=0.0;
-	
     return vel;
 }
 
@@ -103,10 +100,7 @@ double wave_lib_solitary_3rd::wave_w(lexer *p, double x, double y, double z)
 		+ e*e*e*((49.0/640.0) -(17.0/20.0)*s*s - (18.0/5.0)*s*s*s*s 
 			+ pow((wd+z)/wd,2.0)*(-(13.0/16.0) - (25.0/16.0)*s*s + (15.0/2.0)*s*s*s*s)
 			+ pow((wd+z)/wd,4.0)*(-(3.0/40.0) + (9.0/8.0)*s*s - (27.0/16.0)*s*s*s*s)));
-			
-	if(z<-(p->phimean-p->B126))
-	vel=0.0;
-		
+				
     return vel;
 }
 

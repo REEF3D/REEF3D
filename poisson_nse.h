@@ -19,10 +19,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fdm.h"
-#include"looping.h"
 #include"poisson.h"
-#include"density.h"
+#include"density_f.h"
+
+class heat;
+class concentration;
+class density;
 
 #ifndef poisson_NSE_H_
 #define poisson_NSE_H_
@@ -30,12 +32,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 using namespace std;
 
 
-class poisson_nse : public poisson, public density
+class poisson_nse : public poisson, public density_f
 {
 
 public:
 
-	poisson_nse (lexer *);
+	poisson_nse (lexer*, heat*&, concentration*&);
 	virtual ~poisson_nse();
 
 	virtual void estart(lexer *,fdm*,field&);
@@ -45,6 +47,8 @@ private:
 
 	double sqd;
 	int count,n,q;
+    
+    density *pd;
 };
 
 

@@ -23,12 +23,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #ifdef HYPRE_COMPILATION
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include"field.h"
 #include"vec2D.h"
 
-hypre_struct2D::hypre_struct2D(lexer* p,fdm2D* b,ghostcell *pgc)
+hypre_struct2D::hypre_struct2D(lexer* p,ghostcell *pgc)
 {	
     int vecsize=p->knox*p->knoy; 
     

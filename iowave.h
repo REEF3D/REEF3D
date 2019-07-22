@@ -176,10 +176,6 @@ public:
 
 private:
     slice4 eta;
-
-    double ra1(lexer*,double);
-    double ra2(lexer*,double);
-    double ra3(lexer*,double);
 	
 	double rb1(lexer*,double);
     double rb3(lexer*,double);
@@ -204,7 +200,7 @@ private:
     int wtype;
     double inflow_bed,uvel,vvel,wvel;
     double area,Ai,Ao,Ui,fac;
-    double dist1,dist2,dist3;
+    double dist1,dist2,dist3,dist3_fac;
     double x,y,z;
     double x1,y1,x2,y2,z3;
 	double xg,yg,dg,db;

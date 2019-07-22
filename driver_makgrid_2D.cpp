@@ -97,9 +97,7 @@ void driver::makegrid2D_cds(lexer *p, ghostcell *pgc, fdm2D *b)
     
     pgc->gcxslupdate(p);
      
-	pgc->column2D_pt1_update(p,b);
-    pgc->column2D_pt2_update(p,b);
-    pgc->column2D_pt4_update(p,b);    
-    
-    
+	pgc->column2D_pt1_update(p,b->C1);
+    pgc->column2D_pt2_update(p,b->C2);
+    pgc->column2D_pt4_update(p,b->C4);    
 }

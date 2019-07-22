@@ -28,6 +28,7 @@ class fnpf_convection;
 class fnpf_ddx;
 class fnpf_etadisc;
 class fnpf_sg_coastline;
+class  solver2D;
 
 using namespace std;
 
@@ -59,6 +60,7 @@ public:
     fnpf_convection *pdx;
     fnpf_ddx *pddx;
     fnpf_sg_coastline *pcoast;
+    solver2D *psolv;
 
     double ivel,jvel,kvel;
     

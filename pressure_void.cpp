@@ -40,8 +40,6 @@ pressure_void::~pressure_void()
 
 void pressure_void::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, momentum *pmom, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
 {
-    //LOOP
-    //a->press()-
 }
 
 void pressure_void::ucorr(fdm* a,field& b,lexer*p)

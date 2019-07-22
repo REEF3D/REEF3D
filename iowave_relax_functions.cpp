@@ -24,44 +24,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-double iowave::ra1(lexer *p, double x)
-{
-    double r=0.0;
-
-    x=x/dist1;
-    r = -2.0*x*x*x + 3.0*x*x;
-	r*=ramp(p);    
-
-    return r;
-}
-
-double iowave::ra2(lexer *p, double x)
-{
-    double r=0.0;
-
-    x=(x-dist1)/(dist2-dist1);
-
-    r = -2.0*(1.0-x)*(1.0-x)*(1.0-x) + 3.0*(1.0-x)*(1.0-x);
-
-    if(dist2==dist1)
-    r=0.0;
-
-    r*=ramp(p);
-
-    return r;
-}
-
-double iowave::ra3(lexer *p, double x)
-{
-    double r=0.0;
-
-    x=(dist3-fabs(x))/dist3;
-
-    r = 1.0-pow(x,p->B118);
-	
-	return r;
-}
-
 double iowave::rb1(lexer *p, double x)
 {
     double r=0.0;
@@ -69,8 +31,10 @@ double iowave::rb1(lexer *p, double x)
     x=1.0-x/dist1;
     x=MAX(x,0.0);
     
-    r = 1.0 - (pow(1.0 + (pow(x,p->B119))/4000.0, 4000.0)-1.0)*expinverse;
-
+    //r = 1.0 - (pow(1.0 + (pow(x,p->B119))/4000.0, 4000.0)-1.0)*expinverse;
+    
+    r = 1.0 - (exp(pow(x,p->B119))-1.0)/(EE-1.0);
+      
     return r;
 }
 
@@ -78,12 +42,12 @@ double iowave::rb3(lexer *p, double x)
 {
     double r=0.0;
 
-    x=(dist3-fabs(x))/dist3;
+    x=(dist3-fabs(x))/(dist3*dist3_fac);
     x=MAX(x,0.0);
     
-    r = 1.0 - (pow(1.0 + (pow(x,p->B119))/4000.0, 4000.0)-1.0)*expinverse;
+    //r = 1.0 - (pow(1.0 + (pow(x,p->B119))/4000.0, 4000.0)-1.0)*expinverse;
     
-   // r = 1.0 - (exp(pow(x,p->B119))-1.0)/(exp(1.0)-1.0);
+    r = 1.0 - (exp(pow(x,p->B119))-1.0)/(EE-1.0);
 	
 	return r;
 }

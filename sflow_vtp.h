@@ -28,6 +28,7 @@ class ioflow;
 class sflow_print_wsf;
 class sflow_print_wsfline;
 class sflow_print_wsfline_y;
+class sflow_print_probe_da;
 
 using namespace std;
 
@@ -61,6 +62,7 @@ private:
 	sflow_print_wsf *pwsf;
     sflow_print_wsfline *pwsfline;
     sflow_print_wsfline_y *pwsfline_y;
+    sflow_print_probe_da *pprobe;
 
 };
 

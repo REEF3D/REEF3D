@@ -167,7 +167,7 @@ void ghostcell::gcsldistro4(lexer *p, slice &f, int ii, int jj, int nn, double d
 	gcsl_sommerfeld(p,f,gcv,bc,cs);
 }
 
-void ghostcell::gcsldistro4V(lexer *p, vec2D &f, int ii, int jj, int nn, double dist,  int gcv, int bc, int cs, int id)
+void ghostcell::gcsldistro4V(lexer *p, vec2D &f, cpt2D &C, int ii, int jj, int nn, double dist,  int gcv, int bc, int cs, int id)
 {
     i=ii;
 	j=jj;
@@ -176,13 +176,13 @@ void ghostcell::gcsldistro4V(lexer *p, vec2D &f, int ii, int jj, int nn, double 
 	bc_label=gcsleval4(p,gcv,bc,cs);
 
 	if(bc_label==4)
-	gcsl_neumannV(f,gcv,bc,cs,id);
+	gcsl_neumannV(f,C,gcv,bc,cs,id);
     
     if(bc_label==14)
-	gcsl_neumannV_x(f,gcv,bc,cs,id);
+	gcsl_neumannV_x(f,C,gcv,bc,cs,id);
     
     if(bc_label==5)
-	gcsl_noslipV(f,gcv,bc,cs,id);
+	gcsl_noslipV(f,C,gcv,bc,cs,id);
 }
 
 void ghostcell::gcsldistro4int(lexer *p, sliceint &f, int ii, int jj, int nn, double dist,  int gcv, int bc, int cs)

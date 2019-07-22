@@ -29,10 +29,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"vorticity.h"
 #include"data.h"
 #include"concentration.h"
-#include"multiphase.h"
 #include"sediment.h"
 
-void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *pheat, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *pheat, data *pdata, concentration *pconc, sediment *psed)
 {
     int num=0;
 
@@ -102,8 +101,6 @@ void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
 	result<<"<PDataArray type=\"Float32\" Name=\"phi\"/>"<<endl;
 
 	pheat->name_vtu(p,a,pgc,result,offset,n);
-	
-	pmp->name_vtu(p,a,pgc,result,offset,n);
 
     pvort->name_vtu(p,a,pgc,result,offset,n);
 	
@@ -111,7 +108,7 @@ void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
 	
 	pconc->name_vtu(p,a,pgc,result,offset,n);
     
-    if(p->P24==1 && p->F300==0)
+    if(p->P24==1)
     result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>"<<endl;
     
     if(p->P71==1)

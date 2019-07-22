@@ -71,7 +71,7 @@ void driver::loop_fnpf_fg(fdm* a)
         p->simtime+=p->dt;
         
         // printer
-        pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
+        pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
 
         // Shell-Printout
         if(p->mpirank==0)

@@ -23,7 +23,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"bc_ikomega.h"
 #include"ghostcell.h"
 
-class multiphase;
 class vrans;
 
 using namespace std;
@@ -34,7 +33,7 @@ using namespace std;
 class ikomega : public rans_io, public bc_ikomega
 {
 public:
-	ikomega(lexer *, fdm*, ghostcell*, multiphase*);
+	ikomega(lexer *, fdm*, ghostcell*);
 	virtual ~ikomega();
 	virtual void isource(lexer*,fdm*);
 	virtual void jsource(lexer*,fdm*);
@@ -48,7 +47,6 @@ public:
 	int count,q;
 	double starttime;
 	
-	multiphase *pmp;	
     vrans *pvrans;
 };
 

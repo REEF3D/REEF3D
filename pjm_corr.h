@@ -20,20 +20,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"pressure.h"
-#include"density.h"
+#include"density_f.h"
 #include"field4.h"
+
+class heat;
+class concentration;
+class density;
 
 using namespace std;
 
 #ifndef PJM_CORR_H_
 #define PJM_CORR_H_
 
-class pjm_corr : public pressure, public density
+class pjm_corr : public pressure, public density_f
 {
 
 public:
 
-	pjm_corr(lexer* p, fdm *a);
+	pjm_corr(lexer* p, fdm *a, heat*&, concentration*&);
 	virtual ~pjm_corr();
 
 	virtual void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,momentum*,ioflow*, field&, field&, field&,double);
@@ -62,6 +66,8 @@ private:
 	int gcval_u, gcval_v, gcval_w;
 	
 	void debug(lexer*,fdm*);
+    
+    density *pd;
 };
 
 

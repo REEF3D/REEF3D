@@ -19,8 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"looping.h"
-#include"fdm.h"
+class fdm;
 
 #ifndef CCIPOL_H_
 #define CCIPOL_H_

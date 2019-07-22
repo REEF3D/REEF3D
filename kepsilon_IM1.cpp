@@ -27,7 +27,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"solver.h"
 #include"diffusion.h"
 #include"ioflow.h"
-#include"kepsilon.h"
 #include"convection.h"
 
 kepsilon_IM1::kepsilon_IM1(lexer* p, fdm* a, ghostcell *pgc) : ikepsilon(p,a,pgc),kn(p),en(p)

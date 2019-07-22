@@ -27,7 +27,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"solver.h"
 #include"diffusion.h"
 #include"ioflow.h"
-#include"kepsilon.h"
 #include"convection.h"
 
 LES_smagorinsky::LES_smagorinsky(lexer* p, fdm* a) : LES(p,a)
