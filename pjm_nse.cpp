@@ -33,7 +33,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"density_comp.h"
 #include"density_conc.h"
 #include"density_heat.h"
-#include"density_rheology.h"
 #include"density_vof.h"
  
 pjm_nse::pjm_nse(lexer* p, fdm *a, heat *&pheat, concentration *&pconc) 
@@ -51,7 +50,7 @@ pjm_nse::pjm_nse(lexer* p, fdm *a, heat *&pheat, concentration *&pconc)
 	pd = new density_conc(p,pconc);
 	
 	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
-	pd = new density_rheology(p);
+	pd = new density_f(p);
     
     if(p->F80>0 && p->H10==0 && p->W30==0 && p->W90==0)
 	pd = new density_vof(p);
