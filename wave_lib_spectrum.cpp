@@ -220,6 +220,9 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
 
         if(p->mpirank==0)
         cout<<"ws: "<<ws<<"  we: "<<we<<endl;
+        
+        if(p->mpirank==0)
+        cout<<"dws: "<<dw[0]<<"  dwe: "<<dw[p->wN-1]<<endl;
 
         w=ws;
         for(n=0;n<p->wN;++n)
