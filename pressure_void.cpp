@@ -42,16 +42,16 @@ void pressure_void::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcel
 {
 }
 
-void pressure_void::ucorr(fdm* a,field& b,lexer*p)
-{
+void pressure_void::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
+{	
 }
 
-void pressure_void::vcorr(fdm* a,field& b,lexer*p)
-{
+void pressure_void::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
+{	 
 }
 
-void pressure_void::wcorr(fdm* a,field& b,lexer*p)
-{
+void pressure_void::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
+{	
 }
 
 void pressure_void::upgrad(lexer*p,fdm* a)

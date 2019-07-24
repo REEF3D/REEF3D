@@ -37,9 +37,9 @@ public:
 
 	virtual void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,momentum*,ioflow*, field&, field&, field&,double);
 	virtual void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	virtual void ucorr(fdm*,field&,lexer*p);
-	virtual void vcorr(fdm*,field&,lexer*p);
-	virtual void wcorr(fdm*,field&,lexer*p);
+	virtual void ucorr(lexer*p,fdm*,field&,double);
+	virtual void vcorr(lexer*p,fdm*,field&,double);
+	virtual void wcorr(lexer*p,fdm*,field&,double);
 	virtual void upgrad(lexer*,fdm*);
 	virtual void vpgrad(lexer*,fdm*);
 	virtual void wpgrad(lexer*,fdm*);

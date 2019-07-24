@@ -60,6 +60,7 @@ void fluid_update_fsf_heat::start(lexer *p, fdm* a, ghostcell* pgc)
    //
 	LOOP
 	{
+        temp = pheat->val(i,j,k);
 	    
 		epsi = p->F45*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
         

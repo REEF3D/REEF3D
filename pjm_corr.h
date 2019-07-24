@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"pressure.h"
-#include"density_f.h"
+#include"increment.h"
 #include"field4.h"
 
 class heat;
@@ -32,7 +32,7 @@ using namespace std;
 #ifndef PJM_CORR_H_
 #define PJM_CORR_H_
 
-class pjm_corr : public pressure, public density_f
+class pjm_corr : public pressure, public increment
 {
 
 public:
@@ -44,9 +44,9 @@ public:
 	virtual void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 	virtual void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
     virtual void presscorr(lexer*p,fdm *a,field&, double);
-	virtual void ucorr(fdm*,lexer*p,field&,double);
-	virtual void vcorr(fdm*,lexer*p,field&,double);
-	virtual void wcorr(fdm*,lexer*p,field&,double);
+	virtual void ucorr(lexer*p,fdm*,field&,double);
+	virtual void vcorr(lexer*p,fdm*,field&,double);
+	virtual void wcorr(lexer*p,fdm*,field&,double);
 	virtual void upgrad(lexer*,fdm*);
 	virtual void vpgrad(lexer*,fdm*);
 	virtual void ptimesave(lexer*,fdm*,ghostcell*);

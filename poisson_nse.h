@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"poisson.h"
-#include"density_f.h"
+#include"increment.h"
 
 class heat;
 class concentration;
@@ -32,7 +32,7 @@ class density;
 using namespace std;
 
 
-class poisson_nse : public poisson, public density_f
+class poisson_nse : public poisson, public increment
 {
 
 public:
@@ -40,8 +40,7 @@ public:
 	poisson_nse (lexer*, heat*&, concentration*&);
 	virtual ~poisson_nse();
 
-	virtual void estart(lexer *,fdm*,field&);
-    virtual void istart(lexer *,fdm*,field&,field&,field&,field&);
+	virtual void start(lexer *,fdm*,field&);
 
 private:
 

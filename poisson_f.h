@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"poisson.h"
-#include"density_f.h"
+#include"increment.h"
 
 class heat;
 class concentration;
@@ -31,7 +31,7 @@ class density;
 
 using namespace std;
 
-class poisson_f : public poisson, public density_f
+class poisson_f : public poisson, public increment
 {
 
 public:

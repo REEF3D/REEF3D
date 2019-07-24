@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 
-surftens::surftens(lexer* p):gradient(p),density_f(p),epsi(p->F45*p->dx)
+surftens::surftens(lexer* p):gradient(p),epsi(p->F45*p->dx)
 {
 	tension=p->W5;
 }
@@ -53,7 +53,7 @@ void surftens::surface_tension(fdm* a,lexer*p,field& surf,int gcval)
 			  /(pow(xdx(a,a->phi)*xdx(a,a->phi)+xdy(a,a->phi)*xdy(a,a->phi)+xdz(a,a->phi)*xdz(a,a->phi),1.5)+1.0e-20);
 
 
-		a->rhsvec.V[n]-=(curv*tension*dirac*xdx(a,a->phi))/roface(p,a,1,0,0);
+		a->rhsvec.V[n]-=(curv*tension*dirac*xdx(a,a->phi))/(0.5*(a->ro(i,j,k)+a->ro(i+1,j,k)));
 		}
 	++n;
 	}
@@ -75,7 +75,7 @@ void surftens::surface_tension(fdm* a,lexer*p,field& surf,int gcval)
 			  /(pow(ydx(a,a->phi)*ydx(a,a->phi)+ydy(a,a->phi)*ydy(a,a->phi)+ydz(a,a->phi)*ydz(a,a->phi),1.5)+1.0e-20);
 
 
-		a->rhsvec.V[n]-=(curv*tension*dirac*ydy(a,a->phi))/roface(p,a,0,1,0);
+		a->rhsvec.V[n]-=(curv*tension*dirac*ydy(a,a->phi))/(0.5*(a->ro(i,j,k)+a->ro(i,j+1,k)));
 		}
 	++n;
 	}
@@ -97,7 +97,7 @@ void surftens::surface_tension(fdm* a,lexer*p,field& surf,int gcval)
 			  /(pow(zdx(a,a->phi)*zdx(a,a->phi)+zdy(a,a->phi)*zdy(a,a->phi)+zdz(a,a->phi)*zdz(a,a->phi),1.5)+1.0e-20);
 
 
-		a->rhsvec.V[n]-=(curv*tension*dirac*zdz(a,a->phi))/roface(p,a,0,0,1);
+		a->rhsvec.V[n]-=(curv*tension*dirac*zdz(a,a->phi))/(0.5*(a->ro(i,j,k)+a->ro(i,j,k+1)));
 		}
 	++n;
 	}

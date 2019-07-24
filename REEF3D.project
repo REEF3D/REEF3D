@@ -577,7 +577,6 @@
       <VirtualDirectory Name="Density">
         <File Name="density_conc.h"/>
         <File Name="density_vof.h"/>
-        <File Name="density_rheology.h"/>
         <File Name="density_heat.h"/>
         <File Name="density_comp.h"/>
         <File Name="density.h"/>
@@ -1981,11 +1980,10 @@
       <File Name="pressure_void.cpp"/>
       <File Name="pjm.cpp"/>
       <VirtualDirectory Name="Density">
+        <File Name="density_vof.cpp"/>
         <File Name="density_conc.cpp"/>
         <File Name="density_comp.cpp"/>
         <File Name="density_heat.cpp"/>
-        <File Name="rheology_vof.cpp"/>
-        <File Name="density_rheology.cpp"/>
         <File Name="density_f.cpp"/>
       </VirtualDirectory>
       <File Name="pjm_comp.cpp"/>

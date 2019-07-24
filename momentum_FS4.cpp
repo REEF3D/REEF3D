@@ -128,9 +128,9 @@ void momentum_FS4::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	
     p->wtime=pgc->timer()-starttime;
 
-    ucorr(p,a,0.5,urk);
-	vcorr(p,a,0.5,vrk);
-	wcorr(p,a,0.5,wrk);
+    ppress->ucorr(p,a,urk,0.5);
+	ppress->vcorr(p,a,vrk,0.5);
+	ppress->wcorr(p,a,wrk,0.5);
 
 	pflow->u_relax(p,a,pgc,urk);
 	pflow->v_relax(p,a,pgc,vrk);
@@ -201,9 +201,9 @@ void momentum_FS4::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	
     p->wtime=pgc->timer()-starttime;
 
-	ucorr(p,a,0.5,urk);
-	vcorr(p,a,0.5,vrk);
-	wcorr(p,a,0.5,wrk);
+	ppress->ucorr(p,a,urk,0.5);
+	ppress->vcorr(p,a,vrk,0.5);
+	ppress->wcorr(p,a,wrk,0.5);
 
 	pflow->u_relax(p,a,pgc,urk);
 	pflow->v_relax(p,a,pgc,vrk);
@@ -274,9 +274,9 @@ void momentum_FS4::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	
     p->wtime=pgc->timer()-starttime;
 
-    ucorr(p,a,1.0,urk);
-	vcorr(p,a,1.0,vrk);
-	wcorr(p,a,1.0,wrk);
+    ppress->ucorr(p,a,urk,1.0);
+	ppress->vcorr(p,a,vrk,1.0);
+	ppress->wcorr(p,a,wrk,1.0);
 
 	pflow->u_relax(p,a,pgc,urk);
 	pflow->v_relax(p,a,pgc,vrk);
@@ -355,27 +355,6 @@ void momentum_FS4::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	pgc->start1(p,a->u,gcval_u);
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
-}
-
-void momentum_FS4::ucorr(lexer *p, fdm *a, double alpha, field& uvel)
-{
-    ULOOP
-	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((a->press(i+1,j,k)-a->press(i,j,k))
-	/(p->DXP[IP]*roface(p,a,1,0,0)));
-}
-
-void momentum_FS4::vcorr(lexer *p, fdm *a, double alpha, field& vvel)
-{
-    VLOOP
-	vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*((a->press(i,j+1,k)-a->press(i,j,k))
-	/(p->DYP[JP]*roface(p,a,0,1,0)));
-}
-
-void momentum_FS4::wcorr(lexer *p, fdm *a, double alpha, field& wvel)
-{
-    WLOOP
-	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))
-	/(p->DZP[KP]*roface(p,a,0,0,1)));
 }
 
 void momentum_FS4::irhs(lexer *p, fdm *a)
