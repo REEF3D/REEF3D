@@ -257,7 +257,6 @@ void sflow_print_wsfline_y::ini_location(lexer *p, fdm2D *b, ghostcell *pgc)
         count=0;
         JLOOP
         {
-
         iloc[q]=p->posc_i(p->P56_x[q]);
 
         if(iloc[q]>=0 && iloc[q]<p->knox)

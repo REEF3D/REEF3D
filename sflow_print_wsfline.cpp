@@ -253,9 +253,10 @@ void sflow_print_wsfline::ini_location(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     int check,count;
     
-    count=0;
+    
     for(q=0;q<p->P52;++q)
     {
+        count=0;
         ILOOP
         {
 

@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"convection.h"
-#include"increment.h"
+#include"weno_nug_func.h"
 
 class flux;
 
@@ -29,7 +29,7 @@ class flux;
 
 using namespace std;
 
-class iweno_hj_nug : public convection, public increment
+class iweno_hj_nug : public convection, public weno_nug_func
 {
 public:
 	iweno_hj_nug (lexer*);
