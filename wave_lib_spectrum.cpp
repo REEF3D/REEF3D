@@ -167,9 +167,9 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
     p->Darray(cosbeta,numcomp);
     p->Darray(sinbeta,numcomp);
 
-    // Peak Enhance Method
+    // Peak Enhance Method || Equal Wavenumber Method
 
-    if(p->B84==1)
+    if(p->B84==1 || p->B84==3)
     {
 
         for(n=0;n<numcomp;++n)
@@ -239,8 +239,6 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
         double ddw, sum;
         double cdf_s, cdf_e, w_low, w_high, cdf_low, cdf_high;
         int m, NN;
-
-
 
        for(n=0;n<numcomp;++n)
         {
@@ -384,32 +382,68 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
     }
 
         // Final step: fill Si and the corresponding values for Ai and ki
-        for(n=0;n<p->wN;++n)
+        if(p->B84!=3)
         {
-            w=wi[n];
-            Si[n] = wave_spectrum(p,w);
-            wL0 = (2.0*PI*9.81)/pow(w,2.0);
-            k0 = (2.0*PI)/wL0;
-            S0 = sqrt(k0*p->wd) * (1.0 + (k0*p->wd)/6.0 + (k0*k0*p->wd*p->wd)/30.0);
-            Li[n] = wL0*tanh(S0);
-
-            for(int qn=0; qn<100; ++qn)
+            for(n=0;n<p->wN;++n)
             {
-                Li[n] = wL0*tanh(2.0*PI*p->wd/Li[n]);
+                w=wi[n];
+                Si[n] = wave_spectrum(p,w);
+                wL0 = (2.0*PI*9.81)/pow(w,2.0);
+                k0 = (2.0*PI)/wL0;
+                S0 = sqrt(k0*p->wd) * (1.0 + (k0*p->wd)/6.0 + (k0*k0*p->wd*p->wd)/30.0);
+                Li[n] = wL0*tanh(S0);
+
+                for(int qn=0; qn<100; ++qn)
+                {
+                    Li[n] = wL0*tanh(2.0*PI*p->wd/Li[n]);
+                }
+
+                ki[n] = 2.0*PI/Li[n];
             }
+        }    
+        
+        if(p->B84==3)
+        {
+            double dk;
+            
+            for(n=0;n<p->wN;++n)
+            {
+                w=wi[n];
+                Si[n] = wave_spectrum(p,w);
+                wL0 = (2.0*PI*9.81)/pow(w,2.0);
+                k0 = (2.0*PI)/wL0;
+                S0 = sqrt(k0*p->wd) * (1.0 + (k0*p->wd)/6.0 + (k0*k0*p->wd*p->wd)/30.0);
+                Li[n] = wL0*tanh(S0);
 
-            ki[n] = 2.0*PI/Li[n];
+                for(int qn=0; qn<100; ++qn)
+                {
+                    Li[n] = wL0*tanh(2.0*PI*p->wd/Li[n]);
+                }
+
+                ki[n] = 2.0*PI/Li[n];
+                dk=(ki[n]-ki[0])/(p->wN-1);
+            }
+            
+            if(p->mpirank==0)
+            cout<<"dk: "<< dk <<endl;
+                
+            for(n=0;n<p->wN;++n)
+            {
+                ki[n]=ki[0]+dk*n;
+                wi[n]=sqrt(9.81*ki[n]*tanh(ki[n]*p->wd));
+                Si[n] = wave_spectrum(p,wi[n]);
+            }
         }
+        
+    print_spectrum(p);
 
-        print_spectrum(p);
-
-        // directional spreading
-        directional_spreading(p);
+    // directional spreading
+    directional_spreading(p);
 }
 
 void wave_lib_spectrum::amplitudes_irregular(lexer *p)
 {
-    if(p->B84==1)
+    if(p->B84==1 || p->B84==3)
     {
         // Amplitudes
         for(int n=0;n<p->wN;++n)
@@ -521,7 +555,7 @@ void wave_lib_spectrum::print_spectrum(lexer *p)
 	for(int n=0;n<p->wN;++n)
 	{
 	xval+=dw[n];
-	result<<xval<<" "<<Si[n]<<endl;
+	result<<wi[n]<<" "<<Si[n]<<endl;
 	}
 
 	result.close();
