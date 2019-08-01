@@ -75,17 +75,15 @@ void iweno_hj_nug::wenoloop1(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
 
 			if(iadvec>=0.0)
 			{
-			is_south(f);
-			alpha_calc();
-			weight_calc();
+			is_min_x();
+            weight_min_x();
 			aij_south(p,a,f,a->F);
 			}
 
 			if(iadvec<0.0)
 			{
-			is_north(f);
-			alpha_calc();
-			weight_calc();
+			is_max_x();
+            weight_max_x();
 			aij_north(p,a,f,a->F);
 			}
 
@@ -93,17 +91,15 @@ void iweno_hj_nug::wenoloop1(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
 			
 			if(jadvec>=0.0)
 			{
-			is_east(f);
-			alpha_calc();
-			weight_calc();
+			is_min_y();
+            weight_min_y();
 			aij_east(p,a,f,a->F);
 			}
 
 			if(jadvec<0.0)
 			{
-			is_west(f);
-			alpha_calc();
-			weight_calc();
+			is_max_y();
+            weight_max_y();
 			aij_west(p,a,f,a->F);
 			}
 
@@ -111,17 +107,15 @@ void iweno_hj_nug::wenoloop1(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
 
 			if(kadvec>=0.0)
 			{
-			is_bottom(f);
-			alpha_calc();
-			weight_calc();
+			is_min_z();
+            weight_min_z();
 			aij_bottom(p,a,f,a->F);
 			}
 
 			if(kadvec<0.0)
 			{
-			is_top(f);
-			alpha_calc();
-			weight_calc();
+			is_max_z();
+            weight_max_z();
 			aij_top(p,a,f,a->F);
 			}
 		 ++count;
@@ -137,39 +131,35 @@ void iweno_hj_nug::wenoloop2(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
         pflux->u_flux(a,ipol,uvel,iadvec,ivel2);
         pflux->v_flux(a,ipol,vvel,jadvec,jvel2);
         pflux->w_flux(a,ipol,wvel,kadvec,kvel2);
-
+    
 
 			if(iadvec>=0.0)
 			{
-			is_south(f);
-			alpha_calc();
-			weight_calc();
+			is_min_x();
+            weight_min_x();
 			aij_south(p,a,f,a->G);
 			}
 
 			if(iadvec<0.0)
 			{
-			is_north(f);
-			alpha_calc();
-			weight_calc();
+			is_max_x();
+            weight_max_x();
 			aij_north(p,a,f,a->G);
 			}
 
 
-
+			
 			if(jadvec>=0.0)
 			{
-			is_east(f);
-			alpha_calc();
-			weight_calc();
+			is_min_y();
+            weight_min_y();
 			aij_east(p,a,f,a->G);
 			}
 
 			if(jadvec<0.0)
 			{
-			is_west(f);
-			alpha_calc();
-			weight_calc();
+			is_max_y();
+            weight_max_y();
 			aij_west(p,a,f,a->G);
 			}
 
@@ -177,20 +167,17 @@ void iweno_hj_nug::wenoloop2(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
 
 			if(kadvec>=0.0)
 			{
-			is_bottom(f);
-			alpha_calc();
-			weight_calc();
+			is_min_z();
+            weight_min_z();
 			aij_bottom(p,a,f,a->G);
 			}
 
 			if(kadvec<0.0)
 			{
-			is_top(f);
-			alpha_calc();
-			weight_calc();
+			is_max_z();
+            weight_max_z();
 			aij_top(p,a,f,a->G);
 			}
-
 		 ++count;
 	}
 }
@@ -201,63 +188,56 @@ void iweno_hj_nug::wenoloop3(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
 
 	WLOOP
 	{
-	
-		pflux->u_flux(a,ipol,uvel,iadvec,ivel2);
+        pflux->u_flux(a,ipol,uvel,iadvec,ivel2);
         pflux->v_flux(a,ipol,vvel,jadvec,jvel2);
         pflux->w_flux(a,ipol,wvel,kadvec,kvel2);
-                
+    
+
 			if(iadvec>=0.0)
 			{
-			is_south(f);
-			alpha_calc();
-			weight_calc();
+			is_min_x();
+            weight_min_x();
 			aij_south(p,a,f,a->H);
 			}
 
 			if(iadvec<0.0)
 			{
-			is_north(f);
-			alpha_calc();
-			weight_calc();
+			is_max_x();
+            weight_max_x();
 			aij_north(p,a,f,a->H);
 			}
 
 
-		
+			
 			if(jadvec>=0.0)
 			{
-			is_east(f);
-			alpha_calc();
-			weight_calc();
+			is_min_y();
+            weight_min_y();
 			aij_east(p,a,f,a->H);
 			}
 
 			if(jadvec<0.0)
 			{
-			is_west(f);
-			alpha_calc();
-			weight_calc();
+			is_max_y();
+            weight_max_y();
 			aij_west(p,a,f,a->H);
 			}
 
 
-			
+
 			if(kadvec>=0.0)
 			{
-			is_bottom(f);
-			alpha_calc();
-			weight_calc();
+			is_min_z();
+            weight_min_z();
 			aij_bottom(p,a,f,a->H);
 			}
 
 			if(kadvec<0.0)
 			{
-			is_top(f);
-			alpha_calc();
-			weight_calc();
+			is_max_z();
+            weight_max_z();
 			aij_top(p,a,f,a->H);
 			}
-			
 		 ++count;
 	}
 }
@@ -268,75 +248,102 @@ void iweno_hj_nug::wenoloop4(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
 
 	LOOP
 	{
-		
         pflux->u_flux(a,ipol,uvel,iadvec,ivel2);
         pflux->v_flux(a,ipol,vvel,jadvec,jvel2);
         pflux->w_flux(a,ipol,wvel,kadvec,kvel2);
-			
+    
+
 			if(iadvec>=0.0)
 			{
-			is_south(f);
-			alpha_calc();
-			weight_calc();
+			is_min_x();
+            weight_min_x();
 			aij_south(p,a,f,a->L);
 			}
 
 			if(iadvec<0.0)
 			{
-			is_north(f);
-			alpha_calc();
-			weight_calc();
+			is_max_x();
+            weight_max_x();
 			aij_north(p,a,f,a->L);
 			}
 
 
+			
 			if(jadvec>=0.0)
 			{
-			is_east(f);
-			alpha_calc();
-			weight_calc();
+			is_min_y();
+            weight_min_y();
 			aij_east(p,a,f,a->L);
 			}
 
 			if(jadvec<0.0)
 			{
-			is_west(f);
-			alpha_calc();
-			weight_calc();
+			is_max_y();
+            weight_max_y();
 			aij_west(p,a,f,a->L);
 			}
 
-	
+
+
 			if(kadvec>=0.0)
 			{
-			is_bottom(f);
-			alpha_calc();
-			weight_calc();
+			is_min_z();
+            weight_min_z();
 			aij_bottom(p,a,f,a->L);
 			}
 
 			if(kadvec<0.0)
 			{
-			is_top(f);
-			alpha_calc();
-			weight_calc();
+			is_max_z();
+            weight_max_z();
 			aij_top(p,a,f,a->L);
 			}
-     ++count;
+		 ++count;
 	}
 }
 
 void iweno_hj_nug::aij_south(lexer* p, fdm* a, field &f, field &F)
 {
-	F(i,j,k)    += (w1*third)*iadvec*deltin*f(i-3,j,k)
-				 - (w2*sixth + w1*1.5)*iadvec*deltin*f(i-2,j,k)
-				 + (w3*sixth)*iadvec*deltin*f(i+2,j,k);
+	F(i,j,k)    += f(i-3,j,k)*(w3x*qfx[IP][uf][2][0]/DX[IM3]);
 				 
 	a->M.p[count] = (-w3*0.5 + w2*0.5 + w1*elvsix)*iadvec*deltin;
 					 
 	a->M.s[count] = (-w3*third -w2 - w1*3.0)*iadvec*deltin;
 	a->M.n[count] = (w3 + w2*third)*iadvec*deltin;
 }
+/*
+double weno_hj_nug::fx(lexer *p,fdm *a, field& b, field& uvel, int ipol, double advec)
+{
+    grad = 0.0;
+
+	if(advec>0.0)
+	{
+	iqmin(p,a,b,uvel,ipol);
+	is_min_x();
+	weight_min_x();
+
+	grad = w1x*(q4 + qfx[IP][uf][0][0]*(q3-q4) - qfx[IP][uf][0][1]*(q5-q4))
+    
+         + w2x*(q3 + qfx[IP][uf][1][0]*(q4-q3) - qfx[IP][uf][1][1]*(q2-q3))
+          
+         + w3x*(q2 + qfx[IP][uf][2][0]*(q1-q2) + qfx[IP][uf][2][1]*(q3-q2));
+	}
+
+	if(advec<0.0)
+	{
+	iqmax(p,a,b,uvel,ipol);
+	is_max_x();
+	weight_max_x();
+    
+	grad = w1x*(q4 + qfx[IP][uf][3][0]*(q3-q4) + qfx[IP][uf][3][1]*(q5-q4))
+    
+         + w2x*(q3 + qfx[IP][uf][4][0]*(q2-q3) - qfx[IP][uf][4][1]*(q4-q3))
+          
+         + w3x*(q2 + qfx[IP][uf][5][0]*(q3-q2) - qfx[IP][uf][5][1]*(q1-q2));
+	}
+    
+	return grad;
+}*/
 
 void iweno_hj_nug::aij_north(lexer* p, fdm* a, field &f, field &F)
 {

@@ -78,6 +78,8 @@ private:
     double iadvec,jadvec,kadvec;
     
     flux *pflux;
+    
+    double *DX,*DY,*DZ;
 
 };
 
