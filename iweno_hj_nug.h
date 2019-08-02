@@ -43,17 +43,6 @@ private:
     void wenoloop3(lexer*,fdm*,field&,int,field&,field&,field&);
     void wenoloop4(lexer*,fdm*,field&,int,field&,field&,field&);
 
-	void is_south(field&);
-	void is_north(field&);
-	void is_east(field&);
-	void is_west(field&);
-	void is_top(field&);
-	void is_bottom(field&);
-
-	void alpha_calc();
-
-	void weight_calc();
-
 	void aij(fdm*, field&,field&,field&,field&);
 	void aij_south(lexer*,fdm*,field&, field&);
 	void aij_north(lexer*,fdm*,field&, field&);
