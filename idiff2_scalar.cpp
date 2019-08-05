@@ -41,8 +41,7 @@ void idiff2::idiff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 					+   0.5*(vft*visc(i,j+1,k)+a->eddyv(i,j+1,k)/sig + vft*visc_ijk+ev_ijk/sig)/(p->DYN[JP]*p->DYP[JM1])
 					+   0.5*(vft*visc_ijk+ev_ijk/sig + vft*visc(i,j-1,k)+a->eddyv(i,j-1,k)/sig)/(p->DYN[JP]*p->DYP[JP])
 					+   0.5*(vft*visc(i,j,k+1)+a->eddyv(i,j,k+1)/sig + vft*visc_ijk+ev_ijk/sig)/(p->DZN[KP]*p->DZP[KM1])
-					+   0.5*(vft*visc_ijk+ev_ijk/sig + vft*visc(i,j,k-1)+a->eddyv(i,j,k-1)/sig)/(p->DZN[KP]*p->DZP[KP])
-					+   1.0/(alpha*p->dt);
+					+   0.5*(vft*visc_ijk+ev_ijk/sig + vft*visc(i,j,k-1)+a->eddyv(i,j,k-1)/sig)/(p->DZN[KP]*p->DZP[KP]);
     
 	 a->M.s[count] -= 0.5*(vft*visc_ijk+ev_ijk/sig + vft*visc(i-1,j,k)+a->eddyv(i-1,j,k)/sig)/(p->DXN[IP]*p->DXP[IM1]);
 	 a->M.n[count] -= 0.5*(vft*visc(i+1,j,k)+a->eddyv(i+1,j,k)/sig + vft*visc_ijk+ev_ijk/sig)/(p->DXN[IP]*p->DXP[IP]);

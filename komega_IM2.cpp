@@ -91,9 +91,9 @@ void komega_IM2::timesource(lexer* p, fdm* a, field& fn, field& fnn)
     count=0;
     LOOP
     {
-        a->M.p[count] += 1.5/PDT;
+        a->M.p[count] += 1.5/DT;
 
-        a->rhsvec.V[count] += a->L(i,j,k) + (2.0*fn(i,j,k))/PDT - fnn(i,j,k)/(2.0*PDT);
+        a->rhsvec.V[count] += a->L(i,j,k) + (2.0*fn(i,j,k))/DT - fnn(i,j,k)/(2.0*DT);
 
 	++count;
     }
