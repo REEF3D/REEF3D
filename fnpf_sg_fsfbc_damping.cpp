@@ -90,7 +90,7 @@ void fnpf_sg_fsfbc::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int
         pgc->gcsl_start4(p,f,gcval);
         
         double time=pgc->timer()-starttime;
-        if(p->mpirank==0 && innercounter==p->N50-1 && p->D21==1 && (p->count%p->P12==0))
+        if(p->mpirank==0 && p->count%p->P12==0)
         cout<<"fsfbc_damping: "<<p->solveriter<<"  fsfbc_damping_time: "<<setprecision(3)<<time<<endl;
     }
 }

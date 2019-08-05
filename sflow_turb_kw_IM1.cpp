@@ -183,10 +183,8 @@ void sflow_turb_kw_IM1::timesource(lexer* p, fdm2D *b, slice &fn)
     {
         b->M.p[count] += 1.0/p->dt;
 
-        b->rhsvec.V[count] += b->L(i,j) + fn(i,j)/p->dt + b->M.p[count]*fn(i,j)*(1.0/p->N55-1.0);
+        b->rhsvec.V[count] += b->L(i,j) + fn(i,j)/p->dt;
 		
-		b->M.p[count]/= p->N55;
-
 	++count;
     }
 }

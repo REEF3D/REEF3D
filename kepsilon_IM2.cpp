@@ -62,7 +62,7 @@ void kepsilon_IM2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff
 	pgc->start4(p,kin,gcval_kin);
 	p->kintime=pgc->timer()-starttime;
 	p->kiniter=p->solveriter;
-	if(p->mpirank==0 && (innercounter==p->N50-1 || p->N52==0) && (p->count%p->P12==0))
+	if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"kiniter: "<<p->kiniter<<"  kintime: "<<setprecision(3)<<p->kintime<<endl;
 
 // eps
@@ -78,7 +78,7 @@ void kepsilon_IM2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff
 	pgc->start4(p,eps,gcval_kin);
 	p->epstime=pgc->timer()-starttime;
 	p->epsiter=p->solveriter;
-	if(p->mpirank==0 && (innercounter==p->N50-1 || p->N52==0) && (p->count%p->P12==0))
+	if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"epsiter: "<<p->epsiter<<"  epstime: "<<setprecision(3)<<p->epstime<<endl;
 
 	eddyvisc(a,p,pgc);
@@ -92,10 +92,8 @@ void kepsilon_IM2::timesource(lexer* p, fdm* a, field& fn, field& fnn)
     {
         a->M.p[count]+= 1.5/PDT;
 
-        a->rhsvec.V[count] += a->L(i,j,k) + (2.0*fn(i,j,k))/PDT - fnn(i,j,k)/(2.0*PDT) + a->M.p[count]*fn(i,j,k)*(1.0/p->N55-1.0);
+        a->rhsvec.V[count] += a->L(i,j,k) + (2.0*fn(i,j,k))/PDT - fnn(i,j,k)/(2.0*PDT);
 		
-		a->M.p[count]/= p->N55;
-
 	++count;
     }
 }

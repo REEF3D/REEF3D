@@ -44,12 +44,9 @@ void fnpf_sg_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, 
                      + 0.5*(c->vb(i,j)+c->vb(i,j+1))/(p->DYP[JP]*p->DYN[JP])
                        
                        + 1.0/(alpha*p->dt);
-        
-         c->rvec.V[n] =    c->N.p[n]*f(i,j)*(1.0/p->N54-1.0)
                              
                              + (f(i,j))/(alpha*p->dt);
 
-         c->N.p[n] /= p->N54;
          
          c->N.s[n] = -0.5*(c->vb(i,j)+c->vb(i-1,j))/(p->DXP[IM1]*p->DXN[IP]);
          c->N.n[n] = -0.5*(c->vb(i,j)+c->vb(i+1,j))/(p->DXP[IP]*p->DXN[IP]);
@@ -96,7 +93,7 @@ void fnpf_sg_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, 
         pgc->gcsl_start4(p,f,gcval);
         
         double time=pgc->timer()-starttime;
-        if(p->mpirank==0 && innercounter==p->N50-1 && p->D21==1 && (p->count%p->P12==0))
+        if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
         cout<<"fsfbc_damping: "<<p->solveriter<<"  fsfbc_damping_time: "<<setprecision(3)<<time<<endl;
     }
 }

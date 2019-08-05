@@ -59,8 +59,8 @@ private:
 	double alpha1,alpha2,alpha3;
 	double w1,w2,w3;
 	double umin, umax, uplus;
-	int count,rocount,countN,coliN,aiipos;
-	int *range;
+	int count;
+
     
     
     double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;

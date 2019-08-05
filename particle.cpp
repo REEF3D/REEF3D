@@ -93,7 +93,7 @@ void particle::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
 	
 	p->plstime=pgc->timer()-starttime;
 
-    if(p->mpirank==0 && innercounter==p->N50-1 && (p->count%p->P12==0))
+    if(p->mpirank==0 && (p->count%p->P12==0))
 	{
     cout<<"PLS. neg: "<<gnegactive<<" pos: "<<gposactive<<" n: "<<gncount<<" p: "<<gpcount<<" nbal: "<<gnegbalance<<" pbal: "<<gposbalance<<endl;
 	cout<<"CORR: *"<<gcorrected<<"* rem: "<<gremoved<<" res: "<<greseeded<<" X: "<<gxchange<<" | plstime: "<<p->plstime<<endl;

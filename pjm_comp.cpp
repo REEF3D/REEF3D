@@ -116,7 +116,7 @@ void pjm_comp::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
 
 	p->poissontime=endtime-starttime;
 
-	if(p->mpirank==0 && innercounter==p->N50-1 && (p->count%p->P12==0))
+	if(p->mpirank==0 && (p->count%p->P12==0))
 	{
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime;
 	

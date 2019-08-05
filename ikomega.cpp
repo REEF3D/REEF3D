@@ -274,7 +274,6 @@ void ikomega::epsfsf(lexer *p, fdm* a, ghostcell *pgc)
 	double epsi = p->T38*p->DXM;
 	double dirac;
 
-
 	
 	if(p->T36>0)
 	LOOP

@@ -50,13 +50,9 @@ void sflow_idiff::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
 				   + 1.0/(alpha*p->dt);
     
 	b->rhsvec.V[n] = (visc/(p->dx*p->dx))*((v(i+1,j)-v(i,j)) - (v(i+1,j-1)-v(i,j-1)))
-									
-						 + b->M.p[n]*u(i,j)*(1.0/p->N54-1.0)
                          
 						 + (u(i,j))/(alpha*p->dt);
 
-	 b->M.p[n] /= p->N54;
-	 
 	 b->M.s[n] = -2.0*visc/(p->dx*p->dx);
 	 b->M.n[n] = -2.0*visc/(p->dx*p->dx);
 	 
@@ -103,7 +99,7 @@ void sflow_idiff::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
     
 	time=pgc->timer()-starttime;
 	p->uiter=p->solveriter;
-	if(p->mpirank==0 && innercounter==p->N50-1 && p->D21==1 && (p->count%p->P12==0))
+	if(p->mpirank==0 && p->D21==1 && p->count%p->P12==0)
 	cout<<"udiffiter: "<<p->uiter<<"  udifftime: "<<setprecision(3)<<time<<endl;
 }
 
@@ -123,10 +119,8 @@ void sflow_idiff::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
 				  
 	b->rhsvec.V[n] = (visc/(p->dx*p->dx))*((u(i,j+1)-u(i,j)) - (u(i-1,j+1)-u(i-1,j)))
 									
-						 + b->M.p[n]*v(i,j)*(1.0/p->N54-1.0)
 						 + (v(i,j))/(alpha*p->dt);
 									
-	 b->M.p[n] /= p->N54;
 	 
 	 b->M.s[n] = -visc/(p->dx*p->dx);
 	 b->M.n[n] = -visc/(p->dx*p->dx);
@@ -173,7 +167,7 @@ void sflow_idiff::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
     
 	time=pgc->timer()-starttime;
 	p->viter=p->solveriter;
-	if(p->mpirank==0 && innercounter==p->N50-1 && p->D21==1 && (p->count%p->P12==0))
+	if(p->mpirank==0 && p->D21==1 && p->count%p->P12==0)
 	cout<<"vdiffiter: "<<p->uiter<<"  vdifftime: "<<setprecision(3)<<time<<endl;
 }
 

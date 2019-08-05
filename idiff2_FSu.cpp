@@ -92,11 +92,9 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 				  
 	a->rhsvec.V[count] += ((v(i+1,j,k)-v(i,j,k))*visc_ddy_p - (v(i+1,j-1,k)-v(i,j-1,k))*visc_ddy_m)/(p->DXP[IP]*p->DYN[JP])
 						 + ((w(i+1,j,k)-w(i,j,k))*visc_ddz_p - (w(i+1,j,k-1)-w(i,j,k-1))*visc_ddz_m)/(p->DXP[IP]*p->DZN[KP])
-									
-						 + a->M.p[count]*u(i,j,k)*(1.0/p->N54-1.0)
+
 						 + (CPOR1*u(i,j,k))/(alpha*p->dt);
-									
-	 a->M.p[count] /= p->N54;
+                         
 	 
 	 a->M.s[count] = -2.0*(vfm*visc_ijk+ev_ijk)/(p->DXN[IM1]*p->DXP[IP]);
 	 a->M.n[count] = -2.0*(vfm*visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP]*p->DXP[IP]);
@@ -159,7 +157,7 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
     
 	time=pgc->timer()-starttime;
 	p->uiter=p->solveriter;
-	if(p->mpirank==0 && innercounter==p->N50-1 && p->D21==1 && (p->count%p->P12==0))
+	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
 	cout<<"udiffiter: "<<p->uiter<<"  udifftime: "<<setprecision(3)<<time<<endl;
 }
 

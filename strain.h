@@ -57,9 +57,8 @@ private:
 	double deltax;
 	double pkterm,s,q,val;
 	const double epsi;
-	const int strainlogic;
-	
-	
+
+    
 
 };
 

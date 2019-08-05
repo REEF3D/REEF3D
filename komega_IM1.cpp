@@ -62,7 +62,7 @@ void komega_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,s
 	pgc->start4(p,kin,gcval_kin);
 	p->kintime=pgc->timer()-starttime;
 	p->kiniter=p->solveriter;
-	if(p->mpirank==0 && (innercounter==p->N50-1 || p->N52==0) && (p->count%p->P12==0))
+	if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"kin_iter: "<<p->kiniter<<"  kin_time: "<<setprecision(3)<<p->kintime<<endl;
 
 //omega
@@ -78,7 +78,7 @@ void komega_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,s
 	pgc->start4(p,eps,gcval_eps);
 	p->epstime=pgc->timer()-starttime;
 	p->epsiter=p->solveriter;
-	if(p->mpirank==0 && (innercounter==p->N50-1 || p->N52==0) && (p->count%p->P12==0))
+	if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"omega_iter: "<<p->epsiter<<"  omega_time: "<<setprecision(3)<<p->epstime<<endl;
 
 	eddyvisc(p,a,pgc);
@@ -104,9 +104,7 @@ void komega_IM1::timesource(lexer* p, fdm* a, field& fn)
     {
         a->M.p[count] += 1.0/PDT;
 
-        a->rhsvec.V[count] += a->L(i,j,k) + fn(i,j,k)/PDT + a->M.p[count]*fn(i,j,k)*(1.0/p->N55-1.0);
-		
-		a->M.p[count]/= p->N55;
+        a->rhsvec.V[count] += a->L(i,j,k) + fn(i,j,k)/PDT;
 
 	++count;
     }
