@@ -406,7 +406,6 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Fieldint">
-          <File Name="fieldint7.h"/>
           <File Name="fieldint6.h"/>
           <File Name="fieldint.h"/>
           <File Name="fieldint1.h"/>

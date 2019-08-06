@@ -34,7 +34,7 @@ public:
 	field1 (lexer*);
 	virtual ~field1();
 
-    virtual double& operator()(int, int , int);
+    double& operator()(int, int , int);
 	double& operator[](int);
     virtual void ggcpol(lexer*);
     virtual void resize(lexer*);
