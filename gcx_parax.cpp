@@ -32,13 +32,13 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
     count=0;
     for(q=0;q<p->gcpara1_count;++q)
     {
-    i=p->gcpara1[q][0];
+    i=p->gcpara1[q][0]-1;
     j=p->gcpara1[q][1];
     k=p->gcpara1[q][2];
         
         for(n=0;n<paramargin;++n)
         {
-        send1[count]=f(i+n,j,k);
+        send1[count]=f(i+n+1,j,k);
         ++count;
         }
     }
@@ -47,12 +47,12 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
     for(q=0;q<p->gcpara3_count;++q)
     {
     i=p->gcpara3[q][0];
-    j=p->gcpara3[q][1];
+    j=p->gcpara3[q][1]-1;
     k=p->gcpara3[q][2];
         
         for(n=0;n<paramargin;++n)
         {
-        send3[count]=f(i,j+n,k);
+        send3[count]=f(i,j+n+1,k);
         ++count;
         }
     }
@@ -62,11 +62,11 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
 	{
     i=p->gcpara5[q][0];
     j=p->gcpara5[q][1];
-    k=p->gcpara5[q][2];
+    k=p->gcpara5[q][2]-1;
         
         for(n=0;n<paramargin;++n)
         {
-        send5[count]=f(i,j,k+n);
+        send5[count]=f(i,j,k+n+1);
         ++count;
         }
 	}
@@ -74,13 +74,13 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
     count=0;
 	for(q=0;q<p->gcpara4_count;++q)
 	{
-    i=p->gcpara4[q][0];
+    i=p->gcpara4[q][0]+1;
     j=p->gcpara4[q][1];
     k=p->gcpara4[q][2];
         
         for(n=0;n<paramargin;++n)
         {
-        send4[count]=f(i-n,j,k);
+        send4[count]=f(i-n-1,j,k);
         ++count;
         }
 	}
@@ -89,12 +89,12 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
 	for(q=0;q<p->gcpara2_count;++q)
 	{
     i=p->gcpara2[q][0];
-    j=p->gcpara2[q][1];
+    j=p->gcpara2[q][1]+1;
     k=p->gcpara2[q][2];
         
         for(n=0;n<paramargin;++n)
         {
-        send2[count]=f(i,j-n,k);
+        send2[count]=f(i,j-n-1,k);
         ++count;
         }
 	}
@@ -104,11 +104,11 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
 	{
 	i=p->gcpara6[q][0];
     j=p->gcpara6[q][1];
-    k=p->gcpara6[q][2];
+    k=p->gcpara6[q][2]+1;
         
         for(n=0;n<paramargin;++n)
         {
-        send6[count]=f(i,j,k-n);
+        send6[count]=f(i,j,k-n-1);
         ++count;
         }
 	}
