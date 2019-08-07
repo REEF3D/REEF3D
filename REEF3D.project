@@ -399,7 +399,6 @@
             <File Name="mgc4.h"/>
             <File Name="mgc4a.h"/>
             <File Name="mgccart.h"/>
-            <File Name="mgc4_2D.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="GGC">
             <File Name="ggccart.h"/>
@@ -1700,7 +1699,6 @@
             <File Name="mgccart4.cpp"/>
             <File Name="mgccart4a.cpp"/>
             <File Name="mgccart.cpp"/>
-            <File Name="mgccart4_2D.cpp"/>
           </VirtualDirectory>
           <File Name="field4.cpp"/>
         </VirtualDirectory>

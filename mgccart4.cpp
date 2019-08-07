@@ -406,7 +406,11 @@ void mgc4::gcdirfill(lexer* p)
     k=p->gcpara4[q][2];
         
         for(n=0;n<p->margin;++n)
-		p->mgc4[(i-imin-n-1)*jmax*kmax + (j-jmin)*kmax + k-kmin]+=1;
+		if( p->mgc4[(i-imin-n-1)*jmax*kmax + (j-jmin)*kmax + k-kmin]>1)
+        {
+			di = (n+1);
+			p->gcorig4[p->mgc4[(i-imin-n-1)*jmax*kmax + (j-jmin)*kmax + k-kmin]-10][0][di]=1;
+        }
 	}
 
     for(q=0;q<p->gcpara3_count;++q)
@@ -416,7 +420,11 @@ void mgc4::gcdirfill(lexer* p)
     k=p->gcpara3[q][2];
         
         for(n=0;n<p->margin;++n)
-        p->mgc4[(i-imin)*jmax*kmax + (j-jmin+n+1)*kmax + k-kmin]+=1;
+		if( p->mgc4[(i-imin)*jmax*kmax + (j-jmin+n+1)*kmax + k-kmin]>1)
+        {
+			dj = (n+1);
+			p->gcorig4[p->mgc4[(i-imin)*jmax*kmax + (j-jmin+n+1)*kmax + k-kmin]-10][1][dj]=1;
+        }
     }
     
     for(q=0;q<p->gcpara2_count;++q)
@@ -426,7 +434,11 @@ void mgc4::gcdirfill(lexer* p)
     k=p->gcpara2[q][2];
         
         for(n=0;n<p->margin;++n)
-        p->mgc4[(i-imin)*jmax*kmax + (j-jmin-n-1)*kmax + k-kmin]+=1;
+		if(p->mgc4[(i-imin)*jmax*kmax + (j-jmin-n-1)*kmax + k-kmin]>1)
+        {
+			dj = (n+1);
+			p->gcorig4[p->mgc4[(i-imin)*jmax*kmax + (j-jmin-n-1)*kmax + k-kmin]-10][2][dj]=1;
+	    }
 	}
 
 	for(q=0;q<p->gcpara5_count;++q)
@@ -436,7 +448,11 @@ void mgc4::gcdirfill(lexer* p)
     k=p->gcpara5[q][2]+1;
         
         for(n=0;n<p->margin;++n)
-        p->mgc4[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin+n+1]+=1;
+		if(p->mgc4[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin+n+1]>1)
+        {
+			dk = (n+1);
+			p->gcorig4[p->mgc4[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin+n+1]-10][5][dk]=1;
+        }
 	}
 
 	for(q=0;q<p->gcpara6_count;++q)
@@ -446,7 +462,11 @@ void mgc4::gcdirfill(lexer* p)
     k=p->gcpara6[q][2]-1;
         
         for(n=0;n<p->margin;++n)
-        p->mgc4[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin-n-1]+=1;
+		if( p->mgc4[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin-n-1]>1)
+        {
+			dk = (n+1);
+			p->gcorig4[p->mgc4[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin-n-1]-10][4][dk]=1;
+        }
 	}
 	
 	

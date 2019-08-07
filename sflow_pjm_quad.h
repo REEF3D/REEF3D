@@ -54,6 +54,7 @@ public:
     void poisson(lexer*,fdm2D*,double);
     
 private:
+    void quad_prep(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,double);
     void quad_calc(lexer*,fdm2D*,slice&,slice&,slice&,slice&,double);
     
     
@@ -66,9 +67,11 @@ private:
 	double solvtime,ptime;
     double wd_criterion;
     
-    slice4 phi4;
+    slice4 phi4,press_n;
 	sflow_weno_hj *disc;
     sflow_gradient_weno *pgrad;
+    slice1 Ps;
+    slice2 Qs;
 
 };
 
