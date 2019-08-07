@@ -81,6 +81,7 @@ void lexer::lexer_gridspacing()
     ++count;
     }
     
+    if(j_dir==1)
     for(j=0;j<knoy;++j)
     {
     DXM += DYP[JP];
