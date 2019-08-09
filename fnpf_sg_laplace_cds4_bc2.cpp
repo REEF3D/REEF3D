@@ -301,7 +301,7 @@ void fnpf_sg_laplace_cds4_bc2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solv
             double xdelta = p->DXP[IP] + p->DXP[IM1];
             double ydelta = p->DYP[JP] + p->DYP[JM1];  
             
-            dist = 3.0*(p->DZN[KP]);
+            dist = 2.0*(p->DZN[KP]);
             
             c->M.n[n] += abb*dist*c->Bx(i,j)/(denom*xdelta); 
             c->M.s[n] += -abb*dist*c->Bx(i,j)/(denom*xdelta);
