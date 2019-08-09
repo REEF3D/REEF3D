@@ -47,6 +47,7 @@ fnpf_sg_laplace_cds4::~fnpf_sg_laplace_cds4()
 {
 }
 
+/*
 void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_sg_fsf *pf, double *f)
 {
     // see p. 1130-1132
@@ -308,8 +309,8 @@ void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
 	if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"Fi_iter: "<<p->poissoniter<<" Final_residual: "<<p->final_res<<"  Fi_time: "<<setprecision(3)<<p->poissontime<<endl;
 }
-
-/*
+*/
+void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_sg_fsf *pf, double *f)
 {
     // see p. 1130-1132
     
@@ -465,7 +466,7 @@ void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
 
             if(p->flag7[FIJKp3]<0)
             {
-            c->rhsvec.V[n] -= c->M.tt[n]*f[FIJKp3];
+            //c->rhsvec.V[n] -= c->M.tt[n]*f[FIJKp3];
             c->M.tt[n] = 0.0;
             }
             
@@ -612,4 +613,4 @@ void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
     
 	if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"Fi_iter: "<<p->poissoniter<<" Final_residual: "<<p->final_res<<"  Fi_time: "<<setprecision(3)<<p->poissontime<<endl;
-}*/
+}

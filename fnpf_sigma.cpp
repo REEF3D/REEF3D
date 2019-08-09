@@ -120,6 +120,7 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsf
     FLOOP
     {
     if(c->wet(i,j)==1)
+    {
     p->sigxx[FIJK] = ((1.0 - p->sig[FIJK])/WLVL)*(c->Bxx(i,j) - pow(c->Bx(i,j),2.0)/WLVL) // xx
     
                   - (p->sig[FIJK]/WLVL)*(c->Exx(i,j) - pow(c->Ex(i,j),2.0)/WLVL)
@@ -136,6 +137,20 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsf
                   - (p->sigy[FIJK]/WLVL)*(c->By(i,j) + c->Ey(i,j))
                   
                   - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(c->By(i,j)*c->Ey(i,j));
+                  
+     /*             
+    p->sigxx[FIJK] = -2.0*(1.0 - p->sig[FIJK])/WLVL*(pow(c->Bx(i,j),2.0)/WLVL + pow(c->By(i,j),2.0)/WLVL)
+                    
+                    + 2.0*(2.0*p->sig[FIJK]-1.0)/(WLVL*WLVL)*(c->Bx(i,j)*c->Ex(i,j) + c->By(i,j)*c->Ey(i,j))
+                    
+                    + (1.0 - p->sig[FIJK])/WLVL*(c->Bxx(i,j) + c->Byy(i,j))
+                    
+                    + 2.0*p->sig[FIJK]/WLVL*(pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0))
+                    
+                    - p->sig[FIJK]/WLVL*(c->Exx(i,j) + c->Eyy(i,j));*/
+    }
+                  
+                  
                   
                   
     if(c->wet(i,j)==0)
