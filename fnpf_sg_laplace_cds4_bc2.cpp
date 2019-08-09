@@ -257,6 +257,13 @@ void fnpf_sg_laplace_cds4_bc2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solv
             c->rhsvec.V[n] -= c->M.tt[n]*f[FIJKp3];
             c->M.tt[n] = 0.0;
             }
+            /*
+            if(p->flag7[FIJKm2]<0)
+            {
+            //c->M.p[n] += c->M.bb[n];
+            c->rhsvec.V[n] -= c->M.bb[n]*f[FIJKm2];
+            c->M.bb[n] = 0.0;
+            }*/
 
         } 
             
@@ -302,16 +309,21 @@ void fnpf_sg_laplace_cds4_bc2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solv
             double ydelta = p->DYP[JP] + p->DYP[JM1];  
             
             dist = 2.0*(p->DZN[KP]);
-            
+            /*
             c->M.n[n] += abb*dist*c->Bx(i,j)/(denom*xdelta); 
             c->M.s[n] += -abb*dist*c->Bx(i,j)/(denom*xdelta);
             
             c->M.e[n] += abb*dist*c->By(i,j)/(denom*ydelta);
-            c->M.w[n] += -abb*dist*c->By(i,j)/(denom*ydelta);
+            c->M.w[n] += -abb*dist*c->By(i,j)/(denom*ydelta);*/
+            
+            c->rhsvec.V[n] -= f[FIp1JKm1]*abb*dist*c->Bx(i,j)/(denom*xdelta) - f[FIm1JKm1]*abb*dist*c->Bx(i,j)/(denom*xdelta)
+            
+                            + f[FIJp1Km1]*abb*dist*c->By(i,j)/(denom*ydelta) - f[FIJm1Km1]*abb*dist*c->By(i,j)/(denom*ydelta);
             
             c->M.p[n] += abb;
             c->M.bb[n] = 0.0;
             }
+            
             
             if(p->flag7[FIJKm2]<0 && p->flag7[FIJKm1]>0 && p->A321==2)
             {
