@@ -66,7 +66,7 @@ void fnpf_sg_laplace_cds4_bc2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solv
         // fluid
         if(p->flag7[FIm1JK]>0 && p->flag7[FIp1JK]>0
         && ((p->flag7[FIJm1K]>0 && p->flag7[FIJp1K]>0) || p->j_dir==0)
-        && p->flag7[FIJKm1]>0 && p->flag7[FIJKp1]>0)
+        && p->flag7[FIJKm1]>0  && p->flag7[FIJKp1]>0  && p->flag7[FIJKp2]>0)
         {
         sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
         
@@ -106,7 +106,7 @@ void fnpf_sg_laplace_cds4_bc2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solv
         // near wall
         if(p->flag7[FIm1JK]<0 || p->flag7[FIp1JK]<0
         || ((p->flag7[FIJm1K]<0 || p->flag7[FIJp1K]<0) && p->j_dir==1) 
-        || p->flag7[FIJKm1]<0 || p->flag7[FIJKp1]<0)
+        || p->flag7[FIJKm1]<0 || p->flag7[FIJKp1]<0 || p->flag7[FIJKp2]<0)
         {
         sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
         
@@ -226,7 +226,7 @@ void fnpf_sg_laplace_cds4_bc2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solv
            //--
         if(p->flag7[FIm1JK]>0 && p->flag7[FIp1JK]>0
         && ((p->flag7[FIJm1K]>0 && p->flag7[FIJp1K]>0) || p->j_dir==0)
-        && p->flag7[FIJKm1]>0 && p->flag7[FIJKp1]>0)
+        && p->flag7[FIJKm1]>0  && p->flag7[FIJKp1]>0 && p->flag7[FIJKp2]>0)
         {
             if(p->flag7[FIm2JK]<0)
             {
@@ -251,18 +251,29 @@ void fnpf_sg_laplace_cds4_bc2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solv
             c->M.p[n] += c->M.ww[n];
             c->M.ww[n] = 0.0;
             }
-
+            
+            
             if(p->flag7[FIJKp3]<0)
             {
             c->rhsvec.V[n] -= c->M.tt[n]*f[FIJKp3];
             c->M.tt[n] = 0.0;
             }
             /*
-            if(p->flag7[FIJKm2]<0)
+            if(p->flag7[FIJKp3]<0 && p->flag7[FIJKp2]>0 && p->flag7[FIJKp1]>0)
             {
-            //c->M.p[n] += c->M.bb[n];
-            c->rhsvec.V[n] -= c->M.bb[n]*f[FIJKm2];
+            sigxyz2= pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
+            
+            
+            c->M.p[n] -= sigxyz2*ckz[KP][2]*p->z_dir; 
+            
+            c->M.p[n] += (sigxyz2/(p->DZP[KM1]*p->DZN[KP]))*p->z_dir
+                       + (sigxyz2/(p->DZP[KM1]*p->DZN[KM1]))*p->z_dir;
+        
+            c->M.tt[n] = 0.0; 
             c->M.bb[n] = 0.0;
+            
+            c->M.t[n] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KP])  + p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
+            c->M.b[n] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
             }*/
 
         } 
@@ -303,25 +314,45 @@ void fnpf_sg_laplace_cds4_bc2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solv
             if(p->flag7[FIJKm2]<0 && p->flag7[FIJKm1]>0 && p->A321==1)
             {
             // bb
-            denom = p->sigz[IJ] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
+            denom = p->sigz[IJ] + c->Bx(i,j)*p->sigx[FIJKm1] + c->By(i,j)*p->sigy[FIJKm1];
             
             double xdelta = p->DXP[IP] + p->DXP[IM1];
             double ydelta = p->DYP[JP] + p->DYP[JM1];  
             
             dist = 2.0*(p->DZN[KP]);
-            /*
+            
             c->M.n[n] += abb*dist*c->Bx(i,j)/(denom*xdelta); 
             c->M.s[n] += -abb*dist*c->Bx(i,j)/(denom*xdelta);
             
             c->M.e[n] += abb*dist*c->By(i,j)/(denom*ydelta);
-            c->M.w[n] += -abb*dist*c->By(i,j)/(denom*ydelta);*/
-            
+            c->M.w[n] += -abb*dist*c->By(i,j)/(denom*ydelta);
+            /*
             c->rhsvec.V[n] -= f[FIp1JKm1]*abb*dist*c->Bx(i,j)/(denom*xdelta) - f[FIm1JKm1]*abb*dist*c->Bx(i,j)/(denom*xdelta)
             
-                            + f[FIJp1Km1]*abb*dist*c->By(i,j)/(denom*ydelta) - f[FIJm1Km1]*abb*dist*c->By(i,j)/(denom*ydelta);
+                            + f[FIJp1Km1]*abb*dist*c->By(i,j)/(denom*ydelta) - f[FIJm1Km1]*abb*dist*c->By(i,j)/(denom*ydelta);*/
             
             c->M.p[n] += abb;
             c->M.bb[n] = 0.0;
+            
+            
+            //->make vertically 2nd order!
+            }
+            
+            if(p->flag7[FIJKm2]<0 && p->flag7[FIJKm1]>0 && p->A321==3)
+            {
+            sigxyz2= pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
+            
+            
+            c->M.p[n] -= sigxyz2*ckz[KP][2]*p->z_dir; 
+            
+            c->M.p[n] += (sigxyz2/(p->DZP[KM1]*p->DZN[KP]))*p->z_dir
+                       + (sigxyz2/(p->DZP[KM1]*p->DZN[KM1]))*p->z_dir;
+        
+            c->M.tt[n] = 0.0; 
+            c->M.bb[n] = 0.0;
+            
+            c->M.t[n] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KP])  + p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
+            c->M.b[n] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
             }
             
             
