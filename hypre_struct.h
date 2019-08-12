@@ -41,7 +41,7 @@ class hypre_struct : public solver, public increment
 {
 public:
 
-	hypre_struct(lexer*,fdm*,ghostcell*);
+	hypre_struct(lexer*,fdm*,ghostcell*,int,int);
 	virtual ~hypre_struct();
     
 	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, vec&, int, int, double);
@@ -116,6 +116,8 @@ private:
 	int nentries;
    
 	int numiter,count,q;
+    
+    const int solve_type,precon_type;
     
     
     fieldint4 cval4;

@@ -54,7 +54,7 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
 {
     // solver for pressure poisson and potential laplace equation
     
-    if(p->N10==11)
+    if(solve_type==11)
     {
     HYPRE_StructPCGCreate(pgc->mpi_comm, &solver);
     HYPRE_StructPCGSetMaxIter(solver, p->N46 );
@@ -65,7 +65,7 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     HYPRE_StructPCGSetLogging(solver, 1);
     }
     
-    if(p->N10==12)
+    if(solve_type==12)
     {
     HYPRE_StructGMRESCreate(MPI_COMM_WORLD, &solver);
     HYPRE_StructGMRESSetMaxIter(solver, p->N46);
@@ -75,7 +75,7 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     HYPRE_StructGMRESSetLogging(solver, 1);
     }
     
-    if(p->N10==13)
+    if(solve_type==13)
     {
     HYPRE_StructLGMRESCreate(MPI_COMM_WORLD, &solver);
     HYPRE_StructLGMRESSetMaxIter(solver, p->N46);
@@ -85,7 +85,7 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     HYPRE_StructLGMRESSetLogging(solver, 1);
     }
     
-    if(p->N10==14)
+    if(solve_type==14)
     {
     HYPRE_StructBiCGSTABCreate(pgc->mpi_comm, &solver);
     HYPRE_StructBiCGSTABSetMaxIter(solver, p->N46);
@@ -94,7 +94,7 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     HYPRE_StructBiCGSTABSetLogging(solver, 1);
     }
 	
-	if(p->N10==15)
+	if(solve_type==15)
     {
     HYPRE_StructHybridCreate(pgc->mpi_comm, &solver);
 	HYPRE_StructHybridSetSolverType(solver,0);
@@ -105,7 +105,7 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     HYPRE_StructHybridSetLogging(solver, 1);
     }
 	
-	if(p->N10==16)
+	if(solve_type==16)
     {
     HYPRE_StructHybridCreate(pgc->mpi_comm, &solver);
 	HYPRE_StructHybridSetSolverType(solver,1);
@@ -116,7 +116,7 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     HYPRE_StructHybridSetLogging(solver, 1);
     }
 	
-	if(p->N10==17)
+	if(solve_type==17)
     {
     HYPRE_StructHybridCreate(pgc->mpi_comm, &solver);
 	HYPRE_StructHybridSetSolverType(solver,2);
@@ -127,7 +127,7 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     HYPRE_StructHybridSetLogging(solver, 1);
     }
     
-    if(p->N10==18)
+    if(solve_type==18)
     {
     HYPRE_StructPFMGCreate(pgc->mpi_comm, &solver);
 	HYPRE_StructPFMGSetMaxIter(solver, p->N46);
@@ -142,7 +142,7 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
 	HYPRE_StructPFMGSetLogging(solver, 0);
     }
     
-    if(p->N10==19)
+    if(solve_type==19)
     {
     HYPRE_StructSMGCreate(pgc->mpi_comm, &solver);
     HYPRE_StructSMGSetMemoryUse(solver,0);
@@ -153,13 +153,13 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     HYPRE_StructSMGSetNumPostRelax(solver,1);
     }
     
-    if(p->N11==10)
+    if(precon_type==10)
     {
     HYPRE_StructJacobiCreate(pgc->mpi_comm, &precond);
     HYPRE_StructJacobiSetMaxIter(precond,1);
     }
     
-    if(p->N11==11)
+    if(precon_type==11)
     {
     HYPRE_StructPFMGCreate(pgc->mpi_comm, &precond);
 	HYPRE_StructPFMGSetMaxIter(precond, 1);
@@ -174,7 +174,7 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
 	HYPRE_StructPFMGSetLogging(precond, 0);
     }
     
-    if(p->N11==12)
+    if(precon_type==12)
     {
     HYPRE_StructSMGCreate(pgc->mpi_comm, &precond);
     HYPRE_StructSMGSetMemoryUse(precond,0);
@@ -186,79 +186,79 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     }
 	  
     
-    if(p->N10==11 && p->N11==10)
+    if(solve_type==11 && precon_type==10)
     HYPRE_StructPCGSetPrecond(solver, HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup, precond);
     
-    if(p->N10==11 && p->N11==11)
+    if(solve_type==11 && precon_type==11)
     HYPRE_StructPCGSetPrecond(solver, HYPRE_StructPFMGSolve, HYPRE_StructPFMGSetup, precond);
     
-    if(p->N10==11 && p->N11==12)
+    if(solve_type==11 && precon_type==12)
     HYPRE_StructPCGSetPrecond(solver, HYPRE_StructSMGSolve, HYPRE_StructSMGSetup, precond);
     
     
-    if(p->N10==12 && p->N11==10)
+    if(solve_type==12 && precon_type==10)
     HYPRE_StructGMRESSetPrecond(solver, HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup, precond);
     
-    if(p->N10==12 && p->N11==11)
+    if(solve_type==12 && precon_type==11)
     HYPRE_StructGMRESSetPrecond(solver, HYPRE_StructPFMGSolve, HYPRE_StructPFMGSetup, precond);
     
-    if(p->N10==12 && p->N11==12)
+    if(solve_type==12 && precon_type==12)
     HYPRE_StructGMRESSetPrecond(solver, HYPRE_StructSMGSolve, HYPRE_StructSMGSetup, precond);
     
     
-    if(p->N10==13 && p->N11==10)
+    if(solve_type==13 && precon_type==10)
     HYPRE_StructLGMRESSetPrecond(solver, HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup, precond);
     
-    if(p->N10==13 && p->N11==11)
+    if(solve_type==13 && precon_type==11)
     HYPRE_StructLGMRESSetPrecond(solver, HYPRE_StructPFMGSolve, HYPRE_StructPFMGSetup, precond);
     
-    if(p->N10==13 && p->N11==12)
+    if(solve_type==13 && precon_type==12)
     HYPRE_StructLGMRESSetPrecond(solver, HYPRE_StructSMGSolve, HYPRE_StructSMGSetup, precond);
     
     
-    if(p->N10==14 && p->N11==10)
+    if(solve_type==14 && precon_type==10)
     HYPRE_StructBiCGSTABSetPrecond(solver, HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup, precond);
     
-    if(p->N10==14 && p->N11==11)
+    if(solve_type==14 && precon_type==11)
     HYPRE_StructBiCGSTABSetPrecond(solver, HYPRE_StructPFMGSolve, HYPRE_StructPFMGSetup, precond);
     
-    if(p->N10==14 && p->N11==12)
+    if(solve_type==14 && precon_type==12)
     HYPRE_StructBiCGSTABSetPrecond(solver, HYPRE_StructSMGSolve, HYPRE_StructSMGSetup, precond);
 	
-	if((p->N10==15 || p->N10==16 || p->N10==17) && p->N11==11)
+	if((solve_type==15 || solve_type==16 || solve_type==17) && precon_type==11)
     HYPRE_StructHybridSetPrecond(solver, HYPRE_StructPFMGSolve, HYPRE_StructPFMGSetup, precond);
     
-    if((p->N10==15 || p->N10==16 || p->N10==17) && p->N11==12)
+    if((solve_type==15 || solve_type==16 || solve_type==17) && precon_type==12)
     HYPRE_StructHybridSetPrecond(solver, HYPRE_StructSMGSolve, HYPRE_StructSMGSetup, precond);
 }
 
 void hypre_struct::delete_solver5(lexer* p,ghostcell* pgc)
 {
-    if(p->N10==11)
+    if(solve_type==11)
     HYPRE_StructPCGDestroy(solver);
     
-    if(p->N10==12)
+    if(solve_type==12)
     HYPRE_StructGMRESDestroy(solver);
     
-    if(p->N10==13)
+    if(solve_type==13)
     HYPRE_StructLGMRESDestroy(solver);
     
-    if(p->N10==14)
+    if(solve_type==14)
     HYPRE_StructBiCGSTABDestroy(solver);
 	
-	if(p->N10==15 || p->N10==16 || p->N10==17)
+	if(solve_type==15 || solve_type==16 || solve_type==17)
 	HYPRE_StructHybridDestroy(solver);
     
-    if(p->N10==18)
+    if(solve_type==18)
     HYPRE_StructPFMGDestroy(solver);
     
-    if(p->N10==19)
+    if(solve_type==19)
     HYPRE_StructSMGDestroy(solver);
     
-    if(p->N11==11)
+    if(precon_type==11)
     HYPRE_StructPFMGDestroy(precond);
     
-    if(p->N11==12)
+    if(precon_type==12)
     HYPRE_StructSMGDestroy(precond);
     
 }
