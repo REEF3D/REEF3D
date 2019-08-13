@@ -28,10 +28,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"jacobi_block.h"
 #include"sip.h"
 
-bicgstab_wide::bicgstab_wide(lexer* p, fdm *a, ghostcell *pgc, int precon_select):sj(p),rj(p),r0(p),vj(p),tj(p),pj(p),precoeff(p),
-												ph(p),sh(p),epsi(1e-19)
+bicgstab_wide::bicgstab_wide(lexer* p):sj(p),rj(p),r0(p),vj(p),tj(p),pj(p),precoeff(p),
+												ph(p),sh(p),aii(p),epsi(1e-19)
 {
-	precon = new jacobi_scaling(p,a,pgc);
 
 	margin=3;
 }
@@ -269,6 +268,21 @@ void bicgstab_wide::matvec_std(lexer *p,fdm* a, matrix_diag &M, vec &x, vec &y, 
 	}
 }
 
+void bicgstab_wide::precon(lexer *p,fdm* a, matrix_diag &M, vec &x, vec &y, cpt &C)
+{
+    NLOOP4
+	x.V[n]=y.V[n]*aii.V[n];
+    
+}
+
+void bicgstab_wide::precon_setup(lexer *p,fdm* a, matrix_diag &M, vec &x, vec &y, cpt &C)
+{
+    
+    NLOOP4
+	aii.V[n]=-1.0/(M.p[n]+epsi);
+    
+}
+
 double bicgstab_wide::res_calc(lexer *p, fdm *a, matrix_diag &M, vec &x, ghostcell *pgc, cpt &C)
 {
 	double y;
@@ -324,26 +338,14 @@ void bicgstab_wide::gcupdate(lexer *p, fdm *a, ghostcell *pgc, vec &x, int var, 
 	pgc->start4V(p,x,49);
 }
 
-void bicgstab_wide::fillxvec1(lexer* p, fdm* a, field& f)
-{
-}
-
-void bicgstab_wide::fillxvec2(lexer* p, fdm* a, field& f)
-{
-}
-
-void bicgstab_wide::fillxvec3(lexer* p, fdm* a, field& f)
-{
-}
-
-void bicgstab_wide::fillxvec4(lexer* p, fdm* a, field& f)
+void bicgstab_wide::fillxvec4(lexer* p, field& f, vec &x)
 {
 	int count,q;
 	
 	count=0;
     LOOP
     {
-    a->xvec.V[count]=f(i,j,k);
+    x.V[count]=f(i,j,k);
     ++count;
     }
 
@@ -356,87 +358,55 @@ void bicgstab_wide::fillxvec4(lexer* p, fdm* a, field& f)
         if(p->gcb4[n][3]==1)
         for(q=0;q<margin;++q)
         {
-        a->xvec.V[count]=f(i-1-q,j,k);
+        x.V[count]=f(i-1-q,j,k);
         ++count;
         }
 
         if(p->gcb4[n][3]==2)
         for(q=0;q<margin;++q)
         {
-        a->xvec.V[count]=f(i,j+1+q,k);
+        x.V[count]=f(i,j+1+q,k);
         ++count;
         }
 
         if(p->gcb4[n][3]==3)
         for(q=0;q<margin;++q)
         {
-        a->xvec.V[count]=f(i,j-1-q,k);
+        x.V[count]=f(i,j-1-q,k);
         ++count;
         }
 
         if(p->gcb4[n][3]==4)
         for(q=0;q<margin;++q)
         {
-        a->xvec.V[count]=f(i+1+q,j,k);
+        x.V[count]=f(i+1+q,j,k);
         ++count;
         }
 
         if(p->gcb4[n][3]==5)
         for(q=0;q<margin;++q)
         {
-        a->xvec.V[count]=f(i,j,k-1-q);
+        x.V[count]=f(i,j,k-1-q);
         ++count;
         }
 
         if(p->gcb4[n][3]==6)
         for(q=0;q<margin;++q)
         {
-        a->xvec.V[count]=f(i,j,k+1+q);
+        x.V[count]=f(i,j,k+1+q);
         ++count;
         }
     }
 }
-
+/*
 void bicgstab_wide::finalize(lexer *p, fdm *a, field &f, vec &xvec, int var)
 {
-	if(var==1)
-    {
-        count=0;
-        ULOOP
-        {
-        f(i,j,k)=xvec.V[count];
-        ++count;
-        }
-    }
-	
-	if(var==2)
-    {
-        count=0;
-        VLOOP
-        {
-        f(i,j,k)=xvec.V[count];
-        ++count;
-        }
-    }
-	
-	if(var==3)
-    {
-        count=0;
-        WLOOP
-        {
-        f(i,j,k)=xvec.V[count];
-        ++count;
-        }
-    }
-	
-	if(var==4 || var==5)
-    {
+
         count=0;
         LOOP
         {
         f(i,j,k)=xvec.V[count];
         ++count;
         }
-    }
-}
+}*/
 

@@ -2219,7 +2219,7 @@
           <File Name="fnpf_sg_ini.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
-          <File Name="fnpf_laplace_cds24.cpp"/>
+          <File Name="fnpf_sg_laplace_cds24.cpp"/>
           <File Name="fnpf_sg_laplace_cds4_bc2.cpp"/>
           <File Name="fnpf_sg_laplace_cds4.cpp"/>
           <File Name="fnpf_sg_laplace_cds2.cpp"/>

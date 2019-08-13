@@ -24,11 +24,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include"solver.h"
+#include"bicgstab_wide.h"
 #include"fnpf_sg_bed_update.h"
 
 fnpf_sg_laplace_cds24::fnpf_sg_laplace_cds24(lexer *p) 
 {
     pbed = new fnpf_sg_bed_update(p);
+    
+    psolv4 = new bicgstab_wide(p);
 }
 
 fnpf_sg_laplace_cds24::~fnpf_sg_laplace_cds24()

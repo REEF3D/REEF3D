@@ -33,7 +33,7 @@ using namespace std;
 class bicgstab_wide : public solver, public increment
 {
 public:
-	bicgstab_wide(lexer*,fdm*,ghostcell*,int);
+	bicgstab_wide(lexer*);
 
 	virtual ~bicgstab_wide();
 
@@ -43,12 +43,11 @@ public:
     
 	virtual void solve(lexer*,fdm*, ghostcell*, vec&, vec&, int, int,int&,int,double, cpt&);
 	virtual void setup(lexer*,fdm*, ghostcell*,int,cpt&);
-	
-	virtual void fillxvec1(lexer*,fdm*,field&);
-    virtual void fillxvec2(lexer*,fdm*,field&);
-    virtual void fillxvec3(lexer*,fdm*,field&);
-    virtual void fillxvec4(lexer*,fdm*,field&);
-	virtual void finalize(lexer*,fdm*,field&,vec&,int);
+
+    void fillxvec4(lexer*,field&,vec&);
+    
+    
+	//void finalize(lexer*,field&,vec&,int);
 
     virtual void gcpara_update(lexer*,vec&,ghostcell*);
 	virtual void gcupdate(lexer*,fdm*,ghostcell*,vec&,int,int,int);
@@ -56,14 +55,14 @@ public:
 	virtual double res_calc(lexer*,fdm*, matrix_diag&, vec&, ghostcell*,cpt&);
 	virtual void matvec_axb(lexer*,fdm*, matrix_diag&, vec&, vec&, cpt&);
 	virtual void matvec_std(lexer*,fdm*, matrix_diag&, vec&, vec&,cpt&);
-	
-	
-	solver *precon;
+    
+    virtual void precon(lexer*,fdm*, matrix_diag&, vec&, vec&,cpt&);
+    virtual void precon_setup(lexer*,fdm*, matrix_diag&, vec&, vec&,cpt&);
 	
 
 private:
 
-	vec sj,rj,r0,vj,tj,pj,precoeff,ph,sh;
+	vec sj,rj,r0,vj,tj,pj,precoeff,ph,sh,aii;
 	
 	int *sizeM,*range;
 
