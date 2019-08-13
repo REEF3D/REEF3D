@@ -64,9 +64,9 @@ void suspended_IM2::timesource(lexer* p, fdm* a, field& fn)
     count=0;
     LOOP
     {
-        a->M.p[count]+= 1.5/PDT;
+        a->M.p[count]+= 1.5/DT;
 
-        a->rhsvec.V[count] += a->L(i,j,k) + (2.0*concn(i,j,k))/PDT - concnn(i,j,k)/(2.0*PDT);
+        a->rhsvec.V[count] += a->L(i,j,k) + (2.0*concn(i,j,k))/DT - concnn(i,j,k)/(2.0*DT);
 
 	++count;
     }

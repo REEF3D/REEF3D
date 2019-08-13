@@ -79,8 +79,7 @@ void idiff2::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u, f
 				  
 	a->rhsvec.V[count] += ((v(i+1,j,k)-v(i,j,k))*visc_ddy_p - (v(i+1,j-1,k)-v(i,j-1,k))*visc_ddy_m)/(p->DXP[IP]*p->DYN[JP])
 						 + ((w(i+1,j,k)-w(i,j,k))*visc_ddz_p - (w(i+1,j,k-1)-w(i,j,k-1))*visc_ddz_m)/(p->DXP[IP]*p->DZN[KP])
-									
-						 + a->M.p[count]*u(i,j,k)*(1.0/p->N54-1.0)
+
 						 + (CPOR1*u(i,j,k))/(alpha*p->dt);
 	 
 	 a->M.s[count] -= 2.0*(vfm*visc_ijk+ev_ijk)/(p->DXN[IM1]*p->DXP[IP]);

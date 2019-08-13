@@ -73,22 +73,17 @@ void driver::loop_nsewave(fdm* a)
         
         pflow->wavegen_precalc(p,pgc);
 
-        // outer loop
-        for(innercounter=0;innercounter<p->N50;++innercounter)
-        {
+
 			fill_vel(p,a,pgc);
         
         // Wave Models
         pnse->start(p,a,pgc,pmom,pdiff,pturb,pconvec,ppress,ppois,ppoissonsolv,psolv,pflow);
         poneph->update(p,a,pgc,pflow);
 			
-            if(p->N52==1 || innercounter==0)
-            {
             pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow);
             pheat->start(a,p,pconvec,pdiff,psolv,pgc,pflow);
 			pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
             psusp->start(a,p,pconcdisc,psuspdiff,psolv,pgc,pflow);
-            }
             
         
 		// Sediment Computation
@@ -97,7 +92,6 @@ void driver::loop_nsewave(fdm* a)
 		p6dof->start(p,a,pgc,pmom,pflow,pfsf,pfsfdisc,psolv,preini,ppart);
 
         pbench->start(p,a,pgc,pconvec);
-        }
 		
         //save previous timestep
         pfsf->ltimesave(p,a,a->phi);

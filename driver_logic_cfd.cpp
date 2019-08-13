@@ -208,14 +208,8 @@ void driver::logic()
 	// turbulence
 	if(p->D20==0 || p->T10==0)
 	pturbdiff=new diff_void;
-
-	if(p->D20==1 && p->T11<=10 && p->T10>0)
-	pturbdiff=new ediff2(p);
 	
-	if(p->D20>=2 && p->T11<=10 && p->T10>0)
-	pturbdiff=new idiff2_FS(p);
-	
-	if(p->T11>10)
+	if(p->T10>0 && p->D20>0)
 	pturbdiff=new idiff2(p);	
 	
 	// concentration
@@ -228,9 +222,6 @@ void driver::logic()
 	if(p->D20>=2 && p->C10<=10 && p->C10>0)
 	pconcdiff=new idiff2_FS(p);
 	
-	if(p->C10>10)
-	pconcdiff=new idiff2(p);
-	
 	// susepdended 
 	if(p->S60<11 && p->S60>0)
 	psuspdiff=new ediff2(p);
@@ -240,10 +231,6 @@ void driver::logic()
 	
 	if(p->D20>=2 && p->S60<=10 && p->S60>0)
 	psuspdiff=new idiff2_FS(p);
-	
-	if(p->S60>10)
-	psuspdiff=new idiff2(p);
-	
 
 
 //turbulence model
@@ -541,7 +528,7 @@ void driver::logic()
 	
 	#ifdef HYPRE_COMPILATION
 	if(p->N10>=10 && p->N10<20)
-	ppoissonsolv = new hypre_struct(p,a,pgc);
+	ppoissonsolv = new hypre_struct(p,a,pgc,p->N10,p->N11);
 	#endif
     
     #ifdef HYPRE_COMPILATION

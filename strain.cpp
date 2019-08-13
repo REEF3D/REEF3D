@@ -25,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"fieldint.h"
 
-strain::strain(lexer *p, fdm *a)	: gradient(p),epsi(p->F45*p->dx),strainlogic(p->T43),Pk(p)
+strain::strain(lexer *p, fdm *a)	: gradient(p),epsi(p->F45*p->dx),Pk(p)
 {
 	deltax=p->dx;
 }
@@ -55,8 +55,6 @@ void strain::Pk_update(lexer *p, fdm *a, ghostcell *pgc)
 {
 	int n;
 	
-	
-	if(strainlogic==1)
 	LOOP
     {
 	s11 = pudx(p,a);
@@ -67,12 +65,7 @@ void strain::Pk_update(lexer *p, fdm *a, ghostcell *pgc)
 	s23 = (pvdz(p,a) + pwdy(p,a));
 
     Pk(i,j,k) = a->eddyv(i,j,k)*(2.0*s11*s11 + 2.0*s22*s22 + 2.0*s33*s33 + s12*s12 + s13*s13 + s23*s23);
-    }
-
-    if(strainlogic==2)
-	LOOP
-	Pk(i,j,k) = a->eddyv(i,j,k)*(qij(p,a,1,2)*qij(p,a,1,2) + qij(p,a,1,3)*qij(p,a,1,3) + qij(p,a,2,1)*qij(p,a,2,1) + qij(p,a,2,3)*qij(p,a,2,3) + qij(p,a,3,1)*qij(p,a,3,1) + qij(p,a,3,2)*qij(p,a,3,2));
-		
+    }	
 }
 
 double strain::sij(lexer *p, fdm *a, int ii, int jj)

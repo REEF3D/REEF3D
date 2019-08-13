@@ -32,7 +32,7 @@ void fnpf_sg_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
     SLICELOOP4
     c->breaking(i,j)=0;
     
-    if((p->A350==1 || p->A350==3) && p->count>1)
+    if((p->A351==1 || p->A351==3) && p->count>1)
     SLICELOOP4
     {
             
@@ -42,7 +42,7 @@ void fnpf_sg_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
             }
     }
     
-    if((p->A350==2 || p->A350==3) && p->count>1)
+    if((p->A351==2 || p->A351==3) && p->count>1)
     SLICELOOP4
     {
             
@@ -115,8 +115,8 @@ void fnpf_sg_fsfbc_wd::filter(lexer *p, fdm_fnpf *c,ghostcell *pgc, slice &f)
     double he,hw,hn,hs,hp;
     double dhe, dhw, dhn, dhs,dhp;
     
-    int outer_iter = p->A350;
-    int inner_iter = p->A351;
+    int outer_iter = p->A361;
+    int inner_iter = p->A362;
     
     if(p->j_dir==0)
 	for(int qn=0;qn<outer_iter;++qn)

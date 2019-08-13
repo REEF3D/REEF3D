@@ -269,11 +269,6 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 #define GGC6LOOP  for(g=0;g<p->gcb_fix;++g)
 
 
-#define UDT p->dt
-#define VDT p->dt
-#define WDT p->dt
-#define PDT p->dt
-
 #define DT p->dt
 #define NDT p->dt_old
 

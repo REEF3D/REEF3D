@@ -45,16 +45,6 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 	p->umax=p->vmax=p->wmax=p->viscmax=0.0;
 	sqd=1.0/(p->dx*p->dx);
 	
-	//  increasing N4/
-    if(p->N57_1>0 && p->N57_2>0)
-    {
-        if(p->count>=p->N57_1 && p->count<p->N57_2)
-        p->N47=c0_orig + (p->N57_3-c0_orig)/(double(p->N57_2)-double(p->N57_1))*(p->count-p->N57_1);
-
-        if(p->count>=p->N57_2)
-        p->N47=p->N57_3;
-    }
-
 // maximum velocities
 
 

@@ -53,7 +53,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define HPXM (0.5*(HP + HPIM))
 #define HPYM (0.5*(HP + HPJM))
  
-sflow_pjm_quad::sflow_pjm_quad(lexer* p, fdm2D *b) : phi4(p)
+sflow_pjm_quad::sflow_pjm_quad(lexer* p, fdm2D *b) : press_n(p),phi4(p), Ps(p), Qs(p)
 {
     if(p->B76==0)
     gcval_press=40;  
@@ -104,7 +104,8 @@ void sflow_pjm_quad::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, 
 	
 	starttime=pgc->timer();
 	
-    quad_calc(p,b,P,Q,Pn,Qn,alpha);
+    quad_prep(p,b,pgc,P,Q,eta,alpha);
+    quad_calc(p,b,Ps,Qs,Pn,Qn,alpha);
     
     rhs(p,b,P,Q,ws,alpha);
 	pgc->gcsl_start4(p,b->press,gcval_press);
@@ -121,6 +122,7 @@ void sflow_pjm_quad::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, 
   
     pflow->pm_relax(p,pgc,b->press);
 	pgc->gcsl_start4(p,b->press,gcval_press);
+    pgc->gcsl_start4(p,press_n,gcval_press);
 	b->press.ggcpol(p);
     
     
@@ -202,7 +204,10 @@ void sflow_pjm_quad::rhs(lexer *p, fdm2D* b, slice &P, slice &Q, slice &ws, doub
     
     if(p->A221<2)
     SLICELOOP4
+    {
+    press_n(i,j)=b->press(i,j);
     b->press(i,j)=0.0;
+    }
 }
 
 void sflow_pjm_quad::poisson(lexer*p, fdm2D* b, double alpha)
@@ -345,6 +350,22 @@ void sflow_pjm_quad::quad_calc(lexer *p,fdm2D *b,slice &P, slice &Q, slice &Pn, 
                 - pow(Qval,2.0)*((b->depth(i,j+1) - 2.0*b->depth(i,j) + b->depth(i,j-1))/(p->dx*p->dx));
        
     }
+}
+
+void sflow_pjm_quad::quad_prep(lexer *p,fdm2D *b,ghostcell *pgc,slice &P, slice &Q, slice &eta, double alpha)
+{   
+    SLICELOOP1
+    Ps(i,j) = P(i,j);
+    
+    SLICELOOP2
+    Qs(i,j) = Q(i,j);
+    
+    
+    ucorr(p,b,Ps,eta,alpha);
+	vcorr(p,b,Qs,eta,alpha);
+    
+    pgc->gcsl_start1(p,Ps,10);
+	pgc->gcsl_start2(p,Qs,11);
 }
 
 void sflow_pjm_quad::wpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)

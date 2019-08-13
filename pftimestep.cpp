@@ -175,15 +175,7 @@ void pftimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
     p->umax+=5.0;
 
 	cu= + 2.0/((p->umax/p->dx+visccrit)+sqrt(pow(p->umax/p->dx+visccrit,2.0)+(4.0*sqrt(fabs(a->gi) + fabs(a->gj) +fabs(a->gk)))/p->dx));// + (8.0*p->maxkappa*p->W5)/(2.0*p->dx*p->dx*(p->W1+p->W3)));
-
-    //  connect residuals to time marching
-    if(p->N58==1)
-    {
-    p->N53/=(1.0+p->N47);
-	p->N54/=(1.0+p->N47);
-	p->N55/=(1.0+p->N47);
-	p->N56/=(1.0+p->N47);
-    }
+    
 
 	p->dt=p->N47*cu;
 	p->dt=pgc->timesync(p->dt);

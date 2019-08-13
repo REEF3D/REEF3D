@@ -399,14 +399,12 @@
             <File Name="mgc4.h"/>
             <File Name="mgc4a.h"/>
             <File Name="mgccart.h"/>
-            <File Name="mgc4_2D.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="GGC">
             <File Name="ggccart.h"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Fieldint">
-          <File Name="fieldint7.h"/>
           <File Name="fieldint6.h"/>
           <File Name="fieldint.h"/>
           <File Name="fieldint1.h"/>
@@ -588,6 +586,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
       <VirtualDirectory Name="CG">
+        <File Name="bicgstab_wide.h"/>
         <File Name="bicgstab_2D.h"/>
         <File Name="bicgstab.h"/>
       </VirtualDirectory>
@@ -739,6 +738,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
           <File Name="fnpf_sg_laplace_cds24.h"/>
+          <File Name="fnpf_sg_laplace_cds4_bc2.h"/>
           <File Name="fnpf_sg_laplace_cds4.h"/>
           <File Name="fnpf_sg_laplace_cds2.h"/>
           <File Name="fnpf_fg_laplace.h"/>
@@ -1702,7 +1702,6 @@
             <File Name="mgccart4.cpp"/>
             <File Name="mgccart4a.cpp"/>
             <File Name="mgccart.cpp"/>
-            <File Name="mgccart4_2D.cpp"/>
           </VirtualDirectory>
           <File Name="field4.cpp"/>
         </VirtualDirectory>
@@ -2005,6 +2004,7 @@
         <File Name="hypre_sstruct.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CG">
+        <File Name="bicgstab_wide.cpp"/>
         <File Name="bicgstab_2D.cpp"/>
         <File Name="bicgstab.cpp"/>
       </VirtualDirectory>
@@ -2219,7 +2219,8 @@
           <File Name="fnpf_sg_ini.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
-          <File Name="fnpf_sg_laplace_cds24.cpp"/>
+          <File Name="fnpf_laplace_cds24.cpp"/>
+          <File Name="fnpf_sg_laplace_cds4_bc2.cpp"/>
           <File Name="fnpf_sg_laplace_cds4.cpp"/>
           <File Name="fnpf_sg_laplace_cds2.cpp"/>
           <File Name="fnpf_fg_laplace_cds4.cpp"/>

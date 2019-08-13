@@ -24,8 +24,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 class fnpf_sg_bed_update;
 
-#ifndef FNPF_SG_LAPLACE_CDS24_H_
-#define FNPF_SG_LAPLACE_CDS24_H_
+#ifndef LAPLACE_FNPF_SG_CDS24_H_
+#define LAPLACE_FNPF_SG_CDS24_H_
 
 using namespace std;
 
@@ -39,8 +39,10 @@ public:
     
 private:
     
-    double **ckx,**cky,**ckz;
+    double sqd;
+    
     fnpf_sg_bed_update *pbed;
+
 };
 
 #endif

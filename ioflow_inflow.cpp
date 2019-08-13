@@ -136,7 +136,7 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
         tau=(9.81*H*I*1000.0);
         //shearvel= sqrt(fabs(tau/1000.0));
 		
-		if(p->mpirank==0 && innercounter==p->N50-1 && p->count==0)
+		if(p->mpirank==0 && p->count==0)
 		cout<<"I   "<<I<<endl;
 		
 		shearvel = p->Ui/(2.5*log((11.0*H/ks)));

@@ -50,6 +50,10 @@ double density_conc::roface(lexer *p, fdm *a, int aa, int bb, int cc)
         
         concval = 0.5*(pconc->val(i,j,k) + pconc->val(i+aa,j+bb,k+cc));
         
+        if(p->j_dir==0)
+        psi = p->F45*(1.0/1.0)*(p->DXN[IP]+p->DZN[KP]);
+        
+        if(p->j_dir==1)
         psi = p->F45*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
     
         if(phival>psi)

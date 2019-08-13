@@ -28,7 +28,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"field.h"
 #include"vec.h"
 
-hypre_struct::hypre_struct(lexer* p,fdm* a,ghostcell *pgc) : cval4(p)
+hypre_struct::hypre_struct(lexer* p,fdm* a,ghostcell *pgc, int solve_input, int precon_input) : cval4(p),  
+                                                                                               solve_type(solve_input), precon_type(precon_input)
 {	
     int vecsize=p->knox*p->knoy*p->knoz; 
     

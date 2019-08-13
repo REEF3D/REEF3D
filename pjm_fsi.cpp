@@ -116,7 +116,7 @@ if (fabs(p->pos_x()-0.025)<0.001 && fabs(p->pos_z()-1.05)<0.3) cout<<"with p "<<
 
 	p->poissontime=endtime-starttime;
 
-	if(p->mpirank==0 && innercounter==p->N50-1)
+	if(p->mpirank==0)
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
     
 }

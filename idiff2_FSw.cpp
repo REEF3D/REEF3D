@@ -43,6 +43,7 @@ void idiff2_FS::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
     {
     WLOOP
     {
+
 	ev_ijk=a->eddyv(i,j,k);
 	ev_im_j_k=a->eddyv(i-1,j,k);
 	ev_ip_j_k=a->eddyv(i+1,j,k);
@@ -61,7 +62,20 @@ void idiff2_FS::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 	visc_ddx_m = (vfm*visc_im_j_k+ev_im_j_k + vfm*a->visc(i-1,j,k-1)+a->eddyv(i-1,j,k-1) + vfm*visc_ijk+ev_ijk + vfm*visc_i_j_kp+ev_i_j_kp)*0.25;
 	visc_ddy_p = (vfm*visc_ijk+ev_ijk + vfm*visc_i_j_kp+ev_i_j_kp + vfm*visc_i_jp_k+ev_i_jp_k + vfm*a->visc(i,j+1,k+1)+a->eddyv(i,j+1,k+1))*0.25;
 	visc_ddy_m = (vfm*visc_i_jm_k+ev_i_jm_k + vfm*a->visc(i,j-1,k+1)+a->eddyv(i,j-1,k+1) + vfm*visc_ijk+ev_ijk + vfm*visc_i_j_kp+ev_i_j_kp)*0.25;
-	
+    
+    /*
+    visc_ddx_p = 0.5*(a->visc(i,j,k) + a->visc(i,j,k+1)) + 0.5*(a->eddyv(i,j,k) + a->eddyv(i,j,k+1));
+    visc_ddx_m = 0.5*(a->visc(i,j,k) + a->visc(i,j,k+1)) + 0.5*(a->eddyv(i,j,k) + a->eddyv(i,j,k+1));
+    
+    visc_ddy_p = 0.5*(a->visc(i,j,k) + a->visc(i,j,k+1)) + 0.5*(a->eddyv(i,j,k) + a->eddyv(i,j,k+1));
+    visc_ddy_m = 0.5*(a->visc(i,j,k) + a->visc(i,j,k+1)) + 0.5*(a->eddyv(i,j,k) + a->eddyv(i,j,k+1));
+    
+    ev_ijk=a->eddyv(i,j,k);
+    ev_i_j_kp=a->eddyv(i,j,k+1);
+    
+    visc_ijk=a->visc(i,j,k);
+	visc_i_j_kp=a->visc(i,j,k+1);*/
+    
     
 	a->M.p[count] = 2.0*(vfm*visc_i_j_kp+ev_i_j_kp)/(p->DZN[KP]*p->DZP[KP])
 				  + 2.0*(vfm*visc_ijk+ev_ijk)/(p->DZN[KM1]*p->DZP[KP])
@@ -74,10 +88,7 @@ void idiff2_FS::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 	a->rhsvec.V[count] += ((a->u(i,j,k+1)-u(i,j,k))*visc_ddx_p - (u(i-1,j,k+1)-u(i-1,j,k))*visc_ddx_m)/(p->DZP[KP]*p->DXN[IP])
 						+  ((a->v(i,j,k+1)-v(i,j,k))*visc_ddy_p - (v(i,j-1,k+1)-v(i,j-1,k))*visc_ddy_m)/(p->DZP[KP]*p->DYN[JP])
 									
-						+  a->M.p[count]*w(i,j,k)*(1.0/p->N54-1.0)
 						+ (CPOR3*w(i,j,k))/(alpha*p->dt);
-									
-	a->M.p[count] /= p->N54;
 	 
 	 a->M.s[count] = -visc_ddx_m/(p->DXP[IM1]*p->DXN[IP]);
 	 a->M.n[count] = -visc_ddx_p/(p->DXP[IP]*p->DXN[IP]);
@@ -142,7 +153,7 @@ void idiff2_FS::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 	
 	time=pgc->timer()-starttime;
 	p->witer=p->solveriter;
-	if(p->mpirank==0 && innercounter==p->N50-1 && p->D21==1 && (p->count%p->P12==0))
+	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
 	cout<<"wdiffiter: "<<p->witer<<"  wdifftime: "<<setprecision(3)<<time<<endl;
 }
 

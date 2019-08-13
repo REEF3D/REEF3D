@@ -83,7 +83,7 @@ void fluid_update_fsf_concentration::start(lexer *p, fdm* a, ghostcell* pgc)
 	p->volume1 = pgc->globalsum(p->volume1);
 	p->volume2 = pgc->globalsum(p->volume2);
 
-    if(p->mpirank==0 && iocheck==0 && (innercounter==p->N50-1 || p->N52==0) && (p->count%p->P12==0))
+    if(p->mpirank==0 && iocheck==0 && (p->count%p->P12==0))
     {
 	cout<<"Volume 1: "<<p->volume1<<endl;
 	cout<<"Volume 2: "<<p->volume2<<endl;

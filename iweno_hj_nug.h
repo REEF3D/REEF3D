@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"convection.h"
-#include"increment.h"
+#include"weno_nug_func.h"
 
 class flux;
 
@@ -29,7 +29,7 @@ class flux;
 
 using namespace std;
 
-class iweno_hj_nug : public convection, public increment
+class iweno_hj_nug : public convection, public weno_nug_func
 {
 public:
 	iweno_hj_nug (lexer*);
@@ -42,17 +42,6 @@ private:
     void wenoloop2(lexer*,fdm*,field&,int,field&,field&,field&);
     void wenoloop3(lexer*,fdm*,field&,int,field&,field&,field&);
     void wenoloop4(lexer*,fdm*,field&,int,field&,field&,field&);
-
-	void is_south(field&);
-	void is_north(field&);
-	void is_east(field&);
-	void is_west(field&);
-	void is_top(field&);
-	void is_bottom(field&);
-
-	void alpha_calc();
-
-	void weight_calc();
 
 	void aij(fdm*, field&,field&,field&,field&);
 	void aij_south(lexer*,fdm*,field&, field&);
@@ -70,14 +59,16 @@ private:
 	double alpha1,alpha2,alpha3;
 	double w1,w2,w3;
 	double umin, umax, uplus;
-	int count,rocount,countN,coliN,aiipos;
-	int *range;
+	int count;
+
     
     
     double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
     double iadvec,jadvec,kadvec;
     
     flux *pflux;
+    
+    double *DX,*DY,*DZ;
 
 };
 

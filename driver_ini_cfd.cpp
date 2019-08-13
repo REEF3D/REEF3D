@@ -180,15 +180,8 @@ cout<<"starting driver_ini"<<endl;
 // ini variables
     for(int qn=0; qn<2; ++qn)
     {
-    pmom->utimesave(p,a,pgc);
-    pmom->vtimesave(p,a,pgc);
-    pmom->wtimesave(p,a,pgc);
-    pfsf->ltimesave(p,a,a->phi);
     pturb->ktimesave(p,a,pgc);
     pturb->etimesave(p,a,pgc);
-    pheat->ttimesave(p,a);
-    pconc->ttimesave(p,a);
-    psusp->ctimesave(p,a);
     }
 
     p->gctime=0.0;

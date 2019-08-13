@@ -67,7 +67,6 @@ void idiff2::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u, f
 
 						+  ((v(i,j,k+1)-v(i,j,k))*visc_ddy_p - (v(i,j-1,k+1)-v(i,j-1,k))*visc_ddy_m)/(p->DZP[KP]*p->DYN[JP])
 									
-						+  a->M.p[count]*w(i,j,k)*(1.0/p->N54-1.0)
 						+ (CPOR3*w(i,j,k))/(alpha*p->dt);
 									
 	 a->M.s[count] -= visc_ddx_m/(p->DXP[IM1]*p->DXN[IP]);

@@ -412,17 +412,6 @@ void lexer::ini_default()
 	N47=0.3;		// doubel relaxation factor for time stepping
 	N48=1;          // int adaptive timestepping
 	N49=1.0;		// double max timestep or fixed timesteps
-	N50=1;			// int inner SIMPLE loop iterations
-	N51=1.0e-5;     // double stopping criteria inner SIMPLE loop
-	N52=1;          // int inner loop for turb and lsm
-	N53=1.0;       // double pressure relaxation factor, implicit
-	N54=1.0;       // double velocities relaxation factor, implicit
-	N55=1.0;       // double turbulence relaxation factor, implicit
-	N56=1.0;       // double levelset relaxation factor, implicit
-	N57_1=0;       // int iteration start increasing N47
-	N57_2=0;       // int iteration end increasing N47
-	N57_3=0.3;     // double final N47
-	N58=0;         // int enable timestep dependend relaxation factors
 	N60=10;        // int maximum iteration of pjm correction
 	N61=500.0;      // double stopping criteria velocities
 	N71=2;          // order of gcepol extend
@@ -580,8 +569,7 @@ void lexer::ini_default()
     T39=1.0;            // double dirac function factor for fsf damping
 	T40=1;              // int source term limiter
 	T41=1;				// int source term definition for omega in kw model
-	T42=10.0;			// double factor for limiter for production limiter
-	T43=1;				// int Pk term with strain or vorticity    
+	T42=10.0;			// double factor for limiter for production limiter   
 	T51=0.0;            // double inflow turbulent intensity
 	T52=0.00001;        // double inflow turbulent intensity
 	T53=1.0;            // double factor for inflow turbulent dissipation

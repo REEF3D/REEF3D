@@ -43,6 +43,7 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
     {
     VLOOP
     {
+        
 	ev_ijk=a->eddyv(i,j,k);
 	ev_im_j_k=a->eddyv(i-1,j,k);
 	ev_ip_j_k=a->eddyv(i+1,j,k);
@@ -61,6 +62,19 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 	visc_ddx_m = (vfm*visc_im_j_k+ev_im_j_k + vfm*a->visc(i-1,j+1,k)+a->eddyv(i-1,j+1,k) + vfm*visc_ijk+ev_ijk + vfm*visc_i_jp_k+ev_i_jp_k)*0.25;
 	visc_ddz_p = (vfm*visc_ijk+ev_ijk + vfm*visc_i_jp_k+ev_i_jp_k + vfm*visc_i_j_kp+ev_i_j_kp + vfm*a->visc(i,j+1,k+1)+a->eddyv(i,j+1,k+1))*0.25;
 	visc_ddz_m = (vfm*visc_i_j_km+ev_i_j_km + vfm*a->visc(i,j+1,k-1)+a->eddyv(i,j+1,k-1) + vfm*visc_ijk+ev_ijk + vfm*visc_i_jp_k+ev_i_jp_k)*0.25;
+    
+    /*
+    visc_ddx_p = 0.5*(a->visc(i,j,k) + a->visc(i,j+1,k)) + 0.5*(a->eddyv(i,j,k) + a->eddyv(i,j+1,k));
+    visc_ddx_m = 0.5*(a->visc(i,j,k) + a->visc(i,j+1,k)) + 0.5*(a->eddyv(i,j,k) + a->eddyv(i,j+1,k));
+    
+    visc_ddz_p = 0.5*(a->visc(i,j,k) + a->visc(i,j+1,k)) + 0.5*(a->eddyv(i,j,k) + a->eddyv(i,j+1,k));
+    visc_ddz_m = 0.5*(a->visc(i,j,k) + a->visc(i,j+1,k)) + 0.5*(a->eddyv(i,j,k) + a->eddyv(i,j+1,k));
+    
+    ev_ijk=a->eddyv(i,j,k);
+	ev_i_jp_k=a->eddyv(i,j+1,k);
+    visc_ijk=a->visc(i,j,k);
+	visc_i_jp_k=a->visc(i,j+1,k);
+    */
 	
 	
 	a->M.p[count] = 2.0*(vfm*visc_i_jp_k+ev_i_jp_k)/(p->DYN[JP]*p->DYP[JP])
@@ -74,10 +88,7 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 	a->rhsvec.V[count] += ((u(i,j+1,k)-u(i,j,k))*visc_ddx_p - (u(i-1,j+1,k)-u(i-1,j,k))*visc_ddx_m)/(p->DYP[JP]*p->DXN[IP])
 						+  ((w(i,j+1,k)-w(i,j,k))*visc_ddz_p - (w(i,j+1,k-1)-w(i,j,k-1))*visc_ddz_m)/(p->DYP[JP]*p->DZN[KP])
 									
-						+  a->M.p[count]*v(i,j,k)*(1.0/p->N54-1.0)
 						+ (CPOR2*v(i,j,k))/(alpha*p->dt);
-						
-	a->M.p[count] /= p->N54;
 	 
 	 a->M.s[count] = -visc_ddx_m/(p->DXP[IM1]*p->DXN[IP]);
 	 a->M.n[count] = -visc_ddx_p/(p->DXP[IP]*p->DXN[IP]);
@@ -139,7 +150,7 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
     
 	time=pgc->timer()-starttime;
 	p->viter=p->solveriter;
-	if(p->mpirank==0 && innercounter==p->N50-1 && p->D21==1 && (p->count%p->P12==0))
+	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
 	cout<<"vdiffiter: "<<p->viter<<"  vdifftime: "<<setprecision(3)<<time<<endl;
 }
 

@@ -74,20 +74,15 @@ void driver::loop_cfd_fsi(fdm* a)
         
 		pflow->wavegen_precalc(p,pgc);
 
-		// outer loop
-		//for(innercounter=0;innercounter<p->N50;++innercounter)
-		{
 			fill_vel(p,a,pgc);
 			
-			//if(p->N52==1 || innercounter==0)
-			{
 				pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,ppart,a->phi);
 				poneph->update(p,a,pgc,pflow);
 				pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow);
 				pheat->start(a,p,pconvec,pdiff,psolv,pgc,pflow);
 				pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
 				psusp->start(a,p,pconcdisc,psuspdiff,psolv,pgc,pflow);
-			}
+
 
 			// Sediment Computation
 			psed->start(p,a,pconvec,pgc,pflow,ptopo,preto,psusp,pbed);
@@ -101,19 +96,12 @@ void driver::loop_cfd_fsi(fdm* a)
 //			pfsf->update(p,a,pgc,a->phi);
 //			pmom->start(p,a,pgc,pmom); 
 			pbench->start(p,a,pgc,pconvec);
-		}
+		
 		
 		//save previous timestep
-		pmom->utimesave(p,a,pgc);
-		pmom->vtimesave(p,a,pgc);
-		pmom->wtimesave(p,a,pgc);
-		pflow->veltimesave(p,a,pgc);
-											pfsf->ltimesave(p,a,a->phi);
 		pturb->ktimesave(p,a,pgc);
-		pturb->etimesave(p,a,pgc);
-		pheat->ttimesave(p,a);
-		pconc->ttimesave(p,a);
-		psusp->ctimesave(p,a);
+        pturb->etimesave(p,a,pgc);
+        pflow->veltimesave(p,a,pgc);
 
 		//timestep control
 		ptstep->start(a,p,pgc,pturb);

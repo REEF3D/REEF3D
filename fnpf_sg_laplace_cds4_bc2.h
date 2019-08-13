@@ -19,47 +19,28 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"gradient.h"
-#include"field1.h"
-#include"field2.h"
-#include"field3.h"
-#include"field4.h"
+#include"fnpf_sg_laplace.h"
+#include"increment.h"
 
-class ghostcell;
-class fieldint;
+class fnpf_sg_bed_update;
 
-#ifndef STRAIN_H_
-#define STRAIN_H_
+#ifndef FNPF_SG_LAPLACE_CDS4_BC2_H_
+#define FNPF_SG_LAPLACE_CDS4_BC2_H_
 
 using namespace std;
 
-class strain : public gradient
+class fnpf_sg_laplace_cds4_bc2 : public fnpf_sg_laplace, public increment
 {
-
 public:
-	strain (lexer*,fdm*);
-	virtual ~strain();
+    fnpf_sg_laplace_cds4_bc2 (lexer*);
+	virtual ~fnpf_sg_laplace_cds4_bc2();
 
-	double sij(lexer*,fdm*,int,int);
-	double qij(lexer*,fdm*,int,int);
-	double pk(lexer*,fdm*);
-	double pk_k(lexer*,fdm*);
-	double pk_w(lexer*,fdm*);
-	void Pk_update(lexer*,fdm*,ghostcell*);
-	void wallf_update(lexer*,fdm*,ghostcell*,fieldint&);
-	virtual double strainterm(lexer*,fdm*);
-	double strainplain(lexer*,fdm*);
-	field4 Pk;
-
-private:
-    double s11,s22,s33,s12,s13,s23;
-    double q11,q22,q33,q12,q13,q23;
-	double deltax;
-	double pkterm,s,q,val;
-	const double epsi;
-
+    virtual void start(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_sg_fsf*,double*);
     
-
+private:
+    
+    double **ckx,**cky,**ckz;
+    fnpf_sg_bed_update *pbed;
 };
 
 #endif

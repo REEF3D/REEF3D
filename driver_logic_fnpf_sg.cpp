@@ -92,7 +92,7 @@ void driver::logic_fnpf_sg()
 	
 	#ifdef HYPRE_COMPILATION
 	if(p->N10>=10 && p->N10<20)
-    plapsolv = new hypre_struct(p,a,pgc);
+    plapsolv = new hypre_struct(p,a,pgc,p->N10,p->N11);
     #endif
     
     #ifdef HYPRE_COMPILATION

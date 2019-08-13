@@ -312,7 +312,7 @@ void fnpf_fg_laplace_cds4::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv
     
     p->poissoniter=p->solveriter;
     p->poissontime=endtime-starttime;
-	if(p->mpirank==0 && innercounter==p->N50-1 && (p->count%p->P12==0))
+	if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"Fi_iter: "<<p->solveriter<<"  Fi_time: "<<setprecision(3)<<p->poissontime<<endl;
 }
 

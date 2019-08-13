@@ -30,14 +30,14 @@ void ioflow_f::discharge2D(lexer *p, fdm2D* b, ghostcell* pgc)
     Qout2D(p,b,pgc);
 
 	if(p->count==0)
-    if(p->mpirank==0 && innercounter==p->N50-1)
+    if(p->mpirank==0)
     {
     cout<<"Inflow_0:  "<<setprecision(5)<<p->W10<<" Ui: "<<p->Ui<<" Ai: "<<Ai<<endl;
     cout<<"Outflow_0: "<<setprecision(5)<<p->W10<<" Uo: "<<p->Uo<<" Ao: "<<Ao<<endl;
     }
 	
 	if(p->count>0)
-	if(p->mpirank==0 && innercounter==p->N50-1)
+	if(p->mpirank==0)
     {
     cout<<"Inflow:  "<<setprecision(5)<<p->Qi<<" Ui: "<<p->Ui<<" Ai: "<<Ai<<endl;
     cout<<"Outflow: "<<setprecision(5)<<p->Qo<<" Uo: "<<p->Uo<<" Ao: "<<Ao<<endl;

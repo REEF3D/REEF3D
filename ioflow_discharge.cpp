@@ -30,14 +30,14 @@ void ioflow_f::discharge(lexer *p, fdm* a, ghostcell* pgc)
     Qout(p,a,pgc);
 
 	if(p->count==0)
-    if(p->mpirank==0 && innercounter==p->N50-1 && (p->count%p->P12==0))
+    if(p->mpirank==0 && (p->count%p->P12==0))
     {
     cout<<"Inflow_0:  "<<setprecision(5)<<p->W10<<" Ui: "<<p->Ui<<" Hi: "<<p->phimean<<endl;
     cout<<"Outflow_0: "<<setprecision(5)<<p->W10<<" Uo: "<<p->Uo<<" Ho: "<<p->phiout<<endl;
     }
 	
 	if(p->count>0)
-	if(p->mpirank==0 && innercounter==p->N50-1 && (p->count%p->P12==0))
+	if(p->mpirank==0 && (p->count%p->P12==0))
     {
     cout<<"Inflow:  "<<setprecision(5)<<p->Qi<<" Ui: "<<p->Ua<<" Hi: "<<p->phimean<<endl;
     cout<<"Outflow: "<<setprecision(5)<<p->Qo<<" Uo: "<<p->Uo<<" Ho: "<<p->phiout<<endl;

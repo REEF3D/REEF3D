@@ -63,11 +63,8 @@ void idiff2_FS_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 				  + CPOR3/(alpha*p->dt);
 				  
 	a->rhsvec.V[count] += ((u(i,j,k+1)-u(i,j,k))*visc_ddx_p - (u(i-1,j,k+1)-u(i-1,j,k))*visc_ddx_m)/(p->DZP[KP]*p->DXN[IP])
-									
-						+  a->M.p[count]*w(i,j,k)*(1.0/p->N54-1.0)
+
 						+ (CPOR3*w(i,j,k))/(alpha*p->dt);
-									
-	a->M.p[count] /= p->N54;
 	 
 	 a->M.s[count] = -visc_ddx_m/(p->DXP[IM1]*p->DXN[IP]);
 	 a->M.n[count] = -visc_ddx_p/(p->DXP[IP]*p->DXN[IP]);
@@ -116,7 +113,7 @@ void idiff2_FS_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 	
 	time=pgc->timer()-starttime;
 	p->witer=p->solveriter;
-	if(p->mpirank==0 && innercounter==p->N50-1 && p->D21==1 && (p->count%p->P12==0))
+	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
 	cout<<"wdiffiter: "<<p->witer<<"  wdifftime: "<<setprecision(3)<<time<<endl;
 }
 
