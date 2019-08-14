@@ -25,6 +25,7 @@ class lexer;
 class fdm;
 class ghostcell;
 class fieldint;
+class cpt;
 
 #ifndef GRID_H_
 #define GRID_H_
@@ -43,12 +44,12 @@ public:
 	void update_sixdof_grid(lexer*,ghostcell*);
     
     // CPT
-    void column_pt1_update(lexer*);
-    void column_pt2_update(lexer*);
-    void column_pt3_update(lexer*);
-    void column_pt4_update(lexer*);
-    void column_pt4a_update(lexer*);
-    void column_pt6_update(lexer*);
+    void column_pt1_update(lexer*,cpt&);
+    void column_pt2_update(lexer*,cpt&);
+    void column_pt3_update(lexer*,cpt&);
+    void column_pt4_update(lexer*,cpt&);
+    void column_pt4a_update(lexer*,cpt&);
+    void column_pt6_update(lexer*,cpt&);
 
 	void column_pt1_assign(lexer*,fieldint&,cpt&);
 	void column_pt2_assign(lexer*,fieldint&,cpt&);
@@ -88,7 +89,9 @@ public:
     void cval_gcpara6(lexer*,fieldint&);
 
     
+private:
 
+    int g,q,margin,count;
 
    
 	

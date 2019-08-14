@@ -22,7 +22,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"vec.h"
 #include"solver.h"
 #include"increment.h"
+#include"cpt.h"
 
+class grid;
 
 using namespace std;
 
@@ -75,7 +77,10 @@ private:
     int solveriter;
 	
 	double alpha,beta,w1,w2,w,residual,norm_vj,norm_r0,norm_sj,norm_rj ;
-    double r_j1, r_j, sigma ;
+    double r_j1, r_j, sigma;
+    
+    grid *pgrid;
+    cpt C4;
 };
 
 #endif

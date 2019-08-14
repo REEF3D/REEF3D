@@ -25,6 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 grid::grid(lexer *p)
 {
+    margin=3;
 }
 
 grid::~grid()

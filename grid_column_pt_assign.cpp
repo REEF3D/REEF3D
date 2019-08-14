@@ -22,6 +22,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"grid.h"
 #include"lexer.h"
 #include"fieldint6.h"
+#include"cpt.h"
 
 void grid::column_pt1_assign(lexer* p, fieldint &cval1, cpt &C1)
 {

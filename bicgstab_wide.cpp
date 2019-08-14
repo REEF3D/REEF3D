@@ -27,11 +27,25 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"jacobi_scaling.h"
 #include"jacobi_block.h"
 #include"sip.h"
+#include"grid.h"
 
 bicgstab_wide::bicgstab_wide(lexer* p):sj(p),rj(p),r0(p),vj(p),tj(p),pj(p),precoeff(p),
 												ph(p),sh(p),aii(p),epsi(1e-19)
 {
 	margin=3;
+    
+    count=0;
+	LOOP
+	++count;
+	
+	p->sizeM4[0]=0;
+	p->sizeM4[1]=count;
+    
+    pgrid = new grid(p);
+    
+    C4.allocate(p);
+    
+    pgrid->column_pt4_update(p,C4);
 }
 
 bicgstab_wide::~bicgstab_wide()

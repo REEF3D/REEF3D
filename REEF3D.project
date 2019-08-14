@@ -373,7 +373,10 @@
         <File Name="waves_header.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
-        <VirtualDirectory Name="Makegrid"/>
+        <VirtualDirectory Name="Grid Class">
+          <File Name="grid2D.h"/>
+          <File Name="grid.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Sigma">
           <File Name="grid_sigma.h"/>
         </VirtualDirectory>
@@ -447,7 +450,6 @@
             <File Name="mgcslice4a.h"/>
           </VirtualDirectory>
         </VirtualDirectory>
-        <File Name="grid.h"/>
         <VirtualDirectory Name="Solid">
           <File Name="solid.h"/>
         </VirtualDirectory>
@@ -460,7 +462,6 @@
           <File Name="sliceint4a.h"/>
           <File Name="sliceint5.h"/>
         </VirtualDirectory>
-        <File Name="grid2D.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Printer">
         <VirtualDirectory Name="Flowfile Out">
