@@ -60,6 +60,7 @@ class nhflow;
 class sflow;
 class fnpf_vtu3D;
 class fnpf_timestep;
+class grid;
 
 #include<iostream>
 #include<fstream>
@@ -173,6 +174,7 @@ public:
     sflow *psflow;
     fnpf_vtu3D *pfprint; 
     fnpf_timestep* pftstep;
+    grid *pgrid;
 
 
 private:

@@ -24,6 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 class lexer;
 class fdm;
 class ghostcell;
+class fieldint;
 
 #ifndef GRID_H_
 #define GRID_H_
@@ -37,9 +38,57 @@ public:
 	grid (lexer *);
 	virtual ~grid();
 	
-	void makegrid(lexer*,fdm*,ghostcell*);
-	void update_topo_grid(lexer*,fdm*,ghostcell*);
-	void update_sixdof_grid(lexer*,fdm*,ghostcell*);
+	void makegrid(lexer*,ghostcell*);
+	void update_topo_grid(lexer*,ghostcell*);
+	void update_sixdof_grid(lexer*,ghostcell*);
+    
+    // CPT
+    void column_pt1_update(lexer*);
+    void column_pt2_update(lexer*);
+    void column_pt3_update(lexer*);
+    void column_pt4_update(lexer*);
+    void column_pt4a_update(lexer*);
+    void column_pt6_update(lexer*);
+
+	void column_pt1_assign(lexer*,fieldint&,cpt&);
+	void column_pt2_assign(lexer*,fieldint&,cpt&);
+	void column_pt3_assign(lexer*,fieldint&,cpt&);
+	void column_pt4_assign(lexer*,fieldint&,cpt&);
+    void column_pt4a_assign(lexer*,fieldint&,cpt&);
+    void column_pt6_assign(lexer*,fieldint&,cpt&);
+
+    int column_pt1_count(lexer*);
+	int column_pt2_count(lexer*);
+	int column_pt3_count(lexer*);
+	int column_pt4_count(lexer*);
+    int column_pt4a_count(lexer*);
+    int column_pt6_count(lexer*);
+    
+    
+    // cval
+    void cval_update1(lexer*,fieldint&);
+	void cval_update2(lexer*,fieldint&);
+	void cval_update3(lexer*,fieldint&);
+	void cval_update4(lexer*,fieldint&);
+    void cval_update4a(lexer*,fieldint&);
+    void cval_update6(lexer*,fieldint&);
+
+	void cval_gcb1(lexer*,fieldint&);
+    void cval_gcb2(lexer*,fieldint&);
+    void cval_gcb3(lexer*,fieldint&);
+    void cval_gcb4(lexer*,fieldint&);
+    void cval_gcb4a(lexer*,fieldint&);
+    void cval_gcb6(lexer*,fieldint&);
+
+	void cval_gcpara1(lexer*,fieldint&);
+    void cval_gcpara2(lexer*,fieldint&);
+    void cval_gcpara3(lexer*,fieldint&);
+    void cval_gcpara4(lexer*,fieldint&);
+    void cval_gcpara4a(lexer*,fieldint&);
+    void cval_gcpara6(lexer*,fieldint&);
+
+    
+
 
    
 	

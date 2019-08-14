@@ -31,7 +31,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 bicgstab_wide::bicgstab_wide(lexer* p):sj(p),rj(p),r0(p),vj(p),tj(p),pj(p),precoeff(p),
 												ph(p),sh(p),aii(p),epsi(1e-19)
 {
-
 	margin=3;
 }
 
@@ -59,23 +58,23 @@ void bicgstab_wide::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec
 	finalize(p,a,f,xvec,var);*/
 }
 
-void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var, int gcv, double stop_crit)
-{
-   /* solveriter=0;
+void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, vec& x, vec& rhsvec, matrix_diag &M, int var, int gcv, double stop_crit)
+{/*
+    solveriter=0;
 	residual = 1.0e9;
 
 	// -----------------
-	precon->setup(p,a,pgc,var,C);
+	precon_setup(p,M,C);
 	// -----------------
 
  restart:
     r_j=norm_r0=0.0;
-	gcupdate(p,a,pgc,xvec,var,gcv,solveriter);		
+	gcupdate(p,pgc,xvec,var,gcv,solveriter);		
 	pgc->gcparaxvec(p,xvec,var);
 	
-	matvec_axb(p,a,xvec,rj,C);
+	matvec_axb(p,a,M,xvec,rj,rhsvec,C);
 	
-	NLOOP
+	NLOOP4
 	{
 		r0.V[n]=pj.V[n]=rj.V[n];
 		r_j += rj.V[n]*r0.V[n];
@@ -93,14 +92,14 @@ void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec
 	    norm_rj=0.0;
 		
 		// -------------------------
-		precon->solve(p,a,pgc,ph,pj,var,240,p->preconiter,p->N13,p->N18,C);
+		precon_solve(p,ph,pj,C);
 		pgc->gcparaxvec(p,ph,var);		
-		gcupdate(p,a,pgc,ph,var,240,solveriter);		
+		gcupdate(p,pgc,ph,var,240,solveriter);		
 		// -------------------------
 		
-		matvec_std(p,a,ph,vj,C);
+		matvec_std(p,a,M,ph,vj,C);
 		
-		NLOOP
+		NLOOP4
 		{
 			sigma   += vj.V[n]*r0.V[n];
 			norm_vj += vj.V[n]*vj.V[n];
@@ -123,7 +122,7 @@ void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec
 
     if((fabs(alpha)*norm_vj/(norm_rj==0?1.0e-15:norm_rj))<=0.08)
 	{
-		residual=res_calc(p,a,xvec,pgc,C);
+		residual=res_calc(p,M,xvec,rhsvec,pgc,C);
 		++solveriter;
 
 		goto restart;
@@ -131,7 +130,7 @@ void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec
 
 		norm_sj=0.0;
 		
-		NLOOP
+		NLOOP4
 		{
 		sj.V[n] = rj.V[n] - alpha*vj.V[n];
 		norm_sj += sj.V[n]*sj.V[n];
@@ -142,16 +141,16 @@ void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec
     if(norm_sj>stop_crit)
 	{
 		// -------------------------
-		precon->solve(p,a,pgc,sh,sj,var,240,p->preconiter,p->N13,p->N18,C);
+		precon->solve(p,sh,sj,C);
         pgc->gcparaxvec(p,sh,var);		
-		gcupdate(p,a,pgc,sh,var,240,solveriter);
+		gcupdate(p,pgc,sh,var,240,solveriter);
 		// -------------------------
 
-		matvec_std(p,a,sh,tj,C);
+		matvec_std(p,M,sh,tj,C);
 		
 		w1=w2=0.0;
 		
-		NLOOP
+		NLOOP4
 		{
 		    w1 += tj.V[n]*sj.V[n];
 		    w2 += tj.V[n]*tj.V[n];
@@ -164,7 +163,7 @@ void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec
 
 		r_j1=0.0;
 		
-		NLOOP
+		NLOOP4
 		{
 		xvec.V[n] += alpha*ph.V[n] + w*sh.V[n];
 		rj.V[n]  = sj.V[n]-w*tj.V[n];
@@ -175,7 +174,7 @@ void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec
 
 		beta=alpha*r_j1/(w*r_j==0?1.0e-15:(w*r_j));
 		
-		NLOOP
+		NLOOP4
 		pj.V[n] = rj.V[n] + beta*(pj.V[n]-w*vj.V[n]);
 	}
 
@@ -224,11 +223,11 @@ void bicgstab_wide::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsve
 {
 }
 
-void bicgstab_wide::matvec_axb(lexer *p,fdm* a, matrix_diag &M, vec &x, vec &y, cpt &C)
+void bicgstab_wide::matvec_axb(lexer *p, matrix_diag &M, vec &x, vec &y, vec &rhs, cpt &C)
 {
-	NLOOP
+	NLOOP4
 	{
-	y.V[n]  = a->rhsvec.V[n]
+	y.V[n]  = rhs.V[n]
 
 			-(M.p[n]*x.V[I_J_K]
 			+ M.n[n]*x.V[Ip1_J_K] 
@@ -247,9 +246,9 @@ void bicgstab_wide::matvec_axb(lexer *p,fdm* a, matrix_diag &M, vec &x, vec &y, 
 	}
 }
 
-void bicgstab_wide::matvec_std(lexer *p,fdm* a, matrix_diag &M, vec &x, vec &y, cpt &C)
+void bicgstab_wide::matvec_std(lexer *p, matrix_diag &M, vec &x, vec &y, cpt &C)
 {
-	NLOOP
+	NLOOP4
 	{
 	y.V[n]      = M.p[n]*x.V[I_J_K]
 				+ M.n[n]*x.V[Ip1_J_K] 
@@ -268,14 +267,14 @@ void bicgstab_wide::matvec_std(lexer *p,fdm* a, matrix_diag &M, vec &x, vec &y, 
 	}
 }
 
-void bicgstab_wide::precon(lexer *p,fdm* a, matrix_diag &M, vec &x, vec &y, cpt &C)
+void bicgstab_wide::precon(lexer *p, vec &x, vec &y, cpt &C)
 {
     NLOOP4
 	x.V[n]=y.V[n]*aii.V[n];
     
 }
 
-void bicgstab_wide::precon_setup(lexer *p,fdm* a, matrix_diag &M, vec &x, vec &y, cpt &C)
+void bicgstab_wide::precon_setup(lexer *p, matrix_diag &M, cpt &C)
 {
     
     NLOOP4
@@ -283,14 +282,14 @@ void bicgstab_wide::precon_setup(lexer *p,fdm* a, matrix_diag &M, vec &x, vec &y
     
 }
 
-double bicgstab_wide::res_calc(lexer *p, fdm *a, matrix_diag &M, vec &x, ghostcell *pgc, cpt &C)
+double bicgstab_wide::res_calc(lexer *p, matrix_diag &M, vec &x, vec &rhs, ghostcell *pgc, cpt &C)
 {
 	double y;
 	double resi=0.0;
 
-	NLOOP
+	NLOOP4
 	{	
-	y  = a->rhsvec.V[n]
+	y  = rhs.V[n]
 
 		-(M.p[n]*x.V[n]
 		+ M.n[n]*x.V[Ip1_J_K] 
@@ -320,7 +319,7 @@ void bicgstab_wide::gcpara_update(lexer* p, vec &x, ghostcell* pgc)
 {
 }
 
-void bicgstab_wide::gcupdate(lexer *p, fdm *a, ghostcell *pgc, vec &x, int var, int gcv, int solveriter)
+void bicgstab_wide::gcupdate(lexer *p, ghostcell *pgc, vec &x, int var, int gcv, int solveriter)
 {
 	if(p->N15==3 && gcv>=40 && gcv<=45)
 	pgc->start4V(p,x,241);
@@ -338,9 +337,9 @@ void bicgstab_wide::gcupdate(lexer *p, fdm *a, ghostcell *pgc, vec &x, int var, 
 	pgc->start4V(p,x,49);
 }
 
-void bicgstab_wide::fillxvec4(lexer* p, field& f, vec &x)
+void bicgstab_wide::fillxvec4(lexer* p, double *f, vec &x)
 {
-	int count,q;
+	/*int count,q;
 	
 	count=0;
     LOOP
@@ -396,7 +395,7 @@ void bicgstab_wide::fillxvec4(lexer* p, field& f, vec &x)
         x.V[count]=f(i,j,k+1+q);
         ++count;
         }
-    }
+    }*/
 }
 /*
 void bicgstab_wide::finalize(lexer *p, fdm *a, field &f, vec &xvec, int var)

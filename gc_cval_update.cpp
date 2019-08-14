@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"cart3.h"
 #include"cart4.h"
 
-void ghostcell::cvalupdate1(lexer* p, fdm* a, fieldint &cval1)
+void ghostcell::cval_update1(lexer* p, fdm* a, fieldint &cval1)
 {
     count=0;
 
@@ -172,7 +172,7 @@ void ghostcell::cvalupdate1(lexer* p, fdm* a, fieldint &cval1)
 	}
 }
 
-void ghostcell::cvalupdate2(lexer* p, fdm* a, fieldint &cval2)
+void ghostcell::cval_update2(lexer* p, fdm* a, fieldint &cval2)
 {
     count=0;
 
@@ -317,7 +317,7 @@ void ghostcell::cvalupdate2(lexer* p, fdm* a, fieldint &cval2)
 	}
 }
 
-void ghostcell::cvalupdate3(lexer* p, fdm* a, fieldint &cval3)
+void ghostcell::cval_update3(lexer* p, fdm* a, fieldint &cval3)
 {
     count=0;
 
@@ -462,7 +462,7 @@ void ghostcell::cvalupdate3(lexer* p, fdm* a, fieldint &cval3)
 	}
 }
 
-void ghostcell::cvalupdate4(lexer* p, fdm* a, fieldint &cval4)
+void ghostcell::cval_update4(lexer* p, fdm* a, fieldint &cval4)
 {
     count=0;
 
@@ -608,7 +608,7 @@ void ghostcell::cvalupdate4(lexer* p, fdm* a, fieldint &cval4)
 	}
 }
 
-void ghostcell::cvalupdate4a(lexer* p, fdm* a, fieldint &cval4a)
+void ghostcell::cval_update4a(lexer* p, fdm* a, fieldint &cval4a)
 {
     count=0;
 
@@ -754,7 +754,7 @@ void ghostcell::cvalupdate4a(lexer* p, fdm* a, fieldint &cval4a)
 	}
 }
 
-void ghostcell::cvalupdate6(lexer* p, fdm* a, fieldint &cval6)
+void ghostcell::cval_update6(lexer* p, fdm* a, fieldint &cval6)
 {
     count=0;
 

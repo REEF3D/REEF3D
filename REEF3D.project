@@ -373,6 +373,7 @@
         <File Name="waves_header.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
+        <VirtualDirectory Name="Makegrid"/>
         <VirtualDirectory Name="Sigma">
           <File Name="grid_sigma.h"/>
         </VirtualDirectory>
@@ -1659,6 +1660,16 @@
         <File Name="driver_stop.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
+        <VirtualDirectory Name="Grid Class">
+          <VirtualDirectory Name="Makegrid">
+            <File Name="grid_cval_update.cpp"/>
+            <File Name="grid_cval_parax.cpp"/>
+            <File Name="grid_cval_gcb.cpp"/>
+            <File Name="grid_column_pt_update.cpp"/>
+            <File Name="grid_column_pt_count.cpp"/>
+            <File Name="grid_column_pt_assign.cpp"/>
+          </VirtualDirectory>
+        </VirtualDirectory>
         <VirtualDirectory Name="Sigma">
           <File Name="grid_sigma.cpp"/>
         </VirtualDirectory>

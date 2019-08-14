@@ -19,61 +19,61 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"ghostcell.h"
+#include"grid.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"fieldint6.h"
 
-void ghostcell::column_pt1_update(lexer* p, fdm* a)
+void grid::column_pt1_update(lexer* p)
 {
     fieldint1 cval1(p);
-    cval_update1(p,a,cval1);	
-	column_pt1(p,a,cval1);
-    cval_gcb1(p,a,cval1);
-    cval_gcpara1(p,a,cval1);
+    cval_update1(p,cval1);	
+	column_pt1_assign(p,cval1);
+    cval_gcb1(p,cval1);
+    cval_gcpara1(p,cval1);
 }
 
-void ghostcell::column_pt2_update(lexer* p, fdm* a)
+void grid::column_pt2_update(lexer* p)
 {
     fieldint2 cval2(p);
-    cval_update2(p,a,cval2);	
-	column_pt2(p,a,cval2);
-    cval_gcb2(p,a,cval2);
-    cval_gcpara2(p,a,cval2);
+    cval_update2(p,cval2);	
+	column_pt2_assign(p,cval2);
+    cval_gcb2(p,cval2);
+    cval_gcpara2(p,cval2);
 }
 
-void ghostcell::column_pt3_update(lexer* p, fdm* a)
+void grid::column_pt3_update(lexer* p)
 {
     fieldint3 cval3(p);
-    cval_update3(p,a,cval3);	
-	column_pt3(p,a,cval3);
-    cval_gcb3(p,a,cval3);
-    cval_gcpara3(p,a,cval3);
+    cval_update3(p,cval3);	
+	column_pt3_assign(p,cval3);
+    cval_gcb3(p,cval3);
+    cval_gcpara3(p,cval3);
 }
 
-void ghostcell::column_pt4_update(lexer* p, fdm* a)
+void grid::column_pt4_update(lexer* p)
 {
     fieldint4 cval4(p);
-    cval_update4(p,a,cval4);	
-	column_pt4(p,a,cval4);
-    cval_gcb4(p,a,cval4);
-    cval_gcpara4(p,a,cval4);
+    cval_update4(p,cval4);	
+	column_pt4_assign(p,cval4);
+    cval_gcb4(p,cval4);
+    cval_gcpara4(p,cval4);
 }
 
-void ghostcell::column_pt4a_update(lexer* p, fdm* a)
+void grid::column_pt4a_update(lexer* p)
 {
     fieldint4a cval4a(p);
-    cval_update4a(p,a,cval4a);	
-	column_pt4a(p,a,cval4a);
-    cval_gcb4a(p,a,cval4a);
-    cval_gcpara4a(p,a,cval4a);
+    cval_update4a(p,cval4a);	
+	column_pt4a(p,cval4a);
+    cval_gcb4a(p,cval4a);
+    cval_gcpara4a(p,cval4a);
 }
 
-void ghostcell::column_pt6_update(lexer* p, fdm* a)
+void grid::column_pt6_update(lexer* p)
 {
     fieldint6 cval6(p);
-    cval_update6(p,a,cval6);	
-	column_pt6(p,a,cval6);
-    cval_gcb6(p,a,cval6);
-    cval_gcpara6(p,a,cval6);
+    cval_update6(p,cval6);	
+	column_pt6_assign(p,cval6);
+    cval_gcb6(p,cval6);
+    cval_gcpara6(p,cval6);
 }

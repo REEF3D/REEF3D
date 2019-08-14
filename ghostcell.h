@@ -98,12 +98,12 @@ public:
 	void dgcslini3(lexer*);
 	void dgcslini4(lexer*);
 
-	void cvalupdate1(lexer*,fdm*,fieldint&);
-	void cvalupdate2(lexer*,fdm*,fieldint&);
-	void cvalupdate3(lexer*,fdm*,fieldint&);
-	void cvalupdate4(lexer*,fdm*,fieldint&);
-    void cvalupdate4a(lexer*,fdm*,fieldint&);
-    void cvalupdate6(lexer*,fdm*,fieldint&);
+	void cval_update1(lexer*,fdm*,fieldint&);
+	void cval_update2(lexer*,fdm*,fieldint&);
+	void cval_update3(lexer*,fdm*,fieldint&);
+	void cval_update4(lexer*,fdm*,fieldint&);
+    void cval_update4a(lexer*,fdm*,fieldint&);
+    void cval_update6(lexer*,fdm*,fieldint&);
 
     void rownum4_update(lexer*,fieldint&);
     void rownum7_update(lexer*,int*);
