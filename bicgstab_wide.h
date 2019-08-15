@@ -50,7 +50,7 @@ public:
     
 private:
     
-    void fillxvec4(lexer*,double*,vec&);
+    void fillxvec(lexer*,double*,vec&);
 	void finalize(lexer*,double*,vec&);
 
     void gcpara_update(lexer*,vec&,ghostcell*);
@@ -66,7 +66,7 @@ private:
 
 private:
 
-	vec sj,rj,r0,vj,tj,pj,precoeff,ph,sh,aii;
+	vec xvec,sj,rj,r0,vj,tj,pj,precoeff,ph,sh,aii;
 	
 	int *sizeM,*range;
 

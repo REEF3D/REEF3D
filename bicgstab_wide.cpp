@@ -29,7 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sip.h"
 #include"grid.h"
 
-bicgstab_wide::bicgstab_wide(lexer* p):sj(p),rj(p),r0(p),vj(p),tj(p),pj(p),precoeff(p),
+bicgstab_wide::bicgstab_wide(lexer* p):xvec(p),sj(p),rj(p),r0(p),vj(p),tj(p),pj(p),precoeff(p),
 												ph(p),sh(p),aii(p),epsi(1e-19)
 {
 	margin=3;
@@ -63,17 +63,16 @@ void bicgstab_wide::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, 
 
 void bicgstab_wide::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var, int gcv, double stop_crit)
 {
-   /* p->preconiter=0;
 	
-	fillxvec4(p,a,f);
-    sizeM=p->sizeM4;
-	solve(p,a,pgc,xvec,rhsvec,var,gcv,p->solveriter,p->N46,stop_crit,a->C4);
-	
-	finalize(p,a,f,xvec,var);*/
+	fillxvec(p,f,xvec);
+    solveF(p,c,pgc,xvec,rhsvec,M,var,gcv,stop_crit);
+	finalize(p,f,xvec);
 }
 
 void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, vec& x, vec& rhsvec, matrix_diag &M, int var, int gcv, double stop_crit)
 {/*
+    var=4;
+    gcv=40;
     solveriter=0;
 	residual = 1.0e9;
 
@@ -351,14 +350,14 @@ void bicgstab_wide::gcupdate(lexer *p, ghostcell *pgc, vec &x, int var, int gcv,
 	pgc->start4V(p,x,49);
 }
 
-void bicgstab_wide::fillxvec4(lexer* p, double *f, vec &x)
+void bicgstab_wide::fillxvec(lexer* p, double *f, vec &x)
 {
-	/*int count,q;
+	int count,q;
 	
 	count=0;
     LOOP
     {
-    x.V[count]=f(i,j,k);
+    x.V[count]=f[FIJK];
     ++count;
     }
 
@@ -369,57 +368,86 @@ void bicgstab_wide::fillxvec4(lexer* p, double *f, vec &x)
     k=p->gcb4[n][2];
 
         if(p->gcb4[n][3]==1)
-        for(q=0;q<margin;++q)
         {
-        x.V[count]=f(i-1-q,j,k);
+        x.V[count]=f[FIm1JK];
+        ++count;
+        
+        x.V[count]=f[FIm2JK];
+        ++count;
+        
+        x.V[count]=f[FIm3JK];
         ++count;
         }
 
         if(p->gcb4[n][3]==2)
-        for(q=0;q<margin;++q)
         {
-        x.V[count]=f(i,j+1+q,k);
+        x.V[count]=f[FIJp1K];
+        ++count;
+        
+        x.V[count]=f[FIJp2K];
+        ++count;
+        
+        x.V[count]=f[FIJp3K];
         ++count;
         }
 
         if(p->gcb4[n][3]==3)
-        for(q=0;q<margin;++q)
         {
-        x.V[count]=f(i,j-1-q,k);
+        x.V[count]=f[FIJm1K];
+        ++count;
+        
+        x.V[count]=f[FIJm2K];
+        ++count;
+        
+        x.V[count]=f[FIJm3K];
         ++count;
         }
 
         if(p->gcb4[n][3]==4)
-        for(q=0;q<margin;++q)
         {
-        x.V[count]=f(i+1+q,j,k);
+        x.V[count]=f[FIp1JK];
+        ++count;
+        
+        x.V[count]=f[FIp2JK];
+        ++count;
+        
+        x.V[count]=f[FIp3JK];
         ++count;
         }
 
         if(p->gcb4[n][3]==5)
-        for(q=0;q<margin;++q)
         {
-        x.V[count]=f(i,j,k-1-q);
+        x.V[count]=f[FIJKm1];
+        ++count;
+        
+        x.V[count]=f[FIJKm2];
+        ++count;
+        
+        x.V[count]=f[FIJKm3];
         ++count;
         }
 
         if(p->gcb4[n][3]==6)
-        for(q=0;q<margin;++q)
         {
-        x.V[count]=f(i,j,k+1+q);
+        x.V[count]=f[FIJKp1];
+        ++count;
+        
+        x.V[count]=f[FIJKp2];
+        ++count;
+        
+        x.V[count]=f[FIJKp3];
         ++count;
         }
-    }*/
+    }
 }
-/*
-void bicgstab_wide::finalize(lexer *p, fdm *a, field &f, vec &xvec, int var)
-{
 
-        count=0;
-        LOOP
-        {
-        f(i,j,k)=xvec.V[count];
-        ++count;
-        }
-}*/
+void bicgstab_wide::finalize(lexer *p, double *f, vec &x)
+{
+    count=0;
+    LOOP
+    {
+    f[FIJK]=x.V[count];
+    ++count;
+    }
+}
 
