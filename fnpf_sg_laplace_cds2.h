@@ -39,8 +39,6 @@ public:
     
 private:
     
-    double sqd;
-    
     fnpf_sg_bed_update *pbed;
 
 };

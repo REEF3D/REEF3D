@@ -26,6 +26,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define NLOOP4A for(n=p->sizeM4a[0]; n<p->sizeM4a[1]; ++n)	
 #define NLOOP6 for(n=p->sizeM6[0]; n<p->sizeM6[1]; ++n)
 #define NLOOP for(n=sizeM[0]; n<sizeM[1]; ++n)
+#define VECLOOP for(n=0; n<p->veclength; ++n)
+
 
 #define I_J_K_1 n
 #define I_J_K_2 n

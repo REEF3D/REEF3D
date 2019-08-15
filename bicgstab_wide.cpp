@@ -70,22 +70,22 @@ void bicgstab_wide::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec
 }
 
 void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, vec& x, vec& rhsvec, matrix_diag &M, int var, int gcv, double stop_crit)
-{/*
+{
     var=4;
-    gcv=40;
-    solveriter=0;
+    gcv=250;
+    maxiter=5;
+    p->solveriter=0;
 	residual = 1.0e9;
 
 	// -----------------
-	precon_setup(p,M,C);
+	precon_setup(p,M,C4);
 	// -----------------
 
  restart:
-    r_j=norm_r0=0.0;
-	gcupdate(p,pgc,xvec,var,gcv,solveriter);		
-	pgc->gcparaxvec(p,xvec,var);
+    r_j=norm_r0=0.0;	
+    pgc->gcparaxvec_sr(p, xvec, C4, 4);
 	
-	matvec_axb(p,a,M,xvec,rj,rhsvec,C);
+	matvec_axb(p,M,xvec,rj,rhsvec,C4);
 	
 	NLOOP4
 	{
@@ -96,7 +96,7 @@ void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, vec& x, vec& r
     r_j=pgc->globalsum(r_j);
     norm_r0=sqrt(r_j);
 
-    if((residual>=stop_crit) && (solveriter<maxiter))
+    if((residual>=stop_crit) && (p->solveriter<maxiter))
 	{
 
 	do{
@@ -105,12 +105,11 @@ void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, vec& x, vec& r
 	    norm_rj=0.0;
 		
 		// -------------------------
-		precon_solve(p,ph,pj,C);
-		pgc->gcparaxvec(p,ph,var);		
-		gcupdate(p,pgc,ph,var,240,solveriter);		
+		precon(p,ph,pj,C4);	
+        pgc->gcparaxvec_sr(p, ph, C4, 4);
 		// -------------------------
 		
-		matvec_std(p,a,M,ph,vj,C);
+		matvec_std(p,M,ph,vj,C4);
 		
 		NLOOP4
 		{
@@ -127,16 +126,16 @@ void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, vec& x, vec& r
 
 	if(fabs(sigma) <= (1.0e-12*(norm_vj*norm_r0)))
 	{	
-		residual=res_calc(p,a,xvec,pgc,C);
-		++solveriter;
+		residual=res_calc(p,pgc,M,xvec,rhsvec,C4);
+		++p->solveriter;
 
 		goto restart;
 	}
 
     if((fabs(alpha)*norm_vj/(norm_rj==0?1.0e-15:norm_rj))<=0.08)
 	{
-		residual=res_calc(p,M,xvec,rhsvec,pgc,C);
-		++solveriter;
+		residual=res_calc(p,pgc,M,xvec,rhsvec,C4);
+		++p->solveriter;
 
 		goto restart;
 	}
@@ -154,12 +153,11 @@ void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, vec& x, vec& r
     if(norm_sj>stop_crit)
 	{
 		// -------------------------
-		precon->solve(p,sh,sj,C);
-        pgc->gcparaxvec(p,sh,var);		
-		gcupdate(p,pgc,sh,var,240,solveriter);
+		precon(p,sh,sj,C4);
+        pgc->gcparaxvec_sr(p, sh, C4, 4);	
 		// -------------------------
 
-		matvec_std(p,M,sh,tj,C);
+		matvec_std(p,M,sh,tj,C4);
 		
 		w1=w2=0.0;
 		
@@ -196,7 +194,7 @@ void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, vec& x, vec& r
 	{
 	r_j1=0.0;
 		
-		NLOOP
+		NLOOP4
 		{
 		xvec.V[n] += alpha*ph.V[n];
 		rj.V[n]=sj.V[n];
@@ -210,26 +208,24 @@ void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, vec& x, vec& r
 
 	    residual=0.0;
 		
-		NLOOP
+		NLOOP4
 		residual += rj.V[n]*rj.V[n];
 
 	    residual = sqrt(pgc->globalsum(residual))/double(p->cellnumtot);
 		
-	    ++solveriter;
+	    ++p->solveriter;
 
-	}while((residual>=stop_crit) && (solveriter<maxiter));
+	}while((residual>=stop_crit) && (p->solveriter<maxiter));
 
     } 
-		
+    
+    p->final_res = residual;
 	
-	NLOOP4
+	VECLOOP
 	{
 	ph.V[n]=0.0;
 	sh.V[n]=0.0;
 	}
-	pgc->start4V(p,ph,240);
-	pgc->start4V(p,sh,240);*/
-    
 }
 	
 void bicgstab_wide::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit, cpt &C)
@@ -295,7 +291,7 @@ void bicgstab_wide::precon_setup(lexer *p, matrix_diag &M, cpt &C)
     
 }
 
-double bicgstab_wide::res_calc(lexer *p, matrix_diag &M, vec &x, vec &rhs, ghostcell *pgc, cpt &C)
+double bicgstab_wide::res_calc(lexer *p, ghostcell *pgc, matrix_diag &M, vec &x, vec &rhs, cpt &C)
 {
 	double y;
 	double resi=0.0;
@@ -327,28 +323,6 @@ double bicgstab_wide::res_calc(lexer *p, matrix_diag &M, vec &x, vec &rhs, ghost
 	return resi/double(p->cellnumtot);	
 }
 
-
-void bicgstab_wide::gcpara_update(lexer* p, vec &x, ghostcell* pgc)
-{
-}
-
-void bicgstab_wide::gcupdate(lexer *p, ghostcell *pgc, vec &x, int var, int gcv, int solveriter)
-{
-	if(p->N15==3 && gcv>=40 && gcv<=45)
-	pgc->start4V(p,x,241);
-	
-	if(gcv>=40 && gcv<=45 && (p->N15==1||p->N15==2) && p->count<=p->N16)
-	pgc->start4V(p,x,240);
-	
-	if(p->N15==4 && gcv>=40 && gcv<=45)
-	pgc->start4V(p,x,240);
-	
-	if(p->N15==5 && gcv>=40 && gcv<=45 && solveriter<5) 
-	pgc->start4V(p,x,240);
-	
-	if(gcv==49) 
-	pgc->start4V(p,x,49);
-}
 
 void bicgstab_wide::fillxvec(lexer* p, double *f, vec &x)
 {

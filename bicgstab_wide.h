@@ -53,10 +53,7 @@ private:
     void fillxvec(lexer*,double*,vec&);
 	void finalize(lexer*,double*,vec&);
 
-    void gcpara_update(lexer*,vec&,ghostcell*);
-	void gcupdate(lexer*,ghostcell*,vec&,int,int,int);
-
-	double res_calc(lexer*, matrix_diag&, vec&, vec&, ghostcell*,cpt&);
+	double res_calc(lexer*, ghostcell*, matrix_diag&, vec&, vec&, cpt&);
 	void matvec_axb(lexer*, matrix_diag&, vec&, vec&, vec&, cpt&);
 	void matvec_std(lexer*, matrix_diag&, vec&, vec&, cpt&);
     
@@ -74,7 +71,7 @@ private:
 
 	int count;
 	int margin;
-    int solveriter;
+    int solveriter,maxiter;
 	
 	double alpha,beta,w1,w2,w,residual,norm_vj,norm_r0,norm_sj,norm_rj ;
     double r_j1, r_j, sigma;

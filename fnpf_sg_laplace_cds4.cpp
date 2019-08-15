@@ -25,7 +25,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"solver.h"
 #include"ghostcell.h"
 #include"fnpf_discrete_weights.h"
-#include"fnpf_sg_bed_update.h"
 
 fnpf_sg_laplace_cds4::fnpf_sg_laplace_cds4(lexer *p) 
 {
@@ -38,8 +37,6 @@ fnpf_sg_laplace_cds4::fnpf_sg_laplace_cds4(lexer *p)
     dw.ck_weights(p, ckx, p->XP, p->knox, 2, 4, 1);
     dw.ck_weights(p, cky, p->YP, p->knoy, 2, 4, 2);
     dw.ck_weights(p, ckz, p->ZN, p->knoz, 2, 4, 3);
-    
-    pbed = new fnpf_sg_bed_update(p);
 }
 
 
@@ -51,7 +48,6 @@ fnpf_sg_laplace_cds4::~fnpf_sg_laplace_cds4()
 void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_sg_fsf *pf, double *f)
 {
     // see p. 1130-1132
-    
     double sigxyz2;
     double ab,abb,abbb,denom;
     double fbxm,fbxp,fbym,fbyp;

@@ -40,7 +40,7 @@ public:
     
 private:
     
-    double sqd;
+    double **ckx,**cky,**ckz;
     
     fnpf_sg_bed_update *pbed;
     
