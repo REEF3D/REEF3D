@@ -114,6 +114,9 @@ void driver::logic()
 
 	if(p->T12==5)
 	pturbdisc=new iweno_hj(p);
+    
+    if(p->T12==55)
+	pturbdisc=new iweno_hj_nug(p);
 	
 	if(p->T12==6)
 	pturbdisc=new icds4(p);

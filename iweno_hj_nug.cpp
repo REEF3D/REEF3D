@@ -44,6 +44,8 @@ iweno_hj_nug::~iweno_hj_nug()
 
 void iweno_hj_nug::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel, field& wvel)
 {
+    uf=vf=wf=0;
+    
     if(ipol==1)
     wenoloop1(p,a,b,ipol,uvel,vvel,wvel);
 
@@ -65,6 +67,8 @@ void iweno_hj_nug::wenoloop1(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
     DX=p->DXP;
     DY=p->DYN;
     DZ=p->DZN;
+    
+    uf=1;
     
 	count=0;
     
@@ -131,6 +135,8 @@ void iweno_hj_nug::wenoloop2(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
     DY=p->DYP;
     DZ=p->DZN;
     
+    vf=1;
+    
 	count=0;
 
 	VLOOP
@@ -195,6 +201,7 @@ void iweno_hj_nug::wenoloop3(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
     DY=p->DYN;
     DZ=p->DZP;
     
+    wf=1;
     
 	count=0;
 
@@ -314,19 +321,22 @@ void iweno_hj_nug::wenoloop4(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
             weight_max_z();
 			aij_top(p,a,f,a->L);
 			}
+            
+        cout<<"M.p "<<a->M.p[count]<<" M.s "<<a->M.s[count]<<" M.n "<<a->M.s[count]<<" M.b "<<a->M.b[count]<<" M.t "<<a->M.t[count]<<" L: "<<a->L(i,j,k)<<endl;
+            
 		 ++count;
 	}
 }
 
 void iweno_hj_nug::aij_south(lexer* p, fdm* a, field &f, field &F)
 {
-	F(i,j,k)    += f(i-3,j,k)*(w3x*qfx[IP][uf][2][0]/DX[IM3])*iadvec
+	F(i,j,k)    -= f(i-3,j,k)*(w3x*qfx[IP][uf][2][0]/DX[IM3])*iadvec
     
                 + f(i-2,j,k)*(w2x*qfx[IP][uf][1][1]/DX[IM2]
                            + w3x*(1.0 - qfx[IP][uf][2][0] - qfx[IP][uf][2][1])/DX[IM2]
                            - w3x*(qfx[IP][uf][2][0])/DX[IM3])*iadvec
                             
-                + f(i+2,j,k)*(w3x*qfx[IP][uf][0][1]/DX[IP1])*iadvec;
+                + f(i+2,j,k)*(w1x*qfx[IP][uf][0][1]/DX[IP1])*iadvec;
                         
                            
 	a->M.p[count] = -( w1x*(1.0 - qfx[IP][uf][0][0] + qfx[IP][uf][0][1])/DX[IP] 
@@ -335,20 +345,20 @@ void iweno_hj_nug::aij_south(lexer* p, fdm* a, field &f, field &F)
                     - w2x*(1.0 - qfx[IP][uf][1][0] + qfx[IP][uf][1][1])/DX[IM1]
                     - w3x*(qfx[IP][uf][2][1])/DX[IM1])*iadvec;
 					 
-	a->M.s[count] = -(w1x*qfx[IP][uf][0][0]/DX[IM1]
+	a->M.s[count] = (w1x*qfx[IP][uf][0][0]/DX[IM1]
                     + w2x*(1.0 - qfx[IP][uf][1][0] + qfx[IP][uf][1][1])/DX[IM1]
                     + w3x*(qfx[IP][uf][2][1])/DX[IM1]
                     - w2x*(-qfx[IP][uf][1][1])/DX[IM2]
-                    - w2x*(1.0 - qfx[IP][uf][2][0] + qfx[IP][uf][2][1])/DX[IM2])*iadvec;
+                    - w3x*(1.0 - qfx[IP][uf][2][0] + qfx[IP][uf][2][1])/DX[IM2])*iadvec;
                            
-	a->M.n[count] = -(-w1x*qfx[IP][uf][0][1]/DX[IP1]
+	a->M.n[count] = (-w1x*qfx[IP][uf][0][1]/DX[IP1]
                     - w1x*(1.0 - qfx[IP][uf][0][0] + qfx[IP][uf][0][1])/DX[IP]
                     - w2x*(qfx[IP][uf][1][0])/DX[IP])*iadvec;
 }
 
 void iweno_hj_nug::aij_north(lexer* p, fdm* a, field &f, field &F)
 {
-	F(i,j,k)    += f(i-2,j,k)*(-w3x*qfx[IP][uf][5][1]/DX[IM2])*iadvec
+	F(i,j,k)    -= f(i-2,j,k)*(-w3x*qfx[IP][uf][5][1]/DX[IM2])*iadvec
     
                 + f(i+2,j,k)*(w1x*qfx[IP][uf][3][1]/DX[IP2]
                            - w1x*(1.0 - qfx[IP][uf][3][0] - qfx[IP][uf][3][1])/DX[IP1]
@@ -363,26 +373,26 @@ void iweno_hj_nug::aij_north(lexer* p, fdm* a, field &f, field &F)
                     - w2x*(qfx[IP][uf][4][0])/DX[IM1]
                     - w3x*(1.0 - qfx[IP][uf][5][0] + qfx[IP][uf][5][1])/DX[IM1])*iadvec;
 					 
-	a->M.s[count] = -(w2x*qfx[IP][uf][4][0]/DX[IM1]
+	a->M.s[count] = (w2x*qfx[IP][uf][4][0]/DX[IM1]
                     + w3x*(1.0 - qfx[IP][uf][5][0] + qfx[IP][uf][5][1])/DX[IM1]
                     + w3x*(qfx[IP][uf][5][1])/DX[IM2])*iadvec;
                            
-	a->M.n[count] = -(w1x*(1.0 - qfx[IP][uf][3][0] - qfx[IP][uf][3][1])/DX[IP1]
+	a->M.n[count] = (w1x*(1.0 - qfx[IP][uf][3][0] - qfx[IP][uf][3][1])/DX[IP1]
                     - w2x*(qfx[IP][uf][4][1])/DX[IP1]
-                    - w1x*(-qfx[IP][uf][3][0])/DX[IP]
+                    - w1x*(qfx[IP][uf][3][0])/DX[IP]
                     - w2x*(1.0 - qfx[IP][uf][4][0] + qfx[IP][uf][4][1])/DX[IP]
                     - w3x*qfx[IP][uf][5][0]/DX[IP])*iadvec;
 }
 
 void iweno_hj_nug::aij_east(lexer* p, fdm* a, field &f, field &F)
 {
-	F(i,j,k)    += f(i,j-3,k)*(w3y*qfy[JP][vf][2][0]/DY[JM3])*jadvec
+	F(i,j,k)    -= f(i,j-3,k)*(w3y*qfy[JP][vf][2][0]/DY[JM3])*jadvec
     
                 + f(i,j-2,k)*(w2y*qfy[JP][vf][1][1]/DY[JM2]
                            + w3y*(1.0 - qfy[JP][vf][2][0] - qfy[JP][vf][2][1])/DY[JM2]
                            - w3y*(qfy[JP][vf][2][0])/DY[JM3])*jadvec
                             
-                + f(i,j+2,k)*(w3y*qfy[JP][vf][0][1]/DY[JP1])*jadvec;
+                + f(i,j+2,k)*(w1y*qfy[JP][vf][0][1]/DY[JP1])*jadvec;
                         
                            
 	a->M.p[count] = -( w1y*(1.0 - qfy[JP][vf][0][0] + qfy[JP][vf][0][1])/DY[JP] 
@@ -391,20 +401,20 @@ void iweno_hj_nug::aij_east(lexer* p, fdm* a, field &f, field &F)
                     - w2y*(1.0 - qfy[JP][vf][1][0] + qfy[JP][vf][1][1])/DY[JM1]
                     - w3y*(qfy[JP][vf][2][1])/DY[JM1])*jadvec;
 					 
-	a->M.e[count] = -(w1y*qfy[JP][vf][0][0]/DY[JM1]
+	a->M.e[count] = (w1y*qfy[JP][vf][0][0]/DY[JM1]
                     + w2y*(1.0 - qfy[JP][vf][1][0] + qfy[JP][vf][1][1])/DY[JM1]
                     + w3y*(qfy[JP][vf][2][1])/DY[JM1]
                     - w2y*(-qfy[JP][vf][1][1])/DY[JM2]
-                    - w2y*(1.0 - qfy[JP][vf][2][0] + qfy[JP][vf][2][1])/DY[JM2])*jadvec;
+                    - w3y*(1.0 - qfy[JP][vf][2][0] + qfy[JP][vf][2][1])/DY[JM2])*jadvec;
                            
-	a->M.w[count] = -(-w1y*qfy[JP][vf][0][1]/DY[JP1]
+	a->M.w[count] = (-w1y*qfy[JP][vf][0][1]/DY[JP1]
                     - w1y*(1.0 - qfy[JP][vf][0][0] + qfy[JP][vf][0][1])/DY[JP]
                     - w2y*(qfy[JP][vf][1][0])/DY[JP])*jadvec;
 }
 
 void iweno_hj_nug::aij_west(lexer* p, fdm* a, field &f, field &F)
 {
-	F(i,j,k)    += f(i,j-2,k)*(-w3y*qfy[JP][vf][5][1]/DY[JM2])*jadvec
+	F(i,j,k)    -= f(i,j-2,k)*(-w3y*qfy[JP][vf][5][1]/DY[JM2])*jadvec
     
                 + f(i,j+2,k)*(w1y*qfy[JP][vf][3][1]/DY[JP2]
                            - w1y*(1.0 - qfy[JP][vf][3][0] - qfy[JP][vf][3][1])/DY[JP1]
@@ -419,48 +429,48 @@ void iweno_hj_nug::aij_west(lexer* p, fdm* a, field &f, field &F)
                     - w2y*(qfy[JP][vf][4][0])/DY[JM1]
                     - w3y*(1.0 - qfy[JP][vf][5][0] + qfy[JP][vf][5][1])/DY[JM1])*jadvec;
 					 
-	a->M.e[count] = -(w2y*qfy[JP][vf][4][0]/DY[JM1]
+	a->M.e[count] = (w2y*qfy[JP][vf][4][0]/DY[JM1]
                     + w3y*(1.0 - qfy[JP][vf][5][0] + qfy[JP][vf][5][1])/DY[JM1]
                     + w3y*(qfy[JP][vf][5][1])/DY[JM2])*jadvec;
                            
-	a->M.w[count] = -(w1y*(1.0 - qfy[JP][vf][3][0] - qfy[JP][vf][3][1])/DY[JP1]
+	a->M.w[count] = (w1y*(1.0 - qfy[JP][vf][3][0] - qfy[JP][vf][3][1])/DY[JP1]
                     - w2y*(qfy[JP][vf][4][1])/DY[JP1]
-                    - w1y*(-qfy[JP][vf][3][0])/DY[JP]
+                    - w1y*(qfy[JP][vf][3][0])/DY[JP]
                     - w2y*(1.0 - qfy[JP][vf][4][0] + qfy[JP][vf][4][1])/DY[JP]
                     - w3y*qfy[JP][vf][5][0]/DY[JP])*jadvec;
 }
 
 void iweno_hj_nug::aij_bottom(lexer* p, fdm* a, field &f, field &F)
 {
-	F(i,j,k)    += f(i,j,k-3)*(w3z*qfz[KP][wf][2][0]/DZ[KM3])*kadvec
+	F(i,j,k)    -= f(i,j,k-3)*(w3z*qfz[KP][wf][2][0]/DZ[KM3])*kadvec
     
                 + f(i,j,k-2)*(w2z*qfz[KP][wf][1][1]/DZ[KM2]
                            + w3z*(1.0 - qfz[KP][wf][2][0] - qfz[KP][wf][2][1])/DZ[KM2]
                            - w3z*(qfz[KP][wf][2][0])/DZ[KM3])*kadvec
                             
-                + f(i,j,k+2)*(w3z*qfz[KP][wf][0][1]/DZ[KP1])*kadvec;
+                + f(i,j,k+2)*(w1z*qfz[KP][wf][0][1]/DZ[KP1])*kadvec;
                         
                            
-	a->M.p[count] = -( w1z*(1.0 - qfz[KP][wf][0][0] + qfz[KP][wf][0][1])/DZ[KP] 
+	a->M.p[count] = -(w1z*(1.0 - qfz[KP][wf][0][0] + qfz[KP][wf][0][1])/DZ[KP] 
                     + w2z*(qfz[KP][wf][1][0])/DZ[KP]
                     - w1z*(qfz[KP][wf][0][0])/DZ[KM1]
                     - w2z*(1.0 - qfz[KP][wf][1][0] + qfz[KP][wf][1][1])/DZ[KM1]
                     - w3z*(qfz[KP][wf][2][1])/DZ[KM1])*kadvec;
 					 
-	a->M.b[count] = -(w1z*qfz[KP][wf][0][0]/DZ[KM1]
+	a->M.b[count] = (w1z*qfz[KP][wf][0][0]/DZ[KM1]
                     + w2z*(1.0 - qfz[KP][wf][1][0] + qfz[KP][wf][1][1])/DZ[KM1]
                     + w3z*(qfz[KP][wf][2][1])/DZ[KM1]
                     - w2z*(-qfz[KP][wf][1][1])/DZ[KM2]
-                    - w2z*(1.0 - qfz[KP][wf][2][0] + qfz[KP][wf][2][1])/DZ[KM2])*kadvec;
+                    - w3z*(1.0 - qfz[KP][wf][2][0] + qfz[KP][wf][2][1])/DZ[KM2])*kadvec;
                            
-	a->M.t[count] = -(-w1z*qfz[KP][wf][0][1]/DZ[KP1]
+	a->M.t[count] = (-w1z*qfz[KP][wf][0][1]/DZ[KP1]
                     - w1z*(1.0 - qfz[KP][wf][0][0] + qfz[KP][wf][0][1])/DZ[KP]
                     - w2z*(qfz[KP][wf][1][0])/DZ[KP])*kadvec;
 }
 
 void iweno_hj_nug::aij_top(lexer* p, fdm* a, field &f, field &F)
 {
-	F(i,j,k)    += f(i,j,k-2)*(-w3z*qfz[KP][wf][5][1]/DZ[KM2])*kadvec
+	F(i,j,k)    -= f(i,j,k-2)*(-w3z*qfz[KP][wf][5][1]/DZ[KM2])*kadvec
     
                 + f(i,j,k+2)*(w1z*qfz[KP][wf][3][1]/DZ[KP2]
                            - w1z*(1.0 - qfz[KP][wf][3][0] - qfz[KP][wf][3][1])/DZ[KP1]
@@ -475,13 +485,13 @@ void iweno_hj_nug::aij_top(lexer* p, fdm* a, field &f, field &F)
                     - w2z*(qfz[KP][wf][4][0])/DZ[KM1]
                     - w3z*(1.0 - qfz[KP][wf][5][0] + qfz[KP][wf][5][1])/DZ[KM1])*kadvec;
 					 
-	a->M.b[count] = -(w2z*qfz[KP][wf][4][0]/DZ[KM1]
+	a->M.b[count] = (w2z*qfz[KP][wf][4][0]/DZ[KM1]
                     + w3z*(1.0 - qfz[KP][wf][5][0] + qfz[KP][wf][5][1])/DZ[KM1]
                     + w3z*(qfz[KP][wf][5][1])/DZ[KM2])*kadvec;
                            
-	a->M.t[count] = -(w1z*(1.0 - qfz[KP][wf][3][0] - qfz[KP][wf][3][1])/DZ[KP1]
+	a->M.t[count] = (w1z*(1.0 - qfz[KP][wf][3][0] - qfz[KP][wf][3][1])/DZ[KP1]
                     - w2z*(qfz[KP][wf][4][1])/DZ[KP1]
-                    - w1z*(-qfz[KP][wf][3][0])/DZ[KP]
+                    - w1z*(qfz[KP][wf][3][0])/DZ[KP]
                     - w2z*(1.0 - qfz[KP][wf][4][0] + qfz[KP][wf][4][1])/DZ[KP]
                     - w3z*qfz[KP][wf][5][0]/DZ[KP])*kadvec;
 }
