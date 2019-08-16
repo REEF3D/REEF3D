@@ -73,7 +73,7 @@ void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, vec& x, vec& r
 {
     var=4;
     gcv=250;
-    maxiter=5;
+    maxiter=p->A322;
     p->solveriter=0;
 	residual = 1.0e9;
 
