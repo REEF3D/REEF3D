@@ -27,13 +27,25 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"jacobi_scaling.h"
 #include"jacobi_block.h"
 #include"sip.h"
+#include"grid.h"
 
-bicgstab_wide::bicgstab_wide(lexer* p, fdm *a, ghostcell *pgc, int precon_select):sj(p),rj(p),r0(p),vj(p),tj(p),pj(p),precoeff(p),
-												ph(p),sh(p),epsi(1e-19)
+bicgstab_wide::bicgstab_wide(lexer* p):xvec(p),sj(p),rj(p),r0(p),vj(p),tj(p),pj(p),precoeff(p),
+												ph(p),sh(p),aii(p),epsi(1e-19)
 {
-	precon = new jacobi_scaling(p,a,pgc);
-
 	margin=3;
+    
+    count=0;
+	LOOP
+	++count;
+	
+	p->sizeM4[0]=0;
+	p->sizeM4[1]=count;
+    
+    pgrid = new grid(p);
+    
+    C4.allocate(p);
+    
+    pgrid->column_pt4_update(p,C4);
 }
 
 bicgstab_wide::~bicgstab_wide()
@@ -51,32 +63,31 @@ void bicgstab_wide::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, 
 
 void bicgstab_wide::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var, int gcv, double stop_crit)
 {
-   /* p->preconiter=0;
 	
-	fillxvec4(p,a,f);
-    sizeM=p->sizeM4;
-	solve(p,a,pgc,xvec,rhsvec,var,gcv,p->solveriter,p->N46,stop_crit,a->C4);
-	
-	finalize(p,a,f,xvec,var);*/
+	fillxvec(p,f,xvec);
+    solveF(p,c,pgc,xvec,rhsvec,M,var,gcv,stop_crit);
+	finalize(p,f,xvec);
 }
 
-void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var, int gcv, double stop_crit)
+void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, vec& x, vec& rhsvec, matrix_diag &M, int var, int gcv, double stop_crit)
 {
-   /* solveriter=0;
+    var=4;
+    gcv=250;
+    maxiter=p->A322;
+    p->solveriter=0;
 	residual = 1.0e9;
 
 	// -----------------
-	precon->setup(p,a,pgc,var,C);
+	precon_setup(p,M,C4);
 	// -----------------
 
  restart:
-    r_j=norm_r0=0.0;
-	gcupdate(p,a,pgc,xvec,var,gcv,solveriter);		
-	pgc->gcparaxvec(p,xvec,var);
+    r_j=norm_r0=0.0;	
+    pgc->gcparaxvec_sr(p, xvec, C4, 4);
 	
-	matvec_axb(p,a,xvec,rj,C);
+	matvec_axb(p,M,xvec,rj,rhsvec,C4);
 	
-	NLOOP
+	NLOOP4
 	{
 		r0.V[n]=pj.V[n]=rj.V[n];
 		r_j += rj.V[n]*r0.V[n];
@@ -85,7 +96,7 @@ void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec
     r_j=pgc->globalsum(r_j);
     norm_r0=sqrt(r_j);
 
-    if((residual>=stop_crit) && (solveriter<maxiter))
+    if((residual>=stop_crit) && (p->solveriter<maxiter))
 	{
 
 	do{
@@ -94,14 +105,13 @@ void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec
 	    norm_rj=0.0;
 		
 		// -------------------------
-		precon->solve(p,a,pgc,ph,pj,var,240,p->preconiter,p->N13,p->N18,C);
-		pgc->gcparaxvec(p,ph,var);		
-		gcupdate(p,a,pgc,ph,var,240,solveriter);		
+		precon(p,ph,pj,C4);	
+        pgc->gcparaxvec_sr(p, ph, C4, 4);
 		// -------------------------
 		
-		matvec_std(p,a,ph,vj,C);
+		matvec_std(p,M,ph,vj,C4);
 		
-		NLOOP
+		NLOOP4
 		{
 			sigma   += vj.V[n]*r0.V[n];
 			norm_vj += vj.V[n]*vj.V[n];
@@ -116,23 +126,23 @@ void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec
 
 	if(fabs(sigma) <= (1.0e-12*(norm_vj*norm_r0)))
 	{	
-		residual=res_calc(p,a,xvec,pgc,C);
-		++solveriter;
+		residual=res_calc(p,pgc,M,xvec,rhsvec,C4);
+		++p->solveriter;
 
 		goto restart;
 	}
 
     if((fabs(alpha)*norm_vj/(norm_rj==0?1.0e-15:norm_rj))<=0.08)
 	{
-		residual=res_calc(p,a,xvec,pgc,C);
-		++solveriter;
+		residual=res_calc(p,pgc,M,xvec,rhsvec,C4);
+		++p->solveriter;
 
 		goto restart;
 	}
 
 		norm_sj=0.0;
 		
-		NLOOP
+		NLOOP4
 		{
 		sj.V[n] = rj.V[n] - alpha*vj.V[n];
 		norm_sj += sj.V[n]*sj.V[n];
@@ -143,16 +153,15 @@ void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec
     if(norm_sj>stop_crit)
 	{
 		// -------------------------
-		precon->solve(p,a,pgc,sh,sj,var,240,p->preconiter,p->N13,p->N18,C);
-        pgc->gcparaxvec(p,sh,var);		
-		gcupdate(p,a,pgc,sh,var,240,solveriter);
+		precon(p,sh,sj,C4);
+        pgc->gcparaxvec_sr(p, sh, C4, 4);	
 		// -------------------------
 
-		matvec_std(p,a,sh,tj,C);
+		matvec_std(p,M,sh,tj,C4);
 		
 		w1=w2=0.0;
 		
-		NLOOP
+		NLOOP4
 		{
 		    w1 += tj.V[n]*sj.V[n];
 		    w2 += tj.V[n]*tj.V[n];
@@ -165,7 +174,7 @@ void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec
 
 		r_j1=0.0;
 		
-		NLOOP
+		NLOOP4
 		{
 		xvec.V[n] += alpha*ph.V[n] + w*sh.V[n];
 		rj.V[n]  = sj.V[n]-w*tj.V[n];
@@ -176,7 +185,7 @@ void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec
 
 		beta=alpha*r_j1/(w*r_j==0?1.0e-15:(w*r_j));
 		
-		NLOOP
+		NLOOP4
 		pj.V[n] = rj.V[n] + beta*(pj.V[n]-w*vj.V[n]);
 	}
 
@@ -185,7 +194,7 @@ void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec
 	{
 	r_j1=0.0;
 		
-		NLOOP
+		NLOOP4
 		{
 		xvec.V[n] += alpha*ph.V[n];
 		rj.V[n]=sj.V[n];
@@ -199,37 +208,35 @@ void bicgstab_wide::solveF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec
 
 	    residual=0.0;
 		
-		NLOOP
+		NLOOP4
 		residual += rj.V[n]*rj.V[n];
 
 	    residual = sqrt(pgc->globalsum(residual))/double(p->cellnumtot);
 		
-	    ++solveriter;
+	    ++p->solveriter;
 
-	}while((residual>=stop_crit) && (solveriter<maxiter));
+	}while((residual>=stop_crit) && (p->solveriter<maxiter));
 
     } 
-		
+    
+    p->final_res = residual;
 	
-	NLOOP4
+	VECLOOP
 	{
 	ph.V[n]=0.0;
 	sh.V[n]=0.0;
 	}
-	pgc->start4V(p,ph,240);
-	pgc->start4V(p,sh,240);*/
-    
 }
 	
 void bicgstab_wide::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit, cpt &C)
 {
 }
 
-void bicgstab_wide::matvec_axb(lexer *p,fdm* a, matrix_diag &M, vec &x, vec &y, cpt &C)
+void bicgstab_wide::matvec_axb(lexer *p, matrix_diag &M, vec &x, vec &y, vec &rhs, cpt &C)
 {
-	NLOOP
+	NLOOP4
 	{
-	y.V[n]  = a->rhsvec.V[n]
+	y.V[n]  = rhs.V[n]
 
 			-(M.p[n]*x.V[I_J_K]
 			+ M.n[n]*x.V[Ip1_J_K] 
@@ -248,9 +255,9 @@ void bicgstab_wide::matvec_axb(lexer *p,fdm* a, matrix_diag &M, vec &x, vec &y, 
 	}
 }
 
-void bicgstab_wide::matvec_std(lexer *p,fdm* a, matrix_diag &M, vec &x, vec &y, cpt &C)
+void bicgstab_wide::matvec_std(lexer *p, matrix_diag &M, vec &x, vec &y, cpt &C)
 {
-	NLOOP
+	NLOOP4
 	{
 	y.V[n]      = M.p[n]*x.V[I_J_K]
 				+ M.n[n]*x.V[Ip1_J_K] 
@@ -269,14 +276,29 @@ void bicgstab_wide::matvec_std(lexer *p,fdm* a, matrix_diag &M, vec &x, vec &y, 
 	}
 }
 
-double bicgstab_wide::res_calc(lexer *p, fdm *a, matrix_diag &M, vec &x, ghostcell *pgc, cpt &C)
+void bicgstab_wide::precon(lexer *p, vec &x, vec &y, cpt &C)
+{
+    NLOOP4
+	x.V[n]=y.V[n]*aii.V[n];
+    
+}
+
+void bicgstab_wide::precon_setup(lexer *p, matrix_diag &M, cpt &C)
+{
+    
+    NLOOP4
+	aii.V[n]=-1.0/(M.p[n]+epsi);
+    
+}
+
+double bicgstab_wide::res_calc(lexer *p, ghostcell *pgc, matrix_diag &M, vec &x, vec &rhs, cpt &C)
 {
 	double y;
 	double resi=0.0;
 
-	NLOOP
+	NLOOP4
 	{	
-	y  = a->rhsvec.V[n]
+	y  = rhs.V[n]
 
 		-(M.p[n]*x.V[n]
 		+ M.n[n]*x.V[Ip1_J_K] 
@@ -302,48 +324,14 @@ double bicgstab_wide::res_calc(lexer *p, fdm *a, matrix_diag &M, vec &x, ghostce
 }
 
 
-void bicgstab_wide::gcpara_update(lexer* p, vec &x, ghostcell* pgc)
-{
-}
-
-void bicgstab_wide::gcupdate(lexer *p, fdm *a, ghostcell *pgc, vec &x, int var, int gcv, int solveriter)
-{
-	if(p->N15==3 && gcv>=40 && gcv<=45)
-	pgc->start4V(p,x,241);
-	
-	if(gcv>=40 && gcv<=45 && (p->N15==1||p->N15==2) && p->count<=p->N16)
-	pgc->start4V(p,x,240);
-	
-	if(p->N15==4 && gcv>=40 && gcv<=45)
-	pgc->start4V(p,x,240);
-	
-	if(p->N15==5 && gcv>=40 && gcv<=45 && solveriter<5) 
-	pgc->start4V(p,x,240);
-	
-	if(gcv==49) 
-	pgc->start4V(p,x,49);
-}
-
-void bicgstab_wide::fillxvec1(lexer* p, fdm* a, field& f)
-{
-}
-
-void bicgstab_wide::fillxvec2(lexer* p, fdm* a, field& f)
-{
-}
-
-void bicgstab_wide::fillxvec3(lexer* p, fdm* a, field& f)
-{
-}
-
-void bicgstab_wide::fillxvec4(lexer* p, fdm* a, field& f)
+void bicgstab_wide::fillxvec(lexer* p, double *f, vec &x)
 {
 	int count,q;
 	
 	count=0;
     LOOP
     {
-    a->xvec.V[count]=f(i,j,k);
+    x.V[count]=f[FIJK];
     ++count;
     }
 
@@ -354,89 +342,86 @@ void bicgstab_wide::fillxvec4(lexer* p, fdm* a, field& f)
     k=p->gcb4[n][2];
 
         if(p->gcb4[n][3]==1)
-        for(q=0;q<margin;++q)
         {
-        a->xvec.V[count]=f(i-1-q,j,k);
+        x.V[count]=f[FIm1JK];
+        ++count;
+        
+        x.V[count]=f[FIm2JK];
+        ++count;
+        
+        x.V[count]=f[FIm3JK];
         ++count;
         }
 
         if(p->gcb4[n][3]==2)
-        for(q=0;q<margin;++q)
         {
-        a->xvec.V[count]=f(i,j+1+q,k);
+        x.V[count]=f[FIJp1K];
+        ++count;
+        
+        x.V[count]=f[FIJp2K];
+        ++count;
+        
+        x.V[count]=f[FIJp3K];
         ++count;
         }
 
         if(p->gcb4[n][3]==3)
-        for(q=0;q<margin;++q)
         {
-        a->xvec.V[count]=f(i,j-1-q,k);
+        x.V[count]=f[FIJm1K];
+        ++count;
+        
+        x.V[count]=f[FIJm2K];
+        ++count;
+        
+        x.V[count]=f[FIJm3K];
         ++count;
         }
 
         if(p->gcb4[n][3]==4)
-        for(q=0;q<margin;++q)
         {
-        a->xvec.V[count]=f(i+1+q,j,k);
+        x.V[count]=f[FIp1JK];
+        ++count;
+        
+        x.V[count]=f[FIp2JK];
+        ++count;
+        
+        x.V[count]=f[FIp3JK];
         ++count;
         }
 
         if(p->gcb4[n][3]==5)
-        for(q=0;q<margin;++q)
         {
-        a->xvec.V[count]=f(i,j,k-1-q);
+        x.V[count]=f[FIJKm1];
+        ++count;
+        
+        x.V[count]=f[FIJKm2];
+        ++count;
+        
+        x.V[count]=f[FIJKm3];
         ++count;
         }
 
         if(p->gcb4[n][3]==6)
-        for(q=0;q<margin;++q)
         {
-        a->xvec.V[count]=f(i,j,k+1+q);
+        x.V[count]=f[FIJKp1];
+        ++count;
+        
+        x.V[count]=f[FIJKp2];
+        ++count;
+        
+        x.V[count]=f[FIJKp3];
         ++count;
         }
     }
 }
 
-void bicgstab_wide::finalize(lexer *p, fdm *a, field &f, vec &xvec, int var)
+void bicgstab_wide::finalize(lexer *p, double *f, vec &x)
 {
-	if(var==1)
+    count=0;
+    LOOP
     {
-        count=0;
-        ULOOP
-        {
-        f(i,j,k)=xvec.V[count];
-        ++count;
-        }
-    }
-	
-	if(var==2)
-    {
-        count=0;
-        VLOOP
-        {
-        f(i,j,k)=xvec.V[count];
-        ++count;
-        }
-    }
-	
-	if(var==3)
-    {
-        count=0;
-        WLOOP
-        {
-        f(i,j,k)=xvec.V[count];
-        ++count;
-        }
-    }
-	
-	if(var==4 || var==5)
-    {
-        count=0;
-        LOOP
-        {
-        f(i,j,k)=xvec.V[count];
-        ++count;
-        }
+    f[FIJK]=x.V[count];
+    ++count;
     }
 }
 

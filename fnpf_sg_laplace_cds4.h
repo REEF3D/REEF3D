@@ -22,8 +22,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_sg_laplace.h"
 #include"increment.h"
 
-class fnpf_sg_bed_update;
-
 #ifndef FNPF_SG_LAPLACE_CDS4_H_
 #define FNPF_SG_LAPLACE_CDS4_H_
 
@@ -40,7 +38,6 @@ public:
 private:
     
     double **ckx,**cky,**ckz;
-    fnpf_sg_bed_update *pbed;
 };
 
 #endif
