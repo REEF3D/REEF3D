@@ -21,28 +21,28 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"grid.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
 grid::grid(lexer *p)
 {
+    margin=3;
 }
 
 grid::~grid()
 {
 }
 
-void grid::makegrid(lexer *p, fdm *a, ghostcell *pgc)
+void grid::makegrid(lexer *p, ghostcell *pgc)
 {
 	
 }
 
-void grid::update_topo_grid(lexer *p, fdm *a, ghostcell *pgc)
+void grid::update_topo_grid(lexer *p, ghostcell *pgc)
 {
 	
 }
 
-void grid::update_sixdof_grid(lexer *p, fdm *a, ghostcell *pgc)
+void grid::update_sixdof_grid(lexer *p, ghostcell *pgc)
 {
 	
 }

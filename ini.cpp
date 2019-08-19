@@ -63,6 +63,7 @@ void lexer::ini_default()
     A313=3;      // int discretization for bed bc
     A320=1;		  // int order of Laplace equation
     A321=1;      // int boundary condition order for 4th-order Laplace equation
+    A322=5;      // int maxiter for 4th-order Laplace after 2nd-order solution
     A341=0.0;    // double coastline damping distance factor for dxm
     A342=0.0;    // double coastline damping absolute distance
     A343=1;      // int turn on wetting-drying

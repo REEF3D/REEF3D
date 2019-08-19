@@ -22,7 +22,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"vec.h"
 #include"solver.h"
 #include"increment.h"
+#include"cpt.h"
 
+class grid;
 
 using namespace std;
 
@@ -33,37 +35,35 @@ using namespace std;
 class bicgstab_wide : public solver, public increment
 {
 public:
-	bicgstab_wide(lexer*,fdm*,ghostcell*,int);
+	bicgstab_wide(lexer*);
 
 	virtual ~bicgstab_wide();
 
 	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, vec&, int, int,double);
     virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int, int, double);
-    virtual void solveF(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int, int, double);
+    virtual void solveF(lexer*, fdm_fnpf*, ghostcell*, vec&, vec&, matrix_diag&, int, int, double);
     
 	virtual void solve(lexer*,fdm*, ghostcell*, vec&, vec&, int, int,int&,int,double, cpt&);
 	virtual void setup(lexer*,fdm*, ghostcell*,int,cpt&);
-	
-	virtual void fillxvec1(lexer*,fdm*,field&);
-    virtual void fillxvec2(lexer*,fdm*,field&);
-    virtual void fillxvec3(lexer*,fdm*,field&);
-    virtual void fillxvec4(lexer*,fdm*,field&);
-	virtual void finalize(lexer*,fdm*,field&,vec&,int);
 
-    virtual void gcpara_update(lexer*,vec&,ghostcell*);
-	virtual void gcupdate(lexer*,fdm*,ghostcell*,vec&,int,int,int);
 
-	virtual double res_calc(lexer*,fdm*, matrix_diag&, vec&, ghostcell*,cpt&);
-	virtual void matvec_axb(lexer*,fdm*, matrix_diag&, vec&, vec&, cpt&);
-	virtual void matvec_std(lexer*,fdm*, matrix_diag&, vec&, vec&,cpt&);
-	
-	
-	solver *precon;
+    
+private:
+    
+    void fillxvec(lexer*,double*,vec&);
+	void finalize(lexer*,double*,vec&);
+
+	double res_calc(lexer*, ghostcell*, matrix_diag&, vec&, vec&, cpt&);
+	void matvec_axb(lexer*, matrix_diag&, vec&, vec&, vec&, cpt&);
+	void matvec_std(lexer*, matrix_diag&, vec&, vec&, cpt&);
+    
+    void precon(lexer*, vec&, vec&,cpt&);
+    void precon_setup(lexer*, matrix_diag&,cpt&);
 	
 
 private:
 
-	vec sj,rj,r0,vj,tj,pj,precoeff,ph,sh;
+	vec xvec,sj,rj,r0,vj,tj,pj,precoeff,ph,sh,aii;
 	
 	int *sizeM,*range;
 
@@ -71,9 +71,13 @@ private:
 
 	int count;
 	int margin;
+    int solveriter,maxiter;
 	
 	double alpha,beta,w1,w2,w,residual,norm_vj,norm_r0,norm_sj,norm_rj ;
-    double r_j1, r_j, sigma ;
+    double r_j1, r_j, sigma;
+    
+    grid *pgrid;
+    cpt C4;
 };
 
 #endif

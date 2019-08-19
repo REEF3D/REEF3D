@@ -138,6 +138,23 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsf
                   
                   - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(c->By(i,j)*c->Ey(i,j));
                   
+    /*p->sigxx[FIJK] = ((1.0 - p->sig[FIJK])/WLVL)*c->Bxx(i,j) // xx
+    
+                  - (p->sigx[FIJK]/WLVL)*c->Bx(i,j)
+                  
+                  - (p->sigx[FIJK]/WLVL)*c->Ex(i,j)
+                  
+                  - (p->sig[FIJK]/WLVL)*c->Exx(i,j)
+                  
+                  
+                  + ((1.0 - p->sig[FIJK])/WLVL)*c->Byy(i,j) // yy
+    
+                  - (p->sigy[FIJK]/WLVL)*c->By(i,j)
+                  
+                  - (p->sigy[FIJK]/WLVL)*c->Ey(i,j)
+                  
+                  - (p->sig[FIJK]/WLVL)*c->Eyy(i,j);*/
+                  
      /*             
     p->sigxx[FIJK] = -2.0*(1.0 - p->sig[FIJK])/WLVL*(pow(c->Bx(i,j),2.0)/WLVL + pow(c->By(i,j),2.0)/WLVL)
                     

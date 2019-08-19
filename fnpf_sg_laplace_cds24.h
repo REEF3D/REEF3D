@@ -23,6 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"increment.h"
 
 class fnpf_sg_bed_update;
+class solver;
 
 #ifndef LAPLACE_FNPF_SG_CDS24_H_
 #define LAPLACE_FNPF_SG_CDS24_H_
@@ -39,9 +40,11 @@ public:
     
 private:
     
-    double sqd;
+    double **ckx,**cky,**ckz;
     
     fnpf_sg_bed_update *pbed;
+    
+    solver *psolv4;
 
 };
 
