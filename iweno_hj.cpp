@@ -323,7 +323,6 @@ void iweno_hj::wenoloop4(lexer *p, fdm *a, field& f, int ipol, field& uvel, fiel
 			aij_top(p,a,f,a->L);
 			}
             
-            cout<<"M.p "<<a->M.p[count]<<" M.s "<<a->M.s[count]<<" M.n "<<a->M.s[count]<<" M.b "<<a->M.b[count]<<" M.t "<<a->M.t[count]<<" L: "<<a->L(i,j,k)<<endl;
      ++count;
 	}
 }

@@ -46,30 +46,30 @@ void weno_hj_nug::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field
     {
     uf=1;
     ULOOP
-    a->F(i,j,k)+=aij(p,a,b,1,uvel,vvel,wvel,p->DXP,p->DYN,p->DZN);
+    a->F(i,j,k)+=aij(p,a,b,1,uvel,vvel,wvel,p->DXN,p->DYP,p->DZP);
     }
 
     if(ipol==2)
     {
     vf=1;
     VLOOP
-    a->G(i,j,k)+=aij(p,a,b,2,uvel,vvel,wvel,p->DXN,p->DYP,p->DZN);
+    a->G(i,j,k)+=aij(p,a,b,2,uvel,vvel,wvel,p->DXP,p->DYN,p->DZP);
     }
 
     if(ipol==3)
     {
     wf=1;
     WLOOP
-    a->H(i,j,k)+=aij(p,a,b,3,uvel,vvel,wvel,p->DXN,p->DYN,p->DZP);
+    a->H(i,j,k)+=aij(p,a,b,3,uvel,vvel,wvel,p->DXP,p->DYP,p->DZN);
     }
 
     if(ipol==4)
     FLUIDLOOP
-    a->L(i,j,k)+=aij(p,a,b,4,uvel,vvel,wvel,p->DXN,p->DYN,p->DZN);
+    a->L(i,j,k)+=aij(p,a,b,4,uvel,vvel,wvel,p->DXP,p->DYP,p->DZP);
     
     if(ipol==5)
     LOOP
-    a->L(i,j,k)+=aij(p,a,b,5,uvel,vvel,wvel,p->DXN,p->DYN,p->DZN);
+    a->L(i,j,k)+=aij(p,a,b,5,uvel,vvel,wvel,p->DXP,p->DYP,p->DZP);
 }
 
 double weno_hj_nug::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, field& wvel, double *DXD,double *DYD, double *DZD)
