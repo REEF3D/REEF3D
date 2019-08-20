@@ -45,11 +45,6 @@ void lexer::lexer_read()
 	
 	lexer_ini();
     
-    if(G2==1)
-    sigma_coord_ini(this);
-    
-    lexer_gridspacing();
-	parse();	
 }
 
 lexer::~lexer()

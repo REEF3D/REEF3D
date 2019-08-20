@@ -21,6 +21,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"lexer.h"
 
+void lexer::gridini()
+{
+    cout<<mpirank<<" gridini "<<G2<<endl;
+    
+    if(G2==1)
+    sigma_coord_ini(this);
+    
+    lexer_gridspacing();
+	parse();	
+}
+
 void lexer::flagini()
 {
     control_calc();
@@ -65,7 +76,7 @@ void lexer::flagini()
 	gcb4[n][4]=1;	
 }
 
-void lexer::gridini()
+void lexer::gridini_outflow()
 {
 	
 	int istart,iend,jstart,jend,kstart,kend,qn;

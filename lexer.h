@@ -51,6 +51,7 @@ public:
     void lexer_read();
     void flagini();
 	void gridini();
+    void gridini_outflow();
     void makeflag(int*);
 	
 	void read_grid();
