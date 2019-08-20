@@ -59,7 +59,7 @@ private:
 	void kqmax(lexer*, fdm*, field&);
 
 	const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
-	const double sixten,treten,epsilon,deltin;
+	const double sixten,treten,epsi,deltin;
 
 
 	double is1,is2,is3;
@@ -77,8 +77,7 @@ private:
     
     double *DX,*DY,*DZ;
     
-    
-    
+
     
     //--
     void is_south(field&);

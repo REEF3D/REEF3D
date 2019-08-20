@@ -22,9 +22,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 
 void lexer::gridini()
-{
-    cout<<mpirank<<" gridini "<<G2<<endl;
-    
+{    
     if(G2==1)
     sigma_coord_ini(this);
     
