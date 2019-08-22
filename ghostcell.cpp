@@ -331,8 +331,6 @@ void ghostcell::gcini(lexer* p)
 	p->colnum = new int[p->M10+1];
 	
 	pdens = new density_f(p);
-    
-    p->DXM = globalmin(p->DXM);
 }
 
 void ghostcell::fdm_update(fdm *aa)

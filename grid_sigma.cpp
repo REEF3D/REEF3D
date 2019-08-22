@@ -41,8 +41,7 @@ void grid_sigma::sigma_coord_ini(lexer *p)
     double L;
     
     L = p->ZN[p->knoz+marge] - p->ZN[0+marge];
-    
-    cout<<p->mpirank<<" L: "<<L<<endl;
+
     
     for(k=-marge;k<p->knoz+marge;++k)
     p->ZN[KP] = (p->ZN[KP]-p->ZN[0+marge])/L;

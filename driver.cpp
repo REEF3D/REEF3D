@@ -36,12 +36,12 @@ driver::driver(int& argc, char **argv)
     {
     cout<<endl<<"REEF3D (c) 2008-2019 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl; 
-    cout<<endl<<"v_190820" <<endl<<endl;         
+    cout<<endl<<"v_190822" <<endl<<endl;         
     }
     
 	p->lexer_read();
 	pgc->gcini(p);
-    p->gridini();
+    p->gridini(pgc);
     
     if(p->mpirank==0)
     {

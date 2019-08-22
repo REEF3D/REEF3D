@@ -20,13 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"lexer.h"
+#include"ghostcell.h"
 
-void lexer::gridini()
-{    
+void lexer::gridini(ghostcell *pgc)
+{        
     if(G2==1)
     sigma_coord_ini(this);
     
-    lexer_gridspacing();
+    lexer_gridspacing(pgc);
 	parse();	
 }
 
