@@ -56,7 +56,7 @@ void fnpf_sg_coastline::start(lexer *p, ghostcell *pgc, slice &coastline, slicei
     
     // if p->count>0, check for wetdry changes
     change=0;
-    if(p->count>0)
+    if(p->count>1)
     {
         SLICELOOP4
         {

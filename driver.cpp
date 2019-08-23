@@ -42,6 +42,7 @@ driver::driver(int& argc, char **argv)
     
 	p->lexer_read();
 	pgc->gcini(p);
+    p->gridini(pgc);
     
     if(p->mpirank==0)
     {
@@ -65,7 +66,7 @@ driver::driver(int& argc, char **argv)
     if(p->A10==3 && p->A300==1)
     {
         p->flagini();
-        p->gridini();	
+        p->gridini_outflow();	
         pgc->flagfield(p);
         pgc->tpflagfield(p);
         makegrid_fnpf(p,pgc);
@@ -78,7 +79,7 @@ driver::driver(int& argc, char **argv)
     if((p->A10==3 && p->A300==2) || p->A10==4 || p->A10==44 || p->A10==5)
     {
         p->flagini();
-        p->gridini();	
+        p->gridini_outflow();	
         pgc->flagfield(p);
         pgc->tpflagfield(p);
         makegrid(p,pgc);

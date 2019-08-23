@@ -39,24 +39,6 @@ void fnpf_sg_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta,
           c->wet(i,j)=0;
 
       } 
-      
-      /*
-      SLICELOOP4
-      {     
-
-          if(c->wet(i-1,j)==0 || c->wet(i+1,j)==0 || c->wet(i,j-1)==0 || c->wet(i,j+1)==0 
-  || c->wet(i-1,j-1)==0 || c->wet(i+1,j-1)==0 || c->wet(i-1,j+1)==0 || c->wet(i+1,j+1)==0)
-      eta(i,j) = 0.5*eta(i,j);
-      
-    if(c->wet(i-2,j)==0 || c->wet(i+2,j)==0 || c->wet(i,j-2)==0 || c->wet(i,j+2)==0
-    || c->wet(i-2,j-2)==0 || c->wet(i+2,j-2)==0 || c->wet(i-2,j+2)==0 || c->wet(i+2,j+2)==0)
-        eta(i,j) = 0.75*eta(i,j);
-        
-        if(c->wet(i-3,j)==0 || c->wet(i+3,j)==0 || c->wet(i,j-3)==0 || c->wet(i,j+3)==0
-    || c->wet(i-3,j-3)==0 || c->wet(i+3,j-3)==0 || c->wet(i-3,j+3)==0 || c->wet(i+3,j+3)==0)
-        eta(i,j) = 0.9*eta(i,j);
-      }
-    */
     
       pgc->gcsl_start4int(p,c->wet,50);
       

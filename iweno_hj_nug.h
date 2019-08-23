@@ -50,9 +50,16 @@ private:
 	void aij_west(lexer*,fdm*,field&, field&);
 	void aij_top(lexer*,fdm*,field&, field&);
 	void aij_bottom(lexer*,fdm*,field&, field&);
+    
+    void iqmin(lexer*, fdm*, field&);
+	void jqmin(lexer*, fdm*, field&);
+	void kqmin(lexer*, fdm*, field&);
+	void iqmax(lexer*, fdm*, field&);
+	void jqmax(lexer*, fdm*, field&);
+	void kqmax(lexer*, fdm*, field&);
 
 	const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
-	const double sixten,treten,epsilon,deltin;
+	const double sixten,treten,epsi,deltin;
 
 
 	double is1,is2,is3;
@@ -69,6 +76,23 @@ private:
     flux *pflux;
     
     double *DX,*DY,*DZ;
+    
+
+    
+    //--
+    void is_south(field&);
+	void is_north(field&);
+	void is_east(field&);
+	void is_west(field&);
+	void is_top(field&);
+	void is_bottom(field&);
+
+	void alpha_calc();
+
+	void weight_calc();
+    
+    
+    double Mp,Ms,Mn,Mb,Mt,Ft;
 
 };
 

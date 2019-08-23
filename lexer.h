@@ -36,6 +36,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define LEXER_H_
 
 class weno_nug_func;
+class ghostcell;
 
 using namespace std;
 
@@ -50,7 +51,8 @@ public:
 //---- setup
     void lexer_read();
     void flagini();
-	void gridini();
+	void gridini(ghostcell*);
+    void gridini_outflow();
     void makeflag(int*);
 	
 	void read_grid();
@@ -66,7 +68,7 @@ public:
 	void vellast();
 	void indices_minmax();
 	void lexer_ini();
-    void lexer_gridspacing();
+    void lexer_gridspacing(ghostcell*);
 	void parse();
 	void fieldlogic();
 	int conv(double);

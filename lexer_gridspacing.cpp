@@ -20,8 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"lexer.h"
+#include"ghostcell.h"
 
-void lexer::lexer_gridspacing()
+void lexer::lexer_gridspacing(ghostcell *pgc)
 {
     Darray(XP,knox+1+4*marge);
     Darray(YP,knoy+1+4*marge);
@@ -94,5 +95,13 @@ void lexer::lexer_gridspacing()
     ++count;
     }
     
+    count = pgc->globalisum(count);
+    
+    DXM = pgc->globalsum(DXM);
+    
     DXM /= double(count); 
+    
+    
+    DXM = pgc->globalmin(DXM);
+    
 }
