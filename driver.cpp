@@ -36,7 +36,8 @@ driver::driver(int& argc, char **argv)
     {
     cout<<endl<<"REEF3D (c) 2008-2019 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl; 
-    cout<<endl<<"v_190816" <<endl<<endl;         
+    // cout<<endl<<"v_190816" <<endl<<endl;
+    cout<<"compiled on branch "<<BRANCH<<" from commit "<<VERSION<<endl<<endl;         
     }
     
 	p->lexer_read();
