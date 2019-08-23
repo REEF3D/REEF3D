@@ -28,7 +28,7 @@ void fnpf_sg_coastline::reini(lexer *p, ghostcell *pgc, slice &f)
 {
 	if(p->count==0)
 	{
-	reiniter=2*int(p->maxlength/(1.6*p->DXM));
+	reiniter=2*int(p->maxlength/(1.0*p->DXM));
     
     if(p->mpirank==0)
 	cout<<"initializing coastline... "<<reiniter<<endl<<endl;

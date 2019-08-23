@@ -56,7 +56,7 @@ void fnpf_sg_coastline::start(lexer *p, ghostcell *pgc, slice &coastline, slicei
     
     // if p->count>0, check for wetdry changes
     change=0;
-    if(p->count>0)
+    if(p->count>1)
     {
         SLICELOOP4
         {
@@ -75,8 +75,8 @@ void fnpf_sg_coastline::start(lexer *p, ghostcell *pgc, slice &coastline, slicei
         
         change=pgc->globalisum(change);
         
-        //if(p->mpirank==0)
-        //cout<<p->mpirank<<" wetdry change: "<<change<<endl;
+        if(p->mpirank==0)
+        cout<<p->mpirank<<" wetdry change: "<<change<<endl;
         
         if(change>0)
         reini(p,pgc,coastline);

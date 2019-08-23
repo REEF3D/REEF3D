@@ -53,6 +53,18 @@ void fnpf_vtp_fsf::start(lexer *p, fdm_fnpf *c, ghostcell* pgc, ioflow *pflow)
 
 void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 {	
+    
+    SLICELOOP4
+    {
+    if(c->breaking(i,j)==1)
+    c->breaking_print(i,j)=1.0;
+        
+    if(c->breaking(i,j)==0)
+    c->breaking_print(i,j)=0.0;   
+    }
+    
+    pgc->gcsl_start4(p,c->breaking_print,50);
+    
     c->eta.ggcpol(p);
     
 	if(p->mpirank==0)
@@ -186,8 +198,8 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	ffn=float(pgc->gcsl_ipol4(p,c->eta)+p->wd);
 	result.write((char*)&ffn, sizeof (float));
 	}
-	
-	//  Depth
+    
+    //  Depth
 	iin=4*(p->pointnum2D);
 	result.write((char*)&iin, sizeof (int));
 	TPSLICELOOP

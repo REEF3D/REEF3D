@@ -95,12 +95,13 @@ void lexer::lexer_gridspacing(ghostcell *pgc)
     ++count;
     }
     
+    count = pgc->globalisum(count);
+    
+    DXM = pgc->globalsum(DXM);
+    
     DXM /= double(count); 
     
     
-    // DXM = pgc->globalmin(DXM);
-    
-    // 
-    
+    DXM = pgc->globalmin(DXM);
     
 }
