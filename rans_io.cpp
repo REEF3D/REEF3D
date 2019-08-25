@@ -74,18 +74,6 @@ void rans_io::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 	}
 }
 
-double rans_io::kinval(int ii, int jj, int kk)
-{
-    double val;
-    i=ii;
-    j=jj;
-    k=kk;
-
-    val=kin(i,j,k);
-
-    return val;
-}
-
 double rans_io::ccipol_kinval(lexer *p, ghostcell *pgc, double xp, double yp, double zp)
 {
     double val;
@@ -104,34 +92,33 @@ double rans_io::ccipol_epsval(lexer *p, ghostcell *pgc, double xp, double yp, do
     return val;
 }
 
+double rans_io::kinval(int ii, int jj, int kk)
+{
+    double val;
+
+    val=kin(ii,jj,kk);
+
+    return val;
+}
+
 double rans_io::epsval(int ii, int jj, int kk)
 {
     double val;
-    i=ii;
-    j=jj;
-    k=kk;
 
-    val=eps(i,j,k);
+    val=eps(ii,jj,kk);
 
     return val;
 }
 
 void rans_io::kinget(int ii, int jj, int kk,double val)
 {
-    i=ii;
-    j=jj;
-    k=kk;
 
-    kin(i,j,k)=val;
+    kin(ii,jj,kk)=val;
 }
 
 void rans_io::epsget(int ii, int jj, int kk,double val)
 {
-    i=ii;
-    j=jj;
-    k=kk;
-
-    eps(i,j,k)=val;
+    eps(ii,jj,kk)=val;
 }
 
 void rans_io::gcupdate(lexer *p, fdm *a, ghostcell *pgc)

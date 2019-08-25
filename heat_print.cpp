@@ -56,11 +56,8 @@ void heat_print::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 double heat_print::val(int ii, int jj, int kk)
 {
     double val;
-    i=ii;
-    j=jj;
-    k=kk;
 
-    val=T(i,j,k);
+    val=T(ii,jj,kk);
 
     return val;
 }

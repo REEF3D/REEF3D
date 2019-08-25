@@ -35,10 +35,6 @@ double density_f::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
     double psi,r,s;
 	
-	ii = aa-aa/(fabs(aa)>0?fabs(aa):1);
-	jj = bb-bb/(fabs(bb)>0?fabs(bb):1);
-	kk = cc-cc/(fabs(cc)>0?fabs(cc):1);
-	
 	
 	if(p->D32==1)
 	{
@@ -68,7 +64,7 @@ double density_f::roface(lexer *p, fdm *a, int aa, int bb, int cc)
         phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
         
         if(p->j_dir==0)
-        psi = p->F45*(1.0/1.0)*(p->DXN[IP]+p->DZN[KP]);
+        psi = p->F45*(1.0/2.0)*(p->DXN[IP]+p->DZN[KP]);
         
         if(p->j_dir==1)
         psi = p->F45*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
@@ -89,7 +85,13 @@ double density_f::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 	// -----
 	
 	if(p->D32==3)
+    {
+    ii = aa-aa/(fabs(aa)>0?fabs(aa):1);
+	jj = bb-bb/(fabs(bb)>0?fabs(bb):1);
+	kk = cc-cc/(fabs(cc)>0?fabs(cc):1);
+    
 	roval = 0.5*(a->ro(i+ii,j+jj,k+kk) + a->ro(i+aa,j+bb,k+cc));
+    }
 	
 	// -----
 	
@@ -257,7 +259,13 @@ double density_f::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 	}
 	
 	if(p->D32==8)
+    {
+    ii = aa-aa/(fabs(aa)>0?fabs(aa):1);
+	jj = bb-bb/(fabs(bb)>0?fabs(bb):1);
+	kk = cc-cc/(fabs(cc)>0?fabs(cc):1);
+    
 	roval = 0.5*(a->ro(i+ii,j+jj,k+kk) + a->ro(i+aa,j+bb,k+cc));
+    }
 	
 	
 	if(p->D32==9)

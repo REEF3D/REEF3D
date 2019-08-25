@@ -35,8 +35,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"density_heat.h"
 #include"density_vof.h"
  
-pjm::pjm(lexer* p, fdm *a, heat *&pheat, concentration *&pconc)
+pjm::pjm(lexer* p, fdm *a, heat *&pheat, concentration *&ppconc)
 {
+    pconc = ppconc;
     if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90==0)
 	pd = new density_f(p);
 	
@@ -118,6 +119,10 @@ void pjm::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 	ULOOP
 	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((a->press(i+1,j,k)-a->press(i,j,k))
 	/(p->DXP[IP]*pd->roface(p,a,1,0,0)));
+    
+    
+    ULOOP
+    a->test(i,j,k)=pd->roface(p,a,1,0,0);
 }
 
 void pjm::vcorr(lexer* p, fdm* a, field& vvel,double alpha)

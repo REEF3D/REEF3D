@@ -75,11 +75,12 @@ void concentration_io::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &resu
 double concentration_io::val(int ii, int jj, int kk)
 {
     double val;
-    i=ii;
+    
+    /*i=ii;
     j=jj;
-    k=kk;
+    k=kk;*/
 
-    val=C(i,j,k);
+    val=C(ii,jj,kk);
 
     return val;
 }
