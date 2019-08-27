@@ -80,8 +80,6 @@ void sflow_print_probe_da::start(lexer *p, fdm2D *b, ghostcell *pgc)
 	for(n=0;n<probenum;++n)
 	{
 	uval=vval=wval=pval=eval=-1.0e20;
-    
-    cout<<p->mpirank<<" PROBE: "<<flag[n]<<endl;
 	
 		if(flag[n]>0)
 		{
