@@ -63,6 +63,11 @@ iowave::iowave(lexer *p, ghostcell *pgc) : wave_interface(p,pgc),flowfile_in(p,p
     epsval=p->T53*(pow(0.09,0.75)*pow(kinval,0.5))/(0.5*0.4*p->dx);	
 	
 	// ---------------------------------------
+    
+    if(p->B105==0)
+    {
+    p->B105_2 = p->global_xmin;
+    }
 	
 	if(p->B106==0)
 	{

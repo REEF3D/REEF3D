@@ -110,7 +110,6 @@ void sflow_print_wsf::height_gauge(lexer *p, fdm2D *b, ghostcell *pgc, slice &f)
     }
 }
 
-
 void sflow_print_wsf::ini_location(lexer *p, fdm2D *b)
 {
     for(n=0;n<gauge_num;++n)
@@ -124,25 +123,24 @@ void sflow_print_wsf::ini_location(lexer *p, fdm2D *b)
     }
 }
 
-
 int sflow_print_wsf::conv(double a)
 {
 
-int b,c;
-double d,diff;
+    int b,c;
+    double d,diff;
 
-c= int( a);
-d=double(c);
-diff=a-d;
+    c= int( a);
+    d=double(c);
+    diff=a-d;
 
-b=c;
+    b=c;
 
-if(diff>0.5)
-b=c+1;
+    if(diff>0.5)
+    b=c+1;
 
-if(diff<=-0.5)
-b=c-1;
+    if(diff<=-0.5)
+    b=c-1;
 
-return b;
+    return b;
 
 }

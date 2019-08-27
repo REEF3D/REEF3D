@@ -156,7 +156,8 @@ void lexer::ini_default()
 	B102=1.0;        // double factor ramp function wave generation
 	B103=0.6;        // double factor1 for relaxation into air phase
 	B104=3.0;        // double factor2 for relaxation into air phase
-	B105_1=0.0;        // double wave generation direction and line origin in Cartesian coordianate system 
+    B105=0;            // int wave generation origin changed
+ 	B105_1=0.0;        // double wave generation direction and line origin in Cartesian coordianate system 
 	B105_2=0.0;        // double wave generation line x origin
 	B105_3=0.0;        // double wave generation line y origin 
 	B106=0;			// int read wave generation origin

@@ -79,13 +79,15 @@ void sflow_print_probe_da::start(lexer *p, fdm2D *b, ghostcell *pgc)
 	
 	for(n=0;n<probenum;++n)
 	{
-	uval=vval=wval=pval=-1.0e20;
+	uval=vval=wval=pval=eval=-1.0e20;
+    
+    cout<<p->mpirank<<" PROBE: "<<flag[n]<<endl;
 	
 		if(flag[n]>0)
 		{
 		xp=p->P63_x[n];
 		yp=p->P63_y[n];
-		
+        
 		uval = p->ccslipol1(b->P, xp, yp);
 		vval = p->ccslipol2(b->Q, xp, yp);
 		wval = p->ccslipol4(b->ws,xp,yp); 
@@ -97,7 +99,7 @@ void sflow_print_probe_da::start(lexer *p, fdm2D *b, ghostcell *pgc)
 	vval=pgc->globalmax(vval);
 	wval=pgc->globalmax(wval);
 	pval=pgc->globalmax(pval);
-    eval=pgc->globalmax(pval);
+    eval=pgc->globalmax(eval);
 	
 	if(p->mpirank==0)
 	pout[n]<<setprecision(9)<<p->simtime<<" \t "<<uval<<" \t "<<vval<<" \t "<<wval<<" \t "<<pval<<" \t "<<eval<<endl;
@@ -124,8 +126,14 @@ void sflow_print_probe_da::ini_location(lexer *p, fdm2D *b, ghostcell *pgc)
     if(jloc[n]>=0 && jloc[n]<p->knoy)
     check=1;
     
-    PSLICECHECK4
-    check=1;
+    if(check==1)
+    {
+    i = iloc[n];
+    j = jloc[n];
+    
+    if(p->flagslice4[IJ]<0)
+    check=0;
+    }
 
     if(check==1)
     flag[n]=1;

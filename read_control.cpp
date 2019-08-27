@@ -398,6 +398,7 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
 			   case 105: control>>B105_1>>B105_2>>B105_3;
+                        B105=1;
 						 clear(c,numint);
 						 break;
 			   case 106: ++B106;
