@@ -1125,6 +1125,7 @@
           <File Name="vrans_v.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Porous Structures">
+          <File Name="vrans_sed_update.cpp"/>
           <File Name="vrans_velsource.cpp"/>
           <File Name="vrans_source_omega.cpp"/>
           <File Name="vrans_source_k.cpp"/>

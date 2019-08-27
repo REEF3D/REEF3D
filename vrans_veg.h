@@ -38,6 +38,7 @@ public:
 	virtual ~vrans_veg();
 
 	virtual void initialize(lexer*, fdm*, ghostcell*);	
+    virtual void sed_update(lexer*, fdm*, ghostcell*);
 	
 	virtual void u_source(lexer*, fdm*);
 	virtual void v_source(lexer*, fdm*);
