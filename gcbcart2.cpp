@@ -69,10 +69,16 @@ void mgc2::fillgcb(lexer *p)
 
             if(p->gcb2[q][3]==2)
             p->gcb2[q][1]-=1;
-			
+	}
+    
+    QGC2LOOP
+	{
+	    i=p->gcb2[q][0];
+		j=p->gcb2[q][1];
+		k=p->gcb2[q][2];
+
             if(p->gcb2[q][3]!=2 && p->fgc[IJK][1]==1)
             p->gcb2[q][3]=-fabs(p->gcb2[q][3]);
-		
 	}
 }
 

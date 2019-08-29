@@ -69,7 +69,14 @@ void mgc3::fillgcb(lexer *p)
 
             if(p->gcb3[q][3]==6)
             p->gcb3[q][2]-=1;
-			
+	}
+    
+    QGC3LOOP
+	{
+	    i=p->gcb3[q][0];
+		j=p->gcb3[q][1];
+		k=p->gcb3[q][2];
+
             if(p->gcb3[q][3]!=6 && p->fgc[IJK][5]==1)
             p->gcb3[q][3]=-fabs(p->gcb3[q][3]);
 	}

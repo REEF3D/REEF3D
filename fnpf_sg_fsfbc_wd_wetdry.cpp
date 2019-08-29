@@ -62,12 +62,8 @@ void fnpf_sg_fsfbc_wd::coastline(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f
 double fnpf_sg_fsfbc_wd::rb3(lexer *p, double x)
 {
     double r=0.0;
-    double dist3_fac=1.0;
-    
-    if(p->B99==1)
-    dist3_fac=2.0;
 
-    x=(dist3-fabs(x))/(dist3*dist3_fac);
+    x=(dist3-fabs(x))/(dist3);
     x=MAX(x,0.0);
     
     r = 1.0 - (exp(pow(x,p->B119))-1.0)/(exp(1.0)-1.0);

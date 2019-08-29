@@ -259,7 +259,6 @@ double & field4::operator()(int ii, int jj, int kk)
 			return gcfeld[pp->mgc4[iter]-10][5][dk];
 		}
 
-	return V[iter];
-	
+	return V[iter];	
 }
 

@@ -69,7 +69,15 @@ void mgc1::fillgcb(lexer *p)
 
             if(p->gcb1[q][3]==4)
             p->gcb1[q][0]-=1;
-			
+		
+	}
+    
+    QGC1LOOP
+	{
+	    i=p->gcb1[q][0];
+		j=p->gcb1[q][1];
+		k=p->gcb1[q][2];
+
             if(p->gcb1[q][3]!=4 && p->fgc[IJK][3]==1)
             p->gcb1[q][3]=-fabs(p->gcb1[q][3]);
 		
@@ -124,7 +132,7 @@ void mgc1::extragcb(lexer *p)
         if(p->fgc[IJK][5]==0)
         ++count;
     }
-	//cout<<p->mpirank<<" old gcb1: "<<p->gcb1_count<<" new gcb1: "<<count<<endl;
+	cout<<p->mpirank<<" old gcb1: "<<p->gcb1_count<<" new gcb1: "<<count<<endl;
 	
 	if(p->gcb1_count!=count)
 	{
