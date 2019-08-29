@@ -108,10 +108,7 @@ void driver::makegrid(lexer *p, ghostcell *pgc)
     m4a.fill_ggc(p);
     
     p->vecsize();
-	
-	//cout<<p->mpirank<<" GCB4_COUNT:  "<<p->gcb4_count<<endl;
-    
-    
+	   
     
 }
 	
