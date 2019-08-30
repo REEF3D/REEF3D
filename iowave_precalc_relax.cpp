@@ -27,9 +27,6 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
 {
     double fsfloc;
     
-    if(p->mpirank==0)
-    cout<<"PRECALC 000"<<endl;
-    
     // pre-calc every iteration
     count=0;
     SLICELOOP4
@@ -52,9 +49,6 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
 		}
     }
     pgc->gcsl_start4(p,eta,50);
-    
-    if(p->mpirank==0)
-    cout<<"PRECALC 001"<<endl;
     
     count=0;
     ULOOP
@@ -140,10 +134,7 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
             }
 		}
     }
-    
-    if(p->mpirank==0)
-    cout<<"PRECALC 003"<<endl;
-    
+
     count=0;
     WLOOP
     {
@@ -186,9 +177,6 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
 		}
     }	
 
-    if(p->mpirank==0)
-    cout<<"PRECALC 004"<<endl;
-    
     count=0;
     FLUIDLOOP
     {
@@ -216,9 +204,6 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
 		}
     }
     
-    if(p->mpirank==0)
-    cout<<"PRECALC 005"<<endl;
-    
     count=0;
     if(p->A10==3 && p->A300==1)
     FLOOP
@@ -244,9 +229,6 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
             }
 		}
     }
-    
-    if(p->mpirank==0)
-    cout<<"PRECALC 006"<<endl;
     
     count=0;
     if(p->A10==3 && p->A300==1)
@@ -290,11 +272,7 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
 		}
     }
     
-    
-    
-    if(p->mpirank==0)
-    cout<<"PRECALC 007"<<endl;
-    
+
     count=0;
     SLICELOOP4
     {
@@ -322,7 +300,6 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
             }
 		}
     }
-    if(p->mpirank==0)
-    cout<<"PRECALC 008"<<endl;
+
 }
     
