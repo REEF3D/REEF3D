@@ -145,17 +145,14 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     
      //
     pgc->start7V(p,c->Fi,c->bc,250);
-    pgc->start4(p,c->u,110);
-    pgc->start4(p,c->v,111);
-	pgc->start4(p,c->w,112);
     pgc->gcsl_start4(p,c->WL,50);
     pgc->gcsl_start4(p,c->bed,50);
     pgc->gcsl_start4(p,c->breaking_print,50);
     pgc->start4(p,c->test,1);
 	
-	pgc->dgcpol(p,c->u,p->dgc1,p->dgc1_count,11);
-	pgc->dgcpol(p,c->v,p->dgc2,p->dgc2_count,12);
-	pgc->dgcpol(p,c->w,p->dgc3,p->dgc3_count,13);
+	pgc->dgcpol(p,c->u,p->dgc4,p->dgc4_count,14);
+	pgc->dgcpol(p,c->v,p->dgc4,p->dgc4_count,14);
+	pgc->dgcpol(p,c->w,p->dgc4,p->dgc4_count,14);
     pgc->dgcpol(p,c->test,p->dgc4,p->dgc4_count,14);
     pgc->dgcpol(p,c->Fi4,p->dgc4,p->dgc4_count,14);
     pgc->dgcslpol(p,c->WL,p->dgcsl4,p->dgcsl4_count,14);
