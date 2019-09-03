@@ -106,8 +106,8 @@ double ghostcell::gcsl_ipol4(lexer* p, slice &f)
 double ghostcell::gcsl_ipol4eta(lexer* p, slice &f, slice &bed)
 {
     double bedvalue;
-    
     double wd_criterion=0.00005;
+    int jj;
     
     if(p->A244==1)
     wd_criterion=p->A244_val;
@@ -115,8 +115,39 @@ double ghostcell::gcsl_ipol4eta(lexer* p, slice &f, slice &bed)
     if(p->A245==1)
     wd_criterion=p->A245_val*p->dx;
     
-    v1=v2=v3=v4=0;
+    
+    
+    v1=v2=v3=v4=0.0;
+    
+    if(p->j_dir==0)
+    {
+    jj=j;
+    
+    j=0;
+    pip=4;
+    v1=f(i,j);
 
+    v2=f(i+1,j);
+
+    pip=0;
+
+    value = 0.5*(v1+v2);
+    
+    //bed
+    pip=4;
+    v1=bed(i,j);
+
+    v2=bed(i+1,j);
+
+    pip=0;
+
+    bedvalue = 0.5*(v1+v2);
+    
+    j=jj;
+    }
+    
+    if(p->j_dir==1)
+    {
     pip=4;
     v1=f(i,j);
 
@@ -134,13 +165,15 @@ double ghostcell::gcsl_ipol4eta(lexer* p, slice &f, slice &bed)
     v1=bed(i,j);
 
     v2=bed(i+1,j);
-
+    
     v3=bed(i,j+1);
 
     v4=bed(i+1,j+1);
     pip=0;
 
     bedvalue = 0.25*(v1+v2+v3+v4);
+    }
+    
     
     if(value+p->wd>bedvalue)
     if(value+p->wd-bedvalue<wd_criterion)
