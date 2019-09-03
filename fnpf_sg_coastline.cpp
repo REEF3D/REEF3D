@@ -46,16 +46,13 @@ void fnpf_sg_coastline::start(lexer *p, ghostcell *pgc, slice &coastline, slicei
             
             if(wet(i,j)==1)
             coastline(i,j)=1.0;
-            
-            
+   
         }
         reini(p,pgc,coastline);
-
     }
     
-    
     // if p->count>0, check for wetdry changes
-    change=0;
+   /* change=0;
     if(p->count>1)
     {
         SLICELOOP4
@@ -80,7 +77,7 @@ void fnpf_sg_coastline::start(lexer *p, ghostcell *pgc, slice &coastline, slicei
         
         if(change>0)
         reini(p,pgc,coastline);
-    }
+    }*/
     
     
 
