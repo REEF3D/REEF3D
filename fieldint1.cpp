@@ -95,6 +95,9 @@ int & fieldint1::operator()(int ii, int jj, int kk)
         if(di==0 && dj==0 && dk==0 && pp->flag1[iter]>0)
 		return V[iter];
         
+        if(((di!=0 && dj!=0) || (di!=0 && dk!=0) || (dj!=0 && dk!=0)) && pip==0)
+		return V[iter];
+        
         if(di==0 && dj==0 && dk==0 && pip==5)
 		{
 			di=1;
@@ -107,11 +110,12 @@ int & fieldint1::operator()(int ii, int jj, int kk)
 		if(di==0 && dj==0 && dk==0 && pip!=1)
 		return V[iter];
         
+        /*
         if(di==0 && dj==0 && dk==0 && pip==1)
 		di=1;
         
         if(di==0 && pip==1)
-		di=1;
+		di=1;*/
 
 	  
 //1

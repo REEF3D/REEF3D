@@ -146,7 +146,6 @@ void mgc1::extragcb(lexer *p)
 	
     ULOOP
     {	
-		
         if(p->flag1[UIm1JK]<0)
         if(p->fgc[IJK][0]==0)
         {
@@ -303,49 +302,40 @@ void mgc1::extragcb(lexer *p)
         if(p->flag1[UIJK]<0 && p->flag4[IJK]<0)
         p->gcb1[q][3]=-fabs(p->gcb1[q][3]);
 	}
+    
+    
     /*
+	int count1=0;
+	QGCB1
+	++count1;
+    
+    int count2=0;
+	QGC1LOOP
+	++count2;
+    
     count=0;
-    QGC1LOOP
-	{
-	    i=p->gcb1[q][0];
-		j=p->gcb1[q][1];
-		k=p->gcb1[q][2];
-        
-        if(p->gcb1[q][3] == 1)
-        if(p->flag1[UIm1JK]>0)
+    ULOOP
+    {
+        if(p->flag1[UIm1JK]<0)
         ++count;
         
-        if(p->gcb1[q][3] == 4)
-        if(p->flag1[UIp1JK]>0)
+        if(p->flag1[UIp1JK]<0)
         ++count;
         
-        if(p->gcb1[q][3] == 3)
-        if(p->flag1[UIJm1K]>0)
+        if(p->flag1[UIJm1K]<0)
         ++count;
         
-        if(p->gcb1[q][3] == 2)
-        if(p->flag1[UIJp1K]>0)
+        if(p->flag1[UIJp1K]<0)
         ++count;
         
-        if(p->gcb1[q][3] == 5)
-        if(p->flag1[UIJKm1]>0)
+        if(p->flag1[UIJKm1]<0)
         ++count;
         
-        if(p->gcb1[q][3] == 6)
-        if(p->flag1[UIJKp1]>0)
+        if(p->flag1[UIJKp1]<0)
         ++count;
 	}
 	
-	
-
-    cout<<p->mpirank<<" GCB error: "<<count<<endl;*/
-    /*
-	int count1=0;
-	QGC1LOOP
-	++count1;
-	
-	
-	cout<<p->mpirank<<" GCB1: "<<p->gcb1_count<<" GCB1_direct: "<<count1<<endl;*/
+	cout<<p->mpirank<<" GCB1: "<<p->gcb1_count<<" GCB1_direct_all: "<<count1<<" GCB1_direct: "<<count2<<" GCB1_LOOP: "<<count<<endl;*/
 	
 	p->del_Iarray(p->fgc,imax*jmax*kmax,6);
 	

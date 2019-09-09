@@ -118,6 +118,9 @@ double & field3::operator()(int ii, int jj, int kk)
         if(di==0 && dj==0 && dk==0 && pp->flag3[iter]>0)
 		return V[iter];
         
+        if(((di!=0 && dj!=0) || (di!=0 && dk!=0) || (dj!=0 && dk!=0)) && pip==0)
+		return V[iter];
+        
         if(di==0 && dj==0 && dk==0 && pip==5)
 		{
 			dk=1;
@@ -127,15 +130,28 @@ double & field3::operator()(int ii, int jj, int kk)
 			if(pp->gcorig3[pp->mgc3[iter]-10][5][dk]==1)
 			return gcfeld[pp->mgc3[iter]-10][5][dk];
 		}
+        
+        if(di==0 && dj==0 && dk<0 && pip==5)
+		{
+			 dk=-1;
+            if(pp->gcorig3[pp->mgc3[iter]-10][4][-dk]==0)
+            return V[iter];
+			
+			if(pp->gcorig3[pp->mgc3[iter]-10][4][-dk]==1)
+			return gcfeld[pp->mgc3[iter]-10][4][-dk];
+		}
+        
+        
+        
 		
 		if(di==0 && dj==0 && dk==0 && pip!=3)
 		return V[iter];
-        
+        /*
         if(di==0 && dj==0 && dk==0 && pip==3)
 		dk=1;
         
         if(dk==0 && pip==3)
-		dk=1;
+		dk=1;*/
 
 	  
 //1

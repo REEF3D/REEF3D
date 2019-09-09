@@ -116,30 +116,32 @@ void pjm::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, mo
 
 void pjm::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 {	
+    pip=14;
 	ULOOP
 	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((a->press(i+1,j,k)-a->press(i,j,k))
 	/(p->DXP[IP]*pd->roface(p,a,1,0,0)));
-    
-    
-    ULOOP
-    a->test(i,j,k)=pd->roface(p,a,1,0,0);
+    pip=0;
 }
 
 void pjm::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
-{	 
+{	
+    pip=14; 
     VLOOP
     vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))
     /(p->DYP[JP]*(pd->roface(p,a,0,1,0)));
+    pip=0;
 }
 
 void pjm::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
 {	
+    pip=14;
 	WLOOP
 	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))
 	/(p->DZP[KP]*pd->roface(p,a,0,0,1)));
+    pip=0;
 }
  
-void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
+void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, double alpha)
 {
     NLOOP4
 	a->rhsvec.V[n]=0.0;
@@ -152,6 +154,14 @@ void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,dou
     a->rhsvec.V[count] =  -(u(i,j,k)-u(i-1,j,k))/(alpha*p->dt*p->DXN[IP])
 						   -(v(i,j,k)-v(i,j-1,k))/(alpha*p->dt*p->DYN[JP])
 						   -(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DZN[KP]);
+    /*
+    if(p->flag1[UIJK]<0 && p->mpirank>1 && p->mpirank<4 && fabs(u(i,j,k))>0.0)
+    cout<<" U(i,j,k): "<<u(i,j,k)<<"  mgc1: "<<p->mgc1[IJK]<<" flag1: "<<p->flag1[UIJK]<<endl;
+    
+    if(p->flag1[UIm1JK]<0 && p->mpirank>1 && p->mpirank>4 && fabs(u(i-1,j,k))>0.0)
+    cout<<" U(i-1,j,k): "<<u(i-1,j,k)<<"  mgc1: "<<p->mgc1[Im1JK]<<endl;*/
+    
+    
     ++count;
     }
     pip=0;
@@ -162,10 +172,6 @@ void pjm::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field 
 	pgc->start1(p,u,gcval_u);
 	pgc->start2(p,v,gcval_v);
 	pgc->start3(p,w,gcval_w);
-	
-	u.ggcpol(p);
-	v.ggcpol(p);
-	w.ggcpol(p);
 }
 
 void pjm::pressure_norm(lexer*p, fdm* a, ghostcell* pgc)

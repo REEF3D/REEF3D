@@ -96,6 +96,9 @@ int & fieldint2::operator()(int ii, int jj, int kk)
         if(di==0 && dj==0 && dk==0 && pp->flag2[iter]>0)
 		return V[iter];
         
+        if(((di!=0 && dj!=0) || (di!=0 && dk!=0) || (dj!=0 && dk!=0)) && pip==0)
+		return V[iter];
+        
         if(di==0 && dj==0 && dk==0 && pip==5)
 		{
 			dj=1;
@@ -109,11 +112,12 @@ int & fieldint2::operator()(int ii, int jj, int kk)
 		if(di==0 && dj==0 && dk==0 && pip!=2)
 		return V[iter];
         
+        /*
         if(di==0 && dj==0 && dk==0 && pip==2)
 		dj=1;
         
         if(dj==0 && pip==2)
-		dj=1;
+		dj=1;*/
 
 	  
 //1
