@@ -68,8 +68,6 @@ private:
     const int order;
     
     double *factcos;
-	
-    
 
 };
 

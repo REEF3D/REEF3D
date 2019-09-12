@@ -130,20 +130,10 @@ double & field1::operator()(int ii, int jj, int kk)
 		{
 			 di=-1;
             if(pp->gcorig1[pp->mgc1[iter]-10][0][-di]==0)
-            {
-            /*cout<<"field1: "<<V[iter]<<" di: "<<di<<" dj: "<<dj<<" dk: "<<dk<<" pip: "<<pip
-            <<" gcorig1: "<<pp->gcorig1[pp->mgc1[iter]-10][0][1]<<" gcorig2: "<<pp->gcorig1[pp->mgc1[iter]-10][0][2]<<" gcorig3: "<<pp->gcorig1[pp->mgc1[iter]-10][0][3]
-            <<" flag1: "<<pp->flag1[iter]<<endl;*/
             return V[iter];
-            }
 			
 			if(pp->gcorig1[pp->mgc1[iter]-10][0][-di]==1)
-            {
-            /*cout<<"field1: "<<V[iter]<<" di: "<<di<<" dj: "<<dj<<" dk: "<<dk<<" pip: "<<pip
-            <<" gcorig1: "<<pp->gcorig1[pp->mgc1[iter]-10][0][1]<<" gcorig2: "<<pp->gcorig1[pp->mgc1[iter]-10][0][2]<<" gcorig3: "<<pp->gcorig1[pp->mgc1[iter]-10][0][3]
-            <<" flag1: "<<pp->flag1[iter]<<endl;*/
 			return gcfeld[pp->mgc1[iter]-10][0][-di];
-            }
 		}
     
         

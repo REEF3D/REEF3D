@@ -115,11 +115,6 @@ double & field3::operator()(int ii, int jj, int kk)
 		if(pip==4)
 		return V[iter];
         
-        if(di==0 && dj==0 && dk==0 && pp->flag3[iter]>0)
-		return V[iter];
-        
-        if(((di!=0 && dj!=0) || (di!=0 && dk!=0) || (dj!=0 && dk!=0)) && pip==0)
-		return V[iter];
         
         if(di==0 && dj==0 && dk==0 && pip==5)
 		{
@@ -142,6 +137,11 @@ double & field3::operator()(int ii, int jj, int kk)
 		}
         
         
+        if(di==0 && dj==0 && dk==0 && pp->flag3[iter]>0)
+		return V[iter];
+        
+        if(((di!=0 && dj!=0) || (di!=0 && dk!=0) || (dj!=0 && dk!=0)) && pip==0)
+		return V[iter];
         
 		
 		if(di==0 && dj==0 && dk==0 && pip!=3)

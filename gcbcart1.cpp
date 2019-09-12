@@ -335,8 +335,43 @@ void mgc1::extragcb(lexer *p)
         ++count;
 	}
 	
-	cout<<p->mpirank<<" GCB1: "<<p->gcb1_count<<" GCB1_direct_all: "<<count1<<" GCB1_direct: "<<count2<<" GCB1_LOOP: "<<count<<endl;*/
+	cout<<p->mpirank<<" GCB1: "<<p->gcb1_count<<" GCB1_direct_all: "<<count1<<" GCB1_direct: "<<count2<<" GCB1_LOOP: "<<count<<endl;
+    */
+    
+    
+     /*
+	int count1=0;
+	QGCB4
+	++count1;
+    
+    int count2=0;
+	QGC4LOOP
+	++count2;
+    
+    count=0;
+    LOOP
+    {
+        if(p->flag4[Im1JK]<0)
+        ++count;
+        
+        if(p->flag4[Ip1JK]<0)
+        ++count;
+        
+        if(p->flag4[IJm1K]<0)
+        ++count;
+        
+        if(p->flag4[IJp1K]<0)
+        ++count;
+        
+        if(p->flag4[IJKm1]<0)
+        ++count;
+        
+        if(p->flag4[IJKp1]<0)
+        ++count;
+	}
 	
+	cout<<p->mpirank<<" GCB4: "<<p->gcb4_count<<" GCB4_direct_all: "<<count1<<" GCB4_direct: "<<count2<<" GCB4_LOOP: "<<count<<endl;
+	*/
 	p->del_Iarray(p->fgc,imax*jmax*kmax,6);
 	
 }
