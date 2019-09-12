@@ -92,6 +92,12 @@ void mgc1::fillmgc(lexer* p)
 		p->mgc1[(i-imin)*jmax*kmax + (j-kmin)*kmax + k-kmin+n+1]+=1;
 	}
     
+    int maxval=0;
+    MALOOP
+    maxval = MAX(p->mgc1[IJK],maxval);
+    
+    cout<<p->mpirank<<"  maxval: "<<maxval<<endl;
+    
 //PARA1
     for(q=0;q<p->gcpara1_count;++q)
     {
