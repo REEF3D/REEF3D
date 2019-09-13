@@ -112,9 +112,6 @@ double & field4::operator()(int ii, int jj, int kk)
 
 		if(pip==4)
 		return V[iter];
-        
-        if(pip==14)
-		return V[iter];
 		
 		if(di==0 && dj==0 && dk==0)
 		return V[iter];

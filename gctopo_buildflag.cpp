@@ -76,25 +76,36 @@ void ghostcell::gcb_buildflag(lexer *p, fdm *a, int **cellmem, int& cellcount)
     cellcount=count;
     
 	if(p->Y60==1)
+    for(int qn=0; qn<100;++qn)
     {
-
+        count=0;
+        
         // check topo
         LOOP
         {
             if(p->i_dir==1)
             if(p->flag4[Im1JK]==TOPO
             && p->flag4[Ip1JK]==TOPO)
+            {
             p->flag4[IJK]=TOPO;
+            ++count;
+            }
             
             if(p->j_dir==1)
             if(p->flag4[IJm1K]==TOPO
             && p->flag4[IJp1K]==TOPO)
+            {
             p->flag4[IJK]=TOPO;
+            ++count;
+            }
 
             if(p->k_dir==1)
             if(p->flag4[IJKm1]==TOPO
             && p->flag4[IJKp1]==TOPO)
+            {
             p->flag4[IJK]=TOPO;
+            ++count;
+            }
         }
         
         // check topo/solid/object combinations
@@ -103,18 +114,32 @@ void ghostcell::gcb_buildflag(lexer *p, fdm *a, int **cellmem, int& cellcount)
             if(p->i_dir==1)
             if(p->flag4[Im1JK]<0
             && p->flag4[Ip1JK]<0)
+            {
             p->flag4[IJK]=TOPO;
+            ++count;
+            }
             
             if(p->j_dir==1)
             if(p->flag4[IJm1K]<0
             && p->flag4[IJp1K]<0)
+            {
             p->flag4[IJK]=TOPO;
+            ++count;
+            }
 
             if(p->k_dir==1)
             if(p->flag4[IJKm1]<0
             && p->flag4[IJKp1]<0)
+            {
             p->flag4[IJK]=TOPO;
+            ++count;
+            }
         }
+        
+        count = globalisum(count);
+        
+        if(count==0)
+        break;
     }
     
     cellcount=0;

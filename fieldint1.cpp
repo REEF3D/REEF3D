@@ -92,22 +92,37 @@ int & fieldint1::operator()(int ii, int jj, int kk)
 		if(pip==4)
 		return V[iter];
         
+        if(di==0 && dj==0 && dk==0 && pip==5)
+		{
+			di=1;
+            if(pp->gcorig1[pp->mgc1[iter]-10][3][di]==0)
+            return V[iter];
+			
+			if(pp->gcorig1[pp->mgc1[iter]-10][3][di]==1)
+			return gcfeld[pp->mgc1[iter]-10][3][di];
+		}
+        
+        
+        if(di<0 && dj==0 && dk==0 && pip==5)
+		{
+			 di=-1;
+            if(pp->gcorig1[pp->mgc1[iter]-10][0][-di]==0)
+            return V[iter];
+			
+			if(pp->gcorig1[pp->mgc1[iter]-10][0][-di]==1)
+			return gcfeld[pp->mgc1[iter]-10][0][-di];
+		}
+    
+        
+        
         if(di==0 && dj==0 && dk==0 && pp->flag1[iter]>0)
 		return V[iter];
         
         if(((di!=0 && dj!=0) || (di!=0 && dk!=0) || (dj!=0 && dk!=0)) && pip==0)
 		return V[iter];
         
-        if(di==0 && dj==0 && dk==0 && pip==5)
-		{
-			di=1;
-            return V[iter];
-			
-			if(pp->gcorig1[pp->mgc1[iter]-10][3][di]==1)
-			return gcfeld[pp->mgc1[iter]-10][3][di];
-		}
-		
-		if(di==0 && dj==0 && dk==0 && pip!=1)
+        
+        if(di==0 && dj==0 && dk==0 && pip!=1)
 		return V[iter];
         
         /*

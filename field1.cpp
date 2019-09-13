@@ -126,6 +126,7 @@ double & field1::operator()(int ii, int jj, int kk)
 			return gcfeld[pp->mgc1[iter]-10][3][di];
 		}
         
+        
         if(di<0 && dj==0 && dk==0 && pip==5)
 		{
 			 di=-1;
