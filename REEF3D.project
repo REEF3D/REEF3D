@@ -1125,6 +1125,7 @@
           <File Name="vrans_v.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Porous Structures">
+          <File Name="vrans_sed_update.cpp"/>
           <File Name="vrans_velsource.cpp"/>
           <File Name="vrans_source_omega.cpp"/>
           <File Name="vrans_source_k.cpp"/>
@@ -1662,7 +1663,10 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
         <VirtualDirectory Name="Grid Class">
-          <VirtualDirectory Name="Makegrid">
+          <VirtualDirectory Name="UpdateFloating"/>
+          <VirtualDirectory Name="UpdateSolid"/>
+          <VirtualDirectory Name="Makegrid"/>
+          <VirtualDirectory Name="Makegrid CDS">
             <File Name="grid_cval_update.cpp"/>
             <File Name="grid_cval_parax.cpp"/>
             <File Name="grid_cval_gcb.cpp"/>
@@ -1681,7 +1685,6 @@
             <File Name="gcbcart3.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="GGC">
-            <File Name="ggc7.cpp"/>
             <File Name="ggc4.cpp"/>
             <File Name="ggc4a.cpp"/>
             <File Name="ggcpol4.cpp"/>

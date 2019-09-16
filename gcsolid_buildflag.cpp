@@ -94,7 +94,31 @@ void ghostcell::gcsolid_velflag1(lexer *p, fdm *a, int& cellcount)
     p->flag1[UIJK]=WATER;
     }
     
-    cellcount=count;
+    /*
+    count=0;
+	ULOOP
+    {   
+        // Solid
+        if(p->flag1[UIm1JK]<0)
+        ++count;
+	
+        if(p->flag1[UIJp1K]<0)
+        ++count;
+
+        if(p->flag1[UIJm1K]<0)
+        ++count;
+
+        if(p->flag1[UIp1JK]<0)
+        ++count;
+
+        if(p->flag1[UIJKm1]<0)
+        ++count;
+
+        if(p->flag1[UIJKp1]<0)
+        ++count;
+    }
+    
+    cout<<p->mpirank<<"  SOLID_CHECK: "<<count<<endl;*/
 }
 
 void ghostcell::gcsolid_velflag2(lexer *p, fdm *a, int& cellcount)

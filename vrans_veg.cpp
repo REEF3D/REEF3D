@@ -44,3 +44,7 @@ void vrans_veg::veltimesave(lexer *p, fdm *a, ghostcell *pgc)
     WLOOP
     wn(i,j,k) = a->w(i,j,k);
 }
+
+void vrans_veg::sed_update(lexer *p, fdm *a, ghostcell *pgc)
+{
+}

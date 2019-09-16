@@ -347,7 +347,7 @@ void vtu3D::print_vtu(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *p
 {
     
     pgc->start4(p,a->test,1);
-    pgc->start4(p,a->solid,150);
+    pgc->start4a(p,a->solid,150);
     
 	pgc->dgcpol(p,a->u,p->dgc1,p->dgc1_count,11);
 	pgc->dgcpol(p,a->v,p->dgc2,p->dgc2_count,12);
@@ -380,7 +380,7 @@ void vtu3D::print_vtu(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *p
 void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, solver *psolv, data *pdata, concentration *pconc, sediment *psed)
 {
     pgc->start4(p,a->test,1);
-    pgc->start4(p,a->solid,150);
+    pgc->start4a(p,a->solid,150);
     
     pgc->start1(p,a->u,110);
     pgc->start2(p,a->v,111);

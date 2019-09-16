@@ -35,6 +35,7 @@ class vrans
 public:
 
 	virtual void initialize(lexer*, fdm*, ghostcell*)=0;	
+    virtual void sed_update(lexer*, fdm*, ghostcell*)=0;	
 	
 	virtual void u_source(lexer*, fdm*)=0;
 	virtual void v_source(lexer*, fdm*)=0;

@@ -39,6 +39,7 @@ void fnpf_sg_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta,
           c->wet(i,j)=0;
 
       } 
+      
     
       pgc->gcsl_start4int(p,c->wet,50);
       
@@ -55,6 +56,11 @@ void fnpf_sg_fsfbc_wd::coastline(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f
     
         f(i,j) = rb3(p,db)*f(i,j);
         }
+        
+        if(c->coastline(i,j)<0.0)
+        {    
+        f(i,j) = 0.0;
+        }
     }
 }
 
@@ -62,11 +68,10 @@ double fnpf_sg_fsfbc_wd::rb3(lexer *p, double x)
 {
     double r=0.0;
 
-    x=(dist3-fabs(x))/dist3;
+    x=(dist3-fabs(x))/(dist3);
     x=MAX(x,0.0);
     
     r = 1.0 - (exp(pow(x,p->B119))-1.0)/(exp(1.0)-1.0);
-    //r = 1.0 - (pow(1.0 + (pow(x,p->B119))/4000.0, 4000.0)-1.0)*expinverse;
-	
+
 	return r;
 }

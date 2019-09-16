@@ -27,6 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 density_conc::density_conc(lexer* p, concentration *& ppconc) : epsi(p->F45*p->dx), eps(2.1*p->dx)
 {
     pconc = ppconc;
+    
 }
 
 density_conc::~density_conc()
@@ -37,21 +38,15 @@ double density_conc::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
     double psi,r,s;
     double concval;
-	
-	ii = aa-aa/(fabs(aa)>0?fabs(aa):1);
-	jj = bb-bb/(fabs(bb)>0?fabs(bb):1);
-	kk = cc-cc/(fabs(cc)>0?fabs(cc):1);
-	
 
 	if(p->D32==2)
 	{
-       
         phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
         
         concval = 0.5*(pconc->val(i,j,k) + pconc->val(i+aa,j+bb,k+cc));
         
         if(p->j_dir==0)
-        psi = p->F45*(1.0/1.0)*(p->DXN[IP]+p->DZN[KP]);
+        psi = p->F45*(1.0/2.0)*(p->DXN[IP]+p->DZN[KP]);
         
         if(p->j_dir==1)
         psi = p->F45*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
@@ -67,11 +62,17 @@ double density_conc::roface(lexer *p, fdm *a, int aa, int bb, int cc)
         
         roval = (p->W1+concval*p->C1)*H + (p->W3+concval*p->C3)*(1.0-H);
 	}
-	
+    
 	// -----
 	
 	if(p->D32==3)
+    {
+    ii = aa-aa/(fabs(aa)>0?fabs(aa):1);
+	jj = bb-bb/(fabs(bb)>0?fabs(bb):1);
+	kk = cc-cc/(fabs(cc)>0?fabs(cc):1);
+    
 	roval = 0.5*(a->ro(i+ii,j+jj,k+kk) + a->ro(i+aa,j+bb,k+cc));
+    }
 	
 	// -----
 	

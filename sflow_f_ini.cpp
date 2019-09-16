@@ -138,6 +138,8 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     SLICELOOP4
     b->ks(i,j) = p->B50;
     
+    pgc->gcsl_start4(p,b->ks,50);
+    
     //sediment ini
     psed->ini(p,b,pgc);
 	

@@ -272,9 +272,7 @@ double interpolation::ccipol4(field& f, double xp, double yp, double zp)
     wb = (p->YP[JP]-yp)/p->DYN[JM1];
     --j;
     }
-    
-    
-    
+
     
     //wc
     wc = (p->ZP[KP1]-zp)/p->DZN[KP];

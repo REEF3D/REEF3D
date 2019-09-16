@@ -42,7 +42,10 @@ void vrans_v::veltimesave(lexer *p, fdm *a, ghostcell *pgc)
 
 void vrans_v::initialize(lexer *p, fdm *a, ghostcell *pgc)
 {
-	
+}
+
+void vrans_v::sed_update(lexer *p, fdm *a, ghostcell *pgc)
+{
 }
 
 void vrans_v::u_source(lexer *p, fdm *a)

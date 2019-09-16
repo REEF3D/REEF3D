@@ -63,6 +63,7 @@ private:
     
     density *pd;
 	
+    concentration *pconc;
 };
 
 
