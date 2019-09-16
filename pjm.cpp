@@ -38,22 +38,23 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 pjm::pjm(lexer* p, fdm *a, heat *&pheat, concentration *&ppconc)
 {
     pconc = ppconc;
-    if((p->F30>0||p->A10==4) && p->H10==0 && p->W30==0 && p->W90==0)
+    
+    if((p->F30>0||p->A10==4) && p->H10==0 && p->W30==0)
 	pd = new density_f(p);
 	
-	if(p->F30>0 && p->H10==0 && p->W30==1 && p->W90==0)
+	if(p->F30>0 && p->H10==0 && p->W30==1)
 	pd = new density_comp(p);
 	
-	if(p->F30>0 && p->H10>0 && p->W90==0)
+	if(p->F30>0 && p->H10>0)
 	pd = new density_heat(p,pheat);
 	
-	if(p->F30>0 && p->C10>0 && p->W90==0)
+	if(p->F30>0 && p->C10>0)
 	pd = new density_conc(p,pconc);
 	
-	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
+	if(p->F30==0 && p->N40==33 && p->H10==0 && p->W30==0)
 	pd = new density_f(p);
     
-    if(p->F80>0 && p->H10==0 && p->W30==0 && p->W90==0)
+    if(p->F80>0 && p->H10==0 && p->W30==0)
 	pd = new density_vof(p);
     
     

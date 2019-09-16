@@ -83,21 +83,28 @@ momentum_FSFC_RK3::momentum_FSFC_RK3(lexer *p, fdm *a, ghostcell *pgc, convectio
 	if(p->F50==4)
 	gcval_phi=54;
 
-	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90==0)
+	if(p->F30>0 && p->H10==0 && p->W30==0)
 	pupdate = new fluid_update_fsf(p,a,pgc);
+    
+    if(p->F30==0 && p->N40==33 && p->H10==0 && p->W30==0  && p->W90==0)
+    pupdate = new fluid_update_fsf(p,a,pgc);
+    
+    if(p->F30==0 && p->N40==33 && p->H10==0 && p->W30==0  && p->W90==1)
+    pupdate = new fluid_update_rheology(p,a,pgc);
 	
-	if(p->F30>0 && p->H10==0 && p->W30==1 && p->W90==0)
+	if(p->F30>0 && p->H10==0 && p->W30==1)
 	pupdate = new fluid_update_fsf_comp(p,a,pgc);
 	
-	if(p->F30>0 && p->H10>0 && p->W90==0)
+	if(p->F30>0 && p->H10>0)
 	pupdate = new fluid_update_fsf_heat(p,a,pgc,pheat);
 	
-	if(p->F30>0 && p->C10>0 && p->W90==0)
+	if(p->F30>0 && p->C10>0)
 	pupdate = new fluid_update_fsf_concentration(p,a,pgc,pconc);
 	
-	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
+	if(p->F30>0 && p->H10==0 && p->W30==0)
 	pupdate = new fluid_update_rheology(p,a,pgc);
-
+    
+    
 	if(p->F46==2)
 	ppicard = new picard_f(p);
 
@@ -114,7 +121,6 @@ momentum_FSFC_RK3::~momentum_FSFC_RK3()
 
 void momentum_FSFC_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 {	
-	
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
 	pflow->rkinflow(p,a,pgc,urk1,vrk1,wrk1);
@@ -146,7 +152,7 @@ void momentum_FSFC_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	ark1(i,j,k) = a->phi(i,j,k)
 				+ p->dt*a->L(i,j,k);
 	
-	pflow->phi_relax(p,pgc,ark1,1.0);
+	pflow->phi_relax(p,pgc,ark1);
 	
 	pgc->start4(p,ark1,gcval_phi);
     
@@ -207,13 +213,11 @@ void momentum_FSFC_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	pgc->start1(p,urk1,gcval_urk);
 	pgc->start2(p,vrk1,gcval_vrk);
 	pgc->start3(p,wrk1,gcval_wrk);
-	
-	urk1.ggcpol(p);
-	vrk1.ggcpol(p);
-	wrk1.ggcpol(p);
-	
+    
     pflow->pressure_io(p,a,pgc);
+    
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pmom,pflow, urk1, vrk1, wrk1, 1.0);
+    
 	
 	pflow->u_relax(p,a,pgc,urk1);
 	pflow->v_relax(p,a,pgc,vrk1);
@@ -224,8 +228,6 @@ void momentum_FSFC_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	pgc->start2(p,vrk1,gcval_vrk);
 	pgc->start3(p,wrk1,gcval_wrk);
     
-	
-    
     // FSF
     starttime=pgc->timer();
 
@@ -233,11 +235,11 @@ void momentum_FSFC_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	a->L(i,j,k)=0.0;
 
 	pfsfdisc->start(p,a,a->phi,4,urk1,vrk1,wrk1);
-	
 
 	FLUIDLOOP
 	ark1(i,j,k) = a->phi(i,j,k)
 				+ p->dt*a->L(i,j,k);
+
 	
 	pflow->phi_relax(p,pgc,ark1);
 	
@@ -260,7 +262,7 @@ void momentum_FSFC_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 				   + 0.25*ark1(i,j,k)
 				   + 0.25*p->dt*a->L(i,j,k);
 				
-	pflow->phi_relax(p,pgc,ark2,0.25);
+	pflow->phi_relax(p,pgc,ark2);
 	
 	pgc->start4(p,ark2,gcval_phi);
     
@@ -321,10 +323,6 @@ void momentum_FSFC_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	pgc->start2(p,vrk2,gcval_vrk);
 	pgc->start3(p,wrk2,gcval_wrk);
 	
-	urk2.ggcpol(p);
-	vrk2.ggcpol(p);
-	wrk2.ggcpol(p);
-
     pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pmom,pflow, urk2, vrk2, wrk2, 0.25);
 	
@@ -370,7 +368,7 @@ void momentum_FSFC_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 				  + (2.0/3.0)*ark2(i,j,k)
 				  + (2.0/3.0)*p->dt*a->L(i,j,k);
 
-    pflow->phi_relax(p,pgc,a->phi,2.0/3.0);
+    pflow->phi_relax(p,pgc,a->phi);
 	pgc->start4(p,a->phi,gcval_phi);
 
     //ppart->start(p,a,pgc,pflow);
@@ -379,13 +377,12 @@ void momentum_FSFC_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	p->lsmtime=pgc->timer()-starttime;
 
     if(p->count%p->F41==0)
-	preini->start(a,p,a->phi pgc, pflow);
+	preini->start(a, p,a->phi, pgc, pflow);
 	
 
     ppicard->correct_ls(p,a,pgc,a->phi);
 	//ppart->picardmove(p,a,pgc);
 
-	pflow->periodic(a->phi,p);
 
 	pupdate->start(p,a,pgc);*/
 
@@ -445,10 +442,6 @@ void momentum_FSFC_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
 	
-	a->u.ggcpol(p);
-	a->v.ggcpol(p);
-	a->w.ggcpol(p);
-
 	//--------------------------------------------------------
 	// pressure
 	pflow->pressure_io(p,a,pgc);
