@@ -35,7 +35,7 @@ using namespace std;
 class fluid_update_rheology : public fluid_update, increment
 {
 public:
-    fluid_update_rheology(lexer*, fdm*, ghostcell*);
+    fluid_update_rheology(lexer*, fdm*);
 	virtual ~fluid_update_rheology();
 
 	virtual void start(lexer*, fdm*, ghostcell*);

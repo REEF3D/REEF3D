@@ -31,6 +31,7 @@ class pressure;
 class turbulence;
 class solver;
 class poisson;
+class fluid_update;
 
 using namespace std;
 
@@ -55,6 +56,8 @@ public:
 	field3 wrk1,wrk2;
 
 private:
+    fluid_update *pupdate;
+    
 	void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
