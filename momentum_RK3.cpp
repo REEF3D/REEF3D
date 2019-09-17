@@ -142,7 +142,6 @@ void momentum_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
     
     pupdate->start(p,a,pgc);
 	
-
 //Step 2
 //--------------------------------------------------------
 	
@@ -208,6 +207,8 @@ void momentum_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	pgc->start1(p,urk2,gcval_urk);
 	pgc->start2(p,vrk2,gcval_vrk);
 	pgc->start3(p,wrk2,gcval_wrk);
+    
+    pupdate->start(p,a,pgc);
 
 //Step 3
 //--------------------------------------------------------
@@ -274,6 +275,8 @@ void momentum_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	pgc->start1(p,a->u,gcval_u);
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
+    
+    pupdate->start(p,a,pgc);
 }
 
 void momentum_RK3::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
