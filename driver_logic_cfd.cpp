@@ -671,9 +671,6 @@ void driver::logic()
 	if(p->N40==0 && p->X13==0)
 	pmom = new momentum_void();	
     
-    if(p->N40==33)
-	pmom = new momentum_FSFC_RK3(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsfdisc,preini,pheat,pconc);
-    
 
 	
 // 6DOF

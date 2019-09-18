@@ -43,9 +43,6 @@ poisson_f::poisson_f(lexer *p, heat *&pheat, concentration *&pconc)
 	
 	if(p->F30>0 && p->C10>0)
 	pd = new density_conc(p,pconc);
-	
-	if(p->F30==0 && p->N40==33 && p->H10==0 && p->W30==0)
-	pd = new density_f(p);
     
     if(p->F80>0 && p->H10==0 && p->W30==0)
 	pd = new density_vof(p);

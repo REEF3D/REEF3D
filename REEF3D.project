@@ -552,7 +552,6 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
-      <File Name="momentum_FSFC_RK3.h"/>
       <File Name="momentum_FSI.h"/>
       <File Name="bcmom.h"/>
       <File Name="momentum.h"/>
@@ -1973,7 +1972,6 @@
       <File Name="ini.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
-      <File Name="momentum_FSFC_RK3.cpp"/>
       <File Name="momentum_FSI.cpp"/>
       <VirtualDirectory Name="BC">
         <File Name="bcmom.cpp"/>

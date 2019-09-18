@@ -295,7 +295,7 @@ void mgc3::extragcb(lexer *p)
 	    i=p->gcb3[q][0];
 		j=p->gcb3[q][1];
 		k=p->gcb3[q][2];
-        if(p->flag3[WIJK]<0 && p->flag4[IJK]<0)
+        if(p->flag3[WIJK]<0)
         p->gcb3[q][3]=-fabs(p->gcb3[q][3]);
 	}
     

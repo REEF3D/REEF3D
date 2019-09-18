@@ -50,9 +50,6 @@ pjm::pjm(lexer* p, fdm *a, heat *&pheat, concentration *&ppconc)
 	
 	if(p->F30>0 && p->C10>0)
 	pd = new density_conc(p,pconc);
-	
-	if(p->F30==0 && p->N40==33 && p->H10==0 && p->W30==0)
-	pd = new density_f(p);
     
     if(p->F80>0 && p->H10==0 && p->W30==0)
 	pd = new density_vof(p);
@@ -142,7 +139,7 @@ void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, do
 	a->rhsvec.V[n]=0.0;
 	
     pip=p->Y50;
-
+    
     count=0;
     LOOP
     {
@@ -153,6 +150,7 @@ void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, do
     ++count;
     }
     pip=0;
+    
 }
  
 void pjm::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)

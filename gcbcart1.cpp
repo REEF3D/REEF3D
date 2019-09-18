@@ -299,7 +299,7 @@ void mgc1::extragcb(lexer *p)
 	    i=p->gcb1[q][0];
 		j=p->gcb1[q][1];
 		k=p->gcb1[q][2];
-        if(p->flag1[UIJK]<0 && p->flag4[IJK]<0)
+        if(p->flag1[UIJK]<0)
         p->gcb1[q][3]=-fabs(p->gcb1[q][3]);
 	}
     
