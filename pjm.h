@@ -56,7 +56,8 @@ public:
 	virtual void pressure_norm(lexer*,fdm*,ghostcell*);
 
 
-private:
+private:    
+    void debug(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 	double starttime,endtime;
 	int count, gcval_press;
 	int gcval_u, gcval_v, gcval_w;

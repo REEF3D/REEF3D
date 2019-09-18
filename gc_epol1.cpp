@@ -110,6 +110,10 @@ int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
 	else
 	if((bc==2||bc==1||bc==6) && (gcv==17))
 	return 4;
+    
+     else
+	if(gcv==999)
+	return 99;
 
 	else
 	return 0;
@@ -147,4 +151,7 @@ void ghostcell::gcdistro1(lexer *p,field& f, int ii, int jj, int kk, int nn, dou
 	
 	if(bc_label==11)
 	fbvel1(p,f,dist,gcv,bc,cs);
+    
+    if(bc_label==99)
+	gcb_debug(f,gcv,bc,cs);
 }

@@ -387,6 +387,7 @@ public:
 	void dirichlet_para(field&,double,int,int,int);
 	void dirichlet_ortho(lexer*,field&,double,int,int,int);
 	void neumann(field&,int,int,int);
+    void gcb_debug(field&,int,int,int);
 	void neumann_press(lexer*,field&,double,int,int,int);
 	void extend(field&,double,int,int,int);
 	void largeval(field&,double,int,int,int);

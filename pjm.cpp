@@ -84,6 +84,9 @@ pjm::~pjm()
 
 void pjm::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, momentum *pmom, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
 {
+    //debug(p,a,pgc,uvel,vvel,wvel,alpha);
+    
+    
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<".";
 			
@@ -205,6 +208,67 @@ void pjm::ptimesave(lexer *p, fdm *a, ghostcell *pgc)
 
 
 
+void pjm::debug(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, double alpha)
+{
+    ULOOP
+    u(i,j,k) = 0.0;
+    
+    VLOOP
+    v(i,j,k) = 0.0;
+    
+    WLOOP
+    w(i,j,k) = 0.0;
+    
+    pgc->start1(p,u,999);
+	pgc->start2(p,v,999);
+	pgc->start3(p,w,999);
+    
+    
+    pip=p->Y50;
+    if(p->mpirank==2 || p->mpirank==3)
+    LOOP
+    {
 
+    
+    if(p->flag1[UIm1JK]<0 && fabs(u(i-1,j,k))==0.0)
+    cout<<p->mpirank<<" U: "<<u(i-1,j,k)<<" i: "<<i<<" j: "<<j<<" k: "<<k<<" | x: "<<p->pos_x()<<" y: "<<p->pos_y()<<" z: "<<p->pos_z()<<endl;
+    
+    if(p->flag2[VIJm1K]<0 && fabs(v(i,j-1,k))==0.0)
+    cout<<p->mpirank<<" V: "<<v(i,j-1,k)<<" i: "<<i<<" j: "<<j<<" k: "<<k<<" | x: "<<p->pos_x()<<" y: "<<p->pos_y()<<" z: "<<p->pos_z()<<endl;
+    
+    //if(p->flag3[WIJKm1]<0 && fabs(w(i,j,k-1))==0.0)
+    //cout<<p->mpirank<<" W: "<<w(i,j,k-1)<<" i: "<<i<<" j: "<<j<<" k: "<<k<<" | x: "<<p->pos_x()<<" y: "<<p->pos_y()<<" z: "<<p->pos_z()<<endl;
+    }
+    pip=0;
+    
+    
+    
+    
+    LOOP
+    a->press(i,j,k) = 0.0;
+    
+    pgc->start4(p,a->press,999);
+    
+    
+    if(p->mpirank==2 || p->mpirank==3)
+    {
+
+    ULOOP
+    if(fabs(a->press(i,j,k))>0.0)
+    cout<<p->mpirank<<" Px: "<<a->press(i,j,k)<<" i: "<<i<<" j: "<<j<<" k: "<<k<<endl;
+    
+    VLOOP
+    if(fabs(a->press(i,j,k))>0.0)
+    cout<<p->mpirank<<" Py: "<<a->press(i,j,k)<<" i: "<<i<<" j: "<<j<<" k: "<<k<<endl;
+    
+    WLOOP
+    if(fabs(a->press(i,j,k))>0.0)
+    cout<<p->mpirank<<" Pz: "<<a->press(i,j,k)<<" i: "<<i<<" j: "<<j<<" k: "<<k<<endl;
+    }
+
+    
+    
+}
+ 
 
 

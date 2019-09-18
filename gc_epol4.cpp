@@ -359,6 +359,9 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	if(bc==6 && gcv==250)
 	return 4;
     
+    else
+	if(gcv==999)
+	return 99;
 
 	else
 	return 0;
@@ -403,6 +406,9 @@ void ghostcell::gcdistro4(lexer *p, field &f, int ii, int jj, int kk, int nn, do
 
 	if(bc_label==21)
 	atmosphere(p,f,gcv,bc,cs);
+    
+    if(bc_label==99)
+	gcb_debug(f,gcv,bc,cs);
 }
 
 void ghostcell::gcdistro4V(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, double dist,  int gcv, int bc, int cs, int id)

@@ -1498,6 +1498,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
       <VirtualDirectory Name="Epol">
+        <File Name="gc_debug.cpp"/>
         <File Name="gc_fivec.cpp"/>
         <File Name="gc_kinematic_bed.cpp"/>
         <File Name="gc_epol1.cpp"/>
