@@ -49,7 +49,7 @@ void ghostcell::start1(lexer *p, field& f, int gcv)
     {
     starttime=timer();
 	gcparax(p,f,1);
-	gcparavoidx(p,f,gcv);
+	//gcparavoidx(p,f,gcv);
 	gcparacox(p,f,gcv);
 	gcparacox(p,f,gcv);
 	endtime=timer();
@@ -86,7 +86,7 @@ void ghostcell::start2(lexer *p, field& f, int gcv)
     {
     starttime=timer();
 	gcparax(p,f,2);
-	gcparavoidx(p,f,gcv);
+	//gcparavoidx(p,f,gcv);
 	gcparacox(p,f,gcv);
 	gcparacox(p,f,gcv);
 	endtime=timer();
@@ -120,7 +120,7 @@ void ghostcell::start3(lexer *p, field& f, int gcv)
     {
     starttime=timer();
 	gcparax(p,f,3);
-	gcparavoidx(p,f,gcv);
+	//gcparavoidx(p,f,gcv);
 	gcparacox(p,f,gcv);
 	gcparacox(p,f,gcv);
 	endtime=timer();
@@ -154,7 +154,7 @@ void ghostcell::start4(lexer *p, field &f, int gcv)
     {
     starttime=timer();
 	gcparax(p,f,4);
-	gcparavoidx(p,f,gcv);
+	//gcparavoidx(p,f,gcv);
 	gcparacox(p,f,gcv);
 	gcparacox(p,f,gcv);
 	endtime=timer();
@@ -175,7 +175,7 @@ void ghostcell::start4a(lexer *p, field& f, int gcv)
     {
     starttime=timer();
 	gcparax4a(p,f,5);
-	gcparavoidx(p,f,gcv);
+	//gcparavoidx(p,f,gcv);
 	gcparacox(p,f,gcv);
 	gcparacox(p,f,gcv);
 	endtime=timer();

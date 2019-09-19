@@ -83,6 +83,7 @@ void poisson_f::start(lexer* p, fdm *a, field &press)
     n=0;
 	LOOP
 	{
+        
 		if(p->flag4[Im1JK]<0)
 		{
 		a->rhsvec.V[n] -= a->M.s[n]*press(i-1,j,k);
@@ -118,6 +119,43 @@ void poisson_f::start(lexer* p, fdm *a, field &press)
 		a->rhsvec.V[n] -= a->M.t[n]*press(i,j,k+1);
 		a->M.t[n] = 0.0;
 		}
+        
+        /*
+        if(p->flag4[Im1JK]<0)
+		{
+		a->rhsvec.V[n] -= a->M.s[n]*press(i,j,k);
+		a->M.s[n] = 0.0;
+		}
+		
+		if(p->flag4[Ip1JK]<0)
+		{
+		a->rhsvec.V[n] -= a->M.n[n]*press(i,j,k);
+		a->M.n[n] = 0.0;
+		}
+		
+		if(p->flag4[IJm1K]<0)
+		{
+		a->rhsvec.V[n] -= a->M.e[n]*press(i,j,k);
+		a->M.e[n] = 0.0;
+		}
+		
+		if(p->flag4[IJp1K]<0)
+		{
+		a->rhsvec.V[n] -= a->M.w[n]*press(i,j,k);
+		a->M.w[n] = 0.0;
+		}
+		
+		if(p->flag4[IJKm1]<0)
+		{
+		a->rhsvec.V[n] -= a->M.b[n]*press(i,j,k);
+		a->M.b[n] = 0.0;
+		}
+		
+		if(p->flag4[IJKp1]<0)
+		{
+		a->rhsvec.V[n] -= a->M.t[n]*press(i,j,k);
+		a->M.t[n] = 0.0;
+		}*/
 
 	++n;
 	}
