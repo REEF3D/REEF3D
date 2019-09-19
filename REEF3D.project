@@ -1680,6 +1680,12 @@
           <File Name="grid_sigma.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Field">
+          <VirtualDirectory Name="DGC">
+            <File Name="mgc_dgc4.cpp"/>
+            <File Name="mgc_dgc3.cpp"/>
+            <File Name="mgc_dgc2.cpp"/>
+            <File Name="mgc_dgc1.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="GCB">
             <File Name="gcbcart1.cpp"/>
             <File Name="gcbcart2.cpp"/>
@@ -1986,6 +1992,9 @@
       <File Name="momentum_FS3.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Pressure">
+      <VirtualDirectory Name="Debug">
+        <File Name="pjm_debug.cpp"/>
+      </VirtualDirectory>
       <File Name="pjm_fsi.cpp"/>
       <File Name="pjm_corr.cpp"/>
       <VirtualDirectory Name="Poisson">
