@@ -90,9 +90,6 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
             }
 		}
     }
-    
-    if(p->mpirank==0)
-    cout<<"PRECALC 002"<<endl;
 		
     count=0;
     VLOOP
