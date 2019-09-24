@@ -257,5 +257,5 @@ void ghostcell::start7V(lexer *p, double *x, sliceint &bc, int gcv)
     fivec(p,x,bc);
     
     if(gcv==150)
-    fivec2D(p,x);
+    fivec2D(p,x,bc);
 }
