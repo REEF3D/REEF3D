@@ -126,8 +126,8 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             
             if(p->flag7[FIm1JK]<0 && c->bc(i-1,j)==1)
             {
-            c->rhsvec.V[n] += c->M.s[n]*c->Uin[FIm1JK]*p->DXP[IM1] + c->M.s[n]*f[FIm1JK];
-            //c->M.p[n] += c->M.s[n];
+            c->rhsvec.V[n] += c->M.s[n]*c->Uin[FIm1JK]*p->DXP[IM1];
+            c->M.p[n] += c->M.s[n];
             c->M.s[n] = 0.0;
             }
             
@@ -146,8 +146,8 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             
             if(p->flag7[FIp1JK]<0 && c->wet(i+1,j)==1 &&  c->bc(i+1,j)==2)
             {
-            c->rhsvec.V[n] -= c->M.n[n]*c->Uin[FIp1JK]*p->DXP[IP1] + c->M.n[n]*f[FIp1JK];
-            //c->M.p[n] += c->M.n[n];
+            c->rhsvec.V[n] -= c->M.n[n]*c->Uin[FIp1JK]*p->DXP[IP1];
+            c->M.p[n] += c->M.n[n];
             c->M.n[n] = 0.0;
             }
 
