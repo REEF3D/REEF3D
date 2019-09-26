@@ -187,6 +187,7 @@ void lexer::ini_default()
     B134=-1.0;      // double shape parameter for spreading function
     B135=10.0;       // double peak value
     B136=1;         // int double summation method frequency vector 
+    B139=0;         // int seed number 
 	B140_1=0.0;    // doube x1 numerical beach
 	B140_2=0.0;    // doube x2 numerical beach
 	B140_3=0.0;    // doube beta numerical beach
