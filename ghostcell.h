@@ -183,7 +183,6 @@ public:
 	void solid_update(lexer*,fdm*);
 	void gcsolid_gcb_remove(lexer*,fdm*);
 	void gcsolid_gcb_seed(lexer*,fdm*);
-	void gcsolid_gcb_iocs(lexer*,fdm*);
 	void gcsolid_gcb_dist(lexer*,fdm*);
 	void gcsolid_buildflag(lexer*,fdm*, int&);
 	void gcsolid_velflag1(lexer*,fdm*, int&);
@@ -194,7 +193,6 @@ public:
 	void topo_update(lexer*,fdm*);
 	void gcb_remove(lexer*,fdm*);
 	void gcb_seed(lexer*,fdm*);
-	void gcb_iocs(lexer*,fdm*);
 	void gcb_distbed(lexer*,fdm*);
 	void gcb_buildflag(lexer*,fdm*, int**, int&);
 	void gcb_velflag1(lexer*,fdm*, int **, int&);

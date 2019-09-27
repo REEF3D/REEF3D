@@ -77,22 +77,22 @@ void lexer::flagini()
 
 void lexer::gridini_outflow()
 {
-	
 	int istart,iend,jstart,jend,kstart,kend,qn;
 	int count=0;
 	
-
-	for(qn=0;qn<G95;++qn)
+    for(qn=0;qn<G95;++qn)
     {
-        istart = conv((G95_xs[qn]-originx)/dx);
-        iend = conv((G95_xe[qn]-originx)/dx);
 
-        jstart = conv((G95_ys[qn]-originy)/dx);
-        jend = conv((G95_ye[qn]-originy)/dx);
-
-        kstart = conv((G95_zs[qn]-originz)/dx);
-        kend = conv((G95_ze[qn]-originz)/dx);
-
+        istart = posc_i(G95_xs[qn]);
+        iend = posc_i(G95_xe[qn]);
+        
+        jstart = posc_j(G95_ys[qn]);
+        jend = posc_j(G95_ye[qn]);
+        
+        kstart = posc_k(G95_zs[qn]);
+        kend = posc_k(G95_ze[qn]);
+        
+        
         for(n=0;n<gcb4_count;++n)
 		{
 		i=gcb4[n][0];
@@ -109,6 +109,11 @@ void lexer::gridini_outflow()
 	count+=gcout_count;
 	
 	Iresize(gcout, gcout_count,count,6,6);
+    Iresize(gcout6, gcout6_count,count,6,6);
+    
+    gcout_count = count;
+    cout<<mpirank<<" "<<gcout_count<<" "<<count<<endl;
+    gcout6_count = count;
 }
 
 int lexer::conv(double a)

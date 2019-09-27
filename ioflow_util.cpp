@@ -29,6 +29,23 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 {
     int count1,count2;
 
+	count1=0;
+    count2=0;
+    GC4LOOP
+    {
+        if(p->gcb4[n][4]==1 || p->gcb4[n][4]==6)
+        ++count1;
+
+        if(p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8)
+        ++count2;
+    }
+	
+	cout<<p->mpirank<<"  gcin_count: "<<p->gcin_count<<" count1: "<<count1<<"  gcout_count: "<<p->gcout_count<<" count2: "<<count2<<endl;
+	
+	p->Iresize(p->gcin,p->gcin_count, count1, 6, 6); 
+	p->Iresize(p->gcout,p->gcout_count, count2, 6, 6); 
+
+
     count1=0;
     count2=0;
     GC4LOOP
