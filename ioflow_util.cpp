@@ -74,10 +74,24 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
     p->gcin_count=count1;
     p->gcout_count=count2;
     
-    if(p->I10==1)
+    if(p->I10==1 && p->count==0)
     velini(p,a,pgc);
     
     // 4a ---------------
+    
+    count1=0;
+    count2=0;
+    GC4ALOOP
+    {
+        if(p->gcb4a[n][4]==1 || p->gcb4a[n][4]==6)
+        ++count1;
+
+        if(p->gcb4a[n][4]==2 || p->gcb4a[n][4]==7 || p->gcb4a[n][4]==8)
+        ++count2;
+    }
+    
+    p->Iresize(p->gcin4a,p->gcin4a_count, count1, 6, 6); 
+	p->Iresize(p->gcout4a,p->gcout4a_count, count2, 6, 6); 
 	
 	count1=0;
     count2=0;
@@ -106,7 +120,6 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 
     p->gcin4a_count=count1;
     p->gcout4a_count=count2;
-    
 
 }
 

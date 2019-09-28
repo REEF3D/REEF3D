@@ -42,7 +42,7 @@ void solid::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection* p
     preto->start(a,p,a->solid,pconvec,pgc);
 
     pgc->solid_update(p,a);
-    pflow->iogcb_update(p,a,pgc);
+    pflow->gcio_update(p,a,pgc);
 }
 
 
