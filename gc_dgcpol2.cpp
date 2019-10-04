@@ -29,16 +29,16 @@ void ghostcell::dgcpol2(lexer* p,field& f,int gcv)
     
     for(n=0;n<p->dgc2_count;++n)
     {
-        i=p->dgc2[count][0];
-        j=p->dgc2[count][1];
-        k=p->dgc2[count][2];
+        i=p->dgc2[n][0];
+        j=p->dgc2[n][1];
+        k=p->dgc2[n][2];
         
         
-        di=p->dgc2[count][3];
-        dj=p->dgc2[count][4];
-        dk=p->dgc2[count][5];
+        di=p->dgc2[n][3];
+        dj=p->dgc2[n][4];
+        dk=p->dgc2[n][5];
         
-        bc=p->dgc2[count][6];
+        bc=p->dgc2[n][6];
         
         if(bc==1)
         f(i+di,j+dj,k+dk) = f(i,j,k);  

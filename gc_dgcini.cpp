@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 
 void ghostcell::dgcini1(lexer* p)
-{
+{/*
     int count=0;
     int *num;
     fieldint5 dcount(p);
@@ -100,11 +100,11 @@ void ghostcell::dgcini1(lexer* p)
             }
         }
 		
-        p->del_Iarray(num,p->dgc1_count);	
+        p->del_Iarray(num,p->dgc1_count);	*/
 }
 
 void ghostcell::dgcini2(lexer* p)
-{
+{/*
     int count=0;
     int *num;
     fieldint5 dcount(p);
@@ -180,11 +180,11 @@ void ghostcell::dgcini2(lexer* p)
             }
         }
 		
-        p->del_Iarray(num,p->dgc2_count);		
+        p->del_Iarray(num,p->dgc2_count);		*/
 }
 
 void ghostcell::dgcini3(lexer* p)
-{
+{/*
     int count=0;
     int *num;
     fieldint5 dcount(p);
@@ -255,11 +255,11 @@ void ghostcell::dgcini3(lexer* p)
             }
         }
 		
-        p->del_Iarray(num,p->dgc3_count);		
+        p->del_Iarray(num,p->dgc3_count);	*/	
 }
 
 void ghostcell::dgcini4(lexer* p)
-{
+{/*
     int count=0;
     int *num;
     fieldint5 dcount(p);
@@ -332,5 +332,5 @@ void ghostcell::dgcini4(lexer* p)
             }
         }
 		
-        p->del_Iarray(num,p->dgc4_count);
+        p->del_Iarray(num,p->dgc4_count);*/
 }

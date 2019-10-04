@@ -108,10 +108,9 @@ void mgc1::fill_dgc(lexer* p)
         ++count;
     }
     
-    p->dgc1_count = count;
-    
     p->Iresize(p->dgc1,p->dgc1_count,count,8,8);
     
+    p->dgc1_count = count;
     
     count=0;
     ULOOP
@@ -125,7 +124,7 @@ void mgc1::fill_dgc(lexer* p)
         p->dgc1[count][3]=-1;
         p->dgc1[count][4]=-1;
         p->dgc1[count][5]=0;
-        p->dgc1[count][6]=1;
+        p->dgc1[count][6]=2;
             
         ++count;
         }
@@ -138,7 +137,7 @@ void mgc1::fill_dgc(lexer* p)
         p->dgc1[count][3]=1;
         p->dgc1[count][4]=-1;
         p->dgc1[count][5]=0;
-        p->dgc1[count][6]=1;
+        p->dgc1[count][6]=2;
             
         ++count;
         }
@@ -151,7 +150,7 @@ void mgc1::fill_dgc(lexer* p)
         p->dgc1[count][3]=1;
         p->dgc1[count][4]=1;
         p->dgc1[count][5]=0;
-        p->dgc1[count][6]=1;
+        p->dgc1[count][6]=2;
             
         ++count;
         }
@@ -164,7 +163,7 @@ void mgc1::fill_dgc(lexer* p)
         p->dgc1[count][3]=-1;
         p->dgc1[count][4]=1;
         p->dgc1[count][5]=0;
-        p->dgc1[count][6]=1;
+        p->dgc1[count][6]=2;
             
         ++count;
         }
@@ -178,7 +177,7 @@ void mgc1::fill_dgc(lexer* p)
         p->dgc1[count][3]=-1;
         p->dgc1[count][4]=-1;
         p->dgc1[count][5]=-1;
-        p->dgc1[count][6]=1;
+        p->dgc1[count][6]=2;
             
         ++count;
         }
@@ -191,7 +190,7 @@ void mgc1::fill_dgc(lexer* p)
         p->dgc1[count][3]=1;
         p->dgc1[count][4]=-1;
         p->dgc1[count][5]=-1;
-        p->dgc1[count][6]=1;
+        p->dgc1[count][6]=2;
             
         ++count;
         }
@@ -204,7 +203,7 @@ void mgc1::fill_dgc(lexer* p)
         p->dgc1[count][3]=1;
         p->dgc1[count][4]=1;
         p->dgc1[count][5]=-1;
-        p->dgc1[count][6]=1;
+        p->dgc1[count][6]=2;
             
         ++count;
         }
@@ -217,7 +216,7 @@ void mgc1::fill_dgc(lexer* p)
         p->dgc1[count][3]=-1;
         p->dgc1[count][4]=1;
         p->dgc1[count][5]=-1;
-        p->dgc1[count][6]=1;
+        p->dgc1[count][6]=2;
             
         ++count;
         }
@@ -231,7 +230,7 @@ void mgc1::fill_dgc(lexer* p)
         p->dgc1[count][3]=-1;
         p->dgc1[count][4]=-1;
         p->dgc1[count][5]=1;
-        p->dgc1[count][6]=1;
+        p->dgc1[count][6]=2;
             
         ++count;
         }
@@ -244,7 +243,7 @@ void mgc1::fill_dgc(lexer* p)
         p->dgc1[count][3]=1;
         p->dgc1[count][4]=-1;
         p->dgc1[count][5]=1;
-        p->dgc1[count][6]=1;
+        p->dgc1[count][6]=2;
             
         ++count;
         }
@@ -257,7 +256,7 @@ void mgc1::fill_dgc(lexer* p)
         p->dgc1[count][3]=1;
         p->dgc1[count][4]=1;
         p->dgc1[count][5]=1;
-        p->dgc1[count][6]=1;
+        p->dgc1[count][6]=2;
             
         ++count;
         }
@@ -270,7 +269,7 @@ void mgc1::fill_dgc(lexer* p)
         p->dgc1[count][3]=-1;
         p->dgc1[count][4]=1;
         p->dgc1[count][5]=1;
-        p->dgc1[count][6]=1;
+        p->dgc1[count][6]=2;
             
         ++count;
         }

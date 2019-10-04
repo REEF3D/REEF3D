@@ -29,22 +29,25 @@ void ghostcell::dgcpol4(lexer* p,field& f,int gcv)
     
     for(n=0;n<p->dgc4_count;++n)
     {
-        i=p->dgc4[count][0];
-        j=p->dgc4[count][1];
-        k=p->dgc4[count][2];
+        i=p->dgc4[n][0];
+        j=p->dgc4[n][1];
+        k=p->dgc4[n][2];
         
         
-        di=p->dgc4[count][3];
-        dj=p->dgc4[count][4];
-        dk=p->dgc4[count][5];
+        di=p->dgc4[n][3];
+        dj=p->dgc4[n][4];
+        dk=p->dgc4[n][5];
         
-        bc=p->dgc4[count][6];
+        bc=p->dgc4[n][6];
         
         if(bc==1)
         f(i+di,j+dj,k+dk) = f(i,j,k);  
 
         if(bc==2)
-        f(i+di,j+dj,k+dk) = 0.0;        
+        f(i+di,j+dj,k+dk) = 0.0;    
+
+        if(p->mpirank==0)
+        cout<<p->mpirank<<"  DGC4: "<<f(i,j,k)<<" "<<i<<" "<<j<<" "<<k<<endl;
         
     }
 }
