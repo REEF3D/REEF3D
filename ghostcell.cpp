@@ -131,10 +131,10 @@ void ghostcell::gcini(lexer* p)
 	p->dgc3_count=1;
 	p->dgc4_count=1;
 	
-	p->Iarray(p->dgc1,p->dgc1_count,12);
-	p->Iarray(p->dgc2,p->dgc2_count,12);
-	p->Iarray(p->dgc3,p->dgc3_count,12);
-	p->Iarray(p->dgc4,p->dgc4_count,12);
+	p->Iarray(p->dgc1,p->dgc1_count,8);
+	p->Iarray(p->dgc2,p->dgc2_count,8);
+	p->Iarray(p->dgc3,p->dgc3_count,8);
+	p->Iarray(p->dgc4,p->dgc4_count,8);
 
     if(p->B20==1)
     {

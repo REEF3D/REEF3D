@@ -75,6 +75,14 @@ public:
 	double timesync(double);
 	void globalctrl(lexer*);
 	void dgcpol(lexer*,field&, int**,int, int);
+    
+    void dgcpol1(lexer*,field&, int);
+    void dgcpol2(lexer*,field&, int);
+    void dgcpol3(lexer*,field&, int);
+    void dgcpol4(lexer*,field&, int);
+    void dgcpol4a(lexer*,field&, int);
+    void dgcpol6(lexer*,field&, int);
+    
     void dgcslpol(lexer*, slice&, int**,int, int);
     void dgcslpol1(lexer*, slice&);
     void dgcslpol2(lexer*, slice&);
