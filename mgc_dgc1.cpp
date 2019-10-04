@@ -277,8 +277,7 @@ void mgc1::fill_dgc(lexer* p)
     }
     
     
-    
-    
+
     p->del_Iarray(hgc,imax*jmax*kmax);
 }
 

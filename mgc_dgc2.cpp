@@ -34,7 +34,7 @@ void mgc2::fill_dgc(lexer* p)
 {
     int q, count;
     
-    QGC4LOOP
+    QGC2LOOP
 	{
         i=p->gcb2[q][0];
         j=p->gcb2[q][1];
@@ -66,7 +66,7 @@ void mgc2::fill_dgc(lexer* p)
 	}
     
     count=0;
-    LOOP
+    VLOOP
     {
         
         if(p->flag2[Im1Jm1K]<0 && hgc[Im1Jm1K]==0)
@@ -114,7 +114,7 @@ void mgc2::fill_dgc(lexer* p)
     
     
     count=0;
-    LOOP
+    VLOOP
     {
         
         if(p->flag2[Im1Jm1K]<0 && hgc[Im1Jm1K]==0)
