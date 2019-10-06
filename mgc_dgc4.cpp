@@ -68,73 +68,90 @@ void mgc4::fill_dgc(lexer* p)
     count=0;
     LOOP
     {
-        
-        if(p->flag4[Im1Jm1K]<0 && hgc[Im1Jm1K]==0)
-        if((i>=p->knox || p->nb1<0) && (j>=p->knoy || p->nb3<0))
+        // i-j
+        if(p->flag4[Im1Jm1K]<0 && p->flag4[Im1JK]<0 && p->flag4[IJm1K]<0 && hgc[Im1Jm1K]==0)
+        if((i>=0 || p->nb1<0) && (j>=0 || p->nb3<0))
         ++count;
         
-        if(p->flag4[Ip1Jm1K]<0 && hgc[Ip1Jm1K]==0)
-        if((i<p->knox || p->nb4<0) && (j>=p->knoy || p->nb3<0))
+        if(p->flag4[Ip1Jm1K]<0 && p->flag4[Ip1JK]<0 && p->flag4[IJm1K]<0 && hgc[Ip1Jm1K]==0)
+        if((i<p->knox || p->nb4<0) && (j>=0 || p->nb3<0))
         ++count;
         
-        if(p->flag4[Ip1Jp1K]<0 && hgc[Ip1Jp1K]==0)
+        if(p->flag4[Ip1Jp1K]<0 && p->flag4[Ip1JK]<0 && p->flag4[IJp1K]<0 && hgc[Ip1Jp1K]==0)
         if((i<p->knox || p->nb4<0) && (j<p->knoy || p->nb2<0))   
         ++count;
         
-        if(p->flag4[Im1Jp1K]<0 && hgc[Im1Jp1K]==0)
-        if((i>=p->knox || p->nb1<0) && (j<p->knoy || p->nb2<0)) 
+        if(p->flag4[Im1Jp1K]<0 && p->flag4[Im1JK]<0  && p->flag4[IJp1K]<0 && hgc[Im1Jp1K]==0)
+        if((i>=0 || p->nb1<0) && (j<p->knoy || p->nb2<0)) 
         ++count;
         
-        // k+-
-        
-        if(p->flag4[Im1JKm1]<0 && hgc[Im1JKm1]==0)
-        if((i>=p->knox || p->nb1<0) && (k>=p->knoz || p->nb5<0))
+        // i-k
+        if(p->flag4[Im1JKm1]<0 && p->flag4[Im1JK]<0 && p->flag4[IJKm1]<0 && hgc[Im1JKm1]==0)
+        if((i>=0 || p->nb1<0) && (k>=0 || p->nb5<0))
         ++count;
         
-        if(p->flag4[Ip1JKm1]<0 && hgc[Ip1JKm1]==0)
-        if((i<p->knox || p->nb4<0) && (k>=p->knoz || p->nb5<0))
+        if(p->flag4[Ip1JKm1]<0 && p->flag4[Ip1JK]<0 && p->flag4[IJKm1]<0 && hgc[Ip1JKm1]==0)
+        if((i<p->knox || p->nb4<0) && (k>=0 || p->nb5<0))
+        ++count;
+    
+        if(p->flag4[Im1JKp1]<0 && p->flag4[Im1JK]<0 && p->flag4[IJKp1]<0 && hgc[Im1JKp1]==0)
+        if((i>=0 || p->nb1<0) && (k<p->knoz || p->nb6<0))
         ++count;
         
-        if(p->flag4[IJp1Kp1]<0 && hgc[IJp1Kp1]==0)
-        if((i<p->knox || p->nb4<0) && (k<p->knoz || p->nb6<0))   
+        if(p->flag4[Ip1JKp1]<0 && p->flag4[Ip1JK]<0 && p->flag4[IJKp1]<0 && hgc[Ip1JKp1]==0)
+        if((i<p->knox || p->nb4<0) && (k<p->knoz || p->nb6<0))
         ++count;
         
-        if(p->flag4[IJp1Kp1]<0 && hgc[IJp1Kp1]==0)
-        if((i>=p->knox || p->nb1<0) && (k<p->knoz || p->nb6<0)) 
+        // j-k
+        if(p->flag4[IJp1Kp1]<0 && p->flag4[IJp1K]<0 && p->flag4[IJKp1]<0 && hgc[IJp1Kp1]==0)
+        if((j<p->knoy || p->nb2<0) && (k<p->knoz || p->nb6<0))   
         ++count;
         
-        
-        if(p->flag4[Im1Jm1Km1]<0 && hgc[Im1Jm1Km1]==0)
-        if((i>=p->knox || p->nb1<0) && (j>=p->knoy || p->nb3<0) && (k>=p->knoz || p->nb5<0)) 
+        if(p->flag4[IJm1Kp1]<0 && p->flag4[IJm1K]<0 && p->flag4[IJKp1]<0 && hgc[IJm1Kp1]==0)
+        if((j>=0 || p->nb3<0) && (k<p->knoz || p->nb6<0)) 
         ++count;
         
-        if(p->flag4[Ip1Jm1Km1]<0 && hgc[Ip1Jm1Km1]==0)
-        if((i<p->knox || p->nb4<0) && (j>=p->knoy || p->nb3<0) && (k>=p->knoz || p->nb5<0))  
+        if(p->flag4[IJp1Km1]<0 && p->flag4[IJp1K]<0 && p->flag4[IJKm1]<0 && hgc[IJp1Km1]==0)
+        if((j<p->knoy || p->nb2<0) && (k>=0 || p->nb5<0))   
         ++count;
         
-        if(p->flag4[Ip1Jp1Km1]<0 && hgc[Ip1Jp1Km1]==0)
-        if((i<p->knox || p->nb4<0) && (j<p->knoy || p->nb2<0) && (k>=p->knoz || p->nb5<0))  
-        ++count;
-        
-        if(p->flag4[Im1Jp1Km1]<0 && hgc[Im1Jp1Km1]==0)
-        if((i>=p->knox || p->nb1<0) && (j<p->knoy || p->nb2<0) && (k>=p->knoz || p->nb5<0))  
+        if(p->flag4[IJm1Km1]<0 && p->flag4[IJm1K]<0 && p->flag4[IJKm1]<0 && hgc[IJm1Km1]==0)
+        if((j>=0 || p->nb3<0) && (k>=0 || p->nb5<0)) 
         ++count;
         
         
-        if(p->flag4[Im1Jm1Kp1]<0 && hgc[Im1Jm1Kp1]==0)
-        if((i>=p->knox || p->nb1<0) && (j>=p->knoy || p->nb3<0) && (k<p->knoz || p->nb6<0))   
+        // diag
+        if(p->flag4[Im1Jm1Km1]<0 && p->flag4[Im1JK]<0 && p->flag4[IJm1K]<0 && p->flag4[IJKm1]<0 && hgc[Im1Jm1Km1]==0)
+        if((i>=0 || p->nb1<0) && (j>=0 || p->nb3<0) && (k>=0 || p->nb5<0)) 
         ++count;
         
-        if(p->flag4[Ip1Jm1Kp1]<0 && hgc[Ip1Jm1Kp1]==0)
-        if((i<p->knox || p->nb4<0) && (j>=p->knoy || p->nb3<0) && (k<p->knoz || p->nb6<0))  
+        if(p->flag4[Ip1Jm1Km1]<0 && p->flag4[Ip1JK]<0 && p->flag4[IJm1K]<0 && p->flag4[IJKm1]<0 && hgc[Ip1Jm1Km1]==0)
+        if((i<p->knox || p->nb4<0) && (j>=0 || p->nb3<0) && (k>=0 || p->nb5<0))  
         ++count;
         
-        if(p->flag4[Ip1Jp1Kp1]<0 && hgc[Ip1Jp1Kp1]==0)
+        if(p->flag4[Ip1Jp1Km1]<0 && p->flag4[Ip1JK]<0 && p->flag4[IJp1K]<0 && p->flag4[IJKm1]<0 && hgc[Ip1Jp1Km1]==0)
+        if((i<p->knox || p->nb4<0) && (j<p->knoy || p->nb2<0) && (k>=0 || p->nb5<0))  
+        ++count;
+        
+        if(p->flag4[Im1Jp1Km1]<0 && p->flag4[Im1JK]<0 && p->flag4[IJp1K]<0 && p->flag4[IJKm1]<0 && hgc[Im1Jp1Km1]==0)
+        if((i>=0 || p->nb1<0) && (j<p->knoy || p->nb2<0) && (k>=0 || p->nb5<0))  
+        ++count;
+        
+        
+        if(p->flag4[Im1Jm1Kp1]<0 && p->flag4[Im1JK]<0 && p->flag4[IJm1K]<0 && p->flag4[IJKp1]<0 && hgc[Im1Jm1Kp1]==0)
+        if((i>=0 || p->nb1<0) && (j>=0 || p->nb3<0) && (k<p->knoz || p->nb6<0))   
+        ++count;
+        
+        if(p->flag4[Ip1Jm1Kp1]<0 && p->flag4[Ip1JK]<0 && p->flag4[IJm1K]<0 && p->flag4[IJKp1]<0 && hgc[Ip1Jm1Kp1]==0)
+        if((i<p->knox || p->nb4<0) && (j>=0 || p->nb3<0) && (k<p->knoz || p->nb6<0))  
+        ++count;
+        
+        if(p->flag4[Ip1Jp1Kp1]<0 && p->flag4[Ip1JK]<0 && p->flag4[IJp1K]<0 && p->flag4[IJKp1]<0 && hgc[Ip1Jp1Kp1]==0)
         if((i<p->knox || p->nb4<0) && (j<p->knoy || p->nb2<0) && (k<p->knoz || p->nb6<0))
         ++count;
         
-        if(p->flag4[Im1Jp1Kp1]<0 && hgc[Im1Jp1Kp1]==0)
-        if((i>=p->knox || p->nb1<0) && (j<p->knoy || p->nb2<0) && (k<p->knoz || p->nb6<0))   
+        if(p->flag4[Im1Jp1Kp1]<0 && p->flag4[Im1JK]<0 && p->flag4[IJp1K]<0 && p->flag4[IJKp1]<0 && hgc[Im1Jp1Kp1]==0)
+        if((i>=0 || p->nb1<0) && (j<p->knoy || p->nb2<0) && (k<p->knoz || p->nb6<0))   
         ++count;
     }
     
@@ -142,12 +159,14 @@ void mgc4::fill_dgc(lexer* p)
     
     p->dgc4_count = count;
     
+    cout<<p->mpirank<<"  DGC_count: "<<count<<endl;
+    
     count=0;
     LOOP
     {
-        
-        if(p->flag4[Im1Jm1K]<0 && hgc[Im1Jm1K]==0)
-        if((i>=p->knox || p->nb1<0) && (j>=p->knoy || p->nb3<0))
+        //i-j
+        if(p->flag4[Im1Jm1K]<0 && p->flag4[Im1JK]<0 && p->flag4[IJm1K]<0 && hgc[Im1Jm1K]==0)
+        if((i>=0 || p->nb1<0) && (j>=0 || p->nb3<0))
         {
         p->dgc4[count][0]=i;
         p->dgc4[count][1]=j;
@@ -160,8 +179,8 @@ void mgc4::fill_dgc(lexer* p)
         ++count;
         }
         
-        if(p->flag4[Ip1Jm1K]<0 && hgc[Ip1Jm1K]==0)
-        if((i<p->knox || p->nb4<0) && (j>=p->knoy || p->nb3<0))
+        if(p->flag4[Ip1Jm1K]<0 && p->flag4[Ip1JK]<0 && p->flag4[IJm1K]<0 && hgc[Ip1Jm1K]==0)
+        if((i<p->knox || p->nb4<0) && (j>=0 || p->nb3<0))
         {
         p->dgc4[count][0]=i;
         p->dgc4[count][1]=j;
@@ -174,7 +193,7 @@ void mgc4::fill_dgc(lexer* p)
         ++count;
         }
         
-        if(p->flag4[Ip1Jp1K]<0 && hgc[Ip1Jp1K]==0)
+        if(p->flag4[Ip1Jp1K]<0 && p->flag4[Ip1JK]<0 && p->flag4[IJp1K]<0 && hgc[Ip1Jp1K]==0)
         if((i<p->knox || p->nb4<0) && (j<p->knoy || p->nb2<0))
         {
         p->dgc4[count][0]=i;
@@ -188,8 +207,8 @@ void mgc4::fill_dgc(lexer* p)
         ++count;
         }
         
-        if(p->flag4[Im1Jp1K]<0 && hgc[Im1Jp1K]==0)
-        if((i>=p->knox || p->nb1<0) && (j<p->knoy || p->nb2<0))
+        if(p->flag4[Im1Jp1K]<0 && p->flag4[Im1JK]<0 && p->flag4[IJp1K]<0 && hgc[Im1Jp1K]==0)
+        if((i>=0 || p->nb1<0) && (j<p->knoy || p->nb2<0))
         {
         p->dgc4[count][0]=i;
         p->dgc4[count][1]=j;
@@ -202,66 +221,124 @@ void mgc4::fill_dgc(lexer* p)
         ++count;
         }
         
-        //---
-        if(p->flag4[Im1JKm1]<0 && hgc[Im1JKm1]==0)
-        if((i>=p->knox || p->nb1<0) && (k>=p->knoz || p->nb5<0))
+        // i-k
+        if(p->flag4[Im1JKm1]<0 && p->flag4[Im1JK]<0 && p->flag4[IJKm1]<0 && hgc[Im1JKm1]==0)
+        if((i>=0 || p->nb1<0) && (k>=0 || p->nb5<0))
         {
         p->dgc4[count][0]=i;
         p->dgc4[count][1]=j;
         p->dgc4[count][2]=k;
         p->dgc4[count][3]=-1;
-        p->dgc4[count][4]=-1;
-        p->dgc4[count][5]=0;
+        p->dgc4[count][4]=0;
+        p->dgc4[count][5]=-1;
         p->dgc4[count][6]=1;
             
         ++count;
         }
         
-        if(p->flag4[Ip1Jm1K]<0 && hgc[Ip1Jm1K]==0)
-        if((i<p->knox || p->nb4<0) && (j>=p->knoy || p->nb3<0))
+        if(p->flag4[Ip1JKm1]<0 && p->flag4[Ip1JK]<0 && p->flag4[IJKm1]<0 && hgc[Ip1JKm1]==0)
+        if((i<p->knox || p->nb4<0) && (k>=0 || p->nb5<0))
         {
         p->dgc4[count][0]=i;
         p->dgc4[count][1]=j;
         p->dgc4[count][2]=k;
         p->dgc4[count][3]=1;
-        p->dgc4[count][4]=-1;
-        p->dgc4[count][5]=0;
+        p->dgc4[count][4]=0;
+        p->dgc4[count][5]=-1;
         p->dgc4[count][6]=1;
             
         ++count;
         }
-        
-        if(p->flag4[Ip1Jp1K]<0 && hgc[Ip1Jp1K]==0)
-        if((i<p->knox || p->nb4<0) && (j<p->knoy || p->nb2<0))
-        {
-        p->dgc4[count][0]=i;
-        p->dgc4[count][1]=j;
-        p->dgc4[count][2]=k;
-        p->dgc4[count][3]=1;
-        p->dgc4[count][4]=1;
-        p->dgc4[count][5]=0;
-        p->dgc4[count][6]=1;
-            
-        ++count;
-        }
-        
-        if(p->flag4[Im1Jp1K]<0 && hgc[Im1Jp1K]==0)
-        if((i>=p->knox || p->nb1<0) && (j<p->knoy || p->nb2<0))
+    
+        if(p->flag4[Im1JKp1]<0 && p->flag4[Im1JK]<0 && p->flag4[IJKp1]<0 && hgc[Im1JKp1]==0)
+        if((i>=0 || p->nb1<0) && (k<p->knoz || p->nb6<0))
         {
         p->dgc4[count][0]=i;
         p->dgc4[count][1]=j;
         p->dgc4[count][2]=k;
         p->dgc4[count][3]=-1;
+        p->dgc4[count][4]=0;
+        p->dgc4[count][5]=1;
+        p->dgc4[count][6]=1;
+            
+        ++count;
+        }
+        
+        if(p->flag4[Ip1JKp1]<0 && p->flag4[Ip1JK]<0 && p->flag4[IJKp1]<0 && hgc[Ip1JKp1]==0)
+        if((i<p->knox || p->nb4<0) && (k<p->knoz || p->nb6<0))
+        {
+        p->dgc4[count][0]=i;
+        p->dgc4[count][1]=j;
+        p->dgc4[count][2]=k;
+        p->dgc4[count][3]=1;
+        p->dgc4[count][4]=0;
+        p->dgc4[count][5]=1;
+        p->dgc4[count][6]=1;
+            
+        ++count;
+        }
+        
+        // j-k
+        if(p->flag4[IJp1Kp1]<0 && p->flag4[IJp1K]<0 && p->flag4[IJKp1]<0 && hgc[IJp1Kp1]==0)
+        if((j<p->knoy || p->nb2<0) && (k<p->knoz || p->nb6<0))   
+        {
+        p->dgc4[count][0]=i;
+        p->dgc4[count][1]=j;
+        p->dgc4[count][2]=k;
+        p->dgc4[count][3]=0;
         p->dgc4[count][4]=1;
-        p->dgc4[count][5]=0;
+        p->dgc4[count][5]=1;
+        p->dgc4[count][6]=1;
+            
+        ++count;
+        }
+        
+        if(p->flag4[IJm1Kp1]<0 && p->flag4[IJm1K]<0 && p->flag4[IJKp1]<0 && hgc[IJm1Kp1]==0)
+        if((j>=0 || p->nb3<0) && (k<p->knoz || p->nb6<0)) 
+        {
+        p->dgc4[count][0]=i;
+        p->dgc4[count][1]=j;
+        p->dgc4[count][2]=k;
+        p->dgc4[count][3]=0;
+        p->dgc4[count][4]=-1;
+        p->dgc4[count][5]=1;
+        p->dgc4[count][6]=1;
+            
+        ++count;
+        }
+        
+        if(p->flag4[IJp1Km1]<0 && p->flag4[IJp1K]<0 && p->flag4[IJKm1]<0 && hgc[IJp1Km1]==0)
+        if((j<p->knoy || p->nb2<0) && (k>=0 || p->nb5<0))   
+        {
+        p->dgc4[count][0]=i;
+        p->dgc4[count][1]=j;
+        p->dgc4[count][2]=k;
+        p->dgc4[count][3]=0;
+        p->dgc4[count][4]=1;
+        p->dgc4[count][5]=-1;
+        p->dgc4[count][6]=1;
+            
+        ++count;
+        }
+        
+        if(p->flag4[IJm1Km1]<0 && p->flag4[IJm1K]<0 && p->flag4[IJKm1]<0 && hgc[IJm1Km1]==0)
+        if((j>=0 || p->nb3<0) && (k>=0 || p->nb5<0)) 
+        {
+        p->dgc4[count][0]=i;
+        p->dgc4[count][1]=j;
+        p->dgc4[count][2]=k;
+        p->dgc4[count][3]=0;
+        p->dgc4[count][4]=-1;
+        p->dgc4[count][5]=-1;
         p->dgc4[count][6]=1;
             
         ++count;
         }
         
         
-        if(p->flag4[Im1Jm1Km1]<0 && hgc[Im1Jm1Km1]==0)
-        if((i>=p->knox || p->nb1<0) && (j>=p->knoy || p->nb3<0) && (k>=p->knoz || p->nb5<0))
+        // diag
+        if(p->flag4[Im1Jm1Km1]<0 && p->flag4[Im1JK]<0 && p->flag4[IJm1K]<0 && p->flag4[IJKm1]<0 && hgc[Im1Jm1Km1]==0)
+        if((i>=0 || p->nb1<0) && (j>=0 || p->nb3<0) && (k>=0 || p->nb5<0))
         {
         p->dgc4[count][0]=i;
         p->dgc4[count][1]=j;
@@ -274,8 +351,8 @@ void mgc4::fill_dgc(lexer* p)
         ++count;
         }
         
-        if(p->flag4[Ip1Jm1Km1]<0 && hgc[Ip1Jm1Km1]==0)
-        if((i<p->knox || p->nb4<0) && (j>=p->knoy || p->nb3<0) && (k>=p->knoz || p->nb5<0))
+        if(p->flag4[Ip1Jm1Km1]<0 && p->flag4[Ip1JK]<0 && p->flag4[IJm1K]<0 && p->flag4[IJKm1]<0 && hgc[Ip1Jm1Km1]==0)
+        if((i<p->knox || p->nb4<0) && (j>=0 || p->nb3<0) && (k>=0 || p->nb5<0))
         {
         p->dgc4[count][0]=i;
         p->dgc4[count][1]=j;
@@ -288,8 +365,8 @@ void mgc4::fill_dgc(lexer* p)
         ++count;
         }
         
-        if(p->flag4[Ip1Jp1Km1]<0 && hgc[Ip1Jp1Km1]==0)
-        if((i<p->knox || p->nb4<0) && (j<p->knoy || p->nb2<0) && (k>=p->knoz || p->nb5<0))
+        if(p->flag4[Ip1Jp1Km1]<0 && p->flag4[Ip1JK]<0 && p->flag4[IJp1K]<0 && p->flag4[IJKm1]<0 && hgc[Ip1Jp1Km1]==0)
+        if((i<p->knox || p->nb4<0) && (j<p->knoy || p->nb2<0) && (k>=0 || p->nb5<0))
         {
         p->dgc4[count][0]=i;
         p->dgc4[count][1]=j;
@@ -302,8 +379,8 @@ void mgc4::fill_dgc(lexer* p)
         ++count;
         }
         
-        if(p->flag4[Im1Jp1Km1]<0 && hgc[Im1Jp1Km1]==0)
-        if((i>=p->knox || p->nb1<0) && (j<p->knoy || p->nb2<0) && (k>=p->knoz || p->nb5<0))
+        if(p->flag4[Im1Jp1Km1]<0 && p->flag4[Im1JK]<0 && p->flag4[IJp1K]<0 && p->flag4[IJKm1]<0 && hgc[Im1Jp1Km1]==0)
+        if((i>=0 || p->nb1<0) && (j<p->knoy || p->nb2<0) && (k>=0 || p->nb5<0))
         {
         p->dgc4[count][0]=i;
         p->dgc4[count][1]=j;
@@ -317,8 +394,8 @@ void mgc4::fill_dgc(lexer* p)
         }
         
         
-        if(p->flag4[Im1Jm1Kp1]<0 && hgc[Im1Jm1Kp1]==0)
-        if((i>=p->knox || p->nb1<0) && (j>=p->knoy || p->nb3<0) && (k<p->knoz || p->nb6<0))
+        if(p->flag4[Im1Jm1Kp1]<0 && p->flag4[Im1JK]<0 && p->flag4[IJm1K]<0 && p->flag4[IJKp1]<0 && hgc[Im1Jm1Kp1]==0)
+        if((i>=0 || p->nb1<0) && (j>=0 || p->nb3<0) && (k<p->knoz || p->nb6<0))
         {
         p->dgc4[count][0]=i;
         p->dgc4[count][1]=j;
@@ -331,8 +408,8 @@ void mgc4::fill_dgc(lexer* p)
         ++count;
         }
         
-        if(p->flag4[Ip1Jm1Kp1]<0 && hgc[Ip1Jm1Kp1]==0)
-        if((i<p->knox || p->nb4<0) && (j>=p->knoy || p->nb3<0) && (k<p->knoz || p->nb6<0))
+        if(p->flag4[Ip1Jm1Kp1]<0 && p->flag4[Ip1JK]<0 && p->flag4[IJm1K]<0 && p->flag4[IJKp1]<0 && hgc[Ip1Jm1Kp1]==0)
+        if((i<p->knox || p->nb4<0) && (j>=0 || p->nb3<0) && (k<p->knoz || p->nb6<0))
         {
         p->dgc4[count][0]=i;
         p->dgc4[count][1]=j;
@@ -345,7 +422,7 @@ void mgc4::fill_dgc(lexer* p)
         ++count;
         }
         
-        if(p->flag4[Ip1Jp1Kp1]<0 && hgc[Ip1Jp1Kp1]==0)
+        if(p->flag4[Ip1Jp1Kp1]<0 && p->flag4[Ip1JK]<0 && p->flag4[IJp1K]<0 && p->flag4[IJKp1]<0 && hgc[Ip1Jp1Kp1]==0)
         if((i<p->knox || p->nb4<0) && (j<p->knoy || p->nb2<0) && (k<p->knoz || p->nb6<0))
         {
         p->dgc4[count][0]=i;
@@ -359,8 +436,8 @@ void mgc4::fill_dgc(lexer* p)
         ++count;
         }
         
-        if(p->flag4[Im1Jp1Kp1]<0 && hgc[Im1Jp1Kp1]==0)
-        if((i>=p->knox || p->nb1<0) && (j<p->knoy || p->nb2<0) && (k<p->knoz || p->nb6<0))
+        if(p->flag4[Im1Jp1Kp1]<0 && p->flag4[Im1JK]<0 && p->flag4[IJp1K]<0 && p->flag4[IJKp1]<0 && hgc[Im1Jp1Kp1]==0)
+        if((i>=0 || p->nb1<0) && (j<p->knoy || p->nb2<0) && (k<p->knoz || p->nb6<0))
         {
         p->dgc4[count][0]=i;
         p->dgc4[count][1]=j;
@@ -373,8 +450,6 @@ void mgc4::fill_dgc(lexer* p)
         ++count;
         }
     }
-    
-    cout<<p->mpirank<<"  DGC_count: "<<count<<endl;
     
     
     p->del_Iarray(hgc,imax*jmax*kmax);

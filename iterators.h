@@ -349,7 +349,18 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define WIJKp1  (i-p->imin)*p->jmax*(p->kmax) + (j-p->jmin)*(p->kmax) + k-p->kmin+1
 
 #define Ip1Jp1K  (i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin
+
 #define Ip1JKp1  (i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+1
+#define Ip1JKm1  (i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-1
+#define Im1JKp1  (i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+1
+#define Im1JKm1  (i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-1
+
+#define IJp1Kp1  (i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin+1
+#define IJp1Km1  (i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin-1
+#define IJm1Kp1  (i-p->imin)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin+1
+#define IJm1Km1  (i-p->imin)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin-1
+
+#define IJp1Kp1  (i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin+1
 #define IJp1Kp1  (i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin+1
 
 #define Im1Jm1Km1 (i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin-1
