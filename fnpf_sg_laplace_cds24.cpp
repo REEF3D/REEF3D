@@ -145,7 +145,7 @@ void fnpf_sg_laplace_cds24::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver 
             // north
             if(p->flag7[FIp1JK]<0 && c->wet(i+1,j)==1)
             {
-            c->M.p[n] += c->M.s[n];
+            c->M.p[n] += c->M.n[n];
             c->M.n[n] = 0.0;
             }
             

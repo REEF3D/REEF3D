@@ -174,9 +174,16 @@ void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             
            //--
             
-            if(p->flag7[FIm2JK]<0)
+            if(p->flag7[FIm2JK]<0 && c->bc(i-1,j)==0)
             {
             c->M.p[n] += c->M.ss[n];
+            c->M.ss[n] = 0.0;
+            }
+            
+            if(p->flag7[FIm1JK]<0 && c->bc(i-1,j)==1)
+            {
+            c->rhsvec.V[n] += c->M.ss[n]*c->Uin[FIm1JK]*2.0*p->DXP[IM1];
+            c->M.p[n] += c->M.s[n];
             c->M.ss[n] = 0.0;
             }
             

@@ -295,9 +295,42 @@ void mgc3::extragcb(lexer *p)
 	    i=p->gcb3[q][0];
 		j=p->gcb3[q][1];
 		k=p->gcb3[q][2];
-        if(p->flag3[WIJK]<0 && p->flag4[IJK]<0)
+        if(p->flag3[WIJK]<0)
         p->gcb3[q][3]=-fabs(p->gcb3[q][3]);
 	}
+    
+    /* count1=0;
+	QGCB3
+	++count1;
+    
+    int count2=0;
+	QGC3LOOP
+	++count2;
+    
+    count=0;
+    WLOOP
+    {
+        if(p->flag3[WIm1JK]<0)
+        ++count;
+        
+        if(p->flag3[WIp1JK]<0)
+        ++count;
+        
+        if(p->flag3[WIJm1K]<0)
+        ++count;
+        
+        if(p->flag3[WIJp1K]<0)
+        ++count;
+        
+        if(p->flag3[WIJKm1]<0)
+        ++count;
+        
+        if(p->flag3[WIJKp1]<0)
+        ++count;
+	}
+	
+	cout<<p->mpirank<<" GCB3: "<<p->gcb3_count<<" GCB3_direct_all: "<<count1<<" GCB3_direct: "<<count2<<" GCB3_LOOP: "<<count<<endl;
+    */
 
 	p->del_Iarray(p->fgc,imax*jmax*kmax,6);
 }

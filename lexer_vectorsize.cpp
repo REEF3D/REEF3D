@@ -23,26 +23,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void lexer::vecsize()
 {
-    /*
-    int *flag;
-    
-    
-    Iarray(flag,imax*jmax*kmax);
-    
-    
-    for(i=0;i<imax*jmax*kmax;++i)
-    flag[i] = flag4[i];
-    
-    
-    LOOP
-    if(flag_solid[IJK] < 0 && G39==1 )
-    flag[IJK] = -1;
-    
-    LOOP
-    if(flag_solid[IJK] < 0 && G39==1 )
-    flag[IJK] = -1;
-    
-    */
     int n;
     gcbextra=0;
 	int gcbnum=0;

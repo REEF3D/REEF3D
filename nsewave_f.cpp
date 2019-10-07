@@ -76,7 +76,7 @@ nsewave_f::nsewave_f(lexer *p, fdm *a, ghostcell *pgc, heat *&pheat, concentrati
 	pupdate = new fluid_update_fsf_concentration(p,a,pgc,pconc);
 	
 	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
-	pupdate = new fluid_update_rheology(p,a,pgc);
+	pupdate = new fluid_update_rheology(p,a);
 
     pupdate = new fluid_update_fsf(p,a,pgc);
     

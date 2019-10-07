@@ -31,6 +31,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ioflow.h"
 #include"turbulence.h"
 #include"solver.h"
+#include"fluid_update_rheology.h"
+#include"fluid_update_void.h"
 
 momentum_RK3::momentum_RK3(lexer *p, fdm *a, convection *pconvection, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
                                                     turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow)
@@ -52,6 +54,13 @@ momentum_RK3::momentum_RK3(lexer *p, fdm *a, convection *pconvection, diffusion 
 	psolv=psolver;
     ppoissonsolv=ppoissonsolver;
 	pflow=pioflow;
+    
+    
+    if(p->W90>0)
+	pupdate = new fluid_update_rheology(p,a);
+    
+    if(p->W90==0)
+	pupdate = new fluid_update_void();
 }
 
 momentum_RK3::~momentum_RK3()
@@ -130,11 +139,11 @@ void momentum_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	pgc->start1(p,urk1,gcval_urk);
 	pgc->start2(p,vrk1,gcval_vrk);
 	pgc->start3(p,wrk1,gcval_wrk);
+    
+    pupdate->start(p,a,pgc);
 	
-
 //Step 2
 //--------------------------------------------------------
-	
 	
 	// U
 	starttime=pgc->timer();
@@ -198,6 +207,8 @@ void momentum_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	pgc->start1(p,urk2,gcval_urk);
 	pgc->start2(p,vrk2,gcval_vrk);
 	pgc->start3(p,wrk2,gcval_wrk);
+    
+    pupdate->start(p,a,pgc);
 
 //Step 3
 //--------------------------------------------------------
@@ -264,6 +275,8 @@ void momentum_RK3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	pgc->start1(p,a->u,gcval_u);
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
+    
+    pupdate->start(p,a,pgc);
 }
 
 void momentum_RK3::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)

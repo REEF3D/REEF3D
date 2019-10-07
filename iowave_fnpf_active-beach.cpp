@@ -49,7 +49,7 @@ void iowave::active_beach_fnpf(lexer *p, ghostcell* pgc, double *Fi, double *Uin
 		eta_M = eta(i,j); 
 		eta_R = eta_M-eta_T;
         
-        cout<<p->mpirank<<" eta_R: "<<eta_R<<" eta_M: "<<eta_M<<"   eta: "<<eta(i,j)<<endl;
+        //cout<<p->mpirank<<" eta_R: "<<eta_R<<" eta_M: "<<eta_M<<"   eta: "<<eta(i,j)<<endl;
 
 
         aa=bb=0;

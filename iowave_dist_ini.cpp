@@ -29,7 +29,6 @@ double iowave::distbeach_ini(lexer *p)
     double dx,dy,l1,l2,n1x,n1y,n2x,n2y;
     double dist;
     
-    
     for(n=0;n<p->B107;++n)
     {
     Bs[n][0] = p->B107_xs[n];

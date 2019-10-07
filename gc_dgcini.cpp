@@ -101,7 +101,6 @@ void ghostcell::dgcini1(lexer* p)
         }
 		
         p->del_Iarray(num,p->dgc1_count);	
-
 }
 
 void ghostcell::dgcini2(lexer* p)
@@ -256,8 +255,7 @@ void ghostcell::dgcini3(lexer* p)
             }
         }
 		
-        p->del_Iarray(num,p->dgc3_count);
-		
+        p->del_Iarray(num,p->dgc3_count);		
 }
 
 void ghostcell::dgcini4(lexer* p)

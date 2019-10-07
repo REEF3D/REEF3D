@@ -33,6 +33,10 @@ void ghostcell::flagx(lexer* p, int *flag)
 
         isend1[count]=flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin];
         ++count;
+        isend1[count]=flag[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin];
+        ++count;
+        isend1[count]=flag[(i-p->imin+2)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin];
+        ++count;
     }
 
     count=0;
@@ -43,6 +47,10 @@ void ghostcell::flagx(lexer* p, int *flag)
     k=p->gcpara2[n][2];
 
         isend2[count]=flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin];
+        ++count;
+        isend2[count]=flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin];
+        ++count;
+        isend2[count]=flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin-2)*p->kmax + k-p->kmin];
         ++count;
     }
 
@@ -55,6 +63,10 @@ void ghostcell::flagx(lexer* p, int *flag)
 
         isend3[count]=flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin];
         ++count;
+        isend3[count]=flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin];
+        ++count;
+        isend3[count]=flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin+2)*p->kmax + k-p->kmin];
+        ++count;
     }
 
     count=0;
@@ -65,6 +77,10 @@ void ghostcell::flagx(lexer* p, int *flag)
     k=p->gcpara4[n][2];
 
         isend4[count]=flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin];
+        ++count;
+        isend4[count]=flag[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin];
+        ++count;
+        isend4[count]=flag[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin];
         ++count;
     }
 
@@ -77,6 +93,10 @@ void ghostcell::flagx(lexer* p, int *flag)
 
         isend5[count]=flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin];
         ++count;
+        isend5[count]=flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+1];
+        ++count;
+        isend5[count]=flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+2];
+        ++count;
     }
 
     count=0;
@@ -88,6 +108,10 @@ void ghostcell::flagx(lexer* p, int *flag)
 
         isend6[count]=flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin];
         ++count;
+        isend6[count]=flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-1];
+        ++count;
+        isend6[count]=flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-2];
+        ++count;
     }
 
 
@@ -95,38 +119,38 @@ void ghostcell::flagx(lexer* p, int *flag)
 
     if(p->gcpara1_count>0)
     {
-	MPI_Isend(isend1,p->gcpara1_count,MPI_INT,p->nb1,tag1,mpi_comm,&sreq1);
-	MPI_Irecv(irecv1,p->gcpara1_count,MPI_INT,p->nb1,tag4,mpi_comm,&rreq1);
+	MPI_Isend(isend1,p->gcpara1_count*paramargin,MPI_INT,p->nb1,tag1,mpi_comm,&sreq1);
+	MPI_Irecv(irecv1,p->gcpara1_count*paramargin,MPI_INT,p->nb1,tag4,mpi_comm,&rreq1);
     }
 
     if(p->gcpara2_count>0)
     {
-	MPI_Isend(isend2,p->gcpara2_count,MPI_INT,p->nb2,tag2,mpi_comm,&sreq2);
-	MPI_Irecv(irecv2,p->gcpara2_count,MPI_INT,p->nb2,tag3,mpi_comm,&rreq2);
+	MPI_Isend(isend2,p->gcpara2_count*paramargin,MPI_INT,p->nb2,tag2,mpi_comm,&sreq2);
+	MPI_Irecv(irecv2,p->gcpara2_count*paramargin,MPI_INT,p->nb2,tag3,mpi_comm,&rreq2);
     }
 
     if(p->gcpara3_count>0)
     {
-	MPI_Isend(isend3,p->gcpara3_count,MPI_INT,p->nb3,tag3,mpi_comm,&sreq3);
-	MPI_Irecv(irecv3,p->gcpara3_count,MPI_INT,p->nb3,tag2,mpi_comm,&rreq3);
+	MPI_Isend(isend3,p->gcpara3_count*paramargin,MPI_INT,p->nb3,tag3,mpi_comm,&sreq3);
+	MPI_Irecv(irecv3,p->gcpara3_count*paramargin,MPI_INT,p->nb3,tag2,mpi_comm,&rreq3);
     }
 
     if(p->gcpara4_count>0)
     {
-	MPI_Isend(isend4,p->gcpara4_count,MPI_INT,p->nb4,tag4,mpi_comm,&sreq4);
-	MPI_Irecv(irecv4,p->gcpara4_count,MPI_INT,p->nb4,tag1,mpi_comm,&rreq4);
+	MPI_Isend(isend4,p->gcpara4_count*paramargin,MPI_INT,p->nb4,tag4,mpi_comm,&sreq4);
+	MPI_Irecv(irecv4,p->gcpara4_count*paramargin,MPI_INT,p->nb4,tag1,mpi_comm,&rreq4);
     }
 
     if(p->gcpara5_count>0)
     {
-	MPI_Isend(isend5,p->gcpara5_count,MPI_INT,p->nb5,tag5,mpi_comm,&sreq5);
-	MPI_Irecv(irecv5,p->gcpara5_count,MPI_INT,p->nb5,tag6,mpi_comm,&rreq5);
+	MPI_Isend(isend5,p->gcpara5_count*paramargin,MPI_INT,p->nb5,tag5,mpi_comm,&sreq5);
+	MPI_Irecv(irecv5,p->gcpara5_count*paramargin,MPI_INT,p->nb5,tag6,mpi_comm,&rreq5);
     }
 
     if(p->gcpara6_count>0)
     {
-	MPI_Isend(isend6,p->gcpara6_count,MPI_INT,p->nb6,tag6,mpi_comm,&sreq6);
-	MPI_Irecv(irecv6,p->gcpara6_count,MPI_INT,p->nb6,tag5,mpi_comm,&rreq6);
+	MPI_Isend(isend6,p->gcpara6_count*paramargin,MPI_INT,p->nb6,tag6,mpi_comm,&sreq6);
+	MPI_Irecv(irecv6,p->gcpara6_count*paramargin,MPI_INT,p->nb6,tag5,mpi_comm,&rreq6);
     }
 
     gcwait(p);
@@ -142,6 +166,10 @@ void ghostcell::flagx(lexer* p, int *flag)
 
         flag[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]=irecv1[count];
         ++count;
+        flag[(i-p->imin-2)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]=irecv1[count];
+        ++count;
+        flag[(i-p->imin-3)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]=irecv1[count];
+        ++count;
     }
 
     count=0;
@@ -152,6 +180,10 @@ void ghostcell::flagx(lexer* p, int *flag)
     k=p->gcpara2[n][2];
 
         flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin]=irecv2[count];
+        ++count;
+        flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin+2)*p->kmax + k-p->kmin]=irecv2[count];
+        ++count;
+        flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin+3)*p->kmax + k-p->kmin]=irecv2[count];
         ++count;
     }
 
@@ -164,6 +196,10 @@ void ghostcell::flagx(lexer* p, int *flag)
 
         flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin]=irecv3[count];
         ++count;
+        flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin-2)*p->kmax + k-p->kmin]=irecv3[count];
+        ++count;
+        flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin-3)*p->kmax + k-p->kmin]=irecv3[count];
+        ++count;
     }
 
     count=0;
@@ -174,6 +210,10 @@ void ghostcell::flagx(lexer* p, int *flag)
     k=p->gcpara4[n][2];
 
         flag[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]=irecv4[count];
+        ++count;
+        flag[(i-p->imin+2)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]=irecv4[count];
+        ++count;
+        flag[(i-p->imin+3)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]=irecv4[count];
         ++count;
     }
 
@@ -186,6 +226,10 @@ void ghostcell::flagx(lexer* p, int *flag)
 
         flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-1]=irecv5[count];
         ++count;
+        flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-2]=irecv5[count];
+        ++count;
+        flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-3]=irecv5[count];
+        ++count;
     }
 
     count=0;
@@ -196,6 +240,10 @@ void ghostcell::flagx(lexer* p, int *flag)
     k=p->gcpara6[n][2];
 
         flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+1]=irecv6[count];
+        ++count;
+        flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+2]=irecv6[count];
+        ++count;
+        flag[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+3]=irecv6[count];
         ++count;
     }
 

@@ -146,7 +146,6 @@ void mgc1::extragcb(lexer *p)
 	
     ULOOP
     {	
-		
         if(p->flag1[UIm1JK]<0)
         if(p->fgc[IJK][0]==0)
         {
@@ -300,53 +299,79 @@ void mgc1::extragcb(lexer *p)
 	    i=p->gcb1[q][0];
 		j=p->gcb1[q][1];
 		k=p->gcb1[q][2];
-        if(p->flag1[UIJK]<0 && p->flag4[IJK]<0)
+        if(p->flag1[UIJK]<0)
         p->gcb1[q][3]=-fabs(p->gcb1[q][3]);
 	}
+    
+    
     /*
+	int count1=0;
+	QGCB1
+	++count1;
+    
+    int count2=0;
+	QGC1LOOP
+	++count2;
+    
     count=0;
-    QGC1LOOP
-	{
-	    i=p->gcb1[q][0];
-		j=p->gcb1[q][1];
-		k=p->gcb1[q][2];
-        
-        if(p->gcb1[q][3] == 1)
-        if(p->flag1[UIm1JK]>0)
+    ULOOP
+    {
+        if(p->flag1[UIm1JK]<0)
         ++count;
         
-        if(p->gcb1[q][3] == 4)
-        if(p->flag1[UIp1JK]>0)
+        if(p->flag1[UIp1JK]<0)
         ++count;
         
-        if(p->gcb1[q][3] == 3)
-        if(p->flag1[UIJm1K]>0)
+        if(p->flag1[UIJm1K]<0)
         ++count;
         
-        if(p->gcb1[q][3] == 2)
-        if(p->flag1[UIJp1K]>0)
+        if(p->flag1[UIJp1K]<0)
         ++count;
         
-        if(p->gcb1[q][3] == 5)
-        if(p->flag1[UIJKm1]>0)
+        if(p->flag1[UIJKm1]<0)
         ++count;
         
-        if(p->gcb1[q][3] == 6)
-        if(p->flag1[UIJKp1]>0)
+        if(p->flag1[UIJKp1]<0)
         ++count;
 	}
 	
-	
-
-    cout<<p->mpirank<<" GCB error: "<<count<<endl;*/
-    /*
+	cout<<p->mpirank<<" GCB1: "<<p->gcb1_count<<" GCB1_direct_all: "<<count1<<" GCB1_direct: "<<count2<<" GCB1_LOOP: "<<count<<endl;
+    */
+    
+    
+     /*
 	int count1=0;
-	QGC1LOOP
+	QGCB4
 	++count1;
+    
+    int count2=0;
+	QGC4LOOP
+	++count2;
+    
+    count=0;
+    LOOP
+    {
+        if(p->flag4[Im1JK]<0)
+        ++count;
+        
+        if(p->flag4[Ip1JK]<0)
+        ++count;
+        
+        if(p->flag4[IJm1K]<0)
+        ++count;
+        
+        if(p->flag4[IJp1K]<0)
+        ++count;
+        
+        if(p->flag4[IJKm1]<0)
+        ++count;
+        
+        if(p->flag4[IJKp1]<0)
+        ++count;
+	}
 	
-	
-	cout<<p->mpirank<<" GCB1: "<<p->gcb1_count<<" GCB1_direct: "<<count1<<endl;*/
-	
+	cout<<p->mpirank<<" GCB4: "<<p->gcb4_count<<" GCB4_direct_all: "<<count1<<" GCB4_direct: "<<count2<<" GCB4_LOOP: "<<count<<endl;
+	*/
 	p->del_Iarray(p->fgc,imax*jmax*kmax,6);
 	
 }

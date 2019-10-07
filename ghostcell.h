@@ -387,6 +387,7 @@ public:
 	void dirichlet_para(field&,double,int,int,int);
 	void dirichlet_ortho(lexer*,field&,double,int,int,int);
 	void neumann(field&,int,int,int);
+    void gcb_debug(field&,int,int,int);
 	void neumann_press(lexer*,field&,double,int,int,int);
 	void extend(field&,double,int,int,int);
 	void largeval(field&,double,int,int,int);
@@ -408,7 +409,7 @@ public:
 	void gravity_press(lexer*,field&,double,int,int,int);
     void kinematic_bed(lexer*,field&,double,int,int,int);
     void fivec(lexer*,double*,sliceint&);
-    void fivec2D(lexer*,double*);
+    void fivec2D(lexer*,double*,sliceint&);
 
 	void gcV_neumann(vec&,int,int,int,int);
 	void gcV_lsm(lexer*,vec&, double,int,int,int,int);

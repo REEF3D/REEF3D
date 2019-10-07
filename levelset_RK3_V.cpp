@@ -70,7 +70,7 @@ levelset_RK3_V::levelset_RK3_V(lexer* p, fdm *a, ghostcell* pgc, heat *&pheat, c
 	pupdate = new fluid_update_fsf_concentration(p,a,pgc,pconc);
 	
 	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
-	pupdate = new fluid_update_rheology(p,a,pgc);
+	pupdate = new fluid_update_rheology(p,a);
     
 
 	if(p->F46==2)

@@ -19,56 +19,34 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-class lexer;
-class fdm;
-class ghostcell;
+#include"ghostcell.h"
+#include"field.h"
+#include"vec.h"
+#include"fdm.h"
 
-#include"increment.h"
-
-#ifndef WAVE_LIB_PARAMETERS_H_
-#define WAVE_LIB_PARAMETERS_H_
-
-using namespace std;
-
-class wave_lib_parameters : public increment
+void ghostcell::gcb_debug(field& f, int gcv, int bc, int cs)
 {
-public:
-    wave_lib_parameters(lexer*, ghostcell*);
-	virtual ~wave_lib_parameters();
-    
-    double sinhfunc(double);
-    double coshfunc(double);
-    
-    double sinfunc(double);
-    double cosfunc(double);
-    
-    double teta;
-    double wk,ww,wd,wa,wH,wL,wf,wT,wL0,k0,S0;
-    double wk_temp,ww_temp,wL_temp,wT_temp,wf_temp;
-    
-    
-    double eps,c0,c2,c4; 
-    double S,C;
-    double wC,ubar;
-    double wS;
-    
-    double X0;
-	
-    const double pshift;
-	
-    
-private: 
+	if(cs==1)
+	for(q=0;q<margin;++q)
+	f(i-q-1,j,k)=1.0;
 
-	
-    int wtype;
-    double diff;
-    
-    double f,r,s;
-    int factorial,q;
-    const int order;
-    
-    double *factcos;
+	if(cs==2)
+	for(q=0;q<margin;++q)
+	f(i,j+q+1,k)=1.0;
 
-};
+	if(cs==3)
+	for(q=0;q<margin;++q)
+	f(i,j-q-1,k)=1.0;
 
-#endif
+	if(cs==4)
+	for(q=0;q<margin;++q)
+	f(i+q+1,j,k)=1.0;
+
+	if(cs==5)
+	for(q=0;q<margin;++q)
+	f(i,j,k-q-1)=1.0;
+
+	if(cs==6)
+	for(q=0;q<margin;++q)
+	f(i,j,k+q+1)=1.0;
+}

@@ -65,6 +65,7 @@ void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
             
             if(z<=eta(i,j)+epsi)
             Fival[count] = wave_u(p,pgc,xg,yg,z);
+        
             
             if(z>eta(i,j)+epsi)
             Fival[count] = 0.0;

@@ -495,6 +495,10 @@ void wave_lib_spectrum::amplitudes_focused(lexer *p)
 
 void wave_lib_spectrum::phases_irregular(lexer *p)
 {
+    if(p->B139>0)
+    srand(p->B139);
+    
+    if(p->B139==0)
     srand((unsigned)time(0));
 
     // make phases
