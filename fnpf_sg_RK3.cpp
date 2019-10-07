@@ -213,13 +213,13 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     LOOP
     c->test(i,j,k) = c->breaking(i,j);
     
-    /*
-    LOOP
-    c->test(i,j,k)=1.0;
     
     LOOP
-    if(c->wet(i,j)==0)
-    c->test(i,j,k)=-10.0;*/
+    c->test(i,j,k)=0.0;
+    
+    LOOP
+    if(c->breaking(i,j)==1)
+    c->test(i,j,k)=1.0;
     
     pgc->start4(p,c->test,50);
 
@@ -241,9 +241,6 @@ void fnpf_sg_RK3::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
 
-    LOOP
-    c->test(i,j,k) = c->Fz(i,j);
-    
     pgc->start4(p,c->test,50);
     
     velcalc_sig(p,c,pgc,c->Fi);

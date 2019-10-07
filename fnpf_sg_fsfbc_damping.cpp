@@ -34,7 +34,7 @@ void fnpf_sg_fsfbc::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int
         n=0;
         SLICELOOP4
         {
-         visc = c->vb(i,j);
+         visc = 0.0;c->vb(i,j);
             
          c->N.p[n] =   visc/(p->DXP[IM1]*p->DXN[IP])*p->x_dir
                      + visc/(p->DXP[IP]*p->DXN[IP])*p->x_dir
@@ -45,11 +45,11 @@ void fnpf_sg_fsfbc::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int
         
          c->rvec.V[n] =   f(i,j)/(alpha*p->dt);
          
-         c->N.s[n] = -0.5*visc/(p->DXP[IM1]*p->DXN[IP])*p->x_dir;
-         c->N.n[n] = -0.5*visc/(p->DXP[IP]*p->DXN[IP])*p->x_dir;
+         c->N.s[n] = -visc/(p->DXP[IM1]*p->DXN[IP])*p->x_dir;
+         c->N.n[n] = -visc/(p->DXP[IP]*p->DXN[IP])*p->x_dir;
          
-         c->N.e[n] = -0.5*visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
-         c->N.w[n] = -0.5*visc/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
+         c->N.e[n] = -visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+         c->N.w[n] = -visc/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
      
          ++n;
         }

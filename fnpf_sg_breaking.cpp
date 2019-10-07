@@ -28,7 +28,7 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
 {
     int ii,jj;
     
-    if(p->A351>=1)
+    if(p->A350>=0)
     SLICELOOP4
     c->breaking(i,j)=0;
     
