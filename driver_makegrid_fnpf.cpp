@@ -374,7 +374,9 @@ void driver::makegrid_fnpf(lexer *p, ghostcell *pgc)
     pgc->gcsl_setbcio(p);
     
 	pgc->dgcslini4(p); 
-    pgc->dgcini4(p);   
+
+    m4.make_dgc(p);
+    m4.fill_dgc(p);
 	
 }
 	
