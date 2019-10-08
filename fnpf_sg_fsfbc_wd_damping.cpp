@@ -28,31 +28,28 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void fnpf_sg_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int gcval, double alpha)
 {
     double starttime=pgc->timer();
-    double visc; 
     
     if(p->A350==1)
     {
         n=0;
         SLICELOOP4
         {
-        visc = c->vb(i,j);
-
+         visc = c->vb(i,j);
             
-         c->N.p[n] =   0.5*(c->vb(i,j)+c->vb(i-1,j))/(p->DXP[IM1]*p->DXN[IP])
-                     + 0.5*(c->vb(i,j)+c->vb(i+1,j))/(p->DXP[IP]*p->DXN[IP])
-                     + 0.5*(c->vb(i,j)+c->vb(i,j-1))/(p->DYP[JM1]*p->DYN[JP])
-                     + 0.5*(c->vb(i,j)+c->vb(i,j+1))/(p->DYP[JP]*p->DYN[JP])
+         c->N.p[n] =   visc/(p->DXP[IM1]*p->DXN[IP])*p->x_dir
+                     + visc/(p->DXP[IP]*p->DXN[IP])*p->x_dir
+                     + visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir
+                     + visc/(p->DYP[JP]*p->DYN[JP])*p->y_dir
                        
                        + 1.0/(alpha*p->dt);
-                             
-                             + (f(i,j))/(alpha*p->dt);
-
+        
+         c->rvec.V[n] =   f(i,j)/(alpha*p->dt);
          
-         c->N.s[n] = -0.5*(c->vb(i,j)+c->vb(i-1,j))/(p->DXP[IM1]*p->DXN[IP]);
-         c->N.n[n] = -0.5*(c->vb(i,j)+c->vb(i+1,j))/(p->DXP[IP]*p->DXN[IP]);
+         c->N.s[n] = -visc/(p->DXP[IM1]*p->DXN[IP])*p->x_dir;
+         c->N.n[n] = -visc/(p->DXP[IP]*p->DXN[IP])*p->x_dir;
          
-         c->N.e[n] = -0.5*(c->vb(i,j)+c->vb(i,j-1))/(p->DYP[JM1]*p->DYN[JP]);
-         c->N.w[n] = -0.5*(c->vb(i,j)+c->vb(i,j+1))/(p->DYP[JP]*p->DYN[JP]);
+         c->N.e[n] = -visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+         c->N.w[n] = -visc/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
      
          ++n;
         }
@@ -88,12 +85,13 @@ void fnpf_sg_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, 
         ++n;
         }
         
-        psolv->start(p,pgc,f,c->N,c->xvec,c->rvec,4,50,p->D29,c->C4);
+        psolv->start(p,pgc,f,c->N,c->xvec,c->rvec,4,gcval,p->D29,c->C4);
         
         pgc->gcsl_start4(p,f,gcval);
         
         double time=pgc->timer()-starttime;
-        if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
+        
+        if(p->mpirank==0 && p->count%p->P12==0 && p->D21==1)
         cout<<"fsfbc_damping: "<<p->solveriter<<"  fsfbc_damping_time: "<<setprecision(3)<<time<<endl;
     }
 }

@@ -87,7 +87,7 @@ void sflow_jacobi_block::solve(lexer* p, ghostcell* pgc, matrix2D &M,vec2D& xvec
 		++solveriter;
 		}
 		
-         pgc->gcparaxvec2D(p,xvec,var,C);		
+         //pgc->gcparaxvec2D(p,xvec,var,C);		
 		
 		residual=res_calc(p,pgc,M,xvec,rhsvec,C);
 		

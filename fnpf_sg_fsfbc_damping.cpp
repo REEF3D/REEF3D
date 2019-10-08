@@ -34,7 +34,7 @@ void fnpf_sg_fsfbc::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int
         n=0;
         SLICELOOP4
         {
-         visc = 0.0;c->vb(i,j);
+         visc = c->vb(i,j);
             
          c->N.p[n] =   visc/(p->DXP[IM1]*p->DXN[IP])*p->x_dir
                      + visc/(p->DXP[IP]*p->DXN[IP])*p->x_dir
@@ -90,7 +90,8 @@ void fnpf_sg_fsfbc::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int
         pgc->gcsl_start4(p,f,gcval);
         
         double time=pgc->timer()-starttime;
-        if(p->mpirank==0 && p->count%p->P12==0)
+        
+        if(p->mpirank==0 && p->count%p->P12==0 && p->D21==1)
         cout<<"fsfbc_damping: "<<p->solveriter<<"  fsfbc_damping_time: "<<setprecision(3)<<time<<endl;
     }
 }
