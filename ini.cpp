@@ -667,7 +667,7 @@ void lexer::ini_default()
 	// Developer 
 	Y40=3;
     Y50=5;
-	Y60=0;
+	Y60=1;
     Y71=0;  // int turn on/off solid gcparax
     Y72=0;  // int turn on/off solid gcparax
     Y73=0;  // int turn on/off solid gcparax
