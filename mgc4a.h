@@ -40,16 +40,23 @@ public:
 	void mgcsetup(lexer*);
 	void gcdirfill(lexer*);
 	void fillmgc(lexer*);
-	void make_ggc(lexer*);
     void fillgcb(lexer*);
 
+	// ggc
+	void make_ggc(lexer*);
 	void fill_ggc(lexer*);
+    
+    // dgc
+    void make_dgc(lexer*);
+    void fill_dgc(lexer*);
 
 	int imin,imax,jmax,jmin,kmin,kmax;
     
 private:
 	int di,dj,dk;
 	int qn;
+    
+    int *hgc;
 };
 
 #endif

@@ -1498,6 +1498,11 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
       <VirtualDirectory Name="Epol">
+        <File Name="gc_dgcpol4.cpp"/>
+        <File Name="gc_dgcpol3.cpp"/>
+        <File Name="gc_dgcpol2.cpp"/>
+        <File Name="gc_dgcpol1.cpp"/>
+        <File Name="gc_dgcpol.cpp"/>
         <File Name="gc_debug.cpp"/>
         <File Name="gc_fivec.cpp"/>
         <File Name="gc_kinematic_bed.cpp"/>
@@ -1524,7 +1529,6 @@
         <File Name="gc_fbvel.cpp"/>
         <File Name="gc_fbpress.cpp"/>
         <File Name="gc_gravity_press.cpp"/>
-        <File Name="gc_dgc.cpp"/>
         <File Name="gc_lsm.cpp"/>
         <File Name="gc_neumann.cpp"/>
         <File Name="gc_nse1.cpp"/>

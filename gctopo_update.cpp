@@ -97,10 +97,15 @@ void ghostcell::topo_update(lexer *p, fdm *a)
     
     sizeM_update(p,a);
 	
-	dgcini1(p);
-	dgcini2(p);
-	dgcini3(p);
-	dgcini4(p);
+	m1.make_dgc(p);
+    m2.make_dgc(p);
+    m3.make_dgc(p);
+    m4.make_dgc(p);
+    
+    m1.fill_dgc(p);
+    m2.fill_dgc(p);
+    m3.fill_dgc(p);
+    m4.fill_dgc(p);
 
     column_pt_resize(p,a);
 

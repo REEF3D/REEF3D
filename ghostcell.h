@@ -75,6 +75,14 @@ public:
 	double timesync(double);
 	void globalctrl(lexer*);
 	void dgcpol(lexer*,field&, int**,int, int);
+    
+    void dgcpol1(lexer*,field&, int);
+    void dgcpol2(lexer*,field&, int);
+    void dgcpol3(lexer*,field&, int);
+    void dgcpol4(lexer*,field&, int);
+    void dgcpol4a(lexer*,field&, int);
+    void dgcpol6(lexer*,field&, int);
+    
     void dgcslpol(lexer*, slice&, int**,int, int);
     void dgcslpol1(lexer*, slice&);
     void dgcslpol2(lexer*, slice&);
@@ -183,7 +191,6 @@ public:
 	void solid_update(lexer*,fdm*);
 	void gcsolid_gcb_remove(lexer*,fdm*);
 	void gcsolid_gcb_seed(lexer*,fdm*);
-	void gcsolid_gcb_iocs(lexer*,fdm*);
 	void gcsolid_gcb_dist(lexer*,fdm*);
 	void gcsolid_buildflag(lexer*,fdm*, int&);
 	void gcsolid_velflag1(lexer*,fdm*, int&);
@@ -194,7 +201,6 @@ public:
 	void topo_update(lexer*,fdm*);
 	void gcb_remove(lexer*,fdm*);
 	void gcb_seed(lexer*,fdm*);
-	void gcb_iocs(lexer*,fdm*);
 	void gcb_distbed(lexer*,fdm*);
 	void gcb_buildflag(lexer*,fdm*, int**, int&);
 	void gcb_velflag1(lexer*,fdm*, int **, int&);

@@ -20,7 +20,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"mgc4.h"
-#include"cart4.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"fieldint5.h"
@@ -93,13 +92,6 @@ void mgc4::fillmgc(lexer* p)
 		for(n=0;n<p->margin;++n)
 		p->mgc4[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin+n+1]+=1;
 	}
-    
-    /*
-    int maxval=0;
-    MALOOP
-    maxval = MAX(p->mgc4[IJK],maxval);
-    
-    cout<<p->mpirank<<"  maxval: "<<maxval<<endl;*/
     
     
 //PARA1
@@ -302,6 +294,8 @@ void mgc4::gcdirfill(lexer* p)
 	
 }
 
+// -----------------------------------------------------
+
 void mgc4::gcsidefill(lexer *p)
 {
 	
@@ -426,6 +420,7 @@ void mgc4::gcsidefill(lexer *p)
 	}
 	
 }
+
 
 void mgc4::check_gcb_nbx(lexer *p, ghostcell *gcb)
 {

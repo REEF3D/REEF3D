@@ -68,6 +68,8 @@ private:
     double rb3(lexer*,double);
     
     double dist3,expinverse,db;
+    
+    double visc;
 
     
 };

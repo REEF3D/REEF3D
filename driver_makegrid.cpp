@@ -107,17 +107,23 @@ void driver::makegrid(lexer *p, ghostcell *pgc)
     m4a.make_ggc(p);
     m4a.fill_ggc(p);
     
+    m1.make_dgc(p);
+    m2.make_dgc(p);
+    m3.make_dgc(p);
+    m4.make_dgc(p);
+    
+    m1.fill_dgc(p);
+    m2.fill_dgc(p);
+    m3.fill_dgc(p);
+    m4.fill_dgc(p);
+    
     p->vecsize();
-	   
     
 }
 	
 void driver::makegrid_cds()
 {	
-	pgc->dgcini1(p);
-	pgc->dgcini2(p);
-	pgc->dgcini3(p);
-	pgc->dgcini4(p);
+	
 	
 	pgc->sizeM_update(p,a);
     

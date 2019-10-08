@@ -789,417 +789,60 @@ void nodefill::nodefill4(lexer *p, fdm *a, ghostcell *pgc, field &f, field &eta)
     }
 	
 	
-	
+	//----------------------------------------------------------------
 	// DGC
-	int a1,a2,b1,b2,c1,c2;
-	int acheck,bcheck,ccheck;
-	double val1,val2,val3,val4,val5,val6;
+    int di,dj,dk;
+    int dii,djj,dkk;
 
-	
-	for(n=0;n<p->dgc4_count;++n)
-	{
-	i=p->dgc4[n][0];
-    j=p->dgc4[n][1];
-    k=p->dgc4[n][2];
-	
-		a1=a2=b1=b2=c1=c2=0;
-		val1=val2=val3=val4=val5=val6=0.0;
-		acheck=bcheck=ccheck=0;
-		aa=bb=cc=0;
-		
-		for(q=0;q<p->dgc4[n][3];++q)
-		{
-				if(p->dgc4[n][4+q]==1)
-				{
-				a1=-1;
-				val1=f(i-1,j,k);
-				++acheck;
-				}
+    for(n=0;n<p->dgc4_count;++n)
+    {
+        i=p->dgc4[n][0];
+        j=p->dgc4[n][1];
+        k=p->dgc4[n][2];
+        
+        
+        di=p->dgc4[n][3];
+        dj=p->dgc4[n][4];
+        dk=p->dgc4[n][5];
+        
+        
+        if(di==0)
+        {
+        djj = dj>0?0:dj;  
+        dkk = dk>0?0:dk;  
+        
+        eta(i-1,j+djj,k+dkk) += 0.125*f(i,j+dj,k+dk);
+        eta(i,j+djj,k+dkk)   += 0.125*f(i,j+dj,k+dk);
+        }
+        
+        if(dj==0)
+        {
+        djj = dj>0?0:dj;
+        dkk = dk>0?0:dk;    
+        
+        eta(i+dii,j-1,k+dkk) += 0.125*f(i+di,j,k+dk);
+        eta(i+dii,j,k+dkk)   += 0.125*f(i+di,j,k+dk);
+        }
+        
+        if(dk==0)
+        {
+        dii = di>0?0:di; 
+        djj = dj>0?0:dj;   
+        
+        eta(i+dii,j+djj,k-1) += 0.125*f(i+di,j+dj,k);
+        eta(i+dii,j+djj,k)   += 0.125*f(i+di,j+dj,k);
+        }
+        
+        
+        if(di!=0 && dj!=0 && dk!=0)
+        {
+        dii = di>0?0:di; 
+        djj = dj>0?0:dj;  
+        dkk = dk>0?0:dk; 
 
-				if(p->dgc4[n][4+q]==2)
-				{
-				b2=1;
-				val2=f(i,j+1,k);
-				++bcheck;
-				}
+        eta(i+dii,j+djj,k+dkk) += 0.125*f(i+di,j+dj,k+dk);
 
-				if(p->dgc4[n][4+q]==3)
-				{
-				b1=-1;
-				val3=f(i,j-1,k);
-				++bcheck;
-				}
-
-				if(p->dgc4[n][4+q]==4)
-				{
-				a2=1;
-				val4=f(i+1,j,k);
-				++acheck;
-				}
-
-				if(p->dgc4[n][4+q]==5)
-				{
-				c1=-1;
-				val5=f(i,j,k-1);
-				++ccheck;
-				}
-
-				if(p->dgc4[n][4+q]==6)
-				{
-				c2=1;
-				val6=f(i,j,k+1);
-				++ccheck;
-				}
-		}
-		
-			if(p->dgc4[n][3]==2)
-			{
-				if(a1==0 && a2==0)
-				aa=-1;
-				
-				if(b1==0 && b2==0)
-				bb=-1;
-				
-				if(c1==0 && c2==0)
-				cc=-1;
-				
-				val = f(i+a1+a2,j+b1+b2,k+c1+c2);
-				
-				eta(i+a1+aa,j+b1+bb,k+c1+cc) += 0.125*val;
-				eta(i+a1,j+b1,k+c1) += 0.125*val;
-			}
-			
-			if(p->dgc4[n][3]==3 && acheck==1 && bcheck==1 && ccheck==1)
-			{
-			// 3 regular corners
-	
-				// 1  xy
-				val = f(i+a1+a2,j+b1+b2,k);
-				
-				eta(i+a1,j+b1,k-1) += 0.125*val;
-				eta(i+a1,j+b1,k) += 0.125*val;	
-				
-				// 2 xz
-				val = f(i+a1+a2,j,k+c1+c2);
-				
-				eta(i+a1,j-1,k+c1) += 0.125*val;
-				eta(i+a1,j,k+c1) += 0.125*val;
-				
-				// 3 yz
-				val = f(i,j+b1+b2,k+c1+c2);
-				
-				eta(i-1,j+b1,k+c1) += 0.125*val;
-				eta(i,j+b1,k+c1) += 0.125*val;
-					
-				
-				// diagonal corner	
-				val = f(i+a1+a2,j+b1+b2,k+c1+c2);
-				
-				eta(i+a1,j+b1,k+c1) += 0.125*val;
-			}
-			
-			
-			if(p->dgc4[n][3]==3 && (acheck==2 || bcheck==2 || ccheck==2))
-			{
-				
-				// 1   xy
-				if(c1==0 && c2==0 && bcheck==2 && a1!=0)
-				{
-				val = 0.5*(val1+val3);
-				
-				eta(i+a1,j+b1,k-1) += 0.125*val;
-				eta(i+a1,j+b1,k) += 0.125*val;
-				
-				val = 0.5*(val1+val2);
-			
-				eta(i+a1,j,k-1) += 0.125*val;
-				eta(i+a1,j,k) += 0.125*val;				
-				}
-				
-				if(c1==0 && c2==0 && bcheck==2 && a2!=0)
-				{
-				val = 0.5*(val4+val3);
-				
-				eta(i+a1,j+b1,k-1) += 0.125*val;
-				eta(i+a1,j+b1,k) += 0.125*val;
-				
-				val = 0.5*(val4+val2);
-			
-				eta(i+a1,j,k-1) += 0.125*val;
-				eta(i+a1,j,k) += 0.125*val;				
-				}
-				
-				if(c1==0 && c2==0 && acheck==2 && b1!=0)
-				{
-				val = 0.5*(val1+val3);
-			
-				eta(i+a1,j+b1,k-1) += 0.125*val;
-				eta(i+a1,j+b1,k) += 0.125*val;
-				
-				val = 0.5*(val4+val3);
-			
-				eta(i,j+b1,k-1) += 0.125*val;
-				eta(i,j+b1,k) += 0.125*val;				
-				}
-				
-				if(c1==0 && c2==0 && acheck==2 && b2!=0)
-				{
-				val = 0.5*(val1+val2);
-			
-				eta(i+a1,j+b1,k-1) += 0.125*val;
-				eta(i+a1,j+b1,k) += 0.125*val;
-				
-				val = 0.5*(val4+val2);
-			
-				eta(i,j+b1,k-1) += 0.125*val;
-				eta(i,j+b1,k) += 0.125*val;				
-				}
-				
-				// 2 xz
-				if(b1==0 && b2==0 && ccheck==2 && a1!=0)
-				{
-				val = 0.5*(val1+val5);
-				
-				eta(i+a1,j-1,k+c1) += 0.125*val;
-				eta(i+a1,j,k+c1) += 0.125*val;
-				
-				val = 0.5*(val1+val6);
-			
-				eta(i+a1,j-1,k) += 0.125*val;
-				eta(i+a1,j,k) += 0.125*val;				
-				}
-				
-				if(b1==0 && b2==0 && ccheck==2 && a2!=0)
-				{
-				val = 0.5*(val4+val5);
-				
-				eta(i+a1,j-1,k+c1) += 0.125*val;
-				eta(i+a1,j,k+c1) += 0.125*val;
-				
-				val = 0.5*(val4+val6);
-			
-				eta(i+a1,j-1,k) += 0.125*val;
-				eta(i+a1,j,k) += 0.125*val;				
-				}
-				
-				
-				if(b1==0 && b2==0 && acheck==2 && c1!=0)
-				{
-				val = 0.5*(val1+val5);
-			
-				eta(i+a1,j-1,k+c1) += 0.125*val;
-				eta(i+a1,j,k+c1) += 0.125*val;
-				
-				val = 0.5*(val4+val5);
-			
-				eta(i,j-1,k+c1) += 0.125*val;
-				eta(i,j,k+c1) += 0.125*val;				
-				}
-				
-				if(b1==0 && b2==0 && acheck==2 && c2!=0)
-				{
-				val = 0.5*(val1+val6);
-			
-				eta(i+a1,j-1,k+c1) += 0.125*val;
-				eta(i+a1,j,k+c1) += 0.125*val;
-				
-				val = 0.5*(val4+val6);
-			
-				eta(i,j-1,k+c1) += 0.125*val;
-				eta(i,j,k+c1) += 0.125*val;				
-				}
-				
-				
-				// 3 yz
-				if(a1==0 && a2==0 && ccheck==2 && b1!=0)
-				{
-				val = 0.5*(val3+val5);
-			
-				eta(i-1,j+b1,k+c1) += 0.125*val;
-				eta(i,j+b1,k+c1) += 0.125*val;
-				
-				val = 0.5*(val3+val6);
-			
-				eta(i-1,j+b1,k) += 0.125*val;
-				eta(i,j+b1,k) += 0.125*val;				
-				}
-				
-				if(a1==0 && a2==0 && ccheck==2 && b2!=0)
-				{
-				val = 0.5*(val2+val5);
-			
-				eta(i-1,j+b1,k+c1) += 0.125*val;
-				eta(i,j+b1,k+c1) += 0.125*val;
-				
-				val = 0.5*(val2+val6);
-			
-				eta(i-1,j+b1,k) += 0.125*val;
-				eta(i,j+b1,k) += 0.125*val;				
-				}
-				
-				if(a1==0 && a2==0 && bcheck==2 && c1!=0)
-				{
-				val = 0.5*(val3+val5);
-			
-				eta(i-1,j+b1,k+c1) += 0.125*val;
-				eta(i,j+b1,k+c1) += 0.125*val;
-				
-				val = 0.5*(val2+val5);
-			
-				eta(i-1,j,k+c1) += 0.125*val;
-				eta(i,j,k+c1) += 0.125*val;				
-				}
-				
-				if(a1==0 && a2==0 && bcheck==2 && c2!=0)
-				{
-				val = 0.5*(val3+val6);
-			
-				eta(i-1,j+b1,k+c1) += 0.125*val;
-				eta(i,j+b1,k+c1) += 0.125*val;
-				
-				val = 0.5*(val2+val6);
-			
-				eta(i-1,j,k+c1) += 0.125*val;
-				eta(i,j,k+c1) += 0.125*val;				
-				}
-			}
-			
-			
-			if(p->dgc4[n][3]==4 && (acheck==2 || bcheck==2 || ccheck==2))
-			{
-				val1=0.125*f(i,j,k);
-				
-				if(acheck==2)
-				{
-					if(b1!=0 && c1!=0) 
-					{
-					eta(i-1,j-1,k-1) += 4.0*val1;
-					eta(i,j-1,k-1) += 4.0*val1;
-					eta(i-1,j-1,k) += val1;
-					eta(i,j-1,k) += val1;
-					eta(i,j,k-1) += val1;
-					eta(i-1,j,k-1) += val1;
-					}
-
-					if(b1!=0 && c2!=0) 
-					{
-					eta(i-1,j-1,k) += 4.0*val1;
-					eta(i,j-1,k) += 4.0*val1;
-					eta(i-1,j,k) += val1;
-					eta(i,j,k) += val1;
-					eta(i-1,j-1,k-1) += val1;
-					eta(i,j-1,k-1) += val1;
-					}
-
-					if(b2!=0 && c1!=0) 
-					{
-					eta(i-1,j,k-1) += 4.0*val1;
-					eta(i,j,k-1) += 4.0*val1;
-					eta(i-1,j-1,k-1) += val1;
-					eta(i,j-1,k-1) += val1;
-					eta(i-1,j,k) += val1;
-					eta(i,j,k) += val1;
-					}
-
-					if(b2!=0 && c2!=0) 
-					{
-					eta(i,j,k) += 4.0*val1;
-					eta(i-1,j,k) += 4.0*val1;
-					eta(i,j-1,k) += val1;
-					eta(i-1,j-1,k) += val1;
-					eta(i-1,j,k-1) += val1;
-					eta(i,j,k-1) += val1;
-					}
-				}
-
-				if(bcheck==2)
-				{
-					if(a1!=0 && c1!=0) 
-					{
-					eta(i-1,j-1,k-1) += 4.0*val1;
-					eta(i-1,j,k-1) += 4.0*val1;
-					eta(i,j-1,k-1) += val1;
-					eta(i,j,k-1) += val1;
-					eta(i-1,j-1,k) += val1;
-					eta(i-1,j,k) += val1;
-					}
-
-					if(a1!=0 && c2!=0)
-					{
-					eta(i-1,j-1,k) += 4.0*val1;
-					eta(i-1,j,k) += 4.0*val1;
-					eta(i-1,j-1,k-1) += val1;
-					eta(i-1,j,k-1) += val1;
-					eta(i,j-1,k) += val1;
-					eta(i,j,k) += val1;
-					}
-
-					if(a2!=0 && c1!=0) 
-					{
-					eta(i,j-1,k) += val1;
-					eta(i,j,k) += val1;
-					eta(i,j-1,k-1) += 4.0*val1;
-					eta(i,j,k-1) += 4.0*val1;
-					eta(i-1,j-1,k-1) += val1;
-					eta(i-1,j,k-1) += val1;
-					}
-
-					if(a2!=0 && c2!=0)
-					{
-					eta(i,j-1,k-1) += val1;
-					eta(i,j,k-1) += val1;
-					eta(i,j-1,k) += 4.0*val1;
-					eta(i,j,k) += 4.0*val1;
-					eta(i-1,j-1,k) += val1;
-					eta(i-1,j,k) += val1;
-					}
-				}
-
-
-				if(ccheck==2)
-				{
-					if(a1!=0 && b1!=0) 
-					{
-					eta(i,j-1,k-1) += 4.0*val1;
-					eta(i,j-1,k) += 4.0*val1;
-					eta(i-1,j-1,k-1) += val1;
-					eta(i-1,j-1,k) += val1;
-					eta(i,j,k-1) += val1;
-					eta(i,j,k) += val1;
-					}
-
-					if(a1!=0 && b2!=0) 
-					{
-					eta(i,j,k-1) += 4.0*val1;
-					eta(i,j,k) += 4.0*val1;
-					eta(i,j-1,k-1) += val1;
-					eta(i,j-1,k) += val1;
-					eta(i-1,j,k-1) += val1;
-					eta(i-1,j,k) += val1;
-					}
-
-					if(a2!=0 && b1!=0) 
-					{
-					eta(i-1,j,k-1) += 4.0*val1;
-					eta(i-1,j,k) += 4.0*val1;
-					eta(i-1,j-1,k-1) += val1;
-					eta(i-1,j-1,k) += val1;
-					eta(i,j,k-1) += val1;
-					eta(i,j,k) += val1;
-					}
-
-					if(a2!=0 && b2!=0) 
-					{
-					eta(i-1,j-1,k-1) += 4.0*val1;
-					eta(i-1,j-1,k) += 4.0*val1;
-					eta(i-1,j,k-1) += val1;
-					eta(i-1,j,k) += val1;
-					eta(i,j-1,k-1) += val1;
-					eta(i,j-1,k) += val1;
-					}
-				}
-			}
-	}
-	
+        }        
+    }
 pip=0;
 }

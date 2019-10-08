@@ -19,38 +19,32 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"solid.h"
-#include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
-#include"reinitopo.h"
-#include"ioflow.h"
+#include"lexer.h"
+#include"field.h"
 
-solid::solid(lexer* p, fdm *a, ghostcell* pgc)
+void ghostcell::dgcpol3(lexer* p,field& f,int gcv)
 {
-}
-
-solid::~solid()
-{
-}
-
-void solid::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection* pconvec, reinitopo* preto)
-{
-
-	solid_topo(p,a,pgc);
-
-    preto->start(a,p,a->solid,pconvec,pgc);
-
-    pgc->solid_update(p,a);
-    pflow->gcio_update(p,a,pgc);
-}
-
-
-void solid::solid_topo(lexer* p, fdm* a, ghostcell* pgc)
-{
-    BASELOOP
-    a->solid(i,j,k) = p->flag_solid[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin];
+    int di,dj,dk,bc;
+    
+    for(n=0;n<p->dgc3_count;++n)
+    {
+        i=p->dgc3[n][0];
+        j=p->dgc3[n][1];
+        k=p->dgc3[n][2];
         
-    p->del_Darray(p->flag_solid,p->imax*p->jmax*p->kmax);
-}
+        
+        di=p->dgc3[n][3];
+        dj=p->dgc3[n][4];
+        dk=p->dgc3[n][5];
+        
+        bc=p->dgc3[n][6];
+        
+        if(bc==1)
+        f(i+di,j+dj,k+dk) = f(i,j,k);  
 
+        if(bc==2)
+        f(i+di,j+dj,k+dk) = 0.0;        
+        
+    }
+}
