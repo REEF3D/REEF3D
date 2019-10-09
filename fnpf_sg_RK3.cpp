@@ -88,17 +88,21 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     
     // fsf eta
     pf->kfsfbc(p,c,pgc);
-    pf->damping(p,c,pgc,c->eta,gcval_eta,1.0);
+    //pf->damping(p,c,pgc,c->eta,gcval_eta,1.0);
     
     SLICELOOP4
 	erk1(i,j) = c->eta(i,j) + p->dt*c->K(i,j);
     
+    pf->damping(p,c,pgc,erk1,gcval_eta,1.0);
+    
     // fsf Fi
     pf->dfsfbc(p,c,pgc,c->eta);
-    pf->damping(p,c,pgc,c->Fifsf,gcval_fifsf,1.0);
+    //pf->damping(p,c,pgc,c->Fifsf,gcval_fifsf,1.0);
 
     SLICELOOP4
 	frk1(i,j) = c->Fifsf(i,j) + p->dt*c->K(i,j);
+    
+    pf->damping(p,c,pgc,frk1,gcval_fifsf,1.0);
    
     pflow->eta_relax(p,pgc,erk1);
     pgc->gcsl_start4(p,erk1,gcval_eta);
@@ -130,17 +134,21 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     
     // fsf eta
     pf->kfsfbc(p,c,pgc);
-    pf->damping(p,c,pgc,erk1,gcval_eta,0.25);
+    //pf->damping(p,c,pgc,erk1,gcval_eta,0.25);
     
     SLICELOOP4
 	erk2(i,j) = 0.75*c->eta(i,j) + 0.25*erk1(i,j) + 0.25*p->dt*c->K(i,j);
     
+    pf->damping(p,c,pgc,erk2,gcval_eta,0.25);
+    
     // fsf Fi
     pf->dfsfbc(p,c,pgc,erk1);
-    pf->damping(p,c,pgc,frk1,gcval_fifsf,0.25);
+    //pf->damping(p,c,pgc,frk1,gcval_fifsf,0.25);
     
     SLICELOOP4
 	frk2(i,j) = 0.75*c->Fifsf(i,j) + 0.25*frk1(i,j) + 0.25*p->dt*c->K(i,j);
+    
+    pf->damping(p,c,pgc,frk2,gcval_fifsf,0.25);
     
     pflow->eta_relax(p,pgc,erk2);
     pgc->gcsl_start4(p,erk2,gcval_eta);
@@ -172,17 +180,21 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     
     // fsf eta
     pf->kfsfbc(p,c,pgc);
-    pf->damping(p,c,pgc,erk2,gcval_eta,2.0/3.0);
+    //pf->damping(p,c,pgc,erk2,gcval_eta,2.0/3.0);
     
     SLICELOOP4
 	c->eta(i,j) = (1.0/3.0)*c->eta(i,j) + (2.0/3.0)*erk2(i,j) + (2.0/3.0)*p->dt*c->K(i,j);
     
+    pf->damping(p,c,pgc,c->eta,gcval_eta,2.0/3.0);
+    
     // fsf Fi
     pf->dfsfbc(p,c,pgc,erk2);
-    pf->damping(p,c,pgc,frk2,gcval_fifsf,2.0/3.0);
+    //pf->damping(p,c,pgc,frk2,gcval_fifsf,2.0/3.0);
     
     SLICELOOP4
 	c->Fifsf(i,j) = (1.0/3.0)*c->Fifsf(i,j) + (2.0/3.0)*frk2(i,j) + (2.0/3.0)*p->dt*c->K(i,j);
+    
+    pf->damping(p,c,pgc,c->Fifsf,gcval_fifsf,2.0/3.0);
     
     pflow->eta_relax(p,pgc,c->eta);
     pgc->gcsl_start4(p,c->eta,gcval_eta);
@@ -210,16 +222,16 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
     
     
-    LOOP
-    c->test(i,j,k) = c->breaking(i,j);
+    //LOOP
+    //c->test(i,j,k) = c->breaking(i,j);
     
     
     LOOP
-    c->test(i,j,k)=0.0;
-    
+    c->test(i,j,k)=c->vb(i,j);
+    /*
     LOOP
     if(c->breaking(i,j)==1)
-    c->test(i,j,k)=1.0;
+    c->test(i,j,k)=1.0;*/
     
     pgc->start4(p,c->test,50);
 

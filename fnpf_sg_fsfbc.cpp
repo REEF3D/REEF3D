@@ -85,7 +85,6 @@ fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : Fxx(p)
     c->Eyy(i,j) = 0.0;
     c->By(i,j) = 0.0;
     c->Byy(i,j) = 0.0;
-    
     }
     
     
