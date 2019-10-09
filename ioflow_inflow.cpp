@@ -31,45 +31,45 @@ void ioflow_f::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, fiel
     
     if(p->B60<5 || p->count==0)
     {
-    if(p->B61==1)
-    {
-    inflow_plain(p,a,pgc,u,v,w);
+        if(p->B61==1)
+        {
+        inflow_plain(p,a,pgc,u,v,w);
 
-        if(p->count==0||p->B60==3||p->B60==4)
-        outflow_plain(p,a,pgc,u,v,w);
-    }
+            if(p->count==0||p->B60==3||p->B60==4)
+            outflow_plain(p,a,pgc,u,v,w);
+        }
 
-    if(p->B61==2 || p->B61==4 || p->B61==5)
-    {
-    inflow_log(p,a,pgc,u,v,w);
+        if(p->B61==2 || p->B61==4 || p->B61==5)
+        {
+        inflow_log(p,a,pgc,u,v,w);
 
-        if(p->count==0||p->B60==3||p->B60==4)
-        outflow_log(p,a,pgc,u,v,w);
-    }
+            if(p->B60==3||p->B60==4)
+            outflow_log(p,a,pgc,u,v,w);
+        }
 
-    if(p->B61==3)
-    {
-    inflow_water(p,a,pgc,u,v,w);
+        if(p->B61==3)
+        {
+        inflow_water(p,a,pgc,u,v,w);
 
-        if(p->count==0||p->B60==3||p->B60==4)
-        outflow_water(p,a,pgc,u,v,w);
-    }
+            if(p->B60==3||p->B60==4)
+            outflow_water(p,a,pgc,u,v,w);
+        }
 
 
-    if(p->B64==1)
-    {
-    for(q=0;q<4;++q)
-    for(n=0;n<p->gcin_count;++n)
-    {
-    i=p->gcin[n][0]+q;
-    j=p->gcin[n][1];
-    k=p->gcin[n][2];
+        if(p->B64==1)
+        {
+        for(q=0;q<4;++q)
+        for(n=0;n<p->gcin_count;++n)
+        {
+        i=p->gcin[n][0]+q;
+        j=p->gcin[n][1];
+        k=p->gcin[n][2];
 
-    if(a->phi(i,j,k)<0.0)
-    a->eddyv(i,j,k)=MIN(a->eddyv(i,j,k),1.0e-4);
-    }
-    pgc->start4(p,a->eddyv,24);
-    }
+        if(a->phi(i,j,k)<0.0)
+        a->eddyv(i,j,k)=MIN(a->eddyv(i,j,k),1.0e-4);
+        }
+        pgc->start4(p,a->eddyv,24);
+        }
     }
 
 }

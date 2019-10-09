@@ -47,6 +47,8 @@ void ghostcell::solid_update(lexer *p, fdm *a)
     gcsolid_gcb_remove(p,a);
     gcsolid_gcb_seed(p,a);
     gcsolid_gcb_dist(p,a);
+    
+    p->gridini_outflow();	
 
 
     gcsolid_velflag1(p,a,cellcount1);
