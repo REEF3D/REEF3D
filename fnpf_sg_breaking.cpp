@@ -38,7 +38,14 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
             
             if( (eta(i,j)-eta_n(i,j))/(alpha*p->dt) > p->A354*sqrt(9.81*c->WL(i,j)))
             {
+            c->breaking(i,j-1)=1;
+            c->breaking(i,j-2)=1;
+            c->breaking(i,j-3)=1;
             c->breaking(i,j)=1;
+            c->breaking(i+1,j)=1;
+            c->breaking(i+2,j)=1;
+            c->breaking(i+3,j)=1;
+          
             }
     }
     
@@ -48,14 +55,21 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
             
             if( (eta(i+1,j)-eta(i-1,j))/(p->DXP[IM1] + p->DXP[IP])   < -p->A355)
             {
-                c->breaking(i,j)=1;
+                
                 c->breaking(i-1,j)=1;
                 c->breaking(i-2,j)=1;
                 c->breaking(i-3,j)=1;
+                c->breaking(i,j)=1;
+                c->breaking(i+1,j)=1;
+                c->breaking(i+2,j)=1;
+                c->breaking(i+3,j)=1;
             }
             
             if( (eta(i+1,j)-eta(i-1,j))/(p->DXP[IM1] + p->DXP[IP])   > p->A355)
             {
+                c->breaking(i-1,j)=1;
+                c->breaking(i-2,j)=1;
+                c->breaking(i-3,j)=1;
                 c->breaking(i,j)=1;
                 c->breaking(i+1,j)=1;
                 c->breaking(i+2,j)=1;
@@ -85,6 +99,14 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
         c->vb(i,j) = 0.0;
         
         SLICELOOP4
+        if(p->XP[IP]>16.0 && p->XP[IP]<19.0)
+        c->vb(i,j) = 1.0*(p->XP[IP]-16.0)/3.0;
+        
+        filter(p,c,pgc,c->vb);
+        filter(p,c,pgc,c->vb);
+        filter(p,c,pgc,c->vb);
+        
+        SLICELOOP4
         {   
             
             if(c->breaking(i,j)==1 || c->breaking(i-1,j)==1 || c->breaking(i+1,j)==1 || c->breaking(i,j-1)==1 || c->breaking(i,j+1)==1
@@ -92,6 +114,8 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
            || c->breaking(i-2,j)==1 || c->breaking(i+2,j)==1 || c->breaking(i,j-2)==1 || c->breaking(i,j+2)==1)
             c->vb(i,j) = p->A365;
         }
+        
+    pgc->gcsl_start4(p,c->vb,1);
     }
     
     if(p->A350==2)

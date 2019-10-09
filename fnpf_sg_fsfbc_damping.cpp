@@ -85,10 +85,11 @@ void fnpf_sg_fsfbc::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int
         ++n;
         }
         
-        psolv->start(p,pgc,f,c->N,c->xvec,c->rvec,4,gcval,p->D29,c->C4);
-        
         pgc->gcsl_start4(p,f,gcval);
         
+        psolv->start(p,pgc,f,c->N,c->xvec,c->rvec,4,gcval,p->D29,c->C4);
+        
+
         double time=pgc->timer()-starttime;
         
         if(p->mpirank==0 && p->count%p->P12==0 && p->D21==1)

@@ -325,6 +325,9 @@ void driver::makegrid_fnpf(lexer *p, ghostcell *pgc)
     m4.make_ggc(p);
     m4.fill_ggc(p);
     
+    m4.make_dgc(p);
+    m4.fill_dgc(p);
+    
     // ---
     p->vecsize();
 
@@ -375,15 +378,15 @@ void driver::makegrid_fnpf(lexer *p, ghostcell *pgc)
     
 	pgc->dgcslini4(p); 
 
-    m4.make_dgc(p);
-    m4.fill_dgc(p);
-	
 }
 	
-void driver::makegrid_fnpf_cds(lexer *p, fdm *a)
+void driver::makegrid_fnpf_cds(lexer *p, ghostcell *pgc)
 {	
-	pgc->dgcini4(p);
-	pgc->sizeM_update(p,a);
-    pgc->column_pt4_update(p,a);
+    p->flagini2D();
+    p->gridini2D();	
+    
+    pgc->sizeS_update(p);
+    pgc->gcxslupdate(p);
+    pgc->column2D_pt4_update(p,c->C4); 
 }
 	
