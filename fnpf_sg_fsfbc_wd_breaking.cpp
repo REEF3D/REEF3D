@@ -88,14 +88,51 @@ void fnpf_sg_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
         SLICELOOP4
         c->vb(i,j) = 0.0;
         
+        /*SLICELOOP4
+        if(p->XP[IP]>16.0 && p->XP[IP]<19.0)
+        c->vb(i,j) = 1.0;//*(p->XP[IP]-16.0)/3.0;*/
+        /*if(i==300 && p->mpirank==0)
+        {
+        c->vb(i-1,j) = 0.9;   
+        c->vb(i,j) = 1.8;
+        c->vb(i+1,j) = 0.9;
+        }*/
+        
+        if(p->j_dir==0)
+        SLICELOOP4
+        {   
+            
+            if(c->breaking(i,j)==1 || c->breaking(i-1,j)==1 || c->breaking(i+1,j)==1)
+            c->vb(i,j) = p->A365;
+            
+            if(c->breaking(i,j)==0 &&(c->breaking(i-2,j)==1 || c->breaking(i+2,j)==1))
+            c->vb(i,j) = 0.5*p->A365;
+        }
+
+        if(p->j_dir==1)
         SLICELOOP4
         {   
             
             if(c->breaking(i,j)==1 || c->breaking(i-1,j)==1 || c->breaking(i+1,j)==1 || c->breaking(i,j-1)==1 || c->breaking(i,j+1)==1)
-            {
             c->vb(i,j) = p->A365;
-            }   
+            
+            if(c->breaking(i,j)==0 &&( c->breaking(i-1,j-1)==1 || c->breaking(i-1,j+1)==1 || c->breaking(i+1,j-1)==1 || c->breaking(i+1,j+1)==1
+           || c->breaking(i-2,j)==1 || c->breaking(i+2,j)==1 || c->breaking(i,j-2)==1 || c->breaking(i,j+2)==1))
+            c->vb(i,j) = 0.5*p->A365;
         }
+        
+        if(p->j_dir==0)
+        for(int qn=0;qn<10;++qn)
+        SLICELOOP4  
+        c->vb(i,j) = 0.5*c->vb(i,j) + 0.25*(c->vb(i-1,j) + c->vb(i+1,j));
+        
+        
+        if(p->j_dir==1)
+        for(int qn=0;qn<10;++qn)
+        SLICELOOP4  
+        c->vb(i,j) = 0.5*c->vb(i,j) + 0.125*(c->vb(i-1,j) + c->vb(i+1,j) + c->vb(i,j-1) + c->vb(i,j+1));
+        
+    pgc->gcsl_start4(p,c->vb,1);
     }
     
     if(p->A350==2)

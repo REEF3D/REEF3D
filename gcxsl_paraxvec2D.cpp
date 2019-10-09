@@ -211,6 +211,8 @@ void ghostcell::gcslparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
 	for(q=0;q<p->gcslpara4_count;++q)
 	{
     n=p->gcslpara4[q][8+gcv];
+    
+    //cout<<p->mpirank<<"  p->gcslpara4[q][2+gcv]: "<<p->gcslpara4[q][6]<<endl;
 
         if(p->gcslpara4[q][2+gcv]==1)
         {
@@ -227,9 +229,7 @@ void ghostcell::gcslparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
         //cout<<n<<" . "<<Ip1_J<<" "<<Ip2_J<<" "<<Ip3_J<<" "<<endl;
         }
 	}
-    
-    //if(p->mpirank==0)
-    //cout<<endl<<endl;
+
 
 	endtime=timer();
 	p->xtime+=endtime-starttime;
