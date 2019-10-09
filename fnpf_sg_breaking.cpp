@@ -87,7 +87,9 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
         SLICELOOP4
         {   
             
-            if(c->breaking(i,j)==1 || c->breaking(i-1,j)==1 || c->breaking(i+1,j)==1 || c->breaking(i,j-1)==1 || c->breaking(i,j+1)==1)
+            if(c->breaking(i,j)==1 || c->breaking(i-1,j)==1 || c->breaking(i+1,j)==1 || c->breaking(i,j-1)==1 || c->breaking(i,j+1)==1
+           || c->breaking(i-1,j-1)==1 || c->breaking(i-1,j+1)==1 || c->breaking(i+1,j-1)==1 || c->breaking(i+1,j+1)==1
+           || c->breaking(i-2,j)==1 || c->breaking(i+2,j)==1 || c->breaking(i,j-2)==1 || c->breaking(i,j+2)==1)
             c->vb(i,j) = p->A365;
         }
     }
