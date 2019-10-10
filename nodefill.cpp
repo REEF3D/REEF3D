@@ -817,10 +817,10 @@ void nodefill::nodefill4(lexer *p, fdm *a, ghostcell *pgc, field &f, field &eta)
         
         if(dj==0)
         {
-        djj = dj>0?0:dj;
+        dii = di>0?0:di;
         dkk = dk>0?0:dk;    
         
-        eta(i+dii,j-1,k+dkk) += 0.125*f(i+di,j,k+dk);
+        eta(i+dii,j-1,k+dkk) += 0.125*f(i+di,j,k+dk);  //-------
         eta(i+dii,j,k+dkk)   += 0.125*f(i+di,j,k+dk);
         }
         
