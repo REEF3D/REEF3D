@@ -1544,7 +1544,6 @@
         <File Name="gc_minmax.cpp"/>
         <File Name="gc_tpflagfield.cpp"/>
         <File Name="gc_ndflag.cpp"/>
-        <File Name="gc_dgcini.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="IBM">
         <File Name="gcibm_ccstate.cpp"/>

@@ -96,10 +96,6 @@ public:
     void sigmax(lexer*,fdm*,double*);
     void rangex(lexer*,int*,int);
 	void gcxupdate(lexer*);
-	void dgcini1(lexer*);
-	void dgcini2(lexer*);
-	void dgcini3(lexer*);
-	void dgcini4(lexer*);
 
     void dgcslini1(lexer*);
 	void dgcslini2(lexer*);
