@@ -20,7 +20,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"fnpf_sg_fsf.h"
-#include"slice4.h"
+#include"sliceint4.h"
 
 class fnpf_sg_laplace;
 class field;
@@ -67,7 +67,8 @@ private:
     double visc;
 
 
-    slice4 Fxx;
+    sliceint4 bx,by;
+
     
 };
 

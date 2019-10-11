@@ -30,7 +30,14 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     
     if(p->A350>=0)
     SLICELOOP4
+    {
     c->breaking(i,j)=0;
+    bx(i,j)=0;
+    by(i,j)=0;
+    }
+    
+    pgc->gcsl_start4int(p,bx,50);
+    pgc->gcsl_start4int(p,by,50);
     
     if((p->A351==1 || p->A351==3) && p->count>1)
     SLICELOOP4
@@ -50,55 +57,208 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     }
     
     if((p->A351==2 || p->A351==3) && p->count>1)
+    {
     SLICELOOP4
     {
-            
-            if( (eta(i+1,j)-eta(i-1,j))/(p->DXP[IM1] + p->DXP[IP])   < -p->A355)
+        //cout<<c->Ex(i,j)<<endl;
+            // x
+            if(c->Ex(i,j)   < -p->A355)
             {
+                ii=i;
                 
-                c->breaking(i-1,j)=1;
-                c->breaking(i-2,j)=1;
-                c->breaking(i-3,j)=1;
-                c->breaking(i,j)=1;
-                c->breaking(i+1,j)=1;
-                c->breaking(i+2,j)=1;
-                c->breaking(i+3,j)=1;
+                bx(i,j) = 10;
+                
+                    while(i>=0)
+                    {
+                     bx(i,j) = 10;
+                    cout<<"breakmove"<<endl;
+                    if(c->Ex(i,j)   > p->A356*p->A355)
+                    {
+                    bx(i,j) = 1;
+                    break;
+                    }
+                    
+                    --i;    
+                    }
+                i=ii;
             }
             
-            if( (eta(i+1,j)-eta(i-1,j))/(p->DXP[IM1] + p->DXP[IP])   > p->A355)
+            if(c->Ex(i,j)   > p->A355)
             {
-                c->breaking(i-1,j)=1;
-                c->breaking(i-2,j)=1;
-                c->breaking(i-3,j)=1;
-                c->breaking(i,j)=1;
-                c->breaking(i+1,j)=1;
-                c->breaking(i+2,j)=1;
-                c->breaking(i+3,j)=1;
+                ii=i;
+                
+                bx(i,j) = 20;
+                
+                    while(i<p->knox)
+                    {
+                     bx(i,j) = 20;
+                    
+                    if(c->Ex(i,j)   < -p->A356*p->A355)
+                    {
+                    bx(i,j) = 2;
+                    break;
+                    }
+                    
+                    ++i;    
+                    }
+                i=ii;
             }
             
-            if( (eta(i,j+1)-eta(i,j-1))/(p->DYP[JM1] + p->DYP[JP])   < -p->A355)
+            // y
+            if(p->j_dir==1)
+            if( c->Ey(i,j)   < -p->A355)
             {
-                c->breaking(i,j-1)=1;
-                c->breaking(i,j-2)=1;
-                c->breaking(i,j-3)=1;
-                c->breaking(i,j)=1;
-                c->breaking(i,j+1)=1;
-                c->breaking(i,j+2)=1;
-                c->breaking(i,j+3)=1;
+                jj=j;
+                
+                by(i,j) = 10;
+                
+                    while(j>=0)
+                    {
+                     by(i,j) = 10;
+                    
+                    if(c->Ey(i,j)   > p->A356*p->A355)
+                    {
+                    by(i,j) = 1;
+                    break;
+                    }
+                    
+                    --j;    
+                    }
+                j=jj;
             }
             
-            if( (eta(i,j+1)-eta(i,j-1))/(p->DYP[JM1] + p->DYP[JP])    > p->A355)
+            if(p->j_dir==1)
+            if( c->Ey(i,j)   > p->A355)
             {
-                c->breaking(i,j-1)=1;
-                c->breaking(i,j-2)=1;
-                c->breaking(i,j-3)=1;
-                c->breaking(i,j)=1;
-                c->breaking(i,j+1)=1;
-                c->breaking(i,j+2)=1;
-                c->breaking(i,j+3)=1;
+                jj=i;
+                
+                by(i,j) = 20;
+                
+                    while(j<p->knoy)
+                    {
+                     by(i,j) = 20;
+                    
+                    if(c->Ey(i,j)   < -p->A356*p->A355)
+                    {
+                    by(i,j) = 2;
+                    break;
+                    } 
+                    
+                    ++j;    
+                    }
+                j=jj;
+            }
+            
+    }
+    
+    pgc->gcsl_start4int(p,bx,50);
+    pgc->gcsl_start4int(p,by,50);
+    
+    
+    // step 2
+    SLICELOOP4
+    {
+            // x
+            if( bx(i+1,j) == 10 && bx(i,j) == 0 && c->Ex(i,j)   < -p->A356*p->A355)
+            {
+                ii=i;
+                
+                bx(i,j) = 10;
+                
+                    while(i>=0)
+                    {
+                     bx(i,j) = 10;
+                    
+                    if( c->Ex(i,j)   > p->A356*p->A355)
+                    {
+                    bx(i,j) = 1;
+                    break;
+                    }
+                    
+                    --i;    
+                    }
+                i=ii;
+            }
+            
+            if( bx(i-1,j) == 20 && bx(i,j) == 0 && c->Ex(i,j)   > p->A356*p->A355)
+            {
+                ii=i;
+                
+                bx(i,j) = 20;
+                
+                    while(i<p->knox)
+                    {
+                     bx(i,j) = 20;
+                    
+                    if( c->Ex(i,j)   < -p->A356*p->A355)
+                    {
+                    bx(i,j) = 2;
+                    break;
+                    }
+                    
+                    ++i;    
+                    }
+                i=ii;
+            }
+            
+            
+            // y
+            if(p->j_dir==1)
+            if(by(i,j+1) == 10 && by(i,j) == 0 && c->Ey(i,j)   < -p->A356*p->A355)
+            {
+                jj=j;
+                
+                by(i,j) = 10;
+                
+                    while(j>=0)
+                    {
+                     by(i,j) = 10;
+                    
+                    if(c->Ey(i,j)   > p->A356*p->A355)
+                    {
+                    by(i,j) = 1;
+                    break;
+                    }
+                    
+                    --j;    
+                    }
+                j=jj;
+            }
+            
+            if(p->j_dir==1)
+            if(by(i,j-1) == 20 && by(i,j) == 0 && c->Ey(i,j)   > p->A356*p->A355)
+            {
+                jj=j;
+                
+                by(i,j) = 20;
+                
+                    while(j<p->knoy)
+                    {
+                     by(i,j) = 20;
+                    
+                    if(c->Ey(i,j)   < -p->A356*p->A355)
+                    {
+                    by(i,j) = 2;
+                    break;
+                    }
+                    
+                    ++j;    
+                    }
+                j=jj;
             }
     }
     
+        SLICELOOP4
+        if(bx(i,j)>0 || by(i,j)>0)
+        {
+        c->breaking(i,j)=1;
+        cout<<"breakmod:  "<<c->breaking(i,j)<<" . "<<i<<endl;
+        }
+    }
+    
+    
+    
+    // -------------------
     if(p->A350==1)
     {
         SLICELOOP4

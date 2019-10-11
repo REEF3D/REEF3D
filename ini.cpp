@@ -77,8 +77,8 @@ void lexer::ini_default()
     A351=0;      // int type of breaking detection (deep / shallow)
     
     A354=0.6;    // double breaking parameter alpha
-    A355=1.25;   // double breaking parameter slope
-    A356=0.3;    // double breaking persistence parameter beta
+    A355=1.25;   // double breaking parameter slope alpha
+    A356=0.1;   // double breaking parameter slope beta
     
     A361=5;      // int breaking filter outer iter
     A362=2;      // int breaking filter inner iter
