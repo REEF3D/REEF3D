@@ -86,7 +86,11 @@ fnpf_sg_RK3::~fnpf_sg_RK3()
 void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
 {	    
     
-     LOOP
+    if(p->A350>=0)
+    SLICELOOP4
+    c->breaking(i,j)=0;
+    
+    LOOP
     c->test(i,j,k)=0.0;
     
 // Step 1
@@ -263,5 +267,8 @@ void fnpf_sg_RK3::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     pgc->start4(p,c->test,50);
     
     velcalc_sig(p,c,pgc,c->Fi);
+    
+    pf->coastline(p,c,pgc,c->eta);
+    pf->coastline(p,c,pgc,c->Fifsf);
 }
 

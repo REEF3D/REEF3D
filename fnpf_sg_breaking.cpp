@@ -31,7 +31,7 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     if(p->A350>=0)
     SLICELOOP4
     {
-    c->breaking(i,j)=0;
+    //c->breaking(i,j)=0;
     bx(i,j)=0;
     by(i,j)=0;
     }
@@ -39,22 +39,6 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     pgc->gcsl_start4int(p,bx,50);
     pgc->gcsl_start4int(p,by,50);
     
-    if((p->A351==1 || p->A351==3) && p->count>1)
-    SLICELOOP4
-    {
-            
-            if((eta(i,j)-eta_n(i,j))/(alpha*p->dt) > p->A354*sqrt(9.81*c->WL(i,j)))
-            {
-            c->breaking(i,j-1)=1;
-            c->breaking(i,j-2)=1;
-            c->breaking(i,j-3)=1;
-            c->breaking(i,j)=1;
-            c->breaking(i+1,j)=1;
-            c->breaking(i+2,j)=1;
-            c->breaking(i+3,j)=1;
-          
-            }
-    }
     
     if((p->A351==2 || p->A351==3) && p->count>1)
     {
@@ -71,7 +55,7 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
                     while(i>=0)
                     {
                      bx(i,j) = 10;
-                    cout<<"breakmove"<<endl;
+                    //cout<<"breakmove"<<endl;
                     if(c->Ex(i,j)   > p->A356*p->A355)
                     {
                     bx(i,j) = 1;
@@ -252,8 +236,30 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
         if(bx(i,j)>0 || by(i,j)>0)
         {
         c->breaking(i,j)=1;
-        cout<<"breakmod:  "<<c->breaking(i,j)<<" . "<<i<<endl;
+        //cout<<"breakmod:  "<<c->breaking(i,j)<<" . "<<i<<endl;
         }
+    }
+    
+    
+    
+    
+    if((p->A351==1 || p->A351==3) && p->count>1)
+    SLICELOOP4
+    {
+            
+            if((eta(i,j)-eta_n(i,j))/(alpha*p->dt) > p->A354*sqrt(9.81*c->WL(i,j)))
+            {
+
+                c->breaking(i-1,j)=2;
+                c->breaking(i,j)=2;
+                c->breaking(i+1,j)=2;
+                
+                if(p->j_dir==1)
+                {
+                c->breaking(i,j-1)=2;
+                c->breaking(i,j+1)=2;
+                }
+            }
     }
     
     
@@ -278,10 +284,10 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
         SLICELOOP4
         {   
             
-            if(c->breaking(i,j)==1 || c->breaking(i-1,j)==1 || c->breaking(i+1,j)==1)
-            c->vb(i,j) = p->A365;
+            if(c->breaking(i,j)>=1 || c->breaking(i-1,j)>=1 || c->breaking(i+1,j)>=1)
+            c->vb(i,j) = p->A365*double(c->breaking(i,j));
             
-            if(c->breaking(i,j)==0 &&(c->breaking(i-2,j)==1 || c->breaking(i+2,j)==1))
+            if(c->breaking(i,j)==0 &&(c->breaking(i-2,j)>=1 || c->breaking(i+2,j)>=1))
             c->vb(i,j) = 0.5*p->A365;
         }
 
@@ -289,11 +295,11 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
         SLICELOOP4
         {   
             
-            if(c->breaking(i,j)==1 || c->breaking(i-1,j)==1 || c->breaking(i+1,j)==1 || c->breaking(i,j-1)==1 || c->breaking(i,j+1)==1)
-            c->vb(i,j) = p->A365;
+            if(c->breaking(i,j)>=1 || c->breaking(i-1,j)>=1 || c->breaking(i+1,j)>=1 || c->breaking(i,j-1)>=1 || c->breaking(i,j+1)>=1)
+            c->vb(i,j) = p->A365*double(c->breaking(i,j));
             
-            if(c->breaking(i,j)==0 &&( c->breaking(i-1,j-1)==1 || c->breaking(i-1,j+1)==1 || c->breaking(i+1,j-1)==1 || c->breaking(i+1,j+1)==1
-           || c->breaking(i-2,j)==1 || c->breaking(i+2,j)==1 || c->breaking(i,j-2)==1 || c->breaking(i,j+2)==1))
+            if(c->breaking(i,j)==0 &&( c->breaking(i-1,j-1)>=1 || c->breaking(i-1,j+1)>=1 || c->breaking(i+1,j-1)>=1 || c->breaking(i+1,j+1)>=1
+           || c->breaking(i-2,j)>=1 || c->breaking(i+2,j)>=1 || c->breaking(i,j-2)>=1 || c->breaking(i,j+2)>=1))
             c->vb(i,j) = 0.5*p->A365;
         }
         
