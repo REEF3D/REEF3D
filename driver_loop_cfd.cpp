@@ -79,7 +79,7 @@ void driver::loop_cfd(fdm* a)
 			
             pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,ppart,a->phi);
             poneph->update(p,a,pgc,pflow);
-            pturb->start(a,p,pturbdisc,pturbdiff,ppoissonsolv,pgc,pflow);
+            pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow);
             pheat->start(a,p,pconvec,pdiff,psolv,pgc,pflow);
 			 pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
             psusp->start(a,p,pconcdisc,psuspdiff,psolv,pgc,pflow);
