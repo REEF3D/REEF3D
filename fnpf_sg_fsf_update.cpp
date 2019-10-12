@@ -131,3 +131,4 @@ void fnpf_sg_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, doub
 	c->v.ggcpol(p);
 	c->w.ggcpol(p);
 }
+

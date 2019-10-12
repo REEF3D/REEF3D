@@ -20,7 +20,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"fnpf_sg_fsf.h"
-#include"slice4.h"
+#include"sliceint4.h"
 
 class fnpf_sg_laplace;
 class field;
@@ -28,7 +28,7 @@ class fnpf_convection;
 class fnpf_ddx;
 class fnpf_etadisc;
 class fnpf_sg_coastline;
-class  solver2D;
+class solver2D;
 
 using namespace std;
 
@@ -70,7 +70,8 @@ private:
     double dist3,expinverse,db;
     
     double visc;
-
+    
+    sliceint4 bx,by;
     
 };
 
