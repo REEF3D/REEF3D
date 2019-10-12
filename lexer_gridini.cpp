@@ -110,10 +110,11 @@ void lexer::gridini_outflow()
 	
 	Iresize(gcout, gcout_count,count,6,6);
     Iresize(gcout6, gcout6_count,count,6,6);
-    /*
+    
+    //cout<<mpirank<<" "<<gcout_count<<" "<<count<<endl;
+    
     gcout_count = count;
-    cout<<mpirank<<" "<<gcout_count<<" "<<count<<endl;
-    gcout6_count = count;*/
+    gcout6_count = count;
 }
 
 int lexer::conv(double a)
