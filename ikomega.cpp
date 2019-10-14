@@ -189,8 +189,8 @@ void  ikomega::kinsource(lexer *p, fdm* a)
 	if(wallf(i,j,k)==0)
 	a->rhsvec.V[count]  += MIN(pk(p,a), p->T42*p->cmu*MAX(kin(i,j,k),0.0)*MAX(eps(i,j,k),0.0));
 	
-	//if(wallf(i,j,k)==1)
-	//a->rhsvec.V[count]  = 0.0;
+	if(wallf(i,j,k)==1)
+	a->rhsvec.V[count]  = 0.0;
 
 	++count;
     }
