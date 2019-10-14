@@ -22,7 +22,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm_fnpf.h"
 #include"lexer.h"
 
-fdm_fnpf::fdm_fnpf(lexer *p) : u(p),v(p),w(p),press(p),Fi4(p),Fifsf(p),Fibed(p),
+fdm_fnpf::fdm_fnpf(lexer *p) : press(p),Fifsf(p),Fibed(p),
                               test(p),
                               nodeval(p),eta(p),etaloc(p),
                               wet(p),wet_n(p),breaking(p),bc(p),
@@ -38,6 +38,9 @@ fdm_fnpf::fdm_fnpf(lexer *p) : u(p),v(p),w(p),press(p),Fi4(p),Fifsf(p),Fibed(p),
     p->Iarray(pvccnode,p->facetnum*4,8);
 	p->Iarray(ccedge,p->facetnum*4);
     
+    p->Darray(U,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(V,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(W,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fi,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Uin,p->imax*p->jmax*(p->kmax+2));
 

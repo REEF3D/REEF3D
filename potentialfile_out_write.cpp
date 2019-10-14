@@ -41,7 +41,7 @@ void potentialfile_out::write_data(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
             
     // PRINT DATA
-    
+    /*
     ffn = float(p->simtime);
     fileout[n].write((char*)&ffn, sizeof (float));
     
@@ -58,7 +58,7 @@ void potentialfile_out::write_data(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     {
     ffn = float(c->w(i,j,k));
     fileout[n].write((char*)&ffn, sizeof (float));
-    }
+    }*/
     
 }
 

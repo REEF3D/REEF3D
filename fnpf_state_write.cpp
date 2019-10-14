@@ -115,21 +115,21 @@ void fnpf_state::write(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     result.write((char*)&ffn, sizeof (float));
     } 
     
-    LOOP
+    FLOOP
     {
-    ffn=c->u(i,j,k);
+    ffn=c->U[FIJK];
     result.write((char*)&ffn, sizeof (float));
     } 
 
-	LOOP
+	FLOOP
     {
-    ffn=c->v(i,j,k);
+    ffn=c->V[FIJK];
     result.write((char*)&ffn, sizeof (float));
     } 
 
-	LOOP
+	FLOOP
     {
-    ffn=c->w(i,j,k);
+    ffn=c->W[FIJK];
     result.write((char*)&ffn, sizeof (float));
     } 
 	

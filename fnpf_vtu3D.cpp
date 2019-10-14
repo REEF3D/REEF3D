@@ -150,19 +150,11 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     pgc->gcsl_start4(p,c->breaking_print,50);
     pgc->start4(p,c->test,1);
 	
-	pgc->dgcpol(p,c->u,p->dgc4,p->dgc4_count,14);
-	pgc->dgcpol(p,c->v,p->dgc4,p->dgc4_count,14);
-	pgc->dgcpol(p,c->w,p->dgc4,p->dgc4_count,14);
     pgc->dgcpol(p,c->test,p->dgc4,p->dgc4_count,14);
-    pgc->dgcpol(p,c->Fi4,p->dgc4,p->dgc4_count,14);
     pgc->dgcslpol(p,c->WL,p->dgcsl4,p->dgcsl4_count,14);
     pgc->dgcslpol(p,c->breaking_print,p->dgcsl4,p->dgcsl4_count,14);
     pgc->dgcslpol(p,c->bed,p->dgcsl4,p->dgcsl4_count,14);
 	
-	c->u.ggcpol(p);
-	c->v.ggcpol(p);
-	c->w.ggcpol(p);
-    c->Fi4.ggcpol(p);
     c->WL.ggcpol(p);
     c->test.ggcpol(p);
     c->breaking_print.ggcpol(p);
@@ -296,29 +288,27 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPLOOP
 	{
-	ffn=float(p->ipol4(c->u));
-	result.write((char*)&ffn, sizeof (float));
-
-	ffn=float(p->ipol4(c->v));
-	result.write((char*)&ffn, sizeof (float));
-
-	ffn=float(p->ipol4(c->w));
-	result.write((char*)&ffn, sizeof (float));
-	}
+	ffn=float(c->U[FIJKp1]);
     
-
-	for(n=0;n<p->ccptnum;++n)
-	{
-	ffn=float(p->ccipol4(c->u,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
+    if(k==-1 && j==-1)
+	ffn=float(c->U[FIJp1Kp1]);
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(p->ccipol4(c->v,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
+
+	ffn=float(c->V[FIJKp1]);
+    
+    if(k==-1 && j==-1)
+	ffn=float(c->V[FIJp1Kp1]);
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(p->ccipol4(c->w,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
-	result.write((char*)&ffn, sizeof (float));
 
+	ffn=float(c->W[FIJKp1]);
+    
+    if(k==-1 && j==-1)
+	ffn=float(c->W[FIJp1Kp1]);
+	result.write((char*)&ffn, sizeof (float));
 	}
+
 	
 //  Pressure
 	iin=4*(p->pointnum+p->ccptnum);
@@ -340,7 +330,7 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
-    ffn=float(c->Fi[FIJK]);//float(p->ipol4press(c->Fi4));
+    ffn=float(c->Fi[FIJKp1]);//float(p->ipol4press(c->Fi4));
     
     if(k==-1 && j==-1)
 	ffn=float(c->Fi[FIJp1Kp1]);//float(p->ipol4press(c->Fi4));
@@ -565,19 +555,5 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	result.close();
 	
 	++printcount;
-	
-	
-	
-	pgc->start1(p,c->u,114);
-    pgc->start2(p,c->v,115);
-	pgc->start3(p,c->w,116);
-
-	pgc->dgcpol(p,c->u,p->dgc1,p->dgc1_count,11);
-	pgc->dgcpol(p,c->v,p->dgc2,p->dgc2_count,12);
-	pgc->dgcpol(p,c->w,p->dgc3,p->dgc3_count,13);
-	
-	c->u.ggcpol(p);
-	c->v.ggcpol(p);
-	c->w.ggcpol(p);
-	
+		
 }

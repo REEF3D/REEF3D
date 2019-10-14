@@ -53,23 +53,23 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
 	
 	depthmax=pgc->globalmax(depthmax);
 
-	LOOP
+	FLOOP
     FPWDCHECK
-	p->umax=MAX(p->umax,fabs(c->u(i,j,k)));
+	p->umax=MAX(p->umax,fabs(c->U[FIJK]));
 
 	p->umax=pgc->globalmax(p->umax);
 
 
-	LOOP
+	FLOOP
     FPWDCHECK
-	p->vmax=MAX(p->vmax,fabs(c->v(i,j,k)));
+	p->vmax=MAX(p->vmax,fabs(c->V[FIJK]));
 
 	p->vmax=pgc->globalmax(p->vmax);
 
 
-	LOOP
+	FLOOP
     FPWDCHECK
-	p->wmax=MAX(p->wmax,fabs(c->w(i,j,k)));
+	p->wmax=MAX(p->wmax,fabs(c->W[FIJK]));
 
 	p->wmax=pgc->globalmax(p->wmax);
 	
@@ -152,20 +152,20 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
 {
 	p->umax=p->vmax=p->wmax=p->viscmax=-1e19;
 	
-    LOOP
-	p->umax=MAX(p->umax,fabs(c->u(i,j,k)));
+    FLOOP
+	p->umax=MAX(p->umax,fabs(c->U[FIJK]));
 
 	p->umax=pgc->globalmax(p->umax);
 
 
-	LOOP
-	p->vmax=MAX(p->vmax,fabs(c->v(i,j,k)));
+	FLOOP
+	p->vmax=MAX(p->vmax,fabs(c->V[FIJK]));
 
 	p->vmax=pgc->globalmax(p->vmax);
 
 
-	LOOP
-	p->wmax=MAX(p->wmax,fabs(c->w(i,j,k)));
+	FLOOP
+	p->wmax=MAX(p->wmax,fabs(c->W[FIJK]));
 
 	p->wmax=pgc->globalmax(p->wmax);
 	

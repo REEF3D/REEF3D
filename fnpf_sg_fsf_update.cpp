@@ -82,53 +82,29 @@ void fnpf_sg_fsf_update::velcalc(lexer *p, fdm_fnpf *c, ghostcell *pgc, field &f
 void fnpf_sg_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *f)
 {
     
-    LOOP
-    FPWDCHECK
-    c->Fi4(i,j,k) = 0.5*(c->Fi[FIJK]+c->Fi[FIJKp1]);
-    
-    pgc->start4(p,c->Fi4,250);
-    
-    LOOP
-    c->u(i,j,k)=c->v(i,j,k)=c->w(i,j,k)=0.0;
-    
-    LOOP
-    FPWDCHECK
+    FLOOP
     {
-    if(c->wet(i-1,j)==1 && c->wet(i+1,j)==1)
-    c->u(i,j,k) = (c->Fi4(i+1,j,k)-c->Fi4(i-1,j,k))/(p->DXP[IP]+p->DXP[IM1]) + p->sigx[FIJK]*((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]));
+    c->U[FIJK] = (c->Fi[FIp1JK]-c->Fi[FIm1JK])/(p->DXP[IP]+p->DXP[IM1])
     
-    if(c->wet(i-1,j)==0 && c->wet(i+1,j)==1)
-    c->u(i,j,k) = (c->Fi4(i+1,j,k)-c->Fi4(i,j,k))/(p->DXP[IP]) + p->sigx[FIJK]*((c->Fi[FIJKp1]-c->Fi[FIJK])/(p->DZP[KP]));
-    
-    if(c->wet(i-1,j)==1 && c->wet(i+1,j)==0)
-    c->u(i,j,k) = (c->Fi4(i,j,k)-c->Fi4(i-1,j,k))/(p->DXP[IM1]) + p->sigx[FIJK]*((c->Fi[FIJK]-c->Fi[FIJKm1])/(p->DZP[KM1]));
+                + p->sigx[FIJK]*((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]));
+                
+                
+    c->V[FIJK] = (c->Fi[FIJp1K]-c->Fi[FIJm1K])/(p->DYP[JP]+p->DYP[JM1])
+                
+                + p->sigy[FIJK]*((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]));
+                
+    c->W[FIJK] = ((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]))*p->sigz[IJ];
     }
     
-    LOOP
-    FPWDCHECK
-    {
-    if(c->wet(i,j-1)==1 && c->wet(i,j+1)==1)
-	c->v(i,j,k) = ((c->Fi4(i,j+1,k)-c->Fi4(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1]))+ p->sigy[FIJK]*((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]));
+    FFILOOP4
+    c->W[FIJK] = c->Fz(i,j);
     
-    if(c->wet(i,j-1)==0 && c->wet(i,j+1)==1)
-	c->v(i,j,k) = ((c->Fi4(i,j+1,k)-c->Fi4(i,j,k))/(p->DYP[JP]))+ p->sigy[FIJK]*((c->Fi[FIJKp1]-c->Fi[FIJK])/(p->DZP[KP]));
     
-    if(c->wet(i,j-1)==1 && c->wet(i,j+1)==0)
-	c->v(i,j,k) = ((c->Fi4(i,j,k)-c->Fi4(i,j-1,k))/(p->DYP[JM1]))+ p->sigy[FIJK]*((c->Fi[FIJK]-c->Fi[FIJKm1])/(p->DZP[KM1]));
-    }
+    int gcval=210;
     
-    LOOP
-    FPWDCHECK
-    {
-    c->w(i,j,k) = ((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]))*p->sigz[IJ];
-    }
+    pgc->start7V(p,c->U,c->bc,gcval);
+    pgc->start7V(p,c->V,c->bc,gcval);
+    pgc->start7V(p,c->W,c->bc,gcval);
     
-    pgc->start4(p,c->u,1);
-	pgc->start4(p,c->v,1);
-	pgc->start4(p,c->w,1);
-    
-    c->u.ggcpol(p);
-	c->v.ggcpol(p);
-	c->w.ggcpol(p);
 }
 
