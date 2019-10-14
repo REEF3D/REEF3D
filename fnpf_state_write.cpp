@@ -79,7 +79,7 @@ void fnpf_state::write(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     iin=p->knoy;
     result.write((char*)&iin, sizeof (int));
     
-    iin=p->knoz;
+    iin=p->knoz+1;
     result.write((char*)&iin, sizeof (int));
     
     
@@ -97,9 +97,9 @@ void fnpf_state::write(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     result.write((char*)&ffn, sizeof (float));
     } 
     
-    KLOOP
+    FKLOOP
     {
-    ffn=p->ZP[KP];
+    ffn=p->ZN[KP];
     result.write((char*)&ffn, sizeof (float));
     } 
     
