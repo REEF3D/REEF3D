@@ -55,7 +55,7 @@ void fnpf_state::header_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     iin=p->gknoy;
     hdout.write((char*)&iin, sizeof (int));
     
-    iin=p->gknoz;
+    iin=p->gknoz+1;
     hdout.write((char*)&iin, sizeof (int));
 }
 
