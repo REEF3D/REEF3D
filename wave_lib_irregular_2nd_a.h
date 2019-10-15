@@ -46,6 +46,7 @@ public:
     
     
     virtual void parameters(lexer*,ghostcell*);
+    virtual void wave_prestep(lexer*,ghostcell*);
     
 private: 
     double wave_C(double,double,double,double);

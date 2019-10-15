@@ -340,3 +340,7 @@ void wave_lib_irregular_1st::parameters(lexer *p, ghostcell *pgc)
 {
 
 }
+
+void wave_lib_irregular_1st::wave_prestep(lexer *p, ghostcell *pgc)
+{
+}

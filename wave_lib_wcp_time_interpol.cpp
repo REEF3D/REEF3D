@@ -19,32 +19,34 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"wave_lib_precalc.h"
-#include"increment.h"
+#include"wave_lib_wcp.h"
+#include"lexer.h"
 
-#ifndef WAVE_LIB_RECONSTRUCT_H_
-#define WAVE_LIB_RECONSTRUCT_H_
-
-using namespace std;
-
-class wave_lib_reconstruct : public wave_lib_precalc,  public increment
+void wave_lib_wcp::time_interpol(lexer *p)
 {
-public:
-    wave_lib_reconstruct(lexer*, ghostcell*);
-	virtual ~wave_lib_reconstruct();
-
-    virtual double wave_u(lexer*,double,double,double);
-    virtual double wave_v(lexer*,double,double,double);
-    virtual double wave_w(lexer*,double,double,double);
-    virtual double wave_eta(lexer*,double,double);
-    virtual double wave_fi(lexer*,double,double,double);
-        
-    virtual void parameters(lexer*,ghostcell*);
-    virtual void wave_prestep(lexer*,ghostcell*);
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    E[i][j] = E1[i][j]*t1 + E2[i][j]*t2;
     
-private:
-	wave_lib *ppwave;
-    double singamma,cosgamma;
-};
 
-#endif
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    for(k=0; k<Nz; ++k)
+    U[i][j][k] = U1[i][j][k]*t1 + U2[i][j][k]*t2;
+    
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    for(k=0; k<Nz; ++k)
+    V[i][j][k] = V1[i][j][k]*t1 + V2[i][j][k]*t2;
+    
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    for(k=0; k<Nz; ++k)
+    W[i][j][k] = W1[i][j][k]*t1 + W2[i][j][k]*t2;
+    
+    
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    sigz[i][j] = 1.0/((E[i][j]+p->wd-B[i][j])>1.0e-20?(E[i][j]+p->wd-B[i][j]):1.0e20);
+    
+}

@@ -41,6 +41,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"wave_lib_irregular_2nd_a.h"
 #include"wave_lib_irregular_2nd_b.h"
 #include"wave_lib_reconstruct.h"
+#include"wave_lib_wcp.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -123,6 +124,9 @@ wave_interface::wave_interface(lexer *p, ghostcell *pgc)
     
     if(wtype==51||wtype==52||wtype==53||wtype==54)
     pwave = new wave_lib_reconstruct(p,pgc);
+    
+    if(wtype==61)
+    pwave = new wave_lib_wcp(p,pgc);
 }
 
 wave_interface::~wave_interface()

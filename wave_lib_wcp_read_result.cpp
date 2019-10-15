@@ -19,35 +19,51 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"wave_lib_precalc.h"
-#include"wave_lib_parameters.h"
-#include"increment.h"
+#include"wave_lib_wcp.h"
+#include"lexer.h"
 
-#ifndef WAVE_LIB_SHALLOW_H_
-#define WAVE_LIB_SHALLOW_H_
-
-using namespace std;
-
-class wave_lib_shallow : public wave_lib_precalc, public wave_lib_parameters, public increment
+void wave_lib_wcp::read_result(lexer *p, ghostcell *pgc, double **E0, double ***U0, double ***V0, double ***W0, int q0)
 {
-public:
-    wave_lib_shallow(lexer*, ghostcell*);
-	virtual ~wave_lib_shallow();
+    filename(p,pgc,q0);
     
-    double wave_horzvel(lexer*,double,double,double);
+    ifstream result;
+	result.open(name, ios::binary);
     
-    virtual double wave_u(lexer*,double,double,double);
-    virtual double wave_v(lexer*,double,double,double);
-    virtual double wave_w(lexer*,double,double,double);
-    virtual double wave_eta(lexer*,double,double);
-    virtual double wave_fi(lexer*,double,double,double);
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    {
+        result.read((char*)&ffn, sizeof (float)); 
+        E0[i][j]=ffn;
+    } 
     
     
-    virtual void parameters(lexer*,ghostcell*);
-    virtual void wave_prestep(lexer*,ghostcell*);
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    for(k=0; k<Nz; ++k)
+    {
+        result.read((char*)&ffn, sizeof (float)); 
+        U0[i][j][k]=ffn;
+    } 
     
-private:
-    double singamma,cosgamma;
-};
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    for(k=0; k<Nz; ++k)
+    {
+        result.read((char*)&ffn, sizeof (float)); 
+        V0[i][j][k]=ffn;
+    } 
+    
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    for(k=0; k<Nz; ++k)
+    {
+        result.read((char*)&ffn, sizeof (float)); 
+        W0[i][j][k]=ffn;
+    } 
+    
+    result.close();
+    
+}
 
-#endif
+
+        

@@ -121,3 +121,7 @@ void wave_lib_solitary_1st::parameters(lexer *p, ghostcell *pgc)
 	cout<<"wC: "<<wC<<" wC_old: "<<sqrt(wd*9.81)*(1.0+0.5*(wH/wd))<<endl;
     
 }
+
+void wave_lib_solitary_1st::wave_prestep(lexer *p, ghostcell *pgc)
+{
+}

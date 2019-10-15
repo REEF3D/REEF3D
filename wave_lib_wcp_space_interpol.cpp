@@ -19,32 +19,48 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"wave_lib_precalc.h"
-#include"increment.h"
+#include"wave_lib_wcp.h"
+#include"lexer.h"
 
-#ifndef WAVE_LIB_RECONSTRUCT_H_
-#define WAVE_LIB_RECONSTRUCT_H_
-
-using namespace std;
-
-class wave_lib_reconstruct : public wave_lib_precalc,  public increment
+double wave_lib_wcp::space_interpol(lexer *p, double x, double y, double z)
 {
-public:
-    wave_lib_reconstruct(lexer*, ghostcell*);
-	virtual ~wave_lib_reconstruct();
+    val = 0.0;
 
-    virtual double wave_u(lexer*,double,double,double);
-    virtual double wave_v(lexer*,double,double,double);
-    virtual double wave_w(lexer*,double,double,double);
-    virtual double wave_eta(lexer*,double,double);
-    virtual double wave_fi(lexer*,double,double,double);
-        
-    virtual void parameters(lexer*,ghostcell*);
-    virtual void wave_prestep(lexer*,ghostcell*);
-    
-private:
-	wave_lib *ppwave;
-    double singamma,cosgamma;
-};
+    return val;
+}
 
-#endif
+double wave_lib_wcp::plane_interpol(lexer *p, double x, double y)
+{
+    val = 0.0;
+
+    return val;
+}
+
+double wave_lib_wcp::Upol(lexer *p, double x, double y, double z)
+{
+    val = 0.0;
+
+    return val;
+}
+
+double wave_lib_wcp::Vpol(lexer *p, double x, double y, double z)
+{
+    val = 0.0;
+
+    return val;
+}
+
+double wave_lib_wcp::Wpol(lexer *p, double x, double y, double z)
+{
+    val = 0.0;
+
+    return val;
+}
+
+double wave_lib_wcp::Epol(lexer *p, double x, double y)
+{
+    val = 0.0;
+
+    return val;
+}
+

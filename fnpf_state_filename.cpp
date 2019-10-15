@@ -25,8 +25,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void fnpf_state::filename(lexer *p, fdm_fnpf *c, ghostcell *pgc, int num)
 {
     
-
-
 if(p->P14==0)
 {
 	if(p->mpirank<9)
@@ -241,3 +239,45 @@ if(p->P14==1)
 	}
 }
 }
+
+void fnpf_state::filename_header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+{
+    if(p->P14==0)
+    {
+	if(p->mpirank<9)
+	sprintf(name,"REEF3D-FNPF-State-Header-0000%d.r3d",p->mpirank+1);
+
+	if(p->mpirank<99&&p->mpirank>8)
+	sprintf(name,"REEF3D-FNPF-State-Header-000%d.r3d",p->mpirank+1);
+    
+	if(p->mpirank<999&&p->mpirank>98)
+	sprintf(name,"REEF3D-FNPF-State-Header-00%d.r3d",p->mpirank+1);
+
+	if(p->mpirank<9999&&p->mpirank>998)
+	sprintf(name,"REEF3D-FNPF-State-Header-0%d.r3d",p->mpirank+1);
+
+	if(p->mpirank>9998)
+	sprintf(name,"REEF3D-FNPF-State-Header-%d.r3d",p->mpirank+1);
+    }
+    
+    if(p->P14==1)
+    {
+	if(p->mpirank<9)
+	sprintf(name,"./REEF3D_FNPF_State/REEF3D-FNPF-State-Header-0000%d.r3d",p->mpirank+1);
+
+	if(p->mpirank<99&&p->mpirank>8)
+	sprintf(name,"./REEF3D_FNPF_State/REEF3D-FNPF-State-Header-000%d.r3d",p->mpirank+1);
+    
+	if(p->mpirank<999&&p->mpirank>98)
+	sprintf(name,"./REEF3D_FNPF_State/REEF3D-FNPF-State-Header-00%d.r3d",p->mpirank+1);
+
+	if(p->mpirank<9999&&p->mpirank>998)
+	sprintf(name,"./REEF3D_FNPF_State/REEF3D-FNPF-State-Header-0%d.r3d",p->mpirank+1);
+
+	if(p->mpirank>9998)
+	sprintf(name,"./REEF3D_FNPF_State/REEF3D-FNPF-State-Header-%d.r3d",p->mpirank+1);
+    }
+}
+
+
+

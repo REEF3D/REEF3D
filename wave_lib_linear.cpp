@@ -109,3 +109,7 @@ double wave_lib_linear::wave_fi(lexer *p, double x, double y, double z)
 void wave_lib_linear::parameters(lexer *p, ghostcell *pgc)
 {
 }
+
+void wave_lib_linear::wave_prestep(lexer *p, ghostcell *pgc)
+{
+}

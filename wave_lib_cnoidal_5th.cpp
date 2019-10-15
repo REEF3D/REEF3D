@@ -255,3 +255,7 @@ void wave_lib_cnoidal_5th::parameters(lexer *p, ghostcell *pgc)
 	if(p->mpirank==0)
 	cout<<"wC: "<<wC<<" wR: "<<wR<<endl;
 }
+
+void wave_lib_cnoidal_5th::wave_prestep(lexer *p, ghostcell *pgc)
+{
+}

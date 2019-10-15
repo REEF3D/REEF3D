@@ -41,6 +41,7 @@ public:
     virtual double wave_fi(lexer*,double,double,double);
 
     virtual void parameters(lexer*,ghostcell*);
+    virtual void wave_prestep(lexer*,ghostcell*);
     
 private:
     double singamma,cosgamma;

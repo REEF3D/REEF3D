@@ -21,22 +21,18 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"wave_lib_precalc.h"
 #include"wave_lib_parameters.h"
-#include"wave_lib_elliptic.h"
 #include"increment.h"
 
-#ifndef WAVE_LIB_SOLITARY_3RD_H_
-#define WAVE_LIB_SOLITARY_3RD_H_
+#ifndef WAVE_LIB_WCP_H_
+#define WAVE_LIB_WCP_H_
 
 using namespace std;
 
-class wave_lib_solitary_3rd : public wave_lib_precalc, public wave_lib_parameters, public wave_lib_elliptic,
-                              public increment
+class wave_lib_wcp : public wave_lib_precalc, public wave_lib_parameters, public increment
 {
 public:
-    wave_lib_solitary_3rd(lexer*, ghostcell*);
-	virtual ~wave_lib_solitary_3rd();
-    
-    double wave_horzvel(lexer*,double,double,double);
+    wave_lib_wcp(lexer*, ghostcell*);
+	virtual ~wave_lib_wcp();
     
     virtual double wave_u(lexer*,double,double,double);
     virtual double wave_v(lexer*,double,double,double);
@@ -44,14 +40,65 @@ public:
     virtual double wave_eta(lexer*,double,double);
     virtual double wave_fi(lexer*,double,double,double);
     
-    
     virtual void parameters(lexer*,ghostcell*);
     virtual void wave_prestep(lexer*,ghostcell*);
-  
-private:  
-    double wht,acn,delta,epsilon,wR;
-    double singamma,cosgamma;
+    
+private:
+    
+    // functions
+    void read_header(lexer*,ghostcell*);
+    void read_result(lexer*,ghostcell*,double**,double***,double***,double***,int);
+    
+    void filename_header(lexer*,ghostcell*);
+    void filename(lexer*,ghostcell*,int);
+    
+    void allocate(lexer*,ghostcell*);
+    
+    void time_interpol(lexer*);
+    void sigma_update(lexer*);
+    
+    // interpolation
+    double space_interpol(lexer*,double,double,double);
+    double plane_interpol(lexer*,double,double);
+    
+    double Upol(lexer*,double,double,double);
+    double Vpol(lexer*,double,double,double);
+    double Wpol(lexer*,double,double,double);
+    double Epol(lexer*,double,double);
+    
+    int pos_i(double);
+    int pos_j(double);
+    int pos_k(double);
 
+    // arrays
+    double *X;
+    double *Y;
+    double *Z;
+    double **B;
+    double *simtime;
+    
+    double ***U1,***U2,***U;
+    double ***V1,***V2,***V;
+    double ***W1,***W2,***W;
+    double **E1,**E2,**E;
+    double **sigz;
+    
+    
+    // variables
+    double singamma,cosgamma;
+    double val;
+    int q1,q2,q1n,q2n;
+    double t1,t2,tn,deltaT;
+    int Nx,Ny,Nz;
+    int num;
+    
+    int iin;
+    float ffn;
+	char name[200];
+    
+
+    int startup;
+    int numiter;
 };
 
 #endif

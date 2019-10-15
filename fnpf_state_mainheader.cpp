@@ -19,28 +19,49 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include "fnpf_state.h"
-#include "lexer.h"
-#include "fdm_fnpf.h"
-#include "ghostcell.h"
+#include"fnpf_state.h"
+#include"lexer.h"
+#include"fdm_fnpf.h"
+#include"ghostcell.h"
 #include<iostream>
 #include<fstream>
 #include<sys/stat.h>
 #include<sys/types.h>
 
-fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
-{	
-	// Create Folder
+void fnpf_state::mainheader_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+{
+
+  // Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_FNPF_State",0777);
+	mkdir("./REEF3D_FNPF_STATE",0777);
 	
-	printcount=0;
+    // open file
+	if(p->P14==0)
+    mainout.open("REEF3D-FNPF_state_mainheader.r3d", ios::binary);
+	
+	if(p->P14==1)
+	mainout.open("./REEF3D_FNPF_STATE/REEF3D-FNPF_state_mainheader.r3d", ios::binary);
     
-    mainheader_ini(p,c,pgc);
     
-    header(p,c,pgc);
+    // ini write
+    iin=p->M10;
+    mainout.write((char*)&iin, sizeof (int));
+    
+    iin=p->gknox;
+    mainout.write((char*)&iin, sizeof (int));
+    
+    iin=p->gknoy;
+    mainout.write((char*)&iin, sizeof (int));
+    
+    iin=p->gknoz+1;
+    mainout.write((char*)&iin, sizeof (int));
 }
 
-fnpf_state::~fnpf_state()
+void fnpf_state::mainheader(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
+    iin=p->count;
+    mainout.write((char*)&iin, sizeof (int));
+		
+	ddn=p->simtime;
+    mainout.write((char*)&ddn, sizeof (double));
 }
