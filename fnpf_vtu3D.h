@@ -28,6 +28,7 @@ class fnpf_print_wsfline;
 class fnpf_print_wsfline_y;
 class fnpf_vtp_fsf;
 class fnpf_vtp_bed;
+class fnpf_state;
 class potentialfile_out;
 class ioflow;
 
@@ -67,6 +68,7 @@ private:
     potentialfile_out *ppotentialfile;
     fnpf_vtp_fsf *pfsf;
     fnpf_vtp_bed *pbed;
+    fnpf_state *pstate;
 };
 
 #endif

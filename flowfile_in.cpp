@@ -62,11 +62,11 @@ void flowfile_in::flowfile_start(lexer *p, fdm *a, ghostcell *pgc, turbulence *p
         }
         
         // find q0
-        while(simtime[q0+1]<=p->simtime+p->I232)
+        while(simtime[q0+1]<=p->simtime+p->I241)
         ++q0;
         
         // find q1
-        while(simtime[q1]<p->simtime+p->I232)
+        while(simtime[q1]<p->simtime+p->I241)
         ++q1;
         
         q0=MIN(q0,entrycount);
@@ -99,8 +99,8 @@ void flowfile_in::flowfile_start(lexer *p, fdm *a, ghostcell *pgc, turbulence *p
 
         deltaT = simtime[q1]-simtime[q0];
 
-        t0 = (simtime[q1]-(p->simtime+p->I232))/deltaT;
-        t1 = ((p->simtime+p->I232)-simtime[q0])/deltaT;
+        t0 = (simtime[q1]-(p->simtime+p->I241))/deltaT;
+        t1 = ((p->simtime+p->I241)-simtime[q0])/deltaT;
     
     }
 }

@@ -183,6 +183,8 @@ void lexer::ctrlrecv()
 	dd++;
     I232 = dctrl[dd];
 	dd++;
+    I233 = dctrl[dd];
+	dd++;
     I240 = ictrl[ii];
 	ii++;
     I241 = dctrl[dd];

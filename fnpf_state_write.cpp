@@ -30,19 +30,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void fnpf_state::write(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
- 
+    // mainheader file
+    if(p->mpirank==0)
+    mainheader(p,c,pgc);
+    
+    
     // Open File
 	int num=0;
 
-    if(p->P15==1)
+    if(p->P15>=1)
     num = printcount;
 
-    if(p->P15==2)
-    num = printcount;
-	
-	if(p->P40==1)
-	num=0;
-    
     
     // result file
     filename(p,c,pgc,num);
@@ -53,28 +51,27 @@ void fnpf_state::write(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     SLICELOOP4
     {
-    ffn=c->eta(i,j);
+    ffn=float(c->eta(i,j));
     result.write((char*)&ffn, sizeof (float));
     } 
     
     FLOOP
     {
-    ffn=c->U[FIJK];
+    ffn=float(c->U[FIJK]);
     result.write((char*)&ffn, sizeof (float));
     } 
 
 	FLOOP
     {
-    ffn=c->V[FIJK];
+    ffn=float(c->V[FIJK]);
     result.write((char*)&ffn, sizeof (float));
     } 
 
 	FLOOP
     {
-    ffn=c->W[FIJK];
+    ffn=float(c->W[FIJK]);
     result.write((char*)&ffn, sizeof (float));
     } 
-	
 	
 	
 	result.close();

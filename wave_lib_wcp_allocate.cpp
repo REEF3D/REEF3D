@@ -24,7 +24,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void wave_lib_wcp::allocate(lexer *p, ghostcell *pgc)
 {
-
     p->Darray(U1,Nx,Ny,Nz);
     p->Darray(U2,Nx,Ny,Nz);
     p->Darray(U,Nx,Ny,Nz);
@@ -42,5 +41,4 @@ void wave_lib_wcp::allocate(lexer *p, ghostcell *pgc)
     p->Darray(E,Nx,Ny);
     
     p->Darray(sigz,Nx,Ny);
-
 }

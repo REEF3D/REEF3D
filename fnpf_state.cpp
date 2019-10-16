@@ -19,10 +19,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include "fnpf_state.h"
-#include "lexer.h"
-#include "fdm_fnpf.h"
-#include "ghostcell.h"
+#include"fnpf_state.h"
+#include"lexer.h"
+#include"fdm_fnpf.h"
+#include"ghostcell.h"
 #include<iostream>
 #include<fstream>
 #include<sys/stat.h>
@@ -36,6 +36,7 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 	
 	printcount=0;
     
+    if(p->mpirank==0)
     mainheader_ini(p,c,pgc);
     
     header(p,c,pgc);

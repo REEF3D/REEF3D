@@ -26,10 +26,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 wave_lib_wcp::wave_lib_wcp(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc) 
 { 
-    parameters(p,pgc);
-    
+    cout<<p->mpirank<<"WCP read header"<<endl;
     read_header(p,pgc);
     
+    
+    cout<<p->mpirank<<"WCP allocate"<<endl;
     allocate(p,pgc);
     
     // time_interpol
@@ -43,6 +44,7 @@ wave_lib_wcp::wave_lib_wcp(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc
     cosgamma = cos((p->B105_1)*(PI/180.0));
     
     startup=0;
+    endseries=0;
 }
 
 wave_lib_wcp::~wave_lib_wcp()
@@ -52,8 +54,9 @@ wave_lib_wcp::~wave_lib_wcp()
 double wave_lib_wcp::wave_u(lexer *p, double x, double y, double z)
 {
     double vel;
-
-    vel = Upol(p,x,y,z);
+    
+    if(endseries==0)
+    vel = space_interpol(p,U,x,y,z);
 
     return cosgamma*vel;
 }
@@ -62,7 +65,8 @@ double wave_lib_wcp::wave_v(lexer *p, double x, double y, double z)
 {
     double vel;
     
-    vel = Vpol(p,x,y,z);
+    if(endseries==0)
+    vel = space_interpol(p,V,x,y,z);
 
     return singamma*vel;
 }
@@ -71,7 +75,8 @@ double wave_lib_wcp::wave_w(lexer *p, double x, double y, double z)
 {
     double vel=0.0;
     
-    vel = Wpol(p,x,y,z);
+    if(endseries==0)
+    vel = space_interpol(p,W,x,y,z);
 
     return vel;
 }
@@ -79,8 +84,9 @@ double wave_lib_wcp::wave_w(lexer *p, double x, double y, double z)
 double wave_lib_wcp::wave_eta(lexer *p, double x, double y)
 {
     double eta=0.0;
-     
-    eta =  Epol(p,x,y);
+    
+    if(endseries==0)
+    eta = plane_interpol(p,E,x,y);
 
     return eta;
 }
@@ -117,15 +123,19 @@ void wave_lib_wcp::wave_prestep(lexer *p, ghostcell *pgc)
     // check: open next timestep
            
     // find q1
-    while(simtime[q1+1]<=p->simtime+p->I232)
+    while(simtime[q1+1]<=p->simtime+p->I241)
     ++q1;
         
     // find q2
-    while(simtime[q2]<p->simtime+p->I232)
+    while(simtime[q2]<p->simtime+p->I241)
     ++q2;
+    
+    if(q2>=numiter)
+    endseries=1;
         
     q1=MIN(q1,numiter);
     q2=MIN(q2,numiter);
+    
     
     
         if(q1!=q1n)
@@ -146,8 +156,8 @@ void wave_lib_wcp::wave_prestep(lexer *p, ghostcell *pgc)
 
         deltaT = simtime[q2]-simtime[q1];
 
-        t1 = (simtime[q2]-(p->simtime+p->I232))/deltaT;
-        t2 = ((p->simtime+p->I232)-simtime[q1])/deltaT;
+        t1 = (simtime[q2]-(p->simtime+p->I241))/deltaT;
+        t2 = ((p->simtime+p->I241)-simtime[q1])/deltaT;
         
         
     // time interpolation

@@ -25,16 +25,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void wave_lib_wcp::read_header(lexer *p, ghostcell *pgc)
 {
     int is,js,xs,ys;
+    ifstream header;
     
+    // filename
     filename_header(p,pgc);
     
-    ifstream header;
-	header.open(name, ios::binary);
-    
-    // read header
+    // open header
     header.open(name, ios::binary);
     
-    // origin_ij
+        // origin_ij
         header.read((char*)&iin, sizeof (int));
         is=iin;
         
@@ -104,6 +103,9 @@ void wave_lib_wcp::read_header(lexer *p, ghostcell *pgc)
         header.read((char*)&iin, sizeof (int));
         simtime[n]=iin;
         }
+        
+        t_start = simtime[n];
+        t_end   = simtime[numiter-1];
         
     header.close();
     

@@ -58,17 +58,14 @@ private:
     void sigma_update(lexer*);
     
     // interpolation
-    double space_interpol(lexer*,double,double,double);
-    double plane_interpol(lexer*,double,double);
-    
-    double Upol(lexer*,double,double,double);
-    double Vpol(lexer*,double,double,double);
-    double Wpol(lexer*,double,double,double);
-    double Epol(lexer*,double,double);
+    double space_interpol(lexer*,double***,double,double,double);
+    double plane_interpol(lexer*,double**,double,double);
     
     int pos_i(double);
     int pos_j(double);
     int pos_k(double);
+    
+    int ihalf(int,int);
 
     // arrays
     double *X;
@@ -86,6 +83,8 @@ private:
     
     // variables
     double singamma,cosgamma;
+    double t_start,t_end;
+    int endseries;
     double val;
     int q1,q2,q1n,q2n;
     double t1,t2,tn,deltaT;
@@ -95,6 +94,13 @@ private:
     int iin;
     float ffn;
 	char name[200];
+    
+    int ip1,jp1,kp1;
+    int ii,jj,kk;
+    double xp,yp,zp;
+    double wa,wb,wc;
+    double v1,v2,v3,v4,v5,v6,v7,v8;
+    double x1,x2,x3,x4,y1,y2;
     
 
     int startup;

@@ -30,6 +30,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_vtp_fsf.h"
 #include"fnpf_vtp_bed.h"
 #include"potentialfile_out.h"
+#include"fnpf_state.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -71,6 +72,9 @@ fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 	pfsf = new fnpf_vtp_fsf(p,c,pgc);
     
     pbed = new fnpf_vtp_bed(p,c,pgc);
+    
+    if(p->P40>0)
+	pstate=new fnpf_state(p,c,pgc);
 }
 
 fnpf_vtu3D::~fnpf_vtu3D()
@@ -130,6 +134,21 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     
     if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
     pwsfline_y->start(p,c,pgc,pflow,c->eta);
+    
+    
+    // Print state out based on iteration
+    if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && p->P41>0)
+    {
+    pstate->write(p,c,pgc);
+    }
+		
+    // Print sate out based on time
+    if((p->simtime>p->stateprinttime && p->P42>0.0 || (p->count==0 &&  p->P42>0.0)) && p->P40>0)
+    {
+    pstate->write(p,c,pgc);
+		
+    p->stateprinttime+=p->P42;
+    }
 }
 
 void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)

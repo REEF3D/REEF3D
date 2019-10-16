@@ -30,17 +30,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void fnpf_state::mainheader_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-
-  // Create Folder
-	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_FNPF_STATE",0777);
-	
     // open file
 	if(p->P14==0)
-    mainout.open("REEF3D-FNPF_state_mainheader.r3d", ios::binary);
+    mainout.open("REEF3D-FNPF_State_Mainheader.r3d", ios::binary);
 	
 	if(p->P14==1)
-	mainout.open("./REEF3D_FNPF_STATE/REEF3D-FNPF_state_mainheader.r3d", ios::binary);
+	mainout.open("./REEF3D_FNPF_STATE/REEF3D-FNPF_State_Mainheader.r3d", ios::binary);
     
     
     // ini write
@@ -55,13 +50,26 @@ void fnpf_state::mainheader_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     iin=p->gknoz+1;
     mainout.write((char*)&iin, sizeof (int));
+    
+    mainout.close();
 }
 
 void fnpf_state::mainheader(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
+    // open file
+	if(p->P14==0)
+    mainout.open("REEF3D-FNPF_State_Mainheader.r3d", ios::binary | ios::app);
+	
+	if(p->P14==1)
+	mainout.open("./REEF3D_FNPF_STATE/REEF3D-FNPF_State_Mainheader.r3d", ios::binary | ios::app);
+    
     iin=p->count;
     mainout.write((char*)&iin, sizeof (int));
 		
 	ddn=p->simtime;
     mainout.write((char*)&ddn, sizeof (double));
+    
+    mainout.close();
 }
+
+

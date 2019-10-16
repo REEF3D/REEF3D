@@ -30,10 +30,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void fnpf_state::header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-
-  // Create Folder
-	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_FNPF_STATE",0777);
 	
     // file name
     filename_header(p,c,pgc);
@@ -42,10 +38,7 @@ void fnpf_state::header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 	headout.open(name, ios::binary);
     
   
-    // ini write
-    iin=p->M10;
-    headout.write((char*)&iin, sizeof (int));
-    
+    // ini write    
     iin=p->origin_i;
     headout.write((char*)&iin, sizeof (int));
     
@@ -54,15 +47,15 @@ void fnpf_state::header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     iin=p->origin_k;
     headout.write((char*)&iin, sizeof (int));
-    
-    
-    ffn=p->originx;
+
+
+    ffn=float(p->originx);
     headout.write((char*)&ffn, sizeof (float));
     
-    ffn=p->originy;
+    ffn=float(p->originy);
     headout.write((char*)&ffn, sizeof (float));
     
-    ffn=p->originz;
+    ffn=float(p->originz);
     headout.write((char*)&ffn, sizeof (float));
   
     
@@ -74,6 +67,7 @@ void fnpf_state::header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     iin=p->knoz+1;
     headout.write((char*)&iin, sizeof (int));
+    
     
     iin=p->nb1;
     headout.write((char*)&iin, sizeof (int));
@@ -87,30 +81,34 @@ void fnpf_state::header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     iin=p->nb4;
     headout.write((char*)&iin, sizeof (int));
     
+    
     //
     ILOOP
     {
-    ffn=p->XP[IP];
+    ffn=float(p->XP[IP]);
     headout.write((char*)&ffn, sizeof (float));
     } 
     
     JLOOP
     {
-    ffn=p->YP[JP];
+    ffn=float(p->YP[JP]);
     headout.write((char*)&ffn, sizeof (float));
     } 
     
     FKLOOP
     {
-    ffn=p->ZN[KP];
+    ffn=float(p->ZN[KP]);
     headout.write((char*)&ffn, sizeof (float));
     } 
     
+    
     SLICELOOP4
     {
-    ffn=c->bed(i,j);
+    ffn=float(c->bed(i,j));
     headout.write((char*)&ffn, sizeof (float));
     } 
+    
+    headout.close();
 }
 
 
