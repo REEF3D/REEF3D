@@ -90,6 +90,8 @@ void wave_lib_wcp::read_header(lexer *p, ghostcell *pgc)
         {
         header.read((char*)&ffn, sizeof (float)); 
         Zsig[k]=ffn;
+        //if(p->mpirank==0)
+        //cout<<i<<" "<<Zsig[k]<<endl;
         }
         
         for(i=0; i<Nx; ++i)

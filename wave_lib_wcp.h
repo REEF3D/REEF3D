@@ -100,6 +100,7 @@ private:
     
     int ip1,jp1,kp1;
     int ii,jj,kk;
+    int iii,jjj,kkk;
     double xp,yp,zp;
     double wa,wb,wc;
     double v1,v2,v3,v4,v5,v6,v7,v8;
