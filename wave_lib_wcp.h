@@ -55,9 +55,10 @@ private:
     void allocate(lexer*,ghostcell*);
     
     void time_interpol(lexer*);
-    void sigma_update(lexer*);
     
     // interpolation
+    double ccpol3D(lexer*,double***,double,double,double);
+    double ccpol2D(lexer*,double**,double,double);
     double space_interpol(lexer*,double***,double,double,double);
     double plane_interpol(lexer*,double**,double,double);
     
@@ -103,6 +104,8 @@ private:
     double wa,wb,wc;
     double v1,v2,v3,v4,v5,v6,v7,v8;
     double x1,x2,x3,x4,y1,y2;
+    
+    double Xstart,Xend,Ystart,Yend;
     
 
     int startup;

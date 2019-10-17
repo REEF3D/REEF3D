@@ -108,8 +108,37 @@ void wave_lib_wcp::read_header(lexer *p, ghostcell *pgc)
         simtime[n]=ddn;
         }
         
-        t_start = simtime[n];
+        t_start = simtime[0];
         t_end   = simtime[numiter-1];
+        
+        
+        if(Nx==0)
+        {
+        Xstart=1.0;
+        Xend=-1.0;
+        }
+        
+        if(Nx>0)
+        {
+        Xstart = X[0];
+        Xend = X[Nx-1];
+        }
+        
+        
+        
+        
+        if(Ny==0)
+        {
+        Ystart=1.0;
+        Yend=-1.0;
+        }
+        
+        if(Ny>0)
+        {
+        Ystart = Y[0];
+        Yend = Y[Ny-1];
+        }
+        
         
         
     header.close();

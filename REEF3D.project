@@ -2129,7 +2129,6 @@
       <VirtualDirectory Name="Wave Lib">
         <VirtualDirectory Name="WCP">
           <File Name="wave_lib_wcp_pos_ijk.cpp"/>
-          <File Name="wave_lib_wcp_sigma.cpp"/>
           <File Name="wave_lib_wcp_allocate.cpp"/>
           <File Name="wave_lib_wcp_filename.cpp"/>
           <File Name="wave_lib_wcp_space_interpol.cpp"/>
