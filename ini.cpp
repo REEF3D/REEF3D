@@ -406,6 +406,9 @@ void lexer::ini_default()
 	N16=1;			// int iteration limit for gcupdate gcupdate 
 	N17=0.5;		// double relaxation factor
 	N18=1.0e-10;	// double stopping criteria precon
+    N21=0;         // int PFMG skip relax
+    N22=1;         // int PFMG relax type
+    N23=0;         // int PFMG RAP type
 	N40=1;			// int time scheme
 	N41=1.0e+19; 	// double total time
 	N42=3;			// int RK3 scheme

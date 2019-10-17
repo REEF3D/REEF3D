@@ -34,7 +34,7 @@ double wave_lib_wcp::space_interpol(lexer *p, double ***F, double x, double y, d
     yp = y + p->I232;
     zp = z + p->I233;
     
-    if(xp>=Xstart  && xp<Xend && yp>=Ystart && yp<Yend)
+    if(xp>=Xstart  && xp<Xend && ((yp>=Ystart && yp<Yend)||jdir==0))
     {
         i = pos_i(p,xp);
         j = pos_j(p,yp);
@@ -45,7 +45,6 @@ double wave_lib_wcp::space_interpol(lexer *p, double ***F, double x, double y, d
         
         val=ccpol3D(p,F,x,y,z);
         }
-    
     }
     
     i=ii;
@@ -53,7 +52,6 @@ double wave_lib_wcp::space_interpol(lexer *p, double ***F, double x, double y, d
     k=kk;
     
     return val;
-    
 }
 
 double wave_lib_wcp::plane_interpol(lexer *p, double **F, double x, double y)
@@ -69,9 +67,11 @@ double wave_lib_wcp::plane_interpol(lexer *p, double **F, double x, double y)
     /*
     cout<<endl<<"Nxy: "<<Nx<<" "<<Ny<<endl;
     cout<<"xs_xe: "<<Xstart<<" "<<Xend<<endl;
-    */
+    cout<<"pos_xy: "<<xp<<" "<<yp<<endl;
+    cout<<"pos_ij: "<<i<<" "<<j<<" jdir "<<jdir<<endl;*/
+    
 
-    if(xp>=Xstart  && xp<Xend && yp>=Ystart && yp<Yend)
+    if(xp>=Xstart  && xp<Xend && ((yp>=Ystart && yp<Yend)||jdir==0))
     {
         
         
@@ -80,6 +80,8 @@ double wave_lib_wcp::plane_interpol(lexer *p, double **F, double x, double y)
 
         
         val=ccpol2D(p,F,x,y);
+        
+        //cout<<"EVAL: "<<val<<endl;
     
     }
     
@@ -92,14 +94,10 @@ double wave_lib_wcp::plane_interpol(lexer *p, double **F, double x, double y)
     j=jj;
     
     return val;
-    
 }
 
 double wave_lib_wcp::ccpol3D(lexer *p, double ***F, double x, double y, double z)
 {
-    
-    
-    
     // wa
     if(xp>X[0] && xp<X[Nx-1])
     {
@@ -130,10 +128,10 @@ double wave_lib_wcp::ccpol3D(lexer *p, double ***F, double x, double y, double z
     
     
     // wb
-    if(Ny==1)
+    if(Ny==1 || jdir==0)
     wb=1.0;    
         
-    if(Ny>1)
+    if(Ny>1 && jdir==1)
     {
     if(yp>Y[0] && yp<Y[Ny-1])
     {
@@ -159,6 +157,8 @@ double wave_lib_wcp::ccpol3D(lexer *p, double ***F, double x, double y, double z
     wb=1.0;
     }
     
+    
+    //cout<<"wb3D: "<<wb<<endl;
     
     //wc
     if(zp>Z[i][j][0] && zp<Z[i][j][Nz-1])
@@ -187,10 +187,8 @@ double wave_lib_wcp::ccpol3D(lexer *p, double ***F, double x, double y, double z
     wc=1.0;
 
 
-
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
-    
     ip1 = (i+1)<(Nx-1)?(i+1):i;
     jp1 = (j+1)<(Ny-1)?(j+1):j;
     kp1 = (k+1)<(Nz-1)?(k+1):k;
@@ -206,7 +204,6 @@ double wave_lib_wcp::ccpol3D(lexer *p, double ***F, double x, double y, double z
     v8 = F[ip1][jp1][kp1];
     
 
-
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
 
@@ -217,18 +214,17 @@ double wave_lib_wcp::ccpol3D(lexer *p, double ***F, double x, double y, double z
     y2 = wb*x3 +(1.0-wb)*x4;
 
     val = wc*y1 +(1.0-wc)*y2;
+    
+    //cout<<p->mpirank<<" WCP  i: "<<i<<" j: "<<j<<" xp: "<<xp<<" yp: "<<yp<<" val: "<<val<<" Fi: "<<F[i][j][k]<<endl;
 
     
-
     return val;
 }
 
 double wave_lib_wcp::ccpol2D(lexer *p, double **F, double x, double y)
 {
     
-        
     // wa
-    
     if(xp>X[0] && xp<X[Nx-1])
     {
         wa = (X[i+1]-xp)/(X[i+1]-X[i]);
@@ -247,7 +243,7 @@ double wave_lib_wcp::ccpol2D(lexer *p, double **F, double x, double y)
         --i;
         }
         
-        cout<<i<<" X[i-2]: "<<X[i-2]<<" X[i-1]: "<<X[i-1]<<" X[i]: "<<X[i]<<" X[i+1]: "<<X[i+1]<<" X[i+2]: "<<X[i+2]<<endl;
+        //cout<<i<<" X[i-2]: "<<X[i-2]<<" X[i-1]: "<<X[i-1]<<" X[i]: "<<X[i]<<" X[i+1]: "<<X[i+1]<<" X[i+2]: "<<X[i+2]<<endl;
     }
     
     if(xp<=X[0])
@@ -256,13 +252,12 @@ double wave_lib_wcp::ccpol2D(lexer *p, double **F, double x, double y)
     if(xp>=X[Nx-1])
     wa=1.0;
     
-    //cout<<"wa: "<<wa<<endl;
-    
+
     // wb
-    if(Ny==1)
+    if(Ny==1 || jdir==0)
     wb=1.0;    
         
-    if(Ny>1)
+    if(Ny>1 && jdir==1)
     {
     if(yp>Y[0] && yp<Y[Ny-1])
     {
@@ -288,7 +283,7 @@ double wave_lib_wcp::ccpol2D(lexer *p, double **F, double x, double y)
     wb=1.0;
     }
     
-    //cout<<"wb: "<<wb<<endl;
+    //cout<<"wb2D: "<<wb<<endl;
 
 
     v1=v2=v3=v4=0.0;

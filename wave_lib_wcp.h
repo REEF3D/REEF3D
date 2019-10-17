@@ -109,7 +109,7 @@ private:
     
 
     int startup;
-    int numiter;
+    int numiter,jdir;
 };
 
 #endif

@@ -33,6 +33,10 @@ void wave_lib_wcp::read_header(lexer *p, ghostcell *pgc)
     // open header
     header.open(name, ios::binary);
     
+        // jdir
+        header.read((char*)&iin, sizeof (int));
+        jdir=iin;
+        
         // origin_ij
         header.read((char*)&iin, sizeof (int));
         is=iin;

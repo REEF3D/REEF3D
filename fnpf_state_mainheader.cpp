@@ -42,6 +42,9 @@ void fnpf_state::mainheader_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     iin=p->M10;
     mainout.write((char*)&iin, sizeof (int));
     
+    iin=p->j_dir;
+    mainout.write((char*)&iin, sizeof (int));
+    
     iin=p->gknox;
     mainout.write((char*)&iin, sizeof (int));
     
