@@ -41,8 +41,8 @@ int wave_lib_wcp::pos_i(lexer *p, double xs)
     if(count%3==0)
     iloc+=1;
     
-    Xstart =  X[0];// - 0.5*(X[0] + X[1]);
-    Xend   =  X[Nx-1];// + 0.5*(X[Nx-1] + X[Nx]);
+    Xstart =  X[0];
+    Xend   =  X[Nx-1];
     
     XM1 = 0.5*(X[iloc] + X[iloc-1]);
     XP  = 0.5*(X[iloc] + X[iloc+1]);
@@ -93,16 +93,10 @@ int wave_lib_wcp::pos_i(lexer *p, double xs)
         ++count;
     }while(stop==0 && count<1000);
   
-  
-    //cout<<" ii: "<<ii<<endl;
-    
     ii=MAX(ii,0);
     ii=MIN(ii,Nx-1);
     
-    
-    
     return ii;
-    
 }
 
 int wave_lib_wcp::pos_j(lexer *p, double ys)
@@ -125,10 +119,9 @@ int wave_lib_wcp::pos_j(lexer *p, double ys)
     if(count%3==0)
     jloc+=1;
     
-    //cout<<"JLOC: "<<jloc<<endl;
-    
-    Ystart = 0.5*(Y[0] + Y[1]);
-    Yend   = 0.5*(Y[Ny-1] + Y[Ny]);
+
+    Ystart = Y[0];
+    Yend   = Y[Ny-1];
     
     YM1 = 0.5*(Y[jloc] + Y[jloc-1]);
     YP  = 0.5*(Y[jloc] + Y[jloc+1]);
@@ -184,13 +177,11 @@ int wave_lib_wcp::pos_j(lexer *p, double ys)
     if(p->j_dir==0)
     jj=0;
     
-   // cout<<" jj: "<<jj<<endl;
-    
+
     jj=MAX(jj,0);
-    jj=MIN(jj,Ny);
+    jj=MIN(jj,Ny-1);
     
-    return jj;
-    
+    return jj;    
 }
 
 int wave_lib_wcp::pos_k(lexer *p, double zs, int i, int k)
@@ -215,9 +206,7 @@ int wave_lib_wcp::pos_k(lexer *p, double zs, int i, int k)
         if(zs<Z[i][k][0])
         {
             kk = 0;
-            
-            //cout<<"EXIT 0m"<<endl;
-   
+
          stop=1;
          break;   
         }
@@ -227,8 +216,6 @@ int wave_lib_wcp::pos_k(lexer *p, double zs, int i, int k)
         {
             kk = Nz-1;
             
-            //cout<<"EXIT 0p"<<endl;
-   
          stop=1;
          break;   
         }
@@ -245,14 +232,12 @@ int wave_lib_wcp::pos_k(lexer *p, double zs, int i, int k)
         if(zs>=Z[i][k][kloc] && zs<Z[i][k][kloc+1] && stop==0)
         {
             kk = kloc;
-            
-            //cout<<"EXIT 2"<<endl;
-   
+
          stop=1;
          break;   
         }
         
-        // further divksion
+        // further divsion
         if(zs<Z[i][k][kloc] && zs<Z[i][k][kloc-1])
         ke=kloc;
         

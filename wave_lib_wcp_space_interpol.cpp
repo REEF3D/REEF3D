@@ -43,8 +43,6 @@ double wave_lib_wcp::space_interpol(lexer *p, double ***F, double x, double y, d
         {
         k = pos_k(p,zp,i,j);
         
-        //cout<<"SPACE  zp: "<<zp<<" k: "<<k<<endl;
-        
         val=ccpol3D(p,F,x,y,z);
         }
     }
@@ -79,10 +77,7 @@ double wave_lib_wcp::plane_interpol(lexer *p, double **F, double x, double y)
         j = pos_j(p,yp);
 
         val=ccpol2D(p,F,x,y);
-        
-        //cout<<"EVAL: "<<val<<endl;
     }
-    
     
     /*
     cout<<"pos_xy: "<<xp<<" "<<yp<<endl;
@@ -118,10 +113,10 @@ double wave_lib_wcp::ccpol3D(lexer *p, double ***F, double x, double y, double z
         //cout<<i<<" X[i-2]: "<<X[i-2]<<" X[i-1]: "<<X[i-1]<<" X[i]: "<<X[i]<<" X[i+1]: "<<X[i+1]<<" X[i+2]: "<<X[i+2]<<endl;
     }
     
-    if(xp<=X[0])
+    if(xp<=X[0] || i<0)
     wa=0.0;
     
-    if(xp>=X[Nx-1])
+    if(xp>=X[Nx-1] || i>=Nx-1)
     wa=1.0;
     
     
@@ -260,10 +255,10 @@ double wave_lib_wcp::ccpol2D(lexer *p, double **F, double x, double y)
         //cout<<i<<" X[i-2]: "<<X[i-2]<<" X[i-1]: "<<X[i-1]<<" X[i]: "<<X[i]<<" X[i+1]: "<<X[i+1]<<" X[i+2]: "<<X[i+2]<<endl;
     }
     
-    if(xp<=X[0])
+    if(xp<=X[0] || i<0)
     wa=0.0;
     
-    if(xp>=X[Nx-1])
+    if(xp>=X[Nx-1] || i>=Nx-1)
     wa=1.0;
     
 
