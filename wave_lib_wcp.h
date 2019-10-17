@@ -61,9 +61,9 @@ private:
     double space_interpol(lexer*,double***,double,double,double);
     double plane_interpol(lexer*,double**,double,double);
     
-    int pos_i(double);
-    int pos_j(double);
-    int pos_k(double,int,int);
+    int pos_i(lexer*,double);
+    int pos_j(lexer*,double);
+    int pos_k(lexer*,double,int,int);
     
     int ihalf(int,int);
 

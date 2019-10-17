@@ -26,19 +26,20 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 wave_lib_wcp::wave_lib_wcp(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc) 
 { 
-    cout<<p->mpirank<<" WCP read header"<<endl;
+    // read header
     read_header(p,pgc);
-    
-    
-    cout<<p->mpirank<<" WCP allocate"<<endl;
     allocate(p,pgc);
+    
     
     // time_interpol
     
     if(p->mpirank==0)
     {
-    cout<<"Wave Tank: wave coupling FNPF->CFD ";
+    cout<<"Wave Tank: wave coupling FNPF->CFD "<<endl;
+    cout<<p->mpirank<<" WCP Nx:"<<Nx<<" Ny: "<<Ny<<" Nz: "<<Nz<<endl;
+    cout<<p->mpirank<<" WCP numiter:"<<numiter<<" t_start: "<<t_start<<" t_end: "<<t_end<<endl;
     }
+        
     
     singamma = sin((p->B105_1)*(PI/180.0));
     cosgamma = cos((p->B105_1)*(PI/180.0));
@@ -53,7 +54,7 @@ wave_lib_wcp::~wave_lib_wcp()
 
 double wave_lib_wcp::wave_u(lexer *p, double x, double y, double z)
 {
-    double vel;
+    double vel=0.0;
     
     if(endseries==0)
     vel = space_interpol(p,U,x,y,z);
@@ -63,10 +64,10 @@ double wave_lib_wcp::wave_u(lexer *p, double x, double y, double z)
 
 double wave_lib_wcp::wave_v(lexer *p, double x, double y, double z)
 {
-    double vel;
+    double vel=0.0;
     
-    //if(endseries==0)
-    //vel = space_interpol(p,V,x,y,z);
+    if(endseries==0)
+    vel = space_interpol(p,V,x,y,z);
 
     return singamma*vel;
 }
@@ -75,8 +76,8 @@ double wave_lib_wcp::wave_w(lexer *p, double x, double y, double z)
 {
     double vel=0.0;
     
-    //if(endseries==0)
-    //vel = space_interpol(p,W,x,y,z);
+    if(endseries==0)
+    vel = space_interpol(p,W,x,y,z);
 
     return vel;
 }
@@ -159,7 +160,8 @@ void wave_lib_wcp::wave_prestep(lexer *p, ghostcell *pgc)
 
         deltaT = simtime[q2]-simtime[q1];
         
-        cout<<p->mpirank<<" q1: "<<q1<<" q2: "<<q2<<" deltaT: "<<deltaT<<" simtime[q1]: "<<simtime[q1]<<" simtime[q2]: "<<simtime[q2]<<endl;
+        if(p->mpirank==0)
+        cout<<"WCP  q1: "<<q1<<" q2: "<<q2<<" deltaT: "<<deltaT<<" simtime[q1]: "<<simtime[q1]<<" simtime[q2]: "<<simtime[q2]<<endl;
 
         t1 = (simtime[q2]-(p->simtime+p->I241))/deltaT;
         t2 = ((p->simtime+p->I241)-simtime[q1])/deltaT;

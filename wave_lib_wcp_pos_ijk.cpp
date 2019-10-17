@@ -22,7 +22,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"wave_lib_wcp.h"
 #include"lexer.h"
 
-int wave_lib_wcp::pos_i(double xs)
+int wave_lib_wcp::pos_i(lexer *p, double xs)
 {
     int is,ie,iloc;
     int stop=0;
@@ -94,7 +94,7 @@ int wave_lib_wcp::pos_i(double xs)
     }while(stop==0 && count<1000);
   
   
-    cout<<" ii: "<<ii<<endl;
+    //cout<<" ii: "<<ii<<endl;
     
     ii=MAX(ii,0);
     ii=MIN(ii,Nx-1);
@@ -105,7 +105,7 @@ int wave_lib_wcp::pos_i(double xs)
     
 }
 
-int wave_lib_wcp::pos_j(double ys)
+int wave_lib_wcp::pos_j(lexer *p, double ys)
 {
     int js,je,jloc;
     int stop=0;
@@ -118,11 +118,14 @@ int wave_lib_wcp::pos_j(double ys)
     
     
     count=0;
+    if(p->j_dir==1)
     do{
     jloc = ihalf(js,je);
     
     if(count%3==0)
     jloc+=1;
+    
+    //cout<<"JLOC: "<<jloc<<endl;
     
     Ystart = 0.5*(Y[0] + Y[1]);
     Yend   = 0.5*(Y[Ny-1] + Y[Ny]);
@@ -130,6 +133,8 @@ int wave_lib_wcp::pos_j(double ys)
     YM1 = 0.5*(Y[jloc] + Y[jloc-1]);
     YP  = 0.5*(Y[jloc] + Y[jloc+1]);
     YP1 = 0.5*(Y[jloc+1] + Y[jloc+2]);
+    
+    //cout<<"ys: "<<ys<<" YM1: "<<YM1<<" YP: "<<YP<<" YP1: "<<YP1<<endl;
     
         // matching criterion
         if(ys<YP && ys>=YM1)
@@ -176,7 +181,10 @@ int wave_lib_wcp::pos_j(double ys)
         ++count;
     }while(stop==0 && count<1000);
     
-    cout<<" jj: "<<jj<<endl;
+    if(p->j_dir==0)
+    jj=0;
+    
+   // cout<<" jj: "<<jj<<endl;
     
     jj=MAX(jj,0);
     jj=MIN(jj,Ny);
@@ -185,7 +193,7 @@ int wave_lib_wcp::pos_j(double ys)
     
 }
 
-int wave_lib_wcp::pos_k(double zs, int i, int k)
+int wave_lib_wcp::pos_k(lexer *p, double zs, int i, int k)
 {
     int ks,ke,kloc;
     int stop=0;
@@ -255,10 +263,11 @@ int wave_lib_wcp::pos_k(double zs, int i, int k)
         ++count;
     }while(stop==0 && count<1000);
     
-    cout<<" kk: "<<kk<<endl;
+    //cout<<" kk: "<<kk<<endl;
     
     kk=MAX(kk,0);
     kk=MIN(kk,Nz);
+    
     
     return kk;
 }

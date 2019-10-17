@@ -56,8 +56,7 @@ void wave_lib_wcp::read_header(lexer *p, ghostcell *pgc)
         
         header.read((char*)&iin, sizeof (int));
         Nz=iin;
-        
-        cout<<p->mpirank<<" WCP Nx:"<<Nx<<" Ny: "<<Ny<<" Nz: "<<Nz<<endl;
+    
         
         // allocate arrays
         p->Darray(X,Nx);
@@ -73,8 +72,8 @@ void wave_lib_wcp::read_header(lexer *p, ghostcell *pgc)
         header.read((char*)&ffn, sizeof (float)); 
         X[i]=ffn;
         
-        if(p->mpirank==0)
-        cout<<i<<" "<<X[i]<<endl;
+        //if(p->mpirank==0)
+        //cout<<i<<" "<<X[i]<<endl;
         }
             
         for(j=0; j<Ny; ++j)
@@ -112,7 +111,6 @@ void wave_lib_wcp::read_header(lexer *p, ghostcell *pgc)
         t_start = simtime[n];
         t_end   = simtime[numiter-1];
         
-        cout<<p->mpirank<<" WCP numiter:"<<numiter<<" t_start: "<<t_start<<" t_end: "<<t_end<<endl;
         
     header.close();
     

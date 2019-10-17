@@ -33,9 +33,9 @@ double wave_lib_wcp::space_interpol(lexer *p, double ***F, double x, double y, d
     yp = y + p->I232;
     zp = z + p->I233;
     
-    i = pos_i(xp);
-    j = pos_j(yp);
-    k = pos_k(zp,i,j);
+    i = pos_i(p,xp);
+    j = pos_j(p,yp);
+    k = pos_k(p,zp,i,j);
     
     // wa
     if(xp>X[0] && xp<X[Nx-1])
@@ -170,13 +170,14 @@ double wave_lib_wcp::plane_interpol(lexer *p, double **F, double x, double y)
     xp = x + p->I231;
     yp = y + p->I232;
     
-    i = pos_i(xp);
-    j = pos_j(yp);
-    
-    /*cout<<"xs_xe: "<<X[0]<<" "<<X[Nx-1]<<endl;
+    i = pos_i(p,xp);
+    j = pos_j(p,yp);
+    /*
+    cout<<endl<<"Nxy: "<<Nx<<" "<<Ny<<endl;
+    cout<<"xs_xe: "<<X[0]<<" "<<X[Nx-1]<<endl;
     cout<<"pos_xy: "<<xp<<" "<<yp<<endl;
     cout<<"pos_ij: "<<i<<" "<<j<<endl;
-    cout<<"Nxy: "<<Nx<<" "<<Ny<<endl;*/
+    */
 		
     // wa
     
@@ -207,7 +208,7 @@ double wave_lib_wcp::plane_interpol(lexer *p, double **F, double x, double y)
     if(xp>=X[Nx-1])
     wa=1.0;
     
-    
+    //cout<<"wa: "<<wa<<endl;
     
     // wb
     if(Ny==1)
@@ -239,7 +240,7 @@ double wave_lib_wcp::plane_interpol(lexer *p, double **F, double x, double y)
     wb=1.0;
     }
     
-    cout<<"wa: "<<wa<<" wb: "<<wb<<endl;
+    //cout<<"wb: "<<wb<<endl;
 
 
     v1=v2=v3=v4=0.0;
@@ -248,11 +249,14 @@ double wave_lib_wcp::plane_interpol(lexer *p, double **F, double x, double y)
     ip1 = (i+1)<(Nx-1)?(i+1):i;
     jp1 = (j+1)<(Ny-1)?(j+1):j;
     
+    
+    
     v1 = F[i][j];
     v2 = F[i][jp1];
     v3 = F[ip1][j];
     v4 = F[ip1][jp1];
-
+    
+    //cout<<"i: "<<i<<" j: "<<j<<" ip1: "<<ip1<<" jp1: "<<jp1<<endl;
 
 
     x1 = wa*v1 + (1.0-wa)*v3;
@@ -260,10 +264,13 @@ double wave_lib_wcp::plane_interpol(lexer *p, double **F, double x, double y)
 
     val = wb*x1 +(1.0-wb)*x2;
 
+    
+    
+    //cout<<p->mpirank<<" WCP  i: "<<i<<" j: "<<j<<" xp: "<<xp<<" yp: "<<yp<<" val: "<<val<<" Fi: "<<F[i][j]<<endl;
+    
     i=ii;
     j=jj;
     
-    cout<<p->mpirank<<" WCP  i: "<<i<<" j: "<<j<<" xp: "<<xp<<" yp: "<<yp<<" val: "<<val<<" Fi: "<<F[i][j]<<endl;
     
     return val;
 }
