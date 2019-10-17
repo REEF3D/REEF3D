@@ -57,11 +57,13 @@ void wave_lib_wcp::read_header(lexer *p, ghostcell *pgc)
         header.read((char*)&iin, sizeof (int));
         Nz=iin;
         
+        cout<<p->mpirank<<" WCP Nx:"<<Nx<<" Ny: "<<Ny<<" Nz: "<<Nz<<endl;
         
         // allocate arrays
         p->Darray(X,Nx);
         p->Darray(Y,Ny);
-        p->Darray(Z,Nz);
+        p->Darray(Zsig,Nz);
+        p->Darray(Z,Nx,Ny,Nz);
         p->Darray(B,Nx,Ny);
         
         
@@ -70,6 +72,9 @@ void wave_lib_wcp::read_header(lexer *p, ghostcell *pgc)
         {
         header.read((char*)&ffn, sizeof (float)); 
         X[i]=ffn;
+        
+        if(p->mpirank==0)
+        cout<<i<<" "<<X[i]<<endl;
         }
             
         for(j=0; j<Ny; ++j)
@@ -81,7 +86,7 @@ void wave_lib_wcp::read_header(lexer *p, ghostcell *pgc)
         for(k=0; k<Nz; ++k)
         {
         header.read((char*)&ffn, sizeof (float)); 
-        Z[k]=ffn;
+        Zsig[k]=ffn;
         }
         
         for(i=0; i<Nx; ++i)
@@ -100,12 +105,14 @@ void wave_lib_wcp::read_header(lexer *p, ghostcell *pgc)
         
         for(n=0;n<numiter;++n)
         {
-        header.read((char*)&iin, sizeof (int));
-        simtime[n]=iin;
+        header.read((char*)&ddn, sizeof (double));
+        simtime[n]=ddn;
         }
         
         t_start = simtime[n];
         t_end   = simtime[numiter-1];
+        
+        cout<<p->mpirank<<" WCP numiter:"<<numiter<<" t_start: "<<t_start<<" t_end: "<<t_end<<endl;
         
     header.close();
     

@@ -63,14 +63,15 @@ private:
     
     int pos_i(double);
     int pos_j(double);
-    int pos_k(double);
+    int pos_k(double,int,int);
     
     int ihalf(int,int);
 
     // arrays
     double *X;
     double *Y;
-    double *Z;
+    double *Zsig;
+    double ***Z;
     double **B;
     double *simtime;
     
@@ -78,7 +79,7 @@ private:
     double ***V1,***V2,***V;
     double ***W1,***W2,***W;
     double **E1,**E2,**E;
-    double **sigz;
+    
     
     
     // variables
@@ -93,6 +94,7 @@ private:
     
     int iin;
     float ffn;
+    double ddn;;
 	char name[200];
     
     int ip1,jp1,kp1;

@@ -230,4 +230,9 @@ double wave_interface::wave_vm(lexer *p, ghostcell *pgc, double x, double y)
     return vm;
 }
 
+void wave_interface::wave_prestep(lexer *p, ghostcell *pgc)
+{
+    pwave->wave_prestep(p,pgc);
+}
+
 int wave_interface::printcheck=0;

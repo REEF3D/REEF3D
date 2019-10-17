@@ -40,6 +40,9 @@ flowfile_in::flowfile_in(lexer *p, ghostcell *pgc)
     maxk = Nk-dk;
     
     startup=0;
+    
+    q0=0;
+    q1=1;
     }
 }
 

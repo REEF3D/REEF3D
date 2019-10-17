@@ -34,6 +34,8 @@ void wave_lib_wcp::read_result(lexer *p, ghostcell *pgc, double **E0, double ***
     {
         result.read((char*)&ffn, sizeof (float)); 
         E0[i][j]=ffn;
+        
+        //cout<<" E0[i][j]: "<<E0[i][j]<<endl;
     } 
     
     

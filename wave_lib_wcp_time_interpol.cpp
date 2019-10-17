@@ -47,6 +47,7 @@ void wave_lib_wcp::time_interpol(lexer *p)
     
     for(i=0; i<Nx; ++i)
     for(j=0; j<Ny; ++j)
-    sigz[i][j] = 1.0/((E[i][j]+p->wd-B[i][j])>1.0e-20?(E[i][j]+p->wd-B[i][j]):1.0e20);
+    for(k=0; k<Nz; ++k)
+    Z[i][j][k] = Zsig[k]*(E[i][j]+p->wd-B[i][j]);
     
 }

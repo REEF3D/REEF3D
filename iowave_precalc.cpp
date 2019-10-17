@@ -27,6 +27,7 @@ void iowave::wavegen_precalc(lexer *p, ghostcell *pgc)
 {
     
     // prestep
+    wave_prestep(p,pgc);
     
     if(p->A10!=3 || p->A300==2)
     {

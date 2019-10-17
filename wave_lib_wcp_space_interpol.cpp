@@ -29,60 +29,100 @@ double wave_lib_wcp::space_interpol(lexer *p, double ***F, double x, double y, d
     jj=j;
     kk=k;
     
-    xp += p->I231;
-    yp += p->I232;
-    zp += p->I233;
+    xp = x + p->I231;
+    yp = y + p->I232;
+    zp = z + p->I233;
     
-    i = p->posc_i(xp);
-    j = p->posc_j(yp);
-    k = p->posf_k(zp);
-		
+    i = pos_i(xp);
+    j = pos_j(yp);
+    k = pos_k(zp,i,j);
+    
     // wa
-    wa = (p->XP[IP1]-xp)/p->DXN[IP];
-    
-    if((p->XP[IP1]-xp)/p->DXN[IP]<0.0)
+    if(xp>X[0] && xp<X[Nx-1])
     {
-    wa = (p->XP[IP2]-xp)/p->DXN[IP1];
-    ++i;
+        wa = (X[i+1]-xp)/(X[i+1]-X[i]);
+        
+        if(i<Nx-1)
+        if((X[i+1]-xp)/(X[i+1]-X[i])<0.0)
+        {
+        wa = (X[i+2]-xp)/(X[i+2]-X[i+1]);
+        ++i;
+        }
+        
+        if(i>0)
+        if((X[i+1]-xp)/(X[i+1]-X[i])>1.0)
+        {
+        wa = (X[i]-xp)/(X[i]-X[i-1]);
+        --i;
+        }
+        
+        //cout<<i<<" X[i-2]: "<<X[i-2]<<" X[i-1]: "<<X[i-1]<<" X[i]: "<<X[i]<<" X[i+1]: "<<X[i+1]<<" X[i+2]: "<<X[i+2]<<endl;
     }
     
-    if((p->XP[IP1]-xp)/p->DXN[IP]>1.0)
-    {
-    wa = (p->XP[IP]-xp)/p->DXN[IM1];
-    --i;
-    }
+    if(xp<=X[0])
+    wa=0.0;
+    
+    if(xp>=X[Nx-1])
+    wa=1.0;
     
     
     // wb
-    wb = (p->YP[JP1]-yp)/p->DYN[JP];
-    
-    if((p->YP[JP1]-yp)/p->DYN[JP]<0.0)
+    if(Ny==1)
+    wb=1.0;    
+        
+    if(Ny>1)
     {
-    wb = (p->YP[JP2]-yp)/p->DYN[JP1];
-    ++j;
+    if(yp>Y[0] && yp<Y[Ny-1])
+    {
+        wb = (Y[j+1]-yp)/(Y[j+1]-Y[j]);
+        
+        if((Y[j+1]-yp)/(Y[j+1]-Y[j])<0.0)
+        {
+        wb = (Y[j+1]-yp)/(Y[j+2]-Y[j+1]);
+        ++j;
+        }
+        
+        if((Y[j+1]-yp)/(Y[j+1]-Y[j])>1.0)
+        {
+        wb = (Y[j]-yp)/(Y[j]-Y[j-1]);
+        --j;
+        }
     }
     
-    if((p->YP[JP1]-yp)/p->DYN[JP]>1.0)
-    {
-    wb = (p->YP[JP]-yp)/p->DYN[JM1];
-    --j;
+    if(yp<=Y[0])
+    wb=0.0;
+    
+    if(yp>=Y[Ny-1])
+    wb=1.0;
     }
     
     
     //wc
-    wc = (p->ZN[KP1]-zp)/p->DZP[KP];
-    
-    if((p->ZN[KP1]-zp)/p->DZP[KP]<0.0)
+    if(zp>Z[i][j][0] && zp<Z[i][j][Nz-1])
     {
-    wc = (p->ZN[KP2]-zp)/p->DZP[KP1];
-    ++k;
+        wc = (p->ZN[KP1]-zp)/p->DZP[KP];
+        
+        if(k<Nz-1)
+        if((p->ZN[KP1]-zp)/p->DZP[KP]<0.0)
+        {
+        wc = (p->ZN[KP2]-zp)/p->DZP[KP1];
+        ++k;
+        }
+        
+        if(k>0)
+        if((p->ZN[KP1]-zp)/p->DZP[KP]>1.0)
+        {
+        wc = (p->ZN[KP]-zp)/p->DZP[KM1];
+        --k;
+        }
     }
     
-    if((p->ZN[KP1]-zp)/p->DZP[KP]>1.0)
-    {
-    wc = (p->ZN[KP]-zp)/p->DZP[KM1];
-    --k;
-    }
+    if(zp<=Z[i][j][0])
+    wc=0.0;
+    
+    if(zp>=Z[i][j][Nz-1])
+    wc=1.0;
+
 
 
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
@@ -127,42 +167,79 @@ double wave_lib_wcp::plane_interpol(lexer *p, double **F, double x, double y)
     ii=i;
     jj=j;
     
-    xp += p->I231;
-    yp += p->I232;
+    xp = x + p->I231;
+    yp = y + p->I232;
     
-    i = p->posc_i(xp);
-    j = p->posc_j(yp);
+    i = pos_i(xp);
+    j = pos_j(yp);
+    
+    /*cout<<"xs_xe: "<<X[0]<<" "<<X[Nx-1]<<endl;
+    cout<<"pos_xy: "<<xp<<" "<<yp<<endl;
+    cout<<"pos_ij: "<<i<<" "<<j<<endl;
+    cout<<"Nxy: "<<Nx<<" "<<Ny<<endl;*/
 		
     // wa
-    wa = (p->XP[IP1]-xp)/p->DXN[IP];
     
-    if((p->XP[IP1]-xp)/p->DXN[IP]<0.0)
+    if(xp>X[0] && xp<X[Nx-1])
     {
-    wa = (p->XP[IP2]-xp)/p->DXN[IP1];
-    ++i;
+        wa = (X[i+1]-xp)/(X[i+1]-X[i]);
+        
+        if(i<Nx-1)
+        if((X[i+1]-xp)/(X[i+1]-X[i])<0.0)
+        {
+        wa = (X[i+2]-xp)/(X[i+2]-X[i+1]);
+        ++i;
+        }
+        
+        if(i>0)
+        if((X[i+1]-xp)/(X[i+1]-X[i])>1.0)
+        {
+        wa = (X[i]-xp)/(X[i]-X[i-1]);
+        --i;
+        }
+        
+        //cout<<i<<" X[i-2]: "<<X[i-2]<<" X[i-1]: "<<X[i-1]<<" X[i]: "<<X[i]<<" X[i+1]: "<<X[i+1]<<" X[i+2]: "<<X[i+2]<<endl;
     }
     
-    if((p->XP[IP1]-xp)/p->DXN[IP]>1.0)
-    {
-    wa = (p->XP[IP]-xp)/p->DXN[IM1];
-    --i;
-    }
+    if(xp<=X[0])
+    wa=0.0;
+    
+    if(xp>=X[Nx-1])
+    wa=1.0;
+    
     
     
     // wb
-    wb = (p->YP[JP1]-yp)/p->DYN[JP];
-    
-    if((p->YP[JP1]-yp)/p->DYN[JP]<0.0)
+    if(Ny==1)
+    wb=1.0;    
+        
+    if(Ny>1)
     {
-    wb = (p->YP[JP2]-yp)/p->DYN[JP1];
-    ++j;
+    if(yp>Y[0] && yp<Y[Ny-1])
+    {
+        wb = (Y[j+1]-yp)/(Y[j+1]-Y[j]);
+        
+        if((Y[j+1]-yp)/(Y[j+1]-Y[j])<0.0)
+        {
+        wb = (Y[j+1]-yp)/(Y[j+2]-Y[j+1]);
+        ++j;
+        }
+        
+        if((Y[j+1]-yp)/(Y[j+1]-Y[j])>1.0)
+        {
+        wb = (Y[j]-yp)/(Y[j]-Y[j-1]);
+        --j;
+        }
     }
     
-    if((p->YP[JP1]-yp)/p->DYN[JP]>1.0)
-    {
-    wb = (p->YP[JP]-yp)/p->DYN[JM1];
-    --j;
+    if(yp<=Y[0])
+    wb=0.0;
+    
+    if(yp>=Y[Ny-1])
+    wb=1.0;
     }
+    
+    cout<<"wa: "<<wa<<" wb: "<<wb<<endl;
 
 
     v1=v2=v3=v4=0.0;
@@ -185,6 +262,8 @@ double wave_lib_wcp::plane_interpol(lexer *p, double **F, double x, double y)
 
     i=ii;
     j=jj;
+    
+    cout<<p->mpirank<<" WCP  i: "<<i<<" j: "<<j<<" xp: "<<xp<<" yp: "<<yp<<" val: "<<val<<" Fi: "<<F[i][j]<<endl;
     
     return val;
 }

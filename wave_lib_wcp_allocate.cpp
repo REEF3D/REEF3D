@@ -39,6 +39,4 @@ void wave_lib_wcp::allocate(lexer *p, ghostcell *pgc)
     p->Darray(E1,Nx,Ny);
     p->Darray(E2,Nx,Ny);
     p->Darray(E,Nx,Ny);
-    
-    p->Darray(sigz,Nx,Ny);
 }
