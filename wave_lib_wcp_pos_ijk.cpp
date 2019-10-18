@@ -112,7 +112,7 @@ int wave_lib_wcp::pos_j(lexer *p, double ys)
     
     
     count=0;
-    if(p->j_dir==1)
+    if(jdir==1)
     do{
     jloc = ihalf(js,je);
     
@@ -174,12 +174,12 @@ int wave_lib_wcp::pos_j(lexer *p, double ys)
         ++count;
     }while(stop==0 && count<1000);
     
-    if(p->j_dir==0)
-    jj=0;
-    
-
     jj=MAX(jj,0);
     jj=MIN(jj,Ny-1);
+    
+    
+    if(jdir==0)
+    jj=0;
     
     return jj;    
 }

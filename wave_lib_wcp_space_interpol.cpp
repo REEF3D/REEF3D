@@ -36,14 +36,17 @@ double wave_lib_wcp::space_interpol(lexer *p, double ***F, double x, double y, d
     
     if(xp>=Xstart  && xp<Xend && ((yp>=Ystart && yp<Yend)|| jdir==0))
     {
+        //cout<<"pos_ij1: "<<i<<" "<<j<<" jdir "<<jdir<<endl;
         i = pos_i(p,xp);
         j = pos_j(p,yp);
+        //cout<<"pos_ij2: "<<i<<" "<<j<<" jdir "<<jdir<<" Z0: "<<Z[i][j][0]<<" Zk: "<<Z[i][j][Nz-1]<<endl;
         
         if(zp>=Z[i][j][0] && zp<=Z[i][j][Nz-1])
         {
         k = pos_k(p,zp,i,j);
-        
+
         val=ccpol3D(p,F,x,y,z);
+
         }
     }
     
@@ -81,7 +84,7 @@ double wave_lib_wcp::plane_interpol(lexer *p, double **F, double x, double y)
     
     /*
     cout<<"pos_xy: "<<xp<<" "<<yp<<endl;
-    cout<<"pos_ij: "<<i<<" "<<j<<endl;*/
+    cout<<"pos_ij2: "<<i<<" "<<j<<endl;*/
     
     i=ii;
     j=jj;
@@ -222,10 +225,11 @@ double wave_lib_wcp::ccpol3D(lexer *p, double ***F, double x, double y, double z
     j=jjj;
     k=kkk;
     
-    //cout<<p->mpirank<<" WCP  i: "<<i<<" j: "<<j<<" xp: "<<xp<<" yp: "<<yp<<" val: "<<val<<" Fi: "<<F[i][j][k]<<endl;
+    /*
+    cout<<p->mpirank<<" WCP  i: "<<i<<" j: "<<j<<" xp: "<<xp<<" yp: "<<yp<<" val: "<<val<<" Fi: "<<F[i][j][k]<<endl;
     
-    //cout<<" WCP 3D: "<<v1<<" "<<v2<<" "<<v3<<" "<<v4<<" "<<v5<<" "<<v6<<" "<<v7<<" "<<v7<<" "<<endl;
-    //cout<<" WCP i: "<<i<<" j: "<<j<<" k: "<<k<<" Z[ijk]: "<<Z[i][j][k]<<" z: "<<z<<endl;
+    cout<<" WCP 3D: "<<v1<<" "<<v2<<" "<<v3<<" "<<v4<<" "<<v5<<" "<<v6<<" "<<v7<<" "<<v7<<" "<<endl;
+    cout<<" WCP i: "<<i<<" j: "<<j<<" k: "<<k<<" Z[ijk]: "<<Z[i][j][k]<<" z: "<<z<<endl;*/
 
     return val;
 }
@@ -301,7 +305,15 @@ double wave_lib_wcp::ccpol2D(lexer *p, double **F, double x, double y)
     ip1 = (i+1)<(Nx-1)?(i+1):i;
     jp1 = (j+1)<(Ny-1)?(j+1):j;
     
+    iii=i;
+    jjj=j;
+
+    i = i<0?0:i;
+    j = j<0?0:j;
     
+    i = i>Nx?Nx:i;
+    j = j>Ny?Ny:j;
+
     
     v1 = F[i][j];
     v2 = F[i][jp1];
@@ -315,13 +327,11 @@ double wave_lib_wcp::ccpol2D(lexer *p, double **F, double x, double y)
     x2 = wa*v2 + (1.0-wa)*v4;
 
     val = wb*x1 +(1.0-wb)*x2;
-
-    
     
     //cout<<p->mpirank<<" WCP  i: "<<i<<" j: "<<j<<" xp: "<<xp<<" yp: "<<yp<<" val: "<<val<<" Fi: "<<F[i][j]<<endl;
     
-    i=ii;
-    j=jj;
+    i=iii;
+    j=jjj;
     
     
     return val;

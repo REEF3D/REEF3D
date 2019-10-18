@@ -32,11 +32,10 @@ wave_lib_wcp::wave_lib_wcp(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc
     
     
     // time_interpol
-    
     if(p->mpirank==0)
     {
     cout<<"Wave Tank: wave coupling FNPF->CFD "<<endl;
-    cout<<p->mpirank<<" WCP Nx: "<<Nx<<" Ny: "<<Ny<<" Nz: "<<Nz<<endl;
+    cout<<p->mpirank<<" WCP Nx: "<<Nx<<" Ny: "<<Ny<<" Nz: "<<Nz<<" . jdir: "<<jdir<<endl;
     cout<<p->mpirank<<" WCP Xs: "<<Xstart<<" Xe: "<<Xend<<" Ys: "<<Ystart<<" Ye: "<<Yend<<endl;
     cout<<p->mpirank<<" WCP numiter: "<<numiter<<" t_start: "<<t_start<<" t_end: "<<t_end<<endl;
     }
