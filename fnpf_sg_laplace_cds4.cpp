@@ -52,9 +52,7 @@ void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
     double ab,abb,abbb,denom;
     double fbxm,fbxp,fbym,fbyp;
     double distfac,dist;
-    double xdelta,ydelta,zdelta;
-	n=0;
-    
+    double xdelta,ydelta,zdelta;    
     
     // 4th-order
 	n=0;
@@ -136,7 +134,7 @@ void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             }
             
 
-            // est
+            // east
             if(p->flag7[FIJm1K]<0 && c->wet(i,j-1)==1)
             {
             c->M.p[n] += -1.0/(p->DYP[JM1]*p->DYN[JM1])*p->y_dir;
