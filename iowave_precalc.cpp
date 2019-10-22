@@ -26,6 +26,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void iowave::wavegen_precalc(lexer *p, ghostcell *pgc)
 {
     
+    // prestep
+    wave_prestep(p,pgc);
+    
     if(p->A10!=3 || p->A300==2)
     {
         if(p->B89==0 )

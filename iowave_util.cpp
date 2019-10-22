@@ -85,8 +85,8 @@ void iowave::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
         }
     }
 
-    //p->gcin_count=count1;
-    //p->gcout_count=count2;
+    p->gcin_count=count1;
+    p->gcout_count=count2;
     
      // 4a ---------------
 	

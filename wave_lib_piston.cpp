@@ -167,3 +167,7 @@ void wave_lib_piston::read(lexer *p, ghostcell* pgc)
 	te = kinematics[ptnum-1][0];
 	    
 }
+
+void wave_lib_piston::wave_prestep(lexer *p, ghostcell *pgc)
+{
+}

@@ -261,38 +261,6 @@ void iowave::full_initialize_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
       
     }
     
-    LOOP
-    c->Fi4(i,j,k) = 0.5*(c->Fi[FIJK]+c->Fi[FIJKp1]);
-    
-    pgc->start4(p,c->Fi4,1);
-    
-    
-    LOOP
-    {
-    c->u(i,j,k) = (c->Fi4(i+1,j,k)-c->Fi4(i-1,j,k))/(p->DXP[IP]+p->DXP[IM1]);
-    }
-    
-    LOOP
-    {
-	c->v(i,j,k) = ((c->Fi4(i,j+1,k)-c->Fi4(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1]));
-    }
-    
-    LOOP
-    {
-	c->w(i,j,k) = ((c->Fi4(i,j,k+1)-c->Fi4(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]));
-    }
-    
-    pgc->start4(p,c->u,1);
-	pgc->start4(p,c->v,1);
-	pgc->start4(p,c->w,1);
-    
-    c->u.ggcpol(p);
-	c->v.ggcpol(p);
-	c->w.ggcpol(p);
-    
-    LOOP
-    c->test(i,j,k) = c->Fifsf(i,j);
-    
     SLICELOOP4
     c->WL(i,j) = c->eta(i,j) + p->wd - c->bed(i,j);
 

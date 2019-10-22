@@ -40,6 +40,9 @@ flowfile_in::flowfile_in(lexer *p, ghostcell *pgc)
     maxk = Nk-dk;
     
     startup=0;
+    
+    q0=0;
+    q1=1;
     }
 }
 
@@ -62,11 +65,11 @@ void flowfile_in::flowfile_start(lexer *p, fdm *a, ghostcell *pgc, turbulence *p
         }
         
         // find q0
-        while(simtime[q0+1]<=p->simtime+p->I232)
+        while(simtime[q0+1]<=p->simtime+p->I241)
         ++q0;
         
         // find q1
-        while(simtime[q1]<p->simtime+p->I232)
+        while(simtime[q1]<p->simtime+p->I241)
         ++q1;
         
         q0=MIN(q0,entrycount);
@@ -96,23 +99,13 @@ void flowfile_in::flowfile_start(lexer *p, fdm *a, ghostcell *pgc, turbulence *p
         read1(p,a,pgc,pturb);
         }
         
-        // read ff0
-        // read ff1
-        /*
-        cout<<p->mpirank<<" X0: "<<X0[0][5]<<" X1: "<<X1[0][5]<<p->mpirank<<" Z0: "<<Z0[0][9]<<" Z1: "<<Z1[0][9]<<endl;
-        cout<<p->mpirank<<" U0: "<<U0[0][5]<<" U1: "<<U1[0][5]<<p->mpirank<<" LS0: "<<LS0[0][9]<<" LS1: "<<LS1[0][9]<<endl;
-        cout<<p->mpirank<<" W0: "<<W0[0][5]<<" W1: "<<W1[0][5]<<p->mpirank<<" P0: "<<P0[0][9]<<" P1: "<<P1[0][9]<<endl;*/
-        
+
         deltaT = simtime[q1]-simtime[q0];
 
-        t0 = (simtime[q1]-(p->simtime+p->I232))/deltaT;
-        t1 = ((p->simtime+p->I232)-simtime[q0])/deltaT;
+        t0 = (simtime[q1]-(p->simtime+p->I241))/deltaT;
+        t1 = ((p->simtime+p->I241)-simtime[q0])/deltaT;
     
     }
-    
-    /*cout<<"t0: "<<simtime[q0]<<" t1: "<<simtime[q1]<<endl;
-    cout<<"t0: "<<t0<<" t1: "<<t1<<endl;*/
-    
 }
 
 

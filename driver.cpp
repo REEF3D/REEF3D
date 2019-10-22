@@ -158,12 +158,7 @@ void driver::pfsg_driver()
 
     c=new fdm_fnpf(p);
 
-
-    p->flagini2D();
-    p->gridini2D();
-
-    pgc->sizeS_update(p);
-    pgc->column2D_pt4_update(p,c->C4);
+    makegrid_fnpf_cds(p,pgc);
 
     logic_fnpf_sg();
 }

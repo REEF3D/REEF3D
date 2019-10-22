@@ -34,7 +34,7 @@ void sediment_f::update(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow)
     
     p->sedtime+=p->dtsed;
     pgc->topo_update(p,a);
-    pflow->iogcb_update(p,a,pgc);
+    pflow->gcio_update(p,a,pgc);
 }
 
 void sediment_f::bedlevel(lexer *p, fdm *a, ghostcell *pgc)

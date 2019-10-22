@@ -113,3 +113,7 @@ void wave_lib_Stokes_2nd::parameters(lexer *p, ghostcell *pgc)
 {
     
 }
+
+void wave_lib_Stokes_2nd::wave_prestep(lexer *p, ghostcell *pgc)
+{
+}

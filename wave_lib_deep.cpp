@@ -104,3 +104,7 @@ void wave_lib_deep::parameters(lexer *p, ghostcell *pgc)
 {    
     
 }
+
+void wave_lib_deep::wave_prestep(lexer *p, ghostcell *pgc)
+{
+}

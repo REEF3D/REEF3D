@@ -28,74 +28,293 @@ void fnpf_sg_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
 {
     int ii,jj;
     
-    if(p->A350>=1)
+    if(p->A350>=0)
     SLICELOOP4
-    c->breaking(i,j)=0;
+    {
+    //c->breaking(i,j)=0;
+    bx(i,j)=0;
+    by(i,j)=0;
+    }
+    
+    pgc->gcsl_start4int(p,bx,50);
+    pgc->gcsl_start4int(p,by,50);
+    
+    
+    if((p->A351==2 || p->A351==3) && p->count>1)
+    {
+    SLICELOOP4
+    {
+        //cout<<c->Ex(i,j)<<endl;
+            // x
+            if(c->Ex(i,j)   < -p->A355)
+            {
+                ii=i;
+                
+                bx(i,j) = 10;
+                
+                    while(i>=0)
+                    {
+                     bx(i,j) = 10;
+                    //cout<<"breakmove"<<endl;
+                    if(c->Ex(i,j)   > p->A356*p->A355)
+                    {
+                    bx(i,j) = 1;
+                    break;
+                    }
+                    
+                    --i;    
+                    }
+                i=ii;
+            }
+            
+            if(c->Ex(i,j)   > p->A355)
+            {
+                ii=i;
+                
+                bx(i,j) = 20;
+                
+                    while(i<p->knox)
+                    {
+                     bx(i,j) = 20;
+                    
+                    if(c->Ex(i,j)   < -p->A356*p->A355)
+                    {
+                    bx(i,j) = 2;
+                    break;
+                    }
+                    
+                    ++i;    
+                    }
+                i=ii;
+            }
+            
+            // y
+            if(p->j_dir==1)
+            if( c->Ey(i,j)   < -p->A355)
+            {
+                jj=j;
+                
+                by(i,j) = 10;
+                
+                    while(j>=0)
+                    {
+                     by(i,j) = 10;
+                    
+                    if(c->Ey(i,j)   > p->A356*p->A355)
+                    {
+                    by(i,j) = 1;
+                    break;
+                    }
+                    
+                    --j;    
+                    }
+                j=jj;
+            }
+            
+            if(p->j_dir==1)
+            if( c->Ey(i,j)   > p->A355)
+            {
+                jj=i;
+                
+                by(i,j) = 20;
+                
+                    while(j<p->knoy)
+                    {
+                     by(i,j) = 20;
+                    
+                    if(c->Ey(i,j)   < -p->A356*p->A355)
+                    {
+                    by(i,j) = 2;
+                    break;
+                    } 
+                    
+                    ++j;    
+                    }
+                j=jj;
+            }
+            
+    }
+    
+    pgc->gcsl_start4int(p,bx,50);
+    pgc->gcsl_start4int(p,by,50);
+    
+    
+    // step 2
+    SLICELOOP4
+    {
+            // x
+            if( bx(i+1,j) == 10 && bx(i,j) == 0 && c->Ex(i,j)   < -p->A356*p->A355)
+            {
+                ii=i;
+                
+                bx(i,j) = 10;
+                
+                    while(i>=0)
+                    {
+                     bx(i,j) = 10;
+                    
+                    if( c->Ex(i,j)   > p->A356*p->A355)
+                    {
+                    bx(i,j) = 1;
+                    break;
+                    }
+                    
+                    --i;    
+                    }
+                i=ii;
+            }
+            
+            if( bx(i-1,j) == 20 && bx(i,j) == 0 && c->Ex(i,j)   > p->A356*p->A355)
+            {
+                ii=i;
+                
+                bx(i,j) = 20;
+                
+                    while(i<p->knox)
+                    {
+                     bx(i,j) = 20;
+                    
+                    if( c->Ex(i,j)   < -p->A356*p->A355)
+                    {
+                    bx(i,j) = 2;
+                    break;
+                    }
+                    
+                    ++i;    
+                    }
+                i=ii;
+            }
+            
+            
+            // y
+            if(p->j_dir==1)
+            if(by(i,j+1) == 10 && by(i,j) == 0 && c->Ey(i,j)   < -p->A356*p->A355)
+            {
+                jj=j;
+                
+                by(i,j) = 10;
+                
+                    while(j>=0)
+                    {
+                     by(i,j) = 10;
+                    
+                    if(c->Ey(i,j)   > p->A356*p->A355)
+                    {
+                    by(i,j) = 1;
+                    break;
+                    }
+                    
+                    --j;    
+                    }
+                j=jj;
+            }
+            
+            if(p->j_dir==1)
+            if(by(i,j-1) == 20 && by(i,j) == 0 && c->Ey(i,j)   > p->A356*p->A355)
+            {
+                jj=j;
+                
+                by(i,j) = 20;
+                
+                    while(j<p->knoy)
+                    {
+                     by(i,j) = 20;
+                    
+                    if(c->Ey(i,j)   < -p->A356*p->A355)
+                    {
+                    by(i,j) = 2;
+                    break;
+                    }
+                    
+                    ++j;    
+                    }
+                j=jj;
+            }
+    }
+    
+        SLICELOOP4
+        if(bx(i,j)>0 || by(i,j)>0)
+        {
+        c->breaking(i,j)=1;
+        //cout<<"breakmod:  "<<c->breaking(i,j)<<" . "<<i<<endl;
+        }
+    }
+    
+    
+    
     
     if((p->A351==1 || p->A351==3) && p->count>1)
     SLICELOOP4
     {
             
-            if( (eta(i,j)-eta_n(i,j))/(alpha*p->dt) > p->A354*sqrt(9.81*c->WL(i,j)))
+            if((eta(i,j)-eta_n(i,j))/(alpha*p->dt) > p->A354*sqrt(9.81*c->WL(i,j)))
             {
-            c->breaking(i,j)=1;
-            }
-    }
-    
-    if((p->A351==2 || p->A351==3) && p->count>1)
-    SLICELOOP4
-    {
-            
-            if( (eta(i+1,j)-eta(i-1,j))/(p->DXP[IM1] + p->DXP[IP])   < -p->A355)
-            {
-                c->breaking(i,j)=1;
-                c->breaking(i-1,j)=1;
-                c->breaking(i-2,j)=1;
-                c->breaking(i-3,j)=1;
-            }
-            
-            if( (eta(i+1,j)-eta(i-1,j))/(p->DXP[IM1] + p->DXP[IP])   > p->A355)
-            {
-                c->breaking(i,j)=1;
-                c->breaking(i+1,j)=1;
-                c->breaking(i+2,j)=1;
-                c->breaking(i+3,j)=1;
-            }
-            
-            if( (eta(i,j+1)-eta(i,j-1))/(p->DYP[JM1] + p->DYP[JP])   < -p->A355)
-            {
-                c->breaking(i,j)=1;
-                c->breaking(i,j-1)=1;
-                c->breaking(i,j-2)=1;
-                c->breaking(i,j-3)=1;
-             
-            }
-            
-            if( (eta(i,j+1)-eta(i,j-1))/(p->DYP[JM1] + p->DYP[JP])    > p->A355)
-            {
-                c->breaking(i,j)=1;
-                c->breaking(i,j+1)=1;
-                c->breaking(i,j+2)=1;
-                c->breaking(i,j+3)=1;
-            }
-            
-            
-    }
 
+                c->breaking(i-1,j)=2;
+                c->breaking(i,j)=2;
+                c->breaking(i+1,j)=2;
+                
+                if(p->j_dir==1)
+                {
+                c->breaking(i,j-1)=2;
+                c->breaking(i,j+1)=2;
+                }
+            }
+    }
     
+    
+    
+    // -------------------
     if(p->A350==1)
     {
         SLICELOOP4
         c->vb(i,j) = 0.0;
         
+        /*SLICELOOP4
+        if(p->XP[IP]>16.0 && p->XP[IP]<19.0)
+        c->vb(i,j) = 1.0;//*(p->XP[IP]-16.0)/3.0;*/
+        /*if(i==300 && p->mpirank==0)
+        {
+        c->vb(i-1,j) = 0.9;   
+        c->vb(i,j) = 1.8;
+        c->vb(i+1,j) = 0.9;
+        }*/
+        
+        if(p->j_dir==0)
         SLICELOOP4
         {   
             
-            if(c->breaking(i,j)==1 || c->breaking(i-1,j)==1 || c->breaking(i+1,j)==1 || c->breaking(i,j-1)==1 || c->breaking(i,j+1)==1)
-            {
-            c->vb(i,j) = p->A365;
-            }   
+            if(c->breaking(i,j)>=1 || c->breaking(i-1,j)>=1 || c->breaking(i+1,j)>=1)
+            c->vb(i,j) = p->A365*double(c->breaking(i,j));
+            
+            if(c->breaking(i,j)==0 &&(c->breaking(i-2,j)>=1 || c->breaking(i+2,j)>=1))
+            c->vb(i,j) = 0.5*p->A365;
         }
+
+        if(p->j_dir==1)
+        SLICELOOP4
+        {   
+            
+            if(c->breaking(i,j)>=1 || c->breaking(i-1,j)>=1 || c->breaking(i+1,j)>=1 || c->breaking(i,j-1)>=1 || c->breaking(i,j+1)>=1)
+            c->vb(i,j) = p->A365*double(c->breaking(i,j));
+            
+            if(c->breaking(i,j)==0 &&( c->breaking(i-1,j-1)>=1 || c->breaking(i-1,j+1)>=1 || c->breaking(i+1,j-1)>=1 || c->breaking(i+1,j+1)>=1
+           || c->breaking(i-2,j)>=1 || c->breaking(i+2,j)>=1 || c->breaking(i,j-2)>=1 || c->breaking(i,j+2)>=1))
+            c->vb(i,j) = 0.5*p->A365;
+        }
+        
+        if(p->j_dir==0)
+        for(int qn=0;qn<10;++qn)
+        SLICELOOP4  
+        c->vb(i,j) = 0.5*c->vb(i,j) + 0.25*(c->vb(i-1,j) + c->vb(i+1,j));
+        
+        
+        if(p->j_dir==1)
+        for(int qn=0;qn<10;++qn)
+        SLICELOOP4  
+        c->vb(i,j) = 0.5*c->vb(i,j) + 0.125*(c->vb(i-1,j) + c->vb(i+1,j) + c->vb(i,j-1) + c->vb(i,j+1));
+        
+    pgc->gcsl_start4(p,c->vb,1);
     }
     
     if(p->A350==2)
@@ -107,7 +326,6 @@ void fnpf_sg_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
          filter(p,c,pgc,Fifsf);
         }   
     }
-    
 }
 
 void fnpf_sg_fsfbc_wd::filter(lexer *p, fdm_fnpf *c,ghostcell *pgc, slice &f)

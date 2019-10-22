@@ -219,3 +219,7 @@ void wave_lib_flap::read(lexer *p, ghostcell* pgc)
     cout<<kinematics[qn][1]<<" "<<kinematics[qn][2]<<endl;
     */
 }
+
+void wave_lib_flap::wave_prestep(lexer *p, ghostcell *pgc)
+{
+}

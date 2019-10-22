@@ -83,6 +83,9 @@ fnpf_sg_RK4::~fnpf_sg_RK4()
 
 void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
 {	
+    if(p->A350>=0)
+    SLICELOOP4
+    c->breaking(i,j)=0;
     
 // Step 1
     pflow->inflow_fnpf(p,pgc,c->Fi,c->Uin,c->Fifsf,c->eta);
@@ -305,6 +308,9 @@ void fnpf_sg_RK4::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     bedbc_sig(p,c,pgc,c->Fi,pf);
     velcalc_sig(p,c,pgc,c->Fi);
+    
+    pf->coastline(p,c,pgc,c->eta);
+    pf->coastline(p,c,pgc,c->Fifsf);
 
 }
 

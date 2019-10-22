@@ -154,3 +154,7 @@ void wave_lib_solitary_3rd::parameters(lexer *p, ghostcell *pgc)
 	cout<<"X0: "<<X0<<endl;
     
 }
+
+void wave_lib_solitary_3rd::wave_prestep(lexer *p, ghostcell *pgc)
+{
+}

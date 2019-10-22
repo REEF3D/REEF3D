@@ -835,7 +835,7 @@ void ghostcell::cval_update6(lexer* p, fdm* a, fieldint &cval6)
     j=p->gcpara2[n][1];
     k=p->gcpara2[n][2];
         
-       // if(p->gcpara2[n][6]==1)
+        if(p->gcpara2[n][6]==1)
 		for(q=0;q<margin;++q)
         {
         cval6(i,j+1+q,k)=count;
@@ -849,7 +849,7 @@ void ghostcell::cval_update6(lexer* p, fdm* a, fieldint &cval6)
     j=p->gcpara3[n][1];
     k=p->gcpara3[n][2];
         
-       // if(p->gcpara3[n][6]==1)
+        if(p->gcpara3[n][6]==1)
 		for(q=0;q<margin;++q)
         {
         cval6(i,j-1-q,k)=count;
@@ -863,7 +863,7 @@ void ghostcell::cval_update6(lexer* p, fdm* a, fieldint &cval6)
     j=p->gcpara4[n][1];
     k=p->gcpara4[n][2];
         
-        //if(p->gcpara4[n][6]==1)
+        if(p->gcpara4[n][6]==1)
 		for(q=0;q<margin;++q)
         {
         cval6(i+1+q,j,k)=count;
@@ -877,7 +877,7 @@ void ghostcell::cval_update6(lexer* p, fdm* a, fieldint &cval6)
     j=p->gcpara5[n][1];
     k=p->gcpara5[n][2];
         
-        //if(p->gcpara5[n][6]==1)
+        if(p->gcpara5[n][6]==1)
 		for(q=0;q<margin;++q)
         {
         cval6(i,j,k-1-q)=count;
@@ -891,7 +891,7 @@ void ghostcell::cval_update6(lexer* p, fdm* a, fieldint &cval6)
     j=p->gcpara6[n][1];
     k=p->gcpara6[n][2];
         
-        //if(p->gcpara6[n][6]==1)
+        if(p->gcpara6[n][6]==1)
 		for(q=0;q<margin;++q)
         {
         cval6(i,j,k+1+q)=count;

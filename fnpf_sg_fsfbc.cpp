@@ -43,7 +43,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_jacobi_block.h"
 #include"hypre_struct2D.h"
 
-fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : Fxx(p)
+fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p)
 {    
     if(p->A311==0)
     pconvec = pconeta = new fnpf_voiddisc(p);
@@ -85,7 +85,6 @@ fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : Fxx(p)
     c->Eyy(i,j) = 0.0;
     c->By(i,j) = 0.0;
     c->Byy(i,j) = 0.0;
-    
     }
     
     
@@ -139,8 +138,10 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     c->Ex(i,j) = pconeta->sx(p,eta,ivel);
     
     c->Exx(i,j) = pddx->sxx(p,eta);
-    Fxx(i,j) = pddx->sxx(p,Fifsf);
     }
+    
+    pgc->gcsl_start4(p,c->Ex,1);
+    pgc->gcsl_start4(p,c->Ey,1);
 }
 
 void fnpf_sg_fsfbc::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
@@ -190,7 +191,7 @@ void fnpf_sg_fsfbc::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     SLICELOOP4
     c->K(i,j) =  - c->Fx(i,j)*c->Ex(i,j) - c->Fy(i,j)*c->Ey(i,j)
     
-                 + c->Fz(i,j)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0));// + c->vb(i,j)*c->Exx(i,j);
+                 + c->Fz(i,j)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0));
 }
 
 void fnpf_sg_fsfbc::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
@@ -198,7 +199,7 @@ void fnpf_sg_fsfbc::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
     SLICELOOP4
     c->K(i,j) =  - 0.5*c->Fx(i,j)*c->Fx(i,j) - 0.5*c->Fy(i,j)*c->Fy(i,j)
     
-                 + 0.5*pow(c->Fz(i,j),2.0)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0)) - fabs(p->W22)*eta(i,j);// + c->vb(i,j)*Fxx(i,j);
+                 + 0.5*pow(c->Fz(i,j),2.0)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0)) - fabs(p->W22)*eta(i,j);
 }
 
 

@@ -46,7 +46,7 @@ void geotopo::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection*
     preto->start(a,p,a->topo,pconvec,pgc);
 
     pgc->topo_update(p,a);
-    pflow->iogcb_update(p,a,pgc);
+    pflow->gcio_update(p,a,pgc);
 }
 
 

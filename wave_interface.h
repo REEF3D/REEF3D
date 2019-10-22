@@ -72,6 +72,8 @@ public:
     double wave_fi_space_cos(lexer*,ghostcell*,double,double,double,int);
     double wave_fi_time_sin(lexer*,ghostcell*,int);
     double wave_fi_time_cos(lexer*,ghostcell*,int);
+    
+    void wave_prestep(lexer*,ghostcell*);
 
 
 private:

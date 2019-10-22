@@ -42,10 +42,17 @@ public:
 	void mgcsetup(lexer*);
 	void gcdirfill(lexer*);
 	void fillmgc(lexer*);
+    
+    // ggc
 	void make_ggc(lexer*);
 	void fill_ggc(lexer*);
 	void gcsidefill(lexer*);
 	void check_gcb_nbx(lexer*,ghostcell*);
+    
+    // dgc
+    void make_dgc(lexer*);
+    void fill_dgc(lexer*);
+    
 	
 	int imin,imax,jmax,jmin,kmin,kmax;
 	int gcdirsize;
@@ -54,6 +61,8 @@ public:
 private:
 	int di,dj,dk;
 	int qn;
+    
+    int *hgc;
 	
 };
 

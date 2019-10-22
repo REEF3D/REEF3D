@@ -170,3 +170,7 @@ void wave_lib_flap_eta::read(lexer *p, ghostcell* pgc)
 	
 	    
 }
+
+void wave_lib_flap_eta::wave_prestep(lexer *p, ghostcell *pgc)
+{
+}

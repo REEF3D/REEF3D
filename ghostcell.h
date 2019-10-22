@@ -75,6 +75,14 @@ public:
 	double timesync(double);
 	void globalctrl(lexer*);
 	void dgcpol(lexer*,field&, int**,int, int);
+    
+    void dgcpol1(lexer*,field&, int);
+    void dgcpol2(lexer*,field&, int);
+    void dgcpol3(lexer*,field&, int);
+    void dgcpol4(lexer*,field&, int);
+    void dgcpol4a(lexer*,field&, int);
+    void dgcpol6(lexer*,field&, int);
+    
     void dgcslpol(lexer*, slice&, int**,int, int);
     void dgcslpol1(lexer*, slice&);
     void dgcslpol2(lexer*, slice&);
@@ -88,10 +96,6 @@ public:
     void sigmax(lexer*,fdm*,double*);
     void rangex(lexer*,int*,int);
 	void gcxupdate(lexer*);
-	void dgcini1(lexer*);
-	void dgcini2(lexer*);
-	void dgcini3(lexer*);
-	void dgcini4(lexer*);
 
     void dgcslini1(lexer*);
 	void dgcslini2(lexer*);
@@ -183,7 +187,6 @@ public:
 	void solid_update(lexer*,fdm*);
 	void gcsolid_gcb_remove(lexer*,fdm*);
 	void gcsolid_gcb_seed(lexer*,fdm*);
-	void gcsolid_gcb_iocs(lexer*,fdm*);
 	void gcsolid_gcb_dist(lexer*,fdm*);
 	void gcsolid_buildflag(lexer*,fdm*, int&);
 	void gcsolid_velflag1(lexer*,fdm*, int&);
@@ -194,7 +197,6 @@ public:
 	void topo_update(lexer*,fdm*);
 	void gcb_remove(lexer*,fdm*);
 	void gcb_seed(lexer*,fdm*);
-	void gcb_iocs(lexer*,fdm*);
 	void gcb_distbed(lexer*,fdm*);
 	void gcb_buildflag(lexer*,fdm*, int**, int&);
 	void gcb_velflag1(lexer*,fdm*, int **, int&);
@@ -410,6 +412,8 @@ public:
     void kinematic_bed(lexer*,field&,double,int,int,int);
     void fivec(lexer*,double*,sliceint&);
     void fivec2D(lexer*,double*,sliceint&);
+    void fivec_vel(lexer*,double*,sliceint&);
+    void fivec2D_vel(lexer*,double*,sliceint&);
 
 	void gcV_neumann(vec&,int,int,int,int);
 	void gcV_lsm(lexer*,vec&, double,int,int,int,int);

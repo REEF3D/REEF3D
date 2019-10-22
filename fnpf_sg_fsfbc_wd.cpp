@@ -42,7 +42,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_sg_coastline.h"
 #include"sflow_bicgstab.h"
 
-fnpf_sg_fsfbc_wd::fnpf_sg_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) 
+fnpf_sg_fsfbc_wd::fnpf_sg_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p)
 {    
     if(p->A311==0)
     pconvec = pconeta = new fnpf_voiddisc(p);
@@ -196,10 +196,6 @@ void fnpf_sg_fsfbc_wd::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     c->K(i,j) =  - dEdF_x - dEdF_y
     
                  + c->Fz(i,j)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0));
-     /*           
-    if(c->wet(i-1,j)==0 || c->wet(i+1,j)==0 || c->wet(i,j-1)==0 || c->wet(i,j+1)==0 
-  || c->wet(i-1,j-1)==0 || c->wet(i+1,j-1)==0 || c->wet(i-1,j+1)==0 || c->wet(i+1,j+1)==0)
-      c->K(i,j) = c->Fz(i,j);*/
     }
 }
 
@@ -215,10 +211,6 @@ void fnpf_sg_fsfbc_wd::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
     c->K(i,j) =  - 0.5*dFdF_x - 0.5*dFdF_y
     
                  + 0.5*pow(c->Fz(i,j),2.0)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0)) - fabs(p->W22)*eta(i,j);
-       /*          
-    if(c->wet(i-1,j)==0 || c->wet(i+1,j)==0 || c->wet(i,j-1)==0 || c->wet(i,j+1)==0 
-  || c->wet(i-1,j-1)==0 || c->wet(i+1,j-1)==0 || c->wet(i-1,j+1)==0 || c->wet(i+1,j+1)==0)
-      c->K(i,j) =  - fabs(p->W22)*eta(i,j);*/
     }
 }
 

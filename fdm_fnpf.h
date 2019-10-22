@@ -44,9 +44,7 @@ public:
 
     fdm_fnpf(lexer*);
    
-    field4 u,v,w,press;
-    field4 Fi4;
-    field4 test;
+    field4 press,test;
     fieldint5 nodeval;
     
     slice4 eta,eta_n,WL;
@@ -71,7 +69,7 @@ public:
 	
     vec rhsvec;
     vec2D xvec,rvec;
-    double *Fi,*Uin,*Uout;
+    double *Fi,*Uin,*Uout,*U,*V,*W;
 
     matrix2D N;
 	matrix_diag M;    

@@ -655,6 +655,7 @@
         <File Name="nhflow.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Wave Lib">
+        <File Name="wave_lib_wcp.h"/>
         <File Name="wave_lib_flap_eta.h"/>
         <File Name="wave_lib.h"/>
         <File Name="wave_lib_cnoidal_1st.h"/>
@@ -1498,6 +1499,11 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
       <VirtualDirectory Name="Epol">
+        <File Name="gc_dgcpol4.cpp"/>
+        <File Name="gc_dgcpol3.cpp"/>
+        <File Name="gc_dgcpol2.cpp"/>
+        <File Name="gc_dgcpol1.cpp"/>
+        <File Name="gc_dgcpol.cpp"/>
         <File Name="gc_debug.cpp"/>
         <File Name="gc_fivec.cpp"/>
         <File Name="gc_kinematic_bed.cpp"/>
@@ -1524,7 +1530,6 @@
         <File Name="gc_fbvel.cpp"/>
         <File Name="gc_fbpress.cpp"/>
         <File Name="gc_gravity_press.cpp"/>
-        <File Name="gc_dgc.cpp"/>
         <File Name="gc_lsm.cpp"/>
         <File Name="gc_neumann.cpp"/>
         <File Name="gc_nse1.cpp"/>
@@ -1540,7 +1545,6 @@
         <File Name="gc_minmax.cpp"/>
         <File Name="gc_tpflagfield.cpp"/>
         <File Name="gc_ndflag.cpp"/>
-        <File Name="gc_dgcini.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="IBM">
         <File Name="gcibm_ccstate.cpp"/>
@@ -2123,6 +2127,16 @@
         <File Name="nhflow_f.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Wave Lib">
+        <VirtualDirectory Name="WCP">
+          <File Name="wave_lib_wcp_pos_ijk.cpp"/>
+          <File Name="wave_lib_wcp_allocate.cpp"/>
+          <File Name="wave_lib_wcp_filename.cpp"/>
+          <File Name="wave_lib_wcp_space_interpol.cpp"/>
+          <File Name="wave_lib_wcp_read_result.cpp"/>
+          <File Name="wave_lib_wcp_read_header.cpp"/>
+          <File Name="wave_lib_wcp_time_interpol.cpp"/>
+        </VirtualDirectory>
+        <File Name="wave_lib_wcp.cpp"/>
         <File Name="wave_lib_flap_eta.cpp"/>
         <VirtualDirectory Name="Interface">
           <File Name="wave_interface_decomp.cpp"/>
@@ -2207,6 +2221,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
           <VirtualDirectory Name="State">
+            <File Name="fnpf_state_mainheader.cpp"/>
             <File Name="fnpf_state_header.cpp"/>
             <File Name="fnpf_state_write.cpp"/>
             <File Name="fnpf_state_filename.cpp"/>

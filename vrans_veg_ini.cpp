@@ -49,9 +49,9 @@ void vrans_veg::initialize(lexer *p, fdm *a, ghostcell *pgc)
 	// Box
     for(qn=0;qn<p->B310;++qn)
     ALOOP
-	if(p->XN[IP]+p->originx>=p->B310_xs[qn] && p->XN[IP]+p->originx<p->B310_xe[qn]
-	&& p->YN[JP]+p->originy>=p->B310_ys[qn] && p->YN[JP]+p->originy<p->B310_ye[qn]
-	&& p->ZN[KP]+p->originz>=p->B310_zs[qn] && p->ZN[KP]+p->originz<p->B310_ze[qn])
+	if(p->XN[IP]>=p->B310_xs[qn] && p->XN[IP]<p->B310_xe[qn]
+	&& p->YN[JP]>=p->B310_ys[qn] && p->YN[JP]<p->B310_ye[qn]
+	&& p->ZN[KP]>=p->B310_zs[qn] && p->ZN[KP]<p->B310_ze[qn])
 	{
 	N(i,j,k) = p->B310_N[qn];
 	D(i,j,k) = p->B310_D[qn];

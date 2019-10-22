@@ -354,7 +354,7 @@ void vtu3D::print_vtu(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *p
 	pgc->dgcpol(p,a->w,p->dgc3,p->dgc3_count,13);
 	pgc->dgcpol(p,a->press,p->dgc4,p->dgc4_count,14);
 	pgc->dgcpol(p,a->eddyv,p->dgc4,p->dgc4_count,14);
-	pgc->dgcpol(p,a->phi,p->dgc4,p->dgc4_count,14);
+	pgc->dgcpol4(p,a->phi,14);
 	pgc->dgcpol(p,a->ro,p->dgc4,p->dgc4_count,14);
 	pgc->dgcpol(p,a->visc,p->dgc4,p->dgc4_count,14);
 	pgc->dgcpol(p,a->conc,p->dgc4,p->dgc4_count,14);
@@ -392,7 +392,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	pgc->dgcpol(p,a->w,p->dgc3,p->dgc3_count,13);
 	pgc->dgcpol(p,a->press,p->dgc4,p->dgc4_count,14);
 	pgc->dgcpol(p,a->eddyv,p->dgc4,p->dgc4_count,14);
-	pgc->dgcpol(p,a->phi,p->dgc4,p->dgc4_count,14);
+	pgc->dgcpol4(p,a->phi,14);
 	pgc->dgcpol(p,a->ro,p->dgc4,p->dgc4_count,14);
 	pgc->dgcpol(p,a->visc,p->dgc4,p->dgc4_count,14);
 	pgc->dgcpol(p,a->conc,p->dgc4,p->dgc4_count,14);

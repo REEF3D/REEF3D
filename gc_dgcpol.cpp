@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"field.h"
 
 void ghostcell::dgcpol(lexer* p,field& f,int **dgc, int dgc_count, int gcv)
-{
+{/*
     double val0,val1,val2,val3,val4,val5,val6;
     int aa,bb,cc;
     int acheck,bcheck,ccheck;
@@ -585,5 +585,5 @@ void ghostcell::dgcpol(lexer* p,field& f,int **dgc, int dgc_count, int gcv)
 
 
     }
-
+*/
 }

@@ -29,7 +29,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 wave_lib_spectrum::wave_lib_spectrum()
 {
-
 }
 
 wave_lib_spectrum::~wave_lib_spectrum()

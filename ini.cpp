@@ -77,8 +77,8 @@ void lexer::ini_default()
     A351=0;      // int type of breaking detection (deep / shallow)
     
     A354=0.6;    // double breaking parameter alpha
-    A355=1.25;   // double breaking parameter slope
-    A356=0.3;    // double breaking persistence parameter beta
+    A355=1.25;   // double breaking parameter slope alpha
+    A356=0.1;   // double breaking parameter slope beta
     
     A361=5;      // int breaking filter outer iter
     A362=2;      // int breaking filter inner iter
@@ -386,11 +386,12 @@ void lexer::ini_default()
 	I58_1=0.0;      // double vertical velocity for sphere initialization
 	I58_2=0.0;      // double radius for sphere initialization
     I230=0;         // int read 2D flowfile
-    I231=0.0;       // double delta z for 2D/3D flowfile
-    I232=0.0;       // double delta t for 2D/3D flowfile
-    I240=0;         // int read 2D flowfile
-    I241=0.0;       // double delta z for 2D/3D flowfile
-    I242=0.0;       // double delta t for 2D/3D flowfile
+    I231=0.0;       // double starting x for flowfile
+    I232=0.0;       // double starting y for flowfile
+    I233=0.0;       // double starting z for flowfile
+    I240=0;         // int read flowfile
+    I241=0.0;       // double delta t for flowfile
+    I242=0.0;       // double delta t for flowfile
 
     // Nunmerics
 	N5=1;			// int true 2D
@@ -405,6 +406,9 @@ void lexer::ini_default()
 	N16=1;			// int iteration limit for gcupdate gcupdate 
 	N17=0.5;		// double relaxation factor
 	N18=1.0e-10;	// double stopping criteria precon
+    N21=0;         // int PFMG skip relax
+    N22=3;         // int PFMG relax type
+    N23=0;         // int PFMG RAP type
 	N40=1;			// int time scheme
 	N41=1.0e+19; 	// double total time
 	N42=3;			// int RK3 scheme
@@ -667,7 +671,7 @@ void lexer::ini_default()
 	// Developer 
 	Y40=3;
     Y50=5;
-	Y60=0;
+	Y60=1;  // int require 
     Y71=0;  // int turn on/off solid gcparax
     Y72=0;  // int turn on/off solid gcparax
     Y73=0;  // int turn on/off solid gcparax

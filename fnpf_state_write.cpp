@@ -30,110 +30,48 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void fnpf_state::write(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
- 
+    // mainheader file
+    if(p->mpirank==0)
+    mainheader(p,c,pgc);
+    
+    
     // Open File
 	int num=0;
 
-    if(p->P15==1)
+    if(p->P15>=1)
     num = printcount;
 
-    if(p->P15==2)
-    num = printcount;
-	
-	if(p->P40==1)
-	num=0;
-    
-    //header
-    header_ini(p,c,pgc);
     
     // result file
     filename(p,c,pgc,num);
 	 
 	ofstream result;
 	result.open(name, ios::binary);
-	
-    // origin_xyz
-    ddn=p->originx;
-    result.write((char*)&ddn, sizeof (double));
-    
-    ddn=p->originy;
-    result.write((char*)&ddn, sizeof (double));
-    
-    ddn=p->originz;
-    result.write((char*)&ddn, sizeof (double));
-    
-    // origin_ijk
-    iin=p->origin_i;
-    result.write((char*)&iin, sizeof (int));
-    
-    iin=p->origin_j;
-    result.write((char*)&iin, sizeof (int));
-    
-    iin=p->origin_k;
-    result.write((char*)&iin, sizeof (int));
-    
-    // Nx,Ny,Nz
-    iin=p->knox;
-    result.write((char*)&iin, sizeof (int));
-    
-    iin=p->knoy;
-    result.write((char*)&iin, sizeof (int));
-    
-    iin=p->knoz;
-    result.write((char*)&iin, sizeof (int));
-    
-    
 
-    
-    ILOOP
-    {
-    ffn=p->XP[IP];
-    result.write((char*)&ffn, sizeof (float));
-    } 
-    
-    JLOOP
-    {
-    ffn=p->YP[JP];
-    result.write((char*)&ffn, sizeof (float));
-    } 
-    
-    KLOOP
-    {
-    ffn=p->ZP[KP];
-    result.write((char*)&ffn, sizeof (float));
-    } 
     
     SLICELOOP4
     {
-    ffn=c->eta(i,j);
+    ffn=float(c->eta(i,j));
     result.write((char*)&ffn, sizeof (float));
     } 
     
-    SLICELOOP4
+    FLOOP
     {
-    ffn=c->bed(i,j);
-    result.write((char*)&ffn, sizeof (float));
-    } 
-    
-    LOOP
-    {
-    ffn=c->u(i,j,k);
+    ffn=float(c->U[FIJK]);
     result.write((char*)&ffn, sizeof (float));
     } 
 
-	LOOP
+	FLOOP
     {
-    ffn=c->v(i,j,k);
+    ffn=float(c->V[FIJK]);
     result.write((char*)&ffn, sizeof (float));
     } 
 
-	LOOP
+	FLOOP
     {
-    ffn=c->w(i,j,k);
+    ffn=float(c->W[FIJK]);
     result.write((char*)&ffn, sizeof (float));
     } 
-	
-	
 	
 	
 	result.close();

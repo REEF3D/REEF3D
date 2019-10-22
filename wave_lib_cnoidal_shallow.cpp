@@ -158,3 +158,7 @@ void wave_lib_cnoidal_shallow::parameters(lexer *p, ghostcell *pgc)
 	}
     
 }
+
+void wave_lib_cnoidal_shallow::wave_prestep(lexer *p, ghostcell *pgc)
+{
+}

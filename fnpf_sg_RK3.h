@@ -56,6 +56,7 @@ private:
     fnpf_sg_fsf *pf;
     
     int gcval_sl;
+    double t0;
 
 };
 
