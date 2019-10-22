@@ -390,7 +390,7 @@ void ghostcell::column2D_pt4(lexer* p, sliceint &cval4, cpt2D &C4)
 			C4.e[n] = cval4(i,j-q-2); 
 			C4.w[n] = cval4(i,j-q); 
 			}
-
+        cout<<p->mpirank<<"  veclength: "<<p->vec2Dlength<<" n: "<<n<<endl;
         ++n;
         }
 

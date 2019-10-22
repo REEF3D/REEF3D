@@ -49,5 +49,6 @@ void lexer::grid2Dsize()
     
     C1_2D_size=C2_2D_size=C4_2D_size=M_2D_size=vec2Dlength;
     
+    cout<<mpirank<<" SLICENUM: "<<slicenum<<" gcbnum: "<<gcbnum<<" gcparanum: "<<gcparanum<<endl;
     
 }
