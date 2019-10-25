@@ -140,17 +140,27 @@ void pjm_corr::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
 
 void pjm_corr::presscorr(lexer* p, fdm* a, field& uvel, field& vvel, field& wvel, field& pcorr, double alpha)
 {
-    double velCorr;
+    double velCorr, rhoU, rhoV, rhoW;
 
     LOOP
     {
+        rhoU = pd->roface(p,a,1,0,0)*uvel(i,j,k); 
+        i--;
+        rhoU -= pd->roface(p,a,1,0,0)*uvel(i,j,k);
+        i++;
+        
+        rhoV = pd->roface(p,a,0,1,0)*vvel(i,j,k); 
+        j--;
+        rhoV -= pd->roface(p,a,0,1,0)*vvel(i,j,k);
+        j++;
+
+        rhoW = pd->roface(p,a,0,0,1)*wvel(i,j,k); 
+        k--;
+        rhoW -= pd->roface(p,a,0,0,1)*wvel(i,j,k);
+        k++;
+
         velCorr =  
-            (a->visc(i,j,k) + a->eddyv(i,j,k)) *
-            (
-                (uvel(i,j,k) - uvel(i-1,j,k))/p->DXN[IP]
-			  + (vvel(i,j,k) - vvel(i,j-1,k))/p->DYN[JP]
-			  + (wvel(i,j,k) - wvel(i,j,k-1))/p->DZN[KP]
-            );
+            (a->visc(i,j,k) + a->eddyv(i,j,k))*(rhoU/p->DXN[IP] + rhoV/p->DYN[JP] + rhoW/p->DZN[KP]);
                            
         a->press(i,j,k) += pcorr(i,j,k) - velCorr;
     }
