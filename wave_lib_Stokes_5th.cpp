@@ -695,3 +695,7 @@ void wave_lib_Stokes_5th::parameters(lexer *p, ghostcell *pgc)
     e4 = (tanh(wk*wd)*(8.0 + 12.0*S - 152.0*S*S - 308.0*pow(S,3.0) - 42.0*pow(S,4.0) + 77.0*pow(S,5.0)))/(32.0*pow(1.0 - S, 5.0));
     
 }
+
+void wave_lib_Stokes_5th::wave_prestep(lexer *p, ghostcell *pgc)
+{
+}

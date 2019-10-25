@@ -248,3 +248,7 @@ void wave_lib_flap_double::read(lexer *p, ghostcell* pgc)
     */
 	    
 }
+
+void wave_lib_flap_double::wave_prestep(lexer *p, ghostcell *pgc)
+{
+}

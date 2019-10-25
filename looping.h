@@ -163,7 +163,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 
 #define ITPLOOP for(i=-1; i<p->knox; ++i)
 #define JTPLOOP for(j=-1; j<p->knoy; ++j)
-#define KTPLOOP for(k=-1; k<p->knoz+p->flast; ++k)
+#define KTPLOOP for(k=-1; k<p->knoz; ++k)
 #define TPCHECK  if(p->tpflag[IJK]>0)
 #define TPLOOP ITPLOOP JTPLOOP KTPLOOP TPCHECK
 

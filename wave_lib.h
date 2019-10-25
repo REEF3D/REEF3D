@@ -65,6 +65,7 @@ public:
     
     
     virtual void parameters(lexer*,ghostcell*)=0;
+    virtual void wave_prestep(lexer*,ghostcell*)=0;
 
 };
 

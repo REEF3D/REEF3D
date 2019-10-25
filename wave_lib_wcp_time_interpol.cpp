@@ -19,29 +19,35 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_state.h"
+#include"wave_lib_wcp.h"
 #include"lexer.h"
-#include"fdm_fnpf.h"
-#include"ghostcell.h"
-#include<iostream>
-#include<fstream>
-#include<sys/stat.h>
-#include<sys/types.h>
 
-fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
-{	
-	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_FNPF_State",0777);
-	
-	printcount=0;
-    
-    if(p->mpirank==0)
-    mainheader_ini(p,c,pgc);
-    
-    header(p,c,pgc);
-}
-
-fnpf_state::~fnpf_state()
+void wave_lib_wcp::time_interpol(lexer *p)
 {
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    E[i][j] = E1[i][j]*t1 + E2[i][j]*t2;
+    
+
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    for(k=0; k<Nz; ++k)
+    U[i][j][k] = U1[i][j][k]*t1 + U2[i][j][k]*t2;
+    
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    for(k=0; k<Nz; ++k)
+    V[i][j][k] = V1[i][j][k]*t1 + V2[i][j][k]*t2;
+    
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    for(k=0; k<Nz; ++k)
+    W[i][j][k] = W1[i][j][k]*t1 + W2[i][j][k]*t2;
+    
+    
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    for(k=0; k<Nz; ++k)
+    Z[i][j][k] = Zsig[k]*(E[i][j]+p->wd-B[i][j]);
+    
 }

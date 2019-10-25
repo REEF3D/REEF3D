@@ -75,6 +75,7 @@ public:
     
     
     virtual void parameters(lexer*,ghostcell*);
+    virtual void wave_prestep(lexer*,ghostcell*);
     
 private:
     double a11,a22,a31,a33,a42,a44,a51,a53,a55;

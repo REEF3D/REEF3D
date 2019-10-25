@@ -19,29 +19,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_state.h"
+#include"wave_lib_wcp.h"
 #include"lexer.h"
-#include"fdm_fnpf.h"
-#include"ghostcell.h"
-#include<iostream>
-#include<fstream>
-#include<sys/stat.h>
-#include<sys/types.h>
 
-fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
-{	
-	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_FNPF_State",0777);
-	
-	printcount=0;
-    
-    if(p->mpirank==0)
-    mainheader_ini(p,c,pgc);
-    
-    header(p,c,pgc);
-}
-
-fnpf_state::~fnpf_state()
+void wave_lib_wcp::allocate(lexer *p, ghostcell *pgc)
 {
+    p->Darray(U1,Nx,Ny,Nz);
+    p->Darray(U2,Nx,Ny,Nz);
+    p->Darray(U,Nx,Ny,Nz);
+    
+    p->Darray(V1,Nx,Ny,Nz);
+    p->Darray(V2,Nx,Ny,Nz);
+    p->Darray(V,Nx,Ny,Nz);
+    
+    p->Darray(W1,Nx,Ny,Nz);
+    p->Darray(W2,Nx,Ny,Nz);
+    p->Darray(W,Nx,Ny,Nz);
+    
+    p->Darray(E1,Nx,Ny);
+    p->Darray(E2,Nx,Ny);
+    p->Darray(E,Nx,Ny);
 }

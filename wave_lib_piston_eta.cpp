@@ -165,6 +165,8 @@ void wave_lib_piston_eta::read(lexer *p, ghostcell* pgc)
 	ts = eta[0][0];
 	te = eta[ptnum-1][0];
 	
-	
-	    
+}
+
+void wave_lib_piston_eta::wave_prestep(lexer *p, ghostcell *pgc)
+{
 }

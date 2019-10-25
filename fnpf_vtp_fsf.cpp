@@ -180,13 +180,25 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     TPSLICELOOP
 	{
     k = p->knoz-1;
-	ffn=float(p->ipol4(c->u));
+	
+	ffn=float(c->U[FIJKp1]);
+    
+    if(k==-1 && j==-1)
+	ffn=float(c->U[FIJp1Kp1]);
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(p->ipol4(c->v));
+
+	ffn=float(c->V[FIJKp1]);
+    
+    if(k==-1 && j==-1)
+	ffn=float(c->V[FIJp1Kp1]);
 	result.write((char*)&ffn, sizeof (float));
-	
-	ffn=float(p->ipol4(c->w));
+
+
+	ffn=float(c->W[FIJKp1]);
+    
+    if(k==-1 && j==-1)
+	ffn=float(c->W[FIJp1Kp1]);
 	result.write((char*)&ffn, sizeof (float));
 	}
     

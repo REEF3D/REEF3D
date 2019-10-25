@@ -19,62 +19,53 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_state.h"
+#include"wave_lib_wcp.h"
 #include"lexer.h"
-#include"fdm_fnpf.h"
-#include"ghostcell.h"
-#include<iostream>
-#include<fstream>
-#include<sys/stat.h>
-#include<sys/types.h>
 
-void fnpf_state::write(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+void wave_lib_wcp::read_result(lexer *p, ghostcell *pgc, double **E0, double ***U0, double ***V0, double ***W0, int q0)
 {
-    // mainheader file
-    if(p->mpirank==0)
-    mainheader(p,c,pgc);
+    filename(p,pgc,q0);
     
-    
-    // Open File
-	int num=0;
-
-    if(p->P15>=1)
-    num = printcount;
-
-    
-    // result file
-    filename(p,c,pgc,num);
-	 
-	ofstream result;
+    ifstream result;
 	result.open(name, ios::binary);
-
     
-    SLICELOOP4
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
     {
-    ffn=float(c->eta(i,j));
-    result.write((char*)&ffn, sizeof (float));
+        result.read((char*)&ffn, sizeof (float)); 
+        E0[i][j]=ffn;
+        
+        //cout<<" E0[i][j]: "<<E0[i][j]<<endl;
     } 
     
-    FLOOP
+    
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    for(k=0; k<Nz; ++k)
     {
-    ffn=float(c->U[FIJK]);
-    result.write((char*)&ffn, sizeof (float));
+        result.read((char*)&ffn, sizeof (float)); 
+        U0[i][j][k]=ffn;
     } 
-
-	FLOOP
+    
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    for(k=0; k<Nz; ++k)
     {
-    ffn=float(c->V[FIJK]);
-    result.write((char*)&ffn, sizeof (float));
+        result.read((char*)&ffn, sizeof (float)); 
+        V0[i][j][k]=ffn;
     } 
-
-	FLOOP
+    
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    for(k=0; k<Nz; ++k)
     {
-    ffn=float(c->W[FIJK]);
-    result.write((char*)&ffn, sizeof (float));
+        result.read((char*)&ffn, sizeof (float)); 
+        W0[i][j][k]=ffn;
     } 
-	
-	
-	result.close();
-	
-	++printcount;
+    
+    result.close();
+    
 }
+
+
+        

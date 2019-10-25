@@ -373,14 +373,12 @@ public:
 	int I10,I11,I12,I13,I20,I30,I40,I41,I56;
 	double I21,I55,I58_1,I58_2;
     int I230;
-    double I231;
-    double I232;
+    double I231,I232,I233;
     int I240;
-    double I241;
-    double I242;
+    double I241, I242;
 
 	// Numerical Options
-	int N5,N8,N9,N10,N11,N12,N13,N14,N15,N16,N40,N42,N45,N46,N48,N60,N71,N72,N73;
+	int N5,N8,N9,N10,N11,N12,N13,N14,N15,N16,N21,N22,N23,N40,N42,N45,N46,N48,N60,N71,N72,N73;
 	double N17,N18,N41,N43,N44,N47,N49,N61;
 
 	// MPI Options

@@ -655,6 +655,7 @@
         <File Name="nhflow.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Wave Lib">
+        <File Name="wave_lib_wcp.h"/>
         <File Name="wave_lib_flap_eta.h"/>
         <File Name="wave_lib.h"/>
         <File Name="wave_lib_cnoidal_1st.h"/>
@@ -2126,6 +2127,16 @@
         <File Name="nhflow_f.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Wave Lib">
+        <VirtualDirectory Name="WCP">
+          <File Name="wave_lib_wcp_pos_ijk.cpp"/>
+          <File Name="wave_lib_wcp_allocate.cpp"/>
+          <File Name="wave_lib_wcp_filename.cpp"/>
+          <File Name="wave_lib_wcp_space_interpol.cpp"/>
+          <File Name="wave_lib_wcp_read_result.cpp"/>
+          <File Name="wave_lib_wcp_read_header.cpp"/>
+          <File Name="wave_lib_wcp_time_interpol.cpp"/>
+        </VirtualDirectory>
+        <File Name="wave_lib_wcp.cpp"/>
         <File Name="wave_lib_flap_eta.cpp"/>
         <VirtualDirectory Name="Interface">
           <File Name="wave_interface_decomp.cpp"/>
@@ -2210,6 +2221,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
           <VirtualDirectory Name="State">
+            <File Name="fnpf_state_mainheader.cpp"/>
             <File Name="fnpf_state_header.cpp"/>
             <File Name="fnpf_state_write.cpp"/>
             <File Name="fnpf_state_filename.cpp"/>

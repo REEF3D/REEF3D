@@ -257,4 +257,10 @@ void ghostcell::start7V(lexer *p, double *x, sliceint &bc, int gcv)
     
     if(gcv==150)
     fivec2D(p,x,bc);
+    
+    if(gcv==210)
+    fivec_vel(p,x,bc);
+    
+    if(gcv==110)
+    fivec2D_vel(p,x,bc);
 }

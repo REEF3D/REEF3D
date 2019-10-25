@@ -38,18 +38,23 @@ public:
 	fnpf_state(lexer*,fdm_fnpf*,ghostcell*);
 	virtual ~fnpf_state();
 	void write(lexer*,fdm_fnpf*,ghostcell*);
-    void header_ini(lexer*,fdm_fnpf*,ghostcell*);
+    
+    void mainheader_ini(lexer*,fdm_fnpf*,ghostcell*);
+    void mainheader(lexer*,fdm_fnpf*,ghostcell*);
+
     void header(lexer*,fdm_fnpf*,ghostcell*);
 	
 private:
     void filename(lexer*,fdm_fnpf*,ghostcell*,int);
+    void filename_header(lexer*,fdm_fnpf*,ghostcell*);
 
     char name[200];
     float ffn;
 	int iin;
 	double ddn;
 	int printcount;
-    ofstream hdout;
+    ofstream headout;
+    ofstream mainout;
     
     
 };
