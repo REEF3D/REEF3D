@@ -101,7 +101,7 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
         endtime=pgc->timer();
     
 	pgc->start4(p,a->press,gcval_press);
-    presscorr(p,a,pcorr,alpha);
+    presscorr(p,a,uvel,vvel,wvel,pcorr,alpha);
     pgc->start4(p,pcorr,40);
 	
 	ucorr(p,a,uvel,alpha);
@@ -138,10 +138,22 @@ void pjm_corr::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
 	/(p->DZP[KP]*pd->roface(p,a,0,0,1)));
 }
 
-void pjm_corr::presscorr(lexer* p, fdm* a, field& pcorr, double alpha)
+void pjm_corr::presscorr(lexer* p, fdm* a, field& uvel, field& vvel, field& wvel, field& pcorr, double alpha)
 {
+    double velCorr;
+
     LOOP
-    a->press(i,j,k) += pcorr(i,j,k);
+    {
+        velCorr =  
+            a->visc(i,j,k)*
+            (
+                (uvel(i,j,k) - uvel(i-1,j,k))/p->DXN[IP]
+			  + (vvel(i,j,k) - vvel(i,j-1,k))/p->DYN[JP]
+			  + (wvel(i,j,k) - wvel(i,j,k-1))/p->DZN[KP]
+            );
+                           
+        a->press(i,j,k) += pcorr(i,j,k) - velCorr;
+    }
 }
  
 void pjm_corr::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
