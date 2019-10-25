@@ -145,7 +145,7 @@ void pjm_corr::presscorr(lexer* p, fdm* a, field& uvel, field& vvel, field& wvel
     LOOP
     {
         velCorr =  
-            a->visc(i,j,k)*
+            (a->visc(i,j,k) + a->eddyv(i,j,k)) *
             (
                 (uvel(i,j,k) - uvel(i-1,j,k))/p->DXN[IP]
 			  + (vvel(i,j,k) - vvel(i,j-1,k))/p->DYN[JP]
