@@ -150,7 +150,7 @@ void sflow_momentum_AB2::irhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &f, doub
 	if(p->D20<3)
 	SLICELOOP1
 	{
-    //b->maxF=MAX(fabs(b->rhsvec.V[n]),b->maxF);
+    b->maxF=MAX(fabs(b->rhsvec.V[n]),b->maxF);
 	b->F(i,j) += (b->gi);
 	
 	b->maxF=MAX(fabs(b->F(i,j)),b->maxF);
@@ -174,7 +174,7 @@ void sflow_momentum_AB2::jrhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &f, doub
 	if(p->D20<3)
 	SLICELOOP2
 	{
-    //b->maxG=MAX(fabs(b->rhsvec.V[n]),b->maxG);
+    b->maxG=MAX(fabs(b->rhsvec.V[n]),b->maxG);
 	b->G(i,j) += (b->gj);
 	
 	b->maxG=MAX(fabs(b->G(i,j)),b->maxG);
