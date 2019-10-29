@@ -40,7 +40,8 @@ public:
 	virtual ~fnpf_sg_RK3();
     
     virtual void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*);
-    virtual void inidisc(lexer*, fdm_fnpf*, ghostcell*);
+    virtual void inidisc(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*);
+    virtual void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*);
     
 private:
 

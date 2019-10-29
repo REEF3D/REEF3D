@@ -287,7 +287,7 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     velcalc_sig(p,c,pgc,c->Fi);
 }
 
-void fnpf_sg_RK4::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+void fnpf_sg_RK4::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, solver *psolv)
 {	
     pgc->gcsl_start4(p,c->eta,gcval_eta);
     etaloc_sig(p,c,pgc);
@@ -311,6 +311,15 @@ void fnpf_sg_RK4::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     pf->coastline(p,c,pgc,c->eta);
     pf->coastline(p,c,pgc,c->Fifsf);
+}
 
+void fnpf_sg_RK4::ini_wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+{	
+    pf->wetdry(p,c,pgc,c->eta,c->Fifsf);   // coastline ini
+
+    pf->coastline(p,c,pgc,c->eta);
+    pf->coastline(p,c,pgc,c->Fifsf);
+    
+    //velcalc_sig(p,c,pgc,c->Fi);
 }
 

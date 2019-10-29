@@ -99,7 +99,7 @@ void driver::driver_ini_nhflow()
  
 
     
-    ppfsg->inidisc(p,c,pgc);
+    ppfsg->inidisc(p,c,pgc,pflow,psolv);
 
 	pfprint->start(p,c,pgc,pflow);
 

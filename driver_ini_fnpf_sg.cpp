@@ -190,8 +190,9 @@ void driver::driver_ini_fnpf_sg()
     SLICELOOP4
     p->sigz[IJ] = 1.0/WLVL;
     
+    ppfsg->ini_wetdry(p,c,pgc);    // ini wetdry and coastline
+    
     pflow->ini_fnpf(p,c,pgc);  // including fullini
-    pftstep->ini(c,p,pgc);
 
     ppfsg->ini(p,c,pgc,pflow,preini,poneph);  // --- 
     pflow->eta_relax(p,pgc,c->eta);
@@ -202,7 +203,9 @@ void driver::driver_ini_fnpf_sg()
     pgc->start7V(p,c->Fi,c->bc,250);
     
     
-    ppfsg->inidisc(p,c,pgc);
+    ppfsg->inidisc(p,c,pgc,pflow,psolv);    // ini wetdry and coastline
+    
+    pftstep->ini(c,p,pgc);
 
 	pfprint->start(p,c,pgc,pflow);
 

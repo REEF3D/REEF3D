@@ -36,7 +36,6 @@ fnpf_sg_coastline::~fnpf_sg_coastline()
 
 void fnpf_sg_coastline::start(lexer *p, ghostcell *pgc, slice &coastline, sliceint &wet, sliceint &wet_n)
 {
-    // if p->count==0, ini
     if(p->count==0)
     {
         SLICELOOP4
@@ -50,36 +49,8 @@ void fnpf_sg_coastline::start(lexer *p, ghostcell *pgc, slice &coastline, slicei
         }
         reini(p,pgc,coastline);
     }
-    
-    // if p->count>0, check for wetdry changes
-   /* change=0;
-    if(p->count>1)
-    {
-        SLICELOOP4
-        {
-            if(wet(i,j)==0 && wet_n(i,j)==1)
-            {
-            coastline(i,j) = -0.25*(p->DXN[IP]+p->DYN[JP]);
-            change+=1;
-            }
-            
-            if(wet(i,j)==1 && wet_n(i,j)==0)
-            {
-            coastline(i,j) =  0.25*(p->DXN[IP]+p->DYN[JP]);
-            change+=1;
-            }
-        }
-        
-        change=pgc->globalisum(change);
-        
-        //if(p->mpirank==0)
-        //cout<<p->mpirank<<" wetdry change: "<<change<<endl;
-        
-        if(change>0)
-        reini(p,pgc,coastline);
-    }*/
-    
-    
-
-    
 }
+
+
+
+
