@@ -40,7 +40,6 @@ void fnpf_sg_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta,
 
       } 
       
-    
       pgc->gcsl_start4int(p,c->wet,50);
       
       pcoast->start(p,pgc,c->coastline,c->wet,c->wet_n);

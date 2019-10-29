@@ -234,7 +234,7 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
     
 
-    
+    //---------------------------------
     //LOOP
     //c->test(i,j,k)=c->vb(i,j);
     
