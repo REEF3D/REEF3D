@@ -72,6 +72,7 @@ private:
     double visc;
     
     sliceint4 bx,by;
+    int count_n;
     
 };
 

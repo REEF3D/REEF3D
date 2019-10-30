@@ -33,8 +33,8 @@ public:
 	virtual ~fnpf_sg_void();
     
     virtual void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*);
-    virtual void ini(lexer*, fdm_fnpf*, ghostcell*, ioflow*, reini*, convection*);
-    virtual void inidisc(lexer*, fdm_fnpf*, ghostcell*);
+    virtual void inidisc(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*);
+    virtual void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*);
     
 
 };

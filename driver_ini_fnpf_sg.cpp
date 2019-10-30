@@ -116,28 +116,10 @@ void driver::driver_ini_fnpf_sg()
 	 p->ycoormin=pgc->globalmin(p->ycoormin);
 	 p->zcoormin=pgc->globalmin(p->zcoormin);
      
-
-      //  log_ini();
-
     if(p->mpirank==0)
     cout<<"starting driver_ini_FNPF"<<endl;
 
-    
-    /*
-    // Solid
-    if(p->G39==1)
-    {
-    solid solid_object(p,a,pgc);
-    solid_object.start(p,a,pgc,pflow,pconvec,preto);
-    }
-    
-    // Geotopo
-    if((p->G50>0 && p->G51>0) || p->G60>0 || p->G61>0)
-    {
-    geotopo gtopo(p,a,pgc);
-    gtopo.start(p,a,pgc,pflow,pconvec,preto);
-    }*/
-    
+
     // bed ini
     SLICELOOP4
 	c->bed(i,j) = p->bed[IJ];
@@ -167,7 +149,7 @@ void driver::driver_ini_fnpf_sg()
     }
     
     // 2D mesh
-   count=0;
+    count=0;
 	p->pointnum2D=0;
 	p->cellnum2D=0;
 	p->polygon_sum=0;
@@ -208,19 +190,23 @@ void driver::driver_ini_fnpf_sg()
     SLICELOOP4
     p->sigz[IJ] = 1.0/WLVL;
     
-    pflow->ini_fnpf(p,c,pgc);
-    pftstep->ini(c,p,pgc);
+    ppfsg->ini_wetdry(p,c,pgc);    // ini wetdry and coastline
+    
+    pflow->ini_fnpf(p,c,pgc);  // including fullini
 
     ppfsg->ini(p,c,pgc,pflow,preini,poneph);  // --- 
-    pflow->eta_relax(p,pgc,c->eta);
+    
+    
+    ppfsg->inidisc(p,c,pgc,pflow,psolv);    // ini wetdry and coastline
+    
+     pflow->eta_relax(p,pgc,c->eta);
     pflow->fivec_relax(p,pgc,c->Fi);
     pflow->fifsf_relax(p,pgc,c->Fifsf);
     pgc->gcsl_start4(p,c->eta,50);
     pgc->gcsl_start4(p,c->Fifsf,50);
     pgc->start7V(p,c->Fi,c->bc,250);
     
-    
-    ppfsg->inidisc(p,c,pgc);
+    pftstep->ini(c,p,pgc);
 
 	pfprint->start(p,c,pgc,pflow);
 

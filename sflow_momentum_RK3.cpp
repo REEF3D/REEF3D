@@ -75,12 +75,6 @@ sflow_momentum_RK3::sflow_momentum_RK3(lexer *p, fdm2D *b, sflow_convection *pco
     
     if(p->A218==1)
     prough = new sflow_rough_manning(p);
-    
-    if(p->S10!=2)
-    psedstep = new sflow_sediment_RKv(p,b);
-    
-    if(p->S10==2)
-    psedstep = new sflow_sediment_RK3(p,b);
 }
 
 sflow_momentum_RK3::~sflow_momentum_RK3()
@@ -180,10 +174,6 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	pgc->gcsl_start1(p,Prk1,gcval_urk);
 	pgc->gcsl_start2(p,Qrk1,gcval_vrk);
     pgc->gcsl_start4(p,wrk1,gcval_wrk);
-    
-    // sediment
-    psedstep->step1(p,b,pgc,Prk1,Qrk1,1.0);
-    //pfsf->depth_update(p,b,pgc,Prk1,Qrk1,wrk1,etark1);
 
 //Step 2
 //--------------------------------------------------------
@@ -271,10 +261,6 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	pgc->gcsl_start1(p,Prk2,gcval_urk);
 	pgc->gcsl_start2(p,Qrk2,gcval_vrk);
     pgc->gcsl_start4(p,wrk2,gcval_wrk);
-
-    // sediment
-    psedstep->step2(p,b,pgc,Prk2,Qrk2,0.25);
-    //pfsf->depth_update(p,b,pgc,Prk2,Qrk2,wrk2,etark2);
     
 //Step 3
 //--------------------------------------------------------
@@ -369,11 +355,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
     
     SLICELOOP4
     b->eta_n(i,j) = b->eta(i,j);
-    
-    
-    // sediment
-    psedstep->step3(p,b,pgc,b->P,b->Q,(2.0/3.0));
-    //pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
+
 }
 
 void sflow_momentum_RK3::irhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &f, double alpha)

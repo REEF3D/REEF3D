@@ -109,6 +109,8 @@ fnpf_sg_fsfbc_wd::fnpf_sg_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p
     
     if(p->A350==1)
     psolv = new sflow_bicgstab(p,pgc);
+    
+    count_n=0;
 }
 
 fnpf_sg_fsfbc_wd::~fnpf_sg_fsfbc_wd()

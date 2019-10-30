@@ -33,7 +33,7 @@ driver::driver(int& argc, char **argv)
 	p = new lexer;
 	pgc = new ghostcell(argc,argv,p);
 
-    time_t now = time(NULL); 
+    time_t now = time(NULL);
     struct tm nowLocal;
     nowLocal=*localtime(&now);
 
@@ -41,7 +41,7 @@ driver::driver(int& argc, char **argv)
     {
     cout<<endl<<"REEF3D (c) 2008-2019 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    cout<<endl<<"v_191025; c_" << nowLocal.tm_year+1900 << nowLocal.tm_mon+1 << nowLocal.tm_mday << "; " <<BRANCH<<"; "<<VERSION<<endl<<endl;
+    cout<<endl<<"v_191030; c_" << nowLocal.tm_year+1900 << nowLocal.tm_mon+1 << nowLocal.tm_mday << "; " <<BRANCH<<"; "<<VERSION<<endl<<endl;
     }
 
 	p->lexer_read();

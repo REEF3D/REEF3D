@@ -83,9 +83,6 @@ fnpf_sg_RK4::~fnpf_sg_RK4()
 
 void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
 {	
-    if(p->A350>=0)
-    SLICELOOP4
-    c->breaking(i,j)=0;
     
 // Step 1
     pflow->inflow_fnpf(p,pgc,c->Fi,c->Uin,c->Fifsf,c->eta);
@@ -287,30 +284,38 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     velcalc_sig(p,c,pgc,c->Fi);
 }
 
-void fnpf_sg_RK4::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+void fnpf_sg_RK4::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, solver *psolv)
 {	
     pgc->gcsl_start4(p,c->eta,gcval_eta);
+    pgc->start7V(p,c->Fi,c->bc,gcval);
     etaloc_sig(p,c,pgc);
     fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
     sigma_ini(p,c,pgc,pf,c->eta);
     pf->fsfdisc_ini(p,c,pgc,c->eta,c->Fifsf);
+    pf->wetdry(p,c,pgc,c->eta,c->Fifsf);   // coastline ini
     pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
     sigma_update(p,c,pgc,pf,c->eta);
     
-    pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
-    
 
-    LOOP
-    c->test(i,j,k) = c->Fz(i,j);
-    
     pgc->start4(p,c->test,50);
     
-    bedbc_sig(p,c,pgc,c->Fi,pf);
-    velcalc_sig(p,c,pgc,c->Fi);
     
     pf->coastline(p,c,pgc,c->eta);
     pf->coastline(p,c,pgc,c->Fifsf);
+    
+    
+    velcalc_sig(p,c,pgc,c->Fi);
+    
+    pgc->gcsl_start4(p,c->eta,gcval_eta);
+    pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
+}
 
+void fnpf_sg_RK4::ini_wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+{	
+    pf->wetdry(p,c,pgc,c->eta,c->Fifsf);   // coastline ini
+
+    pf->coastline(p,c,pgc,c->eta);
+    pf->coastline(p,c,pgc,c->Fifsf);
 }
 

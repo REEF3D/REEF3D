@@ -141,16 +141,27 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
 
 void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
 {
-	p->umax=p->vmax=p->wmax=p->viscmax=-1e19;
+    double depthmax=0.0;
+    
+	p->umax=p->vmax=p->wmax=depthmax=p->viscmax=-1e19;
+    cu=cv=1.0e10;
+    
+    FFILOOP4
+    FPWDCHECK
+	depthmax=MAX(depthmax,p->wd - c->bed(i,j));
 	
-    FLOOP
-	p->umax=MAX(p->umax,fabs(c->U[FIJK]));
+	depthmax=pgc->globalmax(depthmax);
+	
+    k=p->knoz;
+    SLICELOOP4
+	p->umax=MAX(p->umax,fabs((c->Fifsf[Ip1J]-c->Fifsf[Im1J])/(p->DXP[IP]+p->DXP[IM1])));
 
 	p->umax=pgc->globalmax(p->umax);
 
 
-	FLOOP
-	p->vmax=MAX(p->vmax,fabs(c->V[FIJK]));
+	k=p->knoz;
+    SLICELOOP4
+	p->vmax=MAX(p->vmax,fabs((c->Fifsf[IJp1]-c->Fifsf[IJm1])/(p->DYP[JP]+p->DYP[JM1])));
 
 	p->vmax=pgc->globalmax(p->vmax);
 
@@ -173,15 +184,39 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
 
     p->umax+=10.0;
 
-	cu= + 2.0/((p->umax/p->dx)+sqrt(pow(p->umax/p->dx,2.0)+(4.0*sqrt(fabs(c->gi) + fabs(c->gj) +fabs(c->gk)))/p->dx));
+	//cu= + 2.0/((p->umax/p->dx)+sqrt(pow(p->umax/p->dx,2.0)+(4.0*sqrt(fabs(c->gi) + fabs(c->gj) +fabs(c->gk)))/p->dx));
+    
+    FLOOP
+    FPWDCHECK
+    {
+    if(p->y_dir==1 && p->knoy>1)
+    dx = MIN(p->DXN[IP],p->DYN[JP]);
+    
+    if(p->y_dir==0 || p->knoy==1)
+    dx = p->DXN[IP];
+    
+    cu = MIN(cu, 1.0/((fabs(MAX(p->umax, sqrt(9.81*depthmax)))/dx)));
+    cv = MIN(cv, 1.0/((fabs(MAX(p->vmax, sqrt(9.81*depthmax)))/dx)));
+    }
 
 
-	p->dt=p->N47*cu;
-
+	cu = MIN(cu,cv);
+    
+   	p->dt=p->N47*cu;
     
 	p->dt=pgc->timesync(p->dt);
 	p->dt_old=p->dt;
 
 	p->maxkappa=0.0;
+    
+    
+    
+    if(p->mpirank==0 && (p->count%p->P12==0))
+    {
+	cout<<"umax: "<<setprecision(3)<<p->umax<<endl;
+	cout<<"vmax: "<<setprecision(3)<<p->vmax<<endl;
+	cout<<"wmax: "<<setprecision(3)<<p->wmax<<endl;
+    cout<<"dmax: "<<setprecision(3)<<depthmax<<endl;
+    }
 }
 

@@ -28,6 +28,9 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 class sflow_convection;
 class sflow_fsf;
 class sflow_diffusion;
+class sflow_boussinesq;
+class sflow_roughness;
+class sflow_sediment_RK;
 
 using namespace std;
 
@@ -37,7 +40,8 @@ using namespace std;
 class sflow_momentum_RK2 : public sflow_momentum, public increment
 {
 public:
-	sflow_momentum_RK2(lexer*, fdm2D*, sflow_convection*, sflow_diffusion*, sflow_pressure*, solver2D*, solver2D*, ioflow*, sflow_fsf*);
+	sflow_momentum_RK2(lexer*, fdm2D*, sflow_convection*, sflow_diffusion*, sflow_pressure*, 
+                        solver2D*, solver2D*, ioflow*, sflow_fsf*, sflow_boussinesq*);
 	virtual ~sflow_momentum_RK2();
 	virtual void start(lexer*, fdm2D*, ghostcell*);
 
@@ -50,8 +54,9 @@ private:
 	void irhs(lexer*,fdm2D*,ghostcell*,slice&,double);
 	void jrhs(lexer*,fdm2D*,ghostcell*,slice&,double);
 	
-	int gcval_u, gcval_v;
-	int gcval_urk, gcval_vrk;
+	int gcval_u, gcval_v,gcval_w;
+	int gcval_urk, gcval_vrk,gcval_wrk;
+    int gcval_eta, gcval_erk;
 	double starttime;
 
 	sflow_convection *pconvec;
@@ -61,6 +66,9 @@ private:
     solver2D *ppoissonsolv;
 	ioflow *pflow;
 	sflow_fsf *pfsf;
+    sflow_boussinesq *pbouss;
+    sflow_roughness *prough;
+    sflow_sediment_RK *psedstep;
 };
 
 #endif
