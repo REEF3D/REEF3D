@@ -48,7 +48,7 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
         p->B132_s *= PI / 180.0;
         p->B132_e *= PI / 180.0;
 
-        if(p->B84==1)
+        if(p->B84==1 || p->B84==3 || p->B84==4 )
         {
             dbeta = (p->B132_e - p->B132_s) / double(p->B133 - 1);
 

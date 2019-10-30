@@ -46,7 +46,6 @@ double wave_lib_spectrum::wave_spectrum(lexer *p, double w)
     if(p->B85==3)
     Sval = Torsethaugen(p,w);
 
-
     if(p->B85==21)
     Sval = Goda_JONSWAP(p,w);
 
@@ -215,13 +214,43 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
         dw[n] = (we-wp)/double(wNe);
 
         if(p->mpirank==0)
-        cout<<"wNs: "<<wNs<<"  wNe: "<<wNe<<"  p->wN "<<p->wN<<endl;
+        cout<<"wNs: "<<wNs<<"  wNe: "<<wNe<<"  wN "<<p->wN<<endl;
 
         if(p->mpirank==0)
         cout<<"ws: "<<ws<<"  we: "<<we<<endl;
         
         if(p->mpirank==0)
         cout<<"dws: "<<dw[0]<<"  dwe: "<<dw[p->wN-1]<<endl;
+
+        w=ws;
+        for(n=0;n<p->wN;++n)
+        {
+            wi[n]=w;
+            w+=dw[n];
+        }
+
+    }
+
+// Equidistant Method (For FFT)
+
+    if(p->B84==4)
+    {
+
+        for(n=0;n<numcomp;++n)
+        {
+            beta[n]=0.0;
+            sinbeta[n]=0.0;
+            cosbeta[n]=1.0;
+        }
+
+        for(n=0;n<p->wN;++n)
+        dw[n] = (we-ws)/double(p->wN);
+
+        if(p->mpirank==0)
+        cout<<"dw: "<<dw[0]<<"wN "<<p->wN<<endl;
+
+        if(p->mpirank==0)
+        cout<<"ws: "<<ws<<"  we: "<<we<<endl;
 
         w=ws;
         for(n=0;n<p->wN;++n)
@@ -442,7 +471,7 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
 
 void wave_lib_spectrum::amplitudes_irregular(lexer *p)
 {
-    if(p->B84==1 || p->B84==3)
+    if(p->B84==1 || p->B84==3 || p->B84==4)
     {
         // Amplitudes
         for(int n=0;n<p->wN;++n)
