@@ -150,7 +150,7 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"Fifsf\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"elevation\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"eta\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	result<<"<DataArray type=\"Float32\" Name=\"depth\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -232,12 +232,12 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&ffn, sizeof (float));
 	}
     
-    //  Elevation
+    //  Eta
 	iin=4*(p->pointnum2D);
 	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
 	{
-	ffn=float(pgc->gcsl_ipol4(p,c->eta)+p->wd);
+	ffn=float(pgc->gcsl_ipol4(p,c->eta));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
