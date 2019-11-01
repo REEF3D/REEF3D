@@ -39,43 +39,43 @@ void print_runup::print(lexer *p, fdm* a, ghostcell *pgc)
 			if(p->P14==0)
 			{
 			if(num<10)
-			sprintf(name,"REEF3D-runup-fsf-00000%d.dat",num);
+			sprintf(name,"REEF3D-CFD-runup-fsf-00000%d.dat",num);
 
 			if(num<100&&num>9)
-			sprintf(name,"REEF3D-runup-fsf-0000%d.dat",num);
+			sprintf(name,"REEF3D-CFD-runup-fsf-0000%d.dat",num);
 
 			if(num<1000&&num>99)
-			sprintf(name,"REEF3D-runup-fsf-000%d.dat",num);
+			sprintf(name,"REEF3D-CFD-runup-fsf-000%d.dat",num);
 
 			if(num<10000&&num>999)
-			sprintf(name,"REEF3D-runup-fsf-00%d.dat",num);
+			sprintf(name,"REEF3D-CFD-runup-fsf-00%d.dat",num);
 
 			if(num<100000&&num>9999)
-			sprintf(name,"REEF3D-runup-fsf-0%d.dat",num);
+			sprintf(name,"REEF3D-CFD-runup-fsf-0%d.dat",num);
 
 			if(num>99999)
-			sprintf(name,"REEF3D-runup-fsf-%d.dat",num);
+			sprintf(name,"REEF3D-CFD-runup-fsf-%d.dat",num);
 			}
 			
 			if(p->P14==1)
 			{
 			if(num<10)
-			sprintf(name,"./REEF3D_Runup-FSF/REEF3D-runup-fsf-00000%d.dat",num);
+			sprintf(name,"./REEF3D_CFD_Runup-FSF/REEF3D-CFD-runup-fsf-00000%d.dat",num);
 
 			if(num<100&&num>9)
-			sprintf(name,"./REEF3D_Runup-FSF/REEF3D-runup-fsf-0000%d.dat",num);
+			sprintf(name,"./REEF3D_CFD_Runup-FSF/REEF3D-CFD-runup-fsf-0000%d.dat",num);
 
 			if(num<1000&&num>99)
-			sprintf(name,"./REEF3D_Runup-FSF/REEF3D-runup-fsf-000%d.dat",num);
+			sprintf(name,"./REEF3D_CFD_Runup-FSF/REEF3D-CFD-runup-fsf-000%d.dat",num);
 
 			if(num<10000&&num>999)
-			sprintf(name,"./REEF3D_Runup-FSF/REEF3D-runup-fsf-00%d.dat",num);
+			sprintf(name,"./REEF3D_CFD_Runup-FSF/REEF3D-CFD-runup-fsf-00%d.dat",num);
 
 			if(num<100000&&num>9999)
-			sprintf(name,"./REEF3D_Runup-FSF/REEF3D-runup-fsf-0%d.dat",num);
+			sprintf(name,"./REEF3D_CFD_Runup-FSF/REEF3D-CFD-runup-fsf-0%d.dat",num);
 
 			if(num>99999)
-			sprintf(name,"./REEF3D_Runup-FSF/REEF3D-runup-fsf-%d.dat",num);
+			sprintf(name,"./REEF3D_CFD_Runup-FSF/REEF3D-CFD-runup-fsf-%d.dat",num);
 			}
 			
 			fsfout.open(name);
@@ -86,43 +86,43 @@ void print_runup::print(lexer *p, fdm* a, ghostcell *pgc)
 			if(p->P14==0)
 			{
 			if(num<10)
-			sprintf(name,"REEF3D-runup-max-00000%d.dat",num);
+			sprintf(name,"REEF3D-CFD-runup-max-00000%d.dat",num);
 
 			if(num<100&&num>9)
-			sprintf(name,"REEF3D-runup-max-0000%d.dat",num);
+			sprintf(name,"REEF3D-CFD-runup-max-0000%d.dat",num);
 
 			if(num<1000&&num>99)
-			sprintf(name,"REEF3D-runup-max-000%d.dat",num);
+			sprintf(name,"REEF3D-CFD-runup-max-000%d.dat",num);
 
 			if(num<10000&&num>999)
-			sprintf(name,"REEF3D-runup-max-00%d.dat",num);
+			sprintf(name,"REEF3D-CFD-runup-max-00%d.dat",num);
 
 			if(num<100000&&num>9999)
-			sprintf(name,"REEF3D-runup-max-0%d.dat",num);
+			sprintf(name,"REEF3D-CFD-runup-max-0%d.dat",num);
 
 			if(num>99999)
-			sprintf(name,"REEF3D-runup-max-%d.dat",num);
+			sprintf(name,"REEF3D-CFD-runup-max-%d.dat",num);
 			}
 			
 			if(p->P14==1)
 			{
 			if(num<10)
-			sprintf(name,"./REEF3D_Runup-MAX/REEF3D-runup-max-00000%d.dat",num);
+			sprintf(name,"./REEF3D_CFD_Runup-MAX/REEF3D-CFD-runup-max-00000%d.dat",num);
 
 			if(num<100&&num>9)
-			sprintf(name,"./REEF3D_Runup-MAX/REEF3D-runup-max-0000%d.dat",num);
+			sprintf(name,"./REEF3D_CFD_Runup-MAX/REEF3D-CFD-runup-max-0000%d.dat",num);
 
 			if(num<1000&&num>99)
-			sprintf(name,"./REEF3D_Runup-MAX/REEF3D-runup-max-000%d.dat",num);
+			sprintf(name,"./REEF3D_CFD_Runup-MAX/REEF3D-CFD-runup-max-000%d.dat",num);
 
 			if(num<10000&&num>999)
-			sprintf(name,"./REEF3D_Runup-MAX/REEF3D-runup-max-00%d.dat",num);
+			sprintf(name,"./REEF3D_CFD_Runup-MAX/REEF3D-CFD-runup-max-00%d.dat",num);
 
 			if(num<100000&&num>9999)
-			sprintf(name,"./REEF3D_Runup-MAX/REEF3D-runup-max-0%d.dat",num);
+			sprintf(name,"./REEF3D_CFD_Runup-MAX/REEF3D-CFD-runup-max-0%d.dat",num);
 
 			if(num>99999)
-			sprintf(name,"./REEF3D_Runup-MAX/REEF3D-runup-max-%d.dat",num);
+			sprintf(name,"./REEF3D_CFD_Runup-MAX/REEF3D-CFD-runup-max-%d.dat",num);
 			}
 			
 			maxout.open(name);

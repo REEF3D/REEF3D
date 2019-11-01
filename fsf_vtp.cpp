@@ -31,7 +31,7 @@ fsf_vtp::fsf_vtp(lexer* p, fdm *a, ghostcell *pgc):nodefill(p),vertice(p),nodefl
 {
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_FSF",0777);
+	mkdir("./REEF3D_CFD_FSF",0777);
 	
 	fsfprintcount=0;
 }

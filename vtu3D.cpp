@@ -179,7 +179,7 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
 	
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_VTU",0777);
+	mkdir("./REEF3D_CFD_VTU",0777);
 }
 
 vtu3D::~vtu3D()

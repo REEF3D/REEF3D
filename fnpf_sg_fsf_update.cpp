@@ -126,6 +126,6 @@ void fnpf_sg_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, doub
     pgc->start7V(p,c->U,c->bc,gcval);
     pgc->start7V(p,c->V,c->bc,gcval);
     pgc->start7V(p,c->W,c->bc,gcval);
-    
+        
 }
 
