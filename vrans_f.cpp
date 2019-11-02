@@ -27,6 +27,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 vrans_f::vrans_f(lexer *p, fdm *a, ghostcell *pgc) : Cval(p->B264), porpart(p), alpha(p), beta(p)
 {
 	initialize(p,a,pgc);
+    
+    if(p->S10==2)
+    sed_update(p,a,pgc);
 }
 
 vrans_f::~vrans_f()

@@ -25,7 +25,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"topo_relax.h"
 #include"ioflow.h"
-
+#include"vrans_v.h"
+#include"vrans_f.h"
 
 void sediment_f::update(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow)
 {
@@ -33,7 +34,13 @@ void sediment_f::update(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow)
     prelax->start(p,a,pgc);
     
     p->sedtime+=p->dtsed;
+    
+    if(p->S10==1)
     pgc->topo_update(p,a);
+    
+    if(p->S10==2)
+    pvrans->sed_update(p,a,pgc);
+    
     pflow->gcio_update(p,a,pgc);
 }
 

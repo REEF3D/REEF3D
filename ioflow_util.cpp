@@ -191,3 +191,9 @@ void ioflow_f::veltimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
     pvrans->veltimesave(p,a,pgc);
 }
+
+void ioflow_f::vrans_sed_update(lexer *p,fdm *a,ghostcell *pgc)
+{
+    pvrans->sed_update(p,a,pgc);
+}
+

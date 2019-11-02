@@ -28,6 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 class sandslide;
 class topo_relax;
 class bedshear;
+class vrans;
 
 using namespace std;
 
@@ -37,7 +38,7 @@ using namespace std;
 class sediment_f : public sediment, topo_vel
 {
 public:
-    sediment_f(lexer*,turbulence*);
+    sediment_f(lexer*,fdm*,ghostcell*,turbulence*);
 	virtual ~sediment_f();
 
 	virtual void start(lexer*, fdm*, convection*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*, bedload*);
@@ -63,6 +64,7 @@ public:
 private:
     sandslide *pslide;
     topo_relax *prelax;
+    vrans *pvrans;
 	
 	bedshear *pbedshear;
     

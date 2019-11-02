@@ -42,7 +42,7 @@ hric_mod::hric_mod (lexer *p)
         pflux = new flux_face_QOU(p);
     }
     
-    if(p->B269>=1)
+    if(p->B269>=1 || p->S10==2)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU_vrans(p);

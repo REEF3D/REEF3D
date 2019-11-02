@@ -105,6 +105,8 @@ public:
     virtual void ini_fnpf(lexer*,fdm_fnpf*,ghostcell*);
     virtual void inflow_fnpf(lexer*,ghostcell*,double*,double*,slice&,slice&);
     virtual void ini2D(lexer*,fdm2D*,ghostcell*);
+    
+    virtual void vrans_sed_update(lexer*,fdm*,ghostcell*);
 	
 	void hydrograph_in_read(lexer*,ghostcell*);
 	void hydrograph_out_read(lexer*,ghostcell*);
