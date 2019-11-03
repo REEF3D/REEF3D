@@ -43,7 +43,7 @@ public:
 	virtual void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,momentum*,ioflow*, field&, field&, field&,double);
 	virtual void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 	virtual void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-    virtual void presscorr(lexer*p,fdm *a,field&, double);
+    virtual void presscorr(lexer*p,fdm *a,field&,field&,field&,field&, double);
 	virtual void ucorr(lexer*p,fdm*,field&,double);
 	virtual void vcorr(lexer*p,fdm*,field&,double);
 	virtual void wcorr(lexer*p,fdm*,field&,double);
