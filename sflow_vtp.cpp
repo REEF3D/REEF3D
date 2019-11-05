@@ -83,7 +83,7 @@ void sflow_vtp::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow)
     if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
     pwsfline_y->start(p,b,pgc,pflow,b->eta);
     
-    if(p->P63>0)
+    if(p->P63>0 && p->count%p->P54==0)
 	pprobe->start(p,b,pgc);
 }
 

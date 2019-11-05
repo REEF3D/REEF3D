@@ -92,9 +92,12 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 	pgc->gcsl_start2(p,b->Q,11);
 	
 	// bed ini
-	SLICELOOP4
+	ILOOP
+    JLOOP
 	b->bed(i,j) = p->bed[IJ];
     
+    pgc->gcsl_start4(p,b->bed,50);
+    pgc->gcsl_start4a(p,b->bed,50);
     pgc->gcsl_start4(p,b->bed,50);
     b->bed.ggcpol(p);
 
@@ -151,6 +154,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 
     // Boussinesq ini
     pbouss->ini(p,b,pgc,b->P,b->Q);
+    
 }
 
 
