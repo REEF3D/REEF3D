@@ -179,7 +179,7 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
 	
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_VTU",0777);
+	mkdir("./REEF3D_CFD_VTU",0777);
 }
 
 vtu3D::~vtu3D()
@@ -937,7 +937,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
-	ffn=float(p->ipol4_a(a->solid));
+	ffn=float(a->solid(i,j,k));//float(p->ipol4_a(a->solid));
 	result.write((char*)&ffn, sizeof (float));
 	}
 

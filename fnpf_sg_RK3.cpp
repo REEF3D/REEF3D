@@ -269,6 +269,10 @@ void fnpf_sg_RK3::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, 
     
     velcalc_sig(p,c,pgc,c->Fi);
     
+    pgc->start7V(p,c->U,c->bc,210);
+    pgc->start7V(p,c->V,c->bc,210);
+    pgc->start7V(p,c->W,c->bc,210);
+    
     pgc->gcsl_start4(p,c->eta,gcval_eta);
     pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
 }

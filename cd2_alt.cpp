@@ -30,7 +30,7 @@ cds2_alt::cds2_alt (lexer *p)
     if(p->B269==0)
     pflux = new flux_HJ_CDS2(p);
     
-    if(p->B269>=1)
+    if(p->B269>=1 || p->S10==2)
     pflux = new flux_HJ_CDS2_vrans(p);
 }
 

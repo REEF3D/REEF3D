@@ -444,7 +444,7 @@ void ioflow_v::ini(lexer *p, fdm* a, ghostcell* pgc)
     if(p->B269==0)
 	pvrans = new vrans_v(p,a,pgc);
 	
-	if(p->B269==1)
+	if(p->B269==1 || p->S10==2)
 	pvrans = new vrans_f(p,a,pgc);
     
     if(p->W90==0)
@@ -498,4 +498,9 @@ void ioflow_v::veltimesave(lexer *p, fdm *a, ghostcell *pgc)
 void ioflow_v::inflow_fnpf(lexer *p, ghostcell *pgc, double *Fi, double *Uin,slice &Fifsf, slice &eta)
 {
 
+}
+
+void ioflow_v::vrans_sed_update(lexer *p,fdm *a,ghostcell *pgc)
+{
+    pvrans->sed_update(p,a,pgc);
 }

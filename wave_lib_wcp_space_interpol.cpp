@@ -34,6 +34,8 @@ double wave_lib_wcp::space_interpol(lexer *p, double ***F, double x, double y, d
     yp = y + p->I232;
     zp = z + p->I233 + p->wd;
     
+    
+    
     if(xp>=Xstart  && xp<Xend && ((yp>=Ystart && yp<Yend)|| jdir==0))
     {
         //cout<<"pos_ij1: "<<i<<" "<<j<<" jdir "<<jdir<<endl;
@@ -46,7 +48,6 @@ double wave_lib_wcp::space_interpol(lexer *p, double ***F, double x, double y, d
         k = pos_k(p,zp,i,j);
 
         val=ccpol3D(p,F,x,y,z);
-
         }
     }
     
@@ -102,25 +103,43 @@ double wave_lib_wcp::ccpol3D(lexer *p, double ***F, double x, double y, double z
         if(i<Nx-1)
         if((X[i+1]-xp)/(X[i+1]-X[i])<0.0)
         {
-        wa = (X[i+2]-xp)/(X[i+2]-X[i+1]);
+        wa = (X[i+1]-xp)/(X[i+2]-X[i+1]);
+        
+        //if(p->mpirank==0 && x>9.99)
+        //cout<<" wa1a: "<<wa<<" xp: "<<xp<<" X[i+1]: "<<X[i+1]<<" X[i+2]: "<<X[i+2]<<endl;
         ++i;
         }
-        
+
         if(i>0)
         if((X[i+1]-xp)/(X[i+1]-X[i])>1.0)
         {
         wa = (X[i]-xp)/(X[i]-X[i-1]);
+        
+        //if(p->mpirank==0 && x>9.99)
+        //cout<<" wa1b: "<<wa<<endl;
         --i;
         }
         
         //cout<<i<<" X[i-2]: "<<X[i-2]<<" X[i-1]: "<<X[i-1]<<" X[i]: "<<X[i]<<" X[i+1]: "<<X[i+1]<<" X[i+2]: "<<X[i+2]<<endl;
+        
+        
     }
     
     if(xp<=X[0] || i<0)
+    {
     wa=0.0;
     
+    //if(p->mpirank==0 && x>9.99)
+    //cout<<" wa2: "<<wa<<endl;
+    }
+    
     if(xp>=X[Nx-1] || i>=Nx-1)
+    {
     wa=1.0;
+    
+    //if(p->mpirank==0 && x>9.99)
+    //cout<<" wa3: "<<wa<<endl;
+    }
     
     
     // wb
@@ -194,9 +213,9 @@ double wave_lib_wcp::ccpol3D(lexer *p, double ***F, double x, double y, double z
     j = j<0?0:j;
     k = k<0?0:k;
     
-    i = i>Nx?Nx:i;
-    j = j>Ny?Ny:j;
-    k = k>Nz?Nz:k;
+    i = i>Nx-1?Nx-1:i;
+    j = j>Ny-1?Ny-1:j;
+    k = k>Nz-1?Nz-1:k;
     
     
     v1 = F[i][j][k];
@@ -230,6 +249,12 @@ double wave_lib_wcp::ccpol3D(lexer *p, double ***F, double x, double y, double z
     
     cout<<" WCP 3D: "<<v1<<" "<<v2<<" "<<v3<<" "<<v4<<" "<<v5<<" "<<v6<<" "<<v7<<" "<<v7<<" "<<endl;
     cout<<" WCP i: "<<i<<" j: "<<j<<" k: "<<k<<" Z[ijk]: "<<Z[i][j][k]<<" z: "<<z<<endl;*/
+    
+    /*
+    if(p->mpirank==0 && x>9.99)
+    cout<<" Nx: "<<Nx<<" i: "<<i<<" j: "<<j<<" k: "<<k<<" X[i]: "<<X[i]<<" | U[i]: "<<U[i][0][2]
+        <<" x: "<<x<<" z: "<<z<<" val: "<<val<<" | wa: "<<wa<<" wb: "<<wb<<" wc: "<<wc<<endl;*/
+    
 
     return val;
 }
@@ -311,8 +336,8 @@ double wave_lib_wcp::ccpol2D(lexer *p, double **F, double x, double y)
     i = i<0?0:i;
     j = j<0?0:j;
     
-    i = i>Nx?Nx:i;
-    j = j>Ny?Ny:j;
+    i = i>(Nx-1)?(Nx-1):i;
+    j = j>(Ny-1)?(Ny-1):j;
 
     
     v1 = F[i][j];

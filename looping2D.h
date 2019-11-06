@@ -50,6 +50,8 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 #define TPSLICECHECK  if(p->tpflagslice[IJ]>0)
 #define TPSLICELOOP ITPLOOP JTPLOOP TPSLICECHECK
 
+#define TPSLICELOOP4A ITPLOOP JTPLOOP
+
 #define NSLICELOOP for(n=sizeS[0]; n<sizeS[1]; ++n)
 #define NSLICELOOP1 for(n=p->sizeS1[0]; n<p->sizeS1[1]; ++n)
 #define NSLICELOOP2 for(n=p->sizeS2[0]; n<p->sizeS2[1]; ++n)

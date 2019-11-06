@@ -31,10 +31,10 @@ print_runup::print_runup(lexer *p, fdm* a, ghostcell *pgc)
 	
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_Runup-FSF",0777);
+	mkdir("./REEF3D_CFD_Runup-FSF",0777);
 	
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_Runup-MAX",0777);
+	mkdir("./REEF3D_CFD_Runup-MAX",0777);
 	
 	cone_ini(p,a,pgc);
 }

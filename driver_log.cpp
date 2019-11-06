@@ -90,7 +90,7 @@ solvlogout<<"#kiter \t #ktime \t| #eiter \t #etime \t|";
 solvlogout<<"#liter \t #ltime \t| #reiniiter \t #reinitime"<<endl;
 }
 
-if(p->mpirank==0 && p->S10==1)
+if(p->mpirank==0 && p->S10>=1)
 {
 if(p->P14==0)
 sedlogout.open("REEF3D_sedimentlog.dat");

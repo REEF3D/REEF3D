@@ -32,7 +32,7 @@ weno_hj::weno_hj(lexer* p):tttw(13.0/12.0),fourth(1.0/4.0),third(1.0/3.0),
     if(p->B269==0)
     pflux = new flux_HJ_CDS2(p);
     
-    if(p->B269>=1)
+    if(p->B269>=1 || p->S10==2)
     pflux = new flux_HJ_CDS2_vrans(p);
 }
 

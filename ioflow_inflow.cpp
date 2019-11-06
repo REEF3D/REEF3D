@@ -81,7 +81,9 @@ void ioflow_f::inflow_plain(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
     i=p->gcin[n][0];
     j=p->gcin[n][1];
     k=p->gcin[n][2];
-
+    
+        if(a->topo(i,j,k)>0.0)
+        {
         u(i-1,j,k)=p->Ui;
         u(i-2,j,k)=p->Ui;
         u(i-3,j,k)=p->Ui;
@@ -93,6 +95,7 @@ void ioflow_f::inflow_plain(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
 		w(i-1,j,k)=0.0;
         w(i-2,j,k)=0.0;
         w(i-3,j,k)=0.0;
+        }
     }
 }
 
@@ -146,7 +149,8 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
         i=p->gcin[n][0];
         j=p->gcin[n][1];
         k=p->gcin[n][2];
-
+        
+            if(a->topo(i,j,k)>0.0)
             u(i-1,j,k)=u(i-2,j,k)=u(i-3,j,k)= (1.0-p->B65)*p->Ui + p->B65*(shearvel*2.5*log(MAX(30.0*MIN(walldin[n],dmax)/ks,1.0)));
         }
 
@@ -174,10 +178,13 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
         i=p->gcin[n][0];
         j=p->gcin[n][1];
         k=p->gcin[n][2];
-
+        
+        if(a->topo(i,j,k)>0.0)
+        {
         u(i-1,j,k)*=ratio;
         u(i-2,j,k)*=ratio;
         u(i-3,j,k)*=ratio;
+        }
         }
     }
 
@@ -188,7 +195,7 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
     j=p->gcin[n][1];
     k=p->gcin[n][2];
 	
-		if(a->phi(i-1,j,k)<-p->B66_1*p->dx && a->phi(i-1,j,k)>=-p->B66_2*p->dx)
+		if(a->phi(i-1,j,k)<-p->B66_1*p->dx && a->phi(i-1,j,k)>=-p->B66_2*p->dx && a->topo(i,j,k)>0.0)
         {
         fac=1.0 - fabs(a->phi(i-1,j,k))/((p->B66_2-p->B66_1)*p->dx);
         u(i-1,j,k)=u(i-1,j,k)*fac;
@@ -196,7 +203,7 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
         u(i-3,j,k)=u(i-3,j,k)*fac;
         }
 
-        if(a->phi(i,j,k)<-p->B66_2*p->dx)
+        if(a->phi(i,j,k)<-p->B66_2*p->dx && a->topo(i,j,k)>0.0)
         {
         u(i-1,j,k)=0.0;
         u(i-2,j,k)=0.0;
@@ -232,14 +239,14 @@ void ioflow_f::inflow_water(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
     j=p->gcin[n][1];
     k=p->gcin[n][2];
 
-        if(a->phi(i-1,j,k)>=0.0)
+        if(a->phi(i-1,j,k)>=0.0 && a->topo(i,j,k)>0.0)
         {
         u(i-1,j,k)=p->Ui;
         u(i-2,j,k)=p->Ui;
         u(i-3,j,k)=p->Ui;
         }
 
-        if(a->phi(i-1,j,k)<-p->B66_1*p->dx && a->phi(i-1,j,k)>=-p->B66_2*p->F45*p->dx)
+        if(a->phi(i-1,j,k)<-p->B66_1*p->dx && a->phi(i-1,j,k)>=-p->B66_2*p->F45*p->dx && a->topo(i,j,k)>0.0)
         {
         fac=1.0 - fabs(a->phi(i-1,j,k))/((p->B66_2-p->B66_1)*p->F45*p->dx);
         u(i-1,j,k)=p->Ui*fac;
@@ -248,7 +255,7 @@ void ioflow_f::inflow_water(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
         }
 
 
-        if(a->phi(i-1,j,k)<-p->B66_2*p->F45*p->dx)
+        if(a->phi(i-1,j,k)<-p->B66_2*p->F45*p->dx && a->topo(i,j,k)>0.0)
         {
         u(i-1,j,k)=0.0;
         u(i-2,j,k)=0.0;

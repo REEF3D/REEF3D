@@ -35,7 +35,7 @@ void ioflow_f::ini(lexer *p, fdm* a, ghostcell* pgc)
     if(p->B269==0)
 	pvrans = new vrans_v(p,a,pgc);
 	
-	if(p->B269==1)
+	if(p->B269==1 || p->S10==2)
 	pvrans = new vrans_f(p,a,pgc);
     
     if(p->B269==2)

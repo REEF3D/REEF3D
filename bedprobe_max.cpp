@@ -30,16 +30,16 @@ bedprobe_max::bedprobe_max(lexer *p, fdm* a, ghostcell *pgc)
 {
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_SedimentMax",0777);
+	mkdir("./REEF3D_CFD_SedimentMax",0777);
 	
     if(p->mpirank==0 && p->P122>0)
     {
     // open file
 	if(p->P14==0)
-    wsfout.open("REEF3D-Sediment-Max.dat");
+    wsfout.open("REEF3D-CFD-Sediment-Max.dat");
 	
 	if(p->P14==1)
-	wsfout.open("./REEF3D_SedimentMax/REEF3D-Sediment-Max.dat");
+	wsfout.open("./REEF3D_CFD_SedimentMax/REEF3D-CFD-Sediment-Max.dat");
 
     wsfout<<"time  maximum erosion"<<endl<<endl;
     }

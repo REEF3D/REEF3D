@@ -32,7 +32,7 @@ state::state(lexer *p, fdm *a, ghostcell *pgc)
 {	
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_State",0777);
+	mkdir("./REEF3D_CFD_State",0777);
 	
 	printcount=0;
 }

@@ -107,6 +107,6 @@ void sflow_sediment_f::sediment_algorithm(lexer *p, fdm2D *b, ghostcell *pgc, sl
     cout<<"Sediment Timestep: "<<p->dtsed<<"  Total Time: "<<setprecision(7)<<p->sedtime<<endl;
 
 	if(p->mpirank==0)
-    cout<<"Sediment Time: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
+    cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
 }
 
