@@ -750,6 +750,7 @@
           <File Name="fnpf_fg_laplace_cds2.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="fnpf_weno7.h"/>
           <File Name="fnpf_weno_wd.h"/>
           <VirtualDirectory Name="DDWENO">
             <File Name="fnpf_ddweno_f_nug.h"/>
@@ -2267,6 +2268,7 @@
           <File Name="fnpf_fg_laplace_cds2.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="fnpf_weno7.cpp"/>
           <File Name="fnpf_weno_wd.cpp"/>
           <VirtualDirectory Name="DDWENO">
             <File Name="fnpf_ddweno_f_nug_sg.cpp"/>
