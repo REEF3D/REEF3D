@@ -91,8 +91,8 @@ void mgc1::fill_ggc(lexer* p)
 	++a;
 	}
 	
-	p->Iresize(cart1::ggc,cart1::ggcsize,cart1::ggccount*3, 3, 3);
-	cart1::ggcsize=cart1::ggccount*3;
+	p->Iresize(cart1::ggc,cart1::ggcsize,cart1::ggccount*p->margin, 3, 3);
+	cart1::ggcsize=cart1::ggccount*p->margin;
 
 //--------------------------
 //WALL2

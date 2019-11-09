@@ -24,8 +24,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"vec.h"
 #include"fnpf_discrete_weights.h"
 
-fnpf_weno7::fnpf_weno7(lexer* p) :  ddweno_f_nug(p)
+fnpf_weno7::fnpf_weno7(lexer* p) :  ddweno_f_nug(p), epsilon(1.0e-10)
 {
+    p->DYM=p->DXM;
 
 }
 
@@ -37,6 +38,12 @@ double fnpf_weno7::fx(lexer *p, field &f, double ivel1, double ivel2)
 {
     grad=0.0;
     
+    if(0.5*(ivel1+ivel2)>0.0)
+    grad=ddwenox(f,1.0);
+    
+    if(0.5*(ivel1+ivel2)<0.0)
+    grad=ddwenox(f,-1.0);
+    
     return grad;
 }
 
@@ -44,12 +51,24 @@ double fnpf_weno7::fy(lexer *p, field &f, double jvel1, double jvel2)
 {
     grad=0.0;
     
+    if(0.5*(jvel1+jvel2)>0.0)
+    grad=ddwenoy(f,1.0);
+    
+    if(0.5*(jvel1+jvel2)<0.0)
+    grad=ddwenoy(f,-1.0);
+    
     return grad;
 }
 
 double fnpf_weno7::fz(lexer *p, field &f, double kvel1, double kvel2)
 {
     grad=0.0;
+    
+    if(0.5*(kvel1+kvel2)>0.0)
+    grad=ddwenoz(f,1.0);
+    
+    if(0.5*(kvel1+kvel2)<0.0)
+    grad=ddwenoz(f,-1.0);
     
     return grad;
 }
@@ -83,6 +102,7 @@ double fnpf_weno7::sx(lexer *p, slice &f, double ivel)
           + w3*(-(1.0/12.0)*q3 + (7.0/12.0)*q4 + (7.0/12.0)*q5 - (1.0/12.0)*q6)
           + w4*((1.0/4.0)*q4 + (13.0/12.0)*q5 - (5.0/12.0)*q6 + (1.0/12.0)*q7);
 	}
+    
     
     return grad;
 }
@@ -183,7 +203,7 @@ void fnpf_weno7::is()
         + q4*(3443.0*q4 - 2522.0*q5) + 547.0*q5*q5;
         
     is3 = q3*(547.0*q3 - 2522.0*q4 + 1922.0*q5 - 494.0*q6) + q4*(3443.0*q4 - 5966.0*q5 + 1602.0*q6) 
-        + q5*(2842.0*q2 - 1642.0*q3) + 267.0*q6*q6;
+        + q5*(2843.0*q2 - 1642.0*q3) + 267.0*q6*q6;
         
     is4 = q4*(2107.0*q4 - 9402.0*q5 + 7042.0*q6 - 1854.0*q7) + q5*(11003.0*q5 - 17246.0*q6 + 4642.0*q7) 
         + q6*(7043.0*q6 - 3882.0*q7) + 547.0*q7*q7;
@@ -191,10 +211,10 @@ void fnpf_weno7::is()
 
 void fnpf_weno7::alpha()
 {
-	alpha1=(1.0/35)/pow(epsilon+is1,2.0);
-	alpha2=(12.0/35)/pow(epsilon+is2,2.0);
-	alpha3=(18.0/35)/pow(epsilon+is3,2.0);
-    alpha4=(4.0/35)/pow(epsilon+is4,2.0);
+	alpha1=(1.0/35.0)/pow(epsilon+is1,2.0);
+	alpha2=(12.0/35.0)/pow(epsilon+is2,2.0);
+	alpha3=(18.0/35.0)/pow(epsilon+is3,2.0);
+    alpha4=(4.0/35.0)/pow(epsilon+is4,2.0);
 }
 
 void fnpf_weno7::weight()

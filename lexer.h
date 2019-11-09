@@ -555,7 +555,6 @@ public:
 // Boundary
     //int **boundary;
     int **fgc;
-	int margin6;
 
 	static int knox,knoy,knoz;
 	static int margin;

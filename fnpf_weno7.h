@@ -57,6 +57,8 @@ private:
 	void alpha();
 	void weight();
     
+    const double epsilon;
+    
     void iqmin(lexer*, slice&);
     void jqmin(lexer*, slice&);
     void iqmax(lexer*, slice&);

@@ -96,8 +96,8 @@ void ggccart::fill_ggc(lexer* p, int gcb_count, int **gcb, int ggccount, int **g
 	++a;
 	}
 	
-	p->Iresize(ggc,ggcsize,ggccount*3, 3,3);
-	ggcsize=ggccount*3;
+	p->Iresize(ggc,ggcsize,ggccount*p->margin, 3,3);
+	ggcsize=ggccount*p->margin;
 
 //--------------------------
 //WALL2

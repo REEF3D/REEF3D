@@ -40,8 +40,12 @@ void lexer::control_calc()
 
 void lexer::assign_margin()
 {	
-	margin=3;
-	margin6=1;
+    
+    margin=3; 
+    
+    if(A311==7)
+	margin=4;
+    
 	
 
 	imax=knox+2*margin;

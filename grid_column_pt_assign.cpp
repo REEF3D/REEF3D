@@ -763,7 +763,7 @@ void grid::column_pt4_assign(lexer* p, fieldint &cval4, cpt &C4)
         }
     }
 	
-	//cout<<p->mpirank<<" gcbcount4: "<<p->gcb4_count*3<<" N4: "<<n-cellnum1<<endl;
+	//cout<<p->mpirank<<" gcbcount4: "<<p->gcb4_count*p->margin<<" N4: "<<n-cellnum1<<endl;
 	
 	for(g=0;g<p->gcpara1_count;++g)
     {

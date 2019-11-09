@@ -54,7 +54,7 @@ void slice5::dealloc(lexer* p)
 
 void slice5::resize(lexer* p)
 {
-    if(p->gcsl_extra4*3>gcfeldsize)
+    if(p->gcsl_extra4*p->margin>gcfeldsize)
     cout<<p->mpirank<<" Slice4 Resize: "<<gcfeldsize<<" "<<p->gcsl_extra4*3<<endl;
 }
 
