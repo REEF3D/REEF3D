@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 fnpf_weno7::fnpf_weno7(lexer* p) :  ddweno_f_nug(p), epsilon(1.0e-10)
 {
-    p->DYM=p->DXM;
+    p->DYD=p->DXD;
 
 }
 
@@ -152,46 +152,46 @@ double fnpf_weno7::sz(lexer *p, double *f)
 
 void fnpf_weno7::iqmin(lexer *p, slice& f)
 {	
-    q1 = (f(i-3,j) - f(i-4,j))/p->DXM;
-	q2 = (f(i-2,j) - f(i-3,j))/p->DXM;
-	q3 = (f(i-1,j) - f(i-2,j))/p->DXM;
-	q4 = (f(i,j)   - f(i-1,j))/p->DXM;
-	q5 = (f(i+1,j) - f(i,j  ))/p->DXM;
-    q6 = (f(i+2,j) - f(i+1,j))/p->DXM;
-    q7 = (f(i+3,j) - f(i+2,j))/p->DXM;
+    q1 = (f(i-3,j) - f(i-4,j))/p->DXD;
+	q2 = (f(i-2,j) - f(i-3,j))/p->DXD;
+	q3 = (f(i-1,j) - f(i-2,j))/p->DXD;
+	q4 = (f(i,j)   - f(i-1,j))/p->DXD;
+	q5 = (f(i+1,j) - f(i,j  ))/p->DXD;
+    q6 = (f(i+2,j) - f(i+1,j))/p->DXD;
+    q7 = (f(i+3,j) - f(i+2,j))/p->DXD;
 }
 
 void fnpf_weno7::jqmin(lexer *p, slice& f)
 {	
-    q1 = (f(i,j-3) - f(i,j-4))/p->DYM;
-	q2 = (f(i,j-2) - f(i,j-3))/p->DYM;
-	q3 = (f(i,j-1) - f(i,j-2))/p->DYM;
-	q4 = (f(i,j)   - f(i,j-1))/p->DYM;
-	q5 = (f(i,j+1) - f(i,j  ))/p->DYM;
-    q6 = (f(i,j+2) - f(i,j+1))/p->DYM;
-    q7 = (f(i,j+3) - f(i,j+2))/p->DYM;
+    q1 = (f(i,j-3) - f(i,j-4))/p->DYD;
+	q2 = (f(i,j-2) - f(i,j-3))/p->DYD;
+	q3 = (f(i,j-1) - f(i,j-2))/p->DYD;
+	q4 = (f(i,j)   - f(i,j-1))/p->DYD;
+	q5 = (f(i,j+1) - f(i,j  ))/p->DYD;
+    q6 = (f(i,j+2) - f(i,j+1))/p->DYD;
+    q7 = (f(i,j+3) - f(i,j+2))/p->DYD;
 }
 
 void fnpf_weno7::iqmax(lexer *p, slice& f)
 {	
-    q1 = (f(i+4,j) - f(i+3,j))/p->DXM;
-	q2 = (f(i+3,j) - f(i+2,j))/p->DXM;
-	q3 = (f(i+2,j) - f(i+1,j))/p->DXM;
-	q4 = (f(i+1,j) - f(i,j  ))/p->DXM;
-	q5 = (f(i,j)   - f(i-1,j))/p->DXM;
-    q6 = (f(i-1,j) - f(i-2,j))/p->DXM;
-    q7 = (f(i-2,j) - f(i-3,j))/p->DXM;
+    q1 = (f(i+4,j) - f(i+3,j))/p->DXD;
+	q2 = (f(i+3,j) - f(i+2,j))/p->DXD;
+	q3 = (f(i+2,j) - f(i+1,j))/p->DXD;
+	q4 = (f(i+1,j) - f(i,j  ))/p->DXD;
+	q5 = (f(i,j)   - f(i-1,j))/p->DXD;
+    q6 = (f(i-1,j) - f(i-2,j))/p->DXD;
+    q7 = (f(i-2,j) - f(i-3,j))/p->DXD;
 }
 
 void fnpf_weno7::jqmax(lexer *p, slice& f)
 {	
-	q1 = (f(i,j+4) - f(i,j+3))/p->DYM;
-    q2 = (f(i,j+3) - f(i,j+2))/p->DYM;
-	q3 = (f(i,j+2) - f(i,j+1))/p->DYM;
-	q4 = (f(i,j+1) - f(i,j  ))/p->DYM;
-	q5 = (f(i,j)   - f(i,j-1))/p->DYM;
-    q6 = (f(i,j-1) - f(i,j-2))/p->DYM;
-    q7 = (f(i,j-2) - f(i,j-3))/p->DYM;
+	q1 = (f(i,j+4) - f(i,j+3))/p->DYD;
+    q2 = (f(i,j+3) - f(i,j+2))/p->DYD;
+	q3 = (f(i,j+2) - f(i,j+1))/p->DYD;
+	q4 = (f(i,j+1) - f(i,j  ))/p->DYD;
+	q5 = (f(i,j)   - f(i,j-1))/p->DYD;
+    q6 = (f(i,j-1) - f(i,j-2))/p->DYD;
+    q7 = (f(i,j-2) - f(i,j-3))/p->DYD;
 }
 
 void fnpf_weno7::is()

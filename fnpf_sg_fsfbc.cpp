@@ -144,9 +144,6 @@ void fnpf_sg_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     c->Fx(i,j) = pconvec->sx(p,Fifsf,ivel);
     c->Ex(i,j) = pconeta->sx(p,eta,ivel);
     
-    //if(c->Fx(i,j)!=0.0 || c->Ex(i,j)!=0.0)
-    //cout<<"WENO5: "<<pconeta->sx(p,eta,ivel)<<" WENO7: "<<pconvec->sx(p,eta,ivel)<<endl;
-    
     c->Exx(i,j) = pddx->sxx(p,eta);
     }
     
