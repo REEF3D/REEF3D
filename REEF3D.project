@@ -196,7 +196,6 @@
         <File Name="weno_flux_nug.h"/>
         <File Name="fou.h"/>
         <File Name="ifou.h"/>
-        <File Name="iquick.h"/>
         <File Name="quick.h"/>
         <VirtualDirectory Name="Limiter">
           <File Name="fluxlim.h"/>
@@ -1216,7 +1215,6 @@
         <File Name="weno_flux_nug.cpp"/>
         <File Name="fou.cpp"/>
         <File Name="ifou.cpp"/>
-        <File Name="iquick.cpp"/>
         <File Name="quick.cpp"/>
         <VirtualDirectory Name="Limiter">
           <File Name="limo3.cpp"/>

@@ -285,7 +285,6 @@ double grid_sigma::sigmax(lexer *p, field &f, int ipol)
     return sig;
 }
 
-
 double grid_sigma::sigmay(lexer *p, field &f, int ipol)
 {  
     if(ipol==1)

@@ -42,19 +42,7 @@ ghostcell::~ghostcell()
 
 void ghostcell::gcini(lexer* p)
 {
-	if(gcx==1)
-	{
-		if(p->mpirank==0)
-		p->ctrlsend();
-		
-		globalctrl(p);
-		
-		if(p->mpirank>0)
-		p->ctrlrecv();
-	}
-    
-    p->del_Iarray(p->ictrl,p->ctrlsize);
-    p->del_Darray(p->dctrl,p->ctrlsize);
+	
 	
     margin=p->margin;
 	paramargin=p->margin;

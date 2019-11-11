@@ -49,7 +49,7 @@ public:
 
 //-----functions------------------
 //---- setup
-    void lexer_read();
+    void lexer_read(ghostcell*);
     void flagini();
 	void gridini(ghostcell*);
     void gridini_outflow();

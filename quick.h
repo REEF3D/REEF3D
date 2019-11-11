@@ -41,6 +41,7 @@ public:
 
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&);
+    
 
 	double dx,dy,dz;
 	double ul,ur,vl,vr,wl,wr;

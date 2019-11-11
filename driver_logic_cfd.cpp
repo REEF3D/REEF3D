@@ -106,9 +106,6 @@ void driver::logic()
 	if(p->T12==2)
 	pturbdisc=new icds2(p);
 
-	if(p->T12==3)
-	pturbdisc=new iquick(p);
-
 	if(p->T12==4)
 	pturbdisc=new iweno_flux(p);
 
@@ -442,9 +439,6 @@ void driver::logic()
 
 	if(p->F85==2 && p->F80>10)
 	pfsfdisc=new icds2(p);
-
-	if(p->F85==3 && p->F80>10)
-	pfsfdisc=new iquick(p);
 
 	if(p->F85==4 && p->F80>10)
 	pfsfdisc=new iweno_flux(p);

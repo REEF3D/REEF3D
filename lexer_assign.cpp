@@ -40,7 +40,6 @@ void lexer::control_calc()
 
 void lexer::assign_margin()
 {	
-    
     margin=3; 
     
     if(A311==7)

@@ -54,7 +54,6 @@ poisson_sig::~poisson_sig()
 
 void poisson_sig::start(lexer* p, fdm *a, field &f)
 {	
-    
     double sigxyz2;
    
 	n=0;
@@ -93,7 +92,6 @@ void poisson_sig::start(lexer* p, fdm *a, field &f)
                         + CPOR4*PORVAL4*2.0*p->sigy[FIJK]*(f[FIJp1Kp1] - f[FIJm1Kp1] - f[FIJp1Km1] + f[FIJm1Km1])
                         /((a->ro(i,j,k)*p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
         }
-            
 	
 	++n;
 	}

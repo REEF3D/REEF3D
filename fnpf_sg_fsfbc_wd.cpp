@@ -48,10 +48,10 @@ fnpf_sg_fsfbc_wd::fnpf_sg_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p
     if(p->A311==0)
     pconvec = pconeta = new fnpf_voiddisc(p);
     
-    if(p->A311==2)
+    if(p->A311==1)
     pconvec = pconeta = new fnpf_cds2(p);
     
-    if(p->A311==3)
+    if(p->A311==2)
     pconvec = pconeta = new fnpf_cds4(p);
     
     if(p->A311==4  || p->A311==5)
