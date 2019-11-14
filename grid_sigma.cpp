@@ -257,6 +257,9 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     
     FLOOP
     p->ZSN[FIJK] = p->ZN[KP]*(eta(i,j) + p->wd);
+    
+    LOOP
+    p->ZSP[IJK]  = p->ZP[KP]*(eta(i,j) + p->wd);
         
 }
 

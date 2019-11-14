@@ -261,7 +261,7 @@ void lexer::ini_default()
 
     // Discretization
 	D10=4;			// int convection scheme
-	D11=2;			// int convection velocity scheme
+	D11=2;			// int convection velocity scheme   
 	D20=1;			// int diffusion scheme
 	D21=0;			// int print out implicit diffusion time and iterations
 	D22=1;			// int turn on molecular diffusion in diffusion discretization for momentum equations

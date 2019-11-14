@@ -189,7 +189,7 @@ void  ikomega::kinsource(lexer *p, fdm* a)
 	if(wallf(i,j,k)==0)
 	a->rhsvec.V[count]  += MIN(pk(p,a), p->T42*p->cmu*MAX(kin(i,j,k),0.0)*MAX(eps(i,j,k),0.0));
 	
-	if(wallf(i,j,k)==1)
+    if(wallf(i,j,k)==1)
 	a->rhsvec.V[count]  = 0.0;
 
 	++count;
@@ -278,7 +278,11 @@ void ikomega::epsfsf(lexer *p, fdm* a, ghostcell *pgc)
 	if(p->T36>0)
 	LOOP
 	{
-        epsi = p->T38*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+            if(p->j_dir==0)
+            epsi = p->T38*(1.0/2.0)*(p->DXN[IP]+p->DZN[KP]);
+            
+            if(p->j_dir==1)
+            epsi = p->T38*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
         
 		if(fabs(a->phi(i,j,k))<epsi)
 		dirac = (0.5/epsi)*(1.0 + cos((p->T39*PI*a->phi(i,j,k))/epsi));

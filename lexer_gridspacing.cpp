@@ -37,6 +37,7 @@ void lexer::lexer_gridspacing(ghostcell *pgc)
     Darray(DZP,knoz+1+4*marge);
     
     Darray(ZSN,imax*jmax*(kmax+1));
+    Darray(ZSP,imax*jmax*kmax);
 
     
     for(i=-marge;i<knox+marge;++i)

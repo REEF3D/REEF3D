@@ -575,7 +575,7 @@ public:
     double *XP,*YP,*ZP;
     double *DXN,*DYN,*DZN;
     double *DXP,*DYP,*DZP;
-    double *ZSN;
+    double *ZSN,*ZSP;
     double DXM,DYD,DXD;
     
     weno_nug_func *wenofunc;

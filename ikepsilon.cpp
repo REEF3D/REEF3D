@@ -190,12 +190,18 @@ void  ikepsilon::epssource(lexer *p, fdm* a)
 
 void  ikepsilon::epsfsf(lexer *p, fdm* a,ghostcell *pgc)
 {
-	double epsi = p->T38*p->dx;
+	double epsi;
 	double dirac;
 	
 	if(p->T36>0)
 	LOOP
 	{
+            if(p->j_dir==0)
+            epsi = p->T38*(1.0/2.0)*(p->DXN[IP]+p->DZN[KP]);
+            
+            if(p->j_dir==1)
+            epsi = p->T38*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+            
 		if(fabs(a->phi(i,j,k))<epsi)
 		dirac = (0.5/epsi)*(1.0 + cos((p->T39*PI*a->phi(i,j,k))/epsi));
 		
