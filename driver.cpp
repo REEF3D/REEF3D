@@ -36,7 +36,7 @@ driver::driver(int& argc, char **argv)
     {
     cout<<endl<<"REEF3D (c) 2008-2019 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl; 
-    cout<<endl<<"v_191114" <<endl<<endl;         
+    cout<<endl<<"v_191116" <<endl<<endl;         
     }
     
 	p->lexer_read(pgc);
@@ -94,7 +94,10 @@ driver::driver(int& argc, char **argv)
         nsewave_driver();
         
         if(p->A10==44)
+        {
+        makegrid_nhflow(p,pgc);
         nhflow_driver();
+        }
         
         if(p->A10==5)
         cfd_driver();

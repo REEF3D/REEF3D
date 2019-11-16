@@ -354,7 +354,7 @@ void iowave::p_relax(lexer *p, fdm *a, ghostcell *pgc, field& press)
             if(db<dist3)
 			{
             if(p->D38==0)
-            press(i,j,k) = (1.0-rb3(p,db))*((p->phimean - p->pos_z())*a->ro(i,j,k)*fabs(p->W22)) + rb3(p,db)*press(i,j,k);
+            press(i,j,k) = (1.0-rb3(p,db))*((p->phimean - p->ZSP[IJK])*a->ro(i,j,k)*fabs(p->W22)) + rb3(p,db)*press(i,j,k);
             
             if(p->D38>0)
             press(i,j,k) = (1.0-rb3(p,db))*0.0 + rb3(p,db)*press(i,j,k);
@@ -399,7 +399,6 @@ void iowave::phi_relax(lexer *p, ghostcell *pgc, field& f)
         }
     }
 }
-
 
 void iowave::vof_relax(lexer *p, ghostcell *pgc, field& f)
 {

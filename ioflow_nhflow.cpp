@@ -19,49 +19,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"iowave.h"
+#include"ioflow_f.h"
 #include"lexer.h"
+#include"fdm.h"
 #include"ghostcell.h"
- 
-void iowave::nhflow_inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
+
+void ioflow_f::nhflow_inflow(lexer *p,fdm *a,ghostcell *pgc, field &uvel, field &vvel, field &wvel)
 {
-    if(p->I230==0)
-    {
-    if(p->B98==0)
-    nhflow_inflow_plain(p,a,pgc,u,v,w);
-    
-	if(p->B98==3)
-	nhflow_dirichlet_wavegen(p,a,pgc,u,v,w);
-	
-	if(p->B98==5)
-	nhflow_active_wavegen(p,a,pgc,u,v,w);
-	}
-    
-	if(p->B99==3||p->B99==4||p->B99==5)
-	nhflow_active_beach(p,a,pgc,u,v,w);
-    
-    if(p->I230>0)
-    ff_inflow(p,a,pgc,u,v,w);
+
 }
 
-void iowave::nhflow_inflow_plain(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
+void ioflow_f::ini_nhflow(lexer *p,fdm *a,ghostcell *pgc)
 {
-    for(n=0;n<p->gcin_count;n++)
-    {
-    i=p->gcin[n][0];
-    j=p->gcin[n][1];
-    k=p->gcin[n][2];
 
-        u(i-1,j,k)=p->Ui;
-        u(i-2,j,k)=p->Ui;
-        u(i-3,j,k)=p->Ui;
-		
-		v(i-1,j,k)=0.0;
-        v(i-2,j,k)=0.0;
-        v(i-3,j,k)=0.0;
-		
-		w(i-1,j,k)=0.0;
-        w(i-2,j,k)=0.0;
-        w(i-3,j,k)=0.0;
-    }
 }

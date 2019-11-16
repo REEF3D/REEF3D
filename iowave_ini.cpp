@@ -57,6 +57,11 @@ void iowave::ini(lexer *p, fdm* a, ghostcell* pgc)
 	full_initialize(p,a,pgc);
 }
 
+void iowave::ini_nhflow(lexer *p, fdm* a, ghostcell* pgc)
+{
+
+}
+
 void iowave::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     

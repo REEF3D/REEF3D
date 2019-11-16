@@ -58,7 +58,6 @@ void lexer::lexer_read(ghostcell *pgc)
 	read_grid();
 	
 	lexer_ini();
-    
 }
 
 lexer::~lexer()

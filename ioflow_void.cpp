@@ -504,3 +504,13 @@ void ioflow_v::vrans_sed_update(lexer *p,fdm *a,ghostcell *pgc)
 {
     pvrans->sed_update(p,a,pgc);
 }
+
+void ioflow_v::nhflow_inflow(lexer *p,fdm *a,ghostcell *pgc, field &uvel, field &vvel, field &wvel)
+{
+
+}
+
+void ioflow_v::ini_nhflow(lexer *p,fdm *a,ghostcell *pgc)
+{
+
+}

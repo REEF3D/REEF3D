@@ -95,6 +95,9 @@ public:
     virtual void inflow_fnpf(lexer*,ghostcell*,double*,double*,slice&,slice&);
     virtual void ini2D(lexer*,fdm2D*,ghostcell*);
     
+    virtual void ini_nhflow(lexer*,fdm*,ghostcell*);
+    virtual void nhflow_inflow(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    
     virtual void vrans_sed_update(lexer*,fdm*,ghostcell*);
 	
 	

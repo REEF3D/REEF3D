@@ -119,6 +119,7 @@ public:
     void makegrid2D_cds(lexer*,ghostcell*,fdm2D*);
     void makegrid_fnpf(lexer*,ghostcell*);
     void makegrid_fnpf_cds(lexer*,ghostcell*);
+    void makegrid_nhflow(lexer*,ghostcell*);    
     
 	void fill_vel(lexer*,fdm*,ghostcell*);
 	void vec_test(lexer*,fdm*,ghostcell*,field&);

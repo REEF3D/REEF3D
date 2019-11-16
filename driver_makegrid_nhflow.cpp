@@ -19,49 +19,28 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"iowave.h"
+#include"driver.h"
 #include"lexer.h"
 #include"ghostcell.h"
- 
-void iowave::nhflow_inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
-{
-    if(p->I230==0)
-    {
-    if(p->B98==0)
-    nhflow_inflow_plain(p,a,pgc,u,v,w);
-    
-	if(p->B98==3)
-	nhflow_dirichlet_wavegen(p,a,pgc,u,v,w);
-	
-	if(p->B98==5)
-	nhflow_active_wavegen(p,a,pgc,u,v,w);
-	}
-    
-	if(p->B99==3||p->B99==4||p->B99==5)
-	nhflow_active_beach(p,a,pgc,u,v,w);
-    
-    if(p->I230>0)
-    ff_inflow(p,a,pgc,u,v,w);
-}
 
-void iowave::nhflow_inflow_plain(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
-{
-    for(n=0;n<p->gcin_count;n++)
+void driver::makegrid_nhflow(lexer *p, ghostcell *pgc)
+{	
+    int q;
+    
+// flag7
+    p->Iarray(p->flag7,p->imax*p->jmax*(p->kmax+2));
+    
+    for(i=0;i<p->imax*p->jmax*(p->kmax+2);++i)
+    p->flag7[i]=-10;
+    
+    BASELOOP
     {
-    i=p->gcin[n][0];
-    j=p->gcin[n][1];
-    k=p->gcin[n][2];
-
-        u(i-1,j,k)=p->Ui;
-        u(i-2,j,k)=p->Ui;
-        u(i-3,j,k)=p->Ui;
-		
-		v(i-1,j,k)=0.0;
-        v(i-2,j,k)=0.0;
-        v(i-3,j,k)=0.0;
-		
-		w(i-1,j,k)=0.0;
-        w(i-2,j,k)=0.0;
-        w(i-3,j,k)=0.0;
+        p->flag7[FIJK]=p->flag4[IJK];
     }
+    
+    k=p->knoz;
+    SLICEBASELOOP
+    p->flag7[FIJK] = p->flag7[FIJKm1];
+    
+    
 }

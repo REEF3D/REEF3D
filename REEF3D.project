@@ -377,6 +377,7 @@
           <File Name="grid.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sigma">
+          <File Name="grid_sigma_data.h"/>
           <File Name="grid_sigma.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Field">
@@ -1309,6 +1310,7 @@
           <File Name="ioflow_gravity.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="ioFlow">
+          <File Name="ioflow_nhflow.cpp"/>
           <File Name="ioflow_2Ddischarge.cpp"/>
           <File Name="inflow_2Dinflow.cpp"/>
           <File Name="ioflow_discharge.cpp"/>
@@ -1339,8 +1341,8 @@
             <File Name="iowave_2D_active-beach.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="NHFLOW">
+            <File Name="iowave_nhflow_active-wavegen.cpp"/>
             <File Name="iowave_nhflow_inflow.cpp"/>
-            <File Name="iowave_nhflow_relax.cpp"/>
             <File Name="iowave_nhflow_precalc_relax.cpp"/>
             <File Name="iowave_nhflow_precalc_inflow.cpp"/>
             <File Name="iowave_nhflow_precalc_dirichlet.cpp"/>
@@ -1657,6 +1659,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
       <VirtualDirectory Name="Driver">
+        <File Name="driver_makegrid_nhflow.cpp"/>
         <File Name="driver_ini_nhflow.cpp"/>
         <File Name="driver_ini_fnpf_fg.cpp"/>
         <File Name="driver_ini_fnpf_sg.cpp"/>
@@ -1686,6 +1689,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Sigma">
+          <File Name="grid_sigma_data.cpp"/>
           <File Name="grid_sigma.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Field">
