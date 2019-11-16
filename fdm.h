@@ -83,7 +83,7 @@ public:
     slice2 Q;
     slice4 bed,bedzh;
     sliceint4 bedk;
-    slice4 wet;
+    sliceint4 wet;
     
     // fnpf
     slice4 eta,eta_n,WL,depth;

@@ -72,6 +72,11 @@ void grid_sigma::sigma_ini(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     pdx = new fnpf_cds4(p);
     }
     
+    SLICELOOP4
+    a->wet(i,j)=1;
+    
+    pgc->gcsl_start4int(p,a->wet,50);
+    
     
     a->wd_criterion=0.00005;
     
@@ -85,7 +90,7 @@ void grid_sigma::sigma_ini(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
 
     // p->sig[FIJK]
     FLOOP
-    p->ZN[KP]=0.0;
+    p->sig[FIJK] =  p->ZN[KP];
     
     // bc
     SLICELOOP4
@@ -113,7 +118,7 @@ void grid_sigma::sigma_ini(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     
     
     SLICELOOP4
-    a->WL(i,j) = MAX(0.0,a->eta(i,j) + p->wd - a->bed(i,j));
+    a->WL(i,j) = MAX(0.0, a->eta(i,j) + p->wd - a->bed(i,j));
     
     
     SLICELOOP4
@@ -128,6 +133,9 @@ void grid_sigma::sigma_ini(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
 
 void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
 {
+    SLICELOOP4
+    a->WL(i,j) = MAX(0.0, a->eta(i,j) + p->wd - a->bed(i,j));
+    
     // calculate: Ex,Ey,Exx,Eyy
     // 3D
     if(p->i_dir==1 && p->j_dir==1)
@@ -140,7 +148,6 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     pd->Eyy(i,j) = pddx->syy(p,a->eta);
     }
     
-    
     // 2D
     if(p->i_dir==1 && p->j_dir==0)
     SLICELOOP4
@@ -151,7 +158,6 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     
     pgc->gcsl_start4(p,pd->Ex,1);
     pgc->gcsl_start4(p,pd->Ey,1);
-    
     
     // calculate: Bx,By,Bxx,Byy
     // 3D

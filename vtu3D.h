@@ -83,6 +83,7 @@ private:
     int gcval_phi,gcval_phiext;
 	double *printtime_wT;
     double phase;
+    double zcoor;
 	
 	field5 eta;
 

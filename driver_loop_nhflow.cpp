@@ -101,6 +101,9 @@ void driver::loop_nhflow(fdm* a)
         //timestep control
         ptstep->start(a,p,pgc,pturb);
         p->simtime+=p->dt;
+        
+        // printer
+        pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
 
         // Shell-Printout
         if(p->mpirank==0)

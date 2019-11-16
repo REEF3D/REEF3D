@@ -116,7 +116,6 @@ void driver::driver_ini_nhflow()
     if(p->I13==1)
     pturb->ini(p,a,pgc);
 	
-
 	pflow->pressure_io(p,a,pgc);
 
 	pgc->start1(p,a->u,10);
@@ -132,6 +131,7 @@ void driver::driver_ini_nhflow()
     
 	pgc->start4(p,a->press,40);
 	
+    p->sigma_update(p,a,pgc,a->eta);
     pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
 
 // ini variables
@@ -148,9 +148,6 @@ void driver::driver_ini_nhflow()
 	p->field4time=0.0;
     
     
-    
-
-
      
      if(p->mpirank==0)
     cout<<"starting mainloop.NHFLOW"<<endl;

@@ -39,6 +39,7 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
 	wd=p->B110_d;
     
     p->wd=wd;
+    
 	
 // Wave Length given
     if(p->B91==1 && p->B92<30)
