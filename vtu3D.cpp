@@ -1026,6 +1026,9 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
         
         if(i+p->origin_i==-1 && j+p->origin_j==-1 && a->wet(0,0)==1)
         zcoor = p->ZN[KP1]*a->WL(i,j) + a->bed(i,j); 
+        
+        
+        //cout<<"ZN: "<<p->ZN[KP1]<<" WL: "<<a->WL(i,j)<<" eta: "<<a->eta(i,j)<<" zcoor: "<<zcoor<<endl;
         }
     
     

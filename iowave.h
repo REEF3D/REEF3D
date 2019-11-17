@@ -177,6 +177,7 @@ public:
     void nhflow_active_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&);
     void nhflow_active_beach(lexer*,fdm*,ghostcell*,field&,field&,field&);
     void nhflow_inflow_plain(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    void full_initialize_nhflow(lexer*,fdm*,ghostcell*);
 	
 private:
     slice4 eta;

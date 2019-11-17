@@ -50,17 +50,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void driver::driver_ini_nhflow()
 {
+
     p->count=0;
 
     p->cellnumtot=pgc->globalisum(p->cellnum);
     p->pointnumtot=pgc->globalisum(p->pointnum);
 
 	log_ini();
-
+    
+    if(p->mpirank==0)
+    cout<<"number of cells: "<<p->cellnumtot<<endl;
 
     if(p->mpirank==0)
     cout<<"starting driver_ini_NHFLOW"<<endl;
-    
     
     // SIGMA grid
      // bed ini
@@ -75,33 +77,38 @@ void driver::driver_ini_nhflow()
 
     pgc->gcsl_start4(p,a->eta,50);
     
-    
     SLICELOOP4
     a->WL(i,j) = MAX(0.0,a->eta(i,j) + p->wd - a->bed(i,j));
     
-    
+    // sigma ini
     p->sigma_ini(p,a,pgc,a->eta);
-
     p->sigma_update(p,a,pgc,a->eta);
 
     
     //ioflow ini
-    pflow->ini(p,a,pgc);
+    pflow->ini_nhflow(p,a,pgc);
     
     pflow->eta_relax(p,pgc,a->eta);
     pgc->gcsl_start4(p,a->eta,50);
-
+    
+    if(p->P150==0)
+	pdata = new data_void(p,a,pgc);
+	
+	if(p->P150>0)
+	pdata = new data_f(p,a,pgc);
+	
+	pdata->start(p,a,pgc);
 	
     pheat->heat_ini(p,a,pgc,pheat);
 	pconc->ini(p,a,pgc,pconc);
 
     ptstep->ini(a,p,pgc);
-    pini->iniphi_io(a,p,pgc);
 	pflow->gcio_update(p,a,pgc);
 	pflow->pressure_io(p,a,pgc);
     
     
-	pini->iniphi_io(a,p,pgc);
+    
+    // inflow ini
 	pflow->discharge(p,a,pgc);
 	pflow->inflow(p,a,pgc,a->u,a->v,a->w);
 	potflow->start(a,p,psolv,pgc);
@@ -134,6 +141,7 @@ void driver::driver_ini_nhflow()
     p->sigma_update(p,a,pgc,a->eta);
     pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
 
+
 // ini variables
     for(int qn=0; qn<2; ++qn)
     {
@@ -148,10 +156,8 @@ void driver::driver_ini_nhflow()
 	p->field4time=0.0;
     
     
-     
-     if(p->mpirank==0)
+    if(p->mpirank==0)
     cout<<"starting mainloop.NHFLOW"<<endl;
-
 }
 
 

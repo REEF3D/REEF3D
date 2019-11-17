@@ -644,6 +644,8 @@
           <File Name="nhflow_momentum_RK3.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <File Name="nhflow_fsf_v.h"/>
+          <File Name="nhflow_fsf_f.h"/>
           <File Name="nhflow_fsf.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Diffusion">
@@ -1341,6 +1343,7 @@
             <File Name="iowave_2D_active-beach.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="NHFLOW">
+            <File Name="iowave_nhflow_fullini.cpp"/>
             <File Name="iowave_nhflow_active-wavegen.cpp"/>
             <File Name="iowave_nhflow_inflow.cpp"/>
             <File Name="iowave_nhflow_precalc_relax.cpp"/>
@@ -2122,6 +2125,8 @@
           <File Name="nhflow_momentum_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <File Name="nhflow_fsf_v.cpp"/>
+          <File Name="nhflow_fsf_f.cpp"/>
           <File Name="nhflow_fsf.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Diffusion">
