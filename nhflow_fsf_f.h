@@ -40,11 +40,12 @@ using namespace std;
 class nhflow_fsf_f : public nhflow_fsf, public increment
 {
 public:
-    nhflow_fsf_f(lexer*, fdm*, ghostcell*);
+    nhflow_fsf_f(lexer*, fdm*, ghostcell*,ioflow*);
 	virtual ~nhflow_fsf_f();
     
-    virtual void start(lexer*, fdm*, ghostcell*,ioflow*);
+    virtual void start(lexer*, fdm*, ghostcell*, ioflow*);
     virtual void ini(lexer*, fdm*, ghostcell*, ioflow*);
+    
 	void ltimesave(lexer*,fdm*,slice&);
     void update(lexer*,fdm*,ghostcell*,slice&);
     

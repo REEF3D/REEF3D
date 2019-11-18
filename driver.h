@@ -56,7 +56,7 @@ class fnpf_fg;
 class fnpf_sg;
 class onephase;
 class nsewave;
-class nhflow;
+class nhflow_fsf;
 class sflow;
 class fnpf_vtu3D;
 class fnpf_timestep;
@@ -171,7 +171,7 @@ public:
     fnpf_fg *ppffg;
     onephase *poneph;
     nsewave *pnse;
-    nhflow *pnhf;
+    nhflow_fsf *pnhfsf;
     sflow *psflow;
     fnpf_vtu3D *pfprint; 
     fnpf_timestep* pftstep;

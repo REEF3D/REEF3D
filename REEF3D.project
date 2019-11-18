@@ -2127,7 +2127,6 @@
         <VirtualDirectory Name="FSF">
           <File Name="nhflow_fsf_v.cpp"/>
           <File Name="nhflow_fsf_f.cpp"/>
-          <File Name="nhflow_fsf.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Diffusion">
           <File Name="idiff2_FSw_sig.cpp"/>

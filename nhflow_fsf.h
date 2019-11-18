@@ -38,14 +38,13 @@ class turbulence;
 
 using namespace std;
 
-#ifndef NSEWAVE_H_
-#define NSEWAVE_H_
+#ifndef NHFLOW_FSF_H_
+#define NHFLOW_FSF_H_
 
-class nsewave 
+class nhflow_fsf
 {
 public:    
     virtual void start(lexer*, fdm*, ghostcell*, ioflow*)=0;
-    
     virtual void ini(lexer*, fdm*, ghostcell*, ioflow*)=0;
 
         

@@ -305,10 +305,11 @@ void driver::logic()
     pnse = new nsewave_geo(p,a,pgc,pheat,pconc);
     }
     
+
     if(p->A10==44)
     {
     if(p->A410==1)
-    pnse = new nhflow_fsf(p,a,pgc,pheat,pconc);
+    pnhfsf = new nhflow_fsf_f(p,a,pgc,pflow);
     }
     
 
