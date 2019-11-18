@@ -131,7 +131,7 @@ int ghostcell::column_pt2_count(lexer* p, fdm* a)
     ++n;
     }
 	
-	//cout<<p->mpirank<<" gcbcount2: "<<p->gcb4_count*3<<" N2: "<<n-cellnum1<<endl;
+	//cout<<p->mpirank<<" gcbcount2: "<<p->gcb4_count*p->margin<<" N2: "<<n-cellnum1<<endl;
 	
 	for(g=0;g<p->gcpara1_count;++g)
     {
@@ -306,7 +306,7 @@ int ghostcell::column_pt4_count(lexer* p, fdm* a)
         ++n;
     }
 	
-	//cout<<p->mpirank<<" gcbcount4: "<<p->gcb4_count*3<<" N4: "<<n<<" cellnum: "<<p->cellnum<<endl;
+	//cout<<p->mpirank<<" gcbcount4: "<<p->gcb4_count*p->margin<<" N4: "<<n<<" cellnum: "<<p->cellnum<<endl;
 	
 	for(g=0;g<p->gcpara1_count;++g)
     {
@@ -475,7 +475,7 @@ int ghostcell::column_pt6_count(lexer* p, fdm* a)
         ++n;
     }
 	
-	//cout<<p->mpirank<<" gcbcount4: "<<p->gcb4_count*3<<" N4: "<<n-cellnum1<<endl;
+	//cout<<p->mpirank<<" gcbcount4: "<<p->gcb4_count*p->margin<<" N4: "<<n-cellnum1<<endl;
 	
 	for(g=0;g<p->gcpara1_count;++g)
     {

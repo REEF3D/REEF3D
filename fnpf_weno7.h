@@ -19,37 +19,52 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"convection.h"
+#include"fnpf_convection.h"
 #include"increment.h"
+#include"ddweno_f_nug.h"
 
-class flux;
-
-#ifndef QUICK_H_
-#define QUICK_H_
+#ifndef FNPF_WENO7_H_
+#define FNPF_WENO7_H_
 
 using namespace std;
 
-class quick : public convection,  public increment
+class fnpf_weno7 : public fnpf_convection, public increment, public ddweno_f_nug
 {
-
 public:
+	fnpf_weno7(lexer*);
+	virtual ~fnpf_weno7();
 
-	quick (lexer *);
-	virtual ~quick();
-
-	virtual void start(lexer*,fdm*, field&,int,field&,field&,field&);
+    virtual double fx(lexer*, field&, double, double);
+	virtual double fy(lexer*, field&, double, double);
+	virtual double fz(lexer*, field&, double, double);
+    
+    virtual double sx(lexer*, slice&, double);
+	virtual double sy(lexer*, slice&, double);
+    virtual double sz(lexer*, double*);
 
 private:
-    double aij(lexer*, fdm*, field&, int,field&,field&,field&);
+    
+    double is1,is2,is3,is4;
+	double alpha1,alpha2,alpha3,alpha4;
+	double w1,w2,w3,w4;
+	double q0,q1,q2,q3,q4,q5,q6,q7;
+	double gradx, grady, gradz;
+    
+    double ivel1,ivel2,jvel1,jvel2;
+
+
+	void is();
+	void alpha();
+	void weight();
+    
+    const double epsilon;
+    
+    void iqmin(lexer*, slice&);
+    void jqmin(lexer*, slice&);
+    void iqmax(lexer*, slice&);
+    void jqmax(lexer*, slice&);
     
 
-	double dx,dy,dz;
-	double ul,ur,vl,vr,wl,wr;
-	double L;
-
-    double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
-
-    flux *pflux;
 };
 
 #endif

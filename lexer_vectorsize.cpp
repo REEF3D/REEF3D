@@ -28,10 +28,10 @@ void lexer::vecsize()
 	int gcbnum=0;
 
 
-	gcb_sediment_est = gcb4_count*3;	
+	gcb_sediment_est = gcb4_count*margin;	
 	gcb_floating_est = gcb4_count;
     
-    gcbextra=gcextra4*3;
+    gcbextra=gcextra4*margin;
     
     // solid and topo
 	if(S10>0 || G1>0)
@@ -61,7 +61,7 @@ void lexer::vecsize()
 
     //cout<<mpirank<<" CELLNUM: "<<cellnum<<endl;
     
-    veclength = cellnum + gcbnum*3 + gcpara_sum*4  + gcbextra;
+    veclength = cellnum + gcbnum*margin + gcpara_sum*4  + gcbextra;
     
     C1_size=C2_size=C3_size=C4_size=C4a_size=C6_size=M_size=veclength;
 }

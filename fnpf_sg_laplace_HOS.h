@@ -19,39 +19,28 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"convection.h"
+#include"fnpf_sg_laplace.h"
 #include"increment.h"
 
-class flux;
+class fnpf_sg_bed_update;
 
-#ifndef IQUICK_H_
-#define IQUICK_H_
+#ifndef LAPLACE_FNPF_SG_HOS_H_
+#define LAPLACE_FNPF_SG_HOS_H_
 
 using namespace std;
 
-class iquick : public convection,  public increment
+class fnpf_sg_laplace_HOS : public fnpf_sg_laplace, public increment
 {
-
 public:
+    fnpf_sg_laplace_HOS (lexer*);
+	virtual ~fnpf_sg_laplace_HOS();
 
-	iquick (lexer *);
-	virtual ~iquick();
-
-	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
-
-private:
-    double ul,ur,vl,vr,wl,wr;
-    double r, phi,denom;
-	double dx,dy,dz;
-	double L;
-	int count,rocount,countN,coliN;
-	int *range;
+    virtual void start(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_sg_fsf*,double*);
     
-    double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
+private:
+    
+    fnpf_sg_bed_update *pbed;
 
-	void aij(lexer*, fdm*, field&, field&, int,field&,field&,field&);
-
-    flux *pflux;
 };
 
 #endif

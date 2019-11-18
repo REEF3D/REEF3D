@@ -28,7 +28,6 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 #include"icds2.h"
 #include"icds4.h"
 #include"quick.h"
-#include"iquick.h"
 #include"weno_hj.h"
 #include"weno_hj_N.h"
 #include"weno_hj_nug.h"

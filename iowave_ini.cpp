@@ -39,7 +39,7 @@ void iowave::ini(lexer *p, fdm* a, ghostcell* pgc)
 	pvrans = new vrans_veg(p,a,pgc);
     
     // relax_ini OR dirichlet_ini
-    if(p->A10==3 || p->A10==4 || p->A10==5)
+    if(p->A10==3 || p->A10==4  || p->A10==44 || p->A10==5)
     {
     wavegen_precalc_ini(p,pgc);
     

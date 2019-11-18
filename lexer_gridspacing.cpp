@@ -37,6 +37,7 @@ void lexer::lexer_gridspacing(ghostcell *pgc)
     Darray(DZP,knoz+1+4*marge);
     
     Darray(ZSN,imax*jmax*(kmax+1));
+    Darray(ZSP,imax*jmax*kmax);
 
     
     for(i=-marge;i<knox+marge;++i)
@@ -72,21 +73,27 @@ void lexer::lexer_gridspacing(ghostcell *pgc)
     for(k=-marge;k<knoz+marge;++k)
     DZP[KP] = 0.5*(ZN[KP2]+ZN[KP1]) - 0.5*(ZN[KP1]+ZN[KP]);
     
-    DXM = 0.0;
+    DXM = DXD = DYD = 0.0;
     
     int count=0;
+    int xcount=0;
+    int ycount=0;
     
     for(i=0;i<knox;++i)
     {
     DXM += DXP[IP];
+    DXD += DXP[IP];
     ++count;
+    ++xcount;
     }
     
     if(j_dir==1)
     for(j=0;j<knoy;++j)
     {
     DXM += DYP[JP];
+    DYD += DYP[JP];
     ++count;
+    ++ycount;
     }
     
     for(k=0;k<knoz;++k)
@@ -96,12 +103,20 @@ void lexer::lexer_gridspacing(ghostcell *pgc)
     }
     
     count = pgc->globalisum(count);
+    xcount = pgc->globalisum(xcount);
+    ycount = pgc->globalisum(ycount);
     
     DXM = pgc->globalsum(DXM);
+    DXD = pgc->globalsum(DXD);
+    DYD = pgc->globalsum(DYD);
     
     DXM /= double(count); 
+    DXD /= double(xcount); 
+    DYD /= double(ycount); 
     
     
     DXM = pgc->globalmin(DXM);
+    DXD = pgc->globalmin(DXD);
+    DYD = pgc->globalmin(DYD);
     
 }

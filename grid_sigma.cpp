@@ -257,6 +257,9 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     
     FLOOP
     p->ZSN[FIJK] = p->ZN[KP]*(eta(i,j) + p->wd);
+    
+    LOOP
+    p->ZSP[IJK]  = p->ZP[KP]*(eta(i,j) + p->wd);
         
 }
 
@@ -284,7 +287,6 @@ double grid_sigma::sigmax(lexer *p, field &f, int ipol)
 
     return sig;
 }
-
 
 double grid_sigma::sigmay(lexer *p, field &f, int ipol)
 {  

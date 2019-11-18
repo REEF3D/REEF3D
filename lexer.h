@@ -49,7 +49,7 @@ public:
 
 //-----functions------------------
 //---- setup
-    void lexer_read();
+    void lexer_read(ghostcell*);
     void flagini();
 	void gridini(ghostcell*);
     void gridini_outflow();
@@ -555,7 +555,6 @@ public:
 // Boundary
     //int **boundary;
     int **fgc;
-	int margin6;
 
 	static int knox,knoy,knoz;
 	static int margin;
@@ -576,8 +575,8 @@ public:
     double *XP,*YP,*ZP;
     double *DXN,*DYN,*DZN;
     double *DXP,*DYP,*DZP;
-    double *ZSN;
-    double DXM;
+    double *ZSN,*ZSP;
+    double DXM,DYD,DXD;
     
     weno_nug_func *wenofunc;
     

@@ -28,6 +28,24 @@ void iowave::wavegen_precalc_dirichlet(lexer *p, ghostcell *pgc)
     double fsfloc;
     
         count=0;
+		for(n=0;n<p->gcslin_count;n++)
+        {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
+        
+        xg=xgen(p);
+        yg=ygen(p);
+        x1=xgen1(p);
+        y2=ygen2(p);
+        
+
+        eta(i,j) = wave_eta(p,pgc,xg,yg);
+        etaval[count] = eta(i,j);
+        ++count;
+        }
+        
+    
+        count=0;
 		for(n=0;n<p->gcin_count;n++)
 		{
 		i=p->gcin[n][0];
@@ -38,10 +56,6 @@ void iowave::wavegen_precalc_dirichlet(lexer *p, ghostcell *pgc)
         y=ygen(p);
         x1=xgen1(p);
         y2=ygen2(p);
-        
-
-        eta(i,j) = wave_eta(p,pgc,x,y);
-        etaval[count] = eta(i,j);
         
         
         zloc3 = p->pos3_z();

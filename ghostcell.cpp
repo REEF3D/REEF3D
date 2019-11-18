@@ -42,22 +42,10 @@ ghostcell::~ghostcell()
 
 void ghostcell::gcini(lexer* p)
 {
-	if(gcx==1)
-	{
-		if(p->mpirank==0)
-		p->ctrlsend();
-		
-		globalctrl(p);
-		
-		if(p->mpirank>0)
-		p->ctrlrecv();
-	}
-    
-    p->del_Iarray(p->ictrl,p->ctrlsize);
-    p->del_Darray(p->dctrl,p->ctrlsize);
 	
-    margin=3;
-	paramargin=3;
+	
+    margin=p->margin;
+	paramargin=p->margin;
     deltax=p->dx;
     gamma=p->B29;
     dx=p->dx;
@@ -88,43 +76,43 @@ void ghostcell::gcini(lexer* p)
     tag=0;    
 	
 	
-	gcx_count[0] = p->gcpara1_count*3 + p->gcparaco1_count*3;
-	gcx_count[1] = p->gcpara2_count*3 + p->gcparaco2_count*3;
-	gcx_count[2] = p->gcpara3_count*3 + p->gcparaco3_count*3;
-	gcx_count[3] = p->gcpara4_count*3 + p->gcparaco4_count*3;
-	gcx_count[4] = p->gcpara5_count*3 + p->gcparaco5_count*3;
-	gcx_count[5] = p->gcpara6_count*3 + p->gcparaco6_count*3;
+	gcx_count[0] = p->gcpara1_count*paramargin + p->gcparaco1_count*paramargin;
+	gcx_count[1] = p->gcpara2_count*paramargin + p->gcparaco2_count*paramargin;
+	gcx_count[2] = p->gcpara3_count*paramargin + p->gcparaco3_count*paramargin;
+	gcx_count[3] = p->gcpara4_count*paramargin + p->gcparaco4_count*paramargin;
+	gcx_count[4] = p->gcpara5_count*paramargin + p->gcparaco5_count*paramargin;
+	gcx_count[5] = p->gcpara6_count*paramargin + p->gcparaco6_count*paramargin;
 	
-	p->Darray(send1,p->gcpara1_count*3 + p->gcparaco1_count*3);
-	p->Darray(send2,p->gcpara2_count*3 + p->gcparaco2_count*3);
-	p->Darray(send3,p->gcpara3_count*3 + p->gcparaco3_count*3);
-	p->Darray(send4,p->gcpara4_count*3 + p->gcparaco4_count*3);
-	p->Darray(send5,p->gcpara5_count*3 + p->gcparaco5_count*3);
-	p->Darray(send6,p->gcpara6_count*3 + p->gcparaco6_count*3);
+	p->Darray(send1,p->gcpara1_count*paramargin + p->gcparaco1_count*paramargin);
+	p->Darray(send2,p->gcpara2_count*paramargin + p->gcparaco2_count*paramargin);
+	p->Darray(send3,p->gcpara3_count*paramargin + p->gcparaco3_count*paramargin);
+	p->Darray(send4,p->gcpara4_count*paramargin + p->gcparaco4_count*paramargin);
+	p->Darray(send5,p->gcpara5_count*paramargin + p->gcparaco5_count*paramargin);
+	p->Darray(send6,p->gcpara6_count*paramargin + p->gcparaco6_count*paramargin);
 	
-	p->Darray(recv1,p->gcpara1_count*3 + p->gcparaco1_count*3);
-	p->Darray(recv2,p->gcpara2_count*3 + p->gcparaco2_count*3);
-	p->Darray(recv3,p->gcpara3_count*3 + p->gcparaco3_count*3);
-	p->Darray(recv4,p->gcpara4_count*3 + p->gcparaco4_count*3);
-	p->Darray(recv5,p->gcpara5_count*3 + p->gcparaco5_count*3);
-	p->Darray(recv6,p->gcpara6_count*3 + p->gcparaco6_count*3);
+	p->Darray(recv1,p->gcpara1_count*paramargin + p->gcparaco1_count*paramargin);
+	p->Darray(recv2,p->gcpara2_count*paramargin + p->gcparaco2_count*paramargin);
+	p->Darray(recv3,p->gcpara3_count*paramargin + p->gcparaco3_count*paramargin);
+	p->Darray(recv4,p->gcpara4_count*paramargin + p->gcparaco4_count*paramargin);
+	p->Darray(recv5,p->gcpara5_count*paramargin + p->gcparaco5_count*paramargin);
+	p->Darray(recv6,p->gcpara6_count*paramargin + p->gcparaco6_count*paramargin);
 	
 	p->Darray(send,6,gcx_count);
 	p->Darray(recv,6,gcx_count);
 	
-	p->Iarray(isend1,(p->gcpara1_count+p->flast)*3 + p->gcparaco1_count*3);
-	p->Iarray(isend2,(p->gcpara2_count+p->flast)*3 + p->gcparaco2_count*3);
-	p->Iarray(isend3,(p->gcpara3_count+p->flast)*3 + p->gcparaco3_count*3);
-	p->Iarray(isend4,(p->gcpara4_count+p->flast)*3 + p->gcparaco4_count*3);
-	p->Iarray(isend5,p->gcpara5_count*3 + p->gcparaco5_count*3);
-	p->Iarray(isend6,p->gcpara6_count*3 + p->gcparaco6_count*3);
+	p->Iarray(isend1,(p->gcpara1_count+p->flast)*paramargin + p->gcparaco1_count*paramargin);
+	p->Iarray(isend2,(p->gcpara2_count+p->flast)*paramargin + p->gcparaco2_count*paramargin);
+	p->Iarray(isend3,(p->gcpara3_count+p->flast)*paramargin + p->gcparaco3_count*paramargin);
+	p->Iarray(isend4,(p->gcpara4_count+p->flast)*paramargin + p->gcparaco4_count*paramargin);
+	p->Iarray(isend5,p->gcpara5_count*paramargin + p->gcparaco5_count*paramargin);
+	p->Iarray(isend6,p->gcpara6_count*paramargin + p->gcparaco6_count*paramargin);
 	
-	p->Iarray(irecv1,(p->gcpara1_count+p->flast)*3 + p->gcparaco1_count*3);
-	p->Iarray(irecv2,(p->gcpara2_count+p->flast)*3 + p->gcparaco2_count*3);
-	p->Iarray(irecv3,(p->gcpara3_count+p->flast)*3 + p->gcparaco3_count*3);
-	p->Iarray(irecv4,(p->gcpara4_count+p->flast)*3 + p->gcparaco4_count*3);
-	p->Iarray(irecv5,p->gcpara5_count*3 + p->gcparaco5_count*3);
-	p->Iarray(irecv6,p->gcpara6_count*3 + p->gcparaco6_count*3);
+	p->Iarray(irecv1,(p->gcpara1_count+p->flast)*paramargin + p->gcparaco1_count*paramargin);
+	p->Iarray(irecv2,(p->gcpara2_count+p->flast)*paramargin + p->gcparaco2_count*paramargin);
+	p->Iarray(irecv3,(p->gcpara3_count+p->flast)*paramargin + p->gcparaco3_count*paramargin);
+	p->Iarray(irecv4,(p->gcpara4_count+p->flast)*paramargin + p->gcparaco4_count*paramargin);
+	p->Iarray(irecv5,p->gcpara5_count*paramargin + p->gcparaco5_count*paramargin);
+	p->Iarray(irecv6,p->gcpara6_count*paramargin + p->gcparaco6_count*paramargin);
 	
 	p->dgc1_count=1;
 	p->dgc2_count=1;

@@ -28,7 +28,6 @@ void iowave::nhflow_precalc_relax(lexer *p, ghostcell *pgc)
     double fsfloc;
     int dbcount;
     
-    
     // pre-calc every iteration
     // eta
     count=0;
@@ -54,73 +53,80 @@ void iowave::nhflow_precalc_relax(lexer *p, ghostcell *pgc)
     pgc->gcsl_start4(p,eta,50);
     
     
-    // Fi
+    // U
     count=0;
-    dbcount=0;
-
-    FILOOP 
-    FJLOOP 
+    ULOOP
     {
-        xg = xgen(p);
-        yg = ygen(p);
+		xg = xgen1(p);
+        yg = ygen1(p);
         dg = distgen(p);
 		db = distbeach(p);
         
-        FKLOOP 
-        FPCHECK
-        {
-        
-            z=p->ZSN[FIJK]-p->phimean;
-
-            
-            // Wave Generation
-            if(p->B98==2 && f_switch==1)
-            {
-                // Zone 1
-                if(dg<dist1)
-                { 
-                //Fival[count] = wave_fi(p,pgc,xg,yg,z);
-                rb1val[count] = rb1(p,dg);
-                ++count;
-                }
-            }
-            
-            if(p->B99==1||p->B99==2)
-            {
-                // Zone 3
-                if(db<dist3)
-                {
-                rb3val[dbcount] = rb3(p,db);
-                ++dbcount;
-                }
-            }
-        }
-    }
-
-
-    count=0;
-    SLICELOOP4
-    {
-		
-        xg = xgen(p);
-        yg = ygen(p);
-        dg = distgen(p);
-		db = distbeach(p);
-        
-        z = eta(i,j);
+        z=p->ZSP[IJK]-p->phimean;
 		
 		// Wave Generation
-		if(p->B98==2 && f_switch==1)
+		if(p->B98==2 && u_switch==1)
         {
             // Zone 1
             if(dg<dist1)
-            { 
-            Fifsfval[count] = wave_fi(p,pgc,xg,yg,z);
-            
+            {
+            uval[count] = wave_u(p,pgc,xg,yg,z);
             ++count;
             }
 		}
     }
+	
+    // V	
+    count=0;
+    VLOOP
+    {
+        xg = xgen2(p);
+        yg = ygen2(p);
+        dg = distgen(p);
+		db = distbeach(p);
+        
+        z=p->ZSP[IJK]-p->phimean;
+
+		// Wave Generation
+		if(p->B98==2 && v_switch==1)
+        {
+            // Zone 1
+            if(dg<dist1)
+            {
+            vval[count] = wave_v(p,pgc,xg,yg,z);
+            ++count;
+            }
+		}
+    }
+    
+    // W
+    count=0;
+    WLOOP
+    {
+        xg = xgen(p);
+        yg = ygen(p);
+        dg = distgen(p);
+		db = distbeach(p);
+        
+        z=p->ZSN[(i-p->imin)*p->jmax*p->kmaxF + (j-p->jmin)*p->kmaxF + (k+1)-p->kmin]-p->phimean;
+
+
+		// Wave Generation		
+		if(p->B98==2 && w_switch==1)
+        {
+            // Zone 1
+            if(dg<dist1)
+            {
+            if(zloc3<=fsfloc+epsi)
+            wval[count] = wave_w(p,pgc,xg,yg,z);
+            
+            if(zloc3>fsfloc+epsi)
+            wval[count] = 0.0;
+            
+            ++count;
+            }
+		}
+    }	
     
 }
     

@@ -196,7 +196,6 @@
         <File Name="weno_flux_nug.h"/>
         <File Name="fou.h"/>
         <File Name="ifou.h"/>
-        <File Name="iquick.h"/>
         <File Name="quick.h"/>
         <VirtualDirectory Name="Limiter">
           <File Name="fluxlim.h"/>
@@ -640,6 +639,9 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Waves">
       <VirtualDirectory Name="NHFLOW">
+        <VirtualDirectory Name="Momentum">
+          <File Name="nhflow_momentum_RK3.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="FSF">
           <File Name="nhflow_fsf.h"/>
         </VirtualDirectory>
@@ -740,6 +742,7 @@
           <File Name="fnpf_sg_ini.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
+          <File Name="fnpf_sg_laplace_HOS.h"/>
           <File Name="fnpf_sg_laplace_cds24.h"/>
           <File Name="fnpf_sg_laplace_cds4_bc2.h"/>
           <File Name="fnpf_sg_laplace_cds4.h"/>
@@ -750,6 +753,7 @@
           <File Name="fnpf_fg_laplace_cds2.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="fnpf_weno7.h"/>
           <File Name="fnpf_weno_wd.h"/>
           <VirtualDirectory Name="DDWENO">
             <File Name="fnpf_ddweno_f_nug.h"/>
@@ -1215,7 +1219,6 @@
         <File Name="weno_flux_nug.cpp"/>
         <File Name="fou.cpp"/>
         <File Name="ifou.cpp"/>
-        <File Name="iquick.cpp"/>
         <File Name="quick.cpp"/>
         <VirtualDirectory Name="Limiter">
           <File Name="limo3.cpp"/>
@@ -1336,6 +1339,8 @@
             <File Name="iowave_2D_active-beach.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="NHFLOW">
+            <File Name="iowave_nhflow_inflow.cpp"/>
+            <File Name="iowave_nhflow_relax.cpp"/>
             <File Name="iowave_nhflow_precalc_relax.cpp"/>
             <File Name="iowave_nhflow_precalc_inflow.cpp"/>
             <File Name="iowave_nhflow_precalc_dirichlet.cpp"/>
@@ -2109,6 +2114,9 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Waves">
       <VirtualDirectory Name="NHFLOW">
+        <VirtualDirectory Name="Momentum">
+          <File Name="nhflow_momentum_RK3.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="FSF">
           <File Name="nhflow_fsf.cpp"/>
         </VirtualDirectory>
@@ -2259,6 +2267,7 @@
           <File Name="fnpf_sg_ini.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
+          <File Name="fnpf_sg_laplace_HOS.cpp"/>
           <File Name="fnpf_sg_laplace_cds24.cpp"/>
           <File Name="fnpf_sg_laplace_cds4_bc2.cpp"/>
           <File Name="fnpf_sg_laplace_cds4.cpp"/>
@@ -2267,6 +2276,7 @@
           <File Name="fnpf_fg_laplace_cds2.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="fnpf_weno7.cpp"/>
           <File Name="fnpf_weno_wd.cpp"/>
           <VirtualDirectory Name="DDWENO">
             <File Name="fnpf_ddweno_f_nug_sg.cpp"/>

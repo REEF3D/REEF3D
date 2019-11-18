@@ -25,30 +25,25 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void ghostcell::gather_int(int *sendbuf, int sendcount, int *recvbuf, int recvcount)
 {
-    if(gcx==1)
     MPI_Gather(sendbuf,sendcount, MPI_INT, recvbuf, recvcount, MPI_INT, 0, mpi_comm);
 }
 
 void ghostcell::gather_double(double *sendbuf, int sendcount, double *recvbuf, int recvcount)
 {
-    if(gcx==1)
     MPI_Gather(sendbuf,sendcount, MPI_DOUBLE, recvbuf, recvcount, MPI_DOUBLE, 0, mpi_comm);
 }
 
 void ghostcell::gatherv_int(int *sendbuf, int sendcount, int *recvbuf, int *recvcount, int *recvdispl)
 {
-    if(gcx==1)
     MPI_Gatherv(sendbuf,sendcount, MPI_INT, recvbuf, recvcount, recvdispl, MPI_INT, 0, mpi_comm);
 }
 
 void ghostcell::gatherv_double(double *sendbuf, int sendcount, double *recvbuf, int *recvcount, int *recvdispl)
 {
-    if(gcx==1)
     MPI_Gatherv(sendbuf,sendcount, MPI_DOUBLE, recvbuf, recvcount, recvdispl, MPI_DOUBLE, 0, mpi_comm);
 }
 
 void ghostcell::bcast_double(double *sendbuf, int sendcount)
 {
-    if(gcx==1)
     MPI_Bcast(sendbuf,sendcount, MPI_DOUBLE, 0, mpi_comm);
 }
