@@ -46,7 +46,6 @@ void sflow_sediment_f::shields(lexer *p, fdm2D *b, ghostcell *pgc)
     }
     
     pgc->gcsl_start4(p,b->test,1);
-    b->test.ggcpol(p);
 }
 
 void sflow_sediment_f::parker(lexer *p, fdm2D *b, ghostcell *pgc)

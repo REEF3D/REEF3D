@@ -63,8 +63,6 @@ void sandslide_f::start(lexer *p, fdm * a, ghostcell *pgc)
     fh(i,j)=a->bedzh(i,j);
     
     count=0;
-    pgc->dgcslpol(p,a->bedzh,p->dgcsl4,p->dgcsl4_count,14);
-    a->bedzh.ggcpol(p);
     
     topo_zh_update(p,a,pgc);
 

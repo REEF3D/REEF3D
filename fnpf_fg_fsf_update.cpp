@@ -200,10 +200,7 @@ void fnpf_fg_fsf_update::velcalc(lexer *p, fdm *a, ghostcell *pgc, field &f)
     pgc->start1(p,a->u,gcval_u);
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
-    
-    a->u.ggcpol(p);
-	a->v.ggcpol(p);
-	a->w.ggcpol(p);
+
 }
 
 

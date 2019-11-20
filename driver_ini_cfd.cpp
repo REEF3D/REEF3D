@@ -91,6 +91,7 @@ cout<<"starting driver_ini"<<endl;
     pgc->start4a(p,a->topo,150);
     }
     
+    //ioflow ini
     pflow->ini(p,a,pgc);
 
     
@@ -123,7 +124,7 @@ cout<<"starting driver_ini"<<endl;
 	pflow->gcio_update(p,a,pgc);
 	pflow->pressure_io(p,a,pgc);
     
-    if (p->F80 > 0)
+    if (p->F80>0)
     {
         pflow->vof_relax(p,pgc,a->vof);
     }
@@ -166,9 +167,7 @@ cout<<"starting driver_ini"<<endl;
 	pgc->start3(p,a->w,12);
 
     pgc->start4(p,a->press,40);
-    pgc->dgcpol(p,a->topo,p->dgc4,p->dgc4_count,14);
-	a->topo.ggcpol(p);
-	
+
 	if(p->I40==1)
 	pini->stateini(p,a,pgc,pturb);
     

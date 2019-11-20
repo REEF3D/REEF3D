@@ -73,8 +73,6 @@ void sediment_f::fill_bss(lexer *p, fdm *a,ghostcell *pgc)
 	}
 	
 	pgc->gcsl_start4(p,bedtau,1);
-    pgc->dgcslpol(p,bedtau,p->dgcsl4,p->dgcsl4_count,14);
-    bedtau.ggcpol(p);
 }
 
 void sediment_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
@@ -86,8 +84,6 @@ void sediment_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
     bss(i,j,k) = bedtau(i,j);
 	
     pgc->start4(p,bss,1);
-    pgc->dgcpol(p,bss,p->dgc4,p->dgc4_count,14);
-    bss.ggcpol(p);
 	
 	iin=4*(p->pointnum+p->ccptnum);
     result.write((char*)&iin, sizeof (int));

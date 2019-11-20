@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"nhflow_fsf.h"
+#include"nhflow_fsf_f.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -39,7 +39,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_eta_weno.h"
 #include"sflow_hxy_weno.h"
 
-nhflow_fsf::nhflow_fsf(lexer *p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc) : 
+nhflow_fsf_f::nhflow_fsf_f(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow) : 
                 epsi(p->A440*p->dx),depth(p),bed(p),L(p),hp(p),hx(p),hy(p)
 {
 	peta = new sflow_eta_weno(p);
@@ -50,19 +50,15 @@ nhflow_fsf::nhflow_fsf(lexer *p, fdm *a, ghostcell *pgc, heat *&pheat, concentra
     //pupdate = new fluid_update_fsf(p,a,pgc);
 }
 
-nhflow_fsf::~nhflow_fsf()
+nhflow_fsf_f::~nhflow_fsf_f()
 {
 }
 
-void nhflow_fsf::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusion *pdiff, turbulence *pturb,
-                      convection* pconvec, pressure *ppress, poisson *ppois, solver *ppoissonsolv, solver *psolv, 
-                      ioflow* pflow)
+void nhflow_fsf_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow)
 {
     
     // Momentum
-    pmom->start(p,a,pgc,pmom);
-    
-    
+
     
     // fill eta_n
     SLICELOOP4
@@ -147,16 +143,16 @@ void nhflow_fsf::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusi
     
 }
 
-void nhflow_fsf::ltimesave(lexer* p, fdm *a, slice &ls)
+void nhflow_fsf_f::ltimesave(lexer* p, fdm *a, slice &ls)
 {
 }
 
-void nhflow_fsf::update(lexer *p, fdm *a, ghostcell *pgc, slice &f)
+void nhflow_fsf_f::update(lexer *p, fdm *a, ghostcell *pgc, slice &f)
 {
     pupdate->start(p,a,pgc);
 }
 
-void nhflow_fsf::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
+void nhflow_fsf_f::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
 {
 }
 

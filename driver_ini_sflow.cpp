@@ -65,9 +65,6 @@ cout<<"starting driver_ini_PFLOW"<<endl;
     {
     geotopo gtopo(p,a,pgc);
     gtopo.start(p,a,pgc,pflow,pconvec,preto);
-    
-    pgc->dgcpol(p,a->topo,p->dgc4,p->dgc4_count,14);
-	a->topo.ggcpol(p);
     }
 	
     ptstep->ini(a,p,pgc);

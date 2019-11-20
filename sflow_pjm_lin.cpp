@@ -117,9 +117,7 @@ void sflow_pjm_lin::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, i
         p->poissontime=pgc->timer()-solvtime;
   
     pflow->pm_relax(p,pgc,b->press);
-	pgc->gcsl_start4(p,b->press,gcval_press);
-	b->press.ggcpol(p);
-    
+	pgc->gcsl_start4(p,b->press,gcval_press);    
   
 	ucorr(p,b,P,eta,alpha);
 	vcorr(p,b,Q,eta,alpha);

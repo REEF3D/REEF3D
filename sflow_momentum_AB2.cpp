@@ -86,9 +86,6 @@ void sflow_momentum_AB2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	pgc->gcsl_start1(p,b->P,gcval_u);
 	pgc->gcsl_start2(p,b->Q,gcval_v);
 	
-	b->P.ggcpol(p);
-	b->Q.ggcpol(p);
-	
 	
 	pflow->pm_relax(p,pgc,b->press);
 	

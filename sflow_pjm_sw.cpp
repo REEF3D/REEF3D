@@ -94,9 +94,7 @@ void sflow_pjm_sw::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, io
 	
     pgc->gcsl_start4(p,ws,12);
 	pgc->gcsl_start4(p,wb,12);
-    ws.ggcpol(p);
-    wb.ggcpol(p);
-    
+
     rhs(p,b,P,Q,ws,alpha);
 	pgc->gcsl_start4(p,b->press,gcval_press);
 	
@@ -114,8 +112,6 @@ void sflow_pjm_sw::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, io
   
     pflow->pm_relax(p,pgc,b->press);
 	pgc->gcsl_start4(p,b->press,gcval_press);
-	b->press.ggcpol(p);
-    
   
 	ucorr(p,b,P,eta,alpha);
 	vcorr(p,b,Q,eta,alpha);

@@ -53,7 +53,6 @@ void fnpf_vtp_bed::start(lexer *p, fdm_fnpf *c, ghostcell* pgc, ioflow *pflow)
 
 void fnpf_vtp_bed::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 {	
-    c->eta.ggcpol(p);
     
 	if(p->mpirank==0)
     pvtu(p,c,pgc);

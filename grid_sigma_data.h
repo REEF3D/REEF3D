@@ -19,24 +19,29 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
+#include"fnpf_sg.h"
+#include"increment.h"
+#include"slice4.h"
 
-#include"sflow_v.h"
-#include"sflow_f.h"
-#include"nsewave_v.h"
-#include"nsewave_f.h"
-#include"nsewave_geo.h"
-#include"nsewave_RK3.h"
-#include"nhflow_fsf.h"
-#include"nhflow_fsf_f.h"
-#include"nhflow_fsf_v.h"
-#include"fnpf_fg_v.h"
-#include"fnpf_sg_v.h"
-#include"fnpf_fg_RK3.h"
-#include"fnpf_fg_RK4.h"
-#include"fnpf_sg_RK3.h"
-#include"fnpf_sg_RK4.h"
-#include"fnpf_vtu3D.h"
-#include"fnpf_timestep.h"
+class lexer;
+class fdm;
+class ghostcell;
 
+using namespace std;
 
+#ifndef GRID_SIGMA_DATA_H_
+#define GRID_SIGMA_DATA_H_
 
+class grid_sigma_data : public increment
+{
+public:
+	grid_sigma_data(lexer*);
+	virtual ~grid_sigma_data();
+
+    slice4 Ex,Ey,Bx,By;
+    slice4 Exx,Eyy,Bxx,Byy;
+        
+
+};
+
+#endif

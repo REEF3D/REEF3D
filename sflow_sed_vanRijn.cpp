@@ -57,6 +57,4 @@ void sflow_sediment_f::bedload_vanRijn(lexer *p, fdm2D *b, ghostcell *pgc)
 	}
     
     pgc->gcsl_start4(p,b->qb,1);
-    pgc->dgcslpol(p,b->qb,p->dgcsl4,p->dgcsl4_count,14);
-    b->qb.ggcpol(p);
 }

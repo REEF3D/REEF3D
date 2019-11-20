@@ -31,5 +31,4 @@ void sflow_sediment_f::bedchange_update(lexer *p, fdm2D *b, ghostcell *pgc)
     b->zb(i,j) = b->bed(i,j) - b->bed0(i,j);
     
     pgc->gcsl_start4(p,b->zb,50);
-    b->zb.ggcpol(p);
 }

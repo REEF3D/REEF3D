@@ -40,7 +40,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void driver::loop_nhflow(fdm* a)
 {
-	driver_ini();
     driver_ini_nhflow();
     
     if(p->mpirank==0)
@@ -101,6 +100,9 @@ void driver::loop_nhflow(fdm* a)
         //timestep control
         ptstep->start(a,p,pgc,pturb);
         p->simtime+=p->dt;
+        
+        // printer
+        pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
 
         // Shell-Printout
         if(p->mpirank==0)

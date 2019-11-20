@@ -121,7 +121,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 				+ p->dt*b->F(i,j);
 	
 	pgc->gcsl_start1(p,Prk1,gcval_urk);
-	Prk1.ggcpol(p);
+
 	
     p->utime=pgc->timer()-starttime;
 
@@ -141,7 +141,6 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 			  + p->dt*b->G(i,j);
 	
 	pgc->gcsl_start2(p,Qrk1,gcval_vrk);
-	Qrk1.ggcpol(p);
 	
     p->vtime=pgc->timer()-starttime;
 	
@@ -158,8 +157,6 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 			  + p->dt*b->L(i,j);
               
     pgc->gcsl_start4(p,wrk1,12);
-    wrk1.ggcpol(p);
-
 
 	// press
     ppress->start(p,b,pgc,ppoissonsolv,pflow, Prk1, Qrk1, b->P, b->Q, wrk1, etark1, 1.0);
@@ -210,7 +207,6 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
             
 
 	pgc->gcsl_start1(p,Prk2,gcval_urk);
-	Prk2.ggcpol(p);
 	
     p->utime+=pgc->timer()-starttime;
 	
@@ -230,7 +226,6 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 			  + 0.25*p->dt*b->G(i,j);
 	
 	pgc->gcsl_start2(p,Qrk2,gcval_vrk);
-	Qrk2.ggcpol(p);
 	
 	p->vtime+=pgc->timer()-starttime;
     
@@ -247,7 +242,6 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 			  + 0.25*p->dt*b->L(i,j);
               
     pgc->gcsl_start4(p,wrk2,12);
-    wrk2.ggcpol(p);
     
     // press
     ppress->start(p,b,pgc,ppoissonsolv,pflow, Prk2, Qrk2, Prk1, Qrk1, wrk2, etark2, 0.25);
@@ -297,7 +291,6 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 				+ (2.0/3.0)*p->dt*b->F(i,j);
 				
 	pgc->gcsl_start1(p,b->P,gcval_u);
-	b->P.ggcpol(p);
 	
     p->utime+=pgc->timer()-starttime;
 
@@ -317,7 +310,6 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 			  + (2.0/3.0)*p->dt*b->G(i,j);
 	
 	pgc->gcsl_start2(p,b->Q,gcval_v);	
-	b->Q.ggcpol(p);
 	
     p->vtime+=pgc->timer()-starttime;
 	
@@ -334,7 +326,6 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 			  + (2.0/3.0)*p->dt*b->L(i,j);
               
     pgc->gcsl_start4(p,b->ws,12);
-    b->ws.ggcpol(p);
               
 	//--------------------------------------------------------
 	// pressure

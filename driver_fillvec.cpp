@@ -25,7 +25,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 
 void driver::fill_vel(lexer* p, fdm *a, ghostcell *pgc)
-{    
+{   
+    /*
     pgc->dgcpol(p,a->u,p->dgc1,p->dgc1_count,11);
 	pgc->dgcpol(p,a->v,p->dgc2,p->dgc2_count,12);
 	pgc->dgcpol(p,a->w,p->dgc3,p->dgc3_count,13);
@@ -83,7 +84,7 @@ void driver::fill_vel(lexer* p, fdm *a, ghostcell *pgc)
 	a->u.ggcpol(p);
 	a->v.ggcpol(p);
 	a->w.ggcpol(p);
-    
+    */
 }
 
 

@@ -38,11 +38,6 @@ rans_io::~rans_io()
 
 void rans_io::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 {
-    pgc->dgcpol(p,kin,p->dgc4,p->dgc4_count,14);
-    kin.ggcpol(p);
-    pgc->dgcpol(p,eps,p->dgc4,p->dgc4_count,14);
-    eps.ggcpol(p);
-
     iin=4*(p->pointnum+p->ccptnum);
     result.write((char*)&iin, sizeof (int));
 

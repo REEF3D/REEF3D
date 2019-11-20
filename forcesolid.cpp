@@ -100,8 +100,7 @@ void forcesolid::ini(lexer *p, fdm *a, ghostcell *pgc)
 void forcesolid::start(lexer *p, fdm *a, ghostcell *pgc)
 {
     pgc->start4(p,a->press,gcval_press);
-    a->press.ggcpol(p);
-    
+
 	// forcecalc
     force(p,a,pgc);
     

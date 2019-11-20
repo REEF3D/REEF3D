@@ -23,22 +23,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
-#include"mgc1.h"
-#include"mgc2.h"
-#include"mgc3.h"
 #include"mgc4.h"
-#include"mgc4a.h"
-#include"mgc6.h"
-#include"cart1.h"
-#include"cart2.h"
-#include"cart3.h"
-#include"cart4.h"
-#include"cart4a.h"
-#include"mgcslice1.h"
-#include"mgcslice2.h"
-#include"mgcslice3.h"
 #include"mgcslice4.h"
-#include"mgcslice4a.h"
 
 void driver::makegrid_fnpf(lexer *p, ghostcell *pgc)
 {	

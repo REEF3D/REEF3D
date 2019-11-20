@@ -57,6 +57,31 @@ void iowave::ini(lexer *p, fdm* a, ghostcell* pgc)
 	full_initialize(p,a,pgc);
 }
 
+void iowave::ini_nhflow(lexer *p, fdm* a, ghostcell* pgc)
+{
+    if(p->B269==0)
+	pvrans = new vrans_v(p,a,pgc);
+	
+	if(p->B269==1 || p->S10==2)
+	pvrans = new vrans_f(p,a,pgc);
+    
+    if(p->B269==2)
+	pvrans = new vrans_veg(p,a,pgc);
+    
+    // relax_ini OR dirichlet_ini
+    wavegen_precalc_ini(p,pgc);
+    
+    wavegen_precalc(p,pgc);
+    
+    u_relax(p,a,pgc,a->u);
+	v_relax(p,a,pgc,a->v);
+	w_relax(p,a,pgc,a->w);
+
+    
+    if(p->I30==1)
+	full_initialize_nhflow(p,a,pgc);
+}
+
 void iowave::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     

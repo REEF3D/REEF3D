@@ -173,10 +173,6 @@ void pjm_fsi::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, fi
 	pgc->start1(p,u,gcval_u);
 	pgc->start2(p,v,gcval_v);
 	pgc->start3(p,w,gcval_w);
-	
-	u.ggcpol(p);
-	v.ggcpol(p);
-	w.ggcpol(p);
 }
 
 void pjm_fsi::pressure_norm(lexer*p, fdm* a, ghostcell* pgc)

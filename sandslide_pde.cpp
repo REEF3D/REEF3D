@@ -57,8 +57,6 @@ void sandslide_pde::start(lexer *p, fdm * a, ghostcell *pgc)
     ci(i,j,k)=0.0;
     pgc->start4a(p,ci,150);
     
-    pgc->dgcpol(p,zh,p->dgc4,p->dgc4_count,14);
-    zh.ggcpol(p);
     
     topo_zh_update(p,a,pgc,zh);
     

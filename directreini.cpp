@@ -85,10 +85,6 @@ directreini::~directreini()
 
 void directreini::start(fdm* a,lexer* p,field& b, ghostcell* pgc,ioflow* pflow)
 {
-	
-    pgc->dgcpol(p,b,p->dgc4,p->dgc4_count,14);
-    b.ggcpol(p);
-
     starttime=pgc->timer();
 	
 	LOOP

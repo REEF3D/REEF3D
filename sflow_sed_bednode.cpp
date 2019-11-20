@@ -27,8 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void sflow_sediment_f::bednode(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     pgc->gcsl_start4(p,b->bed,50);
-    b->bed.ggcpol(p);
-    
+
     // bednode upate
     TPSLICELOOP
     {

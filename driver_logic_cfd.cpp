@@ -305,10 +305,11 @@ void driver::logic()
     pnse = new nsewave_geo(p,a,pgc,pheat,pconc);
     }
     
+
     if(p->A10==44)
     {
     if(p->A410==1)
-    pnse = new nhflow_fsf(p,a,pgc,pheat,pconc);
+    pnhfsf = new nhflow_fsf_f(p,a,pgc,pflow);
     }
     
 
@@ -679,13 +680,19 @@ void driver::logic()
 	if(p->A10==4)
     loop_nsewave(a);
     
-    if(p->A10==44)
-    loop_nhflow(a);
+    //if(p->A10==44)
+    //loop_nhflow(a);
     
     if(p->A10==5 && p->X10 == 1 && p->X13 >= 1 && p->N40==0) 
 	{
 		loop_cfd_fsi(a);
 	}
+    
+    else if(p->A10==44)
+	{
+		loop_nhflow(a);
+	}
+    
     else if(p->A10==5)
 	{
 		loop_cfd(a);

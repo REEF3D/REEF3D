@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
+void iowave::nhflow_active_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {
         count=0;
 		for(n=0;n<p->gcin_count;n++)
@@ -42,14 +42,14 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u
 			u(i-2,j,k)=uvel+p->Ui;
 			u(i-3,j,k)=uvel+p->Ui;
             
-           v(i-1,j,k)=vvel;
+            v(i-1,j,k)=vvel;
 			v(i-2,j,k)=vvel;
 			v(i-3,j,k)=vvel;
 			
 			w(i-1,j,k)=wvel;
 			w(i-2,j,k)=wvel;
 			w(i-3,j,k)=wvel;
-            
+    
         ++count;
 		}
         
@@ -57,17 +57,17 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u
         if(p->B98==3||p->B98==4||p->B99==3||p->B99==4||p->B99==5)
 		if(p->B64==1)
 		{
-            for(int q=0;q<4;++q)
-            for(n=0;n<p->gcin_count;++n)
-            {
-            i=p->gcin[n][0]+q;
-            j=p->gcin[n][1];
-            k=p->gcin[n][2];
+		for(int q=0;q<4;++q)
+		for(n=0;n<p->gcin_count;++n)
+		{
+		i=p->gcin[n][0]+q;
+		j=p->gcin[n][1];
+		k=p->gcin[n][2];
 
-            if(a->phi(i,j,k)<0.0)
-            a->eddyv(i,j,k)=MIN(a->eddyv(i,j,k),1.0e-4);
-            }
-        pgc->start4(p,a->eddyv,24);
+		if(a->phi(i,j,k)<0.0)
+		a->eddyv(i,j,k)=MIN(a->eddyv(i,j,k),1.0e-4);
+		}
+		pgc->start4(p,a->eddyv,24);
 		}
         
         

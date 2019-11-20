@@ -19,24 +19,53 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-
-#include"sflow_v.h"
-#include"sflow_f.h"
-#include"nsewave_v.h"
-#include"nsewave_f.h"
-#include"nsewave_geo.h"
-#include"nsewave_RK3.h"
 #include"nhflow_fsf.h"
-#include"nhflow_fsf_f.h"
-#include"nhflow_fsf_v.h"
-#include"fnpf_fg_v.h"
-#include"fnpf_sg_v.h"
-#include"fnpf_fg_RK3.h"
-#include"fnpf_fg_RK4.h"
-#include"fnpf_sg_RK3.h"
-#include"fnpf_sg_RK4.h"
-#include"fnpf_vtu3D.h"
-#include"fnpf_timestep.h"
+#include"increment.h"
+#include"slice1.h"
+#include"slice2.h"
+#include"slice4.h"
 
+class picard;
+class fluid_update;
+class heat;
+class concentration;
+class sflow_eta_disc;
+class sflow_hxy_disc;
 
+using namespace std;
 
+#ifndef NHFLOW_FSF_F_H_
+#define NHFLOW_FSF_F_H_
+
+class nhflow_fsf_f : public nhflow_fsf, public increment
+{
+public:
+    nhflow_fsf_f(lexer*, fdm*, ghostcell*,ioflow*);
+	virtual ~nhflow_fsf_f();
+    
+    virtual void start(lexer*, fdm*, ghostcell*, ioflow*);
+    virtual void ini(lexer*, fdm*, ghostcell*, ioflow*);
+    
+	void ltimesave(lexer*,fdm*,slice&);
+    void update(lexer*,fdm*,ghostcell*,slice&);
+    
+private: 
+    fluid_update *pupdate;
+    picard *ppicard;
+    
+    int gcval_phi;
+	double starttime;
+    double phival,H;
+	double d;
+    const double epsi;
+	
+	sflow_eta_disc *peta;
+	sflow_hxy_disc *phxy;
+	
+	slice4 depth,bed,L,hp;
+	slice1 hx;
+	slice2 hy;
+
+};
+
+#endif

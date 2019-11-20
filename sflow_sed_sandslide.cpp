@@ -36,9 +36,7 @@ void sflow_sediment_f::sandslide(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, s
     
     SLICELOOP4
     fh(i,j)=b->bed(i,j);
-    
-    b->bed.ggcpol(p);
-    
+
     SLICELOOP4
     if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
     {

@@ -19,38 +19,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"particle.h"
+#include"grid_sigma_data.h"
 #include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
 
-double particle::hside(fdm* a)
+grid_sigma_data::grid_sigma_data(lexer *p) : Ex(p),Ey(p),Bx(p),By(p),Exx(p),Eyy(p),Bxx(p),Byy(p)
 {
-    phival=fabs(a->phi(i,j,k));
-
-        if(phival>epsi)
-		Hval=0.0;
-
-		if(phival<=epsi)
-		Hval=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
-
-		return Hval;
 }
 
-
-void particle::dgc_update(lexer* p,fdm* a,ghostcell* pgc)
+grid_sigma_data::~grid_sigma_data()
 {
-
-    pgc->start1(p,a->u,14);
-	pgc->start2(p,a->v,15);
-	pgc->start3(p,a->w,16);
-}
-
-void particle::vel_setback(lexer* p,fdm* a,ghostcell* pgc)
-{/*
-    pgc->start1(p,a->u,10);
-	pgc->start2(p,a->v,11);
-	pgc->start3(p,a->w,12);*/
 }
 
 

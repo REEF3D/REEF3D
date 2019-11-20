@@ -19,52 +19,35 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"nsewave.h"
-#include"increment.h"
-#include"slice1.h"
-#include"slice2.h"
-#include"slice4.h"
 
-class picard;
+class convection;
+class pressure;
+class solver;
+class fdm;
+class lexer;
+class ghostcell;
 class fluid_update;
 class heat;
 class concentration;
-class sflow_eta_disc;
-class sflow_hxy_disc;
+class ioflow;
+class slice;
+class momentum;
+class diffusion;
+class poisson;
+class turbulence;
 
 using namespace std;
 
-#ifndef NHFLOW_F_H_
-#define NHFLOW_F_H_
+#ifndef NHFLOW_FSF_H_
+#define NHFLOW_FSF_H_
 
-class nhflow_fsf : public nsewave, public increment
+class nhflow_fsf
 {
-public:
-    nhflow_fsf(lexer*, fdm*, ghostcell*,heat*&,concentration*&);
-	virtual ~nhflow_fsf();
-    
-    virtual void start(lexer*, fdm*, ghostcell*, momentum*, diffusion*, turbulence*, convection*, 
-                        pressure*, poisson*, solver*, solver*, ioflow*);
-    virtual void ini(lexer*, fdm*, ghostcell*, ioflow*);
-	void ltimesave(lexer*,fdm*,slice&);
-    void update(lexer*,fdm*,ghostcell*,slice&);
-    
-private: 
-    fluid_update *pupdate;
-    picard *ppicard;
-    
-    int gcval_phi;
-	double starttime;
-    double phival,H;
-	double d;
-    const double epsi;
-	
-	sflow_eta_disc *peta;
-	sflow_hxy_disc *phxy;
-	
-	slice4 depth,bed,L,hp;
-	slice1 hx;
-	slice2 hy;
+public:    
+    virtual void start(lexer*, fdm*, ghostcell*, ioflow*)=0;
+    virtual void ini(lexer*, fdm*, ghostcell*, ioflow*)=0;
+
+        
 
 };
 

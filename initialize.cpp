@@ -41,6 +41,14 @@ void initialize::start(fdm* a, lexer* p, ghostcell* pgc)
 	nodecalc(a,p);
 	maxcoor(a,p,pgc);
 	paraini(p,a,pgc);
+    
+    
+    p->phimean=p->F56;
+    
+    if(p->F60>-1.0e20)
+    p->phimean=p->F60;
+        
+
 	
 	if(p->F40>0)
 	iniphi(a,p,pgc);

@@ -22,6 +22,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_weno7.h"
 #include"lexer.h"
 #include"vec.h"
+#include"slice.h"
 #include"fnpf_discrete_weights.h"
 
 fnpf_weno7::fnpf_weno7(lexer* p) :  ddweno_f_nug(p), epsilon(1.0e-10)

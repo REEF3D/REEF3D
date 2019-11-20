@@ -156,11 +156,6 @@ void ghostcell::gcfb_update(lexer *p, fdm *a)
     gcval_press=45;
 	
     start4(p,a->press,gcval_press);
-	a->u.ggcpol(p);
-	a->v.ggcpol(p);
-	a->w.ggcpol(p);
-	a->press.ggcpol(p);
-    dgcpol(p,a->press,p->dgc4,p->dgc4_count,14);
 
     p->del_Iarray(cellmem1,cellmemsize,8);
 	p->del_Iarray(cellmem2,cellmemsize,8);
