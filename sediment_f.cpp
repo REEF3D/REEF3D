@@ -35,8 +35,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sandslide_v.h"
 #include"topo_relax.h"
 #include"bedslope.h"
+#include"vrans_v.h"
+#include"vrans_f.h"
 
-sediment_f::sediment_f(lexer *p, turbulence *pturb):topo_vel(p,pturb), zh(p), bss(p), bedtau(p)
+sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb):topo_vel(p,pturb), zh(p), bss(p), bedtau(p)
 {
     if(p->S90==0)
     pslide=new sandslide_v(p);   
@@ -46,6 +48,12 @@ sediment_f::sediment_f(lexer *p, turbulence *pturb):topo_vel(p,pturb), zh(p), bs
     
     if(p->S90==2)
     pslide=new sandslide_pde(p);
+    
+    if(p->S10!=2)
+	pvrans = new vrans_v(p,a,pgc);
+	
+	if(p->S10==2)
+	pvrans = new vrans_f(p,a,pgc);
 	
 	p->gcin4a_count=p->gcin_count;
 	p->gcout4a_count=p->gcout_count;
@@ -133,7 +141,7 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
     cout<<"Sediment Timestep: "<<p->dtsed<<" Sediment Total Timestep: "<<p->dtsed<<"  Total Time: "<<setprecision(7)<<p->sedtime<<endl;
 
 	if(p->mpirank==0)
-    cout<<"Sediment Time: "<<setprecision(5)<<pgc->timer()-starttime<<endl<<endl;
+    cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl<<endl;
 }
 
 

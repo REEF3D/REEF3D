@@ -30,6 +30,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_sg_laplace_cds4.h"
 #include"fnpf_sg_laplace_cds4_bc2.h"
 #include"fnpf_sg_laplace_cds24.h"
+#include"fnpf_sg_laplace_HOS.h"
 #include"onephase.h"
 #include"fnpf_sg_fsfbc.h"
 #include"fnpf_sg_fsfbc_wd.h"
@@ -69,6 +70,9 @@ fnpf_sg_RK3::fnpf_sg_RK3(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_sg_ini(p,
     if(p->A320==4)
     plap = new fnpf_sg_laplace_cds24(p);
     
+    if(p->A320==11)
+    plap = new fnpf_sg_laplace_HOS(p);
+    
     
     if(p->A343==0)
     pf = new fnpf_sg_fsfbc(p,c,pgc);
@@ -84,11 +88,7 @@ fnpf_sg_RK3::~fnpf_sg_RK3()
 }
 
 void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
-{	    
-    
-    if(p->A350>=0)
-    SLICELOOP4
-    c->breaking(i,j)=0;
+{	   
     
     LOOP
     c->test(i,j,k)=0.0;
@@ -272,6 +272,10 @@ void fnpf_sg_RK3::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, 
     
     
     velcalc_sig(p,c,pgc,c->Fi);
+    
+    pgc->start7V(p,c->U,c->bc,210);
+    pgc->start7V(p,c->V,c->bc,210);
+    pgc->start7V(p,c->W,c->bc,210);
     
     pgc->gcsl_start4(p,c->eta,gcval_eta);
     pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);

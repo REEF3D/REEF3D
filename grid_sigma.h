@@ -21,12 +21,15 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 
 #include"fnpf_sg.h"
 #include"increment.h"
-#include"slice4.h"
 
 class lexer;
 class fdm;
 class ghostcell;
 class field;
+class fnpf_convection;
+class fnpf_ddx;
+class grid_sigma_data;
+class slice;
 
 using namespace std;
 
@@ -43,17 +46,24 @@ public:
     virtual void sigma_ini(lexer*, fdm*, ghostcell*, slice&);
     virtual void sigma_update(lexer*, fdm*, ghostcell*, slice&);
     
+    
     double sigmax(lexer*,field&,int);
     double sigmay(lexer*,field&,int);
     double sigmaz(lexer*,field&,int);
 
-    
-    slice4 Ex,Ey,Bx,By;
-    slice4 Exx,Eyy,Bxx,Byy;
         
 private:
+    
+    void disc_bed(lexer*, fdm*, ghostcell*);
+    void disc_eta(lexer*, fdm*, ghostcell*);
+    
+    fnpf_convection *pdx;
+    fnpf_ddx *pddx;
+    grid_sigma_data *pd;
+    
+    
+    
     double sig;
-
 };
 
 #endif

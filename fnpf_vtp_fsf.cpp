@@ -38,6 +38,18 @@ fnpf_vtp_fsf::fnpf_vtp_fsf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
 	mkdir("./REEF3D_FNPF_VTP_FSF",0777);
+    
+    
+    // 3D
+    gcval_eta = 55;
+    gcval_fifsf = 60;
+    
+    // 2D
+    if(p->j_dir==0)
+    {
+    gcval_eta = 155;
+    gcval_fifsf = 160;
+    }
 	
 	
 }
@@ -53,6 +65,8 @@ void fnpf_vtp_fsf::start(lexer *p, fdm_fnpf *c, ghostcell* pgc, ioflow *pflow)
 
 void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 {	
+    pgc->gcsl_start4(p,c->eta,gcval_eta);
+    pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
     
     SLICELOOP4
     {
@@ -88,6 +102,10 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	
 	// velocity
 	offset[n]=offset[n-1]+4*(p->pointnum2D)*3+4;
+	++n;
+    
+    // Fifsf
+	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
     
     // elevation
@@ -130,7 +148,9 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     result<<"<PointData >"<<endl;
     result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"elevation\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"Fifsf\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"eta\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	result<<"<DataArray type=\"Float32\" Name=\"depth\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -202,12 +222,22 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&ffn, sizeof (float));
 	}
     
-    //  Elevation
+    //  Fifsf
+	iin=4*(p->pointnum2D);
+	result.write((char*)&iin, sizeof (int));
+	TPSLICELOOP
+	{
+        
+	ffn=float(pgc->gcsl_ipol4(p,c->Fifsf));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
+    //  Eta
 	iin=4*(p->pointnum2D);
 	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
 	{
-	ffn=float(pgc->gcsl_ipol4(p,c->eta)+p->wd);
+	ffn=float(pgc->gcsl_ipol4(p,c->eta));
 	result.write((char*)&ffn, sizeof (float));
 	}
     

@@ -27,6 +27,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
 {
     count=0;
+    
+    if(p->A10!=44)
     ULOOP
     {
 		xg = xgen1(p);
@@ -88,11 +90,42 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
             uvel(i,j,k) = rb3(p,db)*uvel(i,j,k);
         }
     }
+    
+    
+    if(p->A10==44)
+    ULOOP
+    {
+		xg = xgen1(p);
+        yg = ygen1(p);
+		dg = distgen(p);
+		db = distbeach(p); 
+		
+		// Wave Generation
+		if(p->B98==2 && u_switch==1)
+        {
+            // Zone 1
+            if(dg<dist1)
+            {
+            uvel(i,j,k) = (1.0-rb1(p,dg))*ramp(p)*uval[count] * H + rb1(p,dg)*H*uvel(i,j,k) + (1.0-G)*uvel(i,j,k);
+            ++count;
+            }
+		}
+		
+		// Numerical Beach
+        if(p->B99==1||p->B99==2)
+		{
+            // Zone 3
+            if(db<dist3)
+            uvel(i,j,k) = rb3(p,db)*uvel(i,j,k);
+        }
+    }
 }
 
 void iowave::v_relax(lexer *p, fdm *a, ghostcell *pgc, field& vvel)
 {
     count=0;
+    
+    if(p->A10!=44)
     VLOOP
     {
         xg = xgen2(p);
@@ -155,11 +188,42 @@ void iowave::v_relax(lexer *p, fdm *a, ghostcell *pgc, field& vvel)
             vvel(i,j,k) = (1.0-rb3(p,db))*0.0 + rb3(p,db)*vvel(i,j,k);
         }
     }
+    
+    
+    if(p->A10==44)
+    VLOOP
+    {
+        xg = xgen2(p);
+        yg = ygen2(p);
+		dg = distgen(p);
+		db = distbeach(p); 
+
+		// Wave Generation
+		if(p->B98==2 && v_switch==1)
+        {
+            // Zone 1
+            if(dg<dist1)
+            {
+            vvel(i,j,k) = (1.0-rb1(p,dg))*ramp(p)*vval[count] * H + rb1(p,dg)*H*vvel(i,j,k) + (1.0-G)*vvel(i,j,k);
+            ++count;
+            }
+		}
+		
+		// Numerical Beach
+		if(p->B99==1||p->B99==2)
+		{	
+            // Zone 3
+            if(db<dist3)
+            vvel(i,j,k) = (1.0-rb3(p,db))*0.0 + rb3(p,db)*vvel(i,j,k);
+        }
+    }
 }
 
 void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
 {
     count=0;
+    
+    if(p->A10!=44)
     WLOOP
     {
         xg = xgen(p);
@@ -223,12 +287,42 @@ void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
             if(db<dist3)
             wvel(i,j,k) = (1.0-rb3(p,db))*0.0 + rb3(p,db)*wvel(i,j,k);
         }
+    }
+
+
+    if(p->A10==4)
+    WLOOP
+    {
+        xg = xgen(p);
+        yg = ygen(p);
+		dg = distgen(p);
+		db = distbeach(p); 
+        
+		// Wave Generation
+		if(p->B98==2 && w_switch==1)
+        {
+            // Zone 1
+            if(dg<dist1)
+            {
+            wvel(i,j,k) = (1.0-rb1(p,dg)) * ramp(p)* wval[count] * H + rb1(p,dg)*H*wvel(i,j,k) + (1.0-G)*wvel(i,j,k);
+            ++count;
+            }
+
+		}
+		
+		// Numerical Beach
+        if(p->B99==1||p->B99==2)
+		{
+            // Zone 3
+            if(db<dist3)
+            wvel(i,j,k) = (1.0-rb3(p,db))*0.0 + rb3(p,db)*wvel(i,j,k);
+        }
     }		
 }
 
 void iowave::p_relax(lexer *p, fdm *a, ghostcell *pgc, field& press)
 {
-	
+    if(p->A10!=44)
     LOOP
     {
 		dg = distgen(p);
@@ -246,7 +340,27 @@ void iowave::p_relax(lexer *p, fdm *a, ghostcell *pgc, field& press)
             press(i,j,k) = (1.0-rb3(p,db))*0.0 + rb3(p,db)*press(i,j,k);
 			}
         }
-    }	 
+    }	
+
+    if(p->A10==44)
+    LOOP
+    {
+		dg = distgen(p);
+		db = distbeach(p); 
+		
+        if(p->B99==1||p->B99==2)
+        {            
+            // Zone 3
+            if(db<dist3)
+			{
+            if(p->D38==0)
+            press(i,j,k) = (1.0-rb3(p,db))*((p->phimean - p->ZSP[IJK])*a->ro(i,j,k)*fabs(p->W22)) + rb3(p,db)*press(i,j,k);
+            
+            if(p->D38>0)
+            press(i,j,k) = (1.0-rb3(p,db))*0.0 + rb3(p,db)*press(i,j,k);
+			}
+        }
+    }	
 }
 
 void iowave::phi_relax(lexer *p, ghostcell *pgc, field& f)
@@ -285,7 +399,6 @@ void iowave::phi_relax(lexer *p, ghostcell *pgc, field& f)
         }
     }
 }
-
 
 void iowave::vof_relax(lexer *p, ghostcell *pgc, field& f)
 {

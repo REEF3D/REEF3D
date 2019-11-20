@@ -75,8 +75,8 @@ void mgcslice4a::fill_ggc(lexer* p)
 	++a;
 	}
 	
-	p->Iresize(p->ggcsl4a,p->ggcslsize4a,p->ggcslcount4a*3, 3, 3);
-	p->ggcslsize4a=p->ggcslcount4a*3;
+	p->Iresize(p->ggcsl4a,p->ggcslsize4a,p->ggcslcount4a*p->margin, 3, 3);
+	p->ggcslsize4a=p->ggcslcount4a*p->margin;
 
 //--------------------------
 //WALL2

@@ -261,7 +261,7 @@ void lexer::ini_default()
 
     // Discretization
 	D10=4;			// int convection scheme
-	D11=2;			// int convection velocity scheme
+	D11=2;			// int convection velocity scheme   
 	D20=1;			// int diffusion scheme
 	D21=0;			// int print out implicit diffusion time and iterations
 	D22=1;			// int turn on molecular diffusion in diffusion discretization for momentum equations
@@ -523,6 +523,8 @@ void lexer::ini_default()
     S23=0.000001;     // double sediment fall velocity
     S24=0.5;               // double porosity of sediment layer
     S25=30.0;             // double angle of respose
+    S26_a=650.0;          // double alpha for VRANS sediment
+    S26_b=2.2;            // double beta for VRANS sediment
 	S28=0.75;             // double factor for new fluid cell velocity interpolation
 	S29=0.5;             // double factor for new solid cell velocity interpolation
     S30=0.047;          // double Shields parameter

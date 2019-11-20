@@ -43,7 +43,7 @@ weno_flux_N_nug::weno_flux_N_nug(lexer* p):weno_nug_func(p)
         pflux = new flux_face_QOU(p);
     }
     
-    if(p->B269>=1)
+    if(p->B269>=1 || p->S10==2)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU_vrans(p);

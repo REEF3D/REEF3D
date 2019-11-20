@@ -44,7 +44,7 @@ weno_flux_N::weno_flux_N(lexer* p):tttw(13.0/12.0),fourth(1.0/4.0),third(1.0/3.0
         pflux = new flux_face_QOU(p);
     }
     
-    if(p->B269>=1)
+    if(p->B269>=1 || p->S10==2)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU_vrans(p);

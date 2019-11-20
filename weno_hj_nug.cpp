@@ -30,7 +30,7 @@ weno_hj_nug::weno_hj_nug(lexer* p):weno_nug_func(p)
     if(p->B269==0)
     pflux = new flux_HJ_CDS2(p);
     
-    if(p->B269>=1)
+    if(p->B269>=1 || p->S10==2)
     pflux = new flux_HJ_CDS2_vrans(p);
 }
 
@@ -88,6 +88,26 @@ double weno_hj_nug::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& v
         L -= jadvec*fy(p,a,b,vvel,ipol,jadvec);
         
         L -= kadvec*fz(p,a,b,wvel,ipol,kadvec);
+        
+		return L;
+}
+
+double weno_hj_nug::aij_sig(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, field& wvel, double *DXD,double *DYD, double *DZD)
+{
+        DX=DXD;
+        DY=DYD;
+        DZ=DZD;
+        
+		pflux->u_flux(a,ipol,uvel,iadvec,ivel2);
+        pflux->v_flux(a,ipol,vvel,jadvec,jvel2);
+        pflux->w_flux(a,ipol,wvel,kadvec,kvel2);
+		
+		L = -iadvec*fx(p,a,b,uvel,ipol,iadvec) + p->sigmax(p,b,ipol)*iadvec;
+        
+        if(p->j_dir==1)
+        L -= jadvec*fy(p,a,b,vvel,ipol,jadvec) + p->sigmay(p,b,ipol)*jadvec;
+        
+        L -= kadvec*fz(p,a,b,wvel,ipol,kadvec)*p->sigmaz(p,b,ipol);
         
 		return L;
 }

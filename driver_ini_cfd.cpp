@@ -91,6 +91,7 @@ cout<<"starting driver_ini"<<endl;
     pgc->start4a(p,a->topo,150);
     }
     
+    //ioflow ini
     pflow->ini(p,a,pgc);
 
     
@@ -123,7 +124,7 @@ cout<<"starting driver_ini"<<endl;
 	pflow->gcio_update(p,a,pgc);
 	pflow->pressure_io(p,a,pgc);
     
-    if (p->F80 > 0)
+    if (p->F80>0)
     {
         pflow->vof_relax(p,pgc,a->vof);
     }

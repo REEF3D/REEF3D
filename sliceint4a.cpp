@@ -78,13 +78,13 @@ void sliceint4a::dealloc(lexer* p)
 
 void sliceint4a::resize(lexer* p)
 {
-    if(p->gcsl_extra4a*3>gcfeldsize)
-    cout<<p->mpirank<<" Slice4 Resize: "<<gcfeldsize<<" "<<p->gcsl_extra4a*3<<endl;
+    if(p->gcsl_extra4a*p->margin>gcfeldsize)
+    cout<<p->mpirank<<" Slice4 Resize: "<<gcfeldsize<<" "<<p->gcsl_extra4a*p->margin<<endl;
 }
 
 void sliceint4a::fieldgcalloc(lexer* p)
 {
-    gcfeldsize=p->gcsl_extra4a*3;
+    gcfeldsize=p->gcsl_extra4a*p->margin;
 	gcsl_extra=gcfeldsize;
     
 	gcfeldsize+=(p->gcbsl4a_count);

@@ -124,8 +124,11 @@ public:
 	virtual void dirichlet_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&);
     
     virtual void ini(lexer*,fdm*,ghostcell*);
+    virtual void ini_nhflow(lexer*,fdm*,ghostcell*);
     virtual void ini_fnpf(lexer*,fdm_fnpf*,ghostcell*);
     virtual void ini2D(lexer*,fdm2D*,ghostcell*);
+    
+    virtual void vrans_sed_update(lexer*,fdm*,ghostcell*);
 
     void velini(lexer*,fdm*,ghostcell*);
     void pressure_outlet(lexer*,fdm*,ghostcell*);
@@ -165,15 +168,17 @@ public:
     void wavegen_precalc_decomp_dirichlet_fnpf(lexer*,ghostcell*);
     
     // NHFLOW
-    //virtual void nhflow_inflow(lexer*,ghostcell*,double*,double*,slice&,slice&);
+    virtual void nhflow_inflow(lexer*,fdm*,ghostcell*,field&,field&,field&);
     void nhflow_precalc_relax(lexer*,ghostcell*);
     void nhflow_precalc_relax_ini(lexer*,ghostcell*);
     void nhflow_precalc_dirichlet(lexer*,ghostcell*);
     void nhflow_precalc_dirichlet_ini(lexer*,ghostcell*);
-    void nhflow_dirichlet_wavegen(lexer*,ghostcell*,double*,double*,slice&,slice&);
-    void nhflow_active_beach(lexer*, ghostcell*, double*, double*, slice&, slice&);
+    void nhflow_dirichlet_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    void nhflow_active_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    void nhflow_active_beach(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    void nhflow_inflow_plain(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    void full_initialize_nhflow(lexer*,fdm*,ghostcell*);
 	
-
 private:
     slice4 eta;
 	

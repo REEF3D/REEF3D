@@ -81,8 +81,8 @@ void field4::dealloc(lexer* p)
 
 void field4::resize(lexer* p)
 {
-    if(p->gcextra4*3>gcfeldsize)
-    cout<<p->mpirank<<" Field4 Resize: "<<gcfeldsize<<" "<<p->gcextra4*3<<endl;
+    if(p->gcextra4*p->margin>gcfeldsize)
+    cout<<p->mpirank<<" Field4 Resize: "<<gcfeldsize<<" "<<p->gcextra4*p->margin<<endl;
 }
 
 void field4::fieldgcalloc(lexer* p)

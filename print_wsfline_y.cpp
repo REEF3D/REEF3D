@@ -65,7 +65,7 @@ print_wsfline_y::print_wsfline_y(lexer *p, fdm* a, ghostcell *pgc)
 	
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_WSFLINE_Y",0777);
+	mkdir("./REEF3D_CFD_WSFLINE_Y",0777);
 }
 
 print_wsfline_y::~print_wsfline_y()
@@ -88,43 +88,43 @@ void print_wsfline_y::wsfline(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
 		if(p->P14==0)
 		{
 		if(num<10)
-		sprintf(name,"REEF3D-wsfline_y-00000%d.dat",num);
+		sprintf(name,"REEF3D-CFD-wsfline_y-00000%d.dat",num);
 
 		if(num<100&&num>9)
-		sprintf(name,"REEF3D-wsfline_y-0000%d.dat",num);
+		sprintf(name,"REEF3D-CFD-wsfline_y-0000%d.dat",num);
 
 		if(num<1000&&num>99)
-		sprintf(name,"REEF3D-wsfline_y-000%d.dat",num);
+		sprintf(name,"REEF3D-CFD-wsfline_y-000%d.dat",num);
 
 		if(num<10000&&num>999)
-		sprintf(name,"REEF3D-wsfline_y-00%d.dat",num);
+		sprintf(name,"REEF3D-CFD-wsfline_y-00%d.dat",num);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"REEF3D-wsfline_y-0%d.dat",num);
+		sprintf(name,"REEF3D-CFD-wsfline_y-0%d.dat",num);
 
 		if(num>99999)
-		sprintf(name,"REEF3D-wsfline_y-%d.dat",num);
+		sprintf(name,"REEF3D-CFD-wsfline_y-%d.dat",num);
 		}
 		
 		if(p->P14==1)
 		{
 		if(num<10)
-		sprintf(name,"./REEF3D_WSFLINE_Y/REEF3D-wsfline_y-00000%d.dat",num);
+		sprintf(name,"./REEF3D_CFD_WSFLINE_Y/REEF3D-CFD-wsfline_y-00000%d.dat",num);
 
 		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_WSFLINE_Y/REEF3D-wsfline_y-0000%d.dat",num);
+		sprintf(name,"./REEF3D_CFD_WSFLINE_Y/REEF3D-CFD-wsfline_y-0000%d.dat",num);
 
 		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_WSFLINE_Y/REEF3D-wsfline_y-000%d.dat",num);
+		sprintf(name,"./REEF3D_CFD_WSFLINE_Y/REEF3D-CFD-wsfline_y-000%d.dat",num);
 
 		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_WSFLINE_Y/REEF3D-wsfline_y-00%d.dat",num);
+		sprintf(name,"./REEF3D_CFD_WSFLINE_Y/REEF3D-CFD-wsfline_y-00%d.dat",num);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_WSFLINE_Y/REEF3D-wsfline_y-0%d.dat",num);
+		sprintf(name,"./REEF3D_CFD_WSFLINE_Y/REEF3D-CFD-wsfline_y-0%d.dat",num);
 
 		if(num>99999)
-		sprintf(name,"./REEF3D_WSFLINE_Y/REEF3D-wsfline_y-%d.dat",num);
+		sprintf(name,"./REEF3D_CFD_WSFLINE_Y/REEF3D-CFD-wsfline_y-%d.dat",num);
 		}
 		
 		wsfout.open(name);

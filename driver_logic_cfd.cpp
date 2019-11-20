@@ -106,9 +106,6 @@ void driver::logic()
 	if(p->T12==2)
 	pturbdisc=new icds2(p);
 
-	if(p->T12==3)
-	pturbdisc=new iquick(p);
-
 	if(p->T12==4)
 	pturbdisc=new iweno_flux(p);
 
@@ -308,10 +305,11 @@ void driver::logic()
     pnse = new nsewave_geo(p,a,pgc,pheat,pconc);
     }
     
+
     if(p->A10==44)
     {
     if(p->A410==1)
-    pnse = new nhflow_fsf(p,a,pgc,pheat,pconc);
+    pnhfsf = new nhflow_fsf_f(p,a,pgc,pflow);
     }
     
 
@@ -442,9 +440,6 @@ void driver::logic()
 
 	if(p->F85==2 && p->F80>10)
 	pfsfdisc=new icds2(p);
-
-	if(p->F85==3 && p->F80>10)
-	pfsfdisc=new iquick(p);
 
 	if(p->F85==4 && p->F80>10)
 	pfsfdisc=new iweno_flux(p);
@@ -590,7 +585,7 @@ void driver::logic()
     psed = new sediment_void();
 
     if(p->S10>0)
-    psed = new sediment_f(p,pturb);
+    psed = new sediment_f(p,a,pgc,pturb);
 
     if(p->S11==0)
     pbed = new bedload_void();
@@ -610,13 +605,13 @@ void driver::logic()
     if(p->S10==0)
     ptopo = new topo_void(p,a,pgc);
 	
-	if(p->S10==1)
+	if(p->S10>=1)
     ptopo = new topo_direct(p,a,pgc,pturb);
 
     if(p->S10==0 && p->G1==0)
     preto = new reinitopo_void();
 
-    if(p->S10==1 || p->G1==1)
+    if(p->S10>=1 || p->G1==1)
     {
     if(p->G40==0)
     preto = new reinitopo_void();
@@ -685,13 +680,19 @@ void driver::logic()
 	if(p->A10==4)
     loop_nsewave(a);
     
-    if(p->A10==44)
-    loop_nhflow(a);
+    //if(p->A10==44)
+    //loop_nhflow(a);
     
     if(p->A10==5 && p->X10 == 1 && p->X13 >= 1 && p->N40==0) 
 	{
 		loop_cfd_fsi(a);
 	}
+    
+    else if(p->A10==44)
+	{
+		loop_nhflow(a);
+	}
+    
     else if(p->A10==5)
 	{
 		loop_cfd(a);

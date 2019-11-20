@@ -101,7 +101,7 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
         endtime=pgc->timer();
     
 	pgc->start4(p,a->press,gcval_press);
-    presscorr(p,a,pcorr,alpha);
+    presscorr(p,a,uvel,vvel,wvel,pcorr,alpha);
     pgc->start4(p,pcorr,40);
 	
 	ucorr(p,a,uvel,alpha);
@@ -138,10 +138,32 @@ void pjm_corr::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
 	/(p->DZP[KP]*pd->roface(p,a,0,0,1)));
 }
 
-void pjm_corr::presscorr(lexer* p, fdm* a, field& pcorr, double alpha)
+void pjm_corr::presscorr(lexer* p, fdm* a, field& uvel, field& vvel, field& wvel, field& pcorr, double alpha)
 {
+    double velCorr, rhoU, rhoV, rhoW;
+
     LOOP
-    a->press(i,j,k) += pcorr(i,j,k);
+    {
+        rhoU = pd->roface(p,a,1,0,0)*uvel(i,j,k); 
+        i--;
+        rhoU -= pd->roface(p,a,1,0,0)*uvel(i,j,k);
+        i++;
+        
+        rhoV = pd->roface(p,a,0,1,0)*vvel(i,j,k); 
+        j--;
+        rhoV -= pd->roface(p,a,0,1,0)*vvel(i,j,k);
+        j++;
+
+        rhoW = pd->roface(p,a,0,0,1)*wvel(i,j,k); 
+        k--;
+        rhoW -= pd->roface(p,a,0,0,1)*wvel(i,j,k);
+        k++;
+
+        velCorr =  
+            (a->visc(i,j,k) + a->eddyv(i,j,k))*(rhoU/p->DXN[IP] + rhoV/p->DYN[JP] + rhoW/p->DZN[KP]);
+                           
+        a->press(i,j,k) += pcorr(i,j,k) - velCorr;
+    }
 }
  
 void pjm_corr::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)

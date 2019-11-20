@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void vrans_f::sed_update(lexer *p, fdm *a, ghostcell *pgc)
 {
-	/*int qn;
+	int qn;
     double zmin,zmax,slope;
     double xs,xe;
 	
@@ -44,107 +44,20 @@ void vrans_f::sed_update(lexer *p, fdm *a, ghostcell *pgc)
 	pgc->start4a(p,beta,1);
 	
 	
-	// Box
-    for(qn=0;qn<p->B270;++qn)
+	// Topo
     ALOOP
-	if(p->XN[IP]>=p->B270_xs[qn] && p->XN[IP]<p->B270_xe[qn]
-	&& p->YN[JP]>=p->B270_ys[qn] && p->YN[JP]<p->B270_ye[qn]
-	&& p->ZN[KP]>=p->B270_zs[qn] && p->ZN[KP]<p->B270_ze[qn])
+	if(a->topo(i,j,k)<0.0)
 	{
-	a->porosity(i,j,k)= p->B270_n[qn];
-	porpart(i,j,k) = p->B270_d50[qn];
-	alpha(i,j,k) = p->B270_alpha[qn];
-	beta(i,j,k) = p->B270_beta[qn];
+	a->test(i,j,k)=a->porosity(i,j,k)= p->S24; //porosity
+	porpart(i,j,k) = p->S20;  //d50
+	alpha(i,j,k) = p->S26_a;  //alpha
+	beta(i,j,k) = p->S26_b;    //beta
 	}
-    
-    // Vertical Cylinder
-    for(qn=0;qn<p->B274;++qn)
-    ALOOP
-    {
-        double  r = sqrt( pow(p->XP[IP]-p->B274_xc[qn],2.0)+pow(p->YP[JP]-p->B274_yc[qn],2.0));
-        
-        if(r<=p->B274_r[qn] && p->pos_z()>p->B274_zs[qn] && p->pos_z()<=p->B274_ze[qn])
-        {
-        a->porosity(i,j,k)= p->B274_n[qn];
-        porpart(i,j,k) = p->B274_d50[qn];
-        alpha(i,j,k) = p->B274_alpha[qn];
-        beta(i,j,k) = p->B274_beta[qn];
-        }
-    }
-
-	
-	// Wedge x-dir
-    for(qn=0;qn<p->B281;++qn)
-    {
-		zmin=MIN(p->B281_zs[qn],p->B281_ze[qn]);
-        
-            if(p->B281_xs[qn]<=p->B281_xe[qn])
-            {
-            xs = p->B281_xs[qn];
-            xe = p->B281_xe[qn];
-            }
-            
-            if(p->B281_xs[qn]>p->B281_xe[qn])
-            {
-            xs = p->B281_xe[qn];
-            xe = p->B281_xs[qn];
-            }
-
-		slope=(p->B281_ze[qn]-p->B281_zs[qn])/(p->B281_xe[qn]-p->B281_xs[qn]);
-
-		ALOOP
-		if(p->pos_x()>=xs && p->pos_x()<xe
-		&& p->pos_y()>=p->B281_ys[qn] && p->pos_y()<p->B281_ye[qn]
-		&& p->pos_z()>=zmin && p->pos_z()<slope*(p->pos_x()-p->B281_xs[qn])+p->B281_zs[qn] )
-		{
-		a->porosity(i,j,k)=p->B281_n[qn];
-		porpart(i,j,k) =p->B281_d50[qn];
-		alpha(i,j,k) = p->B281_alpha[qn];
-		beta(i,j,k) = p->B281_beta[qn];
-		}
-    }
-    
-    // Plate x-dir
-    for(qn=0;qn<p->B291;++qn)
-    {
-		zmin=MIN(p->B291_zs[qn],p->B291_ze[qn]);
-        zmin=MAX(p->B291_zs[qn],p->B291_ze[qn]);
-        
-            if(p->B291_xs[qn]<=p->B291_xe[qn])
-            {
-            xs = p->B291_xs[qn];
-            xe = p->B291_xe[qn];
-            }
-            
-            if(p->B291_xs[qn]>p->B291_xe[qn])
-            {
-            xs = p->B291_xe[qn];
-            xe = p->B291_xs[qn];
-            }
-
-		slope=(p->B291_ze[qn]-p->B291_zs[qn])/(p->B291_xe[qn]-p->B291_xs[qn]);
-
-		ALOOP
-		if(p->pos_x()>=xs && p->pos_x()<xe
-		&& p->pos_y()>=p->B291_ys[qn] && p->pos_y()<p->B291_ye[qn]
-        
-		&& p->pos_z()>=zmin 
-        && p->pos_z()<=zmax 
-        
-        && p->pos_z()<slope*(p->pos_x()-p->B291_xs[qn])+p->B291_zs[qn]+p->B291_d[qn] //lower
-        && p->pos_z()>slope*(p->pos_x()-p->B291_xs[qn])+p->B291_zs[qn]) // upper
-		{
-		a->porosity(i,j,k)=p->B291_n[qn];
-		porpart(i,j,k) =p->B291_d50[qn];
-		alpha(i,j,k) = p->B291_alpha[qn];
-		beta(i,j,k) = p->B291_beta[qn];
-		}
-    }
     
     
     pgc->start4a(p,a->porosity,1);
 	pgc->start4a(p,porpart,1);
 	pgc->start4a(p,alpha,1);
-	pgc->start4a(p,beta,1);*/
+	pgc->start4a(p,beta,1);
 }
 

@@ -51,26 +51,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void driver::driver_ini_nhflow()
 {
 
+    p->count=0;
+
+    p->cellnumtot=pgc->globalisum(p->cellnum);
+    p->pointnumtot=pgc->globalisum(p->pointnum);
+
+	log_ini();
+    
+    if(p->mpirank==0)
+    cout<<"number of cells: "<<p->cellnumtot<<endl;
+
     if(p->mpirank==0)
     cout<<"starting driver_ini_NHFLOW"<<endl;
-
     
-    /*
-    // Solid
-    if(p->G39==1)
-    {
-    solid solid_object(p,a,pgc);
-    solid_object.start(p,a,pgc,pflow,pconvec,preto);
-    }
-    
-    // Geotopo
-    if((p->G50>0 && p->G51>0) || p->G60>0 || p->G61>0)
-    {
-    geotopo gtopo(p,a,pgc);
-    gtopo.start(p,a,pgc,pflow,pconvec,preto);
-    }*/
-    
-    // bed ini
+    // SIGMA grid
+     // bed ini
     SLICELOOP4
 	a->bed(i,j) = p->bed[IJ];
     
@@ -85,34 +80,84 @@ void driver::driver_ini_nhflow()
     SLICELOOP4
     a->WL(i,j) = MAX(0.0,a->eta(i,j) + p->wd - a->bed(i,j));
     
-    p->Darray(p->sigz,p->imax*p->jmax);
-    
-    SLICELOOP4
-    p->sigz[IJ] = 1.0/WLVL;
-    
-    pflow->ini_fnpf(p,c,pgc);
-    pftstep->ini(c,p,pgc);
+    // sigma ini
+    p->sigma_ini(p,a,pgc,a->eta);
+    p->sigma_update(p,a,pgc,a->eta);
 
-    ppfsg->ini(p,c,pgc,pflow,preini,poneph);  // --- 
+    
+    //ioflow ini
+    pflow->ini_nhflow(p,a,pgc);
+    
     pflow->eta_relax(p,pgc,a->eta);
     pgc->gcsl_start4(p,a->eta,50);
- 
-
     
-    ppfsg->inidisc(p,c,pgc,pflow,psolv);
+    if(p->P150==0)
+	pdata = new data_void(p,a,pgc);
+	
+	if(p->P150>0)
+	pdata = new data_f(p,a,pgc);
+	
+	pdata->start(p,a,pgc);
+	
+    pheat->heat_ini(p,a,pgc,pheat);
+	pconc->ini(p,a,pgc,pconc);
 
-	pfprint->start(p,c,pgc,pflow);
-
+    ptstep->ini(a,p,pgc);
+	pflow->gcio_update(p,a,pgc);
+	pflow->pressure_io(p,a,pgc);
     
-	p->gctime=0.0;
+    
+    
+    // inflow ini
+	pflow->discharge(p,a,pgc);
+	pflow->inflow(p,a,pgc,a->u,a->v,a->w);
+	potflow->start(a,p,psolv,pgc);
+    pflow->wavegen_precalc(p,pgc);
+    
+	if(p->I12>=1)
+	pini->hydrostatic(p,a,pgc);
+
+	if(p->I11==1)
+	ptstep->start(a,p,pgc,pturb);
+    
+    if(p->I13==1)
+    pturb->ini(p,a,pgc);
+	
+	pflow->pressure_io(p,a,pgc);
+
+	pgc->start1(p,a->u,10);
+	pgc->start2(p,a->v,11);
+	pgc->start3(p,a->w,12);
+
+    pgc->start4(p,a->press,40);
+    pgc->dgcpol(p,a->topo,p->dgc4,p->dgc4_count,14);
+	a->topo.ggcpol(p);
+	
+	if(p->I40==1)
+	pini->stateini(p,a,pgc,pturb);
+    
+	pgc->start4(p,a->press,40);
+	
+    p->sigma_update(p,a,pgc,a->eta);
+    pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
+
+
+// ini variables
+    for(int qn=0; qn<2; ++qn)
+    {
+    pturb->ktimesave(p,a,pgc);
+    pturb->etimesave(p,a,pgc);
+    }
+
+    p->gctime=0.0;
     p->xtime=0.0;
+	p->reinitime=0.0;
 	p->wavetime=0.0;
 	p->field4time=0.0;
-
-     
-     if(p->mpirank==0)
+    
+    
+    if(p->mpirank==0)
     cout<<"starting mainloop.NHFLOW"<<endl;
-
 }
 
 

@@ -136,7 +136,7 @@ void hypre_struct2D::create_solvers(lexer* p, ghostcell* pgc)
 	HYPRE_StructPFMGSetRAPType(precond, 0);
 	HYPRE_StructPFMGSetRelaxType(precond, 1);
 	HYPRE_StructPFMGSetNumPreRelax(precond, 1);
-	HYPRE_StructPFMGSetNumPostRelax(precond, 1);
+	HYPRE_StructPFMGSetNumPostRelax(precond, 3);
 	HYPRE_StructPFMGSetSkipRelax(precond, 0);
 	HYPRE_StructPFMGSetPrintLevel(precond, 0);
 	HYPRE_StructPFMGSetLogging(precond, 0);

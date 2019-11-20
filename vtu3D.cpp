@@ -179,7 +179,7 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
 	
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_VTU",0777);
+	mkdir("./REEF3D_CFD_VTU",0777);
 }
 
 vtu3D::~vtu3D()
@@ -991,17 +991,54 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     if(p->B192==1 && p->simtime>=p->B194_s && p->simtime<=p->B194_e)
     phase = omega_y*p->simtime;
     
+    
+    if(p->G2==1)
+    {
+    pgc->gcsl_start4(p,a->WL,50);
+    pgc->gcsl_start4(p,a->bed,50);
+	
+    pgc->dgcslpol(p,a->WL,p->dgcsl4,p->dgcsl4_count,14);
+    pgc->dgcslpol(p,a->bed,p->dgcsl4,p->dgcsl4_count,14);
+	
+    a->WL.ggcpol(p);
+    a->test.ggcpol(p);
+    
+    i=-1;
+    j=-1;
+    if(i+p->origin_i==-1 && j+p->origin_j==-1 )
+    a->WL(i,j) = a->WL(i+1,j+1);
+    }
+    
+    
 	iin=4*(p->pointnum+p->ccptnum)*3;
 	result.write((char*)&iin, sizeof (int));
     TPLOOP
 	{
-    ffn=float( (p->XN[IP1]-p->B192_3)*cos(theta_y*sin(phase)) - (p->ZN[KP1]-p->B192_4)*sin(theta_y*sin(phase)) + p->B192_3);
+        if(p->G2==0)
+        zcoor=p->ZN[KP1];
+            
+        if(p->G2==1)
+        {
+        zcoor = p->ZN[KP1]*a->WL(i,j) + a->bed(i,j); 
+        
+        if(a->wet(i,j)==0 && p->flagslice4[IJ]>0)
+        zcoor=a->bed(i,j);
+        
+        if(i+p->origin_i==-1 && j+p->origin_j==-1 && a->wet(0,0)==1)
+        zcoor = p->ZN[KP1]*a->WL(i,j) + a->bed(i,j); 
+        
+        
+        //cout<<"ZN: "<<p->ZN[KP1]<<" WL: "<<a->WL(i,j)<<" eta: "<<a->eta(i,j)<<" zcoor: "<<zcoor<<endl;
+        }
+    
+    
+    ffn=float( (p->XN[IP1]-p->B192_3)*cos(theta_y*sin(phase)) - (zcoor-p->B192_4)*sin(theta_y*sin(phase)) + p->B192_3);
 	result.write((char*)&ffn, sizeof (float));
 
 	ffn=float(p->YN[JP1]);
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float((p->XN[IP1]-p->B192_3)*sin(theta_y*sin(phase)) + (p->ZN[KP1]-p->B192_4)*cos(theta_y*sin(phase)) + p->B192_4);
+	ffn=float((p->XN[IP1]-p->B192_3)*sin(theta_y*sin(phase)) + (zcoor-p->B192_4)*cos(theta_y*sin(phase)) + p->B192_4);
 	result.write((char*)&ffn, sizeof (float));
 	}
 

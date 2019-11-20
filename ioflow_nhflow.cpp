@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -19,39 +19,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"convection.h"
-#include"increment.h"
+#include"ioflow_f.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
-class flux;
-
-#ifndef IQUICK_H_
-#define IQUICK_H_
-
-using namespace std;
-
-class iquick : public convection,  public increment
+void ioflow_f::nhflow_inflow(lexer *p,fdm *a,ghostcell *pgc, field &uvel, field &vvel, field &wvel)
 {
 
-public:
+}
 
-	iquick (lexer *);
-	virtual ~iquick();
+void ioflow_f::ini_nhflow(lexer *p,fdm *a,ghostcell *pgc)
+{
 
-	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
-
-private:
-    double ul,ur,vl,vr,wl,wr;
-    double r, phi,denom;
-	double dx,dy,dz;
-	double L;
-	int count,rocount,countN,coliN;
-	int *range;
-    
-    double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
-
-	void aij(lexer*, fdm*, field&, field&, int,field&,field&,field&);
-
-    flux *pflux;
-};
-
-#endif
+}

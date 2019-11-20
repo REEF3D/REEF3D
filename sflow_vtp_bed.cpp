@@ -65,10 +65,7 @@ void sflow_vtp_bed::start(lexer *p, fdm2D* b, ghostcell* pgc)
 		
     printbedtime+=p->P30;
     }
-	
-
 }
-
 
 void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 {	
@@ -100,7 +97,22 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
     
     pip=0;
     } 
-	
+    
+    i=-1;
+    j=-1;
+	b->bednode(i,j) = b->bed(i+1,j+1);
+    
+    i=p->knox-1;
+    j=-1;
+	b->bednode(i,j) = b->bed(i,j+1);
+    
+    i=p->knox-1;
+    j=p->knoy-1;
+	b->bednode(i,j) = b->bed(i,j);
+    
+    i=-1;
+    j=p->knoy-1;
+	b->bednode(i,j) = b->bed(i+1,j);
 	
 	// Open File
 	ofstream result;

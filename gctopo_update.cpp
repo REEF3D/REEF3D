@@ -167,12 +167,10 @@ void ghostcell::topo_update(lexer *p, fdm *a)
 
 	count=globalisum(count);
     
-    //gcparax_test(a,p,4);
 	
 	if(p->mpirank==0)
 	cout<<"Topo: active number of cells: "<<count<<endl;
     
-    //cout<<p->mpirank<<" GCB4_COUNT:  "<<p->gcb4_count<<endl;
     
     if(p->mpirank==0)
     cout<<endl;

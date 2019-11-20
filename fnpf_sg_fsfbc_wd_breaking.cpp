@@ -28,6 +28,17 @@ void fnpf_sg_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
 {
     int ii,jj;
     
+    
+    
+    if(p->A350>=0)
+    if(p->count>count_n)
+    {
+    SLICELOOP4
+    c->breaking(i,j)=0;
+    
+    count_n=p->count;
+    }
+    
     if(p->A350>=0)
     SLICELOOP4
     {

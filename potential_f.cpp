@@ -98,7 +98,12 @@ void potential_f::ucalc(lexer *p, fdm *a)
 	
 	if(p->I21==1)
 	ULOOP
-	if(a->phi(i,j,k)<-p->F45*p->DXP[IP])
+	if(0.5*(a->phi(i,j,k)+a->phi(i+1,j,k))<-p->F45*p->DXP[IP])
+	a->u(i,j,k)=0.0;
+    
+    if(p->S10==2)
+	ULOOP
+	if(0.5*(a->topo(i,j,k)+a->topo(i+1,j,k))<-p->F45*p->DXP[IP])
 	a->u(i,j,k)=0.0;
 }
 
@@ -106,13 +111,15 @@ void potential_f::vcalc(lexer *p, fdm *a)
 {	
 	VLOOP
 	a->v(i,j,k) = (a->press(i,j+1,k)-a->press(i,j,k))/p->DYP[JP];
-    
-    //VLOOP
-	//a->v(i,j,k) = (-a->press(i,j+2,k)+27.0*a->press(i,j+1,k)-27.0*a->press(i,j,k)+a->press(i,j-1,k))/(-p->DYP[JP2]+27.0*p->DYP[JP1]-27.0*p->DYP[JP]+p->DYP[JM1]);
-	
+
 	if(p->I21==1)
 	VLOOP
 	if(a->phi(i,j,k)<-p->F45*p->DYP[JP])
+	a->v(i,j,k)=0.0;
+    
+    if(p->S10==2)
+	VLOOP
+	if(0.5*(a->topo(i,j,k)+a->topo(i,j+1,k))<-p->F45*p->DYP[JP])
 	a->v(i,j,k)=0.0;
 }
 
@@ -124,6 +131,11 @@ void potential_f::wcalc(lexer *p, fdm *a)
     if(p->I21==1)
 	WLOOP
 	if(a->phi(i,j,k)<-p->F45*p->DZP[KP])
+	a->w(i,j,k)=0.0;
+    
+    if(p->S10==2)
+	WLOOP
+	if(0.5*(a->topo(i,j,k)+a->topo(i,j,k+1))<-p->F45*p->DZP[KP])
 	a->w(i,j,k)=0.0;
 }
 

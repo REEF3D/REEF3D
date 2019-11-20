@@ -45,6 +45,9 @@ void wave_lib_wcp::read_result(lexer *p, ghostcell *pgc, double **E0, double ***
     {
         result.read((char*)&ffn, sizeof (float)); 
         U0[i][j][k]=ffn;
+        
+        //if(p->mpirank==0 && i==Nx-1) 
+        //cout<<" U0[i][j]: "<<U0[i][j][k]<<endl;
     } 
     
     for(i=0; i<Nx; ++i)

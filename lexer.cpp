@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"lexer.h"
+#include"ghostcell.h"
 
 
 lexer::lexer() : cmu(0.09), position(this), interpolation(this), grid_sigma(this)
@@ -30,7 +31,7 @@ lexer::lexer() : cmu(0.09), position(this), interpolation(this), grid_sigma(this
     mpirank=0;
 }
 
-void lexer::lexer_read()
+void lexer::lexer_read(ghostcell *pgc)
 {
 
     if(mpirank==0)
@@ -40,11 +41,23 @@ void lexer::lexer_read()
 	
     Iarray(ictrl,ctrlsize);
     Darray(dctrl,ctrlsize);
+    
+
+		if(mpirank==0)
+		ctrlsend();
+		
+		pgc->globalctrl(this);
+		
+		if(mpirank>0)
+		ctrlrecv();
+    
+    del_Iarray(ictrl,ctrlsize);
+    del_Darray(dctrl,ctrlsize);
+    
 
 	read_grid();
 	
 	lexer_ini();
-    
 }
 
 lexer::~lexer()

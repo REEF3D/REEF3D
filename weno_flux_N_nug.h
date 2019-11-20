@@ -41,6 +41,8 @@ public:
 
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*, cpt&);
+    
+    double aij_sig(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*, cpt&);
 
 	virtual double fx(lexer*, fdm*, field&, field&, int, double, cpt&);
 	virtual double fy(lexer*, fdm*, field&, field&, int, double, cpt&);

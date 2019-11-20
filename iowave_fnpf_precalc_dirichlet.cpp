@@ -25,8 +25,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
 {
-    double fsfloc;
-    
         count=0;
 		for(n=0;n<p->gcslin_count;n++)
         {

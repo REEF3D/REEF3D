@@ -44,9 +44,14 @@ int wave_lib_wcp::pos_i(lexer *p, double xs)
     Xstart =  X[0];
     Xend   =  X[Nx-1];
     
+    
     XM1 = 0.5*(X[iloc] + X[iloc-1]);
     XP  = 0.5*(X[iloc] + X[iloc+1]);
     XP1 = 0.5*(X[iloc+1] + X[iloc+2]);
+    
+    
+    //if(p->mpirank==0 && xs>9.99)
+    //cout<<"POS_x: "<<xs<<" Nx: "<<Nx<<" Xmax: "<<X[Nx-1]<<" iloc: "<<iloc<<" XM1: "<<XM1<<" XP: "<<XP<<" XP1: "<<XP1<<endl;
     
         // matching criterion
         if(xs<XP && xs>=XM1)
@@ -76,6 +81,22 @@ int wave_lib_wcp::pos_i(lexer *p, double xs)
         
         // out of bounds
         if(xs>Xend)
+        {
+            ii = Nx-1;
+            
+         stop=1;
+         break;   
+        }
+        
+        if(iloc<=0)
+        {
+            ii = 0;
+            
+         stop=1;
+         break;   
+        }
+        
+        if(iloc>=Nx-1)
         {
             ii = Nx-1;
             
@@ -164,6 +185,22 @@ int wave_lib_wcp::pos_j(lexer *p, double ys)
          break;   
         }
         
+        if(jloc<=0)
+        {
+            jj = 0;
+            
+         stop=1;
+         break;   
+        }
+        
+        if(jloc>=Ny-1)
+        {
+            jj = Ny-1;
+            
+         stop=1;
+         break;   
+        }
+        
         // further divjsion
         if(ys<YP && ys<YM1)
         je=jloc;
@@ -233,6 +270,22 @@ int wave_lib_wcp::pos_k(lexer *p, double zs, int i, int k)
         {
             kk = kloc;
 
+         stop=1;
+         break;   
+        }
+        
+        if(kloc<=0)
+        {
+            kk = 0;
+            
+         stop=1;
+         break;   
+        }
+        
+        if(kloc>=Nz-1)
+        {
+            kk = Nz-1;
+            
          stop=1;
          break;   
         }
