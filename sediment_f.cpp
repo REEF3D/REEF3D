@@ -90,11 +90,6 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
     pgc->start1(p,a->u,14);
 	pgc->start2(p,a->v,15);
 	pgc->start3(p,a->w,16);
-		
-	a->u.ggcpol(p);
-	a->v.ggcpol(p);
-	a->w.ggcpol(p);
-
     
     // find bedk
     fill_bedk(p,a,pgc);

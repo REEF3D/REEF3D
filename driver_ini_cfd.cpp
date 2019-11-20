@@ -166,9 +166,7 @@ cout<<"starting driver_ini"<<endl;
 	pgc->start3(p,a->w,12);
 
     pgc->start4(p,a->press,40);
-    pgc->dgcpol(p,a->topo,p->dgc4,p->dgc4_count,14);
-	a->topo.ggcpol(p);
-	
+
 	if(p->I40==1)
 	pini->stateini(p,a,pgc,pturb);
     

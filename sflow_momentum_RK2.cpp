@@ -119,8 +119,7 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 				+ p->dt*b->F(i,j);
 	
 	pgc->gcsl_start1(p,Prk1,gcval_urk);
-	Prk1.ggcpol(p);
-	
+
     p->utime=pgc->timer()-starttime;
 
 	// V
@@ -139,7 +138,6 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 			  + p->dt*b->G(i,j);
 	
 	pgc->gcsl_start2(p,Qrk1,gcval_vrk);
-	Qrk1.ggcpol(p);
 	
     p->vtime=pgc->timer()-starttime;
 	
@@ -156,7 +154,6 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 			  + p->dt*b->L(i,j);
               
     pgc->gcsl_start4(p,wrk1,12);
-    wrk1.ggcpol(p);
 
 
 	// press
@@ -208,7 +205,6 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 				+ 0.5*p->dt*b->F(i,j);
 				
 	pgc->gcsl_start1(p,b->P,gcval_u);
-	b->P.ggcpol(p);
 	
     p->utime+=pgc->timer()-starttime;
 
@@ -228,7 +224,6 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 			  + 0.5*p->dt*b->G(i,j);
 	
 	pgc->gcsl_start2(p,b->Q,gcval_v);	
-	b->Q.ggcpol(p);
 	
     p->vtime+=pgc->timer()-starttime;
 	
@@ -245,7 +240,6 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 			  + 0.5*p->dt*b->L(i,j);
               
     pgc->gcsl_start4(p,b->ws,12);
-    b->ws.ggcpol(p);
               
 	//--------------------------------------------------------
 	// pressure

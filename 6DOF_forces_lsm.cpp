@@ -50,7 +50,6 @@ void sixdof_f::forces_lsm(lexer *p,fdm* a, ghostcell *pgc)
 
     pgc->gcfb_update_extra_gcb(p,a,a->press);
     
-    
     pgc->dgcpol(p,a->press,p->dgc4,p->dgc4_count,14);
     a->press.ggcpol(p);
     

@@ -118,8 +118,6 @@ void topo_direct::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,rei
 
 
 	pgc->gcsl_start4(p,a->bedzh,1);
-    pgc->dgcslpol(p,a->bedzh,p->dgcsl4,p->dgcsl4_count,14);
-    a->bedzh.ggcpol(p);
 
 	p->topotime=pgc->timer()-starttime;
 }

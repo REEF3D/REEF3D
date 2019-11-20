@@ -40,20 +40,10 @@ double particle::hside(fdm* a)
 
 void particle::dgc_update(lexer* p,fdm* a,ghostcell* pgc)
 {
-/*
+
     pgc->start1(p,a->u,14);
 	pgc->start2(p,a->v,15);
 	pgc->start3(p,a->w,16);
-*/
-    pgc->dgcpol(p,a->u,p->dgc1,p->dgc1_count,11);
-	pgc->dgcpol(p,a->v,p->dgc2,p->dgc2_count,12);
-	pgc->dgcpol(p,a->w,p->dgc3,p->dgc3_count,13);
-	pgc->dgcpol(p,a->phi,p->dgc4,p->dgc4_count,14);
-
-	a->u.ggcpol(p);
-    a->v.ggcpol(p);
-    a->w.ggcpol(p);
-	a->phi.ggcpol(p);
 }
 
 void particle::vel_setback(lexer* p,fdm* a,ghostcell* pgc)

@@ -123,7 +123,6 @@ void sflow_pjm_quad::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, 
     pflow->pm_relax(p,pgc,b->press);
 	pgc->gcsl_start4(p,b->press,gcval_press);
     pgc->gcsl_start4(p,press_n,gcval_press);
-	b->press.ggcpol(p);
     
     
 	ucorr(p,b,P,eta,alpha);

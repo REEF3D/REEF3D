@@ -154,8 +154,6 @@ void ghostcell::topo_update(lexer *p, fdm *a)
 	
 	
 	start4(p,a->press,gcval_press);
-	a->press.ggcpol(p);
-    dgcpol(p,a->press,p->dgc4,p->dgc4_count,14);
 
     p->del_Iarray(cellmem1,cellmemsize,4);
 	p->del_Iarray(cellmem2,cellmemsize,4);

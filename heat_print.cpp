@@ -34,8 +34,6 @@ heat_print::~heat_print()
 
 void heat_print::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 {
-    pgc->dgcpol(p,T,p->dgc4,p->dgc4_count,14);
-    T.ggcpol(p);
 	
 	iin=4*(p->pointnum+p->ccptnum);
     result.write((char*)&iin, sizeof (int));

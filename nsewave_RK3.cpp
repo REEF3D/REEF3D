@@ -154,10 +154,7 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	pgc->start1(p,urk1,gcval_urk);
 	pgc->start2(p,vrk1,gcval_vrk);
 	pgc->start3(p,wrk1,gcval_wrk);
-	
-	urk1.ggcpol(p);
-	vrk1.ggcpol(p);
-	wrk1.ggcpol(p);
+
 	
     pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pmom,pflow, urk1, vrk1, wrk1, 1.0);
@@ -244,10 +241,6 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	pgc->start2(p,vrk2,gcval_vrk);
 	pgc->start3(p,wrk2,gcval_wrk);
 	
-	urk2.ggcpol(p);
-	vrk2.ggcpol(p);
-	wrk2.ggcpol(p);
-
     pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pmom,pflow, urk2, vrk2, wrk2,0.25);
 	
@@ -331,10 +324,6 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	pgc->start1(p,a->u,gcval_u);
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
-	
-	a->u.ggcpol(p);
-	a->v.ggcpol(p);
-	a->w.ggcpol(p);
 
 	//--------------------------------------------------------
 	// pressure

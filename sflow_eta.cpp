@@ -153,10 +153,6 @@ void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slic
 	pgc->gcsl_start2(p,b->hy,gcval_eta);
     pgc->gcsl_start4(p,b->depth,1);
     
-    b->depth.ggcpol(p);
-    b->hp.ggcpol(p);
-    b->hx.ggcpol(p);
-    b->hy.ggcpol(p);
 
     if(p->A243>=1)
     wetdry(p,b,pgc,P,Q,ws);

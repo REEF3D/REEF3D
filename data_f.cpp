@@ -60,10 +60,6 @@ void data_f::start(lexer* p, fdm* a, ghostcell* pgc)
 
 void data_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 {
-    pgc->dgcpol(p,data,p->dgc4,p->dgc4_count,14);
-    data.ggcpol(p);
-	
-
     iin=4*(p->pointnum+p->ccptnum);
     result.write((char*)&iin, sizeof (int));
 

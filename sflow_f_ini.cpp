@@ -96,8 +96,6 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 	b->bed(i,j) = p->bed[IJ];
     
     pgc->gcsl_start4(p,b->bed,50);
-    b->bed.ggcpol(p);
-
 	
 	for(int qn=0; qn<p->A209;++qn)
 	SLICELOOP4

@@ -34,11 +34,6 @@ concentration_io::~concentration_io()
 
 void concentration_io::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 {
-    pgc->dgcpol(p,C,p->dgc4,p->dgc4_count,14);
-    C.ggcpol(p);
-	pgc->dgcpol(p,a->ro,p->dgc4,p->dgc4_count,14);
-    a->ro.ggcpol(p);
-
 	
 	iin=4*(p->pointnum+p->ccptnum);
     result.write((char*)&iin, sizeof (int));

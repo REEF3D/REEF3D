@@ -108,10 +108,6 @@ void kepsilon_IM2::ktimesave(lexer *p, fdm* a, ghostcell *pgc)
 	
 	pgc->start4(p,kn,1);
 	pgc->start4(p,knn,1);
-	kn.ggcpol(p);
-	knn.ggcpol(p);	
-	pgc->dgcpol(p,kn,p->dgc4,p->dgc4_count,14);
-	pgc->dgcpol(p,knn,p->dgc4,p->dgc4_count,14);
 }
 
 void kepsilon_IM2::etimesave(lexer *p, fdm* a, ghostcell *pgc)
@@ -124,10 +120,6 @@ void kepsilon_IM2::etimesave(lexer *p, fdm* a, ghostcell *pgc)
 	
 	pgc->start4(p,en,1);
 	pgc->start4(p,enn,1);
-	en.ggcpol(p);	
-	enn.ggcpol(p);	
-	pgc->dgcpol(p,en,p->dgc4,p->dgc4_count,14);
-	pgc->dgcpol(p,enn,p->dgc4,p->dgc4_count,14);
 }
 
 void kepsilon_IM2::clearrhs(lexer* p, fdm* a)

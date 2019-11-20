@@ -81,15 +81,6 @@ void bedload_einstein::start(lexer* p, fdm* a, ghostcell* pgc)
 	}
     
     pgc->gcsl_start4(p,a->bedload,1);
-    pgc->dgcslpol(p,a->bedload,p->dgcsl4,p->dgcsl4_count,14);
-    a->bedload.ggcpol(p);
-    
     pgc->gcsl_start1(p,a->qbx,1);
-    pgc->dgcslpol(p,a->qbx,p->dgcsl1,p->dgcsl1_count,11);
-    a->qbx.ggcpol(p);
-    
     pgc->gcsl_start2(p,a->qby,1);
-    pgc->dgcslpol(p,a->qby,p->dgcsl2,p->dgcsl2_count,12);
-    a->qby.ggcpol(p);
-
 }
