@@ -31,7 +31,6 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     if(p->A350>=0)
     SLICELOOP4
     {
-    //c->breaking(i,j)=0;
     bx(i,j)=0;
     by(i,j)=0;
     }
@@ -44,9 +43,8 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     {
     SLICELOOP4
     {
-        //cout<<c->Ex(i,j)<<endl;
             // x
-            if(c->Ex(i,j)   < -p->A355)
+            if(c->Ex(i,j) < -p->A355)
             {
                 ii=i;
                 
@@ -55,8 +53,8 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
                     while(i>=0)
                     {
                      bx(i,j) = 10;
-                    //cout<<"breakmove"<<endl;
-                    if(c->Ex(i,j)   > p->A356*p->A355)
+                     
+                    if(c->Ex(i,j) > p->A356*p->A355)
                     {
                     bx(i,j) = 1;
                     break;
@@ -67,7 +65,7 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
                 i=ii;
             }
             
-            if(c->Ex(i,j)   > p->A355)
+            if(c->Ex(i,j) > p->A355)
             {
                 ii=i;
                 
@@ -114,7 +112,7 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
             if(p->j_dir==1)
             if( c->Ey(i,j)   > p->A355)
             {
-                jj=i;
+                jj=j;
                 
                 by(i,j) = 20;
                 
@@ -236,7 +234,6 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
         if(bx(i,j)>0 || by(i,j)>0)
         {
         c->breaking(i,j)=1;
-        //cout<<"breakmod:  "<<c->breaking(i,j)<<" . "<<i<<endl;
         }
     }
     
@@ -269,16 +266,6 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     {
         SLICELOOP4
         c->vb(i,j) = 0.0;
-        
-        /*SLICELOOP4
-        if(p->XP[IP]>16.0 && p->XP[IP]<19.0)
-        c->vb(i,j) = 1.0;//*(p->XP[IP]-16.0)/3.0;*/
-        /*if(i==300 && p->mpirank==0)
-        {
-        c->vb(i-1,j) = 0.9;   
-        c->vb(i,j) = 1.8;
-        c->vb(i+1,j) = 0.9;
-        }*/
         
         if(p->j_dir==0)
         SLICELOOP4
