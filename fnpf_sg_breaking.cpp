@@ -57,6 +57,7 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
                     if(c->Ex(i,j) > p->A356*p->A355)
                     {
                     bx(i,j) = 1;
+                    i=ii;
                     break;
                     }
                     
@@ -78,6 +79,7 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
                     if(c->Ex(i,j)   < -p->A356*p->A355)
                     {
                     bx(i,j) = 2;
+                    i=ii;
                     break;
                     }
                     
@@ -101,6 +103,7 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
                     if(c->Ey(i,j)   > p->A356*p->A355)
                     {
                     by(i,j) = 1;
+                    j=jj;
                     break;
                     }
                     
@@ -123,6 +126,7 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
                     if(c->Ey(i,j)   < -p->A356*p->A355)
                     {
                     by(i,j) = 2;
+                    j=jj;
                     break;
                     } 
                     
@@ -154,6 +158,7 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
                     if( c->Ex(i,j)   > p->A356*p->A355)
                     {
                     bx(i,j) = 1;
+                    i=ii;
                     break;
                     }
                     
@@ -175,6 +180,7 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
                     if( c->Ex(i,j)   < -p->A356*p->A355)
                     {
                     bx(i,j) = 2;
+                    i=ii;
                     break;
                     }
                     
@@ -199,6 +205,7 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
                     if(c->Ey(i,j)   > p->A356*p->A355)
                     {
                     by(i,j) = 1;
+                    j=jj;
                     break;
                     }
                     
@@ -221,6 +228,7 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
                     if(c->Ey(i,j)   < -p->A356*p->A355)
                     {
                     by(i,j) = 2;
+                    j=jj;
                     break;
                     }
                     
