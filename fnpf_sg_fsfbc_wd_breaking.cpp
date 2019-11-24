@@ -125,7 +125,7 @@ void fnpf_sg_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
             if(p->j_dir==1)
             if( c->Ey(i,j)   > p->A355)
             {
-                jj=i;
+                jj=j;
                 
                 by(i,j) = 20;
                 

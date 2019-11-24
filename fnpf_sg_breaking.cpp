@@ -42,11 +42,11 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     pgc->gcsl_start4int(p,bx,50);
     pgc->gcsl_start4int(p,by,50);
     
-    
+    //cout<<p->mpirank<<" A351: "<<p->A351<<endl;
     if((p->A351==2 || p->A351==3) && p->count>1)
     {
     loopcount=0;
-    /*SLICELOOP4
+    SLICELOOP4
     {
             // x
             if(c->Ex(i,j) < -p->A355)
@@ -152,12 +152,12 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     
     if(loopcount>maxloop)
     break;
-    }*/
+    }
     
     pgc->gcsl_start4int(p,bx,50);
     pgc->gcsl_start4int(p,by,50);
     
-    /*
+    
     // step 2
     loopcount=0;
     SLICELOOP4
@@ -267,7 +267,7 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     
     if(loopcount>maxloop)
     break;
-    }*/
+    }
     
         SLICELOOP4
         if(bx(i,j)>0 || by(i,j)>0)
