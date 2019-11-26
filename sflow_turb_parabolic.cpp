@@ -50,8 +50,6 @@ void sflow_turb_parabolic::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_conve
     
     Ustar = sqrt(cf*(b->P(i,j)*b->P(i,j) + b->Q(i,j)*b->Q(i,j)));
     
-    //cout<<"cf: "<<cf<<" Ustar: "<<Ustar<<" HPIJ: "<<HPIJ<<endl;
- 
     b->eddyv(i,j) = alpha_t*Ustar*b->hp(i,j);
     }
     
