@@ -55,6 +55,7 @@ void lexer::ini_default()
     A251=0;    // double fsf-slope in x-dir
     A260=0;      // int turbulence model
     A261=0.267;  // double length scale factor
+    A262=0.0667; // double parabolic turbulence model factor
     
     A300=1;      // int sigma or fixed grid
     A310=3;		  // int time scheme for FNPF velocities

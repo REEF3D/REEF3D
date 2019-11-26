@@ -55,7 +55,6 @@ void fnpf_sg_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
     {
     SLICELOOP4
     {
-        //cout<<c->Ex(i,j)<<endl;
             // x
             if(c->Ex(i,j)   < -p->A355)
             {
@@ -66,7 +65,7 @@ void fnpf_sg_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
                     while(i>=0)
                     {
                      bx(i,j) = 10;
-                    //cout<<"breakmove"<<endl;
+  
                     if(c->Ex(i,j)   > p->A356*p->A355)
                     {
                     bx(i,j) = 1;
@@ -125,7 +124,7 @@ void fnpf_sg_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
             if(p->j_dir==1)
             if( c->Ey(i,j)   > p->A355)
             {
-                jj=i;
+                jj=j;
                 
                 by(i,j) = 20;
                 

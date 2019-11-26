@@ -27,6 +27,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &eta_n, slice &Fifsf, double alpha)
 {
     int ii,jj;
+    int count;
+    int loopcount, maxloop;
+    
+    maxloop = p->knox*p->knoy;
     
     if(p->A350>=0)
     SLICELOOP4
@@ -38,9 +42,10 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     pgc->gcsl_start4int(p,bx,50);
     pgc->gcsl_start4int(p,by,50);
     
-    
+    //cout<<p->mpirank<<" A351: "<<p->A351<<endl;
     if((p->A351==2 || p->A351==3) && p->count>1)
     {
+    loopcount=0;
     SLICELOOP4
     {
             // x
@@ -50,17 +55,20 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
                 
                 bx(i,j) = 10;
                 
-                    while(i>=0)
+                    count=0;
+                    while(i>=0 && count<p->knox)
                     {
                      bx(i,j) = 10;
                      
                     if(c->Ex(i,j) > p->A356*p->A355)
                     {
                     bx(i,j) = 1;
+                    i=ii;
                     break;
                     }
                     
-                    --i;    
+                    --i;  
+                    ++count;
                     }
                 i=ii;
             }
@@ -71,17 +79,20 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
                 
                 bx(i,j) = 20;
                 
-                    while(i<p->knox)
+                    count=0;
+                    while(i<p->knox && count<p->knox)
                     {
                      bx(i,j) = 20;
                     
                     if(c->Ex(i,j)   < -p->A356*p->A355)
                     {
                     bx(i,j) = 2;
+                    i=ii;
                     break;
                     }
                     
-                    ++i;    
+                    ++i;   
+                    ++count;     
                     }
                 i=ii;
             }
@@ -94,17 +105,20 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
                 
                 by(i,j) = 10;
                 
-                    while(j>=0)
+                    count=0;
+                    while(j>=0 && count<p->knoy)
                     {
                      by(i,j) = 10;
                     
                     if(c->Ey(i,j)   > p->A356*p->A355)
                     {
                     by(i,j) = 1;
+                    j=jj;
                     break;
                     }
                     
-                    --j;    
+                    --j;   
+                    ++count;  
                     }
                 j=jj;
             }
@@ -116,21 +130,28 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
                 
                 by(i,j) = 20;
                 
-                    while(j<p->knoy)
+                    count=0;
+                    while(j<p->knoy && count<p->knoy)
                     {
                      by(i,j) = 20;
                     
                     if(c->Ey(i,j)   < -p->A356*p->A355)
                     {
                     by(i,j) = 2;
+                    j=jj;
                     break;
                     } 
                     
-                    ++j;    
+                    ++j;  
+                    ++count;   
                     }
                 j=jj;
             }
             
+    ++loopcount;
+    
+    if(loopcount>maxloop)
+    break;
     }
     
     pgc->gcsl_start4int(p,bx,50);
@@ -138,6 +159,7 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     
     
     // step 2
+    loopcount=0;
     SLICELOOP4
     {
             // x
@@ -146,18 +168,21 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
                 ii=i;
                 
                 bx(i,j) = 10;
-                
-                    while(i>=0)
+                    
+                    count=0;
+                    while(i>=0 && count<p->knox)
                     {
                      bx(i,j) = 10;
                     
                     if( c->Ex(i,j)   > p->A356*p->A355)
                     {
                     bx(i,j) = 1;
+                    i=ii;
                     break;
                     }
                     
-                    --i;    
+                    --i;   
+                    ++count;  
                     }
                 i=ii;
             }
@@ -168,17 +193,20 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
                 
                 bx(i,j) = 20;
                 
-                    while(i<p->knox)
+                
+                    while(i<p->knox && count<p->knox)
                     {
                      bx(i,j) = 20;
                     
                     if( c->Ex(i,j)   < -p->A356*p->A355)
                     {
                     bx(i,j) = 2;
+                    i=ii;
                     break;
                     }
                     
-                    ++i;    
+                    ++i;  
+                    ++count;   
                     }
                 i=ii;
             }
@@ -192,17 +220,20 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
                 
                 by(i,j) = 10;
                 
-                    while(j>=0)
+                    count=0;
+                    while(j>=0 && count<p->knoy)
                     {
                      by(i,j) = 10;
                     
                     if(c->Ey(i,j)   > p->A356*p->A355)
                     {
                     by(i,j) = 1;
+                    j=jj;
                     break;
                     }
                     
-                    --j;    
+                    --j;   
+                    ++count;  
                     }
                 j=jj;
             }
@@ -213,21 +244,29 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
                 jj=j;
                 
                 by(i,j) = 20;
-                
-                    while(j<p->knoy)
+                    
+                    count=0;
+                    while(j<p->knoy && count<p->knoy)
                     {
                      by(i,j) = 20;
                     
                     if(c->Ey(i,j)   < -p->A356*p->A355)
                     {
                     by(i,j) = 2;
+                    j=jj;
                     break;
                     }
                     
-                    ++j;    
+                    ++j;  
+                    ++count;   
                     }
                 j=jj;
             }
+            
+    ++loopcount;
+    
+    if(loopcount>maxloop)
+    break;
     }
     
         SLICELOOP4
