@@ -152,7 +152,6 @@
         </VirtualDirectory>
         <File Name="concentration_void.h"/>
       </VirtualDirectory>
-      <VirtualDirectory Name="Multiphase"/>
       <VirtualDirectory Name="VRANS">
         <File Name="vrans.h"/>
         <File Name="vrans_f.h"/>
@@ -790,7 +789,11 @@
           <VirtualDirectory Name="Bedlevel">
             <File Name="sflow_sed_bedlevel.h"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="Suspended"/>
+          <VirtualDirectory Name="Suspended">
+            <File Name="sflow_suspended_void.h"/>
+            <File Name="sflow_suspended.h"/>
+            <File Name="sflow_suspended_RK2.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Sandslide">
             <File Name="sflow_sed_sandslide.h"/>
           </VirtualDirectory>
