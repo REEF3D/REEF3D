@@ -126,8 +126,11 @@ void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
 void sflow_etimestep::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 {	
 	
+    p->umax=p->W10;
+    
 	SLICELOOP1
 	p->umax=MAX(p->umax,fabs(b->P(i,j)));
+    
 
 	p->umax=pgc->globalmax(p->umax);
 
