@@ -26,6 +26,10 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 {	
     
 	// timestep
+    if(p->N48==0)
+	ptime = new sflow_fixtimestep(p,b);
+    
+    if(p->N48==1)
 	ptime = new sflow_etimestep(p,b);
 	
 	// convection

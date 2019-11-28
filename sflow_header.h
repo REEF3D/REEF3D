@@ -30,6 +30,7 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 #include"sflow_jacobi_block.h"
 
 #include"sflow_etimestep.h"
+#include"sflow_fixtimestep.h"
 #include"sflow_fou.h"
 #include"sflow_cfou.h"
 #include"sflow_weno_flux.h"
