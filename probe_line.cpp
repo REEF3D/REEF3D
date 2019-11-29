@@ -54,9 +54,12 @@ probe_line::probe_line(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P62), eps
 	totelnum[n] = conv(length[n]/p->DXM) + 1;
     
     // -------
+    if(p->P62>0)
+    {
     cout<<p->mpirank<<" DXM: "<<p->DXM <<endl; 
     cout<<p->mpirank<<" length[n]: "<<length[0] <<endl; 
     cout<<p->mpirank<<" totelnum[n]: "<<totelnum[0] <<endl; 
+    }
     // -------
 	
 	for(n=0;n<p->P62;++n)
@@ -67,6 +70,7 @@ probe_line::probe_line(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P62), eps
 	maxelnum = MAX(maxelnum,totelnum[0]) + p->M10+6;
  
     // -------
+    if(p->P62>0)
     cout<<p->mpirank<<" maxelnum: "<<maxelnum<<endl; 
     // -------
 	
@@ -382,6 +386,7 @@ void probe_line::ini_global_location(lexer *p, fdm *a, ghostcell *pgc)
     
     
     // -------
+    if(p->P62>0)
     cout<<p->mpirank<<" elnum[n]: "<<elnum[0] <<endl; 
     // -------
 	
@@ -408,6 +413,7 @@ void probe_line::ini_global_location(lexer *p, fdm *a, ghostcell *pgc)
 	for(q=0;q<p->M10;++q)
 	displ[n][q]=0;
 	
+    if(p->P62>0)
     cout<<p->mpirank<<" displ: ";
 	//if(p->mpirank==0)
 	for(n=0;n<p->P62;++n)

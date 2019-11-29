@@ -424,7 +424,10 @@ public:
 	double T13,T31,T32,T35,T37,T38,T39,T42,T51,T52,T53;
 
 	// Waterflow
-	double W1,W2,W3,W4,W5,W6,W7,W10,W20,W21,W22,W31;
+	double W1,W2,W3,W4,W5,W6,W7,W10;
+    int W11,W12,W13,W14,W15,W16;
+    double W11_u,W11_v,W11_w,W12_u,W12_v,W12_w,W13_u,W13_v,W13_w,W14_u,W14_v,W14_w,W15_u,W15_v,W15_w,W16_u,W16_v,W16_w;
+    double W20,W21,W22,W31;
 	int W30;
     int W90;
     double W95,W96,W97,W98;
