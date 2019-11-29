@@ -101,22 +101,22 @@ void sflow_vtp::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow)
 		 result.close();
 
 		 if(num<10)
-		 sprintf(name,"./REEF3D_SFLOW_EWP/REEF3D-VWP-%d-00000%d.dat",p->mpirank,num);
+		 sprintf(name,"./REEF3D_SFLOW_EWP/REEF3D-EWP-%d-00000%d.dat",p->mpirank,num);
 
 		 if(num<100&&num>9)
-		 sprintf(name,"./REEF3D_SFLOW_EWP/REEF3D-VWP-%d-0000%d.dat",p->mpirank,num);
+		 sprintf(name,"./REEF3D_SFLOW_EWP/REEF3D-EWP-%d-0000%d.dat",p->mpirank,num);
 
 		 if(num<1000&&num>99)
-		 sprintf(name,"./REEF3D_SFLOW_EWP/REEF3D-VWP-%d-000%d.dat",p->mpirank,num);
+		 sprintf(name,"./REEF3D_SFLOW_EWP/REEF3D-EWP-%d-000%d.dat",p->mpirank,num);
 
 		 if(num<10000&&num>999)
-		 sprintf(name,"./REEF3D_SFLOW_EWP/REEF3D-VWP-%d-00%d.dat",p->mpirank,num);
+		 sprintf(name,"./REEF3D_SFLOW_EWP/REEF3D-EWP-%d-00%d.dat",p->mpirank,num);
 
 		 if(num<100000&&num>9999)
-		 sprintf(name,"./REEF3D_SFLOW_EWP/REEF3D-VWP-%d-0%d.dat",p->mpirank,num);
+		 sprintf(name,"./REEF3D_SFLOW_EWP/REEF3D-EWP-%d-0%d.dat",p->mpirank,num);
 
 		 if(num>99999)
-		 sprintf(name,"./REEF3D_SFLOW_EWP/REEF3D-VWP-%d-%d.dat",p->mpirank,num);
+		 sprintf(name,"./REEF3D_SFLOW_EWP/REEF3D-EWP-%d-%d.dat",p->mpirank,num);
 
 		result.open(name);
 
