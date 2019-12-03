@@ -140,9 +140,7 @@ void ioflow_v::velocity_inlet(lexer *p, fdm* a, ghostcell* pgc, field &u, field 
         u(i,j,k+2) = p->W16_u;
         u(i,j,k+3) = p->W16_u;
         }
-        
     }
-    
     
     GC2LOOP
     {

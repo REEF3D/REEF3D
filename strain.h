@@ -54,7 +54,6 @@ public:
 private:
     double s11,s22,s33,s12,s13,s23;
     double q11,q22,q33,q12,q13,q23;
-	double deltax;
 	double pkterm,s,q,val;
 	const double epsi;
 
