@@ -58,33 +58,38 @@ void fnpf_discrete_weights::ck_weights(lexer *p, double **ck, double *pos, int n
         for(r=0;r<nd;++r)
         x[r] = pos[qn+marge-accuracy/2 + r];
         
-        // fill beginning
-        if((id==1||id==2||id==3) && qn==0)
+        if(accuracy>2)
         {
-            nd = accuracy; 
             
-            for(r=0;r<nd;++r)
-            x[r] = pos[qn+marge - 1 + r];
+            // fill beginning
+            if((id==1||id==2||id==3) && qn==0)
+            {
+                nd = accuracy; 
+                
+                for(r=0;r<nd;++r)
+                x[r] = pos[qn+marge - 1 + r];
+                
+            }
             
-        }
-        
-        // fill end
-        if((id==1||id==2||id==3) && qn==numpt-1)
-        {
-            nd = accuracy;
+            // fill end
             
-            for(r=0;r<nd;++r)
-            x[r] = pos[qn+marge - 2 + r];
+            if((id==1||id==2||id==3) && qn==numpt-1)
+            {
+                nd = accuracy;
+                
+                for(r=0;r<nd;++r)
+                x[r] = pos[qn+marge - 2 + r];
+                
+            }
             
-        }
-        
-        if(id==3 && qn==numpt-1)
-        {
-            nd = accuracy;
-            
-            for(r=0;r<nd;++r)
-            x[r] = pos[qn+marge - 2 + r];
-            
+            if(id==3 && qn==numpt-1)
+            {
+                nd = accuracy;
+                
+                for(r=0;r<nd;++r)
+                x[r] = pos[qn+marge - 2 + r];
+                
+            }
         }
         
         // fill vertical vel
@@ -140,23 +145,25 @@ void fnpf_discrete_weights::ck_weights(lexer *p, double **ck, double *pos, int n
         for(r=0;r<nd;++r)
         ck[qn+marge][r] = -c[r][2];
         
-        // write beginning stencils
-        if((id==1||id==2||id==3) && qn==0)
+        if(accuracy>2)
         {
-        ck[qn+marge][0] = 0.0;
-        
-        for(r=0;r<nd;++r)
-        ck[qn+marge][r+1] = -c[r][2];
+            // write beginning stencils
+            if((id==1||id==2||id==3) && qn==0)
+            {
+            ck[qn+marge][0] = 0.0;
+            
+            for(r=0;r<nd;++r)
+            ck[qn+marge][r+1] = -c[r][2];
+            }
+            
+            // write end stencils
+            if((id==1||id==2||id==3) && qn==numpt-1)
+            {
+            
+            for(r=0;r<nd;++r)
+            ck[qn+marge][r] = -c[r][2];
+            }
         }
-        
-        // write end stencils
-        if((id==1||id==2||id==3) && qn==numpt-1)
-        {
-        
-        for(r=0;r<nd;++r)
-        ck[qn+marge][r] = -c[r][2];
-        }
-        
         
         if(id==6)
         for(r=0;r<nd;++r)

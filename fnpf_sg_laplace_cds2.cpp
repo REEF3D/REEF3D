@@ -28,7 +28,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 fnpf_sg_laplace_cds2::fnpf_sg_laplace_cds2(lexer *p) 
 {
-    pbed = new fnpf_sg_bed_update(p);
 }
 
 fnpf_sg_laplace_cds2::~fnpf_sg_laplace_cds2()
