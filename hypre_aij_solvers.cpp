@@ -85,9 +85,9 @@ void hypre_aij::create_solvers(lexer* p, ghostcell* pgc)
     HYPRE_BoomerAMGCreate(&precond);
     HYPRE_BoomerAMGSetPrintLevel(precond, 0); 
     HYPRE_BoomerAMGSetCoarsenType(precond, 22);
-    HYPRE_BoomerAMGSetRelaxType(precond, 3); 
+    HYPRE_BoomerAMGSetRelaxType(precond, p->N22); 
     HYPRE_BoomerAMGSetNumSweeps(precond, 1);
-    HYPRE_BoomerAMGSetTol(precond, 1e-10);
+    HYPRE_BoomerAMGSetTol(precond, 0.0);
     HYPRE_BoomerAMGSetMaxIter(precond, 1); 
     }
     

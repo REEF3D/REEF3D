@@ -61,11 +61,11 @@ void fnpf_sg_laplace_cds2_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
         {
         sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
         
-        if(p->mpirank==1)// && i==3)
+        if(p->mpirank==1 && i==3)
         {
-        cout<<ckx[IP][0]<<"  "<<ckx[IP][1]<<"  "<<ckx[IP][2]<<" |  "<<-1.0/(p->DXP[IM1]*p->DXN[IP])<<" "<<1.0/(p->DXP[IM1]*p->DXN[IP])+1.0/(p->DXP[IP]*p->DXN[IP])<<"  "<<-1.0/(p->DXP[IP]*p->DXN[IP])<<endl;
+        //cout<<ckx[IP][0]<<"  "<<ckx[IP][1]<<"  "<<ckx[IP][2]<<" |  "<<-1.0/(p->DXP[IM1]*p->DXN[IP])<<" "<<1.0/(p->DXP[IM1]*p->DXN[IP])+1.0/(p->DXP[IP]*p->DXN[IP])<<"  "<<-1.0/(p->DXP[IP]*p->DXN[IP])<<endl;
         //cout<<i<<" "<<k<<" . "<<ckz[KP][0]<<"  "<<ckz[KP][1]<<"  "<<ckz[KP][2]<<" |  "<<-1.0/(p->DZP[KM1]*p->DZN[KM1])<<" "<<1.0/(p->DZP[KM1]*p->DZN[KM1])+1.0/(p->DZP[KM1]*p->DZN[KP])<<"  "<<-1.0/(p->DZP[KM1]*p->DZN[KP])<<endl;
-        
+        //cout<<i<<" "<<k<<" . "<<sigxyz2*ckz[KP][1]<<" |  "<<(sigxyz2/(p->DZP[KM1]*p->DZN[KP]))+(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]))<<endl;
         }
         c->M.p[n] = ckx[IP][1]*p->x_dir 
                   + cky[JP][1]*p->y_dir 
@@ -77,8 +77,8 @@ void fnpf_sg_laplace_cds2_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
         c->M.w[n] = cky[JP][2]*p->y_dir; 
         c->M.e[n] = cky[JP][0]*p->y_dir; 
 
-        c->M.t[n] = (sigxyz2*ckz[KP][2]  + p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
-        c->M.b[n] = (sigxyz2*ckz[KP][0]  - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
+        c->M.t[n] = (sigxyz2*ckz[KP][2]  - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
+        c->M.b[n] = (sigxyz2*ckz[KP][0]  + p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
         
         
        
