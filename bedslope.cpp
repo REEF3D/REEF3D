@@ -123,7 +123,9 @@ void bedslope::slope(lexer *p, fdm * a, ghostcell *pgc, double &teta, double &al
 	gamma = PI*0.5 - acos(	(nx*nx + ny*ny + nz*0.0)/( sqrt(nx*nx + ny*ny + nz*nz )*sqrt(nx*nx + ny*ny + nz*0.0))+1e-20);
 	
 
-	phi = midphi + (teta/(fabs(gamma)>1.0e-20?gamma:1.0e20))*delta;
+	//phi = midphi + (teta/(fabs(gamma)>1.0e-20?gamma:1.0e20))*delta;
+    
+    phi(i,j) = midphi - (teta(i,j)/(fabs(gamma(i,j))>1.0e-20?fabs(gamma(i,j)):1.0e20))*delta; //
 	
 
 	//if(fabs(gamma)>phi)
