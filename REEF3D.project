@@ -2314,6 +2314,7 @@
           <File Name="sflow_sediment_RKv.cpp"/>
           <File Name="sflow_sediment_RK3.cpp"/>
           <VirtualDirectory Name="Sandslide">
+            <File Name="sflow_sed_sandslide_v2.cpp"/>
             <File Name="sflow_sed_sandslide.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Bedlevel">

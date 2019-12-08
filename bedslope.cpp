@@ -39,6 +39,7 @@ void bedslope::slope(lexer *p, fdm * a, ghostcell *pgc, double &teta, double &al
     double uvel,vvel;
     double nx,ny,nz,norm;
     double nx0,ny0;
+    double nz0,bx0,by0;
     
     // beta
     uvel=0.5*(a->P(i,j)+a->P(i-1,j));
@@ -79,42 +80,34 @@ void bedslope::slope(lexer *p, fdm * a, ghostcell *pgc, double &teta, double &al
 	if(fabs(uvel)<=1.0e-10 && fabs(vvel)<=1.0e-10)
 	beta = 0.0;
    
-	
-    // bed normal
-	nx0=(a->topo(i+1,j,k)-a->topo(i-1,j,k))/(2.0*p->dx);
     
-    if(p->flag4[Im1JK]==OBJ)
-    nx0=(a->topo(i+1,j,k)-a->topo(i,j,k))/(p->dx);
+    // ----
     
-    if(p->flag4[Ip1JK]==OBJ)
-    nx0=(a->topo(i,j,k)-a->topo(i-1,j,k))/(p->dx);
-    
-    
-	ny0=(a->topo(i,j+1,k)-a->topo(i,j-1,k))/(2.0*p->dx);
-    
-    if(p->flag4[IJm1K]==OBJ)
-    ny0=(a->topo(i,j+1,k)-a->topo(i,j,k))/(p->dx);
-    
-    if(p->flag4[IJp1K]==OBJ)
-    ny0=(a->topo(i,j,k)-a->topo(i,j-1,k))/(p->dx);
-    
-    
-	nz =(a->topo(i,j,k+1)-a->topo(i,j,k-1))/(2.0*p->dx);
-
-	norm=sqrt(nx0*nx0 + ny0*ny0 + nz*nz);
-	
-	nx0/=norm>1.0e-20?norm:1.0e20;
+     bx0 = (a->bedzh(i+1,j)-a->bedzh(i-1,j))/(2.0*p->DXM);
+     by0 = (a->bedzh(i,j+1)-a->bedzh(i,j-1))/(2.0*p->DXM);
+     
+     nx0 = bx0/sqrt(bx0*bx0 + by0*by0 + 1.0);
+     ny0 = by0/sqrt(bx0*bx0 + by0*by0 + 1.0);
+     nz0 = 1.0;
+     
+     norm=sqrt(nx0*nx0 + ny0*ny0 + nz0*nz0);
+     
+     
+    nx0/=norm>1.0e-20?norm:1.0e20;
 	ny0/=norm>1.0e-20?norm:1.0e20;
-	nz /=norm>1.0e-20?norm:1.0e20;
+	nz0/=norm>1.0e-20?norm:1.0e20;
 	
     // rotate bed normal
-	
 	beta=-beta;
     nx = (cos(beta)*nx0-sin(beta)*ny0);
 	ny = (sin(beta)*nx0+cos(beta)*ny0);
+    nz = nz0;
     
-    teta  = atan(nx/(fabs(nz)>1.0e-15?nz:1.0e20));
-    alpha = atan(ny/(fabs(nz)>1.0e-15?nz:1.0e20));
+    teta  = -atan(nx/(fabs(nz)>1.0e-15?nz:1.0e20));
+    alpha =  fabs(atan(ny/(fabs(nz)>1.0e-15?nz:1.0e20)));
+    
+    
+    //-----------
 
     if(fabs(nx)<1.0e-10 && fabs(ny)<1.0e-10)
     gamma=0.0;
@@ -122,13 +115,10 @@ void bedslope::slope(lexer *p, fdm * a, ghostcell *pgc, double &teta, double &al
 	if(fabs(nx)>=1.0e-10 || fabs(ny)>=1.0e-10)
 	gamma = PI*0.5 - acos(	(nx*nx + ny*ny + nz*0.0)/( sqrt(nx*nx + ny*ny + nz*nz )*sqrt(nx*nx + ny*ny + nz*0.0))+1e-20);
 	
-
-	//phi = midphi + (teta/(fabs(gamma)>1.0e-20?gamma:1.0e20))*delta;
     
-    phi(i,j) = midphi - (teta(i,j)/(fabs(gamma(i,j))>1.0e-20?fabs(gamma(i,j)):1.0e20))*delta; //
-	
-
-	//if(fabs(gamma)>phi)
-	//cout<<" gamma: "<<gamma*(180.0/PI)<<" teta: "<<teta*(180.0/PI)<<" alpha: "<<alpha*(180.0/PI)<<" nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<"  phi: "<<phi*(180.0/PI)<<" topo: "<<a->topo(i,j,k)<<" "<<a->topo(i,j+1,k)<<endl;
+    phi = midphi + (teta/(fabs(gamma)>1.0e-20?fabs(gamma):1.0e20))*delta; 
+    /*
+    KLOOP
+    a->test(i,j,k)=teta*180.0/PI;*/
 }
 

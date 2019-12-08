@@ -99,8 +99,8 @@ void sflow_sediment_f::parker(lexer *p, fdm2D *b, ghostcell *pgc)
     
     r = MIN(r,2.0);
     
-    r=MIN(r,2.0);
-    r=MAX(r,0.1);
+    r=MIN(r,1.25);
+    r=MAX(r,0.01);
 	
     red(i,j) = r;
     //cout<<r<<endl;
@@ -136,8 +136,8 @@ void sflow_sediment_f::dey_emp(lexer *p, fdm2D *b, ghostcell *pgc)
 	if(p->pos_x()>p->S72)
 	r=10.0;
     
-    r=MIN(r,2.0);
-    r=MAX(r,0.1);
+    r=MIN(r,1.25);
+    r=MAX(r,0.01);
     
     red(i,j) = r;
     //cout<<r<<" "<<alpha(i,j)<<" "<<teta(i,j)<<endl;
@@ -182,8 +182,8 @@ void sflow_sediment_f::dey_ana(lexer *p, fdm2D *b, ghostcell *pgc)
 	if(p->pos_x()>p->S72)
 	r=10.0;
     
-    r=MIN(r,2.0);
-    r=MAX(r,0.1);
+    r=MIN(r,1.25);
+    r=MAX(r,0.01);
     
     red(i,j) = r;
     }
@@ -199,8 +199,8 @@ void sflow_sediment_f::fredsoe_long(lexer *p, fdm2D *b, ghostcell *pgc)
     
     r*= cos(alpha(i,j))*(1.0 - pow(tan(alpha(i,j)),2.0)/pow(tan(phi(i,j)),2.0));
     
-    r=MIN(r,2.0);
-    r=MAX(r,0.1);
+    r=MIN(r,1.25);
+    r=MAX(r,0.01);
     
     red(i,j)=r;
     }
