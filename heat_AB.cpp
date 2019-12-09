@@ -61,7 +61,6 @@ void heat_AB::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, sol
 	tab(i,j,k)=a->L(i,j,k);
 	}
 	
-	pdiff->idiff_scalar(p,a,pgc,psolv,T,thermdiff,p->sigT,1.0);
     bcheat_start(p,a,pgc,T);
 	pgc->start4(p,T,gcval_heat);
 	pupdate->start(p,a,pgc);
