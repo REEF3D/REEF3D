@@ -354,6 +354,7 @@ void lexer::ini_default()
 	// Heat
 	H1=1.4e-7;      // thermal diffusivity water
 	H2=2.216e-5;      // thermal diffusivity air
+    H9=1;           // int air-water assignment    
 	H10=0;          // int heat transfer on/off
 	H50_1=20.0; // double temperature 1
 	H50_2=20.0; // double temperature 2
@@ -370,7 +371,19 @@ void lexer::ini_default()
 	H58_1=0.0;      // x0, sphere
 	H58_2=0.0;      // y0
 	H58_3=0.0;      // z0
-	H58_4=0.0;      // r
+	H58_4=0.0;      // r    
+    H61=0;          // int heat bc
+    H62=0;          // int heat bc
+    H63=0;          // int heat bc
+    H64=0;          // int heat bc
+    H65=0;          // int heat bc
+    H66=0;          // int heat bc
+    H61_T=0.0;      // double heat bc
+    H62_T=0.0;      // double heat bc
+    H63_T=0.0;      // double heat bc
+    H64_T=0.0;      // double heat bc
+    H65_T=0.0;      // double heat bc
+    H66_T=0.0;      // double heat bc
 
     // Initialize
     I10=0;          // int initialize all

@@ -49,7 +49,7 @@ private:
     int gcval_ro,gcval_visc;
 	const double dx;
     double epsi;
-	double visc_air,visc_water,ro_air,ro_water,alpha_air,alpha_water;
+	double visc_1,visc_2,ro_1,ro_2,alpha_air,alpha_water;
 	double **water_density;
 	double **water_viscosity;
 	double **air_density;

@@ -108,7 +108,6 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->A220==3)
 	ppress = new sflow_pjm_sw(p,b);
     
-    
     // Boussinesq wave model
     if(p->A230==0)
     pbouss = new sflow_boussinesq_void(p,b);

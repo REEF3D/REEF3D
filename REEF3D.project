@@ -1515,6 +1515,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
       <VirtualDirectory Name="Epol">
+        <File Name="gc_heat.cpp"/>
         <File Name="gc_dgcpol4.cpp"/>
         <File Name="gc_dgcpol3.cpp"/>
         <File Name="gc_dgcpol2.cpp"/>

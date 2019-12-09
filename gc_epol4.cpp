@@ -322,6 +322,11 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 
 // Heat
 	else
+	if(gcv==80 && ((p->H61==1 && cs==1) || (p->H62==1 && cs==2) || (p->H63==1 && cs==3) 
+                || (p->H64==1 && cs==4) || (p->H65==1 && cs==5) || (p->H66==1 && cs==6)))
+	return 61;
+    
+    else
 	if(gcv==80)
 	return 4;
 
@@ -402,6 +407,9 @@ void ghostcell::gcdistro4(lexer *p, field &f, int ii, int jj, int kk, int nn, do
 
 	if(bc_label==21)
 	atmosphere(p,f,gcv,bc,cs);
+    
+    if(bc_label==61)
+	heatbc(p,f,gcv,bc,cs);
     
     if(bc_label==99)
 	gcb_debug(f,gcv,bc,cs);
