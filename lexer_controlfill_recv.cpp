@@ -720,6 +720,8 @@ void lexer::ctrlrecv()
 	ii++;
     H10 = ictrl[ii];
 	ii++;
+    H12 = ictrl[ii];
+	ii++;
     H50_1=dctrl[dd];
 	dd++;
     H50_2=dctrl[dd];

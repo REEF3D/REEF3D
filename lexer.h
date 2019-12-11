@@ -363,7 +363,7 @@ public:
 
 	// Heat Options
 	double H1,H2;
-	int H9,H10;
+	int H9,H10,H12;
 	double H50_1,H50_2;
 	double H51,H52,H53,H54,H55,H56;
 	double H57_1,H57_2,H57_3,H57_4;

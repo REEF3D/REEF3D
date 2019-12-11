@@ -863,6 +863,9 @@ void lexer::read_control()
                 case 10: control>>H10;
 						 clear(c,numint);
 						 break;
+                case 12: control>>H12;
+						 clear(c,numint);
+						 break;
                 case 50: control>>H50_1>>H50_2;
 						 clear(c,numint);
 						 break;

@@ -725,6 +725,8 @@ void lexer::ctrlsend()
 	ii++;
     ictrl[ii] = H10;
 	ii++;
+    ictrl[ii] = H12;
+	ii++;
     dctrl[dd] = H50_1;
 	dd++;
     dctrl[dd] = H50_2;

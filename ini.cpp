@@ -356,6 +356,7 @@ void lexer::ini_default()
 	H2=2.216e-5;      // thermal diffusivity air
     H9=1;           // int air-water assignment    
 	H10=0;          // int heat transfer on/off
+    H12=5;          // int convection for heat transfer
 	H50_1=20.0; // double temperature 1
 	H50_2=20.0; // double temperature 2
 	H51=0.0;		    // double i-dir zero level set start
