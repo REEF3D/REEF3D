@@ -51,6 +51,7 @@ void sflow_vtp_bed::start(lexer *p, fdm2D* b, ghostcell* pgc)
 {	
 	pgc->gcsl_start4(p,b->depth,50);
 	pgc->gcsl_start4(p,b->bed,50);
+    pgc->gcsl_start4(p,b->test,50);
 	
 	// Print out based on iteration
     if((p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)  || (p->count==0 &&  p->P30<0.0))

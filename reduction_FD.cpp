@@ -37,12 +37,16 @@ double reduction_FD::start(lexer *p, fdm * a, ghostcell *pgc)
     double r=1.0;
 
 	slope(p,a,pgc,teta,alpha,gamma,phi);
-
+    
+    //phi *=0.75;
 	
-	r = 1.0 - sqrt(pow(tan(teta),2.0));
-	
-    if(r<1.0e-20)
-    r = 0.01;
+    r = cos(teta)*(1.0 - tan(teta/tan(phi)));
+    
+    r*= cos(alpha)*(1.0 - pow(tan(alpha),2.0)/pow(tan(phi),2.0));
+    
+    r=MIN(r,1.25);
+    r=MAX(r,0.01);
+    
 
 	if(p->pos_x()<p->S71)
 	r=1.0;
@@ -50,8 +54,6 @@ double reduction_FD::start(lexer *p, fdm * a, ghostcell *pgc)
 	if(p->pos_x()>p->S72)
 	r=10.0;
 	
-	cout<<"r: "<<r<<"        teta: "<<teta*(180.0/PI)<<" alpha: "<<alpha*(180.0/PI)<<"   gamma: "<<gamma*(180.0/PI)<<"   phi: "<<phi*(180.0/PI)<<endl;
-
     return r;
 }
 

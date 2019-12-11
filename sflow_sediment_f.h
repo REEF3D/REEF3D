@@ -65,7 +65,9 @@ private:
     void bedchange_update(lexer*, fdm2D*, ghostcell*);
     
     void sandslide(lexer*, fdm2D*, ghostcell*, slice&, slice&);
+    void sandslide_v2(lexer*, fdm2D*, ghostcell*, slice&, slice&);
     void slide(lexer*, fdm2D*, ghostcell*);
+    void slide_v2(lexer*, fdm2D*, ghostcell*);
     
     void filter(lexer*, fdm2D*, ghostcell*,slice&,int,int);
     

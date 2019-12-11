@@ -148,6 +148,7 @@ public:
 	convection* pturbdisc;
 	convection* pfsfdisc;
 	convection* pconcdisc;
+    convection* pheatdisc;
 	turbulence* pturb;
 	solver* psolv;
 	solver* ppoissonsolv;

@@ -64,6 +64,10 @@ double r;
         }
     }
 
+    pgc->start4(p,T,80); 
     pgc->start4(p,T,80);
+    
+    pupdate->start(p,a,pgc);
+    pgc->start4(p,a->ro,1);
 
 }

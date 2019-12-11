@@ -76,7 +76,7 @@ void driver::loop_nhflow(fdm* a)
 			fill_vel(p,a,pgc);
         
         // Wave Models
-        pnse->start(p,a,pgc,pmom,pdiff,pturb,pconvec,ppress,ppois,ppoissonsolv,psolv,pflow);
+        pnhfsf->start(p,a,pgc,pflow);
         poneph->update(p,a,pgc,pflow);
 			
             pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow);

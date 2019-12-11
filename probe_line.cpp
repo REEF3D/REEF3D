@@ -422,6 +422,7 @@ void probe_line::ini_global_location(lexer *p, fdm *a, ghostcell *pgc)
 	displ[n][q]=displ[n][q-1]+elnum_all[n][q-1];
     cout<<displ[n][q]<<" ";
     }
+    if(p->P62>0)
     cout<<endl;
 	
 	for(n=0;n<p->P62;++n)

@@ -55,7 +55,6 @@ void heat_RK2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, so
 	ark1(i,j,k) = T(i,j,k)
 				+ p->dt*a->L(i,j,k);
 	
-	pdiff->idiff_scalar(p,a,pgc,psolv,ark1,thermdiff,p->sigT,1.0);
     bcheat_start(p,a,pgc,ark1);
 	pgc->start4(p,ark1,gcval_heat);
 
@@ -70,7 +69,6 @@ void heat_RK2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, so
 				+ 0.5*ark1(i,j,k)
 				+ 0.5*p->dt*a->L(i,j,k);
 				
-	pdiff->diff_scalar(p,a,pgc,psolv,T,thermdiff,p->sigT,0.5);
     bcheat_start(p,a,pgc,T);
 	pgc->start4(p,T,gcval_heat);
 
@@ -86,10 +84,22 @@ void heat_RK2::ttimesave(lexer *p, fdm* a)
 
 void heat_RK2::diff_update(lexer *p, fdm *a, ghostcell *pgc)
 {
-    double alpha_air = p->H2;
-	double alpha_water = p->H1;
+    double alpha_1;
+	double alpha_2;
     double H;
     double epsi=p->F45*p->dx;
+    
+    if(p->H9==1)
+    {
+    double alpha_1 = p->H1;
+	double alpha_2 = p->H2;
+    }
+    
+    if(p->H9==2)
+    {
+    double alpha_1 = p->H2;
+	double alpha_2 = p->H1;
+    }
     
     LOOP
 	{
@@ -103,7 +113,7 @@ void heat_RK2::diff_update(lexer *p, fdm *a, ghostcell *pgc)
 		H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
 
 
-		thermdiff(i,j,k)= alpha_water*H + alpha_air*(1.0-H);
+		thermdiff(i,j,k)= alpha_1*H + alpha_2*(1.0-H);
 	}
     
     pgc->start4(p,thermdiff,1);

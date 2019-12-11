@@ -19,48 +19,35 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"reduction_deyemp.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
+#include"field.h"
+#include"vec.h"
+#include"fdm.h"
 
-reduction_deyemp::reduction_deyemp(lexer *p) : bedslope(p)
+void ghostcell::heatbc(lexer *p, field& f, int gcv, int bc, int cs)
 {
+	if(cs==1)
+	for(q=0;q<=margin;++q)
+	f(i-q,j,k)=p->H61_T;
+
+	if(cs==2)
+	for(q=0;q<=margin;++q)
+	f(i,j+q,k)=p->H62_T;
+
+	if(cs==3)
+	for(q=0;q<=margin;++q)
+	f(i,j-q,k)=p->H63_T;
+
+	if(cs==4)
+	for(q=0;q<=margin;++q)
+	f(i+q,j,k)=p->H64_T;
+
+	if(cs==5)
+	for(q=0;q<=margin;++q)
+	f(i,j,k-q)=p->H65_T;
+
+	if(cs==6)
+	for(q=0;q<=margin;++q)
+	f(i,j,k+q)=p->H66_T;
 }
-
-reduction_deyemp::~reduction_deyemp()
-{
-}
-
-double reduction_deyemp::start(lexer *p, fdm * a, ghostcell *pgc)
-{
-    double r=1.0;
-
-	slope(p,a,pgc,teta,alpha,gamma,phi);
-
-	alpha = fabs(alpha);
-
-	r = 0.954*pow(1.0-teta/phi, 0.745)*pow(1.0-alpha/phi,0.372);
-
-	if( 1.0-teta/phi < 0.0 || 1.0-alpha/phi< 0.0)
-    {
-	r = cos(teta)*(1.0 - tan(teta/tan(phi)));
-    r*= cos(alpha)*(1.0 - pow(tan(alpha),2.0)/pow(tan(phi),2.0));
-    }
-
-
-    r = MAX(r,0.01);
-    r = MIN(r,1.25);
-
-	if(p->pos_x()<p->S71)
-	r=1.0;
-
-	if(p->pos_x()>p->S72)
-	r=10.0;
-	
-    return r;
-}
-
-
-
-

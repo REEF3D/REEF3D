@@ -154,10 +154,6 @@ void driver::driver_ini_nhflow()
 	p->reinitime=0.0;
 	p->wavetime=0.0;
 	p->field4time=0.0;
-    
-    
-    if(p->mpirank==0)
-    cout<<"starting mainloop.NHFLOW"<<endl;
 }
 
 
