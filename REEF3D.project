@@ -244,6 +244,8 @@
         <File Name="fluid_update_rheology.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Flux">
+        <File Name="flux_HJ_CDS4.h"/>
+        <File Name="flux_face_CDS4.h"/>
         <File Name="flux.h"/>
         <File Name="flux_face_FOU.h"/>
         <File Name="flux_HJ_CDS2.h"/>
@@ -1284,6 +1286,8 @@
         <File Name="fluid_update_rheology.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Flux">
+        <File Name="flux_HJ_CDS4.cpp"/>
+        <File Name="flux_face_CDS4.cpp"/>
         <File Name="flux_HJ_CDS2.cpp"/>
         <File Name="flux_face_CDS2.cpp"/>
         <File Name="flux_face_CDS2_vrans.cpp"/>

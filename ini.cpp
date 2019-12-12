@@ -271,6 +271,7 @@ void lexer::ini_default()
 	D30=1;			// int pressure scheme
 	D32=2;			// int density calculation poisson equation
     D38=0;          // int add hydrostatic pressure gradients to NSE 
+    D39=0;          // int activate 2nd-order pressure correction for PJM CORR
 	
     // Free Surface
 	F10=2;			    // int free surface scheme

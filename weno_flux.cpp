@@ -23,6 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"flux_face_CDS2.h"
+#include"flux_face_CDS4.h"
 #include"flux_face_CDS2_vrans.h"
 #include"flux_face_FOU.h"
 #include"flux_face_FOU_vrans.h"
@@ -43,6 +44,9 @@ weno_flux::weno_flux(lexer* p):tttw(13.0/12.0),fourth(1.0/4.0),third(1.0/3.0),
         
         if(p->D11==3)
         pflux = new flux_face_QOU(p);
+        
+        if(p->D11==4)
+        pflux = new flux_face_CDS4(p);
     }
     
     if(p->B269>=1 || p->S10==2)
@@ -55,6 +59,9 @@ weno_flux::weno_flux(lexer* p):tttw(13.0/12.0),fourth(1.0/4.0),third(1.0/3.0),
         
         if(p->D11==3)
         pflux = new flux_face_FOU_vrans(p);
+        
+        if(p->D11==4)
+        pflux = new flux_face_CDS2(p);
     }
 }
 

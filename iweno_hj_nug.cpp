@@ -23,6 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"flux_HJ_CDS2.h"
+#include"flux_HJ_CDS4.h"
 #include"flux_HJ_CDS2_vrans.h"
 
 
@@ -31,7 +32,10 @@ iweno_hj_nug::iweno_hj_nug(lexer *p)
 			sevsix(7.0/6.0),elvsix(11.0/6.0),sixth(1.0/6.0),fivsix(5.0/6.0),tenth(1.0/10.0),
 			sixten(6.0/10.0),treten(3.0/10.0),epsi(1.0e-6),deltin (1.0/p->DXM)
 {
-    if(p->B269==0)
+    if(p->B269==0 && p->D11!=4)
+    pflux = new flux_HJ_CDS2(p);
+    
+    if(p->B269==0 && p->D11==4)
     pflux = new flux_HJ_CDS2(p);
     
     if(p->B269>=1 || p->S10==2)

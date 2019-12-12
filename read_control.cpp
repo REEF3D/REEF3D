@@ -658,6 +658,9 @@ void lexer::read_control()
                 case 38: control>>D38;
 						 clear(c,numint);
 						 break;
+                case 39: control>>D39;
+						 clear(c,numint);
+						 break;
 				}
 				break;
 
