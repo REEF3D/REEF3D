@@ -319,6 +319,7 @@
         <File Name="particlecorr.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Reinitialization">
+        <File Name="reini_RK3_V.h"/>
         <File Name="reinifluid_RK4.h"/>
         <File Name="reinifluid_AB3.h"/>
         <File Name="reinifluid_AB2.h"/>
@@ -1482,6 +1483,7 @@
         <File Name="pls_xupdate.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Reinitialization">
+        <File Name="reini_RK3_V.cpp"/>
         <File Name="reinifluid_RK4.cpp"/>
         <File Name="reinifluid_AB3.cpp"/>
         <File Name="reinifluid_AB2.cpp"/>
