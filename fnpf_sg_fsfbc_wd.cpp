@@ -31,15 +31,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"reini.h"
 #include"onephase.h"
 #include"fnpf_voiddisc.h"
-#include"fnpf_cds2.h"
-#include"fnpf_cds4.h"
-#include"fnpf_cds6.h"
+#include"fnpf_cds2_wd.h"
+#include"fnpf_cds4_wd.h"
+#include"fnpf_cds6_wd.h"
 #include"fnpf_weno.h"
 #include"fnpf_weno_wd.h"
 #include"fnpf_weno7.h"
 #include"fnpf_wenoflux.h"
-#include"fnpf_ddx_cds2.h"
-#include"fnpf_ddx_cds4.h"
+#include"fnpf_ddx_cds2_wd.h"
+#include"fnpf_ddx_cds4_wd.h"
 #include"fnpf_sg_coastline.h"
 #include"sflow_bicgstab.h"
 
@@ -49,10 +49,10 @@ fnpf_sg_fsfbc_wd::fnpf_sg_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p
     pconvec = pconeta = new fnpf_voiddisc(p);
     
     if(p->A311==1)
-    pconvec = pconeta = new fnpf_cds2(p);
+    pconvec = pconeta = new fnpf_cds2_wd(p,c);
     
     if(p->A311==2)
-    pconvec = pconeta = new fnpf_cds4(p);
+    pconvec = pconeta = new fnpf_cds4_wd(p);
     
     if(p->A311==4  || p->A311==5)
     {
@@ -62,7 +62,7 @@ fnpf_sg_fsfbc_wd::fnpf_sg_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p
     //pdf = new fnpf_wenoflux(p);
 
     if(p->A311==6)
-    pconvec = pconeta = new fnpf_cds6(p);
+    pconvec = pconeta = new fnpf_cds6_wd(p);
     
     if(p->A311==7)
     {
@@ -74,14 +74,14 @@ fnpf_sg_fsfbc_wd::fnpf_sg_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p
     // ---
     if(p->A312==2)
     {
-    pddx = new fnpf_ddx_cds2(p);
-    pdx = new fnpf_cds2(p);
+    pddx = new fnpf_ddx_cds2_wd(p,c);
+    pdx = new fnpf_cds2_wd(p,c);
     }
     
     if(p->A312==3)
     {
-    pddx = new fnpf_ddx_cds4(p);
-    pdx = new fnpf_cds4(p);
+    pddx = new fnpf_ddx_cds4_wd(p);
+    pdx = new fnpf_cds4_wd(p);
     }
     
     

@@ -759,6 +759,9 @@
           <File Name="fnpf_fg_laplace_cds2.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="fnpf_cds6_wd.h"/>
+          <File Name="fnpf_cds4_wd.h"/>
+          <File Name="fnpf_cds2_wd.h"/>
           <File Name="fnpf_weno7.h"/>
           <File Name="fnpf_weno_wd.h"/>
           <VirtualDirectory Name="DDWENO">
@@ -768,6 +771,8 @@
           <File Name="fnpf_wenoflux.h"/>
           <File Name="fnpf_convection.h"/>
           <VirtualDirectory Name="DDX">
+            <File Name="fnpf_ddx_cds4_wd.h"/>
+            <File Name="fnpf_ddx_cds2_wd.h"/>
             <File Name="fnpf_ddx_cds4.h"/>
             <File Name="fnpf_ddx_cds2.h"/>
             <File Name="fnpf_ddx.h"/>
@@ -2298,6 +2303,9 @@
           <File Name="fnpf_fg_laplace_cds2.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="fnpf_cds6_wd.cpp"/>
+          <File Name="fnpf_cds4_wd.cpp"/>
+          <File Name="fnpf_cds2_wd.cpp"/>
           <File Name="fnpf_weno7.cpp"/>
           <File Name="fnpf_weno_wd.cpp"/>
           <VirtualDirectory Name="DDWENO">
@@ -2306,6 +2314,8 @@
           </VirtualDirectory>
           <File Name="fnpf_wenoflux.cpp"/>
           <VirtualDirectory Name="DDX">
+            <File Name="fnpf_ddx_cds4_wd.cpp"/>
+            <File Name="fnpf_ddx_cds2_wd.cpp"/>
             <File Name="fnpf_ddx_cds4.cpp"/>
             <File Name="fnpf_ddx_cds2.cpp"/>
           </VirtualDirectory>
