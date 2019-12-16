@@ -22,6 +22,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"levelset_RK3_V.h"
 #include"gradient.h"
 #include"lexer.h"
+#include"field.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"convection.h"
@@ -42,8 +43,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"picard_void.h"
 #include"heat.h"
 #include"concentration.h"
+#include"flux_HJ_CDS2.h"
+#include"flux_HJ_CDS4.h"
+#include"flux_HJ_CDS2_vrans.h"
 
-levelset_RK3_V::levelset_RK3_V(lexer* p, fdm *a, ghostcell* pgc, heat *&pheat, concentration *&pconc):gradient(p),ark1(p),ark2(p)
+levelset_RK3_V::levelset_RK3_V(lexer* p, fdm *a, ghostcell* pgc, heat *&pheat, concentration *&pconc):ddweno_nug(p),ark1(p),ark2(p),f(p),L(p)
 {
     if(p->F50==1)
 	gcval_phi=51;
@@ -81,6 +85,16 @@ levelset_RK3_V::levelset_RK3_V(lexer* p, fdm *a, ghostcell* pgc, heat *&pheat, c
 
 	if(p->F46!=2 && p->F46!=3)
 	ppicard = new picard_void(p);
+    
+    
+    if(p->B269==0 && p->D11!=4)
+    pflux = new flux_HJ_CDS2(p);
+    
+    if(p->B269==0 && p->D11==4)
+    pflux = new flux_HJ_CDS4(p);
+    
+    if(p->B269>=1 || p->S10==2)
+    pflux = new flux_HJ_CDS2_vrans(p);
 }
 
 levelset_RK3_V::~levelset_RK3_V()
@@ -89,57 +103,71 @@ levelset_RK3_V::~levelset_RK3_V()
 
 void levelset_RK3_V::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particlecorr* ppart, field &ls)
 {
+    /*
     pflow->fsfinflow(p,a,pgc);
     pflow->fsfrkin(p,a,pgc,ark1);
     pflow->fsfrkin(p,a,pgc,ark2);
     pflow->fsfrkout(p,a,pgc,ark1);
     pflow->fsfrkout(p,a,pgc,ark2);
-    ppicard->volcalc(p,a,pgc,ls);
+    ppicard->volcalc(p,a,pgc,ls);*/
 	
 	pflow->phi_relax(p,pgc,ls);
 
+//  Fill V
+    n=0;
+	FLUIDLOOP
+	{
+	f.V[n]=ls(i,j,k);
+	++n;
+	}
+    
+	pgc->start4V(p,f,gcval_phi);
+
+
 // Step 1
     starttime=pgc->timer();
+    
+    disc(p,a,f);
 
-    FLUIDLOOP
-	a->L(i,j,k)=0.0;
-
-	pconvec->start(p,a,ls,4,a->u,a->v,a->w);
+	NLOOP4
+	ark1.V[n] = f.V[n]
+				+ p->dt*L.V[n];
 	
-
-	FLUIDLOOP
-	ark1(i,j,k) = ls(i,j,k)
-				+ p->dt*a->L(i,j,k);
+	//pflow->phi_relax(p,pgc,ark1);
 	
-	pflow->phi_relax(p,pgc,ark1);
-	
-	pgc->start4(p,ark1,gcval_phi);
+    pgc->start4V(p,ark1,gcval_phi);
     
 // Step 2
-    FLUIDLOOP
-	a->L(i,j,k)=0.0;
+    disc(p,a,ark1);
 
-	pconvec->start(p,a,ark1,4,a->u,a->v,a->w);
-
-	FLUIDLOOP
-	ark2(i,j,k) = 0.75*ls(i,j,k)
-				   + 0.25*ark1(i,j,k)
-				   + 0.25*p->dt*a->L(i,j,k);
+	NLOOP4
+	ark2.V[n] = 0.75*f.V[n]
+				   + 0.25*ark1.V[n]
+				   + 0.25*p->dt*L.V[n];
 				
-	pflow->phi_relax(p,pgc,ark2);
+	//pflow->phi_relax(p,pgc,ark2);
 	
-	pgc->start4(p,ark2,gcval_phi);
+	 pgc->start4V(p,ark2,gcval_phi);
 
 // Step 3
-    FLUIDLOOP
-	a->L(i,j,k)=0.0;
+    disc(p,a,ark2);
 
-	pconvec->start(p,a,ark2,4,a->u,a->v,a->w);
-
+	NLOOP4
+	f.V[n] =     (1.0/3.0)*f.V[n]
+				  + (2.0/3.0)*ark2.V[n]
+				  + (2.0/3.0)*p->dt*L.V[n];
+                  
+    if(p->count%p->F41==0)
+	preini->startV(a,p,f,pgc,pflow);
+                  
+                  
+// backfill
+	n=0;
 	FLUIDLOOP
-	ls(i,j,k) =     (1.0/3.0)*ls(i,j,k)
-				  + (2.0/3.0)*ark2(i,j,k)
-				  + (2.0/3.0)*p->dt*a->L(i,j,k);
+	{
+	ls(i,j,k)=f.V[n];
+	++n;
+	}
 
     pflow->phi_relax(p,pgc,ls);
 	pgc->start4(p,ls,gcval_phi);
@@ -149,8 +177,7 @@ void levelset_RK3_V::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, g
 	
 	p->lsmtime=pgc->timer()-starttime;
 
-    if(p->count%p->F41==0)
-	preini->start(a,p,ls, pgc, pflow);
+    
 	
 
     ppicard->correct_ls(p,a,pgc,ls);
@@ -171,3 +198,52 @@ void levelset_RK3_V::update(lexer *p, fdm *a, ghostcell *pgc, field &f)
     pupdate->start(p,a,pgc);
 }
 
+void levelset_RK3_V::disc(lexer *p, fdm *a, vec &b)
+{
+	double dx,dy,dz;
+    double iadvec,jadvec,kadvec;
+    double ivel2,jvel2,kvel2;
+    
+n=0;
+FLUIDLOOP
+{
+    pflux->u_flux(a,4,a->u,iadvec,ivel2);
+    pflux->v_flux(a,4,a->v,jadvec,jvel2);
+    pflux->w_flux(a,4,a->w,kadvec,kvel2);
+        
+	dx=0.0;
+	dy=0.0;
+	dz=0.0;
+
+// x	
+	if(iadvec>0.0)
+	dx=iadvec*ddwenox(a,b,1.0,a->C4);
+
+	if(iadvec<0.0)
+	dx=iadvec*ddwenox(a,b,-1.0,a->C4);
+
+// y
+    if(p->j_dir==1)
+    {
+	if(jadvec>0.0)
+	dy=jadvec*ddwenoy(a,b,1.0,a->C4);
+
+	if(jadvec<0.0)
+	dy=jadvec*ddwenoy(a,b,-1.0,a->C4);
+    }
+
+// z
+
+	if(kadvec>0.0)
+	dz=kadvec*ddwenoz(a,b,1.0,a->C4);
+
+	if(kadvec<0.0)
+	dz=kadvec*ddwenoz(a,b,-1.0,a->C4);
+
+
+	L.V[n] = -dx-dy-dz;
+    
+    ++n;
+}
+
+}

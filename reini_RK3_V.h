@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,43 +20,44 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"freesurface.h"
-#include"gradient.h"
-#include"ddweno_nug.h"
+#include"reini.h"
+#include"ddweno.h"
 #include"vec.h"
+#include"increment.h"
 
-class picard;
-class heat;
-class concentration;
-class fluid_update;
 class reinidisc;
-class flux;
+class picard;
 
 using namespace std;
 
-#ifndef LEVELSET_RK3_V_H_
-#define LEVELSET_RK3_V_H_
+#ifndef reini_RK3_V_H_
+#define reini_RK3_V_H_
 
-class levelset_RK3_V : public freesurface, ddweno_nug
+class reini_RK3_V : public reini, public increment
 {
 public:
-	levelset_RK3_V(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
-	virtual ~levelset_RK3_V();
-	virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particlecorr*,field&);
-	virtual void ltimesave(lexer*,fdm*,field&);
-    virtual void update(lexer*,fdm*,ghostcell*,field&);
+	reini_RK3_V(lexer* p,int);
+	virtual ~reini_RK3_V();
+	virtual void start(fdm*,lexer*,field&,ghostcell*,ioflow*);
+    virtual void startV(fdm*,lexer*,vec&,ghostcell*,ioflow*);
+
+	int *sizeM;
+	vec f,frk1,frk2,L,dt;
 
 private:
-    void disc(lexer*,fdm*,vec&);
-    
-    fluid_update *pupdate;
     picard *ppicard;
-    reinidisc *prdisc;
-    flux *pflux;
-    
-    vec ark1,ark2,f,L;
+	reinidisc *prdisc;
 
-	int gcval_phi;
-	double starttime;
+    void fsfrkioV(lexer*, fdm*, ghostcell*,vec&);
+	void step(lexer*, fdm*);
+    void time_preproc(lexer*);
+	void inisolid(lexer*, fdm*);
+
+	
+	double starttime,endtime;
+
+	int gcval_phi,gcval_ro,gcval_iniphi,reiniter,n;
+	const double epsi;
 };
+
 #endif

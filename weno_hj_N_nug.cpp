@@ -32,7 +32,7 @@ weno_hj_N_nug::weno_hj_N_nug(lexer* p):weno_nug_func(p)
     pflux = new flux_HJ_CDS2(p);
     
     if(p->B269==0 && p->D11==4)
-    pflux = new flux_HJ_CDS2(p);
+    pflux = new flux_HJ_CDS4(p);
     
     if(p->B269>=1 || p->S10==2)
     pflux = new flux_HJ_CDS2_vrans(p);
