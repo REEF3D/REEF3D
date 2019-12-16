@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_sediment.h"
@@ -64,7 +65,9 @@ private:
     void bedchange_update(lexer*, fdm2D*, ghostcell*);
     
     void sandslide(lexer*, fdm2D*, ghostcell*, slice&, slice&);
+    void sandslide_v2(lexer*, fdm2D*, ghostcell*, slice&, slice&);
     void slide(lexer*, fdm2D*, ghostcell*);
+    void slide_v2(lexer*, fdm2D*, ghostcell*);
     
     void filter(lexer*, fdm2D*, ghostcell*,slice&,int,int);
     

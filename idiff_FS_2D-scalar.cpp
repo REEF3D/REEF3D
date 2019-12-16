@@ -25,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"solver.h"
 
-void idiff2_FS_2D::idiff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field& b, field& visc, double sig, double alpha)
+void idiff2_FS_2D::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field& b, field& visc, double sig, double alpha)
 {
     starttime=pgc->timer();
     
@@ -61,12 +61,43 @@ void idiff2_FS_2D::idiff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv,
 	 ++count;
 	}
     
+    
+    n=0;
+	LOOP
+	{
+		if(p->flag4[Im1JK]<0)
+		{
+		a->rhsvec.V[n] -= a->M.s[n]*b(i-1,j,k);
+		a->M.s[n] = 0.0;
+		}
+		
+		if(p->flag4[Ip1JK]<0)
+		{
+		a->rhsvec.V[n] -= a->M.n[n]*b(i+1,j,k);
+		a->M.n[n] = 0.0;
+		}
+		
+		if(p->flag4[IJKm1]<0)
+		{
+		a->rhsvec.V[n] -= a->M.b[n]*b(i,j,k-1);
+		a->M.b[n] = 0.0;
+		}
+		
+		if(p->flag4[IJKp1]<0)
+		{
+		a->rhsvec.V[n] -= a->M.t[n]*b(i,j,k+1);
+		a->M.t[n] = 0.0;
+		}
+
+	++n;
+	}
+    
     psolv->start(p,a,pgc,b,a->xvec,a->rhsvec,4,1,p->D29);
     time=pgc->timer()-starttime;
 	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
 	cout<<"scalar_diffiter: "<<p->solveriter<<"  scalar_difftime: "<<setprecision(3)<<time<<endl;
 }
 
-void idiff2_FS_2D::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field& b, field& visc, double sig, double alpha)
+void idiff2_FS_2D::idiff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field& b, field& visc, double sig, double alpha)
 {
 }

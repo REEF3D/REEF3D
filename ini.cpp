@@ -354,7 +354,9 @@ void lexer::ini_default()
 	// Heat
 	H1=1.4e-7;      // thermal diffusivity water
 	H2=2.216e-5;      // thermal diffusivity air
+    H9=1;           // int air-water assignment    
 	H10=0;          // int heat transfer on/off
+    H12=5;          // int convection for heat transfer
 	H50_1=20.0; // double temperature 1
 	H50_2=20.0; // double temperature 2
 	H51=0.0;		    // double i-dir zero level set start
@@ -370,7 +372,19 @@ void lexer::ini_default()
 	H58_1=0.0;      // x0, sphere
 	H58_2=0.0;      // y0
 	H58_3=0.0;      // z0
-	H58_4=0.0;      // r
+	H58_4=0.0;      // r    
+    H61=0;          // int heat bc
+    H62=0;          // int heat bc
+    H63=0;          // int heat bc
+    H64=0;          // int heat bc
+    H65=0;          // int heat bc
+    H66=0;          // int heat bc
+    H61_T=0.0;      // double heat bc
+    H62_T=0.0;      // double heat bc
+    H63_T=0.0;      // double heat bc
+    H64_T=0.0;      // double heat bc
+    H65_T=0.0;      // double heat bc
+    H66_T=0.0;      // double heat bc
 
     // Initialize
     I10=0;          // int initialize all
@@ -532,7 +546,7 @@ void lexer::ini_default()
     S31=1;		        // int exner scheme
 	S37=2;		        // int number reini time step
 	S38=0;            // int reinitialization for interface nodes
-	S39=1;				// int order of time discretization for dz/dh
+	S39=2;				// int order of time discretization for dz/dh
 	S41=1;				// int type of sediment start criterion
 	S42=1;				// int type of sediment interval criterion
     S43=1000;          // int number of water iteration, before sediment transport starts
@@ -593,6 +607,30 @@ void lexer::ini_default()
 	W6=840.0;			// double density oil
 	W7=3.0e-4;		// double viscosity oil
 	W10=0.0;		// double discharge
+    W11=0;         // int velocity inlet face 1
+    W11_u=0.0;     // double u-velocity inlet face 1
+    W11_v=0.0;     // double v-velocity inlet face 1
+    W11_w=0.0;     // double w-velocity inlet face 1
+    W12=0;         // int velocity inlet face 2
+    W12_u=0.0;     // double u-velocity inlet face 2
+    W12_v=0.0;     // double v-velocity inlet face 2
+    W12_w=0.0;     // double w-velocity inlet face 2
+    W13=0;         // int velocity inlet face 3
+    W13_u=0.0;     // double u-velocity inlet face 3
+    W13_v=0.0;     // double v-velocity inlet face 3
+    W13_w=0.0;     // double w-velocity inlet face 3
+    W14=0;         // int velocity inlet face 4
+    W14_u=0.0;     // double u-velocity inlet face 4
+    W14_v=0.0;     // double v-velocity inlet face 4
+    W14_w=0.0;     // double w-velocity inlet face 4
+    W15=0;         // int velocity inlet face 5
+    W15_u=0.0;     // double u-velocity inlet face 5
+    W15_v=0.0;     // double v-velocity inlet face 5
+    W15_w=0.0;     // double w-velocity inlet face 5
+    W16=0;         // int velocity inlet face 6
+    W16_u=0.0;     // double u-velocity inlet face 6
+    W16_v=0.0;     // double v-velocity inlet face 6
+    W16_w=0.0;     // double w-velocity inlet face 6
 	W20=0.0;		// double gi
 	W21=0.0;		// double gj
 	W22=0.0;		// double gk

@@ -49,43 +49,39 @@ sandslide_f::~sandslide_f()
 
 void sandslide_f::start(lexer *p, fdm * a, ghostcell *pgc)
 {
-    ALOOP
-    {
-    slope(p,a,pgc,teta,alpha,gamma,phi);
-    //a->test(i,j,k)=phi*180.0/PI;
-    }
-    
-
+    // mainloop
     for(int qn=0; qn<p->S91; ++qn)
     {
+        SLICELOOP4
+        fh(i,j)=a->bedzh(i,j);
         
-    SLICELOOP4
-    fh(i,j)=a->bedzh(i,j);
-    
-    count=0;
-    
-    topo_zh_update(p,a,pgc);
+        count=0;
+        
+        topo_zh_update(p,a,pgc);
 
-    SLICELOOP4
-    if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
-    {
-		slide(p,a,pgc);
-    }
-    
-    SLICELOOP4
-    a->bedzh(i,j)=fh(i,j);
 
-    pgc->gcsl_start4(p,a->bedzh,1);
+        // slide loop
+        SLICELOOP4
+        if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
+        {
+            slide(p,a,pgc);
+        }
+        
+        
+        SLICELOOP4
+        a->bedzh(i,j)=fh(i,j);
 
-    count=pgc->globalimax(count);
+        pgc->gcsl_start4(p,a->bedzh,1);
 
-    p->slidecells=count;
-    
-    if(p->slidecells==0)
-    break;
+        count=pgc->globalimax(count);
 
-    if(p->mpirank==0)
-    cout<<"sandslide_f corrections: "<<p->slidecells<<endl;
+        p->slidecells=count;
+        
+        if(p->slidecells==0)
+        break;
+
+        if(p->mpirank==0)
+        cout<<"sandslide_f corrections: "<<p->slidecells<<endl;
     }
 }
 
@@ -98,13 +94,15 @@ void sandslide_f::slide(lexer *p, fdm * a, ghostcell *pgc)
 			
         // 1
         dh = a->bedzh(i,j) - a->bedzh(i-1,j);
-        dh_corr = dh + tan(p->S93*(PI/180.0))*p->DXP[IM1];
+        //dh_corr = dh + tan(p->S93*(PI/180.0))*p->DXP[IM1];
         
         maxdh = tan(phi)*p->DXP[IM1];
         
         if(dh>maxdh && fabs(dh)<1.0e15)
 		{
-			fh(i,j)-= fac1*dh_corr;
+            dh_corr = (dh-maxdh) + tan(p->S93*(PI/180.0))*p->DXP[IM1];
+            
+            fh(i,j)-= fac1*dh_corr;
             fh(i-1,j)+= fac1*dh_corr;
             
 		++count;
@@ -112,13 +110,15 @@ void sandslide_f::slide(lexer *p, fdm * a, ghostcell *pgc)
 
         // 2
         dh = a->bedzh(i,j) - a->bedzh(i+1,j);
-		dh_corr = dh + tan(p->S93*(PI/180.0))*p->DXP[IP];
+		//dh_corr = dh + tan(p->S93*(PI/180.0))*p->DXP[IP];
         
         maxdh = tan(phi)*p->DXP[IP];
 		
         if(dh>maxdh && fabs(dh)<1.0e15)
 		{
-			fh(i,j)-= fac1*dh_corr;
+			dh_corr = (dh-maxdh) + tan(p->S93*(PI/180.0))*p->DXP[IP];
+            
+            fh(i,j)-= fac1*dh_corr;
             fh(i+1,j)+= fac1*dh_corr;
 			
         ++count;
@@ -126,13 +126,15 @@ void sandslide_f::slide(lexer *p, fdm * a, ghostcell *pgc)
 
         // 3
         dh = a->bedzh(i,j) - a->bedzh(i,j-1);
-		dh_corr = dh + tan(p->S93*(PI/180.0))*p->DYP[JM1];
+		//dh_corr = dh + tan(p->S93*(PI/180.0))*p->DYP[JM1];
         
         maxdh = tan(phi)*p->DYP[JM1];
         
         if(dh>maxdh && fabs(dh)<1.0e15)
-		{            
-			fh(i,j)-= fac1*dh_corr;
+		{          
+            dh_corr = (dh-maxdh) + tan(p->S93*(PI/180.0))*p->DYP[JM1];
+            
+            fh(i,j)-= fac1*dh_corr;
             fh(i,j-1)+= fac1*dh_corr;
 			
         ++count;
@@ -146,7 +148,9 @@ void sandslide_f::slide(lexer *p, fdm * a, ghostcell *pgc)
         
         if(dh>maxdh && fabs(dh)<1.0e15)
 		{
-			fh(i,j)-= fac1*dh_corr;
+            dh_corr = (dh-maxdh) + tan(p->S93*(PI/180.0))*p->DXP[JP];
+            
+            fh(i,j)-= fac1*dh_corr;
             fh(i,j+1)+= fac1*dh_corr;
 
         ++count;
@@ -155,13 +159,15 @@ void sandslide_f::slide(lexer *p, fdm * a, ghostcell *pgc)
 		
         // 5
         dh = a->bedzh(i,j) - a->bedzh(i-1,j-1);
-		dh_corr = dh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]);
+		//dh_corr = dh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]);
         
         maxdhs = tan(phi)*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]);
 
         if(dh>maxdhs && fabs(dh)<1.0e15)
         {
-			fh(i,j)-= fac2*dh_corr;
+            dh_corr = dh-maxdhs + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]);
+            
+            fh(i,j)-= fac2*dh_corr;
             fh(i-1,j-1)+= fac2*dh_corr;
         
         ++count;
@@ -170,13 +176,15 @@ void sandslide_f::slide(lexer *p, fdm * a, ghostcell *pgc)
 
         // 6
         dh = a->bedzh(i,j) - a->bedzh(i-1,j+1);
-		dh_corr = dh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]);
+		//dh_corr = dh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]);
         
         maxdhs = tan(phi)*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]);
         
         if(dh>maxdhs && fabs(dh)<1.0e15)
-		{            
-			fh(i,j)-= fac2*dh_corr;
+		{   
+            dh_corr = dh-maxdhs + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]);         
+            
+            fh(i,j)-= fac2*dh_corr;
             fh(i-1,j+1)+= fac2*dh_corr;
 			
         ++count;
@@ -184,12 +192,14 @@ void sandslide_f::slide(lexer *p, fdm * a, ghostcell *pgc)
 
         // 7
         dh = a->bedzh(i,j) - a->bedzh(i+1,j-1);
-		dh_corr = dh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]);
+		//dh_corr = dh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]);
         
         maxdhs = tan(phi)*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]);
         
         if(dh>maxdhs && fabs(dh)<1.0e15)
 		{
+            dh_corr = dh-maxdhs + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]);
+            
 			fh(i,j)-= fac2*dh_corr;
             fh(i+1,j-1)+= fac2*dh_corr;
 
@@ -198,13 +208,15 @@ void sandslide_f::slide(lexer *p, fdm * a, ghostcell *pgc)
     
         // 8
         dh = a->bedzh(i,j) - a->bedzh(i+1,j+1);
-		dh_corr = dh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);
+		//dh_corr = dh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);
         
         maxdhs = tan(phi)*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);
 
         if(dh>maxdhs && fabs(dh)<1.0e15)
-		{            
-			fh(i,j)-= fac2*dh_corr;
+		{   
+            dh_corr = dh-maxdhs + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);   
+      
+            fh(i,j)-= fac2*dh_corr;
             fh(i+1,j+1)+= fac2*dh_corr;
             
         ++count;

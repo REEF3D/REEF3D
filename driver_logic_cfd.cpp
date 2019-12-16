@@ -271,6 +271,40 @@ void driver::logic()
 
 	if(p->H10==3)
 	pheat =  new heat_RK3(p,a,pgc,pheat);
+    
+    //Convection Heat
+	if(p->H12==0)
+	pheatdisc=new convection_void(p);
+
+	if(p->H12==1)
+	pheatdisc=new fou(p);
+
+	if(p->H12==2)
+	pheatdisc=new cds2(p);
+
+	if(p->H12==3)
+	pheatdisc=new quick(p);
+
+	if(p->H12==4)
+	pheatdisc=new weno_flux_nug(p);
+	
+	if(p->H12==5)
+	pheatdisc=new weno_hj_nug(p);
+	
+	if(p->H12==6)
+	pheatdisc=new cds4(p);
+    
+    if(p->H12==7)
+	pheatdisc=new weno3_flux(p);
+    
+    if(p->H12==8)
+	pheatdisc=new weno3_hj(p);
+    
+    if(p->H12==9)
+	pheatdisc=new weno_flux(p);
+	
+	if(p->H12>=10 && p->H12<30)
+	pheatdisc=new hires(p,p->H12);
 	
 // Concentration
     if(p->C10==0 && p->F101==0)

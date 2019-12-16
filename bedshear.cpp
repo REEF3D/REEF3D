@@ -63,13 +63,9 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double
 	double zval,fac,topoval,taukin,tauvel,density;
     
     k = a->bedk(i,j)+1;
-    
-		zval = a->bedzh(i,j) + p->S116*p->DZN[k];
+    zval = a->bedzh(i,j) + p->S116*p->DZN[k];
+    dist = p->S117*p->DZN[k];
 		
-		dist = p->S117*p->DZN[k];
-		
-	
-    
     density = p->W1;
 	
     if(p->S16==1)
@@ -80,10 +76,10 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double
     
 	uvel=p->ccipol1_a(a->u,xip,yip,zval);
 	vvel=p->ccipol2_a(a->v,xip,yip,zval);
-	wvel=p->ccipol3_a(a->w,xip,yip,zval);
+	//wvel=p->ccipol3_a(a->w,xip,yip,zval);
 
 
-    u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
+    u_abs = sqrt(uvel*uvel + vvel*vvel);// + wvel*wvel);
 
     u_plus = (1.0/kappa)*log(30.0*(dist/ks));
 
@@ -219,13 +215,13 @@ void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, double &tau_crit, d
 	
 	r = preduce->start(p,a,pgc);
     
-	/*
+	
     KLOOP
     PBASECHECK
     {
         a->test(i,j,k)=r;
     }
-    */
+    
     
     tauc = (p->S30*fabs(p->W22)*(p->S22-p->W1))*p->S20*r;
 		

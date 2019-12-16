@@ -744,6 +744,7 @@
           <File Name="fnpf_sg_ini.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
+          <File Name="fnpf_sg_laplace_cds2_v2.h"/>
           <File Name="fnpf_sg_laplace_HOS.h"/>
           <File Name="fnpf_sg_laplace_cds24.h"/>
           <File Name="fnpf_sg_laplace_cds4_bc2.h"/>
@@ -1514,6 +1515,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
       <VirtualDirectory Name="Epol">
+        <File Name="gc_heat.cpp"/>
         <File Name="gc_dgcpol4.cpp"/>
         <File Name="gc_dgcpol3.cpp"/>
         <File Name="gc_dgcpol2.cpp"/>
@@ -2280,6 +2282,7 @@
           <File Name="fnpf_sg_ini.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
+          <File Name="fnpf_sg_laplace_cds2_v2.cpp"/>
           <File Name="fnpf_sg_laplace_HOS.cpp"/>
           <File Name="fnpf_sg_laplace_cds24.cpp"/>
           <File Name="fnpf_sg_laplace_cds4_bc2.cpp"/>
@@ -2312,6 +2315,7 @@
           <File Name="sflow_sediment_RKv.cpp"/>
           <File Name="sflow_sediment_RK3.cpp"/>
           <VirtualDirectory Name="Sandslide">
+            <File Name="sflow_sed_sandslide_v2.cpp"/>
             <File Name="sflow_sed_sandslide.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Bedlevel">

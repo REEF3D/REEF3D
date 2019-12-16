@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"gradient.h"
@@ -54,7 +55,6 @@ public:
 private:
     double s11,s22,s33,s12,s13,s23;
     double q11,q22,q33,q12,q13,q23;
-	double deltax;
 	double pkterm,s,q,val;
 	const double epsi;
 

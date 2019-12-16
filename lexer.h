@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include<iostream>
@@ -363,11 +364,13 @@ public:
 
 	// Heat Options
 	double H1,H2;
-	int H10;
+	int H9,H10,H12;
 	double H50_1,H50_2;
 	double H51,H52,H53,H54,H55,H56;
 	double H57_1,H57_2,H57_3,H57_4;
 	double H58_1,H58_2,H58_3,H58_4;
+    int H61,H62,H63,H64,H65,H66;
+    double H61_T,H62_T,H63_T,H64_T,H65_T,H66_T;
 	
 	// Initialize Options
 	int I10,I11,I12,I13,I20,I30,I40,I41,I56;
@@ -424,7 +427,10 @@ public:
 	double T13,T31,T32,T35,T37,T38,T39,T42,T51,T52,T53;
 
 	// Waterflow
-	double W1,W2,W3,W4,W5,W6,W7,W10,W20,W21,W22,W31;
+	double W1,W2,W3,W4,W5,W6,W7,W10;
+    int W11,W12,W13,W14,W15,W16;
+    double W11_u,W11_v,W11_w,W12_u,W12_v,W12_w,W13_u,W13_v,W13_w,W14_u,W14_v,W14_w,W15_u,W15_v,W15_w,W16_u,W16_v,W16_w;
+    double W20,W21,W22,W31;
 	int W30;
     int W90;
     double W95,W96,W97,W98;

@@ -43,11 +43,14 @@ double reduction_deyemp::start(lexer *p, fdm * a, ghostcell *pgc)
 	r = 0.954*pow(1.0-teta/phi, 0.745)*pow(1.0-alpha/phi,0.372);
 
 	if( 1.0-teta/phi < 0.0 || 1.0-alpha/phi< 0.0)
-	r = 0.1/(fabs(gamma) + 0.0000001)+0.1;
+    {
+	r = cos(teta)*(1.0 - tan(teta/tan(phi)));
+    r*= cos(alpha)*(1.0 - pow(tan(alpha),2.0)/pow(tan(phi),2.0));
+    }
 
 
-    if(r<0.0)
-    r = 0.0001;
+    r = MAX(r,0.01);
+    r = MIN(r,1.25);
 
 	if(p->pos_x()<p->S71)
 	r=1.0;

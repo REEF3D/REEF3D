@@ -28,7 +28,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 fnpf_sg_laplace_cds2::fnpf_sg_laplace_cds2(lexer *p) 
 {
-    pbed = new fnpf_sg_bed_update(p);
 }
 
 fnpf_sg_laplace_cds2::~fnpf_sg_laplace_cds2()
@@ -83,7 +82,6 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
     n=0;
     LOOP
 	{
-
         if(c->wet(i,j)==0)
         {
         c->M.p[n]  =  1.0;
@@ -178,7 +176,7 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             c->M.p[n] += c->M.w[n];
             c->M.w[n] = 0.0;
             }
-            
+    
             
             // top
             if(p->flag7[FIJKp2]<0 && p->flag7[FIJKp1]>0)

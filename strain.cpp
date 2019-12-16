@@ -27,7 +27,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 strain::strain(lexer *p, fdm *a)	: gradient(p),epsi(p->F45*p->dx),Pk(p)
 {
-	deltax=p->dx;
 }
 
 strain::~strain()

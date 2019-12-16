@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include <mpi.h>
@@ -404,6 +405,7 @@ public:
     void noslip(field&,double,int,int,int);
     void imagepoint(field&, double&, double&,double,int);
 	void atmosphere(lexer*,field&,int,int,int);
+    void heatbc(lexer*,field&,int,int,int);
 	void fbvel1(lexer*,field&,double,int,int,int);
 	void fbvel2(lexer*,field&,double,int,int,int);
 	void fbvel3(lexer*,field&,double,int,int,int);

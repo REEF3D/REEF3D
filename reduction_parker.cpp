@@ -53,28 +53,16 @@ double reduction_parker::start(lexer *p, fdm * a, ghostcell *pgc)
 	r1 = -0.5*pval - sqrt(pval*pval*0.25 - qval);
 	
 	r = -0.5*pval + sqrt(pval*pval*0.25 - qval);
+
 	
-	if(r<0.0)
-    {
-    r = 0.1/(fabs(gamma) + 0.0000001)+0.1;
-    
-    r = MAX(r,0.0);
-    r = MIN(r,1.0);
-    }
-    
-	//r=fabs(1.0/(gamma*(180.0/PI)+ 0.0000001));
-    
-	
-	if(  ((1.0 + tan(alpha)*tan(alpha) + tan(teta)*tan(teta))  < 0.0 || (pval*pval*0.25 - qval) < 0.0))
+	if(((1.0 + tan(alpha)*tan(alpha) + tan(teta)*tan(teta))  < 0.0 || (pval*pval*0.25 - qval) < 0.0) || r<0.0)
 	{
-	//r=fabs(1.0/(gamma*(180.0/PI)+ 0.0000001));
-    r = 0.1/(fabs(gamma) + 0.0000001)+0.1;
-    
-    r = MAX(r,0.0);
-    r = MIN(r,1.0);
-	//cout<<"RRRRRR: "<<r<<endl;
+	r = cos(teta)*(1.0 - tan(teta/tan(phi)));
+    r*= cos(alpha)*(1.0 - pow(tan(alpha),2.0)/pow(tan(phi),2.0));
 	}
-	//r = 0.1/(fabs(gamma) + 0.0000001)+0.1;
+	
+    r = MAX(r,0.01);
+    r = MIN(r,1.25);
 
 	if(p->pos_x()<p->S71)
 	r=1.0;
@@ -82,11 +70,6 @@ double reduction_parker::start(lexer *p, fdm * a, ghostcell *pgc)
 	if(p->pos_x()>p->S72)
 	r=1.0;
     
-    r = MIN(r,2.0);
-	
-	//if(p->mpirank>0)
-	//cout<<"r: "<<r<<"        teta: "<<teta*(180.0/PI)<<" alpha: "<<alpha*(180.0/PI)<<"   gamma: "<<gamma*(180.0/PI)<<"   phi: "<<phi*(180.0/PI)<<endl;
-
     return r;
 }
 

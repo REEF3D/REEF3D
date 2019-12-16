@@ -52,15 +52,20 @@ void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
     double ab,abb,abbb,denom;
     double fbxm,fbxp,fbym,fbyp;
     double distfac,dist;
-    double xdelta,ydelta,zdelta;    
+    double xdelta,ydelta;    
     
     // 4th-order
 	n=0;
     LOOP
     {
         sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
+        /*
+        if(p->mpirank==0)
+        {
+        cout<<i<<" "<<k<<" . "<<ckx[IP][0]<<"  "<<ckx[IP][1]<<"  "<<ckx[IP][2]<<"  "<<ckx[IP][3]<<"  "<<ckx[IP][4]<<endl;
+        cout<<i<<" "<<k<<" . "<<ckz[KP][0]<<"  "<<ckz[KP][1]<<"  "<<ckz[KP][2]<<"  "<<ckz[KP][3]<<"  "<<ckz[KP][4]<<endl;
         
-        zdelta = -p->ZN[KP2] + 8.0*p->ZN[KP1] - 8.0*p->ZN[KM1] + p->ZN[KM2];
+        }*/
         
         c->M.p[n] = ckx[IP][2]*p->x_dir 
                   + cky[JP][2]*p->y_dir 
@@ -72,8 +77,8 @@ void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
         c->M.w[n] = cky[JP][3]*p->y_dir; 
         c->M.e[n] = cky[JP][1]*p->y_dir; 
 
-        c->M.t[n] = (sigxyz2*ckz[KP][3]  + p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
-        c->M.b[n] = (sigxyz2*ckz[KP][1]  - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
+        c->M.t[n] = (sigxyz2*ckz[KP][3]  - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
+        c->M.b[n] = (sigxyz2*ckz[KP][1]  + p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
         
         
         c->M.nn[n] = ckx[IP][4]*p->x_dir;
@@ -86,10 +91,10 @@ void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
         c->M.bb[n] = (sigxyz2*ckz[KP][0] )*p->z_dir; 
 
        
-        c->rhsvec.V[n] = 2.0*p->sigx[IJK]*(f[FIp1JKp1] - f[FIm1JKp1] - f[FIp1JKm1] + f[FIm1JKm1])
+        c->rhsvec.V[n] = 2.0*p->sigx[FIJK]*(f[FIp1JKp1] - f[FIm1JKp1] - f[FIp1JKm1] + f[FIm1JKm1])
                         /((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir
                         
-                        +2.0*p->sigy[IJK]*(f[FIJp1Kp1] - f[FIJm1Kp1] - f[FIJp1Km1] + f[FIJm1Km1])
+                        +2.0*p->sigy[FIJK]*(f[FIJp1Kp1] - f[FIJm1Kp1] - f[FIJp1Km1] + f[FIJm1Km1])
                         /((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
                 
         ++n;

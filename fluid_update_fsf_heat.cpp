@@ -30,10 +30,10 @@ fluid_update_fsf_heat::fluid_update_fsf_heat(lexer *p, fdm* a, ghostcell* pgc, h
     gcval_ro=1;
 	gcval_visc=1;
 
-	visc_air = p->W4;
-	visc_water = p->W2;
-	ro_air = p->W3;
-	ro_water = p->W1;
+	visc_2 = p->W4;
+	visc_1 = p->W2;
+	ro_2 = p->W3;
+	ro_1 = p->W1;
 	alpha_air = p->H2;
 	alpha_water = p->H1;
 
@@ -65,11 +65,23 @@ void fluid_update_fsf_heat::start(lexer *p, fdm* a, ghostcell* pgc)
 		epsi = p->F45*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
         
         
-	    ro_water = material_ipol(water_density,water_density_num, temp);
-	    ro_air = material_ipol(air_density,air_density_num, temp);
+        if(p->H9==1)
+        {
+	    ro_1 = material_ipol(water_density,water_density_num, temp);
+	    ro_2 = material_ipol(air_density,air_density_num, temp);
 
-	    visc_water = material_ipol(water_viscosity,water_viscosity_num, temp);
-	    visc_air = material_ipol(air_viscosity,air_viscosity_num, temp);
+	    visc_2 = material_ipol(water_viscosity,water_viscosity_num, temp);
+	    visc_2 = material_ipol(air_viscosity,air_viscosity_num, temp);
+        }
+        
+        if(p->H9==2)
+        {
+	    ro_1 = material_ipol(air_density,air_density_num, temp);
+        ro_2 = material_ipol(water_density,water_density_num, temp);
+
+	    visc_1 = material_ipol(air_viscosity,air_viscosity_num, temp);
+        visc_2 = material_ipol(water_viscosity,water_viscosity_num, temp);
+        }
 
 		if(a->phi(i,j,k)>epsi)
 		H=1.0;
@@ -80,8 +92,8 @@ void fluid_update_fsf_heat::start(lexer *p, fdm* a, ghostcell* pgc)
 		if(fabs(a->phi(i,j,k))<=epsi)
 		H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
 
-		a->ro(i,j,k)=      ro_water*H +   ro_air*(1.0-H);
-		a->visc(i,j,k)= visc_water*H + visc_air*(1.0-H);
+		a->ro(i,j,k)=      ro_1*H +   ro_2*(1.0-H);
+		a->visc(i,j,k)= visc_1*H + visc_2*(1.0-H);
 
 		p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));
 		p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));

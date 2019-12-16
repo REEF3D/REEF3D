@@ -106,27 +106,27 @@ void ghostcell::dirichlet_ortho(lexer *p,field& f,double dist,int gcv, int bc, i
     {
 	if(cs==1)
 	for(q=0;q<margin;++q)
-	f(i-q-1+sfc,j,k) = y[orderdir+q-1+ys];// - p->dt*(double(q+1)*deltax*dP[orderpress+q-1+ys])/(pdens->roface(p,a,-1,0,0));
+	f(i-q-1+sfc,j,k) = y[orderdir+q-1+ys];
 
 	if(cs==2)
 	for(q=0;q<margin;++q)
-	f(i,j+q+1-sfc,k) = y[orderdir+q-1+ys];// + p->dt*(double(q+1)*deltax*dP[orderpress+q-1+ys])/(pdens->roface(p,a,0,2,0));
+	f(i,j+q+1-sfc,k) = y[orderdir+q-1+ys];
 
 	if(cs==3)
 	for(q=0;q<margin;++q)
-	f(i,j-q-1+sfc,k) = y[orderdir+q-1+ys];// - p->dt*(double(q+1)*deltax*dP[orderpress+q-1+ys])/(pdens->roface(p,a,0,-1,0));
+	f(i,j-q-1+sfc,k) = y[orderdir+q-1+ys];
 
 	if(cs==4)
 	for(q=0;q<margin;++q)
-	f(i+q+1-sfc,j,k) = y[orderdir+q-1+ys];// + p->dt*(double(q+1)*deltax*dP[orderpress+q-1+ys])/(pdens->roface(p,a,2,0,0));
+	f(i+q+1-sfc,j,k) = y[orderdir+q-1+ys];
 
 	if(cs==5)
 	for(q=0;q<margin;++q)
-	f(i,j,k-q-1+sfc) = y[orderdir+q-1+ys];// - p->dt*(double(q+1)*deltax*dP[orderpress+q-1+ys])/(pdens->roface(p,a,0,0,-1));
+	f(i,j,k-q-1+sfc) = y[orderdir+q-1+ys];
 
 	if(cs==6)
 	for(q=0;q<margin;++q)
-	f(i,j,k+q+1-sfc) = y[orderdir+q-1+ys];// + p->dt*(double(q+1)*deltax*dP[orderpress+q-1+ys])/(pdens->roface(p,a,0,0,2));
+	f(i,j,k+q+1-sfc) = y[orderdir+q-1+ys];
 	}
 
 }

@@ -49,17 +49,13 @@ double reduction_deyana::start(lexer *p, fdm * a, ghostcell *pgc)
 	if(  (pow(( sin(teta) + eta*tan(phi)*tan(phi)*sqrt(cos(teta)*cos(teta)-sin(alpha)*sin(alpha))),2.0) +(1.0 - eta*eta*tan(phi)*tan(phi))
 		*(cos(teta)*cos(teta)*tan(phi)*tan(phi) - sin(alpha)*sin(alpha)*tan(phi)*tan(phi) - sin(teta)*sin(teta) - sin(alpha)*sin(alpha) ) )  < 0.0 || cos(teta)*cos(teta)-sin(alpha)*sin(alpha) < 0.0)
     {
-        r = 0.1/(fabs(gamma) + 0.0000001)+0.1;
-            
-        r = MAX(r,0.0);
-        r = MIN(r,1.0);
+        r = cos(teta)*(1.0 - tan(teta/tan(phi)));
+        r*= cos(alpha)*(1.0 - pow(tan(alpha),2.0)/pow(tan(phi),2.0));
     }
 
 
-    if(r<=0.0)
-    r = 0.0001;
-    
-    r = MIN(r,2.0);
+    r = MAX(r,0.01);
+    r = MIN(r,1.25);
 
 	if(p->pos_x()<p->S71)
 	r=1.0;
