@@ -79,7 +79,6 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
 	cout<<"umax: "<<setprecision(3)<<p->umax<<endl;
 	cout<<"vmax: "<<setprecision(3)<<p->vmax<<endl;
 	cout<<"wmax: "<<setprecision(3)<<p->wmax<<endl;
-    cout<<"dmax: "<<setprecision(3)<<depthmax<<endl;
     }
 	
 	p->umax=MAX(p->umax,p->ufbmax);
@@ -129,6 +128,7 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
     
     if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"dt: "<<p->dt<<endl;
+
     
     if (p->N48==0) 
     p->dt=maxtimestep;

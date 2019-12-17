@@ -108,13 +108,26 @@ void fnpf_sg_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, doub
     c->W[FIJK] = ((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]))*p->sigz[IJ];
     }
     
+    if(p->A343==1)
     FLOOP
-    if(c->wet(i-1,j)==0 || c->wet(i+1,j)==0 || c->wet(i,j-1)==0 || c->wet(i,j+1)==0 
-    || c->wet(i-1,j-1)==0 || c->wet(i+1,j-1)==0 || c->wet(i-1,j+1)==0 || c->wet(i+1,j+1)==0)
     {
-    c->U[FIJK]=0.0;
-    c->V[FIJK]=0.0;
-    c->W[FIJK]=0.0;
+        if(c->wet(i-1,j)==0 || c->wet(i+1,j)==0 || c->wet(i,j-1)==0 || c->wet(i,j+1)==0 
+        || c->wet(i-1,j-1)==0 || c->wet(i+1,j-1)==0 || c->wet(i-1,j+1)==0 || c->wet(i+1,j+1)==0)
+        {
+        c->U[FIJK]=0.0;
+        c->V[FIJK]=0.0;
+        c->W[FIJK]=0.0;
+        }
+        
+        if((c->wet(i-1,j)==1 || c->wet(i+1,j)==1 || c->wet(i,j-1)==1 || c->wet(i,j+1)==1
+        || c->wet(i-1,j-1)==1 || c->wet(i+1,j-1)==1 || c->wet(i-1,j+1)==1 || c->wet(i+1,j+1)==1))
+        && ((c->wet(i-2,j)==0 || c->wet(i-1,j)==0 || c->wet(i,-)==0 || c->wet(i,j+2)==0
+        || c->wet(i-1,j-1)==0 || c->wet(i+1,j-1)==0 || c->wet(i-1,j+1)==0 || c->wet(i+1,j+1)==0))
+        {
+        c->U[FIJK]=0.0;
+        c->V[FIJK]=0.0;
+        c->W[FIJK]=0.0;
+        }
     }
         
     
