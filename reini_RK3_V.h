@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,27 +20,44 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"flux.h"
+#include"reini.h"
+#include"ddweno.h"
+#include"vec.h"
 #include"increment.h"
 
-
-#ifndef FLUX_HJ_CDS2_H_
-#define FLUX_HJ_CDS2_H_
+class reinidisc;
+class picard;
 
 using namespace std;
 
-class flux_HJ_CDS2 : public flux, public increment
+#ifndef reini_RK3_V_H_
+#define reini_RK3_V_H_
+
+class reini_RK3_V : public reini, public increment
 {
 public:
+	reini_RK3_V(lexer* p,int);
+	virtual ~reini_RK3_V();
+	virtual void start(fdm*,lexer*,field&,ghostcell*,ioflow*);
+    virtual void startV(fdm*,lexer*,vec&,ghostcell*,ioflow*);
 
-	flux_HJ_CDS2 (lexer *p);
-	virtual ~flux_HJ_CDS2();
+	int *sizeM;
+	vec f,frk1,frk2,L,dt;
 
-	virtual void u_flux(fdm* a,int,field&,double&,double&);
-	virtual void v_flux(fdm* a,int,field&,double&,double&);
-	virtual void w_flux(fdm* a,int,field&,double&,double&);
+private:
+    picard *ppicard;
+	reinidisc *prdisc;
 
+    void fsfrkioV(lexer*, fdm*, ghostcell*,vec&);
+	void step(lexer*, fdm*);
+    void time_preproc(lexer*);
+	void inisolid(lexer*, fdm*);
 
+	
+	double starttime,endtime;
+
+	int gcval_phi,gcval_ro,gcval_iniphi,reiniter,n;
+	const double epsi;
 };
 
 #endif

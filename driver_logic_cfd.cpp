@@ -169,21 +169,25 @@ void driver::logic()
 	pconcdisc=new quick(p);
 
 	if(p->C15==4)
-	pconcdisc=new weno_flux(p);
+	pconcdisc=new weno_flux_nug(p);
 
 	if(p->C15==5)
-	pconcdisc=new weno_hj(p);
+	pconcdisc=new weno_hj_nug(p);
 	
 	if(p->C15==6)
 	pconcdisc=new cds4(p);
+    
+    if(p->C15==7)
+	pconcdisc=new weno3_flux(p);
+    
+    if(p->C15==8)
+	pconcdisc=new weno3_hj(p);
 	
 	if(p->C15>=10 && p->C15<30)
 	pconcdisc=new hires(p,p->C15);
 	
 	if(p->C15>=40 && p->C15<50)
 	pconcdisc=new hires(p,p->C15);
-
-
 	
 	if(p->S60==11 || p->S60==12)
 	pconcdisc=new iweno_hj(p);
@@ -273,38 +277,38 @@ void driver::logic()
 	pheat =  new heat_RK3(p,a,pgc,pheat);
     
     //Convection Heat
-	if(p->H12==0)
+	if(p->H15==0)
 	pheatdisc=new convection_void(p);
 
-	if(p->H12==1)
+	if(p->H15==1)
 	pheatdisc=new fou(p);
 
-	if(p->H12==2)
+	if(p->H15==2)
 	pheatdisc=new cds2(p);
 
-	if(p->H12==3)
+	if(p->H15==3)
 	pheatdisc=new quick(p);
 
-	if(p->H12==4)
+	if(p->H15==4)
 	pheatdisc=new weno_flux_nug(p);
 	
-	if(p->H12==5)
+	if(p->H15==5)
 	pheatdisc=new weno_hj_nug(p);
 	
-	if(p->H12==6)
+	if(p->H15==6)
 	pheatdisc=new cds4(p);
     
-    if(p->H12==7)
+    if(p->H15==7)
 	pheatdisc=new weno3_flux(p);
     
-    if(p->H12==8)
+    if(p->H15==8)
 	pheatdisc=new weno3_hj(p);
     
-    if(p->H12==9)
+    if(p->H15==9)
 	pheatdisc=new weno_flux(p);
 	
-	if(p->H12>=10 && p->H12<30)
-	pheatdisc=new hires(p,p->H12);
+	if(p->H15>=10 && p->H15<30)
+	pheatdisc=new hires(p,p->H15);
 	
 // Concentration
     if(p->C10==0 && p->F101==0)
@@ -371,6 +375,10 @@ void driver::logic()
 	
 	if(p->F30==5)
 	pfsf = new levelset_AB3(p,a,pgc,pheat,pconc);
+    
+    if(p->F30==33 && p->F11==0)
+	pfsf = new levelset_RK3_V(p,a,pgc,pheat,pconc);
+    
 
 	if(p->F40==0)
 	preini = new reini_void(p);
@@ -381,7 +389,7 @@ void driver::logic()
 	if(p->F40==2)
 	preini = new reinifluid_AB3(p,a);
 	
-    if(p->F40==3||p->F40==33)
+    if(p->F40==3)
     preini = new reinifluid_RK3(p,1);
 	
 	if(p->F40==4)
@@ -395,6 +403,9 @@ void driver::logic()
 	
 	if(p->F40==23)
 	preini = new reini_RK3(p,1);
+    
+    if(p->F40==33)
+    preini = new reini_RK3_V(p,1);
 	
 	if(p->F40==14)
 	preini = new reini_RK4(p,a);

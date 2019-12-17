@@ -23,12 +23,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"flux_HJ_CDS2.h"
+#include"flux_HJ_CDS4.h"
 #include"flux_HJ_CDS2_vrans.h"
 
 weno3_hj::weno3_hj(lexer* p) : weno3_nug_func(p)
 {
-    if(p->B269==0)
+    if(p->B269==0 && p->D11!=4)
     pflux = new flux_HJ_CDS2(p);
+    
+    if(p->B269==0 && p->D11==4)
+    pflux = new flux_HJ_CDS4(p);
     
     if(p->B269>=1 || p->S10==2)
     pflux = new flux_HJ_CDS2_vrans(p);

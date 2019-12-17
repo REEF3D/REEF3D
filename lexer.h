@@ -328,7 +328,7 @@ public:
 	double *C75_x,*C75_z,*C75_a,*C75_s,*C75_l,*C75_v;
 
 	// discretization
-	int D10,D11,D20,D21,D22,D23,D30,D32,D38;
+	int D10,D11,D20,D21,D22,D23,D30,D32,D38,D39;
 	double D29;
 
 	// Free Surface
@@ -364,7 +364,7 @@ public:
 
 	// Heat Options
 	double H1,H2;
-	int H9,H10,H12;
+	int H9,H10,H15;
 	double H50_1,H50_2;
 	double H51,H52,H53,H54,H55,H56;
 	double H57_1,H57_2,H57_3,H57_4;

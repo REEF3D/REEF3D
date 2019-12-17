@@ -271,6 +271,7 @@ void lexer::ini_default()
 	D30=1;			// int pressure scheme
 	D32=2;			// int density calculation poisson equation
     D38=0;          // int add hydrostatic pressure gradients to NSE 
+    D39=0;          // int activate 2nd-order pressure correction for PJM CORR
 	
     // Free Surface
 	F10=2;			    // int free surface scheme
@@ -356,7 +357,7 @@ void lexer::ini_default()
 	H2=2.216e-5;      // thermal diffusivity air
     H9=1;           // int air-water assignment    
 	H10=0;          // int heat transfer on/off
-    H12=5;          // int convection for heat transfer
+    H15=5;          // int convection for heat transfer
 	H50_1=20.0; // double temperature 1
 	H50_2=20.0; // double temperature 2
 	H51=0.0;		    // double i-dir zero level set start

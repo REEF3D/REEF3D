@@ -244,6 +244,8 @@
         <File Name="fluid_update_rheology.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Flux">
+        <File Name="flux_HJ_CDS4.h"/>
+        <File Name="flux_face_CDS4.h"/>
         <File Name="flux.h"/>
         <File Name="flux_face_FOU.h"/>
         <File Name="flux_HJ_CDS2.h"/>
@@ -317,6 +319,7 @@
         <File Name="particlecorr.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Reinitialization">
+        <File Name="reini_RK3_V.h"/>
         <File Name="reinifluid_RK4.h"/>
         <File Name="reinifluid_AB3.h"/>
         <File Name="reinifluid_AB2.h"/>
@@ -756,6 +759,9 @@
           <File Name="fnpf_fg_laplace_cds2.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="fnpf_cds6_wd.h"/>
+          <File Name="fnpf_cds4_wd.h"/>
+          <File Name="fnpf_cds2_wd.h"/>
           <File Name="fnpf_weno7.h"/>
           <File Name="fnpf_weno_wd.h"/>
           <VirtualDirectory Name="DDWENO">
@@ -765,6 +771,8 @@
           <File Name="fnpf_wenoflux.h"/>
           <File Name="fnpf_convection.h"/>
           <VirtualDirectory Name="DDX">
+            <File Name="fnpf_ddx_cds4_wd.h"/>
+            <File Name="fnpf_ddx_cds2_wd.h"/>
             <File Name="fnpf_ddx_cds4.h"/>
             <File Name="fnpf_ddx_cds2.h"/>
             <File Name="fnpf_ddx.h"/>
@@ -1284,6 +1292,8 @@
         <File Name="fluid_update_rheology.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Flux">
+        <File Name="flux_HJ_CDS4.cpp"/>
+        <File Name="flux_face_CDS4.cpp"/>
         <File Name="flux_HJ_CDS2.cpp"/>
         <File Name="flux_face_CDS2.cpp"/>
         <File Name="flux_face_CDS2_vrans.cpp"/>
@@ -1478,6 +1488,7 @@
         <File Name="pls_xupdate.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Reinitialization">
+        <File Name="reini_RK3_V.cpp"/>
         <File Name="reinifluid_RK4.cpp"/>
         <File Name="reinifluid_AB3.cpp"/>
         <File Name="reinifluid_AB2.cpp"/>
@@ -2292,6 +2303,9 @@
           <File Name="fnpf_fg_laplace_cds2.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="fnpf_cds6_wd.cpp"/>
+          <File Name="fnpf_cds4_wd.cpp"/>
+          <File Name="fnpf_cds2_wd.cpp"/>
           <File Name="fnpf_weno7.cpp"/>
           <File Name="fnpf_weno_wd.cpp"/>
           <VirtualDirectory Name="DDWENO">
@@ -2300,6 +2314,8 @@
           </VirtualDirectory>
           <File Name="fnpf_wenoflux.cpp"/>
           <VirtualDirectory Name="DDX">
+            <File Name="fnpf_ddx_cds4_wd.cpp"/>
+            <File Name="fnpf_ddx_cds2_wd.cpp"/>
             <File Name="fnpf_ddx_cds4.cpp"/>
             <File Name="fnpf_ddx_cds2.cpp"/>
           </VirtualDirectory>

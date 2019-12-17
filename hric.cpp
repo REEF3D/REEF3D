@@ -23,6 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"flux_face_CDS2.h"
+#include"flux_face_CDS4.h"
 #include"flux_face_CDS2_vrans.h"
 #include"flux_face_FOU.h"
 #include"flux_face_FOU_vrans.h"
@@ -40,6 +41,9 @@ hric::hric (lexer *p)
         
         if(p->D11==3)
         pflux = new flux_face_QOU(p);
+        
+        if(p->D11==4)
+        pflux = new flux_face_CDS4(p);
     }
     
     if(p->B269>=1 || p->S10==2)
@@ -52,6 +56,9 @@ hric::hric (lexer *p)
         
         if(p->D11==3)
         pflux = new flux_face_FOU_vrans(p);
+        
+        if(p->D11==4)
+        pflux = new flux_face_CDS2(p);
     }
 }
 

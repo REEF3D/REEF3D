@@ -17,30 +17,39 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"flux.h"
-#include"increment.h"
+#include"fnpf_ddx_cds2_wd.h"
+#include"lexer.h"
+#include"fdm_fnpf.h"
+#include"slice.h"
 
-
-#ifndef FLUX_HJ_CDS2_H_
-#define FLUX_HJ_CDS2_H_
-
-using namespace std;
-
-class flux_HJ_CDS2 : public flux, public increment
+fnpf_ddx_cds2_wd::fnpf_ddx_cds2_wd(lexer* p, fdm_fnpf *cc)
 {
-public:
+    c=cc;
+}
 
-	flux_HJ_CDS2 (lexer *p);
-	virtual ~flux_HJ_CDS2();
+fnpf_ddx_cds2_wd::~fnpf_ddx_cds2_wd()
+{
+}
 
-	virtual void u_flux(fdm* a,int,field&,double&,double&);
-	virtual void v_flux(fdm* a,int,field&,double&,double&);
-	virtual void w_flux(fdm* a,int,field&,double&,double&);
+double fnpf_ddx_cds2_wd::sxx(lexer *p, slice &f)
+{
+    if(c->wet(i-1,j)>0 && c->wet(i+1,j)>0)
+    return ((f(i+1,j)-f(i,j))/p->DXP[IP] - (f(i,j)-f(i-1,j))/p->DXP[IM1])/p->DXN[IP];
+    
+    else
+    return 0.0;
+}
+
+double fnpf_ddx_cds2_wd::syy(lexer *p, slice &f)
+{
+    if(c->wet(i,j-1)>0 && c->wet(i,j+1)>0)
+    return ((f(i,j+1)-f(i,j))/p->DYP[JP] - (f(i,j)-f(i,j-1))/p->DYP[JM1])/p->DYN[JP];   
+
+    else
+    return 0.0; 
+}
 
 
-};
 
-#endif

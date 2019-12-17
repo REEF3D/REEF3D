@@ -24,17 +24,17 @@ Author: Hans Bihs
 #include"increment.h"
 
 
-#ifndef FLUX_HJ_CDS2_H_
-#define FLUX_HJ_CDS2_H_
+#ifndef FLUX_HJ_CDS4_H_
+#define FLUX_HJ_CDS4_H_
 
 using namespace std;
 
-class flux_HJ_CDS2 : public flux, public increment
+class flux_HJ_CDS4 : public flux, public increment
 {
 public:
 
-	flux_HJ_CDS2 (lexer *p);
-	virtual ~flux_HJ_CDS2();
+	flux_HJ_CDS4 (lexer *p);
+	virtual ~flux_HJ_CDS4();
 
 	virtual void u_flux(fdm* a,int,field&,double&,double&);
 	virtual void v_flux(fdm* a,int,field&,double&,double&);

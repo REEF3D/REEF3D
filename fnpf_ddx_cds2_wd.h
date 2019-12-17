@@ -20,26 +20,27 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"flux.h"
+#include"fnpf_ddx.h"
 #include"increment.h"
 
-
-#ifndef FLUX_HJ_CDS2_H_
-#define FLUX_HJ_CDS2_H_
+class fdm_fnpf;
 
 using namespace std;
 
-class flux_HJ_CDS2 : public flux, public increment
+#ifndef FNPF_DDX_CDS2_WD_H_
+#define FNPF_DDX_CDS2_WD_H_
+
+class fnpf_ddx_cds2_wd : public fnpf_ddx, public increment
 {
 public:
+    fnpf_ddx_cds2_wd(lexer*,fdm_fnpf*);
+	virtual ~fnpf_ddx_cds2_wd();
 
-	flux_HJ_CDS2 (lexer *p);
-	virtual ~flux_HJ_CDS2();
-
-	virtual void u_flux(fdm* a,int,field&,double&,double&);
-	virtual void v_flux(fdm* a,int,field&,double&,double&);
-	virtual void w_flux(fdm* a,int,field&,double&,double&);
-
+    virtual double sxx(lexer*, slice&);
+	virtual double syy(lexer*, slice&);
+    
+private:
+    fdm_fnpf *c;
 
 };
 

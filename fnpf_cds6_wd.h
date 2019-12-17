@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,26 +20,30 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"flux.h"
+#include"fnpf_convection.h"
 #include"increment.h"
 
-
-#ifndef FLUX_HJ_CDS2_H_
-#define FLUX_HJ_CDS2_H_
+#ifndef FNPF_CDS6_WD_H_
+#define FNPF_CDS6_WD_H_
 
 using namespace std;
 
-class flux_HJ_CDS2 : public flux, public increment
+class fnpf_cds6_wd : public fnpf_convection, public increment
 {
 public:
+	fnpf_cds6_wd(lexer*);
+	virtual ~fnpf_cds6_wd();
 
-	flux_HJ_CDS2 (lexer *p);
-	virtual ~flux_HJ_CDS2();
+    virtual double fx(lexer*, field&, double, double);
+	virtual double fy(lexer*, field&, double, double);
+	virtual double fz(lexer*, field&, double, double);
+    
+    virtual double sx(lexer*, slice&, double);
+	virtual double sy(lexer*, slice&, double);
+    virtual double sz(lexer*, double*);
 
-	virtual void u_flux(fdm* a,int,field&,double&,double&);
-	virtual void v_flux(fdm* a,int,field&,double&,double&);
-	virtual void w_flux(fdm* a,int,field&,double&,double&);
-
+private:
+	
 
 };
 

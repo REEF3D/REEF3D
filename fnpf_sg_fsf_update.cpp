@@ -92,7 +92,7 @@ void fnpf_sg_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, doub
     if(k==p->knoz)
     c->U[FIJK] = (c->Fi[FIp1JK]-c->Fi[FIm1JK])/(p->DXP[IP]+p->DXP[IM1])
     
-                + p->sigx[FIJK]*((c->Fi[FIJK]-c->Fi[FIJKm1])/(p->DZN[KP]));
+                + 0.0*p->sigx[FIJK]*((c->Fi[FIJK]-c->Fi[FIJKm1])/(p->DZN[KP]));
                 
     if(k<p->knoz)
     c->V[FIJK] = (c->Fi[FIJp1K]-c->Fi[FIJm1K])/(p->DYP[JP]+p->DYP[JM1])
@@ -102,11 +102,21 @@ void fnpf_sg_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, doub
     if(k==p->knoz)
     c->V[FIJK] = (c->Fi[FIJp1K]-c->Fi[FIJm1K])/(p->DYP[JP]+p->DYP[JM1])
                 
-                + p->sigy[FIJK]*((c->Fi[FIJK]-c->Fi[FIJKm1])/(p->DZN[KP]));
+                + 0.0*p->sigy[FIJK]*((c->Fi[FIJK]-c->Fi[FIJKm1])/(p->DZN[KP]));
                 
                 
     c->W[FIJK] = ((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]))*p->sigz[IJ];
     }
+    
+    FLOOP
+    if(c->wet(i-1,j)==0 || c->wet(i+1,j)==0 || c->wet(i,j-1)==0 || c->wet(i,j+1)==0 
+    || c->wet(i-1,j-1)==0 || c->wet(i+1,j-1)==0 || c->wet(i-1,j+1)==0 || c->wet(i+1,j+1)==0)
+    {
+    c->U[FIJK]=0.0;
+    c->V[FIJK]=0.0;
+    c->W[FIJK]=0.0;
+    }
+        
     
     FFILOOP4
     c->W[FIJK] = c->Fz(i,j);
