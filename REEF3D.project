@@ -855,11 +855,11 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
+          <File Name="sflow_turb_ke_IM1.h"/>
           <File Name="sflow_turb_parabolic.h"/>
           <File Name="sflow_turb_kw_IM1.h"/>
           <File Name="sflow_turb_void.h"/>
           <File Name="sflow_turb_prandtl.h"/>
-          <File Name="sflow_turb_keps_IM1.h"/>
           <File Name="sflow_turbulence.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Solver">
@@ -2386,11 +2386,11 @@
           <File Name="sflow_eta_breaking.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
+          <File Name="sflow_turb_ke_IM1.cpp"/>
           <File Name="sflow_turb_parabolic.cpp"/>
           <File Name="sflow_turb_kw_IM1.cpp"/>
           <File Name="sflow_turb_void.cpp"/>
           <File Name="sflow_turb_prandtl.cpp"/>
-          <File Name="sflow_turb_keps_IM1.cpp"/>
         </VirtualDirectory>
         <File Name="sflow_f.cpp"/>
         <File Name="sflow_v.cpp"/>

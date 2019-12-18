@@ -116,10 +116,6 @@ void sflow_sediment_f::bedslope(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, sl
 	
     
 	phi(i,j) = midphi + (teta(i,j)/(fabs(gamma(i,j))>1.0e-20?fabs(gamma(i,j)):1.0e20))*delta; //
-    
-    
-    
-    //b->test(i,j) = gamma(i,j)*180.0/PI;
     }
 }
 	
