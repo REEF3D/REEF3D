@@ -39,7 +39,7 @@ void sflow_sediment_f::bedslope(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, sl
     pgc->gcsl_start4(p,b->bed,50);
     
     // bednode update
-    bednode(p,b,pgc);
+    //bednode(p,b,pgc);
     
     SLICELOOP4
     {

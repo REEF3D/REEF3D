@@ -42,7 +42,7 @@ void sflow_sediment_f::shields(lexer *p, fdm2D *b, ghostcell *pgc)
     SLICELOOP4
     {
     taucr(i,j) = (p->S30*fabs(p->W22)*(p->S22-p->W1))*p->S20*red(i,j);
-    b->test(i,j) = red(i,j);
+    //b->test(i,j) = red(i,j);
     }
     
     pgc->gcsl_start4(p,b->test,1);
@@ -192,12 +192,17 @@ void sflow_sediment_f::dey_ana(lexer *p, fdm2D *b, ghostcell *pgc)
 void sflow_sediment_f::fredsoe_long(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     double r=1.0;
+    double a,t;
     
     SLICELOOP4
     {
-    r = cos(teta(i,j))*(1.0 - tan(teta(i,j)/tan(phi(i,j))));
+
+    a = fabs(alpha(i,j))<phi(i,j)?alpha(i,j):(phi(i,j)-1.0e-20);
+    t = fabs(teta(i,j))<phi(i,j)?teta(i,j):(phi(i,j)-1.0e-20);
     
-    r*= cos(alpha(i,j))*(1.0 - pow(tan(alpha(i,j)),2.0)/pow(tan(phi(i,j)),2.0));
+    r = cos(t)*(1.0 - tan(t/tan(phi(i,j))));
+    
+    r*= cos(a)*(1.0 - pow(tan(a),2.0)/pow(tan(phi(i,j)),2.0));
     
     r=MIN(r,1.25);
     r=MAX(r,0.01);

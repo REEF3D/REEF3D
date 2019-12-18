@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"slice.h"
 
-void ghostcell::gcslparax(lexer* p,slice& f,int gcv)
+void ghostcell::gcslparax_fh(lexer* p,slice& f,int gcv)
 {
     paramargin=margin;
 
@@ -36,7 +36,7 @@ void ghostcell::gcslparax(lexer* p,slice& f,int gcv)
         
         for(n=0;n<paramargin;++n)
         {
-        send1[count]=f(i+n,j);
+        send1[count]=f(i-n-1,j);
         ++count;
         }
     }
@@ -49,7 +49,7 @@ void ghostcell::gcslparax(lexer* p,slice& f,int gcv)
         
         for(n=0;n<paramargin;++n)
         {
-        send3[count]=f(i,j+n);
+        send3[count]=f(i,j-n-1);
         ++count;
         }
     }
@@ -62,7 +62,7 @@ void ghostcell::gcslparax(lexer* p,slice& f,int gcv)
         
         for(n=0;n<paramargin;++n)
         {
-        send4[count]=f(i-n,j);
+        send4[count]=f(i+n+1,j);
         ++count;
         }
 	}
@@ -75,7 +75,7 @@ void ghostcell::gcslparax(lexer* p,slice& f,int gcv)
         
         for(n=0;n<paramargin;++n)
         {
-        send2[count]=f(i,j-n);
+        send2[count]=f(i,j+n+1);
         ++count;
         }
 	}
@@ -121,7 +121,7 @@ void ghostcell::gcslparax(lexer* p,slice& f,int gcv)
         
         for(n=0;n<paramargin;++n)
         {
-        f(i-n-1,j)=recv1[count];
+        f(i+n,j)+=recv1[count];
         ++count;
         }
     }
@@ -134,7 +134,7 @@ void ghostcell::gcslparax(lexer* p,slice& f,int gcv)
         
         for(n=0;n<paramargin;++n)
         {
-        f(i,j-n-1)=recv3[count];
+        f(i,j+n)+=recv3[count];
         ++count;
         }
 	}
@@ -148,7 +148,7 @@ void ghostcell::gcslparax(lexer* p,slice& f,int gcv)
         
         for(n=0;n<paramargin;++n)
         {
-        f(i+n+1,j)=recv4[count];
+        f(i-n,j)+=recv4[count];
         ++count;
         }
 	}
@@ -161,7 +161,7 @@ void ghostcell::gcslparax(lexer* p,slice& f,int gcv)
         
         for(n=0;n<paramargin;++n)
         {
-        f(i,j+n+1)=recv2[count];
+        f(i,j-n)+=recv2[count];
         ++count;
         }
 	}

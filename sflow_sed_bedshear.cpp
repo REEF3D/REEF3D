@@ -41,6 +41,8 @@ void sflow_sediment_f::bedshear(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, sl
     cf = pow(manning,2.0)/pow(HP,1.0/3.0);
     
     tau(i,j) = p->W1*9.81*cf*uabs*uabs; 
+    
+    b->test(i,j) = tau(i,j);
     }
     
     

@@ -52,31 +52,19 @@ void sflow_sediment_f::exner(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice
     
     dqx = (b->qb(i+1,j)-b->qb(i-1,j))/(2.0*p->dx);
     dqy = (b->qb(i,j+1)-b->qb(i,j-1))/(2.0*p->dx);
-    /*
-    if(signx>=0.0)
-    dqx = (b->qb(i,j)-b->qb(i-1,j))/(p->dx);
-    
-    if(signx<0.0)
-    dqx = (b->qb(i+1,j)-b->qb(i,j))/(p->dx);
-    
-    if(signy>=0.0)
-    dqy = (b->qb(i,j)-b->qb(i,j-1))/(p->dx);
-    
-    if(signy<0.0)
-    dqy = (b->qb(i,j+1)-b->qb(i,j))/(p->dx);
-    */
+
     /*
     dqx = pdx->sx(p,b->qb,signx);
     dqy = pdx->sy(p,b->qb,signy);*/
 		
 	// Exner equation
     topovel(i,j) =  -rf(p,b,pgc)*(1.0/(1.0-p->S24))*(dqx*signx + dqy*signy); 
+    
 	}
     
     
     
     // timestep
-    
 	SLICELOOP4
 	p->maxtopovel = MAX(fabs(topovel(i,j)),p->maxtopovel);	
     
@@ -116,5 +104,5 @@ void sflow_sediment_f::exner(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice
     topovel2(i,j)=topovel1(i,j);
     topovel1(i,j)=topovel(i,j);
     }
-
+    pgc->gcsl_start4(p,b->bed,50);
 }
