@@ -59,7 +59,7 @@ void sflow_sediment_f::exner(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice
 		
 	// Exner equation
     topovel(i,j) =  -rf(p,b,pgc)*(1.0/(1.0-p->S24))*(dqx*signx + dqy*signy); 
-    
+    b->test(i,j) = topovel(i,j);
 	}
     
     
@@ -67,6 +67,8 @@ void sflow_sediment_f::exner(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice
     // timestep
 	SLICELOOP4
 	p->maxtopovel = MAX(fabs(topovel(i,j)),p->maxtopovel);	
+    
+    p->maxtopovel = pgc->globalmax(p->maxtopovel);
     
         // timestep calculation
         if(p->S15==0)
@@ -77,6 +79,7 @@ void sflow_sediment_f::exner(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice
         
         if(p->S15==2)
         p->dtsed=p->S13;
+
         
         p->dtsed=pgc->timesync(p->dtsed);
         

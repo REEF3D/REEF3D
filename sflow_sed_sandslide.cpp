@@ -67,13 +67,13 @@ void sflow_sediment_f::slide(lexer *p, fdm2D *b, ghostcell *pgc)
     
         // 1
         dh = b->bed(i,j) - b->bed(i-1,j);
-        //dh_corr = dh + tan(p->S93*(PI/180.0))*p->DXP[IM1];
+        dh_corr = dh + tan(p->S93*(PI/180.0))*p->DXP[IM1];
         
         maxdh = tan(phi(i,j))*p->DXP[IM1];
         
         if(dh>maxdh && fabs(dh)<1.0e15)
 		{   
-            dh_corr = dh-maxdh + tan(p->S93*(PI/180.0))*p->DXP[IM1];
+            //dh_corr = dh-maxdh + tan(p->S93*(PI/180.0))*p->DXP[IM1];
 			fh(i,j)-= fac1*dh_corr;
             fh(i-1,j)+= fac1*dh_corr;
             
@@ -82,13 +82,13 @@ void sflow_sediment_f::slide(lexer *p, fdm2D *b, ghostcell *pgc)
 
         // 2
         dh = b->bed(i,j) - b->bed(i+1,j);
-		//dh_corr = dh + tan(p->S93*(PI/180.0))*p->DXP[IP];
+		dh_corr = dh + tan(p->S93*(PI/180.0))*p->DXP[IP];
         
         maxdh = tan(phi(i,j))*p->DXP[IP];
 		
         if(dh>maxdh && fabs(dh)<1.0e15)
 		{
-            dh_corr = dh-maxdh + tan(p->S93*(PI/180.0))*p->DXP[IP];
+            //dh_corr = dh-maxdh + tan(p->S93*(PI/180.0))*p->DXP[IP];
             
 			fh(i,j)-= fac1*dh_corr;
             fh(i+1,j)+= fac1*dh_corr;
@@ -98,13 +98,14 @@ void sflow_sediment_f::slide(lexer *p, fdm2D *b, ghostcell *pgc)
 
         // 3
         dh = b->bed(i,j) - b->bed(i,j-1);
-		//dh_corr = dh + tan(p->S93*(PI/180.0))*p->DYP[JM1];
+		dh_corr = dh + tan(p->S93*(PI/180.0))*p->DYP[JM1];
         
         maxdh = tan(phi(i,j))*p->DYP[JM1];
         
         if(dh>maxdh && fabs(dh)<1.0e15)
 		{
-            dh_corr = dh-maxdh + tan(p->S93*(PI/180.0))*p->DYP[JM1];
+            //dh_corr = dh-maxdh + tan(p->S93*(PI/180.0))*p->DYP[JM1];
+            
 			 fh(i,j)-= fac1*dh_corr;
             fh(i,j-1)+= fac1*dh_corr;
 			
@@ -113,13 +114,14 @@ void sflow_sediment_f::slide(lexer *p, fdm2D *b, ghostcell *pgc)
 
         // 4
         dh = b->bed(i,j) - b->bed(i,j+1);
-		//dh_corr = dh + tan(p->S93*(PI/180.0))*p->DXP[JP];
+		dh_corr = dh + tan(p->S93*(PI/180.0))*p->DXP[JP];
         
         maxdh = tan(phi(i,j))*p->DYP[JP];
         
         if(dh>maxdh && fabs(dh)<1.0e15)
 		{
-			dh_corr = dh-maxdh + tan(p->S93*(PI/180.0))*p->DXP[JP];
+			//dh_corr = dh-maxdh + tan(p->S93*(PI/180.0))*p->DXP[JP];
+            
             fh(i,j)-= fac1*dh_corr;
             fh(i,j+1)+= fac1*dh_corr;
 
@@ -129,13 +131,13 @@ void sflow_sediment_f::slide(lexer *p, fdm2D *b, ghostcell *pgc)
 		
         // 5
         dh = b->bed(i,j) - b->bed(i-1,j-1);
-		//dh_corr = dh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]);
+		dh_corr = dh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]);
         
         maxdhs = tan(phi(i,j))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]);
 
         if(dh>maxdhs && fabs(dh)<1.0e15)
         {
-			dh_corr = dh-maxdh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]);
+			//dh_corr = dh-maxdh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]);
             fh(i,j)-= fac2*dh_corr;
             fh(i-1,j-1)+= fac2*dh_corr;
         
@@ -145,13 +147,13 @@ void sflow_sediment_f::slide(lexer *p, fdm2D *b, ghostcell *pgc)
 
         // 6
         dh = b->bed(i,j) - b->bed(i-1,j+1);
-		//dh_corr = dh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]);
+		dh_corr = dh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]);
         
         maxdhs = tan(phi(i,j))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]);
         
         if(dh>maxdhs && fabs(dh)<1.0e15)
 		{            
-			dh_corr = dh-maxdh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]);
+			//dh_corr = dh-maxdh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]);
             fh(i,j)-= fac2*dh_corr;
             fh(i-1,j+1)+= fac2*dh_corr;
 			
@@ -160,13 +162,13 @@ void sflow_sediment_f::slide(lexer *p, fdm2D *b, ghostcell *pgc)
 
         // 7
         dh = b->bed(i,j) - b->bed(i+1,j-1);
-		//dh_corr = dh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]);
+		dh_corr = dh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]);
         
         maxdhs = tan(phi(i,j))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]);
         
         if(dh>maxdhs && fabs(dh)<1.0e15)
 		{
-			dh_corr = dh-maxdh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]);
+			//dh_corr = dh-maxdh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]);
             fh(i,j)-= fac2*dh_corr;
             fh(i+1,j-1)+= fac2*dh_corr;
 
@@ -175,13 +177,13 @@ void sflow_sediment_f::slide(lexer *p, fdm2D *b, ghostcell *pgc)
     
         // 8
         dh = b->bed(i,j) - b->bed(i+1,j+1);
-		//dh_corr = dh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);
+		dh_corr = dh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);
         
         maxdhs = tan(phi(i,j))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);
 
         if(dh>maxdhs && fabs(dh)<1.0e15)
 		{            
-			dh_corr = dh-maxdh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);
+			//dh_corr = dh-maxdh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);
             fh(i,j)-= fac2*dh_corr;
             fh(i+1,j+1)+= fac2*dh_corr;
             

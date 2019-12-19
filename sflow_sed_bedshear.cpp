@@ -42,7 +42,7 @@ void sflow_sediment_f::bedshear(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, sl
     
     tau(i,j) = p->W1*9.81*cf*uabs*uabs; 
     
-    b->test(i,j) = tau(i,j);
+    //b->test(i,j) = tau(i,j);
     }
     
     
