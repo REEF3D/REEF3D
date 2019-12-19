@@ -194,8 +194,9 @@ void sflow_sediment_f::dey_ana(lexer *p, fdm2D *b, ghostcell *pgc)
 
 void sflow_sediment_f::fredsoe_long(lexer *p, fdm2D *b, ghostcell *pgc)
 {  
+    double a,t;
     double r=1.0;
-    
+    /*
     SLICELOOP4
     {
     r = cos(teta(i,j))*(1.0 - tan(teta(i,j))/tan(phi(i,j)));
@@ -206,6 +207,20 @@ void sflow_sediment_f::fredsoe_long(lexer *p, fdm2D *b, ghostcell *pgc)
     r=MAX(r,0.01);
     
     red(i,j)=r;
+    }*/
+    
+    SLICELOOP4
+    {
+    a = fabs(alpha(i,j))<phi(i,j)?alpha(i,j):(phi(i,j)*0.99);
+    t = fabs(teta(i,j))<phi(i,j)?teta(i,j):(phi(i,j)*0.99);
+    
+    r = cos(t)*(1.0 - tan(t)/tan(phi(i,j)));
+
+    
+    r*= cos(a)*(1.0 - pow(tan(a),2.0)/pow(tan(phi(i,j)),2.0));
+
+    r=MIN(r,2.0);
+    r=MAX(r,0.01);
     }
     
 }
