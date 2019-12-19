@@ -104,7 +104,12 @@ void sflow_sediment_f::sediment_algorithm(lexer *p, fdm2D *b, ghostcell *pgc, sl
     
     // sandslide
     bedslope(p,b,pgc,P,Q);
+    
+    if(p->S90==1)
     sandslide(p,b,pgc,P,Q);
+    
+    if(p->S90==2)
+    sandslide_v2(p,b,pgc,P,Q);
     
     relax(p,b,pgc);
     

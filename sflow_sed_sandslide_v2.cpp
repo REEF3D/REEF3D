@@ -29,7 +29,7 @@ void sflow_sediment_f::sandslide_v2(lexer *p, fdm2D *b, ghostcell *pgc, slice &P
     fac1=p->S92*(1.0/6.0);
 	fac2=p->S92*(1.0/12.0);
 
-    if(p->S90==1)
+    if(p->S90>0)
     for(int qn=0; qn<p->S91; ++qn)
     {
         slidecount=0;
@@ -46,7 +46,7 @@ void sflow_sediment_f::sandslide_v2(lexer *p, fdm2D *b, ghostcell *pgc, slice &P
             slide_v2(p,b,pgc);
         }
         
-        //pgc->gcslparax_fh(p,fh,4);
+        pgc->gcslparax_fh(p,fh,4);
         
         SLICELOOP4
         b->bed(i,j)+=fh(i,j);
