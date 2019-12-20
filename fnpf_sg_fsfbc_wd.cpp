@@ -106,11 +106,15 @@ fnpf_sg_fsfbc_wd::fnpf_sg_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p
     
     dist3=0.0;
     
-    if(p->A341>0.0)
-    dist3=p->A341*p->DXM;
+    if(p->A341>0.0 && p->j_dir==0)
+    dist3=p->A341*(p->DXD);
+    
+    if(p->A341>0.0 && p->j_dir==1)
+    dist3=p->A341*0.5*(p->DXD+p->DYD);
     
     if(p->A342>0.0)
     dist3=p->A342;
+    
     
     expinverse = 1.0/(exp(1.0)-1.0);
     
@@ -188,9 +192,10 @@ void fnpf_sg_fsfbc_wd::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta
     {
     c->Fz(i,j) = p->sigz[IJ]*pconvec->sz(p,c->Fi);
 
-    if(c->wet(i,j)==0)
-    c->Fz(i,j) = 0.0;
+
     }
+    
+    coastline(p,c,pgc,c->Fz);
 }
 
 void fnpf_sg_fsfbc_wd::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
@@ -205,8 +210,7 @@ void fnpf_sg_fsfbc_wd::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     c->K(i,j) =  - dEdF_x - dEdF_y
     
                  + c->Fz(i,j)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0));
-                 
-          
+     
     if(c->wet(i-1,j)==0 || c->wet(i+1,j)==0 || c->wet(i,j-1)==0 || c->wet(i,j+1)==0 
   || c->wet(i-1,j-1)==0 || c->wet(i+1,j-1)==0 || c->wet(i-1,j+1)==0 || c->wet(i+1,j+1)==0)
       c->K(i,j) = c->Fz(i,j);
@@ -224,8 +228,7 @@ void fnpf_sg_fsfbc_wd::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
     
     c->K(i,j) =  - 0.5*dFdF_x - 0.5*dFdF_y
     
-                 + 0.5*pow(c->Fz(i,j),2.0)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0)) - fabs(p->W22)*eta(i,j);
-                 
+                 + 0.5*pow(c->Fz(i,j),2.0)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0)) - fabs(p->W22)*eta(i,j);          
             
     if(c->wet(i-1,j)==0 || c->wet(i+1,j)==0 || c->wet(i,j-1)==0 || c->wet(i,j+1)==0 
   || c->wet(i-1,j-1)==0 || c->wet(i+1,j-1)==0 || c->wet(i-1,j+1)==0 || c->wet(i+1,j+1)==0)

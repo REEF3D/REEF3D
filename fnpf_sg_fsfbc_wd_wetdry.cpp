@@ -52,14 +52,24 @@ void fnpf_sg_fsfbc_wd::coastline(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f
         if(c->coastline(i,j)>=0.0)
         {
 		db = c->coastline(i,j);
-    
+        
+        if(db<dist3)
+        {
         f(i,j) = rb3(p,db)*f(i,j);
+    
+        /*
+        if(c->wet(i-1,j)==0 || c->wet(i+1,j)==0 || c->wet(i,j-1)==0 || c->wet(i,j+1)==0 
+        || c->wet(i-1,j-1)==0 || c->wet(i+1,j-1)==0 || c->wet(i-1,j+1)==0 || c->wet(i+1,j+1)==0)
+            f(i,j) = 0.0;*/
+        }
         }
         
         if(c->coastline(i,j)<0.0)
         {    
         f(i,j) = 0.0;
         }
+        
+        
     }
 }
 
@@ -70,7 +80,7 @@ double fnpf_sg_fsfbc_wd::rb3(lexer *p, double x)
     x=(dist3-fabs(x))/(dist3);
     x=MAX(x,0.0);
     
-    r = 1.0 - (exp(pow(x,p->B119))-1.0)/(exp(1.0)-1.0);
+    r = 1.0 - (exp(pow(x,p->B119))-1.0)/(EE-1.0);
 
 	return r;
 }
