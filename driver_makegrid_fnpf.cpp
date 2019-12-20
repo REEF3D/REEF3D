@@ -24,6 +24,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include"mgc4.h"
+#include"mgcslice1.h"
+#include"mgcslice2.h"
 #include"mgcslice4.h"
 
 void driver::makegrid_fnpf(lexer *p, ghostcell *pgc)
@@ -344,8 +346,13 @@ void driver::makegrid_fnpf(lexer *p, ghostcell *pgc)
 
     
     // 2D
-    pgc->gcsl_tpflag(p);
+    if(p->A310==6)
+    makegrid2D(p,pgc);
     
+    
+    if(p->A310!=6)
+    {
+    pgc->gcsl_tpflag(p);    
     pgc->gcslflagx(p,p->flagslice4);
     
     mgcslice4 msl4(p);
@@ -363,6 +370,7 @@ void driver::makegrid_fnpf(lexer *p, ghostcell *pgc)
     pgc->gcsl_setbcio(p);
     
 	pgc->dgcslini4(p); 
+    }
 
 }
 	

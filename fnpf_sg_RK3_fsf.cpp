@@ -104,6 +104,8 @@ void fnpf_sg_RK3_fsf::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv
     // fsf eta
     pf->kfsfbc(p,c,pgc);
     
+    integrate(p,c,pgc);
+    
     SLICELOOP4
     erk1(i,j) = c->eta(i,j) - p->dt*((c->P(i,j) - c->P(i-1,j))/p->DXN[IP] + (c->Q(i,j)- c->Q(i,j-1))/p->DYN[JP]);
     
@@ -152,8 +154,10 @@ void fnpf_sg_RK3_fsf::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv
     // fsf eta
     pf->kfsfbc(p,c,pgc);
     
+    integrate(p,c,pgc);
+    
     SLICELOOP4
-    erk2(i,j) = 0.75*c->eta(i,j)  + 0.25*erk1(i,j)- 0.25*p->dt*((c->P(i,j) - c->P(i-1,j))/p->DXN[IP] + (c->Q(i,j)- c->Q(i,j-1))/p->DYN[JP]);
+    erk2(i,j) = 0.75*c->eta(i,j)  + 0.25*erk1(i,j) - 0.25*p->dt*((c->P(i,j) - c->P(i-1,j))/p->DXN[IP] + (c->Q(i,j)-c->Q(i,j-1))/p->DYN[JP]);
     
     pf->damping(p,c,pgc,erk2,gcval_eta,0.25);
     
@@ -200,8 +204,10 @@ void fnpf_sg_RK3_fsf::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv
     // fsf eta
     pf->kfsfbc(p,c,pgc);
     
+    integrate(p,c,pgc);
+    
     SLICELOOP4
-    c->eta(i,j) = (1.0/3.0)*c->eta(i,j) + (2.0/3.0)*erk2(i,j) - (2.0/3.0)*p->dt*((c->P(i,j) - c->P(i-1,j))/p->DXN[IP] + (c->Q(i,j)- c->Q(i,j-1))/p->DYN[JP]);
+    c->eta(i,j) = (1.0/3.0)*c->eta(i,j) + (2.0/3.0)*erk2(i,j) - (2.0/3.0)*p->dt*((c->P(i,j) - c->P(i-1,j))/p->DXN[IP] + (c->Q(i,j)-c->Q(i,j-1))/p->DYN[JP]);
     
     pf->damping(p,c,pgc,c->eta,gcval_eta,2.0/3.0);
     
@@ -307,22 +313,32 @@ void fnpf_sg_RK3_fsf::integrate(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     SLICELOOP1
     FKLOOP
     FPCHECK
+    if(k>0)
     {
-        uvel = (c->Fi[FIp1JK]-c->Fi[FIJK])/p->DXP[IP]
-    
-                + 0.5*(p->sigx[FIJK]+p->sigx[FIp1JK])*((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]));
+        uvel = (c->Fi[FIp1JK]-c->Fi[FIJK])/p->DXP[IP];
+        
+        if(k<p->knoz)
+        uvel += 0.5*(p->sigx[FIJK]+p->sigx[FIp1JK])*((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZN[KP]+p->DZN[KM1]));
+        
+        if(k==p->knoz)
+        uvel += 0.5*(p->sigx[FIJK]+p->sigx[FIp1JK])*((c->Fi[FIJK]-c->Fi[FIJKm1])/p->DZN[KP]);
 
-        c->P(i,j) += uvel*p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[Ip1J]);
+        c->P(i,j) += uvel*p->DZP[KP]*0.5*(p->sigz[IJ]+p->sigz[Ip1J]);
     }
     
-    
+    if(p->j_dir==1)
     SLICELOOP2
     FKLOOP
     FPCHECK
+    if(k>0)
     {
-        vvel = (c->Fi[FIJp1K]-c->Fi[FIJK])/p->DYP[JP]
-    
-                + 0.5*(p->sigy[FIJK]+p->sigy[FIJp1K])*((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]));
+        vvel = (c->Fi[FIJp1K]-c->Fi[FIJK])/p->DYP[JP];
+        
+        if(k<p->knoz)
+        vvel += 0.5*(p->sigy[FIJK]+p->sigy[FIJp1K])*((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZN[KP]+p->DZN[KM1]));
+        
+        if(k==p->knoz)
+        vvel += 0.5*(p->sigy[FIJK]+p->sigy[FIJp1K])*((c->Fi[FIJK]-c->Fi[FIJKm1])/p->DZN[KP]);
 
         c->Q(i,j) += vvel*p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[IJp1]);
     }
