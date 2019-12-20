@@ -35,6 +35,7 @@ Author: Hans Bihs
 #include"fnpf_fg_RK3.h"
 #include"fnpf_fg_RK4.h"
 #include"fnpf_sg_RK3.h"
+#include"fnpf_sg_RK3_fsf.h"
 #include"fnpf_sg_RK4.h"
 #include"fnpf_vtu3D.h"
 #include"fnpf_timestep.h"

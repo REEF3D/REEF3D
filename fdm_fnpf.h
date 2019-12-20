@@ -22,6 +22,8 @@ Author: Hans Bihs
 
 #include"field4.h"
 #include"fieldint5.h"
+#include"slice1.h"
+#include"slice2.h"
 #include"slice4.h"
 #include"sliceint4.h"
 #include"sliceint5.h"
@@ -65,6 +67,9 @@ public:
     
     sliceint5 nodeval2D;
     slice4 breaking_print;
+    
+    slice1 P;
+    slice2 Q;
     
     cpt2D C4;
 	

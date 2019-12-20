@@ -724,6 +724,7 @@
           <File Name="fnpf_sigma.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FNPF">
+          <File Name="fnpf_sg_RK3_fsf.h"/>
           <File Name="fnpf_fg_v.h"/>
           <File Name="fnpf_sg_v.h"/>
           <File Name="fnpf_fg.h"/>
@@ -2247,6 +2248,7 @@
           <File Name="fnpf_sigma.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FNPF">
+          <File Name="fnpf_sg_RK3_fsf.cpp"/>
           <File Name="fnpf_fg_v.cpp"/>
           <File Name="fnpf_sg_v.cpp"/>
           <File Name="fnpf_sg_RK4.cpp"/>

@@ -31,6 +31,7 @@ fdm_fnpf::fdm_fnpf(lexer *p) : press(p),Fifsf(p),Fibed(p),
                               Ex(p),Ey(p),Exx(p),Eyy(p),
                               Bx(p),By(p),Bxx(p),Byy(p),
                               Hx(p),Hy(p),
+                              P(p),Q(p),
                               coastline(p),vb(p),
                               nodeval2D(p),breaking_print(p),
                               rhsvec(p),rvec(p),xvec(p),N(p),M(p)

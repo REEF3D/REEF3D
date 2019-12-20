@@ -49,13 +49,13 @@ void sflow_sediment_f::exner(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice
 	
 		
 	dqx=dqy=0.0;
-    
-    dqx = (b->qb(i+1,j)-b->qb(i-1,j))/(2.0*p->dx);
-    dqy = (b->qb(i,j+1)-b->qb(i,j-1))/(2.0*p->dx);
-
     /*
+    dqx = (b->qb(i+1,j)-b->qb(i-1,j))/(2.0*p->dx);
+    dqy = (b->qb(i,j+1)-b->qb(i,j-1))/(2.0*p->dx);*/
+
+
     dqx = pdx->sx(p,b->qb,signx);
-    dqy = pdx->sy(p,b->qb,signy);*/
+    dqy = pdx->sy(p,b->qb,signy);
 		
 	// Exner equation
     topovel(i,j) =  -rf(p,b,pgc)*(1.0/(1.0-p->S24))*(dqx*signx + dqy*signy); 
