@@ -240,12 +240,12 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     
 
     //---------------------------------
-    //LOOP
-    //c->test(i,j,k)=c->vb(i,j);
-    
+    LOOP
+    c->test(i,j,k)=c->vb(i,j);
+    /*
     LOOP
     if(c->breaking(i,j)==1)
-    c->test(i,j,k)=1.0;
+    c->test(i,j,k)=1.0;*/
     
     pgc->start4(p,c->test,50);
 

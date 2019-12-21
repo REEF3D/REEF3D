@@ -61,12 +61,6 @@ void fnpf_sg_laplace_cds2_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
         {
         sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
         
-        if(p->mpirank==1 && i==3)
-        {
-        //cout<<ckx[IP][0]<<"  "<<ckx[IP][1]<<"  "<<ckx[IP][2]<<" |  "<<-1.0/(p->DXP[IM1]*p->DXN[IP])<<" "<<1.0/(p->DXP[IM1]*p->DXN[IP])+1.0/(p->DXP[IP]*p->DXN[IP])<<"  "<<-1.0/(p->DXP[IP]*p->DXN[IP])<<endl;
-        //cout<<i<<" "<<k<<" . "<<ckz[KP][0]<<"  "<<ckz[KP][1]<<"  "<<ckz[KP][2]<<" |  "<<-1.0/(p->DZP[KM1]*p->DZN[KM1])<<" "<<1.0/(p->DZP[KM1]*p->DZN[KM1])+1.0/(p->DZP[KM1]*p->DZN[KP])<<"  "<<-1.0/(p->DZP[KM1]*p->DZN[KP])<<endl;
-        //cout<<i<<" "<<k<<" . "<<sigxyz2*ckz[KP][1]<<" |  "<<(sigxyz2/(p->DZP[KM1]*p->DZN[KP]))+(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]))<<endl;
-        }
         c->M.p[n] = ckx[IP][1]*p->x_dir 
                   + cky[JP][1]*p->y_dir 
                   + sigxyz2*ckz[KP][1]*p->z_dir; 

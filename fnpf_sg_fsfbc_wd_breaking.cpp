@@ -47,6 +47,7 @@ void fnpf_sg_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
     by(i,j)=0;
     }
     
+    pgc->gcsl_start4int(p,c->breaking,50);
     pgc->gcsl_start4int(p,bx,50);
     pgc->gcsl_start4int(p,by,50);
     
