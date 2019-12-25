@@ -44,13 +44,6 @@ void mgcslice4::makemgc(lexer* p)
 	p->gcsldirsize4=1;	
 	p->Iarray(p->gcslorig4, p->gcsldirsize4, 6,4);
 
-//flag4a
-    ILOOP
-    JLOOP
-	{
-	p->flagslice4a[IJ]=10;
-	}
-
 }
 
 void mgcslice4::mgcsetup(lexer* p)

@@ -25,9 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"mgcslice1.h"
 #include"mgcslice2.h"
-#include"mgcslice3.h"
 #include"mgcslice4.h"
-#include"mgcslice4a.h"
 
 void driver::makegrid2D(lexer *p, ghostcell *pgc)
 {   
@@ -38,7 +36,6 @@ void driver::makegrid2D(lexer *p, ghostcell *pgc)
     mgcslice1 m1(p);
 	mgcslice2 m2(p);
 	mgcslice4 m4(p);
-	mgcslice4a m4a(p);
 	
 	m1.makemgc(p);
     pgc->gcslflagx(p,p->flagslice1);
@@ -59,13 +56,6 @@ void driver::makegrid2D(lexer *p, ghostcell *pgc)
     m4.mgcsetup(p);
     m4.fillmgc(p);
     m4.gcdirfill(p);
-
-    m4a.makemgc(p);
-    pgc->gcslflagx(p,p->flagslice4a);
-    m4a.gcb_seed(p);
-    m4a.mgcsetup(p);
-    m4a.fillmgc(p);
-    m4a.gcdirfill(p);
 	
 	m1.make_ggc(p);
     m1.fill_ggc(p);
@@ -73,9 +63,6 @@ void driver::makegrid2D(lexer *p, ghostcell *pgc)
     m2.fill_ggc(p);
     m4.make_ggc(p);
     m4.fill_ggc(p);
-    m4a.make_ggc(p);
-    m4a.fill_ggc(p);
-    
     
     pgc->gcsl_setbc1(p);
     pgc->gcsl_setbc2(p);
@@ -89,7 +76,9 @@ void driver::makegrid2D(lexer *p, ghostcell *pgc)
  
 void driver::makegrid2D_cds(lexer *p, ghostcell *pgc, fdm2D *b)
 {      
-    
+    p->flagini2D();
+    p->gridini2D();	
+
     pgc->sizeS_update(p);
     
     pgc->gcxslupdate(p);

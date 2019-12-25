@@ -297,9 +297,7 @@ void lexer::read_grid()
 	Darray(data,imax*jmax);
     Iarray(flagslice1,imax*jmax);
     Iarray(flagslice2,imax*jmax);
-    Iarray(flagslice3,imax*jmax);
     Iarray(flagslice4,imax*jmax);
-    Iarray(flagslice4a,imax*jmax);
 	Iarray(tpflagslice,imax*jmax);
 
 	for(i=0;i<imax*jmax*kmax;++i)
@@ -312,9 +310,7 @@ void lexer::read_grid()
 	{
 	flagslice1[i]=-10;
 	flagslice2[i]=-10;
-	flagslice3[i]=-10;
 	flagslice4[i]=-10;
-	flagslice4a[i]=-10;
 	}
 	
 	if(gcb4_count>0)

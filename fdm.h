@@ -36,7 +36,6 @@ Author: Hans Bihs
 #include"slice2.h"
 #include"slice4.h"
 #include"sliceint4.h"
-#include"slice4a.h"
 #include"sliceint4.h"
 #include"increment.h"
 #include"vec.h"

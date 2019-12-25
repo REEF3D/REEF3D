@@ -208,7 +208,7 @@ public:
     int M_size,M_2D_size;
     
     //SLICE
-    int *flagslice1,*flagslice2,*flagslice3,*flagslice4,*flagslice4a,*tpflagslice;
+    int *flagslice1,*flagslice2,*flagslice4,*tpflagslice;
     int *mgcsl1,*mgcsl2,*mgcsl3,*mgcsl4,*mgcsl4a;
     int ***gcslorig1,***gcslorig2,***gcslorig3,***gcslorig4,***gcslorig4a;
 	int gcsldirsize1,gcsldirsize2,gcsldirsize3,gcsldirsize4,gcsldirsize4a;

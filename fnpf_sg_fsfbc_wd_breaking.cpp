@@ -42,7 +42,6 @@ void fnpf_sg_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
     if(p->A350>=0)
     SLICELOOP4
     {
-    //c->breaking(i,j)=0;
     bx(i,j)=0;
     by(i,j)=0;
     }

@@ -104,6 +104,8 @@ void driver::loop_fnpf_sg()
     p->xtime=0.0;
 	p->reinitime=0.0;
 	p->wavetime=0.0;
+    
+    stop(p,a,pgc);
 	}
 
 	if(p->mpirank==0)

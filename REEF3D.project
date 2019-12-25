@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<CodeLite_Project Name="REEF3D" InternalType="Console" Version="10.0.0">
+<CodeLite_Project Name="REEF3D" InternalType="Console" Version="11000">
   <Plugins>
     <Plugin Name="qmake">
       <![CDATA[00020001N0005Debug0000000000000001N0007Release000000000000]]>
@@ -441,15 +441,11 @@
           <File Name="slice.h"/>
           <File Name="slice1.h"/>
           <File Name="slice2.h"/>
-          <File Name="slice3.h"/>
           <File Name="slice4.h"/>
-          <File Name="slice4a.h"/>
           <VirtualDirectory Name="MGC">
             <File Name="mgcslice1.h"/>
             <File Name="mgcslice2.h"/>
-            <File Name="mgcslice3.h"/>
             <File Name="mgcslice4.h"/>
-            <File Name="mgcslice4a.h"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Solid">
@@ -724,7 +720,6 @@
           <File Name="fnpf_sigma.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FNPF">
-          <File Name="fnpf_sg_RK3_fsf.h"/>
           <File Name="fnpf_fg_v.h"/>
           <File Name="fnpf_sg_v.h"/>
           <File Name="fnpf_fg.h"/>
@@ -1645,6 +1640,7 @@
         <File Name="gcsolid_dist.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Slice">
+        <File Name="gcsl_solidupdate.cpp"/>
         <File Name="gcxsl_parax_fh.cpp"/>
         <File Name="gcxsl_update.cpp"/>
         <File Name="gcxsl_paraxvec2D.cpp"/>
@@ -1790,34 +1786,24 @@
           <File Name="slice5.cpp"/>
           <File Name="slice1.cpp"/>
           <File Name="slice2.cpp"/>
-          <File Name="slice3.cpp"/>
           <File Name="slice4.cpp"/>
-          <File Name="slice4a.cpp"/>
           <VirtualDirectory Name="MGC">
+            <File Name="mgcslice4.cpp"/>
             <File Name="mgcslice1.cpp"/>
             <File Name="mgcslice2.cpp"/>
-            <File Name="mgcslice3.cpp"/>
-            <File Name="mgcslice4.cpp"/>
-            <File Name="mgcslice4a.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="GGC">
             <File Name="ggcslice1.cpp"/>
             <File Name="ggcslice2.cpp"/>
-            <File Name="ggcslice3.cpp"/>
             <File Name="ggcslice4.cpp"/>
-            <File Name="ggcslice4a.cpp"/>
             <File Name="ggcslicepol1.cpp"/>
             <File Name="ggcslicepol2.cpp"/>
-            <File Name="ggcslicepol3.cpp"/>
             <File Name="ggcslicepol4.cpp"/>
-            <File Name="ggcslicepol4a.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="GCB">
             <File Name="gcbslice1.cpp"/>
             <File Name="gcbslice2.cpp"/>
-            <File Name="gcbslice3.cpp"/>
             <File Name="gcbslice4.cpp"/>
-            <File Name="gcbslice4a.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <File Name="grid.cpp"/>
@@ -2248,7 +2234,6 @@
           <File Name="fnpf_sigma.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FNPF">
-          <File Name="fnpf_sg_RK3_fsf.cpp"/>
           <File Name="fnpf_fg_v.cpp"/>
           <File Name="fnpf_sg_v.cpp"/>
           <File Name="fnpf_sg_RK4.cpp"/>

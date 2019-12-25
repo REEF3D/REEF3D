@@ -118,21 +118,6 @@ void fnpf_sg_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, doub
         c->V[FIJK]=0.0;
         c->W[FIJK]=0.0;
         }
-        /*
-        if(k==p->knoz)
-        if((c->wet(i-1,j)==1 && c->wet(i+1,j)==1 && c->wet(i,j-1)==1 && c->wet(i,j+1)==1
-        && c->wet(i-1,j-1)==1 && c->wet(i+1,j-1)==1 && c->wet(i-1,j+1)==1 && c->wet(i+1,j+1)==1)
-            
-        && (c->wet(i-2,j)==0 || c->wet(i-1,j)==0 || c->wet(i+1,j)==0 || c->wet(i+2,j)==0
-        ||  c->wet(i-2,j-1)==0 || c->wet(i-1,j-1)==0  || c->wet(i,j-1)==0 || c->wet(i+1,j-1)==0 || c->wet(i+2,j-1)==0
-        ||  c->wet(i-2,j-2)==0 || c->wet(i-1,j-2)==0  || c->wet(i,j-2)==0 || c->wet(i+1,j-2)==0 || c->wet(i+2,j-2)==0
-        ||  c->wet(i-2,j+1)==0 || c->wet(i-1,j+1)==0  || c->wet(i,j+1)==0 || c->wet(i+1,j+1)==0 || c->wet(i+2,j+1)==0
-        ||  c->wet(i-2,j+2)==0 || c->wet(i-1,j+2)==0  || c->wet(i,j+2)==0 || c->wet(i+1,j+2)==0 || c->wet(i+2,j+2)==0))
-        {
-        c->U[FIJK] = (c->Fi[FIp1JK]-c->Fi[FIm1JK])/(p->DXP[IP]+p->DXP[IM1]);
-        c->V[FIJK] = (c->Fi[FIJp1K]-c->Fi[FIJm1K])/(p->DYP[JP]+p->DYP[JM1]);
-        c->W[FIJK]=0.0;
-        }*/
     }
         
     

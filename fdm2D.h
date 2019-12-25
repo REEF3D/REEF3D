@@ -23,7 +23,6 @@ Author: Hans Bihs
 #include"slice1.h"
 #include"slice2.h"
 #include"slice4.h"
-#include"slice4a.h"
 #include"slice5.h"
 #include"sliceint1.h"
 #include"sliceint2.h"

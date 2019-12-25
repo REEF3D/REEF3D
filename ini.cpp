@@ -72,15 +72,11 @@ void lexer::ini_default()
     A344_val=0.00005; // double absolute wetting criterion value
     A345=0;      // int dx-based relative wetting citerion
     A345_val=0.001; // double dx-based relative wetting citerion value
-    
-    
     A350=0;      // int turn on breaking (which method)
     A351=0;      // int type of breaking detection (deep / shallow)
-    
     A354=0.6;    // double breaking parameter alpha
     A355=1.25;   // double breaking parameter slope alpha
     A356=0.1;   // double breaking parameter slope beta
-    
     A361=5;      // int breaking filter outer iter
     A362=2;      // int breaking filter inner iter
     A363=1;      // int breaking filter width

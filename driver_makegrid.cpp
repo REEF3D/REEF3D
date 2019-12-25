@@ -34,11 +34,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"cart3.h"
 #include"cart4.h"
 #include"cart4a.h"
-#include"mgcslice1.h"
-#include"mgcslice2.h"
-#include"mgcslice3.h"
-#include"mgcslice4.h"
-#include"mgcslice4a.h"
 
 void driver::makegrid(lexer *p, ghostcell *pgc)
 {	

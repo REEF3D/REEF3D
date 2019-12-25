@@ -281,6 +281,8 @@ public:
     void gcsl_start4int(lexer*,sliceint&, int);
 
     void gcsl_start4V(lexer*,vec2D&, int, cpt2D&);
+    
+    void gcsl_solidupdate(lexer*);
 
     void gcsldistro1(lexer*, slice&,int, int, int, double, int, int, int);
 	void gcsldistro2(lexer*, slice&,int, int, int, double, int, int, int);
