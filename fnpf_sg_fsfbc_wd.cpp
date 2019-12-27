@@ -131,7 +131,7 @@ fnpf_sg_fsfbc_wd::~fnpf_sg_fsfbc_wd()
 void fnpf_sg_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
 {
     SLICELOOP4
-    c->WL(i,j) = MAX(0.0,c->eta(i,j) + p->wd - c->bed(i,j));
+    c->WL(i,j) = MAX(0.0, c->eta(i,j) + p->wd - c->bed(i,j));
     
     pgc->gcsl_start4(p,c->WL,50);
     

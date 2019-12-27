@@ -427,6 +427,9 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	{
     zcoor = p->ZN[KP1]*c->WL(i,j) + c->bed(i,j); 
     
+    if(p->flagslice4[IJ]<0)
+    zcoor = p->ZN[KP1]*(p->wd-p->bed[IJ]) + p->bed[IJ]; 
+    
     if(c->wet(i,j)==0 && p->flagslice4[IJ]>0)
     zcoor=c->bed(i,j);
     

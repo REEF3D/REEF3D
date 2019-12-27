@@ -80,29 +80,6 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
 	}
     
     n=0;
-    LOOP
-	{
-        if(c->wet(i,j)==0)
-        {
-        c->M.p[n]  =  1.0;
-
-
-        c->M.n[n] = 0.0;
-        c->M.s[n] = 0.0;
-
-        c->M.w[n] = 0.0;
-        c->M.e[n] = 0.0;
-
-        c->M.t[n] = 0.0;
-        c->M.b[n] = 0.0;
-        
-        c->rhsvec.V[n] =  0.0;
-        }
-	++n;
-	}
-    
-    
-    n=0;
 	LOOP
     if(p->flag7[FIJK]>0)
 	{

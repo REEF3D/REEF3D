@@ -29,6 +29,7 @@ Author: Hans Bihs
 #define SLICELOOP2 IVLOOP JVLOOP  PSLICECHECK2
 
 #define PSLICECHECK4  if(p->flagslice4[IJ]>0)
+#define SSLICECHECK4  if(p->flagslice4[IJ]<=0)
 #define SLICELOOP4 ILOOP JLOOP  PSLICECHECK4
 
 #define IREVLOOP	for(i=p->knox-1; i>=0; --i)

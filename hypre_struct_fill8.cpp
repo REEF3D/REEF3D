@@ -39,7 +39,7 @@ void hypre_struct::fill_matrix8(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f
     count=0;
     KJILOOP
     {
-		PWDFLUIDCHECK
+		FPWDCHECK
 		{
 		n=cval4(i,j,k);
         
