@@ -45,7 +45,7 @@ void driver::makegrid_fnpf(lexer *p, ghostcell *pgc)
     // add solid structures
     BASELOOP
     {
-        if(p->flag_solid[IJK]<0)
+        if(p->flagslice4[IJ]<0)
         p->flag7[FIJK]=-10;
     }
     

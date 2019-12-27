@@ -34,12 +34,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_cds2_wd.h"
 #include"fnpf_cds4_wd.h"
 #include"fnpf_cds6_wd.h"
+#include"fnpf_cds2.h"
+#include"fnpf_cds4.h"
+#include"fnpf_cds6.h"
 #include"fnpf_weno.h"
 #include"fnpf_weno_wd.h"
 #include"fnpf_weno7.h"
 #include"fnpf_wenoflux.h"
 #include"fnpf_ddx_cds2_wd.h"
 #include"fnpf_ddx_cds4_wd.h"
+#include"fnpf_ddx_cds2.h"
+#include"fnpf_ddx_cds4.h"
 #include"fnpf_sg_coastline.h"
 #include"sflow_bicgstab.h"
 
@@ -59,7 +64,6 @@ fnpf_sg_fsfbc_wd::fnpf_sg_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p
     pconvec = new fnpf_weno_wd(p,c);
     pconeta = new fnpf_weno_wd(p,c);
     }
-    //pdf = new fnpf_wenoflux(p);
 
     if(p->A311==6)
     pconvec = pconeta = new fnpf_cds6_wd(p);
@@ -83,6 +87,20 @@ fnpf_sg_fsfbc_wd::fnpf_sg_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p
     pddx = new fnpf_ddx_cds4_wd(p);
     pdx = new fnpf_cds4_wd(p);
     }
+    
+    /*
+    // ---
+    if(p->A312==2)
+    {
+    pddx = new fnpf_ddx_cds2(p);
+    pdx = new fnpf_cds2(p);
+    }
+    
+    if(p->A312==3)
+    {
+    pddx = new fnpf_ddx_cds4(p);
+    pdx = new fnpf_cds4(p);
+    }*/
     
     
     FFILOOP4
@@ -192,47 +210,38 @@ void fnpf_sg_fsfbc_wd::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta
     {
     c->Fz(i,j) = p->sigz[IJ]*pconvec->sz(p,c->Fi);
 
-
+    if(c->wet(i,j)==0)
+    c->Fz(i,j) = 0.0;
     }
     
     coastline(p,c,pgc,c->Fz);
 }
 
 void fnpf_sg_fsfbc_wd::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
-{
-    double dEdF_x,dEdF_y;
-    
+{    
     SLICELOOP4
     {
-    dEdF_x = c->Fx(i,j)*c->Ex(i,j);
-    dEdF_y = c->Fy(i,j)*c->Ey(i,j);
-
-    c->K(i,j) =  - dEdF_x - dEdF_y
+    c->K(i,j) =  - c->Fx(i,j)*c->Ex(i,j) - c->Fy(i,j)*c->Ey(i,j)
     
                  + c->Fz(i,j)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0));
-     
+     /*
     if(c->wet(i-1,j)==0 || c->wet(i+1,j)==0 || c->wet(i,j-1)==0 || c->wet(i,j+1)==0 
   || c->wet(i-1,j-1)==0 || c->wet(i+1,j-1)==0 || c->wet(i-1,j+1)==0 || c->wet(i+1,j+1)==0)
-      c->K(i,j) = c->Fz(i,j);
+      c->K(i,j) = c->Fz(i,j);*/
     }
 }
 
 void fnpf_sg_fsfbc_wd::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
-{
-    double dFdF_x,dFdF_y;
-    
+{  
     SLICELOOP4
     {
-    dFdF_x = c->Fx(i,j)*c->Fx(i,j);
-    dFdF_y = c->Fy(i,j)*c->Fy(i,j);
-    
-    c->K(i,j) =  - 0.5*dFdF_x - 0.5*dFdF_y
+    c->K(i,j) =  - 0.5*c->Fx(i,j)*c->Fx(i,j) - 0.5*c->Fy(i,j)*c->Fy(i,j)
     
                  + 0.5*pow(c->Fz(i,j),2.0)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0)) - fabs(p->W22)*eta(i,j);          
-            
+         /*   
     if(c->wet(i-1,j)==0 || c->wet(i+1,j)==0 || c->wet(i,j-1)==0 || c->wet(i,j+1)==0 
   || c->wet(i-1,j-1)==0 || c->wet(i+1,j-1)==0 || c->wet(i-1,j+1)==0 || c->wet(i+1,j+1)==0)
-      c->K(i,j) =  - fabs(p->W22)*eta(i,j);
+      c->K(i,j) =  - fabs(p->W22)*eta(i,j);*/
     }
 }
 

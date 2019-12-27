@@ -34,7 +34,7 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
         cout<<endl<<"EMERGENCY STOP  --  velocities exceeding critical value N 61"<<endl<<endl;
         
     
-    
+     if(p->A10==5)
      pprint->print_vtu(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
      
      pgc->final();
