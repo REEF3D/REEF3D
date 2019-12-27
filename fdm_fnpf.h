@@ -68,9 +68,6 @@ public:
     sliceint5 nodeval2D;
     slice4 breaking_print;
     
-    slice1 P;
-    slice2 Q;
-    
     cpt2D C4;
 	
     vec rhsvec;

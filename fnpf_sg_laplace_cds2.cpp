@@ -45,7 +45,7 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
 	n=0;
     LOOP
 	{
-        if(c->wet(i,j)==1)
+        if(c->wet(i,j)==1 && p->flag7[FIJK]>0)
         {
         sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
         
@@ -81,9 +81,8 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
     
     n=0;
 	LOOP
-    if(p->flag7[FIJK]>0)
 	{
-            if(c->wet(i,j)==1)
+            if(c->wet(i,j)==1 && p->flag7[FIJK]>0)
             {
         
             // south
@@ -167,7 +166,7 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             {
             sigxyz2= pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
             
-            ab = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]));
+            ab = c->M.b[n];
             
             denom = p->sigz[IJ] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
 

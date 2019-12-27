@@ -24,8 +24,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include"mgc4.h"
-#include"mgcslice1.h"
-#include"mgcslice2.h"
 #include"mgcslice4.h"
 
 void driver::makegrid_fnpf(lexer *p, ghostcell *pgc)
