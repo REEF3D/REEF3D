@@ -27,14 +27,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
 {	
-    if(p->umax>p->N61 || p->vmax>p->N61 || p->wmax>p->N61 || p->umax!=p->umax || p->vmax!=p->vmax || p->wmax!=p->wmax)
+    if(p->umax>p->N61 || p->vmax>p->N61 || p->wmax>p->N61)
     {
     
         if(p->mpirank==0)
         cout<<endl<<"EMERGENCY STOP  --  velocities exceeding critical value N 61"<<endl<<endl;
         
     
-    
+     if(p->A10==5)
      pprint->print_vtu(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
      
      pgc->final();

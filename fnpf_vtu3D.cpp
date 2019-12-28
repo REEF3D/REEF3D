@@ -124,7 +124,7 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
         }
         
         // Print BED
-        if(p->count==0)
+        if(p->count==0 && p->printcount==1)
 		pbed->start(p,c,pgc,pflow);
         
         
@@ -417,6 +417,7 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 //  XYZ
 	double theta_y = p->B192_1*(PI/180.0);
 	double omega_y = 2.0*PI*p->B192_2;
+    double waterlevel;
 
     if(p->B192==1 && p->simtime>=p->B194_s && p->simtime<=p->B194_e)
     phase = omega_y*p->simtime;
@@ -425,9 +426,12 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPLOOP
 	{
-    zcoor = p->ZN[KP1]*c->WL(i,j) + c->bed(i,j); 
+    waterlevel = pgc->gcsl_ipol4eta(p,c->eta,c->bed)+p->wd - pgc->gcsl_ipol4(p,c->bed);  
     
-    if(c->wet(i,j)==0 && p->flagslice4[IJ]>0)
+    zcoor = p->ZN[KP1]*waterlevel + pgc->gcsl_ipol4(p,c->bed); 
+    
+    
+    if(c->wet(i,j)==0)
     zcoor=c->bed(i,j);
     
     if(i+p->origin_i==-1 && j+p->origin_j==-1 && c->wet(0,0)==1)

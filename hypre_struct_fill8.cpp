@@ -30,6 +30,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void hypre_struct::fill_matrix8(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec &rhs, matrix_diag &M)
 {    
+    count=0;
+    BASELOOP
+    {
+    cval4(i,j,k)=count;
+    ++count;
+    }
     
     nentries=7;
     
@@ -39,7 +45,7 @@ void hypre_struct::fill_matrix8(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f
     count=0;
     KJILOOP
     {
-		PWDFLUIDCHECK
+		FPWDCHECK
 		{
 		n=cval4(i,j,k);
         

@@ -59,14 +59,7 @@ void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
     LOOP
     {
         sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
-        /*
-        if(p->mpirank==0)
-        {
-        cout<<i<<" "<<k<<" . "<<ckx[IP][0]<<"  "<<ckx[IP][1]<<"  "<<ckx[IP][2]<<"  "<<ckx[IP][3]<<"  "<<ckx[IP][4]<<endl;
-        cout<<i<<" "<<k<<" . "<<ckz[KP][0]<<"  "<<ckz[KP][1]<<"  "<<ckz[KP][2]<<"  "<<ckz[KP][3]<<"  "<<ckz[KP][4]<<endl;
-        
-        }*/
-        
+
         c->M.p[n] = ckx[IP][2]*p->x_dir 
                   + cky[JP][2]*p->y_dir 
                   + sigxyz2*ckz[KP][2]*p->z_dir; 

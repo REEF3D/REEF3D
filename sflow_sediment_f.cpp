@@ -27,7 +27,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"slice2.h"
 #include"fnpf_weno.h"
  
-sflow_sediment_f::sflow_sediment_f(lexer* p, fdm2D *b) : tau(p),taucr(p),alpha(p),teta(p),gamma(p),phi(p),topovel1(p),topovel2(p),fh(p),red(p)
+sflow_sediment_f::sflow_sediment_f(lexer* p, fdm2D *b) : tau(p),taucr(p),alpha(p),teta(p),gamma(p),phi(p),topovel1(p),topovel2(p),
+                                                        fh(p),red(p),ks(p)
 {
     p->sedtime=0.0;
     
@@ -39,12 +40,14 @@ sflow_sediment_f::sflow_sediment_f(lexer* p, fdm2D *b) : tau(p),taucr(p),alpha(p
     topovel2(i,j)=0.0;
     topovel1(i,j)=0.0;
     red(i,j)=1.0;
+    ks(i,j) = p->S20;
     }
     
     midphi=p->S81*(PI/180.0);
     delta=p->S82*(PI/180.0);
     
     relax_ini(p,b);
+    
 }
 
 sflow_sediment_f::~sflow_sediment_f()
@@ -54,6 +57,11 @@ sflow_sediment_f::~sflow_sediment_f()
 void sflow_sediment_f::ini(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     relax(p,b,pgc);
+    
+    SLICELOOP4
+    {
+    ks(i,j) = p->S20;
+    }
 }
 
 void sflow_sediment_f::start(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q, slice &topovel)
@@ -96,6 +104,11 @@ void sflow_sediment_f::sediment_algorithm(lexer *p, fdm2D *b, ghostcell *pgc, sl
     
     // sandslide
     bedslope(p,b,pgc,P,Q);
+    
+    if(p->S90==1)
+    sandslide(p,b,pgc,P,Q);
+    
+    if(p->S90==2)
     sandslide_v2(p,b,pgc,P,Q);
     
     relax(p,b,pgc);

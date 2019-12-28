@@ -72,7 +72,7 @@ private:
     void filter(lexer*, fdm2D*, ghostcell*,slice&,int,int);
     
     
-    slice4 tau,taucr,alpha,teta,gamma,phi,fh,red;
+    slice4 tau,taucr,alpha,teta,gamma,phi,fh,red,ks;
     slice4 topovel1,topovel2;
     
     double starttime;

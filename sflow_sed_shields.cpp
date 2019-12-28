@@ -42,7 +42,7 @@ void sflow_sediment_f::shields(lexer *p, fdm2D *b, ghostcell *pgc)
     SLICELOOP4
     {
     taucr(i,j) = (p->S30*fabs(p->W22)*(p->S22-p->W1))*p->S20*red(i,j);
-    b->test(i,j) = red(i,j);
+    //b->test(i,j) = red(i,j);
     }
     
     pgc->gcsl_start4(p,b->test,1);
@@ -53,17 +53,19 @@ void sflow_sediment_f::parker(lexer *p, fdm2D *b, ghostcell *pgc)
     double r=1.0;
     double eta = 0.85;
     double mu,d,qval,pval,r1,r2;
+    double a,t;
 
     SLICELOOP4
     {
-	alpha(i,j) = fabs(alpha(i,j));
+	a = fabs(alpha(i,j))<phi(i,j)?alpha(i,j):(phi(i,j)*0.99);
+    t = fabs(teta(i,j))<phi(i,j)?teta(i,j):(phi(i,j)*0.99);
 
 	mu = atan(1.0/phi(i,j));
 	d = (4.0/3.0)*mu*0.85*0.74;
 	
-	pval = (2.0/(1.0-d))*(d/sqrt(1.0 + tan(alpha(i,j))*tan(alpha(i,j)) + tan(teta(i,j))*tan(teta(i,j))) + sin(teta(i,j))/mu);
+	pval = (2.0/(1.0-d))*(d/sqrt(1.0 + tan(a)*tan(a) + tan(t)*tan(t)) + sin(t)/mu);
 
-	qval = ((1.0+d)/(1.0-d))*(1.0/(1.0 + tan(alpha(i,j))*tan(alpha(i,j)) + tan(teta(i,j))*tan(teta(i,j))))*(-1.0 + ((tan(alpha(i,j))*tan(alpha(i,j)) + tan(teta(i,j))*tan(teta(i,j)))/mu));
+	qval = ((1.0+d)/(1.0-d))*(1.0/(1.0 + tan(a)*tan(a) + tan(t)*tan(t)))*(-1.0 + ((tan(a)*tan(a) + tan(t)*tan(t))/mu));
 
 	r1 = -0.5*pval - sqrt(pval*pval*0.25 - qval);
 	
@@ -73,22 +75,24 @@ void sflow_sediment_f::parker(lexer *p, fdm2D *b, ghostcell *pgc)
     {
     //r = 0.1/(fabs(gamma(i,j)) + 0.0000001)+0.1;
     
-    r = cos(teta(i,j))*(1.0 - tan(teta(i,j)/tan(phi(i,j))));
-    r*= cos(alpha(i,j))*(1.0 - pow(tan(alpha(i,j)),2.0)/pow(tan(phi(i,j)),2.0));
+    r = cos(t)*(1.0 - tan(t/tan(phi(i,j))));
+    r*= cos(a)*(1.0 - pow(tan(a),2.0)/pow(tan(phi(i,j)),2.0));
     
     r = MAX(r,0.1);
     r = MIN(r,1.0);
     }
 
 	
-	if(  ((1.0 + tan(alpha(i,j))*tan(alpha(i,j)) + tan(teta(i,j))*tan(teta(i,j)))  < 0.0 || (pval*pval*0.25 - qval) < 0.0))
+	if(  ((1.0 + tan(a)*tan(a) + tan(t)*tan(t))  < 0.0 || (pval*pval*0.25 - qval) < 0.0))
 	{
-    //r = 0.1/(fabs(gamma(i,j)) + 0.0000001)+0.1;
-    r = cos(teta(i,j))*(1.0 - tan(teta(i,j)/tan(phi(i,j))));
-    r*= cos(alpha(i,j))*(1.0 - pow(tan(alpha(i,j)),2.0)/pow(tan(phi(i,j)),2.0));
+    r = 0.1/(fabs(gamma(i,j)) + 0.0000001)+0.1;
+    
+    
+    /*r = cos(t)*(1.0 - tan(t)/tan(phi(i,j)));
+    r*= cos(a)*(1.0 - pow(tan(a),2.0)/pow(tan(phi(i,j)),2.0));
     
     r = MAX(r,0.1);
-    r = MIN(r,2.0);
+    r = MIN(r,2.0);*/
 	}
 
 	if(p->pos_x()<p->S71)
@@ -97,9 +101,8 @@ void sflow_sediment_f::parker(lexer *p, fdm2D *b, ghostcell *pgc)
 	if(p->pos_x()>p->S72)
 	r=1.0;
     
-    r = MIN(r,2.0);
-    
-    r=MIN(r,1.25);
+
+    r=MIN(r,2.0);
     r=MAX(r,0.01);
 	
     red(i,j) = r;
@@ -120,15 +123,15 @@ void sflow_sediment_f::dey_emp(lexer *p, fdm2D *b, ghostcell *pgc)
 
 	if( 1.0-teta(i,j)/phi(i,j) < 0.0 || 1.0-alpha(i,j)/phi(i,j)< 0.0)
     {
-    r = cos(teta(i,j))*(1.0 - tan(teta(i,j)/tan(phi(i,j))));
-    r*= cos(alpha(i,j))*(1.0 - pow(tan(alpha(i,j)),2.0)/pow(tan(phi(i,j)),2.0));
+    //r = cos(teta(i,j))*(1.0 - tan(teta(i,j))/tan(phi(i,j)));
+    //r*= cos(alpha(i,j))*(1.0 - pow(tan(alpha(i,j)),2.0)/pow(tan(phi(i,j)),2.0));
     
-	//r = 0.954;//0.5/(fabs(gamma(i,j)) + 0.0000001)+0.1;
+	r = 0.5/(fabs(gamma(i,j)) + 0.0000001)+0.1;
     }
 
 
     if(r<0.0)
-    r = 1.0;
+    r = 0.01;
 
 	if(p->pos_x()<p->S71)
 	r=1.0;
@@ -136,7 +139,7 @@ void sflow_sediment_f::dey_emp(lexer *p, fdm2D *b, ghostcell *pgc)
 	if(p->pos_x()>p->S72)
 	r=10.0;
     
-    r=MIN(r,1.25);
+    r=MIN(r,2.0);
     r=MAX(r,0.01);
     
     red(i,j) = r;
@@ -162,12 +165,14 @@ void sflow_sediment_f::dey_ana(lexer *p, fdm2D *b, ghostcell *pgc)
 	if(  (pow(( sin(teta(i,j)) + eta*tan(phi(i,j))*tan(phi(i,j))*sqrt(cos(teta(i,j))*cos(teta(i,j))-sin(alpha(i,j))*sin(alpha(i,j)))),2.0) +(1.0 - eta*eta*tan(phi(i,j))*tan(phi(i,j)))
 		*(cos(teta(i,j))*cos(teta(i,j))*tan(phi(i,j))*tan(phi(i,j)) - sin(alpha(i,j))*sin(alpha(i,j))*tan(phi(i,j))*tan(phi(i,j)) - sin(teta(i,j))*sin(teta(i,j)) - sin(alpha(i,j))*sin(alpha(i,j)) ) )  < 0.0 || cos(teta(i,j))*cos(teta(i,j))-sin(alpha(i,j))*sin(alpha(i,j)) < 0.0)
     {
-        //r = 0.1/(fabs(gamma(i,j)) + 0.0000001)+0.1;
-        r = cos(teta(i,j))*(1.0 - tan(teta(i,j)/tan(phi(i,j))));
+        r = 0.1/(fabs(gamma(i,j)) + 0.0000001)+0.1;
+        
+        
+        /*r = cos(teta(i,j))*(1.0 - tan(teta(i,j))/tan(phi(i,j)));
         r*= cos(alpha(i,j))*(1.0 - pow(tan(alpha(i,j)),2.0)/pow(tan(phi(i,j)),2.0));
         
-        r = MAX(r,0.1);
-        r = MIN(r,2.0);
+        r = MAX(r,0.01);
+        r = MIN(r,2.0);*/
     }
 
 
@@ -182,7 +187,7 @@ void sflow_sediment_f::dey_ana(lexer *p, fdm2D *b, ghostcell *pgc)
 	if(p->pos_x()>p->S72)
 	r=10.0;
     
-    r=MIN(r,1.25);
+    r=MIN(r,2.0);
     r=MAX(r,0.01);
     
     red(i,j) = r;
@@ -190,19 +195,20 @@ void sflow_sediment_f::dey_ana(lexer *p, fdm2D *b, ghostcell *pgc)
 }
 
 void sflow_sediment_f::fredsoe_long(lexer *p, fdm2D *b, ghostcell *pgc)
-{
+{  
+    double a,t;
     double r=1.0;
     
     SLICELOOP4
     {
-    r = cos(teta(i,j))*(1.0 - tan(teta(i,j)/tan(phi(i,j))));
+    a = fabs(alpha(i,j))<phi(i,j)?alpha(i,j):(phi(i,j)*0.99);
+    t = fabs(teta(i,j))<phi(i,j)?teta(i,j):(phi(i,j)*0.99);
     
-    r*= cos(alpha(i,j))*(1.0 - pow(tan(alpha(i,j)),2.0)/pow(tan(phi(i,j)),2.0));
-    
-    r=MIN(r,1.25);
+    r = cos(t)*(1.0 - tan(t)/tan(phi(i,j)));
+    r*= cos(a)*(1.0 - pow(tan(a),2.0)/pow(tan(phi(i,j)),2.0));
+
+    r=MIN(r,2.0);
     r=MAX(r,0.01);
-    
-    red(i,j)=r;
     }
     
 }

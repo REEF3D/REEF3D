@@ -28,10 +28,8 @@ Author: Hans Bihs
 #define PSLICECHECK2  if(p->flagslice2[IJ]>0)
 #define SLICELOOP2 IVLOOP JVLOOP  PSLICECHECK2
 
-#define PSLICECHECK3  if(p->flagslice3[IJ]>0)
-#define SLICELOOP3 IWLOOP JWLOOP  PSLICECHECK3
-
 #define PSLICECHECK4  if(p->flagslice4[IJ]>0)
+#define SSLICECHECK4  if(p->flagslice4[IJ]<=0)
 #define SLICELOOP4 ILOOP JLOOP  PSLICECHECK4
 
 #define IREVLOOP	for(i=p->knox-1; i>=0; --i)
@@ -44,14 +42,9 @@ Author: Hans Bihs
 
 #define SLICEBASELOOP ILOOP JLOOP 
 
-#define PSLICECHECK4A  if(p->flagslice4a[IJ]>0)
-#define SLICELOOP4A ILOOP JLOOP  PSLICECHECK4A
-
 
 #define TPSLICECHECK  if(p->tpflagslice[IJ]>0)
 #define TPSLICELOOP ITPLOOP JTPLOOP TPSLICECHECK
-
-#define TPSLICELOOP4A ITPLOOP JTPLOOP
 
 #define NSLICELOOP for(n=sizeS[0]; n<sizeS[1]; ++n)
 #define NSLICELOOP1 for(n=p->sizeS1[0]; n<p->sizeS1[1]; ++n)

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<CodeLite_Project Name="REEF3D" InternalType="Console" Version="10.0.0">
+<CodeLite_Project Name="REEF3D" InternalType="Console" Version="11000">
   <Plugins>
     <Plugin Name="qmake">
       <![CDATA[00020001N0005Debug0000000000000001N0007Release000000000000]]>
@@ -441,15 +441,11 @@
           <File Name="slice.h"/>
           <File Name="slice1.h"/>
           <File Name="slice2.h"/>
-          <File Name="slice3.h"/>
           <File Name="slice4.h"/>
-          <File Name="slice4a.h"/>
           <VirtualDirectory Name="MGC">
             <File Name="mgcslice1.h"/>
             <File Name="mgcslice2.h"/>
-            <File Name="mgcslice3.h"/>
             <File Name="mgcslice4.h"/>
-            <File Name="mgcslice4a.h"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Solid">
@@ -855,11 +851,11 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
+          <File Name="sflow_turb_ke_IM1.h"/>
           <File Name="sflow_turb_parabolic.h"/>
           <File Name="sflow_turb_kw_IM1.h"/>
           <File Name="sflow_turb_void.h"/>
           <File Name="sflow_turb_prandtl.h"/>
-          <File Name="sflow_turb_keps_IM1.h"/>
           <File Name="sflow_turbulence.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Solver">
@@ -1644,6 +1640,8 @@
         <File Name="gcsolid_dist.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Slice">
+        <File Name="gcsl_solidupdate.cpp"/>
+        <File Name="gcxsl_parax_fh.cpp"/>
         <File Name="gcxsl_update.cpp"/>
         <File Name="gcxsl_paraxvec2D.cpp"/>
         <File Name="gcxsl_paracox_int.cpp"/>
@@ -1788,34 +1786,24 @@
           <File Name="slice5.cpp"/>
           <File Name="slice1.cpp"/>
           <File Name="slice2.cpp"/>
-          <File Name="slice3.cpp"/>
           <File Name="slice4.cpp"/>
-          <File Name="slice4a.cpp"/>
           <VirtualDirectory Name="MGC">
+            <File Name="mgcslice4.cpp"/>
             <File Name="mgcslice1.cpp"/>
             <File Name="mgcslice2.cpp"/>
-            <File Name="mgcslice3.cpp"/>
-            <File Name="mgcslice4.cpp"/>
-            <File Name="mgcslice4a.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="GGC">
             <File Name="ggcslice1.cpp"/>
             <File Name="ggcslice2.cpp"/>
-            <File Name="ggcslice3.cpp"/>
             <File Name="ggcslice4.cpp"/>
-            <File Name="ggcslice4a.cpp"/>
             <File Name="ggcslicepol1.cpp"/>
             <File Name="ggcslicepol2.cpp"/>
-            <File Name="ggcslicepol3.cpp"/>
             <File Name="ggcslicepol4.cpp"/>
-            <File Name="ggcslicepol4a.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="GCB">
             <File Name="gcbslice1.cpp"/>
             <File Name="gcbslice2.cpp"/>
-            <File Name="gcbslice3.cpp"/>
             <File Name="gcbslice4.cpp"/>
-            <File Name="gcbslice4a.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <File Name="grid.cpp"/>
@@ -2348,9 +2336,7 @@
             <File Name="sflow_sed_bedshear.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Bedload">
-            <File Name="sflow_sed_MPM.cpp"/>
             <File Name="sflow_sed_vanRijn.cpp"/>
-            <File Name="sflow_sed_EF.cpp"/>
           </VirtualDirectory>
           <File Name="sflow_sediment_v.cpp"/>
           <File Name="sflow_sediment_f.cpp"/>
@@ -2386,11 +2372,11 @@
           <File Name="sflow_eta_breaking.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
+          <File Name="sflow_turb_ke_IM1.cpp"/>
           <File Name="sflow_turb_parabolic.cpp"/>
           <File Name="sflow_turb_kw_IM1.cpp"/>
           <File Name="sflow_turb_void.cpp"/>
           <File Name="sflow_turb_prandtl.cpp"/>
-          <File Name="sflow_turb_keps_IM1.cpp"/>
         </VirtualDirectory>
         <File Name="sflow_f.cpp"/>
         <File Name="sflow_v.cpp"/>

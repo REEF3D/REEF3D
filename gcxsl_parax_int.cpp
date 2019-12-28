@@ -75,7 +75,7 @@ void ghostcell::gcslparax_int(lexer* p,sliceint& f,int gcv)
         
         for(n=0;n<paramargin;++n)
         {
-        isend2[count]=f(i,j+n);
+        isend2[count]=f(i,j-n);
         ++count;
         }
 	}

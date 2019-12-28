@@ -141,10 +141,6 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,erk1,frk1);
-    
-     LOOP
-    if(c->breaking(i,j)==1)
-    c->test(i,j,k)=1.0;
 
 // Step 2
     pflow->inflow_fnpf(p,pgc,c->Fi,c->Uin,frk1,erk1);
@@ -190,9 +186,6 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,erk2,frk2);
     
-     LOOP
-    if(c->breaking(i,j)==1)
-    c->test(i,j,k)=1.0;
 
 // Step 3 
     pflow->inflow_fnpf(p,pgc,c->Fi,c->Uin,frk2,erk2);
@@ -240,12 +233,8 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     
 
     //---------------------------------
-    //LOOP
-    //c->test(i,j,k)=c->vb(i,j);
-    
     LOOP
-    if(c->breaking(i,j)==1)
-    c->test(i,j,k)=1.0;
+    c->test(i,j,k)=c->Bx(i,j);
     
     pgc->start4(p,c->test,50);
 

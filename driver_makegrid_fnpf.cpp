@@ -36,9 +36,17 @@ void driver::makegrid_fnpf(lexer *p, ghostcell *pgc)
     for(i=0;i<p->imax*p->jmax*(p->kmax+2);++i)
     p->flag7[i]=-10;
     
+    // flag4
     BASELOOP
     {
         p->flag7[FIJK]=p->flag4[IJK];
+    }
+    
+    // add solid structures
+    BASELOOP
+    {
+        if(p->flagslice4[IJ]<0)
+        p->flag7[FIJK]=-10;
     }
     
     k=p->knoz;
@@ -102,9 +110,6 @@ void driver::makegrid_fnpf(lexer *p, ghostcell *pgc)
     }
     p->gcx7_count[3]=q;
     
-    //cout<<p->mpirank<<" nb1: "<<p->gcx7_count[0]<<endl;
-    //cout<<p->mpirank<<" nb4: "<<p->gcx7_count[3]<<endl;
-    
     //nb2
     q=0;
     if(p->nb2>=0)
@@ -132,9 +137,6 @@ void driver::makegrid_fnpf(lexer *p, ghostcell *pgc)
     p->gcx7_count[2]=q;
 
     
-    //cout<<p->mpirank<<" nb2: "<<p->gcx7_count[1]<<endl;
-    //cout<<p->mpirank<<" nb3: "<<p->gcx7_count[2]<<endl;
-
 // ---------------
 // gcxco7 
     //nb1
@@ -344,8 +346,8 @@ void driver::makegrid_fnpf(lexer *p, ghostcell *pgc)
 
     
     // 2D
-    pgc->gcsl_tpflag(p);
     
+    pgc->gcsl_tpflag(p);    
     pgc->gcslflagx(p,p->flagslice4);
     
     mgcslice4 msl4(p);
@@ -363,7 +365,7 @@ void driver::makegrid_fnpf(lexer *p, ghostcell *pgc)
     pgc->gcsl_setbcio(p);
     
 	pgc->dgcslini4(p); 
-
+    
 }
 	
 void driver::makegrid_fnpf_cds(lexer *p, ghostcell *pgc)

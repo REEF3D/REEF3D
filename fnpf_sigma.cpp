@@ -75,8 +75,14 @@ void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsf *p
     SLICELOOP4
     c->WL(i,j) = MAX(0.0,c->eta(i,j) + p->wd - c->bed(i,j));
     
-    SLICELOOP4
+    SLICEBASELOOP
+    {
+    PSLICECHECK4
 	c->depth(i,j) = p->wd - c->bed(i,j);
+    
+    SSLICECHECK4
+	c->depth(i,j) = p->wd - p->bed[IJ];
+    }
     
     pgc->gcsl_start4(p,c->depth,50);
     
@@ -87,39 +93,45 @@ void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsf *p
 void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsf *pf, slice &eta)
 {
     // sigx
-    FLOOP
+    FBASELOOP
     {
-    if(c->wet(i,j)==1)
+    if(c->wet(i,j)==1 && c->WL(i,j)>=WLVLDRY && p->flag7[FIJK]>0)
     p->sigx[FIJK] = (1.0 - p->sig[FIJK])*(c->Bx(i,j)/WLVL) - p->sig[FIJK]*(c->Ex(i,j)/WLVL);
     
-    if(c->wet(i,j)==0)
-    p->sigx[FIJK] = (1.0 - p->sig[FIJK])*(c->Bx(i,j)/WLVLDRY) - p->sig[FIJK]*(c->Bx(i,j)/WLVLDRY);
+    if(c->wet(i,j)==0 || c->WL(i,j)<WLVLDRY || p->flag7[FIJK]<0)
+    p->sigx[FIJK] = 0.0;
     }
     
     // sigy
-    FLOOP
+    FBASELOOP
     {
-    if(c->wet(i,j)==1)
+    if(c->wet(i,j)==1 && c->WL(i,j)>=WLVLDRY && p->flag7[FIJK]>0)
     p->sigy[FIJK] = (1.0 - p->sig[FIJK])*(c->By(i,j)/WLVL) - p->sig[FIJK]*(c->Ey(i,j)/WLVL);
     
-    if(c->wet(i,j)==0)
-    p->sigy[FIJK] = (1.0 - p->sig[FIJK])*(c->By(i,j)/WLVLDRY) - p->sig[FIJK]*(c->By(i,j)/WLVLDRY);
+    if(c->wet(i,j)==0 || c->WL(i,j)<WLVLDRY || p->flag7[FIJK]<0)
+    p->sigy[FIJK] = 0.0;
     }
     
     // sigz
-    SLICELOOP4
+    SLICEBASELOOP
     {
-    if(c->wet(i,j)==1)
-    p->sigz[IJ] = 1.0/WLVL;
-    
-    if(c->wet(i,j)==0)
-    p->sigz[IJ] = 1.0/WLVLDRY;
+        PSLICECHECK4
+        {
+        if(c->wet(i,j)==1)
+        p->sigz[IJ] = 1.0/WLVL;
+        
+        if(c->wet(i,j)==0)
+        p->sigz[IJ] = 1.0/WLVLDRY;
+        }
+        
+        SSLICECHECK4
+        p->sigz[IJ] = 1.0/(p->wd-p->bed[IJ]);
     }
     
     // sigxx
-    FLOOP
+    FBASELOOP
     {
-    if(c->wet(i,j)==1)
+    if(c->wet(i,j)==1 && c->WL(i,j)>=WLVLDRY && p->flag7[FIJK]>0 )
     {
     p->sigxx[FIJK] = ((1.0 - p->sig[FIJK])/WLVL)*(c->Bxx(i,j) - pow(c->Bx(i,j),2.0)/WLVL) // xx
     
@@ -142,23 +154,8 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsf
                   
                   
                   
-    if(c->wet(i,j)==0)
-    p->sigxx[FIJK] = ((1.0 - p->sig[FIJK])/WLVLDRY)*(c->Bxx(i,j) - pow(c->Bx(i,j),2.0)/WLVLDRY) // xx
-    
-                  - (p->sig[FIJK]/WLVLDRY)*(c->Bxx(i,j) - pow(c->Bx(i,j),2.0)/WLVLDRY)
-                  
-                  - (p->sigx[FIJK]/WLVLDRY)*(c->Bx(i,j) + c->Bx(i,j))
-                  
-                  - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVLDRY,2.0))*(c->Bx(i,j)*c->Bx(i,j))
-                  
-                  
-                  + ((1.0 - p->sig[FIJK])/WLVLDRY)*(c->Byy(i,j) - pow(c->By(i,j),2.0)/WLVLDRY) // yy
-    
-                  - (p->sig[FIJK]/WLVLDRY)*(c->Byy(i,j) - pow(c->By(i,j),2.0)/WLVLDRY)
-                  
-                  - (p->sigy[FIJK]/WLVLDRY)*(c->By(i,j) + c->By(i,j))
-                  
-                  - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVLDRY,2.0))*(c->By(i,j)*c->By(i,j));
+    if(c->wet(i,j)==0 || c->WL(i,j)<WLVLDRY || p->flag7[FIJK]<=0)
+    p->sigxx[FIJK] = 0.0;
     }
     
     // sig BC
@@ -237,7 +234,13 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_sg_fsf
     
     
     FLOOP
+    {
+    FPCHECK
     p->ZSN[FIJK] = p->ZN[KP]*(eta(i,j) + p->wd);
+    
+    FSCHECK
+    p->ZSN[FIJK] = p->ZN[KP]*(p->wd);
+    }
 }
 
 

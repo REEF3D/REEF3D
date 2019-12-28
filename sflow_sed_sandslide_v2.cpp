@@ -29,13 +29,15 @@ void sflow_sediment_f::sandslide_v2(lexer *p, fdm2D *b, ghostcell *pgc, slice &P
     fac1=p->S92*(1.0/6.0);
 	fac2=p->S92*(1.0/12.0);
 
-    if(p->S90==1)
+    if(p->S90>0)
     for(int qn=0; qn<p->S91; ++qn)
     {
         slidecount=0;
         
         SLICELOOP4
-        fh(i,j)=b->bed(i,j);
+        fh(i,j)=0.0;
+        
+        pgc->gcsl_start4(p,fh,1);
 
         // slide loop
         SLICELOOP4
@@ -44,8 +46,10 @@ void sflow_sediment_f::sandslide_v2(lexer *p, fdm2D *b, ghostcell *pgc, slice &P
             slide_v2(p,b,pgc);
         }
         
+        pgc->gcslparax_fh(p,fh,4);
+        
         SLICELOOP4
-        b->bed(i,j)=fh(i,j);
+        b->bed(i,j)+=fh(i,j);
 
         pgc->gcsl_start4(p,b->bed,1);
 
@@ -65,13 +69,11 @@ void sflow_sediment_f::slide_v2(lexer *p, fdm2D *b, ghostcell *pgc)
 {	
     double dh,dh_corr,maxdh,maxdhs;
     
-    double fp=0.0;
     
         // 1
         dh = b->bed(i,j) - b->bed(i-1,j);
-        //dh_corr = dh + tan(p->S93*(PI/180.0))*p->DXP[IM1];
         
-        maxdh = tan(phi(i,j) + fp*PI/180.0)*p->DXP[IM1];
+        maxdh = tan(phi(i,j))*p->DXP[IM1];
         
         if(dh>maxdh && fabs(dh)<1.0e15)
 		{   
@@ -84,9 +86,8 @@ void sflow_sediment_f::slide_v2(lexer *p, fdm2D *b, ghostcell *pgc)
 
         // 2
         dh = b->bed(i,j) - b->bed(i+1,j);
-		//dh_corr = dh + tan(p->S93*(PI/180.0))*p->DXP[IP];
         
-        maxdh = tan(phi(i,j) + fp*PI/180.0)*p->DXP[IP];
+        maxdh = tan(phi(i,j))*p->DXP[IP];
 		
         if(dh>maxdh && fabs(dh)<1.0e15)
 		{
@@ -100,9 +101,8 @@ void sflow_sediment_f::slide_v2(lexer *p, fdm2D *b, ghostcell *pgc)
 
         // 3
         dh = b->bed(i,j) - b->bed(i,j-1);
-		//dh_corr = dh + tan(p->S93*(PI/180.0))*p->DYP[JM1];
         
-        maxdh = tan(phi(i,j) + fp*PI/180.0)*p->DYP[JM1];
+        maxdh = tan(phi(i,j))*p->DYP[JM1];
         
         if(dh>maxdh && fabs(dh)<1.0e15)
 		{
@@ -115,9 +115,8 @@ void sflow_sediment_f::slide_v2(lexer *p, fdm2D *b, ghostcell *pgc)
 
         // 4
         dh = b->bed(i,j) - b->bed(i,j+1);
-		//dh_corr = dh + tan(p->S93*(PI/180.0))*p->DXP[JP];
         
-        maxdh = tan(phi(i,j) + fp*PI/180.0)*p->DYP[JP];
+        maxdh = tan(phi(i,j))*p->DYP[JP];
         
         if(dh>maxdh && fabs(dh)<1.0e15)
 		{
@@ -131,9 +130,8 @@ void sflow_sediment_f::slide_v2(lexer *p, fdm2D *b, ghostcell *pgc)
 		
         // 5
         dh = b->bed(i,j) - b->bed(i-1,j-1);
-		//dh_corr = dh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]);
-        
-        maxdhs = tan(phi(i,j) + fp*PI/180.0)*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]);
+
+        maxdhs = tan(phi(i,j))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]);
 
         if(dh>maxdhs && fabs(dh)<1.0e15)
         {
@@ -147,9 +145,8 @@ void sflow_sediment_f::slide_v2(lexer *p, fdm2D *b, ghostcell *pgc)
 
         // 6
         dh = b->bed(i,j) - b->bed(i-1,j+1);
-		//dh_corr = dh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]);
-        
-        maxdhs = tan(phi(i,j) + fp*PI/180.0)*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]);
+
+        maxdhs = tan(phi(i,j))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]);
         
         if(dh>maxdhs && fabs(dh)<1.0e15)
 		{            
@@ -162,9 +159,8 @@ void sflow_sediment_f::slide_v2(lexer *p, fdm2D *b, ghostcell *pgc)
 
         // 7
         dh = b->bed(i,j) - b->bed(i+1,j-1);
-		//dh_corr = dh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]);
-        
-        maxdhs = tan(phi(i,j) + fp*PI/180.0)*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]);
+
+        maxdhs = tan(phi(i,j))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]);
         
         if(dh>maxdhs && fabs(dh)<1.0e15)
 		{
@@ -177,9 +173,8 @@ void sflow_sediment_f::slide_v2(lexer *p, fdm2D *b, ghostcell *pgc)
     
         // 8
         dh = b->bed(i,j) - b->bed(i+1,j+1);
-		//dh_corr = dh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);
-        
-        maxdhs = tan(phi(i,j) + fp*PI/180.0)*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);
+
+        maxdhs = tan(phi(i,j))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);
 
         if(dh>maxdhs && fabs(dh)<1.0e15)
 		{            
