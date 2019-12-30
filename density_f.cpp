@@ -68,7 +68,7 @@ double density_f::roface(lexer *p, fdm *a, int aa, int bb, int cc)
         
         if(p->j_dir==1)
         psi = p->F45*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
-    
+        
         if(phival>psi)
         H=1.0;
 

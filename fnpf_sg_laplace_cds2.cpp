@@ -76,6 +76,24 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
                         /((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
                         
         }
+        
+        if(c->wet(i,j)==0 || p->flag7[FIJK]<0)
+        {
+        c->M.p[n]  =  1.0;
+
+
+        c->M.n[n] = 0.0;
+        c->M.s[n] = 0.0;
+
+        c->M.w[n] = 0.0;
+        c->M.e[n] = 0.0;
+
+        c->M.t[n] = 0.0;
+        c->M.b[n] = 0.0;
+        
+        c->rhsvec.V[n] =  0.0;
+        }
+        
 	++n;
 	}
     
