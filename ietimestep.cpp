@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2019 Hans Bihs
+Copyright 2008-2020 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -119,7 +119,7 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 // maximum reynolds stress source term
 	visccrit=p->viscmax*(6.0/pow(p->dx,2.0));
 	
-	if(p->D20<3)
+	if(p->D20<4)
 	{
 	a->maxF+=fabs(a->gi);
 	a->maxG+=fabs(a->gj);

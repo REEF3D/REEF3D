@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2019 Hans Bihs
+Copyright 2008-2020 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -266,7 +266,7 @@ void sflow_momentum_RK2::irhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &f, doub
 {
 
 	n=0;
-	if(p->D20<3)
+	if(p->D20<4)
 	SLICELOOP1
 	{
 	b->maxF=MAX(fabs(b->F(i,j)),b->maxF);
@@ -280,7 +280,7 @@ void sflow_momentum_RK2::jrhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &f, doub
 {
     
 	n=0;
-	if(p->D20<3)
+	if(p->D20<4)
 	SLICELOOP2
 	{
 	b->maxG=MAX(fabs(b->G(i,j)),b->maxG);

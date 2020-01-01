@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2019 Hans Bihs
+Copyright 2008-2020 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -44,6 +44,8 @@ void driver::loop_cfd(fdm* a)
 
     if(p->mpirank==0)
     cout<<"starting mainloop.CFD"<<endl;
+    
+    cout<<p->dx<<"    "<<p->DXM<<endl;
     
     
 //-----------MAINLOOP CFD----------------------------
