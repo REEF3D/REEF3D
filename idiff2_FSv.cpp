@@ -59,8 +59,11 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 	visc_i_j_kp=a->visc(i,j,k+1);
 	
 	visc_ddx_p = 0.25*(vfm*visc_ijk+ev_ijk + vfm*visc_i_jp_k+ev_i_jp_k + vfm*visc_ip_j_k+ev_ip_j_k + vfm*a->visc(i+1,j+1,k)+a->eddyv(i+1,j+1,k));
+    
 	visc_ddx_m = 0.25*(vfm*visc_im_j_k+ev_im_j_k + vfm*a->visc(i-1,j+1,k)+a->eddyv(i-1,j+1,k) + vfm*visc_ijk+ev_ijk + vfm*visc_i_jp_k+ev_i_jp_k);
+    
 	visc_ddz_p = 0.25*(vfm*visc_ijk+ev_ijk + vfm*visc_i_jp_k+ev_i_jp_k + vfm*visc_i_j_kp+ev_i_j_kp + vfm*a->visc(i,j+1,k+1)+a->eddyv(i,j+1,k+1));
+
 	visc_ddz_m = 0.25*(vfm*visc_i_j_km+ev_i_j_km + vfm*a->visc(i,j+1,k-1)+a->eddyv(i,j+1,k-1) + vfm*visc_ijk+ev_ijk + vfm*visc_i_jp_k+ev_i_jp_k);
     
 	
@@ -85,7 +88,7 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 	 
 	 a->M.b[count] = -visc_ddz_m/(p->DZP[KM1]*p->DZN[KP]);
 	 a->M.t[count] = -visc_ddz_p/(p->DZP[KP]*p->DZN[KP]);
-	 
+     
 	 ++count;
 	}
     
