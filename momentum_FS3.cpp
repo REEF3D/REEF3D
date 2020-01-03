@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2019 Hans Bihs
+Copyright 2008-2020 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -281,7 +281,7 @@ void momentum_FS3::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 void momentum_FS3::irhs(lexer *p, fdm *a)
 {
 	n=0;
-	if(p->D20<3)
+	if(p->D20<4)
 	ULOOP
 	{
     a->maxF=MAX(fabs(a->rhsvec.V[n]),a->maxF);
@@ -291,7 +291,7 @@ void momentum_FS3::irhs(lexer *p, fdm *a)
 	}
 	
 	n=0;
-	if(p->D20==3)
+	if(p->D20==4)
 	ULOOP
 	{
 	a->rhsvec.V[n]+=a->gi;
@@ -302,7 +302,7 @@ void momentum_FS3::irhs(lexer *p, fdm *a)
 void momentum_FS3::jrhs(lexer *p, fdm *a)
 {
 	n=0;
-	if(p->D20<3)
+	if(p->D20<4)
 	VLOOP
 	{
     a->maxG=MAX(fabs(a->rhsvec.V[n]),a->maxG);
@@ -312,7 +312,7 @@ void momentum_FS3::jrhs(lexer *p, fdm *a)
 	}
 	
 	n=0;
-	if(p->D20==3)
+	if(p->D20==4)
 	VLOOP
 	{
 	a->rhsvec.V[n]+=a->gj;
@@ -323,7 +323,7 @@ void momentum_FS3::jrhs(lexer *p, fdm *a)
 void momentum_FS3::krhs(lexer *p, fdm *a)
 {
 	n=0;
-	if(p->D20<3)
+	if(p->D20<4)
 	WLOOP
 	{
     a->maxH=MAX(fabs(a->rhsvec.V[n]),a->maxH);
@@ -333,7 +333,7 @@ void momentum_FS3::krhs(lexer *p, fdm *a)
 	}
 	
 	n=0;
-	if(p->D20==3)
+	if(p->D20==4)
 	WLOOP
 	{
 	a->rhsvec.V[n]+=a->gk;

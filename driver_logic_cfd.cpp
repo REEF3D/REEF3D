@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2019 Hans Bihs
+Copyright 2008-2020 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -203,10 +203,16 @@ void driver::logic()
 	if(p->D20==1)
 	pdiff=new ediff2(p);
 	
-	if(p->D20>=2 && p->j_dir==1)
+	if(p->D20==2 && p->j_dir==1)
 	pdiff=new idiff2_FS(p);
     
-    if(p->D20>=2  && p->j_dir==0)
+    if(p->D20==2  && p->j_dir==0)
+	pdiff=new idiff2_FS_2D(p);
+    
+    if(p->D20==3 && p->j_dir==1)
+	pdiff=new idiff2_FS_v2(p);
+    
+    if(p->D20==3  && p->j_dir==0)
 	pdiff=new idiff2_FS_2D(p);
 	
 	// turbulence

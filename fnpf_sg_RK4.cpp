@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2019 Hans Bihs
+Copyright 2008-2020 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -281,9 +281,7 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
 
-    LOOP
-    c->test(i,j,k) = c->Fifsf(i,j);
-    
+
     bedbc_sig(p,c,pgc,c->Fi,pf);
     velcalc_sig(p,c,pgc,c->Fi);
 }
@@ -302,8 +300,6 @@ void fnpf_sg_RK4::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, 
     
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
 
-    pgc->start4(p,c->test,50);
-    
     
     pf->coastline(p,c,pgc,c->eta);
     pf->coastline(p,c,pgc,c->Fifsf);

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2019 Hans Bihs
+Copyright 2008-2020 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -201,9 +201,9 @@ void  ikomega::kinsource(lexer *p, fdm* a)
 void  ikomega::epssource(lexer *p, fdm* a)
 {
     count=0;
-	double epsi = 1.6*p->DXM;
-	double dirac;
-	
+    double dirac;
+
+
 	if(p->T41==1)
 	{
         if(p->T40==0)
@@ -284,16 +284,17 @@ void ikomega::epsfsf(lexer *p, fdm* a, ghostcell *pgc)
             if(p->j_dir==1)
             epsi = p->T38*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
         
+        
 		if(fabs(a->phi(i,j,k))<epsi)
 		dirac = (0.5/epsi)*(1.0 + cos((p->T39*PI*a->phi(i,j,k))/epsi));
 		
 		if(fabs(a->phi(i,j,k))>=epsi)
 		dirac=0.0;
+        
 	
 	if(dirac>0.0 && p->T36==1)
 	eps(i,j,k) = dirac*2.5*pow(p->cmu,-0.25)*pow(fabs(kin(i,j,k)),0.5)*(1.0/p->T37);
 
-	
 	if(dirac>0.0 && p->T36==2)
 	eps(i,j,k) = dirac*2.5*pow(p->cmu,-0.25)*pow(fabs(kin(i,j,k)),0.5)*(1.0/p->T37 + 1.0/(a->walld(i,j,k)>1.0e-20?a->walld(i,j,k):1.0e20));
 	}

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2019 Hans Bihs
+Copyright 2008-2020 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -46,6 +46,7 @@ Author: Hans Bihs
 #include"ediff2.h"
 #include"idiff2.h"
 #include"idiff2_FS.h"
+#include"idiff2_FS_v2.h"
 #include"idiff2_FS_2D.h"
 
 #include"hires.h"

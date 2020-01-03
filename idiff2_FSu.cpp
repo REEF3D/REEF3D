@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2019 Hans Bihs
+Copyright 2008-2020 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -76,9 +76,12 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 	visc_i_j_km=a->visc(i,j,k-1);
 	visc_i_j_kp=a->visc(i,j,k+1);
 	
-	visc_ddy_p = 0.25*(vfm*visc_ijk+ev_ijk + vfm*visc_ip_j_k+ev_ip_j_k + vfm*visc_i_jp_k+visc_i_jp_k + vfm*a->visc(i+1,j+1,k)+a->eddyv(i+1,j+1,k));        
+	visc_ddy_p = 0.25*(vfm*visc_ijk+ev_ijk + vfm*visc_ip_j_k+ev_ip_j_k + vfm*visc_i_jp_k+ev_i_jp_k + vfm*a->visc(i+1,j+1,k)+a->eddyv(i+1,j+1,k));    
+    
 	visc_ddy_m = 0.25*(vfm*visc_i_jm_k+ev_i_jm_k  +vfm*a->visc(i+1,j-1,k)+a->eddyv(i+1,j-1,k) + vfm*visc_ijk+ev_ijk + vfm*visc_ip_j_k+ev_ip_j_k);
+    
 	visc_ddz_p = 0.25*(vfm*visc_ijk+ev_ijk + vfm*visc_ip_j_k+ev_ip_j_k + vfm*visc_i_j_kp+ev_i_j_kp + vfm*a->visc(i+1,j,k+1)+a->eddyv(i+1,j,k+1));
+    
 	visc_ddz_m = 0.25*(vfm*visc_i_j_km+ev_i_j_km + vfm*a->visc(i+1,j,k-1)+a->eddyv(i+1,j,k-1) + vfm*visc_ijk+ev_ijk + vfm*visc_ip_j_k+ev_ip_j_k);
 
 	a->M.p[count] =  2.0*(vfm*visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP]*p->DXP[IP])
@@ -89,7 +92,7 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 				   + visc_ddz_m/(p->DZP[KM1]*p->DZN[KP])
 				   + CPOR1/(alpha*p->dt);
 				  
-	a->rhsvec.V[count] += ((v(i+1,j,k)-v(i,j,k))*visc_ddy_p - (v(i+1,j-1,k)-v(i,j-1,k))*visc_ddy_m)/(p->DXP[IP]*p->DYN[JP])
+	a->rhsvec.V[count] +=  ((v(i+1,j,k)-v(i,j,k))*visc_ddy_p - (v(i+1,j-1,k)-v(i,j-1,k))*visc_ddy_m)/(p->DXP[IP]*p->DYN[JP])
 						 + ((w(i+1,j,k)-w(i,j,k))*visc_ddz_p - (w(i+1,j,k-1)-w(i,j,k-1))*visc_ddz_m)/(p->DXP[IP]*p->DZN[KP])
 
 						 + (CPOR1*u(i,j,k))/(alpha*p->dt);
@@ -104,7 +107,7 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 	 a->M.b[count] = -visc_ddz_m/(p->DZP[KM1]*p->DZN[KP]);
 	 a->M.t[count] = -visc_ddz_p/(p->DZP[KP]*p->DZN[KP]);
 	 
-	 ++count;
+     ++count;
 	 }
     
     n=0;

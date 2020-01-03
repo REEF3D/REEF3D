@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2019 Hans Bihs
+Copyright 2008-2020 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -66,9 +66,9 @@ void iowave::active_beach_fnpf(lexer *p, ghostcell* pgc, double *Fi, double *Uin
 		bb=1;
 
         fx=1.0;
+        Uc=eta_R*sqrt(9.81/p->wd);
             
-            
-			if(wsf>-1.0e20)
+			//if(wsf>-1.0e20)
 			FKLOOP 
 			{
 				z=p->ZSN[FIJK]-p->phimean;
@@ -95,11 +95,14 @@ void iowave::active_beach_fnpf(lexer *p, ghostcell* pgc, double *Fi, double *Uin
 
 				Uin[FIp1JK]=Uc*fx;
 			}
-            
-            
-        Fifsf(i+1,j) = Fifsf(i,j) + Uc*fx*1.0*p->DXP[IM1];
-        Fifsf(i+2,j) = Fifsf(i,j) + Uc*fx*2.0*p->DXP[IM1];
-        Fifsf(i+3,j) = Fifsf(i,j) + Uc*fx*3.0*p->DXP[IM1];
+          
+        
+         
+        Fifsf(i+1,j) = Fifsf(i,j) + Uc*fx*1.0*p->DXP[IP1];
+        Fifsf(i+2,j) = Fifsf(i,j) + Uc*fx*2.0*p->DXP[IP1];
+        Fifsf(i+3,j) = Fifsf(i,j) + Uc*fx*3.0*p->DXP[IP1];
+        
+        //cout<<p->mpirank<<" AWA Uc: "<<Uc<<" fx: "<<fx<<" p->DXP[IM1]: "<<p->DXP[IM1]<<" FiFsF_i "<<Fifsf(i,j)<<" FiFsF_i+1 "<<Fifsf(i+1,j)<<endl;
 
 		}
         

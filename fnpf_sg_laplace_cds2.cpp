@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2019 Hans Bihs
+Copyright 2008-2020 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -76,6 +76,24 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
                         /((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
                         
         }
+        
+        if(c->wet(i,j)==0 || p->flag7[FIJK]<0)
+        {
+        c->M.p[n]  =  1.0;
+
+
+        c->M.n[n] = 0.0;
+        c->M.s[n] = 0.0;
+
+        c->M.w[n] = 0.0;
+        c->M.e[n] = 0.0;
+
+        c->M.t[n] = 0.0;
+        c->M.b[n] = 0.0;
+        
+        c->rhsvec.V[n] =  0.0;
+        }
+        
 	++n;
 	}
     
@@ -92,7 +110,7 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             c->M.s[n] = 0.0;
             }
             
-            if(c->wet(i-1,j)==0)
+            if(c->wet(i-1,j)==0 && c->bc(i-1,j)==0)
             {
             c->M.p[n] += -1.0/(p->DXP[IM1]*p->DXN[IM1])*p->x_dir;
             c->M.s[n] = 0.0;
@@ -112,14 +130,15 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             c->M.n[n] = 0.0;
             }
             
-            if(c->wet(i+1,j)==0)
+            if(c->wet(i+1,j)==0 && c->bc(i+1,j)==0)
             {
             c->M.p[n] += c->M.n[n];
             c->M.n[n] = 0.0;
             }
             
-            if(p->flag7[FIp1JK]<0 && c->wet(i+1,j)==1 &&  c->bc(i+1,j)==2)
+            if(p->flag7[FIp1JK]<0 && c->bc(i+1,j)==2)
             {
+            //cout<<p->mpirank<<" gcsl_out_LAPLACE:   i: "<<i<<" j: "<<j<<" UI: "<<c->Uin[FIp1JK]<<" FiFsF "<<c->Fifsf(i,j)<<endl;
             c->rhsvec.V[n] -= c->M.n[n]*c->Uin[FIp1JK]*p->DXP[IP1];
             c->M.p[n] += c->M.n[n];
             c->M.n[n] = 0.0;

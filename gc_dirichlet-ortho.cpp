@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2019 Hans Bihs
+Copyright 2008-2020 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,8 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void ghostcell::dirichlet_ortho(lexer *p,field& f,double dist,int gcv, int bc, int cs)
 {
-	int sfc=0;
-	
+
 	wallvalue=0.0;
 	weight=1.0;
 	margin=3;
@@ -40,38 +39,38 @@ void ghostcell::dirichlet_ortho(lexer *p,field& f,double dist,int gcv, int bc, i
 	
 //fill pos[]
 	for(m=0;m<=orderdir-3;m++)
-	pos[m]=-deltax*double(orderdir+sfc-m-2);
+	pos[m]=-deltax*double(orderdir-m-2);
 
-	pos[orderdir-2]=0.0-double(sfc)*p->dx;
+	pos[orderdir-2]=0.0;
 	pos[orderdir-1]=dist;
 
 	for(m=0;m<margin;m++)
-	x[m]=deltax*double(m+2-ys-sfc);
+	x[m]=deltax*double(m+2-ys);
 
 //fill y[]
 	if(cs==1 )
 	for(m=0;m<=orderdir-2;m++)
-	y[m]=f(i+orderdir+sfc-m-2,j,k);
+	y[m]=f(i+orderdir-m-2,j,k);
 
 	if(cs==2)
 	for(m=0;m<=orderdir-2;m++)
-	y[m]=f(i,j-orderdir-sfc+m+2,k);
+	y[m]=f(i,j-orderdir+m+2,k);
 
 	if(cs==3)
 	for(m=0;m<=orderdir-2;m++)
-	y[m]=f(i,j+orderdir+sfc-m-2,k);
+	y[m]=f(i,j+orderdir-m-2,k);
 
 	if(cs==4)
 	for(m=0;m<=orderdir-2;m++)
-	y[m]=f(i-orderdir-sfc+m+2,j,k);
+	y[m]=f(i-orderdir+m+2,j,k);
 
 	if(cs==5)
 	for(m=0;m<=orderdir-2;m++)
-	y[m]=f(i,j,k+orderdir+sfc-m-2);
+	y[m]=f(i,j,k+orderdir-m-2);
 
 	if(cs==6)
 	for(m=0;m<=orderdir-2;m++)
-	y[m]=f(i,j,k-orderdir-sfc+m+2);
+	y[m]=f(i,j,k-orderdir+m+2);
 
 	y[orderdir-1]=wallvalue;
 
@@ -106,27 +105,27 @@ void ghostcell::dirichlet_ortho(lexer *p,field& f,double dist,int gcv, int bc, i
     {
 	if(cs==1)
 	for(q=0;q<margin;++q)
-	f(i-q-1+sfc,j,k) = y[orderdir+q-1+ys];
+	f(i-q-1,j,k) = y[orderdir+q-1+ys];
 
 	if(cs==2)
 	for(q=0;q<margin;++q)
-	f(i,j+q+1-sfc,k) = y[orderdir+q-1+ys];
+	f(i,j+q+1,k) = y[orderdir+q-1+ys];
 
 	if(cs==3)
 	for(q=0;q<margin;++q)
-	f(i,j-q-1+sfc,k) = y[orderdir+q-1+ys];
+	f(i,j-q-1,k) = y[orderdir+q-1+ys];
 
 	if(cs==4)
 	for(q=0;q<margin;++q)
-	f(i+q+1-sfc,j,k) = y[orderdir+q-1+ys];
+	f(i+q+1,j,k) = y[orderdir+q-1+ys];
 
 	if(cs==5)
 	for(q=0;q<margin;++q)
-	f(i,j,k-q-1+sfc) = y[orderdir+q-1+ys];
+	f(i,j,k-q-1) = y[orderdir+q-1+ys];
 
 	if(cs==6)
 	for(q=0;q<margin;++q)
-	f(i,j,k+q+1-sfc) = y[orderdir+q-1+ys];
+	f(i,j,k+q+1) = y[orderdir+q-1+ys];
 	}
 
 }
