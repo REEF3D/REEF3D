@@ -45,9 +45,6 @@ void driver::loop_cfd(fdm* a)
     if(p->mpirank==0)
     cout<<"starting mainloop.CFD"<<endl;
     
-    cout<<p->dx<<"    "<<p->DXM<<endl;
-    
-    
 //-----------MAINLOOP CFD----------------------------
 	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
 	{		
