@@ -99,7 +99,7 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     c->test(i,j,k)=0.0;
     
 // Step 1
-    pflow->inflow_fnpf(p,pgc,c->Fi,c->Uin,c->Fifsf,c->eta);
+    pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,c->Fifsf,c->eta);
     
     // fsf eta
     pf->kfsfbc(p,c,pgc);
@@ -147,7 +147,7 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     c->test(i,j,k)=1.0;
 
 // Step 2
-    pflow->inflow_fnpf(p,pgc,c->Fi,c->Uin,frk1,erk1);
+    pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk1,erk1);
     
     // fsf eta
     pf->kfsfbc(p,c,pgc);
@@ -196,7 +196,7 @@ void fnpf_sg_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     
 
 // Step 3 
-    pflow->inflow_fnpf(p,pgc,c->Fi,c->Uin,frk2,erk2);
+    pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk2,erk2);
     
     // fsf eta
     pf->kfsfbc(p,c,pgc);

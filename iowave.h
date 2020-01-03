@@ -155,13 +155,13 @@ public:
     
     
     // FNPF
-    virtual void inflow_fnpf(lexer*,ghostcell*,double*,double*,slice&,slice&);
+    virtual void inflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,double*,double*,slice&,slice&);
     void fnpf_precalc_relax(lexer*,ghostcell*);
     void fnpf_precalc_relax_ini(lexer*,ghostcell*);
     void fnpf_precalc_dirichlet(lexer*,ghostcell*);
     void fnpf_precalc_dirichlet_ini(lexer*,ghostcell*);
     void dirichlet_wavegen_fnpf(lexer*,ghostcell*,double*,double*,slice&,slice&);
-    void active_beach_fnpf(lexer*, ghostcell*, double*, double*, slice&, slice&);
+    void active_beach_fnpf(lexer*, fdm_fnpf*, ghostcell*, double*, double*, slice&, slice&);
     
     void wavegen_precalc_decomp_space_fnpf(lexer*,ghostcell*);
     void wavegen_precalc_decomp_time_fnpf(lexer*,ghostcell*);

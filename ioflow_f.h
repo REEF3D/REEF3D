@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"field4.h"
 
 class vrans;
+class fdm_fnpf;
 
 using namespace std;
 
@@ -104,7 +105,7 @@ public:
     
     virtual void ini(lexer*,fdm*,ghostcell*);
     virtual void ini_fnpf(lexer*,fdm_fnpf*,ghostcell*);
-    virtual void inflow_fnpf(lexer*,ghostcell*,double*,double*,slice&,slice&);
+    virtual void inflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,double*,double*,slice&,slice&);
     virtual void ini2D(lexer*,fdm2D*,ghostcell*);
     
     virtual void ini_nhflow(lexer*,fdm*,ghostcell*);

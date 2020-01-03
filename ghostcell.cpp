@@ -22,6 +22,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"fdm_fnpf.h"
 #include"density_f.h"
 
 ghostcell::ghostcell(int& argc, char **argv,lexer* p):norm_vec(p),size(15),tag1(1),tag2(2),tag3(3),tag4(4),tag5(5),tag6(6),eps(1.0e-10),
@@ -324,6 +325,11 @@ void ghostcell::gcini(lexer* p)
 void ghostcell::fdm_update(fdm *aa)
 {
     a=aa;
+}
+
+void ghostcell::fdm_fnpf_update(fdm_fnpf *cc)
+{
+    c=cc;
 }
 
 void ghostcell::final()
