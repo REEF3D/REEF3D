@@ -24,7 +24,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void ghostcell::tpflagfield(lexer *p)
 {
-
+    
+    for(i=0;i<p->imax*p->jmax*p->kmax; ++i)
+    p->tpflag[i]=1;
+    
     LOOP
 	p->tpflag[i]=p->flag4[i];
 
