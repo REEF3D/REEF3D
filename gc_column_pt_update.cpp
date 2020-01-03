@@ -26,11 +26,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void ghostcell::column_pt1_update(lexer* p, fdm* a)
 {
+    //cout<<p->mpirank<<"  COL_PT1_001"<<endl;
     fieldint1 cval1(p);
-    cval_update1(p,a,cval1);	
+    if(p->mpirank==1)
+    cout<<p->mpirank<<"  COL_PT1_002"<<endl;
+    cval_update1(p,a,cval1);
+    if(p->mpirank==1)	
+    cout<<p->mpirank<<"  COL_PT1_003 ---"<<endl;
 	column_pt1(p,a,cval1);
+    //cout<<p->mpirank<<"  COL_PT1_004"<<endl;
     cval_gcb1(p,a,cval1);
+    //cout<<p->mpirank<<"  COL_PT1_005"<<endl;
     cval_gcpara1(p,a,cval1);
+    //cout<<p->mpirank<<"  COL_PT1_006"<<endl;
 }
 
 void ghostcell::column_pt2_update(lexer* p, fdm* a)

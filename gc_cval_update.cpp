@@ -29,19 +29,32 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void ghostcell::cval_update1(lexer* p, fdm* a, fieldint &cval1)
 {
+    field1 test(p);
+    
     count=0;
+    
+    int qn=0;
 
     ULOOP
 	{
     cval1(i,j,k)=count;
     ++count;
 	}
-
+    //if(p->mpirank==1)
+    cout<<p->mpirank<<"  COL_PT1_002_A"<<endl;
+    
+    GC1LOOP
+    if(p->gcb1[n][3]==4)
+    ++qn;
+    
+    cout<<p->mpirank<<"  GCB1_COUNT "<<qn<<" GCPARA1 "<<p->gcpara4_count<<endl;
+    
 	GC1LOOP
     {
     i=p->gcb1[n][0];
     j=p->gcb1[n][1];
     k=p->gcb1[n][2];
+    
     
         if(p->gcb1[n][3]==1)
         for(q=0;q<margin;++q)
@@ -67,7 +80,9 @@ void ghostcell::cval_update1(lexer* p, fdm* a, fieldint &cval1)
         if(p->gcb1[n][3]==4)
         for(q=0;q<margin;++q)
         {
-        cval1(i+1+q,j,k)=count;
+        //if(p->mpirank==1)
+        //cout<<" CVAL1 "<<n<<" . "<<i<<" "<<j<<" "<<k<<endl;
+        cval1(i+1+q,j,k)=count; // problem!
         ++count;
         }
 
@@ -85,6 +100,8 @@ void ghostcell::cval_update1(lexer* p, fdm* a, fieldint &cval1)
         ++count;
         }
     }
+    //if(p->mpirank==1)
+    cout<<p->mpirank<<"  COL_PT1_002_B"<<endl;
 	
 
 	for(n=0;n<p->gcpara1_count;++n)
