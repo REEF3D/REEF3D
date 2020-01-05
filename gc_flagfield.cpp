@@ -37,6 +37,8 @@ void ghostcell::flagfield(lexer *p)
     p->flag4[i]=OBJ;
     }
     
+    flagx(p,p->flag4);
+    
 	if(p->Y60==1)
     LOOP
     {   
@@ -55,6 +57,7 @@ void ghostcell::flagfield(lexer *p)
         && p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+1]<0)
         p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]=OBJ;
     }
+    
 
 
     for(i=0;i<p->imax*p->jmax*p->kmax; ++i)
@@ -107,6 +110,8 @@ void ghostcell::flagfield_topo(lexer *p)
     if(p->flag4[i]==-1)
     p->flag4[i]=OBJ;
     }
+    
+    flagx(p,p->flag4);
     
 	if(p->Y60==1)
     LOOP

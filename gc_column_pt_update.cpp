@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void ghostcell::column_pt1_update(lexer* p, fdm* a)
 {
     fieldint1 cval1(p);
-    cval_update1(p,a,cval1);	
+    cval_update1(p,a,cval1);
 	column_pt1(p,a,cval1);
     cval_gcb1(p,a,cval1);
     cval_gcpara1(p,a,cval1);

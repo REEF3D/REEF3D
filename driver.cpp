@@ -160,6 +160,8 @@ void driver::pfsg_driver()
     p->grid2Dsize();
 
     c=new fdm_fnpf(p);
+    
+    pgc->fdm_fnpf_update(c);
 
     makegrid_fnpf_cds(p,pgc);
 

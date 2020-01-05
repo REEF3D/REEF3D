@@ -27,6 +27,7 @@ Author: Hans Bihs
 
 class fdm;
 class fdm2D;
+class fdm_fnpf;
 class lexer;
 class field;
 class fieldint;
@@ -155,6 +156,7 @@ public:
 	void sizeM_update(lexer*,fdm*);
 
     void fdm_update(fdm*);
+    void fdm_fnpf_update(fdm_fnpf*);
 
 // 2D CPT
     void cval2Dupdate1(lexer*,sliceint&);
@@ -499,6 +501,7 @@ private:
 	int ***gcxfb,*gcxfb_count;
 
     fdm *a;
+    fdm_fnpf *c;
 
 };
 #endif
