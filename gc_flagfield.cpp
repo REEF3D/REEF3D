@@ -43,19 +43,19 @@ void ghostcell::flagfield(lexer *p)
     LOOP
     {   
         if(p->i_dir==1)
-        if(p->flag4[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]<0
-        && p->flag4[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]<0)
-        p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]=OBJ;
+        if(p->flag4[Im1JK]<0
+        && p->flag4[Ip1JK]<0)
+        p->flag4[IJK]=OBJ;
         
         if(p->j_dir==1)
-        if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin]<0
-        && p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin]<0)
-        p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]=OBJ;
+        if(p->flag4[IJm1K]<0
+        && p->flag4[IJm1K]<0)
+        p->flag4[IJK]=OBJ;
         
         if(p->k_dir==1)
-        if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-1]<0
-        && p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+1]<0)
-        p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]=OBJ;
+        if(p->flag4[IJKm1]<0
+        && p->flag4[IJKp1]<0)
+        p->flag4[IJK]=OBJ;
     }
     
 
