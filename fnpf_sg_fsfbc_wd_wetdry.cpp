@@ -59,6 +59,9 @@ void fnpf_sg_fsfbc_wd::coastline(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f
         
             }
         }
+        
+        if(c->coastline(i,j)<0.0)
+        f(i,j)=0.0;
     }
 }
 

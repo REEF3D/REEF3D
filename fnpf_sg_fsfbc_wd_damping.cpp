@@ -53,11 +53,11 @@ void fnpf_sg_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, 
              c->N.e[n] = -visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
              c->N.w[n] = -visc/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
             }
-            /*
-            if(c->wet(i,j)==0 && (gcval==55 || gcval ==155) )
+            
+            if(c->wet(i,j)==0)// && (gcval==55 || gcval ==155) )
             {
                 
-            visc = 0.01;
+            visc = c->vb(i,j);
                 
              c->N.p[n] =   visc/(p->DXP[IM1]*p->DXN[IP])*p->x_dir
                          + visc/(p->DXP[IP]*p->DXN[IP])*p->x_dir
@@ -73,8 +73,8 @@ void fnpf_sg_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, 
              
              c->N.e[n] = -visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
              c->N.w[n] = -visc/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
-            }*/
-             
+            }
+             /*
             if(c->wet(i,j)==0)// && (gcval==60 || gcval ==160) )
             {
              c->N.p[n] =  1.0;
@@ -86,7 +86,7 @@ void fnpf_sg_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, 
              
              c->N.e[n] = 0.0;
              c->N.w[n] = 0.0;
-            }
+            }*/
      
          ++n;
         }
@@ -95,32 +95,32 @@ void fnpf_sg_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, 
         n=0;
         SLICELOOP4
         {
-            if(c->wet(i,j)==1)
-            {
-                if(p->flagslice4[Im1J]<0 || c->wet(i-1,j)==0)
+            //if(c->wet(i,j)==1)
+           // {
+                if(p->flagslice4[Im1J]<0)// || c->wet(i-1,j)==0)
                 {
                 c->rvec.V[n] -= c->N.s[n]*f(i,j);
                 c->N.s[n] = 0.0;
                 }
                 
-                if(p->flagslice4[Ip1J]<0 || c->wet(i+1,j)==0)
+                if(p->flagslice4[Ip1J]<0)// || c->wet(i+1,j)==0)
                 {
                 c->rvec.V[n] -= c->N.n[n]*f(i,j);
                 c->N.n[n] = 0.0;
                 }
                 
-                if(p->flagslice4[IJm1]<0 || c->wet(i,j-1)==0)
+                if(p->flagslice4[IJm1]<0)// || c->wet(i,j-1)==0)
                 {
                 c->rvec.V[n] -= c->N.e[n]*f(i,j);
                 c->N.e[n] = 0.0;
                 }
                 
-                if(p->flagslice4[IJp1]<0 || c->wet(i,j+1)==0)
+                if(p->flagslice4[IJp1]<0)// || c->wet(i,j+1)==0)
                 {
                 c->rvec.V[n] -= c->N.w[n]*f(i,j);
                 c->N.w[n] = 0.0;
                 }
-            }
+            //}
      
         ++n;
         }
