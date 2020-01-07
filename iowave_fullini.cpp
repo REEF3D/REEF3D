@@ -221,6 +221,7 @@ void iowave::full_initialize_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     // eta
 	SLICELOOP4
+    if(c->wet(i,j)==1)
     {
         xg = xgen(p);
         yg = ygen(p);
@@ -233,6 +234,7 @@ void iowave::full_initialize_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     // Fifsf
     SLICELOOP4
+    if(c->wet(i,j)==1)
     {
         xg = xgen(p);
         yg = ygen(p);
@@ -247,6 +249,7 @@ void iowave::full_initialize_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     // Fi
     FLOOP
+    if(c->wet(i,j)==1)
     {
         xg = xgen(p);
         yg = ygen(p);

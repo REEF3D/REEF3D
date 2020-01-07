@@ -57,6 +57,7 @@ private:
 	double xs_global,ys_global,zs_global,xe_global,ye_global,ze_global;
     
     int gcval_eta, gcval_fifsf;
+    int printcount;
 	
 
 };

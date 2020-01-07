@@ -30,7 +30,7 @@ void fnpf_vtp_fsf::name_iter(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     int num=0;
 
     if(p->P15==1)
-    num = p->printcount;
+    num = printcount;
 
     if(p->P15==2)
     num = p->count;

@@ -112,7 +112,7 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 		}
         
         // Print FSF
-		if(p->count%p->P181==0 && p->P182<0.0 && p->P180==1)
+		if((p->count%p->P181==0 && p->P182<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1))
         {
 		pfsf->start(p,c,pgc,pflow);
         }
@@ -124,7 +124,7 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
         }
         
         // Print BED
-        if(p->count==0 && p->printcount==1)
+        if(p->count==0)
 		pbed->start(p,c,pgc,pflow);
         
         
