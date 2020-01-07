@@ -55,7 +55,7 @@ private:
 	
 	double xs_local,ys_local,zs_local,xe_local,ye_local,ze_local;
 	double xs_global,ys_global,zs_global,xe_global,ye_global,ze_global;
-	
+    int printcount;
 
 };
 

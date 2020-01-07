@@ -30,7 +30,7 @@ void fnpf_vtp_fsf::pvtu(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	int num=0;
 
     if(p->P15==1)
-    num = p->printcount;
+    num = printcount;
 
     if(p->P15==2)
     num = p->count;
@@ -95,6 +95,8 @@ void fnpf_vtp_fsf::pvtu(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	result<<"<PDataArray type=\"Float32\" Name=\"depth\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"breaking\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"coastline\"/>"<<endl;
+    if(p->P23==1)
+    result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
 	result<<"</PPointData>"<<endl;
 	
 	result<<"<Polys>"<<endl;
@@ -122,7 +124,7 @@ void fnpf_vtp_fsf::piecename(lexer *p, fdm_fnpf *c, ghostcell *pgc, int n)
 
 
     if(p->P15==1)
-    num = p->printcount;
+    num = printcount;
 
     if(p->P15==2)
     num = p->count;

@@ -63,7 +63,7 @@ public:
     slice4 Bxx,Byy;
     slice4 Hx,Hy;
     slice4 coastline;
-    slice4 vb;
+    slice4 vb,test2D;
     
     sliceint5 nodeval2D;
     slice4 breaking_print;

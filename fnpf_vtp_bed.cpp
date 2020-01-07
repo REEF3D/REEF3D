@@ -33,7 +33,7 @@ fnpf_vtp_bed::fnpf_vtp_bed(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 	p->printtime=0.0;
     }
 	
-	p->printcount=0;
+	printcount=0;
 	
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
@@ -212,7 +212,7 @@ void fnpf_vtp_bed::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 
 	result.close();
 	
-	++p->printcount;
+	++printcount;
 
 }
 
