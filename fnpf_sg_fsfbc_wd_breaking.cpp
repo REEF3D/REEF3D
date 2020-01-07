@@ -288,16 +288,6 @@ void fnpf_sg_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
         SLICELOOP4
         c->vb(i,j) = 0.0;
         
-        /*SLICELOOP4
-        if(p->XP[IP]>16.0 && p->XP[IP]<19.0)
-        c->vb(i,j) = 1.0;//*(p->XP[IP]-16.0)/3.0;*/
-        /*if(i==300 && p->mpirank==0)
-        {
-        c->vb(i-1,j) = 0.9;   
-        c->vb(i,j) = 1.8;
-        c->vb(i+1,j) = 0.9;
-        }*/
-        
         if(p->j_dir==0)
         SLICELOOP4
         {   
@@ -338,7 +328,7 @@ void fnpf_sg_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
     if(p->A350==2)
     SLICELOOP4
     {
-        if(c->breaking(i,j)==1 || c->breaking(i-1,j)==1 || c->breaking(i+1,j)==1 || c->breaking(i,j-1)==1 || c->breaking(i,j+1)==1)
+        if(c->breaking(i,j)>=1 || c->breaking(i-1,j)>=1 || c->breaking(i+1,j)>=1 || c->breaking(i,j-1)>=1 || c->breaking(i,j+1)>=1)
         {
          filter(p,c,pgc,eta);
          filter(p,c,pgc,Fifsf);
