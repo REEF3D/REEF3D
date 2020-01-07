@@ -61,6 +61,8 @@ void fnpf_sg_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
                 ii=i;
                 
                 bx(i,j) = 10;
+                bx(i+1,j) = 10;
+                //bx(i+2,j) = 10;
                 
                     while(i>=0)
                     {
@@ -82,6 +84,8 @@ void fnpf_sg_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
                 ii=i;
                 
                 bx(i,j) = 20;
+                bx(i-1,j) = 20;
+                //bx(i-2,j) = 20;
                 
                     while(i<p->knox)
                     {
@@ -105,6 +109,8 @@ void fnpf_sg_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
                 jj=j;
                 
                 by(i,j) = 10;
+                by(i+1,j) = 10;
+                //by(i+2,j) = 10;
                 
                     while(j>=0)
                     {
@@ -127,6 +133,8 @@ void fnpf_sg_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
                 jj=j;
                 
                 by(i,j) = 20;
+                by(i,j-1) = 20;
+                //by(i,j-2) = 20;
                 
                     while(j<p->knoy)
                     {
