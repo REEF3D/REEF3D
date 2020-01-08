@@ -97,25 +97,25 @@ void fnpf_sg_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, 
         {
             if(c->wet(i,j)==1)
             {
-                if(p->flagslice4[Im1J]<0) || c->wet(i-1,j)==0)
+                if(p->flagslice4[Im1J]<0|| c->wet(i-1,j)==0)
                 {
                 c->rvec.V[n] -= c->N.s[n]*f(i,j);
                 c->N.s[n] = 0.0;
                 }
                 
-                if(p->flagslice4[Ip1J]<0) || c->wet(i+1,j)==0)
+                if(p->flagslice4[Ip1J]<0 || c->wet(i+1,j)==0)
                 {
                 c->rvec.V[n] -= c->N.n[n]*f(i,j);
                 c->N.n[n] = 0.0;
                 }
                 
-                if(p->flagslice4[IJm1]<0) || c->wet(i,j-1)==0)
+                if(p->flagslice4[IJm1]<0 || c->wet(i,j-1)==0)
                 {
                 c->rvec.V[n] -= c->N.e[n]*f(i,j);
                 c->N.e[n] = 0.0;
                 }
                 
-                if(p->flagslice4[IJp1]<0) || c->wet(i,j+1)==0)
+                if(p->flagslice4[IJp1]<0 || c->wet(i,j+1)==0)
                 {
                 c->rvec.V[n] -= c->N.w[n]*f(i,j);
                 c->N.w[n] = 0.0;
