@@ -299,22 +299,23 @@ void fnpf_sg_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
         SLICELOOP4
         c->vb(i,j) = 0.0;
         
+        // coastline
         SLICELOOP4
         {
             
-            if(c->coastline(i,j)>=0.0)
+            if(c->coastline(i,j)>=0.0 && p->A346>0.0)
             {
                 db = c->coastline(i,j);
                 
                 if(db<dist3)
                 {
-                c->vb(i,j) = rb3(p,db)*2.1;
+                c->vb(i,j) = rb3(p,db)*p->A346;
             
                 }
             }
             
-            if(c->coastline(i,j)<0.0)
-            c->vb(i,j) = 2.1;
+            //if(c->coastline(i,j)<0.0)
+            //c->vb(i,j) = 2.1;
         }
         
         if(p->j_dir==0)
@@ -341,14 +342,29 @@ void fnpf_sg_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
             c->vb(i,j) = 0.5*p->A365;
         }
         
+        if(p->A352==1)
         SLICELOOP4
-    {
         if(c->breaking(i,j)==2)
         {
          filter(p,c,pgc,eta);
          filter(p,c,pgc,Fifsf);
         }   
-    }
+        
+        if(p->A352==2)
+        SLICELOOP4
+        if(c->breaking(i,j)==1)
+        {
+         filter(p,c,pgc,eta);
+         filter(p,c,pgc,Fifsf);
+        }   
+        
+        if(p->A352==3)
+        SLICELOOP4
+        if(c->breaking(i,j)>=1)
+        {
+         filter(p,c,pgc,eta);
+         filter(p,c,pgc,Fifsf);
+        }   
     
         /*
         if(p->j_dir==0)

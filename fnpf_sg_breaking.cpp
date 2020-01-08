@@ -352,6 +352,31 @@ void fnpf_sg_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
         c->vb(i,j) = 0.5*c->vb(i,j) + 0.125*(c->vb(i-1,j) + c->vb(i+1,j) + c->vb(i,j-1) + c->vb(i,j+1));
         
     pgc->gcsl_start4(p,c->vb,1);
+    
+    
+        if(p->A352==1)
+        SLICELOOP4
+        if(c->breaking(i,j)==2)
+        {
+         filter(p,c,pgc,eta);
+         filter(p,c,pgc,Fifsf);
+        }   
+        
+        if(p->A352==2)
+        SLICELOOP4
+        if(c->breaking(i,j)==1)
+        {
+         filter(p,c,pgc,eta);
+         filter(p,c,pgc,Fifsf);
+        }   
+        
+        if(p->A352==3)
+        SLICELOOP4
+        if(c->breaking(i,j)>=1)
+        {
+         filter(p,c,pgc,eta);
+         filter(p,c,pgc,Fifsf);
+        } 
     }
     
     if(p->A350==2)
