@@ -70,17 +70,17 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     
     SLICELOOP4
     {
-    if(c->breaking(i,j)==1)
-    c->breaking_print(i,j)=1.0;
+    if(c->breaking(i,j)>=1)
+    c->breaking_print(i,j)=double(c->breaking(i,j));
         
     if(c->breaking(i,j)==0)
     c->breaking_print(i,j)=0.0;   
     
-    if(c->wet(i,j)==0)
-    c->test2D(i,j)=0.0;
+    //if(c->wet(i,j)==0)
+    c->test2D(i,j)=c->vb(i,j);
     
-    if(c->wet(i,j)==1)
-    c->test2D(i,j)=1.0;
+    //if(c->wet(i,j)==1)
+    //c->test2D(i,j)=c->vb(i,j);
     }
     
     pgc->gcsl_start4(p,c->breaking_print,50);

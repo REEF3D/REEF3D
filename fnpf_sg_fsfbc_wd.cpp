@@ -62,7 +62,7 @@ fnpf_sg_fsfbc_wd::fnpf_sg_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p
     if(p->A311==4  || p->A311==5)
     {
     pconvec = new fnpf_weno_wd(p,c);
-    pconeta = new fnpf_weno_wd(p,c);
+    pconeta = new fnpf_weno(p);
     }
 
     if(p->A311==6)
@@ -133,7 +133,6 @@ fnpf_sg_fsfbc_wd::fnpf_sg_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p
     
     if(p->A342>0.0)
     dist3=p->A342;
-    
     
     expinverse = 1.0/(exp(1.0)-1.0);
     
