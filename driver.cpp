@@ -34,7 +34,7 @@ driver::driver(int& argc, char **argv)
 
 	if(p->mpirank==0)
     {
-    cout<<endl<<"REEF3D (c) 2008-2019 Hans Bihs"<<endl;
+    cout<<endl<<"REEF3D (c) 2008-2020 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
     cout<<endl<<"v_200108" <<endl<<endl;
     }

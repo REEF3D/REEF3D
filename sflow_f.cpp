@@ -65,7 +65,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
     cout<<"starting mainloop.SFLOW"<<endl;
     
 //-----------MAINLOOP SFLOW----------------------------
-	while(p->count<p->N45 && p->simtime<p->N41)
+	while(p->count<p->N45 && p->simtime<p->N41 && p->sedtime<p->S19)
 	{		
         ++p->count;
         starttime=pgc->timer();

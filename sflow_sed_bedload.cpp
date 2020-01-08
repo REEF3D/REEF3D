@@ -27,7 +27,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void sflow_sediment_f::bedload(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+    if(p->S11==1)
     bedload_vanRijn(p,b,pgc);
+    
+    if(p->S11==2)
+    bedload_MPM(p,b,pgc);
+    
+    if(p->S11==3)
+    bedload_EF(p,b,pgc);
 }
 
 void sflow_sediment_f::bedload_vanRijn(lexer *p, fdm2D *b, ghostcell *pgc)
@@ -49,6 +56,50 @@ void sflow_sediment_f::bedload_vanRijn(lexer *p, fdm2D *b, ghostcell *pgc)
 
         if(shearvel_eff>shearvel_crit)
         b->qb(i,j)  = (0.053*pow(d50,1.5)*sqrt(9.81*Rstar)*pow(Ti,2.1))/pow(Ds,0.3)  ;
+
+        if(shearvel_eff<=shearvel_crit)
+        b->qb(i,j) = 0.0;
+	}
+    
+    pgc->gcsl_start4(p,b->qb,1);
+}
+
+void sflow_sediment_f::bedload_MPM(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    double shearvel_eff, shearvel_crit;
+     
+	SLICELOOP4
+    {
+        shearvel_eff = sqrt(tau(i,j)/p->W1);
+        shearvel_crit = sqrt(taucr(i,j)/p->W1);
+
+        if(shearvel_eff>shearvel_crit)
+        b->qb(i,j)  = 8.0*pow(MAX(shearvel_eff - shearvel_crit,0.0),1.5)* p->S20*sqrt(((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
+
+        if(shearvel_eff<=shearvel_crit)
+        b->qb(i,j) = 0.0;
+	}
+    
+    pgc->gcsl_start4(p,b->qb,1);
+}
+
+
+void sflow_sediment_f::bedload_EF(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    double Ti,r;
+    double shearvel_eff, shearvel_crit;
+    double d50;
+    
+    d50=p->S20;
+
+	SLICELOOP4
+    {
+        shearvel_eff = sqrt(tau(i,j)/p->W1);
+        shearvel_crit = sqrt(taucr(i,j)/p->W1);
+
+        
+        if(shearvel_eff>shearvel_crit)
+        b->qb(i,j)  = d50*sqrt((p->S22/p->W1-1.0)*9.81*d50) * 11.6* (shearvel_eff-shearvel_crit)*(sqrt(shearvel_eff) - 0.7*sqrt(shearvel_crit));
 
         if(shearvel_eff<=shearvel_crit)
         b->qb(i,j) = 0.0;

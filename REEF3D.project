@@ -2341,7 +2341,7 @@
             <File Name="sflow_sed_bedshear.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Bedload">
-            <File Name="sflow_sed_vanRijn.cpp"/>
+            <File Name="sflow_sed_bedload.cpp"/>
           </VirtualDirectory>
           <File Name="sflow_sediment_v.cpp"/>
           <File Name="sflow_sediment_f.cpp"/>
