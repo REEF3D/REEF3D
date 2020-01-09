@@ -198,8 +198,8 @@ private:
 	double distgen(lexer*);
 	double distbeach(lexer*);
     
-    double distbeach_ini(lexer*);
-    double distgen_ini(lexer*);
+    void distbeach_ini(lexer*);
+    void distgen_ini(lexer*);
     int intriangle(lexer*,double,double,double,double,double,double,double,double);
 
     int n,count;

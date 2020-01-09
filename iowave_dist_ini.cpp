@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-double iowave::distbeach_ini(lexer *p)
+void iowave::distbeach_ini(lexer *p)
 {
     double dx,dy,l1,l2,n1x,n1y,n2x,n2y;
     double dist;
@@ -80,7 +80,7 @@ double iowave::distbeach_ini(lexer *p)
     */
 }
 
-double iowave::distgen_ini(lexer *p)
+void iowave::distgen_ini(lexer *p)
 {
     double dx,dy,l1,l2,n1x,n1y,n2x,n2y;
     double dist;
