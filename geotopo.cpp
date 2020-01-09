@@ -45,7 +45,7 @@ void geotopo::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection*
     
     preto->start(a,p,a->topo,pconvec,pgc);
     
-    if(p->S10==1)
+    if(p->S10!=2)
     pgc->topo_update(p,a);
     
     if(p->S10==2)
