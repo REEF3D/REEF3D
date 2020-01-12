@@ -25,6 +25,7 @@ Author: Hans Bihs
 
 class fdm_fnpf;
 class fnpf_print_wsf;
+class fnpf_print_wsf_theory;
 class fnpf_print_wsfline;
 class fnpf_print_wsfline_y;
 class fnpf_vtp_fsf;
@@ -64,6 +65,7 @@ private:
     int printcount;
     
     fnpf_print_wsf *pwsf;
+    fnpf_print_wsf_theory *pwsf_theory;
     fnpf_print_wsfline *pwsfline;
     fnpf_print_wsfline_y *pwsfline_y;
     potentialfile_out *ppotentialfile;

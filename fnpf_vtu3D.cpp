@@ -25,6 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"fnpf_print_wsf.h"
+#include"fnpf_print_wsf_theory.h"
 #include"fnpf_print_wsfline.h"
 #include"fnpf_print_wsfline_y.h"
 #include"fnpf_vtp_fsf.h"
@@ -61,6 +62,8 @@ fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
     
     pwsf=new fnpf_print_wsf(p,c);
     
+    pwsf_theory=new fnpf_print_wsf_theory(p,c,pgc);
+    
     pwsfline=new fnpf_print_wsfline(p,c,pgc);
     
     pwsfline_y=new fnpf_print_wsfline_y(p,c,pgc);
@@ -86,6 +89,9 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     // Gages
 	if(p->P51>0)
 	pwsf->height_gauge(p,c,pgc,c->eta);
+    
+    if(p->P50>0)
+    pwsf_theory->height_gauge(p,c,pgc,pflow);
   
 		// Print out based on iteration
         if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)
