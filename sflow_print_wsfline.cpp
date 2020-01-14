@@ -259,7 +259,11 @@ void sflow_print_wsfline::ini_location(lexer *p, fdm2D *b, ghostcell *pgc)
         count=0;
         ILOOP
         {
-
+        
+        if(p->j_dir==0)
+        jloc[q]=0;
+        
+        if(p->j_dir==1)
         jloc[q]=conv((p->P52_y[q]-p->originy)/p->dx);
 
         if(jloc[q]>=0 && jloc[q]<p->knoy)

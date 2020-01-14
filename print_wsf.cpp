@@ -195,6 +195,11 @@ void print_wsf::ini_location(lexer *p, fdm *a, ghostcell *pgc)
     for(n=0;n<gauge_num;++n)
     {
     iloc[n] = p->posc_i(x[n]); 
+    
+    if(p->j_dir==0)
+    jloc[n]=0;
+    
+    if(p->j_dir==1)
     jloc[n] = p->posc_j(y[n]); 
 
     check=ij_boundcheck(p,a,iloc[n],jloc[n],0);

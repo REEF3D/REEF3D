@@ -125,7 +125,13 @@ void probe_point::ini_location(lexer *p, fdm *a, ghostcell *pgc)
     check=0;
     
     iloc[n]=p->posc_i(p->P61_x[n]);
+    
+    if(p->j_dir==0)
+    jloc[n]=0;
+    
+    if(p->j_dir==1)
     jloc[n]=p->posc_j(p->P61_y[n]);
+    
 	kloc[n]=p->posc_k(p->P61_z[n]);
 
     check=boundcheck(p,a,iloc[n],jloc[n],kloc[n],0);

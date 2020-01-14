@@ -457,7 +457,13 @@ void probe_line::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 			if(active[n][q]==1)
 			{
 			iloc = p->posc_i(p->P62_xs[n] + t*ds[n]*(p->P62_xe[n]-p->P62_xs[n])/(norm[n]>eps?norm[n]:1.0e20)-p->originx);
+            
+            if(p->j_dir==0)
+            jloc=0;
+            
+            if(p->j_dir==1)
 			jloc = p->posc_j(p->P62_ys[n] + t*ds[n]*(p->P62_ye[n]-p->P62_ys[n])/(norm[n]>eps?norm[n]:1.0e20)-p->originy);
+            
 			kloc = p->posc_k(p->P62_zs[n] + t*ds[n]*(p->P62_ze[n]-p->P62_zs[n])/(norm[n]>eps?norm[n]:1.0e20)-p->originz);
 			
 			check=boundcheck(p,a,iloc,jloc,kloc,0);

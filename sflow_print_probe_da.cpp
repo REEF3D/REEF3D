@@ -118,6 +118,11 @@ void sflow_print_probe_da::ini_location(lexer *p, fdm2D *b, ghostcell *pgc)
     check=0;
     
     iloc[n]=p->posc_i(p->P63_x[n]);
+    
+    if(p->j_dir==0)
+    jloc[n]=0;
+  
+    if(p->j_dir==1)
     jloc[n]=p->posc_j(p->P63_y[n]);
     
     if(iloc[n]>=0 && iloc[n]<p->knox)
