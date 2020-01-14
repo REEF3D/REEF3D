@@ -48,9 +48,17 @@ fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
     }
 	
 	p->Darray(printtime_wT,p->P35);
+    p->Iarray(printfsfiter_wI,p->P184);
+    p->Darray(printfsftime_wT,p->P185);
 	
 	for(int qn=0; qn<p->P35; ++qn)
 	printtime_wT[qn]=p->P35_ts[qn]; 
+    
+    for(int qn=0; qn<p->P185; ++qn)
+	printfsftime_wT[qn]=p->P185_ts[qn];
+
+    for(int qn=0; qn<p->P184; ++qn)
+	printfsfiter_wI[qn]=p->P184_its[qn]; 
 	
 
 	printcount=0;
@@ -113,7 +121,8 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 		if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
 		{
 		print_vtu(p,c,pgc);	
-			
+        
+        if(p->P180==0)
 		printtime_wT[qn]+=p->P35_dt[qn];
 		}
         
@@ -128,6 +137,24 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
         pfsf->start(p,c,pgc,pflow);
         p->fsfprinttime+=p->P182;
         }
+        
+        if(p->P180==1 && p->P184>0)
+		for(int qn=0; qn<p->P184; ++qn)
+		if(p->count%printfsfiter_wI[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]+p->P184_dit[qn]))
+		{
+		pfsf->start(p,c,pgc,pflow);	
+        
+		printfsfiter_wI[qn]+=p->P184_dit[qn];
+		}
+        
+        if(p->P180==1 && p->P185>0)
+		for(int qn=0; qn<p->P185; ++qn)
+		if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P185_ts[qn] && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
+		{
+		pfsf->start(p,c,pgc,pflow);	
+        
+		printfsftime_wT[qn]+=p->P185_dt[qn];
+		}
         
         // Print BED
         if(p->count==0)

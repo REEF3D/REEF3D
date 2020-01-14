@@ -83,6 +83,8 @@ private:
     float ffn;
     int gcval_phi,gcval_phiext;
 	double *printtime_wT;
+    double *printfsftime_wT;
+    int *printfsfiter_wI;
     double phase;
     double zcoor;
 	
