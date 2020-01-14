@@ -25,6 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"fnpf_print_wsf.h"
+#include"fnpf_print_wsf_theory.h"
 #include"fnpf_print_wsfline.h"
 #include"fnpf_print_wsfline_y.h"
 #include"fnpf_vtp_fsf.h"
@@ -47,9 +48,17 @@ fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
     }
 	
 	p->Darray(printtime_wT,p->P35);
+    p->Iarray(printfsfiter_wI,p->P184);
+    p->Darray(printfsftime_wT,p->P185);
 	
 	for(int qn=0; qn<p->P35; ++qn)
 	printtime_wT[qn]=p->P35_ts[qn]; 
+    
+    for(int qn=0; qn<p->P185; ++qn)
+	printfsftime_wT[qn]=p->P185_ts[qn];
+
+    for(int qn=0; qn<p->P184; ++qn)
+	printfsfiter_wI[qn]=p->P184_its[qn]; 
 	
 
 	printcount=0;
@@ -60,6 +69,8 @@ fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
     
     
     pwsf=new fnpf_print_wsf(p,c);
+    
+    pwsf_theory=new fnpf_print_wsf_theory(p,c,pgc);
     
     pwsfline=new fnpf_print_wsfline(p,c,pgc);
     
@@ -86,6 +97,9 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     // Gages
 	if(p->P51>0)
 	pwsf->height_gauge(p,c,pgc,c->eta);
+    
+    if(p->P50>0)
+    pwsf_theory->height_gauge(p,c,pgc,pflow);
   
 		// Print out based on iteration
         if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)
@@ -107,7 +121,8 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 		if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
 		{
 		print_vtu(p,c,pgc);	
-			
+        
+        if(p->P180==0)
 		printtime_wT[qn]+=p->P35_dt[qn];
 		}
         
@@ -122,6 +137,24 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
         pfsf->start(p,c,pgc,pflow);
         p->fsfprinttime+=p->P182;
         }
+        
+        if(p->P180==1 && p->P184>0)
+		for(int qn=0; qn<p->P184; ++qn)
+		if(p->count%printfsfiter_wI[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]+p->P184_dit[qn]))
+		{
+		pfsf->start(p,c,pgc,pflow);	
+        
+		printfsfiter_wI[qn]+=p->P184_dit[qn];
+		}
+        
+        if(p->P180==1 && p->P185>0)
+		for(int qn=0; qn<p->P185; ++qn)
+		if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P185_ts[qn] && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
+		{
+		pfsf->start(p,c,pgc,pflow);	
+        
+		printfsftime_wT[qn]+=p->P185_dt[qn];
+		}
         
         // Print BED
         if(p->count==0)

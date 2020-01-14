@@ -17,42 +17,43 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"geotopo.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"reinitopo.h"
-#include"ioflow.h"
+#include"boundarycheck.h"
+#include<iostream>
+#include<fstream>
 
-geotopo::geotopo(lexer* p, fdm *a, ghostcell* pgc)
-{
-}
+class lexer;
+class fdm_fnpf;
+class ghostcell;
+class field;
+class ioflow;
 
-geotopo::~geotopo()
-{
-}
+using namespace std;
 
-void geotopo::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection* pconvec, reinitopo* preto)
+#ifndef FNPF_PRINT_WSF_THEORY_H_
+#define FNPF_PRINT_WSF_THEORY_H_
+
+class fnpf_print_wsf_theory : public boundarycheck
 {
-    dat(p,a,pgc);
-    box(p,a,pgc);
-    wedge(p,a,pgc);
+public:
+    fnpf_print_wsf_theory(lexer*,fdm_fnpf*,ghostcell*);
+	virtual ~fnpf_print_wsf_theory();
+
+	void height_gauge(lexer*, fdm_fnpf*, ghostcell*,ioflow*);
+
+
+private:
 	
-	//if(p->G39==1)
-	//solid_topo(p,a,pgc);
-    
-    preto->start(a,p,a->topo,pconvec,pgc);
-    
-    if(p->S10!=2)
-    pgc->topo_update(p,a);
-    
-    if(p->S10==2)
-    pflow->vrans_sed_update(p,a,pgc);
-    
-    pflow->gcio_update(p,a,pgc);
-}
+	double *x,*y;
+	int gauge_num;
 
+    int *iloc,*jloc,*flag;
+    double *wsf;
+    int n;
+    ofstream wsfout;
 
+};
 
+#endif

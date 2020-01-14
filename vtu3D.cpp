@@ -94,9 +94,17 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
     }
 	
 	p->Darray(printtime_wT,p->P35);
+    p->Iarray(printfsfiter_wI,p->P184);
+    p->Darray(printfsftime_wT,p->P185);
 	
 	for(int qn=0; qn<p->P35; ++qn)
 	printtime_wT[qn]=p->P35_ts[qn]; 
+    
+    for(int qn=0; qn<p->P185; ++qn)
+	printfsftime_wT[qn]=p->P185_ts[qn];
+
+    for(int qn=0; qn<p->P184; ++qn)
+	printfsfiter_wI[qn]=p->P184_its[qn]; 
 	
 	pwsf=new print_wsf(p,a,pgc,0);
 	pwsf_theory=new print_wsf_theory(p,a,pgc,0);
@@ -313,6 +321,24 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
         pfsf->start(p,a,pgc);
         p->fsfprinttime+=p->P182;
         }
+        
+        if(p->P180==1 && p->P184>0)
+		for(int qn=0; qn<p->P184; ++qn)
+		if(p->count%printfsfiter_wI[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]+p->P184_dit[qn]))
+		{
+		pfsf->start(p,a,pgc);	
+        
+		printfsfiter_wI[qn]+=p->P184_dit[qn];
+		}
+        
+        if(p->P180==1 && p->P185>0)
+		for(int qn=0; qn<p->P185; ++qn)
+		if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P185_ts[qn] && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
+		{
+		pfsf->start(p,a,pgc);	
+        
+		printfsftime_wT[qn]+=p->P185_dt[qn];
+		}
         
         // Print Export
         if(p->count%p->P211==0 && p->P212<0.0 && p->P210==1)

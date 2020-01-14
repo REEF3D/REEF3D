@@ -60,6 +60,8 @@ private:
     
     void bedload(lexer*, fdm2D*, ghostcell*);
     void bedload_vanRijn(lexer*, fdm2D*, ghostcell*);
+    void bedload_MPM(lexer*, fdm2D*, ghostcell*);
+    void bedload_EF(lexer*, fdm2D*, ghostcell*);
     
     void exner(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&);
     void bedchange_update(lexer*, fdm2D*, ghostcell*);
