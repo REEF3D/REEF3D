@@ -103,12 +103,14 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
   
 		// Print out based on iteration
         if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)
+      //if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P35<0.0 && p->P10==1 && p->P20>0)
 		{
         print_vtu(p,c,pgc);
 		}
 		
 		// Print out based on time
         if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==1) || (p->count==0 &&  p->P30>0.0))
+      //if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P35<0.0 && p->P10==1) || (p->count==0 &&  p->P30>0.0))
         {
         print_vtu(p,c,pgc);
 		
@@ -122,15 +124,15 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 		{
 		print_vtu(p,c,pgc);	
         
-        if(p->P180==0)
 		printtime_wT[qn]+=p->P35_dt[qn];
 		}
         
         // Print FSF
-		if((p->count%p->P181==0 && p->P182<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1))
+		if(((p->count%p->P181==0 && p->P182<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
         {
 		pfsf->start(p,c,pgc,pflow);
         }
+        
 		
 		if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P180==1) || (p->count==0 &&  p->P182>0.0))
         {
@@ -140,11 +142,9 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
         
         if(p->P180==1 && p->P184>0)
 		for(int qn=0; qn<p->P184; ++qn)
-		if(p->count%printfsfiter_wI[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]+p->P184_dit[qn]))
+		if(p->count%p->P184_dit[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]))
 		{
-		pfsf->start(p,c,pgc,pflow);	
-        
-		printfsfiter_wI[qn]+=p->P184_dit[qn];
+		pfsf->start(p,c,pgc,pflow);
 		}
         
         if(p->P180==1 && p->P185>0)

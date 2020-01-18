@@ -313,7 +313,7 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
     
 		
         // Print FSF
-		if(p->count%p->P181==0 && p->P182<0.0 && p->P180==1)
+        if(((p->count%p->P181==0 && p->P182<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
 		pfsf->start(p,a,pgc);
 		
 		if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P180==1) || (p->count==0 &&  p->P182>0.0))
@@ -324,11 +324,9 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
         
         if(p->P180==1 && p->P184>0)
 		for(int qn=0; qn<p->P184; ++qn)
-		if(p->count%printfsfiter_wI[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]+p->P184_dit[qn]))
+		if(p->count%p->P184_dit[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]))
 		{
 		pfsf->start(p,a,pgc);	
-        
-		printfsfiter_wI[qn]+=p->P184_dit[qn];
 		}
         
         if(p->P180==1 && p->P185>0)
