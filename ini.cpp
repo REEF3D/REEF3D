@@ -509,10 +509,10 @@ void lexer::ini_default()
 	P151=1;			  // int type of data
 	P152=4;			  // int type of boundary condition for data
 	P180=0;			  // int print fsf
-	P181=10;		  // int ith iteration fsf printed
+	P181=-10;		  // int ith iteration fsf printed
 	P182=-1.0;       // double time between fsf file printout in seconds
-    P184=-1.0;       // double time between file printout in seconds for sediment
-	P185=0;        	// int print for interval
+    P184=0;       // int time between file printout in iterations
+	P185=0;        	// int time between file printout in seconds 
     P191=0;         // print sloshing forces
     P210=0;			  // int print exportfile
 	P211=1;		  // int ith iteration export printed
