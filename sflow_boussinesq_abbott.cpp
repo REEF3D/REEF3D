@@ -51,10 +51,9 @@ void sflow_boussinesq_abbott::psi1(lexer *p, fdm2D *b, ghostcell *pgc, slice &P,
     psi1_calc(p,b,pgc,P,Q,eta,alpha);
     
     // add to source
-    if(p->count>1)
     SLICELOOP1
     {
-    b->F(i,j) +=   ((1.0/3.0)*pow(b->depth(i,j),2.0)*(Pxx(i,j) - Pxx_n(i,j)))/(alpha*p->dt);
+    b->F(i,j) +=   (1.0/3.0)*pow(b->depth(i,j),2.0)*((Pxx(i,j) - Pxx_n(i,j)))/(alpha*p->dt);
     }
 }
 
@@ -74,12 +73,6 @@ void sflow_boussinesq_abbott::psi1_calc(lexer *p, fdm2D *b, ghostcell *pgc, slic
 {
     SLICELOOP1
     Pxx(i,j) = (P(i+1,j) - 2.0*P(i,j) + P(i-1,j))/(p->dx*p->dx);
-
-    /*
-    if(p->mpirank==0)
-    {
-    Pxx(0,0)  = 0.0;
-    }*/
 }
 
 void sflow_boussinesq_abbott::psi2_calc(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q, slice &eta, double alpha)
@@ -87,3 +80,5 @@ void sflow_boussinesq_abbott::psi2_calc(lexer *p, fdm2D *b, ghostcell *pgc, slic
     SLICELOOP2 
     Qyy(i,j) = (Q(i,j+1) - 2.0*Q(i,j) + Q(i,j-1))/(p->dx*p->dx);
 }
+
+
