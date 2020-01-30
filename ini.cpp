@@ -463,8 +463,8 @@ void lexer::ini_default()
 	P34=-1.0;       // double time between file printout in seconds for sediment
 	P35=0;        	// int print for interval
 	P40=0;				// int print state file
-	P41=-10;				// int print state file each ith iteration
-	P42=-1.0;				// double print state file each ith sec
+	P41=-10;			// int print state file each ith iteration
+	P42=-1.0;			// double print state file each ith sec
 	P50=0;				// int wave theory wave gages
 	P51=0;             // int print out wsf
 	P52=0;            // int print out wsf line in x-dir

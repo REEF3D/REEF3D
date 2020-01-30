@@ -34,15 +34,19 @@ void sixdof_f::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
 	a->fb(i,j,k)=1.0e9;
 	}
 	
+    for(rayiter=0; rayiter<2; ++rayiter)
+    {
 
-    for(int qn=0;qn<entity_sum;++qn)
-	{
-	ray_cast_x(p,a,pgc,tstart[qn],tend[qn]);
-	ray_cast_y(p,a,pgc,tstart[qn],tend[qn]);
-	ray_cast_z(p,a,pgc,tstart[qn],tend[qn]);
-	ray_cast_io(p,a,pgc,tstart[qn],tend[qn]);
-	}
-	
+        for(int qn=0;qn<entity_sum;++qn)
+        {
+        ray_cast_x(p,a,pgc,tstart[qn],tend[qn]);
+        ray_cast_y(p,a,pgc,tstart[qn],tend[qn]);
+        ray_cast_z(p,a,pgc,tstart[qn],tend[qn]);
+        ray_cast_io(p,a,pgc,tstart[qn],tend[qn]);
+        }
+    }
+    
+    
 	
 	ALOOP
 	{
@@ -55,6 +59,10 @@ void sixdof_f::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
 	
 	pgc->start4a(p,a->fb,50);
 }
+
+
+
+
 
 void sixdof_f::ray_cast_io(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 {

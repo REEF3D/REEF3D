@@ -280,6 +280,8 @@ private:
 	double dstx,dsty,dstz,lsSig,dnorm,op,lsv,sign;
 	
 	ofstream eposout, evelout, eforceout, sforceout;
+    
+    int rayiter;
 
 void print_vtp(lexer*,fdm*,ghostcell*);
     void pvtp(lexer*,fdm*,ghostcell*);
