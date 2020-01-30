@@ -158,16 +158,4 @@ void sixdof_f::ray_cast_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 		}
 	}
 	
-if (p->mpirank==1)	
-{
-	int counti=0;
-	LOOP
-	{
-		if (a->fb(i,j,k) < 100)
-		counti++;
-//		cout<<a->fb(i,j,k)<<endl;
-	}
-//	cout<<counti<<endl;
-}
-
 }
