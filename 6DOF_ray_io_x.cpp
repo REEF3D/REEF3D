@@ -79,11 +79,11 @@ void sixdof_f::ray_cast_io_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	ks = p->posf_k(zs+p->originz);
 	ke = p->posf_k(ze+p->originz);	
 	
-	ys = MIN3(Ay,By,Cy) - epsi*p->YP[js + marge-1];
-	ye = MAX3(Ay,By,Cy) + epsi*p->YP[je + marge+1];
+	ys = MIN3(Ay,By,Cy) - epsi*p->DYP[js + marge];
+	ye = MAX3(Ay,By,Cy) + epsi*p->DYP[je + marge];
 	
-	zs = MIN3(Az,Bz,Cz) - epsi*p->ZP[ks + marge-1];
-	ze = MAX3(Az,Bz,Cz) + epsi*p->ZP[ke + marge+1];
+	zs = MIN3(Az,Bz,Cz) - epsi*p->DZP[ks + marge];
+	ze = MAX3(Az,Bz,Cz) + epsi*p->DZP[ke + marge];
 
 	js = p->posf_j(ys+p->originy);
 	je = p->posf_j(ye+p->originy);
@@ -160,10 +160,10 @@ void sixdof_f::ray_cast_io_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
             
 			for(i=0;i<p->knox;++i)
             {
-				if(p->XP[IP]-p->originx<Rx)
+				if(p->XP[IP]<Rx)
 				cutr(i,j,k) += 1;
 				
-				if(p->XP[IP]-p->originx>=Rx)
+				if(p->XP[IP]>=Rx)
 				cutl(i,j,k) += 1;
             }
             
@@ -177,12 +177,15 @@ void sixdof_f::ray_cast_io_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	if((cutl(i,j,k)+1)%2==0  && (cutr(i,j,k)+1)%2==0)
 	a->fb(i,j,k)=-1.0;
 	
-	
+	/*
 	count=0;
 	ALOOP
 	if(a->fb(i,j,k)>0)
 	++count;
     
-    cout<<"Number of active cells after fb_ray_io_x: "<<count<<endl;
+    count=pgc->globalisum(count);
+    
+    if(p->mpirank==0)
+    cout<<"Number of active cells after fb_ray_io_x: "<<count<<endl;*/
 	
 }

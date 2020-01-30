@@ -73,11 +73,11 @@ void sixdof_f::ray_cast_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	ks = p->posf_k(zs+p->originz);
 	ke = p->posf_k(ze+p->originz);	
 	
-	ys = MIN3(Ay,By,Cy) - epsi*p->YP[js + marge-1];
-	ye = MAX3(Ay,By,Cy) + epsi*p->YP[je + marge+1];
+	ys = MIN3(Ay,By,Cy) - epsi*p->DYP[js + marge];
+	ye = MAX3(Ay,By,Cy) + epsi*p->DYP[je + marge];
 	
-	zs = MIN3(Az,Bz,Cz) - epsi*p->ZP[ks + marge-1];
-	ze = MAX3(Az,Bz,Cz) + epsi*p->ZP[ke + marge+1];
+	zs = MIN3(Az,Bz,Cz) - epsi*p->DZP[ks + marge];
+	ze = MAX3(Az,Bz,Cz) + epsi*p->DZP[ke + marge];
 
 	js = p->posf_j(ys+p->originy);
 	je = p->posf_j(ye+p->originy);
@@ -150,10 +150,25 @@ void sixdof_f::ray_cast_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 			Rx = u*Ax + v*Bx + w*Cx;
 
 			Rx+=p->originx;
-			for(i=0;i<=p->knox;++i)
-			{
-				a->fb(i,j,k)=MIN(fabs(Rx-p->XP[IP]),a->fb(i,j,k));
-			}
+			
+            i = p->posf_i(Rx);
+            
+            int distcheck=1;
+  
+            
+            if(Rx<p->XP[IP])
+            if(i>=0 && i<p->knox)
+            if(a->fb(i,j,k)<0 && a->fb(i-1,j,k)<0)
+            distcheck=0;
+            
+            if(Rx>=p->XP[IP])
+            if(i>=0 && i<p->knox)
+            if(a->fb(i,j,k)<0 && a->fb(i+1,j,k)<0)
+            distcheck=0;
+
+            if(distcheck==1)
+			for(i=0;i<p->knox;++i)
+			a->fb(i,j,k)=MIN(fabs(Rx-p->XP[IP]),fabs(a->fb(i,j,k)))*a->fb(i,j,k)/fabs(a->fb(i,j,k));
 			}
 		}
 	}

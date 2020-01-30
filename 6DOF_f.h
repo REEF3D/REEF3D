@@ -62,7 +62,6 @@ private:
 	void position_ini(lexer*, fdm*, ghostcell*);
 	void position_ini_quaternion(lexer*, fdm*, ghostcell*);
 	void ray_cast(lexer*, fdm*, ghostcell*);
-	void ray_cast_io(lexer*, fdm*, ghostcell*,int,int);
 	void ray_cast_io_x(lexer*, fdm*, ghostcell*,int,int);
 	void ray_cast_io_ycorr(lexer*, fdm*, ghostcell*,int,int);
 	void ray_cast_io_zcorr(lexer*, fdm*, ghostcell*,int,int);

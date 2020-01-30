@@ -279,21 +279,21 @@ double interpolation::ipol4phi(fdm *a, field& b)
     v1=v2=v3=v4=v5=v6=v7=v8 = p->phimean-p->pos_z()-0.5*p->dx;
 
 	pip=4;
-    if(a->topo(i,j,k)>-epphi && a->fb(i,j,k)>-epphi2)
+    if(a->topo(i,j,k)>-epphi)// && a->fb(i,j,k)>-epphi2)
     v1=b(i,j,k);
-    if(a->topo(i,j+1,k)>-epphi && a->fb(i,j+1,k)>-epphi2)
+    if(a->topo(i,j+1,k)>-epphi)// && a->fb(i,j+1,k)>-epphi2)
     v2=b(i,j+1,k);
-    if(a->topo(i+1,j,k)>-epphi && a->fb(i+1,j,k)>-epphi2)
+    if(a->topo(i+1,j,k)>-epphi)// && a->fb(i+1,j,k)>-epphi2)
     v3=b(i+1,j,k);
-    if(a->topo(i+1,j+1,k)>-epphi && a->fb(i+1,j+1,k)>-epphi2)
+    if(a->topo(i+1,j+1,k)>-epphi)// && a->fb(i+1,j+1,k)>-epphi2)
     v4=b(i+1,j+1,k);
-    if(a->topo(i,j,k+1)>-epphi && a->fb(i,j,k+1)>-epphi2)
+    if(a->topo(i,j,k+1)>-epphi)// && a->fb(i,j,k+1)>-epphi2)
     v5=b(i,j,k+1);
-    if(a->topo(i,j+1,k+1)>-epphi && a->fb(i,j+1,k+1)>-epphi2)
+    if(a->topo(i,j+1,k+1)>-epphi)// && a->fb(i,j+1,k+1)>-epphi2)
     v6=b(i,j+1,k+1);
-    if(a->topo(i+1,j,k+1)>-epphi && a->fb(i+1,j,k+1)>-epphi2)
+    if(a->topo(i+1,j,k+1)>-epphi)// && a->fb(i+1,j,k+1)>-epphi2)
     v7=b(i+1,j,k+1);
-    if(a->topo(i+1,j+1,k+1)>-epphi && a->fb(i+1,j+1,k+1)>-epphi2)
+    if(a->topo(i+1,j+1,k+1)>-epphi)// && a->fb(i+1,j+1,k+1)>-epphi2)
     v8=b(i+1,j+1,k+1);
     pip=0;
 	

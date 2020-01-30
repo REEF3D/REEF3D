@@ -72,11 +72,11 @@ void sixdof_f::ray_cast_y(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	ks = p->posf_k(zs+p->originz);
 	ke = p->posf_k(ze+p->originz);
     
-	xs = MIN3(Ax,Bx,Cx) - epsi*p->XP[is +marge-1];
-	xe = MAX3(Ax,Bx,Cx) + epsi*p->XP[ie +marge+1];
+	xs = MIN3(Ax,Bx,Cx) - epsi*p->DXP[is +marge];
+	xe = MAX3(Ax,Bx,Cx) + epsi*p->DXP[ie +marge];
 	
-	zs = MIN3(Az,Bz,Cz) - epsi*p->ZP[ks +marge-1];
-	ze = MAX3(Az,Bz,Cz) + epsi*p->ZP[ke +marge+1];
+	zs = MIN3(Az,Bz,Cz) - epsi*p->DZP[ks +marge];
+	ze = MAX3(Az,Bz,Cz) + epsi*p->DZP[ke +marge];
 	
 	
 	is = p->posf_i(xs+p->originx);
@@ -151,21 +151,28 @@ void sixdof_f::ray_cast_y(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 			Ry = u*Ay + v*By + w*Cy;
 			
 			Ry+=p->originy;
-			for(j=0;j<=p->knoy;++j)
-			{
-				a->fb(i,j,k)=MIN(fabs(Ry-p->YP[JP]),a->fb(i,j,k));
-			}
+			
+            j = p->posf_j(Ry);
+            
+            int distcheck=1;
+  
+            
+            if(Ry<p->YP[JP])
+            if(j>=0 && j<p->knoy)
+            if(a->fb(i,j,k)<0 && a->fb(i,j-1,k)<0)
+            distcheck=0;
+            
+            if(Ry>=p->YP[JP])
+            if(j>=0 && j<p->knoy)
+            if(a->fb(i,j,k)<0 && a->fb(i,j+1,k)<0)
+            distcheck=0;
+
+            if(distcheck==1)
+			for(j=0;j<p->knoy;++j)
+			a->fb(i,j,k)=MIN(fabs(Ry-p->YP[JP]),fabs(a->fb(i,j,k)))*a->fb(i,j,k)/fabs(a->fb(i,j,k));
 			}
 		}
 	}
 
-if (p->mpirank==1)	
-{
-	LOOP
-	{
-//		if (a->fb(i,j,k) < 100)
-//		cout<<a->fb(i,j,k)<<endl;
-	}
-}
 
 }
