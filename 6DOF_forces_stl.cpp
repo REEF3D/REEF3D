@@ -39,13 +39,11 @@ void sixdof_f::forces_stl(lexer* p, fdm *a, ghostcell *pgc)
 	
 
     pgc->start4(p,a->press,40);
-	pgc->start4(p,a->press,401);
-    pgc->start4(p,a->press,401);
+	//pgc->start4(p,a->press,401);
+    //pgc->start4(p,a->press,401);
 
-    pgc->gcfb_update_extra_gcb(p,a,a->press);
+    //pgc->gcfb_update_extra_gcb(p,a,a->press);
     
-    pgc->dgcpol(p,a->press,p->dgc4,p->dgc4_count,14);
-    a->press.ggcpol(p);
     
 	
     A=0.0;
@@ -108,12 +106,12 @@ void sixdof_f::forces_stl(lexer* p, fdm *a, ghostcell *pgc)
 			// Interpolate values at centre of triangle
 
 			p_int = p->ccipol4_a(a->press,xc,yc,zc);
-			nu_int = p->ccipol4_a(a->visc,xc,yc,zc);
-			rho_int = p->ccipol4_a(a->ro,xc,yc,zc);
+			//nu_int = p->ccipol4_a(a->visc,xc,yc,zc);
+			//rho_int = p->ccipol4_a(a->ro,xc,yc,zc);
 			
 			
 			// Interpolate velocities in fluid near centre of triangle
-			
+			/*
 			i = p->posc_i(xc);
 			j = p->posc_j(yc);
 			k = p->posc_k(zc);
@@ -129,13 +127,13 @@ void sixdof_f::forces_stl(lexer* p, fdm *a, ghostcell *pgc)
 			du = u_int/p->DXP[IP];
 			dv = v_int/p->DYP[JP];
 			dw = w_int/p->DZP[KP];
-				
+			*/	
 
 			// Calculate forces on triangle
 				
-			Fx = -nx*p_int*A_triang + rho_int*nu_int*A_triang*(du*ny+du*nz);
-			Fy = -ny*p_int*A_triang + rho_int*nu_int*A_triang*(dv*nx+dv*nz);           
-			Fz = -nz*p_int*A_triang + rho_int*nu_int*A_triang*(dw*nx+dw*ny);  
+			Fx = -nx*p_int*A_triang;// + rho_int*nu_int*A_triang*(du*ny+du*nz);
+			Fy = -ny*p_int*A_triang;// + rho_int*nu_int*A_triang*(dv*nx+dv*nz);           
+			Fz = -nz*p_int*A_triang;// + rho_int*nu_int*A_triang*(dw*nx+dw*ny);  
 			
 
 			// Add forces to global forces

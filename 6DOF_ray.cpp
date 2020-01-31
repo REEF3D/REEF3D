@@ -46,8 +46,8 @@ void sixdof_f::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
         
             if(rayiter==1)
             {
-            //ray_cast_x(p,a,pgc,tstart[qn],tend[qn]);
-            //ray_cast_y(p,a,pgc,tstart[qn],tend[qn]);
+            ray_cast_x(p,a,pgc,tstart[qn],tend[qn]);
+            ray_cast_y(p,a,pgc,tstart[qn],tend[qn]);
             ray_cast_z(p,a,pgc,tstart[qn],tend[qn]);
             }
         }
