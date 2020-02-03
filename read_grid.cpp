@@ -492,8 +492,8 @@ void lexer::read_grid()
     Iarray(gcin4a, gcin_count,6);
     Iarray(gcout4a, gcout_count,6);
     
-    Iarray(gcin6, gcin6_count,4);
-    Iarray(gcout6, gcout6_count,4);
+    Iarray(gcin6, gcin6_count,6);
+    Iarray(gcout6, gcout6_count,6);
     
     int count1=0;
     int count2=0;

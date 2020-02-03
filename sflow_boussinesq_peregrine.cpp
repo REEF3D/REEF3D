@@ -98,23 +98,19 @@ void sflow_boussinesq_peregrine::psi1(lexer *p, fdm2D *b, ghostcell *pgc, slice 
     SLICELOOP1
     {
     d = 0.5*(b->depth(i+1,j) + b->depth(i,j));
-    ddx = (b->depth(i+1,j) - b->depth(i,j))/p->dx;
-    ddy = 0.5*((b->depth(i+1,j+1) + b->depth(i,j+1)) - (b->depth(i+1,j-1) + b->depth(i,j-1)))/(2.0*p->dx);
     
-    b->F(i,j) += (1.0/3.0)*pow(d,2.0)*((Pxx(i,j) - Pxx_n(i,j))/(alpha*p->dt) + 0.0*(Qxy(i,j) - Qxy_n(i,j))/(alpha*p->dt))
+    b->F(i,j) -= (1.0/6.0)*pow(d,3.0)*((Pxx(i,j) - Pxx_n(i,j))/(alpha*p->dt) + (Qxy(i,j) - Qxy_n(i,j))/(alpha*p->dt))
     
-               + 0.0*(1.0/6.0)*d*ddy*((Q1x(i,j) - Q1x_n(i,j))/(alpha*p->dt))
-               
-               + 0.0*(1.0/6.0)*d*ddx*(2.0*(P1x(i,j) - P1x_n(i,j))/(alpha*p->dt) + (Q1y(i,j) - Q1y_n(i,j))/(alpha*p->dt));
+               - (1.0/2.0)*pow(d,3.0)*((Pxx(i,j) - Pxx_n(i,j))/(alpha*p->dt) + (Qxy(i,j) - Qxy_n(i,j))/(alpha*p->dt));
     }
 }
 
 void sflow_boussinesq_peregrine::psi2(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q, slice &eta, double alpha)
 {
-    /*SLICELOOP2
+    SLICELOOP2
     {
-    QDyy_n(i,j) = QDyy(i,j);
-    PDxy_n(i,j) = PDxy(i,j);
+    Qyy_n(i,j) = Qyy(i,j);
+    Pxy_n(i,j) = Pxy(i,j);
     
     Qyy_n(i,j) = Qyy(i,j);
     Pxy_n(i,j) = Pxy(i,j);
@@ -127,10 +123,10 @@ void sflow_boussinesq_peregrine::psi2(lexer *p, fdm2D *b, ghostcell *pgc, slice 
     {
     d = 0.5*(b->depth(i,j) + b->depth(i,j+1));
     
-    b->G(i,j) += (1.0/6.0)*pow(d,3.0)*((QDyy(i,j) - QDyy_n(i,j))/(alpha*p->dt) + (PDxy(i,j) - PDxy_n(i,j))/(alpha*p->dt))
+    b->G(i,j) -= (1.0/6.0)*pow(d,3.0)*((Qyy(i,j) - Qyy_n(i,j))/(alpha*p->dt) + (Pxy(i,j) - Pxy_n(i,j))/(alpha*p->dt))
     
                 -(1.0/2.0)*pow(d,2.0)*((Qyy(i,j) - Qyy_n(i,j))/(alpha*p->dt) + (Pxy(i,j) - Pxy_n(i,j))/(alpha*p->dt));
-    }*/
+    }
 }
 
 void sflow_boussinesq_peregrine::psi1_calc(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q, slice &eta, double alpha)
