@@ -102,16 +102,15 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     pwsf_theory->height_gauge(p,c,pgc,pflow);
 
 		// Print out based on iteration
-    if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P35<0.0 && p->P10==1 && p->P20>0)
+    if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P35<=0.0 && p->P10==1 && p->P20>0)
 		{
-        // print_vtu(p,c,pgc);
+        print_vtu(p,c,pgc);
 		}
 
 		// Print out based on time
-    if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P35<0.0 && p->P10==1) || (p->count==0 &&  p->P30>0.0))
+    if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P35<=0.0 && p->P10==1) || (p->count==0 &&  p->P30>0.0))
     {
-        // print_vtu(p,c,pgc);
-
+        print_vtu(p,c,pgc);
         p->printtime+=p->P30;
     }
 
@@ -123,17 +122,13 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 		      if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
 		        {
 		            print_vtu(p,c,pgc);
-                // if(p->mpirank==0) cout<<printtime_wT[qn]<<" "<<p->P35_ts[qn]<<" "<<p->P35_te[qn]<<" "<<p->P35_dt[qn]<<endl;
-                // if(p->P180==0)
-                // {
-		                printtime_wT[qn]+=p->P35_dt[qn];
-		            // }
+		            printtime_wT[qn]+=p->P35_dt[qn];
             }
         }
     }
 
         // Print FSF
-		if((p->count%p->P181==0 && p->P182<0.0 && p->P184<0.0 && p->P185<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P184<0.0 && p->P185<0.0 && p->P180==1))
+		if((p->count%p->P181==0 && p->P182<0.0 && p->P184<0.0 && p->P185<=0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P184<0.0 && p->P185<=0.0 && p->P180==1))
         {
 		        pfsf->start(p,c,pgc,pflow);
         }
