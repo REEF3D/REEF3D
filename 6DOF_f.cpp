@@ -112,7 +112,7 @@ void sixdof_f::start
         fb_position(p,a,pgc);
 		
 		ray_cast(p,a,pgc);
-		reini_AB2(p,a,pgc,a->fb);
+		//reini_AB2(p,a,pgc,a->fb);
 		pgc->start4a(p,a->fb,50);
 		
 		interface(p,true);

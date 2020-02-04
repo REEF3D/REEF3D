@@ -38,7 +38,7 @@ void sixdof_f::initialize(lexer *p, fdm *a, ghostcell *pgc)
 	
 	objects(p,a,pgc);
 	ray_cast(p,a,pgc);
-	reini_AB2(p,a,pgc,a->fb);
+	//reini_AB2(p,a,pgc,a->fb);
 	geometry_ini(p,a,pgc);
 	
     if (p->X13 == 0)
@@ -51,7 +51,7 @@ void sixdof_f::initialize(lexer *p, fdm *a, ghostcell *pgc)
 	}
 	
 	ray_cast(p,a,pgc);
-	reini_AB2(p,a,pgc,a->fb);
+	//reini_AB2(p,a,pgc,a->fb);
 
 	interface(p,true);
 	maxvel(p,a,pgc);

@@ -31,14 +31,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void ghostcell::gcfb_update(lexer *p, fdm *a)
 {
     if(p->mpirank==0)
-    cout<<"update grid: 6DOF ..."<<endl;
+    cout<<"6DOF: update grid..."<<endl;
 
     int **cellmem1, **cellmem2, **cellmem3, **cellmem4;
     int cellcount1,cellcount2,cellcount3,cellcount4;
     cellcount1=cellcount2=cellcount3=cellcount4=0;
     int cellmemsize=p->cellnum;
-	int cc4;
-	
+
 	mgc1 m1(p);
 	mgc2 m2(p);
 	mgc3 m3(p);
@@ -65,8 +64,6 @@ void ghostcell::gcfb_update(lexer *p, fdm *a)
     flagx(p,p->flag3);
 	
     gcxupdate(p);
-
-
 
     m1.fillgcb(p);
     m1.extragcb(p);
