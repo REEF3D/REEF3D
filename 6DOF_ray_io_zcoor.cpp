@@ -169,7 +169,7 @@ void sixdof_f::ray_cast_io_zcorr(lexer *p, fdm *a, ghostcell *pgc, int ts, int t
     
     ALOOP
 	if((cutl(i,j,k)+1)%2==0  && (cutr(i,j,k)+1)%2==0)
-	a->fb(i,j,k)=-1.0;
+	fbio(i,j,k)=-1;
 
     /*
     count=0;

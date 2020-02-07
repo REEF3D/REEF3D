@@ -44,7 +44,7 @@ void sixdof_f::ray_cast_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	double u,v,w;
 	double denom;	
 	int insidecheck;
-	double psi = 1.0e-6*p->DXM;
+	double psi = 1.0e-8*p->DXM;
 
 	for(n=ts; n<te; ++n)
 	{
@@ -156,17 +156,17 @@ void sixdof_f::ray_cast_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
             
             if(Rx<p->XP[IP])
             if(i>=0 && i<p->knox)
-            if(a->fb(i,j,k)<0 && a->fb(i-1,j,k)<0)
+            if(fbio(i,j,k)<0 && fbio(i-1,j,k)<0)
             distcheck=0;
             
             if(Rx>=p->XP[IP])
             if(i>=0 && i<p->knox)
-            if(a->fb(i,j,k)<0 && a->fb(i+1,j,k)<0)
+            if(fbio(i,j,k)<0 && fbio(i+1,j,k)<0)
             distcheck=0;
 
             if(distcheck==1)
 			for(i=0;i<p->knox;++i)
-			a->fb(i,j,k)=MIN(fabs(Rx-p->XP[IP]),fabs(a->fb(i,j,k)))*a->fb(i,j,k)/fabs(a->fb(i,j,k));
+			a->fb(i,j,k)=MIN(fabs(Rx-p->XP[IP]),fabs(a->fb(i,j,k)));
 			}
 		}
 	}

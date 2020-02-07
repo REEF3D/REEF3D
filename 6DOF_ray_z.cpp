@@ -40,10 +40,9 @@ void sixdof_f::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	double PCx,PCy,PCz;
 	double Mx,My,Mz;
 	int is,ie,js,je,ks,ke;
-	int ir;
 	double u,v,w;
 	double denom;
-	double psi = 1.0e-6*p->DXM;
+	double psi = 1.0e-8*p->DXM;
 
 
 	for(n=ts; n<te; ++n)
@@ -154,24 +153,17 @@ void sixdof_f::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
             
             if(Rz<p->ZP[KP])
             if(k>=0 && k<p->knoz)
-            if(a->fb(i,j,k)<0 && a->fb(i,j,k-1)<0)
+            if(fbio(i,j,k)<0 && fbio(i,j,k-1)<0)
             distcheck=0;
             
             if(Rz>=p->ZP[KP])
             if(k>=0 && k<p->knoz)
-            if(a->fb(i,j,k)<0 && a->fb(i,j,k+1)<0)
+            if(fbio(i,j,k)<0 && fbio(i,j,k+1)<0)
             distcheck=0;
 
             if(distcheck==1)
 			for(k=0;k<p->knoz;++k)
-            {
-            if(a->fb(i,j,k)<0.0)
-			a->fb(i,j,k)=-MIN(fabs(Rz-p->ZP[KP]),fabs(a->fb(i,j,k)));
-            
-            if(a->fb(i,j,k)>=0.0)
-			a->fb(i,j,k)=MIN(fabs(Rz-p->ZP[KP]),fabs(a->fb(i,j,k)));
-            
-            }
+            a->fb(i,j,k)=MIN(fabs(Rz-p->ZP[KP]),a->fb(i,j,k));
 			}
 		
 		}

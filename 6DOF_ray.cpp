@@ -29,7 +29,8 @@ void sixdof_f::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
 {
 	ALOOP
 	{
-	a->fb(i,j,k)=1.0;
+    fbio(i,j,k)=1;
+	a->fb(i,j,k)=1.0e9;
 	}
 	
     for(rayiter=0; rayiter<2; ++rayiter)
@@ -51,6 +52,16 @@ void sixdof_f::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
             ray_cast_z(p,a,pgc,tstart[qn],tend[qn]);
             }
         }
+    }
+    
+    ALOOP
+    {
+        if(fbio(i,j,k)==-1)
+        a->fb(i,j,k)=-fabs(a->fb(i,j,k));
+        
+        
+        if(fbio(i,j,k)==1)
+        a->fb(i,j,k)=fabs(a->fb(i,j,k));
     }
     
 	

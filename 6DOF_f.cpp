@@ -47,7 +47,7 @@ sixdof_f::sixdof_f
 	solver* psolv,
 	reini* preini,
 	particlecorr* ppart
-) : gradient(p), cutl(p), cutr(p), epsifb(1.6*p->dx),f(p),dt(p),frk1(p),frk2(p),L(p),eta(p),phin(p),vertice(p),nodeflag(p)
+) : gradient(p), cutl(p), cutr(p), fbio(p), epsifb(1.6*p->DXM), epsi(1.6*p->DXM),f(p),dt(p),frk1(p),frk2(p),L(p),eta(p),phin(p),vertice(p),nodeflag(p)
 {
 	p->printcount_sixdof=0;
 	
@@ -60,7 +60,6 @@ sixdof_f::sixdof_f
 	Me = 0.0;
 	Ne = 0.0;
 	
-	epsi=1.6*p->dx;
     zero=0.0;
 	
 	LOOP

@@ -40,7 +40,6 @@ void sixdof_f::ray_cast_io_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	double PCx,PCy,PCz;
 	double Mx,My,Mz;
 	int js,je,ks,ke;
-	int ir;
 	double u,v,w;
 	double denom;	
 	int insidecheck;
@@ -175,7 +174,7 @@ void sixdof_f::ray_cast_io_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
     
     ALOOP
 	if((cutl(i,j,k)+1)%2==0  && (cutr(i,j,k)+1)%2==0)
-	a->fb(i,j,k)=-1.0;
+	fbio(i,j,k)=-1;
 	
 	/*
 	count=0;

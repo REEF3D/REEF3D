@@ -38,7 +38,7 @@ void sixdof_f::initialize(lexer *p, fdm *a, ghostcell *pgc)
 	
 	objects(p,a,pgc);
 	ray_cast(p,a,pgc);
-	//reini_AB2(p,a,pgc,a->fb);
+	reini_AB2(p,a,pgc,a->fb);
 	geometry_ini(p,a,pgc);
 	
     if (p->X13 == 0)
@@ -51,14 +51,15 @@ void sixdof_f::initialize(lexer *p, fdm *a, ghostcell *pgc)
 	}
 	
 	ray_cast(p,a,pgc);
-	//reini_AB2(p,a,pgc,a->fb);
+	reini_AB2(p,a,pgc,a->fb);
+    pgc->start4a(p,a->fb,50);
 
 	interface(p,true);
 	maxvel(p,a,pgc);
 	pgc->gcfb_update(p,a);
 	print_stl(p,a,pgc);
 	
-	pgc->start4a(p,a->fb,50);
+	
     
     if(p->X221==1)
     read_motionvec(p,a,pgc);

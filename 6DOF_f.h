@@ -140,7 +140,8 @@ private:
 	
 	// ------ 
 
-	fieldint5 cutl,cutr;
+	fieldint5 cutl,cutr,fbio;
+    
 	
 	int conv(double);
 	
@@ -255,7 +256,8 @@ private:
     double ***ccell,**lscc;
 	int *ccnode,**ccid,*ccflag,**vertice_cc,***ccijk;
     
-    double epsi,zero;
+    double zero;
+    const double epsi;
     int check,facount,countCC,countM;
     int numvert,numtri_mem,numvert_mem,polygon_num;
     int nn;
