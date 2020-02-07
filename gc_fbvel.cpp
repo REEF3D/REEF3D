@@ -91,7 +91,7 @@ void ghostcell::fbvel1(lexer *p,field& f, double dist, int gcv, int bc, int cs)
 				
 				f(i, j, k) = f(i,j-1,k)*delta_y + vel*(1.0 - delta_y);
 			}
-				
+				 
 			if(cs==3)	// back side
 			{
 				// u(i,j-q-1,k) is always in solid

@@ -49,17 +49,17 @@ void sixdof_f::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	for(n=ts; n<te; ++n)
 	{ 
 		
-	Ax = tri_x[n][0]-p->originx;
-	Ay = tri_y[n][0]-p->originy;
-	Az = tri_z[n][0]-p->originz;
+	Ax = tri_x[n][0];
+	Ay = tri_y[n][0];
+	Az = tri_z[n][0];
 		
-	Bx = tri_x[n][1]-p->originx;
-	By = tri_y[n][1]-p->originy;
-	Bz = tri_z[n][1]-p->originz;
+	Bx = tri_x[n][1];
+	By = tri_y[n][1];
+	Bz = tri_z[n][1];
 		
-	Cx = tri_x[n][2]-p->originx;
-	Cy = tri_y[n][2]-p->originy;
-	Cz = tri_z[n][2]-p->originz;
+	Cx = tri_x[n][2];
+	Cy = tri_y[n][2];
+	Cz = tri_z[n][2];
 	
 	
 	xs = MIN3(Ax,Bx,Cx); 
@@ -68,11 +68,11 @@ void sixdof_f::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	ys = MIN3(Ay,By,Cy);
 	ye = MAX3(Ay,By,Cy);
 	
-	is = p->posf_i(xs+p->originx);
-	ie = p->posf_i(xe+p->originx);
+	is = p->posf_i(xs);
+	ie = p->posf_i(xe);
 	
-	js = p->posf_j(ys+p->originy);
-	je = p->posf_j(ye+p->originy);
+	js = p->posf_j(ys);
+	je = p->posf_j(ye);
 		
 	
     xs = MIN3(Ax,Bx,Cx) - epsi*p->DXP[is + marge];
@@ -82,11 +82,11 @@ void sixdof_f::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	ye = MAX3(Ay,By,Cy) + epsi*p->DYP[je + marge];
 
 	
-	is = p->posf_i(xs+p->originx);
-	ie = p->posf_i(xe+p->originx);
+	is = p->posf_i(xs);
+	ie = p->posf_i(xe);
 	
-	js = p->posf_j(ys+p->originy);
-	je = p->posf_j(ye+p->originy);
+	js = p->posf_j(ys);
+	je = p->posf_j(ye);
 	
 	is = MAX(is,0);
 	ie = MIN(ie,p->knox);
@@ -97,12 +97,12 @@ void sixdof_f::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 		for(i=is;i<ie;i++)
 		for(j=js;j<je;j++)
 		{
-		Px = p->XP[IP]+psi-p->originx;
-		Py = p->YP[JP]+psi-p->originy;
+		Px = p->XP[IP]+psi;
+		Py = p->YP[JP]+psi;
 		Pz = p->global_zmin-10.0*p->DXM ;
 		
-		Qx = p->XP[IP]+psi-p->originx;
-		Qy = p->YP[JP]+psi-p->originy;
+		Qx = p->XP[IP]+psi;
+		Qy = p->YP[JP]+psi;
 		Qz = p->global_zmax+10.0*p->DXM ;
 		
 		PQx = Qx-Px;
@@ -145,8 +145,7 @@ void sixdof_f::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 			w *= denom;
 			
 			Rz = u*Az + v*Bz + w*Cz;
-			
-			Rz+=p->originz;
+
             
             k = p->posf_k(Rz);
 			
