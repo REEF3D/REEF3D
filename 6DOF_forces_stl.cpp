@@ -79,6 +79,7 @@ void sixdof_f::forces_stl(lexer* p, fdm *a, ghostcell *pgc)
 			zc >= p->originz && zc < p->endz
 		)
 		{
+        //cout<<p->mpirank<<"  originx: "<<p->originx<<"  endx: "<<p->endx<<endl;
 			// Area of triangle using Heron's formula
 
 			at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
@@ -161,8 +162,8 @@ void sixdof_f::forces_stl(lexer* p, fdm *a, ghostcell *pgc)
 	Me = pgc->globalsum(Me);
 	Ne = pgc->globalsum(Ne);
 
-    if(p->mpirank==0)
-    cout<<"Fx: "<<Ze<<"  A: "<<A<<endl;
+    //if(p->mpirank==0)
+    //cout<<"Fx: "<<Ze<<"  A: "<<A<<endl;
 
 	// Add gravity force
 	
