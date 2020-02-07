@@ -35,8 +35,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 //#include"array"
 
-sixdof_f::sixdof_f
-(
+sixdof_f::sixdof_f(
 	lexer *p, 
 	fdm *a, 
 	ghostcell *pgc, 
@@ -46,8 +45,7 @@ sixdof_f::sixdof_f
 	convection* pfsfdisc,
 	solver* psolv,
 	reini* preini,
-	particlecorr* ppart
-) : gradient(p), cutl(p), cutr(p), epsifb(1.6*p->dx),f(p),dt(p),frk1(p),frk2(p),L(p),eta(p),phin(p),vertice(p),nodeflag(p)
+	particlecorr* ppart) : gradient(p), fbio(p), cutl(p), cutr(p), epsifb(1.6*p->dx),f(p),dt(p),frk1(p),frk2(p),L(p),eta(p),phin(p),vertice(p),nodeflag(p)
 {
 	p->printcount_sixdof=0;
 	
