@@ -34,7 +34,6 @@ void ghostcell::topo_update(lexer *p, fdm *a)
     int cellcount1,cellcount2,cellcount3,cellcount4;
     cellcount1=cellcount2=cellcount3=cellcount4=0;
     int cellmemsize=MAX(p->cellnum,3*p->gcb4_count);
-	int cc4;
 	
 	mgc1 m1(p);
 	mgc2 m2(p);

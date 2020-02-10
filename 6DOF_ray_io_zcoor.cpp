@@ -25,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"fieldint.h"
 
-void sixdof_f::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
+void sixdof_f::ray_cast_io_zcorr(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 {
 	double ys,ye,zs,ze;
 	double Px,Py,Pz;
@@ -40,9 +40,16 @@ void sixdof_f::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	double PCx,PCy,PCz;
 	double Mx,My,Mz;
 	int is,ie,js,je,ks,ke;
+	int ir;
 	double u,v,w;
 	double denom;
 	double psi = 1.0e-8*p->DXM;
+    
+    ALOOP
+	{
+	cutl(i,j,k)=0;
+	cutr(i,j,k)=0;
+	}
 
 
 	for(n=ts; n<te; ++n)
@@ -144,31 +151,33 @@ void sixdof_f::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 			w *= denom;
 			
 			Rz = u*Az + v*Bz + w*Cz;
-
-            
-            k = p->posf_k(Rz);
 			
-            int distcheck=1;
-  
-            
-            if(Rz<p->ZP[KP])
-            if(k>=0 && k<p->knoz)
-            if(fbio(i,j,k)<0 && fbio(i,j,k-1)<0)
-            distcheck=0;
-            
-            if(Rz>=p->ZP[KP])
-            if(k>=0 && k<p->knoz)
-            if(fbio(i,j,k)<0 && fbio(i,j,k+1)<0)
-            distcheck=0;
-
-            if(distcheck==1)
-			for(k=0;k<p->knoz;++k)
-            a->fb(i,j,k)=MIN(fabs(Rz-p->ZP[KP]),a->fb(i,j,k));
+			
+            for(k=0;k<p->knoz;++k)
+            {
+				if(p->ZP[KP]<Rz)
+				cutr(i,j,k) += 1;
+				
+				if(p->ZP[KP]>=Rz)
+				cutl(i,j,k) += 1;
+            }
 			}
 		
 		}
 	}
+    
+    ALOOP
+	if((cutl(i,j,k)+1)%2==0  && (cutr(i,j,k)+1)%2==0)
+	fbio(i,j,k)=-1;
 
-
-
+    /*
+    count=0;
+	ALOOP
+	if(a->fb(i,j,k)>0)
+	++count;
+    
+    count=pgc->globalisum(count);
+    
+    if(p->mpirank==0)
+    cout<<"Number of active cells after fb_ray_io_z_corr: "<<count<<endl;*/
 }

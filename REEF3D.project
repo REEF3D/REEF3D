@@ -1108,6 +1108,9 @@
           <File Name="6DOF_motion_fixed.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Raycast">
+          <File Name="6DOF_ray_io_x.cpp"/>
+          <File Name="6DOF_ray_io_zcoor.cpp"/>
+          <File Name="6DOF_ray_io_ycorr.cpp"/>
           <File Name="6DOF_ray.cpp"/>
           <File Name="6DOF_ray_x.cpp"/>
           <File Name="6DOF_ray_y.cpp"/>

@@ -125,7 +125,7 @@ void lexer::read_grid()
     endy=ddn;
     grid.read((char*)&ddn, sizeof (double));
     endz=ddn;
-    
+
     grid.read((char*)&ddn, sizeof (double));
     global_xmin=ddn;
     grid.read((char*)&ddn, sizeof (double));

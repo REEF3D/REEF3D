@@ -43,21 +43,21 @@ void sixdof_f::ray_cast_y(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	int ir,insidecheck;
 	double u,v,w;
 	double denom;
-	double psi = 1.0e-6*p->DXM;	
+	double psi = 1.0e-8*p->DXM;	
 
 	for(n=ts; n<te; ++n)
 	{
-	Ax = tri_x[n][0]-p->originx;
-	Ay = tri_y[n][0]-p->originy;
-	Az = tri_z[n][0]-p->originz;
+	Ax = tri_x[n][0];
+	Ay = tri_y[n][0];
+	Az = tri_z[n][0];
 		
-	Bx = tri_x[n][1]-p->originx;
-	By = tri_y[n][1]-p->originy;
-	Bz = tri_z[n][1]-p->originz;
+	Bx = tri_x[n][1];
+	By = tri_y[n][1];
+	Bz = tri_z[n][1];
 		
-	Cx = tri_x[n][2]-p->originx;
-	Cy = tri_y[n][2]-p->originy;
-	Cz = tri_z[n][2]-p->originz;
+	Cx = tri_x[n][2];
+	Cy = tri_y[n][2];
+	Cz = tri_z[n][2];
 	
 	
 	xs = MIN3(Ax,Bx,Cx);
@@ -66,24 +66,24 @@ void sixdof_f::ray_cast_y(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	zs = MIN3(Az,Bz,Cz);
 	ze = MAX3(Az,Bz,Cz);	
 	
-	is = p->posf_i(xs+p->originx);
-	ie = p->posf_i(xe+p->originx);
+	is = p->posf_i(xs);
+	ie = p->posf_i(xe);
 	
-	ks = p->posf_k(zs+p->originz);
-	ke = p->posf_k(ze+p->originz);
+	ks = p->posf_k(zs);
+	ke = p->posf_k(ze);
     
-	xs = MIN3(Ax,Bx,Cx) - epsi*p->XP[is +marge-1];
-	xe = MAX3(Ax,Bx,Cx) + epsi*p->XP[ie +marge+1];
+	xs = MIN3(Ax,Bx,Cx) - epsi*p->DXP[is +marge];
+	xe = MAX3(Ax,Bx,Cx) + epsi*p->DXP[ie +marge];
 	
-	zs = MIN3(Az,Bz,Cz) - epsi*p->ZP[ks +marge-1];
-	ze = MAX3(Az,Bz,Cz) + epsi*p->ZP[ke +marge+1];
+	zs = MIN3(Az,Bz,Cz) - epsi*p->DZP[ks +marge];
+	ze = MAX3(Az,Bz,Cz) + epsi*p->DZP[ke +marge];
 	
 	
-	is = p->posf_i(xs+p->originx);
-	ie = p->posf_i(xe+p->originx);
+	is = p->posf_i(xs);
+	ie = p->posf_i(xe);
 	
-	ks = p->posf_k(zs+p->originz);
-	ke = p->posf_k(ze+p->originz);
+	ks = p->posf_k(zs);
+	ke = p->posf_k(ze);
 
 	
 	is = MAX(is,0);
@@ -96,13 +96,13 @@ void sixdof_f::ray_cast_y(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 		for(i=is;i<ie;i++)
 		for(k=ks;k<ke;k++)
 		{
-		Px = p->XP[IP]+psi-p->originx;
+		Px = p->XP[IP]+psi;
 		Py = p->global_ymin-10.0*p->DXM ;
-		Pz = p->ZP[KP]+psi-p->originz;
+		Pz = p->ZP[KP]+psi;
 		
-		Qx = p->XP[IP]+psi-p->originx;
+		Qx = p->XP[IP]+psi;
 		Qy = p->global_ymax+10.0*p->DXM ;
-		Qz = p->ZP[KP]+psi-p->originz;
+		Qz = p->ZP[KP]+psi;
 		
 		
 		PQx = Qx-Px;
@@ -150,22 +150,28 @@ void sixdof_f::ray_cast_y(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 			
 			Ry = u*Ay + v*By + w*Cy;
 			
-			Ry+=p->originy;
-			for(j=0;j<=p->knoy;++j)
-			{
-				a->fb(i,j,k)=MIN(fabs(Ry-p->YP[JP]),a->fb(i,j,k));
-			}
+			
+            j = p->posf_j(Ry);
+            
+            int distcheck=1;
+  
+            
+            if(Ry<p->YP[JP])
+            if(j>=0 && j<p->knoy)
+            if(fbio(i,j,k)<0 && fbio(i,j-1,k)<0)
+            distcheck=0;
+            
+            if(Ry>=p->YP[JP])
+            if(j>=0 && j<p->knoy)
+            if(fbio(i,j,k)<0 && fbio(i,j+1,k)<0)
+            distcheck=0;
+
+            if(distcheck==1)
+			for(j=0;j<p->knoy;++j)
+			a->fb(i,j,k)=MIN(fabs(Ry-p->YP[JP]),fabs(a->fb(i,j,k)));
 			}
 		}
 	}
 
-if (p->mpirank==1)	
-{
-	LOOP
-	{
-//		if (a->fb(i,j,k) < 100)
-//		cout<<a->fb(i,j,k)<<endl;
-	}
-}
 
 }

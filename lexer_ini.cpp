@@ -30,10 +30,6 @@ void lexer::lexer_ini()
     epsmax=0.0;
     pressmax=0.0;
 
-    originx+=global_xmin;
-    originy+=global_ymin;
-    originz+=global_zmin;
-
     utime=vtime=wtime=0.0;
     kintime=epstime=poissontime=lsmtime=susptime=topotime=printouttime=0.0;
 

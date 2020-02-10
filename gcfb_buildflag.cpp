@@ -51,7 +51,7 @@ void ghostcell::gcfb_buildflag(lexer *p, fdm *a, int **cellmem, int& cellcount)
 
         if(a->fb(i,j,k)>=0.0)
         {
-        p->flag4[IJK]=10;
+        p->flag4[IJK]=WATER;
 		
 			if(cache==FLT)
 			{
@@ -65,7 +65,7 @@ void ghostcell::gcfb_buildflag(lexer *p, fdm *a, int **cellmem, int& cellcount)
         }
 		
 		if(a->fb(i,j,k)>=0.0)
-        p->flag4[IJK]=10;
+        p->flag4[IJK]=WATER;
     }
     cellcount=count;
     
@@ -120,7 +120,7 @@ void ghostcell::gcfb_velflag1(lexer *p, fdm *a, int **cellmem, int& cellcount)
 
     if(p->flag4[IJK]>0 && p->flag4[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]>0)
     {
-		p->flag1[UIJK]=10;
+		p->flag1[UIJK]=WATER;
 		
 			if(cache==FLT)
 			{

@@ -50,7 +50,7 @@ void sixdof_f::reini_AB2(lexer* p, fdm* a, ghostcell* pgc, field& b)
 	{
     if(p->mpirank==0)
 	cout<<endl<<"initializing fb..."<<endl<<endl;
-	reiniter=25;
+	reiniter=10;
 	}
 
     for(int q=0;q<reiniter;++q)

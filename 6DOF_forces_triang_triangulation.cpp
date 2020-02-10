@@ -28,6 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void sixdof_f::forces_triang_triangulation(lexer* p, fdm *a, ghostcell *pgc)
 {
 	int negcount, poscount;
+    double eps;
 
     NDBASELOOP
     eta(i,j,k) = 0.125*(a->fb(i,j,k) + a->fb(i+1,j,k) + a->fb(i,j+1,k) + a->fb(i+1,j+1,k)
@@ -42,9 +43,9 @@ void sixdof_f::forces_triang_triangulation(lexer* p, fdm *a, ghostcell *pgc)
 
     BASELOOP
 	{
-		epsi = 1.6*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
+		eps = 1.6*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
 	
-		if(fabs(a->fb(i,j,k))<epsi)
+		if(fabs(a->fb(i,j,k))<eps)
 		{
 			check=1;
 

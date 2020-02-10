@@ -62,8 +62,10 @@ private:
 	void position_ini(lexer*, fdm*, ghostcell*);
 	void position_ini_quaternion(lexer*, fdm*, ghostcell*);
 	void ray_cast(lexer*, fdm*, ghostcell*);
-	void ray_cast_io(lexer*, fdm*, ghostcell*,int,int);
-	void ray_cast_x(lexer*, fdm*, ghostcell*,int,int);
+	void ray_cast_io_x(lexer*, fdm*, ghostcell*,int,int);
+	void ray_cast_io_ycorr(lexer*, fdm*, ghostcell*,int,int);
+	void ray_cast_io_zcorr(lexer*, fdm*, ghostcell*,int,int);
+    void ray_cast_x(lexer*, fdm*, ghostcell*,int,int);
 	void ray_cast_y(lexer*, fdm*, ghostcell*,int,int);
 	void ray_cast_z(lexer*, fdm*, ghostcell*,int,int);
 	void center_gravity(lexer*, fdm*, ghostcell*);
@@ -138,7 +140,8 @@ private:
 	
 	// ------ 
 
-	fieldint5 cutl,cutr;
+	fieldint5 cutl,cutr,fbio;
+    
 	
 	int conv(double);
 	
@@ -253,7 +256,8 @@ private:
     double ***ccell,**lscc;
 	int *ccnode,**ccid,*ccflag,**vertice_cc,***ccijk;
     
-    double epsi,zero;
+    double zero;
+    const double epsi;
     int check,facount,countCC,countM;
     int numvert,numtri_mem,numvert_mem,polygon_num;
     int nn;
@@ -280,6 +284,8 @@ private:
 	double dstx,dsty,dstz,lsSig,dnorm,op,lsv,sign;
 	
 	ofstream eposout, evelout, eforceout, sforceout;
+    
+    int rayiter;
 
 void print_vtp(lexer*,fdm*,ghostcell*);
     void pvtp(lexer*,fdm*,ghostcell*);

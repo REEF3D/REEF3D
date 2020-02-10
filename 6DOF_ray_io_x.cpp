@@ -25,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"fieldint.h"
 
-void sixdof_f::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
+void sixdof_f::ray_cast_io_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 {
 	double ys,ye,zs,ze;
 	double Px,Py,Pz;
@@ -39,15 +39,20 @@ void sixdof_f::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	double PBx,PBy,PBz;
 	double PCx,PCy,PCz;
 	double Mx,My,Mz;
-	int is,ie,js,je,ks,ke;
+	int js,je,ks,ke;
 	double u,v,w;
-	double denom;
+	double denom;	
+	int insidecheck;
 	double psi = 1.0e-8*p->DXM;
-
+    
+    ALOOP
+	{
+	cutl(i,j,k)=0;
+	cutr(i,j,k)=0;
+	}
 
 	for(n=ts; n<te; ++n)
-	{ 
-		
+	{
 	Ax = tri_x[n][0];
 	Ay = tri_y[n][0];
 	Az = tri_z[n][0];
@@ -61,48 +66,48 @@ void sixdof_f::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	Cz = tri_z[n][2];
 	
 	
-	xs = MIN3(Ax,Bx,Cx); 
-	xe = MAX3(Ax,Bx,Cx);
-	
 	ys = MIN3(Ay,By,Cy);
 	ye = MAX3(Ay,By,Cy);
 	
-	is = p->posf_i(xs);
-	ie = p->posf_i(xe);
+	zs = MIN3(Az,Bz,Cz);
+	ze = MAX3(Az,Bz,Cz);
 	
 	js = p->posf_j(ys);
 	je = p->posf_j(ye);
-		
 	
-    xs = MIN3(Ax,Bx,Cx) - epsi*p->DXP[is + marge];
-	xe = MAX3(Ax,Bx,Cx) + epsi*p->DXP[ie + marge];
+	ks = p->posf_k(zs);
+	ke = p->posf_k(ze);	
 	
 	ys = MIN3(Ay,By,Cy) - epsi*p->DYP[js + marge];
 	ye = MAX3(Ay,By,Cy) + epsi*p->DYP[je + marge];
+	
+	zs = MIN3(Az,Bz,Cz) - epsi*p->DZP[ks + marge];
+	ze = MAX3(Az,Bz,Cz) + epsi*p->DZP[ke + marge];
 
-	
-	is = p->posf_i(xs);
-	ie = p->posf_i(xe);
-	
 	js = p->posf_j(ys);
 	je = p->posf_j(ye);
 	
-	is = MAX(is,0);
-	ie = MIN(ie,p->knox);
+	ks = p->posf_k(zs);
+	ke = p->posf_k(ze);	
+
 	
 	js = MAX(js,0);
 	je = MIN(je,p->knoy);
 	
-		for(i=is;i<ie;i++)
+	ks = MAX(ks,0);
+	ke = MIN(ke,p->knoz);			
+	
 		for(j=js;j<je;j++)
+		for(k=ks;k<ke;k++)
 		{
-		Px = p->XP[IP]+psi;
+		Px = p->global_xmin-10.0*p->DXM;
 		Py = p->YP[JP]+psi;
-		Pz = p->global_zmin-10.0*p->DXM ;
+		Pz = p->ZP[KP]+psi;
 		
-		Qx = p->XP[IP]+psi;
+		Qx = p->global_xmax+10.0*p->DXM;
 		Qy = p->YP[JP]+psi;
-		Qz = p->global_zmax+10.0*p->DXM ;
+		Qz = p->ZP[KP]+psi;
+		
 		
 		PQx = Qx-Px;
 		PQy = Qy-Py;
@@ -134,41 +139,49 @@ void sixdof_f::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 		  
 		w = PQx*(By*Az - Bz*Ay) + PQy*(Bz*Ax - Bx*Az) + PQz*(Bx*Ay - By*Ax)
 		  + Mx*(Bx-Ax) + My*(By-Ay) + Mz*(Bz-Az);
-
-
-			if((u>0.0 && v>0.0 && w>0.0) || (u<0.0 && v<0.0 && w<0.0))
+		
+		
+		int check=1;
+		if(u==0.0 && v==0.0 && w==0.0)
+		check = 0;
+		
+			if((u>=0.0 && v>=0.0 && w>=0.0) || (u<0.0 && v<0.0 && w<0.0) && check==1)
 			{
 			denom = 1.0/(u+v+w);
 			u *= denom;
 			v *= denom;
 			w *= denom;
 			
-			Rz = u*Az + v*Bz + w*Cz;
-
+			Rx = u*Ax + v*Bx + w*Cx;
             
-            k = p->posf_k(Rz);
-			
-            int distcheck=1;
-  
+			for(i=0;i<p->knox;++i)
+            {
+				if(p->XP[IP]<Rx)
+				cutr(i,j,k) += 1;
+				
+				if(p->XP[IP]>=Rx)
+				cutl(i,j,k) += 1;
+            }
             
-            if(Rz<p->ZP[KP])
-            if(k>=0 && k<p->knoz)
-            if(fbio(i,j,k)<0 && fbio(i,j,k-1)<0)
-            distcheck=0;
             
-            if(Rz>=p->ZP[KP])
-            if(k>=0 && k<p->knoz)
-            if(fbio(i,j,k)<0 && fbio(i,j,k+1)<0)
-            distcheck=0;
-
-            if(distcheck==1)
-			for(k=0;k<p->knoz;++k)
-            a->fb(i,j,k)=MIN(fabs(Rz-p->ZP[KP]),a->fb(i,j,k));
 			}
-		
 		}
 	}
-
-
-
+    
+    
+    ALOOP
+	if((cutl(i,j,k)+1)%2==0  && (cutr(i,j,k)+1)%2==0)
+	fbio(i,j,k)=-1;
+	
+	/*
+	count=0;
+	ALOOP
+	if(a->fb(i,j,k)>0)
+	++count;
+    
+    count=pgc->globalisum(count);
+    
+    if(p->mpirank==0)
+    cout<<"Number of active cells after fb_ray_io_x: "<<count<<endl;*/
+	
 }

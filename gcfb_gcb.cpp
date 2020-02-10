@@ -136,7 +136,7 @@ void ghostcell::gcfb_seed(lexer *p, fdm *a)
         }
     }
     
-    //if(p->mpirank==4)
+    //if(p->mpirank==0)
 	//cout<<p->mpirank<<" 2. old gcb4: "<<p->gcb4_count<<" new gcb4: "<<count<<endl;
 }
     
