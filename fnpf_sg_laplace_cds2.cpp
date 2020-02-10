@@ -125,7 +125,6 @@ void fnpf_sg_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             
             if(p->flag7[FIp1JK]<0 && c->bc(i+1,j)==2)
             {
-            //cout<<p->mpirank<<" gcsl_out_LAPLACE:   i: "<<i<<" j: "<<j<<" UI: "<<c->Uin[FIp1JK]<<" FiFsF "<<c->Fifsf(i,j)<<endl;
             c->rhsvec.V[n] -= c->M.n[n]*c->Uin[FIp1JK]*p->DXP[IP1];
             c->M.p[n] += c->M.n[n];
             c->M.n[n] = 0.0;
