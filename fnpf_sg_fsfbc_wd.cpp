@@ -76,7 +76,7 @@ fnpf_sg_fsfbc_wd::fnpf_sg_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p
     
 
     // ---
-    
+    /*
     if(p->A312==2)
     {
     pddx = new fnpf_ddx_cds2_wd(p,c);
@@ -87,9 +87,9 @@ fnpf_sg_fsfbc_wd::fnpf_sg_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p
     {
     pddx = new fnpf_ddx_cds4_wd(p);
     pdx = new fnpf_cds4_wd(p);
-    }
+    }*/
     
-    /*
+    
     // ---
     if(p->A312==2)
     {
@@ -101,7 +101,7 @@ fnpf_sg_fsfbc_wd::fnpf_sg_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p
     {
     pddx = new fnpf_ddx_cds4(p);
     pdx = new fnpf_cds4(p);
-    }*/
+    }
     
     
     FFILOOP4
