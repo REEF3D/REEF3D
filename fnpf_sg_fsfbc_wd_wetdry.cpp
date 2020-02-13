@@ -45,7 +45,7 @@ void fnpf_sg_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta,
       pcoast->start(p,pgc,c->coastline,c->wet,c->wet_n);
 }
 
-void fnpf_sg_fsfbc_wd::coastline(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 
+void fnpf_sg_fsfbc_wd::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 
 {
     SLICELOOP4
     {
@@ -65,11 +65,43 @@ void fnpf_sg_fsfbc_wd::coastline(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f
     }
 }
 
+void fnpf_sg_fsfbc_wd::coastline_fi(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 
+{
+    SLICELOOP4
+    {
+        if(c->coastline(i,j)>=0.0)
+        {
+            db = c->coastline(i,j);
+            
+            if(db<dist4)
+            {
+            f(i,j) = rb4(p,db)*f(i,j);
+        
+            }
+        }
+        
+        if(c->coastline(i,j)<0.0 && p->A343==1)
+        f(i,j)=0.0;
+    }
+}
+
 double fnpf_sg_fsfbc_wd::rb3(lexer *p, double x)
 {
     double r=0.0;
 
     x=(dist3-fabs(x))/(dist3);
+    x=MAX(x,0.0);
+    
+    r = 1.0 - (exp(pow(x,p->B119))-1.0)/(EE-1.0);
+
+	return r;
+}
+
+double fnpf_sg_fsfbc_wd::rb4(lexer *p, double x)
+{
+    double r=0.0;
+
+    x=(dist4-fabs(x))/(dist4);
     x=MAX(x,0.0);
     
     r = 1.0 - (exp(pow(x,p->B119))-1.0)/(EE-1.0);

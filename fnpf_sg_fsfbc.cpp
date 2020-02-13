@@ -215,6 +215,10 @@ void fnpf_sg_fsfbc::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
 {   
 }
 
-void fnpf_sg_fsfbc::coastline(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 
+void fnpf_sg_fsfbc::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 
+{   
+}
+
+void fnpf_sg_fsfbc::coastline_fi(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 
 {   
 }
