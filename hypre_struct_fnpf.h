@@ -24,7 +24,7 @@ Author: Hans Bihs
 
 #ifdef HYPRE_COMPILATION
 
-#include"solver.h"
+#include"solver_fnpf.h"
 #include"increment.h"
 #include"vec.h"
 #include"fieldint4.h"
@@ -38,31 +38,27 @@ using namespace std;
 #ifndef HYPRE_STRUCT_FNPF_H_
 #define HYPRE_STRUCT_FNPF_H_
 
-class hypre_struct_fnpf : public solver, public increment
+class hypre_struct_fnpf : public solver_fnpf, public increment
 {
 public:
 
 	hypre_struct_fnpf(lexer*,fdm*,ghostcell*,int,int);
 	virtual ~hypre_struct_fnpf();
+
+    virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, double*, double*, int, int, double);
     
-	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, vec&, int, int, double);
-    virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int, int, double);
-    
-	virtual void solve(lexer*,fdm*, ghostcell*, vec&, vec&, int, int, int&, int, double, cpt&);
-	virtual void setup(lexer*,fdm*, ghostcell*,int, cpt&);
-    
-    void start_solver8(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int);
+    void start_solver8(lexer*, fdm_fnpf*, ghostcell*, double*, double*, double*);
     
     virtual void solve(lexer*,ghostcell*);
     
     void make_grid(lexer*,fdm*, ghostcell*);
     void make_grid_2Dvert(lexer*,fdm*, ghostcell*);
 
-    void fill_matrix8(lexer*, fdm_fnpf*, ghostcell*,double*, vec&, matrix_diag&);
-    void fill_matrix8_2Dvert(lexer*, fdm_fnpf*, ghostcell*,double*, vec&, matrix_diag&);
+    void fill_matrix8(lexer*, fdm_fnpf*, ghostcell*, double*, double*, double*);
+    void fill_matrix8_2Dvert(lexer*, fdm_fnpf*, ghostcell*, double*, double*, double*);
 
 
-    virtual void fillbackvec8(lexer*,fdm_fnpf*,double*,int);
+    virtual void fillbackvec8(lexer*,fdm_fnpf*,double*,double*,double*);
 	
 
     void create_solver5(lexer*,ghostcell*);
@@ -86,15 +82,13 @@ private:
     double *values;
     int num_iterations;
     double final_res_norm;
-	int stencil_indices[7];
+	int stencil_indices[15];
 	int nentries;
    
 	int numiter,count,q;
     
     const int solve_type,precon_type;
-    
-    
-    fieldint4 cval4;
+
 
 };
 

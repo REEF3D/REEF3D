@@ -48,12 +48,13 @@ void hypre_struct_fnpf::make_grid(lexer* p,fdm* a, ghostcell* pgc)
     
     
     // stencil
-    HYPRE_StructStencilCreate(3, 7, &stencil);
+    HYPRE_StructStencilCreate(3, 15, &stencil);
 
     int entry;
-    int offsets[7][3] = {{0,0,0}, {-1,0,0}, {1,0,0}, {0,-1,0}, {0,1,0}, {0,0,-1}, {0,0,1}};
+    int offsets[15][3] = {{0,0,0}, {-1,0,0}, {1,0,0}, {0,-1,0}, {0,1,0}, {0,0,-1}, {0,0,1},
+                          {-1,0,-1},{-1,0,1},{1,0,-1},{1,0,1},{0,-1,-1},{0,-1,1},{0,1,-1},{0,1,1}};
 
-    for (entry=0; entry<7; ++entry)
+    for (entry=0; entry<15; ++entry)
     HYPRE_StructStencilSetElement(stencil, entry, offsets[entry]);
     
     // matrix
@@ -88,12 +89,12 @@ void hypre_struct_fnpf::make_grid_2Dvert(lexer* p,fdm* a, ghostcell* pgc)
     
     
     // stencil
-    HYPRE_StructStencilCreate(2, 5, &stencil);
+    HYPRE_StructStencilCreate(2, 9, &stencil);
 
     int entry;
-    int offsets[5][2] = {{0,0}, {-1,0}, {1,0},  {0,-1}, {0,1}};
+    int offsets[9][2] = {{0,0}, {-1,0}, {1,0},  {0,-1}, {0,1}, {-1,-1},{-1,1},{1,-1},{1,1}};
 
-    for (entry=0; entry<5; ++entry)
+    for (entry=0; entry<8; ++entry)
     HYPRE_StructStencilSetElement(stencil, entry, offsets[entry]);
     
     // matrix

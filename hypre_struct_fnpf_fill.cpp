@@ -28,116 +28,32 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fieldint4.h"
 #include"matrix_diag.h"
 
-void hypre_struct_fnpf::fill_matrix8(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec &rhs, matrix_diag &M)
+void hypre_struct_fnpf::fill_matrix8(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, double *rhs, double *M)
 {    
-    count=0;
-    LOOP
-    {
-    cval4(i,j,k)=count;
-    ++count;
-    }
+
     
-    nentries=7;
+    nentries=15;
     
     for (j = 0; j < nentries; j++)
     stencil_indices[j] = j;
 
-    count=0;
-    KJILOOP
-    {
-		FPWDCHECK
-		{
-		n=cval4(i,j,k);
-        
-		values[count]=M.p[n];
-		++count;
-		
-		values[count]=M.s[n];
-		++count;
-		
-		values[count]=M.n[n];
-		++count;
-		
-		values[count]=M.e[n];
-		++count;
-		
-		values[count]=M.w[n];
-		++count;
-		
-		values[count]=M.b[n];
-		++count;
-		
-		values[count]=M.t[n];
-		++count; 
-		}     
-		
-		FSWDCHECK
-		{
-		values[count]=1.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;  
-		}    
-    }
-	
-    HYPRE_StructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, values);
+   
+	// M
+    HYPRE_StructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, M);
     HYPRE_StructMatrixAssemble(A);
     
     
-    // vec
-    count=0;
-	KJILOOP
-	{
-		FPWDCHECK
-		values[count] = f[FIJK];
-		
-		FSWDCHECK
-		values[count] = 0.0;
-	
-    ++count;
-    }
-
-    HYPRE_StructVectorSetBoxValues(x, ilower, iupper, values);
+    // x
+    HYPRE_StructVectorSetBoxValues(x, ilower, iupper, M);
     HYPRE_StructVectorAssemble(x);
     
-    
-    count=0; 
-	KJILOOP
-	{
-		FPWDCHECK
-		{
-		n=cval4(i,j,k);
-		values[count] = rhs.V[n];
-		}
-		
-		FSWDCHECK
-		values[count] = 0.0;
-
-    ++count;
-    }
-    
+    // b
     HYPRE_StructVectorSetBoxValues(b, ilower, iupper, values);
     HYPRE_StructVectorAssemble(b);
     
 }
 
-void hypre_struct_fnpf::fillbackvec8(lexer *p, fdm_fnpf* c, double *f, int var)
+void hypre_struct_fnpf::fillbackvec8(lexer *p, fdm_fnpf* c, double *f, double *rhs, double *M)
 {
 	HYPRE_StructVectorGetBoxValues(x, ilower, iupper, values);
 	

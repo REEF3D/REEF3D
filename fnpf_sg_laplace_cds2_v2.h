@@ -23,6 +23,8 @@ Author: Hans Bihs
 #include"fnpf_sg_laplace.h"
 #include"increment.h"
 
+class solver_fnpf;
+
 #ifndef FNPF_SG_LAPLACE_CDS2_V2_H_
 #define FNPF_SG_LAPLACE_CDS2_V2_H_
 
@@ -38,7 +40,12 @@ public:
     
 private:
     
-    double **ckx,**cky,**ckz;
+    solver_fnpf *psolv;
+    
+    double *f,*rhs,*M;
+    
+    int vecsize;
+
 };
 
 #endif

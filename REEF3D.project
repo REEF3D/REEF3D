@@ -586,6 +586,7 @@
       <File Name="pjm_nse.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
+      <File Name="solver_fnpf.h"/>
       <VirtualDirectory Name="CG">
         <File Name="bicgstab_wide.h"/>
         <File Name="bicgstab_2D.h"/>
