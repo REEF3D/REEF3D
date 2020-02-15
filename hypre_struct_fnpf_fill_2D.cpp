@@ -10,42 +10,44 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_sg_laplace.h"
-#include"increment.h"
+#include"hypre_struct_fnpf.h"
 
-class solver_fnpf;
+#ifdef HYPRE_COMPILATION
+#include"lexer.h"
+#include"fdm_fnpf.h"
+#include"ghostcell.h"
+#include"fieldint4.h"
+#include"matrix_diag.h"
 
-#ifndef FNPF_SG_LAPLACE_CDS2_V2_H_
-#define FNPF_SG_LAPLACE_CDS2_V2_H_
-
-using namespace std;
-
-class fnpf_sg_laplace_cds2_v2 : public fnpf_sg_laplace, public increment
+void hypre_struct_fnpf::fill_matrix8_2Dvert(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, double *rhs, double *M)
 {
-public:
-    fnpf_sg_laplace_cds2_v2 (lexer*);
-	virtual ~fnpf_sg_laplace_cds2_v2();
+    nentries=9;
+    
+    for (j = 0; j < nentries; j++)
+    stencil_indices[j] = j;
 
-    virtual void start(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_sg_fsf*,double*);
+    // M
+    HYPRE_StructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, values);
+    HYPRE_StructMatrixAssemble(A);
     
-private:
     
-    solver_fnpf *psolv;
-    
-    double *f,*rhs,*M;
-    
-    int vecsize;
+    // x
+    HYPRE_StructVectorSetBoxValues(x, ilower, iupper, values);
+    HYPRE_StructVectorAssemble(x);
 
-};
+    // rhs
+    HYPRE_StructVectorSetBoxValues(b, ilower, iupper, values);
+    HYPRE_StructVectorAssemble(b);
+    
+}
 
 #endif

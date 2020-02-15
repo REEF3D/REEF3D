@@ -30,7 +30,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_sg_laplace_cds4.h"
 #include"fnpf_sg_laplace_cds4_bc2.h"
 #include"fnpf_sg_laplace_cds24.h"
-#include"fnpf_sg_laplace_HOS.h"
 #include"onephase.h"
 #include"fnpf_sg_fsfbc.h"
 #include"fnpf_sg_fsfbc_wd.h"
@@ -69,9 +68,6 @@ fnpf_sg_RK4::fnpf_sg_RK4(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_sg_ini(p,
     
     if(p->A320==4)
     plap = new fnpf_sg_laplace_cds24(p);
-    
-    if(p->A320==11)
-    plap = new fnpf_sg_laplace_HOS(p);
     
     
     if(p->A343==0)
@@ -113,8 +109,8 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     
     pflow->eta_relax(p,pgc,erk);
     pgc->gcsl_start4(p,erk,gcval_eta);
-    pf->coastline(p,c,pgc,erk);
-    pf->coastline(p,c,pgc,frk);
+    pf->coastline_eta(p,c,pgc,erk);
+    pf->coastline_fi(p,c,pgc,frk);
     pflow->fifsf_relax(p,pgc,frk);
     pgc->gcsl_start4(p,frk,gcval_fifsf);
     
@@ -165,8 +161,8 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     
     pflow->eta_relax(p,pgc,erk);
     pgc->gcsl_start4(p,erk,gcval_eta);
-    pf->coastline(p,c,pgc,erk);
-    pf->coastline(p,c,pgc,frk);
+    pf->coastline_eta(p,c,pgc,erk);
+    pf->coastline_fi(p,c,pgc,frk);
     pflow->fifsf_relax(p,pgc,frk);
     pgc->gcsl_start4(p,frk,gcval_fifsf);
     
@@ -216,8 +212,8 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     
     pflow->eta_relax(p,pgc,erk);
     pgc->gcsl_start4(p,erk,gcval_eta);
-    pf->coastline(p,c,pgc,erk);
-    pf->coastline(p,c,pgc,frk);
+    pf->coastline_eta(p,c,pgc,erk);
+    pf->coastline_fi(p,c,pgc,frk);
     pflow->fifsf_relax(p,pgc,frk);
     pgc->gcsl_start4(p,frk,gcval_fifsf);
     
@@ -258,8 +254,8 @@ void fnpf_sg_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, co
     
     pflow->eta_relax(p,pgc,c->eta);
     pgc->gcsl_start4(p,c->eta,gcval_eta);
-    pf->coastline(p,c,pgc,c->eta);
-    pf->coastline(p,c,pgc,c->Fifsf);
+    pf->coastline_eta(p,c,pgc,c->eta);
+    pf->coastline_fi(p,c,pgc,c->Fifsf);
     pflow->fifsf_relax(p,pgc,c->Fifsf);
     pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
     
@@ -301,8 +297,8 @@ void fnpf_sg_RK4::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, 
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
 
     
-    pf->coastline(p,c,pgc,c->eta);
-    pf->coastline(p,c,pgc,c->Fifsf);
+    pf->coastline_eta(p,c,pgc,c->eta);
+    pf->coastline_fi(p,c,pgc,c->Fifsf);
     
     
     velcalc_sig(p,c,pgc,c->Fi);
@@ -318,7 +314,7 @@ void fnpf_sg_RK4::ini_wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {	
     pf->wetdry(p,c,pgc,c->eta,c->Fifsf);   // coastline ini
 
-    pf->coastline(p,c,pgc,c->eta);
-    pf->coastline(p,c,pgc,c->Fifsf);
+    pf->coastline_eta(p,c,pgc,c->eta);
+    pf->coastline_fi(p,c,pgc,c->Fifsf);
 }
 

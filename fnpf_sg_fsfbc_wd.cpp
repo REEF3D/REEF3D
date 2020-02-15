@@ -76,7 +76,7 @@ fnpf_sg_fsfbc_wd::fnpf_sg_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p
     
 
     // ---
-    
+    /*
     if(p->A312==2)
     {
     pddx = new fnpf_ddx_cds2_wd(p,c);
@@ -87,9 +87,9 @@ fnpf_sg_fsfbc_wd::fnpf_sg_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p
     {
     pddx = new fnpf_ddx_cds4_wd(p);
     pdx = new fnpf_cds4_wd(p);
-    }
+    }*/
     
-    /*
+    
     // ---
     if(p->A312==2)
     {
@@ -101,7 +101,7 @@ fnpf_sg_fsfbc_wd::fnpf_sg_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p
     {
     pddx = new fnpf_ddx_cds4(p);
     pdx = new fnpf_cds4(p);
-    }*/
+    }
     
     
     FFILOOP4
@@ -133,6 +133,8 @@ fnpf_sg_fsfbc_wd::fnpf_sg_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p
     
     if(p->A342>0.0)
     dist3=p->A342;
+    
+    dist4=1.0*dist3;
     
     expinverse = 1.0/(exp(1.0)-1.0);
     
@@ -214,7 +216,7 @@ void fnpf_sg_fsfbc_wd::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta
     c->Fz(i,j) = 0.0;
     }
     
-    coastline(p,c,pgc,c->Fz);
+    coastline_fi(p,c,pgc,c->Fz);
 }
 
 void fnpf_sg_fsfbc_wd::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)

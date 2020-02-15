@@ -49,7 +49,8 @@ public:
     virtual void fsfwvel(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
     virtual void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
     virtual void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
-    virtual void coastline(lexer*,fdm_fnpf*,ghostcell*,slice&);
+    virtual void coastline_eta(lexer*,fdm_fnpf*,ghostcell*,slice&);
+    virtual void coastline_fi(lexer*,fdm_fnpf*,ghostcell*,slice&);
     virtual void damping(lexer*,fdm_fnpf*,ghostcell*,slice&,int,double);
     
     
@@ -67,8 +68,9 @@ public:
     
 private:
     double rb3(lexer*,double);
+    double rb4(lexer*,double);
     
-    double dist3,expinverse,db;
+    double dist3,dist4,expinverse,db;
     
     double visc;
     

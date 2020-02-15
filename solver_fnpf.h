@@ -20,28 +20,28 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_sg_laplace.h"
-#include"increment.h"
-
-class fnpf_sg_bed_update;
-
-#ifndef LAPLACE_FNPF_SG_HOS_H_
-#define LAPLACE_FNPF_SG_HOS_H_
+class lexer;
+class fdm;
+class fdm_fnpf;
+class ghostcell;
+class field;
+class vec;
+class matrix_diag;
+class cpt;
 
 using namespace std;
 
-class fnpf_sg_laplace_HOS : public fnpf_sg_laplace, public increment
+#ifndef SOLVER_FNPF_H_
+#define SOLVER_FNPF_H_
+
+class solver_fnpf
 {
+
 public:
-    fnpf_sg_laplace_HOS (lexer*);
-	virtual ~fnpf_sg_laplace_HOS();
 
-    virtual void start(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_sg_fsf*,double*);
-    
-private:
-    
-    fnpf_sg_bed_update *pbed;
+    virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, double*, double*, int, int, double)=0;
 
+	
 };
 
 #endif

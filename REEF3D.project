@@ -586,6 +586,7 @@
       <File Name="pjm_nse.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
+      <File Name="solver_fnpf.h"/>
       <VirtualDirectory Name="CG">
         <File Name="bicgstab_wide.h"/>
         <File Name="bicgstab_2D.h"/>
@@ -604,6 +605,7 @@
         <File Name="solver_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="HYPRE">
+        <File Name="hypre_struct_fnpf.h"/>
         <File Name="hypre_sstruct.h"/>
         <File Name="hypre_aij.h"/>
         <File Name="hypre_struct.h"/>
@@ -746,7 +748,6 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
           <File Name="fnpf_sg_laplace_cds2_v2.h"/>
-          <File Name="fnpf_sg_laplace_HOS.h"/>
           <File Name="fnpf_sg_laplace_cds24.h"/>
           <File Name="fnpf_sg_laplace_cds4_bc2.h"/>
           <File Name="fnpf_sg_laplace_cds4.h"/>
@@ -2046,6 +2047,14 @@
       <File Name="pjm_nse.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
+      <VirtualDirectory Name="HYPRE Struct FNPF">
+        <File Name="hypre_struct_fnpf_fill_2D.cpp"/>
+        <File Name="hypre_struct_fnpf_grid.cpp"/>
+        <File Name="hypre_struct_fnpf_solve.cpp"/>
+        <File Name="hypre_struct_fnpf_createsolvers.cpp"/>
+        <File Name="hypre_struct_fnpf_fill.cpp"/>
+        <File Name="hypre_struct_fnpf.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="HYPRE SStruct">
         <File Name="hypre_sstruct_solve.cpp"/>
         <File Name="hypre_sstruct_grid.cpp"/>
@@ -2292,7 +2301,6 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
           <File Name="fnpf_sg_laplace_cds2_v2.cpp"/>
-          <File Name="fnpf_sg_laplace_HOS.cpp"/>
           <File Name="fnpf_sg_laplace_cds24.cpp"/>
           <File Name="fnpf_sg_laplace_cds4_bc2.cpp"/>
           <File Name="fnpf_sg_laplace_cds4.cpp"/>
