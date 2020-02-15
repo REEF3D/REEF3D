@@ -204,8 +204,8 @@ void fnpf_sg_laplace_cds2_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solve
                     
                     if(c->wet(i,j-1)==1 && c->wet(i,j+1)==1)
                     {
-                    M.e[n] +=  ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
-                    M.w[n] += -ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
+                    M.w[n] +=  ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
+                    M.e[n] += -ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
                     }
                 
                 
