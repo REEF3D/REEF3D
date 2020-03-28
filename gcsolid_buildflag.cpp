@@ -47,6 +47,7 @@ void ghostcell::gcsolid_buildflag(lexer *p, fdm *a, int& cellcount)
         p->flag[IJK]=1;
     }
 
+    flagx(p,p->flag4);
 
 	if(p->Y60==1)
     for(int qn=0; qn<100;++qn)

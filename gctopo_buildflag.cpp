@@ -75,6 +75,8 @@ void ghostcell::gcb_buildflag(lexer *p, fdm *a, int **cellmem, int& cellcount)
 
     cellcount=count;
     
+    flagx(p,p->flag4);
+    
 	if(p->Y60==1)
     for(int qn=0; qn<100;++qn)
     {

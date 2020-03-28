@@ -113,13 +113,10 @@ void driver::makegrid(lexer *p, ghostcell *pgc)
     m4.fill_dgc(p);
     
     p->vecsize();
-    
 }
 	
 void driver::makegrid_cds()
 {	
-	
-	
 	pgc->sizeM_update(p,a);
     
 	pgc->column_pt1_update(p,a);

@@ -824,7 +824,7 @@ void ghostcell::cval_update6(lexer* p, fdm* a, fieldint &cval6)
     j=p->gcpara1[n][1];
     k=p->gcpara1[n][2];
         
-        //if(p->gcpara1[n][6]==1)
+        if(p->gcpara1[n][6]==1)
 		for(q=0;q<margin;++q)
         {
         cval6(i-1-q,j,k)=count;
