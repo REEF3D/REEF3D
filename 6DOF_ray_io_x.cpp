@@ -84,12 +84,13 @@ void sixdof_f::ray_cast_io_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	zs = MIN3(Az,Bz,Cz) - epsi*p->DZP[ks + marge];
 	ze = MAX3(Az,Bz,Cz) + epsi*p->DZP[ke + marge];
 
+
+
 	js = p->posf_j(ys);
 	je = p->posf_j(ye);
 	
 	ks = p->posf_k(zs);
 	ke = p->posf_k(ze);	
-
 	
 	js = MAX(js,0);
 	je = MIN(je,p->knoy);
@@ -97,6 +98,7 @@ void sixdof_f::ray_cast_io_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	ks = MAX(ks,0);
 	ke = MIN(ke,p->knoz);			
 	
+    
 		for(j=js;j<je;j++)
 		for(k=ks;k<ke;k++)
 		{
