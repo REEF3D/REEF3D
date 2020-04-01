@@ -1233,6 +1233,8 @@ void lexer::ctrlrecv()
     ii++;
 	W31 = dctrl[dd];
     dd++;
+    W41 = ictrl[ii];
+    ii++;
     W90 = ictrl[ii];
     ii++;
 	W95 = dctrl[dd];
@@ -1905,6 +1907,16 @@ void lexer::ctrlrecv()
 	Darray(S73_x,S73);
 	Darray(S73_y,S73);
 	}
+    
+    if(W41>0)
+    {
+    Darray(W41_xc,W41);
+    Darray(W41_yc,W41);
+    Darray(W41_zs,W41);
+    Darray(W41_ze,W41);
+    Darray(W41_vel,W41);
+    Darray(W41_beta,W41);
+    }
 	
 	if(X110>0)
 	{
@@ -2560,6 +2572,22 @@ void lexer::ctrlrecv()
     S73_x[n]  = dctrl[dd];
     dd++;
 	S73_y[n]  = dctrl[dd];
+    dd++;
+    }
+    
+    for(n=0;n<W41;++n)
+    {
+    W41_xc[n] = dctrl[dd];
+    dd++;
+    W41_yc[n] = dctrl[dd];
+    dd++;
+    W41_zs[n] = dctrl[dd];
+    dd++;
+    W41_ze[n] = dctrl[dd];
+    dd++;
+    W41_vel[n] = dctrl[dd];
+    dd++;
+    W41_beta[n] = dctrl[dd];
     dd++;
     }
 	

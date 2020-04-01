@@ -637,6 +637,7 @@ void lexer::ini_default()
 	W22=0.0;		// double gk
 	W30=0;			// int air compressibility on/off
 	W31=20.0;		// double temperature for air compressibility in celsius
+    W41=0;         // int velocity source phase 1
     W90=0;           // int non-newtownian flow
     W95=0.001;       // double nu_0
 	W96=1.0;         // double tau_0
