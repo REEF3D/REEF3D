@@ -1238,6 +1238,8 @@ void lexer::ctrlsend()
     ii++;
 	dctrl[dd] = W31;
     dd++;
+    ictrl[ii] = W41;
+    ii++;
     ictrl[ii] = W90;
     ii++;
 	dctrl[dd] = W95;
@@ -2096,6 +2098,22 @@ void lexer::ctrlsend()
     dctrl[dd] = S73_x[n];
     dd++;
 	dctrl[dd] = S73_y[n];
+    dd++;
+    }
+    
+    for(n=0;n<W41;++n)
+    {
+    dctrl[dd] = W41_xc[n];
+    dd++;
+    dctrl[dd] = W41_yc[n];
+    dd++;
+    dctrl[dd] = W41_zs[n];
+    dd++;
+    dctrl[dd] = W41_ze[n];
+    dd++;
+    dctrl[dd] = W41_vel[n];
+    dd++;
+    dctrl[dd] = W41_beta[n];
     dd++;
     }
 	
