@@ -103,8 +103,7 @@ void ghostcell::gcsolid_velflag1(lexer *p, fdm *a, int& cellcount)
     count=0;
     BASELOOP
     {
-    if(p->flag4[IJK]==SOLID 
-	||(p->flag4[IJK]==WATER && p->flag4[Ip1JK]==SOLID))
+    if(p->flag4[IJK]==SOLID || (p->flag4[IJK]==WATER && p->flag4[Ip1JK]==SOLID))
 	{
        if(p->flag4[IJK]==SOLID) 
        p->flag1[UIJK]=SOLID;
@@ -116,32 +115,6 @@ void ghostcell::gcsolid_velflag1(lexer *p, fdm *a, int& cellcount)
     if(p->flag4[IJK]==WATER && p->flag4[Ip1JK]==WATER)
     p->flag1[UIJK]=WATER;
     }
-    
-    /*
-    count=0;
-	ULOOP
-    {   
-        // Solid
-        if(p->flag1[UIm1JK]<0)
-        ++count;
-	
-        if(p->flag1[UIJp1K]<0)
-        ++count;
-
-        if(p->flag1[UIJm1K]<0)
-        ++count;
-
-        if(p->flag1[UIp1JK]<0)
-        ++count;
-
-        if(p->flag1[UIJKm1]<0)
-        ++count;
-
-        if(p->flag1[UIJKp1]<0)
-        ++count;
-    }
-    
-    cout<<p->mpirank<<"  SOLID_CHECK: "<<count<<endl;*/
 }
 
 void ghostcell::gcsolid_velflag2(lexer *p, fdm *a, int& cellcount)
@@ -149,8 +122,7 @@ void ghostcell::gcsolid_velflag2(lexer *p, fdm *a, int& cellcount)
     count=0;
     BASELOOP
     {	
-    if(p->flag4[IJK]==SOLID 
-	|| (p->flag4[IJK]==WATER && p->flag4[IJp1K]==SOLID))
+    if(p->flag4[IJK]==SOLID || (p->flag4[IJK]==WATER && p->flag4[IJp1K]==SOLID))
 	{
        if(p->flag4[IJK]==SOLID) 
        p->flag2[VIJK]=SOLID;
@@ -171,8 +143,7 @@ void ghostcell::gcsolid_velflag3(lexer *p, fdm *a, int& cellcount)
     count=0;
     BASELOOP
     {
-    if(p->flag4[IJK]==SOLID 
-	|| (p->flag4[IJK]==WATER && p->flag4[IJKp1]==SOLID))
+    if(p->flag4[IJK]==SOLID || (p->flag4[IJK]==WATER && p->flag4[IJKp1]==SOLID))
 	{
        if(p->flag4[IJK]==SOLID) 
        p->flag3[WIJK]=SOLID;

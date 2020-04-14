@@ -132,6 +132,67 @@ void mgc1::extragcb(lexer *p)
         if(p->fgc[IJK][5]==0)
         ++count;
     }
+    
+    // extra parax + gcb
+    for(q=0;q<p->gcpara1_count;++q)
+    {
+    i=p->gcpara1[q][0];
+    j=p->gcpara1[q][1];
+    k=p->gcpara1[q][2];
+        
+        if(p->flag1[UIJK]==0 && p->flag1[UIm1JK]==1)
+        ++count;
+    }
+
+    for(q=0;q<p->gcpara3_count;++q)
+    {
+    i=p->gcpara3[q][0];
+    j=p->gcpara3[q][1];
+    k=p->gcpara3[q][2];
+        
+        if(p->flag1[UIJK]==0 && p->flag1[UIJm1K]==1)
+        ++count;
+    }
+
+	for(q=0;q<p->gcpara5_count;++q)
+	{
+    i=p->gcpara5[q][0];
+    j=p->gcpara5[q][1];
+    k=p->gcpara5[q][2];
+        
+        if(p->flag1[UIJK]==0 && p->flag1[UIJKm1]==1)
+        ++count;
+	}
+
+	for(q=0;q<p->gcpara4_count;++q)
+	{
+    i=p->gcpara4[q][0]+1;
+    j=p->gcpara4[q][1];
+    k=p->gcpara4[q][2];
+        
+        if(p->flag1[UIJK]==0 && p->flag1[UIp1JK]==1)
+        ++count;
+	}
+
+	for(q=0;q<p->gcpara2_count;++q)
+	{
+    i=p->gcpara2[q][0];
+    j=p->gcpara2[q][1]+1;
+    k=p->gcpara2[q][2];
+        
+        if(p->flag1[UIJK]==0 && p->flag1[UIJp1K]==1)
+        ++count;
+	}
+
+	for(q=0;q<p->gcpara6_count;++q)
+	{
+	i=p->gcpara6[q][0];
+    j=p->gcpara6[q][1];
+    k=p->gcpara6[q][2]+1;
+        
+        if(p->flag1[UIJK]==0 && p->flag1[UIJKp1]==1)
+        ++count;
+	}
 	//cout<<p->mpirank<<" old gcb1: "<<p->gcb1_count<<" new gcb1: "<<count<<endl;
 	
 	if(p->gcb1_count!=count)
@@ -279,6 +340,176 @@ void mgc1::extragcb(lexer *p)
         ++count;
         }
     }
+    
+    
+    // extra parax + gcb
+    for(q=0;q<p->gcpara1_count;++q)
+    {
+    i=p->gcpara1[q][0];
+    j=p->gcpara1[q][1];
+    k=p->gcpara1[q][2];
+        
+        if(p->flag1[UIJK]==0 && p->flag1[UIm1JK]==1)
+        {
+        p->gcb1[count][0]=i-1;
+        p->gcb1[count][1]=j;
+        p->gcb1[count][2]=k;
+        p->gcb1[count][3]=4;
+
+        if(p->flag1[UIJK]==TOPO)
+        p->gcb1[count][4]=5;
+
+        if(p->flag1[UIJK]==OBJ)
+        p->gcb1[count][4]=21;
+        
+        if(p->flag1[UIJK]==SOLID)
+        p->gcb1[count][4]=22;
+		
+		if(p->flag1[UIJK]==FLT)
+        p->gcb1[count][4]=41;
+        ++count;
+        }
+    }
+
+    for(q=0;q<p->gcpara3_count;++q)
+    {
+    i=p->gcpara3[q][0];
+    j=p->gcpara3[q][1];
+    k=p->gcpara3[q][2];
+        
+        if(p->flag1[UIJK]==0 && p->flag1[UIJm1K]==1)
+        {
+        p->gcb1[count][0]=i;
+        p->gcb1[count][1]=j-1;
+        p->gcb1[count][2]=k;
+        p->gcb1[count][3]=2;
+
+        if(p->flag1[UIJK]==TOPO)
+        p->gcb1[count][4]=5;
+
+        if(p->flag1[UIJK]==OBJ)
+        p->gcb1[count][4]=21;
+        
+        if(p->flag1[UIJK]==SOLID)
+        p->gcb1[count][4]=22;
+		
+		if(p->flag1[UIJK]==FLT)
+        p->gcb1[count][4]=41;
+        ++count;
+        }
+    }
+
+	for(q=0;q<p->gcpara5_count;++q)
+	{
+    i=p->gcpara5[q][0];
+    j=p->gcpara5[q][1];
+    k=p->gcpara5[q][2];
+        
+        if(p->flag1[UIJK]==0 && p->flag1[UIJKm1]==1)
+        {
+        p->gcb1[count][0]=i;
+        p->gcb1[count][1]=j;
+        p->gcb1[count][2]=k-1;
+        p->gcb1[count][3]=6;
+
+        if(p->flag1[UIJK]==TOPO)
+        p->gcb1[count][4]=5;
+
+        if(p->flag1[UIJK]==OBJ)
+        p->gcb1[count][4]=21;
+        
+        if(p->flag1[UIJK]==SOLID)
+        p->gcb1[count][4]=22;
+		
+		if(p->flag1[UIJK]==FLT)
+        p->gcb1[count][4]=41;
+        ++count;
+        }
+	}
+
+	for(q=0;q<p->gcpara4_count;++q)
+	{
+    i=p->gcpara4[q][0]+1;
+    j=p->gcpara4[q][1];
+    k=p->gcpara4[q][2];
+        
+        if(p->flag1[UIJK]==0 && p->flag1[UIp1JK]==1)
+        {
+        p->gcb1[count][0]=i+1;
+        p->gcb1[count][1]=j;
+        p->gcb1[count][2]=k;
+        p->gcb1[count][3]=1;
+
+        if(p->flag1[UIJK]==TOPO)
+        p->gcb1[count][4]=5;
+
+        if(p->flag1[UIJK]==OBJ)
+        p->gcb1[count][4]=21;
+        
+        if(p->flag1[UIJK]==SOLID)
+        p->gcb1[count][4]=22;
+		
+		if(p->flag1[UIJK]==FLT)
+        p->gcb1[count][4]=41;
+        ++count;
+        }
+	}
+
+	for(q=0;q<p->gcpara2_count;++q)
+	{
+    i=p->gcpara2[q][0];
+    j=p->gcpara2[q][1]+1;
+    k=p->gcpara2[q][2];
+        
+        if(p->flag1[UIJK]==0 && p->flag1[UIJp1K]==1)
+        {
+        p->gcb1[count][0]=i;
+        p->gcb1[count][1]=j+1;
+        p->gcb1[count][2]=k;
+        p->gcb1[count][3]=3;
+
+        if(p->flag1[UIJK]==TOPO)
+        p->gcb1[count][4]=5;
+
+        if(p->flag1[UIJK]==OBJ)
+        p->gcb1[count][4]=21;
+        
+        if(p->flag1[UIJK]==SOLID)
+        p->gcb1[count][4]=22;
+		
+		if(p->flag1[UIJK]==FLT)
+        p->gcb1[count][4]=41;
+        ++count;
+        }
+	}
+
+	for(q=0;q<p->gcpara6_count;++q)
+	{
+	i=p->gcpara6[q][0];
+    j=p->gcpara6[q][1];
+    k=p->gcpara6[q][2]+1;
+        
+        if(p->flag1[UIJK]==0 && p->flag1[UIJKp1]==1)
+        {
+        p->gcb1[count][0]=i;
+        p->gcb1[count][1]=j;
+        p->gcb1[count][2]=k+1;
+        p->gcb1[count][3]=5;
+
+        if(p->flag1[UIJK]==TOPO)
+        p->gcb1[count][4]=5;
+
+        if(p->flag1[UIJK]==OBJ)
+        p->gcb1[count][4]=21;
+        
+        if(p->flag1[UIJK]==SOLID)
+        p->gcb1[count][4]=22;
+		
+		if(p->flag1[UIJK]==FLT)
+        p->gcb1[count][4]=41;
+        ++count;
+        }
+	}
 	
 
     for(q=p->gcb1_count;q<count;++q)

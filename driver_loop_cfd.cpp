@@ -145,6 +145,28 @@ void driver::loop_cfd(fdm* a)
 	p->wavetime=0.0;
 	p->field4time=0.0;
     
+    pgc->gcparax(p,a->press,4);
+    
+    /*
+    LOOP
+    if(p->mpirank==1 && i==13 && j==8 && k==10)
+    {
+        cout<<"U1: "<<a->u(i-1,j,k)<<" "<<a->u(i,j,k)<<" "<<a->u(i+1,j,k)<<endl;
+        cout<<"P1: "<<a->press(i-2,j,k)<<" "<<a->press(i-1,j,k)<<" "<<a->press(i,j,k)<<" "<<a->press(i+1,j,k)<<" "<<a->press(i+2,j,k)<<" "<<a->press(i+3,j,k)<<endl;
+    }
+    
+    
+    LOOP
+    if(p->mpirank==2 && i==0 && j==8 && k==10)
+    {
+        cout<<"U2: "<<a->u(i-1,j,k)<<" "<<a->u(i,j,k)<<" "<<a->u(i+1,j,k)<<endl;
+        cout<<"P2: "<<a->press(i-2,j,k)<<" "<<a->press(i-1,j,k)<<" "<<a->press(i,j,k)<<" "<<a->press(i+1,j,k)<<" "<<a->press(i+2,j,k)<<endl;
+    }*/
+
+    
+    
+    
+    
     stop(p,a,pgc);
 	}
 

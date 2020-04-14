@@ -126,6 +126,62 @@ void ghostcell::solid_update(lexer *p, fdm *a)
     //cout<<p->mpirank<<" GCB4_COUNT:  "<<p->gcb4_count<<endl;
     
     
+    int g;
+    /*
+    if(p->mpirank==1)
+    {
+    for(n=0;n<p->gcpara4_count;++n)
+    {
+    i=p->gcpara4[n][0];
+    j=p->gcpara4[n][1];
+    k=p->gcpara4[n][2];
+    
+    if(p->gcpara4[n][3]==0)
+    cout<<"GCX4 "<<i<<" "<<j<<" "<<k<<" flag1: ."<<p->flag1[UIJK]<<". "<<p->flag1[UIp1JK]<<" "<<p->flag1[Ip2JK]<<"  | flag4: ."<<p->flag4[IJK]<<". "<<p->flag4[Ip1JK]<<" "<<p->flag4[Ip2JK]<<"  |  "<<p->gcpara4[n][6]<<endl;
+
+    }
+    
+        GGC1LOOP
+        {
+        i=p->gcb1[g][0];
+        j=p->gcb1[g][1];
+        k=p->gcb1[g][2];
+        
+        if(i==13 && j==8 && k==10)
+        cout<<g<<"  GCB1 FOUND 13 8 10   "<<p->gcb1[g][3]<<" "<<p->gcb1[g][4]<<endl;
+        }
+    }
+    
+    
+    if(p->mpirank==2)
+    {
+    for(n=0;n<p->gcpara1_count;++n)
+    {
+    i=p->gcpara1[n][0];
+    j=p->gcpara1[n][1];
+    k=p->gcpara1[n][2];
+    
+    if(p->gcpara1[n][3]==0)
+    cout<<"GCX1 "<<i<<" "<<j<<" "<<k<<" flag1: "<<p->flag1[Im2JK]<<" "<<p->flag1[UIm1JK]<<" ."<<p->flag1[UIJK]<<".  | flag4: "<<p->flag4[Im2JK]<<" "<<p->flag4[Im1JK]<<" ."<<p->flag4[IJK]<<". "<<p->flag4[Ip1JK]<<"  |  "<<p->gcpara1[n][6]<<endl;
+    }
+    
+    
+    GGC4LOOP
+    {
+    i=p->gcb4[g][0];
+    j=p->gcb4[g][1];
+    k=p->gcb4[g][2];
+    
+    if(i==0 && j==8 && k==10)
+    cout<<g<<"  GCB4 FOUND 0 8 10   "<<p->gcb4[g][3]<<" "<<p->gcb4[g][4]<<endl;
+    }
+    }
+    */
+    
+    
+    
+    
+    
     if(p->mpirank==0)
     cout<<endl;
 }
