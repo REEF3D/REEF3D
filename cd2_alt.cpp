@@ -78,7 +78,7 @@ double cds2_alt::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel
 		dx = iadvec*(0.5*(b(i,j,k) + b(i+1,j,k))  -  0.5*(b(i-1,j,k) +  b(i,j,k)))/DX[IP];
 		
 		dy = jadvec*(0.5*(b(i,j,k) + b(i,j+1,k))  -  0.5*(b(i,j-1,k) +  b(i,j,k)))/DY[JP];
-	
+	        
 		dz = kadvec*(0.5*(b(i,j,k) + b(i,j,k+1))  -  0.5*(b(i,j,k-1) +  b(i,j,k)))/DZ[KP];
 
 		L = -dx-dy-dz;
