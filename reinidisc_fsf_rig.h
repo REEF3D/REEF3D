@@ -10,52 +10,48 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"geotopo.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"reinitopo.h"
-#include"ioflow.h"
+#include"reinidisc.h"
+#include"ddweno_nug.h"
+#include"vec.h"
 
-geotopo::geotopo(lexer* p, fdm *a, ghostcell* pgc)
-{
-}
+class picard;
+class cpt;
 
-geotopo::~geotopo()
-{
-}
+using namespace std;
 
-void geotopo::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection* pconvec, reinitopo* preto)
+#ifndef REINIDISC_FSF_RIG_H_
+#define REINIDISC_FSF_RIG_H_
+
+class reinidisc_fsf_rig : public reinidisc, public ddweno_nug
 {
-    dat(p,a,pgc);
-    
-    box(p,a,pgc);
-    wedge(p,a,pgc);
+public:
+	reinidisc_fsf_rig(lexer* p);
+	virtual ~reinidisc_fsf_rig();
+	virtual void start(lexer*, fdm*, ghostcell*, vec&, vec&,int);
 	
-	//if(p->G39==1)
-	//solid_topo(p,a,pgc);
-    
-    preto->start(a,p,a->topo,pconvec,pgc);
-    
-    //pgc->start4a(p,a->topo,150);
-    
-    if(p->S10!=2)
-    pgc->topo_update(p,a);
-    
-    if(p->S10==2)
-    pflow->vrans_sed_update(p,a,pgc);
-    
-    pflow->gcio_update(p,a,pgc);
-}
+private:
 
+	void disc(lexer*, fdm*, ghostcell*, vec&, vec&, int*, cpt&);
+	
+	double xmin,xplus,ymin,yplus,zmin,zplus;
+	double dxmin,dxplus,dymin,dyplus,dzmin,dzplus;
+	double uwx,uwy,uwz,ddt;
+	double lsv,dv,lsSig;
+	
+	double dx, dy, dz, dnorm, sign;
+	double sx,sy,sz,snorm,op;
+	
+	double deltax;
+};
 
-
+#endif

@@ -673,6 +673,13 @@ void driver::logic()
     if(p->G40==3)
     preto = new reinitopo_RK3(p);
     }
+    
+    if(p->G39==0)
+    preso = new reinitopo_void(); 
+    
+    if(p->G39==1)
+    preso = new reinisolid_RK3(p);
+    
 
     if(p->S60==0)
     psusp = new suspended_void();

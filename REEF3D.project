@@ -320,6 +320,7 @@
         <File Name="particlecorr.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Reinitialization">
+        <File Name="reinidisc_fsf_rig.h"/>
         <File Name="reini_RK3_V.h"/>
         <File Name="reinifluid_RK4.h"/>
         <File Name="reinifluid_AB3.h"/>
@@ -450,6 +451,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Solid">
+          <File Name="reinisolid_RK3.h"/>
           <File Name="solid.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sliceint">
@@ -1494,6 +1496,7 @@
         <File Name="pls_xupdate.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Reinitialization">
+        <File Name="reinidisc_fsf_rig.cpp"/>
         <File Name="reini_RK3_V.cpp"/>
         <File Name="reinifluid_RK4.cpp"/>
         <File Name="reinifluid_AB3.cpp"/>
@@ -1818,6 +1821,7 @@
         </VirtualDirectory>
         <File Name="grid.cpp"/>
         <VirtualDirectory Name="Solid">
+          <File Name="reinisolid_RK3.cpp"/>
           <File Name="solid.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sliceint">

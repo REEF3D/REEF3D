@@ -163,6 +163,7 @@ public:
 	suspended* psusp;
 	topo* ptopo;
 	reinitopo* preto;
+    reinitopo* preso;
 	heat* pheat;
 	potential* potflow;
 	benchmark* pbench;

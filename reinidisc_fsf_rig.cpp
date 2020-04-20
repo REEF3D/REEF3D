@@ -22,18 +22,18 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"reinidisc_fsf.h"
+#include"reinidisc_fsf_rig.h"
 #include"cpt.h"
 
-reinidisc_fsf::reinidisc_fsf(lexer *p) :  ddweno_nug(p)
+reinidisc_fsf_rig::reinidisc_fsf_rig(lexer *p) :  ddweno_nug(p)
 {
 }
 
-reinidisc_fsf::~reinidisc_fsf()
+reinidisc_fsf_rig::~reinidisc_fsf_rig()
 {
 }
 
-void reinidisc_fsf::start(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int ipol)
+void reinidisc_fsf_rig::start(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int ipol)
 {
 	if(ipol==4)
     {
@@ -77,12 +77,11 @@ void reinidisc_fsf::start(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int 
 }
 
 
-void reinidisc_fsf::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *sizeM, cpt &C)
+void reinidisc_fsf_rig::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *sizeM, cpt &C)
 {	
 
 	if((b.V[I_J_K]>=0.0 && b.V[Ip1_J_K]>=0.0 && b.V[Im1_J_K]>=0.0 && b.V[I_Jp1_K]>=0.0 && b.V[I_Jm1_K]>=0.0 && b.V[I_J_Kp1]>=0.0 && b.V[I_J_Km1]>=0.0) 
-	|| (b.V[I_J_K]<0.0  && b.V[Ip1_J_K]<0.0  && b.V[Im1_J_K]<0.0  && b.V[I_Jp1_K]<0.0  && b.V[I_Jm1_K]<0.0   && b.V[I_J_Kp1]<0.0  && b.V[I_J_Km1]<0.0)
-    || p->count==0) 
+	|| (b.V[I_J_K]<0.0  && b.V[Ip1_J_K]<0.0  && b.V[Im1_J_K]<0.0  && b.V[I_Jp1_K]<0.0  && b.V[I_Jm1_K]<0.0   && b.V[I_J_Kp1]<0.0  && b.V[I_J_Km1]<0.0)) 
 	{
 	dx=0.0;
 	dy=0.0;
