@@ -10,52 +10,49 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"geotopo.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
 #include"reinitopo.h"
-#include"ioflow.h"
+#include"ddweno.h"
+#include"vec.h"
+#include"increment.h"
 
-geotopo::geotopo(lexer* p, fdm *a, ghostcell* pgc)
-{
-}
+class reinidisc;
+class picard;
 
-geotopo::~geotopo()
-{
-}
+using namespace std;
 
-void geotopo::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection* pconvec, reinitopo* preto)
+#ifndef REINISOLID_RK3_H_
+#define REINISOLID_RK3_H_
+
+class reinisolid_RK3 : public reinitopo, public increment
 {
-    dat(p,a,pgc);
-    
-    box(p,a,pgc);
-    wedge(p,a,pgc);
+public:
+	reinisolid_RK3(lexer* p);
+	virtual ~reinisolid_RK3();
+	virtual void start(fdm*,lexer*,field&, convection*,ghostcell*);
+
+	int *sizeM;
+	vec f,frk1,frk2,L,dt;
+
+private:
+	reinidisc *prdisc;
+
+	void step(lexer*, fdm*);
+    void time_preproc(lexer*);
 	
-	//if(p->G39==1)
-	//solid_topo(p,a,pgc);
-    
-    preto->start(a,p,a->topo,pconvec,pgc);
-    
-    //pgc->start4a(p,a->topo,150);
-    
-    if(p->S10!=2)
-    pgc->topo_update(p,a);
-    
-    if(p->S10==2)
-    pflow->vrans_sed_update(p,a,pgc);
-    
-    pflow->gcio_update(p,a,pgc);
-}
+	double starttime,endtime;
 
+	int gcval,gcval_topo,gcval_initopo,reiniter,n;
+	const double epsi;
+};
 
-
+#endif

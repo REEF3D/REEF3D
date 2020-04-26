@@ -475,8 +475,7 @@ int ghostcell::column_pt6_count(lexer* p, fdm* a)
         ++n;
     }
 	
-	//cout<<p->mpirank<<" gcbcount4: "<<p->gcb4_count*p->margin<<" N4: "<<n-cellnum1<<endl;
-	
+
 	for(g=0;g<p->gcpara1_count;++g)
     {
     i=p->gcpara1[g][0];
@@ -484,7 +483,7 @@ int ghostcell::column_pt6_count(lexer* p, fdm* a)
     k=p->gcpara1[g][2];
 	
 		for(q=0;q<margin;++q)
-		if(p->gcpara1[g][3]==1)
+		if(p->gcpara1[g][8]==1)
 		++n;
 	}
 	
@@ -495,7 +494,7 @@ int ghostcell::column_pt6_count(lexer* p, fdm* a)
     k=p->gcpara2[g][2];
 	
 		for(q=0;q<margin;++q)
-		if(p->gcpara2[g][3]==1)
+		if(p->gcpara2[g][8]==1)
 		++n;
 	}
 	
@@ -506,7 +505,7 @@ int ghostcell::column_pt6_count(lexer* p, fdm* a)
     k=p->gcpara3[g][2];
 	
 		for(q=0;q<margin;++q)
-		if(p->gcpara3[g][3]==1)
+		if(p->gcpara3[g][8]==1)
 		++n;
 	}
 	
@@ -517,7 +516,7 @@ int ghostcell::column_pt6_count(lexer* p, fdm* a)
     k=p->gcpara4[g][2];
 	
 		for(q=0;q<margin;++q)
-		if(p->gcpara4[g][3]==1)
+		if(p->gcpara4[g][8]==1)
 		++n;
 	}
 	
@@ -528,7 +527,7 @@ int ghostcell::column_pt6_count(lexer* p, fdm* a)
     k=p->gcpara5[g][2];
 	
 		for(q=0;q<margin;++q)
-		if(p->gcpara5[g][3]==1)
+		if(p->gcpara5[g][8]==1)
 		++n;
 	}
 	
@@ -539,7 +538,7 @@ int ghostcell::column_pt6_count(lexer* p, fdm* a)
     k=p->gcpara6[g][2];
 	
 		for(q=0;q<margin;++q)
-		if(p->gcpara6[g][3]==1)
+		if(p->gcpara6[g][8]==1)
 		++n;
 	}
     

@@ -22,6 +22,10 @@ Author: Hans Bihs
 
 #include"freesurface.h"
 
+class fluid_update;
+class heat;
+class concentration;
+
 using namespace std;
 
 #ifndef LEVELSET_VOID_H_
@@ -30,12 +34,14 @@ using namespace std;
 class levelset_void : public freesurface
 {
 public:
-	levelset_void(lexer*, fdm*, ghostcell*);
+	levelset_void(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
 	virtual ~levelset_void();
 	virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particlecorr*,field&);
 	virtual void ltimesave(lexer*,fdm*,field&);
     virtual void update(lexer*,fdm*,ghostcell*,field&);
 
+private:
+    fluid_update *pupdate;
 };
 
 #endif

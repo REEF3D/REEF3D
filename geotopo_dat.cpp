@@ -19,8 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"geotopo.h"
 #include"lexer.h"
+#include"geotopo.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
