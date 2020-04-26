@@ -70,6 +70,8 @@ void ghostcell::cval_update1(lexer* p, fdm* a, fieldint &cval1)
         if(p->gcb1[n][3]==4)
         for(q=0;q<margin;++q)
         {
+        //if(p->mpirank==1)
+        //cout<<"ijk: "<<i<<" "<<j<<" "<<k<<endl;
         cval1(i+1+q,j,k)=count; // problem!
         ++count;
         }

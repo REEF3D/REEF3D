@@ -65,7 +65,7 @@ public:
 	void ctrlrecv();
 	int maxparacount();
 	void gridsize();
-	void vecsize();
+	void vecsize(ghostcell*);
 	void vellast();
 	void indices_minmax();
 	void lexer_ini();
