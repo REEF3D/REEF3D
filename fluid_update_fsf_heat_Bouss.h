@@ -26,26 +26,43 @@ Author: Hans Bihs
 class fdm;
 class lexer;
 class ghostcell;
+class heat;
 
 using namespace std;
 
-#ifndef FLUID_UPDATE_FSF_COMP_H_
-#define FLUID_UPDATE_FSF_COMP_H_
+#ifndef FLUID_UPDATE_FSF_HEAT_BOUSS_H_
+#define FLUID_UPDATE_FSF_HEAT_BOUSS_H_
 
-class fluid_update_fsf_comp : public fluid_update, increment
+class fluid_update_fsf_heat_Bouss : public fluid_update, increment
 {
 public:
-    fluid_update_fsf_comp(lexer*, fdm*, ghostcell*);
-	virtual ~fluid_update_fsf_comp();
+    fluid_update_fsf_heat_Bouss(lexer*, fdm*, ghostcell*, heat*&);
+	virtual ~fluid_update_fsf_heat_Bouss();
 
 	virtual void start(lexer*, fdm*, ghostcell*);
 
 private:
+    void material(lexer*, fdm*, ghostcell*);
+    double material_ipol(double**,int,double);
+
     static int iocheck,iter;
     int gcval_ro,gcval_visc;
-	int n;
-	double ro_air,epsi;
-	const double dx,visc_air,visc_water,ro_water;
+	const double dx;
+    double epsi;
+	double visc_1,visc_2,ro_1,ro_2,alpha_air,alpha_water;
+	double **water_density;
+	double **water_viscosity;
+	double **air_density;
+	double **air_viscosity;
+
+	int water_density_num;
+	int water_viscosity_num;
+	int air_density_num;
+	int air_viscosity_num;
+    
+    double T0_1,T0_2;
+
+	heat *pheat;
 
 };
 

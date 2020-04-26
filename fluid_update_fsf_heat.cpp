@@ -70,7 +70,7 @@ void fluid_update_fsf_heat::start(lexer *p, fdm* a, ghostcell* pgc)
 	    ro_1 = material_ipol(water_density,water_density_num, temp);
 	    ro_2 = material_ipol(air_density,air_density_num, temp);
 
-	    visc_2 = material_ipol(water_viscosity,water_viscosity_num, temp);
+	    visc_1 = material_ipol(water_viscosity,water_viscosity_num, temp);
 	    visc_2 = material_ipol(air_viscosity,air_viscosity_num, temp);
         }
         
@@ -344,10 +344,6 @@ void fluid_update_fsf_heat::material(lexer *p, fdm* a, ghostcell* pgc)
 
     air_viscosity_num = 18;
 
-}
-
-void fluid_update_fsf_heat::start3(lexer *p, fdm* a, ghostcell* pgc, field &ls1, field &ls2)
-{
 }
 
 int fluid_update_fsf_heat::iocheck;

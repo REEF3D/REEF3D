@@ -365,7 +365,7 @@ void driver::logic()
     poneph = new onephase_v(p,a,pgc);
     
     if((p->F30==0 && p->F80==0) || p->F11==1)
-	pfsf = new levelset_void(p,a,pgc);
+	pfsf = new levelset_void(p,a,pgc,pheat,pconc);
 
 	if(p->F30==1)
 	pfsf = new levelset_AB2(p,a,pgc,pheat,pconc);

@@ -235,6 +235,7 @@
         <File Name="idiff2_FS.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Fluid Update">
+        <File Name="fluid_update_fsf_heat_Bouss.h"/>
         <File Name="fluid_update.h"/>
         <File Name="fluid_update_fsf.h"/>
         <File Name="fluid_update_fsf_heat.h"/>
@@ -1291,6 +1292,7 @@
         <File Name="idiff2_scalar.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Fluid Update">
+        <File Name="fluid_update_fsf_heat_Bouss.cpp"/>
         <File Name="fluid_update_fsf.cpp"/>
         <File Name="fluid_update_fsf_heat.cpp"/>
         <File Name="fluid_update_vof.cpp"/>
