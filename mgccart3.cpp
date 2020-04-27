@@ -217,7 +217,7 @@ void mgc3::fillmgc(lexer* p)
 	}
     
     
-    /*
+    
     //PARA2
     for(q=0;q<p->gcpara1_count;++q)
     {
@@ -226,7 +226,13 @@ void mgc3::fillmgc(lexer* p)
     k=p->gcpara1[q][2];
         
         for(n=0;n<p->margin;++n)
-        p->mgc3[(i-imin-n-1)*jmax*kmax + (j-jmin)*kmax + k-kmin]+=1;
+        if( p->mgc3[(i-imin-n-1)*jmax*kmax + (j-kmin)*kmax + k-kmin]>1
+		&& p->mgc3[(i-imin-n-1)*jmax*kmax + (j-kmin)*kmax + k-kmin]<10)
+        {
+			p->mgc3[(i-imin-n-1)*jmax*kmax + (j-kmin)*kmax + k-kmin]=p->gcextra3;
+			p->gcextra3++;
+        }
+
     }
     
     for(q=0;q<p->gcpara4_count;++q)
@@ -236,7 +242,12 @@ void mgc3::fillmgc(lexer* p)
     k=p->gcpara4[q][2];
         
         for(n=0;n<p->margin;++n)
-		p->mgc3[(i-imin+n+1)*jmax*kmax + (j-jmin)*kmax + k-kmin]+=1;
+		if( p->mgc3[(i-imin+n+1)*jmax*kmax + (j-kmin)*kmax + k-kmin]>1
+		&& p->mgc3[(i-imin+n+1)*jmax*kmax + (j-kmin)*kmax + k-kmin]<10)
+        {
+			p->mgc3[(i-imin+n+1)*jmax*kmax + (j-kmin)*kmax + k-kmin]=p->gcextra3;
+			p->gcextra3++;
+        }
 	}
 
     for(q=0;q<p->gcpara3_count;++q)
@@ -246,7 +257,12 @@ void mgc3::fillmgc(lexer* p)
     k=p->gcpara3[q][2];
         
         for(n=0;n<p->margin;++n)
-        p->mgc3[(i-imin)*jmax*kmax + (j-jmin-n-1)*kmax + k-kmin]+=1;
+        if(p->mgc3[(i-imin)*jmax*kmax + (j-kmin-n-1)*kmax + k-kmin]>1
+		&& p->mgc3[(i-imin)*jmax*kmax + (j-kmin-n-1)*kmax + k-kmin]<10)
+        {
+			p->mgc3[(i-imin)*jmax*kmax + (j-kmin-n-1)*kmax + k-kmin]=p->gcextra3;
+			p->gcextra3++;
+        }
     }
     
     for(q=0;q<p->gcpara2_count;++q)
@@ -256,7 +272,12 @@ void mgc3::fillmgc(lexer* p)
     k=p->gcpara2[q][2];
         
         for(n=0;n<p->margin;++n)
-        p->mgc3[(i-imin)*jmax*kmax + (j-jmin+n+1)*kmax + k-kmin]+=1;
+        if( p->mgc3[(i-imin)*jmax*kmax + (j-kmin+n+1)*kmax + k-kmin]>1
+		&& p->mgc3[(i-imin)*jmax*kmax + (j-kmin+n+1)*kmax + k-kmin]<10)
+        {
+			p->mgc3[(i-imin)*jmax*kmax + (j-kmin+n+1)*kmax + k-kmin]=p->gcextra3;
+			p->gcextra3++;
+        }
 	}
 
 	for(q=0;q<p->gcpara5_count;++q)
@@ -266,7 +287,12 @@ void mgc3::fillmgc(lexer* p)
     k=p->gcpara5[q][2];
 
         for(n=0;n<p->margin;++n)
-        p->mgc3[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin-n-1]+=1;
+        if( p->mgc3[(i-imin)*jmax*kmax + (j-kmin)*kmax + k-kmin-n-1]>1
+		&& p->mgc3[(i-imin)*jmax*kmax + (j-kmin)*kmax + k-kmin-n-1]<10)
+        {
+			p->mgc3[(i-imin)*jmax*kmax + (j-kmin)*kmax + k-kmin-n-1]=p->gcextra3;
+			p->gcextra3++;
+        }
 	}
 
 	for(q=0;q<p->gcpara6_count;++q)
@@ -276,8 +302,13 @@ void mgc3::fillmgc(lexer* p)
     k=p->gcpara6[q][2];
         
         for(n=0;n<p->margin;++n)
-        p->mgc3[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin+n+1]+=1;
-	}*/
+        if(p->mgc3[(i-imin)*jmax*kmax + (j-kmin)*kmax + k-kmin+1+n]>1
+		&& p->mgc3[(i-imin)*jmax*kmax + (j-kmin)*kmax + k-kmin+1+n]<10)
+        {
+			p->mgc3[(i-imin)*jmax*kmax + (j-kmin)*kmax + k-kmin+1+n]=p->gcextra3;
+			p->gcextra3++;
+        }
+	}
 }
 
 
@@ -344,6 +375,94 @@ void mgc3::gcdirfill(lexer* p)
 		if(p->gcb3[q][3]==6)
 		for(n=0;n<p->margin;++n)
 		if(p->mgc3[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin+n+1]>1)
+        {
+			dk = (n+1);
+			p->gcorig3[p->mgc3[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin+n+1]-10][5][dk]=1;
+        }
+	}
+    
+    
+    //GCORIG PARA
+    for(q=0;q<p->gcpara1_count;++q)
+    {
+    i=p->gcpara1[q][0];
+    j=p->gcpara1[q][1];
+    k=p->gcpara1[q][2];
+        
+        for(n=0;n<p->margin;++n)
+        if( p->mgc3[(i-imin-n-1)*jmax*kmax + (j-kmin)*kmax + k-kmin]>1
+		&& p->mgc3[(i-imin-n-1)*jmax*kmax + (j-kmin)*kmax + k-kmin]<10)
+        {
+			p->mgc3[(i-imin-n-1)*jmax*kmax + (j-kmin)*kmax + k-kmin]=p->gcextra3;
+			p->gcextra3++;
+        }
+
+    }
+    
+    for(q=0;q<p->gcpara4_count;++q)
+	{
+    i=p->gcpara4[q][0];
+    j=p->gcpara4[q][1];
+    k=p->gcpara4[q][2];
+        
+        for(n=0;n<p->margin;++n)
+		if( p->mgc3[(i-imin-n-1)*jmax*kmax + (j-jmin)*kmax + k-kmin]>1)
+        {
+			di = (n+1);
+			p->gcorig3[p->mgc3[(i-imin-n-1)*jmax*kmax + (j-jmin)*kmax + k-kmin]-10][0][di]=1;
+        }
+	}
+
+    for(q=0;q<p->gcpara3_count;++q)
+    {
+    i=p->gcpara3[q][0];
+    j=p->gcpara3[q][1];
+    k=p->gcpara3[q][2];
+        
+        for(n=0;n<p->margin;++n)
+        if(p->mgc3[(i-imin)*jmax*kmax + (j-jmin-n-1)*kmax + k-kmin]>1)
+        {
+			dj = (n+1);
+			p->gcorig3[p->mgc3[(i-imin)*jmax*kmax + (j-jmin-n-1)*kmax + k-kmin]-10][2][dj]=1;
+	    }
+    }
+    
+    for(q=0;q<p->gcpara2_count;++q)
+	{
+    i=p->gcpara2[q][0];
+    j=p->gcpara2[q][1];
+    k=p->gcpara2[q][2];
+        
+        for(n=0;n<p->margin;++n)
+        if( p->mgc3[(i-imin)*jmax*kmax + (j-jmin+n+1)*kmax + k-kmin]>1)
+        {
+			dj = (n+1);
+			p->gcorig3[p->mgc3[(i-imin)*jmax*kmax + (j-jmin+n+1)*kmax + k-kmin]-10][1][dj]=1;
+        }
+	}
+
+	for(q=0;q<p->gcpara5_count;++q)
+	{
+    i=p->gcpara5[q][0];
+    j=p->gcpara5[q][1];
+    k=p->gcpara5[q][2];
+
+        for(n=0;n<p->margin;++n)
+        if( p->mgc3[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin-n-1]>1)
+        {
+			dk = (n+1);
+			p->gcorig3[p->mgc3[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin-n-1]-10][4][dk]=1;
+        }
+	}
+
+	for(q=0;q<p->gcpara6_count;++q)
+	{
+	i=p->gcpara6[q][0];
+    j=p->gcpara6[q][1];
+    k=p->gcpara6[q][2];
+        
+        for(n=0;n<p->margin;++n)
+        if(p->mgc3[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin+n+1]>1)
         {
 			dk = (n+1);
 			p->gcorig3[p->mgc3[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin+n+1]-10][5][dk]=1;

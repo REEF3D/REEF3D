@@ -223,7 +223,6 @@ void mgc1::fillmgc(lexer* p)
         }
 	}
     
-   /* 
     //PARA2
     for(q=0;q<p->gcpara1_count;++q)
     {
@@ -313,7 +312,7 @@ void mgc1::fillmgc(lexer* p)
 			p->mgc1[(i-imin)*jmax*kmax + (j-kmin)*kmax + k-kmin+n+1]=p->gcextra1;
 			p->gcextra1++;
         }
-	}*/
+	}
 }
 
 void mgc1::gcdirfill(lexer* p)
@@ -386,7 +385,7 @@ void mgc1::gcdirfill(lexer* p)
 	}
     
     
-    /*
+    
     // GCORIG PARA
     for(q=0;q<p->gcpara1_count;++q)
     {
@@ -470,7 +469,7 @@ void mgc1::gcdirfill(lexer* p)
 			dk = (n+1);
 			p->gcorig1[p->mgc1[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin+n+1]-10][5][dk]=1;
         }
-	}*/
+	}
 }
 
 

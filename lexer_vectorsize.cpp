@@ -27,14 +27,15 @@ void lexer::vecsize(ghostcell *pgc)
     int n;
     gcbextra=0;
 	int gcbnum=0;
-    int solid_gcb_est_max;
+    int solid_gcb_est_max, gcextra_max;
 
     solid_gcb_est_max = pgc->globalimax(solid_gcb_est);
+    gcextra_max = pgc->globalimax(gcextra4);
 
 	gcb_sediment_est = gcb4_count*margin;	
 	gcb_floating_est = gcb4_count;
     
-    gcbextra=gcextra4*margin;
+    gcbextra=gcextra_max*margin;
     
     // solid and topo
 	if(S10>0 || G1>0)
