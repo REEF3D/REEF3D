@@ -43,8 +43,12 @@ void LES_smagorinsky::start(fdm* a, lexer* p, convection* pconvec, diffusion* pd
 {
     LOOP
     a->eddyv(i,j,k) = pow(p->dx*c_sgs,2.0) * strainterm(p,a);
+    
+    LOOP
+    a->visctot(i,j,k) = a->visc(i,j,k) + a->eddyv(i,j,k);
 
     pgc->start4(p,a->eddyv,gcval_sgs);
+    pgc->start4(p,a->visctot,1);
 }
 
 void LES_smagorinsky::ktimesave(lexer* p, fdm* a, ghostcell *pgc)

@@ -144,18 +144,13 @@ void  ikomega::eddyvisc(lexer* p, fdm* a, ghostcell* pgc)
 	LOOP
 	a->eddyv(i,j,k) = MIN(a->eddyv(i,j,k), p->DXM*p->cmu*pow((kin(i,j,k)>(1.0e-20)?(kin(i,j,k)):(1.0e20)),0.5));
 	
+    LOOP
+    a->visctot(i,j,k) = a->visc(i,j,k) + a->eddyv(i,j,k);
     
     pvrans->eddyv_func(p,a);
     
 	pgc->start4(p,a->eddyv,29);
-    
-    n=0;
-    LOOP
-    {
-    a->visctot.V[I_J_K] = a->visc(i,j,k) + a->eddyv(i,j,k);
-    ++n;
-    }
-
+    pgc->start4(p,a->visctot,1);
 }
 
 void  ikomega::kinsource(lexer *p, fdm* a)

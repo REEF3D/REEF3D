@@ -67,7 +67,7 @@ public:
     field4 Fi;
 	field4 eddyv;
 	field4 L;
-	field4 ro,visc;
+	field4 ro,visc,visctot;
 	field4 phi,vof;
 	field4 conc;
     field4 test;
@@ -96,7 +96,7 @@ public:
     slice2 qby;
     
     
-	vec xvec,rhsvec,visctot;
+	vec xvec,rhsvec;
 
 	matrix_diag M;
 	cpt C1,C2,C3,C4,C4a,C6;
