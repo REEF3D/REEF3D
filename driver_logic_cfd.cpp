@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"driver.h"
+#include"driver.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"freesurface_header.h"
@@ -90,7 +91,7 @@ void driver::logic()
 	pconvec=new weno3_hj(p);
     
     if(p->D10==9)
-	pconvec=new weno_flux(p);
+	pconvec=new weno_flux_nug_dir(p);
 	
 	if(p->D10>=10 && p->D10<30)
 	pconvec=new hires(p,p->D10);

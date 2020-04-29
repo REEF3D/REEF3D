@@ -81,28 +81,22 @@ void ghostcell::forcing1(lexer *p, fdm *a, field& f, field &uvel, field &vvel, f
 		
 		double visc_ddy_p,visc_ddy_m,visc_ddz_p,visc_ddz_m;
 		double b_ijk,ev_ijk,visc_ijk;
-		double vfm, vft,sqd;
+		double sqd;
 		
 		sqd = (1.0/(p->dx*p->dx));
 	
-		vfm=vft=0.0;
-		
-		if(p->D22==1)
-		vfm=1.0;
-		
-		if(p->D23==1)
-		vft=1.0;
+
 
 		b_ijk=f(i,j,k);
 		ev_ijk=a->eddyv(i,j,k);
 		visc_ijk=a->visc(i,j,k);
-		visc_ddy_p = (vfm*visc_ijk+ev_ijk + vfm*a->visc(i+1,j,k)+a->eddyv(i+1,j,k) + vfm*a->visc(i,j+1,k)+a->eddyv(i,j+1,k) + vfm*a->visc(i+1,j+1,k)+a->eddyv(i+1,j+1,k))*0.25;
-		visc_ddy_m = (vfm*a->visc(i,j-1,k)+a->eddyv(i,j-1,k)  +vfm*a->visc(i+1,j-1,k)+a->eddyv(i+1,j-1,k) + vfm*visc_ijk+ev_ijk + vfm*a->visc(i+1,j,k)+a->eddyv(i+1,j,k))*0.25;
-		visc_ddz_p = (vfm*visc_ijk+ev_ijk + vfm*a->visc(i+1,j,k)+a->eddyv(i+1,j,k) + vfm*a->visc(i,j,k+1)+a->eddyv(i,j,k+1) + vfm*a->visc(i+1,j,k+1)+a->eddyv(i+1,j,k+1))*0.25;
-		visc_ddz_m = (vfm*a->visc(i,j,k-1)+a->eddyv(i,j,k-1) + vfm*a->visc(i+1,j,k-1)+a->eddyv(i+1,j,k-1) + vfm*visc_ijk+ev_ijk + vfm*a->visc(i+1,j,k)+a->eddyv(i+1,j,k))*0.25;
+		visc_ddy_p = (visc_ijk+ev_ijk + a->visc(i+1,j,k)+a->eddyv(i+1,j,k) + a->visc(i,j+1,k)+a->eddyv(i,j+1,k) + a->visc(i+1,j+1,k)+a->eddyv(i+1,j+1,k))*0.25;
+		visc_ddy_m = (a->visc(i,j-1,k)+a->eddyv(i,j-1,k)  +a->visc(i+1,j-1,k)+a->eddyv(i+1,j-1,k) + visc_ijk+ev_ijk + a->visc(i+1,j,k)+a->eddyv(i+1,j,k))*0.25;
+		visc_ddz_p = (visc_ijk+ev_ijk + a->visc(i+1,j,k)+a->eddyv(i+1,j,k) + a->visc(i,j,k+1)+a->eddyv(i,j,k+1) + a->visc(i+1,j,k+1)+a->eddyv(i+1,j,k+1))*0.25;
+		visc_ddz_m = (a->visc(i,j,k-1)+a->eddyv(i,j,k-1) + a->visc(i+1,j,k-1)+a->eddyv(i+1,j,k-1) + visc_ijk+ev_ijk + a->visc(i+1,j,k)+a->eddyv(i+1,j,k))*0.25;
 		
-		L += 2.0*sqd*((f(i+1,j,k)-b_ijk)*(vfm*a->visc(i+1,j,k)+a->eddyv(i+1,j,k))
-					   -(b_ijk-f(i-1,j,k))*(vfm*visc_ijk+ev_ijk))
+		L += 2.0*sqd*((f(i+1,j,k)-b_ijk)*(a->visc(i+1,j,k)+a->eddyv(i+1,j,k))
+					   -(b_ijk-f(i-1,j,k))*(visc_ijk+ev_ijk))
 
 			+   sqd*((f(i,j+1,k)-b_ijk)*visc_ddy_p
 				-(b_ijk-f(i,j-1,k))*visc_ddy_m)

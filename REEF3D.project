@@ -183,6 +183,7 @@
         <File Name="interpolation.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Convection">
+        <File Name="weno_flux_nug_dir.h"/>
         <File Name="iweno3_hj.h"/>
         <File Name="weno_hj_N_nug.h"/>
         <File Name="weno_flux_N_nug.h"/>
@@ -1231,6 +1232,7 @@
         <File Name="interpolation_ipol.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Convection">
+        <File Name="weno_flux_nug_dir.cpp"/>
         <File Name="iweno3_hj.cpp"/>
         <File Name="weno_hj_N_nug.cpp"/>
         <File Name="weno_flux_N_nug.cpp"/>

@@ -263,8 +263,6 @@ void lexer::ini_default()
 	D11=2;			// int convection velocity scheme   
 	D20=1;			// int diffusion scheme
 	D21=0;			// int print out implicit diffusion time and iterations
-	D22=1;			// int turn on molecular diffusion in diffusion discretization for momentum equations
-	D23=1;			// int turn on molecular diffusion in diffusion discretization for turbulence equations
 	D29=1.0e-5;     // double stopping criteria implicit diffusion
 	D30=1;			// int pressure scheme
 	D32=2;			// int density calculation poisson equation

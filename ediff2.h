@@ -49,9 +49,8 @@ public:
 private:
     rheology *prheo;
     
-	double D,sqd;
+	double D;
 	double ga;
-	double vfm,vft;
 	double u_ijk,v_ijk,w_ijk,ev_ijk,visc_ijk;
 };
 #endif

@@ -35,15 +35,12 @@ void idiff2_FS_v2::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
     
     pgc->start3(p,w,gcval_w);
 
-    sqd = (1.0/(p->dx*p->dx));
-
-
 	count=0;
     if(p->k_dir==1)
     {
     WLOOP
     {
-    visc = vfm*0.5*(a->visc(i,j,k) + a->visc(i,j,k+1)) + 0.5*(a->eddyv(i,j,k) + a->eddyv(i,j,k+1));
+    visc = 0.5*(a->visc(i,j,k) + a->visc(i,j,k+1)) + 0.5*(a->eddyv(i,j,k) + a->eddyv(i,j,k+1));
     
 	a->M.p[count] = 2.0*visc/(p->DZN[KP]*p->DZP[KP])
 				  + 2.0*visc/(p->DZN[KM1]*p->DZP[KP])

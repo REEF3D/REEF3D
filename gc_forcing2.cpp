@@ -80,31 +80,24 @@ void ghostcell::forcing2(lexer *p, fdm *a, field& f, field &uvel, field &vvel, f
 		
 		double visc_ddx_p,visc_ddx_m,visc_ddz_p,visc_ddz_m;
 		double b_ijk,ev_ijk,visc_ijk;
-		double vfm, vft,sqd;
+		double sqd;
 		
 		sqd = (1.0/(p->dx*p->dx));
-	
-		vfm=vft=0.0;
-		
-		if(p->D22==1)
-		vfm=1.0;
-		
-		if(p->D23==1)
-		vft=1.0;
+
 
 		b_ijk=f(i,j,k);
 		ev_ijk=a->eddyv(i,j,k);
 		visc_ijk=a->visc(i,j,k);
-		visc_ddx_p = (vfm*visc_ijk+ev_ijk + vfm*a->visc(i,j+1,k)+a->eddyv(i,j+1,k) + vfm*a->visc(i+1,j,k)+a->eddyv(i+1,j,k) + vfm*a->visc(i+1,j+1,k)+a->eddyv(i+1,j+1,k))*0.25;
-		visc_ddx_m = (vfm*a->visc(i-1,j,k)+a->eddyv(i-1,j,k) + vfm*a->visc(i-1,j+1,k)+a->eddyv(i-1,j+1,k) + vfm*visc_ijk+ev_ijk + vfm*a->visc(i,j+1,k)+a->eddyv(i,j+1,k))*0.25;
-		visc_ddz_p = (vfm*visc_ijk+ev_ijk + vfm*a->visc(i,j+1,k)+a->eddyv(i,j+1,k) + vfm*a->visc(i,j,k+1)+a->eddyv(i,j,k+1) + vfm*a->visc(i,j+1,k+1)+a->eddyv(i,j+1,k+1))*0.25;
-		visc_ddz_m = (vfm*a->visc(i,j,k-1)+a->eddyv(i,j,k-1) + vfm*a->visc(i,j+1,k-1)+a->eddyv(i,j+1,k-1) + vfm*visc_ijk+ev_ijk + vfm*a->visc(i,j+1,k)+a->eddyv(i,j+1,k))*0.25;
+		visc_ddx_p = (visc_ijk+ev_ijk + a->visc(i,j+1,k)+a->eddyv(i,j+1,k) + a->visc(i+1,j,k)+a->eddyv(i+1,j,k) + a->visc(i+1,j+1,k)+a->eddyv(i+1,j+1,k))*0.25;
+		visc_ddx_m = (a->visc(i-1,j,k)+a->eddyv(i-1,j,k) + a->visc(i-1,j+1,k)+a->eddyv(i-1,j+1,k) + visc_ijk+ev_ijk + a->visc(i,j+1,k)+a->eddyv(i,j+1,k))*0.25;
+		visc_ddz_p = (visc_ijk+ev_ijk + a->visc(i,j+1,k)+a->eddyv(i,j+1,k) + a->visc(i,j,k+1)+a->eddyv(i,j,k+1) + a->visc(i,j+1,k+1)+a->eddyv(i,j+1,k+1))*0.25;
+		visc_ddz_m = (a->visc(i,j,k-1)+a->eddyv(i,j,k-1) + a->visc(i,j+1,k-1)+a->eddyv(i,j+1,k-1) + visc_ijk+ev_ijk + a->visc(i,j+1,k)+a->eddyv(i,j+1,k))*0.25;
 		
 		L	 +=	  sqd*((f(i+1,j,k)-b_ijk)*visc_ddx_p
 					- (b_ijk-f(i-1,j,k))*visc_ddx_m)
 
-			+ 2.0*sqd*((f(i,j+1,k)-b_ijk)*(vfm*a->visc(i,j+1,k)+a->eddyv(i,j+1,k))
-				 -(b_ijk-f(i,j-1,k))*(vfm*visc_ijk+ev_ijk))
+			+ 2.0*sqd*((f(i,j+1,k)-b_ijk)*(a->visc(i,j+1,k)+a->eddyv(i,j+1,k))
+				 -(b_ijk-f(i,j-1,k))*(visc_ijk+ev_ijk))
 
 			+ sqd*((f(i,j,k+1)-b_ijk)*visc_ddz_p
 			  -(b_ijk-f(i,j,k-1))*visc_ddz_m)

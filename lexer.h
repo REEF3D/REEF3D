@@ -328,7 +328,7 @@ public:
 	double *C75_x,*C75_z,*C75_a,*C75_s,*C75_l,*C75_v;
 
 	// discretization
-	int D10,D11,D20,D21,D22,D23,D30,D32,D38,D39;
+	int D10,D11,D20,D21,D30,D32,D38,D39;
 	double D29;
 
 	// Free Surface
