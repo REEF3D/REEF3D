@@ -122,9 +122,6 @@ void lexer::ini_default()
 	B75=1;		 // int type of outflow boundary conditions
 	B76=0;             // int fixed pressure inlet/outlet for ioflow and iowave
 	B77=1;           // int outflow pressure controlled or free stream
-	B78=1;           // int fixed pressure outlet for ioflow and iowave
-	B79=1.0;	 // double scale factor for pressure outflow
-	B80=-1.0e9;	 // double height threshold for pressure at outlet
 	B81=0;		 // int focussed wave parameter
     B81_3=0.0;    // double unidirectional focused wave y is condisered 0
     B82=1;      // int type of focus point and time calculation
