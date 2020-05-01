@@ -30,7 +30,7 @@ fdm::fdm(lexer *p)
             Fi(p),
 			eddyv(p),
 			L(p),
-			ro(p),visc(p),visctot(p),
+			ro(p),visc(p),
 			phi(p),vof(p),
 			conc(p),
             topo(p),solid(p),
@@ -43,7 +43,7 @@ fdm::fdm(lexer *p)
             bed(p),bedzh(p),bedk(p),wet(p),
             bedload(p),qbx(p),qby(p),
             P(p),Q(p),K(p),
-			xvec(p),rhsvec(p),M(p)
+			xvec(p),rhsvec(p),visctot(p),M(p)
 {
 
 	

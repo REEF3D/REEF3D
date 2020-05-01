@@ -52,18 +52,23 @@ void idiff2_FS_2D::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
     if(p->i_dir==1)
     {
 	ULOOP
-	{	
-	visc_ijk=a->visctot(i,j,k);
-	visc_ip_j_k=a->visctot(i+1,j,k);
-	visc_i_j_km=a->visctot(i,j,k-1);
-	visc_i_j_kp=a->visctot(i,j,k+1);
+	{
+	ev_ijk=a->eddyv(i,j,k);
+	ev_ip_j_k=a->eddyv(i+1,j,k);
+	ev_i_j_km=a->eddyv(i,j,k-1);
+	ev_i_j_kp=a->eddyv(i,j,k+1);
 	
-	visc_ddz_p = (visc_ijk + visc_ip_j_k + visc_i_j_kp + a->visctot(i+1,j,k+1))*0.25;
-	visc_ddz_m = (a->visctot(i,j,k-1) + a->visctot(i+1,j,k-1) + visc_ijk + visc_ip_j_k)*0.25;
+	visc_ijk=a->visc(i,j,k);
+	visc_ip_j_k=a->visc(i+1,j,k);
+	visc_i_j_km=a->visc(i,j,k-1);
+	visc_i_j_kp=a->visc(i,j,k+1);
+	
+	visc_ddz_p = (visc_ijk+ev_ijk + visc_ip_j_k+ev_ip_j_k + visc_i_j_kp+ev_i_j_kp + a->visc(i+1,j,k+1)+a->eddyv(i+1,j,k+1))*0.25;
+	visc_ddz_m = (a->visc(i,j,k-1)+a->eddyv(i,j,k-1) + a->visc(i+1,j,k-1)+a->eddyv(i+1,j,k-1) + visc_ijk+ev_ijk + visc_ip_j_k+ev_ip_j_k)*0.25;
 		
         
-	a->M.p[count] =  2.0*(visc_ip_j_k)/(p->DXN[IP]*p->DXP[IP])
-				   + 2.0*(visc_ijk)/(p->DXN[IM1]*p->DXP[IP])
+	a->M.p[count] =  2.0*(visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP]*p->DXP[IP])
+				   + 2.0*(visc_ijk+ev_ijk)/(p->DXN[IM1]*p->DXP[IP])
 				   + visc_ddz_p/(p->DZP[KP]*p->DZN[KP])
 				   + visc_ddz_m/(p->DZP[KM1]*p->DZN[KP])
 				   + CPOR1/(alpha*p->dt);
@@ -73,8 +78,8 @@ void idiff2_FS_2D::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 						 + (CPOR1*u(i,j,k))/(alpha*p->dt);
 
 	 
-	 a->M.s[count] = -2.0*(visc_ijk)/(p->DXN[IM1]*p->DXP[IP]);
-	 a->M.n[count] = -2.0*(visc_ip_j_k)/(p->DXN[IP]*p->DXP[IP]);
+	 a->M.s[count] = -2.0*(visc_ijk+ev_ijk)/(p->DXN[IM1]*p->DXP[IP]);
+	 a->M.n[count] = -2.0*(visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP]*p->DXP[IP]);
 	 
 	 a->M.b[count] = -visc_ddz_m/(p->DZP[KM1]*p->DZN[KP]);
 	 a->M.t[count] = -visc_ddz_p/(p->DZP[KP]*p->DZN[KP]);
