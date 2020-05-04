@@ -62,6 +62,8 @@ sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb):topo
     prelax = new topo_relax(p);
 	
 	pbedshear  = new bedshear(p,pturb);
+    
+    volume_token=0;
 }
 
 sediment_f::~sediment_f()
@@ -123,7 +125,9 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
 	filter(p,a,pgc,a->bedzh,p->S100,p->S101);
 	
 	topo_zh_update(p,a,pgc);
-    preto->start(a,p,a->topo,pconvec,pgc);	
+    preto->start(a,p,a->topo,pconvec,pgc);
+
+    volume_calc(p,a,pgc);
 
     pgc->start1(p,a->u,10);
 	pgc->start2(p,a->v,11);

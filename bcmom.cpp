@@ -27,8 +27,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 bcmom::bcmom(lexer* p):surftens(p),roughness(p),kappa(0.4)
 {
-	dx=p->dx;
-
 	if(p->F50==1)
 	gcval_phi=51;
 
@@ -89,7 +87,12 @@ void bcmom::wall_law_u(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
 	i=ii;
 	j=jj;
 	k=kk;
-    dist=0.5*p->DXM;
+    
+    if(cs==2 || cs==3)
+    dist=0.5*p->DYN[JP];
+    
+    if(cs==5 || cs==6)
+    dist=0.5*p->DZN[KP];
 	
 	
 	ks=ks_val(p,a,ii,jj,kk,cs,bc);
@@ -102,10 +105,10 @@ void bcmom::wall_law_u(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
 
 	
 	if(wallfunc_type==1)
-	a->F(i,j,k) -=  (fabs(a->u(i,j,k))*pow(p->cmu,0.25)*pow(fabs(pturb->kinval(i,j,k)),0.5))/(uplus*dx);
+	a->F(i,j,k) -=  (fabs(a->u(i,j,k))*pow(p->cmu,0.25)*pow(fabs(pturb->kinval(i,j,k)),0.5))/(uplus*dist);
 
 	if(wallfunc_type==2)
-	a->F(i,j,k) -= ((fabs(a->u(i,j,k))*a->u(i,j,k))/(uplus*uplus*dx));
+	a->F(i,j,k) -= ((fabs(a->u(i,j,k))*a->u(i,j,k))/(uplus*uplus*dist));
 
 	a->maxF=MAX(fabs(a->F(i,j,k)),a->maxF);
 
@@ -116,7 +119,12 @@ void bcmom::wall_law_v(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
 	i=ii;
 	j=jj;
 	k=kk;
-    dist=0.5*p->DXM;
+    
+    if(cs==1 || cs==4)
+    dist=0.5*p->DXN[IP];
+    
+    if(cs==5 || cs==6)
+    dist=0.5*p->DZN[KP];
     
 	ks=ks_val(p,a,ii,jj,kk,cs,bc);
 
@@ -126,10 +134,10 @@ void bcmom::wall_law_v(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
 		uplus = (1.0/kappa)*log(30.0*(dist/ks));
 
 	if(wallfunc_type==1)
-	a->G(i,j,k) -=  (fabs(a->v(i,j,k))*pow(p->cmu,0.25)*pow(fabs(pturb->kinval(i,j,k)),0.5))/(uplus*dx);
+	a->G(i,j,k) -=  (fabs(a->v(i,j,k))*pow(p->cmu,0.25)*pow(fabs(pturb->kinval(i,j,k)),0.5))/(uplus*dist);
 
 	if(wallfunc_type==2)
-	a->G(i,j,k) -= ((fabs(a->v(i,j,k))*a->v(i,j,k))/(uplus*uplus*dx));
+	a->G(i,j,k) -= ((fabs(a->v(i,j,k))*a->v(i,j,k))/(uplus*uplus*dist));
 	
 	a->maxG=MAX(fabs(a->G(i,j,k)),a->maxG);
 }
@@ -139,7 +147,12 @@ void bcmom::wall_law_w(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
 	i=ii;
 	j=jj;
 	k=kk;
-    dist=0.5*p->DXM;
+    
+    if(cs==1 || cs==4)
+    dist=0.5*p->DXN[IP];
+    
+    if(cs==2 || cs==3)
+    dist=0.5*p->DYN[JP];
 	
 	ks=ks_val(p,a,ii,jj,kk,cs,bc);
 
@@ -149,10 +162,10 @@ void bcmom::wall_law_w(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
 		uplus = (1.0/kappa)*log(30.0*(dist/ks));
 
     if(wallfunc_type==1)
-	a->H(i,j,k) -=  (fabs(a->w(i,j,k))*pow(p->cmu,0.25)*pow(fabs(pturb->kinval(i,j,k)),0.5))/(uplus*dx);
+	a->H(i,j,k) -=  (fabs(a->w(i,j,k))*pow(p->cmu,0.25)*pow(fabs(pturb->kinval(i,j,k)),0.5))/(uplus*dist);
 
 	if(wallfunc_type==2)
-	a->H(i,j,k) -= ((fabs(a->w(i,j,k))*a->w(i,j,k))/(uplus*uplus*dx));
+	a->H(i,j,k) -= ((fabs(a->w(i,j,k))*a->w(i,j,k))/(uplus*uplus*dist));
 	
     a->maxH=MAX(fabs(a->H(i,j,k)),a->maxH);
 }
