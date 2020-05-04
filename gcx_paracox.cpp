@@ -25,6 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void ghostcell::gcparacox(lexer* p,field& f,int gcv)
 {
+    pip=4;
 //  FILL SEND
     for(q=0;q<p->gcparaco1_count;++q)
     {
@@ -165,5 +166,7 @@ void ghostcell::gcparacox(lexer* p,field& f,int gcv)
     k=p->gcparaco6[q][2];
    	f(i,j,k+1)=recv6[q];
 	}
+    
+    pip=0;
 }
 
