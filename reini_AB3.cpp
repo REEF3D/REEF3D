@@ -169,16 +169,8 @@ void reini_AB3::step(lexer *p, fdm *a)
 
 void reini_AB3::time_preproc(lexer* p)
 {
-	/*
-	n=0;
-	LOOP
-	{
-	dt.V[n] = p->F43*(1.0/3.0)*(p->DXP[IP] + p->DYP[JP] + p->DZP[KP]);
-	++n;
-	}*/
-    
     n=0;
-	LOOP
+	BASELOOP
 	{
 	dt.V[n] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
 	++n;
