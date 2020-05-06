@@ -411,11 +411,11 @@ void driver::logic()
 	if(p->F40==23)
 	preini = new reini_RK3(p,1);
     
+    if(p->F40==24)
+	preini = new reini_RK4(p,a);
+    
     if(p->F40==33)
     preini = new reini_RK3_V(p,1);
-	
-	if(p->F40==14)
-	preini = new reini_RK4(p,a);
 	
 	if(p->F40==5)
 	preini = new reinivc_RK3(p);
