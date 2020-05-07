@@ -113,10 +113,7 @@ void ghostcell::gcfb_update(lexer *p, fdm *a)
 	column_pt1_update(p,a);
     column_pt2_update(p,a);
     column_pt3_update(p,a);    
-    column_pt4_update(p,a);  // optimize
-    
-    //a->press.resize(p);
-
+    column_pt4_update(p,a); 
 
 //-------------------
 
