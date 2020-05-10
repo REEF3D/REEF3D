@@ -49,7 +49,7 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 	count=0;
     if(p->i_dir==1)
     {
-	ULOOP
+	ULOOP // 
 	{
 	ev_ijk=a->eddyv(i,j,k);
 	ev_ip_j_k=a->eddyv(i+1,j,k);

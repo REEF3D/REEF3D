@@ -20,23 +20,23 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"vec.h"
 #include"solver.h"
 #include"increment.h"
 
+#include"cpt.h"
 
 using namespace std;
 
-#ifndef BICGSTAB_H_
-#define BICGSTAB_H_
+#ifndef BICGSTAB_IJK_H_
+#define BICGSTAB_IJK_H_
 
 
-class bicgstab : public solver, public increment
+class bicgstab_ijk : public solver, public increment
 {
 public:
-	bicgstab(lexer*,fdm*,ghostcell*,int);
+	bicgstab_ijk(lexer*,fdm*,ghostcell*);
 
-	virtual ~bicgstab();
+	virtual ~bicgstab_ijk();
 
 	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, vec&, int, int,double);
     virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int, int, double);
@@ -44,26 +44,21 @@ public:
 	virtual void solve(lexer*,fdm*, ghostcell*, vec&, vec&, int, int,int&,int,double, cpt&);
 	virtual void setup(lexer*,fdm*, ghostcell*,int,cpt&);
 	
-	virtual void fillxvec1(lexer*,fdm*,field&);
-    virtual void fillxvec2(lexer*,fdm*,field&);
-    virtual void fillxvec3(lexer*,fdm*,field&);
-    virtual void fillxvec4(lexer*,fdm*,field&);
-	virtual void finalize(lexer*,fdm*,field&,vec&,int);
+	void fillxvec(lexer*,fdm*,field&,vec&);
+	void finalize(lexer*,fdm*,field&);
 
-    virtual void gcpara_update(lexer*,vec&,ghostcell*);
-	virtual void gcupdate(lexer*,fdm*,ghostcell*,vec&,int,int,int);
-
-	virtual double res_calc(lexer*,fdm*, vec&, ghostcell*,cpt&);
-	virtual void matvec_axb(lexer*,fdm*, vec&, vec&, cpt&);
-	virtual void matvec_std(lexer*,fdm* a, vec&, vec&,cpt&);
+	double res_calc(lexer*,fdm*, ghostcell*, double*);
+	void matvec_axb(lexer*,fdm*, double*, double*);
+	void matvec_std(lexer*,fdm* a, double*, double*);
+    
+    void precon_setup(lexer*,fdm*,ghostcell*);
+    void precon_solve(lexer*,fdm*,ghostcell*,double*,double*);
 	
-	
-	solver *precon,*precon123,*precon4;
 	
 
 private:
 
-	vec sj,rj,r0,vj,tj,pj,ph,sh;
+	double *sj,*rj,*r0,*vj,*tj,*pj,*ph,*sh,*x,*rhs,*aii;
 	
 	int *sizeM,*range;
 
@@ -71,9 +66,13 @@ private:
 
 	int count;
 	int margin;
+    int ulast,vlast,wlast;
+    int *flag;
 	
 	double alpha,beta,w1,w2,w,residual,norm_vj,norm_r0,norm_sj,norm_rj ;
     double r_j1, r_j, sigma ;
+    
+    cpt C;
 };
 
 #endif

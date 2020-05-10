@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"sip.h"
 #include"bicgstab.h"
 #include"bicgstab_2D.h"
+#include"bicgstab_ijk.h"
 
 #include"hypre_aij.h"
 #include"hypre_struct.h"

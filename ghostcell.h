@@ -248,6 +248,8 @@ public:
     void gcparax_generic(lexer*, field&, int*, int***);
     void gcparacox_generic(lexer*, field&, int*, int***);
 	void gcparaxvec(lexer*, vec&, int);
+    void gcparaxijk(lexer*, double*, int);
+    void gcparaxijk_single(lexer*, double*, int);
     void gcparax7(lexer*, double*, int);
     void gcparax7co(lexer*, double*, int);
 	void gcparaxvec_sr(lexer*, vec&,cpt&,int);

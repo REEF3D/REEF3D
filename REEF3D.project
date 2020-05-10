@@ -592,6 +592,7 @@
     <VirtualDirectory Name="Solver">
       <File Name="solver_fnpf.h"/>
       <VirtualDirectory Name="CG">
+        <File Name="bicgstab_ijk.h"/>
         <File Name="bicgstab_wide.h"/>
         <File Name="bicgstab_2D.h"/>
         <File Name="bicgstab.h"/>
@@ -1592,6 +1593,8 @@
         <File Name="gcibm_distguard.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Parallel">
+        <File Name="gcx_paraxijk_single.cpp"/>
+        <File Name="gcx_paraxijk.cpp"/>
         <File Name="gcx_paraxint.cpp"/>
         <File Name="gcx_flagx7.cpp"/>
         <File Name="gcx_parax7co.cpp"/>
@@ -2077,6 +2080,7 @@
         <File Name="hypre_sstruct.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CG">
+        <File Name="bicgstab_ijk.cpp"/>
         <File Name="bicgstab_wide.cpp"/>
         <File Name="bicgstab_2D.cpp"/>
         <File Name="bicgstab.cpp"/>

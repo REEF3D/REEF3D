@@ -28,7 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"jacobi_block.h"
 #include"sip.h"
 
-bicgstab::bicgstab(lexer* p, fdm *a, ghostcell *pgc, int precon_select):sj(p),rj(p),r0(p),vj(p),tj(p),pj(p),precoeff(p),
+bicgstab::bicgstab(lexer* p, fdm *a, ghostcell *pgc, int precon_select):sj(p),rj(p),r0(p),vj(p),tj(p),pj(p),
 												ph(p),sh(p),epsi(1e-19)
 {
 	precon123 = new jacobi_scaling(p,a,pgc);

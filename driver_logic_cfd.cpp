@@ -562,6 +562,9 @@ void driver::logic()
     
     if(p->N8==3 && p->j_dir==1)
 	psolv = new bicgstab(p,a,pgc,p->N9);
+    
+    if(p->N8==99)
+	psolv = new bicgstab_ijk(p,a,pgc);
 
 //Poison Solver	
 	if(p->N10==0)
@@ -575,6 +578,9 @@ void driver::logic()
 	
 	if(p->N10==3)
 	ppoissonsolv = new bicgstab(p,a,pgc,p->N11);
+    
+    if(p->N10==99)
+	ppoissonsolv = new bicgstab_ijk(p,a,pgc);
 	
 	#ifdef HYPRE_COMPILATION
 	if(p->N10>=10 && p->N10<20)
