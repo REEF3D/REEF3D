@@ -550,36 +550,21 @@ void driver::logic()
 //Solver
 	if(p->N8==0)
 	psolv = new solver_void(p,a,pgc);
-	
-	if(p->N8==1)
-	psolv = new jacobi_block(p,a,pgc);
-	
-	if(p->N8==2)
-	psolv = new sip(p,a,pgc);
-	
-	if(p->N8==3 && p->j_dir==0)
-	psolv = new bicgstab_2D(p,a,pgc,p->N9);
     
-    if(p->N8==3 && p->j_dir==1)
-	psolv = new bicgstab(p,a,pgc,p->N9);
+    if(p->N8==1 && p->j_dir==0)
+	ppoissonsolv = new bicgstab_ijk_2D(p,a,pgc);
     
-    if(p->N8==99)
-	psolv = new bicgstab_ijk(p,a,pgc);
+    if(p->N8==1 && p->j_dir==1)
+	ppoissonsolv = new bicgstab_ijk(p,a,pgc);
 
 //Poison Solver	
 	if(p->N10==0)
 	ppoissonsolv = new solver_void(p,a,pgc);
-	
-	if(p->N10==1)
-	ppoissonsolv = new jacobi_block(p,a,pgc);
-	
-	if(p->N10==2)
-	ppoissonsolv = new sip(p,a,pgc);
-	
-	if(p->N10==3)
-	ppoissonsolv = new bicgstab(p,a,pgc,p->N11);
     
-    if(p->N10==99)
+    if(p->N10==1 && p->j_dir==0)
+	ppoissonsolv = new bicgstab_ijk_2D(p,a,pgc);
+    
+    if(p->N10==1 && p->j_dir==1)
 	ppoissonsolv = new bicgstab_ijk(p,a,pgc);
 	
 	#ifdef HYPRE_COMPILATION

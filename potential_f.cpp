@@ -24,7 +24,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"fdm.h"
 #include"lexer.h"
-#include"sip.h"
 #include<iomanip>
 
 potential_f::potential_f(lexer* p) 

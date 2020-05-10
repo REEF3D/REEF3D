@@ -21,11 +21,8 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"solver_void.h"
-#include"jacobi_block.h"
-#include"sip.h"
-#include"bicgstab.h"
-#include"bicgstab_2D.h"
 #include"bicgstab_ijk.h"
+#include"bicgstab_ijk_2D.h"
 
 #include"hypre_aij.h"
 #include"hypre_struct.h"

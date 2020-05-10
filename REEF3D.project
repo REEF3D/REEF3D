@@ -592,10 +592,8 @@
     <VirtualDirectory Name="Solver">
       <File Name="solver_fnpf.h"/>
       <VirtualDirectory Name="CG">
+        <File Name="bicgstab_ijk_2D.h"/>
         <File Name="bicgstab_ijk.h"/>
-        <File Name="bicgstab_wide.h"/>
-        <File Name="bicgstab_2D.h"/>
-        <File Name="bicgstab.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sparse Matrix">
         <File Name="matrix_diag.h"/>
@@ -604,9 +602,6 @@
       </VirtualDirectory>
       <File Name="solver.h"/>
       <VirtualDirectory Name="Stationary">
-        <File Name="jacobi_block.h"/>
-        <File Name="sip.h"/>
-        <File Name="jacobi_scaling.h"/>
         <File Name="solver_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="HYPRE">
@@ -753,7 +748,6 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
           <File Name="fnpf_sg_laplace_cds2_v2.h"/>
-          <File Name="fnpf_sg_laplace_cds24.h"/>
           <File Name="fnpf_sg_laplace_cds4_bc2.h"/>
           <File Name="fnpf_sg_laplace_cds4.h"/>
           <File Name="fnpf_sg_laplace_cds2.h"/>
@@ -2080,10 +2074,8 @@
         <File Name="hypre_sstruct.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CG">
+        <File Name="bicgstab_ijk_2D.cpp"/>
         <File Name="bicgstab_ijk.cpp"/>
-        <File Name="bicgstab_wide.cpp"/>
-        <File Name="bicgstab_2D.cpp"/>
-        <File Name="bicgstab.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sparse Matrix">
         <File Name="cpt.cpp"/>
@@ -2091,9 +2083,6 @@
         <File Name="vec.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Stationary">
-        <File Name="jacobi_block.cpp"/>
-        <File Name="sip.cpp"/>
-        <File Name="jacobi_scaling.cpp"/>
         <File Name="solver_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="HYPRE AIJ">
@@ -2313,7 +2302,6 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
           <File Name="fnpf_sg_laplace_cds2_v2.cpp"/>
-          <File Name="fnpf_sg_laplace_cds24.cpp"/>
           <File Name="fnpf_sg_laplace_cds4_bc2.cpp"/>
           <File Name="fnpf_sg_laplace_cds4.cpp"/>
           <File Name="fnpf_sg_laplace_cds2.cpp"/>
