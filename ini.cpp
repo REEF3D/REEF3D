@@ -405,7 +405,7 @@ void lexer::ini_default()
 
     // Nunmerics
 	N5=1;			// int true 2D
-    N8=3;			// int linear solver velocities and scalars
+    N8=1;			// int linear solver velocities and scalars
 	N9=1;         // int precondioner
 	N10=14;			// int linear poisson solver
 	N11=11;         // int precondioner

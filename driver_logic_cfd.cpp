@@ -552,10 +552,10 @@ void driver::logic()
 	psolv = new solver_void(p,a,pgc);
     
     if(p->N8==1 && p->j_dir==0)
-	ppoissonsolv = new bicgstab_ijk_2D(p,a,pgc);
+	psolv = new bicgstab_ijk_2D(p,a,pgc);
     
     if(p->N8==1 && p->j_dir==1)
-	ppoissonsolv = new bicgstab_ijk(p,a,pgc);
+	psolv = new bicgstab_ijk(p,a,pgc);
 
 //Poison Solver	
 	if(p->N10==0)
