@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"convection.h"
-#include"fillvec.h"
+#include"increment.h"
 
 class flux;
 class cpt;
@@ -31,7 +31,7 @@ class cpt;
 
 using namespace std;
 
-class weno_hj : public convection, public fillvec
+class weno_hj : public convection, public increment
 {
 public:
 	weno_hj(lexer*);
@@ -40,19 +40,19 @@ public:
 	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
 
 private:
-    double aij(lexer*, fdm*, field&, int,field&,field&,field&, cpt&);
+    double aij(lexer*, fdm*, field&, int,field&,field&,field&);
     
     double aij_sig(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
 
-	virtual double ddx(lexer*, fdm*, field&, cpt&);
-	virtual double ddy(lexer*, fdm*, field&, cpt&);
-	virtual double ddz(lexer*, fdm*, field&, cpt&);
-	void iqmin(fdm*,field&, double, cpt&);
-	void jqmin(fdm*,field&, double, cpt&);
-	void kqmin(fdm*,field&, double, cpt&);
-	void iqmax(fdm*,field&, double, cpt&);
-	void jqmax(fdm*,field&, double, cpt&);
-	void kqmax(fdm*,field&, double, cpt&);
+	virtual double ddx(lexer*, fdm*, field&);
+	virtual double ddy(lexer*, fdm*, field&);
+	virtual double ddz(lexer*, fdm*, field&);
+	void iqmin(fdm*,field&, double);
+	void jqmin(fdm*,field&, double);
+	void kqmin(fdm*,field&, double);
+	void iqmax(fdm*,field&, double);
+	void jqmax(fdm*,field&, double);
+	void kqmax(fdm*,field&, double);
 
 	double L,grad;
 	const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;

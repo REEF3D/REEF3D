@@ -25,16 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void ghostcell::gcparaxvec(lexer* p, vec &x, int gcv)
 {
-	
-	if(gcv==1)
-	gcparaxvec_sr(p,x,a->C1,1);
-	
-	if(gcv==2)
-	gcparaxvec_sr(p,x,a->C2,2);
-	
-    if(gcv==3)
-	gcparaxvec_sr(p,x,a->C3,3);
-	
+		
 	if(gcv==4)
 	gcparaxvec_sr(p,x,a->C4,4);
 	

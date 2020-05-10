@@ -99,7 +99,7 @@ public:
 	vec xvec,rhsvec,visctot;
 
 	matrix_diag M;
-	cpt C1,C2,C3,C4,C4a,C6;
+	cpt C4,C4a,C6;
 
     double maxF,maxG,maxH,maxK,maxE;
     double wd_criterion;

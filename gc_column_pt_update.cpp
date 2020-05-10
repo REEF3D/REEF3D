@@ -24,33 +24,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"fieldint6.h"
 
-void ghostcell::column_pt1_update(lexer* p, fdm* a)
-{
-    fieldint1 cval1(p);
-    cval_update1(p,a,cval1);
-	column_pt1(p,a,cval1);
-    cval_gcb1(p,a,cval1);
-    cval_gcpara1(p,a,cval1);
-}
-
-void ghostcell::column_pt2_update(lexer* p, fdm* a)
-{
-    fieldint2 cval2(p);
-    cval_update2(p,a,cval2);	
-	column_pt2(p,a,cval2);
-    cval_gcb2(p,a,cval2);
-    cval_gcpara2(p,a,cval2);
-}
-
-void ghostcell::column_pt3_update(lexer* p, fdm* a)
-{
-    fieldint3 cval3(p);
-    cval_update3(p,a,cval3);	
-	column_pt3(p,a,cval3);
-    cval_gcb3(p,a,cval3);
-    cval_gcpara3(p,a,cval3);
-}
-
 void ghostcell::column_pt4_update(lexer* p, fdm* a)
 {
     fieldint4 cval4(p);

@@ -28,43 +28,6 @@ void ghostcell::column_pt_resize(lexer* p, fdm* a)
     int size=0;
     int safety=1000;
     
-    size = column_pt1_count(p,a);
-    
-    if(size>p->C1_size)
-    {
-    cout<<p->mpirank<<" CPT1 Resize: "<<p->C1_size<<" "<<size<<endl;
-    size+=safety;
-    a->C1.resize(p,p->C1_size,size);
-    
-    p->C1_size=size;
-    }
-
-    
-    
-    size = column_pt2_count(p,a);
-    
-    if(size>p->C2_size)
-    {
-    cout<<p->mpirank<<" CPT2 Resize: "<<p->C2_size<<" "<<size<<endl;
-    size+=safety;
-    a->C2.resize(p,p->C2_size,size);
-    
-    p->C2_size=size;
-    }
-    
-    
-    size = column_pt3_count(p,a);
-    
-    if(size>p->C3_size)
-    {
-    cout<<p->mpirank<<" CPT3 Resize: "<<p->C3_size<<" "<<size<<endl;
-    size+=safety;
-    a->C3.resize(p,p->C3_size,size);
-    
-    p->C3_size=size;
-    }
-    
-    
     
     size = column_pt4_count(p,a);
     

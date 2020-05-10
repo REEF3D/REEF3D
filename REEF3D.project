@@ -185,8 +185,6 @@
       <VirtualDirectory Name="Convection">
         <File Name="weno_flux_nug_dir.h"/>
         <File Name="iweno3_hj.h"/>
-        <File Name="weno_hj_N_nug.h"/>
-        <File Name="weno_flux_N_nug.h"/>
         <File Name="convection_void.h"/>
         <File Name="convection.h"/>
         <File Name="weno3_flux.h"/>
@@ -223,8 +221,6 @@
         <File Name="hric_mod.h"/>
         <File Name="icicsam.h"/>
         <File Name="weno_flux.h"/>
-        <File Name="weno_flux_N.h"/>
-        <File Name="weno_hj_N.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Diffusion">
         <File Name="idiff2_FS_v2.h"/>
@@ -291,9 +287,6 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Roughness">
         <File Name="roughness.h"/>
-      </VirtualDirectory>
-      <VirtualDirectory Name="Fillvec">
-        <File Name="fillvec.h"/>
       </VirtualDirectory>
       <File Name="fdm.h"/>
     </VirtualDirectory>
@@ -1229,8 +1222,6 @@
       <VirtualDirectory Name="Convection">
         <File Name="weno_flux_nug_dir.cpp"/>
         <File Name="iweno3_hj.cpp"/>
-        <File Name="weno_hj_N_nug.cpp"/>
-        <File Name="weno_flux_N_nug.cpp"/>
         <File Name="weno3_flux.cpp"/>
         <File Name="weno3_hj.cpp"/>
         <File Name="iweno_hj_nug.cpp"/>
@@ -1265,8 +1256,6 @@
         <File Name="hric_mod.cpp"/>
         <File Name="icicsam.cpp"/>
         <File Name="weno_flux.cpp"/>
-        <File Name="weno_flux_N.cpp"/>
-        <File Name="weno_hj_N.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Diffusion">
         <File Name="idiff2_FS_v2_u.cpp"/>
@@ -1438,9 +1427,6 @@
       <File Name="fdm.cpp" ExcludeProjConfig=""/>
       <VirtualDirectory Name="Roughness">
         <File Name="roughness.cpp"/>
-      </VirtualDirectory>
-      <VirtualDirectory Name="Fillvec">
-        <File Name="fillvec.cpp"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Free Surface">

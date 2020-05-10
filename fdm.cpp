@@ -62,10 +62,6 @@ fdm::fdm(lexer *p)
     p->Iarray(pvccnode,p->facetnum*4,8);
 	p->Iarray(ccedge,p->facetnum*4);
     
-    
-    C1.allocate(p);
-    C2.allocate(p);
-    C3.allocate(p);
     C4.allocate(p);
     C4a.allocate(p);
     C6.allocate(p);

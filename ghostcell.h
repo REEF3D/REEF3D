@@ -114,38 +114,22 @@ public:
     void rownum4_update(lexer*,fieldint&);
     void rownum7_update(lexer*,int*);
 
-
-	void cval_gcb1(lexer*,fdm*,fieldint&);
-    void cval_gcb2(lexer*,fdm*,fieldint&);
-    void cval_gcb3(lexer*,fdm*,fieldint&);
     void cval_gcb4(lexer*,fdm*,fieldint&);
     void cval_gcb4a(lexer*,fdm*,fieldint&);
     void cval_gcb6(lexer*,fdm*,fieldint&);
 
-	void cval_gcpara1(lexer*,fdm*,fieldint&);
-    void cval_gcpara2(lexer*,fdm*,fieldint&);
-    void cval_gcpara3(lexer*,fdm*,fieldint&);
     void cval_gcpara4(lexer*,fdm*,fieldint&);
     void cval_gcpara4a(lexer*,fdm*,fieldint&);
     void cval_gcpara6(lexer*,fdm*,fieldint&);
 
-    void column_pt1_update(lexer*,fdm*);
-    void column_pt2_update(lexer*,fdm*);
-    void column_pt3_update(lexer*,fdm*);
     void column_pt4_update(lexer*,fdm*);
     void column_pt4a_update(lexer*,fdm*);
     void column_pt6_update(lexer*,fdm*);
 
-	void column_pt1(lexer*,fdm*,fieldint&);
-	void column_pt2(lexer*,fdm*,fieldint&);
-	void column_pt3(lexer*,fdm*,fieldint&);
 	void column_pt4(lexer*,fdm*,fieldint&);
     void column_pt4a(lexer*,fdm*,fieldint&);
     void column_pt6(lexer*,fdm*,fieldint&);
 
-    int column_pt1_count(lexer*,fdm*);
-	int column_pt2_count(lexer*,fdm*);
-	int column_pt3_count(lexer*,fdm*);
 	int column_pt4_count(lexer*,fdm*);
     int column_pt4a_count(lexer*,fdm*);
     int column_pt6_count(lexer*,fdm*);

@@ -27,41 +27,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"cart3.h"
 #include"cart4.h"
 
-void ghostcell::cval_gcb1(lexer* p, fdm* a, fieldint &cval)
-{
-	GC1LOOP
-    {
-    i=p->gcb1[n][0];
-    j=p->gcb1[n][1];
-    k=p->gcb1[n][2];
-	
-	p->gcb1[n][5]=cval(i,j,k);
-	}
-}
-
-void ghostcell::cval_gcb2(lexer* p, fdm* a, fieldint &cval)
-{
-	GC2LOOP
-    {
-    i=p->gcb2[n][0];
-    j=p->gcb2[n][1];
-    k=p->gcb2[n][2];
-	
-	p->gcb2[n][5]=cval(i,j,k);
-	}
-}
-
-void ghostcell::cval_gcb3(lexer* p, fdm* a, fieldint &cval)
-{
-	GC3LOOP
-    {
-    i=p->gcb3[n][0];
-    j=p->gcb3[n][1];
-    k=p->gcb3[n][2];
-	
-	p->gcb3[n][5]=cval(i,j,k);
-	}
-}
 
 void ghostcell::cval_gcb4(lexer* p, fdm* a, fieldint &cval)
 {
