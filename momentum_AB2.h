@@ -46,9 +46,6 @@ public:
 	virtual void utimesave(lexer*, fdm*, ghostcell*);
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);
-    virtual void fillaij1(lexer*, fdm*, ghostcell*, solver*);
-    virtual void fillaij2(lexer*, fdm*, ghostcell*, solver*);
-    virtual void fillaij3(lexer*, fdm*, ghostcell*, solver*);
 
 	field1 uab;
 	field2 vab;

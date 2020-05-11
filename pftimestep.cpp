@@ -136,15 +136,11 @@ void pftimestep::start(fdm *a, lexer *p,ghostcell *pgc, turbulence *pturb)
     }
     }
     
-    
-    
-    
-//cout<<p->mpirank<<" cu: "<<cu<<" cv: "<<cv<<" cw: "<<cw<<" dx: "<<dx<<endl;
+
    	p->dt=p->N47*min(cu,cv,cw);
 	p->dt=pgc->timesync(p->dt);
 
 	p->dt=MIN(p->dt,maxtimestep);
-	p->turbtimestep=p->dt;
 	
 	a->maxF=0.0;
 	a->maxG=0.0;
@@ -181,7 +177,6 @@ void pftimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 	p->dt=pgc->timesync(p->dt);
 	p->dt_old=p->dt;
 
-	p->maxkappa=0.0;
 }
 
 double pftimestep::min(double val1,double val2,double val3)

@@ -51,8 +51,6 @@ fdm::fdm(lexer *p)
 	maxF=0.0;
 	maxG=0.0; 
 	maxH=0.0;
-	maxK=0.0;
-	maxE=0.0;
     
 	gi=p->W20;
 	gj=p->W21;

@@ -279,14 +279,3 @@ void momentum_RK2::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void momentum_RK2::fillaij1(lexer *p, fdm *a, ghostcell* pgc, solver *psolv)
-{
-}
-
-void momentum_RK2::fillaij2(lexer *p, fdm *a, ghostcell* pgc, solver *psolv)
-{
-}
-
-void momentum_RK2::fillaij3(lexer *p, fdm *a, ghostcell* pgc, solver *psolv)
-{
-}

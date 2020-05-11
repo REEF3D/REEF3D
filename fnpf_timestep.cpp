@@ -207,7 +207,6 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
 	p->dt=pgc->timesync(p->dt);
 	p->dt_old=p->dt;
 
-	p->maxkappa=0.0;
     
     
     

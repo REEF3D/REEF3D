@@ -498,7 +498,7 @@ public:
 	// time + iterations
 	int inneriter,count,solveriter,preconiter,count_statestart;
     double final_res;
-	double dt,veltimestep,turbtimestep,dt_old,turbtimestep_old,maxkappa,simtime,viscmax;
+	double dt,dt_old,simtime,viscmax;
 	double mindt,maxdt;
 	double umax,vmax,wmax,epsmax,kinmax,pressmin,pressmax;
 	double presstime,veltime,reinitime,turbtime,plstime,itertime;

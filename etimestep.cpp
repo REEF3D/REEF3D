@@ -39,7 +39,6 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     p->umax=p->vmax=p->wmax=p->viscmax=irsm=jrsm=krsm=0.0;
     p->epsmax=p->kinmax=p->pressmax=0.0;
 	p->dt_old=p->dt;
-	p->turbtimestep_old=p->turbtimestep;
 
 	p->umax=p->vmax=p->wmax=p->viscmax=0.0;
 	sqd=1.0/(p->DXM*p->DXM);
@@ -169,41 +168,13 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
             + (4.0*fabs(fabs(a->gi) + MAX3(a->maxF,a->maxG,a->maxH)))/dx)));
     }
     
-    
-    ck=2.0/((velmax/p->DXM+visccrit)+sqrt(pow(p->kinmax/p->DXM+visccrit,2.0)+(4.0*fabs(a->maxK))/p->DXM));
-    ce=2.0/((velmax/p->DXM+visccrit)+sqrt(pow(p->epsmax/p->DXM+visccrit,2.0)+(4.0*fabs(a->maxE))/p->DXM));
 
-
-	p->turbtimestep=p->N47*min(ck,ce);
-	p->turbtimestep=pgc->timesync(p->turbtimestep);
-
-	p->veltimestep=p->N47*min(cu,cv,cw);
-	p->veltimestep=pgc->timesync(p->veltimestep);
-
-	if(p->N48==1)
-	{
-	p->dt=p->veltimestep;
-	p->turbtimestep=p->veltimestep;
-	}
-
-	if(p->N48==3)
-	{
-	p->dt=p->veltimestep;
-	p->turbtimestep=p->turbtimestep;
-	}
-
-	if(p->N48==4)
-	{
-	p->dt=MIN(p->veltimestep,p->turbtimestep);
-	p->turbtimestep=p->dt;
-	}
-
+	p->dt=p->N47*min(cu,cv,cw);
+	p->dt=pgc->timesync(p->dt);
 
 	a->maxF=0.0;
 	a->maxG=0.0;
 	a->maxH=0.0;
-	a->maxK=0.0;
-	a->maxE=0.0;
 }
 
 void etimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
@@ -240,10 +211,7 @@ void etimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 
 	p->dt=p->N47*cu*0.25;
 	p->dt=pgc->timesync(p->dt);
-	p->veltimestep=p->turbtimestep=p->dt;
 	p->dt_old=p->dt;
-
-	p->maxkappa=0.0;
 }
 
 double etimestep::min(double val1,double val2,double val3)

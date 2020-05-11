@@ -45,16 +45,3 @@ void momentum_void::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void momentum_void::fillaij1(lexer *p, fdm *a, ghostcell* pgc, solver *psolv)
-{
-}
-
-void momentum_void::fillaij2(lexer *p, fdm *a, ghostcell* pgc, solver *psolv)
-{
-}
-
-void momentum_void::fillaij3(lexer *p, fdm *a, ghostcell* pgc, solver *psolv)
-{
-}
-
-

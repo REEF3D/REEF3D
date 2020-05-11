@@ -101,21 +101,9 @@ void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	cv=2.0/((p->vmax+sqrt(9.81*depthmax))/p->DXM);
     }
     
-    /*
-    cu=2.0/((p->umax/p->DXM));
-    cv=2.0/((p->vmax/p->DXM));
-    
-    SLICELOOP1
-    cu = MIN(cu, p->DXM/((b->P(i,j)/p->DXM) +sqrt(9.81*HXIJ)));
-    
-    SLICELOOP2
-    cv = MIN(cv, p->DXM/((b->Q(i,j)/p->DXM) +sqrt(9.81*HYIJ)));
-*/
 
-	p->veltimestep=p->N47*MIN(cu,cv);
-	p->veltimestep=pgc->timesync(p->veltimestep);
-
-	p->dt=p->veltimestep;
+	p->dt=p->N47*MIN(cu,cv);
+	p->dt=pgc->timesync(p->dt);
 
 
 	b->maxF=0.0;
@@ -149,10 +137,9 @@ void sflow_etimestep::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 	
 	
-	p->veltimestep=p->N47*cu;
-	p->veltimestep=pgc->timesync(p->veltimestep);
+	p->dt=p->N47*cu;
+	p->dt=pgc->timesync(p->dt);
 
-	p->dt=p->veltimestep;
 	p->dt_old=p->dt;
 
 	b->maxF=0.0;

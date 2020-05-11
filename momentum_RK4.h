@@ -43,12 +43,9 @@ public:
 	momentum_RK4(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*);
 	virtual ~momentum_RK4();
 	virtual void start(lexer*, fdm*, ghostcell*, momentum*);
-	virtual void utimesave(lexer*, fdm*, ghostcell*);
+    virtual void utimesave(lexer*, fdm*, ghostcell*);
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);
-    virtual void fillaij1(lexer*, fdm*, ghostcell*, solver*);
-    virtual void fillaij2(lexer*, fdm*, ghostcell*, solver*);
-    virtual void fillaij3(lexer*, fdm*, ghostcell*, solver*);
 
     field1 urk1,urk2,urk3,urk;
 	field2 vrk1,vrk2,vrk3,vrk;
