@@ -22,7 +22,6 @@ Author: Hans Bihs
 
 #include"solver.h"
 #include"increment.h"
-
 #include"cpt.h"
 
 using namespace std;

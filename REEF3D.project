@@ -380,6 +380,7 @@
           <File Name="grid_sigma.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Field">
+          <File Name="fieldgen.h"/>
           <VirtualDirectory Name="Cart">
             <File Name="cart1.h"/>
             <File Name="cart2.h"/>
@@ -434,6 +435,7 @@
           <File Name="boundarycheck.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Slice">
+          <File Name="slicegen.h"/>
           <File Name="slice5.h"/>
           <File Name="slice.h"/>
           <File Name="slice1.h"/>
@@ -864,7 +866,6 @@
           </VirtualDirectory>
           <File Name="solver2D.h"/>
           <VirtualDirectory Name="CG">
-            <File Name="sflow_jacobi_block.h"/>
             <File Name="sflow_bicgstab.h"/>
           </VirtualDirectory>
         </VirtualDirectory>
@@ -1640,10 +1641,12 @@
         <File Name="gcsolid_dist.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Slice">
+        <File Name="gcsl_neumann.cpp"/>
+        <File Name="gcxsl_paraxijk_single.cpp"/>
+        <File Name="gcxsl_paraxijk.cpp"/>
         <File Name="gcsl_solidupdate.cpp"/>
         <File Name="gcxsl_parax_fh.cpp"/>
         <File Name="gcxsl_update.cpp"/>
-        <File Name="gcxsl_paraxvec2D.cpp"/>
         <File Name="gcxsl_paracox_int.cpp"/>
         <File Name="gcsl_outflow.cpp"/>
         <File Name="gcsl_sommerfeld.cpp"/>
@@ -1660,7 +1663,6 @@
         <File Name="gcsl_epol3.cpp"/>
         <File Name="gcsl_epol4.cpp"/>
         <File Name="gcsl_epol4a.cpp"/>
-        <File Name="gcsl_neumann.cpp"/>
         <File Name="gcxsl_flagx.cpp"/>
         <File Name="gcsl_tpflag.cpp"/>
         <File Name="gcsl_ipol.cpp"/>
@@ -1668,11 +1670,6 @@
         <File Name="gcsl_setbc.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CDS Grid2D">
-        <File Name="gc_column_cval2D_gcb.cpp"/>
-        <File Name="gc_column2D_pt_update.cpp"/>
-        <File Name="gc_cval2D_parax.cpp"/>
-        <File Name="gc_column2D_pt_count.cpp"/>
-        <File Name="gc_cval2D_update.cpp"/>
         <File Name="gc_sizeS_update.cpp"/>
       </VirtualDirectory>
     </VirtualDirectory>
@@ -1712,6 +1709,7 @@
           <File Name="grid_sigma.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Field">
+          <File Name="fieldgen.cpp"/>
           <VirtualDirectory Name="DGC">
             <File Name="mgc_dgc4.cpp"/>
             <File Name="mgc_dgc3.cpp"/>
@@ -1783,6 +1781,7 @@
           <File Name="boundarycheck.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Slice">
+          <File Name="slicegen.cpp"/>
           <File Name="slice5.cpp"/>
           <File Name="slice1.cpp"/>
           <File Name="slice2.cpp"/>
@@ -2397,7 +2396,6 @@
             <File Name="vec2D.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="CG">
-            <File Name="sflow_jacobi_block.cpp"/>
             <File Name="sflow_bicgstab.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>

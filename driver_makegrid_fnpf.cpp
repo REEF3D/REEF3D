@@ -375,6 +375,5 @@ void driver::makegrid_fnpf_cds(lexer *p, ghostcell *pgc)
     
     pgc->sizeS_update(p);
     pgc->gcxslupdate(p);
-    pgc->column2D_pt4_update(p,c->C4); 
 }
 	

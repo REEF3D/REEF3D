@@ -19,59 +19,51 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fdm2D.h"
+#include"slicegen.h"
 #include"lexer.h"
+#include"fdm.h"
 
-fdm2D::fdm2D(lexer *p)
-			:eta(p),eta_n(p),
-            P(p),Pn(p),Q(p),Qn(p),
-            F(p),G(p),L(p),
-            ws(p),
-            press(p),
-            eddyv(p),kin(p),eps(p),
-            geo(p),bed(p),bed0(p),zb(p),depth(p),
-            bednode(p),
-			 hx(p),hy(p),hp(p),
-			 xvec(p),rhsvec(p),M(p),
-            dpx(p),dpy(p),test(p),
-            breaking(p),breaking_print(p),
-            wet4(p),
-			 nodeval(p),
-			 cmu(0.09),
-             ks(p),qb(p),topovel(p)
+slicegen::slicegen(lexer *p)
 {
-
-	inverse=1.0/p->dx;
-	deltax=p->dx;
-
-	maxF=0.0;
-	maxG=0.0; 
-	maxK=0.0;
-	maxE=0.0;
-
-	sigT=0.9;
-
-	gi=p->W20;
-	gj=p->W21;
-	gk=p->W22;
-
-
+    imin=p->imin;
+    imax=p->imax;
+    jmin=p->jmin;
+    jmax=p->jmax;
+    
+	fieldalloc(p);
+	
+	pp=p;
 }
 
+slicegen::~slicegen()
+{
+	delete [ ] V;
+}
 
+void slicegen::fieldalloc(lexer* p)
+{
+	p->Darray(V,imax*jmax);
+}
 
+void slicegen::dealloc(lexer* p)
+{
+	delete [ ] V;
+}
 
+void slicegen::resize(lexer* p)
+{
+}
 
+double & slicegen::operator[](int n)
+{
+	return V[n];
+}
 
+double & slicegen::operator()(int ii, int jj)
+{			
+	return V[(ii-imin)*jmax + (jj-jmin)];
+}
 
-
-
-
-
-
-
-
-
-
-
-
+void slicegen::ggcpol(lexer* p)
+{
+}

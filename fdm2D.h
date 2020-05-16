@@ -31,7 +31,6 @@ Author: Hans Bihs
 #include"increment.h"
 #include"vec2D.h"
 #include"matrix2D.h"
-#include"cpt2D.h"
 #include"looping.h"
 #include"iterators.h"
 #include<iostream>
@@ -76,7 +75,6 @@ public:
 	vec2D xvec,rhsvec;
 
 	matrix2D M;
-	cpt2D C1,C2,C4;
 
     double maxF,maxG,maxH,maxK,maxE;
 	double inverse,deltax,sigT,Ui,Ua,Uo;

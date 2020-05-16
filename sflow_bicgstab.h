@@ -20,12 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#define HYPRE_COMPILATION
-#ifdef  HYPRE_COMPILATION
-
 #include"solver2D.h"
 #include"increment.h"
-#include"vec2D.h"
+#include"slicegen.h"
 
 using namespace std;
 
@@ -38,26 +35,24 @@ public:
 
 	sflow_bicgstab(lexer*,ghostcell*);
 	virtual ~sflow_bicgstab();
-	virtual void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int, int, double, cpt2D&);
-	virtual void solve(lexer*, ghostcell*, matrix2D&, vec2D&, vec2D&, int, int, int&, int, double, cpt2D&);
-	virtual void setup(lexer*, ghostcell*,int, cpt2D&);
+	virtual void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int, int, double);
+	virtual void solve(lexer*, ghostcell*, matrix2D&, vec2D&, vec2D&, int, int, int&, int, double);
+	virtual void setup(lexer*, ghostcell*,int);
+    
+    void fillxvec(lexer*,slice&,vec2D&);
+	void finalize(lexer*,slice&);
+
+	double res_calc(lexer*, matrix2D&, ghostcell*, slice&);
+	void matvec_axb(lexer*, matrix2D&, slice&, slice&);
+	void matvec_std(lexer*, matrix2D&, slice&, slice&);
+    
+    void precon_setup(lexer*, matrix2D&,ghostcell*);
+    void precon_solve(lexer*,ghostcell*,slice&,slice&);
+	
     
 private:
-    
-    void precon_solve(lexer*, ghostcell*, vec2D&, vec2D&, int, int, int&, int, double, cpt2D&);
-	void precon_setup(lexer*, ghostcell*, matrix2D&, int, cpt2D&);
-    
-    void matvec_axb(lexer*, matrix2D&, vec2D&, vec2D&, vec2D&, cpt2D&);
-    void matvec_std(lexer*, matrix2D&, vec2D&, vec2D&, cpt2D&);
-    
-    double res_calc(lexer*, ghostcell*, matrix2D&, vec2D&, vec2D&, cpt2D&);
-    
-    void fillxvec1(lexer*, slice&, vec2D&);
-    void fillxvec2(lexer*, slice&, vec2D&);
-    void fillxvec4(lexer*, slice&, vec2D&);
-    
-    void finalize(lexer*, slice&, vec2D&, int);
-    
+
+    slicegen sj,rj,r0,vj,tj,pj,ph,sh,x,rhs,aii;    
 
     int num_iterations;
     double final_res_norm;
@@ -68,20 +63,20 @@ private:
     
     
     //cg
-    vec2D sj,rj,r0,vj,tj,pj,precoeff,ph,sh,aii;
-	
 	int *sizeS,*range;
 
 	const double epsi;
 
 	int margin;
+    int ulast,vlast,wlast;
+    int *flagslice;
 	
 	double alpha,beta,w1,w2,w,residual,norm_vj,norm_r0,norm_sj,norm_rj ;
-    double r_j1, r_j, sigma ;
+    double r_j1, r_j, sigma;
+
 
 };
 
 #endif
 
-#endif
 

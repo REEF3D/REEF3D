@@ -182,7 +182,6 @@ void ietimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 	p->umax=p->vmax=p->wmax=p->viscmax=-1e19;
     
     p->viscmax = MAX(p->W2,p->W4);
-    visccrit=p->viscmax*(6.0/pow(dx,2.0));
 
 	p->umax=p->W10;
 
@@ -200,7 +199,7 @@ void ietimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
     
    
 
-    cu=2.0/((p->umax/dx)+sqrt(pow(p->umax/dx+visccrit,2.0)+(4.0*sqrt(fabs(a->gi) + fabs(a->gj) +fabs(a->gk)))/dx));// + (8.0*p->maxkappa*p->W5)/(2.0*dx*dx*(p->W1+p->W3)));
+    cu=2.0/((p->umax/dx)+sqrt((4.0*sqrt(fabs(a->gi) + fabs(a->gj) +fabs(a->gk)))/dx));// + (8.0*p->maxkappa*p->W5)/(2.0*dx*dx*(p->W1+p->W3)));
 
     
     //cout<<p->mpirank<<" CU "<<cu<<endl;

@@ -19,59 +19,54 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fdm2D.h"
+#include"fieldgen.h"
 #include"lexer.h"
+#include"fdm.h"
+#include"cart4.h"
 
-fdm2D::fdm2D(lexer *p)
-			:eta(p),eta_n(p),
-            P(p),Pn(p),Q(p),Qn(p),
-            F(p),G(p),L(p),
-            ws(p),
-            press(p),
-            eddyv(p),kin(p),eps(p),
-            geo(p),bed(p),bed0(p),zb(p),depth(p),
-            bednode(p),
-			 hx(p),hy(p),hp(p),
-			 xvec(p),rhsvec(p),M(p),
-            dpx(p),dpy(p),test(p),
-            breaking(p),breaking_print(p),
-            wet4(p),
-			 nodeval(p),
-			 cmu(0.09),
-             ks(p),qb(p),topovel(p)
+fieldgen::fieldgen(lexer *p)
 {
+    imin=p->imin;
+    imax=p->imax;
+    jmin=p->jmin;
+    jmax=p->jmax;
+    kmin=p->kmin;
+    kmax=p->kmax;
 
-	inverse=1.0/p->dx;
-	deltax=p->dx;
-
-	maxF=0.0;
-	maxG=0.0; 
-	maxK=0.0;
-	maxE=0.0;
-
-	sigT=0.9;
-
-	gi=p->W20;
-	gj=p->W21;
-	gk=p->W22;
-
-
+	fieldalloc(p);
+	
+	pp=p;
 }
 
+fieldgen::~fieldgen()
+{
+	delete [ ] V;
+}
 
+void fieldgen::fieldalloc(lexer* p)
+{
+	p->Darray(V,imax*jmax*kmax);
+}
 
+void fieldgen::dealloc(lexer* p)
+{
+	delete [ ] V;
+}
 
+void fieldgen::resize(lexer* p)
+{
+}
 
+double & fieldgen::operator[](int n)
+{
+	return V[n];
+}
 
+double & fieldgen::operator()(int ii, int jj, int kk)
+{		
+	return V[(ii-imin)*jmax*kmax + (jj-jmin)*kmax + kk-kmin];
+}
 
-
-
-
-
-
-
-
-
-
-
-
+void fieldgen::ggcpol(lexer* p)
+{
+}

@@ -10,66 +10,48 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fdm2D.h"
-#include"lexer.h"
+#include"field.h"
+#include"increment.h"
 
-fdm2D::fdm2D(lexer *p)
-			:eta(p),eta_n(p),
-            P(p),Pn(p),Q(p),Qn(p),
-            F(p),G(p),L(p),
-            ws(p),
-            press(p),
-            eddyv(p),kin(p),eps(p),
-            geo(p),bed(p),bed0(p),zb(p),depth(p),
-            bednode(p),
-			 hx(p),hy(p),hp(p),
-			 xvec(p),rhsvec(p),M(p),
-            dpx(p),dpy(p),test(p),
-            breaking(p),breaking_print(p),
-            wet4(p),
-			 nodeval(p),
-			 cmu(0.09),
-             ks(p),qb(p),topovel(p)
+#ifndef FIELDGEN_H_
+#define FIELDGEN_H_
+
+using namespace std;
+
+class fieldgen : public field, increment
 {
+public:
 
-	inverse=1.0/p->dx;
-	deltax=p->dx;
+	fieldgen (lexer*);
+	virtual ~fieldgen();
 
-	maxF=0.0;
-	maxG=0.0; 
-	maxK=0.0;
-	maxE=0.0;
+    double& operator()(int, int , int);
+	double& operator[](int);
+    virtual void ggcpol(lexer*);
+    virtual void resize(lexer*);
+    virtual void dealloc(lexer*);
+    
+	int imin,imax,jmax,jmin,kmin,kmax;
 
-	sigT=0.9;
+private:
 
-	gi=p->W20;
-	gj=p->W21;
-	gk=p->W22;
+	void fieldalloc(lexer *);
 
+	lexer *pp;
 
-}
+};
 
-
-
-
-
-
-
-
-
-
-
-
-
+#endif
 
 
 

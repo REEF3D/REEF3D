@@ -10,49 +10,49 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"ghostcell.h"
-#include"lexer.h"
-#include"fdm2D.h"
+#include"slice.h"
+#include"increment.h"
 
-void ghostcell::cval2D_gcb1(lexer* p, sliceint &cval)
-{
-	GCSL1LOOP
-    {
-    i=p->gcbsl1[n][0];
-    j=p->gcbsl1[n][1];
-	
-	p->gcbsl1[n][5]=cval(i,j);
-	}
-}
+#ifndef SLICEGEN_H_
+#define SLICEGEN_H_
 
-void ghostcell::cval2D_gcb2(lexer* p, sliceint &cval)
-{
-	GCSL2LOOP
-    {
-    i=p->gcbsl2[n][0];
-    j=p->gcbsl2[n][1];
-	
-	p->gcbsl2[n][5]=cval(i,j);
-	}
-}
+using namespace std;
 
-void ghostcell::cval2D_gcb4(lexer* p, sliceint &cval)
+class slicegen : public slice, increment
 {
-	GCSL4LOOP
-    {
-    i=p->gcbsl4[n][0];
-    j=p->gcbsl4[n][1];
+public:
+
+	slicegen (lexer*);
+	virtual ~slicegen();
+
+    virtual double& operator()(int, int);
+	double& operator[](int);
+    virtual void ggcpol(lexer*);
+    virtual void resize(lexer*);
+    virtual void dealloc(lexer*);
+    
+	int imin,imax,jmax,jmin;
+
+private:
+
+	void fieldalloc(lexer *);
 	
-	p->gcbsl4[n][5]=cval(i,j);
-	}
-}
+	lexer *pp;
+};
+
+#endif
+
+
+
+
 

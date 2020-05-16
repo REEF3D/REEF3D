@@ -26,7 +26,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 bicgstab_ijk::bicgstab_ijk(lexer* p, fdm *a, ghostcell *pgc):epsi(1e-19)
 {
-
     p->Darray(sj,p->imax*p->jmax*p->kmax);
     p->Darray(rj,p->imax*p->jmax*p->kmax);
     p->Darray(r0,p->imax*p->jmax*p->kmax);
@@ -38,7 +37,6 @@ bicgstab_ijk::bicgstab_ijk(lexer* p, fdm *a, ghostcell *pgc):epsi(1e-19)
     p->Darray(aii,p->imax*p->jmax*p->kmax);
     p->Darray(x,p->imax*p->jmax*p->kmax);
     p->Darray(rhs,p->imax*p->jmax*p->kmax);
-
 }
 
 bicgstab_ijk::~bicgstab_ijk()

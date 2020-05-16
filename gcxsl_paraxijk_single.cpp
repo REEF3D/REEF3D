@@ -21,103 +21,54 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"ghostcell.h"
 #include"lexer.h"
-#include"fdm2D.h"
+#include"fdm.h"
 
-void ghostcell::gcparaxvec2D(lexer* p, vec2D &x, int gcv, cpt2D &C)
-{
-	if(gcv==1)
-	gcslparaxvec_slr(p,x,C,1);
-
-	if(gcv==2)
-	gcslparaxvec_slr(p,x,C,2);
-
-	if(gcv==3 || gcv==4)
-	gcslparaxvec_slr(p,x,C,4);
-}
-
-void ghostcell::gcslparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
+void ghostcell::gcslparaxijk_single(lexer* p, slice &f, int gcv)
 {
 	starttime=timer();
-
+	
     paramargin=3;
-
+	
 //  FILL SEND
     count=0;
     for(q=0;q<p->gcslpara1_count;++q)
     {
-    n=p->gcslpara1[q][8+gcv];
-
-
-        if(p->gcslpara1[q][2+gcv]==1)
-        {
-        send1[count]=x.V[I_J];
+    i=p->gcslpara1[q][0];
+    j=p->gcslpara1[q][1];
+    
+        send1[count]=f.V[IJ];
         ++count;
-
-        send1[count]=x.V[Ip1_J];
-        ++count;
-
-        send1[count]=x.V[Ip2_J];
-        ++count;
-        }
     }
-
+	
 	count=0;
 	for(q=0;q<p->gcslpara2_count;++q)
 	{
-    n=p->gcslpara2[q][8+gcv];
-
-
-        if(p->gcslpara2[q][2+gcv]==1)
-        {
-        send2[count]=x.V[I_J];
+    i=p->gcslpara2[q][0];
+    j=p->gcslpara2[q][1];
+    
+        send2[count]=f.V[IJ];
         ++count;
-
-        send2[count]=x.V[I_Jm1];
-        ++count;
-
-        send2[count]=x.V[I_Jm2];
-        ++count;
-        }
 	}
 
     count=0;
     for(q=0;q<p->gcslpara3_count;++q)
     {
-    n=p->gcslpara3[q][8+gcv];
-
-
-        if(p->gcslpara3[q][2+gcv]==1)
-        {
-        send3[count]=x.V[I_J];
+    i=p->gcslpara3[q][0];
+    j=p->gcslpara3[q][1];
+    
+        send3[count]=f.V[IJ];
         ++count;
-
-        send3[count]=x.V[I_Jp1];
-        ++count;
-
-        send3[count]=x.V[I_Jp2];
-        ++count;
-        }
     }
-
+	
 	count=0;
 	for(q=0;q<p->gcslpara4_count;++q)
 	{
-    n=p->gcslpara4[q][8+gcv];
-
-        if(p->gcslpara4[q][2+gcv]==1)
-        {
-        send4[count]=x.V[I_J];
+    i=p->gcslpara4[q][0];
+    j=p->gcslpara4[q][1];
+    
+        send4[count]=f.V[IJ];
         ++count;
-
-        send4[count]=x.V[Im1_J];
-        ++count;
-
-        send4[count]=x.V[Im2_J];
-        ++count;
-        }
 	}
-
-
 
 //  SEND / RECEIVE
 
@@ -147,90 +98,51 @@ void ghostcell::gcslparaxvec_slr(lexer* p, vec2D &x, cpt2D &C, int gcv)
 
 //  WAIT
 
-    gcwait(p);
+    gcslwait(p);
 
 //  FILL RECEIVE
 
     count=0;
     for(q=0;q<p->gcslpara1_count;++q)
     {
-    n=p->gcslpara1[q][8+gcv];
-
-        if(p->gcslpara1[q][2+gcv]==1)
-        {
-        x.V[Im1_J]=recv1[count];
+    i=p->gcslpara1[q][0];
+    j=p->gcslpara1[q][1];
+    
+        f.V[Im1J]=recv1[count];
         ++count;
-
-        x.V[Im2_J]=recv1[count];
-        ++count;
-
-        x.V[Im3_J]=recv1[count];
-        ++count;
-        }
-
     }
 
     count=0;
 	for(q=0;q<p->gcslpara2_count;++q)
 	{
-    n=p->gcslpara2[q][8+gcv];
-
-        if(p->gcslpara2[q][2+gcv]==1)
-        {
-        x.V[I_Jp1]=recv2[count];
+    i=p->gcslpara2[q][0];
+    j=p->gcslpara2[q][1];
+    
+        f.V[IJp1]=recv2[count];
         ++count;
-
-        x.V[I_Jp2]=recv2[count];
-        ++count;
-
-        x.V[I_Jp3]=recv2[count];
-        ++count;
-        }
-	}
-
+	}	
+	
 	count=0;
 	for(q=0;q<p->gcslpara3_count;++q)
 	{
-    n=p->gcslpara3[q][8+gcv];
-
-        if(p->gcslpara3[q][2+gcv]==1)
-        {
-        x.V[I_Jm1]=recv3[count];
+    i=p->gcslpara3[q][0];
+    j=p->gcslpara3[q][1];
+    
+        f.V[IJm1]=recv3[count];
         ++count;
-
-        x.V[I_Jm2]=recv3[count];
-        ++count;
-
-        x.V[I_Jm3]=recv3[count];
-        ++count;
-        
-        }
 	}
 
     count=0;
 	for(q=0;q<p->gcslpara4_count;++q)
 	{
-    n=p->gcslpara4[q][8+gcv];
+    i=p->gcslpara4[q][0];
+    j=p->gcslpara4[q][1];
     
-    //cout<<p->mpirank<<"  p->gcslpara4[q][2+gcv]: "<<p->gcslpara4[q][6]<<endl;
-
-        if(p->gcslpara4[q][2+gcv]==1)
-        {
-        x.V[Ip1_J]=recv4[count];
+        f.V[Ip1J]=recv4[count];
         ++count;
-
-        x.V[Ip2_J]=recv4[count];
-        ++count;
-
-        x.V[Ip3_J]=recv4[count];
-        ++count;
-        
-        //if(p->mpirank==0)
-        //cout<<n<<" . "<<Ip1_J<<" "<<Ip2_J<<" "<<Ip3_J<<" "<<endl;
-        }
 	}
-
-
+	
 	endtime=timer();
 	p->xtime+=endtime-starttime;
 }
+

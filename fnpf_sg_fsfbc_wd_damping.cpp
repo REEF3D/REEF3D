@@ -106,7 +106,7 @@ void fnpf_sg_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, 
         
         pgc->gcsl_start4(p,f,gcval);
         
-        psolv->start(p,pgc,f,c->N,c->xvec,c->rvec,4,gcval,p->D29,c->C4);
+        psolv->start(p,pgc,f,c->N,c->xvec,c->rvec,4,gcval,p->D29);
         
         double time=pgc->timer()-starttime;
         

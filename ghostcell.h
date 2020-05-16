@@ -142,31 +142,7 @@ public:
     void fdm_update(fdm*);
     void fdm_fnpf_update(fdm_fnpf*);
 
-// 2D CPT
-    void cval2Dupdate1(lexer*,sliceint&);
-    void cval2Dupdate2(lexer*,sliceint&);
-    void cval2Dupdate4(lexer*,sliceint&);
-
-    void column2D_pt1_update(lexer*,cpt2D&);
-    void column2D_pt2_update(lexer*,cpt2D&);
-    void column2D_pt4_update(lexer*,cpt2D&);
-
-    void column2D_pt1(lexer*,sliceint&,cpt2D&);
-    void column2D_pt2(lexer*,sliceint&,cpt2D&);
-    void column2D_pt4(lexer*,sliceint&,cpt2D&);
-
-    int column2D_pt1_count(lexer*);
-    int column2D_pt2_count(lexer*);
-    int column2D_pt4_count(lexer*);
-
-    void cval_gcslpara1(lexer*,sliceint&);
-    void cval_gcslpara2(lexer*,sliceint&);
-    void cval_gcslpara4(lexer*,sliceint&);
-
-    void cval2D_gcb1(lexer*, sliceint&);
-    void cval2D_gcb2(lexer*, sliceint&);
-    void cval2D_gcb4(lexer*, sliceint&);
-    
+// 2D CPT_    
 
     void sizeS_update(lexer*);
 
@@ -268,7 +244,6 @@ public:
 
     void gcsl_start4int(lexer*,sliceint&, int);
 
-    void gcsl_start4V(lexer*,vec2D&, int, cpt2D&);
     
     void gcsl_solidupdate(lexer*);
 
@@ -277,8 +252,6 @@ public:
 	void gcsldistro3(lexer*, slice&,int, int, int, double, int, int, int);
 	void gcsldistro4(lexer*, slice&,int, int, int, double, int, int, int);
 	void gcsldistro4a(lexer*, slice&,int, int, int, double, int, int, int);
-    
-    void gcsldistro4V(lexer*, vec2D&, cpt2D &, int, int, int, double, int, int, int,int);
 
     void gcsldistro4int(lexer*, sliceint&,int, int, int, double, int, int, int);
 
@@ -314,11 +287,6 @@ public:
     void gcsl_sommerfeld(lexer*,slice&,int,int,int);
     void gcsl_outflow(lexer*,slice&,int,int,int);
     void gcsl_outflow_fsf(lexer*,slice&,int,int,int);
-    
-    void gcsl_neumannV(vec2D&,cpt2D&,int,int,int,int);
-    void gcsl_neumannV_x(vec2D&,cpt2D&,int,int,int,int);
-	void gcsl_noslipV(vec2D&,cpt2D&,int,int,int,int);
-
 
     // parallel
     void gcslparax(lexer*, slice&, int);
@@ -328,9 +296,9 @@ public:
     void gcslparacox_int(lexer*, sliceint&, int);
     void gcslwait(lexer*);
     void gcslflagx(lexer*, int*);
-    void gcparaxvec2D(lexer*, vec2D&, int,cpt2D&);
-    void gcslparaxvec_slr(lexer*, vec2D&,cpt2D&,int);
     void gcxslupdate(lexer*);
+    void gcslparaxijk(lexer*, slice&, int);
+    void gcslparaxijk_single(lexer*, slice&, int);
 
 
     double mini1(fdm*,lexer*, field&);
