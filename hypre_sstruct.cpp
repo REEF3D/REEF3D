@@ -186,11 +186,11 @@ void hypre_sstruct::start_solver10(lexer* p, ghostcell* pgc, double *f, vec& rhs
 	delete_solver5(p,pgc);
 }
 
-void hypre_sstruct::setup(lexer* p,fdm* a, ghostcell* pgc, int var, cpt &C)
+void hypre_sstruct::setup(lexer* p,fdm* a, ghostcell* pgc, int var)
 {
 }
 
-void hypre_sstruct::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit, cpt &C)
+void hypre_sstruct::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit)
 {
 }
 

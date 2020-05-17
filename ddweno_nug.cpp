@@ -155,6 +155,9 @@ double ddweno_nug::ddwenoz(fdm* a, vec& b, double uw, cpt &C)
 
 void ddweno_nug::iqmin(vec& f, cpt &C)
 {
+    q1=q2=q3=q4=q5=0.0;
+    
+    if(p->flag4[IJK] && p->flag4[IJK] )
 	q1 = (f.V[Im2_J_K] - f.V[Im3_J_K])/DX[IM3];
 	q2 = (f.V[Im1_J_K] - f.V[Im2_J_K])/DX[IM2];
 	q3 = (f.V[I_J_K]   - f.V[Im1_J_K])/DX[IM1];
@@ -164,6 +167,8 @@ void ddweno_nug::iqmin(vec& f, cpt &C)
 
 void ddweno_nug::jqmin(vec& f, cpt &C)
 {
+    q1=q2=q3=q4=q5=0.0;
+    
 	q1 = (f.V[I_Jm2_K] - f.V[I_Jm3_K])/DY[JM3];
 	q2 = (f.V[I_Jm1_K] - f.V[I_Jm2_K])/DY[JM2];
 	q3 = (f.V[I_J_K]   - f.V[I_Jm1_K])/DY[JM1];
@@ -173,6 +178,9 @@ void ddweno_nug::jqmin(vec& f, cpt &C)
 
 void ddweno_nug::kqmin(vec& f, cpt &C)
 {
+    q1=q2=q3=q4=q5=0.0;
+    
+    
 	q1 = (f.V[I_J_Km2] - f.V[I_J_Km3])/DZ[KM3];
 	q2 = (f.V[I_J_Km1] - f.V[I_J_Km2])/DZ[KM2];
 	q3 = (f.V[I_J_K]   - f.V[I_J_Km1])/DZ[KM1];
@@ -182,6 +190,8 @@ void ddweno_nug::kqmin(vec& f, cpt &C)
 
 void ddweno_nug::iqmax(vec& f, cpt &C)
 {
+    q1=q2=q3=q4=q5=0.0;
+    
 	q1 = (f.V[Im1_J_K] - f.V[Im2_J_K])/DX[IM2];
     q2 = (f.V[I_J_K]   - f.V[Im1_J_K])/DX[IM1];
     q3 = (f.V[Ip1_J_K] - f.V[I_J_K]  )/DX[IP];
@@ -191,6 +201,8 @@ void ddweno_nug::iqmax(vec& f, cpt &C)
 
 void ddweno_nug::jqmax(vec& f, cpt &C)
 {
+    q1=q2=q3=q4=q5=0.0;
+    
 	q1 = (f.V[I_Jm1_K] - f.V[I_Jm2_K])/DY[JM2];
     q2 = (f.V[I_J_K]   - f.V[I_Jm1_K])/DY[JM1];
     q3 = (f.V[I_Jp1_K] - f.V[I_J_K]  )/DY[JP];
@@ -200,6 +212,8 @@ void ddweno_nug::jqmax(vec& f, cpt &C)
 
 void ddweno_nug::kqmax(vec& f, cpt &C)
 {
+    q1=q2=q3=q4=q5=0.0;
+    
 	q1 = (f.V[I_J_Km1] - f.V[I_J_Km2])/DZ[KM2];
     q2 = (f.V[I_J_K]   - f.V[I_J_Km1])/DZ[KM1];
     q3 = (f.V[I_J_Kp1] - f.V[I_J_K]  )/DZ[KP];

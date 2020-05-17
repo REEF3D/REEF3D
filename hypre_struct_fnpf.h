@@ -30,9 +30,7 @@ Author: Hans Bihs
 #include"fieldint4.h"
 #include"_hypre_utilities.h"
 #include"HYPRE_sstruct_ls.h"
- 
-class cpt;
- 
+
 using namespace std;
 
 #ifndef HYPRE_STRUCT_FNPF_H_

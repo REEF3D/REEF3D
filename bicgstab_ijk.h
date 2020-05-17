@@ -22,7 +22,6 @@ Author: Hans Bihs
 
 #include"solver.h"
 #include"increment.h"
-#include"cpt.h"
 
 using namespace std;
 
@@ -40,8 +39,8 @@ public:
 	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, vec&, int, int,double);
     virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int, int, double);
     
-	virtual void solve(lexer*,fdm*, ghostcell*, vec&, vec&, int, int,int&,int,double, cpt&);
-	virtual void setup(lexer*,fdm*, ghostcell*,int,cpt&);
+	virtual void solve(lexer*,fdm*, ghostcell*, vec&, vec&, int, int,int&,int,double);
+	virtual void setup(lexer*,fdm*, ghostcell*,int);
 	
 	void fillxvec(lexer*,fdm*,field&,vec&);
 	void finalize(lexer*,fdm*,field&);
@@ -70,8 +69,6 @@ private:
 	
 	double alpha,beta,w1,w2,w,residual,norm_vj,norm_r0,norm_sj,norm_rj ;
     double r_j1, r_j, sigma ;
-    
-    cpt C;
 };
 
 #endif

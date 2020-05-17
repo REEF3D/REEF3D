@@ -37,11 +37,11 @@ solver_void::~solver_void()
 {
 }
 
-void solver_void::setup(lexer* p,fdm* a, ghostcell* pgc, int var, cpt &C)
+void solver_void::setup(lexer* p,fdm* a, ghostcell* pgc, int var)
 {
 }
 
-void solver_void::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit, cpt &C)
+void solver_void::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit)
 {	
 }
 

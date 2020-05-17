@@ -43,7 +43,7 @@ bicgstab_ijk::~bicgstab_ijk()
 {
 }
 
-void bicgstab_ijk::setup(lexer* p,fdm* a, ghostcell* pgc, int var, cpt &C)
+void bicgstab_ijk::setup(lexer* p,fdm* a, ghostcell* pgc, int var)
 {
 }
 
@@ -85,7 +85,7 @@ void bicgstab_ijk::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, v
     }
     
     fillxvec(p,a,f,rhsvec);
-	solve(p,a,pgc,xvec,rhsvec,var,gcv,p->solveriter,p->N46,stop_crit,C);
+	solve(p,a,pgc,xvec,rhsvec,var,gcv,p->solveriter,p->N46,stop_crit);
 	
 	finalize(p,a,f);
 }
@@ -94,7 +94,7 @@ void bicgstab_ijk::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec&
 {
 }
 	
-void bicgstab_ijk::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit, cpt &C)
+void bicgstab_ijk::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit)
 {
 	solveriter=0;
 	residual = 1.0e9;
