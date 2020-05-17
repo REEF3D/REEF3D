@@ -157,7 +157,7 @@ void ddweno_nug::iqmin(vec& f, cpt &C)
 {
     q1=q2=q3=q4=q5=0.0;
     
-    if(p->flag4[IJK] && p->flag4[IJK] )
+    //if(p->flag4[IJK] && p->flag4[IJK] )
 	q1 = (f.V[Im2_J_K] - f.V[Im3_J_K])/DX[IM3];
 	q2 = (f.V[Im1_J_K] - f.V[Im2_J_K])/DX[IM2];
 	q3 = (f.V[I_J_K]   - f.V[Im1_J_K])/DX[IM1];
