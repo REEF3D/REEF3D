@@ -1005,12 +1005,6 @@ void lexer::read_control()
 				case  5: control>>N5;
 						 clear(c,numint);
 						 break;
-               case  8: control>>N8;
-						 clear(c,numint);
-						 break;
-               case  9: control>>N9;
-						 clear(c,numint);
-						 break;
 				case 10: control>>N10;
 						 clear(c,numint);
 						 break;

@@ -54,10 +54,10 @@ void driver::logic()
     if(p->N48==0)
 	ptstep=new fixtimestep(p);
 
-    if((p->N48==1 || p->N48==3 || p->N48==4)  && (p->D20!=0&&p->D20!=2))
+    if((p->N48==1)  && (p->D20!=0&&p->D20!=2))
 	ptstep=new etimestep(p);
 	
-	if((p->N48==1 || p->N48==3 || p->N48==4) && (p->D20==0||p->D20>=2))
+	if((p->N48==1) && (p->D20==0||p->D20>=2))
 	ptstep=new ietimestep(p);
 
 //discretization scheme
@@ -517,13 +517,10 @@ void driver::logic()
 	ppois = new poisson_nse(p,pheat,pconc);
 	
 //Solver
-	if(p->N8==0)
-	psolv = new solver_void(p,a,pgc);
-    
-    if(p->N8==1 && p->j_dir==0)
+    if(p->j_dir==0)
 	psolv = new bicgstab_ijk_2D(p,a,pgc);
     
-    if(p->N8==1 && p->j_dir==1)
+    if(p->j_dir==1)
 	psolv = new bicgstab_ijk(p,a,pgc);
 
 //Poison Solver	
@@ -670,15 +667,9 @@ void driver::logic()
 	if(p->N40==3 && p->F11==0)
 	pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
     
-	if(p->N40==4)
-	pmom = new momentum_RK4(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
-
 	if(p->N40==6 && p->F11==0)
 	pmom = new momentum_FS3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
     
-	if(p->N40==7)
-	pmom = new momentum_FS4(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
-
 	if(p->N40==0 && p->X10==1 && p->X13==1)
 	pmom = new momentum_FSI(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
 	

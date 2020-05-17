@@ -544,9 +544,7 @@
       <File Name="bcmom.h"/>
       <File Name="momentum.h"/>
       <File Name="momentum_FS3.h"/>
-      <File Name="momentum_FS4.h"/>
       <File Name="momentum_RK3.h"/>
-      <File Name="momentum_RK4.h"/>
       <File Name="momentum_void.h"/>
       <File Name="momentum_RK2.h"/>
       <File Name="momentum_AB2.h"/>
@@ -811,7 +809,6 @@
           </VirtualDirectory>
           <File Name="sflow_momentum_RK3.h"/>
           <File Name="sflow_momentum.h"/>
-          <File Name="sflow_momentum_RK4.h"/>
           <File Name="sflow_momentum_AB2.h"/>
           <File Name="sflow_momentum_RK2.h"/>
         </VirtualDirectory>
@@ -1985,9 +1982,7 @@
       <VirtualDirectory Name="BC">
         <File Name="bcmom.cpp"/>
       </VirtualDirectory>
-      <File Name="momentum_FS4.cpp"/>
       <File Name="momentum_RK3.cpp"/>
-      <File Name="momentum_RK4.cpp"/>
       <File Name="momentum_void.cpp"/>
       <File Name="momentum_RK2.cpp"/>
       <File Name="momentum_AB2.cpp"/>
@@ -2330,7 +2325,6 @@
             <File Name="sflow_rough_manning.cpp"/>
           </VirtualDirectory>
           <File Name="sflow_momentum_RK3.cpp"/>
-          <File Name="sflow_momentum_RK4.cpp"/>
           <File Name="sflow_momentum_AB2.cpp"/>
           <File Name="sflow_momentum_RK2.cpp"/>
         </VirtualDirectory>

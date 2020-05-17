@@ -779,10 +779,6 @@ void lexer::ctrlrecv()
 
     N5  = ictrl[ii];
     ii++;
-    N8  = ictrl[ii];
-    ii++;
-    N9  = ictrl[ii];
-    ii++;
 	N10 = ictrl[ii];
     ii++;
     N11 = ictrl[ii];
