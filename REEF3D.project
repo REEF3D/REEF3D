@@ -295,7 +295,6 @@
         <File Name="directreini.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Level Set">
-        <File Name="levelset_RK3_V.h"/>
         <File Name="levelset_RK3.h"/>
         <File Name="levelset_RK4.h"/>
         <File Name="levelset_void.h"/>
@@ -307,7 +306,6 @@
         </VirtualDirectory>
         <File Name="levelset_RK2.h"/>
         <File Name="levelset_AB2.h"/>
-        <File Name="levelset_AB3.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Particle">
         <File Name="particle.h"/>
@@ -316,23 +314,15 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Reinitialization">
         <File Name="reinidisc_fsf_rig.h"/>
-        <File Name="reini_RK3_V.h"/>
-        <File Name="reinifluid_RK4.h"/>
-        <File Name="reinifluid_AB3.h"/>
-        <File Name="reinifluid_AB2.h"/>
         <File Name="reinifluid_RK3.h"/>
         <File Name="reini.h"/>
         <File Name="reini_RK3.h"/>
-        <File Name="reini_RK4.h"/>
         <File Name="reini_void.h"/>
         <File Name="reinigc_RK3.h"/>
-        <File Name="reinigc_RK4.h"/>
         <File Name="reinivc_RK3.h"/>
         <File Name="reinidisc.h"/>
         <File Name="reinidisc_f.h"/>
         <File Name="reinidisc_fsf.h"/>
-        <File Name="reini_AB2.h"/>
-        <File Name="reini_AB3.h"/>
         <File Name="reini_walld.h"/>
         <File Name="reinidisc_f2.h"/>
       </VirtualDirectory>
@@ -1445,7 +1435,6 @@
         <File Name="directreini_correction.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Level Set">
-        <File Name="levelset_RK3_V.cpp"/>
         <File Name="levelset_RK3.cpp"/>
         <File Name="levelset_RK4.cpp"/>
         <VirtualDirectory Name="Picard">
@@ -1456,7 +1445,6 @@
         <File Name="levelset_void.cpp"/>
         <File Name="levelset_RK2.cpp"/>
         <File Name="levelset_AB2.cpp"/>
-        <File Name="levelset_AB3.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Particle">
         <File Name="particle.cpp"/>
@@ -1483,18 +1471,10 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Reinitialization">
         <File Name="reinidisc_fsf_rig.cpp"/>
-        <File Name="reini_RK3_V.cpp"/>
-        <File Name="reinifluid_RK4.cpp"/>
-        <File Name="reinifluid_AB3.cpp"/>
-        <File Name="reinifluid_AB2.cpp"/>
-        <File Name="reini_RK4.cpp"/>
         <File Name="reini_RK3.cpp"/>
-        <File Name="reini_AB3.cpp"/>
-        <File Name="reini_AB2.cpp"/>
         <File Name="reinifluid_RK3.cpp"/>
         <File Name="reini_void.cpp"/>
         <File Name="reinigc_RK3.cpp"/>
-        <File Name="reinigc_RK4.cpp"/>
         <File Name="reinivc_RK3.cpp"/>
         <File Name="reinidisc_f.cpp"/>
         <File Name="reinidisc_fsf.cpp"/>

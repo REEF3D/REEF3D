@@ -29,9 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ioflow.h"
 #include"picard_f.h"
 #include"picard_void.h"
-#include"reini_AB2.h"
 #include"reini_RK3.h"
-#include"reini_RK4.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -62,14 +60,7 @@ directreini::directreini(lexer* p, fdm *a):gradient(p),vertice(p), nodeflag(p),d
 	if(p->F46!=1)
 	ppicard = new picard_void(p);
 
-	if(p->F40==11)
-	ppreini = new reini_AB2(p,a);
-
-	if(p->F40==13)
 	ppreini = new reini_RK3(p,1);
-
-	if(p->F40==14)
-	ppreini = new reini_RK4(p,a);
 	
 	p->F49=0;
 	p->F44=2;

@@ -380,42 +380,15 @@ void driver::logic()
 	if(p->F30==4)
 	pfsf = new levelset_RK4(p,a,pgc,pheat,pconc);	
 	
-	if(p->F30==5)
-	pfsf = new levelset_AB3(p,a,pgc,pheat,pconc);
-    
-    if(p->F30==33 && p->F11==0)
-	pfsf = new levelset_RK3_V(p,a,pgc,pheat,pconc);
-    
 
 	if(p->F40==0)
 	preini = new reini_void(p);
-    
-    if(p->F40==1)
-	preini = new reinifluid_AB2(p,a);
-	
-	if(p->F40==2)
-	preini = new reinifluid_AB3(p,a);
 	
     if(p->F40==3)
     preini = new reinifluid_RK3(p,1);
 	
-	if(p->F40==4)
-	preini = new reinifluid_RK4(p,a);
-    
-	if(p->F40==21)
-	preini = new reini_AB2(p,a);
-	
-	if(p->F40==22)
-	preini = new reini_AB3(p,a);
-	
 	if(p->F40==23)
 	preini = new reini_RK3(p,1);
-    
-    if(p->F40==24)
-	preini = new reini_RK4(p,a);
-    
-    if(p->F40==33)
-    preini = new reini_RK3_V(p,1);
 	
 	if(p->F40==5)
 	preini = new reinivc_RK3(p);
@@ -423,11 +396,7 @@ void driver::logic()
 	if(p->F40==7)
 	preini = new reinigc_RK3(p,a);
 	
-	if(p->F40==8)
-	preini = new reinigc_RK4(p,a);
-	
-
-	if(p->F40==11 || p->F40==13 || p->F40==14)
+	if(p->F40==11)
 	preini = new directreini(p,a);
 
 

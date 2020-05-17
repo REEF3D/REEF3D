@@ -41,7 +41,7 @@ public:
 	
 private:
 
-	void disc(lexer*, fdm*, ghostcell*, vec&, vec&, int*, cpt&);
+	void disc(lexer*, fdm*, ghostcell*, vec&, vec&, int*, int, cpt&);
 	
 	double xmin,xplus,ymin,yplus,zmin,zplus;
 	double dxmin,dxplus,dymin,dyplus,dzmin,dzplus;
