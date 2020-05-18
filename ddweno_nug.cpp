@@ -43,13 +43,13 @@ double ddweno_nug::ddwenox(fdm* a, vec& b, double uw, int ipol, cpt &C)
     uf=0;
     
     if(ipol==4)
-    flagval=-17;
+    flagval=FLT;
     
     if(ipol==5)
-    flagval=-19;
+    flagval=TOPO;
     
     if(ipol==6)
-    flagval=-20;
+    flagval=SOLID;
     
 	grad=0.0;
 
@@ -92,13 +92,13 @@ double ddweno_nug::ddwenoy(fdm* a, vec& b, double uw, int ipol, cpt &C)
     vf=0;
     
     if(ipol==4)
-    flagval=-17;
+    flagval=FLT;
     
     if(ipol==5)
-    flagval=-19;
+    flagval=TOPO;
     
     if(ipol==6)
-    flagval=-20;
+    flagval=SOLID;
     
 	grad=0.0;
 
@@ -139,13 +139,13 @@ double ddweno_nug::ddwenoz(fdm* a, vec& b, double uw, int ipol, cpt &C)
     wf=0;
     
     if(ipol==4)
-    flagval=-17;
+    flagval=FLT;
     
     if(ipol==5)
-    flagval=-19;
+    flagval=TOPO;
     
     if(ipol==6)
-    flagval=-20;
+    flagval=SOLID;
     
 	grad=0.0;
 
