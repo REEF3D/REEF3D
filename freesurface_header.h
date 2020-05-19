@@ -23,7 +23,6 @@ Author: Hans Bihs
 #include"levelset_AB2.h"
 #include"levelset_RK2.h"
 #include"levelset_RK3.h"
-#include"levelset_RK4.h"
 #include"levelset_void.h"
 
 #include"reini_RK3.h"

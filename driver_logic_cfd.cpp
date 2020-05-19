@@ -377,9 +377,6 @@ void driver::logic()
 	if(p->F30==3 && p->F11==0)
 	pfsf = new levelset_RK3(p,a,pgc,pheat,pconc);
 	
-	if(p->F30==4)
-	pfsf = new levelset_RK4(p,a,pgc,pheat,pconc);	
-	
 
 	if(p->F40==0)
 	preini = new reini_void(p);

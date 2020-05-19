@@ -296,7 +296,6 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Level Set">
         <File Name="levelset_RK3.h"/>
-        <File Name="levelset_RK4.h"/>
         <File Name="levelset_void.h"/>
         <VirtualDirectory Name="Picard">
           <File Name="picard.h"/>
@@ -1433,7 +1432,6 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Level Set">
         <File Name="levelset_RK3.cpp"/>
-        <File Name="levelset_RK4.cpp"/>
         <VirtualDirectory Name="Picard">
           <File Name="picard_lsm.cpp"/>
           <File Name="picard_f.cpp"/>
