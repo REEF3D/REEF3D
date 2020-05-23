@@ -59,6 +59,7 @@
           <File Name="reduction_FD.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sandslide">
+          <File Name="sandslide_f2.h"/>
           <File Name="sandslide_f.h"/>
           <File Name="sandslide.h"/>
           <File Name="sandslide_v.h"/>
@@ -961,6 +962,7 @@
           <File Name="bedshear_xy.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sandslide">
+          <File Name="sandslide_f2.cpp"/>
           <File Name="sandslide_v.cpp"/>
           <File Name="sandslide_f.cpp"/>
           <File Name="sandslide_pde.cpp"/>

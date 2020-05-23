@@ -31,6 +31,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"bedload.h"
 #include"bedshear.h"
 #include"sandslide_f.h"
+#include"sandslide_f2.h"
 #include"sandslide_pde.h"
 #include"sandslide_v.h"
 #include"topo_relax.h"
@@ -48,6 +49,9 @@ sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb):topo
     
     if(p->S90==2)
     pslide=new sandslide_pde(p);
+    
+    if(p->S90==3)
+    pslide=new sandslide_f(p);
     
     if(p->S10!=2)
 	pvrans = new vrans_v(p,a,pgc);
