@@ -51,11 +51,11 @@ void ghostcell::gcini(lexer* p)
     gamma=p->B29;
     dx=p->dx;
     Qi=p->W10;
-    orderext=p->N71;
-    orderext2=p->N71;
-    orderdir=p->N72;
-    orderpress=p->N73;
-    orderdir2=p->N72;
+    orderext=2;
+    orderext2=2;
+    orderdir=2;
+    orderpress=2;
+    orderdir2=2;
 	
 	imin=p->imin;
     imax=p->imax;
@@ -188,15 +188,6 @@ void ghostcell::gcini(lexer* p)
     if(p->B26==0)
 	gclabel_lsm=22;
 	
-	
-	if(p->B28==0)
-	gc_pressure_extend=0;
-	
-	if(p->B28==1)
-	{
-	gclabel_press=10;
-	gc_pressure_extend=1;
-	}
 	
 	awa_label=0;
 	if(p->B99>=3)

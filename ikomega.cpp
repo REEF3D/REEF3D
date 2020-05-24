@@ -70,21 +70,7 @@ void  ikomega::eddyvisc(lexer* p, fdm* a, ghostcell* pgc)
 	double epsi = 1.6*p->DXM;
 	int n;
 	
-	if(p->T30==0)
-	LOOP
-	a->eddyv(i,j,k) = kin(i,j,k)/eps(i,j,k);
-
-
-    if(p->T30==1)
-	LOOP
-    {
-	a->eddyv(i,j,k) = MAX(MAX(kin(i,j,k)
-					  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),
-					  0.0001*a->visc(i,j,k));
-	}
-
-	if(p->T30==2)
-	{
+	
 		LOOP
 		{
 			if(a->phi(i,j,k)>epsi)
@@ -114,31 +100,6 @@ void  ikomega::eddyvisc(lexer* p, fdm* a, ghostcell* pgc)
 						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T35*kin(i,j,k))/strainterm(p,a)),
 						  0.0001*a->visc(i,j,k));
 		}
-	}
-	
-	if(p->T30==3)
-	{
-		LOOP
-		{
-			if(a->phi(i,j,k)>epsi)
-			H=1.0;
-
-			if(a->phi(i,j,k)<-epsi)
-			H=0.0;
-
-			if(fabs(a->phi(i,j,k))<=epsi)
-			H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
-			
-			factor = H*p->T31 + (1.0-H)*p->T32;
-			
-			double epslim = MAX(eps(i,j,k), (factor*sqrt(2.0)*strainterm(p,a))/sqrt(0.09));
-			
-			
-		a->eddyv(i,j,k) = MAX(kin(i,j,k)/(epslim>1.0e-20?epslim:1.0e20),0.0001*a->visc(i,j,k));
-						  
-		}
-		
-	}
 	
 	if(p->T10==22)
 	LOOP
@@ -162,20 +123,6 @@ void  ikomega::kinsource(lexer *p, fdm* a)
 {	
     int count=0;
 
-    if(p->T40==0)
-    LOOP
-    {
-
-	if(wallf(i,j,k)==0)
-    a->M.p[count] += p->cmu*eps(i,j,k);
-	
-	if(wallf(i,j,k)==0)
-	a->rhsvec.V[count]  += pk(p,a);
-
-	++count;
-    }
-
-    if(p->T40==1)
     LOOP
     {
 	if(wallf(i,j,k)==0)
@@ -183,21 +130,6 @@ void  ikomega::kinsource(lexer *p, fdm* a)
 	
 	if(wallf(i,j,k)==0)
 	a->rhsvec.V[count]  += pk(p,a);
-
-	++count;
-    }
-
-    if(p->T40==2 || p->T40==3)
-    LOOP
-    {
-	if(wallf(i,j,k)==0)
-	a->M.p[count] += p->cmu * MAX(eps(i,j,k),0.0);
-	
-	if(wallf(i,j,k)==0)
-	a->rhsvec.V[count]  += MIN(pk(p,a), p->T42*p->cmu*MAX(kin(i,j,k),0.0)*MAX(eps(i,j,k),0.0));
-	
-    if(wallf(i,j,k)==1)
-	a->rhsvec.V[count]  = 0.0;
 
 	++count;
     }
@@ -213,17 +145,6 @@ void  ikomega::epssource(lexer *p, fdm* a)
 
 	if(p->T41==1)
 	{
-        if(p->T40==0)
-        LOOP
-        {
-		a->M.p[count] += kw_beta * eps(i,j,k);
-
-        a->rhsvec.V[count] += kw_alpha * (eps(i,j,k)/kin(i,j,k))*pk(p,a);
-		 
-        ++count;
-        }
-
-        if(p->T40==1 || p->T40==2)
         LOOP
         {
 		a->M.p[count] += kw_beta * MAX(eps(i,j,k),0.0);
@@ -231,44 +152,15 @@ void  ikomega::epssource(lexer *p, fdm* a)
         a->rhsvec.V[count] +=  kw_alpha * (MAX(eps(i,j,k),0.0)/(kin(i,j,k)>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20)))*pk(p,a);
         ++count;
         }
-
-        if(p->T40==3)
-        LOOP
-        {
-		a->M.p[count] += kw_beta * MAX(eps(i,j,k),0.0);
-
-        a->rhsvec.V[count] +=  kw_alpha * (MAX(eps(i,j,k),0.0)/(kin(i,j,k)>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20)))
-									   * MIN(pk(p,a), p->T42*p->cmu*MAX(kin(i,j,k),0.0)*MAX(eps(i,j,k),0.0));
-        ++count;
-        }
 	}
 
 	if(p->T41==2)
 	{
-        if(p->T40==0)
-        LOOP
-        {
-        a->M.p[count] += kw_beta * eps(i,j,k);
-
-        a->rhsvec.V[count] +=  kw_alpha * pk_w(p,a);
-        ++count;
-        }
-
-        if(p->T40==1 || p->T40==2)
         LOOP
         {
         a->M.p[count] += kw_beta * MAX(eps(i,j,k),0.0);
 
         a->rhsvec.V[count] += kw_alpha * pk_w(p,a);
-        ++count;
-        }
-
-        if(p->T40==3)
-        LOOP
-        {
-        a->M.p[count] += kw_beta * MAX(eps(i,j,k),0.0);
-
-        a->rhsvec.V[count] +=  kw_alpha * MIN(pk_w(p,a), p->T42*p->cmu*MAX(kin(i,j,k),0.0)*MAX(eps(i,j,k),0.0)/MAX(a->eddyv(i,j,k),0.0001*a->visc(i,j,k)));
         ++count;
         }
     }

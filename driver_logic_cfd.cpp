@@ -318,7 +318,7 @@ void driver::logic()
 	pheatdisc=new hires(p,p->H15);
 	
 // Concentration
-    if(p->C10==0 && p->F101==0)
+    if(p->C10==0)
 	pconc =  new concentration_void(p,a,pgc);
 
 	if(p->C10==1)
@@ -329,13 +329,6 @@ void driver::logic()
 
 	if(p->C10==3)
 	pconc =  new concentration_RK3(p,a,pgc);
-
-// Air Entrainment
-    if(p->F101==1)
-	{
-	pconcdisc=new iweno_hj(p);
-	pconcdiff=new idiff2(p);
-	}
     
 // Wave Models
     if(p->A10==5 || p->A10==0)

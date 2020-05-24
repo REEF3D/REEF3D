@@ -101,7 +101,7 @@ void iweno_hj_nug::wenoloop1(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
 
 
 			
-			if(jadvec>=0.0)
+			if(jadvec>=0.0 && p->j_dir==1)
 			{
             jqmin(p,a,f);
 			is_min_y();
@@ -109,7 +109,7 @@ void iweno_hj_nug::wenoloop1(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
 			aij_east(p,a,f,a->F);
 			}
 
-			if(jadvec<0.0)
+			if(jadvec<0.0 && p->j_dir==1)
 			{
             jqmax(p,a,f);
 			is_max_y();
@@ -174,7 +174,7 @@ void iweno_hj_nug::wenoloop2(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
 
 
 			
-			if(jadvec>=0.0)
+			if(jadvec>=0.0 && p->j_dir==1)
 			{
             jqmin(p,a,f);
 			is_min_y();
@@ -182,7 +182,7 @@ void iweno_hj_nug::wenoloop2(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
 			aij_east(p,a,f,a->G);
 			}
 
-			if(jadvec<0.0)
+			if(jadvec<0.0 && p->j_dir==1)
 			{
             jqmax(p,a,f);
 			is_max_y();
@@ -246,7 +246,7 @@ void iweno_hj_nug::wenoloop3(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
 
 
 			
-			if(jadvec>=0.0)
+			if(jadvec>=0.0 && p->j_dir==1)
 			{
             jqmin(p,a,f);
 			is_min_y();
@@ -254,7 +254,7 @@ void iweno_hj_nug::wenoloop3(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
 			aij_east(p,a,f,a->H);
 			}
 
-			if(jadvec<0.0)
+			if(jadvec<0.0 && p->j_dir==1)
 			{
             jqmax(p,a,f);
 			is_max_y();
@@ -356,7 +356,7 @@ void iweno_hj_nug::wenoloop4(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
 
 
 			
-			if(jadvec>=0.0)
+			if(jadvec>=0.0 && p->j_dir==1)
 			{
             jqmin(p,a,f);
 			is_min_y();
@@ -364,7 +364,7 @@ void iweno_hj_nug::wenoloop4(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
 			aij_east(p,a,f,a->L);
 			}
 
-			if(jadvec<0.0)
+			if(jadvec<0.0 && p->j_dir==1)
 			{
             jqmax(p,a,f);
 			is_max_y();

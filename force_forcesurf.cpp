@@ -98,8 +98,8 @@ void force::force_surface(lexer* p, fdm *a, ghostcell *pgc)
 	if(p->count==2)
 	Fvert0 = Fvert;
 
-    FDs_norm = FDs/(p->W1*fabs(p->W22)*p->wH*p->wH*p->P84);
-	Fvert_norm =(Fvert-Fvert0)/(p->W1*fabs(p->W22)*PI*p->dx*p->P84*p->P84*0.25);
+    FDs_norm = FDs/(p->W1*fabs(p->W22)*p->wH*p->wH);
+	Fvert_norm =(Fvert-Fvert0)/(p->W1*fabs(p->W22)*PI*p->dx*0.25);
 }
 
 

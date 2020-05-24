@@ -95,7 +95,7 @@ void iweno_hj::wenoloop1(lexer *p, fdm *a, field& f, int ipol, field& uvel, fiel
 
 
 			
-			if(jadvec>=0.0)
+			if(jadvec>=0.0 && p->j_dir==1)
 			{
 			is_east(f);
 			alpha_calc();
@@ -103,7 +103,7 @@ void iweno_hj::wenoloop1(lexer *p, fdm *a, field& f, int ipol, field& uvel, fiel
 			aij_east(p,a,f,a->F);
 			}
 
-			if(jadvec<0.0)
+			if(jadvec<0.0 && p->j_dir==1)
 			{
 			is_west(f);
 			alpha_calc();
@@ -161,7 +161,7 @@ void iweno_hj::wenoloop2(lexer *p, fdm *a, field& f, int ipol, field& uvel, fiel
 
 
 
-			if(jadvec>=0.0)
+			if(jadvec>=0.0 && p->j_dir==1)
 			{
 			is_east(f);
 			alpha_calc();
@@ -169,7 +169,7 @@ void iweno_hj::wenoloop2(lexer *p, fdm *a, field& f, int ipol, field& uvel, fiel
 			aij_east(p,a,f,a->G);
 			}
 
-			if(jadvec<0.0)
+			if(jadvec<0.0 && p->j_dir==1)
 			{
 			is_west(f);
 			alpha_calc();
@@ -228,7 +228,7 @@ void iweno_hj::wenoloop3(lexer *p, fdm *a, field& f, int ipol, field& uvel, fiel
 
 
 		
-			if(jadvec>=0.0)
+			if(jadvec>=0.0 && p->j_dir==1)
 			{
 			is_east(f);
 			alpha_calc();
@@ -236,7 +236,7 @@ void iweno_hj::wenoloop3(lexer *p, fdm *a, field& f, int ipol, field& uvel, fiel
 			aij_east(p,a,f,a->H);
 			}
 
-			if(jadvec<0.0)
+			if(jadvec<0.0 && p->j_dir==1)
 			{
 			is_west(f);
 			alpha_calc();
@@ -294,7 +294,7 @@ void iweno_hj::wenoloop4(lexer *p, fdm *a, field& f, int ipol, field& uvel, fiel
 			}
 
 
-			if(jadvec>=0.0)
+			if(jadvec>=0.0 && p->j_dir==1)
 			{
 			is_east(f);
 			alpha_calc();
@@ -302,7 +302,7 @@ void iweno_hj::wenoloop4(lexer *p, fdm *a, field& f, int ipol, field& uvel, fiel
 			aij_east(p,a,f,a->L);
 			}
 
-			if(jadvec<0.0)
+			if(jadvec<0.0 && p->j_dir==1)
 			{
 			is_west(f);
 			alpha_calc();

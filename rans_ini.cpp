@@ -60,7 +60,7 @@ void rans_io::plain(lexer *p, fdm *a, ghostcell *pgc)
 {
         LOOP
 		{
-		kin(i,j,k)=1.5*uref*uref*p->T51*p->T51;
+		kin(i,j,k)=1.5*uref*uref*0.0*0.0;
 
 		if(p->T10==1 || p->T10==11 || p->T10==21)
         {
@@ -90,7 +90,7 @@ void rans_io::plain_nwt(lexer *p, fdm *a, ghostcell *pgc)
 {
         LOOP
         {
-		kin(i,j,k)=p->T52;
+		kin(i,j,k)=0.00001;
 
 		if(p->T10==1 || p->T10==11 || p->T10==21)
         {

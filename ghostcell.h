@@ -405,7 +405,6 @@ private:
     int gclabel_utopo, gclabel_vtopo, gclabel_wtopo;
     int gclabel_u_orth,gclabel_v_orth,gclabel_w_orth,gclabel_press,gclabel_lsm;
     int gclabel_u_in,gclabel_v_in,gclabel_w_in,gclabel_press_in,gclabel_lsm_in;
-	int gc_pressure_extend;
 	int gclabel_u_out, gclabel_v_out, gclabel_w_out;
 	int gclabel_vel;
 	int rank;

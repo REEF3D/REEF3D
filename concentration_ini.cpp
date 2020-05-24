@@ -44,10 +44,7 @@ void concentration_io::ini(lexer* p, fdm *a, ghostcell* pgc,concentration *pconc
 	{
 	C(i,j,k)=p->C50_1;
 	}
-	
-	if(p->F101>0)
-	LOOP
-	C(i,j,k)=0.0;
+
 
 
 	if(p->C57_1>0||p->C57_2>0||p->C57_3>0||p->C57_4>0)

@@ -56,12 +56,25 @@ void strain::Pk_update(lexer *p, fdm *a, ghostcell *pgc)
 	
 	LOOP
     {
+    if(p->j_dir==1)
+    {
 	s11 = pudx(p,a);
 	s22 = pvdy(p,a);
 	s33 = pwdz(p,a);
 	s12 = (pudy(p,a) + pvdx(p,a));
 	s13 = (pudz(p,a) + pwdx(p,a));
 	s23 = (pvdz(p,a) + pwdy(p,a));
+    }
+    
+    if(p->j_dir==0)
+    {
+	s11 = pudx(p,a);
+	s22 = 0.0;
+	s33 = pwdz(p,a);
+	s12 = 0.0;
+	s13 = (pudz(p,a) + pwdx(p,a));
+	s23 = 0.0;
+    }
 
     Pk(i,j,k) = a->eddyv(i,j,k)*(2.0*s11*s11 + 2.0*s22*s22 + 2.0*s33*s33 + s12*s12 + s13*s13 + s23*s23);
     }	
@@ -187,13 +200,26 @@ double strain::pk_w(lexer *p, fdm *a)
 double strain::strainterm(lexer *p, fdm *a)
 {
 	double s=0.0;
-
+    
+    if(p->j_dir==1)
+    {
 	s11 = pudx(p,a);
 	s22 = pvdy(p,a);
 	s33 = pwdz(p,a);
 	s12 = (pudy(p,a) + pvdx(p,a));
 	s13 = (pudz(p,a) + pwdx(p,a));
 	s23 = (pvdz(p,a) + pwdy(p,a));
+    }
+    
+    if(p->j_dir==0)
+    {
+	s11 = pudx(p,a);
+	s22 = 0.0;
+	s33 = pwdz(p,a);
+	s12 = 0.0;
+	s13 = (pudz(p,a) + pwdx(p,a));
+	s23 = 0.0;
+    }
 
     s = sqrt(s11*s11 + s22*s22 + s33*s33 + 0.5*s12*s12 + 0.5*s13*s13 + 0.5*s23*s23);
 
@@ -205,11 +231,11 @@ double strain::strainplain(lexer *p, fdm *a)
 	double s=0.0;
 
 	s11 = pudx(p,a);
-	s22 = pvdy(p,a);
+	s22 = pvdy(p,a)*p->y_dir;
 	s33 = pwdz(p,a);
-	s12 = (pudy(p,a) + pvdx(p,a));
+	s12 = (pudy(p,a) + pvdx(p,a))*p->y_dir;
 	s13 = (pudz(p,a) + pwdx(p,a));
-	s23 = (pvdz(p,a) + pwdy(p,a));
+	s23 = (pvdz(p,a) + pwdy(p,a))*p->y_dir;
 
     s=fabs(s11)+fabs(s22)+fabs(s33)+0.5*fabs(s12)+0.5*fabs(s13)+0.5*fabs(s13);
 

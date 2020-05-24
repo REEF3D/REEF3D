@@ -84,7 +84,7 @@ void ioflow_f::outflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v,
         j=p->gcout[n][1];
         k=p->gcout[n][2];
 
-            u(i+1,j,k)=u(i+2,j,k)=u(i+3,j,k)= (1.0-p->B65)*p->Uo + p->B65*(shearvel*2.5*log(MAX(30.0*MIN(walldout[n],dmax)/ks,1.0)));
+            u(i+1,j,k)=u(i+2,j,k)=u(i+3,j,k)= shearvel*2.5*log(MAX(30.0*MIN(walldout[n],dmax)/ks,1.0));
         }
 
 
@@ -138,23 +138,23 @@ void ioflow_f::outflow_water(lexer *p, fdm* a, ghostcell* pgc, field& u, field& 
     j=p->gcout[n][1];
     k=p->gcout[n][2];
 
-        if(a->phi(i,j,k)>=-p->B66_1*p->dx)
+        if(a->phi(i,j,k)>=-epsi1*p->dx)
         {
         u(i+1,j,k)=p->Uo;
         u(i+2,j,k)=p->Uo;
         u(i+3,j,k)=p->Uo;
         }
 
-        if(a->phi(i-1,j,k)<-p->B66_1*p->dx && a->phi(i-1,j,k)>=-p->B66_2*p->dx)
+        if(a->phi(i-1,j,k)<-epsi1*p->dx && a->phi(i-1,j,k)>=-epsi2*p->dx)
         {
-        fac=1.0 - fabs(a->phi(i-1,j,k))/((p->B66_2-p->B66_1)*p->dx);
+        fac=1.0 - fabs(a->phi(i-1,j,k))/((epsi2-epsi1)*p->dx);
         u(i+1,j,k)=p->Uo*fac;
         u(i+2,j,k)=p->Uo*fac;
         u(i+3,j,k)=p->Uo*fac;
         }
 
 
-        if(a->phi(i-1,j,k)<-p->B66_2*p->dx)
+        if(a->phi(i-1,j,k)<-epsi2*p->dx)
         {
         u(i+1,j,k)=0.0;
         u(i+2,j,k)=0.0;

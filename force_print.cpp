@@ -28,30 +28,11 @@ void force::print(lexer* p, fdm *a, ghostcell *pgc)
 {
     // write to surf file
     
-    if(p->P93==0)
-    {
+
     fout<<p->count<<"\t";
     fout<<setprecision(9)<<p->simtime<<"\t";
     fout<<FDs<<" \t ";
 	fout<<Fvert;
-    }
-    
-    if(p->P93==1)
-    {
-    fout<<p->count<<"\t";
-    fout<<setprecision(9)<<p->simtime<<"\t";
-    fout<<FDs<<" \t ";
-	fout<<Fvert<<" \t ";
-    fout<<F_morison<<" \t ";
-	fout<<F_morison_rect<<" \t ";
-    fout<<p->simtime/p->wT<<"\t";
-	fout<<Fvert_norm<<" \t ";
-    fout<<FDs_norm<<" \t ";
-    fout<<F_morison_norm<<" \t ";
-    fout<<FD_Press<<" \t ";
-	fout<<FD_Shear<<" \t ";
-    }
-
 	
     fout<<endl;
 

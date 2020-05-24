@@ -251,10 +251,6 @@ void lexer::read_control()
 				case 26: control>>B26;
 						 clear(c,numint);
 						 break;
-
-				case 28: control>>B28;
-						 clear(c,numint);
-						 break;
 				case 29: control>>B29;
 						 clear(c,numint);
 						 break;
@@ -295,21 +291,6 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
                 case 64: control>>B64;
-						 clear(c,numint);
-						 break;
-                case 65: control>>B65;
-						 clear(c,numint);
-						 break;
-				case 66: control>>B66_1>>B66_2;
-						 clear(c,numint);
-						 break;
-               case 67: ++B67;
-						 clear(c,numint);
-						 break;
-			   case 68: ++B68;
-						 clear(c,numint);
-						 break;
-			   case 69: ++B69;
 						 clear(c,numint);
 						 break;
 			   case 70: ++B70;
@@ -389,12 +370,6 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
                case 102: control>>B102;
-						 clear(c,numint);
-						 break;
-			   case 103: control>>B103;
-						 clear(c,numint);
-						 break;
-			   case 104: control>>B104;
 						 clear(c,numint);
 						 break;
 			   case 105: control>>B105_1>>B105_2>>B105_3;
@@ -694,9 +669,6 @@ void lexer::read_control()
 				case 40: control>>F40;
 						 clear(c,numint);
 						 break;
-                case 41: control>>F41;
-						 clear(c,numint);
-						 break;
 				case 42: control>>F42;
 						 clear(c,numint);
 						 break;
@@ -786,9 +758,6 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
                 case 85: control>>F85;
-						 clear(c,numint);
-						 break;
-				case 101: control>>F101;
 						 clear(c,numint);
 						 break;
                 case 150: control>>F150;
@@ -1014,24 +983,6 @@ void lexer::read_control()
                 case 12: control>>N12;
 						 clear(c,numint);
 						 break;
-                case 13: control>>N13;
-						 clear(c,numint);
-						 break;
-                case 14: control>>N14;
-						 clear(c,numint);
-						 break;
-				case 15: control>>N15;
-						 clear(c,numint);
-						 break;
-				case 16: control>>N16;
-						 clear(c,numint);
-						 break;
-				case 17: control>>N17;
-						 clear(c,numint);
-						 break;
-				case 18: control>>N18;
-						 clear(c,numint);
-						 break;
                case 21: control>>N21;
 						 clear(c,numint);
 						 break;
@@ -1077,15 +1028,6 @@ void lexer::read_control()
                case 61: control>>N61;
 						 clear(c,numint);
 						 break;
-               case 71: control>>N71;
-						 clear(c,numint);
-						 break;
-               case 72: control>>N72;
-						 clear(c,numint);
-						 break;
-               case 73: control>>N73;
-						 clear(c,numint);
-						 break;
 				}
 				break;
 
@@ -1107,13 +1049,7 @@ void lexer::read_control()
                 case 15: control>>P15;
 						 clear(c,numint);
 						 break;
-				case 17: control>>P17;
-						 clear(c,numint);
-						 break;
 				case 18: control>>P18;
-						 clear(c,numint);
-						 break;
-				case 19: control>>P19;
 						 clear(c,numint);
 						 break;
 				case 20: control>>P20;
@@ -1212,40 +1148,13 @@ void lexer::read_control()
                 case 81: ++P81;
 						 clear(c,numint);
 						 break;
-                case 82: control>>P82_x>>P82_y;
-                         clear(c,numint);
-						  break;
-				case 83: control>>P83;
-						 clear(c,numint);
-						 break;
-				case 84: control>>P84;
-						 clear(c,numint);
-						 break;
 				case 85: ++P85;
-						 clear(c,numint);
-						 break;
-                case 86: control>>P86_x>>P86_y;
-                         clear(c,numint);
-						  break;
-				case 87: control>>P87;
-						 clear(c,numint);
-						 break;
-				case 88: control>>P88;
-						 clear(c,numint);
-						 break;
-				case 89: control>>P89_cm>>P89_cd;
-						 clear(c,numint);
-						 break;
-				case 90: control>>P90;
 						 clear(c,numint);
 						 break;
 				case 91: control>>P91;
 						 clear(c,numint);
 						 break;
                case 92: control>>P92;
-						 clear(c,numint);
-						 break;
-                case 93: control>>P93;
 						 clear(c,numint);
 						 break;
 				case 101: control>>P101_xm>>P101_ym>>P101_zs>>P101_ze>>P101_r1>>P101_r2;
@@ -1291,9 +1200,6 @@ void lexer::read_control()
                case 185: ++P185;
 						 clear(c,numint);
 						 break; 
-               case 191: control>>P191;
-						 clear(c,numint);
-						 break;
                case 210: control>>P210;
 						 clear(c,numint);
 						 break;
@@ -1370,12 +1276,6 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
                 case 26: control>>S26_a>>S26_b;
-						 clear(c,numint);
-						 break;
-			    case 28: control>>S28;
-						 clear(c,numint);
-						 break;
-				case 29: control>>S29;
 						 clear(c,numint);
 						 break;
                 case 30: control>>S30;
@@ -1496,9 +1396,6 @@ void lexer::read_control()
 				case 13: control>>T13;
 						 clear(c,numint);
 						 break;
-                case 30: control>>T30;
-						 clear(c,numint);
-						 break;
                 case 31: control>>T31;
 						 clear(c,numint);
 						 break;
@@ -1520,22 +1417,7 @@ void lexer::read_control()
                case 39: control>>T39;
 						 clear(c,numint);
 						 break;
-                case 40: control>>T40;
-						 clear(c,numint);
-						 break;
 				case 41: control>>T41;
-						 clear(c,numint);
-						 break;
-				case 42: control>>T42;
-						 clear(c,numint);
-						 break;
-                case 51: control>>T51;
-						 clear(c,numint);
-						 break;
-				case 52: control>>T52;
-						 clear(c,numint);
-						 break;
-				case 53: control>>T53;
 						 clear(c,numint);
 						 break;
 				}
@@ -1849,24 +1731,6 @@ void lexer::read_control()
     // re-read
 	
 	// B
-	Darray(B67_val,B67);
-	Darray(B67_dist,B67);
-	Darray(B67_b,B67);
-	Darray(B67_x,B67);
-	Darray(B67_y,B67);
-	
-	Darray(B68_val,B68);
-	Darray(B68_dist,B68);
-	Darray(B68_b,B68);
-	Darray(B68_x,B68);
-	Darray(B68_y,B68);
-	
-	Darray(B69_val,B69);
-	Darray(B69_dist,B69);
-	Darray(B69_b,B69);
-	Darray(B69_x,B69);
-	Darray(B69_y,B69);
-	
 	Darray(B70_val,B70);
 	Darray(B70_dist,B70);
 	Darray(B70_b,B70);
@@ -2189,9 +2053,6 @@ void lexer::read_control()
 	Darray(X311_facT,X311);
 	mooring_count = X311;	
 
-    int countB67=0;
-	int countB68=0;
-	int countB69=0;
 	int countB70=0;
 	int countB71=0;
 	int countB106=0;
@@ -2248,18 +2109,6 @@ void lexer::read_control()
 			case 'B': control>>numint;
 				switch(numint)
 				{
-				case 67: control>>B67_val[countB67]>>B67_dist[countB67]>>B67_b[countB67]>>B67_x[countB67]>>B67_y[countB67];
-                        ++countB67;
-						 clear(c,numint);
-						 break;
-				case 68: control>>B68_val[countB68]>>B68_dist[countB68]>>B68_b[countB68]>>B68_x[countB68]>>B68_y[countB68];
-                        ++countB68;
-						 clear(c,numint);
-						 break;
-				case 69: control>>B69_val[countB69]>>B69_dist[countB69]>>B69_b[countB69]>>B69_x[countB69]>>B69_y[countB69];
-                        ++countB69;
-						 clear(c,numint);
-						 break;
 				case 70: control>>B70_val[countB70]>>B70_dist[countB70]>>B70_b[countB70]>>B70_x[countB70]>>B70_y[countB70];
                         ++countB70;
 						 clear(c,numint);

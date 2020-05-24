@@ -30,7 +30,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"print_wsf_theory.h"
 #include"print_wsfline.h"
 #include"print_wsfline_y.h"
-#include"print_runup.h"
 #include"force.h"
 #include"forcesolid.h"
 #include"vorticity_f.h"
@@ -119,9 +118,6 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
     
     if(p->P210==1)
 	pexport = new exportfile(p,a,pgc);
-	
-	if(p->P59>0)
-	prunup = new print_runup(p,a,pgc); 
 
 	if(p->P75==0)
 	pvort = new vorticity_void(p,a);
@@ -259,10 +255,7 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
         {
         p->probeprinttime+=p->P55;
         }
-		
-		if(p->P59>0)
-		prunup->start(p,a,pgc);
-		
+
 		if(p->P61>0)
         pprobe->start(p,a,pgc,pturb);
 		
@@ -742,10 +735,6 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	ffn = float(eta(i,j,k));
 	result.write((char*)&ffn, sizeof (float));
 	}
-	
-	// cc
-	if(p->P19==2)
-	ggcfacet_fill(p,a,pgc,a->phi);
 	
 	for(n=0;n<p->ccptnum;++n)
 	{

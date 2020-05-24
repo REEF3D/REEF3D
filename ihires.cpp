@@ -151,7 +151,7 @@ void ihires::aij(lexer* p,fdm* a,field& b,field& F,int ipol, field& uvel, field&
 	wr=1.0;
 		
 	F(i,j,k) -= (-(ivel2*(1.0-ur)*0.5*plim->iphi(b,1,0,2,1))*b(i+2,j,k)
-				 -(jvel2*(1.0-vr)*0.5*plim->jphi(b,1,0,2,1))*b(i,j+2,k)
+				 -(jvel2*(1.0-vr)*0.5*plim->jphi(b,1,0,2,1))*b(i,j+2,k)*p->y_dir
 				 -(kvel2*(1.0-wr)*0.5*plim->kphi(b,1,0,2,1))*b(i,j,k+2))/p->dx;		
 
 	 
@@ -159,9 +159,9 @@ void ihires::aij(lexer* p,fdm* a,field& b,field& F,int ipol, field& uvel, field&
 	 a->M.n[count] =  (ivel2*((ur*0.5*plim->iphi(b,0,-1,1,0)) + (1.0-ur)*(1.0 + 0.5*plim->iphi(b,1,0,2,1))) 
 		                  + ivel1*(1.0-ul)*0.5*plim->iphi(b,0,-1,1,0))/p->dx;
 	 
-	 a->M.e[count] = -jvel1*vl*(1.0 - 0.5*plim->jphi(b,-1,-2,0,-1))/p->dx;
+	 a->M.e[count] = -jvel1*vl*(1.0 - 0.5*plim->jphi(b,-1,-2,0,-1))/p->dx*p->y_dir;
 	 a->M.w[count] =  (jvel2*((vr*0.5*plim->jphi(b,0,-1,1,0)) + (1.0-vr)*(1.0 + 0.5*plim->jphi(b,1,0,2,1))) 
-		                  + jvel1*(1.0-vl)*0.5*plim->jphi(b,0,-1,1,0))/p->dx;
+		                  + jvel1*(1.0-vl)*0.5*plim->jphi(b,0,-1,1,0))/p->dx*p->y_dir;
 	 
 	 a->M.b[count] = -kvel1*wl*(1.0 - 0.5*plim->kphi(b,-1,-2,0,-1))/p->dx;
 	 a->M.t[count] =  (kvel2*((wr*0.5*plim->kphi(b,0,-1,1,0)) + (1.0-wr)*(1.0 + 0.5*plim->kphi(b,1,0,2,1))) 

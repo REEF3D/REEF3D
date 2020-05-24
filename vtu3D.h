@@ -39,7 +39,6 @@ class vorticity;
 class solver;
 class probe_point;
 class probe_line;
-class print_runup;
 class bedprobe_point;
 class bedprobe_max;
 class gage_discharge;
@@ -76,7 +75,6 @@ private:
     void name_iter(fdm*,lexer*,ghostcell*);
     void name_time(fdm*,lexer*,ghostcell*);
     void piecename(fdm*,lexer*,ghostcell*, int);
-	void ggcfacet_fill(lexer*,fdm*,ghostcell*,field&);
 
     char name[200],pname[200],epsvar[200];
     int n,iin,offset[200];
@@ -100,7 +98,6 @@ private:
     vorticity *pvort;
 	probe_point *pprobe;
 	probe_line *pline;
-	print_runup *prunup;
 	bedprobe_point *pbedpt;
 	bedprobe_line_x *pbedlinex;
 	bedprobe_line_y *pbedliney;

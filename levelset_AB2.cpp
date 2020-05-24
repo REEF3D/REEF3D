@@ -122,7 +122,6 @@ void levelset_AB2::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 	
 	p->lsmtime=pgc->timer()-starttime;
 
-    if(p->count%p->F41==0)
 	preini->start(a,p,ls,pgc,pflow);
 
 	ppicard->correct_ls(p,a,pgc,ls);

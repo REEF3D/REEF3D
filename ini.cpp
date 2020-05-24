@@ -95,7 +95,6 @@ void lexer::ini_default()
     B19=0;			// int direct forcing for solid walls
 	B20=2;			// int slip or no-slip boundary condition for velocity
 	B26=1;			// int boundary condition implementation level set method
-	B28=0;			// int extend pressure along bed boundary
 	B29=0.5;		// double gamma for gc image point
 	B30=0;			// int inflow crossection via cbc
 	B50=0.001;		// double global wall roughness ks
@@ -110,12 +109,6 @@ void lexer::ini_default()
 	B62=3;            // int plain or logarithmic rans ini
 	B63=3;            // int zero, plain or logarithmic inflow profile for rans
 	B64=1;            // int reduce eddy near inflow
-	B65=1.0;         // double factor for log/plain velocity inflow profile
-	B66_1=1.6;		// double factor 1 for inflow exting into air
-	B66_2=3.6;		// double factor 2 for inflow exting into air
-	B67=0;       // double distance for use relaxation method for fixed kin
-	B68=0;       // double distance for use relaxation method for fixed omega
-	B69=0;       // double distance for use relaxation method for fixed eddyv
 	B70=0;       // double distance for use relaxation method for fixed water level
 	B71=0;       // double distance for use relaxation method for fixed water level ini
     B74=3;		 // int crossection i-indice for the periodic boundary condition
@@ -150,8 +143,6 @@ void lexer::ini_default()
 	B99=0;			// int type of numerical beach
 	B101=0;        // int ramp function wave geneartion
 	B102=1.0;        // double factor ramp function wave generation
-	B103=0.6;        // double factor1 for relaxation into air phase
-	B104=3.0;        // double factor2 for relaxation into air phase
     B105=0;            // int wave generation origin changed
  	B105_1=0.0;        // double wave generation direction and line origin in Cartesian coordianate system 
 	B105_2=0.0;        // double wave generation line x origin
@@ -279,7 +270,6 @@ void lexer::ini_default()
 	F36=1;				// int RK3 scheme
 	F39=0.5;			    // double reini constraint relaxation factor
 	F40=0;			    // int reini scheme
-	F41=1;          // int reini after ith iteration
 	F42=-1.0;		// double maxlength
 	F43=0.55;		// double factor for reini timestep
 	F44=3;		        // int number reini time step
@@ -323,7 +313,6 @@ void lexer::ini_default()
 	F80=0;             // int time scheme VOF
 	F84=1.0;             // double cgamma for vof compression
     F85=0;             // int convection scheme VOF
-	F101=0;             // int air entrainment model
 	F150=0;         // int benchmark
 	F151=0;         // int benchmark inverse sign of level set
 
@@ -408,12 +397,6 @@ void lexer::ini_default()
 	N10=14;			// int linear poisson solver
 	N11=11;         // int precondioner
 	N12=1;         // 
-    N13=10;       // int inneriter 
-    N14=5;          // int CGC gridnum
-	N15=-1;			// int gcupdate during solver
-	N16=1;			// int iteration limit for gcupdate gcupdate 
-	N17=0.5;		// double relaxation factor
-	N18=1.0e-10;	// double stopping criteria precon
     N21=0;         // int PFMG skip relax
     N22=3;         // int PFMG relax type
     N23=0;         // int PFMG RAP type
@@ -429,9 +412,6 @@ void lexer::ini_default()
 	N49=1.0;		// double max timestep or fixed timesteps
 	N60=10;        // int maximum iteration of pjm correction
 	N61=500.0;      // double stopping criteria velocities
-	N71=2;          // order of gcepol extend
-	N72=2;          // order of gcepol dirichlet
-	N73=2;          // order of gcepol pressure
 
     // MPI
 	M10=0;          // number of MPI processes
@@ -442,9 +422,7 @@ void lexer::ini_default()
 	P12=1;			 // int terminal print frequency
 	P14=1;           // int print to folder
 	P15=1;          // int print file numbering
-	P17=0;			// int print paraview cutcell warning to console
 	P18=2;			// int option for phi print out
-	P19=1;			// int option for phi ccipol print out
 	P20=-10;		// ith iteration file printed
 	P23=0;			// int print test to vtu file
     P24=0;			// int print density to vtu file
@@ -477,22 +455,10 @@ void lexer::ini_default()
     P78=0;            // int print out velocity magnitude as scalar
 	P79=0;            // int print out sediment shear stress when running sediment transport
 	P81=0;            // int force print out
-	P82_x=0.1;        // double reference length in x direction
-	P82_y=0.1;        // double reference length in y direction
-	P83=-1.6;		  // double epsi interface threshold for force calculation 
-	P84=1.0;		  // double diameter for normalized vertical force calculation
 	P85=0;            // int rectangular force print out
-	P86_x=0.1;        // double reference length in x direction
-	P86_y=0.1;        // double reference length in y direction
-	P87=-1.6;		  // double epsi interface threshold for force calculation 
-	P88=1.0;		  // double diameter for normalized vertical force calculation
-	P89_cm=2.0;		  // double cm value 
-	P89_cd=1.0;		  // double cd value 
-	P90=0.0;		  // double obstacle truncation, distance between floor and obstacle
 	P91=0.25;		  // double factor used in force calculation algorithm
     P92=0;           // int force from water or from water+air
-    P93=0;             // int turn on Morison force calculation
-	P101=0;			  // int print runup gages
+	P101=0;			  // int print sloshing forces
 	P121=0;             // int bed level gages
 	P122=0;             // int max bed level gages
 	P123=0;             // int topoline in x-direction
@@ -507,7 +473,6 @@ void lexer::ini_default()
 	P182=-1.0;       // double time between fsf file printout in seconds
     P184=0;       // int time between file printout in iterations
 	P185=0;        	// int time between file printout in seconds 
-    P191=0;         // print sloshing forces
     P210=0;			  // int print exportfile
 	P211=1;		  // int ith iteration export printed
 	P212=-1.0;       // double time between export file printout in seconds
@@ -535,8 +500,6 @@ void lexer::ini_default()
     S25=30.0;             // double angle of respose
     S26_a=650.0;          // double alpha for VRANS sediment
     S26_b=2.2;            // double beta for VRANS sediment
-	S28=0.75;             // double factor for new fluid cell velocity interpolation
-	S29=0.5;             // double factor for new solid cell velocity interpolation
     S30=0.047;          // double Shields parameter
     S31=1;		        // int exner scheme
 	S37=2;		        // int number reini time step
@@ -578,7 +541,6 @@ void lexer::ini_default()
 	T11=11;             // int time scheme for 2-eq turbulence models
 	T12=5;              // int convection scheme
 	T13=1.0e-5;     	// double stopping criteria turbulence
-	T30=2;			    // int eddyv limiter
 	T31=0.816;	        // double factor for limiter for eddy limiter in phase 1
 	T32=0.816;	        // double factor for limiter for eddy limiter in phase 2
 	T35=0.816; 			// double factor for limiter for eddy limiter near wall
@@ -586,12 +548,7 @@ void lexer::ini_default()
 	T37=0.07;		    // int damping coefficient for T36
     T38=1.6;            // double epsi fsf turbulence damping
     T39=1.0;            // double dirac function factor for fsf damping
-	T40=1;              // int source term limiter
 	T41=1;				// int source term definition for omega in kw model
-	T42=10.0;			// double factor for limiter for production limiter   
-	T51=0.0;            // double inflow turbulent intensity
-	T52=0.00001;        // double inflow turbulent intensity
-	T53=1.0;            // double factor for inflow turbulent dissipation
 
     // Water Properties
 	W1=998.2;		// double density water

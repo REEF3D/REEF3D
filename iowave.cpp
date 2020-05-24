@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"vrans_v.h"
 #include"vrans_f.h"
 
-iowave::iowave(lexer *p, ghostcell *pgc) : wave_interface(p,pgc),flowfile_in(p,pgc),epsi(p->B104*p->DXM),psi(p->B103*p->DXM), eta(p)
+iowave::iowave(lexer *p, ghostcell *pgc) : wave_interface(p,pgc),flowfile_in(p,pgc),epsi(3.0*p->DXM),psi(0.6*p->DXM), eta(p)
 {
     dist1=p->B96_1;
     dist2=p->B96_2;
@@ -51,16 +51,16 @@ iowave::iowave(lexer *p, ghostcell *pgc) : wave_interface(p,pgc),flowfile_in(p,p
     gcval_press=43;
 
 	
-	kinval = p->T52;	
+	kinval = 0.00001;	
 	
 	if(p->T10==1 || p->T10==11 || p->T10==21)
-    epsval=p->T53*(pow(0.09,0.75)*pow(kinval,1.5))/(0.5*0.4*p->dx);
+    epsval=(pow(0.09,0.75)*pow(kinval,1.5))/(0.5*0.4*p->dx);
 
     if(p->T10==2 || p->T10==12 || p->T10==22)
-    epsval=p->T53*(pow(0.09,0.75)*pow(kinval,0.5))/(0.5*0.4*p->dx);
+    epsval=(pow(0.09,0.75)*pow(kinval,0.5))/(0.5*0.4*p->dx);
 
     if(p->T10==3 || p->T10==13)
-    epsval=p->T53*(pow(0.09,0.75)*pow(kinval,0.5))/(0.5*0.4*p->dx);	
+    epsval=(pow(0.09,0.75)*pow(kinval,0.5))/(0.5*0.4*p->dx);	
 	
 	// ---------------------------------------
     
