@@ -45,9 +45,11 @@ void sflow_idiff::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
 	visc = p->W2 + 0.5*(b->eddyv(i,j) + b->eddyv(i+1,j));
 
         
-	b->M.p[n] =  6.0*visc/(p->dx*p->dx)
+	b->M.p[n] =   4.0*visc/(p->dx*p->dx)
+                
+                + 2.0*visc/(p->dx*p->dx)*p->y_dir
                    
-				   + 1.0/(alpha*p->dt);
+                + 1.0/(alpha*p->dt);
     
 	b->rhsvec.V[n] = (visc/(p->dx*p->dx))*((v(i+1,j)-v(i,j)) - (v(i+1,j-1)-v(i,j-1)))
                          
@@ -56,8 +58,8 @@ void sflow_idiff::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
 	 b->M.s[n] = -2.0*visc/(p->dx*p->dx);
 	 b->M.n[n] = -2.0*visc/(p->dx*p->dx);
 	 
-	 b->M.e[n] = -visc/(p->dx*p->dx);
-	 b->M.w[n] = -visc/(p->dx*p->dx);
+	 b->M.e[n] = -visc/(p->dx*p->dx)*p->y_dir;
+	 b->M.w[n] = -visc/(p->dx*p->dx)*p->y_dir;
  
 	 ++n;
 	}
@@ -113,9 +115,11 @@ void sflow_idiff::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
 	visc = p->W2 + 0.5*(b->eddyv(i,j) + b->eddyv(i,j+1));
 
         
-	b->M.p[n] =  6.0*visc/(p->dx*p->dx)
+	b->M.p[n] =   2.0*visc/(p->dx*p->dx)
+    
+                + 4.0*visc/(p->dx*p->dx)*p->y_dir
                    
-				   + 1.0/(alpha*p->dt);
+                + 1.0/(alpha*p->dt);
 				  
 	b->rhsvec.V[n] = (visc/(p->dx*p->dx))*((u(i,j+1)-u(i,j)) - (u(i-1,j+1)-u(i-1,j)))
 									
@@ -125,8 +129,8 @@ void sflow_idiff::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
 	 b->M.s[n] = -visc/(p->dx*p->dx);
 	 b->M.n[n] = -visc/(p->dx*p->dx);
 	 
-	 b->M.e[n] = -2.0*visc/(p->dx*p->dx);
-	 b->M.w[n] = -2.0*visc/(p->dx*p->dx);
+	 b->M.e[n] = -2.0*visc/(p->dx*p->dx)*p->y_dir;
+	 b->M.w[n] = -2.0*visc/(p->dx*p->dx)*p->y_dir;
  
 	 ++n;
 	}
@@ -186,16 +190,16 @@ void sflow_idiff::diff_scalar(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psol
     
 					+   0.5*sqd*(vft*visc_ij+ev_ij/sig + vft*visc_ij+b->eddyv(i-1,j)/sig)
                     
-					+   0.5*sqd*(vft*visc_ij+b->eddyv(i,j+1)/sig + vft*visc_ij+ev_ij/sig)
+					+   0.5*sqd*(vft*visc_ij+b->eddyv(i,j+1)/sig + vft*visc_ij+ev_ij/sig)*p->y_dir
                     
-					+   0.5*sqd*(vft*visc_ij+ev_ij/sig + vft*visc_ij+b->eddyv(i,j-1)/sig);
+					+   0.5*sqd*(vft*visc_ij+ev_ij/sig + vft*visc_ij+b->eddyv(i,j-1)/sig)*p->y_dir;
 
 	 
 	 b->M.s[count] -= 0.5*sqd*(vft*visc_ij+ev_ij/sig + vft*visc_ij+b->eddyv(i-1,j)/sig);
 	 b->M.n[count] -= 0.5*sqd*(vft*visc_ij+b->eddyv(i+1,j)/sig + vft*visc_ij+ev_ij/sig);
 	 
-	 b->M.e[count] -= 0.5*sqd*(vft*visc_ij+ev_ij/sig + vft*visc_ij+b->eddyv(i,j-1)/sig);
-	 b->M.w[count] -= 0.5*sqd*(vft*visc_ij+b->eddyv(i,j+1)/sig + vft*visc_ij+ev_ij/sig);
+	 b->M.e[count] -= 0.5*sqd*(vft*visc_ij+ev_ij/sig + vft*visc_ij+b->eddyv(i,j-1)/sig)*p->y_dir;
+	 b->M.w[count] -= 0.5*sqd*(vft*visc_ij+b->eddyv(i,j+1)/sig + vft*visc_ij+ev_ij/sig)*p->y_dir;
 
 	 ++count;
 	}

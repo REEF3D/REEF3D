@@ -35,12 +35,12 @@ public:
     sandslide_f2(lexer*);
     virtual ~sandslide_f2();
 
-	virtual void start(lexer*, fdm*,ghostcell*,slice&,sliceint&);
+	virtual void start(lexer*, fdm*,ghostcell*);
 
 private:
 
-    void slide(lexer*, fdm*,ghostcell*,slice&,sliceint&);
-    void topo_zh_update(lexer*,fdm*,ghostcell*,slice&);
+    void slide(lexer*, fdm*,ghostcell*);
+    void topo_zh_update(lexer*,fdm*,ghostcell*);
 	
     slice4 fh;
     

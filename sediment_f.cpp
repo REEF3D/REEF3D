@@ -51,7 +51,7 @@ sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb):topo
     pslide=new sandslide_pde(p);
     
     if(p->S90==3)
-    pslide=new sandslide_f(p);
+    pslide=new sandslide_f2(p);
     
     if(p->S10!=2)
 	pvrans = new vrans_v(p,a,pgc);

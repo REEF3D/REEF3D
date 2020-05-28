@@ -48,30 +48,30 @@ sandslide_f2::~sandslide_f2()
 {
 }
 
-void sandslide_f2::start(lexer *p, fdm * a, ghostcell *pgc, slice &bedzh, sliceint &bedk)
+void sandslide_f2::start(lexer *p, fdm * a, ghostcell *pgc)
 {
     for(int qn=0; qn<p->S91; ++qn)
     {
         
     SLICELOOP4
-    fh(i,j)=bedzh(i,j);
+    fh(i,j)=a->bedzh(i,j);
     
     count=0;
-    pgc->dgcslpol(p,bedzh,p->dgcsl4,p->dgcsl4_count,14);
-    bedzh.ggcpol(p);
+    pgc->dgcslpol(p,a->bedzh,p->dgcsl4,p->dgcsl4_count,14);
+    a->bedzh.ggcpol(p);
     
-    topo_zh_update(p,a,pgc,bedzh);
+    topo_zh_update(p,a,pgc);
 
     SLICELOOP4
     if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
     {
-		slide(p,a,pgc,bedzh,bedk);
+		slide(p,a,pgc);
     }
     
     SLICELOOP4
-    bedzh(i,j)=fh(i,j);
+    a->bedzh(i,j)=fh(i,j);
 
-    pgc->gcsl_start4(p,bedzh,1);
+    pgc->gcsl_start4(p,a->bedzh,1);
 
     count=pgc->globalimax(count);
 
@@ -85,10 +85,10 @@ void sandslide_f2::start(lexer *p, fdm * a, ghostcell *pgc, slice &bedzh, slicei
     }
 }
 
-void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc, slice& bedzh, sliceint &bedk)
+void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc)
 {
 
-		k = bedk(i,j);
+		k = a->bedk(i,j);
 		
         slope(p,a,pgc,teta,alpha,gamma,phi);
 
@@ -98,7 +98,7 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc, slice& bedzh, slicei
         
 			
         // 1
-        dh = bedzh(i,j) - bedzh(i-1,j);
+        dh = a->bedzh(i,j) - a->bedzh(i-1,j);
         dh_corr = dh + tan(p->S93*(PI/180.0))*p->dx;
         
         if(dh>maxdh && fabs(dh)<1.0e15)
@@ -110,7 +110,7 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc, slice& bedzh, slicei
 		}
 
         // 2
-        dh = bedzh(i,j) - bedzh(i+1,j);
+        dh = a->bedzh(i,j) - a->bedzh(i+1,j);
 		dh_corr = dh + tan(p->S93*(PI/180.0))*p->dx;
 		
         if(dh>maxdh && fabs(dh)<1.0e15)
@@ -123,7 +123,7 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc, slice& bedzh, slicei
 
 
         // 3
-        dh = bedzh(i,j) - bedzh(i,j-1);
+        dh = a->bedzh(i,j) - a->bedzh(i,j-1);
 		dh_corr = dh + tan(p->S93*(PI/180.0))*p->dx;
         
         if(dh>maxdh && fabs(dh)<1.0e15)
@@ -135,7 +135,7 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc, slice& bedzh, slicei
         }
 
         // 4
-        dh = bedzh(i,j) - bedzh(i,j+1);
+        dh = a->bedzh(i,j) - a->bedzh(i,j+1);
 		dh_corr = dh + tan(p->S93*(PI/180.0))*p->dx;
         
         if(dh>maxdh && fabs(dh)<1.0e15)
@@ -148,7 +148,7 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc, slice& bedzh, slicei
 		
 		
         // 5
-        dh = bedzh(i,j) - bedzh(i-1,j-1);
+        dh = a->bedzh(i,j) - a->bedzh(i-1,j-1);
 		dh_corr = dh + tan(p->S93*(PI/180.0))*dxs;
 
         if(dh>maxdhs && fabs(dh)<1.0e15)
@@ -161,7 +161,7 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc, slice& bedzh, slicei
     
 
         // 6
-        dh = bedzh(i,j) - bedzh(i-1,j+1);
+        dh = a->bedzh(i,j) - a->bedzh(i-1,j+1);
 		dh_corr = dh + tan(p->S93*(PI/180.0))*dxs;
         
         if(dh>maxdhs && fabs(dh)<1.0e15)
@@ -173,7 +173,7 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc, slice& bedzh, slicei
         }
 
         // 7
-        dh = bedzh(i,j) - bedzh(i+1,j-1);
+        dh = a->bedzh(i,j) - a->bedzh(i+1,j-1);
 		dh_corr = dh + tan(p->S93*(PI/180.0))*dxs;
         
         if(dh>maxdhs && fabs(dh)<1.0e15)
@@ -185,7 +185,7 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc, slice& bedzh, slicei
         }
     
         // 8
-        dh = bedzh(i,j) - bedzh(i+1,j+1);
+        dh = a->bedzh(i,j) - a->bedzh(i+1,j+1);
 		dh_corr = dh + tan(p->S93*(PI/180.0))*dxs;
 
         if(dh>maxdhs && fabs(dh)<1.0e15)
@@ -198,14 +198,14 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc, slice& bedzh, slicei
         
 }
 
-void sandslide_f2::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc, slice& bedzh)
+void sandslide_f2::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc)
 {
-	pgc->gcsl_start4(p,bedzh,1);
+	pgc->gcsl_start4(p,a->bedzh,1);
 	
     ALOOP
     {
     if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
-    a->topo(i,j,k)=-bedzh(i,j)+p->pos_z();
+    a->topo(i,j,k)=-a->bedzh(i,j)+p->pos_z();
     }
 	
 	pgc->start4a(p,a->topo,150);
