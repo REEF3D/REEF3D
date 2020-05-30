@@ -26,7 +26,6 @@ Author: Hans Bihs
 class lexer;
 class fdm;
 class ghostcell;
-class fnpf_convection;
 
 using namespace std;
 
@@ -47,9 +46,6 @@ private:
     double uvel, vvel;
     double midphi, delta,beta;
     double alpha0, teta0;
-    
-    double signx, signy;
-    fnpf_convection *pdx;
 };
 
 #endif

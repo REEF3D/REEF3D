@@ -23,14 +23,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"fnpf_weno.h"
 
 bedslope::bedslope(lexer *p) : norm_vec(p)
 {
     midphi=p->S81*(PI/180.0);
     delta=p->S82*(PI/180.0);
-    
-     pdx = new fnpf_weno(p);
 }
 
 bedslope::~bedslope()
@@ -88,18 +85,7 @@ void bedslope::slope(lexer *p, fdm * a, ghostcell *pgc, double &teta, double &al
     
      bx0 = (a->bedzh(i+1,j)-a->bedzh(i-1,j))/(2.0*p->DXM);
      by0 = (a->bedzh(i,j+1)-a->bedzh(i,j-1))/(2.0*p->DXM);
-     /*
-     signx=signy=1.0;
      
-     if(bx0<0.0)
-     signx=-1.0;
-     
-     if(by0<0.0)
-     signy=-1.0;
-     
-     bx0 = pdx->sx(p,a->bedzh,signx);
-     bx0 = pdx->sy(p,a->bedzh,signy);
-     */
      nx0 = bx0/sqrt(bx0*bx0 + by0*by0 + 1.0);
      ny0 = by0/sqrt(bx0*bx0 + by0*by0 + 1.0);
      nz0 = 1.0;

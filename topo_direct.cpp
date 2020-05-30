@@ -67,14 +67,11 @@ void topo_direct::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,rei
         SLICELOOP1
         {
         uvel=a->P(i,j);
-
         vvel=0.25*(a->Q(i,j)+a->Q(i+1,j)+a->Q(i,j-1)+a->Q(i+1,j-1)); 
-        
         
 		u_abs = sqrt(uvel*uvel + vvel*vvel);
         
-		signx=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
-		signy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
+		signx=fabs(u_abs)>1.0e-10?fabs(uvel)/fabs(u_abs):0.0;
         
         a->qbx(i,j) = 0.5*(a->bedload(i,j) + a->bedload(i+1,j))*signx;
         }
@@ -82,13 +79,11 @@ void topo_direct::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,rei
         SLICELOOP2
         {
         uvel=0.25*(a->P(i,j)+a->P(i,j+1)+a->P(i-1,j)+a->P(i-1,j+1));
-        
         vvel=a->Q(i,j); 
         
 		u_abs = sqrt(uvel*uvel + vvel*vvel);
         
-		signx=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
-		signy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
+		signy=fabs(u_abs)>1.0e-10?fabs(vvel)/fabs(u_abs):0.0;
         
         a->qby(i,j) = 0.5*(a->bedload(i,j) + a->bedload(i,j+1))*signy;
         }
