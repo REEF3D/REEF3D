@@ -89,18 +89,18 @@ void sediment_f::volume_calc(lexer *p, fdm *a,ghostcell *pgc)
 	double volume=0.0;
     double epsi;
 
-	LOOP
+	ALOOP
 	{
        epsi = p->F45*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
         
-		if(a->phi(i,j,k)>epsi)
+		if(a->topo(i,j,k)>epsi)
 		H=1.0;
 
-		if(a->phi(i,j,k)<-epsi)
+		if(a->topo(i,j,k)<-epsi)
 		H=0.0;
 
-		if(fabs(a->phi(i,j,k))<=epsi)
-		H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
+		if(fabs(a->topo(i,j,k))<=epsi)
+		H=0.5*(1.0 + a->topo(i,j,k)/epsi + (1.0/PI)*sin((PI*a->topo(i,j,k))/epsi));
 
 		volume += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H);
 	}
