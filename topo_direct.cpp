@@ -64,6 +64,7 @@ void topo_direct::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,rei
     if(p->S31==2)
     {
         double uvel,vvel,u_abs;
+        
         SLICELOOP1
         {
         uvel=a->P(i,j);

@@ -38,10 +38,6 @@ void topo_vel::topovel_xy_cds(lexer* p,fdm* a, ghostcell *pgc, double& vx, doubl
 	 
 	if(p->pos_x()>=p->S71 && p->pos_x()<=p->S72)
 	{						
-        //uvel=0.5*(a->P(i,j)+a->P(i-1,j));
-
-        //vvel=0.5*(a->Q(i,j)+a->Q(i,j-1));
-        
         uvel  = a->P(i,j);
         uvel1 = a->P(i-1,j);
         vvel  = a->Q(i,j);
