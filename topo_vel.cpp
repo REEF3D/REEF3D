@@ -69,7 +69,6 @@ void topo_vel::topovel(lexer* p,fdm* a, ghostcell *pgc, double& vx, double& vy, 
 		u_abs = sqrt(uvel*uvel + vvel*vvel);
 		signx=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
 		signy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
-	
 		
 	dqx=dqy=0.0;
 

@@ -40,7 +40,7 @@ void bedshear::taubedx(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, doubl
 	
     if(p->S16==1)
     {
-	xip= p->XN[IP1];
+	xip= p->XN[IP];
 	yip= p->YP[JP];
 	zip= p->ZP[KP];
     
@@ -91,7 +91,7 @@ void bedshear::taubedy(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, doubl
     if(p->S16==1)
     {
 	xip= p->XP[IP];
-	yip= p->YN[JP1];
+	yip= p->YN[JP];
 	zip= p->ZP[KP];
     
     uvel=p->ccipol1(a->u,xip,yip,zval);
