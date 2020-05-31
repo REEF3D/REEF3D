@@ -155,8 +155,8 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
     SLICELOOP4
     a->bedload(i,j) = 0.5*(a->qbx(i,j) + a->qbx(i-1,j));
     
-    LOOP
-    a->test(i,j,k) = 0.5*(a->qby(i,j) + a->qby(i-1,j));
+    ALOOP
+    a->test(i,j,k) = 0.5*(a->qby(i,j) + a->qby(i,j-1));
 }
 
 
