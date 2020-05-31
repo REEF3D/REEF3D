@@ -42,7 +42,6 @@ void bedshear::taubedx(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, doubl
     {
 	xip= p->XN[IP1];
 	yip= p->YP[JP];
-	zip= p->ZP[KP];
     
 	uvel=p->ccipol1(a->u,xip,yip,zval);
     vvel=p->ccipol2(a->v,xip,yip,zval);
@@ -61,7 +60,6 @@ void bedshear::taubedx(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, doubl
 		
 	xip= p->XN[IP1];
 	yip= p->YP[JP];
-	zip= p->ZP[KP];
 	
 	uvel=p->ccipol1_a(a->u,xip,yip,zval);
     vvel=p->ccipol2_a(a->v,xip,yip,zval);
@@ -95,7 +93,6 @@ void bedshear::taubedy(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, doubl
     {
 	xip= p->XP[IP];
 	yip= p->YN[JP1];
-	zip= p->ZP[KP];
     
     uvel=p->ccipol1(a->u,xip,yip,zval);
 	vvel=p->ccipol2(a->v,xip,yip,zval);
@@ -114,7 +111,6 @@ void bedshear::taubedy(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, doubl
 		
 	xip= p->XP[IP];
 	yip= p->YN[JP1];
-	zip= p->ZP[KP];
 	
 	uvel=p->ccipol1_a(a->u,xip,yip,zval);
     vvel=p->ccipol2_a(a->v,xip,yip,zval);

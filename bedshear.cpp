@@ -212,12 +212,12 @@ void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, double &tau_crit, d
 	
 	r = preduce->start(p,a,pgc);
     
-	
+	/*
     KLOOP
     PBASECHECK
     {
         a->test(i,j,k)=r;
-    }
+    }*/
     
     
     tauc = (p->S30*fabs(p->W22)*(p->S22-p->W1))*p->S20*r;
