@@ -49,7 +49,7 @@ void topo_vel::topovel_xy_cds(lexer* p,fdm* a, ghostcell *pgc, double& vx, doubl
 		sgy1=fabs(vvel1)>1.0e-10?vvel1/fabs(vvel1):0.0;
 
         dqx = (a->qbx(i,j)*sgx-a->qbx(i-1,j)*sgx1)/(p->DXN[IP]);
-        dqy = (a->qby(i,j)*sgy-a->qby(i,j-1)*sgy1)/(p->DYN[JP]);
+        dqy = 0.0;// (a->qby(i,j)*sgy-a->qby(i,j-1)*sgy1)/(p->DYN[JP]);
         /*
         uvel  = 0.5*(a->P(i,j)+a->P(i-1,j));
         vvel  = 0.5*(a->Q(i,j)+a->Q(i,j-1));
