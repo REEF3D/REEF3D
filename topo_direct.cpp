@@ -62,7 +62,7 @@ void topo_direct::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,rei
 	}
     
     if(p->S31==2)
-    {/*
+    {
         double uvel,vvel,u_abs;
         
         SLICELOOP1
@@ -74,7 +74,7 @@ void topo_direct::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,rei
         
 		signx=fabs(u_abs)>1.0e-10?fabs(uvel)/fabs(u_abs):0.0;
         
-        a->qbx(i,j) = 0.5*(a->bedload(i,j) + a->bedload(i+1,j))*signx;
+        a->qbx(i,j) *= signx;
         }
         
         SLICELOOP2
@@ -86,8 +86,8 @@ void topo_direct::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,rei
         
 		signy=fabs(u_abs)>1.0e-10?fabs(vvel)/fabs(u_abs):0.0;
         
-        a->qby(i,j) = 0.5*(a->bedload(i,j) + a->bedload(i,j+1))*signy;
-        }*/
+        a->qby(i,j) *= signy;
+        }
         
         
         pgc->gcsl_start1(p,a->qbx,1);
