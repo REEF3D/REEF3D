@@ -37,7 +37,7 @@ void topo_vel::topovel_xy_cds(lexer* p,fdm* a, ghostcell *pgc, double& vx, doubl
 	vz=0.0;
 	 
 	if(p->pos_x()>=p->S71 && p->pos_x()<=p->S72)
-	{				
+	{		/*		
         uvel  = a->P(i,j);
         uvel1 = a->P(i-1,j);
         vvel  = a->Q(i,j);
@@ -50,7 +50,7 @@ void topo_vel::topovel_xy_cds(lexer* p,fdm* a, ghostcell *pgc, double& vx, doubl
 
         dqx = (a->qbx(i,j)*sgx-a->qbx(i-1,j)*sgx1)/(p->DXN[IP]);
         dqy = (a->qby(i,j)*sgy-a->qby(i,j-1)*sgy1)/(p->DYN[JP]);
-        /*
+        */
         uvel  = 0.5*(a->P(i,j)+a->P(i-1,j));
         vvel  = 0.5*(a->Q(i,j)+a->Q(i,j-1));
         
@@ -59,7 +59,7 @@ void topo_vel::topovel_xy_cds(lexer* p,fdm* a, ghostcell *pgc, double& vx, doubl
 
 
         dqx = sgx*(a->qbx(i,j)-a->qbx(i-1,j))/(p->DXN[IP]);
-        dqy = sgy*(a->qby(i,j)-a->qby(i,j-1))/(p->DYN[JP]);*/
+        dqy = sgy*(a->qby(i,j)-a->qby(i,j-1))/(p->DYN[JP]);
 		
 	// Exner equations
     vz =  -prelax->rf(p,a,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy) + ws*(a->conc(i,j,k) - pcb->cbed(p,a,pgc,a->topo)); 
