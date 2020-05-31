@@ -74,7 +74,7 @@ void topo_direct::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,rei
         
 		signx=fabs(u_abs)>1.0e-10?fabs(uvel)/fabs(u_abs):0.0;
         
-        a->qbx(i,j) *= signx;
+        a->qbx(i,j) = a->qbx(i,j)*signx;
         }
         
         SLICELOOP2
@@ -86,7 +86,7 @@ void topo_direct::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,rei
         
 		signy=fabs(u_abs)>1.0e-10?fabs(vvel)/fabs(u_abs):0.0;
         
-        a->qby(i,j) *= signy;
+        a->qby(i,j) = a->qby(i,j)*signy;
         }
         
         
