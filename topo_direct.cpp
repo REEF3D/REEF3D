@@ -63,7 +63,7 @@ void topo_direct::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,rei
     
     if(p->S31==2)
     {
-        /*
+        
         double uvel,vvel,u_abs;
         
         SLICELOOP1
@@ -92,7 +92,7 @@ void topo_direct::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,rei
         
         
         pgc->gcsl_start1(p,a->qbx,1);
-        pgc->gcsl_start2(p,a->qby,1);*/
+        pgc->gcsl_start2(p,a->qby,1);
         
         SLICELOOP4
         {

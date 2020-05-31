@@ -37,7 +37,7 @@ void topo_vel::topovel_xy_cds(lexer* p,fdm* a, ghostcell *pgc, double& vx, doubl
 	vz=0.0;
 	 
 	if(p->pos_x()>=p->S71 && p->pos_x()<=p->S72)
-	{				/*
+	{				
         uvel  = a->P(i,j);
         uvel1 = a->P(i-1,j);
         vvel  = a->Q(i,j);
@@ -50,15 +50,15 @@ void topo_vel::topovel_xy_cds(lexer* p,fdm* a, ghostcell *pgc, double& vx, doubl
 
         dqx = (a->qbx(i,j)*sgx-a->qbx(i-1,j)*sgx1)/(p->DXN[IP]);
         dqy = (a->qby(i,j)*sgy-a->qby(i,j-1)*sgy1)/(p->DYN[JP]);
-        */
         
+        /*
         uvel  = 0.5*(a->P(i,j)+a->P(i-1,j));
         vvel  = 0.5*(a->Q(i,j)+a->Q(i,j-1));
         
         u_abs = sqrt(uvel*uvel + vvel*vvel);
         
 		sgx=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
-		sgy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
+		sgy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;*/
 
 
         dqx = sgx*(a->qbx(i,j)-a->qbx(i-1,j))/(p->DXN[IP]);
