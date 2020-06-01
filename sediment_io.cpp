@@ -36,6 +36,7 @@ double sediment_f::bedshear_point(lexer *p, fdm *a,ghostcell *pgc)
 
 void sediment_f::fill_bedk(lexer *p, fdm *a,ghostcell *pgc)
 {
+    double zval,xip,yip;
     SLICELOOP4
     a->bedk(i,j)=0;
     
@@ -49,13 +50,23 @@ void sediment_f::fill_bedk(lexer *p, fdm *a,ghostcell *pgc)
     SLICELOOP1
     {
     k=a->bedk(i,j);
-    a->P(i,j) = a->u(i,j,k);
+    
+    xip= p->XN[IP1];
+	yip= p->YP[JP];
+    zval = 0.5*(a->bedzh(i,j)+a->bedzh(i+1,j)) + p->S116*p->DZN[k];
+    
+    a->P(i,j) = p->ccipol1(a->u,xip,yip,zval);
     }
     
     SLICELOOP2
     {
     k=a->bedk(i,j);
-    a->Q(i,j) = a->v(i,j,k);
+    
+    xip= p->XP[IP];
+	yip= p->YN[JP1];
+    zval = 0.5*(a->bedzh(i,j)+a->bedzh(i,j+1)) + p->S116*p->DZN[k];
+    
+    a->Q(i,j) = p->ccipol2(a->v,xip,yip,zval);
     }
     
     pgc->gcsl_start1(p,a->P,10);

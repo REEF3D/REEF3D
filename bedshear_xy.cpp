@@ -33,7 +33,7 @@ void bedshear::taubedx(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, doubl
     
     k=a->bedk(i,j)+1;
     
-    zval = a->bedzh(i,j) + p->S116*p->DZN[k];
+    zval = 0.5*(a->bedzh(i,j)+a->bedzh(i+1,j)) + p->S116*p->DZN[k];
     dist = p->S117*p->DZN[k];
     
     density = p->W1;
@@ -84,7 +84,7 @@ void bedshear::taubedy(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, doubl
 
     k=a->bedk(i,j)+1;
     
-    zval = a->bedzh(i,j) + p->S116*p->DZN[k];
+    zval = 0.5*(a->bedzh(i,j)+a->bedzh(i,j+1)) + p->S116*p->DZN[k];
     dist = p->S117*p->DZN[k];
 		
     density = p->W1;
