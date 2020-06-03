@@ -38,17 +38,12 @@ sediment_wenoflux::~sediment_wenoflux()
 {
 }
 
-double sediment_wenoflux::sx(lexer *p, slice &f, slice &Fifsf)
+double sediment_wenoflux::sx(lexer *p, slice &f, slice &P)
 {
     grad=0.0;
         
-        ivel1 = (Fifsf(i,j) - Fifsf(i-1,j))/(p->DXP[IM1]);
-        ivel2 = (Fifsf(i+1,j) - Fifsf(i,j))/(p->DXP[IP]);
-        
-        
-        //ivel1 = (-Fifsf(i+1,j) + 27.0*Fifsf(i,j) - 27.0*Fifsf(i-1,j) + Fifsf(i-2,j))/(-p->XP[IP1] + 27.0*p->XP[IP] - 27.0*p->XP[IM1] + p->XP[IM2]);
-        //ivel2 = (-Fifsf(i+2,j) + 27.0*Fifsf(i+1,j) - 27.0*Fifsf(i,j) + Fifsf(i-1,j))/(-p->XP[IP2] + 27.0*p->XP[IP1] - 27.0*p->XP[IP] + p->XP[IM1]);
-
+        ivel1 = P(i-1,j);
+        ivel2 = P(i,j);
 		
 		i-=1;
 		fu1 = ffx(p,f,ivel1);
@@ -56,17 +51,17 @@ double sediment_wenoflux::sx(lexer *p, slice &f, slice &Fifsf)
 		
 		fu2 = ffx(p,f,ivel2);
 		
-		grad = ((ivel2*fu2-ivel1*fu1)/p->DXN[IP]);
+		grad = ((fu2-fu1)/p->DXN[IP]);
         
     return grad;
 }
 
-double sediment_wenoflux::sy(lexer *p, slice &f, slice &Fifsf)
+double sediment_wenoflux::sy(lexer *p, slice &f, slice &Q)
 {
     grad=0.0;
         
-        jvel1 = (Fifsf(i,j) - Fifsf(i,j-1))/(p->DYP[JM1]);
-        jvel2 = (Fifsf(i,j+1) - Fifsf(i,j))/(p->DYP[JP]);
+        jvel1 = Q(i,j-1);
+        jvel2 = Q(i,j);
 		
 		i-=1;
 		fv1 = ffy(p,f,jvel1);
@@ -74,7 +69,7 @@ double sediment_wenoflux::sy(lexer *p, slice &f, slice &Fifsf)
 		
 		fv2 = ffy(p,f,jvel2);
 		
-		grad = ((jvel2*fv2-jvel1*fv1)/p->DYN[JP]);
+		grad = ((fv2-fv1)/p->DYN[JP]);
 			  
     return grad;  
 }

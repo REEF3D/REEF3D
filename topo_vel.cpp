@@ -26,6 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"bedconc.h"
 #include"topo_relax.h"
 #include"fnpf_weno.h"
+#include"sediment_wenoflux.h"
 
 topo_vel::topo_vel(lexer* p, turbulence *pturb): ccipol(p), norm_vec(p), dx(p->dx),epsi(1.6*p->dx)
 {
@@ -40,6 +41,8 @@ topo_vel::topo_vel(lexer* p, turbulence *pturb): ccipol(p), norm_vec(p), dx(p->d
     prelax = new topo_relax(p);
     
     pdx = new fnpf_weno(p);
+    
+    pdqx = new sediment_wenoflux(p);
 }
 
 topo_vel::~topo_vel()
@@ -108,6 +111,9 @@ void topo_vel::topovel(lexer* p,fdm* a, ghostcell *pgc, double& vx, double& vy, 
     dqx = (qx2-qx1)/p->DXN[IP];
     
     dqy = (qy2-qy1)/p->DYN[JP];
+    
+    dqx = pdqx->sx(p,a->bedload,a->P);
+    dqy = pdqx->sy(p,a->bedload,a->Q);
     
     
 		
