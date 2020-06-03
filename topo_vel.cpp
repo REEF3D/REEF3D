@@ -51,6 +51,7 @@ void topo_vel::topovel(lexer* p,fdm* a, ghostcell *pgc, double& vx, double& vy, 
 	double uvel,vvel,u_abs;
 	double signx,signy;
 	double dqx,dqy;
+    double qx1,qx2,q1x,qy2;
 	
 	vx=0.0;
 	vy=0.0;
@@ -71,12 +72,44 @@ void topo_vel::topovel(lexer* p,fdm* a, ghostcell *pgc, double& vx, double& vy, 
 		signy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
 		
 	dqx=dqy=0.0;
+    
+    // x
+    if(a->P(i-1,j)>=0.0)
+    qx1 = a->bedload(i-1,j);
+    
+    if(a->P(i-1,j)<0.0)
+    qx1 = a->bedload(i,j);
+    
+    if(a->P(i,j)>=0.0)
+    qx2 = a->bedload(i,j);
+    
+    if(a->P(i,j)<0.0)
+    qx2 = a->bedload(i+1,j);
+    
+    // y
+    if(a->Q(i,j-1)>=0.0)
+    qy1 = a->bedload(i,j-1);
+    
+    if(a->Q(i,j-1)<0.0)
+    qy1 = a->bedload(i,j);
+    
+    if(a->Q(i,j)>=0.0)
+    qy2 = a->bedload(i,j);
+    
+    if(a->Q(i,j)<0.0)
+    qy2 = a->bedload(i,j+1);
 
     //dqx = (a->bedload(i+1,j)-a->bedload(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
     //dqy = (a->bedload(i,j+1)-a->bedload(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
     
-    dqx = pdx->sx(p,a->bedload,signx);
-    dqy = pdx->sy(p,a->bedload,signy);
+    //dqx = pdx->sx(p,a->bedload,signx);
+    //dqy = pdx->sy(p,a->bedload,signy);
+    
+    dqx = (qx2-qx1)/p->DXN[IP];
+    
+    dqy = (qy2-qy1)/p->DYN[JP];
+    
+    
 		
 	// Exner equations
     vz =  -prelax->rf(p,a,pgc)*(1.0/(1.0-p->S24))*(dqx*signx + dqy*signy) + ws*(a->conc(i,j,k) - pcb->cbed(p,a,pgc,a->topo)); 
