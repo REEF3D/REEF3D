@@ -84,6 +84,9 @@
           <File Name="susprhs.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Topo">
+          <VirtualDirectory Name="Exnerdisc">
+            <File Name="sediment_wenoflux.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Reinitialization">
             <File Name="reinitopo.h"/>
             <File Name="reinitopo_RK3.h"/>
@@ -982,6 +985,9 @@
           <File Name="susprhs.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Topo">
+          <VirtualDirectory Name="Exnerdisc">
+            <File Name="sediment_wenoflux.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Reinitialization">
             <File Name="reinitopo_RK3.cpp"/>
             <File Name="reinitopo_void.cpp"/>
