@@ -109,7 +109,6 @@ void topo_vel::topovel(lexer* p,fdm* a, ghostcell *pgc, double& vx, double& vy, 
     //dqy = pdx->sy(p,a->bedload,signy);
     
     dqx = (qx2-qx1)/p->DXN[IP];
-    
     dqy = (qy2-qy1)/p->DYN[JP];
     
     dqx = pdqx->sx(p,a->bedload,a->P);
