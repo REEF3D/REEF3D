@@ -28,8 +28,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void topo_vel::topovel_xy_cds(lexer* p,fdm* a, ghostcell *pgc, double& vx, double& vy, double& vz)
 {
-	double uvel,vvel,uvel1,vvel1,u_abs;
-	double sgx,sgy,sgx1,sgy1;
+	double uvel,vvel,uvel1,vvel1,uvel2,vvel2,u_abs;
+	double sgx,sgy,sgx1,sgy1,sgx2,sgy2;
 	double dqx,dqy;
 	
 	vx=0.0;
@@ -59,9 +59,13 @@ void topo_vel::topovel_xy_cds(lexer* p,fdm* a, ghostcell *pgc, double& vx, doubl
         
         u_abs = sqrt(uvel*uvel + vvel*vvel);
         
-		sgx=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
-		sgy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
-
+		//sgx=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
+		//sgy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
+        
+        
+        sgx=fabs(uvel)>1.0e-10?uvel/fabs(uvel):0.0;
+		sgy=fabs(vvel)>1.0e-10?vvel/fabs(vvel):0.0;
+        
         dqx = sgx*(a->qbx(i,j)-a->qbx(i-1,j))/(p->DXN[IP]);
         dqy = sgy*(a->qby(i,j)-a->qby(i,j-1))/(p->DYN[JP]);
         

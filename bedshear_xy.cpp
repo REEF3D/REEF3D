@@ -33,15 +33,17 @@ void bedshear::taubedx(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, doubl
     
     k=a->bedk(i,j)+1;
     
+    xip= p->XN[IP1];
+	yip= p->YP[JP];
     zval = 0.5*(a->bedzh(i,j)+a->bedzh(i+1,j)) + p->S116*p->DZN[k];
+
     dist = p->S117*p->DZN[k];
     
     density = p->W1;
 	
     if(p->S16==1)
     {
-	xip= p->XN[IP1];
-	yip= p->YP[JP];
+	
     
 	uvel=p->ccipol1(a->u,xip,yip,zval);
     vvel=p->ccipol2(a->v,xip,yip,zval);
@@ -57,9 +59,6 @@ void bedshear::taubedx(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, doubl
 	if(p->S16==3)
     {
 	double v_t,v_d;
-		
-	xip= p->XN[IP1];
-	yip= p->YP[JP];
 	
 	uvel=p->ccipol1(a->u,xip,yip,zval);
     vvel=p->ccipol2(a->v,xip,yip,zval);
@@ -71,6 +70,9 @@ void bedshear::taubedx(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, doubl
     
     tau = density*(v_d + v_t)*(u_abs/dist);
     }
+    
+    if(p->S16==4)
+    tau=density*pturb->ccipol_kinval(p,pgc,xip,yip,zval)*0.3;
     
     tau_eff = tau;
     shearvel_eff = sqrt(tau/p->W1);
@@ -84,16 +86,17 @@ void bedshear::taubedy(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, doubl
 
     k=a->bedk(i,j)+1;
     
+    xip= p->XP[IP];
+	yip= p->YN[JP1];
     zval = 0.5*(a->bedzh(i,j)+a->bedzh(i,j+1)) + p->S116*p->DZN[k];
+
     dist = p->S117*p->DZN[k];
 		
     density = p->W1;
 	
     if(p->S16==1)
     {
-	xip= p->XP[IP];
-	yip= p->YN[JP1];
-    
+
     uvel=p->ccipol1(a->u,xip,yip,zval);
 	vvel=p->ccipol2(a->v,xip,yip,zval);
 	
@@ -109,9 +112,6 @@ void bedshear::taubedy(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, doubl
     {
 	double v_t,v_d;
 		
-	xip= p->XP[IP];
-	yip= p->YN[JP1];
-	
 	uvel=p->ccipol1(a->u,xip,yip,zval);
     vvel=p->ccipol2(a->v,xip,yip,zval);
     
@@ -122,6 +122,9 @@ void bedshear::taubedy(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, doubl
 
     tau = density*(v_d + v_t)*(u_abs/dist);
     }
+    
+    if(p->S16==4)
+    tau=density*pturb->ccipol_kinval(p,pgc,xip,yip,zval)*0.3;
     
     
     tau_eff = tau;
