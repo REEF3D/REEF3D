@@ -35,8 +35,8 @@ public:
 	sediment_wenoflux(lexer*);
 	virtual ~sediment_wenoflux();
 
-    virtual double sx(lexer*, slice&, slice&);
-	virtual double sy(lexer*, slice&, slice&);
+    virtual double sx(lexer*, slice&, double, double);
+	virtual double sy(lexer*, slice&, double, double);
 
 
 private:
