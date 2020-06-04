@@ -138,8 +138,8 @@ void topo_vel::topovel(lexer* p,fdm* a, ghostcell *pgc, double& vx, double& vy, 
     sgx1=fabs(ux1_abs)>1.0e-10?ux1/fabs(ux1_abs):0.0;
     sgx2=fabs(ux2_abs)>1.0e-10?ux2/fabs(ux2_abs):0.0;
     
-    sgy1=fabs(uy1_abs)>1.0e-10?uy1/fabs(uy1_abs):0.0;
-    sgy2=fabs(uy2_abs)>1.0e-10?uy2/fabs(uy2_abs):0.0;
+    sgy1=fabs(uy1_abs)>1.0e-10?vy1/fabs(uy1_abs):0.0;
+    sgy2=fabs(uy2_abs)>1.0e-10?vy2/fabs(uy2_abs):0.0;
     
     
     dqx = pdqx->sx(p,a->bedload,sgx1,sgx2);
@@ -147,8 +147,8 @@ void topo_vel::topovel(lexer* p,fdm* a, ghostcell *pgc, double& vx, double& vy, 
     
     
     
-    dqx = signx*(qx2-qx1)/p->DXN[IP];
-    dqy = signy*(qy2-qy1)/p->DYN[JP];
+    //dqx = signx*(qx2-qx1)/p->DXN[IP];
+    //dqy = signy*(qy2-qy1)/p->DYN[JP];
     
     
 		
