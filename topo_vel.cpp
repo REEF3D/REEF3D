@@ -147,8 +147,8 @@ void topo_vel::topovel(lexer* p,fdm* a, ghostcell *pgc, double& vx, double& vy, 
     
     
     
-    //dqx = signx*(qx2-qx1)/p->DXN[IP];
-    //dqy = signy*(qy2-qy1)/p->DYN[JP];
+    dqx = signx*(qx2-qx1)/p->DXN[IP];
+    dqy = signy*(qy2-qy1)/p->DYN[JP];
     
     
 		
