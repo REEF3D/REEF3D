@@ -142,11 +142,11 @@ void topo_vel::topovel(lexer* p,fdm* a, ghostcell *pgc, double& vx, double& vy, 
     sgy2=fabs(uy2_abs)>1.0e-10?vy2/fabs(uy2_abs):0.0;
     
     
-   // cout<<"sgx1: "<<sgx1<<" sgx2: "<<sgx2<<" sgy1: "<<sgy1<<" sgy2: "<<sgy2<<" |  SUM1: "<<sgx1+sgy1<<"  SUM2: "<<sgx2+sgy2<<endl;
+    //cout<<"sgx1: "<<sgx1<<" sgx2: "<<sgx2<<" sgy1: "<<sgy1<<" sgy2: "<<sgy2<<" |  SUM1: "<<sgx1+sgy1<<"  SUM2: "<<sgx2+sgy2<<endl;
     
     
-    dqx = pdqx->sx(p,a->bedload,signx,signx);
-    dqy = pdqx->sy(p,a->bedload,signy,signy);
+    dqx = pdqx->sx(p,a->bedload,sgx1,sgx2);
+    dqy = pdqx->sy(p,a->bedload,sgy1,sgy2);
     
     
     

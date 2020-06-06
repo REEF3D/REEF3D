@@ -32,6 +32,8 @@ sediment_wenoflux::sediment_wenoflux(lexer* p) :  weno_nug_func(p)
     fnpf_discrete_weights dw(p);
 
     dw.ck_weights(p, ckz, p->ZN, p->knoz+1, 1, 4, 6);
+    
+    uf=vf=0;
 }
 
 sediment_wenoflux::~sediment_wenoflux()

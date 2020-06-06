@@ -32,6 +32,8 @@ fnpf_wenoflux::fnpf_wenoflux(lexer* p) :  weno_nug_func(p)
     fnpf_discrete_weights dw(p);
 
     dw.ck_weights(p, ckz, p->ZN, p->knoz+1, 1, 4, 6);
+    
+    uf=vf=wf=0;
 }
 
 fnpf_wenoflux::~fnpf_wenoflux()
