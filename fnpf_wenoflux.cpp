@@ -68,9 +68,9 @@ double fnpf_wenoflux::sy(lexer *p, slice &f, slice &Fifsf)
         jvel1 = (Fifsf(i,j) - Fifsf(i,j-1))/(p->DYP[JM1]);
         jvel2 = (Fifsf(i,j+1) - Fifsf(i,j))/(p->DYP[JP]);
 		
-		i-=1;
+		j-=1;
 		fv1 = ffy(p,f,jvel1);
-		i+=1;
+		j+=1;
 		
 		fv2 = ffy(p,f,jvel2);
 		
