@@ -25,6 +25,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"bedconc.h"
 #include"topo_relax.h"
+#include"sediment_fou.h"
+#include"sediment_cds.h"
 #include"sediment_wenoflux.h"
 #include"sediment_weno_hj.h"
 
@@ -40,6 +42,11 @@ topo_vel::topo_vel(lexer* p, turbulence *pturb): ccipol(p), norm_vec(p), dx(p->d
     
     prelax = new topo_relax(p);
     
+    if(p->S32==1)
+    pdx = new sediment_fou(p);
+    
+    if(p->S32==2)
+    pdx = new sediment_cds(p);
     
     if(p->S32==4)
     pdx = new sediment_wenoflux(p);

@@ -24,8 +24,8 @@ Author: Hans Bihs
 #include"increment.h"
 #include"weno_nug_func.h"
 
-#ifndef SEDIMENT_FOU_H_
-#define SEDIMENT_FOU_H_
+#ifndef SEDIMENT_CDS_H_
+#define SEDIMENT_CDS_H_
 
 using namespace std;
 
