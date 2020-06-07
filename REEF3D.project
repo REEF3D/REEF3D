@@ -85,6 +85,10 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Topo">
           <VirtualDirectory Name="Exnerdisc">
+            <File Name="sediment_exnerdisc.h"/>
+            <File Name="sediment_fou.h"/>
+            <File Name="sediment_cds.h"/>
+            <File Name="sediment_weno_hj.h"/>
             <File Name="sediment_wenoflux.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Reinitialization">
@@ -986,6 +990,9 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Topo">
           <VirtualDirectory Name="Exnerdisc">
+            <File Name="sediment_cds.cpp"/>
+            <File Name="sediment_fou.cpp"/>
+            <File Name="sediment_weno_hj.cpp"/>
             <File Name="sediment_wenoflux.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Reinitialization">

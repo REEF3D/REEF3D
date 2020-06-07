@@ -25,8 +25,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"bedconc.h"
 #include"topo_relax.h"
-#include"fnpf_weno.h"
 #include"sediment_wenoflux.h"
+#include"sediment_weno_hj.h"
 
 topo_vel::topo_vel(lexer* p, turbulence *pturb): ccipol(p), norm_vec(p), dx(p->dx),epsi(1.6*p->dx)
 {
@@ -40,9 +40,13 @@ topo_vel::topo_vel(lexer* p, turbulence *pturb): ccipol(p), norm_vec(p), dx(p->d
     
     prelax = new topo_relax(p);
     
-    pdx = new fnpf_weno(p);
     
-    pdqx = new sediment_wenoflux(p);
+    if(p->S32==4)
+    pdx = new sediment_wenoflux(p);
+    
+    if(p->S32==5)
+    pdx = new sediment_weno_hj(p);
+    
 }
 
 topo_vel::~topo_vel()
@@ -73,43 +77,7 @@ void topo_vel::topovel(lexer* p,fdm* a, ghostcell *pgc, double& vx, double& vy, 
 		u_abs = sqrt(uvel*uvel + vvel*vvel);
 		signx=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
 		signy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
-		
-	dqx=dqy=0.0;
-    
-    // x
-    if(a->P(i-1,j)>=0.0)
-    qx1 = a->bedload(i-1,j);
-    
-    if(a->P(i-1,j)<0.0)
-    qx1 = a->bedload(i,j);
-    
-    if(a->P(i,j)>=0.0)
-    qx2 = a->bedload(i,j);
-    
-    if(a->P(i,j)<0.0)
-    qx2 = a->bedload(i+1,j);
-    
-    // y
-    if(a->Q(i,j-1)>=0.0)
-    qy1 = a->bedload(i,j-1);
-    
-    if(a->Q(i,j-1)<0.0)
-    qy1 = a->bedload(i,j);
-    
-    if(a->Q(i,j)>=0.0)
-    qy2 = a->bedload(i,j);
-    
-    if(a->Q(i,j)<0.0)
-    qy2 = a->bedload(i,j+1);
 
-    //dqx = (a->bedload(i+1,j)-a->bedload(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
-    //dqy = (a->bedload(i,j+1)-a->bedload(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
-    
-    //dqx = pdx->sx(p,a->bedload,signx);
-    //dqy = pdx->sy(p,a->bedload,signy);
-    
-    //dqx = (qx2-qx1)/p->DXN[IP];
-    //dqy = (qy2-qy1)/p->DYN[JP];
     
     double ux1,vx1,ux2,vx2,uy1,vy1,uy2,vy2;
     double sgx1,sgx2,sgy1,sgy2;
@@ -145,15 +113,8 @@ void topo_vel::topovel(lexer* p,fdm* a, ghostcell *pgc, double& vx, double& vy, 
     //cout<<"sgx1: "<<sgx1<<" sgx2: "<<sgx2<<" sgy1: "<<sgy1<<" sgy2: "<<sgy2<<" |  SUM1: "<<sgx1+sgy1<<"  SUM2: "<<sgx2+sgy2<<endl;
     
     
-    dqx = pdqx->sx(p,a->bedload,sgx1,sgx2);
-    dqy = pdqx->sy(p,a->bedload,sgy1,sgy2);
-    
-    
-    
-    //dqx = signx*(qx2-qx1)/p->DXN[IP];
-    //dqy = signy*(qy2-qy1)/p->DYN[JP];
-    
-    
+    dqx = pdx->sx(p,a->bedload,sgx1,sgx2);
+    dqy = pdx->sy(p,a->bedload,sgy1,sgy2);
 		
 	// Exner equations
     vz =  -prelax->rf(p,a,pgc)*(1.0/(1.0-p->S24))*(dqx*signx + dqy*signy) + ws*(a->conc(i,j,k) - pcb->cbed(p,a,pgc,a->topo)); 

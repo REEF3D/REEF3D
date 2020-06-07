@@ -120,8 +120,8 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double
 	yip= p->YP[JP];
 	zip= p->ZP[KP];
 	
-	uvel=p->ccipol1(a->u,xip,yip,zval);
-	vvel=p->ccipol2(a->v,xip,yip,zval);
+	uvel=p->ccipol1_a(a->u,xip,yip,zval);
+	vvel=p->ccipol2_a(a->v,xip,yip,zval);
 	v_d=p->ccipol4_a(a->visc,xip,yip,zval);
 	v_t=p->ccipol4_a(a->eddyv,xip,yip,zval);
 

@@ -24,33 +24,24 @@ Author: Hans Bihs
 #include"increment.h"
 #include"weno_nug_func.h"
 
-#ifndef SEDIMENT_WENOFLUX_H_
-#define SEDIMENT_WENOFLUX_H_
+#ifndef SEDIMENT_FOU_H_
+#define SEDIMENT_FOU_H_
 
 using namespace std;
 
-class sediment_wenoflux : public sediment_exnerdisc, public increment, public weno_nug_func
+class sediment_fou : public sediment_exnerdisc, public increment
 {
 public:
-	sediment_wenoflux(lexer*);
-	virtual ~sediment_wenoflux();
+	sediment_fou(lexer*);
+	virtual ~sediment_fou();
 
     virtual double sx(lexer*, slice&, double, double);
 	virtual double sy(lexer*, slice&, double, double);
 
 
 private:
-    double ffx(lexer *p, slice &f, double advec);
-    double ffy(lexer *p, slice &f, double advec);
 
-    
-    void iqmin(lexer*, slice&);
-	void jqmin(lexer*, slice&);
-	void iqmax(lexer*, slice&);
-	void jqmax(lexer*, slice&);
-    
-    
-    double **ckz;
+    double ivel1,ivel2,jvel1,jvel2;
     double grad;
     
     double fu1,fu2,fv1,fv2;

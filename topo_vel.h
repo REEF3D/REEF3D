@@ -27,8 +27,7 @@ class bedconc;
 class topo_relax;
 class turbulence;
 class ghostcell;
-class fnpf_convection;
-class sediment_wenoflux;
+class sediment_exnerdisc;
 
 using namespace std;
 
@@ -61,8 +60,7 @@ public:
 
 	bedconc *pcb;
     topo_relax *prelax;
-    fnpf_convection *pdx;
-    sediment_wenoflux *pdqx;
+    sediment_exnerdisc *pdx;
 
 	const double dx,epsi;
 };

@@ -44,17 +44,13 @@ double sediment_wenoflux::sx(lexer *p, slice &f, double ivel1, double ivel2)
 {
     grad=0.0;
         
-        //ivel1 = P(i-1,j);
-       // ivel2 = P(i,j);
-		
+
 		i-=1;
 		fu1 = ffx(p,f,ivel1);
 		i+=1;
 		
 		fu2 = ffx(p,f,ivel2);
 		
-		//grad = ((fu2*ivel2-fu1*ivel1)/p->DXN[IP]);
-        
         grad = ((fu2-fu1)/p->DXN[IP]);
         
     return grad;
@@ -64,17 +60,12 @@ double sediment_wenoflux::sy(lexer *p, slice &f, double jvel1, double jvel2)
 {
     grad=0.0;
         
-        //jvel1 = Q(i,j-1);
-        //jvel2 = Q(i,j);
-		
 		j-=1;
 		fv1 = ffy(p,f,jvel1);
 		j+=1;
 		
 		fv2 = ffy(p,f,jvel2);
-		
-		//grad = ((fv2*jvel2-fv1*jvel1)/p->DYN[JP]);
-        
+
         grad = ((fv2-fv1)/p->DYN[JP]);
 			  
     return grad;  
@@ -145,7 +136,6 @@ double sediment_wenoflux::ffy(lexer *p, slice &f, double advec)
 	
 	return grad;
 }
-
 
 void sediment_wenoflux::iqmin(lexer *p, slice &f)
 {	

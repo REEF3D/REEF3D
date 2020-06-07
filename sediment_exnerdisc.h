@@ -20,40 +20,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sediment_exnerdisc.h"
-#include"increment.h"
-#include"weno_nug_func.h"
+class lexer;
+class slice;
 
-#ifndef SEDIMENT_WENOFLUX_H_
-#define SEDIMENT_WENOFLUX_H_
+
+#ifndef SEDIMENT_EXNERDISC_H_
+#define SEDIMENT_EXNERDISC_H_
 
 using namespace std;
 
-class sediment_wenoflux : public sediment_exnerdisc, public increment, public weno_nug_func
+class sediment_exnerdisc
 {
 public:
-	sediment_wenoflux(lexer*);
-	virtual ~sediment_wenoflux();
+    virtual double sx(lexer*, slice&, double, double)=0;
+	virtual double sy(lexer*, slice&, double, double)=0;
 
-    virtual double sx(lexer*, slice&, double, double);
-	virtual double sy(lexer*, slice&, double, double);
-
-
-private:
-    double ffx(lexer *p, slice &f, double advec);
-    double ffy(lexer *p, slice &f, double advec);
-
-    
-    void iqmin(lexer*, slice&);
-	void jqmin(lexer*, slice&);
-	void iqmax(lexer*, slice&);
-	void jqmax(lexer*, slice&);
-    
-    
-    double **ckz;
-    double grad;
-    
-    double fu1,fu2,fv1,fv2;
 
 };
 

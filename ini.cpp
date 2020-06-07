@@ -502,6 +502,7 @@ void lexer::ini_default()
     S26_b=2.2;            // double beta for VRANS sediment
     S30=0.047;          // double Shields parameter
     S31=1;		        // int exner scheme
+    S32=4;              // int exner discretization
 	S37=2;		        // int number reini time step
 	S38=0;            // int reinitialization for interface nodes
 	S39=2;				// int order of time discretization for dz/dh
