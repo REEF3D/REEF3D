@@ -108,10 +108,9 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double
             wh+=p->DZN[KP];
             }
         }
-        
+    
         uvel=uvel/double(count);
         vvel=vvel/double(count);
-
         
         u_abs = sqrt(uvel*uvel + vvel*vvel);
 	
@@ -127,7 +126,6 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double
 		
 	xip= p->XP[IP];
 	yip= p->YP[JP];
-	zip= p->ZP[KP];
 	
         if(p->S33==1)
         {
