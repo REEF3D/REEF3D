@@ -558,8 +558,6 @@ void lexer::ini_default()
 	W3=1.205;		// double density air
 	W4=1.41e-5;		// double viscosity air
 	W5=0.0;			// double surface tension between phase 1 and phase 2
-	W6=840.0;			// double density oil
-	W7=3.0e-4;		// double viscosity oil
 	W10=0.0;		// double discharge
     W11=0;         // int velocity inlet face 1
     W11_u=0.0;     // double u-velocity inlet face 1

@@ -43,7 +43,6 @@ void weno3_nug_func::is_min_z()
 
 void weno3_nug_func::is_max_x()
 {
-
     is1x = isfx[IP][uf][2]*pow(q3-q2,2.0);
     is2x = isfx[IP][uf][3]*pow(q2-q1,2.0);
 }
