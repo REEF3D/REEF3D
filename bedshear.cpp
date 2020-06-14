@@ -63,6 +63,9 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double
 	double zval,fac,topoval,taukin,tauvel,density;
     
     k = a->bedk(i,j)+1;
+    
+    xip= p->XP[IP];
+	yip= p->YP[JP];
     zval = a->bedzh(i,j) + p->S116*p->DZN[k];
     dist = p->S117*p->DZN[k];
 		
@@ -70,16 +73,19 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double
 	
     if(p->S16==1)
     {
-	xip= p->XP[IP];
-	yip= p->YP[JP];
-	zip= p->ZP[KP];
-    
-	uvel=p->ccipol1_a(a->u,xip,yip,zval);
-	vvel=p->ccipol2_a(a->v,xip,yip,zval);
-	//wvel=p->ccipol3_a(a->w,xip,yip,zval);
+        if(p->S33==1)
+        {
+        uvel=p->ccipol1(a->u,xip,yip,zval);
+        vvel=p->ccipol2(a->v,xip,yip,zval);
+        }
+        
+        if(p->S33==2)
+        {
+        uvel=p->ccipol1_a(a->u,xip,yip,zval);
+        vvel=p->ccipol2_a(a->v,xip,yip,zval);
+        }
 
-
-    u_abs = sqrt(uvel*uvel + vvel*vvel);// + wvel*wvel);
+    u_abs = sqrt(uvel*uvel + vvel*vvel);
 
     u_plus = (1.0/kappa)*log(30.0*(dist/ks));
 
@@ -102,10 +108,9 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double
             wh+=p->DZN[KP];
             }
         }
-        
+    
         uvel=uvel/double(count);
         vvel=vvel/double(count);
-
         
         u_abs = sqrt(uvel*uvel + vvel*vvel);
 	
@@ -121,22 +126,30 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double
 		
 	xip= p->XP[IP];
 	yip= p->YP[JP];
-	zip= p->ZP[KP];
 	
-	uvel=p->ccipol1_a(a->u,xip,yip,zval);
-	vvel=p->ccipol2_a(a->v,xip,yip,zval);
-	wvel=p->ccipol3_a(a->w,xip,yip,zval);
+        if(p->S33==1)
+        {
+        uvel=p->ccipol1(a->u,xip,yip,zval);
+        vvel=p->ccipol2(a->v,xip,yip,zval);
+        }
+        
+        if(p->S33==2)
+        {
+        uvel=p->ccipol1_a(a->u,xip,yip,zval);
+        vvel=p->ccipol2_a(a->v,xip,yip,zval);
+        }
+        
 	v_d=p->ccipol4_a(a->visc,xip,yip,zval);
 	v_t=p->ccipol4_a(a->eddyv,xip,yip,zval);
 
-    u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
+    u_abs = sqrt(uvel*uvel + vvel*vvel);
     
 
     tau=density*(v_d + v_t)*(u_abs/dist);
     }
 	
 	if(p->S16==4)
-    tau=density*pturb->kinval(i,j,k)*0.3;
+    tau=density*pturb->ccipol_kinval(p,pgc,xip,yip,zval)*0.3;
     
     if(p->S16==5)
     tau=density*pturb->ccipol_kinval(p,pgc,xip,yip,zval)*0.3;
@@ -198,13 +211,9 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double
     tau = density*pow(sqrt(9.81)*(u_abs/Cval),2.0);
     }
     
-
-    
     tau_eff = tau;
     shearvel_eff = sqrt(tau/p->W1);
     shields_eff = tau/(p->W1*((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
-
-
 }
 
 void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, double &tau_crit, double &shearvel_crit, double &shields_crit)
@@ -215,16 +224,7 @@ void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, double &tau_crit, d
 	
 	r = preduce->start(p,a,pgc);
     
-	
-    KLOOP
-    PBASECHECK
-    {
-        a->test(i,j,k)=r;
-    }
-    
-    
     tauc = (p->S30*fabs(p->W22)*(p->S22-p->W1))*p->S20*r;
-		
   
     tau_crit = tauc;
     shearvel_crit = sqrt(tauc/p->W1);

@@ -93,7 +93,7 @@ void sflow_iweno_hj::wenoloop4(lexer *p, fdm2D *b, slice &f, int ipol, slice &uv
 			}
 
 
-			if(jadvec>=0.0)
+			if(jadvec>=0.0 && p->j_dir==1)
 			{
 			is_east(f);
 			alpha_calc();
@@ -101,7 +101,7 @@ void sflow_iweno_hj::wenoloop4(lexer *p, fdm2D *b, slice &f, int ipol, slice &uv
 			aij_east(p,b,f,b->L);
 			}
 
-			if(jadvec<0.0)
+			if(jadvec<0.0 && p->j_dir==1)
 			{
 			is_west(f);
 			alpha_calc();

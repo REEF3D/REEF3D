@@ -17,48 +17,53 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"increment.h"
-#include<fstream>
+#include"sediment_weno_hj.h"
+#include"lexer.h"
+#include"vec.h"
+#include"fnpf_discrete_weights.h"
 
-class lexer;
-class fdm_fnpf;
-class ghostcell;
-
-using namespace std;
-
-#ifndef FNPF_STATE_H_
-#define FNPF_STATE_H_
-
-class fnpf_state : public increment
+sediment_weno_hj::sediment_weno_hj(lexer* p) :  ddweno_f_nug(p)
 {
-
-public:
-	fnpf_state(lexer*,fdm_fnpf*,ghostcell*);
-	virtual ~fnpf_state();
-	void write(lexer*,fdm_fnpf*,ghostcell*);
+    p->Darray(ckz,p->knoz+1+4*marge,5);
     
-    void mainheader_ini(lexer*,fdm_fnpf*,ghostcell*);
-    void mainheader(lexer*,fdm_fnpf*,ghostcell*);
+    fnpf_discrete_weights dw(p);
 
-    void header(lexer*,fdm_fnpf*,ghostcell*);
-	
-private:
-    void filename(lexer*,fdm_fnpf*,ghostcell*,int);
-    void filename_header(lexer*,fdm_fnpf*,ghostcell*);
+    dw.ck_weights(p, ckz, p->ZN, p->knoz+1, 1, 4, 6);
+}
 
-    char name[500];
-    float ffn;
-	int iin;
-	double ddn;
-	int printcount;
-    int ini_token;
-    ofstream headout;
-    ofstream mainout;
+sediment_weno_hj::~sediment_weno_hj()
+{
+}
+double sediment_weno_hj::sx(lexer *p, slice &f, double ivel1, double ivel2)
+{
+    grad=0.0;
     
+    ivel = 0.5*(ivel1+ivel2);
     
-};
+    if(ivel>0.0)
+    grad=dswenox(f,1.0);
+    
+    if(ivel<0.0)
+    grad=dswenox(f,-1.0);
+    
+    return grad;
+}
 
-#endif
+double sediment_weno_hj::sy(lexer *p, slice &f, double jvel1, double jvel2)
+{
+    grad=0.0;
+    
+    jvel = 0.5*(jvel1+jvel2);
+    
+    if(jvel>0.0)
+    grad=dswenoy(f,1.0);
+    
+    if(jvel<0.0)
+    grad=dswenoy(f,-1.0);
+    
+    return grad;   
+}
+
+
