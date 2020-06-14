@@ -38,11 +38,9 @@ double wave_lib_wcp::space_interpol(lexer *p, double ***F, double x, double y, d
     
     if(xp>=Xstart  && xp<Xend && ((yp>=Ystart && yp<Yend)|| jdir==0))
     {
-        //cout<<"pos_ij1: "<<i<<" "<<j<<" jdir "<<jdir<<endl;
         i = pos_i(p,xp);
         j = pos_j(p,yp);
-        //cout<<"pos_ij2: "<<i<<" "<<j<<" jdir "<<jdir<<" Z0: "<<Z[i][j][0]<<" Zk: "<<Z[i][j][Nz-1]<<endl;
-        
+
         if(zp>=Z[i][j][0] && zp<=Z[i][j][Nz-1])
         {
         k = pos_k(p,zp,i,j);

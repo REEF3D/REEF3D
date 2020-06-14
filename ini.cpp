@@ -392,7 +392,7 @@ void lexer::ini_default()
     I241=0.0;       // double delta t for flowfile
     I242=0.0;       // double delta t for flowfile
 
-    // Nunmerics
+    // Numerics
 	N5=1;			// int true 2D
 	N10=14;			// int linear poisson solver
 	N11=11;         // int precondioner
