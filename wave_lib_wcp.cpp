@@ -58,9 +58,6 @@ double wave_lib_wcp::wave_u(lexer *p, double x, double y, double z)
     
     if(endseries==0)
     vel = space_interpol(p,U,x,y,z);
-    
-    if(p->mpirank==0)
-    cout<<vel<<endl;
 
     return cosgamma*vel;
 }
