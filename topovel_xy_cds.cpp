@@ -28,8 +28,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void topo_vel::topovel_xy_cds(lexer* p,fdm* a, ghostcell *pgc, double& vx, double& vy, double& vz)
 {
-	double uvel,vvel,uvel1,vvel1,u_abs;
-	double sgx,sgy,sgx1,sgy1;
+	double uvel,vvel,uvel1,vvel1,uvel2,vvel2,u_abs;
+	double sgx,sgy,sgx1,sgy1,sgx2,sgy2;
 	double dqx,dqy;
 	
 	vx=0.0;
@@ -37,26 +37,38 @@ void topo_vel::topovel_xy_cds(lexer* p,fdm* a, ghostcell *pgc, double& vx, doubl
 	vz=0.0;
 	 
 	if(p->pos_x()>=p->S71 && p->pos_x()<=p->S72)
-	{						
-        //uvel=0.5*(a->P(i,j)+a->P(i-1,j));
-
-        //vvel=0.5*(a->Q(i,j)+a->Q(i,j-1));
-        
+	{	
+        /*
         uvel  = a->P(i,j);
         uvel1 = a->P(i-1,j);
         vvel  = a->Q(i,j);
-        vvel1 = a->Q(i-1,j);
+        vvel1 = a->Q(i,j-1);
         
 		sgx=fabs(uvel)>1.0e-10?uvel/fabs(uvel):0.0;
 		sgy=fabs(vvel)>1.0e-10?vvel/fabs(vvel):0.0;
         sgx1=fabs(uvel1)>1.0e-10?uvel1/fabs(uvel1):0.0;
 		sgy1=fabs(vvel1)>1.0e-10?vvel1/fabs(vvel1):0.0;
-	
-		
-	dqx=dqy=0.0;
 
-    dqx = (a->qbx(i,j)*sgx-a->qbx(i-1,j)*sgx1)/(p->DXN[IP]);
-    dqy = (a->qby(i,j)*sgy-a->qby(i,j-1)*sgy1)/(p->DYN[JP]);
+        dqx = (a->qbx(i,j)*sgx-a->qbx(i-1,j)*sgx1)/(p->DXN[IP]);
+        dqy = (a->qby(i,j)*sgy-a->qby(i,j-1)*sgy1)/(p->DYN[JP]);
+        */
+        
+        
+        uvel  = 0.5*(a->P(i,j)+a->P(i-1,j));
+        vvel  = 0.5*(a->Q(i,j)+a->Q(i,j-1));
+        
+        u_abs = sqrt(uvel*uvel + vvel*vvel);
+        
+		//sgx=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
+		//sgy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
+        
+        
+        sgx=fabs(uvel)>1.0e-10?uvel/fabs(uvel):0.0;
+		sgy=fabs(vvel)>1.0e-10?vvel/fabs(vvel):0.0;
+        
+        dqx = sgx*(a->qbx(i,j)-a->qbx(i-1,j))/(p->DXN[IP]);
+        dqy = sgy*(a->qby(i,j)-a->qby(i,j-1))/(p->DYN[JP]);
+        
 		
 	// Exner equations
     vz =  -prelax->rf(p,a,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy) + ws*(a->conc(i,j,k) - pcb->cbed(p,a,pgc,a->topo)); 

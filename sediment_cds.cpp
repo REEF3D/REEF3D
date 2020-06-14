@@ -17,48 +17,34 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"increment.h"
-#include<fstream>
+#include"sediment_cds.h"
+#include"lexer.h"
+#include"slice.h"
+#include"vec.h"
+#include"fnpf_discrete_weights.h"
 
-class lexer;
-class fdm_fnpf;
-class ghostcell;
-
-using namespace std;
-
-#ifndef FNPF_STATE_H_
-#define FNPF_STATE_H_
-
-class fnpf_state : public increment
+sediment_cds::sediment_cds(lexer* p) 
 {
 
-public:
-	fnpf_state(lexer*,fdm_fnpf*,ghostcell*);
-	virtual ~fnpf_state();
-	void write(lexer*,fdm_fnpf*,ghostcell*);
-    
-    void mainheader_ini(lexer*,fdm_fnpf*,ghostcell*);
-    void mainheader(lexer*,fdm_fnpf*,ghostcell*);
+}
 
-    void header(lexer*,fdm_fnpf*,ghostcell*);
-	
-private:
-    void filename(lexer*,fdm_fnpf*,ghostcell*,int);
-    void filename_header(lexer*,fdm_fnpf*,ghostcell*);
+sediment_cds::~sediment_cds()
+{
+}
 
-    char name[500];
-    float ffn;
-	int iin;
-	double ddn;
-	int printcount;
-    int ini_token;
-    ofstream headout;
-    ofstream mainout;
-    
-    
-};
+double sediment_cds::sx(lexer *p, slice &f, double ivel1, double ivel2)
+{   
+    grad = (f(i+1,j)-f(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+        
+    return grad;
+}
 
-#endif
+double sediment_cds::sy(lexer *p, slice &f, double jvel1, double jvel2)
+{
+    grad = (f(i,j+1)-f(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+			  
+    return grad;  
+}
+

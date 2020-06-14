@@ -25,7 +25,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"bedconc.h"
 #include"topo_relax.h"
-#include"fnpf_weno.h"
+#include"sediment_fou.h"
+#include"sediment_cds.h"
+#include"sediment_wenoflux.h"
+#include"sediment_weno_hj.h"
 
 topo_vel::topo_vel(lexer* p, turbulence *pturb): ccipol(p), norm_vec(p), dx(p->dx),epsi(1.6*p->dx)
 {
@@ -39,7 +42,18 @@ topo_vel::topo_vel(lexer* p, turbulence *pturb): ccipol(p), norm_vec(p), dx(p->d
     
     prelax = new topo_relax(p);
     
-    pdx = new fnpf_weno(p);
+    if(p->S32==1)
+    pdx = new sediment_fou(p);
+    
+    if(p->S32==2)
+    pdx = new sediment_cds(p);
+    
+    if(p->S32==4)
+    pdx = new sediment_wenoflux(p);
+    
+    if(p->S32==5)
+    pdx = new sediment_weno_hj(p);
+    
 }
 
 topo_vel::~topo_vel()
@@ -51,6 +65,7 @@ void topo_vel::topovel(lexer* p,fdm* a, ghostcell *pgc, double& vx, double& vy, 
 	double uvel,vvel,u_abs;
 	double signx,signy;
 	double dqx,dqy;
+    double qx1,qx2,q1x,qy2;
 	
 	vx=0.0;
 	vy=0.0;
@@ -69,15 +84,44 @@ void topo_vel::topovel(lexer* p,fdm* a, ghostcell *pgc, double& vx, double& vy, 
 		u_abs = sqrt(uvel*uvel + vvel*vvel);
 		signx=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
 		signy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
-	
-		
-	dqx=dqy=0.0;
 
-    //dqx = (a->bedload(i+1,j)-a->bedload(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
-    //dqy = (a->bedload(i,j+1)-a->bedload(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
     
-    dqx = pdx->sx(p,a->bedload,signx);
-    dqy = pdx->sy(p,a->bedload,signy);
+    double ux1,vx1,ux2,vx2,uy1,vy1,uy2,vy2;
+    double sgx1,sgx2,sgy1,sgy2;
+    double ux1_abs,ux2_abs,uy1_abs,uy2_abs;
+    
+    ux1=a->P(i-1,j);
+    vx1=0.25*(a->Q(i,j)+a->Q(i-1,j)+a->Q(i,j-1)+a->Q(i-1,j-1)); 
+    
+    ux2=a->P(i,j);
+    vx2=0.25*(a->Q(i,j)+a->Q(i+1,j)+a->Q(i,j-1)+a->Q(i+1,j-1)); 
+    
+    
+    uy1=0.25*(a->P(i,j-1)+a->P(i,j)+a->P(i-1,j-1)+a->P(i-1,j));
+    vy1=a->Q(i,j-1); 
+    
+    uy2=0.25*(a->P(i,j)+a->P(i,j+1)+a->P(i-1,j)+a->P(i-1,j+1));
+    vy2=a->Q(i,j); 
+    
+    
+    ux1_abs = sqrt(ux1*ux1 + vx1*vx1);
+    ux2_abs = sqrt(ux2*ux2 + vx2*vx2);
+    
+    uy1_abs = sqrt(uy1*uy1 + vy1*vy1);
+    uy2_abs = sqrt(uy2*uy2 + vy2*vy2);
+        
+    sgx1=fabs(ux1_abs)>1.0e-10?ux1/fabs(ux1_abs):0.0;
+    sgx2=fabs(ux2_abs)>1.0e-10?ux2/fabs(ux2_abs):0.0;
+    
+    sgy1=fabs(uy1_abs)>1.0e-10?vy1/fabs(uy1_abs):0.0;
+    sgy2=fabs(uy2_abs)>1.0e-10?vy2/fabs(uy2_abs):0.0;
+    
+    
+    //cout<<"sgx1: "<<sgx1<<" sgx2: "<<sgx2<<" sgy1: "<<sgy1<<" sgy2: "<<sgy2<<" |  SUM1: "<<sgx1+sgy1<<"  SUM2: "<<sgx2+sgy2<<endl;
+    
+    
+    dqx = pdx->sx(p,a->bedload,sgx1,sgx2);
+    dqy = pdx->sy(p,a->bedload,sgy1,sgy2);
 		
 	// Exner equations
     vz =  -prelax->rf(p,a,pgc)*(1.0/(1.0-p->S24))*(dqx*signx + dqy*signy) + ws*(a->conc(i,j,k) - pcb->cbed(p,a,pgc,a->topo)); 

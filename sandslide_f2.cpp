@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2019 Hans Bihs
+Copyright 2008-2020 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -39,7 +39,6 @@ sandslide_f2::sandslide_f2(lexer *p) : norm_vec(p), bedslope(p), fh(p)
 	if(p->S50==4)
 	gcval_topo=154;
 
-	dxs=sqrt(2.0*p->dx*p->dx);
 	fac1=p->S92*(1.0/6.0);
 	fac2=p->S92*(1.0/12.0);
 }
@@ -48,99 +47,108 @@ sandslide_f2::~sandslide_f2()
 {
 }
 
-void sandslide_f2::start(lexer *p, fdm * a, ghostcell *pgc, slice &bedzh, sliceint &bedk)
+void sandslide_f2::start(lexer *p, fdm * a, ghostcell *pgc)
 {
+    // mainloop
     for(int qn=0; qn<p->S91; ++qn)
     {
+        count=0;
         
-    SLICELOOP4
-    fh(i,j)=bedzh(i,j);
-    
-    count=0;
-    pgc->dgcslpol(p,bedzh,p->dgcsl4,p->dgcsl4_count,14);
-    bedzh.ggcpol(p);
-    
-    topo_zh_update(p,a,pgc,bedzh);
+        // fill
+        SLICELOOP4
+        fh(i,j)=0.0;
+        
+        pgc->gcsl_start4(p,fh,1);
+        
+        // slide loop
+        SLICELOOP4
+        if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
+        {
+            slide(p,a,pgc);
+        }
+        pgc->gcslparax_fh(p,fh,4);
+        
+        // fill back
+        SLICELOOP4
+        a->bedzh(i,j)+=fh(i,j);
 
-    SLICELOOP4
-    if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
-    {
-		slide(p,a,pgc,bedzh,bedk);
-    }
-    
-    SLICELOOP4
-    bedzh(i,j)=fh(i,j);
+        pgc->gcsl_start4(p,a->bedzh,1);
 
-    pgc->gcsl_start4(p,bedzh,1);
+        count=pgc->globalimax(count);
 
-    count=pgc->globalimax(count);
+        p->slidecells=count;
+        
+        if(p->slidecells==0)
+        break;
 
-    p->slidecells=count;
-    
-    if(p->slidecells==0)
-    break;
-
-    if(p->mpirank==0)
-    cout<<"sandslide_f2 corrections: "<<p->slidecells<<endl;
+        if(p->mpirank==0)
+        cout<<"sandslide_f2 corrections: "<<p->slidecells<<endl;
     }
 }
 
-void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc, slice& bedzh, sliceint &bedk)
+void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc)
 {
-
-		k = bedk(i,j);
+		k = a->bedk(i,j);
 		
-        slope(p,a,pgc,teta,alpha,gamma,phi);
+		slope(p,a,pgc,teta,alpha,gamma,phi);
 
-
-		maxdh=tan(phi)*p->dx;
-		maxdhs=tan(phi)*dxs;
-        
 			
         // 1
-        dh = bedzh(i,j) - bedzh(i-1,j);
-        dh_corr = dh + tan(p->S93*(PI/180.0))*p->dx;
+        dh = a->bedzh(i,j) - a->bedzh(i-1,j);
+        
+        maxdh = tan(phi)*p->DXP[IM1];
         
         if(dh>maxdh && fabs(dh)<1.0e15)
 		{
-			fh(i,j)-= fac1*dh_corr;
+            dh_corr = (dh-maxdh) + tan(p->S93*(PI/180.0))*p->DXP[IM1];
+            
+            fh(i,j)-= fac1*dh_corr;
             fh(i-1,j)+= fac1*dh_corr;
             
 		++count;
 		}
 
         // 2
-        dh = bedzh(i,j) - bedzh(i+1,j);
-		dh_corr = dh + tan(p->S93*(PI/180.0))*p->dx;
+        dh = a->bedzh(i,j) - a->bedzh(i+1,j);
+        
+        maxdh = tan(phi)*p->DXP[IP];
 		
         if(dh>maxdh && fabs(dh)<1.0e15)
 		{
-			fh(i,j)-= fac1*dh_corr;
+			dh_corr = (dh-maxdh) + tan(p->S93*(PI/180.0))*p->DXP[IP];
+            
+            fh(i,j)-= fac1*dh_corr;
             fh(i+1,j)+= fac1*dh_corr;
 			
         ++count;
         }
 
-
         // 3
-        dh = bedzh(i,j) - bedzh(i,j-1);
-		dh_corr = dh + tan(p->S93*(PI/180.0))*p->dx;
+        dh = a->bedzh(i,j) - a->bedzh(i,j-1);
+        
+        maxdh = tan(phi)*p->DYP[JM1];
         
         if(dh>maxdh && fabs(dh)<1.0e15)
-		{            
-			fh(i,j)-= fac1*dh_corr;
+		{          
+            dh_corr = (dh-maxdh) + tan(p->S93*(PI/180.0))*p->DYP[JM1];
+            
+            fh(i,j)-= fac1*dh_corr;
             fh(i,j-1)+= fac1*dh_corr;
 			
         ++count;
         }
 
         // 4
-        dh = bedzh(i,j) - bedzh(i,j+1);
-		dh_corr = dh + tan(p->S93*(PI/180.0))*p->dx;
+        dh = a->bedzh(i,j) - a->bedzh(i,j+1);
+		dh_corr = dh + tan(p->S93*(PI/180.0))*p->DXP[JP];
+        
+        maxdh = tan(phi)*p->DYP[JP];
         
         if(dh>maxdh && fabs(dh)<1.0e15)
 		{
-			fh(i,j)-= fac1*dh_corr;
+            dh_corr = (dh-maxdh) + tan(p->S93*(PI/180.0))*p->DXP[JP];
+            
+            fh(i,j)-= fac1*dh_corr;
             fh(i,j+1)+= fac1*dh_corr;
 
         ++count;
@@ -148,12 +156,15 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc, slice& bedzh, slicei
 		
 		
         // 5
-        dh = bedzh(i,j) - bedzh(i-1,j-1);
-		dh_corr = dh + tan(p->S93*(PI/180.0))*dxs;
+        dh = a->bedzh(i,j) - a->bedzh(i-1,j-1);
+        
+        maxdhs = tan(phi)*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]);
 
         if(dh>maxdhs && fabs(dh)<1.0e15)
         {
-			fh(i,j)-= fac2*dh_corr;
+            dh_corr = (dh-maxdhs) + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]);
+            
+            fh(i,j)-= fac2*dh_corr;
             fh(i-1,j-1)+= fac2*dh_corr;
         
         ++count;
@@ -161,23 +172,29 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc, slice& bedzh, slicei
     
 
         // 6
-        dh = bedzh(i,j) - bedzh(i-1,j+1);
-		dh_corr = dh + tan(p->S93*(PI/180.0))*dxs;
+        dh = a->bedzh(i,j) - a->bedzh(i-1,j+1);
+
+        maxdhs = tan(phi)*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]);
         
         if(dh>maxdhs && fabs(dh)<1.0e15)
-		{            
-			fh(i,j)-= fac2*dh_corr;
+		{   
+            dh_corr = (dh-maxdhs) + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]);         
+            
+            fh(i,j)-= fac2*dh_corr;
             fh(i-1,j+1)+= fac2*dh_corr;
 			
         ++count;
         }
 
         // 7
-        dh = bedzh(i,j) - bedzh(i+1,j-1);
-		dh_corr = dh + tan(p->S93*(PI/180.0))*dxs;
+        dh = a->bedzh(i,j) - a->bedzh(i+1,j-1);
+ 
+        maxdhs = tan(phi)*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]);
         
         if(dh>maxdhs && fabs(dh)<1.0e15)
 		{
+            dh_corr = (dh-maxdhs) + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]);
+            
 			fh(i,j)-= fac2*dh_corr;
             fh(i+1,j-1)+= fac2*dh_corr;
 
@@ -185,12 +202,15 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc, slice& bedzh, slicei
         }
     
         // 8
-        dh = bedzh(i,j) - bedzh(i+1,j+1);
-		dh_corr = dh + tan(p->S93*(PI/180.0))*dxs;
+        dh = a->bedzh(i,j) - a->bedzh(i+1,j+1);
+  
+        maxdhs = tan(phi)*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);
 
         if(dh>maxdhs && fabs(dh)<1.0e15)
-		{            
-			fh(i,j)-= fac2*dh_corr;
+		{   
+            dh_corr = (dh-maxdhs) + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);   
+      
+            fh(i,j)-= fac2*dh_corr;
             fh(i+1,j+1)+= fac2*dh_corr;
             
         ++count;
@@ -198,14 +218,14 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc, slice& bedzh, slicei
         
 }
 
-void sandslide_f2::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc, slice& bedzh)
+void sandslide_f2::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc)
 {
-	pgc->gcsl_start4(p,bedzh,1);
+	pgc->gcsl_start4(p,a->bedzh,1);
 	
     ALOOP
     {
     if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
-    a->topo(i,j,k)=-bedzh(i,j)+p->pos_z();
+    a->topo(i,j,k)=-a->bedzh(i,j)+p->pos_z();
     }
 	
 	pgc->start4a(p,a->topo,150);
