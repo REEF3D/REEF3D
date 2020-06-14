@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,45 +20,27 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"sediment_exnerdisc.h"
 #include"increment.h"
-#include<fstream>
+#include"weno_nug_func.h"
 
-class lexer;
-class fdm_fnpf;
-class ghostcell;
+#ifndef SEDIMENT_CDS_H_
+#define SEDIMENT_CDS_H_
 
 using namespace std;
 
-#ifndef FNPF_STATE_H_
-#define FNPF_STATE_H_
-
-class fnpf_state : public increment
+class sediment_cds : public sediment_exnerdisc, public increment
 {
-
 public:
-	fnpf_state(lexer*,fdm_fnpf*,ghostcell*);
-	virtual ~fnpf_state();
-	void write(lexer*,fdm_fnpf*,ghostcell*);
-    
-    void mainheader_ini(lexer*,fdm_fnpf*,ghostcell*);
-    void mainheader(lexer*,fdm_fnpf*,ghostcell*);
+	sediment_cds(lexer*);
+	virtual ~sediment_cds();
 
-    void header(lexer*,fdm_fnpf*,ghostcell*);
-	
+    virtual double sx(lexer*, slice&, double, double);
+	virtual double sy(lexer*, slice&, double, double);
+
 private:
-    void filename(lexer*,fdm_fnpf*,ghostcell*,int);
-    void filename_header(lexer*,fdm_fnpf*,ghostcell*);
 
-    char name[500];
-    float ffn;
-	int iin;
-	double ddn;
-	int printcount;
-    int ini_token;
-    ofstream headout;
-    ofstream mainout;
-    
-    
+    double grad;
 };
 
 #endif

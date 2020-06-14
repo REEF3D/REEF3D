@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2019 Hans Bihs
+Copyright 2008-2020 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"norm_vec.h"
@@ -35,19 +36,19 @@ public:
     sandslide_f2(lexer*);
     virtual ~sandslide_f2();
 
-	virtual void start(lexer*, fdm*,ghostcell*,slice&,sliceint&);
+	virtual void start(lexer*, fdm*,ghostcell*);
 
 private:
 
-    void slide(lexer*, fdm*,ghostcell*,slice&,sliceint&);
-    void topo_zh_update(lexer*,fdm*,ghostcell*,slice&);
+    void slide(lexer*, fdm*,ghostcell*);
+    void topo_zh_update(lexer*,fdm*,ghostcell*);
 	
     slice4 fh;
     
     int gcval_topo,count;
 
     double fac1, fac2;
-    double dh,maxdh,maxdhs,dxs,dh_corr;
+    double dh,maxdh,maxdhs,dh_corr;
     double slide_dh,slide_dhs;
 	double teta, alpha, beta, gamma;
     double phi;

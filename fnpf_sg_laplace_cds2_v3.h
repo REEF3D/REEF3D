@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,45 +20,25 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"fnpf_sg_laplace.h"
 #include"increment.h"
-#include<fstream>
 
-class lexer;
-class fdm_fnpf;
-class ghostcell;
+#ifndef FNPF_SG_LAPLACE_CDS2_V3_H_
+#define FNPF_SG_LAPLACE_CDS2_V3_H_
 
 using namespace std;
 
-#ifndef FNPF_STATE_H_
-#define FNPF_STATE_H_
-
-class fnpf_state : public increment
+class fnpf_sg_laplace_cds2_v3 : public fnpf_sg_laplace, public increment
 {
-
 public:
-	fnpf_state(lexer*,fdm_fnpf*,ghostcell*);
-	virtual ~fnpf_state();
-	void write(lexer*,fdm_fnpf*,ghostcell*);
-    
-    void mainheader_ini(lexer*,fdm_fnpf*,ghostcell*);
-    void mainheader(lexer*,fdm_fnpf*,ghostcell*);
+    fnpf_sg_laplace_cds2_v3 (lexer*);
+	virtual ~fnpf_sg_laplace_cds2_v3();
 
-    void header(lexer*,fdm_fnpf*,ghostcell*);
-	
+    virtual void start(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_sg_fsf*,double*);
+    
 private:
-    void filename(lexer*,fdm_fnpf*,ghostcell*,int);
-    void filename_header(lexer*,fdm_fnpf*,ghostcell*);
-
-    char name[500];
-    float ffn;
-	int iin;
-	double ddn;
-	int printcount;
-    int ini_token;
-    ofstream headout;
-    ofstream mainout;
     
-    
+    double **ckx,**cky,**ckz;
 };
 
 #endif

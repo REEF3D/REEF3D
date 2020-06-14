@@ -62,18 +62,46 @@ void topo_direct::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,rei
 	}
     
     if(p->S31==2)
-    SLICELOOP4
     {
-		topovel_xy_cds(p,a,pgc,vx,vy,vz);
-		
-		dh(i,j) = vz;
-	}
+        
+        double uvel,vvel,u_abs;
+        
+        SLICELOOP1
+        {
+        uvel=a->P(i,j);
+        vvel=0.25*(a->Q(i,j)+a->Q(i+1,j)+a->Q(i,j-1)+a->Q(i+1,j-1)); 
+        
+		u_abs = sqrt(uvel*uvel + vvel*vvel);
+        
+		signx=fabs(u_abs)>1.0e-10?fabs(uvel)/fabs(u_abs):0.0;
+        
+        a->qbx(i,j) = a->qbx(i,j)*signx;
+        }
+        
+        SLICELOOP2
+        {
+        uvel=0.25*(a->P(i,j)+a->P(i,j+1)+a->P(i-1,j)+a->P(i-1,j+1));
+        vvel=a->Q(i,j); 
+        
+		u_abs = sqrt(uvel*uvel + vvel*vvel);
+        
+		signy=fabs(u_abs)>1.0e-10?fabs(vvel)/fabs(u_abs):0.0;
+        
+        a->qby(i,j) = a->qby(i,j)*signy;
+        }
+        
+        
+        pgc->gcsl_start1(p,a->qbx,1);
+        pgc->gcsl_start2(p,a->qby,1);
+        
+        SLICELOOP4
+        {
+            topovel_xy_cds(p,a,pgc,vx,vy,vz);
+            
+            dh(i,j) = vz;
+        }
+    }
     
-    /*LOOP
-    a->test(i,j,k) = dh(i,j);
-    
-    pgc->start4(p,a->test,1);*/
-	
 	pgc->gcsl_start4(p,dh,1);
 	
 	if(p->S39==2)
