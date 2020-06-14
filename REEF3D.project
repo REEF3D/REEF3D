@@ -84,13 +84,6 @@
           <File Name="susprhs.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Topo">
-          <VirtualDirectory Name="Exnerdisc">
-            <File Name="sediment_exnerdisc.h"/>
-            <File Name="sediment_fou.h"/>
-            <File Name="sediment_cds.h"/>
-            <File Name="sediment_weno_hj.h"/>
-            <File Name="sediment_wenoflux.h"/>
-          </VirtualDirectory>
           <VirtualDirectory Name="Reinitialization">
             <File Name="reinitopo.h"/>
             <File Name="reinitopo_RK3.h"/>
@@ -734,7 +727,6 @@
           <File Name="fnpf_sg_ini.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
-          <File Name="fnpf_sg_laplace_cds2_v3.h"/>
           <File Name="fnpf_sg_laplace_cds2_v2.h"/>
           <File Name="fnpf_sg_laplace_cds4_bc2.h"/>
           <File Name="fnpf_sg_laplace_cds4.h"/>
@@ -990,12 +982,6 @@
           <File Name="susprhs.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Topo">
-          <VirtualDirectory Name="Exnerdisc">
-            <File Name="sediment_cds.cpp"/>
-            <File Name="sediment_fou.cpp"/>
-            <File Name="sediment_weno_hj.cpp"/>
-            <File Name="sediment_wenoflux.cpp"/>
-          </VirtualDirectory>
           <VirtualDirectory Name="Reinitialization">
             <File Name="reinitopo_RK3.cpp"/>
             <File Name="reinitopo_void.cpp"/>
@@ -2259,7 +2245,6 @@
           <File Name="fnpf_sg_ini.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
-          <File Name="fnpf_sg_laplace_cds2_v3.cpp"/>
           <File Name="fnpf_sg_laplace_cds2_v2.cpp"/>
           <File Name="fnpf_sg_laplace_cds4_bc2.cpp"/>
           <File Name="fnpf_sg_laplace_cds4.cpp"/>

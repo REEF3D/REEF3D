@@ -81,7 +81,7 @@ void bedload_EF::start(lexer* p, fdm* a, ghostcell* pgc)
         a->qbx(i,j) = qb;
 	}
     
-    SLICELOOP2
+    SLICELOOP4
     {
         taubedy(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
         taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);

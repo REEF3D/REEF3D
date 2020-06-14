@@ -30,21 +30,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void fnpf_state::write(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    // header file
-    if(ini_token==0)
-    {
-    if(p->mpirank==0)
-    mainheader_ini(p,c,pgc);
-    
-    header(p,c,pgc);
-    
-    ini_token=1;
-    }
-    
+    // mainheader file
     if(p->mpirank==0)
     mainheader(p,c,pgc);
-    
-    
     
     
     // Open File

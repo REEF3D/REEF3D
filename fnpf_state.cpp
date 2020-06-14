@@ -36,7 +36,10 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 	
 	printcount=0;
     
-    ini_token=0;
+    if(p->mpirank==0)
+    mainheader_ini(p,c,pgc);
+    
+    header(p,c,pgc);
 }
 
 fnpf_state::~fnpf_state()

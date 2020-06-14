@@ -38,9 +38,11 @@ double wave_lib_wcp::space_interpol(lexer *p, double ***F, double x, double y, d
     
     if(xp>=Xstart  && xp<Xend && ((yp>=Ystart && yp<Yend)|| jdir==0))
     {
+        //cout<<"pos_ij1: "<<i<<" "<<j<<" jdir "<<jdir<<endl;
         i = pos_i(p,xp);
         j = pos_j(p,yp);
-
+        //cout<<"pos_ij2: "<<i<<" "<<j<<" jdir "<<jdir<<" Z0: "<<Z[i][j][0]<<" Zk: "<<Z[i][j][Nz-1]<<endl;
+        
         if(zp>=Z[i][j][0] && zp<=Z[i][j][Nz-1])
         {
         k = pos_k(p,zp,i,j);
@@ -65,6 +67,13 @@ double wave_lib_wcp::plane_interpol(lexer *p, double **F, double x, double y)
     
     xp = x + p->I231;
     yp = y + p->I232;
+    
+    /*
+    cout<<endl<<"Nxy: "<<Nx<<" "<<Ny<<endl;
+    cout<<"xs_xe: "<<Xstart<<" "<<Xend<<endl;
+    cout<<"pos_xy: "<<xp<<" "<<yp<<endl;
+    cout<<"pos_ij: "<<i<<" "<<j<<" jdir "<<jdir<<endl;*/
+    
 
     if(xp>=Xstart  && xp<Xend && ((yp>=Ystart && yp<Yend)|| jdir==0))
     {
@@ -74,6 +83,9 @@ double wave_lib_wcp::plane_interpol(lexer *p, double **F, double x, double y)
         val=ccpol2D(p,F,x,y);
     }
     
+    /*
+    cout<<"pos_xy: "<<xp<<" "<<yp<<endl;
+    cout<<"pos_ij2: "<<i<<" "<<j<<endl;*/
     
     i=ii;
     j=jj;

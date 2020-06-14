@@ -392,7 +392,7 @@ void lexer::ini_default()
     I241=0.0;       // double delta t for flowfile
     I242=0.0;       // double delta t for flowfile
 
-    // Numerics
+    // Nunmerics
 	N5=1;			// int true 2D
 	N10=14;			// int linear poisson solver
 	N11=11;         // int precondioner
@@ -502,8 +502,6 @@ void lexer::ini_default()
     S26_b=2.2;            // double beta for VRANS sediment
     S30=0.047;          // double Shields parameter
     S31=1;		        // int exner scheme
-    S32=4;              // int exner discretization
-    S33=1;
 	S37=2;		        // int number reini time step
 	S38=0;            // int reinitialization for interface nodes
 	S39=2;				// int order of time discretization for dz/dh
@@ -558,6 +556,8 @@ void lexer::ini_default()
 	W3=1.205;		// double density air
 	W4=1.41e-5;		// double viscosity air
 	W5=0.0;			// double surface tension between phase 1 and phase 2
+	W6=840.0;			// double density oil
+	W7=3.0e-4;		// double viscosity oil
 	W10=0.0;		// double discharge
     W11=0;         // int velocity inlet face 1
     W11_u=0.0;     // double u-velocity inlet face 1

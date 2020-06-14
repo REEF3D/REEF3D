@@ -88,8 +88,3 @@ void ghostcell::gcwait7(lexer* p)
     }
 
 }
-
-void ghostcell::gcsync()
-{
-     MPI_Barrier(mpi_comm);
-}

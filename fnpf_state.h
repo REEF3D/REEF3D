@@ -49,12 +49,11 @@ private:
     void filename(lexer*,fdm_fnpf*,ghostcell*,int);
     void filename_header(lexer*,fdm_fnpf*,ghostcell*);
 
-    char name[500];
+    char name[200];
     float ffn;
 	int iin;
 	double ddn;
 	int printcount;
-    int ini_token;
     ofstream headout;
     ofstream mainout;
     

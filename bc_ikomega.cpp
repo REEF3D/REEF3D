@@ -149,11 +149,18 @@ void bc_ikomega::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int j
 	
 	ks=ks_val(p,a,ii,jj,kk,cs,bc);
 
-
+        pip=1;
         uvel=0.5*(a->u(i,j,k)+a->u(i-1,j,k));
+        pip=0;
+
+        pip=2;
         vvel=0.5*(a->v(i,j,k)+a->v(i,j-1,k));
+        pip=0;
+
+        pip=3;
         wvel=0.5*(a->w(i,j,k)+a->w(i,j,k-1));
-        
+        pip=0;
+
         u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
 
 		if(30.0*dist<ks)

@@ -216,7 +216,6 @@ public:
 	void gcparavoidx(lexer*, field&, int);
     void gcparax4a(lexer*, field&, int);
 	void gcparacox(lexer*, field&, int);
-    void gcsync();
 	void verticalmax(lexer*,fdm*,double**);
     void verticalsum(lexer*,fdm*,double**);
     double timer();
