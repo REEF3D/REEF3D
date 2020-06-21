@@ -692,6 +692,12 @@ void lexer::ctrlrecv()
 	dd++;
     H3 = ictrl[ii];
 	ii++;
+    H4 = ictrl[ii];
+	ii++;
+    H4_beta1 = dctrl[dd];
+	dd++;
+    H4_beta2 = dctrl[dd];
+	dd++;
     H9 = ictrl[ii];
 	ii++;
     H10 = ictrl[ii];

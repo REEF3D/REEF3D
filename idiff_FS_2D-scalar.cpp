@@ -41,8 +41,6 @@ void idiff2_FS_2D::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, 
 	
 	a->M.p[count]  =    0.5*(visc(i+1,j,k)+a->eddyv(i+1,j,k)/sig + visc_ijk+ev_ijk/sig)/(p->DXN[IP]*p->DXP[IM1])
 					+   0.5*(visc_ijk+ev_ijk/sig + visc(i-1,j,k)+a->eddyv(i-1,j,k)/sig)/(p->DXN[IP]*p->DXP[IP])
-					+   0.5*(visc(i,j+1,k)+a->eddyv(i,j+1,k)/sig + visc_ijk+ev_ijk/sig)/(p->DYN[JP]*p->DYP[JM1])
-					+   0.5*(visc_ijk+ev_ijk/sig + visc(i,j-1,k)+a->eddyv(i,j-1,k)/sig)/(p->DYN[JP]*p->DYP[JP])
 					+   0.5*(visc(i,j,k+1)+a->eddyv(i,j,k+1)/sig + visc_ijk+ev_ijk/sig)/(p->DZN[KP]*p->DZP[KM1])
 					+   0.5*(visc_ijk+ev_ijk/sig + visc(i,j,k-1)+a->eddyv(i,j,k-1)/sig)/(p->DZN[KP]*p->DZP[KP])
 					+   1.0/(alpha*p->dt);

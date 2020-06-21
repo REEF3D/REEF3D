@@ -99,19 +99,21 @@ void heat_RK3::diff_update(lexer *p, fdm *a, ghostcell *pgc)
     double alpha_1;
 	double alpha_2;
     double H;
-    double epsi=p->F45*p->dx;
+    double epsi=p->F45*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);;
     
     if(p->H9==1)
     {
-    double alpha_1 = p->H1;
-	double alpha_2 = p->H2;
+    alpha_1 = p->H1;
+	alpha_2 = p->H2;
     }
     
     if(p->H9==2)
     {
-    double alpha_1 = p->H2;
-	double alpha_2 = p->H1;
+    alpha_1 = p->H2;
+	alpha_2 = p->H1;
     }
+    
+    
     
     LOOP
 	{
@@ -124,8 +126,7 @@ void heat_RK3::diff_update(lexer *p, fdm *a, ghostcell *pgc)
 		if(fabs(a->phi(i,j,k))<=epsi)
 		H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
 
-
-		thermdiff(i,j,k)= alpha_1*H + alpha_2*(1.0-H);
+		thermdiff(i,j,k) = alpha_1*H + alpha_2*(1.0-H);
 	}
     
     pgc->start4(p,thermdiff,1);

@@ -338,6 +338,9 @@ void lexer::ini_default()
 	H1=1.4e-7;      // thermal diffusivity water
 	H2=2.216e-5;      // thermal diffusivity air
     H3=1;            // type of density calculation
+    H4=0;           // int use beta coeff
+    H4_beta1=0.0;   // double beta1
+    H4_beta2=0.0;   // double beta2
     H9=1;           // int air-water assignment    
 	H10=0;          // int heat transfer on/off
     H15=5;          // int convection for heat transfer
