@@ -29,25 +29,25 @@ void ghostcell::heatbc(lexer *p, field& f, int gcv, int bc, int cs)
 {
 	if(cs==1)
 	for(q=0;q<=margin;++q)
-	f(i-q,j,k)=p->H61_T;
+	f(i-q-1,j,k)=p->H61_T;
 
 	if(cs==2)
 	for(q=0;q<=margin;++q)
-	f(i,j+q,k)=p->H62_T;
+	f(i,j+q+1,k)=p->H62_T;
 
 	if(cs==3)
 	for(q=0;q<=margin;++q)
-	f(i,j-q,k)=p->H63_T;
+	f(i,j-q-1,k)=p->H63_T;
 
 	if(cs==4)
 	for(q=0;q<=margin;++q)
-	f(i+q,j,k)=p->H64_T;
+	f(i+q+1,j,k)=p->H64_T;
 
 	if(cs==5)
 	for(q=0;q<=margin;++q)
-	f(i,j,k-q)=p->H65_T;
+	f(i,j,k-q-1)=p->H65_T;
 
 	if(cs==6)
 	for(q=0;q<=margin;++q)
-	f(i,j,k+q)=p->H66_T;
+	f(i,j,k+q+1)=p->H66_T;
 }
