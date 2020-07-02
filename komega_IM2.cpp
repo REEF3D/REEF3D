@@ -33,12 +33,6 @@ komega_IM2::komega_IM2(lexer* p, fdm* a, ghostcell *pgc) : ikomega(p,a,pgc),kn(p
 {
 	gcval_kin=20;
 	gcval_eps=30;
-	
-	if(p->B67>0)
-	gcval_kin=21;
-	
-	if(p->B68>0)
-	gcval_eps=31;
 }
 
 komega_IM2::~komega_IM2()

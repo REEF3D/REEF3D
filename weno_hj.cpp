@@ -53,7 +53,7 @@ void weno_hj::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vv
 		n=0;
 		ULOOP
 		{
-		a->F(i,j,k)+=aij(p,a,b,1,uvel,vvel,wvel,a->C1);
+		a->F(i,j,k)+=aij(p,a,b,1,uvel,vvel,wvel);
 		++n;
 		}
 	}
@@ -63,7 +63,7 @@ void weno_hj::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vv
 		n=0;
 		VLOOP
 		{
-		a->G(i,j,k)+=aij(p,a,b,2,uvel,vvel,wvel,a->C2);
+		a->G(i,j,k)+=aij(p,a,b,2,uvel,vvel,wvel);
 		++n;
 		}
 	}
@@ -73,7 +73,7 @@ void weno_hj::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vv
 		n=0;
 		WLOOP
 		{
-		a->H(i,j,k)+=aij(p,a,b,3,uvel,vvel,wvel,a->C3);
+		a->H(i,j,k)+=aij(p,a,b,3,uvel,vvel,wvel);
 		++n;
 		}
 	}
@@ -83,31 +83,31 @@ void weno_hj::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vv
 		n=0;
 		FLUIDLOOP
 		{
-		a->L(i,j,k)+=aij(p,a,b,4,uvel,vvel,wvel,a->C4);
+		a->L(i,j,k)+=aij(p,a,b,4,uvel,vvel,wvel);
 		++n;
 		}
 	}
 }
 
-double weno_hj::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, field& wvel, cpt &C)
+double weno_hj::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, field& wvel)
 {
 
 		pflux->u_flux(a,ipol,uvel,iadvec,ivel2);
         pflux->v_flux(a,ipol,vvel,jadvec,jvel2);
         pflux->w_flux(a,ipol,wvel,kadvec,kvel2);
 		
-		L = -iadvec*ddx(p,a,b,C) - jadvec*ddy(p,a,b,C) - kadvec*ddz(p,a,b,C);
+		L = -iadvec*ddx(p,a,b) - jadvec*ddy(p,a,b) - kadvec*ddz(p,a,b);
 
 		return L;
 }
 
-double weno_hj::ddx(lexer* p,fdm* a, field& b, cpt &C)
+double weno_hj::ddx(lexer* p,fdm* a, field& b)
 {
     grad = 0.0;
 	
 	if(iadvec>0.0)
 	{
-	iqmin(a,b,p->dx,C);
+	iqmin(a,b,p->dx);
 	is();
 	alpha();
 	weight();
@@ -120,7 +120,7 @@ double weno_hj::ddx(lexer* p,fdm* a, field& b, cpt &C)
 
 	if(iadvec<0.0)
 	{
-	iqmax(a,b,p->dx,C);
+	iqmax(a,b,p->dx);
 	is();
 	alpha();
 	weight();
@@ -133,13 +133,13 @@ double weno_hj::ddx(lexer* p,fdm* a, field& b, cpt &C)
 	return grad;
 }
 
-double weno_hj::ddy(lexer* p,fdm* a, field& b, cpt &C)
+double weno_hj::ddy(lexer* p,fdm* a, field& b)
 {
     grad = 0.0;
 	
 	if(jadvec>0.0)
 	{
-	jqmin(a,b,p->dx,C);
+	jqmin(a,b,p->dx);
 	is();
 	alpha();
 	weight();
@@ -153,7 +153,7 @@ double weno_hj::ddy(lexer* p,fdm* a, field& b, cpt &C)
 
 	if(jadvec<0.0)
 	{
-	jqmax(a,b,p->dx,C);
+	jqmax(a,b,p->dx);
 	is();
 	alpha();
 	weight();
@@ -167,13 +167,13 @@ double weno_hj::ddy(lexer* p,fdm* a, field& b, cpt &C)
 	return grad;
 }
 
-double weno_hj::ddz(lexer* p,fdm* a, field& b, cpt &C)
+double weno_hj::ddz(lexer* p,fdm* a, field& b)
 {
     grad = 0.0;
 	
 	if(kadvec>0.0)
 	{
-	kqmin(a,b,p->dx,C);
+	kqmin(a,b,p->dx);
 	is();
 	alpha();
 	weight();
@@ -186,7 +186,7 @@ double weno_hj::ddz(lexer* p,fdm* a, field& b, cpt &C)
 	
 	if(kadvec<0.0)
 	{
-	kqmax(a,b,p->dx,C);
+	kqmax(a,b,p->dx);
 	is();
 	alpha();
 	weight();
@@ -199,7 +199,7 @@ double weno_hj::ddz(lexer* p,fdm* a, field& b, cpt &C)
 	return grad;
 }
 
-void weno_hj::iqmin(fdm *a, field& f, double dx, cpt &C)
+void weno_hj::iqmin(fdm *a, field& f, double dx)
 {	
 	q1 = (f(i-2,j,k) - f(i-3,j,k))/dx;
 	q2 = (f(i-1,j,k) - f(i-2,j,k))/dx;
@@ -208,7 +208,7 @@ void weno_hj::iqmin(fdm *a, field& f, double dx, cpt &C)
 	q5 = (f(i+2,j,k) - f(i+1,j,k))/dx;
 }
 
-void weno_hj::jqmin(fdm *a, field& f, double dx, cpt &C)
+void weno_hj::jqmin(fdm *a, field& f, double dx)
 {	
 	q1 = (f(i,j-2,k) - f(i,j-3,k))/dx;
 	q2 = (f(i,j-1,k) - f(i,j-2,k))/dx;
@@ -217,7 +217,7 @@ void weno_hj::jqmin(fdm *a, field& f, double dx, cpt &C)
 	q5 = (f(i,j+2,k) - f(i,j+1,k))/dx;
 }
 
-void weno_hj::kqmin(fdm *a, field& f, double dx, cpt &C)
+void weno_hj::kqmin(fdm *a, field& f, double dx)
 {	
 	q1 = (f(i,j,k-2) - f(i,j,k-3))/dx;
 	q2 = (f(i,j,k-1) - f(i,j,k-2))/dx;
@@ -226,7 +226,7 @@ void weno_hj::kqmin(fdm *a, field& f, double dx, cpt &C)
 	q5 = (f(i,j,k+2) - f(i,j,k+1))/dx;
 }
 
-void weno_hj::iqmax(fdm *a, field& f, double dx, cpt &C)
+void weno_hj::iqmax(fdm *a, field& f, double dx)
 {	
 	q1 = (f(i+3,j,k) - f(i+2,j,k))/dx;
 	q2 = (f(i+2,j,k) - f(i+1,j,k))/dx;
@@ -235,7 +235,7 @@ void weno_hj::iqmax(fdm *a, field& f, double dx, cpt &C)
 	q5 = (f(i-1,j,k) - f(i-2,j,k))/dx;
 }
 
-void weno_hj::jqmax(fdm *a, field& f, double dx, cpt &C)
+void weno_hj::jqmax(fdm *a, field& f, double dx)
 {	
 	q1 = (f(i,j+3,k) - f(i,j+2,k))/dx;
 	q2 = (f(i,j+2,k) - f(i,j+1,k))/dx;
@@ -244,7 +244,7 @@ void weno_hj::jqmax(fdm *a, field& f, double dx, cpt &C)
 	q5 = (f(i,j-1,k) - f(i,j-2,k))/dx;
 }
 
-void weno_hj::kqmax(fdm *a, field& f, double dx, cpt &C)
+void weno_hj::kqmax(fdm *a, field& f, double dx)
 {
 	q1 = (f(i,j,k+3) - f(i,j,k+2))/dx;
 	q2 = (f(i,j,k+2) - f(i,j,k+1))/dx;

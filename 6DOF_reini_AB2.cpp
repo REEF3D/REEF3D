@@ -37,7 +37,7 @@ void sixdof_f::reini_AB2(lexer* p, fdm* a, ghostcell* pgc, field& b)
     pgc->start4aV(p,f,50);
 	
     n=0;
-	LOOP
+	ALOOP
 	{
 	dt.V[n] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
 	++n;

@@ -54,6 +54,7 @@ public:
 	void timestep(lexer*,fdm*,ghostcell*);
 	void bedlevel(lexer*,fdm*,ghostcell*);
 	void topo_zh_update(lexer*,fdm*,ghostcell*);
+    void volume_calc(lexer*,fdm*,ghostcell*);
 	void filter(lexer*,fdm*,ghostcell*,slice&,int,int);
     
 	virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
@@ -73,6 +74,9 @@ private:
     slice4 bedtau;
     
     double starttime;
+    
+    int volume_token;
+    double volume0;
 	
 };
 

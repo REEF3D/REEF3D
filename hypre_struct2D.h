@@ -40,9 +40,9 @@ public:
 
 	hypre_struct2D(lexer*,ghostcell*);
 	virtual ~hypre_struct2D();
-	virtual void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int, int, double, cpt2D&);
-	virtual void solve(lexer*, ghostcell*, matrix2D&, vec2D&, vec2D&, int, int, int&, int, double, cpt2D&);
-	virtual void setup(lexer*, ghostcell*,int, cpt2D&);
+	virtual void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int, int, double);
+	virtual void solve(lexer*, ghostcell*, matrix2D&, vec2D&, vec2D&, int, int, int&, int, double);
+	virtual void setup(lexer*, ghostcell*,int);
     
 	void fillbackvec(lexer*,slice&,vec2D&,int);
     

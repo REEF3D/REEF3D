@@ -159,7 +159,7 @@ double Ay=0.0;
             //cout<<"A: "<<A<<" xloc: "<<xloc<<" yloc: "<<yloc<<" zloc: "<<zloc<<" pval: "<<pval<<" Fx: "<<-(pval)*A*nx<<" Fy: "<<-(pval)*A*ny<<" Fz: "<<-(pval)*A*nz<<endl;
         
             // Force
-            if(phival>p->P83*p->DXM || p->P92==1)
+            if(phival>-1.6*p->DXM || p->P92==1)
             {
             Fx += -(pval)*A*nx
                        + density*viscosity*A*(du*ny+du*nz);

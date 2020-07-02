@@ -44,35 +44,3 @@ void ghostcell::gcsl_noslip(slice &f, int gcv, int bc, int cs)
 	f(i+q+1,j)=0.0;
 }
 
-void ghostcell::gcsl_noslipV(vec2D &x, cpt2D &C, int gcv, int bc, int cs, int id)
-{
-	n=id;
-    
-	if(cs==1)
-    {
-	x.V[Im1_J]=0.0;
-    x.V[Im2_J]=0.0;
-    x.V[Im3_J]=0.0;
-    }
-
-	if(cs==2)
-	{
-	x.V[I_Jp1]=0.0;
-    x.V[I_Jp2]=0.0;
-    x.V[I_Jp3]=0.0;
-    }
-
-	if(cs==3)
-	{
-	x.V[I_Jm1]=0.0;
-    x.V[I_Jm2]=0.0;
-    x.V[I_Jm3]=0.0;
-    }
-
-	if(cs==4)
-	{
-	x.V[Ip1_J]=0.0;
-    x.V[Ip2_J]=0.0;
-    x.V[Ip3_J]=0.0;
-    }
-}

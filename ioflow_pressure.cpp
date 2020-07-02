@@ -68,7 +68,7 @@ void ioflow_f::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
 		
 			if(p->B77==1)
 			{
-			pval=(p->phiout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22)*p->B79;
+			pval=(p->phiout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
 			
 			a->press(i+1,j,k)=pval;
 			a->press(i+2,j,k)=pval;
@@ -77,52 +77,30 @@ void ioflow_f::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
 		
 			if(p->B77==2)
 			{
-			pval=0.0;
+			double eps,H;
+                
+            eps = 0.6*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
+        
+            if(a->phi(i,j,k)>eps)
+            H=1.0;
+
+            if(a->phi(i,j,k)<-eps)
+            H=0.0;
+
+            if(fabs(a->phi(i,j,k))<=eps)
+            H=0.5*(1.0 + a->phi(i,j,k)/eps + (1.0/PI)*sin((PI*a->phi(i,j,k))/eps));
+        
+        
+    
+            pval=(1.0-H)*a->press(i,j,k);
+			
 
 			a->press(i+1,j,k)=pval;
 			a->press(i+2,j,k)=pval;
 			a->press(i+3,j,k)=pval;
 			}
 			
-			if(p->B77==3)
-			if(p->pos_z() <= p->B80)
-			{
-			pval=(p->phiout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22)*p->B79;
 			
-			a->press(i+1,j,k)=pval;
-			a->press(i+2,j,k)=pval;
-			a->press(i+3,j,k)=pval;
-			}
-			
-
-			if(p->B77==4)
-			{
-			if(a->phi(i,j,k)>-0.6*p->dx && p->pos_z() > p->B80)
-			pval=0.0;
-			
-			if(a->phi(i,j,k)>-0.6*p->dx && p->pos_z() <= p->B80)
-			pval=(p->phiout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22)*p->B79;
-			
-			if(a->phi(i,j,k)<=-0.6*p->dx)
-			pval=a->press(i,j,k);
-
-			a->press(i+1,j,k)=pval;
-			a->press(i+2,j,k)=pval;
-			a->press(i+3,j,k)=pval;
-			}
-			
-			if(p->B77==5)
-			{
-			if(a->phi(i,j,k)>-0.6*p->dx)
-			pval=0.0;
-			
-			if(a->phi(i,j,k)<=-0.6*p->dx)
-			pval=a->press(i,j,k);
-
-			a->press(i+1,j,k)=pval;
-			a->press(i+2,j,k)=pval;
-			a->press(i+3,j,k)=pval;
-			}
         }
 }
 

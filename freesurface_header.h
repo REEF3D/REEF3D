@@ -21,25 +21,14 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"levelset_AB2.h"
-#include"levelset_AB3.h"
 #include"levelset_RK2.h"
 #include"levelset_RK3.h"
-#include"levelset_RK3_V.h"
-#include"levelset_RK4.h"
 #include"levelset_void.h"
 
 #include"reini_RK3.h"
-#include"reini_RK3_V.h"
-#include"reini_RK4.h"
-#include"reini_AB2.h"
-#include"reini_AB3.h"
 #include"reinigc_RK3.h"
-#include"reinigc_RK4.h"
 #include"reinivc_RK3.h"
-#include"reinifluid_AB2.h"
-#include"reinifluid_AB3.h"
 #include"reinifluid_RK3.h"
-#include"reinifluid_RK4.h"
 #include"directreini.h"
 #include"reini_void.h"
 

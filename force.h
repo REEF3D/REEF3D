@@ -48,14 +48,11 @@ public:
 	virtual void force_surface(lexer*,fdm*,ghostcell*);
 
 	virtual void velocity(lexer*,fdm*,ghostcell*);
-	virtual void crossarea(lexer*,fdm*,ghostcell*);
 	virtual void cellnodes(lexer*,fdm*,ghostcell*);
 	virtual void surfarea(lexer*,fdm*,ghostcell*);
 	virtual void cellnodes_gcb(lexer*,fdm*,ghostcell*);
 	virtual void surfarea_gcb(lexer*,fdm*,ghostcell*);
 	virtual double area(int,int,int);
-	virtual void coefficients(lexer*,fdm*,ghostcell*);
-	virtual void morison(lexer*,fdm*,ghostcell*);
     virtual void print(lexer*,fdm*,ghostcell*);
 
 
@@ -84,8 +81,6 @@ private:
 	double udt1,udt2;
 	double xm,ym,zm;
 	int im,jm,km;
-	double Ai,Aj;
-	double rcyl,hcyl,Vcyl,Vrect;
     ofstream fout;
     double cx,cy,cz;
     double px,py,pz;

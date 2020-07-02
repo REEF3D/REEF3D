@@ -95,6 +95,12 @@ void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc)
 		a->visc(i,j,k) =    visc1*H + visc2*(1.0-H);
 	}
     
+    n=0;
+    LOOP
+    {
+    a->visctot.V[I_J_K] = a->visc(i,j,k) + a->eddyv(i,j,k);
+    ++n;
+    }
 	
 	pgc->start4(p,a->visc,gcval_visc);
 
@@ -108,10 +114,6 @@ void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc)
     }
     ++iocheck;
 
-}
-
-void fluid_update_rheology::start3(lexer *p, fdm* a, ghostcell* pgc, field &ls1, field &ls2)
-{
 }
 
 int fluid_update_rheology::iocheck;

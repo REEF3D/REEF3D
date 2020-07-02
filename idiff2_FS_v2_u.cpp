@@ -30,15 +30,6 @@ idiff2_FS_v2::idiff2_FS_v2(lexer* p)
 	gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;
-	
-	vfm=vft=0.0;
-	
-	if(p->D22==1)
-	vfm=1.0;
-	
-	if(p->D23==1)
-	vft=1.0;
-    
 }
 
 idiff2_FS_v2::~idiff2_FS_v2()
@@ -60,7 +51,7 @@ void idiff2_FS_v2::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
     {
 	ULOOP
 	{
-	visc = vfm*0.5*(a->visc(i,j,k) + a->visc(i+1,j,k)) + 0.5*(a->eddyv(i,j,k) + a->eddyv(i+1,j,k));
+	visc = 0.5*(a->visc(i,j,k) + a->visc(i+1,j,k)) + 0.5*(a->eddyv(i,j,k) + a->eddyv(i+1,j,k));
     
 	a->M.p[count] =  2.0*visc/(p->DXN[IP]*p->DXP[IP])
 				   + 2.0*visc/(p->DXN[IM1]*p->DXP[IP])

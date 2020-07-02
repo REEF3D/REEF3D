@@ -317,7 +317,7 @@ void driver::makegrid_fnpf(lexer *p, ghostcell *pgc)
     m4.fill_dgc(p);
     
     // ---
-    p->vecsize();
+    p->vecsize(pgc);
 
     p->xcoormax=-1.0e9;
     p->xcoormin=1.0e9;
@@ -375,6 +375,5 @@ void driver::makegrid_fnpf_cds(lexer *p, ghostcell *pgc)
     
     pgc->sizeS_update(p);
     pgc->gcxslupdate(p);
-    pgc->column2D_pt4_update(p,c->C4); 
 }
 	

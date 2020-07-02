@@ -80,15 +80,9 @@ void driver::logic_fnpf_sg()
 //  Laplace Solver	
 	if(p->N10==0)
 	plapsolv = new solver_void(p,a,pgc);
-	
+
 	if(p->N10==1)
-	plapsolv = new jacobi_block(p,a,pgc);
-	
-	if(p->N10==2)
-	plapsolv = new sip(p,a,pgc);
-	
-	if(p->N10==3)
-	plapsolv = new bicgstab(p,a,pgc,p->N11);
+	plapsolv = new bicgstab_ijk(p,a,pgc);
 	
 	#ifdef HYPRE_COMPILATION
 	if(p->N10>=10 && p->N10<20)

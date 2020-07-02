@@ -377,16 +377,7 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
             if(wsf>-1.0e19)
 			KLOOP 
 			{
-                            
-                
-			if(p->B78==1)
 			pval=(wsf - p->pos_z()+0.5*p->DZP[KP])*a->ro(i,j,k)*fabs(p->W22);
-			
-			if(p->B78==2)
-			pval=(p->wd - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
-			
-			if(p->B78==3)
-			pval=a->press(i,j,k);
 			
 			a->press(i+1*aa,j+1*bb,k)=r*pval + (1.0-r)*a->press(i,j,k);
 			a->press(i+2*aa,j+2*bb,k)=r*pval + (1.0-r)*a->press(i,j,k);

@@ -37,10 +37,10 @@ void ghostcell::velcell_update(lexer *p, fdm *a, int **cellmem, int cellcount,do
     k=cellmem[nn][2];
 
     if(dir==1)
-	a->u(i,j,k)=p->S28*a->u(i,j,k+1);
+	a->u(i,j,k)=0.75*a->u(i,j,k+1);
 
 	if(dir==2)
-	a->v(i,j,k)=p->S28*a->v(i,j,k+1);
+	a->v(i,j,k)=0.75*a->v(i,j,k+1);
 
 	if(dir==3)
 	a->w(i,j,k)=0.0;
@@ -57,19 +57,19 @@ void ghostcell::velcell_update(lexer *p, fdm *a, int **cellmem, int cellcount,do
 			if(dir==1)
 			{			
 			if(p->flag1[UIJKp1]>0) 
-			a->u(i,j,k+1)=p->S29*a->u(i,j,k+1);
+			a->u(i,j,k+1)=0.5*a->u(i,j,k+1);
 			}
 
 			if(dir==2)
 			{
 			if(p->flag2[VIJKp1]>0) 
-			a->v(i,j,k+1)=p->S29*a->v(i,j,k+1);			
+			a->v(i,j,k+1)=0.5*a->v(i,j,k+1);			
 			}
 
 			if(dir==3)
 			{
 			if(p->flag3[WIJKp1]>0) 
-			a->w(i,j,k+1)=p->S29*a->w(i,j,k+1);
+			a->w(i,j,k+1)=0.5*a->w(i,j,k+1);
 			}
     }
 

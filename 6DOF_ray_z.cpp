@@ -96,13 +96,14 @@ void sixdof_f::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 		for(i=is;i<ie;i++)
 		for(j=js;j<je;j++)
 		{
-		Px = p->XP[IP]+psi;
+		Px = p->XP[IP]-psi;
 		Py = p->YP[JP]+psi;
 		Pz = p->global_zmin-10.0*p->DXM ;
 		
-		Qx = p->XP[IP]+psi;
+		Qx = p->XP[IP]-psi;
 		Qy = p->YP[JP]+psi;
 		Qz = p->global_zmax+10.0*p->DXM ;
+
 		
 		PQx = Qx-Px;
 		PQy = Qy-Py;
@@ -134,9 +135,12 @@ void sixdof_f::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 		  
 		w = PQx*(By*Az - Bz*Ay) + PQy*(Bz*Ax - Bx*Az) + PQz*(Bx*Ay - By*Ax)
 		  + Mx*(Bx-Ax) + My*(By-Ay) + Mz*(Bz-Az);
+        
+        int check=1;
+		if(u==0.0 && v==0.0 && w==0.0)
+		check = 0;
 
-
-			if((u>0.0 && v>0.0 && w>0.0) || (u<0.0 && v<0.0 && w<0.0))
+			if((u>0.0 && v>0.0 && w>0.0) || (u<0.0 && v<0.0 && w<0.0) )//&& check==1)
 			{
 			denom = 1.0/(u+v+w);
 			u *= denom;
@@ -147,6 +151,7 @@ void sixdof_f::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 
             
             k = p->posf_k(Rz);
+
 			
             int distcheck=1;
   
@@ -161,7 +166,7 @@ void sixdof_f::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
             if(fbio(i,j,k)<0 && fbio(i,j,k+1)<0)
             distcheck=0;
 
-            if(distcheck==1)
+            //f(distcheck==1)
 			for(k=0;k<p->knoz;++k)
             a->fb(i,j,k)=MIN(fabs(Rz-p->ZP[KP]),a->fb(i,j,k));
 			}

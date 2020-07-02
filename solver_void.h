@@ -22,8 +22,6 @@ Author: Hans Bihs
 
 #include"solver.h"
 
-class cpt;
-
 using namespace std;
 
 #ifndef SOLVER_VOID_H_
@@ -37,8 +35,8 @@ public:
 	virtual ~solver_void();
 	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, vec&, int, int, double);
     virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int, int, double);
-	virtual void solve(lexer*,fdm*, ghostcell*, vec&, vec&, int, int, int&, int, double, cpt&);
-	virtual void setup(lexer*,fdm*, ghostcell*,int,cpt&);
+	virtual void solve(lexer*,fdm*, ghostcell*, vec&, vec&, int, int, int&, int, double);
+	virtual void setup(lexer*,fdm*, ghostcell*,int);
 	virtual void fillxvec1(lexer*,fdm*,field&);
     virtual void fillxvec2(lexer*,fdm*,field&);
     virtual void fillxvec3(lexer*,fdm*,field&);

@@ -67,7 +67,7 @@ cout<<"starting driver_ini"<<endl;
     if(p->G39==1)
     {
     solid solid_object(p,a,pgc);
-    solid_object.start(p,a,pgc,pflow,pconvec,preto);
+    solid_object.start(p,a,pgc,pflow,pconvec,preso);
     }
     
     // Geotopo

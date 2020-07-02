@@ -32,9 +32,7 @@ Author: Hans Bihs
 #include"HYPRE_parcsr_ls.h"
 #include"HYPRE_krylov.h"
 #include"HYPRE.h"
- 
-class cpt;
- 
+
 using namespace std;
 
 #ifndef HYPRE_SSTRUCT_H_
@@ -59,8 +57,8 @@ public:
     virtual void solve(lexer*);
     virtual void solve1234(lexer*);
     
-	virtual void solve(lexer*,fdm*, ghostcell*, vec&, vec&, int, int, int&, int, double, cpt&);
-	virtual void setup(lexer*,fdm*, ghostcell*,int, cpt&);
+	virtual void solve(lexer*,fdm*, ghostcell*, vec&, vec&, int, int, int&, int, double);
+	virtual void setup(lexer*,fdm*, ghostcell*,int);
     
 	virtual void fillxvec1(lexer*,fdm*,field&);
     virtual void fillxvec2(lexer*,fdm*,field&);

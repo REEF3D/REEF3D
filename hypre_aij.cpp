@@ -112,11 +112,11 @@ void hypre_aij::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, vec&
 }
 
 
-void hypre_aij::setup(lexer* p,fdm* a, ghostcell* pgc, int var, cpt &C)
+void hypre_aij::setup(lexer* p,fdm* a, ghostcell* pgc, int var)
 {
 }
 
-void hypre_aij::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit, cpt &C)
+void hypre_aij::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit)
 {
 	
 	numiter=0;

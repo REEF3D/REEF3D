@@ -42,9 +42,9 @@ public:
 	 ddweno_nug(lexer*);
 	 ~ddweno_nug();
 
-	 double ddwenox(fdm*, vec&, double, cpt&);
-	 double ddwenoy(fdm*, vec&, double, cpt&);
-	 double ddwenoz(fdm*, vec&, double, cpt&);
+	 double ddwenox(fdm*, vec&, double, int, cpt&);
+	 double ddwenoy(fdm*, vec&, double, int, cpt&);
+	 double ddwenoz(fdm*, vec&, double, int, cpt&);
 
 
 	void iqmin(vec&, cpt&);
@@ -59,6 +59,7 @@ public:
     
 private:
     lexer *p;
+    int flagval;
 };
 
 #endif

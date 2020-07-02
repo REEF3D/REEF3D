@@ -33,12 +33,6 @@ kepsilon_IM1::kepsilon_IM1(lexer* p, fdm* a, ghostcell *pgc) : ikepsilon(p,a,pgc
 {
 	gcval_kin=20;
 	gcval_eps=30;
-	
-	if(p->B67>0)
-	gcval_kin=21;
-	
-	if(p->B68>0)
-	gcval_eps=31;
 }
 
 kepsilon_IM1::~kepsilon_IM1()

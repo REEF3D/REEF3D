@@ -463,8 +463,37 @@ void ioflow_v::u_relax(lexer *p, fdm *a, ghostcell *pgc, field &uvel)
 		
 		if(fbval_up<0.0 || fbval_down<0.0)
 		a->u(i,j,k) = H*a->u(i,j,k) + (1.0-H)*(p->ufbi + (p->pos_z()-p->zg)*p->qfbi - (p->pos_y()-p->yg)*p->rfbi);
-		
 	}
+    
+    
+    // ---------
+    double dist;
+    double cosb,sinb;
+
+    for(int qn=0; qn<p->W41; ++qn)
+    {
+        cosb = cos(p->W41_beta[qn]*PI/180.0);
+        
+        ULOOP
+        {
+            dist = sqrt(pow(p->W41_xc[qn]-p->pos1_x(),2.0) + pow(p->W41_yc[qn]-p->pos_y(),2.0));
+            
+            if(dist>epsi)
+            H=1.0;
+
+            if(dist<-epsi)
+            H=0.0;
+
+            if(fabs(dist)<=epsi)
+            H=0.5*(1.0 + dist/epsi + (1.0/PI)*sin((PI*dist)/epsi));	
+            
+        
+            
+            if(0.5*(a->phi(i,j,k)+a->phi(i+1,j,k))>0.0)
+            a->u(i,j,k) = H*a->u(i,j,k) + (1.0-H)*p->W41_vel[qn]*cosb;
+        }
+    }
+    
 }
 
 void ioflow_v::v_relax(lexer *p, fdm *a, ghostcell *pgc, field &vvel)
@@ -495,6 +524,35 @@ void ioflow_v::v_relax(lexer *p, fdm *a, ghostcell *pgc, field &vvel)
 		a->v(i,j,k) = H*a->v(i,j,k) + (1.0-H)*(p->vfbi + (p->pos_x()-p->xg)*p->rfbi - (p->pos_z()-p->zg)*p->pfbi);
 		
 	}
+    
+    
+    // ----------
+    double dist;
+    double cosb,sinb;
+    
+    for(int qn=0; qn<p->W41; ++qn)
+    {
+        sinb = sin(p->W41_beta[qn]*PI/180.0);
+        
+        VLOOP
+        {
+            dist = sqrt(pow(p->W41_xc[qn]-p->pos_x(),2.0) + pow(p->W41_yc[qn]-p->pos2_y(),2.0));
+            
+            if(dist>epsi)
+            H=1.0;
+
+            if(dist<-epsi)
+            H=0.0;
+
+            if(fabs(dist)<=epsi)
+            H=0.5*(1.0 + dist/epsi + (1.0/PI)*sin((PI*dist)/epsi));	
+            
+        
+            
+            if(0.5*(a->phi(i,j,k)+a->phi(i,j+1,k))>0.0)
+            a->v(i,j,k) = H*a->v(i,j,k) + (1.0-H)*p->W41_vel[qn]*sinb;
+        }
+    }
 }
 
 void ioflow_v::w_relax(lexer *p, fdm *a, ghostcell *pgc, field &wvel)
@@ -526,6 +584,11 @@ void ioflow_v::w_relax(lexer *p, fdm *a, ghostcell *pgc, field &wvel)
 		a->w(i,j,k) = H*a->w(i,j,k) + (1.0-H)*(p->wfbi + (p->pos_y()-p->yg)*p->pfbi - (p->pos_x()-p->xg)*p->qfbi);
 		
 	}
+    
+    
+    
+    
+    
 }
 
 void ioflow_v::p_relax(lexer *p, fdm *a, ghostcell *pgc, field &press)

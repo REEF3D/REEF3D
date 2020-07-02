@@ -290,12 +290,14 @@ void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
     
             c->M.s[n] += -abb*24.0*dist*c->Bx(i,j)/(denom*xdelta);
             c->M.ss[n] += abb*3.0*dist*c->Bx(i,j)/(denom*xdelta);  
-  
+            
+            c->M.w[n] += abb*24.0*dist*c->By(i,j)/(denom*ydelta);
+            c->M.ww[n] += -abb*3.0*dist*c->By(i,j)/(denom*ydelta); 
+            
             c->M.e[n] += -abb*24.0*dist*c->By(i,j)/(denom*ydelta); 
             c->M.ee[n] += abb*3.0*dist*c->By(i,j)/(denom*ydelta); 
             
-            c->M.w[n] += abb*24.0*dist*c->By(i,j)/(denom*ydelta);
-            c->M.ww[n] += -abb*3.0*dist*c->By(i,j)/(denom*ydelta);     
+                
             
             
             c->M.b[n] += -(3.0/2.0)*abb;
@@ -322,12 +324,14 @@ void fnpf_sg_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
     
             c->M.s[n] += -ab*24.0*dist*c->Bx(i,j)/(denom*xdelta);
             c->M.ss[n] += ab*3.0*dist*c->Bx(i,j)/(denom*xdelta);  
-  
+            
+            c->M.w[n] += ab*24.0*dist*c->By(i,j)/(denom*ydelta);
+            c->M.ww[n] += -ab*3.0*dist*c->By(i,j)/(denom*ydelta);  
+            
             c->M.e[n] += -ab*24.0*dist*c->By(i,j)/(denom*ydelta); 
             c->M.ee[n] += ab*3.0*dist*c->By(i,j)/(denom*ydelta); 
             
-            c->M.w[n] += ab*24.0*dist*c->By(i,j)/(denom*ydelta);
-            c->M.ww[n] += -ab*3.0*dist*c->By(i,j)/(denom*ydelta);     
+               
             
             
             c->M.p[n] += -(3.0/2.0)*ab;

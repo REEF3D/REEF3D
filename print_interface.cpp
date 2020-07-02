@@ -30,7 +30,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"print_wsf_theory.h"
 #include"print_wsfline.h"
 #include"print_wsfline_y.h"
-#include"print_runup.h"
 #include"force.h"
 #include"vorticity_f.h"
 #include"vorticity_void.h"
@@ -105,9 +104,6 @@ print_interface::print_interface(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p)
 	if(p->P180==1)
 	pfsf = new fsf_vtp(p,a,pgc);
 	
-	if(p->P59>0)
-	prunup = new print_runup(p,a,pgc); 
-
 	if(p->P75==0)
 	pvort = new vorticity_void(p,a);
 
@@ -217,10 +213,7 @@ void print_interface::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, h
         {
         p->probeprinttime+=p->P55;
         }
-		
-		if(p->P59>0)
-		prunup->start(p,a,pgc);
-		
+
 		if(p->P61>0)
         pprobe->start(p,a,pgc,pturb);
 		

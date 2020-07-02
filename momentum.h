@@ -46,9 +46,7 @@ public:
     virtual void utimesave(lexer*,fdm*, ghostcell*)=0;
     virtual void vtimesave(lexer*,fdm*, ghostcell*)=0;
     virtual void wtimesave(lexer*,fdm*, ghostcell*)=0;
-    virtual void fillaij1(lexer*, fdm*, ghostcell*,solver*)=0;
-    virtual void fillaij2(lexer*, fdm*, ghostcell*,solver*)=0;
-    virtual void fillaij3(lexer*, fdm*, ghostcell*,solver*)=0;
+
 };
 
 #endif

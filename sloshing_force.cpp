@@ -33,7 +33,7 @@ sloshing_force::sloshing_force(lexer *p, fdm* a, ghostcell *pgc)
 	if(p->mpirank==0 && p->P14==1)
 	mkdir("./REEF3D_CFD_Force",0777);
 	
-    if(p->mpirank==0 && p->P191>0)
+    if(p->mpirank==0 && p->P101>0)
     {
     // open file
 	if(p->P14==0)

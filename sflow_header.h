@@ -28,7 +28,6 @@ Author: Hans Bihs
 #include"ioflow_void.h"
 #include"hypre_struct2D.h"
 #include"sflow_bicgstab.h"
-#include"sflow_jacobi_block.h"
 
 #include"sflow_etimestep.h"
 #include"sflow_fixtimestep.h"
@@ -43,7 +42,6 @@ Author: Hans Bihs
 #include"sflow_eta.h"
 #include"sflow_momentum_RK3.h"
 #include"sflow_momentum_RK2.h"
-#include"sflow_momentum_RK4.h"
 #include"sflow_momentum_AB2.h"
 
 #include"sflow_turb_void.h"

@@ -32,12 +32,7 @@ void ghostcell::neumann_press(lexer *p,field& f,double dist,int gcv, int bc, int
 	wallvalue=0.0;
 	weight=1.0;
 	margin=3;
-	
-	
-	
-	if(cs==5 && gc_pressure_extend==1)
-	wallvalue = -a->ro(i,j,k)*9.81;
-	
+		
 	if(bc==41 || bc==42 || bc==43)
 	{
 		

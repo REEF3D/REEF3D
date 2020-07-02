@@ -45,12 +45,9 @@ public:
 	momentum_RK3(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*);
 	virtual ~momentum_RK3();
 	virtual void start(lexer*, fdm*, ghostcell*, momentum*);
-	virtual void utimesave(lexer*, fdm*, ghostcell*);
+    virtual void utimesave(lexer*, fdm*, ghostcell*);
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);
-    virtual void fillaij1(lexer*, fdm*, ghostcell*, solver*);
-    virtual void fillaij2(lexer*, fdm*, ghostcell*, solver*);
-    virtual void fillaij3(lexer*, fdm*, ghostcell*, solver*);
 
     field1 urk1,urk2;
 	field2 vrk1,vrk2;
@@ -63,6 +60,8 @@ private:
 	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	
+    void timecheck(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    
 	int gcval_u, gcval_v, gcval_w;
 	int gcval_urk, gcval_vrk, gcval_wrk;
 	double starttime;

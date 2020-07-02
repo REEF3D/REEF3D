@@ -24,7 +24,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void lexer::control_calc()
 {
 	dt=dt_old=0.0;
-	maxkappa=0.0;
 	simtime=0.0;
 	sedtime=0.0;
 	dtsed=0.0;

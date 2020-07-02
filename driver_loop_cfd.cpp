@@ -45,6 +45,8 @@ void driver::loop_cfd(fdm* a)
     if(p->mpirank==0)
     cout<<"starting mainloop.CFD"<<endl;
     
+    //vec_test(p,a,pgc,a->test);
+    
 //-----------MAINLOOP CFD----------------------------
 	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
 	{		
@@ -61,12 +63,6 @@ void driver::loop_cfd(fdm* a)
         
 		if(p->B90>0)
 		cout<<"t/T: "<<p->simtime/p->wT<<endl;
-
-        if(p->N48>2)
-        {
-        cout<<"veltimestep: "<<p->veltimestep<<endl;
-        cout<<"turbtimestep: "<<p->turbtimestep<<endl;
-        }
         }
         
         pflow->flowfile(p,a,pgc,pturb);
@@ -144,6 +140,28 @@ void driver::loop_cfd(fdm* a)
 	p->reinitime=0.0;
 	p->wavetime=0.0;
 	p->field4time=0.0;
+    
+    pgc->gcparax(p,a->press,4);
+    
+    /*
+    LOOP
+    if(p->mpirank==1 && i==13 && j==8 && k==10)
+    {
+        cout<<"U1: "<<a->u(i-1,j,k)<<" "<<a->u(i,j,k)<<" "<<a->u(i+1,j,k)<<endl;
+        cout<<"P1: "<<a->press(i-2,j,k)<<" "<<a->press(i-1,j,k)<<" "<<a->press(i,j,k)<<" "<<a->press(i+1,j,k)<<" "<<a->press(i+2,j,k)<<" "<<a->press(i+3,j,k)<<endl;
+    }
+    
+    
+    LOOP
+    if(p->mpirank==2 && i==0 && j==8 && k==10)
+    {
+        cout<<"U2: "<<a->u(i-1,j,k)<<" "<<a->u(i,j,k)<<" "<<a->u(i+1,j,k)<<endl;
+        cout<<"P2: "<<a->press(i-2,j,k)<<" "<<a->press(i-1,j,k)<<" "<<a->press(i,j,k)<<" "<<a->press(i+1,j,k)<<" "<<a->press(i+2,j,k)<<endl;
+    }*/
+
+    
+    
+    
     
     stop(p,a,pgc);
 	}

@@ -39,6 +39,13 @@ void LES_germano::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,
 {
     LOOP
     a->eddyv(i,j,k) = pow(p->dx*c_sgs,2.0) * strainterm(p,a);
+    
+    int n=0;
+    LOOP
+    {
+    a->visctot.V[I_J_K] = a->visc(i,j,k) + a->eddyv(i,j,k);
+    ++n;
+    }
 
     pgc->start4(p,a->eddyv,gcval_sgs);
 }

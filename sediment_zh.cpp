@@ -82,3 +82,41 @@ void sediment_f::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc)
 	
 	pgc->start4a(p,a->topo,150);
 }
+
+void sediment_f::volume_calc(lexer *p, fdm *a,ghostcell *pgc)
+{
+    double H=0.0;
+	double volume=0.0;
+    double epsi;
+
+	ALOOP
+	{
+       epsi = p->F45*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
+        
+		if(a->topo(i,j,k)>epsi)
+		H=1.0;
+
+		if(a->topo(i,j,k)<-epsi)
+		H=0.0;
+
+		if(fabs(a->topo(i,j,k))<=epsi)
+		H=0.5*(1.0 + a->topo(i,j,k)/epsi + (1.0/PI)*sin((PI*a->topo(i,j,k))/epsi));
+
+		volume += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H);
+	}
+    
+        
+	volume = pgc->globalsum(volume);
+
+    if(volume_token==0)
+    {
+        volume0 = volume;
+        volume_token=1;
+    }
+
+    
+    if(p->mpirank==0 && (p->count%p->P12==0))
+    {
+	cout<<"Sediment Volume: "<<volume<<"  vol0: "<<volume0<<" Volume Change: "<<100.0*(volume-volume0)/volume0<<" %"<<endl;
+    }
+}

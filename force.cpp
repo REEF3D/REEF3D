@@ -54,7 +54,7 @@ force::force(lexer *p, fdm *a, ghostcell *pgc, int ID) : wave_interface(p,pgc), 
 	ym = ys + (ye-ys)*0.5;
 	zm = zs + (ze-zs)*0.5;
 	
-	fsfmargin = p->P83;
+	fsfmargin = -1.6;
 	}
 	
 	
@@ -82,7 +82,7 @@ force::force(lexer *p, fdm *a, ghostcell *pgc, int ID) : wave_interface(p,pgc), 
 	ym = ye;// + (ye-ys)*0.5;
 	zm = ze;// + (ze-zs)*0.5;
 	
-	fsfmargin = p->P87;
+	fsfmargin = -1.6;
 	}
 	
 	
@@ -111,12 +111,8 @@ force::force(lexer *p, fdm *a, ghostcell *pgc, int ID) : wave_interface(p,pgc), 
     fout<<xs<<" "<<xe<<" . "<<ys<<" "<<ye<<" . "<<zs<<" "<<ze<<endl;
     fout<<endl<<endl;
     
-    if(p->P93==0)
     fout<<"it \t time \t Fx \t Fz ";
-    
-    if(p->P93==1)
-    fout<<"it \t time \t Fx \t Fz \t Fmor \t FmorRCT \t tnorm \t Fz_Norm \t Fx_norm \t Fmor_norm \t Fx_Press \t Fx_Shear ";
-    
+
     fout<<endl;
 	}
 	
@@ -236,17 +232,8 @@ void force::ini(lexer *p, fdm *a, ghostcell *pgc)
 
 void force::start(lexer *p, fdm *a, ghostcell *pgc)
 {
-	
     force_surface(p,a,pgc);
-    crossarea(p,a,pgc);
-    
-    if(p->P93==1)
-    {
-    velocity(p,a,pgc);
-    coefficients(p,a,pgc);
-    morison(p,a,pgc);
-    }
-    
+
     if(p->mpirank==0)
     {
     cout<<"Fx: "<<FDs<<" Fz: "<<Fvert<<endl;

@@ -40,7 +40,6 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     p->epsmax=p->kinmax=p->pressmax=0.0;
 	p->pressmin=1.0e9;
 	p->dt_old=p->dt;
-	p->turbtimestep_old=p->turbtimestep;
 
 	p->umax=p->vmax=p->wmax=p->viscmax=0.0;
 	sqd=1.0/(p->dx*p->dx);
@@ -155,34 +154,6 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
             +sqrt((4.0*fabs(a->maxH))/dx)));
     }
     
-    /*
-    cu=cv=cw=1.0e10;
-    ULOOP
-    {
-    dx = MIN3(p->DXP[IP],p->DYN[JP],p->DZN[KP]);
-
-	cu = MIN(cu, 2.0/((fabs(a->u(i,j,k))/dx)
-    
-            +sqrt((4.0*fabs(a->maxF))/dx)));
-    }
-
-    VLOOP
-    {
-    dx = MIN3(p->DXN[IP],p->DYP[JP],p->DZN[KP]);
-    
-	cv = MIN(cv, 2.0/((fabs(a->v(i,j,k))/dx)
-    
-            +sqrt((4.0*fabs(a->maxG))/dx)));
-    }
-    
-    WLOOP
-    {
-    dx = MIN3(p->DXN[IP],p->DYN[JP],p->DZP[KP]);
-
-	cw = MIN(cw, 2.0/((fabs(a->w(i,j,k))/dx)
-    
-            +sqrt((4.0*fabs(a->maxH))/dx)));
-    }*/
     
     cu = min(cu,cv,cw);
     
@@ -194,58 +165,23 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     
             + sqrt((4.0*fabs(MAX3(a->maxF,a->maxG,a->maxH)))/dx));
     }
-    
-    /*
-    cu=2.0/((p->umax/p->dx)+sqrt((4.0*fabs(a->maxF))/p->dx));
-	cv=2.0/((p->vmax/p->dx)+sqrt((4.0*fabs(a->maxG))/p->dx));
-	cw=2.0/((p->wmax/p->dx)+sqrt((4.0*fabs(a->maxH))/p->dx));
-    */
-    ck=2.0/((velmax/p->dx)+sqrt((4.0*fabs(a->maxK))/p->dx));
-    ce=2.0/((velmax/p->dx)+sqrt((4.0*fabs(a->maxE))/p->dx));
-    
 
-	p->turbtimestep=p->N47*min(ck,ce);
-	p->turbtimestep=pgc->timesync(p->turbtimestep);
+	p->dt=p->N47*min(cu,cv,cw);
+	p->dt=pgc->timesync(p->dt);
 
-	p->veltimestep=p->N47*min(cu,cv,cw);
-	p->veltimestep=pgc->timesync(p->veltimestep);
-    
-    /*double maxrhs=max(a->maxF,a->maxG,a->maxH);
-
-    if(p->mpirank==0)
-    cout<<" VELDT: "<<p->N47*2.0/((velmax/p->dx))<<" HDT: "<<p->N47*2.0/(sqrt((4.0*fabs(maxrhs))/p->dx))<<endl;*/
-
-	if(p->N48==1)
-	{
-	p->dt=p->veltimestep;
-	p->turbtimestep=p->veltimestep;
-	}
-
-	if(p->N48==3)
-	{
-	p->dt=p->veltimestep;
-	p->turbtimestep=p->turbtimestep;
-	}
-
-	if(p->N48==4)
-	{
-	p->dt=MIN(p->veltimestep,p->turbtimestep);
-	p->turbtimestep=p->dt;
-	}
 
 	a->maxF=0.0;
 	a->maxG=0.0;
 	a->maxH=0.0;
-	a->maxK=0.0;
-	a->maxE=0.0;
 }
 
 void ietimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 {
+    dx = p->DXM;
+    
 	p->umax=p->vmax=p->wmax=p->viscmax=-1e19;
     
     p->viscmax = MAX(p->W2,p->W4);
-    visccrit=p->viscmax*(6.0/pow(p->dx,2.0));
 
 	p->umax=p->W10;
 
@@ -259,11 +195,11 @@ void ietimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
     
     p->umax=MAX(p->umax,2.0);
     
-    dx = p->DXM;
+    
     
    
 
-    cu=2.0/((p->umax/dx+visccrit)+sqrt(pow(p->umax/dx+visccrit,2.0)+(4.0*sqrt(fabs(a->gi) + fabs(a->gj) +fabs(a->gk)))/dx));// + (8.0*p->maxkappa*p->W5)/(2.0*dx*dx*(p->W1+p->W3)));
+    cu=2.0/((p->umax/dx)+sqrt((4.0*sqrt(fabs(a->gi) + fabs(a->gj) +fabs(a->gk)))/dx));// + (8.0*p->maxkappa*p->W5)/(2.0*dx*dx*(p->W1+p->W3)));
 
     
     //cout<<p->mpirank<<" CU "<<cu<<endl;
@@ -272,12 +208,8 @@ void ietimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 	p->dt=p->N47*cu*0.25;
     p->dt = MAX(p->dt,1.0e-6);
 	p->dt=pgc->timesync(p->dt);
-	p->veltimestep=p->turbtimestep=p->dt;
 	p->dt_old=p->dt;
     
-    
-
-	p->maxkappa=0.0;
 }
 
 double ietimestep::min(double val1,double val2,double val3)

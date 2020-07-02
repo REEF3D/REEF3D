@@ -62,6 +62,7 @@ void fieldint1::fieldalloc(lexer* p)
 
 void fieldint1::fieldgcalloc(lexer* p)
 {
+    //cout<<p->mpirank<<" GCBEXTRA1: "<<p->gcbextra<<endl;
     gcfeldsize=p->gcbextra;
 	
 	p->Iarray(gcfeld,gcfeldsize,6,4);

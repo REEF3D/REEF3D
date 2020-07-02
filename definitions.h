@@ -20,14 +20,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-/*
-#define FLUID      10
-#define FLT       -12
-#define TOPO      -10
-#define OBJ       -11
-#define SOLID     -11
-*/
-
 #define WATER      10
 #define AIR        -1
 #define FLT       -17

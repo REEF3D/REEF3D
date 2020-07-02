@@ -83,6 +83,7 @@ void hypre_struct::start_solver1234(lexer* p,fdm* a, ghostcell* pgc, field &f, v
 	p->solveriter=0;
 	
 	create_solver1234(p,pgc);
+    //create_solver5(p,pgc);
     
     if(var==1)
     {
@@ -137,6 +138,7 @@ void hypre_struct::start_solver1234(lexer* p,fdm* a, ghostcell* pgc, field &f, v
     fillbackvec4(p,f,xvec,var);
 	
 	delete_solver1234(p,pgc);
+    //delete_solver5(p,pgc);
 }
 
 void hypre_struct::start_solver5(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, vec& rhsvec, int var)
@@ -204,11 +206,11 @@ void hypre_struct::start_solver8(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *
 	delete_solver5(p,pgc);
 }
 
-void hypre_struct::setup(lexer* p,fdm* a, ghostcell* pgc, int var, cpt &C)
+void hypre_struct::setup(lexer* p,fdm* a, ghostcell* pgc, int var)
 {
 }
 
-void hypre_struct::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit, cpt &C)
+void hypre_struct::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit)
 {
 }
 

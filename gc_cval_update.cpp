@@ -27,444 +27,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"cart3.h"
 #include"cart4.h"
 
-void ghostcell::cval_update1(lexer* p, fdm* a, fieldint &cval1)
-{
-    field1 test(p);
-    
-    count=0;
-    
-    ULOOP
-	{
-    cval1(i,j,k)=count;
-    ++count;
-	}
-
-	GC1LOOP
-    {
-    i=p->gcb1[n][0];
-    j=p->gcb1[n][1];
-    k=p->gcb1[n][2];
-    
-    
-        if(p->gcb1[n][3]==1)
-        for(q=0;q<margin;++q)
-        {
-        cval1(i-1-q,j,k)=count;
-        ++count;
-        }
-
-        if(p->gcb1[n][3]==2)
-        for(q=0;q<margin;++q)
-        {
-        cval1(i,j+1+q,k)=count;
-        ++count;
-        }
-
-        if(p->gcb1[n][3]==3)
-        for(q=0;q<margin;++q)
-        {
-        cval1(i,j-1-q,k)=count;
-        ++count;
-        }
-
-        if(p->gcb1[n][3]==4)
-        for(q=0;q<margin;++q)
-        {
-        cval1(i+1+q,j,k)=count; // problem!
-        ++count;
-        }
-
-        if(p->gcb1[n][3]==5)
-        for(q=0;q<margin;++q)
-        {
-        cval1(i,j,k-1-q)=count;
-        ++count;
-        }
-
-        if(p->gcb1[n][3]==6)
-        for(q=0;q<margin;++q)
-        {
-        cval1(i,j,k+1+q)=count;
-        ++count;
-        }
-    }
-
-
-	for(n=0;n<p->gcpara1_count;++n)
-    {
-    i=p->gcpara1[n][0];
-    j=p->gcpara1[n][1];
-    k=p->gcpara1[n][2];
-        
-        if(p->gcpara1[n][3]==1)
-		for(q=0;q<margin;++q)
-        {
-        cval1(i-1-q,j,k)=count;
-        ++count;
-        }
-	}
-	
-	for(n=0;n<p->gcpara2_count;++n)
-    {
-    i=p->gcpara2[n][0];
-    j=p->gcpara2[n][1];
-    k=p->gcpara2[n][2];
-        
-        if(p->gcpara2[n][3]==1)
-		for(q=0;q<margin;++q)
-        {
-        cval1(i,j+1+q,k)=count;
-        ++count;
-        }
-	}
-	
-	for(n=0;n<p->gcpara3_count;++n)
-    {
-    i=p->gcpara3[n][0];
-    j=p->gcpara3[n][1];
-    k=p->gcpara3[n][2];
-        
-        if(p->gcpara3[n][3]==1)
-		for(q=0;q<margin;++q)
-        {
-        cval1(i,j-1-q,k)=count;
-        ++count;
-        }
-	}
-	
-	for(n=0;n<p->gcpara4_count;++n)
-    {
-    i=p->gcpara4[n][0];
-    j=p->gcpara4[n][1];
-    k=p->gcpara4[n][2];
-        
-        if(p->gcpara4[n][3]==1)
-		for(q=0;q<margin;++q)
-        {
-        cval1(i+1+q,j,k)=count;
-        ++count;
-        }
-	}
-	
-	for(n=0;n<p->gcpara5_count;++n)
-    {
-    i=p->gcpara5[n][0];
-    j=p->gcpara5[n][1];
-    k=p->gcpara5[n][2];
-        
-        if(p->gcpara5[n][3]==1)
-		for(q=0;q<margin;++q)
-        {
-        cval1(i,j,k-1-q)=count;
-        ++count;
-        }
-	}
-	
-	for(n=0;n<p->gcpara6_count;++n)
-    {
-    i=p->gcpara6[n][0];
-    j=p->gcpara6[n][1];
-    k=p->gcpara6[n][2];
-        
-        if(p->gcpara6[n][3]==1)
-		for(q=0;q<margin;++q)
-        {
-        cval1(i,j,k+1+q)=count;
-        ++count;
-        }
-	}
-}
-
-void ghostcell::cval_update2(lexer* p, fdm* a, fieldint &cval2)
-{
-    count=0;
-
-    VLOOP
-	{
-    cval2(i,j,k)=count;
-    ++count;
-	}
-
-	GC2LOOP
-    {
-    i=p->gcb2[n][0];
-    j=p->gcb2[n][1];
-    k=p->gcb2[n][2];
-
-        if(p->gcb2[n][3]==1)
-        for(q=0;q<margin;++q)
-        {
-        cval2(i-1-q,j,k)=count;
-        ++count;
-        }
-
-        if(p->gcb2[n][3]==2)
-        for(q=0;q<margin;++q)
-        {
-        cval2(i,j+1+q,k)=count;
-        ++count;
-        }
-
-        if(p->gcb2[n][3]==3)
-        for(q=0;q<margin;++q)
-        {
-        cval2(i,j-1-q,k)=count;
-        ++count;
-        }
-
-        if(p->gcb2[n][3]==4)
-        for(q=0;q<margin;++q)
-        {
-        cval2(i+1+q,j,k)=count;
-        ++count;
-        }
-
-        if(p->gcb2[n][3]==5)
-        for(q=0;q<margin;++q)
-        {
-        cval2(i,j,k-1-q)=count;
-        ++count;
-        }
-
-        if(p->gcb2[n][3]==6)
-        for(q=0;q<margin;++q)
-        {
-        cval2(i,j,k+1+q)=count;
-        ++count;
-        }
-    }
-	
-	
-	for(n=0;n<p->gcpara1_count;++n)
-    {
-    i=p->gcpara1[n][0];
-    j=p->gcpara1[n][1];
-    k=p->gcpara1[n][2];
-        
-        if(p->gcpara1[n][4]==1)
-		for(q=0;q<margin;++q)		
-        {
-        cval2(i-1-q,j,k)=count;
-        ++count;
-        }
-	}
-	
-	for(n=0;n<p->gcpara2_count;++n)
-    {
-    i=p->gcpara2[n][0];
-    j=p->gcpara2[n][1];
-    k=p->gcpara2[n][2];
-        
-        if(p->gcpara2[n][4]==1)
-		for(q=0;q<margin;++q)
-        {
-        cval2(i,j+1+q,k)=count;
-        ++count;
-        }
-	}
-	
-	for(n=0;n<p->gcpara3_count;++n)
-    {
-    i=p->gcpara3[n][0];
-    j=p->gcpara3[n][1];
-    k=p->gcpara3[n][2];
-        
-        if(p->gcpara3[n][4]==1)
-		for(q=0;q<margin;++q)		
-        {
-        cval2(i,j-1-q,k)=count;
-        ++count;
-        }
-	}
-	
-	for(n=0;n<p->gcpara4_count;++n)
-    {
-    i=p->gcpara4[n][0];
-    j=p->gcpara4[n][1];
-    k=p->gcpara4[n][2];
-        
-        if(p->gcpara4[n][4]==1)
-		for(q=0;q<margin;++q)
-        {
-        cval2(i+1+q,j,k)=count;
-        ++count;
-        }
-	}
-	
-	for(n=0;n<p->gcpara5_count;++n)
-    {
-    i=p->gcpara5[n][0];
-    j=p->gcpara5[n][1];
-    k=p->gcpara5[n][2];
-        
-        if(p->gcpara5[n][4]==1)
-		for(q=0;q<margin;++q)		
-        {
-        cval2(i,j,k-1-q)=count;
-        ++count;
-        }
-	}
-	
-	for(n=0;n<p->gcpara6_count;++n)
-    {
-    i=p->gcpara6[n][0];
-    j=p->gcpara6[n][1];
-    k=p->gcpara6[n][2];
-        
-        if(p->gcpara6[n][4]==1)
-		for(q=0;q<margin;++q)
-        {
-        cval2(i,j,k+1+q)=count;
-        ++count;
-        }
-	}
-}
-
-void ghostcell::cval_update3(lexer* p, fdm* a, fieldint &cval3)
-{
-    count=0;
-
-    WLOOP
-	{
-    cval3(i,j,k)=count;
-    ++count;
-	}
-
-	GC3LOOP
-    {
-    i=p->gcb3[n][0];
-    j=p->gcb3[n][1];
-    k=p->gcb3[n][2];
-
-        if(p->gcb3[n][3]==1)
-        for(q=0;q<margin;++q)
-        {
-        cval3(i-1-q,j,k)=count;
-        ++count;
-        }
-
-        if(p->gcb3[n][3]==2)
-        for(q=0;q<margin;++q)
-        {
-        cval3(i,j+1+q,k)=count;
-        ++count;
-        }
-
-        if(p->gcb3[n][3]==3)
-        for(q=0;q<margin;++q)
-        {
-        cval3(i,j-1-q,k)=count;
-        ++count;
-        }
-
-        if(p->gcb3[n][3]==4)
-        for(q=0;q<margin;++q)
-        {
-        cval3(i+1+q,j,k)=count;
-        ++count;
-        }
-
-        if(p->gcb3[n][3]==5)
-        for(q=0;q<margin;++q)
-        {
-        cval3(i,j,k-1-q)=count;
-        ++count;
-        }
-
-        if(p->gcb3[n][3]==6)
-        for(q=0;q<margin;++q)
-        {
-        cval3(i,j,k+1+q)=count;
-        ++count;
-        }
-	}
-	
-	
-	for(n=0;n<p->gcpara1_count;++n)
-    {
-    i=p->gcpara1[n][0];
-    j=p->gcpara1[n][1];
-    k=p->gcpara1[n][2];
-        
-        if(p->gcpara1[n][5]==1)
-		for(q=0;q<margin;++q)
-        {
-        cval3(i-1-q,j,k)=count;
-        ++count;
-        }
-	}
-	
-	for(n=0;n<p->gcpara2_count;++n)
-    {
-    i=p->gcpara2[n][0];
-    j=p->gcpara2[n][1];
-    k=p->gcpara2[n][2];
-        
-        if(p->gcpara2[n][5]==1)
-		for(q=0;q<margin;++q)   
-        {
-        cval3(i,j+1+q,k)=count;
-        ++count;
-        }
-	}
-	
-	for(n=0;n<p->gcpara3_count;++n)
-    {
-    i=p->gcpara3[n][0];
-    j=p->gcpara3[n][1];
-    k=p->gcpara3[n][2];
-        
-        if(p->gcpara3[n][5]==1)
-        for(q=0;q<margin;++q)
-        {
-        cval3(i,j-1-q,k)=count;
-        ++count;
-        }
-	}
-	
-	for(n=0;n<p->gcpara4_count;++n)
-    {
-    i=p->gcpara4[n][0];
-    j=p->gcpara4[n][1];
-    k=p->gcpara4[n][2];
-        
-        if(p->gcpara4[n][5]==1)
-		for(q=0;q<margin;++q)
-        {
-        cval3(i+1+q,j,k)=count;
-        ++count;
-        }
-	}
-	
-	for(n=0;n<p->gcpara5_count;++n)
-    {
-    i=p->gcpara5[n][0];
-    j=p->gcpara5[n][1];
-    k=p->gcpara5[n][2];
-        
-        if(p->gcpara5[n][5]==1)
-		for(q=0;q<margin;++q)
-        {
-        cval3(i,j,k-1-q)=count;
-        ++count;
-        }
-	}
-	
-	for(n=0;n<p->gcpara6_count;++n)
-    {
-    i=p->gcpara6[n][0];
-    j=p->gcpara6[n][1];
-    k=p->gcpara6[n][2];
-        
-        if(p->gcpara6[n][5]==1)
-		for(q=0;q<margin;++q)
-        {
-        cval3(i,j,k+1+q)=count;
-        ++count;
-        }
-	}
-}
-
 void ghostcell::cval_update4(lexer* p, fdm* a, fieldint &cval4)
 {
     count=0;
@@ -824,7 +386,7 @@ void ghostcell::cval_update6(lexer* p, fdm* a, fieldint &cval6)
     j=p->gcpara1[n][1];
     k=p->gcpara1[n][2];
         
-        //if(p->gcpara1[n][6]==1)
+        if(p->gcpara1[n][8]==1)
 		for(q=0;q<margin;++q)
         {
         cval6(i-1-q,j,k)=count;
@@ -838,7 +400,7 @@ void ghostcell::cval_update6(lexer* p, fdm* a, fieldint &cval6)
     j=p->gcpara2[n][1];
     k=p->gcpara2[n][2];
         
-        if(p->gcpara2[n][6]==1)
+        if(p->gcpara2[n][8]==1)
 		for(q=0;q<margin;++q)
         {
         cval6(i,j+1+q,k)=count;
@@ -852,7 +414,7 @@ void ghostcell::cval_update6(lexer* p, fdm* a, fieldint &cval6)
     j=p->gcpara3[n][1];
     k=p->gcpara3[n][2];
         
-        if(p->gcpara3[n][6]==1)
+        if(p->gcpara3[n][8]==1)
 		for(q=0;q<margin;++q)
         {
         cval6(i,j-1-q,k)=count;
@@ -866,7 +428,7 @@ void ghostcell::cval_update6(lexer* p, fdm* a, fieldint &cval6)
     j=p->gcpara4[n][1];
     k=p->gcpara4[n][2];
         
-        if(p->gcpara4[n][6]==1)
+        if(p->gcpara4[n][8]==1)
 		for(q=0;q<margin;++q)
         {
         cval6(i+1+q,j,k)=count;
@@ -880,7 +442,7 @@ void ghostcell::cval_update6(lexer* p, fdm* a, fieldint &cval6)
     j=p->gcpara5[n][1];
     k=p->gcpara5[n][2];
         
-        if(p->gcpara5[n][6]==1)
+        if(p->gcpara5[n][8]==1)
 		for(q=0;q<margin;++q)
         {
         cval6(i,j,k-1-q)=count;
@@ -894,7 +456,7 @@ void ghostcell::cval_update6(lexer* p, fdm* a, fieldint &cval6)
     j=p->gcpara6[n][1];
     k=p->gcpara6[n][2];
         
-        if(p->gcpara6[n][6]==1)
+        if(p->gcpara6[n][8]==1)
 		for(q=0;q<margin;++q)
         {
         cval6(i,j,k+1+q)=count;

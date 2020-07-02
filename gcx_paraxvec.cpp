@@ -25,16 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void ghostcell::gcparaxvec(lexer* p, vec &x, int gcv)
 {
-	
-	if(gcv==1)
-	gcparaxvec_sr(p,x,a->C1,1);
-	
-	if(gcv==2)
-	gcparaxvec_sr(p,x,a->C2,2);
-	
-    if(gcv==3)
-	gcparaxvec_sr(p,x,a->C3,3);
-	
+		
 	if(gcv==4)
 	gcparaxvec_sr(p,x,a->C4,4);
 	
@@ -58,7 +49,7 @@ void ghostcell::gcparaxvec_sr(lexer* p, vec &x, cpt &C, int gcv)
     n=p->gcpara1[q][8+gcv];
     
         
-        if(p->gcpara1[q][2+gcv]==1 || gcv>=5)
+        if(p->gcpara1[q][2+gcv]==1)
         {
         send1[count]=x.V[I_J_K];
         ++count;
@@ -78,7 +69,7 @@ void ghostcell::gcparaxvec_sr(lexer* p, vec &x, cpt &C, int gcv)
     n=p->gcpara2[q][8+gcv];
 
         
-        if(p->gcpara2[q][2+gcv]==1 || gcv>=5)
+        if(p->gcpara2[q][2+gcv]==1)
         {
         send2[count]=x.V[I_J_K];
         ++count;
@@ -98,7 +89,7 @@ void ghostcell::gcparaxvec_sr(lexer* p, vec &x, cpt &C, int gcv)
     n=p->gcpara3[q][8+gcv];
 
         
-        if(p->gcpara3[q][2+gcv]==1 || gcv>=5)
+        if(p->gcpara3[q][2+gcv]==1)
         {
         send3[count]=x.V[I_J_K];
         ++count;
@@ -117,7 +108,7 @@ void ghostcell::gcparaxvec_sr(lexer* p, vec &x, cpt &C, int gcv)
 	{
     n=p->gcpara4[q][8+gcv];
 
-        if(p->gcpara4[q][2+gcv]==1 || gcv>=5)
+        if(p->gcpara4[q][2+gcv]==1)
         {
         send4[count]=x.V[I_J_K];
         ++count;
@@ -135,7 +126,7 @@ void ghostcell::gcparaxvec_sr(lexer* p, vec &x, cpt &C, int gcv)
 	{
     n=p->gcpara5[q][8+gcv];
         
-        if(p->gcpara5[q][2+gcv]==1 || gcv>=5)
+        if(p->gcpara5[q][2+gcv]==1)
         {
         send5[count]=x.V[I_J_K];
         ++count;
@@ -153,7 +144,7 @@ void ghostcell::gcparaxvec_sr(lexer* p, vec &x, cpt &C, int gcv)
 	{
 	n=p->gcpara6[q][8+gcv];
         
-        if(p->gcpara6[q][2+gcv]==1 || gcv>=5)
+        if(p->gcpara6[q][2+gcv]==1)
         {
         send6[count]=x.V[I_J_K];
         ++count;
@@ -216,7 +207,7 @@ void ghostcell::gcparaxvec_sr(lexer* p, vec &x, cpt &C, int gcv)
     {
     n=p->gcpara1[q][8+gcv];
         
-        if(p->gcpara1[q][2+gcv]==1 || gcv>=5)
+        if(p->gcpara1[q][2+gcv]==1)
         {
         x.V[Im1_J_K]=recv1[count];
         ++count;
@@ -235,7 +226,7 @@ void ghostcell::gcparaxvec_sr(lexer* p, vec &x, cpt &C, int gcv)
 	{
     n=p->gcpara2[q][8+gcv];
 
-        if(p->gcpara2[q][2+gcv]==1 || gcv>=5)
+        if(p->gcpara2[q][2+gcv]==1)
         {
         x.V[I_Jp1_K]=recv2[count];
         ++count;
@@ -253,7 +244,7 @@ void ghostcell::gcparaxvec_sr(lexer* p, vec &x, cpt &C, int gcv)
 	{
     n=p->gcpara3[q][8+gcv];
         
-        if(p->gcpara3[q][2+gcv]==1 || gcv>=5)
+        if(p->gcpara3[q][2+gcv]==1)
         {
         x.V[I_Jm1_K]=recv3[count];
         ++count;
@@ -271,7 +262,7 @@ void ghostcell::gcparaxvec_sr(lexer* p, vec &x, cpt &C, int gcv)
 	{
     n=p->gcpara4[q][8+gcv];
         
-        if(p->gcpara4[q][2+gcv]==1 || gcv>=5)
+        if(p->gcpara4[q][2+gcv]==1)
         {
         x.V[Ip1_J_K]=recv4[count];
         ++count;
@@ -289,7 +280,7 @@ void ghostcell::gcparaxvec_sr(lexer* p, vec &x, cpt &C, int gcv)
     {
     n=p->gcpara5[q][8+gcv];
         
-        if(p->gcpara5[q][2+gcv]==1 || gcv>=5)
+        if(p->gcpara5[q][2+gcv]==1)
         {
         x.V[I_J_Km1]=recv5[count];
         ++count;
@@ -307,7 +298,7 @@ void ghostcell::gcparaxvec_sr(lexer* p, vec &x, cpt &C, int gcv)
 	{
     n=p->gcpara6[q][8+gcv];
         
-        if(p->gcpara6[q][2+gcv]==1 || gcv>=5)
+        if(p->gcpara6[q][2+gcv]==1)
         {
         x.V[I_J_Kp1]=recv6[count];
         ++count;

@@ -37,7 +37,7 @@ void ghostcell::flagfield(lexer *p)
     p->flag4[i]=OBJ;
     }
     
-   // flagx(p,p->flag4);
+    flagx(p,p->flag4);
     
 	if(p->Y60==1)
     LOOP

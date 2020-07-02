@@ -189,7 +189,7 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	return 4;
 	
 	// ro
-	if(gcv==2 && (cs!=5 && bc!=5 && bc!=21 && gc_pressure_extend!=1))
+	if(gcv==2 && (cs!=5 && bc!=5 && bc!=21))
 	return 4;
 	
 // Turbulence kin

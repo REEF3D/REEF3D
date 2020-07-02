@@ -41,7 +41,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_ddx_cds2.h"
 #include"fnpf_ddx_cds4.h"
 #include"sflow_bicgstab.h"
-#include"sflow_jacobi_block.h"
 #include"hypre_struct2D.h"
 
 fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p)

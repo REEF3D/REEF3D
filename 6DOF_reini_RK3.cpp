@@ -28,9 +28,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void sixdof_f::reini_RK3(lexer* p, fdm* a, ghostcell* pgc, field& b)
 {
     n=0;
-	LOOP
+	ALOOP
 	{
-	dt.V[n] = 0.55*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
+	dt.V[n] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
 	++n;
 	}
 

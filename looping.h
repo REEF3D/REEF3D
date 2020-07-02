@@ -84,6 +84,12 @@ Author: Hans Bihs
 #define TCHECK if(p->flag4[IJK]>OBJ)
 #define TLOOP ITLOOP JTLOOP KTLOOP
 
+#define IFLEXLOOP	for(i=0; i<p->knox-ulast; ++i)
+#define JFLEXLOOP	for(j=0; j<p->knoy-vlast; ++j)
+#define KFLEXLOOP	for(k=0; k<p->knoz-wlast; ++k)
+#define FLEXCHECK  if(flag[IJK]>0)
+#define FLEXLOOP IFLEXLOOP JFLEXLOOP KFLEXLOOP FLEXCHECK
+
 #define IULOOP	for(i=0; i<p->knox-p->ulast; ++i)
 #define JULOOP	for(j=0; j<p->knoy; ++j)
 #define KULOOP	for(k=0; k<p->knoz; ++k)
@@ -111,6 +117,11 @@ Author: Hans Bihs
 #define VBASELOOP IVLOOP JVLOOP KVLOOP VBASECHECK
 #define WBASELOOP IWLOOP JWLOOP KWLOOP WBASECHECK
 #define BASELOOP ILOOP JLOOP KLOOP PBASECHECK
+
+#define URAWLOOP IULOOP JULOOP KULOOP
+#define VRAWLOOP IVLOOP JVLOOP KVLOOP 
+#define WRAWLOOP IWLOOP JWLOOP KWLOOP 
+#define RAWLOOP ILOOP JLOOP KLOOP
 
 #define ALOOP ILOOP JLOOP KLOOP PSOLIDCHECK
 

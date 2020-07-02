@@ -43,7 +43,7 @@ void reinidisc_f::start(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int ip
         n=0;
         LOOP
         {
-        disc(p,a,pgc,b,L,p->sizeM4,a->C4);
+        disc(p,a,pgc,b,L,p->sizeM4,ipol,a->C4);
         ++n;
         }
     }
@@ -56,7 +56,7 @@ void reinidisc_f::start(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int ip
         n=0;
         ALOOP
         {
-        disc(p,a,pgc,b,L,p->sizeM4a,a->C4a);
+        disc(p,a,pgc,b,L,p->sizeM4a,ipol,a->C4a);
         ++n;
         }
     }
@@ -70,14 +70,14 @@ void reinidisc_f::start(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int ip
         n=0;
         BASELOOP
         {
-        disc(p,a,pgc,b,L,p->sizeM6,a->C6);
+        disc(p,a,pgc,b,L,p->sizeM6,ipol,a->C6);
         ++n;
         }
     }
 }
 
 
-void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *sizeM, cpt &C)
+void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *sizeM, int ipol, cpt &C)
 {
 	
 	dx=0.0;
@@ -94,10 +94,10 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *si
 	xplus=(b.V[Ip1_J_K]-lsv)/p->DXP[IP];
 	
 	if(xmin*lsSig>0.0 && xplus*lsSig>-xmin*lsSig)
-	dx=ddwenox(a,b,1.0,C);
+	dx=ddwenox(a,b,1.0,ipol,C);
 
 	if(xplus*lsSig<0.0 && xmin*lsSig<-xplus*lsSig)
-	dx=ddwenox(a,b,-1.0,C);
+	dx=ddwenox(a,b,-1.0,ipol,C);
 
 	if(xplus*lsSig>0.0 && xmin*lsSig<0.0)
 	dx=0.0;
@@ -109,10 +109,10 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *si
 	yplus=(b.V[I_Jp1_K]-lsv)/p->DYP[JP];
 	
 	if(ymin*lsSig>0.0 && yplus*lsSig>-ymin*lsSig)
-	dy=ddwenoy(a,b,1.0,C);
+	dy=ddwenoy(a,b,1.0,ipol,C);
 
 	if(yplus*lsSig<0.0 && ymin*lsSig<-yplus*lsSig)
-	dy=ddwenoy(a,b,-1.0,C);
+	dy=ddwenoy(a,b,-1.0,ipol,C);
 
 	if(yplus*lsSig>0.0 && ymin*lsSig<0.0)
 	dy=0.0;
@@ -123,10 +123,10 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *si
 	zplus=(b.V[I_J_Kp1]-lsv)/p->DZP[KP];
 	
 	if(zmin*lsSig>0.0 && zplus*lsSig>-zmin*lsSig)
-	dz=ddwenoz(a,b,1.0,C);
+	dz=ddwenoz(a,b,1.0,ipol,C);
 
 	if(zplus*lsSig<0.0 && zmin*lsSig<-zplus*lsSig)
-	dz=ddwenoz(a,b,-1.0,C);
+	dz=ddwenoz(a,b,-1.0,ipol,C);
 
 	if(zplus*lsSig>0.0 && zmin*lsSig<0.0)
 	dz=0.0;	

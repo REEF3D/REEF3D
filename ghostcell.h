@@ -114,38 +114,22 @@ public:
     void rownum4_update(lexer*,fieldint&);
     void rownum7_update(lexer*,int*);
 
-
-	void cval_gcb1(lexer*,fdm*,fieldint&);
-    void cval_gcb2(lexer*,fdm*,fieldint&);
-    void cval_gcb3(lexer*,fdm*,fieldint&);
     void cval_gcb4(lexer*,fdm*,fieldint&);
     void cval_gcb4a(lexer*,fdm*,fieldint&);
     void cval_gcb6(lexer*,fdm*,fieldint&);
 
-	void cval_gcpara1(lexer*,fdm*,fieldint&);
-    void cval_gcpara2(lexer*,fdm*,fieldint&);
-    void cval_gcpara3(lexer*,fdm*,fieldint&);
     void cval_gcpara4(lexer*,fdm*,fieldint&);
     void cval_gcpara4a(lexer*,fdm*,fieldint&);
     void cval_gcpara6(lexer*,fdm*,fieldint&);
 
-    void column_pt1_update(lexer*,fdm*);
-    void column_pt2_update(lexer*,fdm*);
-    void column_pt3_update(lexer*,fdm*);
     void column_pt4_update(lexer*,fdm*);
     void column_pt4a_update(lexer*,fdm*);
     void column_pt6_update(lexer*,fdm*);
 
-	void column_pt1(lexer*,fdm*,fieldint&);
-	void column_pt2(lexer*,fdm*,fieldint&);
-	void column_pt3(lexer*,fdm*,fieldint&);
 	void column_pt4(lexer*,fdm*,fieldint&);
     void column_pt4a(lexer*,fdm*,fieldint&);
     void column_pt6(lexer*,fdm*,fieldint&);
 
-    int column_pt1_count(lexer*,fdm*);
-	int column_pt2_count(lexer*,fdm*);
-	int column_pt3_count(lexer*,fdm*);
 	int column_pt4_count(lexer*,fdm*);
     int column_pt4a_count(lexer*,fdm*);
     int column_pt6_count(lexer*,fdm*);
@@ -158,31 +142,7 @@ public:
     void fdm_update(fdm*);
     void fdm_fnpf_update(fdm_fnpf*);
 
-// 2D CPT
-    void cval2Dupdate1(lexer*,sliceint&);
-    void cval2Dupdate2(lexer*,sliceint&);
-    void cval2Dupdate4(lexer*,sliceint&);
-
-    void column2D_pt1_update(lexer*,cpt2D&);
-    void column2D_pt2_update(lexer*,cpt2D&);
-    void column2D_pt4_update(lexer*,cpt2D&);
-
-    void column2D_pt1(lexer*,sliceint&,cpt2D&);
-    void column2D_pt2(lexer*,sliceint&,cpt2D&);
-    void column2D_pt4(lexer*,sliceint&,cpt2D&);
-
-    int column2D_pt1_count(lexer*);
-    int column2D_pt2_count(lexer*);
-    int column2D_pt4_count(lexer*);
-
-    void cval_gcslpara1(lexer*,sliceint&);
-    void cval_gcslpara2(lexer*,sliceint&);
-    void cval_gcslpara4(lexer*,sliceint&);
-
-    void cval2D_gcb1(lexer*, sliceint&);
-    void cval2D_gcb2(lexer*, sliceint&);
-    void cval2D_gcb4(lexer*, sliceint&);
-    
+// 2D CPT_    
 
     void sizeS_update(lexer*);
 
@@ -248,12 +208,15 @@ public:
     void gcparax_generic(lexer*, field&, int*, int***);
     void gcparacox_generic(lexer*, field&, int*, int***);
 	void gcparaxvec(lexer*, vec&, int);
+    void gcparaxijk(lexer*, double*, int);
+    void gcparaxijk_single(lexer*, double*, int);
     void gcparax7(lexer*, double*, int);
     void gcparax7co(lexer*, double*, int);
 	void gcparaxvec_sr(lexer*, vec&,cpt&,int);
 	void gcparavoidx(lexer*, field&, int);
     void gcparax4a(lexer*, field&, int);
 	void gcparacox(lexer*, field&, int);
+    void gcsync();
 	void verticalmax(lexer*,fdm*,double**);
     void verticalsum(lexer*,fdm*,double**);
     double timer();
@@ -282,7 +245,6 @@ public:
 
     void gcsl_start4int(lexer*,sliceint&, int);
 
-    void gcsl_start4V(lexer*,vec2D&, int, cpt2D&);
     
     void gcsl_solidupdate(lexer*);
 
@@ -291,8 +253,6 @@ public:
 	void gcsldistro3(lexer*, slice&,int, int, int, double, int, int, int);
 	void gcsldistro4(lexer*, slice&,int, int, int, double, int, int, int);
 	void gcsldistro4a(lexer*, slice&,int, int, int, double, int, int, int);
-    
-    void gcsldistro4V(lexer*, vec2D&, cpt2D &, int, int, int, double, int, int, int,int);
 
     void gcsldistro4int(lexer*, sliceint&,int, int, int, double, int, int, int);
 
@@ -328,11 +288,6 @@ public:
     void gcsl_sommerfeld(lexer*,slice&,int,int,int);
     void gcsl_outflow(lexer*,slice&,int,int,int);
     void gcsl_outflow_fsf(lexer*,slice&,int,int,int);
-    
-    void gcsl_neumannV(vec2D&,cpt2D&,int,int,int,int);
-    void gcsl_neumannV_x(vec2D&,cpt2D&,int,int,int,int);
-	void gcsl_noslipV(vec2D&,cpt2D&,int,int,int,int);
-
 
     // parallel
     void gcslparax(lexer*, slice&, int);
@@ -342,9 +297,9 @@ public:
     void gcslparacox_int(lexer*, sliceint&, int);
     void gcslwait(lexer*);
     void gcslflagx(lexer*, int*);
-    void gcparaxvec2D(lexer*, vec2D&, int,cpt2D&);
-    void gcslparaxvec_slr(lexer*, vec2D&,cpt2D&,int);
     void gcxslupdate(lexer*);
+    void gcslparaxijk(lexer*, slice&, int);
+    void gcslparaxijk_single(lexer*, slice&, int);
 
 
     double mini1(fdm*,lexer*, field&);
@@ -451,7 +406,6 @@ private:
     int gclabel_utopo, gclabel_vtopo, gclabel_wtopo;
     int gclabel_u_orth,gclabel_v_orth,gclabel_w_orth,gclabel_press,gclabel_lsm;
     int gclabel_u_in,gclabel_v_in,gclabel_w_in,gclabel_press_in,gclabel_lsm_in;
-	int gc_pressure_extend;
 	int gclabel_u_out, gclabel_v_out, gclabel_w_out;
 	int gclabel_vel;
 	int rank;

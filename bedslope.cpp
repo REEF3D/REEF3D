@@ -117,8 +117,6 @@ void bedslope::slope(lexer *p, fdm * a, ghostcell *pgc, double &teta, double &al
 	
     
     phi = midphi + (teta/(fabs(gamma)>1.0e-20?fabs(gamma):1.0e20))*delta; 
-    /*
-    KLOOP
-    a->test(i,j,k)=teta*180.0/PI;*/
+
 }
 

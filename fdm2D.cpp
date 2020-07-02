@@ -55,10 +55,6 @@ fdm2D::fdm2D(lexer *p)
 	gj=p->W21;
 	gk=p->W22;
 
-    
-    C1.allocate(p);
-    C2.allocate(p);
-    C4.allocate(p);
 
 }
 

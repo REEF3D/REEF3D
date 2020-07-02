@@ -450,16 +450,4 @@ void momentum_FSI::fieldtimesave(lexer *p, fdm *a, ghostcell* pgc, momentum *pmo
     dtn = p->dt;    
 }
 
-void momentum_FSI::fillaij1(lexer *p, fdm *a, ghostcell* pgc, solver *psolv)
-{
-}
-
-void momentum_FSI::fillaij2(lexer *p, fdm *a, ghostcell* pgc, solver *psolv)
-{
-}
-
-void momentum_FSI::fillaij3(lexer *p, fdm *a, ghostcell* pgc, solver *psolv)
-{
-}
-
 

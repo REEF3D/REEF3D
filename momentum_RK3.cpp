@@ -348,6 +348,13 @@ void momentum_RK3::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel,
 	}
 }
 
+void momentum_RK3::timecheck(lexer *p,fdm *a,ghostcell *pgc,field &u,field &v,field &w)
+{
+    
+    
+    
+}
+
 void momentum_RK3::utimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
@@ -360,14 +367,3 @@ void momentum_RK3::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void momentum_RK3::fillaij1(lexer *p, fdm *a, ghostcell* pgc, solver *psolv)
-{
-}
-
-void momentum_RK3::fillaij2(lexer *p, fdm *a, ghostcell* pgc, solver *psolv)
-{
-}
-
-void momentum_RK3::fillaij3(lexer *p, fdm *a, ghostcell* pgc, solver *psolv)
-{
-}

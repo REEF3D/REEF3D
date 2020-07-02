@@ -140,7 +140,8 @@ void iweno_flux::wenoloop1(lexer *p, fdm *a, field& b, int ipol, field& uvel, fi
 			aij_x(p,a,b,a->F);
 
 
-	
+            if(p->j_dir==1)
+            {
 			j-=1;
 			if(jvel1>=0.0)
 			{
@@ -179,7 +180,9 @@ void iweno_flux::wenoloop1(lexer *p, fdm *a, field& b, int ipol, field& uvel, fi
 			weight_calc_2();
 			}
 			
+            
 			aij_y(p,a,b,a->F);
+            }
 
 
 		
@@ -279,7 +282,8 @@ void iweno_flux::wenoloop2(lexer *p, fdm *a, field& b, int ipol, field& uvel, fi
 			aij_x(p,a,b,a->G);
 
 
-			
+			if(p->j_dir==1)
+            {
 			j-=1;
 			if(jvel1>=0.0)
 			{
@@ -319,6 +323,7 @@ void iweno_flux::wenoloop2(lexer *p, fdm *a, field& b, int ipol, field& uvel, fi
 			}
 			
 			aij_y(p,a,b,a->G);
+            }
 
 
 			
@@ -418,7 +423,8 @@ void iweno_flux::wenoloop3(lexer *p, fdm *a, field& b, int ipol, field& uvel, fi
 			aij_x(p,a,b,a->H);
 
 
-
+            if(p->j_dir==1)
+            {
 			j-=1;
 			if(jvel1>=0.0)
 			{
@@ -458,7 +464,7 @@ void iweno_flux::wenoloop3(lexer *p, fdm *a, field& b, int ipol, field& uvel, fi
 			}
 			
 			aij_y(p,a,b,a->H);
-
+            }
 
 		
 			k-=1;
@@ -556,7 +562,8 @@ void iweno_flux::wenoloop4(lexer *p, fdm *a, field& b, int ipol, field& uvel, fi
 			aij_x(p,a,b,a->L);
 
 
-	
+            if(p->j_dir==1)
+            {
 			j-=1;
 			if(jvel1>=0.0)
 			{
@@ -596,7 +603,7 @@ void iweno_flux::wenoloop4(lexer *p, fdm *a, field& b, int ipol, field& uvel, fi
 			}
 			
 			aij_y(p,a,b,a->L);
-
+            }
 
 		
 			k-=1;

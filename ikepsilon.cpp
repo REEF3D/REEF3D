@@ -69,20 +69,6 @@ void  ikepsilon::eddyvisc(fdm* a, lexer* p, ghostcell* pgc)
 	double epsi = 1.6*p->dx;
 	double factor;
 	
-	if(p->T30==0)
-	LOOP
-	a->eddyv(i,j,k) = (p->cmu*kin(i,j,k)*kin(i,j,k))/eps(i,j,k);
-
-
-    if(p->T30==1)
-	LOOP
-    {
-	a->eddyv(i,j,k) = MAX(p->cmu*MAX(kin(i,j,k)*kin(i,j,k)
-					  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),
-					  0.0001*a->visc(i,j,k));
-	}
-
-    if(p->T30==2)
 	LOOP
     {
 		if(a->phi(i,j,k)>epsi)
@@ -112,20 +98,8 @@ void  ikepsilon::eddyvisc(fdm* a, lexer* p, ghostcell* pgc)
 
 void  ikepsilon::kinsource(lexer *p, fdm* a)
 {
-
     count=0;
 
-    if(p->T40==0)
-    LOOP
-    {
-	if(wallf(i,j,k)==0)
-	a->rhsvec.V[count]  +=  pk(p,a)
-						- eps(i,j,k);
-						
-	++count;
-    }
-
-    if(p->T40==1)
     LOOP
     {
 	if(wallf(i,j,k)==0)
@@ -135,16 +109,6 @@ void  ikepsilon::kinsource(lexer *p, fdm* a)
 	++count;
     }
 
-    if(p->T40==2 || p->T40==3)
-    LOOP
-    {
-	if(wallf(i,j,k)==0)
-	a->rhsvec.V[count]  +=  MIN(pk(p,a), p->T42*p->cmu*MAX(kin(i,j,k),0.0)*MAX(eps(i,j,k),0.0))
-						-  MAX(eps(i,j,k),0.0);
-	
-	++count;
-    }
-    
     pvrans->ke_source(p,a,kin);
 }
 
@@ -154,33 +118,11 @@ void  ikepsilon::epssource(lexer *p, fdm* a)
 	double dirac;
     count=0;
 
-    if(p->T40==0)
-	LOOP
-	{
-        a->M.p[count] += ke_c_2e * eps(i,j,k)/kin(i,j,k);
-
-	a->rhsvec.V[count] += ke_c_1e * (eps(i,j,k)/kin(i,j,k))*pk(p,a);
-
-    ++count;
-	}
-
-    if(p->T40==1 || p->T40==2)
 	LOOP
 	{
         a->M.p[count] += ke_c_2e * MAX((eps(i,j,k))/(fabs(kin(i,j,k))>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20)),0.0);
 
 	a->rhsvec.V[count] += ke_c_1e * (eps(i,j,k)/(fabs(kin(i,j,k))>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20)))*pk(p,a);
-
-    ++count;
-	}
-	
-
-	if(p->T40==3)
-	LOOP
-	{
-        a->M.p[count] += ke_c_2e * MAX((eps(i,j,k))/(fabs(kin(i,j,k))>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20)),0.0);
-
-	a->rhsvec.V[count] += ke_c_1e * p->cmu*a->eddyv(i,j,k) * MIN(pk(p,a), p->T42*p->cmu*MAX(eps(i,j,k),0.0));
 
     ++count;
 	}

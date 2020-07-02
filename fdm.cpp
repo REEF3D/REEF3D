@@ -43,7 +43,7 @@ fdm::fdm(lexer *p)
             bed(p),bedzh(p),bedk(p),wet(p),
             bedload(p),qbx(p),qby(p),
             P(p),Q(p),K(p),
-			xvec(p),rhsvec(p),M(p)
+			xvec(p),rhsvec(p),visctot(p),M(p)
 {
 
 	
@@ -51,8 +51,6 @@ fdm::fdm(lexer *p)
 	maxF=0.0;
 	maxG=0.0; 
 	maxH=0.0;
-	maxK=0.0;
-	maxE=0.0;
     
 	gi=p->W20;
 	gj=p->W21;
@@ -62,10 +60,6 @@ fdm::fdm(lexer *p)
     p->Iarray(pvccnode,p->facetnum*4,8);
 	p->Iarray(ccedge,p->facetnum*4);
     
-    
-    C1.allocate(p);
-    C2.allocate(p);
-    C3.allocate(p);
     C4.allocate(p);
     C4a.allocate(p);
     C6.allocate(p);

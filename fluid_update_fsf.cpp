@@ -44,7 +44,7 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
     if(p->count>iter)
     iocheck=0;
 	iter=p->count;
-   
+    
 	LOOP
 	{
   
@@ -60,11 +60,18 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
 		H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
 
 		a->ro(i,j,k)=     ro_water*H +   ro_air*(1.0-H);
-		a->visc(i,j,k)= visc_water*H + visc_air*(1.0-H);
+		a->visc(i,j,k) = visc_water*H + visc_air*(1.0-H);
 
 		p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));
 		p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
 	}
+    
+    n=0;
+    LOOP
+    {
+    a->visctot.V[I_J_K] = a->visc(i,j,k) + a->eddyv(i,j,k);
+    ++n;
+    }
     
 	pgc->start4(p,a->ro,gcval_ro);
 	pgc->start4(p,a->visc,gcval_visc);
@@ -79,10 +86,6 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
     }
     ++iocheck;
 
-}
-
-void fluid_update_fsf::start3(lexer *p, fdm* a, ghostcell* pgc, field &ls1, field &ls2)
-{
 }
 
 int fluid_update_fsf::iocheck;

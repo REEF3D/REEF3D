@@ -38,7 +38,6 @@ class vorticity;
 class solver;
 class probe_point;
 class probe_line;
-class print_runup;
 class bedprobe_point;
 class bedprobe_max;
 class gage_discharge;
@@ -89,7 +88,6 @@ private:
     vorticity *pvort;
 	probe_point *pprobe;
 	probe_line *pline;
-	print_runup *prunup;
 	bedprobe_point *pbedpt;
 	bedprobe_max *pbedmax;
 	bedshear_probe *pbedshear;

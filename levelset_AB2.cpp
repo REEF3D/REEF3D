@@ -32,6 +32,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"particlecorr.h"
 #include"fluid_update_fsf.h"
 #include"fluid_update_fsf_heat.h"
+#include"fluid_update_fsf_heat_Bouss.h"
 #include"fluid_update_fsf_comp.h"
 #include"fluid_update_fsf_concentration.h"
 #include"fluid_update_rheology.h"
@@ -62,8 +63,11 @@ levelset_AB2::levelset_AB2(lexer* p, fdm *a, ghostcell* pgc, heat *&pheat, conce
 	if(p->F30>0 && p->H10==0 && p->W30==1 && p->W90==0)
 	pupdate = new fluid_update_fsf_comp(p,a,pgc);
 	
-	if(p->F30>0 && p->H10>0 && p->W90==0)
+	if(p->F30>0 && p->H10>0 && p->W90==0 && p->H3==1)
 	pupdate = new fluid_update_fsf_heat(p,a,pgc,pheat);
+    
+    if(p->F30>0 && p->H10>0 && p->W90==0 && p->H3==2)
+	pupdate = new fluid_update_fsf_heat_Bouss(p,a,pgc,pheat);
 	
 	if(p->F30>0 && p->C10>0 && p->W90==0)
 	pupdate = new fluid_update_fsf_concentration(p,a,pgc,pconc);
@@ -118,7 +122,6 @@ void levelset_AB2::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 	
 	p->lsmtime=pgc->timer()-starttime;
 
-    if(p->count%p->F41==0)
 	preini->start(a,p,ls,pgc,pflow);
 
 	ppicard->correct_ls(p,a,pgc,ls);

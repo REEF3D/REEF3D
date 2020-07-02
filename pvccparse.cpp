@@ -107,7 +107,8 @@ void pvccparse::start(lexer* p, fdm* a, ghostcell *pgc)
 		
 		diff = count-countold;
 
-		if(diff<=0 && p->P17==1)
+/*
+		if(diff<=0)
 		{
 		cout<<"Points: "<<pcount<<" Pts: "<<pointcount<<" Clcount: "<<clcount;
 		cout<<" | CSx: "<<p->facet[n][3]<<" CSy: "<<p->facet[n][4]<<" CSz: "<<p->facet[n][5]<<" |  ";
@@ -123,7 +124,7 @@ void pvccparse::start(lexer* p, fdm* a, ghostcell *pgc)
 		cout<<qnn<<"  ";
 		
 		cout<<endl;
-		}
+		}*/
     }
 
     p->ccellnum=count;

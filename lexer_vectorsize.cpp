@@ -20,22 +20,26 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"lexer.h"
+#include"ghostcell.h"
 
-void lexer::vecsize()
+void lexer::vecsize(ghostcell *pgc)
 {
     int n;
     gcbextra=0;
 	int gcbnum=0;
+    int solid_gcb_est_max, gcextra_max;
 
+    solid_gcb_est_max = pgc->globalimax(solid_gcb_est);
+    gcextra_max = pgc->globalimax(gcextra4);
 
 	gcb_sediment_est = gcb4_count*margin;	
 	gcb_floating_est = gcb4_count;
     
-    gcbextra=gcextra4*margin;
+    gcbextra=gcextra_max*margin;
     
     // solid and topo
 	if(S10>0 || G1>0)
-	gcbextra+=(solid_gcb_est*4+geotopo_gcb_est);
+	gcbextra+=(solid_gcb_est_max*4+geotopo_gcb_est);
     
     // floating 
 	if(X10>0)

@@ -24,7 +24,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 vec::vec(lexer* p)
 {
-    //cout<<p->mpirank<<"  VECTOR: "<<p->veclength<<" jmax: "<<p->jmax<<" kmax: "<<p->kmaxF<<endl;
     p->Darray(V,p->veclength);
 }
 

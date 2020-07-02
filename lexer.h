@@ -65,7 +65,7 @@ public:
 	void ctrlrecv();
 	int maxparacount();
 	void gridsize();
-	void vecsize();
+	void vecsize(ghostcell*);
 	void vellast();
 	void indices_minmax();
 	void lexer_ini();
@@ -274,16 +274,12 @@ public:
     double A440;
     
 	// boundary conditions
-	int B10,B19,B20,B26,B28,B30,B60,B61,B62,B63,B64,B67,B68,B69,B70,B71,B74,B75,B76,B77,B78,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B98,B99,B101,B105,B106,B107,B110;
+	int B10,B19,B20,B26,B30,B60,B61,B62,B63,B64,B70,B71,B74,B75,B76,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B98,B99,B101,B105,B106,B107,B110;
 	int B121,B136,B139,B180,B191,B192,B210,B240,B241,B242,B243;
-	double B29,B50,B51,B52,B53,B54,B55,B56,B65,B66_1,B66_2,B81_1,B81_2,B81_3,B83,B117,B87_1,B87_2,B88;
-	double B91_1,B91_2,B91_3,B93_1,B93_2,B93_3,B96_1,B96_2,B96_3,B97,B102,B103,B104,B105_1,B105_2,B105_3,B110_d,B119;
-	double *B67_val,*B67_dist,*B67_b,*B67_x,*B67_y;
-	double *B68_val,*B68_dist,*B68_b,*B68_x,*B68_y;
-	double *B69_val,*B69_dist,*B69_b,*B69_x,*B69_y;
+	double B29,B50,B51,B52,B53,B54,B55,B56,B81_1,B81_2,B81_3,B83,B117,B87_1,B87_2,B88;
+	double B91_1,B91_2,B91_3,B93_1,B93_2,B93_3,B96_1,B96_2,B96_3,B97,B102,B105_1,B105_2,B105_3,B110_d,B119;
 	double *B70_val,*B70_dist,*B70_b,*B70_x,*B70_y;
 	double *B71_val,*B71_dist,*B71_b,*B71_x,*B71_y;
-	double B79,B80;
 	double *B106_b,*B106_x,*B106_y;
     double *B107_xs,*B107_xe,*B107_ys, *B107_ye, *B107_d;
     int B108;
@@ -328,11 +324,11 @@ public:
 	double *C75_x,*C75_z,*C75_a,*C75_s,*C75_l,*C75_v;
 
 	// discretization
-	int D10,D11,D20,D21,D22,D23,D30,D32,D38,D39;
+	int D10,D11,D20,D21,D30,D32,D38,D39;
 	double D29;
 
 	// Free Surface
-	int F10,F11,F30,F31,F32,F34,F35,F36,F40,F41,F44,F46,F47,F49,F50,F150,F151;
+	int F10,F11,F30,F31,F32,F34,F35,F36,F40,F44,F46,F47,F49,F50,F150,F151;
 	double F19,F33,F39,F42,F43,F45;
 	double F51,F52,F53,F54,F55,F56;
     int F50_flag;
@@ -350,8 +346,7 @@ public:
 	double *F72_xs, *F72_xe, *F72_ys, *F72_ye, *F72_h;
 	int F80,F85;
 	double F84;
-	int F101;
-
+    
 	// Grid Options
     int G1,G2;
 	int G10,G11,G12,G20,G21,G22,G30;
@@ -364,8 +359,8 @@ public:
 
 	// Heat Options
 	double H1,H2;
-	int H9,H10,H15;
-	double H50_1,H50_2;
+	int H3,H4,H9,H10,H15;
+	double H4_beta1,H4_beta2,H50_1,H50_2;
 	double H51,H52,H53,H54,H55,H56;
 	double H57_1,H57_2,H57_3,H57_4;
 	double H58_1,H58_2,H58_3,H58_4;
@@ -381,16 +376,16 @@ public:
     double I241, I242;
 
 	// Numerical Options
-	int N5,N8,N9,N10,N11,N12,N13,N14,N15,N16,N21,N22,N23,N40,N42,N45,N46,N48,N60,N71,N72,N73;
-	double N17,N18,N41,N43,N44,N47,N49,N61;
+	int N5,N10,N11,N12,N21,N22,N23,N40,N42,N45,N46,N48,N60;
+	double N41,N43,N44,N47,N49,N61;
 
 	// MPI Options
 	int M10;
 
 	// Print options
-	int P10,P11,P12,P14,P15,P17,P18,P19,P20,P23,P24,P25,P26,P27,P28,P29,P35,P40,P41,P50,P51,P52,P53,P54,P56,P59;
-	int P61,P62,P63,P66,P67,P71,P75,P78,P79,P81,P85,P92,P93,P101,P121,P122,P123,P124,P125,P126;
-	int P150,P151,P152,P180,P181,P184,P185,P191,P210,P211,P351,P352;
+	int P10,P11,P12,P14,P15,P18,P20,P23,P24,P25,P26,P27,P28,P29,P35,P40,P41,P50,P51,P52,P53,P54,P56,P59;
+	int P61,P62,P63,P66,P67,P71,P75,P78,P79,P81,P85,P92,P101,P121,P122,P123,P124,P125,P126;
+	int P150,P151,P152,P180,P181,P184,P185,P210,P211,P351,P352;
 	double P30,P34,P42;
 	double *P35_ts,*P35_te,*P35_dt;
 	double *P50_x,*P50_y;
@@ -402,9 +397,8 @@ public:
     double *P63_x,*P63_y;
 	double *P67_x;
 	double *P81_xs,*P81_xe,*P81_ys,*P81_ye,*P81_zs,*P81_ze;
-	double P82_x, P82_y,P83,P84;
 	double *P85_xs,*P85_xe,*P85_ys,*P85_ye,*P85_zs,*P85_ze;
-	double P86_x, P86_y,P87,P88,P89_cm,P89_cd,P90,P91;
+	double P91;
 	double P101_xm,P101_ym,P101_zs,P101_ze,P101_r1,P101_r2;
 	double *P121_x,*P121_y;
 	double *P123_y,*P124_x;
@@ -419,22 +413,24 @@ public:
 	double *P352_x,*P352_y;
 
 	// Sediment Transport
-	int S10,S11,S12,S15,S16,S17,S18,S31,S37,S38,S39,S41,S42,S43,S44,S50,S60,S73,S77,S80,S90,S91,S100,S101,S102,S103;
-	double S13,S14,S19,S20,S21,S22,S23,S24,S25,S26_a,S26_b,S28,S29,S30,S45,S46,S47,S48,S57,S71,S72,S81,S82,S92,S93;
+	int S10,S11,S12,S15,S16,S17,S18,S31,S32,S33,S37,S38,S39,S41,S42,S43,S44,S50,S60,S73,S77,S80,S90,S91,S100,S101,S102,S103;
+	double S13,S14,S19,S20,S21,S22,S23,S24,S25,S26_a,S26_b,S30,S45,S46,S47,S48,S57,S71,S72,S81,S82,S92,S93;
 	double *S73_val,*S73_dist,*S73_b,*S73_x,*S73_y;
     double S77_xs,S77_xe;
     double S116,S117;
 
 	// Turbulence
-	int T10,T11,T12,T30,T36,T40,T41;
-	double T13,T31,T32,T35,T37,T38,T39,T42,T51,T52,T53;
+	int T10,T11,T12,T36,T41;
+	double T13,T31,T32,T35,T37,T38,T39;
 
 	// Waterflow
-	double W1,W2,W3,W4,W5,W6,W7,W10;
+	double W1,W2,W3,W4,W5,W10;
     int W11,W12,W13,W14,W15,W16;
     double W11_u,W11_v,W11_w,W12_u,W12_v,W12_w,W13_u,W13_v,W13_w,W14_u,W14_v,W14_w,W15_u,W15_v,W15_w,W16_u,W16_v,W16_w;
     double W20,W21,W22,W31;
 	int W30;
+    int W41;
+    double *W41_xc,*W41_yc,*W41_zs,*W41_ze,*W41_vel,*W41_beta;
     int W90;
     double W95,W96,W97,W98;
     int W101;
@@ -497,7 +493,7 @@ public:
 	// time + iterations
 	int inneriter,count,solveriter,preconiter,count_statestart;
     double final_res;
-	double dt,veltimestep,turbtimestep,dt_old,turbtimestep_old,maxkappa,simtime,viscmax;
+	double dt,dt_old,simtime,viscmax;
 	double mindt,maxdt;
 	double umax,vmax,wmax,epsmax,kinmax,pressmin,pressmax;
 	double presstime,veltime,reinitime,turbtime,plstime,itertime;

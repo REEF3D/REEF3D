@@ -183,9 +183,6 @@ void reinifluid_RK3::startV(fdm* a,lexer* p,vec &f, ghostcell* pgc,ioflow* pflow
     if(p->count>0)
 	pgc->start4V(p,f,gcval_phi);
 	}
-	
-	
-
     
     p->reinitime+=pgc->timer()-starttime;  
 }
@@ -198,14 +195,6 @@ void reinifluid_RK3::step(fdm* a, lexer* p)
 
 void reinifluid_RK3::time_preproc(lexer* p)
 {
-    /*
-	n=0;
-	LOOP
-	{
-	dt.V[n] = p->F43*(1.0/3.0)*(p->DXP[IP] + p->DYP[JP] + p->DZP[KP]);
-	++n;
-	}*/
-    
     n=0;
 	FLUIDLOOP
 	{

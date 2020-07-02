@@ -61,12 +61,6 @@ void driver::loop_nhflow(fdm* a)
         
 		if(p->B90>0)
 		cout<<"t/T: "<<p->simtime/p->wT<<endl;
-
-        if(p->N48>2)
-        {
-        cout<<"veltimestep: "<<p->veltimestep<<endl;
-        cout<<"turbtimestep: "<<p->turbtimestep<<endl;
-        }
         }
         
         pflow->flowfile(p,a,pgc,pturb);

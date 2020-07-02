@@ -34,8 +34,10 @@ fluid_update_void::~fluid_update_void()
 
 void fluid_update_void::start(lexer *p, fdm* a, ghostcell* pgc)
 {
-}
-
-void fluid_update_void::start3(lexer *p, fdm* a, ghostcell* pgc, field &ls1, field &ls2)
-{
+    n=0;
+    LOOP
+    {
+    a->visctot.V[I_J_K] = a->visc(i,j,k) + a->eddyv(i,j,k);
+    ++n;
+    }
 }
