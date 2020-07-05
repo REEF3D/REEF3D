@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"concentration.h"
 
-density_conc::density_conc(lexer* p, concentration *& ppconc) : epsi(p->F45*p->dx), eps(2.1*p->dx)
+density_conc::density_conc(lexer* p, concentration *& ppconc) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
 {
     pconc = ppconc;
     

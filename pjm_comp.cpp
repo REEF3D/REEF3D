@@ -147,7 +147,7 @@ void pjm_comp::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
 void pjm_comp::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
 {
     double H;
-    double epsi=-0.6*p->dx;
+    double epsi=-0.6*p->DXM;
     
     count=0;
 	
@@ -166,7 +166,7 @@ void pjm_comp::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &
     a->rhsvec.V[count] = -((u(i,j,k)-u(i-1,j,k))
 						  +(v(i,j,k)-v(i,j-1,k))
 						  +(w(i,j,k)-w(i,j,k-1)) 
-                         ) /(alpha*p->dt*p->dx)
+                         ) /(alpha*p->dt*p->DXM)
 						 
 
                          

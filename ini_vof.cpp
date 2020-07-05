@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void initialize::inivof(fdm*a, lexer* p, ghostcell* pgc)
 {
 
-double dx=p->dx;
+double dx=p->DXM;
 double r;
 double vofdiff, xdiff;
 p->phimean=p->F56;
@@ -143,14 +143,14 @@ void initialize::inivof_box(lexer* p, fdm *a, ghostcell* pgc)
 
     for(qn=0;qn<p->F70;++qn)
     {
-        istart = conv((p->F70_xs[qn]-p->originx)/p->dx);
-        iend = conv((p->F70_xe[qn]-p->originx)/p->dx);
+        istart = conv((p->F70_xs[qn]-p->originx)/p->DXM);
+        iend = conv((p->F70_xe[qn]-p->originx)/p->DXM);
 
-        jstart = conv((p->F70_ys[qn]-p->originy)/p->dx);
-        jend = conv((p->F70_ye[qn]-p->originy)/p->dx);
+        jstart = conv((p->F70_ys[qn]-p->originy)/p->DXM);
+        jend = conv((p->F70_ye[qn]-p->originy)/p->DXM);
 
-        kstart = conv((p->F70_zs[qn]-p->originz)/p->dx);
-        kend = conv((p->F70_ze[qn]-p->originz)/p->dx);
+        kstart = conv((p->F70_zs[qn]-p->originz)/p->DXM);
+        kend = conv((p->F70_ze[qn]-p->originz)/p->DXM);
 
         //cout<<p->mpirank<<" F70: "<<p->F70<<" . "<<istart<<" "<<iend<<" "<<jstart<<" "<<jend<<" "<<kstart<<" "<<kend<<endl;
 

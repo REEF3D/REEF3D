@@ -233,7 +233,7 @@ double interpolation::ipol4press( field& b)
 double interpolation::ipol4ro(fdm *a, field& b)
 {
 	double phival,H,roval;
-	double epsi=1.6*p->dx;
+	double epsi=1.6*p->DXM;
 	
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
@@ -276,7 +276,7 @@ double interpolation::ipol4ro(fdm *a, field& b)
 double interpolation::ipol4phi(fdm *a, field& b)
 {
 	double epphi2=0.6*p->DXM;
-    v1=v2=v3=v4=v5=v6=v7=v8 = p->phimean-p->pos_z()-0.5*p->dx;
+    v1=v2=v3=v4=v5=v6=v7=v8 = p->phimean-p->pos_z()-0.5*p->DXM;
 
 	pip=4;
     if(a->topo(i,j,k)>-epphi)// && a->fb(i,j,k)>-epphi2)

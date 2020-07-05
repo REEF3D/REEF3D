@@ -139,25 +139,25 @@ void VOF_PLIC::calcSegmentPoint
 	double yi = p->pos_y();
 	double zi = p->pos_z();
 	
-	double xoff = max(fabs(xp - xi) - 0.5*p->dx, 0.0);
-	double yoff = max(fabs(yp - yi) - 0.5*p->dx, 0.0);
-	double zoff = max(fabs(zp - zi) - 0.5*p->dx, 0.0);
+	double xoff = max(fabs(xp - xi) - 0.5*p->DXM, 0.0);
+	double yoff = max(fabs(yp - yi) - 0.5*p->DXM, 0.0);
+	double zoff = max(fabs(zp - zi) - 0.5*p->DXM, 0.0);
                                     
-	double xfc = xi + SIGN(xp - xi)*0.5*p->dx;
-	double yfc = yi + SIGN(yp - yi)*0.5*p->dx;
-	double zfc = zi + SIGN(zp - zi)*0.5*p->dx;
+	double xfc = xi + SIGN(xp - xi)*0.5*p->DXM;
+	double yfc = yi + SIGN(yp - yi)*0.5*p->DXM;
+	double zfc = zi + SIGN(zp - zi)*0.5*p->DXM;
                                     
 	zs = zfc;
                                     
 	if (xoff*fabs(nx(i, j, k)) >= yoff*fabs(ny(i, j, k)))
 	{
 		xs = xfc;
-		ys = (alpha(i, j, k)*p->dx - nz(i, j, k)*zfc - nx(i, j, k)*xfc)/ny(i, j, k);
+		ys = (alpha(i, j, k)*p->DXM - nz(i, j, k)*zfc - nx(i, j, k)*xfc)/ny(i, j, k);
 	}
     else 
 	{
 		ys = yfc;
-		xs = (alpha(i, j, k)*p->dx - nz(i, j, k)*zfc - ny(i, j, k)*yfc)/nx(i, j, k);                                     
+		xs = (alpha(i, j, k)*p->DXM - nz(i, j, k)*zfc - ny(i, j, k)*yfc)/nx(i, j, k);                                     
     }
                                     
 	double dx = xp - xs;
@@ -191,18 +191,18 @@ int VOF_PLIC::calcProjectionPoint
 	double yi = p->pos_y();
 	double zi = p->pos_z();
 	
-	xp = (double(ip) + 0.5)*p->dx + p->originx;
-	yp = (double(jp) + 0.5)*p->dx + p->originy;
-	zp = (double(kp) + 0.5)*p->dx + p->originz;
+	xp = (double(ip) + 0.5)*p->DXM + p->originx;
+	yp = (double(jp) + 0.5)*p->DXM + p->originy;
+	zp = (double(kp) + 0.5)*p->DXM + p->originz;
     
 	
 	double d = 
 		calcDistance
 		(
-			alpha(i, j, k)*p->dx, 
-			xp-(xi - 0.5*p->dx), 
-			yp-(yi - 0.5*p->dx), 
-			zp-(zi - 0.5*p->dx)
+			alpha(i, j, k)*p->DXM, 
+			xp-(xi - 0.5*p->DXM), 
+			yp-(yi - 0.5*p->DXM), 
+			zp-(zi - 0.5*p->DXM)
 		);
  
 	xp += nx(i, j, k)*d;
@@ -211,12 +211,12 @@ int VOF_PLIC::calcProjectionPoint
                          
 	if 
 	( 
-		xp >= (xi - 0.5*p->dx) 
-        && xp <= (xi + 0.5*p->dx)
-        && yp >= (yi - 0.5*p->dx) 
-        && yp <= (yi + 0.5*p->dx)
-        && zp >= (zi - 0.5*p->dx) 
-        && zp <= (zi + 0.5*p->dx)
+		xp >= (xi - 0.5*p->DXM) 
+        && xp <= (xi + 0.5*p->DXM)
+        && yp >= (yi - 0.5*p->DXM) 
+        && yp <= (yi + 0.5*p->DXM)
+        && zp >= (zi - 0.5*p->DXM) 
+        && zp <= (zi + 0.5*p->DXM)
 	)
 	{
 		if (((fabs(d) < fabs(a->phi(ip, jp, kp))) && changedFlag(ip,jp,kp) == 1) || changedFlag(ip,jp,kp) == 0)
@@ -265,20 +265,20 @@ int VOF_PLIC::calcBoundaryPoint
 		double dx = 
 			fabs
 			(
-				(double((i + l/2) + 0.5)*p->dx + p->originx) 
-				- (double(ip + 0.5)*p->dx + p->originx)
+				(double((i + l/2) + 0.5)*p->DXM + p->originx) 
+				- (double(ip + 0.5)*p->DXM + p->originx)
 			);
 		double dy = 
 			fabs
 			(
-				(double((j + m/2) + 0.5)*p->dx + p->originy) 
-				- (double(jp + 0.5)*p->dx + p->originy)
+				(double((j + m/2) + 0.5)*p->DXM + p->originy) 
+				- (double(jp + 0.5)*p->DXM + p->originy)
 			);
 		double dz = 
 			fabs
 			(
-				(double((k + n/2) + 0.5)*p->dx + p->originz) 
-				- (double(kp + 0.5)*p->dx + p->originz)
+				(double((k + n/2) + 0.5)*p->DXM + p->originz) 
+				- (double(kp + 0.5)*p->DXM + p->originz)
 			);
 		
 		d = sqrt(dx*dx + dy*dy + dz*dz);

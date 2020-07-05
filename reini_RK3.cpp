@@ -31,7 +31,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"reinidisc_f2.h"
 #include"reinidisc_fsf.h"
 
-reini_RK3::reini_RK3(lexer* p, int type) : epsi(p->F45*p->dx),f(p),frk1(p),frk2(p),L(p),dt(p)
+reini_RK3::reini_RK3(lexer* p, int type) : epsi(p->F45*p->DXM),f(p),frk1(p),frk2(p),L(p),dt(p)
 {
 	if(p->F50==1)
 	gcval_phi=51;

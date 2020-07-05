@@ -41,7 +41,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_hxy_weno.h"
 
 nsewave_geo::nsewave_geo(lexer *p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc) : 
-                epsi(1.6*p->dx),depth(p),bed(p),L(p),hp(p),hx(p),hy(p)
+                epsi(1.6*p->DXM),depth(p),bed(p),L(p),hp(p),hx(p),hy(p)
 {
 	peta = new sflow_eta_weno(p);
 	phxy = new sflow_hxy_weno(p);
@@ -146,19 +146,19 @@ void nsewave_geo::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 		//phival = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
         phival = (1.0/16.0)*(-a->phi(i-1,j,k) + 9.0*a->phi(i,j,k) + 9.0*a->phi(i+1,j,k) - a->phi(i+2,j,k));
 		
-			if(phival>=0.5*p->dx)
-			H=p->dx;
+			if(phival>=0.5*p->DXM)
+			H=p->DXM;
 
-			if(phival<-0.5*p->dx)
+			if(phival<-0.5*p->DXM)
 			H=0.0;
 
-			if(fabs(phival)<=0.5*p->dx)
- 			H=phival+0.5*p->dx;
+			if(fabs(phival)<=0.5*p->DXM)
+ 			H=phival+0.5*p->DXM;
             
             
 			
 			a->P(i,j) += a->u(i,j,k)*H;
-			d+=p->dx*H;
+			d+=p->DXM*H;
 		}
     }
     
@@ -173,17 +173,17 @@ void nsewave_geo::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 			//phival = 0.5*(a->phi(i,j,k)+a->phi(i,j+1,k));
             phival = (1.0/16.0)*(-a->phi(i,j-1,k) + 9.0*a->phi(i,j,k) + 9.0*a->phi(i,j+1,k) - a->phi(i,j+2,k));
 			
-				if(phival>=0.5*p->dx)
-                H=p->dx;
+				if(phival>=0.5*p->DXM)
+                H=p->DXM;
 
-                if(phival<-0.5*p->dx)
+                if(phival<-0.5*p->DXM)
                 H=0.0;
 
-                if(fabs(phival)<=0.5*p->dx)
-                H=phival+0.5*p->dx;
+                if(fabs(phival)<=0.5*p->DXM)
+                H=phival+0.5*p->DXM;
 				
 				a->Q(i,j) += a->v(i,j,k)*H;
-				d+=p->dx*H;
+				d+=p->DXM*H;
 			}
     }
 	pgc->gcsl_start1(p,a->P,10);
@@ -191,7 +191,7 @@ void nsewave_geo::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	
 
     SLICELOOP4
-    a->eta(i,j) -= (p->dt*(a->P(i,j)-a->P(i-1,j) + a->Q(i,j)-a->Q(i,j-1)))/p->dx;
+    a->eta(i,j) -= (p->dt*(a->P(i,j)-a->P(i-1,j) + a->Q(i,j)-a->Q(i,j-1)))/p->DXM;
 	
     
     pflow->eta_relax(p,pgc,a->eta);

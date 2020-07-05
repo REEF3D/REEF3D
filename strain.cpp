@@ -25,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"fieldint.h"
 
-strain::strain(lexer *p, fdm *a)	: gradient(p),epsi(p->F45*p->dx),Pk(p)
+strain::strain(lexer *p, fdm *a)	: gradient(p),epsi(p->F45*p->DXM),Pk(p)
 {
 }
 

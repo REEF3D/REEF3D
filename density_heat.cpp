@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"heat.h"
 
-density_heat::density_heat(lexer* p, heat *& ppheat) : epsi(p->F45*p->dx), eps(2.1*p->dx)
+density_heat::density_heat(lexer* p, heat *& ppheat) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
 {
     visc_2 = p->W4;
 	visc_1 = p->W2;

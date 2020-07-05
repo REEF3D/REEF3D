@@ -89,7 +89,7 @@ sflow_pjm_lin::sflow_pjm_lin(lexer* p, fdm2D *b)
     wd_criterion=p->A244_val;
     
     if(p->A245==1)
-    wd_criterion=p->A245_val*p->dx;
+    wd_criterion=p->A245_val*p->DXM;
 	
 }
 
@@ -136,26 +136,26 @@ void sflow_pjm_lin::ucorr(lexer* p, fdm2D* b, slice& P, slice &eta, double alpha
 {	
 	SLICELOOP1
     if(b->breaking(i,j)==0 && b->breaking(i+1,j)==0)
-	P(i,j) -= alpha*p->dt*(((b->press(i+1,j)-b->press(i,j))/(p->dx)));
+	P(i,j) -= alpha*p->dt*(((b->press(i+1,j)-b->press(i,j))/(p->DXM)));
 
     if(p->A222==1)           
     SLICELOOP1
     if(b->breaking(i,j)==0 && b->breaking(i+1,j)==0)
 	P(i,j) += alpha*p->dt*((b->press(i+1,j)+b->press(i,j))*(b->depth(i+1,j)-b->depth(i,j))     
-				             /(p->dx*HPXP));
+				             /(p->DXM*HPXP));
 }
 
 void sflow_pjm_lin::vcorr(lexer* p, fdm2D* b, slice& Q, slice &eta, double alpha)
 {	
 	SLICELOOP2
     if(b->breaking(i,j)==0 && b->breaking(i,j+1)==0)
-	Q(i,j) -= alpha*p->dt*(((b->press(i,j+1)-b->press(i,j))/(p->dx)));
+	Q(i,j) -= alpha*p->dt*(((b->press(i,j+1)-b->press(i,j))/(p->DXM)));
                 
     if(p->A222==1)
     SLICELOOP2
     if(b->breaking(i,j)==0 && b->breaking(i,j+1)==0)
 	Q(i,j) += alpha*p->dt*((b->press(i,j+1)+b->press(i,j))*(b->depth(i,j+1)-b->depth(i,j))
-                            /(p->dx*HPYP));
+                            /(p->DXM*HPYP));
 }
 
 void sflow_pjm_lin::wcorr(lexer* p, fdm2D* b, double alpha, slice &P, slice &Q, slice &ws)
@@ -178,10 +178,10 @@ void sflow_pjm_lin::rhs(lexer *p, fdm2D* b, slice &P, slice &Q, slice &w, double
     SLICELOOP4
     {
     b->rhsvec.V[count] =   -((P(i,j) - P(i-1,j))*(b->hp(i,j))
-                           + (Q(i,j) - Q(i,j-1))*(b->hp(i,j)))/(alpha*p->dt*p->dx)
+                           + (Q(i,j) - Q(i,j-1))*(b->hp(i,j)))/(alpha*p->dt*p->DXM)
                            
-                           -2.0*(w(i,j) + 0.25*(P(i,j)+P(i-1,j))*(b->depth(i+1,j)-b->depth(i-1,j))/p->dx
-                                        + 0.25*(Q(i,j)+Q(i,j-1))*(b->depth(i,j+1)-b->depth(i,j-1))/p->dx
+                           -2.0*(w(i,j) + 0.25*(P(i,j)+P(i-1,j))*(b->depth(i+1,j)-b->depth(i-1,j))/p->DXM
+                                        + 0.25*(Q(i,j)+Q(i,j-1))*(b->depth(i,j+1)-b->depth(i,j-1))/p->DXM
                            
                            )   /(alpha*p->dt);
                            
@@ -193,7 +193,7 @@ void sflow_pjm_lin::rhs(lexer *p, fdm2D* b, slice &P, slice &Q, slice &w, double
 
 void sflow_pjm_lin::poisson(lexer*p, fdm2D* b, double alpha)
 {
-    sqd = (1.0/(p->dx*p->dx));
+    sqd = (1.0/(p->DXM*p->DXM));
     
     double fac=1.0;
     
@@ -269,12 +269,12 @@ void sflow_pjm_lin::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
         if(p->A221>=1)
         SLICELOOP1
         b->F(i,j) -= fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) 
-                                 - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->dx); 
+                                 - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM); 
         
         if(p->A221==2)                         
         SLICELOOP1
-        b->F(i,j)-= 0.5*fabs(p->W22)*(b->zb(i+1,j)-b->zb(i,j))/(p->dx) 
-                 - 0.5*fabs(p->W22)*(b->depth(i+1,j)-b->depth(i,j))/(p->dx);
+        b->F(i,j)-= 0.5*fabs(p->W22)*(b->zb(i+1,j)-b->zb(i,j))/(p->DXM) 
+                 - 0.5*fabs(p->W22)*(b->depth(i+1,j)-b->depth(i,j))/(p->DXM);
                                  
 }
 
@@ -283,12 +283,12 @@ void sflow_pjm_lin::vpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
         if(p->A221>=1)
         SLICELOOP2
         b->G(i,j) -= fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) 
-                                 - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->dx); 
+                                 - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM); 
                                  
         if(p->A221==2)
         SLICELOOP2
-        b->G(i,j)-= 0.5*fabs(p->W22)*(b->zb(i,j+1)-b->zb(i,j))/(p->dx)
-                  - 0.5*fabs(p->W22)*(b->depth(i,j+1)-b->depth(i,j))/(p->dx);
+        b->G(i,j)-= 0.5*fabs(p->W22)*(b->zb(i,j+1)-b->zb(i,j))/(p->DXM)
+                  - 0.5*fabs(p->W22)*(b->depth(i,j+1)-b->depth(i,j))/(p->DXM);
 }
 
 void sflow_pjm_lin::wpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)

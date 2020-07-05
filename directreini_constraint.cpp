@@ -40,9 +40,9 @@ void directreini::constraint(lexer *p, fdm* a, ghostcell *pgc, field& b)
 		//dirac = (1.0/epsi)*(1.0 - fabs(d0(i,j,k)));
 		
 	
-		dx = (d0(i+1,j,k) - d0(i-1,j,k))/(2.0*p->dx); 
-		dy = (d0(i,j+1,k) - d0(i,j-1,k))/(2.0*p->dx); 
-		dz = (d0(i,j,k+1) - d0(i,j,k-1))/(2.0*p->dx); 
+		dx = (d0(i+1,j,k) - d0(i-1,j,k))/(2.0*p->DXM); 
+		dy = (d0(i,j+1,k) - d0(i,j-1,k))/(2.0*p->DXM); 
+		dz = (d0(i,j,k+1) - d0(i,j,k-1))/(2.0*p->DXM); 
 		
 		dnorm = sqrt(dx*dx + dy*dy + dz*dz);
 		
@@ -51,9 +51,9 @@ void directreini::constraint(lexer *p, fdm* a, ghostcell *pgc, field& b)
 		dnorm=1.0;
 		
 		
-		dx = (b(i+1,j,k) - b(i-1,j,k))/(2.0*p->dx); 
-		dy = (b(i,j+1,k) - b(i,j-1,k))/(2.0*p->dx); 
-		dz = (b(i,j,k+1) - b(i,j,k-1))/(2.0*p->dx); 
+		dx = (b(i+1,j,k) - b(i-1,j,k))/(2.0*p->DXM); 
+		dy = (b(i,j+1,k) - b(i,j-1,k))/(2.0*p->DXM); 
+		dz = (b(i,j,k+1) - b(i,j,k-1))/(2.0*p->DXM); 
 		
 		
 		grad = sqrt(dx*dx + dy*dy + dz*dz);

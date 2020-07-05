@@ -119,7 +119,7 @@ fnpf_sg_fsfbc_wd::fnpf_sg_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p
     c->wd_criterion=p->A244_val;
     
     if(p->A345==1)
-    c->wd_criterion=p->A245_val*p->dx;
+    c->wd_criterion=p->A245_val*p->DXM;
     
     pcoast = new fnpf_sg_coastline(p);
     

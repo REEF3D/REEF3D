@@ -123,7 +123,7 @@ void fnpf_fg_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv
     n=0;
 	LOOP
 	{
-		if(fabs(a->phi(i,j,k))<p->dx*1.6)
+		if(fabs(a->phi(i,j,k))<p->DXM*1.6)
         {
             
         a->M.p[n]=1.0e30;

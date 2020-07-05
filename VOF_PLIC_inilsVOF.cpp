@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void VOF_PLIC::iniphi(fdm*a, lexer* p, ghostcell* pgc)
 {
 
-double dx=p->dx;
+double dx=p->DXM;
 double r;
 double phidiff, xdiff;
 p->phimean=p->F56;
@@ -93,7 +93,7 @@ if(p->F60>-1.0e20)
 	p->phimean=p->F60;
 	
 }
-    double epsi = p->F45*p->dx;
+    double epsi = p->F45*p->DXM;
     
 
     if((p->F60>-1.0e20 || p->F56>-1.0e20) && p->F62>-1.0e-20&& p->F63>-1.0e-20  )
@@ -199,14 +199,14 @@ void VOF_PLIC::iniphi_box(lexer* p, fdm *a, ghostcell* pgc)
 
     for(qn=0;qn<p->F70;++qn)
     {
-        istart = conv((p->F70_xs[qn]-p->originx)/p->dx);
-        iend = conv((p->F70_xe[qn]-p->originx)/p->dx);
+        istart = conv((p->F70_xs[qn]-p->originx)/p->DXM);
+        iend = conv((p->F70_xe[qn]-p->originx)/p->DXM);
 
-        jstart = conv((p->F70_ys[qn]-p->originy)/p->dx);
-        jend = conv((p->F70_ye[qn]-p->originy)/p->dx);
+        jstart = conv((p->F70_ys[qn]-p->originy)/p->DXM);
+        jend = conv((p->F70_ye[qn]-p->originy)/p->DXM);
 
-        kstart = conv((p->F70_zs[qn]-p->originz)/p->dx);
-        kend = conv((p->F70_ze[qn]-p->originz)/p->dx);
+        kstart = conv((p->F70_zs[qn]-p->originz)/p->DXM);
+        kend = conv((p->F70_ze[qn]-p->originz)/p->DXM);
 
 
         LOOP
@@ -216,14 +216,14 @@ void VOF_PLIC::iniphi_box(lexer* p, fdm *a, ghostcell* pgc)
 	
 	for(qn=0;qn<p->F71;++qn)
     {
-        istart = conv((p->F71_xs[qn]-p->originx)/p->dx);
-        iend = conv((p->F71_xe[qn]-p->originx)/p->dx);
+        istart = conv((p->F71_xs[qn]-p->originx)/p->DXM);
+        iend = conv((p->F71_xe[qn]-p->originx)/p->DXM);
 
-        jstart = conv((p->F71_ys[qn]-p->originy)/p->dx);
-        jend = conv((p->F71_ye[qn]-p->originy)/p->dx);
+        jstart = conv((p->F71_ys[qn]-p->originy)/p->DXM);
+        jend = conv((p->F71_ye[qn]-p->originy)/p->DXM);
 
-        kstart = conv((p->F71_zs[qn]-p->originz)/p->dx);
-        kend = conv((p->F71_ze[qn]-p->originz)/p->dx);
+        kstart = conv((p->F71_zs[qn]-p->originz)/p->DXM);
+        kend = conv((p->F71_ze[qn]-p->originz)/p->DXM);
 
 
         LOOP
@@ -233,11 +233,11 @@ void VOF_PLIC::iniphi_box(lexer* p, fdm *a, ghostcell* pgc)
 	
 	for(qn=0;qn<p->F72;++qn)
     {
-		istart = conv((p->F72_xs[qn]-p->originx)/p->dx);
-        iend = conv((p->F72_xe[qn]-p->originx)/p->dx);
+		istart = conv((p->F72_xs[qn]-p->originx)/p->DXM);
+        iend = conv((p->F72_xe[qn]-p->originx)/p->DXM);
 
-        jstart = conv((p->F72_ys[qn]-p->originy)/p->dx);
-        jend = conv((p->F72_ye[qn]-p->originy)/p->dx);
+        jstart = conv((p->F72_ys[qn]-p->originy)/p->DXM);
+        jend = conv((p->F72_ye[qn]-p->originy)/p->DXM);
 		
 
         LOOP
@@ -251,13 +251,13 @@ void VOF_PLIC::iniphi_surfarea(lexer* p, fdm *a, ghostcell* pgc)
 {
 	double dx,dy,dz,dnorm,dirac;
 	double area=0.0;
-	double epsi = 1.6*p->dx;
+	double epsi = 1.6*p->DXM;
 	
     LOOP
 	{
-	dx = (a->phi(i+1,j,k)-a->phi(i-1,j,k))/(2.0*p->dx);
-	dy = (a->phi(i,j+1,k)-a->phi(i,j-1,k))/(2.0*p->dx);
-	dz = (a->phi(i,j,k+1)-a->phi(i,j,k-1))/(2.0*p->dx);
+	dx = (a->phi(i+1,j,k)-a->phi(i-1,j,k))/(2.0*p->DXM);
+	dy = (a->phi(i,j+1,k)-a->phi(i,j-1,k))/(2.0*p->DXM);
+	dz = (a->phi(i,j,k+1)-a->phi(i,j,k-1))/(2.0*p->DXM);
 	
 	dnorm = sqrt(dx*dx + dy*dy + dz*dz);
 	
@@ -269,7 +269,7 @@ void VOF_PLIC::iniphi_surfarea(lexer* p, fdm *a, ghostcell* pgc)
 	if(fabs(a->phi(i,j,k))<epsi)
 	dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
 	
-	area +=  pow(p->dx,3.0) * dirac *dnorm;
+	area +=  pow(p->DXM,3.0) * dirac *dnorm;
 	}
 	
 	area = pgc->globalsum(area);

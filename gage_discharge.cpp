@@ -87,16 +87,16 @@ void gage_discharge::start(lexer *p, fdm *a, ghostcell *pgc)
         PCHECK
         {
 			area=0.0;
-            if(a->phi(i,j,k)>-0.5*p->dx-1.0e-20 && a->topo(i,j,k)>0.0)
+            if(a->phi(i,j,k)>-0.5*p->DXM-1.0e-20 && a->topo(i,j,k)>0.0)
 			{
-            if(a->phi(i,j,k)>=0.5*p->dx)
-            area=p->dx*p->dx;
+            if(a->phi(i,j,k)>=0.5*p->DXM)
+            area=p->DXM*p->DXM;
 
-            if(a->phi(i,j,k)<0.5*p->dx && a->phi(i,j,k)>0.0*p->dx)
-            area=p->dx*(p->dx*0.5 + a->phi(i,j,k));
+            if(a->phi(i,j,k)<0.5*p->DXM && a->phi(i,j,k)>0.0*p->DXM)
+            area=p->DXM*(p->DXM*0.5 + a->phi(i,j,k));
 			
-			if(a->phi(i,j,k)>=-0.5*p->dx -1.0e-20 && a->phi(i,j,k)<=0.0*p->dx)
-            area=p->dx*(p->dx*0.5 - a->phi(i,j,k));
+			if(a->phi(i,j,k)>=-0.5*p->DXM -1.0e-20 && a->phi(i,j,k)<=0.0*p->DXM)
+            area=p->DXM*(p->DXM*0.5 - a->phi(i,j,k));
 
             q[n]+=area*0.5*(a->u(i,j,k) + a->u(i-1,j,k));
 			}
@@ -131,7 +131,7 @@ void gage_discharge::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 
     for(n=0;n<p->P67;++n)
     {
-    iloc[n]=conv((p->P67_x[n]-p->originx)/p->dx);
+    iloc[n]=conv((p->P67_x[n]-p->originx)/p->DXM);
 	
 	if(iloc[n]>=0 && iloc[n]<p->knox)
 	flag[n]=1;

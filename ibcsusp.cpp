@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"turbulence.h"
 
-ibcsusp::ibcsusp(lexer *p, turbulence *pturb) : bedconc(p,pturb), epsi(1.6*p->dx)
+ibcsusp::ibcsusp(lexer *p, turbulence *pturb) : bedconc(p,pturb), epsi(1.6*p->DXM)
 {
     rhosed=p->S22;
     rhowat=p->W1;

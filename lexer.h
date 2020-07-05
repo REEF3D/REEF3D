@@ -83,7 +83,7 @@ public:
 //-----data-----------------------
 
 	//REEF3D
-	double dx;
+	double dx,dy,dz;
     double *xpoint,*ypoint,*zpoint;
     double *xnode,*ynode,*znode;
     
@@ -582,6 +582,15 @@ public:
     double *DXP,*DYP,*DZP;
     double *ZSN,*ZSP;
     double DXM,DYD,DXD;
+    double DYM,DZM;
+    
+    double *RN,*SN,*TN;
+    double *RP,*SP,*TP;
+    double *DRN,*DSN,*DTN;
+    double *DRP,*DSP,*DTP;
+    double DRM,DSM,DTM;
+    double DX,DY,DZ;
+    double *DRDX,*DSDY,*DTDZ;
     
     weno_nug_func *wenofunc;
     

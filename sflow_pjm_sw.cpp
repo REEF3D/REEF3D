@@ -77,7 +77,7 @@ sflow_pjm_sw::sflow_pjm_sw(lexer* p, fdm2D *b) : wb(p), wsn(p), wbn(p)
     wd_criterion=p->A244_val;
     
     if(p->A245==1)
-    wd_criterion=p->A245_val*p->dx;
+    wd_criterion=p->A245_val*p->DXM;
 	
 }
 
@@ -132,27 +132,27 @@ void sflow_pjm_sw::ucorr(lexer* p, fdm2D* b, slice& P, slice &eta, double alpha)
 {	
 	SLICELOOP1
     if(b->breaking(i,j)==0 && b->breaking(i+1,j)==0)
-	P(i,j) -= alpha*p->dt*(((b->press(i+1,j)-b->press(i,j))/(2.0*p->dx)));
+	P(i,j) -= alpha*p->dt*(((b->press(i+1,j)-b->press(i,j))/(2.0*p->DXM)));
 
                 
     if(p->A222==1)           
     SLICELOOP1
     if(b->breaking(i,j)==0 && b->breaking(i+1,j)==0)
 	P(i,j) -= alpha*p->dt*(0.5*(b->press(i+1,j)+b->press(i,j))*((eta(i+1,j)-eta(i,j))-(b->depth(i+1,j)-b->depth(i,j)))
-				             /(2.0*p->dx*HXIJ ));
+				             /(2.0*p->DXM*HXIJ ));
 }
 
 void sflow_pjm_sw::vcorr(lexer* p, fdm2D* b, slice& Q, slice &eta, double alpha)
 {	
 	SLICELOOP2
     if(b->breaking(i,j)==0 && b->breaking(i,j+1)==0)
-	Q(i,j) -= alpha*p->dt*(((b->press(i,j+1)-b->press(i,j))/(2.0*p->dx)));
+	Q(i,j) -= alpha*p->dt*(((b->press(i,j+1)-b->press(i,j))/(2.0*p->DXM)));
                 
     if(p->A222==1)
     SLICELOOP2
     if(b->breaking(i,j)==0 && b->breaking(i,j+1)==0)
 	Q(i,j) -= alpha*p->dt*(0.5*(b->press(i,j+1)+b->press(i,j))*((eta(i,j+1)-eta(i,j))-(b->depth(i,j+1)-b->depth(i,j)))
-                            /(2.0*p->dx*HYIJ ));
+                            /(2.0*p->DXM*HYIJ ));
 }
 
 void sflow_pjm_sw::wcorr(lexer* p, fdm2D* b,double alpha, slice &P, slice &Q, slice &ws)
@@ -169,9 +169,9 @@ void sflow_pjm_sw::wcalc(lexer* p, fdm2D* b,double alpha, slice &P, slice &Q, sl
 
 	
 	SLICELOOP4
-    wb(i,j) = -0.25*(P(i,j)+P(i-1,j))*(b->depth(i+1,j)-b->depth(i-1,j))/p->dx
+    wb(i,j) = -0.25*(P(i,j)+P(i-1,j))*(b->depth(i+1,j)-b->depth(i-1,j))/p->DXM
                 
-                -0.25*(Q(i,j)+Q(i,j-1))*(b->depth(i,j+1)-b->depth(i,j-1))/p->dx;
+                -0.25*(Q(i,j)+Q(i,j-1))*(b->depth(i,j+1)-b->depth(i,j-1))/p->DXM;
 	
     SLICELOOP4
 	ws(i,j) += -(wb(i,j)-wbn(i,j));
@@ -186,7 +186,7 @@ void sflow_pjm_sw::rhs(lexer *p, fdm2D* b, slice &u, slice &v, slice &ws, double
     SLICELOOP4
     {
     b->rhsvec.V[count] =   -((u(i,j) - u(i-1,j))*(b->hp(i,j))
-                           + (v(i,j) - v(i,j-1))*(b->hp(i,j)))/(alpha*p->dt*p->dx)
+                           + (v(i,j) - v(i,j-1))*(b->hp(i,j)))/(alpha*p->dt*p->DXM)
                            
                            -(ws(i,j)-wb(i,j))/(alpha*p->dt);
     ++count;
@@ -197,33 +197,33 @@ void sflow_pjm_sw::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 {
 	if(p->A221>=1)
     SLICELOOP1
-	b->F(i,j) -= fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->dx); 
+	b->F(i,j) -= fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM); 
     
     if(p->A221==2)
     SLICELOOP1
-	b->F(i,j) -= ((b->press(i+1,j)-b->press(i,j))/(2.0*p->dx))
+	b->F(i,j) -= ((b->press(i+1,j)-b->press(i,j))/(2.0*p->DXM))
 				
 				+ 0.5*(b->press(i+1,j)+b->press(i,j))*((b->eta(i+1,j)-b->eta(i,j))-(b->depth(i+1,j)-b->depth(i,j)))
-				/(2.0*p->dx*HXIJ);
+				/(2.0*p->DXM*HXIJ);
 }
 
 void sflow_pjm_sw::vpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 {
 	if(p->A221>=1)
     SLICELOOP2
-	b->G(i,j) -= fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->dx); 
+	b->G(i,j) -= fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM); 
     
     if(p->A221==2)
     SLICELOOP2
-	b->G(i,j) -= ((b->press(i,j+1)-b->press(i,j))/(2.0*p->dx))
+	b->G(i,j) -= ((b->press(i,j+1)-b->press(i,j))/(2.0*p->DXM))
 				
 				+ 0.5*(b->press(i,j+1)+b->press(i,j))*((b->eta(i,j+1)-b->eta(i,j))-(b->depth(i,j+1)-b->depth(i,j)))
-				/(2.0*p->dx*HYIJ); 
+				/(2.0*p->DXM*HYIJ); 
 }
 
 void sflow_pjm_sw::poisson(lexer*p, fdm2D* b)
 {
-    sqd = (1.0/(2.0*p->dx*p->dx));
+    sqd = (1.0/(2.0*p->DXM*p->DXM));
 
     n=0;
     SLICELOOP4

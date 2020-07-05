@@ -718,7 +718,7 @@ void mgc4::check_gcb_nbx(lexer *p, ghostcell *gcb)
 		p->gcb4[count][1]=j;
 		p->gcb4[count][2]=k;
 		p->gcb4[count][3]=1;
-		p->gcd4[count]=0.5*p->dx; 
+		p->gcd4[count]=0.5*p->DXM; 
 		
 			if(p->flag4[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==TOPO)
 			p->gcb4[count][4]=5;
@@ -749,7 +749,7 @@ void mgc4::check_gcb_nbx(lexer *p, ghostcell *gcb)
 		p->gcb4[count][1]=j;
 		p->gcb4[count][2]=k;
 		p->gcb4[count][3]=2;
-		p->gcd4[count]=0.5*p->dx; 
+		p->gcd4[count]=0.5*p->DXM; 
 		
 			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin]==TOPO)
 			p->gcb4[count][4]=5;
@@ -780,7 +780,7 @@ void mgc4::check_gcb_nbx(lexer *p, ghostcell *gcb)
 		p->gcb4[count][1]=j;
 		p->gcb4[count][2]=k;
 		p->gcb4[count][3]=3;
-		p->gcd4[count]=0.5*p->dx; 
+		p->gcd4[count]=0.5*p->DXM; 
 		
 			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin]==TOPO)
 			p->gcb4[count][4]=5;
@@ -811,7 +811,7 @@ void mgc4::check_gcb_nbx(lexer *p, ghostcell *gcb)
 		p->gcb4[count][1]=j;
 		p->gcb4[count][2]=k;
 		p->gcb4[count][3]=4;
-		p->gcd4[count]=0.5*p->dx; 
+		p->gcd4[count]=0.5*p->DXM; 
 		
 			if(p->flag4[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==TOPO)
 			p->gcb4[count][4]=5;
@@ -842,7 +842,7 @@ void mgc4::check_gcb_nbx(lexer *p, ghostcell *gcb)
 		p->gcb4[count][1]=j;
 		p->gcb4[count][2]=k;
 		p->gcb4[count][3]=5;
-		p->gcd4[count]=0.5*p->dx; 
+		p->gcd4[count]=0.5*p->DXM; 
 		
 			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-1]==TOPO)
 			p->gcb4[count][4]=5;
@@ -873,7 +873,7 @@ void mgc4::check_gcb_nbx(lexer *p, ghostcell *gcb)
 		p->gcb4[count][1]=j;
 		p->gcb4[count][2]=k;
 		p->gcb4[count][3]=6;
-		p->gcd4[count]=0.5*p->dx; 
+		p->gcd4[count]=0.5*p->DXM; 
 		
 			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+1]==TOPO)
 			p->gcb4[count][4]=5;

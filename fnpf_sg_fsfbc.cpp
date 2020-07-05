@@ -100,7 +100,7 @@ fnpf_sg_fsfbc::fnpf_sg_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p
     c->wd_criterion=p->A244_val;
     
     if(p->A345==1)
-    c->wd_criterion=p->A245_val*p->dx;
+    c->wd_criterion=p->A245_val*p->DXM;
     
     if(p->A350==1)
     psolv =  new sflow_bicgstab(p,pgc);

@@ -25,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"turbulence.h"
 
-bedload_MPM::bedload_MPM(lexer* p, turbulence *pturb) : bedshear(p,pturb), epsi(1.6*p->dx)
+bedload_MPM::bedload_MPM(lexer* p, turbulence *pturb) : bedshear(p,pturb), epsi(1.6*p->DXM)
 {
     rhosed=p->S22;
     rhowat=p->W1;

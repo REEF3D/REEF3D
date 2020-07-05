@@ -25,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"concentration.h"
 
-fluid_update_fsf_concentration::fluid_update_fsf_concentration(lexer *p, fdm* a, ghostcell* pgc, concentration *&ppconcentration) : dx(p->dx)
+fluid_update_fsf_concentration::fluid_update_fsf_concentration(lexer *p, fdm* a, ghostcell* pgc, concentration *&ppconcentration) : dx(p->DXM)
 {
     gcval_ro=1;
 	gcval_visc=1;

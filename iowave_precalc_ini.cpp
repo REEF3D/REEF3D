@@ -130,7 +130,7 @@ void iowave::wavegen_precalc_relax_ini(lexer *p, ghostcell *pgc)
 		if(p->B98==2)
         {
             // Zone 1
-            if(dg<dist1+3.0*p->dx)
+            if(dg<dist1+3.0*p->DXM)
             ++ept_count;
 
 		}

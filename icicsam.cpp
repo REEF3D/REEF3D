@@ -122,17 +122,17 @@ double icicsam::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel,
         fx1 = beta(p,a,b,1,-1,ivel1);
         fx2 = beta(p,a,b,1,0,ivel2);
 
-		dx= (ivel2*fx2 - ivel1*fx1)/(p->dx);
+		dx= (ivel2*fx2 - ivel1*fx1)/(p->DXM);
 		
 		
-        a->M.s[count] = -ivel1*ul/(p->dx);//
-        a->M.n[count] =  ivel2*(1.0-ur)/(p->dx);
+        a->M.s[count] = -ivel1*ul/(p->DXM);//
+        a->M.n[count] =  ivel2*(1.0-ur)/(p->DXM);
 
 		
 		fy1 = beta(p,a,b,2,-1,jvel1);
 	    fy2 = beta(p,a,b,2,0,jvel2);
 
-		dy= (jvel2*fy2 - jvel1*fy1)/(p->dx);
+		dy= (jvel2*fy2 - jvel1*fy1)/(p->DXM);
 		
 		
 		
@@ -141,7 +141,7 @@ double icicsam::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel,
 		fz1 = beta(p,a,b,3,-1,kvel1);
 	    fz2 = beta(p,a,b,3,0,kvel2);
 
-		dz= (kvel2*fz2 - kvel1*fz1)/(p->dx);
+		dz= (kvel2*fz2 - kvel1*fz1)/(p->DXM);
 
 		
 		L = -dx-dy-dz;
@@ -151,16 +151,16 @@ double icicsam::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel,
         
         a->M.p[count] = (ivel2*ur - ivel1*(1.0-ul)
                         + jvel2*vr - jvel1*(1.0-vl)
-                        + kvel2*wr - kvel1*(1.0-wl))/(p->dx);
+                        + kvel2*wr - kvel1*(1.0-wl))/(p->DXM);
          
-        a->M.s[count] = -ivel1*ul/(p->dx);//
-        a->M.n[count] =  ivel2*(1.0-ur)/(p->dx);
+        a->M.s[count] = -ivel1*ul/(p->DXM);//
+        a->M.n[count] =  ivel2*(1.0-ur)/(p->DXM);
          
-        a->M.e[count] = -jvel1*vl/(p->dx);
-        a->M.w[count] =  jvel2*(1.0-vr)/(p->dx);
+        a->M.e[count] = -jvel1*vl/(p->DXM);
+        a->M.w[count] =  jvel2*(1.0-vr)/(p->DXM);
          
-        a->M.b[count] = -kvel1*wl/(p->dx);
-        a->M.t[count] =  kvel2*(1.0-wr)/(p->dx);
+        a->M.b[count] = -kvel1*wl/(p->DXM);
+        a->M.t[count] =  kvel2*(1.0-wr)/(p->DXM);
 }
 
 double icicsam::beta(lexer *p,fdm *a,field& b,int dir, int pos, double uwind)
@@ -250,7 +250,7 @@ double icicsam::beta(lexer *p,fdm *a,field& b,int dir, int pos, double uwind)
 	cc_ = (cc-cu)/(fabs(cd-cu)>1.0e-20?(cd-cu):1.0e20); 
     
     
-    Co = fabs(umax*p->dt/p->dx);
+    Co = fabs(umax*p->dt/p->DXM);
     
     
     if(cc_>=0.0 && cc_<1.0)
@@ -270,16 +270,16 @@ double icicsam::beta(lexer *p,fdm *a,field& b,int dir, int pos, double uwind)
 	
 	if(uwind>=0.0)
 	{
-	gradx = fabs((b(i+1+pos,j,k)-b(i-1+pos,j,k))/(2.0*p->dx));
-	grady = fabs((b(i,j+1+pos,k)-b(i,j-1+pos,k))/(2.0*p->dx));
-	gradz = fabs((b(i,j,k+1+pos)-b(i,j,k-1+pos))/(2.0*p->dx));
+	gradx = fabs((b(i+1+pos,j,k)-b(i-1+pos,j,k))/(2.0*p->DXM));
+	grady = fabs((b(i,j+1+pos,k)-b(i,j-1+pos,k))/(2.0*p->DXM));
+	gradz = fabs((b(i,j,k+1+pos)-b(i,j,k-1+pos))/(2.0*p->DXM));
 	}
 	
 	if(uwind<0.0)
 	{
-	gradx = fabs((b(i+1+1+pos,j,k)-b(i-1+1+pos,j,k))/(2.0*p->dx));
-	grady = fabs((b(i,j+1+1+pos,k)-b(i,j-1+1+pos,k))/(2.0*p->dx));
-	gradz = fabs((b(i,j,k+1+1+pos)-b(i,j,k-1+1+pos))/(2.0*p->dx));
+	gradx = fabs((b(i+1+1+pos,j,k)-b(i-1+1+pos,j,k))/(2.0*p->DXM));
+	grady = fabs((b(i,j+1+1+pos,k)-b(i,j-1+1+pos,k))/(2.0*p->DXM));
+	gradz = fabs((b(i,j,k+1+1+pos)-b(i,j,k-1+1+pos))/(2.0*p->DXM));
 	}
 	
 	vl = sqrt(gradx*gradx + grady*grady + gradz*gradz);

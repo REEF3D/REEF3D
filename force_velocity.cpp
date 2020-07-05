@@ -32,7 +32,7 @@ void force::velocity(lexer* p, fdm *a, ghostcell *pgc)
 	double uvel2,vvel2,uvel1,vvel1,uvel0,vvel0,zcoor;
 	double wsf_height0,wsf_height1,wsf_height2;
 	double zloc;
-	double dh = 0.05*p->dx;
+	double dh = 0.05*p->DXM;
 	
 	uvel0=vvel0=uvel1=vvel1=uvel2=vvel2=0.0;
     

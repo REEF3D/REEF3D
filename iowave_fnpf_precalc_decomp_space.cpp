@@ -42,7 +42,7 @@ void iowave::wavegen_precalc_decomp_space_fnpf(lexer *p, ghostcell *pgc)
         if(p->B98==2 && h_switch==1)
         {
             // Zone 1
-            if(dg<dist1+3.0*p->dx)
+            if(dg<dist1+3.0*p->DXM)
             {
                 for(qn=0;qn<wave_comp;++qn)
                 {
@@ -103,7 +103,7 @@ void iowave::wavegen_precalc_decomp_space_fnpf(lexer *p, ghostcell *pgc)
         if(p->B98==2 && h_switch==1)
         {
             // Zone 1
-            if(dg<dist1+3.0*p->dx)
+            if(dg<dist1+3.0*p->DXM)
             {
                 for(qn=0;qn<wave_comp;++qn)
                 {

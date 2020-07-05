@@ -33,7 +33,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"reinidisc_f2.h"
 #include"reinidisc_fsf.h"
 
-reinitopo_RK3::reinitopo_RK3(lexer* p) : epsi(p->F45*p->dx),f(p),frk1(p),frk2(p),L(p),dt(p)
+reinitopo_RK3::reinitopo_RK3(lexer* p) : epsi(p->F45*p->DXM),f(p),frk1(p),frk2(p),L(p),dt(p)
 {
 	if(p->S50==1)
 	gcval_topo=151;

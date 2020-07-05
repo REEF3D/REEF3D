@@ -119,4 +119,6 @@ void lexer::lexer_gridspacing(ghostcell *pgc)
     DXD = pgc->globalmin(DXD);
     DYD = pgc->globalmin(DYD);
     
+
+    
 }

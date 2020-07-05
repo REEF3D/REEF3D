@@ -330,10 +330,10 @@ void fnpf_print_wsfline::remove_multientry(lexer *p, double* b, double* c, int *
 
     for(n=0;n<oldnum;++n)
     {
-        if(xval<=b[n]+0.001*p->dx && xval>=b[n]-0.001*p->dx && count>0)
+        if(xval<=b[n]+0.001*p->DXM && xval>=b[n]-0.001*p->DXM && count>0)
         g[count-1]=MAX(g[count-1],c[n]);
 
-        if(xval>b[n]+0.001*p->dx || xval<b[n]-0.001*p->dx)
+        if(xval>b[n]+0.001*p->DXM || xval<b[n]-0.001*p->DXM)
         {
         f[count]=b[n];
         g[count]=c[n];

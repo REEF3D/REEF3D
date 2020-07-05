@@ -79,7 +79,7 @@ double sflow_fou::aij(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, slice& v
 		if(ivel2>=0.0)
 		ur=1.0;
 
-		dx= (ivel2*(ur*f(i,j) +  (1.0-ur)*f(i+1,j))  -  ivel1*(ul*f(i-1,j) +  (1.0-ul)*f(i,j)))/(p->dx);
+		dx= (ivel2*(ur*f(i,j) +  (1.0-ur)*f(i+1,j))  -  ivel1*(ul*f(i-1,j) +  (1.0-ul)*f(i,j)))/(p->DXM);
 
         // Y-dir
 		if(jvel1>=0.0)
@@ -88,7 +88,7 @@ double sflow_fou::aij(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, slice& v
 		if(jvel2>=0.0)
 		vr=1.0;
 
-		dy= (jvel2*(vr*f(i,j) +  (1.0-vr)*f(i,j+1))  -  jvel1*(vl*f(i,j-1) +  (1.0-vl)*f(i,j)))/(p->dx);
+		dy= (jvel2*(vr*f(i,j) +  (1.0-vr)*f(i,j+1))  -  jvel1*(vl*f(i,j-1) +  (1.0-vl)*f(i,j)))/(p->DXM);
         
 		
 		L = -dx-dy;

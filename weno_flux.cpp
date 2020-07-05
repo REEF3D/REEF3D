@@ -124,9 +124,9 @@ double weno_flux::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vve
 		fw2 = fz(p,a,b,wvel,ipol,kvel2);
 		
 		
-		L =   - ((ivel2*fu2-ivel1*fu1)/p->dx) 
-		      - ((jvel2*fv2-jvel1*fv1)/p->dx) 
-			  - ((kvel2*fw2-kvel1*fw1)/p->dx);
+		L =   - ((ivel2*fu2-ivel1*fu1)/p->DXM) 
+		      - ((jvel2*fv2-jvel1*fv1)/p->DXM) 
+			  - ((kvel2*fw2-kvel1*fw1)/p->DXM);
 			  
 			  
 		return L;

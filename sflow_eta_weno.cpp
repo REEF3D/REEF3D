@@ -68,8 +68,8 @@ double sflow_eta_weno::aij(lexer* p,slice& f,int ipol, slice& uvel, slice& vvel,
 		fv2 = fy(p,f,ipol,jvel2) + 0.5*(depth(i,j) + depth(i,j+1));
 		
 		
-		L =   - ((ivel2*fu2-ivel1*fu1)/p->dx) 
-		      - ((jvel2*fv2-jvel1*fv1)/p->dx);
+		L =   - ((ivel2*fu2-ivel1*fu1)/p->DXM) 
+		      - ((jvel2*fv2-jvel1*fv1)/p->DXM);
   			  
 		return L;
 }

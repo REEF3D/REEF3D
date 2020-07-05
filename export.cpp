@@ -74,7 +74,7 @@ void exportfile::start(lexer *p, fdm *a, ghostcell *pgc)
     result.write((char*)&ddn, sizeof (double));
     
     // dx
-    ddn=p->dx;
+    ddn=p->DXM;
     result.write((char*)&ddn, sizeof (double));
     
     // xs,xe,ys,ye,zs,ze

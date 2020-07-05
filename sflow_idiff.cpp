@@ -45,21 +45,21 @@ void sflow_idiff::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
 	visc = p->W2 + 0.5*(b->eddyv(i,j) + b->eddyv(i+1,j));
 
         
-	b->M.p[n] =   4.0*visc/(p->dx*p->dx)
+	b->M.p[n] =   4.0*visc/(p->DXM*p->DXM)
                 
-                + 2.0*visc/(p->dx*p->dx)*p->y_dir
+                + 2.0*visc/(p->DXM*p->DXM)*p->y_dir
                    
                 + 1.0/(alpha*p->dt);
     
-	b->rhsvec.V[n] = (visc/(p->dx*p->dx))*((v(i+1,j)-v(i,j)) - (v(i+1,j-1)-v(i,j-1)))
+	b->rhsvec.V[n] = (visc/(p->DXM*p->DXM))*((v(i+1,j)-v(i,j)) - (v(i+1,j-1)-v(i,j-1)))
                          
 						 + (u(i,j))/(alpha*p->dt);
 
-	 b->M.s[n] = -2.0*visc/(p->dx*p->dx);
-	 b->M.n[n] = -2.0*visc/(p->dx*p->dx);
+	 b->M.s[n] = -2.0*visc/(p->DXM*p->DXM);
+	 b->M.n[n] = -2.0*visc/(p->DXM*p->DXM);
 	 
-	 b->M.e[n] = -visc/(p->dx*p->dx)*p->y_dir;
-	 b->M.w[n] = -visc/(p->dx*p->dx)*p->y_dir;
+	 b->M.e[n] = -visc/(p->DXM*p->DXM)*p->y_dir;
+	 b->M.w[n] = -visc/(p->DXM*p->DXM)*p->y_dir;
  
 	 ++n;
 	}
@@ -115,22 +115,22 @@ void sflow_idiff::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
 	visc = p->W2 + 0.5*(b->eddyv(i,j) + b->eddyv(i,j+1));
 
         
-	b->M.p[n] =   2.0*visc/(p->dx*p->dx)
+	b->M.p[n] =   2.0*visc/(p->DXM*p->DXM)
     
-                + 4.0*visc/(p->dx*p->dx)*p->y_dir
+                + 4.0*visc/(p->DXM*p->DXM)*p->y_dir
                    
                 + 1.0/(alpha*p->dt);
 				  
-	b->rhsvec.V[n] = (visc/(p->dx*p->dx))*((u(i,j+1)-u(i,j)) - (u(i-1,j+1)-u(i-1,j)))
+	b->rhsvec.V[n] = (visc/(p->DXM*p->DXM))*((u(i,j+1)-u(i,j)) - (u(i-1,j+1)-u(i-1,j)))
 									
 						 + (v(i,j))/(alpha*p->dt);
 									
 	 
-	 b->M.s[n] = -visc/(p->dx*p->dx);
-	 b->M.n[n] = -visc/(p->dx*p->dx);
+	 b->M.s[n] = -visc/(p->DXM*p->DXM);
+	 b->M.n[n] = -visc/(p->DXM*p->DXM);
 	 
-	 b->M.e[n] = -2.0*visc/(p->dx*p->dx)*p->y_dir;
-	 b->M.w[n] = -2.0*visc/(p->dx*p->dx)*p->y_dir;
+	 b->M.e[n] = -2.0*visc/(p->DXM*p->DXM)*p->y_dir;
+	 b->M.w[n] = -2.0*visc/(p->DXM*p->DXM)*p->y_dir;
  
 	 ++n;
 	}
@@ -179,7 +179,7 @@ void sflow_idiff::diff_scalar(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psol
 {
     count=0;
 
-    sqd = (1.0/(p->dx*p->dx));
+    sqd = (1.0/(p->DXM*p->DXM));
 
 	SLICELOOP4
 	{

@@ -97,7 +97,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
     etark1(i,j) =      b->eta(i,j) 
     
                 -      p->dt*(b->P(i,j)*b->hx(i,j) - b->P(i-1,j)*b->hx(i-1,j)
-                       +      b->Q(i,j)*b->hy(i,j) - b->Q(i,j-1)*b->hy(i,j-1))/p->dx;
+                       +      b->Q(i,j)*b->hy(i,j) - b->Q(i,j-1)*b->hy(i,j-1))/p->DXM;
                 
     pgc->gcsl_start4(p,etark1,gcval_eta);
     pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,etark1);
@@ -182,7 +182,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
     etark2(i,j) = 0.75*b->eta(i,j) + 0.25*etark1(i,j)
     
                 - 0.25*p->dt*(Prk1(i,j)*b->hx(i,j) - Prk1(i-1,j)*b->hx(i-1,j)
-                       +      Qrk1(i,j)*b->hy(i,j) - Qrk1(i,j-1)*b->hy(i,j-1))/p->dx;
+                       +      Qrk1(i,j)*b->hy(i,j) - Qrk1(i,j-1)*b->hy(i,j-1))/p->DXM;
                 
     pgc->gcsl_start4(p,etark2,gcval_eta);
     pfsf->depth_update(p,b,pgc,Prk1,Qrk1,wrk1,etark2);
@@ -266,7 +266,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
     b->eta(i,j) = (1.0/3.0)*b->eta(i,j) + (2.0/3.0)*etark2(i,j)
     
                 - (2.0/3.0)*p->dt*(Prk2(i,j)*b->hx(i,j) - Prk2(i-1,j)*b->hx(i-1,j)
-                       +           Qrk2(i,j)*b->hy(i,j) - Qrk2(i,j-1)*b->hy(i,j-1))/p->dx;
+                       +           Qrk2(i,j)*b->hy(i,j) - Qrk2(i,j-1)*b->hy(i,j-1))/p->DXM;
                 
     pgc->gcsl_start4(p,b->eta,gcval_eta);
     pfsf->depth_update(p,b,pgc,Prk2,Qrk2,wrk2,b->eta);

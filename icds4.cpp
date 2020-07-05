@@ -98,26 +98,26 @@ void icds4::aij(lexer* p,fdm* a,field& b,field& F,int ipol, field& uvel, field& 
     pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
     pflux->w_flux(a,ipol,wvel,kvel1,kvel2);
 	
-	F(i,j,k) -=  (3.0*ivel1)/(p->dx*48.0)*b(i-2,j,k)
-				-(3.0*ivel2)/(p->dx*48.0)*b(i+2,j,k)
-				+(3.0*jvel1)/(p->dx*48.0)*b(i,j-2,k)
-				-(3.0*jvel2)/(p->dx*48.0)*b(i,j+2,k)
-				+(3.0*kvel1)/(p->dx*48.0)*b(i,j,k-2)
-				-(3.0*kvel2)/(p->dx*48.0)*b(i,j,k+2);
+	F(i,j,k) -=  (3.0*ivel1)/(p->DXM*48.0)*b(i-2,j,k)
+				-(3.0*ivel2)/(p->DXM*48.0)*b(i+2,j,k)
+				+(3.0*jvel1)/(p->DXM*48.0)*b(i,j-2,k)
+				-(3.0*jvel2)/(p->DXM*48.0)*b(i,j+2,k)
+				+(3.0*kvel1)/(p->DXM*48.0)*b(i,j,k-2)
+				-(3.0*kvel2)/(p->DXM*48.0)*b(i,j,k+2);
 	 
 	 
 	 a->M.p[count] =    (27.0*ivel2 - 27.0*ivel1
 						+ 27.0*jvel2 - 27.0*jvel1
-						+ 27.0*kvel2 - 27.0*kvel1)/(p->dx*48.0);
+						+ 27.0*kvel2 - 27.0*kvel1)/(p->DXM*48.0);
 	 
-	 a->M.s[count] = (-3.0*ivel2 - 27.0*ivel1)/(p->dx*48.0);
-	 a->M.n[count] = (27.0*ivel2 + 3.0*ivel1)/(p->dx*48.0);
+	 a->M.s[count] = (-3.0*ivel2 - 27.0*ivel1)/(p->DXM*48.0);
+	 a->M.n[count] = (27.0*ivel2 + 3.0*ivel1)/(p->DXM*48.0);
 	 
-	 a->M.e[count] = (-3.0*jvel2 - 27.0*jvel1)/(p->dx*48.0);
-	 a->M.w[count] = (27.0*jvel2 + 3.0*jvel1)/(p->dx*48.0);
+	 a->M.e[count] = (-3.0*jvel2 - 27.0*jvel1)/(p->DXM*48.0);
+	 a->M.w[count] = (27.0*jvel2 + 3.0*jvel1)/(p->DXM*48.0);
 	 
-	 a->M.b[count] = (-3.0*kvel2 - 27.0*kvel1)/(p->dx*48.0);
-	 a->M.t[count] = (27.0*kvel2 + 3.0*kvel1)/(p->dx*48.0);
+	 a->M.b[count] = (-3.0*kvel2 - 27.0*kvel1)/(p->DXM*48.0);
+	 a->M.t[count] = (27.0*kvel2 + 3.0*kvel1)/(p->DXM*48.0);
 	
 	++count;
 }

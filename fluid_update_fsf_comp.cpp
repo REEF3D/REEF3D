@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-fluid_update_fsf_comp::fluid_update_fsf_comp(lexer *p, fdm* a, ghostcell* pgc) : dx(p->dx),
+fluid_update_fsf_comp::fluid_update_fsf_comp(lexer *p, fdm* a, ghostcell* pgc) : dx(p->DXM),
 												visc_air(p->W4),visc_water(p->W2),ro_water(p->W1)
 {
     gcval_ro=2;

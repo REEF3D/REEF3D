@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 
-density_comp::density_comp(lexer* p) : epsi(p->F45*p->dx), eps(2.1*p->dx)
+density_comp::density_comp(lexer* p) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
 {
 }
 

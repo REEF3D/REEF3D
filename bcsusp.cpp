@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 
-bcsusp::bcsusp(lexer* p, turbulence *pturb):bedconc(p,pturb),epsi(1.6*p->dx)
+bcsusp::bcsusp(lexer* p, turbulence *pturb):bedconc(p,pturb),epsi(1.6*p->DXM)
 {
     rhosed=p->S22;
     rhowat=p->W1;

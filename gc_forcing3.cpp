@@ -69,9 +69,9 @@ void ghostcell::forcing3(lexer *p, fdm *a, field& f, field &uvel, field &vvel, f
 		kvel2= 0.5*(wvel(i,j,k)+wvel(i,j,k+1))*(1.0/a->porosity(i,j,k));
 		pip=0;
 		
-		dx = (ivel2*0.5*(f(i,j,k) + f(i+1,j,k))  -  ivel1*0.5*(f(i-1,j,k) +  f(i,j,k)))/(p->dx);
-		dy = (jvel2*0.5*(f(i,j,k) + f(i,j+1,k))  -  jvel1*0.5*(f(i,j-1,k) +  f(i,j,k)))/(p->dx);		
-		dz = (kvel2*0.5*(f(i,j,k) + f(i,j,k+1))  -  kvel1*0.5*(f(i,j,k-1) +  f(i,j,k)))/(p->dx);
+		dx = (ivel2*0.5*(f(i,j,k) + f(i+1,j,k))  -  ivel1*0.5*(f(i-1,j,k) +  f(i,j,k)))/(p->DXM);
+		dy = (jvel2*0.5*(f(i,j,k) + f(i,j+1,k))  -  jvel1*0.5*(f(i,j-1,k) +  f(i,j,k)))/(p->DXM);		
+		dz = (kvel2*0.5*(f(i,j,k) + f(i,j,k+1))  -  kvel1*0.5*(f(i,j,k-1) +  f(i,j,k)))/(p->DXM);
 
 		L = -(dx+dy+dz);
 		
@@ -81,7 +81,7 @@ void ghostcell::forcing3(lexer *p, fdm *a, field& f, field &uvel, field &vvel, f
 		double visc_ddx_p,visc_ddx_m,visc_ddy_p,visc_ddy_m;
 		double b_ijk,ev_ijk,visc_ijk,sqd;
 		
-		sqd = (1.0/(p->dx*p->dx));
+		sqd = (1.0/(p->DXM*p->DXM));
 		
 		b_ijk=f(i,j,k);
 		ev_ijk=a->eddyv(i,j,k);
@@ -109,7 +109,7 @@ void ghostcell::forcing3(lexer *p, fdm *a, field& f, field &uvel, field &vvel, f
 		L += a->gk*PORVAL3;
         
         // Pressure
-        L -= PORVAL3*(a->press(i,j,k+1)-a->press(i,j,k))/(p->dx*pdens->roface(p,a,0,0,1));
+        L -= PORVAL3*(a->press(i,j,k+1)-a->press(i,j,k))/(p->DXM*pdens->roface(p,a,0,0,1));
 		
 		
 		// Interpolate u_gamma
@@ -142,7 +142,7 @@ void ghostcell::forcing3(lexer *p, fdm *a, field& f, field &uvel, field &vvel, f
 		x = 0.0;
 		
 
-		x0 = - p->dx;
+		x0 = - p->DXM;
 		x1 = dist;
 		
 
@@ -162,7 +162,7 @@ void ghostcell::forcing3(lexer *p, fdm *a, field& f, field &uvel, field &vvel, f
                 
         // ugamma       
 		//cout<<"ugamma: "<<ugamma<<"  f: "<<(ugamma-f(i,j,k))/(alpha*p->dt) - L<<" dist: "<<dist<<endl;
-        //if(dist<p->dx)
+        //if(dist<p->DXM)
 		a->H(i,j,k) += (ugamma-f(i,j,k))/(alpha*p->dt) - L;
 	}
 }

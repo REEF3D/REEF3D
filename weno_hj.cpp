@@ -107,7 +107,7 @@ double weno_hj::ddx(lexer* p,fdm* a, field& b)
 	
 	if(iadvec>0.0)
 	{
-	iqmin(a,b,p->dx);
+	iqmin(a,b,p->DXM);
 	is();
 	alpha();
 	weight();
@@ -120,7 +120,7 @@ double weno_hj::ddx(lexer* p,fdm* a, field& b)
 
 	if(iadvec<0.0)
 	{
-	iqmax(a,b,p->dx);
+	iqmax(a,b,p->DXM);
 	is();
 	alpha();
 	weight();
@@ -139,7 +139,7 @@ double weno_hj::ddy(lexer* p,fdm* a, field& b)
 	
 	if(jadvec>0.0)
 	{
-	jqmin(a,b,p->dx);
+	jqmin(a,b,p->DXM);
 	is();
 	alpha();
 	weight();
@@ -153,7 +153,7 @@ double weno_hj::ddy(lexer* p,fdm* a, field& b)
 
 	if(jadvec<0.0)
 	{
-	jqmax(a,b,p->dx);
+	jqmax(a,b,p->DXM);
 	is();
 	alpha();
 	weight();
@@ -173,7 +173,7 @@ double weno_hj::ddz(lexer* p,fdm* a, field& b)
 	
 	if(kadvec>0.0)
 	{
-	kqmin(a,b,p->dx);
+	kqmin(a,b,p->DXM);
 	is();
 	alpha();
 	weight();
@@ -186,7 +186,7 @@ double weno_hj::ddz(lexer* p,fdm* a, field& b)
 	
 	if(kadvec<0.0)
 	{
-	kqmax(a,b,p->dx);
+	kqmax(a,b,p->DXM);
 	is();
 	alpha();
 	weight();

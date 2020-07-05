@@ -42,16 +42,16 @@ void sflow_turb_prandtl::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convect
     dudx=dvdy=dudy=dvdx=0.0;
     
     if(p->flagslice1[IJ]>0 && p->flagslice1[Im1J]>0)
-    dudx = (b->P(i,j) - b->P(i-1,j))/(p->dx);
+    dudx = (b->P(i,j) - b->P(i-1,j))/(p->DXM);
     
     if(p->flagslice2[IJ]>0 && p->flagslice2[IJm1]>0)
-    dvdy = (b->Q(i,j) - b->Q(i,j-1))/(p->dx);
+    dvdy = (b->Q(i,j) - b->Q(i,j-1))/(p->DXM);
     
     if(p->flagslice1[IJp1]>0 && p->flagslice1[Im1Jp1]>0 && p->flagslice1[IJm1]>0 && p->flagslice1[Im1Jm1]>0)
-    dudy = (0.5*(b->P(i,j+1)+b->P(i-1,j+1)) - 0.5*(b->P(i,j-1)+b->P(i-1,j-1)))/(2.0*p->dx);
+    dudy = (0.5*(b->P(i,j+1)+b->P(i-1,j+1)) - 0.5*(b->P(i,j-1)+b->P(i-1,j-1)))/(2.0*p->DXM);
     
     if(p->flagslice2[Ip1J]>0 && p->flagslice2[Ip1Jm1]>0 && p->flagslice2[Im1J]>0 && p->flagslice2[Im1Jm1]>0)
-    dvdx = (0.5*(b->Q(i+1,j)+b->Q(i+1,j-1)) - 0.5*(b->Q(i-1,j)+b->Q(i-1,j-1)))/(2.0*p->dx);
+    dvdx = (0.5*(b->Q(i+1,j)+b->Q(i+1,j-1)) - 0.5*(b->Q(i-1,j)+b->Q(i-1,j-1)))/(2.0*p->DXM);
     
     refl = 0.4*p->A261*b->hp(i,j);
  

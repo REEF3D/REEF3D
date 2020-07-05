@@ -59,7 +59,7 @@ void iowave::isource(lexer *p, fdm *a, ghostcell *pgc)
 	++count;
 	}
 	
-    double ep=1.0e-10*p->dx;
+    double ep=1.0e-10*p->DXM;
 	count=0;
 	if(p->B240>0 && p->B241==1)
     ULOOP
@@ -114,7 +114,7 @@ void iowave::jsource(lexer *p, fdm *a, ghostcell *pgc)
 	++count;
 	}
     
-	double ep=1.0e-10*p->dx;
+	double ep=1.0e-10*p->DXM;
 	count=0;
 	if(p->B240>0 && p->B242==1)
     VLOOP
@@ -169,7 +169,7 @@ void iowave::ksource(lexer *p, fdm *a, ghostcell *pgc)
 	++count;
 	}
 	
-    double ep=1.0e-10*p->dx;
+    double ep=1.0e-10*p->DXM;
 	count=0;
 	if(p->B240>0 && p->B243==1)
     WLOOP

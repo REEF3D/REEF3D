@@ -62,7 +62,7 @@ double sflow_gradient_weno::ddx(lexer *p,fdm2D *b, slice& f, int ipol, double ad
 		  + w3*( q3*third + q4*fivsix - q5*sixth));
 	}
 
-    //cout<<"GRAD: "<<grad<<"    "<<(f(i+1,j)-f(i,j))/p->dx<<endl;
+    //cout<<"GRAD: "<<grad<<"    "<<(f(i+1,j)-f(i,j))/p->DXM<<endl;
 	return grad;
 }
 
@@ -103,38 +103,38 @@ double sflow_gradient_weno::ddy(lexer *p,fdm2D *b, slice& f, int ipol, double ad
 
 void sflow_gradient_weno::iqmin(lexer *p,fdm2D *b, slice& f, int ipol)
 {	
-	q1 = (f(i-2,j) - f(i-3,j))/p->dx;
-	q2 = (f(i-1,j) - f(i-2,j))/p->dx;
-	q3 = (f(i,j)   - f(i-1,j))/p->dx;
-	q4 = (f(i+1,j) - f(i,j)  )/p->dx;
-	q5 = (f(i+2,j) - f(i+1,j))/p->dx;
+	q1 = (f(i-2,j) - f(i-3,j))/p->DXM;
+	q2 = (f(i-1,j) - f(i-2,j))/p->DXM;
+	q3 = (f(i,j)   - f(i-1,j))/p->DXM;
+	q4 = (f(i+1,j) - f(i,j)  )/p->DXM;
+	q5 = (f(i+2,j) - f(i+1,j))/p->DXM;
 }
 
 void sflow_gradient_weno::jqmin(lexer *p,fdm2D *b, slice& f, int ipol)
 {
-	q1 = (f(i,j-2) - f(i,j-3))/p->dx;
-	q2 = (f(i,j-1) - f(i,j-2))/p->dx;
-	q3 = (f(i,j)   - f(i,j-1))/p->dx;
-	q4 = (f(i,j+1) - f(i,j)  )/p->dx;
-	q5 = (f(i,j+2) - f(i,j+1))/p->dx;
+	q1 = (f(i,j-2) - f(i,j-3))/p->DXM;
+	q2 = (f(i,j-1) - f(i,j-2))/p->DXM;
+	q3 = (f(i,j)   - f(i,j-1))/p->DXM;
+	q4 = (f(i,j+1) - f(i,j)  )/p->DXM;
+	q5 = (f(i,j+2) - f(i,j+1))/p->DXM;
 }
 
 void sflow_gradient_weno::iqmax(lexer *p,fdm2D *b, slice& f, int ipol)
 {
-	q1 = (f(i+3,j) - f(i+2,j))/p->dx;
-	q2 = (f(i+2,j) - f(i+1,j))/p->dx;
-	q3 = (f(i+1,j) - f(i,j)  )/p->dx;
-	q4 = (f(i,j)   - f(i-1,j))/p->dx;
-	q5 = (f(i-1,j) - f(i-2,j))/p->dx;
+	q1 = (f(i+3,j) - f(i+2,j))/p->DXM;
+	q2 = (f(i+2,j) - f(i+1,j))/p->DXM;
+	q3 = (f(i+1,j) - f(i,j)  )/p->DXM;
+	q4 = (f(i,j)   - f(i-1,j))/p->DXM;
+	q5 = (f(i-1,j) - f(i-2,j))/p->DXM;
 }
 
 void sflow_gradient_weno::jqmax(lexer *p,fdm2D *b, slice& f, int ipol)
 {
-	q1 = (f(i,j+3) - f(i,j+2))/p->dx;
-	q2 = (f(i,j+2) - f(i,j+1))/p->dx;
-	q3 = (f(i,j+1) - f(i,j)  )/p->dx;
-	q4 = (f(i,j)   - f(i,j-1))/p->dx;
-	q5 = (f(i,j-1) - f(i,j-2))/p->dx;
+	q1 = (f(i,j+3) - f(i,j+2))/p->DXM;
+	q2 = (f(i,j+2) - f(i,j+1))/p->DXM;
+	q3 = (f(i,j+1) - f(i,j)  )/p->DXM;
+	q4 = (f(i,j)   - f(i,j-1))/p->DXM;
+	q5 = (f(i,j-1) - f(i,j-2))/p->DXM;
 }
 
 void sflow_gradient_weno::is(slice& f)

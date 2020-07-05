@@ -35,9 +35,9 @@ void ghostcell::gcb_distbed(lexer *p, fdm *a)
         
         if(p->gcb4[n][4]==21 || p->gcb4[n][4]==22)
         {
-        nx=(a->topo(i+1,j,k)-a->topo(i-1,j,k))/(2.0*p->dx);
-        ny=(a->topo(i,j+1,k)-a->topo(i,j-1,k))/(2.0*p->dx);
-        nz=(a->topo(i,j,k+1)-a->topo(i,j,k-1))/(2.0*p->dx);
+        nx=(a->topo(i+1,j,k)-a->topo(i-1,j,k))/(2.0*p->DXM);
+        ny=(a->topo(i,j+1,k)-a->topo(i,j-1,k))/(2.0*p->DXM);
+        nz=(a->topo(i,j,k+1)-a->topo(i,j,k-1))/(2.0*p->DXM);
 
         norm=sqrt(nx*nx + ny*ny + nz*nz);
 
@@ -64,8 +64,8 @@ void ghostcell::gcb_distbed(lexer *p, fdm *a)
         p->gcd4[n]=fabs(a->topo(i,j,k))/(fabs(nz)>1.0e-15?fabs(nz):1.0e-15);
         }
 		
-		p->gcd4[n] = MIN(p->gcd4[n],p->dx);
-		p->gcd4[n] = MAX(p->gcd4[n],0.1*p->dx);
+		p->gcd4[n] = MIN(p->gcd4[n],p->DXM);
+		p->gcd4[n] = MAX(p->gcd4[n],0.1*p->DXM);
     }
 }
 

@@ -36,7 +36,7 @@ void iowave::discharge2D(lexer *p, fdm2D* b, ghostcell* pgc)
 		i=p->gcslin[n][0];
 		j=p->gcslin[n][1];
         
-        area = b->hp(i,j)*p->dx;
+        area = b->hp(i,j)*p->DXM;
         
         Ai+=area;
         p->Qi+=area*b->P(i-1,j);
@@ -82,16 +82,16 @@ void iowave::Qin2D(lexer *p, fdm2D* b, ghostcell* pgc)
     j=p->gcin[n][1];
     k=p->gcin[n][2];
 
-        if(a->phi(i,j,k)>-0.5*p->dx-1.0e-20 && a->topo(i,j,k)>0.0)
+        if(a->phi(i,j,k)>-0.5*p->DXM-1.0e-20 && a->topo(i,j,k)>0.0)
         {
-            if(a->phi(i,j,k)>=0.5*p->dx)
-            area=p->dx*p->dx;
+            if(a->phi(i,j,k)>=0.5*p->DXM)
+            area=p->DXM*p->DXM;
 
-            if(a->phi(i,j,k)<0.5*p->dx && a->phi(i,j,k)>0.0*p->dx)
-            area=p->dx*(p->dx*0.5 + a->phi(i,j,k));
+            if(a->phi(i,j,k)<0.5*p->DXM && a->phi(i,j,k)>0.0*p->DXM)
+            area=p->DXM*(p->DXM*0.5 + a->phi(i,j,k));
 			
-			if(a->phi(i,j,k)>=-0.5*p->dx -1.0e-20 && a->phi(i,j,k)<=0.0*p->dx)
-            area=p->dx*(p->dx*0.5 - a->phi(i,j,k));
+			if(a->phi(i,j,k)>=-0.5*p->DXM -1.0e-20 && a->phi(i,j,k)<=0.0*p->DXM)
+            area=p->DXM*(p->DXM*0.5 - a->phi(i,j,k));
 
 
             Ai+=area;
@@ -131,17 +131,17 @@ void iowave::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
     j=p->gcout[n][1];
     k=p->gcout[n][2];
 
-        if(a->phi(i+1,j,k)>-0.5*p->dx-1.0e-20 && a->topo(i,j,k)>0.0)
+        if(a->phi(i+1,j,k)>-0.5*p->DXM-1.0e-20 && a->topo(i,j,k)>0.0)
         {
 
-            if(a->phi(i+1,j,k)>=0.5*p->dx)
-            area=p->dx*p->dx;
+            if(a->phi(i+1,j,k)>=0.5*p->DXM)
+            area=p->DXM*p->DXM;
 
-            if(a->phi(i+1,j,k)<0.5*p->dx && a->phi(i+1,j,k)>0.0*p->dx)
-            area=p->dx*(p->dx*0.5 + a->phi(i+1,j,k));
+            if(a->phi(i+1,j,k)<0.5*p->DXM && a->phi(i+1,j,k)>0.0*p->DXM)
+            area=p->DXM*(p->DXM*0.5 + a->phi(i+1,j,k));
 			
-			if(a->phi(i+1,j,k)>=-0.5*p->dx-1.0e-20 && a->phi(i+1,j,k)<=0.0*p->dx)
-            area=p->dx*(p->dx*0.5 - a->phi(i+1,j,k));
+			if(a->phi(i+1,j,k)>=-0.5*p->DXM-1.0e-20 && a->phi(i+1,j,k)<=0.0*p->DXM)
+            area=p->DXM*(p->DXM*0.5 - a->phi(i+1,j,k));
 
             Ao+=area;
             p->Qo+=area*a->u(i+1,j,k);

@@ -28,10 +28,10 @@ void ghostcell::gcsl_sommerfeld(lexer *p, slice& f, int gcv, int bc, int cs)
 {
     double dfx1,dfx4,dfy2,dfy3;
     
-    dfx1 = (f(i+1,j)-f(i,j))/p->dx;
-    dfx4 = (f(i,j)-f(i-1,j))/p->dx;
-    dfy2 = (f(i,j)-f(i,j-1))/p->dx;
-    dfy3 = (f(i,j+1)-f(i,j))/p->dx;
+    dfx1 = (f(i+1,j)-f(i,j))/p->DXM;
+    dfx4 = (f(i,j)-f(i-1,j))/p->DXM;
+    dfy2 = (f(i,j)-f(i,j-1))/p->DXM;
+    dfy3 = (f(i,j+1)-f(i,j))/p->DXM;
 
             
 	if(cs==1)

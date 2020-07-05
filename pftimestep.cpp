@@ -41,7 +41,7 @@ void pftimestep::start(fdm *a, lexer *p,ghostcell *pgc, turbulence *pturb)
 	p->dt_old=p->dt;
 
 	p->umax=p->vmax=p->wmax=p->viscmax=0.0;
-	sqd=1.0/(p->dx*p->dx);
+	sqd=1.0/(p->DXM*p->DXM);
 
 // maximum velocities
 
@@ -161,16 +161,16 @@ void pftimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 	p->umax=MAX(p->umax,2.0*p->X210_v);
 	p->umax=MAX(p->umax,2.0*p->X210_w);
 
-	p->dt=p->dx/(p->umax+epsi);
+	p->dt=p->DXM/(p->umax+epsi);
 
 	LOOP
 	p->viscmax=MAX(p->viscmax, a->visc(i,j,k)+a->eddyv(i,j,k));
 
-	visccrit=(p->viscmax*(6.0/pow(p->dx,2.0)));
+	visccrit=(p->viscmax*(6.0/pow(p->DXM,2.0)));
     
     p->umax+=5.0;
 
-	cu= + 2.0/((p->umax/p->dx+visccrit)+sqrt(pow(p->umax/p->dx+visccrit,2.0)+(4.0*sqrt(fabs(a->gi) + fabs(a->gj) +fabs(a->gk)))/p->dx));// + (8.0*p->maxkappa*p->W5)/(2.0*p->dx*p->dx*(p->W1+p->W3)));
+	cu= + 2.0/((p->umax/p->DXM+visccrit)+sqrt(pow(p->umax/p->DXM+visccrit,2.0)+(4.0*sqrt(fabs(a->gi) + fabs(a->gj) +fabs(a->gk)))/p->DXM));// + (8.0*p->maxkappa*p->W5)/(2.0*p->DXM*p->DXM*(p->W1+p->W3)));
     
 
 	p->dt=p->N47*cu;

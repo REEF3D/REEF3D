@@ -42,13 +42,13 @@ void particle::reseed(lexer* p, fdm* a, ghostcell* pgc, double pnum_coeff)
 		lsc = a->phi(i,j,k);
 		
 		// POS
-		if(lsc<0.5*p->dx && lsc>-0.5*p->dx)
-		maxpos = (0.5 + lsc/p->dx)*double(pnum)*pnum_coeff;
+		if(lsc<0.5*p->DXM && lsc>-0.5*p->DXM)
+		maxpos = (0.5 + lsc/p->DXM)*double(pnum)*pnum_coeff;
 		
-		if(lsc>=0.5*p->dx)
+		if(lsc>=0.5*p->DXM)
 		maxpos = double(pnum)*pnum_coeff;
 		
-		if(lsc<=-0.5*p->dx)
+		if(lsc<=-0.5*p->DXM)
 		maxpos = 0.0;
 		
 		qn=0;
@@ -63,16 +63,16 @@ void particle::reseed(lexer* p, fdm* a, ghostcell* pgc, double pnum_coeff)
 		}    
 	
 		// NEG		
-		if(lsc>-0.5*p->dx && lsc<0.5*p->dx)
-		maxneg = (0.5 - lsc/p->dx)*double(pnum)*pnum_coeff;
+		if(lsc>-0.5*p->DXM && lsc<0.5*p->DXM)
+		maxneg = (0.5 - lsc/p->DXM)*double(pnum)*pnum_coeff;
 		
-		if(lsc<=-0.5*p->dx)
+		if(lsc<=-0.5*p->DXM)
 		maxneg = double(pnum)*pnum_coeff;
 		
-		if(lsc>=0.5*p->dx)
+		if(lsc>=0.5*p->DXM)
 		maxneg = 0.0;
 		
-		//cout<<"maxpos: "<<maxpos<<"  maxneg: "<<maxneg<<"      lsc: "<<lsc/p->dx<<endl;
+		//cout<<"maxpos: "<<maxpos<<"  maxneg: "<<maxneg<<"      lsc: "<<lsc/p->DXM<<endl;
 		
 		qn=0;
 		while(negnum(i,j,k)<maxneg && qn<pnum)		

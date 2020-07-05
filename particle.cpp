@@ -29,9 +29,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 particle::particle(lexer* p, fdm *a, ghostcell* pgc) : norm_vec(p), phimax(p),phimin(p),phiold(p),
 							  posnum(p), negnum(p),
-                             zero (0.0), epsi(1.5*p->dx),dx(p->dx),rmin(0.1*p->dx),
-                             rmax(0.5*p->dx),pnum(p->F32),ipolval(p->F31), irand(100000), drand(100000.0),
-							  nu(1.0e-10*p->dx)
+                             zero (0.0), epsi(1.5*p->DXM),dx(p->DXM),rmin(0.1*p->DXM),
+                             rmax(0.5*p->DXM),pnum(p->F32),ipolval(p->F31), irand(100000), drand(100000.0),
+							  nu(1.0e-10*p->DXM)
 {
     pcount=0;
     ncount=0;

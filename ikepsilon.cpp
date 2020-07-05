@@ -66,7 +66,7 @@ void ikepsilon::ksource(lexer *p, fdm* a)
 void  ikepsilon::eddyvisc(fdm* a, lexer* p, ghostcell* pgc)
 {
 	double H;
-	double epsi = 1.6*p->dx;
+	double epsi = 1.6*p->DXM;
 	double factor;
 	
 	LOOP
@@ -89,7 +89,7 @@ void  ikepsilon::eddyvisc(fdm* a, lexer* p, ghostcell* pgc)
 	
 	if(p->T10==21)
 	LOOP
-	a->eddyv(i,j,k) = MIN(a->eddyv(i,j,k), p->dx*p->cmu*pow((kin(i,j,k)>(1.0e-20)?(kin(i,j,k)):(1.0e20)),0.5));
+	a->eddyv(i,j,k) = MIN(a->eddyv(i,j,k), p->DXM*p->cmu*pow((kin(i,j,k)>(1.0e-20)?(kin(i,j,k)):(1.0e20)),0.5));
     
     pvrans->eddyv_func(p,a);
     

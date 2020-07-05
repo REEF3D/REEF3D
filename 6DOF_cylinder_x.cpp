@@ -46,7 +46,7 @@ void sixdof_f::cylinder_x(lexer *p, fdm *a, ghostcell *pgc, int id)
 	
 	U = 2.0 * PI * r;
 	
-	ds = 0.25*(U*p->dx);
+	ds = 0.25*(U*p->DXM);
 	
 	snum = int(U/ds);
 	

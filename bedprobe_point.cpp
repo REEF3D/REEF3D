@@ -90,7 +90,7 @@ void bedprobe_point::bed_gauge(lexer *p, fdm *a, ghostcell *pgc)
         PBASECHECK
         {
             if(a->topo(i,j,k)<0.0 && a->topo(i,j,k+1)>=0.0)
-            wsf[n]=MAX(wsf[n],-(a->topo(i,j,k)*p->dx)/(a->topo(i,j,k+1)-a->topo(i,j,k)) + p->pos_z());
+            wsf[n]=MAX(wsf[n],-(a->topo(i,j,k)*p->DXM)/(a->topo(i,j,k+1)-a->topo(i,j,k)) + p->pos_z());
         }
     }
 	
@@ -117,8 +117,8 @@ void bedprobe_point::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 
     for(n=0;n<p->P121;++n)
     {
-    iloc[n]=conv((p->P121_x[n]-p->originx)/p->dx);
-    jloc[n]=conv((p->P121_y[n]-p->originy)/p->dx);
+    iloc[n]=conv((p->P121_x[n]-p->originx)/p->DXM);
+    jloc[n]=conv((p->P121_y[n]-p->originy)/p->DXM);
 
     check=ij_boundcheck(p,a,iloc[n],jloc[n],0);
 

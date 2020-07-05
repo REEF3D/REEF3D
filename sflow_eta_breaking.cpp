@@ -80,7 +80,7 @@ void sflow_eta::breaking(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice &
         
         
         
-        if(fabs((b->depth(i+1,j) - b->depth(i-1,j))/p->dx) > 2.0)// || fabs((b->hp(i+1,j) - b->hp(i-1,j))/p->dx) > 2.0 )
+        if(fabs((b->depth(i+1,j) - b->depth(i-1,j))/p->DXM) > 2.0)// || fabs((b->hp(i+1,j) - b->hp(i-1,j))/p->DXM) > 2.0 )
         {
         b->breaking(i-1,j)=1;
         b->breaking(i,j)=1;
@@ -93,7 +93,7 @@ void sflow_eta::breaking(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice &
         b->breaking(i+3,j)=1;
         }
             
-        if(fabs((b->depth(i,j+1) - b->depth(i,j-1))/p->dx) > 2.0)// || fabs((b->hp(i,j+1) - b->hp(i,j-1))/p->dx) > 2.0 )
+        if(fabs((b->depth(i,j+1) - b->depth(i,j-1))/p->DXM) > 2.0)// || fabs((b->hp(i,j+1) - b->hp(i,j-1))/p->DXM) > 2.0 )
         {
         b->breaking(i,j-1)=1;
         b->breaking(i,j)=1;

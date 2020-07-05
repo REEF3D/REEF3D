@@ -31,7 +31,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"picard_void.h"
 
 
-reinigc_RK3::reinigc_RK3(lexer *p, fdm *a):gradient(p),deltax(p->dx),d0(p),wallf(p),epsi(p->F45*p->dx)
+reinigc_RK3::reinigc_RK3(lexer *p, fdm *a):gradient(p),deltax(p->DXM),d0(p),wallf(p),epsi(p->F45*p->DXM)
 {
 	if(p->F50==1)
 	gcval_phi=51;
@@ -59,7 +59,7 @@ reinigc_RK3::reinigc_RK3(lexer *p, fdm *a):gradient(p),deltax(p->dx),d0(p),wallf
 	if(p->F46!=1)
 	ppicard = new picard_void(p);
 	
-	dV = p->dx*p->dx*p->dx;
+	dV = p->DXM*p->DXM*p->DXM;
 }
 
 reinigc_RK3::~reinigc_RK3()

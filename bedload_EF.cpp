@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-bedload_EF::bedload_EF(lexer *p, turbulence *pturb) : bedshear(p,pturb), epsi(1.6*p->dx)
+bedload_EF::bedload_EF(lexer *p, turbulence *pturb) : bedshear(p,pturb), epsi(1.6*p->DXM)
 {
     rhosed=p->S22;
     rhowat=p->W1;

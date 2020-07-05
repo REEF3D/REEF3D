@@ -325,10 +325,10 @@ void print_wsfline_y::remove_multientry(lexer *p, double* b, double* c, int *d, 
 
     for(n=0;n<oldnum;++n)
     {
-        if(yval<=b[n]+0.001*p->dx && yval>=b[n]-0.001*p->dx && count>0)
+        if(yval<=b[n]+0.001*p->DXM && yval>=b[n]-0.001*p->DXM && count>0)
         g[count-1]=MAX(g[count-1],c[n]);
 
-        if(yval>b[n]+0.001*p->dx || yval<b[n]-0.001*p->dx)
+        if(yval>b[n]+0.001*p->DXM || yval<b[n]-0.001*p->DXM)
         {
         f[count]=b[n];
         g[count]=c[n];

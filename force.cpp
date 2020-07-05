@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/stat.h>
 #include<sys/types.h>
 
-force::force(lexer *p, fdm *a, ghostcell *pgc, int ID) : wave_interface(p,pgc), epsi(0.0*p->dx)
+force::force(lexer *p, fdm *a, ghostcell *pgc, int ID) : wave_interface(p,pgc), epsi(0.0*p->DXM)
 {	
     
 	if(p->P81>0)

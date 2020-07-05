@@ -110,7 +110,7 @@ double quick::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, f
               +(1.0-ur)*(3.0*b(i,j,k) + 6.0*b(i+1,j,k) - b(i+2,j,k)))
 
            -  ivel1*(ul*(3.0*b(i,j,k) + 6.0*b(i-1,j,k) - b(i-2,j,k))
-              +(1.0-ul)*(3.0*b(i-1,j,k) + 6.0*b(i,j,k) - b(i+1,j,k))))/(8.0*p->dx);
+              +(1.0-ul)*(3.0*b(i-1,j,k) + 6.0*b(i,j,k) - b(i+1,j,k))))/(8.0*p->DXM);
 
 
 
@@ -125,7 +125,7 @@ double quick::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, f
               +(1.0-vr)*(3.0*b(i,j,k) + 6.0*b(i,j+1,k) - b(i,j+2,k)))
 
            -  jvel1*(vl*(3.0*b(i,j,k) + 6.0*b(i,j-1,k) - b(i,j-2,k))
-              +(1.0-vl)*(3.0*b(i,j-1,k) + 6.0*b(i,j,k) - b(i,j+1,k))))/(8.0*p->dx);
+              +(1.0-vl)*(3.0*b(i,j-1,k) + 6.0*b(i,j,k) - b(i,j+1,k))))/(8.0*p->DXM);
 
 
 
@@ -140,7 +140,7 @@ double quick::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, f
               +(1.0-wr)*(3.0*b(i,j,k) + 6.0*b(i,j,k+1) - b(i,j,k+2)))
 
            -  kvel1*(wl*(3.0*b(i,j,k) + 6.0*b(i,j,k-1) - b(i,j,k-2))
-              +(1.0-wl)*(3.0*b(i,j,k-1) + 6.0*b(i,j,k) - b(i,j,k+1))))/(8.0*p->dx);
+              +(1.0-wl)*(3.0*b(i,j,k-1) + 6.0*b(i,j,k) - b(i,j,k+1))))/(8.0*p->DXM);
 		
 
 		L = -dx-dy-dz;

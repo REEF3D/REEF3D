@@ -50,8 +50,8 @@ void sflow_sediment_f::exner(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice
 		
 	dqx=dqy=0.0;
     /*
-    dqx = (b->qb(i+1,j)-b->qb(i-1,j))/(2.0*p->dx);
-    dqy = (b->qb(i,j+1)-b->qb(i,j-1))/(2.0*p->dx);*/
+    dqx = (b->qb(i+1,j)-b->qb(i-1,j))/(2.0*p->DXM);
+    dqy = (b->qb(i,j+1)-b->qb(i,j-1))/(2.0*p->DXM);*/
 
 
     dqx = pdx->sx(p,b->qb,signx);
@@ -72,10 +72,10 @@ void sflow_sediment_f::exner(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice
     
         // timestep calculation
         if(p->S15==0)
-        p->dtsed=MIN(p->S13, (p->S14*p->dx)/(fabs(p->maxtopovel)>1.0e-15?p->maxtopovel:1.0e-15));
+        p->dtsed=MIN(p->S13, (p->S14*p->DXM)/(fabs(p->maxtopovel)>1.0e-15?p->maxtopovel:1.0e-15));
 
         if(p->S15==1)
-        p->dtsed=MIN(p->dt, (p->S14*p->dx)/(fabs(p->maxtopovel)>1.0e-15?p->maxtopovel:1.0e-15));
+        p->dtsed=MIN(p->dt, (p->S14*p->DXM)/(fabs(p->maxtopovel)>1.0e-15?p->maxtopovel:1.0e-15));
         
         if(p->S15==2)
         p->dtsed=p->S13;

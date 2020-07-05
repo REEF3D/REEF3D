@@ -422,7 +422,7 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
                 H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
                 
                 a->P(i+1,j) += u(i+1,j,k)*p->DZP[KP]*H;
-                d+=p->dx*H;
+                d+=p->DXM*H;
             }
             a->P(i+1,j)/=d;
         }

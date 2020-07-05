@@ -42,7 +42,7 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 	p->dt_old=p->dt;
 
 	p->umax=p->vmax=p->wmax=p->viscmax=0.0;
-	sqd=1.0/(p->dx*p->dx);
+	sqd=1.0/(p->DXM*p->DXM);
 	
 // maximum velocities
 
@@ -116,7 +116,7 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 
 
 // maximum reynolds stress source term
-	visccrit=p->viscmax*(6.0/pow(p->dx,2.0));
+	visccrit=p->viscmax*(6.0/pow(p->DXM,2.0));
 	
 	if(p->D20<4)
 	{

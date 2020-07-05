@@ -50,7 +50,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define DXP (0.5*(DIP + DIPP))
 #define DYP (0.5*(DJP + DJPP))
 
-#define DXM (0.5*(DIM + DIMM))
+//#define DXM (0.5*(DIM + DIMM))
 #define DYM (0.5*(DJM + DJMM))
 
 #define DXY (0.25*(DI + DIP + DJP + DIPJP))
@@ -133,14 +133,14 @@ void sflow_boussinesq_peregrine::psi1_calc(lexer *p, fdm2D *b, ghostcell *pgc, s
 {
     SLICELOOP1
     {
-    Pxx(i,j) = (P(i+1,j) - 2.0*P(i,j) + P(i-1,j))/(p->dx*p->dx);
-    Qxy(i,j) = (Q(i+1,j) - Qxy(i,j) - Q(i+1,j-1) + Qxy(i,j-1)) /(p->dx*p->dx);
+    Pxx(i,j) = (P(i+1,j) - 2.0*P(i,j) + P(i-1,j))/(p->DXM*p->DXM);
+    Qxy(i,j) = (Q(i+1,j) - Qxy(i,j) - Q(i+1,j-1) + Qxy(i,j-1)) /(p->DXM*p->DXM);
     
     //cout<<Pxx(i,j)<<endl;
     
-    P1x(i,j) = (P(i+1,j) - P(i-1,j))/(2.0*p->dx);
-    Q1x(i,j) = (0.5*(Q(i+1,j)+Q(i+1,j-1)) - 0.5*(Qxy(i,j)  + Qxy(i,j-1)))/p->dx;
-    Q1y(i,j) = (0.5*(Q(i+1,j)+Qxy(i,j)) - 0.5*(Q(i+1,j-1) + Qxy(i,j-1)))/p->dx;
+    P1x(i,j) = (P(i+1,j) - P(i-1,j))/(2.0*p->DXM);
+    Q1x(i,j) = (0.5*(Q(i+1,j)+Q(i+1,j-1)) - 0.5*(Qxy(i,j)  + Qxy(i,j-1)))/p->DXM;
+    Q1y(i,j) = (0.5*(Q(i+1,j)+Qxy(i,j)) - 0.5*(Q(i+1,j-1) + Qxy(i,j-1)))/p->DXM;
     }
     
     
@@ -153,7 +153,7 @@ void sflow_boussinesq_peregrine::psi2_calc(lexer *p, fdm2D *b, ghostcell *pgc, s
     {
 
     
-    Qyy(i,j) = (Q(i,j+1) - 2.0*Q(i,j) + P(i,j-1))/(p->dx*p->dx);
-    Pxy(i,j) = (P(i+1,j) - Pxy(i,j) - P(i+1,j-1) + Pxy(i,j-1)) /(p->dx*p->dx);
+    Qyy(i,j) = (Q(i,j+1) - 2.0*Q(i,j) + P(i,j-1))/(p->DXM*p->DXM);
+    Pxy(i,j) = (P(i+1,j) - Pxy(i,j) - P(i+1,j-1) + Pxy(i,j-1)) /(p->DXM*p->DXM);
     }
 }

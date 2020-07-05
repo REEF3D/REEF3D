@@ -55,12 +55,12 @@ void ghostcell::fbpress(lexer *p,field& f, double dist, int gcv, int bc, int cs)
 		/*																		// Extrapolation such that dp/dx=0 at interface
 		for(q=0;q<margin;++q)
 		{
-			double x1 = p->pos_z() - p->dx;
+			double x1 = p->pos_z() - p->DXM;
 			double x2 = p->pos_z();
 			double xGamma = a->fb(i,j,k) + p->pos_z();
 			double f1 = f(i,j,k-1);
 			double f2 = f(i,j,k);
-			double x3 = p->pos_z() + (q+1)*p->dx;
+			double x3 = p->pos_z() + (q+1)*p->DXM;
 			
 			double a = (f2 - f1)/(x2*x2 - x1*x1 + 2.0*xGamma*(x1 - x2));
 			
@@ -81,27 +81,27 @@ void ghostcell::fbpress(lexer *p,field& f, double dist, int gcv, int bc, int cs)
 
 	if(cs==1)
 	for(q=0;q<margin;++q)
-	f(i-q-1,j,k)=f(i,j,k) - (p->dx*(double(q)+1.0))*(ui-un)/(p->dt>1.0e-20?p->dt:1.0e20);
+	f(i-q-1,j,k)=f(i,j,k) - (p->DXM*(double(q)+1.0))*(ui-un)/(p->dt>1.0e-20?p->dt:1.0e20);
 
 	if(cs==2)
 	for(q=0;q<margin;++q)
-	f(i,j+q+1,k)=f(i,j,k) + (p->dx*(double(q)+1.0))*(vi-vn)/(p->dt>1.0e-20?p->dt:1.0e20);
+	f(i,j+q+1,k)=f(i,j,k) + (p->DXM*(double(q)+1.0))*(vi-vn)/(p->dt>1.0e-20?p->dt:1.0e20);
 
 	if(cs==3)
 	for(q=0;q<margin;++q)
-	f(i,j-q-1,k)=f(i,j,k) - (p->dx*(double(q)+1.0))*(vi-vn)/(p->dt>1.0e-20?p->dt:1.0e20);
+	f(i,j-q-1,k)=f(i,j,k) - (p->DXM*(double(q)+1.0))*(vi-vn)/(p->dt>1.0e-20?p->dt:1.0e20);
 
 	if(cs==4)
 	for(q=0;q<margin;++q)
-	f(i+q+1,j,k)=f(i,j,k) + (p->dx*(double(q)+1.0))*(ui-un)/(p->dt>1.0e-20?p->dt:1.0e20);
+	f(i+q+1,j,k)=f(i,j,k) + (p->DXM*(double(q)+1.0))*(ui-un)/(p->dt>1.0e-20?p->dt:1.0e20);
 
 	if(cs==5)
 	for(q=0;q<margin;++q)
-	f(i,j,k-q-1)=f(i,j,k) - (p->dx*(double(q)+1.0))*(wi-wn)/(p->dt>1.0e-20?p->dt:1.0e20);
+	f(i,j,k-q-1)=f(i,j,k) - (p->DXM*(double(q)+1.0))*(wi-wn)/(p->dt>1.0e-20?p->dt:1.0e20);
 
 	if(cs==6)
 	for(q=0;q<margin;++q)
-	f(i,j,k+q+1)=f(i,j,k) + (p->dx*(double(q)+1.0))*(wi-wn)/(p->dt>1.0e-20?p->dt:1.0e20);
+	f(i,j,k+q+1)=f(i,j,k) + (p->DXM*(double(q)+1.0))*(wi-wn)/(p->dt>1.0e-20?p->dt:1.0e20);
 	}
      
 }

@@ -41,7 +41,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"diffusion.h"
 
 nsewave_RK3::nsewave_RK3(lexer *p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc) : eta(p),
-                etark1(p),etark2(p),L(p),P(p),Q(p),epsi(1.6*p->dx),bcmom(p),
+                etark1(p),etark2(p),L(p),P(p),Q(p),epsi(1.6*p->DXM),bcmom(p),
                 urk1(p),urk2(p),vrk1(p),vrk2(p),wrk1(p),wrk2(p)
 {
     gcval_u=10;
@@ -377,7 +377,7 @@ void nsewave_RK3::eta_disc(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v)
 		if(fabs(phival)<=epsi)
 		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
         
-        P(i,j) += u(i,j,k)*p->dx*H;
+        P(i,j) += u(i,j,k)*p->DXM*H;
     }
     
     VLOOP
@@ -393,7 +393,7 @@ void nsewave_RK3::eta_disc(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v)
 		if(fabs(phival)<=epsi)
 		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
         
-        Q(i,j) += v(i,j,k)*p->dx*H;
+        Q(i,j) += v(i,j,k)*p->DXM*H;
     }
     
     pgc->gcsl_start1(p,P,10);
@@ -401,7 +401,7 @@ void nsewave_RK3::eta_disc(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v)
     
     
     SLICELOOP4
-    L(i,j) = -(P(i,j)-P(i-1,j) + Q(i,j)-Q(i,j-1))/p->dx;
+    L(i,j) = -(P(i,j)-P(i-1,j) + Q(i,j)-Q(i,j-1))/p->DXM;
     
 }
 

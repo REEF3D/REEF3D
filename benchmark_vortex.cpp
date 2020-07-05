@@ -66,14 +66,14 @@ benchmark_vortex::benchmark_vortex(lexer *p, fdm *a)
 
     LOOP
 	{
-		if(a->phi(i,j,k)>=p->F45*p->dx)
+		if(a->phi(i,j,k)>=p->F45*p->DXM)
 		H=1.0;
 
-		if(a->phi(i,j,k)<-p->F45*p->dx)
+		if(a->phi(i,j,k)<-p->F45*p->DXM)
 		H=0.0;
 
-		if(fabs(a->phi(i,j,k))<=p->F45*p->dx)
-		H=0.5*(1.0 + a->phi(i,j,k)/p->F45*p->dx + (1.0/PI)*sin((PI*a->phi(i,j,k))/p->F45*p->dx));
+		if(fabs(a->phi(i,j,k))<=p->F45*p->DXM)
+		H=0.5*(1.0 + a->phi(i,j,k)/p->F45*p->DXM + (1.0/PI)*sin((PI*a->phi(i,j,k))/p->F45*p->DXM));
 
 		a->ro(i,j,k)= p->W1*H + p->W3*(1.0-H);
 		a->visc(i,j,k)= p->W2*H + p->W4*(1.0-H);
@@ -107,7 +107,7 @@ void benchmark_vortex::start(lexer* p, fdm *a, ghostcell *pgc, convection *pconv
 
     ULOOP
     {
-    xc = p->pos_x() + 0.5*p->dx;
+    xc = p->pos_x() + 0.5*p->DXM;
     yc = p->pos_y();
 
     a->u(i,j,k) = -pow(sin(PI*xc),2.0) * sin(2.0*PI*yc) * cos((PI*p->simtime)/8.0);
@@ -116,7 +116,7 @@ void benchmark_vortex::start(lexer* p, fdm *a, ghostcell *pgc, convection *pconv
     VLOOP
     {
     xc = p->pos_x();
-    yc = p->pos_y() + 0.5*p->dx;
+    yc = p->pos_y() + 0.5*p->DXM;
 
     a->v(i,j,k) = pow(sin(PI*yc),2.0) * sin(2.0*PI*xc) * cos((PI*p->simtime)/8.0);
     }

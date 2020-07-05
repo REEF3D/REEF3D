@@ -38,7 +38,7 @@ void iowave::active_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
 
 		LOOP
 		if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
-		wsfmax[i][j]=MAX(wsfmax[i][j],-(a->phi(i,j,k)*p->dx)/(a->phi(i,j,k+1)-a->phi(i,j,k)) + p->pos_z());
+		wsfmax[i][j]=MAX(wsfmax[i][j],-(a->phi(i,j,k)*p->DXM)/(a->phi(i,j,k+1)-a->phi(i,j,k)) + p->pos_z());
 
         for(int qn=0; qn<p->mz;++qn)
 		pgc->verticalmax(p,a,wsfmax);
@@ -132,7 +132,7 @@ void iowave::active_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
 					if(p->pos_z()<=p->phimean)
                     {
                     z=-(fabs(p->phimean-p->pos_z()));
-                    z3=z+0.5*p->dx;
+                    z3=z+0.5*p->DXM;
                     }
                     
                     if(p->pos_z()>p->phimean)
@@ -172,9 +172,9 @@ void iowave::active_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
 				w(i-3,j,k)=wvel;
 				}
 
-				if(z>=eta_M && z<eta_M+p->F45*p->dx)
+				if(z>=eta_M && z<eta_M+p->F45*p->DXM)
 				{
-				fac=1.0 - fabs(a->phi(i-1,j,k))/p->F45*p->dx;
+				fac=1.0 - fabs(a->phi(i-1,j,k))/p->F45*p->DXM;
 				
 				u(i+1*aa,j+1*bb,k)=uvel*fac + p->Ui*fac + Uc*fx*fac*fac1;
 				u(i+2*aa,j+2*bb,k)=uvel*fac + p->Ui*fac + Uc*fx*fac*fac1;
@@ -186,7 +186,7 @@ void iowave::active_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
 				}
              
     
-				if(z>=eta_M+p->F45*p->dx)
+				if(z>=eta_M+p->F45*p->DXM)
 				{
 				u(i+1*aa,j+1*bb,k)=0.0;
 				u(i+2*aa,j+2*bb,k)=0.0;
@@ -261,7 +261,7 @@ void iowave::active_wavegen2(lexer *p, fdm* a, ghostcell* pgc, field& u, field& 
 					if(p->pos_z()<=p->phimean)
                     {
                     z=-(fabs(p->phimean-p->pos_z()));
-                    z3=z+0.5*p->dx;
+                    z3=z+0.5*p->DXM;
                     }
                     
                     if(p->pos_z()>p->phimean)
@@ -305,9 +305,9 @@ void iowave::active_wavegen2(lexer *p, fdm* a, ghostcell* pgc, field& u, field& 
 			w(i-3,j,k)=wvel*fac2;
 			}
 
-			if(z>=z2 && z<z2+p->F45*p->dx)
+			if(z>=z2 && z<z2+p->F45*p->DXM)
 			{
-			fac=p->B122*(1.0 - fabs(a->phi(i-1,j,k))/p->F45*p->dx);
+			fac=p->B122*(1.0 - fabs(a->phi(i-1,j,k))/p->F45*p->DXM);
 			u(i-1,j,k)=uvel*fac*fac3 + p->Ui;
 			u(i-2,j,k)=uvel*fac*fac3 + p->Ui;
 			u(i-3,j,k)=uvel*fac*fac3 + p->Ui;
@@ -317,9 +317,9 @@ void iowave::active_wavegen2(lexer *p, fdm* a, ghostcell* pgc, field& u, field& 
 			w(i-3,j,k)=wvel*fac*fac3;
 			}
 
-			if(z>=z2+p->F45*p->dx)
+			if(z>=z2+p->F45*p->DXM)
 			{
-			pgc->dirichlet_ortho(p,u,p->dx,10,1,1);
+			pgc->dirichlet_ortho(p,u,p->DXM,10,1,1);
 
 			w(i-1,j,k)=0.0;
 			w(i-2,j,k)=0.0;

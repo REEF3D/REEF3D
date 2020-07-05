@@ -47,9 +47,9 @@ void ghostcell::gcini(lexer* p)
 	
     margin=p->margin;
 	paramargin=p->margin;
-    deltax=p->dx;
+    deltax=p->DXM;
     gamma=p->B29;
-    dx=p->dx;
+    dx=p->DXM;
     Qi=p->W10;
     orderext=2;
     orderext2=2;

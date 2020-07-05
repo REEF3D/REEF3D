@@ -35,7 +35,7 @@ potentialfile_in::potentialfile_in(lexer *p, ghostcell *pgc)
     {
     header_read(p,pgc);
     
-    dk = conv((p->I231)/p->dx);
+    dk = conv((p->I231)/p->DXM);
 
     maxk = Nk-dk;
     
@@ -127,10 +127,10 @@ void potentialfile_in::ff_inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, fie
     k=p->gcin[n][2];
     
     // U
-    if(k<maxk && a->phi(i-1,j,k)>=0.6*p->dx)
+    if(k<maxk && a->phi(i-1,j,k)>=0.6*p->DXM)
     uval = U0[0][k+dk]*t0 + U1[0][k+dk]*t1;
     
-    if(k>=maxk || a->phi(i-1,j,k)<-0.6*p->dx)
+    if(k>=maxk || a->phi(i-1,j,k)<-0.6*p->DXM)
     uval = 0.0;
 
     u(i-1,j,k)=uval;
@@ -138,10 +138,10 @@ void potentialfile_in::ff_inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, fie
     u(i-3,j,k)=uval;
     
     // V 
-    if(k<maxk && a->phi(i-1,j,k)>=0.6*p->dx)
+    if(k<maxk && a->phi(i-1,j,k)>=0.6*p->DXM)
     vval = V0[0][k+dk]*t0 + V1[0][k+dk]*t1;
     
-    if(k>=maxk || a->phi(i-1,j,k)<-0.6*p->dx)
+    if(k>=maxk || a->phi(i-1,j,k)<-0.6*p->DXM)
     vval = 0.0;
     
     v(i-1,j,k)=vval;
@@ -150,10 +150,10 @@ void potentialfile_in::ff_inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, fie
     
 
     // W
-    if(k<maxk && a->phi(i-1,j,k)>=0.6*p->dx)
+    if(k<maxk && a->phi(i-1,j,k)>=0.6*p->DXM)
     wval = W0[0][k+dk]*t0 + W1[0][k+dk]*t1;
     
-    if(k>=maxk || a->phi(i-1,j,k)<-0.6*p->dx)
+    if(k>=maxk || a->phi(i-1,j,k)<-0.6*p->DXM)
     wval = 0.0;
 	
     w(i-1,j,k)=wval;
@@ -161,7 +161,7 @@ void potentialfile_in::ff_inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, fie
     w(i-3,j,k)=wval;
 
     // P
-    if(k<maxk && a->phi(i-1,j,k)>=0.6*p->dx)
+    if(k<maxk && a->phi(i-1,j,k)>=0.6*p->DXM)
     {
     pval = P0[0][k+dk]*t0 + P1[0][k+dk]*t1;
     

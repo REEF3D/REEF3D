@@ -86,7 +86,7 @@ void print_1Dline::height_gauge(lexer *p, fdm *a, ghostcell *pgc)
         PCHECK
         {
             if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
-            wsf[n]=MAX(wsf[n],-(a->phi(i,j,k)*p->dx)/(a->phi(i,j,k+1)-a->phi(i,j,k)) + p->ZP[KP]);
+            wsf[n]=MAX(wsf[n],-(a->phi(i,j,k)*p->DXM)/(a->phi(i,j,k+1)-a->phi(i,j,k)) + p->ZP[KP]);
         }
     }
 
@@ -113,8 +113,8 @@ void print_1Dline::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 
     for(n=0;n<p->P51;++n)
     {
-    iloc[n]=conv((p->P51_x[n]-p->originx)/p->dx);
-    jloc[n]=conv((p->P51_y[n]-p->originy)/p->dx);
+    iloc[n]=conv((p->P51_x[n]-p->originx)/p->DXM);
+    jloc[n]=conv((p->P51_y[n]-p->originy)/p->DXM);
 
     check=ij_boundcheck(p,a,iloc[n],jloc[n],0);
 

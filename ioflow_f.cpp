@@ -61,19 +61,19 @@ ioflow_f::ioflow_f(lexer *p, ghostcell *pgc)
 	
 	if(p->T10==1 || p->T10==11 || p->T10==21)
 	{
-    epsval=(pow(0.09,0.75)*pow(kinval,1.5))/(0.5*0.4*p->dx);
+    epsval=(pow(0.09,0.75)*pow(kinval,1.5))/(0.5*0.4*p->DXM);
 	eddyval = p->cmu*kinval*kinval/epsval;
 	}
 
     if(p->T10==2 || p->T10==12 || p->T10==22)
 	{
-    epsval=(pow(0.09,0.75)*pow(kinval,0.5))/(0.5*0.4*p->dx);
+    epsval=(pow(0.09,0.75)*pow(kinval,0.5))/(0.5*0.4*p->DXM);
 	eddyval = kinval/epsval;
 	}
 
     if(p->T10==3 || p->T10==13)
 	{
-    epsval=(pow(0.09,0.75)*pow(kinval,0.5))/(0.5*0.4*p->dx);	
+    epsval=(pow(0.09,0.75)*pow(kinval,0.5))/(0.5*0.4*p->DXM);	
 	eddyval = kinval/epsval;
 	}
     

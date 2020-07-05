@@ -133,7 +133,7 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
 	
     // bed shear stress and bed shear velocity
         ks=p->B50;
-        H=B=depth+0.5*p->dx;
+        H=B=depth+0.5*p->DXM;
         M=26.0/pow(ks,(1.0/6.0));
         I=pow(p->Ui/(M*pow(H,(2.0/3.0))),2.0);
         tau=(9.81*H*I*1000.0);
@@ -195,23 +195,23 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
     j=p->gcin[n][1];
     k=p->gcin[n][2];
 	
-		if(a->phi(i-1,j,k)<-epsi1*p->dx && a->phi(i-1,j,k)>=-epsi2*p->dx && a->topo(i,j,k)>0.0)
+		if(a->phi(i-1,j,k)<-epsi1*p->DXM && a->phi(i-1,j,k)>=-epsi2*p->DXM && a->topo(i,j,k)>0.0)
         {
-        fac=1.0 - fabs(a->phi(i-1,j,k))/((epsi2-epsi1)*p->dx);
+        fac=1.0 - fabs(a->phi(i-1,j,k))/((epsi2-epsi1)*p->DXM);
         u(i-1,j,k)=u(i-1,j,k)*fac;
         u(i-2,j,k)=u(i-2,j,k)*fac;
         u(i-3,j,k)=u(i-3,j,k)*fac;
         }
 
-        if(a->phi(i,j,k)<-epsi2*p->dx && a->topo(i,j,k)>0.0)
+        if(a->phi(i,j,k)<-epsi2*p->DXM && a->topo(i,j,k)>0.0)
         {
         u(i-1,j,k)=0.0;
         u(i-2,j,k)=0.0;
         u(i-3,j,k)=0.0;
         }
 
-        if(a->phi(i,j,k)<-epsi2*p->dx)
-        pgc->dirichlet_ortho(p,u,p->dx,10,1,1);
+        if(a->phi(i,j,k)<-epsi2*p->DXM)
+        pgc->dirichlet_ortho(p,u,p->DXM,10,1,1);
 		
     }
 	
@@ -246,24 +246,24 @@ void ioflow_f::inflow_water(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
         u(i-3,j,k)=p->Ui;
         }
 
-        if(a->phi(i-1,j,k)<-epsi1*p->dx && a->phi(i-1,j,k)>=-epsi2*p->F45*p->dx && a->topo(i,j,k)>0.0)
+        if(a->phi(i-1,j,k)<-epsi1*p->DXM && a->phi(i-1,j,k)>=-epsi2*p->F45*p->DXM && a->topo(i,j,k)>0.0)
         {
-        fac=1.0 - fabs(a->phi(i-1,j,k))/((epsi2-epsi1)*p->F45*p->dx);
+        fac=1.0 - fabs(a->phi(i-1,j,k))/((epsi2-epsi1)*p->F45*p->DXM);
         u(i-1,j,k)=p->Ui*fac;
         u(i-2,j,k)=p->Ui*fac;
         u(i-3,j,k)=p->Ui*fac;
         }
 
 
-        if(a->phi(i-1,j,k)<-epsi2*p->F45*p->dx && a->topo(i,j,k)>0.0)
+        if(a->phi(i-1,j,k)<-epsi2*p->F45*p->DXM && a->topo(i,j,k)>0.0)
         {
         u(i-1,j,k)=0.0;
         u(i-2,j,k)=0.0;
         u(i-3,j,k)=0.0;
         }
 
-        if(a->phi(i-1,j,k)<-epsi2*p->dx)
-        pgc->dirichlet_ortho(p,u,p->dx,10,1,1);
+        if(a->phi(i-1,j,k)<-epsi2*p->DXM)
+        pgc->dirichlet_ortho(p,u,p->DXM,10,1,1);
     }
 	
 	for(n=0;n<p->gcin_count;n++)

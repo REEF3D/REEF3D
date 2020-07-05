@@ -35,7 +35,7 @@ initialize::~initialize()
 
 void initialize::start(fdm* a, lexer* p, ghostcell* pgc)
 {
-	deltax=p->dx;
+	deltax=p->DXM;
 	
 	inifdm(a,p,pgc);
 	nodecalc(a,p);

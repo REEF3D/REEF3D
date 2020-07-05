@@ -43,7 +43,7 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
 	p->dt_old=p->dt;
 
 	p->umax=p->vmax=p->wmax=p->viscmax=0.0;
-	sqd=1.0/(p->dx*p->dx);
+	sqd=1.0/(p->DXM*p->DXM);
 
 // maximum velocities
 
@@ -179,12 +179,12 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
 	p->umax=MAX(p->umax,2.0*p->X210_v);
 	p->umax=MAX(p->umax,2.0*p->X210_w);
 
-	p->dt=p->dx/(p->umax+epsi);
+	p->dt=p->DXM/(p->umax+epsi);
     
 
     p->umax+=10.0;
 
-	//cu= + 2.0/((p->umax/p->dx)+sqrt(pow(p->umax/p->dx,2.0)+(4.0*sqrt(fabs(c->gi) + fabs(c->gj) +fabs(c->gk)))/p->dx));
+	//cu= + 2.0/((p->umax/p->DXM)+sqrt(pow(p->umax/p->DXM,2.0)+(4.0*sqrt(fabs(c->gi) + fabs(c->gj) +fabs(c->gk)))/p->DXM));
     
     FLOOP
     FPWDCHECK

@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 
-density_vof::density_vof(lexer* p) : epsi(p->F45*p->dx), eps(2.1*p->dx)
+density_vof::density_vof(lexer* p) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
 {
 }
 
@@ -225,22 +225,22 @@ double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 	phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
 	//phival = (1.0/16.0)*(- a->phi(i-aa,j-bb,k-cc) + 9.0*a->phi(i,j,k) + 9.0*a->phi(i+aa,j+bb,k+cc) - a->phi(i+2*aa,j+2*bb,k+2*cc));
 	
-	if(phival>0.5*p->dx)
+	if(phival>0.5*p->DXM)
 	{
 	H1=0.5;
 	H2=0.5;
 	}
 
-	if(phival<-0.5*p->dx)
+	if(phival<-0.5*p->DXM)
 	{
 	H1=0.5;
 	H2=0.5;
 	}
 	
-	if(fabs(phival)<0.5*p->dx)
+	if(fabs(phival)<0.5*p->DXM)
 	{
-	H1 = fabs(a->phi(i,j,k))/p->dx;
-	H2 = fabs(a->phi(i+aa,j+bb,k+cc))/p->dx;
+	H1 = fabs(a->phi(i,j,k))/p->DXM;
+	H2 = fabs(a->phi(i+aa,j+bb,k+cc))/p->DXM;
 	}
 		
 	roval = H1*a->ro(i,j,k) + H2*a->ro(i+aa,j+bb,k+cc);

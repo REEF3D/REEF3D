@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void force::cellnodes_gcb(lexer* p, fdm *a, ghostcell *pgc)
 {
-    const double eps = 1.0e-5*p->dx;
+    const double eps = 1.0e-5*p->DXM;
     int cn[4][4];
     int r,s;
     int count, fcount;

@@ -37,11 +37,11 @@ void onephase_f::update(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
 {   
     FLUIDLOOP
     {
-    if(a->phi(i,j,k)<-0.0*p->dx)
+    if(a->phi(i,j,k)<-0.0*p->DXM)
     p->flag4[IJK]=AIR;
 
     
-    if(a->phi(i,j,k)>=-0.0*p->dx)
+    if(a->phi(i,j,k)>=-0.0*p->DXM)
     p->flag4[IJK]=WATER;
     }
     

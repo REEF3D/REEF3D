@@ -41,8 +41,8 @@ fdm2D::fdm2D(lexer *p)
              ks(p),qb(p),topovel(p)
 {
 
-	inverse=1.0/p->dx;
-	deltax=p->dx;
+	inverse=1.0/p->DXM;
+	deltax=p->DXM;
 
 	maxF=0.0;
 	maxG=0.0; 

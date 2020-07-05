@@ -54,13 +54,13 @@ iowave::iowave(lexer *p, ghostcell *pgc) : wave_interface(p,pgc),flowfile_in(p,p
 	kinval = 0.00001;	
 	
 	if(p->T10==1 || p->T10==11 || p->T10==21)
-    epsval=(pow(0.09,0.75)*pow(kinval,1.5))/(0.5*0.4*p->dx);
+    epsval=(pow(0.09,0.75)*pow(kinval,1.5))/(0.5*0.4*p->DXM);
 
     if(p->T10==2 || p->T10==12 || p->T10==22)
-    epsval=(pow(0.09,0.75)*pow(kinval,0.5))/(0.5*0.4*p->dx);
+    epsval=(pow(0.09,0.75)*pow(kinval,0.5))/(0.5*0.4*p->DXM);
 
     if(p->T10==3 || p->T10==13)
-    epsval=(pow(0.09,0.75)*pow(kinval,0.5))/(0.5*0.4*p->dx);	
+    epsval=(pow(0.09,0.75)*pow(kinval,0.5))/(0.5*0.4*p->DXM);	
 	
 	// ---------------------------------------
     
@@ -120,8 +120,8 @@ iowave::iowave(lexer *p, ghostcell *pgc) : wave_interface(p,pgc),flowfile_in(p,p
 
 	p->B107_xs[0]=p->xcoormax;
 	p->B107_xe[0]=p->xcoormax;
-	p->B107_ys[0]=p->ycoormin-10.0*p->dx;
-    p->B107_ye[0]=p->ycoormax+10.0*p->dx;
+	p->B107_ys[0]=p->ycoormin-10.0*p->DXM;
+    p->B107_ye[0]=p->ycoormax+10.0*p->DXM;
     p->B107_d[0]=p->B96_3;
 	}
     
@@ -145,8 +145,8 @@ iowave::iowave(lexer *p, ghostcell *pgc) : wave_interface(p,pgc),flowfile_in(p,p
 
 	p->B108_xs[0]=p->xcoormin;
 	p->B108_xe[0]=p->xcoormin;
-	p->B108_ys[0]=p->ycoormin-10.0*p->dx;
-    p->B108_ye[0]=p->ycoormax+10.0*p->dx;
+	p->B108_ys[0]=p->ycoormin-10.0*p->DXM;
+    p->B108_ye[0]=p->ycoormax+10.0*p->DXM;
     p->B108_d[0]=p->B96_1;
 	}
     

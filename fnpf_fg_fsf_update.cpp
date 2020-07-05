@@ -146,7 +146,7 @@ void fnpf_fg_fsf_update::fsfepol(lexer *p, fdm *a, ghostcell *pgc, slice &eta, f
 void fnpf_fg_fsf_update::velcalc(lexer *p, fdm *a, ghostcell *pgc, field &f)
 {
     double H,phival;
-    double epsi = 1.6*p->dx;
+    double epsi = 1.6*p->DXM;
     
     ULOOP
     {

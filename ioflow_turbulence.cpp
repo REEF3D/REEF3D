@@ -33,7 +33,7 @@ void ioflow_f::turbulence_io(lexer *p, fdm* a, ghostcell* pgc)
     k=p->gcin[n][2];
 
 
-        if(a->phi(i-1,j,k)<-1.0*p->F45*p->dx)
+        if(a->phi(i-1,j,k)<-1.0*p->F45*p->DXM)
         {
         a->u(i-1,j,k)=a->u(i,j,k);
         a->u(i-2,j,k)=a->u(i,j,k);

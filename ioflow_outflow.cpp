@@ -71,7 +71,7 @@ void ioflow_f::outflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v,
 
     // bed shear stress and bed shear velocity
         ks=p->B50;
-        H=B=depth+0.5*p->dx;
+        H=B=depth+0.5*p->DXM;
         M=26.0/pow(ks,(1.0/6.0));
         I=pow(p->Uo/(M*pow(H,(2.0/3.0))),2.0);
         tau=(9.81*H*I*1000.0);
@@ -121,7 +121,7 @@ void ioflow_f::outflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v,
     j=p->gcout[n][1];
     k=p->gcout[n][2];
 
-        if(a->phi(i,j,k)<-1.0*p->F45*p->dx)
+        if(a->phi(i,j,k)<-1.0*p->F45*p->DXM)
         {
         u(i+1,j,k)=0.0;
         u(i+2,j,k)=0.0;
@@ -138,23 +138,23 @@ void ioflow_f::outflow_water(lexer *p, fdm* a, ghostcell* pgc, field& u, field& 
     j=p->gcout[n][1];
     k=p->gcout[n][2];
 
-        if(a->phi(i,j,k)>=-epsi1*p->dx)
+        if(a->phi(i,j,k)>=-epsi1*p->DXM)
         {
         u(i+1,j,k)=p->Uo;
         u(i+2,j,k)=p->Uo;
         u(i+3,j,k)=p->Uo;
         }
 
-        if(a->phi(i-1,j,k)<-epsi1*p->dx && a->phi(i-1,j,k)>=-epsi2*p->dx)
+        if(a->phi(i-1,j,k)<-epsi1*p->DXM && a->phi(i-1,j,k)>=-epsi2*p->DXM)
         {
-        fac=1.0 - fabs(a->phi(i-1,j,k))/((epsi2-epsi1)*p->dx);
+        fac=1.0 - fabs(a->phi(i-1,j,k))/((epsi2-epsi1)*p->DXM);
         u(i+1,j,k)=p->Uo*fac;
         u(i+2,j,k)=p->Uo*fac;
         u(i+3,j,k)=p->Uo*fac;
         }
 
 
-        if(a->phi(i-1,j,k)<-epsi2*p->dx)
+        if(a->phi(i-1,j,k)<-epsi2*p->DXM)
         {
         u(i+1,j,k)=0.0;
         u(i+2,j,k)=0.0;

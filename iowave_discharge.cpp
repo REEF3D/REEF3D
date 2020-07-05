@@ -60,16 +60,16 @@ void iowave::Qin(lexer *p, fdm* a, ghostcell* pgc)
     j=p->gcin[n][1];
     k=p->gcin[n][2];
 
-        if(a->phi(i,j,k)>-0.5*p->dx-1.0e-20 && a->topo(i,j,k)>0.0)
+        if(a->phi(i,j,k)>-0.5*p->DXM-1.0e-20 && a->topo(i,j,k)>0.0)
         {
-            if(a->phi(i,j,k)>=0.5*p->dx)
-            area=p->dx*p->dx;
+            if(a->phi(i,j,k)>=0.5*p->DXM)
+            area=p->DXM*p->DXM;
 
-            if(a->phi(i,j,k)<0.5*p->dx && a->phi(i,j,k)>0.0*p->dx)
-            area=p->dx*(p->dx*0.5 + a->phi(i,j,k));
+            if(a->phi(i,j,k)<0.5*p->DXM && a->phi(i,j,k)>0.0*p->DXM)
+            area=p->DXM*(p->DXM*0.5 + a->phi(i,j,k));
 			
-			if(a->phi(i,j,k)>=-0.5*p->dx -1.0e-20 && a->phi(i,j,k)<=0.0*p->dx)
-            area=p->dx*(p->dx*0.5 - a->phi(i,j,k));
+			if(a->phi(i,j,k)>=-0.5*p->DXM -1.0e-20 && a->phi(i,j,k)<=0.0*p->DXM)
+            area=p->DXM*(p->DXM*0.5 - a->phi(i,j,k));
 
 
             Ai+=area;
@@ -108,17 +108,17 @@ void iowave::Qout(lexer *p, fdm* a, ghostcell* pgc)
     j=p->gcout[n][1];
     k=p->gcout[n][2];
 
-        if(a->phi(i+1,j,k)>-0.5*p->dx-1.0e-20 && a->topo(i,j,k)>0.0)
+        if(a->phi(i+1,j,k)>-0.5*p->DXM-1.0e-20 && a->topo(i,j,k)>0.0)
         {
 
-            if(a->phi(i+1,j,k)>=0.5*p->dx)
-            area=p->dx*p->dx;
+            if(a->phi(i+1,j,k)>=0.5*p->DXM)
+            area=p->DXM*p->DXM;
 
-            if(a->phi(i+1,j,k)<0.5*p->dx && a->phi(i+1,j,k)>0.0*p->dx)
-            area=p->dx*(p->dx*0.5 + a->phi(i+1,j,k));
+            if(a->phi(i+1,j,k)<0.5*p->DXM && a->phi(i+1,j,k)>0.0*p->DXM)
+            area=p->DXM*(p->DXM*0.5 + a->phi(i+1,j,k));
 			
-			if(a->phi(i+1,j,k)>=-0.5*p->dx-1.0e-20 && a->phi(i+1,j,k)<=0.0*p->dx)
-            area=p->dx*(p->dx*0.5 - a->phi(i+1,j,k));
+			if(a->phi(i+1,j,k)>=-0.5*p->DXM-1.0e-20 && a->phi(i+1,j,k)<=0.0*p->DXM)
+            area=p->DXM*(p->DXM*0.5 - a->phi(i+1,j,k));
 
             Ao+=area;
             p->Qo+=area*a->u(i+1,j,k);
@@ -154,7 +154,7 @@ void iowave::turbulence_io(lexer *p, fdm* a, ghostcell* pgc)
 		k=p->gcin[n][2];
 
 
-			if(a->phi(i-1,j,k)<-1.0*p->F45*p->dx)
+			if(a->phi(i-1,j,k)<-1.0*p->F45*p->DXM)
 			{
 			a->u(i-1,j,k)=a->u(i,j,k);
 			a->u(i-2,j,k)=a->u(i,j,k);

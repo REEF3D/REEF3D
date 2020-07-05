@@ -77,7 +77,7 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
 
 			if(a->phi(i-1,j,k)<-p->F45*p->DXM)
 			{
-			//pgc->dirichlet_ortho(p,u,p->dx,10,1,1);
+			//pgc->dirichlet_ortho(p,u,p->DXM,10,1,1);
 			u(i-1,j,k)=0.0 + p->Ui;
 			u(i-2,j,k)=0.0 + p->Ui;
 			u(i-3,j,k)=0.0 + p->Ui;
@@ -141,7 +141,7 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
             
             a->P(i-1,j)=0.0;
             double d=0.0;
-            double epsi=p->A440*p->dx;
+            double epsi=p->A440*p->DXM;
             
             KULOOP
             {
@@ -156,8 +156,8 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
                 if(fabs(phival)<=epsi)
                 H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
                 
-                a->P(i-1,j) += a->u(i-1,j,k)*p->dx*H;
-                d+=p->dx*H;
+                a->P(i-1,j) += a->u(i-1,j,k)*p->DXM*H;
+                d+=p->DXM*H;
             }
             a->P(i-1,j)/=d;
             a->P(i-3,j)=a->P(i-2,j)=a->P(i-1,j);
