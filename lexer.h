@@ -590,7 +590,8 @@ public:
     double *DRP,*DSP,*DTP;
     double DRM,DSM,DTM;
     double DX,DY,DZ;
-    double *DRDX,*DSDY,*DTDZ;
+    double *DRDXN,*DSDYN,*DTDZN;
+    double *DRDXP,*DSDYP,*DTDZP;
     
     weno_nug_func *wenofunc;
     

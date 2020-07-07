@@ -117,9 +117,15 @@ void pjm::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, mo
 
 void pjm::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 {	
+
 	ULOOP
 	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((a->press(i+1,j,k)-a->press(i,j,k))
 	/(p->DXP[IP]*pd->roface(p,a,1,0,0)));
+    
+    /*
+    ULOOP
+	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((a->press(i+1,j,k)-a->press(i,j,k))*p->DRDXN[IP]
+	/(p->DRM*pd->roface(p,a,1,0,0)));*/
 }
 
 void pjm::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
@@ -144,11 +150,26 @@ void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, do
     pip=p->Y50;
     
     count=0;
+    /*
+    LOOP
+    {
+    a->rhsvec.V[count] =  -p->DRDXP[IP]*(u(i,j,k)-u(i-1,j,k))/(alpha*p->dt*p->DRM)
+						   -(v(i,j,k)-v(i,j-1,k))/(alpha*p->dt*p->DYN[JP])
+						   -(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DZN[KP]);
+                           
+    a->test(i,j,k) = p->DRDXP[IP];
+    
+    ++count;
+    }*/
+    
+    
     LOOP
     {
     a->rhsvec.V[count] =  -(u(i,j,k)-u(i-1,j,k))/(alpha*p->dt*p->DXN[IP])
 						   -(v(i,j,k)-v(i,j-1,k))/(alpha*p->dt*p->DYN[JP])
 						   -(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DZN[KP]);
+    
+     a->test(i,j,k) = p->DRDXP[IP];
     
     ++count;
     }

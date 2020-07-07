@@ -28,6 +28,10 @@ void lexer::lexer_gridspacing(ghostcell *pgc)
     Darray(YP,knoy+1+4*marge);
     Darray(ZP,knoz+1+4*marge);
     
+    Darray(RP,knox+1+4*marge);
+    Darray(SP,knoy+1+4*marge);
+    Darray(TP,knoz+1+4*marge);
+    
     Darray(DXN,knox+1+4*marge);
     Darray(DYN,knoy+1+4*marge);
     Darray(DZN,knoz+1+4*marge);
@@ -36,10 +40,18 @@ void lexer::lexer_gridspacing(ghostcell *pgc)
     Darray(DYP,knoy+1+4*marge);
     Darray(DZP,knoz+1+4*marge);
     
+    Darray(DRDXN,knox+1+4*marge);
+    Darray(DSDYN,knoy+1+4*marge);
+    Darray(DTDZN,knoz+1+4*marge);
+    
+    Darray(DRDXP,knox+1+4*marge);
+    Darray(DSDYP,knoy+1+4*marge);
+    Darray(DTDZP,knoz+1+4*marge);
+    
     Darray(ZSN,imax*jmax*(kmax+1));
     Darray(ZSP,imax*jmax*kmax);
 
-    
+    // XP,YP,ZP
     for(i=-marge;i<knox+marge;++i)
     XP[IP] = 0.5*(XN[IP]+XN[IP1]);
     
@@ -48,6 +60,16 @@ void lexer::lexer_gridspacing(ghostcell *pgc)
     
     for(k=-marge;k<knoz+marge;++k)
     ZP[KP] = 0.5*(ZN[KP]+ZN[KP1]);
+    
+    // RP,SP,TP
+    for(i=-marge;i<knox+marge;++i)
+    RP[IP] = 0.5*(RN[IP]+RN[IP1]);
+    
+    for(j=-marge;j<knoy+marge;++j)
+    SP[JP] = 0.5*(SN[JP]+SN[JP1]);
+    
+    for(k=-marge;k<knoz+marge;++k)
+    TP[KP] = 0.5*(TN[KP]+TN[KP1]);
     
     //dx
     for(i=-marge;i<knox+marge;++i)
@@ -118,6 +140,35 @@ void lexer::lexer_gridspacing(ghostcell *pgc)
     DXM = pgc->globalmin(DXM);
     DXD = pgc->globalmin(DXD);
     DYD = pgc->globalmin(DYD);
+    
+    
+    // transformation
+    
+    for(i=0;i<knox+1;++i)
+    DRDXN[IP] =  (-RN[IP2] + 8.0*RN[IP1] - 8.0*RN[IM1] + RN[IM2])
+                /(-XN[IP2] + 8.0*XN[IP1] - 8.0*XN[IM1] + XN[IM2]);  
+                
+    for(j=0;j<knoy+1;++j)
+    DSDYN[JP] =  (-SN[JP2] + 8.0*SN[JP1] - 8.0*SN[JM1] + SN[JM2])
+                /(-YN[JP2] + 8.0*YN[JP1] - 8.0*YN[JM1] + YN[JM2]);  
+                
+    for(k=0;k<knoz+1;++k)
+    DTDZN[KP] =  (-TN[KP2] + 8.0*TN[KP1] - 8.0*TN[KM1] + TN[KM2])
+                /(-ZN[KP2] + 8.0*ZN[KP1] - 8.0*ZN[KM1] + ZN[KM2]);  
+                
+                
+                
+    for(i=0;i<knox;++i)
+    DRDXP[IP] =  (-RP[IP2] + 8.0*RP[IP1] - 8.0*RP[IM1] + RP[IM2])
+                /(-XP[IP2] + 8.0*XP[IP1] - 8.0*XP[IM1] + XP[IM2]);  
+                
+    for(j=0;j<knoy;++j)
+    DSDYP[JP] =  (-SP[JP2] + 8.0*SP[JP1] - 8.0*SP[JM1] + SP[JM2])
+                /(-YP[JP2] + 8.0*YP[JP1] - 8.0*YP[JM1] + YP[JM2]);  
+                
+    for(k=0;k<knoz;++k)
+    DTDZP[KP] =  (-TP[KP2] + 8.0*TP[KP1] - 8.0*TP[KM1] + TP[KM2])
+                /(-ZP[KP2] + 8.0*ZP[KP1] - 8.0*ZP[KM1] + ZP[KM2]);  
     
 
     
