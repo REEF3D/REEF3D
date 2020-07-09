@@ -592,6 +592,8 @@ public:
     double DX,DY,DZ;
     double *DRDXN,*DSDYN,*DTDZN;
     double *DRDXP,*DSDYP,*DTDZP;
+    double *DDRDDXN,*DDSDDYN,*DDTDDZN;
+    double *DDRDDXP,*DDSDDYP,*DDTDDZP;
     
     weno_nug_func *wenofunc;
     

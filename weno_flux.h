@@ -39,7 +39,7 @@ public:
 	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
 
 private:
-    double aij(lexer*, fdm*, field&, int,field&,field&,field&);
+    double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
     
     double aij_sig(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
 

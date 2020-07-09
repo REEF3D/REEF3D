@@ -62,18 +62,38 @@ double density_f::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 	{
        
         phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
-        
-        /*if(aa>0)
+        /*
+        if(aa>0)
         phival = ((p->XP[IP1]-p->XN[IP1])/p->DXP[IP])*a->phi(i,j,k) + ((p->XN[IP1]-p->XP[IP])/p->DXP[IP])*a->phi(i+aa,j,k);
         
         if(aa<0)
         phival = ((p->XN[IP]-p->XP[IM1])/p->DXP[IM1])*a->phi(i,j,k) + ((p->XP[IP]-p->XN[IP])/p->DXP[IM1])*a->phi(i+aa,j,k);*/
         
         if(p->j_dir==0)
+        {
         psi = p->F45*(1.0/2.0)*(p->DXN[IP]+p->DZN[KP]);
         
+        //psi = p->F45*MAX(p->DXN[IP],p->DZN[KP]);
+        
+        psi = p->F45*(1.0/2.0)*(p->DRM+p->DSM);
+        /*
+        if(aa<0)
+        psi = p->F45*p->DXP[IM1];
+        
+        if(aa>0)
+        psi = p->F45*p->DXP[IP];
+        
+        if(cc<0)
+        psi = p->F45*p->DZP[KM1];
+        
+        if(cc>0)
+        psi = p->F45*p->DZP[KP];*/
+        }
+        
         if(p->j_dir==1)
+        {
         psi = p->F45*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+        }
         
         if(phival>psi)
         H=1.0;
@@ -178,7 +198,6 @@ double density_f::roface(lexer *p, fdm *a, int aa, int bb, int cc)
         fz = fabs((a->phi(i,j,k) - a->phi(i,j,k-1))/p->DZP[KM1]);
         
         fn = sqrt(fx*fx + fy*fy + fz*fz);
-        fn= fx+fy+fz;
         
         fx = fx/fn;
         fy = fy/fn;
