@@ -52,7 +52,7 @@ poisson_f::poisson_f(lexer *p, heat *&pheat, concentration *&pconc)
 poisson_f::~poisson_f()
 {
 }
-
+/*
 void poisson_f::start(lexer* p, fdm *a, field &press)
 {	
    
@@ -134,11 +134,10 @@ void poisson_f::start(lexer* p, fdm *a, field &press)
 	++n;
 	}
 }
+*/
 
 
 
-
-/*
 void poisson_f::start(lexer* p, fdm *a, field &press)
 {	
    
@@ -209,5 +208,5 @@ void poisson_f::start(lexer* p, fdm *a, field &press)
 	++n;
 	}
 }
-*/
+
 

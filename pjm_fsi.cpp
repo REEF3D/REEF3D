@@ -169,7 +169,7 @@ if (fabs(p->pos_x()-0.025)<0.001 && fabs(p->pos_z()-1.075)<0.3) cout<<"dw/dz "<<
 
 void pjm_fsi::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
 {
-   cout<<"Call before pressure solution"<<endl;
+   //cout<<"Call before pressure solution"<<endl;
 	pgc->start1(p,u,gcval_u);
 	pgc->start2(p,v,gcval_v);
 	pgc->start3(p,w,gcval_w);

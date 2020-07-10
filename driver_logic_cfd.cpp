@@ -76,7 +76,7 @@ void driver::logic()
 	pconvec=new quick(p);
 
 	if(p->D10==4)
-	pconvec=new weno_flux(p);
+	pconvec=new weno_flux_nug(p);
 	
 	if(p->D10==5)
 	pconvec=new weno_hj_nug(p);
@@ -136,7 +136,7 @@ void driver::logic()
 	pfsfdisc=new quick(p);
 
 	if(p->F35==4)
-	pfsfdisc=new weno_flux(p);
+	pfsfdisc=new weno_flux_nug(p);
 
 	if(p->F35==5)
 	pfsfdisc=new weno_hj_nug(p);

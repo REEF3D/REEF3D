@@ -159,6 +159,8 @@ void lexer::lexer_gridspacing(ghostcell *pgc)
     for(j=-1;j<knoy+2;++j)
     DSDYN[JP] =  (-SN[JP2] + 8.0*SN[JP1] - 8.0*SN[JM1] + SN[JM2])
                 /(-YN[JP2] + 8.0*YN[JP1] - 8.0*YN[JM1] + YN[JM2]);  
+
+    
                 
     for(k=-1;k<knoz+2;++k)
     DTDZN[KP] =  (-TN[KP2] + 8.0*TN[KP1] - 8.0*TN[KM1] + TN[KM2])

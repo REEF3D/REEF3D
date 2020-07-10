@@ -82,135 +82,6 @@ pjm::~pjm()
 {
 }
 
-
-void pjm::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, momentum *pmom, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
-{
-    //debug(p,a,pgc,uvel,vvel,wvel,alpha);
-    
-    
-    if(p->mpirank==0 && (p->count%p->P12==0))
-    cout<<".";
-			
-	vel_setup(p,a,pgc,uvel,vvel,wvel,alpha);	
-    rhs(p,a,pgc,uvel,vvel,wvel,alpha);
-	
-    ppois->start(p,a,a->press);
-	
-        starttime=pgc->timer();
-
-    psolv->start(p,a,pgc,a->press,a->xvec,a->rhsvec,5,gcval_press,p->N44);
-	
-        endtime=pgc->timer();
-    
-	pgc->start4(p,a->press,gcval_press);
-	
-	ucorr(p,a,uvel,alpha);
-	vcorr(p,a,vvel,alpha);
-	wcorr(p,a,wvel,alpha);
-    
-    p->poissoniter=p->solveriter;
-
-	p->poissontime=endtime-starttime;
-
-	if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
-}
-
-void pjm::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
-{	
-    ULOOP
-	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*(a->press(i+1,j,k)-a->press(i,j,k))*p->DRDXN[IP1]      //0.5*(p->DRDXP[IP]+p->DRDXP[IP1])
-	/(p->DRM*pd->roface(p,a,1,0,0));
-}
-
-void pjm::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
-{	
-    VLOOP
-    vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))*p->DSDYN[JP1]      //0.5*(p->DSDYP[JP]+p->DSDYP[JP1])
-    /(p->DSM*pd->roface(p,a,0,1,0));
-}
-
-void pjm::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
-{	
-	WLOOP
-	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*(a->press(i,j,k+1)-a->press(i,j,k))*p->DTDZN[KP1]   //0.5*(p->DTDZP[KP]+p->DTDZP[KP1])
-	/(p->DTM*pd->roface(p,a,0,0,1));
-}
- 
-void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, double alpha)
-{
-    NLOOP4
-	a->rhsvec.V[n]=0.0;
-	
-    pip=p->Y50;
-    
-    count=0;
-    LOOP
-    {
-    a->rhsvec.V[count] =  -p->DRDXP[IP]*(u(i,j,k)-u(i-1,j,k))/(alpha*p->dt*p->DRM)
-						   -p->DSDYP[JP]*(v(i,j,k)-v(i,j-1,k))/(alpha*p->dt*p->DSM)
-						   -p->DTDZP[KP]*(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DTM);
-    //-0.5*(p->DTDZN[KP1]+p->DTDZN[KP])*                       
-    a->test(i,j,k) = p->DRDXN[IP];
-    
-    ++count;
-    }
-    
-    pip=0;
-}
- 
-void pjm::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
-{
-	pgc->start1(p,u,gcval_u);
-	pgc->start2(p,v,gcval_v);
-	pgc->start3(p,w,gcval_w);
-}
-
-void pjm::pressure_norm(lexer*p, fdm* a, ghostcell* pgc)
-{
-    double sum=0.0;
-
-    LOOP
-    sum+=a->press(i,j,k);
-
-    sum=pgc->globalsum(sum);
-
-    sum/=double(p->cellnumtot);
-
-    LOOP
-    a->press(i,j,k)-=sum;
-}
-
-void pjm::upgrad(lexer*p,fdm* a)
-{
-}
-
-void pjm::vpgrad(lexer*p,fdm* a)
-{
-}
-
-void pjm::wpgrad(lexer*p,fdm* a)
-{
-}
-
-void pjm::fillapu(lexer*p,fdm* a)
-{
-}
-
-void pjm::fillapv(lexer*p,fdm* a)
-{
-}
-
-void pjm::fillapw(lexer*p,fdm* a)
-{
-}
-
-void pjm::ptimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-
-/*
 void pjm::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, momentum *pmom, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
 {
     //debug(p,a,pgc,uvel,vvel,wvel,alpha);
@@ -278,11 +149,140 @@ void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, do
     a->rhsvec.V[count] =  -(u(i,j,k)-u(i-1,j,k))/(alpha*p->dt*p->DXN[IP])
 						   -(v(i,j,k)-v(i,j-1,k))/(alpha*p->dt*p->DYN[JP])
 						   -(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DZN[KP]);
+                           
+    //a->test(i,j,k) = p->DSDYN[JP];
     
     ++count;
     }
     pip=0;
     
+}
+ 
+void pjm::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
+{
+	pgc->start1(p,u,gcval_u);
+	pgc->start2(p,v,gcval_v);
+	pgc->start3(p,w,gcval_w);
+}
+
+void pjm::pressure_norm(lexer*p, fdm* a, ghostcell* pgc)
+{
+    double sum=0.0;
+
+    LOOP
+    sum+=a->press(i,j,k);
+
+    sum=pgc->globalsum(sum);
+
+    sum/=double(p->cellnumtot);
+
+    LOOP
+    a->press(i,j,k)-=sum;
+}
+
+void pjm::upgrad(lexer*p,fdm* a)
+{
+}
+
+void pjm::vpgrad(lexer*p,fdm* a)
+{
+}
+
+void pjm::wpgrad(lexer*p,fdm* a)
+{
+}
+
+void pjm::fillapu(lexer*p,fdm* a)
+{
+}
+
+void pjm::fillapv(lexer*p,fdm* a)
+{
+}
+
+void pjm::fillapw(lexer*p,fdm* a)
+{
+}
+
+void pjm::ptimesave(lexer *p, fdm *a, ghostcell *pgc)
+{
+}
+
+/*
+void pjm::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, momentum *pmom, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
+{
+    //debug(p,a,pgc,uvel,vvel,wvel,alpha);
+    
+    
+    if(p->mpirank==0 && (p->count%p->P12==0))
+    cout<<".";
+			
+	vel_setup(p,a,pgc,uvel,vvel,wvel,alpha);	
+    rhs(p,a,pgc,uvel,vvel,wvel,alpha);
+	
+    ppois->start(p,a,a->press);
+	
+        starttime=pgc->timer();
+
+    psolv->start(p,a,pgc,a->press,a->xvec,a->rhsvec,5,gcval_press,p->N44);
+	
+        endtime=pgc->timer();
+    
+	pgc->start4(p,a->press,gcval_press);
+	
+	ucorr(p,a,uvel,alpha);
+	vcorr(p,a,vvel,alpha);
+	wcorr(p,a,wvel,alpha);
+    
+    p->poissoniter=p->solveriter;
+
+	p->poissontime=endtime-starttime;
+
+	if(p->mpirank==0 && (p->count%p->P12==0))
+	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
+}
+
+void pjm::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
+{	
+    ULOOP
+	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*(a->press(i+1,j,k)-a->press(i,j,k))*0.5*(p->DRDXP[IP]+p->DRDXP[IP1])
+	/(p->DRM*pd->roface(p,a,1,0,0));
+}
+
+void pjm::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
+{	
+    VLOOP
+    vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))*0.5*(p->DSDYP[JP]+p->DSDYP[JP1])
+    /(p->DSM*pd->roface(p,a,0,1,0));
+}
+
+void pjm::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
+{	
+	WLOOP
+	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*(a->press(i,j,k+1)-a->press(i,j,k))*0.5*(p->DTDZP[KP]+p->DTDZP[KP1])
+	/(p->DTM*pd->roface(p,a,0,0,1));
+}
+ 
+void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, double alpha)
+{
+    NLOOP4
+	a->rhsvec.V[n]=0.0;
+	
+    pip=p->Y50;
+    
+    count=0;
+    LOOP
+    {
+    a->rhsvec.V[count] =  -p->DRDXP[IP]*(u(i,j,k)-u(i-1,j,k))/(alpha*p->dt*p->DRM)
+						   -p->DSDYP[JP]*(v(i,j,k)-v(i,j-1,k))/(alpha*p->dt*p->DSM)
+						   -p->DTDZP[KP]*(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DTM);
+    //-0.5*(p->DTDZN[KP1]+p->DTDZN[KP])*                       
+    a->test(i,j,k) = p->DRDXN[IP];
+    
+    ++count;
+    }
+    
+    pip=0;
 }
  
 void pjm::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
