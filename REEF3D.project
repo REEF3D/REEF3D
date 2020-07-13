@@ -39,6 +39,7 @@
   <Dependencies/>
   <VirtualDirectory Name="HEADERS">
     <VirtualDirectory Name="Extensions">
+      <VirtualDirectory Name="Particles"/>
       <VirtualDirectory Name="Sediment">
         <VirtualDirectory Name="Bedload">
           <File Name="bedload.h"/>
@@ -941,6 +942,7 @@
   </VirtualDirectory>
   <VirtualDirectory Name="SOURCES">
     <VirtualDirectory Name="Extensions">
+      <VirtualDirectory Name="Particles"/>
       <VirtualDirectory Name="Benchmarks">
         <File Name="benchmark_disk.cpp"/>
         <File Name="benchmark_void.cpp"/>

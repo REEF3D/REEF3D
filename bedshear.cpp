@@ -178,12 +178,10 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double
 	taukin=density*pturb->kinval(i,j,k)*0.3;
 	
 	tau = sqrt(fabs(tauvel))*sqrt(fabs(taukin));
-
     }
     
     if(p->S16==7)
     {
-        
         double Cval,wh;
         double bedlevel,waterlevel;
         count=0;
@@ -199,7 +197,6 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double
             wh+=p->DZN[KP];
             }
         }
-        
 
         uvel=uvel/double(count);
         vvel=vvel/double(count);
@@ -209,6 +206,27 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double
         u_abs = sqrt(uvel*uvel + vvel*vvel);
 	
     tau = density*pow(sqrt(9.81)*(u_abs/Cval),2.0);
+    }
+    
+    if(p->S16==8)
+    {
+        if(p->S33==1)
+        {
+        uvel=p->ccipol1(a->u,xip,yip,zval);
+        vvel=p->ccipol2(a->v,xip,yip,zval);
+        }
+        
+        if(p->S33==2)
+        {
+        uvel=p->ccipol1_a(a->u,xip,yip,zval);
+        vvel=p->ccipol2_a(a->v,xip,yip,zval);
+        }
+
+    u_abs = sqrt(uvel*uvel + vvel*vvel);
+
+    u_plus = (1.0/kappa)*log(30.0*(dist/ks));
+
+    tau=density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
     }
     
     tau_eff = tau;

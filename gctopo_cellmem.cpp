@@ -115,7 +115,7 @@ void ghostcell::gctopo_pressureupdate(lexer *p, fdm *a, int **cellmem, int cellc
 	double locx,locy,locz;
 	double topoval,fval;
 
-
+    // solid->fluid
     for(nn=0;nn<cellcount;++nn)
 	if(cellmem[nn][3]==1)
     {
@@ -124,7 +124,7 @@ void ghostcell::gctopo_pressureupdate(lexer *p, fdm *a, int **cellmem, int cellc
     k=cellmem[nn][2];
 
 	
-	fval = a->press(i,j,k+1) + p->DXM*a->ro(i,j,k)*fabs(p->W22);
+	fval = a->press(i,j,k+1) + p->DZP[KP]*a->ro(i,j,k)*fabs(p->W22);
 
 	f(i,j,k)=fval;
     }
