@@ -55,7 +55,7 @@ double roughness::ks_val(lexer *p, fdm* a,int ii,int jj, int kk, int cs, int bc)
 	ks=p->B56;	
 	
 	if(bc==5)
-	ks=p->S21*p->S20;
+	ks=p->S20;
 			
 		
 	return ks;

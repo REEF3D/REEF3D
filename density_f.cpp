@@ -62,12 +62,8 @@ double density_f::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 	{
         phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
 
-        if(p->j_dir==0)
-        {
-        //psi = p->F45*(1.0/2.0)*(p->DXN[IP]+p->DZN[KP]);
-        
+        if(p->j_dir==0)        
         psi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
-        }
         
         if(p->j_dir==1)
         {
