@@ -34,27 +34,31 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"density_conc.h"
 #include"density_heat.h"
 #include"density_vof.h"
+#include"density_rheo.h"
  
 pjm::pjm(lexer* p, fdm *a, heat *&pheat, concentration *&ppconc)
 {
     pconc = ppconc;
     
-    if((p->F80==0||p->A10==4) && p->H10==0 && p->W30==0)
+    if((p->F80==0||p->A10==4) && p->H10==0 && p->W30==0 && p->W90==0)
 	pd = new density_f(p);
 	
-	if(p->F80==0 && p->H10==0 && p->W30==1)
+	if(p->F80==0 && p->H10==0 && p->W30==1 && p->W90==0)
 	pd = new density_comp(p);
 	
-	if(p->F80==0 && p->H10>0)
+	if(p->F80==0 && p->H10>0 && p->W90==0)
 	pd = new density_heat(p,pheat);
 	
-	if(p->F80==0 && p->C10>0)
+	if(p->F80==0 && p->C10>0 && p->W90==0)
 	pd = new density_conc(p,pconc);
     
-    if(p->F80>0 && p->H10==0 && p->W30==0)
+    if(p->F80>0 && p->H10==0 && p->W30==0 && p->W90==0)
 	pd = new density_vof(p);
     
+    if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
+    pd = new density_rheo(p);
     
+        
     if(p->B76==0)
     gcval_press=40;  
 
@@ -149,8 +153,6 @@ void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, do
     a->rhsvec.V[count] =  -(u(i,j,k)-u(i-1,j,k))/(alpha*p->dt*p->DXN[IP])
 						   -(v(i,j,k)-v(i,j-1,k))/(alpha*p->dt*p->DYN[JP])
 						   -(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DZN[KP]);
-                           
-    //a->test(i,j,k) = p->DSDYN[JP];
     
     ++count;
     }
@@ -277,7 +279,6 @@ void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, do
 						   -p->DSDYP[JP]*(v(i,j,k)-v(i,j-1,k))/(alpha*p->dt*p->DSM)
 						   -p->DTDZP[KP]*(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DTM);
     //-0.5*(p->DTDZN[KP1]+p->DTDZN[KP])*                       
-    a->test(i,j,k) = p->DRDXN[IP];
     
     ++count;
     }

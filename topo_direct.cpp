@@ -61,6 +61,9 @@ void topo_direct::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,rei
 		dh(i,j) = vz;
 	}
     
+    LOOP
+    a->test(i,j,k) = dh(i,j);
+    
     if(p->S31==2)
     {
         

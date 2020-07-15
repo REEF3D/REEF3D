@@ -87,13 +87,6 @@ void lexer::makeflag( int *field)
 
 void lexer::parse()
 {
-	
-
-	if(F80>0)
-	{
-	D32=7;
-	}
-    
     if(F80>0 && F35>0)
     F35=0;
 	

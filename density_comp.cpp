@@ -23,8 +23,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 
-density_comp::density_comp(lexer* p) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
+density_comp::density_comp(lexer* p) 
 {
+        if(p->j_dir==0)        
+        psi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
+        
+        if(p->j_dir==1)
+        psi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
 }
 
 density_comp::~density_comp()
@@ -32,27 +37,12 @@ density_comp::~density_comp()
 }
 
 double density_comp::roface(lexer *p, fdm *a, int aa, int bb, int cc)
-{
-    double psi,r,s,ro_air;
-	
-	ii = aa-aa/(fabs(aa)>0?fabs(aa):1);
-	jj = bb-bb/(fabs(bb)>0?fabs(bb):1);
-	kk = cc-cc/(fabs(cc)>0?fabs(cc):1);
-
-	if(p->D32==2)
-	{
-       
+{       
         phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
         
         ro_air = (0.0035*(101325.0 + 0.5*(a->press(i,j,k) + a->press(i+aa,j+bb,k+cc))))  / (273.15 + p->W31);
 
-        
-        if(p->j_dir==0)
-        psi = p->F45*(1.0/1.0)*(p->DXN[IP]+p->DZN[KP]);
-        
-        if(p->j_dir==1)
-        psi = p->F45*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
-    
+
         if(phival>psi)
         H=1.0;
 
@@ -64,15 +54,7 @@ double density_comp::roface(lexer *p, fdm *a, int aa, int bb, int cc)
         
             
         roval = p->W1*H + ro_air*(1.0-H);
-	}
-	
-	// -----
-	
-	if(p->D32==3)
-	roval = 0.5*(a->ro(i+ii,j+jj,k+kk) + a->ro(i+aa,j+bb,k+cc));
-	
-	// -----
-	
+
 	return roval;		
 }
 

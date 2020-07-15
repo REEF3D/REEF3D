@@ -45,11 +45,14 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
     iocheck=0;
 	iter=p->count;
     
+    if(p->j_dir==0)        
+    epsi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
+        
+    if(p->j_dir==1)
+    epsi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
+    
 	LOOP
 	{
-  
-       epsi = p->F45*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
-        
 		if(a->phi(i,j,k)>epsi)
 		H=1.0;
 

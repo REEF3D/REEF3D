@@ -61,7 +61,11 @@ void fluid_update_vof::start(lexer *p, fdm* a, ghostcell* pgc)
         fy = fy/fn;
         fz = fz/fn;
         
-        epsi = p->F45*(fx*p->DXN[IP]+fy*p->DYN[JP]+fz*p->DZN[KP]);
+        if(p->j_dir==0)        
+        epsi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
+        
+        if(p->j_dir==1)
+        epsi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
         
 		if(a->phi(i,j,k)>epsi)
 		H=1.0;

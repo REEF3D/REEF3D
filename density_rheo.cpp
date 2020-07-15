@@ -19,32 +19,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"density_vof.h"
+#include"density_rheo.h"
 #include"lexer.h"
 #include"fdm.h"
 
-density_vof::density_vof(lexer* p) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
+density_rheo::density_rheo(lexer* p) 
 {
-    if(p->j_dir==0)        
-    psi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
-        
-    if(p->j_dir==1)
-    psi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
+
 }
 
-density_vof::~density_vof()
+density_rheo::~density_rheo()
 {
 }
 
-double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
+double density_rheo::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
-	H= 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
 
-		H=MAX(H,0.0);
-		H=MIN(H,1.0);
+	roval = 0.5*(a->ro(i,j,k) + a->ro(i+aa,j+bb,k+cc));
 
-    roval = p->W1*H +   p->W3*(1.0-H);
-	
 	return roval;		
 }
 
