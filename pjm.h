@@ -54,7 +54,6 @@ public:
 	virtual void fillapu(lexer*,fdm*);
 	virtual void fillapv(lexer*,fdm*);
 	virtual void fillapw(lexer*,fdm*);
-	virtual void pressure_norm(lexer*,fdm*,ghostcell*);
 
 
 private:    

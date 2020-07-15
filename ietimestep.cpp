@@ -63,6 +63,8 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 	p->wmax=MAX(p->wmax,fabs(a->w(i,j,k)));
 
 	p->wmax=pgc->globalmax(p->wmax);
+    
+    velmax=max(p->umax,p->vmax,p->wmax);
 
     if(p->mpirank==0 && (p->count%p->P12==0))
     {

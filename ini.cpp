@@ -92,7 +92,6 @@ void lexer::ini_default()
     
     // Boundary Conditions
 	B10=0;			// int wall laws velocities on/off
-    B19=0;			// int direct forcing for solid walls
 	B20=2;			// int slip or no-slip boundary condition for velocity
 	B26=1;			// int boundary condition implementation level set method
 	B29=0.5;		// double gamma for gc image point
@@ -249,7 +248,7 @@ void lexer::ini_default()
     // Discretization
 	D10=4;			// int convection scheme
 	D11=2;			// int convection velocity scheme   
-	D20=1;			// int diffusion scheme
+	D20=2;			// int diffusion scheme
 	D21=0;			// int print out implicit diffusion time and iterations
 	D29=1.0e-5;     // double stopping criteria implicit diffusion
 	D30=1;			// int pressure scheme
@@ -626,7 +625,6 @@ void lexer::ini_default()
 	X32=1;		// int boundary conditions for orthogonal velocity on floating body
 	X33=1;		// int boundary conditions for pressure on floating body
     X34=0;		// int boundary treatment for new solid velocity cells
-	X38=0;		// int turn on direct forcing
     X40=1;		// int type of force calculation
 	X41=1.75;		// double eps for lsm based force calculation
 	X100=0;		// int delta x,y,z

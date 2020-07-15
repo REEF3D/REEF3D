@@ -99,7 +99,6 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
     pflow->fsfrkout(p,a,pgc,ark2);
     ppicard->volcalc(p,a,pgc,ls);
 	
-	pflow->phi_relax(p,pgc,ls);
 
 // Step 1
     starttime=pgc->timer();
@@ -148,7 +147,7 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 	pgc->start4(p,ls,gcval_phi);
 
     ppart->start(p,a,pgc,pflow);
-    pgc->start4(p,ls,gcval_phi);
+    
 	
 	p->lsmtime=pgc->timer()-starttime;
 

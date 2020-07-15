@@ -187,11 +187,6 @@ public:
     void gcfb_update_extra_gcb(lexer*,fdm*,field&);
     void gcb_generic(lexer* p,field& f,int *gcb_count, int ***gcb);
 
-// Forcing
-    void forcing1(lexer*,fdm*,field&,field&,field&,field&,double);
-	void forcing2(lexer*,fdm*,field&,field&,field&,field&,double);
-	void forcing3(lexer*,fdm*,field&,field&,field&,field&,double);
-
 // IBM
     void distguard(lexer*);
     void ccstateflag(lexer*,fdm*);

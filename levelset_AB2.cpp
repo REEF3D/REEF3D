@@ -118,7 +118,6 @@ void levelset_AB2::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 	pgc->start4(p,ls,gcval_phi);
 
     ppart->start(p,a,pgc,pflow);
-    pgc->start4(p,ls,gcval_phi);
 	
 	p->lsmtime=pgc->timer()-starttime;
 

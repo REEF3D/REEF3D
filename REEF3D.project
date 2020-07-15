@@ -1617,11 +1617,6 @@
         <File Name="gcfb_gcb_fb.cpp"/>
       </VirtualDirectory>
       <File Name="ghostcell.cpp"/>
-      <VirtualDirectory Name="Forcing">
-        <File Name="gc_forcing1.cpp"/>
-        <File Name="gc_forcing2.cpp"/>
-        <File Name="gc_forcing3.cpp"/>
-      </VirtualDirectory>
       <VirtualDirectory Name="Solidupdate">
         <File Name="gcsolid_update.cpp"/>
         <File Name="gcsolid_buildflag.cpp"/>

@@ -22,6 +22,8 @@ Author: Hans Bihs
 
 #define WATER      10
 #define AIR        -1
+#define INFLOW    -3
+#define OUTFLOW   -4
 #define FLT       -17
 #define TOPO      -18
 #define SOLID     -19

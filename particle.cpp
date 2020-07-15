@@ -38,6 +38,18 @@ particle::particle(lexer* p, fdm *a, ghostcell* pgc) : norm_vec(p), phimax(p),ph
     posactive=0;
     negactive=0;
 	printcount=0;
+    
+    if(p->F50==1)
+	gcval_phi=51;
+
+	if(p->F50==2)
+	gcval_phi=52;
+
+	if(p->F50==3)
+	gcval_phi=53;
+
+	if(p->F50==4)
+	gcval_phi=54;
 	
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
@@ -76,6 +88,7 @@ void particle::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
     reseed(p,a,pgc,0.5);
 	setradius(p,a);    
     vel_setback(p,a,pgc);
+    pgc->start4(p,a->phi,gcval_phi);
 
 	posbalance = posactive - posactive_old;
 	negbalance = negactive - negactive_old;
