@@ -123,6 +123,8 @@ void ghostcell::topo_update(lexer *p, fdm *a)
     velcell_update(p,a,cellmem3,cellcount3,0.5*p->DXM,0.0,0.0,3);
 	gctopo_pressureupdate(p,a,cellmem4,cellcount4,a->press);
 	//gctopo_scalarupdate(p,a,cellmem4,cellcount4,a->eddyv);
+    
+    gcb_velflagio(p,a);
 
     start1(p,a->u,10);
     start2(p,a->v,11);
