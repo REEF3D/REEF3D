@@ -70,7 +70,12 @@ void ioflow_f::outflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v,
     depth=hmax;
 
     // bed shear stress and bed shear velocity
+        if(p->S10==0)
         ks=p->B50;
+        
+        if(p->S10>0)
+        ks=p->S20*p->S21;
+        
         H=B=depth+0.5*p->DXM;
         M=26.0/pow(ks,(1.0/6.0));
         I=pow(p->Uo/(M*pow(H,(2.0/3.0))),2.0);
