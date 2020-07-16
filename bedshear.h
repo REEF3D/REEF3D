@@ -41,8 +41,6 @@ public:
     virtual ~bedshear();
 
 	virtual void taubed(lexer*, fdm*,ghostcell*,double&,double&,double&);
-    virtual void taubedx(lexer*, fdm*,ghostcell*,double&,double&,double&);
-    virtual void taubedy(lexer*, fdm*,ghostcell*,double&,double&,double&);
 	virtual void taucritbed(lexer*, fdm*,ghostcell*,double&,double&,double&);
 	virtual double shear_reduction(lexer*, fdm*,ghostcell*);
 

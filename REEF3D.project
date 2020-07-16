@@ -967,7 +967,6 @@
           <File Name="reduction_parker.cpp"/>
           <File Name="reduction_void.cpp"/>
           <File Name="reduction_FD.cpp"/>
-          <File Name="bedshear_xy.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sandslide">
           <File Name="sandslide_f2.cpp"/>
@@ -1010,7 +1009,6 @@
           <VirtualDirectory Name="Relaxation">
             <File Name="topo_relax.cpp"/>
           </VirtualDirectory>
-          <File Name="topovel_xy_cds.cpp"/>
         </VirtualDirectory>
         <File Name="sediment_f.cpp"/>
         <File Name="sediment_void.cpp"/>

@@ -64,40 +64,5 @@ void bedload_VR::start(lexer* p, fdm* a, ghostcell* pgc)
         
 	}
     
-    SLICELOOP1
-    {
-        taubedx(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
-        taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
-
-        Ti=MAX((shearvel_eff*shearvel_eff-shearvel_crit*shearvel_crit)/(shearvel_crit*shearvel_crit),0.0);
-
-        if(shearvel_eff>shearvel_crit)
-        qb =(0.053*pow(d50,1.5)*sqrt(g*Rstar)*pow(Ti,2.1))/pow(Ds,0.3)  ;
-
-        if(shearvel_eff<=shearvel_crit)
-        qb=0.0;
-		
-		a->qbx(i,j) = qb;
-    }
-    
-    SLICELOOP2
-    {
-        taubedy(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
-        taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
-
-        Ti=MAX((shearvel_eff*shearvel_eff-shearvel_crit*shearvel_crit)/(shearvel_crit*shearvel_crit),0.0);
-
-        if(shearvel_eff>shearvel_crit)
-        qb =(0.053*pow(d50,1.5)*sqrt(g*Rstar)*pow(Ti,2.1))/pow(Ds,0.3)  ;
-
-        if(shearvel_eff<=shearvel_crit)
-        qb=0.0;
-		
-		a->qby(i,j) = qb;
-        
-    }
-    
     pgc->gcsl_start4(p,a->bedload,1);    
-    pgc->gcsl_start1(p,a->qbx,1);
-    pgc->gcsl_start2(p,a->qby,1);
 }

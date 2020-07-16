@@ -44,7 +44,7 @@ void sediment_f::fill_bedk(lexer *p, fdm *a,ghostcell *pgc)
     KLOOP
     PBASECHECK
     if(a->topo(i,j,k)<0.0 && a->topo(i,j,k+1)>=0.0)
-    a->bedk(i,j)=k;
+    a->bedk(i,j)=k+1;
     
     
     SLICELOOP1
@@ -53,7 +53,7 @@ void sediment_f::fill_bedk(lexer *p, fdm *a,ghostcell *pgc)
     
     xip= p->XN[IP1];
 	yip= p->YP[JP];
-    zval = 0.5*(a->bedzh(i,j)+a->bedzh(i+1,j)) + p->S116*p->DZN[k];
+    zval = 0.5*(a->bedzh(i,j)+a->bedzh(i+1,j)) + 1.6*p->DZN[k];
     
     a->P(i,j) = p->ccipol1_a(a->u,xip,yip,zval);
     }
@@ -64,7 +64,7 @@ void sediment_f::fill_bedk(lexer *p, fdm *a,ghostcell *pgc)
     
     xip= p->XP[IP];
 	yip= p->YN[JP1];
-    zval = 0.5*(a->bedzh(i,j)+a->bedzh(i,j+1)) + p->S116*p->DZN[k];
+    zval = 0.5*(a->bedzh(i,j)+a->bedzh(i,j+1)) + 1.6*p->DZN[k];
     
     a->Q(i,j) = p->ccipol2_a(a->v,xip,yip,zval);
     }

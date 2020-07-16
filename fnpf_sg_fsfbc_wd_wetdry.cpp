@@ -92,7 +92,7 @@ double fnpf_sg_fsfbc_wd::rb3(lexer *p, double x)
     x=(dist3-fabs(x))/(dist3);
     x=MAX(x,0.0);
     
-    r = 1.0 - (exp(pow(x,p->B119))-1.0)/(EE-1.0);
+    r = 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
 
 	return r;
 }
@@ -104,7 +104,7 @@ double fnpf_sg_fsfbc_wd::rb4(lexer *p, double x)
     x=(dist4-fabs(x))/(dist4);
     x=MAX(x,0.0);
     
-    r = 1.0 - (exp(pow(x,p->B119))-1.0)/(EE-1.0);
+    r = 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
 
 	return r;
 }

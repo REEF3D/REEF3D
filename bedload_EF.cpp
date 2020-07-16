@@ -64,41 +64,5 @@ void bedload_EF::start(lexer* p, fdm* a, ghostcell* pgc)
         a->bedload(i,j) = qb;
 	}
     
-    SLICELOOP1
-    {
-        taubedx(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
-        taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
-
-        Ts = shields_crit;
-	    Tb = shields_eff;
-
-        if(Tb>Ts)
-        qb =  d50*sqrt((rhosed/rhowat-1.0)*g*d50) * 11.6* (Tb-Ts)*(sqrt(Tb) - 0.7*sqrt(Ts));
-
-        if(Tb<=Ts)
-        qb=0.0;
-	
-        a->qbx(i,j) = qb;
-	}
-    
-    SLICELOOP2
-    {
-        taubedy(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
-        taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
-
-        Ts = shields_crit;
-	    Tb = shields_eff;
-
-        if(Tb>Ts)
-        qb =  d50*sqrt((rhosed/rhowat-1.0)*g*d50) * 11.6* (Tb-Ts)*(sqrt(Tb) - 0.7*sqrt(Ts));
-
-        if(Tb<=Ts)
-        qb=0.0;
-	
-        a->qby(i,j) = qb;
-	}
-    
     pgc->gcsl_start4(p,a->bedload,1);
-    pgc->gcsl_start1(p,a->qbx,1);
-    pgc->gcsl_start2(p,a->qby,1);
 }

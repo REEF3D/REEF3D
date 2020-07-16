@@ -160,7 +160,6 @@ void lexer::ini_default()
     B115=0;         // int activate vertical velocity component for flap wavemaker theory
     B116=1;         // int x or beta input for flap wavemaker theories
     B117=0.0;		  // double starting time shift for timeseries input
-	B119=3.5;        // double factor in relaxation function 2
     B120=-90.0;       // doubel delta t for wave generation
 	B121=1;        // int air velocity on/off in wave relaxation zone
     B122=1.0;        // int air velocity on/off for active wave generation
@@ -502,7 +501,6 @@ void lexer::ini_default()
     S26_a=650.0;          // double alpha for VRANS sediment
     S26_b=2.2;            // double beta for VRANS sediment
     S30=0.047;          // double Shields parameter
-    S31=1;		        // int exner scheme
     S32=4;              // int exner discretization
     S33=2;              // type of near bead velocity interpolation
 	S37=2;		        // int number reini time step
@@ -536,9 +534,7 @@ void lexer::ini_default()
     S101=0;					// int number of bed filter inner iterations
 	S102=0;					// int number of bedload filter outer iterations
     S103=0;					// int number of bedload filter inner iterations
-    S116=1.0;               // double factor for location of bed shear stress calculation
-    S117=1.0;               // double factor for location of bed shear stress calculation
-
+    
     // Turbulence
 	T10=0;			    // int turbulence model
 	T11=11;             // int time scheme for 2-eq turbulence models

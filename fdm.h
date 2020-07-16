@@ -92,8 +92,7 @@ public:
     sliceint4 etaloc;
     
     slice4 bedload;
-    slice1 qbx;
-    slice2 qby;
+
     
     
 	vec xvec,rhsvec,visctot;

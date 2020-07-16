@@ -173,7 +173,7 @@ void VOF_PLIC::start
 
     LOOP
     {
-        a->test(i,j,k) = a->vof(i,j,k);
+        //a->test(i,j,k) = a->vof(i,j,k);
 
         if (a->vof(i,j,k) > 0.5)
         {

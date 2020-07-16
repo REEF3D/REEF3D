@@ -31,9 +31,7 @@ double iowave::rb1(lexer *p, double x)
     x=1.0-x/dist1;
     x=MAX(x,0.0);
     
-    //r = 1.0 - (pow(1.0 + (pow(x,p->B119))/4000.0, 4000.0)-1.0)*expinverse;
-    
-    r = 1.0 - (exp(pow(x,p->B119))-1.0)/(EE-1.0);
+    r = 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
       
     return r;
 }
@@ -45,9 +43,8 @@ double iowave::rb3(lexer *p, double x)
     x=(dist3-fabs(x))/(dist3*dist3_fac);
     x=MAX(x,0.0);
     
-    //r = 1.0 - (pow(1.0 + (pow(x,p->B119))/4000.0, 4000.0)-1.0)*expinverse;
     
-    r = 1.0 - (exp(pow(x,p->B119))-1.0)/(EE-1.0);
+    r = 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
 	
 	return r;
 }

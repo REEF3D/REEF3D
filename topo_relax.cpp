@@ -45,7 +45,7 @@ topo_relax::~topo_relax()
 void topo_relax::start(lexer *p, fdm * a, ghostcell *pgc)
 {
     
-	double relax,distot,distcount,zhval;
+	double relax,distot,distcount,zhval,qbval;
 	
 	if(p->S73>0)
 	ALOOP
@@ -61,8 +61,10 @@ void topo_relax::start(lexer *p, fdm * a, ghostcell *pgc)
 			{
 			val = a->topo(i,j,k);
 			zhval = a->bedzh(i,j);
+            qbval = a->bedload(i,j);
 			a->topo(i,j,k)=0.0;
 			a->bedzh(i,j)=0.0;
+            a->bedload(i,j)=0.0;
 			distot += dist_S73[n];
 			++distcount;
 			}
@@ -78,6 +80,7 @@ void topo_relax::start(lexer *p, fdm * a, ghostcell *pgc)
 			{
             a->topo(i,j,k) += (1.0-relax)*(-p->S73_val[n]+p->pos_z()) + relax*val;
 			a->bedzh(i,j) += (1.0-relax)*p->S73_val[n] + relax*zhval;
+            a->bedload(i,j) +=  relax*qbval;
 			}
 			
 			
@@ -85,6 +88,7 @@ void topo_relax::start(lexer *p, fdm * a, ghostcell *pgc)
 			{
             a->topo(i,j,k) += ((1.0-relax)*(-p->S73_val[n]+p->pos_z()) + relax*val) * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
 			a->bedzh(i,j) += ((1.0-relax)*p->S73_val[n] + relax*zhval) * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
+            a->bedload(i,j) +=  relax*qbval * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
 			}
 			
 			}
@@ -120,15 +124,13 @@ double topo_relax::rf(lexer *p, fdm * a, ghostcell *pgc)
 			relax = r1(p,dist_S73[n],p->S73_dist[n]);
 			
 			if(distcount==1)
-            val=(1.0-relax);
+            val=(relax);
                 
 			if(distcount>1)
-            val += (1.0-relax) * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
+            val += (relax) * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
 			}
 		}
-    
-    
-    
+
     return val;
 }
 
@@ -136,8 +138,10 @@ double topo_relax::r1(lexer *p, double x, double threshold)
 {
     double r=0.0;
 
-    x=1.0-x/(fabs(threshold)>1.0e-10?threshold:1.0e20);
+    x=(threshold-fabs(x))/(fabs(threshold)>1.0e-10?threshold:1.0e20);
     x=MAX(x,0.0);
+    
+
     r = 1.0 - (exp(pow(x,3.5))-1.0)/(exp(1.0)-1.0);
 
     return r;

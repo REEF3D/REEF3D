@@ -114,7 +114,6 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
     // bedload
     pbed->start(p,a,pgc);
 	
-	//if(p->S102>0)
 	filter(p,a,pgc,a->bedload,p->S102,p->S103);
     
     // Exner

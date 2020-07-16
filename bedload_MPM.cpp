@@ -64,37 +64,5 @@ void bedload_MPM::start(lexer* p, fdm* a, ghostcell* pgc)
         a->bedload(i,j) = qb;
 	}
     
-    SLICELOOP1
-    {
-        taubedx(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
-        taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
-
-
-        if(shields_eff>shields_crit)
-        qb = 8.0*pow(MAX(shields_eff - shields_crit,0.0),1.5)* p->S20*sqrt(((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
-
-        if(shields_eff<=shields_crit)
-        qb=0.0;
-		
-        a->qbx(i,j) = qb;
-	}
-    
-    SLICELOOP2
-    {
-        taubedy(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
-        taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
-
-
-        if(shields_eff>shields_crit)
-        qb = 8.0*pow(MAX(shields_eff - shields_crit,0.0),1.5)* p->S20*sqrt(((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
-
-        if(shields_eff<=shields_crit)
-        qb=0.0;
-		
-        a->qby(i,j) = qb;
-	}
-    
     pgc->gcsl_start4(p,a->bedload,1);
-    pgc->gcsl_start1(p,a->qbx,1);
-    pgc->gcsl_start2(p,a->qby,1);
 }
