@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"topo.h"
 #include"topo_vel.h"
+#include"slice4.h"
 
 using namespace std;
 
@@ -42,6 +43,8 @@ private:
 
 	double vx,vy,vz;
 	double vzmax;
+    
+    slice4 dh;
 
 };
 

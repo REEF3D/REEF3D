@@ -88,24 +88,10 @@ void sflow_sediment_f::exner(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice
         p->maxtopovel=0.0;
         
         // bedchange
-        if(p->S39==1)
+
         SLICELOOP4
         b->bed(i,j) += p->dtsed*topovel(i,j);
-        
-        if(p->S39==2)
-        SLICELOOP4
-        b->bed(i,j) += p->dtsed*0.5*(3.0*topovel(i,j) - topovel1(i,j));
 
-        if(p->S39==3)
-        SLICELOOP4
-        b->bed(i,j) += p->dtsed*(1.0/12.0)*(23.0*topovel(i,j) - 16.0*topovel1(i,j) + 5.0*topovel2(i,j));
-        
-        
-    // update AB fields    
-    SLICELOOP4
-    {
-    topovel2(i,j)=topovel1(i,j);
-    topovel1(i,j)=topovel(i,j);
-    }
+
     pgc->gcsl_start4(p,b->bed,50);
 }

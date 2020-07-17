@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"slice2.h"
 #include"fnpf_weno.h"
  
-sflow_sediment_f::sflow_sediment_f(lexer* p, fdm2D *b) : tau(p),taucr(p),alpha(p),teta(p),gamma(p),phi(p),topovel1(p),topovel2(p),
+sflow_sediment_f::sflow_sediment_f(lexer* p, fdm2D *b) : tau(p),taucr(p),alpha(p),teta(p),gamma(p),phi(p),
                                                         fh(p),red(p),ks(p)
 {
     p->sedtime=0.0;
@@ -37,8 +37,6 @@ sflow_sediment_f::sflow_sediment_f(lexer* p, fdm2D *b) : tau(p),taucr(p),alpha(p
     
     SLICELOOP4
     {
-    topovel2(i,j)=0.0;
-    topovel1(i,j)=0.0;
     red(i,j)=1.0;
     ks(i,j) = p->S20;
     }
@@ -47,7 +45,6 @@ sflow_sediment_f::sflow_sediment_f(lexer* p, fdm2D *b) : tau(p),taucr(p),alpha(p
     delta=p->S82*(PI/180.0);
     
     relax_ini(p,b);
-    
 }
 
 sflow_sediment_f::~sflow_sediment_f()

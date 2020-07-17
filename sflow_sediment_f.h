@@ -75,7 +75,6 @@ private:
     
     
     slice4 tau,taucr,alpha,teta,gamma,phi,fh,red,ks;
-    slice4 topovel1,topovel2;
     
     double starttime;
     

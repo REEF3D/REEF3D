@@ -65,4 +65,8 @@ void bedload_EF::start(lexer* p, fdm* a, ghostcell* pgc)
 	}
     
     pgc->gcsl_start4(p,a->bedload,1);
+    
+    
+    LOOP
+    a->test(i,j,k) = shear_reduction(p,a,pgc);
 }

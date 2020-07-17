@@ -504,8 +504,6 @@ void lexer::ini_default()
     S32=4;              // int exner discretization
     S33=2;              // type of near bead velocity interpolation
 	S37=2;		        // int number reini time step
-	S38=0;            // int reinitialization for interface nodes
-	S39=2;				// int order of time discretization for dz/dh
 	S41=1;				// int type of sediment start criterion
 	S42=1;				// int type of sediment interval criterion
     S43=1000;          // int number of water iteration, before sediment transport starts

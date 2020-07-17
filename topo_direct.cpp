@@ -24,9 +24,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 #include"reinitopo.h"
-#include"slice4.h"
 
-topo_direct::topo_direct(lexer* p, fdm *a, ghostcell* pgc, turbulence *pturb) : topo_vel(p,pturb)
+
+topo_direct::topo_direct(lexer* p, fdm *a, ghostcell* pgc, turbulence *pturb) : topo_vel(p,pturb),dh(p)
 {
 	if(p->S50==1)
 	gcval_topo=151;
@@ -49,7 +49,7 @@ void topo_direct::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,rei
 {
     starttime=pgc->timer();
 	
-	slice4 dh(p),dh1(p),dh2(p);
+	
 	
 	double maxdh;
     
@@ -60,27 +60,13 @@ void topo_direct::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,rei
 		dh(i,j) = vz;
 	}
     
-    LOOP
-    a->test(i,j,k) = dh(i,j);
+    //LOOP
+    //a->test(i,j,k) = dh(i,j);
     
     
 	pgc->gcsl_start4(p,dh,1);
 	
-	if(p->S39==2)
-	SLICELOOP4
-	dh(i,j) = 0.5*(3.0*dh(i,j) - dh1(i,j));
 
-	if(p->S39==3)
-	SLICELOOP4
-	dh(i,j) = (1.0/12.0)*(23.0*dh(i,j) - 16.0*dh1(i,j) + 5.0*dh2(i,j));
-
-	
-	SLICELOOP4
-    {
-    dh2(i,j)=dh1(i,j);
-    dh1(i,j)=dh(i,j);
-    }
-	
 	maxdh=0.0;
 	SLICELOOP4
 	maxdh = MAX(fabs(dh(i,j)),maxdh);	
