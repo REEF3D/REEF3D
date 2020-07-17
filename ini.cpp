@@ -502,7 +502,7 @@ void lexer::ini_default()
     S26_b=2.2;            // double beta for VRANS sediment
     S30=0.047;          // double Shields parameter
     S32=4;              // int exner discretization
-    S33=2;              // type of near bead velocity interpolation
+    S33=1;              // type of near bead velocity interpolation
 	S37=2;		        // int number reini time step
 	S41=1;				// int type of sediment start criterion
 	S42=1;				// int type of sediment interval criterion
