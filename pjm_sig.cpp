@@ -36,7 +36,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
  
 pjm_sig::pjm_sig(lexer* p, fdm *a, heat *&pheat, concentration *&pconc)
 {
-    if((p->F80==0||p->A10==4) && p->H10==0 && p->W30==0)
+    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0)
 	pd = new density_f(p);
 	
 	if(p->F80==0 && p->H10==0 && p->W30==1)

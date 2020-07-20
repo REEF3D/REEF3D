@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
-#include"fnpf_fg_RK3.h"
+#include"ptf_RK3.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -27,13 +27,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ioflow.h"
 #include"solver.h"
 #include"reini.h"
-#include"fnpf_fg_laplace_cds2.h"
-#include"fnpf_fg_laplace_cds4.h"
+#include"ptf_laplace_cds2.h"
+#include"ptf_laplace_cds4.h"
 #include"onephase.h"
-#include"fnpf_fg_fsf_update.h"
-#include"fnpf_fg_bed_update.h"
+#include"ptf_fsf_update.h"
+#include"ptf_bed_update.h"
 
-fnpf_fg_RK3::fnpf_fg_RK3(lexer *p, fdm *a, ghostcell *pgc) : fnpf_fg_fsfbc(p,a,pgc),erk1(p),erk2(p),frk1(p),frk2(p)
+ptf_RK3::ptf_RK3(lexer *p, fdm *a, ghostcell *pgc) : ptf_fsfbc(p,a,pgc),erk1(p),erk2(p),frk1(p),frk2(p)
 {
     gcval=250;
     
@@ -53,21 +53,21 @@ fnpf_fg_RK3::fnpf_fg_RK3(lexer *p, fdm *a, ghostcell *pgc) : fnpf_fg_fsfbc(p,a,p
     gcval_fifsf = 50;
     
     if(p->A320==1)
-    plap = new fnpf_fg_laplace_cds2;
+    plap = new ptf_laplace_cds2;
     
     if(p->A320==2)
-    plap = new fnpf_fg_laplace_cds4;
+    plap = new ptf_laplace_cds4;
     
-    pfsfupdate = new fnpf_fg_fsf_update(p,a,pgc);
+    pfsfupdate = new ptf_fsf_update(p,a,pgc);
     
-    pbedupdate = new fnpf_fg_bed_update(p,a,pgc);
+    pbedupdate = new ptf_bed_update(p,a,pgc);
 }
 
-fnpf_fg_RK3::~fnpf_fg_RK3()
+ptf_RK3::~ptf_RK3()
 {
 }
 
-void fnpf_fg_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
+void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
 {	
 // Step 1
     fsfdisc(p,a,pgc,a->eta,a->Fifsf,a->Fi);
@@ -174,7 +174,7 @@ void fnpf_fg_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convect
     pfsfupdate->velcalc(p,a,pgc,a->Fi);
 }
 
-void fnpf_fg_RK3::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *preini, onephase *poneph)
+void ptf_RK3::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *preini, onephase *poneph)
 {	
     pfsfupdate->fsfupdate(p,a,pgc,pflow,poneph,a->eta);
     pfsfupdate->etaloc(p,a,pgc);
@@ -193,6 +193,6 @@ void fnpf_fg_RK3::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *pr
     pgc->gcsl_start4(p,a->eta,50);
 }
 
-void fnpf_fg_RK3::inidisc(lexer *p, fdm *a, ghostcell *pgc)
+void ptf_RK3::inidisc(lexer *p, fdm *a, ghostcell *pgc)
 {	
 }

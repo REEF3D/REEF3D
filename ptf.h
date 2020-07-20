@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,25 +20,26 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_fg_laplace.h"
-#include"increment.h"
-
-#ifndef LAPLACE_FNPF_FG_CDS2_H_
-#define LAPLACE_FNPF_FG_CDS2_H_
+class lexer;
+class fdm;
+class ghostcell;
+class solver;
+class convection;
+class ioflow;
+class reini;
+class onephase;
 
 using namespace std;
 
-class fnpf_fg_laplace_cds2 : public fnpf_fg_laplace, public increment
+#ifndef PTF_H_
+#define PTF_H_
+
+class ptf
 {
 public:
-    fnpf_fg_laplace_cds2 ();
-	virtual ~fnpf_fg_laplace_cds2();
-
-    virtual void start(lexer *,fdm*,ghostcell*,solver*,field&);
-    
-private:
-    
-    double sqd;
+	virtual void start(lexer*, fdm*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*)=0;
+    virtual void ini(lexer*, fdm*, ghostcell*, ioflow*, reini*, onephase*)=0;
+    virtual void inidisc(lexer*, fdm*, ghostcell*)=0;
 
 };
 

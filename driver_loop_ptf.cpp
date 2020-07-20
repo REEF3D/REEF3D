@@ -37,9 +37,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"waves_header.h"
 #include"lexer.h"
 
-void driver::loop_fnpf_fg(fdm* a)
+void driver::loop_ptf(fdm* a)
 {
-   driver_ini_fnpf_fg(); 
+   driver_ini_ptf(); 
    
 //-----------MAINLOOP PFLOW----------------------------
 
@@ -64,7 +64,7 @@ void driver::loop_fnpf_fg(fdm* a)
         pflow->wavegen_precalc(p,pgc);
 
         // PFLOW
-		ppffg->start(p,a,pgc,plapsolv,pfsfdisc,pflow,preini,poneph);
+		pptf->start(p,a,pgc,plapsolv,pfsfdisc,pflow,preini,poneph);
     
         //timestep control
         ptstep->start(a,p,pgc,pturb);

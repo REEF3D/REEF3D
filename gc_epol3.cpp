@@ -57,11 +57,11 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
 	return gclabel_w_orth;
     
     else
-	if((bc==21||bc==22||bc==5||bc==7)&&(cs==5)&&(gcv==12||gcv==22||gcv==3)&&p->A10==5)
+	if((bc==21||bc==22||bc==5||bc==7)&&(cs==5)&&(gcv==12||gcv==22||gcv==3)&&p->A10==6)
 	return gclabel_w_orth;
     
     else
-	if((bc==21||bc==22||bc==5||bc==7)&&(cs==5)&&(gcv==12||gcv==22||gcv==3)&&p->A10==4)
+	if((bc==21||bc==22||bc==5||bc==7)&&(cs==5)&&(gcv==12||gcv==22||gcv==3)&&p->A10==5)
 	return gclabel_w_orth;
 
 	else
@@ -94,11 +94,11 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
 	return 4;
 
 	else
-	if(bc==3 && (cs==5||cs==6)&&(gcv==12||gcv==22||gcv==19 || gcv==3) && (p->A300!=1||p->A10!=3))
+	if(bc==3 && (cs==5||cs==6)&&(gcv==12||gcv==22||gcv==19 || gcv==3) && p->A10!=3)
 	return 5;
     
     else
-	if(bc==3 && (cs==5||cs==6)&&(gcv==12||gcv==22||gcv==19 || gcv==3)&& (p->A300==1&&p->A10==3))
+	if(bc==3 && (cs==5||cs==6)&&(gcv==12||gcv==22||gcv==19 || gcv==3) && p->A10==3)
 	return 4;
 	
 	else

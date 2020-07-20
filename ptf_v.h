@@ -20,19 +20,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_fg.h"
+#include"ptf.h"
 
 
 using namespace std;
 
-#ifndef FNPF_FG_VOID_H_
-#define FNPF_FG_VOID_H_
+#ifndef PTF_VOID_H_
+#define PTF_VOID_H_
 
-class fnpf_fg_void : public fnpf_fg
+class ptf_void : public ptf
 {
 public:
-	fnpf_fg_void();
-	virtual ~fnpf_fg_void();
+	ptf_void();
+	virtual ~ptf_void();
     
     virtual void start(lexer*, fdm*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*);
     virtual void ini(lexer*, fdm*, ghostcell*, ioflow*, reini*, convection*);

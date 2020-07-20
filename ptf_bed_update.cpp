@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/liceonephases/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_fg_bed_update.h"
+#include"ptf_bed_update.h"
 #include"fnpf_sg_fsfbc.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -28,7 +28,7 @@ along with this program; if not, see <http://www.gnu.org/liceonephases/>.
 #include"fnpf_cds2.h"
 #include"fnpf_cds4.h"
 
-fnpf_fg_bed_update::fnpf_fg_bed_update(lexer *p, fdm *a, ghostcell *pgc) 
+ptf_bed_update::ptf_bed_update(lexer *p, fdm *a, ghostcell *pgc) 
 {    
     if(p->A313==2)
     pconvec = new fnpf_cds2(p);
@@ -37,11 +37,11 @@ fnpf_fg_bed_update::fnpf_fg_bed_update(lexer *p, fdm *a, ghostcell *pgc)
     pconvec = new fnpf_cds4(p);
 }
 
-fnpf_fg_bed_update::~fnpf_fg_bed_update()
+ptf_bed_update::~ptf_bed_update()
 {
 }
 
-void fnpf_fg_bed_update::bedbc(lexer *p, fdm *a, ghostcell *pgc, field &Fi)
+void ptf_bed_update::bedbc(lexer *p, fdm *a, ghostcell *pgc, field &Fi)
 {
     double Fval;
     
@@ -63,7 +63,7 @@ void fnpf_fg_bed_update::bedbc(lexer *p, fdm *a, ghostcell *pgc, field &Fi)
 }
 
 
-void fnpf_fg_bed_update::waterdepth(lexer *p, fdm *a, ghostcell *pgc)
+void ptf_bed_update::waterdepth(lexer *p, fdm *a, ghostcell *pgc)
 {
     SLICELOOP4
 	a->depth(i,j) = p->wd - a->bed(i,j);

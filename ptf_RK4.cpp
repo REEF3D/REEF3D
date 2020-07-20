@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_fg_RK4.h"
+#include"ptf_RK4.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -28,12 +28,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ioflow.h"
 #include"solver.h"
 #include"reini.h"
-#include"fnpf_fg_laplace_cds2.h"
-#include"fnpf_fg_laplace_cds4.h"
+#include"ptf_laplace_cds2.h"
+#include"ptf_laplace_cds4.h"
 #include"onephase.h"
 
-fnpf_fg_RK4::fnpf_fg_RK4(lexer *p, fdm *a, ghostcell *pgc) : fnpf_fg_fsfbc(p,a,pgc), fnpf_fg_fsf_update(p,a,pgc),
-                                                      fnpf_fg_bed_update(p,a,pgc),  
+ptf_RK4::ptf_RK4(lexer *p, fdm *a, ghostcell *pgc) : ptf_fsfbc(p,a,pgc), ptf_fsf_update(p,a,pgc),
+                                                      ptf_bed_update(p,a,pgc),  
                                                       erk1(p),erk2(p),erk3(p),erk(p),
                                                       frk1(p),frk2(p),frk3(p),frk(p)
 {
@@ -58,18 +58,18 @@ fnpf_fg_RK4::fnpf_fg_RK4(lexer *p, fdm *a, ghostcell *pgc) : fnpf_fg_fsfbc(p,a,p
     gcval_fifsf = 50;
     
     if(p->A320==1)
-    plap = new fnpf_fg_laplace_cds2;
+    plap = new ptf_laplace_cds2;
     
     if(p->A320==2)
-    plap = new fnpf_fg_laplace_cds4;
+    plap = new ptf_laplace_cds4;
 
 }
 
-fnpf_fg_RK4::~fnpf_fg_RK4()
+ptf_RK4::~ptf_RK4()
 {
 }
 
-void fnpf_fg_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
+void ptf_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
 {	
 
 // Step 1
@@ -234,7 +234,7 @@ void fnpf_fg_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convect
     
 }
 
-void fnpf_fg_RK4::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *preini, onephase *poneph)
+void ptf_RK4::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *preini, onephase *poneph)
 {	
     fsfupdate(p,a,pgc,pflow,poneph,a->eta);
     etaloc(p,a,pgc);
@@ -253,7 +253,7 @@ void fnpf_fg_RK4::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *pr
     pgc->gcsl_start4(p,a->eta,50);
 }
 
-void fnpf_fg_RK4::inidisc(lexer *p, fdm *a, ghostcell *pgc)
+void ptf_RK4::inidisc(lexer *p, fdm *a, ghostcell *pgc)
 {	
 }
 

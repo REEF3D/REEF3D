@@ -6,7 +6,7 @@ This file is part of REEF3D.
 
 REEF3D is free software; you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3 of the B117, or
+the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
@@ -15,36 +15,47 @@ FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program; if not, see <http://www.gnu.org/liceonephases/>.
+along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"onephase.h"
-#include"increment.h"
+#include"ptf.h"
+#include"ptf_fsfbc.h"
 #include"slice4.h"
 
+class ptf_laplace;
+class ptf_fsf_update;
+class ptf_bed_update;
 class field;
-class fnpf_convection;
 
 using namespace std;
 
-#ifndef FNPF_FG_BED_UPDATE_H_
-#define FNPF_FG_BED_UPDATE_H_
+#ifndef PTF_RK3_H_
+#define PTF_RK3_H_
 
-class fnpf_fg_bed_update : public increment
+class ptf_RK3 : public ptf, public ptf_fsfbc
 {
 public:
-    fnpf_fg_bed_update(lexer*, fdm*, ghostcell*);
-	virtual ~fnpf_fg_bed_update();
+	ptf_RK3(lexer*, fdm*, ghostcell*);
+	virtual ~ptf_RK3();
     
-	virtual void bedbc(lexer*, fdm*, ghostcell*,field&);
-    virtual void waterdepth(lexer*, fdm*, ghostcell*);
-
-private: 
+    virtual void start(lexer*, fdm*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*);
+    virtual void ini(lexer*, fdm*, ghostcell*, ioflow*, reini*, onephase*);
+    virtual void inidisc(lexer*, fdm*, ghostcell*);
     
-    fnpf_convection *pconvec;
+private:
 
+    int gcval_eta,gcval_fifsf,gcval;
+    int hypre_type;
+    double starttime,endtime;
+
+    slice4 erk1,erk2;
+    slice4 frk1,frk2;
+
+    ptf_laplace *plap;
+    ptf_fsf_update *pfsfupdate;
+    ptf_bed_update *pbedupdate;
 
 };
 

@@ -19,21 +19,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_fg_laplace_cds4.h"
+#include"ptf_laplace_cds4.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"solver.h"
 #include"ghostcell.h"
 
-fnpf_fg_laplace_cds4::fnpf_fg_laplace_cds4() 
+ptf_laplace_cds4::ptf_laplace_cds4() 
 {
 }
 
-fnpf_fg_laplace_cds4::~fnpf_fg_laplace_cds4()
+ptf_laplace_cds4::~ptf_laplace_cds4()
 {
 }
 
-void fnpf_fg_laplace_cds4::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, field &f)
+void ptf_laplace_cds4::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, field &f)
 {
     // see p. 1130-1132
     n=0;

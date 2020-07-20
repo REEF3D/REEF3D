@@ -20,36 +20,43 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_fg.h"
+#include"ptf.h"
+#include"ptf_fsfbc.h"
+#include"ptf_fsf_update.h"
+#include"ptf_bed_update.h"
 #include"slice4.h"
 
-class fnpf_fg_laplace;
+class ptf_laplace;
 class field;
-class fnpf_convection;
 
 using namespace std;
 
-#ifndef FNPF_FG_FSFBC_H_
-#define FNPF_FG_FSFBC_H_
+#ifndef PTF_RK4_H_
+#define PTF_RK4_H_
 
-class fnpf_fg_fsfbc : public increment
+class ptf_RK4 : public ptf, public ptf_fsfbc, public ptf_fsf_update, public ptf_bed_update
 {
 public:
-	fnpf_fg_fsfbc(lexer*, fdm*, ghostcell*);
-	virtual ~fnpf_fg_fsfbc();
+	ptf_RK4(lexer*, fdm*, ghostcell*);
+	virtual ~ptf_RK4();
+    
+    virtual void start(lexer*, fdm*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*);
+    virtual void ini(lexer*, fdm*, ghostcell*, ioflow*, reini*, onephase*);
+    virtual void inidisc(lexer*, fdm*, ghostcell*);
     
     
-    void fsfdisc(lexer*,fdm*,ghostcell*,slice&,slice&,field&);
-    void kfsfbc(lexer*,fdm*,ghostcell*);
-    void dfsfbc(lexer*,fdm*,ghostcell*,slice&);
-    
+private:
 
-    fnpf_convection *pconvec;
+    int gcval,gcval_u,gcval_v,gcval_w;
+    int gcval_eta,gcval_fifsf;
+    int hypre_type;
+    double starttime,endtime;
 
-    double ivel,jvel,kvel;
-    
-    slice4 Fx,Fy,Fz;
-    slice4 Ex,Ey;
+    slice4 erk1,erk2,erk3,erk;
+    slice4 frk1,frk2,frk3,frk;
+
+    ptf_laplace *plap;
+
 
 };
 

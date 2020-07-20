@@ -77,7 +77,7 @@ void pftimestep::start(fdm *a, lexer *p,ghostcell *pgc, turbulence *pturb)
 
     cu=cv=cw=1.0e10;
     
-    if(p->A300==1)
+    if(p->A10==3)
     {
     /*ULOOP
     {
@@ -112,7 +112,7 @@ void pftimestep::start(fdm *a, lexer *p,ghostcell *pgc, turbulence *pturb)
         }
     }
     
-    if(p->A300==2)
+    if(p->A10==4)
     {
     ULOOP
     {

@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/liceonephases/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_fg_fsf_update.h"
+#include"ptf_fsf_update.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -27,19 +27,19 @@ along with this program; if not, see <http://www.gnu.org/liceonephases/>.
 #include"onephase.h"
 #include"slice.h"
 
-fnpf_fg_fsf_update::fnpf_fg_fsf_update(lexer *p, fdm *a, ghostcell *pgc) 
+ptf_fsf_update::ptf_fsf_update(lexer *p, fdm *a, ghostcell *pgc) 
 {
     gcval_u = 10;
     gcval_v = 11;
     gcval_w = 12;
 }
 
-fnpf_fg_fsf_update::~fnpf_fg_fsf_update()
+ptf_fsf_update::~ptf_fsf_update()
 {
-    
+
 }
 
-void fnpf_fg_fsf_update::fsfupdate(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, onephase *poneph, slice &eta)
+void ptf_fsf_update::fsfupdate(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, onephase *poneph, slice &eta)
 {
     // update phi
     FLUIDLOOP
@@ -51,7 +51,7 @@ void fnpf_fg_fsf_update::fsfupdate(lexer *p, fdm *a, ghostcell *pgc, ioflow *pfl
     poneph->update(p,a,pgc,pflow);
 }
 
-void fnpf_fg_fsf_update::etaloc(lexer *p, fdm *a, ghostcell *pgc)
+void ptf_fsf_update::etaloc(lexer *p, fdm *a, ghostcell *pgc)
 {
     // find k location for eta, i.e. zero level set
     SLICELOOP4
@@ -61,15 +61,15 @@ void fnpf_fg_fsf_update::etaloc(lexer *p, fdm *a, ghostcell *pgc)
     a->etaloc(i,j) = MAX(a->etaloc(i,j),k);
 }
 
-void fnpf_fg_fsf_update::etaloc_sig(lexer *p, fdm *a, ghostcell *pgc)
+void ptf_fsf_update::etaloc_sig(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void fnpf_fg_fsf_update::fsfbc_sig(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field &Fi)
+void ptf_fsf_update::fsfbc_sig(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field &Fi)
 {
 }
 
-void fnpf_fg_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field &Fi)
+void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field &Fi)
 {
     AIRLOOP
     Fi(i,j,k)=0.0; 
@@ -139,11 +139,11 @@ void fnpf_fg_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, f
     }*/
 }
 
-void fnpf_fg_fsf_update::fsfepol(lexer *p, fdm *a, ghostcell *pgc, slice &eta, field &Fi)
+void ptf_fsf_update::fsfepol(lexer *p, fdm *a, ghostcell *pgc, slice &eta, field &Fi)
 {
 }
 
-void fnpf_fg_fsf_update::velcalc(lexer *p, fdm *a, ghostcell *pgc, field &f)
+void ptf_fsf_update::velcalc(lexer *p, fdm *a, ghostcell *pgc, field &f)
 {
     double H,phival;
     double epsi = 1.6*p->DXM;
@@ -204,6 +204,6 @@ void fnpf_fg_fsf_update::velcalc(lexer *p, fdm *a, ghostcell *pgc, field &f)
 }
 
 
-void fnpf_fg_fsf_update::velcalc_sig(lexer *p, fdm *a, ghostcell *pgc, field &f)
+void ptf_fsf_update::velcalc_sig(lexer *p, fdm *a, ghostcell *pgc, field &f)
 {
 }

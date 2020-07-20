@@ -46,7 +46,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void driver::driver_ini_fnpf_fg()
+void driver::driver_ini_ptf()
 {
 p->count=0;
 
@@ -85,7 +85,7 @@ cout<<"starting driver_ini_FNPF"<<endl;
 
     ptstep->ini(a,p,pgc);
 
-    ppffg->ini(p,a,pgc,pflow,preini,poneph);  // --- 
+   pptf->ini(p,a,pgc,pflow,preini,poneph);  // --- 
     pflow->eta_relax(p,pgc,a->eta);
     pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,250);
@@ -93,7 +93,7 @@ cout<<"starting driver_ini_FNPF"<<endl;
     
 	pflow->inflow(p,a,pgc,a->u,a->v,a->w);
     
-    ppffg->inidisc(p,a,pgc);
+   pptf->inidisc(p,a,pgc);
 
     pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
 	pfprint->start(p,c,pgc,pflow);

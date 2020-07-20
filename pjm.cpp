@@ -40,7 +40,7 @@ pjm::pjm(lexer* p, fdm *a, heat *&pheat, concentration *&ppconc)
 {
     pconc = ppconc;
     
-    if((p->F80==0||p->A10==4) && p->H10==0 && p->W30==0 && p->W90==0)
+    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0 && p->W90==0)
 	pd = new density_f(p);
 	
 	if(p->F80==0 && p->H10==0 && p->W30==1 && p->W90==0)

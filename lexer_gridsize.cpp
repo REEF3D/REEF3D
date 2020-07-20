@@ -75,6 +75,6 @@ void lexer::vellast()
     
     flast=0;
     
-    if(A10==3 && A300==1)
+    if(A10==3)
     flast=1;
 }

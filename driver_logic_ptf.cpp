@@ -37,7 +37,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"6DOF_header.h"
 #include"waves_header.h"
 
-void driver::logic_fnpf_fg()
+void driver::logic_ptf()
 {    
     if(p->mpirank==0)
     cout<<"creating objects"<<endl;
@@ -83,10 +83,10 @@ void driver::logic_fnpf_fg()
     }
     
 //  Free Surface
-    if(p->A300==1)
+    if(p->A10!=4)
     poneph = new onephase_v(p,a,pgc);
     
-    if(p->A300==2)
+    if(p->A10==4)
     poneph = new onephase_f(p,a,pgc);
     
 //  Laplace Solver	
@@ -123,10 +123,10 @@ void driver::logic_fnpf_fg()
     
 //  Wave Models
     if(p->A310==3)
-    ppffg = new fnpf_fg_RK3(p,a,pgc);
+    pptf = new ptf_RK3(p,a,pgc);
         
     if(p->A310==4)
-    ppffg = new fnpf_fg_RK4(p,a,pgc);
+    pptf = new ptf_RK4(p,a,pgc);
     
-    loop_fnpf_fg(a);
+    loop_ptf(a);
 }

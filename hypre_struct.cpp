@@ -33,7 +33,7 @@ hypre_struct::hypre_struct(lexer* p,fdm* a,ghostcell *pgc, int solve_input, int 
 {	
     int vecsize=p->knox*p->knoy*p->knoz; 
     
-    if(p->A10==3 && p->A300==1)
+    if(p->A10==3)
     vecsize=p->knox*p->knoy*(p->knoz+1); 
     
     p->Iarray(ilower,3);

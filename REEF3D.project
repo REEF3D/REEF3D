@@ -39,6 +39,31 @@
   <Dependencies/>
   <VirtualDirectory Name="HEADERS">
     <VirtualDirectory Name="Hydrodynamics">
+      <VirtualDirectory Name="PTF">
+        <VirtualDirectory Name="Update">
+          <File Name="ptf_fsf_update.h"/>
+          <File Name="ptf_bed_update.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Laplace">
+          <File Name="ptf_laplace_cds4.h"/>
+          <File Name="ptf_laplace_cds2.h"/>
+          <File Name="ptf_laplace.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Initialize"/>
+        <VirtualDirectory Name="FSFBC">
+          <File Name="ptf_fsfbc.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="PTF">
+          <File Name="ptf_v.h"/>
+          <File Name="ptf_RK4.h"/>
+          <File Name="ptf_RK3.h"/>
+          <File Name="ptf.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Time"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Convect"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <VirtualDirectory Name="Turbulence">
           <File Name="sflow_turbulence.h"/>
@@ -229,8 +254,6 @@
           <File Name="fnpf_sigma.h"/>
           <File Name="fnpf_sg_fsf_update.h"/>
           <File Name="fnpf_sg_bed_update.h"/>
-          <File Name="fnpf_fg_fsf_update.h"/>
-          <File Name="fnpf_fg_bed_update.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
           <File Name="potentialfile_out.h"/>
@@ -250,9 +273,6 @@
           <File Name="fnpf_sg_laplace_cds2_v2.h"/>
           <File Name="fnpf_sg_laplace_cds2.h"/>
           <File Name="fnpf_sg_laplace.h"/>
-          <File Name="fnpf_fg_laplace_cds4.h"/>
-          <File Name="fnpf_fg_laplace_cds2.h"/>
-          <File Name="fnpf_fg_laplace.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Initialize">
           <File Name="fnpf_sg_ini.h"/>
@@ -261,17 +281,12 @@
           <File Name="fnpf_sg_fsfbc_wd.h"/>
           <File Name="fnpf_sg_fsfbc.h"/>
           <File Name="fnpf_sg_fsf.h"/>
-          <File Name="fnpf_fg_fsfbc.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FNPF">
           <File Name="fnpf_sg_v.h"/>
           <File Name="fnpf_sg_RK4.h"/>
           <File Name="fnpf_sg_RK3.h"/>
           <File Name="fnpf_sg.h"/>
-          <File Name="fnpf_fg_v.h"/>
-          <File Name="fnpf_fg_RK4.h"/>
-          <File Name="fnpf_fg_RK3.h"/>
-          <File Name="fnpf_fg.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
           <File Name="fdm_fnpf.h"/>
@@ -943,6 +958,27 @@
   </VirtualDirectory>
   <VirtualDirectory Name="SOURCES">
     <VirtualDirectory Name="Hydrodynamics">
+      <VirtualDirectory Name="PTF">
+        <VirtualDirectory Name="Update">
+          <File Name="ptf_fsf_update.cpp"/>
+          <File Name="ptf_bed_update.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Laplace">
+          <File Name="ptf_laplace_cds4.cpp"/>
+          <File Name="ptf_laplace_cds2.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Initialize"/>
+        <VirtualDirectory Name="FSFBC">
+          <File Name="ptf_fsfbc.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="PTF">
+          <File Name="ptf_v.cpp"/>
+          <File Name="ptf_RK4.cpp"/>
+          <File Name="ptf_RK3.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="FDM"/>
+        <VirtualDirectory Name="Convect"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <File Name="sflow_v.cpp"/>
         <File Name="sflow_f_logic.cpp"/>
@@ -1134,8 +1170,6 @@
           <File Name="fnpf_sigma.cpp"/>
           <File Name="fnpf_sg_fsf_update.cpp"/>
           <File Name="fnpf_sg_bed_update.cpp"/>
-          <File Name="fnpf_fg_fsf_update.cpp"/>
-          <File Name="fnpf_fg_bed_update.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
           <File Name="fnpf_vtu3D.cpp"/>
@@ -1180,8 +1214,6 @@
           <File Name="fnpf_sg_laplace_cds2_v3.cpp"/>
           <File Name="fnpf_sg_laplace_cds2_v2.cpp"/>
           <File Name="fnpf_sg_laplace_cds2.cpp"/>
-          <File Name="fnpf_fg_laplace_cds4.cpp"/>
-          <File Name="fnpf_fg_laplace_cds2.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Initialize">
           <File Name="fnpf_sg_ini.cpp"/>
@@ -1194,15 +1226,11 @@
           <File Name="fnpf_sg_fsfbc_damping.cpp"/>
           <File Name="fnpf_sg_fsfbc.cpp"/>
           <File Name="fnpf_sg_breaking.cpp"/>
-          <File Name="fnpf_fg_fsfbc.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FNPF">
           <File Name="fnpf_sg_v.cpp"/>
           <File Name="fnpf_sg_RK4.cpp"/>
           <File Name="fnpf_sg_RK3.cpp"/>
-          <File Name="fnpf_fg_v.cpp"/>
-          <File Name="fnpf_fg_RK4.cpp"/>
-          <File Name="fnpf_fg_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
           <File Name="fdm_fnpf.cpp"/>
@@ -1853,9 +1881,9 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
       <VirtualDirectory Name="Driver">
+        <File Name="driver_ini_ptf.cpp"/>
         <File Name="driver_makegrid_nhflow.cpp"/>
         <File Name="driver_ini_nhflow.cpp"/>
-        <File Name="driver_ini_fnpf_fg.cpp"/>
         <File Name="driver_ini_fnpf_sg.cpp"/>
         <File Name="driver_makegrid_fnpf.cpp"/>
         <File Name="driver_memory.cpp"/>
@@ -2153,14 +2181,14 @@
       <File Name="driver.cpp"/>
       <File Name="lexer.cpp" ExcludeProjConfig=""/>
       <VirtualDirectory Name="Logic">
+        <File Name="driver_logic_ptf.cpp"/>
         <File Name="driver_logic_fnpf_sg.cpp"/>
-        <File Name="driver_logic_fnpf_fg.cpp"/>
         <File Name="driver_logic_cfd.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Mainloop">
+        <File Name="driver_loop_ptf.cpp"/>
         <File Name="driver_loop_nhflow.cpp"/>
         <File Name="driver_loop_cfd_fsi.cpp"/>
-        <File Name="driver_loop_fnpf_fg.cpp"/>
         <File Name="driver_loop_fnpf_sg.cpp"/>
         <File Name="driver_loop_cfd.cpp"/>
         <File Name="driver_loop_nsewave.cpp"/>

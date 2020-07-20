@@ -20,39 +20,31 @@ along with this program; if not, see <http://www.gnu.org/liceonephases/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"onephase.h"
 #include"increment.h"
+#include"slice4.h"
 
-class lexer;
-class fdm;
-class ghostcell;
-class onephase;
-class ioflow;
-class slice;
 class field;
+class fnpf_convection;
 
 using namespace std;
 
-#ifndef FNPF_FG_FSF_UPDATE_H_
-#define FNPF_FG_FSF_UPDATE_H_
+#ifndef PTF_BED_UPDATE_H_
+#define PTF_BED_UPDATE_H_
 
-class fnpf_fg_fsf_update : public increment
+class ptf_bed_update : public increment
 {
 public:
-    fnpf_fg_fsf_update(lexer*, fdm*, ghostcell*);
-	virtual ~fnpf_fg_fsf_update();
+    ptf_bed_update(lexer*, fdm*, ghostcell*);
+	virtual ~ptf_bed_update();
     
-    virtual void fsfepol(lexer*, fdm*, ghostcell*,slice&,field&);
-	virtual void fsfupdate(lexer*, fdm*, ghostcell*,ioflow*,onephase*,slice&);
-    virtual void etaloc_sig(lexer*, fdm*, ghostcell*);
-    virtual void etaloc(lexer*, fdm*, ghostcell*);
-    virtual void fsfbc_sig(lexer*, fdm*, ghostcell*,slice&,field&);
-    virtual void fsfbc(lexer*, fdm*, ghostcell*,slice&,field&);
-    
-    void velcalc(lexer*, fdm*, ghostcell *pgc, field&);
-    void velcalc_sig(lexer*, fdm*, ghostcell *pgc, field&);
-    
+	virtual void bedbc(lexer*, fdm*, ghostcell*,field&);
+    virtual void waterdepth(lexer*, fdm*, ghostcell*);
+
 private: 
-    int gcval,gcval_u,gcval_v,gcval_w;
+    
+    fnpf_convection *pconvec;
+
 
 };
 

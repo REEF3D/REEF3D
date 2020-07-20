@@ -20,19 +20,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_fg_laplace.h"
+#include"ptf_laplace.h"
 #include"increment.h"
 
-#ifndef FNPF_FG_LAPLACE_CDS4_H_
-#define FNPF_FG_LAPLACE_CDS4_H_
+#ifndef PTF_LAPLACE_CDS4_H_
+#define PTF_LAPLACE_CDS4_H_
 
 using namespace std;
 
-class fnpf_fg_laplace_cds4 : public fnpf_fg_laplace, public increment
+class ptf_laplace_cds4 : public ptf_laplace, public increment
 {
 public:
-    fnpf_fg_laplace_cds4 ();
-	virtual ~fnpf_fg_laplace_cds4();
+    ptf_laplace_cds4 ();
+	virtual ~ptf_laplace_cds4();
 
     virtual void start(lexer *,fdm*,ghostcell*,solver*,field&);
     

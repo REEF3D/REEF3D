@@ -200,7 +200,7 @@ void iowave::active_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
 		}
 	
         // NSEWAVE
-        if(p->A10==4)
+        if(p->A10==5)
         for(n=0;n<gcgen1_count;++n)
 		{
 		i=gcgen1[n][0];
@@ -345,7 +345,7 @@ void iowave::active_wavegen2(lexer *p, fdm* a, ghostcell* pgc, field& u, field& 
 		}
         
         // NSEWAVE
-        if(p->A10==4)
+        if(p->A10==5)
         for(n=0;n<gcgen1_count;++n)
 		{
 		i=gcgen1[n][0];

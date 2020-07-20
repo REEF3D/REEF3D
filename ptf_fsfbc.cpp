@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_fg_fsfbc.h"
+#include"ptf_fsfbc.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -35,7 +35,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_cds6.h"
 #include"fnpf_weno.h"
 
-fnpf_fg_fsfbc::fnpf_fg_fsfbc(lexer *p, fdm *a, ghostcell *pgc) : Fx(p),Fy(p),Fz(p),Ex(p),Ey(p)
+ptf_fsfbc::ptf_fsfbc(lexer *p, fdm *a, ghostcell *pgc) : Fx(p),Fy(p),Fz(p),Ex(p),Ey(p)
 {    
     if(p->A311==0)
     pconvec = new fnpf_voiddisc(p);
@@ -53,11 +53,11 @@ fnpf_fg_fsfbc::fnpf_fg_fsfbc(lexer *p, fdm *a, ghostcell *pgc) : Fx(p),Fy(p),Fz(
     pconvec = new fnpf_cds6(p);
 }
 
-fnpf_fg_fsfbc::~fnpf_fg_fsfbc()
+ptf_fsfbc::~ptf_fsfbc()
 {
 }
 
-void fnpf_fg_fsfbc::fsfdisc(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &Fifsf, field &Fi)
+void ptf_fsfbc::fsfdisc(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &Fifsf, field &Fi)
 {
     // fi
     FILOOP4
@@ -74,7 +74,7 @@ void fnpf_fg_fsfbc::fsfdisc(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice 
     }
 }
 
-void fnpf_fg_fsfbc::kfsfbc(lexer *p, fdm *a, ghostcell *pgc)
+void ptf_fsfbc::kfsfbc(lexer *p, fdm *a, ghostcell *pgc)
 {
     SLICELOOP4
     a->K(i,j) = - Fx(i,j)*Ex(i,j) - Fy(i,j)*Ey(i,j) 
@@ -82,7 +82,7 @@ void fnpf_fg_fsfbc::kfsfbc(lexer *p, fdm *a, ghostcell *pgc)
                 + Fz(i,j)*(1.0 + pow(Ex(i,j),2.0) + pow(Ey(i,j),2.0));
 }
 
-void fnpf_fg_fsfbc::dfsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
+void ptf_fsfbc::dfsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
 {
     SLICELOOP4
     a->K(i,j) = - 0.5*pow(Fx(i,j),2.0) - 0.5*pow(Fy(i,j),2.0) 

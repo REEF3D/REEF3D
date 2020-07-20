@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void lexer::ini_default()
 {
     // Hydrodynamic Models
-    A10=5;       // int turn on wave models
+    A10=6;       // int turn on wave models
     A209=2;      // int interpolation sweeps for bed
 	A210=3;		  // int time scheme for SFLOW velocities
 	A211=4;		  // int convection scheme for SLOW velocities
@@ -57,7 +57,6 @@ void lexer::ini_default()
     A261=0.267;  // double length scale factor
     A262=0.0667; // double parabolic turbulence model factor
     
-    A300=1;      // int sigma or fixed grid
     A310=3;		  // int time scheme for FNPF velocities
     A311=5;		  // int convection scheme for FNPF velocities
     A312=2;      // int discretization for second-order gradient

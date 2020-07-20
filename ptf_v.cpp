@@ -10,33 +10,36 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-class lexer;
-class fdm;
-class field;
-class ghostcell;
-class solver;
+#include"ptf_v.h"
 
-#ifndef FNPF_FG_LAPLACE_H_
-#define FNPF_FG_LAPLACE_H_
-
-using namespace std;
-
-class fnpf_fg_laplace
+ptf_void::ptf_void()
 {
-public:
+}
 
-    virtual void start(lexer *,fdm*,ghostcell*,solver*,field&)=0;
+ptf_void::~ptf_void()
+{
+}
 
-};
+void ptf_void::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
+{	
+	
+}
 
-#endif
+void ptf_void::ini(lexer *p, fdm *a, ghostcell *pgc,ioflow *pflow, reini *preini, convection *pconvec)
+{	
+}
+
+void ptf_void::inidisc(lexer *p, fdm *a, ghostcell *pgc)
+{	
+    
+}
+   
