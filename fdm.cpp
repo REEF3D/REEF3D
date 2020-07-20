@@ -40,7 +40,8 @@ fdm::fdm(lexer *p)
 			nodeval(p),flag(p),etaloc(p),
             eta(p),eta_n(p),WL(p),depth(p),Fifsf(p),
             Fz(p),
-            bed(p),bedzh(p),bedk(p),wet(p),
+            bed(p),bedzh(p),bedzh0(p),
+            bedk(p),wet(p),
             bedload(p),
             P(p),Q(p),K(p),
 			xvec(p),rhsvec(p),visctot(p),M(p)

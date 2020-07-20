@@ -48,7 +48,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #define WLVL (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0-20)
 
-void driver::driver_ini_fnpf_sg()
+void driver::driver_ini_fnpf()
 {
     // count cells
     int count=0;

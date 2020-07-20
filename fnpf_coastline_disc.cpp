@@ -19,12 +19,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_sg_coastline.h"
+#include"fnpf_coastline.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"slice.h"
 
-void fnpf_sg_coastline::disc(lexer *p, ghostcell *pgc, slice &f)
+void fnpf_coastline::disc(lexer *p, ghostcell *pgc, slice &f)
 {
     double dx,dy,xmin,xplus,ymin,yplus;
     double lsv,lsSig;

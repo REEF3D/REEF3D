@@ -19,38 +19,28 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_coastline.h"
-#include"lexer.h"
-#include"ghostcell.h"
-#include"slice.h"
-#include"sliceint.h"
+#include"fnpf_v.h"
 
-fnpf_coastline::fnpf_coastline(lexer* p) :  ddweno_f_nug(p), frk1(p),frk2(p),L(p),dt(p),wet_n(p)
-{
-    time_preproc(p); 
-}
-
-fnpf_coastline::~fnpf_coastline()
+fnpf_void::fnpf_void()
 {
 }
 
-void fnpf_coastline::start(lexer *p, ghostcell *pgc, slice &coastline, sliceint &wet, sliceint &wet_n)
+fnpf_void::~fnpf_void()
 {
-    if(p->count==0)
-    {
-        SLICELOOP4
-        {
-            if(wet(i,j)==0)
-            coastline(i,j)=-1.0;
-            
-            if(wet(i,j)==1)
-            coastline(i,j)=1.0;
+}
+
+void fnpf_void::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
+{	
+	
+}
+
+
+void fnpf_void::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, solver *psolv)
+{	
+    
+}
    
-        }
-        reini(p,pgc,coastline);
-    }
+void fnpf_void::ini_wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+{	
+    
 }
-
-
-
-

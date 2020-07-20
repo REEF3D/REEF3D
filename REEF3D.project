@@ -251,9 +251,9 @@
       </VirtualDirectory>
       <VirtualDirectory Name="FNPF">
         <VirtualDirectory Name="Update">
+          <File Name="fnpf_fsf_update.h"/>
+          <File Name="fnpf_bed_update.h"/>
           <File Name="fnpf_sigma.h"/>
-          <File Name="fnpf_sg_fsf_update.h"/>
-          <File Name="fnpf_sg_bed_update.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
           <File Name="potentialfile_out.h"/>
@@ -267,26 +267,26 @@
           <File Name="fnpf_print_wsf.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
-          <File Name="fnpf_sg_laplace_cds4_bc2.h"/>
-          <File Name="fnpf_sg_laplace_cds4.h"/>
-          <File Name="fnpf_sg_laplace_cds2_v3.h"/>
-          <File Name="fnpf_sg_laplace_cds2_v2.h"/>
-          <File Name="fnpf_sg_laplace_cds2.h"/>
-          <File Name="fnpf_sg_laplace.h"/>
+          <File Name="fnpf_laplace_cds4_bc2.h"/>
+          <File Name="fnpf_laplace_cds4.h"/>
+          <File Name="fnpf_laplace_cds2_v3.h"/>
+          <File Name="fnpf_laplace_cds2_v2.h"/>
+          <File Name="fnpf_laplace_cds2.h"/>
+          <File Name="fnpf_laplace.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Initialize">
-          <File Name="fnpf_sg_ini.h"/>
+          <File Name="fnpf_ini.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSFBC">
-          <File Name="fnpf_sg_fsfbc_wd.h"/>
-          <File Name="fnpf_sg_fsfbc.h"/>
-          <File Name="fnpf_sg_fsf.h"/>
+          <File Name="fnpf_fsfbc_wd.h"/>
+          <File Name="fnpf_fsfbc.h"/>
+          <File Name="fnpf_fsf.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FNPF">
-          <File Name="fnpf_sg_v.h"/>
-          <File Name="fnpf_sg_RK4.h"/>
-          <File Name="fnpf_sg_RK3.h"/>
-          <File Name="fnpf_sg.h"/>
+          <File Name="fnpf_v.h"/>
+          <File Name="fnpf_RK3.h"/>
+          <File Name="fnpf_RK4.h"/>
+          <File Name="fnpf.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
           <File Name="fdm_fnpf.h"/>
@@ -297,7 +297,7 @@
             <File Name="fnpf_discrete_weights.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Coastline">
-            <File Name="fnpf_sg_coastline.h"/>
+            <File Name="fnpf_coastline.h"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
@@ -1167,9 +1167,9 @@
       </VirtualDirectory>
       <VirtualDirectory Name="FNPF">
         <VirtualDirectory Name="Update">
+          <File Name="fnpf_bed_update.cpp"/>
+          <File Name="fnpf_fsf_update.cpp"/>
           <File Name="fnpf_sigma.cpp"/>
-          <File Name="fnpf_sg_fsf_update.cpp"/>
-          <File Name="fnpf_sg_bed_update.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
           <File Name="fnpf_vtu3D.cpp"/>
@@ -1209,28 +1209,28 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
-          <File Name="fnpf_sg_laplace_cds4_bc2.cpp"/>
-          <File Name="fnpf_sg_laplace_cds4.cpp"/>
-          <File Name="fnpf_sg_laplace_cds2_v3.cpp"/>
-          <File Name="fnpf_sg_laplace_cds2_v2.cpp"/>
-          <File Name="fnpf_sg_laplace_cds2.cpp"/>
+          <File Name="fnpf_laplace_cds4.cpp"/>
+          <File Name="fnpf_laplace_cds4_bc2.cpp"/>
+          <File Name="fnpf_laplace_cds2_v3.cpp"/>
+          <File Name="fnpf_laplace_cds2_v2.cpp"/>
+          <File Name="fnpf_laplace_cds2.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Initialize">
-          <File Name="fnpf_sg_ini.cpp"/>
+          <File Name="fnpf_ini.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSFBC">
-          <File Name="fnpf_sg_fsfbc_wd_wetdry.cpp"/>
-          <File Name="fnpf_sg_fsfbc_wd_damping.cpp"/>
-          <File Name="fnpf_sg_fsfbc_wd_breaking.cpp"/>
-          <File Name="fnpf_sg_fsfbc_wd.cpp"/>
-          <File Name="fnpf_sg_fsfbc_damping.cpp"/>
-          <File Name="fnpf_sg_fsfbc.cpp"/>
-          <File Name="fnpf_sg_breaking.cpp"/>
+          <File Name="fnpf_fsfbc_wd_wetdry.cpp"/>
+          <File Name="fnpf_fsfbc_wd_damping.cpp"/>
+          <File Name="fnpf_fsfbc_wd_breaking.cpp"/>
+          <File Name="fnpf_fsfbc_wd.cpp"/>
+          <File Name="fnpf_fsfbc_damping.cpp"/>
+          <File Name="fnpf_fsfbc.cpp"/>
+          <File Name="fnpf_breaking.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FNPF">
-          <File Name="fnpf_sg_v.cpp"/>
-          <File Name="fnpf_sg_RK4.cpp"/>
-          <File Name="fnpf_sg_RK3.cpp"/>
+          <File Name="fnpf_v.cpp"/>
+          <File Name="fnpf_RK4.cpp"/>
+          <File Name="fnpf_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
           <File Name="fdm_fnpf.cpp"/>

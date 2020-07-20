@@ -20,51 +20,35 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf.h"
-#include"increment.h"
-
 class lexer;
-class fdm;
 class ghostcell;
-class field;
+class fdm_fnpf;
+class fnpf_laplace;
+class slice;
 class fnpf_convection;
 class fnpf_ddx;
-class grid_sigma_data;
-class slice;
+class fnpf_etadisc;
 
 using namespace std;
 
-#ifndef GRID_SIGMA_H_
-#define GRID_SIGMA_H_
+#ifndef FNPF_FSF_H_
+#define FNPF_FSF_H_
 
-class grid_sigma : public increment
+class fnpf_fsf 
 {
 public:
-	grid_sigma(lexer*);
-	virtual ~grid_sigma();
+   
+    virtual void fsfdisc(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&)=0;
+    virtual void fsfdisc_ini(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&)=0;
+    virtual void kfsfbc(lexer*,fdm_fnpf*,ghostcell*)=0;
+    virtual void dfsfbc(lexer*,fdm_fnpf*,ghostcell*,slice&)=0;
+    virtual void fsfwvel(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&)=0;
+    virtual void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&)=0;
+    virtual void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double)=0;
+    virtual void coastline_eta(lexer*,fdm_fnpf*,ghostcell*,slice&)=0;
+    virtual void coastline_fi(lexer*,fdm_fnpf*,ghostcell*,slice&)=0;
+    virtual void damping(lexer*,fdm_fnpf*,ghostcell*,slice&,int,double)=0;
     
-    virtual void sigma_coord_ini(lexer*);
-    virtual void sigma_ini(lexer*, fdm*, ghostcell*, slice&);
-    virtual void sigma_update(lexer*, fdm*, ghostcell*, slice&);
-    
-    
-    double sigmax(lexer*,field&,int);
-    double sigmay(lexer*,field&,int);
-    double sigmaz(lexer*,field&,int);
-
-        
-private:
-    
-    void disc_bed(lexer*, fdm*, ghostcell*);
-    void disc_eta(lexer*, fdm*, ghostcell*);
-    
-    fnpf_convection *pdx;
-    fnpf_ddx *pddx;
-    grid_sigma_data *pd;
-    
-    
-    
-    double sig;
 };
 
 #endif

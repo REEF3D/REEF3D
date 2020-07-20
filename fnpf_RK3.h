@@ -17,40 +17,49 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_coastline.h"
-#include"lexer.h"
-#include"ghostcell.h"
-#include"slice.h"
-#include"sliceint.h"
+#include"fnpf.h"
+#include"fnpf_ini.h"
+#include"fnpf_sigma.h"
+#include"slice4.h"
 
-fnpf_coastline::fnpf_coastline(lexer* p) :  ddweno_f_nug(p), frk1(p),frk2(p),L(p),dt(p),wet_n(p)
+class fnpf_laplace;
+class fnpf_fsf;
+class field;
+
+using namespace std;
+
+#ifndef FNPF_RK3_H_
+#define FNPF_RK3_H_
+
+class fnpf_RK3 : public fnpf_ini, public fnpf_sigma
 {
-    time_preproc(p); 
-}
+public:
+	fnpf_RK3(lexer*, fdm_fnpf*, ghostcell*);
+	virtual ~fnpf_RK3();
+    
+    virtual void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*);
+    virtual void inidisc(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*);
+    virtual void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*);
+    
+private:
 
-fnpf_coastline::~fnpf_coastline()
-{
-}
+    int gcval,gcval_u,gcval_v,gcval_w;
+    int gcval_eta,gcval_fifsf;
+    int hypre_type;
+    double starttime,endtime;
 
-void fnpf_coastline::start(lexer *p, ghostcell *pgc, slice &coastline, sliceint &wet, sliceint &wet_n)
-{
-    if(p->count==0)
-    {
-        SLICELOOP4
-        {
-            if(wet(i,j)==0)
-            coastline(i,j)=-1.0;
-            
-            if(wet(i,j)==1)
-            coastline(i,j)=1.0;
-   
-        }
-        reini(p,pgc,coastline);
-    }
-}
+    slice4 erk1,erk2;
+    slice4 frk1,frk2;
 
+    fnpf_laplace *plap;
+    fnpf_fsf *pf;
+    
+    int gcval_sl;
+    double t0;
 
+};
 
-
+#endif

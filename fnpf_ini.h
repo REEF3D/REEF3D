@@ -17,40 +17,43 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_coastline.h"
-#include"lexer.h"
-#include"ghostcell.h"
-#include"slice.h"
-#include"sliceint.h"
+#include"fnpf.h"
+#include"increment.h"
+#include"fnpf_fsf_update.h"
+#include"fnpf_bed_update.h"
 
-fnpf_coastline::fnpf_coastline(lexer* p) :  ddweno_f_nug(p), frk1(p),frk2(p),L(p),dt(p),wet_n(p)
+class lexer;
+class fdm_fnpf;
+class ghostcell;
+class print;
+class ioflow;
+class reini;
+class onephase;
+
+using namespace std;
+
+#ifndef FNPF_INI_H_
+#define FNPF_INI_H_
+
+class fnpf_ini : public fnpf, public increment, public fnpf_fsf_update, public fnpf_bed_update
 {
-    time_preproc(p); 
-}
+public:
+	fnpf_ini(lexer*, fdm_fnpf*, ghostcell*);
+	virtual ~fnpf_ini();
+    
+    virtual void ini(lexer*, fdm_fnpf*, ghostcell*, ioflow*, reini*, onephase*);
+    
+    void velcalc(lexer*, fdm_fnpf*, ghostcell *pgc, field&);
+    
+private:
 
-fnpf_coastline::~fnpf_coastline()
-{
-}
+    void lsm_ini(lexer*, fdm_fnpf*, ghostcell*, ioflow*);
 
-void fnpf_coastline::start(lexer *p, ghostcell *pgc, slice &coastline, sliceint &wet, sliceint &wet_n)
-{
-    if(p->count==0)
-    {
-        SLICELOOP4
-        {
-            if(wet(i,j)==0)
-            coastline(i,j)=-1.0;
-            
-            if(wet(i,j)==1)
-            coastline(i,j)=1.0;
-   
-        }
-        reini(p,pgc,coastline);
-    }
-}
+    int gcval,gcval_u,gcval_v,gcval_w;
 
+};
 
-
-
+#endif

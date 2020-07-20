@@ -6,7 +6,7 @@ This file is part of REEF3D.
 
 REEF3D is free software; you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3 of the License, or
+the Free Software Foundation; either version 3 of the B117, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
@@ -15,42 +15,40 @@ FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program; if not, see <http://www.gnu.org/licenses/>.
+along with this program; if not, see <http://www.gnu.org/liceonephases/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_coastline.h"
-#include"lexer.h"
-#include"ghostcell.h"
-#include"slice.h"
-#include"sliceint.h"
+#include"onephase.h"
+#include"increment.h"
+#include"slice4.h"
 
-fnpf_coastline::fnpf_coastline(lexer* p) :  ddweno_f_nug(p), frk1(p),frk2(p),L(p),dt(p),wet_n(p)
+class field;
+class vec;
+class fdm_fnpf;
+class fnpf_ddx;
+class fnpf_convection;
+class fnpf_fsf;
+
+using namespace std;
+
+#ifndef FNPF_BED_UPDATE_H_
+#define FNPF_BED_UPDATE_H_
+
+class fnpf_bed_update : public increment
 {
-    time_preproc(p); 
-}
+public:
+    fnpf_bed_update(lexer*);
+	virtual ~fnpf_bed_update();
+    
+    virtual void bedbc_sig(lexer*, fdm_fnpf*, ghostcell*,double*,fnpf_fsf*);
+    virtual void waterdepth(lexer*, fdm_fnpf*, ghostcell*);
 
-fnpf_coastline::~fnpf_coastline()
-{
-}
+private: 
+    
+    fnpf_convection *pconvec;
+    fnpf_ddx *pddx;
+};
 
-void fnpf_coastline::start(lexer *p, ghostcell *pgc, slice &coastline, sliceint &wet, sliceint &wet_n)
-{
-    if(p->count==0)
-    {
-        SLICELOOP4
-        {
-            if(wet(i,j)==0)
-            coastline(i,j)=-1.0;
-            
-            if(wet(i,j)==1)
-            coastline(i,j)=1.0;
-   
-        }
-        reini(p,pgc,coastline);
-    }
-}
-
-
-
-
+#endif

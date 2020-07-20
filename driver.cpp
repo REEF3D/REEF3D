@@ -170,7 +170,7 @@ void driver::pfsg_driver()
 
     makegrid_fnpf_cds(p,pgc);
 
-    logic_fnpf_sg();
+    logic_fnpf();
 }
 
 void driver::pffg_driver()

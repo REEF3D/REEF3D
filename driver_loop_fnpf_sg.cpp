@@ -37,9 +37,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"waves_header.h"
 #include"lexer.h"
 
-void driver::loop_fnpf_sg()
+void driver::loop_fnpf()
 {
-   driver_ini_fnpf_sg(); 
+   driver_ini_fnpf(); 
    
 //-----------MAINLOOP PFLOW----------------------------
 

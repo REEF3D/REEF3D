@@ -19,16 +19,16 @@ along with this program; if not, see <http://www.gnu.org/liceonephases/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"ptf_bed_update.h"
-#include"fnpf_fsfbc.h"
+ #include"fnpf_bed_update.h"
+#include"fnpf_fsf.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"fnpf_cds2.h"
 #include"fnpf_cds4.h"
 
-ptf_bed_update::ptf_bed_update(lexer *p, fdm *a, ghostcell *pgc) 
+fnpf_bed_update::fnpf_bed_update(lexer *p) 
 {    
     if(p->A313==2)
     pconvec = new fnpf_cds2(p);
@@ -37,36 +37,34 @@ ptf_bed_update::ptf_bed_update(lexer *p, fdm *a, ghostcell *pgc)
     pconvec = new fnpf_cds4(p);
 }
 
-ptf_bed_update::~ptf_bed_update()
+fnpf_bed_update::~fnpf_bed_update()
 {
 }
 
-void ptf_bed_update::bedbc(lexer *p, fdm *a, ghostcell *pgc, field &Fi)
+void fnpf_bed_update::bedbc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *Fi, fnpf_fsf *pf)
 {
-    double Fval;
+    // Calculate gradients
     
-    GC4LOOP
-    if(p->gcb4[n][3]==5 && (p->gcb4[n][4]==5 || p->gcb4[n][4]==21))
+    double bcval,denom;
+    k=0;
+    SLICELOOP4
     {
-        i = p->gcb4[n][0];
-        j = p->gcb4[n][1];
-        k = p->gcb4[n][2];
-        
-        Fval = ((a->depth(i+1,j)-a->depth(i-1,j))/(p->DXP[IP]+p->DXP[IM1]))*((Fi(i+1,j,k)-Fi(i-1,j,k))/(p->DXP[IP]+p->DXP[IM1]))
-             + ((a->depth(i,j+1)-a->depth(i,j-1))/(p->DYP[JP]+p->DYP[JM1]))*((Fi(i,j+1,k)-Fi(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1]));
+    bcval =   (c->Bx(i,j)*(c->Fi[FIp1JK]-c->Fi[FIm1JK])/(p->DXP[IP] + p->DXP[IM1])
     
-
-        Fi(i,j,k-1) = Fi(i,j,k) + 1.0*p->DXM*Fval;
-        Fi(i,j,k-2) = Fi(i,j,k) + 2.0*p->DXM*Fval;
-        Fi(i,j,k-3) = Fi(i,j,k) + 3.0*p->DXM*Fval;
+            +  c->By(i,j)*(c->Fi[FIJp1K]-c->Fi[FIJm1K])/(p->DYP[JP] + p->DYP[JM1]));
+            
+    denom =  p->sigz[IJ] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
+    
+    Fi[FIJKm1] = (bcval/denom)*(1.0*p->DZN[KP]) + Fi[FIJK];
+    Fi[FIJKm2] = (bcval/denom)*(2.0*p->DZN[KP]) + Fi[FIJK];
+    Fi[FIJKm3] = (bcval/denom)*(3.0*p->DZN[KP]) + Fi[FIJK];
     }
 }
 
-
-void ptf_bed_update::waterdepth(lexer *p, fdm *a, ghostcell *pgc)
+void fnpf_bed_update::waterdepth(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     SLICELOOP4
-	a->depth(i,j) = p->wd - a->bed(i,j);
+	c->depth(i,j) = p->wd - c->bed(i,j);
 }
 
 
