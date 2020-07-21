@@ -32,8 +32,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_hydrostatic.h"
 #include"sflow_vtp.h"
 #include"sflow_vtp_bed.h"
-#include"sflow_boussinesq_void.h"
-#include"sflow_boussinesq_peregrine.h"
 #include"sflow_filter.h"
 #include"sflow_turbulence.h"
 #include"sflow_sediment.h"

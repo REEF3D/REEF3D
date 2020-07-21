@@ -31,7 +31,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_hydrostatic.h"
 #include"sflow_vtp.h"
 #include"sflow_vtp_bed.h"
-#include"sflow_boussinesq.h"
 #include"sflow_sediment.h"
 
 void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
@@ -152,11 +151,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 
 	pprintbed->start(p,b,pgc);
 
-    // Boussinesq ini
-    pbouss->ini(p,b,pgc,b->P,b->Q);
-
 }
-
 
 void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
 {

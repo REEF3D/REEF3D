@@ -216,13 +216,6 @@
             </VirtualDirectory>
           </VirtualDirectory>
         </VirtualDirectory>
-        <VirtualDirectory Name="Boussinesq">
-          <File Name="sflow_boussinesq_void.h"/>
-          <File Name="sflow_boussinesq_peregrine.h"/>
-          <File Name="sflow_boussinesq_madsen92.h"/>
-          <File Name="sflow_boussinesq_abbott.h"/>
-          <File Name="sflow_boussinesq.h"/>
-        </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="NSEWAVE">
         <File Name="nsewave_v.h"/>
@@ -1129,12 +1122,6 @@
               <File Name="sflow_limiter_minmod.cpp"/>
             </VirtualDirectory>
           </VirtualDirectory>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Boussinesq">
-          <File Name="sflow_boussinesq_void.cpp"/>
-          <File Name="sflow_boussinesq_peregrine.cpp"/>
-          <File Name="sflow_boussinesq_madsen92.cpp"/>
-          <File Name="sflow_boussinesq_abbott.cpp"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="NSEWAVE">

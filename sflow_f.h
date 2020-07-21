@@ -38,7 +38,6 @@ class sflow_vtp;
 class sflow_vtp_bed;
 class sflow_convection;
 class sflow_diffusion;
-class sflow_boussinesq;
 class sflow_filter;
 class sflow_turbulence;
 class sflow_sediment;
@@ -78,7 +77,6 @@ private:
 	sflow_vtp_bed *pprintbed;
 	sflow_convection *pconvec;
 	sflow_diffusion *pdiff;
-    sflow_boussinesq *pbouss;
     sflow_filter *pfilter;
     sflow_turbulence *pturb;
     sflow_sediment *psed;
