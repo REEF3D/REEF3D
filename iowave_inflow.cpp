@@ -35,11 +35,8 @@ void iowave::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field&
 	if(p->B98==3)
 	dirichlet_wavegen(p,a,pgc,u,v,w);
 	
-	if(p->B98==5)
+	if(p->B98==4)
 	active_wavegen(p,a,pgc,u,v,w);
-	
-	if(p->B98==6)
-	active_wavegen2(p,a,pgc,u,v,w);
 	}
     
 	if(p->B99==3||p->B99==4||p->B99==5)
@@ -52,8 +49,13 @@ void iowave::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field&
 void iowave::rkinflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {
     if(p->I230==0)
-	if(p->B98==3 || p->B98==4 || p->B98==5)
+    {
+	if(p->B98==3)
 	dirichlet_wavegen(p,a,pgc,u,v,w);
+    
+    if(p->B98==4)
+	active_wavegen(p,a,pgc,u,v,w);
+    }
 	
 	if(p->B99==3||p->B99==4||p->B99==5)
 	active_beach(p,a,pgc,u,v,w);
