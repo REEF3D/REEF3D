@@ -84,10 +84,11 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 		if(p->gcslawa1[n][2]==2)
 		bb=1;
 
-        fx=1.0;
+
         
 			if(wsf>-1.0e19)
 			KLOOP 
+           PCHECK
 			{
                 //cout<<p->mpirank<<" eta_R: "<<eta_R<<" eta_M: "<<eta_M<<"   wsf: "<<wsf<<endl;
                 
@@ -131,16 +132,16 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 
 				if(z<=eta_M)
 				{
-				u(i+1*aa,j+1*bb,k)=Uc*fx;
-				u(i+2*aa,j+2*bb,k)=Uc*fx;
-				u(i+3*aa,j+3*bb,k)=Uc*fx;
+				u(i+1*aa,j+1*bb,k)=Uc;
+				u(i+2*aa,j+2*bb,k)=Uc;
+				u(i+3*aa,j+3*bb,k)=Uc;
 				}
 
 				if(z>=eta_M && z<eta_M+epsi)
 				{
-				u(i+1*aa,j+1*bb,k)=Uc*fx*H*fac1;
-				u(i+2*aa,j+2*bb,k)=Uc*fx*H*fac1;
-				u(i+3*aa,j+3*bb,k)=Uc*fx*H*fac1;
+				u(i+1*aa,j+1*bb,k)=Uc*H*fac1;
+				u(i+2*aa,j+2*bb,k)=Uc*H*fac1;
+				u(i+3*aa,j+3*bb,k)=Uc*H*fac1;
 				}
 
 				if(z>=eta_M+epsi)
