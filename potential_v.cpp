@@ -20,9 +20,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"potential_v.h"
-#include"ghostcell.h"
-#include"fdm.h"
-#include"lexer.h"
 
 potential_v::potential_v()
 {
@@ -32,7 +29,7 @@ potential_v::~potential_v()
 {
 }
 
-void potential_v::start(fdm* a,lexer*p,solver* psolv, ghostcell* pgc)
+void potential_v::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
 {
 }
 

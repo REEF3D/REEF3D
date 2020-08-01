@@ -368,7 +368,7 @@ public:
     double H61_T,H62_T,H63_T,H64_T,H65_T,H66_T;
 	
 	// Initialize Options
-	int I10,I11,I12,I13,I20,I30,I40,I41,I56;
+	int I10,I11,I12,I13,I30,I40,I41,I56;
 	double I21,I55,I58_1,I58_2;
     int I230;
     double I231,I232,I233;

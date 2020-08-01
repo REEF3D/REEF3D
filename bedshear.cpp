@@ -258,7 +258,6 @@ void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, double &tau_crit, d
     tau_crit = tauc;
     shearvel_crit = sqrt(tauc/p->W1);
     shields_crit = tauc/(p->W1*((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
-
 }
 
 double bedshear::shear_reduction(lexer *p, fdm *a, ghostcell *pgc)
@@ -267,8 +266,6 @@ double bedshear::shear_reduction(lexer *p, fdm *a, ghostcell *pgc)
 
     r=preduce->start(p,a,pgc);
     
-    
-
     return r;
 }
 

@@ -111,7 +111,7 @@ void driver::driver_ini_nhflow()
     // inflow ini
 	pflow->discharge(p,a,pgc);
 	pflow->inflow(p,a,pgc,a->u,a->v,a->w);
-	potflow->start(a,p,psolv,pgc);
+	potflow->start(p,a,psolv,pgc);
     pflow->wavegen_precalc(p,pgc);
     
 	if(p->I12>=1)

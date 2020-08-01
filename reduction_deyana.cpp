@@ -64,7 +64,6 @@ double reduction_deyana::start(lexer *p, fdm * a, ghostcell *pgc)
 	r=10.0;
     
     
-
     return r;
 }
 
