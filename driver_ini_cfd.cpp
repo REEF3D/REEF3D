@@ -173,7 +173,7 @@ cout<<"starting driver_ini"<<endl;
     
 	pgc->start4(p,a->press,40);
 	
-	//pflow->inflow(p,a,pgc,a->u,a->v,a->w,0.0);
+
     pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
 
 // ini variables

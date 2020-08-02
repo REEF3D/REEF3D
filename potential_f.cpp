@@ -81,9 +81,13 @@ void potential_f::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
     p->laplaceiter=p->solveriter;
 	p->laplacetime=endtime-starttime;
 	if(p->mpirank==0  && (p->count%p->P12==0))
-	cout<<"lapltime: "<<p->laplacetime<<"  lapiter: "<<p->laplaceiter<<endl;
+	cout<<"lapltime: "<<p->laplacetime<<"  lapiter: "<<p->laplaceiter<<endl<<endl;
 
     p->N46=itermem;
+    
+    LOOP
+    a->test(i,j,k) = a->press(i,j,k);
+    
     
     LOOP
     a->press(i,j,k) = 0.0;
@@ -149,6 +153,26 @@ void potential_f::rhs(lexer *p, fdm* a)
 
 void potential_f::laplace(lexer *p, fdm *a)
 {
+    n=0;
+    BASELOOP
+    {
+    a->M.p[n]  =  1.0;
+
+
+        a->M.n[n] = 0.0;
+        a->M.s[n] = 0.0;
+
+        a->M.w[n] = 0.0;
+        a->M.e[n] = 0.0;
+
+        a->M.t[n] = 0.0;
+        a->M.b[n] = 0.0;
+        
+        a->rhsvec.V[n] =  0.0;
+    ++n;
+    }
+    
+    
 	n=0;
     LOOP
 	{
@@ -182,8 +206,8 @@ void potential_f::laplace(lexer *p, fdm *a)
         
         if(p->flag4[Im1JK]<0 && bc(i-1,j,k)==1)
 		{
-        a->rhsvec.V[n] += a->M.s[n]*p->Ui*p->DXP[IM1];
-		a->M.p[n] += a->M.s[n];
+        a->rhsvec.V[n] += a->M.s[n]*p->Ui*p->DXP[IM1] -a->M.s[n]*a->press(i,j,k);
+		//a->M.p[n] += a->M.s[n];
 		a->M.s[n] = 0.0;
 		}
 		
