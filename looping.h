@@ -270,11 +270,22 @@ Author: Hans Bihs
 #define QQGCBCHECK if(gcb[qq][3]>0)
 #define QQGCLOOP QQGCB QQGCBCHECK
 
-#define GC4ALOOP  for(n=0;n<p->gcb4a_count;++n)
-#define QGC4ALOOP  for(q=0;q<p->gcb4a_count;++q)
-#define QQGC4ALOOP  for(qq=0;qq<p->gcb4a_count;++qq)
-#define GGC4ALOOP  for(g=0;g<p->gcb4a_count;++g)
-    
+#define GC4A  for(n=0;n<p->gcb4a_count;++n)
+#define GCB4ACHECK if(p->gcb4a[n][3]>SOLID)
+#define GC4ALOOP  GC4A GCB4ACHECK
+
+#define QGC4A  for(q=0;q<p->gcb4a_count;++q)
+#define QGCB4ACHECK if(p->gcb4a[q][3]>SOLID)
+#define QGC4ALOOP  QGC4A QGCB4ACHECK
+
+#define QQGC4A  for(qq=0;qq<p->gcb4a_count;++qq)
+#define QQGCB4ACHECK if(p->gcb4a[qq][3]>SOLID)
+#define QQGC4ALOOP  QQGC4A QQGCB4ACHECK
+
+#define GGC4A  for(g=0;g<p->gcb4a_count;++g)
+#define GGCB4ACHECK if(p->gcb4a[g][3]>SOLID)
+#define GGC4ALOOP  GGC4A GGCB4ACHECK
+        
 #define GC6LOOP  for(n=0;n<p->gcb_fix;++n)
 #define QGC6LOOP  for(q=0;q<p->gcb_fix;++q)
 #define QQGC6LOOP  for(qq=0;qq<p->gcb_fix;++qq)
