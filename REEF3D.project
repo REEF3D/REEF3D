@@ -1968,7 +1968,6 @@
           <File Name="geotopo_conv.cpp"/>
           <File Name="geotopo_dat.cpp"/>
           <File Name="geotopo_wedge.cpp"/>
-          <File Name="geotopo_solid.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Util">
           <File Name="boundarycheck.cpp"/>

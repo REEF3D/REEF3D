@@ -241,7 +241,7 @@ void mgc4a::gcdirfill(lexer* p)
 	for(qn=0;qn<4;++qn)	
 	p->gcorig4a[n][q][qn]=0;	
 	
-	QGC4LOOP
+	QGC4ALOOP
 	{
         i=p->gcb4a[q][0];
 		j=p->gcb4a[q][1];
@@ -299,10 +299,10 @@ void mgc4a::gcdirfill(lexer* p)
 }
 
 
-
 void mgc4a::fillgcb(lexer *p)
 {
     int q;
+
     
     QGC4ALOOP
 	{

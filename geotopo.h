@@ -45,7 +45,6 @@ private:
     void box(lexer*,fdm*,ghostcell*);
     void wedge(lexer*,fdm*,ghostcell*);
     void dat(lexer*,fdm*,ghostcell*);
-	void solid_topo(lexer*,fdm*,ghostcell*);
 
     int conv(double);
 

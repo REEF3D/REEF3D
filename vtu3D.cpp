@@ -370,8 +370,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 {    
     pgc->start4(p,a->test,1);
     pgc->start4(p,a->test,1);
-    pgc->start4a(p,a->solid,150);
-    
+
     pgc->start1(p,a->u,110);
     pgc->start2(p,a->v,111);
 	pgc->start3(p,a->w,112);

@@ -163,7 +163,4 @@ void ghostcell::topo_update(lexer *p, fdm *a)
 	if(p->mpirank==0)
 	cout<<"Topo: active number of cells: "<<count<<endl;
     
-    
-    if(p->mpirank==0)
-    cout<<endl;
 }

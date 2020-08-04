@@ -84,7 +84,6 @@ void reinitopo_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostcel
 	reiniter=2*int(p->maxlength/(p->F43*p->DXM));
     gcval=gcval_initopo;
 	pgc->start4aV(p,f,gcval);
-
 	}
 
 	if(p->count>0)
@@ -137,10 +136,8 @@ void reinitopo_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostcel
 	pgc->start4a(p,b,gcval_topo);
 
     
-    
 	p->reinitime+=pgc->timer()-starttime;
 }
-
 
 void reinitopo_RK3::step(lexer* p, fdm *a)
 {
