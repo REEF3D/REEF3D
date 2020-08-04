@@ -36,7 +36,7 @@ driver::driver(int& argc, char **argv)
     {
     cout<<endl<<"REEF3D_X (c) 2008-2020 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    cout<<endl<<"v_200628; " <<BRANCH<<"; "<<VERSION<<endl<<endl;
+    cout<<endl<<"v_200731; " <<BRANCH<<"; "<<VERSION<<endl<<endl;
     }
 
 	p->lexer_read(pgc);
@@ -51,18 +51,22 @@ driver::driver(int& argc, char **argv)
     if(p->A10==3)
     cout<<endl<<"REEF3D::FNPF" <<endl<<endl;
 
-    if(p->A10==4)
-    cout<<endl<<"REEF3D::NSEWAVE"<<endl<<endl;
-
-    if(p->A10==44)
-    cout<<endl<<"REEF3D::NHFLOW"<<endl<<endl;
+    if(p->A10==5)
+    cout<<endl<<"REEF3D::PTF" <<endl<<endl;
 
     if(p->A10==5)
+    cout<<endl<<"REEF3D::NSEWAVE"<<endl<<endl;
+
+    if(p->A10==55)
+    cout<<endl<<"REEF3D::NHFLOW"<<endl<<endl;
+
+    if(p->A10==6)
     cout<<endl<<"REEF3D::CFD" <<endl<<endl;
     }
 
-    // 3D Framework
-    if(p->A10==3 && p->A300==1)
+// 3D Framework
+    // sigma grid
+    if(p->A10==3)
     {
         p->flagini();
         p->gridini_outflow();
@@ -75,7 +79,8 @@ driver::driver(int& argc, char **argv)
         pfsg_driver();
     }
 
-    if((p->A10==3 && p->A300==2) || p->A10==4 || p->A10==44 || p->A10==5)
+    // fixed grid
+    if(p->A10==4 || p->A10==5 || p->A10==55 || p->A10==6)
     {
         p->flagini();
         p->gridini_outflow();
@@ -90,16 +95,16 @@ driver::driver(int& argc, char **argv)
         if(p->A10==3)
         pffg_driver();
 
-        if(p->A10==4)
+        if(p->A10==5)
         nsewave_driver();
 
-        if(p->A10==44)
+        if(p->A10==55)
         {
         makegrid_nhflow(p,pgc);
         nhflow_driver();
         }
 
-        if(p->A10==5)
+        if(p->A10==6)
         cfd_driver();
     }
 
@@ -165,7 +170,7 @@ void driver::pfsg_driver()
 
     makegrid_fnpf_cds(p,pgc);
 
-    logic_fnpf_sg();
+    logic_fnpf();
 }
 
 void driver::pffg_driver()
@@ -178,7 +183,7 @@ void driver::pffg_driver()
     aa=a;
     pgc->fdm_update(a);
 
-    logic_fnpf_fg();
+    logic_ptf();
 }
 
 void driver::sf_driver()

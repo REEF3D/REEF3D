@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 
-ccipol::ccipol(lexer* p):dx(p->dx)
+ccipol::ccipol(lexer* p):dx(p->DXM)
 {
 }
 

@@ -35,9 +35,9 @@ void ghostcell::gcsolid_gcb_dist(lexer *p, fdm *a)
         
         if(p->gcb4[n][4]==22)
         {
-        nx=(a->solid(i+1,j,k)-a->solid(i-1,j,k))/(2.0*p->dx);
-        ny=(a->solid(i,j+1,k)-a->solid(i,j-1,k))/(2.0*p->dx);
-        nz=(a->solid(i,j,k+1)-a->solid(i,j,k-1))/(2.0*p->dx);
+        nx=(a->solid(i+1,j,k)-a->solid(i-1,j,k))/(2.0*p->DXM);
+        ny=(a->solid(i,j+1,k)-a->solid(i,j-1,k))/(2.0*p->DXM);
+        nz=(a->solid(i,j,k+1)-a->solid(i,j,k-1))/(2.0*p->DXM);
 
         norm=sqrt(nx*nx + ny*ny + nz*nz);
 
@@ -83,8 +83,8 @@ void ghostcell::gcsolid_gcb_dist(lexer *p, fdm *a)
         p->gcd4[n]=fabs(a->solid(i,j,k));
         }
 		
-		p->gcd4[n] = MIN(p->gcd4[n],p->dx);
-		p->gcd4[n] = MAX(p->gcd4[n],0.1*p->dx);
+		p->gcd4[n] = MIN(p->gcd4[n],p->DXM);
+		p->gcd4[n] = MAX(p->gcd4[n],0.1*p->DXM);
     }
 }
 

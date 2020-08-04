@@ -155,6 +155,7 @@ public:
 	void gcsolid_velflag1(lexer*,fdm*, int&);
 	void gcsolid_velflag2(lexer*,fdm*, int&);
 	void gcsolid_velflag3(lexer*,fdm*, int&);
+    void gcb_velflagio(lexer*, fdm*);
 
 // topo update
 	void topo_update(lexer*,fdm*);
@@ -186,11 +187,6 @@ public:
 	void gcfb_scalarupdate(lexer*, fdm*, int **, int, field&);
     void gcfb_update_extra_gcb(lexer*,fdm*,field&);
     void gcb_generic(lexer* p,field& f,int *gcb_count, int ***gcb);
-
-// Forcing
-    void forcing1(lexer*,fdm*,field&,field&,field&,field&,double);
-	void forcing2(lexer*,fdm*,field&,field&,field&,field&,double);
-	void forcing3(lexer*,fdm*,field&,field&,field&,field&,double);
 
 // IBM
     void distguard(lexer*);

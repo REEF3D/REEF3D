@@ -162,9 +162,9 @@ void ghostcell::gcfb_scalarupdate(lexer *p, fdm *a, int **cellmem, int cellcount
 		
 		fbval = a->fb(i,j,k);
 		
-		nx=(a->fb(i+1,j,k)-a->fb(i-1,j,k))/(2.0*p->dx);
-		ny=(a->fb(i,j+1,k)-a->fb(i,j-1,k))/(2.0*p->dx);
-		nz=(a->fb(i,j,k+1)-a->fb(i,j,k-1))/(2.0*p->dx);
+		nx=(a->fb(i+1,j,k)-a->fb(i-1,j,k))/(2.0*p->DXM);
+		ny=(a->fb(i,j+1,k)-a->fb(i,j-1,k))/(2.0*p->DXM);
+		nz=(a->fb(i,j,k+1)-a->fb(i,j,k-1))/(2.0*p->DXM);
 
 		norm=sqrt(nx*nx + ny*ny + nz*nz);
 
@@ -172,9 +172,9 @@ void ghostcell::gcfb_scalarupdate(lexer *p, fdm *a, int **cellmem, int cellcount
 		ny/=norm;
 		nz/=norm;
 
-		posx = p->pos_x() + nx*(fabs(fbval) + p->dx);
-		posy = p->pos_y() + ny*(fabs(fbval) + p->dx);
-		posz = p->pos_z() + nz*(fabs(fbval) + p->dx);
+		posx = p->pos_x() + nx*(fabs(fbval) + p->DXM);
+		posy = p->pos_y() + ny*(fabs(fbval) + p->DXM);
+		posz = p->pos_z() + nz*(fabs(fbval) + p->DXM);
 		
 		
 		fval = p->ccipol4_a(f,posx,posy,posz);
@@ -199,9 +199,9 @@ void ghostcell::gcfb_scalarupdate(lexer *p, fdm *a, int **cellmem, int cellcount
 		
 		fbval = a->fb(i,j,k);
 		
-		nx=(a->fb(i+1,j,k)-a->fb(i-1,j,k))/(2.0*p->dx);
-		ny=(a->fb(i,j+1,k)-a->fb(i,j-1,k))/(2.0*p->dx);
-		nz=(a->fb(i,j,k+1)-a->fb(i,j,k-1))/(2.0*p->dx);
+		nx=(a->fb(i+1,j,k)-a->fb(i-1,j,k))/(2.0*p->DXM);
+		ny=(a->fb(i,j+1,k)-a->fb(i,j-1,k))/(2.0*p->DXM);
+		nz=(a->fb(i,j,k+1)-a->fb(i,j,k-1))/(2.0*p->DXM);
 
 		norm=sqrt(nx*nx + ny*ny + nz*nz);
 
@@ -209,9 +209,9 @@ void ghostcell::gcfb_scalarupdate(lexer *p, fdm *a, int **cellmem, int cellcount
 		ny/=norm;
 		nz/=norm;
 
-		posx = p->pos_x() + nx*(fabs(fbval) + p->dx);
-		posy = p->pos_y() + ny*(fabs(fbval) + p->dx);
-		posz = p->pos_z() + nz*(fabs(fbval) + p->dx);
+		posx = p->pos_x() + nx*(fabs(fbval) + p->DXM);
+		posy = p->pos_y() + ny*(fabs(fbval) + p->DXM);
+		posz = p->pos_z() + nz*(fabs(fbval) + p->DXM);
 		
 		fval = ccipol4(a,f,posx,posy,posz);
 
@@ -306,9 +306,9 @@ void ghostcell::gcfb_scalarupdate(lexer *p, fdm *a, int **cellmem, int cellcount
 		
 		fbval = a->fb(i,j,k);
 		
-		nx=(a->fb(i+1,j,k)-a->fb(i-1,j,k))/(2.0*p->dx);
-		ny=(a->fb(i,j+1,k)-a->fb(i,j-1,k))/(2.0*p->dx);
-		nz=(a->fb(i,j,k+1)-a->fb(i,j,k-1))/(2.0*p->dx);
+		nx=(a->fb(i+1,j,k)-a->fb(i-1,j,k))/(2.0*p->DXM);
+		ny=(a->fb(i,j+1,k)-a->fb(i,j-1,k))/(2.0*p->DXM);
+		nz=(a->fb(i,j,k+1)-a->fb(i,j,k-1))/(2.0*p->DXM);
 
 		norm=sqrt(nx*nx + ny*ny + nz*nz);
 
@@ -316,9 +316,9 @@ void ghostcell::gcfb_scalarupdate(lexer *p, fdm *a, int **cellmem, int cellcount
 		ny/=norm;
 		nz/=norm;
 
-		posx = p->pos_x() + nx*(fabs(fbval) + p->dx);
-		posy = p->pos_y() + ny*(fabs(fbval) + p->dx);
-		posz = p->pos_z() + nz*(fabs(fbval) + p->dx);
+		posx = p->pos_x() + nx*(fabs(fbval) + p->DXM);
+		posy = p->pos_y() + ny*(fabs(fbval) + p->DXM);
+		posz = p->pos_z() + nz*(fabs(fbval) + p->DXM);
 		
 		
 		fval = ccipol4_a(a,f,posx,posy,posz);
@@ -343,9 +343,9 @@ void ghostcell::gcfb_scalarupdate(lexer *p, fdm *a, int **cellmem, int cellcount
 		
 		fbval = a->fb(i,j,k);
 		
-		nx=(a->fb(i+1,j,k)-a->fb(i-1,j,k))/(2.0*p->dx);
-		ny=(a->fb(i,j+1,k)-a->fb(i,j-1,k))/(2.0*p->dx);
-		nz=(a->fb(i,j,k+1)-a->fb(i,j,k-1))/(2.0*p->dx);
+		nx=(a->fb(i+1,j,k)-a->fb(i-1,j,k))/(2.0*p->DXM);
+		ny=(a->fb(i,j+1,k)-a->fb(i,j-1,k))/(2.0*p->DXM);
+		nz=(a->fb(i,j,k+1)-a->fb(i,j,k-1))/(2.0*p->DXM);
 
 		norm=sqrt(nx*nx + ny*ny + nz*nz);
 
@@ -353,9 +353,9 @@ void ghostcell::gcfb_scalarupdate(lexer *p, fdm *a, int **cellmem, int cellcount
 		ny/=norm;
 		nz/=norm;
 
-		posx = p->pos_x() + nx*(fabs(fbval) + p->dx);
-		posy = p->pos_y() + ny*(fabs(fbval) + p->dx);
-		posz = p->pos_z() + nz*(fabs(fbval) + p->dx);
+		posx = p->pos_x() + nx*(fabs(fbval) + p->DXM);
+		posy = p->pos_y() + ny*(fabs(fbval) + p->DXM);
+		posz = p->pos_z() + nz*(fabs(fbval) + p->DXM);
 		
 		fval = ccipol4(a,f,posx,posy,posz);
 

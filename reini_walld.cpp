@@ -64,49 +64,49 @@ void reini_walld::start(fdm* a,lexer* p,field& b, ghostcell* pgc,ioflow* pflow)
         
         if(p->gcb4[qq][3]==1)
         {
-        f.V[Im1_J_K_4]=-0.5*p->dx - 0.0*p->dx;  
-        f.V[Im2_J_K_4]=-0.5*p->dx - 1.0*p->dx;  
-        f.V[Im3_J_K_4]=-0.5*p->dx - 2.0*p->dx;  
+        f.V[Im1_J_K_4]=-0.5*p->DXM - 0.0*p->DXM;  
+        f.V[Im2_J_K_4]=-0.5*p->DXM - 1.0*p->DXM;  
+        f.V[Im3_J_K_4]=-0.5*p->DXM - 2.0*p->DXM;  
         }
 
         if(p->gcb4[qq][3]==4)
         { 
-        f.V[Ip1_J_K_4]=-0.5*p->dx - 0.0*p->dx;  
-        f.V[Ip2_J_K_4]=-0.5*p->dx - 1.0*p->dx;  
-        f.V[Ip3_J_K_4]=-0.5*p->dx - 2.0*p->dx;  
+        f.V[Ip1_J_K_4]=-0.5*p->DXM - 0.0*p->DXM;  
+        f.V[Ip2_J_K_4]=-0.5*p->DXM - 1.0*p->DXM;  
+        f.V[Ip3_J_K_4]=-0.5*p->DXM - 2.0*p->DXM;  
         }
 
         if(p->gcb4[qq][3]==3)
         {
-        f.V[I_Jm1_K_4]=-0.5*p->dx - 0.0*p->dx;
-        f.V[I_Jm2_K_4]=-0.5*p->dx - 1.0*p->dx;
-        f.V[I_Jm3_K_4]=-0.5*p->dx - 2.0*p->dx;
+        f.V[I_Jm1_K_4]=-0.5*p->DXM - 0.0*p->DXM;
+        f.V[I_Jm2_K_4]=-0.5*p->DXM - 1.0*p->DXM;
+        f.V[I_Jm3_K_4]=-0.5*p->DXM - 2.0*p->DXM;
         }
         
         if(p->gcb4[qq][3]==2)
         {
-        f.V[I_Jp1_K_4]=-0.5*p->dx - 0.0*p->dx;
-        f.V[I_Jp2_K_4]=-0.5*p->dx - 1.0*p->dx;
-        f.V[I_Jp3_K_4]=-0.5*p->dx - 2.0*p->dx;
+        f.V[I_Jp1_K_4]=-0.5*p->DXM - 0.0*p->DXM;
+        f.V[I_Jp2_K_4]=-0.5*p->DXM - 1.0*p->DXM;
+        f.V[I_Jp3_K_4]=-0.5*p->DXM - 2.0*p->DXM;
         }
         
         if(p->gcb4[qq][3]==5)
         {
-        f.V[I_J_Km1_4]=-0.5*p->dx - 0.0*p->dx;
-        f.V[I_J_Km2_4]=-0.5*p->dx - 1.0*p->dx;
-        f.V[I_J_Km3_4]=-0.5*p->dx - 2.0*p->dx;
+        f.V[I_J_Km1_4]=-0.5*p->DXM - 0.0*p->DXM;
+        f.V[I_J_Km2_4]=-0.5*p->DXM - 1.0*p->DXM;
+        f.V[I_J_Km3_4]=-0.5*p->DXM - 2.0*p->DXM;
         }
                 
         if(p->gcb4[qq][3]==6)
         {
-        f.V[I_J_Kp1_4]=-0.5*p->dx - 0.0*p->dx;
-        f.V[I_J_Kp2_4]=-0.5*p->dx - 1.0*p->dx;
-        f.V[I_J_Kp3_4]=-0.5*p->dx - 2.0*p->dx;
+        f.V[I_J_Kp1_4]=-0.5*p->DXM - 0.0*p->DXM;
+        f.V[I_J_Kp2_4]=-0.5*p->DXM - 1.0*p->DXM;
+        f.V[I_J_Kp3_4]=-0.5*p->DXM - 2.0*p->DXM;
         }
     }
 
 	pgc->gcparaxvec(p,f,4);
-	dt=0.5*p->dx;
+	dt=0.5*p->DXM;
 	reiniter=2*int(p->maxlength/(dt));
 
 	for(int q=0;q<reiniter;++q)
@@ -134,7 +134,7 @@ void reini_walld::start(fdm* a,lexer* p,field& b, ghostcell* pgc,ioflow* pflow)
     k=p->gcb4[qq][2];
     n=p->gcb4[qq][5];
     
-	f.V[I_J_K_4]=0.5*p->dx;
+	f.V[I_J_K_4]=0.5*p->DXM;
 	}
 	
 	pgc->gcparaxvec(p,f,4);

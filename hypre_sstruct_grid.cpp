@@ -36,7 +36,7 @@ void hypre_sstruct::make_grid_7p(lexer* p,fdm* a, ghostcell* pgc)
     numvar = 1;
     object_type = HYPRE_SSTRUCT;
     
-    if(p->A10==3 && p->A300==1)
+    if(p->A10==3)
     kend=0;
     
     // grid
@@ -96,7 +96,7 @@ void hypre_sstruct::make_grid_13p(lexer* p,fdm* a, ghostcell* pgc)
     numvar = 1;
     object_type = HYPRE_PARCSR;
     
-    if(p->A10==3 && p->A300==1)
+    if(p->A10==3)
     kend=0;
     
     // grid

@@ -59,10 +59,6 @@ Author: Hans Bihs
 #include"sflow_pjm_lin.h"
 #include"sflow_pjm_quad.h"
 #include"sflow_pjm_sw.h"
-#include"sflow_boussinesq_void.h"
-#include"sflow_boussinesq_abbott.h"
-#include"sflow_boussinesq_peregrine.h"
-#include"sflow_boussinesq_madsen92.h"
 #include"sflow_filter.h"
 
 #include"sflow_sediment_f.h"

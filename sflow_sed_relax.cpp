@@ -109,10 +109,10 @@ double sflow_sediment_f::rf(lexer *p, fdm2D *b, ghostcell *pgc)
 			relax = r1(p,dist_S73[n],p->S73_dist[n]);
 			
 			if(distcount==1)
-            val=(1.0-relax);
+            val=(relax);
                 
 			if(distcount>1)
-            val += (1.0-relax) * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
+            val += (relax) * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
 			}
 		}
     
@@ -123,8 +123,10 @@ double sflow_sediment_f::r1(lexer *p, double x, double threshold)
 {
     double r=0.0;
 
-    x=1.0-x/(fabs(threshold)>1.0e-10?threshold:1.0e20);
+    x=(threshold-fabs(x))/(fabs(threshold)>1.0e-10?threshold:1.0e20);
     x=MAX(x,0.0);
+    
+
     r = 1.0 - (exp(pow(x,3.5))-1.0)/(exp(1.0)-1.0);
 
     return r;

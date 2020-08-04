@@ -107,7 +107,7 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	
 	else
 	if(bc==6 && (gcv==42||gcv==44))
-	return 4;//gclabel_press_in;
+	return 4;
 	
 // Solver Poisson
 	else

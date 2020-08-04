@@ -34,7 +34,7 @@ Author: Hans Bihs
 #include"reinidisc_f2.h"
 #include"reinidisc_fsf_rig.h"
 
-reinisolid_RK3::reinisolid_RK3(lexer* p) : epsi(p->F45*p->dx),f(p),frk1(p),frk2(p),L(p),dt(p)
+reinisolid_RK3::reinisolid_RK3(lexer* p) : epsi(p->F45*p->DXM),f(p),frk1(p),frk2(p),L(p),dt(p)
 {
 	if(p->S50==1)
 	gcval_topo=151;
@@ -49,16 +49,10 @@ reinisolid_RK3::reinisolid_RK3(lexer* p) : epsi(p->F45*p->dx),f(p),frk1(p),frk2(
 	gcval_topo=150;
 
 	gcval_initopo=150;
-	
-	if(p->S38==0)
+
+
 	prdisc = new reinidisc_fsf_rig(p);
 
-	if(p->S38==1)
-	prdisc = new reinidisc_f(p);
-    
-    if(p->S38==2)
-	prdisc = new reinidisc_f2(p);
-    
     time_preproc(p);    
 }
 

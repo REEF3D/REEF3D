@@ -442,7 +442,7 @@ void ioflow_v::u_relax(lexer *p, fdm *a, ghostcell *pgc, field &uvel)
 	double epsi,H,fbval;
 	double fbval_up,fbval_down;
 	
-	epsi = 2.1*p->dx;
+	epsi = 2.1*p->DXM;
 	
 	if(p->X10==1 && p->X18==1)
 	ULOOP
@@ -501,7 +501,7 @@ void ioflow_v::v_relax(lexer *p, fdm *a, ghostcell *pgc, field &vvel)
 	double epsi,H,fbval;
 	double fbval_up,fbval_down;
 	
-	epsi = 2.1*p->dx;
+	epsi = 2.1*p->DXM;
 	
 	if(p->X10==1 && p->X18==1)
 	VLOOP
@@ -561,7 +561,7 @@ void ioflow_v::w_relax(lexer *p, fdm *a, ghostcell *pgc, field &wvel)
 	double epsi,H,fbval;
 	double fbval_up,fbval_down;
 	
-	epsi = 2.1*p->dx;
+	epsi = 2.1*p->DXM;
 	
 	if(p->X10==1 && p->X18==1)
 	WLOOP
@@ -594,7 +594,7 @@ void ioflow_v::w_relax(lexer *p, fdm *a, ghostcell *pgc, field &wvel)
 void ioflow_v::p_relax(lexer *p, fdm *a, ghostcell *pgc, field &press)
 {
     /*double tau0,tau,pval,phival,H,gamma;
-    double epsi = 1.6*p->dx;
+    double epsi = 1.6*p->DXM;
     
     if(p->W1
     LOOP

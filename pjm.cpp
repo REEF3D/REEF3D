@@ -34,27 +34,31 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"density_conc.h"
 #include"density_heat.h"
 #include"density_vof.h"
+#include"density_rheo.h"
  
 pjm::pjm(lexer* p, fdm *a, heat *&pheat, concentration *&ppconc)
 {
     pconc = ppconc;
     
-    if((p->F80==0||p->A10==4) && p->H10==0 && p->W30==0)
+    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0 && p->W90==0)
 	pd = new density_f(p);
 	
-	if(p->F80==0 && p->H10==0 && p->W30==1)
+	if(p->F80==0 && p->H10==0 && p->W30==1 && p->W90==0)
 	pd = new density_comp(p);
 	
-	if(p->F80==0 && p->H10>0)
+	if(p->F80==0 && p->H10>0 && p->W90==0)
 	pd = new density_heat(p,pheat);
 	
-	if(p->F80==0 && p->C10>0)
+	if(p->F80==0 && p->C10>0 && p->W90==0)
 	pd = new density_conc(p,pconc);
     
-    if(p->F80>0 && p->H10==0 && p->W30==0)
+    if(p->F80>0 && p->H10==0 && p->W30==0 && p->W90==0)
 	pd = new density_vof(p);
     
+    if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
+    pd = new density_rheo(p);
     
+        
     if(p->B76==0)
     gcval_press=40;  
 
@@ -163,21 +167,6 @@ void pjm::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field 
 	pgc->start3(p,w,gcval_w);
 }
 
-void pjm::pressure_norm(lexer*p, fdm* a, ghostcell* pgc)
-{
-    double sum=0.0;
-
-    LOOP
-    sum+=a->press(i,j,k);
-
-    sum=pgc->globalsum(sum);
-
-    sum/=double(p->cellnumtot);
-
-    LOOP
-    a->press(i,j,k)-=sum;
-}
-
 void pjm::upgrad(lexer*p,fdm* a)
 {
 }
@@ -205,6 +194,5 @@ void pjm::fillapw(lexer*p,fdm* a)
 void pjm::ptimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
-
 
 

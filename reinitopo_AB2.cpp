@@ -49,11 +49,8 @@ reinitopo_AB2::reinitopo_AB2(lexer* p):gradient(p),f(p),frk1(p),frk2(p),L(p),dt(
 	gcval_initopo=150;
 
 
-	if(p->S38==0)
 	prdisc = new reinidisc_fsf(p);
 
-	if(p->S38==1)
-	prdisc = new reinidisc_f(p);
     
     time_preproc(p);   
 }

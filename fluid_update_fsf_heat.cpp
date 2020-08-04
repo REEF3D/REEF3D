@@ -25,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"heat.h"
 
-fluid_update_fsf_heat::fluid_update_fsf_heat(lexer *p, fdm* a, ghostcell* pgc, heat *&ppheat) : dx(p->dx)
+fluid_update_fsf_heat::fluid_update_fsf_heat(lexer *p, fdm* a, ghostcell* pgc, heat *&ppheat) : dx(p->DXM)
 {
     gcval_ro=1;
 	gcval_visc=1;
@@ -56,15 +56,18 @@ void fluid_update_fsf_heat::start(lexer *p, fdm* a, ghostcell* pgc)
     if(p->count>iter)
     iocheck=0;
 	iter=p->count;
+    
+    if(p->j_dir==0)        
+    epsi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
+        
+    if(p->j_dir==1)
+    epsi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
 
    //
 	LOOP
 	{
         temp = pheat->val(i,j,k);
 	    
-		epsi = p->F45*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
-        
-        
         if(p->H9==1)
         {
 	    ro_1 = material_ipol(water_density,water_density_num, temp);

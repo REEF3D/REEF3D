@@ -400,7 +400,7 @@ void iowave::nhflow_active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, fie
         
         // NSEWAVE
         
-        if(p->A10==4)
+        if(p->A10==5)
         for(n=0;n<p->gcslawa1_count;++n)
 		{
 		i=p->gcslawa1[n][0];
@@ -423,7 +423,7 @@ void iowave::nhflow_active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, fie
                 H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
                 
                 a->P(i+1,j) += u(i+1,j,k)*p->DZP[KP]*H;
-                d+=p->dx*H;
+                d+=p->DXM*H;
             }
             a->P(i+1,j)/=d;
         }

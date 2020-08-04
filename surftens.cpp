@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 
-surftens::surftens(lexer* p):gradient(p),epsi(p->F45*p->dx)
+surftens::surftens(lexer* p):gradient(p),epsi(p->F45*p->DXM)
 {
 	tension=p->W5;
 }

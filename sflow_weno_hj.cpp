@@ -144,38 +144,38 @@ double sflow_weno_hj::fy(lexer *p,fdm2D *b, slice& f, int ipol, double advec)
 
 void sflow_weno_hj::iqmin(lexer *p,fdm2D *b, slice& f, int ipol)
 {	
-	q1 = (f(i-2,j) - f(i-3,j))/p->dx;
-	q2 = (f(i-1,j) - f(i-2,j))/p->dx;
-	q3 = (f(i,j)   - f(i-1,j))/p->dx;
-	q4 = (f(i+1,j) - f(i,j)  )/p->dx;
-	q5 = (f(i+2,j) - f(i+1,j))/p->dx;
+	q1 = (f(i-2,j) - f(i-3,j))/p->DXM;
+	q2 = (f(i-1,j) - f(i-2,j))/p->DXM;
+	q3 = (f(i,j)   - f(i-1,j))/p->DXM;
+	q4 = (f(i+1,j) - f(i,j)  )/p->DXM;
+	q5 = (f(i+2,j) - f(i+1,j))/p->DXM;
 }
 
 void sflow_weno_hj::jqmin(lexer *p,fdm2D *b, slice& f, int ipol)
 {
-	q1 = (f(i,j-2) - f(i,j-3))/p->dx;
-	q2 = (f(i,j-1) - f(i,j-2))/p->dx;
-	q3 = (f(i,j)   - f(i,j-1))/p->dx;
-	q4 = (f(i,j+1) - f(i,j)  )/p->dx;
-	q5 = (f(i,j+2) - f(i,j+1))/p->dx;
+	q1 = (f(i,j-2) - f(i,j-3))/p->DXM;
+	q2 = (f(i,j-1) - f(i,j-2))/p->DXM;
+	q3 = (f(i,j)   - f(i,j-1))/p->DXM;
+	q4 = (f(i,j+1) - f(i,j)  )/p->DXM;
+	q5 = (f(i,j+2) - f(i,j+1))/p->DXM;
 }
 
 void sflow_weno_hj::iqmax(lexer *p,fdm2D *b, slice& f, int ipol)
 {
-	q1 = (f(i+3,j) - f(i+2,j))/p->dx;
-	q2 = (f(i+2,j) - f(i+1,j))/p->dx;
-	q3 = (f(i+1,j) - f(i,j)  )/p->dx;
-	q4 = (f(i,j)   - f(i-1,j))/p->dx;
-	q5 = (f(i-1,j) - f(i-2,j))/p->dx;
+	q1 = (f(i+3,j) - f(i+2,j))/p->DXM;
+	q2 = (f(i+2,j) - f(i+1,j))/p->DXM;
+	q3 = (f(i+1,j) - f(i,j)  )/p->DXM;
+	q4 = (f(i,j)   - f(i-1,j))/p->DXM;
+	q5 = (f(i-1,j) - f(i-2,j))/p->DXM;
 }
 
 void sflow_weno_hj::jqmax(lexer *p,fdm2D *b, slice& f, int ipol)
 {
-	q1 = (f(i,j+3) - f(i,j+2))/p->dx;
-	q2 = (f(i,j+2) - f(i,j+1))/p->dx;
-	q3 = (f(i,j+1) - f(i,j)  )/p->dx;
-	q4 = (f(i,j)   - f(i,j-1))/p->dx;
-	q5 = (f(i,j-1) - f(i,j-2))/p->dx;
+	q1 = (f(i,j+3) - f(i,j+2))/p->DXM;
+	q2 = (f(i,j+2) - f(i,j+1))/p->DXM;
+	q3 = (f(i,j+1) - f(i,j)  )/p->DXM;
+	q4 = (f(i,j)   - f(i,j-1))/p->DXM;
+	q5 = (f(i,j-1) - f(i,j-2))/p->DXM;
 }
 
 void sflow_weno_hj::is(slice& f)

@@ -44,10 +44,10 @@ void sflow_sediment_RK3::step1(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, sli
     
     // timestep calculation
     if(p->S15==0)
-    p->dtsed=MIN(p->S13, (p->S14*p->dx)/(fabs(p->maxtopovel)>1.0e-15?p->maxtopovel:1.0e-15));
+    p->dtsed=MIN(p->S13, (p->S14*p->DXM)/(fabs(p->maxtopovel)>1.0e-15?p->maxtopovel:1.0e-15));
 
     if(p->S15==1)
-    p->dtsed=MIN(p->dt, (p->S14*p->dx)/(fabs(p->maxtopovel)>1.0e-15?p->maxtopovel:1.0e-15));
+    p->dtsed=MIN(p->dt, (p->S14*p->DXM)/(fabs(p->maxtopovel)>1.0e-15?p->maxtopovel:1.0e-15));
     
     if(p->S15==2)
     p->dtsed=p->S13;

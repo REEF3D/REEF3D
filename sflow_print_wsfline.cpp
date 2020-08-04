@@ -264,7 +264,7 @@ void sflow_print_wsfline::ini_location(lexer *p, fdm2D *b, ghostcell *pgc)
         jloc[q]=0;
         
         if(p->j_dir==1)
-        jloc[q]=conv((p->P52_y[q]-p->originy)/p->dx);
+        jloc[q]=conv((p->P52_y[q]-p->originy)/p->DXM);
 
         if(jloc[q]>=0 && jloc[q]<p->knoy)
         flag[q][count]=1;
@@ -333,10 +333,10 @@ void sflow_print_wsfline::remove_multientry(lexer *p, double* b, double* c, int 
 
     for(n=0;n<oldnum;++n)
     {
-        if(xval<=b[n]+0.001*p->dx && xval>=b[n]-0.001*p->dx && count>0)
+        if(xval<=b[n]+0.001*p->DXM && xval>=b[n]-0.001*p->DXM && count>0)
         g[count-1]=MAX(g[count-1],c[n]);
 
-        if(xval>b[n]+0.001*p->dx || xval<b[n]-0.001*p->dx)
+        if(xval>b[n]+0.001*p->DXM || xval<b[n]-0.001*p->DXM)
         {
         f[count]=b[n];
         g[count]=c[n];

@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-pvccparse::pvccparse(lexer* p, fdm* a, ghostcell *pgc) : dx(p->dx), eps(1.0e-5)
+pvccparse::pvccparse(lexer* p, fdm* a, ghostcell *pgc) : dx(p->DXM), eps(1.0e-5)
 {
 }
 

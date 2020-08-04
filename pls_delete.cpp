@@ -48,13 +48,13 @@ void particle::random_delete(lexer* p, fdm* a, ghostcell* pgc)
 		
 		lsc = a->phi(i,j,k);
 		
-		if(lsc<0.5*p->dx && lsc>-0.5*p->dx)
-		maxpos = (0.5 + lsc/p->dx)*double(pnum)*pnum_coeff;
+		if(lsc<0.5*p->DXM && lsc>-0.5*p->DXM)
+		maxpos = (0.5 + lsc/p->DXM)*double(pnum)*pnum_coeff;
 		
-		if(lsc>=0.5*p->dx)
+		if(lsc>=0.5*p->DXM)
 		maxpos = double(pnum)*pnum_coeff;
 		
-		if(lsc<=-0.5*p->dx)
+		if(lsc<=-0.5*p->DXM)
 		maxpos = 0.0;
 		
 		if(posnum(i,j,k)>maxpos)		
@@ -85,13 +85,13 @@ void particle::random_delete(lexer* p, fdm* a, ghostcell* pgc)
 		
 		lsc = a->phi(i,j,k);
 		
-		if(lsc>-0.5*p->dx && lsc<0.5*p->dx)
-		maxneg = (0.5 - lsc/p->dx)*double(pnum)*pnum_coeff;
+		if(lsc>-0.5*p->DXM && lsc<0.5*p->DXM)
+		maxneg = (0.5 - lsc/p->DXM)*double(pnum)*pnum_coeff;
 		
-		if(lsc<=-0.5*p->dx)
+		if(lsc<=-0.5*p->DXM)
 		maxneg = double(pnum)*pnum_coeff;
 		
-		if(lsc>=0.5*p->dx)
+		if(lsc>=0.5*p->DXM)
 		maxneg = 0.0;
 		
 		if(negnum(i,j,k)>maxneg)		

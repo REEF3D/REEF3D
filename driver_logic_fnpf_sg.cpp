@@ -37,7 +37,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"6DOF_header.h"
 #include"waves_header.h"
 
-void driver::logic_fnpf_sg()
+void driver::logic_fnpf()
 {    
     if(p->mpirank==0)
     cout<<"creating objects"<<endl;
@@ -117,10 +117,10 @@ void driver::logic_fnpf_sg()
 //  Wave Models
     
     if(p->A310==3)
-    ppfsg = new fnpf_sg_RK3(p,c,pgc);
+    ppfsg = new fnpf_RK3(p,c,pgc);
         
     if(p->A310==4)
-    ppfsg = new fnpf_sg_RK4(p,c,pgc);
+    ppfsg = new fnpf_RK4(p,c,pgc);
     
-    loop_fnpf_sg();
+    loop_fnpf();
 }

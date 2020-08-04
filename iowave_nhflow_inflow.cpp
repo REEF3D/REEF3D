@@ -33,7 +33,7 @@ void iowave::nhflow_inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v,
 	if(p->B98==3)
 	nhflow_dirichlet_wavegen(p,a,pgc,u,v,w);
 	
-	if(p->B98==5)
+	if(p->B98==4)
 	nhflow_active_wavegen(p,a,pgc,u,v,w);
 	}
     

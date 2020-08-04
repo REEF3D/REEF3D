@@ -38,7 +38,7 @@ sandslide_pde::sandslide_pde(lexer *p) : norm_vec(p), bedslope(p), fh(p), ci(p)
 	if(p->S50==4)
 	gcval_topo=154;
 
-	dxs=sqrt(2.0*p->dx*p->dx);
+	dxs=sqrt(2.0*p->DXM*p->DXM);
 	fac1=p->S92*(1.0/6.0);
 	fac2=p->S92*(1.0/12.0);
 }
@@ -93,8 +93,8 @@ void sandslide_pde::start(lexer *p, fdm * a, ghostcell *pgc)
 
 void sandslide_pde::slide(lexer *p, fdm * a, ghostcell *pgc)
 {
-    double dt = 0.1*p->dx*p->dx;
-    double sqd = (1.0/(p->dx*p->dx));
+    double dt = 0.1*p->DXM*p->DXM;
+    double sqd = (1.0/(p->DXM*p->DXM));
 
     /*
     KLOOP
@@ -124,7 +124,7 @@ void sandslide_pde::diff_update(lexer *p, fdm * a, ghostcell *pgc)
 		slope(p,a,pgc,zh,teta,alpha,gamma,phi);
         
 
-        dH = sqrt(pow((zh(i+1,j,k)-zh(i-1,j,k))/p->dx,2.0) + pow((zh(i,j+1,k)-zh(i,j-1,k))/p->dx,2.0));
+        dH = sqrt(pow((zh(i+1,j,k)-zh(i-1,j,k))/p->DXM,2.0) + pow((zh(i,j+1,k)-zh(i,j-1,k))/p->DXM,2.0));
 
             if(fabs(dH)>=tan(phi))
             {

@@ -26,9 +26,9 @@ void ghostcell::distguard(lexer* p)
 {
     /*
     for(n=0;n<p->gcb4_count;n++)
-    p->gcd4[n]=MAX(p->gcd4[n],0.05*p->dx);
+    p->gcd4[n]=MAX(p->gcd4[n],0.05*p->DXM);
 
     for(n=0;n<p->gcb4_count;n++)
-    p->gcd4[n]=MIN(p->gcd4[n],0.95*p->dx);
+    p->gcd4[n]=MIN(p->gcd4[n],0.95*p->DXM);
     */
 }

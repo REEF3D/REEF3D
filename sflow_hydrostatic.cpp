@@ -62,7 +62,7 @@ void sflow_hydrostatic::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 	if(p->A221>=1)
     SLICELOOP1
     b->F(i,j) -= fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) 
-                                 - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->dx); 
+                                 - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM); 
 }
 
 void sflow_hydrostatic::vpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
@@ -70,7 +70,7 @@ void sflow_hydrostatic::vpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 	if(p->A221>=1)
         SLICELOOP2
         b->G(i,j) -= fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) 
-                                 - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->dx);
+                                 - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
 }
 
 void sflow_hydrostatic::wpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)

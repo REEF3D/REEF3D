@@ -104,10 +104,10 @@ void iowave::active_beach2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice 
   {
     double dfx1,dfx4,dfy2,dfy3;
     
-    dfx1 = (P(i+1,j)-P(i,j))/p->dx;
-    dfx4 = (P(i,j)-P(i-1,j))/p->dx;
-    dfy2 = (P(i,j)-P(i,j-1))/p->dx;
-    dfy3 = (P(i,j+1)-P(i,j))/p->dx;
+    dfx1 = (P(i+1,j)-P(i,j))/p->DXM;
+    dfx4 = (P(i,j)-P(i-1,j))/p->DXM;
+    dfy2 = (P(i,j)-P(i,j-1))/p->DXM;
+    dfy3 = (P(i,j+1)-P(i,j))/p->DXM;
 
      /*       
 	if(cs==1)

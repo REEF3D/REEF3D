@@ -54,7 +54,7 @@ void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pdisc
 		{
 		j=jc;
 		k=kc;
-		xdist = fabs(double(i-ic)*p->dx) + 0.5*p->dx;
+		xdist = fabs(double(i-ic)*p->DXM) + 0.5*p->DXM;
 		PCHECK
 		walldist(i,j,k)=MIN(walldist(i,j,k),xdist);
 		}
@@ -64,7 +64,7 @@ void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pdisc
 		{
 		i=ic;
 		k=kc;
-		ydist = fabs(double(j-jc)*p->dx) + 0.5*p->dx;
+		ydist = fabs(double(j-jc)*p->DXM) + 0.5*p->DXM;
 		PCHECK
 		walldist(i,j,k)=MIN(walldist(i,j,k),ydist);
 		}
@@ -74,7 +74,7 @@ void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pdisc
 		{
 		i=ic;
 		j=jc;
-		zdist = fabs(double(k-kc)*p->dx) + 0.5*p->dx;
+		zdist = fabs(double(k-kc)*p->DXM) + 0.5*p->DXM;
 		PCHECK
 		walldist(i,j,k)=MIN(walldist(i,j,k),zdist);
 		}
@@ -84,7 +84,7 @@ void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pdisc
 		{
 		j=jc;
 		k=kc;
-		xdist = fabs(double(i-ic)*p->dx) + 0.5*p->dx;
+		xdist = fabs(double(i-ic)*p->DXM) + 0.5*p->DXM;
 		PCHECK
 		walldist(i,j,k)=MIN(walldist(i,j,k),xdist);
 		}
@@ -94,7 +94,7 @@ void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pdisc
 		{
 		i=ic;
 		k=kc;
-		ydist = fabs(double(j-jc)*p->dx) + 0.5*p->dx;
+		ydist = fabs(double(j-jc)*p->DXM) + 0.5*p->DXM;
 		PCHECK
 		walldist(i,j,k)=MIN(walldist(i,j,k),ydist);
 		}
@@ -104,7 +104,7 @@ void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pdisc
 		{
 		i=ic;
 		j=jc;
-		zdist = fabs(double(k-kc)*p->dx) + 0.5*p->dx;
+		zdist = fabs(double(k-kc)*p->DXM) + 0.5*p->DXM;
 		PCHECK
 		walldist(i,j,k)=MIN(walldist(i,j,k),zdist);
 		}
@@ -131,22 +131,22 @@ void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pdisc
     k=p->gcb4[n][2];
 	
 	if(p->gcb4[n][3]==1)
-	walldist(i-1,j,k)=-0.5*p->dx;  
+	walldist(i-1,j,k)=-0.5*p->DXM;  
 
 	if(p->gcb4[n][3]==4)
-	walldist(i+1,j,k)=-0.5*p->dx;   
+	walldist(i+1,j,k)=-0.5*p->DXM;   
 
 	if(p->gcb4[n][3]==3)
-	walldist(i,j-1,k)=-0.5*p->dx;   
+	walldist(i,j-1,k)=-0.5*p->DXM;   
 	
 	if(p->gcb4[n][3]==2)
-	walldist(i,j+1,k)=-0.5*p->dx; 
+	walldist(i,j+1,k)=-0.5*p->DXM; 
 	
 	if(p->gcb4[n][3]==5)
-	walldist(i,j,k-1)=-0.5*p->dx; 
+	walldist(i,j,k-1)=-0.5*p->DXM; 
 	
 	if(p->gcb4[n][3]==6)
-	walldist(i,j,k+1)=-0.5*p->dx; 
+	walldist(i,j,k+1)=-0.5*p->DXM; 
     }
 	
 	
@@ -219,7 +219,7 @@ void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pconv
 		{
 		j=jc;
 		k=kc;
-		xdist = fabs(double(i-ic)*p->dx) + 0.5*p->dx;
+		xdist = fabs(double(i-ic)*p->DXM) + 0.5*p->DXM;
 		PCHECK
 		walldist(i,j,k)=MIN(walldist(i,j,k),xdist);
 		}
@@ -229,7 +229,7 @@ void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pconv
 		{
 		i=ic;
 		k=kc;
-		ydist = fabs(double(j-jc)*p->dx) + 0.5*p->dx;
+		ydist = fabs(double(j-jc)*p->DXM) + 0.5*p->DXM;
 		PCHECK
 		walldist(i,j,k)=MIN(walldist(i,j,k),ydist);
 		}
@@ -239,7 +239,7 @@ void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pconv
 		{
 		i=ic;
 		j=jc;
-		zdist = fabs(double(k-kc)*p->dx) + 0.5*p->dx;
+		zdist = fabs(double(k-kc)*p->DXM) + 0.5*p->DXM;
 		PCHECK
 		walldist(i,j,k)=MIN(walldist(i,j,k),zdist);
 		}
@@ -249,7 +249,7 @@ void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pconv
 		{
 		j=jc;
 		k=kc;
-		xdist = fabs(double(i-ic)*p->dx) + 0.5*p->dx;
+		xdist = fabs(double(i-ic)*p->DXM) + 0.5*p->DXM;
 		PCHECK
 		walldist(i,j,k)=MIN(walldist(i,j,k),xdist);
 		}
@@ -259,7 +259,7 @@ void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pconv
 		{
 		i=ic;
 		k=kc;
-		ydist = fabs(double(j-jc)*p->dx) + 0.5*p->dx;
+		ydist = fabs(double(j-jc)*p->DXM) + 0.5*p->DXM;
 		PCHECK
 		walldist(i,j,k)=MIN(walldist(i,j,k),ydist);
 		}
@@ -269,7 +269,7 @@ void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pconv
 		{
 		i=ic;
 		j=jc;
-		zdist = fabs(double(k-kc)*p->dx) + 0.5*p->dx;
+		zdist = fabs(double(k-kc)*p->DXM) + 0.5*p->DXM;
 		PCHECK
 		walldist(i,j,k)=MIN(walldist(i,j,k),zdist);
 		}

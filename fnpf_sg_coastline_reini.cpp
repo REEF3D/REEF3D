@@ -19,12 +19,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_sg_coastline.h"
+#include"fnpf_coastline.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"slice.h"
 
-void fnpf_sg_coastline::reini(lexer *p, ghostcell *pgc, slice &f)
+void fnpf_coastline::reini(lexer *p, ghostcell *pgc, slice &f)
 {
 	if(p->count==0)
 	{
@@ -70,12 +70,12 @@ void fnpf_sg_coastline::reini(lexer *p, ghostcell *pgc, slice &f)
 }
 
 
-void fnpf_sg_coastline::step(lexer* p)
+void fnpf_coastline::step(lexer* p)
 {
 	reiniter=p->S37;
 }
 
-void fnpf_sg_coastline::time_preproc(lexer* p)
+void fnpf_coastline::time_preproc(lexer* p)
 {	
     n=0;
 	SLICELOOP4

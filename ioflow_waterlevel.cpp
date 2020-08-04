@@ -51,7 +51,7 @@ void ioflow_f::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
 
         if(a->phi(i-1,j,k)>=0.0 && a->phi(i-1,j,k+1)<0.0)
         {
-        zval+=-(a->phi(i-1,j,k)*p->dx)/(a->phi(i-1,j,k+1)-a->phi(i-1,j,k)) + p->pos_z();
+        zval+=-(a->phi(i-1,j,k)*p->DXM)/(a->phi(i-1,j,k+1)-a->phi(i-1,j,k)) + p->pos_z();
         ++count;
         }
     }
@@ -89,7 +89,7 @@ void ioflow_f::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
 
         if(a->phi(i+1,j,k)>=0.0 && a->phi(i+1,j,k+1)<0.0)
         {
-        zval+=-(a->phi(i+1,j,k)*p->dx)/(a->phi(i+1,j,k+1)-a->phi(i+1,j,k)) + p->pos_z();
+        zval+=-(a->phi(i+1,j,k)*p->DXM)/(a->phi(i+1,j,k+1)-a->phi(i+1,j,k)) + p->pos_z();
         ++count;
         }
     }

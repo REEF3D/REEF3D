@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_sg.h"
+#include"fnpf.h"
 #include"increment.h"
 #include"slice4.h"
 
 class lexer;
 class fdm_fnpf;
 class ghostcell;
-class fnpf_sg_fsf;
+class fnpf_fsf;
 
 using namespace std;
 
@@ -40,8 +40,8 @@ public:
 	fnpf_sigma(lexer*, fdm_fnpf*, ghostcell*);
 	virtual ~fnpf_sigma();
     
-    virtual void sigma_ini(lexer*, fdm_fnpf*, ghostcell*, fnpf_sg_fsf*, slice&);
-    virtual void sigma_update(lexer*, fdm_fnpf*, ghostcell*, fnpf_sg_fsf*, slice&);
+    virtual void sigma_ini(lexer*, fdm_fnpf*, ghostcell*, fnpf_fsf*, slice&);
+    virtual void sigma_update(lexer*, fdm_fnpf*, ghostcell*, fnpf_fsf*, slice&);
         
 private:
 

@@ -293,3 +293,84 @@ void ghostcell::gcb_velflag3(lexer *p, fdm *a, int **cellmem, int& cellcount)
 
     cellcount=count;
 }
+
+void ghostcell::gcb_velflagio(lexer *p, fdm *a)
+{
+    GC1LOOP
+    {
+        if(p->gcb1[n][4]==1)
+        {
+        i=p->gcb1[n][0];
+        j=p->gcb1[n][1];
+        k=p->gcb1[n][2];
+        
+        p->flag1[Im1JK] =-3;
+        p->flag1[Im2JK] =-3;
+        p->flag1[Im2JK] =-3;
+        }
+        
+        if(p->gcb1[n][4]==2)
+        {
+        i=p->gcb1[n][0];
+        j=p->gcb1[n][1];
+        k=p->gcb1[n][2];
+        
+        p->flag1[Ip1JK] =-4;
+        p->flag1[Ip2JK] =-4;
+        p->flag1[Ip2JK] =-4;
+        }    
+    }
+    
+    
+    GC2LOOP
+    {
+        if(p->gcb2[n][4]==1)
+        {
+        i=p->gcb2[n][0];
+        j=p->gcb2[n][1];
+        k=p->gcb2[n][2];
+        
+        p->flag2[Im1JK] =-3;
+        p->flag2[Im2JK] =-3;
+        p->flag2[Im2JK] =-3;
+        }
+        
+        if(p->gcb2[n][4]==2)
+        {
+        i=p->gcb2[n][0];
+        j=p->gcb2[n][1];
+        k=p->gcb2[n][2];
+        
+        p->flag2[Ip1JK] =-4;
+        p->flag2[Ip2JK] =-4;
+        p->flag2[Ip2JK] =-4;
+        }    
+    }
+    
+    
+    
+    GC3LOOP
+    {
+        if(p->gcb3[n][4]==1)
+        {
+        i=p->gcb3[n][0];
+        j=p->gcb3[n][1];
+        k=p->gcb3[n][2];
+        
+        p->flag3[Im1JK] =-3;
+        p->flag3[Im2JK] =-3;
+        p->flag3[Im2JK] =-3;
+        }
+        
+        if(p->gcb3[n][4]==2)
+        {
+        i=p->gcb3[n][0];
+        j=p->gcb3[n][1];
+        k=p->gcb3[n][2];
+        
+        p->flag3[Ip1JK] =-4;
+        p->flag3[Ip2JK] =-4;
+        p->flag3[Ip2JK] =-4;
+        }    
+    }
+}

@@ -25,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 bc_ikepsilon::bc_ikepsilon(lexer* p):roughness(p),kappa(0.4)
 {
-	deltax=p->dx;
+	deltax=p->DXM;
 }
 
 bc_ikepsilon::~bc_ikepsilon()

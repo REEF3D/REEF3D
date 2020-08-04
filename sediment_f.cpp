@@ -101,10 +101,6 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
 {
     starttime=pgc->timer();
     
-    pgc->start1(p,a->u,14);
-	pgc->start2(p,a->v,15);
-	pgc->start3(p,a->w,16);
-    
     // find bedk
     fill_bedk(p,a,pgc);
 	
@@ -114,7 +110,6 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
     // bedload
     pbed->start(p,a,pgc);
 	
-	//if(p->S102>0)
 	filter(p,a,pgc,a->bedload,p->S102,p->S103);
     
     // Exner
@@ -132,10 +127,6 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
     preto->start(a,p,a->topo,pconvec,pgc);
 
     volume_calc(p,a,pgc);
-
-    pgc->start1(p,a->u,10);
-	pgc->start2(p,a->v,11);
-	pgc->start3(p,a->w,12);
     
     if(p->mpirank==0)
     cout<<"Topo: update grid..."<<endl;
@@ -150,13 +141,6 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
 
 	if(p->mpirank==0)
     cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl<<endl;
-    
-    
-    SLICELOOP4
-    a->bedload(i,j) = 0.5*(a->qbx(i,j) + a->qbx(i-1,j));
-    
-    ALOOP
-    a->test(i,j,k) = 0.5*(a->qby(i,j) + a->qby(i,j-1));
 }
 
 

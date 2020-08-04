@@ -96,7 +96,7 @@ double sflow_hires::aij(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, slice&
              +(1.0-ur)*(f(i+1,j) - 0.5*plim->iphi(f,1,0,2,1)*(f(i+2,j)-f(i+1,j))))
 
           -  ivel1*(ul*(f(i-1,j) + 0.5*plim->iphi(f,-1,-2,0,-1)*(f(i,j)-f(i-1,j)))
-             +(1.0-ul)*(f(i,j) - 0.5*plim->iphi(f,0,-1,1,0)*(f(i+1,j)-f(i,j)))))/(p->dx);
+             +(1.0-ul)*(f(i,j) - 0.5*plim->iphi(f,0,-1,1,0)*(f(i+1,j)-f(i,j)))))/(p->DXM);
 
 
 
@@ -110,7 +110,7 @@ double sflow_hires::aij(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, slice&
              +(1.0-vr)*(f(i,j+1) - 0.5*plim->jphi(f,1,0,2,1)*(f(i,j+2)-f(i,j+1))))
 
           -  jvel1*(vl*(f(i,j-1) + 0.5*plim->jphi(f,-1,-2,0,-1)*(f(i,j)-f(i,j-1)))
-             +(1.0-vl)*(f(i,j) - 0.5*plim->jphi(f,0,-1,1,0)*(f(i,j)-f(i+1,j)))))/(p->dx);
+             +(1.0-vl)*(f(i,j) - 0.5*plim->jphi(f,0,-1,1,0)*(f(i,j)-f(i+1,j)))))/(p->DXM);
 
 
 		

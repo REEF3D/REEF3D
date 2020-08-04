@@ -100,16 +100,16 @@ void icds2::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, fie
 	 
 	 a->M.p[count] = ( ivel2 - ivel1
 					 + jvel2 - jvel1
-					 + kvel2 - kvel1)/(p->dx*2.0);
+					 + kvel2 - kvel1)/(p->DXM*2.0);
 	 
-	 a->M.s[count] = -ivel1/(p->dx*2.0);
-	 a->M.n[count] =  ivel2/(p->dx*2.0);
+	 a->M.s[count] = -ivel1/(p->DXM*2.0);
+	 a->M.n[count] =  ivel2/(p->DXM*2.0);
 	 
-	 a->M.e[count] = -jvel1/(p->dx*2.0);
-	 a->M.w[count] =  jvel2/(p->dx*2.0);
+	 a->M.e[count] = -jvel1/(p->DXM*2.0);
+	 a->M.w[count] =  jvel2/(p->DXM*2.0);
 	 
-	 a->M.b[count] = -kvel1/(p->dx*2.0);
-	 a->M.t[count] =  kvel2/(p->dx*2.0);
+	 a->M.b[count] = -kvel1/(p->DXM*2.0);
+	 a->M.t[count] =  kvel2/(p->DXM*2.0);
 	 
 	 ++count;
 }

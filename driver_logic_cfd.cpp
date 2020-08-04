@@ -136,7 +136,7 @@ void driver::logic()
 	pfsfdisc=new quick(p);
 
 	if(p->F35==4)
-	pfsfdisc=new weno_flux(p);
+	pfsfdisc=new weno_flux_nug(p);
 
 	if(p->F35==5)
 	pfsfdisc=new weno_hj_nug(p);
@@ -331,10 +331,10 @@ void driver::logic()
 	pconc =  new concentration_RK3(p,a,pgc);
     
 // Wave Models
-    if(p->A10==5 || p->A10==0)
+    if(p->A10==6 || p->A10==0)
     pnse = new nsewave_v(p,a,pgc,pheat,pconc);
     
-    if(p->A10==4)
+    if(p->A10==5)
     {
     if(p->A410==1)
     pnse = new nsewave_f(p,a,pgc,pheat,pconc);
@@ -344,7 +344,7 @@ void driver::logic()
     }
     
 
-    if(p->A10==44)
+    if(p->A10==55)
     {
     if(p->A410==1)
     pnhfsf = new nhflow_fsf_f(p,a,pgc,pflow);
@@ -677,23 +677,23 @@ void driver::logic()
 
 	
 // Start MAINLOOP
-	if(p->A10==4)
+	if(p->A10==5)
     loop_nsewave(a);
     
-    //if(p->A10==44)
+    //if(p->A10==55)
     //loop_nhflow(a);
     
-    if(p->A10==5 && p->X10 == 1 && p->X13 >= 1 && p->N40==0) 
+    if(p->A10==6 && p->X10 == 1 && p->X13 >= 1 && p->N40==0) 
 	{
 		loop_cfd_fsi(a);
 	}
     
-    else if(p->A10==44)
+    else if(p->A10==55)
 	{
 		loop_nhflow(a);
 	}
     
-    else if(p->A10==5)
+    else if(p->A10==6)
 	{
 		loop_cfd(a);
 	}

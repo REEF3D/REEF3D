@@ -30,7 +30,7 @@ void hypre_struct_fnpf::make_grid(lexer* p,fdm* a, ghostcell* pgc)
 {
     int kend=0;
     
-    if(p->A10==3 && p->A300==1)
+    if(p->A10==3)
     kend=0;
     
     // grid
@@ -73,7 +73,7 @@ void hypre_struct_fnpf::make_grid_2Dvert(lexer* p,fdm* a, ghostcell* pgc)
 {
     int kend=0;
     
-    if(p->A10==3 && p->A300==1)
+    if(p->A10==3)
     kend=0;
     
     // grid

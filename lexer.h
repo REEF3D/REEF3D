@@ -83,7 +83,7 @@ public:
 //-----data-----------------------
 
 	//REEF3D
-	double dx;
+	double dx,dy,dz;
     double *xpoint,*ypoint,*zpoint;
     double *xnode,*ynode,*znode;
     
@@ -264,7 +264,7 @@ public:
     double A223,A244_val,A245_val,A247,A249,A251_val;
     
     // FNPF
-    int A300,A310,A311,A312,A313,A320,A321,A322,A343,A344,A345;
+    int A310,A311,A312,A313,A320,A321,A322,A343,A344,A345;
     double A341,A342,A344_val,A345_val,A346;
     int A350,A351,A352,A361,A362,A363,A368;
     double A354,A355,A356,A365,A369; 
@@ -274,10 +274,10 @@ public:
     double A440;
     
 	// boundary conditions
-	int B10,B19,B20,B26,B30,B60,B61,B62,B63,B64,B70,B71,B74,B75,B76,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B98,B99,B101,B105,B106,B107,B110;
+	int B10,B20,B26,B30,B60,B61,B62,B63,B64,B70,B71,B74,B75,B76,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B98,B99,B101,B105,B106,B107,B110;
 	int B121,B136,B139,B180,B191,B192,B210,B240,B241,B242,B243;
 	double B29,B50,B51,B52,B53,B54,B55,B56,B81_1,B81_2,B81_3,B83,B117,B87_1,B87_2,B88;
-	double B91_1,B91_2,B91_3,B93_1,B93_2,B93_3,B96_1,B96_2,B96_3,B97,B102,B105_1,B105_2,B105_3,B110_d,B119;
+	double B91_1,B91_2,B91_3,B93_1,B93_2,B93_3,B96_1,B96_2,B96_3,B97,B102,B105_1,B105_2,B105_3,B110_d;
 	double *B70_val,*B70_dist,*B70_b,*B70_x,*B70_y;
 	double *B71_val,*B71_dist,*B71_b,*B71_x,*B71_y;
 	double *B106_b,*B106_x,*B106_y;
@@ -324,7 +324,7 @@ public:
 	double *C75_x,*C75_z,*C75_a,*C75_s,*C75_l,*C75_v;
 
 	// discretization
-	int D10,D11,D20,D21,D30,D32,D38,D39;
+	int D10,D11,D20,D21,D30,D38,D39;
 	double D29;
 
 	// Free Surface
@@ -413,11 +413,10 @@ public:
 	double *P352_x,*P352_y;
 
 	// Sediment Transport
-	int S10,S11,S12,S15,S16,S17,S18,S31,S32,S33,S37,S38,S39,S41,S42,S43,S44,S50,S60,S73,S77,S80,S90,S91,S100,S101,S102,S103;
+	int S10,S11,S12,S15,S16,S17,S18,S32,S33,S37,S41,S42,S43,S44,S50,S60,S73,S77,S80,S90,S91,S100,S101,S102,S103;
 	double S13,S14,S19,S20,S21,S22,S23,S24,S25,S26_a,S26_b,S30,S45,S46,S47,S48,S57,S71,S72,S81,S82,S92,S93;
 	double *S73_val,*S73_dist,*S73_b,*S73_x,*S73_y;
     double S77_xs,S77_xe;
-    double S116,S117;
 
 	// Turbulence
 	int T10,T11,T12,T36,T41;
@@ -440,7 +439,7 @@ public:
     double W112;
 	
 	// 6DOF
-	int X10,X12,X13,X18,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X27,X31,X32,X33,X34,X38,X40,X110,X120,X131,X132,X133;
+	int X10,X12,X13,X18,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X27,X31,X32,X33,X34,X40,X110,X120,X131,X132,X133;
 	int X100,X101,X102,X103,X141,X142,X143,X153,X180,X182,X183,X210,X211;
 	int X310, X311, X320, mooring_count;
 	double X21_d,X22_m;
@@ -582,6 +581,18 @@ public:
     double *DXP,*DYP,*DZP;
     double *ZSN,*ZSP;
     double DXM,DYD,DXD;
+    double DYM,DZM;
+    
+    double *RN,*SN,*TN;
+    double *RP,*SP,*TP;
+    double *DRN,*DSN,*DTN;
+    double *DRP,*DSP,*DTP;
+    double DRM,DSM,DTM;
+    double DX,DY,DZ;
+    double *DRDXN,*DSDYN,*DTDZN;
+    double *DRDXP,*DSDYP,*DTDZP;
+    double *DDRDDXN,*DDSDDYN,*DDTDDZN;
+    double *DDRDDXP,*DDSDDYP,*DDTDDZP;
     
     weno_nug_func *wenofunc;
     

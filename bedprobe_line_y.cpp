@@ -171,7 +171,7 @@ void bedprobe_line_y::start(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
             {
                 if(a->topo(i,j,k)<0.0 && a->topo(i,j,k+1)>=0.0)
                 {
-                wsf[q][j]=MAX(wsf[q][j],-(a->topo(i,j,k)*p->dx)/(a->topo(i,j,k+1)-a->topo(i,j,k)) + p->pos_z());
+                wsf[q][j]=MAX(wsf[q][j],-(a->topo(i,j,k)*p->DXM)/(a->topo(i,j,k+1)-a->topo(i,j,k)) + p->pos_z());
                 yloc[q][j]=p->pos_y();
 				
 				
@@ -258,7 +258,7 @@ void bedprobe_line_y::ini_location(lexer *p, fdm *a, ghostcell *pgc)
         count=0;
         JLOOP
         {
-        iloc[q]=conv((p->P124_x[q]-p->originx)/p->dx);
+        iloc[q]=conv((p->P124_x[q]-p->originx)/p->DXM);
 
         check=ij_boundcheck_topo(p,a,iloc[q],j,0);
 
@@ -351,10 +351,10 @@ void bedprobe_line_y::remove_multientry(lexer *p, double* b, double* c, int *d, 
 
     for(n=0;n<oldnum;++n)
     {
-        if(xval<=b[n]+0.001*p->dx && xval>=b[n]-0.001*p->dx && count>0)
+        if(xval<=b[n]+0.001*p->DXM && xval>=b[n]-0.001*p->DXM && count>0)
         g[count-1]=MAX(g[count-1],c[n]);
 
-        if(xval>b[n]+0.001*p->dx || xval<b[n]-0.001*p->dx)
+        if(xval>b[n]+0.001*p->DXM || xval<b[n]-0.001*p->DXM)
         {
         f[count]=b[n];
         g[count]=c[n];

@@ -68,16 +68,16 @@ void ghostcell::nse4(lexer *p, fdm *a, field &f, int gcv)
     val = 0.0;//(a->eta(i,j))*9.81;
      
     if(p->flag4[Im1JK]>0)
-    f(i,j,k) =  val*(1.0-fabs(a->phi(i,j,k))/p->dx) - f(i-1,j,k)*fabs(a->phi(i,j,k))/p->dx;
+    f(i,j,k) =  val*(1.0-fabs(a->phi(i,j,k))/p->DXM) - f(i-1,j,k)*fabs(a->phi(i,j,k))/p->DXM;
     
     if(p->flag4[Ip1JK]>0)
-    f(i,j,k) =  val*(1.0-fabs(a->phi(i,j,k))/p->dx) - f(i+1,j,k)*fabs(a->phi(i,j,k))/p->dx;
+    f(i,j,k) =  val*(1.0-fabs(a->phi(i,j,k))/p->DXM) - f(i+1,j,k)*fabs(a->phi(i,j,k))/p->DXM;
     
     if(p->flag4[IJKm1]>0)
-    f(i,j,k) =  val*(1.0-fabs(a->phi(i,j,k))/p->dx) - f(i,j,k-1)*fabs(a->phi(i,j,k))/p->dx;
+    f(i,j,k) =  val*(1.0-fabs(a->phi(i,j,k))/p->DXM) - f(i,j,k-1)*fabs(a->phi(i,j,k))/p->DXM;
     
     if(p->flag4[IJKp1]>0)
-    f(i,j,k) =  val*(1.0-fabs(a->phi(i,j,k))/p->dx) - f(i,j,k+1)*fabs(a->phi(i,j,k))/p->dx;
+    f(i,j,k) =  val*(1.0-fabs(a->phi(i,j,k))/p->DXM) - f(i,j,k+1)*fabs(a->phi(i,j,k))/p->DXM;
     }*/
         
         /*

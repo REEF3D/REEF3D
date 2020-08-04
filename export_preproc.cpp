@@ -30,9 +30,9 @@ void exportfile::preproc(lexer *p, fdm *a, ghostcell *pgc)
     ys = p->originy;
     zs = p->originz;
     
-    xe = (double(p->knox)+0.5)*p->dx + p->originx;
-    ye = (double(p->knoy)+0.5)*p->dx + p->originy;
-    ze = (double(p->knoz)+0.5)*p->dx + p->originz;
+    xe = (double(p->knox)+0.5)*p->DXM + p->originx;
+    ye = (double(p->knoy)+0.5)*p->DXM + p->originy;
+    ze = (double(p->knoz)+0.5)*p->DXM + p->originz;
     /*
     LOOP
     eta[i][j]=p->global_zmin-1.0e20;
@@ -40,7 +40,7 @@ void exportfile::preproc(lexer *p, fdm *a, ghostcell *pgc)
     // eta 
     LOOP
     if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
-    eta[i][j] = MAX(eta[i][j], -(a->phi(i,j,k)*p->dx)/(a->phi(i,j,k+1)-a->phi(i,j,k)) + p->pos_z());
+    eta[i][j] = MAX(eta[i][j], -(a->phi(i,j,k)*p->DXM)/(a->phi(i,j,k+1)-a->phi(i,j,k)) + p->pos_z());
     
     pgc->verticalmax(p,a,eta);*/
     

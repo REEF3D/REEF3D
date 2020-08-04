@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-picard_lsm::picard_lsm(lexer *p) : gradient(p), epsi(p->F45*p->dx)
+picard_lsm::picard_lsm(lexer *p) : gradient(p), epsi(p->F45*p->DXM)
 {
 }
 
@@ -49,7 +49,7 @@ void picard_lsm::volcalc(lexer *p, fdm *a, ghostcell *pgc, field& b)
 		if(fabs(b(i,j,k))<=epsi)
 		H=0.5*(1.0 + b(i,j,k)/epsi + (1.0/PI)*sin((PI*b(i,j,k))/epsi));
 
-		vol1+=pow(p->dx, 3.0)*H;
+		vol1+=pow(p->DXM, 3.0)*H;
 	}
 
 	vol1 = pgc->globalsum(vol1);
@@ -78,7 +78,7 @@ void picard_lsm::volcalc2(lexer *p, fdm *a, ghostcell *pgc, field& b)
 		if(fabs(b(i,j,k))<=epsi)
 		H=0.5*(1.0 + b(i,j,k)/epsi + (1.0/PI)*sin((PI*b(i,j,k))/epsi));
 
-		vol2+=pow(p->dx, 3.0)*H;
+		vol2+=pow(p->DXM, 3.0)*H;
 	}
 
 	vol2 = pgc->globalsum(vol2);

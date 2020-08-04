@@ -61,7 +61,7 @@ void flowfile_out::header_file_ini(lexer *p, fdm *a, ghostcell *pgc)
         headerout[n].write((char*)&ddn, sizeof (double));
         
         // dx
-        ddn=p->dx;
+        ddn=p->DXM;
         headerout[n].write((char*)&ddn, sizeof (double));
    
         // Ni,Nj,Nk | Ni*Nj*Nk = elnum_all

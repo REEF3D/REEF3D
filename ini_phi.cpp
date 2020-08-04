@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void initialize::iniphi(fdm*a, lexer* p, ghostcell* pgc)
 {
-    double dx=p->dx;
+    double dx=p->DXM;
     double r;
     double phidiff, xdiff;
     p->phimean=p->F56;
@@ -239,7 +239,7 @@ void initialize::iniphi_surfarea(lexer* p, fdm *a, ghostcell* pgc)
 {
 	double dx,dy,dz,dnorm,dirac;
 	double area=0.0;
-	double epsi = 1.6*p->dx;
+	double epsi = 1.6*p->DXM;
 	
     LOOP
 	{
@@ -257,7 +257,7 @@ void initialize::iniphi_surfarea(lexer* p, fdm *a, ghostcell* pgc)
 	if(fabs(a->phi(i,j,k))<epsi)
 	dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
 	
-	area +=  pow(p->dx,3.0) * dirac *dnorm;
+	area +=  pow(p->DXM,3.0) * dirac *dnorm;
 	}
 	
 	area = pgc->globalsum(area);

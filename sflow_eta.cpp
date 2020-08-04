@@ -69,7 +69,7 @@ sflow_eta::sflow_eta(lexer *p, fdm2D *b , ghostcell *pgc) : Lab(p)
     wd_criterion=p->A244_val;
     
     if(p->A245==1)
-    wd_criterion=p->A245_val*p->dx;
+    wd_criterion=p->A245_val*p->DXM;
     
 }
 
@@ -90,7 +90,7 @@ void sflow_eta::start(lexer* p, fdm2D* b, ghostcell* pgc, ioflow* pflow, slice &
      b->eta(i,j)  =      b->eta(i,j) 
     
                 -      p->dt*(b->P(i,j)*b->hx(i,j) - b->P(i-1,j)*b->hx(i-1,j)
-                       +      b->Q(i,j)*b->hy(i,j) - b->Q(i,j-1)*b->hy(i,j-1))/p->dx;
+                       +      b->Q(i,j)*b->hy(i,j) - b->Q(i,j-1)*b->hy(i,j-1))/p->DXM;
                 
     pgc->gcsl_start4(p,b->eta,gcval_eta);
     depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);

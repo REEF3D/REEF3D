@@ -42,7 +42,7 @@ void force::force_surface(lexer* p, fdm *a, ghostcell *pgc)
         j=fid[n][1];
         k=fid[n][2];
 
-        if(a->phi(i,j,k)>fsfmargin*p->dx || p->P92==1)
+        if(a->phi(i,j,k)>fsfmargin*p->DXM || p->P92==1)
         {
         xloc = fx[n] + fn[n][0]*p->DXP[IP]*p->P91;
         yloc = fy[n] + fn[n][1]*p->DYP[JP]*p->P91;
@@ -99,7 +99,7 @@ void force::force_surface(lexer* p, fdm *a, ghostcell *pgc)
 	Fvert0 = Fvert;
 
     FDs_norm = FDs/(p->W1*fabs(p->W22)*p->wH*p->wH);
-	Fvert_norm =(Fvert-Fvert0)/(p->W1*fabs(p->W22)*PI*p->dx*0.25);
+	Fvert_norm =(Fvert-Fvert0)/(p->W1*fabs(p->W22)*PI*p->DXM*0.25);
 }
 
 

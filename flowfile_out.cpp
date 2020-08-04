@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"turbulence.h"
 
 
-flowfile_out::flowfile_out(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P230), eps(1.0e-10*p->dx)
+flowfile_out::flowfile_out(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P230), eps(1.0e-10*p->DXM)
 {
 	//------------------------------
     initialize(p,a,pgc);

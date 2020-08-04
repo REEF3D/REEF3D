@@ -32,7 +32,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 poisson_f::poisson_f(lexer *p, heat *&pheat, concentration *&pconc) 
 {
-    if((p->F80==0||p->A10==4) && p->H10==0 && p->W30==0)
+    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0)
 	pd = new density_f(p);
 	
 	if(p->F80==0 && p->H10==0 && p->W30==1)
@@ -81,6 +81,8 @@ void poisson_f::start(lexer* p, fdm *a, field &press)
 	++n;
 	}
     
+    
+    
     n=0;
 	LOOP
 	{
@@ -125,3 +127,86 @@ void poisson_f::start(lexer* p, fdm *a, field &press)
 }
 
 
+/*
+void poisson_f::start(lexer* p, fdm *a, field &press)
+{	
+   
+	n=0;
+    LOOP
+	{
+	a->M.p[n]  =   (CPOR1*PORVAL1)/(pd->roface(p,a,1,0,0)*p->DRM*p->DRM)*p->x_dir*p->DRDXP[IP]*p->DRDXN[IP]
+                + (CPOR1m*PORVAL1m)/(pd->roface(p,a,-1,0,0)*p->DRM*p->DRM)*p->x_dir*p->DRDXP[IM1]*p->DRDXN[IP]
+                
+                + (CPOR2*PORVAL2)/(pd->roface(p,a,0,1,0)*p->DSM*p->DSM)*p->y_dir*p->DSDYP[JP]*p->DSDYN[JP]
+                + (CPOR2m*PORVAL2m)/(pd->roface(p,a,0,-1,0)*p->DSM*p->DSM)*p->y_dir*p->DSDYP[JM1]*p->DSDYN[JP]
+                
+                + (CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*p->DTM*p->DTM)*p->z_dir*p->DTDZP[KP]*p->DTDZN[KP]
+                + (CPOR3m*PORVAL3m)/(pd->roface(p,a,0,0,-1)*p->DTM*p->DTM)*p->z_dir*p->DTDZP[KM1]*p->DTDZN[KP];
+
+
+   	a->M.n[n] = -(CPOR1*PORVAL1)/(pd->roface(p,a,1,0,0)*p->DRM*p->DRM)*p->x_dir*p->DRDXP[IP]*p->DRDXN[IP]
+               -(CPOR1*PORVAL1)/(pd->roface(p,a,1,0,0)*2.0*p->DRM)*p->x_dir*p->DDRDDXP[IP];
+                
+	a->M.s[n] = -(CPOR1m*PORVAL1m)/(pd->roface(p,a,-1,0,0)*p->DRM*p->DRM)*p->x_dir*p->DRDXP[IM1]*p->DRDXN[IP]
+               +(CPOR1m*PORVAL1m)/(pd->roface(p,a,-1,0,0)*2.0*p->DRM)*p->x_dir*p->DDRDDXP[IP];
+               
+
+	a->M.w[n] = -(CPOR2*PORVAL2)/(pd->roface(p,a,0,1,0)*p->DSM*p->DSM)*p->y_dir*p->DSDYP[JP]*p->DSDYN[JP]
+               +(CPOR2*PORVAL2)/(pd->roface(p,a,0,1,0)*2.0*p->DSM)*p->y_dir*p->DDSDDYN[JP];
+    
+	a->M.e[n] = -(CPOR2m*PORVAL2m)/(pd->roface(p,a,0,-1,0)*p->DSM*p->DSM)*p->y_dir*p->DSDYP[JM1]*p->DSDYN[JP]
+               -(CPOR2m*PORVAL2m)/(pd->roface(p,a,0,-1,0)*2.0*p->DSM)*p->y_dir*p->DDSDDYN[JP];
+    
+
+	a->M.t[n] = -(CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*p->DTM*p->DTM)*p->z_dir*p->DTDZP[KP]*p->DTDZN[KP]
+                -(CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*2.0*p->DTM)*p->z_dir*p->DDTDDZN[KP];
+    
+	a->M.b[n] = -(CPOR3m*PORVAL3m)/(pd->roface(p,a,0,0,-1)*p->DTM*p->DTM)*p->z_dir*p->DTDZP[KM1]*p->DTDZN[KP]
+               +(CPOR3m*PORVAL3m)/(pd->roface(p,a,0,0,-1)*2.0*p->DTM)*p->z_dir*p->DDTDDZN[KP];
+	
+	++n;
+	}
+    
+    n=0;
+	LOOP
+	{
+        
+		if(p->flag4[Im1JK]<0)
+		{
+		a->rhsvec.V[n] -= a->M.s[n]*press(i-1,j,k);
+		a->M.s[n] = 0.0;
+		}
+		
+		if(p->flag4[Ip1JK]<0)
+		{
+		a->rhsvec.V[n] -= a->M.n[n]*press(i+1,j,k);
+		a->M.n[n] = 0.0;
+		}
+		
+		if(p->flag4[IJm1K]<0)
+		{
+		a->rhsvec.V[n] -= a->M.e[n]*press(i,j-1,k);
+		a->M.e[n] = 0.0;
+		}
+		
+		if(p->flag4[IJp1K]<0)
+		{
+		a->rhsvec.V[n] -= a->M.w[n]*press(i,j+1,k);
+		a->M.w[n] = 0.0;
+		}
+		
+		if(p->flag4[IJKm1]<0)
+		{
+		a->rhsvec.V[n] -= a->M.b[n]*press(i,j,k-1);
+		a->M.b[n] = 0.0;
+		}
+		
+		if(p->flag4[IJKp1]<0)
+		{
+		a->rhsvec.V[n] -= a->M.t[n]*press(i,j,k+1);
+		a->M.t[n] = 0.0;
+		}
+	++n;
+	}
+}
+*/

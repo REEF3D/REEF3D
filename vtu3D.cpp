@@ -367,7 +367,7 @@ void vtu3D::print_vtu(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *p
 }
 
 void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, solver *psolv, data *pdata, concentration *pconc, sediment *psed)
-{
+{    
     pgc->start4(p,a->test,1);
     pgc->start4a(p,a->solid,150);
     
@@ -904,7 +904,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	result.write((char*)&iin, sizeof (int));
     TPLOOP
 	{
-	ffn=float(p->pos_z()+0.5*p->dx);
+	ffn=float(p->pos_z()+0.5*p->DXM);
 	result.write((char*)&ffn, sizeof (float));
 	}
 

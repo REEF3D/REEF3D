@@ -34,23 +34,27 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"density_conc.h"
 #include"density_heat.h"
 #include"density_vof.h"
+#include"density_rheo.h"
  
 pjm_fsm::pjm_fsm(lexer* p, fdm *a, heat *&pheat, concentration *&pconc) 
 {
-    if((p->F80==0||p->A10==4) && p->H10==0 && p->W30==0)
+    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0 && p->W90==0)
 	pd = new density_f(p);
 	
-	if(p->F80==0 && p->H10==0 && p->W30==1)
+	if(p->F80==0 && p->H10==0 && p->W30==1 && p->W90==0)
 	pd = new density_comp(p);
 	
-	if(p->F80==0 && p->H10>0)
+	if(p->F80==0 && p->H10>0 && p->W90==0)
 	pd = new density_heat(p,pheat);
 	
-	if(p->F80==0 && p->C10>0)
+	if(p->F80==0 && p->C10>0 && p->W90==0)
 	pd = new density_conc(p,pconc);
     
-    if(p->F80>0 && p->H10==0 && p->W30==0)
+    if(p->F80>0 && p->H10==0 && p->W30==0 && p->W90==0)
 	pd = new density_vof(p);
+    
+    if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
+    pd = new density_rheo(p);
     
     
     if(p->B76==0)
@@ -159,13 +163,13 @@ void pjm_fsm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w
 void pjm_fsm::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
 {
     ULOOP
-    u(i,j,k)+=p->dt*alpha*PORVAL1*(a->press(i+1,j,k)-a->press(i,j,k))/(p->dx*pd->roface(p,a,1,0,0));
+    u(i,j,k)+=p->dt*alpha*PORVAL1*(a->press(i+1,j,k)-a->press(i,j,k))/(p->DXM*pd->roface(p,a,1,0,0));
     
     VLOOP
-    v(i,j,k)+=p->dt*alpha*PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))/(p->dx*pd->roface(p,a,0,1,0));
+    v(i,j,k)+=p->dt*alpha*PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))/(p->DXM*pd->roface(p,a,0,1,0));
     
     WLOOP
-    w(i,j,k)+=p->dt*alpha*PORVAL3*(a->press(i,j,k+1)-a->press(i,j,k))/(p->dx*pd->roface(p,a,0,0,1));
+    w(i,j,k)+=p->dt*alpha*PORVAL3*(a->press(i,j,k+1)-a->press(i,j,k))/(p->DXM*pd->roface(p,a,0,0,1));
     
 	pgc->start1(p,u,gcval_u);
 	pgc->start2(p,v,gcval_v);
@@ -190,19 +194,19 @@ void pjm_fsm::pressure_norm(lexer*p, fdm* a, ghostcell* pgc)
 void pjm_fsm::upgrad(lexer*p,fdm* a)
 {
     ULOOP
-    a->F(i,j,k)-=PORVAL1*(a->press(i+1,j,k)-a->press(i,j,k))/(p->dx*pd->roface(p,a,1,0,0));
+    a->F(i,j,k)-=PORVAL1*(a->press(i+1,j,k)-a->press(i,j,k))/(p->DXM*pd->roface(p,a,1,0,0));
 }
 
 void pjm_fsm::vpgrad(lexer*p,fdm* a)
 {
     VLOOP
-    a->G(i,j,k)-=PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))/(p->dx*pd->roface(p,a,0,1,0));
+    a->G(i,j,k)-=PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))/(p->DXM*pd->roface(p,a,0,1,0));
 }
 
 void pjm_fsm::wpgrad(lexer*p,fdm* a)
 {
     WLOOP
-    a->H(i,j,k)-=PORVAL3*(a->press(i,j,k+1)-a->press(i,j,k))/(p->dx*pd->roface(p,a,0,0,1));
+    a->H(i,j,k)-=PORVAL3*(a->press(i,j,k+1)-a->press(i,j,k))/(p->DXM*pd->roface(p,a,0,0,1));
 }
 
 void pjm_fsm::fillapu(lexer*p,fdm* a)

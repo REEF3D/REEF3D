@@ -53,8 +53,8 @@ class benchmark;
 class sixdof;
 class data;
 class concentration;
-class fnpf_fg;
-class fnpf_sg;
+class ptf;
+class fnpf;
 class onephase;
 class nsewave;
 class nhflow_fsf;
@@ -93,19 +93,19 @@ public:
 	void loop_cfd(fdm*);
     void loop_nsewave(fdm*);
     void loop_nhflow(fdm*);
-    void loop_fnpf_fg(fdm*);
-    void loop_fnpf_sg();
+    void loop_ptf(fdm*);
+    void loop_fnpf();
     void loop_sflow(fdm*);
     
 	void logic();
-    void logic_fnpf_fg();
-    void logic_fnpf_sg();
+    void logic_ptf();
+    void logic_fnpf();
     void logic_sflow();
     
 	void driver_ini();
     void driver_ini_nhflow();
-    void driver_ini_fnpf_sg();
-    void driver_ini_fnpf_fg();
+    void driver_ini_fnpf();
+    void driver_ini_ptf();
     void driver_ini_sflow();
     
 	void log_ini();
@@ -170,8 +170,8 @@ public:
 	sixdof* p6dof;
 	data *pdata;
 	concentration *pconc;
-    fnpf_sg *ppfsg;
-    fnpf_fg *ppffg;
+    fnpf *ppfsg;
+    ptf *pptf;
     onephase *poneph;
     nsewave *pnse;
     nhflow_fsf *pnhfsf;

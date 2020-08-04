@@ -41,7 +41,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_hxy_weno.h"
 
 nsewave_f::nsewave_f(lexer *p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc) : 
-                epsi(p->A440*p->dx),depth(p),bed(p),L(p),hp(p),hx(p),hy(p)
+                epsi(p->A440*p->DXM),depth(p),bed(p),L(p),hp(p),hx(p),hy(p)
 {
 	peta = new sflow_eta_weno(p);
 	phxy = new sflow_hxy_weno(p);
@@ -158,7 +158,7 @@ void nsewave_f::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusio
 			if(fabs(phival)<=epsi)
 			H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
 			
-			a->P(i,j) += a->u(i,j,k)*p->dx*H;
+			a->P(i,j) += a->u(i,j,k)*p->DXM*H;
 		}
     }
     
@@ -182,7 +182,7 @@ void nsewave_f::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusio
 				if(fabs(phival)<=epsi)
 				H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
 				
-				a->Q(i,j) += a->v(i,j,k)*p->dx*H;
+				a->Q(i,j) += a->v(i,j,k)*p->DXM*H;
 
 			}
     }
@@ -223,7 +223,7 @@ void nsewave_f::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusio
 	a->eta(i,j) +=	p->dt*L(i,j);	*/
 
     SLICELOOP4
-    a->eta(i,j) -= (p->dt*(a->P(i,j)-a->P(i-1,j) + a->Q(i,j)-a->Q(i,j-1)))/p->dx;	  
+    a->eta(i,j) -= (p->dt*(a->P(i,j)-a->P(i-1,j) + a->Q(i,j)-a->Q(i,j-1)))/p->DXM;	  
 
     
     

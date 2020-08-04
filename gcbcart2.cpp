@@ -44,7 +44,7 @@ void mgc2::fillgcb(lexer *p)
 	p->gcb2[q][n]=p->gcb4[q][n];
 
 	if(p->gcb2[q][3]==2 || p->gcb2[q][3]==3)
-	p->gcd2[q]=p->gcd4[q]+0.5*p->dx;
+	p->gcd2[q]=p->gcd4[q]+0.5*p->DXM;
 
 	if(p->gcb2[q][3]!=2 && p->gcb2[q][3]!=3)
 	p->gcd2[q]=p->gcd4[q];
@@ -510,10 +510,10 @@ void mgc2::extragcb(lexer *p)
     for(q=p->gcb2_count;q<count;++q)
     {
 		if(p->gcb2[q][3]==2 || p->gcb2[q][3]==3)
-		p->gcd2[q]=0.5*p->dx;
+		p->gcd2[q]=0.5*p->DXM;
 
 		if(p->gcb2[q][3]!=2 && p->gcb2[q][3]!=3)
-		p->gcd2[q]=p->dx;
+		p->gcd2[q]=p->DXM;
     }
 	
     p->gcb2_count=count;

@@ -136,17 +136,17 @@ double Ay=0.0;
             yloc = yc;
             zloc = zc;
             
-            xlocvel = xc + nx*p->dx;
-            ylocvel = yc + ny*p->dx;
-            zlocvel = zc + nz*p->dx;
+            xlocvel = xc + nx*p->DXM;
+            ylocvel = yc + ny*p->DXM;
+            zlocvel = zc + nz*p->DXM;
             
             uval = p->ccipol1_a(a->u,xlocvel,ylocvel,zlocvel);
             vval = p->ccipol2_a(a->v,xlocvel,ylocvel,zlocvel);
             wval = p->ccipol3_a(a->w,xlocvel,ylocvel,zlocvel);
             
-            du = uval/p->dx;
-            dv = vval/p->dx;
-            dw = wval/p->dx;
+            du = uval/p->DXM;
+            dv = vval/p->DXM;
+            dw = wval/p->DXM;
             
             pval =      p->ccipol4_a(a->press,xloc,yloc,zloc);
             density =   p->ccipol4_a(a->ro,xloc,yloc,zloc);

@@ -113,7 +113,7 @@ double ghostcell::gcsl_ipol4eta(lexer* p, slice &f, slice &bed)
     wd_criterion=p->A244_val;
     
     if(p->A245==1)
-    wd_criterion=p->A245_val*p->dx;
+    wd_criterion=p->A245_val*p->DXM;
     
     
     

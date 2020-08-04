@@ -29,8 +29,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"picard_f.h"
 #include"picard_void.h"
 
-reinivc_RK3::reinivc_RK3(lexer* p):gradient(p),deltax(p->dx),iflag(p),
-												epsi(p->F45*p->dx)
+reinivc_RK3::reinivc_RK3(lexer* p):gradient(p),deltax(p->DXM),iflag(p),
+												epsi(p->F45*p->DXM)
 {
 	if(p->F50==1)
 	gcval_phi=51;
@@ -207,7 +207,7 @@ void reinivc_RK3::correction(lexer *p, fdm* a, field& b)
 	for(n=0;n<numvert;++n)
 	ls1[n]=ls[n];
 	
-	dV=pow(p->dx,3.0);
+	dV=pow(p->DXM,3.0);
 	
 	for(n=0;n<numvert;++n)
     {

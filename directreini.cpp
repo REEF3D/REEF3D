@@ -33,7 +33,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/stat.h>
 #include<sys/types.h>
 
-directreini::directreini(lexer* p, fdm *a):gradient(p),vertice(p), nodeflag(p),d0(p),wallf(p),deltax(p->dx),epsi(0.6*p->dx),zero(0.0)
+directreini::directreini(lexer* p, fdm *a):gradient(p),vertice(p), nodeflag(p),d0(p),wallf(p),deltax(p->DXM),epsi(0.6*p->DXM),zero(0.0)
 {
 	if(p->F50==1)
 	gcval_phi=51;
@@ -66,7 +66,7 @@ directreini::directreini(lexer* p, fdm *a):gradient(p),vertice(p), nodeflag(p),d
 	p->F44=2;
 	
 	dT = p->F43*deltax;
-	dV = pow(p->dx,3.0);
+	dV = pow(p->DXM,3.0);
 	
 }
 

@@ -93,10 +93,10 @@ double sflow_weno_cflux::aij(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, s
         
 		
 		// X
-		dx = (ivel2*fu2-ivel1*fu1)/p->dx; 
+		dx = (ivel2*fu2-ivel1*fu1)/p->DXM; 
         
             if(ipol<=2)
-            dx -= f(i,j)*(ivel2-ivel1)/p->dx;
+            dx -= f(i,j)*(ivel2-ivel1)/p->DXM;
         
             if(ipol==1)
             dx/=HXIJ;
@@ -108,10 +108,10 @@ double sflow_weno_cflux::aij(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, s
             dx/=HP;
         
         // Y
-		dy = (jvel2*fv2-jvel1*fv1)/p->dx;
+		dy = (jvel2*fv2-jvel1*fv1)/p->DXM;
         
             if(ipol<=2)
-            dy -= f(i,j)*(jvel2-jvel1)/p->dx;
+            dy -= f(i,j)*(jvel2-jvel1)/p->DXM;
             
             if(ipol==1)
             dy/=HXIJ;

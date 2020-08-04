@@ -200,10 +200,7 @@ void momentum_RK2::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 
 void momentum_RK2::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
-    pgc->forcing1(p,a,f,uvel,vvel,wvel,alpha);
-    
 	n=0;
-	if(p->D20<4)
 	ULOOP
 	{
     a->maxF=MAX(fabs(a->rhsvec.V[n]),a->maxF);
@@ -211,22 +208,11 @@ void momentum_RK2::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel,
 	a->rhsvec.V[n]=0.0;
 	++n;
 	}
-	
-	n=0;
-	if(p->D20==4)
-	ULOOP
-	{
-	a->rhsvec.V[n]+=a->gi;
-	++n;
-	}
 }
 
 void momentum_RK2::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
-    pgc->forcing2(p,a,f,uvel,vvel,wvel,alpha);
-    
 	n=0;
-	if(p->D20<4)
 	VLOOP
 	{
     a->maxG=MAX(fabs(a->rhsvec.V[n]),a->maxG);
@@ -234,20 +220,10 @@ void momentum_RK2::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel,
 	a->rhsvec.V[n]=0.0;
 	++n;
 	}
-	
-	n=0;
-	if(p->D20==4)
-	VLOOP
-	{
-	a->rhsvec.V[n]+=a->gj;
-	++n;
-	}
 }
 
 void momentum_RK2::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
-    pgc->forcing3(p,a,f,uvel,vvel,wvel,alpha);
-    
 	n=0;
 	if(p->D20<4)
 	WLOOP
@@ -255,14 +231,6 @@ void momentum_RK2::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel,
     a->maxH=MAX(fabs(a->rhsvec.V[n]),a->maxH);
 	a->H(i,j,k) += (a->rhsvec.V[n] + a->gk)*PORVAL3;
 	a->rhsvec.V[n]=0.0;
-	++n;
-	}
-	
-	n=0;
-	if(p->D20==4)
-	WLOOP
-	{
-	a->rhsvec.V[n]+=a->gk;
 	++n;
 	}
 }

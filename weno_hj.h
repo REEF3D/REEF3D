@@ -40,19 +40,19 @@ public:
 	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
 
 private:
-    double aij(lexer*, fdm*, field&, int,field&,field&,field&);
+    double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
     
     double aij_sig(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
 
 	virtual double ddx(lexer*, fdm*, field&);
 	virtual double ddy(lexer*, fdm*, field&);
 	virtual double ddz(lexer*, fdm*, field&);
-	void iqmin(fdm*,field&, double);
-	void jqmin(fdm*,field&, double);
-	void kqmin(fdm*,field&, double);
-	void iqmax(fdm*,field&, double);
-	void jqmax(fdm*,field&, double);
-	void kqmax(fdm*,field&, double);
+	void iqmin(field&, double, double*);
+	void jqmin(field&, double, double*);
+	void kqmin(field&, double, double*);
+	void iqmax(field&, double, double*);
+	void jqmax(field&, double, double*);
+	void kqmax(field&, double, double*);
 
 	double L,grad;
 	const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;

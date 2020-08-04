@@ -144,13 +144,13 @@ void sixdof_f::print_vtp(lexer* p, fdm* a, ghostcell *pgc)
 	result.write((char*)&iin, sizeof (int));
     for(n=0;n<vertice_num;++n)
 	{
-            /*i = int((ccpt[n][0]-p->originx)/p->dx);
-            j = int((ccpt[n][1]-p->originy)/p->dx);
-            k = int((ccpt[n][2]-p->originz)/p->dx);
+            /*i = int((ccpt[n][0]-p->originx)/p->DXM);
+            j = int((ccpt[n][1]-p->originy)/p->DXM);
+            k = int((ccpt[n][2]-p->originz)/p->DXM);
             
-            nx = (a->solid(i+1,j,k)-a->solid(i-1,j,k))/p->dx;
-            ny = (a->solid(i,j+1,k)-a->solid(i,j-1,k))/p->dx;
-            nz = (a->solid(i,j,k+1)-a->solid(i,j,k-1))/p->dx;
+            nx = (a->solid(i+1,j,k)-a->solid(i-1,j,k))/p->DXM;
+            ny = (a->solid(i,j+1,k)-a->solid(i,j-1,k))/p->DXM;
+            nz = (a->solid(i,j,k+1)-a->solid(i,j,k-1))/p->DXM;
             
             norm = sqrt(nx*nx + ny*ny + nz*nz);
             

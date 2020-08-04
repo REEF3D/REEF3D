@@ -253,7 +253,7 @@ void VOF_RK3::compression(lexer* p, fdm *a, ghostcell *pgc, convection *pconvec,
     wmax=MAX(wmax,fabs(wc(i,j,k)));
     
 
-    timestep = (0.5*MAX(umax,MAX(vmax,wmax)))/p->dx;
+    timestep = (0.5*MAX(umax,MAX(vmax,wmax)))/p->DXM;
 
     timestep = pgc->globalmax(timestep);
 

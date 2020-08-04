@@ -81,7 +81,7 @@ public:
     
     slice1 P;
     slice2 Q;
-    slice4 bed,bedzh;
+    slice4 bed,bedzh,bedzh0;
     sliceint4 bedk;
     sliceint4 wet;
     
@@ -92,8 +92,7 @@ public:
     sliceint4 etaloc;
     
     slice4 bedload;
-    slice1 qbx;
-    slice2 qby;
+
     
     
 	vec xvec,rhsvec,visctot;

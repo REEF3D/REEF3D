@@ -55,7 +55,7 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
         if(p->B98==2 && h_switch==1)
         {
             // Zone 1
-            if(dg<dist1+3.0*p->dx)
+            if(dg<dist1+3.0*p->DXM)
             {
                 eta(i,j) = 0.0;
                 etaval[count] = 0.0;
@@ -129,7 +129,7 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
         if(p->B98==2 && f_switch==1)
         {
             // Zone 1
-            if(dg<dist1+3.0*p->dx)
+            if(dg<dist1+3.0*p->DXM)
             {
                 Fifsfval[count] = 0.0;
                 

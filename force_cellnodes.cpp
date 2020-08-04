@@ -65,78 +65,78 @@ void force::cellnodes(lexer* p, fdm *a, ghostcell *pgc)
 
     // Side 0
         // 0
-        if(px > cx-0.5*p->dx-eps && px < cx-0.5*p->dx+eps
-        && py > cy-0.5*p->dx-eps && py < cy-0.5*p->dx+eps
-        && pz > cz-0.5*p->dx+eps && pz < cz+0.5*p->dx+eps)
+        if(px > cx-0.5*p->DXM-eps && px < cx-0.5*p->DXM+eps
+        && py > cy-0.5*p->DXM-eps && py < cy-0.5*p->DXM+eps
+        && pz > cz-0.5*p->DXM+eps && pz < cz+0.5*p->DXM+eps)
         cn[0][0]=q;
 
         // 1
-        if(px > cx-0.5*p->dx-eps && px < cx+0.5*p->dx-eps
-        && py > cy-0.5*p->dx-eps && py < cy-0.5*p->dx+eps
-        && pz > cz-0.5*p->dx-eps && pz < cz-0.5*p->dx+eps)
+        if(px > cx-0.5*p->DXM-eps && px < cx+0.5*p->DXM-eps
+        && py > cy-0.5*p->DXM-eps && py < cy-0.5*p->DXM+eps
+        && pz > cz-0.5*p->DXM-eps && pz < cz-0.5*p->DXM+eps)
         cn[0][1]=q;
 
         // 2
-        if(px > cx-0.5*p->dx+eps && px < cx+0.5*p->dx-eps
-        && py > cy-0.5*p->dx-eps && py < cy-0.5*p->dx+eps
-        && pz > cz+0.5*p->dx-eps && pz < cz+0.5*p->dx+eps)
+        if(px > cx-0.5*p->DXM+eps && px < cx+0.5*p->DXM-eps
+        && py > cy-0.5*p->DXM-eps && py < cy-0.5*p->DXM+eps
+        && pz > cz+0.5*p->DXM-eps && pz < cz+0.5*p->DXM+eps)
         cn[0][2]=q;
 
     // Side 1
         // 0
-        if(px > cx+0.5*p->dx-eps && px < cx+0.5*p->dx+eps
-        && py > cy-0.5*p->dx-eps && py < cy-0.5*p->dx+eps
-        && pz > cz-0.5*p->dx+eps && pz < cz+0.5*p->dx+eps)
+        if(px > cx+0.5*p->DXM-eps && px < cx+0.5*p->DXM+eps
+        && py > cy-0.5*p->DXM-eps && py < cy-0.5*p->DXM+eps
+        && pz > cz-0.5*p->DXM+eps && pz < cz+0.5*p->DXM+eps)
         cn[1][0]=q;
 
         // 1
-        if(px > cx+0.5*p->dx-eps && px < cx+0.5*p->dx+eps
-        && py > cy-0.5*p->dx-eps && py < cy+0.5*p->dx-eps
-        && pz > cz-0.5*p->dx-eps && pz < cz-0.5*p->dx+eps)
+        if(px > cx+0.5*p->DXM-eps && px < cx+0.5*p->DXM+eps
+        && py > cy-0.5*p->DXM-eps && py < cy+0.5*p->DXM-eps
+        && pz > cz-0.5*p->DXM-eps && pz < cz-0.5*p->DXM+eps)
         cn[1][1]=q;
 
         // 2
-        if(px > cx+0.5*p->dx-eps && px < cx+0.5*p->dx+eps
-        && py > cy-0.5*p->dx+eps && py < cy+0.5*p->dx-eps
-        && pz > cz+0.5*p->dx-eps && pz < cz+0.5*p->dx+eps)
+        if(px > cx+0.5*p->DXM-eps && px < cx+0.5*p->DXM+eps
+        && py > cy-0.5*p->DXM+eps && py < cy+0.5*p->DXM-eps
+        && pz > cz+0.5*p->DXM-eps && pz < cz+0.5*p->DXM+eps)
         cn[1][2]=q;
 
     // Side 2
         // 0
-        if(px > cx+0.5*p->dx-eps && px < cx+0.5*p->dx+eps
-        && py > cy+0.5*p->dx-eps && py < cy+0.5*p->dx+eps
-        && pz > cz-0.5*p->dx+eps && pz < cz+0.5*p->dx+eps)
+        if(px > cx+0.5*p->DXM-eps && px < cx+0.5*p->DXM+eps
+        && py > cy+0.5*p->DXM-eps && py < cy+0.5*p->DXM+eps
+        && pz > cz-0.5*p->DXM+eps && pz < cz+0.5*p->DXM+eps)
         cn[2][0]=q;
 
         // 1
-        if(px > cx-0.5*p->dx+eps && px < cx+0.5*p->dx+eps
-        && py > cy+0.5*p->dx-eps && py < cy+0.5*p->dx+eps
-        && pz > cz-0.5*p->dx-eps && pz < cz-0.5*p->dx+eps)
+        if(px > cx-0.5*p->DXM+eps && px < cx+0.5*p->DXM+eps
+        && py > cy+0.5*p->DXM-eps && py < cy+0.5*p->DXM+eps
+        && pz > cz-0.5*p->DXM-eps && pz < cz-0.5*p->DXM+eps)
         cn[2][1]=q;
 
         // 2
-        if(px > cx-0.5*p->dx+eps && px < cx+0.5*p->dx-eps
-        && py > cy+0.5*p->dx-eps && py < cy+0.5*p->dx+eps
-        && pz > cz+0.5*p->dx-eps && pz < cz+0.5*p->dx+eps)
+        if(px > cx-0.5*p->DXM+eps && px < cx+0.5*p->DXM-eps
+        && py > cy+0.5*p->DXM-eps && py < cy+0.5*p->DXM+eps
+        && pz > cz+0.5*p->DXM-eps && pz < cz+0.5*p->DXM+eps)
         cn[2][2]=q;
 
     // Side 3
         // 0
-        if(px > cx-0.5*p->dx-eps && px < cx-0.5*p->dx+eps
-        && py > cy+0.5*p->dx-eps && py < cy+0.5*p->dx+eps
-        && pz > cz-0.5*p->dx+eps && pz < cz+0.5*p->dx+eps)
+        if(px > cx-0.5*p->DXM-eps && px < cx-0.5*p->DXM+eps
+        && py > cy+0.5*p->DXM-eps && py < cy+0.5*p->DXM+eps
+        && pz > cz-0.5*p->DXM+eps && pz < cz+0.5*p->DXM+eps)
         cn[3][0]=q;
 
         // 1
-        if(px > cx-0.5*p->dx-eps && px < cx-0.5*p->dx+eps
-        && py > cy-0.5*p->dx+eps && py < cy+0.5*p->dx+eps
-        && pz > cz-0.5*p->dx-eps && pz < cz-0.5*p->dx+eps)
+        if(px > cx-0.5*p->DXM-eps && px < cx-0.5*p->DXM+eps
+        && py > cy-0.5*p->DXM+eps && py < cy+0.5*p->DXM+eps
+        && pz > cz-0.5*p->DXM-eps && pz < cz-0.5*p->DXM+eps)
         cn[3][1]=q;
 
         // 2
-        if(px > cx-0.5*p->dx-eps && px < cx-0.5*p->dx+eps
-        && py > cy-0.5*p->dx+eps && py < cy+0.5*p->dx-eps
-        && pz > cz+0.5*p->dx-eps && pz < cz+0.5*p->dx+eps)
+        if(px > cx-0.5*p->DXM-eps && px < cx-0.5*p->DXM+eps
+        && py > cy-0.5*p->DXM+eps && py < cy+0.5*p->DXM-eps
+        && pz > cz+0.5*p->DXM-eps && pz < cz+0.5*p->DXM+eps)
         cn[3][2]=q;
         }
 

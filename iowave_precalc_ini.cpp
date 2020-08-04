@@ -30,7 +30,7 @@ void iowave::wavegen_precalc_ini(lexer *p, ghostcell *pgc)
         if(p->B98==2)
         wavegen_precalc_relax_ini(p,pgc);
         
-        if(p->B98==3)
+        if(p->B98==3 || p->B98==4)
         wavegen_precalc_dirichlet_ini(p,pgc);
     }
     
@@ -39,7 +39,7 @@ void iowave::wavegen_precalc_ini(lexer *p, ghostcell *pgc)
         if(p->B98==2)
         fnpf_precalc_relax_ini(p,pgc);
         
-        if(p->B98==3)
+        if(p->B98==3 || p->B98==4)
         fnpf_precalc_dirichlet_ini(p,pgc);
     }
 }
@@ -130,7 +130,7 @@ void iowave::wavegen_precalc_relax_ini(lexer *p, ghostcell *pgc)
 		if(p->B98==2)
         {
             // Zone 1
-            if(dg<dist1+3.0*p->dx)
+            if(dg<dist1+3.0*p->DXM)
             ++ept_count;
 
 		}

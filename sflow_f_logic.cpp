@@ -108,19 +108,6 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->A220==3)
 	ppress = new sflow_pjm_sw(p,b);
     
-    // Boussinesq wave model
-    if(p->A230==0)
-    pbouss = new sflow_boussinesq_void(p,b);
-    
-    if(p->A230==1)
-    pbouss = new sflow_boussinesq_abbott(p,b);
-    
-    if(p->A230==2)
-    pbouss = new sflow_boussinesq_peregrine(p,b);
-    
-    if(p->A230==3)
-    pbouss = new sflow_boussinesq_madsen92(p,b);
-    
     // diffusion
 	if(p->A260==0)
 	pturb =  new sflow_turb_void(p);
@@ -171,8 +158,8 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	pmom = new sflow_momentum_AB2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf);
     
     if(p->A210==2)
-	pmom = new sflow_momentum_RK2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,pbouss);
+	pmom = new sflow_momentum_RK2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf);
     
 	if(p->A210==3)
-	pmom = new sflow_momentum_RK3(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,pbouss);
+	pmom = new sflow_momentum_RK3(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf);
 }

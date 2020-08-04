@@ -38,8 +38,6 @@ double reduction_FD::start(lexer *p, fdm * a, ghostcell *pgc)
 
 	slope(p,a,pgc,teta,alpha,gamma,phi);
     
-    //phi *=0.75;
-	
     r = cos(teta)*(1.0 - tan(teta)/tan(phi));
     
     r*= cos(alpha)*(1.0 - pow(tan(alpha),2.0)/pow(tan(phi),2.0));

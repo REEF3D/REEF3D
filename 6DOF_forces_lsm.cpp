@@ -32,7 +32,7 @@ void sixdof_f::forces_lsm(lexer *p,fdm* a, ghostcell *pgc)
 	double area=0.0;
 	double volume;
 	double areasum=0.0;
-//	double epsi = p->X41*p->dx;
+//	double epsi = p->X41*p->DXM;
 	double x_norm,y_norm,z_norm;
 	double xloc,yloc,zloc;
 	double Fx,Fy,Fz,V;
@@ -66,9 +66,9 @@ void sixdof_f::forces_lsm(lexer *p,fdm* a, ghostcell *pgc)
 	lsSig=fbval/(fabs(fbval)>1.0e-10?sqrt(fbval*fbval):1.0e20);
 
 	
-	//dstx=(a->fb(i+1,j,k)-a->fb(i-1,j,k))/(2.0*p->dx);
-	//dsty=(a->fb(i,j+1,k)-a->fb(i,j-1,k))/(2.0*p->dx);
-	//dstz=(a->fb(i,j,k+1)-a->fb(i,j,k-1))/(2.0*p->dx);
+	//dstx=(a->fb(i+1,j,k)-a->fb(i-1,j,k))/(2.0*p->DXM);
+	//dsty=(a->fb(i,j+1,k)-a->fb(i,j-1,k))/(2.0*p->DXM);
+	//dstz=(a->fb(i,j,k+1)-a->fb(i,j,k-1))/(2.0*p->DXM);
 	
 	dstx = (a->fb(i+1,j,k)-a->fb(i-1,j,k))/(p->DXP[IM1] + p->DXP[IP]);
 	dsty = (a->fb(i,j+1,k)-a->fb(i,j-1,k))/(p->DYP[JM1] + p->DYP[JP]);

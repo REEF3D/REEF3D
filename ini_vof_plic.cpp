@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void initialize::inivofPLIC(fdm*a, lexer* p, ghostcell* pgc)
 {
 
-    double dx=p->dx;
+    double dx=p->DXM;
     double r;
     double vofdiff, xdiff;
     

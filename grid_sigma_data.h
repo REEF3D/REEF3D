@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_sg.h"
+#include"fnpf.h"
 #include"increment.h"
 #include"slice4.h"
 

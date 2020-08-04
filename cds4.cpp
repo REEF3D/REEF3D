@@ -100,17 +100,17 @@ double cds4::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, fi
         
 		
 		dx= (ivel2*(27.0*b(i,j,k) + 27.0*b(i+1,j,k) - 3.0*b(i+2,j,k) - 3.0*b(i-1,j,k))  
-		 -  ivel1* (27.0*b(i,j,k) + 27.0*b(i-1,j,k) - 3.0*b(i-2,j,k) - 3.0*b(i+1,j,k)))/(48.0*p->dx);
+		 -  ivel1* (27.0*b(i,j,k) + 27.0*b(i-1,j,k) - 3.0*b(i-2,j,k) - 3.0*b(i+1,j,k)))/(48.0*p->DXM);
 
 		
 		
 		dy= (jvel2*(27.0*b(i,j,k) + 27.0*b(i,j+1,k) - 3.0*b(i,j+2,k) - 3.0*b(i,j-1,k))  
-		 -  jvel1* (27.0*b(i,j,k) + 27.0*b(i,j-1,k) - 3.0*b(i,j-2,k) - 3.0*b(i,j+1,k)))/(48.0*p->dx);
+		 -  jvel1* (27.0*b(i,j,k) + 27.0*b(i,j-1,k) - 3.0*b(i,j-2,k) - 3.0*b(i,j+1,k)))/(48.0*p->DXM);
 
 
 		
 		dz= (kvel2*(27.0*b(i,j,k) + 27.0*b(i,j,k+1) - 3.0*b(i,j,k+2) - 3.0*b(i,j,k-1))  
-		 -  kvel1* (27.0*b(i,j,k) + 27.0*b(i,j,k-1) - 3.0*b(i,j,k-2) - 3.0*b(i,j,k+1)))/(48.0*p->dx);
+		 -  kvel1* (27.0*b(i,j,k) + 27.0*b(i,j,k-1) - 3.0*b(i,j,k-2) - 3.0*b(i,j,k+1)))/(48.0*p->DXM);
 		
 		L = -dx-dy-dz;
 

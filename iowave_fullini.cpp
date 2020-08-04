@@ -180,7 +180,7 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
 		if(phival>=-epsi && phival<-psi)
 		H=0.5*(1.0 + phival/fabs(epsi) + (1.0/PI)*sin((PI*phival)/fabs(epsi)));
         
-        if(p->A300==1)
+        if(p->A10==3)
         H=1.0;
 		
 		a->Fi(i,j,k) = wave_fi(p,pgc,xg,yg,z)*H;

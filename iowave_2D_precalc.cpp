@@ -43,7 +43,7 @@ void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
         if(p->B98==2 && h_switch==1)
         {
             // Zone 1
-            if(dg<dist1+3.0*p->dx)
+            if(dg<dist1+3.0*p->DXM)
             {
             eta(i,j) = wave_eta(p,pgc,xg,yg);
             etaval[count] = eta(i,j);

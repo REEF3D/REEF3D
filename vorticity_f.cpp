@@ -157,8 +157,8 @@ void vorticity_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 
     TPLOOP
 	{
-	val = 0.25*(a->u(i,j,k) + a->u(i,j+1,k) + a->u(i,j,k+1) + a->u(i,j+1,k+1))*p->dx
-        - 0.25*(a->v(i,j,k) + a->v(i+1,j,k) + a->u(i,j,k+1) + a->u(i+1,j,k+1))*p->dx;
+	val = 0.25*(a->u(i,j,k) + a->u(i,j+1,k) + a->u(i,j,k+1) + a->u(i,j+1,k+1))*p->DXM
+        - 0.25*(a->v(i,j,k) + a->v(i+1,j,k) + a->u(i,j,k+1) + a->u(i+1,j,k+1))*p->DXM;
 
     ffn=float(val);
 
@@ -167,8 +167,8 @@ void vorticity_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 
 	for(n=0;n<p->ccptnum;n++)
 	{
-	val = p->ccipol1(a->u,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2])*p->dx
-        - p->ccipol2(a->v,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2])*p->dx;
+	val = p->ccipol1(a->u,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2])*p->DXM
+        - p->ccipol2(a->v,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2])*p->DXM;
 
     ffn=float(val);
 
@@ -181,8 +181,8 @@ void vorticity_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 
     TPLOOP
 	{
-	val = -0.25*(a->u(i,j,k) + a->u(i,j+1,k) + a->u(i,j,k+1) + a->u(i,j+1,k+1))*p->dx
-        + 0.25*(a->w(i,j,k) + a->w(i+1,j,k) + a->w(i,j+1,k) + a->w(i+1,j+1,k))*p->dx;
+	val = -0.25*(a->u(i,j,k) + a->u(i,j+1,k) + a->u(i,j,k+1) + a->u(i,j+1,k+1))*p->DXM
+        + 0.25*(a->w(i,j,k) + a->w(i+1,j,k) + a->w(i,j+1,k) + a->w(i+1,j+1,k))*p->DXM;
 
     ffn=float(val);
 
@@ -191,8 +191,8 @@ void vorticity_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 
 	for(n=0;n<p->ccptnum;n++)
 	{
-	val = -p->ccipol1(a->u,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2])*p->dx
-        + p->ccipol3(a->w,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2])*p->dx;
+	val = -p->ccipol1(a->u,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2])*p->DXM
+        + p->ccipol3(a->w,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2])*p->DXM;
 
     ffn=float(val);
 
@@ -205,8 +205,8 @@ void vorticity_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 
     TPLOOP
 	{
-	val = -0.25*(a->v(i,j,k) + a->v(i+1,j,k) + a->u(i,j,k+1) + a->u(i+1,j,k+1))*p->dx
-        + 0.25*(a->w(i,j,k) + a->w(i,j+1,k) + a->w(i+1,j,k) + a->w(i+1,j+1,k))*p->dx;
+	val = -0.25*(a->v(i,j,k) + a->v(i+1,j,k) + a->u(i,j,k+1) + a->u(i+1,j,k+1))*p->DXM
+        + 0.25*(a->w(i,j,k) + a->w(i,j+1,k) + a->w(i+1,j,k) + a->w(i+1,j+1,k))*p->DXM;
 
     ffn=float(val);
 
@@ -215,8 +215,8 @@ void vorticity_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 
 	for(n=0;n<p->ccptnum;n++)
 	{
-	val = -p->ccipol2(a->v,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2])*p->dx
-        + p->ccipol3(a->w,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2])*p->dx;
+	val = -p->ccipol2(a->v,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2])*p->DXM
+        + p->ccipol3(a->w,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2])*p->DXM;
 
     ffn=float(val);
 

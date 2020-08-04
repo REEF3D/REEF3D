@@ -29,7 +29,6 @@ Author: Hans Bihs
 class sflow_convection;
 class sflow_fsf;
 class sflow_diffusion;
-class sflow_boussinesq;
 class sflow_roughness;
 class sflow_sediment_RK;
 
@@ -42,7 +41,7 @@ class sflow_momentum_RK2 : public sflow_momentum, public increment
 {
 public:
 	sflow_momentum_RK2(lexer*, fdm2D*, sflow_convection*, sflow_diffusion*, sflow_pressure*, 
-                        solver2D*, solver2D*, ioflow*, sflow_fsf*, sflow_boussinesq*);
+                        solver2D*, solver2D*, ioflow*, sflow_fsf*);
 	virtual ~sflow_momentum_RK2();
 	virtual void start(lexer*, fdm2D*, ghostcell*);
 
@@ -67,7 +66,6 @@ private:
     solver2D *ppoissonsolv;
 	ioflow *pflow;
 	sflow_fsf *pfsf;
-    sflow_boussinesq *pbouss;
     sflow_roughness *prough;
     sflow_sediment_RK *psedstep;
 };

@@ -45,6 +45,7 @@ public:
 	double H,roval,phival;
 	int ii,jj,kk;
 	const double epsi,eps;
+    double psi;
     
     heat *pheat;
 private:

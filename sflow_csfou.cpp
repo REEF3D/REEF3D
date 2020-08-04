@@ -87,9 +87,9 @@ double sflow_csfou::aij(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, slice&
 		if(ivel2>=0.0)
 		ur=1.0;
 
-		dx= (ivel2*(ur*f(i,j) +  (1.0-ur)*f(i+1,j))  -  ivel1*(ul*f(i-1,j) +  (1.0-ul)*f(i,j)))/(p->dx);
+		dx= (ivel2*(ur*f(i,j) +  (1.0-ur)*f(i+1,j))  -  ivel1*(ul*f(i-1,j) +  (1.0-ul)*f(i,j)))/(p->DXM);
 		
-        dx -= f(i,j)*(ivel2-ivel1)/p->dx;
+        dx -= f(i,j)*(ivel2-ivel1)/p->DXM;
         
         if(ipol==1)
         dx/=HXIJ;
@@ -108,9 +108,9 @@ double sflow_csfou::aij(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, slice&
 		if(jvel2>=0.0)
 		vr=1.0;
 
-		dy= (jvel2*(vr*f(i,j) +  (1.0-vr)*f(i,j+1))  -  jvel1*(vl*f(i,j-1) +  (1.0-vl)*f(i,j)))/(p->dx);
+		dy= (jvel2*(vr*f(i,j) +  (1.0-vr)*f(i,j+1))  -  jvel1*(vl*f(i,j-1) +  (1.0-vl)*f(i,j)))/(p->DXM);
         
-        dy -= f(i,j)*(jvel2-jvel1)/p->dx;
+        dy -= f(i,j)*(jvel2-jvel1)/p->DXM;
         
             if(ipol==1)
             dy/=HXIJ;

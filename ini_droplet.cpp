@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void initialize::droplet_ini(lexer* p, fdm *a, ghostcell* pgc)
 {
 
-double dx=p->dx;
+double dx=p->DXM;
 double r;
 double diff = fabs(p->I58_2-p->F58_4)>1.0e-9?p->I58_2-p->F58_4 : 1.0e20;
 

@@ -41,9 +41,7 @@ public:
 	virtual ~topo_vel();
 
     void  topovel(lexer*,fdm*,ghostcell*,double&,double&,double&);
-    
-    void  topovel_xy_cds(lexer*,fdm*,ghostcell*,double&,double&,double&);
-	
+
 	void rkio_update(lexer*,fdm*,ghostcell*,field&);
 
 	double xc,yc,zc;

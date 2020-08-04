@@ -107,22 +107,18 @@ void ghostcell::topo_update(lexer *p, fdm *a)
     m4.fill_dgc(p);
 
     column_pt_resize(p,a);
-
     column_pt4_update(p,a);
 
 
-    a->press.resize(p);
-
-
-// resize field
-
 //-------------------
 
-    velcell_update(p,a,cellmem1,cellcount1,0.0,0.0,0.5*p->dx,1);
-    velcell_update(p,a,cellmem2,cellcount2,0.0,0.5*p->dx,0.0,2);
-    velcell_update(p,a,cellmem3,cellcount3,0.5*p->dx,0.0,0.0,3);
+    velcell_update(p,a,cellmem1,cellcount1,0.0,0.0,0.5*p->DXM,1);
+    velcell_update(p,a,cellmem2,cellcount2,0.0,0.5*p->DXM,0.0,2);
+    velcell_update(p,a,cellmem3,cellcount3,0.5*p->DXM,0.0,0.0,3);
 	gctopo_pressureupdate(p,a,cellmem4,cellcount4,a->press);
-	//gctopo_scalarupdate(p,a,cellmem4,cellcount4,a->eddyv);
+
+    
+    gcb_velflagio(p,a);
 
     start1(p,a->u,10);
     start2(p,a->v,11);

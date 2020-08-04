@@ -77,7 +77,7 @@ void ghostcell::gcb_generic(lexer* p,field& f,int *gcb_count, int ***gcb)
         }
 			
         //cout<<"F: "<<i<<" "<<k<<" "<<f(i,j,k)<<endl;
-		f(i+aa,j+bb,k+cc)=f(i,j,k) +  double(r/fabs(r)) * (p->dx*double(r))*gravity*a->ro(i,j,k);
+		f(i+aa,j+bb,k+cc)=f(i,j,k) +  double(r/fabs(r)) * (p->DXM*double(r))*gravity*a->ro(i,j,k);
 		}
     }
 

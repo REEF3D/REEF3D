@@ -33,14 +33,14 @@ void geotopo::box(lexer* p, fdm* a, ghostcell* pgc)
 
     for(qn=0;qn<p->G60;++qn)
     {
-        istart = conv((p->G60_xs[qn]-p->originx)/p->dx);
-        iend = conv((p->G60_xe[qn]-p->originx)/p->dx);
+        istart = conv((p->G60_xs[qn]-p->originx)/p->DXM);
+        iend = conv((p->G60_xe[qn]-p->originx)/p->DXM);
 
-        jstart = conv((p->G60_ys[qn]-p->originy)/p->dx);
-        jend = conv((p->G60_ye[qn]-p->originy)/p->dx);
+        jstart = conv((p->G60_ys[qn]-p->originy)/p->DXM);
+        jend = conv((p->G60_ye[qn]-p->originy)/p->DXM);
 
-        kstart = conv((p->G60_zs[qn]-p->originz)/p->dx);
-        kend = conv((p->G60_ze[qn]-p->originz)/p->dx);
+        kstart = conv((p->G60_zs[qn]-p->originz)/p->DXM);
+        kend = conv((p->G60_ze[qn]-p->originz)/p->DXM);
 
         //cout<<p->mpirank<<" G60: "<<p->G60<<" . "<<istart<<" "<<iend<<" "<<jstart<<" "<<jend<<" "<<kstart<<" "<<kend<<endl;
 

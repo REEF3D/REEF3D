@@ -30,7 +30,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sediment_wenoflux.h"
 #include"sediment_weno_hj.h"
 
-topo_vel::topo_vel(lexer* p, turbulence *pturb): ccipol(p), norm_vec(p), dx(p->dx),epsi(1.6*p->dx)
+topo_vel::topo_vel(lexer* p, turbulence *pturb): ccipol(p), norm_vec(p), dx(p->DXM),epsi(1.6*p->DXM)
 {
     rhosed=p->S22;
     rhowat=p->W1;
@@ -115,9 +115,6 @@ void topo_vel::topovel(lexer* p,fdm* a, ghostcell *pgc, double& vx, double& vy, 
     
     sgy1=fabs(uy1_abs)>1.0e-10?vy1/fabs(uy1_abs):0.0;
     sgy2=fabs(uy2_abs)>1.0e-10?vy2/fabs(uy2_abs):0.0;
-    
-    
-    //cout<<"sgx1: "<<sgx1<<" sgx2: "<<sgx2<<" sgy1: "<<sgy1<<" sgy2: "<<sgy2<<" |  SUM1: "<<sgx1+sgy1<<"  SUM2: "<<sgx2+sgy2<<endl;
     
     
     dqx = pdx->sx(p,a->bedload,sgx1,sgx2);

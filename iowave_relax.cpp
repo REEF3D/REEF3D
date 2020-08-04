@@ -92,7 +92,7 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
     }
     
     
-    if(p->A10==44)
+    if(p->A10==55)
     ULOOP
     {
 		xg = xgen1(p);
@@ -190,7 +190,7 @@ void iowave::v_relax(lexer *p, fdm *a, ghostcell *pgc, field& vvel)
     }
     
     
-    if(p->A10==44)
+    if(p->A10==55)
     VLOOP
     {
         xg = xgen2(p);
@@ -290,7 +290,7 @@ void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
     }
 
 
-    if(p->A10==4)
+    if(p->A10==5)
     WLOOP
     {
         xg = xgen(p);
@@ -342,7 +342,7 @@ void iowave::p_relax(lexer *p, fdm *a, ghostcell *pgc, field& press)
         }
     }	
 
-    if(p->A10==44)
+    if(p->A10==55)
     LOOP
     {
 		dg = distgen(p);
@@ -512,7 +512,7 @@ void iowave::fi_relax(lexer *p, ghostcell *pgc, field& f, field& phi)
 		if(p->B121==0)
 		G=1.0;
         
-        if(p->A300==1)
+        if(p->A10==3)
         H=G=1.0;*/
 		
 		// Wave Generation

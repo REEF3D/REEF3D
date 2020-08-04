@@ -19,22 +19,22 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_sg_coastline.h"
+#include"fnpf_coastline.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"slice.h"
 #include"sliceint.h"
 
-fnpf_sg_coastline::fnpf_sg_coastline(lexer* p) :  ddweno_f_nug(p), frk1(p),frk2(p),L(p),dt(p),wet_n(p)
+fnpf_coastline::fnpf_coastline(lexer* p) :  ddweno_f_nug(p), frk1(p),frk2(p),L(p),dt(p),wet_n(p)
 {
     time_preproc(p); 
 }
 
-fnpf_sg_coastline::~fnpf_sg_coastline()
+fnpf_coastline::~fnpf_coastline()
 {
 }
 
-void fnpf_sg_coastline::start(lexer *p, ghostcell *pgc, slice &coastline, sliceint &wet, sliceint &wet_n)
+void fnpf_coastline::start(lexer *p, ghostcell *pgc, slice &coastline, sliceint &wet, sliceint &wet_n)
 {
     if(p->count==0)
     {

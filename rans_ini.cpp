@@ -64,19 +64,19 @@ void rans_io::plain(lexer *p, fdm *a, ghostcell *pgc)
 
 		if(p->T10==1 || p->T10==11 || p->T10==21)
         {
-        eps(i,j,k)=(pow(0.09,0.75)*pow(kin(i,j,k),1.5))/(0.5*0.4*p->dx);
+        eps(i,j,k)=(pow(0.09,0.75)*pow(kin(i,j,k),1.5))/(0.5*0.4*p->DXM);
         a->eddyv(i,j,k) = p->cmu*kin(i,j,k)*kin(i,j,k)/eps(i,j,k);
         }
 
         if(p->T10==2 || p->T10==12 || p->T10==22)
         {
-        eps(i,j,k)=pow(kin(i,j,k),0.5)/(0.5*0.4*p->dx*pow(0.09,0.25));
+        eps(i,j,k)=pow(kin(i,j,k),0.5)/(0.5*0.4*p->DXM*pow(0.09,0.25));
         a->eddyv(i,j,k) = kin(i,j,k)/eps(i,j,k);
         }
 
         if(p->T10==3 || p->T10==13)
         {
-        eps(i,j,k)=pow(kin(i,j,k),0.5)/(0.5*0.4*p->dx*pow(0.09,0.25));
+        eps(i,j,k)=pow(kin(i,j,k),0.5)/(0.5*0.4*p->DXM*pow(0.09,0.25));
         a->eddyv(i,j,k) = kin(i,j,k)/eps(i,j,k);
         }
         }
@@ -94,19 +94,19 @@ void rans_io::plain_nwt(lexer *p, fdm *a, ghostcell *pgc)
 
 		if(p->T10==1 || p->T10==11 || p->T10==21)
         {
-        eps(i,j,k)=5.0*(pow(0.09,0.75)*pow(kin(i,j,k),1.5))/(0.5*0.4*p->dx);
+        eps(i,j,k)=5.0*(pow(0.09,0.75)*pow(kin(i,j,k),1.5))/(0.5*0.4*p->DXM);
         a->eddyv(i,j,k) = p->cmu*kin(i,j,k)*kin(i,j,k)/eps(i,j,k);
         }
 
         if(p->T10==2 || p->T10==12 || p->T10==22)
         {
-        eps(i,j,k)=5.0*pow(kin(i,j,k),0.5)/(0.5*0.4*p->dx*pow(0.09,0.25));
+        eps(i,j,k)=5.0*pow(kin(i,j,k),0.5)/(0.5*0.4*p->DXM*pow(0.09,0.25));
         a->eddyv(i,j,k) = kin(i,j,k)/eps(i,j,k);
         }
 
         if(p->T10==3 || p->T10==13)
         {
-        eps(i,j,k)=5.0*pow(kin(i,j,k),0.5)/(0.5*0.4*p->dx*pow(0.09,0.25));
+        eps(i,j,k)=5.0*pow(kin(i,j,k),0.5)/(0.5*0.4*p->DXM*pow(0.09,0.25));
         a->eddyv(i,j,k) = kin(i,j,k)/eps(i,j,k);
         }
         }
@@ -166,19 +166,19 @@ void rans_io::logini(lexer* p, fdm*a, ghostcell* pgc)
 
         if(p->T10==1 || p->T10==11 || p->T10==21)
         {
-        eps(i,j,k)=(pow(0.09,0.75)*pow(kin(i,j,k),1.5))/(0.5*0.4*p->dx);
+        eps(i,j,k)=(pow(0.09,0.75)*pow(kin(i,j,k),1.5))/(0.5*0.4*p->DXM);
         a->eddyv(i,j,k) = p->cmu*kin(i,j,k)*kin(i,j,k)/eps(i,j,k);
         }
 
         if(p->T10==2 || p->T10==12 || p->T10==22)
         {
-        eps(i,j,k)=pow(kin(i,j,k),0.5)/(0.5*0.4*p->dx*pow(0.09,0.25));
+        eps(i,j,k)=pow(kin(i,j,k),0.5)/(0.5*0.4*p->DXM*pow(0.09,0.25));
         a->eddyv(i,j,k) = kin(i,j,k)/eps(i,j,k);
         }
 
         if(p->T10==3 || p->T10==13)
         {
-        eps(i,j,k)=pow(kin(i,j,k),0.5)/(0.5*0.4*p->dx*pow(0.09,0.25));
+        eps(i,j,k)=pow(kin(i,j,k),0.5)/(0.5*0.4*p->DXM*pow(0.09,0.25));
         a->eddyv(i,j,k) = kin(i,j,k)/eps(i,j,k);
         }
 	}
@@ -237,19 +237,19 @@ void rans_io::plain_wallfunc(lexer* p, fdm*a, ghostcell* pgc)
 
         if(p->T10==1 || p->T10==11)
         {
-        eps(i,j,k)=(pow(0.09,0.75)*pow(kin(i,j,k),1.5))/(0.5*0.4*p->dx);
+        eps(i,j,k)=(pow(0.09,0.75)*pow(kin(i,j,k),1.5))/(0.5*0.4*p->DXM);
         a->eddyv(i,j,k) = p->cmu*kin(i,j,k)*kin(i,j,k)/eps(i,j,k);
         }
 
         if(p->T10==2 || p->T10==12)
         {
-        eps(i,j,k)=pow(kin(i,j,k),0.5)/(0.5*0.4*p->dx*pow(0.09,0.25));
+        eps(i,j,k)=pow(kin(i,j,k),0.5)/(0.5*0.4*p->DXM*pow(0.09,0.25));
         a->eddyv(i,j,k) = kin(i,j,k)/eps(i,j,k);
         }
 
         if(p->T10==3 || p->T10==13)
         {
-        eps(i,j,k)=pow(kin(i,j,k),0.5)/(0.5*0.4*p->dx*pow(0.09,0.25));
+        eps(i,j,k)=pow(kin(i,j,k),0.5)/(0.5*0.4*p->DXM*pow(0.09,0.25));
         a->eddyv(i,j,k) = kin(i,j,k)/eps(i,j,k);
         }
 	}
@@ -283,7 +283,7 @@ void rans_io::tau_calc(fdm* a, lexer* p, double maxwdist)
 {
 	ks=p->B50;	
 	
-	H=B=depth+p->dx;
+	H=B=depth+p->DXM;
 	M=26.0/pow((ks/3.0),(1.0/6.0));
 	I=pow(uref/(M*pow(H,(2.0/3.0))),2.0);
 	tau=(9.81*H*I);

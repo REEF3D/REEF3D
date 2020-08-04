@@ -46,11 +46,11 @@ void iowave::velini(lexer *p, fdm *a, ghostcell *pgc)
 			if(a->phi(i-1,j,k)>=0.0)
 			{
 
-				if(a->phi(i-1,j,k)>=0.5*p->dx)
-				area=p->dx*p->dx;
+				if(a->phi(i-1,j,k)>=0.5*p->DXM)
+				area=p->DXM*p->DXM;
 
-				if(a->phi(i-1,j,k)<0.5*p->dx)
-				area=p->dx*(p->dx*0.5 + a->phi(i-1,j,k));
+				if(a->phi(i-1,j,k)<0.5*p->DXM)
+				area=p->DXM*(p->DXM*0.5 + a->phi(i-1,j,k));
 
 				Ai+=area;
 				p->Qi+=area*a->u(i-1,j,k);

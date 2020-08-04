@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"heat.h"
 
-density_heat::density_heat(lexer* p, heat *& ppheat) : epsi(p->F45*p->dx), eps(2.1*p->dx)
+density_heat::density_heat(lexer* p, heat *& ppheat) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
 {
     visc_2 = p->W4;
 	visc_1 = p->W2;
@@ -36,6 +36,13 @@ density_heat::density_heat(lexer* p, heat *& ppheat) : epsi(p->F45*p->dx), eps(2
 	material(p);
     
     pheat = ppheat;
+    
+    
+    if(p->j_dir==0)        
+    psi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
+        
+    if(p->j_dir==1)
+    psi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
 }
 
 density_heat::~density_heat()
@@ -44,17 +51,8 @@ density_heat::~density_heat()
 
 double density_heat::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
-    double psi,r,s;
     double temp;
 	
-	ii = aa-aa/(fabs(aa)>0?fabs(aa):1);
-	jj = bb-bb/(fabs(bb)>0?fabs(bb):1);
-	kk = cc-cc/(fabs(cc)>0?fabs(cc):1);
-	
-
-	if(p->D32==2)
-	{
-       
         phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
         
         temp = 0.5*(pheat->val(i,j,k) + pheat->val(i+aa,j+bb,k+cc));
@@ -77,11 +75,7 @@ double density_heat::roface(lexer *p, fdm *a, int aa, int bb, int cc)
         visc_2 = material_ipol(water_viscosity,water_viscosity_num, temp);
         }
         
-        if(p->j_dir==0)
-        psi = p->F45*(1.0/2.0)*(p->DXN[IP]+p->DZN[KP]);
         
-        if(p->j_dir==1)
-        psi = p->F45*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
     
         if(phival>psi)
         H=1.0;
@@ -93,19 +87,10 @@ double density_heat::roface(lexer *p, fdm *a, int aa, int bb, int cc)
         H=0.5*(1.0 + phival/psi + (1.0/PI)*sin((PI*phival)/psi));
         
         roval = ro_1*H + ro_2*(1.0-H);
-	}
-	
-	// -----
-	
-	if(p->D32==3)
-	roval = 0.5*(a->ro(i+ii,j+jj,k+kk) + a->ro(i+aa,j+bb,k+cc));
-	
-	// -----
+
 	
 	return roval;		
 }
-
-
 
 double density_heat::material_ipol(double **pm, int num, double temp)
 {

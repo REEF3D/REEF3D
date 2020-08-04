@@ -26,7 +26,7 @@ interpolation::interpolation(lexer *pp)
 {	
     p=pp;
     
-    epphi=1.6*p->dx;
+    epphi=1.6*p->DXM;
 }
 
 interpolation::~interpolation()

@@ -31,18 +31,9 @@ void sediment_f::timestep(lexer *p, fdm *a, ghostcell *pgc)
 
     xmax=ymax=zmax=vmax=0.0;
     
-    if(p->S31==1)
 	SLICELOOP4
     {	
 	topovel(p,a,pgc,vx,vy,vz);
-	
-    zmax=MAX(fabs(zmax),fabs(vz));
-	}
-    
-    if(p->S31==2)
-	SLICELOOP4
-    {	
-	topovel_xy_cds(p,a,pgc,vx,vy,vz);
 	
     zmax=MAX(fabs(zmax),fabs(vz));
 	}

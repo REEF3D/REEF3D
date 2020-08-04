@@ -41,7 +41,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"diffusion.h"
 
 nsewave_RK3::nsewave_RK3(lexer *p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc) : eta(p),
-                etark1(p),etark2(p),L(p),P(p),Q(p),epsi(1.6*p->dx),bcmom(p),
+                etark1(p),etark2(p),L(p),P(p),Q(p),epsi(1.6*p->DXM),bcmom(p),
                 urk1(p),urk2(p),vrk1(p),vrk2(p),wrk1(p),wrk2(p)
 {
     gcval_u=10;
@@ -377,7 +377,7 @@ void nsewave_RK3::eta_disc(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v)
 		if(fabs(phival)<=epsi)
 		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
         
-        P(i,j) += u(i,j,k)*p->dx*H;
+        P(i,j) += u(i,j,k)*p->DXM*H;
     }
     
     VLOOP
@@ -393,7 +393,7 @@ void nsewave_RK3::eta_disc(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v)
 		if(fabs(phival)<=epsi)
 		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
         
-        Q(i,j) += v(i,j,k)*p->dx*H;
+        Q(i,j) += v(i,j,k)*p->DXM*H;
     }
     
     pgc->gcsl_start1(p,P,10);
@@ -401,7 +401,7 @@ void nsewave_RK3::eta_disc(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v)
     
     
     SLICELOOP4
-    L(i,j) = -(P(i,j)-P(i-1,j) + Q(i,j)-Q(i,j-1))/p->dx;
+    L(i,j) = -(P(i,j)-P(i-1,j) + Q(i,j)-Q(i,j-1))/p->DXM;
     
 }
 
@@ -436,12 +436,8 @@ void nsewave_RK3::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
 
 
 void nsewave_RK3::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
-{
-
-    pgc->forcing1(p,a,f,uvel,vvel,wvel,alpha);
-    
+{ 
 	n=0;
-	if(p->D20<4)
 	ULOOP
 	{
     a->maxF=MAX(fabs(a->rhsvec.V[n]),a->maxF);
@@ -449,22 +445,11 @@ void nsewave_RK3::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, 
 	a->rhsvec.V[n]=0.0;
 	++n;
 	}
-	
-	n=0;
-	if(p->D20==4)
-	ULOOP
-	{
-	a->rhsvec.V[n]+=a->gi;
-	++n;
-	}
 }
 
 void nsewave_RK3::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
-    pgc->forcing2(p,a,f,uvel,vvel,wvel,alpha);
-    
 	n=0;
-	if(p->D20<4)
 	VLOOP
 	{
     a->maxG=MAX(fabs(a->rhsvec.V[n]),a->maxG);
@@ -472,20 +457,10 @@ void nsewave_RK3::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, 
 	a->rhsvec.V[n]=0.0;
 	++n;
 	}
-	
-	n=0;
-	if(p->D20==4)
-	VLOOP
-	{
-	a->rhsvec.V[n]+=a->gj;
-	++n;
-	}
 }
 
 void nsewave_RK3::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
-    pgc->forcing3(p,a,f,uvel,vvel,wvel,alpha);
-    
 	n=0;
 	if(p->D20<4)
 	WLOOP
@@ -493,14 +468,6 @@ void nsewave_RK3::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, 
     a->maxH=MAX(fabs(a->rhsvec.V[n]),a->maxH);
 	a->H(i,j,k) += (a->rhsvec.V[n] + a->gk)*PORVAL3;
 	a->rhsvec.V[n]=0.0;
-	++n;
-	}
-	
-	n=0;
-	if(p->D20==4)
-	WLOOP
-	{
-	a->rhsvec.V[n]+=a->gk;
 	++n;
 	}
 }

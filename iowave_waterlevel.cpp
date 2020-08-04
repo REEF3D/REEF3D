@@ -147,7 +147,7 @@ double iowave::wave_fsf(lexer *p, ghostcell *pgc, double x)
     int jmem=j;
     int imem=i;
     
-    i=0;//int((x-p->originx-0.5*p->dx)/p->dx);
+    i=0;//int((x-p->originx-0.5*p->DXM)/p->DXM);
     j=0;
     
     val = wave_h(p,pgc,x,0.0,0.0);

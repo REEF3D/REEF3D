@@ -32,7 +32,7 @@ hypre_struct_fnpf::hypre_struct_fnpf(lexer* p,fdm* a,ghostcell *pgc, int solve_i
 {	
     int vecsize=p->knox*p->knoy*p->knoz; 
     
-    if(p->A10==3 && p->A300==1)
+    if(p->A10==3)
     vecsize=p->knox*p->knoy*(p->knoz+1); 
     
     p->Iarray(ilower,3);

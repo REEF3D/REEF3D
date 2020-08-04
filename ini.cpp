@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void lexer::ini_default()
 {
     // Hydrodynamic Models
-    A10=5;       // int turn on wave models
+    A10=6;       // int turn on wave models
     A209=2;      // int interpolation sweeps for bed
 	A210=3;		  // int time scheme for SFLOW velocities
 	A211=4;		  // int convection scheme for SLOW velocities
@@ -57,7 +57,6 @@ void lexer::ini_default()
     A261=0.267;  // double length scale factor
     A262=0.0667; // double parabolic turbulence model factor
     
-    A300=1;      // int sigma or fixed grid
     A310=3;		  // int time scheme for FNPF velocities
     A311=5;		  // int convection scheme for FNPF velocities
     A312=2;      // int discretization for second-order gradient
@@ -92,7 +91,6 @@ void lexer::ini_default()
     
     // Boundary Conditions
 	B10=0;			// int wall laws velocities on/off
-    B19=0;			// int direct forcing for solid walls
 	B20=2;			// int slip or no-slip boundary condition for velocity
 	B26=1;			// int boundary condition implementation level set method
 	B29=0.5;		// double gamma for gc image point
@@ -161,7 +159,6 @@ void lexer::ini_default()
     B115=0;         // int activate vertical velocity component for flap wavemaker theory
     B116=1;         // int x or beta input for flap wavemaker theories
     B117=0.0;		  // double starting time shift for timeseries input
-	B119=3.5;        // double factor in relaxation function 2
     B120=-90.0;       // doubel delta t for wave generation
 	B121=1;        // int air velocity on/off in wave relaxation zone
     B122=1.0;        // int air velocity on/off for active wave generation
@@ -249,11 +246,10 @@ void lexer::ini_default()
     // Discretization
 	D10=4;			// int convection scheme
 	D11=2;			// int convection velocity scheme   
-	D20=1;			// int diffusion scheme
+	D20=2;			// int diffusion scheme
 	D21=0;			// int print out implicit diffusion time and iterations
 	D29=1.0e-5;     // double stopping criteria implicit diffusion
 	D30=1;			// int pressure scheme
-	D32=2;			// int density calculation poisson equation
     D38=0;          // int add hydrostatic pressure gradients to NSE 
     D39=0;          // int activate 2nd-order pressure correction for PJM CORR
 	
@@ -504,12 +500,9 @@ void lexer::ini_default()
     S26_a=650.0;          // double alpha for VRANS sediment
     S26_b=2.2;            // double beta for VRANS sediment
     S30=0.047;          // double Shields parameter
-    S31=1;		        // int exner scheme
     S32=4;              // int exner discretization
-    S33=1;
+    S33=1;              // type of near bead velocity interpolation
 	S37=2;		        // int number reini time step
-	S38=0;            // int reinitialization for interface nodes
-	S39=2;				// int order of time discretization for dz/dh
 	S41=1;				// int type of sediment start criterion
 	S42=1;				// int type of sediment interval criterion
     S43=1000;          // int number of water iteration, before sediment transport starts
@@ -538,9 +531,7 @@ void lexer::ini_default()
     S101=0;					// int number of bed filter inner iterations
 	S102=0;					// int number of bedload filter outer iterations
     S103=0;					// int number of bedload filter inner iterations
-    S116=1.0;               // double factor for location of bed shear stress calculation
-    S117=1.0;               // double factor for location of bed shear stress calculation
-
+    
     // Turbulence
 	T10=0;			    // int turbulence model
 	T11=11;             // int time scheme for 2-eq turbulence models
@@ -627,7 +618,6 @@ void lexer::ini_default()
 	X32=1;		// int boundary conditions for orthogonal velocity on floating body
 	X33=1;		// int boundary conditions for pressure on floating body
     X34=0;		// int boundary treatment for new solid velocity cells
-	X38=0;		// int turn on direct forcing
     X40=1;		// int type of force calculation
 	X41=1.75;		// double eps for lsm based force calculation
 	X100=0;		// int delta x,y,z

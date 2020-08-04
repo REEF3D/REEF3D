@@ -32,7 +32,7 @@ hypre_aij::hypre_aij(lexer* p,fdm* a,ghostcell *pgc)
 {	
     int vecsize=p->knox*p->knoy*p->knoz;
     
-    if(p->A10==3 && p->A300==1)
+    if(p->A10==3)
     vecsize=p->knox*p->knoy*(p->knoz+1); 
     
     p->Iarray(rows,vecsize);

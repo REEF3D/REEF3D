@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 
-limo3::limo3 (lexer *p) : delta(p->dx), radius (0.1), eps(1.0e-9*p->dx)
+limo3::limo3 (lexer *p) : delta(p->DXM), radius (0.1), eps(1.0e-9*p->DXM)
 {
 }
 

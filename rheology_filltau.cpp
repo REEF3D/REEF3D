@@ -49,10 +49,10 @@ void rheology_f::filltau(lexer *p, fdm *a, ghostcell *pgc)
         
         if(p->W111==3)
         {
-            if(phival<p->W112*p->dx)
+            if(phival<p->W112*p->DXM)
             pval=0.5*(a->press(i,j,k)+a->press(i+1,j,k));
             
-            if(phival>=p->W112*p->dx)
+            if(phival>=p->W112*p->DXM)
             pval=phival*0.5*(a->ro(i,j,k)+a->ro(i+1,j,k))*fabs(p->W22);
         }
         
