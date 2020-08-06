@@ -49,7 +49,6 @@ void hypre_struct::delete_solver1234(lexer* p,ghostcell* pgc)
     HYPRE_StructBiCGSTABDestroy(solver);    
 }
 
-
 void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
 {
     // solver for pressure poisson and potential laplace equation
