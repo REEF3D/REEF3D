@@ -93,7 +93,7 @@ void ghostcell::cval_gcpara4(lexer* p, fdm* a, fieldint &cval4)
 void ghostcell::cval_gcpara4a(lexer* p, fdm* a, fieldint &cval4a)
 {
 	for(n=0;n<p->gcpara1_count;++n)
-    //if(p->gcpara1[n][7]==1)
+    if(p->gcpara1[n][7]==1)
     {
     i=p->gcpara1[n][0];
     j=p->gcpara1[n][1];
@@ -103,7 +103,7 @@ void ghostcell::cval_gcpara4a(lexer* p, fdm* a, fieldint &cval4a)
 	}
 	
 	for(n=0;n<p->gcpara2_count;++n)
-    //if(p->gcpara2[n][7]==1)
+    if(p->gcpara2[n][7]==1)
     {
     i=p->gcpara2[n][0];
     j=p->gcpara2[n][1];
@@ -113,7 +113,7 @@ void ghostcell::cval_gcpara4a(lexer* p, fdm* a, fieldint &cval4a)
 	}
 	
 	for(n=0;n<p->gcpara3_count;++n)
-    //if(p->gcpara3[n][7]==1)
+    if(p->gcpara3[n][7]==1)
     {
     i=p->gcpara3[n][0];
     j=p->gcpara3[n][1];
@@ -123,7 +123,7 @@ void ghostcell::cval_gcpara4a(lexer* p, fdm* a, fieldint &cval4a)
 	}
 	
 	for(n=0;n<p->gcpara4_count;++n)
-    //if(p->gcpara4[n][7]==1)
+    if(p->gcpara4[n][7]==1)
     {
     i=p->gcpara4[n][0];
     j=p->gcpara4[n][1];
@@ -133,7 +133,7 @@ void ghostcell::cval_gcpara4a(lexer* p, fdm* a, fieldint &cval4a)
 	}
 	
 	for(n=0;n<p->gcpara5_count;++n)
-    //if(p->gcpara5[n][7]==1)
+    if(p->gcpara5[n][7]==1)
     {
     i=p->gcpara5[n][0];
     j=p->gcpara5[n][1];
@@ -143,7 +143,7 @@ void ghostcell::cval_gcpara4a(lexer* p, fdm* a, fieldint &cval4a)
 	}
 	
 	for(n=0;n<p->gcpara6_count;++n)
-    //if(p->gcpara6[n][7]==1)
+    if(p->gcpara6[n][7]==1)
     {
     i=p->gcpara6[n][0];
     j=p->gcpara6[n][1];

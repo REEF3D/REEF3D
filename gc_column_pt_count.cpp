@@ -29,8 +29,6 @@ int ghostcell::column_pt4_count(lexer* p, fdm* a)
     LOOP
 	++n;
 
-	
-	//int cellnum1=n;
 	GGC4LOOP
     {
     i=p->gcb4[g][0];
@@ -40,8 +38,6 @@ int ghostcell::column_pt4_count(lexer* p, fdm* a)
         for(q=0;q<margin;++q)
         ++n;
     }
-	
-	//cout<<p->mpirank<<" gcbcount4: "<<p->gcb4_count*p->margin<<" N4: "<<n<<" cellnum: "<<p->cellnum<<endl;
 	
 	for(g=0;g<p->gcpara1_count;++g)
     {
@@ -118,7 +114,6 @@ int ghostcell::column_pt4a_count(lexer* p, fdm* a)
     ALOOP
 	++n;
 	
-	//int cellnum1=n;
 	GGC4ALOOP
     {
     i=p->gcb4[g][0];

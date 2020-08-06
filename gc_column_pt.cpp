@@ -42,7 +42,6 @@ void ghostcell::column_pt4(lexer* p, fdm* a, fieldint &cval4)
 	++n;
 	}
 	
-	//int cellnum1=n;
 	GGC4LOOP
     {
     i=p->gcb4[g][0];
@@ -121,8 +120,6 @@ void ghostcell::column_pt4(lexer* p, fdm* a, fieldint &cval4)
 		++n;
         }
     }
-	
-	//cout<<p->mpirank<<" gcbcount4: "<<p->gcb4_count*p->margin<<" N4: "<<n-cellnum1<<endl;
 	
 	for(g=0;g<p->gcpara1_count;++g)
     {
@@ -257,7 +254,6 @@ void ghostcell::column_pt4a(lexer* p, fdm* a, fieldint &cval4a)
 	++n;
 	}
 	
-	//int cellnum1=n;
 	GGC4ALOOP
     {
     i=p->gcb4a[g][0];
