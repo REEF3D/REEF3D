@@ -271,19 +271,19 @@ Author: Hans Bihs
 #define QQGCLOOP QQGCB QQGCBCHECK
 
 #define GC4A  for(n=0;n<p->gcb4a_count;++n)
-#define GCB4ACHECK if(p->gcb4a[n][3]>SOLID)
+#define GCB4ACHECK if(p->gcb4a[n][3]>0)
 #define GC4ALOOP  GC4A GCB4ACHECK
 
 #define QGC4A  for(q=0;q<p->gcb4a_count;++q)
-#define QGCB4ACHECK if(p->gcb4a[q][3]>SOLID)
+#define QGCB4ACHECK if(p->gcb4a[q][3]>0)
 #define QGC4ALOOP  QGC4A QGCB4ACHECK
 
 #define QQGC4A  for(qq=0;qq<p->gcb4a_count;++qq)
-#define QQGCB4ACHECK if(p->gcb4a[qq][3]>SOLID)
+#define QQGCB4ACHECK if(p->gcb4a[qq][3]>0)
 #define QQGC4ALOOP  QQGC4A QQGCB4ACHECK
 
 #define GGC4A  for(g=0;g<p->gcb4a_count;++g)
-#define GGCB4ACHECK if(p->gcb4a[g][3]>SOLID)
+#define GGCB4ACHECK if(p->gcb4a[g][3]>0)
 #define GGC4ALOOP  GGC4A GGCB4ACHECK
         
 #define GC6LOOP  for(n=0;n<p->gcb_fix;++n)

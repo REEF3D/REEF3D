@@ -214,12 +214,7 @@ void ghostcell::start4aV(lexer *p, vec &x, int gcv)
     
     starttime=timer();
 	QQGC4ALOOP
-    {
 	gcdistro4aV(p,a,x,p->gcb4a[qq][0],p->gcb4a[qq][1], p->gcb4a[qq][2], p->gcd4a[qq], gcv, p->gcb4a[qq][4], p->gcb4a[qq][3], p->gcb4a[qq][5]);
-    
-    if(p->mpirank==1)
-    cout<<p->gcb4a[qq][5]<<endl;
-    }
 	endtime=timer();
     
 	p->gctime+=endtime-starttime;
