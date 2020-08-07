@@ -78,9 +78,6 @@ void ghostcell::gcsolid_gcb_seed(lexer *p, fdm *a)
 	
 	p->Iresize(p->gcb4,p->gcb4_count, count, 6, 6); 
 	p->Dresize(p->gcd4,p->gcb4_count, count); 
-    
-    p->Iresize(p->gcb4a,p->gcb4a_count, count, 6, 6);
-    p->Dresize(p->gcd4a,p->gcb4a_count, count); 
 	
 	count=p->gcb_fix;
 	
@@ -147,7 +144,7 @@ void ghostcell::gcsolid_gcb_seed(lexer *p, fdm *a)
         ++count;
         }
     }
-    p->gcb4_count=p->gcb4a_count=p->gcb_solid=p->gcb_topo=count;
+    p->gcb4_count=p->gcb_solid=p->gcb_topo=count;
 	
 }
 

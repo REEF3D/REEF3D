@@ -300,6 +300,11 @@ void mgc4a::gcdirfill(lexer* p)
 void mgc4a::fillgcb(lexer *p)
 {
     int q;
+    
+    p->Iresize(p->gcb4a,p->gcb4a_count, p->gcb4_count, 6, 6);
+    p->Dresize(p->gcd4a,p->gcb4a_count, p->gcb4_count); 
+    
+    p->gcb4a_count=p->gcb4_count;
 
     QGCB4
 	{
