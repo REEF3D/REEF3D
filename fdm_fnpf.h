@@ -47,7 +47,7 @@ public:
 
     fdm_fnpf(lexer*);
    
-    field4 press,test;
+    field4 press;
     fieldint5 nodeval;
     
     slice4 eta,eta_n,WL;
@@ -63,7 +63,7 @@ public:
     slice4 Bxx,Byy;
     slice4 Hx,Hy;
     slice4 coastline;
-    slice4 vb,test2D;
+    slice4 vb;
     
     sliceint5 nodeval2D;
     slice4 breaking_print;

@@ -262,7 +262,6 @@
         <VirtualDirectory Name="Laplace">
           <File Name="fnpf_laplace_cds4_bc2.h"/>
           <File Name="fnpf_laplace_cds4.h"/>
-          <File Name="fnpf_laplace_cds2_v3.h"/>
           <File Name="fnpf_laplace_cds2_v2.h"/>
           <File Name="fnpf_laplace_cds2.h"/>
           <File Name="fnpf_laplace.h"/>
@@ -1198,7 +1197,6 @@
         <VirtualDirectory Name="Laplace">
           <File Name="fnpf_laplace_cds4.cpp"/>
           <File Name="fnpf_laplace_cds4_bc2.cpp"/>
-          <File Name="fnpf_laplace_cds2_v3.cpp"/>
           <File Name="fnpf_laplace_cds2_v2.cpp"/>
           <File Name="fnpf_laplace_cds2.cpp"/>
         </VirtualDirectory>

@@ -153,7 +153,8 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 			}
             
             if(wsf<-1.0e19)
-			KLOOP 
+			KLOOP
+            PCHECK 
 			{
             u(i+1*aa,j+1*bb,k)=0.0;
             u(i+2*aa,j+2*bb,k)=0.0;
@@ -256,7 +257,8 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 
 
 			if(wsf>-1.0e19)
-			KLOOP 
+			KLOOP
+            PCHECK
 			{
 				if(p->pos_z()<=p->phimean)
 				z=-(fabs(p->phimean-p->pos_z()));
@@ -359,6 +361,7 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
         
         double r=0.0;
         
+        
         double wH=0.25*p->wH;
     
         if(p->B92>30)
@@ -369,37 +372,41 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
         x=fabs(eta_R/(fabs(wH)>1.0e-20?wH:1.0e20));
         x=MIN(x,1.0);
         
-        r = -2.0*x*x*x + 3.0*x*x;
+        H = -2.0*x*x*x + 3.0*x*x;
     
-        //r=1.0;
+        /*
+                epsi = p->F45*p->DZN[KP];
+        
+                if(a->phi(i,j,k)>epsi)
+                H=1.0;
+
+                if(a->phi(i,j,k)<-epsi)
+                H=0.0;
+
+                if(fabs(a->phi(i,j,k))<=epsi)
+                H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));*/
 
 		//cout<<p->mpirank<<" eta_R: "<<eta_R<<" x: "<<x<<" r: "<<r<<endl;
 		
             if(wsf>-1.0e19)
 			KLOOP 
+           PCHECK
 			{
 			pval=(wsf - p->pos_z()+0.5*p->DZP[KP])*a->ro(i,j,k)*fabs(p->W22);
 			
-			a->press(i+1*aa,j+1*bb,k)=r*pval + (1.0-r)*a->press(i,j,k);
-			a->press(i+2*aa,j+2*bb,k)=r*pval + (1.0-r)*a->press(i,j,k);
-			a->press(i+3*aa,j+3*bb,k)=r*pval + (1.0-r)*a->press(i,j,k);
+			a->press(i+1*aa,j+1*bb,k)=H*pval + (1.0-H)*a->press(i,j,k);
+			a->press(i+2*aa,j+2*bb,k)=H*pval + (1.0-H)*a->press(i,j,k);
+			a->press(i+3*aa,j+3*bb,k)=H*pval + (1.0-H)*a->press(i,j,k);
 			
-			a->w(i+1*aa,j+1*bb,k)=0.0;
-			a->w(i+2*aa,j+2*bb,k)=0.0;
-			a->w(i+3*aa,j+3*bb,k)=0.0;
+			w(i+1*aa,j+1*bb,k)=0.0;
+			w(i+2*aa,j+2*bb,k)=0.0;
+			w(i+3*aa,j+3*bb,k)=0.0;
 			}	
-
-            if(wsf<-1.0e19)
-			KLOOP 
-			{
-            pval=a->press(i,j,k);
-            }
 		}
         
         
         
         // NSEWAVE
-        
         if(p->A10==5)
         for(n=0;n<p->gcslawa1_count;++n)
 		{

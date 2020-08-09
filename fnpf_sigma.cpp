@@ -94,35 +94,17 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *p
 {
     // sigx
     FBASELOOP
-    {
-    //if(c->wet(i,j)==1 && c->WL(i,j)>=WLVLDRY && p->flag7[FIJK]>0)
     p->sigx[FIJK] = (1.0 - p->sig[FIJK])*(c->Bx(i,j)/WLVL) - p->sig[FIJK]*(c->Ex(i,j)/WLVL);
-    
-    //if(c->wet(i,j)==0 || c->WL(i,j)<WLVLDRY || p->flag7[FIJK]<0)
-    //p->sigx[FIJK] = 0.0;
-    }
     
     // sigy
     FBASELOOP
-    {
-    //if(c->wet(i,j)==1 && c->WL(i,j)>=WLVLDRY && p->flag7[FIJK]>0)
     p->sigy[FIJK] = (1.0 - p->sig[FIJK])*(c->By(i,j)/WLVL) - p->sig[FIJK]*(c->Ey(i,j)/WLVL);
-    
-    //if(c->wet(i,j)==0 || c->WL(i,j)<WLVLDRY || p->flag7[FIJK]<0)
-    //p->sigy[FIJK] = 0.0;
-    }
     
     // sigz
     SLICEBASELOOP
     {
         PSLICECHECK4
-        {
-        //if(c->wet(i,j)==1)
         p->sigz[IJ] = 1.0/WLVL;
-        
-        //if(c->wet(i,j)==0)
-        //p->sigz[IJ] = 1.0/WLVLDRY;
-        }
         
         SSLICECHECK4
         p->sigz[IJ] = 1.0/(p->wd-p->bed[IJ]);
@@ -131,8 +113,6 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *p
     // sigxx
     FBASELOOP
     {
-    //if(c->wet(i,j)==1 && c->WL(i,j)>=WLVLDRY && p->flag7[FIJK]>0 )
-    //{
     p->sigxx[FIJK] = ((1.0 - p->sig[FIJK])/WLVL)*(c->Bxx(i,j) - pow(c->Bx(i,j),2.0)/WLVL) // xx
     
                   - (p->sig[FIJK]/WLVL)*(c->Exx(i,j) - pow(c->Ex(i,j),2.0)/WLVL)
@@ -149,13 +129,6 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *p
                   - (p->sigy[FIJK]/WLVL)*(c->By(i,j) + c->Ey(i,j))
                   
                   - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(c->By(i,j)*c->Ey(i,j));
-    //}
-                  
-                  
-                  
-                  
-    //if(c->wet(i,j)==0 || c->WL(i,j)<WLVLDRY || p->flag7[FIJK]<=0)
-    //p->sigxx[FIJK] = 0.0;
     }
     
     // sig BC

@@ -125,7 +125,7 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
 	if((bc==2||bc==1||bc==6||bc==8) && (gcv==19))
 	return 4;
     
-     else
+    else
 	if(gcv==999)
 	return 99;
 

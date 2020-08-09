@@ -200,15 +200,12 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     pgc->gcsl_start4(p,c->WL,50);
     pgc->gcsl_start4(p,c->bed,50);
     pgc->gcsl_start4(p,c->breaking_print,50);
-    pgc->start4(p,c->test,1);
 	
-    pgc->dgcpol(p,c->test,p->dgc4,p->dgc4_count,14);
     pgc->dgcslpol(p,c->WL,p->dgcsl4,p->dgcsl4_count,14);
     pgc->dgcslpol(p,c->breaking_print,p->dgcsl4,p->dgcsl4_count,14);
     pgc->dgcslpol(p,c->bed,p->dgcsl4,p->dgcsl4_count,14);
 	
     c->WL.ggcpol(p);
-    c->test.ggcpol(p);
     c->breaking_print.ggcpol(p);
     
     i=-1;
@@ -393,24 +390,6 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	{
 	ffn=float(0.0);//float(p->ccipol4(c->Fi4,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
 	result.write((char*)&ffn, sizeof (float));
-	}
-    
-    if(p->P23==1)
-	{
-//  test
-    iin=4*(p->pointnum+p->ccptnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(p->ipol4_a(c->test));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-	for(n=0;n<p->ccptnum;++n)
-	{
-	ffn=float(p->ccipol4_a(c->test,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
-	result.write((char*)&ffn, sizeof (float));
-	}
 	}
 	
 //  elevation

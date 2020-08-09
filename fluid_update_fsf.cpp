@@ -69,12 +69,6 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
 		p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
 	}
     
-    n=0;
-    LOOP
-    {
-    a->visctot.V[I_J_K] = a->visc(i,j,k) + a->eddyv(i,j,k);
-    ++n;
-    }
     
 	pgc->start4(p,a->ro,gcval_ro);
 	pgc->start4(p,a->visc,gcval_visc);

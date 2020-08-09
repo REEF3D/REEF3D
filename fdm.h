@@ -95,7 +95,7 @@ public:
 
     
     
-	vec xvec,rhsvec,visctot;
+	vec xvec,rhsvec;
 
 	matrix_diag M;
 	cpt C4,C4a,C6;
