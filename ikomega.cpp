@@ -70,7 +70,6 @@ void  ikomega::eddyvisc(lexer* p, fdm* a, ghostcell* pgc)
 	double epsi = 1.6*p->DXM;
 	int n;
 	
-	
 		LOOP
 		{
 			if(a->phi(i,j,k)>epsi)

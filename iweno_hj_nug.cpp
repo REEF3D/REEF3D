@@ -322,8 +322,8 @@ void iweno_hj_nug::wenoloop4(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
             Ms = (-w3*third -w2 - w1*3.0)*iadvec*deltin;
             Mn = (w3 + w2*third)*iadvec*deltin;
             
-            //if(p->mpirank==0)
-            //cout<<"- M.p "<<a->M.p[count]<<" Mp "<<Mp<<" M.s "<<a->M.s[count]<<" Ms "<<Ms<<" M.n "<<a->M.n[count]<<" Mn "<<Mn<<" L: "<<a->L(i,j,k)<<" Ft: "<<Ft<<" ___  q1: "<<q1<<" q2: "<<q2<<" q3: "<<q3<<" q4: "<<q4<<" q5: "<<q5<<endl;
+            if(p->mpirank==0)
+            cout<<"- M.p "<<a->M.p[count]<<" Mp "<<Mp<<" M.s "<<a->M.s[count]<<" Ms "<<Ms<<" M.n "<<a->M.n[count]<<" Mn "<<Mn<<" L: "<<a->L(i,j,k)<<" Ft: "<<Ft<<" ___  q1: "<<q1<<" q2: "<<q2<<" q3: "<<q3<<" q4: "<<q4<<" q5: "<<q5<<endl;
 			}
 
 			if(iadvec<0.0)
@@ -350,8 +350,8 @@ void iweno_hj_nug::wenoloop4(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
             Ms = (-w2*third - w3)*iadvec*deltin;
             Mn = (w1*3.0 + w2 + w3*third)*iadvec*deltin;
             
-            if(p->mpirank==0)
-            cout<<"+ M.p "<<a->M.p[count]<<" Mp "<<Mp<<" M.s "<<a->M.s[count]<<" Ms "<<Ms<<" M.n "<<a->M.n[count]<<" Mn "<<Mn<<" L: "<<a->L(i,j,k)<<" Ft: "<<Ft<<" ___  q1: "<<q1<<" q2: "<<q2<<" q3: "<<q3<<" q4: "<<q4<<" q5: "<<q5<<endl;
+            //if(p->mpirank==0)
+            //cout<<"+ M.p "<<a->M.p[count]<<" Mp "<<Mp<<" M.s "<<a->M.s[count]<<" Ms "<<Ms<<" M.n "<<a->M.n[count]<<" Mn "<<Mn<<" L: "<<a->L(i,j,k)<<" Ft: "<<Ft<<" ___  q1: "<<q1<<" q2: "<<q2<<" q3: "<<q3<<" q4: "<<q4<<" q5: "<<q5<<endl;
 			}
 
 
@@ -563,7 +563,6 @@ void iweno_hj_nug::aij_top(lexer* p, fdm* a, field &f, field &F)
                     + w2z*(1.0 - qfz[KP][wf][4][0] + qfz[KP][wf][4][1])/DZ[KP]
                     + w3z*qfz[KP][wf][5][0]/DZ[KP])*kadvec;
 }
-
 
 void iweno_hj_nug::iqmin(lexer *p,fdm *a, field& f)
 {	
