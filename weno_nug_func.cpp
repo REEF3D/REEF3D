@@ -57,7 +57,7 @@ void weno_nug_func::ini(lexer* p)
     precalc_cf(p);
     precalc_isf(p);
     
-    /*
+    
     if(p->mpirank==0)
     {
         IBLOOP
@@ -173,7 +173,7 @@ void weno_nug_func::ini(lexer* p)
         cout<<"CFZ_1: "<<cfz[KP][1][0]<<" | "<<cfz[KP][1][1]<<" | "<<cfz[KP][1][2]<<" | "<<cfz[KP][1][3]<<" | "
             <<cfz[KP][1][4]<<" | "<<cfz[KP][1][5]<<endl;
         }
-    }*/
+    }
                       
                       
                       

@@ -289,6 +289,8 @@ void iweno_hj_nug::wenoloop4(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
     DY=p->DYP;
     DZ=p->DZP;
     
+    uf=vf=wf=0;
+    
 	count=0;
 
 	LOOP
@@ -323,7 +325,8 @@ void iweno_hj_nug::wenoloop4(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
             Mn = (w3 + w2*third)*iadvec*deltin;
             
             if(p->mpirank==0)
-            cout<<"- M.p "<<a->M.p[count]<<" Mp "<<Mp<<" M.s "<<a->M.s[count]<<" Ms "<<Ms<<" M.n "<<a->M.n[count]<<" Mn "<<Mn<<" L: "<<a->L(i,j,k)<<" Ft: "<<Ft<<" ___  q1: "<<q1<<" q2: "<<q2<<" q3: "<<q3<<" q4: "<<q4<<" q5: "<<q5<<endl;
+            cout<<"- M.p "<<a->M.p[count]<<" Mp "<<Mp<<" M.s "<<a->M.s[count]<<" Ms "<<Ms<<" M.n "<<a->M.n[count]<<" Mn "<<Mn<<" L: "<<a->L(i,j,k)<<" Ft: "<<Ft
+            <<" | w1x : "<<w1x<<"  w1 : "<<w3<<" | w2x : "<<w2x<<"  w2 : "<<w2<<" | w3x : "<<w3x<<"  w3 : "<<w1<<endl;
 			}
 
 			if(iadvec<0.0)
