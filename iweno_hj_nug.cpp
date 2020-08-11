@@ -324,9 +324,9 @@ void iweno_hj_nug::wenoloop4(lexer *p, fdm *a, field& f, int ipol, field& uvel, 
             Ms = (-w3*third -w2 - w1*3.0)*iadvec*deltin;
             Mn = (w3 + w2*third)*iadvec*deltin;
             
-            if(p->mpirank==0)
+            if(p->mpirank==0 && (Mp>a->M.p[count]-1.0e-5 && Mp<a->M.p[count]+1.0e-5))
             cout<<"- M.p "<<a->M.p[count]<<" Mp "<<Mp<<" M.s "<<a->M.s[count]<<" Ms "<<Ms<<" M.n "<<a->M.n[count]<<" Mn "<<Mn<<" L: "<<a->L(i,j,k)<<" Ft: "<<Ft
-            <<" | w1x : "<<w1x<<"  w1 : "<<w3<<" | w2x : "<<w2x<<"  w2 : "<<w2<<" | w3x : "<<w3x<<"  w3 : "<<w1<<endl;
+            <<" | w1x : "<<w1x<<"  w1 : "<<w3<<" | w2x : "<<w2x<<"  w2 : "<<w2<<" | w3x : "<<w3x<<"  w3 : "<<w1<<" | i: "<<i<<" j: "<<j<<" k: "<<k<<endl;
 			}
 
 			if(iadvec<0.0)
