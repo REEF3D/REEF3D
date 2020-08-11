@@ -61,7 +61,7 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 
 // Pressure
 	else
-	if((bc==21||bc==22||bc==5||bc==3||bc==2||bc==6||bc==7) && gcv==40)
+	if((bc==21||bc==22||bc==5||bc==3||bc==2||bc==6||(bc==7&&p->B99<=2)) && gcv==40)
 	return gclabel_press;
 	
 	else

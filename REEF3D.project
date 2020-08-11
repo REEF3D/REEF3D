@@ -496,16 +496,12 @@
         <File Name="iweno_hj.h"/>
         <File Name="cds2.h"/>
         <File Name="cds4.h"/>
-        <File Name="icds2.h"/>
-        <File Name="icds4.h"/>
         <File Name="hires.h"/>
         <File Name="ihires.h"/>
-        <File Name="iweno_flux.h"/>
         <File Name="cds2_alt.h"/>
         <File Name="hric.h"/>
         <File Name="cicsam.h"/>
         <File Name="hric_mod.h"/>
-        <File Name="icicsam.h"/>
         <File Name="weno_flux.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Diffusion">
@@ -1517,6 +1513,7 @@
         <File Name="interpolation_ipol.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Convection">
+        <File Name="ifou.cpp"/>
         <File Name="weno_flux_nug_dir.cpp"/>
         <File Name="iweno3_hj.cpp"/>
         <File Name="weno3_flux.cpp"/>
@@ -1525,7 +1522,6 @@
         <File Name="weno_hj_nug.cpp"/>
         <File Name="weno_flux_nug.cpp"/>
         <File Name="fou.cpp"/>
-        <File Name="ifou.cpp"/>
         <File Name="quick.cpp"/>
         <VirtualDirectory Name="Limiter">
           <File Name="limo3.cpp"/>
@@ -1541,17 +1537,12 @@
         <File Name="iweno_hj.cpp"/>
         <File Name="cds4.cpp"/>
         <File Name="cds2.cpp"/>
-        <File Name="icds2.cpp"/>
-        <File Name="icds4.cpp"/>
         <File Name="hires.cpp"/>
-        <File Name="ihires.cpp"/>
-        <File Name="iweno_flux.cpp"/>
         <File Name="discrete_void.cpp"/>
         <File Name="cd2_alt.cpp"/>
         <File Name="hric.cpp"/>
         <File Name="cicsam.cpp"/>
         <File Name="hric_mod.cpp"/>
-        <File Name="icicsam.cpp"/>
         <File Name="weno_flux.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Diffusion">
