@@ -193,7 +193,7 @@ void iowave::awa_ini(lexer *p, fdm *a, ghostcell *pgc)
 	count=0;
     for(n=0;n<p->gcb4_count;++n)
     {
-        if(p->gcb4[n][4]==8)
+        if(p->gcb4[n][4]==7 || p->gcb4[n][4]==8)
         ++count;
     }
 	
@@ -210,7 +210,7 @@ void iowave::awa_ini(lexer *p, fdm *a, ghostcell *pgc)
     count1=0;
     for(n=0;n<p->gcb1_count;++n)
     {
-        if(p->gcb1[n][4]==8)
+        if(p->gcb1[n][4]==7 || p->gcb1[n][4]==8)
         {
 			flag=1;
 			for(q=0;q<count1;++q)
@@ -231,7 +231,7 @@ void iowave::awa_ini(lexer *p, fdm *a, ghostcell *pgc)
     count2=0;
     for(n=0;n<p->gcb2_count;++n)
     {
-        if(p->gcb2[n][4]==8)
+        if(p->gcb2[n][4]==7 || p->gcb2[n][4]==8)
         {
 			flag=1;
 			for(q=0;q<count2;++q)
@@ -252,7 +252,7 @@ void iowave::awa_ini(lexer *p, fdm *a, ghostcell *pgc)
     count3=0;
     for(n=0;n<p->gcb3_count;++n)
     {
-        if(p->gcb3[n][4]==8)
+        if(p->gcb3[n][4]==7 || p->gcb3[n][4]==8)
         {
 			flag=1;
 			for(q=0;q<count3;++q)
@@ -273,7 +273,7 @@ void iowave::awa_ini(lexer *p, fdm *a, ghostcell *pgc)
     count4=0;
     for(n=0;n<p->gcb4_count;++n)
     {
-        if(p->gcb4[n][4]==8)
+        if(p->gcb4[n][4]==7 || p->gcb4[n][4]==8)
         {
             
 			flag=1;

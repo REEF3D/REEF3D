@@ -61,11 +61,11 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 
 // Pressure
 	else
-	if((bc==21||bc==22||bc==5||bc==3||bc==2||bc==6||(bc==7&&p->B99<=2)) && gcv==40)
+	if((bc==21||bc==22||bc==5||bc==3||bc==2||bc==6||(bc==7&&awa_label==0)) && gcv==40)
 	return gclabel_press;
 	
 	else
-	if((bc==21||bc==22||bc==5||bc==3||bc==2||bc==7) && gcv==41)
+	if((bc==21||bc==22||bc==5||bc==3||bc==2||(bc==7&&awa_label==0)) && gcv==41)
 	return gclabel_press;
 	
 	else
@@ -77,7 +77,7 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	return gclabel_press;
 	
 	else
-	if((bc==21||bc==22||bc==5||bc==3||bc==2||bc==7) && (cs!=5) && gcv==44)
+	if((bc==21||bc==22||bc==5||bc==3||bc==2||(bc==7&&awa_label==0)) && (cs!=5) && gcv==44)
 	return gclabel_press;
 	
 	else
@@ -176,7 +176,7 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	return gclabel_press;
 	
 	else
-	if((bc==1||bc==6||bc==2||bc==7) && gcv==45)
+	if((bc==1||bc==6||bc==2||(bc==7&&awa_label==0)) && gcv==45)
 	return gclabel_press;
 	
 	else

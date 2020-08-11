@@ -28,13 +28,13 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
     
     // Parallel
 	// Wall
-	if((bc==21||bc==22||bc==7)&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==12||gcv==22||gcv==3))
+	if((bc==21||bc==22||(bc==7&&awa_label==0))&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==12||gcv==22||gcv==3))
 	return gclabel_w;
 	
-	if((bc==21||bc==22||bc==7)&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==112))
+	if((bc==21||bc==22||(bc==7&&awa_label==0))&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==112))
 	return 5;
 	
-	if((bc==21||bc==22||bc==7)&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==116))
+	if((bc==21||bc==22||(bc==7&&awa_label==0))&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==116))
 	return gclabel_w;
     
     // Topo
@@ -53,19 +53,19 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
 	
     // Othogonal
 	else
-	if((bc==21||bc==22||bc==5||bc==7)&&(cs==6)&&(gcv==12||gcv==22||gcv==3))
+	if((bc==21||bc==22||bc==5||(bc==7&&awa_label==0))&&(cs==6)&&(gcv==12||gcv==22||gcv==3))
 	return gclabel_w_orth;
     
     else
-	if((bc==21||bc==22||bc==5||bc==7)&&(cs==5)&&(gcv==12||gcv==22||gcv==3)&&p->A10==6)
+	if((bc==21||bc==22||bc==5||(bc==7&&awa_label==0))&&(cs==5)&&(gcv==12||gcv==22||gcv==3)&&p->A10==6)
 	return gclabel_w_orth;
     
     else
-	if((bc==21||bc==22||bc==5||bc==7)&&(cs==5)&&(gcv==12||gcv==22||gcv==3)&&p->A10==5)
+	if((bc==21||bc==22||bc==5||(bc==7&&awa_label==0))&&(cs==5)&&(gcv==12||gcv==22||gcv==3)&&p->A10==5)
 	return gclabel_w_orth;
 
 	else
-	if((bc==21||bc==22||bc==5||bc==7)&&(cs==5||cs==6)&&gcv==9)
+	if((bc==21||bc==22||bc==5||(bc==7&&awa_label==0))&&(cs==5||cs==6)&&gcv==9)
 	return gclabel_vel;
 
 //Inflow	
@@ -110,21 +110,7 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
 	if(bc==41||bc==42||bc==43)
 	return 11;
 
-//PISO Velcorr
-//Wall
 
-	else
-	if((bc==21||bc==22||bc==5||bc==7)&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==19))
-	return gclabel_w;
-
-	else
-	if((bc==21||bc==22||bc==5||bc==3||bc==7)&&(cs==5||cs==6)&&(gcv==19))
-	return 5;
-
-	else
-	if((bc==2||bc==1||bc==6||bc==8) && (gcv==19))
-	return 4;
-    
     else
 	if(gcv==999)
 	return 99;
