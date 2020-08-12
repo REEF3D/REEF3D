@@ -107,7 +107,7 @@ void  ikomega::eddyvisc(lexer* p, fdm* a, ghostcell* pgc)
     
     pvrans->eddyv_func(p,a);
     
-	pgc->start4(p,a->eddyv,29);
+	pgc->start4(p,a->eddyv,24);
 
 }
 

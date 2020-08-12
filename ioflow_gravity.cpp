@@ -236,6 +236,10 @@ void ioflow_gravity::vof_relax(lexer *p, ghostcell *pgc, field &f)
 {
 }
 
+void ioflow_gravity::turb_relax(lexer *p, fdm *a, ghostcell *pgc, field &f)
+{
+}
+
 void ioflow_gravity::fi_relax(lexer *p, ghostcell *pgc, field &f, field &phi)
 {
 }
