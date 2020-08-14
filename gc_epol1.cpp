@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
+#include"lexer.h"
 
 int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
 {
@@ -66,8 +67,7 @@ int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
     
     else
 	if((bc==6 && (cs==1||cs==4) && (gcv==10||gcv==20||gcv==1||gcv==7)))
-	return gclabel_u_in;
-    
+	return gclabel_u_in;    
     
 	
 //Outflow

@@ -43,8 +43,7 @@ ghostcell::~ghostcell()
 
 void ghostcell::gcini(lexer* p)
 {
-	
-	
+
     margin=p->margin;
 	paramargin=p->margin;
     deltax=p->DXM;
@@ -218,9 +217,9 @@ void ghostcell::gcini(lexer* p)
 	if(p->B60==3||p->B60==4)
 	gclabel_outflow=0;
     
-    gclabel_u_in=gclabel_u_orth;
-    gclabel_v_in=gclabel_v_orth;
-    gclabel_w_in=gclabel_w_orth;
+    gclabel_u_in=5;
+    gclabel_v_in=5;
+    gclabel_w_in=5;
     gclabel_press_in=gclabel_press;
     gclabel_lsm_in=gclabel_lsm;
     
