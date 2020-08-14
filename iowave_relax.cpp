@@ -290,7 +290,7 @@ void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
     }
 
 
-    if(p->A10==5)
+    if(p->A10==55)
     WLOOP
     {
         xg = xgen(p);
