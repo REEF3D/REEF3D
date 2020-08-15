@@ -19,28 +19,40 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
+#include"lexer.h"
 #include"ghostcell.h"
 #include"field.h"
 
-void ghostcell::dirichlet_para(field& f,double dist,int gcv, int bc, int cs)
+void ghostcell::dirichlet_para(lexer *p,field& f,double dist,int gcv, int bc, int cs)
 {
 	wallvalue=0.0;
 	weight=1.0;
+    
+    double dx;
+    
+    if(cs==1||cs==4)
+    dx = p->DXP[IP];
+    
+    if(cs==2||cs==3)
+    dx = p->DYP[JP];
+    
+    if(cs==5||cs==6)
+    dx = p->DZP[KP];
 	
 	ys=1;
-    if(dist>deltax*(1.0-1.0e-9) && dist<deltax*(1.0+1.0e-9))
+    if(dist>dx*(1.0-1.0e-9) && dist<dx*(1.0+1.0e-9))
     ys=0;
 
 
 //fill pos[]
 	for(m=0;m<=orderdir-3;m++)
-	pos[m]=-deltax*double(orderdir-m-2);
+	pos[m]=-dx*double(orderdir-m-2);
 
 	pos[orderdir-2]=0.0;
 	pos[orderdir-1]=dist;
 
 	for(m=0;m<margin;m++)
-	x[m]=deltax*double(m+2-ys);
+	x[m]=dx*double(m+2-ys);
 
 //fill y[]
 	if(cs==1 )
@@ -69,9 +81,9 @@ void ghostcell::dirichlet_para(field& f,double dist,int gcv, int bc, int cs)
 
 	y[orderdir-1]=wallvalue;
 
-	if(ys==1 && dist<gamma*deltax)
+	if(ys==1 && dist<gamma*dx)
     {
-    imagepoint(f,x_ip,val_ip,dist,cs);
+    imagepoint(p,f,x_ip,val_ip,dist,cs);
 
     pos[orderdir-2] = x_ip;
     y[orderdir-2] = val_ip;

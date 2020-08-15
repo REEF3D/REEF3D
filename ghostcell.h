@@ -343,12 +343,12 @@ public:
     void nse2_conv(lexer*, fdm*, field&, int, double);
     void nse3_conv(lexer*, fdm*, field&, int, double);
 
-	void dirichlet_para(field&,double,int,int,int);
+	void dirichlet_para(lexer*,field&,double,int,int,int);
 	void dirichlet_ortho(lexer*,field&,double,int,int,int);
 	void neumann(field&,int,int,int);
     void gcb_debug(field&,int,int,int);
 	void neumann_press(lexer*,field&,double,int,int,int);
-	void extend(field&,double,int,int,int);
+	void extend(lexer*,field&,double,int,int,int);
 	void largeval(field&,double,int,int,int);
 	void largevaladd(field&,double,int,int,int);
 	void outflow(lexer*,field&,int,int,int);
@@ -356,10 +356,10 @@ public:
 	void inflowbc(field&,double,int,int,int);
     void potentialbc(lexer*,field&,int,int);
     void neumann_all(field&,int,int,int);
-    void extend_all(field&,double,int,int,int);
+    void extend_all(lexer*,field&,double,int,int,int);
     void lsm(lexer*,field&,double,int,int,int);
     void noslip(field&,double,int,int,int);
-    void imagepoint(field&, double&, double&,double,int);
+    void imagepoint(lexer*,field&, double&, double&,double,int);
 	void atmosphere(lexer*,field&,int,int,int);
     void heatbc(lexer*,field&,int,int,int);
 	void fbvel1(lexer*,field&,double,int,int,int);
@@ -381,7 +381,6 @@ public:
 private:
     const int size;
     const int tag1,tag2,tag3,tag4,tag5,tag6;
-	double deltax;
 	int margin, paramargin;
 	double  y[15],dP[15], x[15],pos[15];
 	double val[10];

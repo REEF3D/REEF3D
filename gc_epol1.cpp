@@ -119,10 +119,10 @@ void ghostcell::gcdistro1(lexer *p,field& f, int ii, int jj, int kk, int nn, dou
 	dirichlet_ortho(p,f,dist,gcv,bc,cs);
 
 	if(bc_label==2)
-	dirichlet_para(f,dist,gcv,bc,cs);
+	dirichlet_para(p,f,dist,gcv,bc,cs);
 
 	if(bc_label==3)
-	extend(f,dist,gcv,bc,cs);
+	extend(p,f,dist,gcv,bc,cs);
 
 	if(bc_label==4)
 	neumann(f,gcv,bc,cs);

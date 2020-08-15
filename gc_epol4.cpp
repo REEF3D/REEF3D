@@ -378,7 +378,7 @@ void ghostcell::gcdistro4(lexer *p, field &f, int ii, int jj, int kk, int nn, do
 	lsm(p,f,dist,gcv,bc,cs);
     
 	if(bc_label==3)
-	extend(f,dist,gcv,bc,cs);
+	extend(p,f,dist,gcv,bc,cs);
 
 	if(bc_label==4)
 	neumann(f,gcv,bc,cs);
@@ -387,7 +387,7 @@ void ghostcell::gcdistro4(lexer *p, field &f, int ii, int jj, int kk, int nn, do
 	noslip(f,dist,gcv,bc,cs);
 
 	if(bc_label==6)
-	extend(f,dist,gcv,bc,cs);
+	extend(p,f,dist,gcv,bc,cs);
 
 	if(bc_label==7)
 	potentialbc(p,f,bc,cs);

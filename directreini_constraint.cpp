@@ -63,7 +63,7 @@ void directreini::constraint(lexer *p, fdm* a, ghostcell *pgc, field& b)
 		
 		dval = d0(i,j,k);
 		
-		sign=dval/sqrt(dval*dval + dnorm*dnorm*deltax*deltax);
+		sign=dval/sqrt(dval*dval + dnorm*dnorm*p->DXM*p->DXM);
 		
 		lambda1 =  -dirac * ((b(i,j,k) - d0(i,j,k))/dT) * dV;
 		

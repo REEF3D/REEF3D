@@ -25,7 +25,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 bc_ikomega::bc_ikomega(lexer* p):roughness(p),kappa(0.4)
 {
-	deltax=p->DXM;
 }
 
 bc_ikomega::~bc_ikomega()
