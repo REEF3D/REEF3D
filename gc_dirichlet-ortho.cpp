@@ -101,8 +101,6 @@ void ghostcell::dirichlet_ortho(lexer *p,field& f,double dist,int gcv, int bc, i
 
 // write extrapolated ghost cell values into f()
 
-	if(ys>=0)
-    {
 	if(cs==1)
 	for(q=0;q<margin;++q)
 	f(i-q-1,j,k) = y[orderdir+q-1+ys];
@@ -126,7 +124,16 @@ void ghostcell::dirichlet_ortho(lexer *p,field& f,double dist,int gcv, int bc, i
 	if(cs==6)
 	for(q=0;q<margin;++q)
 	f(i,j,k+q+1) = y[orderdir+q-1+ys];
-	}
+	
+    
+    if(p->mpirank==0)
+    if(cs==1 && gcv==10)
+    { 
+    cout<<"U: "<<f(i,j,k)<<" ";
+	for(q=0;q<margin;++q)
+    cout<<y[orderdir+q-1+ys]<<" ";
+    
+    }
 
 }
 
