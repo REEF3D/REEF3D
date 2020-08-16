@@ -313,7 +313,6 @@ public:
     int ii,jj,kk;
     int ic,jc,kc;
 
-    double dx;
 
     int imin,imax,jmax,jmin,kmin,kmax;
 
@@ -438,7 +437,6 @@ private:
 	const int gcx;
 	int gcx_count[6];
 
-	double epphi;
 
     double v1,v2,v3,v4;
     double wa,wb;

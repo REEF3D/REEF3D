@@ -47,7 +47,6 @@ void ghostcell::gcini(lexer* p)
     margin=p->margin;
 	paramargin=p->margin;
     gamma=p->B29;
-    dx=p->DXM;
     Qi=p->W10;
     orderext=2;
     orderext2=2;
@@ -256,8 +255,7 @@ void ghostcell::gcini(lexer* p)
     
     
 	
-    epphi=1.6*p->DXM;
-	
+
 	margin=p->margin;
 	
 	nb[0] = p->nb1;

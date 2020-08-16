@@ -36,12 +36,13 @@ driver::driver(int& argc, char **argv)
     {
     cout<<endl<<"REEF3D (c) 2008-2020 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    cout<<endl<<"v_200815" <<endl<<endl;
+    cout<<endl<<"v_200816" <<endl<<endl;
     }
 
 	p->lexer_read(pgc);
 	pgc->gcini(p);
     p->gridini(pgc);
+
 
     if(p->mpirank==0)
     {
@@ -51,7 +52,7 @@ driver::driver(int& argc, char **argv)
     if(p->A10==3)
     cout<<endl<<"REEF3D::FNPF" <<endl<<endl;
     
-    if(p->A10==5)
+    if(p->A10==4)
     cout<<endl<<"REEF3D::PTF" <<endl<<endl;
 
     if(p->A10==5)

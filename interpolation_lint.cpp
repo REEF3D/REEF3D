@@ -178,6 +178,7 @@ pip=0;
 
 double interpolation::lint4phi(fdm *a, field& b, int& i,int& j, int& k, double wa, double wb, double wc)
 {	
+    double epphi=1.6*p->DXM;
 	double epphi2=0.6*p->DXM;
     v1=v2=v3=v4=v5=v6=v7=v8= p->phimean-p->pos_z();
 

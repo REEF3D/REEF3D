@@ -89,7 +89,7 @@ private:
     int c1,c2,c3,c4;
     double wa,wb,wc,wx,wy,wz;
     double value;
-    double epphi;
+
     
     int ii,jj,kk;
     
