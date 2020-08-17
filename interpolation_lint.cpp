@@ -33,7 +33,7 @@ pip=4;
     v1=b(i,j,k);
     if(p->flag1[IJp1K]>TOPO)
     v2=b(i,j+1,k);
-    if(p->flag1[Ip2JK]>TOPO)
+    if(p->flag1[Ip1JK]>TOPO)
     v3=b(i+1,j,k);
     if(p->flag1[Ip1Jp1K]>TOPO)
     v4=b(i+1,j+1,k);
@@ -70,7 +70,7 @@ pip=4;
     v1=b(i,j,k);
     if(p->flag2[IJp1K]>TOPO)
     v2=b(i,j+1,k);
-    if(p->flag2[Ip2JK]>TOPO)
+    if(p->flag2[Ip1JK]>TOPO)
     v3=b(i+1,j,k);
     if(p->flag2[Ip1Jp1K]>TOPO)
     v4=b(i+1,j+1,k);
@@ -108,7 +108,7 @@ pip=4;
     v1=b(i,j,k);
     if(p->flag3[IJp1K]>TOPO)
     v2=b(i,j+1,k);
-    if(p->flag3[Ip2JK]>TOPO)
+    if(p->flag3[Ip1JK]>TOPO)
     v3=b(i+1,j,k);
     if(p->flag3[Ip1Jp1K]>TOPO)
     v4=b(i+1,j+1,k);
@@ -145,7 +145,7 @@ double interpolation::lint4(field& f, int& i,int& j, int& k, double wa, double w
     v1=f(i,j,k);
     if(p->flag4[IJp1K]>TOPO)
     v2=f(i,j+1,k);
-    if(p->flag4[Ip2JK]>TOPO)
+    if(p->flag4[Ip1JK]>TOPO)
     v3=f(i+1,j,k);
     if(p->flag4[Ip1Jp1K]>TOPO)
     v4=f(i+1,j+1,k);

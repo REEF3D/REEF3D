@@ -73,7 +73,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double
 	
     if(p->S16==1)
     {
-    zval = a->bedzh(i,j) + 2.1*p->DZN[KP];
+    zval = a->bedzh(i,j) + 1.6*p->DZN[KP];
     
         if(p->S33==1)
         {
