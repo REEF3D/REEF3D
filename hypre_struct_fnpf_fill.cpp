@@ -44,27 +44,20 @@ void hypre_struct_fnpf::fill_matrix8(lexer* p, fdm_fnpf* c, ghostcell* pgc, doub
     
     
     // x
-    HYPRE_StructVectorSetBoxValues(x, ilower, iupper, M);
+    HYPRE_StructVectorSetBoxValues(x, ilower, iupper, f);
     HYPRE_StructVectorAssemble(x);
     
     // b
-    HYPRE_StructVectorSetBoxValues(b, ilower, iupper, values);
+    HYPRE_StructVectorSetBoxValues(b, ilower, iupper, rhs);
     HYPRE_StructVectorAssemble(b);
     
 }
 
 void hypre_struct_fnpf::fillbackvec8(lexer *p, fdm_fnpf* c, double *f, double *rhs, double *M)
 {
-	HYPRE_StructVectorGetBoxValues(x, ilower, iupper, values);
+	HYPRE_StructVectorGetBoxValues(x, ilower, iupper, f);
 	
-        count=0;
-        KJILOOP
-        {
-		 FPWDCHECK
-        f[FIJK]=values[count];
-		
-        ++count;
-        }
+        
 }
 
 #endif

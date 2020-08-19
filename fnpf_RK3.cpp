@@ -67,7 +67,7 @@ fnpf_RK3::fnpf_RK3(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fn
     plap = new fnpf_laplace_cds4_bc2(p);
     
     if(p->A320==5)
-    plap = new fnpf_laplace_cds2_v2(p);
+    plap = new fnpf_laplace_cds2_v2(p,pgc);
     
     
     

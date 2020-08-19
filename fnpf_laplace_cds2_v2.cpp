@@ -27,15 +27,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"fnpf_discrete_weights.h"
 
-fnpf_laplace_cds2_v2::fnpf_laplace_cds2_v2(lexer *p) 
+fnpf_laplace_cds2_v2::fnpf_laplace_cds2_v2(lexer *p, ghostcell *pgc) 
 {
-    //psolv = new hypre_struct_fnpf(p,a,pgc,p->N10,p->N11);
+    psolv = new hypre_struct_fnpf(p,pgc,p->N10,p->N11);
     
     
     vecsize=p->knox*p->knoy*(p->knoz+1); 
     
     p->Darray(M,vecsize*15);
-    p->Darray(f,vecsize);
+    p->Darray(x,vecsize);
     p->Darray(rhs,vecsize);
 
 }
@@ -72,7 +72,7 @@ void fnpf_laplace_cds2_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
     p->poissontime=0.0;
 
 	n=0;
-    LOOP
+    KJILOOP
 	{
         if(c->wet(i,j)==1 && p->flag7[FIJK]>0)
         {
@@ -97,13 +97,37 @@ void fnpf_laplace_cds2_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
         M[n+5] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
         M[n+6] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KP])  + p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
         
+        /*
+        sb 7 
+        st 8
+        nb 9
+        nt 10
+        eb 11
+        et 12
+        wb 13
+        wt 14
+        */
         
-        
+        /*
         rhs[n] =  2.0*p->sigx[FIJK]*(f[FIp1JKp1] - f[FIm1JKp1] - f[FIp1JKm1] + f[FIm1JKm1])
                         /((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir
                         
                         + 2.0*p->sigy[FIJK]*(f[FIJp1Kp1] - f[FIJm1Kp1] - f[FIJp1Km1] + f[FIJm1Km1])
-                        /((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
+                        /((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;*/
+                
+        M[n+7]  = -2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
+        M[n+8]  =  2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
+        M[n+9]  =  2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
+        M[n+10] = -2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
+        
+        M[n+11] = -2.0*p->sigy[FIJK]/((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
+        M[n+12] =  2.0*p->sigy[FIJK]/((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
+        M[n+13] =  2.0*p->sigy[FIJK]/((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
+        M[n+14] = -2.0*p->sigy[FIJK]/((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
+        
+        x[n] = f[FIJK];
+        
+        rhs[n] = 0.0;
                         
         }
         
@@ -125,6 +149,7 @@ void fnpf_laplace_cds2_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
         M[n+13] = 0.0;
         M[n+14] = 0.0;
         
+        x[n] = 0.0;
         rhs[n] =  0.0;
         }
         
@@ -134,7 +159,7 @@ void fnpf_laplace_cds2_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
 	}
     
     n=0;
-	LOOP
+	KJILOOP
 	{
             if(c->wet(i,j)==1 && p->flag7[FIJK]>0)
             {
@@ -186,7 +211,8 @@ void fnpf_laplace_cds2_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
             rhs[n] -= M[n+6]*f[FIJKp2];
             M[n+6] = 0.0;
             }
- /*
+            
+ 
             // KBEDBC
             if(p->flag7[FIJKm1]<0)
             {
@@ -198,28 +224,37 @@ void fnpf_laplace_cds2_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *
 
                     if(c->wet(i+1,j)==1 && c->wet(i-1,j)==1)
                     {
-                    M.n[n] +=  ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
-                    M.s[n] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
+                    M[n+2] +=  ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
+                    M[n+1] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     }
                     
                     if(c->wet(i,j-1)==1 && c->wet(i,j+1)==1)
                     {
-                    M.w[n] +=  ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
-                    M.e[n] += -ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
+                    M[n+4] +=  ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
+                    M[n+3] += -ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
                     }
                 
                 
                 M[n+6] += ab;
                 M[n+5] = 0.0;
 
-            }*/
+            }
             }
 	++n;
 	}
-    
+
     double starttime=pgc->timer();
-    //psolv->startF(p,c,pgc,f,c->rhsvec,M,8,p->N46,p->N44);
+    psolv->startF(p,c,pgc,x,rhs,M,8,p->N44);
     double endtime=pgc->timer();
+    
+        n=0;
+        KJILOOP
+        {
+		 FPWDCHECK
+        f[FIJK]=x[n];
+		
+        ++n;
+        }
     
     p->poissoniter+=p->solveriter;
     p->poissontime+=endtime-starttime;

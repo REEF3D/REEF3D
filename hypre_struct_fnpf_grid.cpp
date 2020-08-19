@@ -23,10 +23,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #ifdef HYPRE_COMPILATION
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
-void hypre_struct_fnpf::make_grid(lexer* p,fdm* a, ghostcell* pgc)
+void hypre_struct_fnpf::make_grid(lexer* p, ghostcell* pgc)
 {
     int kend=0;
     
@@ -69,7 +68,7 @@ void hypre_struct_fnpf::make_grid(lexer* p,fdm* a, ghostcell* pgc)
     HYPRE_StructVectorInitialize(x);
 }
 
-void hypre_struct_fnpf::make_grid_2Dvert(lexer* p,fdm* a, ghostcell* pgc)
+void hypre_struct_fnpf::make_grid_2Dvert(lexer* p, ghostcell* pgc)
 {
     int kend=0;
     
