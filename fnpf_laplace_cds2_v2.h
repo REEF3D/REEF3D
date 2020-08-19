@@ -38,6 +38,10 @@ public:
 
     virtual void start(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_fsf*,double*);
     
+    void laplace2D(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_fsf*,double*);
+    
+    void laplace3D(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_fsf*,double*);
+    
 private:
     
     solver_fnpf *psolv;

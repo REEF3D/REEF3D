@@ -77,7 +77,6 @@ private:
    
 
 	int *ilower,*iupper;
-    double *values;
     int num_iterations;
     double final_res_norm;
 	int stencil_indices[15];
