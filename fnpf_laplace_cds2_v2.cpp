@@ -100,7 +100,7 @@ void fnpf_laplace_cds2_v2::laplace2D(lexer* p, fdm_fnpf *c, ghostcell *pgc, solv
 	{
         if(c->wet(i,j)==1 && p->flag7[FIJK]>0)
         {
-        sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigz[IJ],2.0);
+        sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
         
         M[n*9]  =       1.0/(p->DXP[IP]*p->DXN[IP])*p->x_dir 
                     + 1.0/(p->DXP[IM1]*p->DXN[IP])*p->x_dir 
@@ -189,7 +189,7 @@ void fnpf_laplace_cds2_v2::laplace2D(lexer* p, fdm_fnpf *c, ghostcell *pgc, solv
             // KBEDBC
             if(p->flag7[FIJKm1]<0)
             {
-            sigxyz2= pow(p->sigx[FIJK],2.0) + pow(p->sigz[IJ],2.0);
+            sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
             
             ab = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]));
             
