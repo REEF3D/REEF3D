@@ -1033,6 +1033,8 @@ void lexer::ctrlsend()
 	ii++;
     ictrl[ii] = S103;
 	ii++;
+    dctrl[dd] = S116;
+	dd++;
 
     ictrl[ii] = T10;
     ii++;

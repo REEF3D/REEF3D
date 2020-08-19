@@ -530,6 +530,7 @@ void lexer::ini_default()
     S101=0;					// int number of bed filter inner iterations
 	S102=0;					// int number of bedload filter outer iterations
     S103=0;					// int number of bedload filter inner iterations
+    S116=1.6;              // double bedshear stress z location
     
     // Turbulence
 	T10=0;			    // int turbulence model
