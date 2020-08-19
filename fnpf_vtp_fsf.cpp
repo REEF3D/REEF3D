@@ -123,13 +123,6 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     // coastline
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
-    
-    // test
-    if(p->P23==1)
-    {
-	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
-    }
 	
 	// Cells
     offset[n]=offset[n-1] + 4*p->polygon_sum*3+4;
@@ -165,11 +158,6 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"coastline\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-    if(p->P23==1)
-    {
-     result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;   
-    }
     result<<"</PointData>"<<endl;
 
     

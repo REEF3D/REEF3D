@@ -244,12 +244,6 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
 	++n;
 
-    // test
-    if(p->P23==1)
-	{
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
-	++n;
-	}
     // elevation
 	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
 	++n;
@@ -294,12 +288,6 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     ++n;
 	}
     
-    if(p->P23==1)
-	{
-    result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	}
-	
     result<<"<DataArray type=\"Float32\" Name=\"elevation\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     
