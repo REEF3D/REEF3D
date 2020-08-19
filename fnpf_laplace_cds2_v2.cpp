@@ -102,23 +102,23 @@ void fnpf_laplace_cds2_v2::laplace2D(lexer* p, fdm_fnpf *c, ghostcell *pgc, solv
         {
         sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigz[IJ],2.0);
         
-        M[n]  =       1.0/(p->DXP[IP]*p->DXN[IP])*p->x_dir 
+        M[n*9]  =       1.0/(p->DXP[IP]*p->DXN[IP])*p->x_dir 
                     + 1.0/(p->DXP[IM1]*p->DXN[IP])*p->x_dir 
                      
                     + (sigxyz2/(p->DZP[KM1]*p->DZN[KP]))*p->z_dir
                     + (sigxyz2/(p->DZP[KM1]*p->DZN[KM1]))*p->z_dir;
 
         
-        M[n+1] = -1.0/(p->DXP[IM1]*p->DXN[IP])*p->x_dir;
-        M[n+2] = -1.0/(p->DXP[IP]*p->DXN[IP])*p->x_dir;
+        M[n*9+1] = -1.0/(p->DXP[IM1]*p->DXN[IP])*p->x_dir;
+        M[n*9+2] = -1.0/(p->DXP[IP]*p->DXN[IP])*p->x_dir;
         
-        M[n+3] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
-        M[n+4] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KP])  + p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
+        M[n*9+3] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
+        M[n*9+4] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KP])  + p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
         
-        M[n+5]  = -2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
-        M[n+6]  =  2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
-        M[n+7]  =  2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
-        M[n+8] =  -2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
+        M[n*9+5]  = -2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
+        M[n*9+6]  =  2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
+        M[n*9+7]  =  2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
+        M[n*9+8] =  -2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
 
         x[n] = f[FIJK];
         
@@ -128,15 +128,15 @@ void fnpf_laplace_cds2_v2::laplace2D(lexer* p, fdm_fnpf *c, ghostcell *pgc, solv
         
         if(c->wet(i,j)==0 || p->flag7[FIJK]<0)
         {
-        M[n]  =  1.0;
-        M[n+1] = 0.0;
-        M[n+2] = 0.0;
-        M[n+3] = 0.0;
-        M[n+4] = 0.0;
-        M[n+5] = 0.0;
-        M[n+6] = 0.0;
-        M[n+7] = 0.0;
-        M[n+8] = 0.0;
+        M[n*9]  =  1.0;
+        M[n*9+1] = 0.0;
+        M[n*9+2] = 0.0;
+        M[n*9+3] = 0.0;
+        M[n*9+4] = 0.0;
+        M[n*9+5] = 0.0;
+        M[n*9+6] = 0.0;
+        M[n*9+7] = 0.0;
+        M[n*9+8] = 0.0;
         
         x[n] = 0.0;
         rhs[n] =  0.0;
@@ -153,36 +153,36 @@ void fnpf_laplace_cds2_v2::laplace2D(lexer* p, fdm_fnpf *c, ghostcell *pgc, solv
             // south
             if((p->flag7[FIm1JK]<0 || c->wet(i-1,j)==0) && c->bc(i-1,j)==0)
             {
-            M[n] += M[n+1];  
-            M[n+1] = 0.0;        
+            M[n*9] += M[n*9+1];  
+            M[n*9+1] = 0.0;        
             }
             
             if(p->flag7[FIm1JK]<0 && c->bc(i-1,j)==1)
             {
-            rhs[n] += M[n+1]*c->Uin[FIm1JK]*p->DXP[IM1];
-            M[n] += M[n+1];
-            M[n+1] = 0.0;
+            rhs[n] += M[n*9+1]*c->Uin[FIm1JK]*p->DXP[IM1];
+            M[n*9] += M[n*9+1];
+            M[n*9+1] = 0.0;
             }
             
             // north
             if((p->flag7[FIp1JK]<0 || c->wet(i+1,j)==0) && c->bc(i+1,j)==0)
             {
-            M[n] += M[n+2];
-            M[n+2] = 0.0;
+            M[n*9] += M[n*9+2];
+            M[n*9+2] = 0.0;
             }
             
             if(p->flag7[FIp1JK]<0 && c->bc(i+1,j)==2)
             {
-            rhs[n] -= M[n+2]*c->Uin[FIp1JK]*p->DXP[IP1];
-            M[n] += M[n+2];
-            M[n+2] = 0.0;
+            rhs[n] -= M[n*9+2]*c->Uin[FIp1JK]*p->DXP[IP1];
+            M[n*9] += M[n*9+2];
+            M[n*9+2] = 0.0;
             }
 
             // top
             if(p->flag7[FIJKp2]<0 && p->flag7[FIJKp1]>0)
             {
-            rhs[n] -= M[n+4]*f[FIJKp2];
-            M[n+4] = 0.0;
+            rhs[n] -= M[n*9+4]*f[FIJKp2];
+            M[n*9+4] = 0.0;
             }
             
  
@@ -197,13 +197,13 @@ void fnpf_laplace_cds2_v2::laplace2D(lexer* p, fdm_fnpf *c, ghostcell *pgc, solv
 
                     if(c->wet(i+1,j)==1 && c->wet(i-1,j)==1)
                     {
-                    M[n+2] +=  ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
-                    M[n+1] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
+                    M[n*9+2] +=  ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
+                    M[n*9+1] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     }
                 
                 
-                M[n+4] += ab;
-                M[n+3] = 0.0;
+                M[n*9+4] += ab;
+                M[n*9+3] = 0.0;
 
             }
             }
