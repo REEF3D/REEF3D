@@ -205,7 +205,7 @@ nt 8
             // sb
             if(p->flag7[FIm1JKm1]<0 || c->wet(i-1,j)==0)
             {
-            rhs[n] += M[n*9+5]*f[FIm1JKm1];
+            rhs[n] -= M[n*9+5]*f[FIm1JKm1];
             M[n*9+5] = 0.0;
             }
             
