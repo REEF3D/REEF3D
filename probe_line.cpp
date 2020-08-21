@@ -54,12 +54,12 @@ probe_line::probe_line(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P62), eps
 	totelnum[n] = conv(length[n]/p->DXM) + 1;
     
     // -------
-    if(p->P62>0)
+    /*if(p->P62>0)
     {
     cout<<p->mpirank<<" DXM: "<<p->DXM <<endl; 
     cout<<p->mpirank<<" length[n]: "<<length[0] <<endl; 
     cout<<p->mpirank<<" totelnum[n]: "<<totelnum[0] <<endl; 
-    }
+    }*/
     // -------
 	
 	for(n=0;n<p->P62;++n)
@@ -70,8 +70,9 @@ probe_line::probe_line(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P62), eps
 	maxelnum = MAX(maxelnum,totelnum[0]) + p->M10+6;
  
     // -------
-    if(p->P62>0)
+    /*if(p->P62>0)
     cout<<p->mpirank<<" maxelnum: "<<maxelnum<<endl; 
+     */ 
     // -------
 	
 	p->Iarray(active,p->P62,maxelnum);
@@ -84,9 +85,9 @@ probe_line::probe_line(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P62), eps
 	domain_ys = p->originy;
 	domain_zs = p->originz;
 	
-	domain_xe = p->originx + p->endx;
-	domain_ye = p->originy + p->endy;
-	domain_ze = p->originz + p->endz;
+	domain_xe = p->endx;
+	domain_ye = p->endy;
+	domain_ze = p->endz;
 	
 
 	// xdir
@@ -386,8 +387,10 @@ void probe_line::ini_global_location(lexer *p, fdm *a, ghostcell *pgc)
     
     
     // -------
+    /*
     if(p->P62>0)
-    cout<<p->mpirank<<" elnum[n]: "<<elnum[0] <<endl; 
+    cout<<p->mpirank<<" elnum[n]: "<<elnum[0] <<" xs: "<<domain_xs<<" xe: "<<domain_xe<<" originx: "<<p->originx<<" endx: "<<p->endx<<endl; 
+    */
     // -------
 	
 
@@ -413,17 +416,17 @@ void probe_line::ini_global_location(lexer *p, fdm *a, ghostcell *pgc)
 	for(q=0;q<p->M10;++q)
 	displ[n][q]=0;
 	
-    if(p->P62>0)
-    cout<<p->mpirank<<" displ: ";
-	//if(p->mpirank==0)
+    /*if(p->P62>0)
+    cout<<p->mpirank<<" displ: ";*/
+
 	for(n=0;n<p->P62;++n)
 	for(q=1;q<p->M10;++q)
     {
 	displ[n][q]=displ[n][q-1]+elnum_all[n][q-1];
-    cout<<displ[n][q]<<" ";
+    //cout<<displ[n][q]<<" "<<elnum_all[n][q-1]<<" . ";
     }
-    if(p->P62>0)
-    cout<<endl;
+    //if(p->P62>0)
+    //cout<<endl;
 	
 	for(n=0;n<p->P62;++n)
 	pgc->gatherv_int(elid[n],elnum[n],elid_all[n],elnum_all[n],displ[n]);
@@ -456,17 +459,19 @@ void probe_line::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 		{
 			if(active[n][q]==1)
 			{
-			iloc = p->posc_i(p->P62_xs[n] + t*ds[n]*(p->P62_xe[n]-p->P62_xs[n])/(norm[n]>eps?norm[n]:1.0e20)-p->originx);
+			iloc = p->posc_i(p->P62_xs[n] + t*ds[n]*(p->P62_xe[n]-p->P62_xs[n])/(norm[n]>eps?norm[n]:1.0e20));
             
             if(p->j_dir==0)
             jloc=0;
             
             if(p->j_dir==1)
-			jloc = p->posc_j(p->P62_ys[n] + t*ds[n]*(p->P62_ye[n]-p->P62_ys[n])/(norm[n]>eps?norm[n]:1.0e20)-p->originy);
+			jloc = p->posc_j(p->P62_ys[n] + t*ds[n]*(p->P62_ye[n]-p->P62_ys[n])/(norm[n]>eps?norm[n]:1.0e20));
             
-			kloc = p->posc_k(p->P62_zs[n] + t*ds[n]*(p->P62_ze[n]-p->P62_zs[n])/(norm[n]>eps?norm[n]:1.0e20)-p->originz);
+			kloc = p->posc_k(p->P62_zs[n] + t*ds[n]*(p->P62_ze[n]-p->P62_zs[n])/(norm[n]>eps?norm[n]:1.0e20));
 			
 			check=boundcheck(p,a,iloc,jloc,kloc,0);
+            
+            //cout<<p->mpirank<<" i: "<<iloc<<" j: "<<jloc<<" k: "<<kloc<<" check: "<<check<<endl;
 			if(check==1)
 			flag[n][count]=1;
 			
