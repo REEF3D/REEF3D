@@ -33,6 +33,9 @@ Author: Hans Bihs
 #define ILOOP	for(i=0; i<p->knox; ++i)
 #define JLOOP	for(j=0; j<p->knoy; ++j)
 #define KLOOP 	for(k=0; k<p->knoz; ++k)
+#define IREVLOOP	for(i=p->knox-1; i>=0; --i)
+#define JREVLOOP	for(j=p->knoy-1; j>=0; --j)
+#define KREVLOOP 	for(k=p->knoz-1; k>=0; --k)
 #define PCHECK  if(p->flag4[IJK]>0)
 #define LOOP ILOOP JLOOP KLOOP PCHECK
 

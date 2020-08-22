@@ -68,16 +68,26 @@ void sandslide_f::start(lexer *p, fdm * a, ghostcell *pgc)
         pgc->gcsl_start4(p,fh,1);
         
         // slide loop
+        if(qn%2 == 0 || qn==0)
         SLICELOOP4
         if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
         {
             slide(p,a,pgc);
         }
+        
+        if(qn%2 != 0 && qn>0)
+        SLICEREVLOOP4
+        if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
+        {
+            slide(p,a,pgc);
+        }
+        
         pgc->gcslparax_fh(p,fh,4);
         
         // fill back
         SLICELOOP4
         a->bedzh(i,j)+=fh(i,j);
+        
 
         pgc->gcsl_start4(p,a->bedzh,1);
 
