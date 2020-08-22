@@ -41,6 +41,8 @@ void bedslope::slope(lexer *p, fdm * a, ghostcell *pgc, double &teta, double &al
     double nx0,ny0;
     double nz0,bx0,by0;
     
+    k = a->bedk(i,j);
+    
     // beta
     uvel=0.5*(a->P(i,j)+a->P(i-1,j));
 
