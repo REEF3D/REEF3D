@@ -23,11 +23,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"ddweno_f_nug.h"
 
 bedslope::bedslope(lexer *p) : norm_vec(p)
 {
     midphi=p->S81*(PI/180.0);
     delta=p->S82*(PI/180.0);
+    
+    pdx = new ddweno_f_nug(p);
 }
 
 bedslope::~bedslope()
@@ -38,7 +41,7 @@ void bedslope::slope(lexer *p, fdm * a, ghostcell *pgc, double &teta, double &al
 {
     double uvel,vvel;
     double nx,ny,nz,norm;
-    double nx0,ny0;
+    double nx0,ny0,nx1,ny1,nz1;
     double nz0,bx0,by0;
     
     // beta
@@ -101,12 +104,17 @@ void bedslope::slope(lexer *p, fdm * a, ghostcell *pgc, double &teta, double &al
     
     
 	nz0 = (a->topo(i,j,k+1)-a->topo(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
+    
+    nx1 = -pdx->ddwenox(a->topo, nx0);
+    ny1 = -pdx->ddwenoy(a->topo, ny0);
+    nz1 =  pdx->ddwenoz(a->topo, nz0);
+    
 
-	norm=sqrt(nx0*nx0 + ny0*ny0 + nz0*nz0);
+	norm=sqrt(nx1*nx1 + ny1*ny1 + nz1*nz1);
 	
-	nx0/=norm>1.0e-20?norm:1.0e20;
-	ny0/=norm>1.0e-20?norm:1.0e20;
-	nz0/=norm>1.0e-20?norm:1.0e20;
+	nx1/=norm>1.0e-20?norm:1.0e20;
+	ny1/=norm>1.0e-20?norm:1.0e20;
+	nz1/=norm>1.0e-20?norm:1.0e20;
    
     
     // ----
@@ -132,9 +140,9 @@ void bedslope::slope(lexer *p, fdm * a, ghostcell *pgc, double &teta, double &al
     
     // rotate bed normal
 	beta=-beta;
-    nx = (cos(beta)*nx0-sin(beta)*ny0);
-	ny = (sin(beta)*nx0+cos(beta)*ny0);
-    nz = nz0;
+    nx = (cos(beta)*nx1-sin(beta)*ny1);
+	ny = (sin(beta)*nx1+cos(beta)*ny1);
+    nz = nz1;
     
     teta  = -atan(nx/(fabs(nz)>1.0e-15?nz:1.0e20));
     alpha =  fabs(atan(ny/(fabs(nz)>1.0e-15?nz:1.0e20)));
