@@ -117,27 +117,6 @@ void bedslope::slope(lexer *p, fdm * a, ghostcell *pgc, double &teta, double &al
 	nz1/=norm>1.0e-20?norm:1.0e20;
    
     
-    // ----
-    
-
-     /*
-     bx0 = (a->bedzh(i+1,j)-a->bedzh(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
-     by0 = (a->bedzh(i,j+1)-a->bedzh(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
-     nz0 = 1.0;
-     
-     
-     nx0 = bx0/sqrt(bx0*bx0 + by0*by0 + 1.0);
-     ny0 = by0/sqrt(bx0*bx0 + by0*by0 + 1.0);
-     nz0 = 1.0;
-     
-     norm=sqrt(nx0*nx0 + ny0*ny0 + nz0*nz0);
-     
-     
-     nx0/=norm>1.0e-20?norm:1.0e20;
-	 ny0/=norm>1.0e-20?norm:1.0e20;
-	 nz0/=norm>1.0e-20?norm:1.0e20;*/
-	
-    
     // rotate bed normal
 	beta=-beta;
     nx = (cos(beta)*nx1-sin(beta)*ny1);
