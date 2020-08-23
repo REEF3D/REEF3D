@@ -101,6 +101,10 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
 {
     starttime=pgc->timer();
     
+    pgc->start1(p,a->u,14);
+	pgc->start2(p,a->v,15);
+	pgc->start3(p,a->w,16);
+    
     // find bedk
     fill_bedk(p,a,pgc);
 	
@@ -127,6 +131,10 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
     preto->start(a,p,a->topo,pconvec,pgc);
 
     volume_calc(p,a,pgc);
+    
+    pgc->start1(p,a->u,10);
+	pgc->start2(p,a->v,11);
+	pgc->start3(p,a->w,12);
     
     if(p->mpirank==0)
     cout<<"Topo: update grid..."<<endl;
