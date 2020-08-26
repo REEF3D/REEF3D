@@ -205,9 +205,6 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
 	{
-    
-        cout<<p->mpirank<<" DXM: "<<p->DXM<<" originy: "<<p->originy<<" endy: "<<p->endy<<endl;
-        
 	ffn=float(float(i+1)*p->DXM+p->originx);
 	result.write((char*)&ffn, sizeof (float));
 
