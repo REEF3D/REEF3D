@@ -128,36 +128,7 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 	}
 
 	
-    cu=cv=cw=1.0e10;
-    ULOOP
-    {
-    dx = MIN3(p->DXP[IP],p->DYN[JP],p->DZN[KP]);
-
-	cu = MIN(cu, 2.0/((fabs(p->umax)/dx)
-    
-            +sqrt((4.0*fabs(a->maxF))/dx)));
-    }
-
-    VLOOP
-    {
-    dx = MIN3(p->DXN[IP],p->DYP[JP],p->DZN[KP]);
-    
-	cv = MIN(cv, 2.0/((fabs(p->vmax)/dx)
-    
-            +sqrt((4.0*fabs(a->maxG))/dx)));
-    }
-    
-    WLOOP
-    {
-    dx = MIN3(p->DXN[IP],p->DYN[JP],p->DZP[KP]);
-
-	cw = MIN(cw, 2.0/((fabs(p->wmax)/dx)
-    
-            +sqrt((4.0*fabs(a->maxH))/dx)));
-    }
-    
-    
-    cu = min(cu,cv,cw);
+    cu=1.0e10;
     
     LOOP
     {
