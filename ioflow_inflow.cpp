@@ -96,6 +96,9 @@ void ioflow_f::inflow_plain(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
         w(i-2,j,k)=0.0;
         w(i-3,j,k)=0.0;
         }
+        
+        if(a->topo(i,j,k)<=0.0)
+        u(i-1,j,k)=u(i-2,j,k)=u(i-3,j,k)=0.0;
     }
 }
 
@@ -157,7 +160,9 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
         
             if(a->topo(i,j,k)>0.0)
             u(i-1,j,k)=u(i-2,j,k)=u(i-3,j,k)= shearvel*2.5*log(MAX(30.0*MIN(walldin[n],dmax)/ks,1.0));
-
+            
+            if(a->topo(i,j,k)<=0.0)
+            u(i-1,j,k)=u(i-2,j,k)=u(i-3,j,k)=0.0;
         }
 
 
@@ -268,6 +273,8 @@ void ioflow_f::inflow_water(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
         u(i-3,j,k)=0.0;
         }
         
+        if(a->topo(i,j,k)<=0.0)
+        u(i-1,j,k)=u(i-2,j,k)=u(i-3,j,k)=0.0;
 
         if(a->phi(i-1,j,k)<-epsi2*p->DXM)
         pgc->dirichlet_ortho(p,u,p->DXM,10,1,1);
