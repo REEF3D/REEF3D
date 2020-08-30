@@ -81,16 +81,6 @@ double interpolation::ccipol1(field& f, double xp, double yp, double zp)
     --k;
     }
     
-    /*
-    if(p->mpirank==0 && p->count==0)
-    {
-    cout<<"i: "<<i<<" j: "<<j<<" k: "<<k<<endl;
-    cout<<p->mpirank<<" xp: "<<xp<<" yp: "<<yp<<" zp: "<<zp<<"  originz: "<<p->originz<<endl;
-    cout<<p->mpirank<<" XN: "<<p->XN[IP1]<<" YP: "<<p->YP[JP1]<<" YP2: "<<p->YP[JP2]<<" ZP: "<<p->ZP[KP1]<<endl;
-    cout<<p->mpirank<<" wa: "<<wa<<" wb: "<<wb<<" wc: "<<wc<<endl;
-    }*/
-	
-    
     value = lint1(f,i,j,k,wa,wb,wc);
 
     i=ii;
@@ -287,14 +277,6 @@ double interpolation::ccipol4(field& f, double xp, double yp, double zp)
     wc = (p->ZP[KP]-zp)/p->DZN[KM1];
     --k;
     }
-    /*
-    if(p->mpirank==0 && p->count==0)
-    {
-    cout<<"i: "<<i<<" j: "<<j<<" k: "<<k<<endl;
-    cout<<p->mpirank<<" xp: "<<xp<<" yp: "<<yp<<" zp: "<<zp<<"  originz: "<<p->originz<<endl;
-    cout<<p->mpirank<<" XP: "<<p->XP[IP1]<<" YP: "<<p->YP[JP1]<<" YP2: "<<p->YP[JP2]<<" ZP: "<<p->ZP[KP1]<<endl;
-    cout<<p->mpirank<<" wa: "<<wa<<" wb: "<<wb<<" wc: "<<wc<<endl;
-    }*/
 
     value =  lint4(f,i,j,k,wa,wb,wc);
 

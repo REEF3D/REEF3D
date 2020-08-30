@@ -145,7 +145,7 @@ double interpolation::lint4(field& f, int& i,int& j, int& k, double wa, double w
     v1=f(i,j,k);
     if(p->flag4[IJp1K]>TOPO)
     v2=f(i,j+1,k);
-    if(p->flag4[Ip2JK]>TOPO)
+    if(p->flag4[Ip1JK]>TOPO)
     v3=f(i+1,j,k);
     if(p->flag4[Ip1Jp1K]>TOPO)
     v4=f(i+1,j+1,k);
