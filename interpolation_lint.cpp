@@ -160,17 +160,6 @@ double interpolation::lint4(field& f, int& i,int& j, int& k, double wa, double w
     v8=f(i+1,j+1,k+1);
     pip=0;
     
-    /*
-    pip=5;
-    x1 = wa*f(i,j,k)   + (1.0-wa)*f(i+1,j,k);
-    x2 = wa*f(i,j+1,k) + (1.0-wa)*f(i+1,j+1,k);
-
-    x3 = wa*f(i,j,k+1)   + (1.0-wa)*f(i+1,j,k+1);
-    x4 = wa*f(i,j+1,k+1) + (1.0-wa)*f(i+1,j+1,k+1);
-
-    y1 = wb*x1 +(1.0-wb)*x2;
-    y2 = wb*x3 +(1.0-wb)*x4;
-    pip=0;*/
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
