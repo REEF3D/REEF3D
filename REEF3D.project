@@ -1505,6 +1505,7 @@
         <File Name="position_xyz.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Interpolation">
+        <File Name="interpolation_slipol.cpp"/>
         <File Name="interpolation_lintsl.cpp"/>
         <File Name="interpolation_ccslipol.cpp"/>
         <File Name="interpolation_tricubic.cpp"/>
@@ -1848,7 +1849,6 @@
         <File Name="gcsl_epol4a.cpp"/>
         <File Name="gcxsl_flagx.cpp"/>
         <File Name="gcsl_tpflag.cpp"/>
-        <File Name="gcsl_ipol.cpp"/>
         <File Name="gcsl_noslip.cpp"/>
         <File Name="gcsl_setbc.cpp"/>
       </VirtualDirectory>

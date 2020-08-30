@@ -19,12 +19,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"ghostcell.h"
+#include"interpolation.h"
+#include"field.h"
 #include"lexer.h"
-#include"fdm2D.h"
-#include"slice.h"
+#include"fdm.h"
+
+
              
-double ghostcell::gcsl_ipol1(lexer* p, slice &f)
+double interpolation::sl_ipol1(slice &f)
 {
     v1=v2=0;
 
@@ -40,7 +42,7 @@ double ghostcell::gcsl_ipol1(lexer* p, slice &f)
     return value;
 }
 
-double ghostcell::gcsl_ipol2(lexer* p, slice &f)
+double interpolation::sl_ipol2(slice &f)
 {
     v1=v2=0;
 
@@ -56,7 +58,7 @@ double ghostcell::gcsl_ipol2(lexer* p, slice &f)
     return value;
 }
 
-double ghostcell::gcsl_ipol1a(lexer* p, slice &f)
+double interpolation::sl_ipol1a(slice &f)
 {
     v1=v2=0;
 
@@ -70,7 +72,7 @@ double ghostcell::gcsl_ipol1a(lexer* p, slice &f)
     return value;
 }
 
-double ghostcell::gcsl_ipol2a(lexer* p, slice &f)
+double interpolation::sl_ipol2a(slice &f)
 {
     v1=v2=0;
 
@@ -84,7 +86,7 @@ double ghostcell::gcsl_ipol2a(lexer* p, slice &f)
     return value;
 }
 
-double ghostcell::gcsl_ipol4(lexer* p, slice &f)
+double interpolation::sl_ipol4(slice &f)
 {
     v1=v2=v3=v4=0;
 
@@ -103,7 +105,7 @@ double ghostcell::gcsl_ipol4(lexer* p, slice &f)
     return value;
 }
 
-double ghostcell::gcsl_ipol4eta(lexer* p, slice &f, slice &bed)
+double interpolation::sl_ipol4eta(slice &f, slice &bed)
 {
     double bedvalue;
     double wd_criterion=0.00005;
@@ -113,7 +115,7 @@ double ghostcell::gcsl_ipol4eta(lexer* p, slice &f, slice &bed)
     wd_criterion=p->A244_val;
     
     if(p->A245==1)
-    wd_criterion=p->A245_val*p->DXM;
+    wd_criterion=p->A245_val*p->dx;
     
     
     
@@ -184,7 +186,7 @@ double ghostcell::gcsl_ipol4eta(lexer* p, slice &f, slice &bed)
     return value;
 }
 
-double ghostcell::gcsl_ipolint(lexer* p, sliceint &f)
+double interpolation::sl_ipolint(sliceint &f)
 {
     v1=v2=v3=v4=0;
 
@@ -201,55 +203,4 @@ double ghostcell::gcsl_ipolint(lexer* p, sliceint &f)
     value = 0.25*(v1+v2+v3+v4);
 
     return value;
-}
-
-double ghostcell::gcsl_ccipol4(lexer* p,slice& f, double xp, double yp)
-{
-    ii=i;
-    jj=j;
-
-    i=int((xp-p->originx)/dx-0.5);
-		if((xp-p->originx)/dx-0.5<0.0)
-		--i;
-    j=int((yp-p->originy)/dx-0.5);
-		if((yp-p->originy)/dx-0.5<0.0)
-		--j;
-
-    wa=((double(i) + 1.5)-xp/dx);
-    wb=((double(j) + 1.5)-yp/dx);
-
-
-    value =  gcsl_lint4(p,f,i,j,wa,wb);
-
-    i=ii;
-    j=jj;
-
-    return value;
-}
-
-double ghostcell::gcsl_lint4(lexer *p, slice& f, int& i,int& j, double wa, double wb)
-{
-    v1=v2=v3=v4=0.0;
-
-pip=4;
-
-    v1=f(i,j);
-
-    v2=f(i,j+1);
-
-    v3=f(i+1,j);
-
-    v4=f(i+1,j+1);
-
-    pip=0;
-pip=0;
-
-    x1 = wa*v1   + (1.0-wa)*v3;
-    x2 = wa*v2   + (1.0-wa)*v4;
-
-    value = wb*x1 +(1.0-wb)*x2;
-
-pip=0;
- return value;
-
 }

@@ -260,16 +260,6 @@ public:
 
 	void gcsl_tpflag(lexer*);
 
-    double gcsl_ipol1(lexer*,slice&);
-    double gcsl_ipol2(lexer*,slice&);
-	double gcsl_ipol1a(lexer*,slice&);
-    double gcsl_ipol2a(lexer*,slice&);
-    double gcsl_ipol4(lexer*,slice&);
-    double gcsl_ipol4eta(lexer*,slice&,slice&);
-    double gcsl_ipolint(lexer*,sliceint&);
-
-	double gcsl_ccipol4(lexer*,slice&,double,double);
-	double gcsl_lint4(lexer*,slice&,int&,int&,double,double);
 
     void gcsl_setbc1(lexer*);
     void gcsl_setbc2(lexer*);

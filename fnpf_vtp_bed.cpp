@@ -139,7 +139,7 @@ void fnpf_vtp_bed::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	ffn=float(p->YN[JP1]);
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(pgc->gcsl_ipol4(p,c->bed));
+	ffn=float(p->sl_ipol4(c->bed));
 	result.write((char*)&ffn, sizeof (float));
 	}
 	
@@ -148,7 +148,7 @@ void fnpf_vtp_bed::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
 	{
-	ffn=float(pgc->gcsl_ipol4(p,c->eta)+p->wd);
+	ffn=float(p->sl_ipol4(c->eta)+p->wd);
 	result.write((char*)&ffn, sizeof (float));
 	}
 	
@@ -157,7 +157,7 @@ void fnpf_vtp_bed::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
 	TPSLICELOOP
 	{
-	ffn=float(pgc->gcsl_ipol4(p,c->depth));
+	ffn=float(p->sl_ipol4(c->depth));
 	result.write((char*)&ffn, sizeof (float));
 	}
 

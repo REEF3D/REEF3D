@@ -93,7 +93,7 @@ void sflow_print_wsf::height_gauge(lexer *p, fdm2D *b, ghostcell *pgc, slice &f)
     i=iloc[n];
     j=jloc[n];
 	
-			wsf[n] = f(i,j);// pgc->gcsl_ccipol4(p,f,x[n],y[n]);
+			wsf[n] = f(i,j);
 
     }
 	
