@@ -157,7 +157,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double
 	if(p->S16==4)
     {
     zval = a->bedzh(i,j) + 0.5*p->DZN[KP];
-    tau=density*pturb->ccipol_kinval(p,pgc,xip,yip,zval)*0.3;
+    tau=density*pturb->ccipol_a_kinval(p,pgc,xip,yip,zval)*0.3;
     }
     
 	
@@ -176,7 +176,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double
 
     tauvel=density*(u_abs*u_abs)/pow((u_plus)>(0.0)?(u_plus):(1.0e20),2.0);
 	
-	taukin=density*pturb->ccipol_kinval(p,pgc,xip,yip,zval)*0.3;
+	taukin=density*pturb->ccipol_a_kinval(p,pgc,xip,yip,zval)*0.3;
 	
 	tau = sqrt(fabs(tauvel))*sqrt(fabs(taukin));
     }

@@ -69,6 +69,24 @@ double les_io::ccipol_epsval(lexer *p, ghostcell *pgc, double xp, double yp, dou
     return val;
 }
 
+double les_io::ccipol_a_kinval(lexer *p, ghostcell *pgc, double xp, double yp, double zp)
+{
+    double val;
+
+    val=0.0;
+
+    return val;
+}
+
+double les_io::ccipol_a_epsval(lexer *p, ghostcell *pgc, double xp, double yp, double zp)
+{
+    double val;
+
+    val=0.0;
+
+    return val;
+}
+
 void les_io::gcupdate(lexer *p, fdm *a, ghostcell *pgc)
 {
 
