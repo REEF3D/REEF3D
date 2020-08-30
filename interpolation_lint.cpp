@@ -140,7 +140,7 @@ double interpolation::lint4(field& f, int& i,int& j, int& k, double wa, double w
 {
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
     
-    /*
+    
     pip=4;
     if(p->flag4[IJK]>TOPO)
     v1=f(i,j,k);
@@ -158,9 +158,9 @@ double interpolation::lint4(field& f, int& i,int& j, int& k, double wa, double w
     v7=f(i+1,j,k+1);
     if(p->flag4[Ip1JKp1]>TOPO)
     v8=f(i+1,j+1,k+1);
-    pip=0;*/
+    pip=0;
     
-    
+    /*
     pip=5;
     x1 = wa*f(i,j,k)   + (1.0-wa)*f(i+1,j,k);
     x2 = wa*f(i,j+1,k) + (1.0-wa)*f(i+1,j+1,k);
@@ -170,7 +170,7 @@ double interpolation::lint4(field& f, int& i,int& j, int& k, double wa, double w
 
     y1 = wb*x1 +(1.0-wb)*x2;
     y2 = wb*x3 +(1.0-wb)*x4;
-    pip=0;
+    pip=0;*/
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
