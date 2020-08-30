@@ -174,7 +174,7 @@ void momentum_AB2::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel,
 	n=0;
 	ULOOP
 	{
-    a->maxF=MAX(fabs(a->rhsvec.V[n]),a->maxF);
+    a->maxF=MAX(fabs(a->rhsvec.V[n]+ a->gi),a->maxF);
 	a->F(i,j,k) += (a->rhsvec.V[n] + a->gi)*PORVAL1;
 	a->rhsvec.V[n]=0.0;
 	++n;
@@ -186,7 +186,7 @@ void momentum_AB2::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel,
 	n=0;
 	VLOOP
 	{
-    a->maxG=MAX(fabs(a->rhsvec.V[n]),a->maxG);
+    a->maxG=MAX(fabs(a->rhsvec.V[n]+ a->gj),a->maxG);
 	a->G(i,j,k) += (a->rhsvec.V[n] + a->gj)*PORVAL2;	
 	a->rhsvec.V[n]=0.0;
 	++n;
@@ -198,7 +198,7 @@ void momentum_AB2::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel,
 	n=0;
 	WLOOP
 	{
-    a->maxH=MAX(fabs(a->rhsvec.V[n]),a->maxH);
+    a->maxH=MAX(fabs(a->rhsvec.V[n]+ a->gk),a->maxH);
 	a->H(i,j,k) += (a->rhsvec.V[n] + a->gk)*PORVAL3;
 	a->rhsvec.V[n]=0.0;
 	++n;
