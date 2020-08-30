@@ -139,7 +139,7 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
             + sqrt((4.0*fabs(MAX3(a->maxF,a->maxG,a->maxH)))/dx));
     }
 
-	p->dt=p->N47*min(cu,cv,cw);
+	p->dt=p->N47*cu;
 	p->dt=pgc->timesync(p->dt);
 
 
