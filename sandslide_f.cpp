@@ -49,13 +49,6 @@ sandslide_f::~sandslide_f()
 
 void sandslide_f::start(lexer *p, fdm * a, ghostcell *pgc)
 {
-/*
-    LOOP
-    {
-    slope(p,a,pgc,teta,alpha,gamma,phi);
-    a->test(i,j,k) = teta*180.0/PI;
-    }*/
-    
     // mainloop
     for(int qn=0; qn<p->S91; ++qn)
     {
