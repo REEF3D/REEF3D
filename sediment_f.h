@@ -71,7 +71,7 @@ private:
 	bedshear *pbedshear;
     
     field4a zh,bss;
-    slice4 bedtau;
+    slice4 bedtau,z0,z1;
     
     double starttime;
     
