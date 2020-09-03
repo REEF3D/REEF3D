@@ -60,9 +60,6 @@ void topo_direct::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,rei
 		dh(i,j) = vz;
 	}
     
-    //LOOP
-    //a->test(i,j,k) = dh(i,j);
-    
     
 	pgc->gcsl_start4(p,dh,1);
 	
@@ -91,6 +88,10 @@ void topo_direct::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,rei
 	
 	SLICELOOP4
     a->bedzh(i,j) += p->dtsed*dh(i,j);
+    
+    
+    LOOP
+    a->test(i,j,k) = p->dtsed*dh(i,j);
 
 
 	pgc->gcsl_start4(p,a->bedzh,1);
