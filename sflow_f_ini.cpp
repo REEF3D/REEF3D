@@ -195,33 +195,40 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
 	}
 
      // fix outflow fsf
-    if(p->F62>-1.0e20)
-    {
+
         for(n=0;n<p->gcslout_count;n++)
         {
         i=p->gcslout[n][0];
         j=p->gcslout[n][1];
 
-        b->eta(i+1,j) = -p->F60+p->F62;
-        b->eta(i+2,j) = -p->F60+p->F62;
-        b->eta(i+3,j) = -p->F60+p->F62;
+        b->eta(i+1,j) = 0.0;
+        b->eta(i+2,j) = 0.0;
+        b->eta(i+3,j) = 0.0;
 
         b->hp(i+1,j) = MAX(b->eta(i+1,j) + p->wd - b->bed(i,j),0.0);
         b->hp(i+2,j) = MAX(b->eta(i+2,j) + p->wd - b->bed(i,j),0.0);
         b->hp(i+3,j) = MAX(b->eta(i+3,j) + p->wd - b->bed(i,j),0.0);
         }
-
+    
 
         GCSL1LOOP
         {
         i = p->gcbsl1[n][0];
         j = p->gcbsl1[n][1];
-
+                
+        
+            if(p->gcbsl1[n][4]==1)
+            {
+            b->hx(i-1,j) = MAX(p->F60 + p->wd - b->bed(i,j),0.0);
+            b->hx(i-2,j) = MAX(p->F60 + p->wd - b->bed(i,j),0.0);
+            b->hx(i-3,j) = MAX(p->F60 + p->wd - b->bed(i,j),0.0);
+            }
+            
             if(p->gcbsl1[n][4]==2)
             {
-            b->hx(i+1,j) = MAX(-p->F60+p->F62 + p->wd - b->bed(i,j),0.0);
-            b->hx(i+2,j) = MAX(-p->F60+p->F62 + p->wd - b->bed(i,j),0.0);
-            b->hx(i+3,j) = MAX(-p->F60+p->F62 + p->wd - b->bed(i,j),0.0);
+            b->hx(i+1,j) = MAX(p->F60 + p->wd - b->bed(i,j),0.0);
+            b->hx(i+2,j) = MAX(p->F60 + p->wd - b->bed(i,j),0.0);
+            b->hx(i+3,j) = MAX(p->F60 + p->wd - b->bed(i,j),0.0);
             }
         }
 
@@ -230,14 +237,85 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
         i = p->gcbsl2[n][0];
         j = p->gcbsl2[n][1];
 
+            if(p->gcbsl2[n][4]==1)
+            {
+            b->hy(i-1,j) = MAX(p->F60 + p->wd - b->bed(i,j),0.0);
+            b->hy(i-2,j) = MAX(p->F60 + p->wd - b->bed(i,j),0.0);
+            b->hy(i-3,j) = MAX(p->F60 + p->wd - b->bed(i,j),0.0);
+            }
+            
             if(p->gcbsl2[n][4]==2)
             {
-            b->hy(i+1,j) = MAX(-p->F60+p->F62 + p->wd - b->bed(i,j),0.0);
-            b->hy(i+2,j) = MAX(-p->F60+p->F62 + p->wd - b->bed(i,j),0.0);
-            b->hy(i+3,j) = MAX(-p->F60+p->F62 + p->wd - b->bed(i,j),0.0);
+            b->hy(i+1,j) = MAX(p->F60 + p->wd - b->bed(i,j),0.0);
+            b->hy(i+2,j) = MAX(p->F60 + p->wd - b->bed(i,j),0.0);
+            b->hy(i+3,j) = MAX(p->F60 + p->wd - b->bed(i,j),0.0);
+            }
+        }
+        
+        
+    if(p->F61>-1.0e20)
+    {
+        GCSL1LOOP
+        {
+        i = p->gcbsl1[n][0];
+        j = p->gcbsl1[n][1];
+                
+        
+            if(p->gcbsl1[n][4]==1)
+            {
+            b->hx(i-1,j) = MAX(p->F61 + p->wd - b->bed(i,j),0.0);
+            b->hx(i-2,j) = MAX(p->F61 + p->wd - b->bed(i,j),0.0);
+            b->hx(i-3,j) = MAX(p->F61 + p->wd - b->bed(i,j),0.0);
+            }
+        }
+
+        GCSL2LOOP
+        {
+        i = p->gcbsl2[n][0];
+        j = p->gcbsl2[n][1];
+
+            if(p->gcbsl2[n][4]==1)
+            {
+            b->hy(i-1,j) = MAX(p->F61 + p->wd - b->bed(i,j),0.0);
+            b->hy(i-2,j) = MAX(p->F61 + p->wd - b->bed(i,j),0.0);
+            b->hy(i-3,j) = MAX(p->F61 + p->wd - b->bed(i,j),0.0);
+            }
+        }
+        
+    }
+    
+    
+    
+    if(p->F62>-1.0e20)
+    {
+        GCSL1LOOP
+        {
+        i = p->gcbsl1[n][0];
+        j = p->gcbsl1[n][1];
+                
+            if(p->gcbsl1[n][4]==2)
+            {
+            b->hx(i+1,j) = MAX(p->F62 + p->wd - b->bed(i,j),0.0);
+            b->hx(i+2,j) = MAX(p->F62 + p->wd - b->bed(i,j),0.0);
+            b->hx(i+3,j) = MAX(p->F62 + p->wd - b->bed(i,j),0.0);
+            }
+        }
+
+        GCSL2LOOP
+        {
+        i = p->gcbsl2[n][0];
+        j = p->gcbsl2[n][1];
+            
+            if(p->gcbsl2[n][4]==2)
+            {
+            b->hy(i+1,j) = MAX(p->F62 + p->wd - b->bed(i,j),0.0);
+            b->hy(i+2,j) = MAX(p->F62 + p->wd - b->bed(i,j),0.0);
+            b->hy(i+3,j) = MAX(p->F62 + p->wd - b->bed(i,j),0.0);
             }
         }
     }
+      
+    
 
 
 	pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
