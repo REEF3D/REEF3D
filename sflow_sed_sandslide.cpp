@@ -26,8 +26,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void sflow_sediment_f::sandslide(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q)
 {
-    fac1=p->S92*(1.0/6.0);
-	fac2=p->S92*(1.0/12.0);
+    fac1 = (1.0/6.0);
+	fac2 = (1.0/12.0);
 
     if(p->S90==1)
     for(int qn=0; qn<p->S91; ++qn)

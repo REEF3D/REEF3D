@@ -39,8 +39,8 @@ sandslide_pde::sandslide_pde(lexer *p) : norm_vec(p), bedslope(p), fh(p), ci(p)
 	gcval_topo=154;
 
 	dxs=sqrt(2.0*p->DXM*p->DXM);
-	fac1=p->S92*(1.0/6.0);
-	fac2=p->S92*(1.0/12.0);
+	fac1 = (1.0/6.0);
+	fac2 = (1.0/12.0);
 }
 
 sandslide_pde::~sandslide_pde()

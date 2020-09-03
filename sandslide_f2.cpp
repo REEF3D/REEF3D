@@ -39,8 +39,8 @@ sandslide_f2::sandslide_f2(lexer *p) : norm_vec(p), bedslope(p), fh(p)
 	if(p->S50==4)
 	gcval_topo=154;
 
-	fac1=p->S92*(1.0/6.0);
-	fac2=p->S92*(1.0/12.0);
+	fac1 = (1.0/6.0);
+	fac2 = (1.0/12.0);
 }
 
 sandslide_f2::~sandslide_f2()
