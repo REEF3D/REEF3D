@@ -38,7 +38,7 @@ void lexer::ini_default()
 	A220=1;		  // int pressure scheme for SFLOW
 	A221=1;		  // int include hydrostatic pressure for SFLOW
     A222=1;      // int turn on secondary pressure gradient
-    A223=0.5;    // double blending factor pressure gradient
+    A223=0.4;    // double blending factor pressure gradient
     A230=0;      // int turn on Boussinesq wave model
 	A240=1;      // int FSF algorithm SFLOW
 	A241=1;		  // int discretization of water level SFLOW
