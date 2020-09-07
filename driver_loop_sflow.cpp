@@ -112,6 +112,7 @@ void driver::loop_sflow(fdm* a)
 		p->meantime=(p->totaltime/double(p->count));
 		p->gcmeantime=(p->gctotaltime/double(p->count));
 		p->Xmeantime=(p->Xtotaltime/double(p->count));
+        
 		
             if(p->count%p->P12==0)
             {

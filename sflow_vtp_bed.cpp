@@ -205,10 +205,10 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
 	{
-	ffn=float(float(i+1)*p->DXM+p->originx);
+	ffn=float(p->XN[IP1]);
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(float(j+1)*p->DXM+p->originy);
+	ffn=float(p->YN[JP1]);
 	result.write((char*)&ffn, sizeof (float));
 
 	ffn=float(b->bednode(i,j));
