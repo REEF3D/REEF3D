@@ -474,7 +474,7 @@ void ghostcell::column_pt6(lexer* p, fdm* a, fieldint &cval6)
     j=p->gcb4[g][1];
     k=p->gcb4[g][2];
 
-        if(p->gcb4[g][3]==1)
+        if(fabs(p->gcb4[g][3]==1))
         for(q=0;q<margin;++q)
         {
 			if(q<margin-1)
@@ -486,7 +486,7 @@ void ghostcell::column_pt6(lexer* p, fdm* a, fieldint &cval6)
         ++n;
         }
 
-        if(p->gcb4[g][3]==2)
+        if(fabs(p->gcb4[g][3]==2))
         for(q=0;q<margin;++q)
         {
 			if(q<margin-1)
@@ -498,7 +498,7 @@ void ghostcell::column_pt6(lexer* p, fdm* a, fieldint &cval6)
         ++n;
         }
 
-        if(p->gcb4[g][3]==3)
+        if(fabs(p->gcb4[g][3]==3))
         for(q=0;q<margin;++q)
         {
 			if(q<margin-1)
@@ -510,7 +510,7 @@ void ghostcell::column_pt6(lexer* p, fdm* a, fieldint &cval6)
         ++n;
         }
 
-        if(p->gcb4[g][3]==4)
+        if(fabs(p->gcb4[g][3]==4))
         for(q=0;q<margin;++q)
         {
 			if(q<margin-1)
@@ -522,7 +522,7 @@ void ghostcell::column_pt6(lexer* p, fdm* a, fieldint &cval6)
 		++n;
         }
 
-        if(p->gcb4[g][3]==5)
+        if(fabs(p->gcb4[g][3]==5))
         for(q=0;q<margin;++q)
         {
 			if(q<margin-1)
@@ -534,7 +534,7 @@ void ghostcell::column_pt6(lexer* p, fdm* a, fieldint &cval6)
 		++n;
         }
 
-        if(p->gcb4[g][3]==6)
+        if(fabs(p->gcb4[g][3]==6))
         for(q=0;q<margin;++q)
         {
 			if(q<margin-1)

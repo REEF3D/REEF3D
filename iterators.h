@@ -35,6 +35,7 @@ Author: Hans Bihs
 #define I_J_K_3 n
 #define I_J_K_4 n
 #define I_J_K_4a n
+#define I_J_K_6 n
 #define I_J_K n
 
 // ----------------------------------------------

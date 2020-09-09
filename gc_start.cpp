@@ -233,7 +233,7 @@ void ghostcell::start6V(lexer *p, vec &x, int gcv)
     starttime=timer();
 
 	QQGC6LOOP
-	gcdistro4aV(p,a,x,p->gcb4[qq][0],p->gcb4[qq][1], p->gcb4[qq][2], p->gcd4[qq], gcv, p->gcb4[qq][4], fabs(p->gcb4[qq][3]), p->gcb6[qq]);
+	gcdistro6V(p,a,x,p->gcb4[qq][0],p->gcb4[qq][1], p->gcb4[qq][2], p->gcd4[qq], gcv, p->gcb4[qq][4], fabs(p->gcb4[qq][3]), p->gcb6[qq]);
 	endtime=timer();
 	p->gctime+=endtime-starttime;
 	

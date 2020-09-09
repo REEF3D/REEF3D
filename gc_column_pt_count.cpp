@@ -193,8 +193,6 @@ int ghostcell::column_pt6_count(lexer* p, fdm* a)
     BASELOOP
 	++n;
 
-	
-	//int cellnum1=n;
 	GGC6LOOP
     {
     i=p->gcb4[g][0];
@@ -204,7 +202,6 @@ int ghostcell::column_pt6_count(lexer* p, fdm* a)
         for(q=0;q<margin;++q)
         ++n;
     }
-	
 
 	for(g=0;g<p->gcpara1_count;++g)
     {

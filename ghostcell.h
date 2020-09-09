@@ -316,6 +316,7 @@ public:
 
 	void gcdistro4V(lexer *p,fdm*, vec&, int, int, int, double, int, int, int, int);
     void gcdistro4aV(lexer *p,fdm*, vec&, int, int, int, double, int, int, int, int);
+    void gcdistro6V(lexer *p,fdm*, vec&, int, int, int, double, int, int, int, int);
 
 	int gceval1(lexer*,int,int,int);
 	int gceval2(lexer*,int,int,int);
@@ -365,6 +366,7 @@ public:
 	void gcV_neumann(vec&,int,int,int,int);
 	void gcV_lsm(lexer*,vec&, double,int,int,int,int);
     void gcV_neumann_all(vec&, int,int,int,int);
+    void gcV_neumann_6V(vec&, int,int,int,int);
 
 
 private:

@@ -124,3 +124,19 @@ void ghostcell::gcdistro4aV(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, 
 
 }
 
+
+void ghostcell::gcdistro6V(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, double dist,  int gcv, int bc, int cs, int id)
+{
+    i=ii;
+	j=jj;
+	k=kk;
+	
+	cs = fabs(cs);
+
+	bc_label=gceval4a(p,gcv,bc,cs);
+    
+	if(bc_label==74 || bc_label==75)
+	gcV_neumann_6V(vec,gcv,bc,cs,id);
+
+}
+
