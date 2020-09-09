@@ -591,10 +591,10 @@ void driver::logic()
     preto = new reinitopo_RK3(p);
     }
     
-    if(p->G39==0)
+    if(p->G39==0 || p->G40==0)
     preso = new reinitopo_void(); 
     
-    if(p->G39==1)
+    if(p->G39==1 && p->G40>0)
     preso = new reinisolid_RK3(p);
     
 

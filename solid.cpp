@@ -25,6 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"reinitopo.h"
 #include"ioflow.h"
+#include"reinitopo_RK3.h"
 
 solid::solid(lexer* p, fdm *a, ghostcell* pgc)
 {
@@ -34,15 +35,35 @@ solid::~solid()
 {
 }
 
-void solid::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection* pconvec, reinitopo* preto)
+void solid::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection* pconvec, reinitopo* preso)
 {
 
 	solid_topo(p,a,pgc);
-
-    preto->start(a,p,a->solid,pconvec,pgc);
+    
+    cout<<"G40: "<<p->G40<<" G1: "<<p->G1<<endl;
+    
+    BASELOOP
+    if(a->solid(i,j,k)!=a->solid(i,j,k))
+    cout<<p->mpirank<<" SOLID NAN_1: "<<a->solid(i,j,k)<<endl;
+    
+    
+    preso->start(a,p,a->solid,pconvec,pgc);
+    
+    BASELOOP
+    if(a->solid(i,j,k)!=a->solid(i,j,k))
+    cout<<p->mpirank<<" SOLID NAN_2: "<<a->solid(i,j,k)<<endl;
 
     pgc->solid_update(p,a);
+    
+    BASELOOP
+    if(a->solid(i,j,k)!=a->solid(i,j,k))
+    cout<<p->mpirank<<" SOLID NAN_3: "<<a->solid(i,j,k)<<endl;
+    
     pflow->gcio_update(p,a,pgc);
+    
+    BASELOOP
+    if(a->solid(i,j,k)!=a->solid(i,j,k))
+    cout<<p->mpirank<<" SOLID NAN_4: "<<a->solid(i,j,k)<<endl;
 }
 
 
@@ -50,7 +71,7 @@ void solid::solid_topo(lexer* p, fdm* a, ghostcell* pgc)
 {
     BASELOOP
     a->solid(i,j,k) = p->flag_solid[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin];
-        
+    
     p->del_Darray(p->flag_solid,p->imax*p->jmax*p->kmax);
 }
 

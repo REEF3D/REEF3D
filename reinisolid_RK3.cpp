@@ -85,11 +85,11 @@ void reinisolid_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostce
 	reiniter=2*int(p->maxlength/(p->F43*p->DXM));
     gcval=gcval_initopo;
 	pgc->start4aV(p,f,gcval);
-
-	}
+    }
 
 	if(p->count>0)
 	step(p,a);
+
 
     for(int q=0;q<reiniter;++q)
     {

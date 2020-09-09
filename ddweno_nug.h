@@ -59,7 +59,6 @@ public:
     
 private:
     lexer *p;
-    int flagval;
 };
 
 #endif
