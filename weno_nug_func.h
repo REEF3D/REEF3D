@@ -85,6 +85,7 @@ public:
     int uf,vf,wf;
 
 private:
+    lexer *pp;
 
     
     

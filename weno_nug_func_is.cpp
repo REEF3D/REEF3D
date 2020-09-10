@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"weno_nug_func.h"
+#include"lexer.h"
 #include<math.h>
 /*
     q1 = f(i-2,j,k);
@@ -42,6 +43,10 @@ void weno_nug_func::is_min_x()
     is1x = isfx[IP][uf][0][0]*pow(q5-q4,2.0) + isfx[IP][uf][0][1]*(q5-q4)*(q3-q4) + isfx[IP][uf][0][2]*pow(q3-q4,2.0);
     is2x = isfx[IP][uf][1][0]*pow(q2-q3,2.0) + isfx[IP][uf][1][1]*(q4-q3)*(q2-q3) + isfx[IP][uf][1][2]*pow(q4-q3,2.0);
     is3x = isfx[IP][uf][2][0]*pow(q1-q2,2.0) + isfx[IP][uf][2][1]*(q3-q2)*(q1-q2) + isfx[IP][uf][2][2]*pow(q3-q2,2.0);
+    
+    if(is1x!=is1x || is2x!=is2x || is3x!=is3x)
+    cout<<pp->mpirank<<"  "<<pp->cnt<<" . "<<isfx[IP][uf][0][0]<<" "<<isfx[IP][uf][0][1]<<" "<<isfx[IP][uf][0][2]<<" . "<<is1x<<" "<<is2x<<" "<<is3x
+    <<" "<<q1<<" "<<q2<<" "<<q3<<" "<<q4<<" "<<q5<<endl;
 }
 
 void weno_nug_func::is_max_x()
