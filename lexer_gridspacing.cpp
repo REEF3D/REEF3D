@@ -94,11 +94,8 @@ void lexer::lexer_gridspacing(ghostcell *pgc)
     // dxn
     
     for(i=-marge;i<knox+marge;++i)
-    {
     DXP[IP] = 0.5*(XN[IP2]+XN[IP1]) - 0.5*(XN[IP1]+XN[IP]);
-    if(mpirank==0)
-    cout<<DXP[IP]<<endl;
-    }
+
     for(j=-marge;j<knoy+marge;++j)
     DYP[JP] = 0.5*(YN[JP2]+YN[JP1]) - 0.5*(YN[JP1]+YN[JP]);
     

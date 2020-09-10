@@ -64,6 +64,7 @@ void reinisolid_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostce
 { 
     starttime=pgc->timer();
 	
+    p->cnt=0;
 	sizeM=p->sizeM4;
 	
     // fill lsm to reini
@@ -73,6 +74,15 @@ void reinisolid_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostce
 	f.V[n]=b(i,j,k);
 	++n;
 	}
+    
+    n=0;
+    ALOOP
+    {
+    if(f.V[n]!=f.V[n])
+    cout<<p->mpirank<<" REINISOLID NAN_1: "<<f.V[n]<<endl;
+    
+    ++n;
+    }
     
     gcval=gcval_topo;
 
@@ -89,6 +99,23 @@ void reinisolid_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostce
 
 	if(p->count>0)
 	step(p,a);
+    
+    
+    n=0;
+    ALOOP
+    {
+    if(f.V[n]!=f.V[n])
+    cout<<p->mpirank<<" REINISOLID NAN_2: "<<f.V[n]<<endl;
+    
+    ++n;
+    }
+    
+    NLOOP4A
+    {
+    if(f.V[Im2_J_K_4a]!=f.V[Im2_J_K_4a])
+    cout<<p->mpirank<<" REINISOLID NAN_3: "<<f.V[Im2_J_K_4a]<<endl;
+
+    }
 
 
     for(int q=0;q<reiniter;++q)
@@ -101,7 +128,7 @@ void reinisolid_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostce
 
 	pgc->start4aV(p,frk1,gcval);
     
-
+    ++p->cnt;
     // Step 2
     prdisc->start(p,a,pgc,frk1,L,5);
 
@@ -109,7 +136,8 @@ void reinisolid_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostce
 	frk2.V[n]=  0.75*f.V[n] + 0.25*frk1.V[n] + 0.25*dt.V[n]*L.V[n];
 
 	pgc->start4aV(p,frk2,gcval);
-
+    
+    ++p->cnt;
 
     // Step 3
     prdisc->start(p,a,pgc,frk2,L,5);
@@ -118,6 +146,8 @@ void reinisolid_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostce
 	f.V[n] = (1.0/3.0)*f.V[n] + (2.0/3.0)*frk2.V[n] + (2.0/3.0)*dt.V[n]*L.V[n];
 
 	pgc->start4aV(p,f,gcval);
+    
+    ++p->cnt;
 	}
 	
 	// backfill

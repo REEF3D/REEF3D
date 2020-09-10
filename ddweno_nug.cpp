@@ -53,8 +53,14 @@ double ddweno_nug::ddwenox(fdm* a, vec& b, double uw, int ipol, cpt &C)
    // if(q1!=q1 || q2!=q2 || q3!=q3 || q4!=q4 || q5!=q5)
    // cout<<q1<<" "<<q2<<" "<<q3<<" "<<q4<<" "<<q5<<endl;
     
+    //if(q1!=q1 || q2!=q2 || q3!=q3 || q4!=q4 || q5!=q5)
+    //cout<<p->mpirank<<"  "<<p->cnt<<" . "<<b.V[Im3_J_K]<<" "<<Im3_J_K<<" "<<b.V[Im2_J_K]<<" "<<Im2_J_K<<" "<<b.V[Im1_J_K]<<" "<<Im1_J_K<<" "<<b.V[I_J_K]<<" "<<I_J_K<<" "<<b.V[Ip1_J_K]<<" "<<Ip1_J_K<<endl;
+    
+    //if(q1!=q1 || q2!=q2 || q3!=q3 || q4!=q4 || q5!=q5)
+    //cout<<p->mpirank<<"  "<<p->cnt<<" . "<<qfx[IP][uf][0][0]<<" "<<qfx[IP][uf][0][1]<<" "<<qfx[IP][uf][1][0]<<" "<<qfx[IP][uf][1][1]<<" "<<qfx[IP][uf][2][0]<<" "<<qfx[IP][uf][2][1]<<endl;
+    
     if(q1!=q1 || q2!=q2 || q3!=q3 || q4!=q4 || q5!=q5)
-    cout<<p->mpirank<<" . "<<b.V[Im3_J_K]<<" "<<b.V[Im2_J_K]<<" "<<b.V[Im1_J_K]<<" "<<b.V[I_J_K]<<" "<<b.V[Ip1_J_K]<<endl;
+    cout<<p->mpirank<<"  "<<p->cnt<<" . "<<w1x<<" "<<w2x<<" "<<w3x<<endl;
 
 	grad = w1x*(q4 + qfx[IP][uf][0][0]*(q3-q4) - qfx[IP][uf][0][1]*(q5-q4))
     
@@ -62,7 +68,7 @@ double ddweno_nug::ddwenox(fdm* a, vec& b, double uw, int ipol, cpt &C)
           
          + w3x*(q2 + qfx[IP][uf][2][0]*(q1-q2) + qfx[IP][uf][2][1]*(q3-q2));
 	}
-/*
+
 	if(uw<0.0)
 	{
 	iqmax(b,C);
@@ -76,8 +82,8 @@ double ddweno_nug::ddwenox(fdm* a, vec& b, double uw, int ipol, cpt &C)
          + w2x*(q3 + qfx[IP][uf][4][0]*(q2-q3) - qfx[IP][uf][4][1]*(q4-q3))
           
          + w3x*(q2 + qfx[IP][uf][5][0]*(q3-q2) - qfx[IP][uf][5][1]*(q1-q2));
-	}*/
-
+	}
+    
 	return grad;
 }
 
@@ -89,7 +95,7 @@ double ddweno_nug::ddwenoy(fdm* a, vec& b, double uw, int ipol, cpt &C)
     vf=0;
     
 	grad=0.0;
-/*
+
 	if(uw>0.0)
 	{
 	jqmin(b,C);
@@ -115,7 +121,7 @@ double ddweno_nug::ddwenoy(fdm* a, vec& b, double uw, int ipol, cpt &C)
           
          + w3y*(q2 + qfy[JP][vf][5][0]*(q3-q2) - qfy[JP][vf][5][1]*(q1-q2));
 	}
-*/
+
 	return grad;
 }
 
@@ -127,7 +133,7 @@ double ddweno_nug::ddwenoz(fdm* a, vec& b, double uw, int ipol, cpt &C)
     wf=0;
 
 	grad=0.0;
-/*
+
 	if(uw>0.0)
 	{
 	kqmin(b,C);
@@ -154,7 +160,7 @@ double ddweno_nug::ddwenoz(fdm* a, vec& b, double uw, int ipol, cpt &C)
           
          + w3z*(q2 + qfz[KP][wf][5][0]*(q3-q2) - qfz[KP][wf][5][1]*(q1-q2));
 	}
-    */
+    
 	return grad;
 }
     

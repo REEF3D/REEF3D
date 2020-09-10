@@ -40,8 +40,6 @@ void solid::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection* p
 
 	solid_topo(p,a,pgc);
     
-    cout<<"G40: "<<p->G40<<" G1: "<<p->G1<<endl;
-    
     BASELOOP
     if(a->solid(i,j,k)!=a->solid(i,j,k))
     cout<<p->mpirank<<" SOLID NAN_1: "<<a->solid(i,j,k)<<endl;
@@ -54,16 +52,9 @@ void solid::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection* p
     cout<<p->mpirank<<" SOLID NAN_2: "<<a->solid(i,j,k)<<endl;
 
     pgc->solid_update(p,a);
-    
-    BASELOOP
-    if(a->solid(i,j,k)!=a->solid(i,j,k))
-    cout<<p->mpirank<<" SOLID NAN_3: "<<a->solid(i,j,k)<<endl;
-    
+
     pflow->gcio_update(p,a,pgc);
-    
-    BASELOOP
-    if(a->solid(i,j,k)!=a->solid(i,j,k))
-    cout<<p->mpirank<<" SOLID NAN_4: "<<a->solid(i,j,k)<<endl;
+
 }
 
 
