@@ -78,7 +78,7 @@ void reinisolid_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostce
     n=0;
     ALOOP
     {
-    if(f.V[n]!=f.V[n])
+    if(f.V[Im3_J_K_4a]!=f.V[Im3_J_K_4a])
     cout<<p->mpirank<<" REINISOLID NAN_1: "<<f.V[n]<<endl;
     
     ++n;

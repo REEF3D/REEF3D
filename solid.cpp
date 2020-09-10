@@ -40,8 +40,8 @@ void solid::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection* p
 
 	solid_topo(p,a,pgc);
     
-    BASELOOP
-    if(a->solid(i,j,k)!=a->solid(i,j,k))
+    ALOOP
+    if(a->solid(i-3,j,k)!=a->solid(i-3,j,k))
     cout<<p->mpirank<<" SOLID NAN_1: "<<a->solid(i,j,k)<<endl;
     
     
