@@ -407,14 +407,6 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	pgc->gcparacox(p,a->topo,150);
     
     
-    
-    
-    BASELOOP
-    if(a->solid(i,j,k)!=a->solid(i,j,k))
-    cout<<p->mpirank<<" SOLID NAN_5: "<<a->solid(i,j,k)<<endl;
-  
-    
-    
     if(p->mpirank==0)
     pvtu(a,p,pgc,pturb,pheat,pdata,pconc,psed);
 

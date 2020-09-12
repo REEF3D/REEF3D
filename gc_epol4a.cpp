@@ -91,7 +91,6 @@ int ghostcell::gceval4a(lexer *p, int gcv, int bc, int cs)
 	return 0;
 }
 
-
 void ghostcell::gcdistro4a(lexer *p,field& f, int ii, int jj, int kk, int nn, double dist,  int gcv, int bc, int cs)
 {
     i=ii;
@@ -108,7 +107,6 @@ void ghostcell::gcdistro4a(lexer *p,field& f, int ii, int jj, int kk, int nn, do
 	neumann_all(f,gcv,bc,cs);
 }
 
-
 void ghostcell::gcdistro4aV(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, double dist,  int gcv, int bc, int cs, int id)
 {
     i=ii;
@@ -121,9 +119,7 @@ void ghostcell::gcdistro4aV(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, 
     
 	if(bc_label==74 || bc_label==75)
 	gcV_neumann_all(vec,gcv,bc,cs,id);
-
 }
-
 
 void ghostcell::gcdistro6V(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, double dist,  int gcv, int bc, int cs, int id)
 {
@@ -137,6 +133,5 @@ void ghostcell::gcdistro6V(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, d
     
 	if(bc_label==74 || bc_label==75)
 	gcV_neumann_6V(vec,gcv,bc,cs,id);
-
 }
 
