@@ -46,6 +46,7 @@ void solid::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection* p
     {
     cout<<p->mpirank<<" SOLID NAN_1: "<<a->solid(i,j,k)<<endl;
     check=1;
+    
     }
     
     
