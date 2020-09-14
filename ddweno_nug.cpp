@@ -49,12 +49,12 @@ double ddweno_nug::ddwenox(fdm* a, vec& b, double uw, int ipol, cpt &C)
 	if(uw>0.0)
 	{
 	iqmin(b,C);
-    
+    /*
     if((q1!=q1 || q2!=q2 || q3!=q3 || q4!=q4 || q5!=q5) && check==0)
     {
     cout<<" DDWENO_NUG  "<<p->mpirank<<"  "<<p->cnt<<" "<<q1<<" "<<q2<<" "<<q3<<" "<<q4<<" "<<q5<<" . "<<uw<<endl;
     check=1;
-    }
+    }*/
 	is_min_x();
 	weight_min_x();
     
@@ -178,9 +178,7 @@ void ddweno_nug::iqmin(vec& f, cpt &C)
 	q3 = (f.V[I_J_K]   - f.V[Im1_J_K])/DX[IM1];
 	q4 = (f.V[Ip1_J_K] - f.V[I_J_K]  )/DX[IP];
 	q5 = (f.V[Ip2_J_K] - f.V[Ip1_J_K])/DX[IP1];
-    
-    if(q1!=q1 || q2!=q2 || q3!=q3 || q4!=q4 || q5!=q5)
-    cout<<" DDWENO_NUG_IQMIN  "<<p->mpirank<<"  "<<p->cnt<<" "<<q1<<" "<<q2<<" "<<q3<<" "<<q4<<" "<<q5<<" | "<<f.V[Im2_J_K]<<" "<<f.V[Im3_J_K]<<" "<<DX[IM3]<<endl;
+
 }
 
 void ddweno_nug::jqmin(vec& f, cpt &C)

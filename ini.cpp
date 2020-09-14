@@ -31,14 +31,14 @@ void lexer::ini_default()
 	A212=0;		  // int diffusion treatment for SLOW velocities
     A214=1;      // int convection for vertical velocity
     A215=0;      // int conservative discretization
-    A216=2;      // int convection velocity
+    A216=4;      // int convection velocity
     A217=2;      // int slip or no-slip boundary conditions
     A218=0;      // int turn on roughness
     A219=1;      // int additional courant number constraint
 	A220=1;		  // int pressure scheme for SFLOW
 	A221=1;		  // int include hydrostatic pressure for SFLOW
     A222=1;      // int turn on secondary pressure gradient
-    A223=0.4;    // double blending factor pressure gradient
+    A223=0.5;    // double blending factor pressure gradient
     A230=0;      // int turn on Boussinesq wave model
 	A240=1;      // int FSF algorithm SFLOW
 	A241=1;		  // int discretization of water level SFLOW

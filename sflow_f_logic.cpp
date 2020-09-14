@@ -132,7 +132,10 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     psed = new sflow_sediment_f(p,b);
 	
 	// solver
-	ppoissonsolv = new hypre_struct2D(p,pgc);
+	//ppoissonsolv = new hypre_struct2D(p,pgc);
+    
+    ppoissonsolv = new sflow_bicgstab(p,pgc);
+    
     
     psolv = new sflow_bicgstab(p,pgc);
     

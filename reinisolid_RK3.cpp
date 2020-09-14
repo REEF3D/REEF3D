@@ -75,14 +75,6 @@ void reinisolid_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostce
 	++n;
 	}
     
-    n=0;
-    ALOOP
-    {
-    if(f.V[Im3_J_K_4a]!=f.V[Im3_J_K_4a])
-    cout<<p->mpirank<<" REINISOLID NAN_1: "<<f.V[n]<<endl;
-    
-    ++n;
-    }
     
     gcval=gcval_topo;
 
@@ -99,23 +91,6 @@ void reinisolid_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostce
 
 	if(p->count>0)
 	step(p,a);
-    
-    
-    n=0;
-    ALOOP
-    {
-    if(f.V[n]!=f.V[n])
-    cout<<p->mpirank<<" REINISOLID NAN_2: "<<f.V[n]<<endl;
-    
-    ++n;
-    }
-    
-    NLOOP4A
-    {
-    if(f.V[Im2_J_K_4a]!=f.V[Im2_J_K_4a])
-    cout<<p->mpirank<<" REINISOLID NAN_3: "<<f.V[Im2_J_K_4a]<<endl;
-
-    }
 
 
     for(int q=0;q<reiniter;++q)
