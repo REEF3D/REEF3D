@@ -51,7 +51,7 @@ private:
 	double dx, dy, dz, dnorm, sign;
 	double sx,sy,sz,snorm,op;
 	
-	double deltax;
+	double deltax,denom;
 };
 
 #endif
