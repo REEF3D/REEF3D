@@ -59,8 +59,11 @@ void driver::loop_sflow(fdm* a)
         cout<<"simtime: "<<p->simtime<<endl;
 		cout<<"timestep: "<<p->dt<<endl;
         
-		if(p->B90>0)
+		if(p->B90>0 && p->B92<=11)
 		cout<<"t/T: "<<p->simtime/p->wT<<endl;
+        
+        if(p->B90>0 && p->B92>11)
+		cout<<"t/T: "<<p->simtime/p->wTp<<endl;
         }
         
         pflow->wavegen_2D_precalc(p,b,pgc);
@@ -109,6 +112,7 @@ void driver::loop_sflow(fdm* a)
 		p->meantime=(p->totaltime/double(p->count));
 		p->gcmeantime=(p->gctotaltime/double(p->count));
 		p->Xmeantime=(p->Xtotaltime/double(p->count));
+        
 		
             if(p->count%p->P12==0)
             {

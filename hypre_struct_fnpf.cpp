@@ -23,33 +23,32 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #ifdef HYPRE_COMPILATION
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include"field.h"
 #include"vec.h"
 
-hypre_struct_fnpf::hypre_struct_fnpf(lexer* p,fdm* a,ghostcell *pgc, int solve_input, int precon_input) : solve_type(solve_input), precon_type(precon_input)
+hypre_struct_fnpf::hypre_struct_fnpf(lexer* p,ghostcell *pgc, int solve_input, int precon_input) : solve_type(solve_input), precon_type(precon_input)
 {	
     int vecsize=p->knox*p->knoy*p->knoz; 
     
-    if(p->A10==3)
     vecsize=p->knox*p->knoy*(p->knoz+1); 
     
     p->Iarray(ilower,3);
     p->Iarray(iupper,3);
 
     if(p->j_dir==1)
-    make_grid(p,a,pgc);	
+    make_grid(p,pgc);	
     
     if(p->j_dir==0)
-    make_grid_2Dvert(p,a,pgc);
+    make_grid_2Dvert(p,pgc);
 }
 
 hypre_struct_fnpf::~hypre_struct_fnpf()
 {
 }
 
-void hypre_struct_fnpf::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, double *rhs, double *M, int var, int gcv, double stop_crit)
+void hypre_struct_fnpf::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, double *rhs, double *M, int var, double stop_crit)
 {
     start_solver8(p,c,pgc,f,rhs,M);
 }

@@ -57,24 +57,24 @@ void ghostcell::gcsolid_buildflag(lexer *p, fdm *a, int& cellcount)
         LOOP
         {
             if(p->i_dir==1)
-            if(p->flag4[Im1JK]==SOLID
-            && p->flag4[Ip1JK]==SOLID)
+            if(p->flag4[Im1JK]<=SOLID
+            && p->flag4[Ip1JK]<=SOLID)
             {
             p->flag4[IJK]=SOLID;
             ++count;
             }
             
             if(p->j_dir==1)
-            if(p->flag4[IJm1K]==SOLID
-            && p->flag4[IJp1K]==SOLID)
+            if(p->flag4[IJm1K]<=SOLID
+            && p->flag4[IJp1K]<=SOLID)
             {
             p->flag4[IJK]=SOLID;
             ++count;
             }
 
             if(p->k_dir==1)
-            if(p->flag4[IJKm1]==SOLID
-            && p->flag4[IJKp1]==SOLID)
+            if(p->flag4[IJKm1]<=SOLID
+            && p->flag4[IJKp1]<=SOLID)
             {
             p->flag4[IJK]=SOLID;
             ++count;

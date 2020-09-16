@@ -31,7 +31,7 @@ void lexer::ini_default()
 	A212=0;		  // int diffusion treatment for SLOW velocities
     A214=1;      // int convection for vertical velocity
     A215=0;      // int conservative discretization
-    A216=2;      // int convection velocity
+    A216=4;      // int convection velocity
     A217=2;      // int slip or no-slip boundary conditions
     A218=0;      // int turn on roughness
     A219=1;      // int additional courant number constraint
@@ -374,7 +374,6 @@ void lexer::ini_default()
 	I11=0;			// int initialize velocities with potential flow
 	I12=0;          // int initialize pressure
 	I13=0;          // int initialize turbulence
-	I20=250;    // int number of potential flow iterations
 	I21=0;          // int set phase 2 velocities to zero after potential flow solver
 	I30=0;			// int Fully intialize NWT
 	I40=0;			// int ini from state file
@@ -525,12 +524,12 @@ void lexer::ini_default()
     S82=5.0;              // double delta phi for slope reduction
     S90=0;                  // int sandslide on/off
     S91=1;                  // int number of sandslide iterations
-	S92=1.0;				// double safety factor sandslide correction
     S93=0.0;				// double delta phi for sandlide correciton
 	S100=0;					// int number of bed filter outer iterations
     S101=0;					// int number of bed filter inner iterations
 	S102=0;					// int number of bedload filter outer iterations
     S103=0;					// int number of bedload filter inner iterations
+    S116=1.6;              // double bedshear stress z location
     
     // Turbulence
 	T10=0;			    // int turbulence model

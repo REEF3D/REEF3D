@@ -41,12 +41,9 @@ void geotopo::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection*
     box(p,a,pgc);
     wedge(p,a,pgc);
 	
-	//if(p->G39==1)
-	//solid_topo(p,a,pgc);
     
     preto->start(a,p,a->topo,pconvec,pgc);
     
-    //pgc->start4a(p,a->topo,150);
     
     if(p->S10!=2)
     pgc->topo_update(p,a);

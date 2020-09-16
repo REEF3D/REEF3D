@@ -33,16 +33,20 @@ using namespace std;
 class fnpf_laplace_cds2_v2 : public fnpf_laplace, public increment
 {
 public:
-    fnpf_laplace_cds2_v2 (lexer*);
+    fnpf_laplace_cds2_v2 (lexer*,ghostcell*);
 	virtual ~fnpf_laplace_cds2_v2();
 
     virtual void start(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_fsf*,double*);
+    
+    void laplace2D(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_fsf*,double*);
+    
+    void laplace3D(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_fsf*,double*);
     
 private:
     
     solver_fnpf *psolv;
     
-    double *f,*rhs,*M;
+    double *x,*rhs,*M;
     
     int vecsize;
 

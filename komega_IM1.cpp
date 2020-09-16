@@ -76,6 +76,7 @@ void komega_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,s
 	cout<<"omega_iter: "<<p->epsiter<<"  omega_time: "<<setprecision(3)<<p->epstime<<endl;
 
 	eddyvisc(p,a,pgc);
+    pflow->turb_relax(p,a,pgc,a->eddyv);
 	pgc->start4(p,a->eddyv,24);
 }
 

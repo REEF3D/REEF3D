@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-void hypre_struct_fnpf::make_grid(lexer* p,fdm* a, ghostcell* pgc)
+void hypre_struct_fnpf::make_grid(lexer* p, ghostcell* pgc)
 {
     int kend=0;
     
@@ -69,7 +69,7 @@ void hypre_struct_fnpf::make_grid(lexer* p,fdm* a, ghostcell* pgc)
     HYPRE_StructVectorInitialize(x);
 }
 
-void hypre_struct_fnpf::make_grid_2Dvert(lexer* p,fdm* a, ghostcell* pgc)
+void hypre_struct_fnpf::make_grid_2Dvert(lexer* p,ghostcell* pgc)
 {
     int kend=0;
     
@@ -94,7 +94,7 @@ void hypre_struct_fnpf::make_grid_2Dvert(lexer* p,fdm* a, ghostcell* pgc)
     int entry;
     int offsets[9][2] = {{0,0}, {-1,0}, {1,0},  {0,-1}, {0,1}, {-1,-1},{-1,1},{1,-1},{1,1}};
 
-    for (entry=0; entry<8; ++entry)
+    for (entry=0; entry<9; ++entry)
     HYPRE_StructStencilSetElement(stencil, entry, offsets[entry]);
     
     // matrix

@@ -262,7 +262,6 @@
         <VirtualDirectory Name="Laplace">
           <File Name="fnpf_laplace_cds4_bc2.h"/>
           <File Name="fnpf_laplace_cds4.h"/>
-          <File Name="fnpf_laplace_cds2_v3.h"/>
           <File Name="fnpf_laplace_cds2_v2.h"/>
           <File Name="fnpf_laplace_cds2.h"/>
           <File Name="fnpf_laplace.h"/>
@@ -497,16 +496,12 @@
         <File Name="iweno_hj.h"/>
         <File Name="cds2.h"/>
         <File Name="cds4.h"/>
-        <File Name="icds2.h"/>
-        <File Name="icds4.h"/>
         <File Name="hires.h"/>
         <File Name="ihires.h"/>
-        <File Name="iweno_flux.h"/>
         <File Name="cds2_alt.h"/>
         <File Name="hric.h"/>
         <File Name="cicsam.h"/>
         <File Name="hric_mod.h"/>
-        <File Name="icicsam.h"/>
         <File Name="weno_flux.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Diffusion">
@@ -865,6 +860,7 @@
         <File Name="solver_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="HYPRE">
+        <File Name="hypre_sstruct_fnpf.h"/>
         <File Name="hypre_struct_fnpf.h"/>
         <File Name="hypre_sstruct.h"/>
         <File Name="hypre_aij.h"/>
@@ -1198,7 +1194,6 @@
         <VirtualDirectory Name="Laplace">
           <File Name="fnpf_laplace_cds4.cpp"/>
           <File Name="fnpf_laplace_cds4_bc2.cpp"/>
-          <File Name="fnpf_laplace_cds2_v3.cpp"/>
           <File Name="fnpf_laplace_cds2_v2.cpp"/>
           <File Name="fnpf_laplace_cds2.cpp"/>
         </VirtualDirectory>
@@ -1510,6 +1505,7 @@
         <File Name="position_xyz.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Interpolation">
+        <File Name="interpolation_slipol.cpp"/>
         <File Name="interpolation_lintsl.cpp"/>
         <File Name="interpolation_ccslipol.cpp"/>
         <File Name="interpolation_tricubic.cpp"/>
@@ -1519,6 +1515,7 @@
         <File Name="interpolation_ipol.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Convection">
+        <File Name="ifou.cpp"/>
         <File Name="weno_flux_nug_dir.cpp"/>
         <File Name="iweno3_hj.cpp"/>
         <File Name="weno3_flux.cpp"/>
@@ -1527,7 +1524,6 @@
         <File Name="weno_hj_nug.cpp"/>
         <File Name="weno_flux_nug.cpp"/>
         <File Name="fou.cpp"/>
-        <File Name="ifou.cpp"/>
         <File Name="quick.cpp"/>
         <VirtualDirectory Name="Limiter">
           <File Name="limo3.cpp"/>
@@ -1543,17 +1539,12 @@
         <File Name="iweno_hj.cpp"/>
         <File Name="cds4.cpp"/>
         <File Name="cds2.cpp"/>
-        <File Name="icds2.cpp"/>
-        <File Name="icds4.cpp"/>
         <File Name="hires.cpp"/>
-        <File Name="ihires.cpp"/>
-        <File Name="iweno_flux.cpp"/>
         <File Name="discrete_void.cpp"/>
         <File Name="cd2_alt.cpp"/>
         <File Name="hric.cpp"/>
         <File Name="cicsam.cpp"/>
         <File Name="hric_mod.cpp"/>
-        <File Name="icicsam.cpp"/>
         <File Name="weno_flux.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Diffusion">
@@ -1858,7 +1849,6 @@
         <File Name="gcsl_epol4a.cpp"/>
         <File Name="gcxsl_flagx.cpp"/>
         <File Name="gcsl_tpflag.cpp"/>
-        <File Name="gcsl_ipol.cpp"/>
         <File Name="gcsl_noslip.cpp"/>
         <File Name="gcsl_setbc.cpp"/>
       </VirtualDirectory>
@@ -1968,7 +1958,6 @@
           <File Name="geotopo_conv.cpp"/>
           <File Name="geotopo_dat.cpp"/>
           <File Name="geotopo_wedge.cpp"/>
-          <File Name="geotopo_solid.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Util">
           <File Name="boundarycheck.cpp"/>
@@ -2219,6 +2208,14 @@
       <File Name="pjm_nse.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
+      <VirtualDirectory Name="HYPRE SStruct FNPF">
+        <File Name="hypre_sstruct_fnpf_solve.cpp"/>
+        <File Name="hypre_sstruct_fnpf_grid.cpp"/>
+        <File Name="hypre_sstruct_fnpf_fill_2D.cpp"/>
+        <File Name="hypre_sstruct_fnpf_fill.cpp"/>
+        <File Name="hypre_sstruct_fnpf_createsolvers.cpp"/>
+        <File Name="hypre_sstruct_fnpf.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="HYPRE Struct FNPF">
         <File Name="hypre_struct_fnpf_fill_2D.cpp"/>
         <File Name="hypre_struct_fnpf_grid.cpp"/>

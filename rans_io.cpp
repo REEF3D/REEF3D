@@ -73,12 +73,30 @@ double rans_io::ccipol_kinval(lexer *p, ghostcell *pgc, double xp, double yp, do
 {
     double val;
 
-    val=p->ccipol4_a( kin, xp, yp, zp);
+    val=p->ccipol4( kin, xp, yp, zp);
 
     return val;
 }
 
 double rans_io::ccipol_epsval(lexer *p, ghostcell *pgc, double xp, double yp, double zp)
+{
+    double val;
+
+    val=p->ccipol4( eps, xp, yp, zp);
+
+    return val;
+}
+
+double rans_io::ccipol_a_kinval(lexer *p, ghostcell *pgc, double xp, double yp, double zp)
+{
+    double val;
+
+    val=p->ccipol4_a( kin, xp, yp, zp);
+
+    return val;
+}
+
+double rans_io::ccipol_a_epsval(lexer *p, ghostcell *pgc, double xp, double yp, double zp)
 {
     double val;
 

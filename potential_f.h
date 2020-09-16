@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"potential.h"
 #include"increment.h"
+#include"fieldint4.h"
 
 using namespace std;
 
@@ -35,19 +36,24 @@ public:
 	potential_f(lexer* p);
 	virtual ~potential_f();
 
-	virtual void start(fdm*,lexer*, solver*, ghostcell* pgc);
-	virtual void rhs(lexer*,fdm*);
-	virtual void ucalc(lexer*,fdm*);
-	virtual void vcalc(lexer*,fdm*);
-	virtual void wcalc(lexer*,fdm*);
-
+	virtual void start(lexer*,fdm*, solver*, ghostcell* pgc);
 
 
 private:
+    void rhs(lexer*,fdm*);
+	void ucalc(lexer*,fdm*);
+	void vcalc(lexer*,fdm*);
+	void wcalc(lexer*,fdm*);
+    
     void laplace(lexer*,fdm*);
+    void ini_bc(lexer*,fdm*,ghostcell*);
+    
+    
 	double starttime,endtime;
 	int count;
 	int gcval_pot;
+    
+    fieldint4 bc;
 };
 
 #endif

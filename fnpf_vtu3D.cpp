@@ -209,15 +209,12 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     pgc->gcsl_start4(p,c->WL,50);
     pgc->gcsl_start4(p,c->bed,50);
     pgc->gcsl_start4(p,c->breaking_print,50);
-    pgc->start4(p,c->test,1);
 
-    pgc->dgcpol(p,c->test,p->dgc4,p->dgc4_count,14);
     pgc->dgcslpol(p,c->WL,p->dgcsl4,p->dgcsl4_count,14);
     pgc->dgcslpol(p,c->breaking_print,p->dgcsl4,p->dgcsl4_count,14);
     pgc->dgcslpol(p,c->bed,p->dgcsl4,p->dgcsl4_count,14);
 
     c->WL.ggcpol(p);
-    c->test.ggcpol(p);
     c->breaking_print.ggcpol(p);
 
     i=-1;
@@ -256,12 +253,6 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
 	++n;
 
-    // test
-    if(p->P23==1)
-	{
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
-	++n;
-	}
     // elevation
 	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
 	++n;
@@ -303,12 +294,6 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     if(p->A10==3)
 	{
     result<<"<DataArray type=\"Float32\" Name=\"Fi\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	}
-
-    if(p->P23==1)
-	{
-    result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	}
 
@@ -404,24 +389,6 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&ffn, sizeof (float));
 	}
 
-    if(p->P23==1)
-	{
-//  test
-    iin=4*(p->pointnum+p->ccptnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(p->ipol4_a(c->test));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-	for(n=0;n<p->ccptnum;++n)
-	{
-	ffn=float(p->ccipol4_a(c->test,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
-	result.write((char*)&ffn, sizeof (float));
-	}
-	}
-
 //  elevation
 	iin=4*(p->pointnum+p->ccptnum)*3;
 	result.write((char*)&iin, sizeof (int));
@@ -468,9 +435,9 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPLOOP
 	{
-    waterlevel = pgc->gcsl_ipol4eta(p,c->eta,c->bed)+p->wd - pgc->gcsl_ipol4(p,c->bed);
+    waterlevel = p->sl_ipol4eta(c->eta,c->bed)+p->wd - p->sl_ipol4(c->bed);
 
-    zcoor = p->ZN[KP1]*waterlevel + pgc->gcsl_ipol4(p,c->bed);
+    zcoor = p->ZN[KP1]*waterlevel + p->sl_ipol4(c->bed);
 
 
     if(c->wet(i,j)==0)

@@ -75,16 +75,9 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
         
     if(c->breaking(i,j)==0)
     c->breaking_print(i,j)=0.0;   
-    
-    //if(c->wet(i,j)==0)
-    c->test2D(i,j)=c->vb(i,j);
-    
-    //if(c->wet(i,j)==1)
-    //c->test2D(i,j)=c->vb(i,j);
     }
     
     pgc->gcsl_start4(p,c->breaking_print,50);
-    pgc->gcsl_start4(p,c->test2D,50);
     
     c->eta.ggcpol(p);
     
@@ -130,13 +123,6 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     // coastline
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
-    
-    // test
-    if(p->P23==1)
-    {
-	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
-    }
 	
 	// Cells
     offset[n]=offset[n-1] + 4*p->polygon_sum*3+4;
@@ -172,11 +158,6 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"coastline\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-    if(p->P23==1)
-    {
-     result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;   
-    }
     result<<"</PointData>"<<endl;
 
     
@@ -209,7 +190,7 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	ffn=float(p->YN[JP1]);
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(pgc->gcsl_ipol4eta(p,c->eta,c->bed)+p->wd);
+	ffn=float(p->sl_ipol4eta(c->eta,c->bed)+p->wd);
 	result.write((char*)&ffn, sizeof (float));
 	}
 	
@@ -247,7 +228,7 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	TPSLICELOOP
 	{
         
-	ffn=float(pgc->gcsl_ipol4(p,c->Fifsf));
+	ffn=float(p->sl_ipol4(c->Fifsf));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -256,7 +237,7 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
 	{
-	ffn=float(pgc->gcsl_ipol4(p,c->eta));
+	ffn=float(p->sl_ipol4(c->eta));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -265,7 +246,7 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
 	TPSLICELOOP
 	{
-	ffn=float(pgc->gcsl_ipol4(p,c->depth));
+	ffn=float(p->sl_ipol4(c->depth));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -275,7 +256,7 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	TPSLICELOOP
 	{
         
-	ffn=float(pgc->gcsl_ipol4(p,c->breaking_print));
+	ffn=float(p->sl_ipol4(c->breaking_print));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -284,21 +265,9 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
 	TPSLICELOOP
 	{
-	ffn=float(pgc->gcsl_ipol4(p,c->coastline));
+	ffn=float(p->sl_ipol4(c->coastline));
 	result.write((char*)&ffn, sizeof (float));
 	}
-    
-    //  Test
-    if(p->P23==1)
-    {
-	iin=4*(p->pointnum2D);
-	result.write((char*)&iin, sizeof (int));
-	TPSLICELOOP
-	{
-	ffn=float(pgc->gcsl_ipol4(p,c->test2D));
-	result.write((char*)&ffn, sizeof (float));
-	}
-    }
 
     //  Connectivity
     iin=4*(p->polygon_sum)*3;

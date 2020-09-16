@@ -39,7 +39,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"vrans_v.h"
 #include"vrans_f.h"
 
-sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb):topo_vel(p,pturb), zh(p), bss(p), bedtau(p)
+sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb):topo_vel(p,pturb), zh(p), bss(p), bedtau(p), z0(p), z1(p)
 {
     if(p->S90==0)
     pslide=new sandslide_v(p);   
@@ -101,6 +101,10 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
 {
     starttime=pgc->timer();
     
+    pgc->start1(p,a->u,14);
+	pgc->start2(p,a->v,15);
+	pgc->start3(p,a->w,16);
+    
     // find bedk
     fill_bedk(p,a,pgc);
 	
@@ -114,9 +118,18 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
     
     // Exner
     ptopo->start(a,p,pconvec,pgc,preto);
+    
+    SLICELOOP4
+    z0(i,j)=a->bedzh(i,j);
 
     // sandslide
     pslide->start(p,a,pgc);
+    
+    SLICELOOP4
+    z1(i,j)=a->bedzh(i,j)-z0(i,j);
+    
+    LOOP
+    a->conc(i,j,k) = z1(i,j);
 		 
 	prelax->start(p,a,pgc);
 	
@@ -127,6 +140,10 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
     preto->start(a,p,a->topo,pconvec,pgc);
 
     volume_calc(p,a,pgc);
+    
+    pgc->start1(p,a->u,10);
+	pgc->start2(p,a->v,11);
+	pgc->start3(p,a->w,12);
     
     if(p->mpirank==0)
     cout<<"Topo: update grid..."<<endl;

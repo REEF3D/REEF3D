@@ -104,23 +104,11 @@ void driver::logic()
 	if(p->T12==1)
 	pturbdisc=new ifou(p);
 
-	if(p->T12==2)
-	pturbdisc=new icds2(p);
-
-	if(p->T12==4)
-	pturbdisc=new iweno_flux(p);
-
 	if(p->T12==5)
-	pturbdisc=new iweno_hj(p);
+	pturbdisc=new iweno_hj_nug(p);
     
     if(p->T12==55)
-	pturbdisc=new iweno_hj_nug(p);
-	
-	if(p->T12==6)
-	pturbdisc=new icds4(p);
-
-	if(p->T12>=10 && p->T12<30)
-	pturbdisc=new ihires(p,p->T12);
+	pturbdisc=new iweno_hj(p);
 	
 	//  Convection FSF
 	if(p->F35==0&&p->F85==0)
@@ -412,58 +400,39 @@ void driver::logic()
 	if(p->F85==0 && p->F35==0)
 	pfsfdisc=new convection_void(p);
 	
-	if(p->F85==1 && p->F80<=10)
+	if(p->F85==1)
 	pfsfdisc=new fou(p);
 
-	if(p->F85==2 && p->F80<=10)
+	if(p->F85==2)
 	pfsfdisc=new cds2_alt(p);
 
-	if(p->F85==3 && p->F80<=10)
+	if(p->F85==3)
 	pfsfdisc=new quick(p);
 
-	if(p->F85==4 && p->F80<=10)
+	if(p->F85==4)
 	pfsfdisc=new weno_flux(p);
 
-	if(p->F85==5 && p->F80<=10)
+	if(p->F85==5)
 	pfsfdisc=new weno_hj(p);
 	
-	if(p->F85==6 && p->F80<=10)
+	if(p->F85==6)
 	pfsfdisc=new cds4(p);
 	
-	if(p->F85>=10 && p->F85<30 && p->F80<=10)
+	if(p->F85>=10 && p->F85<30)
 	pfsfdisc=new hires(p,p->F85);
 	
-	if(p->F85>=40 && p->F85<50 && p->F80<=10)
+	if(p->F85>=40 && p->F85<50)
 	pfsfdisc=new hires(p,p->F85);
     
-    if(p->F85==51 && p->F80<=10)
+    if(p->F85==51)
 	pfsfdisc=new hric(p);
 	
-	if(p->F85==52 && p->F80<=10)
+	if(p->F85==52)
 	pfsfdisc=new hric_mod(p);
 	
-	if(p->F85==53 && p->F80<=10)
+	if(p->F85==53)
 	pfsfdisc=new cicsam(p);
 
-
-	if(p->F85==1 && p->F80>10)
-	pfsfdisc=new ifou(p);
-
-	if(p->F85==2 && p->F80>10)
-	pfsfdisc=new icds2(p);
-
-	if(p->F85==4 && p->F80>10)
-	pfsfdisc=new iweno_flux(p);
-
-	if(p->F85==5 && p->F80>10)
-	pfsfdisc=new iweno_hj(p);
-	
-	if(p->F85==6 && p->F80>10)
-	pfsfdisc=new icds4(p);
-	
-	if(p->F85>=10 && p->F85<30 && p->F80>10)
-	pfsfdisc=new ihires(p,p->F85);
-	
 
 //pressure scheme
 	if(p->D30==0)
@@ -622,10 +591,10 @@ void driver::logic()
     preto = new reinitopo_RK3(p);
     }
     
-    if(p->G39==0)
+    if(p->G39==0 || p->G40==0)
     preso = new reinitopo_void(); 
     
-    if(p->G39==1)
+    if(p->G39==1 && p->G40>0)
     preso = new reinisolid_RK3(p);
     
 

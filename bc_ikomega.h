@@ -44,7 +44,7 @@ private:
 	double uplus,ks_plus,dist,ks,ustar,u_abs,eps_star,tau;
 	int ii,jj,kk;
 	int count,q;
-	double deltax,fac,value;
+	double fac,value;
 	const double kappa;
 
 };

@@ -35,6 +35,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 reinitopo_RK3::reinitopo_RK3(lexer* p) : epsi(p->F45*p->DXM),f(p),frk1(p),frk2(p),L(p),dt(p)
 {
+     cout<<"REINITOPO_RK3_MAKE"<<endl;
+     
+     
 	if(p->S50==1)
 	gcval_topo=151;
 
@@ -61,6 +64,8 @@ reinitopo_RK3::~reinitopo_RK3()
 
 void reinitopo_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostcell* pgc)
 { 
+    cout<<"REINITOPO_RK3"<<endl;
+    
     starttime=pgc->timer();
 	
 	sizeM=p->sizeM4;
@@ -84,7 +89,6 @@ void reinitopo_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostcel
 	reiniter=2*int(p->maxlength/(p->F43*p->DXM));
     gcval=gcval_initopo;
 	pgc->start4aV(p,f,gcval);
-
 	}
 
 	if(p->count>0)
@@ -137,10 +141,8 @@ void reinitopo_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostcel
 	pgc->start4a(p,b,gcval_topo);
 
     
-    
 	p->reinitime+=pgc->timer()-starttime;
 }
-
 
 void reinitopo_RK3::step(lexer* p, fdm *a)
 {

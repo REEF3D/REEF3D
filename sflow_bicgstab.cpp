@@ -210,10 +210,10 @@ void sflow_bicgstab::solve(lexer* p, ghostcell* pgc, matrix2D &M, vec2D &xvec, v
 		SLICEFLEXLOOP
 		residual += rj.V[IJ]*rj.V[IJ];
 
-	    residual = sqrt(pgc->globalsum(residual))/double(p->cellnumtot);
+	    residual = sqrt(pgc->globalsum(residual))/double(p->cellnumtot2D);
 		
 	    ++solveriter;
-
+        
 	}while((residual>=stop_crit) && (solveriter<maxiter));
 
     } 
@@ -224,6 +224,9 @@ void sflow_bicgstab::solve(lexer* p, ghostcell* pgc, matrix2D &M, vec2D &xvec, v
 	ph.V[IJ]=0.0;
 	sh.V[IJ]=0.0;
 	}
+    
+    pgc->gcslparaxijk_single(p,ph,var);	
+    pgc->gcslparaxijk_single(p,sh,var);	
 }
 
 void sflow_bicgstab::matvec_axb(lexer *p, matrix2D &M, slice &x, slice &y)
@@ -279,7 +282,7 @@ double sflow_bicgstab::res_calc(lexer *p, matrix2D &M, ghostcell *pgc, slice &x)
 
 	resi=sqrt(pgc->globalsum(resi));
 
-	return resi/double(p->cellnumtot);	
+	return resi/double(p->cellnumtot2D);	
 }
 
 void sflow_bicgstab::precon_setup(lexer* p, matrix2D &M, ghostcell* pgc)

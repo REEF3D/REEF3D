@@ -70,7 +70,6 @@ void  ikomega::eddyvisc(lexer* p, fdm* a, ghostcell* pgc)
 	double epsi = 1.6*p->DXM;
 	int n;
 	
-	
 		LOOP
 		{
 			if(a->phi(i,j,k)>epsi)
@@ -108,14 +107,7 @@ void  ikomega::eddyvisc(lexer* p, fdm* a, ghostcell* pgc)
     
     pvrans->eddyv_func(p,a);
     
-	pgc->start4(p,a->eddyv,29);
-    
-    n=0;
-    LOOP
-    {
-    a->visctot.V[I_J_K] = a->visc(i,j,k) + a->eddyv(i,j,k);
-    ++n;
-    }
+	pgc->start4(p,a->eddyv,24);
 
 }
 

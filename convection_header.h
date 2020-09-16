@@ -26,15 +26,12 @@ Author: Hans Bihs
 #include"cds2.h"
 #include"cds2_alt.h"
 #include"cds4.h"
-#include"icds2.h"
-#include"icds4.h"
 #include"quick.h"
 #include"weno_hj.h"
 #include"weno_hj_nug.h"
 #include"weno_flux.h"
 #include"weno_flux_nug.h"
 #include"weno_flux_nug_dir.h"
-#include"iweno_flux.h"
 #include"iweno_hj.h"
 #include"iweno_hj_nug.h"
 #include"weno3_hj.h"
@@ -47,7 +44,6 @@ Author: Hans Bihs
 #include"idiff2_FS_2D.h"
 
 #include"hires.h"
-#include"ihires.h"
 
 #include"hric.h"
 #include"hric_mod.h"

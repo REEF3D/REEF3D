@@ -40,17 +40,17 @@ class hypre_struct_fnpf : public solver_fnpf, public increment
 {
 public:
 
-	hypre_struct_fnpf(lexer*,fdm*,ghostcell*,int,int);
+	hypre_struct_fnpf(lexer*,ghostcell*,int,int);
 	virtual ~hypre_struct_fnpf();
 
-    virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, double*, double*, int, int, double);
+    virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, double*, double*, int, double);
     
     void start_solver8(lexer*, fdm_fnpf*, ghostcell*, double*, double*, double*);
     
     virtual void solve(lexer*,ghostcell*);
     
-    void make_grid(lexer*,fdm*, ghostcell*);
-    void make_grid_2Dvert(lexer*,fdm*, ghostcell*);
+    void make_grid(lexer*, ghostcell*);
+    void make_grid_2Dvert(lexer*, ghostcell*);
 
     void fill_matrix8(lexer*, fdm_fnpf*, ghostcell*, double*, double*, double*);
     void fill_matrix8_2Dvert(lexer*, fdm_fnpf*, ghostcell*, double*, double*, double*);
@@ -77,7 +77,6 @@ private:
    
 
 	int *ilower,*iupper;
-    double *values;
     int num_iterations;
     double final_res_norm;
 	int stencil_indices[15];

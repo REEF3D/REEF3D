@@ -368,7 +368,7 @@ public:
     double H61_T,H62_T,H63_T,H64_T,H65_T,H66_T;
 	
 	// Initialize Options
-	int I10,I11,I12,I13,I20,I30,I40,I41,I56;
+	int I10,I11,I12,I13,I30,I40,I41,I56;
 	double I21,I55,I58_1,I58_2;
     int I230;
     double I231,I232,I233;
@@ -414,7 +414,7 @@ public:
 
 	// Sediment Transport
 	int S10,S11,S12,S15,S16,S17,S18,S32,S33,S37,S41,S42,S43,S44,S50,S60,S73,S77,S80,S90,S91,S100,S101,S102,S103;
-	double S13,S14,S19,S20,S21,S22,S23,S24,S25,S26_a,S26_b,S30,S45,S46,S47,S48,S57,S71,S72,S81,S82,S92,S93;
+	double S13,S14,S19,S20,S21,S22,S23,S24,S25,S26_a,S26_b,S30,S45,S46,S47,S48,S57,S71,S72,S81,S82,S93,S116;
 	double *S73_val,*S73_dist,*S73_b,*S73_x,*S73_y;
     double S77_xs,S77_xe;
 
@@ -600,6 +600,8 @@ public:
     double *sig;
     double *sigx,*sigy,*sigz;
     double *sigxx;
+    
+    int cnt;
     
 	
 private:

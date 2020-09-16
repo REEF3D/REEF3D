@@ -28,7 +28,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"reini.h"
 #include"fnpf_laplace_cds2.h"
 #include"fnpf_laplace_cds2_v2.h"
-#include"fnpf_laplace_cds2_v3.h"
 #include"fnpf_laplace_cds4.h"
 #include"fnpf_laplace_cds4_bc2.h"
 #include"onephase.h"
@@ -68,10 +67,8 @@ fnpf_RK3::fnpf_RK3(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fn
     plap = new fnpf_laplace_cds4_bc2(p);
     
     if(p->A320==5)
-    plap = new fnpf_laplace_cds2_v2(p);
+    plap = new fnpf_laplace_cds2_v2(p,pgc);
     
-    if(p->A320==6)
-    plap = new fnpf_laplace_cds2_v3(p);
     
     
     
@@ -89,9 +86,6 @@ fnpf_RK3::~fnpf_RK3()
 
 void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
 {	   
-    
-    LOOP
-    c->test(i,j,k)=0.0;
     
 // Step 1
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,c->Fifsf,c->eta);
@@ -135,10 +129,6 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,erk1,frk1);
-    
-    LOOP
-    if(c->breaking(i,j)>0)
-    c->test(i,j,k)=1.0;
 
 // Step 2
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk1,erk1);
@@ -183,11 +173,6 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,erk2,frk2);
-    
-    LOOP
-    if(c->breaking(i,j)>0)
-    c->test(i,j,k)=1.0;
-    
 
 // Step 3 
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk2,erk2);
@@ -235,11 +220,6 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     
 
     //---------------------------------
-    LOOP
-    if(c->breaking(i,j)>0)
-    c->test(i,j,k)=1.0;
-    
-    pgc->start4(p,c->test,50);
 
     bedbc_sig(p,c,pgc,c->Fi,pf);
     velcalc_sig(p,c,pgc,c->Fi);
@@ -259,9 +239,7 @@ void fnpf_RK3::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, sol
     
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
 
-    pgc->start4(p,c->test,50);
-    
-    
+
     pf->coastline_eta(p,c,pgc,c->eta);
     pf->coastline_fi(p,c,pgc,c->Fifsf);
     

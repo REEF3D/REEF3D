@@ -62,6 +62,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->mpirank==0)
     cout<<"starting mainloop.SFLOW"<<endl;
     
+    
 //-----------MAINLOOP SFLOW----------------------------
 	while(p->count<p->N45 && p->simtime<p->N41 && p->sedtime<p->S19)
 	{		

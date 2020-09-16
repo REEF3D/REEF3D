@@ -25,7 +25,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 bc_ikomega::bc_ikomega(lexer* p):roughness(p),kappa(0.4)
 {
-	deltax=p->DXM;
 }
 
 bc_ikomega::~bc_ikomega()
@@ -88,7 +87,7 @@ void bc_ikomega::bckeps_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
 	if(gcval==30)
 	{
 		QGC4LOOP
-		if(p->gcb4[q][4]==5 || p->gcb4[q][4]==21 || p->gcb4[q][4]==22 || p->gcb4[q][4]==41 || p->gcb4[q][4]==42 || p->gcb4[q][4]==43)
+		if(p->gcb4[q][4]==5 || p->gcb4[q][4]==21 || p->gcb4[q][4]==22 || p->gcb4[q][4]==41 || p->gcb4[q][4]==42 || p->gcb4[q][4]==43) 
 		wall_law_omega(a,p,kin,eps,p->gcb4[q][0], p->gcb4[q][1], p->gcb4[q][2], p->gcb4[q][3], p->gcb4[q][4], p->gcb4[q][5],  p->gcd4[q]);
         
     n=0;
@@ -132,6 +131,10 @@ void bc_ikomega::bckeps_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
 
 	++n;
 	}
+    
+
+
+
 	}
     
     

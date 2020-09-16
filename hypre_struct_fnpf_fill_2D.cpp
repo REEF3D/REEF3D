@@ -36,16 +36,15 @@ void hypre_struct_fnpf::fill_matrix8_2Dvert(lexer* p, fdm_fnpf* c, ghostcell* pg
     stencil_indices[j] = j;
 
     // M
-    HYPRE_StructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, values);
+    HYPRE_StructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, M);
     HYPRE_StructMatrixAssemble(A);
     
-    
     // x
-    HYPRE_StructVectorSetBoxValues(x, ilower, iupper, values);
+    HYPRE_StructVectorSetBoxValues(x, ilower, iupper, f);
     HYPRE_StructVectorAssemble(x);
 
     // rhs
-    HYPRE_StructVectorSetBoxValues(b, ilower, iupper, values);
+    HYPRE_StructVectorSetBoxValues(b, ilower, iupper, rhs);
     HYPRE_StructVectorAssemble(b);
     
 }

@@ -31,6 +31,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 weno_nug_func::weno_nug_func(lexer* p):epsilon(0.0),psi(1.0e-6)
 {
     ini(p);
+    
+    pp=p;
 }
 
 weno_nug_func::~weno_nug_func()

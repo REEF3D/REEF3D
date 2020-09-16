@@ -197,7 +197,6 @@ void ghostcell::gcparaxvec_sr(lexer* p, vec &x, cpt &C, int gcv)
     }
 
 //  WAIT
-
     gcwait(p);
 
 //  FILL RECEIVE

@@ -87,8 +87,10 @@ void reinidisc_fsf_rig::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, i
 	dy=0.0;
 	dz=0.0;
 	lsv=b.V[I_J_K];
+    
+    if(fabs(lsv)>=1.0e-8)
     lsSig=lsv/sqrt(lsv*lsv);
-
+    
     if(fabs(lsv)<1.0e-8)
     lsSig=1.0;
 

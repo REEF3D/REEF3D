@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include<iomanip>
 
-potential_f::potential_f(lexer* p) 
+potential_f::potential_f(lexer* p) : bc(p)
 {
     gcval_pot=49;
 }
@@ -35,10 +35,12 @@ potential_f::~potential_f()
 {
 }
 
-void potential_f::start(fdm* a,lexer*p,solver* psolv, ghostcell* pgc)
+void potential_f::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
 {
     if(p->mpirank==0 )
 	cout<<"starting potential flow solver..."<<endl<<endl;
+    
+    ini_bc(p,a,pgc);
 
     starttime=pgc->timer();
 	
@@ -56,19 +58,16 @@ void potential_f::start(fdm* a,lexer*p,solver* psolv, ghostcell* pgc)
 	pgc->start3(p,a->w,12);
 
     int itermem=p->N46;
-    p->N46=3;
+    p->N46=2500;
 	
 
     pgc->start4(p,a->press,gcval_pot);
 
-    laplace(p,a);
-    rhs(p,a);
-    for(int lapliter=0;lapliter<p->I20;++lapliter)
-    {
+
     laplace(p,a);
 	psolv->start(p,a,pgc,a->press,a->xvec,a->rhsvec,4,gcval_pot,p->N43);
     pgc->start4(p,a->press,gcval_pot);
-    }
+
 	
     ucalc(p,a);
 	vcalc(p,a);
@@ -82,12 +81,16 @@ void potential_f::start(fdm* a,lexer*p,solver* psolv, ghostcell* pgc)
     p->laplaceiter=p->solveriter;
 	p->laplacetime=endtime-starttime;
 	if(p->mpirank==0  && (p->count%p->P12==0))
-	cout<<"lapltime: "<<p->laplacetime<<endl;
+	cout<<"lapltime: "<<p->laplacetime<<"  lapiter: "<<p->laplaceiter<<endl<<endl;
 
     p->N46=itermem;
     
-   /* LOOP
-    a->press(i,j,k) = 0.0;*/
+    LOOP
+    a->test(i,j,k) = a->press(i,j,k);
+    
+    
+    LOOP
+    a->press(i,j,k) = 0.0;
 }
 
 void potential_f::ucalc(lexer *p, fdm *a)
@@ -150,6 +153,26 @@ void potential_f::rhs(lexer *p, fdm* a)
 
 void potential_f::laplace(lexer *p, fdm *a)
 {
+    n=0;
+    BASELOOP
+    {
+    a->M.p[n]  =  1.0;
+
+
+        a->M.n[n] = 0.0;
+        a->M.s[n] = 0.0;
+
+        a->M.w[n] = 0.0;
+        a->M.e[n] = 0.0;
+
+        a->M.t[n] = 0.0;
+        a->M.b[n] = 0.0;
+        
+        a->rhsvec.V[n] =  0.0;
+    ++n;
+    }
+    
+    
 	n=0;
     LOOP
 	{
@@ -175,39 +198,53 @@ void potential_f::laplace(lexer *p, fdm *a)
     n=0;
 	LOOP
 	{
-		if(p->flag4[Im1JK]<0)
+		if(p->flag4[Im1JK]<0 && bc(i-1,j,k)==0)
 		{
-		a->rhsvec.V[n] -= a->M.s[n]*a->press(i-1,j,k);
+		a->M.p[n] += a->M.s[n];
+		a->M.s[n] = 0.0;
+		}
+        
+        if(p->flag4[Im1JK]<0 && bc(i-1,j,k)==1)
+		{
+        a->rhsvec.V[n] += a->M.s[n]*p->Ui*p->DXP[IM1] -a->M.s[n]*a->press(i,j,k);
+		//a->M.p[n] += a->M.s[n];
 		a->M.s[n] = 0.0;
 		}
 		
-		if(p->flag4[Ip1JK]<0)
+		if(p->flag4[Ip1JK]<0 && bc(i+1,j,k)==0)
 		{
-		a->rhsvec.V[n] -= a->M.n[n]*a->press(i+1,j,k);
+		a->M.p[n] += a->M.n[n];
+		a->M.n[n] = 0.0;
+		}
+        
+        if(p->flag4[Ip1JK]<0 && bc(i+1,j,k)==2)
+		{
+        a->rhsvec.V[n] -= a->M.n[n]*p->Uo*p->DXP[IP1];
+		a->M.p[n] += a->M.n[n];
 		a->M.n[n] = 0.0;
 		}
 		
 		if(p->flag4[IJm1K]<0)
 		{
-		a->rhsvec.V[n] -= a->M.e[n]*a->press(i,j-1,k);
+		a->M.p[n] += a->M.e[n];
 		a->M.e[n] = 0.0;
 		}
 		
 		if(p->flag4[IJp1K]<0)
 		{
-		a->rhsvec.V[n] -= a->M.w[n]*a->press(i,j+1,k);
+		a->M.p[n] += a->M.w[n];
 		a->M.w[n] = 0.0;
 		}
 		
 		if(p->flag4[IJKm1]<0)
 		{
-		a->rhsvec.V[n] -= a->M.b[n]*a->press(i,j,k-1);
+		a->M.p[n] += a->M.b[n];
 		a->M.b[n] = 0.0;
 		}
 		
 		if(p->flag4[IJKp1]<0)
 		{
-		a->rhsvec.V[n] -= a->M.t[n]*a->press(i,j,k+1);
+		a->M.p[n] += a->M.t[n];
 		a->M.t[n] = 0.0;
 		}
 
@@ -215,3 +252,74 @@ void potential_f::laplace(lexer *p, fdm *a)
 	}
 }
 
+void potential_f::ini_bc(lexer *p, fdm *a, ghostcell *pgc)
+{
+    LOOP
+    bc(i,j,k)=0;
+    
+    LOOP
+    {
+        if(p->flag4[Im1JK]<0)
+		bc(i-1,j,k)=0;
+		
+		if(p->flag4[Ip1JK]<0)
+		bc(i+1,j,k)=0;
+		
+		if(p->flag4[IJm1K]<0)
+		bc(i,j-1,k)=0;
+		
+		if(p->flag4[IJp1K]<0)
+		bc(i,j+1,k)=0;
+		
+		if(p->flag4[IJKm1]<0)
+		bc(i,j,k-1)=0;
+		
+		if(p->flag4[IJKp1]<0)
+		bc(i,j,k+1)=0;
+    }
+    
+
+    GC4LOOP
+    {
+        if(p->gcb4[n][4]==1)
+        {
+            i=p->gcb4[n][0]; 
+            j=p->gcb4[n][1];
+            k=p->gcb4[n][2];  
+       
+            if(p->gcb4[n][3]==1)
+            bc(i-1,j,k)=1;
+            
+            if(p->gcb4[n][3]==3)
+            bc(i,j-1,k)=1;
+            
+            if(p->gcb4[n][3]==2)
+            bc(i,j+1,k)=1;
+            
+            if(p->gcb4[n][3]==4)
+            bc(i+1,j,k)=1;
+ 
+        }
+        
+        if(p->gcb4[n][4]==2)
+        {
+            i=p->gcb4[n][0]; 
+            j=p->gcb4[n][1];
+            k=p->gcb4[n][2];  
+       
+            if(p->gcb4[n][3]==1)
+            bc(i-1,j,k)=2;
+            
+            if(p->gcb4[n][3]==3)
+            bc(i,j-1,k)=2;
+            
+            if(p->gcb4[n][3]==2)
+            bc(i,j+1,k)=2;
+            
+            if(p->gcb4[n][3]==4)
+            bc(i+1,j,k)=2;
+ 
+        }
+    }
+    
+}

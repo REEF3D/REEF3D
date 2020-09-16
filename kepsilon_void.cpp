@@ -100,6 +100,24 @@ double kepsilon_void::ccipol_epsval(lexer *p, ghostcell *pgc, double xp, double 
     return val;
 }
 
+double kepsilon_void::ccipol_a_kinval(lexer *p, ghostcell *pgc, double xp, double yp, double zp)
+{
+    double val;
+
+    val=0.0;
+
+    return val;
+}
+
+double kepsilon_void::ccipol_a_epsval(lexer *p, ghostcell *pgc, double xp, double yp, double zp)
+{
+    double val;
+
+    val=0.0;
+
+    return val;
+}
+
 void kepsilon_void::kinget(int ii, int jj, int kk,double val)
 {
 

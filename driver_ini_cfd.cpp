@@ -143,7 +143,7 @@ cout<<"starting driver_ini"<<endl;
 	pini->iniphi_io(a,p,pgc);
 	pflow->discharge(p,a,pgc);
 	pflow->inflow(p,a,pgc,a->u,a->v,a->w);
-	potflow->start(a,p,psolv,pgc);
+	potflow->start(p,a,ppoissonsolv,pgc);
     pflow->wavegen_precalc(p,pgc);
 	if(p->I12>=1)
 	pini->hydrostatic(p,a,pgc);
@@ -173,7 +173,7 @@ cout<<"starting driver_ini"<<endl;
     
 	pgc->start4(p,a->press,40);
 	
-	//pflow->inflow(p,a,pgc,a->u,a->v,a->w,0.0);
+
     pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
 
 // ini variables

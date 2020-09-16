@@ -27,9 +27,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 // x
 void weno_nug_func::weight_min_x()
 {
+
     w1x = cfx[IP][uf][0]/(epsilon + pow(is1x+psi,2.0)*(cfx[IP][uf][0]/pow(is1x+psi,2.0) + cfx[IP][uf][1]/pow(is2x+psi,2.0) + cfx[IP][uf][2]/pow(is3x+psi,2.0)));
     w2x = cfx[IP][uf][1]/(epsilon + pow(is2x+psi,2.0)*(cfx[IP][uf][0]/pow(is1x+psi,2.0) + cfx[IP][uf][1]/pow(is2x+psi,2.0) + cfx[IP][uf][2]/pow(is3x+psi,2.0)));
     w3x = cfx[IP][uf][2]/(epsilon + pow(is3x+psi,2.0)*(cfx[IP][uf][0]/pow(is1x+psi,2.0) + cfx[IP][uf][1]/pow(is2x+psi,2.0) + cfx[IP][uf][2]/pow(is3x+psi,2.0)));
+
+    //if(w1x!=w1x || w2x!=w2x || w3x!=w3x)
+    //cout<<pp->mpirank<<"  "<<pp->cnt<<" . "<<w1x<<" "<<w2x<<" "<<w3x<<" . "<<is1x<<" "<<is2x<<" "<<is3x<<endl;
+    
 }
 
 void weno_nug_func::weight_max_x()

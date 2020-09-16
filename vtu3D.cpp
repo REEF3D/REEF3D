@@ -369,8 +369,8 @@ void vtu3D::print_vtu(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *p
 void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, solver *psolv, data *pdata, concentration *pconc, sediment *psed)
 {    
     pgc->start4(p,a->test,1);
-    pgc->start4a(p,a->solid,150);
-    
+    pgc->start4(p,a->test,1);
+
     pgc->start1(p,a->u,110);
     pgc->start2(p,a->v,111);
 	pgc->start3(p,a->w,112);
@@ -405,7 +405,6 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 
 	pgc->gcparacox(p,a->topo,150);
 	pgc->gcparacox(p,a->topo,150);
-    
     
     
     if(p->mpirank==0)
@@ -833,13 +832,13 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
-    ffn=float(pgc->gcsl_ipol4(p,a->bedload));
+    ffn=float(p->sl_ipol4(a->bedload));
 	result.write((char*)&ffn, sizeof (float));
 	}
 
 	for(n=0;n<p->ccptnum;++n)
 	{
-	ffn=float(pgc->gcsl_ccipol4(p,a->bedload,p->ccpoint[n][0],p->ccpoint[n][1]));
+	ffn=float(p->ccslipol4(a->bedload,p->ccpoint[n][0],p->ccpoint[n][1]));
 	result.write((char*)&ffn, sizeof (float));
 	}
 

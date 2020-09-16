@@ -23,6 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 reinitopo_void::reinitopo_void()
 {
+    cout<<"REINITOPO_VOID_MAKE"<<endl;
 }
 
 reinitopo_void::~reinitopo_void()
@@ -31,4 +32,7 @@ reinitopo_void::~reinitopo_void()
 
 void reinitopo_void::start(fdm* a,lexer* p,field& b, convection* pconvec, ghostcell* pgc)
 {
+    int test=0;
+    
+    cout<<"REINITOPO_VOID"<<endl;
 }

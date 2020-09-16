@@ -77,7 +77,7 @@ public:
 	matrix2D M;
 
     double maxF,maxG,maxH,maxK,maxE;
-	double inverse,deltax,sigT,Ui,Ua,Uo;
+	double inverse,sigT,Ui,Ua,Uo;
 	const double cmu;
 	
 	double t1,t2,t3,t4,t5;

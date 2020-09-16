@@ -24,7 +24,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-
 void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {
         count=0;
@@ -37,10 +36,7 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
         uvel=uval[count]*ramp(p);
         vvel=vval[count]*ramp(p);
         wvel=wval[count]*ramp(p);
-        
-        
-        //cout<<"UVAL: "<<uval[count]<<" k: "<<k<<endl;
-            
+           
 
 			if(a->phi(i-1,j,k)>=0.0)
 			{
@@ -77,7 +73,6 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
 
 			if(a->phi(i-1,j,k)<-p->F45*p->DXM)
 			{
-			//pgc->dirichlet_ortho(p,u,p->DXM,10,1,1);
 			u(i-1,j,k)=0.0 + p->Ui;
 			u(i-2,j,k)=0.0 + p->Ui;
 			u(i-3,j,k)=0.0 + p->Ui;

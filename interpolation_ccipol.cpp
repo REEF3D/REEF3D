@@ -23,34 +23,29 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"field.h"
 #include"lexer.h"
 
-
 double interpolation::ccipol1(field& f, double xp, double yp, double zp)
 {
     ii=i;
     jj=j;
     kk=k;
     
-    i = p->posf_i(xp);
+    i = p->posf_i(xp)-1;
     j = p->posc_j(yp);
     k = p->posc_k(zp);
-		
-
-    /*cout<<"i: "<<i<<" j: "<<j<<" k: "<<k<<endl;
-    cout<<p->mpirank<<" xp: "<<xp<<" yp: "<<yp<<" zp: "<<zp<<"  originz: "<<p->originz<<endl;
-    cout<<p->mpirank<<" XN: "<<p->XN[IP1]<<" YP: "<<p->YP[JP1]<<" YP2: "<<p->YP[JP2]<<" ZP: "<<p->ZP[KP1]<<endl;*/
+    
 
     // wa
-    wa = (p->XN[IP1]-xp)/p->DXP[IP];
-    
-    if((p->XN[IP1]-xp)/p->DXP[IP]<0.0)
-    {
     wa = (p->XN[IP2]-xp)/p->DXP[IP1];
+    
+    if((p->XN[IP2]-xp)/p->DXP[IP1]<0.0)
+    {
+    wa = (p->XN[IP3]-xp)/p->DXP[IP2];
     ++i;
     }
     
-    if((p->XN[IP1]-xp)/p->DXP[IP]>1.0)
+    if((p->XN[IP2]-xp)/p->DXP[IP1]>1.0)
     {
-    wa = (p->XN[IP]-xp)/p->DXP[IM1];
+    wa = (p->XN[IP1]-xp)/p->DXP[IP];
     --i;
     }
     
@@ -86,8 +81,6 @@ double interpolation::ccipol1(field& f, double xp, double yp, double zp)
     --k;
     }
     
-	//cout<<p->mpirank<<" wa: "<<wa<<" wb: "<<wb<<" wc: "<<wc<<endl;
-    
     value = lint1(f,i,j,k,wa,wb,wc);
 
     i=ii;
@@ -104,7 +97,7 @@ double interpolation::ccipol2(field& f, double xp, double yp, double zp)
     kk=k;
     
     i = p->posc_i(xp);
-    j = p->posf_j(yp);
+    j = p->posf_j(yp)-1;
     k = p->posc_k(zp);
 		
     // wa
@@ -124,17 +117,17 @@ double interpolation::ccipol2(field& f, double xp, double yp, double zp)
     
     
     // wb
-    wb = (p->YN[JP1]-yp)/p->DYP[JP];
-    
-    if((p->YN[JP1]-yp)/p->DYP[JP]<0.0)
-    {
     wb = (p->YN[JP2]-yp)/p->DYP[JP1];
+    
+    if((p->YN[JP2]-yp)/p->DYP[JP1]<0.0)
+    {
+    wb = (p->YN[JP3]-yp)/p->DYP[JP2];
     ++j;
     }
     
-    if((p->YN[JP1]-yp)/p->DYP[JP]>1.0)
+    if((p->YN[JP2]-yp)/p->DYP[JP1]>1.0)
     {
-    wb = (p->YN[JP]-yp)/p->DYP[JM1];
+    wb = (p->YN[JP1]-yp)/p->DYP[JP];
     --j;
     }
     
@@ -171,7 +164,7 @@ double interpolation::ccipol3(field& f, double xp, double yp, double zp)
     
     i = p->posc_i(xp);
     j = p->posc_j(yp);
-    k = p->posf_k(zp);
+    k = p->posf_k(zp)-1;
 		
     // wa
     wa = (p->XP[IP1]-xp)/p->DXN[IP];
@@ -206,17 +199,17 @@ double interpolation::ccipol3(field& f, double xp, double yp, double zp)
     
     
     //wc
-    wc = (p->ZN[KP1]-zp)/p->DZP[KP];
-    
-    if((p->ZN[KP1]-zp)/p->DZP[KP]<0.0)
-    {
     wc = (p->ZN[KP2]-zp)/p->DZP[KP1];
+    
+    if((p->ZN[KP2]-zp)/p->DZP[KP1]<0.0)
+    {
+    wc = (p->ZN[KP3]-zp)/p->DZP[KP2];
     ++k;
     }
     
-    if((p->ZN[KP1]-zp)/p->DZP[KP]>1.0)
+    if((p->ZN[KP2]-zp)/p->DZP[KP1]>1.0)
     {
-    wc = (p->ZN[KP]-zp)/p->DZP[KM1];
+    wc = (p->ZN[KP1]-zp)/p->DZP[KP];
     --k;
     }
 
@@ -254,10 +247,6 @@ double interpolation::ccipol4(field& f, double xp, double yp, double zp)
     --i;
     }
     
-//cout<<" wa: "<<wa<<" DXN[IP]: "<<p->DXN[IP]<<" DXN[IP1]: "<<p->DXN[IP1]<<" DXN[IM1]: "<<p->DXN[IM1]<<endl;
-//cout<<"i: "<<i<<" j: "<<j<<" k: "<<k<<" knox: "<<p->knox<<endl;
-
-
     // wb
     wb = (p->YP[JP1]-yp)/p->DYN[JP];
     
@@ -449,19 +438,19 @@ double interpolation::ccipol1_a(field& f, double xp, double yp, double zp)
     jj=j;
     kk=k;
     
-    i = p->posf_i(xp);
+    i = p->posf_i(xp)-1;
     j = p->posc_j(yp);
     k = p->posc_k(zp);
 		
         
     // wa
-    wa = (p->XN[IP1]-xp)/p->DXP[IP];
-    
-    if((p->XN[IP1]-xp)/p->DXP[IP]<0.0)
     wa = (p->XN[IP2]-xp)/p->DXP[IP1];
     
-    if((p->XN[IP1]-xp)/p->DXP[IP]>1.0)
-    wa = (p->XN[IP]-xp)/p->DXP[IM1];
+    if((p->XN[IP2]-xp)/p->DXP[IP1]<0.0)
+    wa = (p->XN[IP3]-xp)/p->DXP[IP2];
+    
+    if((p->XN[IP2]-xp)/p->DXP[IP1]>1.0)
+    wa = (p->XN[IP1]-xp)/p->DXP[IP];
     
     
     // wb
@@ -499,7 +488,7 @@ double interpolation::ccipol2_a(field& f, double xp, double yp, double zp)
     kk=k;
     
     i = p->posc_i(xp);
-    j = p->posf_j(yp);
+    j = p->posf_j(yp)-1;
     k = p->posc_k(zp);
 		
     // wa
@@ -513,13 +502,13 @@ double interpolation::ccipol2_a(field& f, double xp, double yp, double zp)
     
     
     // wb
-    wb = (p->YN[JP1]-yp)/p->DYP[JP];
-    
-    if((p->YN[JP1]-yp)/p->DYP[JP]<0.0)
     wb = (p->YN[JP2]-yp)/p->DYP[JP1];
     
-    if((p->YN[JP1]-yp)/p->DYP[JP]>1.0)
-    wb = (p->YN[JP]-yp)/p->DYP[JM1];
+    if((p->YN[JP2]-yp)/p->DYP[JP1]<0.0)
+    wb = (p->YN[JP3]-yp)/p->DYP[JP2];
+    
+    if((p->YN[JP2]-yp)/p->DYP[JP1]>1.0)
+    wb = (p->YN[JP1]-yp)/p->DYP[JP];
     
     
     //wc
@@ -548,7 +537,7 @@ double interpolation::ccipol3_a(field& f, double xp, double yp, double zp)
     
     i = p->posc_i(xp);
     j = p->posc_j(yp);
-    k = p->posf_k(zp);
+    k = p->posf_k(zp)-1;
 		
     // wa
     wa = (p->XP[IP1]-xp)/p->DXN[IP];
@@ -571,13 +560,13 @@ double interpolation::ccipol3_a(field& f, double xp, double yp, double zp)
     
     
     //wc
-    wc = (p->ZN[KP1]-zp)/p->DZP[KP];
-    
-    if((p->ZN[KP1]-zp)/p->DZP[KP]<0.0)
     wc = (p->ZN[KP2]-zp)/p->DZP[KP1];
     
-    if((p->ZN[KP1]-zp)/p->DZP[KP]>1.0)
-    wc = (p->ZN[KP]-zp)/p->DZP[KM1];
+    if((p->ZN[KP2]-zp)/p->DZP[KP1]<0.0)
+    wc = (p->ZN[KP3]-zp)/p->DZP[KP2];
+    
+    if((p->ZN[KP2]-zp)/p->DZP[KP1]>1.0)
+    wc = (p->ZN[KP1]-zp)/p->DZP[KP];
 
     value = lint_a(f,i,j,k,wa,wb,wc);
 

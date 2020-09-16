@@ -275,6 +275,7 @@ double interpolation::ipol4ro(fdm *a, field& b)
 
 double interpolation::ipol4phi(fdm *a, field& b)
 {
+    double epphi=1.6*p->DXM;
 	double epphi2=0.6*p->DXM;
     v1=v2=v3=v4=v5=v6=v7=v8 = p->phimean-p->pos_z()-0.5*p->DXM;
 

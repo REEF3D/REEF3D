@@ -23,8 +23,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"field.h"
 #include"lexer.h"
 
-void ghostcell::imagepoint(field& f,double &x_ip, double& val_ip, double dist, int cs)
+void ghostcell::imagepoint(lexer *p, field& f,double &x_ip, double& val_ip, double dist, int cs)
 {
+    double dx;
+    
+    if(cs==1||cs==4)
+    dx = p->DXP[IP];
+    
+    if(cs==2||cs==3)
+    dx = p->DYP[JP];
+    
+    if(cs==5||cs==6)
+    dx = p->DZP[KP];
+    
 	double y0,y1;
 	y1=0.0;      // x_j-1
     y0=f(i,j,k); // x_j
@@ -49,7 +60,7 @@ void ghostcell::imagepoint(field& f,double &x_ip, double& val_ip, double dist, i
 	y1=f(i,j,k-1);
 
 
-	x_ip = -(gamma*deltax);
+	x_ip = -(gamma*dx);
 
 	val_ip= (1.0-gamma)*y0  + gamma*y1;
 }

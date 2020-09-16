@@ -61,11 +61,11 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 
 // Pressure
 	else
-	if((bc==21||bc==22||bc==5||bc==3||bc==2||bc==6||bc==7) && gcv==40)
+	if((bc==21||bc==22||bc==5||bc==3||bc==2||bc==6||(bc==7&&awa_label==0)) && gcv==40)
 	return gclabel_press;
 	
 	else
-	if((bc==21||bc==22||bc==5||bc==3||bc==2||bc==7) && gcv==41)
+	if((bc==21||bc==22||bc==5||bc==3||bc==2||(bc==7&&awa_label==0)) && gcv==41)
 	return gclabel_press;
 	
 	else
@@ -77,7 +77,7 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	return gclabel_press;
 	
 	else
-	if((bc==21||bc==22||bc==5||bc==3||bc==2||bc==7) && (cs!=5) && gcv==44)
+	if((bc==21||bc==22||bc==5||bc==3||bc==2||(bc==7&&awa_label==0)) && (cs!=5) && gcv==44)
 	return gclabel_press;
 	
 	else
@@ -176,7 +176,7 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	return gclabel_press;
 	
 	else
-	if((bc==1||bc==6||bc==2||bc==7) && gcv==45)
+	if((bc==1||bc==6||bc==2||(bc==7&&awa_label==0)) && gcv==45)
 	return gclabel_press;
 	
 	else
@@ -194,36 +194,32 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	
 // Turbulence kin
 	else
-	if((bc==21||bc==22||bc==5||bc==41||bc==42||bc==43||bc==9)&&(gcv==20 || gcv==21))
+	if((bc==21||bc==22||bc==5||bc==41||bc==42||bc==43||bc==9) && gcv==20)
 	return gclabel_k;
 
 	else
-	if((bc==3||bc==2)&& (cs!=6||bc!=3)&&(gcv==20 || gcv==21))
+	if((bc==3||bc==2) && (cs!=6||bc!=3)  && gcv==20)
 	return 4;
 	
 	else
-	if((cs==6 && bc==3)&&(gcv==20 || gcv==21))
+	if((cs==6 && bc==3) && gcv==20)
 	return 5;
-
-	else
-	if(bc==1 && gcv==21)
-	return 4;
 	
 	else
-	if((bc==6 || bc==7 || bc==8) && gcv==21)
+	if((bc==6 || bc==7 || bc==8) && gcv==20)
 	return 5;
 
 // Turbulence eps
 	else
-	if((bc==21||bc==22||bc==5||bc==41||bc==42||bc==43||bc==6||bc==7||bc==8||bc==9)&&(gcv==30 || gcv==31))
+	if((bc==21||bc==22||bc==5||bc==41||bc==42||bc==43||bc==6||bc==7||bc==8||bc==9) && gcv==30)
 	return gclabel_e;
 
 	else
-	if((bc==3||bc==2)&&(gcv==30 || gcv==31))
+	if((bc==3||bc==2) && gcv==30)
 	return 4;
 
 	else
-	if(bc==1 && gcv==31)
+	if(bc==1 && gcv==30)
 	return 4;
 
 // Turbulence rst
@@ -245,11 +241,11 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	return 4;
 	
 	else
-	if((cs==6 && bc==3)&&(gcv==29))
+	if((cs==6 && bc==3)&&(gcv==24))
 	return 5;
 	
 	else
-	if((cs!=6 || bc!=3)&&(gcv==29))
+	if((cs!=6 || bc!=3)&&(gcv==24))
 	return 4;
 	
 	else
@@ -382,7 +378,7 @@ void ghostcell::gcdistro4(lexer *p, field &f, int ii, int jj, int kk, int nn, do
 	lsm(p,f,dist,gcv,bc,cs);
     
 	if(bc_label==3)
-	extend(f,dist,gcv,bc,cs);
+	extend(p,f,dist,gcv,bc,cs);
 
 	if(bc_label==4)
 	neumann(f,gcv,bc,cs);
@@ -391,7 +387,7 @@ void ghostcell::gcdistro4(lexer *p, field &f, int ii, int jj, int kk, int nn, do
 	noslip(f,dist,gcv,bc,cs);
 
 	if(bc_label==6)
-	extend(f,dist,gcv,bc,cs);
+	extend(p,f,dist,gcv,bc,cs);
 
 	if(bc_label==7)
 	potentialbc(p,f,bc,cs);

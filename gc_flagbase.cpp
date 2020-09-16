@@ -56,7 +56,7 @@ void ghostcell::flagbase(lexer *p, fdm *a)
     bc=7;
 	
 	if(p->gcb4[n][4]==8)
-    bc=8;
+    bc=7;
 
     if(p->gcb4[n][4]==21)
     bc=21;

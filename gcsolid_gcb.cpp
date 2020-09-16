@@ -146,7 +146,6 @@ void ghostcell::gcsolid_gcb_seed(lexer *p, fdm *a)
     }
     p->gcb4_count=p->gcb_solid=p->gcb_topo=count;
 	
-	//cout<<p->mpirank<<" GCB4: "<<count<<endl;
 }
 
 

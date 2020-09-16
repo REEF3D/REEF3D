@@ -23,7 +23,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 
 fdm_fnpf::fdm_fnpf(lexer *p) : press(p),Fifsf(p),Fibed(p),
-                              test(p),
                               nodeval(p),eta(p),etaloc(p),
                               wet(p),wet_n(p),breaking(p),bc(p),
                               eta_n(p),WL(p),bed(p),depth(p),Fz(p),K(p),
@@ -31,7 +30,7 @@ fdm_fnpf::fdm_fnpf(lexer *p) : press(p),Fifsf(p),Fibed(p),
                               Ex(p),Ey(p),Exx(p),Eyy(p),
                               Bx(p),By(p),Bxx(p),Byy(p),
                               Hx(p),Hy(p),
-                              coastline(p),vb(p),test2D(p),
+                              coastline(p),vb(p),
                               nodeval2D(p),breaking_print(p),
                               rhsvec(p),rvec(p),xvec(p),N(p),M(p)
 {

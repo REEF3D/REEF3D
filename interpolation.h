@@ -26,6 +26,7 @@ class fdm;
 class lexer;
 class field;
 class slice;
+class sliceint;
 
 #ifndef INTERPOLATION_H_
 #define INTERPOLATION_H_
@@ -75,6 +76,14 @@ public:
     
     
     // slice
+    double sl_ipol1(slice&);
+    double sl_ipol2(slice&);
+	double sl_ipol1a(slice&);
+    double sl_ipol2a(slice&);
+    double sl_ipol4(slice&);
+    double sl_ipol4eta(slice&,slice&);
+    double sl_ipolint(sliceint&);
+    
     double ccslipol1(slice&,double,double);
     double ccslipol2(slice&,double,double);
     double ccslipol4(slice&,double,double);
@@ -82,6 +91,8 @@ public:
     double lintsl1(slice&,int&,int&,double,double);
     double lintsl2(slice&,int&,int&,double,double);
     double lintsl4(slice&,int&,int&,double,double);
+    
+    
 
 private:
     double v1,v2,v3,v4,v5,v6,v7,v8;
@@ -89,7 +100,7 @@ private:
     int c1,c2,c3,c4;
     double wa,wb,wc,wx,wy,wz;
     double value;
-    double epphi;
+
     
     int ii,jj,kk;
     

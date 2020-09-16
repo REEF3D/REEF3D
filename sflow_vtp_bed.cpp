@@ -205,11 +205,10 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
 	{
-    
-	ffn=float(float(i+1)*p->DXM+p->originx);
+	ffn=float(p->XN[IP1]);
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(float(j+1)*p->DXM+p->originy);
+	ffn=float(p->YN[JP1]);
 	result.write((char*)&ffn, sizeof (float));
 
 	ffn=float(b->bednode(i,j));
@@ -221,13 +220,13 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
 	{
-	ffn=float(pgc->gcsl_ipol1a(p,b->hx));
+	ffn=float(p->sl_ipol1a(b->hx));
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(pgc->gcsl_ipol2a(p,b->hy));
+	ffn=float(p->sl_ipol2a(b->hy));
 	result.write((char*)&ffn, sizeof (float));
 	
-	ffn=float(pgc->gcsl_ipol4(p,b->hp));
+	ffn=float(p->sl_ipol4(b->hp));
 	result.write((char*)&ffn, sizeof (float));
 	}
 
@@ -236,7 +235,7 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
 	TPSLICELOOP
 	{
-	ffn=float(pgc->gcsl_ipol4(p,b->qb));
+	ffn=float(p->sl_ipol4(b->qb));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -245,7 +244,7 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
 	TPSLICELOOP
 	{
-	ffn=float(pgc->gcsl_ipol4(p,b->zb));
+	ffn=float(p->sl_ipol4(b->zb));
 	result.write((char*)&ffn, sizeof (float));
 	}
 	
@@ -254,7 +253,7 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
 	TPSLICELOOP
 	{
-	ffn=float(pgc->gcsl_ipol4(p,b->test));
+	ffn=float(p->sl_ipol4(b->test));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -263,7 +262,7 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
 	{
-	ffn=float(pgc->gcsl_ipol4(p,b->bed));
+	ffn=float(p->sl_ipol4(b->bed));
 	result.write((char*)&ffn, sizeof (float));
 	}
 

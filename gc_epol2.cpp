@@ -100,21 +100,7 @@ int ghostcell::gceval2(lexer *p, int gcv, int bc, int cs)
 	if(bc==41||bc==42||bc==43)
 	return 11;
 
-//PISO Velcorr
-//Wall
 
-	else
-	if((bc==21||bc==22||bc==5||bc==7)&&(cs==1||cs==4||cs==5||cs==6)&&(gcv==18))
-	return gclabel_v;
-
-	else
-	if((bc==21||bc==22||bc==5||bc==7)&&(cs==2||cs==3)&&(gcv==18))
-	return 5;
-
-	else
-	if((bc==2||bc==1||bc==6) && (gcv==18))
-	return 4;
-    
      else
 	if(gcv==999)
 	return 99;
@@ -138,10 +124,10 @@ void ghostcell::gcdistro2(lexer *p,field& f, int ii, int jj, int kk, int nn, dou
 	dirichlet_ortho(p,f,dist,gcv,bc,cs);
 
 	if(bc_label==2)
-	dirichlet_para(f,dist,gcv,bc,cs);
+	dirichlet_para(p,f,dist,gcv,bc,cs);
 
 	if(bc_label==3)
-	extend(f,dist,gcv,bc,cs);
+	extend(p,f,dist,gcv,bc,cs);
 
 	if(bc_label==4)
 	neumann(f,gcv,bc,cs);

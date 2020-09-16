@@ -26,7 +26,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"flux_HJ_CDS4.h"
 #include"flux_HJ_CDS2_vrans.h"
 
-
 iweno_hj::iweno_hj(lexer *p)
 			:tttw(13.0/12.0),fourth(1.0/4.0),third(1.0/3.0),
 			sevsix(7.0/6.0),elvsix(11.0/6.0),sixth(1.0/6.0),fivsix(5.0/6.0),tenth(1.0/10.0),
@@ -68,8 +67,6 @@ void iweno_hj::wenoloop1(lexer *p, fdm *a, field& f, int ipol, field& uvel, fiel
 {
 	count=0;
     
-    
-
 	ULOOP
 	{
         pflux->u_flux(a,ipol,uvel,iadvec,ivel2);

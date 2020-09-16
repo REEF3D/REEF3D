@@ -19,14 +19,35 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"geotopo.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
+#include"hypre_sstruct_fnpf.h"
 
-void geotopo::solid_topo(lexer* p, fdm* a, ghostcell* pgc)
+#ifdef HYPRE_COMPILATION
+#include"lexer.h"
+#include"fdm_fnpf.h"
+#include"ghostcell.h"
+#include"fieldint4.h"
+#include"matrix_diag.h"
+
+void hypre_sstruct_fnpf::fill_matrix8_2Dvert(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, double *rhs, double *M)
 {
-		ALOOP
-		a->topo(i,j,k) = double(p->flag_solid[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]);
-		
+    nentries=9;
+    
+    for (j = 0; j < nentries; j++)
+    stencil_indices[j] = j;
+
+    // M
+    HYPRE_SStructMatrixSetBoxValues(A, part, ilower, iupper, variable, nentries, stencil_indices, M);
+    HYPRE_SStructMatrixAssemble(A);
+    
+    
+    // x
+    HYPRE_SStructVectorSetBoxValues(x, part, ilower, iupper, variable, f);
+    HYPRE_SStructVectorAssemble(x);
+    
+    // b
+    HYPRE_SStructVectorSetBoxValues(b, part, ilower, iupper, variable, rhs);
+    HYPRE_SStructVectorAssemble(b);
+    
 }
+
+#endif

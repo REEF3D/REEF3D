@@ -901,9 +901,6 @@ void lexer::read_control()
                 case 13: control>>I13;
 						 clear(c,numint);
 						 break;
-                case 20: control>>I20;
-						 clear(c,numint);
-						 break;
                 case 21: control>>I21;
 						 clear(c,numint);
 						 break;
@@ -1343,9 +1340,6 @@ void lexer::read_control()
                 case 91: control>>S91;
 						 clear(c,numint);
 						 break;
-				 case 92: control>>S92;
-						 clear(c,numint);
-						 break;
                 case 93: control>>S93;
 						 clear(c,numint);
 						 break;
@@ -1359,6 +1353,9 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
                case 103: control>>S103;
+						 clear(c,numint);
+						 break;
+               case 116: control>>S116;
 						 clear(c,numint);
 						 break;
 				}

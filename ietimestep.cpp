@@ -79,7 +79,7 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 
     velmax=max(p->umax,p->vmax,p->wmax);
 
-// maximum viscosity
+    // maximum viscosity
 	LOOP
 	p->viscmax=MAX(p->viscmax, a->visc(i,j,k)+a->eddyv(i,j,k));
 
@@ -87,6 +87,7 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 
     if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"viscmax: "<<p->viscmax<<endl;
+    
 	//----kin
 	LOOP
 	p->kinmax=MAX(p->kinmax,pturb->kinval(i,j,k));
@@ -120,55 +121,22 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 // maximum reynolds stress source term
 	visccrit=p->viscmax*(6.0/pow(p->DXM,2.0));
 	
-	if(p->D20<4)
-	{
-	a->maxF+=fabs(a->gi);
-	a->maxG+=fabs(a->gj);
-	a->maxH+=fabs(a->gk);
-	}
-
 	
-    cu=cv=cw=1.0e10;
-    ULOOP
-    {
-    dx = MIN3(p->DXP[IP],p->DYN[JP],p->DZN[KP]);
+    
+    cu=1.0e10;
+    
 
-	cu = MIN(cu, 2.0/((fabs(p->umax)/dx)
-    
-            +sqrt((4.0*fabs(a->maxF))/dx)));
-    }
-
-    VLOOP
-    {
-    dx = MIN3(p->DXN[IP],p->DYP[JP],p->DZN[KP]);
-    
-	cv = MIN(cv, 2.0/((fabs(p->vmax)/dx)
-    
-            +sqrt((4.0*fabs(a->maxG))/dx)));
-    }
-    
-    WLOOP
-    {
-    dx = MIN3(p->DXN[IP],p->DYN[JP],p->DZP[KP]);
-
-	cw = MIN(cw, 2.0/((fabs(p->wmax)/dx)
-    
-            +sqrt((4.0*fabs(a->maxH))/dx)));
-    }
-    
-    
-    cu = min(cu,cv,cw);
-    
     LOOP
     {
-    dx = MIN3(p->DXP[IP],p->DYN[JP],p->DZN[KP]);
+    dx = MIN3(p->DXN[IP],p->DYN[JP],p->DZN[KP]);
 
-	cu = MIN(cu, 2.0/(sqrt(p->umax*p->umax + p->vmax*p->vmax + p->wmax*p->wmax))/dx
+	cu = MIN(cu, 2.0/((sqrt(p->umax*p->umax + p->vmax*p->vmax + p->wmax*p->wmax))/dx
     
-            + sqrt((4.0*fabs(MAX3(a->maxF,a->maxG,a->maxH)))/dx));
+            + sqrt((4.0*fabs(MAX3(a->maxF,a->maxG,a->maxH)))/dx)));
     }
+    
 
-	p->dt=p->N47*min(cu,cv,cw);
+	p->dt=p->N47*cu;
 	p->dt=pgc->timesync(p->dt);
 
 
@@ -196,21 +164,20 @@ void ietimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 	p->umax=MAX(p->umax,2.0*p->X210_w);
     
     p->umax=MAX(p->umax,2.0);
-    
-    
-    
-   
+
 
     cu=2.0/((p->umax/dx)+sqrt((4.0*sqrt(fabs(a->gi) + fabs(a->gj) +fabs(a->gk)))/dx));// + (8.0*p->maxkappa*p->W5)/(2.0*dx*dx*(p->W1+p->W3)));
 
-    
-    //cout<<p->mpirank<<" CU "<<cu<<endl;
-    
+
     
 	p->dt=p->N47*cu*0.25;
     p->dt = MAX(p->dt,1.0e-6);
 	p->dt=pgc->timesync(p->dt);
 	p->dt_old=p->dt;
+    
+    a->maxF = fabs(a->gi);
+    a->maxG = fabs(a->gj);
+    a->maxH = fabs(a->gk);
     
 }
 

@@ -79,6 +79,7 @@ void ghostcell::gcb_seed(lexer *p, fdm *a)
 	p->Iresize(p->gcb4,p->gcb4_count, count, 6, 6); 
 	p->Dresize(p->gcd4,p->gcb4_count, count); 
 	
+	
 	count=p->gcb_solid;
 	
 	LOOP

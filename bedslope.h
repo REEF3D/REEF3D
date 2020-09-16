@@ -26,6 +26,7 @@ Author: Hans Bihs
 class lexer;
 class fdm;
 class ghostcell;
+class ddweno_f_nug;
 
 using namespace std;
 
@@ -46,6 +47,8 @@ private:
     double uvel, vvel;
     double midphi, delta,beta;
     double alpha0, teta0;
+    
+    ddweno_f_nug *pdx;
 };
 
 #endif

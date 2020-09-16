@@ -96,7 +96,7 @@ private:
 	int polygon_sum,polygon_num,vertice_num;
 
 	int gcval_phi,gcval_ro,gcval_iniphi,reiniter;
-	const double deltax,epsi,zero;
+	const double epsi,zero;
 	
 	double H,H0,grad,dT,dirac;
 	double lambda1,lambda2,dV,dval,Cs;

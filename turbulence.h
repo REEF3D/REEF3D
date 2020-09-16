@@ -53,6 +53,8 @@ public:
 	virtual void gcupdate(lexer*, fdm*, ghostcell*)=0;
 	virtual double ccipol_kinval(lexer*,ghostcell*,double,double,double)=0;
 	virtual double ccipol_epsval(lexer*,ghostcell*,double,double,double)=0;
+    virtual double ccipol_a_kinval(lexer*,ghostcell*,double,double,double)=0;
+	virtual double ccipol_a_epsval(lexer*,ghostcell*,double,double,double)=0;
     virtual void kinget(int,int,int,double)=0;
     virtual void epsget(int,int,int,double)=0;
 

@@ -59,8 +59,11 @@ void driver::loop_nhflow(fdm* a)
         cout<<"simtime: "<<p->simtime<<endl;
 		cout<<"timestep: "<<p->dt<<endl;
         
-		if(p->B90>0)
+		if(p->B90>0 && p->B92<=11)
 		cout<<"t/T: "<<p->simtime/p->wT<<endl;
+        
+        if(p->B90>0 && p->B92>11)
+		cout<<"t/T: "<<p->simtime/p->wTp<<endl;
         }
         
         pflow->flowfile(p,a,pgc,pturb);

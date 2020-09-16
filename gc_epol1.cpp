@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
+#include"lexer.h"
 
 int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
 {
@@ -27,13 +28,13 @@ int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
 
     // Parallel
 	//Wall
-	if((bc==21||bc==22||bc==7)&&(cs==2||cs==3||cs==5||cs==6)&&(gcv==10||gcv==1||gcv==20))
+	if((bc==21||bc==22||(bc==7&&awa_label==0))&&(cs==2||cs==3||cs==5||cs==6)&&(gcv==10||gcv==1||gcv==20))
 	return gclabel_u;
 	
-	if((bc==21||bc==22||bc==7)&&(cs==2||cs==3||cs==5||cs==6)&&(gcv==110))
+	if((bc==21||bc==22||(bc==7&&awa_label==0))&&(cs==2||cs==3||cs==5||cs==6)&&(gcv==110))
 	return 5;
 	
-	if((bc==21||bc==22||bc==7)&&(cs==2||cs==3||cs==5||cs==6)&&(gcv==114))
+	if((bc==21||bc==22||(bc==7&&awa_label==0))&&(cs==2||cs==3||cs==5||cs==6)&&(gcv==114))
 	return gclabel_u;
     
     // Topo
@@ -56,7 +57,7 @@ int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
 	return gclabel_u_orth;
 
 	else
-	if((bc==21||bc==22||bc==5||bc==7)&&(cs==1||cs==4)&&gcv==7)
+	if((bc==21||bc==22||bc==5||(bc==7&&awa_label==0))&&(cs==1||cs==4)&&gcv==7)
 	return gclabel_vel;
 
 //Inflow
@@ -66,8 +67,7 @@ int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
     
     else
 	if((bc==6 && (cs==1||cs==4) && (gcv==10||gcv==20||gcv==1||gcv==7)))
-	return gclabel_u_in;
-    
+	return gclabel_u_in;    
     
 	
 //Outflow
@@ -97,20 +97,7 @@ int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
 	if(bc==41||bc==42||bc==43)
 	return 11;
 
-//PISO Velcorr
-//Wall
-	else
-	if((bc==21||bc==22||bc==5||bc==7)&&(cs==2||cs==3||cs==5||cs==6)&&(gcv==17))
-	return gclabel_u;
 
-	else
-	if((bc==21||bc==22||bc==5||bc==7)&&(cs==1||cs==4)&&(gcv==17))
-	return 5;
-
-	else
-	if((bc==2||bc==1||bc==6) && (gcv==17))
-	return 4;
-    
      else
 	if(gcv==999)
 	return 99;
@@ -132,10 +119,10 @@ void ghostcell::gcdistro1(lexer *p,field& f, int ii, int jj, int kk, int nn, dou
 	dirichlet_ortho(p,f,dist,gcv,bc,cs);
 
 	if(bc_label==2)
-	dirichlet_para(f,dist,gcv,bc,cs);
+	dirichlet_para(p,f,dist,gcv,bc,cs);
 
 	if(bc_label==3)
-	extend(f,dist,gcv,bc,cs);
+	extend(p,f,dist,gcv,bc,cs);
 
 	if(bc_label==4)
 	neumann(f,gcv,bc,cs);

@@ -42,7 +42,6 @@ void ghostcell::column_pt4(lexer* p, fdm* a, fieldint &cval4)
 	++n;
 	}
 	
-	//int cellnum1=n;
 	GGC4LOOP
     {
     i=p->gcb4[g][0];
@@ -121,8 +120,6 @@ void ghostcell::column_pt4(lexer* p, fdm* a, fieldint &cval4)
 		++n;
         }
     }
-	
-	//cout<<p->mpirank<<" gcbcount4: "<<p->gcb4_count*p->margin<<" N4: "<<n-cellnum1<<endl;
 	
 	for(g=0;g<p->gcpara1_count;++g)
     {
@@ -257,7 +254,6 @@ void ghostcell::column_pt4a(lexer* p, fdm* a, fieldint &cval4a)
 	++n;
 	}
 	
-	//int cellnum1=n;
 	GGC4ALOOP
     {
     i=p->gcb4a[g][0];
@@ -478,7 +474,7 @@ void ghostcell::column_pt6(lexer* p, fdm* a, fieldint &cval6)
     j=p->gcb4[g][1];
     k=p->gcb4[g][2];
 
-        if(p->gcb4[g][3]==1)
+        if(fabs(p->gcb4[g][3]==1))
         for(q=0;q<margin;++q)
         {
 			if(q<margin-1)
@@ -490,7 +486,7 @@ void ghostcell::column_pt6(lexer* p, fdm* a, fieldint &cval6)
         ++n;
         }
 
-        if(p->gcb4[g][3]==2)
+        if(fabs(p->gcb4[g][3]==2))
         for(q=0;q<margin;++q)
         {
 			if(q<margin-1)
@@ -502,7 +498,7 @@ void ghostcell::column_pt6(lexer* p, fdm* a, fieldint &cval6)
         ++n;
         }
 
-        if(p->gcb4[g][3]==3)
+        if(fabs(p->gcb4[g][3]==3))
         for(q=0;q<margin;++q)
         {
 			if(q<margin-1)
@@ -514,7 +510,7 @@ void ghostcell::column_pt6(lexer* p, fdm* a, fieldint &cval6)
         ++n;
         }
 
-        if(p->gcb4[g][3]==4)
+        if(fabs(p->gcb4[g][3]==4))
         for(q=0;q<margin;++q)
         {
 			if(q<margin-1)
@@ -526,7 +522,7 @@ void ghostcell::column_pt6(lexer* p, fdm* a, fieldint &cval6)
 		++n;
         }
 
-        if(p->gcb4[g][3]==5)
+        if(fabs(p->gcb4[g][3]==5))
         for(q=0;q<margin;++q)
         {
 			if(q<margin-1)
@@ -538,7 +534,7 @@ void ghostcell::column_pt6(lexer* p, fdm* a, fieldint &cval6)
 		++n;
         }
 
-        if(p->gcb4[g][3]==6)
+        if(fabs(p->gcb4[g][3]==6))
         for(q=0;q<margin;++q)
         {
 			if(q<margin-1)

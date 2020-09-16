@@ -26,7 +26,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"flux_HJ_CDS4.h"
 #include"flux_HJ_CDS2_vrans.h"
 
-weno_hj_nug::weno_hj_nug(lexer* p):weno_nug_func(p)
+weno_hj_nug::weno_hj_nug(lexer* p):weno_nug_func(p),tttw(13.0/12.0),fourth(1.0/4.0),third(1.0/3.0),
+			sevsix(7.0/6.0),elvsix(11.0/6.0),sixth(1.0/6.0),fivsix(5.0/6.0),tenth(1.0/10.0),
+			sixten(6.0/10.0),treten(3.0/10.0),epsilon(0.000001),smallnum(1.0e-20)
 {
     if(p->B269==0 && p->D11!=4)
     pflux = new flux_HJ_CDS2(p);
@@ -125,7 +127,24 @@ double weno_hj_nug::fx(lexer *p,fdm *a, field& b, field& uvel, int ipol, double 
 	iqmin(p,a,b,uvel,ipol);
 	is_min_x();
 	weight_min_x();
-
+    
+    
+    is();
+    alpha();
+	weight();
+    
+    double a1,a2,a3;
+            
+ 
+            a1 = cfx[IP][uf][0]/pow(is1x+psi,2.0);
+            a2 = cfx[IP][uf][1]/pow(is2x+psi,2.0); 
+            a3 = cfx[IP][uf][2]/pow(is3x+psi,2.0); 
+    
+/*
+     if(p->mpirank==0)
+     cout<<" w1x : "<<w1x<<"  w1 : "<<w3<<" | w2x : "<<w2x<<"  w2 : "<<w2<<" | w3x : "<<w3x<<"  w3 : "<<w1<<"  | is1x : "<<is3x<<"  is1 : "<<is3<<" | is2x : "<<is2x<<"  is2 : "<<is2<<" | is3x : "<<is1x<<"  is3 : "<<is1<<" | a1: "
+            <<a3<<" alpha1: "<<alpha1<<" a2: "<<a2<<" alpha2: "<<alpha2<<" a3: "<<a1<<" alpha3: "<<alpha3<<endl;
+*/
 	grad = w1x*(q4 + qfx[IP][uf][0][0]*(q3-q4) - qfx[IP][uf][0][1]*(q5-q4))
     
          + w2x*(q3 + qfx[IP][uf][1][0]*(q4-q3) - qfx[IP][uf][1][1]*(q2-q3))
@@ -269,3 +288,24 @@ void weno_hj_nug::kqmax(lexer *p,fdm *a, field& f, field& wvel, int ipol)
 	q5 = (f(i,j,k+3)-f(i,j,k+2))/DZ[KP2];
 }
 
+
+void weno_hj_nug::is()
+{
+	is1 = tttw*pow(q1-2.0*q2+q3, 2.0) + fourth*pow(q1-4.0*q2+3.0*q3, 2.0);
+	is2 = tttw*pow(q2-2.0*q3+q4, 2.0) + fourth*pow(q2-q4, 2.0);
+	is3 = tttw*pow(q3-2.0*q4+q5, 2.0) + fourth*pow(3.0*q3-4.0*q4+q5, 2.0);
+}
+
+void weno_hj_nug::alpha()
+{
+	alpha1=tenth/pow(epsilon+is1,2.0);
+	alpha2=sixten/pow(epsilon+is2,2.0);
+	alpha3=treten/pow(epsilon+is3,2.0);
+}
+
+void weno_hj_nug::weight()
+{
+	w1=alpha1/(alpha1+alpha2+alpha3);
+	w2=alpha2/(alpha1+alpha2+alpha3);
+	w3=alpha3/(alpha1+alpha2+alpha3);
+}

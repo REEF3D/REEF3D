@@ -19,13 +19,25 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
+#include"lexer.h"
 #include"ghostcell.h"
 #include"field.h"
 #include"cpt.h"
 
-void ghostcell::extend(field& f,double dist,int gcv, int bc, int cs)
+void ghostcell::extend(lexer *p,field& f,double dist,int gcv, int bc, int cs)
 {
     weight=1.0;
+    
+    double dx;
+    
+    if(cs==1||cs==4)
+    dx = p->DXP[IP];
+    
+    if(cs==2||cs==3)
+    dx = p->DYP[JP];
+    
+    if(cs==5||cs==6)
+    dx = p->DZP[KP];
 
 //fill pos[]
     orderext=orderext2;
@@ -35,13 +47,13 @@ void ghostcell::extend(field& f,double dist,int gcv, int bc, int cs)
 	
 
 	for(m=0;m<=orderext-3;m++)
-	pos[m]=-deltax*double(orderext-m-2);
+	pos[m]=-dx*double(orderext-m-2);
 
 	pos[orderext-2]=0.0;
-	pos[orderext-1]=deltax;
+	pos[orderext-1]=dx;
 
 	for(m=0;m<margin;m++)
-	x[m]=deltax*double(m+2);
+	x[m]=dx*double(m+2);
 	
 	
 

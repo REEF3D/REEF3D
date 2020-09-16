@@ -117,43 +117,7 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 // maximum reynolds stress source term
 	visccrit=p->viscmax*(6.0/pow(p->DXM,2.0));  
  
-    cu=cv=cw=1.0e10;
-    
-    ULOOP
-    {
-    dx = MIN3(p->DXP[IP],p->DYN[JP],p->DZN[KP]);
-    
-    visc = 0.5*(a->eddyv(i,j,k) + a->eddyv(i+1,j,k)) + 0.5*(a->visc(i,j,k) + a->visc(i+1,j,k));
-    
-	cu = MIN(cu, 2.0/((p->umax/dx +  visc*(6.0/pow(dx,2.0)))
-    
-            +sqrt(pow(p->umax/dx+visc,2.0)+(4.0*fabs(fabs(a->gi)+a->maxF))/dx)));
-    }
-
-    VLOOP
-    {
-    dx = MIN3(p->DXN[IP],p->DYP[JP],p->DZN[KP]);
-    
-    visc = 0.5*(a->eddyv(i,j,k) + a->eddyv(i,j+1,k)) + 0.5*(a->visc(i,j,k) + a->visc(i,j+1,k));
-    
-	cv = MIN(cv, 2.0/((p->vmax/dx +  visc*(6.0/pow(dx,2.0)))
-    
-            +sqrt(pow(p->vmax/dx+visc,2.0)+(4.0*fabs(fabs(a->gj)+a->maxG))/dx)));
-    }
-    
-    WLOOP
-    {
-    dx = MIN3(p->DXN[IP],p->DYN[JP],p->DZP[KP]);
-    
-    visc = 0.5*(a->eddyv(i,j,k) + a->eddyv(i,j,k+1)) + 0.5*(a->visc(i,j,k) + a->visc(i,j,k+1));
-    
-	cw = MIN(cw, 2.0/((p->wmax/dx +  visc*(6.0/pow(dx,2.0)))
-    
-            +sqrt(pow(p->wmax/dx+visc,2.0)+(4.0*fabs(fabs(a->gk)+a->maxH))/dx)));
-    }
-    
-    
-    cu = min(cu,cv,cw);
+    cu=1.0e10;
     
     LOOP
     {
@@ -169,7 +133,7 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     }
     
 
-	p->dt=p->N47*min(cu,cv,cw);
+	p->dt=p->N47*cu;
 	p->dt=pgc->timesync(p->dt);
 
 	a->maxF=0.0;
