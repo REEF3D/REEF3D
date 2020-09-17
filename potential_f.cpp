@@ -40,20 +40,20 @@ void potential_f::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
     if(p->mpirank==0 )
 	cout<<"starting potential flow solver..."<<endl<<endl;
     
-    field4 phi(p);
+    field4 psi(p);
     
     ini_bc(p,a,pgc);
 
     starttime=pgc->timer();
 	
-	pgc->start4(p,phi,gcval_pot);
+	pgc->start4(p,psi,gcval_pot);
 	
 	LOOP
-	phi(i,j,k) = (p->pos_x()-p->global_xmin)*p->Ui;
+	psi(i,j,k) = (p->pos_x()-p->global_xmin)*p->Ui;
 	
-    ucalc(p,a,phi);
-	vcalc(p,a,phi);
-	wcalc(p,a,phi);
+    ucalc(p,a,psi);
+	vcalc(p,a,psi);
+	wcalc(p,a,psi);
     
     pgc->start1(p,a->u,10);
 	pgc->start2(p,a->v,11);
@@ -63,17 +63,17 @@ void potential_f::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
     p->N46=2500;
 	
 
-    pgc->start4(p,phi,gcval_pot);
+    pgc->start4(p,psi,gcval_pot);
 
 
-    laplace(p,a,phi);
-	psolv->start(p,a,pgc,phi,a->xvec,a->rhsvec,4,gcval_pot,p->N43);
-    pgc->start4(p,phi,gcval_pot);
+    laplace(p,a,psi);
+	psolv->start(p,a,pgc,psi,a->xvec,a->rhsvec,4,gcval_pot,p->N43);
+    pgc->start4(p,psi,gcval_pot);
 
 	
-    ucalc(p,a,phi);
-	vcalc(p,a,phi);
-	wcalc(p,a,phi);
+    ucalc(p,a,psi);
+	vcalc(p,a,psi);
+	wcalc(p,a,psi);
 
 	pgc->start1(p,a->u,10);
 	pgc->start2(p,a->v,11);
@@ -88,11 +88,11 @@ void potential_f::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
     p->N46=itermem;
     
     LOOP
-    a->test(i,j,k) = phi(i,j,k);
+    a->test(i,j,k) = psi(i,j,k);
     
     
     LOOP
-    phi(i,j,k) = 0.0;
+    psi(i,j,k) = 0.0;
 }
 
 void potential_f::ucalc(lexer *p, fdm *a, field &phi)
