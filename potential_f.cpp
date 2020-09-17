@@ -40,18 +40,20 @@ void potential_f::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
     if(p->mpirank==0 )
 	cout<<"starting potential flow solver..."<<endl<<endl;
     
+    field4 phi(p);
+    
     ini_bc(p,a,pgc);
 
     starttime=pgc->timer();
 	
-	pgc->start4(p,a->press,gcval_pot);
+	pgc->start4(p,phi,gcval_pot);
 	
 	LOOP
-	a->press(i,j,k) = (p->pos_x()-p->global_xmin)*p->Ui;
+	phi(i,j,k) = (p->pos_x()-p->global_xmin)*p->Ui;
 	
-    ucalc(p,a);
-	vcalc(p,a);
-	wcalc(p,a);
+    ucalc(p,a,phi);
+	vcalc(p,a,phi);
+	wcalc(p,a,phi);
     
     pgc->start1(p,a->u,10);
 	pgc->start2(p,a->v,11);
@@ -61,17 +63,17 @@ void potential_f::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
     p->N46=2500;
 	
 
-    pgc->start4(p,a->press,gcval_pot);
+    pgc->start4(p,phi,gcval_pot);
 
 
-    laplace(p,a);
-	psolv->start(p,a,pgc,a->press,a->xvec,a->rhsvec,4,gcval_pot,p->N43);
-    pgc->start4(p,a->press,gcval_pot);
+    laplace(p,a,phi);
+	psolv->start(p,a,pgc,phi,a->xvec,a->rhsvec,4,gcval_pot,p->N43);
+    pgc->start4(p,phi,gcval_pot);
 
 	
-    ucalc(p,a);
-	vcalc(p,a);
-	wcalc(p,a);
+    ucalc(p,a,phi);
+	vcalc(p,a,phi);
+	wcalc(p,a,phi);
 
 	pgc->start1(p,a->u,10);
 	pgc->start2(p,a->v,11);
@@ -86,17 +88,17 @@ void potential_f::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
     p->N46=itermem;
     
     LOOP
-    a->test(i,j,k) = a->press(i,j,k);
+    a->test(i,j,k) = phi(i,j,k);
     
     
     LOOP
-    a->press(i,j,k) = 0.0;
+    phi(i,j,k) = 0.0;
 }
 
-void potential_f::ucalc(lexer *p, fdm *a)
+void potential_f::ucalc(lexer *p, fdm *a, field &phi)
 {	
 	ULOOP
-	a->u(i,j,k) = (a->press(i+1,j,k)-a->press(i,j,k))/p->DXP[IP];
+	a->u(i,j,k) = (phi(i+1,j,k)-phi(i,j,k))/p->DXP[IP];
 	
 	if(p->I21==1)
 	ULOOP
@@ -109,10 +111,10 @@ void potential_f::ucalc(lexer *p, fdm *a)
 	a->u(i,j,k)=0.0;
 }
 
-void potential_f::vcalc(lexer *p, fdm *a)
+void potential_f::vcalc(lexer *p, fdm *a, field &phi)
 {	
 	VLOOP
-	a->v(i,j,k) = (a->press(i,j+1,k)-a->press(i,j,k))/p->DYP[JP];
+	a->v(i,j,k) = (phi(i,j+1,k)-phi(i,j,k))/p->DYP[JP];
 
 	if(p->I21==1)
 	VLOOP
@@ -125,10 +127,10 @@ void potential_f::vcalc(lexer *p, fdm *a)
 	a->v(i,j,k)=0.0;
 }
 
-void potential_f::wcalc(lexer *p, fdm *a)
+void potential_f::wcalc(lexer *p, fdm *a, field &phi)
 {
 	WLOOP
-    a->w(i,j,k) = (a->press(i,j,k+1)-a->press(i,j,k))/p->DZP[KP];
+    a->w(i,j,k) = (phi(i,j,k+1)-phi(i,j,k))/p->DZP[KP];
 	
     if(p->I21==1)
 	WLOOP
@@ -151,7 +153,7 @@ void potential_f::rhs(lexer *p, fdm* a)
     }
 }
 
-void potential_f::laplace(lexer *p, fdm *a)
+void potential_f::laplace(lexer *p, fdm *a, field &phi)
 {
     n=0;
     BASELOOP
@@ -206,7 +208,7 @@ void potential_f::laplace(lexer *p, fdm *a)
         
         if(p->flag4[Im1JK]<0 && bc(i-1,j,k)==1)
 		{
-        a->rhsvec.V[n] += a->M.s[n]*p->Ui*p->DXP[IM1] -a->M.s[n]*a->press(i,j,k);
+        a->rhsvec.V[n] += a->M.s[n]*p->Ui*p->DXP[IM1] -a->M.s[n]*phi(i,j,k);
 		//a->M.p[n] += a->M.s[n];
 		a->M.s[n] = 0.0;
 		}

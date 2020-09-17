@@ -24,6 +24,8 @@ Author: Hans Bihs
 #include"increment.h"
 #include"fieldint4.h"
 
+class field;
+
 using namespace std;
 
 #ifndef POTENTIAL_F_H_
@@ -41,11 +43,11 @@ public:
 
 private:
     void rhs(lexer*,fdm*);
-	void ucalc(lexer*,fdm*);
-	void vcalc(lexer*,fdm*);
-	void wcalc(lexer*,fdm*);
+	void ucalc(lexer*,fdm*,field&);
+	void vcalc(lexer*,fdm*,field&);
+	void wcalc(lexer*,fdm*,field&);
     
-    void laplace(lexer*,fdm*);
+    void laplace(lexer*,fdm*,field&);
     void ini_bc(lexer*,fdm*,ghostcell*);
     
     
