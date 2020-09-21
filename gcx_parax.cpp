@@ -25,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void ghostcell::gcparax(lexer* p,field& f,int gcv)
 {
-    pip=4;
+   // pip=4;
     paramargin=margin;
 
 //  FILL SEND
@@ -113,7 +113,7 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
         }
 	}
     
-    pip=0;
+   // pip=0;
 
 //  SEND / RECEIVE
 

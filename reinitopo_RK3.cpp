@@ -35,9 +35,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 reinitopo_RK3::reinitopo_RK3(lexer* p) : epsi(p->F45*p->DXM),f(p),frk1(p),frk2(p),L(p),dt(p)
 {
-     cout<<"REINITOPO_RK3_MAKE"<<endl;
-     
-     
+
 	if(p->S50==1)
 	gcval_topo=151;
 
@@ -64,7 +62,6 @@ reinitopo_RK3::~reinitopo_RK3()
 
 void reinitopo_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostcell* pgc)
 { 
-    cout<<"REINITOPO_RK3"<<endl;
     
     starttime=pgc->timer();
 	

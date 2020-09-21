@@ -64,7 +64,6 @@ void reinisolid_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostce
 { 
     starttime=pgc->timer();
 	
-    p->cnt=0;
 	sizeM=p->sizeM4;
 	
     // fill lsm to reini
@@ -103,7 +102,6 @@ void reinisolid_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostce
 
 	pgc->start4aV(p,frk1,gcval);
     
-    ++p->cnt;
     // Step 2
     prdisc->start(p,a,pgc,frk1,L,5);
 
@@ -112,7 +110,6 @@ void reinisolid_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostce
 
 	pgc->start4aV(p,frk2,gcval);
     
-    ++p->cnt;
 
     // Step 3
     prdisc->start(p,a,pgc,frk2,L,5);
@@ -121,8 +118,6 @@ void reinisolid_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostce
 	f.V[n] = (1.0/3.0)*f.V[n] + (2.0/3.0)*frk2.V[n] + (2.0/3.0)*dt.V[n]*L.V[n];
 
 	pgc->start4aV(p,f,gcval);
-    
-    ++p->cnt;
 	}
 	
 	// backfill

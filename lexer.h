@@ -600,9 +600,6 @@ public:
     double *sig;
     double *sigx,*sigy,*sigz;
     double *sigxx;
-    
-    int cnt;
-    
 	
 private:
 

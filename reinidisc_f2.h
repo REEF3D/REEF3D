@@ -52,7 +52,7 @@ private:
 	double sx,sy,sz,snorm,op;
     double lsSig;
 	
-	double deltax;
+	double deltax,denom;
 };
 
 #endif

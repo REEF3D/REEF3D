@@ -71,7 +71,7 @@ void sixdof_f::read_stl(lexer *p, fdm *a, ghostcell *pgc)
 	{
 		stl>>word;
 		
-		if(word=="ascii")
+		if(word=="ascii" || word=="solid")
 		chk=1;
 
 	}

@@ -141,7 +141,10 @@ void reinidisc_fsf::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *
     deltax = (1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
 	
 	sign=lsv/sqrt(lsv*lsv+ dnorm*dnorm*deltax*deltax);
-
+    
+    if(sign!=sign)
+    sign= 1.0;
+    
 	L.V[n] = -(sign*dnorm - sign);
     }
 }
