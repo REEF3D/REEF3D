@@ -106,6 +106,7 @@ void mgc1::fillmgc(lexer* p)
     j=p->gcpara1[q][1];
     k=p->gcpara1[q][2];
         
+        if(p->gcpara1[q][3]==1)
         for(n=0;n<p->margin;++n)
         p->mgc1[(i-imin-n-1)*jmax*kmax + (j-jmin)*kmax + k-kmin]+=1;
     }
@@ -116,6 +117,7 @@ void mgc1::fillmgc(lexer* p)
     j=p->gcpara4[q][1];
     k=p->gcpara4[q][2];
         
+        if(p->gcpara4[q][3]==1)
         for(n=0;n<p->margin;++n)
 		p->mgc1[(i-imin+n+1)*jmax*kmax + (j-jmin)*kmax + k-kmin]+=1;
 	}
@@ -126,6 +128,7 @@ void mgc1::fillmgc(lexer* p)
     j=p->gcpara3[q][1];
     k=p->gcpara3[q][2];
         
+        if(p->gcpara3[q][3]==1)
         for(n=0;n<p->margin;++n)
         p->mgc1[(i-imin)*jmax*kmax + (j-jmin-n-1)*kmax + k-kmin]+=1;
     }
@@ -136,6 +139,7 @@ void mgc1::fillmgc(lexer* p)
     j=p->gcpara2[q][1];
     k=p->gcpara2[q][2];
         
+        if(p->gcpara2[q][3]==1)
         for(n=0;n<p->margin;++n)
         p->mgc1[(i-imin)*jmax*kmax + (j-jmin+n+1)*kmax + k-kmin]+=1;
 	}
@@ -146,6 +150,7 @@ void mgc1::fillmgc(lexer* p)
     j=p->gcpara5[q][1];
     k=p->gcpara5[q][2];
         
+        if(p->gcpara5[q][3]==1)
         for(n=0;n<p->margin;++n)
         p->mgc1[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin-n-1]+=1;
 	}
@@ -156,6 +161,7 @@ void mgc1::fillmgc(lexer* p)
     j=p->gcpara6[q][1];
     k=p->gcpara6[q][2];
         
+        if(p->gcpara6[q][3]==1)
         for(n=0;n<p->margin;++n)
         p->mgc1[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin+n+1]+=1;
 	}
@@ -230,6 +236,7 @@ void mgc1::fillmgc(lexer* p)
     j=p->gcpara1[q][1];
     k=p->gcpara1[q][2];
         
+        if(p->gcpara1[q][3]==1)
         for(n=0;n<p->margin;++n)
         if( p->mgc1[(i-imin-n-1)*jmax*kmax + (j-kmin)*kmax + k-kmin]>1
 		&& p->mgc1[(i-imin-n-1)*jmax*kmax + (j-kmin)*kmax + k-kmin]<10)
@@ -245,6 +252,7 @@ void mgc1::fillmgc(lexer* p)
     j=p->gcpara4[q][1];
     k=p->gcpara4[q][2];
         
+        if(p->gcpara4[q][3]==1)
         for(n=0;n<p->margin;++n)
         if( p->mgc1[(i-imin+n+1)*jmax*kmax + (j-kmin)*kmax + k-kmin]>1
 		&& p->mgc1[(i-imin+n+1)*jmax*kmax + (j-kmin)*kmax + k-kmin]<10)
@@ -260,6 +268,7 @@ void mgc1::fillmgc(lexer* p)
     j=p->gcpara3[q][1];
     k=p->gcpara3[q][2];
         
+        if(p->gcpara3[q][3]==1)
         for(n=0;n<p->margin;++n)
         if( p->mgc1[(i-imin)*jmax*kmax + (j-kmin-n-1)*kmax + k-kmin]>1
 		&& p->mgc1[(i-imin)*jmax*kmax + (j-kmin-n-1)*kmax + k-kmin]<10)
@@ -275,6 +284,7 @@ void mgc1::fillmgc(lexer* p)
     j=p->gcpara2[q][1];
     k=p->gcpara2[q][2];
         
+        if(p->gcpara2[q][3]==1)
         for(n=0;n<p->margin;++n)
         if( p->mgc1[(i-imin)*jmax*kmax + (j-kmin+n+1)*kmax + k-kmin]>1
 		&& p->mgc1[(i-imin)*jmax*kmax + (j-kmin+n+1)*kmax + k-kmin]<10)
@@ -290,6 +300,7 @@ void mgc1::fillmgc(lexer* p)
     j=p->gcpara5[q][1];
     k=p->gcpara5[q][2];
         
+        if(p->gcpara5[q][3]==1)
         for(n=0;n<p->margin;++n)
         if( p->mgc1[(i-imin)*jmax*kmax + (j-kmin)*kmax + k-kmin-n-1]>1
 		&& p->mgc1[(i-imin)*jmax*kmax + (j-kmin)*kmax + k-kmin-n-1]<10)
@@ -305,6 +316,7 @@ void mgc1::fillmgc(lexer* p)
     j=p->gcpara6[q][1];
     k=p->gcpara6[q][2];
         
+        if(p->gcpara6[q][3]==1)
         for(n=0;n<p->margin;++n)
         if( p->mgc1[(i-imin)*jmax*kmax + (j-kmin)*kmax + k-kmin+n+1]>1
 		&& p->mgc1[(i-imin)*jmax*kmax + (j-kmin)*kmax + k-kmin+n+1]<10)
@@ -393,6 +405,7 @@ void mgc1::gcdirfill(lexer* p)
     j=p->gcpara1[q][1];
     k=p->gcpara1[q][2];
         
+        if(p->gcpara1[q][3]==1)
         for(n=0;n<p->margin;++n)
 		if( p->mgc1[(i-imin-n-1)*jmax*kmax + (j-jmin)*kmax + k-kmin]>1)
         {
@@ -407,6 +420,7 @@ void mgc1::gcdirfill(lexer* p)
     j=p->gcpara4[q][1];
     k=p->gcpara4[q][2];
         
+        if(p->gcpara4[q][3]==1)
         for(n=0;n<p->margin;++n)
 		if( p->mgc1[(i-imin+n+1)*jmax*kmax + (j-jmin)*kmax + k-kmin]>1)
         {
@@ -421,6 +435,7 @@ void mgc1::gcdirfill(lexer* p)
     j=p->gcpara3[q][1];
     k=p->gcpara3[q][2];
         
+        if(p->gcpara3[q][3]==1)
         for(n=0;n<p->margin;++n)
         if(p->mgc1[(i-imin)*jmax*kmax + (j-jmin-n-1)*kmax + k-kmin]>1)
         {
@@ -435,6 +450,7 @@ void mgc1::gcdirfill(lexer* p)
     j=p->gcpara2[q][1];
     k=p->gcpara2[q][2];
         
+        if(p->gcpara2[q][3]==1)
         for(n=0;n<p->margin;++n)
         if( p->mgc1[(i-imin)*jmax*kmax + (j-jmin+n+1)*kmax + k-kmin]>1)
         {
@@ -449,6 +465,7 @@ void mgc1::gcdirfill(lexer* p)
     j=p->gcpara5[q][1];
     k=p->gcpara5[q][2];
         
+        if(p->gcpara5[q][3]==1)
         for(n=0;n<p->margin;++n)
         if( p->mgc1[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin-n-1]>1)
         {
@@ -463,6 +480,7 @@ void mgc1::gcdirfill(lexer* p)
     j=p->gcpara6[q][1];
     k=p->gcpara6[q][2];
         
+        if(p->gcpara6[q][3]==1)
         for(n=0;n<p->margin;++n)
        if(p->mgc1[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin+n+1]>1)
         {
