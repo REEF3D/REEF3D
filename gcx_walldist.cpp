@@ -115,7 +115,7 @@ void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pdisc
 	
 	pgc->gcparax(p,walldist,4);
 	
-	gcparavoidx(p,walldist,4);
+	//gcparavoidx(p,walldist,4);
 	gcparacox(p,walldist,4);
 	gcparacox(p,walldist,4);
 	
@@ -156,7 +156,7 @@ void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pdisc
 
 	pgc->gcparax(p,walldist,4);
 	
-	gcparavoidx(p,walldist,4);
+	//gcparavoidx(p,walldist,4);
 	gcparacox(p,walldist,4);
 	gcparacox(p,walldist,4);
 	
@@ -280,13 +280,13 @@ void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pconv
 	
 	pgc->gcparax(p,walldist,4);
 	
-	gcparavoidx(p,walldist,4);
+	//gcparavoidx(p,walldist,4);
 	gcparacox(p,walldist,4);	
 	//preini->start(a,p,walldist,pgc,pflow);
 
 	pgc->gcparax(p,walldist,4);
 	
-	gcparavoidx(p,walldist,4);
+	//gcparavoidx(p,walldist,4);
 	gcparacox(p,walldist,4);
 	gcparacox(p,walldist,4);
 	
