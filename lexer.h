@@ -430,6 +430,8 @@ public:
 	int W30;
     int W41;
     double *W41_xc,*W41_yc,*W41_zs,*W41_ze,*W41_vel,*W41_beta;
+    double W50;
+    int W50_air;
     int W90;
     double W95,W96,W97,W98;
     int W101;

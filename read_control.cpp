@@ -1466,6 +1466,10 @@ void lexer::read_control()
                case 41: ++W41;
 						 clear(c,numint);
 						 break;
+                case 50: control>>W50;
+                        W50_air=1;
+						 clear(c,numint);
+						 break;
                 case 90: control>>W90;
 						 clear(c,numint);
 						 break;
