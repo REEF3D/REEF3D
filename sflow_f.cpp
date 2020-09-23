@@ -87,12 +87,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 		double temptime=pgc->timer();
 		pmom->start(p,b,pgc);
 		double mtime=pgc->timer()-temptime;
-		
-		temptime=pgc->timer();
-		//pfsf->start(p,b,pgc,pflow,b->P,b->Q,1.0);
-		double ftime=pgc->timer()-temptime;
-        
-        //pfilter->filter(p,b,pgc);
+    
         
         // turbulence
         pturb->start(p,b,pgc,pconvec,pdiff,psolv,pflow);
@@ -155,7 +150,6 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
             {
             if(p->B90>0)
             cout<<"mtime: "<<setprecision(3)<<mtime<<endl;
-            //cout<<"ftime: "<<setprecision(3)<<ftime<<endl;
             cout<<"wavegentime: "<<setprecision(3)<<p->wavetime<<endl;
             cout<<"printouttime: "<<setprecision(3)<<p->printouttime<<endl;
             cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
