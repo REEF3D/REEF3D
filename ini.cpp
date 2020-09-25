@@ -342,9 +342,9 @@ void lexer::ini_default()
     H15=5;          // int convection for heat transfer
 	H50_1=20.0; // double temperature 1
 	H50_2=20.0; // double temperature 2
-	H51=0.0;		    // double i-dir zero level set start
-	H52=0.0;		    // double j-dir zero level set start
-	H53=0.0;		    // double k-dir zero level set start
+	H51=-1.0e7;		    // double i-dir zero level set start
+	H52=-1.0e7;		    // double j-dir zero level set start
+	H53=-1.0e7;		    // double k-dir zero level set start
 	H54=1.0e7;		// double i-dir zero level set end
 	H55=1.0e7;		// double j-dir zero level set end
 	H56=1.0e7;		// double k-dir zero level set end
