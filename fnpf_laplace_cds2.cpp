@@ -93,9 +93,31 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
         
         c->rhsvec.V[n] =  0.0;
         }
+        /*
+        //anker
+        if(p->mpirank==0 && i ==0 && k==0)
+        {
+        f[FIJK]=f[FIp1JK]-c->Uin[FIm1JK]*p->DXP[IM1];
+        
+        c->M.p[n]  =  1.0;
+
+
+        c->M.n[n] = 0.0;
+        c->M.s[n] = 0.0;
+
+        c->M.w[n] = 0.0;
+        c->M.e[n] = 0.0;
+
+        c->M.t[n] = 0.0;
+        c->M.b[n] = 0.0;
+        
+        c->rhsvec.V[n] =  0.0;
+        }*/
         
 	++n;
 	}
+    
+    
     
     n=0;
 	LOOP
@@ -109,14 +131,25 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             c->M.s[n] = 0.0;
             }
             
-            if(p->flag7[FIm1JK]<0 && c->bc(i-1,j)==1)
-            {
-            denom = -1.5*p->XP[IM1]
             
+            if(p->flag7[FIm1JK]<0 && c->bc(i-1,j)==1  && p->A329==1)
+            {
             c->rhsvec.V[n] += c->M.s[n]*c->Uin[FIm1JK]*p->DXP[IM1];
             c->M.p[n] += c->M.s[n];
             c->M.s[n] = 0.0;
             }
+            
+            
+            if(p->flag7[FIm1JK]<0 && c->bc(i-1,j)==1  && p->A329>=2)
+            {
+            denom = -1.5*p->XP[IM1] + 2.0*p->XP[IP] - 0.5*p->XP[IP1];
+            
+            c->rhsvec.V[n] += (2.0/3.0)*c->M.s[n]*c->Uin[FIm1JK]*denom;
+            c->M.p[n] += (4.0/3.0)*c->M.s[n];
+            c->M.n[n] -= (1.0/3.0)*c->M.s[n];
+            c->M.s[n] = 0.0;
+            }          
+            
             
             // north
             if((p->flag7[FIp1JK]<0 || c->wet(i+1,j)==0) && c->bc(i+1,j)==0)
@@ -125,10 +158,22 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             c->M.n[n] = 0.0;
             }
             
-            if(p->flag7[FIp1JK]<0 && c->bc(i+1,j)==2)
+            
+            if(p->flag7[FIp1JK]<0 && c->bc(i+1,j)==2  && p->A329==1)
             {
             c->rhsvec.V[n] -= c->M.n[n]*c->Uin[FIp1JK]*p->DXP[IP1];
             c->M.p[n] += c->M.n[n];
+            c->M.n[n] = 0.0;
+            }
+            
+            
+            if(p->flag7[FIp1JK]<0 && c->bc(i+1,j)==2  && p->A329>=2)
+            {
+            denom = -0.5*p->XP[IM1] + 2.0*p->XP[IP] - 1.5*p->XP[IP1];
+            
+            c->rhsvec.V[n] += (2.0/3.0)*c->M.n[n]*c->Uin[FIp1JK]*denom;
+            c->M.p[n] += (4.0/3.0)*c->M.n[n];
+            c->M.s[n] -= (1.0/3.0)*c->M.n[n];
             c->M.n[n] = 0.0;
             }
 
@@ -152,6 +197,7 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             c->rhsvec.V[n] -= c->M.t[n]*f[FIJKp2];
             c->M.t[n] = 0.0;
             }
+            
  
             // KBEDBC
             if(p->flag7[FIJKm1]<0)

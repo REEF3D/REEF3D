@@ -41,6 +41,7 @@ public:
 private:
     
     fnpf_bed_update *pbed;
+    double denom;
 
 };
 
