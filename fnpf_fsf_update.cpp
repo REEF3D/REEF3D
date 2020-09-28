@@ -119,6 +119,23 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
         c->W[FIJK]=0.0;
         }
     }
+    
+    /*
+    if(p->B99>2)
+    for(n=0;n<p->gcslin_count;n++)
+    {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
+        
+        FKLOOP
+        FPCHECK
+        {
+        c->U[FIJK] = c->Fi[FIJK] - c->Uin[FIm1JK]*1.0*p->DXP[IM1];
+        c->U[FIJK] = c->Fi[FIJK] - c->Uin[FIm1JK]*2.0*p->DXP[IM1];
+        c->U[FIJK] = c->Fi[FIJK] - c->Uin[FIm1JK]*3.0*p->DXP[IM1];
+
+        }
+    }*/
         
     
     FFILOOP4

@@ -231,7 +231,7 @@ private:
     // relax pre-calc
     int wave_comp;
     int upt_count,vpt_count,wpt_count,ppt_count,ept_count;
-    double *uval,*vval,*wval,*etaval,*lsval,*Fival,*Fioutval,*Fifsfval,*Fifsfoutval,*Uinval,*Uoutval;
+    double *uval,*vval,*wval,*etaval,*lsval,*Fival,*Fioutval,*Fifsfval,*Fifsfval0,*Fifsfoutval,*Uinval,*Uoutval;
     double *rb1val,*rb3val;
     
     double **uval_S_sin,**vval_S_sin,**wval_S_sin,**etaval_S_sin,**Fival_S_sin,**Fifsfval_S_sin;
