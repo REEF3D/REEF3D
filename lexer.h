@@ -602,7 +602,7 @@ public:
     double *sig;
     double *sigx,*sigy,*sigz;
     double *sigxx;
-	
+
 private:
 
 //boundary

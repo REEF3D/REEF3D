@@ -69,7 +69,6 @@ void driver::driver_ini_fnpf()
     LOOP
     ++p->tpcellnum;
     
-    //cout<<p->mpirank<<" POINTNUM: "<<p->pointnum<<" CELLNUM: "<<p->cellnum<<endl;
     p->count=0;
     
 // --

@@ -86,7 +86,6 @@ void iowave::fnpf_precalc_relax_ini(lexer *p, ghostcell *pgc)
     p->Darray(rb1val,ppt_count);
     p->Darray(rb3val,dbcount);
     p->Darray(Fifsfval,ept_count);
-    p->Darray(Fifsfval0,ept_count);
     
     if(p->B89==1) 
     {
@@ -152,7 +151,6 @@ void iowave::fnpf_precalc_dirichlet_ini(lexer *p, ghostcell *pgc)
     p->Darray(Fival,ppt_count);
     p->Darray(Uinval,ppt_count);
     p->Darray(Fifsfval,ept_count);
-    p->Darray(Fifsfval0,ept_count);
     p->Darray(uval,upt_count);
     
     p->Darray(rb3val,dbcount);
