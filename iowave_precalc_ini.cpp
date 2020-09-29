@@ -144,7 +144,6 @@ void iowave::wavegen_precalc_relax_ini(lexer *p, ghostcell *pgc)
     p->Darray(lsval,ppt_count);
     p->Darray(Fival,ppt_count);
     p->Darray(Fifsfval,ept_count);
-    p->Darray(Fifsfval0,ept_count);
     
     if(p->B89==1) 
     {
@@ -199,7 +198,6 @@ void iowave::wavegen_precalc_dirichlet_ini(lexer *p, ghostcell *pgc)
     p->Darray(lsval,ppt_count);
     p->Darray(Fival,ppt_count);
     p->Darray(Fifsfval,ept_count);
-    p->Darray(Fifsfval0,ept_count);
     
     if(p->B89==1) 
     {
