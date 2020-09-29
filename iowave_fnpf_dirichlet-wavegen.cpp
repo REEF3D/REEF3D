@@ -69,9 +69,9 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, ghostcell* pgc, double *Fi, double
         FKLOOP
         FPCHECK
         {
-        Fi[FIm1JK] = Fi[FIJK] - Fival[count]*1.0*p->DXP[IM1];
-        Fi[FIm2JK] = Fi[FIJK] - Fival[count]*2.0*p->DXP[IM1];
-        Fi[FIm3JK] = Fi[FIJK] - Fival[count]*3.0*p->DXP[IM1];
+        Fi[FIm1JK] = Fi[FIJK] - Uinval[count]*1.0*p->DXP[IM1];
+        Fi[FIm2JK] = Fi[FIJK] - Uinval[count]*2.0*p->DXP[IM1];
+        Fi[FIm3JK] = Fi[FIJK] - Uinval[count]*3.0*p->DXP[IM1];
         
         ++count;
         }

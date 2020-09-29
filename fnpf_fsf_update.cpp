@@ -130,9 +130,7 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
         FKLOOP
         FPCHECK
         {
-        c->U[FIJK] = c->Fi[FIJK] - c->Uin[FIm1JK]*1.0*p->DXP[IM1];
-        c->U[FIJK] = c->Fi[FIJK] - c->Uin[FIm1JK]*2.0*p->DXP[IM1];
-        c->U[FIJK] = c->Fi[FIJK] - c->Uin[FIm1JK]*3.0*p->DXP[IM1];
+        c->U[FIJK] = c->Uin[FIm1JK];
 
         }
     }*/
