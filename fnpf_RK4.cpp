@@ -116,7 +116,6 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pf->fsfdisc(p,c,pgc,erk,frk);
     sigma_update(p,c,pgc,pf,erk);
     
-    
     // Set Boundary Conditions
     pflow->fivec_relax(p,pgc,c->Fi);
     fsfbc_sig(p,c,pgc,frk,c->Fi);

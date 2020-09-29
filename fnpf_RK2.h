@@ -20,25 +20,46 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"fnpf.h"
+#include"fnpf_ini.h"
+#include"fnpf_sigma.h"
+#include"slice4.h"
 
-#include"sflow_v.h"
-#include"sflow_f.h"
-#include"nsewave_v.h"
-#include"nsewave_f.h"
-#include"nsewave_geo.h"
-#include"nsewave_RK3.h"
-#include"nhflow_fsf.h"
-#include"nhflow_fsf_f.h"
-#include"nhflow_fsf_v.h"
-#include"ptf_v.h"
-#include"fnpf_v.h"
-#include"ptf_RK3.h"
-#include"ptf_RK4.h"
-#include"fnpf_RK2.h"
-#include"fnpf_RK3.h"
-#include"fnpf_RK4.h"
-#include"fnpf_vtu3D.h"
-#include"fnpf_timestep.h"
+class fnpf_laplace;
+class fnpf_fsf;
+class field;
 
+using namespace std;
 
+#ifndef FNPF_RK2_H_
+#define FNPF_RK2_H_
 
+class fnpf_RK2 : public fnpf_ini, public fnpf_sigma
+{
+public:
+	fnpf_RK2(lexer*, fdm_fnpf*, ghostcell*);
+	virtual ~fnpf_RK2();
+    
+    virtual void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*);
+    virtual void inidisc(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*);
+    virtual void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*);
+    
+private:
+
+    int gcval,gcval_u,gcval_v,gcval_w;
+    int gcval_eta,gcval_fifsf;
+    int hypre_type;
+    double starttime,endtime;
+
+    slice4 erk1;
+    slice4 frk1;
+
+    fnpf_laplace *plap;
+    fnpf_fsf *pf;
+    
+    int gcval_sl;
+    double t0;
+
+};
+
+#endif
