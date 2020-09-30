@@ -27,6 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"solver.h"
 #include"reini.h"
 #include"fnpf_laplace_cds2.h"
+#include"fnpf_laplace_cds2_v2.h"
 #include"fnpf_laplace_cds4.h"
 #include"fnpf_laplace_cds4_bc2.h"
 #include"onephase.h"
@@ -64,6 +65,9 @@ fnpf_RK4::fnpf_RK4(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fn
     
     if(p->A320==3)
     plap = new fnpf_laplace_cds4_bc2(p);
+    
+    if(p->A320==5)
+    plap = new fnpf_laplace_cds2_v2(p,pgc);
     
     
     if(p->A343==0)

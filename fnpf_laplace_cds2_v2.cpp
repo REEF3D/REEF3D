@@ -107,7 +107,7 @@ void fnpf_laplace_cds2_v2::laplace2D(lexer* p, fdm_fnpf *c, ghostcell *pgc, solv
         {
         sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
         
-        M[n*9]  =       1.0/(p->DXP[IP]*p->DXN[IP])*p->x_dir 
+        M[n*9]  =     1.0/(p->DXP[IP]*p->DXN[IP])*p->x_dir 
                     + 1.0/(p->DXP[IM1]*p->DXN[IP])*p->x_dir 
                      
                     + (sigxyz2/(p->DZP[KM1]*p->DZN[KP]))*p->z_dir
@@ -159,7 +159,7 @@ void fnpf_laplace_cds2_v2::laplace2D(lexer* p, fdm_fnpf *c, ghostcell *pgc, solv
     n=0;
 	KJILOOP
 	{
-            if(c->wet(i,j)==1 && p->flag7[FIJK]>0)
+            if(p->flag7[FIJK]>0 && c->wet(i,j)==1)
             {
             // south
             if((p->flag7[FIm1JK]<0 || c->wet(i-1,j)==0) && c->bc(i-1,j)==0)
@@ -200,33 +200,73 @@ sb 5
 st 6
 nb 7
 nt 8
-    */      
+*/      
     
             // sb
             if(p->flag7[FIm1JKm1]<0 || c->wet(i-1,j)==0)
             {
             rhs[n] -= M[n*9+5]*f[FIm1JKm1];
             M[n*9+5] = 0.0;
+            
+            //M[n*9] += M[n*9+5];
+            //M[n*9+5] = 0.0;
+            }
+            
+            // sb
+            /*if((p->flag7[FIm1JKm1]<0 || c->wet(i-1,j)==0) && (c->bc(i-1,j)==0 || k==0))
+            {
+            rhs[n] -= M[n*9+5]*f[FIm1JKm1];
+            M[n*9+5] = 0.0;   
+            }
+            
+            if(p->flag7[FIm1JKm1]<0 && c->bc(i-1,j)==1 && k>0)
+            {
+            rhs[n] += M[n*9+5]*c->Uin[FIm1JKm1]*p->DXP[IM1];
+            M[n*9] += M[n*9+5];
+            M[n*9+5] = 0.0;
+            }*/
+            
+            // st
+            if(p->flag7[FIm1JKp1]<0 && p->flag7[FIm1JKp1]>0)
+            {
+            rhs[n] -= M[n*9+6]*f[FIm1JKp1];
+            M[n*9+6] = 0.0;
+            
+            //M[n*9] += M[n*9+6];
+            //M[n*9+6] = 0.0;
             }
             
             // st
-            if(p->flag7[FIm1JKp2]<0 && p->flag7[FIm1JKp1]>0)
+           /* if((p->flag7[FIm1JKp2]<0 || c->wet(i-1,j)==0) && (c->bc(i-1,j)==0 || k == p->knoz-1))
             {
-            rhs[n] -= M[n*9+6]*f[FIm1JKp2];
+            rhs[n] -= M[n*9+6]*f[FIm1JKp1];
             M[n*9+6] = 0.0;
             }
+            
+            if(p->flag7[FIm1JKp2]<0 && c->bc(i-1,j)==1 && k < p->knoz-1)
+            {
+            rhs[n] += M[n*9+6]*c->Uin[FIm1JKp1]*p->DXP[IM1];
+            M[n*9] += M[n*9+6];
+            M[n*9+6] = 0.0;
+            }*/
             
             // nb
             if(p->flag7[FIp1JKm1]<0 || c->wet(i+1,j)==0)
             {
-            rhs[n] -= M[n*9+7]*f[FIp1JKm1];
+            M[n*9] += M[n*9+7];
             M[n*9+7] = 0.0;
+            
+            //rhs[n] -= M[n*9+7]*f[FIp1JKm1];
+            //M[n*9+7] = 0.0;
             }
             
             // nt
-            if(p->flag7[FIp1JKp2]<0 && p->flag7[FIp1JKp1]>0)
+            if(p->flag7[FIp1JKp1]<0)
             {
-            rhs[n] -= M[n*9+8]*f[FIp1JKp2];
+            //rhs[n] -= M[n*9+8]*f[FIp1JKp2];
+            //M[n*9+8] = 0.0;
+            
+            M[n*9] += M[n*9+8];
             M[n*9+8] = 0.0;
             }
  

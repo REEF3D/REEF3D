@@ -93,27 +93,6 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
         
         c->rhsvec.V[n] =  0.0;
         }
-        /*
-        //anker
-        if(p->mpirank==0 && i ==0 && k==0)
-        {
-        f[FIJK]=f[FIp1JK]-c->Uin[FIm1JK]*p->DXP[IM1];
-        
-        c->M.p[n]  =  1.0;
-
-
-        c->M.n[n] = 0.0;
-        c->M.s[n] = 0.0;
-
-        c->M.w[n] = 0.0;
-        c->M.e[n] = 0.0;
-
-        c->M.t[n] = 0.0;
-        c->M.b[n] = 0.0;
-        
-        c->rhsvec.V[n] =  0.0;
-        }*/
-        
 	++n;
 	}
     
@@ -137,6 +116,12 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             c->rhsvec.V[n] += c->M.s[n]*c->Uin[FIm1JK]*p->DXP[IM1];
             c->M.p[n] += c->M.s[n];
             c->M.s[n] = 0.0;
+            
+            if(k==0)
+            cout<<"FI_sb: "<<f[FIm1JKm1]<<" "<<f[FIJKm1]<<endl;
+            
+            if(k==p->knoz-1)
+            cout<<"FI_st: "<<f[FIm1JKp1]<<endl;
             }
             
             

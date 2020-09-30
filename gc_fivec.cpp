@@ -78,6 +78,19 @@ void ghostcell::fivec2D(lexer *p, double *f, sliceint &bc)
         f[FIp2JK] = f[FIJK];
         f[FIp3JK] = f[FIJK];
         }
+        
+        
+        // sb
+        if(p->flag7[FIm1JK]<0 && p->flag7[FIJKm1]<0) 
+        {
+        f[FIm1JKm1] = f[FIm1JK];
+        }
+        
+        // st
+        if(p->flag7[FIm1JK]<0 && p->flag7[FIJKp1]<0) 
+        {
+        f[FIm1JKp1] = f[FIm1JK];
+        }
     }
 }
 
