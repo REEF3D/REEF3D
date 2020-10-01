@@ -9,7 +9,7 @@ under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
-This program is distributed in the hope that it will be useful, but WITHOUT
+This program is distributed in the hope that it will be useful, but ITHOUT
 ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
@@ -32,27 +32,27 @@ void ghostcell::gcxupdate(lexer* p)
     k=p->gcpara1[n][2];
 
         // 1
-        if(p->flag1[UIm1JK]<AIR || p->flag1[UIJK]<AIR)
+        if(p->flag1[Im1JK]<AIR || p->flag1[IJK]<AIR)
         p->gcpara1[n][3]=p->Y71;
 
-        if(p->flag1[UIm1JK]>=AIR && p->flag1[UIJK]>=AIR)
+        if((p->flag1[Im1JK]>=AIR || p->flag4[Im1JK]>=AIR) && (p->flag1[IJK]>=AIR || p->flag4[IJK]>=AIR))
         p->gcpara1[n][3]=1;
 
         // 2
-        if(p->flag2[VIm1JK]<AIR || p->flag2[VIJK]<AIR)
+        if(p->flag2[Im1JK]<AIR || p->flag2[IJK]<AIR)
         p->gcpara1[n][4]=p->Y72;
 
-        if(p->flag2[VIm1JK]>=AIR && p->flag2[VIJK]>=AIR)
+        if(p->flag2[Im1JK]>=AIR && p->flag2[IJK]>=AIR)
         p->gcpara1[n][4]=1;
         
         if(j + p->origin_j >= p->gknoy-1)
         p->gcpara1[n][4]=p->Y72;
         
         // 3
-        if(p->flag3[WIm1JK]<AIR || p->flag3[WIJK]<AIR)
+        if(p->flag3[Im1JK]<AIR || p->flag3[IJK]<AIR)
         p->gcpara1[n][5]=p->Y73;
 
-        if(p->flag3[WIm1JK]>=AIR && p->flag3[WIJK]>=AIR)
+        if(p->flag3[Im1JK]>=AIR && p->flag3[IJK]>=AIR)
         p->gcpara1[n][5]=1;
         
         if(k + p->origin_k >= p->gknoz-1)
@@ -84,27 +84,27 @@ void ghostcell::gcxupdate(lexer* p)
     k=p->gcpara2[n][2];
         
         // 1
-        if(p->flag1[UIJp1K]<AIR || p->flag1[UIJK]<AIR)
+        if(p->flag1[IJp1K]<AIR || p->flag1[IJK]<AIR)
         p->gcpara2[n][3]=p->Y71;
 
-        if(p->flag1[UIJp1K]>=AIR && p->flag1[UIJK]>=AIR)
+        if(p->flag1[IJp1K]>=AIR && p->flag1[IJK]>=AIR)
         p->gcpara2[n][3]=1;
         
         if(i + p->origin_i >= p->gknox-1)
         p->gcpara2[n][3]=p->Y71;
         
         // 2
-        if(p->flag2[VIJp1K]<AIR || p->flag2[VIJK]<AIR)
+        if(p->flag2[IJp1K]<AIR || p->flag2[IJK]<AIR)
         p->gcpara2[n][4]=p->Y72;
 
-        if(p->flag2[VIJp1K]>=AIR && p->flag2[VIJK]>=AIR)
+        if((p->flag2[IJp1K]>=AIR || p->flag4[IJp1K]>=AIR) && (p->flag2[IJK]>=AIR || p->flag4[IJK]>=AIR))
         p->gcpara2[n][4]=1;
         
         // 3
-        if(p->flag3[WIJp1K]<AIR || p->flag3[WIJK]<AIR)
+        if(p->flag3[IJp1K]<AIR || p->flag3[IJK]<AIR)
         p->gcpara2[n][5]=p->Y73;
 
-        if(p->flag3[WIJp1K]>=AIR && p->flag3[WIJK]>=AIR)
+        if(p->flag3[IJp1K]>=AIR && p->flag3[IJK]>=AIR)
         p->gcpara2[n][5]=1;
         
         if(k + p->origin_k >= p->gknoz-1)
@@ -136,27 +136,27 @@ void ghostcell::gcxupdate(lexer* p)
     k=p->gcpara3[n][2];
 
         // 1
-        if(p->flag1[UIJm1K]<AIR || p->flag1[UIJK]<AIR)
+        if(p->flag1[IJm1K]<AIR || p->flag1[IJK]<AIR)
         p->gcpara3[n][3]=p->Y71;
 
-        if(p->flag1[UIJm1K]>=AIR && p->flag1[UIJK]>=AIR)
+        if(p->flag1[IJm1K]>=AIR && p->flag1[IJK]>=AIR)
         p->gcpara3[n][3]=1;
         
         if(i + p->origin_i >= p->gknox-1)
         p->gcpara3[n][3]=p->Y71;
         
         // 2
-        if(p->flag2[VIJm1K]<AIR || p->flag2[VIJK]<AIR)
+        if(p->flag2[IJm1K]<AIR || p->flag2[IJK]<AIR)
         p->gcpara3[n][4]=p->Y72;
 
-        if(p->flag2[VIJm1K]>=AIR && p->flag2[VIJK]>=AIR)
+        if(p->flag2[IJm1K]>=AIR && p->flag2[IJK]>=AIR)
         p->gcpara3[n][4]=1;
         
         // 3
-        if(p->flag3[WIJm1K]<AIR || p->flag3[WIJK]<AIR)
+        if(p->flag3[IJm1K]<AIR || p->flag3[IJK]<AIR)
         p->gcpara3[n][5]=p->Y73;
 
-        if(p->flag3[WIJm1K]>=AIR && p->flag3[WIJK]>=AIR)
+        if((p->flag3[IJm1K]>=AIR || p->flag4[IJp1K]>=AIR) && (p->flag3[IJK]>=AIR || p->flag4[IJp1K]>=AIR))
         p->gcpara3[n][5]=1;
         
         if(k + p->origin_k >= p->gknoz-1)
@@ -188,27 +188,27 @@ void ghostcell::gcxupdate(lexer* p)
     k=p->gcpara4[n][2];
 
         // 1
-        if(p->flag1[UIp1JK]<AIR || p->flag1[UIJK]<AIR)
+        if(p->flag1[Ip1JK]<AIR || p->flag1[IJK]<AIR)
         p->gcpara4[n][3]=p->Y71;
 
-        if(p->flag1[UIp1JK]>=AIR && p->flag1[UIJK]>=AIR)
+        if((p->flag1[Ip1JK]>=AIR || p->flag4[Ip1JK]>=AIR) && (p->flag1[IJK]>=AIR || p->flag4[IJK]>=AIR))
         p->gcpara4[n][3]=1;
         
         // 2
-        if(p->flag2[VIp1JK]<AIR || p->flag2[VIJK]<AIR)
+        if(p->flag2[Ip1JK]<AIR || p->flag2[IJK]<AIR)
         p->gcpara4[n][4]=p->Y72;
 
-        if(p->flag2[VIp1JK]>=AIR && p->flag2[VIJK]>=AIR)
+        if(p->flag2[Ip1JK]>=AIR && p->flag2[IJK]>=AIR)
         p->gcpara4[n][4]=1;
         
         if(j + p->origin_j >= p->gknoy-1)
         p->gcpara4[n][4]=p->Y72;
         
         // 3
-        if(p->flag3[WIp1JK]<AIR || p->flag3[WIJK]<AIR)
+        if(p->flag3[Ip1JK]<AIR || p->flag3[IJK]<AIR)
         p->gcpara4[n][5]=p->Y73;
 
-        if(p->flag3[WIp1JK]>=AIR && p->flag3[WIJK]>=AIR)
+        if(p->flag3[Ip1JK]>=AIR && p->flag3[IJK]>=AIR)
         p->gcpara4[n][5]=1;
         
         if(k + p->origin_k >= p->gknoz-1)
@@ -240,30 +240,30 @@ void ghostcell::gcxupdate(lexer* p)
     k=p->gcpara5[n][2];
 
         // 1
-        if(p->flag1[UIJKm1]<AIR || p->flag1[UIJK]<AIR)
+        if(p->flag1[IJKm1]<AIR || p->flag1[IJK]<AIR)
         p->gcpara5[n][3]=p->Y71;
 
-        if(p->flag1[UIJKm1]>=AIR && p->flag1[UIJK]>=AIR)
+        if(p->flag1[IJKm1]>=AIR && p->flag1[IJK]>=AIR)
         p->gcpara5[n][3]=1;
         
         if(i + p->origin_i >= p->gknox-1)
         p->gcpara5[n][3]=p->Y71;
         
         // 2
-        if(p->flag2[VIJKm1]<AIR || p->flag2[VIJK]<AIR)
+        if(p->flag2[IJKm1]<AIR || p->flag2[IJK]<AIR)
         p->gcpara5[n][4]=p->Y72;
 
-        if(p->flag2[VIJKm1]>=AIR && p->flag2[VIJK]>=AIR)
+        if(p->flag2[IJKm1]>=AIR && p->flag2[IJK]>=AIR)
         p->gcpara5[n][4]=1;
         
         if(j + p->origin_j >= p->gknoy-1)
         p->gcpara5[n][4]=p->Y72;
         
         // 3
-        if(p->flag3[WIJKm1]<AIR || p->flag3[WIJK]<AIR)
+        if(p->flag3[IJKm1]<AIR || p->flag3[IJK]<AIR)
         p->gcpara5[n][5]=p->Y73;
 
-        if(p->flag3[WIJKm1]>=AIR && p->flag3[WIJK]>=AIR)
+        if(p->flag3[IJKm1]>=AIR && p->flag3[IJK]>=AIR)
         p->gcpara5[n][5]=1;
         
         // 4
@@ -292,30 +292,30 @@ void ghostcell::gcxupdate(lexer* p)
     k=p->gcpara6[n][2];
 
         // 1
-        if(p->flag1[UIJKp1]<AIR || p->flag1[UIJK]<AIR)
+        if(p->flag1[IJKp1]<AIR || p->flag1[IJK]<AIR)
         p->gcpara6[n][3]=p->Y71;
 
-        if(p->flag1[UIJKp1]>=AIR && p->flag1[UIJK]>=AIR)
+        if(p->flag1[IJKp1]>=AIR && p->flag1[IJK]>=AIR)
         p->gcpara6[n][3]=1;
         
         if(i + p->origin_i >= p->gknox-1)
         p->gcpara6[n][3]=p->Y71;
         
         // 2
-        if(p->flag2[VIJKp1]<AIR || p->flag2[VIJK]<AIR)
+        if(p->flag2[IJKp1]<AIR || p->flag2[IJK]<AIR)
         p->gcpara6[n][4]=p->Y72;
 
-        if(p->flag2[VIJKp1]>=AIR && p->flag2[VIJK]>=AIR)
+        if(p->flag2[IJKp1]>=AIR && p->flag2[IJK]>=AIR)
         p->gcpara6[n][4]=1;
         
         if(j + p->origin_j >= p->gknoy-1)
         p->gcpara6[n][4]=p->Y72;
         
         // 3
-        if(p->flag3[WIJKp1]<AIR || p->flag3[WIJK]<AIR)
+        if(p->flag3[IJKp1]<AIR || p->flag3[IJK]<AIR)
         p->gcpara6[n][5]=p->Y73;
 
-        if(p->flag3[WIJKp1]>=AIR && p->flag3[WIJK]>=AIR)
+        if(p->flag3[IJKp1]>=AIR && p->flag3[IJK]>=AIR)
         p->gcpara6[n][5]=1;
         
         // 4
