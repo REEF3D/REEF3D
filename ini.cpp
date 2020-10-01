@@ -64,6 +64,7 @@ void lexer::ini_default()
     A320=1;		  // int order of Laplace equation
     A321=1;      // int boundary condition order for 4th-order Laplace equation
     A322=5;      // int maxiter for 4th-order Laplace after 2nd-order solution
+    A329=1;      // int wave maker BC order
     A341=0.0;    // double coastline damping distance factor for dxm
     A342=0.0;    // double coastline damping absolute distance
     A343=1;      // int turn on wetting-drying
@@ -342,9 +343,9 @@ void lexer::ini_default()
     H15=5;          // int convection for heat transfer
 	H50_1=20.0; // double temperature 1
 	H50_2=20.0; // double temperature 2
-	H51=0.0;		    // double i-dir zero level set start
-	H52=0.0;		    // double j-dir zero level set start
-	H53=0.0;		    // double k-dir zero level set start
+	H51=-1.0e7;		    // double i-dir zero level set start
+	H52=-1.0e7;		    // double j-dir zero level set start
+	H53=-1.0e7;		    // double k-dir zero level set start
 	H54=1.0e7;		// double i-dir zero level set end
 	H55=1.0e7;		// double j-dir zero level set end
 	H56=1.0e7;		// double k-dir zero level set end
@@ -582,6 +583,8 @@ void lexer::ini_default()
 	W30=0;			// int air compressibility on/off
 	W31=20.0;		// double temperature for air compressibility in celsius
     W41=0;         // int velocity source phase 1
+    W50=0.0;        // double air inflow
+    W50_air=0;      // int air inflow switch
     W90=0;           // int non-newtownian flow
     W95=0.001;       // double nu_0
 	W96=1.0;         // double tau_0

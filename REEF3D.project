@@ -275,6 +275,7 @@
           <File Name="fnpf_fsf.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FNPF">
+          <File Name="fnpf_RK2.h"/>
           <File Name="fnpf_v.h"/>
           <File Name="fnpf_RK3.h"/>
           <File Name="fnpf_RK4.h"/>
@@ -1210,6 +1211,7 @@
           <File Name="fnpf_breaking.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FNPF">
+          <File Name="fnpf_RK2.cpp"/>
           <File Name="fnpf_v.cpp"/>
           <File Name="fnpf_RK4.cpp"/>
           <File Name="fnpf_RK3.cpp"/>

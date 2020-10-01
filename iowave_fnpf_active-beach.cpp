@@ -99,16 +99,21 @@ void iowave::active_beach_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi
 			}
           
         
-         
+        if(p->A329==1)
+        { 
         Fifsf(i+1,j) = Fifsf(i,j) + Uc*fx*1.0*p->DXP[IP1];
         Fifsf(i+2,j) = Fifsf(i,j) + Uc*fx*2.0*p->DXP[IP1];
         Fifsf(i+3,j) = Fifsf(i,j) + Uc*fx*3.0*p->DXP[IP1];
+        }
         
-        //cout<<p->mpirank<<" AWA Uc: "<<Uc<<" fx: "<<fx<<" p->DXP[IM1]: "<<p->DXP[IM1]<<" FiFsF_i "<<Fifsf(i,j)<<" FiFsF_i+1 "<<Fifsf(i+1,j)<<endl;
+        if(p->A329>=2)
+        {
+        Fifsf(i+1,j) = (4.0/3.0)*Fifsf(i,j) - (1.0/3.0)*Fifsf(i-1,j) - (2.0/3.0)*Uc*fx*(-0.5*p->XP[IM1] + 2.0*p->XP[IP] - 1.5*p->XP[IP1]);
+        Fifsf(i+2,j) = (4.0/3.0)*Fifsf(i,j) - (1.0/3.0)*Fifsf(i-1,j) - (2.0/3.0)*Uc*fx*(-0.5*p->XP[IM1] + 2.0*p->XP[IP] - 1.5*p->XP[IP2]);
+        Fifsf(i+3,j) = (4.0/3.0)*Fifsf(i,j) - (1.0/3.0)*Fifsf(i-1,j) - (2.0/3.0)*Uc*fx*(-0.5*p->XP[IM1] + 2.0*p->XP[IP] - 1.5*p->XP[IP3]);
+        }
+        
 
 		}
-        
-
-
-      
+              
 }

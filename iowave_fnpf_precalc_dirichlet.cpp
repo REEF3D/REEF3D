@@ -44,7 +44,7 @@ void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
         Fifsfval[count] = wave_u(p,pgc,xg,yg,z);
         ++count;
         }
-        
+        /*
         count=0;
 		for(n=0;n<p->gcslin_count;n++)
         {
@@ -69,7 +69,7 @@ void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
             Fival[count] = 0.0;
             ++count;
             }
-        }
+        }*/
         
         // Uin
         count=0;

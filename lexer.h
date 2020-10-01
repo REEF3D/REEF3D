@@ -264,7 +264,7 @@ public:
     double A223,A244_val,A245_val,A247,A249,A251_val;
     
     // FNPF
-    int A310,A311,A312,A313,A320,A321,A322,A343,A344,A345;
+    int A310,A311,A312,A313,A320,A321,A322,A329,A343,A344,A345;
     double A341,A342,A344_val,A345_val,A346;
     int A350,A351,A352,A361,A362,A363,A368;
     double A354,A355,A356,A365,A369; 
@@ -430,6 +430,8 @@ public:
 	int W30;
     int W41;
     double *W41_xc,*W41_yc,*W41_zs,*W41_ze,*W41_vel,*W41_beta;
+    double W50;
+    int W50_air;
     int W90;
     double W95,W96,W97,W98;
     int W101;
@@ -600,7 +602,7 @@ public:
     double *sig;
     double *sigx,*sigy,*sigz;
     double *sigxx;
-	
+
 private:
 
 //boundary

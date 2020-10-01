@@ -143,6 +143,7 @@ void ghostcell::gcsl_setbcio(lexer *p)
         p->gcslin[count1][1]=j;
         p->gcslin[count1][3]=cs;
         p->gcslin[count1][4]=bc;
+        p->gcslin[count1][5]=1;
         ++count1;
         }
 
@@ -152,6 +153,7 @@ void ghostcell::gcsl_setbcio(lexer *p)
         p->gcslout[count2][1]=j;
         p->gcslout[count2][3]=cs;
         p->gcslout[count2][4]=bc;
+        p->gcslout[count2][5]=1;
         ++count2;
         }
     }  

@@ -108,6 +108,8 @@ void lexer::ctrlrecv()
 	ii++;
     A322 = ictrl[ii];
 	ii++;
+    A329 = ictrl[ii];
+	ii++;
     A341 = dctrl[dd];
 	dd++;
     A342 = dctrl[dd];
@@ -1124,6 +1126,10 @@ void lexer::ctrlrecv()
 	W31 = dctrl[dd];
     dd++;
     W41 = ictrl[ii];
+    ii++;
+    W50 = dctrl[dd];
+    dd++;
+    W50_air = ictrl[ii];
     ii++;
     W90 = ictrl[ii];
     ii++;

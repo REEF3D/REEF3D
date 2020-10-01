@@ -41,11 +41,12 @@ double r;
     LOOP
 	T(i,j,k)=p->H50_2;
 
+    double psi=1.0e-20;
 
 	LOOP
-	if(p->XN[IP]>=p->H51 && p->XN[IP]<p->H54
-	&& p->YN[JP]>=p->H52 && p->YN[JP]<p->H55
-	&& p->ZN[KP]>=p->H53 && p->ZN[KP]<p->H56)
+	if(p->XP[IP]>p->H51-psi && p->XP[IP]<p->H54+psi
+	&& p->YP[JP]>p->H52-psi && p->YP[JP]<p->H55+psi
+	&& p->ZP[KP]>p->H53-psi && p->ZP[KP]<p->H56+psi)
 	T(i,j,k)=p->H50_1;
 
 
