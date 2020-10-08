@@ -61,7 +61,7 @@ void ghostcell::solid_update(lexer *p, fdm *a)
     flagx(p,p->flag3);
     
     gcxupdate(p);
-    
+  
     m1.fillgcb(p);
     m1.extragcb(p);
     m1.mgcsetup(p);

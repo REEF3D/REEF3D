@@ -171,11 +171,12 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
     j=p->gcpara1[q][1];
     k=p->gcpara1[q][2];
         
-        if(p->gcpara1[q][2+gcv]==1)
+        if(p->gcpara1[q][2+gcv]>=1)
         for(n=0;n<paramargin;++n)
         {
-        f(i-n-1,j,k)=recv1[count];
-        ++count;
+            if(p->gcpara1[q][2+gcv]==1)
+            f(i-n-1,j,k)=recv1[count];
+            ++count;
         }
     }
 
@@ -186,11 +187,12 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
     j=p->gcpara3[q][1];
     k=p->gcpara3[q][2];
         
-        if(p->gcpara3[q][2+gcv]==1)
+        if(p->gcpara3[q][2+gcv]>=1)
         for(n=0;n<paramargin;++n)
         {
-        f(i,j-n-1,k)=recv3[count];
-        ++count;
+            if(p->gcpara3[q][2+gcv]==1)
+            f(i,j-n-1,k)=recv3[count];
+            ++count;
         }
 	}
 
@@ -201,11 +203,12 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
     j=p->gcpara5[q][1];
     k=p->gcpara5[q][2];
         
-        if(p->gcpara5[q][2+gcv]==1)
+        if(p->gcpara5[q][2+gcv]>=1)
         for(n=0;n<paramargin;++n)
         {
-        f(i,j,k-n-1)=recv5[count];
-        ++count;
+            if(p->gcpara5[q][2+gcv]==1)
+            f(i,j,k-n-1)=recv5[count];
+            ++count;
         }
     }
 
@@ -216,11 +219,12 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
     j=p->gcpara4[q][1];
     k=p->gcpara4[q][2];
         
-        if(p->gcpara4[q][2+gcv]==1)
+        if(p->gcpara4[q][2+gcv]>=1)
         for(n=0;n<paramargin;++n)
         {
-        f(i+n+1,j,k)=recv4[count];
-        ++count;
+            if(p->gcpara4[q][2+gcv]==1)
+            f(i+n+1,j,k)=recv4[count];
+            ++count;
         }
 	}
 
@@ -231,11 +235,12 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
     j=p->gcpara2[q][1];
     k=p->gcpara2[q][2];
         
-        if(p->gcpara2[q][2+gcv]==1)
+        if(p->gcpara2[q][2+gcv]>=1)
         for(n=0;n<paramargin;++n)
         {
-        f(i,j+n+1,k)=recv2[count];
-        ++count;
+            if(p->gcpara2[q][2+gcv]==1)
+            f(i,j+n+1,k)=recv2[count];
+            ++count;
         }
 	}
 
@@ -246,11 +251,12 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
     j=p->gcpara6[q][1];
     k=p->gcpara6[q][2];
         
-        if(p->gcpara6[q][2+gcv]==1)
+        if(p->gcpara6[q][2+gcv]>=1)
         for(n=0;n<paramargin;++n)
-        {
-        f(i,j,k+n+1)=recv6[count];
-        ++count;
+        {  
+            if(p->gcpara6[q][2+gcv]==1)
+            f(i,j,k+n+1)=recv6[count];
+            ++count;
         }
 	}
 

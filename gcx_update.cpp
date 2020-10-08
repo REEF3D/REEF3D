@@ -106,11 +106,11 @@ void ghostcell::gcxupdate(lexer* p)
         if(p->flag2[IJp1K]>=AIR  && p->flag2[IJK]>=AIR)
         p->gcpara2[n][4]=1;
         
-        if(p->flag1[IJK]<AIR && p->flag4[IJK]>=AIR && p->flag1[IJp1K]>AIR && p->flag4[IJp1K]>=AIR)
-        p->gcpara4[n][4]=1;
+        if(p->flag2[IJK]<AIR && p->flag4[IJK]>=AIR && p->flag2[IJp1K]>AIR && p->flag4[IJp1K]>=AIR)
+        p->gcpara2[n][4]=1;
         
-        if(p->flag1[IJK]>=AIR && p->flag4[IJK]>=AIR && p->flag1[IJp1K]<AIR && p->flag4[IJp1K]>=AIR)
-        p->gcpara4[n][4]=2;
+        if(p->flag2[IJK]>=AIR && p->flag4[IJK]>=AIR && p->flag2[IJp1K]<AIR && p->flag4[IJp1K]>=AIR)
+        p->gcpara2[n][4]=2;
         
         // 3
         if(p->flag3[IJp1K]<AIR || p->flag3[IJK]<AIR)
@@ -165,11 +165,11 @@ void ghostcell::gcxupdate(lexer* p)
         p->gcpara3[n][4]=1;
 
         
-        if(p->flag1[IJK]<AIR && p->flag4[IJK]>=AIR && p->flag1[IJp1K]>AIR && p->flag4[IJp1K]>=AIR)
-        p->gcpara4[n][4]=1;
+        if(p->flag2[IJK]<AIR && p->flag4[IJK]>=AIR && p->flag2[IJm1K]>AIR && p->flag4[IJm1K]>=AIR)
+        p->gcpara3[n][4]=1;
         
-        if(p->flag1[IJK]>=AIR && p->flag4[IJK]>=AIR && p->flag1[IJp1K]<AIR && p->flag4[IJp1K]>=AIR)
-        p->gcpara4[n][4]=2;
+        if(p->flag2[IJK]>=AIR && p->flag4[IJK]>=AIR && p->flag2[IJm1K]<AIR && p->flag4[IJm1K]>=AIR)
+        p->gcpara3[n][4]=2;
         
         // 3
         if(p->flag3[IJm1K]<AIR || p->flag3[IJK]<AIR)
@@ -292,10 +292,10 @@ void ghostcell::gcxupdate(lexer* p)
         p->gcpara5[n][5]=1;
         
         if(p->flag3[IJK]<AIR && p->flag4[IJK]>=AIR && p->flag3[IJKm1]>AIR && p->flag4[IJKm1]>=AIR)
-        p->gcpara1[n][3]=1;
+        p->gcpara5[n][5]=1;
         
         if(p->flag3[IJK]>=AIR && p->flag4[IJK]>=AIR && p->flag3[IJKm1]<AIR && p->flag4[IJKm1]>=AIR)
-        p->gcpara1[n][3]=2;
+        p->gcpara5[n][5]=2;
         
         // 4
         if(p->flag4[IJKm1]<AIR || p->flag4[IJK]<AIR)
@@ -350,10 +350,10 @@ void ghostcell::gcxupdate(lexer* p)
         p->gcpara6[n][5]=1;
         
         if(p->flag3[IJK]<AIR && p->flag4[IJK]>=AIR && p->flag3[IJKp1]>AIR && p->flag4[IJKp1]>=AIR)
-        p->gcpara4[n][5]=1;
+        p->gcpara6[n][5]=1;
         
         if(p->flag3[IJK]>=AIR && p->flag4[IJK]>=AIR && p->flag3[IJKp1]<AIR && p->flag4[IJKp1]>=AIR)
-        p->gcpara4[n][5]=2;
+        p->gcpara6[n][5]=2;
         
         // 4
         if(p->flag4[IJKp1]<AIR || p->flag4[IJK]<AIR)
