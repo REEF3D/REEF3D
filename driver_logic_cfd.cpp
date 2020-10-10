@@ -526,8 +526,11 @@ void driver::logic()
     if(p->I11==0)
     potflow = new potential_v;
 
-    if(p->I11==1 )
+    if(p->I11==1)
     potflow = new potential_f(p);
+    
+    if(p->I11==2)
+    potflow = new potential_water(p);
 
 // Benchmark
     if(p->F150==0)

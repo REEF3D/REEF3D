@@ -547,6 +547,7 @@
         <File Name="norm_vec.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Potential Flow">
+        <File Name="potential_water.h"/>
         <File Name="potential.h"/>
         <File Name="potential_f.h"/>
         <File Name="potential_v.h"/>
@@ -1615,6 +1616,7 @@
         <File Name="norm_vec.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Potential Flow">
+        <File Name="potential_water.cpp"/>
         <File Name="potential_f.cpp"/>
         <File Name="potential_v.cpp"/>
       </VirtualDirectory>

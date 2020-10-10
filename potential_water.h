@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,36 +20,45 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"convection_void.h"
-#include"fou.h"
-#include"ifou.h"
-#include"cds2.h"
-#include"cds2_alt.h"
-#include"cds4.h"
-#include"quick.h"
-#include"weno_hj.h"
-#include"weno_hj_nug.h"
-#include"weno_flux.h"
-#include"weno_flux_nug.h"
-#include"weno_flux_nug_dir.h"
-#include"iweno_hj.h"
-#include"iweno_hj_nug.h"
-#include"weno3_hj.h"
-#include"weno3_flux.h"
-#include"diff_void.h"
-#include"ediff2.h"
-#include"idiff2.h"
-#include"idiff2_FS.h"
-#include"idiff2_FS_v2.h"
-#include"idiff2_FS_2D.h"
+#include"potential.h"
+#include"increment.h"
+#include"fieldint4.h"
 
-#include"hires.h"
+class field;
 
-#include"hric.h"
-#include"hric_mod.h"
-#include"cicsam.h"
+using namespace std;
 
-#include"potential_v.h"
-#include"potential_f.h"
-#include"potential_water.h"
+#ifndef POTENTIAL_WATER_H_
+#define POTENTIAL_WATER_H_
+
+class potential_water : public potential, public increment
+{
+
+public:
+	potential_water(lexer* p);
+	virtual ~potential_water();
+
+	virtual void start(lexer*,fdm*, solver*, ghostcell* pgc);
+
+
+private:
+    void rhs(lexer*,fdm*);
+	void ucalc(lexer*,fdm*,field&);
+	void vcalc(lexer*,fdm*,field&);
+	void wcalc(lexer*,fdm*,field&);
+    
+    void laplace(lexer*,fdm*,field&);
+    void ini_bc(lexer*,fdm*,ghostcell*);
+    
+    
+	double starttime,endtime;
+	int count;
+	int gcval_pot;
+    
+    fieldint4 bc;
+    
+    const double eps;
+};
+
+#endif
 

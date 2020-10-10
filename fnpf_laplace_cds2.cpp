@@ -117,11 +117,11 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             c->M.p[n] += c->M.s[n];
             c->M.s[n] = 0.0;
             
-            if(k==0)
+            /*if(k==0)
             cout<<"FI_sb: "<<f[FIm1JKm1]<<" "<<f[FIJKm1]<<endl;
             
             if(k==p->knoz-1)
-            cout<<"FI_st: "<<f[FIm1JKp1]<<endl;
+            cout<<"FI_st: "<<f[FIm1JKp1]<<endl;*/
             }
             
             
