@@ -165,6 +165,11 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Rheology">
+            <File Name="sflow_rheology_v.h"/>
+            <File Name="sflow_rheology_f.h"/>
+            <File Name="sflow_rheology.h"/>
+          </VirtualDirectory>
           <File Name="fdm2D.h"/>
           <VirtualDirectory Name="Time">
             <File Name="sflow_timestep.h"/>
@@ -1078,6 +1083,11 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Rheology">
+            <File Name="sflow_rheology_Herschel-Bulkley.cpp"/>
+            <File Name="sflow_rheology_v.cpp"/>
+            <File Name="sflow_rheology_f.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Time">
             <File Name="sflow_ietimestep.cpp"/>
             <File Name="sflow_fixtimestep.cpp"/>
