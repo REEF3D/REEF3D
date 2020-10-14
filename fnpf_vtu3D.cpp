@@ -177,6 +177,10 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
     pwsfline_y->start(p,c,pgc,pflow,c->eta);
 
+    if((p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0))
+        {
+        p->probeprinttime+=p->P55;
+        }
 
     // Print state out based on iteration
     if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && p->P41>0)

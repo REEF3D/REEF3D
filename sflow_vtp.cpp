@@ -200,16 +200,21 @@ result.close();
 
 	// Gages
 	if(p->P51>0)
-	pwsf->height_gauge(p,b,pgc,b->eta);
+		pwsf->height_gauge(p,b,pgc,b->eta);
 
-    if((p->P52>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P52>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
-    pwsfline->start(p,b,pgc,pflow,b->eta);
+  if((p->P52>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P52>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
+  	pwsfline->start(p,b,pgc,pflow,b->eta);
 
-    if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
-    pwsfline_y->start(p,b,pgc,pflow,b->eta);
+  if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
+  	pwsfline_y->start(p,b,pgc,pflow,b->eta);
 
-    if(p->P63>0 && p->count%p->P54==0)
-	pprobe->start(p,b,pgc);
+	if((p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0))
+		{
+			p->probeprinttime+=p->P55;
+		}
+
+  if(p->P63>0 && p->count%p->P54==0)
+		pprobe->start(p,b,pgc);
 }
 
 void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
