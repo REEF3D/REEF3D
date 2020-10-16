@@ -68,19 +68,7 @@ wb 13
 wt 14
 */
 
-/*
- * {{0,0}, {-1,0}, {1,0},  {0,-1}, {0,1}, {-1,-1},{-1,1},{1,-1},{1,1}};
-p  0
-s  1
-n  2
-b  3
-t  4
-sb 5
-st 6
-nb 7
-nt 8
 
-*/
 
 void fnpf_laplace_cds2_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv_reg, fnpf_fsf *pf, double *f)
 {
@@ -99,6 +87,20 @@ void fnpf_laplace_cds2_v2::laplace2D(lexer* p, fdm_fnpf *c, ghostcell *pgc, solv
     double fbxm,fbxp,fbym,fbyp;
     p->poissoniter=0;
     p->poissontime=0.0;
+    
+/*
+ * {{0,0}, {-1,0}, {1,0},  {0,-1}, {0,1}, {-1,-1},{-1,1},{1,-1},{1,1}};
+p  0
+s  1
+n  2
+b  3
+t  4
+sb 5
+st 6
+nb 7
+nt 8
+
+*/
 
 	n=0;
     KJILOOP
