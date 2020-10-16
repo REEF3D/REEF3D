@@ -44,8 +44,6 @@ void sflow_rough_manning::u_source(lexer *p, fdm2D *b, slice &u)
     
     cf = pow(manning,2.0)*9.81/pow(HXIJ,1.0/3.0);
     
-    //cout<<cf*u(i,j)*fabs(u(i,j))*(1.0/HXIJ)<<endl;
-    
     b->F(i,j) -= cf*u(i,j)*fabs(u(i,j))*(1.0/HXIJ);
     }
 }
