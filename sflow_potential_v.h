@@ -20,42 +20,29 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"potential.h"
+#include"sflow_potential.h"
 #include"increment.h"
-#include"fieldint4.h"
+#include"sliceint4.h"
 
-class field;
+class slice;
 
 using namespace std;
 
-#ifndef POTENTIAL_F_H_
-#define POTENTIAL_F_H_
+#ifndef SFLOW_POTENTIAL_V_H_
+#define SFLOW_POTENTIAL_V_H_
 
-class potential_f : public potential, public increment
+class sflow_potential_v : public sflow_potential, public increment
 {
 
 public:
-	potential_f(lexer*);
-	virtual ~potential_f();
+	sflow_potential_v(lexer*);
+	virtual ~sflow_potential_v();
 
-	virtual void start(lexer*,fdm*, solver*, ghostcell*);
+	virtual void start(lexer*,fdm2D*, solver2D*, ghostcell*);
 
 
 private:
-    void rhs(lexer*,fdm*);
-	void ucalc(lexer*,fdm*,field&);
-	void vcalc(lexer*,fdm*,field&);
-	void wcalc(lexer*,fdm*,field&);
-    
-    void laplace(lexer*,fdm*,field&);
-    void ini_bc(lexer*,fdm*,ghostcell*);
-    
-    
-	double starttime,endtime;
-	int count;
-	int gcval_pot;
-    
-    fieldint4 bc;
+
 };
 
 #endif

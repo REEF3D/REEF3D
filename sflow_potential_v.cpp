@@ -10,53 +10,30 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"potential.h"
-#include"increment.h"
-#include"fieldint4.h"
+#include"sflow_potential_v.h"
+#include"solver2D.h"
+#include"ghostcell.h"
+#include"fdm2D.h"
+#include"lexer.h"
+#include<iomanip>
 
-class field;
-
-using namespace std;
-
-#ifndef POTENTIAL_F_H_
-#define POTENTIAL_F_H_
-
-class potential_f : public potential, public increment
+sflow_potential_v::sflow_potential_v(lexer* p)
 {
+}
 
-public:
-	potential_f(lexer*);
-	virtual ~potential_f();
+sflow_potential_v::~sflow_potential_v()
+{
+}
 
-	virtual void start(lexer*,fdm*, solver*, ghostcell*);
-
-
-private:
-    void rhs(lexer*,fdm*);
-	void ucalc(lexer*,fdm*,field&);
-	void vcalc(lexer*,fdm*,field&);
-	void wcalc(lexer*,fdm*,field&);
-    
-    void laplace(lexer*,fdm*,field&);
-    void ini_bc(lexer*,fdm*,ghostcell*);
-    
-    
-	double starttime,endtime;
-	int count;
-	int gcval_pot;
-    
-    fieldint4 bc;
-};
-
-#endif
-
+void sflow_potential_v::start(lexer *p, fdm2D *b, solver2D *psolv, ghostcell *pgc)
+{
+}

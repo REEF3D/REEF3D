@@ -29,6 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_weno_flux.h"
 #include"sflow_eta.h"
 #include"sflow_hydrostatic.h"
+#include"sflow_potential.h"
 #include"sflow_vtp.h"
 #include"sflow_vtp_bed.h"
 #include"sflow_sediment.h"
@@ -72,6 +73,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     ptime->ini(p,b ,pgc);
 
     pflow->ini2D(p,b,pgc);
+    potflow->start(p,b,ppoissonsolv,pgc);
 
     // FSF ini
     ini_fsf(p,b,pgc);

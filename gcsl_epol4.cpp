@@ -154,6 +154,20 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
 	if(gcv==30)
 	return 4;
     
+    // Potential Ini
+	else
+	if((bc==21||bc==22||bc==5||bc==41||bc==42||bc==43||bc==9)&&(gcv==49))
+	return 4;
+
+	else
+	if((bc==2||bc==1||bc==6||bc==7||bc==8)&&(gcv==49))
+	return 7;
+	
+	else
+	if(bc==3 && gcv==49)
+	return 4;
+    
+    
     else
     return -1;
 }
@@ -174,6 +188,9 @@ void ghostcell::gcsldistro4(lexer *p, slice &f, int ii, int jj, int nn, double d
     
     if(bc_label==5)
 	gcsl_noslip(f,gcv,bc,cs);
+    
+    if(bc_label==7)
+	gcsl_potentialbc(p,f,bc,cs);
     
     if(bc_label==8)
 	gcsl_sommerfeld(p,f,gcv,bc,cs);

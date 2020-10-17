@@ -274,6 +274,7 @@ public:
     void gcsl_sommerfeld(lexer*,slice&,int,int,int);
     void gcsl_outflow(lexer*,slice&,int,int,int);
     void gcsl_outflow_fsf(lexer*,slice&,int,int,int);
+    void gcsl_potentialbc(lexer*,slice&,int,int);
 
     // parallel
     void gcslparax(lexer*, slice&, int);
