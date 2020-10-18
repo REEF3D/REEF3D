@@ -61,7 +61,7 @@ void ioflow_f::Qin2D(lexer *p, fdm2D* b, ghostcell* pgc)
         if(b->wet4(i,j)==1)
         {
     
-        area = p->DXM*b->hp(i+1,j);
+        area = p->DYN[JP]*b->hp(i-1,j);
         
         Ai+=area;
         p->Qi+=area*b->P(i,j);
@@ -97,7 +97,7 @@ void ioflow_f::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
     i=p->gcslout[n][0];
     j=p->gcslout[n][1];
     
-        area = p->DXM*b->hp(i,j);
+        area = p->DYN[JP]*b->hp(i,j);
         
         Ao+=area;
         p->Qo+=area*b->P(i,j);

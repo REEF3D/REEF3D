@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void ghostcell::gcsl_potentialbc(lexer *p, slice& f, int bc, int cs)
 {
     if(cs==1)
-	f(i-1,j) =  p->Ui*p->DXP[IP] + f(i,j);
+	f(i-1,j) =  -p->Ui*p->DXP[IP] + f(i,j);
 
 	if(cs==4)
 	f(i+1,j) =  p->Uo*p->DXP[IP] + f(i,j);

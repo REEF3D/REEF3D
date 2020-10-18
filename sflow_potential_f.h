@@ -42,7 +42,6 @@ public:
 
 
 private:
-    void rhs(lexer*,fdm2D*);
 	void ucalc(lexer*,fdm2D*,slice&);
 	void vcalc(lexer*,fdm2D*,slice&);
     
