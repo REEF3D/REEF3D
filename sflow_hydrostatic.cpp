@@ -61,8 +61,17 @@ void sflow_hydrostatic::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 {
 	if(p->A221>=1)
     SLICELOOP1
+    {
+    if(i+p->origin_i<p->gknox-2)
     b->F(i,j) -= fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) 
-                                 - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM); 
+                                 - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
+
+    if(i+p->origin_i>=p->gknox-2)
+    b->F(i,j) -= fabs(p->W22)*(p->A223*(-p->wd) + (1.0-p->A223)*(-p->wd) 
+                                 - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
+                                 
+                                 
+    }
 }
 
 void sflow_hydrostatic::vpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
