@@ -66,7 +66,12 @@ void sflow_potential_f::start(lexer *p, fdm2D *b, solver2D *psolv, ghostcell *pg
 
     pgc->gcsl_start4(p,psi,gcval_pot);
 
-
+    if(p->mpirank==0)
+    {    
+        cout<<"Ui: "<<p->Ui<<endl;
+        cout<<"Uo: "<<p->Uo<<endl;
+    }
+    
     laplace(p,b,psi);
     psolv->start(p,pgc,psi,b->M,b->xvec,b->rhsvec,4,gcval_pot,p->N44);
     pgc->gcsl_start4(p,psi,gcval_pot);
@@ -163,7 +168,7 @@ void sflow_potential_f::laplace(lexer *p, fdm2D *b, slice &phi)
         
         if(p->flagslice4[Im1J]<0 && bc(i-1,j)==1)
 		{
-        b->rhsvec.V[n] += b->M.s[n]*(p->Ui/HP)*p->DXP[IM1];
+        b->rhsvec.V[n] += b->M.s[n]*(p->Ui*HP)*p->DXP[IM1];
 		b->M.p[n] += b->M.s[n];
 		b->M.s[n] = 0.0;
 		}
@@ -176,7 +181,7 @@ void sflow_potential_f::laplace(lexer *p, fdm2D *b, slice &phi)
         
         if(p->flagslice4[Ip1J]<0 && bc(i+1,j)==2)
 		{
-        b->rhsvec.V[n] -= b->M.n[n]*(p->Uo/HP)*p->DXP[IP1];
+        b->rhsvec.V[n] -= b->M.n[n]*(p->Uo*HP)*p->DXP[IP1];
 
 		b->M.n[n] = 0.0;
 		}
@@ -238,7 +243,6 @@ void sflow_potential_f::ini_bc(lexer *p, fdm2D *b, ghostcell *pgc)
             if(p->gcbsl4[n][3]==4)
             bc(i+1,j)=1;
             
-            cout<<"BC1: "<<endl;
  
         }
         

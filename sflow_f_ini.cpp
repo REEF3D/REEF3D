@@ -72,8 +72,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 
     ptime->ini(p,b ,pgc);
 
-    pflow->ini2D(p,b,pgc);
-    potflow->start(p,b,ppoissonsolv,pgc);
+    
 
     // FSF ini
     ini_fsf(p,b,pgc);
@@ -82,7 +81,9 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     b->wet4(i,j)=1;
 
 
-
+    // ioflow ini
+    pflow->ini2D(p,b,pgc);
+    potflow->start(p,b,ppoissonsolv,pgc);
 
 
 	// P,Q ini
