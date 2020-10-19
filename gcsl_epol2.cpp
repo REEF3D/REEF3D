@@ -57,11 +57,6 @@ int ghostcell::gcsleval2(lexer *p, int gcv, int bc, int cs)
 	else
 	if(bc==3 && (cs==2||cs==3)&&(gcv==11||gcv==21|| gcv==2))
 	return 5;
-    
-    /*
-    else
-	if(bc==8 && (gcv==11||gcv==21|| gcv==2) && p->B99==4)
-	return 8;*/
 	
 //Hy
     else
@@ -70,10 +65,6 @@ int ghostcell::gcsleval2(lexer *p, int gcv, int bc, int cs)
     
     else
     if((bc==2||bc==7)&&(gcv==51||gcv==54))
-	return 4;
-    
-    else
-    if(bc==2)
 	return 4;
     
     else
