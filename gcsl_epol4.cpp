@@ -52,19 +52,6 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
 	if((bc==8) && (gcv==41 || gcv==42 || gcv==43 || gcv==44))
 	return 4;
     
-    /*
-    else
-	if((bc==3||bc==21||bc==2) && (gcv==41 || gcv==42 || gcv==43 || gcv==44))
-	return 4;
-    
-    else
-	if((bc==1||bc==6) && (gcv==42  || gcv==44))
-	return 4;
-    
-    else
-	if(bc==2 && (gcv==41  || gcv==44))
-	return 4;*/
-    
     // Fifsf 60
     else
     if((cs==2 || cs==3) && gcv==60)
@@ -90,7 +77,7 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
     
     else
     if((bc==2||bc==7)&&(gcv==51||gcv==54))
-	return 24;
+	return 4;
     
     else
     if(bc==8 && (gcv==51||gcv==52||gcv==53||gcv==54) &&p->B99==3)
@@ -194,9 +181,6 @@ void ghostcell::gcsldistro4(lexer *p, slice &f, int ii, int jj, int nn, double d
     
     if(bc_label==8)
 	gcsl_sommerfeld(p,f,gcv,bc,cs);
-    
-    if(bc_label==24)
-	gcsl_neumann_eta_outflow(f,gcv,bc,cs);
 }
 
 

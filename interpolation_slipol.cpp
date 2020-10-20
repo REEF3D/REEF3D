@@ -179,7 +179,7 @@ double interpolation::sl_ipol4eta(slice &f, slice &bed)
     
     if(value+p->wd>bedvalue)
     if(value+p->wd-bedvalue<wd_criterion)
-    value=value-1.0*wd_criterion;
+    value=value-3.0*wd_criterion;
     
   
 

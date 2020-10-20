@@ -133,10 +133,12 @@ public:
 private:
 
     int n,count;
-    double area,Ai,Ao,Ui,fac;
+    double area,Ai,Ao,Hi,Ho,Ui,fac;
     double zval;
     double *walldin, *walldout;
 	int walldin_size, walldout_size;
+    double hval;
+    int hcount;
 	
 	double distcalc(lexer*,double, double, double);
 	double r1(lexer*, double, double);

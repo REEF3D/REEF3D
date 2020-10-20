@@ -126,7 +126,7 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
 	
-	// depth
+	// 
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
     
@@ -164,7 +164,7 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"elevation\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-	result<<"<DataArray type=\"Float32\" Name=\"depth\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"waterlevel\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"breaking\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -247,12 +247,12 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	result.write((char*)&ffn, sizeof (float));
 	}
 	
-	//  Depth
+	//  Waterlevel
 	iin=4*(p->pointnum2D);
 	result.write((char*)&iin, sizeof (int));
 	TPSLICELOOP
 	{
-	ffn=float(p->sl_ipol4(b->depth));
+	ffn=float(p->sl_ipol4(b->hp));
 	result.write((char*)&ffn, sizeof (float));
 	}
     

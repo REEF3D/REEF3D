@@ -43,8 +43,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 nsewave_f::nsewave_f(lexer *p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc) : 
                 epsi(p->A440*p->DXM),depth(p),bed(p),L(p),hp(p),hx(p),hy(p)
 {
-	peta = new sflow_eta_weno(p);
-	phxy = new sflow_hxy_weno(p);
+	//peta = new sflow_eta_weno(p);
+	//phxy = new sflow_hxy_weno(p);
 	
 	
 	// bed ini

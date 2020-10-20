@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 class lexer;
 class slice;
+class fdm2D;
 
 #ifndef SFLOW_HX_DISC_H_
 #define SFLOW_HX_DISC_H_

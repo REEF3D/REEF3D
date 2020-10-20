@@ -32,21 +32,23 @@ void ioflow_f::discharge2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	if(p->count==0)
     if(p->mpirank==0)
     {
-    cout<<"Inflow_0:  "<<setprecision(5)<<p->W10<<" Ui: "<<p->Ui<<" Ai: "<<Ai<<endl;
-    cout<<"Outflow_0: "<<setprecision(5)<<p->W10<<" Uo: "<<p->Uo<<" Ao: "<<Ao<<endl;
+    cout<<"Inflow_0:  "<<setprecision(5)<<p->W10<<" Ui: "<<p->Ui<<" Ai: "<<Ai<<" Hi: "<<Hi<<endl;
+    cout<<"Outflow_0: "<<setprecision(5)<<p->W10<<" Uo: "<<p->Uo<<" Ao: "<<Ao<<" Ho: "<<Ho<<endl;
     }
 	
 	if(p->count>0)
 	if(p->mpirank==0)
     {
-    cout<<"Inflow:  "<<setprecision(5)<<p->Qi<<" Ui: "<<p->Ui<<" Ai: "<<Ai<<endl;
-    cout<<"Outflow: "<<setprecision(5)<<p->Qo<<" Uo: "<<p->Uo<<" Ao: "<<Ao<<endl;
+    cout<<"Inflow:  "<<setprecision(5)<<p->Qi<<" Ui: "<<p->Ui<<" Ai: "<<Ai<<" Hi: "<<Hi<<endl;
+    cout<<"Outflow: "<<setprecision(5)<<p->Qo<<" Uo: "<<p->Uo<<" Ao: "<<Ao<<" Ho: "<<Ho<<endl;
     }
 }
 
 void ioflow_f::Qin2D(lexer *p, fdm2D* b, ghostcell* pgc)
 {
     area=0.0;
+    hval=0.0;
+    hcount=0;
     Ai=0.0;
     p->Qi=0.0;
     p->Ui=0.0;
@@ -65,11 +67,18 @@ void ioflow_f::Qin2D(lexer *p, fdm2D* b, ghostcell* pgc)
         
         Ai+=area;
         p->Qi+=area*b->P(i,j);
+        
+        hval += b->hp(i,j);
+        ++hcount;
         }
     }
     
     Ai=pgc->globalsum(Ai);
     p->Qi=pgc->globalsum(p->Qi);
+    Hi=pgc->globalsum(hval);
+    hcount=pgc->globalisum(hcount);
+    
+    Hi = Hi/(hcount>1.0e-20?hcount:1.0e20); 
     
     if(p->B60==1)
     p->Ui=p->W10/(Ai>1.0e-20?Ai:1.0e20); 
@@ -87,6 +96,8 @@ void ioflow_f::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
 {
     area=0.0;
     Ao=0.0;
+    hval=0.0;
+    hcount=0;
     p->Qo=0.0;
     p->Uo=0.0;
 
@@ -101,10 +112,17 @@ void ioflow_f::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
         
         Ao+=area;
         p->Qo+=area*b->P(i,j);
+        
+        hval += b->hp(i,j);
+        ++hcount;
     }
     
     Ao=pgc->globalsum(Ao);
     p->Qo=pgc->globalsum(p->Qo);
+    Ho=pgc->globalsum(hval);
+    hcount=pgc->globalisum(hcount);
+    
+    Ho = Ho/(hcount>1.0e-20?hcount:1.0e20); 
 	
 	if(p->B60==1)
 	p->Uo=p->W10/(Ao>1.0e-20?Ao:1.0e20);

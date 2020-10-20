@@ -47,7 +47,7 @@ int ghostcell::gcsleval2(lexer *p, int gcv, int bc, int cs)
 //Outflow
 	else
 	if((bc==2)&&(cs==2||cs==3) && (gcv==11||gcv==21||gcv==2))
-	return 7;
+	return 4;
 	
 // Symmetry
 	else

@@ -266,10 +266,28 @@ void sflow_pjm_quad::poisson(lexer*p, fdm2D* b, double alpha)
 
 void sflow_pjm_quad::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 {
-        if(p->A221==1)
+    if(p->A221==1)
+    {
         SLICELOOP1
+        {
         b->F(i,j) -= fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) 
-                                 - p->A223*eta(i,j) -  (1.0-p->A223)*eta_n(i,j) )/(p->DXM); 
+                                     - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
+        }
+        
+        if(p->B77==2)
+        for(n=0;n<p->gcslout_count;n++)
+        {
+        i=p->gcslout[n][0]-1;
+        j=p->gcslout[n][1];
+        
+        b->F(i,j) += fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) 
+                                     - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
+                                     
+        b->F(i,j) -= fabs(p->W22)*(p->A223*(b->bed(i,j)-p->wd) + (1.0-p->A223)*(b->bed(i,j)-p->wd)
+                                     - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
+                                     
+        }
+    }
                                 
         if(p->A221==2)           
         SLICELOOP1
