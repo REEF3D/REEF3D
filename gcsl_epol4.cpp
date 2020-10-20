@@ -90,7 +90,7 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
     
     else
     if((bc==2||bc==7)&&(gcv==51||gcv==54))
-	return 4;
+	return 24;
     
     else
     if(bc==8 && (gcv==51||gcv==52||gcv==53||gcv==54) &&p->B99==3)
@@ -194,6 +194,9 @@ void ghostcell::gcsldistro4(lexer *p, slice &f, int ii, int jj, int nn, double d
     
     if(bc_label==8)
 	gcsl_sommerfeld(p,f,gcv,bc,cs);
+    
+    if(bc_label==24)
+	gcsl_neumann_eta_outflow(f,gcv,bc,cs);
 }
 
 

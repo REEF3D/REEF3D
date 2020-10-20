@@ -240,8 +240,6 @@ void lexer::ctrlrecv()
 	ii++;
     B75 = ictrl[ii];
 	ii++;
-	B76 = ictrl[ii];
-	ii++;
 	B77 = ictrl[ii];
 	ii++;
 	B81 = ictrl[ii];

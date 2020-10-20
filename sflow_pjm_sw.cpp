@@ -47,24 +47,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
  
 sflow_pjm_sw::sflow_pjm_sw(lexer* p, fdm2D *b) : wb(p), wsn(p), wbn(p)
 {
-    if(p->B76==0)
     gcval_press=40;  
 
-    if(p->B76==1)
-    gcval_press=41;
-
-    if(p->B76==2)
-    gcval_press=42;
-
-    if(p->B76==3)
-    gcval_press=43;
-	
-	if(p->B76==4) 
-    gcval_press=44;
-	
-	if(p->B76==5) 
-    gcval_press=45;
-	
 	gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;

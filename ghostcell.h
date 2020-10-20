@@ -268,6 +268,7 @@ public:
 
     // Slice BCs
     void gcsl_neumann(slice&,int,int,int);
+    void gcsl_neumann_eta_outflow(slice&,int,int,int);
     void gcsl_neumann_x(slice&,int,int,int);
     void gcsl_neumann_int(sliceint&,int,int,int);
 	void gcsl_noslip(slice&,int,int,int);
