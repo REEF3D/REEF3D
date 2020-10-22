@@ -66,6 +66,7 @@ void lexer::vellast()
 
     if(nb4>=0)
     ulast=0;
+    
 
     if(nb2>=0)
     vlast=0;
@@ -77,4 +78,13 @@ void lexer::vellast()
     
     if(A10==3)
     flast=1;
+    
+    
+    ulastsflow=1;
+    
+    if(nb4>=0)
+    ulastsflow=0;
+    
+    if(F50==51 || F50==54)
+    ulastsflow=0;
 }

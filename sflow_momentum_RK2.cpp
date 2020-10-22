@@ -77,7 +77,7 @@ sflow_momentum_RK2::~sflow_momentum_RK2()
 
 void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 {	
-    
+    /*
         GCSL1LOOP
         {
         i = p->gcbsl1[n][0];
@@ -85,7 +85,7 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
                 
             if(p->gcbsl1[n][4]==2)
             {
-            cout<<"HX: "<<b->hx(i,j)<<"  HX_i+1: "<<b->hx(i+1,j)<<" | P: "<<b->P(i,j)<<"  P_i+1: "<<b->P(i+1,j)<<endl;
+            cout<<"HX: "<<b->hx(i,j)<<"  HX_i+1: "<<b->hx(i+1,j)<<" |  P_i-1: "<<b->P(i-1,j)<<" P: "<<b->P(i,j)<<"  P_i+1: "<<b->P(i+1,j)<<endl;
             }
         }
         
@@ -110,7 +110,7 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
             cout<<"eta: "<<b->eta(i,j)<<"  eta_i+1: "<<b->eta(i+1,j)<<endl;
             }
         }
-        
+        */
         
         
     pflow->discharge2D(p,b,pgc);

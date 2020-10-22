@@ -262,7 +262,7 @@ void sflow_pjm_lin::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
         if(p->B77==2)
         for(n=0;n<p->gcslout_count;n++)
         {
-        i=p->gcslout[n][0]-1;
+        i=p->gcslout[n][0];
         j=p->gcslout[n][1];
         
         if(b->wet4(i,j)==1)
@@ -270,7 +270,7 @@ void sflow_pjm_lin::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
         b->F(i,j) += fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) 
                                      - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
                                      
-        b->F(i,j) -= fabs(p->W22)*(p->A223*(b->bed(i,j)-p->wd) + (1.0-p->A223)*(b->bed(i,j)-p->wd)
+        b->F(i,j) -= fabs(p->W22)*(p->A223*eta(i+1,j)*0.5 + (1.0-p->A223)*eta(i+1,j)*0.5 
                                      - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
         }
                                      

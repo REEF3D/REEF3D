@@ -187,7 +187,7 @@ public:
 	int mpi_edgenum,mpi_nodes,mpi_size;
 	int *mpi_index, *mpi_edges;
 	
-	int ulast,vlast,wlast,flast;
+	int ulast,vlast,wlast,flast,ulastsflow;
 	int velcorr;
 	int* ictrl;
 	double* dctrl;
