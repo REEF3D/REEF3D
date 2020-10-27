@@ -1094,6 +1094,7 @@
             <File Name="sflow_potential_f.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Rheology">
+            <File Name="sflow_rheology_bingham.cpp"/>
             <File Name="sflow_rheology_Herschel-Bulkley.cpp"/>
             <File Name="sflow_rheology_v.cpp"/>
             <File Name="sflow_rheology_f.cpp"/>

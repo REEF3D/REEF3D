@@ -31,6 +31,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"solver2D.h"
 #include"sflow_rough_manning.h"
 #include"sflow_rough_void.h"
+#include"sflow_rheology_f.h"
+#include"sflow_rheology_v.h"
 
 sflow_momentum_RK2::sflow_momentum_RK2(lexer *p, fdm2D *b, sflow_convection *pconvection, sflow_diffusion *ppdiff, sflow_pressure* ppressure,
                                                     solver2D *psolver, solver2D *ppoissonsolver, ioflow *pioflow, sflow_fsf *pfreesurf)
@@ -69,6 +71,13 @@ sflow_momentum_RK2::sflow_momentum_RK2(lexer *p, fdm2D *b, sflow_convection *pco
     
     if(p->A218==1)
     prough = new sflow_rough_manning(p);
+    
+    
+    if(p->W90==0)
+    prheo = new sflow_rheology_v(p);
+    
+    if(p->W90==1)
+    prheo = new sflow_rheology_f(p);
 }
 
 sflow_momentum_RK2::~sflow_momentum_RK2()
@@ -76,43 +85,7 @@ sflow_momentum_RK2::~sflow_momentum_RK2()
 }
 
 void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
-{	
-    /*
-        GCSL1LOOP
-        {
-        i = p->gcbsl1[n][0];
-        j = p->gcbsl1[n][1];
-                
-            if(p->gcbsl1[n][4]==2)
-            {
-            cout<<"HX: "<<b->hx(i,j)<<"  HX_i+1: "<<b->hx(i+1,j)<<" |  P_i-1: "<<b->P(i-1,j)<<" P: "<<b->P(i,j)<<"  P_i+1: "<<b->P(i+1,j)<<endl;
-            }
-        }
-        
-        GCSL4LOOP
-        {
-        i = p->gcbsl4[n][0];
-        j = p->gcbsl4[n][1];
-                
-            if(p->gcbsl4[n][4]==2)
-            {
-            cout<<"HP: "<<b->hp(i,j)<<"  HP_i+1: "<<b->hp(i+1,j)<<endl;
-            }
-        }
-        
-        GCSL4LOOP
-        {
-        i = p->gcbsl4[n][0];
-        j = p->gcbsl4[n][1];
-            
-            if(p->gcbsl4[n][4]==2)
-            {
-            cout<<"eta: "<<b->eta(i,j)<<"  eta_i+1: "<<b->eta(i+1,j)<<endl;
-            }
-        }
-        */
-        
-        
+{	        
     pflow->discharge2D(p,b,pgc);
     pflow->inflow2D(p,b,pgc,b->P,b->Q,b->bed,b->eta);
     pflow->inflow2D(p,b,pgc,Prk1,Qrk1,b->bed,b->eta);
@@ -142,6 +115,7 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	ppress->upgrad(p,b,etark1,b->eta);
 	irhs(p,b,pgc,b->P,1.0);
     prough->u_source(p,b,b->P);
+    prheo->u_source(p,b,b->P);
 	pconvec->start(p,b,b->P,1,b->P,b->Q);
 	pdiff->diff_u(p,b,pgc,psolv,b->P,b->Q,1.0);
 
@@ -160,6 +134,7 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	ppress->vpgrad(p,b,etark1,b->eta);
 	jrhs(p,b,pgc,b->Q,1.0);
     prough->v_source(p,b,b->Q);
+    prheo->v_source(p,b,b->Q);
 	pconvec->start(p,b,b->Q,2,b->P,b->Q);
 	pdiff->diff_v(p,b,pgc,psolv,b->P,b->Q,1.0);
 
@@ -226,6 +201,7 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	ppress->upgrad(p,b,b->eta,etark1);
 	irhs(p,b,pgc,Prk1,0.5);
     prough->u_source(p,b,Prk1);
+    prheo->u_source(p,b,Prk1);
 	pconvec->start(p,b,Prk1,1,Prk1,Qrk1);
 	pdiff->diff_u(p,b,pgc,psolv,Prk1,Qrk1,0.5);
 
@@ -244,6 +220,7 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	ppress->vpgrad(p,b,b->eta,etark1);
 	jrhs(p,b,pgc,Qrk1,0.5);
     prough->v_source(p,b,Qrk1);
+    prheo->v_source(p,b,Qrk1);
 	pconvec->start(p,b,Qrk1,2,Prk1,Qrk1);
 	pdiff->diff_v(p,b,pgc,psolv,Prk1,Qrk1,0.5);
 

@@ -120,33 +120,33 @@ void sflow_pjm_lin::ucorr(lexer* p, fdm2D* b, slice& P, slice &eta, double alpha
 {	
 	SLICELOOP1
     if(b->breaking(i,j)==0 && b->breaking(i+1,j)==0)
-	P(i,j) -= alpha*p->dt*(((b->press(i+1,j)-b->press(i,j))/(p->DXM)));
+	P(i,j) -= alpha*p->dt*(((b->press(i+1,j)-b->press(i,j))/(p->DXM*p->W1)));
 
     if(p->A222==1)           
     SLICELOOP1
     if(b->breaking(i,j)==0 && b->breaking(i+1,j)==0)
 	P(i,j) += alpha*p->dt*((b->press(i+1,j)+b->press(i,j))*(b->depth(i+1,j)-b->depth(i,j))     
-				             /(p->DXM*HPXP));
+				             /(p->DXM*HPXP*p->W1));
 }
 
 void sflow_pjm_lin::vcorr(lexer* p, fdm2D* b, slice& Q, slice &eta, double alpha)
 {	
 	SLICELOOP2
     if(b->breaking(i,j)==0 && b->breaking(i,j+1)==0)
-	Q(i,j) -= alpha*p->dt*(((b->press(i,j+1)-b->press(i,j))/(p->DXM)));
+	Q(i,j) -= alpha*p->dt*(((b->press(i,j+1)-b->press(i,j))/(p->DXM*p->W1)));
                 
     if(p->A222==1)
     SLICELOOP2
     if(b->breaking(i,j)==0 && b->breaking(i,j+1)==0)
 	Q(i,j) += alpha*p->dt*((b->press(i,j+1)+b->press(i,j))*(b->depth(i,j+1)-b->depth(i,j))
-                            /(p->DXM*HPYP));
+                            /(p->DXM*HPYP*p->W1));
 }
 
 void sflow_pjm_lin::wcorr(lexer* p, fdm2D* b, double alpha, slice &P, slice &Q, slice &ws)
 {	    
     SLICELOOP4
     if(b->breaking(i,j)==0)
-	ws(i,j) += p->dt*alpha*(2.0*b->press(i,j)/HP);
+	ws(i,j) += p->dt*alpha*(2.0*b->press(i,j)/(HP*p->W1));
 }
 
 void sflow_pjm_lin::wcalc(lexer* p, fdm2D* b,double alpha, slice &P, slice &Q, slice &ws)
@@ -186,7 +186,7 @@ void sflow_pjm_lin::poisson(lexer*p, fdm2D* b, double alpha)
     SLICELOOP4
 	{
 	b->M.p[n]  =  (b->hp(i,j)*sqd + b->hp(i,j)*sqd)*p->x_dir
-               +  (b->hp(i,j)*sqd + b->hp(i,j)*sqd)*p->y_dir + 2.0/HP;     
+               +  (b->hp(i,j)*sqd + b->hp(i,j)*sqd)*p->y_dir + 2.0/(HP*p->W1);     
                
 
    	b->M.n[n] = -b->hp(i,j)*sqd*p->x_dir;
