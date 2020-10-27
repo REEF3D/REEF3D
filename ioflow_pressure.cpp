@@ -25,6 +25,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void ioflow_f::pressure_io(lexer *p, fdm* a, ghostcell *pgc)
 {
+    
+    pressure_outlet(p,a,pgc);
 }
 
 void ioflow_f::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
@@ -38,7 +40,7 @@ void ioflow_f::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
         k=p->gcout[n][2];
 		pval=0.0;
 		
-			if(p->B77==1)
+			if(p->B77==-1)
 			{
 			pval=(p->phiout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
 			
