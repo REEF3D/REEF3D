@@ -52,7 +52,7 @@ void sflow_rheology_f::v_source(lexer *p, fdm2D *b, slice &v)
     press = 0.5*(b->press(i,j) + b->press(i,j+1)) + p->W1*fabs(p->W22)*0.5*(b->hp(i,j) + b->hp(i,j+1));
     tau_zy = bingham(p,b,v(i,j),press);
     
-    b->G(i,j) -= tau_zy/(HXIJ*p->W1);
+    b->G(i,j) -= tau_zy/(HYIJ*p->W1);
     }   
 }
 

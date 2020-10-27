@@ -107,6 +107,11 @@ void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slic
 	// cell center
 	SLICELOOP4
 	b->depth(i,j) = p->wd - b->bed(i,j);
+    
+    
+    SLICELOOP4
+        if(etark(i,j)< -p->wd  + b->bed(i,j)-factor*wd_criterion)
+        etark(i,j) = -p->wd  + b->bed(i,j)-factor*wd_criterion;
 
     if(p->A243>=2)
     {

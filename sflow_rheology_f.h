@@ -27,8 +27,8 @@ Author: Hans Bihs
 #ifndef SFLOW_RHEOLOGY_F_H_
 #define SFLOW_RHEOLOGY_F_H_
 
-#define HXIJ (fabs(b->hx(i,j))>1.0e-20?b->hx(i,j):1.0e20)
-#define HYIJ (fabs(b->hy(i,j))>1.0e-20?b->hy(i,j):1.0e20)
+#define HXIJ (fabs(b->hx(i,j))>1.0e-10?b->hx(i,j):1.0e20)
+#define HYIJ (fabs(b->hy(i,j))>1.0e-10?b->hy(i,j):1.0e20)
 
 using namespace std;
 
