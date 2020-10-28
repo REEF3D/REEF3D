@@ -29,7 +29,7 @@ momentum_void::~momentum_void()
 {
 }
 
-void momentum_void::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
+void momentum_void::start(lexer *p, fdm* a, ghostcell* pgc, vrans* pvrans)
 {
 }
 

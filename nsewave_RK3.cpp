@@ -90,7 +90,7 @@ nsewave_RK3::~nsewave_RK3()
 
 void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusion *pdiff, turbulence *pturb,
                       convection* pconvec, pressure *ppress, poisson *ppois, solver *ppoissonsolv, solver *psolv, 
-                      ioflow* pflow)
+                      ioflow* pflow, vrans* pvrans)
 {
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
@@ -104,7 +104,7 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	starttime=pgc->timer();
 
 	pturb->isource(p,a);
-	pflow->isource(p,a,pgc); 
+	pflow->isource(p,a,pgc,pvrans); 
 	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,a);
 	irhs(p,a,pgc,a->u,a->u,a->v,a->w,1.0);
@@ -121,7 +121,7 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	starttime=pgc->timer();
 
 	pturb->jsource(p,a);
-	pflow->jsource(p,a,pgc);
+	pflow->jsource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
 	ppress->vpgrad(p,a);
 	jrhs(p,a,pgc,a->v,a->u,a->v,a->w,1.0);
@@ -138,7 +138,7 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	starttime=pgc->timer();
 
 	pturb->ksource(p,a);
-	pflow->ksource(p,a,pgc);
+	pflow->ksource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
 	ppress->wpgrad(p,a);
 	krhs(p,a,pgc,a->w,a->u,a->v,a->w,1.0);
@@ -157,7 +157,7 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 
 	
     pflow->pressure_io(p,a,pgc);
-	ppress->start(a,p,ppois,ppoissonsolv,pgc,pmom,pflow, urk1, vrk1, wrk1, 1.0);
+	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, urk1, vrk1, wrk1, 1.0);
 	
 	pflow->u_relax(p,a,pgc,urk1);
 	pflow->v_relax(p,a,pgc,vrk1);
@@ -190,7 +190,7 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	starttime=pgc->timer();
 
 	pturb->isource(p,a);
-	pflow->isource(p,a,pgc);
+	pflow->isource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,a);
 	irhs(p,a,pgc,urk1,urk1,vrk1,wrk1,0.25);
@@ -207,7 +207,7 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	starttime=pgc->timer();
 
 	pturb->jsource(p,a);
-	pflow->jsource(p,a,pgc);
+	pflow->jsource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
 	ppress->vpgrad(p,a);
 	jrhs(p,a,pgc,vrk1,urk1,vrk1,wrk1,0.25);
@@ -224,7 +224,7 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	starttime=pgc->timer();
 
 	pturb->ksource(p,a);
-	pflow->ksource(p,a,pgc);
+	pflow->ksource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
 	ppress->wpgrad(p,a);
 	krhs(p,a,pgc,wrk1,urk1,vrk1,wrk1,0.25);
@@ -242,7 +242,7 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	pgc->start3(p,wrk2,gcval_wrk);
 	
     pflow->pressure_io(p,a,pgc);
-	ppress->start(a,p,ppois,ppoissonsolv,pgc,pmom,pflow, urk2, vrk2, wrk2,0.25);
+	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, urk2, vrk2, wrk2,0.25);
 	
 	pflow->u_relax(p,a,pgc,urk2);
 	pflow->v_relax(p,a,pgc,vrk2);
@@ -274,7 +274,7 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	starttime=pgc->timer();
 
 	pturb->isource(p,a);
-	pflow->isource(p,a,pgc);
+	pflow->isource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,a);
 	irhs(p,a,pgc,urk2,urk2,vrk2,wrk2,2.0/3.0);
@@ -291,7 +291,7 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	starttime=pgc->timer();
 
 	pturb->jsource(p,a);
-	pflow->jsource(p,a,pgc);
+	pflow->jsource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
 	ppress->vpgrad(p,a);
 	jrhs(p,a,pgc,vrk2,urk2,vrk2,wrk2,2.0/3.0);
@@ -308,7 +308,7 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	starttime=pgc->timer();
 
 	pturb->ksource(p,a);
-	pflow->ksource(p,a,pgc);
+	pflow->ksource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
 	ppress->wpgrad(p,a);
 	krhs(p,a,pgc,wrk2,urk2,vrk2,wrk2,2.0/3.0);
@@ -328,7 +328,7 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	//--------------------------------------------------------
 	// pressure
 	pflow->pressure_io(p,a,pgc);
-	ppress->start(a,p,ppois,ppoissonsolv,pgc,pmom,pflow, a->u, a->v,a->w,2.0/3.0);
+	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, a->u, a->v,a->w,2.0/3.0);
 	
 	pflow->u_relax(p,a,pgc,a->u);
 	pflow->v_relax(p,a,pgc,a->v);

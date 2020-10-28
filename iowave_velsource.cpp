@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"vrans.h"
 
-void iowave::isource(lexer *p, fdm *a, ghostcell *pgc)
+void iowave::isource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {	
 	NLOOP4
 	a->rhsvec.V[n]=0.0;
@@ -82,7 +82,7 @@ void iowave::isource(lexer *p, fdm *a, ghostcell *pgc)
     pvrans->u_source(p,a);
 }
 
-void iowave::jsource(lexer *p, fdm *a, ghostcell *pgc)
+void iowave::jsource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
 	NLOOP4
 	a->rhsvec.V[n]=0.0;
@@ -137,7 +137,7 @@ void iowave::jsource(lexer *p, fdm *a, ghostcell *pgc)
     pvrans->v_source(p,a);
 }
 
-void iowave::ksource(lexer *p, fdm *a, ghostcell *pgc)
+void iowave::ksource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
 	NLOOP4
 	a->rhsvec.V[n]=0.0;

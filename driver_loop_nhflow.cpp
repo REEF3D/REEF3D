@@ -76,7 +76,7 @@ void driver::loop_nhflow(fdm* a)
         pnhfsf->start(p,a,pgc,pflow);
         poneph->update(p,a,pgc,pflow);
 			
-            pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow);
+            pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
             pheat->start(a,p,pconvec,pdiff,psolv,pgc,pflow);
 			pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
             psusp->start(a,p,pconcdisc,psuspdiff,psolv,pgc,pflow);
@@ -85,14 +85,14 @@ void driver::loop_nhflow(fdm* a)
 		// Sediment Computation
         psed->start(p,a,pconvec,pgc,pflow,ptopo,preto,psusp,pbed);
 		
-		p6dof->start(p,a,pgc,pmom,pflow,pfsf,pfsfdisc,psolv,preini,ppart);
+		p6dof->start(p,a,pgc,pvrans,pnet);
 
         pbench->start(p,a,pgc,pconvec);
 
         //save previous timestep
         pturb->ktimesave(p,a,pgc);
         pturb->etimesave(p,a,pgc);
-        pflow->veltimesave(p,a,pgc);
+        pflow->veltimesave(p,a,pgc,pvrans);
 
         //timestep control
         ptstep->start(a,p,pgc,pturb);

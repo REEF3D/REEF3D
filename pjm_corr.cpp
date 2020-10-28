@@ -68,7 +68,7 @@ pjm_corr::~pjm_corr()
 {
 }
 
-void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, momentum *pmom, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
+void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
 {
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<".";
@@ -88,9 +88,9 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
 	
         endtime=pgc->timer();
     
-	pgc->start4(p,a->press,gcval_press);
-    presscorr(p,a,uvel,vvel,wvel,pcorr,alpha);
     pgc->start4(p,pcorr,40);
+    presscorr(p,a,uvel,vvel,wvel,pcorr,alpha);
+	pgc->start4(p,a->press,gcval_press);
 	
 	ucorr(p,a,uvel,alpha);
 	vcorr(p,a,vvel,alpha);

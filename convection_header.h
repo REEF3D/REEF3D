@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"lust.h"
 #include"weno_hj.h"
 #include"weno_hj_nug.h"
+#include"weno_hj_6DOF_nug.h"
 #include"weno_flux.h"
 #include"weno_flux_nug.h"
 #include"weno_flux_nug_dir.h"

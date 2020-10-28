@@ -58,7 +58,6 @@ cout<<"number of cells: "<<p->cellnumtot<<endl;
 
 	log_ini();
 
-
 if(p->mpirank==0)
 cout<<"starting driver_ini"<<endl;
     
@@ -74,11 +73,11 @@ cout<<"starting driver_ini"<<endl;
     if((p->G50>0 && p->G51>0) || p->G60>0 || p->G61>0)
     {
     geotopo gtopo(p,a,pgc);
-    gtopo.start(p,a,pgc,pflow,pconvec,preto);
+    gtopo.start(p,a,pgc,pflow,pconvec,preto,pvrans);
     }
     
 	// 6DOF
-	p6dof->initialize(p,a,pgc);
+	p6dof->initialize(p,a,pgc,pnet);
 
     // Sediment
 	if(p->S10>0)
