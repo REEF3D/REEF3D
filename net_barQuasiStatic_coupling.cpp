@@ -47,12 +47,6 @@ void net_barQuasiStatic::vransCoupling(lexer *p, fdm *a, ghostcell *pgc)
     // ray_cast(p,a,pgc);
     // reini_AB2(p,a,pgc,a->net);
 
-    //- Assign porosity
-    LOOP
-    {
-        a->porosity(i,j,k) = 1.0;
-    }
-    pgc->start4a(p,a->porosity,1);       
 }
 
 

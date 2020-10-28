@@ -29,6 +29,11 @@ vrans_net::vrans_net(lexer *p, fdm *a, ghostcell *pgc)
 : Fx_net(p), Fy_net(p), Fz_net(p),Fx_netI(p), Fy_netI(p), Fz_netI(p),kernel_x(p), kernel_y(p), kernel_z(p)
 {
     initialize(p,a,pgc);
+    
+	ALOOP
+    a->porosity(i,j,k) = 1.0;
+    
+    pgc->start4a(p,a->porosity,1);       
 }
 
 vrans_net::~vrans_net()
