@@ -83,16 +83,16 @@ void rheology_f::u_source(lexer *p, fdm *a)
         tau0=tanphi*pval + p->W102_c;
         
         if(p->W101==2)  // HB-C dry sand, without MAX -> issues with negative viscosity and Hypre
-        tau0 = (tanphi*pval + p->W102_c)*(1.0-exp(-p->W103*gamma));
+        tau0 = (tanphi*pval + p->W102_c);
             
         if(p->W101==3)  // HB-C hydrostatic  - MAX added for cells on the interface.
-        tau0 = MAX(0.0,tanphi*pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));    // rho_water = 1000.0, new input?
+        tau0 = MAX(0.0,tanphi*pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c);    // rho_water = 1000.0, new input?
             
         if(p->W101==4)  // HB-C shear rate generated excess pore pressure
-        tau0 = MAX(0.0,tanphi*pval*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));    // m_p is new input W 104 
+        tau0 = MAX(0.0,tanphi*pval*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c);    // m_p is new input W 104 
             
         if(p->W101==5)  // HB-C linear shear rate coupling, max given by pressure
-        tau0 = MAX(0.0,tanphi*MAX(0.0,pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k)-p->W104*gamma) + p->W102_c)*(1.0-exp(-p->W103*gamma));    // m_u also use new input W 104
+        tau0 = MAX(0.0,tanphi*MAX(0.0,pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k)-p->W104*gamma) + p->W102_c);    // m_u also use new input W 104
 
             if(p->count==0)
             tau0=p->W96;
@@ -177,26 +177,26 @@ void rheology_f::u_source(lexer *p, fdm *a)
         
         if(p->W101==2)  // HB-C dry sand, without MAX 
         {
-        tau01 = (tanphi*pval1 + p->W102_c)*(1.0-exp(-p->W103*gamma));
-        tau02 = (tanphi*pval2 + p->W102_c)*(1.0-exp(-p->W103*gamma));
+        tau01 = (tanphi*pval1 + p->W102_c);
+        tau02 = (tanphi*pval2 + p->W102_c);
         }
             
         if(p->W101==3)  // HB-C hydrostatic  - MAX added for cells on the interface.
         {
-        tau01 = MAX(0.0,tanphi*pval1*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));    
-        tau02 = MAX(0.0,tanphi*pval2*MAX(0.0,a->ro(i+1,j,k)-1000.0)/a->ro(i+1,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));   
+        tau01 = MAX(0.0,tanphi*pval1*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c);    
+        tau02 = MAX(0.0,tanphi*pval2*MAX(0.0,a->ro(i+1,j,k)-1000.0)/a->ro(i+1,j,k) + p->W102_c);   
         }
             
         if(p->W101==4)  // HB-C shear rate generated excess pore pressure
         {
-        tau01 = MAX(0.0,tanphi*pval1*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));  
-        tau02 = MAX(0.0,tanphi*pval2*exp(-p->W104*gamma)*MAX(0.0,a->ro(i+1,j,k)-1000.0)/a->ro(i+1,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));   
+        tau01 = MAX(0.0,tanphi*pval1*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c);  
+        tau02 = MAX(0.0,tanphi*pval2*exp(-p->W104*gamma)*MAX(0.0,a->ro(i+1,j,k)-1000.0)/a->ro(i+1,j,k) + p->W102_c);   
         }
             
         if(p->W101==5)  // HB-C linear shear rate coupling, max given by pressure
         {
-        tau01 = MAX(0.0,tanphi*MAX(0.0,pval1*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k)-p->W104*gamma) + p->W102_c)*(1.0-exp(-p->W103*gamma)); 
-        tau02 = MAX(0.0,tanphi*MAX(0.0,pval2*MAX(0.0,a->ro(i+1,j,k)-1000.0)/a->ro(i+1,j,k)-p->W104*gamma) + p->W102_c)*(1.0-exp(-p->W103*gamma)); 
+        tau01 = MAX(0.0,tanphi*MAX(0.0,pval1*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k)-p->W104*gamma) + p->W102_c); 
+        tau02 = MAX(0.0,tanphi*MAX(0.0,pval2*MAX(0.0,a->ro(i+1,j,k)-1000.0)/a->ro(i+1,j,k)-p->W104*gamma) + p->W102_c); 
         }   
 
             if(p->count==0)
@@ -316,16 +316,16 @@ void rheology_f::v_source(lexer *p, fdm *a)
     tau0=tanphi*pval + p->W102_c;
     
     if(p->W101==2)  // HB-C dry sand, without MAX -> issues with negative viscosity and Hypre
-    tau0 = (tanphi*pval + p->W102_c)*(1.0-exp(-p->W103*gamma));
+    tau0 = (tanphi*pval + p->W102_c);
         
     if(p->W101==3)  // HB-C hydrostatic  - MAX added for cells on the interface.
-    tau0 = MAX(0.0,tanphi*pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));    // rho_water = 1000.0, new input?
+    tau0 = MAX(0.0,tanphi*pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c);    // rho_water = 1000.0, new input?
         
     if(p->W101==4)  // HB-C shear rate generated excess pore pressure
-    tau0 = MAX(0.0,tanphi*pval*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));    // m_p is new input W 104 
+    tau0 = MAX(0.0,tanphi*pval*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c);    // m_p is new input W 104 
         
     if(p->W101==5)  // HB-C linear shear rate coupling, max given by pressure
-    tau0 = MAX(0.0,tanphi*MAX(0.0,pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k)-p->W104*gamma) + p->W102_c)*(1.0-exp(-p->W103*gamma));    // m_u also use new input W 104
+    tau0 = MAX(0.0,tanphi*MAX(0.0,pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k)-p->W104*gamma) + p->W102_c);    // m_u also use new input W 104
 
         if(p->count==0)
         tau0=p->W96;
@@ -433,16 +433,16 @@ void rheology_f::w_source(lexer *p, fdm *a)
         tau0=tanphi*pval + p->W102_c;
         
         if(p->W101==2)  // HB-C dry sand, without MAX -> issues with negative viscosity and Hypre
-        tau0 = (tanphi*pval + p->W102_c)*(1.0-exp(-p->W103*gamma));
+        tau0 = (tanphi*pval + p->W102_c);
             
         if(p->W101==3)  // HB-C hydrostatic  - MAX added for cells on the interface.
-        tau0 = MAX(0.0,tanphi*pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));    // rho_water = 1000.0, new input?
+        tau0 = MAX(0.0,tanphi*pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c);    // rho_water = 1000.0, new input?
             
         if(p->W101==4)  // HB-C shear rate generated excess pore pressure
-        tau0 = MAX(0.0,tanphi*pval*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));    // m_p is new input W 104 
+        tau0 = MAX(0.0,tanphi*pval*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c);    // m_p is new input W 104 
             
         if(p->W101==5)  // HB-C linear shear rate coupling, max given by pressure
-        tau0 = MAX(0.0,tanphi*MAX(0.0,pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k)-p->W104*gamma) + p->W102_c)*(1.0-exp(-p->W103*gamma));    // m_u also use new input W 104
+        tau0 = MAX(0.0,tanphi*MAX(0.0,pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k)-p->W104*gamma) + p->W102_c);    // m_u also use new input W 104
         
             if(p->count==0)
             tau0=p->W96;
@@ -528,26 +528,26 @@ void rheology_f::w_source(lexer *p, fdm *a)
         
         if(p->W101==2)  // HB-C dry sand, without MAX 
         {
-        tau01 = (tanphi*pval1 + p->W102_c)*(1.0-exp(-p->W103*gamma));
-        tau02 = (tanphi*pval2 + p->W102_c)*(1.0-exp(-p->W103*gamma));
+        tau01 = (tanphi*pval1 + p->W102_c);
+        tau02 = (tanphi*pval2 + p->W102_c);
         }
             
         if(p->W101==3)  // HB-C hydrostatic  - MAX added for cells on the interface.
         {
-        tau01 = MAX(0.0,tanphi*pval1*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));    
-        tau02 = MAX(0.0,tanphi*pval2*MAX(0.0,a->ro(i,j,k+1)-1000.0)/a->ro(i,j,k+1) + p->W102_c)*(1.0-exp(-p->W103*gamma));   
+        tau01 = MAX(0.0,tanphi*pval1*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c);    
+        tau02 = MAX(0.0,tanphi*pval2*MAX(0.0,a->ro(i,j,k+1)-1000.0)/a->ro(i,j,k+1) + p->W102_c);   
         }
             
         if(p->W101==4)  // HB-C shear rate generated excess pore pressure
         {
-        tau01 = MAX(0.0,tanphi*pval1*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));  
-        tau02 = MAX(0.0,tanphi*pval2*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k+1)-1000.0)/a->ro(i,j,k+1) + p->W102_c)*(1.0-exp(-p->W103*gamma));   
+        tau01 = MAX(0.0,tanphi*pval1*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c);  
+        tau02 = MAX(0.0,tanphi*pval2*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k+1)-1000.0)/a->ro(i,j,k+1) + p->W102_c);   
         }
             
         if(p->W101==5)  // HB-C linear shear rate coupling, max given by pressure
         {
-        tau01 = MAX(0.0,tanphi*MAX(0.0,pval1*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k)-p->W104*gamma) + p->W102_c)*(1.0-exp(-p->W103*gamma)); 
-        tau02 = MAX(0.0,tanphi*MAX(0.0,pval2*MAX(0.0,a->ro(i,j,k+1)-1000.0)/a->ro(i,j,k+1)-p->W104*gamma) + p->W102_c)*(1.0-exp(-p->W103*gamma)); 
+        tau01 = MAX(0.0,tanphi*MAX(0.0,pval1*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k)-p->W104*gamma) + p->W102_c); 
+        tau02 = MAX(0.0,tanphi*MAX(0.0,pval2*MAX(0.0,a->ro(i,j,k+1)-1000.0)/a->ro(i,j,k+1)-p->W104*gamma) + p->W102_c); 
         }   
 
             if(p->count==0)
@@ -667,16 +667,16 @@ void rheology_f::u_source(lexer *p, fdm *a)
         tau0=tanphi*pval + p->W102_c;
         
         if(p->W101==2)  // HB-C dry sand, without MAX -> issues with negative viscosity and Hypre
-        tau0 = (tanphi*pval + p->W102_c)*(1.0-exp(-p->W103*gamma));
+        tau0 = (tanphi*pval + p->W102_c);
             
         if(p->W101==3)  // HB-C hydrostatic  - MAX added for cells on the interface.
-        tau0 = MAX(0.0,tanphi*pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));    // rho_water = 1000.0, new input?
+        tau0 = MAX(0.0,tanphi*pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c);    // rho_water = 1000.0, new input?
             
         if(p->W101==4)  // HB-C shear rate generated excess pore pressure
-        tau0 = MAX(0.0,tanphi*pval*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));    // m_p is new input W 104 
+        tau0 = MAX(0.0,tanphi*pval*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c);    // m_p is new input W 104 
             
         if(p->W101==5)  // HB-C linear shear rate coupling, max given by pressure
-        tau0 = MAX(0.0,tanphi*MAX(0.0,pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k)-p->W104*gamma) + p->W102_c)*(1.0-exp(-p->W103*gamma));    // m_u also use new input W 104
+        tau0 = MAX(0.0,tanphi*MAX(0.0,pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k)-p->W104*gamma) + p->W102_c);    // m_u also use new input W 104
 
             if(p->count==0)
             tau0=p->W96;
@@ -762,26 +762,26 @@ void rheology_f::u_source(lexer *p, fdm *a)
         
         if(p->W101==2)  // HB-C dry sand, without MAX 
         {
-        tau01 = (tanphi*pval1 + p->W102_c)*(1.0-exp(-p->W103*gamma));
-        tau02 = (tanphi*pval2 + p->W102_c)*(1.0-exp(-p->W103*gamma));
+        tau01 = (tanphi*pval1 + p->W102_c);
+        tau02 = (tanphi*pval2 + p->W102_c);
         }
             
         if(p->W101==3)  // HB-C hydrostatic  - MAX added for cells on the interface.
         {
-        tau01 = MAX(0.0,tanphi*pval1*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));    
-        tau02 = MAX(0.0,tanphi*pval2*MAX(0.0,a->ro(i+1,j,k)-1000.0)/a->ro(i+1,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));   
+        tau01 = MAX(0.0,tanphi*pval1*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c);    
+        tau02 = MAX(0.0,tanphi*pval2*MAX(0.0,a->ro(i+1,j,k)-1000.0)/a->ro(i+1,j,k) + p->W102_c);   
         }
             
         if(p->W101==4)  // HB-C shear rate generated excess pore pressure
         {
-        tau01 = MAX(0.0,tanphi*pval1*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));  
-        tau02 = MAX(0.0,tanphi*pval2*exp(-p->W104*gamma)*MAX(0.0,a->ro(i+1,j,k)-1000.0)/a->ro(i+1,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));   
+        tau01 = MAX(0.0,tanphi*pval1*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c);  
+        tau02 = MAX(0.0,tanphi*pval2*exp(-p->W104*gamma)*MAX(0.0,a->ro(i+1,j,k)-1000.0)/a->ro(i+1,j,k) + p->W102_c);   
         }
             
         if(p->W101==5)  // HB-C linear shear rate coupling, max given by pressure
         {
-        tau01 = MAX(0.0,tanphi*MAX(0.0,pval1*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k)-p->W104*gamma) + p->W102_c)*(1.0-exp(-p->W103*gamma)); 
-        tau02 = MAX(0.0,tanphi*MAX(0.0,pval2*MAX(0.0,a->ro(i+1,j,k)-1000.0)/a->ro(i+1,j,k)-p->W104*gamma) + p->W102_c)*(1.0-exp(-p->W103*gamma)); 
+        tau01 = MAX(0.0,tanphi*MAX(0.0,pval1*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k)-p->W104*gamma) + p->W102_c); 
+        tau02 = MAX(0.0,tanphi*MAX(0.0,pval2*MAX(0.0,a->ro(i+1,j,k)-1000.0)/a->ro(i+1,j,k)-p->W104*gamma) + p->W102_c); 
         }   
 
             if(p->count==0)
@@ -984,16 +984,16 @@ void rheology_f::v_source(lexer *p, fdm *a)
     tau0=tanphi*pval + p->W102_c;
     
     if(p->W101==2)  // HB-C dry sand, without MAX -> issues with negative viscosity and Hypre
-    tau0 = (tanphi*pval + p->W102_c)*(1.0-exp(-p->W103*gamma));
+    tau0 = (tanphi*pval + p->W102_c);
         
     if(p->W101==3)  // HB-C hydrostatic  - MAX added for cells on the interface.
-    tau0 = MAX(0.0,tanphi*pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));    // rho_water = 1000.0, new input?
+    tau0 = MAX(0.0,tanphi*pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c);    // rho_water = 1000.0, new input?
         
     if(p->W101==4)  // HB-C shear rate generated excess pore pressure
-    tau0 = MAX(0.0,tanphi*pval*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));    // m_p is new input W 104 
+    tau0 = MAX(0.0,tanphi*pval*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c);    // m_p is new input W 104 
         
     if(p->W101==5)  // HB-C linear shear rate coupling, max given by pressure
-    tau0 = MAX(0.0,tanphi*MAX(0.0,pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k)-p->W104*gamma) + p->W102_c)*(1.0-exp(-p->W103*gamma));    // m_u also use new input W 104
+    tau0 = MAX(0.0,tanphi*MAX(0.0,pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k)-p->W104*gamma) + p->W102_c);    // m_u also use new input W 104
 
         if(p->count==0)
         tau0=p->W96;
@@ -1142,16 +1142,16 @@ void rheology_f::w_source(lexer *p, fdm *a)
         tau0=tanphi*pval + p->W102_c;
         
         if(p->W101==2)  // HB-C dry sand, without MAX -> issues with negative viscosity and Hypre
-        tau0 = (tanphi*pval + p->W102_c)*(1.0-exp(-p->W103*gamma));
+        tau0 = (tanphi*pval + p->W102_c);
             
         if(p->W101==3)  // HB-C hydrostatic  - MAX added for cells on the interface.
-        tau0 = MAX(0.0,tanphi*pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));    // rho_water = 1000.0, new input?
+        tau0 = MAX(0.0,tanphi*pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c);    // rho_water = 1000.0, new input?
             
         if(p->W101==4)  // HB-C shear rate generated excess pore pressure
-        tau0 = MAX(0.0,tanphi*pval*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));    // m_p is new input W 104 
+        tau0 = MAX(0.0,tanphi*pval*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c);    // m_p is new input W 104 
             
         if(p->W101==5)  // HB-C linear shear rate coupling, max given by pressure
-        tau0 = MAX(0.0,tanphi*MAX(0.0,pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k)-p->W104*gamma) + p->W102_c)*(1.0-exp(-p->W103*gamma));    // m_u also use new input W 104
+        tau0 = MAX(0.0,tanphi*MAX(0.0,pval*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k)-p->W104*gamma) + p->W102_c);    // m_u also use new input W 104
         
             if(p->count==0)
             tau0=p->W96;
@@ -1235,26 +1235,26 @@ void rheology_f::w_source(lexer *p, fdm *a)
         
         if(p->W101==2)  // HB-C dry sand, without MAX 
         {
-        tau01 = (tanphi*pval1 + p->W102_c)*(1.0-exp(-p->W103*gamma));
-        tau02 = (tanphi*pval2 + p->W102_c)*(1.0-exp(-p->W103*gamma));
+        tau01 = (tanphi*pval1 + p->W102_c);
+        tau02 = (tanphi*pval2 + p->W102_c);
         }
             
         if(p->W101==3)  // HB-C hydrostatic  - MAX added for cells on the interface.
         {
-        tau01 = MAX(0.0,tanphi*pval1*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));    
-        tau02 = MAX(0.0,tanphi*pval2*MAX(0.0,a->ro(i,j,k+1)-1000.0)/a->ro(i,j,k+1) + p->W102_c)*(1.0-exp(-p->W103*gamma));   
+        tau01 = MAX(0.0,tanphi*pval1*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c);    
+        tau02 = MAX(0.0,tanphi*pval2*MAX(0.0,a->ro(i,j,k+1)-1000.0)/a->ro(i,j,k+1) + p->W102_c);   
         }
             
         if(p->W101==4)  // HB-C shear rate generated excess pore pressure
         {
-        tau01 = MAX(0.0,tanphi*pval1*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c)*(1.0-exp(-p->W103*gamma));  
-        tau02 = MAX(0.0,tanphi*pval2*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k+1)-1000.0)/a->ro(i,j,k+1) + p->W102_c)*(1.0-exp(-p->W103*gamma));   
+        tau01 = MAX(0.0,tanphi*pval1*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k) + p->W102_c);  
+        tau02 = MAX(0.0,tanphi*pval2*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k+1)-1000.0)/a->ro(i,j,k+1) + p->W102_c);   
         }
             
         if(p->W101==5)  // HB-C linear shear rate coupling, max given by pressure
         {
-        tau01 = MAX(0.0,tanphi*MAX(0.0,pval1*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k)-p->W104*gamma) + p->W102_c)*(1.0-exp(-p->W103*gamma)); 
-        tau02 = MAX(0.0,tanphi*MAX(0.0,pval2*MAX(0.0,a->ro(i,j,k+1)-1000.0)/a->ro(i,j,k+1)-p->W104*gamma) + p->W102_c)*(1.0-exp(-p->W103*gamma)); 
+        tau01 = MAX(0.0,tanphi*MAX(0.0,pval1*MAX(0.0,a->ro(i,j,k)-1000.0)/a->ro(i,j,k)-p->W104*gamma) + p->W102_c); 
+        tau02 = MAX(0.0,tanphi*MAX(0.0,pval2*MAX(0.0,a->ro(i,j,k+1)-1000.0)/a->ro(i,j,k+1)-p->W104*gamma) + p->W102_c); 
         }   
 
             if(p->count==0)
