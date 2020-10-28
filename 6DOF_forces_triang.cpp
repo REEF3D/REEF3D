@@ -233,11 +233,6 @@ void sixdof_f::forces_triang(lexer* p, fdm *a, ghostcell *pgc)
 	
 	if(p->mpirank==0)
 	cout<<"Xe: "<<Xe<<" Ye: "<<Ye<<" Ze: "<<Ze<<" Ke: "<<Ke<<" Me: "<<Me<<" Ne: "<<Ne<<endl;
-
-	
-	transform_vec_ES(Xe,Ye,Ze,Xs,Ys,Zs);
-	transform_vec_ES(Ke,Me,Ne,Ks,Ms,Ns);
-    
 }
 
 

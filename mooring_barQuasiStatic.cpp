@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2019 Tobias Martin
+Copyright 2008-2019 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,16 +19,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"mooring_QuasiStatic.h"
+#include"mooring_barQuasiStatic.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-mooring_QuasiStatic::mooring_QuasiStatic(int number):line(number){}
+mooring_barQuasiStatic::mooring_barQuasiStatic(int number):line(number){}
 
-mooring_QuasiStatic::~mooring_QuasiStatic(){}
+mooring_barQuasiStatic::~mooring_barQuasiStatic(){}
 
-void mooring_QuasiStatic::start(lexer *p, fdm *a, ghostcell *pgc)
+void mooring_barQuasiStatic::start(lexer *p, fdm *a, ghostcell *pgc)
 {
 	// Correct geometrical constraint
 	dx = p->X311_xe[line] - p->X311_xs[line];
@@ -48,13 +48,18 @@ void mooring_QuasiStatic::start(lexer *p, fdm *a, ghostcell *pgc)
 		buildLine(p);
 		
 		// Calculating velocities at knots
-		updateVel(p, a, pgc, 0);
-		updateVel(p, a, pgc, 1);
-		updateVel(p, a, pgc, 2);
+		// updateVel(p, a, pgc, 0);
+		// updateVel(p, a, pgc, 1);
+		// updateVel(p, a, pgc, 2);
 
 		// Calculating force directions
 		for (int j = 0; j < sigma + 1; j++)
 		{
+            v[j][0] = 1e-10;
+            v[j][1] = 1e-10;
+            v[j][2] = 1e-10;
+            
+            
 			double vt = v[j][0]*f[j][0] + v[j][1]*f[j][1] + v[j][2]*f[j][2];
 			double vt_mag = fabs(vt);
 
@@ -173,21 +178,21 @@ void mooring_QuasiStatic::start(lexer *p, fdm *a, ghostcell *pgc)
 		f = solveGauss(A, B);
 
 		// Check error norm
-		double norm, maxnorm;
+		double norm, error;
 			
-		maxnorm = 0.0;
+		error = 0.0;
 		for (int j=0; j<sigma+1; j++)
 		{
 			norm = sqrt(f[j][0]*f[j][0] + f[j][1]*f[j][1] + f[j][2]*f[j][2]);
 			
-			if (norm > maxnorm) maxnorm = norm;
+			if (norm > error) error = norm;
 		}
 
-		if (fabs(maxnorm-1.0) < 1e-4)
+		if (fabs(error-1.0) < 1e-4)
 		{
 			if (p->mpirank == 0)
 			{
-				cout<<"Number of iterations = "<<it<<setprecision(6)<<" with error = "<<maxnorm-1.0<<endl;
+				cout<<"Number of iterations = "<<it<<setprecision(6)<<" with error = "<<error-1.0<<endl;
 			}
 			break;
 		}
@@ -233,7 +238,7 @@ if (p->mpirank == 0) cout<<"Current length = "<<length<<endl;
 }
 
 
-void mooring_QuasiStatic::bottomContact(lexer *p)
+void mooring_barQuasiStatic::bottomContact(lexer *p)
 {
 	// Reconstruct line
 	z[0] = p->X311_zs[line];
@@ -257,7 +262,7 @@ void mooring_QuasiStatic::bottomContact(lexer *p)
 }
 
 
-void mooring_QuasiStatic::updateVel(lexer *p, fdm *a, ghostcell *pgc, int cmp)
+void mooring_barQuasiStatic::updateVel(lexer *p, fdm *a, ghostcell *pgc, int cmp)
 {
 	int *recVel, *count;
 	
@@ -425,7 +430,7 @@ void mooring_QuasiStatic::updateVel(lexer *p, fdm *a, ghostcell *pgc, int cmp)
 }
 
 
-vector<double> mooring_QuasiStatic::getC(double theta)
+vector<double> mooring_barQuasiStatic::getC(double theta)
 {
     vector<double> c_(3,0);
     
@@ -440,7 +445,7 @@ vector<double> mooring_QuasiStatic::getC(double theta)
 
 
 
-vector< vector<double> > mooring_QuasiStatic::solveGauss
+vector< vector<double> > mooring_barQuasiStatic::solveGauss
 (
 	std::vector< std::vector<double> > A, 
 	std::vector< std::vector<double> > B
@@ -527,7 +532,7 @@ vector< vector<double> > mooring_QuasiStatic::solveGauss
     return x;
 }
 
-void mooring_QuasiStatic::mooringForces
+void mooring_barQuasiStatic::mooringForces
 (
 	double& Xme, double& Yme, double& Zme
 )

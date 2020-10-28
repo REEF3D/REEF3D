@@ -23,16 +23,10 @@ along with this program; if not, sa->eps <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"lexer.h"
 #include"fdm.h"
-#include"vrans_f.h"
-#include"vrans_v.h"
+#include"vrans.h"
 
 ikepsilon::ikepsilon(lexer* p, fdm* a, ghostcell *pgc) : rans_io(p,a), bc_ikepsilon(p)
 {
-    if(p->B269==0)
-	pvrans = new vrans_v(p,a,pgc);
-	
-	if(p->B269>=1 || p->S10==2)
-	pvrans = new vrans_f(p,a,pgc);
 }
 
 ikepsilon::~ikepsilon()
@@ -63,7 +57,7 @@ void ikepsilon::ksource(lexer *p, fdm* a)
 	a->H(i,j,k)=0.0;
 }
 
-void  ikepsilon::eddyvisc(fdm* a, lexer* p, ghostcell* pgc)
+void  ikepsilon::eddyvisc(fdm* a, lexer* p, ghostcell* pgc, vrans* pvrans)
 {
 	double H;
 	double epsi = 1.6*p->DXM;
@@ -96,7 +90,7 @@ void  ikepsilon::eddyvisc(fdm* a, lexer* p, ghostcell* pgc)
 	pgc->start4(p,a->eddyv,24);
 }
 
-void  ikepsilon::kinsource(lexer *p, fdm* a)
+void  ikepsilon::kinsource(lexer *p, fdm* a, vrans* pvrans)
 {
     count=0;
 
@@ -110,9 +104,9 @@ void  ikepsilon::kinsource(lexer *p, fdm* a)
     }
 
     pvrans->ke_source(p,a,kin);
-}
+}
 
-void  ikepsilon::epssource(lexer *p, fdm* a)
+void  ikepsilon::epssource(lexer *p, fdm* a, vrans* pvrans)
 {
 	double epsi = 1.6*p->dx;
 	double dirac;
@@ -157,7 +151,3 @@ void  ikepsilon::epsfsf(lexer *p, fdm* a,ghostcell *pgc)
 	eps(i,j,k) = dirac*2.5*pow(p->cmu,0.75)*pow(fabs(kin(i,j,k)),1.5)*(1.0/p->T37 + 1.0/(a->walld(i,j,k)>1.0e-20?a->walld(i,j,k):1.0e20));
 	}
 }
-
-
-
-

@@ -21,17 +21,17 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include<iostream>
-#include<iostream>
 #include<cstdlib>
 #include<iomanip>
 #include<math.h>
-#include"resize.h"< 
+#include"resize.h"
 #include"increment.h"
 #include"position.h"
 #include"interpolation.h"
 #include"grid_sigma.h"
 #include<fstream>
 #include"looping.h"
+#include <Eigen/Dense>
 
 #ifndef LEXER_H_
 #define LEXER_H_
@@ -423,7 +423,7 @@ public:
 	double T13,T31,T32,T35,T37,T38,T39;
 
 	// Waterflow
-	double W1,W2,W3,W4,W5,W10;
+	double W1,W2,W3,W4,W5,W10,W_fb;
     int W11,W12,W13,W14,W15,W16;
     double W11_u,W11_v,W11_w,W12_u,W12_v,W12_w,W13_u,W13_v,W13_w,W14_u,W14_v,W14_w,W15_u,W15_v,W15_w,W16_u,W16_v,W16_w;
     double W20,W21,W22,W31;
@@ -439,54 +439,6 @@ public:
     double W103,W104;
     int W110,W111;
     double W112;
-	
-	// 6DOF
-	int X10,X12,X13,X18,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X27,X31,X32,X33,X34,X40,X110,X120,X131,X132,X133;
-	int X100,X101,X102,X103,X141,X142,X143,X153,X180,X182,X183,X210,X211;
-	int X310, X311, X320, mooring_count;
-	double X21_d,X22_m;
-	double X23_x,X23_y,X23_z;
-	double X24_Ix,X24_Iy,X24_Iz;	
-	double X25_Cp,X25_Cq,X25_Cr;	
-    double X26_Ku,X26_Kv,X26_Kw;	
-    double X27_x,X27_y,X27_z;	
-	double X41;
-	double X100_x,X100_y,X100_z;
-	double X101_phi, X101_theta, X101_psi;
-	double X102_u, X102_v, X102_w;
-	double X103_p, X103_q, X103_r;
-	double *X110_xs,*X110_xe,*X110_ys,*X110_ye,*X110_zs,*X110_ze;
-	double X120_rad,X120_xc,X120_yc,X120_zc;
-	double X131_rad,X131_h,X131_xc,X131_yc,X131_zc;
-	double X132_rad,X132_h,X132_xc,X132_yc,X132_zc;
-	double X133_rad,X133_h,X133_xc,X133_yc,X133_zc;
-	double X153_xs,X153_xe,X153_ys,X153_ye,X153_zs,X153_ze;
-    int X163;
-    double *X163_x1,*X163_y1,*X163_z1;
-    double *X163_x2,*X163_y2,*X163_z2;
-    double *X163_x3,*X163_y3,*X163_z3;
-    double *X163_x4,*X163_y4,*X163_z4;
-    double *X163_x5,*X163_y5,*X163_z5;
-    double *X163_x6,*X163_y6,*X163_z6;
-    int X164;
-    double *X164_x1,*X164_y1,*X164_z1;
-    double *X164_x2,*X164_y2,*X164_z2;
-    double *X164_x3,*X164_y3,*X164_z3;
-    double *X164_x4,*X164_y4,*X164_z4;
-    double *X164_x5,*X164_y5,*X164_z5;
-    double *X164_x6,*X164_y6,*X164_z6;
-    double *X164_x7,*X164_y7,*X164_z7;
-    double *X164_x8,*X164_y8,*X164_z8;
-    double X181;
-    double X182_x,X182_y,X182_z;
-    double X183_x,X183_y,X183_z,X183_phi,X183_theta,X183_psi;
-	double X210_u,X210_v,X210_w;
-	double X211_p,X211_q,X211_r;
-    int X221;
-    double X221_xs,X221_xe,X221_ys,X221_ye,X221_zs,X221_ze;
-    double *X311_xs,*X311_xe,*X311_ys,*X311_ye,*X311_zs,*X311_ze;
-    double *X311_w,*X311_rho_c,*X311_EA,*X311_d,*X311_l,*X311_H,*X311_P,*X311_facT;
-    
 	
 	// Grid
 	int Y40,Y50,Y60,Y71,Y72,Y73,Y74;
@@ -552,7 +504,60 @@ public:
 	double xgn,ygn,zgn;
 	double phi_fb,theta_fb,psi_fb;
 	double ufbmax, vfbmax, wfbmax;
-	
+	Eigen::Matrix3d quatRotMat;	
+    int X10,X12,X13,X18,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X27,X31,X32,X33,X34,X38,X40,X110,X120,X131,X132,X133;
+	int X100,X101,X102,X103,X141,X142,X143,X153,X180,X181,X182,X183,X210,X211;
+	int X310, X311, X312, X320, X321, mooring_count, net_count;
+	double X21_d,X22_m;
+	double X23_x,X23_y,X23_z;
+	double X24_Ix,X24_Iy,X24_Iz;	
+	double X25_Cp,X25_Cq,X25_Cr;	
+    double X26_Ku,X26_Kv,X26_Kw;	
+    double X27_x,X27_y,X27_z;	
+	double X41;
+	double X100_x,X100_y,X100_z;
+	double X101_phi, X101_theta, X101_psi;
+	double X102_u, X102_v, X102_w;
+	double X103_p, X103_q, X103_r;
+	double *X110_xs,*X110_xe,*X110_ys,*X110_ye,*X110_zs,*X110_ze;
+	double X120_rad,X120_xc,X120_yc,X120_zc;
+	double X131_rad,X131_h,X131_xc,X131_yc,X131_zc;
+	double X132_rad,X132_h,X132_xc,X132_yc,X132_zc;
+	double X133_rad,X133_h,X133_xc,X133_yc,X133_zc;
+	double X153_xs,X153_xe,X153_ys,X153_ye,X153_zs,X153_ze;
+    int X163;
+    double *X163_x1,*X163_y1,*X163_z1;
+    double *X163_x2,*X163_y2,*X163_z2;
+    double *X163_x3,*X163_y3,*X163_z3;
+    double *X163_x4,*X163_y4,*X163_z4;
+    double *X163_x5,*X163_y5,*X163_z5;
+    double *X163_x6,*X163_y6,*X163_z6;
+    int X164;
+    double *X164_x1,*X164_y1,*X164_z1;
+    double *X164_x2,*X164_y2,*X164_z2;
+    double *X164_x3,*X164_y3,*X164_z3;
+    double *X164_x4,*X164_y4,*X164_z4;
+    double *X164_x5,*X164_y5,*X164_z5;
+    double *X164_x6,*X164_y6,*X164_z6;
+    double *X164_x7,*X164_y7,*X164_z7;
+    double *X164_x8,*X164_y8,*X164_z8;
+    double X181_x,X181_y,X181_z;
+    double X182_x,X182_y,X182_z;
+    double X183_x,X183_y,X183_z,X183_phi,X183_theta,X183_psi;
+	double X210_u,X210_v,X210_w;
+	double X211_p,X211_q,X211_r;
+    int X221;
+    double X221_xs,X221_xe,X221_ys,X221_ye,X221_zs,X221_ze;
+    double *X311_xs,*X311_xe,*X311_ys,*X311_ye,*X311_zs,*X311_ze;
+    double *X311_w,*X311_rho_c,*X311_EA,*X311_d,*X311_l,*X311_H,*X311_P,*X311_facT;
+    double *X312_k,*X312_T0;
+    int *X320_type;
+	double *X321_Sn,*X321_d,*X321_lambda,*X321_dk,*X321_rho,*X321_nd,*X321_nl;
+    double *X322_D,*X322_L,*X322_x0,*X322_y0,*X322_z0,*X322_phi,*X322_theta,*X322_psi;
+    int X324;
+    double X323_m,X323_d,X323_l;
+    double *X324_x,*X324_y,*X324_z;
+    double X325_dt,X325_relX,X325_relY,X325_relZ;
 	
 	int cctt;
 	

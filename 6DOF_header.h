@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_f.h"
+#include"6DOF_fsi.h"
 #include"6DOF_void.h"
 
 

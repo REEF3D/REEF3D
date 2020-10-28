@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2019 Tobias Martin
+Copyright 2008-2019 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,7 +17,6 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"mooring.h"
@@ -35,14 +34,14 @@ Author: Tobias Martin
 
 using namespace std;
 
-#ifndef mooring_QUASISTATIC_H_
-#define mooring_QUASISTATIC_H_
+#ifndef mooring_BARQUASISTATIC_H_
+#define mooring_BARQUASISTATIC_H_
 
-class mooring_QuasiStatic : public mooring
+class mooring_barQuasiStatic : public mooring
 {
 public:
-	mooring_QuasiStatic(int);
-	virtual ~mooring_QuasiStatic();
+	mooring_barQuasiStatic(int);
+	virtual ~mooring_barQuasiStatic();
 	
 	virtual void start(lexer*, fdm*, ghostcell*);
 	virtual void initialize(lexer*, fdm*, ghostcell*);

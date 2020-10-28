@@ -42,7 +42,7 @@ public:
 	pjm_comp(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
 	virtual ~pjm_comp();
 
-	virtual void start(fdm*,lexer*, poisson*, solver*, ghostcell*,momentum*,ioflow*, field&, field&, field&,double);
+	virtual void start(fdm*,lexer*, poisson*, solver*, ghostcell*,ioflow*, field&, field&, field&,double);
 	virtual void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 	virtual void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 	virtual void ucorr(lexer*p,fdm*,field&,double);

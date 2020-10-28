@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2019 Tobias Martin
+Copyright 2008-2019 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -278,6 +278,8 @@ void mooring_DGSEM::iniCond(lexer *p, fdm *a, ghostcell *pgc)
 					q_y[i][j] = -(FH / sqrt(FH*FH + w_*w_*(Lb-x[i][j])*(Lb-x[i][j])) + FH/EA)*sin(alpha);
 				}				
 			}
+            
+            v_z[i][j] = 0.7;
 		}	
 	}
 

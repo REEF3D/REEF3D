@@ -206,7 +206,7 @@ void lexer::ini_default()
     B260=0.0;       // double C coefficient for VRANS
     B264=1.0e20;    // double KC number for VRANS
     B267=0.001;     // double d50 for VRANS
-	B269=0;			 // int VRANS on/off
+	B269=0;			// int VRANS on/off -> 1 VRANS Structure, 2 Vegetation, 3 Net
     B270=0;         // int VRANS porous media box
     B274=0;         // int VRANS porous media vertical cylinder
     B281=0;         // int VRANS porous media wedge in x-direction
@@ -595,9 +595,10 @@ void lexer::ini_default()
     W103=1.0;        // double MC transition factor
     W104=1.0;        // double shear rate dependent excess pore pressure factor
     W110=1;          // int add rheology as source term or viscosity
-    W111=1;           // int which pressure for MC
-    W112=2.1;         // double threshold factor for pressure blening in W111 3
-	
+    W111=1;          // int which pressure for MC
+    W112=2.1;        // double threshold factor for pressure blening in W111 3
+    W_fb=0.0;        // double density of floating body
+
 	// 6DOF
 	X10=0;		// int turn 6DOF on 
 	X11_u=X11_v=X11_w=X11_p=X11_q=X11_r=1;		// int turn on degrees of freedom
@@ -620,7 +621,7 @@ void lexer::ini_default()
 	X33=1;		// int boundary conditions for pressure on floating body
     X34=0;		// int boundary treatment for new solid velocity cells
     X40=1;		// int type of force calculation
-	X41=1.75;		// double eps for lsm based force calculation
+	X41=2.1;    // double eps for continuous forcing heaviside
 	X100=0;		// int delta x,y,z
 	X100_x=X100_y=X100_z=0.0; 
 	X101=0;		// int ini Euler angles
@@ -643,6 +644,8 @@ void lexer::ini_default()
     X164=0;		// int hexahedron
 	X180=0;		// int read .stl file for floating body geometry
     X181=1.0;   // double scale .stl geometry
+    X181=0;     // int scale .stl geometry on/off
+    X181_x=X181_y=X181_z=1.0;  // double scaling of stl geometry
     X182=0;     // int translation on/off
     X182_x=X182_y=X182_z=0.0;  // double translation of stl geometry
     X183=0;
@@ -654,7 +657,10 @@ void lexer::ini_default()
 	X211=0;		// int give fixed angular velocity
     X221=0;     // int read vec based motion file
     X311=0;     // int number of simple taut mooring lines
-	X320=0;     // int number of nets
+    X312=0;     // int number of springs
+    X321=0;     // int number of nets
+    X323_m=X323_d=X323_l=0.0;   // double dynamic net sinker properties
+    X325_dt=X325_relX=X325_relY=X325_relZ=0.0;   // double dynamic net time step properties
 	
 	// Developer 
 	Y40=3;

@@ -20,7 +20,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"driver.h"
-#include"driver.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"freesurface_header.h"
@@ -36,6 +35,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"concentration_header.h"
 #include"benchmark_header.h"
 #include"6DOF_header.h"
+#include"vrans_header.h"
 #include"waves_header.h"
 
 void driver::logic()
@@ -126,10 +126,13 @@ void driver::logic()
 	if(p->F35==4)
 	pfsfdisc=new weno_flux_nug(p);
 
-	if(p->F35==5)
+	if(p->F35==5 && p->X13!=2)
 	pfsfdisc=new weno_hj_nug(p);
 	
-	if(p->F35==6)
+	if(p->F35==5 && p->X13==2)
+	pfsfdisc=new weno_hj_6DOF_nug(p);
+	
+    if(p->F35==6)
 	pfsfdisc=new cds4(p);
     
     if(p->F35==7)
@@ -438,26 +441,23 @@ void driver::logic()
 	if(p->D30==0)
 	ppress = new pressure_void(p);
 
-	if(p->D30==1 && p->W30==0 && p->F10==2 && p->G2==0)
+	if(p->D30==1 && p->W30==0 && p->F10==2 && p->X13!=2 && p->G2==0)
 	ppress = new pjm(p,a,pheat,pconc);
     
-    if(p->D30==1 && p->W30==0 && p->F10==2 && p->G2==1)
+    if(p->D30==1 && p->W30==0 && p->F10==2 && p->X13!=2 && p->G2==1)
 	ppress = new pjm_sig(p,a,pheat,pconc);
     
-    if(p->D30==1 && p->W30==1 && p->F10==2)
+    if(p->D30==1 && p->W30==1 && p->F10==2 && p->X13!=2)
 	ppress = new pjm_comp(p,a,pgc,pheat,pconc);
     
-    if(p->D30==1 && p->F10==1)
+    if(p->D30==1 && p->F10==1 && p->X13!=2)
 	ppress = new pjm_nse(p,a,pheat,pconc);
     
-    if(p->D30==2)
+    if(p->D30==2 && p->X13!=2)
 	ppress = new pjm_fsm(p,a,pheat,pconc);
     
-    if(p->D30==3)
+    if(p->D30==3 || p->X13==2)
 	ppress = new pjm_corr(p,a,pheat,pconc);
-	
-	if(p->D30==4)
-	ppress = new pjm_fsi(p,a,pheat,pconc);
 
 //poisson scheme for pressure
 	if(p->D30<5 && p->F10==2)
@@ -508,6 +508,19 @@ void driver::logic()
 	#endif
 
     //psolv=ppoissonsolv;
+
+//VRANS
+    if(p->B269==0)
+	pvrans = new vrans_v(p,a,pgc);
+	
+	if(p->B269==1)
+	pvrans = new vrans_f(p,a,pgc);
+    
+    if(p->B269==2)
+	pvrans = new vrans_veg(p,a,pgc);
+    
+    if(p->B269==3)
+	pvrans = new vrans_net(p,a,pgc);    
 
 //IOFlow
 	if(p->B60==0 && p->B90==0 && p->B180==0)
@@ -620,7 +633,10 @@ void driver::logic()
     psusp = new suspended_IM2(p,a,pturb);
 
 // Velocities
-	if(p->N40==1)
+	if(p->N40==0 || p->X13==2)
+	pmom = new momentum_void();	
+	
+    if(p->N40==1)
 	pmom = new momentum_AB2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
 	
 	if(p->N40==2)
@@ -631,22 +647,16 @@ void driver::logic()
     
 	if(p->N40==6 && p->F11==0)
 	pmom = new momentum_FS3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
-    
-	if(p->N40==0 && p->X10==1 && p->X13==1)
-	pmom = new momentum_FSI(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
-	
-	if(p->N40==0 && p->X13==0)
-	pmom = new momentum_void();	
-    
-
 	
 // 6DOF
 	if(p->X10==0)
     p6dof = new sixdof_void;
 	
-	if(p->X10==1)
-    p6dof = new sixdof_f(p,a,pgc,pmom,pflow,pfsf,pfsfdisc,psolv,preini,ppart);
+	if(p->X10==1 && p->X13!=2)
+    p6dof = new sixdof_f(p,a,pgc);
 
+	if(p->X10==1 && p->X13==2)
+    p6dof = new sixdof_fsi(p,a,pgc);
 	
 // Start MAINLOOP
 	if(p->A10==5)
@@ -655,18 +665,16 @@ void driver::logic()
     //if(p->A10==55)
     //loop_nhflow(a);
     
-    if(p->A10==6 && p->X10 == 1 && p->X13 >= 1 && p->N40==0) 
+    if(p->A10==6 && p->X10==1 && p->X13==2) 
 	{
 		loop_cfd_fsi(a);
 	}
-    
-    else if(p->A10==55)
-	{
-		loop_nhflow(a);
-	}
-    
     else if(p->A10==6)
 	{
 		loop_cfd(a);
+	}
+    else if(p->A10==55)
+	{
+		loop_nhflow(a);
 	}
 }

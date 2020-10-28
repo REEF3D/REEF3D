@@ -51,6 +51,8 @@ class potential;
 class heat;
 class benchmark;
 class sixdof;
+class vrans;
+class net;
 class data;
 class concentration;
 class ptf;
@@ -66,7 +68,7 @@ class grid;
 #include<iostream>
 #include<fstream>
 #include<iomanip>
-
+#include<vector>
 
 #ifndef DRIVER_H_
 #define DRIVER_H_
@@ -168,6 +170,8 @@ public:
 	potential* potflow;
 	benchmark* pbench;
 	sixdof* p6dof;
+	vrans* pvrans;
+    vector<net*> pnet;
 	data *pdata;
 	concentration *pconc;
     fnpf *ppfsg;

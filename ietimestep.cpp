@@ -46,7 +46,6 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 	
 // maximum velocities
 
-
 	ULOOP
 	p->umax=MAX(p->umax,fabs(a->u(i,j,k)));
 

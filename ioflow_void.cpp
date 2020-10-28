@@ -333,7 +333,7 @@ void ioflow_v::iogcb_update(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void  ioflow_v::isource(lexer *p, fdm *a, ghostcell *pgc)
+void  ioflow_v::isource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
 	NLOOP4
 	a->rhsvec.V[n]=0.0;
@@ -365,7 +365,7 @@ void  ioflow_v::isource(lexer *p, fdm *a, ghostcell *pgc)
     prheo->u_source(p,a);
 }
 
-void  ioflow_v::jsource(lexer *p, fdm *a, ghostcell *pgc)
+void  ioflow_v::jsource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
 	NLOOP4
 	a->rhsvec.V[n]=0.0;
@@ -397,7 +397,7 @@ void  ioflow_v::jsource(lexer *p, fdm *a, ghostcell *pgc)
     prheo->v_source(p,a);
 }
 
-void  ioflow_v::ksource(lexer *p, fdm *a, ghostcell *pgc)
+void  ioflow_v::ksource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
 	NLOOP4
 	a->rhsvec.V[n]=0.0;
@@ -796,7 +796,7 @@ void ioflow_v::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
 }
 
-void ioflow_v::veltimesave(lexer *p, fdm *a, ghostcell *pgc)
+void ioflow_v::veltimesave(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans) 
 {
     
 }
@@ -806,7 +806,7 @@ void ioflow_v::inflow_fnpf(lexer *p, fdm_fnpf*, ghostcell *pgc, double *Fi, doub
 
 }
 
-void ioflow_v::vrans_sed_update(lexer *p,fdm *a,ghostcell *pgc)
+void ioflow_v::vrans_sed_update(lexer *p,fdm *a,ghostcell *pgc,vrans *pvrans)
 {
     pvrans->sed_update(p,a,pgc);
 }

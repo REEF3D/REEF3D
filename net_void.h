@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2019 Tobias Martin
+Copyright 2008-2019 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,7 +17,6 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"net.h"
@@ -32,7 +31,7 @@ Author: Tobias Martin
 #include<fstream>
 #include<iostream>
 #include<vector>
-
+#include <Eigen/Dense>
 
 using namespace std;
 
@@ -43,9 +42,21 @@ class net_void : public net
 {
 public:
 
-	virtual void start(lexer*, fdm*, ghostcell*);
+	virtual void start(lexer*, fdm*, ghostcell*, double);
 	virtual void initialize(lexer*, fdm*, ghostcell*);
-	virtual void netForces(double&, double&, double&);
+	virtual void netForces(lexer*, double&, double&, double&, double&, double&, double&);
+    virtual const EigenMat& getLagrangePoints(){return lagrangePoints;} 
+    virtual const EigenMat& getLagrangeForces(){return lagrangeForces;} 
+    virtual const EigenMat& getCollarVel(){return collarVel;} 
+    virtual const EigenMat& getCollarPoints(){return collarPoints;} 
+ 
+
+private:
+  
+    vector<Eigen::Vector3d> lagrangePoints;    
+    vector<Eigen::Vector3d> lagrangeForces;    
+    vector<Eigen::Vector3d> collarVel;
+    vector<Eigen::Vector3d> collarPoints;
 };
 
 #endif

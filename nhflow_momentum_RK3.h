@@ -44,7 +44,7 @@ class nhflow_momentum_RK3 : public momentum, public bcmom
 public:
 	nhflow_momentum_RK3(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*);
 	virtual ~nhflow_momentum_RK3();
-	virtual void start(lexer*, fdm*, ghostcell*, momentum*);
+	virtual void start(lexer*, fdm*, ghostcell*, vrans*);
 	virtual void utimesave(lexer*, fdm*, ghostcell*);
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);

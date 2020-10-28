@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2019 Tobias Martin
+Copyright 2008-2019 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include<sys/stat.h>
-#include"mooring_QuasiStatic.h"
+#include"mooring_barQuasiStatic.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-void mooring_QuasiStatic::initialize(lexer *p, fdm *a, ghostcell *pgc)
+void mooring_barQuasiStatic::initialize(lexer *p, fdm *a, ghostcell *pgc)
 {		
 	sigma = p->X311_H[line];
 
@@ -113,7 +113,7 @@ void mooring_QuasiStatic::initialize(lexer *p, fdm *a, ghostcell *pgc)
 }
 
 
-void mooring_QuasiStatic::ini_parallel(lexer *p, fdm *a, ghostcell *pgc)
+void mooring_barQuasiStatic::ini_parallel(lexer *p, fdm *a, ghostcell *pgc)
 {
 	p->Darray(xstart, p->mpi_size);
 	p->Darray(xend, p->mpi_size);

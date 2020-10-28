@@ -77,7 +77,13 @@ public:
 	field5 walld;
 	 
 	fieldint5 nodeval,flag;
-    
+   
+    // 6DOF
+    field1 fbh1;
+    field2 fbh2;
+    field3 fbh3;
+    field4 fbh4;
+
     
     slice1 P;
     slice2 Q;

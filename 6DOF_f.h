@@ -47,16 +47,18 @@ using namespace std;
 class sixdof_f : public sixdof, public gradient
 {
 public:
-	sixdof_f(lexer*, fdm*, ghostcell*, momentum*, ioflow*, freesurface*,convection*,solver*,reini*,particlecorr*);
+	sixdof_f(lexer*, fdm*, ghostcell*);
 	virtual ~sixdof_f();
 	
-	virtual void start(lexer*, fdm*, ghostcell*, momentum*, ioflow*, freesurface*,convection*,solver*,reini*,particlecorr*);
-	virtual void initialize(lexer*, fdm*, ghostcell*);
+	virtual void start(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&);
+	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
 	virtual void ini_parameter(lexer*, fdm*, ghostcell*);
 	virtual void interface(lexer*, bool);
 
 	
 private:
+	void start_Euler(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&);
+	void start_Quaternion(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&);
 	void reini_AB2(lexer*, fdm*, ghostcell*, field&);
     void reini_RK3(lexer*, fdm*, ghostcell*, field&);
 	void position_ini(lexer*, fdm*, ghostcell*);
@@ -118,25 +120,24 @@ private:
     void forces_triang_addpoint(lexer*,fdm*,int,int);
     void forces_triang_finalize(lexer*,fdm*,ghostcell*);
 	void mooringForces(lexer*, fdm*, ghostcell*);
-	void netForces(lexer*, fdm*, ghostcell*);
+    void netForces(lexer*, fdm*, ghostcell*, double, vrans*, vector<net*>&);
 	
 	void solve(lexer*,fdm*,ghostcell*);
-	void solve_quaternion(lexer*,fdm*,ghostcell*,momentum*,ioflow*,freesurface*,convection*,solver*,reini*,particlecorr*);
+	void solve_quaternion();
     std::vector<double> get_R(const std::vector<double> &);
 	std::vector<double> get_e(const std::vector<double> &, const std::vector<double> &);
 	std::vector<double> get_h(const std::vector<double> &, const std::vector<double> &);
     std::vector<double> rotation_R(const std::vector<double>&);
 	void update();
-    void update_quaternion(lexer*,fdm*);
+    void update_quaternion();
 	void transform_vec_ES(double,double,double,double &,double &,double &);
 	void transform_vec_SE(double,double,double,double &,double &,double &);
 	void transform_angle_ES(double,double,double,double &,double &,double &);
 	void transform_angle_SE(double,double,double,double &,double &,double &);
 	
 	
-	void solidUpdate(lexer*,fdm*,ghostcell*,const std::vector<double>&,bool);
-	void fluidUpdate(lexer*, fdm*, ghostcell*, momentum*, ioflow*, freesurface*,convection*,solver*,reini*,particlecorr*,bool,int);
-	void forceUpdate(lexer*,fdm*,ghostcell*);
+	void solidUpdate(lexer*,fdm*,ghostcell*,const std::vector<double>&);
+	void forceUpdate(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&);
 	
 	// ------ 
 
@@ -239,10 +240,10 @@ private:
 	vector<double> X311_xen, X311_yen, X311_zen;
 	vector<mooring*> pmooring;
 	vector<double> Xme, Yme, Zme, Kme, Mme, Nme;
-	vector<double> Xms, Yms, Zms, Kms, Mms, Nms;    
 
     // net
 	vector<net*> pnet;
+    vector<double> Xne, Yne, Zne, Kne, Mne, Nne;    
     
     // triangulation
 	double **tri_x,**tri_y,**tri_z;

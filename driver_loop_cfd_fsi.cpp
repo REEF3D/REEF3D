@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2019 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -39,126 +39,145 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void driver::loop_cfd_fsi(fdm* a)
 {
+    momentum_fsi* pmom_fsi = new momentum_fsi(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
+    sixdof_fsi* p6dof_fsi = new sixdof_fsi(p,a,pgc);
+
+    p6dof_fsi->ini(p, a, pgc, pnet);
+    pmom_fsi->ini(p, a, pgc, p6dof_fsi, pvrans, pnet);
 	driver_ini();
-    mgc_test(p,a,pgc);
-    
+
+
     if(p->mpirank==0)
-    cout<<"starting mainloop.CFD.FSI"<<endl;
-    
-    
+    cout<<"starting mainloop.CFD FSI"<<endl;
+
+
 //-----------MAINLOOP CFD FSI----------------------------
 	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
-	{		
+	{
         ++p->count;
+        starttime=pgc->timer();
 
-        if(p->mpirank==0)
+        if(p->mpirank==0 && (p->count%p->P12==0))
         {
-			starttime=pgc->timer();
-			cout<<"------------------------------"<<endl;
-			cout<<p->count<<endl;
-        
-			cout<<"simtime: "<<p->simtime<<endl;
-			cout<<"timestep: "<<p->dt<<endl;
-        
-			if(p->B90>0 && p->B92<=11)
+            cout<<"------------------------------"<<endl;
+            cout<<p->count<<endl;
+
+            cout<<"simtime: "<<p->simtime<<endl;
+            cout<<"timestep: "<<p->dt<<endl;
+
+            if(p->B90>0 && p->B92<=11)
             cout<<"t/T: "<<p->simtime/p->wT<<endl;
-        
+            
             if(p->B90>0 && p->B92>11)
             cout<<"t/T: "<<p->simtime/p->wTp<<endl;
-		}
-        
-		pflow->flowfile(p,a,pgc,pturb);
-        
-		pflow->wavegen_precalc(p,pgc);
-
-			fill_vel(p,a,pgc);
-			
-				pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,ppart,a->phi);
-				poneph->update(p,a,pgc,pflow);
-				pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow);
-				pheat->start(a,p,pconvec,pdiff,psolv,pgc,pflow);
-				pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
-				psusp->start(a,p,pconcdisc,psuspdiff,psolv,pgc,pflow);
-
-
-			// Sediment Computation
-			psed->start(p,a,pconvec,pgc,pflow,ptopo,preto,psusp,pbed);
-
-			// FSI algorithm
-			p6dof->start(p,a,pgc,pmom,pflow,pfsf,pfsfdisc,psolv,preini,ppart);
-
-//			pflow->u_relax(p,a,pgc,a->u);
-//			pflow->v_relax(p,a,pgc,a->v);
-//			pflow->w_relax(p,a,pgc,a->w);
-//			pfsf->update(p,a,pgc,a->phi);
-//			pmom->start(p,a,pgc,pmom); 
-			pbench->start(p,a,pgc,pconvec);
-		
-		
-		//save previous timestep
-		pturb->ktimesave(p,a,pgc);
-        pturb->etimesave(p,a,pgc);
-        pflow->veltimesave(p,a,pgc);
-
-		//timestep control
-		ptstep->start(a,p,pgc,pturb);
-		p->simtime+=p->dt;
-        
-		// printer
-		pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
-
-		// Shell-Printout
-		if(p->mpirank==0)
-		{
-			endtime=pgc->timer();
-        
-			p->itertime=endtime-starttime;
-			p->totaltime+=p->itertime;
-			p->gctotaltime+=p->gctime;
-			p->Xtotaltime+=p->xtime;
-			p->meantime=(p->totaltime/double(p->count));
-			p->gcmeantime=(p->gctotaltime/double(p->count));
-			p->Xmeantime=(p->Xtotaltime/double(p->count));
-		
-			if(p->B90>0)
-			cout<<"wavegentime: "<<setprecision(3)<<p->wavetime<<endl;
-		
-			cout<<"reinitime: "<<setprecision(3)<<p->reinitime<<endl;
-			cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
-			cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;		
-			cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
-			cout<<"timer per step: "<<setprecision(3)<<p->itertime<<endl;
-
-			// Write log files
-			mainlog(p);
-			maxlog(p);
-			solverlog(p);
-			
-			if(p->count%p->S44==0 && p->count>=p->S43 && p->S10>0)
-			sedimentlog(p);
         }
+
+        pflow->flowfile(p,a,pgc,pturb);
+
+        pflow->wavegen_precalc(p,pgc);
+
+        fill_vel(p,a,pgc);
+        
+        // Benchmark cases
+        pbench->start(p,a,pgc,pconvec);
+        
+        // Free-surface computation
+        pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,ppart,a->phi);
+        poneph->update(p,a,pgc,pflow);
+        
+        // Turbulence computation
+        pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
+        
+        // Heat computation
+        pheat->start(a,p,pconvec,pdiff,psolv,pgc,pflow);
+        
+        // Concentration computation
+        pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
+        
+        // Suspension computation
+        psusp->start(a,p,pconcdisc,psuspdiff,psolv,pgc,pflow);
+        
+        // Sediment computation
+        psed->start(p,a,pconvec,pgc,pflow,ptopo,preto,psusp,pbed);
+
+        pflow->u_relax(p,a,pgc,a->u);
+		pflow->v_relax(p,a,pgc,a->v);
+		pflow->w_relax(p,a,pgc,a->w);
+		pfsf->update(p,a,pgc,a->phi);
 		
-		p->gctime=0.0;
-		p->xtime=0.0;
-		p->reinitime=0.0;
-		p->wavetime=0.0;
-		p->field4time=0.0;
-    
-		stop(p,a,pgc);
+        // Momentum and 6DOF motion
+        pmom_fsi->starti(p,a,pgc,p6dof_fsi,pvrans,pnet);
+
+		// Save previous timestep
+		pmom_fsi->utimesave(p,a,pgc);
+		pmom_fsi->vtimesave(p,a,pgc);
+		pmom_fsi->wtimesave(p,a,pgc);
+		pflow->veltimesave(p,a,pgc,pvrans);
+		pturb->ktimesave(p,a,pgc);
+		pturb->etimesave(p,a,pgc);
+
+        
+        //timestep control
+        ptstep->start(a,p,pgc,pturb);
+        p->simtime+=p->dt;
+
+
+        // printer
+        pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
+
+        // Shell-Printout
+        if(p->mpirank==0)
+        {
+        endtime=pgc->timer();
+
+		p->itertime=endtime-starttime;
+		p->totaltime+=p->itertime;
+		p->gctotaltime+=p->gctime;
+		p->Xtotaltime+=p->xtime;
+		p->meantime=(p->totaltime/double(p->count));
+		p->gcmeantime=(p->gctotaltime/double(p->count));
+		p->Xmeantime=(p->Xtotaltime/double(p->count));
+
+            if( (p->count%p->P12==0))
+            {
+            if(p->B90>0)
+            cout<<"wavegentime: "<<setprecision(3)<<p->wavetime<<endl;
+
+            cout<<"reinitime: "<<setprecision(3)<<p->reinitime<<endl;
+            cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
+            cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;
+            cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
+            cout<<"timer per step: "<<setprecision(3)<<p->itertime<<endl;
+            }
+        // Write log files
+        mainlog(p);
+        maxlog(p);
+        solverlog(p);
+        if(p->count%p->S44==0 && p->count>=p->S43 && p->S10>0)
+        sedimentlog(p);
+        }
+    p->gctime=0.0;
+    p->xtime=0.0;
+	p->reinitime=0.0;
+	p->wavetime=0.0;
+	p->field4time=0.0;
+
+    stop(p,a,pgc);
 	}
 
 	if(p->mpirank==0)
 	{
-		cout<<endl<<"******************************"<<endl<<endl;
+	cout<<endl<<"******************************"<<endl<<endl;
 
-		cout<<"modelled time: "<<p->simtime<<endl;
-		cout << endl;
+	cout<<"modelled time: "<<p->simtime<<endl;
+	cout << endl;
 
-		mainlogout.close();
-		maxlogout.close();
-		solvlogout.close();
-		sedlogout.close();
+    mainlogout.close();
+    maxlogout.close();
+    solvlogout.close();
+    sedlogout.close();
 	}
 
-	pgc->final();
+    pgc->final();
 }
+

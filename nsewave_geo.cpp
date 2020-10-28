@@ -113,10 +113,10 @@ nsewave_geo::~nsewave_geo()
 
 void nsewave_geo::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusion *pdiff, turbulence *pturb,
                       convection* pconvec, pressure *ppress, poisson *ppois, solver *ppoissonsolv, solver *psolv, 
-                      ioflow* pflow)
+                      ioflow* pflow, vrans* pvrans)
 {
     // Momentum
-    pmom->start(p,a,pgc,pmom);
+    pmom->start(p,a,pgc,pvrans);
     
     
     // fill eta_n

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2019 Tobias Martin
+Copyright 2008-2019 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -41,12 +41,13 @@ void mooring_DGSEM::getL
 			qmag[i][j] = 
 				sqrt
 				(
-					 q_x_[i][j]*q_x_[i][j] 
+					  q_x_[i][j]*q_x_[i][j] 
 					+ q_y_[i][j]*q_y_[i][j] 
 					+ q_z_[i][j]*q_z_[i][j]
 				);
 				
 			T[i][j] = MAX(EA*(qmag[i][j] - 1.0), 0.0);
+            
 			t_x[i][j] = q_x_[i][j]/qmag[i][j];
 			t_y[i][j] = q_y_[i][j]/qmag[i][j];
 			t_z[i][j] = q_z_[i][j]/qmag[i][j];

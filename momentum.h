@@ -23,6 +23,7 @@ Author: Hans Bihs
 class lexer;
 class fdm;
 class ghostcell;
+class vrans;
 class convection;
 class diffusion;
 class solver;
@@ -42,7 +43,7 @@ using namespace std;
 class momentum
 {
 public:
-	virtual void start(lexer*, fdm*, ghostcell*, momentum*)=0;
+	virtual void start(lexer*, fdm*, ghostcell*, vrans*)=0;
     virtual void utimesave(lexer*,fdm*, ghostcell*)=0;
     virtual void vtimesave(lexer*,fdm*, ghostcell*)=0;
     virtual void wtimesave(lexer*,fdm*, ghostcell*)=0;

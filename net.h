@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2019 Tobias Martin
+Copyright 2008-2019 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,8 +17,10 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
 --------------------------------------------------------------------*/
+
+#include<vector>
+#include <Eigen/Dense>
 
 class lexer;
 class fdm;
@@ -31,12 +33,19 @@ using namespace std;
 #define NET_H_
 
 class net
-{
+{    
 public:
-
-	virtual void start(lexer*, fdm*, ghostcell*)=0;
+    
+    typedef vector<Eigen::Vector3d> EigenMat;
+        
+	virtual void start(lexer*, fdm*, ghostcell*, double)=0;
 	virtual void initialize(lexer*, fdm*, ghostcell*)=0;	
-	virtual void netForces(double&, double&, double&)=0;
+	virtual void netForces(lexer*, double&, double&, double&, double&, double&, double&)=0;
+    
+    virtual const EigenMat& getLagrangePoints()=0;
+    virtual const EigenMat& getLagrangeForces()=0;
+    virtual const EigenMat& getCollarVel()=0;
+    virtual const EigenMat& getCollarPoints()=0;
 };
 
 #endif

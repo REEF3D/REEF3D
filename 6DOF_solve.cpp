@@ -23,7 +23,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"momentum_FSI.h"
 
 void sixdof_f::solve(lexer *p,fdm* a, ghostcell *pgc)
 {
@@ -46,27 +45,6 @@ void sixdof_f::solve(lexer *p,fdm* a, ghostcell *pgc)
 	if(p->X11_r==1)
 	dRs = (Ns - p->X25_Cr*Rs - (Iy-Ix)*Ps*Qs)/Iz;
 	
-	// Add mooring forces
-	if (p->X310 > 0)
-	{
-		for (int i=0; i<p->mooring_count; i++)
-		{
-			if(p->X11_u==1)
-			dUs += Xms[i]/Mfb;
-			if(p->X11_v==1)
-			dVs += Yms[i]/Mfb;
-			if(p->X11_w==1)
-			dWs += Zms[i]/Mfb;
-			
-			if(p->X11_p==1)
-			dPs += Kms[i]/Ix;
-			if(p->X11_q==1)
-			dQs += Mms[i]/Iy;
-			if(p->X11_r==1)
-			dRs += Nms[i]/Iz;
-		}
-	}	
-	
 	if(p->X11_u==1)
 	Us = Usn + 0.5*p->dt*(3.0*dUs - dUsn);
 	if(p->X11_v==1)
@@ -84,7 +62,6 @@ void sixdof_f::solve(lexer *p,fdm* a, ghostcell *pgc)
 	transform_vec_SE(Us,Vs,Ws,Ue,Ve,We);
 	transform_angle_SE(Ps,Qs,Rs,Pe,Qe,Re);
 
-
 	if(p->X11_u==1)
 	dxg = 0.5*p->dt*(3.0*Ue - Uen);
 	if(p->X11_v==1)
@@ -98,7 +75,6 @@ void sixdof_f::solve(lexer *p,fdm* a, ghostcell *pgc)
 	dtheta = 0.5*p->dt*(3.0*Qe - Qen);
 	if(p->X11_r==1)
 	dpsi = 0.5*p->dt*(3.0*Re - Ren);
-
 }
 
 void sixdof_f::update()
@@ -202,19 +178,7 @@ void sixdof_f::update()
 }
 
 
-void sixdof_f::solve_quaternion
-(
-	lexer *p,
-	fdm* a, 
-	ghostcell *pgc, 
-	momentum *pmom,
-	ioflow* pflow,
-	freesurface* pfsf,
-	convection *pfsfdisc,
-	solver *psolv,
-	reini *preini,
-	particlecorr *ppart
-)
+void sixdof_f::solve_quaternion()
 {
 	// Symplectic integration using 2nd-order Strömer-Verlet scheme
 
@@ -324,12 +288,7 @@ void sixdof_f::solve_quaternion
 		e_[i] += 1.0/6.0*(e1[i] + 2.0*e2[i] + 2.0*e3[i] + p->dt*L_[i]); 
 	}	
 
-
-
-	//fluidUpdate(p,a,pgc,pmom,pflow,pfsf,pfsfdisc,psolv,preini,ppart,false,1);      
-    
-
-	update_quaternion(p,a); 
+	update_quaternion(); 
 }
 
 
@@ -614,7 +573,7 @@ std::vector<double> sixdof_f::get_R
 }
 
 
-void sixdof_f::update_quaternion(lexer *p, fdm* a)
+void sixdof_f::update_quaternion()
 {
     Lnn_ = Ln_;
     Ln_ = L_;
@@ -623,66 +582,3 @@ void sixdof_f::update_quaternion(lexer *p, fdm* a)
     enn_ = en_;
     en_ = e_;
 }
-
-
-
-
-
-
-
-
-
-/*  // Haming 4th-order predictor corrector method 
-        
-	L_ = get_R(e_);
-	
-	// Predictor step
-	std::vector<double> ep(13,0.0);
-	std::vector<double> ek(13,0.0);
-		
-	for (int i=0; i<13; i++)
-	{        
-		ep[i] = ennnn_[i] + 4.0/3.0*p->dt*(2.0*L_[i] - Ln_[i] + 2.0*Lnn_[i]);
-		ek[i] = ep[i] + 112.0/9.0*trunc_[i];
-	}
-
-	// Modify step
-	std::vector<double> Lk(13); 
-	double err_norm = 1.0;
-        
-	int loopCount = 0;
-	while (err_norm > 1e-4 && loopCount < 4)
-	{
-		// Update rigid body using ek
-		//solidUpdate(p,a,pgc,ek,false);
-			
-		// Update fluid velocity and pressure
-		// fluidUpdate(p,a,pgc,pmom,pflow,pfsf,pfsfdisc,psolv,preini,ppart,false,1);
-
-		// Update ek from new fluid forces
-		//forceUpdate(p,a,pgc);
-		   
-		Lk = get_R(ek); 
-            
-		err_norm = 0.0;
-		for (int i=0; i<13; i++)
-		{
-			e_[i] = 1.0/8.0*(9.0*en_[i] - ennn_[i] + 3.0*p->dt*(Lk[i] + 2.0*L_[i] - Ln_[i]));   
-			err_norm += pow(e_[i]*e_[i] - ek[i]*ek[i],2.0);
-		}
-		
-		err_norm = sqrt(err_norm);
-		ek = e_;
-			
-		loopCount++;
-		
-		//if (p->mpirank==0) cout<<"Error norm "<<err_norm<<endl;
-	}
-          
-	// Corrector step
-	for (int i=0; i<13; i++)
-	{        
-		trunc_[i] = 9.0/121.0*(e_[i]-ep[i]);
-		e_[i] -= trunc_[i];
-	}
-*/

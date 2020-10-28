@@ -22,8 +22,7 @@ Author: Hans Bihs
 
 #include"rans_io.h"
 #include"bc_ikepsilon.h"
-
-class vrans;
+#include"vrans.h"
 
 using namespace std;
 
@@ -38,16 +37,14 @@ public:
 	virtual void isource(lexer*,fdm*);
 	virtual void jsource(lexer*,fdm*);
 	virtual void ksource(lexer*,fdm*);
-	virtual void kinsource(lexer*,fdm*);
-	virtual void epssource(lexer*,fdm*);
+	virtual void kinsource(lexer*,fdm*,vrans*);
+	virtual void epssource(lexer*,fdm*,vrans*);
 	virtual void epsfsf(lexer*,fdm*,ghostcell*);
-	virtual void eddyvisc(fdm*,lexer*,ghostcell*);
+	virtual void eddyvisc(fdm*,lexer*,ghostcell*,vrans*);
 	virtual void clearfield(lexer*,fdm*,field&);
 
 	int count,q;
 	double starttime;
-    
-    vrans *pvrans;
 };
 
 #endif

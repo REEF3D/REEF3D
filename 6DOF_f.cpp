@@ -20,32 +20,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"6DOF_f.h"
-#include"net_QuasiStatic.h"
 #include"net_void.h"
 #include"mooring_void.h"
 #include"mooring_DGSEM.h"
-#include"mooring_QuasiStatic.h"
+#include"mooring_barQuasiStatic.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"reinidisc.h"
 #include"reinidisc_f.h"
 #include"reinidisc_fsf.h"
-#include"momentum_FSI.h"
-
-//#include"array"
 
 sixdof_f::sixdof_f(
 	lexer *p,
 	fdm *a,
-	ghostcell *pgc,
-	momentum *pmom,
-	ioflow* pflow,
-	freesurface* pfsf,
-	convection* pfsfdisc,
-	solver* psolv,
-	reini* preini,
-	particlecorr* ppart
+	ghostcell *pgc
 ) : gradient(p), cutl(p), cutr(p), fbio(p), epsifb(1.6*p->DXM), epsi(1.6),f(p),dt(p),frk1(p),frk2(p),L(p),eta(p),phin(p),vertice(p),nodeflag(p)
 {
 	p->printcount_sixdof=0;
@@ -60,194 +49,100 @@ sixdof_f::sixdof_f(
 	Ne = 0.0;
 
     zero=0.0;
-
-	LOOP
-	{
-		phin(i,j,k) = a->phi(i,j,k);
-	}
 }
 
 sixdof_f::~sixdof_f()
 {
 }
 
+
 void sixdof_f::start
 (
-	lexer *p,
-	fdm *a,
-	ghostcell *pgc,
-	momentum *pmom,
-	ioflow *pflow,
-	freesurface *pfsf,
-	convection *pfsfdisc,
-	solver *psolv,
-	reini *preini,
-	particlecorr *ppart
+	lexer *p, 
+	fdm *a, 
+	ghostcell *pgc, 
+    vrans *pvrans,
+    vector<net*>& pnet
+)
+{
+	// Main loop
+	if (p->X13 == 0)
+	{
+        start_Euler(p,a,pgc,pvrans,pnet);
+    }
+    else if (p->X13 == 1)
+    {
+        start_Quaternion(p,a,pgc,pvrans,pnet);
+    }
+}
+
+
+void sixdof_f::start_Euler
+(
+	lexer *p, 
+	fdm *a, 
+	ghostcell *pgc, 
+    vrans *pvrans,
+    vector<net*>& pnet
 )
 {
 	starttime=pgc->timer();
 
-	// Main loop
-	if (p->X13 == 0)
-	{
-		if (p->X12 == 1)
-		{
-			fluidForces(p,a,pgc);
-		}
+    forceUpdate(p,a,pgc,pvrans,pnet);
 
-		if (p->X310 > 0)
-		{
-			mooringForces(p,a,pgc);
-		}
+    solve(p,a,pgc);
+    
+    motion_ext(p,a,pgc);
+    
+    fb_position(p,a,pgc);
 
-		if (p->X320 > 0)
-		{
-			netForces(p,a,pgc);
-		}
+    ray_cast(p,a,pgc);
+    reini_AB2(p,a,pgc,a->fb);
+    pgc->start4a(p,a->fb,50);
 
-        solve(p,a,pgc);
-        motion_ext(p,a,pgc);
-        fb_position(p,a,pgc);
+    interface(p,true);
+    maxvel(p,a,pgc);
 
-		ray_cast(p,a,pgc);
-		//reini_AB2(p,a,pgc,a->fb);
-		pgc->start4a(p,a->fb,50);
+    if(p->mpirank==0)
+    cout<<"Ue: "<<p->ufbi<<" Ve: "<<p->vfbi<<" We: "<<p->wfbi<<" Pe: "<<p->pfbi<<" Qe: "<<p->qfbi<<" Re: "<<p->rfbi<<endl;
 
-		interface(p,true);
-		maxvel(p,a,pgc);
+    double starttime1=pgc->timer();
+    pgc->gcfb_update(p,a);
+    double endtime1 = pgc->timer()-starttime1;
 
-		if(p->mpirank==0)
-		cout<<"Ue: "<<p->ufbi<<" Ve: "<<p->vfbi<<" We: "<<p->wfbi<<" Pe: "<<p->pfbi<<" Qe: "<<p->qfbi<<" Re: "<<p->rfbi<<endl;
+    print_stl(p,a,pgc);
+    print_E_position(p,a,pgc);
+    print_E_velocity(p,a,pgc);
+    print_E_force(p,a,pgc);
+    print_S_force(p,a,pgc);
 
-		double starttime1=pgc->timer();
-		pgc->gcfb_update(p,a);
-		double endtime1 = pgc->timer()-starttime1;
-
-		print_stl(p,a,pgc);
-		print_E_position(p,a,pgc);
-		print_E_velocity(p,a,pgc);
-		print_E_force(p,a,pgc);
-		print_S_force(p,a,pgc);
-
-		if(p->mpirank==0)
-		cout<<"6DOF time: "<<setprecision(3)<<pgc->timer()-starttime<<"  update time: "<<endtime1<<endl;
-	}
-    else if (p->X13 == 1)
-    {
-		// Initialise fluid
-		//pgc->start4(p,a->press,40);
-		forceUpdate(p,a,pgc);
-		//fluidUpdate(p,a,pgc,pmom,pflow,pfsf,pfsfdisc,psolv,preini,ppart,false,0);
-
-		// Initialise forces
+    if(p->mpirank==0)
+    cout<<"6DOF time: "<<setprecision(3)<<pgc->timer()-starttime<<"  update time: "<<endtime1<<endl;	
+}
 
 
-		// FSI loop
-		solve_quaternion(p,a,pgc,pmom,pflow,pfsf,pfsfdisc,psolv,preini,ppart);
+void sixdof_f::start_Quaternion
+(
+	lexer *p, 
+	fdm *a, 
+	ghostcell *pgc, 
+    vrans *pvrans,
+    vector<net*>& pnet
+)
+{
+	starttime=pgc->timer();
+    
+    forceUpdate(p,a,pgc,pvrans,pnet);
+    
+    solve_quaternion();
 
-		// Finalise solid
-		solidUpdate(p,a,pgc,e_,true);
-		//forceUpdate(p,a,pgc);
+    solidUpdate(p,a,pgc,e_);
 
-		// Finalise fluid
-		//fluidUpdate(p,a,pgc,pmom,pflow,pfsf,pfsfdisc,psolv,preini,ppart,true,2);
+    print_stl(p,a,pgc);
+    print_E_position(p,a,pgc);
+    print_E_velocity(p,a,pgc);
+    print_E_force(p,a,pgc);
 
-		// Print
-		print_stl(p,a,pgc);
-		print_E_position(p,a,pgc);
-		print_E_velocity(p,a,pgc);
-		print_E_force(p,a,pgc);
-
-		if(p->mpirank==0)
-		cout<<"6DOF time: "<<setprecision(3)<<pgc->timer()-starttime<<endl;
-    }
-
-/*
-starttime=pgc->timer();
-
-	double** testarray;
-	p->Darray(testarray,1000,1000);
-
-
-	for (int i = 0; i < 1000; i++)
-	{
-		for (int j = 0; j < 1000; j++)
-		{
-			testarray[i][j] =std::rand();
-		}
-	}
-
-
-cout<<"Test time array: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
-
-
-starttime=pgc->timer();
-
-	vector<vector < double > > test(1000, vector<double>(1000));
-
-	for (int i = 0; i < 1000; i++)
-	{
-		for (int j = 0; j < 1000; j++)
-		{
-			test[i][j] =std::rand();
-		}
-	}
-
-cout<<"Test time vector initialised: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
-
-
-starttime=pgc->timer();
-
-	vector<double > testvector;
-	testvector.resize(100000);
-
-	for (int i = 0; i < 100000; i++)
-	{
-	//	testvector[i].resize(1000);
-
-	//	for (int j = 0; j < 1000; j++)
-		{
-			testvector[i] = std::rand();
-		}
-	}
-
-cout<<"Test time vector reserved: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
-
-
-starttime=pgc->timer();
-
-	vector<double> testvector2(1,0.0);
-
-	for (int i = 0; i < 100000; i++)
-	{
-		testvector2.push_back(std::rand());
-	}
-
-cout<<"Test time vector push_back from zero: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
-
-
-
-starttime=pgc->timer();
-
-	std::array<double, 36000> myArray;
-
-	for (int i = 0; i < 1000; i++)
-	{
-		for (int j = 0; j < 1000; j++)
-		{
-			myArray[i][j] = std::rand();
-		}
-	}
-
-	double val;
-		for(int qn=0; qn<1000; ++qn)
-	for(n=0; n<p->cellnum; ++n)
-	myArray[n]=0.0;
-
-	for(int qn=0; qn<1000; ++qn)
-	for(n=0; n<p->cellnum; ++n)
-	val=myArray[n];
-
-cout<<"Test time std::array: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
-*/
+    if(p->mpirank==0)
+    cout<<"6DOF time: "<<setprecision(3)<<pgc->timer()-starttime<<endl;
 }

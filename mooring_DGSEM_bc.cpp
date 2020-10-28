@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2019 Tobias Martin
+Copyright 2008-2019 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -59,9 +59,9 @@ void mooring_DGSEM::updateBC(lexer* p)
 */
 
 	// Circular motion
-	double xe = 32.554 + Q*0.2*cos(2*PI/3.5*t_mooring);
+	double xe = 32.554;// + Q*0.2*cos(2*PI/3.5*t_mooring);
 	double ye = 0.0;
-	double ze = 3.3 + Q*0.2*sin(2*PI/3.5*t_mooring);
+	double ze = 3.3;// + Q*0.2*sin(2*PI/3.5*t_mooring);
 	
 	
 	

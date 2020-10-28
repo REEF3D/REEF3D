@@ -430,13 +430,13 @@ void iowave::inflow_walldist(lexer *p, fdm *a, ghostcell *pgc, convection *pconv
 {
 }
 
-void iowave::veltimesave(lexer *p, fdm *a, ghostcell *pgc)
+void iowave::veltimesave(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
     pvrans->veltimesave(p,a,pgc);
     
 }
 
-void iowave::vrans_sed_update(lexer *p,fdm *a,ghostcell *pgc)
+void iowave::vrans_sed_update(lexer *p,fdm *a,ghostcell *pgc, vrans *pvrans)
 {
     pvrans->sed_update(p,a,pgc);
 }

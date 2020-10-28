@@ -92,7 +92,7 @@ void sixdof_f::objects(lexer *p, fdm *a, ghostcell *pgc)
 	cout<<"Surface triangles: "<<tricount<<endl;
 	
 	// Refine triangles
-	geometry_refinement(p);	
+	//geometry_refinement(p);	
 
     if(p->mpirank==0)
 	cout<<"Refined surface triangles: "<<tricount<<endl;
@@ -164,9 +164,9 @@ void sixdof_f::geometry_refinement(lexer *p)
 	double at,bt,ct,st;
 	double nx_old,ny_old,nz_old;	
 	
-	tri_x_r.reserve(3*tricount);
-	tri_y_r.reserve(3*tricount);
-	tri_z_r.reserve(3*tricount);	
+	tri_x_r.reserve(4*tricount);
+	tri_y_r.reserve(4*tricount);
+	tri_z_r.reserve(4*tricount);	
 	
 	tri_x_r.resize(tricount,vector<double>(3,0.0));
 	tri_y_r.resize(tricount,vector<double>(3,0.0));
@@ -244,7 +244,7 @@ void sixdof_f::geometry_refinement(lexer *p)
 			create_triangle(x02,y02,z02,x12,y12,z12,x2,y2,z2,nx_old,ny_old,nz_old);
 		}
 		
-		if (tri_x_r.size() > 100000) break;
+		if (tri_x_r.size() > 20000) break;
 	}
 	
 	

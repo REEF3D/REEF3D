@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2019 Tobias Martin
+Copyright 2008-2019 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -62,18 +62,6 @@ void mooring_DGSEM::start(lexer *p, fdm *a, ghostcell *pgc)
 
 	// Plot mooring line	
 	print(p);
-	
-	
-if (p->mpirank == 0)
-{	
-	for (int i = 0; i < H; i++)
-	{
-		for (int j = 0; j < (P+1); j++)
-		{
-//			cout<<r_x[i][j]<<" "<<r_z[i][j]<<" "<<T[i][j]<<endl;
-		}
-	}	
-}
 
 }
 
@@ -334,10 +322,10 @@ void mooring_DGSEM::updateFluidVel(lexer *p, fdm *a, ghostcell *pgc, int cmp)
 void mooring_DGSEM::updateFields(lexer *p, fdm *a, ghostcell *pgc)
 {
 	// Fluid velocity
-	updateFluidVel(p, a, pgc, 0);
+/*	updateFluidVel(p, a, pgc, 0);
 	updateFluidVel(p, a, pgc, 1);
 	updateFluidVel(p, a, pgc, 2);
-	
+*/	
 	
 	for (int i = 0; i < H; i++)
 	{

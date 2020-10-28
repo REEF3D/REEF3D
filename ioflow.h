@@ -27,6 +27,7 @@ class field;
 class vec;
 class convection;
 class reini;
+class vrans;
 class slice;
 class fdm2D;
 class fdm_fnpf;
@@ -53,12 +54,12 @@ public:
 	virtual void fsfrkinVa(lexer*,fdm*,ghostcell*,vec&)=0;
 	virtual void fsfrkoutVa(lexer*,fdm*,ghostcell*,vec&)=0;
     virtual void iogcb_update(lexer*,fdm*,ghostcell*)=0;
-    virtual void isource(lexer*,fdm*,ghostcell*)=0;
-    virtual void jsource(lexer*,fdm*,ghostcell*)=0;
-    virtual void ksource(lexer*,fdm*,ghostcell*)=0;
+    virtual void isource(lexer*,fdm*,ghostcell*,vrans*)=0;
+    virtual void jsource(lexer*,fdm*,ghostcell*,vrans*)=0;
+    virtual void ksource(lexer*,fdm*,ghostcell*,vrans*)=0;
     virtual void pressure_io(lexer*,fdm*,ghostcell*)=0;
     virtual void turbulence_io(lexer*,fdm*,ghostcell*)=0;
-    virtual void veltimesave(lexer*,fdm*,ghostcell*)=0;
+    virtual void veltimesave(lexer*,fdm*,ghostcell*,vrans*)=0;
     
     virtual void flowfile(lexer*,fdm*,ghostcell*,turbulence*)=0;
     
@@ -108,7 +109,7 @@ public:
 	
 	virtual int iozonecheck(lexer*,fdm*)=0;
     
-    virtual void vrans_sed_update(lexer*,fdm*,ghostcell*)=0;
+    virtual void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*)=0;
 	
 };
 

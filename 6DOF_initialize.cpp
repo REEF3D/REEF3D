@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2019 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -22,16 +22,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"6DOF_f.h"
 #include"mooring_void.h"
 #include"mooring_DGSEM.h"
-#include"mooring_QuasiStatic.h"
+#include"mooring_barQuasiStatic.h"
 #include"mooring_Catenary.h"
+#include"mooring_Spring.h"
 #include"net_void.h"
-#include"net_QuasiStatic.h"
+#include"net_barDyn.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 
-void sixdof_f::initialize(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_f::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 {
 	print_ini(p,a,pgc);
 	ini_parameter(p,a,pgc);
@@ -52,14 +53,12 @@ void sixdof_f::initialize(lexer *p, fdm *a, ghostcell *pgc)
 	
 	ray_cast(p,a,pgc);
 	reini_AB2(p,a,pgc,a->fb);
-    pgc->start4a(p,a->fb,50);
+	pgc->start4a(p,a->fb,50);
 
 	interface(p,true);
 	maxvel(p,a,pgc);
 	pgc->gcfb_update(p,a);
 	print_stl(p,a,pgc);
-	
-	
     
     if(p->X221==1)
     read_motionvec(p,a,pgc);
@@ -104,11 +103,15 @@ void sixdof_f::initialize(lexer *p, fdm *a, ghostcell *pgc)
 			}	
 			else if(p->X310==2)
 			{
-				pmooring.push_back(new mooring_QuasiStatic(i)); 
+				pmooring.push_back(new mooring_barQuasiStatic(i)); 
 			}	
 			else if(p->X310==3)
 			{
 				pmooring.push_back(new mooring_DGSEM(i));
+			}
+			else if(p->X310==4)
+			{
+				pmooring.push_back(new mooring_Spring(i));
 			}
 		
 			X311_xen[i] = p->X311_xe[i] - xg;
@@ -119,33 +122,49 @@ void sixdof_f::initialize(lexer *p, fdm *a, ghostcell *pgc)
 		}
 	}	
 
-
-	if (p->X320 == 0)
-	{
-		pnet.push_back(new net_void());
-	}
-	else
+    if (p->X320 == 0)
     {
-		pnet.reserve(1);	
-	
-		if(p->mpirank==0)
-		{
-			if(p->P14==1)
-			{
-				mkdir("./REEF3D_6DOF_Net",0777);	
-			}
-		}
+        pnet.push_back(new net_void());
+    }
+    else
+    {
+		MPI_Bcast(&p->net_count,1,MPI_DOUBLE,0,pgc->mpi_comm);
 		
-		for (int i=0; i < 1; i++)
+        Xne.resize(p->net_count);
+		Yne.resize(p->net_count);
+		Zne.resize(p->net_count);
+		Kne.resize(p->net_count);
+		Mne.resize(p->net_count);
+		Nne.resize(p->net_count);
+		Xns.resize(p->net_count);
+		Yns.resize(p->net_count);
+		Zns.resize(p->net_count);
+		Kns.resize(p->net_count);
+		Mns.resize(p->net_count);
+		Nns.resize(p->net_count);
+    
+        if(p->mpirank==0)
+        {
+            if(p->P14==1)
+            {
+                mkdir("./REEF3D_6DOF_Net",0777);	
+            }
+        }
+
+        pnet.reserve(p->net_count);	
+  
+		for (int i=0; i < p->net_count; i++)
 		{
-			if(p->X320==1)
+			if(p->X320_type[i] > 10)
 			{
-				pnet.push_back(new net_QuasiStatic(i));
+				pnet.push_back(new net_barDyn(i,p));
 			}
 
 			pnet[i]->initialize(p,a,pgc);
 		}
-    }
+        
+        p->printcount_sixdof++;
+    } 
 }
 
 void sixdof_f::ini_parameter(lexer *p, fdm *a, ghostcell *pgc)

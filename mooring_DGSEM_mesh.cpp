@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2019 Tobias Martin
+Copyright 2008-2019 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
-
+/*
 #include"mooring_DGSEM.h"
 #include"lexer.h"
 
@@ -617,3 +617,4 @@ void mooring_DGSEM::nodegen(lexer *p)
 	rx = 1.0/(rx);
 }
 
+*/

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2019 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,23 +19,29 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"momentum_FSI.h"
+#include"momentum_fsi.h"
+#include"vrans.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"bcmom.h"
 #include"convection.h"
 #include"diffusion.h"
+#include"density_f.h"
+#include"ediff2.h"
 #include"pressure.h"
 #include"poisson.h"
 #include"ioflow.h"
 #include"turbulence.h"
 #include"solver.h"
+#include"6DOF_fsi.h"
+#include"net.h"
 
-momentum_FSI::momentum_FSI
+momentum_fsi::momentum_fsi
 (
     lexer *p, 
     fdm *a, 
+    ghostcell *pgc, 
     convection *pconvection, 
     diffusion *pdiffusion, 
     pressure* ppressure, 
@@ -44,12 +50,15 @@ momentum_FSI::momentum_FSI
     solver *psolver, 
     solver *ppoissonsolver, 
     ioflow *pioflow
-)
-:bcmom(p),un(p),vn(p),wn(p),Fp(p),Fn(p),Fnn(p),Fnnn(p),Gp(p),Gn(p),Gnn(p),Gnnn(p),Hp(p),Hn(p),Hnn(p),Hnnn(p)
+):bcmom(p),urk1(p),vrk1(p),wrk1(p),urk2(p),vrk2(p),wrk2(p),un(p),vn(p),wn(p),uf(p),vf(p),wf(p),gradPx(p),gradPy(p),gradPz(p),flagx(p),flagy(p),flagz(p), flagp(p),fx(p),fy(p),fz(p)
 {
 	gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;
+	
+	gcval_urk=20;
+	gcval_vrk=21;
+	gcval_wrk=22;
 
 	pconvec=pconvection;
 	pdiff=pdiffusion;
@@ -57,364 +66,475 @@ momentum_FSI::momentum_FSI
 	ppois=ppoisson;
 	pturb=pturbulence;
 	psolv=psolver;
-	ppoissonsolv=ppoissonsolver;
+    ppoissonsolv=ppoissonsolver;
 	pflow=pioflow;
-}
-
-int momentum_FSI::pcfInd = 0;
-
-momentum_FSI::~momentum_FSI()
-{
-}
-
-void momentum_FSI::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
-{	
-    if (pcfInd == 0) 
-    {        
-        pflow->discharge(p, a, pgc);
-        pflow->inflow(p, a, pgc, a->u, a->v, a->w); 
-
-		//- Velocity predictor step
-        predictorStep(p, a, pgc);  
-    }
-    else if (pcfInd == 1) 
-    {
-		//- Velocity corrector step
-		correctorStep(p,a,pgc);       
-    }
-	else
-    {
-		//- Pressure solution
-		pflow->pressure_io(p,a,pgc);
-		ppress->start(a,p,ppois,ppoissonsolv,pgc,pmom,pflow,a->u,a->v,a->w,1.0);
-
-
-		pflow->u_relax(p,a,pgc,a->u);
-		pflow->v_relax(p,a,pgc,a->v);
-		pflow->w_relax(p,a,pgc,a->w);
-		pflow->p_relax(p,a,pgc,a->press);
-
-		cout<<"Call after pressure"<<endl;
-		pgc->start1(p,a->u,gcval_u);
-		pgc->start2(p,a->v,gcval_v);
-		pgc->start3(p,a->w,gcval_w);
-
-		// Save time step
-		fieldtimesave(p,a,pgc,pmom); 
-    }
-}
-
-void momentum_FSI::predictorStep(lexer *p, fdm *a, ghostcell *pgc)
-{	
-    // Get predictor fluxes
-    getF(p, a, pgc, a->u, a->v, a->w);
-    getG(p, a, pgc, a->u, a->v, a->w);
-    getH(p, a, pgc, a->u, a->v, a->w);
     
-	
-	// Set fields for first time steps
-	if (p->count == 1)
-    {
-        ULOOP
-        {
-            Fn(i,j,k) = a->F(i,j,k);
-            Fnn(i,j,k) = Fn(i,j,k);
-            Fnnn(i,j,k) = Fnn(i,j,k);
-		}
-		VLOOP
-		{
-			Gn(i,j,k) = a->G(i,j,k);
-			Gnn(i,j,k) = Gn(i,j,k);
-			Gnnn(i,j,k) = Gnn(i,j,k);
-		}
-		WLOOP
-		{
-			Hn(i,j,k) = a->H(i,j,k);
-			Hnn(i,j,k) = Hn(i,j,k);
-			Hnnn(i,j,k) = Hnn(i,j,k);
-		}
-       
-        dtn = p->dt;
-        dtnn = dtn;
-        dtnnn = dtnn;
-    }
-	
-	
-    // Coefficients for 4th-order Adam-Bashford
-    double beta0 = 
-        (3.0*pow(p->dt,3)+4.0*pow(p->dt,2)*(3.0*dtn+2.0*dtnn+dtnnn) + 
-        6.0*p->dt*(dtn*(3.0*dtn+4.0*dtnn+2.0*dtnnn)+dtnn*(dtnn+dtnnn)) + 12.0*dtn*(dtn*(dtn+2.0*dtnn+dtnnn)+dtnn*(dtnn+dtnnn)))
-        /(12.0*dtn*(dtn+dtnn)*(dtn+dtnn+dtnnn));
-    double beta1 = 
-        -p->dt*(3.0*pow(p->dt,2)+4.0*p->dt*(2.0*dtn+2.0*dtnn+dtnnn) + 6.0*dtn*(dtn+2.0*dtnn+dtnnn)+6.0*dtnn*(dtnn+dtnnn))
-        /(12.0*dtn*dtnn*(dtnn)+dtnnn);
-    double beta2 = (3.0*pow(p->dt,2)+4.0*p->dt*(2.0*dtn+dtnn+dtnnn) + 6*dtn*(dtn+dtnn+dtnnn))*p->dt/(12.0*dtnn*dtnnn*(dtn)+dtnn);
-    double beta3 = -(3.0*pow(p->dt,2)+4.0*p->dt*(2.0*dtn+dtnn) + 6.0*dtn*(dtn+dtnn))*p->dt/(12.0*dtnnn*(dtnn+dtnnn)*(dtn+dtnn+dtnnn));  
-	
-	
-    // U
-    starttime=pgc->timer();
     
-	ULOOP
-	{
-		un(i,j,k) = a->u(i,j,k);
-		Fp(i,j,k) = a->F(i,j,k);
-		
-		a->u(i,j,k) += p->dt*CPOR1*0.5*(((p->dt+2.0*p->dt_old)/p->dt_old)*a->F(i,j,k) - (p->dt/p->dt_old)*Fn(i,j,k));
-
-	//	a->u(i,j,k) += p->dt*CPOR1*(a->F(i,j,k)*beta3 + Fn(i,j,k)*beta2 + Fnn(i,j,k)*beta1 + Fnnn(i,j,k)*beta0);
-    }
-	pgc->start1(p,a->u,gcval_u);
-	
-	p->utime+=pgc->timer()-starttime;
-
-
-    // V 
-    starttime=pgc->timer();
-	VLOOP
-	{
-		vn(i,j,k) = a->v(i,j,k);
-		Gp(i,j,k) = a->G(i,j,k); 
-		
-		a->v(i,j,k) += p->dt*CPOR2*0.5*(((p->dt+2.0*p->dt_old)/p->dt_old)*a->G(i,j,k) - (p->dt/p->dt_old)*Gn(i,j,k));
-	
-	//	a->v(i,j,k) += p->dt*CPOR1*(a->G(i,j,k)*beta3 + Gn(i,j,k)*beta2 + Gnn(i,j,k)*beta1 + Gnnn(i,j,k)*beta0);
-	}
-	pgc->start2(p,a->v,gcval_v);
-	
-	p->vtime+=pgc->timer()-starttime;
-
-
-    // W 
-    starttime=pgc->timer();	
-	WLOOP
-	{
-		wn(i,j,k) = a->w(i,j,k);
-		Hp(i,j,k) = a->H(i,j,k);
-		
-		a->w(i,j,k) += p->dt*CPOR3*0.5*(((p->dt+2.0*p->dt_old)/p->dt_old)*a->H(i,j,k) - (p->dt/p->dt_old)*Hn(i,j,k));	
-		
-	//	a->w(i,j,k) += p->dt*CPOR1*(a->H(i,j,k)*beta3 + Hn(i,j,k)*beta2 + Hnn(i,j,k)*beta1 + Hnnn(i,j,k)*beta0);
-    }
-	cout<<"Call after predictor"<<endl;
-	pgc->start3(p,a->w,gcval_w);
-	
-	p->wtime+=pgc->timer()-starttime;
-
-
-// second time --> necessary?
-	cout<<"Call after predictor 2"<<endl;
-    pgc->start1(p,a->u,gcval_u);
-    pgc->start2(p,a->v,gcval_v);
-    pgc->start3(p,a->w,gcval_w);
-}
-
-void momentum_FSI::correctorStep(lexer *p, fdm *a, ghostcell *pgc)
-{
-    double zeta1 = (3.0*pow(p->dt,2)+4.0*p->dt*(2.0*dtn+dtnn) + 6.0*dtn*(dtn+dtnn))/(12.0*(p->dt+dtn)*(p->dt+dtn+dtnn));
-    double zeta2 = (pow(p->dt,2)+2.0*p->dt*(2.0*dtn+dtnn) + 6.0*dtn*(dtn+dtnn))/(12.0*dtn*(dtn+dtnn));
-    double zeta3 = (3.0*p->dt-2.0*(2.0*p->dt+dtn+dtnn))*pow(p->dt,2)/(12.0*dtn*dtnn*(p->dt+dtn));
-    double zeta4 = (p->dt+2.0*dtn)*pow(p->dt,2)/(12.0*dtnn*(dtn+dtnn)*(p->dt+dtn+dtnn));
-     
+    Xfb = Yfb = Zfb = Kfb = Mfb = Nfb = cd = cq = cl = 0.0;
    
-    // U
-    starttime=pgc->timer();
-   
-	for (int qq=0; qq<3; qq++)
+    // Define explicit diffusion for predictor step
+	pdiff_e = new ediff2(p);
+
+    pdensity = new density_f(p);
+}
+
+momentum_fsi::~momentum_fsi(){}
+
+
+void momentum_fsi::ini(lexer *p, fdm* a, ghostcell* pgc, sixdof_fsi* p6dof_fsi,vrans* pvrans, vector<net*>& pnet)
+{ 
+    // Calculate initial forcing term
+    ULOOP
     {
-        getF(p,a,pgc,a->u,a->v,a->w);
-        
-        ULOOP
-        {
-            a->u(i,j,k) = un(i,j,k) + p->dt*(a->F(i,j,k)*zeta4 + Fp(i,j,k)*zeta3 + Fn(i,j,k)*zeta2 + Fnn(i,j,k)*zeta1);
-        }    
+        fx(i,j,k) = 0.0; 
     }
-	pgc->start1(p,a->u,gcval_u);
-	
-	p->utime+=pgc->timer()-starttime;
-
-
-    //V 
-    starttime=pgc->timer();
-
-	for (int qq=0; qq<3; qq++)
-	{
-        getG(p,a,pgc,a->u,a->v,a->w);
         
-        VLOOP
-        {
-            a->v(i,j,k) = vn(i,j,k) + p->dt*(a->G(i,j,k)*zeta4 + Gp(i,j,k)*zeta3 + Gn(i,j,k)*zeta2 + Gnn(i,j,k)*zeta1);
-        }    
-    }
-	pgc->start2(p,a->v,gcval_v);
-	
-	p->vtime+=pgc->timer()-starttime;
-
-
-    //W 
-    starttime=pgc->timer();
-
-	for (int qq=0; qq<3; qq++)
-	{
-        getH(p,a,pgc,a->u,a->v,a->w);
-        
-        WLOOP
-        {
-            a->w(i,j,k) = wn(i,j,k) + p->dt*(a->H(i,j,k)*zeta4 + Hp(i,j,k)*zeta3 + Hn(i,j,k)*zeta2 + Hnn(i,j,k)*zeta1);
-        }    
-    }
-	cout<<"Call after corrector"<<endl;
-	pgc->start3(p,a->w,gcval_w);
-	
-	p->wtime+=pgc->timer()-starttime;
-
-
-// second time --> necessary?
-	cout<<"Call after corrector 2"<<endl;
-    pgc->start1(p,a->u,gcval_u);
-    pgc->start2(p,a->v,gcval_v);
-    pgc->start3(p,a->w,gcval_w);    
-}
+    VLOOP
+    {
+       fy(i,j,k) = 0.0;
+    }   
     
-void momentum_FSI::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
-{
-	n=0;
-	ULOOP
-	{
-    a->maxF=MAX(fabs(a->rhsvec.V[n]+ a->gi),a->maxF);
-	a->F(i,j,k) += (a->rhsvec.V[n] + a->gi)*PORVAL1;
-	a->rhsvec.V[n]=0.0;
-	++n;
-	}
+    WLOOP
+    {
+        fz(i,j,k) = 0.0;
+    }
+
+    //forcing(p, a, pgc, p6dof_fsi, a->u,a->v,a->w,a->u,a->v,a->w,1.0,pvrans,pnet);
 }
 
-void momentum_FSI::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
+void momentum_fsi::predictor(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom, vrans *pvrans)
 {
-	n=0;
-	VLOOP
-	{
-    a->maxG=MAX(fabs(a->rhsvec.V[n]+ a->gj),a->maxG);
-	a->G(i,j,k) += (a->rhsvec.V[n] + a->gj)*PORVAL2;	
-	a->rhsvec.V[n]=0.0;
-	++n;
-	}
 }
 
-void momentum_FSI::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
-{
-	n=0;
-	WLOOP
-	{
-    a->maxH=MAX(fabs(a->rhsvec.V[n]+ a->gk),a->maxH);
-	a->H(i,j,k) += (a->rhsvec.V[n] + a->gk)*PORVAL3;
-	a->rhsvec.V[n]=0.0;
-	++n;
-	}
-}
+void momentum_fsi::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
+{	}
 
-void momentum_FSI::getF(lexer *p, fdm *a, ghostcell *pgc, field &uvel, field &vvel, field &wvel)
-{
-    starttime=pgc->timer();
+void momentum_fsi::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_fsi* p6dof_fsi, vrans* pvrans, vector<net*>& pnet)
+{	
+    ULOOP
+    {
+        un(i,j,k) = a->u(i,j,k);
+    }
 
-	ULOOP
-	{
-		a->F(i,j,k) = 0.0;
-	}
+    VLOOP
+    {
+        vn(i,j,k) = a->v(i,j,k);
+    }
 
-	pturb->isource(p,a);
-	pflow->isource(p,a,pgc);
-	bcmom_start(a,p,pgc,pturb,uvel,gcval_u);
-	ppress->upgrad(p,a);
-	irhs(p,a,pgc,uvel,uvel,vvel,wvel,1.0);
-	pconvec->start(p,a,uvel,1,uvel,vvel,wvel);
-	pdiff->diff_u(p,a,pgc,psolv,uvel,vvel,wvel,1.0);    							// adds implicit diffusion
+    WLOOP
+    {
+        wn(i,j,k) = a->w(i,j,k);
+    }
+
+    pgc->start1(p,un,gcval_u);
+    pgc->start2(p,vn,gcval_v);
+    pgc->start3(p,wn,gcval_w);
+
+
+    // Set inflow 
+    double udisctime=0.0;
+    double udiscstart=0.0;
     
-	p->utime=pgc->timer()-starttime;
-} 
+    pflow->discharge(p,a,pgc);
+    pflow->inflow(p,a,pgc,a->u,a->v,a->w);
+	pflow->rkinflow(p,a,pgc,urk1,vrk1,wrk1);
+	pflow->rkinflow(p,a,pgc,urk2,vrk2,wrk2);
+		
 
-void momentum_FSI::getG(lexer *p, fdm *a, ghostcell *pgc, field &uvel, field &vvel, field &wvel)
-{
-    starttime=pgc->timer();
+//Step 1
+//--------------------------------------------------------
 
-	VLOOP
-	{
-		a->G(i,j,k) = 0.0;
-	}
-
-	pturb->jsource(p,a);
-	pflow->jsource(p,a,pgc);
-	bcmom_start(a,p,pgc,pturb,vvel,gcval_v);
-	ppress->vpgrad(p,a);
-	jrhs(p,a,pgc,vvel,uvel,vvel,wvel,1.0);
-	pconvec->start(p,a,vvel,2,uvel,vvel,wvel);
-	pdiff->diff_v(p,a,pgc,psolv,uvel,vvel,wvel,1.0); 
-
-	p->vtime=pgc->timer()-starttime; 
-} 
-
-void momentum_FSI::getH(lexer *p, fdm *a, ghostcell *pgc, field &uvel, field &vvel, field &wvel)
-{
+	// U
 	starttime=pgc->timer();
 
-	WLOOP
-	{
-		a->H(i,j,k) = 0.0;
-	}
+	pturb->isource(p,a);
+	pflow->isource(p,a,pgc,pvrans); 
+	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
+	ppress->upgrad(p,a);
+	irhs(p,a,pgc,a->u,a->u,a->v,a->w,1.0);
+    udiscstart=pgc->timer();
+	pconvec->start(p,a,a->u,1,a->u,a->v,a->w);
+    udisctime=pgc->timer()-udiscstart;
+	pdiff->diff_u(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
+
+	ULOOP
+	urk1(i,j,k) = a->u(i,j,k)
+				+ p->dt*CPOR1*(a->F(i,j,k));
+
+    p->utime=pgc->timer()-starttime;
+
+	// V
+	starttime=pgc->timer();
+
+	pturb->jsource(p,a);
+	pflow->jsource(p,a,pgc,pvrans);
+	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
+	ppress->vpgrad(p,a);
+	jrhs(p,a,pgc,a->v,a->u,a->v,a->w,1.0);
+	pconvec->start(p,a,a->v,2,a->u,a->v,a->w);
+	pdiff->diff_v(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
+
+	VLOOP
+	vrk1(i,j,k) = a->v(i,j,k)
+				+ p->dt*CPOR2*(a->G(i,j,k));
+
+    p->vtime=pgc->timer()-starttime;
+
+	// W
+	starttime=pgc->timer();
 
 	pturb->ksource(p,a);
-	pflow->ksource(p,a,pgc);
-	bcmom_start(a,p,pgc,pturb,wvel,gcval_w);
+	pflow->ksource(p,a,pgc,pvrans);
+	bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
 	ppress->wpgrad(p,a);
-	krhs(p,a,pgc,wvel,uvel,vvel,wvel,1.0);	
-	pconvec->start(p,a,wvel,3,uvel,vvel,wvel);	
-	pdiff->diff_w(p,a,pgc,psolv,uvel,vvel,wvel,1.0); 
-  
- 
-WLOOP
-{
-if (fabs(p->pos_x()-0.025)<0.001 && fabs(p->pos_z()-1.05)<0.3) cout<<"Flux "<<p->pos3_x()<<" "<<p->pos3_z()<<" "<<a->H(i,j,k)<<endl;	
+	krhs(p,a,pgc,a->w,a->u,a->v,a->w,1.0);
+	pconvec->start(p,a,a->w,3,a->u,a->v,a->w);
+	pdiff->diff_w(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
+
+	WLOOP
+	wrk1(i,j,k) = a->w(i,j,k)
+				+ p->dt*CPOR3*(a->H(i,j,k));
+	
+    p->wtime=pgc->timer()-starttime;
+   
+
+    forcing(p, a, pgc, p6dof_fsi,urk1,vrk1,wrk1,a->u,a->v,a->w,1.0,pvrans,pnet);
+	ULOOP
+	urk1(i,j,k) += 1.0*p->dt*CPOR1*(fx(i,j,k));
+	VLOOP
+	vrk1(i,j,k) += 1.0*p->dt*CPOR2*(fy(i,j,k));
+	WLOOP
+	wrk1(i,j,k) += 1.0*p->dt*CPOR3*(fz(i,j,k));
+    
+
+	pgc->start1(p,urk1,gcval_urk);
+	pgc->start2(p,vrk1,gcval_vrk);
+	pgc->start3(p,wrk1,gcval_wrk);
+	
+	//urk1.ggcpol(p);
+	//vrk1.ggcpol(p);
+	//wrk1.ggcpol(p);
+	
+    pflow->pressure_io(p,a,pgc);
+	ppress->start(a,p,ppois,ppoissonsolv,pgc, pflow, urk1, vrk1, wrk1, 1.0);
+	
+	pflow->u_relax(p,a,pgc,urk1);
+	pflow->v_relax(p,a,pgc,vrk1);
+	pflow->w_relax(p,a,pgc,wrk1);
+	pflow->p_relax(p,a,pgc,a->press);
+
+	pgc->start1(p,urk1,gcval_urk);
+	pgc->start2(p,vrk1,gcval_vrk);
+	pgc->start3(p,wrk1,gcval_wrk);
+	
+//Step 2
+//--------------------------------------------------------
+	
+	
+	// U
+	starttime=pgc->timer();
+
+	pturb->isource(p,a);
+	pflow->isource(p,a,pgc,pvrans);
+	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
+	ppress->upgrad(p,a);
+	irhs(p,a,pgc,urk1,urk1,vrk1,wrk1,0.25);
+    udiscstart=pgc->timer();
+	pconvec->start(p,a,urk1,1,urk1,vrk1,wrk1);
+    udisctime+=pgc->timer()-udiscstart;
+	pdiff->diff_u(p,a,pgc,psolv,urk1,vrk1,wrk1,0.25);
+
+	ULOOP
+	urk2(i,j,k) = 0.75*a->u(i,j,k) + 0.25*urk1(i,j,k)
+				+ 0.25*p->dt*CPOR1*(a->F(i,j,k));
+                
+    p->utime+=pgc->timer()-starttime;
+	
+	// V
+	starttime=pgc->timer();
+
+	pturb->jsource(p,a);
+	pflow->jsource(p,a,pgc,pvrans);
+	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
+	ppress->vpgrad(p,a);
+	jrhs(p,a,pgc,vrk1,urk1,vrk1,wrk1,0.25);
+	pconvec->start(p,a,vrk1,2,urk1,vrk1,wrk1);
+	pdiff->diff_v(p,a,pgc,psolv,urk1,vrk1,wrk1,0.25);
+
+	VLOOP
+	vrk2(i,j,k) = 0.75*a->v(i,j,k) + 0.25*vrk1(i,j,k)
+				+ 0.25*p->dt*CPOR2*(a->G(i,j,k));
+	
+    p->vtime+=pgc->timer()-starttime;
+
+	// W
+	starttime=pgc->timer();
+
+	pturb->ksource(p,a);
+	pflow->ksource(p,a,pgc,pvrans);
+	bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
+	ppress->wpgrad(p,a);
+	krhs(p,a,pgc,wrk1,urk1,vrk1,wrk1,0.25);
+	pconvec->start(p,a,wrk1,3,urk1,vrk1,wrk1);
+	pdiff->diff_w(p,a,pgc,psolv,urk1,vrk1,wrk1,0.25);
+
+	WLOOP
+	wrk2(i,j,k) = 0.75*a->w(i,j,k) + 0.25*wrk1(i,j,k)
+				+ 0.25*p->dt*CPOR3*(a->H(i,j,k));
+
+    p->wtime+=pgc->timer()-starttime;
+
+
+    forcing(p, a, pgc, p6dof_fsi,urk2,vrk2,wrk2,a->u,a->v,a->w,0.25,pvrans,pnet);
+	ULOOP
+	urk2(i,j,k) += 0.25*p->dt*CPOR1*(fx(i,j,k));
+	VLOOP
+	vrk2(i,j,k) += 0.25*p->dt*CPOR2*(fy(i,j,k));
+	WLOOP
+	wrk2(i,j,k) += 0.25*p->dt*CPOR3*(fz(i,j,k));
+	
+    pgc->start1(p,urk2,gcval_urk);
+	pgc->start2(p,vrk2,gcval_vrk);
+	pgc->start3(p,wrk2,gcval_wrk);
+	
+	//urk2.ggcpol(p);
+	//vrk2.ggcpol(p);
+	//wrk2.ggcpol(p);
+
+    pflow->pressure_io(p,a,pgc);
+	ppress->start(a,p,ppois,ppoissonsolv,pgc, pflow, urk2, vrk2, wrk2, 0.25);
+	
+	pflow->u_relax(p,a,pgc,urk2);
+	pflow->v_relax(p,a,pgc,vrk2);
+	pflow->w_relax(p,a,pgc,wrk2);
+	pflow->p_relax(p,a,pgc,a->press);
+	
+	pgc->start1(p,urk2,gcval_urk);
+	pgc->start2(p,vrk2,gcval_vrk);
+	pgc->start3(p,wrk2,gcval_wrk);
+
+
+//Step 3
+//--------------------------------------------------------
+
+	// U
+	starttime=pgc->timer();
+
+	pturb->isource(p,a);
+	pflow->isource(p,a,pgc,pvrans);
+	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
+	ppress->upgrad(p,a);
+	irhs(p,a,pgc,urk2,urk2,vrk2,wrk2,2.0/3.0);
+    udiscstart=pgc->timer();
+	pconvec->start(p,a,urk2,1,urk2,vrk2,wrk2);
+    udisctime+=pgc->timer()-udiscstart;
+	pdiff->diff_u(p,a,pgc,psolv,urk2,vrk2,wrk2,2.0/3.0);
+
+	ULOOP
+	a->u(i,j,k) = (1.0/3.0)*a->u(i,j,k) + (2.0/3.0)*urk2(i,j,k)
+				+ (2.0/3.0)*p->dt*CPOR1*(a->F(i,j,k));
+	
+    p->utime+=pgc->timer()-starttime;
+
+	// V
+	starttime=pgc->timer();
+
+	pturb->jsource(p,a);
+	pflow->jsource(p,a,pgc,pvrans);
+	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
+	ppress->vpgrad(p,a);
+	jrhs(p,a,pgc,vrk2,urk2,vrk2,wrk2,2.0/3.0);
+	pconvec->start(p,a,vrk2,2,urk2,vrk2,wrk2);
+	pdiff->diff_v(p,a,pgc,psolv,urk2,vrk2,wrk2,2.0/3.0);
+
+	VLOOP
+	a->v(i,j,k) = (1.0/3.0)*a->v(i,j,k) + (2.0/3.0)*vrk2(i,j,k)
+				+ (2.0/3.0)*p->dt*CPOR2*(a->G(i,j,k));
+	
+    p->vtime+=pgc->timer()-starttime;
+
+	// W
+	starttime=pgc->timer();
+
+	pturb->ksource(p,a);
+	pflow->ksource(p,a,pgc,pvrans);
+	bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
+	ppress->wpgrad(p,a);
+	krhs(p,a,pgc,wrk2,urk2,vrk2,wrk2,2.0/3.0);
+	pconvec->start(p,a,wrk2,3,urk2,vrk2,wrk2);
+	pdiff->diff_w(p,a,pgc,psolv,urk2,vrk2,wrk2,2.0/3.0);
+
+	WLOOP
+	a->w(i,j,k) = (1.0/3.0)*a->w(i,j,k) + (2.0/3.0)*wrk2(i,j,k)
+				+ (2.0/3.0)*p->dt*CPOR3*(a->H(i,j,k));
+	
+    p->wtime+=pgc->timer()-starttime;
+
+
+    forcing(p, a, pgc, p6dof_fsi,a->u,a->v,a->w,un,vn,wn,2.0/3.0,pvrans,pnet);
+	ULOOP
+	a->u(i,j,k) += 2.0/3.0*p->dt*CPOR1*(fx(i,j,k));
+	VLOOP
+	a->v(i,j,k) += 2.0/3.0*p->dt*CPOR2*(fy(i,j,k));
+	WLOOP
+	a->w(i,j,k) += 2.0/3.0*p->dt*CPOR3*(fz(i,j,k));
+	
+
+    pgc->start1(p,a->u,gcval_u);
+	pgc->start2(p,a->v,gcval_v);
+	pgc->start3(p,a->w,gcval_w);
+	
+	a->u.ggcpol(p);
+	a->v.ggcpol(p);
+	a->w.ggcpol(p);
+
+	//--------------------------------------------------------
+	// pressure
+	pflow->pressure_io(p,a,pgc);
+	ppress->start(a,p,ppois,ppoissonsolv,pgc, pflow, a->u, a->v,a->w,2.0/3.0);
+
+    pflow->u_relax(p,a,pgc,a->u);
+	pflow->v_relax(p,a,pgc,a->v);
+	pflow->w_relax(p,a,pgc,a->w);
+	pflow->p_relax(p,a,pgc,a->press);
+
+	pgc->start1(p,a->u,gcval_u);
+	pgc->start2(p,a->v,gcval_v);
+	pgc->start3(p,a->w,gcval_w);
+
+    bool conv = true;
+    p6dof_fsi->updateFSI(p,a,pgc,conv);
+    p6dof_fsi->print_stl(p,a,pgc);
+    p6dof_fsi->print_parameter(p, a, pgc);
+    if (p->mpirank == 0)
+	{
+		cout<<"Ue: "<<p->ufbi<<" Ve: "<<p->vfbi<<" We: "<<p->wfbi<<" Pe: "<<p->pfbi<<" Qe: "<<p->qfbi<<" Re: "<<p->rfbi<<endl;
+    }
 }
- 
-  
-	p->wtime=pgc->timer()-starttime;
-} 
+
+void momentum_fsi::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
+{
+	n=0;
+	if(p->D20 < 3)
+    {
+        ULOOP
+        {
+            a->maxF = MAX(fabs(a->rhsvec.V[n] + a->gi), a->maxF);
+            
+            a->F(i,j,k) += (a->rhsvec.V[n] + a->gi)*PORVAL1;
+            
+            a->rhsvec.V[n] = 0.0;
+            
+            ++n;
+        }
+    }
+	
+	n=0;
+	if(p->D20 == 3)
+    {
+        ULOOP
+        {
+            a->rhsvec.V[n] += a->gi;
+            
+            ++n;
+        }
+    }
+}
 
 
-void momentum_FSI::utimesave(lexer *p, fdm *a, ghostcell* pgc)
+void momentum_fsi::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
+{
+	n=0;
+	if(p->D20 < 3)
+    {
+        VLOOP
+        {
+            a->maxG = MAX(fabs(a->rhsvec.V[n] + a->gj), a->maxG);
+            
+            a->G(i,j,k) += (a->rhsvec.V[n] + a->gj)*PORVAL2;
+            
+            a->rhsvec.V[n]=0.0;
+            
+            ++n;
+        }
+    }
+	
+	n=0;
+	if(p->D20 == 3)
+    {
+        VLOOP
+        {
+            a->rhsvec.V[n] += a->gj;
+            
+            ++n;
+        }
+    }
+}
+
+void momentum_fsi::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
+{
+	n=0;
+	if(p->D20 < 3)
+    {
+        WLOOP
+        {
+            a->maxH = MAX(fabs(a->rhsvec.V[n] + a->gk), a->maxH);
+            
+            a->H(i,j,k) += (a->rhsvec.V[n] + a->gk)*PORVAL3;
+            
+            a->rhsvec.V[n]=0.0;
+            
+            ++n;
+        }
+    }
+	
+	n=0;
+	if(p->D20 == 3)
+    {
+        WLOOP
+        {
+            a->rhsvec.V[n] += a->gk;
+            
+            ++n;
+        }
+    }
+}
+
+
+void momentum_fsi::utimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
     ULOOP
     {
-		Fnnn(i,j,k) = Fnn(i,j,k);
-		Fnn(i,j,k) = Fn(i,j,k);
-		Fn(i,j,k) = a->F(i,j,k);
-	}
+        un(i,j,k) = a->u(i,j,k);
+    }
+    
+    pgc->start1(p,un,gcval_u);
 }
 
-void momentum_FSI::vtimesave(lexer *p, fdm *a, ghostcell* pgc)
+
+void momentum_fsi::vtimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
     VLOOP
     {
-		Gnnn(i,j,k) = Gnn(i,j,k);
-		Gnn(i,j,k) = Gn(i,j,k);
-		Gn(i,j,k) = a->G(i,j,k);
+        vn(i,j,k) = a->v(i,j,k);
     }
+
+    pgc->start2(p,vn,gcval_v);     
 }
 
-void momentum_FSI::wtimesave(lexer *p, fdm *a, ghostcell* pgc)
+
+void momentum_fsi::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
     WLOOP
     {
-		Hnnn(i,j,k) = Hnn(i,j,k);
-		Hnn(i,j,k) = Hn(i,j,k);
-		Hn(i,j,k) = a->H(i,j,k);
+        wn(i,j,k) = a->w(i,j,k);
     }
+        
+    pgc->start3(p,wn,gcval_w);            
 }
 
-void momentum_FSI::fieldtimesave(lexer *p, fdm *a, ghostcell* pgc, momentum *pmom)
-{
-    dtnnn = dtnn;
-    dtnn = dtn;
-    dtn = p->dt;    
-}
+void momentum_fsi::fillaij1(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}
+void momentum_fsi::fillaij2(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}
+void momentum_fsi::fillaij3(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}
 
 
