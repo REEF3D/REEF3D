@@ -91,8 +91,8 @@ public:
     void pffg_driver();
     void sf_driver();
     
-	void loop_cfd_fsi(fdm*);
 	void loop_cfd(fdm*);
+	void loop_cfd_df(fdm*);
     void loop_nsewave(fdm*);
     void loop_nhflow(fdm*);
     void loop_ptf(fdm*);

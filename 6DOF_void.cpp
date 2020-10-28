@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2019 Hans Bihs
+Copyright 2008-2020 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -89,6 +89,13 @@ void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pne
 	else
 	{
 		MPI_Bcast(&p->mooring_count,1,MPI_DOUBLE,0,pgc->mpi_comm);	
+        
+        Xme.resize(p->mooring_count);
+		Yme.resize(p->mooring_count);
+		Zme.resize(p->mooring_count);
+		Kme.resize(p->mooring_count);
+		Mme.resize(p->mooring_count);
+		Nme.resize(p->mooring_count);
 
 		if(p->mpirank==0 && p->P14==1)
 		{
@@ -136,12 +143,6 @@ void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pne
 		Kne.resize(p->net_count);
 		Mne.resize(p->net_count);
 		Nne.resize(p->net_count);
-		Xns.resize(p->net_count);
-		Yns.resize(p->net_count);
-		Zns.resize(p->net_count);
-		Kns.resize(p->net_count);
-		Mns.resize(p->net_count);
-		Nns.resize(p->net_count);
     
         if(p->mpirank==0)
         {

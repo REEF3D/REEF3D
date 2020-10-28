@@ -653,10 +653,10 @@ void driver::logic()
     p6dof = new sixdof_void;
 	
 	if(p->X10==1 && p->X13!=2)
-    p6dof = new sixdof_f(p,a,pgc);
+    p6dof = new sixdof_gc(p,a,pgc);
 
 	if(p->X10==1 && p->X13==2)
-    p6dof = new sixdof_fsi(p,a,pgc);
+    p6dof = new sixdof_df(p,a,pgc);
 	
 // Start MAINLOOP
 	if(p->A10==5)
@@ -667,7 +667,7 @@ void driver::logic()
     
     if(p->A10==6 && p->X10==1 && p->X13==2) 
 	{
-		loop_cfd_fsi(a);
+		loop_cfd_df(a);
 	}
     else if(p->A10==6)
 	{

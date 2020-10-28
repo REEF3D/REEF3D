@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2019 Hans Bihs
+Copyright 2008-2020 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"6DOF.h"
@@ -48,8 +49,8 @@ private:
 
     vector<mooring*> pmooring;
 
-	vector<double> Xme, Yme, Zme, Kme, Mme, Nme, Xms, Yms, Zms, Kms, Mms, Nms;    
-	vector<double> Xne, Yne, Zne, Kne, Mne, Nne, Xns, Yns, Zns, Kns, Mns, Nns;    
+	vector<double> Xme, Yme, Zme, Kme, Mme, Nme;    
+	vector<double> Xne, Yne, Zne, Kne, Mne, Nne;    
 };
 
 #endif
