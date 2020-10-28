@@ -480,6 +480,7 @@
         <File Name="interpolation.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Convection">
+        <File Name="lust.h"/>
         <File Name="weno_flux_nug_dir.h"/>
         <File Name="iweno3_hj.h"/>
         <File Name="convection_void.h"/>
@@ -1093,6 +1094,7 @@
             <File Name="sflow_potential_f.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Rheology">
+            <File Name="sflow_rheology_bingham.cpp"/>
             <File Name="sflow_rheology_Herschel-Bulkley.cpp"/>
             <File Name="sflow_rheology_v.cpp"/>
             <File Name="sflow_rheology_f.cpp"/>
@@ -1537,6 +1539,7 @@
         <File Name="interpolation_ipol.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Convection">
+        <File Name="lust.cpp"/>
         <File Name="ifou.cpp"/>
         <File Name="weno_flux_nug_dir.cpp"/>
         <File Name="iweno3_hj.cpp"/>

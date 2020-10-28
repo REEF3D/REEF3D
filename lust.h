@@ -20,28 +20,39 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sflow_rheology.h"
 #include"increment.h"
-#include"slice4.h"
+#include"convection.h"
 
-#ifndef SFLOW_RHEOLOGY_V_H_
-#define SFLOW_RHEOLOGY_V_H_
+class flux;
+
+#ifndef LUST_H_
+#define LUST_H_
 
 using namespace std;
 
-class sflow_rheology_v : public sflow_rheology, public increment
+class lust : public convection, public increment
 {
 
 public:
-    sflow_rheology_v(lexer*);
-	virtual ~sflow_rheology_v();
-    
-	virtual void u_source(lexer*, fdm2D*, slice&);
-    virtual void v_source(lexer*, fdm2D*, slice&);
+
+	lust (lexer *);
+	virtual ~lust();
+
+	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
 
 private:
-    
+    double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
 
+	double dx,dy,dz;
+	double udir,vdir,wdir;
+	double L;
+
+    double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
+
+    flux *pflux;
+    
+    double fu1_cd,fu2_cd,fv1_cd,fv2_cd,fw1_cd,fw2_cd;
+    double fu1_uw,fu2_uw,fv1_uw,fv2_uw,fw1_uw,fw2_uw;
 };
 
 #endif

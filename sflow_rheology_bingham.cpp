@@ -10,38 +10,31 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sflow_rheology.h"
-#include"increment.h"
-#include"slice4.h"
+#include"sflow_rheology_f.h"
+#include"lexer.h"
+#include"fdm2D.h"
 
-#ifndef SFLOW_RHEOLOGY_V_H_
-#define SFLOW_RHEOLOGY_V_H_
-
-using namespace std;
-
-class sflow_rheology_v : public sflow_rheology, public increment
+double sflow_rheology_f::bingham(lexer *p, fdm2D *b, double vel, double press)
 {
-
-public:
-    sflow_rheology_v(lexer*);
-	virtual ~sflow_rheology_v();
+        if(p->W101==0)  // HB
+        tau0=p->W96;
+        
+        if(p->W101==1)  // HB-C dry sand
+        tau0 = MAX(0.0,tanphi*press + p->W102_c)*(1.0-exp(-p->W103*vel));
     
-	virtual void u_source(lexer*, fdm2D*, slice&);
-    virtual void v_source(lexer*, fdm2D*, slice&);
-
-private:
     
-
-};
-
-#endif
+    
+    val = 1.5*tau0 + 3.0*p->W97*(1.0/HXIJ)*vel;
+    
+    
+    return val;
+}
