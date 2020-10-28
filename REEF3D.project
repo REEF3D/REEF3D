@@ -425,8 +425,8 @@
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
         <VirtualDirectory Name="Mooring">
+          <File Name="mooring_barQuasiStatic.h"/>
           <File Name="mooring_void.h"/>
-          <File Name="mooring_QuasiStatic.h"/>
           <File Name="mooring_DGSEM.h"/>
           <File Name="mooring_Catenary.h"/>
           <File Name="mooring.h"/>
@@ -1410,9 +1410,9 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Mooring">
           <VirtualDirectory Name="QuasiStatic">
-            <File Name="mooring_QuasiStatic_print.cpp"/>
-            <File Name="mooring_QuasiStatic_ini.cpp"/>
-            <File Name="mooring_QuasiStatic.cpp"/>
+            <File Name="mooring_barQuasiStatic.cpp"/>
+            <File Name="mooring_barQuasiStatic_print.cpp"/>
+            <File Name="mooring_barQuasiStatic_ini.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="DGSEM">
             <File Name="mooring_DGSEM_mesh_eigen.cpp" ExcludeProjConfig="Release;"/>
