@@ -23,17 +23,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm2D.h"
 
-double sflow_rheology_f::bingham(lexer *p, fdm2D *b, double vel, double press)
+double sflow_rheology_f::bingham(lexer *p, fdm2D *b, double vel, double u_abs, double press)
 {
         if(p->W101==0)  // HB
         tau0=p->W96;
         
         if(p->W101==1)  // HB-C dry sand
-        tau0 = MAX(0.0,tanphi*press + p->W102_c)*(1.0-exp(-p->W103*vel));
+        tau0 = MAX(0.0,tanphi*press + p->W102_c);//*(1.0-exp(-p->W103*vel));
     
     
     
-    val = 1.5*tau0 + 3.0*p->W97*(1.0/HXIJ)*vel;
+    val = (1.5*tau0 + 3.0*p->W97*(1.0/HXIJ)*u_abs)*(vel/(fabs(u_abs)>1.0e-20?u_abs:1.0e20));
     
     
     return val;

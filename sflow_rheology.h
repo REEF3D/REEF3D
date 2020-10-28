@@ -34,8 +34,8 @@ class sflow_rheology
 
 public:
 
-	virtual void u_source(lexer*, fdm2D*, slice&)=0;
-    virtual void v_source(lexer*, fdm2D*, slice&)=0;
+	virtual void u_source(lexer*, fdm2D*, slice&, slice&)=0;
+    virtual void v_source(lexer*, fdm2D*, slice&, slice&)=0;
 
 };
 

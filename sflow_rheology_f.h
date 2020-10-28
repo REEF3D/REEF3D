@@ -29,6 +29,7 @@ Author: Hans Bihs
 
 #define HXIJ (fabs(b->hx(i,j))>1.0e-10?b->hx(i,j):1.0e20)
 #define HYIJ (fabs(b->hy(i,j))>1.0e-10?b->hy(i,j):1.0e20)
+#define HPIJ (fabs(b->hp(i,j))>1.0e-10?b->hp(i,j):1.0e20)
 
 using namespace std;
 
@@ -39,15 +40,15 @@ public:
     sflow_rheology_f(lexer*);
 	virtual ~sflow_rheology_f();
     
-	virtual void u_source(lexer*, fdm2D*, slice&);
-    virtual void v_source(lexer*, fdm2D*, slice&);
+	virtual void u_source(lexer*, fdm2D*, slice&, slice&);
+    virtual void v_source(lexer*, fdm2D*, slice&, slice&);
 
 private:
-    double bingham(lexer*, fdm2D*, double, double);
+    double bingham(lexer*, fdm2D*, double, double, double);
     
     double cf,manning;
     
-    double tau_zx,tau_zy;
+    double tau_zx,tau_zy,u_abs;
     double tau0,val;
     double press;
     double tanphi;
