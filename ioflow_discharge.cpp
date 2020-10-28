@@ -124,6 +124,9 @@ void ioflow_f::Qout(lexer *p, fdm* a, ghostcell* pgc)
             p->Qo+=area*a->u(i+1,j,k);
         }
     }
+    
+    cout<<p->mpirank<<" area_o: "<<Ao<<endl;
+    
     Ao=pgc->globalsum(Ao);
     p->Qo=pgc->globalsum(p->Qo);
 	
@@ -139,7 +142,7 @@ void ioflow_f::Qout(lexer *p, fdm* a, ghostcell* pgc)
 	if(p->mpirank==0 && (p->B60==3 || p->B60==4))
     cout<<"Qo_ipol: "<<hydrograph_ipol(p,pgc,hydro_out,hydro_out_count)<<endl;
 	
-	//cout<<"area_o: "<<Ao<<endl;
+	
 }
 
 

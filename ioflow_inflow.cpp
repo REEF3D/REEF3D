@@ -35,7 +35,7 @@ void ioflow_f::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, fiel
         {
         inflow_plain(p,a,pgc,u,v,w);
 
-            if(p->count==0||p->B60==3||p->B60==4)
+            if((p->count==0&&p->I11==1)||p->B60==3||p->B60==4)
             outflow_plain(p,a,pgc,u,v,w);
         }
 

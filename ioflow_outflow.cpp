@@ -32,7 +32,7 @@ void ioflow_f::outflow_plain(lexer *p, fdm* a, ghostcell* pgc, field& u, field& 
     j=p->gcout[n][1];
     k=p->gcout[n][2];
 	
-		u(i,j,k)=p->Uo;
+		//u(i,j,k)=p->Uo;
         u(i+1,j,k)=p->Uo;
         u(i+2,j,k)=p->Uo;
         u(i+3,j,k)=p->Uo;
