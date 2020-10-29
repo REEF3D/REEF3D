@@ -108,24 +108,24 @@ void ioflow_f::Qout(lexer *p, fdm* a, ghostcell* pgc)
     j=p->gcout[n][1];
     k=p->gcout[n][2];
 
-        if(a->phi(i+1,j,k)>-0.5*p->DZN[KP]-1.0e-20 && a->topo(i,j,k)>0.0)
+        if(a->phi(i,j,k)>-0.5*p->DZN[KP]-1.0e-20 && a->topo(i,j,k)>0.0)
         {
 
-            if(a->phi(i+1,j,k)>=0.5*p->DZN[KP])
+            if(a->phi(i,j,k)>=0.5*p->DZN[KP])
             area=p->DYN[JP]*p->DZN[KP];
 
-            if(a->phi(i+1,j,k)<0.5*p->DZN[KP] && a->phi(i+1,j,k)>0.0)
+            if(a->phi(i,j,k)<0.5*p->DZN[KP] && a->phi(i,j,k)>0.0)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i+1,j,k));
 			
-			if(a->phi(i+1,j,k)>=-0.5*p->DZN[KP]-1.0e-20 && a->phi(i+1,j,k)<=0.0)
-            area=p->DYN[JP]*(p->DZN[KP]*0.5 - a->phi(i+1,j,k));
+			if(a->phi(i,j,k)>=-0.5*p->DZN[KP]-1.0e-20 && a->phi(i,j,k)<=0.0)
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 - a->phi(i,j,k));
 
             Ao+=area;
             p->Qo+=area*a->u(i+1,j,k);
         }
     }
     
-    cout<<p->mpirank<<" area_o: "<<Ao<<endl;
+    //cout<<p->mpirank<<" area_o: "<<Ao<<endl;
     
     Ao=pgc->globalsum(Ao);
     p->Qo=pgc->globalsum(p->Qo);
@@ -141,8 +141,6 @@ void ioflow_f::Qout(lexer *p, fdm* a, ghostcell* pgc)
 	
 	if(p->mpirank==0 && (p->B60==3 || p->B60==4))
     cout<<"Qo_ipol: "<<hydrograph_ipol(p,pgc,hydro_out,hydro_out_count)<<endl;
-	
-	
 }
 
 

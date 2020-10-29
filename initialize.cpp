@@ -126,6 +126,7 @@ void initialize::inifdm(fdm* a, lexer* p, ghostcell* pgc)
 	pgc->start4a(p,a->fb,150);
 	pgc->start4a(p,a->topo,150);
 	pgc->gcparacox(p,a->fb,150);
+    pgc->start4(p,a->phi,50);
 }
 
 void initialize::nodecalc(fdm* a, lexer* p)
