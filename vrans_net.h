@@ -27,6 +27,7 @@ Author: Tobias Martin
 #include"field3.h"
 #include"field4.h"
 #include <Eigen/Dense>
+#include<vector>
 
 using namespace std;
 
