@@ -97,8 +97,11 @@ public:
 	virtual void full_initialize2D(lexer*,fdm2D*,ghostcell*)=0;
     
     virtual void ini(lexer*,fdm*,ghostcell*)=0;
+    
     virtual void ini_fnpf(lexer*,fdm_fnpf*,ghostcell*)=0;
     virtual void inflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,double*,double*,slice&,slice&)=0;
+    
+    virtual void ini_ptf(lexer*,fdm*,ghostcell*)=0;
     
     virtual void ini_nhflow(lexer*,fdm*,ghostcell*)=0;
     virtual void nhflow_inflow(lexer*,fdm*,ghostcell*,field&,field&,field&)=0;

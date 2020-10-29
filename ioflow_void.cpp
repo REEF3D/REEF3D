@@ -796,6 +796,11 @@ void ioflow_v::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
 }
 
+void ioflow_v::ini_ptf(lexer *p, fdm* a, ghostcell* pgc)
+{
+    
+}
+
 void ioflow_v::veltimesave(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans) 
 {
     

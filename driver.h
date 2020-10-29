@@ -87,8 +87,8 @@ public:
     void cfd_driver();
 	void nsewave_driver();
     void nhflow_driver();
-    void pfsg_driver();
-    void pffg_driver();
+    void fnpf_driver();
+    void ptf_driver();
     void sf_driver();
     
 	void loop_cfd(fdm*);

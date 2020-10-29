@@ -78,7 +78,7 @@ driver::driver(int& argc, char **argv)
 
         pgc->ndflag_update(p);
 
-        pfsg_driver();
+        fnpf_driver();
     }
 
     // fixed grid
@@ -94,8 +94,8 @@ driver::driver(int& argc, char **argv)
         pgc->ndflag_update(p);
 
 
-        if(p->A10==3)
-        pffg_driver();
+        if(p->A10==4)
+        ptf_driver();
 
         if(p->A10==5)
         nsewave_driver();
@@ -159,7 +159,7 @@ void driver::nhflow_driver()
     logic();
 }
 
-void driver::pfsg_driver()
+void driver::fnpf_driver()
 {
     if(p->mpirank==0)
 	cout<<"initialize fdm"<<endl;
@@ -175,7 +175,7 @@ void driver::pfsg_driver()
     logic_fnpf();
 }
 
-void driver::pffg_driver()
+void driver::ptf_driver()
 {
     if(p->mpirank==0)
 	cout<<"initialize fdm"<<endl;

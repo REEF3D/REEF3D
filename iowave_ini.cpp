@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void iowave::ini(lexer *p, fdm* a, ghostcell* pgc)
 {
     // relax_ini OR dirichlet_ini
-    if(p->A10==3 || p->A10==5  || p->A10==55 || p->A10==6)
+    if(p->A10==5  || p->A10==55 || p->A10==6)
     {
     wavegen_precalc_ini(p,pgc);
     
@@ -74,5 +74,20 @@ void iowave::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     if(p->I30==1)
 	full_initialize_fnpf(p,c,pgc);
+}
+
+void iowave::ini_ptf(lexer *p, fdm *a, ghostcell *pgc)
+{
+    
+    wavegen_precalc_ini(p,pgc);
+    
+    //if(p->B89==1 && p->B98==2)
+    //wavegen_precalc_decomp_space_fnpf(p,pgc);
+
+    wavegen_precalc(p,pgc);
+
+    
+    //if(p->I30==1)
+	//full_initialize_fnpf(p,c,pgc);
 }
 

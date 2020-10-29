@@ -76,6 +76,7 @@ void iowave::Qin(lexer *p, fdm* a, ghostcell* pgc)
             p->Qi+=area*a->u(i-1,j,k);
         }
     }
+    
     Ai=pgc->globalsum(Ai);
     p->Qi=pgc->globalsum(p->Qi);
     

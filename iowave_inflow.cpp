@@ -29,8 +29,9 @@ void iowave::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field&
 {
     if(p->I230==0)
     {
-    if(p->B98==0)
+    if(p->B98==0 || (p->W10>0.0 && p->B98==2))
     inflow_plain(p,a,pgc,u,v,w);
+
     
 	if(p->B98==3)
 	dirichlet_wavegen(p,a,pgc,u,v,w);
@@ -50,6 +51,9 @@ void iowave::rkinflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, fiel
 {
     if(p->I230==0)
     {
+    if(p->B98==0 || (p->W10>0.0 && p->B98==2))
+    inflow_plain(p,a,pgc,u,v,w);
+    
 	if(p->B98==3)
 	dirichlet_wavegen(p,a,pgc,u,v,w);
     

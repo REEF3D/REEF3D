@@ -103,6 +103,7 @@ public:
     virtual void ini_fnpf(lexer*,fdm_fnpf*,ghostcell*);
     virtual void inflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,double*,double*,slice&,slice&);
     virtual void ini2D(lexer*,fdm2D*,ghostcell*);
+    virtual void ini_ptf(lexer*,fdm*,ghostcell*);
     
     virtual void ini_nhflow(lexer*,fdm*,ghostcell*);
     virtual void nhflow_inflow(lexer*,fdm*,ghostcell*,field&,field&,field&);
