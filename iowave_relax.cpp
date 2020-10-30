@@ -544,10 +544,10 @@ void iowave::fi_relax(lexer *p, ghostcell *pgc, field& f, field& phi)
 		G=1.0;
         
         if(p->A10==3)
-        H=G=1.0;*/
+        H=G=1.0;
 		
 		// Wave Generation
-		/*if(p->B98==2 && f_switch==1)
+		if(p->B98==2 && f_switch==1)
         {
             // Zone 1
             if(dg<dist1)
@@ -555,8 +555,8 @@ void iowave::fi_relax(lexer *p, ghostcell *pgc, field& f, field& phi)
             f(i,j,k) = (1.0-rb1(p,dg))*ramp(p)*Fival[count] * H + rb1(p,dg)*H*f(i,j,k) + (1.0-G)*f(i,j,k);
             ++count;
             }
-		}*/
-		/*
+		}
+		
 		// Numerical Beach
         if(p->B99==1||p->B99==2)
 		{

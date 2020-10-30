@@ -118,7 +118,8 @@ public:
     virtual double wave_fsf(lexer*,ghostcell*,double);
 	virtual int iozonecheck(lexer*,fdm*);
 	virtual void full_initialize(lexer*,fdm*,ghostcell*);
-    virtual void full_initialize_fnpf(lexer*,fdm_fnpf*,ghostcell*);
+    void full_initialize_fnpf(lexer*,fdm_fnpf*,ghostcell*);
+    void full_initialize_ptf(lexer*,fdm*,ghostcell*);
 	virtual void active_beach(lexer*,fdm*,ghostcell*,field&,field&,field&);
 	virtual void active_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&);
 	virtual void dirichlet_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&);

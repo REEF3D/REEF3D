@@ -83,6 +83,8 @@ cout<<"starting driver_ini_PTF"<<endl;
 	a->bed(i,j) = p->bed[IJ];
     
     pflow->ini_ptf(p,a,pgc);
+    pptf->ini(p,a,pgc,pflow,preini,poneph); 
+    pflow->ini_ptf(p,a,pgc);
 
     ptstep->ini(a,p,pgc);
     pptf->ini(p,a,pgc,pflow,preini,poneph);  // --- 

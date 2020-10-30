@@ -59,7 +59,8 @@ ptf_fsfbc::~ptf_fsfbc()
 
 void ptf_fsfbc::fsfdisc(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &Fifsf, field &Fi)
 {
-    // fi
+    // 3D
+    if(p->i_dir==1 && p->j_dir==1)
     FILOOP4
     {
     ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);    
@@ -72,6 +73,20 @@ void ptf_fsfbc::fsfdisc(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &Fif
     Ex(i,j) = pconvec->sx(p,eta,ivel);
     Ey(i,j) = pconvec->sy(p,eta,jvel);
     }
+    
+    // 2D
+    if(p->i_dir==1 && p->j_dir==0)
+    FILOOP4
+    {
+    ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);    
+    
+    Fx(i,j) = pconvec->sx(p,Fifsf,ivel);
+    Fz(i,j) = pconvec->fz(p,Fi,kvel,kvel);
+    Ex(i,j) = pconvec->sx(p,eta,ivel);
+    }
+    
+    pgc->gcsl_start4(p,Ex,1);
+    pgc->gcsl_start4(p,Ey,1);
 }
 
 void ptf_fsfbc::kfsfbc(lexer *p, fdm *a, ghostcell *pgc)

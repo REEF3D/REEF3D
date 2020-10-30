@@ -86,6 +86,9 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     AIRLOOP
     {
     lsv = a->phi(i,j,k);
+        
+        if(lsv<=-3.1*(1.0/3.0)*(p->DXP[IP] + p->DYP[JP] + p->DZP[KP]))
+        Fi(i,j,k)=0.0;
     
         if(lsv>-3.1*(1.0/3.0)*(p->DXP[IP] + p->DYP[JP] + p->DZP[KP]))
         {
@@ -109,8 +112,9 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
         
         Fi(i,j,k) =  (Fifsf(i,j)-val)*(fabs(lsv)/(fac*dx)) + Fifsf(i,j);
         
-        //cout<<"Fi_epol: "<<Fi(i,j,k)<<" Fifsf: "<<Fifsf(i,j)<<" val: "<<val<<endl;
+        cout<<"Fi_epol: "<<Fi(i,j,k)<<" Fifsf: "<<Fifsf(i,j)<<" val: "<<val<<endl;
         }
+        
     }
     
     /*
@@ -162,7 +166,7 @@ void ptf_fsf_update::velcalc(lexer *p, fdm *a, ghostcell *pgc, field &f)
 		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
 	
     
-    a->u(i,j,k) =(f(i+1,j,k)-f(i,j,k))/p->DXP[IP];
+    a->u(i,j,k) = H*(f(i+1,j,k)-f(i,j,k))/p->DXP[IP];
     }
     
     VLOOP
@@ -178,7 +182,7 @@ void ptf_fsf_update::velcalc(lexer *p, fdm *a, ghostcell *pgc, field &f)
 		if(fabs(phival)<=epsi)
 		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
         
-	a->v(i,j,k) =(f(i,j+1,k)-f(i,j,k))/p->DYP[JP];
+	a->v(i,j,k) = H*(f(i,j+1,k)-f(i,j,k))/p->DYP[JP];
     }
     
     WLOOP
@@ -194,7 +198,7 @@ void ptf_fsf_update::velcalc(lexer *p, fdm *a, ghostcell *pgc, field &f)
 		if(fabs(phival)<=epsi)
 		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
         
-	a->w(i,j,k) =(f(i,j,k+1)-f(i,j,k))/p->DZP[KP];
+	a->w(i,j,k) = H*(f(i,j,k+1)-f(i,j,k))/p->DZP[KP];
     }
     
     pgc->start1(p,a->u,gcval_u);

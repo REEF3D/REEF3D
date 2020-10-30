@@ -53,7 +53,7 @@ ptf_RK3::ptf_RK3(lexer *p, fdm *a, ghostcell *pgc) : ptf_fsfbc(p,a,pgc),erk1(p),
     gcval_fifsf = 50;
     
     if(p->A320==1)
-    plap = new ptf_laplace_cds2;
+    plap = new ptf_laplace_cds2(p,a,pgc);
     
     if(p->A320==2)
     plap = new ptf_laplace_cds4;
@@ -180,7 +180,7 @@ void ptf_RK3::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *preini
     pfsfupdate->etaloc(p,a,pgc);
     
     // potential ini
-    pflow->fi_relax(p,pgc,a->Fi,a->phi);
+    //pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pflow->fifsf_relax(p,pgc,a->Fifsf);
     pgc->start4(p,a->Fi,250);
     pgc->gcsl_start4(p,a->Fifsf,50);
