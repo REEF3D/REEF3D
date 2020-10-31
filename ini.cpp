@@ -437,10 +437,10 @@ void lexer::ini_default()
 	P42=-1.0;			// double print state file each ith sec
 	P50=0;				// int wave theory wave gages
 	P51=0;             // int print out wsf
-	P52=0;            // int print out wsf line in x-dir
-	P53=0;            // int print out wsf line for wave theory
-	P54=10;			  // int ith iteration wsf file  print out
-	P55=-1.0;		  // double ith second wsf files print out
+	P52=0;            // int print out wsfline in x-dir
+	P53=0;            // int print out wsfline for wave theory
+	P54=10;			  // int ith iteration wsfline file  print out
+	P55=-1.0;		  // double ith second wsfline files print out
 	P56=0;            // int print out wsf line in y-dir
 	P59=0;			  // int print runup
 	P61=0;			  // int print point probes

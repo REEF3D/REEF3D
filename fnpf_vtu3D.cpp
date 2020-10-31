@@ -182,6 +182,9 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 		
     p->stateprinttime+=p->P42;
     }
+    
+    if((p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0))
+    p->probeprinttime+=p->P55;
 }
 
 void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
