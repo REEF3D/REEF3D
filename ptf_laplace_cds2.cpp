@@ -86,7 +86,7 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
     }
     
     
-    if(p->flag4[IJK]==AIR)
+    if(p->flag4[IJK]<0)
     {
 	a->M.p[n]  =  1.0;
 
