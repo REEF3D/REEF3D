@@ -41,15 +41,12 @@ public:
     ptf_fsf_update(lexer*, fdm*, ghostcell*);
 	virtual ~ptf_fsf_update();
     
-    virtual void fsfepol(lexer*, fdm*, ghostcell*,slice&,field&);
-	virtual void fsfupdate(lexer*, fdm*, ghostcell*,ioflow*,onephase*,slice&);
-    virtual void etaloc_sig(lexer*, fdm*, ghostcell*);
-    virtual void etaloc(lexer*, fdm*, ghostcell*);
-    virtual void fsfbc_sig(lexer*, fdm*, ghostcell*,slice&,field&);
-    virtual void fsfbc(lexer*, fdm*, ghostcell*,slice&,field&);
+    void fsfepol(lexer*, fdm*, ghostcell*,slice&,field&);
+	void fsfupdate(lexer*, fdm*, ghostcell*,ioflow*,onephase*,slice&);
+    void etaloc(lexer*, fdm*, ghostcell*);
+    void fsfbc(lexer*, fdm*, ghostcell*,slice&,field&);
     
     void velcalc(lexer*, fdm*, ghostcell *pgc, field&);
-    void velcalc_sig(lexer*, fdm*, ghostcell *pgc, field&);
     
 private: 
     int gcval,gcval_u,gcval_v,gcval_w;

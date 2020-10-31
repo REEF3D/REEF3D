@@ -42,6 +42,11 @@ void pftimestep::start(fdm *a, lexer *p,ghostcell *pgc, turbulence *pturb)
 
 	p->umax=p->vmax=p->wmax=p->viscmax=0.0;
 	sqd=1.0/(p->DXM*p->DXM);
+    
+    FILOOP4
+	depthmax=MAX(depthmax,a->depth(i,j));
+	
+	depthmax=pgc->globalmax(depthmax);
 
 // maximum velocities
 
@@ -136,8 +141,23 @@ void pftimestep::start(fdm *a, lexer *p,ghostcell *pgc, turbulence *pturb)
     }
     }
     
+    LOOP
+    {
+    if(p->y_dir==1 && p->knoy>1)
+    dx = MIN(p->DXN[IP],p->DYN[JP]);
+    
+    if(p->y_dir==0 || p->knoy==1)
+    dx = p->DXN[IP];
+    
+    cu = MIN(cu, 1.0/((fabs(MAX(p->umax, sqrt(9.81*depthmax)))/dx)));
+    cv = MIN(cv, 1.0/((fabs(MAX(p->vmax, sqrt(9.81*depthmax)))/dx)));
+    
+    }
 
-   	p->dt=p->N47*min(cu,cv,cw);
+   	cu = MIN(cu,cv);
+    
+   	p->dt=p->N47*cu;
+    
 	p->dt=pgc->timesync(p->dt);
 
 	p->dt=MIN(p->dt,maxtimestep);

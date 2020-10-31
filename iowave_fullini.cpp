@@ -312,7 +312,11 @@ void iowave::full_initialize_ptf(lexer *p, fdm *a, ghostcell *pgc)
         dg = distgen(p);
 		db = distbeach(p);
         
-        z=p->ZP[KP];
+        if(p->pos_z()<=p->phimean)
+        z=-(fabs(p->phimean-p->pos_z()));
+		
+		if(p->pos_z()>p->phimean)
+        z=(fabs(p->phimean-p->pos_z()));
         
         
         a->Fi(i,j,k) = wave_fi(p,pgc,xg,yg,z);

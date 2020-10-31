@@ -53,6 +53,7 @@ private:
 	double irsm,jrsm,krsm;
     const double maxtimestep, c0_orig;
     double dx;
+    double depthmax;
 
 };
 

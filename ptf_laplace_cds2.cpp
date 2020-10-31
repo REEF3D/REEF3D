@@ -33,6 +33,7 @@ ptf_laplace_cds2::ptf_laplace_cds2(lexer *p, fdm *a, ghostcell *pgc) : bc(p)
     
     pgc->gcsl_start4int(p,bc,50);
     
+    if(p->B98>=3)
     for(n=0;n<p->gcslin_count;n++)
     {
     i=p->gcslin[n][0];
@@ -41,6 +42,7 @@ ptf_laplace_cds2::ptf_laplace_cds2(lexer *p, fdm *a, ghostcell *pgc) : bc(p)
     bc(i-1,j) = 1;
     }
     
+    if(p->B99>=3)
     for(n=0;n<p->gcslout_count;n++)
     {
     i=p->gcslout[n][0];
@@ -111,14 +113,13 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
         {
             
             // south
-            if(p->flag4[Im1JK]<0 && bc(i-1,j)==0)
+            if(p->flag4[Im1JK]<AIR && bc(i-1,j)==0)
             {
             a->M.p[n] += a->M.s[n];
-            //a->rhsvec.V[n] -= a->M.s[n]*f(i-1,j,k);
             a->M.s[n] = 0.0;
             }
             
-            if(p->flag4[Im1JK]<0 && bc(i-1,j)==1)
+            if(p->flag4[Im1JK]<AIR && bc(i-1,j)==1)
             {
             a->rhsvec.V[n] -= a->M.s[n]*a->u(i-1,j,k)*p->DXP[IM1];
             a->M.p[n] = a->M.s[n];
@@ -126,13 +127,13 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             }
             
             // north
-            if(p->flag4[Ip1JK]<0 && bc(i+1,j)==0)
+            if(p->flag4[Ip1JK]<AIR && bc(i+1,j)==0)
             {
             a->M.p[n] += a->M.n[n];
             a->M.n[n] = 0.0;
             }
             
-            if(p->flag4[Ip1JK]<0 && bc(i+1,j)==2)
+            if(p->flag4[Ip1JK]<AIR && bc(i+1,j)==2)
             {
             a->rhsvec.V[n] -= a->M.n[n]*a->u(i+1,j,k)*p->DXP[IP1];
             a->M.p[n] += a->M.n[n];
@@ -140,32 +141,67 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             }
             
             // east
-            if(p->flag4[IJm1K]<0)
+            if(p->flag4[IJm1K]<AIR)
             {
             a->M.p[n] += a->M.e[n];
             a->M.e[n] = 0.0;
             }
             
             // west
-            if(p->flag4[IJp1K]<0)
+            if(p->flag4[IJp1K]<AIR)
             {
             a->M.p[n] += a->M.w[n];
             a->M.w[n] = 0.0;
             }
             
             
-            // top FSFBC
-            if(p->flag4[IJKp1]<0)
+        // FSFBC
+            
+            // south
+            if(p->flag4[Im1JK]==AIR)
+            {
+            a->rhsvec.V[n] -= a->M.s[n]*f(i-1,j,k);
+            a->M.s[n] = 0.0;
+            }
+            
+            // north
+            if(p->flag4[Ip1JK]==AIR)
+            {
+            a->rhsvec.V[n] -= a->M.n[n]*f(i+1,j,k);
+            a->M.n[n] = 0.0;
+            }
+            
+            // east
+            if(p->flag4[IJm1K]==AIR)
+            {
+            a->rhsvec.V[n] -= a->M.e[n]*f(i,j-1,k);
+            a->M.e[n] = 0.0;
+            }
+            
+            // top
+            if(p->flag4[IJp1K]==AIR)
+            {
+            a->rhsvec.V[n] -= a->M.w[n]*f(i,j+1,k);
+            a->M.w[n] = 0.0;
+            }
+            
+            // top
+            if(p->flag4[IJKp1]==AIR)
             {
             a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1);
-            //cout<<f(i,j,k+1)<<endl;
             a->M.t[n] = 0.0;
             }
             
             
             
             // bottom KBEDBC
-            if(p->flag4[IJKm1]<0)
+            /*if(p->flag4[IJKm1]<0)
+            {
+            a->rhsvec.V[n] -= a->M.b[n]*f(i,j,k-1);
+            a->M.b[n] = 0.0;
+            }*/
+            
+            if(p->flag4[IJKm1]<AIR)
             {
             ab = -1.0/(p->DZP[KM1]*p->DZN[KP]);   
             

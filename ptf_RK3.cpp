@@ -101,6 +101,8 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,gcval);
     plap->start(p,a,pgc,psolv,a->Fi);
+    pfsfupdate->fsfbc(p,a,pgc,frk1,a->Fi);
+    pgc->start4(p,a->Fi,gcval);
 
 // Step 2
     fsfdisc(p,a,pgc,erk1,frk1,a->Fi);
@@ -134,6 +136,8 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,gcval);
     plap->start(p,a,pgc,psolv,a->Fi);
+    pfsfupdate->fsfbc(p,a,pgc,frk2,a->Fi);
+    pgc->start4(p,a->Fi,gcval);
 
 // Step 3
     fsfdisc(p,a,pgc,erk2,frk2,a->Fi);
@@ -167,6 +171,8 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,gcval);
     plap->start(p,a,pgc,psolv,a->Fi);
+    pfsfupdate->fsfbc(p,a,pgc,a->Fifsf,a->Fi);
+    pgc->start4(p,a->Fi,gcval);
 
     FLUIDLOOP
     a->test(i,j,k) = a->Fifsf(i,j);
@@ -191,6 +197,11 @@ void ptf_RK3::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *preini
     
     
     pgc->gcsl_start4(p,a->eta,50);
+    
+    FLUIDLOOP
+    a->test(i,j,k) = a->Fifsf(i,j);
+    
+    pfsfupdate->velcalc(p,a,pgc,a->Fi);
 }
 
 void ptf_RK3::inidisc(lexer *p, fdm *a, ghostcell *pgc)
