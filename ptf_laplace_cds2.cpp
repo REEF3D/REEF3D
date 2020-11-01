@@ -191,16 +191,16 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1);
             a->M.t[n] = 0.0;
             }
+    
+            // KBEDBC
             
-            
-            
-            // bottom KBEDBC
-            /*if(p->flag4[IJKm1]<0)
+
+            if(p->flag4[IJKm1]<AIR)
             {
-            a->rhsvec.V[n] -= a->M.b[n]*f(i,j,k-1);
+            a->M.p[n] += a->M.b[n];
             a->M.b[n] = 0.0;
-            }*/
-            
+            }
+            /*
             if(p->flag4[IJKm1]<AIR)
             {
             ab = -1.0/(p->DZP[KM1]*p->DZN[KP]);   
@@ -208,28 +208,22 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             Bx = (a->bed(i+1,j)-a->bed(i-1,j))/(p->DXP[IM1] + p->DXP[IP]);
             By = (a->bed(i,j+1)-a->bed(i,j-1))/(p->DYP[JM1] + p->DXP[JP]);
             
-            denom = Bx+By;
-            
+                    //if(p->flag4[Im1JK]>0 && p->flag4[Ip1JKm1]>0 && a->wet(i+1,j)==1 && a->wet(i-1,j)==1)
                     if(a->wet(i+1,j)==1 && a->wet(i-1,j)==1)
                     {
-                    a->M.n[n] +=  ab*2.0*p->DZN[KP]*Bx/(denom*(p->DXP[IP] + p->DXP[IM1]));
-                    a->M.s[n] += -ab*2.0*p->DZN[KP]*Bx/(denom*(p->DXP[IP] + p->DXP[IM1]));
+                    a->M.n[n] +=  ab*(p->DZP[KP]+p->DZP[KM1])*Bx/(p->DXP[IP] + p->DXP[IM1]);
+                    a->M.s[n] += -ab*(p->DZP[KP]+p->DZP[KM1])*Bx/(p->DXP[IP] + p->DXP[IM1]);
                     }
                     
                     if(a->wet(i,j-1)==1 && a->wet(i,j+1)==1)
                     {
-                    a->M.w[n] +=  ab*2.0*p->DZN[KP]*By/(denom*(p->DYP[JP] + p->DYP[JM1]));
-                    a->M.e[n] += -ab*2.0*p->DZN[KP]*By/(denom*(p->DYP[JP] + p->DYP[JM1]));
+                    a->M.w[n] +=  ab*(p->DZP[KP]+p->DZP[KM1])*By/(p->DYP[JP] + p->DYP[JM1]);
+                    a->M.e[n] += -ab*(p->DZP[KP]+p->DZP[KM1])*By/(p->DYP[JP] + p->DYP[JM1]);
                     }
-                
-                
-                
                 
             a->M.t[n] += ab;
             a->M.b[n] = 0.0;
-            }
-            
-
+            }*/
         }
 
 	++n;

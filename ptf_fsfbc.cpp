@@ -78,7 +78,9 @@ void ptf_fsfbc::fsfdisc(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &Fif
     if(p->i_dir==1 && p->j_dir==0)
     FILOOP4
     {
-    ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);    
+    ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);   
+
+    kvel = (Fi(i,j,k) - Fi(i,j,k-1))/(p->DZP[KP]);    
     
     Fx(i,j) = pconvec->sx(p,Fifsf,ivel);
     a->Fz(i,j) = pconvec->fz(p,Fi,kvel,kvel);

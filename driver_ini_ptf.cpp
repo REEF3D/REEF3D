@@ -78,6 +78,8 @@ cout<<"starting driver_ini_PTF"<<endl;
     gtopo.start(p,a,pgc,pflow,pconvec,preto,pvrans);
     }
     
+    SLICELOOP4
+    a->wet(i,j)=1;
 
     SLICELOOP4
 	a->bed(i,j) = p->bed[IJ];
