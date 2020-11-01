@@ -66,51 +66,62 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     AIRLOOP
     Fi(i,j,k)=0.0; 
     
-    
-    double lsv,fival,lsval,dx,dist;
-    double nx,ny,nz,dnorm;
-    double xp,yp,zp;
-    double thickness;
-    
-    double fac = 0.6;
-    
-    
-    // insert DFSFBC into current Fi field
+    double lsv0,lsv1,lsv2,lsv3;
+    double fival,lsval,dx,dist;
 
-    SLICELOOP4
-    for(k=a->etaloc(i,j)+1; k<a->etaloc(i,j)+4; ++k)
-    PFLUIDCHECK 
+    FILOOP4
     {
-    lsv = a->phi(i,j,k);
-        
-         nx = (a->phi(i+1,j,k)-a->phi(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]);
-         ny = (a->phi(i,j+1,k)-a->phi(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]);
-         nz = (a->phi(i,j,k+1)-a->phi(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]);  
+    lsv0 = a->phi(i,j,k);
+    lsv1 = a->phi(i,j,k+1);
+    lsv2 = a->phi(i,j,k+2);
+    lsv3 = a->phi(i,j,k+3);
+    
+    fival = Fi(i,j,k);
+ 
 
-        dnorm = sqrt(nx*nx + ny*ny + nz*nz);
-        
-        nx/=dnorm;
-        ny/=dnorm;
-        nz/=dnorm;
-        
-        xp = p->pos_x() + nx*(fabs(lsv)+fac*p->DXP[IP]);
-        yp = p->pos_y() + ny*(fabs(lsv)+fac*p->DYP[JP]);
-        zp = p->pos_z() + nz*(fabs(lsv)+fac*p->DZP[KP]);
-        
-        //if(p->mpirank==0)
-        //cout<<" pos_x: "<<p->pos_x()<<" xp: "<<xp<<" pos_y: "<<p->pos_y()<<" yp: "<<yp<<" pos_z: "<<p->pos_z()<<" zp: "<<zp<<endl;
+        Fi(i,j,k+1) =  ((Fifsf(i,j)-fival)/(fabs(lsv0)))*fabs(lsv1) + Fifsf(i,j);
+        Fi(i,j,k+2) =  ((Fifsf(i,j)-fival)/(fabs(lsv0)))*fabs(lsv2) + Fifsf(i,j);
+        Fi(i,j,k+3) =  ((Fifsf(i,j)-fival)/(fabs(lsv0)))*fabs(lsv3) + Fifsf(i,j);
+    }
+}
 
-        fival = p->ccipol4_a(Fi, xp, yp, zp);
-        lsval = p->ccipol4_a(a->phi, xp, yp, zp);
+void ptf_fsf_update::fsfbc0(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field &Fi)
+{
+    AIRLOOP
+    Fi(i,j,k)=0.0; 
 
-        dist = sqrt(pow(p->pos_x()-xp,2.0) + pow(p->pos_y()-yp,2.0) + pow(p->pos_z()-zp,2.0));
-        
-        Fi(i,j,k) =  0.0*((Fifsf(i,j)-fival)/(fabs(lsval)))*fabs(lsv) + Fifsf(i,j);
-        
-        //if(p->mpirank==0)
-        //cout<<"Fival: "<<fival<<" Fifsf: "<<Fifsf(i,j)<<" Fi_epol: "<<Fi(i,j,k)<<"   | dist: "<<dist<<" lssum: "<<fabs(lsv)+fabs(lsval)<<endl;
-        //}
-        
+    FILOOP4
+    {
+    Fi(i,j,k+1) =  Fifsf(i,j);
+    Fi(i,j,k+2) =  Fifsf(i,j);
+    Fi(i,j,k+3) =  Fifsf(i,j);
+    }
+    
+}
+
+void ptf_fsf_update::fsfbc1(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field &Fi)
+{
+    AIRLOOP
+    Fi(i,j,k)=0.0; 
+    
+    double lsv0,lsv1,lsv2,lsv3,lsv4;
+    double fival0,fival1,lsval,dx,dist;
+
+    FILOOP4
+    {
+    lsv0 = p->ZP[KM1];
+    lsv1 = p->ZP[KP];
+    lsv2 = p->ZP[KP1];
+    lsv3 = p->ZP[KP2];
+    lsv4 = p->ZP[KP3];
+ 
+    
+    fival0 = Fi(i,j,k-1);
+    fival1 = Fi(i,j,k);
+ 
+    Fi(i,j,k+1) =  ((fival1-fival0)/(lsv1-lsv0))*(lsv2-lsv1) + fival1;
+    Fi(i,j,k+2) =  ((fival1-fival0)/(lsv1-lsv0))*(lsv3-lsv1) + fival1;
+    Fi(i,j,k+3) =  ((fival1-fival0)/(lsv1-lsv0))*(lsv4-lsv1) + fival1;
     }
     
 }

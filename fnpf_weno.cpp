@@ -75,9 +75,11 @@ double fnpf_weno::fz(lexer *p, field &f, double kvel1, double kvel2)
     if(0.5*(kvel1+kvel2)<0.0)
     grad=ddwenoz(f,-1.0);*/
     
-    /*grad = (-(25.0/12.0)*f(i,j,k+1) + 4.0*f(i,j,k) - 3.0*f(i,j,k-1) + (4.0/3.0)*f(i,j,k-2) - 0.25*f(i,j,k-3))
-          /(-(25.0/12.0)*p->ZN[KP1] + 4.0*p->ZN[KP] - 3.0*p->ZN[KM1] + (4.0/3.0)*p->ZN[KM2] - 0.25*p->ZN[KM3]);*/
+    if(i+p->origin_i>0)
+    grad = (-(25.0/12.0)*f(i,j,k+1) + 4.0*f(i,j,k) - 3.0*f(i,j,k-1) + (4.0/3.0)*f(i,j,k-2) - 0.25*f(i,j,k-3))
+          /(-(25.0/12.0)*p->ZN[KP1] + 4.0*p->ZN[KP] - 3.0*p->ZN[KM1] + (4.0/3.0)*p->ZN[KM2] - 0.25*p->ZN[KM3]);
           
+    if(i+p->origin_i==0)
     grad = (-(25.0/12.0)*f(i,j,k) + 4.0*f(i,j,k-1) - 3.0*f(i,j,k-2) + (4.0/3.0)*f(i,j,k-3) - 0.25*f(i,j,k-4))
           /(-(25.0/12.0)*p->ZN[KP] + 4.0*p->ZN[KM1] - 3.0*p->ZN[KM2] + (4.0/3.0)*p->ZN[KM3] - 0.25*p->ZN[KM4]);
         

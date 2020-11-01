@@ -106,7 +106,7 @@ cout<<"starting driver_ini_PTF"<<endl;
 	p->field4time=0.0;
 
 if(p->mpirank==0)
-cout<<"starting mainloop.FNPF"<<endl;
+cout<<"starting mainloop.PTF"<<endl;
 
 }
 

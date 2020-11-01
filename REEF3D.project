@@ -49,7 +49,6 @@
           <File Name="ptf_laplace_cds2.h"/>
           <File Name="ptf_laplace.h"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Initialize"/>
         <VirtualDirectory Name="FSFBC">
           <File Name="ptf_fsfbc.h"/>
         </VirtualDirectory>
@@ -62,7 +61,6 @@
         <VirtualDirectory Name="FDM">
           <VirtualDirectory Name="Time"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Convect"/>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <VirtualDirectory Name="Turbulence">
@@ -975,7 +973,6 @@
           <File Name="ptf_laplace_cds4.cpp"/>
           <File Name="ptf_laplace_cds2.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Initialize"/>
         <VirtualDirectory Name="FSFBC">
           <File Name="ptf_fsfbc.cpp"/>
         </VirtualDirectory>
@@ -984,8 +981,6 @@
           <File Name="ptf_RK4.cpp"/>
           <File Name="ptf_RK3.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="FDM"/>
-        <VirtualDirectory Name="Convect"/>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <File Name="sflow_v.cpp"/>
