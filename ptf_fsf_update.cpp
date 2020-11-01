@@ -150,7 +150,6 @@ void ptf_fsf_update::velcalc(lexer *p, fdm *a, ghostcell *pgc, field &f)
     
     UFLUIDLOOP
     {
-        
         phival = 0.5*(a->phi(i,j,k) + a->phi(i+1,j,k));
         
         if(phival>epsi)
@@ -167,7 +166,6 @@ void ptf_fsf_update::velcalc(lexer *p, fdm *a, ghostcell *pgc, field &f)
     
     VFLUIDLOOP
     {
-        
         phival = 0.5*(a->phi(i,j,k) + a->phi(i,j+1,k));
         
         if(phival>epsi)

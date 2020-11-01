@@ -69,6 +69,8 @@ ptf_RK3::~ptf_RK3()
 
 void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
 {	
+    pflow->inflow(p,a,pgc,a->u,a->v,a->w);
+    
 // Step 1
     fsfdisc(p,a,pgc,a->eta,a->Fifsf,a->Fi);
     

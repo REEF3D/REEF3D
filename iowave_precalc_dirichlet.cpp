@@ -98,8 +98,7 @@ void iowave::wavegen_precalc_dirichlet(lexer *p, ghostcell *pgc)
             
         if(zloc4>fsfloc+epsi)
         uval[count] = 0.0;
-        
-        //cout<<"UVAL: "<<wave_u(p,pgc,x1,y,z)<<" z: "<<z<<" zloc4: "<<zloc4<<" fsfloc: "<<fsfloc+epsi<<endl;
+
         // V
         if(zloc4<=fsfloc+epsi)
         vval[count] = wave_v(p,pgc,x,y2,z);
