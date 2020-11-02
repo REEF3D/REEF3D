@@ -21,12 +21,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"sflow_hxy_weno.h"
 #include"lexer.h"
+#include"fdm2D.h"
 #include"slice.h"
 #include"sflow_flux_face_FOU.h"
 #include"sflow_flux_face_CDS.h"
 #include"sflow_flux_face_HJ.h"
 
-sflow_hxy_weno::sflow_hxy_weno(lexer* p):tttw(13.0/12.0),fourth(1.0/4.0),third(1.0/3.0),
+sflow_hxy_weno::sflow_hxy_weno(lexer* p, fdm2D *bb) :tttw(13.0/12.0),fourth(1.0/4.0),third(1.0/3.0),
 			sevsix(7.0/6.0),elvsix(11.0/6.0),sixth(1.0/6.0),fivsix(5.0/6.0),tenth(1.0/10.0),
 			sixten(6.0/10.0),treten(3.0/10.0),epsilon(0.000001),smallnum(1.0e-20)
 {
@@ -38,6 +39,8 @@ sflow_hxy_weno::sflow_hxy_weno(lexer* p):tttw(13.0/12.0),fourth(1.0/4.0),third(1
     
     if(p->A216==4)
     pflux = new sflow_flux_face_HJ(p);
+    
+    b=bb;
         
 }
 
@@ -47,9 +50,8 @@ sflow_hxy_weno::~sflow_hxy_weno()
 
 void sflow_hxy_weno::start(lexer* p, slice& hx, slice& hy, slice& depth, slice& eta, slice& uvel, slice& vvel)
 {
+    double eps=1.0e-7;
 
-	
-	
 	SLICELOOP1
 	{
 	pflux->u_flux(4,uvel,ivel1,ivel2);
@@ -59,6 +61,28 @@ void sflow_hxy_weno::start(lexer* p, slice& hx, slice& hy, slice& depth, slice& 
     if(ivel1<0.0)
     hx(i,j) = fx(p,eta,1,ivel1) + MIN(depth(i,j), depth(i+1,j));
 	}
+    
+    
+    if(p->F50==1 || p->F50==4)
+    for(n=0;n<p->gcslout_count;n++)
+    {
+    i=p->gcslout[n][0];
+    j=p->gcslout[n][1];
+    
+        if(b->wet4(i,j)==1)
+        {
+        pflux->u_flux(4,uvel,ivel1,ivel2);
+
+        if(ivel1>eps)
+        hx(i,j) = eta(i,j) + depth(i,j);
+        
+        if(ivel1<-eps)
+        hx(i,j) = eta(i+1,j) + depth(i+1,j);
+        
+        if(fabs(ivel1)<=eps)
+        hx(i,j) = MAX(eta(i,j),eta(i+1,j)) + MIN(depth(i,j), depth(i+1,j));
+        }
+    }
 	
 	SLICELOOP2
 	{

@@ -29,6 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_weno_flux.h"
 #include"sflow_eta.h"
 #include"sflow_hydrostatic.h"
+#include"sflow_potential.h"
 #include"sflow_vtp.h"
 #include"sflow_vtp_bed.h"
 #include"sflow_sediment.h"
@@ -70,17 +71,32 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     cout<<"starting driver_ini"<<endl;
 
     ptime->ini(p,b ,pgc);
+    
+    
+    // bed ini
+	ILOOP
+    JLOOP
+	b->bed(i,j) = p->bed[IJ];
 
-    pflow->ini2D(p,b,pgc);
+    pgc->gcsl_start4(p,b->bed,50);
+    pgc->gcsl_start4a(p,b->bed,50);
+    pgc->gcsl_start4(p,b->bed,50);
+    b->bed.ggcpol(p);
+    
+	for(int qn=0; qn<p->A209;++qn)
+    {
+	SLICELOOP4
+	b->bed(i,j) = b->bed0(i,j) = 0.5*b->bed(i,j) + 0.125*(b->bed(i-1,j) +b->bed(i+1,j) +b->bed(i,j-1) +b->bed(i,j+1) );
+    
+    pgc->gcsl_start4(p,b->bed,50);
+    }
+    
 
     // FSF ini
     ini_fsf(p,b,pgc);
 
     SLICELOOP4
     b->wet4(i,j)=1;
-
-
-
 
 
 	// P,Q ini
@@ -90,24 +106,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 	pgc->gcsl_start1(p,b->P,10);
 	pgc->gcsl_start2(p,b->Q,11);
 
-	// bed ini
-	ILOOP
-    JLOOP
-	b->bed(i,j) = p->bed[IJ];
-
-    pgc->gcsl_start4(p,b->bed,50);
-    pgc->gcsl_start4a(p,b->bed,50);
-    pgc->gcsl_start4(p,b->bed,50);
-    b->bed.ggcpol(p);
-
-
-	for(int qn=0; qn<p->A209;++qn)
-    {
-	SLICELOOP4
-	b->bed(i,j) = b->bed0(i,j) = 0.5*b->bed(i,j) + 0.125*(b->bed(i-1,j) +b->bed(i+1,j) +b->bed(i,j-1) +b->bed(i,j+1) );
-    
-    pgc->gcsl_start4(p,b->bed,50);
-    }
+	
 
     SLICELOOP4
     b->zb(i,j) = 0.0;
@@ -138,7 +137,14 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     pgc->gcsl_start4(p,b->hp,50);
     pgc->gcsl_start4(p,b->bed,50);
     pgc->gcsl_start4(p,b->zb,50);
+    
+    pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
+    
+    // ioflow ini
+    pflow->ini2D(p,b,pgc);
+    potflow->start(p,b,ppoissonsolv,pgc);
 
+    pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
 
     //roughness ini
     SLICELOOP4
@@ -194,8 +200,22 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
         b->eta(i,j) = p->F72_h[qn]-p->wd;
 	}
 
-     // fix outflow fsf
+        // fix inflow fsf
+        for(n=0;n<p->gcslin_count;n++)
+        {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
 
+        b->eta(i-1,j) = 0.0;
+        b->eta(i-2,j) = 0.0;
+        b->eta(i-3,j) = 0.0;
+
+        b->hp(i-1,j) = MAX(b->eta(i-1,j) + p->wd - b->bed(i,j),0.0);
+        b->hp(i-2,j) = MAX(b->eta(i-2,j) + p->wd - b->bed(i,j),0.0);
+        b->hp(i-3,j) = MAX(b->eta(i-3,j) + p->wd - b->bed(i,j),0.0);
+        }
+        
+        // fix outflow fsf
         for(n=0;n<p->gcslout_count;n++)
         {
         i=p->gcslout[n][0];
@@ -219,16 +239,16 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
         
             if(p->gcbsl1[n][4]==1)
             {
-            b->hx(i-1,j) = MAX(p->F60 + p->wd - b->bed(i,j),0.0);
-            b->hx(i-2,j) = MAX(p->F60 + p->wd - b->bed(i,j),0.0);
-            b->hx(i-3,j) = MAX(p->F60 + p->wd - b->bed(i,j),0.0);
+            b->hx(i-1,j) = MAX(p->wd - b->bed(i,j),0.0);
+            b->hx(i-2,j) = MAX(p->wd - b->bed(i,j),0.0);
+            b->hx(i-3,j) = MAX(p->wd - b->bed(i,j),0.0);
             }
             
             if(p->gcbsl1[n][4]==2)
             {
-            b->hx(i+1,j) = MAX(p->F60 + p->wd - b->bed(i,j),0.0);
-            b->hx(i+2,j) = MAX(p->F60 + p->wd - b->bed(i,j),0.0);
-            b->hx(i+3,j) = MAX(p->F60 + p->wd - b->bed(i,j),0.0);
+            b->hx(i+1,j) = MAX(p->wd - b->bed(i,j),0.0);
+            b->hx(i+2,j) = MAX(p->wd - b->bed(i,j),0.0);
+            b->hx(i+3,j) = MAX(p->wd - b->bed(i,j),0.0);
             }
         }
 
@@ -239,16 +259,16 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
 
             if(p->gcbsl2[n][4]==1)
             {
-            b->hy(i-1,j) = MAX(p->F60 + p->wd - b->bed(i,j),0.0);
-            b->hy(i-2,j) = MAX(p->F60 + p->wd - b->bed(i,j),0.0);
-            b->hy(i-3,j) = MAX(p->F60 + p->wd - b->bed(i,j),0.0);
+            b->hy(i-1,j) = MAX(p->wd - b->bed(i,j),0.0);
+            b->hy(i-2,j) = MAX(p->wd - b->bed(i,j),0.0);
+            b->hy(i-3,j) = MAX(p->wd - b->bed(i,j),0.0);
             }
             
             if(p->gcbsl2[n][4]==2)
             {
-            b->hy(i+1,j) = MAX(p->F60 + p->wd - b->bed(i,j),0.0);
-            b->hy(i+2,j) = MAX(p->F60 + p->wd - b->bed(i,j),0.0);
-            b->hy(i+3,j) = MAX(p->F60 + p->wd - b->bed(i,j),0.0);
+            b->hy(i+1,j) = MAX(p->wd - b->bed(i,j),0.0);
+            b->hy(i+2,j) = MAX(p->wd - b->bed(i,j),0.0);
+            b->hy(i+3,j) = MAX(p->wd - b->bed(i,j),0.0);
             }
         }
         
@@ -263,9 +283,9 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
         
             if(p->gcbsl1[n][4]==1)
             {
-            b->hx(i-1,j) = MAX(p->F61 + p->wd - b->bed(i,j),0.0);
-            b->hx(i-2,j) = MAX(p->F61 + p->wd - b->bed(i,j),0.0);
-            b->hx(i-3,j) = MAX(p->F61 + p->wd - b->bed(i,j),0.0);
+            b->hx(i-1,j) = MAX(p->F61 - b->bed(i,j),0.0);
+            b->hx(i-2,j) = MAX(p->F61 - b->bed(i,j),0.0);
+            b->hx(i-3,j) = MAX(p->F61 - b->bed(i,j),0.0);
             }
         }
 
@@ -276,9 +296,9 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
 
             if(p->gcbsl2[n][4]==1)
             {
-            b->hy(i-1,j) = MAX(p->F61 + p->wd - b->bed(i,j),0.0);
-            b->hy(i-2,j) = MAX(p->F61 + p->wd - b->bed(i,j),0.0);
-            b->hy(i-3,j) = MAX(p->F61 + p->wd - b->bed(i,j),0.0);
+            b->hy(i-1,j) = MAX(p->F61 - b->bed(i,j),0.0);
+            b->hy(i-2,j) = MAX(p->F61 - b->bed(i,j),0.0);
+            b->hy(i-3,j) = MAX(p->F61 - b->bed(i,j),0.0);
             }
         }
         
@@ -295,9 +315,9 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
                 
             if(p->gcbsl1[n][4]==2)
             {
-            b->hx(i+1,j) = MAX(p->F62 + p->wd - b->bed(i,j),0.0);
-            b->hx(i+2,j) = MAX(p->F62 + p->wd - b->bed(i,j),0.0);
-            b->hx(i+3,j) = MAX(p->F62 + p->wd - b->bed(i,j),0.0);
+            b->hx(i+1,j) = MAX(p->F62 - b->bed(i,j),0.0);
+            b->hx(i+2,j) = MAX(p->F62 - b->bed(i,j),0.0);
+            b->hx(i+3,j) = MAX(p->F62 - b->bed(i,j),0.0);
             }
         }
 
@@ -308,9 +328,9 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
             
             if(p->gcbsl2[n][4]==2)
             {
-            b->hy(i+1,j) = MAX(p->F62 + p->wd - b->bed(i,j),0.0);
-            b->hy(i+2,j) = MAX(p->F62 + p->wd - b->bed(i,j),0.0);
-            b->hy(i+3,j) = MAX(p->F62 + p->wd - b->bed(i,j),0.0);
+            b->hy(i+1,j) = MAX(p->F62 - b->bed(i,j),0.0);
+            b->hy(i+2,j) = MAX(p->F62 - b->bed(i,j),0.0);
+            b->hy(i+3,j) = MAX(p->F62 - b->bed(i,j),0.0);
             }
         }
     }

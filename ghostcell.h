@@ -268,12 +268,14 @@ public:
 
     // Slice BCs
     void gcsl_neumann(slice&,int,int,int);
+    void gcsl_neumann_eta_outflow(slice&,int,int,int);
     void gcsl_neumann_x(slice&,int,int,int);
     void gcsl_neumann_int(sliceint&,int,int,int);
 	void gcsl_noslip(slice&,int,int,int);
     void gcsl_sommerfeld(lexer*,slice&,int,int,int);
     void gcsl_outflow(lexer*,slice&,int,int,int);
     void gcsl_outflow_fsf(lexer*,slice&,int,int,int);
+    void gcsl_potentialbc(lexer*,slice&,int,int);
 
     // parallel
     void gcslparax(lexer*, slice&, int);

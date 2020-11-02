@@ -35,7 +35,7 @@ LES_germano::~LES_germano()
 {
 }
 
-void LES_germano::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
+void LES_germano::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow, vrans* pvrans)
 {
     LOOP
     a->eddyv(i,j,k) = pow(p->DXM*c_sgs,2.0) * strainterm(p,a);

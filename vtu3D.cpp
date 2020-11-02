@@ -470,7 +470,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
     
     // Fi
-    if(p->A10==3)
+    if(p->A10==4)
 	{
 	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
 	++n;
@@ -588,7 +588,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     ++n;
 	}
     
-    if(p->A10==3)
+    if(p->A10==4)
 	{
     result<<"<DataArray type=\"Float32\" Name=\"Fi\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -808,7 +808,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
     
 //  Fi
-    if(p->A10==3)
+    if(p->A10==4)
 	{
     iin=4*(p->pointnum+p->ccptnum);
     result.write((char*)&iin, sizeof (int));

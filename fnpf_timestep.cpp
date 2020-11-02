@@ -109,10 +109,10 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
     FLOOP
     FPWDCHECK
     {
-    if(p->y_dir==1 && p->knoy>1)
+    if(p->j_dir==1 && p->knoy>1)
     dx = MIN(p->DXN[IP],p->DYN[JP]);
     
-    if(p->y_dir==0 || p->knoy==1)
+    if(p->j_dir==0 || p->knoy==1)
     dx = p->DXN[IP];
     
     cu = MIN(cu, 1.0/((fabs(MAX(p->umax, sqrt(9.81*depthmax)))/dx)));
@@ -189,10 +189,10 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
     FLOOP
     FPWDCHECK
     {
-    if(p->y_dir==1 && p->knoy>1)
+    if(p->j_dir==1 && p->knoy>1)
     dx = MIN(p->DXN[IP],p->DYN[JP]);
     
-    if(p->y_dir==0 || p->knoy==1)
+    if(p->j_dir==0 || p->knoy==1)
     dx = p->DXN[IP];
     
     cu = MIN(cu, 1.0/((fabs(MAX(p->umax, sqrt(9.81*depthmax)))/dx)));

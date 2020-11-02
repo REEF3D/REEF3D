@@ -134,8 +134,6 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	// solver
 	ppoissonsolv = new hypre_struct2D(p,pgc);
     
-    //ppoissonsolv = new sflow_bicgstab(p,pgc);
-    
     
     psolv = new sflow_bicgstab(p,pgc);
     
@@ -165,4 +163,12 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     
 	if(p->A210==3)
 	pmom = new sflow_momentum_RK3(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf);
+    
+    
+    //Potential Flow Solver
+    if(p->I11==0)
+    potflow = new sflow_potential_v(p);
+
+    if(p->I11==1)
+    potflow = new sflow_potential_f(p);
 }

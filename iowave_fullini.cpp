@@ -268,3 +268,64 @@ void iowave::full_initialize_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     c->WL(i,j) = c->eta(i,j) + p->wd - c->bed(i,j);
 
 }
+
+
+void iowave::full_initialize_ptf(lexer *p, fdm *a, ghostcell *pgc)
+{
+    if(p->mpirank==0)
+    cout<<"full NWT initialize"<<endl;
+    
+    // eta
+	SLICELOOP4
+    //if(a->wet(i,j)==1)
+    {
+        xg = xgen(p);
+        yg = ygen(p);
+		dg = distgen(p);
+		db = distbeach(p);
+
+		a->eta(i,j) = wave_eta(p,pgc,xg,yg);
+
+    }
+    
+    // Fifsf
+    SLICELOOP4
+    //if(a->wet(i,j)==1)
+    {
+        xg = xgen(p);
+        yg = ygen(p);
+		dg = distgen(p);
+		db = distbeach(p);
+        
+        z = a->eta(i,j);
+
+		a->Fifsf(i,j) = wave_fi(p,pgc,xg,yg,z);
+    }
+
+    
+    // Fi
+    LOOP
+    //if(a->wet(i,j)==1)
+    {
+        xg = xgen(p);
+        yg = ygen(p);
+        dg = distgen(p);
+		db = distbeach(p);
+        
+        if(p->pos_z()<=p->phimean)
+        z=-(fabs(p->phimean-p->pos_z()));
+		
+		if(p->pos_z()>p->phimean)
+        z=(fabs(p->phimean-p->pos_z()));
+        
+        
+        a->Fi(i,j,k) = wave_fi(p,pgc,xg,yg,z);
+      
+    }
+    
+    SLICELOOP4
+    a->WL(i,j) = a->eta(i,j) + p->wd - a->bed(i,j);
+    
+    pgc->start4(p,a->Fi,50);
+
+}

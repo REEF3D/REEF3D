@@ -60,22 +60,23 @@ void iowave::Qin(lexer *p, fdm* a, ghostcell* pgc)
     j=p->gcin[n][1];
     k=p->gcin[n][2];
 
-        if(a->phi(i,j,k)>-0.5*p->DXM-1.0e-20 && a->topo(i,j,k)>0.0)
+        if(a->phi(i,j,k)>-0.5*p->DZN[KP]-1.0e-20 && a->topo(i,j,k)>0.0)
         {
-            if(a->phi(i,j,k)>=0.5*p->DXM)
-            area=p->DXM*p->DXM;
+            if(a->phi(i,j,k)>=0.5*p->DZN[KP])
+            area=p->DYN[JP]*p->DZN[KP];
 
-            if(a->phi(i,j,k)<0.5*p->DXM && a->phi(i,j,k)>0.0*p->DXM)
-            area=p->DXM*(p->DXM*0.5 + a->phi(i,j,k));
+            if(a->phi(i,j,k)<0.5*p->DZN[KP] && a->phi(i,j,k)>0.0)
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i,j,k));
 			
-			if(a->phi(i,j,k)>=-0.5*p->DXM -1.0e-20 && a->phi(i,j,k)<=0.0*p->DXM)
-            area=p->DXM*(p->DXM*0.5 - a->phi(i,j,k));
+			if(a->phi(i,j,k)>=-0.5*p->DZN[KP] -1.0e-20 && a->phi(i,j,k)<=0.0)
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 - a->phi(i,j,k));
 
 
             Ai+=area;
             p->Qi+=area*a->u(i-1,j,k);
         }
     }
+    
     Ai=pgc->globalsum(Ai);
     p->Qi=pgc->globalsum(p->Qi);
     
@@ -108,17 +109,17 @@ void iowave::Qout(lexer *p, fdm* a, ghostcell* pgc)
     j=p->gcout[n][1];
     k=p->gcout[n][2];
 
-        if(a->phi(i+1,j,k)>-0.5*p->DXM-1.0e-20 && a->topo(i,j,k)>0.0)
+        if(a->phi(i,j,k)>-0.5*p->DZN[KP]-1.0e-20 && a->topo(i,j,k)>0.0)
         {
 
-            if(a->phi(i+1,j,k)>=0.5*p->DXM)
-            area=p->DXM*p->DXM;
+            if(a->phi(i,j,k)>=0.5*p->DZN[KP])
+            area=p->DYN[JP]*p->DZN[KP];
 
-            if(a->phi(i+1,j,k)<0.5*p->DXM && a->phi(i+1,j,k)>0.0*p->DXM)
-            area=p->DXM*(p->DXM*0.5 + a->phi(i+1,j,k));
+            if(a->phi(i,j,k)<0.5*p->DZN[KP] && a->phi(i,j,k)>0.0)
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i+1,j,k));
 			
-			if(a->phi(i+1,j,k)>=-0.5*p->DXM-1.0e-20 && a->phi(i+1,j,k)<=0.0*p->DXM)
-            area=p->DXM*(p->DXM*0.5 - a->phi(i+1,j,k));
+			if(a->phi(i,j,k)>=-0.5*p->DZN[KP]-1.0e-20 && a->phi(i,j,k)<=0.0)
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 - a->phi(i,j,k));
 
             Ao+=area;
             p->Qo+=area*a->u(i+1,j,k);

@@ -58,23 +58,7 @@ pjm_comp::pjm_comp(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentration
     pd = new density_rheo(p);
     
     
-    if(p->B76==0)
     gcval_press=40;  
-
-    if(p->B76==1)
-    gcval_press=41;
-
-    if(p->B76==2)
-    gcval_press=42;
-
-    if(p->B76==3)
-    gcval_press=43;
-	
-	if(p->B76==4) 
-    gcval_press=44;
-	
-	if(p->B76==5) 
-    gcval_press=45;
 	
 	gcval_u=7;
 	gcval_v=8;
@@ -87,7 +71,7 @@ pjm_comp::~pjm_comp()
 {
 }
 
-void pjm_comp::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, momentum *pmom, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
+void pjm_comp::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
 {
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<".";

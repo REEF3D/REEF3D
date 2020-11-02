@@ -23,32 +23,23 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"vrans_v.h"
-#include"vrans_f.h"
-#include"vrans_veg.h"
 
 void ioflow_f::ini(lexer *p, fdm* a, ghostcell* pgc)
 {
     gcio_update(p,a,pgc);
-    
-    
-    if(p->B269==0)
-	pvrans = new vrans_v(p,a,pgc);
-	
-	if(p->B269==1 || p->S10==2)
-	pvrans = new vrans_f(p,a,pgc);
-    
-    if(p->B269==2)
-	pvrans = new vrans_veg(p,a,pgc);
 }
 
 void ioflow_f::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
 }
 
+void ioflow_f::ini_ptf(lexer *p, fdm* a, ghostcell* pgc)
+{
+}
+
 void ioflow_f::ini2D(lexer *p, fdm2D* b, ghostcell* pgc)
 {
-    
+    discharge2D(p,b,pgc);
 }
 
 void ioflow_f::full_initialize2D(lexer *p, fdm2D *b, ghostcell *pgc)

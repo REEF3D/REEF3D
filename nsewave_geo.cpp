@@ -43,8 +43,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 nsewave_geo::nsewave_geo(lexer *p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc) : 
                 epsi(1.6*p->DXM),depth(p),bed(p),L(p),hp(p),hx(p),hy(p)
 {
-	peta = new sflow_eta_weno(p);
-	phxy = new sflow_hxy_weno(p);
+	//peta = new sflow_eta_weno(p,b);
+	//phxy = new sflow_hxy_weno(p);
 	
 	
 	// bed ini
@@ -113,10 +113,10 @@ nsewave_geo::~nsewave_geo()
 
 void nsewave_geo::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusion *pdiff, turbulence *pturb,
                       convection* pconvec, pressure *ppress, poisson *ppois, solver *ppoissonsolv, solver *psolv, 
-                      ioflow* pflow)
+                      ioflow* pflow, vrans* pvrans)
 {
     // Momentum
-    pmom->start(p,a,pgc,pmom);
+    pmom->start(p,a,pgc,pvrans);
     
     
     // fill eta_n

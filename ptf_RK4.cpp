@@ -58,7 +58,7 @@ ptf_RK4::ptf_RK4(lexer *p, fdm *a, ghostcell *pgc) : ptf_fsfbc(p,a,pgc), ptf_fsf
     gcval_fifsf = 50;
     
     if(p->A320==1)
-    plap = new ptf_laplace_cds2;
+    plap = new ptf_laplace_cds2(p,a,pgc);
     
     if(p->A320==2)
     plap = new ptf_laplace_cds4;

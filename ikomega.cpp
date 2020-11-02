@@ -23,16 +23,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"lexer.h"
 #include"fdm.h"
-#include"vrans_f.h"
-#include"vrans_v.h"
+#include"vrans.h"
 
 ikomega::ikomega(lexer* p, fdm* a, ghostcell *pgc) : rans_io(p,a),bc_ikomega(p)
 {
-    if(p->B269==0)
-	pvrans = new vrans_v(p,a,pgc);
-	
-	if(p->B269>=1 || p->S10==2)
-	pvrans = new vrans_f(p,a,pgc);
 }
 
 ikomega::~ikomega()
@@ -63,7 +57,7 @@ void ikomega::ksource(lexer *p, fdm* a)
 	a->H(i,j,k)=0.0;
 }
 
-void  ikomega::eddyvisc(lexer* p, fdm* a, ghostcell* pgc)
+void ikomega::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
 {
 	double factor;
 	double H;
@@ -111,7 +105,7 @@ void  ikomega::eddyvisc(lexer* p, fdm* a, ghostcell* pgc)
 
 }
 
-void  ikomega::kinsource(lexer *p, fdm* a)
+void ikomega::kinsource(lexer *p, fdm* a, vrans* pvrans)
 {	
     int count=0;
 
@@ -129,7 +123,7 @@ void  ikomega::kinsource(lexer *p, fdm* a)
     pvrans->kw_source(p,a,kin);
 }
 
-void  ikomega::epssource(lexer *p, fdm* a)
+void ikomega::epssource(lexer *p, fdm* a, vrans* pvrans)
 {
     count=0;
     double dirac;

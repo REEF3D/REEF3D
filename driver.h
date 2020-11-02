@@ -51,6 +51,8 @@ class potential;
 class heat;
 class benchmark;
 class sixdof;
+class vrans;
+class net;
 class data;
 class concentration;
 class ptf;
@@ -66,7 +68,7 @@ class grid;
 #include<iostream>
 #include<fstream>
 #include<iomanip>
-
+#include<vector>
 
 #ifndef DRIVER_H_
 #define DRIVER_H_
@@ -85,12 +87,12 @@ public:
     void cfd_driver();
 	void nsewave_driver();
     void nhflow_driver();
-    void pfsg_driver();
-    void pffg_driver();
+    void fnpf_driver();
+    void ptf_driver();
     void sf_driver();
     
-	void loop_cfd_fsi(fdm*);
 	void loop_cfd(fdm*);
+	void loop_cfd_df(fdm*);
     void loop_nsewave(fdm*);
     void loop_nhflow(fdm*);
     void loop_ptf(fdm*);
@@ -168,6 +170,8 @@ public:
 	potential* potflow;
 	benchmark* pbench;
 	sixdof* p6dof;
+	vrans* pvrans;
+    vector<net*> pnet;
 	data *pdata;
 	concentration *pconc;
     fnpf *ppfsg;

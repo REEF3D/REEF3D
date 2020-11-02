@@ -39,7 +39,7 @@ komega_IM1::~komega_IM1()
 {
 }
 
-void komega_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
+void komega_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow, vrans *pvrans)
 {
 	Pk_update(p,a,pgc);
 	wallf_update(p,a,pgc,wallf);
@@ -49,7 +49,7 @@ void komega_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,s
 	clearrhs(p,a);
     pconvec->start(p,a,kin,4,a->u,a->v,a->w);
 	pdiff->idiff_scalar(p,a,pgc,psolv,kin,a->visc,kw_sigma_k,1.0);
-	kinsource(p,a);
+	kinsource(p,a,pvrans);
 	timesource(p,a,kn);
     bckeps_start(a,p,kin,eps,gcval_kin);
 	psolv->start(p,a,pgc,kin,a->xvec,a->rhsvec,4,gcval_kin,p->T13);
@@ -64,7 +64,7 @@ void komega_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,s
 	clearrhs(p,a);
     pconvec->start(p,a,eps,4,a->u,a->v,a->w);
 	pdiff->idiff_scalar(p,a,pgc,psolv,eps,a->visc,kw_sigma_w,1.0);
-	epssource(p,a);
+	epssource(p,a,pvrans);
 	timesource(p,a,en);
 	psolv->start(p,a,pgc,eps,a->xvec,a->rhsvec,4,gcval_eps,p->T13);
 	epsfsf(p,a,pgc);
@@ -75,7 +75,7 @@ void komega_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,s
 	if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"omega_iter: "<<p->epsiter<<"  omega_time: "<<setprecision(3)<<p->epstime<<endl;
 
-	eddyvisc(p,a,pgc);
+	eddyvisc(p,a,pgc,pvrans);
     pflow->turb_relax(p,a,pgc,a->eddyv);
 	pgc->start4(p,a->eddyv,24);
 }

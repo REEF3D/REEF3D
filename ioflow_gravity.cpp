@@ -126,7 +126,7 @@ void ioflow_gravity::iogcb_update(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void  ioflow_gravity::isource(lexer *p, fdm *a, ghostcell *pgc)
+void  ioflow_gravity::isource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
 	NLOOP4
 	a->rhsvec.V[n]=0.0;
@@ -152,7 +152,7 @@ void  ioflow_gravity::isource(lexer *p, fdm *a, ghostcell *pgc)
 	}
 }
 
-void  ioflow_gravity::jsource(lexer *p, fdm *a, ghostcell *pgc)
+void  ioflow_gravity::jsource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
 	NLOOP4
 	a->rhsvec.V[n]=0.0;
@@ -161,7 +161,7 @@ void  ioflow_gravity::jsource(lexer *p, fdm *a, ghostcell *pgc)
 	a->gj = sin(theta_x*sin(omega_x*p->simtime))*p->W22;
 }
 
-void  ioflow_gravity::ksource(lexer *p, fdm *a, ghostcell *pgc)
+void  ioflow_gravity::ksource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
 	NLOOP4
 	a->rhsvec.V[n]=0.0;
@@ -371,12 +371,17 @@ void ioflow_gravity::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
 }
 
+void ioflow_gravity::ini_ptf(lexer *p, fdm* a, ghostcell* pgc)
+{
+    
+}
+
 void ioflow_gravity::ini2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     
 }
 
-void ioflow_gravity::veltimesave(lexer *p, fdm *a, ghostcell *pgc)
+void ioflow_gravity::veltimesave(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
     
 }
@@ -386,7 +391,7 @@ void ioflow_gravity::inflow_fnpf(lexer *p, fdm_fnpf*, ghostcell *pgc, double *Fi
 
 }
 
-void ioflow_gravity::vrans_sed_update(lexer *p,fdm *a,ghostcell *pgc)
+void ioflow_gravity::vrans_sed_update(lexer *p,fdm *a,ghostcell *pgc, vrans *pvrans)
 {
     
 }

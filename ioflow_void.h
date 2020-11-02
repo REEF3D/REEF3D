@@ -56,12 +56,12 @@ public:
 	virtual void fsfrkinVa(lexer*,fdm*,ghostcell*,vec&);
 	virtual void fsfrkoutVa(lexer*,fdm*,ghostcell*,vec&);
     virtual void iogcb_update(lexer*,fdm*,ghostcell*);
-	virtual void isource(lexer*,fdm*,ghostcell*);
-    virtual void jsource(lexer*,fdm*,ghostcell*);
-    virtual void ksource(lexer*,fdm*,ghostcell*);
+	virtual void isource(lexer*,fdm*,ghostcell*,vrans*);
+    virtual void jsource(lexer*,fdm*,ghostcell*,vrans*);
+    virtual void ksource(lexer*,fdm*,ghostcell*,vrans*);
     virtual void pressure_io(lexer*,fdm*,ghostcell*);
     virtual void turbulence_io(lexer*,fdm*,ghostcell*);
-    virtual void veltimesave(lexer*,fdm*,ghostcell*);
+    virtual void veltimesave(lexer*,fdm*,ghostcell*,vrans*);
     virtual void flowfile(lexer*,fdm*,ghostcell*,turbulence*);
     
     virtual void wavegen_precalc(lexer*,ghostcell*);
@@ -103,11 +103,12 @@ public:
     virtual void ini_fnpf(lexer*,fdm_fnpf*,ghostcell*);
     virtual void inflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,double*,double*,slice&,slice&);
     virtual void ini2D(lexer*,fdm2D*,ghostcell*);
+    virtual void ini_ptf(lexer*,fdm*,ghostcell*);
     
     virtual void ini_nhflow(lexer*,fdm*,ghostcell*);
     virtual void nhflow_inflow(lexer*,fdm*,ghostcell*,field&,field&,field&);
     
-    virtual void vrans_sed_update(lexer*,fdm*,ghostcell*);
+    virtual void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*);
 	
 private:
     void velocity_inlet(lexer*,fdm*,ghostcell*,field&,field&,field&);

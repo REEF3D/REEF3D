@@ -187,12 +187,12 @@ void ioflow_f::iogcb_update(lexer *p, fdm *a, ghostcell *pgc)
     p->gcout_count=count2;
 }
 
-void ioflow_f::veltimesave(lexer *p, fdm *a, ghostcell *pgc)
+void ioflow_f::veltimesave(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
     pvrans->veltimesave(p,a,pgc);
 }
 
-void ioflow_f::vrans_sed_update(lexer *p,fdm *a,ghostcell *pgc)
+void ioflow_f::vrans_sed_update(lexer *p,fdm *a,ghostcell *pgc, vrans *pvrans)
 {
     pvrans->sed_update(p,a,pgc);
 }

@@ -33,6 +33,7 @@ void ghostcell::start1(lexer *p, field& f, int gcv)
 	gcparax(p,f,1);
 	//gcparavoidx(p,f,gcv);
 	gcparacox(p,f,gcv);
+    gcparacox(p,f,gcv);
 	gcparacox(p,f,gcv);
 	endtime=timer();
 	p->xtime+=endtime-starttime;

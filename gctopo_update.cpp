@@ -126,24 +126,7 @@ void ghostcell::topo_update(lexer *p, fdm *a)
 	
 	int gcval_press; 
 	
-	if(p->B76==0)
     gcval_press=40;  
-
-    if(p->B76==1)
-    gcval_press=41;
-
-    if(p->B76==2)
-    gcval_press=42;
-
-    if(p->B76==3)
-    gcval_press=43;
-	
-	if(p->B76==4) 
-    gcval_press=44;
-	
-	if(p->B76==5) 
-    gcval_press=45;
-	
 	
 	start4(p,a->press,gcval_press);
 

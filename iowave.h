@@ -29,7 +29,6 @@ Author: Hans Bihs
 #include"flowfile_in.h"
 
 class vec;
-class vrans;
 class fdm_fnpf;
 
 using namespace std;
@@ -57,12 +56,12 @@ public:
 	virtual void fsfrkinVa(lexer*,fdm*,ghostcell*,vec&);
 	virtual void fsfrkoutVa(lexer*,fdm*,ghostcell*,vec&);
 	virtual void iogcb_update(lexer*,fdm*,ghostcell*);
-	virtual void isource(lexer*,fdm*,ghostcell*);
-    virtual void jsource(lexer*,fdm*,ghostcell*);
-    virtual void ksource(lexer*,fdm*,ghostcell*);
+	virtual void isource(lexer*,fdm*,ghostcell*,vrans*);
+    virtual void jsource(lexer*,fdm*,ghostcell*,vrans*);
+    virtual void ksource(lexer*,fdm*,ghostcell*,vrans*);
     virtual void pressure_io(lexer*,fdm*,ghostcell*);
     virtual void turbulence_io(lexer*,fdm*,ghostcell*);
-    virtual void veltimesave(lexer*,fdm*,ghostcell*);
+    virtual void veltimesave(lexer*,fdm*,ghostcell*,vrans*);
     virtual void Qin(lexer*,fdm*,ghostcell*);
 	virtual void Qout(lexer*,fdm*,ghostcell*);
     
@@ -119,7 +118,8 @@ public:
     virtual double wave_fsf(lexer*,ghostcell*,double);
 	virtual int iozonecheck(lexer*,fdm*);
 	virtual void full_initialize(lexer*,fdm*,ghostcell*);
-    virtual void full_initialize_fnpf(lexer*,fdm_fnpf*,ghostcell*);
+    void full_initialize_fnpf(lexer*,fdm_fnpf*,ghostcell*);
+    void full_initialize_ptf(lexer*,fdm*,ghostcell*);
 	virtual void active_beach(lexer*,fdm*,ghostcell*,field&,field&,field&);
 	virtual void active_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&);
 	virtual void dirichlet_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&);
@@ -128,8 +128,9 @@ public:
     virtual void ini_nhflow(lexer*,fdm*,ghostcell*);
     virtual void ini_fnpf(lexer*,fdm_fnpf*,ghostcell*);
     virtual void ini2D(lexer*,fdm2D*,ghostcell*);
+    virtual void ini_ptf(lexer*,fdm*,ghostcell*);
     
-    virtual void vrans_sed_update(lexer*,fdm*,ghostcell*);
+    virtual void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*);
 
     void velini(lexer*,fdm*,ghostcell*);
     void pressure_outlet(lexer*,fdm*,ghostcell*);
@@ -253,8 +254,6 @@ private:
 	
     double **hydro_in,**hydro_out;
     int hydro_in_count,hydro_out_count;
-    
-	vrans *pvrans;
 };
 
 #endif

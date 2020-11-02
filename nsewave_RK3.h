@@ -45,8 +45,7 @@ public:
     nsewave_RK3(lexer*, fdm*, ghostcell*,heat*&,concentration*&);
 	virtual ~nsewave_RK3();
     
-    virtual void start(lexer*, fdm*, ghostcell*, momentum*, diffusion*, turbulence*, convection*, 
-                        pressure*, poisson*, solver*, solver*, ioflow*);
+    virtual void start(lexer*, fdm*, ghostcell*, momentum*, diffusion*, turbulence*, convection*, pressure*, poisson*, solver*, solver*, ioflow*, vrans*);
     virtual void ini(lexer*, fdm*, ghostcell*, ioflow*);
 	void ltimesave(lexer*,fdm*,slice&);
     void update(lexer*,fdm*,ghostcell*,slice&);

@@ -31,6 +31,7 @@ class sflow_fsf;
 class sflow_diffusion;
 class sflow_roughness;
 class sflow_sediment_RK;
+class sflow_rheology;
 
 using namespace std;
 
@@ -67,6 +68,7 @@ private:
 	sflow_fsf *pfsf;
     sflow_roughness *prough;
     sflow_sediment_RK *psedstep;
+    sflow_rheology *prheo;
 };
 
 #endif

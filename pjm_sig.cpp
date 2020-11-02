@@ -51,25 +51,9 @@ pjm_sig::pjm_sig(lexer* p, fdm *a, heat *&pheat, concentration *&pconc)
     if(p->F80>0 && p->H10==0 && p->W30==0)
 	pd = new density_vof(p);
     
-    
-    if(p->B76==0)
+
     gcval_press=40;  
 
-    if(p->B76==1)
-    gcval_press=41;
-
-    if(p->B76==2)
-    gcval_press=42;
-
-    if(p->B76==3)
-    gcval_press=43;
-	
-	if(p->B76==4) 
-    gcval_press=44;
-	
-	if(p->B76==5) 
-    gcval_press=45;
-	
 	gcval_u=7;
 	gcval_v=8;
 	gcval_w=9;
@@ -79,7 +63,7 @@ pjm_sig::~pjm_sig()
 {
 }
 
-void pjm_sig::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, momentum *pmom, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
+void pjm_sig::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
 {
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<".";

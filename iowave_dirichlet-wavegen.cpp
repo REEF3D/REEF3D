@@ -36,11 +36,10 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
         uvel=uval[count]*ramp(p);
         vvel=vval[count]*ramp(p);
         wvel=wval[count]*ramp(p);
-           
-
+            
 			if(a->phi(i-1,j,k)>=0.0)
 			{
-            
+            //cout<<"IOWAVE: "<<uvel<<" k: "<<k<<endl;
 			u(i-1,j,k)=uvel+p->Ui;
 			u(i-2,j,k)=uvel+p->Ui;
 			u(i-3,j,k)=uvel+p->Ui;
@@ -105,7 +104,22 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
 		pgc->start4(p,a->eddyv,24);
 		}
         
-        
+    // PTF
+    /*if(p->A10==4)
+    {
+        for(n=0;n<p->gcslin_count;n++)
+        {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
+        k=a->etaloc(i,j);
+        {
+        a->Fifsf(i-1,j) = a->Fifsf(i,j) - u(i-1,j,k)*1.0*p->DXP[IM1];
+        a->Fifsf(i-2,j) = a->Fifsf(i,j) - u(i-1,j,k)*2.0*p->DXP[IM1];
+        a->Fifsf(i-3,j) = a->Fifsf(i,j) - u(i-1,j,k)*3.0*p->DXP[IM1];
+        }
+         }
+    }*/
+    
     // NSEWAVE
     if(p->A10==5)
     {
@@ -126,6 +140,7 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
             a->phi(i-3,j,k) = a->eta(i-3,j) + p->phimean - p->pos_z();
             }
         }
+    
         
         
 

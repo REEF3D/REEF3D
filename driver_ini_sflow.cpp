@@ -64,7 +64,7 @@ cout<<"starting driver_ini_PFLOW"<<endl;
     if((p->G50>0 && p->G51>0) || p->G60>0 || p->G61 >0 ||p->G39==1)
     {
     geotopo gtopo(p,a,pgc);
-    gtopo.start(p,a,pgc,pflow,pconvec,preto);
+    gtopo.start(p,a,pgc,pflow,pconvec,preto,pvrans);
     }
 	
     ptstep->ini(a,p,pgc);

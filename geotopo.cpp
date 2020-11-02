@@ -34,7 +34,7 @@ geotopo::~geotopo()
 {
 }
 
-void geotopo::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection* pconvec, reinitopo* preto)
+void geotopo::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection* pconvec, reinitopo* preto, vrans* pvrans)
 {
     dat(p,a,pgc);
     
@@ -49,7 +49,7 @@ void geotopo::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection*
     pgc->topo_update(p,a);
     
     if(p->S10==2)
-    pflow->vrans_sed_update(p,a,pgc);
+    pflow->vrans_sed_update(p,a,pgc,pvrans);
     
     pflow->gcio_update(p,a,pgc);
 }

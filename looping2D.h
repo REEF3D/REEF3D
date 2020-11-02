@@ -25,12 +25,16 @@ Author: Hans Bihs
 #define PSLICECHECK1  if(p->flagslice1[IJ]>0)
 #define SLICELOOP1 IULOOP JULOOP  PSLICECHECK1
 
+#define IULOOPSFLOW for(i=0; i<p->knox-p->ulastsflow; ++i)
+
 #define PSLICECHECK2  if(p->flagslice2[IJ]>0)
 #define SLICELOOP2 IVLOOP JVLOOP  PSLICECHECK2
 
 #define PSLICECHECK4  if(p->flagslice4[IJ]>0)
 #define SSLICECHECK4  if(p->flagslice4[IJ]<=0)
 #define SLICELOOP4 ILOOP JLOOP  PSLICECHECK4
+
+#define SLICEBASELOOP ILOOP JLOOP
 
 #define SLICEREVLOOP4 IREVLOOP JREVLOOP  PSLICECHECK4
 

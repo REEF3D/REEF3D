@@ -142,24 +142,7 @@ void state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 	
 	int gcval_press, gcval_phi, gcval_topo;
 	
-	if(p->B76==0)
     gcval_press=40;  
-
-    if(p->B76==1)
-    gcval_press=41;
-
-    if(p->B76==2)
-    gcval_press=42;
-
-    if(p->B76==3)
-    gcval_press=43;
-	
-	if(p->B76==4) 
-    gcval_press=44;
-	
-	if(p->B76==5) 
-    gcval_press=45;
-	
 	
 	if(p->F50==1)
 	gcval_phi=51;

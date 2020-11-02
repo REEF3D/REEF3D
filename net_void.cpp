@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2019 Tobias Martin
+Copyright 2018-2020 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -26,7 +26,8 @@ void net_void::start
 (
 	lexer *p, 
 	fdm *a, 
-	ghostcell *pgc
+	ghostcell *pgc,
+    double alpha
 )
 {
 	
@@ -38,10 +39,15 @@ void net_void::initialize(lexer *p, fdm *a, ghostcell *pgc)
 
 void net_void::netForces
 (
-	double& Xme, double& Yme, double& Zme
+    lexer *p,
+	double& Xne, double& Yne, double& Zne,
+	double& Kne, double& Mne, double& Nne
 )
 {
-	Xme = 0.0;
-	Yme = 0.0;
-	Zme = 0.0;
+	Xne = 0.0;
+	Yne = 0.0;
+	Zne = 0.0;
+	Kne = 0.0;
+	Mne = 0.0;
+	Nne = 0.0;
 }
