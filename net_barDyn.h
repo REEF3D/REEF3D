@@ -140,8 +140,7 @@ private:
     vector<Eigen::Vector3d> collarPoints;    
 
 	// Forces
-    double Fx,Fy,Fz;
-    double Tne, Fporx,Fpory,Fporz;
+    double Tne,Fx,Fy,Fz;
 	int **nfK, *nfbK;
 
     // Sinker

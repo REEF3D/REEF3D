@@ -905,12 +905,6 @@ Fmd	force.h	/^	double Fmi, Fmd;$/;"	m	class:force
 Fmi	force.h	/^	double Fmi, Fmd;$/;"	m	class:force
 Fminus	wave_lib_irregular_2nd_b.h	/^    double **Aplus,**Aminus,**Dplus,**Dminus,**Gplus,**Gminus,**Hplus,**Hminus,**Fplus,**Fminus;$/;"	m	class:wave_lib_irregular_2nd_b
 Fplus	wave_lib_irregular_2nd_b.h	/^    double **Aplus,**Aminus,**Dplus,**Dminus,**Gplus,**Gminus,**Hplus,**Hminus,**Fplus,**Fminus;$/;"	m	class:wave_lib_irregular_2nd_b
-Fporx	net_barDyn.h	/^    double Tne, Fporx,Fpory,Fporz;$/;"	m	class:net_barDyn
-Fporx	net_barQuasiStatic.h	/^    double Fporx,Fpory,Fporz;$/;"	m	class:net_barQuasiStatic
-Fpory	net_barDyn.h	/^    double Tne, Fporx,Fpory,Fporz;$/;"	m	class:net_barDyn
-Fpory	net_barQuasiStatic.h	/^    double Fporx,Fpory,Fporz;$/;"	m	class:net_barQuasiStatic
-Fporz	net_barDyn.h	/^    double Tne, Fporx,Fpory,Fporz;$/;"	m	class:net_barDyn
-Fporz	net_barQuasiStatic.h	/^    double Fporx,Fpory,Fporz;$/;"	m	class:net_barQuasiStatic
 Fval	wave_lib_irregular_2nd_a.h	/^    double **Cval,**Dval,**Eval,**Fval;$/;"	m	class:wave_lib_irregular_2nd_a
 Fvert	force.h	/^	double Fvert;$/;"	m	class:force
 Fvert0	force.h	/^	double FDs_norm,Fvert_norm,Fvert0;$/;"	m	class:force
@@ -918,7 +912,7 @@ Fvert_norm	force.h	/^	double FDs_norm,Fvert_norm,Fvert0;$/;"	m	class:force
 Fx	fdm_fnpf.h	/^    slice4 Fx,Fy;$/;"	m	class:fdm_fnpf
 Fx	forcesolid.h	/^    double Fx,Fy,Fz;$/;"	m	class:forcesolid
 Fx	mooring_DGSEM.h	/^	double **Fx, **Fy, **Fz;$/;"	m	class:mooring_DGSEM
-Fx	net_barDyn.h	/^    double Fx,Fy,Fz;$/;"	m	class:net_barDyn
+Fx	net_barDyn.h	/^    double Tne,Fx,Fy,Fz;$/;"	m	class:net_barDyn
 Fx	net_barQuasiStatic.h	/^    double Fx,Fy,Fz;$/;"	m	class:net_barQuasiStatic
 Fx	net_sheet.h	/^    double Fx,Fy,Fz;$/;"	m	class:net_sheet
 Fx	ptf_fsfbc.h	/^    slice4 Fx,Fy,Fz;$/;"	m	class:ptf_fsfbc
@@ -929,7 +923,7 @@ Fx_r	sloshing_force.h	/^    double Fx_l,Fx_r,Fz,M;$/;"	m	class:sloshing_force
 Fy	fdm_fnpf.h	/^    slice4 Fx,Fy;$/;"	m	class:fdm_fnpf
 Fy	forcesolid.h	/^    double Fx,Fy,Fz;$/;"	m	class:forcesolid
 Fy	mooring_DGSEM.h	/^	double **Fx, **Fy, **Fz;$/;"	m	class:mooring_DGSEM
-Fy	net_barDyn.h	/^    double Fx,Fy,Fz;$/;"	m	class:net_barDyn
+Fy	net_barDyn.h	/^    double Tne,Fx,Fy,Fz;$/;"	m	class:net_barDyn
 Fy	net_barQuasiStatic.h	/^    double Fx,Fy,Fz;$/;"	m	class:net_barQuasiStatic
 Fy	net_sheet.h	/^    double Fx,Fy,Fz;$/;"	m	class:net_sheet
 Fy	ptf_fsfbc.h	/^    slice4 Fx,Fy,Fz;$/;"	m	class:ptf_fsfbc
@@ -939,7 +933,7 @@ Fz	fdm.h	/^    slice4 Fifsf,Fz;$/;"	m	class:fdm
 Fz	fdm_fnpf.h	/^    slice4 Fifsf,Fibed,Fz;$/;"	m	class:fdm_fnpf
 Fz	forcesolid.h	/^    double Fx,Fy,Fz;$/;"	m	class:forcesolid
 Fz	mooring_DGSEM.h	/^	double **Fx, **Fy, **Fz;$/;"	m	class:mooring_DGSEM
-Fz	net_barDyn.h	/^    double Fx,Fy,Fz;$/;"	m	class:net_barDyn
+Fz	net_barDyn.h	/^    double Tne,Fx,Fy,Fz;$/;"	m	class:net_barDyn
 Fz	net_barQuasiStatic.h	/^    double Fx,Fy,Fz;$/;"	m	class:net_barQuasiStatic
 Fz	net_sheet.h	/^    double Fx,Fy,Fz;$/;"	m	class:net_sheet
 Fz	ptf_fsfbc.h	/^    slice4 Fx,Fy,Fz;$/;"	m	class:ptf_fsfbc
@@ -2675,7 +2669,7 @@ T_backup	net_barDyn.h	/^    VectorXd mass_knot, weight_knot, sinker_knot, added_
 T_old	net_barDyn.h	/^    VectorXd mass_knot, weight_knot, sinker_knot, added_mass, B_, T_, T_old, T_backup, coeffs_;$/;"	m	class:net_barDyn
 Ti	bedconc.h	/^	double Ti,Ds;$/;"	m	class:bedconc
 Ti	wave_lib_spectrum.h	/^    double *Si,*Ai,*Li,*ki,*Ti,*wi,*ei,*ww,*cdf,*wee,*dee,*Sn;$/;"	m	class:wave_lib_spectrum
-Tne	net_barDyn.h	/^    double Tne, Fporx,Fpory,Fporz;$/;"	m	class:net_barDyn
+Tne	net_barDyn.h	/^    double Tne,Fx,Fy,Fz;$/;"	m	class:net_barDyn
 Torsethaugen	wave_lib_spectrum_Torsethaugen.cpp	/^double wave_lib_spectrum::Torsethaugen(lexer *p, double w)$/;"	f	class:wave_lib_spectrum
 U	fdm_fnpf.h	/^    double *Fi,*Uin,*Uout,*U,*V,*W;$/;"	m	class:fdm_fnpf
 U	flowfile_out.h	/^    double **U,**V,**W,**P,**K,**E,**VT,**LS;$/;"	m	class:flowfile_out

@@ -32,6 +32,7 @@ Author: Hans Bihs
 #include<fstream>
 #include"looping.h"
 #include <Eigen/Dense>
+#include<vector>
 
 #ifndef LEXER_H_
 #define LEXER_H_

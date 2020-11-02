@@ -28,7 +28,6 @@ Author: Tobias Martin
 class lexer;
 class fdm;
 class ghostcell;
-class momentum;
 class mooring;
 class net;
 

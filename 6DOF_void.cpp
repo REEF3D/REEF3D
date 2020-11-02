@@ -38,9 +38,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"net_barQuasiStatic.h"
 #include"net_sheet.h"
     
-sixdof_void::sixdof_void() {}
+sixdof_void::sixdof_void(){}
 
-sixdof_void::~sixdof_void() {}
+sixdof_void::~sixdof_void()
+{
+}
 
 void sixdof_void::start
 (
@@ -61,18 +63,18 @@ void sixdof_void::start
     
     if (p->X320 > 0)
     {
-        for (int i = 0; i < p->net_count; i++)
+        for (int ii = 0; ii < p->net_count; ii++)
         {
-            pnet[i]->start(p, a, pgc, 1.0);
-            pvrans->start(p, a, pgc, pnet[i], i);
-        
+            pnet[ii]->start(p, a, pgc, 1.0);
+            pvrans->start(p, a, pgc, pnet[ii], ii);
+
             // Forces on rigid body
-            pnet[i]->netForces(p,Xne[i],Yne[i],Zne[i],Kne[i],Mne[i],Nne[i]);
+            pnet[ii]->netForces(p,Xne[ii],Yne[ii],Zne[ii],Kne[ii],Mne[ii],Nne[ii]);
         
             if( p->mpirank == 0)
             {
-                cout<<"Xne"<< i <<" : "<<Xne[i]<<" Yne"<< i <<" : "<<Yne[i]<<" Zne"<< i <<" : "<<Zne[i]
-                <<" Kne"<< i <<" : "<<Kne[i]<<" Mne"<< i <<" : "<<Mne[i]<<" Nne"<< i <<" : "<<Nne[i]<<endl;		
+                cout<<"Xne"<< ii <<" : "<<Xne[ii]<<" Yne"<< ii <<" : "<<Yne[ii]<<" Zne"<< ii <<" : "<<Zne[ii]
+                <<" Kne"<< ii <<" : "<<Kne[ii]<<" Mne"<< ii <<" : "<<Mne[ii]<<" Nne"<< ii <<" : "<<Nne[ii]<<endl;		
             }
         }
     }
@@ -128,7 +130,6 @@ void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pne
 		}
 	}
 
-
     if (p->X320 == 0)
     {
         pnet.push_back(new net_void());
@@ -143,7 +144,7 @@ void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pne
 		Kne.resize(p->net_count);
 		Mne.resize(p->net_count);
 		Nne.resize(p->net_count);
-    
+
         if(p->mpirank==0)
         {
             if(p->P14==1)
@@ -155,7 +156,7 @@ void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pne
         {
             p->X320_type = new int[p->net_count];
         }
-        
+		
         pnet.reserve(p->net_count);	
   
 		for (int ii=0; ii < p->net_count; ii++)
@@ -174,11 +175,10 @@ void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pne
             {
                  pnet.push_back(new net_sheet(ii,p));
             }
-
-			pnet[ii]->initialize(p,a,pgc);
+			
+            pnet[ii]->initialize(p,a,pgc);
 		}
-    } 
-
+    }
 
     // Ini parameters
 	p->ufbi=p->vfbi=p->wfbi=0.0;
