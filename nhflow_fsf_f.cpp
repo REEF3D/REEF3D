@@ -42,8 +42,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 nhflow_fsf_f::nhflow_fsf_f(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow) : 
                 epsi(p->A440*p->DXM),depth(p),bed(p),L(p),hp(p),hx(p),hy(p)
 {
-	peta = new sflow_eta_weno(p);
-	phxy = new sflow_hxy_weno(p);
+	//peta = new sflow_eta_weno(p);
+	//phxy = new sflow_hxy_weno(p);
 
 	pupdate = new fluid_update_void();
 

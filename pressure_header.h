@@ -24,7 +24,6 @@ Author: Hans Bihs
 #include"pjm.h"
 #include"pjm_sig.h"
 #include"pjm_fsm.h"
-#include"pjm_fsi.h"
 #include"pjm_corr.h"
 #include"pjm_comp.h"
 #include"pjm_nse.h"

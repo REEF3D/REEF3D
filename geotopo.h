@@ -28,6 +28,7 @@ class ghostcell;
 class reinitopo;
 class convection;
 class ioflow;
+class vrans;
 
 using namespace std;
 
@@ -39,7 +40,7 @@ class geotopo : public increment
 public:
 	geotopo(lexer*, fdm*, ghostcell*);
 	virtual ~geotopo();
-	virtual void start(lexer*, fdm*, ghostcell*, ioflow*, convection*, reinitopo*);
+	virtual void start(lexer*, fdm*, ghostcell*, ioflow*, convection*, reinitopo*, vrans*);
 
 private:
     void box(lexer*,fdm*,ghostcell*);

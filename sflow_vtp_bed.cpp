@@ -170,7 +170,7 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 	
     result<<"<PointData >"<<endl;
-    result<<"<DataArray type=\"Float32\" Name=\"waterlevel\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"depth\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"bedload\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -226,7 +226,7 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	ffn=float(p->sl_ipol2a(b->hy));
 	result.write((char*)&ffn, sizeof (float));
 	
-	ffn=float(p->sl_ipol4(b->hp));
+	ffn=float(p->sl_ipol4(b->depth));
 	result.write((char*)&ffn, sizeof (float));
 	}
 

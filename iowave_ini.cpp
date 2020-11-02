@@ -23,23 +23,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"vrans_v.h"
-#include"vrans_f.h"
-#include"vrans_veg.h"
 
 void iowave::ini(lexer *p, fdm* a, ghostcell* pgc)
 {
-    if(p->B269==0)
-	pvrans = new vrans_v(p,a,pgc);
-	
-	if(p->B269==1 || p->S10==2)
-	pvrans = new vrans_f(p,a,pgc);
-    
-    if(p->B269==2)
-	pvrans = new vrans_veg(p,a,pgc);
-    
     // relax_ini OR dirichlet_ini
-    if(p->A10==3 || p->A10==5  || p->A10==55 || p->A10==6)
+    if(p->A10==5  || p->A10==55 || p->A10==6)
     {
     wavegen_precalc_ini(p,pgc);
     
@@ -59,15 +47,6 @@ void iowave::ini(lexer *p, fdm* a, ghostcell* pgc)
 
 void iowave::ini_nhflow(lexer *p, fdm* a, ghostcell* pgc)
 {
-    if(p->B269==0)
-	pvrans = new vrans_v(p,a,pgc);
-	
-	if(p->B269==1 || p->S10==2)
-	pvrans = new vrans_f(p,a,pgc);
-    
-    if(p->B269==2)
-	pvrans = new vrans_veg(p,a,pgc);
-    
     // relax_ini OR dirichlet_ini
     wavegen_precalc_ini(p,pgc);
     
@@ -95,5 +74,20 @@ void iowave::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     if(p->I30==1)
 	full_initialize_fnpf(p,c,pgc);
+}
+
+void iowave::ini_ptf(lexer *p, fdm *a, ghostcell *pgc)
+{
+    
+    wavegen_precalc_ini(p,pgc);
+    
+    //if(p->B89==1 && p->B98==2)
+    //wavegen_precalc_decomp_space_fnpf(p,pgc);
+
+    wavegen_precalc(p,pgc);
+
+    
+    if(p->I30==1)
+	full_initialize_ptf(p,a,pgc);
 }
 

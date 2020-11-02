@@ -30,6 +30,7 @@ class fdm2D;
 class ghostcell;
 class sflow_timestep;
 class sflow_momentum;
+class sflow_potential;
 class sflow_pressure;
 class solver2D;
 class ioflow;
@@ -80,6 +81,7 @@ private:
     sflow_filter *pfilter;
     sflow_turbulence *pturb;
     sflow_sediment *psed;
+    sflow_potential *potflow;
 	
 	double starttime, endtime;
 };

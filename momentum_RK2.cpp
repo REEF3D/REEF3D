@@ -58,7 +58,7 @@ momentum_RK2::~momentum_RK2()
 {
 }
 
-void momentum_RK2::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
+void momentum_RK2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
@@ -71,7 +71,7 @@ void momentum_RK2::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	starttime=pgc->timer();
 
 	pturb->isource(p,a);
-	pflow->isource(p,a,pgc);
+	pflow->isource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,a);
 	irhs(p,a,pgc,a->u,a->u,a->v,a->w,1.0);
@@ -88,7 +88,7 @@ void momentum_RK2::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	starttime=pgc->timer();
 
 	pturb->jsource(p,a);
-	pflow->jsource(p,a,pgc);
+	pflow->jsource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
 	ppress->vpgrad(p,a);
 	jrhs(p,a,pgc,a->v,a->u,a->v,a->w,1.0);
@@ -105,7 +105,7 @@ void momentum_RK2::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	starttime=pgc->timer();
 
 	pturb->ksource(p,a);
-	pflow->ksource(p,a,pgc);
+	pflow->ksource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
 	ppress->wpgrad(p,a);
 	krhs(p,a,pgc,a->w,a->u,a->v,a->w,1.0);
@@ -119,7 +119,7 @@ void momentum_RK2::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
     p->wtime=pgc->timer()-starttime;
 
     pflow->pressure_io(p,a,pgc);
-	ppress->start(a,p,ppois,ppoissonsolv,pgc,pmom,pflow, urk1, vrk1, wrk1,1.0);
+	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, urk1, vrk1, wrk1,1.0);
 	
 	pflow->u_relax(p,a,pgc,urk1);
 	pflow->v_relax(p,a,pgc,vrk1);
@@ -138,7 +138,7 @@ void momentum_RK2::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	starttime=pgc->timer();
 
 	pturb->isource(p,a);
-	pflow->isource(p,a,pgc);
+	pflow->isource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,a);
 	irhs(p,a,pgc,a->u,a->u,a->v,a->w,0.5);
@@ -155,7 +155,7 @@ void momentum_RK2::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	starttime=pgc->timer();
 
 	pturb->jsource(p,a);
-	pflow->jsource(p,a,pgc);
+	pflow->jsource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
 	ppress->vpgrad(p,a);
 	jrhs(p,a,pgc,a->v,a->u,a->v,a->w,0.5);
@@ -172,7 +172,7 @@ void momentum_RK2::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
 	starttime=pgc->timer();
 
 	pturb->ksource(p,a);
-	pflow->ksource(p,a,pgc);
+	pflow->ksource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
 	ppress->wpgrad(p,a);
 	krhs(p,a,pgc,a->w,a->u,a->v,a->w,0.5);
@@ -186,7 +186,7 @@ void momentum_RK2::start(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom)
     p->wtime+=pgc->timer()-starttime;
 
 	pflow->pressure_io(p,a,pgc);
-	ppress->start(a,p,ppois,ppoissonsolv,pgc,pmom,pflow, a->u, a->v,a->w,0.5);
+	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, a->u, a->v,a->w,0.5);
 	
 	pflow->u_relax(p,a,pgc,a->u);
 	pflow->v_relax(p,a,pgc,a->v);

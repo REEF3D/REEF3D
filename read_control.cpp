@@ -302,9 +302,6 @@ void lexer::read_control()
 			   case 75: control>>B75;
 						 clear(c,numint);
 						 break;
-			   case 76: control>>B76;
-						 clear(c,numint);
-						 break;
 			   case 77: control>>B77;
 						 clear(c,numint);
 						 break;
@@ -513,13 +510,13 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
                case 308: control>>B308;
+						 B269=2;
 						 clear(c,numint);
 						 break;
                case 309: control>>B309;
 						 clear(c,numint);
 						 break;
                case 310: ++B310;
-						 B269=2;
 						 clear(c,numint);
 						 break;
 				}
@@ -1625,15 +1622,16 @@ void lexer::read_control()
                 case  180: control>>X180;
 						 clear(c,numint);
 						 break;
-                case  181: control>>X181;
+                case  181: control>>X181_x>>X181_y>>X181_z;
+                         X181=1;
 						 clear(c,numint);
 						 break;
                 case  182: control>>X182_x>>X182_y>>X182_z;
-                          X182=1;
+                         X182=1;
 						 clear(c,numint);
 						 break;
                 case  183: control>>X183_x>>X183_y>>X183_z>>X183_phi>>X183_theta>>X183_psi;
-                          X183=1;
+                         X183=1;
 						 clear(c,numint);
 						 break;
 				case  210: control>>X210_u>>X210_v>>X210_w;
@@ -1651,11 +1649,27 @@ void lexer::read_control()
 				case  310: control>>X310;
 						 clear(c,numint);
 						 break;	
-               case  311: ++X311;
+                case  311: ++X311;
 						 clear(c,numint);
 						 break;
-				case  320: control>>X320;
+                case  312: ++X312;
 						 clear(c,numint);
+						 break;
+				case  320: ++X320;
+                         B269=3;
+						 clear(c,numint);
+						 break;
+				case  321: ++X321;
+						 clear(c,numint);
+						 break;
+				case  323: control>>X323_m>>X323_d>>X323_l;
+                         clear(c,numint);
+						 break;
+				case  324: ++X324;
+						 clear(c,numint);
+						 break;
+				case  325: control>>X325_dt>>X325_relX>>X325_relY>>X325_relZ;
+                         clear(c,numint);
 						 break;
 				}
 				break;
@@ -2014,22 +2028,77 @@ void lexer::read_control()
     Darray(X164_x8,X164);
     Darray(X164_y8,X164);
     Darray(X164_z8,X164);
+
+    if (X311 > 0)
+    {
+        Darray(X311_xs,X311);
+        Darray(X311_ys,X311);
+        Darray(X311_zs,X311);
+        Darray(X311_xe,X311);
+        Darray(X311_ye,X311);
+        Darray(X311_ze,X311);
+        Darray(X311_w,X311); 
+        Darray(X311_rho_c,X311); 
+        Darray(X311_EA,X311); 
+        Darray(X311_d,X311);  
+        Darray(X311_l,X311); 
+        Darray(X311_H,X311); 
+        Darray(X311_P,X311); 
+        Darray(X311_facT,X311);
+        
+        mooring_count = X311;
+    }
+    else
+    {
+        Darray(X311_xs,X312);
+        Darray(X311_ys,X312);
+        Darray(X311_zs,X312);
+        Darray(X311_xe,X312);
+        Darray(X311_ye,X312);
+        Darray(X311_ze,X312);
+        Darray(X312_k,X312); 
+        Darray(X312_T0,X312); 
     
-    Darray(X311_xs,X311);
-	Darray(X311_ys,X311);
-	Darray(X311_zs,X311);
-	Darray(X311_xe,X311);
-	Darray(X311_ye,X311);
-	Darray(X311_ze,X311);
-	Darray(X311_w,X311); 
-	Darray(X311_rho_c,X311); 
-	Darray(X311_EA,X311); 
-	Darray(X311_d,X311);  
-	Darray(X311_l,X311); 
-	Darray(X311_H,X311); 
-	Darray(X311_P,X311); 
-	Darray(X311_facT,X311);
-	mooring_count = X311;	
+        Darray(X311_w,X311); 
+        Darray(X311_rho_c,X311); 
+        Darray(X311_EA,X311); 
+        Darray(X311_d,X311);  
+        Darray(X311_l,X311); 
+        Darray(X311_H,X311); 
+        Darray(X311_P,X311); 
+        Darray(X311_facT,X311);
+    
+        mooring_count = X312;	
+    }
+    
+    if (X321 > 0)
+    {
+		Iarray(X320_type,X320);  
+		
+        Darray(X321_Sn,X321);  
+		Darray(X321_d,X321);  
+        Darray(X321_lambda,X321);  
+		Darray(X321_dk,X321);  
+		Darray(X321_rho,X321);
+		Darray(X321_nd,X321);  
+		Darray(X321_nl,X321);  
+
+        Darray(X322_D,X321);  
+        Darray(X322_L,X321);  
+        Darray(X322_x0,X321);  
+        Darray(X322_y0,X321);  
+        Darray(X322_z0,X321);  
+        Darray(X322_phi,X321);  
+        Darray(X322_theta,X321);  
+        Darray(X322_psi,X321);  
+        
+        net_count = X321;
+    }    
+	
+    Darray(X324_x,X324);
+	Darray(X324_y,X324);
+	Darray(X324_z,X324);
+
 
 	int countB70=0;
 	int countB71=0;
@@ -2077,6 +2146,11 @@ void lexer::read_control()
     int countX163=0;
     int countX164=0;
     int countX311=0;
+    int countX312=0;
+    int countX320=0;
+    int countX321=0;
+    int countX322=0;
+	int countX324=0;
 
 	control.open("ctrl.txt", ios_base::in);
 	while(!control.eof())
@@ -2320,13 +2394,33 @@ void lexer::read_control()
                         ++countX164;
 						 clear(c,numint);
 						 break;
-						 
 				case 311: control>>X311_xs[countX311]>>X311_xe[countX311]>>X311_ys[countX311]>>X311_ye[countX311]>>X311_zs[countX311]>>X311_ze[countX311]
 								>>X311_w[countX311]>>X311_rho_c[countX311]>>X311_EA[countX311]>>X311_d[countX311]>>X311_l[countX311]>>X311_H[countX311]
 								>>X311_P[countX311]>>X311_facT[countX311];
                         ++countX311;
 						 clear(c,numint);
+						 break;		
+                case 312: control>>X311_xs[countX312]>>X311_xe[countX312]>>X311_ys[countX312]>>X311_ye[countX312]>>X311_zs[countX312]>>X311_ze[countX312]
+								>>X312_k[countX312]>>X312_T0[countX312];
+                        ++countX312;
+						 clear(c,numint);
 						 break;		 
+				case 320: control>>X320_type[countX320];
+                        ++countX320;
+						 clear(c,numint);
+						 break;		                         
+				case 321: control>>X321_Sn[countX321]>>X321_d[countX321]>>X321_lambda[countX321]>>X321_dk[countX321]>>X321_rho[countX321]>>X321_nd[countX321]>>X321_nl[countX321];
+                        ++countX321;
+						 clear(c,numint);
+						 break;		                         
+				case 322: control>>X322_D[countX322]>>X322_L[countX322]>>X322_x0[countX322]>>X322_y0[countX322]>>X322_z0[countX322]>>X322_phi[countX322]>>X322_theta[countX322]>>X322_psi[countX322];
+                        ++countX322;
+						 clear(c,numint);
+						 break;		                         
+				case 324: control>>X324_x[countX324]>>X324_y[countX324]>>X324_z[countX324];
+                        ++countX324;
+						 clear(c,numint);
+						 break;        
 				}
 				break;
 		}

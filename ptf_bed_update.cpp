@@ -56,9 +56,9 @@ void ptf_bed_update::bedbc(lexer *p, fdm *a, ghostcell *pgc, field &Fi)
              + ((a->depth(i,j+1)-a->depth(i,j-1))/(p->DYP[JP]+p->DYP[JM1]))*((Fi(i,j+1,k)-Fi(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1]));
     
 
-        Fi(i,j,k-1) = Fi(i,j,k) + 1.0*p->DXM*Fval;
-        Fi(i,j,k-2) = Fi(i,j,k) + 2.0*p->DXM*Fval;
-        Fi(i,j,k-3) = Fi(i,j,k) + 3.0*p->DXM*Fval;
+        Fi(i,j,k-1) = Fi(i,j,k) + 0.0*p->DXM*Fval;
+        Fi(i,j,k-2) = Fi(i,j,k) + 0.0*p->DXM*Fval;
+        Fi(i,j,k-3) = Fi(i,j,k) + 0.0*p->DXM*Fval;
     }
 }
 

@@ -35,10 +35,10 @@ class potential_f : public potential, public increment
 {
 
 public:
-	potential_f(lexer* p);
+	potential_f(lexer*);
 	virtual ~potential_f();
 
-	virtual void start(lexer*,fdm*, solver*, ghostcell* pgc);
+	virtual void start(lexer*,fdm*, solver*, ghostcell*);
 
 
 private:

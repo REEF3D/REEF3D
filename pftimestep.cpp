@@ -42,6 +42,11 @@ void pftimestep::start(fdm *a, lexer *p,ghostcell *pgc, turbulence *pturb)
 
 	p->umax=p->vmax=p->wmax=p->viscmax=0.0;
 	sqd=1.0/(p->DXM*p->DXM);
+    
+    FILOOP4
+	depthmax=MAX(depthmax,a->depth(i,j));
+	
+	depthmax=pgc->globalmax(depthmax);
 
 // maximum velocities
 
@@ -77,41 +82,6 @@ void pftimestep::start(fdm *a, lexer *p,ghostcell *pgc, turbulence *pturb)
 
     cu=cv=cw=1.0e10;
     
-    if(p->A10==3)
-    {
-    /*ULOOP
-    {
-    dx = MIN3(p->DXP[IP]*a->WL(i,j),p->DYN[JP]*a->WL(i,j),p->DZN[KP]*a->WL(i,j));
-
-	cu = MIN(cu, 2.0/((fabs(p->umax)/dx)));
-    }
-
-    VLOOP
-    {
-    dx = MIN3(p->DXN[IP]*a->WL(i,j),p->DYP[JP]*a->WL(i,j),p->DZN[KP]*a->WL(i,j));
-    
-	cv = MIN(cv, 2.0/((fabs(p->vmax)/dx)));
-    }
-    
-    WLOOP
-    {
-    dx = MIN3(p->DXN[IP]*a->WL(i,j),p->DYN[JP]*a->WL(i,j),p->DZP[KP]*a->WL(i,j));
-
-	cw = MIN(cw, 2.0/((fabs(p->wmax)/dx)));
-    }
-    */
-    
-        FILOOP4
-        p->wmax = MAX(fabs(a->Fz(i,j)),p->wmax);
-        
-        FILOOP4
-        {
-        dx = MIN3(p->DXN[IP],p->DYN[JP],p->DZP[KP]);
-
-        cw = MIN(cw, 2.0/((fabs(p->wmax)/dx)));
-        }
-    }
-    
     if(p->A10==4)
     {
     ULOOP
@@ -136,8 +106,25 @@ void pftimestep::start(fdm *a, lexer *p,ghostcell *pgc, turbulence *pturb)
     }
     }
     
+    LOOP
+    {
+    if(p->j_dir==1 && p->knoy>1)
+    dx = MIN(p->DXN[IP],p->DYN[JP]);
+    
+    if(p->j_dir==0 || p->knoy==1)
+    dx = p->DXN[IP];
+    
+    cu = MIN(cu, 1.0/((fabs(MAX(p->umax, sqrt(9.81*depthmax)))/dx)));
+    
+    if(p->j_dir==1 )
+    cv = MIN(cv, 1.0/((fabs(MAX(p->vmax, sqrt(9.81*depthmax)))/dx)));
+    
+    }
 
-   	p->dt=p->N47*min(cu,cv,cw);
+   	cu = MIN(cu,cv);
+    
+   	p->dt=p->N47*cu;
+    
 	p->dt=pgc->timesync(p->dt);
 
 	p->dt=MIN(p->dt,maxtimestep);
@@ -149,9 +136,21 @@ void pftimestep::start(fdm *a, lexer *p,ghostcell *pgc, turbulence *pturb)
 
 void pftimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 {
-
+    cu=cv=1.0e10;
+    
 	p->umax=p->vmax=p->wmax=p->viscmax=-1e19;
 	p->umax=p->W10;
+    
+
+    SLICELOOP4
+	p->umax=MAX(p->umax,fabs((a->Fifsf(i+1,j)-a->Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1])));
+
+	p->umax=pgc->globalmax(p->umax);
+
+
+	k=p->knoz;
+    SLICELOOP4
+	p->vmax=MAX(p->vmax,fabs((a->Fifsf(i+1,j+1)-a->Fifsf(i,j-1))/(p->DYP[JP]+p->DYP[JM1])));
 	
 	p->umax=MAX(p->umax,2.0*p->ufbmax);
 	p->umax=MAX(p->umax,2.0*p->vfbmax);
@@ -160,21 +159,32 @@ void pftimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
     p->umax=MAX(p->umax,2.0*p->X210_u);
 	p->umax=MAX(p->umax,2.0*p->X210_v);
 	p->umax=MAX(p->umax,2.0*p->X210_w);
+    
+    p->umax+=10.0;
 
-	p->dt=p->DXM/(p->umax+epsi);
 
 	LOOP
-	p->viscmax=MAX(p->viscmax, a->visc(i,j,k)+a->eddyv(i,j,k));
-
-	visccrit=(p->viscmax*(6.0/pow(p->DXM,2.0)));
+    {
+    if(p->j_dir==1 && p->knoy>1)
+    dx = MIN(p->DXN[IP],p->DYN[JP]);
     
-    p->umax+=5.0;
-
-	cu= + 2.0/((p->umax/p->DXM+visccrit)+sqrt(pow(p->umax/p->DXM+visccrit,2.0)+(4.0*sqrt(fabs(a->gi) + fabs(a->gj) +fabs(a->gk)))/p->DXM));// + (8.0*p->maxkappa*p->W5)/(2.0*p->DXM*p->DXM*(p->W1+p->W3)));
+    if(p->j_dir==0 || p->knoy==1)
+    dx = p->DXN[IP];
     
+    cu = MIN(cu, 1.0/((fabs(MAX(p->umax, sqrt(9.81*depthmax)))/dx)));
+    
+    if(p->j_dir==1 )
+    cv = MIN(cv, 1.0/((fabs(MAX(p->vmax, sqrt(9.81*depthmax)))/dx)));
+    
+    }
 
-	p->dt=p->N47*cu;
+   	cu = MIN(cu,cv);
+    
+   	p->dt=p->N47*cu;
+    
 	p->dt=pgc->timesync(p->dt);
+
+	p->dt=MIN(p->dt,maxtimestep);
 	p->dt_old=p->dt;
 
 }

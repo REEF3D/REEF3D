@@ -43,6 +43,14 @@ void ghostcell::gcsl_neumann(slice& f, int gcv, int bc, int cs)
 	f(i+q+1,j)=f(i,j);
 }
 
+void ghostcell::gcsl_neumann_eta_outflow(slice& f, int gcv, int bc, int cs)
+{
+	if(cs==4)
+	for(q=0;q<margin+1;++q)
+	f(i+q,j)=f(i-1,j);
+}
+
+
 void ghostcell::gcsl_neumann_x(slice& f, int gcv, int bc, int cs)
 {
 	if(cs==1)

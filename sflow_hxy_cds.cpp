@@ -21,18 +21,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"sflow_hxy_cds.h"
 #include"lexer.h"
+#include"fdm2D.h"
 #include"slice.h"
 #include"sflow_flux_face_FOU.h"
 #include"sflow_flux_face_CDS.h"
 #include"sflow_flux_HJ_CDS.h"
 
-sflow_hxy_cds::sflow_hxy_cds(lexer* p) 
+sflow_hxy_cds::sflow_hxy_cds(lexer* p, fdm2D *bb)  
 {
     if(p->A216==1)
     pflux = new sflow_flux_face_FOU(p);
         
     if(p->A216==2)
     pflux = new sflow_flux_face_CDS(p);
+    
+    b=bb;
 }
 
 sflow_hxy_cds::~sflow_hxy_cds()
@@ -56,6 +59,28 @@ void sflow_hxy_cds::start(lexer* p, slice& hx, slice& hy, slice& depth, slice& e
 	if(fabs(ivel1)<=eps)
     hx(i,j) = 0.5*(eta(i,j)+eta(i+1,j)) + 0.5*(depth(i,j)+depth(i+1,j));
 	}
+    
+    
+    if(p->F50==1 || p->F50==4)
+    for(n=0;n<p->gcslout_count;n++)
+    {
+    i=p->gcslout[n][0];
+    j=p->gcslout[n][1];
+    
+        if(b->wet4(i,j)==1)
+        {
+        pflux->u_flux(4,uvel,ivel1,ivel2);
+
+        if(ivel1>eps)
+        hx(i,j) = eta(i,j) + depth(i,j);
+        
+        if(ivel1<-eps)
+        hx(i,j) = eta(i+1,j) + depth(i+1,j);
+        
+        if(fabs(ivel1)<=eps)
+        hx(i,j) = MAX(eta(i,j),eta(i+1,j)) + MIN(depth(i,j), depth(i+1,j));
+        }
+    }
 	
 	
 	SLICELOOP2

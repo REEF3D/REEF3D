@@ -37,19 +37,7 @@ iowave::iowave(lexer *p, ghostcell *pgc) : wave_interface(p,pgc),flowfile_in(p,p
     if(p->B99==1)
     dist3_fac=2.0;
     
-
-    if(p->B76==0)
     gcval_press=40;
-
-    if(p->B76==1)
-    gcval_press=41;
-
-    if(p->B76==2)
-    gcval_press=42;
-
-    if(p->B76==3)
-    gcval_press=43;
-
 	
 	kinval = 0.00001;	
 	

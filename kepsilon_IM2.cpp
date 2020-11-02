@@ -39,7 +39,7 @@ kepsilon_IM2::~kepsilon_IM2()
 {
 }
 
-void kepsilon_IM2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow)
+void kepsilon_IM2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow, vrans *pvrans)
 {
 	Pk_update(p,a,pgc);
 	wallf_update(p,a,pgc,wallf);
@@ -49,7 +49,7 @@ void kepsilon_IM2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff
 	clearrhs(p,a);
     pconvec->start(p,a,kin,4,a->u,a->v,a->w);
 	pdiff->idiff_scalar(p,a,pgc,psolv,kin,a->visc,ke_sigma_k,1.0);
-	kinsource(p,a);
+	kinsource(p,a,pvrans);
 	timesource(p,a,kn,knn);
     bckeps_start(a,p,kin,eps,gcval_kin);
 	psolv->start(p,a,pgc,kin,a->xvec,a->rhsvec,4,gcval_kin,p->T13);
@@ -64,7 +64,7 @@ void kepsilon_IM2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff
 	clearrhs(p,a);
     pconvec->start(p,a,eps,4,a->u,a->v,a->w);
 	pdiff->idiff_scalar(p,a,pgc,psolv,eps,a->visc,ke_sigma_e,1.0);
-	epssource(p,a);
+	epssource(p,a,pvrans);
 	timesource(p,a,en,enn);
 	psolv->start(p,a,pgc,eps,a->xvec,a->rhsvec,4,gcval_eps,p->T13);
 	epsfsf(p,a,pgc);
@@ -75,7 +75,7 @@ void kepsilon_IM2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff
 	if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"epsiter: "<<p->epsiter<<"  epstime: "<<setprecision(3)<<p->epstime<<endl;
 
-	eddyvisc(a,p,pgc);
+	eddyvisc(a,p,pgc,pvrans);
 	pgc->start4(p,a->eddyv,24);
 }
 

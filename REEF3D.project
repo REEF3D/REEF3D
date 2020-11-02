@@ -33,7 +33,7 @@
     <Extensions>
       <![CDATA[*.cpp;*.c;*.h;*.hpp;*.xrc;*.wxcp;*.fbp]]>
     </Extensions>
-    <Topleveldir>/Users/tobias/REEF3D/Code/REEF3D_180926</Topleveldir>
+    <Topleveldir>/Users/tobias/REEF3D/Code/REEF3D_dev</Topleveldir>
   </Reconciliation>
   <Description/>
   <Dependencies/>
@@ -49,7 +49,6 @@
           <File Name="ptf_laplace_cds2.h"/>
           <File Name="ptf_laplace.h"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Initialize"/>
         <VirtualDirectory Name="FSFBC">
           <File Name="ptf_fsfbc.h"/>
         </VirtualDirectory>
@@ -62,7 +61,6 @@
         <VirtualDirectory Name="FDM">
           <VirtualDirectory Name="Time"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Convect"/>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <VirtualDirectory Name="Turbulence">
@@ -165,6 +163,11 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Potential Flow">
+            <File Name="sflow_potential_v.h"/>
+            <File Name="sflow_potential_f.h"/>
+            <File Name="sflow_potential.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Rheology">
             <File Name="sflow_rheology_v.h"/>
             <File Name="sflow_rheology_f.h"/>
@@ -419,20 +422,24 @@
         <File Name="benchmark_convection.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <File Name="6DOF_gc.h"/>
+        <File Name="6DOF_df.h"/>
         <VirtualDirectory Name="Mooring">
+          <File Name="mooring_Spring.h"/>
+          <File Name="mooring_barQuasiStatic.h"/>
           <File Name="mooring_void.h"/>
-          <File Name="mooring_QuasiStatic.h"/>
           <File Name="mooring_DGSEM.h"/>
           <File Name="mooring_Catenary.h"/>
           <File Name="mooring.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Net">
+          <File Name="net_sheet.h"/>
+          <File Name="net_barQuasiStatic.h"/>
+          <File Name="net_barDyn.h"/>
           <File Name="net_void.h"/>
-          <File Name="net_QuasiStatic.h"/>
           <File Name="net.h"/>
         </VirtualDirectory>
         <File Name="6DOF.h"/>
-        <File Name="6DOF_f.h"/>
         <File Name="6DOF_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Concentration">
@@ -449,6 +456,7 @@
         <File Name="concentration_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VRANS">
+        <File Name="vrans_net.h"/>
         <File Name="vrans.h"/>
         <File Name="vrans_f.h"/>
         <File Name="vrans_v.h"/>
@@ -475,6 +483,8 @@
         <File Name="interpolation.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Convection">
+        <File Name="weno_hj_6DOF_nug.h"/>
+        <File Name="lust.h"/>
         <File Name="weno_flux_nug_dir.h"/>
         <File Name="iweno3_hj.h"/>
         <File Name="convection_void.h"/>
@@ -626,6 +636,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
       <VirtualDirectory Name="Driver">
+        <File Name="vrans_header.h"/>
         <File Name="convection_header.h"/>
         <File Name="fdm_header.h"/>
         <File Name="field_header.h"/>
@@ -818,7 +829,7 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
-      <File Name="momentum_FSI.h"/>
+      <File Name="momentum_RK3_df.h"/>
       <File Name="bcmom.h"/>
       <File Name="momentum.h"/>
       <File Name="momentum_FS3.h"/>
@@ -828,7 +839,6 @@
       <File Name="momentum_AB2.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Pressure">
-      <File Name="pjm_fsi.h"/>
       <File Name="pjm_corr.h"/>
       <VirtualDirectory Name="Poisson">
         <File Name="poisson_f.h"/>
@@ -963,7 +973,6 @@
           <File Name="ptf_laplace_cds4.cpp"/>
           <File Name="ptf_laplace_cds2.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Initialize"/>
         <VirtualDirectory Name="FSFBC">
           <File Name="ptf_fsfbc.cpp"/>
         </VirtualDirectory>
@@ -972,8 +981,6 @@
           <File Name="ptf_RK4.cpp"/>
           <File Name="ptf_RK3.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="FDM"/>
-        <VirtualDirectory Name="Convect"/>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <File Name="sflow_v.cpp"/>
@@ -1083,7 +1090,12 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Potential Flow">
+            <File Name="sflow_potential_v.cpp"/>
+            <File Name="sflow_potential_f.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Rheology">
+            <File Name="sflow_rheology_bingham.cpp"/>
             <File Name="sflow_rheology_Herschel-Bulkley.cpp"/>
             <File Name="sflow_rheology_v.cpp"/>
             <File Name="sflow_rheology_f.cpp"/>
@@ -1358,53 +1370,131 @@
         <File Name="heat_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
-        <File Name="6DOF_fsi.cpp"/>
+        <VirtualDirectory Name="DirectForcing">
+          <VirtualDirectory Name="RayCast">
+            <File Name="6DOF_df_reini_AB2.cpp"/>
+            <File Name="6DOF_df_ray_z.cpp"/>
+            <File Name="6DOF_df_ray_y.cpp"/>
+            <File Name="6DOF_df_ray_x.cpp"/>
+            <File Name="6DOF_df_ray_io_zcorr.cpp"/>
+            <File Name="6DOF_df_ray_io_ycorr.cpp"/>
+            <File Name="6DOF_df_ray_io_x.cpp"/>
+            <File Name="6DOF_df_ray.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Forces">
+            <File Name="6DOF_df_forces_stl.cpp"/>
+            <File Name="6DOF_df_forces.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Objects">
+            <File Name="6DOF_df_STL.cpp"/>
+            <File Name="6DOF_df_wedge_sym.cpp"/>
+            <File Name="6DOF_df_wedge.cpp"/>
+            <File Name="6DOF_df_objects.cpp"/>
+            <File Name="6DOF_df_hexahedron.cpp"/>
+            <File Name="6DOF_df_geometry.cpp"/>
+            <File Name="6DOF_df_cylinder.cpp"/>
+            <File Name="6DOF_df_box.cpp"/>
+          </VirtualDirectory>
+          <File Name="6DOF_df_update.cpp"/>
+          <File Name="6DOF_df_solve_routines.cpp"/>
+          <File Name="6DOF_df_solve.cpp"/>
+          <File Name="6DOF_df_rotation.cpp"/>
+          <File Name="6DOF_df_print.cpp"/>
+          <File Name="6DOF_df_interface.cpp"/>
+          <File Name="6DOF_df_ini.cpp"/>
+          <File Name="6DOF_df.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="GCIBM">
+          <VirtualDirectory Name="Print">
+            <File Name="6DOF_gc_print_log.cpp"/>
+            <File Name="6DOF_gc_print_ini.cpp"/>
+            <File Name="6DOF_gc_print_stl.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="RayCast">
+            <File Name="6DOF_gc_reini_AB2.cpp"/>
+            <File Name="6DOF_gc_ray_z.cpp"/>
+            <File Name="6DOF_gc_ray_y.cpp"/>
+            <File Name="6DOF_gc_ray_x.cpp"/>
+            <File Name="6DOF_gc_ray_io_zcorr.cpp"/>
+            <File Name="6DOF_gc_ray_io_ycorr.cpp"/>
+            <File Name="6DOF_gc_ray_io_x.cpp"/>
+            <File Name="6DOF_gc_ray.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Forces">
+            <File Name="6DOF_gc_triang_triangulation.cpp"/>
+            <File Name="6DOF_gc_forces_triang_vtp.cpp"/>
+            <File Name="6DOF_gc_forces_triang_reconstruction.cpp"/>
+            <File Name="6DOF_gc_forces_triang_finalize.cpp"/>
+            <File Name="6DOF_gc_forces_triang.cpp"/>
+            <File Name="6DOF_gc_forces_stl.cpp"/>
+            <File Name="6DOF_gc_forces_lsm.cpp"/>
+            <File Name="6DOF_gc_forces.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Objects">
+            <File Name="6DOF_gc_wedge_sym.cpp"/>
+            <File Name="6DOF_gc_wedge.cpp"/>
+            <File Name="6DOF_gc_STL_read.cpp"/>
+            <File Name="6DOF_gc_objects.cpp"/>
+            <File Name="6DOF_gc_hexahedron.cpp"/>
+            <File Name="6DOF_gc_cylinder.cpp"/>
+            <File Name="6DOF_gc_box.cpp"/>
+            <File Name="6DOF_gc_geometry_ini.cpp"/>
+          </VirtualDirectory>
+          <File Name="6DOF_gc.cpp"/>
+          <File Name="6DOF_gc_update.cpp"/>
+          <File Name="6DOF_gc_transform.cpp"/>
+          <File Name="6DOF_gc_solve.cpp"/>
+          <File Name="6DOF_gc_rotation.cpp"/>
+          <File Name="6DOF_gc_position_ini.cpp"/>
+          <File Name="6DOF_gc_position.cpp"/>
+          <File Name="6DOF_gc_motion.cpp"/>
+          <File Name="6DOF_gc_interface.cpp"/>
+          <File Name="6DOF_gc_initialize.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Net">
+          <VirtualDirectory Name="StaticSheet">
+            <File Name="net_sheet_print.cpp"/>
+            <File Name="net_sheet_ini.cpp"/>
+            <File Name="net_sheet_forces.cpp"/>
+            <File Name="net_sheet_coupling.cpp"/>
+            <File Name="net_sheet.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="BarQuasiStatic">
+            <File Name="net_barQuasiStatic_wall_ini.cpp"/>
+            <File Name="net_barQuasiStatic_update.cpp"/>
+            <File Name="net_barQuasiStatic_print.cpp"/>
+            <File Name="net_barQuasiStatic_forces.cpp"/>
+            <File Name="net_barQuasiStatic_cyl_ini.cpp"/>
+            <File Name="net_barQuasiStatic_coupling.cpp"/>
+            <File Name="net_barQuasiStatic_bag_ini.cpp"/>
+            <File Name="net_barQuasiStatic.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="BarDyn">
+            <File Name="net_barDyn_wall_ini.cpp"/>
+            <File Name="net_barDyn_print.cpp"/>
+            <File Name="net_barDyn_nonlin.cpp"/>
+            <File Name="net_barDyn_lin.cpp"/>
+            <File Name="net_barDyn_forces.cpp"/>
+            <File Name="net_barDyn_cyl_ini.cpp"/>
+            <File Name="net_barDyn_coupling.cpp"/>
+            <File Name="net_barDyn_cone_ini.cpp"/>
+            <File Name="net_barDyn.cpp"/>
+          </VirtualDirectory>
           <File Name="net_void.cpp"/>
-          <File Name="net_QuasiStatic_print.cpp"/>
-          <File Name="net_QuasiStatic_ini.cpp"/>
-          <File Name="net_QuasiStatic.cpp"/>
         </VirtualDirectory>
-        <File Name="6DOF_f.cpp"/>
         <File Name="6DOF_void.cpp"/>
-        <VirtualDirectory Name="Ini">
-          <File Name="6DOF_geometry_ini.cpp"/>
-          <File Name="6DOF_initialize.cpp"/>
-          <File Name="6DOF_position_ini.cpp"/>
-        </VirtualDirectory>
-        <File Name="6DOF_rotation.cpp"/>
-        <File Name="6DOF_solve.cpp"/>
-        <File Name="6DOF_transform.cpp"/>
-        <VirtualDirectory Name="Print">
-          <File Name="6DOF_print_log.cpp"/>
-          <File Name="6DOF_print_ini.cpp"/>
-          <File Name="6DOF_print_stl.cpp"/>
-        </VirtualDirectory>
-        <File Name="6DOF_interface.cpp"/>
-        <File Name="6DOF_position.cpp"/>
-        <VirtualDirectory Name="Objects">
-          <File Name="6DOF_STL_read.cpp"/>
-          <File Name="6DOF_objects.cpp"/>
-          <File Name="6DOF_box.cpp"/>
-          <File Name="6DOF_cylinder_x.cpp"/>
-          <File Name="6DOF_cylinder_y.cpp"/>
-          <File Name="6DOF_cylinder_z.cpp"/>
-          <File Name="6DOF_wedge_sym.cpp"/>
-          <File Name="6DOF_wedge.cpp"/>
-          <File Name="6DOF_hexahedron.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Reini">
-          <File Name="6DOF_reini_AB2.cpp"/>
-          <File Name="6DOF_reini_RK3.cpp"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="Mooring">
-          <VirtualDirectory Name="QuasiStatic">
-            <File Name="mooring_QuasiStatic_print.cpp"/>
-            <File Name="mooring_QuasiStatic_ini.cpp"/>
-            <File Name="mooring_QuasiStatic.cpp"/>
+          <VirtualDirectory Name="Spring">
+            <File Name="mooring_Spring_print.cpp"/>
+            <File Name="mooring_Spring.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="BarQuasiStatic">
+            <File Name="mooring_barQuasiStatic_print.cpp"/>
+            <File Name="mooring_barQuasiStatic_ini.cpp"/>
+            <File Name="mooring_barQuasiStatic.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="DGSEM">
-            <File Name="mooring_DGSEM_mesh_eigen.cpp" ExcludeProjConfig="Release;"/>
+            <File Name="mooring_DGSEM_mesh_eigen.cpp" ExcludeProjConfig=""/>
             <File Name="mooring_DGSEM_limiter.cpp"/>
             <File Name="mooring_DGSEM_mesh.cpp" ExcludeProjConfig=""/>
             <File Name="mooring_DGSEM_print.cpp"/>
@@ -1419,30 +1509,6 @@
             <File Name="mooring_Catenary.cpp"/>
           </VirtualDirectory>
           <File Name="mooring_void.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Motion">
-          <File Name="6DOF_motion_vec.cpp"/>
-          <File Name="6DOF_motion.cpp"/>
-          <File Name="6DOF_motion_fixed.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Raycast">
-          <File Name="6DOF_ray_io_x.cpp"/>
-          <File Name="6DOF_ray_io_zcoor.cpp"/>
-          <File Name="6DOF_ray_io_ycorr.cpp"/>
-          <File Name="6DOF_ray.cpp"/>
-          <File Name="6DOF_ray_x.cpp"/>
-          <File Name="6DOF_ray_y.cpp"/>
-          <File Name="6DOF_ray_z.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Force">
-          <File Name="6DOF_forces_lsm.cpp"/>
-          <File Name="6DOF_forces_stl.cpp"/>
-          <File Name="6DOF_forces.cpp"/>
-          <File Name="6DOF_forces_triang.cpp"/>
-          <File Name="6DOF_forces_triang_triangulation.cpp"/>
-          <File Name="6DOF_forces_triang_reconstruction.cpp"/>
-          <File Name="6DOF_forces_triang_finalize.cpp"/>
-          <File Name="6DOF_forces_triang_vtp.cpp"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Concentration">
@@ -1459,6 +1525,11 @@
         <File Name="concentration_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VRANS">
+        <VirtualDirectory Name="Net">
+          <File Name="vrans_net_velsource.cpp"/>
+          <File Name="vrans_net_ini.cpp"/>
+          <File Name="vrans_net.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Void">
           <File Name="vrans_v.cpp"/>
         </VirtualDirectory>
@@ -1528,6 +1599,8 @@
         <File Name="interpolation_ipol.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Convection">
+        <File Name="weno_hj_6DOF_nug.cpp"/>
+        <File Name="lust.cpp"/>
         <File Name="ifou.cpp"/>
         <File Name="weno_flux_nug_dir.cpp"/>
         <File Name="iweno3_hj.cpp"/>
@@ -1839,6 +1912,7 @@
         <File Name="gcsolid_dist.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Slice">
+        <File Name="gcsl_potential.cpp"/>
         <File Name="gcsl_neumann.cpp"/>
         <File Name="gcxsl_paraxijk_single.cpp"/>
         <File Name="gcxsl_paraxijk.cpp"/>
@@ -1872,10 +1946,10 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
       <VirtualDirectory Name="Driver">
+        <File Name="driver_ini_fnpf.cpp"/>
         <File Name="driver_ini_ptf.cpp"/>
         <File Name="driver_makegrid_nhflow.cpp"/>
         <File Name="driver_ini_nhflow.cpp"/>
-        <File Name="driver_ini_fnpf_sg.cpp"/>
         <File Name="driver_makegrid_fnpf.cpp"/>
         <File Name="driver_memory.cpp"/>
         <File Name="driver_log.cpp"/>
@@ -2171,14 +2245,14 @@
       <File Name="driver.cpp"/>
       <File Name="lexer.cpp" ExcludeProjConfig=""/>
       <VirtualDirectory Name="Logic">
+        <File Name="driver_logic_fnpf.cpp"/>
         <File Name="driver_logic_ptf.cpp"/>
-        <File Name="driver_logic_fnpf_sg.cpp"/>
         <File Name="driver_logic_cfd.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Mainloop">
+        <File Name="driver_loop_cfd_df.cpp"/>
         <File Name="driver_loop_ptf.cpp"/>
         <File Name="driver_loop_nhflow.cpp"/>
-        <File Name="driver_loop_cfd_fsi.cpp"/>
         <File Name="driver_loop_fnpf_sg.cpp"/>
         <File Name="driver_loop_cfd.cpp"/>
         <File Name="driver_loop_nsewave.cpp"/>
@@ -2187,7 +2261,8 @@
       <File Name="ini.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
-      <File Name="momentum_FSI.cpp"/>
+      <File Name="momentum_RK3_df_forcing.cpp"/>
+      <File Name="momentum_RK3_df.cpp"/>
       <VirtualDirectory Name="BC">
         <File Name="bcmom.cpp"/>
       </VirtualDirectory>
@@ -2201,7 +2276,6 @@
       <VirtualDirectory Name="Debug">
         <File Name="pjm_debug.cpp"/>
       </VirtualDirectory>
-      <File Name="pjm_fsi.cpp"/>
       <File Name="pjm_corr.cpp"/>
       <VirtualDirectory Name="Poisson">
         <File Name="poisson_f.cpp"/>

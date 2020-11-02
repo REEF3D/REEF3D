@@ -37,7 +37,7 @@ fluid_update_fsf::~fluid_update_fsf()
 
 void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
 {
-	double H=0.0;
+	double H=0.0, H_fb=0.0;
 	p->volume1=0.0;
 	p->volume2=0.0;
     
@@ -62,13 +62,26 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
 		if(fabs(a->phi(i,j,k))<=epsi)
 		H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
 
-		a->ro(i,j,k)=     ro_water*H +   ro_air*(1.0-H);
-		a->visc(i,j,k) = visc_water*H + visc_air*(1.0-H);
+        // Construct floating body heaviside function if used
+        if (p->X10 == 1 && p->X13 == 2)
+        {
+            H_fb = a->fbh4(i,j,k);
+		
+            a->ro(i,j,k)= p->W_fb*H_fb + (1.0 - H_fb)*(ro_water*H +   ro_air*(1.0-H));
+		    a->visc(i,j,k)= 0.0*H_fb + (1.0 - H_fb)*(visc_water*H + visc_air*(1.0-H));
 
-		p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));
-		p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
+		    p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));
+		    p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
+        }
+        else
+        {
+            a->ro(i,j,k)=     ro_water*H +   ro_air*(1.0-H);
+            a->visc(i,j,k)= visc_water*H + visc_air*(1.0-H);
+
+            p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));
+            p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
+        }
 	}
-    
     
 	pgc->start4(p,a->ro,gcval_ro);
 	pgc->start4(p,a->visc,gcval_visc);

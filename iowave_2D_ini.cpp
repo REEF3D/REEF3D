@@ -23,8 +23,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
-#include"vrans_v.h"
-#include"vrans_f.h"
 
 void iowave::ini2D(lexer *p, fdm2D* b, ghostcell* pgc)
 {

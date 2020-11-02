@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"ptf_laplace.h"
 #include"increment.h"
+#include"sliceint4.h"
 
 #ifndef LAPLACE_PTF_CDS2_H_
 #define LAPLACE_PTF_CDS2_H_
@@ -31,14 +32,18 @@ using namespace std;
 class ptf_laplace_cds2 : public ptf_laplace, public increment
 {
 public:
-    ptf_laplace_cds2 ();
+    ptf_laplace_cds2(lexer*,fdm*,ghostcell*);
 	virtual ~ptf_laplace_cds2();
 
     virtual void start(lexer *,fdm*,ghostcell*,solver*,field&);
     
 private:
     
-    double sqd;
+    double Bx,By;
+    double ab,denom;
+    
+    
+    sliceint4 bc;
 
 };
 

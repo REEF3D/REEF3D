@@ -1,3 +1,3 @@
-for i in `find . -name "*.h" -type f`; do
-    sed -i '' 's/a->eps/ee/g' $i 
+for i in `find . -name "*.cpp" -type f`; do
+    sed -i '' 's/Copyright 2008-2020 Hans Bihs/Copyright 2018-2020 Tobias Martin/g' $i 
 done

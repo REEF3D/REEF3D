@@ -17,21 +17,20 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"6DOF.h"
+#include<vector>
+#include<fstream>
+#include<iostream>
 
 class lexer;
 class fdm;
 class ghostcell;
 class momentum;
-class ioflow;
-class freesurface;
-class convection;
-class solver;
-class reini;
-class particlecorr;
+class mooring;
+class net;
 
 using namespace std;
 
@@ -41,9 +40,17 @@ using namespace std;
 class sixdof_void : public sixdof
 {
 public:
+	sixdof_void();
+	virtual ~sixdof_void();
+	virtual void start(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&);
+	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
+    
+private:
 
-	virtual void start(lexer*, fdm*, ghostcell*, momentum*, ioflow*, freesurface*,convection*,solver*,reini*,particlecorr*);
-	virtual void initialize(lexer*, fdm*, ghostcell*);
+    vector<mooring*> pmooring;
+
+	vector<double> Xme, Yme, Zme, Kme, Mme, Nme;    
+	vector<double> Xne, Yne, Zne, Kne, Mne, Nne;    
 };
 
 #endif

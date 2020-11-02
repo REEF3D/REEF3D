@@ -74,7 +74,6 @@ double interpolation::ipol1(field& b)
     value= 0.5*(value + 0.25*(v5+v6+v7+v8));
     }
 
-
     return value;
 }
 

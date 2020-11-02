@@ -64,6 +64,9 @@ Author: Hans Bihs
 #include"sflow_sediment_f.h"
 #include"sflow_sediment_v.h"
 
+#include"sflow_potential_f.h"
+#include"sflow_potential_v.h"
+
 
 
 

@@ -112,7 +112,6 @@ void lexer::ini_default()
 	B71=0;       // double distance for use relaxation method for fixed water level ini
     B74=3;		 // int crossection i-indice for the periodic boundary condition
 	B75=1;		 // int type of outflow boundary conditions
-	B76=0;             // int fixed pressure inlet/outlet for ioflow and iowave
 	B77=1;           // int outflow pressure controlled or free stream
 	B81=0;		 // int focussed wave parameter
     B81_3=0.0;    // double unidirectional focused wave y is condisered 0
@@ -207,7 +206,7 @@ void lexer::ini_default()
     B260=0.0;       // double C coefficient for VRANS
     B264=1.0e20;    // double KC number for VRANS
     B267=0.001;     // double d50 for VRANS
-	B269=0;			 // int VRANS on/off
+	B269=0;			// int VRANS on/off -> assigned as 1 for VRANS Structure, 2 for Vegetation, 3 for Net interaction
     B270=0;         // int VRANS porous media box
     B274=0;         // int VRANS porous media vertical cylinder
     B281=0;         // int VRANS porous media wedge in x-direction
@@ -438,10 +437,10 @@ void lexer::ini_default()
 	P42=-1.0;			// double print state file each ith sec
 	P50=0;				// int wave theory wave gages
 	P51=0;             // int print out wsf
-	P52=0;            // int print out wsf line in x-dir
-	P53=0;            // int print out wsf line for wave theory
-	P54=10;			  // int ith iteration wsf file  print out
-	P55=-1.0;		  // double ith second wsf files print out
+	P52=0;            // int print out wsfline in x-dir
+	P53=0;            // int print out wsfline for wave theory
+	P54=10;			  // int ith iteration wsfline file  print out
+	P55=-1.0;		  // double ith second wsfline files print out
 	P56=0;            // int print out wsf line in y-dir
 	P59=0;			  // int print runup
 	P61=0;			  // int print point probes
@@ -596,9 +595,10 @@ void lexer::ini_default()
     W103=1.0;        // double MC transition factor
     W104=1.0;        // double shear rate dependent excess pore pressure factor
     W110=1;          // int add rheology as source term or viscosity
-    W111=1;           // int which pressure for MC
-    W112=2.1;         // double threshold factor for pressure blening in W111 3
-	
+    W111=1;          // int which pressure for MC
+    W112=2.1;        // double threshold factor for pressure blening in W111 3
+    W_fb=0.0;        // double density of floating body
+
 	// 6DOF
 	X10=0;		// int turn 6DOF on 
 	X11_u=X11_v=X11_w=X11_p=X11_q=X11_r=1;		// int turn on degrees of freedom
@@ -621,7 +621,7 @@ void lexer::ini_default()
 	X33=1;		// int boundary conditions for pressure on floating body
     X34=0;		// int boundary treatment for new solid velocity cells
     X40=1;		// int type of force calculation
-	X41=1.75;		// double eps for lsm based force calculation
+	X41=2.1;    // double eps for continuous forcing heaviside
 	X100=0;		// int delta x,y,z
 	X100_x=X100_y=X100_z=0.0; 
 	X101=0;		// int ini Euler angles
@@ -644,6 +644,8 @@ void lexer::ini_default()
     X164=0;		// int hexahedron
 	X180=0;		// int read .stl file for floating body geometry
     X181=1.0;   // double scale .stl geometry
+    X181=0;     // int scale .stl geometry on/off
+    X181_x=X181_y=X181_z=1.0;  // double scaling of stl geometry
     X182=0;     // int translation on/off
     X182_x=X182_y=X182_z=0.0;  // double translation of stl geometry
     X183=0;
@@ -655,7 +657,10 @@ void lexer::ini_default()
 	X211=0;		// int give fixed angular velocity
     X221=0;     // int read vec based motion file
     X311=0;     // int number of simple taut mooring lines
-	X320=0;     // int number of nets
+    X312=0;     // int number of springs
+    X321=0;     // int number of nets
+    X323_m=X323_d=X323_l=0.0;   // double dynamic net sinker properties
+    X325_dt=X325_relX=X325_relY=X325_relZ=0.0;   // double dynamic net time step properties
 	
 	// Developer 
 	Y40=3;

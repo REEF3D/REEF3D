@@ -23,7 +23,6 @@ Author: Hans Bihs
 class lexer;
 class fdm;
 class ghostcell;
-class momentum;
 class ioflow;
 class poisson;
 class solver;
@@ -38,7 +37,7 @@ class pressure
 {
 public:
 
-	virtual void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,momentum*,ioflow*,field&,field&,field&,double)=0;
+	virtual void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,ioflow*,field&,field&,field&,double)=0;
 	virtual void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double)=0;
 	virtual void upgrad(lexer*,fdm*)=0;
 	virtual void vpgrad(lexer*,fdm*)=0;

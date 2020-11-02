@@ -22,14 +22,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"field.h"
 #include"lexer.h"
-#include"fdm.h"
 
 void ghostcell::potentialbc(lexer *p, field& f, int bc, int cs)
 {
     if(cs==1)
-	f(i-1,j,k) =  0.0;//-a->u(i-1,j,k)*deltax + f(i,j,k);
+	f(i-1,j,k) =  p->Ui*p->DXP[IP] + f(i,j,k);
 
 	if(cs==4)
-	f(i+1,j,k) =  a->u(i,j,k)*p->DXP[IP] + f(i,j,k);
+	f(i+1,j,k) =  p->Uo*p->DXP[IP] + f(i,j,k);
 }
 

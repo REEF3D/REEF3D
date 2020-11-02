@@ -35,6 +35,7 @@ class slice;
 class momentum;
 class diffusion;
 class poisson;
+class vrans;
 class turbulence;
 
 using namespace std;
@@ -45,8 +46,7 @@ using namespace std;
 class nsewave 
 {
 public:    
-    virtual void start(lexer*, fdm*, ghostcell*, momentum*, diffusion*, turbulence*, convection*, 
-                        pressure*, poisson*, solver*, solver*, ioflow*)=0;
+    virtual void start(lexer*, fdm*, ghostcell*, momentum*, diffusion*, turbulence*, convection*, pressure*, poisson*, solver*, solver*, ioflow*, vrans*)=0;
     
     virtual void ini(lexer*, fdm*, ghostcell*, ioflow*)=0;
 

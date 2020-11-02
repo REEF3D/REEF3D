@@ -28,8 +28,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 sflow_rough_manning::sflow_rough_manning(lexer* p) 
 {
-    
-    
 }
 
 sflow_rough_manning::~sflow_rough_manning()

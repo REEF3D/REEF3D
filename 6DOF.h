@@ -20,16 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include<vector>
+
 class lexer;
 class fdm;
 class ghostcell;
-class momentum;
-class ioflow;
-class freesurface;
-class convection;
-class solver;
-class reini;
-class particlecorr;
+class vrans;
+class net;
 
 using namespace std;
 
@@ -40,8 +37,8 @@ class sixdof
 {
 public:
 
-	virtual void start(lexer*, fdm*, ghostcell*,momentum*,ioflow*,freesurface*,convection*,solver*,reini*,particlecorr*)=0;
-	virtual void initialize(lexer*, fdm*, ghostcell*)=0;	
+	virtual void start(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&)=0;
+	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&)=0;
 };
 
 #endif

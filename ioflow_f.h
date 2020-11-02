@@ -25,7 +25,6 @@ Author: Hans Bihs
 #include"increment.h"
 #include"field4.h"
 
-class vrans;
 class fdm_fnpf;
 
 using namespace std;
@@ -61,12 +60,12 @@ public:
 	virtual void fsfrkinVa(lexer*,fdm*,ghostcell*,vec&);
 	virtual void fsfrkoutVa(lexer*,fdm*,ghostcell*,vec&);
 	virtual void iogcb_update(lexer*,fdm*,ghostcell*);
-	virtual void isource(lexer*,fdm*,ghostcell*);
-    virtual void jsource(lexer*,fdm*,ghostcell*);
-    virtual void ksource(lexer*,fdm*,ghostcell*);
+	virtual void isource(lexer*,fdm*,ghostcell*,vrans*);
+    virtual void jsource(lexer*,fdm*,ghostcell*,vrans*);
+    virtual void ksource(lexer*,fdm*,ghostcell*,vrans*);
     virtual void pressure_io(lexer*,fdm*,ghostcell*);
     virtual void turbulence_io(lexer*,fdm*,ghostcell*);
-    virtual void veltimesave(lexer*,fdm*,ghostcell*);
+    virtual void veltimesave(lexer*,fdm*,ghostcell*,vrans*);
     virtual void flowfile(lexer*,fdm*,ghostcell*,turbulence*);
     
     virtual void wavegen_precalc(lexer*,ghostcell*);
@@ -109,10 +108,12 @@ public:
     virtual void inflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,double*,double*,slice&,slice&);
     virtual void ini2D(lexer*,fdm2D*,ghostcell*);
     
+    virtual void ini_ptf(lexer*,fdm*,ghostcell*);
+    
     virtual void ini_nhflow(lexer*,fdm*,ghostcell*);
     virtual void nhflow_inflow(lexer*,fdm*,ghostcell*,field&,field&,field&);
     
-    virtual void vrans_sed_update(lexer*,fdm*,ghostcell*);
+    virtual void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*);
 	
 	void hydrograph_in_read(lexer*,ghostcell*);
 	void hydrograph_out_read(lexer*,ghostcell*);
@@ -133,10 +134,12 @@ public:
 private:
 
     int n,count;
-    double area,Ai,Ao,Ui,fac;
+    double area,Ai,Ao,Hi,Ho,Ui,fac;
     double zval;
     double *walldin, *walldout;
 	int walldin_size, walldout_size;
+    double hval;
+    int hcount;
 	
 	double distcalc(lexer*,double, double, double);
 	double r1(lexer*, double, double);
@@ -153,9 +156,6 @@ private:
     double Apor,Bpor,porval,partval;
     
     double epsi1,epsi2;
-	
-	vrans *pvrans;
-
 };
 
 #endif
