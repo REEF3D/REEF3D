@@ -31,7 +31,7 @@ void lexer::ini_default()
 	A212=0;		  // int diffusion treatment for SLOW velocities
     A214=1;      // int convection for vertical velocity
     A215=0;      // int conservative discretization
-    A216=4;      // int convection velocity
+    A216=2;      // int convection velocity
     A217=2;      // int slip or no-slip boundary conditions
     A218=0;      // int turn on roughness
     A219=1;      // int additional courant number constraint
