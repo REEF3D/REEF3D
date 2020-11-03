@@ -95,7 +95,7 @@ cout<<"starting driver_ini_PTF"<<endl;
 
     pgc->start4(p,a->Fi,250);
     
-    
+    pflow->gcio_update(p,a,pgc);
 	pflow->inflow(p,a,pgc,a->u,a->v,a->w);
     
     pptf->inidisc(p,a,pgc);
