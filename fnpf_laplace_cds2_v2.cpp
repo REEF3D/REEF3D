@@ -122,23 +122,24 @@ nt 8
         M[n*9+3] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
         M[n*9+4] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KP])  + p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
         
-        M[n*9+5]  = -2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
-        M[n*9+6]  =  2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
-        M[n*9+7]  =  2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
-        M[n*9+8]  = -2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
+        M[n*9+5]  = 2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
+        M[n*9+6]  = -2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
+        M[n*9+7]  = -2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
+        M[n*9+8]  = 2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
 
         x[n] = f[FIJK];
         
+        /*
         rhs[n] = 2.0*p->sigx[FIJK]*(f[FIp1JKp1] - f[FIm1JKp1] - f[FIp1JKm1] + f[FIm1JKm1])
                         /((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir
                         
                         + 2.0*p->sigy[FIJK]*(f[FIJp1Kp1] - f[FIJm1Kp1] - f[FIJp1Km1] + f[FIJm1Km1])
                         /((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
                         
-          M[n*9+5] = 0.0;
+        M[n*9+5] = 0.0;
         M[n*9+6] = 0.0;
         M[n*9+7] = 0.0;
-        M[n*9+8] = 0.0;
+        M[n*9+8] = 0.0;*/
         
         rhs[n] =  0.0;
                         
@@ -209,7 +210,6 @@ nb 7
 nt 8
 */      
     
-    /*
             // sb
             if(p->flag7[FIm1JKm1]<0 || c->wet(i-1,j)==0)
             {
@@ -238,7 +238,6 @@ nt 8
             
             //M[n*9] += M[n*9+7];
             //M[n*9+7] = 0.0;
-            
             }
             
             // nt
@@ -250,7 +249,7 @@ nt 8
             //M[n*9] += M[n*9+8];
             //M[n*9+8] = 0.0;
             }
- */
+ 
             // KBEDBC
             if(p->flag7[FIJKm1]<0)
             {
@@ -265,7 +264,6 @@ nt 8
                     M[n*9+2] +=  ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     M[n*9+1] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     }
-                
                 
                 M[n*9+4] += ab;
                 M[n*9+3] = 0.0;
