@@ -47,7 +47,7 @@ void net_barDyn::print(lexer *p)
         sprintf(str,"./REEF3D_6DOF_Net/REEF3D_6DOF_Net_Forces_%i.dat",nNet);
         ofstream header_out;
         header_out.open(str, std::ofstream::out | std::ofstream::app);
-		header_out<<p->simtime<<" \t "<<Tne<<" "<<Fporx<<" "<<Fpory<<" "<<Fporz<<" "<<Fx<<" "<<Fy<<" "<<Fz<<endl;
+		header_out<<p->simtime<<" \t "<<Tne<<" "<<Fx<<" "<<Fy<<" "<<Fz<<endl;
         header_out.close();
     }  
   

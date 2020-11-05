@@ -176,6 +176,7 @@ void lexer::ini_default()
 	B140_2=0.0;    // doube x2 numerical beach
 	B140_3=0.0;    // doube beta numerical beach
     B160=5;        // int number of vertical layers for 2D wave generation
+    B170=1024;     // int number of Fourier modes for the generation of steady surface gravity waves 
 	B180=0;           // int gravity waves
 	B181_1=0.0;     // double x-acceleration amplitude
 	B181_2=0.0;      //double x-acceleration frequency

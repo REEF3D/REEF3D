@@ -156,7 +156,6 @@ private:
 
 	// Forces
     double Fx,Fy,Fz;
-    double Fporx,Fpory,Fporz;
 	double **coupledField, **v_t, **v_n;
 	int **nfK;
 

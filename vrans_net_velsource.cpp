@@ -39,7 +39,7 @@ void vrans_net::v_source(lexer *p, fdm *a)
     count=0;
     VLOOP
 	{
-        a->rhsvec.V[count++] -= Fy_net(i,j,k);        
+       a->rhsvec.V[count++] -= Fy_net(i,j,k);        
 	}   
 }
 

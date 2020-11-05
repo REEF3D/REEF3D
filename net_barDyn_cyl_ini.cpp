@@ -538,7 +538,7 @@ void net_barDyn::cyl_ini(lexer *p, fdm *a, ghostcell *pgc)
         sprintf(str,"./REEF3D_6DOF_Net/REEF3D_6DOF_Net_Forces_%i.dat",nNet);
         ofstream header_out;
         header_out.open(str);
-        header_out<<"time [s] \t Ttop [N] \t Fporx [N] \t Fpory [N] \t Fporz [N] \t Fx [N] \t Fy [N] \t Fz [N]"<<endl;
+        header_out<<"time [s] \t Ttop [N] \t Fx [N] \t Fy [N] \t Fz [N]"<<endl;
         header_out.close();
     }		
     printtime = 0.0;

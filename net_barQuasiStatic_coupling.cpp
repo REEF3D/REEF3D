@@ -316,7 +316,7 @@ void net_barQuasiStatic::triangulation(lexer *p, fdm *a, ghostcell *pgc)
 	}
 
     // Save net as .stl
-
+/*
     ofstream result;
     ofstream result2;
     result.open("REEF3D_6DOF_Net/REEF3D_net.stl", ios::binary);
@@ -367,7 +367,7 @@ void net_barQuasiStatic::triangulation(lexer *p, fdm *a, ghostcell *pgc)
 
 	result.close();  
 	result2.close();  
-
+*/
 }
 void net_barQuasiStatic::create_triangle
 (
