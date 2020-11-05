@@ -12,6 +12,7 @@ Debug
 bin
 lib
 obj
+tags
 .codelite/.tern-port
 .codelite/REEF3D.tags
 .codelite/refactoring.db
