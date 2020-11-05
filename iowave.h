@@ -241,7 +241,7 @@ private:
     double *uval_T_sin,*vval_T_sin,*wval_T_sin,*etaval_T_sin,*Fival_T_sin,*Fifsfval_T_sin;
     double *uval_T_cos,*vval_T_cos,*wval_T_cos,*etaval_T_cos,*Fival_T_cos,*Fifsfval_T_cos;
     
-    double zloc1,zloc2,zloc3,zloc4;
+    double zloc1,zloc2,zloc3,zloc4,zcoor;
 
     
 	double **wsfmax;
