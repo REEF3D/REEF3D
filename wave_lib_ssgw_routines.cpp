@@ -21,6 +21,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"wave_lib_ssgw.h"
+#include <iomanip>
 
 void wave_lib_ssgw::setWave(double k, double d,double H)
 {
