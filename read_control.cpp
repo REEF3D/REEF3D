@@ -443,6 +443,9 @@ void lexer::read_control()
                case 160: control>>B160;
 						 clear(c,numint);
 						 break;
+               case 170: control>>B170;
+						 clear(c,numint);
+						 break;
                case 180: control>>B180;
 						 clear(c,numint);
 						 break;

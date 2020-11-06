@@ -26,14 +26,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void vrans_net::initialize(lexer *p, fdm *a, ghostcell *pgc)
 {
-    // Initialise porosity
+    // Disable common porosity
 	ALOOP
 	{
         a->porosity(i,j,k) = 1.0;
 	}
 	pgc->start4(p,a->porosity,1);
+    p->B260 = 0.0;
     
-    
+    // Parallelisation ini
 	p->Darray(xstart, p->mpi_size);
 	p->Darray(xend, p->mpi_size);
 	p->Darray(ystart, p->mpi_size);
@@ -48,14 +49,14 @@ void vrans_net::initialize(lexer *p, fdm *a, ghostcell *pgc)
 	yend[p->mpirank] = p->endy;
 	zend[p->mpirank] = p->endz;
 	
-	for (int i = 0; i < p->mpi_size; i++)
+	for (int ii = 0; ii < p->mpi_size; ii++)
 	{
-		MPI_Bcast(&xstart[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-		MPI_Bcast(&xend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-		MPI_Bcast(&ystart[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-		MPI_Bcast(&yend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-		MPI_Bcast(&zstart[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-		MPI_Bcast(&zend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
+		MPI_Bcast(&xstart[ii],1,MPI_DOUBLE,ii,pgc->mpi_comm);
+		MPI_Bcast(&xend[ii],1,MPI_DOUBLE,ii,pgc->mpi_comm);
+		MPI_Bcast(&ystart[ii],1,MPI_DOUBLE,ii,pgc->mpi_comm);
+		MPI_Bcast(&yend[ii],1,MPI_DOUBLE,ii,pgc->mpi_comm);
+		MPI_Bcast(&zstart[ii],1,MPI_DOUBLE,ii,pgc->mpi_comm);
+		MPI_Bcast(&zend[ii],1,MPI_DOUBLE,ii,pgc->mpi_comm);
     }          
 }
 

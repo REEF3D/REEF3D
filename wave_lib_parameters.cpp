@@ -42,7 +42,7 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
     
 	
 // Wave Length given
-    if(p->B91==1 && p->B92<30)
+    if(p->B91==1 && (p->B92<30 || p->B92==70))
     {
 
      // define wave parameters
@@ -94,7 +94,7 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
 
 
 // Wave Period given
-    if(p->B93==1 &&  p->B92<30)
+    if(p->B93==1 && (p->B92<30 || p->B92==70))
     {		
 		// define wave parameters
 		wa = p->B93_1;
@@ -190,7 +190,7 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
     p->ww = ww;
     
     
-    if(p->B92>30)
+    if(p->B92>30 && p->B92!=70)
 	{
 	p->wHs = p->B93_1;
     p->wAs = 0.5*p->B93_1;
