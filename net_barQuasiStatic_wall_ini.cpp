@@ -533,7 +533,7 @@ void net_barQuasiStatic::wall_ini(lexer *p, fdm *a, ghostcell *pgc)
         char str[1000];
         sprintf(str,"./REEF3D_6DOF_Net/REEF3D_6DOF_Net_Forces_%i.dat",nNet);
         eTout.open(str);
-        eTout<<"time [s] \t Tmax [N] \t Fporx [N] \t Fpory [N] \t Fporz [N] \t Fx [N] \t Fy [N] \t Fz [N]"<<endl;
+        eTout<<"time [s] \t Tmax [N] \t Fx [N] \t Fy [N] \t Fz [N]"<<endl;
     }		
     printtime = 0.0;
 

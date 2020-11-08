@@ -38,6 +38,8 @@ class vrans_net : public vrans, public increment
 {
 public:
 
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    
     typedef vector<Eigen::Vector3d> EigenMat;
 	typedef Eigen::Matrix<double, 3, 3> Matrix3d;
     typedef vector<vector<double> > MatrixVd;    
@@ -46,7 +48,7 @@ public:
 	virtual ~vrans_net();
 
 	virtual void initialize(lexer*, fdm*, ghostcell*);	
-	virtual void start(lexer*, fdm*, ghostcell*, net*, int);
+	virtual void start(lexer*, fdm*, ghostcell*, net*&, int);
     virtual void sed_update(lexer*, fdm*, ghostcell*){};
     
 	virtual void u_source(lexer*, fdm*);
@@ -66,18 +68,18 @@ private:
 
     double kernel_peskin(const double&);
     
-    void distributeNetForces_x(lexer*,fdm*,ghostcell*, net*, int);
-    void distributeNetForces_y(lexer*,fdm*,ghostcell*, net*, int);
-    void distributeNetForces_z(lexer*,fdm*,ghostcell*, net*, int);    
-    void distributeCollarForces(lexer*,fdm*,ghostcell*, net*, int);
+    void distributeNetForces_x(lexer*,fdm*,ghostcell*, net*&, int);
+    void distributeNetForces_y(lexer*,fdm*,ghostcell*, net*&, int);
+    void distributeNetForces_z(lexer*,fdm*,ghostcell*, net*&, int);    
+    void distributeCollarForces(lexer*,fdm*,ghostcell*, net*&, int);
     
     double kernel_radius;
 
     double *xstart, *xend, *ystart, *yend, *zstart, *zend;
     
-    field1 Fx_net, Fx_netI, kernel_x;
-    field2 Fy_net, Fy_netI, kernel_y;
-    field3 Fz_net, Fz_netI, kernel_z;
+    field1 Fx_net, kernel_x;
+    field2 Fy_net, kernel_y;
+    field3 Fz_net, kernel_z;
     
 	int count;
 };

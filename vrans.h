@@ -20,6 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include <vector>
+
 class lexer;
 class fdm;
 class ghostcell;
@@ -36,7 +38,7 @@ class vrans
 public:
 
 	virtual void initialize(lexer*, fdm*, ghostcell*)=0;	
-	virtual void start(lexer*, fdm*, ghostcell*, net*, int)=0;
+	virtual void start(lexer*, fdm*, ghostcell*, net*&, int)=0;
     virtual void sed_update(lexer*, fdm*, ghostcell*)=0;	
 	
 	virtual void u_source(lexer*, fdm*)=0;
