@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void iowave::inflow_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *Fi, double *Uin, slice &Fifsf, slice &eta)
 {
     if(p->B98==3 || p->B98==4)
-	dirichlet_wavegen_fnpf(p,pgc,Fi,Uin,Fifsf,eta);
+	dirichlet_wavegen_fnpf(p,c,pgc,Fi,Uin,Fifsf,eta);
     
     if(p->B99==3||p->B99==4||p->B99==5)
 	active_beach_fnpf(p,c,pgc,Fi,Uin,Fifsf,eta);

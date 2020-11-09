@@ -21,11 +21,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"iowave.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_fnpf.h"
 #include"ghostcell.h"
 
 
-void iowave::dirichlet_wavegen_fnpf(lexer *p, ghostcell* pgc, double *Fi, double *Uin, slice &Fifsf, slice &eta)
+void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi, double *Uin, slice &Fifsf, slice &eta)
 {
     // 
     count=0;
@@ -40,6 +40,17 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, ghostcell* pgc, double *Fi, double
         eta(i-1,j) = etaval[count];
         eta(i-2,j) = etaval[count];
         eta(i-3,j) = etaval[count];
+        }
+        
+        
+        if(h_switch==0)
+        {
+        double etax = -(1.0/9.81) * (Fifsfval[count]-Fifsfval0[count])/p->dt;
+
+
+        eta(i-1,j) = eta(i,j) + etax*1.0*p->DXP[IM1];
+        eta(i-2,j) = eta(i,j) + etax*2.0*p->DXP[IM1];
+        eta(i-3,j) = eta(i,j) + etax*3.0*p->DXP[IM1];
         }
         
         if(p->A329==1)
