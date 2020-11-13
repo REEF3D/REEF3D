@@ -21,11 +21,30 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"benchmark.h"
-#include"benchmark_void.h"
-#include"benchmark_vortex.h"
-#include"benchmark_disk.h"
-#include"benchmark_vortex3D.h"
-#include"benchmark_convection.h"
-#include"benchmark_TaylorGreen.h"
+#include"increment.h"
+
+class fdm;
+class lexer;
+class convection;
+class ghostcell;
+
+#ifndef BENCHMARK_TAYLORGREEN_H_
+#define BENCHMARK_TAYLORGREEN_H_
+
+using namespace std;
+
+class benchmark_TaylorGreen : public benchmark, public increment
+{
+
+public:
+    benchmark_TaylorGreen(lexer*,fdm*);
+	virtual ~benchmark_TaylorGreen();
+
+	virtual void start(lexer*, fdm*, ghostcell*, convection*);
+};
+
+#endif
+
+
 
 

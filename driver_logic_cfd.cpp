@@ -558,7 +558,10 @@ void driver::logic()
 	if(p->F150==3)
     pbench = new benchmark_vortex3D(p,a);
 	
-	if(p->F150==11)
+	if(p->F150==4)
+    pbench = new benchmark_TaylorGreen(p,a);
+	
+    if(p->F150==11)
     pbench = new benchmark_convection(p,a);
 
 // Printer
