@@ -25,6 +25,8 @@ Author: Hans Bihs
 #include"field1.h"
 #include"field2.h"
 #include"field4.h"
+#include"slice1.h"
+#include"slice2.h"
 #include"slice4.h"
 #include"flowfile_in.h"
 
@@ -154,6 +156,8 @@ public:
     void wavegen_precalc_dirichlet(lexer*,ghostcell*);
     void wavegen_precalc_dirichlet_ini(lexer*,ghostcell*);
     
+    void wavegen_precalc_relax_func(lexer*,ghostcell*);
+    
     
     // FNPF
     virtual void inflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,double*,double*,slice&,slice&);
@@ -183,6 +187,10 @@ public:
 	
 private:
     slice4 eta;
+    
+    slice1 relax1_wg, relax1_nb;
+    slice2 relax2_wg, relax2_nb;
+    slice4 relax4_wg, relax4_nb;
 	
 	double rb1(lexer*,double);
     double rb3(lexer*,double);

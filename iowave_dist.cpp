@@ -154,32 +154,8 @@ double iowave::distgen(lexer *p)
         }
     }
     
-    //cout<<"dist: "<<dist<<endl;
-
 	return dist;
 }
-
-
-/*
-double iowave::distgen(lexer *p)
-{
-	double x1,y1;
-	double x0,y0;
-	double dist=1.0e20;
-	
-	for(int qn=0;qn<p->B106;++qn)
-	{
-	x0=p->B106_x[qn];
-	y0=p->B106_y[qn];
-	
-	x1 = p->pos_x();
-	y1 = p->pos_y();
-	
-	dist = MIN(fabs(y1 - tan_beta[qn]*x1 + tan_beta[qn]*x0 - y0)/sqrt(pow(tan_beta[qn],2.0)+1.0),dist);
-	}
-	
-	return dist;
-}*/
 
 double iowave::distbeach(lexer *p)
 {
@@ -209,8 +185,6 @@ double iowave::distbeach(lexer *p)
         }
     }
     
-    //cout<<"dist: "<<dist<<endl;
-
 	return dist;
 }
 

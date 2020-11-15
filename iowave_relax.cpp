@@ -75,7 +75,7 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
 		if(p->B98==2 && u_switch==1)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             {
             uvel(i,j,k) = (1.0-rb1(p,dg))*ramp(p)*uval[count] * H + rb1(p,dg)*H*uvel(i,j,k) + (1.0-G)*uvel(i,j,k);
             ++count;
@@ -85,6 +85,8 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
 		// Numerical Beach
         if(p->B99==1||p->B99==2)
 		{
+            //cout<<"test: "<<db<<" "<<dist3<<endl;
+            
             // Zone 3
             if(db<dist3)
             uvel(i,j,k) = rb3(p,db)*uvel(i,j,k);
@@ -569,6 +571,7 @@ void iowave::fi_relax(lexer *p, ghostcell *pgc, field& f, field& phi)
 
 void iowave::fivec_relax(lexer *p, ghostcell *pgc, double *f)
 {
+    /*
     int dbcount=0;
     count=0;
     FLOOP
@@ -588,7 +591,7 @@ void iowave::fivec_relax(lexer *p, ghostcell *pgc, double *f)
 		}
 		
 		// Numerical Beach
-		/*if(p->B99==1)
+		if(p->B99==1)
 		{
             // Zone 3
             if(db<dist3)
@@ -603,8 +606,8 @@ void iowave::fivec_relax(lexer *p, ghostcell *pgc, double *f)
             f[FIJK] = rb3val[dbcount]*f[FIJK];
             ++dbcount;
             }
-        }*/
-    }
+        }
+    }*/
 }
 
 void iowave::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
