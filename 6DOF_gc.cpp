@@ -60,7 +60,8 @@ void sixdof_gc::start
 (
 	lexer *p, 
 	fdm *a, 
-	ghostcell *pgc, 
+	ghostcell *pgc,
+    double alpha,
     vrans *pvrans,
     vector<net*>& pnet
 )

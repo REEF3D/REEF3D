@@ -55,7 +55,6 @@ public:
 	momentum_RK3_df(lexer*, fdm*, ghostcell*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*);
 	virtual ~momentum_RK3_df();
 	virtual void start(lexer*, fdm*, ghostcell*, vrans*);
-	virtual void predictor(lexer*, fdm*, ghostcell*, momentum*, vrans*);
 	virtual void utimesave(lexer*, fdm*, ghostcell*);
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);
@@ -63,68 +62,16 @@ public:
     virtual void fillaij2(lexer*, fdm*, ghostcell*, solver*);
     virtual void fillaij3(lexer*, fdm*, ghostcell*, solver*);
 
-
 	void starti(lexer*, fdm*, ghostcell*, sixdof_df*, vrans*, vector<net*>&);
-    void ini(lexer*, fdm*, ghostcell*, sixdof_df*, vrans*, vector<net*>&);
-
-    void updateFlags(lexer*, fdm*, ghostcell*);
-    void predictor(lexer*, fdm*, ghostcell*, momentum*);
-    void forcing(lexer*, fdm*, ghostcell*, sixdof_df*,field&,field&,field&,field&,field&,field&,double,vrans*,vector<net*>&);
-
-    void fieldExt1(lexer*, fdm*, ghostcell*);
-    void fieldExt2(lexer*, fdm*, ghostcell*);    
-    void fieldExt3(lexer*, fdm*, ghostcell*);
-   
-    void forces(lexer*, fdm*, ghostcell*, sixdof_df*, field&,field&,field&,bool, double);
-    void forces_surface(lexer*, fdm*, ghostcell*, sixdof_df*, bool);
-
-
-    double Xfb, Yfb, Zfb, Mfb, Nfb, Kfb, cd, cq, cl;
 
 private:
 
-    void forcing1(lexer*, fdm*, ghostcell*);
-    void forcing2(lexer*, fdm*, ghostcell*);
-    void forcing3(lexer*, fdm*, ghostcell*);
-
-    void forcing_uf(lexer*, fdm*, ghostcell*);
-    void forcing_vf(lexer*, fdm*, ghostcell*);
-    void forcing_wf(lexer*, fdm*, ghostcell*);
-	
-    void iniStencil1(lexer*, fdm*, ghostcell*);
-    void iniStencil2(lexer*, fdm*, ghostcell*);
-    void iniStencil3(lexer*, fdm*, ghostcell*);
-    Eigen::VectorXd polBasis(const double&, const double&, const double&);
-    double powPol(const double&, const double&);
-
-    void updateStencil1(lexer*, fdm*, ghostcell*);
-    void updateStencil2(lexer*, fdm*, ghostcell*);
-    void updateStencil3(lexer*, fdm*, ghostcell*);
-    
-    void updateStencil_x(lexer*, fdm*, ghostcell*);
-    void updateStencil_y(lexer*, fdm*, ghostcell*);
-    void updateStencil_z(lexer*, fdm*, ghostcell*);
-    void updateStencil_p(lexer*, fdm*, ghostcell*);
-    
-    void collectStencil
-    (
-        Eigen::Matrix4d&, Eigen::Matrix3d&,
-        field&,
-        const int, const int, const int,
-        const double&, const double&, const double&,
-        const double&, const double&, const double&,
-        const double&, const double&, const double&,
-        const double&, const double&, const double&,
-        const double&, const double&, const double&
-    );
-
-    void findBoundPoint(const Eigen::MatrixXd&, double&, double&, double&);
-    
-    void reconstruct_pressure(lexer*, fdm*, ghostcell*);
-    Eigen::MatrixXd updateRBDField_2D(lexer*, fdm*, ghostcell*);
-    Eigen::MatrixXd updateRBDField_3D(lexer*, fdm*, ghostcell*);
-
+    void forcing(lexer*, fdm*, ghostcell*, sixdof_df*,field&,field&,field&,field&,field&,field&,double,vrans*,vector<net*>&);
     double Hsolidface(lexer*, fdm*, int, int, int);
+	
+    void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
+	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
+	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);    
     
     field1 urk1, urk2, un, uf, fx, flagx, gradPx;
 	field2 vrk1, vrk2, vn, vf, fy, flagy, gradPy;
@@ -132,7 +79,7 @@ private:
     field4 flagp;
 
 	convection *pconvec;
-	diffusion *pdiff, *pdiff_e;
+	diffusion *pdiff;
 	pressure *ppress;
 	poisson *ppois;
 	density *pdensity;
@@ -150,10 +97,6 @@ private:
     std::vector<Eigen::Array4d> surf_press;
     
     std::vector<Eigen::MatrixXd> stencil1, stencil2, stencil3;
-    
-	void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
-	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
-	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);    
     
 	double starttime;
 };

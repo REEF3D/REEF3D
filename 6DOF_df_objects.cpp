@@ -19,12 +19,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"6DOF_df.h"
+#include"6DOF_df_object.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_df::objects(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_df_object::objects(lexer *p, fdm *a, ghostcell *pgc)
 {
     int qn;
 
@@ -100,7 +100,7 @@ void sixdof_df::objects(lexer *p, fdm *a, ghostcell *pgc)
 }
 
 
-void sixdof_df::objects_allocate(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_df_object::objects_allocate(lexer *p, fdm *a, ghostcell *pgc)
 {
     double U,ds,phi,r,snum,trisum;
     
@@ -158,7 +158,7 @@ void sixdof_df::objects_allocate(lexer *p, fdm *a, ghostcell *pgc)
 }
 
 
-void sixdof_df::geometry_refinement(lexer *p)
+void sixdof_df_object::geometry_refinement(lexer *p)
 {
 	double x0,x1,x2,y0,y1,y2,z0,z1,z2;
 	double x01,x02,x12,y01,y02,y12,z01,z02,z12;
@@ -273,7 +273,7 @@ void sixdof_df::geometry_refinement(lexer *p)
 }
 
 
-void sixdof_df::create_triangle
+void sixdof_df_object::create_triangle
 (
 	double& x0, double& y0, double& z0,
 	double& x1, double& y1, double& z1,

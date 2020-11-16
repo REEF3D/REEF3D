@@ -77,7 +77,12 @@ cout<<"starting driver_ini"<<endl;
     }
     
 	// 6DOF
-	p6dof->initialize(p,a,pgc,pnet);
+	if(p->X10==1 && p->X13!=2)
+    {}
+    else
+    {
+	    p6dof->initialize(p,a,pgc,pnet);
+    }
 
     // Sediment
 	if(p->S10>0)

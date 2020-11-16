@@ -39,11 +39,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void driver::loop_cfd_df(fdm* a)
 {
-    momentum_RK3_df* pmom_df= new momentum_RK3_df(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
+    momentum_RK3_df* pmom_df = new momentum_RK3_df(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
+   
     sixdof_df* p6dof_df = new sixdof_df(p,a,pgc);
+    p6dof_df->initialize(p, a, pgc, pnet);
 
-    p6dof_df->ini(p, a, pgc, pnet);
-    pmom_df->ini(p, a, pgc, p6dof_df, pvrans, pnet);
 	driver_ini();
 
 

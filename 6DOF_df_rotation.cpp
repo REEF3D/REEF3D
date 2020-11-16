@@ -19,12 +19,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"6DOF_df.h"
+#include"6DOF_df_object.h"
 #include"lexer.h"
 #include<math.h>
 
 
-void sixdof_df::rotation_tri
+void sixdof_df_object::rotation_tri
 (
     lexer *p,
     double phi_,double theta_,double psi_, 

@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"6DOF_df.h"
+#include"6DOF_df_object.h"
 #include"lexer.h"
 #include"momentum.h"
 #include"fdm.h"
@@ -38,7 +38,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"net_sheet.h"
 
 
-void sixdof_df::ini(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
+void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 {
     // Initialise folder structure
 	print_ini(p,a,pgc);
@@ -181,7 +181,7 @@ void sixdof_df::ini(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 }
 
 
-void sixdof_df::ini_parameter(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_df_object::ini_parameter(lexer *p, fdm *a, ghostcell *pgc)
 {
     // Prescribed motions
     Uext = Vext = Wext = Pext = Qext = Rext = 0.0; 
@@ -278,7 +278,7 @@ void sixdof_df::ini_parameter(lexer *p, fdm *a, ghostcell *pgc)
 }
 
 
-void sixdof_df::iniPosition_RBM(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_df_object::iniPosition_RBM(lexer *p, fdm *a, ghostcell *pgc)
 {
     // Store initial position of triangles
     
@@ -353,7 +353,7 @@ void sixdof_df::iniPosition_RBM(lexer *p, fdm *a, ghostcell *pgc)
 }
 
 
-void sixdof_df::ini_parallel(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_df_object::ini_parallel(lexer *p, fdm *a, ghostcell *pgc)
 {
     p->Darray(xstart, p->mpi_size);
     p->Darray(xend, p->mpi_size);

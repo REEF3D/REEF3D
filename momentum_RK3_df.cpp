@@ -68,22 +68,9 @@ momentum_RK3_df::momentum_RK3_df
 	psolv=psolver;
     ppoissonsolv=ppoissonsolver;
 	pflow=pioflow;
-    
-    
-    Xfb = Yfb = Zfb = Kfb = Mfb = Nfb = cd = cq = cl = 0.0;
-   
-    // Define explicit diffusion for predictor step
-	pdiff_e = new ediff2(p);
 
     pdensity = new density_f(p);
-}
-
-momentum_RK3_df::~momentum_RK3_df(){}
-
-
-void momentum_RK3_df::ini(lexer *p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_df,vrans* pvrans, vector<net*>& pnet)
-{ 
-    // Calculate initial forcing term
+    
     ULOOP
     {
         fx(i,j,k) = 0.0; 
@@ -98,16 +85,12 @@ void momentum_RK3_df::ini(lexer *p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_df,
     {
         fz(i,j,k) = 0.0;
     }
-
-    //forcing(p, a, pgc, p6dof_df, a->u,a->v,a->w,a->u,a->v,a->w,1.0,pvrans,pnet);
 }
 
-void momentum_RK3_df::predictor(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom, vrans *pvrans)
-{
-}
+momentum_RK3_df::~momentum_RK3_df(){}
 
-void momentum_RK3_df::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
-{	}
+
+void momentum_RK3_df::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans){}
 
 void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_df, vrans* pvrans, vector<net*>& pnet)
 {	
@@ -537,4 +520,13 @@ void momentum_RK3_df::fillaij1(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){
 void momentum_RK3_df::fillaij2(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}
 void momentum_RK3_df::fillaij3(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}
 
-
+void momentum_RK3_df::forcing(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_df, field& uvel, field& vvel, field& wvel, field& uveln, field& vveln, field& wveln, double alpha, vrans* pvrans, vector<net*>& pnet)
+{
+    bool conv = true;
+    p6dof_df->forces_stl(p ,a, pgc, alpha);
+    p6dof_df->start(p,a,pgc,alpha,pvrans,pnet);
+    p6dof_df->updateFSI(p,a,pgc,conv);
+    p6dof_df->updateForcing(p,a,pgc,conv,uvel,vvel,wvel,fx,fy,fz);
+    p6dof_df->saveTimeStep(p,alpha);
+    p6dof_df->interface(p,conv);
+}

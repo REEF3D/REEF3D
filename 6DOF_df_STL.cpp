@@ -19,13 +19,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"6DOF_df.h"
+#include"6DOF_df_object.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
 
-void sixdof_df::read_stl(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_df_object::read_stl(lexer *p, fdm *a, ghostcell *pgc)
 {
 	string word;
 	int count, vert_count;

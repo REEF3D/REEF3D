@@ -44,6 +44,7 @@ Author: Hans Bihs
 #include"looping.h"
 #include"iterators.h"
 #include<iostream>
+#include<vector>
 
 class lexer;
 
@@ -79,11 +80,15 @@ public:
 	fieldint5 nodeval,flag;
    
     // 6DOF
+/*    vector<field1> fbh1;
+    vector<field2> fbh2;
+    vector<field3> fbh3;
+    vector<field4> fbh4;
+*/
     field1 fbh1;
     field2 fbh2;
     field3 fbh3;
     field4 fbh4;
-
     
     slice1 P;
     slice2 Q;

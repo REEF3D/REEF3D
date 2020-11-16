@@ -653,13 +653,13 @@ void driver::logic()
 	
 // 6DOF
 	if(p->X10==0)
-    p6dof = new sixdof_void;
+    p6dof = new sixdof_void();
 	
 	if(p->X10==1 && p->X13!=2)
     p6dof = new sixdof_gc(p,a,pgc);
 
 	if(p->X10==1 && p->X13==2)
-    p6dof = new sixdof_df(p,a,pgc);
+    p6dof = new sixdof_void();
 	
 // Start MAINLOOP
 	if(p->A10==5)

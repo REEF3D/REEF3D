@@ -22,13 +22,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/stat.h>
 #include<iostream>
 #include<fstream>
-#include"6DOF_df.h"
+#include"6DOF_df_object.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
 
-void sixdof_df::print_ini(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_df_object::print_ini(lexer *p, fdm *a, ghostcell *pgc)
 {
 	if(p->mpirank==0 && p->P14==1)
     {
@@ -79,7 +79,7 @@ void sixdof_df::print_ini(lexer *p, fdm *a, ghostcell *pgc)
 }
 
 
-void sixdof_df::print_stl(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_df_object::print_stl(lexer *p, fdm *a, ghostcell *pgc)
 {
 	int num=0;
 	
@@ -148,7 +148,7 @@ void sixdof_df::print_stl(lexer *p, fdm *a, ghostcell *pgc)
 }
 
 
-void sixdof_df::print_parameter(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_df_object::print_parameter(lexer *p, fdm *a, ghostcell *pgc)
 {
 	if(p->mpirank == 0 && p->count%p->X19==0)
     {

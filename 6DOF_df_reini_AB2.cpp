@@ -19,13 +19,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"6DOF_df.h"
+#include"6DOF_df_object.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"reinidisc.h"
 
-void sixdof_df::reini_AB2(lexer* p, fdm* a, ghostcell* pgc, field& b)
+void sixdof_df_object::reini_AB2(lexer* p, fdm* a, ghostcell* pgc, field& b)
 {	
 	n=0;
 	ALOOP

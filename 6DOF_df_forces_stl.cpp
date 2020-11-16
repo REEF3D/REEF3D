@@ -19,13 +19,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"6DOF_df.h"
+#include"6DOF_df_object.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include <math.h>
 
-void sixdof_df::forces_stl(lexer* p, fdm *a, ghostcell *pgc, double alpha, double fx, double fy, double fz, double mx, double my, double mz)
+void sixdof_df_object::forces_stl(lexer* p, fdm *a, ghostcell *pgc, double alpha)
 {
 	double x0,x1,x2,y0,y1,y2,z0,z1,z2;
 	double xc,yc,zc;
@@ -211,7 +211,7 @@ void sixdof_df::forces_stl(lexer* p, fdm *a, ghostcell *pgc, double alpha, doubl
     if (p->mpirank == 0 && alpha == 1.0) 
     {
         ofstream eposout;
-        eposout.open("./REEF3D_6DOF/REEF3D_6DOF_surface_forces.dat",std::ios_base::app);
+        eposout.open("./REEF3D_6DOF/REEF3D_6DOF_forces.dat",std::ios_base::app);
         eposout<<p->simtime<<" \t "<<Xe<<" \t "<<Ye<<" \t "<<Ze<<" \t "<<Ke
         <<" \t "<<Me<<" \t "<<Ne<<endl;   
     }

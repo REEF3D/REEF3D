@@ -19,12 +19,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"6DOF_df.h"
+#include"6DOF_df_object.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_df::rk3(lexer *p, fdm *a, ghostcell *pgc, double alpha)
+void sixdof_df_object::rk3(lexer *p, fdm *a, ghostcell *pgc, double alpha)
 {
     if (alpha == 1.0)
     {
@@ -64,7 +64,7 @@ void sixdof_df::rk3(lexer *p, fdm *a, ghostcell *pgc, double alpha)
 }
 
 
-void sixdof_df::rk4(lexer *p, fdm *a, ghostcell *pgc, double alpha)
+void sixdof_df_object::rk4(lexer *p, fdm *a, ghostcell *pgc, double alpha)
 {
     get_trans(p,a,pgc, dp_, dc_, p_, c_);    
     get_rot(dh_, de_, h_, e_);
@@ -115,7 +115,7 @@ void sixdof_df::rk4(lexer *p, fdm *a, ghostcell *pgc, double alpha)
 }
 
 
-Eigen::Vector3d sixdof_df::ab4_3
+Eigen::Vector3d sixdof_df_object::ab4_3
 (
     lexer *p,
     const Eigen::Vector3d& fn, 
@@ -149,7 +149,7 @@ Eigen::Vector3d sixdof_df::ab4_3
 }
 
 
-Eigen::MatrixXd sixdof_df::ab4_matrix
+Eigen::MatrixXd sixdof_df_object::ab4_matrix
 (
     lexer *p,
     const Eigen::MatrixXd& fn, 
@@ -183,7 +183,7 @@ Eigen::MatrixXd sixdof_df::ab4_matrix
 }
 
 
-Eigen::Vector4d sixdof_df::ab4_4
+Eigen::Vector4d sixdof_df_object::ab4_4
 (
     lexer *p,
     const Eigen::Vector4d& fn, 
@@ -217,7 +217,7 @@ Eigen::Vector4d sixdof_df::ab4_4
 }
 
 
-Eigen::Vector3d sixdof_df::am4_3
+Eigen::Vector3d sixdof_df_object::am4_3
 (
     lexer *p,
     const Eigen::Vector3d& f,
@@ -241,7 +241,7 @@ Eigen::Vector3d sixdof_df::am4_3
 }
 
 
-Eigen::Vector4d sixdof_df::am4_4
+Eigen::Vector4d sixdof_df_object::am4_4
 (
     lexer *p,
     const Eigen::Vector4d& f,

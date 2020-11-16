@@ -50,13 +50,12 @@ public:
 	sixdof_gc(lexer*, fdm*, ghostcell*);
 	virtual ~sixdof_gc();
 	
-	virtual void start(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&);
+	virtual void start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&);
 	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
-	virtual void ini_parameter(lexer*, fdm*, ghostcell*);
-	virtual void interface(lexer*, bool);
 
-	
 private:
+	void ini_parameter(lexer*, fdm*, ghostcell*);
+	void interface(lexer*, bool);
 	void start_Euler(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&);
 	void start_Quaternion(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&);
 	void reini_AB2(lexer*, fdm*, ghostcell*, field&);

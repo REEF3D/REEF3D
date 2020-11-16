@@ -89,7 +89,7 @@ void driver::loop_cfd(fdm* a)
 		pflow->v_relax(p,a,pgc,a->v);
 		pflow->w_relax(p,a,pgc,a->w);
 		pfsf->update(p,a,pgc,a->phi);
-		p6dof->start(p,a,pgc,pvrans,pnet);
+		p6dof->start(p,a,pgc,1.0,pvrans,pnet);
         pmom->start(p,a,pgc,pvrans); 
         pbench->start(p,a,pgc,pconvec);
 		
