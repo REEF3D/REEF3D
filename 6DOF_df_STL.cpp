@@ -32,8 +32,17 @@ void sixdof_df_object::read_stl(lexer *p, fdm *a, ghostcell *pgc)
     double trivec_x,trivec_y,trivec_z;
 	
 	// read and count number of triangles
-	
-	ifstream stl("floating.stl", ios_base::in);
+    ifstream stl;
+    if (n6DOF == 0)
+    {
+	    stl.open("floating.stl", ios_base::in);
+    }
+    else
+    {
+        char str[1000];
+        sprintf(str,"floating-%i.stl",n6DOF);
+	    stl.open(str, ios_base::in);
+    }
     
     tstart[entity_count]=tricount;
 	
@@ -73,7 +82,16 @@ void sixdof_df_object::read_stl(lexer *p, fdm *a, ghostcell *pgc)
 	tricount=count;
 	
 	// reopen and read triangles
-	stl.open("floating.stl", ios_base::in);
+    if (n6DOF == 0)
+    {
+	    stl.open("floating.stl", ios_base::in);
+    }
+    else
+    {
+        char str[1000];
+        sprintf(str,"floating-%i.stl",n6DOF);
+	    stl.open(str, ios_base::in);
+    }
 	
 	count=-1;
 	while(!stl.eof())
@@ -117,9 +135,9 @@ void sixdof_df_object::read_stl(lexer *p, fdm *a, ghostcell *pgc)
 	for(n=0; n<tricount; ++n)
 	for(int q=0; q<3; ++q)
 	{
-		tri_x[n][q]+=p->X182_x;
-		tri_y[n][q]+=p->X182_y;
-		tri_z[n][q]+=p->X182_z;
+		tri_x[n][q] += p->X182_x;
+		tri_y[n][q] += p->X182_y;
+		tri_z[n][q] += p->X182_z;
 	}
 	
     // rotate STL model

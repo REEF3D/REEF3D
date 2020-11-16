@@ -21,7 +21,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"6DOF_void.h"
 #include"lexer.h"
-#include"momentum.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"vrans.h"

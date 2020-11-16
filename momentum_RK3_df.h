@@ -66,17 +66,15 @@ public:
 
 private:
 
-    void forcing(lexer*, fdm*, ghostcell*, sixdof_df*,field&,field&,field&,field&,field&,field&,double,vrans*,vector<net*>&);
     double Hsolidface(lexer*, fdm*, int, int, int);
 	
     void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);    
     
-    field1 urk1, urk2, un, uf, fx, flagx, gradPx;
-	field2 vrk1, vrk2, vn, vf, fy, flagy, gradPy;
-	field3 wrk1, wrk2, wn, wf, fz, flagz, gradPz;
-    field4 flagp;
+    field1 urk1, urk2, fx;
+	field2 vrk1, vrk2, fy;
+	field3 wrk1, wrk2, fz;
 
 	convection *pconvec;
 	diffusion *pdiff;
@@ -90,14 +88,6 @@ private:
     
 	int gcval_u, gcval_v, gcval_w, gcval_urk, gcval_vrk, gcval_wrk;
 
-    int r, r_y, radius, radius_y, K, colSize, rowSize;
-
-    std::vector<Eigen::Matrix4d> stencil_x, stencil_y, stencil_z, stencil_p;
-    std::vector<Eigen::Matrix3d> stencil_x_b, stencil_y_b, stencil_z_b, stencil_p_b;
-    std::vector<Eigen::Array4d> surf_press;
-    
-    std::vector<Eigen::MatrixXd> stencil1, stencil2, stencil3;
-    
 	double starttime;
 };
 

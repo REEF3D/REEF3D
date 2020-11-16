@@ -52,19 +52,16 @@ public:
     
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 	
-    sixdof_df_object(lexer*, fdm*, ghostcell*);
+    sixdof_df_object(lexer*, fdm*, ghostcell*, int);
 	virtual ~sixdof_df_object();
 	
 	virtual void start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&);
 	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
 
 	// Additional functions
-    void updateFSI(lexer*, fdm*, ghostcell*, bool&);
+    void updateFSI(lexer*, fdm*, ghostcell*, double);
     void updateForcing(lexer*, fdm*, ghostcell*,double,field&,field&,field&,field1&,field2&,field3&);
-    void finalise(lexer*, fdm*, ghostcell*,double);
-	void forces_stl(lexer*, fdm*, ghostcell*,double);
-    void interpolate(lexer*, fdm*, ghostcell*, field&, field&, field&, double);
-    void distribute(lexer*, fdm*, ghostcell*, field&, field&, field&);
+	void forces_stl(lexer*, fdm*, ghostcell*,double,field&,field&,field&);
     
     void saveTimeStep(lexer*,double);
     void print_parameter(lexer*,fdm*,ghostcell*);
@@ -107,7 +104,7 @@ private:
     void geometry_ls(lexer*, fdm*, ghostcell*);
     
     void iniPosition_RBM(lexer*, fdm*, ghostcell*);
-    void updatePosition(lexer*, fdm*, ghostcell*, bool);
+    void updatePosition(lexer*, fdm*, ghostcell*, double);
     void prescribedMotion(lexer*, fdm*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&);
     void quat_matrices(const Eigen::Vector4d&);
 
@@ -240,7 +237,10 @@ private:
 	vector<double> Xme, Yme, Zme, Kme, Mme, Nme;    
     
     // Net
-    vector<double> Xne, Yne, Zne, Kne, Mne, Nne;    
+    vector<double> Xne, Yne, Zne, Kne, Mne, Nne;   
+
+    // Number
+    int n6DOF;
 };
 
 #endif

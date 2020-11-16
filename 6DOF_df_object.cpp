@@ -30,8 +30,9 @@ sixdof_df_object::sixdof_df_object
 (
 	lexer *p, 
 	fdm *a, 
-	ghostcell *pgc 
-) : gradient(p), dt(p), L(p), f(p), frk1(p), cutl(p), cutr(p), fbio(p),epsifb(1.6*p->DXM), epsi(1.6)
+	ghostcell *pgc,
+    int number
+) : gradient(p), dt(p), L(p), f(p), frk1(p), cutl(p), cutr(p), fbio(p),n6DOF(number),epsifb(1.6*p->DXM), epsi(1.6)
 {
     prdisc = new reinidisc_fsf(p);
 }

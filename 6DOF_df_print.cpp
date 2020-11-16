@@ -37,44 +37,35 @@ void sixdof_df_object::print_ini(lexer *p, fdm *a, ghostcell *pgc)
     }
 	
     ofstream print;
-    
+    char str[1000];
+
 	if(p->P14==0)
-	print.open("REEF3D_6DOF_position.dat");
+    sprintf(str,"REEF3D_6DOF_position_%i.dat",n6DOF);
 	if(p->P14==1)
-	print.open("./REEF3D_CFD_6DOF/REEF3D_6DOF_position.dat");
+    sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_position_%i.dat",n6DOF);
 	
+    print.open(str);
 	print<<"time \t XG \t YG \t ZG \t Phi \t Theta \t Psi"<<endl;
-	
 	print.close();
     
 	
 	if(p->P14==0)
-	print.open("REEF3D_6DOF_velocity.dat");
+    sprintf(str,"REEF3D_6DOF_velocity_%i.dat",n6DOF);
 	if(p->P14==1)
-	print.open("./REEF3D_CFD_6DOF/REEF3D_6DOF_velocity.dat");
+    sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_velocity_%i.dat",n6DOF);
 	
+    print.open(str);
 	print<<"time \t Ue [m/s] \t Ve [m/s] \t We [m/s] \t Pe [rad/s] \t Qe [rad/s] \t Re [rad/s]"<<endl;
-	
     print.close();
     
 
-	if(p->P14==0)
-	print.open("REEF3D_6DOF_forces.dat");
-	if(p->P14==1)
-	print.open("./REEF3D_CFD_6DOF/REEF3D_6DOF_forces.dat");
-	
-	print<<"time \t Fx \t Fy \t Fz \t Mx \t My \t Mz \t cd \t cq \t cl"<<endl;
-	
-    print.close();    
-	
-
     if(p->P14==0)
-	print.open("REEF3D_6DOF_surface_forces.dat");
+    sprintf(str,"REEF3D_6DOF_forces_%i.dat",n6DOF);
 	if(p->P14==1)
-	print.open("./REEF3D_CFD_6DOF/REEF3D_6DOF_surface_forces.dat");
+    sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
 	
-	print<<"time \t Fx \t Fy \t Fz \t Mx \t My \t Mz \t cd \t cq \t cl"<<endl;
-	
+    print.open(str);
+	print<<"time \t Fx \t Fy \t Fz \t Mx \t My \t Mz"<<endl;
     print.close();    
 }
 
@@ -96,27 +87,27 @@ void sixdof_df_object::print_stl(lexer *p, fdm *a, ghostcell *pgc)
     {
         printtime+=p->P30;
         
-        char path[100];
+        char path[300];
         
         if(p->P14==1)
         {
             if(num<10)
-            sprintf(path,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-00000%d.stl",num);
+            sprintf(path,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-%i-00000%d.stl",n6DOF,num);
 
             if(num<100&&num>9)
-            sprintf(path,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-0000%d.stl",num);
+            sprintf(path,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-%i-0000%d.stl",n6DOF,num);
 
             if(num<1000&&num>99)
-            sprintf(path,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-000%d.stl",num);
+            sprintf(path,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-%i-000%d.stl",n6DOF,num);
 
             if(num<10000&&num>999)
-            sprintf(path,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-00%d.stl",num);
+            sprintf(path,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-%i-00%d.stl",n6DOF,num);
 
             if(num<100000&&num>9999)
-            sprintf(path,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-0%d.stl",num);
+            sprintf(path,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-%i-0%d.stl",n6DOF,num);
 
             if(num>99999)
-            sprintf(path,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-%d.stl",num);
+            sprintf(path,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-%i-%d.stl",n6DOF,num);
         }
 
         ofstream result;
@@ -153,34 +144,25 @@ void sixdof_df_object::print_parameter(lexer *p, fdm *a, ghostcell *pgc)
 	if(p->mpirank == 0 && p->count%p->X19==0)
     {
         ofstream print;
+        char str[1000];
         
         if(p->P14==0)
-        print.open("REEF3D_6DOF_position.dat", ofstream::app);
+        sprintf(str,"REEF3D_6DOF_position_%i.dat",n6DOF);
         if(p->P14==1)
-        print.open("./REEF3D_CFD_6DOF/REEF3D_6DOF_position.dat", ofstream::app);
+        sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_position_%i.dat",n6DOF);
         
-        //print<<p->simtime<<" \t "<<c_(0)<<" \t "<<c_(1)<<" \t "<<c_(2)<<" \t "<<phi*(180.0/PI)<<" \t "<<theta*(180.0/PI)<<" \t "<<psi*(180.0/PI)<<endl;
+        print.open(str, std::ofstream::out | std::ofstream::app);
         print<<p->simtime<<" \t "<<p->xg<<" \t "<<p->yg<<" \t "<<p->zg<<" \t "<<phi*(180/PI)<<" \t "<<theta*(180/PI)<<" \t "<<psi*(180/PI)<<endl;
-
         print.close();
         
         
         if(p->P14==0)
-        print.open("REEF3D_6DOF_velocity.dat", ofstream::app);
+        sprintf(str,"REEF3D_6DOF_velocity_%i.dat",n6DOF);
         if(p->P14==1)
-        print.open("./REEF3D_CFD_6DOF/REEF3D_6DOF_velocity.dat", ofstream::app);
+        sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_velocity_%i.dat",n6DOF);
         
+        print.open(str, std::ofstream::out | std::ofstream::app);
         print<<p->simtime<<" \t "<<p->ufbi<<" \t "<<p->vfbi<<" \t "<<p->wfbi<<" \t "<<p->pfbi<<" \t "<<p->qfbi<<" \t "<<p->rfbi<<endl;
-        
         print.close();
-/*
-        if(p->P14==0)
-        print.open("REEF3D_6DOF_forces.dat", ofstream::app);
-        if(p->P14==1)
-        print.open("./REEF3D_CFD_6DOF/REEF3D_6DOF_forces.dat", ofstream::app);
-
-        print<<p->simtime<<" \t "<<Ffb_(0)<<" \t "<<Ffb_(1)<<" \t "<<Ffb_(2)<<" \t "<<Mfb_(0)<<" \t "<<Mfb_(1)<<" \t "<<Mfb_(2)<<" \t "<<0.0<<" \t "<<0.0<<" \t "<<0.0<<endl;  
-        print.close();
-*/
     }
 }

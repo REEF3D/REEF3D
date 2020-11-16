@@ -24,11 +24,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-
-void sixdof_df_object::updateFSI(lexer *p, fdm *a, ghostcell* pgc, bool& converged)
+void sixdof_df_object::updateFSI(lexer *p, fdm *a, ghostcell* pgc, double alpha)
 {
     // Print quaternion
-	if(p->mpirank==0 && converged == true)
+	if(p->mpirank==0)
     {
 		//cout<<"Quaternion: "<<e_(0)<<" "<<e_(1)<<" "<<e_(2)<<" "<<e_(3)<<endl;
     }
@@ -36,26 +35,20 @@ void sixdof_df_object::updateFSI(lexer *p, fdm *a, ghostcell* pgc, bool& converg
     // Update transformation matrix (Shivarama PhD thesis, p. 19)
     quat_matrices(e_);
 
-
     // Calculate new position
-    updatePosition(p, a, pgc, converged);
-
+    updatePosition(p, a, pgc, alpha);
 
     // Update angular velocities 
     omega_B = I_.inverse()*h_;
     omega_I = R_*omega_B;
       
-    
-    if (converged == true)
-    {
-        // Global body variables
-        interface(p,false);    
-        maxvel(p,a,pgc);
-    }
+    // Global body variables
+    interface(p,false);    
+    maxvel(p,a,pgc);
 }
 
 
-void sixdof_df_object::updatePosition(lexer *p, fdm *a, ghostcell *pgc, bool converged)
+void sixdof_df_object::updatePosition(lexer *p, fdm *a, ghostcell *pgc, double alpha)
 {
 	// Calculate Euler angles from quaternion
 	
@@ -77,7 +70,7 @@ void sixdof_df_object::updatePosition(lexer *p, fdm *a, ghostcell *pgc, bool con
 	// around new x-axis
 	phi = atan2(2.0*(e_(2)*e_(3) + e_(1)*e_(0)), 1.0 - 2.0*(e_(1)*e_(1) + e_(2)*e_(2)));
 
-	if(p->mpirank==0 && converged == true)
+	if(p->mpirank==0 && alpha == 2.0/3.0)
     {
         cout<<"XG: "<<c_(0)<<" YG: "<<c_(1)<<" ZG: "<<c_(2)<<" phi: "<<phi*(180.0/PI)<<" theta: "<<theta*(180.0/PI)<<" psi: "<<psi*(180.0/PI)<<endl;
     }
@@ -110,23 +103,29 @@ void sixdof_df_object::updatePosition(lexer *p, fdm *a, ghostcell *pgc, bool con
     // Update floating field
 	ray_cast(p,a,pgc);
 	reini_AB2(p,a,pgc,a->fb);
-    pgc->start4a(p,a->fb,50);    
+    pgc->start4a(p,a->fb,50);   
+
+    double H = 0.0;
     
     ULOOP
     {
-        a->fbh1(i,j,k) = Hsolidface(p,a,1,0,0);
+        H = Hsolidface(p,a,1,0,0);
+        a->fbh1(i,j,k) = min(a->fbh1(i,j,k) + H, 1.0); 
     }
     VLOOP
     {
-        a->fbh2(i,j,k) = Hsolidface(p,a,0,1,0);
+        H = Hsolidface(p,a,0,1,0);
+        a->fbh2(i,j,k) = min(a->fbh2(i,j,k) + H, 1.0); 
     }
     WLOOP
     {
-        a->fbh3(i,j,k) = Hsolidface(p,a,0,0,1);
+        H = Hsolidface(p,a,0,0,1);
+        a->fbh3(i,j,k) = min(a->fbh3(i,j,k) + H, 1.0); 
     }
     LOOP
     {
-        a->fbh4(i,j,k) = Hsolidface(p,a,0,0,0);
+        H = Hsolidface(p,a,0,0,0);
+        a->fbh4(i,j,k) = min(a->fbh4(i,j,k) + H, 1.0); 
     }
 
     pgc->start1(p,a->fbh1,10);
@@ -145,70 +144,39 @@ void sixdof_df_object::updateForcing
     Eigen::Matrix<double, 6, 1> u_fb;
     double uf, vf, wf;
     
-    for (int it = 0; it < 1; it++)
+    if (p->knoy == 1)
     {
-        if (p->knoy == 1)
-        {
-            u_fb << p->ufbi, 0.0, p->wfbi, 0.0, p->qfbi, 0.0;
-        }
-        else
-        {
-            u_fb << p->ufbi, p->vfbi, p->wfbi, p->pfbi, p->qfbi, p->rfbi;
-        }
-
-        //- Calculate forcing field
-        ULOOP
-        {
-            uf = u_fb(0) + u_fb(4)*(p->pos1_z() - p->zg) - u_fb(5)*(p->pos1_y() - p->yg);
-           
-            fx(i,j,k) = a->fbh1(i,j,k)*(uf - uvel(i,j,k))/(alpha*p->dt);
-        }
-        VLOOP
-        {
-            vf = u_fb(1) + u_fb(5)*(p->pos2_x() - p->xg) - u_fb(3)*(p->pos2_z() - p->zg);
-           
-            fy(i,j,k) = a->fbh2(i,j,k)*(vf - vvel(i,j,k))/(alpha*p->dt);
-        }
-        WLOOP
-        {
-            wf = u_fb(2) + u_fb(3)*(p->pos3_y() - p->yg) - u_fb(4)*(p->pos3_x() - p->xg);
-           
-            fz(i,j,k) = a->fbh3(i,j,k)*(wf - wvel(i,j,k))/(alpha*p->dt);
-        }
-
-        pgc->start1(p,fx,10);
-        pgc->start2(p,fy,11);
-        pgc->start3(p,fz,12);           
-   
-        //- Correct rigid body forces
-        // double fz_old = 0.0;
-        // if (fabs(Zfb - fz_old)/fabs(fz_old) < 0.01) break;
+        u_fb << p_(0)/Mass_fb, 0.0, p_(2)/Mass_fb, 0.0, omega_I(1), 0.0;
+    }
+    else
+    {
+        u_fb << p_(0)/Mass_fb, p_(1)/Mass_fb, p_(2)/Mass_fb, omega_I(0), omega_I(1), omega_I(2);
     }
 
+    //- Calculate forcing field
+    ULOOP
+    {
+        uf = u_fb(0) + u_fb(4)*(p->pos1_z() - c_(2)) - u_fb(5)*(p->pos1_y() - c_(1));
+       
+        fx(i,j,k) += a->fbh1(i,j,k)*(uf - uvel(i,j,k))/(alpha*p->dt);
+    }
+    VLOOP
+    {
+        vf = u_fb(1) + u_fb(5)*(p->pos2_x() - c_(0)) - u_fb(3)*(p->pos2_z() - c_(2));
+       
+        fy(i,j,k) += a->fbh2(i,j,k)*(vf - vvel(i,j,k))/(alpha*p->dt);
+    }
+    WLOOP
+    {
+        wf = u_fb(2) + u_fb(3)*(p->pos3_y() - c_(1)) - u_fb(4)*(p->pos3_x() - c_(0));
+       
+        fz(i,j,k) += a->fbh3(i,j,k)*(wf - wvel(i,j,k))/(alpha*p->dt);
+    }
+
+    pgc->start1(p,fx,10);
+    pgc->start2(p,fy,11);
+    pgc->start3(p,fz,12);           
 };
-
-void sixdof_df_object::finalise(lexer *p, fdm *a, ghostcell *pgc, double alpha)
-{
-    // Store RBM motion
-    saveTimeStep(p,alpha);
-    
-    
-    // Store body velocities and position
-    interface(p,true);
-    
-    
-    // Print data
-    print_stl(p,a,pgc);
-    print_parameter(p, a, pgc);
-    
-    nCorr = 1;
-    
-    if (p->mpirank == 0)
-	{
-		cout<<"Ue: "<<p->ufbi<<" Ve: "<<p->vfbi<<" We: "<<p->wfbi<<" Pe: "<<p->pfbi<<" Qe: "<<p->qfbi<<" Re: "<<p->rfbi<<endl;
-    }
-}
-
 
 void sixdof_df_object::quat_matrices(const Eigen::Vector4d& e)
 {
