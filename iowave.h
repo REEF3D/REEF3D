@@ -194,6 +194,9 @@ private:
 	
 	double rb1(lexer*,double);
     double rb3(lexer*,double);
+    
+    double rb1_ext(lexer*,double);
+    double rb3_ext(lexer*,double);
 
     double ramp(lexer*);
 	
