@@ -34,13 +34,13 @@ void iowave::wavegen_precalc_relax_func(lexer *p, ghostcell *pgc)
 		// Wave Generation
         if(p->B98==2)
         {
-                relax1_wg(i,j) = rb1(p,dg);
+                relax1_wg(i,j) = rb1_ext(p,dg,1);
 		}
         
         // Numerical Beach
         if(p->B98==1 || p->B98==2)
         {
-                relax1_nb(i,j) = rb3(p,db);
+                relax1_nb(i,j) = rb3_ext(p,db,1);
 		}
     }
     pgc->gcsl_start4(p,relax1_wg,50);
