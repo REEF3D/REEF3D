@@ -187,54 +187,6 @@ void driver::logic()
 	if(p->S60>0&&p->S60<10)
 	pconcdisc=new weno_hj(p);
 
-//Diffusion
-	// momentum and scalars
-	if(p->D20==0)
-	pdiff=new diff_void;
-
-	if(p->D20==1)
-	pdiff=new ediff2(p);
-	
-	if(p->D20==2 && p->j_dir==1)
-	pdiff=new idiff2_FS(p);
-    
-    if(p->D20==2  && p->j_dir==0)
-	pdiff=new idiff2_FS_2D(p);
-    
-    if(p->D20==3 && p->j_dir==1)
-	pdiff=new idiff2_FS_v2(p);
-    
-    if(p->D20==3  && p->j_dir==0)
-	pdiff=new idiff2_FS_2D(p);
-	
-	// turbulence
-	if(p->D20==0 || p->T10==0)
-	pturbdiff=new diff_void;
-	
-	if(p->T10>0 && p->D20>0)
-	pturbdiff=new idiff2(p);	
-	
-	// concentration
-	if(p->D20==0 || p->C10==0)
-	pconcdiff=new diff_void;
-
-	if(p->D20==1 && p->C10<=10 && p->C10>0)
-	pconcdiff=new ediff2(p);
-	
-	if(p->D20>=2 && p->C10<=10 && p->C10>0)
-	pconcdiff=new idiff2_FS(p);
-	
-	// susepdended 
-	if(p->S60<11 && p->S60>0)
-	psuspdiff=new ediff2(p);
-	
-	if(p->D20==1 && p->S60<=10 && p->S60>0)
-	psuspdiff=new ediff2(p);
-	
-	if(p->D20>=2 && p->S60<=10 && p->S60>0)
-	psuspdiff=new idiff2_FS(p);
-
-
 //turbulence model
 	if(p->T10==0)
 	pturb = new kepsilon_void(p,a,pgc);
@@ -321,6 +273,59 @@ void driver::logic()
 	if(p->C10==3)
 	pconc =  new concentration_RK3(p,a,pgc);
     
+//Diffusion
+	// momentum and scalars
+	if(p->D20==0 && p->N40!=4)
+	pdiff=new diff_void;
+
+	if(p->D20==1 && p->N40!=4)
+	pdiff=new ediff2(p);
+	
+	if(p->D20==2 && p->j_dir==1 && p->N40!=4)
+	pdiff=new idiff2_FS(p);
+    
+    if(p->D20==2 && p->j_dir==0 && p->N40!=4)
+	pdiff=new idiff2_FS_2D(p);
+    
+    if(p->D20==3 && p->j_dir==1 && p->N40!=4)
+	pdiff=new idiff2_FS_v2(p);
+    
+    if(p->D20==3 && p->j_dir==0 && p->N40!=4)
+	pdiff=new idiff2_FS_2D(p);
+
+    if(p->N40==4 && p->j_dir==1)
+	pdiff=new idiff_IMEX(p,pheat,pconc);
+    
+    if(p->N40==4 && p->j_dir==0)
+	pdiff=new idiff_IMEX_2D(p,pheat,pconc);
+
+	// turbulence
+	if(p->D20==0 || p->T10==0)
+	pturbdiff=new diff_void;
+	
+	if(p->T10>0 && p->D20>0)
+	pturbdiff=new idiff2(p);	
+	
+	// concentration
+	if(p->D20==0 || p->C10==0)
+	pconcdiff=new diff_void;
+
+	if(p->D20==1 && p->C10<=10 && p->C10>0)
+	pconcdiff=new ediff2(p);
+	
+	if(p->D20>=2 && p->C10<=10 && p->C10>0)
+	pconcdiff=new idiff2_FS(p);
+	
+	// susepdended 
+	if(p->S60<11 && p->S60>0)
+	psuspdiff=new ediff2(p);
+	
+	if(p->D20==1 && p->S60<=10 && p->S60>0)
+	psuspdiff=new ediff2(p);
+	
+	if(p->D20>=2 && p->S60<=10 && p->S60>0)
+	psuspdiff=new idiff2_FS(p);
+
 // Wave Models
     if(p->A10==6 || p->A10==0)
     pnse = new nsewave_v(p,a,pgc,pheat,pconc);
@@ -441,23 +446,26 @@ void driver::logic()
 	if(p->D30==0)
 	ppress = new pressure_void(p);
 
-	if(p->D30==1 && p->W30==0 && p->F10==2 && p->X13!=2 && p->G2==0)
+	if(p->D30==1 && p->W30==0 && p->F10==2 && p->N40!=4 && p->X13!=2 && p->G2==0)
 	ppress = new pjm(p,a,pheat,pconc);
     
-    if(p->D30==1 && p->W30==0 && p->F10==2 && p->X13!=2 && p->G2==1)
+    if(p->D30==1 && p->W30==0 && p->F10==2 && p->N40!=4 && p->X13!=2 && p->G2==1)
 	ppress = new pjm_sig(p,a,pheat,pconc);
     
-    if(p->D30==1 && p->W30==1 && p->F10==2 && p->X13!=2)
+    if(p->D30==1 && p->W30==1 && p->F10==2 && p->N40!=4 && p->X13!=2)
 	ppress = new pjm_comp(p,a,pgc,pheat,pconc);
     
-    if(p->D30==1 && p->F10==1 && p->X13!=2)
+    if(p->D30==1 && p->F10==1 && p->N40!=4 && p->X13!=2)
 	ppress = new pjm_nse(p,a,pheat,pconc);
     
-    if(p->D30==2 && p->X13!=2)
+    if(p->D30==2 && p->N40!=4 && p->X13!=2)
 	ppress = new pjm_fsm(p,a,pheat,pconc);
     
-    if(p->D30==3 || p->X13==2)
+    if((p->D30==3 || p->X13==2) && p->N40!=4)
 	ppress = new pjm_corr(p,a,pheat,pconc);
+
+    if(p->N40==4)
+	ppress = new pjm_IMEX(p,a,pheat,pconc);
 
 //poisson scheme for pressure
 	if(p->D30<5 && p->F10==2)
@@ -647,6 +655,9 @@ void driver::logic()
 
 	if(p->N40==3 && p->F11==0)
 	pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
+	
+    if(p->N40==4 && p->F11==0)
+	pmom = new momentum_IMEX(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
     
 	if(p->N40==6 && p->F11==0)
 	pmom = new momentum_FS3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);

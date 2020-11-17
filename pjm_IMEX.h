@@ -17,11 +17,12 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"pressure.h"
 #include"increment.h"
+#include"field4.h"
 
 class heat;
 class concentration;
@@ -29,42 +30,44 @@ class density;
 
 using namespace std;
 
-#ifndef PJM_H_
-#define PJM_H_
+#ifndef PJM_IMEX_H_
+#define PJM_IMEX_H_
 
-class pjm : public pressure, public increment
+class pjm_IMEX : public pressure, public increment
 {
 
 public:
 
-	pjm(lexer* p, fdm *a, heat*&, concentration*&);
-	virtual ~pjm();
+	pjm_IMEX(lexer*, fdm*, heat*&, concentration*&);
+	virtual ~pjm_IMEX();
 
-	virtual void start(fdm*,lexer*, poisson*, solver*, ghostcell*, ioflow*, field&, field&, field&,double);
+	virtual void start(fdm*,lexer* , poisson*, solver*, ghostcell*, ioflow*, field&, field&, field&,double);
 	virtual void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	virtual void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
+	virtual void upgrad(lexer*,fdm*);
+	virtual void vpgrad(lexer*,fdm*);
+	virtual void wpgrad(lexer*,fdm*);
 	virtual void ucorr(lexer*,fdm*,field&,double);
 	virtual void vcorr(lexer*,fdm*,field&,double);
 	virtual void wcorr(lexer*,fdm*,field&,double);
-	virtual void upgrad(lexer*,fdm*);
-	virtual void vpgrad(lexer*,fdm*);
-	virtual void ptimesave(lexer*,fdm*,ghostcell*);
-
-	virtual void wpgrad(lexer*,fdm*);
 	virtual void fillapu(lexer*,fdm*);
 	virtual void fillapv(lexer*,fdm*);
 	virtual void fillapw(lexer*,fdm*);
+	virtual void ptimesave(lexer*,fdm*,ghostcell*);
+    
+    field4 pcorr, Fp, pressn;
 
+private:
 
-private:    
-    void debug(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	double starttime,endtime;
+	void debug(lexer*,fdm*);
+	void pressure_norm(lexer*,fdm*,ghostcell*);
+    void presscorr(lexer*p,fdm *a,ghostcell*,field&,field&,field&,field&, double);
+	void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
+	
+    double starttime, endtime, sum_old, omega_k;
 	int count, gcval_press;
 	int gcval_u, gcval_v, gcval_w;
     
     density *pd;
-	
-    concentration *pconc;
 };
 
 
