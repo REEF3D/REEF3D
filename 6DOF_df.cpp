@@ -62,7 +62,7 @@ void sixdof_df::forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<
         // Advance body in time
         p_df_obj[nb]->start(p,a,pgc,alpha,pvrans,pnet);
 
-        // Update position and floating fields
+        // Update position and fb level set
         p_df_obj[nb]->updateFSI(p,a,pgc,alpha);
 
         // Update forcing terms

@@ -80,11 +80,6 @@ public:
 	fieldint5 nodeval,flag;
    
     // 6DOF
-/*    vector<field1> fbh1;
-    vector<field2> fbh2;
-    vector<field3> fbh3;
-    vector<field4> fbh4;
-*/
     field1 fbh1;
     field2 fbh2;
     field3 fbh3;

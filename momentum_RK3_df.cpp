@@ -70,6 +70,33 @@ momentum_RK3_df::momentum_RK3_df
 	pflow=pioflow;
 
     pdensity = new density_f(p);
+    
+    // Ini Forcing
+    ULOOP
+    {
+        fx(i,j,k) = 0.0;
+        a->fbh1(i,j,k) = 0.0;
+    }
+    VLOOP
+    {
+        fy(i,j,k) = 0.0;
+        a->fbh2(i,j,k) = 0.0;
+    }
+    WLOOP
+    {
+        fz(i,j,k) = 0.0;
+        a->fbh3(i,j,k) = 0.0;
+    }
+    LOOP
+        a->fbh4(i,j,k) = 0.0;
+    
+    pgc->start1(p,fx,10);
+    pgc->start2(p,fy,11);
+    pgc->start3(p,fz,12);           
+    pgc->start1(p,a->fbh1,10);
+    pgc->start2(p,a->fbh2,11);
+    pgc->start3(p,a->fbh3,12);
+    pgc->start4(p,a->fbh4,40);
 }
 
 momentum_RK3_df::~momentum_RK3_df(){}

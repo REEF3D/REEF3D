@@ -129,7 +129,7 @@ void sixdof_df_object::read_stl(lexer *p, fdm *a, ghostcell *pgc)
 		tri_y[n][q] *= p->X181_y;
 		tri_z[n][q] *= p->X181_z;
 	}
-	
+    
     // change orgin
 	if(p->X182==1)
 	for(n=0; n<tricount; ++n)

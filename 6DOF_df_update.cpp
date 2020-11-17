@@ -100,26 +100,56 @@ void sixdof_df_object::updatePosition(lexer *p, fdm *a, ghostcell *pgc, double a
 
 	}
 	
-    // Update floating field
+    // Update floating level set function
 	ray_cast(p,a,pgc);
 	reini_AB2(p,a,pgc,a->fb);
     pgc->start4a(p,a->fb,50);   
+}
 
-    double H = 0.0;
+void sixdof_df_object::updateForcing
+(
+    lexer *p, fdm *a, ghostcell *pgc, double alpha,
+    field& uvel, field& vvel, field& wvel,
+    field1& fx, field2& fy, field3& fz
+)
+{
+    // Determine floating body velocities
+    Eigen::Matrix<double, 6, 1> u_fb;
+    
+    if (p->knoy == 1)
+    {
+        u_fb << p_(0)/Mass_fb, 0.0, p_(2)/Mass_fb, 0.0, omega_I(1), 0.0;
+    }
+    else
+    {
+        u_fb << p_(0)/Mass_fb, p_(1)/Mass_fb, p_(2)/Mass_fb, omega_I(0), omega_I(1), omega_I(2);
+    }
+
+    // Calculate forcing fields
+    double H, uf, vf, wf;
     
     ULOOP
     {
+        uf = u_fb(0) + u_fb(4)*(p->pos1_z() - c_(2)) - u_fb(5)*(p->pos1_y() - c_(1));
         H = Hsolidface(p,a,1,0,0);
+       
+        fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha*p->dt);   
         a->fbh1(i,j,k) = min(a->fbh1(i,j,k) + H, 1.0); 
     }
     VLOOP
     {
+        vf = u_fb(1) + u_fb(5)*(p->pos2_x() - c_(0)) - u_fb(3)*(p->pos2_z() - c_(2));
         H = Hsolidface(p,a,0,1,0);
+       
+        fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha*p->dt);
         a->fbh2(i,j,k) = min(a->fbh2(i,j,k) + H, 1.0); 
     }
     WLOOP
     {
+        wf = u_fb(2) + u_fb(3)*(p->pos3_y() - c_(1)) - u_fb(4)*(p->pos3_x() - c_(0));
         H = Hsolidface(p,a,0,0,1);
+       
+        fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha*p->dt);
         a->fbh3(i,j,k) = min(a->fbh3(i,j,k) + H, 1.0); 
     }
     LOOP
@@ -132,50 +162,10 @@ void sixdof_df_object::updatePosition(lexer *p, fdm *a, ghostcell *pgc, double a
     pgc->start2(p,a->fbh2,11);
     pgc->start3(p,a->fbh3,12);
     pgc->start4(p,a->fbh4,40);
-}
-
-void sixdof_df_object::updateForcing
-(
-    lexer *p, fdm *a, ghostcell *pgc, double alpha,
-    field& uvel, field& vvel, field& wvel,
-    field1& fx, field2& fy, field3& fz
-)
-{
-    Eigen::Matrix<double, 6, 1> u_fb;
-    double uf, vf, wf;
-    
-    if (p->knoy == 1)
-    {
-        u_fb << p_(0)/Mass_fb, 0.0, p_(2)/Mass_fb, 0.0, omega_I(1), 0.0;
-    }
-    else
-    {
-        u_fb << p_(0)/Mass_fb, p_(1)/Mass_fb, p_(2)/Mass_fb, omega_I(0), omega_I(1), omega_I(2);
-    }
-
-    //- Calculate forcing field
-    ULOOP
-    {
-        uf = u_fb(0) + u_fb(4)*(p->pos1_z() - c_(2)) - u_fb(5)*(p->pos1_y() - c_(1));
-       
-        fx(i,j,k) += a->fbh1(i,j,k)*(uf - uvel(i,j,k))/(alpha*p->dt);
-    }
-    VLOOP
-    {
-        vf = u_fb(1) + u_fb(5)*(p->pos2_x() - c_(0)) - u_fb(3)*(p->pos2_z() - c_(2));
-       
-        fy(i,j,k) += a->fbh2(i,j,k)*(vf - vvel(i,j,k))/(alpha*p->dt);
-    }
-    WLOOP
-    {
-        wf = u_fb(2) + u_fb(3)*(p->pos3_y() - c_(1)) - u_fb(4)*(p->pos3_x() - c_(0));
-       
-        fz(i,j,k) += a->fbh3(i,j,k)*(wf - wvel(i,j,k))/(alpha*p->dt);
-    }
 
     pgc->start1(p,fx,10);
     pgc->start2(p,fy,11);
-    pgc->start3(p,fz,12);           
+    pgc->start3(p,fz,12);         
 };
 
 void sixdof_df_object::quat_matrices(const Eigen::Vector4d& e)

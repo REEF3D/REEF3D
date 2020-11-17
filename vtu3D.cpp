@@ -398,6 +398,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	a->visc.ggcpol(p);
 	a->phi.ggcpol(p);
 	a->fb.ggcpol(p);
+	a->fbh4.ggcpol(p);
     a->test.ggcpol(p);
     
     pgc->gcparacox(p,a->phi,50);
@@ -522,7 +523,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	
 	if(p->P29==1)
 	{
-		// floating
+		// walldist
 	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
 	++n;
 	}
@@ -932,7 +933,24 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
 	}
 	
-	if(p->P28==1)
+	if(p->P28==1 && p->X13==2)
+	{
+//  floating
+    iin=4*(p->pointnum+p->ccptnum);
+    result.write((char*)&iin, sizeof (int));
+	TPLOOP
+	{
+	ffn=float(p->ipol4_a(a->fbh4));
+	result.write((char*)&ffn, sizeof (float));
+	}
+
+	for(n=0;n<p->ccptnum;++n)
+	{
+	ffn=float(p->ccipol4_a(a->fbh4,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
+	result.write((char*)&ffn, sizeof (float));
+	}
+	}
+    else if (p->P28==1)
 	{
 //  floating
     iin=4*(p->pointnum+p->ccptnum);
