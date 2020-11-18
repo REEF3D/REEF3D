@@ -26,5 +26,6 @@ Author: Hans Bihs
 #include"benchmark_disk.h"
 #include"benchmark_vortex3D.h"
 #include"benchmark_convection.h"
+#include"benchmark_TaylorGreen.h"
 
 

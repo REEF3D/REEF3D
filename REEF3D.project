@@ -28,7 +28,9 @@
   </Plugins>
   <Reconciliation>
     <Regexes/>
-    <Excludepaths/>
+    <Excludepaths>
+      <Path>eigen-3.3.8/</Path>
+    </Excludepaths>
     <Ignorefiles/>
     <Extensions>
       <![CDATA[*.cpp;*.c;*.h;*.hpp;*.xrc;*.wxcp;*.fbp]]>
@@ -414,6 +416,7 @@
         <File Name="heat_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Benchmarks">
+        <File Name="benchmark_TaylorGreen.h"/>
         <File Name="benchmark.h"/>
         <File Name="benchmark_disk.h"/>
         <File Name="benchmark_void.h"/>
@@ -521,6 +524,8 @@
         <File Name="weno_flux.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Diffusion">
+        <File Name="idiff_IMEX_2D.h"/>
+        <File Name="idiff_IMEX.h"/>
         <File Name="idiff2_FS_v2.h"/>
         <File Name="idiff2_FS_2D.h"/>
         <File Name="diff_void.h"/>
@@ -829,6 +834,7 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
+      <File Name="momentum_IMEX.h"/>
       <File Name="momentum_RK3_df.h"/>
       <File Name="bcmom.h"/>
       <File Name="momentum.h"/>
@@ -839,6 +845,7 @@
       <File Name="momentum_AB2.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Pressure">
+      <File Name="pjm_IMEX.h"/>
       <File Name="pjm_corr.h"/>
       <VirtualDirectory Name="Poisson">
         <File Name="poisson_f.h"/>
@@ -925,6 +932,7 @@
         <File Name="ioflow.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Wave Lib">
+        <File Name="wave_lib_ssgw.h"/>
         <File Name="wave_lib_wcp.h"/>
         <File Name="wave_lib_flap_eta.h"/>
         <File Name="wave_lib.h"/>
@@ -1281,6 +1289,7 @@
     <VirtualDirectory Name="Extensions">
       <VirtualDirectory Name="Particles"/>
       <VirtualDirectory Name="Benchmarks">
+        <File Name="benchmark_TaylorGreen.cpp"/>
         <File Name="benchmark_disk.cpp"/>
         <File Name="benchmark_void.cpp"/>
         <File Name="benchmark_vortex.cpp"/>
@@ -1634,6 +1643,8 @@
         <File Name="weno_flux.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Diffusion">
+        <File Name="idiff_IMEX_2D.cpp"/>
+        <File Name="idiff_IMEX.cpp"/>
         <File Name="idiff2_FS_v2_u.cpp"/>
         <File Name="idiff2_FS_v2_w.cpp"/>
         <File Name="idiff2_FS_v2_v.cpp"/>
@@ -2261,6 +2272,7 @@
       <File Name="ini.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
+      <File Name="momentum_IMEX.cpp"/>
       <File Name="momentum_RK3_df_forcing.cpp"/>
       <File Name="momentum_RK3_df.cpp"/>
       <VirtualDirectory Name="BC">
@@ -2273,6 +2285,7 @@
       <File Name="momentum_FS3.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Pressure">
+      <File Name="pjm_IMEX.cpp"/>
       <VirtualDirectory Name="Debug">
         <File Name="pjm_debug.cpp"/>
       </VirtualDirectory>
@@ -2503,6 +2516,8 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Wave Lib">
+        <File Name="wave_lib_ssgw_routines.cpp"/>
+        <File Name="wave_lib_ssgw.cpp"/>
         <VirtualDirectory Name="WCP">
           <File Name="wave_lib_wcp_pos_ijk.cpp"/>
           <File Name="wave_lib_wcp_allocate.cpp"/>

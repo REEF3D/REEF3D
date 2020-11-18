@@ -20,10 +20,31 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"momentum_FS3.h"
-#include"momentum_RK2.h"
-#include"momentum_RK3.h"
-#include"momentum_AB2.h"
-#include"momentum_void.h"
-#include"momentum_RK3_df.h"
-#include"momentum_IMEX.h"
+#include"benchmark.h"
+#include"increment.h"
+
+class fdm;
+class lexer;
+class convection;
+class ghostcell;
+
+#ifndef BENCHMARK_TAYLORGREEN_H_
+#define BENCHMARK_TAYLORGREEN_H_
+
+using namespace std;
+
+class benchmark_TaylorGreen : public benchmark, public increment
+{
+
+public:
+    benchmark_TaylorGreen(lexer*,fdm*);
+	virtual ~benchmark_TaylorGreen();
+
+	virtual void start(lexer*, fdm*, ghostcell*, convection*);
+};
+
+#endif
+
+
+
+

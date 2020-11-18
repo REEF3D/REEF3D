@@ -38,18 +38,30 @@ void sixdof_gc::read_stl(lexer *p, fdm *a, ghostcell *pgc)
     tstart[entity_count]=tricount;
 	
 	count=tricount;
+    
+    int chk=0;
 	while(!stl.eof())
 	{
-	
 		stl>>word;
 		
 		if(word=="facet")
 		++count;
+
+        if(word=="solid")
+        chk=1;
+
 	}
 	
 	stl.close();
 	stl.clear();
 	
+    if(chk==0)
+	{
+	cout<<"Please convert STL file to ASCII format!"<<endl<<endl;
+	cout<<"See User's Guide for more information!"<<endl<<endl<<endl;
+    pgc->final();
+	exit(0);
+	}
 	
 	// create vecs
 	p->Dresize(tri_x,tricount,count,3,3);
@@ -62,29 +74,6 @@ void sixdof_gc::read_stl(lexer *p, fdm *a, ghostcell *pgc)
 	tricount=count;
 	
 	// reopen and read triangles
-	
-
-	stl.open("floating.stl", ios_base::in);
-	
-	int chk=0;
-	while(!stl.eof())
-	{
-		stl>>word;
-		
-		if(word=="ascii" || word=="solid")
-		chk=1;
-
-	}
-	
-	if(chk==0)
-	{
-	cout<<"Please convert STL file to ASCII format!"<<endl<<endl;
-	cout<<"See User's Guide for more information!"<<endl<<endl<<endl;
-    pgc->final();
-	exit(0);
-	}
-	
-	stl.close();
 	stl.open("floating.stl", ios_base::in);
 	
 	count=-1;
