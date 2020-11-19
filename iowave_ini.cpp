@@ -30,6 +30,7 @@ void iowave::ini(lexer *p, fdm* a, ghostcell* pgc)
     if(p->A10==5  || p->A10==55 || p->A10==6)
     {
     wavegen_precalc_ini(p,pgc);
+    wavegen_precalc_relax_func(p,pgc);
     
     if(p->B89==1 && p->B98==2)
     wavegen_precalc_space(p,pgc);
@@ -49,6 +50,7 @@ void iowave::ini_nhflow(lexer *p, fdm* a, ghostcell* pgc)
 {
     // relax_ini OR dirichlet_ini
     wavegen_precalc_ini(p,pgc);
+    wavegen_precalc_relax_func(p,pgc);
     
     wavegen_precalc(p,pgc);
     
@@ -63,8 +65,8 @@ void iowave::ini_nhflow(lexer *p, fdm* a, ghostcell* pgc)
 
 void iowave::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    
     wavegen_precalc_ini(p,pgc);
+    wavegen_precalc_relax_func(p,pgc);
     
     if(p->B89==1 && p->B98==2)
     wavegen_precalc_decomp_space_fnpf(p,pgc);
@@ -78,8 +80,8 @@ void iowave::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
 void iowave::ini_ptf(lexer *p, fdm *a, ghostcell *pgc)
 {
-    
     wavegen_precalc_ini(p,pgc);
+    wavegen_precalc_relax_func(p,pgc);
     
     //if(p->B89==1 && p->B98==2)
     //wavegen_precalc_decomp_space_fnpf(p,pgc);

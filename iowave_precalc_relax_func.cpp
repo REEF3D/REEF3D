@@ -25,6 +25,25 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void iowave::wavegen_precalc_relax_func(lexer *p, ghostcell *pgc)
 {
+    // ini fill
+    SLICELOOP1
+    {
+    relax1_wg(i,j) = 1.0;
+    relax1_nb(i,j) = 1.0;
+    }
+    
+    SLICELOOP2
+    {
+    relax2_wg(i,j) = 1.0;
+    relax2_nb(i,j) = 1.0;
+    }
+    
+    SLICELOOP4
+    {
+    relax4_wg(i,j) = 1.0;
+    relax4_nb(i,j) = 1.0;
+    }
+    
     // 1
     SLICELOOP1
     {
