@@ -157,6 +157,7 @@ public:
     void wavegen_precalc_dirichlet_ini(lexer*,ghostcell*);
     
     void wavegen_precalc_relax_func(lexer*,ghostcell*);
+    void wavegen_precalc_relax_func_fnpf(lexer*,ghostcell*);
     
     
     // FNPF

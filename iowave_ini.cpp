@@ -66,7 +66,7 @@ void iowave::ini_nhflow(lexer *p, fdm* a, ghostcell* pgc)
 void iowave::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     wavegen_precalc_ini(p,pgc);
-    wavegen_precalc_relax_func(p,pgc);
+    wavegen_precalc_relax_func_fnpf(p,pgc);
     
     if(p->B89==1 && p->B98==2)
     wavegen_precalc_decomp_space_fnpf(p,pgc);

@@ -75,23 +75,22 @@ double iowave::rb1_ext(lexer *p, int var)
         // relax
         dist1 = p->B108_d[qn]; 
         
-        double r=0.0;
-
         x=1.0-x/dist1;
         x=MAX(x,0.0);
         
         r += 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
+
         ++count;
         }
     }  
     
     if(test_all==0)
     r=1.0;
-    
+     
     if(test_all==1)
     r/=double(count);
 
- 
+    
       
     return r;
 }
@@ -146,10 +145,8 @@ double iowave::rb3_ext(lexer *p, int var)
         
         // relax
         
-        dist3 = p->B108_d[qn]; 
+        dist3 = p->B107_d[qn]; 
         
-        double r=0.0;
-
         x=(dist3-fabs(x))/(dist3*dist3_fac);
         x=MAX(x,0.0);
         
