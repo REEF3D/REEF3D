@@ -36,7 +36,7 @@ driver::driver(int& argc, char **argv)
     {
     cout<<endl<<"REEF3D (c) 2008-2020 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    cout<<endl<<"v_201105" <<endl<<endl;
+    cout<<endl<<"v_201119" <<endl<<endl;
     //cout<<"compiled on branch "<<BRANCH<<" from commit "<<VERSION<<endl<<endl;
     }
 
@@ -205,12 +205,4 @@ void driver::sf_driver()
 
 driver::~driver()
 {
-    if (p->X320 > 0)
-    {
-        for (int ii = 0; ii < p->net_count; ii++)
-        {
-            delete pnet[ii];
-            pnet[ii] = NULL;
-        }
-    }
 }

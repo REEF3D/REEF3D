@@ -30,8 +30,6 @@ void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
 	count=0;
     SLICELOOP4
     {
-        xg = xgen(p);
-        yg = ygen(p);
 		dg = distgen(p);
 		db = distbeach(p);
         
@@ -40,9 +38,9 @@ void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
         if(p->B98==2 && h_switch==1)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             { 
-            f(i,j) = (1.0-rb1(p,dg))*ramp(p)*etaval[count] + rb1(p,dg) * f(i,j);
+            f(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*etaval[count] + relax4_wg(i,j) * f(i,j);
             ++count;
             }
 		}
@@ -52,8 +50,8 @@ void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
 		if(p->B99==1 || p->B99==2)
 		{
             // Zone 3
-            if(db<dist3)
-            f(i,j) = rb3(p,db)*f(i,j);
+            if(db<1.0e20)
+            f(i,j) = relax4_nb(i,j)*f(i,j);
         }
     }
 }
@@ -64,8 +62,6 @@ void iowave::um_relax(lexer *p, ghostcell *pgc, slice &P, slice &bed, slice &eta
     count=0;
     SLICELOOP1
     {
-        xg = xgen1(p);
-        yg = ygen1(p);
 		dg = distgen(p);
 		db = distbeach(p);
         
@@ -74,9 +70,9 @@ void iowave::um_relax(lexer *p, ghostcell *pgc, slice &P, slice &bed, slice &eta
 		if(p->B98==2 && u_switch==1)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             {
-            P(i,j) = (1.0-rb1(p,dg))*ramp(p) * uval[count] + rb1(p,dg)*P(i,j);
+            P(i,j) = (1.0-relax1_wg(i,j))*ramp(p) * uval[count] + relax1_wg(i,j)*P(i,j);
             ++count;
             }
 		}
@@ -85,8 +81,8 @@ void iowave::um_relax(lexer *p, ghostcell *pgc, slice &P, slice &bed, slice &eta
         if(p->B99==1 || p->B99==2)
 		{
             // Zone 3
-            if(db<dist3)
-            P(i,j) = rb3(p,db)*P(i,j);
+            if(db<1.0e20)
+            P(i,j) = relax1_nb(i,j)*P(i,j);
         }
     }
 }
@@ -96,8 +92,6 @@ void iowave::vm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta
     count=0;
     SLICELOOP2
     {
-        xg = xgen2(p);
-        yg = ygen2(p);
 		dg = distgen(p);
 		db = distbeach(p);
 
@@ -105,9 +99,9 @@ void iowave::vm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta
 		if(p->B98==2 && v_switch==1)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             {
-            Q(i,j) = (1.0-rb1(p,dg))*ramp(p) * vval[count] + rb1(p,dg)*Q(i,j);
+            Q(i,j) = (1.0-relax1_wg(i,j))*ramp(p) * vval[count] + relax1_wg(i,j)*Q(i,j);
             ++count;
             }
 		}
@@ -116,8 +110,8 @@ void iowave::vm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta
         if(p->B99==1 || p->B99==2)
 		{
             // Zone 3
-            if(db<dist3)
-            Q(i,j) = rb3(p,db)*Q(i,j);
+            if(db<1.0e20)
+            Q(i,j) = relax1_nb(i,j)*Q(i,j);
         }
     }
 }
@@ -128,8 +122,7 @@ void iowave::wm_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta
     count=0;
     SLICELOOP4
     {
-        xg = xgen(p);
-        yg = ygen(p);
+
 		dg = distgen(p);
 		db = distbeach(p);
 
@@ -137,9 +130,9 @@ void iowave::wm_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta
 		if(p->B98==2 && w_switch==1)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             {
-            W(i,j) = (1.0-rb1(p,dg))*ramp(p) * wval[count] + rb1(p,dg)*W(i,j);
+            W(i,j) = (1.0-relax4_wg(i,j))*ramp(p) * wval[count] + relax4_wg(i,j)*W(i,j);
             ++count;
             }
 		}
@@ -148,8 +141,8 @@ void iowave::wm_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta
         if(p->B99==1 || p->B99==2)
 		{
             // Zone 3
-            if(db<dist3)
-            W(i,j) = (1.0-rb3(p,db))*0.0 + rb3(p,db)*W(i,j);
+            if(db<1.0e20)
+            W(i,j) = relax4_nb(i,j)*W(i,j);
         }
     }
 }
@@ -174,16 +167,16 @@ void iowave::ws_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta
 		if(p->B98==2 && w_switch==1)
         {
             // Zone 1
-            if(dg<dist1)
-            W(i,j) = (1.0-rb1(p,dg))*ramp(p)*wval + rb1(p,dg)*W(i,j);
+            if(dg<1.0e20)
+            W(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*wval + relax4_wg(i,j)*W(i,j);
 		}
 		
 		// Numerical Beach
         if(p->B99==1 || p->B99==2)
 		{
             // Zone 3
-            if(db<dist3)
-            W(i,j) = (1.0-rb3(p,db))*0.0 + rb3(p,db)*W(i,j);
+            if(db<1.0e20)
+            W(i,j) = relax4_nb(i,j)*W(i,j);
         }
     }
 }
@@ -202,16 +195,16 @@ void iowave::pm_relax(lexer *p, ghostcell *pgc, slice &f)
         if(p->B98==2)
         {
             // Zone 1
-            if(dg<dist1)
-            f(i,j) = (1.0-rb1(p,dg))*0.0 + rb1(p,dg) * f(i,j);
+            if(dg<1.0e20)
+            f(i,j) = relax4_wg(i,j) * f(i,j);
 		}
 		
 		// Numerical Beach
 		if(p->B99==1 || p->B99==2)
 		{
             // Zone 3
-            if(db<dist3)
-            f(i,j) = (1.0-rb3(p,db))*0.0 + rb3(p,db)*f(i,j);
+            if(db<1.0e20)
+            f(i,j) = relax4_nb(i,j)*f(i,j);
         }
     }
 }

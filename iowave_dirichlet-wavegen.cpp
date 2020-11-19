@@ -39,7 +39,6 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
             
 			if(a->phi(i-1,j,k)>=0.0)
 			{
-            //cout<<"IOWAVE: "<<uvel<<" k: "<<k<<endl;
 			u(i-1,j,k)=uvel+p->Ui;
 			u(i-2,j,k)=uvel+p->Ui;
 			u(i-3,j,k)=uvel+p->Ui;

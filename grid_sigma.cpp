@@ -335,11 +335,11 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     
     
     FLOOP
-    p->ZSN[FIJK] = p->ZN[KP]*(eta(i,j) + p->wd);
+    p->ZSN[FIJK] = p->ZN[KP]*a->WL(i,j) + a->bed(i,j);
     
     
     LOOP
-    p->ZSP[IJK]  = p->ZP[KP]*(eta(i,j) + p->wd);
+    p->ZSP[IJK]  = p->ZP[KP]*a->WL(i,j) + a->bed(i,j);
         
 }
 

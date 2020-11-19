@@ -366,3 +366,6 @@ Author: Hans Bihs
 #define FIm1JKp2  (i-p->imin-1)*p->jmax*p->kmaxF + (j-p->jmin)*p->kmaxF + k-p->kmin+2
 #define FIp1JKp2  (i-p->imin+1)*p->jmax*p->kmaxF + (j-p->jmin)*p->kmaxF + k-p->kmin+2
 
+#define FIJm1Kp2  (i-p->imin)*p->jmax*p->kmaxF + (j-p->jmin-1)*p->kmaxF + k-p->kmin+2
+#define FIJp1Kp2  (i-p->imin)*p->jmax*p->kmaxF + (j-p->jmin+1)*p->kmaxF + k-p->kmin+2
+

@@ -116,12 +116,6 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             c->rhsvec.V[n] += c->M.s[n]*c->Uin[FIm1JK]*p->DXP[IM1];
             c->M.p[n] += c->M.s[n];
             c->M.s[n] = 0.0;
-            
-            /*if(k==0)
-            cout<<"FI_sb: "<<f[FIm1JKm1]<<" "<<f[FIJKm1]<<endl;
-            
-            if(k==p->knoz-1)
-            cout<<"FI_st: "<<f[FIm1JKp1]<<endl;*/
             }
             
             
@@ -182,7 +176,6 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             c->rhsvec.V[n] -= c->M.t[n]*f[FIJKp2];
             c->M.t[n] = 0.0;
             }
-            
  
             // KBEDBC
             if(p->flag7[FIJKm1]<0)
@@ -199,7 +192,7 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
                     c->M.s[n] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     }
                     
-                    if(c->wet(i,j-1)==1 && c->wet(i,j+1)==1)
+                    if(c->wet(i,j+1)==1 && c->wet(i,j-1)==1)
                     {
                     c->M.w[n] +=  ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
                     c->M.e[n] += -ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
@@ -208,7 +201,6 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
                 
                 c->M.t[n] += ab;
                 c->M.b[n] = 0.0;
-
             }
             }
 	++n;
