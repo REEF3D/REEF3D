@@ -120,10 +120,10 @@ double strain::qij(lexer *p, fdm *a, int ii, int jj)
 	q = -pudy(p,a) + pvdx(p,a);
 
 	if(ii==1 && jj==3)
-	q = pudz(p,a) - pwdz(p,a);
+	q = pudz(p,a) - pwdx(p,a);
 
 	if(ii==3 && jj==1)
-	q = -pudx(p,a) + pwdz(p,a);
+	q = -pudz(p,a) + pwdx(p,a);
 
 	if(ii==2 && jj==3)
 	q = pvdz(p,a) - pwdy(p,a);

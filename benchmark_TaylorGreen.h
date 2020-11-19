@@ -22,10 +22,10 @@ Author: Hans Bihs
 
 #include"benchmark.h"
 #include"increment.h"
+#include"gradient.h"
 
 class fdm;
 class lexer;
-class convection;
 class ghostcell;
 
 #ifndef BENCHMARK_TAYLORGREEN_H_
@@ -33,7 +33,7 @@ class ghostcell;
 
 using namespace std;
 
-class benchmark_TaylorGreen : public benchmark, public increment
+class benchmark_TaylorGreen : public benchmark, public increment, public gradient
 {
 
 public:
