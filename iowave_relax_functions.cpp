@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-double iowave::rb1_ext(lexer *p, double x, int var)
+double iowave::rb1_ext(lexer *p, int var)
 {
     double x0,y0,denom,r;
 	double dist=1.0e20;
@@ -96,7 +96,7 @@ double iowave::rb1_ext(lexer *p, double x, int var)
     return r;
 }
 
-double iowave::rb3_ext(lexer *p, double x, int var)
+double iowave::rb3_ext(lexer *p, int var)
 {
     double x0,y0,denom,r;
 	double dist=1.0e20;
