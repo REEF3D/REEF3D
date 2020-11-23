@@ -19,12 +19,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"6DOF_df.h"
+#include"6DOF_df_object.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_df::interface(lexer *p, bool final)         
+void sixdof_df_object::interface(lexer *p, bool final)         
 {
     // Velocities
 
@@ -64,7 +64,7 @@ void sixdof_df::interface(lexer *p, bool final)
     }    
 }
 
-void sixdof_df::saveTimeStep(lexer *p, double alpha)
+void sixdof_df_object::saveTimeStep(lexer *p, double alpha)
 {
     deltan3_ = deltan2_;
     deltan2_ = deltan1_;
@@ -102,7 +102,7 @@ void sixdof_df::saveTimeStep(lexer *p, double alpha)
 }
 
 
-void sixdof_df::maxvel(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_df_object::maxvel(lexer *p, fdm *a, ghostcell *pgc)
 {
 	p->ufbmax = p->ufbi;
     p->vfbmax = p->vfbi;

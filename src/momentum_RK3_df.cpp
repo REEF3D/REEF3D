@@ -50,7 +50,7 @@ momentum_RK3_df::momentum_RK3_df
     solver *psolver, 
     solver *ppoissonsolver, 
     ioflow *pioflow
-):bcmom(p),urk1(p),vrk1(p),wrk1(p),urk2(p),vrk2(p),wrk2(p),un(p),vn(p),wn(p),uf(p),vf(p),wf(p),gradPx(p),gradPy(p),gradPz(p),flagx(p),flagy(p),flagz(p), flagp(p),fx(p),fy(p),fz(p)
+):bcmom(p),urk1(p),vrk1(p),wrk1(p),urk2(p),vrk2(p),wrk2(p),fx(p),fy(p),fz(p)
 {
 	gcval_u=10;
 	gcval_v=11;
@@ -68,69 +68,44 @@ momentum_RK3_df::momentum_RK3_df
 	psolv=psolver;
     ppoissonsolv=ppoissonsolver;
 	pflow=pioflow;
-    
-    
-    Xfb = Yfb = Zfb = Kfb = Mfb = Nfb = cd = cq = cl = 0.0;
-   
-    // Define explicit diffusion for predictor step
-	pdiff_e = new ediff2(p);
 
     pdensity = new density_f(p);
+    
+    // Ini Forcing
+    ULOOP
+    {
+        fx(i,j,k) = 0.0;
+        a->fbh1(i,j,k) = 0.0;
+    }
+    VLOOP
+    {
+        fy(i,j,k) = 0.0;
+        a->fbh2(i,j,k) = 0.0;
+    }
+    WLOOP
+    {
+        fz(i,j,k) = 0.0;
+        a->fbh3(i,j,k) = 0.0;
+    }
+    LOOP
+        a->fbh4(i,j,k) = 0.0;
+    
+    pgc->start1(p,fx,10);
+    pgc->start2(p,fy,11);
+    pgc->start3(p,fz,12);           
+    pgc->start1(p,a->fbh1,10);
+    pgc->start2(p,a->fbh2,11);
+    pgc->start3(p,a->fbh3,12);
+    pgc->start4(p,a->fbh4,40);
 }
 
 momentum_RK3_df::~momentum_RK3_df(){}
 
 
-void momentum_RK3_df::ini(lexer *p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_df,vrans* pvrans, vector<net*>& pnet)
-{ 
-    // Calculate initial forcing term
-    ULOOP
-    {
-        fx(i,j,k) = 0.0; 
-    }
-        
-    VLOOP
-    {
-       fy(i,j,k) = 0.0;
-    }   
-    
-    WLOOP
-    {
-        fz(i,j,k) = 0.0;
-    }
-
-    //forcing(p, a, pgc, p6dof_df, a->u,a->v,a->w,a->u,a->v,a->w,1.0,pvrans,pnet);
-}
-
-void momentum_RK3_df::predictor(lexer *p, fdm* a, ghostcell* pgc, momentum *pmom, vrans *pvrans)
-{
-}
-
-void momentum_RK3_df::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
-{	}
+void momentum_RK3_df::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans){}
 
 void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_df, vrans* pvrans, vector<net*>& pnet)
 {	
-    ULOOP
-    {
-        un(i,j,k) = a->u(i,j,k);
-    }
-
-    VLOOP
-    {
-        vn(i,j,k) = a->v(i,j,k);
-    }
-
-    WLOOP
-    {
-        wn(i,j,k) = a->w(i,j,k);
-    }
-
-    pgc->start1(p,un,gcval_u);
-    pgc->start2(p,vn,gcval_v);
-    pgc->start3(p,wn,gcval_w);
-
-
     // Set inflow 
     double udisctime=0.0;
     double udiscstart=0.0;
@@ -197,9 +172,36 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
 	
     p->wtime=pgc->timer()-starttime;
    
-
-    forcing(p, a, pgc, p6dof_df,urk1,vrk1,wrk1,a->u,a->v,a->w,1.0,pvrans,pnet);
-	ULOOP
+    // Forcing
+    ULOOP
+    {
+        fx(i,j,k) = 0.0;
+        a->fbh1(i,j,k) = 0.0;
+    }
+    VLOOP
+    {
+        fy(i,j,k) = 0.0;
+        a->fbh2(i,j,k) = 0.0;
+    }
+    WLOOP
+    {
+        fz(i,j,k) = 0.0;
+        a->fbh3(i,j,k) = 0.0;
+    }
+    LOOP
+        a->fbh4(i,j,k) = 0.0;
+    
+    pgc->start1(p,fx,10);
+    pgc->start2(p,fy,11);
+    pgc->start3(p,fz,12);           
+    pgc->start1(p,a->fbh1,10);
+    pgc->start2(p,a->fbh2,11);
+    pgc->start3(p,a->fbh3,12);
+    pgc->start4(p,a->fbh4,40);
+    
+    p6dof_df->forcing(p,a,pgc,pvrans,pnet,1.0,urk1,vrk1,wrk1,fx,fy,fz);
+	
+    ULOOP
 	urk1(i,j,k) += 1.0*p->dt*CPOR1*(fx(i,j,k));
 	VLOOP
 	vrk1(i,j,k) += 1.0*p->dt*CPOR2*(fy(i,j,k));
@@ -284,8 +286,20 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
 
     p->wtime+=pgc->timer()-starttime;
 
+    // Forcing
+    ULOOP
+    fx(i,j,k) = 0.0; 
+    VLOOP
+    fy(i,j,k) = 0.0;
+    WLOOP
+    fz(i,j,k) = 0.0;
+    
+    pgc->start1(p,fx,10);
+    pgc->start2(p,fy,11);
+    pgc->start3(p,fz,12);           
 
-    forcing(p, a, pgc, p6dof_df,urk2,vrk2,wrk2,a->u,a->v,a->w,0.25,pvrans,pnet);
+    p6dof_df->forcing(p,a,pgc,pvrans,pnet,0.25,urk2,vrk2,wrk2,fx,fy,fz);
+
 	ULOOP
 	urk2(i,j,k) += 0.25*p->dt*CPOR1*(fx(i,j,k));
 	VLOOP
@@ -370,8 +384,20 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
 	
     p->wtime+=pgc->timer()-starttime;
 
+    // Forcing
+    ULOOP
+    fx(i,j,k) = 0.0; 
+    VLOOP
+    fy(i,j,k) = 0.0;
+    WLOOP
+    fz(i,j,k) = 0.0;
+    
+    pgc->start1(p,fx,10);
+    pgc->start2(p,fy,11);
+    pgc->start3(p,fz,12);   
 
-    forcing(p, a, pgc, p6dof_df,a->u,a->v,a->w,un,vn,wn,2.0/3.0,pvrans,pnet);
+    p6dof_df->forcing(p,a,pgc,pvrans,pnet,2.0/3.0,a->u,a->v,a->w,fx,fy,fz);
+
 	ULOOP
 	a->u(i,j,k) += 2.0/3.0*p->dt*CPOR1*(fx(i,j,k));
 	VLOOP
@@ -401,15 +427,6 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
 	pgc->start1(p,a->u,gcval_u);
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
-
-    bool conv = true;
-    p6dof_df->updateFSI(p,a,pgc,conv);
-    p6dof_df->print_stl(p,a,pgc);
-    p6dof_df->print_parameter(p, a, pgc);
-    if (p->mpirank == 0)
-	{
-		cout<<"Ue: "<<p->ufbi<<" Ve: "<<p->vfbi<<" We: "<<p->wfbi<<" Pe: "<<p->pfbi<<" Qe: "<<p->qfbi<<" Re: "<<p->rfbi<<endl;
-    }
 }
 
 void momentum_RK3_df::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
@@ -503,38 +520,18 @@ void momentum_RK3_df::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uv
 
 void momentum_RK3_df::utimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
-    ULOOP
-    {
-        un(i,j,k) = a->u(i,j,k);
-    }
-    
-    pgc->start1(p,un,gcval_u);
 }
 
 
 void momentum_RK3_df::vtimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
-    VLOOP
-    {
-        vn(i,j,k) = a->v(i,j,k);
-    }
-
-    pgc->start2(p,vn,gcval_v);     
 }
 
 
 void momentum_RK3_df::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
-    WLOOP
-    {
-        wn(i,j,k) = a->w(i,j,k);
-    }
-        
-    pgc->start3(p,wn,gcval_w);            
 }
 
 void momentum_RK3_df::fillaij1(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}
 void momentum_RK3_df::fillaij2(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}
 void momentum_RK3_df::fillaij3(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}
-
-

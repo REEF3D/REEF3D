@@ -1,4 +1,3 @@
-
 /*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2020 Hans Bihs
@@ -21,40 +20,58 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"6DOF_df.h"
-#include"mooring_void.h"
-#include"mooring_DGSEM.h"
-#include"mooring_barQuasiStatic.h"
-#include"mooring_Catenary.h"
-#include"mooring_Spring.h"
-#include"net.h"
-
+#include"6DOF_df_object.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"vrans.h"
-#include"reinidisc_fsf.h"
 
 sixdof_df::sixdof_df
 (
 	lexer *p, 
 	fdm *a, 
 	ghostcell *pgc 
-) : gradient(p), dt(p), L(p), f(p), frk1(p), cutl(p), cutr(p), fbio(p),epsifb(1.6*p->DXM), epsi(1.6)
+)
 {
-    prdisc = new reinidisc_fsf(p);
+    number6DOF = 1;
+    
+    for (int nb = 0; nb < number6DOF; nb++)
+    {
+        p_df_obj.push_back(new sixdof_df_object(p,a,pgc,nb));
+    }
 }
-
+    
 sixdof_df::~sixdof_df(){}
 
 void sixdof_df::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
-{}
+{
+    for (int nb = 0; nb < number6DOF; nb++)
+    {
+        p_df_obj[nb]->initialize(p, a, pgc, pnet);
+    }
+}
+	
+void sixdof_df::start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&){};
 
-void sixdof_df::start
-(
-	lexer *p, 
-	fdm *a, 
-	ghostcell *pgc, 
-    vrans *pvrans,
-    vector<net*>& pnet
-)
-{}
+void sixdof_df::forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, double alpha, field& uvel, field& vvel, field& wvel, field1& fx, field2& fy, field3& fz)
+{
+    for (int nb = 0; nb < number6DOF; nb++)
+    {
+        // Calculate forces
+        p_df_obj[nb]->forces_stl(p,a,pgc,alpha,uvel,vvel,wvel);
+
+        // Advance body in time
+        p_df_obj[nb]->start(p,a,pgc,alpha,pvrans,pnet);
+
+        // Update position and fb level set
+        p_df_obj[nb]->updateFSI(p,a,pgc,alpha);
+
+        // Update forcing terms
+        p_df_obj[nb]->updateForcing(p,a,pgc,alpha,uvel,vvel,wvel,fx,fy,fz);
+
+        // Save and print
+        p_df_obj[nb]->saveTimeStep(p,alpha);
+        p_df_obj[nb]->interface(p,true);
+        p_df_obj[nb]->print_stl(p,a,pgc);
+        p_df_obj[nb]->print_parameter(p, a, pgc);
+    }
+}

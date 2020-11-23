@@ -19,18 +19,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"6DOF_df.h"
+#include"6DOF_df_object.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
 
-void sixdof_df::predictor(lexer *p, fdm *a, ghostcell *pgc, double alpha)
-{
-}
-    
-
-bool sixdof_df::corrector(lexer *p, fdm *a, ghostcell *pgc, double alpha, vrans *pvrans, vector<net*>& pnet)
+void sixdof_df_object::start(lexer *p, fdm *a, ghostcell *pgc, double alpha, vrans *pvrans, vector<net*>& pnet)
 {
     double err_norm = 0.0;
     
@@ -59,33 +54,12 @@ bool sixdof_df::corrector(lexer *p, fdm *a, ghostcell *pgc, double alpha, vrans 
     err_norm = 
           fabs(Fxold - Ffb_(0)) + fabs(Fyold - Ffb_(1)) + fabs(Fzold - Ffb_(2)) 
         + fabs(Mxold - Mfb_(0)) + fabs(Myold - Mfb_(1)) + fabs(Mzold - Mfb_(2)); 
-
-    if (err_norm < 1e-7) 
-    {
-        if (p->mpirank == 0)
-        {
-            //cout<<setprecision(10)<<"Converged FSI after "<<nCorr<<" iterations with error: "<<err_norm<<endl;
-        }
-
-        return true;
-    }
-    else
-    {
-        if (p->mpirank == 0)
-        {
-            //cout<<setprecision(10)<<"Iteration loop "<<nCorr<<" with error: "<<err_norm<<endl;
-        }
-        
-        nCorr++;
-        
-        return false;
-    }
 }
 
 
 
 
-void sixdof_df::get_trans
+void sixdof_df_object::get_trans
 (
     lexer *p,
     fdm *a,
@@ -104,7 +78,7 @@ void sixdof_df::get_trans
 } 
 
 
-void sixdof_df::get_rot
+void sixdof_df_object::get_rot
 (
     Eigen::Vector3d& dh, 
     Eigen::Vector4d& de, 
@@ -128,7 +102,7 @@ void sixdof_df::get_rot
 } 
 
 
-void sixdof_df::prescribedMotion(lexer *p, fdm *a, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc)
+void sixdof_df_object::prescribedMotion(lexer *p, fdm *a, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc)
 {
     if (p->X11_u == 2)
     {

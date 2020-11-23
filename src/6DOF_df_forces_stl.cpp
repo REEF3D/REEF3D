@@ -19,13 +19,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"6DOF_df.h"
+#include"6DOF_df_object.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include <math.h>
 
-void sixdof_df::forces_stl(lexer* p, fdm *a, ghostcell *pgc, double alpha, double fx, double fy, double fz, double mx, double my, double mz)
+void sixdof_df_object::forces_stl
+(
+    lexer* p, fdm *a, ghostcell *pgc, double alpha,
+    field& uvel, field& vvel, field& wvel
+)
 {
 	double x0,x1,x2,y0,y1,y2,z0,z1,z2;
 	double xc,yc,zc;
@@ -39,17 +43,6 @@ void sixdof_df::forces_stl(lexer* p, fdm *a, ghostcell *pgc, double alpha, doubl
 	double xlocvel,ylocvel,zlocvel;
 	double Fx,Fy,Fz;
     
-/*
-    pgc->start4(p,a->press,40);
-	pgc->start4(p,a->press,401);
-    pgc->start4(p,a->press,401);
-
-    pgc->gcfb_update_extra_gcb(p,a,a->press);
-    
-    pgc->dgcpol(p,a->press,p->dgc4,p->dgc4_count,14);
-    a->press.ggcpol(p);
-*/  
-	
     A=0.0;
     Xe=Ye=Ze=Ke=Me=Ne=0.0;
 
@@ -129,44 +122,44 @@ void sixdof_df::forces_stl(lexer* p, fdm *a, ghostcell *pgc, double alpha, doubl
 			rho_int = p->ccipol4(a->ro,xlocvel,ylocvel,zlocvel);
 			
             // Central differences                                 
-            dudx = (a->u(i+1,j,k) - a->u(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1]);
-            dudy = (a->u(i,j+1,k) - a->u(i,j-1,k))/(p->DYP[JP] + p->DYP[JM1]);
-            dudz = (a->u(i,j,k+1) - a->u(i,j,k-1))/(p->DZP[KP] + p->DZP[KM1]);
+            dudx = (uvel(i+1,j,k) - uvel(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1]);
+            dudy = (uvel(i,j+1,k) - uvel(i,j-1,k))/(p->DYP[JP] + p->DYP[JM1]);
+            dudz = (uvel(i,j,k+1) - uvel(i,j,k-1))/(p->DZP[KP] + p->DZP[KM1]);
                                                                            
-            dvdx = (a->v(i+1,j,k) - a->v(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1]);
-            dvdy = (a->v(i,j+1,k) - a->v(i,j-1,k))/(p->DYP[JP] + p->DYP[JM1]);
-            dvdz = (a->v(i,j,k+1) - a->v(i,j,k-1))/(p->DZP[KP] + p->DZP[KM1]);
+            dvdx = (vvel(i+1,j,k) - vvel(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1]);
+            dvdy = (vvel(i,j+1,k) - vvel(i,j-1,k))/(p->DYP[JP] + p->DYP[JM1]);
+            dvdz = (vvel(i,j,k+1) - vvel(i,j,k-1))/(p->DZP[KP] + p->DZP[KM1]);
                                                                             
-            dwdx = (a->w(i+1,j,k) - a->w(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1]);
-            dwdy = (a->w(i,j+1,k) - a->w(i,j-1,k))/(p->DYP[JP] + p->DYP[JM1]);
-            dwdz = (a->w(i,j,k+1) - a->w(i,j,k-1))/(p->DZP[KP] + p->DZP[KM1]);
+            dwdx = (wvel(i+1,j,k) - wvel(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1]);
+            dwdy = (wvel(i,j+1,k) - wvel(i,j-1,k))/(p->DYP[JP] + p->DYP[JM1]);
+            dwdz = (wvel(i,j,k+1) - wvel(i,j,k-1))/(p->DZP[KP] + p->DZP[KM1]);
 
             // Forward differences
-            dudxf = (a->u(i+1,j,k) - a->u(i,j,k))/(p->DXP[IP]);
-            dudyf = (a->u(i,j+1,k) - a->u(i,j,k))/(p->DYP[JP]);
-            dudzf = (a->u(i,j,k+1) - a->u(i,j,k))/(p->DZP[KP]);
+        /*  dudxf = (uvel(i+1,j,k) - uvel(i,j,k))/(p->DXP[IP]);
+            dudyf = (uvel(i,j+1,k) - uvel(i,j,k))/(p->DYP[JP]);
+            dudzf = (uvel(i,j,k+1) - uvel(i,j,k))/(p->DZP[KP]);
 
-            dvdxf = (a->v(i+1,j,k) - a->v(i,j,k))/(p->DXP[IP]);
-            dvdyf = (a->v(i,j+1,k) - a->v(i,j,k))/(p->DYP[JP]);
-            dvdzf = (a->v(i,j,k+1) - a->v(i,j,k))/(p->DZP[KP]);
+            dvdxf = (vvel(i+1,j,k) - vvel(i,j,k))/(p->DXP[IP]);
+            dvdyf = (vvel(i,j+1,k) - vvel(i,j,k))/(p->DYP[JP]);
+            dvdzf = (vvel(i,j,k+1) - vvel(i,j,k))/(p->DZP[KP]);
 
-            dwdxf = (a->w(i+1,j,k) - a->w(i,j,k))/(p->DXP[IP]);
-            dwdyf = (a->w(i,j+1,k) - a->w(i,j,k))/(p->DYP[JP]);
-            dwdzf = (a->w(i,j,k+1) - a->w(i,j,k))/(p->DZP[KP]);
-
+            dwdxf = (wvel(i+1,j,k) - wvel(i,j,k))/(p->DXP[IP]);
+            dwdyf = (wvel(i,j+1,k) - wvel(i,j,k))/(p->DYP[JP]);
+            dwdzf = (wvel(i,j,k+1) - wvel(i,j,k))/(p->DZP[KP]);
+        */
             // Backward differences
-            dudxb = (a->u(i,j,k) - a->u(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1]);
-            dudyb = (a->u(i,j,k) - a->u(i,j-1,k))/(p->DYP[JP] + p->DYP[JM1]);
-            dudzb = (a->u(i,j,k) - a->u(i,j,k-1))/(p->DZP[KP] + p->DZP[KM1]);
+        /*  dudxb = (uvel(i,j,k) - uvel(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1]);
+            dudyb = (uvel(i,j,k) - uvel(i,j-1,k))/(p->DYP[JP] + p->DYP[JM1]);
+            dudzb = (uvel(i,j,k) - uvel(i,j,k-1))/(p->DZP[KP] + p->DZP[KM1]);
 
-            dvdxb = (a->v(i,j,k) - a->v(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1]);
-            dvdyb = (a->v(i,j,k) - a->v(i,j-1,k))/(p->DYP[JP] + p->DYP[JM1]);
-            dvdzb = (a->v(i,j,k) - a->v(i,j,k-1))/(p->DZP[KP] + p->DZP[KM1]);
+            dvdxb = (vvel(i,j,k) - vvel(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1]);
+            dvdyb = (vvel(i,j,k) - vvel(i,j-1,k))/(p->DYP[JP] + p->DYP[JM1]);
+            dvdzb = (vvel(i,j,k) - vvel(i,j,k-1))/(p->DZP[KP] + p->DZP[KM1]);
 
-            dwdxb = (a->w(i,j,k) - a->w(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1]);
-            dwdyb = (a->w(i,j,k) - a->w(i,j-1,k))/(p->DYP[JP] + p->DYP[JM1]);
-            dwdzb = (a->w(i,j,k) - a->w(i,j,k-1))/(p->DZP[KP] + p->DZP[KM1]);
-
+            dwdxb = (wvel(i,j,k) - wvel(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1]);
+            dwdyb = (wvel(i,j,k) - wvel(i,j-1,k))/(p->DYP[JP] + p->DYP[JM1]);
+            dwdzb = (wvel(i,j,k) - wvel(i,j,k-1))/(p->DZP[KP] + p->DZP[KM1]);
+        */
 
             Fx += rho_int*nu_int*A_triang*(2.0*dudx*nx + (dudy + dvdx)*ny + (dudz + dwdx)*nz);
             Fy += rho_int*nu_int*A_triang*((dudy + dvdx)*nx + 2.0*dvdy*ny + (dvdz + dwdy)*nz);
@@ -179,9 +172,9 @@ void sixdof_df::forces_stl(lexer* p, fdm *a, ghostcell *pgc, double alpha, doubl
 			Ye += Fy;
 			Ze += Fz;
 
-			Ke += (yc - p->yg)*Fz - (zc - p->zg)*Fy;
-			Me += (zc - p->zg)*Fx - (xc - p->xg)*Fz;
-			Ne += (xc - p->xg)*Fy - (yc - p->yg)*Fx;
+			Ke += (yc - c_(1))*Fz - (zc - c_(2))*Fy;
+			Me += (zc - c_(2))*Fx - (xc - c_(0))*Fz;
+			Ne += (xc - c_(0))*Fy - (yc - c_(1))*Fx;
 							
 			A += A_triang;
 		}
@@ -210,22 +203,31 @@ void sixdof_df::forces_stl(lexer* p, fdm *a, ghostcell *pgc, double alpha, doubl
 	
     if (p->mpirank == 0 && alpha == 1.0) 
     {
-        ofstream eposout;
-        eposout.open("./REEF3D_6DOF/REEF3D_6DOF_surface_forces.dat",std::ios_base::app);
-        eposout<<p->simtime<<" \t "<<Xe<<" \t "<<Ye<<" \t "<<Ze<<" \t "<<Ke
+        ofstream print;
+        char str[1000];
+       
+        if(p->P14==0)
+        sprintf(str,"REEF3D_6DOF_forces_%i.dat",n6DOF);
+        if(p->P14==1)
+        sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
+
+        print.open(str, std::ofstream::out | std::ofstream::app);
+        print<<p->simtime<<" \t "<<Xe<<" \t "<<Ye<<" \t "<<Ze<<" \t "<<Ke
         <<" \t "<<Me<<" \t "<<Ne<<endl;   
+        print.close();
     }
+
 	if (p->mpirank == 0)
 	{
-		//cout<<"area: "<<A<<endl;
-		cout<<"Surface Xe: "<<Xe<<" Ye: "<<Ye<<" Ze: "<<Ze<<" Ke: "<<Ke<<" Me: "<<Me<<" Ne: "<<Ne<<endl;
+		cout<<"Xe: "<<Xe<<" Ye: "<<Ye<<" Ze: "<<Ze<<" Ke: "<<Ke<<" Me: "<<Me<<" Ne: "<<Ne<<endl;
 	}
 
 
     // Save dynamic pressure
-    LOOP
+/*    LOOP
     {
         a->test(i,j,k) = a->press(i,j,k) + a->ro(i,j,k)*a->gk*p->pos_z();
     }
     pgc->start4(p,a->test,40);
+*/
 }

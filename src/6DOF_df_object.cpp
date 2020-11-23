@@ -1,3 +1,4 @@
+
 /*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2020 Hans Bihs
@@ -17,28 +18,24 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include<vector>
+#include"6DOF_df_object.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"reinidisc_fsf.h"
 
-class lexer;
-class fdm;
-class ghostcell;
-class vrans;
-class net;
-
-using namespace std;
-
-#ifndef SIXDOF_H_
-#define SIXDOF_H_
-
-class sixdof
+sixdof_df_object::sixdof_df_object
+(
+	lexer *p, 
+	fdm *a, 
+	ghostcell *pgc,
+    int number
+) : gradient(p), dt(p), L(p), f(p), frk1(p), cutl(p), cutr(p), fbio(p),n6DOF(number),epsifb(1.6*p->DXM), epsi(1.6)
 {
-public:
+    prdisc = new reinidisc_fsf(p);
+}
 
-	virtual void start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&)=0;
-	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&)=0;
-};
-
-#endif
+sixdof_df_object::~sixdof_df_object(){}
+    

@@ -21,7 +21,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"6DOF_void.h"
 #include"lexer.h"
-#include"momentum.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"vrans.h"
@@ -48,7 +47,8 @@ void sixdof_void::start
 (
 	lexer *p, 
 	fdm *a, 
-	ghostcell *pgc, 
+	ghostcell *pgc,
+    double alpha,
     vrans *pvrans,
     vector<net*>& pnet
 )

@@ -44,6 +44,7 @@ Author: Hans Bihs
 #include"looping.h"
 #include"iterators.h"
 #include<iostream>
+#include<vector>
 
 class lexer;
 
@@ -83,7 +84,6 @@ public:
     field2 fbh2;
     field3 fbh3;
     field4 fbh4;
-
     
     slice1 P;
     slice2 Q;

@@ -19,12 +19,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"6DOF_df.h"
+#include"6DOF_df_object.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_df::wedge_sym(lexer *p, fdm *a, ghostcell *pgc, int id)
+void sixdof_df_object::wedge_sym(lexer *p, fdm *a, ghostcell *pgc, int id)
 {
 	double xm;
 		

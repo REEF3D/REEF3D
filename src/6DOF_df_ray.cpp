@@ -19,13 +19,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"6DOF_df.h"
+#include"6DOF_df_object.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"fieldint.h"
 
-void sixdof_df::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_df_object::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
 {
 	ALOOP
 	{

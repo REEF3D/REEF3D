@@ -19,12 +19,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"6DOF_df.h"
+#include"6DOF_df_object.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_df::cylinder_x(lexer *p, fdm *a, ghostcell *pgc, int id)
+void sixdof_df_object::cylinder_x(lexer *p, fdm *a, ghostcell *pgc, int id)
 {
 	double U,ds,phi;
 	double xm,ym,zm,x1,x2,r;
@@ -127,7 +127,7 @@ void sixdof_df::cylinder_x(lexer *p, fdm *a, ghostcell *pgc, int id)
 }
 
 
-void sixdof_df::cylinder_y(lexer *p, fdm *a, ghostcell *pgc, int id)
+void sixdof_df_object::cylinder_y(lexer *p, fdm *a, ghostcell *pgc, int id)
 {
 	double U,ds,phi;
 	double xm,ym,zm,y1,y2,r;
@@ -240,7 +240,7 @@ void sixdof_df::cylinder_y(lexer *p, fdm *a, ghostcell *pgc, int id)
 }
 
 
-void sixdof_df::cylinder_z(lexer *p, fdm *a, ghostcell *pgc, int id)
+void sixdof_df_object::cylinder_z(lexer *p, fdm *a, ghostcell *pgc, int id)
 {
 	double U,ds,phi;
 	double xm,ym,zm,z1,z2,r;

@@ -41,7 +41,7 @@ class sixdof_void : public sixdof
 public:
 	sixdof_void();
 	virtual ~sixdof_void();
-	virtual void start(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&);
+	virtual void start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&);
 	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
     
 private:

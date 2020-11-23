@@ -108,10 +108,8 @@ void initialize::inifdm(fdm* a, lexer* p, ghostcell* pgc)
 		a->phi(i,j,k)=1.0;
 
 		a->conc(i,j,k)=0.0;
-        
-        
 	}
-	
+
 	ALOOP
     {
 	a->fb(i,j,k)=1.0;

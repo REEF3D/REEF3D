@@ -19,12 +19,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"6DOF_df.h"
+#include"6DOF_df_object.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_df::box(lexer *p, fdm *a, ghostcell *pgc, int id)
+void sixdof_df_object::box(lexer *p, fdm *a, ghostcell *pgc, int id)
 {
 	xs = p->X110_xs[id];
     xe = p->X110_xe[id];

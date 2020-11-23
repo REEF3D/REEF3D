@@ -19,13 +19,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"6DOF_df.h"
+#include"6DOF_df_object.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
 
-void sixdof_df::geometry(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_df_object::geometry(lexer *p, fdm *a, ghostcell *pgc)
 {
     I_ = Eigen::Matrix3d::Zero();
 
@@ -164,7 +164,7 @@ void sixdof_df::geometry(lexer *p, fdm *a, ghostcell *pgc)
 }
 
 
-void sixdof_df::geometry_f(double& w0, double& w1, double& w2, double& f1, double& f2, double& f3, double& g0, double& g1, double& g2)
+void sixdof_df_object::geometry_f(double& w0, double& w1, double& w2, double& f1, double& f2, double& f3, double& g0, double& g1, double& g2)
 {
 	double temp0 = w0 + w1;
     f1 = temp0 + w2;
@@ -178,7 +178,7 @@ void sixdof_df::geometry_f(double& w0, double& w1, double& w2, double& f1, doubl
 }
 
 
-void sixdof_df::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_df_object::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
 {
 	// Total Volume
 	double Rfb, H;
