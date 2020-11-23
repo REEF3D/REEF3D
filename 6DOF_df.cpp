@@ -32,7 +32,7 @@ sixdof_df::sixdof_df
 	ghostcell *pgc 
 )
 {
-    number6DOF = 2;
+    number6DOF = 1;
     
     for (int nb = 0; nb < number6DOF; nb++)
     {
