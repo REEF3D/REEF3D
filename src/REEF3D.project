@@ -35,7 +35,7 @@
     <Extensions>
       <![CDATA[*.cpp;*.c;*.h;*.hpp;*.xrc;*.wxcp;*.fbp]]>
     </Extensions>
-    <Topleveldir>/Users/tobias/REEF3D/Code/REEF3D_dev</Topleveldir>
+    <Topleveldir>/Users/tobias/REEF3D/Code/REEF3D/src</Topleveldir>
   </Reconciliation>
   <Description/>
   <Dependencies/>
@@ -425,6 +425,7 @@
         <File Name="benchmark_convection.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <File Name="6DOF_df_object.h"/>
         <File Name="6DOF_gc.h"/>
         <File Name="6DOF_df.h"/>
         <VirtualDirectory Name="Mooring">
@@ -1380,6 +1381,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
         <VirtualDirectory Name="DirectForcing">
+          <File Name="6DOF_df_object.cpp"/>
           <VirtualDirectory Name="RayCast">
             <File Name="6DOF_df_reini_AB2.cpp"/>
             <File Name="6DOF_df_ray_z.cpp"/>
