@@ -2273,7 +2273,6 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
       <File Name="momentum_IMEX.cpp"/>
-      <File Name="momentum_RK3_df_forcing.cpp"/>
       <File Name="momentum_RK3_df.cpp"/>
       <VirtualDirectory Name="BC">
         <File Name="bcmom.cpp"/>
