@@ -53,14 +53,14 @@ void iowave::fnpf_precalc_relax_ini(lexer *p, ghostcell *pgc)
 		if(p->B98==2)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             ++ppt_count;
 
 		}
         
         if(p->B99==1||p->B99==2)
 		{
-            if(db<dist3)
+            if(db<1.0e20)
             ++dbcount;
         }
     }	
@@ -74,7 +74,7 @@ void iowave::fnpf_precalc_relax_ini(lexer *p, ghostcell *pgc)
 		if(p->B98==2)
         {
             // Zone 1
-            if(dg<dist1+3.0*p->DXM)
+            if(dg<1.0e20)
             ++ept_count;
 
 		}
@@ -86,6 +86,7 @@ void iowave::fnpf_precalc_relax_ini(lexer *p, ghostcell *pgc)
     p->Darray(rb1val,ppt_count);
     p->Darray(rb3val,dbcount);
     p->Darray(Fifsfval,ept_count);
+     p->Darray(Fifsfval0,ept_count);
     
     if(p->B89==1) 
     {
@@ -122,7 +123,7 @@ void iowave::fnpf_precalc_dirichlet_ini(lexer *p, ghostcell *pgc)
         
         if(p->B99==1||p->B99==2)
 		{
-            if(db<dist3)
+            if(db<1.0e20)
             ++dbcount;
         }
     }	
@@ -151,6 +152,7 @@ void iowave::fnpf_precalc_dirichlet_ini(lexer *p, ghostcell *pgc)
     p->Darray(Fival,ppt_count);
     p->Darray(Uinval,ppt_count);
     p->Darray(Fifsfval,ept_count);
+     p->Darray(Fifsfval0,ept_count);
     p->Darray(uval,upt_count);
     
     p->Darray(rb3val,dbcount);

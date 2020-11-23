@@ -21,6 +21,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"ghostcell.h"
 #include"lexer.h"
+#include"fdm_fnpf.h"
 #include"sliceint.h"
 
 void ghostcell::fivec(lexer *p, double *f, sliceint &bc)
@@ -35,7 +36,7 @@ void ghostcell::fivec(lexer *p, double *f, sliceint &bc)
         f[FIm3JK] = f[FIJK];
         }
           
-        if(p->B99!=3||bc(i-1,j)==0)
+        if(p->B99!=3||bc(i+1,j)==0)
         if(p->flag7[FIp1JK]<0)
         {
         f[FIp1JK] = f[FIJK];
@@ -71,7 +72,16 @@ void ghostcell::fivec2D(lexer *p, double *f, sliceint &bc)
         f[FIm3JK] = f[FIJK];
         }
         
-        if(p->B99!=3||bc(i-1,j)==0)
+        if(p->B98==3&&bc(i-1,j)==1)
+        if(p->flag7[FIm1JK]<0)
+        {
+        //cout<<"INFLOW: "<<c->Uin[FIm1JK]<<endl;
+        f[FIm1JK] = f[FIJK]-c->Uin[FIm1JK]*1.0*p->DXP[IM1];
+        f[FIm2JK] = f[FIJK]-c->Uin[FIm1JK]*2.0*p->DXP[IM1];
+        f[FIm3JK] = f[FIJK]-c->Uin[FIm1JK]*3.0*p->DXP[IM1];
+        }
+        
+        if(p->B99!=3||bc(i+1,j)==0)
         if(p->flag7[FIp1JK]<0)
         {
         f[FIp1JK] = f[FIJK];
@@ -79,18 +89,26 @@ void ghostcell::fivec2D(lexer *p, double *f, sliceint &bc)
         f[FIp3JK] = f[FIJK];
         }
         
+        if(p->B99==3||bc(i+1,j)==1)
+        if(p->flag7[FIp1JK]<0)
+        {
+        f[FIp1JK] = f[FIJK]+c->Uin[FIp1JK]*1.0*p->DXP[IM1];
+        f[FIp2JK] = f[FIJK]+c->Uin[FIp1JK]*2.0*p->DXP[IM1];
+        f[FIp3JK] = f[FIJK]+c->Uin[FIp1JK]*3.0*p->DXP[IM1];
+        }
+        
         
         // sb
-        if(p->flag7[FIm1JK]<0 && p->flag7[FIJKm1]<0) 
+        /*if(p->flag7[FIm1JK]<0 && p->flag7[FIJKm1]<0) 
         {
         f[FIm1JKm1] = f[FIm1JK];
-        }
+        }*/
         
         // st
-        if(p->flag7[FIm1JK]<0 && p->flag7[FIJKp1]<0) 
+        /*if(p->flag7[FIm1JK]<0 && p->flag7[FIJKp1]<0) 
         {
         f[FIm1JKp1] = f[FIm1JK];
-        }
+        }*/
     }
 }
 

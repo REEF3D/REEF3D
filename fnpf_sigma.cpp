@@ -209,7 +209,8 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *p
     FLOOP
     {
     FPCHECK
-    p->ZSN[FIJK] = p->ZN[KP]*(eta(i,j) + p->wd);
+    p->ZSN[FIJK] = p->ZN[KP]*c->WL(i,j) + c->bed(i,j); // new
+    //p->ZSN[FIJK] = p->ZN[KP]*(eta(i,j) + p->wd);
     
     FSCHECK
     p->ZSN[FIJK] = p->ZN[KP]*(p->wd);

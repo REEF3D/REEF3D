@@ -43,7 +43,7 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
         if(p->B98==2)
         {
             // Zone 1
-            if(dg<dist1+3.0*p->DXM)
+            if(dg<1.0e20)
             {
             eta(i,j) = wave_eta(p,pgc,xg,yg);
             etaval[count] = eta(i,j);
@@ -77,7 +77,7 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
             if(p->B98==2 && f_switch==1)
             {
                 // Zone 1
-                if(dg<dist1)
+                if(dg<1.0e19)
                 { 
                 //Fival[count] = wave_fi(p,pgc,xg,yg,z);
                 rb1val[count] = rb1(p,dg);
@@ -113,7 +113,7 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
 		if(p->B98==2 && f_switch==1)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e19)
             { 
             Fifsfval[count] = wave_fi(p,pgc,xg,yg,z);
             

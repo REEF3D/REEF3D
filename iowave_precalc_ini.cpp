@@ -70,7 +70,7 @@ void iowave::wavegen_precalc_relax_ini(lexer *p, ghostcell *pgc)
 		if(p->B98==2)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             ++upt_count;
 		}
     }
@@ -86,7 +86,7 @@ void iowave::wavegen_precalc_relax_ini(lexer *p, ghostcell *pgc)
 		if(p->B98==2)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             ++vpt_count;
 		}
     }
@@ -100,7 +100,7 @@ void iowave::wavegen_precalc_relax_ini(lexer *p, ghostcell *pgc)
 		if(p->B98==2)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             ++wpt_count;
 
 		}
@@ -115,7 +115,7 @@ void iowave::wavegen_precalc_relax_ini(lexer *p, ghostcell *pgc)
 		if(p->B98==2)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             ++ppt_count;
 
 		}
@@ -130,7 +130,7 @@ void iowave::wavegen_precalc_relax_ini(lexer *p, ghostcell *pgc)
 		if(p->B98==2)
         {
             // Zone 1
-            if(dg<dist1+3.0*p->DXM)
+            if(dg<1.0e20)
             ++ept_count;
 
 		}
@@ -190,7 +190,6 @@ void iowave::wavegen_precalc_dirichlet_ini(lexer *p, ghostcell *pgc)
     }
   
     // precalc array alloc
-    
     p->Darray(uval,upt_count);
     p->Darray(vval,vpt_count);
     p->Darray(wval,wpt_count);

@@ -41,6 +41,7 @@ void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
         etaval[count] = eta(i,j);
         
         z = eta(i,j);
+        Fifsfval0[count] = Fifsfval[count];
         Fifsfval[count] = wave_u(p,pgc,xg,yg,z);
         ++count;
         }
@@ -87,12 +88,12 @@ void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
             FPCHECK
             {
             z=p->ZSN[FIJK]-p->phimean;
-            
-            if(z<=eta(i,j)+epsi)
+
+            //if(z<=eta(i,j)+epsi)
             Uinval[count] = wave_u(p,pgc,xg,yg,z);
             
-            if(z>eta(i,j)+epsi)
-            Uinval[count] = 0.0;
+           // if(z>eta(i,j)+epsi)
+           // Uinval[count] = 0.0;
             ++count;
             }
         }
