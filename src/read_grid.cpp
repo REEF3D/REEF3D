@@ -266,6 +266,13 @@ void lexer::read_grid()
     bcside6=iin;
     
     grid.read((char*)&iin, sizeof (int));
+    periodic1=iin;
+    grid.read((char*)&iin, sizeof (int));
+    periodic2=iin;
+    grid.read((char*)&iin, sizeof (int));
+    periodic3=iin;
+    
+    grid.read((char*)&iin, sizeof (int));
     G51=iin;
     grid.read((char*)&iin, sizeof (int));
     P150=iin;

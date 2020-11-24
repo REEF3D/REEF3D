@@ -140,6 +140,7 @@ public:
 	int gcb_fix,gcb_solid,gcb_topo,gcb_fb, solid_gcb_est, geotopo_gcb_est;
 	int gcb_sediment_est, gcb_floating_est;
     int bcside1,bcside2,bcside3,bcside4,bcside5,bcside6;
+    int periodic1,periodic2,periodic3;
     
 
 	//IBM
