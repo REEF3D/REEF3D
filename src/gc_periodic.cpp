@@ -20,51 +20,253 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
+#include"lexer.h"
 #include"field.h"
 #include"vec.h"
 #include"fdm.h"
 
 void ghostcell::gc_periodic(lexer *p, field& f, int gcv, int cs)
 {
-    /*
+    double val1,val2,val3;
+    
     if(cs==1)
     JLOOP
     KLOOP
+    PCHECK
     {
-	f(i-3,j,k)=f(i+1,j,k);
-    f(i,j,k)=f(i,j,k);
-    f(i,j,k)=f(i,j,k);
+        
+    // 4 to 1 coupling
+    if(gcv!=1)
+    i=p->knox-1;
+    
+    if(gcv==1)
+    i=p->knox-2;
+    
+    val1 = f(i,j,k);
+    val2 = f(i-1,j,k);
+    val3 = f(i-2,j,k);
+    
+    i=0;
+	f(i-1,j,k) = val1;
+    f(i-2,j,k) = val2;
+    f(i-3,j,k) = val3;
+    
+    
+    // 1 to 4 coupling
+    i=0;
+    val1 = f(i,j,k);
+    val2 = f(i+1,j,k);
+    val3 = f(i+2,j,k);
+    
+    if(gcv!=1)
+    i=p->knox-1;
+    
+    if(gcv==1)
+    i=p->knox-2;
+    
+	f(i+1,j,k) = val1;
+    f(i+2,j,k) = val2;
+    f(i+3,j,k) = val3;
     }
-        
-        
-        
-	if(cs==1)
-	for(q=0;q<margin;++q)
-	f(i-q-1,j,k)=f(i,j,k);
-
-	if(cs==2)
-	for(q=0;q<margin;++q)
-	f(i,j+q+1,k)=f(i,j,k);
-
-	if(cs==3)
-	for(q=0;q<margin;++q)
-	f(i,j-q-1,k)=f(i,j,k);
-
-	if(cs==4)
-	for(q=0;q<margin;++q)
-	f(i+q+1,j,k)=f(i,j,k);
-
-	if(cs==5)
-	for(q=0;q<margin;++q)
-	f(i,j,k-q-1)=f(i,j,k);
-
-	if(cs==6)
-	for(q=0;q<margin;++q)
-	f(i,j,k+q+1)=f(i,j,k);*/
+    
+    
+    if(cs==2)
+    ILOOP
+    KLOOP
+    PCHECK
+    {
+    // 2 to 3 coupling
+    if(gcv!=2)
+    j=p->knoy-1;
+    
+    if(gcv==2)
+    j=p->knoy-2;
+    
+    val1 = f(i,j,k);
+    val2 = f(i,j-1,k);
+    val3 = f(i,j-2,k);
+    
+    j=0;
+	f(i,j-1,k) = val1;
+    f(i,j-2,k) = val2;
+    f(i,j-3,k) = val3;
+    
+    // 3 to 2 coupling
+    j=0;
+    val1 = f(i,j,k);
+    val2 = f(i,j+1,k);
+    val3 = f(i,j+2,k);
+    
+    if(gcv!=2)
+    j=p->knoy-1;
+    
+    if(gcv==2)
+    j=p->knoy-2;
+	f(i,j+1,k) = val1;
+    f(i,j+2,k) = val2;
+    f(i,j+3,k) = val3;
+    }
+    
+    
+    if(cs==2)
+    ILOOP
+    JLOOP
+    PCHECK
+    {
+    // 2 to 3 coupling
+    if(gcv!=3)
+    k=p->knoz-1;
+    
+    if(gcv==3)
+    k=p->knoz-2;
+    
+    val1 = f(i,j,k);
+    val2 = f(i,j-1,k);
+    val3 = f(i,j-2,k);
+    
+    k=0;
+	f(i,j-1,k) = val1;
+    f(i,j-2,k) = val2;
+    f(i,j-3,k) = val3;
+    
+    // 3 to 2 coupling
+    k=0;
+    val1 = f(i,j,k);
+    val2 = f(i,j,k+1);
+    val3 = f(i,j,k+2);
+    
+    if(gcv!=3)
+    k=p->knoz-1;
+    
+    if(gcv==3)
+    k=p->knoz-2;
+	f(i,j,k+1) = val1;
+    f(i,j,k+2) = val2;
+    f(i,j,k+3) = val3;
+    }
 }
 
 void ghostcell::gcV_periodic(lexer *p, vec &x, int gcv, int cs)
-{
+{/*
+    double val1,val2,val3;
+    
+    if(cs==1)
+    JLOOP
+    KLOOP
+    PCHECK
+    {
+        
+    // 4 to 1 coupling
+    if(gcv!=1)
+    i=p->knox-1;
+    
+    if(gcv==1)
+    i=p->knox-2;
+    
+    val1 = f(i,j,k);
+    val2 = f(i-1,j,k);
+    val3 = f(i-2,j,k);
+    
+    i=0;
+	f(i-1,j,k) = val1;
+    f(i-2,j,k) = val2;
+    f(i-3,j,k) = val3;
+    
+    
+    // 1 to 4 coupling
+    i=0;
+    val1 = f(i,j,k);
+    val2 = f(i+1,j,k);
+    val3 = f(i+2,j,k);
+    
+    if(gcv!=1)
+    i=p->knox-1;
+    
+    if(gcv==1)
+    i=p->knox-2;
+    
+	f(i+1,j,k) = val1;
+    f(i+2,j,k) = val2;
+    f(i+3,j,k) = val3;
+    }
+    
+    
+    if(cs==2)
+    ILOOP
+    KLOOP
+    PCHECK
+    {
+    // 2 to 3 coupling
+    if(gcv!=2)
+    j=p->knoy-1;
+    
+    if(gcv==2)
+    j=p->knoy-2;
+    
+    val1 = f(i,j,k);
+    val2 = f(i,j-1,k);
+    val3 = f(i,j-2,k);
+    
+    j=0;
+	f(i,j-1,k) = val1;
+    f(i,j-2,k) = val2;
+    f(i,j-3,k) = val3;
+    
+    // 3 to 2 coupling
+    j=0;
+    val1 = f(i,j,k);
+    val2 = f(i,j+1,k);
+    val3 = f(i,j+2,k);
+    
+    if(gcv!=2)
+    j=p->knoy-1;
+    
+    if(gcv==2)
+    j=p->knoy-2;
+	f(i,j+1,k) = val1;
+    f(i,j+2,k) = val2;
+    f(i,j+3,k) = val3;
+    }
+    
+    
+    if(cs==2)
+    ILOOP
+    JLOOP
+    PCHECK
+    {
+    // 2 to 3 coupling
+    if(gcv!=3)
+    k=p->knoz-1;
+    
+    if(gcv==3)
+    k=p->knoz-2;
+    
+    val1 = f(i,j,k);
+    val2 = f(i,j-1,k);
+    val3 = f(i,j-2,k);
+    
+    k=0;
+	f(i,j-1,k) = val1;
+    f(i,j-2,k) = val2;
+    f(i,j-3,k) = val3;
+    
+    // 3 to 2 coupling
+    k=0;
+    val1 = f(i,j,k);
+    val2 = f(i,j,k+1);
+    val3 = f(i,j,k+2);
+    
+    if(gcv!=3)
+    k=p->knoz-1;
+    
+    if(gcv==3)
+    k=p->knoz-2;
+	f(i,j,k+1) = val1;
+    f(i,j,k+2) = val2;
+    f(i,j,k+3) = val3;
+    }
+    
+    */
     /*
     n=id;
     
@@ -109,4 +311,8 @@ void ghostcell::gcV_periodic(lexer *p, vec &x, int gcv, int cs)
     x.V[I_J_Kp2_4]=x.V[I_J_K_4];
     x.V[I_J_Kp3_4]=x.V[I_J_K_4];
     }*/
+}
+
+void ghostcell::gcV_periodic_all(lexer *p, vec &x, int gcv, int cs)
+{
 }
