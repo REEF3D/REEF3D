@@ -24,9 +24,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"vec.h"
 #include"fdm.h"
 
-void ghostcell::gc_periodic(field& f, int gcv, int cs)
+void ghostcell::gc_periodic(lexer *p, field& f, int gcv, int cs)
 {
-    
+    /*
     if(cs==1)
     JLOOP
     KLOOP
@@ -60,11 +60,12 @@ void ghostcell::gc_periodic(field& f, int gcv, int cs)
 
 	if(cs==6)
 	for(q=0;q<margin;++q)
-	f(i,j,k+q+1)=f(i,j,k);
+	f(i,j,k+q+1)=f(i,j,k);*/
 }
 
-void ghostcell::gcV_periodic(vec &x, int gcv, int cs)
+void ghostcell::gcV_periodic(lexer *p, vec &x, int gcv, int cs)
 {
+    /*
     n=id;
     
 	if(cs==1)
@@ -107,5 +108,5 @@ void ghostcell::gcV_periodic(vec &x, int gcv, int cs)
     x.V[I_J_Kp1_4]=x.V[I_J_K_4];
     x.V[I_J_Kp2_4]=x.V[I_J_K_4];
     x.V[I_J_Kp3_4]=x.V[I_J_K_4];
-    }
+    }*/
 }

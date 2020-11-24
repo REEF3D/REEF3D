@@ -56,7 +56,7 @@ void ghostcell::start1(lexer *p, field& f, int gcv)
     if(p->Y40==2  || p->Y40==3)
     f.ggcpol(p);
     
-    if(p->periodic1==1)
+    //if(p->periodic1==1)
     
 }
 
