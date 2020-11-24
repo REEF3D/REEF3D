@@ -108,7 +108,7 @@ void ghostcell::gc_periodic(lexer *p, field& f, int gcv, int cs)
     }
     
     
-    if(cs==2)
+    if(cs==3)
     ILOOP
     JLOOP
     PCHECK
@@ -147,7 +147,7 @@ void ghostcell::gc_periodic(lexer *p, field& f, int gcv, int cs)
 }
 
 void ghostcell::gcV_periodic(lexer *p, vec &x, int gcv, int cs)
-{/*
+{
     double val1,val2,val3;
     
     if(cs==1)
@@ -155,18 +155,16 @@ void ghostcell::gcV_periodic(lexer *p, vec &x, int gcv, int cs)
     KLOOP
     PCHECK
     {
+    
         
     // 4 to 1 coupling
-    if(gcv!=1)
     i=p->knox-1;
     
-    if(gcv==1)
-    i=p->knox-2;
-    
-    val1 = f(i,j,k);
-    val2 = f(i-1,j,k);
-    val3 = f(i-2,j,k);
-    
+    val1 = x.V[I_J_K_4];
+    val2 = x.V[Im1_J_K_4];
+    val3 = x.V[Im2_J_K_4];
+    /*
+
     i=0;
 	f(i-1,j,k) = val1;
     f(i-2,j,k) = val2;
@@ -187,10 +185,10 @@ void ghostcell::gcV_periodic(lexer *p, vec &x, int gcv, int cs)
     
 	f(i+1,j,k) = val1;
     f(i+2,j,k) = val2;
-    f(i+3,j,k) = val3;
+    f(i+3,j,k) = val3;*/
     }
     
-    
+    /*
     if(cs==2)
     ILOOP
     KLOOP
@@ -264,9 +262,9 @@ void ghostcell::gcV_periodic(lexer *p, vec &x, int gcv, int cs)
 	f(i,j,k+1) = val1;
     f(i,j,k+2) = val2;
     f(i,j,k+3) = val3;
-    }
+    }*/
     
-    */
+    
     /*
     n=id;
     

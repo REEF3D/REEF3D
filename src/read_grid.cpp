@@ -346,6 +346,19 @@ void lexer::read_grid()
     Darray(gcd4, gcb4_count);
     Darray(gcd4a, gcb4a_count);
 	}
+    
+    if(periodic1==1||periodic2==1||periodic3==1)
+    {
+    gc4periodic_maxcount = 0;
+    gc4periodic_maxcount = MAX(knox*knoy,knox*knoz);
+    gc4periodic_maxcount = MAX(gc4periodic_maxcount,knoy*knoz);
+    
+    Iarray(gc4periodic_count,6);
+    Iarray(gc4aperiodic_count,6);
+    
+    Iarray(gc4periodic,6,gc4periodic_maxcount);
+    Iarray(gc4aperiodic,6,gc4periodic_maxcount);
+    }
 	
     Iarray(gcpara1, gcpara1_count,15);
     Iarray(gcpara2, gcpara2_count,15);

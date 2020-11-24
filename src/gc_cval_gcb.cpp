@@ -38,6 +38,13 @@ void ghostcell::cval_gcb4(lexer* p, fdm* a, fieldint &cval)
 	
 	p->gcb4[n][5]=cval(i,j,k);
 	}
+    
+    if(p->periodic1==1)
+    {
+    
+        
+        
+    }
 }
 
 void ghostcell::cval_gcb4a(lexer* p, fdm* a, fieldint &cval)
