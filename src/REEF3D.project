@@ -2519,7 +2519,6 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Wave Lib">
-        <File Name="wave_lib_ssgw_routines.cpp"/>
         <File Name="wave_lib_ssgw.cpp"/>
         <VirtualDirectory Name="WCP">
           <File Name="wave_lib_wcp_pos_ijk.cpp"/>
