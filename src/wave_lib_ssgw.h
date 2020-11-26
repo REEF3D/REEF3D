@@ -18,11 +18,13 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Authors: 
-    Csaba Pakozdi: Routine implementation
+    Csaba Pakozdi, Sébastien Fouques: Routine implementation
     Tobias Martin: Interface implementation
 
-Based on Clamond and Dutykh (2018). Accurate fast computation of steady two-dimensional 
-surface gravity waves in arbitrary depth. Journal of Fluid Mechanics, Vol. 844, pp. 491-518.
+Based on Clamond and Dutykh SSWG.m Matlab script "Computation of irrotational 2D periodic 
+surface pure gravity waves of arbitrary length in arbitrary depth".
+See also: Clamond and Dutykh (2018). "Accurate fast computation of steady two-dimensional 
+surface gravity waves in arbitrary depth." Journal of Fluid Mechanics, Vol. 844, pp. 491-518.
 --------------------------------------------------------------------*/
 
 #include"wave_lib_precalc.h"
