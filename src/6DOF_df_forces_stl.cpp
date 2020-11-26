@@ -36,7 +36,7 @@ void sixdof_df_object::forces_stl
 	double at,bt,ct,st;
 	double nx,ny,nz,norm;
 	double A_triang,A;
-	double p_int,rho_int,nu_int,u_int,v_int,w_int;
+	double p_int,rho_int,nu_int,enu_int,u_int,v_int,w_int;
 	double du,dv,dw, dudx, dudy, dudz, dvdx, dvdy, dvdz, dwdx, dwdy, dwdz;
 	double dudxf, dudyf, dudzf, dvdxf, dvdyf, dvdzf, dwdxf, dwdyf, dwdzf;
 	double dudxb, dudyb, dudzb, dvdxb, dvdyb, dvdzb, dwdxb, dwdyb, dwdzb;
@@ -119,6 +119,7 @@ void sixdof_df_object::forces_stl
 			// Add tangential stress contributions
 			
 			nu_int = p->ccipol4(a->visc,xlocvel,ylocvel,zlocvel);
+			enu_int = p->ccipol4(a->eddyv,xlocvel,ylocvel,zlocvel);
 			rho_int = p->ccipol4(a->ro,xlocvel,ylocvel,zlocvel);
 			
             // Central differences                                 
@@ -161,9 +162,9 @@ void sixdof_df_object::forces_stl
             dwdzb = (wvel(i,j,k) - wvel(i,j,k-1))/(p->DZP[KP] + p->DZP[KM1]);
         */
 
-            Fx += rho_int*nu_int*A_triang*(2.0*dudx*nx + (dudy + dvdx)*ny + (dudz + dwdx)*nz);
-            Fy += rho_int*nu_int*A_triang*((dudy + dvdx)*nx + 2.0*dvdy*ny + (dvdz + dwdy)*nz);
-            Fz += rho_int*nu_int*A_triang*((dudz + dwdx)*nx + (dvdz + dwdy)*ny + 2.0*dwdz*nz);
+            Fx += rho_int*(nu_int + enu_int)*A_triang*(2.0*dudx*nx + (dudy + dvdx)*ny + (dudz + dwdx)*nz);
+            Fy += rho_int*(nu_int + enu_int)*A_triang*((dudy + dvdx)*nx + 2.0*dvdy*ny + (dvdz + dwdy)*nz);
+            Fz += rho_int*(nu_int + enu_int)*A_triang*((dudz + dwdx)*nx + (dvdz + dwdy)*ny + 2.0*dwdz*nz);
 
 
 			// Add forces to global forces
