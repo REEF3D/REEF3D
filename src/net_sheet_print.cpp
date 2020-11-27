@@ -165,8 +165,5 @@ void net_sheet::print(lexer *p)
             result<<x_(ii,0)<<","<<x_(ii,1)<<","<<x_(ii,2)<<","<<forces_knot(ii,0)<<","<<forces_knot(ii,1)<<","<<forces_knot(ii,2)<<endl;
         }
         result.close();
-
-
-
 	}
 }

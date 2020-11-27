@@ -169,7 +169,7 @@ void net_barDyn::vransCoupling(lexer *p, fdm *a, ghostcell *pgc)
             }            
             
 
-            // Save directional forces at lagrangian points (w/o density since multiplied later), w/o area now
+            // Save directional forces at lagrangian points (w/o density since multiplied later)
 
             lagrangeForces[i] = 0.5*area*pow(v_mag_corr,2.0)*(cd*n_d + cl*n_l);
 
