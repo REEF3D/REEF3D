@@ -141,9 +141,9 @@ void sixdof_df_object::read_stl(lexer *p, fdm *a, ghostcell *pgc)
 	}
 	
     // rotate STL model
-    p->X183_phi *= (PI/180.0);
-    p->X183_theta *= (PI/180.0);
-    p->X183_psi *= (PI/180.0);
+    p->X183_phi *= -(PI/180.0);
+    p->X183_theta *= -(PI/180.0);
+    p->X183_psi *= -(PI/180.0);
 
     for(int qr=0;qr<tricount;++qr)
     {
