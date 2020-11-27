@@ -47,7 +47,17 @@ void net_sheet::ini(lexer *p, fdm *a, ghostcell *pgc)
     int triD = int(2.0*PI/dalpha)*2;
     int triL = int(p->X322_L[nNet]/dz); 
     tend = triD*triL;    
-    
+
+    // Bottom cone
+    double h = 0.614;
+    double zb2 = p->X322_z0[nNet] - h;
+    double r2 = 0.04;
+    double dz2 = h/1;
+
+    int triL2 = int(h/dz2);
+    tend += triL2*triD;
+
+    // Fill
     vector<double> vec3(3,0.0);
     tri_x.resize(tend, vec3);
     tri_y.resize(tend, vec3);
@@ -93,6 +103,41 @@ void net_sheet::ini(lexer *p, fdm *a, ghostcell *pgc)
         }
     }
 
+    for(int n = 0; n < triD/2; ++n)
+    {
+        for (int q = 0; q < triL2; ++q)
+        {
+            // 1st triangle
+            tri_x[tricount][0] = xm + r2*cos(n*dalpha);
+            tri_y[tricount][0] = ym + r2*sin(n*dalpha);
+            tri_z[tricount][0] = zb2 + q*dz2;
+
+            tri_x[tricount][1] = xm + r*cos((n+1)*dalpha);
+            tri_y[tricount][1] = ym + r*sin((n+1)*dalpha);
+            tri_z[tricount][1] = zb2 + (q+1)*dz2;
+
+            tri_x[tricount][2] = xm + r2*cos((n+1)*dalpha);
+            tri_y[tricount][2] = ym + r2*sin((n+1)*dalpha);
+            tri_z[tricount][2] = zb2 + q*dz2;
+
+            ++tricount;
+
+            // 2nd triangle
+            tri_x[tricount][0] = xm + r2*cos(n*dalpha);
+            tri_y[tricount][0] = ym + r2*sin(n*dalpha);
+            tri_z[tricount][0] = zb2 + q*dz2;
+
+            tri_x[tricount][1] = xm + r*cos((n+1)*dalpha);
+            tri_y[tricount][1] = ym + r*sin((n+1)*dalpha);
+            tri_z[tricount][1] = zb2 + (q+1)*dz2;
+
+            tri_x[tricount][2] = xm + r*cos(n*dalpha);
+            tri_y[tricount][2] = ym + r*sin(n*dalpha);
+            tri_z[tricount][2] = zb2 + (q+1)*dz2;
+
+            ++tricount;
+        }
+    }
 
 // OceanFarm 1
 /*
