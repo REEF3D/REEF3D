@@ -62,7 +62,6 @@ int ghostcell::gceval2(lexer *p, int gcv, int bc, int cs)
 	
 
 //Inflow
-	
 	else
 	if(bc==1 && (gcv==21))
 	return 4;
@@ -82,7 +81,6 @@ int ghostcell::gceval2(lexer *p, int gcv, int bc, int cs)
 
 
 //Free Surface
-
 	else
 	if(bc==3 && (cs==1||cs==4||cs==5||cs==6) && (gcv==11||gcv==21||gcv==18 || gcv==2))
 	return 4;
