@@ -1864,6 +1864,8 @@
         <File Name="gcibm_distguard.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Parallel">
+        <File Name="gcx_periodicvec.cpp"/>
+        <File Name="gcx_periodic.cpp"/>
         <File Name="gcx_paraxijk_single.cpp"/>
         <File Name="gcx_paraxijk.cpp"/>
         <File Name="gcx_paraxint.cpp"/>

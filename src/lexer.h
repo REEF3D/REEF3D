@@ -143,12 +143,14 @@ public:
     
     // serial periodic BC
     int periodic1,periodic2,periodic3;
+    int periodicX1,periodicX2,periodicX3,periodicX4,periodicX5,periodicX6;
     
     int **gc4periodic;
     int **gc4aperiodic;
     int *gc4periodic_count;
     int *gc4aperiodic_count;
     int gc4periodic_maxcount;
+    
 
 	//IBM
 	int **facet;

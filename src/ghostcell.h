@@ -212,6 +212,9 @@ public:
 	void gcparavoidx(lexer*, field&, int);
     void gcparax4a(lexer*, field&, int);
 	void gcparacox(lexer*, field&, int);
+    void gcperiodicx(lexer*, field&, int);
+    void gcperiodicxvec(lexer*, vec&, int);
+    void gcperiodicxvec_sr(lexer*, vec&,cpt&,int);
     void gcsync();
 	void verticalmax(lexer*,fdm*,double**);
     void verticalsum(lexer*,fdm*,double**);

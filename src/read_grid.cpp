@@ -237,6 +237,7 @@ void lexer::read_grid()
     nb5=iin;
     grid.read((char*)&iin, sizeof (int));
     nb6=iin;
+    
 
 	grid.read((char*)&iin, sizeof (int));
     mx=iin;
@@ -271,6 +272,20 @@ void lexer::read_grid()
     periodic2=iin;
     grid.read((char*)&iin, sizeof (int));
     periodic3=iin;
+    
+    grid.read((char*)&iin, sizeof (int));
+    periodicX1=iin;
+    grid.read((char*)&iin, sizeof (int));
+    periodicX2=iin;
+    grid.read((char*)&iin, sizeof (int));
+    periodicX3=iin;
+    grid.read((char*)&iin, sizeof (int));
+    periodicX4=iin;
+    grid.read((char*)&iin, sizeof (int));
+    periodicX5=iin;
+    grid.read((char*)&iin, sizeof (int));
+    periodicX6=iin;
+    
     
     grid.read((char*)&iin, sizeof (int));
     G51=iin;

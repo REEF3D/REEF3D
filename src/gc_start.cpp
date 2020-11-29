@@ -49,6 +49,8 @@ void ghostcell::start1(lexer *p, field& f, int gcv)
 	p->gctime+=endtime-starttime;
     
     // periodic ghostcells
+    gcperiodicx(p,f,1);
+    
     if(p->periodic1==1)
     gc_periodic(p, f, 1, 1);
     
@@ -95,6 +97,8 @@ void ghostcell::start2(lexer *p, field& f, int gcv)
 	p->gctime+=endtime-starttime;
     
     // periodic ghostcells
+    gcperiodicx(p,f,2);
+    
     if(p->periodic1==1)
     gc_periodic(p, f, 2, 1);
     
@@ -138,6 +142,8 @@ void ghostcell::start3(lexer *p, field& f, int gcv)
 	p->gctime+=endtime-starttime;
     
     // periodic ghostcells
+    gcperiodicx(p,f,3);
+    
     if(p->periodic1==1)
     gc_periodic(p, f, 3, 1);
     
@@ -184,6 +190,8 @@ void ghostcell::start4(lexer *p, field &f, int gcv)
     nse4(p,a,f,gcv);
     
     // periodic ghostcells
+    gcperiodicx(p,f,4);
+    
     if(p->periodic1==1)
     gc_periodic(p, f, 4, 1);
     
@@ -221,6 +229,8 @@ void ghostcell::start4a(lexer *p, field& f, int gcv)
 	p->gctime+=endtime-starttime;
     
     // periodic ghostcells
+    gcperiodicx(p,f,4);
+    
     if(p->periodic1==1)
     gc_periodic(p, f, 4, 1);
     
@@ -246,6 +256,9 @@ void ghostcell::start4V(lexer *p, vec &x, int gcv)
 	gcdistro4V(p,a,x,p->gcb4[qq][0],p->gcb4[qq][1], p->gcb4[qq][2], p->gcd4[qq], gcv, p->gcb4[qq][4], p->gcb4[qq][3], p->gcb4[qq][5]);
 	endtime=timer();
 	p->gctime+=endtime-starttime;
+    
+    // periodic ghostcells
+    gcperiodicxvec(p,x,4);
 }
 
 void ghostcell::start4aV(lexer *p, vec &x, int gcv)
@@ -262,8 +275,10 @@ void ghostcell::start4aV(lexer *p, vec &x, int gcv)
 	QQGC4ALOOP
 	gcdistro4aV(p,a,x,p->gcb4a[qq][0],p->gcb4a[qq][1], p->gcb4a[qq][2], p->gcd4a[qq], gcv, p->gcb4a[qq][4], p->gcb4a[qq][3], p->gcb4a[qq][5]);
 	endtime=timer();
-    
 	p->gctime+=endtime-starttime;
+    
+    // periodic ghostcells
+    gcperiodicxvec(p,x,4);
 }
 
 void ghostcell::start6V(lexer *p, vec &x, int gcv)
@@ -282,6 +297,9 @@ void ghostcell::start6V(lexer *p, vec &x, int gcv)
 	gcdistro6V(p,a,x,p->gcb4[qq][0],p->gcb4[qq][1], p->gcb4[qq][2], p->gcd4[qq], gcv, p->gcb4[qq][4], fabs(p->gcb4[qq][3]), p->gcb6[qq]);
 	endtime=timer();
 	p->gctime+=endtime-starttime;
+    
+    // periodic ghostcells
+    gcperiodicxvec(p,x,6);
 }
 
 void ghostcell::start7V(lexer *p, double *x, sliceint &bc, int gcv)
