@@ -71,7 +71,11 @@ void sixdof_df::forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<
         // Save and print
         p_df_obj[nb]->saveTimeStep(p,alpha);
         p_df_obj[nb]->interface(p,true);
-        p_df_obj[nb]->print_stl(p,a,pgc);
-        p_df_obj[nb]->print_parameter(p, a, pgc);
+
+        if (alpha == 2.0/3.0)
+        {
+            p_df_obj[nb]->print_stl(p,a,pgc);
+            p_df_obj[nb]->print_parameter(p, a, pgc);
+        }
     }
 }

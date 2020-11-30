@@ -119,7 +119,7 @@ void sixdof_df_object::forces_stl
 			// Add tangential stress contributions
 			
 			nu_int = p->ccipol4(a->visc,xlocvel,ylocvel,zlocvel);
-			enu_int = p->ccipol4(a->eddyv,xlocvel,ylocvel,zlocvel);
+			enu_int = 0.0;//p->ccipol4(a->eddyv,xlocvel,ylocvel,zlocvel);
 			rho_int = p->ccipol4(a->ro,xlocvel,ylocvel,zlocvel);
 			
             // Central differences                                 
