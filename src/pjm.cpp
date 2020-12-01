@@ -101,14 +101,26 @@ void pjm::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, io
 	if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
     
-    if(p->mpirank==5)
+    if(p->mpirank==0)
     {
-    i=p->knox-1;
-    j=0;
+    i=0;
+    j=3;
     k=5;
     
-    cout<<"PRESS: "<<a->press(i-1,j,k)<<" "<<a->press(i,j,k)<<" "<<a->press(i+1,j,k)<<" "<<a->press(i+2,j,k)<<" "<<a->press(i+3,j,k)<<" "<<endl;
+    cout<<"PRESS PJM 1: "<<a->press(i+1,j,k)<<" "<<a->press(i,j,k)<<" "<<a->press(i-1,j,k)<<" "<<a->press(i-2,j,k)<<" "<<a->press(i-3,j,k)<<" "<<endl;
     }
+    
+    if(p->mpirank==7)
+    {
+    i=p->knox-1;
+    j=3;
+    k=5;
+    
+    cout<<"PRESS PJM 4: "<<a->press(i-1,j,k)<<" "<<a->press(i,j,k)<<" "<<a->press(i+1,j,k)<<" "<<a->press(i+2,j,k)<<" "<<a->press(i+3,j,k)<<" "<<endl;
+    }
+    
+    
+    
 }
 
 void pjm::ucorr(lexer* p, fdm* a, field& uvel,double alpha)

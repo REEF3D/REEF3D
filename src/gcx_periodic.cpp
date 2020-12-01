@@ -269,6 +269,27 @@ void ghostcell::gcperiodicx(lexer* p,field& f,int gcv)
             ++count;
         }
 	}
+    
+    /*
+    
+    if(p->mpirank==7)
+    {
+    i=p->knox-1;
+    j=0;
+    k=5;
+    
+    cout<<"PRESS PERIODX 1: "<<f(i-1,j,k)<<" "<<f(i,j,k)<<" "<<f(i+1,j,k)<<" "<<f(i+2,j,k)<<" "<<f(i+3,j,k)<<" "<<endl;
+    }
+    
+    
+    if(p->mpirank==0)
+    {
+    i=0;
+    j=0;
+    k=5;
+    
+    cout<<"PRESS PERIODX 4: "<<f(i+1,j,k)<<" "<<f(i,j,k)<<" "<<f(i-1,j,k)<<" "<<f(i-2,j,k)<<" "<<f(i-3,j,k)<<" "<<endl;
+    }*/
 
 }
 
