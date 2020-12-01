@@ -1,7 +1,7 @@
 BUILD    := ./build
 BIN    	 := ./bin
 TARGET   := reef3d
-CXX      := -mpicxx
+CXX      := mpicxx
 
 OBJ_DIR   := $(BUILD)
 APP_DIR   := $(BIN)
