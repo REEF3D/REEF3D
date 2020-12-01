@@ -129,8 +129,6 @@ void ghostcell::gcperiodicx(lexer* p,field& f,int gcv)
         ++count;
         }
 	}
-    
-   // pip=0;
 
 //  SEND / RECEIVE
 
@@ -244,7 +242,7 @@ void ghostcell::gcperiodicx(lexer* p,field& f,int gcv)
 	for(q=p->periodicX2;q<p->gcpara2_count;++q)
 	{
     i=p->gcpara2[q][0];
-    j=p->gcpara2[q][1]-cc;
+    j=p->gcpara2[q][1]-bb;
     k=p->gcpara2[q][2];
         
         if(p->gcpara2[q][2+gcv]>=1)

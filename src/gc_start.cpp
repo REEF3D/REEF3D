@@ -278,7 +278,7 @@ void ghostcell::start4aV(lexer *p, vec &x, int gcv)
 	p->gctime+=endtime-starttime;
     
     // periodic ghostcells
-    gcperiodicxvec(p,x,4);
+    gcperiodicxvec(p,x,5);
 }
 
 void ghostcell::start6V(lexer *p, vec &x, int gcv)

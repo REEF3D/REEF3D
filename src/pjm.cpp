@@ -100,6 +100,15 @@ void pjm::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, io
 
 	if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
+    
+    if(p->mpirank==5)
+    {
+    i=p->knox-1;
+    j=0;
+    k=5;
+    
+    cout<<"PRESS: "<<a->press(i-1,j,k)<<" "<<a->press(i,j,k)<<" "<<a->press(i+1,j,k)<<" "<<a->press(i+2,j,k)<<" "<<a->press(i+3,j,k)<<" "<<endl;
+    }
 }
 
 void pjm::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
@@ -133,7 +142,7 @@ void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, do
     count=0;
     LOOP
     {
-    a->rhsvec.V[count] =  -(u(i,j,k)-u(i-1,j,k))/(alpha*p->dt*p->DXN[IP])
+    a->rhsvec.V[count] = a->test(i,j,k)=  -(u(i,j,k)-u(i-1,j,k))/(alpha*p->dt*p->DXN[IP])
 						   -(v(i,j,k)-v(i,j-1,k))/(alpha*p->dt*p->DYN[JP])
 						   -(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DZN[KP]);
     

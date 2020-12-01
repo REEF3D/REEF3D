@@ -118,8 +118,7 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
         }
 	}
     
-   // pip=0;
-
+    
 //  SEND / RECEIVE
 
     if(p->gcpara1_count>0)

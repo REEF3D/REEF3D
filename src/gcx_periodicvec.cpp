@@ -25,7 +25,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void ghostcell::gcperiodicxvec(lexer* p, vec &x, int gcv)
 {
-		
 	if(gcv==4)
 	gcparaxvec_sr(p,x,a->C4,4);
 	
