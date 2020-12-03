@@ -444,6 +444,9 @@ public:
 	// Grid
 	int Y40,Y50,Y60,Y71,Y72,Y73,Y74;
 
+    // Test options
+    int Y1,Y2,Y3,Y4,Y5;
+
 	// time + iterations
 	int inneriter,count,solveriter,preconiter,count_statestart;
     double final_res;

@@ -664,7 +664,12 @@ void lexer::ini_default()
     X325_dt=X325_relX=X325_relY=X325_relZ=0.0;   // double dynamic net time step properties
 	
 	// Developer 
-	Y40=3;
+	Y1=0;   // int turn on/off experimental screen force model
+    Y2=0;
+    Y3=0;
+    Y4=0;
+    Y5=0;
+    Y40=3;
     Y50=5;
 	Y60=1;  // int require 
     Y71=0;  // int turn on/off solid gcparax

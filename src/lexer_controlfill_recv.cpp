@@ -1424,6 +1424,16 @@ void lexer::ctrlrecv()
 	dd++;
 	
 
+    Y1 = ictrl[ii];
+	ii++;
+    Y2 = ictrl[ii];
+	ii++;
+    Y3 = ictrl[ii];
+	ii++;
+    Y4 = ictrl[ii];
+	ii++;
+    Y5 = ictrl[ii];
+	ii++;
     Y40 = ictrl[ii];
 	ii++;
     Y50 = ictrl[ii];

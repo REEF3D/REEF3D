@@ -151,6 +151,17 @@ void net_barQuasiStatic::screenForceCoeff
 
     double cl0 = (0.5*cd0 - ct_piFourth)/sqrt(2.0);
 
+
+    if(p->Y1 == 1)
+    {
+        // Experimental values 
+        a3 = 0.0; a5 = 0.0; b2 = 0.0; b4 = 0.0; b6 = 0.0;
+
+        vector<double> p {-0.132, 340.797, -59.643, -9.129, 2.245, -12473.957, 0.063, 27831.591, 1458.245, 0.619};
+    
+        cd0 = p[0]*v_mag + p[1]*d_c + p[2]*l_c + p[3]*v_mag*d_c + p[4]*v_mag*l_c + p[5]*d_c*l_c + p[6]*v_mag*v_mag + p[7]*d_c*d_c + p[8]*l_c*l_c + p[9];
+    }
+
     cd = cd0*((1.0 - a3 - a5)*cos(thetan) + a3*cos(3.0*thetan) + a5*cos(5.0*thetan));
 
     cl = cl0*(b2*sin(2.0*thetan) + b4*sin(4.0*thetan) + b6*sin(6.0*thetan));

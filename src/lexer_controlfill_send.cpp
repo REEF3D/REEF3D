@@ -1427,6 +1427,16 @@ void lexer::ctrlsend()
     dctrl[dd] = X325_relZ;
 	dd++;
 	
+	ictrl[ii] = Y1;
+	ii++;
+	ictrl[ii] = Y2;
+	ii++;
+	ictrl[ii] = Y3;
+	ii++;
+	ictrl[ii] = Y4;
+	ii++;
+	ictrl[ii] = Y5;
+	ii++;
 	ictrl[ii] = Y40;
 	ii++;
     ictrl[ii] = Y50;
