@@ -39,7 +39,7 @@ void iowave::wavegen_2D_precalc_ini(lexer *p, ghostcell *pgc)
 		if(p->B98==2 && u_switch==1)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             ++upt_count;
 		}
     }
@@ -55,7 +55,7 @@ void iowave::wavegen_2D_precalc_ini(lexer *p, ghostcell *pgc)
 		if(p->B98==2 && v_switch==1)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             ++vpt_count;
 		}
     }
@@ -69,7 +69,7 @@ void iowave::wavegen_2D_precalc_ini(lexer *p, ghostcell *pgc)
 		if(p->B98==2 && w_switch==1)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             ++wpt_count;
 
 		}
@@ -84,11 +84,13 @@ void iowave::wavegen_2D_precalc_ini(lexer *p, ghostcell *pgc)
 		if(p->B98==2 && w_switch==1)
         {
             // Zone 1
-            if(dg<dist1+3.0*p->DXM)
+            if(dg<1.0e20)
             ++ept_count;
 
 		}
     }	
+    
+    cout<<"EPT_COUNT: "<<ept_count;
     
     // precalc array alloc
     upt_count *= (p->B160+1); 
@@ -127,8 +129,5 @@ void iowave::wavegen_2D_precalc_ini(lexer *p, ghostcell *pgc)
     p->Darray(etaval_T_cos,p->wN);
     p->Darray(Fival_T_cos,p->wN);
     }
-    
-    
-    
 
 }

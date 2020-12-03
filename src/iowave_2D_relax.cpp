@@ -26,7 +26,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
 {
-    
 	count=0;
     SLICELOOP4
     {
