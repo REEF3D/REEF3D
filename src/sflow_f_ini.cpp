@@ -72,6 +72,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 
     ptime->ini(p,b ,pgc);
     
+    pflow->ini2D(p,b,pgc);
     
     // bed ini
 	ILOOP
@@ -141,8 +142,10 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
     
     // ioflow ini
-    pflow->ini2D(p,b,pgc);
     potflow->start(p,b,ppoissonsolv,pgc);
+    
+    // FSF ini
+    ini_fsf_2(p,b,pgc);
 
     pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
 
@@ -335,12 +338,14 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
         }
     }
       
-    
-
-
 	pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
 
+}
 
+
+
+void sflow_f::ini_fsf_2(lexer *p, fdm2D* b, ghostcell* pgc)
+{
     // eta ini
 	pflow->eta_relax(p,pgc,b->eta);
     pgc->gcsl_start4(p,b->eta,50);
@@ -348,5 +353,4 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
     // eta_n ini
     SLICELOOP4
     b->eta_n(i,j) = b->eta(i,j);
-
 }

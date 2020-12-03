@@ -23,13 +23,25 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 
-void ghostcell::gcparax(lexer* p,field& f,int gcv)
+void ghostcell::gcperiodicx(lexer* p,field& f,int gcv)
 {
     paramargin=margin;
+    
+    int aa,bb,cc;
+    aa=bb=cc=0;
+    
+    if(gcv==1)
+    aa=1;
+    
+    if(gcv==2)
+    bb=1;
+    
+    if(gcv==3)
+    cc=1;
 
 //  FILL SEND
     count=0;
-    for(q=0;q<p->gcpara1_count;++q)
+    for(q=p->periodicX1;q<p->gcpara1_count;++q)
     {
     i=p->gcpara1[q][0]-1;
     j=p->gcpara1[q][1];
@@ -44,7 +56,7 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
     }
 
     count=0;
-    for(q=0;q<p->gcpara3_count;++q)
+    for(q=p->periodicX3;q<p->gcpara3_count;++q)
     {
     i=p->gcpara3[q][0];
     j=p->gcpara3[q][1]-1;
@@ -59,7 +71,7 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
     }
 
     count=0;
-	for(q=0;q<p->gcpara5_count;++q)
+	for(q=p->periodicX5;q<p->gcpara5_count;++q)
 	{
     i=p->gcpara5[q][0];
     j=p->gcpara5[q][1];
@@ -74,9 +86,9 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
 	}
 
     count=0;
-	for(q=0;q<p->gcpara4_count;++q)
+	for(q=p->periodicX4;q<p->gcpara4_count;++q)
 	{
-    i=p->gcpara4[q][0]+1;
+    i=p->gcpara4[q][0]+1-aa;
     j=p->gcpara4[q][1];
     k=p->gcpara4[q][2];
         
@@ -89,10 +101,10 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
 	}
 
     count=0;
-	for(q=0;q<p->gcpara2_count;++q)
+	for(q=p->periodicX2;q<p->gcpara2_count;++q)
 	{
     i=p->gcpara2[q][0];
-    j=p->gcpara2[q][1]+1;
+    j=p->gcpara2[q][1]+1-bb;
     k=p->gcpara2[q][2];
         
         if(p->gcpara2[q][2+gcv]>=1)
@@ -104,11 +116,11 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
 	}
 
     count=0;
-	for(q=0;q<p->gcpara6_count;++q)
+	for(q=p->periodicX6;q<p->gcpara6_count;++q)
 	{
 	i=p->gcpara6[q][0];
     j=p->gcpara6[q][1];
-    k=p->gcpara6[q][2]+1;
+    k=p->gcpara6[q][2]+1-cc;
         
         if(p->gcpara6[q][2+gcv]>=1)
         for(n=0;n<paramargin;++n)
@@ -117,44 +129,43 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
         ++count;
         }
 	}
-    
-    
+
 //  SEND / RECEIVE
 
     if(p->gcpara1_count>0)
     {
-	MPI_Isend(send1,p->gcpara1_count*paramargin,MPI_DOUBLE,p->nb1,tag1,mpi_comm,&sreq1);
-	MPI_Irecv(recv1,p->gcpara1_count*paramargin,MPI_DOUBLE,p->nb1,tag4,mpi_comm,&rreq1);
+	MPI_Isend(send1,(p->gcpara1_count-p->periodicX1)*paramargin,MPI_DOUBLE,p->nb1,tag1,mpi_comm,&sreq1);
+	MPI_Irecv(recv1,(p->gcpara1_count-p->periodicX1)*paramargin,MPI_DOUBLE,p->nb1,tag4,mpi_comm,&rreq1);
     }
 
     if(p->gcpara4_count>0)
     {
-	MPI_Isend(send4,p->gcpara4_count*paramargin,MPI_DOUBLE,p->nb4,tag4,mpi_comm,&sreq4);
-	MPI_Irecv(recv4,p->gcpara4_count*paramargin,MPI_DOUBLE,p->nb4,tag1,mpi_comm,&rreq4);
+	MPI_Isend(send4,(p->gcpara4_count-p->periodicX4)*paramargin,MPI_DOUBLE,p->nb4,tag4,mpi_comm,&sreq4);
+	MPI_Irecv(recv4,(p->gcpara4_count-p->periodicX4)*paramargin,MPI_DOUBLE,p->nb4,tag1,mpi_comm,&rreq4);
     }
 
     if(p->gcpara3_count>0)
     {
-	MPI_Isend(send3,p->gcpara3_count*paramargin,MPI_DOUBLE,p->nb3,tag3,mpi_comm,&sreq3);
-	MPI_Irecv(recv3,p->gcpara3_count*paramargin,MPI_DOUBLE,p->nb3,tag2,mpi_comm,&rreq3);
+	MPI_Isend(send3,(p->gcpara3_count-p->periodicX3)*paramargin,MPI_DOUBLE,p->nb3,tag3,mpi_comm,&sreq3);
+	MPI_Irecv(recv3,(p->gcpara3_count-p->periodicX3)*paramargin,MPI_DOUBLE,p->nb3,tag2,mpi_comm,&rreq3);
     }
 
     if(p->gcpara2_count>0)
     {
-	MPI_Isend(send2,p->gcpara2_count*paramargin,MPI_DOUBLE,p->nb2,tag2,mpi_comm,&sreq2);
-	MPI_Irecv(recv2,p->gcpara2_count*paramargin,MPI_DOUBLE,p->nb2,tag3,mpi_comm,&rreq2);
+	MPI_Isend(send2,(p->gcpara2_count-p->periodicX2)*paramargin,MPI_DOUBLE,p->nb2,tag2,mpi_comm,&sreq2);
+	MPI_Irecv(recv2,(p->gcpara2_count-p->periodicX2)*paramargin,MPI_DOUBLE,p->nb2,tag3,mpi_comm,&rreq2);
     }
 
     if(p->gcpara5_count>0)
     {
-	MPI_Isend(send5,p->gcpara5_count*paramargin,MPI_DOUBLE,p->nb5,tag5,mpi_comm,&sreq5);
-	MPI_Irecv(recv5,p->gcpara5_count*paramargin,MPI_DOUBLE,p->nb5,tag6,mpi_comm,&rreq5);
+	MPI_Isend(send5,(p->gcpara5_count-p->periodicX5)*paramargin,MPI_DOUBLE,p->nb5,tag5,mpi_comm,&sreq5);
+	MPI_Irecv(recv5,(p->gcpara5_count-p->periodicX5)*paramargin,MPI_DOUBLE,p->nb5,tag6,mpi_comm,&rreq5);
     }
 
     if(p->gcpara6_count>0)
     {
-	MPI_Isend(send6,p->gcpara6_count*paramargin,MPI_DOUBLE,p->nb6,tag6,mpi_comm,&sreq6);
-	MPI_Irecv(recv6,p->gcpara6_count*paramargin,MPI_DOUBLE,p->nb6,tag5,mpi_comm,&rreq6);
+	MPI_Isend(send6,(p->gcpara6_count-p->periodicX6)*paramargin,MPI_DOUBLE,p->nb6,tag6,mpi_comm,&sreq6);
+	MPI_Irecv(recv6,(p->gcpara6_count-p->periodicX6)*paramargin,MPI_DOUBLE,p->nb6,tag5,mpi_comm,&rreq6);
     }
 
 //  WAIT
@@ -164,7 +175,7 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
 //  FILL RECEIVE
 
     count=0;
-    for(q=0;q<p->gcpara1_count;++q)
+    for(q=p->periodicX1;q<p->gcpara1_count;++q)
     {
     i=p->gcpara1[q][0];
     j=p->gcpara1[q][1];
@@ -180,7 +191,7 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
     }
 
     count=0;
-	for(q=0;q<p->gcpara3_count;++q)
+	for(q=p->periodicX3;q<p->gcpara3_count;++q)
 	{
     i=p->gcpara3[q][0];
     j=p->gcpara3[q][1];
@@ -196,7 +207,7 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
 	}
 
 	count=0;
-    for(q=0;q<p->gcpara5_count;++q)
+    for(q=p->periodicX5;q<p->gcpara5_count;++q)
     {
     i=p->gcpara5[q][0];
     j=p->gcpara5[q][1];
@@ -212,9 +223,9 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
     }
 
     count=0;
-	for(q=0;q<p->gcpara4_count;++q)
+	for(q=p->periodicX4;q<p->gcpara4_count;++q)
 	{
-    i=p->gcpara4[q][0];
+    i=p->gcpara4[q][0]-aa;
     j=p->gcpara4[q][1];
     k=p->gcpara4[q][2];
         
@@ -228,10 +239,10 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
 	}
 
     count=0;
-	for(q=0;q<p->gcpara2_count;++q)
+	for(q=p->periodicX2;q<p->gcpara2_count;++q)
 	{
     i=p->gcpara2[q][0];
-    j=p->gcpara2[q][1];
+    j=p->gcpara2[q][1]-bb;
     k=p->gcpara2[q][2];
         
         if(p->gcpara2[q][2+gcv]>=1)
@@ -244,11 +255,11 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
 	}
 
     count=0;
-	for(q=0;q<p->gcpara6_count;++q)
+	for(q=p->periodicX6;q<p->gcpara6_count;++q)
 	{
     i=p->gcpara6[q][0];
     j=p->gcpara6[q][1];
-    k=p->gcpara6[q][2];
+    k=p->gcpara6[q][2]-cc;
         
         if(p->gcpara6[q][2+gcv]>=1)
         for(n=0;n<paramargin;++n)
@@ -258,6 +269,27 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
             ++count;
         }
 	}
+    
+    /*
+    
+    if(p->mpirank==7)
+    {
+    i=p->knox-1;
+    j=0;
+    k=5;
+    
+    cout<<"PRESS PERIODX 1: "<<f(i-1,j,k)<<" "<<f(i,j,k)<<" "<<f(i+1,j,k)<<" "<<f(i+2,j,k)<<" "<<f(i+3,j,k)<<" "<<endl;
+    }
+    
+    
+    if(p->mpirank==0)
+    {
+    i=0;
+    j=0;
+    k=5;
+    
+    cout<<"PRESS PERIODX 4: "<<f(i+1,j,k)<<" "<<f(i,j,k)<<" "<<f(i-1,j,k)<<" "<<f(i-2,j,k)<<" "<<f(i-3,j,k)<<" "<<endl;
+    }*/
 
 }
 

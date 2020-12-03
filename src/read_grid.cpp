@@ -237,6 +237,7 @@ void lexer::read_grid()
     nb5=iin;
     grid.read((char*)&iin, sizeof (int));
     nb6=iin;
+    
 
 	grid.read((char*)&iin, sizeof (int));
     mx=iin;
@@ -264,6 +265,27 @@ void lexer::read_grid()
     bcside5=iin;
     grid.read((char*)&iin, sizeof (int));
     bcside6=iin;
+    
+    grid.read((char*)&iin, sizeof (int));
+    periodic1=iin;
+    grid.read((char*)&iin, sizeof (int));
+    periodic2=iin;
+    grid.read((char*)&iin, sizeof (int));
+    periodic3=iin;
+    
+    grid.read((char*)&iin, sizeof (int));
+    periodicX1=iin;
+    grid.read((char*)&iin, sizeof (int));
+    periodicX2=iin;
+    grid.read((char*)&iin, sizeof (int));
+    periodicX3=iin;
+    grid.read((char*)&iin, sizeof (int));
+    periodicX4=iin;
+    grid.read((char*)&iin, sizeof (int));
+    periodicX5=iin;
+    grid.read((char*)&iin, sizeof (int));
+    periodicX6=iin;
+    
     
     grid.read((char*)&iin, sizeof (int));
     G51=iin;
@@ -339,6 +361,19 @@ void lexer::read_grid()
     Darray(gcd4, gcb4_count);
     Darray(gcd4a, gcb4a_count);
 	}
+    
+    if(periodic1==1||periodic2==1||periodic3==1)
+    {
+    gc4periodic_maxcount = 0;
+    gc4periodic_maxcount = MAX(knox*knoy,knox*knoz);
+    gc4periodic_maxcount = MAX(gc4periodic_maxcount,knoy*knoz);
+    
+    Iarray(gc4periodic_count,6);
+    Iarray(gc4aperiodic_count,6);
+    
+    Iarray(gc4periodic,6,gc4periodic_maxcount);
+    Iarray(gc4aperiodic,6,gc4periodic_maxcount);
+    }
 	
     Iarray(gcpara1, gcpara1_count,15);
     Iarray(gcpara2, gcpara2_count,15);

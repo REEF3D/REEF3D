@@ -62,6 +62,7 @@ private:
 	void loop(lexer*, fdm2D*, ghostcell*);
     
     void ini_fsf(lexer*, fdm2D*, ghostcell*);
+    void ini_fsf_2(lexer*, fdm2D*, ghostcell*);
 	
 	void maxcoor(lexer*, fdm2D*, ghostcell*);
 	

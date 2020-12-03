@@ -212,6 +212,9 @@ public:
 	void gcparavoidx(lexer*, field&, int);
     void gcparax4a(lexer*, field&, int);
 	void gcparacox(lexer*, field&, int);
+    void gcperiodicx(lexer*, field&, int);
+    void gcperiodicxvec(lexer*, vec&, int);
+    void gcperiodicxvec_sr(lexer*, vec&,cpt&,int);
     void gcsync();
 	void verticalmax(lexer*,fdm*,double**);
     void verticalsum(lexer*,fdm*,double**);
@@ -364,6 +367,9 @@ public:
     void fivec2D(lexer*,double*,sliceint&);
     void fivec_vel(lexer*,double*,sliceint&);
     void fivec2D_vel(lexer*,double*,sliceint&);
+    void gc_periodic(lexer*,field&,int,int);
+    void gcV_periodic(lexer*,vec&,int,int);
+    void gcV_periodic_all(lexer*,vec&,int,int);
 
 	void gcV_neumann(vec&,int,int,int,int);
 	void gcV_lsm(lexer*,vec&, double,int,int,int,int);

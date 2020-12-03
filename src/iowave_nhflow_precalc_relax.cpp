@@ -42,7 +42,7 @@ void iowave::nhflow_precalc_relax(lexer *p, ghostcell *pgc)
         if(p->B98==2)
         {
             // Zone 1
-            if(dg<dist1+3.0*p->DXM)
+            if(dg<1.0e20)
             {
             eta(i,j) = wave_eta(p,pgc,xg,yg);
             etaval[count] = eta(i,j);

@@ -38,6 +38,82 @@ void ghostcell::cval_gcb4(lexer* p, fdm* a, fieldint &cval)
 	
 	p->gcb4[n][5]=cval(i,j,k);
 	}
+    
+    
+    if(p->periodic1==1)
+    {
+        i=0;
+        n=0;
+        JLOOP
+        KLOOP
+        PCHECK
+        {
+        p->gc4periodic[0][n]=cval(i,j,k);
+        ++n;
+        }
+        p->gc4periodic_count[0]=n;
+        
+        i=p->knox-1;
+        n=0;
+        JLOOP
+        KLOOP
+        PCHECK
+        {
+        p->gc4periodic[3][n]=cval(i,j,k);
+        ++n;
+        }
+        p->gc4periodic_count[3]=n;
+    }
+    
+    if(p->periodic2==1)
+    {
+        j=0;
+        n=0;
+        ILOOP
+        KLOOP
+        PCHECK
+        {
+        p->gc4periodic[2][n]=cval(i,j,k);
+        ++n;
+        }
+        p->gc4periodic_count[2]=n;
+        
+        j=p->knoy-1;
+        n=0;
+        ILOOP
+        KLOOP
+        PCHECK
+        {
+        p->gc4periodic[1][n]=cval(i,j,k);
+        ++n;
+        }
+        p->gc4periodic_count[1]=n;
+    }
+    
+    if(p->periodic3==1)
+    {
+        k=0;
+        n=0;
+        ILOOP
+        JLOOP
+        PCHECK
+        {
+        p->gc4periodic[4][n]=cval(i,j,k);
+        ++n;
+        }
+        p->gc4periodic_count[4]=n;
+        
+        k=p->knoz-1;
+        n=0;
+        ILOOP
+        JLOOP
+        PCHECK
+        {
+        p->gc4periodic[5][n]=cval(i,j,k);
+        ++n;
+        }
+        p->gc4periodic_count[5]=n;
+    }
 }
 
 void ghostcell::cval_gcb4a(lexer* p, fdm* a, fieldint &cval)
@@ -50,6 +126,82 @@ void ghostcell::cval_gcb4a(lexer* p, fdm* a, fieldint &cval)
 	
 	p->gcb4a[n][5]=cval(i,j,k);
 	}
+    
+    
+    if(p->periodic1==1)
+    {
+        i=0;
+        n=0;
+        JLOOP
+        KLOOP
+        PSOLIDCHECK
+        {
+        p->gc4aperiodic[0][n]=cval(i,j,k);
+        ++n;
+        }
+        p->gc4aperiodic_count[0]=n;
+        
+        i=p->knox-1;
+        n=0;
+        JLOOP
+        KLOOP
+        PSOLIDCHECK
+        {
+        p->gc4aperiodic[3][n]=cval(i,j,k);
+        ++n;
+        }
+        p->gc4aperiodic_count[3]=n;
+    }
+    
+    if(p->periodic2==1)
+    {
+        j=0;
+        n=0;
+        ILOOP
+        KLOOP
+        PSOLIDCHECK
+        {
+        p->gc4aperiodic[2][n]=cval(i,j,k);
+        ++n;
+        }
+        p->gc4aperiodic_count[2]=n;
+        
+        j=p->knoy-1;
+        n=0;
+        ILOOP
+        KLOOP
+        PSOLIDCHECK
+        {
+        p->gc4aperiodic[1][n]=cval(i,j,k);
+        ++n;
+        }
+        p->gc4aperiodic_count[1]=n;
+    }
+    
+    if(p->periodic3==1)
+    {
+        k=0;
+        n=0;
+        ILOOP
+        JLOOP
+        PSOLIDCHECK
+        {
+        p->gc4aperiodic[4][n]=cval(i,j,k);
+        ++n;
+        }
+        p->gc4aperiodic_count[4]=n;
+        
+        k=p->knoz-1;
+        n=0;
+        ILOOP
+        JLOOP
+        PSOLIDCHECK
+        {
+        p->gc4aperiodic[5][n]=cval(i,j,k);
+        ++n;
+        }
+        p->gc4aperiodic_count[5]=n;
+    }
 }
 
 void ghostcell::cval_gcb6(lexer* p, fdm* a, fieldint &cval)
