@@ -139,8 +139,8 @@ void net_sheet::ini(lexer *p, fdm *a, ghostcell *pgc)
         }
     }
 
-// OceanFarm 1
 /*
+// OceanFarm 1
     if (p->mpirank == 0) cout<<"OceanFarm 1 sheets"<<endl;
     // Top cylinder
     double xm = p->X322_x0[nNet];
@@ -245,10 +245,161 @@ void net_sheet::ini(lexer *p, fdm *a, ghostcell *pgc)
             ++tricount;
         }
     }
-
 */
+/*
+// DeepBlue 1
+    if (p->mpirank == 0) cout<<"DeepBlue 1 sheets"<<endl;
 
+    // Main cylinder
+    double xm = p->X322_x0[nNet];
+    double ym = p->X322_y0[nNet];
+    double zb = p->X322_z0[nNet];
+    double r = p->X322_D[nNet]/2.0; 
+	double dalpha = 2.0*PI/p->X321_nd[nNet];
+    double dz = p->X322_L[nNet]/p->X321_nl[nNet];
+    
+    int triD = int(2.0*PI/dalpha)*2;
+    int triL = int(p->X322_L[nNet]/dz); 
+    tend = triD*triL;    
+    
+    // Bottom cone
+    double h = 0.058;
+    double zb2 = p->X322_z0[nNet] - h;
+    double r2 = 0.04; 
+    double dz2 = h/1;
+    
+    int triL2 = int(h/dz2);
+    tend += triL2*triD;
+    
+    // Top cone
+    h = 0.07;
+    double zb3 = p->X322_z0[nNet] + p->X322_L[nNet] + h;
+    double r3 = 0.04; 
+    double dz3 = h/1;
+    
+    int triL3 = int(h/dz3);
+    tend += triL3*triD;
 
+    vector<double> vec3(3,0.0);
+    tri_x.resize(tend, vec3);
+    tri_y.resize(tend, vec3);
+    tri_z.resize(tend, vec3);
+    tri_x0.resize(tend, vec3);
+    tri_y0.resize(tend, vec3);
+    tri_z0.resize(tend, vec3);
+
+    // Main cylinder
+    int tricount = 0;
+    for(int n = 0; n < triD/2; ++n)
+	{
+        for (int q = 0; q < triL; ++q)
+        {
+            // 1st triangle
+            tri_x[tricount][0] = xm + r*cos(n*dalpha);
+            tri_y[tricount][0] = ym + r*sin(n*dalpha);
+            tri_z[tricount][0] = zb + q*dz;
+            
+            tri_x[tricount][1] = xm + r*cos((n+1)*dalpha);
+            tri_y[tricount][1] = ym + r*sin((n+1)*dalpha);
+            tri_z[tricount][1] = zb + (q+1)*dz;
+            
+            tri_x[tricount][2] = xm + r*cos((n+1)*dalpha);
+            tri_y[tricount][2] = ym + r*sin((n+1)*dalpha);
+            tri_z[tricount][2] = zb + q*dz;
+
+            ++tricount;
+            
+            // 2nd triangle
+            tri_x[tricount][0] = xm + r*cos(n*dalpha);
+            tri_y[tricount][0] = ym + r*sin(n*dalpha);
+            tri_z[tricount][0] = zb + q*dz;
+            
+            tri_x[tricount][1] = xm + r*cos((n+1)*dalpha);
+            tri_y[tricount][1] = ym + r*sin((n+1)*dalpha);
+            tri_z[tricount][1] = zb + (q+1)*dz;
+            
+            tri_x[tricount][2] = xm + r*cos(n*dalpha);
+            tri_y[tricount][2] = ym + r*sin(n*dalpha);
+            tri_z[tricount][2] = zb + (q+1)*dz;
+            
+            ++tricount;
+        }
+    }
+
+    // Bottom cone
+    for(int n = 0; n < triD/2; ++n)
+	{
+        for (int q = 0; q < triL2; ++q)
+        {
+            // 1st triangle
+            tri_x[tricount][0] = xm + r2*cos(n*dalpha);
+            tri_y[tricount][0] = ym + r2*sin(n*dalpha);
+            tri_z[tricount][0] = zb2 + q*dz2;
+            
+            tri_x[tricount][1] = xm + r*cos((n+1)*dalpha);
+            tri_y[tricount][1] = ym + r*sin((n+1)*dalpha);
+            tri_z[tricount][1] = zb2 + (q+1)*dz2;
+            
+            tri_x[tricount][2] = xm + r2*cos((n+1)*dalpha);
+            tri_y[tricount][2] = ym + r2*sin((n+1)*dalpha);
+            tri_z[tricount][2] = zb2 + q*dz2;
+
+            ++tricount;
+          
+            // 2nd triangle
+            tri_x[tricount][0] = xm + r2*cos(n*dalpha);
+            tri_y[tricount][0] = ym + r2*sin(n*dalpha);
+            tri_z[tricount][0] = zb2 + q*dz2;
+            
+            tri_x[tricount][1] = xm + r*cos((n+1)*dalpha);
+            tri_y[tricount][1] = ym + r*sin((n+1)*dalpha);
+            tri_z[tricount][1] = zb2 + (q+1)*dz2;
+            
+            tri_x[tricount][2] = xm + r*cos(n*dalpha);
+            tri_y[tricount][2] = ym + r*sin(n*dalpha);
+            tri_z[tricount][2] = zb2 + (q+1)*dz2;
+            
+            ++tricount;
+        }
+    }
+
+    // Top cone
+    for(int n = 0; n < triD/2; ++n)
+	{
+        for (int q = 0; q < triL3; ++q)
+        {
+            // 1st triangle
+            tri_x[tricount][0] = xm + r3*cos(n*dalpha);
+            tri_y[tricount][0] = ym + r3*sin(n*dalpha);
+            tri_z[tricount][0] = zb3 - q*dz3;
+            
+            tri_x[tricount][1] = xm + r*cos((n+1)*dalpha);
+            tri_y[tricount][1] = ym + r*sin((n+1)*dalpha);
+            tri_z[tricount][1] = zb3 - (q+1)*dz3;
+            
+            tri_x[tricount][2] = xm + r3*cos((n+1)*dalpha);
+            tri_y[tricount][2] = ym + r3*sin((n+1)*dalpha);
+            tri_z[tricount][2] = zb3 - q*dz3;
+
+            ++tricount;
+          
+            // 2nd triangle
+            tri_x[tricount][0] = xm + r3*cos(n*dalpha);
+            tri_y[tricount][0] = ym + r3*sin(n*dalpha);
+            tri_z[tricount][0] = zb3 - q*dz3;
+            
+            tri_x[tricount][1] = xm + r*cos((n+1)*dalpha);
+            tri_y[tricount][1] = ym + r*sin((n+1)*dalpha);
+            tri_z[tricount][1] = zb3 - (q+1)*dz3;
+            
+            tri_x[tricount][2] = xm + r*cos(n*dalpha);
+            tri_y[tricount][2] = ym + r*sin(n*dalpha);
+            tri_z[tricount][2] = zb3 - (q+1)*dz3;
+            
+            ++tricount;
+        }
+    }
+*/
 
 /*-----------------------------------*/
 
