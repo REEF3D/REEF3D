@@ -174,21 +174,18 @@ nt 8
             // st
             if(p->flag7[FIm1JKp2]<0 && p->flag7[FIJKp2]<0 && p->flag7[FIJKp1]>0)
             {
-            //cout<<p->mpirank<<" FSF: "<<i<<" "<<k<<endl;
             rhs[n] -= M[n*9+6]*f[FIm1JKp2];
             M[n*9+6] = 0.0;
             }
             
             if((p->flag7[FIm1JKp1]<0 && p->flag7[FIJKp2]>0) && c->bc(i-1,j)==0)
             {
-            //cout<<p->mpirank<<" WALL: "<<i<<" "<<k<<endl;
             M[n*9] += M[n*9+6];  
             M[n*9+6] = 0.0;        
             }
             
             if((p->flag7[FIm1JKp1]<0 && p->flag7[FIJKp2]>0) && c->bc(i-1,j)==1)
             {
-            //cout<<p->mpirank<<" INFLOW: "<<i<<" "<<k<<endl;
             rhs[n] += M[n*9+6]*c->Uin[FIm1JKp1]*p->DXP[IM1];
             M[n*9+8] += M[n*9+6];
             M[n*9+6] = 0.0;
