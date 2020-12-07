@@ -170,19 +170,32 @@ nt 8
             }
    
         // diagonal entries
+/*
+p  0
+s  1
+n  2
+b  3
+t  4
+sb 5
+st 6
+nb 7
+nt 8
+*/
             // st
+                // fsfbc
             if(p->flag7[FIm1JKp2]<0 && p->flag7[FIJKp2]<0 && p->flag7[FIJKp1]>0  && c->bc(i-1,j)==0) // fsfbc
             {
             rhs[n] -= M[n*9+6]*f[FIm1JKp2];
             M[n*9+6] = 0.0;
             }
-            
+                // wall
             if((p->flag7[FIm1JKp1]<0 && p->flag7[FIJKp2]>0) && c->bc(i-1,j)==0) //
             {
             M[n*9] += M[n*9+6];  
-            M[n*9+6] = 0.0;        
+            M[n*9+6] = 0.0;   //cout<<p->mpirank<<" ST i: "<<i<<" k: "<<k<<endl;  
             }
             
+                // wavegen
             if(p->flag7[FIm1JKp1]<0 && c->bc(i-1,j)==1)
             {
             rhs[n] += M[n*9+6]*c->Uin[FIm1JKp1]*p->DXP[IM1];
@@ -191,18 +204,21 @@ nt 8
             }
             
             // nt
-            if(p->flag7[FIp1JKp2]<0 && p->flag7[FIJKp2]<0 && p->flag7[FIJKp1]>0  && c->bc(i+1,j)==0)
+                // fsfbc
+            if(p->flag7[FIp1JKp2]<0 && p->flag7[FIJKp2]<0 && p->flag7[FIJKp1]>0  && c->bc(i+1,j)==0) 
             {
             rhs[n] -= M[n*9+8]*f[FIp1JKp2];
             M[n*9+8] = 0.0;
             }
             
+                // wall
             if(p->flag7[FIp1JKp1]<0 && p->flag7[FIJKp2]>0  && c->bc(i+1,j)==0)
             {
             M[n*9] += M[n*9+8];
             M[n*9+8] = 0.0;
             }
             
+                // AWA
             if(p->flag7[FIp1JKp1]<0 && c->bc(i+1,j)==2)
             {
             rhs[n] -= M[n*9+8]*c->Uin[FIp1JKp1]*p->DXP[IP1];
@@ -211,29 +227,34 @@ nt 8
             }
             
             // sb 
+                // wall
             if(((p->flag7[FIm1JKm1]<0 && p->flag7[FIJKm1]>0)|| c->wet(i-1,j)==0) && c->bc(i-1,j)==0)
             {
             M[n*9] += M[n*9+5];  
             M[n*9+5] = 0.0;        
             }
             
-            if((p->flag7[FIm1JKm1]<0 && p->flag7[FIJKm2]>0) && c->bc(i-1,j)==1)
+                // wavegen
+            if((p->flag7[FIm1JKm1]<0 && p->flag7[FIJKm1]>0) && c->bc(i-1,j)==1)
             {
             rhs[n] += M[n*9+5]*c->Uin[FIm1JKm1]*p->DXP[IM1];
             M[n*9] += M[n*9+5];
             M[n*9+5] = 0.0;
+            //cout<<p->mpirank<<" SB i: "<<i<<" k: "<<k<<endl;   
             }
             
             // nb 
+                // wall
             if(((p->flag7[FIp1JKm1]<0 && p->flag7[FIJKm1]>0)|| c->wet(i+1,j)==0) && c->bc(i+1,j)==0)
             {
             M[n*9] += M[n*9+7];  
             M[n*9+7] = 0.0;        
             }
             
-            if((p->flag7[FIm1JKm1]<0 && p->flag7[FIJKm2]>0) && c->bc(i+1,j)==2)
+                // wavegen
+            if((p->flag7[FIp1JKm1]<0 && p->flag7[FIJKm1]>0) && c->bc(i+1,j)==2)
             {
-            rhs[n] -= M[n*9+7]*c->Uin[FIp1JKm1]*p->DXP[IM1];
+            rhs[n] -= M[n*9+7]*c->Uin[FIp1JKm1]*p->DXP[IP1];
             M[n*9] += M[n*9+7];
             M[n*9+7] = 0.0;
             }
@@ -256,7 +277,7 @@ nt 8
             }
             
             // nb KBEDBC
-            if(p->flag7[FIp1JKm1]<0 && c->bc(i+1,j)==0)
+            if(p->flag7[FIp1JKm1]<0 && p->flag7[FIJKm1]<0  && c->bc(i+1,j)==0)
             {
             ab = 2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
             
