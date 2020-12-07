@@ -70,7 +70,29 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
     // Initialise global variables
 	interface(p,true);
 	maxvel(p,a,pgc);
-    
+   
+    // Initialise floating fields
+     ULOOP
+     {
+         a->fbh1(i,j,k) = Hsolidface(p,a,1,0,0);
+     }
+     VLOOP
+     {
+         a->fbh2(i,j,k) = Hsolidface(p,a,0,1,0);
+     }
+     WLOOP
+     {
+         a->fbh3(i,j,k) = Hsolidface(p,a,0,0,1);
+     }
+     LOOP
+     {
+         a->fbh4(i,j,k) = Hsolidface(p,a,0,0,0);
+     }
+     pgc->start1(p,a->fbh1,10);
+     pgc->start2(p,a->fbh2,11);
+     pgc->start3(p,a->fbh3,12);
+     pgc->start4(p,a->fbh4,40);
+
     // Print initial body 
     print_stl(p,a,pgc);
 

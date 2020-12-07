@@ -108,19 +108,18 @@ void sixdof_df_object::forces_stl
 			i = p->posc_i(xlocvel);
 			j = p->posc_j(ylocvel);
 			k = p->posc_k(zlocvel);
-           
-			p_int = p->ccipol4(a->press,xc,yc,zc);
+
+			p_int = p->ccipol4_a(a->press,xc,yc,zc);
 			
 			Fx = -nx*p_int*A_triang;
 			Fy = -ny*p_int*A_triang;
             Fz = -nz*p_int*A_triang;
 		
-
 			// Add tangential stress contributions
 			
-			nu_int = p->ccipol4(a->visc,xlocvel,ylocvel,zlocvel);
-			enu_int = 0.0;//p->ccipol4(a->eddyv,xlocvel,ylocvel,zlocvel);
-			rho_int = p->ccipol4(a->ro,xlocvel,ylocvel,zlocvel);
+			nu_int = p->ccipol4_a(a->visc,xlocvel,ylocvel,zlocvel);
+			enu_int = 0.0; //p->ccipol4_a(a->eddyv,xlocvel,ylocvel,zlocvel);
+			rho_int = p->ccipol4_a(a->ro,xlocvel,ylocvel,zlocvel);
 			
             // Central differences                                 
             dudx = (uvel(i+1,j,k) - uvel(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1]);
