@@ -114,6 +114,15 @@ void iowave::active_beach_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi
         }
         
 
+        
+        FKLOOP
+        FPCHECK
+        {
+        Fi[FIp1JK] = Fi[FIJK] + Uc*fx*1.0*p->DXP[IP1];
+        Fi[FIp2JK] = Fi[FIJK] + Uc*fx*2.0*p->DXP[IP1];
+        Fi[FIp3JK] = Fi[FIJK] + Uc*fx*3.0*p->DXP[IP1];
+        }
+
 		}
               
 }
