@@ -103,21 +103,31 @@ void sixdof_gc::read_stl(lexer *p, fdm *a, ghostcell *pgc)
     tend[entity_count] = tricount;
 	
 	// scale STL model
+	if (p->X181 == 1)
+	for(n=0; n<tricount; ++n)
+	for(int q=0; q<3; ++q)
+	{
+        tri_x[n][q] *= p->X181_x;
+		tri_y[n][q] *= p->X181_y;
+		tri_z[n][q] *= p->X181_z;
+	}
+	
+    // change orgin
+	if(p->X182==1)
 	for(n=0; n<tricount; ++n)
 	for(q=0; q<3; ++q)
 	{
-		tri_x[n][q]*=p->X181;
-		tri_y[n][q]*=p->X181;
-		tri_z[n][q]*=p->X181;
+		tri_x[n][q]+=p->X182_x;
+		tri_y[n][q]+=p->X182_y;
+		tri_z[n][q]+=p->X182_z;
 	}
-	
-	
-	
+
+
     // rotate STL model
     
-    p->X183_phi *= (PI/180.0);
-    p->X183_theta *= (PI/180.0);
-    p->X183_psi *= (PI/180.0);
+    p->X183_phi *= -(PI/180.0);
+    p->X183_theta *= -(PI/180.0);
+    p->X183_psi *= -(PI/180.0);
     
 	if (p->X13 == 0)
 	{
@@ -128,48 +138,41 @@ void sixdof_gc::read_stl(lexer *p, fdm *a, ghostcell *pgc)
 			rotation_stl(p,tri_x[qr][2],tri_y[qr][2],tri_z[qr][2]);
 		}
 	}
-	else if (p->X13 > 0)
+	else if (p->X13 == 1)
 	{
 		for(int qr=0;qr<tricount;++qr)
 		{
-			rotation_stl_quaternion(p,tri_x[qr][0],tri_y[qr][0],tri_z[qr][0]);
-			rotation_stl_quaternion(p,tri_x[qr][1],tri_y[qr][1],tri_z[qr][1]);
-			rotation_stl_quaternion(p,tri_x[qr][2],tri_y[qr][2],tri_z[qr][2]);
+            rotation_stl_quaternion(p,p->X183_phi,p->X183_theta,p->X183_psi,tri_x[qr][0],tri_y[qr][0],tri_z[qr][0],p->X183_x,p->X183_y,p->X183_z);
+            rotation_stl_quaternion(p,p->X183_phi,p->X183_theta,p->X183_psi,tri_x[qr][1],tri_y[qr][1],tri_z[qr][1],p->X183_x,p->X183_y,p->X183_z);
+            rotation_stl_quaternion(p,p->X183_phi,p->X183_theta,p->X183_psi,tri_x[qr][2],tri_y[qr][2],tri_z[qr][2],p->X183_x,p->X183_y,p->X183_z);
 		}
 	}
     
-    // change orgin
-	if(p->X182==1)
-	for(n=0; n<tricount; ++n)
-	for(q=0; q<3; ++q)
-	{
-		tri_x[n][q]+=p->X182_x;
-		tri_y[n][q]+=p->X182_y;
-		tri_z[n][q]+=p->X182_z;
-	}
 }
 
-
-void sixdof_gc::rotation_stl_quaternion(lexer *p,double &xvec,double &yvec,double &zvec)
+void sixdof_gc::rotation_stl_quaternion
+(
+    lexer *p,
+    double phi_,double theta_,double psi_, 
+    double &xvec,double &yvec,double &zvec, 
+    const double& x0, const double& y0, const double& z0
+)
 {
-	double a,b,c;
-
 	// Distance to origin
-    a = xvec - p->X183_x;
-    b = yvec - p->X183_y;
-    c = zvec - p->X183_z;
+    double dx = xvec - x0;
+    double dy = yvec - y0;
+    double dz = zvec - z0;
 
-	// Rotation using matrices from Fossen
-    xvec = a*(cos(psi)*cos(theta)) + b*(cos(theta)*sin(psi)) - c*sin(theta);
-    yvec = a*(cos(psi)*sin(phi)*sin(theta)-cos(phi)*sin(psi)) + b*(cos(phi)*cos(psi)+sin(phi)*sin(psi)*sin(theta)) + c*(cos(theta)*sin(phi));
-    zvec = a*(sin(phi)*sin(psi)+cos(phi)*cos(psi)*sin(theta)) + b*(cos(phi)*sin(psi)*sin(theta)-cos(psi)*sin(phi)) + c*(cos(phi)*cos(theta));
+	// Rotation using Goldstein page 603 (but there is wrong result)
+    xvec = dx*(cos(psi_)*cos(theta_)) + dy*(cos(theta_)*sin(psi_)) - dz*sin(theta_);
+    yvec = dx*(cos(psi_)*sin(phi_)*sin(theta_)-cos(phi_)*sin(psi_)) + dy*(cos(phi_)*cos(psi_)+sin(phi_)*sin(psi_)*sin(theta_)) + dz*(cos(theta_)*sin(phi_));
+    zvec = dx*(sin(phi_)*sin(psi_)+cos(phi_)*cos(psi_)*sin(theta_)) + dy*(cos(phi_)*sin(psi_)*sin(theta_)-cos(psi_)*sin(phi_)) + dz*(cos(phi_)*cos(theta_));
     
 	// Moving back
-    xvec += p->X183_x;
-    yvec += p->X183_y;
-    zvec += p->X183_z;
+    xvec += x0;
+    yvec += y0;
+    zvec += z0;
 }	
-
 
 void sixdof_gc::rotation_stl(lexer *p,double &xvec,double &yvec,double &zvec)
 {

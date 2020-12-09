@@ -92,7 +92,6 @@ void sixdof_gc::solidUpdate
 	
 	fb_position_quaternion(p,a,pgc,ek);	
 
-
 	// Update floating field
 	
 	ray_cast(p,a,pgc);
@@ -112,7 +111,6 @@ void sixdof_gc::solidUpdate
 	double starttime1=pgc->timer();
 	pgc->gcfb_update(p,a);
 	double endtime1 = pgc->timer()-starttime1;
-
 
 	if (p->mpirank == 0)
 	{

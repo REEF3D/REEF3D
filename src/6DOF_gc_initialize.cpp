@@ -39,7 +39,7 @@ void sixdof_gc::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 	print_ini(p,a,pgc);
 	ini_parameter(p,a,pgc);
 	
-	objects(p,a,pgc);
+    objects(p,a,pgc);
 	ray_cast(p,a,pgc);
 	reini_AB2(p,a,pgc,a->fb);
 	geometry_ini(p,a,pgc);

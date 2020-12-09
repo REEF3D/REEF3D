@@ -91,7 +91,7 @@ private:
     void read_motionvec(lexer*, fdm*, ghostcell*);
 	
     void rotation_stl(lexer*,double&,double&,double&);
-	void rotation_stl_quaternion(lexer*,double&,double&,double&);
+    void rotation_stl_quaternion(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
 	
     void motion_ext(lexer*, fdm*, ghostcell*);
 	void motion_ext_quaternion(lexer*, fdm*, ghostcell*);

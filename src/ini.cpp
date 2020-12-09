@@ -617,11 +617,11 @@ void lexer::ini_default()
     X26_Ku=X26_Kv=X26_Kw=0.0;	// double spring coefficients
     X27=0;      // int spring origin given 
     X27_x=X27_y=X27_z=0.0;  // double spring origin
-	X31=3;		// int boundary conditions for parallel velocity on floating body
+	X31=4;		// int boundary conditions for parallel velocity on floating body
 	X32=1;		// int boundary conditions for orthogonal velocity on floating body
 	X33=1;		// int boundary conditions for pressure on floating body
     X34=0;		// int boundary treatment for new solid velocity cells
-    X40=1;		// int type of force calculation
+    X40=3;		// int type of force calculation
 	X41=2.1;    // double eps for continuous forcing heaviside
 	X100=0;		// int delta x,y,z
 	X100_x=X100_y=X100_z=0.0; 

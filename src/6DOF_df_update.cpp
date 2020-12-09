@@ -128,7 +128,8 @@ void sixdof_df_object::updateForcing
 
     // Calculate forcing fields
     double H, uf, vf, wf;
-    
+
+
     ULOOP
     {
         uf = u_fb(0) + u_fb(4)*(p->pos1_z() - c_(2)) - u_fb(5)*(p->pos1_y() - c_(1));
@@ -149,7 +150,7 @@ void sixdof_df_object::updateForcing
     {
         wf = u_fb(2) + u_fb(3)*(p->pos3_y() - c_(1)) - u_fb(4)*(p->pos3_x() - c_(0));
         H = Hsolidface(p,a,0,0,1);
-       
+
         fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha*p->dt);
         a->fbh3(i,j,k) = min(a->fbh3(i,j,k) + H, 1.0); 
     }

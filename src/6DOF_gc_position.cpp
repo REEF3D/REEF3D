@@ -65,11 +65,10 @@ void sixdof_gc::fb_position_quaternion(lexer *p, fdm *a, ghostcell *pgc, const s
 {
 	if(p->X210==1 || p->X211==1 || p->X221==1)
     {
-		xg += dxg;
-		yg += dyg;
-		zg += dzg;
+		xg = p->xg + dxg;
+		yg = p->yg + dyg;
+		zg = p->zg + dzg;
 	}
-
 
 	// Calculate Euler angles from quaternion
 	

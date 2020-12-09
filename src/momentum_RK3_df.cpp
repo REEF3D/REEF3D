@@ -175,12 +175,11 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
     p6dof_df->forcing(p,a,pgc,pvrans,pnet,1.0,urk1,vrk1,wrk1,fx,fy,fz);
 	
     ULOOP
-	urk1(i,j,k) += 1.0*p->dt*CPOR1*(fx(i,j,k));
+    urk1(i,j,k) += 1.0*p->dt*CPOR1*(fx(i,j,k));
 	VLOOP
 	vrk1(i,j,k) += 1.0*p->dt*CPOR2*(fy(i,j,k));
 	WLOOP
 	wrk1(i,j,k) += 1.0*p->dt*CPOR3*(fz(i,j,k));
-    
 
 	pgc->start1(p,urk1,gcval_urk);
 	pgc->start2(p,vrk1,gcval_vrk);

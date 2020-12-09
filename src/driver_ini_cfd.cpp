@@ -77,9 +77,7 @@ cout<<"starting driver_ini"<<endl;
     }
     
 	// 6DOF
-	if(p->X10==1 && p->X13!=2)
-    {}
-    else
+	if((p->X10==1 && p->X13!=2) || p->X10==0)
     {
 	    p6dof->initialize(p,a,pgc,pnet);
     }
