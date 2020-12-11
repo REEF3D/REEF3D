@@ -25,14 +25,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 {
 
-    
 //Level Set
 
-	if((bc==21||bc==22||bc==5||bc==41||bc==42||bc==43||bc==7||bc==8||bc==9) && (gcv==51 || gcv==52 || gcv==53 || gcv==54) && (p->B26<3 || cs!=5))
+	if((bc==21||bc==22||bc==5||bc==41||bc==42||bc==43||bc==7||bc==8||bc==9||bc==41) && (gcv==51 || gcv==52 || gcv==53 || gcv==54) && (p->B26<3 || cs!=5))
 	return gclabel_lsm;
 
 	else
-	if((bc==21||bc==22||bc==5||bc==41||bc==42||bc==43||bc==7||bc==8||bc==9) && (gcv==51 || gcv==52 || gcv==53 || gcv==54) && (p->B26==3 && cs==5) && p->count>0)
+	if((bc==21||bc==22||bc==5||bc==41||bc==42||bc==43||bc==7||bc==8||bc==9||bc==41) && (gcv==51 || gcv==52 || gcv==53 || gcv==54) && (p->B26==3 && cs==5) && p->count>0)
 	return 3;
 	
 	else
@@ -60,6 +59,10 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	return gclabel_lsm_in;
 
 // Pressure
+    else 
+    if(bc==41 && (gcv==40||gcv==41||gcv==42||gcv==43||gcv==44||gcv==45))
+    return 5;
+    
 	else
 	if((bc==21||bc==22||bc==5||bc==3||bc==2||bc==6||(bc==7&&awa_label==0)) && gcv==40)
 	return gclabel_press;

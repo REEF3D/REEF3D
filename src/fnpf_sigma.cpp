@@ -140,11 +140,7 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *p
     
                     + (1.0 - p->sig[FIJK])*c->Bxx(i,j)/WLVL + 2.0*p->sig[FIJK]*pow(c->Ex(i,j),2.0)/pow(WLVL,2.0)
                     
-                    - p->sigx[FIJK]*c->Ex(i,j) /WLVL;
-                    
-
-                  
-                
+                    - p->sigx[FIJK]*c->Ex(i,j) /WLVL;              
     }
     */
     // sig BC

@@ -102,7 +102,7 @@ void lexer::gridini_outflow()
 			if(i>=istart && i<iend && j>=jstart && j<jend && k>=kstart && k<kend && gcb4[n][3]==5 && (gcb4[n][4]==21||gcb4[n][4]==22))
 			{
 			++count;
-			gcb4[n][4]=2;
+			gcb4[n][4]=31;
 			}
 		}
     }
