@@ -74,7 +74,7 @@ void iowave::active_beach_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi
 				Uc=eta_R*sqrt(9.81/c->depth(i,j));
 				
 				if(p->B99==4)
-				Uc=eta_R*p->ww*( cosh(p->wk*(p->wd+z))/sinh(c->depth(i,j)*c->depth(i,j)));
+				Uc=eta_R*p->ww*(cosh(p->wk*(p->wd+z))/sinh(c->depth(i,j)*c->depth(i,j)));
                 
                if(p->B99==5)
                {
