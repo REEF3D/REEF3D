@@ -230,6 +230,7 @@ private:
 	double kinval,epsval;
 	double tan_alpha,*tan_beta;
 	double wh;
+    int beach_relax;
 	
 	int gcawa1_count,gcawa2_count,gcawa3_count,gcawa4_count;
 	int **gcawa1,**gcawa2,**gcawa3,**gcawa4;

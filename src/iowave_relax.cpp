@@ -81,7 +81,7 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
 		}
 		
 		// Numerical Beach
-        if(p->B99==1||p->B99==2||p->B107>0)
+        if(p->B99==1||p->B99==2||beach_relax==1)
 		{
             // Zone 3
             if(db<1.0e19)
@@ -109,7 +109,7 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
 		}
 		
 		// Numerical Beach
-        if(p->B99==1||p->B99==2||p->B107>0)
+        if(p->B99==1||p->B99==2||beach_relax==1)
 		{
             // Zone 3
             if(db<1.0e20)
@@ -178,7 +178,7 @@ void iowave::v_relax(lexer *p, fdm *a, ghostcell *pgc, field& vvel)
 		}
 		
 		// Numerical Beach
-		if(p->B99==1||p->B99==2||p->B107>0)
+		if(p->B99==1||p->B99==2||beach_relax==1)
 		{	
             // Zone 3
             if(db<1.0e20)
@@ -205,7 +205,7 @@ void iowave::v_relax(lexer *p, fdm *a, ghostcell *pgc, field& vvel)
 		}
 		
 		// Numerical Beach
-		if(p->B99==1||p->B99==2||p->B107>0)
+		if(p->B99==1||p->B99==2||beach_relax==1)
 		{	
             // Zone 3
             if(db<1.0e20)
@@ -274,7 +274,7 @@ void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
 		}
 		
 		// Numerical Beach
-        if(p->B99==1||p->B99==2||p->B107>0)
+        if(p->B99==1||p->B99==2||beach_relax==1)
 		{
             // Zone 3
             if(db<1.0e20)
@@ -302,7 +302,7 @@ void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
 		}
 		
 		// Numerical Beach
-        if(p->B99==1||p->B99==2||p->B107>0)
+        if(p->B99==1||p->B99==2||beach_relax==1)
 		{
             // Zone 3
             if(db<1.0e20)
@@ -320,7 +320,7 @@ void iowave::p_relax(lexer *p, fdm *a, ghostcell *pgc, field& press)
 		db = distbeach(p);
         
         // Numerical Beach
-        if(p->B99==1||p->B99==2||p->B107>0)
+        if(p->B99==1||p->B99==2||beach_relax==1)
         {            
             // Zone 3
             if(db<1.0e20)
@@ -341,7 +341,7 @@ void iowave::p_relax(lexer *p, fdm *a, ghostcell *pgc, field& press)
 		db = distbeach(p);
         
         // Numerical Beach
-        if(p->B99==1||p->B99==2||p->B107>0)
+        if(p->B99==1||p->B99==2||beach_relax==1)
         {            
             // Zone 3
             if(db<1.0e20)
@@ -521,7 +521,7 @@ void iowave::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
 		}
 		
 		// Numerical Beach
-        if(p->B99==1||p->B99==2||p->B107>0)
+        if(p->B99==1||p->B99==2||beach_relax==1)
 		{
             // Zone 3
             if(db<1.0e20)
@@ -539,7 +539,7 @@ void iowave::visc_relax(lexer *p, ghostcell *pgc, slice& f)
 		db = distbeach(p);
         
 		// Numerical Beach
-        if(p->B99==1||p->B99==2||p->B107>0)
+        if(p->B99==1||p->B99==2||beach_relax==1)
 		{
             // Zone 3
             if(db<1.0e20)
