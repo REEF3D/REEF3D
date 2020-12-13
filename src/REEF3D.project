@@ -1884,7 +1884,6 @@
         <File Name="gcx_update.cpp"/>
         <File Name="gcx_wait.cpp"/>
         <File Name="gcx_walldist.cpp"/>
-        <File Name="gcx_paravoidx.cpp"/>
         <File Name="gcx_paraxvec.cpp"/>
         <File Name="gxc_verticalmax.cpp"/>
         <File Name="gcx_parax_generic.cpp"/>

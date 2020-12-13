@@ -166,13 +166,6 @@ public:
 	int** gcpara4;
 	int** gcpara5;
 	int** gcpara6;
-	
-	int** gcparavoid1;
-	int** gcparavoid2;
-	int** gcparavoid3;
-	int** gcparavoid4;
-	int** gcparavoid5;
-	int** gcparavoid6;
 
 	int** gcparaco1;
 	int** gcparaco2;
@@ -187,7 +180,6 @@ public:
     int* gcxco7_count;
 
 	int gcpara1_count, gcpara2_count, gcpara3_count, gcpara4_count, gcpara5_count, gcpara6_count;
-	int gcparavoid1_count, gcparavoid2_count, gcparavoid3_count, gcparavoid4_count, gcparavoid5_count, gcparavoid6_count;
 	int gcparaco1_count, gcparaco2_count, gcparaco3_count, gcparaco4_count, gcparaco5_count, gcparaco6_count;
     int gcslpara1_count, gcslpara2_count, gcslpara3_count, gcslpara4_count;
     int gcslparaco1_count, gcslparaco2_count, gcslparaco3_count, gcslparaco4_count;
