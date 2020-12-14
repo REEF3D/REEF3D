@@ -40,7 +40,7 @@ public:
 	virtual void start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&);
 	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
     
-    void forcing(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,double,field&,field&,field&,field1&,field2&,field3&);
+    void forcing(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,double,field&,field&,field&,field1&,field2&,field3&,bool);
 
 private:
    

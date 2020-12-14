@@ -665,8 +665,8 @@ void lexer::ini_default()
 	
 	// Developer 
 	Y1=0;   // int turn on/off experimental screen force model
-    Y2=0;
-    Y3=0;
+    Y2=0;   // int turn on/off PC FSI algorithm
+    Y3=0;   // int number of iterations in PC FSI algorithm
     Y4=0;
     Y5=0;
     Y40=3;

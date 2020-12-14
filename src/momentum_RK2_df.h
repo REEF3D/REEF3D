@@ -43,17 +43,17 @@ class net;
 
 using namespace std;
 
-#ifndef MOMENTUM_RK3_DF_H_
-#define MOMENTUM_RK3_DF_H_
+#ifndef MOMENTUM_RK2_DF_H_
+#define MOMENTUM_RK2_DF_H_
 
-class momentum_RK3_df : public momentum, public bcmom
+class momentum_RK2_df : public momentum, public bcmom
 {
 public:
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
-	momentum_RK3_df(lexer*, fdm*, ghostcell*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*);
-	virtual ~momentum_RK3_df();
+	momentum_RK2_df(lexer*, fdm*, ghostcell*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*);
+	virtual ~momentum_RK2_df();
 	virtual void start(lexer*, fdm*, ghostcell*, vrans*);
 	virtual void utimesave(lexer*, fdm*, ghostcell*);
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
@@ -72,9 +72,9 @@ private:
 	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);    
     
-    field1 urk1, urk2, fx;
-	field2 vrk1, vrk2, fy;
-	field3 wrk1, wrk2, fz;
+    field1 un, fx;
+	field2 vn, fy;
+	field3 wn, fz;
 
 	convection *pconvec;
 	diffusion *pdiff;
