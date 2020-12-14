@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_df_object::updateFSI(lexer *p, fdm *a, ghostcell* pgc, double alpha)
+void sixdof_df_object::updateFSI(lexer *p, fdm *a, ghostcell* pgc, bool finalise)
 {
     // Print quaternion
 	if(p->mpirank==0)
@@ -36,7 +36,7 @@ void sixdof_df_object::updateFSI(lexer *p, fdm *a, ghostcell* pgc, double alpha)
     quat_matrices(e_);
 
     // Calculate new position
-    updatePosition(p, a, pgc, alpha);
+    updatePosition(p, a, pgc, finalise);
 
     // Update angular velocities 
     omega_B = I_.inverse()*h_;
@@ -48,7 +48,7 @@ void sixdof_df_object::updateFSI(lexer *p, fdm *a, ghostcell* pgc, double alpha)
 }
 
 
-void sixdof_df_object::updatePosition(lexer *p, fdm *a, ghostcell *pgc, double alpha)
+void sixdof_df_object::updatePosition(lexer *p, fdm *a, ghostcell *pgc, bool finalise)
 {
 	// Calculate Euler angles from quaternion
 	
@@ -70,7 +70,7 @@ void sixdof_df_object::updatePosition(lexer *p, fdm *a, ghostcell *pgc, double a
 	// around new x-axis
 	phi = atan2(2.0*(e_(2)*e_(3) + e_(1)*e_(0)), 1.0 - 2.0*(e_(1)*e_(1) + e_(2)*e_(2)));
 
-	if(p->mpirank==0 && alpha == 2.0/3.0)
+	if(p->mpirank==0 && finalise == true)
     {
         cout<<"XG: "<<c_(0)<<" YG: "<<c_(1)<<" ZG: "<<c_(2)<<" phi: "<<phi*(180.0/PI)<<" theta: "<<theta*(180.0/PI)<<" psi: "<<psi*(180.0/PI)<<endl;
 		cout<<"Ue: "<<p_(0)/Mass_fb<<" Ve: "<<p_(1)/Mass_fb<<" We: "<<p_(2)/Mass_fb<<" Pe: "<<omega_I(0)<<" Qe: "<<omega_I(1)<<" Re: "<<omega_I(2)<<endl;

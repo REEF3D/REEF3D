@@ -93,7 +93,7 @@ void sixdof_df_object::objects(lexer *p, fdm *a, ghostcell *pgc)
 	cout<<"Surface triangles: "<<tricount<<endl;
 	
 	// Refine triangles
-	//geometry_refinement(p);	
+	geometry_refinement(p);	
 
     if(p->mpirank==0)
 	cout<<"Refined surface triangles: "<<tricount<<endl;
@@ -185,7 +185,7 @@ void sixdof_df_object::geometry_refinement(lexer *p)
 	}
 	
 	
-	double critL = p->DXM*1.0;
+	double critL = p->DXM*0.9;
 	
 	for (int n = 0; n < tri_x_r.size(); n++)
 	{

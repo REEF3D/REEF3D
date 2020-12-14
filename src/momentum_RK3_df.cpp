@@ -172,7 +172,7 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
     pgc->start3(p,a->fbh3,12);
     pgc->start4(p,a->fbh4,40);
     
-    p6dof_df->forcing(p,a,pgc,pvrans,pnet,1.0,urk1,vrk1,wrk1,fx,fy,fz);
+    p6dof_df->forcing(p,a,pgc,pvrans,pnet,1.0,urk1,vrk1,wrk1,fx,fy,fz,false);
 	
     ULOOP
     urk1(i,j,k) += 1.0*p->dt*CPOR1*(fx(i,j,k));
@@ -270,7 +270,7 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
     pgc->start2(p,fy,11);
     pgc->start3(p,fz,12);           
 
-    p6dof_df->forcing(p,a,pgc,pvrans,pnet,0.25,urk2,vrk2,wrk2,fx,fy,fz);
+    p6dof_df->forcing(p,a,pgc,pvrans,pnet,0.25,urk2,vrk2,wrk2,fx,fy,fz,false);
 
 	ULOOP
 	urk2(i,j,k) += 0.25*p->dt*CPOR1*(fx(i,j,k));
@@ -368,7 +368,7 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
     pgc->start2(p,fy,11);
     pgc->start3(p,fz,12);   
 
-    p6dof_df->forcing(p,a,pgc,pvrans,pnet,2.0/3.0,a->u,a->v,a->w,fx,fy,fz);
+    p6dof_df->forcing(p,a,pgc,pvrans,pnet,2.0/3.0,a->u,a->v,a->w,fx,fy,fz,true);
 
 	ULOOP
 	a->u(i,j,k) += 2.0/3.0*p->dt*CPOR1*(fx(i,j,k));

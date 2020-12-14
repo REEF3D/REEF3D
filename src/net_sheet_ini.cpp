@@ -549,6 +549,7 @@ void net_sheet::triangulation(lexer *p, fdm *a, ghostcell *pgc)
 {
     // Refine according to cell size DXM
 
+	double x0,x1,x2,y0,y1,y2,z0,z1,z2;
 	double x01,x02,x12,y01,y02,y12,z01,z02,z12,mag;
 	double at,bt,ct,st;
 	double nx,ny,nz;	
@@ -557,17 +558,17 @@ void net_sheet::triangulation(lexer *p, fdm *a, ghostcell *pgc)
 	
     for (int n = 0; n < tend; n++)
 	{
-		double x0 = tri_x[n][0];
-		double x1 = tri_x[n][1];
-		double x2 = tri_x[n][2];
+		x0 = tri_x[n][0];
+		x1 = tri_x[n][1];
+		x2 = tri_x[n][2];
 		
-		double y0 = tri_y[n][0];
-		double y1 = tri_y[n][1];
-		double y2 = tri_y[n][2];
+		y0 = tri_y[n][0];
+		y1 = tri_y[n][1];
+		y2 = tri_y[n][2];
 		
-		double z0 = tri_z[n][0];
-		double z1 = tri_z[n][1];
-		double z2 = tri_z[n][2];  
+		z0 = tri_z[n][0];
+		z1 = tri_z[n][1];
+		z2 = tri_z[n][2];  
            
 		at = sqrt(pow(x1 - x0, 2.0) + pow(y1 - y0, 2.0) + pow(z1 - z0, 2.0));
 		bt = sqrt(pow(x1 - x2, 2.0) + pow(y1 - y2, 2.0) + pow(z1 - z2, 2.0));
@@ -576,7 +577,7 @@ void net_sheet::triangulation(lexer *p, fdm *a, ghostcell *pgc)
 
 		// Check size of triangle and split into 4 triangles if too big
 		
-		if ((at + bt + ct)/3.0 > 1.5*p->DXM)
+		if ((at + bt + ct)/3.0 > p->DXM)
 		{
 			// Half points
 			x01 = x0 + (x1 - x0)/2.0;
