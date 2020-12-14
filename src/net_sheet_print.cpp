@@ -31,7 +31,7 @@ void net_sheet::print(lexer *p)
 	int num=0;
 	
 	if(p->P15==1)
-    num = p->printcount_sixdof;
+    num = p->printcount_sixdof-1;
 
     if(p->P15==2)
     num = p->count;
@@ -74,8 +74,8 @@ void net_sheet::print(lexer *p)
 	)
 	{
 		printtime += p->P30;
-
-		if(p->P14==1)
+		
+        if(p->P14==1)
 		{
 			if(num<10)
 			sprintf(name,"./REEF3D_6DOF_Net/REEF3D-Net-%d-00000%d.stl",nNet,num);
