@@ -102,10 +102,10 @@ void hypre_struct::make_grid_2Dvert(lexer* p,fdm* a, ghostcell* pgc)
     periodic[1]=0;
     periodic[2]=0;
     
-    if(p->periodic1==2)
+    if(p->periodic1>0)
     periodic[0]=p->gknox;
     
-    if(p->periodic3==2)
+    if(p->periodic3>0)
     periodic[1]=p->gknoz;
     
     HYPRE_StructGridCreate(pgc->mpi_comm, 2, &grid);
