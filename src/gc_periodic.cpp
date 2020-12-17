@@ -150,13 +150,44 @@ void ghostcell::gcV_periodic(lexer *p, vec &x, int gcv, int cs)
 {
     double val1,val2,val3;
     
+
+    if(cs==1)
+    {
+        for(q=0;q<p->gc4periodic_count[0];++q)
+        {
+        // 4 to 1 coupling
+        n = p->gc4periodic[0][q];
+        val1 = x.V[I_J_K_4];
+        val2 = x.V[Im1_J_K_4];
+        val3 = x.V[Im2_J_K_4]; 
+        
+        n = p->gc1periodic[0][q];
+        x.V[Im1_J_K_4] = val1;
+        x.V[Im2_J_K_4] = val2;
+        x.V[Im3_J_K_4] = val3; 
+        
+        // 1 to 4 coupling
+        n = p->gc1periodic[0][q];
+        val1 = x.V[I_J_K_4];
+        val2 = x.V[Ip1_J_K_4];
+        val3 = x.V[Ip2_J_K_4]; 
+        
+        n = p->gc4periodic[0][q];
+        x.V[Ip1_J_K_4] = val1;
+        x.V[Ip2_J_K_4] = val2;
+        x.V[Ip3_J_K_4] = val3;         
+        }
+        
+    }
+    
+    
+    
     if(cs==1)
     JLOOP
     KLOOP
     PCHECK
     {
     
-        
     // 4 to 1 coupling
     i=p->knox-1;
     
