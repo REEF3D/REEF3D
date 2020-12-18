@@ -27,7 +27,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"cart3.h"
 #include"cart4.h"
 
-
 void ghostcell::cval_gcb4(lexer* p, fdm* a, fieldint &cval)
 {
 	GC4LOOP

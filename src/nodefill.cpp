@@ -213,7 +213,6 @@ void nodefill::nodefill4(lexer *p, fdm *a, ghostcell *pgc, field &f, field &eta)
     }
 	
 	
-	
 // Paraco
 	int sidesum=0;
 	int aa,bb,cc;
@@ -242,17 +241,17 @@ void nodefill::nodefill4(lexer *p, fdm *a, ghostcell *pgc, field &f, field &eta)
 	sidesum= fabs(aa) + fabs(bb) + fabs(cc);
 		
 		val = f(i-1,j,k);
-		factor = 1.0/double(p->gcparaco1[n][3]);
+		factor = 1.0/double(p->gcparaco1[n][5]);
         
         denom = 1.0e20;
 		
-		if(double(p->gcparaco1[n][3])==1)
+		if(double(p->gcparaco1[n][5])==1)
 		denom = 1.0;
 		
-		if(double(p->gcparaco1[n][3])==2)
+		if(double(p->gcparaco1[n][5])==2)
 		denom = 2.0;
 		
-		if(double(p->gcparaco1[n][3])==3)
+		if(double(p->gcparaco1[n][5])==3)
 		denom = 3.0;
 		
 		if(sidesum==1)
@@ -322,17 +321,17 @@ void nodefill::nodefill4(lexer *p, fdm *a, ghostcell *pgc, field &f, field &eta)
 	sidesum= fabs(aa) + fabs(bb) + fabs(cc);
 	
 		val = f(i+1,j,k);
-		factor = 1.0/double(p->gcparaco4[n][3]);
+		factor = 1.0/double(p->gcparaco4[n][5]);
 		
         denom = 1.0e20;
         
-		if(double(p->gcparaco4[n][3])==1)
+		if(double(p->gcparaco4[n][5])==1)
 		denom = 1.0;
 		
-		if(double(p->gcparaco4[n][3])==2)
+		if(double(p->gcparaco4[n][5])==2)
 		denom = 2.0;
 		
-		if(double(p->gcparaco4[n][3])==3)
+		if(double(p->gcparaco4[n][5])==3)
 		denom = 3.0;
 		
 		
@@ -404,17 +403,17 @@ void nodefill::nodefill4(lexer *p, fdm *a, ghostcell *pgc, field &f, field &eta)
 	sidesum= fabs(aa) + fabs(bb) + fabs(cc);
 	
 		val = f(i,j-1,k);
-		factor = 1.0/double(p->gcparaco3[n][3]);
+		factor = 1.0/double(p->gcparaco3[n][5]);
 		
         denom = 1.0e20;
         
-		if(double(p->gcparaco3[n][3])==1)
+		if(double(p->gcparaco3[n][5])==1)
 		denom = 1.0;
 		
-		if(double(p->gcparaco3[n][3])==2)
+		if(double(p->gcparaco3[n][5])==2)
 		denom = 2.0;
 		
-		if(double(p->gcparaco3[n][3])==3)
+		if(double(p->gcparaco3[n][5])==3)
 		denom = 3.0;
 		
 		if(sidesum==1)
@@ -484,17 +483,17 @@ void nodefill::nodefill4(lexer *p, fdm *a, ghostcell *pgc, field &f, field &eta)
 	sidesum= fabs(aa) + fabs(bb) + fabs(cc);
 	
 		val = f(i,j+1,k);
-		factor = 1.0/double(p->gcparaco2[n][3]);
+		factor = 1.0/double(p->gcparaco2[n][5]);
 		
         denom = 1.0e20;
         
-		if(double(p->gcparaco2[n][3])==1)
+		if(double(p->gcparaco2[n][5])==1)
 		denom = 1.0;
 		
-		if(double(p->gcparaco2[n][3])==2)
+		if(double(p->gcparaco2[n][5])==2)
 		denom = 2.0;
 		
-		if(double(p->gcparaco2[n][3])==3)
+		if(double(p->gcparaco2[n][5])==3)
 		denom = 3.0;
 		
 		
@@ -566,17 +565,17 @@ void nodefill::nodefill4(lexer *p, fdm *a, ghostcell *pgc, field &f, field &eta)
 	sidesum= fabs(aa) + fabs(bb) + fabs(cc);
 	
 		val = f(i,j,k-1);
-		factor = 1.0/double(p->gcparaco5[n][3]);
+		factor = 1.0/double(p->gcparaco5[n][5]);
 		
         denom = 1.0e20;
         
-		if(double(p->gcparaco5[n][3])==1)
+		if(double(p->gcparaco5[n][5])==1)
 		denom = 1.0;
 		
-		if(double(p->gcparaco5[n][3])==2)
+		if(double(p->gcparaco5[n][5])==2)
 		denom = 2.0;
 		
-		if(double(p->gcparaco5[n][3])==3)
+		if(double(p->gcparaco5[n][5])==3)
 		denom = 3.0;
 		
 		if(sidesum==1)
@@ -649,17 +648,17 @@ void nodefill::nodefill4(lexer *p, fdm *a, ghostcell *pgc, field &f, field &eta)
 		val = f(i,j,k+1);
 		
 		
-		factor = 1.0/double(p->gcparaco6[n][3]);
+		factor = 1.0/double(p->gcparaco6[n][5]);
 		
         denom = 1.0e20;
         
-		if(double(p->gcparaco6[n][3])==1)
+		if(double(p->gcparaco6[n][5])==1)
 		denom = 1.0;
 		
-		if(double(p->gcparaco6[n][3])==2)
+		if(double(p->gcparaco6[n][5])==2)
 		denom = 2.0;
 		
-		if(double(p->gcparaco6[n][3])==3)
+		if(double(p->gcparaco6[n][5])==3)
 		denom = 3.0;
 		
 		if(sidesum==1)

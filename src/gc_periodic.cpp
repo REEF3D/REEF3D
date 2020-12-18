@@ -160,8 +160,10 @@ void ghostcell::gcV_periodic(lexer *p, vec &x, int gcv, int cs)
         val2 = x.V[Im1_J_K_4];
         val3 = x.V[Im2_J_K_4]; 
         
+        //cout<<"val1: "<<val1<<" val2: "<<val2<<" val3: "<<val3<<endl;
+        
         n = p->gc4periodic[0][q];
-        x.V[Im1_J_K_4] = val1;
+        x.V[Im1_J_K_4] = 10.0;
         x.V[Im2_J_K_4] = val2;
         x.V[Im3_J_K_4] = val3; 
         
