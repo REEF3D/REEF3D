@@ -209,7 +209,6 @@ public:
     void gcparax7(lexer*, double*, int);
     void gcparax7co(lexer*, double*, int);
 	void gcparaxvec_sr(lexer*, vec&,cpt&,int);
-	void gcparavoidx(lexer*, field&, int);
     void gcparax4a(lexer*, field&, int);
 	void gcparacox(lexer*, field&, int);
     void gcperiodicx(lexer*, field&, int);
@@ -271,7 +270,6 @@ public:
 
     // Slice BCs
     void gcsl_neumann(slice&,int,int,int);
-    void gcsl_neumann_eta_outflow(slice&,int,int,int);
     void gcsl_neumann_x(slice&,int,int,int);
     void gcsl_neumann_int(sliceint&,int,int,int);
 	void gcsl_noslip(slice&,int,int,int);

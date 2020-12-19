@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm2D.h"
 
-double sflow_rheology_f::bingham(lexer *p, fdm2D *b, double vel, double u_abs, double press)
+double sflow_rheology_f::bingham(lexer *p, fdm2D *b, double vel, double u_abs, double press, double HIJ)
 {
         if(p->W101==0)  // HB
         tau0=p->W96;
@@ -33,7 +33,7 @@ double sflow_rheology_f::bingham(lexer *p, fdm2D *b, double vel, double u_abs, d
     
     
     
-    val = (1.5*tau0 + 3.0*p->W97*(1.0/HXIJ)*u_abs)*(vel/(fabs(u_abs)>1.0e-20?u_abs:1.0e20));
+    val = (1.5*tau0 + 3.0*p->W97*(1.0/HIJ)*u_abs)*(vel/(fabs(u_abs)>1.0e-20?u_abs:1.0e20));
     
     
     return val;

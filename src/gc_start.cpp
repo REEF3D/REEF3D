@@ -261,6 +261,15 @@ void ghostcell::start4V(lexer *p, vec &x, int gcv)
     
     // periodic ghostcells
     gcperiodicxvec(p,x,4);
+    
+    if(p->periodic1==1)
+    gcV_periodic(p, x, 4, 1);
+    
+    if(p->periodic2==1)
+    gcV_periodic(p, x, 4, 2);
+    
+    if(p->periodic3==1)
+    gcV_periodic(p, x, 4, 3);
 }
 
 void ghostcell::start4aV(lexer *p, vec &x, int gcv)
@@ -281,6 +290,15 @@ void ghostcell::start4aV(lexer *p, vec &x, int gcv)
     
     // periodic ghostcells
     gcperiodicxvec(p,x,5);
+    
+    if(p->periodic1==1)
+    gcV_periodic_all(p, x, 4, 1);
+    
+    if(p->periodic2==1)
+    gcV_periodic_all(p, x, 4, 2);
+    
+    if(p->periodic3==1)
+    gcV_periodic_all(p, x, 4, 3);
 }
 
 void ghostcell::start6V(lexer *p, vec &x, int gcv)
