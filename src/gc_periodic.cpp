@@ -160,8 +160,6 @@ void ghostcell::gcV_periodic(lexer *p, vec &x, int gcv, int cs)
         val2 = x.V[Im1_J_K_4];
         val3 = x.V[Im2_J_K_4]; 
         
-        //cout<<"val1: "<<val1<<" val2: "<<val2<<" val3: "<<val3<<endl;
-        
         n = p->gc4periodic[0][q];
         x.V[Im1_J_K_4] = val1;
         x.V[Im2_J_K_4] = val2;
@@ -177,6 +175,62 @@ void ghostcell::gcV_periodic(lexer *p, vec &x, int gcv, int cs)
         x.V[Ip1_J_K_4] = val1;
         x.V[Ip2_J_K_4] = val2;
         x.V[Ip3_J_K_4] = val3;         
+        }
+    }
+    
+    if(cs==2)
+    {
+        for(q=0;q<p->gc4periodic_count[2];++q)
+        {
+        // 2 to 3 coupling
+        n = p->gc4periodic[1][q];
+        val1 = x.V[I_J_K_4];
+        val2 = x.V[I_Jm1_K_4];
+        val3 = x.V[I_Jm2_K_4]; 
+        
+        n = p->gc4periodic[2][q];
+        x.V[I_Jm1_K_4] = val1;
+        x.V[I_Jm2_K_4] = val2;
+        x.V[I_Jm3_K_4] = val3; 
+        
+        // 3 to 2 coupling
+        n = p->gc4periodic[2][q];
+        val1 = x.V[I_J_K_4];
+        val2 = x.V[I_Jp1_K_4];
+        val3 = x.V[I_Jp2_K_4]; 
+        
+        n = p->gc4periodic[1][q];
+        x.V[I_Jp1_K_4] = val1;
+        x.V[I_Jp2_K_4] = val2;
+        x.V[I_Jp3_K_4] = val3;         
+        }
+    }
+    
+    if(cs==3)
+    {
+        for(q=0;q<p->gc4periodic_count[4];++q)
+        {
+        // 6 to 5 coupling
+        n = p->gc4periodic[5][q];
+        val1 = x.V[I_J_K_4];
+        val2 = x.V[I_J_Km1_4];
+        val3 = x.V[I_J_Km2_4]; 
+        
+        n = p->gc4periodic[4][q];
+        x.V[I_J_Km1_4] = val1;
+        x.V[I_J_Km2_4] = val2;
+        x.V[I_J_Km3_4] = val3; 
+        
+        // 5 to 6 coupling
+        n = p->gc4periodic[4][q];
+        val1 = x.V[I_J_K_4];
+        val2 = x.V[I_J_Kp1_4];
+        val3 = x.V[I_J_Kp2_4]; 
+        
+        n = p->gc4periodic[5][q];
+        x.V[I_J_Kp1_4] = val1;
+        x.V[I_J_Kp2_4] = val2;
+        x.V[I_J_Kp3_4] = val3;         
         }
     }
 }
