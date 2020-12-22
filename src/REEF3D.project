@@ -927,6 +927,7 @@
         <File Name="flowfile_in.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="ioFlow">
+        <File Name="patch_obj.h"/>
         <File Name="patchBC.h"/>
         <File Name="iowave.h"/>
         <File Name="ioflow_void.h"/>
@@ -2434,6 +2435,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="ioFlow">
         <VirtualDirectory Name="PatchBC">
+          <File Name="patch_obj.cpp"/>
           <File Name="patchBC_outflow.cpp"/>
           <File Name="patchBC_inflow.cpp"/>
           <File Name="patchBC.cpp"/>
