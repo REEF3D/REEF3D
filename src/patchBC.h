@@ -42,6 +42,7 @@ public:
     void patchBC_ini(lexer *p, ghostcell *pgc);
     
     void patchBC_gcb_convert(lexer *p, ghostcell *pgc);
+    void patchBC_IDcount(lexer *p, ghostcell *pgc);
     
     void patchBC_inflow(lexer*, fdm*, ghostcell*, field&,field&,field&);
     void patchBC_outflow(lexer*, fdm*, ghostcell*, field&,field&,field&);
