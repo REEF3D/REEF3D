@@ -23,6 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"patch_obj.h"
 
 patchBC::patchBC(lexer *p) 
 {
@@ -35,66 +36,15 @@ patchBC::~patchBC()
 
 void patchBC::patchBC_ini(lexer *p, ghostcell *pgc)
 {
-    // convert gcbs
-    int istart,iend,jstart,jend,kstart,kend,qn;
-	
-    int count=0;
-    for(qn=0;qn<p->B221;++qn)
-    {
-        istart = p->posc_i(p->B221_xs[qn]);
-        iend = p->posc_i(p->B221_xe[qn]);
-        
-        jstart = p->posc_j(p->B221_ys[qn]);
-        jend = p->posc_j(p->B221_ye[qn]);
-        
-        kstart = p->posc_k(p->B221_zs[qn]);
-        kend = p->posc_k(p->B221_ze[qn]);
-        
-        
-        for(n=0;n<p->gcb4_count;++n)
-		{
-		i=p->gcb4[n][0];
-		j=p->gcb4[n][1];
-		k=p->gcb4[n][2];
-		
-			if(i>=istart && i<iend && j>=jstart && j<jend && k>=kstart && k<kend && p->gcb4[n][3]==p->B221_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
-			{
-			++count;
-			p->gcb4[n][4]=21;
-			}
-		}
-    }
+    patchBC_gcb_convert(p,pgc);
     
-    
-    for(qn=0;qn<p->B231;++qn)
-    {
-        istart = p->posc_i(p->B231_xs[qn]);
-        iend = p->posc_i(p->B231_xe[qn]);
-        
-        jstart = p->posc_j(p->B231_ys[qn]);
-        jend = p->posc_j(p->B231_ye[qn]);
-        
-        kstart = p->posc_k(p->B231_zs[qn]);
-        kend = p->posc_k(p->B231_ze[qn]);
-        
-        
-        for(n=0;n<p->gcb4_count;++n)
-		{
-		i=p->gcb4[n][0];
-		j=p->gcb4[n][1];
-		k=p->gcb4[n][2];
-		
-			if(i>=istart && i<iend && j>=jstart && j<jend && k>=kstart && k<kend && p->gcb4[n][3]==p->B231_face[qn]  && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
-			{
-			++count;
-			p->gcb4[n][4]=31;
-			}
-		}
-    }
-    
-    
-    // gcin / gcout
 
+    
+    // creat patch objects
+    patch = new patch_obj*[obj_count];
+    
+    for(qn=0; qn<obj_count;++qn)
+    patch[qn] = new patch_obj(p);
 
 } 
 

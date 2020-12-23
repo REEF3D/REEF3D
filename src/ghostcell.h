@@ -368,6 +368,7 @@ public:
     void gc_periodic(lexer*,field&,int,int);
     void gcV_periodic(lexer*,vec&,int,int);
     void gcV_periodic_all(lexer*,vec&,int,int);
+    void patchBC(lexer*,field&,double,int,int,int);
 
 	void gcV_neumann(vec&,int,int,int,int);
 	void gcV_lsm(lexer*,vec&, double,int,int,int,int);

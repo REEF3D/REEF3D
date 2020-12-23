@@ -26,6 +26,7 @@ class lexer;
 class fdm;
 class ghostcell;
 class field;
+class patch_obj;
 
 using namespace std;
 
@@ -40,6 +41,8 @@ public:
     
     void patchBC_ini(lexer *p, ghostcell *pgc);
     
+    void patchBC_gcb_convert(lexer *p, ghostcell *pgc);
+    
     void patchBC_inflow(lexer*, fdm*, ghostcell*, field&,field&,field&);
     void patchBC_outflow(lexer*, fdm*, ghostcell*, field&,field&,field&);
     
@@ -47,8 +50,15 @@ public:
 
         
 private:
+    int q,n,qn,count,ID_count;
+    
     int *inflow_ID;
     int *outflow_ID;
+    
+    int geo_count,obj_count;
+    int *ID_array;
+    
+    patch_obj **patch;
     
 
 };

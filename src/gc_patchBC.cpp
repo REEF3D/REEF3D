@@ -19,24 +19,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"patch_obj.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
+#include"field.h"
 
-patch_obj::patch_obj(lexer *p) 
+void ghostcell::patchBC(lexer *p,field& f,double dist,int gcv, int bc, int cs)
 {
     
-}
-
-patch_obj::~patch_obj()
-{
-}
-
-void patch_obj::patch_obj_ini(lexer *p, ghostcell *pgc)
-{
-}
-
-void patch_obj::patch_obj_gcb_generate(lexer *p, ghostcell *pgc)
-{
+    
+    
 }

@@ -19,24 +19,26 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"patch_obj.h"
+#include"patchBC.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"patch_obj.h"
 
-patch_obj::patch_obj(lexer *p) 
-{
+
+void patchBC::patchBC_ini(lexer *p, ghostcell *pgc)
+{    
+    geo_count = p->B221 + p->B222 + p->B231 + p->B232;
     
-}
+    p->Iarray(ID_array,geo_count);
+    
+    count=0;
+    for(n=0; n<p->B221;++n)
+    {
+        ID_array[count] = p->B221_ID[n];
+    }
+    
+    
 
-patch_obj::~patch_obj()
-{
-}
+} 
 
-void patch_obj::patch_obj_ini(lexer *p, ghostcell *pgc)
-{
-}
-
-void patch_obj::patch_obj_gcb_generate(lexer *p, ghostcell *pgc)
-{
-}
