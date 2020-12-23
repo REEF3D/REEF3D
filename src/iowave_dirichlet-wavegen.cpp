@@ -75,6 +75,13 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
 			u(i-2,j,k)=0.0 + p->Ui;
 			u(i-3,j,k)=0.0 + p->Ui;
             
+            if(p->W50_air==1)
+            {
+            u(i-1,j,k)+=p->W50;
+            u(i-2,j,k)+=p->W50;
+            u(i-3,j,k)+=p->W50;
+            }
+            
             v(i-1,j,k)=0.0;
 			v(i-2,j,k)=0.0;
 			v(i-3,j,k)=0.0;

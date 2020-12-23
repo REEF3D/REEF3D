@@ -81,7 +81,7 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
             if(dg<1.0e20)
             {
             if(zloc1<=fsfloc+epsi)
-            uval[count] = wave_u(p,pgc,xg,yg,z);
+            uval[count] = wave_u(p,pgc,xg,yg,z) + p->Ui;
             
             if(zloc1>fsfloc+epsi)
             uval[count] = 0.0;

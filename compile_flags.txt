@@ -1,0 +1,6 @@
+-I/usr/local/openmpi/include
+-I/Library/Developer/CommandLineTools/usr/include/c++/v1
+-I/Library/Developer/CommandLineTools/usr/lib/clang/12.0.0/include
+-I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include
+-I/Library/Developer/CommandLineTools/usr/include
+-I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks
