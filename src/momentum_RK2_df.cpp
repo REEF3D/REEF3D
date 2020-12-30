@@ -79,6 +79,13 @@ void momentum_RK2_df::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans){}
 
 void momentum_RK2_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_df, vrans* pvrans, vector<net*>& pnet)
 {
+    // Set inflow 
+    double udisctime=0.0;
+    double udiscstart=0.0;
+    
+    pflow->discharge(p,a,pgc);
+	pflow->inflow(p,a,pgc,a->u,a->v,a->w);
+    
     // Save old time step
     ULOOP
     un(i,j,k) = a->u(i,j,k); 
@@ -87,20 +94,10 @@ void momentum_RK2_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
     WLOOP
     wn(i,j,k) = a->w(i,j,k);
     
-    pgc->start1(p,un,10);
-    pgc->start2(p,vn,11);
-    pgc->start3(p,wn,12);           
+    pgc->start1(p,un,gcval_u);
+    pgc->start2(p,vn,gcval_v);
+    pgc->start3(p,wn,gcval_w);           
 
-
-
-    // Set inflow 
-    double udisctime=0.0;
-    double udiscstart=0.0;
-    
-    pflow->discharge(p,a,pgc);
-    pflow->inflow(p,a,pgc,un,vn,wn);
-	pflow->rkinflow(p,a,pgc,a->u,a->v,a->w);
-		
 
 //Step 1
 //--------------------------------------------------------
