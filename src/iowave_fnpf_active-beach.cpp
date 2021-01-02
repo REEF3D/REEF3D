@@ -26,7 +26,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void iowave::active_beach_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi, double *Uin, slice &Fifsf, slice &eta)
 {
-    
         double eta_R,Uc,Un,Vc,Wc,eta_T,eta_M,wsf;
 		double posx,posy,posz,uvel,vvel,uabs,fx,fy,pval,fp;
         double fxdir,fydir;
@@ -48,9 +47,6 @@ void iowave::active_beach_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi
 		eta_T = 0.0;
 		eta_M = eta(i,j); 
 		eta_R = eta_M-eta_T;
-        
-        //cout<<p->mpirank<<" eta_R: "<<eta_R<<" eta_M: "<<eta_M<<"   eta: "<<eta(i,j)<<endl;
-
 
         aa=bb=0;
 		if(p->gcslout[n][3]==1)
@@ -70,7 +66,6 @@ void iowave::active_beach_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi
         
         
             
-			//if(wsf>-1.0e20)
 			FKLOOP 
 			{
 				z=p->ZSN[FIJK]-p->phimean;
@@ -79,7 +74,7 @@ void iowave::active_beach_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi
 				Uc=eta_R*sqrt(9.81/c->depth(i,j));
 				
 				if(p->B99==4)
-				Uc=eta_R*p->ww*( cosh(p->wk*(p->wd+z))/sinh(c->depth(i,j)*c->depth(i,j)));
+				Uc=eta_R*p->ww*(cosh(p->wk*(p->wd+z))/sinh(c->depth(i,j)*c->depth(i,j)));
                 
                if(p->B99==5)
                {
@@ -113,6 +108,13 @@ void iowave::active_beach_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi
         Fifsf(i+3,j) = (4.0/3.0)*Fifsf(i,j) - (1.0/3.0)*Fifsf(i-1,j) - (2.0/3.0)*Uc*fx*(-0.5*p->XP[IM1] + 2.0*p->XP[IP] - 1.5*p->XP[IP3]);
         }
         
+        FKLOOP
+        FPCHECK
+        {
+        Fi[FIp1JK] = Fi[FIJK] + Uc*fx*1.0*p->DXP[IP1];
+        Fi[FIp2JK] = Fi[FIJK] + Uc*fx*2.0*p->DXP[IP1];
+        Fi[FIp3JK] = Fi[FIJK] + Uc*fx*3.0*p->DXP[IP1];
+        }
 
 		}
               

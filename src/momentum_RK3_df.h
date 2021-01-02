@@ -43,8 +43,8 @@ class net;
 
 using namespace std;
 
-#ifndef MOMENTUM_FSI_H_
-#define MOMENTUM_FSI_H_
+#ifndef MOMENTUM_RK3_DF_H_
+#define MOMENTUM_RK3_DF_H_
 
 class momentum_RK3_df : public momentum, public bcmom
 {

@@ -43,7 +43,7 @@ void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
         if(p->B98==2 && h_switch==1)
         {
             // Zone 1
-            if(dg<dist1+3.0*p->DXM)
+            if(dg<1.0e20)
             {
             eta(i,j) = wave_eta(p,pgc,xg,yg);
             etaval[count] = eta(i,j);
@@ -78,7 +78,7 @@ void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
 		if(p->B98==2 && u_switch==1)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             {
             uval[count] = u_val;
             ++count;
@@ -110,7 +110,7 @@ void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
 		if(p->B98==2 && v_switch==1)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             {
             vval[count] = v_val;
             ++count;
@@ -143,7 +143,7 @@ void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
 		if(p->B98==2 && w_switch==1)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             {
             wval[count] = w_val;
             ++count;

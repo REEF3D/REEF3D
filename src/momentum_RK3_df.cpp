@@ -70,33 +70,6 @@ momentum_RK3_df::momentum_RK3_df
 	pflow=pioflow;
 
     pdensity = new density_f(p);
-    
-    // Ini Forcing
-    ULOOP
-    {
-        fx(i,j,k) = 0.0;
-        a->fbh1(i,j,k) = 0.0;
-    }
-    VLOOP
-    {
-        fy(i,j,k) = 0.0;
-        a->fbh2(i,j,k) = 0.0;
-    }
-    WLOOP
-    {
-        fz(i,j,k) = 0.0;
-        a->fbh3(i,j,k) = 0.0;
-    }
-    LOOP
-        a->fbh4(i,j,k) = 0.0;
-    
-    pgc->start1(p,fx,10);
-    pgc->start2(p,fy,11);
-    pgc->start3(p,fz,12);           
-    pgc->start1(p,a->fbh1,10);
-    pgc->start2(p,a->fbh2,11);
-    pgc->start3(p,a->fbh3,12);
-    pgc->start4(p,a->fbh4,40);
 }
 
 momentum_RK3_df::~momentum_RK3_df(){}
@@ -199,15 +172,14 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
     pgc->start3(p,a->fbh3,12);
     pgc->start4(p,a->fbh4,40);
     
-    p6dof_df->forcing(p,a,pgc,pvrans,pnet,1.0,urk1,vrk1,wrk1,fx,fy,fz);
+    p6dof_df->forcing(p,a,pgc,pvrans,pnet,1.0,urk1,vrk1,wrk1,fx,fy,fz,false);
 	
     ULOOP
-	urk1(i,j,k) += 1.0*p->dt*CPOR1*(fx(i,j,k));
+    urk1(i,j,k) += 1.0*p->dt*CPOR1*(fx(i,j,k));
 	VLOOP
 	vrk1(i,j,k) += 1.0*p->dt*CPOR2*(fy(i,j,k));
 	WLOOP
 	wrk1(i,j,k) += 1.0*p->dt*CPOR3*(fz(i,j,k));
-    
 
 	pgc->start1(p,urk1,gcval_urk);
 	pgc->start2(p,vrk1,gcval_vrk);
@@ -298,7 +270,7 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
     pgc->start2(p,fy,11);
     pgc->start3(p,fz,12);           
 
-    p6dof_df->forcing(p,a,pgc,pvrans,pnet,0.25,urk2,vrk2,wrk2,fx,fy,fz);
+    p6dof_df->forcing(p,a,pgc,pvrans,pnet,0.25,urk2,vrk2,wrk2,fx,fy,fz,false);
 
 	ULOOP
 	urk2(i,j,k) += 0.25*p->dt*CPOR1*(fx(i,j,k));
@@ -396,7 +368,7 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
     pgc->start2(p,fy,11);
     pgc->start3(p,fz,12);   
 
-    p6dof_df->forcing(p,a,pgc,pvrans,pnet,2.0/3.0,a->u,a->v,a->w,fx,fy,fz);
+    p6dof_df->forcing(p,a,pgc,pvrans,pnet,2.0/3.0,a->u,a->v,a->w,fx,fy,fz,true);
 
 	ULOOP
 	a->u(i,j,k) += 2.0/3.0*p->dt*CPOR1*(fx(i,j,k));

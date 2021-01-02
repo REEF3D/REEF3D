@@ -121,8 +121,6 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             
             if(p->flag4[Im1JK]<AIR && bc(i-1,j)==1)
             {
-            //cout<<"LAPLACE: "<<a->u(i-1,j,k)<<" k: "<<k<<" M.s: "<<a->M.s[n]<<endl;
-            
             a->rhsvec.V[n] += a->M.s[n]*a->u(i-1,j,k)*p->DXP[IP];
             a->M.p[n] += a->M.s[n];
             a->M.s[n] = 0.0;
@@ -157,7 +155,6 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             }
             
         // FSFBC
-            
             // south
             if(p->flag4[Im1JK]==AIR)
             {
@@ -194,8 +191,6 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             }
     
             // KBEDBC
-            
-
             if(p->flag4[IJKm1]<AIR)
             {
             a->M.p[n] += a->M.b[n];

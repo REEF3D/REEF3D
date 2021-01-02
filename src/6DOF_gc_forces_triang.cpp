@@ -178,7 +178,7 @@ void sixdof_gc::forces_triang(lexer* p, fdm *a, ghostcell *pgc)
             
             pval =      p->ccipol4_a(a->press,xloc,yloc,zloc);
             density =   p->ccipol4_a(a->ro,xloc,yloc,zloc);
-            viscosity = p->ccipol4_a(a->visc,xloc,yloc,zloc);
+            viscosity = p->ccipol4_a(a->visc,xloc,yloc,zloc) + p->ccipol4_a(a->eddyv,xloc,yloc,zloc);
             phival =    p->ccipol4_a(a->phi,xloc,yloc,zloc);
      
    

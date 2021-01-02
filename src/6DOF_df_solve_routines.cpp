@@ -24,6 +24,114 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
+void sixdof_df_object::abam4(lexer *p, fdm *a, ghostcell *pgc, double alpha)
+{
+    if (alpha == 1.0)
+    {
+        // Store old time step
+        pk_ = p_;
+        ck_ = c_;
+        hk_ = h_;
+        ek_ = e_;
+        
+        // Calculate function in dp_,...
+        get_trans(p,a,pgc, dp_, dc_, p_, c_);    
+        get_rot(dh_, de_, h_, e_);
+
+        // Advance in time using 4th-order Adam-Bashforth
+        p_ = p_ + ab4_3(p,dp_,dpn1_,dpn2_,dpn3_,1.0);
+        c_ = c_ + ab4_3(p,dc_,dcn1_,dcn2_,dcn3_,1.0);
+        h_ = h_ + ab4_3(p,dh_,dhn1_,dhn2_,dhn3_,1.0);
+        e_ = e_ + ab4_4(p,de_,den1_,den2_,den3_,1.0);   
+        
+        for (int iter = 1; iter < 10; iter++)
+        {
+            Eigen::Vector3d old = p_;
+            
+            // Calculate function in dpk_,...
+            get_trans(p,a,pgc, dpk_, dck_, p_, c_);    
+            get_rot(dhk_, dek_, h_, e_);
+            
+            // Correct using 4th-order Adam-Moulton
+            p_ = pk_ + am4_3(p,dpk_,dp_,dpn1_,dpn2_,1.0);
+            c_ = ck_ + am4_3(p,dck_,dc_,dcn1_,dcn2_,1.0);
+            h_ = hk_ + am4_3(p,dhk_,dh_,dhn1_,dhn2_,1.0);
+            e_ = ek_ + am4_4(p,dek_,de_,den1_,den2_,1.0);
+
+            if (p->mpirank==0)
+            {
+                cout<<iter<<" "<<(old - p_).transpose()<<endl;
+            }
+        }
+    }
+    else
+    {
+        for (int iter = 1; iter < 10; iter++)
+        {
+            Eigen::Vector3d old = p_;
+            
+            // Calculate function in dpk_,...
+            get_trans(p,a,pgc, dpk_, dck_, p_, c_);    
+            get_rot(dhk_, dek_, h_, e_);
+            
+            // Correct using 4th-order Adam-Moulton
+            p_ = pk_ + am4_3(p,dpk_,dp_,dpn1_,dpn2_,1.0);
+            c_ = ck_ + am4_3(p,dck_,dc_,dcn1_,dcn2_,1.0);
+            h_ = hk_ + am4_3(p,dhk_,dh_,dhn1_,dhn2_,1.0);
+            e_ = ek_ + am4_4(p,dek_,de_,den1_,den2_,1.0);
+
+            if (p->mpirank==0)
+            {
+                cout<<iter<<" "<<(old - p_).transpose()<<endl;
+            }
+        }
+    }
+}
+
+void sixdof_df_object::rk2(lexer *p, fdm *a, ghostcell *pgc, double alpha)
+{
+    if (alpha == 1.0)
+    {
+        pk_ = p_;
+        ck_ = c_;
+        hk_ = h_;
+        ek_ = e_;
+
+        get_trans(p,a,pgc, dp_, dc_, p_, c_);    
+        get_rot(dh_, de_, h_, e_);
+
+        p_ = p_ + alpha*p->dt*dp_;
+        c_ = c_ + alpha*p->dt*dc_;
+        h_ = h_ + alpha*p->dt*dh_;
+        e_ = e_ + alpha*p->dt*de_;
+
+        // Store dp for abam4
+        dpk_ = dp_;
+        dck_ = dc_;
+        dhk_ = dh_;
+        dek_ = de_;
+    }
+    else
+    {
+        for (int iter = 1; iter < 3; iter++)
+        {
+            get_trans(p,a,pgc, dp_, dc_, p_, c_);    
+            get_rot(dh_, de_, h_, e_);        
+            
+            p_ = (1.0/2.0)*pk_ + (1.0/2.0)*p_ + alpha*p->dt*dp_;
+            c_ = (1.0/2.0)*ck_ + (1.0/2.0)*c_ + alpha*p->dt*dc_;
+            h_ = (1.0/2.0)*hk_ + (1.0/2.0)*h_ + alpha*p->dt*dh_;
+            e_ = (1.0/2.0)*ek_ + (1.0/2.0)*e_ + alpha*p->dt*de_;         
+        }
+
+        // Store dp for abam4
+        dp_ = dpk_;
+        dc_ = dck_;
+        dh_ = dhk_;
+        de_ = dek_;
+    }
+}
+
 void sixdof_df_object::rk3(lexer *p, fdm *a, ghostcell *pgc, double alpha)
 {
     if (alpha == 1.0)
@@ -142,40 +250,6 @@ Eigen::Vector3d sixdof_df_object::ab4_3
             + 0.6e1 * dtn1 * ((fn2 / 0.3e1 - fn3 / 0.3e1) * (pow(dtn1,3)) - 0.4e1 / 0.3e1 * dtn3 * (fn1 - fn2) * (pow(dtn1,2)) 
             + (pow(dtn3,2) * (fn - 2 * fn1 + fn2) * dtn1) + 0.2e1 / 0.3e1 * (pow(dtn3,3)) * (fn - fn1)) * dtn2 - (2 * pow(dtn1,2) * dtn3
             * pow(dtn1 + dtn3,2) * (fn1 - fn2))) * alpha*p->dt + (4 * fn * dtn1 * dtn2 * dtn3 * (dtn2 + dtn3) * (dtn1 + dtn2) 
-            * (dtn1 + dtn2 + dtn3))) / dtn1 / (dtn1 + dtn2) / (dtn1 + dtn2 + dtn3) / dtn2 / (dtn2 + dtn3) / dtn3 / 0.4e1
-        ); 
-  
-    return ab4_3;
-}
-
-
-Eigen::MatrixXd sixdof_df_object::ab4_matrix
-(
-    lexer *p,
-    const Eigen::MatrixXd& fn, 
-    const Eigen::MatrixXd& fn1, 
-    const Eigen::MatrixXd& fn2, 
-    const Eigen::MatrixXd& fn3,
-    double alpha
-)
-{
-    Eigen::MatrixXd ab4_3 = 
-        (
-            alpha*p->dt * (((((fn2 - fn3) * dtn1 + dtn3 * (fn - fn1)) * pow(dtn2,2) 
-            + ((fn2 - fn3) * pow(dtn1,2) - 2 * dtn3 * (fn1 - fn2) * dtn1 + pow(dtn3,2) 
-            * (fn - fn1)) * dtn2 - dtn1 * dtn3 * (dtn1 + dtn3) * (fn1 - fn2)) * pow(alpha*p->dt,3)) 
-            + (((0.4e1 / 0.3e1 * fn2 - 0.4e1 / 0.3e1 * fn3) * dtn1 + 0.8e1 / 0.3e1 * dtn3 
-            * (fn - fn1)) * (pow(dtn2,3)) + (((4 * fn2 - 4 * fn3) * pow(dtn1,2) + 4 * dtn3 
-            * (fn - 2 * fn1 + fn2) * dtn1 + 4 * pow(dtn3,2) * (fn - fn1)) * pow(dtn2,2)) 
-            + ((-0.8e1 / 0.3e1 * fn3 + 0.8e1 / 0.3e1 * fn2) * (pow(dtn1,3)) - (8 * dtn3 * (fn1 - fn2) * pow(dtn1,2)) 
-            + (4 * pow(dtn3,2) * (fn - 2 * fn1 + fn2) * dtn1) + 0.4e1 / 0.3e1 * (pow(dtn3,3)) * (fn - fn1)) * dtn2 
-            - 0.8e1 / 0.3e1 * dtn3 * dtn1 * (dtn1 + dtn3 / 0.2e1) * (dtn1 + dtn3) * (fn1 - fn2)) * (pow(alpha*p->dt,2)) 
-            + ((2 * dtn3 * (fn - fn1) * pow(dtn2,4)) + (((2 * fn2 - 2 * fn3) * pow(dtn1,2) + 8 * dtn3 * (fn - fn1) 
-            * dtn1 + 4 * pow(dtn3,2) * (fn - fn1)) * pow(dtn2,3)) + (((4 * fn2 - 4 * fn3) * pow(dtn1,3) + 6 * dtn3 
-            * (fn - 2 * fn1 + fn2) * pow(dtn1,2) + 12 * pow(dtn3,2) * (fn - fn1) * dtn1 + 2 * pow(dtn3,3) * (fn - fn1)) * pow(dtn2,2)) 
-            + 0.6e1 * dtn1 * ((fn2 / 0.3e1 - fn3 / 0.3e1) * (pow(dtn1,3)) - 0.4e1 / 0.3e1 * dtn3 * (fn1 - fn2) * (pow(dtn1,2)) 
-            + (pow(dtn3,2) * (fn - 2 * fn1 + fn2) * dtn1) + 0.2e1 / 0.3e1 * (pow(dtn3,3)) * (fn - fn1)) * dtn2 - (2 * pow(dtn1,2) * dtn3
-            * pow(dtn1 + dtn3,2) * (fn1 - fn2))) *alpha* p->dt + (4 * fn * dtn1 * dtn2 * dtn3 * (dtn2 + dtn3) * (dtn1 + dtn2) 
             * (dtn1 + dtn2 + dtn3))) / dtn1 / (dtn1 + dtn2) / (dtn1 + dtn2 + dtn3) / dtn2 / (dtn2 + dtn3) / dtn3 / 0.4e1
         ); 
   

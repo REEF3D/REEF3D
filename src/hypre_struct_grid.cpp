@@ -42,8 +42,23 @@ void hypre_struct::make_grid(lexer* p,fdm* a, ghostcell* pgc)
     iupper[1] = p->knoy+p->origin_j-1;
     iupper[2] = p->knoz+p->origin_k-1+kend;
     
+    // periodic BC
+    periodic[0]=0;
+    periodic[1]=0;
+    periodic[2]=0;
+    
+    if(p->periodic1>0)
+    periodic[0]=p->gknox;
+    
+    if(p->periodic2>0)
+    periodic[1]=p->gknoy;
+    
+    if(p->periodic3>0)
+    periodic[2]=p->gknoz;
+    
     HYPRE_StructGridCreate(pgc->mpi_comm, 3, &grid);
     HYPRE_StructGridSetExtents(grid, ilower, iupper);
+    HYPRE_StructGridSetPeriodic (grid, periodic);
     HYPRE_StructGridAssemble(grid);
     
     
@@ -82,8 +97,20 @@ void hypre_struct::make_grid_2Dvert(lexer* p,fdm* a, ghostcell* pgc)
     iupper[0] = p->knox+p->origin_i-1;
     iupper[1] = p->knoz+p->origin_k-1+kend;
     
+    // periodic BC
+    periodic[0]=0;
+    periodic[1]=0;
+    periodic[2]=0;
+    
+    if(p->periodic1>0)
+    periodic[0]=p->gknox;
+    
+    if(p->periodic3>0)
+    periodic[1]=p->gknoz;
+    
     HYPRE_StructGridCreate(pgc->mpi_comm, 2, &grid);
     HYPRE_StructGridSetExtents(grid, ilower, iupper);
+    HYPRE_StructGridSetPeriodic(grid, periodic);
     HYPRE_StructGridAssemble(grid);
     
     

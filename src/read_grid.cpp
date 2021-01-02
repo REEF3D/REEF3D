@@ -48,12 +48,6 @@ void lexer::read_grid()
 	gcpara4_count=0;
 	gcpara5_count=0;
 	gcpara6_count=0;
-	gcparavoid1_count=0;
-	gcparavoid2_count=0;
-	gcparavoid3_count=0;
-	gcparavoid4_count=0;
-	gcparavoid5_count=0;
-	gcparavoid6_count=0;
 	gcparaco1_count=0;
 	gcparaco2_count=0;
 	gcparaco3_count=0;
@@ -182,19 +176,6 @@ void lexer::read_grid()
     gcpara6_count=iin;
     
     grid.read((char*)&iin, sizeof (int));
-    gcparavoid1_count=iin;
-    grid.read((char*)&iin, sizeof (int));
-    gcparavoid2_count=iin;
-    grid.read((char*)&iin, sizeof (int));
-    gcparavoid3_count=iin;
-    grid.read((char*)&iin, sizeof (int));
-    gcparavoid4_count=iin;
-    grid.read((char*)&iin, sizeof (int));
-    gcparavoid5_count=iin;
-    grid.read((char*)&iin, sizeof (int));
-    gcparavoid6_count=iin;
-    
-    grid.read((char*)&iin, sizeof (int));
     gcparaco1_count=iin;
     grid.read((char*)&iin, sizeof (int));
     gcparaco2_count=iin;
@@ -237,6 +218,7 @@ void lexer::read_grid()
     nb5=iin;
     grid.read((char*)&iin, sizeof (int));
     nb6=iin;
+    
 
 	grid.read((char*)&iin, sizeof (int));
     mx=iin;
@@ -264,6 +246,27 @@ void lexer::read_grid()
     bcside5=iin;
     grid.read((char*)&iin, sizeof (int));
     bcside6=iin;
+    
+    grid.read((char*)&iin, sizeof (int));
+    periodic1=iin;
+    grid.read((char*)&iin, sizeof (int));
+    periodic2=iin;
+    grid.read((char*)&iin, sizeof (int));
+    periodic3=iin;
+    
+    grid.read((char*)&iin, sizeof (int));
+    periodicX1=iin;
+    grid.read((char*)&iin, sizeof (int));
+    periodicX2=iin;
+    grid.read((char*)&iin, sizeof (int));
+    periodicX3=iin;
+    grid.read((char*)&iin, sizeof (int));
+    periodicX4=iin;
+    grid.read((char*)&iin, sizeof (int));
+    periodicX5=iin;
+    grid.read((char*)&iin, sizeof (int));
+    periodicX6=iin;
+    
     
     grid.read((char*)&iin, sizeof (int));
     G51=iin;
@@ -339,6 +342,19 @@ void lexer::read_grid()
     Darray(gcd4, gcb4_count);
     Darray(gcd4a, gcb4a_count);
 	}
+    
+    if(periodic1==1||periodic2==1||periodic3==1)
+    {
+    gc4periodic_maxcount = 0;
+    gc4periodic_maxcount = MAX(knox*knoy,knox*knoz);
+    gc4periodic_maxcount = MAX(gc4periodic_maxcount,knoy*knoz);
+    
+    Iarray(gc4periodic_count,6);
+    Iarray(gc4aperiodic_count,6);
+    
+    Iarray(gc4periodic,6,gc4periodic_maxcount);
+    Iarray(gc4aperiodic,6,gc4periodic_maxcount);
+    }
 	
     Iarray(gcpara1, gcpara1_count,15);
     Iarray(gcpara2, gcpara2_count,15);
@@ -346,14 +362,7 @@ void lexer::read_grid()
     Iarray(gcpara4, gcpara4_count,15);
     Iarray(gcpara5, gcpara5_count,15);
     Iarray(gcpara6, gcpara6_count,15);
-	
-	Iarray(gcparavoid1, gcparavoid1_count,4);
-    Iarray(gcparavoid2, gcparavoid2_count,4);
-    Iarray(gcparavoid3, gcparavoid3_count,4);
-    Iarray(gcparavoid4, gcparavoid4_count,4);
-    Iarray(gcparavoid5, gcparavoid5_count,4);
-    Iarray(gcparavoid6, gcparavoid6_count,4);
-	
+
     Iarray(gcparaco1, gcparaco1_count,6);
     Iarray(gcparaco2, gcparaco2_count,6);
     Iarray(gcparaco3, gcparaco3_count,6);
@@ -713,127 +722,6 @@ void lexer::read_grid()
 			gcpara6[i][3]=1;
 	}
 	
-//  ParaVoid Surfaces
-	for(i=0; i<gcparavoid1_count; ++i)
-	{
-        grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
-        
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
-        
-        grid.read((char*)&iin, sizeof (int));
-        ksurf=iin;
-        
-        grid.read((char*)&iin, sizeof (int));
-        para_active=iin;
-
-			gcparavoid1[i][0]=isurf;
-			gcparavoid1[i][1]=jsurf;
-			gcparavoid1[i][2]=ksurf;
-			gcparavoid1[i][3]=para_active;
-	}
-
-	for(i=0; i<gcparavoid2_count; ++i)
-	{
-		grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
-        
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
-        
-        grid.read((char*)&iin, sizeof (int));
-        ksurf=iin;
-        
-        grid.read((char*)&iin, sizeof (int));
-        para_active=iin;
-
-			gcparavoid2[i][0]=isurf;
-			gcparavoid2[i][1]=jsurf;
-			gcparavoid2[i][2]=ksurf;
-			gcparavoid2[i][3]=para_active;
-	}
-
-	for(i=0; i<gcparavoid3_count; ++i)
-	{
-		grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
-        
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
-        
-        grid.read((char*)&iin, sizeof (int));
-        ksurf=iin;
-        
-        grid.read((char*)&iin, sizeof (int));
-        para_active=iin;
-
-			gcparavoid3[i][0]=isurf;
-			gcparavoid3[i][1]=jsurf;
-			gcparavoid3[i][2]=ksurf;
-			gcparavoid3[i][3]=para_active;
-	}
-
-	for(i=0; i<gcparavoid4_count; ++i)
-	{
-		grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
-        
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
-        
-        grid.read((char*)&iin, sizeof (int));
-        ksurf=iin;
-        
-        grid.read((char*)&iin, sizeof (int));
-        para_active=iin;
-
-			gcparavoid4[i][0]=isurf;
-			gcparavoid4[i][1]=jsurf;
-			gcparavoid4[i][2]=ksurf;
-			gcparavoid4[i][3]=para_active;
-	}
-
-	for(i=0; i<gcparavoid5_count; ++i)
-	{
-		grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
-        
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
-        
-        grid.read((char*)&iin, sizeof (int));
-        ksurf=iin;
-        
-        grid.read((char*)&iin, sizeof (int));
-        para_active=iin;
-
-			gcparavoid5[i][0]=isurf;
-			gcparavoid5[i][1]=jsurf;
-			gcparavoid5[i][2]=ksurf;
-			gcparavoid5[i][3]=para_active;
-	}
-
-	for(i=0; i<gcparavoid6_count; ++i)
-	{
-		grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
-        
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
-        
-        grid.read((char*)&iin, sizeof (int));
-        ksurf=iin;
-        
-        grid.read((char*)&iin, sizeof (int));
-        para_active=iin;
-
-			gcparavoid6[i][0]=isurf;
-			gcparavoid6[i][1]=jsurf;
-			gcparavoid6[i][2]=ksurf;
-			gcparavoid6[i][3]=para_active;
-	}
-
 //  Para Corners
 	for(i=0; i<gcparaco1_count; ++i)
 	{

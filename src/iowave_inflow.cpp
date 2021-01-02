@@ -88,14 +88,12 @@ void iowave::inflow_plain(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
         w(i-2,j,k)=0.0;
         w(i-3,j,k)=0.0;
         
-        if(p->W50_air==1 && a->phi(i,j,k)<-psi)
+        // Air inflow
+        if(p->W50_air==1 && a->phi(i,j,k)<-0.6*p->DXM)
         {
-        u(i-1,j,k)=p->W50;
-        u(i-2,j,k)=p->W50;
-        u(i-3,j,k)=p->W50;
-            
-            
-            
+        u(i-1,j,k)+=p->W50;
+        u(i-2,j,k)+=p->W50;
+        u(i-3,j,k)+=p->W50;
         }
     
     }

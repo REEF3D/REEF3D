@@ -199,7 +199,10 @@ void lexer::ini_default()
 	B192_4=0.0;		// double z-coordinate for rotation around y-axis
 	B194_s=-1.0e9; // double start rotation
 	B194_e= 1.0e9; // double end rotation
-	B210=0;			// int peridic boundary conditions
+	B221=0;			// int rectangular inflow patch BC
+    B222=0;			// int circular inflow patch BC
+    B231=0;			// int rectangular outflow patch BC
+    B232=0;			// int circular outflow patch BC
 	B240=0;			// int porous media  
 	B241=1;			// int porous media in x-direction
 	B242=1;			// int porous media in y-direction
@@ -617,11 +620,11 @@ void lexer::ini_default()
     X26_Ku=X26_Kv=X26_Kw=0.0;	// double spring coefficients
     X27=0;      // int spring origin given 
     X27_x=X27_y=X27_z=0.0;  // double spring origin
-	X31=3;		// int boundary conditions for parallel velocity on floating body
+	X31=4;		// int boundary conditions for parallel velocity on floating body
 	X32=1;		// int boundary conditions for orthogonal velocity on floating body
 	X33=1;		// int boundary conditions for pressure on floating body
     X34=0;		// int boundary treatment for new solid velocity cells
-    X40=1;		// int type of force calculation
+    X40=3;		// int type of force calculation
 	X41=2.1;    // double eps for continuous forcing heaviside
 	X100=0;		// int delta x,y,z
 	X100_x=X100_y=X100_z=0.0; 
@@ -664,7 +667,12 @@ void lexer::ini_default()
     X325_dt=X325_relX=X325_relY=X325_relZ=0.0;   // double dynamic net time step properties
 	
 	// Developer 
-	Y40=3;
+	Y1=0;   // int turn on/off experimental screen force model
+    Y2=0;   // int turn on/off PC FSI algorithm
+    Y3=0;   // int number of iterations in PC FSI algorithm
+    Y4=0;
+    Y5=0;
+    Y40=3;
     Y50=5;
 	Y60=1;  // int require 
     Y71=0;  // int turn on/off solid gcparax

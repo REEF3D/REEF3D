@@ -59,7 +59,7 @@ public:
 	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
 
 	// Additional functions
-    void updateFSI(lexer*, fdm*, ghostcell*, double);
+    void updateFSI(lexer*, fdm*, ghostcell*, bool);
     void updateForcing(lexer*, fdm*, ghostcell*,double,field&,field&,field&,field1&,field2&,field3&);
 	void forces_stl(lexer*, fdm*, ghostcell*,double,field&,field&,field&);
     
@@ -104,21 +104,12 @@ private:
     void geometry_ls(lexer*, fdm*, ghostcell*);
     
     void iniPosition_RBM(lexer*, fdm*, ghostcell*);
-    void updatePosition(lexer*, fdm*, ghostcell*, double);
+    void updatePosition(lexer*, fdm*, ghostcell*, bool);
     void prescribedMotion(lexer*, fdm*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&);
     void quat_matrices(const Eigen::Vector4d&);
 
     void get_trans(lexer*, fdm*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&, const Eigen::Vector3d&, const Eigen::Vector3d&);
     void get_rot(Eigen::Vector3d&, Eigen::Vector4d&, const Eigen::Vector3d&, const Eigen::Vector4d&);
-    Eigen::MatrixXd ab4_matrix
-    (   
-        lexer*,
-        const Eigen::MatrixXd&, 
-        const Eigen::MatrixXd&, 
-        const Eigen::MatrixXd&, 
-        const Eigen::MatrixXd&,
-        double
-    );
     Eigen::Vector3d ab4_3
     (   
         lexer*,
@@ -155,6 +146,8 @@ private:
         const Eigen::Vector4d&,
         double alpha
     );
+    void abam4(lexer*, fdm*, ghostcell*, double);
+    void rk2(lexer*, fdm*, ghostcell*,double);
     void rk3(lexer*, fdm*, ghostcell*,double);
     void rk4(lexer*, fdm*, ghostcell*,double);
 

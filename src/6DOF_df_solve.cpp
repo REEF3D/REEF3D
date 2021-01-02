@@ -36,20 +36,33 @@ void sixdof_df_object::start(lexer *p, fdm *a, ghostcell *pgc, double alpha, vra
     double Myold = Mfb_(1); 
     double Mzold = Mfb_(2); 
 
-    p_ = pn1_;
-    c_ = cn1_;
-    h_ = hn1_;
-    e_ = en1_;
-
-
     if (alpha == 1.0)
     {
+        p_ = pn1_;
+        c_ = cn1_;
+        h_ = hn1_;
+        e_ = en1_;
+
         externalForces(p, a, pgc, alpha, pvrans, pnet);
     }
     
     updateForces(a);
-    
-    rk3(p,a,pgc,alpha);
+   
+    if (p->Y2 == 1)
+    {
+      //  if (p->count < 5)
+        {
+            rk2(p,a,pgc,alpha);
+        }
+      //  else
+        {
+      //    abam4(p,a,pgc,alpha);
+        }
+    }
+    else
+    {
+        rk3(p,a,pgc,alpha);
+    }
 
     err_norm = 
           fabs(Fxold - Ffb_(0)) + fabs(Fyold - Ffb_(1)) + fabs(Fzold - Ffb_(2)) 

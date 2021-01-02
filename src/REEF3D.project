@@ -835,6 +835,7 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
+      <File Name="momentum_RK2_df.h"/>
       <File Name="momentum_IMEX.h"/>
       <File Name="momentum_RK3_df.h"/>
       <File Name="bcmom.h"/>
@@ -926,6 +927,8 @@
         <File Name="flowfile_in.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="ioFlow">
+        <File Name="patch_obj.h"/>
+        <File Name="patchBC.h"/>
         <File Name="iowave.h"/>
         <File Name="ioflow_void.h"/>
         <File Name="ioflow_gravity.h"/>
@@ -1810,6 +1813,8 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
       <VirtualDirectory Name="Epol">
+        <File Name="gc_patchBC.cpp"/>
+        <File Name="gc_periodic.cpp"/>
         <File Name="gc_heat.cpp"/>
         <File Name="gc_dgcpol4.cpp"/>
         <File Name="gc_dgcpol3.cpp"/>
@@ -1863,6 +1868,8 @@
         <File Name="gcibm_distguard.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Parallel">
+        <File Name="gcx_periodicvec.cpp"/>
+        <File Name="gcx_periodic.cpp"/>
         <File Name="gcx_paraxijk_single.cpp"/>
         <File Name="gcx_paraxijk.cpp"/>
         <File Name="gcx_paraxint.cpp"/>
@@ -1881,7 +1888,6 @@
         <File Name="gcx_update.cpp"/>
         <File Name="gcx_wait.cpp"/>
         <File Name="gcx_walldist.cpp"/>
-        <File Name="gcx_paravoidx.cpp"/>
         <File Name="gcx_paraxvec.cpp"/>
         <File Name="gxc_verticalmax.cpp"/>
         <File Name="gcx_parax_generic.cpp"/>
@@ -2274,6 +2280,7 @@
       <File Name="ini.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
+      <File Name="momentum_RK2_df.cpp"/>
       <File Name="momentum_IMEX.cpp"/>
       <File Name="momentum_RK3_df.cpp"/>
       <VirtualDirectory Name="BC">
@@ -2428,6 +2435,14 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="ioFlow">
+        <VirtualDirectory Name="PatchBC">
+          <File Name="patchBC_IDcount.cpp"/>
+          <File Name="patchBC_gcb_convert.cpp"/>
+          <File Name="patch_obj.cpp"/>
+          <File Name="patchBC_outflow.cpp"/>
+          <File Name="patchBC_inflow.cpp"/>
+          <File Name="patchBC.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Void">
           <File Name="ioflow_void.cpp"/>
         </VirtualDirectory>
@@ -2625,7 +2640,7 @@
       </Completion>
     </Configuration>
     <Configuration Name="Release" CompilerType="mpicxx" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="overwrite" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-O3; -w" C_Options="-O3; -w" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0"/>
+      <Compiler Options="-O3; -w; -std=c++11" C_Options="-O3; -w" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0"/>
       <Linker Options="-lm" Required="yes">
         <LibraryPath Value="/usr/local/hypre/lib"/>
         <Library Value="HYPRE"/>

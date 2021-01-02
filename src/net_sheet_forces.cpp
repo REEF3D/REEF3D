@@ -62,17 +62,17 @@ void net_sheet::dragForce(lexer *p)
     for (int knotI = 0; knotI < nK; knotI++)
     {
         //Calculate normal vector
-		x0 = tri_x[i][0];
-		x1 = tri_x[i][1];
-		x2 = tri_x[i][2];
+		x0 = tri_x[knotI][0];
+		x1 = tri_x[knotI][1];
+		x2 = tri_x[knotI][2];
 		
-		y0 = tri_y[i][0];
-		y1 = tri_y[i][1];
-		y2 = tri_y[i][2];
+		y0 = tri_y[knotI][0];
+		y1 = tri_y[knotI][1];
+		y2 = tri_y[knotI][2];
 		
-		z0 = tri_z[i][0];
-		z1 = tri_z[i][1];
-		z2 = tri_z[i][2];  
+		z0 = tri_z[knotI][0];
+		z1 = tri_z[knotI][1];
+		z2 = tri_z[knotI][2];  
         
         side1 << x1-x0, y1-y0, z1-z0;
         side2 << x2-x0, y2-y0, z2-z0;

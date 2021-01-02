@@ -32,7 +32,7 @@ void sixdof_gc::forces_stl(lexer* p, fdm *a, ghostcell *pgc)
 	double at,bt,ct,st;
 	double nx,ny,nz,norm;
 	double A_triang,A;
-	double p_int,rho_int,nu_int,u_int,v_int,w_int;
+	double p_int,rho_int,nu_int,enu_int,u_int,v_int,w_int;
 	double du,dv,dw, dudx, dudy, dudz, dvdx, dvdy, dvdz, dwdx, dwdy, dwdz;
 	double dudxf, dudyf, dudzf, dvdxf, dvdyf, dvdzf, dwdxf, dwdyf, dwdzf;
 	double dudxb, dudyb, dudzb, dvdxb, dvdyb, dvdzb, dwdxb, dwdyb, dwdzb;
@@ -124,6 +124,7 @@ void sixdof_gc::forces_stl(lexer* p, fdm *a, ghostcell *pgc)
             // Add tangential stress contributions
 			
 			nu_int = p->ccipol4(a->visc,xlocvel,ylocvel,zlocvel);
+			enu_int = p->ccipol4(a->eddyv,xlocvel,ylocvel,zlocvel);
 			rho_int = p->ccipol4(a->ro,xlocvel,ylocvel,zlocvel);
 			
             dudx = (a->u(i+1,j,k) - a->u(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1]);
@@ -138,9 +139,9 @@ void sixdof_gc::forces_stl(lexer* p, fdm *a, ghostcell *pgc)
             dwdy = (a->w(i,j+1,k) - a->w(i,j-1,k))/(p->DYP[JP] + p->DYP[JM1]);
             dwdz = (a->w(i,j,k+1) - a->w(i,j,k-1))/(p->DZP[KP] + p->DZP[KM1]);
             
-            Fx += rho_int*nu_int*A_triang*(2.0*dudx*nx + (dudy + dvdx)*ny + (dudz + dwdx)*nz);
-            Fy += rho_int*nu_int*A_triang*((dudy + dvdx)*nx + 2.0*dvdy*ny + (dvdz + dwdy)*nz);
-            Fz += rho_int*nu_int*A_triang*((dudz + dwdx)*nx + (dvdz + dwdy)*ny + 2.0*dwdz*nz);
+            Fx += rho_int*(nu_int + enu_int)*A_triang*(2.0*dudx*nx + (dudy + dvdx)*ny + (dudz + dwdx)*nz);
+            Fy += rho_int*(nu_int + enu_int)*A_triang*((dudy + dvdx)*nx + 2.0*dvdy*ny + (dvdz + dwdy)*nz);
+            Fz += rho_int*(nu_int + enu_int)*A_triang*((dudz + dwdx)*nx + (dvdz + dwdy)*ny + 2.0*dwdz*nz);
 			
 
 			// Add forces to global forces

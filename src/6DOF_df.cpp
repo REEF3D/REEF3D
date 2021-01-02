@@ -52,7 +52,7 @@ void sixdof_df::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 	
 void sixdof_df::start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&){};
 
-void sixdof_df::forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, double alpha, field& uvel, field& vvel, field& wvel, field1& fx, field2& fy, field3& fz)
+void sixdof_df::forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, double alpha, field& uvel, field& vvel, field& wvel, field1& fx, field2& fy, field3& fz, bool finalise)
 {
     for (int nb = 0; nb < number6DOF; nb++)
     {
@@ -63,15 +63,19 @@ void sixdof_df::forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<
         p_df_obj[nb]->start(p,a,pgc,alpha,pvrans,pnet);
 
         // Update position and fb level set
-        p_df_obj[nb]->updateFSI(p,a,pgc,alpha);
+        p_df_obj[nb]->updateFSI(p,a,pgc,finalise);
 
         // Update forcing terms
         p_df_obj[nb]->updateForcing(p,a,pgc,alpha,uvel,vvel,wvel,fx,fy,fz);
 
         // Save and print
-        p_df_obj[nb]->saveTimeStep(p,alpha);
         p_df_obj[nb]->interface(p,true);
-        p_df_obj[nb]->print_stl(p,a,pgc);
-        p_df_obj[nb]->print_parameter(p, a, pgc);
+
+        if (finalise == true)
+        {
+            p_df_obj[nb]->saveTimeStep(p,alpha);
+            p_df_obj[nb]->print_stl(p,a,pgc);
+            p_df_obj[nb]->print_parameter(p, a, pgc);
+        }
     }
 }

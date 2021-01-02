@@ -44,7 +44,7 @@ public:
     virtual void v_source(lexer*, fdm2D*, slice&, slice&);
 
 private:
-    double bingham(lexer*, fdm2D*, double, double, double);
+    double bingham(lexer*, fdm2D*, double, double, double, double);
     
     double cf,manning;
     

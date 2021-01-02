@@ -141,6 +141,16 @@ public:
 	int gcb_sediment_est, gcb_floating_est;
     int bcside1,bcside2,bcside3,bcside4,bcside5,bcside6;
     
+    // serial periodic BC
+    int periodic1,periodic2,periodic3;
+    int periodicX1,periodicX2,periodicX3,periodicX4,periodicX5,periodicX6;
+    
+    int **gc4periodic;
+    int **gc4aperiodic;
+    int *gc4periodic_count;
+    int *gc4aperiodic_count;
+    int gc4periodic_maxcount;
+    
 
 	//IBM
 	int **facet;
@@ -156,13 +166,6 @@ public:
 	int** gcpara4;
 	int** gcpara5;
 	int** gcpara6;
-	
-	int** gcparavoid1;
-	int** gcparavoid2;
-	int** gcparavoid3;
-	int** gcparavoid4;
-	int** gcparavoid5;
-	int** gcparavoid6;
 
 	int** gcparaco1;
 	int** gcparaco2;
@@ -177,7 +180,6 @@ public:
     int* gcxco7_count;
 
 	int gcpara1_count, gcpara2_count, gcpara3_count, gcpara4_count, gcpara5_count, gcpara6_count;
-	int gcparavoid1_count, gcparavoid2_count, gcparavoid3_count, gcparavoid4_count, gcparavoid5_count, gcparavoid6_count;
 	int gcparaco1_count, gcparaco2_count, gcparaco3_count, gcparaco4_count, gcparaco5_count, gcparaco6_count;
     int gcslpara1_count, gcslpara2_count, gcslpara3_count, gcslpara4_count;
     int gcslparaco1_count, gcslparaco2_count, gcslparaco3_count, gcslparaco4_count;
@@ -276,7 +278,7 @@ public:
     
 	// boundary conditions
 	int B10,B20,B26,B30,B60,B61,B62,B63,B64,B70,B71,B74,B75,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B98,B99,B101,B105,B106,B107,B110;
-	int B121,B136,B139,B180,B191,B192,B210,B240,B241,B242,B243;
+	int B121,B136,B139,B180,B191,B192,B240,B241,B242,B243;
 	double B29,B50,B51,B52,B53,B54,B55,B56,B81_1,B81_2,B81_3,B83,B117,B87_1,B87_2,B88;
 	double B91_1,B91_2,B91_3,B93_1,B93_2,B93_3,B96_1,B96_2,B96_3,B97,B102,B105_1,B105_2,B105_3,B110_d;
 	double *B70_val,*B70_dist,*B70_b,*B70_x,*B70_y;
@@ -298,6 +300,20 @@ public:
 	double B181_1,B181_2,B181_3,B182_1,B182_2,B182_3,B183_1,B183_2,B183_3;
 	double B191_1,B191_2,B191_3,B191_4,B192_1,B192_2,B192_3,B192_4;
 	double B194_s,B194_e;
+    
+    int B221;
+    int *B221_ID,*B221_face;
+    double *B221_xs,*B221_xe,*B221_ys,*B221_ye,*B221_zs,*B221_ze;
+    int B222;
+    int *B222_ID,*B222_face;
+    double *B222_xm,*B222_ym,*B222_zm,*B222_r;
+    int B231;
+    int *B231_ID,*B231_face;
+    double *B231_xs,*B231_xe,*B231_ys,*B231_ye,*B231_zs,*B231_ze;
+    int B232;
+    int *B232_ID,*B232_face;
+    double *B232_xm,*B232_ym,*B232_zm,*B232_r;
+    
 	double *B240_D, *B240_C, *B240_xs, *B240_xe, *B240_ys, *B240_ye, *B240_zs, *B240_ze;
     double B260,B264,B267;
     int B269,B270;
@@ -443,6 +459,9 @@ public:
 	
 	// Grid
 	int Y40,Y50,Y60,Y71,Y72,Y73,Y74;
+
+    // Test options
+    int Y1,Y2,Y3,Y4,Y5;
 
 	// time + iterations
 	int inneriter,count,solveriter,preconiter,count_statestart;

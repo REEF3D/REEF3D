@@ -102,7 +102,6 @@ void driver::loop_cfd(fdm* a)
         ptstep->start(a,p,pgc,pturb);
         p->simtime+=p->dt;
         
-        
         // printer
         pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
 

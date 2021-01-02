@@ -70,6 +70,7 @@ private:
     
     // Preprocessing
     void ini(lexer*, fdm*, ghostcell*); 
+    void rotation_tri(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
     
 	// Runtime
     void updateField(lexer*, fdm*, ghostcell*, int);

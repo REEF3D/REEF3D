@@ -36,18 +36,29 @@ void net_sheet::ini(lexer *p, fdm *a, ghostcell *pgc)
 
 // Havfarm 2
     if (p->mpirank == 0) cout<<"Havfarm 2 sheets"<<endl;
-    // Cylinder
+    
     double xm = p->X322_x0[nNet];
     double ym = p->X322_y0[nNet];
-    double zb = p->X322_z0[nNet];
-    double r = p->X322_D[nNet]/2.0; 
-	double dalpha = 2.0*PI/p->X321_nd[nNet];
-    double dz = p->X322_L[nNet]/p->X321_nl[nNet];
-    
-    int triD = int(2.0*PI/dalpha)*2;
-    int triL = int(p->X322_L[nNet]/dz); 
-    tend = triD*triL;    
-    
+    double zm = p->X322_z0[nNet];
+	double dX_t = 1.428;
+    double dY_t = 1.2175;
+    double dZ_t = 0.955;
+    double dX_m = 1.228; 
+    double dY_m = 1.017;
+    double dZ_b = 0.614;
+
+    // Coordinates
+    Eigen::Vector3d t_0 ( xm - dX_t/2.0, ym + dY_t/2.0, zm + dZ_t); 
+    Eigen::Vector3d t_1 ( xm + dX_t/2.0, ym + dY_t/2.0, zm + dZ_t); 
+    Eigen::Vector3d t_2 ( xm + dX_t/2.0, ym - dY_t/2.0, zm + dZ_t); 
+    Eigen::Vector3d t_3 ( xm - dX_t/2.0, ym - dY_t/2.0, zm + dZ_t); 
+    Eigen::Vector3d m_0 ( xm - dX_m/2.0, ym + dY_m/2.0, zm); 
+    Eigen::Vector3d m_1 ( xm + dX_m/2.0, ym + dY_m/2.0, zm); 
+    Eigen::Vector3d m_2 ( xm + dX_m/2.0, ym - dY_m/2.0, zm); 
+    Eigen::Vector3d m_3 ( xm - dX_m/2.0, ym - dY_m/2.0, zm); 
+    Eigen::Vector3d b_0 ( xm, ym, zm - dZ_b); 
+
+    tend = 12;    
     vector<double> vec3(3,0.0);
     tri_x.resize(tend, vec3);
     tri_y.resize(tend, vec3);
@@ -57,45 +68,61 @@ void net_sheet::ini(lexer *p, fdm *a, ghostcell *pgc)
     tri_z0.resize(tend, vec3);
 
     int tricount = 0;
-    for(int n = 0; n < triD/2; ++n)
-	{
-        for (int q = 0; q < triL; ++q)
-        {
-            // 1st triangle
-            tri_x[tricount][0] = xm + r*cos(n*dalpha);
-            tri_y[tricount][0] = ym + r*sin(n*dalpha);
-            tri_z[tricount][0] = zb + q*dz;
-            
-            tri_x[tricount][1] = xm + r*cos((n+1)*dalpha);
-            tri_y[tricount][1] = ym + r*sin((n+1)*dalpha);
-            tri_z[tricount][1] = zb + (q+1)*dz;
-            
-            tri_x[tricount][2] = xm + r*cos((n+1)*dalpha);
-            tri_y[tricount][2] = ym + r*sin((n+1)*dalpha);
-            tri_z[tricount][2] = zb + q*dz;
+    tri_x[tricount][0] = t_0(0); tri_y[tricount][0] = t_0(1); tri_z[tricount][0] = t_0(2);
+    tri_x[tricount][1] = t_1(0); tri_y[tricount][1] = t_1(1); tri_z[tricount][1] = t_1(2);
+    tri_x[tricount][2] = m_0(0); tri_y[tricount][2] = m_0(1); tri_z[tricount][2] = m_0(2);
+    ++tricount;
+    tri_x[tricount][0] = m_1(0); tri_y[tricount][0] = m_1(1); tri_z[tricount][0] = m_1(2);
+    tri_x[tricount][1] = t_1(0); tri_y[tricount][1] = t_1(1); tri_z[tricount][1] = t_1(2);
+    tri_x[tricount][2] = m_0(0); tri_y[tricount][2] = m_0(1); tri_z[tricount][2] = m_0(2);
+    ++tricount;
+    tri_x[tricount][0] = t_3(0); tri_y[tricount][0] = t_3(1); tri_z[tricount][0] = t_3(2);
+    tri_x[tricount][1] = t_2(0); tri_y[tricount][1] = t_2(1); tri_z[tricount][1] = t_2(2);
+    tri_x[tricount][2] = m_3(0); tri_y[tricount][2] = m_3(1); tri_z[tricount][2] = m_3(2);
+    ++tricount;
+    tri_x[tricount][0] = m_2(0); tri_y[tricount][0] = m_2(1); tri_z[tricount][0] = m_2(2);
+    tri_x[tricount][1] = t_2(0); tri_y[tricount][1] = t_2(1); tri_z[tricount][1] = t_2(2);
+    tri_x[tricount][2] = m_3(0); tri_y[tricount][2] = m_3(1); tri_z[tricount][2] = m_3(2);
+    ++tricount;
+    tri_x[tricount][0] = m_0(0); tri_y[tricount][0] = m_0(1); tri_z[tricount][0] = m_0(2);
+    tri_x[tricount][1] = m_1(0); tri_y[tricount][1] = m_1(1); tri_z[tricount][1] = m_1(2);
+    tri_x[tricount][2] = b_0(0); tri_y[tricount][2] = b_0(1); tri_z[tricount][2] = b_0(2);
+    ++tricount;
+    tri_x[tricount][0] = m_3(0); tri_y[tricount][0] = m_3(1); tri_z[tricount][0] = m_3(2);
+    tri_x[tricount][1] = m_2(0); tri_y[tricount][1] = m_2(1); tri_z[tricount][1] = m_2(2);
+    tri_x[tricount][2] = b_0(0); tri_y[tricount][2] = b_0(1); tri_z[tricount][2] = b_0(2);
+    ++tricount;
+    tri_x[tricount][0] = t_0(0); tri_y[tricount][0] = t_0(1); tri_z[tricount][0] = t_0(2);
+    tri_x[tricount][1] = t_3(0); tri_y[tricount][1] = t_3(1); tri_z[tricount][1] = t_3(2);
+    tri_x[tricount][2] = m_0(0); tri_y[tricount][2] = m_0(1); tri_z[tricount][2] = m_0(2);
+    ++tricount;
+    tri_x[tricount][0] = m_3(0); tri_y[tricount][0] = m_3(1); tri_z[tricount][0] = m_3(2);
+    tri_x[tricount][1] = t_3(0); tri_y[tricount][1] = t_3(1); tri_z[tricount][1] = t_3(2);
+    tri_x[tricount][2] = m_0(0); tri_y[tricount][2] = m_0(1); tri_z[tricount][2] = m_0(2);
+    ++tricount;
+    tri_x[tricount][0] = m_0(0); tri_y[tricount][0] = m_0(1); tri_z[tricount][0] = m_0(2);
+    tri_x[tricount][1] = m_3(0); tri_y[tricount][1] = m_3(1); tri_z[tricount][1] = m_3(2);
+    tri_x[tricount][2] = b_0(0); tri_y[tricount][2] = b_0(1); tri_z[tricount][2] = b_0(2);
+    ++tricount;
+    tri_x[tricount][0] = t_1(0); tri_y[tricount][0] = t_1(1); tri_z[tricount][0] = t_1(2);
+    tri_x[tricount][1] = t_2(0); tri_y[tricount][1] = t_2(1); tri_z[tricount][1] = t_2(2);
+    tri_x[tricount][2] = m_1(0); tri_y[tricount][2] = m_1(1); tri_z[tricount][2] = m_1(2);
+    ++tricount;
+    tri_x[tricount][0] = m_1(0); tri_y[tricount][0] = m_1(1); tri_z[tricount][0] = m_1(2);
+    tri_x[tricount][1] = t_2(0); tri_y[tricount][1] = t_2(1); tri_z[tricount][1] = t_2(2);
+    tri_x[tricount][2] = m_2(0); tri_y[tricount][2] = m_2(1); tri_z[tricount][2] = m_2(2);
+    ++tricount;
+    tri_x[tricount][0] = m_1(0); tri_y[tricount][0] = m_1(1); tri_z[tricount][0] = m_1(2);
+    tri_x[tricount][1] = m_2(0); tri_y[tricount][1] = m_2(1); tri_z[tricount][1] = m_2(2);
+    tri_x[tricount][2] = b_0(0); tri_y[tricount][2] = b_0(1); tri_z[tricount][2] = b_0(2);
+    ++tricount;
 
-            ++tricount;
-            
-            // 2nd triangle
-            tri_x[tricount][0] = xm + r*cos(n*dalpha);
-            tri_y[tricount][0] = ym + r*sin(n*dalpha);
-            tri_z[tricount][0] = zb + q*dz;
-            
-            tri_x[tricount][1] = xm + r*cos((n+1)*dalpha);
-            tri_y[tricount][1] = ym + r*sin((n+1)*dalpha);
-            tri_z[tricount][1] = zb + (q+1)*dz;
-            
-            tri_x[tricount][2] = xm + r*cos(n*dalpha);
-            tri_y[tricount][2] = ym + r*sin(n*dalpha);
-            tri_z[tricount][2] = zb + (q+1)*dz;
-            
-            ++tricount;
-        }
-    }
 
 
-// OceanFarm 1
+
+
 /*
+// OceanFarm 1
     if (p->mpirank == 0) cout<<"OceanFarm 1 sheets"<<endl;
     // Top cylinder
     double xm = p->X322_x0[nNet];
@@ -200,13 +227,176 @@ void net_sheet::ini(lexer *p, fdm *a, ghostcell *pgc)
             ++tricount;
         }
     }
-
 */
+/*
+// DeepBlue 1
+    if (p->mpirank == 0) cout<<"DeepBlue 1 sheets"<<endl;
 
+    // Main cylinder
+    double xm = p->X322_x0[nNet];
+    double ym = p->X322_y0[nNet];
+    double zb = p->X322_z0[nNet];
+    double r = p->X322_D[nNet]/2.0; 
+	double dalpha = 2.0*PI/p->X321_nd[nNet];
+    double dz = p->X322_L[nNet]/p->X321_nl[nNet];
+    
+    int triD = int(2.0*PI/dalpha)*2;
+    int triL = int(p->X322_L[nNet]/dz); 
+    tend = triD*triL;    
+    
+    // Bottom cone
+    double h = 0.058;
+    double zb2 = p->X322_z0[nNet] - h;
+    double r2 = 0.04; 
+    double dz2 = h/1;
+    
+    int triL2 = int(h/dz2);
+    tend += triL2*triD;
+    
+    // Top cone
+    h = 0.07;
+    double zb3 = p->X322_z0[nNet] + p->X322_L[nNet] + h;
+    double r3 = 0.04; 
+    double dz3 = h/1;
+    
+    int triL3 = int(h/dz3);
+    tend += triL3*triD;
 
+    vector<double> vec3(3,0.0);
+    tri_x.resize(tend, vec3);
+    tri_y.resize(tend, vec3);
+    tri_z.resize(tend, vec3);
+    tri_x0.resize(tend, vec3);
+    tri_y0.resize(tend, vec3);
+    tri_z0.resize(tend, vec3);
+
+    // Main cylinder
+    int tricount = 0;
+    for(int n = 0; n < triD/2; ++n)
+	{
+        for (int q = 0; q < triL; ++q)
+        {
+            // 1st triangle
+            tri_x[tricount][0] = xm + r*cos(n*dalpha);
+            tri_y[tricount][0] = ym + r*sin(n*dalpha);
+            tri_z[tricount][0] = zb + q*dz;
+            
+            tri_x[tricount][1] = xm + r*cos((n+1)*dalpha);
+            tri_y[tricount][1] = ym + r*sin((n+1)*dalpha);
+            tri_z[tricount][1] = zb + (q+1)*dz;
+            
+            tri_x[tricount][2] = xm + r*cos((n+1)*dalpha);
+            tri_y[tricount][2] = ym + r*sin((n+1)*dalpha);
+            tri_z[tricount][2] = zb + q*dz;
+
+            ++tricount;
+            
+            // 2nd triangle
+            tri_x[tricount][0] = xm + r*cos(n*dalpha);
+            tri_y[tricount][0] = ym + r*sin(n*dalpha);
+            tri_z[tricount][0] = zb + q*dz;
+            
+            tri_x[tricount][1] = xm + r*cos((n+1)*dalpha);
+            tri_y[tricount][1] = ym + r*sin((n+1)*dalpha);
+            tri_z[tricount][1] = zb + (q+1)*dz;
+            
+            tri_x[tricount][2] = xm + r*cos(n*dalpha);
+            tri_y[tricount][2] = ym + r*sin(n*dalpha);
+            tri_z[tricount][2] = zb + (q+1)*dz;
+            
+            ++tricount;
+        }
+    }
+
+    // Bottom cone
+    for(int n = 0; n < triD/2; ++n)
+	{
+        for (int q = 0; q < triL2; ++q)
+        {
+            // 1st triangle
+            tri_x[tricount][0] = xm + r2*cos(n*dalpha);
+            tri_y[tricount][0] = ym + r2*sin(n*dalpha);
+            tri_z[tricount][0] = zb2 + q*dz2;
+            
+            tri_x[tricount][1] = xm + r*cos((n+1)*dalpha);
+            tri_y[tricount][1] = ym + r*sin((n+1)*dalpha);
+            tri_z[tricount][1] = zb2 + (q+1)*dz2;
+            
+            tri_x[tricount][2] = xm + r2*cos((n+1)*dalpha);
+            tri_y[tricount][2] = ym + r2*sin((n+1)*dalpha);
+            tri_z[tricount][2] = zb2 + q*dz2;
+
+            ++tricount;
+          
+            // 2nd triangle
+            tri_x[tricount][0] = xm + r2*cos(n*dalpha);
+            tri_y[tricount][0] = ym + r2*sin(n*dalpha);
+            tri_z[tricount][0] = zb2 + q*dz2;
+            
+            tri_x[tricount][1] = xm + r*cos((n+1)*dalpha);
+            tri_y[tricount][1] = ym + r*sin((n+1)*dalpha);
+            tri_z[tricount][1] = zb2 + (q+1)*dz2;
+            
+            tri_x[tricount][2] = xm + r*cos(n*dalpha);
+            tri_y[tricount][2] = ym + r*sin(n*dalpha);
+            tri_z[tricount][2] = zb2 + (q+1)*dz2;
+            
+            ++tricount;
+        }
+    }
+
+    // Top cone
+    for(int n = 0; n < triD/2; ++n)
+	{
+        for (int q = 0; q < triL3; ++q)
+        {
+            // 1st triangle
+            tri_x[tricount][0] = xm + r3*cos(n*dalpha);
+            tri_y[tricount][0] = ym + r3*sin(n*dalpha);
+            tri_z[tricount][0] = zb3 - q*dz3;
+            
+            tri_x[tricount][1] = xm + r*cos((n+1)*dalpha);
+            tri_y[tricount][1] = ym + r*sin((n+1)*dalpha);
+            tri_z[tricount][1] = zb3 - (q+1)*dz3;
+            
+            tri_x[tricount][2] = xm + r3*cos((n+1)*dalpha);
+            tri_y[tricount][2] = ym + r3*sin((n+1)*dalpha);
+            tri_z[tricount][2] = zb3 - q*dz3;
+
+            ++tricount;
+          
+            // 2nd triangle
+            tri_x[tricount][0] = xm + r3*cos(n*dalpha);
+            tri_y[tricount][0] = ym + r3*sin(n*dalpha);
+            tri_z[tricount][0] = zb3 - q*dz3;
+            
+            tri_x[tricount][1] = xm + r*cos((n+1)*dalpha);
+            tri_y[tricount][1] = ym + r*sin((n+1)*dalpha);
+            tri_z[tricount][1] = zb3 - (q+1)*dz3;
+            
+            tri_x[tricount][2] = xm + r*cos(n*dalpha);
+            tri_y[tricount][2] = ym + r*sin(n*dalpha);
+            tri_z[tricount][2] = zb3 - (q+1)*dz3;
+            
+            ++tricount;
+        }
+    }
+*/
 
 /*-----------------------------------*/
 
+    //- Rotate net sheets
+    p->X322_phi[nNet] *= -(PI/180.0);
+    p->X322_theta[nNet] *= -(PI/180.0);
+    p->X322_psi[nNet] *= -(PI/180.0);
+
+    for(int qr=0;qr<tricount;++qr)
+    {
+        rotation_tri(p,p->X322_phi[nNet],p->X322_theta[nNet],p->X322_psi[nNet],tri_x[qr][0],tri_y[qr][0],tri_z[qr][0],p->xg,p->yg,p->zg);
+        rotation_tri(p,p->X322_phi[nNet],p->X322_theta[nNet],p->X322_psi[nNet],tri_x[qr][1],tri_y[qr][1],tri_z[qr][1],p->xg,p->yg,p->zg);
+        rotation_tri(p,p->X322_phi[nNet],p->X322_theta[nNet],p->X322_psi[nNet],tri_x[qr][2],tri_y[qr][2],tri_z[qr][2],p->xg,p->yg,p->zg);
+    }
+    
     //- Triangulate net sheet
     triangulation(p,a,pgc);
     nK = tend;             
@@ -353,6 +543,7 @@ void net_sheet::triangulation(lexer *p, fdm *a, ghostcell *pgc)
 {
     // Refine according to cell size DXM
 
+	double x0,x1,x2,y0,y1,y2,z0,z1,z2;
 	double x01,x02,x12,y01,y02,y12,z01,z02,z12,mag;
 	double at,bt,ct,st;
 	double nx,ny,nz;	
@@ -361,17 +552,17 @@ void net_sheet::triangulation(lexer *p, fdm *a, ghostcell *pgc)
 	
     for (int n = 0; n < tend; n++)
 	{
-		double x0 = tri_x[n][0];
-		double x1 = tri_x[n][1];
-		double x2 = tri_x[n][2];
+		x0 = tri_x[n][0];
+		x1 = tri_x[n][1];
+		x2 = tri_x[n][2];
 		
-		double y0 = tri_y[n][0];
-		double y1 = tri_y[n][1];
-		double y2 = tri_y[n][2];
+		y0 = tri_y[n][0];
+		y1 = tri_y[n][1];
+		y2 = tri_y[n][2];
 		
-		double z0 = tri_z[n][0];
-		double z1 = tri_z[n][1];
-		double z2 = tri_z[n][2];  
+		z0 = tri_z[n][0];
+		z1 = tri_z[n][1];
+		z2 = tri_z[n][2];  
            
 		at = sqrt(pow(x1 - x0, 2.0) + pow(y1 - y0, 2.0) + pow(z1 - z0, 2.0));
 		bt = sqrt(pow(x1 - x2, 2.0) + pow(y1 - y2, 2.0) + pow(z1 - z2, 2.0));
@@ -380,7 +571,7 @@ void net_sheet::triangulation(lexer *p, fdm *a, ghostcell *pgc)
 
 		// Check size of triangle and split into 4 triangles if too big
 		
-		if ((at + bt + ct)/3.0 > 1.5*p->DXM)
+		if ((at + bt + ct)/3.0 > p->DXM)
 		{
 			// Half points
 			x01 = x0 + (x1 - x0)/2.0;
@@ -513,3 +704,27 @@ void net_sheet::create_triangle
 	tri_y_.push_back(tri_y_new);
 	tri_z_.push_back(tri_z_new);
 }
+
+void net_sheet::rotation_tri
+(
+    lexer *p,
+    double phi_,double theta_,double psi_, 
+    double &xvec,double &yvec,double &zvec, 
+    const double& x0, const double& y0, const double& z0
+)
+{
+	// Distance to origin
+    double dx = xvec - x0;
+    double dy = yvec - y0;
+    double dz = zvec - z0;
+
+	// Rotation using Goldstein page 603 (but there is wrong result)
+    xvec = dx*(cos(psi_)*cos(theta_)) + dy*(cos(theta_)*sin(psi_)) - dz*sin(theta_);
+    yvec = dx*(cos(psi_)*sin(phi_)*sin(theta_)-cos(phi_)*sin(psi_)) + dy*(cos(phi_)*cos(psi_)+sin(phi_)*sin(psi_)*sin(theta_)) + dz*(cos(theta_)*sin(phi_));
+    zvec = dx*(sin(phi_)*sin(psi_)+cos(phi_)*cos(psi_)*sin(theta_)) + dy*(cos(phi_)*sin(psi_)*sin(theta_)-cos(psi_)*sin(phi_)) + dz*(cos(phi_)*cos(theta_));
+    
+	// Moving back
+    xvec += x0;
+    yvec += y0;
+    zvec += z0;
+}	

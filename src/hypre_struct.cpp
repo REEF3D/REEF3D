@@ -83,7 +83,6 @@ void hypre_struct::start_solver1234(lexer* p,fdm* a, ghostcell* pgc, field &f, v
 	p->solveriter=0;
 	
 	create_solver1234(p,pgc);
-    //create_solver5(p,pgc);
     
     if(var==1)
     {

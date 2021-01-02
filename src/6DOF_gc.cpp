@@ -47,7 +47,7 @@ sixdof_gc::sixdof_gc(
 	Ke = 0.0;
 	Me = 0.0;
 	Ne = 0.0;
-
+    
     zero=0.0;
 }
 
@@ -143,7 +143,7 @@ void sixdof_gc::start_Quaternion
     print_E_position(p,a,pgc);
     print_E_velocity(p,a,pgc);
     print_E_force(p,a,pgc);
-
+    
     if(p->mpirank==0)
     cout<<"6DOF time: "<<setprecision(3)<<pgc->timer()-starttime<<endl;
 }

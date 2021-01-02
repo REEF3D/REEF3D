@@ -31,10 +31,10 @@ driver::driver(int& argc, char **argv)
 {
     p = new lexer;
     pgc = new ghostcell(argc,argv,p);
-    
+
     time_t now = time(0);
     char* timenow = ctime(&now);
-    
+
     if(p->mpirank==0)
     {
     cout<<endl<<"REEF3D (c) 2008-2020 Hans Bihs"<<endl;

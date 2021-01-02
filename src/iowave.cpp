@@ -41,6 +41,8 @@ iowave::iowave(lexer *p, ghostcell *pgc) : wave_interface(p,pgc),flowfile_in(p,p
     gcval_press=40;
 	
 	kinval = 0.00001;	
+    
+    beach_relax=0;
 	
 	if(p->T10==1 || p->T10==11 || p->T10==21)
     epsval=(pow(0.09,0.75)*pow(kinval,1.5))/(0.5*0.4*p->DXM);
@@ -78,6 +80,8 @@ iowave::iowave(lexer *p, ghostcell *pgc) : wave_interface(p,pgc),flowfile_in(p,p
     p->Darray(B4,p->B107,2);
     p->Darray(Bs,p->B107,2);
     p->Darray(Be,p->B107,2);
+    
+    beach_relax=1;
     }
     
     if(p->B108>0)
