@@ -29,14 +29,18 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 driver::driver(int& argc, char **argv)
 {
-	p = new lexer;
-	pgc = new ghostcell(argc,argv,p);
-
-	if(p->mpirank==0)
+    p = new lexer;
+    pgc = new ghostcell(argc,argv,p);
+    
+    time_t now = time(0);
+    char* timenow = ctime(&now);
+    
+    if(p->mpirank==0)
     {
     cout<<endl<<"REEF3D (c) 2008-2020 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    cout<<endl<<"v_201119; " <<BRANCH<<"; "<<VERSION<<endl<<endl;
+    cout<< timenow << endl;
+    cout<<BRANCH<<"; "<<VERSION<<endl<<endl;
     }
 
 	p->lexer_read(pgc);
