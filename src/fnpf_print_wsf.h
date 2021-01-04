@@ -45,15 +45,20 @@ public:
 
 private:
     void ini_location(lexer*, fdm_fnpf*);
+    void fill_eta(lexer*, fdm_fnpf*, ghostcell*,slice&);
+    void fill_deta(lexer*, fdm_fnpf*, ghostcell*,slice&);
+    void fill_Uhorz(lexer*, fdm_fnpf*, ghostcell*,slice&);
+    
     int conv(double);
 	
 	double *x,*y;
 	int gauge_num;
 
     int *iloc,*jloc,*flag;
-    double *wsf;
+    double *wsf,*deta,*Uhorz;
     int n;
-    ofstream wsfout;
+    ofstream wsfout,detaout,Uhorzout;
+    
 
 };
 

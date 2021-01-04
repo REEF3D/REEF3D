@@ -1116,6 +1116,9 @@ void lexer::read_control()
 				case 56: ++P56;
 						 clear(c,numint);
 						 break;
+                case 57: ++P57;
+						 clear(c,numint);
+						 break;
 				case 59: control>>P59;
 						 clear(c,numint);
 						 break;
