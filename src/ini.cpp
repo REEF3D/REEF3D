@@ -446,6 +446,7 @@ void lexer::ini_default()
 	P54=10;			  // int ith iteration wsfline file  print out
 	P55=-1.0;		  // double ith second wsfline files print out
 	P56=0;            // int print out wsf line in y-dir
+    P57=0;            // add aditional info to WSF gage in FNPF 
 	P59=0;			  // int print runup
 	P61=0;			  // int print point probes
 	P62=0;			  // int print line probes
