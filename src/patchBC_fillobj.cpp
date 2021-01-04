@@ -17,54 +17,15 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"increment.h"
+#include"patchBC.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
-class lexer;
-class fdm;
-class ghostcell;
-class field;
-class patch_obj;
-
-using namespace std;
-
-#ifndef PATCHBC_H_
-#define PATCHBC_H_
-
-class patchBC : public increment
+void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
 {
-public:
-	patchBC(lexer*);
-	virtual ~patchBC();
     
-    void patchBC_ini(lexer *p, ghostcell *pgc);
     
-    // ini
-    void patchBC_gcb_convert(lexer *p, ghostcell *pgc);
-    void patchBC_IDcount(lexer *p, ghostcell *pgc);
-    void patchBC_fillobj(lexer *p, ghostcell *pgc);
-    
-    // BC update
-    void patchBC_inflow(lexer*, fdm*, ghostcell*, field&,field&,field&);
-    void patchBC_outflow(lexer*, fdm*, ghostcell*, field&,field&,field&);
-    
-
-
-        
-private:
-    int q,n,qn,count,ID_count;
-    
-    int *inflow_ID;
-    int *outflow_ID;
-    
-    int geo_count,obj_count;
-    int *ID_array;
-    
-    patch_obj **patch;
-    
-
-};
-
-#endif
+}

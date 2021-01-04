@@ -2436,6 +2436,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="ioFlow">
         <VirtualDirectory Name="PatchBC">
+          <File Name="patchBC_fillobj.cpp"/>
           <File Name="patchBC_IDcount.cpp"/>
           <File Name="patchBC_gcb_convert.cpp"/>
           <File Name="patch_obj.cpp"/>
