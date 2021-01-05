@@ -109,7 +109,7 @@ void sixdof_gc::netForces(lexer *p, fdm* a, ghostcell *pgc, double alpha, vrans 
 	for (int ii = 0; ii < p->net_count; ii++)
 	{
         // Advance in time	
-        pnet[ii]->start(p, a, pgc, alpha);
+        pnet[ii]->start(p, a, pgc, alpha, quatRotMat);
         pvrans->start(p, a, pgc, pnet[ii], ii);
         
         // Get forces

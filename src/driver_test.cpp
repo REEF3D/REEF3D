@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"field4.h"
 #include"vec.h"
 #include"vector"
-//#include"array"
+#include <Eigen/Dense>
 
 void driver::vec_test(lexer *p, fdm *a, ghostcell *pgc, field &f)
 {	

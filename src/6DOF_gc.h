@@ -34,6 +34,7 @@ Authors:
 #include<fstream>
 #include<iostream>
 #include<vector>
+#include <Eigen/Dense>
 
 class reinidisc;
 class mooring;
@@ -154,6 +155,8 @@ private:
 	double dxg,dyg,dzg;
 	double Ix,Iy,Iz;
 	double xorig,yorig,zorig;
+    
+    Eigen::Matrix3d quatRotMat;
 	
     std::vector< std::vector<double> > R_;
     std::vector< std::vector<double> > I_;

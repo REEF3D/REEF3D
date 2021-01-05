@@ -183,7 +183,7 @@ void sixdof_df_object::quat_matrices(const Eigen::Vector4d& e)
     R_ = E_*G_.transpose(); 
     Rinv_ = R_.inverse();
 
-    p->quatRotMat = R_;
+    quatRotMat = R_;
 }
 
 

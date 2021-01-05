@@ -110,6 +110,8 @@ private:
 
     void get_trans(lexer*, fdm*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&, const Eigen::Vector3d&, const Eigen::Vector3d&);
     void get_rot(Eigen::Vector3d&, Eigen::Vector4d&, const Eigen::Vector3d&, const Eigen::Vector4d&);
+    Eigen::Matrix3d quatRotMat;
+    
     Eigen::Vector3d ab4_3
     (   
         lexer*,

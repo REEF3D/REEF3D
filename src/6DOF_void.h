@@ -24,6 +24,7 @@ Author: Tobias Martin
 #include<vector>
 #include<fstream>
 #include<iostream>
+#include <Eigen/Dense>
 
 class lexer;
 class fdm;
@@ -45,6 +46,7 @@ public:
 	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
     
 private:
+    Eigen::Matrix3d quatRotMat;
 
     vector<mooring*> pmooring;
 
