@@ -475,12 +475,6 @@ void lexer::read_control()
               case 222: ++B222;
 						 clear(c,numint);
 						 break;
-              case 231: ++B231;
-						 clear(c,numint);
-						 break;
-              case 232: ++B232;
-						 clear(c,numint);
-						 break;
 			   case 240: ++B240;
 						 clear(c,numint);
 						 break;
@@ -1796,22 +1790,6 @@ void lexer::read_control()
     Darray(B222_ym,B222);
     Darray(B222_zm,B222);
     Darray(B222_r,B222);
-    
-    Iarray(B231_ID,B231);
-    Iarray(B231_face,B231);
-    Darray(B231_xs,B231);
-    Darray(B231_xe,B231);
-    Darray(B231_ys,B231);
-    Darray(B231_ye,B231);
-    Darray(B231_zs,B231);
-    Darray(B231_ze,B231);
-    
-    Iarray(B232_ID,B232);
-    Iarray(B232_face,B232);
-    Darray(B232_xm,B232);
-    Darray(B232_ym,B232);
-    Darray(B232_zm,B232);
-    Darray(B232_r,B232);    
 	
 	Darray(B240_C,B240);
 	Darray(B240_D,B240);
@@ -2253,14 +2231,6 @@ void lexer::read_control()
 						 break;
                 case 222: control>>B222_ID[countB222]>>B222_face[countB222]>>B222_xm[countB222]>>B222_ym[countB222]>>B222_zm[countB222]>>B222_r[countB222];
                         ++countB222;
-						 clear(c,numint);
-						 break;
-                case 231: control>>B231_ID[countB231]>>B231_face[countB231]>>B231_xs[countB231]>>B231_xe[countB231]>>B231_ys[countB231]>>B231_ye[countB231]>>B231_zs[countB231]>>B231_ze[countB231];
-                        ++countB231;
-						 clear(c,numint);
-						 break;
-                case 232: control>>B232_ID[countB232]>>B232_face[countB232]>>B232_xm[countB232]>>B232_ym[countB232]>>B232_zm[countB232]>>B232_r[countB232];
-                        ++countB232;
 						 clear(c,numint);
 						 break;
                 case 240: control>>B240_C[countB240]>>B240_D[countB240]>>B240_xs[countB240]>>B240_xe[countB240]>>B240_ys[countB240]>>B240_ye[countB240]>>B240_zs[countB240]>>B240_ze[countB240];

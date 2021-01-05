@@ -306,12 +306,6 @@ public:
     int B222;
     int *B222_ID,*B222_face;
     double *B222_xm,*B222_ym,*B222_zm,*B222_r;
-    int B231;
-    int *B231_ID,*B231_face;
-    double *B231_xs,*B231_xe,*B231_ys,*B231_ye,*B231_zs,*B231_ze;
-    int B232;
-    int *B232_ID,*B232_face;
-    double *B232_xm,*B232_ym,*B232_zm,*B232_r;
     
 	double *B240_D, *B240_C, *B240_xs, *B240_xe, *B240_ys, *B240_ye, *B240_zs, *B240_ze;
     double B260,B264,B267;

@@ -35,7 +35,7 @@ using namespace std;
 class patch_obj : public increment
 {
 public:
-	patch_obj(lexer*);
+	patch_obj(lexer*,int);
 	virtual ~patch_obj();
     
     void patch_obj_ini(lexer *p, ghostcell *pgc);
@@ -61,9 +61,7 @@ public:
     double waterlevel;
     
         
-private:
-    
-    
+
 
 };
 

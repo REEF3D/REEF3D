@@ -24,8 +24,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-patch_obj::patch_obj(lexer *p) 
+patch_obj::patch_obj(lexer *p, int ID_ini) 
 {
+    ID = ID_ini;
+    
+    gcb_count=0;
     
 }
 
@@ -39,4 +42,5 @@ void patch_obj::patch_obj_ini(lexer *p, ghostcell *pgc)
 
 void patch_obj::patch_obj_gcb_generate(lexer *p, ghostcell *pgc)
 {
+    p->Iarray(gcb,gcb_count,3);
 }

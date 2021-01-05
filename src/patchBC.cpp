@@ -36,19 +36,19 @@ patchBC::~patchBC()
 
 void patchBC::patchBC_ini(lexer *p, ghostcell *pgc)
 {
-    patchBC_gcb_convert(p,pgc);
     patchBC_IDcount(p,pgc);
+    
 
     
     // creat patch objects
     patch = new patch_obj*[obj_count];
     
     for(qn=0; qn<obj_count;++qn)
-    patch[qn] = new patch_obj(p);
+    patch[qn] = new patch_obj(p,ID_array[qn]);
     
     // fill patch objects
-    
-    //
+    patchBC_gcb_convert(p,pgc);
+    patchBC_fillobj(p,pgc);
     
 
 

@@ -23,65 +23,52 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"patch_obj.h"
 
 void patchBC::patchBC_gcb_convert(lexer *p, ghostcell *pgc)
 {
     // convert gcbs
-    int istart,iend,jstart,jend,kstart,kend,qn;
-	
-    int count=0;
+    
     for(qn=0;qn<p->B221;++qn)
     {
-        istart = p->posc_i(p->B221_xs[qn]);
-        iend = p->posc_i(p->B221_xe[qn]);
+        int count=0;
+        {
+            istart = p->posc_i(p->B221_xs[qn]);
+            iend = p->posc_i(p->B221_xe[qn]);
+            
+            jstart = p->posc_j(p->B221_ys[qn]);
+            jend = p->posc_j(p->B221_ye[qn]);
+            
+            kstart = p->posc_k(p->B221_zs[qn]);
+            kend = p->posc_k(p->B221_ze[qn]);
+            
+            
+            for(n=0;n<p->gcb4_count;++n)
+            {
+            i=p->gcb4[n][0];
+            j=p->gcb4[n][1];
+            k=p->gcb4[n][2];
+            
+                if(i>=istart && i<iend && j>=jstart && j<jend && k>=kstart && k<kend && p->gcb4[n][3]==p->B221_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
+                {
+                ++count;
+                }
+            }
+        }
         
-        jstart = p->posc_j(p->B221_ys[qn]);
-        jend = p->posc_j(p->B221_ye[qn]);
-        
-        kstart = p->posc_k(p->B221_zs[qn]);
-        kend = p->posc_k(p->B221_ze[qn]);
-        
-        
-        for(n=0;n<p->gcb4_count;++n)
-		{
-		i=p->gcb4[n][0];
-		j=p->gcb4[n][1];
-		k=p->gcb4[n][2];
-		
-			if(i>=istart && i<iend && j>=jstart && j<jend && k>=kstart && k<kend && p->gcb4[n][3]==p->B221_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
-			{
-			++count;
-			p->gcb4[n][4]=21;
-			}
-		}
+        for(qq=0;qq<obj_count;++qq)
+        {
+        if(patch[qq]->ID == p->B221_ID[qn])
+        patch[qq]->gcb_count += count;
+        }
+    
     }
     
     
-    for(qn=0;qn<p->B231;++qn)
-    {
-        istart = p->posc_i(p->B231_xs[qn]);
-        iend = p->posc_i(p->B231_xe[qn]);
-        
-        jstart = p->posc_j(p->B231_ys[qn]);
-        jend = p->posc_j(p->B231_ye[qn]);
-        
-        kstart = p->posc_k(p->B231_zs[qn]);
-        kend = p->posc_k(p->B231_ze[qn]);
-        
-        
-        for(n=0;n<p->gcb4_count;++n)
-		{
-		i=p->gcb4[n][0];
-		j=p->gcb4[n][1];
-		k=p->gcb4[n][2];
-		
-			if(i>=istart && i<iend && j>=jstart && j<jend && k>=kstart && k<kend && p->gcb4[n][3]==p->B231_face[qn]  && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
-			{
-			++count;
-			p->gcb4[n][4]=31;
-			}
-		}
-    }
+    // allocate arrays
+    for(q=0; q<obj_count;++q)
+    patch[q]->patch_obj_gcb_generate(p,pgc);
+    
     
     
     // gcin / gcout

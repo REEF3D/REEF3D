@@ -201,8 +201,6 @@ void lexer::ini_default()
 	B194_e= 1.0e9; // double end rotation
 	B221=0;			// int rectangular inflow patch BC
     B222=0;			// int circular inflow patch BC
-    B231=0;			// int rectangular outflow patch BC
-    B232=0;			// int circular outflow patch BC
 	B240=0;			// int porous media  
 	B241=1;			// int porous media in x-direction
 	B242=1;			// int porous media in y-direction

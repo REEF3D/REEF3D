@@ -430,10 +430,6 @@ void lexer::ctrlsend()
     ii++;
     ictrl[ii] = B222;
     ii++;
-    ictrl[ii] = B231;
-    ii++;
-    ictrl[ii] = B232;
-    ii++;
     ictrl[ii] = B240;
     ii++;
 	ictrl[ii] = B241;
@@ -1565,42 +1561,6 @@ void lexer::ctrlsend()
     dctrl[dd] = B222_zm[n];
     dd++;
     dctrl[dd] = B222_r[n];
-    dd++;
-    }
-    
-    for(n=0;n<B231;++n)
-    {
-    ictrl[ii] = B231_ID[n];
-    ii++;
-    ictrl[ii] = B231_face[n];
-    ii++;
-	dctrl[dd] = B231_xs[n];
-    dd++;
-    dctrl[dd] = B231_xe[n];
-    dd++;
-    dctrl[dd] = B231_ys[n];
-    dd++;
-    dctrl[dd] = B231_ye[n];
-    dd++;
-    dctrl[dd] = B231_zs[n];
-    dd++;
-    dctrl[dd] = B231_ze[n];
-    dd++;
-    }
-    
-    for(n=0;n<B232;++n)
-    {
-    ictrl[ii] = B232_ID[n];
-    ii++;
-    ictrl[ii] = B232_face[n];
-    ii++;
-	dctrl[dd] = B232_xm[n];
-    dd++;
-    dctrl[dd] = B232_ym[n];
-    dd++;
-    dctrl[dd] = B232_zm[n];
-    dd++;
-    dctrl[dd] = B232_r[n];
     dd++;
     }
     

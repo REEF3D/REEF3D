@@ -54,7 +54,8 @@ public:
 
         
 private:
-    int q,n,qn,count,ID_count;
+    int q,n,qn,qq,count,ID_count;
+    int istart,iend,jstart,jend,kstart,kend;
     
     int *inflow_ID;
     int *outflow_ID;

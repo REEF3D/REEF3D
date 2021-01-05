@@ -426,10 +426,6 @@ void lexer::ctrlrecv()
 	ii++;
     B222 = ictrl[ii];
 	ii++;
-    B231 = ictrl[ii];
-	ii++;
-    B232 = ictrl[ii];
-	ii++;
     B240 = ictrl[ii];
 	ii++;
 	B241 = ictrl[ii];
@@ -1527,27 +1523,6 @@ void lexer::ctrlrecv()
     Darray(B222_r,B222);
     }
     
-    if(B231>0)
-    {
-    Iarray(B231_ID,B231);
-    Iarray(B231_face,B231);
-    Darray(B231_xs,B231);
-    Darray(B231_xe,B231);
-    Darray(B231_ys,B231);
-    Darray(B231_ye,B231);
-    Darray(B231_zs,B231);
-    Darray(B231_ze,B231);
-    }
-    
-    if(B232>0)
-    {
-    Iarray(B232_ID,B232);
-    Iarray(B232_face,B232);
-    Darray(B232_xm,B232);
-    Darray(B232_ym,B232);
-    Darray(B232_zm,B232);
-    Darray(B232_r,B232); 
-    }
     
 	if(B240>0)
 	{	
@@ -2105,41 +2080,6 @@ void lexer::ctrlrecv()
     dd++;
     }
     
-    for(n=0;n<B231;++n)
-    {
-    B231_ID[n]  = ictrl[ii];
-    ii++;
-    B231_face[n]  = ictrl[ii];
-    ii++;
-	B231_xs[n] = dctrl[dd];
-    dd++;
-    B231_xe[n] = dctrl[dd];
-    dd++;
-    B231_ys[n] = dctrl[dd];
-    dd++;
-    B231_ye[n] = dctrl[dd];
-    dd++;
-    B231_zs[n] = dctrl[dd];
-    dd++;
-    B231_ze[n] = dctrl[dd];
-    dd++;
-    }
-    
-    for(n=0;n<B232;++n)
-    {
-    B232_ID[n]  = ictrl[ii];
-    ii++;
-    B232_face[n]  = ictrl[ii];
-    ii++;
-	B232_xm[n] = dctrl[dd];
-    dd++;
-    B232_ym[n] = dctrl[dd];
-    dd++;
-    B232_zm[n] = dctrl[dd];
-    dd++;
-    B232_r[n] = dctrl[dd];
-    dd++;
-    }
     
     for(n=0;n<B240;++n)
     {
