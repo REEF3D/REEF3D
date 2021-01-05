@@ -469,6 +469,30 @@ void lexer::read_control()
 				case 194: control>>B194_s>>B194_e;
 						 clear(c,numint);
 						 break;
+              case 210: ++B210;
+						 clear(c,numint);
+						 break;
+              case 211: ++B211;
+						 clear(c,numint);
+						 break;
+              case 212: ++B212;
+						 clear(c,numint);
+						 break;
+              case 213: ++B213;
+						 clear(c,numint);
+						 break;
+              case 214: ++B214;
+						 clear(c,numint);
+						 break;
+              case 215: ++B215;
+						 clear(c,numint);
+						 break;
+              case 216: ++B216;
+						 clear(c,numint);
+						 break;
+              case 217: ++B217;
+						 clear(c,numint);
+						 break;
               case 221: ++B221;
 						 clear(c,numint);
 						 break;
@@ -1774,6 +1798,35 @@ void lexer::read_control()
 	Darray(B108_ys,B108);
     Darray(B108_ye,B108);
     Darray(B108_d,B108);
+
+    Iarray(B210_ID,B210);
+    Iarray(B210_io,B210);
+    
+    Iarray(B211_ID,B211);
+    Darray(B211_Q,B211);
+    
+    Iarray(B212_ID,B212);
+    Iarray(B212_pressBC,B212);
+    
+    Iarray(B213_ID,B213);
+    Darray(B213_h,B213);
+    
+    Iarray(B214_ID,B214);
+    Darray(B214_Uin,B214);
+    
+    Iarray(B215_ID,B215);
+    Darray(B215_U,B215);
+    Darray(B215_V,B215);
+    Darray(B215_W,B215);
+    
+    Iarray(B216_ID,B216);
+    Darray(B216_alpha,B214);
+    
+    Iarray(B217_ID,B217);
+    Darray(B217_Nx,B217);
+    Darray(B217_Ny,B217);
+    Darray(B217_Nz,B217);
+    
     
     Iarray(B221_ID,B221);
     Iarray(B221_face,B221);

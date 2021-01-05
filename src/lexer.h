@@ -300,6 +300,21 @@ public:
 	double B191_1,B191_2,B191_3,B191_4,B192_1,B192_2,B192_3,B192_4;
 	double B194_s,B194_e;
     
+    int B210,B211,B212,B213,B214,B215,B216,B217;
+    int *B210_ID,*B210_io;
+    int *B211_ID;
+    double *B211_Q;
+    int *B212_ID,*B212_pressBC;
+    int *B213_ID;
+    double *B213_h;
+    int *B214_ID;
+    double *B214_Uin;
+    int *B215_ID;
+    double *B215_U,*B215_V,*B215_W;
+    int *B216_ID;
+    double *B216_alpha;
+    int *B217_ID;
+    double *B217_Nx,*B217_Ny,*B217_Nz;
     int B221;
     int *B221_ID,*B221_face;
     double *B221_xs,*B221_xe,*B221_ys,*B221_ye,*B221_zs,*B221_ze;
