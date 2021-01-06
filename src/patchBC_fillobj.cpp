@@ -140,7 +140,7 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
         if(patch[qq]->ID == p->B213_ID[qn])
         {
         patch[qq]->waterlevel_flag=1;
-        patch[qq]->waterlevel=p->B213_Q[qn];
+        patch[qq]->waterlevel=p->B213_h[qn];
         }
     }
     
@@ -150,7 +150,7 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
         for(qq=0;qq<obj_count;++qq)
         if(patch[qq]->ID == p->B214_ID[qn])
         {
-        patch[qq]->Uio=1;
+        patch[qq]->Uio_flag=1;
         patch[qq]->Uio=p->B214_Uio[qn];
         }
     }
