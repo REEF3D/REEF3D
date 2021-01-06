@@ -308,7 +308,7 @@ public:
     int *B213_ID;
     double *B213_h;
     int *B214_ID;
-    double *B214_Uin;
+    double *B214_Uio;
     int *B215_ID;
     double *B215_U,*B215_V,*B215_W;
     int *B216_ID;

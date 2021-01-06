@@ -1580,7 +1580,7 @@ void lexer::ctrlsend()
     {
     ictrl[ii] = B214_ID[n];
     ii++;
-    dctrl[dd] = B214_Uin[n];
+    dctrl[dd] = B214_Uio[n];
     dd++;
     }
     

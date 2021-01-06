@@ -60,13 +60,98 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
                     patch[qq]->gcb[count][2]=k;
                     ++count;
                     
-                    // fill BC
-                    
                     // convert gcb
                     p->gcb4[n][4]=21;
                     }
                 }
             }
+        }
+    }
+    
+    /*
+    B210=0;        // int patchBC inflow/outflow
+    B211=0;        // int patchBC discharge
+    B212=0;        // int patchBC pressure BC
+    B213=0;        // int patchBC waterlevel
+    B214=0;        // int patchBC perpendicular velocity
+    B215=0;        // int patchBC velocity components
+    B216=0;        // int patchBC horizontal inflow angle
+    B217=0;        // int patchBC inflow normals
+    */
+    
+    /*
+      int pressure_flag;
+    double pressure;
+    
+    int waterlevel_flag;
+    double waterlevel;
+    
+    int Uin_flag;
+    double Uin;
+    
+    int velcomp_flag;
+    double U,V,W;
+    
+    int flowangle_flag;
+    double alpha;
+    
+    int flownormal_flag;
+    double Nx,Ny,Nz;
+    */
+    
+    // fill BC options
+  
+    // inflow/outflow
+    for(qn=0;qn<p->B210;++qn)
+    {
+        for(qq=0;qq<obj_count;++qq)
+        if(patch[qq]->ID == p->B210_ID[qn])
+        {
+        patch[qq]->io_flag=p->B210_io[qn];
+        }
+    }
+    
+    // discharge
+    for(qn=0;qn<p->B211;++qn)
+    {
+        for(qq=0;qq<obj_count;++qq)
+        if(patch[qq]->ID == p->B211_ID[qn])
+        {
+        patch[qq]->Q_flag=1;
+        patch[qq]->Q=p->B211_Q[qn];
+        }
+    }
+    
+    // pressure
+    for(qn=0;qn<p->B212;++qn)
+    {
+        for(qq=0;qq<obj_count;++qq)
+        if(patch[qq]->ID == p->B212_ID[qn])
+        {
+        patch[qq]->pressure_flag=1;
+        patch[qq]->pressure=p->B212_pressBC[qn];
+        }
+    }
+    
+    // waterlevel
+    for(qn=0;qn<p->B213;++qn)
+    {
+        for(qq=0;qq<obj_count;++qq)
+        if(patch[qq]->ID == p->B213_ID[qn])
+        {
+        patch[qq]->waterlevel_flag=1;
+        patch[qq]->waterlevel=p->B213_Q[qn];
+        }
+    }
+    
+    // perpendicular velocity
+    for(qn=0;qn<p->B214;++qn)
+    {
+        for(qq=0;qq<obj_count;++qq)
+        if(patch[qq]->ID == p->B214_ID[qn])
+        {
+        patch[qq]->Uio=1;
+        patch[qq]->Uio=p->B214_Uio[qn];
         }
     }
     

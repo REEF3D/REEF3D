@@ -199,7 +199,7 @@ void lexer::ini_default()
 	B192_4=0.0;		// double z-coordinate for rotation around y-axis
 	B194_s=-1.0e9; // double start rotation
 	B194_e= 1.0e9; // double end rotation
-    B210=0;        // int patchBC inflow/outflow
+    B210=2;        // int patchBC inflow/outflow
     B211=0;        // int patchBC discharge
     B212=0;        // int patchBC pressure BC
     B213=0;        // int patchBC waterlevel

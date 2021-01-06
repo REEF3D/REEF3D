@@ -1812,7 +1812,7 @@ void lexer::read_control()
     Darray(B213_h,B213);
     
     Iarray(B214_ID,B214);
-    Darray(B214_Uin,B214);
+    Darray(B214_Uio,B214);
     
     Iarray(B215_ID,B215);
     Darray(B215_U,B215);

@@ -1545,7 +1545,7 @@ void lexer::ctrlrecv()
     if(B214>0)
     {
     Iarray(B214_ID,B214);
-    Darray(B214_Uin,B214);
+    Darray(B214_Uio,B214);
     }
     
     if(B215>0)
@@ -2149,7 +2149,7 @@ void lexer::ctrlrecv()
     {
     B214_ID[n] = ictrl[ii];
     ii++;
-    B214_Uin[n] = dctrl[dd];
+    B214_Uio[n] = dctrl[dd];
     dd++;
     }
     

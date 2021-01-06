@@ -30,6 +30,35 @@ patch_obj::patch_obj(lexer *p, int ID_ini)
     
     gcb_count=0;
     
+    
+    // BC options ini
+    
+    io_flag=2; // 1=infow ; 2=outflow
+    
+    Q_flag=0;
+    Q=1.0;
+    
+    velocity_flag=0;
+    velocity=0.0;
+    
+    pressure_flag=0;
+    pressure=0.0;
+    
+    waterlevel_flag=0;
+    waterlevel=0.0;
+    
+    Uio_flag=0;
+    Uio=0.0;
+    
+    velcomp_flag=0;
+    U=V=W=0.0;
+    
+    flowangle_flag=0;
+    alpha=0.0;
+    
+    flownormal_flag=0;
+    Nx=Ny=Nz=0.0;
+    
 }
 
 patch_obj::~patch_obj()
