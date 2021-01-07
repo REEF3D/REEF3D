@@ -62,7 +62,7 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 
 // Pressure
     else 
-    if((bc==41||bc==211||bc==212||bc==112||bc==111) && (gcv==40||gcv==41||gcv==42||gcv==43||gcv==44||gcv==45))
+    if((bc==41) && (gcv==40||gcv==41||gcv==42||gcv==43||gcv==44||gcv==45))
     return 5;
     
 	else

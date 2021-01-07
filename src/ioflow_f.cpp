@@ -23,10 +23,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"patchBC_interface.h"
 
-ioflow_f::ioflow_f(lexer *p, ghostcell *pgc) 
+ioflow_f::ioflow_f(lexer *p, ghostcell *pgc, patchBC_interface *ppBC) 
 {
-	
+	pBC = ppBC;
+    
 	walldin_size=1;
 	walldout_size=1;
 	

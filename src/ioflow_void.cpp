@@ -28,9 +28,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"rheology_v.h"
 #include"rheology_f.h"
 #include"turbulence.h"
+#include"patchBC_interface.h"
 
-ioflow_v::ioflow_v(lexer *p, ghostcell *pgc) : flowfile_in(p,pgc)
+ioflow_v::ioflow_v(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : flowfile_in(p,pgc)
 {
+    pBC = ppBC;
+    
 	tanphi=0.0;
     if(p->W101>0)
     tanphi=tan(p->W102_phi*(PI/180.0));
@@ -56,11 +59,15 @@ void ioflow_v::inflow(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, fiel
     prheo->filltau(p,a,pgc);
     
     velocity_inlet(p,a,pgc,u,v,w);
+    
+    pBC->patchBC_ioflow(p,a,pgc,u,v,w);
 }
 
 void ioflow_v::rkinflow(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, field &w)
 {
     velocity_inlet(p,a,pgc,u,v,w);
+    
+    pBC->patchBC_ioflow(p,a,pgc,u,v,w);
 }
 
 void ioflow_v::velocity_inlet(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, field &w)

@@ -67,6 +67,8 @@ Author: Hans Bihs
 #include"sflow_potential_f.h"
 #include"sflow_potential_v.h"
 
+#include"patchBC_void.h"
+
 
 
 

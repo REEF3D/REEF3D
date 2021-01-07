@@ -39,14 +39,8 @@ public:
     
     virtual void patchBC_ini(lexer*, ghostcell*)=0;
     
-    // ini
-    virtual void patchBC_gcb_convert(lexer*, ghostcell*)=0;
-    virtual void patchBC_IDcount(lexer*, ghostcell*)=0;
-    virtual void patchBC_fillobj(lexer*, ghostcell*)=0;
-    
     // BC update
-    virtual void patchBC_inflow(lexer*, fdm*, ghostcell*, field&,field&,field&)=0;
-    virtual void patchBC_outflow(lexer*, fdm*, ghostcell*, field&,field&,field&)=0;
+    virtual void patchBC_ioflow(lexer*, fdm*, ghostcell*, field&,field&,field&)=0;
     virtual void patchBC_pressure(lexer*, fdm*, ghostcell*, field&)=0;
     virtual void patchBC_waterlevel(lexer*, fdm*, ghostcell*, field&)=0;
     

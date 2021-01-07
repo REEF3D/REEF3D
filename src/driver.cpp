@@ -33,20 +33,19 @@ driver::driver(int& argc, char **argv)
 	p = new lexer;
 	pgc = new ghostcell(argc,argv,p);
     
-    pBC = new patchBC(p);
     
 
 	if(p->mpirank==0)
     {
     cout<<endl<<"REEF3D (c) 2008-2020 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    cout<<endl<<"v_210106" <<endl<<endl;
+    cout<<endl<<"v_210107" <<endl<<endl;
     }
 
 	p->lexer_read(pgc);
 	pgc->gcini(p);
     p->gridini(pgc);
-
+    patchBC_logic();
 
     if(p->mpirank==0)
     {

@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-void patchBC::patchBC_outflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
+void patchBC::patchBC_pressure(lexer *p, fdm *a, ghostcell *pgc, field &press)
 {
 
 

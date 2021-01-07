@@ -32,6 +32,7 @@ class slice;
 class fdm2D;
 class fdm_fnpf;
 class turbulence;
+class patchBC_interface;
 
 using namespace std;
 

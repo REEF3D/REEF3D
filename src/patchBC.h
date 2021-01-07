@@ -21,36 +21,33 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"patchBC_interface.h"
-#include"increment.h"
 
 using namespace std;
 
 #ifndef PATCHBC_H_
 #define PATCHBC_H_
 
-class patchBC : public increment
+class patchBC : public patchBC_interface, public increment
 {
 public:
-	patchBC(lexer*);
+	patchBC(lexer*,ghostcell*);
 	virtual ~patchBC();
     
-    void patchBC_ini(lexer *p, ghostcell *pgc);
-    
-    // ini
-    void patchBC_gcb_convert(lexer *p, ghostcell *pgc);
-    void patchBC_IDcount(lexer *p, ghostcell *pgc);
-    void patchBC_fillobj(lexer *p, ghostcell *pgc);
+    virtual void patchBC_ini(lexer *p, ghostcell *pgc);
     
     // BC update
-    void patchBC_inflow(lexer*, fdm*, ghostcell*, field&,field&,field&);
-    void patchBC_outflow(lexer*, fdm*, ghostcell*, field&,field&,field&);
-    void patchBC_pressure(lexer*, fdm*, ghostcell*, field&);
-    void patchBC_waterlevel(lexer*, fdm*, ghostcell*, field&);
-    
+    virtual void patchBC_ioflow(lexer*, fdm*, ghostcell*, field&,field&,field&);
+    virtual void patchBC_pressure(lexer*, fdm*, ghostcell*, field&);
+    virtual void patchBC_waterlevel(lexer*, fdm*, ghostcell*, field&);
 
 
         
 private:
+     // ini
+    void patchBC_gcb_convert(lexer *p, ghostcell *pgc);
+    void patchBC_IDcount(lexer *p, ghostcell *pgc);
+    void patchBC_fillobj(lexer *p, ghostcell *pgc);
+    
     int q,n,qn,qq,count,ID_count;
     int istart,iend,jstart,jend,kstart,kend;
     

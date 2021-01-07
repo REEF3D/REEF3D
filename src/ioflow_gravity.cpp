@@ -25,9 +25,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"turbulence.h"
+#include"patchBC_interface.h"
 
-ioflow_gravity::ioflow_gravity(lexer *p, ghostcell *pgc)
+ioflow_gravity::ioflow_gravity(lexer *p, ghostcell *pgc, patchBC_interface *ppBC) 
 {
+    pBC = ppBC;
+    
 	omega_x = 2.0*PI*p->B191_2;
 	omega_y = 2.0*PI*p->B192_2;
 	

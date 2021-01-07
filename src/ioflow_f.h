@@ -27,6 +27,7 @@ Author: Hans Bihs
 
 class fdm_fnpf;
 
+
 using namespace std;
 
 #ifndef IOFLOW_F_H_
@@ -37,7 +38,7 @@ class ioflow_f : public ioflow, private resize_class, public increment
 {
 
 public:
-	ioflow_f(lexer*, ghostcell*);
+	ioflow_f(lexer*, ghostcell*,patchBC_interface*);
 	virtual ~ioflow_f();
 	virtual void gcio_update(lexer*,fdm*,ghostcell*);
 	virtual void inflow_walldist(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*);
@@ -156,6 +157,8 @@ private:
     double Apor,Bpor,porval,partval;
     
     double epsi1,epsi2;
+    
+    patchBC_interface *pBC;
 };
 
 #endif

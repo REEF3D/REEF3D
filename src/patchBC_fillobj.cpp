@@ -207,6 +207,8 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
                     
                     // convert gcb
                     p->gcb4[n][4]=patch[qq]->gcb_flag;
+                    
+                    cout<<p->mpirank<<" PATCH_BC "<<patch[qq]->gcb_flag<<endl;
                     }
                 }
             }

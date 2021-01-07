@@ -25,9 +25,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"patch_obj.h"
 
-patchBC::patchBC(lexer *p) 
+patchBC::patchBC(lexer *p, ghostcell *pgc) 
 {
-    
+    patchBC_ini(p,pgc);
 }
 
 patchBC::~patchBC()
@@ -36,9 +36,8 @@ patchBC::~patchBC()
 
 void patchBC::patchBC_ini(lexer *p, ghostcell *pgc)
 {
+   
     patchBC_IDcount(p,pgc);
-    
-
     
     // creat patch objects
     patch = new patch_obj*[obj_count];

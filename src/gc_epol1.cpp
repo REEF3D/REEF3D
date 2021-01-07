@@ -24,16 +24,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
 {
-        /*
-     111 - 222
-    110 - 221
-    100 - 211
-    101 - 212
-    011 - 122
-    010 -121
-    001 -112
-    000 -111
-    */
     
 //	Velocities
 
@@ -80,7 +70,21 @@ int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
 	if((bc==6 && (cs==1||cs==4) && (gcv==10||gcv==20||gcv==1||gcv==7)))
 	return gclabel_u_in;   
 
-//Patch 
+//Patch
+        /*
+     111 - 222
+    110 - 221
+    100 - 211
+    101 - 212
+    011 - 122
+    010 -121
+    001 -112
+    000 -111
+    */
+    
+    else
+	if((bc==111 || bc==112 || bc==121 || bc==122) && (gcv==10||gcv==1||gcv==20))
+	return 4;
     
 	
 //Outflow

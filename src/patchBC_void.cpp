@@ -17,26 +17,45 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"vtu3D.h"
-
-#include"ioflow.h"
-#include"ioflow_void.h"
-#include"ioflow_f.h"
-#include"iowave.h"
-#include"ioflow_gravity.h"
-#include"etimestep.h"
-#include"ietimestep.h"
-#include"fixtimestep.h"
-#include"pftimestep.h"
-#include"initialize.h"
-
-#include"geotopo.h"
-#include"solid.h"
-#include"data_f.h"
-#include"data_void.h"
-
-#include"patchBC.h"
 #include"patchBC_void.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"patch_obj.h"
+
+patchBC_void::patchBC_void(lexer *p) 
+{
+    
+}
+
+patchBC_void::~patchBC_void()
+{
+}
+
+void patchBC_void::patchBC_ini(lexer *p, ghostcell *pgc)
+{
+
+} 
+
+void patchBC_void::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
+{
+
+
+} 
+
+
+void patchBC_void::patchBC_pressure(lexer *p, fdm *a, ghostcell *pgc, field &press)
+{
+
+
+} 
+
+void patchBC_void::patchBC_waterlevel(lexer *p, fdm *a, ghostcell *pgc, field &phi)
+{
+
+
+} 
+
+

@@ -64,7 +64,7 @@ class sflow;
 class fnpf_vtu3D;
 class fnpf_timestep;
 class grid;
-class patchBC;
+class patchBC_interface;
 
 #include<iostream>
 #include<fstream>
@@ -104,6 +104,8 @@ public:
     void logic_ptf();
     void logic_fnpf();
     void logic_sflow();
+    
+    void patchBC_logic();
     
 	void driver_ini();
     void driver_ini_nhflow();
@@ -184,7 +186,7 @@ public:
     fnpf_vtu3D *pfprint; 
     fnpf_timestep* pftstep;
     grid *pgrid;
-    patchBC *pBC;
+    patchBC_interface *pBC;
 
 
 private:
