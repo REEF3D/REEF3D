@@ -27,23 +27,25 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 
 //Level Set
 
-	if((bc==21||bc==22||bc==5||bc==41||bc==42||bc==43||bc==7||bc==8||bc==9||bc==41) && (gcv==51 || gcv==52 || gcv==53 || gcv==54) && (p->B26<3 || cs!=5))
+	if((bc==21||bc==22||bc==5||bc==41||bc==42||bc==43||bc==7||bc==8||bc==9||bc==41||bc==221||bc==211||bc==121||bc==111) 
+        && (gcv==51 || gcv==52 || gcv==53 || gcv==54) && (p->B26<3 || cs!=5))
 	return gclabel_lsm;
 
 	else
-	if((bc==21||bc==22||bc==5||bc==41||bc==42||bc==43||bc==7||bc==8||bc==9||bc==41) && (gcv==51 || gcv==52 || gcv==53 || gcv==54) && (p->B26==3 && cs==5) && p->count>0)
+	if((bc==21||bc==22||bc==5||bc==41||bc==42||bc==43||bc==7||bc==8||bc==9||bc==41||bc==221||bc==211||bc==121||bc==111) 
+        && (gcv==51 || gcv==52 || gcv==53 || gcv==54) && (p->B26==3 && cs==5) && p->count>0)
 	return 3;
 	
 	else
-	if((bc==3) && (gcv==51 || gcv==52 || gcv==53 || gcv==54))
+	if((bc==3||bc==221||bc==211||bc==121||bc==111) && (gcv==51 || gcv==52 || gcv==53 || gcv==54))
 	return 4;
 
 	else
-	if((bc==2)&&(gcv==51 || gcv==54))
+	if((bc==2||bc==221||bc==211||bc==121||bc==111) && (gcv==51 || gcv==54))
 	return 4;
     
     else
-	if((bc==1||bc==6)&&(gcv==52 || gcv==54))
+	if((bc==1||bc==6||bc==221||bc==211||bc==121||bc==111) && (gcv==52 || gcv==54))
 	return 4;
 
 	else
@@ -52,39 +54,39 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
     
     // inflow
     else
-	if(bc==1&&(gcv==52 || gcv==54))
+	if((bc==1||bc==221||bc==211||bc==121||bc==111) && (gcv==52 || gcv==54))
 	return gclabel_lsm_in;
     
-    if(bc==6 && (gcv==51 || gcv==52 || gcv==53 || gcv==54) )
+    if((bc==6 ) && (gcv==51 || gcv==52 || gcv==53 || gcv==54) )
 	return gclabel_lsm_in;
 
 // Pressure
     else 
-    if(bc==41 && (gcv==40||gcv==41||gcv==42||gcv==43||gcv==44||gcv==45))
+    if((bc==41||bc==211||bc==212||bc==112||bc==111) && (gcv==40||gcv==41||gcv==42||gcv==43||gcv==44||gcv==45))
     return 5;
     
 	else
-	if((bc==21||bc==22||bc==5||bc==3||bc==2||bc==6||(bc==7&&awa_label==0)) && gcv==40)
+	if((bc==21||bc==22||bc==5||bc==3||bc==2||bc==6||(bc==7&&awa_label==0)||bc==211||bc==212||bc==112||bc==111) && gcv==40)
 	return gclabel_press;
 	
 	else
-	if((bc==21||bc==22||bc==5||bc==3||bc==2||(bc==7&&awa_label==0)) && gcv==41)
+	if((bc==21||bc==22||bc==5||bc==3||bc==2||(bc==7&&awa_label==0)||bc==211||bc==212||bc==112||bc==111) && gcv==41)
 	return gclabel_press;
 	
 	else
-	if((bc==21||bc==22||bc==5||bc==3) && gcv==42)
+	if((bc==21||bc==22||bc==5||bc==3||bc==211||bc==212||bc==112||bc==111) && gcv==42)
 	return gclabel_press;
 	
 	else
-	if((bc==21||bc==22||bc==5||bc==3) && gcv==43)
+	if((bc==21||bc==22||bc==5||bc==3||bc==211||bc==212||bc==112||bc==111) && gcv==43)
 	return gclabel_press;
 	
 	else
-	if((bc==21||bc==22||bc==5||bc==3||bc==2||(bc==7&&awa_label==0)) && (cs!=5) && gcv==44)
+	if((bc==21||bc==22||bc==5||bc==3||bc==2||(bc==7&&awa_label==0)||bc==211||bc==212||bc==112||bc==111) && (cs!=5) && gcv==44)
 	return gclabel_press;
 	
 	else
-	if((bc==21||bc==22||bc==5||bc==3) && (cs!=5)  && gcv==45)
+	if((bc==21||bc==22||bc==5||bc==3||bc==211||bc==212||bc==112||bc==111) && (cs!=5)  && gcv==45)
 	return gclabel_press;
     
 	else
@@ -105,11 +107,11 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	
     // Inflow
     else
-	if(bc==1 && (gcv==40||gcv==42||((cs!=5) && gcv==44)))
+	if((bc==1||bc==211||bc==212||bc==112||bc==111) && (gcv==40||gcv==42||((cs!=5) && gcv==44)))
 	return gclabel_press_in;
 	
 	else
-	if(bc==6 && (gcv==42||gcv==44))
+	if((bc==6||bc==211||bc==212||bc==112||bc==111) && (gcv==42||gcv==44))
 	return 4;
 	
 // Solver Poisson
@@ -225,14 +227,6 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	if(bc==1 && gcv==30)
 	return 4;
 
-// Turbulence rst
-	else
-	if((bc==21||bc==22||bc==5||bc==41||bc==42||bc==43||bc==6||bc==7||bc==8||bc==9)&&(gcv==25))
-	return 4;
-
-	else
-	if((bc==3||bc==2||bc==1)&&(gcv==25))
-	return 4;
 
 // Turbulence eddyv
     else

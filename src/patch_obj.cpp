@@ -59,6 +59,13 @@ patch_obj::patch_obj(lexer *p, int ID_ini)
     flownormal_flag=0;
     Nx=Ny=Nz=0.0;
     
+    // gcbflags
+    gcb_uflag=1;
+    gcb_pressflag=1;
+    gcb_phiflag=1;
+    
+    gcb_flag=111;
+    
 }
 
 patch_obj::~patch_obj()

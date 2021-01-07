@@ -47,6 +47,8 @@ public:
     int IO;
     int gcb_count;
     int **gcb;
+    int gcb_flag;
+    int gcb_uflag, gcb_pressflag, gcb_phiflag;
     
     /*
     B210=0;        // int patchBC inflow/outflow
