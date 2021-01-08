@@ -2569,6 +2569,15 @@ void lexer::read_control()
 				}
 				break;
 		}
+        
+        if(count>1e7)
+        {
+        cout<<endl;
+        cout<<"!!! missing input parameter in ctrl.txt !!!"<<endl<<endl;
+        cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
+        
+        exit(0);
+        }
 	}
 
 	control.close();

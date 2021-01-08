@@ -78,5 +78,5 @@ void patch_obj::patch_obj_ini(lexer *p, ghostcell *pgc)
 
 void patch_obj::patch_obj_gcb_generate(lexer *p, ghostcell *pgc)
 {
-    p->Iarray(gcb,gcb_count,3);
+    p->Iarray(gcb,gcb_count,4);
 }

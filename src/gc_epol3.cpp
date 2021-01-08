@@ -89,7 +89,7 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
     
 //Patch    
     else
-	if((bc==111 || bc==112 || bc==121 || bc==122) && (gcv==12||gcv==3||gcv==22))
+	if((bc==111 || bc==112 || bc==121 || bc==122) && (gcv==12||gcv==3||gcv==22||gcv==9))
 	return 4;
 
 //Free Surface

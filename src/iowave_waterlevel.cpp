@@ -23,27 +23,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"patchBC_interface.h"
 
 void iowave::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
 {
     if(p->I230>0)
     ff_waterlevel(p,a,pgc,a->phi);
-
-
-        //if(p->F50==2 || p->F50==4)
-/*        count=0;
-        for(n=0;n<p->gcin_count;n++)
-		{
-		i=p->gcin[n][0];
-		j=p->gcin[n][1];
-		k=p->gcin[n][2];
-
-        a->phi(i-1,j,k) = lsval[count]*ramp(p);
-        a->phi(i-2,j,k) = lsval[count]*ramp(p);
-        a->phi(i-3,j,k) = lsval[count]*ramp(p);
         
-        ++count;
-        }*/
+    pBC->patchBC_waterlevel(p,a,pgc,a->phi);
 }
 
 void iowave::fsfrkout(lexer *p, fdm *a, ghostcell *pgc, field& f)

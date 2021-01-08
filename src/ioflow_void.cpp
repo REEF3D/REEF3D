@@ -310,6 +310,8 @@ void ioflow_v::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
 {
     if(p->I230>0)
     ff_waterlevel(p,a,pgc,a->phi);
+    
+    pBC->patchBC_waterlevel(p,a,pgc,a->phi);
 }
 
 void ioflow_v::fsfrkout(lexer *p, fdm *a, ghostcell *pgc, field& f)
@@ -318,6 +320,7 @@ void ioflow_v::fsfrkout(lexer *p, fdm *a, ghostcell *pgc, field& f)
 
 void ioflow_v::fsfrkin(lexer *p, fdm *a, ghostcell *pgc, field& f)
 {
+    pBC->patchBC_waterlevel(p,a,pgc,f);
 }
 
 void ioflow_v::fsfrkoutV(lexer *p, fdm *a, ghostcell *pgc, vec& f)
@@ -438,6 +441,7 @@ void  ioflow_v::ksource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 
 void ioflow_v::pressure_io(lexer *p, fdm *a, ghostcell* pgc)
 {
+    pBC->patchBC_pressure(p,a,pgc,a->press);
 }
 
 void ioflow_v::turbulence_io(lexer *p, fdm* a, ghostcell* pgc)

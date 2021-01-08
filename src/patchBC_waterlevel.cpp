@@ -23,6 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"patch_obj.h"
 
 void patchBC::patchBC_waterlevel(lexer *p, fdm *a, ghostcell *pgc, field &phi)
 {

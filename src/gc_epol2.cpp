@@ -81,7 +81,7 @@ int ghostcell::gceval2(lexer *p, int gcv, int bc, int cs)
     
 //Patch    
     else
-	if((bc==111 || bc==112 || bc==121 || bc==122) && (gcv==11||gcv==2||gcv==21))
+	if((bc==111 || bc==112 || bc==121 || bc==122) && (gcv==11||gcv==2||gcv==21||gcv==8))
 	return 4;
 
 

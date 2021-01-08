@@ -22,11 +22,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ioflow_f.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"patchBC_interface.h"
 
 void ioflow_f::pressure_io(lexer *p, fdm* a, ghostcell *pgc)
 {
     
     pressure_outlet(p,a,pgc);
+    
+    
+    pBC->patchBC_pressure(p,a,pgc,a->press);
 }
 
 void ioflow_f::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)

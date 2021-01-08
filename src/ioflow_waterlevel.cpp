@@ -23,6 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"patchBC_interface.h"
 
 void ioflow_f::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
 {
@@ -102,6 +103,9 @@ void ioflow_f::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
     p->phiout=zval/double(count);
     p->phiout=pgc->globalmax(p->phiout);
     }
+    
+    
+    pBC->patchBC_waterlevel(p,a,pgc,a->phi);
 }
 
 void ioflow_f::fsfrkout(lexer *p, fdm *a, ghostcell *pgc, field& f)

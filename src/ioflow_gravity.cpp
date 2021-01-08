@@ -91,14 +91,18 @@ void ioflow_gravity::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
 
     if(p->B183_1>0.0)
     a->gk=  p->B183_1 * sin(2.0*PI*p->B183_2*p->simtime + p->B183_3) +  p->W22;
+    
+    pBC->patchBC_ioflow(p,a,pgc,u,v,w);
 }
 
 void ioflow_gravity::rkinflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {
+    pBC->patchBC_ioflow(p,a,pgc,u,v,w);
 }
 
 void ioflow_gravity::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
 {
+    pBC->patchBC_waterlevel(p,a,pgc,a->phi);
 }
 
 void ioflow_gravity::fsfrkout(lexer *p, fdm *a, ghostcell *pgc, field& f)
@@ -107,6 +111,7 @@ void ioflow_gravity::fsfrkout(lexer *p, fdm *a, ghostcell *pgc, field& f)
 
 void ioflow_gravity::fsfrkin(lexer *p, fdm *a, ghostcell *pgc, field& f)
 {
+    pBC->patchBC_waterlevel(p,a,pgc,f);
 }
 
 void ioflow_gravity::fsfrkoutV(lexer *p, fdm *a, ghostcell *pgc, vec& f)
@@ -209,6 +214,7 @@ void  ioflow_gravity::ksource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 
 void ioflow_gravity::pressure_io(lexer *p, fdm *a, ghostcell *pgc)
 {
+    pBC->patchBC_pressure(p,a,pgc,a->press);
 }
 
 void ioflow_gravity::turbulence_io(lexer *p, fdm* a, ghostcell* pgc)

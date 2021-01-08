@@ -327,7 +327,7 @@ void ioflow_f::inflow_water(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
 
 void ioflow_f::rkinflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {
-    //inflow(p,a,pgc,u,v,w);
+    inflow(p,a,pgc,u,v,w);
 }
 
 void ioflow_f::flowfile(lexer *p, fdm* a, ghostcell* pgc, turbulence *pturb)

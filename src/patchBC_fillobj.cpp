@@ -203,12 +203,11 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
                     patch[qq]->gcb[count][0]=i;
                     patch[qq]->gcb[count][1]=j;
                     patch[qq]->gcb[count][2]=k;
+                    patch[qq]->gcb[count][3]=p->B221_face[qn];
                     ++count;
                     
                     // convert gcb
                     p->gcb4[n][4]=patch[qq]->gcb_flag;
-                    
-                    cout<<p->mpirank<<" PATCH_BC "<<patch[qq]->gcb_flag<<endl;
                     }
                 }
             }
