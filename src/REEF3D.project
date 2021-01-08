@@ -2440,12 +2440,12 @@
       </VirtualDirectory>
       <VirtualDirectory Name="ioFlow">
         <VirtualDirectory Name="PatchBC">
+          <File Name="patchBC_gcb_count.cpp"/>
           <File Name="patchBC_waterlevel.cpp"/>
           <File Name="patchBC_pressure.cpp"/>
           <File Name="patchBC_void.cpp"/>
           <File Name="patchBC_fillobj.cpp"/>
           <File Name="patchBC_IDcount.cpp"/>
-          <File Name="patchBC_gcb_convert.cpp"/>
           <File Name="patch_obj.cpp"/>
           <File Name="patchBC_inflow.cpp"/>
           <File Name="patchBC.cpp"/>
