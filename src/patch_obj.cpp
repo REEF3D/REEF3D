@@ -65,7 +65,7 @@ patch_obj::patch_obj(lexer *p, int ID_ini)
     Q0 = 0.0;
     U0 = 0.0;
     A0 = 0.0;
-    h0=0.0;
+    h0 = 0.0;
     
     // gcbflags
     gcb_uflag=1;

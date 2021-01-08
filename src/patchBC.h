@@ -44,7 +44,7 @@ public:
         
 private:
      // ini
-    void patchBC_gcb_convert(lexer *p, ghostcell *pgc);
+    void patchBC_gcb_count(lexer *p, ghostcell *pgc);
     void patchBC_IDcount(lexer *p, ghostcell *pgc);
     void patchBC_fillobj(lexer *p, ghostcell *pgc);
     

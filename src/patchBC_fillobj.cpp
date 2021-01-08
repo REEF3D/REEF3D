@@ -214,6 +214,48 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
         }
     }
     
+    
+    
+    count=0;
+    for(qn=0;qn<p->B222;++qn)
+    {
+        
+        {
+            istart = p->posc_i(p->B221_xs[qn]);
+            iend = p->posc_i(p->B221_xe[qn]);
+            
+            jstart = p->posc_j(p->B221_ys[qn]);
+            jend = p->posc_j(p->B221_ye[qn]);
+            
+            kstart = p->posc_k(p->B221_zs[qn]);
+            kend = p->posc_k(p->B221_ze[qn]);
+            
+            
+            for(n=0;n<p->gcb4_count;++n)
+            {
+            i=p->gcb4[n][0];
+            j=p->gcb4[n][1];
+            k=p->gcb4[n][2];
+            
+                if(i>=istart && i<iend && j>=jstart && j<jend && k>=kstart && k<kend && p->gcb4[n][3]==p->B221_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
+                {
+                    for(qq=0;qq<obj_count;++qq)
+                    if(patch[qq]->ID == p->B221_ID[qn])
+                    {
+                    patch[qq]->gcb[count][0]=i;
+                    patch[qq]->gcb[count][1]=j;
+                    patch[qq]->gcb[count][2]=k;
+                    patch[qq]->gcb[count][3]=p->B221_face[qn];
+                    ++count;
+                    
+                    // convert gcb
+                    p->gcb4[n][4]=patch[qq]->gcb_flag;
+                    }
+                }
+            }
+        }
+    }
+    
 }
 
 
