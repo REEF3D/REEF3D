@@ -174,6 +174,9 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
     
     
 // fill gcbs
+    for(qq=0;qq<obj_count;++qq)
+    patch[qq]->counter=0;
+    
     int count=0;
     for(qn=0;qn<p->B221;++qn)
     {
@@ -204,7 +207,7 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
                     patch[qq]->gcb[count][1]=j;
                     patch[qq]->gcb[count][2]=k;
                     patch[qq]->gcb[count][3]=p->B221_face[qn];
-                    ++count;
+                    ++patch[qq]->counter;
                     
                     // convert gcb
                     p->gcb4[n][4]=patch[qq]->gcb_flag;
@@ -216,44 +219,94 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
     
     
     
-    count=0;
+    // circle
+    double r;
+    
     for(qn=0;qn<p->B222;++qn)
     {
-        
-        {
-            istart = p->posc_i(p->B221_xs[qn]);
-            iend = p->posc_i(p->B221_xe[qn]);
-            
-            jstart = p->posc_j(p->B221_ys[qn]);
-            jend = p->posc_j(p->B221_ye[qn]);
-            
-            kstart = p->posc_k(p->B221_zs[qn]);
-            kend = p->posc_k(p->B221_ze[qn]);
-            
+        int count=0;
+        {            
             
             for(n=0;n<p->gcb4_count;++n)
             {
             i=p->gcb4[n][0];
             j=p->gcb4[n][1];
             k=p->gcb4[n][2];
-            
-                if(i>=istart && i<iend && j>=jstart && j<jend && k>=kstart && k<kend && p->gcb4[n][3]==p->B221_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
+                
+                // x-dir
+                if(p->B222_face[qn]==1 || p->B222_face[qn]==4)
                 {
-                    for(qq=0;qq<obj_count;++qq)
-                    if(patch[qq]->ID == p->B221_ID[qn])
+                    r = sqrt(pow(p->YP[JP]-p->B222_ym[qn],2.0)+pow(p->ZP[KP]-p->B222_zm[qn],2.0));
+                
+                    if(r<=p->B222_r[qn] && p->pos_x()>p->B222_xm[qn]-p->DXP[IP] && p->pos_x()<=p->B222_xm[qn]+p->DXP[JP] && p->gcb4[n][3]==p->B222_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
                     {
-                    patch[qq]->gcb[count][0]=i;
-                    patch[qq]->gcb[count][1]=j;
-                    patch[qq]->gcb[count][2]=k;
-                    patch[qq]->gcb[count][3]=p->B221_face[qn];
-                    ++count;
-                    
-                    // convert gcb
-                    p->gcb4[n][4]=patch[qq]->gcb_flag;
+                        for(qq=0;qq<obj_count;++qq)
+                        if(patch[qq]->ID == p->B222_ID[qn])
+                        {
+                        patch[qq]->gcb[count][0]=i;
+                        patch[qq]->gcb[count][1]=j;
+                        patch[qq]->gcb[count][2]=k;
+                        patch[qq]->gcb[count][3]=p->B222_face[qn];
+                        ++patch[qq]->counter;
+                        
+                        // convert gcb
+                        p->gcb4[n][4]=patch[qq]->gcb_flag;
+                        }
+                    }
+                }
+                
+                // y-dir
+                if(p->B222_face[qn]==2 || p->B222_face[qn]==3)
+                {
+                    r = sqrt(pow(p->XP[IP]-p->B222_xm[qn],2.0)+pow(p->ZP[KP]-p->B222_zm[qn],2.0));
+                
+                    if(r<=p->B222_r[qn] && p->pos_y()>p->B222_ym[qn]-p->DYP[JP] && p->pos_y()<=p->B222_ym[qn]+p->DYP[JP] && p->gcb4[n][3]==p->B222_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
+                    {
+                        for(qq=0;qq<obj_count;++qq)
+                        if(patch[qq]->ID == p->B222_ID[qn])
+                        {
+                        patch[qq]->gcb[count][0]=i;
+                        patch[qq]->gcb[count][1]=j;
+                        patch[qq]->gcb[count][2]=k;
+                        patch[qq]->gcb[count][3]=p->B222_face[qn];
+                        ++patch[qq]->counter;
+                        
+                        // convert gcb
+                        p->gcb4[n][4]=patch[qq]->gcb_flag;
+                        }
+                    }
+                }
+                
+                // z-dir
+                if(p->B222_face[qn]==5 || p->B222_face[qn]==6)
+                {
+                    r = sqrt(pow(p->XP[IP]-p->B222_xm[qn],2.0)+pow(p->YP[JP]-p->B222_ym[qn],2.0));
+                
+                    if(r<=p->B222_r[qn] && p->pos_z()>p->B222_zm[qn]-p->DZP[KP] && p->pos_z()<=p->B222_zm[qn]+p->DZP[KP] && p->gcb4[n][3]==p->B222_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
+                    {
+                        for(qq=0;qq<obj_count;++qq)
+                        if(patch[qq]->ID == p->B222_ID[qn])
+                        {
+                        patch[qq]->gcb[count][0]=i;
+                        patch[qq]->gcb[count][1]=j;
+                        patch[qq]->gcb[count][2]=k;
+                        patch[qq]->gcb[count][3]=p->B222_face[qn];
+                        ++patch[qq]->counter;
+                        
+                        // convert gcb
+                        p->gcb4[n][4]=patch[qq]->gcb_flag;
+                        }
                     }
                 }
             }
         }
+        
+        for(qq=0;qq<obj_count;++qq)
+        {
+        if(patch[qq]->ID == p->B222_ID[qn])
+        patch[qq]->gcb_count += count;
+        }
+    
     }
     
 }

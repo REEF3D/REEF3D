@@ -65,20 +65,12 @@ void patchBC::patchBC_gcb_count(lexer *p, ghostcell *pgc)
     }
     
     
-    // xircle
-    for(qn=0;qn<p->B221;++qn)
+    // circle
+    double r;
+    for(qn=0;qn<p->B222;++qn)
     {
         int count=0;
-        {
-            istart = p->posc_i(p->B221_xs[qn]);
-            iend = p->posc_i(p->B221_xe[qn]);
-            
-            jstart = p->posc_j(p->B221_ys[qn]);
-            jend = p->posc_j(p->B221_ye[qn]);
-            
-            kstart = p->posc_k(p->B221_zs[qn]);
-            kend = p->posc_k(p->B221_ze[qn]);
-            
+        {            
             
             for(n=0;n<p->gcb4_count;++n)
             {
@@ -86,30 +78,53 @@ void patchBC::patchBC_gcb_count(lexer *p, ghostcell *pgc)
             j=p->gcb4[n][1];
             k=p->gcb4[n][2];
             
-                if(i>=istart && i<iend && j>=jstart && j<jend && k>=kstart && k<kend && p->gcb4[n][3]==p->B221_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
+                // x-dir
+                if(p->B222_face[qn]==1 || p->B222_face[qn]==4)
                 {
-                ++count;
+                    r = sqrt(pow(p->YP[JP]-p->B222_ym[qn],2.0)+pow(p->ZP[KP]-p->B222_zm[qn],2.0));
+                
+                    if(r<=p->B222_r[qn] && p->pos_x()>p->B222_xm[qn]-p->DXP[IP] && p->pos_x()<=p->B222_xm[qn]+p->DXP[JP] && p->gcb4[n][3]==p->B222_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
+                    {
+                    ++count;
+                    }
+                }
+                
+                // y-dir
+                if(p->B222_face[qn]==2 || p->B222_face[qn]==3)
+                {
+                    r = sqrt(pow(p->XP[IP]-p->B222_xm[qn],2.0)+pow(p->ZP[KP]-p->B222_zm[qn],2.0));
+                
+                    if(r<=p->B222_r[qn] && p->pos_y()>p->B222_ym[qn]-p->DYP[JP] && p->pos_y()<=p->B222_ym[qn]+p->DYP[JP] && p->gcb4[n][3]==p->B222_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
+                    {
+                    ++count;
+                    }
+                }
+                
+                // z-dir
+                if(p->B222_face[qn]==5 || p->B222_face[qn]==6)
+                {
+                    r = sqrt(pow(p->XP[IP]-p->B222_xm[qn],2.0)+pow(p->YP[JP]-p->B222_ym[qn],2.0));
+                
+                    if(r<=p->B222_r[qn] && p->pos_z()>p->B222_zm[qn]-p->DZP[KP] && p->pos_z()<=p->B222_zm[qn]+p->DZP[KP] && p->gcb4[n][3]==p->B222_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
+                    {
+                    ++count;
+                    }
                 }
             }
+
         }
         
         for(qq=0;qq<obj_count;++qq)
         {
-        if(patch[qq]->ID == p->B221_ID[qn])
+        if(patch[qq]->ID == p->B222_ID[qn])
         patch[qq]->gcb_count += count;
         }
-    
     }
     
-    
-    // allocate arrays
+    // allocate arrays in patch_obj
     for(q=0; q<obj_count;++q)
     patch[q]->patch_obj_gcb_generate(p,pgc);
     
     
-    
-    // gcin / gcout
-
-
 } 
 
