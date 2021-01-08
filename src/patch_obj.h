@@ -87,7 +87,8 @@ public:
     int flownormal_flag;
     double Nx,Ny,Nz;
     
-        
+    // measurement
+    double Q0,U0,A0,h0;
 
 
 };

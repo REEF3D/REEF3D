@@ -93,7 +93,7 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
         }
     }
     
-    // perpendicular velocity
+    // velocity components
     for(qn=0;qn<p->B215;++qn)
     {
         for(qq=0;qq<obj_count;++qq)
