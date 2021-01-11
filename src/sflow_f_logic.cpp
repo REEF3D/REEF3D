@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -137,16 +137,16 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     
     psolv = new sflow_bicgstab(p,pgc);
     
-    
+    pBC = new patchBC_void(p);
     //IOFlow
 	if(p->B60==0 && p->B90==0)
-	pflow = new ioflow_v(p,pgc);
+	pflow = new ioflow_v(p,pgc,pBC);
 
 	if(p->B60>=1)
-	pflow = new ioflow_f(p,pgc);
+	pflow = new ioflow_f(p,pgc,pBC);
 
 	if(p->B90>=1)
-	pflow= new iowave(p,pgc);
+	pflow= new iowave(p,pgc,pBC);
 
 	
 	// printer

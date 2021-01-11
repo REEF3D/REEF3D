@@ -927,8 +927,12 @@
         <File Name="flowfile_in.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="ioFlow">
-        <File Name="patch_obj.h"/>
-        <File Name="patchBC.h"/>
+        <VirtualDirectory Name="patchBC">
+          <File Name="patchBC_void.h"/>
+          <File Name="patchBC_interface.h"/>
+          <File Name="patchBC.h"/>
+          <File Name="patch_obj.h"/>
+        </VirtualDirectory>
         <File Name="iowave.h"/>
         <File Name="ioflow_void.h"/>
         <File Name="ioflow_gravity.h"/>
@@ -2436,10 +2440,13 @@
       </VirtualDirectory>
       <VirtualDirectory Name="ioFlow">
         <VirtualDirectory Name="PatchBC">
+          <File Name="patchBC_gcb_count.cpp"/>
+          <File Name="patchBC_waterlevel.cpp"/>
+          <File Name="patchBC_pressure.cpp"/>
+          <File Name="patchBC_void.cpp"/>
+          <File Name="patchBC_fillobj.cpp"/>
           <File Name="patchBC_IDcount.cpp"/>
-          <File Name="patchBC_gcb_convert.cpp"/>
           <File Name="patch_obj.cpp"/>
-          <File Name="patchBC_outflow.cpp"/>
           <File Name="patchBC_inflow.cpp"/>
           <File Name="patchBC.cpp"/>
         </VirtualDirectory>

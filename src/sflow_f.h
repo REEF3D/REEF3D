@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -42,6 +42,7 @@ class sflow_diffusion;
 class sflow_filter;
 class sflow_turbulence;
 class sflow_sediment;
+class patchBC_interface;
 
 using namespace std;
 
@@ -83,6 +84,8 @@ private:
     sflow_turbulence *pturb;
     sflow_sediment *psed;
     sflow_potential *potflow;
+    
+    patchBC_interface *pBC;
 	
 	double starttime, endtime;
 };

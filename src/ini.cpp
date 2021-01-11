@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
  * 
 This file is part of REEF3D.
 
@@ -199,10 +199,16 @@ void lexer::ini_default()
 	B192_4=0.0;		// double z-coordinate for rotation around y-axis
 	B194_s=-1.0e9; // double start rotation
 	B194_e= 1.0e9; // double end rotation
+    B210=0;        // int patchBC inflow/outflow
+    B211=0;        // int patchBC discharge
+    B212=0;        // int patchBC pressure BC
+    B213=0;        // int patchBC waterlevel
+    B214=0;        // int patchBC perpendicular velocity
+    B215=0;        // int patchBC velocity components
+    B216=0;        // int patchBC horizontal inflow angle
+    B217=0;        // int patchBC inflow normals
 	B221=0;			// int rectangular inflow patch BC
     B222=0;			// int circular inflow patch BC
-    B231=0;			// int rectangular outflow patch BC
-    B232=0;			// int circular outflow patch BC
 	B240=0;			// int porous media  
 	B241=1;			// int porous media in x-direction
 	B242=1;			// int porous media in y-direction
@@ -446,6 +452,7 @@ void lexer::ini_default()
 	P54=10;			  // int ith iteration wsfline file  print out
 	P55=-1.0;		  // double ith second wsfline files print out
 	P56=0;            // int print out wsf line in y-dir
+    P57=0;            // add aditional info to WSF gage in FNPF 
 	P59=0;			  // int print runup
 	P61=0;			  // int print point probes
 	P62=0;			  // int print line probes

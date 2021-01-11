@@ -33,7 +33,6 @@ Author: Tobias Martin
 #include<iostream>
 #include<vector>
 #include"boundarycheck.h"
-#include <Eigen/Dense>
 
 class reinidisc;
 
@@ -48,7 +47,7 @@ public:
 	net_barDyn(int, lexer*);
 	virtual ~net_barDyn();
     
-	virtual void start(lexer*, fdm*, ghostcell*, double);
+	virtual void start(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d);
 	virtual void initialize(lexer*, fdm*, ghostcell*);
 	virtual void netForces(lexer*, double&, double&, double&, double&, double&, double&);
     virtual const EigenMat& getLagrangePoints(){return lagrangePoints;} 

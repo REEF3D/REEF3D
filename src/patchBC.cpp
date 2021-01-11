@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -25,9 +25,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"patch_obj.h"
 
-patchBC::patchBC(lexer *p) 
+patchBC::patchBC(lexer *p, ghostcell *pgc) 
 {
-    
+    patchBC_ini(p,pgc);
 }
 
 patchBC::~patchBC()
@@ -36,18 +36,17 @@ patchBC::~patchBC()
 
 void patchBC::patchBC_ini(lexer *p, ghostcell *pgc)
 {
-    patchBC_gcb_convert(p,pgc);
+   
     patchBC_IDcount(p,pgc);
-
     
     // creat patch objects
     patch = new patch_obj*[obj_count];
     
     for(qn=0; qn<obj_count;++qn)
-    patch[qn] = new patch_obj(p);
+    patch[qn] = new patch_obj(p,ID_array[qn]);
     
     // fill patch objects
-    
-
+    patchBC_gcb_count(p,pgc);
+    patchBC_fillobj(p,pgc);
 } 
 

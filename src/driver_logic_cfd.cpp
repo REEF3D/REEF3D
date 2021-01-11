@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -532,16 +532,16 @@ void driver::logic()
 
 //IOFlow
 	if(p->B60==0 && p->B90==0 && p->B180==0)
-	pflow = new ioflow_v(p,pgc);
+	pflow = new ioflow_v(p,pgc,pBC);
 
 	if(p->B60>=1)
-	pflow = new ioflow_f(p,pgc);
+	pflow = new ioflow_f(p,pgc,pBC);
 
 	if(p->B90>=1)
-	pflow= new iowave(p,pgc);
+	pflow= new iowave(p,pgc,pBC);
 
 	if(p->B180==1||p->B191==1||p->B192==1)
-	pflow= new ioflow_gravity(p,pgc);
+	pflow= new ioflow_gravity(p,pgc,pBC);
 
 //Potential Flow Solver
     if(p->I11==0)
@@ -691,4 +691,14 @@ void driver::logic()
 	{
 		loop_nhflow(a);
 	}
+}
+
+void driver::patchBC_logic()
+{
+    if(p->B221>0 || p->B222>0)
+    pBC = new patchBC(p,pgc);
+    
+    if(p->B221==0 && p->B222==0)
+    pBC = new patchBC_void(p);
+    
 }

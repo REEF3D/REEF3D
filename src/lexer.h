@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -31,7 +31,6 @@ Author: Hans Bihs
 #include"grid_sigma.h"
 #include<fstream>
 #include"looping.h"
-#include <Eigen/Dense>
 #include<vector>
 
 #ifndef LEXER_H_
@@ -54,7 +53,7 @@ public:
     void lexer_read(ghostcell*);
     void flagini();
 	void gridini(ghostcell*);
-    void gridini_outflow();
+    void gridini_patchBC();
     void makeflag(int*);
 	
 	void read_grid();
@@ -301,18 +300,27 @@ public:
 	double B191_1,B191_2,B191_3,B191_4,B192_1,B192_2,B192_3,B192_4;
 	double B194_s,B194_e;
     
+    int B210,B211,B212,B213,B214,B215,B216,B217;
+    int *B210_ID,*B210_io;
+    int *B211_ID;
+    double *B211_Q;
+    int *B212_ID,*B212_pressBC;
+    int *B213_ID;
+    double *B213_h;
+    int *B214_ID;
+    double *B214_Uio;
+    int *B215_ID;
+    double *B215_U,*B215_V,*B215_W;
+    int *B216_ID;
+    double *B216_alpha;
+    int *B217_ID;
+    double *B217_Nx,*B217_Ny,*B217_Nz;
     int B221;
     int *B221_ID,*B221_face;
     double *B221_xs,*B221_xe,*B221_ys,*B221_ye,*B221_zs,*B221_ze;
     int B222;
     int *B222_ID,*B222_face;
     double *B222_xm,*B222_ym,*B222_zm,*B222_r;
-    int B231;
-    int *B231_ID,*B231_face;
-    double *B231_xs,*B231_xe,*B231_ys,*B231_ye,*B231_zs,*B231_ze;
-    int B232;
-    int *B232_ID,*B232_face;
-    double *B232_xm,*B232_ym,*B232_zm,*B232_r;
     
 	double *B240_D, *B240_C, *B240_xs, *B240_xe, *B240_ys, *B240_ye, *B240_zs, *B240_ze;
     double B260,B264,B267;
@@ -400,7 +408,7 @@ public:
 	int M10;
 
 	// Print options
-	int P10,P11,P12,P14,P15,P18,P20,P23,P24,P25,P26,P27,P28,P29,P35,P40,P41,P50,P51,P52,P53,P54,P56,P59;
+	int P10,P11,P12,P14,P15,P18,P20,P23,P24,P25,P26,P27,P28,P29,P35,P40,P41,P50,P51,P52,P53,P54,P56,P57,P59;
 	int P61,P62,P63,P66,P67,P71,P75,P78,P79,P81,P85,P92,P101,P121,P122,P123,P124,P125,P126;
 	int P150,P151,P152,P180,P181,P184,P185,P210,P211,P351,P352;
 	double P30,P34,P42;
@@ -524,7 +532,7 @@ public:
 	double xgn,ygn,zgn;
 	double phi_fb,theta_fb,psi_fb;
 	double ufbmax, vfbmax, wfbmax;
-	Eigen::Matrix3d quatRotMat;	
+	//Eigen::Matrix3d quatRotMat;	
     int X10,X12,X13,X18,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X27,X31,X32,X33,X34,X38,X40,X110,X120,X131,X132,X133;
 	int X100,X101,X102,X103,X141,X142,X143,X153,X180,X181,X182,X183,X210,X211;
 	int X310, X311, X312, X320, X321, mooring_count, net_count;

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,38 +20,36 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"increment.h"
-
-class lexer;
-class fdm;
-class ghostcell;
-class field;
-class patch_obj;
+#include"patchBC_interface.h"
 
 using namespace std;
 
 #ifndef PATCHBC_H_
 #define PATCHBC_H_
 
-class patchBC : public increment
+class patchBC : public patchBC_interface, public increment
 {
 public:
-	patchBC(lexer*);
+	patchBC(lexer*,ghostcell*);
 	virtual ~patchBC();
     
-    void patchBC_ini(lexer *p, ghostcell *pgc);
+    virtual void patchBC_ini(lexer *p, ghostcell *pgc);
     
-    void patchBC_gcb_convert(lexer *p, ghostcell *pgc);
-    void patchBC_IDcount(lexer *p, ghostcell *pgc);
-    
-    void patchBC_inflow(lexer*, fdm*, ghostcell*, field&,field&,field&);
-    void patchBC_outflow(lexer*, fdm*, ghostcell*, field&,field&,field&);
-    
+    // BC update
+    virtual void patchBC_ioflow(lexer*, fdm*, ghostcell*, field&,field&,field&);
+    virtual void patchBC_pressure(lexer*, fdm*, ghostcell*, field&);
+    virtual void patchBC_waterlevel(lexer*, fdm*, ghostcell*, field&);
 
 
         
 private:
-    int q,n,qn,count,ID_count;
+     // ini
+    void patchBC_gcb_count(lexer *p, ghostcell *pgc);
+    void patchBC_IDcount(lexer *p, ghostcell *pgc);
+    void patchBC_fillobj(lexer *p, ghostcell *pgc);
+    
+    int q,n,qn,qq,count,ID_count;
+    int istart,iend,jstart,jend,kstart,kend;
     
     int *inflow_ID;
     int *outflow_ID;

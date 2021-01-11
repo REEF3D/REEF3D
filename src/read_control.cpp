@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -469,16 +469,34 @@ void lexer::read_control()
 				case 194: control>>B194_s>>B194_e;
 						 clear(c,numint);
 						 break;
+              case 210: ++B210;
+						 clear(c,numint);
+						 break;
+              case 211: ++B211;
+						 clear(c,numint);
+						 break;
+              case 212: ++B212;
+						 clear(c,numint);
+						 break;
+              case 213: ++B213;
+						 clear(c,numint);
+						 break;
+              case 214: ++B214;
+						 clear(c,numint);
+						 break;
+              case 215: ++B215;
+						 clear(c,numint);
+						 break;
+              case 216: ++B216;
+						 clear(c,numint);
+						 break;
+              case 217: ++B217;
+						 clear(c,numint);
+						 break;
               case 221: ++B221;
 						 clear(c,numint);
 						 break;
               case 222: ++B222;
-						 clear(c,numint);
-						 break;
-              case 231: ++B231;
-						 clear(c,numint);
-						 break;
-              case 232: ++B232;
 						 clear(c,numint);
 						 break;
 			   case 240: ++B240;
@@ -1114,6 +1132,9 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
 				case 56: ++P56;
+						 clear(c,numint);
+						 break;
+                case 57: ++P57;
 						 clear(c,numint);
 						 break;
 				case 59: control>>P59;
@@ -1777,6 +1798,35 @@ void lexer::read_control()
 	Darray(B108_ys,B108);
     Darray(B108_ye,B108);
     Darray(B108_d,B108);
+
+    Iarray(B210_ID,B210);
+    Iarray(B210_io,B210);
+    
+    Iarray(B211_ID,B211);
+    Darray(B211_Q,B211);
+    
+    Iarray(B212_ID,B212);
+    Iarray(B212_pressBC,B212);
+    
+    Iarray(B213_ID,B213);
+    Darray(B213_h,B213);
+    
+    Iarray(B214_ID,B214);
+    Darray(B214_Uio,B214);
+    
+    Iarray(B215_ID,B215);
+    Darray(B215_U,B215);
+    Darray(B215_V,B215);
+    Darray(B215_W,B215);
+    
+    Iarray(B216_ID,B216);
+    Darray(B216_alpha,B214);
+    
+    Iarray(B217_ID,B217);
+    Darray(B217_Nx,B217);
+    Darray(B217_Ny,B217);
+    Darray(B217_Nz,B217);
+    
     
     Iarray(B221_ID,B221);
     Iarray(B221_face,B221);
@@ -1793,22 +1843,6 @@ void lexer::read_control()
     Darray(B222_ym,B222);
     Darray(B222_zm,B222);
     Darray(B222_r,B222);
-    
-    Iarray(B231_ID,B231);
-    Iarray(B231_face,B231);
-    Darray(B231_xs,B231);
-    Darray(B231_xe,B231);
-    Darray(B231_ys,B231);
-    Darray(B231_ye,B231);
-    Darray(B231_zs,B231);
-    Darray(B231_ze,B231);
-    
-    Iarray(B232_ID,B232);
-    Iarray(B232_face,B232);
-    Darray(B232_xm,B232);
-    Darray(B232_ym,B232);
-    Darray(B232_zm,B232);
-    Darray(B232_r,B232);    
 	
 	Darray(B240_C,B240);
 	Darray(B240_D,B240);
@@ -2164,6 +2198,14 @@ void lexer::read_control()
 	int countB106=0;
 	int countB107=0;
     int countB108=0;
+    int countB210=0;
+    int countB211=0;
+    int countB212=0;
+    int countB213=0;
+    int countB214=0;
+    int countB215=0;
+    int countB216=0;
+    int countB217=0;
     int countB221=0;
     int countB222=0;
     int countB231=0;
@@ -2244,20 +2286,44 @@ void lexer::read_control()
                         ++countB108;
 						 clear(c,numint);
 						 break;
+                case 210: control>>B210_ID[countB210]>>B210_io[countB210];
+                        ++countB210;
+						 clear(c,numint);
+						 break;
+                case 211: control>>B211_ID[countB211]>>B211_Q[countB211];
+                        ++countB211;
+						 clear(c,numint);
+						 break;
+                case 212: control>>B212_ID[countB212]>>B212_pressBC[countB212];
+                        ++countB212;
+						 clear(c,numint);
+						 break;
+                case 213: control>>B213_ID[countB213]>>B213_h[countB213];
+                        ++countB213;
+						 clear(c,numint);
+						 break;
+                case 214: control>>B214_ID[countB214]>>B214_Uio[countB214];
+                        ++countB214;
+						 clear(c,numint);
+						 break;
+                case 215: control>>B215_ID[countB215]>>B215_U[countB215]>>B215_V[countB215]>>B215_W[countB215];
+                        ++countB215;
+						 clear(c,numint);
+						 break;
+                case 216: control>>B216_ID[countB216]>>B216_alpha[countB216];
+                        ++countB216;
+						 clear(c,numint);
+						 break;
+                case 217: control>>B217_ID[countB217]>>B217_Nx[countB217]>>B217_Ny[countB217]>>B217_Nz[countB217];
+                        ++countB217;
+						 clear(c,numint);
+						 break;
                 case 221: control>>B221_ID[countB221]>>B221_face[countB221]>>B221_xs[countB221]>>B221_xe[countB221]>>B221_ys[countB221]>>B221_ye[countB221]>>B221_zs[countB221]>>B221_ze[countB221];
                         ++countB221;
 						 clear(c,numint);
 						 break;
                 case 222: control>>B222_ID[countB222]>>B222_face[countB222]>>B222_xm[countB222]>>B222_ym[countB222]>>B222_zm[countB222]>>B222_r[countB222];
                         ++countB222;
-						 clear(c,numint);
-						 break;
-                case 231: control>>B231_ID[countB231]>>B231_face[countB231]>>B231_xs[countB231]>>B231_xe[countB231]>>B231_ys[countB231]>>B231_ye[countB231]>>B231_zs[countB231]>>B231_ze[countB231];
-                        ++countB231;
-						 clear(c,numint);
-						 break;
-                case 232: control>>B232_ID[countB232]>>B232_face[countB232]>>B232_xm[countB232]>>B232_ym[countB232]>>B232_zm[countB232]>>B232_r[countB232];
-                        ++countB232;
 						 clear(c,numint);
 						 break;
                 case 240: control>>B240_C[countB240]>>B240_D[countB240]>>B240_xs[countB240]>>B240_xe[countB240]>>B240_ys[countB240]>>B240_ye[countB240]>>B240_zs[countB240]>>B240_ze[countB240];
@@ -2503,6 +2569,15 @@ void lexer::read_control()
 				}
 				break;
 		}
+        
+        if(count>1e7)
+        {
+        cout<<endl;
+        cout<<"!!! missing input parameter in ctrl.txt !!!"<<endl<<endl;
+        cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
+        
+        exit(0);
+        }
 	}
 
 	control.close();

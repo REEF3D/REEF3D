@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -32,6 +32,7 @@ Author: Hans Bihs
 
 class vec;
 class fdm_fnpf;
+class patchBC_interface;
 
 using namespace std;
 
@@ -42,7 +43,7 @@ class iowave : public ioflow, public wave_interface, public increment, public fl
 {
 
 public:
-	iowave(lexer*, ghostcell*);
+	iowave(lexer*, ghostcell*,patchBC_interface*);
 	virtual ~iowave();
 	virtual void gcio_update(lexer*,fdm*,ghostcell*);
 	virtual void inflow_walldist(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*);
@@ -267,6 +268,8 @@ private:
 	
     double **hydro_in,**hydro_out;
     int hydro_in_count,hydro_out_count;
+    
+    patchBC_interface *pBC;
 };
 
 #endif

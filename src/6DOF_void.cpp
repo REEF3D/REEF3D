@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -65,7 +65,7 @@ void sixdof_void::start
     {
         for (int ii = 0; ii < p->net_count; ii++)
         {
-            pnet[ii]->start(p, a, pgc, 1.0);
+            pnet[ii]->start(p, a, pgc, 1.0, quatRotMat);
             pvrans->start(p, a, pgc, pnet[ii], ii);
 
             // Forces on rigid body
@@ -185,5 +185,5 @@ void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pne
 	p->pfbi=p->qfbi=p->rfbi=0.0;
     p->xg=p->yg=p->zg=0.0;
 
-    p->quatRotMat << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0;
+    quatRotMat << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0;
 }

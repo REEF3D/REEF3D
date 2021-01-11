@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,6 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 #include"turbulence.h"
+#include"patchBC_interface.h"
 
 void ioflow_f::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {
@@ -71,6 +72,8 @@ void ioflow_f::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, fiel
         pgc->start4(p,a->eddyv,24);
         }
     }
+    
+    pBC->patchBC_ioflow(p,a,pgc,u,v,w);
 
 }
 
@@ -324,6 +327,7 @@ void ioflow_f::inflow_water(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
 
 void ioflow_f::rkinflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {
+    inflow(p,a,pgc,u,v,w);
 }
 
 void ioflow_f::flowfile(lexer *p, fdm* a, ghostcell* pgc, turbulence *pturb)
