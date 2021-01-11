@@ -354,7 +354,7 @@ void net_barDyn::triangulation(lexer *p, fdm *a, ghostcell *pgc)
     // Save net as .stl
 /*
     ofstream result;
-    result.open("REEF3D_6DOF_Net/REEF3D_net.stl", ios::binary);
+    result.open("REEF3D_CFD_6DOF_Net/REEF3D_net.stl", ios::binary);
 
 	result<<"solid"<<" "<<"ascii"<<endl;
 

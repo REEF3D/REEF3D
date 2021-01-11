@@ -211,8 +211,11 @@ void momentum_RK2_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
 
     // Iterations are optional
     bool iter = false;
+    int nIt = p->Y3;
 
-    for (int qq = 0; qq <= p->Y3; qq++)
+    if (p->count < 5) nIt = 0;
+
+    for (int qq = 0; qq <= nIt; qq++)
     {
         if (qq == p->Y3) iter = true;
 

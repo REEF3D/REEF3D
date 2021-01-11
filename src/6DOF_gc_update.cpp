@@ -55,6 +55,10 @@ void sixdof_gc::solidUpdate
 	R_[2][1] = 2.0*ek[0]*ek[1] + 2.0*ek[2]*ek[3]; 
 	R_[2][2] = ek[0]*ek[0] - ek[1]*ek[1] - ek[2]*ek[2] + ek[3]*ek[3];
 
+    quatRotMat(0,0) = R_[0][0]; quatRotMat(0,1) = R_[0][1]; quatRotMat(0,2) = R_[0][2];
+    quatRotMat(1,0) = R_[1][0]; quatRotMat(1,1) = R_[1][1]; quatRotMat(1,2) = R_[1][2];
+    quatRotMat(2,0) = R_[2][0]; quatRotMat(2,1) = R_[2][1]; quatRotMat(2,2) = R_[2][2];
+
 
     // Update angular velocities in body coordinates
 	

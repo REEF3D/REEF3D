@@ -83,7 +83,7 @@ void sixdof_gc::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 
 		if(p->mpirank==0 && p->P14==1)
 		{
-			mkdir("./REEF3D_6DOF_Mooring",0777);	
+			mkdir("./REEF3D_CFD_6DOF_Mooring",0777);	
 		}		
 
 		pmooring.reserve(p->mooring_count);
@@ -137,7 +137,7 @@ void sixdof_gc::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
         {
             if(p->P14==1)
             {
-                mkdir("./REEF3D_6DOF_Net",0777);	
+                mkdir("./REEF3D_CFD_6DOF_Net",0777);	
             }
         }
         else

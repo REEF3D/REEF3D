@@ -319,8 +319,8 @@ void net_barQuasiStatic::triangulation(lexer *p, fdm *a, ghostcell *pgc)
 /*
     ofstream result;
     ofstream result2;
-    result.open("REEF3D_6DOF_Net/REEF3D_net.stl", ios::binary);
-    result2.open("REEF3D_6DOF_Net/REEF3D_net_points.csv", ios::binary);
+    result.open("REEF3D_CFD_6DOF_Net/REEF3D_net.stl", ios::binary);
+    result2.open("REEF3D_CFD_6DOF_Net/REEF3D_net_points.csv", ios::binary);
 
 	result<<"solid"<<" "<<"ascii"<<endl;
 
