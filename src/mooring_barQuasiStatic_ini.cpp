@@ -110,6 +110,9 @@ void mooring_barQuasiStatic::initialize(lexer *p, fdm *a, ghostcell *pgc)
 	
 	// Initialise communication 
 	ini_parallel(p, a, pgc);
+
+    // Initialise catenary
+	pcatenary = new mooring_Catenary(line);
 }
 
 

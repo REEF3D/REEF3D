@@ -45,7 +45,7 @@ void mooring_barQuasiStatic::start(lexer *p, fdm *a, ghostcell *pgc)
 	for (int it = 0; it < 1000; it++)
 	{	
 		// Reconstruct current line
-		buildLine(p);
+		buildLine(p,a,pgc);
 		
 		// Calculating velocities at knots
 		// updateVel(p, a, pgc, 0);
@@ -161,10 +161,6 @@ void mooring_barQuasiStatic::start(lexer *p, fdm *a, ghostcell *pgc)
 					+ c_coeff[j-1][2]*e_l[j-1][2] + c_coeff[j][2]*e_l[j][2]
 				);	*/		
 		} 
-		
-		// Calculating bottom force
-		//bottomContact(p);
-			
 			
 		// Filling right hand side
 		for (int j=0; j<sigma; j++)
@@ -226,7 +222,7 @@ void mooring_barQuasiStatic::start(lexer *p, fdm *a, ghostcell *pgc)
 		A[sigma][sigma] = 0.5*l[sigma];
 	}	
 
-if (p->mpirank == 0) cout<<"Current length = "<<length<<endl;
+    //if (p->mpirank == 0) cout<<"Current length = "<<length<<endl;
 	
 	// Calculate horizontal and vertical reaction forces at mooring point
 	Xme_ = -fabs(A[sigma-1][sigma])*f[sigma][0];
@@ -234,31 +230,7 @@ if (p->mpirank == 0) cout<<"Current length = "<<length<<endl;
 	Zme_ = -fabs(A[sigma-1][sigma])*f[sigma][2];
 		
 	// Plotting mooring line	
-	print(p);	
-}
-
-
-void mooring_barQuasiStatic::bottomContact(lexer *p)
-{
-	// Reconstruct line
-	z[0] = p->X311_zs[line];
-	z[1] = z[0] + 0.5*l[1]*f[0][2];
-	for (int cnt = 2; cnt < sigma+1; cnt++)
-	{
-		z[cnt] = z[cnt-1] + 0.5*(l[cnt] + l[cnt-1])*f[cnt-1][2];
-	}		
-	z[sigma+1] = z[sigma] + 0.5*(l[sigma])*f[sigma][2];
-	
-	// Apply bottom force
-	for (int i = 0; i < sigma+2; i++)
-	{
-		Fb[i] = 0.0;
-		
-		if (z[i] < z[0])
-		{
-			Fb[i] = 0.06*w;
-		}
-	}
+	print(p,a,pgc);	
 }
 
 

@@ -48,9 +48,12 @@ public:
 	virtual void initialize(lexer*, fdm*, ghostcell*);
 	virtual void mooringForces(double&, double&, double&);
 	
-	void iniDyn(lexer*, fdm*, ghostcell*, double&, double&);
+	void getForce(lexer*, fdm*, ghostcell*, double&, double&);
+	void getShape(lexer*, fdm*, ghostcell*,double*&,double*&,double*&,double*&);
 	
 private:	
+
+    void calcForce(lexer*, fdm*, ghostcell*);
 
 	// Print
 	void print(lexer*);
@@ -71,7 +74,7 @@ private:
 	
 	// Forces
 	double *T;	
-	double FH, FV, Fh_0, f_Fh, ddf_Fh;
+	double FH, FV, FH_0, FV_0, f_Fh, ddf_Fh;
 	double Xme_, Yme_, Zme_;
 	
 	// Print

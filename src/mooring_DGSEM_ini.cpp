@@ -206,7 +206,7 @@ void mooring_DGSEM::iniCond(lexer *p, fdm *a, ghostcell *pgc)
 // Elastic catenary
 	double FH, FV, d_xy;
 	pcatenary = new mooring_Catenary(line);
-	pcatenary->iniDyn(p, a, pgc, FH, FV);
+	pcatenary->getForce(p, a, pgc, FH, FV);
 	
 	double dx = p->X311_xe[line] - p->X311_xs[line];			
 	double dy = p->X311_ye[line] - p->X311_ys[line];	
