@@ -19,10 +19,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"wave_lib_wcp.h"
+#include"wave_lib_hdc.h"
 #include"lexer.h"
 
-void wave_lib_wcp::allocate(lexer *p, ghostcell *pgc)
+void wave_lib_hdc::allocate(lexer *p, ghostcell *pgc)
 {
     p->Darray(U1,Nx,Ny,Nz);
     p->Darray(U2,Nx,Ny,Nz);

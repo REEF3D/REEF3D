@@ -19,164 +19,164 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"wave_lib_wcp.h"
+#include"wave_lib_hdc.h"
 #include"lexer.h"
 
-void wave_lib_wcp::filename(lexer *p, ghostcell *pgc,int num)
+void wave_lib_hdc::filename(lexer *p, ghostcell *pgc,int num)
 {
     if(p->mpirank<9)
 	{
 		if(num<10)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-0000000%d-0000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-0000000%d-0000%d.r3d",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-000000%d-0000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-000000%d-0000%d.r3d",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-00000%d-0000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-00000%d-0000%d.r3d",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-0000%d-0000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-0000%d-0000%d.r3d",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-000%d-0000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-000%d-0000%d.r3d",num,p->mpirank+1);
 
 		if(num<1000000&&num>99999)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-00%d-0000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-00%d-0000%d.r3d",num,p->mpirank+1);
         
         if(num<10000000&&num>999999)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-0%d-0000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-0%d-0000%d.r3d",num,p->mpirank+1);
         
         if(num>9999999)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-%d-0000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-%d-0000%d.r3d",num,p->mpirank+1);
 	}
 
 	if(p->mpirank<99&&p->mpirank>8)
 	{
 		if(num<10)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-0000000%d-000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-0000000%d-000%d.r3d",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-000000%d-000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-000000%d-000%d.r3d",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-00000%d-000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-00000%d-000%d.r3d",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-0000%d-000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-0000%d-000%d.r3d",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-000%d-000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-000%d-000%d.r3d",num,p->mpirank+1);
 
 		if(num<1000000&&num>99999)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-00%d-000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-00%d-000%d.r3d",num,p->mpirank+1);
         
         if(num<10000000&&num>999999)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-0%d-000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-0%d-000%d.r3d",num,p->mpirank+1);
         
         if(num>9999999)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-%d-000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-%d-000%d.r3d",num,p->mpirank+1);
 	}
 	if(p->mpirank<999&&p->mpirank>98)
 	{
 		if(num<10)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-0000000%d-00%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-0000000%d-00%d.r3d",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-000000%d-00%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-000000%d-00%d.r3d",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-00000%d-00%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-00000%d-00%d.r3d",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-0000%d-00%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-0000%d-00%d.r3d",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-000%d-00%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-000%d-00%d.r3d",num,p->mpirank+1);
 
 		if(num<1000000&&num>99999)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-00%d-00%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-00%d-00%d.r3d",num,p->mpirank+1);
         
         if(num<10000000&&num>999999)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-0%d-00%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-0%d-00%d.r3d",num,p->mpirank+1);
         
         if(num>9999999)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-%d-00%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-%d-00%d.r3d",num,p->mpirank+1);
 	}
 
 	if(p->mpirank<9999&&p->mpirank>998)
 	{
 		if(num<10)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-0000000%d-0%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-0000000%d-0%d.r3d",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-000000%d-0%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-000000%d-0%d.r3d",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-00000%d-0%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-00000%d-0%d.r3d",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-0000%d-0%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-0000%d-0%d.r3d",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-000%d-0%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-000%d-0%d.r3d",num,p->mpirank+1);
 
 		if(num<1000000&&num>99999)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-00%d-0%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-00%d-0%d.r3d",num,p->mpirank+1);
         
         if(num<10000000&&num>999999)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-0%d-0%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-0%d-0%d.r3d",num,p->mpirank+1);
         
         if(num>9999999)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-%d-0%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-%d-0%d.r3d",num,p->mpirank+1);
 	}
 
 	if(p->mpirank>9998)
 	{
 		if(num<10)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-0000000%d-%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-0000000%d-%d.r3d",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-000000%d-%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-000000%d-%d.r3d",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-00000%d-%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-00000%d-%d.r3d",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-0000%d-%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-0000%d-%d.r3d",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-000%d-%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-000%d-%d.r3d",num,p->mpirank+1);
 
 		if(num<1000000&&num>99999)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-00%d-%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-00%d-%d.r3d",num,p->mpirank+1);
         
         if(num<10000000&&num>999999)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-0%d-%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-0%d-%d.r3d",num,p->mpirank+1);
         
         if(num>9999999)
-		sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-%d-%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-%d-%d.r3d",num,p->mpirank+1);
 	}
     
     
 }
 
-void wave_lib_wcp::filename_header(lexer *p, ghostcell *pgc)
+void wave_lib_hdc::filename_header(lexer *p, ghostcell *pgc)
 {
 
     if(p->mpirank<9)
-	sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-Header-0000%d.r3d",p->mpirank+1);
+	sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-Header-0000%d.r3d",p->mpirank+1);
 
 	if(p->mpirank<99&&p->mpirank>8)
-	sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-Header-000%d.r3d",p->mpirank+1);
+	sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-Header-000%d.r3d",p->mpirank+1);
     
 	if(p->mpirank<999&&p->mpirank>98)
-	sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-Header-00%d.r3d",p->mpirank+1);
+	sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-Header-00%d.r3d",p->mpirank+1);
 
 	if(p->mpirank<9999&&p->mpirank>998)
-	sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-Header-0%d.r3d",p->mpirank+1);
+	sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-Header-0%d.r3d",p->mpirank+1);
 
 	if(p->mpirank>9998)
-	sprintf(name,"./REEF3D_WCP_Input/REEF3D-WCP-Input-Header-%d.r3d",p->mpirank+1);   
+	sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-Header-%d.r3d",p->mpirank+1);   
 	
 }

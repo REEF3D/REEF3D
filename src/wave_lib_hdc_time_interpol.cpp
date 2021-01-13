@@ -18,10 +18,10 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
-#include"wave_lib_wcp.h"
+#include"wave_lib_hdc.h"
 #include"lexer.h"
 
-void wave_lib_wcp::time_interpol(lexer *p)
+void wave_lib_hdc::time_interpol(lexer *p)
 {
     for(i=0; i<Nx; ++i)
     for(j=0; j<Ny; ++j)
