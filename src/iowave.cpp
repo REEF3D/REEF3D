@@ -58,9 +58,16 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
 	
 	// ---------------------------------------
     
-    if(p->B105==0)
+    if(p->B105==0 && p->B92!=61)
     {
     p->B105_2 = p->global_xmin;
+    p->B105_3 = p->global_ymin;
+    }
+    
+    if(p->B105==0 && p->B92==61)
+    {
+    p->B105_2 = 0.0;
+    p->B105_3 = 0.0;
     }
 	
 	if(p->B106==0)

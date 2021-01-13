@@ -58,6 +58,8 @@ double wave_lib_hdc::wave_u(lexer *p, double x, double y, double z)
     
     if(endseries==0)
     vel = space_interpol(p,U,x,y,z);
+    
+    cout<<"U "<<vel<<endl;
 
     return cosgamma*vel;
 }
