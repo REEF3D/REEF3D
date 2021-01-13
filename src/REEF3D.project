@@ -2540,6 +2540,7 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Wave Lib">
+        <File Name="wave_lib_hdc.cpp"/>
         <File Name="wave_lib_ssgw.cpp"/>
         <VirtualDirectory Name="HDC">
           <File Name="wave_lib_hdc_time_interpol.cpp"/>
@@ -2550,7 +2551,6 @@
           <File Name="wave_lib_hdc_filename.cpp"/>
           <File Name="wave_lib_hdc_allocate.cpp"/>
         </VirtualDirectory>
-        <File Name="wave_lib_wcp.cpp"/>
         <File Name="wave_lib_flap_eta.cpp"/>
         <VirtualDirectory Name="Interface">
           <File Name="wave_interface_decomp.cpp"/>
