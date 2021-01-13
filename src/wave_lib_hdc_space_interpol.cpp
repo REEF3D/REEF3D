@@ -34,7 +34,7 @@ double wave_lib_hdc::space_interpol(lexer *p, double ***F, double x, double y, d
     yp = y + p->I232;
     zp = z + p->I233 + p->wd;
     
-    cout<<"xp: "<<xp<<" yp: "<<yp<<" zp: "<<zp<<" Xstart: "<<Xstart<<" Xend: "<<Xend<<endl;
+    //cout<<"xp: "<<xp<<" yp: "<<yp<<" zp: "<<zp<<" Xstart: "<<Xstart<<" Xend: "<<Xend<<endl;
     
     
     if(xp>=Xstart  && xp<Xend && ((yp>=Ystart && yp<Yend)|| jdir==0))
@@ -42,7 +42,7 @@ double wave_lib_hdc::space_interpol(lexer *p, double ***F, double x, double y, d
         i = pos_i(p,xp);
         j = pos_j(p,yp);
         
-        cout<<"SPACEPOL XY  ZSE: "<<Z[i][j][0]<<" "<<Z[i][j][Nz-1]<<endl;
+       // cout<<i<<" "<<j<<" SPACEPO  ZSE: "<<Z[i][j][Nz-2]<<" "<<Z[i][j][Nz-1]<<" zp: "<<zp<<endl;
 
         if(zp>=Z[i][j][0] && zp<=Z[i][j][Nz-1])
         {
@@ -50,7 +50,7 @@ double wave_lib_hdc::space_interpol(lexer *p, double ***F, double x, double y, d
 
         val=ccpol3D(p,F,x,y,z);
         
-        cout<<"SPACEPOL "<<endl;
+        //cout<<"SPACEPOL "<<endl;
         }
     }
     
