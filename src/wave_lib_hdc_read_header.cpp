@@ -19,10 +19,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"wave_lib_wcp.h"
+#include"wave_lib_hdc.h"
 #include"lexer.h"
 
-void wave_lib_wcp::read_header(lexer *p, ghostcell *pgc)
+void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
 {
     int is,js,xs,ys;
     ifstream header;

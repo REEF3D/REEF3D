@@ -31,12 +31,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void fnpf_state::header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     
-    //cout<<p->mpirank<<" HEADER OUT"<<endl;
-	
     // file name
     filename_header(p,c,pgc);
     
-    //cout<<p->mpirank<<" HEADER NAME: "<<name<<endl;
     
     // open file
 	headout.open(name, ios::binary);

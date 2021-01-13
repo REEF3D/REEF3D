@@ -19,35 +19,56 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"wave_lib_wcp.h"
+#include"wave_lib_hdc.h"
 #include"lexer.h"
 
-void wave_lib_wcp::time_interpol(lexer *p)
+void wave_lib_hdc::read_result(lexer *p, ghostcell *pgc, double **E0, double ***U0, double ***V0, double ***W0, int q0)
 {
-    for(i=0; i<Nx; ++i)
-    for(j=0; j<Ny; ++j)
-    E[i][j] = E1[i][j]*t1 + E2[i][j]*t2;
+    filename(p,pgc,q0);
     
-
-    for(i=0; i<Nx; ++i)
-    for(j=0; j<Ny; ++j)
-    for(k=0; k<Nz; ++k)
-    U[i][j][k] = U1[i][j][k]*t1 + U2[i][j][k]*t2;
+    ifstream result;
+	result.open(name, ios::binary);
     
     for(i=0; i<Nx; ++i)
     for(j=0; j<Ny; ++j)
-    for(k=0; k<Nz; ++k)
-    V[i][j][k] = V1[i][j][k]*t1 + V2[i][j][k]*t2;
-    
-    for(i=0; i<Nx; ++i)
-    for(j=0; j<Ny; ++j)
-    for(k=0; k<Nz; ++k)
-    W[i][j][k] = W1[i][j][k]*t1 + W2[i][j][k]*t2;
+    {
+        result.read((char*)&ffn, sizeof (float)); 
+        E0[i][j]=ffn;
+        
+        //cout<<" E0[i][j]: "<<E0[i][j]<<endl;
+    } 
     
     
     for(i=0; i<Nx; ++i)
     for(j=0; j<Ny; ++j)
     for(k=0; k<Nz; ++k)
-    Z[i][j][k] = Zsig[k]*(E[i][j]+p->wd-B[i][j]);
+    {
+        result.read((char*)&ffn, sizeof (float)); 
+        U0[i][j][k]=ffn;
+        
+        //if(p->mpirank==0 && i==Nx-1) 
+        //cout<<" U0[i][j]: "<<U0[i][j][k]<<endl;
+    } 
+    
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    for(k=0; k<Nz; ++k)
+    {
+        result.read((char*)&ffn, sizeof (float)); 
+        V0[i][j][k]=ffn;
+    } 
+    
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    for(k=0; k<Nz; ++k)
+    {
+        result.read((char*)&ffn, sizeof (float)); 
+        W0[i][j][k]=ffn;
+    } 
+    
+    result.close();
     
 }
+
+
+        
