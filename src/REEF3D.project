@@ -2541,7 +2541,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Wave Lib">
         <File Name="wave_lib_ssgw.cpp"/>
-        <VirtualDirectory Name="WCP">
+        <VirtualDirectory Name="HDC">
           <File Name="wave_lib_hdc_time_interpol.cpp"/>
           <File Name="wave_lib_hdc_space_interpol.cpp"/>
           <File Name="wave_lib_hdc_read_result.cpp"/>
