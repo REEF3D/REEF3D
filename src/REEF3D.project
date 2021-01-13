@@ -940,8 +940,8 @@
         <File Name="ioflow.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Wave Lib">
+        <File Name="wave_lib_hdc.h"/>
         <File Name="wave_lib_ssgw.h"/>
-        <File Name="wave_lib_wcp.h"/>
         <File Name="wave_lib_flap_eta.h"/>
         <File Name="wave_lib.h"/>
         <File Name="wave_lib_cnoidal_1st.h"/>
@@ -2542,13 +2542,13 @@
       <VirtualDirectory Name="Wave Lib">
         <File Name="wave_lib_ssgw.cpp"/>
         <VirtualDirectory Name="WCP">
-          <File Name="wave_lib_wcp_pos_ijk.cpp"/>
-          <File Name="wave_lib_wcp_allocate.cpp"/>
-          <File Name="wave_lib_wcp_filename.cpp"/>
-          <File Name="wave_lib_wcp_space_interpol.cpp"/>
-          <File Name="wave_lib_wcp_read_result.cpp"/>
-          <File Name="wave_lib_wcp_read_header.cpp"/>
-          <File Name="wave_lib_wcp_time_interpol.cpp"/>
+          <File Name="wave_lib_hdc_time_interpol.cpp"/>
+          <File Name="wave_lib_hdc_space_interpol.cpp"/>
+          <File Name="wave_lib_hdc_read_result.cpp"/>
+          <File Name="wave_lib_hdc_read_header.cpp"/>
+          <File Name="wave_lib_hdc_pos_ijk.cpp"/>
+          <File Name="wave_lib_hdc_filename.cpp"/>
+          <File Name="wave_lib_hdc_allocate.cpp"/>
         </VirtualDirectory>
         <File Name="wave_lib_wcp.cpp"/>
         <File Name="wave_lib_flap_eta.cpp"/>
