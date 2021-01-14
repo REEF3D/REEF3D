@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,37 +17,30 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"wave_lib_wcp.h"
-#include"lexer.h"
+#include"patchBC_interface.h"
 
-void wave_lib_wcp::time_interpol(lexer *p)
+using namespace std;
+
+#ifndef PATCHBC_VOID_H_
+#define PATCHBC_VOID_H_
+
+class patchBC_void : public patchBC_interface
 {
-    for(i=0; i<Nx; ++i)
-    for(j=0; j<Ny; ++j)
-    E[i][j] = E1[i][j]*t1 + E2[i][j]*t2;
+public:
+    patchBC_void(lexer*);
+	virtual ~patchBC_void();
     
+    
+    virtual void patchBC_ini(lexer*, ghostcell*);
+    
+    // BC update
+    virtual void patchBC_ioflow(lexer*, fdm*, ghostcell*, field&,field&,field&);
+    virtual void patchBC_pressure(lexer*, fdm*, ghostcell*, field&);
+    virtual void patchBC_waterlevel(lexer*, fdm*, ghostcell*, field&);
+    
+};
 
-    for(i=0; i<Nx; ++i)
-    for(j=0; j<Ny; ++j)
-    for(k=0; k<Nz; ++k)
-    U[i][j][k] = U1[i][j][k]*t1 + U2[i][j][k]*t2;
-    
-    for(i=0; i<Nx; ++i)
-    for(j=0; j<Ny; ++j)
-    for(k=0; k<Nz; ++k)
-    V[i][j][k] = V1[i][j][k]*t1 + V2[i][j][k]*t2;
-    
-    for(i=0; i<Nx; ++i)
-    for(j=0; j<Ny; ++j)
-    for(k=0; k<Nz; ++k)
-    W[i][j][k] = W1[i][j][k]*t1 + W2[i][j][k]*t2;
-    
-    
-    for(i=0; i<Nx; ++i)
-    for(j=0; j<Ny; ++j)
-    for(k=0; k<Nz; ++k)
-    Z[i][j][k] = Zsig[k]*(E[i][j]+p->wd-B[i][j]);
-    
-}
+#endif

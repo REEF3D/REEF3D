@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -66,6 +66,8 @@ Author: Hans Bihs
 
 #include"sflow_potential_f.h"
 #include"sflow_potential_v.h"
+
+#include"patchBC_void.h"
 
 
 

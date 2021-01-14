@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -28,9 +28,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"rheology_v.h"
 #include"rheology_f.h"
 #include"turbulence.h"
+#include"patchBC_interface.h"
 
-ioflow_v::ioflow_v(lexer *p, ghostcell *pgc) : flowfile_in(p,pgc)
+ioflow_v::ioflow_v(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : flowfile_in(p,pgc)
 {
+    pBC = ppBC;
+    
 	tanphi=0.0;
     if(p->W101>0)
     tanphi=tan(p->W102_phi*(PI/180.0));
@@ -56,11 +59,15 @@ void ioflow_v::inflow(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, fiel
     prheo->filltau(p,a,pgc);
     
     velocity_inlet(p,a,pgc,u,v,w);
+    
+    pBC->patchBC_ioflow(p,a,pgc,u,v,w);
 }
 
 void ioflow_v::rkinflow(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, field &w)
 {
     velocity_inlet(p,a,pgc,u,v,w);
+    
+    pBC->patchBC_ioflow(p,a,pgc,u,v,w);
 }
 
 void ioflow_v::velocity_inlet(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, field &w)
@@ -303,6 +310,8 @@ void ioflow_v::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
 {
     if(p->I230>0)
     ff_waterlevel(p,a,pgc,a->phi);
+    
+    pBC->patchBC_waterlevel(p,a,pgc,a->phi);
 }
 
 void ioflow_v::fsfrkout(lexer *p, fdm *a, ghostcell *pgc, field& f)
@@ -311,6 +320,7 @@ void ioflow_v::fsfrkout(lexer *p, fdm *a, ghostcell *pgc, field& f)
 
 void ioflow_v::fsfrkin(lexer *p, fdm *a, ghostcell *pgc, field& f)
 {
+    pBC->patchBC_waterlevel(p,a,pgc,f);
 }
 
 void ioflow_v::fsfrkoutV(lexer *p, fdm *a, ghostcell *pgc, vec& f)
@@ -431,6 +441,7 @@ void  ioflow_v::ksource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 
 void ioflow_v::pressure_io(lexer *p, fdm *a, ghostcell* pgc)
 {
+    pBC->patchBC_pressure(p,a,pgc,a->press);
 }
 
 void ioflow_v::turbulence_io(lexer *p, fdm* a, ghostcell* pgc)

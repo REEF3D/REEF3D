@@ -64,7 +64,7 @@ void mooring_DGSEM::initialize(lexer *p, fdm *a, ghostcell *pgc)
 	if(p->mpirank==0 && p->P14==1)
 	{
 		char str[1000];
-		sprintf(str,"./REEF3D_6DOF_Mooring/REEF3D_6DOF_mooring_force_%i.dat",line);
+		sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_mooring_force_%i.dat",line);
 		eTout.open(str);
 		eTout<<"time \t T"<<endl;	
 	}
@@ -206,7 +206,7 @@ void mooring_DGSEM::iniCond(lexer *p, fdm *a, ghostcell *pgc)
 // Elastic catenary
 	double FH, FV, d_xy;
 	pcatenary = new mooring_Catenary(line);
-	pcatenary->iniDyn(p, a, pgc, FH, FV);
+	pcatenary->getForce(p, a, pgc, FH, FV);
 	
 	double dx = p->X311_xe[line] - p->X311_xs[line];			
 	double dy = p->X311_ye[line] - p->X311_ys[line];	

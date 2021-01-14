@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -41,7 +41,7 @@ class ioflow_v : public ioflow, public increment, public flowfile_in
 
 public:
 
-	ioflow_v(lexer*,ghostcell*);
+	ioflow_v(lexer*,ghostcell*,patchBC_interface*);
 	virtual ~ioflow_v();
 	virtual void gcio_update(lexer*,fdm*,ghostcell*);
 	virtual void inflow_walldist(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*);
@@ -119,6 +119,8 @@ private:
     rheology *prheo;
     
     double tanphi;
+    
+    patchBC_interface *pBC;
 };
 
 #endif

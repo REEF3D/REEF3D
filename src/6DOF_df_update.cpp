@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -183,7 +183,7 @@ void sixdof_df_object::quat_matrices(const Eigen::Vector4d& e)
     R_ = E_*G_.transpose(); 
     Rinv_ = R_.inverse();
 
-    p->quatRotMat = R_;
+    quatRotMat = R_;
 }
 
 

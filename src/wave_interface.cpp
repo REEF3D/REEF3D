@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -41,7 +41,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"wave_lib_irregular_2nd_a.h"
 #include"wave_lib_irregular_2nd_b.h"
 #include"wave_lib_reconstruct.h"
-#include"wave_lib_wcp.h"
+#include"wave_lib_hdc.h"
 #include"wave_lib_ssgw.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -127,7 +127,7 @@ wave_interface::wave_interface(lexer *p, ghostcell *pgc)
     pwave = new wave_lib_reconstruct(p,pgc);
     
     if(wtype==61)
-    pwave = new wave_lib_wcp(p,pgc);
+    pwave = new wave_lib_hdc(p,pgc);
     
     if(wtype==70)
     pwave = new wave_lib_ssgw(p,pgc);

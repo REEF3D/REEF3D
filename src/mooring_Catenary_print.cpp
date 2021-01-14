@@ -51,22 +51,22 @@ void mooring_Catenary::print(lexer *p)
 		if(p->P14==1)
 		{
 			if(num<10)
-			sprintf(name,"./REEF3D_6DOF_Mooring/REEF3D-Mooring-%d-00000%d.vtk",line,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%d-00000%d.vtk",line,num);
 
 			if(num<100&&num>9)
-			sprintf(name,"./REEF3D_6DOF_Mooring/REEF3D-Mooring-%d-0000%d.vtk",line,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%d-0000%d.vtk",line,num);
 
 			if(num<1000&&num>99)
-			sprintf(name,"./REEF3D_6DOF_Mooring/REEF3D-Mooring-%d-000%d.vtk",line,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%d-000%d.vtk",line,num);
 
 			if(num<10000&&num>999)
-			sprintf(name,"./REEF3D_6DOF_Mooring/REEF3D-Mooring-%d-00%d.vtk",line,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%d-00%d.vtk",line,num);
 
 			if(num<100000&&num>9999)
-			sprintf(name,"./REEF3D_6DOF_Mooring/REEF3D-Mooring-%d-0%d.vtk",line,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%d-0%d.vtk",line,num);
 
 			if(num>99999)
-			sprintf(name,"./REEF3D_6DOF_Mooring/REEF3D-Mooring-%d-%d.vtk",line,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%d-%d.vtk",line,num);
 		}
 		
 		// Reconstruct line
@@ -120,118 +120,63 @@ void mooring_Catenary::print(lexer *p)
 void mooring_Catenary::buildLine(lexer *p)
 {
 	double d_xy,dl, segLen, alpha;
-
-	if (EA == 0.0)
-	{
-		dl = L - lms;
-		segLen = (dxy - dl)/(H-1);			
-		alpha = atan(dy/dx);
-
-		x[0] = xs;
-		y[0] = ys;
-		z[0] = zs;
-		T[0] = fabs(FH);
-			
-		z[1] = zs;
-		T[1] = fabs(FH);
-			
-		if (dx > 0)
-		{
-			x[1] = xs + dl*cos(alpha);
-		}
-		else
-		{
-			x[1] = xs - dl*cos(alpha);
-		}
-		if (dy > 0)
-		{
-			y[1] = ys + dl*sin(alpha);
-		}
-		else
-		{
-			y[1] = ys - dl*sin(alpha);
-		}
-			
-		for (int cnt = 2; cnt < H; cnt++)
-		{
-			if (dx > 0)
-			{
-				x[cnt] = x[1] + cnt*segLen*cos(alpha);
-			}
-			else
-			{
-				x[cnt] = x[1] - cnt*segLen*cos(alpha);
-			}
-			if (dy > 0)
-			{
-				y[cnt] = y[1] + cnt*segLen*sin(alpha);
-			}
-			else
-			{
-				y[cnt] = y[1] - cnt*segLen*sin(alpha);
-			}		
-			
-			z[cnt] = fabs(FH)/w*(cosh(w/fabs(FH)*fabs(cnt*segLen)) - 1.0);
-			T[cnt] = fabs(FH) + w*z[cnt];
-		}	
-	}
-	else
-	{
-		segLen = L/(H-1);
-		alpha = atan(dy/dx);
-
-		for (int cnt = 0; cnt < H; cnt++)
-		{
-			if (segLen*cnt <= lms)
-			{
-				z[cnt] = zs;
-				T[cnt] = fabs(FH);
-						
-				d_xy = segLen*cnt*(1.0 + FH/EA);
-						
-				if (dx > 0)
-				{
-					x[cnt] = xs + d_xy*cos(alpha);
-				}
-				else
-				{
-					x[cnt] = xs - d_xy*cos(alpha);
-				}
-					
-				if (dy > 0)
-				{
-					y[cnt] = ys + d_xy*sin(alpha);
-				}
-				else
-				{
-					y[cnt] = ys - d_xy*sin(alpha);
-				}
-			}
-			else
-			{
-				z[cnt] = zs + FH/w*(sqrt(1+(w*(segLen*cnt-lms)/FH)*(w*(segLen*cnt-lms)/FH)) - 1) + w*(segLen*cnt-lms)*(segLen*cnt-lms)/(2*EA);		
-				T[cnt] = sqrt(FH*FH + (w*(segLen*cnt - lms))*(w*(segLen*cnt - lms)));
-						
-				d_xy = FH/w*log(w*(segLen*cnt-lms)/FH + sqrt(1+(w*(segLen*cnt-lms)/FH)*(w*(segLen*cnt-lms)/FH))) + FH*segLen*cnt/EA;
-					
-				if (dx > 0)
-				{
-					x[cnt] = xs + lms*cos(alpha) + d_xy*cos(alpha);
-				}
-				else
-				{
-					x[cnt] = xs - lms*cos(alpha) - d_xy*cos(alpha);
-				}
-						
-				if (dy > 0)
-				{
-					y[cnt] = ys + lms*sin(alpha) + d_xy*sin(alpha);
-				}
-				else
-				{
-					y[cnt] = ys - lms*sin(alpha) - d_xy*sin(alpha);
-				}					
-			}
-		}
-	}
+    
+    lms = L - FV/w;
+    segLen = L/(H-1);
+    alpha = atan(dy/dx);
+    
+    for (int cnt = 0; cnt < H; cnt++)
+    {
+        if (segLen*cnt <= lms)
+        {
+            z[cnt] = p->X311_zs[line];
+            T[cnt] = fabs(FH);
+                    
+            d_xy = segLen*cnt*(1.0 + FH/EA);
+                    
+            if (dx > 0)
+            {
+                x[cnt] = p->X311_xs[line] + d_xy*cos(alpha);
+            }
+            else
+            {
+                x[cnt] = p->X311_xs[line] - d_xy*cos(alpha);
+            }
+                
+            if (dy > 0)
+            {
+                y[cnt] = p->X311_ys[line] + d_xy*sin(alpha);
+            }
+            else
+            {
+                y[cnt] = p->X311_ys[line] - d_xy*sin(alpha);
+            }
+        }
+        else
+        {
+            z[cnt] = p->X311_zs[line] + FH/w*(sqrt(1+(w*(segLen*cnt-lms)/FH)*(w*(segLen*cnt-lms)/FH)) - 1) + w*(segLen*cnt-lms)*(segLen*cnt-lms)/(2*EA);		
+            
+            T[cnt] = sqrt(FH*FH + (w*(segLen*cnt - lms))*(w*(segLen*cnt - lms)));
+                    
+            d_xy = FH/w*log(w*(segLen*cnt-lms)/FH + sqrt(1+(w*(segLen*cnt-lms)/FH)*(w*(segLen*cnt-lms)/FH))) + FH*segLen*cnt/EA;
+                
+            if (dx > 0)
+            {
+                x[cnt] = p->X311_xs[line] + lms*cos(alpha) + d_xy*cos(alpha);
+            }
+            else
+            {
+                x[cnt] = p->X311_xs[line] - lms*cos(alpha) - d_xy*cos(alpha);
+            }
+                    
+            if (dy > 0)
+            {
+                y[cnt] = p->X311_ys[line] + lms*sin(alpha) + d_xy*sin(alpha);
+            }
+            else
+            {
+                y[cnt] = p->X311_ys[line] - lms*sin(alpha) - d_xy*sin(alpha);
+            }					
+        }
+    }
 }

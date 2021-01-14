@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -40,9 +40,9 @@ fnpf_print_wsf::fnpf_print_wsf(lexer *p, fdm_fnpf *c)
 	
     if(p->mpirank==0 && p->P51>0)
     {
-    // open file
+    // open WSF file
 	if(p->P14==0)
-    wsfout.open("REEF3D-SFLOW-WSF-HG.dat");
+    wsfout.open("REEF3D-FNPF-WSF-HG.dat");
 	
 	if(p->P14==1)
 	wsfout.open("./REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG.dat");
@@ -59,6 +59,53 @@ fnpf_print_wsf::fnpf_print_wsf(lexer *p, fdm_fnpf *c)
     wsfout<<"\t P"<<n+1;
 
     wsfout<<endl<<endl;
+    
+    
+        if(p->P57==1 || p->P57==3)
+        {
+        // open rise velovity file
+        if(p->P14==0)
+        detaout.open("REEF3D-FNPF-Rise-Velocity.dat");
+        
+        if(p->P14==1)
+        detaout.open("./REEF3D_FNPF_WSF/REEF3D-FNPF-Rise-Velocity.dat");
+
+        detaout<<"number of rise velocity gauges:  "<<gauge_num<<endl<<endl;
+        detaout<<"x_coord     y_coord"<<endl;
+        for(n=0;n<gauge_num;++n)
+        detaout<<n+1<<"\t "<<x[n]<<"\t "<<y[n]<<endl;
+
+        detaout<<endl<<endl;
+
+        detaout<<"time";
+        for(n=0;n<gauge_num;++n)
+        detaout<<"\t P"<<n+1;
+
+        detaout<<endl<<endl;
+        }
+        
+        if(p->P57==2 || p->P57==3)
+        {
+        // open horizontal velocity file
+        if(p->P14==0)
+        Uhorzout.open("REEF3D-FNPF-Horiontal-FSF-Velocity.dat");
+        
+        if(p->P14==1)
+        Uhorzout.open("./REEF3D_FNPF_WSF/REEF3D-FNPF-Horiontal-FSF-Velocity.dat");
+
+        Uhorzout<<"number of horizontal fsf velocity gauges:  "<<gauge_num<<endl<<endl;
+        Uhorzout<<"x_coord     y_coord"<<endl;
+        for(n=0;n<gauge_num;++n)
+        Uhorzout<<n+1<<"\t "<<x[n]<<"\t "<<y[n]<<endl;
+
+        Uhorzout<<endl<<endl;
+
+        Uhorzout<<"time";
+        for(n=0;n<gauge_num;++n)
+        Uhorzout<<"\t P"<<n+1;
+
+        Uhorzout<<endl<<endl;
+        }
     }
 	
 	//-------------------
@@ -68,6 +115,8 @@ fnpf_print_wsf::fnpf_print_wsf(lexer *p, fdm_fnpf *c)
 	p->Iarray(jloc,gauge_num);
 	p->Iarray(flag,gauge_num);
 	p->Darray(wsf,gauge_num);
+    p->Darray(deta,gauge_num);
+    p->Darray(Uhorz,gauge_num);
 
     ini_location(p,c);
 }
@@ -78,6 +127,27 @@ fnpf_print_wsf::~fnpf_print_wsf()
 }
 
 void fnpf_print_wsf::height_gauge(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
+{
+    
+    fill_eta(p,c,pgc,f);
+    
+    // write to file
+    if(p->mpirank==0)
+    {
+    wsfout<<setprecision(9)<<p->simtime<<"\t";
+    for(n=0;n<gauge_num;++n)
+    wsfout<<setprecision(9)<<wsf[n]<<"  \t  ";
+    wsfout<<endl;
+    }
+    
+    // Rise Velocity
+    
+    
+    
+    // Horionztal Velocity
+}
+
+void fnpf_print_wsf::fill_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
 {
     double zval=0.0;
 
@@ -99,15 +169,16 @@ void fnpf_print_wsf::height_gauge(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &
 	
     for(n=0;n<gauge_num;++n)
     wsf[n]=pgc->globalmax(wsf[n]);
+}
 
-    // write to file
-    if(p->mpirank==0)
-    {
-    wsfout<<setprecision(9)<<p->simtime<<"\t";
-    for(n=0;n<gauge_num;++n)
-    wsfout<<setprecision(9)<<wsf[n]<<"  \t  ";
-    wsfout<<endl;
-    }
+void fnpf_print_wsf::fill_deta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
+{
+    
+}
+    
+void fnpf_print_wsf::fill_Uhorz(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
+{
+    
 }
 
 
@@ -128,7 +199,6 @@ void fnpf_print_wsf::ini_location(lexer *p, fdm_fnpf *c)
     flag[n]=1;
     }
 }
-
 
 int fnpf_print_wsf::conv(double a)
 {

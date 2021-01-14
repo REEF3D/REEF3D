@@ -65,7 +65,8 @@ void net_barQuasiStatic::start
 	lexer *p, 
 	fdm *a, 
 	ghostcell *pgc,
-    double alpha 
+    double alpha,
+    Eigen::Matrix3d quatRotMat 
 )
 {
     double starttime1=pgc->timer();     

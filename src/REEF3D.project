@@ -927,8 +927,12 @@
         <File Name="flowfile_in.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="ioFlow">
-        <File Name="patch_obj.h"/>
-        <File Name="patchBC.h"/>
+        <VirtualDirectory Name="patchBC">
+          <File Name="patchBC_void.h"/>
+          <File Name="patchBC_interface.h"/>
+          <File Name="patchBC.h"/>
+          <File Name="patch_obj.h"/>
+        </VirtualDirectory>
         <File Name="iowave.h"/>
         <File Name="ioflow_void.h"/>
         <File Name="ioflow_gravity.h"/>
@@ -936,8 +940,8 @@
         <File Name="ioflow.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Wave Lib">
+        <File Name="wave_lib_hdc.h"/>
         <File Name="wave_lib_ssgw.h"/>
-        <File Name="wave_lib_wcp.h"/>
         <File Name="wave_lib_flap_eta.h"/>
         <File Name="wave_lib.h"/>
         <File Name="wave_lib_cnoidal_1st.h"/>
@@ -2436,10 +2440,13 @@
       </VirtualDirectory>
       <VirtualDirectory Name="ioFlow">
         <VirtualDirectory Name="PatchBC">
+          <File Name="patchBC_gcb_count.cpp"/>
+          <File Name="patchBC_waterlevel.cpp"/>
+          <File Name="patchBC_pressure.cpp"/>
+          <File Name="patchBC_void.cpp"/>
+          <File Name="patchBC_fillobj.cpp"/>
           <File Name="patchBC_IDcount.cpp"/>
-          <File Name="patchBC_gcb_convert.cpp"/>
           <File Name="patch_obj.cpp"/>
-          <File Name="patchBC_outflow.cpp"/>
           <File Name="patchBC_inflow.cpp"/>
           <File Name="patchBC.cpp"/>
         </VirtualDirectory>
@@ -2533,17 +2540,17 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Wave Lib">
+        <File Name="wave_lib_hdc.cpp"/>
         <File Name="wave_lib_ssgw.cpp"/>
-        <VirtualDirectory Name="WCP">
-          <File Name="wave_lib_wcp_pos_ijk.cpp"/>
-          <File Name="wave_lib_wcp_allocate.cpp"/>
-          <File Name="wave_lib_wcp_filename.cpp"/>
-          <File Name="wave_lib_wcp_space_interpol.cpp"/>
-          <File Name="wave_lib_wcp_read_result.cpp"/>
-          <File Name="wave_lib_wcp_read_header.cpp"/>
-          <File Name="wave_lib_wcp_time_interpol.cpp"/>
+        <VirtualDirectory Name="HDC">
+          <File Name="wave_lib_hdc_time_interpol.cpp"/>
+          <File Name="wave_lib_hdc_space_interpol.cpp"/>
+          <File Name="wave_lib_hdc_read_result.cpp"/>
+          <File Name="wave_lib_hdc_read_header.cpp"/>
+          <File Name="wave_lib_hdc_pos_ijk.cpp"/>
+          <File Name="wave_lib_hdc_filename.cpp"/>
+          <File Name="wave_lib_hdc_allocate.cpp"/>
         </VirtualDirectory>
-        <File Name="wave_lib_wcp.cpp"/>
         <File Name="wave_lib_flap_eta.cpp"/>
         <VirtualDirectory Name="Interface">
           <File Name="wave_interface_decomp.cpp"/>

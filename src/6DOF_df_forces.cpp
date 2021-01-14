@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -99,7 +99,7 @@ void sixdof_df_object::netForces(lexer *p, fdm* a, ghostcell *pgc, double alpha,
 {
     for (int ii = 0; ii < p->net_count; ii++)
     {
-        pnet[ii]->start(p, a, pgc, alpha);
+        pnet[ii]->start(p, a, pgc, alpha, quatRotMat);
         pvrans->start(p, a, pgc, pnet[ii], ii);
     
         // Forces on rigid body

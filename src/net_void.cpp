@@ -27,7 +27,8 @@ void net_void::start
 	lexer *p, 
 	fdm *a, 
 	ghostcell *pgc,
-    double alpha
+    double alpha,
+    Eigen::Matrix3d quatRotMat
 )
 {
 	

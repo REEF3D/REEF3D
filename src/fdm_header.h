@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -37,3 +37,6 @@ Author: Hans Bihs
 #include"solid.h"
 #include"data_f.h"
 #include"data_void.h"
+
+#include"patchBC.h"
+#include"patchBC_void.h"

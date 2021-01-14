@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,7 +30,7 @@ void patchBC::patchBC_IDcount(lexer *p, ghostcell *pgc)
 {    
     int check;
     
-    geo_count = p->B221 + p->B222 + p->B231 + p->B232;
+    geo_count = p->B221 + p->B222;
     
     p->Iarray(ID_array,geo_count);
     
@@ -49,20 +49,6 @@ void patchBC::patchBC_IDcount(lexer *p, ghostcell *pgc)
     if(p->B222>0 && check==0)
     {
     ID_array[0] = p->B222_ID[0];
-    count=1;
-    check=1;
-    }
-    
-    if(p->B231>0 && check==0)
-    {
-    ID_array[0] = p->B231_ID[0];
-    count=1;
-    check=1;
-    }
-    
-    if(p->B232>0 && check==0)
-    {
-    ID_array[0] = p->B232_ID[0];
     count=1;
     check=1;
     }
@@ -86,40 +72,12 @@ void patchBC::patchBC_IDcount(lexer *p, ghostcell *pgc)
     {
         check=1;
         for(qn=0;qn<count;++qn)
-        if(ID_array[qn] == p->B221_ID[n]);
+        if(ID_array[qn] == p->B222_ID[n]);
         check=0;
         
         if(check==1)
         {
-        ID_array[count] = p->B221_ID[n];
-        ++count;       
-        }
-    }
-    
-    for(n=0; n<p->B231;++n)
-    {
-        check=1;
-        for(qn=0;qn<count;++qn)
-        if(ID_array[qn] == p->B231_ID[n]);
-        check=0;
-        
-        if(check==1)
-        {
-        ID_array[count] = p->B231_ID[n];
-        ++count;       
-        }
-    }
-    
-    for(n=0; n<p->B232;++n)
-    {
-        check=1;
-        for(qn=0;qn<count;++qn)
-        if(ID_array[qn] == p->B232_ID[n]);
-        check=0;
-        
-        if(check==1)
-        {
-        ID_array[count] = p->B232_ID[n];
+        ID_array[count] = p->B222_ID[n];
         ++count;       
         }
     }

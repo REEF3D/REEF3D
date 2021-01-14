@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -49,7 +49,7 @@ void ghostcell::solid_update(lexer *p, fdm *a)
     gcsolid_gcb_seed(p,a);
     gcsolid_gcb_dist(p,a);
     
-    p->gridini_outflow();	
+    p->gridini_patchBC();	
 
 
     gcsolid_velflag1(p,a,cellcount1);

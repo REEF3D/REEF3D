@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,10 +19,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"wave_lib_wcp.h"
+#include"wave_lib_hdc.h"
 #include"lexer.h"
 
-double wave_lib_wcp::space_interpol(lexer *p, double ***F, double x, double y, double z)
+double wave_lib_hdc::space_interpol(lexer *p, double ***F, double x, double y, double z)
 {
     val=0.0;
     
@@ -34,18 +34,23 @@ double wave_lib_wcp::space_interpol(lexer *p, double ***F, double x, double y, d
     yp = y + p->I232;
     zp = z + p->I233 + p->wd;
     
+    //cout<<"xp: "<<xp<<" yp: "<<yp<<" zp: "<<zp<<" Xstart: "<<Xstart<<" Xend: "<<Xend<<endl;
     
     
     if(xp>=Xstart  && xp<Xend && ((yp>=Ystart && yp<Yend)|| jdir==0))
     {
         i = pos_i(p,xp);
         j = pos_j(p,yp);
+        
+       // cout<<i<<" "<<j<<" SPACEPO  ZSE: "<<Z[i][j][Nz-2]<<" "<<Z[i][j][Nz-1]<<" zp: "<<zp<<endl;
 
         if(zp>=Z[i][j][0] && zp<=Z[i][j][Nz-1])
         {
         k = pos_k(p,zp,i,j);
 
         val=ccpol3D(p,F,x,y,z);
+        
+        //cout<<"SPACEPOL "<<endl;
         }
     }
     
@@ -56,7 +61,7 @@ double wave_lib_wcp::space_interpol(lexer *p, double ***F, double x, double y, d
     return val;
 }
 
-double wave_lib_wcp::plane_interpol(lexer *p, double **F, double x, double y)
+double wave_lib_hdc::plane_interpol(lexer *p, double **F, double x, double y)
 {
     val=0.0;
     
@@ -81,7 +86,7 @@ double wave_lib_wcp::plane_interpol(lexer *p, double **F, double x, double y)
     return val;
 }
 
-double wave_lib_wcp::ccpol3D(lexer *p, double ***F, double x, double y, double z)
+double wave_lib_hdc::ccpol3D(lexer *p, double ***F, double x, double y, double z)
 {
     // wa
     if(xp>X[0] && xp<X[Nx-1])
@@ -233,10 +238,10 @@ double wave_lib_wcp::ccpol3D(lexer *p, double ***F, double x, double y, double z
     k=kkk;
     
     /*
-    cout<<p->mpirank<<" WCP  i: "<<i<<" j: "<<j<<" xp: "<<xp<<" yp: "<<yp<<" val: "<<val<<" Fi: "<<F[i][j][k]<<endl;
+    cout<<p->mpirank<<" HDC  i: "<<i<<" j: "<<j<<" xp: "<<xp<<" yp: "<<yp<<" val: "<<val<<" Fi: "<<F[i][j][k]<<endl;
     
-    cout<<" WCP 3D: "<<v1<<" "<<v2<<" "<<v3<<" "<<v4<<" "<<v5<<" "<<v6<<" "<<v7<<" "<<v7<<" "<<endl;
-    cout<<" WCP i: "<<i<<" j: "<<j<<" k: "<<k<<" Z[ijk]: "<<Z[i][j][k]<<" z: "<<z<<endl;*/
+    cout<<" HDC 3D: "<<v1<<" "<<v2<<" "<<v3<<" "<<v4<<" "<<v5<<" "<<v6<<" "<<v7<<" "<<v7<<" "<<endl;
+    cout<<" HDC i: "<<i<<" j: "<<j<<" k: "<<k<<" Z[ijk]: "<<Z[i][j][k]<<" z: "<<z<<endl;*/
     
     /*
     if(p->mpirank==0 && x>9.99)
@@ -247,7 +252,7 @@ double wave_lib_wcp::ccpol3D(lexer *p, double ***F, double x, double y, double z
     return val;
 }
 
-double wave_lib_wcp::ccpol2D(lexer *p, double **F, double x, double y)
+double wave_lib_hdc::ccpol2D(lexer *p, double **F, double x, double y)
 {
     
     // wa
@@ -341,7 +346,7 @@ double wave_lib_wcp::ccpol2D(lexer *p, double **F, double x, double y)
 
     val = wb*x1 +(1.0-wb)*x2;
     
-    //cout<<p->mpirank<<" WCP  i: "<<i<<" j: "<<j<<" xp: "<<xp<<" yp: "<<yp<<" val: "<<val<<" Fi: "<<F[i][j]<<endl;
+    //cout<<p->mpirank<<" HDC  i: "<<i<<" j: "<<j<<" xp: "<<xp<<" yp: "<<yp<<" val: "<<val<<" Fi: "<<F[i][j]<<endl;
     
     i=iii;
     j=jjj;

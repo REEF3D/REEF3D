@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -35,7 +35,7 @@ using namespace std;
 class patch_obj : public increment
 {
 public:
-	patch_obj(lexer*);
+	patch_obj(lexer*,int);
 	virtual ~patch_obj();
     
     void patch_obj_ini(lexer *p, ghostcell *pgc);
@@ -47,6 +47,22 @@ public:
     int IO;
     int gcb_count;
     int **gcb;
+    int gcb_flag;
+    int gcb_uflag, gcb_pressflag, gcb_phiflag;
+    int counter;
+    
+    /*
+    B210=0;        // int patchBC inflow/outflow
+    B211=0;        // int patchBC discharge
+    B212=0;        // int patchBC pressure BC
+    B213=0;        // int patchBC waterlevel
+    B214=0;        // int patchBC perpendicular velocity
+    B215=0;        // int patchBC velocity components
+    B216=0;        // int patchBC horizontal inflow angle
+    B217=0;        // int patchBC inflow normals
+    */
+    
+    int io_flag;
     
     int Q_flag;
     double Q;
@@ -60,10 +76,21 @@ public:
     int waterlevel_flag;
     double waterlevel;
     
-        
-private:
+    int Uio_flag;
+    double Uio;
     
+    int velcomp_flag;
+    double U,V,W;
     
+    int flowangle_flag;
+    double alpha;
+    
+    int flownormal_flag;
+    double Nx,Ny,Nz;
+    
+    // measurement
+    double Q0,U0,A0,h0;
+
 
 };
 

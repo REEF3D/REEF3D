@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,10 +19,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"wave_lib_wcp.h"
+#include"wave_lib_hdc.h"
 #include"lexer.h"
 
-int wave_lib_wcp::pos_i(lexer *p, double xs)
+int wave_lib_hdc::pos_i(lexer *p, double xs)
 {
     int is,ie,iloc;
     int stop=0;
@@ -120,7 +120,7 @@ int wave_lib_wcp::pos_i(lexer *p, double xs)
     return ii;
 }
 
-int wave_lib_wcp::pos_j(lexer *p, double ys)
+int wave_lib_hdc::pos_j(lexer *p, double ys)
 {
     int js,je,jloc;
     int stop=0;
@@ -221,7 +221,7 @@ int wave_lib_wcp::pos_j(lexer *p, double ys)
     return jj;    
 }
 
-int wave_lib_wcp::pos_k(lexer *p, double zs, int i, int k)
+int wave_lib_hdc::pos_k(lexer *p, double zs, int i, int k)
 {
     int ks,ke,kloc;
     int stop=0;
@@ -311,7 +311,7 @@ int wave_lib_wcp::pos_k(lexer *p, double zs, int i, int k)
 }
 
 
-int wave_lib_wcp::ihalf(int a, int b)
+int wave_lib_hdc::ihalf(int a, int b)
 {
     int c;
     double d,diff;

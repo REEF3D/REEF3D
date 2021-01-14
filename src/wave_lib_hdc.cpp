@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,12 +19,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"wave_lib_wcp.h"
+#include"wave_lib_hdc.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-wave_lib_wcp::wave_lib_wcp(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc) 
+wave_lib_hdc::wave_lib_hdc(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc) 
 { 
     // read header
     read_header(p,pgc);
@@ -35,9 +35,9 @@ wave_lib_wcp::wave_lib_wcp(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc
     if(p->mpirank==0)
     {
     cout<<"Wave Tank: wave coupling FNPF->CFD "<<endl;
-    cout<<p->mpirank<<" WCP Nx: "<<Nx<<" Ny: "<<Ny<<" Nz: "<<Nz<<" . jdir: "<<jdir<<endl;
-    cout<<p->mpirank<<" WCP Xs: "<<Xstart<<" Xe: "<<Xend<<" Ys: "<<Ystart<<" Ye: "<<Yend<<endl;
-    cout<<p->mpirank<<" WCP numiter: "<<numiter<<" t_start: "<<t_start<<" t_end: "<<t_end<<endl;
+    cout<<p->mpirank<<" HDC Nx: "<<Nx<<" Ny: "<<Ny<<" Nz: "<<Nz<<" . jdir: "<<jdir<<endl;
+    cout<<p->mpirank<<" HDC Xs: "<<Xstart<<" Xe: "<<Xend<<" Ys: "<<Ystart<<" Ye: "<<Yend<<endl;
+    cout<<p->mpirank<<" HDC numiter: "<<numiter<<" t_start: "<<t_start<<" t_end: "<<t_end<<endl;
     }
         
     
@@ -48,21 +48,23 @@ wave_lib_wcp::wave_lib_wcp(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc
     endseries=0;
 }
 
-wave_lib_wcp::~wave_lib_wcp()
+wave_lib_hdc::~wave_lib_hdc()
 {
 }
 
-double wave_lib_wcp::wave_u(lexer *p, double x, double y, double z)
+double wave_lib_hdc::wave_u(lexer *p, double x, double y, double z)
 {
     double vel=0.0;
     
     if(endseries==0)
     vel = space_interpol(p,U,x,y,z);
+    
+    //cout<<"U "<<vel<<endl;
 
     return cosgamma*vel;
 }
 
-double wave_lib_wcp::wave_v(lexer *p, double x, double y, double z)
+double wave_lib_hdc::wave_v(lexer *p, double x, double y, double z)
 {
     double vel=0.0;
     
@@ -72,7 +74,7 @@ double wave_lib_wcp::wave_v(lexer *p, double x, double y, double z)
     return singamma*vel;
 }
 
-double wave_lib_wcp::wave_w(lexer *p, double x, double y, double z)
+double wave_lib_hdc::wave_w(lexer *p, double x, double y, double z)
 {
     double vel=0.0;
     
@@ -82,7 +84,7 @@ double wave_lib_wcp::wave_w(lexer *p, double x, double y, double z)
     return vel;
 }
 
-double wave_lib_wcp::wave_eta(lexer *p, double x, double y)
+double wave_lib_hdc::wave_eta(lexer *p, double x, double y)
 {
     double eta=0.0;
     
@@ -92,18 +94,18 @@ double wave_lib_wcp::wave_eta(lexer *p, double x, double y)
     return eta;
 }
 
-double wave_lib_wcp::wave_fi(lexer *p, double x, double y, double z)
+double wave_lib_hdc::wave_fi(lexer *p, double x, double y, double z)
 {
     double fi=0.0;
     
     return fi;
 }
 
-void wave_lib_wcp::parameters(lexer *p, ghostcell *pgc)
+void wave_lib_hdc::parameters(lexer *p, ghostcell *pgc)
 {
 }
 
-void wave_lib_wcp::wave_prestep(lexer *p, ghostcell *pgc)
+void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
 {
     // only at startup
     if(startup==0)
@@ -161,7 +163,7 @@ void wave_lib_wcp::wave_prestep(lexer *p, ghostcell *pgc)
         deltaT = simtime[q2]-simtime[q1];
         
         if(p->mpirank==0)
-        cout<<"WCP  q1: "<<q1<<" q2: "<<q2<<" deltaT: "<<deltaT<<" simtime[q1]: "<<simtime[q1]<<" simtime[q2]: "<<simtime[q2]<<endl;
+        cout<<"HDC  q1: "<<q1<<" q2: "<<q2<<" deltaT: "<<deltaT<<" simtime[q1]: "<<simtime[q1]<<" simtime[q2]: "<<simtime[q2]<<endl;
 
         t1 = (simtime[q2]-(p->simtime+p->I241))/deltaT;
         t2 = ((p->simtime+p->I241)-simtime[q1])/deltaT;

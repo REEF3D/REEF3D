@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,16 +24,16 @@ Author: Hans Bihs
 #include"wave_lib_parameters.h"
 #include"increment.h"
 
-#ifndef WAVE_LIB_WCP_H_
-#define WAVE_LIB_WCP_H_
+#ifndef WAVE_LIB_HDC_H_
+#define WAVE_LIB_HDC_H_
 
 using namespace std;
 
-class wave_lib_wcp : public wave_lib_precalc, public wave_lib_parameters, public increment
+class wave_lib_hdc : public wave_lib_precalc, public wave_lib_parameters, public increment
 {
 public:
-    wave_lib_wcp(lexer*, ghostcell*);
-	virtual ~wave_lib_wcp();
+    wave_lib_hdc(lexer*, ghostcell*);
+	virtual ~wave_lib_hdc();
     
     virtual double wave_u(lexer*,double,double,double);
     virtual double wave_v(lexer*,double,double,double);

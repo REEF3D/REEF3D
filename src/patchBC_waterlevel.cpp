@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,24 +19,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"wave_lib_wcp.h"
+#include"patchBC.h"
 #include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"patch_obj.h"
 
-void wave_lib_wcp::allocate(lexer *p, ghostcell *pgc)
+void patchBC::patchBC_waterlevel(lexer *p, fdm *a, ghostcell *pgc, field &phi)
 {
-    p->Darray(U1,Nx,Ny,Nz);
-    p->Darray(U2,Nx,Ny,Nz);
-    p->Darray(U,Nx,Ny,Nz);
-    
-    p->Darray(V1,Nx,Ny,Nz);
-    p->Darray(V2,Nx,Ny,Nz);
-    p->Darray(V,Nx,Ny,Nz);
-    
-    p->Darray(W1,Nx,Ny,Nz);
-    p->Darray(W2,Nx,Ny,Nz);
-    p->Darray(W,Nx,Ny,Nz);
-    
-    p->Darray(E1,Nx,Ny);
-    p->Darray(E2,Nx,Ny);
-    p->Darray(E,Nx,Ny);
-}
+
+
+} 

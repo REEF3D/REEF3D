@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -52,10 +52,10 @@ void driver::logic_fnpf()
     
 //IOFlow
 	if(p->B60==0 && p->B90==0 && p->B180==0 )
-	pflow = new ioflow_v(p,pgc);
+	pflow = new ioflow_v(p,pgc,pBC);
 
 	if(p->B90>=1)
-	pflow= new iowave(p,pgc);
+	pflow= new iowave(p,pgc,pBC);
     
 // Geodat
     if(p->G1==0)
