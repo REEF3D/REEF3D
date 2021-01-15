@@ -27,9 +27,7 @@ void lexer::flagini2D()
 
 	grid2Dsize();
 	vellast();
-	
-	if(N5==0)
-	i_dir=j_dir=k_dir=1;
+
 	
 	x_dir=y_dir=z_dir=1.0;
 	
@@ -58,37 +56,6 @@ void lexer::gridini2D()
     sizeS4[n]=0;
     }	
 	
-// ---	
-	int istart,iend,jstart,jend,kstart,kend,qn;
-	int count=0;
-	
-	for(qn=0;qn<G95;++qn)
-    {
-        istart = posc_i(G95_xs[qn]);
-        iend = posc_i(G95_xe[qn]);
-        
-        jstart = posc_j(G95_ys[qn]);
-        jend = posc_j(G95_ye[qn]);
-        
-        kstart = posc_k(G95_zs[qn]);
-        kend = posc_k(G95_ze[qn]);
-
-        for(n=0;n<gcb4_count;++n)
-		{
-		i=gcb4[n][0];
-		j=gcb4[n][1];
-		k=gcb4[n][2];
-		
-			if(i>=istart && i<iend && j>=jstart && j<jend && k>=kstart && k<kend && gcb4[n][3]==5 && (gcb4[n][4]==21||gcb4[n][4]==22))
-			{
-			++count;
-			gcb4[n][4]=2;
-			}
-		}
-    }
-	count+=gcout_count;
-	
-	Iresize(gcout, gcout_count,count,6,6);
 }
 
 

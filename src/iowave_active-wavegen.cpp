@@ -174,7 +174,6 @@ void iowave::active_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
         
         
         if(p->B98==3||p->B98==4||p->B99==3||p->B99==4||p->B99==5)
-		if(p->B64==1)
 		{
 		for(int q=0;q<4;++q)
 		for(n=0;n<p->gcin_count;++n)

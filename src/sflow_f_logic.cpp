@@ -33,50 +33,28 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	ptime = new sflow_etimestep(p,b);
 	
 	// convection
-    if(p->A215==0)
-    {
-        if(p->A211==0)
-        pconvec = new sflow_voidconv(p);
+    if(p->A211==0)
+    pconvec = new sflow_voidconv(p);
         
-        if(p->A211==1)
-        pconvec = new sflow_fou(p);
+    if(p->A211==1)
+    pconvec = new sflow_fou(p);
         
-        if(p->A211==4)
-        pconvec = new sflow_weno_flux(p);
+    if(p->A211==4)
+    pconvec = new sflow_weno_flux(p);
         
-        if(p->A211==5)
-        pconvec = new sflow_weno_hj(p);
+    if(p->A211==5)
+    pconvec = new sflow_weno_hj(p);
         
-        if(p->A211==6)
-        pconvec = new sflow_hires(p,6);
+    if(p->A211==6)
+    pconvec = new sflow_hires(p,6);
         
-        if(p->A211==7)
-        pconvec = new sflow_hires(p,7);
+    if(p->A211==7)
+    pconvec = new sflow_hires(p,7);
         
-        if(p->A211==8)
-        pconvec = new sflow_hires(p,8);
-    }
-    
-    if(p->A215==1)
-    {
-        if(p->A211==0)
-        pconvec = new sflow_voidconv(p);
-        
-        if(p->A211==1)
-        pconvec = new sflow_cfou(p,b);
-        
-        if(p->A211==4 ||p->A211==5)
-        pconvec = new sflow_weno_cflux(p,b);
-        
-        if(p->A211==6)
-        pconvec = new sflow_chires(p,b,6);
-        
-        if(p->A211==7)
-        pconvec = new sflow_chires(p,b,7);
-        
-        if(p->A211==8)
-        pconvec = new sflow_chires(p,b,8);
-    }
+    if(p->A211==8)
+    pconvec = new sflow_hires(p,8);
+ 
+
     
     // filter
     pfilter = new sflow_filter(p);
