@@ -102,7 +102,7 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
         patch[qq]->velcomp_flag=1;
         patch[qq]->U=p->B215_U[qn];
         patch[qq]->V=p->B215_V[qn];
-        patch[qq]->V=p->B215_W[qn];
+        patch[qq]->W=p->B215_W[qn];
         
         patch[qq]->gcb_uflag=2;
         }
@@ -169,6 +169,8 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
     
     if(patch[qq]->gcb_uflag==1 && patch[qq]->gcb_pressflag==1 && patch[qq]->gcb_phiflag==1)
     patch[qq]->gcb_flag = 111;
+    
+    cout<<" PATCH_gcb_flag: "<<patch[qq]->gcb_flag<<endl;
     }
     
     
