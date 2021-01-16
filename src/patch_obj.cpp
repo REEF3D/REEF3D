@@ -33,8 +33,6 @@ patch_obj::patch_obj(lexer *p, int ID_ini)
     
     // BC options ini
     
-    io_flag=2; // 1=infow ; 2=outflow
-    
     Q_flag=0;
     Q=1.0;
     

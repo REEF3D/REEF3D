@@ -30,105 +30,95 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
     
 
 // fill BC options
-  
-    // inflow/outflow
-    for(qn=0;qn<p->B210;++qn)
-    {
-        for(qq=0;qq<obj_count;++qq)
-        if(patch[qq]->ID == p->B210_ID[qn])
-        {
-        patch[qq]->io_flag=p->B210_io[qn];
-        }
-    }
     
     // discharge
-    for(qn=0;qn<p->B211;++qn)
+    for(qn=0;qn<p->B411;++qn)
     {
         for(qq=0;qq<obj_count;++qq)
-        if(patch[qq]->ID == p->B211_ID[qn])
+        if(patch[qq]->ID == p->B411_ID[qn])
         {
         patch[qq]->Q_flag=1;
-        patch[qq]->Q=p->B211_Q[qn];
+        patch[qq]->Q=p->B411_Q[qn];
         
         patch[qq]->gcb_uflag=2;
         }
     }
     
     // pressure
-    for(qn=0;qn<p->B212;++qn)
+    for(qn=0;qn<p->B412;++qn)
     {
         for(qq=0;qq<obj_count;++qq)
-        if(patch[qq]->ID == p->B212_ID[qn])
+        if(patch[qq]->ID == p->B412_ID[qn])
         {
         patch[qq]->pressure_flag=1;
-        patch[qq]->pressure=p->B212_pressBC[qn];
+        patch[qq]->pressure=p->B412_pressBC[qn];
         
         patch[qq]->gcb_pressflag=2;
         }
     }
     
     // waterlevel
-    for(qn=0;qn<p->B213;++qn)
+    for(qn=0;qn<p->B413;++qn)
     {
         for(qq=0;qq<obj_count;++qq)
-        if(patch[qq]->ID == p->B213_ID[qn])
+        if(patch[qq]->ID == p->B413_ID[qn])
         {
         patch[qq]->waterlevel_flag=1;
-        patch[qq]->waterlevel=p->B213_h[qn];
+        patch[qq]->waterlevel=p->B413_h[qn];
         
         patch[qq]->gcb_phiflag=2;
         }
     }
     
     // perpendicular velocity
-    for(qn=0;qn<p->B214;++qn)
+    for(qn=0;qn<p->B414;++qn)
     {
         for(qq=0;qq<obj_count;++qq)
-        if(patch[qq]->ID == p->B214_ID[qn])
+        if(patch[qq]->ID == p->B414_ID[qn])
         {
         patch[qq]->Uio_flag=1;
-        patch[qq]->Uio=p->B214_Uio[qn];
+        patch[qq]->Uio=p->B414_Uio[qn];
         
         patch[qq]->gcb_uflag=2;
         }
     }
     
     // velocity components
-    for(qn=0;qn<p->B215;++qn)
+    for(qn=0;qn<p->B415;++qn)
     {
         for(qq=0;qq<obj_count;++qq)
-        if(patch[qq]->ID == p->B215_ID[qn])
+        if(patch[qq]->ID == p->B415_ID[qn])
         {
         patch[qq]->velcomp_flag=1;
-        patch[qq]->U=p->B215_U[qn];
-        patch[qq]->V=p->B215_V[qn];
-        patch[qq]->W=p->B215_W[qn];
+        patch[qq]->U=p->B415_U[qn];
+        patch[qq]->V=p->B415_V[qn];
+        patch[qq]->W=p->B415_W[qn];
         
         patch[qq]->gcb_uflag=2;
         }
     }
     
     // inflow angle
-    for(qn=0;qn<p->B216;++qn)
+    for(qn=0;qn<p->B416;++qn)
     {
         for(qq=0;qq<obj_count;++qq)
-        if(patch[qq]->ID == p->B216_ID[qn])
+        if(patch[qq]->ID == p->B416_ID[qn])
         {
         patch[qq]->flowangle_flag=1;
-        patch[qq]->alpha=p->B216_alpha[qn];
+        patch[qq]->alpha=p->B416_alpha[qn];
         }
     }
     
     // inflow normals
-    for(qn=0;qn<p->B217;++qn)
+    for(qn=0;qn<p->B417;++qn)
     {
         for(qq=0;qq<obj_count;++qq)
-        if(patch[qq]->ID == p->B217_ID[qn])
+        if(patch[qq]->ID == p->B417_ID[qn])
         {
         patch[qq]->velcomp_flag=1;
-        patch[qq]->Nx=p->B217_Nx[qn];
-        patch[qq]->Ny=p->B217_Ny[qn];
-        patch[qq]->Nz=p->B217_Nz[qn];
+        patch[qq]->Nx=p->B417_Nx[qn];
+        patch[qq]->Ny=p->B417_Ny[qn];
+        patch[qq]->Nz=p->B417_Nz[qn];
         }
     }
     
@@ -180,18 +170,18 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
     patch[qq]->counter=0;
     
     int count=0;
-    for(qn=0;qn<p->B221;++qn)
+    for(qn=0;qn<p->B441;++qn)
     {
         
         {
-            istart = p->posc_i(p->B221_xs[qn]);
-            iend = p->posc_i(p->B221_xe[qn]);
+            istart = p->posc_i(p->B441_xs[qn]);
+            iend = p->posc_i(p->B441_xe[qn]);
             
-            jstart = p->posc_j(p->B221_ys[qn]);
-            jend = p->posc_j(p->B221_ye[qn]);
+            jstart = p->posc_j(p->B441_ys[qn]);
+            jend = p->posc_j(p->B441_ye[qn]);
             
-            kstart = p->posc_k(p->B221_zs[qn]);
-            kend = p->posc_k(p->B221_ze[qn]);
+            kstart = p->posc_k(p->B441_zs[qn]);
+            kend = p->posc_k(p->B441_ze[qn]);
             
             
             for(n=0;n<p->gcb4_count;++n)
@@ -200,15 +190,15 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
             j=p->gcb4[n][1];
             k=p->gcb4[n][2];
             
-                if(i>=istart && i<iend && j>=jstart && j<jend && k>=kstart && k<kend && p->gcb4[n][3]==p->B221_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
+                if(i>=istart && i<iend && j>=jstart && j<jend && k>=kstart && k<kend && p->gcb4[n][3]==p->B441_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
                 {
                     for(qq=0;qq<obj_count;++qq)
-                    if(patch[qq]->ID == p->B221_ID[qn])
+                    if(patch[qq]->ID == p->B441_ID[qn])
                     {
                     patch[qq]->gcb[count][0]=i;
                     patch[qq]->gcb[count][1]=j;
                     patch[qq]->gcb[count][2]=k;
-                    patch[qq]->gcb[count][3]=p->B221_face[qn];
+                    patch[qq]->gcb[count][3]=p->B441_face[qn];
                     ++patch[qq]->counter;
                     
                     // convert gcb
@@ -224,7 +214,7 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
     // circle
     double r;
     
-    for(qn=0;qn<p->B222;++qn)
+    for(qn=0;qn<p->B442;++qn)
     {
         int count=0;
         {            
@@ -236,19 +226,19 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
             k=p->gcb4[n][2];
                 
                 // x-dir
-                if(p->B222_face[qn]==1 || p->B222_face[qn]==4)
+                if(p->B442_face[qn]==1 || p->B442_face[qn]==4)
                 {
-                    r = sqrt(pow(p->YP[JP]-p->B222_ym[qn],2.0)+pow(p->ZP[KP]-p->B222_zm[qn],2.0));
+                    r = sqrt(pow(p->YP[JP]-p->B442_ym[qn],2.0)+pow(p->ZP[KP]-p->B442_zm[qn],2.0));
                 
-                    if(r<=p->B222_r[qn] && p->pos_x()>p->B222_xm[qn]-p->DXP[IP] && p->pos_x()<=p->B222_xm[qn]+p->DXP[JP] && p->gcb4[n][3]==p->B222_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
+                    if(r<=p->B442_r[qn] && p->pos_x()>p->B442_xm[qn]-p->DXP[IP] && p->pos_x()<=p->B442_xm[qn]+p->DXP[JP] && p->gcb4[n][3]==p->B442_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
                     {
                         for(qq=0;qq<obj_count;++qq)
-                        if(patch[qq]->ID == p->B222_ID[qn])
+                        if(patch[qq]->ID == p->B442_ID[qn])
                         {
                         patch[qq]->gcb[count][0]=i;
                         patch[qq]->gcb[count][1]=j;
                         patch[qq]->gcb[count][2]=k;
-                        patch[qq]->gcb[count][3]=p->B222_face[qn];
+                        patch[qq]->gcb[count][3]=p->B442_face[qn];
                         ++patch[qq]->counter;
                         
                         // convert gcb
@@ -258,19 +248,19 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
                 }
                 
                 // y-dir
-                if(p->B222_face[qn]==2 || p->B222_face[qn]==3)
+                if(p->B442_face[qn]==2 || p->B442_face[qn]==3)
                 {
-                    r = sqrt(pow(p->XP[IP]-p->B222_xm[qn],2.0)+pow(p->ZP[KP]-p->B222_zm[qn],2.0));
+                    r = sqrt(pow(p->XP[IP]-p->B442_xm[qn],2.0)+pow(p->ZP[KP]-p->B442_zm[qn],2.0));
                 
-                    if(r<=p->B222_r[qn] && p->pos_y()>p->B222_ym[qn]-p->DYP[JP] && p->pos_y()<=p->B222_ym[qn]+p->DYP[JP] && p->gcb4[n][3]==p->B222_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
+                    if(r<=p->B442_r[qn] && p->pos_y()>p->B442_ym[qn]-p->DYP[JP] && p->pos_y()<=p->B442_ym[qn]+p->DYP[JP] && p->gcb4[n][3]==p->B442_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
                     {
                         for(qq=0;qq<obj_count;++qq)
-                        if(patch[qq]->ID == p->B222_ID[qn])
+                        if(patch[qq]->ID == p->B442_ID[qn])
                         {
                         patch[qq]->gcb[count][0]=i;
                         patch[qq]->gcb[count][1]=j;
                         patch[qq]->gcb[count][2]=k;
-                        patch[qq]->gcb[count][3]=p->B222_face[qn];
+                        patch[qq]->gcb[count][3]=p->B442_face[qn];
                         ++patch[qq]->counter;
                         
                         // convert gcb
@@ -280,19 +270,19 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
                 }
                 
                 // z-dir
-                if(p->B222_face[qn]==5 || p->B222_face[qn]==6)
+                if(p->B442_face[qn]==5 || p->B442_face[qn]==6)
                 {
-                    r = sqrt(pow(p->XP[IP]-p->B222_xm[qn],2.0)+pow(p->YP[JP]-p->B222_ym[qn],2.0));
+                    r = sqrt(pow(p->XP[IP]-p->B442_xm[qn],2.0)+pow(p->YP[JP]-p->B442_ym[qn],2.0));
                 
-                    if(r<=p->B222_r[qn] && p->pos_z()>p->B222_zm[qn]-p->DZP[KP] && p->pos_z()<=p->B222_zm[qn]+p->DZP[KP] && p->gcb4[n][3]==p->B222_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
+                    if(r<=p->B442_r[qn] && p->pos_z()>p->B442_zm[qn]-p->DZP[KP] && p->pos_z()<=p->B442_zm[qn]+p->DZP[KP] && p->gcb4[n][3]==p->B442_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
                     {
                         for(qq=0;qq<obj_count;++qq)
-                        if(patch[qq]->ID == p->B222_ID[qn])
+                        if(patch[qq]->ID == p->B442_ID[qn])
                         {
                         patch[qq]->gcb[count][0]=i;
                         patch[qq]->gcb[count][1]=j;
                         patch[qq]->gcb[count][2]=k;
-                        patch[qq]->gcb[count][3]=p->B222_face[qn];
+                        patch[qq]->gcb[count][3]=p->B442_face[qn];
                         ++patch[qq]->counter;
                         
                         // convert gcb
@@ -305,7 +295,7 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
         
         for(qq=0;qq<obj_count;++qq)
         {
-        if(patch[qq]->ID == p->B222_ID[qn])
+        if(patch[qq]->ID == p->B442_ID[qn])
         patch[qq]->gcb_count += count;
         }
     
