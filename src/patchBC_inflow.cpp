@@ -107,11 +107,6 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
         v(i,j,k-2) =  0.0;
         v(i,j,k-3) =  0.0;
         
-        cout<<p->mpirank<<" TEST"<<endl;
-        a->test(i,j,k-1) =  patch[qq]->Uio;
-        a->test(i,j,k) =  patch[qq]->Uio;
-        
-        
         w(i,j,k-1) =  patch[qq]->Uio;
         w(i,j,k-2) =  patch[qq]->Uio;
         w(i,j,k-3) =  patch[qq]->Uio;

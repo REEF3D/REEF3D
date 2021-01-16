@@ -159,8 +159,6 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
     
     if(patch[qq]->gcb_uflag==1 && patch[qq]->gcb_pressflag==1 && patch[qq]->gcb_phiflag==1)
     patch[qq]->gcb_flag = 111;
-    
-    cout<<" PATCH_gcb_flag: "<<patch[qq]->gcb_flag<<endl;
     }
     
     
@@ -169,6 +167,7 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
     for(qq=0;qq<obj_count;++qq)
     patch[qq]->counter=0;
     
+
     int count=0;
     for(qn=0;qn<p->B441;++qn)
     {
@@ -192,14 +191,17 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
             
                 if(i>=istart && i<iend && j>=jstart && j<jend && k>=kstart && k<kend && p->gcb4[n][3]==p->B441_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
                 {
+                    
                     for(qq=0;qq<obj_count;++qq)
                     if(patch[qq]->ID == p->B441_ID[qn])
                     {
-                    patch[qq]->gcb[count][0]=i;
-                    patch[qq]->gcb[count][1]=j;
-                    patch[qq]->gcb[count][2]=k;
-                    patch[qq]->gcb[count][3]=p->B441_face[qn];
+                    patch[qq]->gcb[patch[qq]->counter][0]=i;
+                    patch[qq]->gcb[patch[qq]->counter][1]=j;
+                    patch[qq]->gcb[patch[qq]->counter][2]=k;
+                    patch[qq]->gcb[patch[qq]->counter][3]=p->B441_face[qn];
                     ++patch[qq]->counter;
+                    
+                    
                     
                     // convert gcb
                     p->gcb4[n][4]=patch[qq]->gcb_flag;
@@ -235,10 +237,10 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
                         for(qq=0;qq<obj_count;++qq)
                         if(patch[qq]->ID == p->B442_ID[qn])
                         {
-                        patch[qq]->gcb[count][0]=i;
-                        patch[qq]->gcb[count][1]=j;
-                        patch[qq]->gcb[count][2]=k;
-                        patch[qq]->gcb[count][3]=p->B442_face[qn];
+                        patch[qq]->gcb[patch[qq]->counter][0]=i;
+                        patch[qq]->gcb[patch[qq]->counter][1]=j;
+                        patch[qq]->gcb[patch[qq]->counter][2]=k;
+                        patch[qq]->gcb[patch[qq]->counter][3]=p->B442_face[qn];
                         ++patch[qq]->counter;
                         
                         // convert gcb
@@ -257,10 +259,10 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
                         for(qq=0;qq<obj_count;++qq)
                         if(patch[qq]->ID == p->B442_ID[qn])
                         {
-                        patch[qq]->gcb[count][0]=i;
-                        patch[qq]->gcb[count][1]=j;
-                        patch[qq]->gcb[count][2]=k;
-                        patch[qq]->gcb[count][3]=p->B442_face[qn];
+                        patch[qq]->gcb[patch[qq]->counter][0]=i;
+                        patch[qq]->gcb[patch[qq]->counter][1]=j;
+                        patch[qq]->gcb[patch[qq]->counter][2]=k;
+                        patch[qq]->gcb[patch[qq]->counter][3]=p->B442_face[qn];
                         ++patch[qq]->counter;
                         
                         // convert gcb
@@ -279,10 +281,10 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
                         for(qq=0;qq<obj_count;++qq)
                         if(patch[qq]->ID == p->B442_ID[qn])
                         {
-                        patch[qq]->gcb[count][0]=i;
-                        patch[qq]->gcb[count][1]=j;
-                        patch[qq]->gcb[count][2]=k;
-                        patch[qq]->gcb[count][3]=p->B442_face[qn];
+                        patch[qq]->gcb[patch[qq]->counter][0]=i;
+                        patch[qq]->gcb[patch[qq]->counter][1]=j;
+                        patch[qq]->gcb[patch[qq]->counter][2]=k;
+                        patch[qq]->gcb[patch[qq]->counter][3]=p->B442_face[qn];
                         ++patch[qq]->counter;
                         
                         // convert gcb

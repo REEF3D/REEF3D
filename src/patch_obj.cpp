@@ -57,6 +57,8 @@ patch_obj::patch_obj(lexer *p, int ID_ini)
     flownormal_flag=0;
     Nx=Ny=Nz=0.0;
     
+    counter=0;
+    
     
     // measurements
     
