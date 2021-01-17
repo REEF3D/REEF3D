@@ -152,7 +152,24 @@ void ietimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
     
     p->viscmax = MAX(p->W2,p->W4);
 
-	p->umax=p->W10;
+	p->umax=MAX(p->W10,p->umax);
+    
+    ULOOP
+	p->umax=MAX(p->umax,fabs(a->u(i,j,k)));
+
+	p->umax=pgc->globalmax(p->umax);
+
+
+	VLOOP
+	p->vmax=MAX(p->vmax,fabs(a->v(i,j,k)));
+
+	p->vmax=pgc->globalmax(p->vmax);
+
+
+	WLOOP
+	p->wmax=MAX(p->wmax,fabs(a->w(i,j,k)));
+
+	p->wmax=pgc->globalmax(p->wmax);
 
 	p->umax=MAX(p->umax,2.0*p->ufbmax);
 	p->umax=MAX(p->umax,2.0*p->vfbmax);
