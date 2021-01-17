@@ -43,6 +43,8 @@ void sflow_rheology_f::u_source(lexer *p, fdm2D *b, slice &u, slice &v)
     
     tau_zx = bingham(p,b,u(i,j),u_abs,press,HXIJ);
     
+    
+    
     b->F(i,j) -= tau_zx/(HXIJ*p->W1);
     }
 }
