@@ -159,6 +159,8 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
     
     if(patch[qq]->gcb_uflag==1 && patch[qq]->gcb_pressflag==1 && patch[qq]->gcb_phiflag==1)
     patch[qq]->gcb_flag = 111;
+    
+    //cout<<p->mpirank<<" patch[qq]->gcb_flag: "<<patch[qq]->gcb_flag<<endl;
     }
     
     
@@ -200,8 +202,6 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
                     patch[qq]->gcb[patch[qq]->counter][2]=k;
                     patch[qq]->gcb[patch[qq]->counter][3]=p->B441_face[qn];
                     ++patch[qq]->counter;
-                    
-                    
                     
                     // convert gcb
                     p->gcb4[n][4]=patch[qq]->gcb_flag;
