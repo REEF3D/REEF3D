@@ -127,8 +127,7 @@ void sflow_pjm_quad::ucorr(lexer* p, fdm2D* b, slice& P, slice &eta, double alph
 	SLICELOOP1
     if(b->breaking(i,j)==0 && b->breaking(i+1,j)==0)
 	P(i,j) -= alpha*p->dt*(((b->press(i+1,j)-b->press(i,j))/(p->DXM*p->W1)));
-
-    if(p->A222==1)           
+          
     SLICELOOP1
     if(b->breaking(i,j)==0 && b->breaking(i+1,j)==0)
 	P(i,j) += alpha*p->dt*(0.75*(b->press(i+1,j)+b->press(i,j))*((b->depth(i+1,j)-b->depth(i,j))
@@ -143,7 +142,6 @@ void sflow_pjm_quad::vcorr(lexer* p, fdm2D* b, slice& Q, slice &eta, double alph
     if(b->breaking(i,j)==0 && b->breaking(i,j+1)==0)
 	Q(i,j) -= alpha*p->dt*(((b->press(i,j+1)-b->press(i,j))/(p->DXM*p->W1)));
                 
-    if(p->A222==1)
     SLICELOOP2
     if(b->breaking(i,j)==0 && b->breaking(i,j+1)==0)
 	Q(i,j) += alpha*p->dt*(0.75*(b->press(i,j+1)+b->press(i,j))*((b->depth(i,j+1)-b->depth(i,j))
@@ -185,7 +183,6 @@ void sflow_pjm_quad::rhs(lexer *p, fdm2D* b, slice &P, slice &Q, slice &ws, doub
     ++count;
     }
     
-    if(p->A221<2)
     SLICELOOP4
     {
     press_n(i,j)=b->press(i,j);
@@ -266,8 +263,6 @@ void sflow_pjm_quad::poisson(lexer*p, fdm2D* b, double alpha)
 
 void sflow_pjm_quad::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 {
-    if(p->A221==1)
-    {
         SLICELOOP1
         {
         b->F(i,j) -= fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) 
@@ -286,26 +281,14 @@ void sflow_pjm_quad::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
         b->F(i,j) -= fabs(p->W22)*(p->A223*(b->bed(i,j)-p->wd) + (1.0-p->A223)*(b->bed(i,j)-p->wd)
                                      - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
                                      
-        }
-    }
-                                
-        if(p->A221==2)           
-        SLICELOOP1
-        if(b->breaking(i,j)==0 && b->breaking(i+1,j)==0)
-        b->F(i,j) += -(((b->press(i+1,j)-b->press(i,j))/(p->DXM*p->W1)));
+        }                                
 }
 
 void sflow_pjm_quad::vpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 {
-        if(p->A221==1)
         SLICELOOP2
         b->G(i,j) -= fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) 
                                  - p->A223*eta(i,j) -  (1.0-p->A223)*eta_n(i,j) )/(p->DXM); 
-        
-        if(p->A221==2)
-        SLICELOOP2
-        if(b->breaking(i,j)==0 && b->breaking(i,j+1)==0)
-        b->G(i,j) +=   - (((b->press(i,j+1)-b->press(i,j))/(p->DXM*p->W1)));
 }
 
 void sflow_pjm_quad::quad_calc(lexer *p,fdm2D *b,slice &P, slice &Q, slice &Pn, slice &Qn, double alpha)

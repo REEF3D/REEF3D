@@ -30,14 +30,11 @@ void lexer::ini_default()
 	A211=4;		  // int convection scheme for SLOW velocities
 	A212=0;		  // int diffusion treatment for SLOW velocities
     A214=1;      // int convection for vertical velocity
-    A215=0;      // int conservative discretization
     A216=2;      // int convection velocity
     A217=2;      // int slip or no-slip boundary conditions
     A218=0;      // int turn on roughness
     A219=1;      // int additional courant number constraint
 	A220=1;		  // int pressure scheme for SFLOW
-	A221=1;		  // int include hydrostatic pressure for SFLOW
-    A222=1;      // int turn on secondary pressure gradient
     A223=0.5;    // double blending factor pressure gradient
     A230=0;      // int turn on Boussinesq wave model
 	A240=1;      // int FSF algorithm SFLOW
@@ -105,9 +102,6 @@ void lexer::ini_default()
 	B56=-1.0;		// double global wall roughness ks
 	B60=0;            // int ioflow discharge
 	B61=2;            // int plain or logarithmic inflow profile
-	B62=3;            // int plain or logarithmic rans ini
-	B63=3;            // int zero, plain or logarithmic inflow profile for rans
-	B64=1;            // int reduce eddy near inflow
 	B70=0;       // double distance for use relaxation method for fixed water level
 	B71=0;       // double distance for use relaxation method for fixed water level ini
     B74=3;		 // int crossection i-indice for the periodic boundary condition
@@ -199,16 +193,6 @@ void lexer::ini_default()
 	B192_4=0.0;		// double z-coordinate for rotation around y-axis
 	B194_s=-1.0e9; // double start rotation
 	B194_e= 1.0e9; // double end rotation
-    B210=0;        // int patchBC inflow/outflow
-    B211=0;        // int patchBC discharge
-    B212=0;        // int patchBC pressure BC
-    B213=0;        // int patchBC waterlevel
-    B214=0;        // int patchBC perpendicular velocity
-    B215=0;        // int patchBC velocity components
-    B216=0;        // int patchBC horizontal inflow angle
-    B217=0;        // int patchBC inflow normals
-	B221=0;			// int rectangular inflow patch BC
-    B222=0;			// int circular inflow patch BC
 	B240=0;			// int porous media  
 	B241=1;			// int porous media in x-direction
 	B242=1;			// int porous media in y-direction
@@ -224,6 +208,15 @@ void lexer::ini_default()
     B308=1;         // int porosity effects on fluid acceleration for vegetation
     B309=2.0;       // double Cm for vegetation
     B310=0;         // int VRANS vegetation box
+    B411=0;        // int patchBC discharge
+    B412=0;        // int patchBC pressure BC
+    B413=0;        // int patchBC waterlevel
+    B414=0;        // int patchBC perpendicular velocity
+    B415=0;        // int patchBC velocity components
+    B416=0;        // int patchBC horizontal inflow angle
+    B417=0;        // int patchBC inflow normals
+	B441=0;			// int rectangular inflow patch BC
+    B442=0;			// int circular inflow patch BC
 	
 	// Concentration
 	C1=10.0;		// double density concentration in water
@@ -338,7 +331,6 @@ void lexer::ini_default()
 	G60=0;            // int number of geotopo boxes
 	G61=0;            // int number of geotopo wedges
 	G81=0;            // int number of inflow boxes
-	G95=0;            // int number of outflow boxes
 
 	// Heat
 	H1=1.4e-7;      // thermal diffusivity water
@@ -401,7 +393,6 @@ void lexer::ini_default()
     I242=0.0;       // double delta t for flowfile
 
     // Numerics
-	N5=1;			// int true 2D
 	N10=14;			// int linear poisson solver
 	N11=11;         // int precondioner
 	N12=1;         // 
@@ -553,8 +544,6 @@ void lexer::ini_default()
 	T36=0;				// int explciti free surface dampong through dissipation
 	T37=0.07;		    // int damping coefficient for T36
     T38=1.6;            // double epsi fsf turbulence damping
-    T39=1.0;            // double dirac function factor for fsf damping
-	T41=1;				// int source term definition for omega in kw model
 
     // Water Properties
 	W1=998.2;		// double density water

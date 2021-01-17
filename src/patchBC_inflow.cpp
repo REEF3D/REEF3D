@@ -58,9 +58,9 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
         u(i,j+2,k) =  0.0;
         u(i,j+3,k) =  0.0;
         
+        v(i,j,k) =  patch[qq]->Uio;
         v(i,j+1,k) =  patch[qq]->Uio;
         v(i,j+2,k) =  patch[qq]->Uio;
-        v(i,j+3,k) =  patch[qq]->Uio;
         
         w(i,j+1,k) =  0.0;
         w(i,j+2,k) =  0.0;
@@ -84,9 +84,9 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
         
         if(patch[qq]->gcb[n][3]==4)
         {
+        u(i,j,k)   =  patch[qq]->Uio;
         u(i+1,j,k) =  patch[qq]->Uio;
         u(i+2,j,k) =  patch[qq]->Uio;
-        u(i+3,j,k) =  patch[qq]->Uio;
         
         v(i+1,j,k) =  0.0;
         v(i+2,j,k) =  0.0;
@@ -122,9 +122,9 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
         v(i,j,k+2) =  0.0;
         v(i,j,k+3) =  0.0;
         
+        w(i,j,k)   =  patch[qq]->Uio;
         w(i,j,k+1) =  patch[qq]->Uio;
         w(i,j,k+2) =  patch[qq]->Uio;
-        w(i,j,k+3) =  patch[qq]->Uio;
         }
     
     }
@@ -133,7 +133,7 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
     
      // Velocity components
     for(qq=0;qq<obj_count;++qq)
-    if(patch[qq]->velocity_flag==1)
+    if(patch[qq]->velcomp_flag==1)
     for(n=0;n<patch[qq]->gcb_count;++n)
     {
     i=patch[qq]->gcb[n][0];
@@ -146,10 +146,12 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
         u(i-2,j,k) =  patch[qq]->U;
         u(i-3,j,k) =  patch[qq]->U;
         
+        v(i,j,k)   =  patch[qq]->V;
         v(i-1,j,k) =  patch[qq]->V;
         v(i-2,j,k) =  patch[qq]->V;
         v(i-3,j,k) =  patch[qq]->V;
         
+        w(i,j,k)   =  patch[qq]->W;
         w(i-1,j,k) =  patch[qq]->W;
         w(i-2,j,k) =  patch[qq]->W;
         w(i-3,j,k) =  patch[qq]->W;
@@ -157,14 +159,16 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
         
         if(patch[qq]->gcb[n][3]==2)
         {
+        u(i,j,k)   =  patch[qq]->U;
         u(i,j+1,k) =  patch[qq]->U;
         u(i,j+2,k) =  patch[qq]->U;
         u(i,j+3,k) =  patch[qq]->U;
         
+        v(i,j,k)   =  patch[qq]->V;
         v(i,j+1,k) =  patch[qq]->V;
         v(i,j+2,k) =  patch[qq]->V;
-        v(i,j+3,k) =  patch[qq]->V;
         
+        w(i,j,k)   =  patch[qq]->W;
         w(i,j+1,k) =  patch[qq]->W;
         w(i,j+2,k) =  patch[qq]->W;
         w(i,j+3,k) =  patch[qq]->W;
@@ -172,6 +176,7 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
         
         if(patch[qq]->gcb[n][3]==3)
         {
+        u(i,j,k)   =  patch[qq]->U;
         u(i,j-1,k) =  patch[qq]->U;
         u(i,j-2,k) =  patch[qq]->U;
         u(i,j-3,k) =  patch[qq]->U;
@@ -180,6 +185,7 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
         v(i,j-2,k) =  patch[qq]->V;
         v(i,j-3,k) =  patch[qq]->V;
         
+        w(i,j,k)   =  patch[qq]->W;
         w(i,j-1,k) =  patch[qq]->W;
         w(i,j-2,k) =  patch[qq]->W;
         w(i,j-3,k) =  patch[qq]->W;
@@ -187,14 +193,16 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
         
         if(patch[qq]->gcb[n][3]==4)
         {
+        u(i,j,k)   =  patch[qq]->U;
         u(i+1,j,k) =  patch[qq]->U;
         u(i+2,j,k) =  patch[qq]->U;
-        u(i+3,j,k) =  patch[qq]->U;
         
+        v(i,j,k)   =  patch[qq]->V;
         v(i+1,j,k) =  patch[qq]->V;
         v(i+2,j,k) =  patch[qq]->V;
         v(i+3,j,k) =  patch[qq]->V;
         
+        w(i,j,k)   =  patch[qq]->W;
         w(i+1,j,k) =  patch[qq]->W;
         w(i+2,j,k) =  patch[qq]->W;
         w(i+3,j,k) =  patch[qq]->W;
@@ -202,10 +210,12 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
         
         if(patch[qq]->gcb[n][3]==5)
         {
+        u(i,j,k)   =  patch[qq]->U;
         u(i,j,k-1) =  patch[qq]->U;
         u(i,j,k-2) =  patch[qq]->U;
         u(i,j,k-3) =  patch[qq]->U;
         
+        v(i,j,k)   =  patch[qq]->V;
         v(i,j,k-1) =  patch[qq]->V;
         v(i,j,k-2) =  patch[qq]->V;
         v(i,j,k-3) =  patch[qq]->V;
@@ -217,17 +227,19 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
         
         if(patch[qq]->gcb[n][3]==6)
         {
+        u(i,j,k)   =  patch[qq]->U;
         u(i,j,k+1) =  patch[qq]->U;
         u(i,j,k+2) =  patch[qq]->U;
         u(i,j,k+3) =  patch[qq]->U;
         
+        v(i,j,k)   =  patch[qq]->V;
         v(i,j,k+1) =  patch[qq]->V;
         v(i,j,k+2) =  patch[qq]->V;
         v(i,j,k+3) =  patch[qq]->V;
         
+        w(i,j,k)   =  patch[qq]->W;
         w(i,j,k+1) =  patch[qq]->W;
         w(i,j,k+2) =  patch[qq]->W;
-        w(i,j,k+3) =  patch[qq]->W;
         }
     
     }

@@ -57,8 +57,6 @@ void ioflow_f::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, fiel
         }
 
 
-        if(p->B64==1)
-        {
         for(q=0;q<4;++q)
         for(n=0;n<p->gcin_count;++n)
         {
@@ -70,7 +68,7 @@ void ioflow_f::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, fiel
         a->eddyv(i,j,k)=MIN(a->eddyv(i,j,k),1.0e-4);
         }
         pgc->start4(p,a->eddyv,24);
-        }
+        
     }
     
     pBC->patchBC_ioflow(p,a,pgc,u,v,w);
@@ -220,7 +218,7 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
         }
     }
 
-    if((p->B61==4 || p->B62==5) && p->count>0)
+    if((p->B61==4) && p->count>0)
     for(n=0;n<p->gcin_count;n++)
     {
     i=p->gcin[n][0];

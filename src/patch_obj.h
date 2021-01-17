@@ -52,7 +52,6 @@ public:
     int counter;
     
     /*
-    B210=0;        // int patchBC inflow/outflow
     B211=0;        // int patchBC discharge
     B212=0;        // int patchBC pressure BC
     B213=0;        // int patchBC waterlevel
@@ -61,8 +60,6 @@ public:
     B216=0;        // int patchBC horizontal inflow angle
     B217=0;        // int patchBC inflow normals
     */
-    
-    int io_flag;
     
     int Q_flag;
     double Q;

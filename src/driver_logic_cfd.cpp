@@ -695,10 +695,10 @@ void driver::logic()
 
 void driver::patchBC_logic()
 {
-    if(p->B221>0 || p->B222>0)
+    if(p->B441>0 || p->B442>0)
     pBC = new patchBC(p,pgc);
     
-    if(p->B221==0 && p->B222==0)
+    if(p->B441==0 && p->B442==0)
     pBC = new patchBC_void(p);
     
 }

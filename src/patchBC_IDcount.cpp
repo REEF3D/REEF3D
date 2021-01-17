@@ -30,7 +30,7 @@ void patchBC::patchBC_IDcount(lexer *p, ghostcell *pgc)
 {    
     int check;
     
-    geo_count = p->B221 + p->B222;
+    geo_count = p->B441 + p->B442;
     
     p->Iarray(ID_array,geo_count);
     
@@ -39,45 +39,45 @@ void patchBC::patchBC_IDcount(lexer *p, ghostcell *pgc)
     count=0;
     check=0;
     
-    if(p->B221>0 && check==0)
+    if(p->B441>0 && check==0)
     {
-    ID_array[0] = p->B221_ID[0];
+    ID_array[0] = p->B441_ID[0];
     count=1;
     check=1;
     }
     
-    if(p->B222>0 && check==0)
+    if(p->B442>0 && check==0)
     {
-    ID_array[0] = p->B222_ID[0];
+    ID_array[0] = p->B442_ID[0];
     count=1;
     check=1;
     }
     
     // fill ID array
-    for(n=0; n<p->B221;++n)
+    for(n=0; n<p->B441;++n)
     {
         check=1;
         for(qn=0;qn<count;++qn)
-        if(ID_array[qn] == p->B221_ID[n]);
+        if(ID_array[qn] == p->B441_ID[n]);
         check=0;
         
         if(check==1)
         {
-        ID_array[count] = p->B221_ID[n];
+        ID_array[count] = p->B441_ID[n];
         ++count;       
         }
     }
     
-    for(n=0; n<p->B222;++n)
+    for(n=0; n<p->B442;++n)
     {
         check=1;
         for(qn=0;qn<count;++qn)
-        if(ID_array[qn] == p->B222_ID[n]);
+        if(ID_array[qn] == p->B442_ID[n]);
         check=0;
         
         if(check==1)
         {
-        ID_array[count] = p->B222_ID[n];
+        ID_array[count] = p->B442_ID[n];
         ++count;       
         }
     }
