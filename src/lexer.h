@@ -533,7 +533,7 @@ public:
 	//Eigen::Matrix3d quatRotMat;	
     int X10,X12,X13,X18,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X27,X31,X32,X33,X34,X38,X40,X110,X120,X131,X132,X133;
 	int X100,X101,X102,X103,X141,X142,X143,X153,X180,X181,X182,X183,X210,X211;
-	int X310, X311, X312, X320, X321, mooring_count, net_count;
+	int X310, X311, X312, X313, X320, X321, mooring_count, net_count;
 	double X21_d,X22_m;
 	double X23_x,X23_y,X23_z;
 	double X24_Ix,X24_Iy,X24_Iz;	
