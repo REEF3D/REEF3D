@@ -130,6 +130,15 @@ void sixdof_gc::position_ini_quaternion(lexer *p, fdm *a, ghostcell *pgc)
 			rotation_quaternion
 				(tri_x[n][2],tri_y[n][2],tri_z[n][2],dphi,dtheta,dpsi);
 		}
+        
+        // Rotate mooring end point
+        if (p->X313==1)
+        {
+            for (int line=0; line < p->mooring_count; line++)
+            {
+			    rotation_quaternion(p->X311_xe[line],p->X311_ye[line],p->X311_ze[line],dphi,dtheta,dpsi);
+            }
+        }
 	}
 	
 	phi += dphi;

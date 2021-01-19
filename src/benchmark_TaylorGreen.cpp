@@ -45,7 +45,7 @@ benchmark_TaylorGreen::benchmark_TaylorGreen(lexer *p, fdm *a) : gradient(p)
         x = p->pos2_x();
         y = p->pos2_y();
         z = p->pos2_z();
-        a->v(i,j,k) = U*(cos(x/L)*sin(y/L)*cos(z/L));
+        a->v(i,j,k) = -U*(cos(x/L)*sin(y/L)*cos(z/L));
     }
     
     WLOOP

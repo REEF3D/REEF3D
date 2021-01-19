@@ -52,6 +52,7 @@ private:
     double tau0,val;
     double press;
     double tanphi;
+    double hc,denom;
 };
 
 #endif

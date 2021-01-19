@@ -27,6 +27,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void patchBC::patchBC_pressure(lexer *p, fdm *a, ghostcell *pgc, field &press)
 {
+
+        
     for(qq=0;qq<obj_count;++qq)
     if(patch[qq]->pressure_flag==1)
     for(n=0;n<patch[qq]->gcb_count;++n)
@@ -65,6 +67,7 @@ void patchBC::patchBC_pressure(lexer *p, fdm *a, ghostcell *pgc, field &press)
         
         if(patch[qq]->gcb[n][3]==5)
         {
+        //cout<<p->mpirank<<" TEST PRESS"<<endl;
         press(i,j,k-1) =  patch[qq]->pressure;
         press(i,j,k-2) =  patch[qq]->pressure;
         press(i,j,k-3) =  patch[qq]->pressure;

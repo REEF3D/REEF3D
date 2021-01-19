@@ -43,9 +43,6 @@ public:
 
     virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
     virtual void ini(lexer*, fdm*, ghostcell*);
-    virtual void plain(lexer*, fdm*, ghostcell*);
-	virtual void plain_nwt(lexer*, fdm*, ghostcell*);
-    virtual void logini(lexer*, fdm*, ghostcell*);
     virtual void plain_wallfunc(lexer*, fdm*, ghostcell*);
     virtual void inflow(lexer*, fdm*, ghostcell*);
     virtual double kinval(int,int,int);

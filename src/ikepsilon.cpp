@@ -139,7 +139,7 @@ void  ikepsilon::epsfsf(lexer *p, fdm* a,ghostcell *pgc)
             epsi = p->T38*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
             
 		if(fabs(a->phi(i,j,k))<epsi)
-		dirac = (0.5/epsi)*(1.0 + cos((p->T39*PI*a->phi(i,j,k))/epsi));
+		dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
 		
 		if(fabs(a->phi(i,j,k))>=epsi)
 		dirac=0.0;

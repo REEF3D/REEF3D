@@ -30,7 +30,7 @@ mooring_Spring::~mooring_Spring(){}
 
 
 void mooring_Spring::initialize(lexer *p, fdm *a, ghostcell *pgc)
-{    
+{   
     dx = p->X311_xe[line] - p->X311_xs[line];			
     dy = p->X311_ye[line] - p->X311_ys[line];				
     dz = p->X311_ze[line] - p->X311_zs[line];	

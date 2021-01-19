@@ -128,9 +128,6 @@ void ikomega::epssource(lexer *p, fdm* a, vrans* pvrans)
     count=0;
     double dirac;
 
-
-	if(p->T41==1)
-	{
         LOOP
         {
 		a->M.p[count] += kw_beta * MAX(eps(i,j,k),0.0);
@@ -138,18 +135,7 @@ void ikomega::epssource(lexer *p, fdm* a, vrans* pvrans)
         a->rhsvec.V[count] +=  kw_alpha * (MAX(eps(i,j,k),0.0)/(kin(i,j,k)>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20)))*pk(p,a);
         ++count;
         }
-	}
 
-	if(p->T41==2)
-	{
-        LOOP
-        {
-        a->M.p[count] += kw_beta * MAX(eps(i,j,k),0.0);
-
-        a->rhsvec.V[count] += kw_alpha * pk_w(p,a);
-        ++count;
-        }
-    }
     
     pvrans->omega_source(p,a,kin,eps);
 }
@@ -171,7 +157,7 @@ void ikomega::epsfsf(lexer *p, fdm* a, ghostcell *pgc)
         
         
 		if(fabs(a->phi(i,j,k))<epsi)
-		dirac = (0.5/epsi)*(1.0 + cos((p->T39*PI*a->phi(i,j,k))/epsi));
+		dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
 		
 		if(fabs(a->phi(i,j,k))>=epsi)
 		dirac=0.0;

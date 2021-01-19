@@ -331,6 +331,15 @@ void sixdof_df_object::iniPosition_RBM(lexer *p, fdm *a, ghostcell *pgc)
 			rotation_tri
 				(p,-phi,-theta,-psi,tri_x[n][2],tri_y[n][2],tri_z[n][2],c_(0),c_(1),c_(2));
 		}
+
+        // Rotate mooring end point
+        if (p->X313==1)
+        {
+            for (int line=0; line < p->mooring_count; line++)
+            {
+			    rotation_tri(p,-phi,-theta,-psi,p->X311_xe[line],p->X311_ye[line],p->X311_ze[line],c_(0),c_(1),c_(2));
+            }
+        }
 	}
 	
 
