@@ -139,7 +139,6 @@ void pftimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
     cu=cv=1.0e10;
     
 	p->umax=p->vmax=p->wmax=p->viscmax=-1e19;
-	p->umax=p->W10;
     
 
     SLICELOOP4

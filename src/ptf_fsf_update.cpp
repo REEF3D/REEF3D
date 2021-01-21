@@ -81,12 +81,14 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     if(i+p->origin_i>0)
     FILOOP4
     {
-    lsv0 = a->phi(i,j,k-1);
+    lsv0 = a->phi(i,j,k);
     lsv1 = a->phi(i,j,k+1);
     lsv2 = a->phi(i,j,k+2);
     lsv3 = a->phi(i,j,k+3);
     
-    fival = Fi(i,j,k-1);
+    lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20;
+    
+    fival = Fi(i,j,k);
  
 
         Fi(i,j,k+1) =  ((Fifsf(i,j)-fival)/(fabs(lsv0)))*fabs(lsv1) + Fifsf(i,j);
