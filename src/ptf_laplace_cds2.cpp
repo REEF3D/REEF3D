@@ -154,24 +154,39 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             a->M.w[n] = 0.0;
             }
             
-            // FSFBC
+        // FSFBC
+            // south
+            if(p->flag4[Im1JK]==AIR)
+            {
+            a->rhsvec.V[n] -= a->M.s[n]*f(i-1,j,k);
+            a->M.s[n] = 0.0;
+            }
+            
+            // north
+            if(p->flag4[Ip1JK]==AIR)
+            {
+            a->rhsvec.V[n] -= a->M.n[n]*f(i+1,j,k);
+            a->M.n[n] = 0.0;
+            }
+            
+            // east
+            if(p->flag4[IJm1K]==AIR)
+            {
+            a->rhsvec.V[n] -= a->M.e[n]*f(i,j-1,k);
+            a->M.e[n] = 0.0;
+            }
+            
+            // top
+            if(p->flag4[IJp1K]==AIR)
+            {
+            a->rhsvec.V[n] -= a->M.w[n]*f(i,j+1,k);
+            a->M.w[n] = 0.0;
+            }
+            
+            // top
             if(p->flag4[IJKp1]==AIR)
             {
-            // old
-            //a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1);
-            //a->M.t[n] = 0.0;
-            
-            // new
-            double lsv0,lsv1;
-            
-            lsv0 = fabs(a->phi(i,j,k));
-            lsv1 = fabs(a->phi(i,j,k+1));
-
-            lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20;
-            
-   
-            a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1)*(1.0 + lsv1/lsv0);
-            a->M.p[n] -= a->M.t[n]*lsv1/lsv0;
+            a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1);
             a->M.t[n] = 0.0;
             }
     
@@ -181,6 +196,30 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             a->M.p[n] += a->M.b[n];
             a->M.b[n] = 0.0;
             }
+            /*
+            if(p->flag4[IJKm1]<AIR)
+            {
+            ab = -1.0/(p->DZP[KM1]*p->DZN[KP]);   
+            
+            Bx = (a->bed(i+1,j)-a->bed(i-1,j))/(p->DXP[IM1] + p->DXP[IP]);
+            By = (a->bed(i,j+1)-a->bed(i,j-1))/(p->DYP[JM1] + p->DXP[JP]);
+            
+                    //if(p->flag4[Im1JK]>0 && p->flag4[Ip1JKm1]>0 && a->wet(i+1,j)==1 && a->wet(i-1,j)==1)
+                    if(a->wet(i+1,j)==1 && a->wet(i-1,j)==1)
+                    {
+                    a->M.n[n] +=  ab*(p->DZP[KP]+p->DZP[KM1])*Bx/(p->DXP[IP] + p->DXP[IM1]);
+                    a->M.s[n] += -ab*(p->DZP[KP]+p->DZP[KM1])*Bx/(p->DXP[IP] + p->DXP[IM1]);
+                    }
+                    
+                    if(a->wet(i,j-1)==1 && a->wet(i,j+1)==1)
+                    {
+                    a->M.w[n] +=  ab*(p->DZP[KP]+p->DZP[KM1])*By/(p->DYP[JP] + p->DYP[JM1]);
+                    a->M.e[n] += -ab*(p->DZP[KP]+p->DZP[KM1])*By/(p->DYP[JP] + p->DYP[JM1]);
+                    }
+                
+            a->M.t[n] += ab;
+            a->M.b[n] = 0.0;
+            }*/
         }
 
 	++n;
