@@ -239,6 +239,8 @@ void ptf_RK4::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *preini
     fsfupdate(p,a,pgc,pflow,poneph,a->eta);
     etaloc(p,a,pgc);
     
+    waterdepth(p,a,pgc);
+    
     // potential ini
     pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pflow->fifsf_relax(p,pgc,a->Fifsf);

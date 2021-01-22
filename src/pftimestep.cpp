@@ -137,6 +137,16 @@ void pftimestep::start(fdm *a, lexer *p,ghostcell *pgc, turbulence *pturb)
 void pftimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 {
     cu=cv=1.0e10;
+    p->umax=0.0;
+    
+    
+    double depthmax=0.0;
+    FILOOP4
+	depthmax=MAX(depthmax,a->depth(i,j));
+	
+	depthmax=pgc->globalmax(depthmax);
+    
+    
     
 	p->umax=p->vmax=p->wmax=p->viscmax=-1e19;
     
@@ -160,7 +170,6 @@ void pftimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 	p->umax=MAX(p->umax,2.0*p->X210_w);
     
     p->umax+=10.0;
-
 
 	LOOP
     {

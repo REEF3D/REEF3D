@@ -117,7 +117,7 @@ double fnpf_weno::fz(lexer *p, field &f, double kvel1, double kvel2)
     else
     {
         if(i+p->origin_i>0)
-        grad = (f(i,j,k+1) - f(i,j,k))/(p->ZP[KP]);
+        grad = (f(i,j,k) - f(i,j,k-1))/(p->ZP[KM1]);
               
         if(i+p->origin_i==0)
         grad = (f(i,j,k) - f(i,j,k-1))/(p->ZP[KM1]);

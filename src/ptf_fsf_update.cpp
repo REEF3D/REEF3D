@@ -69,7 +69,7 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     double lsv0,lsv1,lsv2,lsv3;
     double fival,lsval,dx,dist;
     
-    //if(i+p->origin_i==0)
+   // if(i+p->origin_i==0)
     FILOOP4
     {
     Fi(i,j,k+1) =  Fifsf(i,j);
