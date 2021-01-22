@@ -68,7 +68,7 @@ double fnpf_weno::fz(lexer *p, field &f, double kvel1, double kvel2)
 {
     grad=0.0;
     
-/*
+
     if(p->flag4[IJK]>0 && p->flag4[IJKm1]>0 && p->flag4[IJKm2]>0 && p->flag4[IJKm3] && p->flag4[IJKm4]>0 && p->flag4[IJKm5])
     {
         if(i+p->origin_i>0)
@@ -82,7 +82,7 @@ double fnpf_weno::fz(lexer *p, field &f, double kvel1, double kvel2)
         //cout<<" return 6"<<endl;
             
         return grad;
-    }*/
+    }
 
     if(p->flag4[IJK]>0 && p->flag4[IJKm1]>0 && p->flag4[IJKm2]>0 && p->flag4[IJKm3]>0)
     {

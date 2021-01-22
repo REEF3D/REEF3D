@@ -120,7 +120,8 @@ void pftimestep::start(fdm *a, lexer *p,ghostcell *pgc, turbulence *pturb)
     cv = MIN(cv, 1.0/((fabs(MAX(p->vmax, sqrt(9.81*depthmax)))/dx)));
     
     }
-
+    
+    if(p->j_dir==1 )
    	cu = MIN(cu,cv);
     
    	p->dt=p->N47*cu;
@@ -185,15 +186,22 @@ void pftimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
     cv = MIN(cv, 1.0/((fabs(MAX(p->vmax, sqrt(9.81*depthmax)))/dx)));
     
     }
-
+    
+    
+    
+    if(p->j_dir==1 )
    	cu = MIN(cu,cv);
     
    	p->dt=p->N47*cu;
+    
+    //cout<<p->mpirank<<" p->umax: "<<p->umax<<" cu: "<<cu<<" cv: "<<cv<<" dt: "<<p->dt<<endl;
     
 	p->dt=pgc->timesync(p->dt);
 
 	p->dt=MIN(p->dt,maxtimestep);
 	p->dt_old=p->dt;
+    
+    
 
 }
 
