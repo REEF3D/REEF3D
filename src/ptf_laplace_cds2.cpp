@@ -209,6 +209,20 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             a->M.p[n] += a->M.b[n];
             a->M.b[n] = 0.0;
             }
+            
+            
+            /*
+            if(p->flag4[IJKm1]<AIR)
+            {
+
+            denom = -1.5*p->ZP[KM1] + 2.0*p->ZP[KP] - 0.5*p->ZP[KP1];
+            
+            a->M.p[n] += (4.0/3.0)*a->M.b[n];
+            a->M.t[n] -= (1.0/3.0)*a->M.b[n];
+            a->M.b[n] = 0.0;
+            }*/
+            
+
         }
 
 	++n;

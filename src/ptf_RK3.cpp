@@ -179,9 +179,7 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     FLUIDLOOP
     a->test(i,j,k) = a->Fifsf(i,j);
     
-    //pfsfupdate->fsfbc(p,a,pgc,a->Fifsf,a->Fi);
     pfsfupdate->velcalc(p,a,pgc,a->Fi);
-    //pfsfupdate->fsfbc0(p,a,pgc,a->Fifsf,a->Fi);
 }
 
 void ptf_RK3::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *preini, onephase *poneph)
