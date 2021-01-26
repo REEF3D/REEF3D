@@ -64,10 +64,20 @@ void lexer::vellast()
 {
     ulast=vlast=wlast=1;
 
+    // parallel boundaries
     if(nb4>=0)
     ulast=0;
     
+    if(nb2>=0)
+    vlast=0;
 
+    if(nb6>=0)
+    wlast=0;
+    
+    // non-parallel perioddic bounbdaries
+    if(nb4>=0)
+    ulast=0;
+    
     if(nb2>=0)
     vlast=0;
 
