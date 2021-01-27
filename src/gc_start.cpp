@@ -208,7 +208,7 @@ void ghostcell::start4(lexer *p, field &f, int gcv)
     if(p->Y40==2  || p->Y40==3)
     f.ggcpol(p);
     
-    gcperiodicx(p,f,4);
+    //gcperiodicx(p,f,4);
 }
 
 void ghostcell::start4a(lexer *p, field& f, int gcv)

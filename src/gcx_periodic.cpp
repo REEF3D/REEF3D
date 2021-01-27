@@ -29,7 +29,7 @@ void ghostcell::gcperiodicx(lexer* p,field& f,int gcv)
     
     int aa,bb,cc;
     aa=bb=cc=0;
-    
+    /*
     if(gcv==1)
     aa=1;
     
@@ -37,7 +37,7 @@ void ghostcell::gcperiodicx(lexer* p,field& f,int gcv)
     bb=1;
     
     if(gcv==3)
-    cc=1;
+    cc=1;*/
     
     //cout<<p->mpirank<<"  p->periodicX1: "<<p->periodicX1<<" "<<p->gcpara1_count<<endl;
     //cout<<p->mpirank<<"  p->periodicX4: "<<p->periodicX4<<" "<<p->gcpara4_count<<endl;
