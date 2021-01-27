@@ -45,9 +45,6 @@ void ghostcell::dgcpol4(lexer* p,field& f,int gcv)
 
         if(bc==2)
         f(i+di,j+dj,k+dk) = 0.0;    
-
-        //if(p->mpirank==0)
-        //cout<<p->mpirank<<"  DGC4: "<<f(i,j,k)<<" "<<i<<" "<<j<<" "<<k<<endl;
         
     }
 }
