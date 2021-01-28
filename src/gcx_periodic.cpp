@@ -276,7 +276,7 @@ void ghostcell::gcperiodicx(lexer* p,field& f,int gcv)
 	}
     
     
-    
+    /*
     if(p->mpirank==5)
     {
     i=p->knox-1;
@@ -308,7 +308,7 @@ void ghostcell::gcperiodicx(lexer* p,field& f,int gcv)
     if(p->gcb4[n][3] == 1)
     cout<<i<<" "<<p->gcb4[n][4]<<" PRESS PERIODX 1: "<<a->press(i-3,j,k)<<" "<<a->press(i-2,j,k)<<" "<<a->press(i-1,j,k)<<" . "<<a->press(i,j,k)<<" "<<a->press(i+1,j,k)<<" "<<a->press(i+2,j,k)<<" "<<endl;
     }
-    }
+    }*/
 
 }
 
