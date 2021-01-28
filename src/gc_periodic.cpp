@@ -36,16 +36,13 @@ void ghostcell::gc_periodic(lexer *p, field& f, int gcv, int cs)
     {
         
     // 4 to 1 coupling
-    if(gcv!=1)
-    i=p->knox-1;
-    
-    if(gcv==1)
     i=p->knox-1;
     
     val1 = f(i,j,k);
     val2 = f(i-1,j,k);
     val3 = f(i-2,j,k);
     
+
     i=0;
 	f(i-1,j,k) = val1;
     f(i-2,j,k) = val2;
@@ -58,10 +55,6 @@ void ghostcell::gc_periodic(lexer *p, field& f, int gcv, int cs)
     val2 = f(i+1,j,k);
     val3 = f(i+2,j,k);
     
-    if(gcv!=1)
-    i=p->knox-1;
-    
-    if(gcv==1)
     i=p->knox-1;
     
 	f(i+1,j,k) = val1;
@@ -76,10 +69,6 @@ void ghostcell::gc_periodic(lexer *p, field& f, int gcv, int cs)
     PCHECK
     {
     // 2 to 3 coupling
-    if(gcv!=2)
-    j=p->knoy-1;
-    
-    if(gcv==2)
     j=p->knoy-1;
     
     val1 = f(i,j,k);
@@ -97,11 +86,8 @@ void ghostcell::gc_periodic(lexer *p, field& f, int gcv, int cs)
     val2 = f(i,j+1,k);
     val3 = f(i,j+2,k);
     
-    if(gcv!=2)
     j=p->knoy-1;
     
-    if(gcv==2)
-    j=p->knoy-1;
 	f(i,j+1,k) = val1;
     f(i,j+2,k) = val2;
     f(i,j+3,k) = val3;
@@ -114,10 +100,6 @@ void ghostcell::gc_periodic(lexer *p, field& f, int gcv, int cs)
     PCHECK
     {
     // 6 to 5 coupling
-    if(gcv!=3)
-    k=p->knoz-1;
-    
-    if(gcv==3)
     k=p->knoz-1;
     
     val1 = f(i,j,k);
@@ -135,11 +117,8 @@ void ghostcell::gc_periodic(lexer *p, field& f, int gcv, int cs)
     val2 = f(i,j,k+1);
     val3 = f(i,j,k+2);
     
-    if(gcv!=3)
     k=p->knoz-1;
-    
-    if(gcv==3)
-    k=p->knoz-1;
+
 	f(i,j,k+1) = val1;
     f(i,j,k+2) = val2;
     f(i,j,k+3) = val3;

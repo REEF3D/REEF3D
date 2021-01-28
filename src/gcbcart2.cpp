@@ -67,7 +67,7 @@ void mgc2::fillgcb(lexer *p)
 		j=p->gcb2[q][1];
 		k=p->gcb2[q][2];
 
-            if(p->gcb2[q][3]==2)
+            if(p->gcb2[q][3]==2 && (p->periodic2!=1 || j+p->origin_j<p->gknoy-1))
             p->gcb2[q][1]-=1;
 	}
     
@@ -77,7 +77,7 @@ void mgc2::fillgcb(lexer *p)
 		j=p->gcb2[q][1];
 		k=p->gcb2[q][2];
 
-            if(p->gcb2[q][3]!=2 && p->fgc[IJK][1]==1)
+            if(p->gcb2[q][3]!=2 && p->fgc[IJK][1]==1 && (p->periodic2!=1 || j+p->origin_j<p->gknoy-1))
             p->gcb2[q][3]=-fabs(p->gcb2[q][3]);
 	}
 }
