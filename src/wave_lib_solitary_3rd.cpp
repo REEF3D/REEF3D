@@ -126,7 +126,7 @@ double wave_lib_solitary_3rd::wave_eta(lexer *p, double x, double y)
 
 double wave_lib_solitary_3rd::wave_fi(lexer *p, double x, double y, double z)
 {
-    double fi;
+    double fi=0.0;
     
     return fi;
 }

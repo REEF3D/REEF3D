@@ -73,7 +73,7 @@ void ghostcell::flagfield(lexer *p)
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
 
-        if(p->gcb4[n][3]==4)
+        if(p->gcb4[n][3]==4 && (p->periodic1!=1 || i+p->origin_i<p->gknox-1))
         p->flag1[UIJK]=OBJ;
     }
 
@@ -83,7 +83,7 @@ void ghostcell::flagfield(lexer *p)
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
 
-        if(p->gcb4[n][3]==2)
+        if(p->gcb4[n][3]==2 && (p->periodic2!=1 || j+p->origin_j<p->gknoy-1))
         p->flag2[VIJK]=OBJ;
     }
 
@@ -93,7 +93,7 @@ void ghostcell::flagfield(lexer *p)
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
 
-        if(p->gcb4[n][3]==6)
+        if(p->gcb4[n][3]==6 && (p->periodic3!=1 || k+p->origin_k<p->gknoz-1))
         p->flag3[WIJK]=OBJ;
     }
 	

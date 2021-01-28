@@ -74,21 +74,6 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p
     pconeta = new fnpf_weno7(p);
     }
     
-
-    // ---
-    /*
-    if(p->A312==2)
-    {
-    pddx = new fnpf_ddx_cds2_wd(p,c);
-    pdx = new fnpf_cds2_wd(p,c);
-    }
-    
-    if(p->A312==3)
-    {
-    pddx = new fnpf_ddx_cds4_wd(p);
-    pdx = new fnpf_cds4_wd(p);
-    }*/
-    
     
     // ---
     if(p->A312==2)
