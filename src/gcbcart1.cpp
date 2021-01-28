@@ -193,7 +193,7 @@ void mgc1::extragcb(lexer *p)
         if(p->flag1[UIJK]==0 && p->flag1[UIJKp1]==1)
         ++count;
 	}
-	//cout<<p->mpirank<<" old gcb1: "<<p->gcb1_count<<" new gcb1: "<<count<<endl;
+	cout<<p->mpirank<<" old gcb1: "<<p->gcb1_count<<" new gcb1: "<<count<<endl;
 	
 	if(p->gcb1_count!=count)
 	{

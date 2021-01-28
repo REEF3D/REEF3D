@@ -44,6 +44,24 @@ void driver::makegrid(lexer *p, ghostcell *pgc)
 	mgc4a m4a(p);
     mgc6 m6(p);
     
+    if(p->mpirank==0)
+    {
+    i=0;
+    j=0;
+    k=6;
+    
+    cout<<i<<" "<<" FLAG PERIODX 1: "<<p->flag4[IJK]<<" "<<p->flag4[Im1JK]<<" "<<p->flag4[Im2JK]<<" "<<p->flag4[Im3JK]<<endl;
+    }
+    
+    if(p->mpirank==5)
+    {
+    i=p->knox-1;
+    j=0;
+    k=6;
+    
+    cout<<i<<" "<<" FLAG1 PERIODX 4: "<<p->flag4[IJK]<<" "<<p->flag4[Ip1JK]<<" "<<p->flag4[Ip2JK]<<" "<<p->flag4[Ip3JK]<<endl;
+    }
+    
 	pgc->flagx(p,p->flag1);
     pgc->flagx(p,p->flag2);
     pgc->flagx(p,p->flag3);
@@ -51,13 +69,53 @@ void driver::makegrid(lexer *p, ghostcell *pgc)
     pgc->flagx(p,p->flag);
 	pgc->gcxupdate(p);
     
+    
+    if(p->mpirank==0)
+    {
+    i=0;
+    j=0;
+    k=6;
+    
+    cout<<i<<" "<<" FLAG PERIODX 1: "<<p->flag4[IJK]<<" "<<p->flag4[Im1JK]<<" "<<p->flag4[Im2JK]<<" "<<p->flag4[Im3JK]<<endl;
+    }
+    
+    if(p->mpirank==5)
+    {
+    i=p->knox-1;
+    j=0;
+    k=6;
+    
+    cout<<i<<" "<<" FLAG1 PERIODX 4: "<<p->flag4[IJK]<<" "<<p->flag4[Ip1JK]<<" "<<p->flag4[Ip2JK]<<" "<<p->flag4[Ip3JK]<<endl;
+    }
+    
+    
+    if(p->mpirank==0)
+    cout<<"MAKEGRID  001"<<endl;
 	
 	m1.makemgc(p);
+    
+    if(p->mpirank==0)
+    cout<<"MAKEGRID  001a"<<endl;
     m1.fillgcb(p);
+    
+    if(p->mpirank==0)
+    cout<<"MAKEGRID  001b"<<endl;
     m1.extragcb(p);
+    
+    if(p->mpirank==0)
+    cout<<"MAKEGRID  001c"<<endl;
     m1.mgcsetup(p);
+    
+    if(p->mpirank==0)
+    cout<<"MAKEGRID  001d"<<endl;
     m1.fillmgc(p);
+    
+    if(p->mpirank==0)
+    cout<<"MAKEGRID  001e"<<endl;
     m1.gcdirfill(p);
+    
+    if(p->mpirank==0)
+    cout<<"MAKEGRID  002f"<<endl;
 	
     m2.makemgc(p);
     m2.fillgcb(p);
@@ -65,6 +123,9 @@ void driver::makegrid(lexer *p, ghostcell *pgc)
     m2.mgcsetup(p);
     m2.fillmgc(p);
     m2.gcdirfill(p);
+    
+    if(p->mpirank==0)
+    cout<<"MAKEGRID  003"<<endl;
 
     m3.makemgc(p);
     m3.fillgcb(p);
@@ -72,12 +133,18 @@ void driver::makegrid(lexer *p, ghostcell *pgc)
     m3.mgcsetup(p);
     m3.fillmgc(p);
     m3.gcdirfill(p);
+    
+    if(p->mpirank==0)
+    cout<<"MAKEGRID  004"<<endl;
 
     m4.makemgc(p);
     m4.mgcsetup(p);
     m4.fillmgc(p);
     m4.gcdirfill(p);
 	m4.gcsidefill(p);
+    
+    if(p->mpirank==0)
+    cout<<"MAKEGRID  005"<<endl;
 
     m4a.makemgc(p);
     m4a.fillgcb(p);
@@ -85,10 +152,16 @@ void driver::makegrid(lexer *p, ghostcell *pgc)
     m4a.fillmgc(p);
     m4a.gcdirfill(p);
     
+    if(p->mpirank==0)
+    cout<<"MAKEGRID  006"<<endl;
+    
     m6.makemgc(p);
     m6.mgcsetup(p);
     m6.fillmgc(p);
     m6.gcdirfill(p);
+    
+    if(p->mpirank==0)
+    cout<<"MAKEGRID  007"<<endl;
 
 	
 	m1.make_ggc(p);
@@ -101,6 +174,9 @@ void driver::makegrid(lexer *p, ghostcell *pgc)
     m4.fill_ggc(p);
     m4a.make_ggc(p);
     m4a.fill_ggc(p);
+    
+    if(p->mpirank==0)
+    cout<<"MAKEGRID  001"<<endl;
     
     m1.make_dgc(p);
     m2.make_dgc(p);
