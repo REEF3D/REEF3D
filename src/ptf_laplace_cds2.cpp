@@ -176,7 +176,7 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             a->M.e[n] = 0.0;
             }
             
-            // top
+            // west
             if(p->flag4[IJp1K]==AIR)
             {
             a->rhsvec.V[n] -= a->M.w[n]*f(i,j+1,k);
@@ -188,6 +188,19 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             {
             a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1);
             a->M.t[n] = 0.0;
+            
+            /*
+            double lsv0,lsv1;
+            
+            lsv0 = fabs(a->phi(i,j,k));
+            lsv1 = fabs(a->phi(i,j,k+1));
+
+            lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20;
+            
+   
+            a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1)*(1.0 + lsv1/lsv0);
+            a->M.p[n] -= a->M.t[n]*lsv1/lsv0;
+            a->M.t[n] = 0.0;*/
             }
     
             // KBEDBC
@@ -196,30 +209,20 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             a->M.p[n] += a->M.b[n];
             a->M.b[n] = 0.0;
             }
+            
+            
             /*
             if(p->flag4[IJKm1]<AIR)
             {
-            ab = -1.0/(p->DZP[KM1]*p->DZN[KP]);   
+
+            denom = -1.5*p->ZP[KM1] + 2.0*p->ZP[KP] - 0.5*p->ZP[KP1];
             
-            Bx = (a->bed(i+1,j)-a->bed(i-1,j))/(p->DXP[IM1] + p->DXP[IP]);
-            By = (a->bed(i,j+1)-a->bed(i,j-1))/(p->DYP[JM1] + p->DXP[JP]);
-            
-                    //if(p->flag4[Im1JK]>0 && p->flag4[Ip1JKm1]>0 && a->wet(i+1,j)==1 && a->wet(i-1,j)==1)
-                    if(a->wet(i+1,j)==1 && a->wet(i-1,j)==1)
-                    {
-                    a->M.n[n] +=  ab*(p->DZP[KP]+p->DZP[KM1])*Bx/(p->DXP[IP] + p->DXP[IM1]);
-                    a->M.s[n] += -ab*(p->DZP[KP]+p->DZP[KM1])*Bx/(p->DXP[IP] + p->DXP[IM1]);
-                    }
-                    
-                    if(a->wet(i,j-1)==1 && a->wet(i,j+1)==1)
-                    {
-                    a->M.w[n] +=  ab*(p->DZP[KP]+p->DZP[KM1])*By/(p->DYP[JP] + p->DYP[JM1]);
-                    a->M.e[n] += -ab*(p->DZP[KP]+p->DZP[KM1])*By/(p->DYP[JP] + p->DYP[JM1]);
-                    }
-                
-            a->M.t[n] += ab;
+            a->M.p[n] += (4.0/3.0)*a->M.b[n];
+            a->M.t[n] -= (1.0/3.0)*a->M.b[n];
             a->M.b[n] = 0.0;
             }*/
+            
+
         }
 
 	++n;

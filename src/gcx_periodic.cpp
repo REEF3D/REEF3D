@@ -29,7 +29,7 @@ void ghostcell::gcperiodicx(lexer* p,field& f,int gcv)
     
     int aa,bb,cc;
     aa=bb=cc=0;
-    
+    /*
     if(gcv==1)
     aa=1;
     
@@ -37,7 +37,12 @@ void ghostcell::gcperiodicx(lexer* p,field& f,int gcv)
     bb=1;
     
     if(gcv==3)
-    cc=1;
+    cc=1;*/
+    
+    //cout<<p->mpirank<<"  p->periodicX1: "<<p->periodicX1<<" "<<p->gcpara1_count<<endl;
+    //cout<<p->mpirank<<"  p->periodicX4: "<<p->periodicX4<<" "<<p->gcpara4_count<<endl;
+    
+    //cout<<p->mpirank<<" nb1: "<<p->nb1<<" nb4: "<<p->nb4<<endl;
 
 //  FILL SEND
     count=0;
@@ -270,15 +275,22 @@ void ghostcell::gcperiodicx(lexer* p,field& f,int gcv)
         }
 	}
     
-    /*
     
-    if(p->mpirank==7)
+    /*
+    if(p->mpirank==5)
     {
     i=p->knox-1;
     j=0;
-    k=5;
+    k=6;
     
-    cout<<"PRESS PERIODX 1: "<<f(i-1,j,k)<<" "<<f(i,j,k)<<" "<<f(i+1,j,k)<<" "<<f(i+2,j,k)<<" "<<f(i+3,j,k)<<" "<<endl;
+    GC4LOOP
+    {
+		i=p->gcb4[n][0];
+		j=p->gcb4[n][1];
+		k=p->gcb4[n][2];
+    if(p->gcb4[n][3] == 4)
+    cout<<i<<" "<<p->gcb4[n][4]<<" PRESS PERIODX 4: "<<a->press(i-2,j,k)<<" "<<a->press(i-1,j,k)<<" "<<a->press(i,j,k)<<" . "<<a->press(i+1,j,k)<<" "<<a->press(i+2,j,k)<<" "<<a->press(i+3,j,k)<<" "<<endl;
+    }
     }
     
     
@@ -286,9 +298,16 @@ void ghostcell::gcperiodicx(lexer* p,field& f,int gcv)
     {
     i=0;
     j=0;
-    k=5;
+    k=6;
     
-    cout<<"PRESS PERIODX 4: "<<f(i+1,j,k)<<" "<<f(i,j,k)<<" "<<f(i-1,j,k)<<" "<<f(i-2,j,k)<<" "<<f(i-3,j,k)<<" "<<endl;
+    GC4LOOP
+    {
+		i=p->gcb4[n][0];
+		j=p->gcb4[n][1];
+		k=p->gcb4[n][2];
+    if(p->gcb4[n][3] == 1)
+    cout<<i<<" "<<p->gcb4[n][4]<<" PRESS PERIODX 1: "<<a->press(i-3,j,k)<<" "<<a->press(i-2,j,k)<<" "<<a->press(i-1,j,k)<<" . "<<a->press(i,j,k)<<" "<<a->press(i+1,j,k)<<" "<<a->press(i+2,j,k)<<" "<<endl;
+    }
     }*/
 
 }

@@ -175,10 +175,10 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     plap->start(p,a,pgc,psolv,a->Fi);
     pfsfupdate->fsfbc(p,a,pgc,a->Fifsf,a->Fi);
     pgc->start4(p,a->Fi,gcval);
-
+    
     FLUIDLOOP
     a->test(i,j,k) = a->Fifsf(i,j);
-
+    
     pfsfupdate->velcalc(p,a,pgc,a->Fi);
 }
 
@@ -186,6 +186,8 @@ void ptf_RK3::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *preini
 {	
     pfsfupdate->fsfupdate(p,a,pgc,pflow,poneph,a->eta);
     pfsfupdate->etaloc(p,a,pgc);
+    
+    pbedupdate->waterdepth(p,a,pgc);
     
     // potential ini
     //pflow->fi_relax(p,pgc,a->Fi,a->phi);

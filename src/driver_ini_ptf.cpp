@@ -54,6 +54,7 @@ p->cellnumtot=pgc->globalisum(p->cellnum);
 p->pointnumtot=pgc->globalisum(p->pointnum);
 
 
+
 if(p->mpirank==0)
 cout<<"number of cells: "<<p->cellnumtot<<endl;
 
@@ -77,7 +78,7 @@ cout<<"starting driver_ini_PTF"<<endl;
     geotopo gtopo(p,a,pgc);
     gtopo.start(p,a,pgc,pflow,pconvec,preto,pvrans);
     }
-    
+
     SLICELOOP4
     a->wet(i,j)=1;
 
@@ -97,10 +98,9 @@ cout<<"starting driver_ini_PTF"<<endl;
     
     pflow->gcio_update(p,a,pgc);
 	pflow->inflow(p,a,pgc,a->u,a->v,a->w);
-    
+
     pptf->inidisc(p,a,pgc);
     pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
-
 
 	p->gctime=0.0;
     p->xtime=0.0;

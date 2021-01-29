@@ -22,19 +22,19 @@ Author: Hans Bihs
 
 #include"ptf.h"
 #include"ptf_fsfbc.h"
-#include"ptf_fsf_update.h"
-#include"ptf_bed_update.h"
 #include"slice4.h"
 
 class ptf_laplace;
 class field;
+class ptf_fsf_update;
+class ptf_bed_update;
 
 using namespace std;
 
 #ifndef PTF_RK4_H_
 #define PTF_RK4_H_
 
-class ptf_RK4 : public ptf, public ptf_fsfbc, public ptf_fsf_update, public ptf_bed_update
+class ptf_RK4 : public ptf, public ptf_fsfbc
 {
 public:
 	ptf_RK4(lexer*, fdm*, ghostcell*);
@@ -56,6 +56,8 @@ private:
     slice4 frk1,frk2,frk3,frk;
 
     ptf_laplace *plap;
+    ptf_fsf_update *pfsfupdate;
+    ptf_bed_update *pbedupdate;
 
 
 };

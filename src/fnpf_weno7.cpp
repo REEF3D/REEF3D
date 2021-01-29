@@ -22,6 +22,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_weno7.h"
 #include"lexer.h"
 #include"vec.h"
+#include"field.h"
 #include"slice.h"
 #include"fnpf_discrete_weights.h"
 
@@ -65,13 +66,64 @@ double fnpf_weno7::fz(lexer *p, field &f, double kvel1, double kvel2)
 {
     grad=0.0;
     
-    if(0.5*(kvel1+kvel2)>0.0)
-    grad=ddwenoz(f,1.0);
+/*
+    if(p->flag4[IJK]>0 && p->flag4[IJKm1]>0 && p->flag4[IJKm2]>0 && p->flag4[IJKm3] && p->flag4[IJKm4]>0 && p->flag4[IJKm5])
+    {
+        if(i+p->origin_i>0)
+        grad = (-(49.0/20.0)*f(i,j,k+1) + 6.0*f(i,j,k) - 7.5*f(i,j,k-1) + (20.0/3.0)*f(i,j,k-2) - (15.0/4.0)*f(i,j,k-3) + (6.0/5.0)*f(i,j,k-4) - (1.0/6.0)*f(i,j,k-5))
+          /(-(49.0/20.0)*p->ZP[KP1] + 6.0*p->ZP[KP] - 7.5*p->ZP[KM1] + (20.0/3.0)*p->ZP[KM2] - (15.0/4.0)*p->ZP[KM3] + (6.0/5.0)*p->ZP[KM4] - (1.0/6.0)*p->ZP[KM5]);
+              
+        if(i+p->origin_i==0)
+        grad = (-(49.0/20.0)*f(i,j,k) + 6.0*f(i,j,k-1) - 7.5*f(i,j,k-2) + (20.0/3.0)*f(i,j,k-3) - (15.0/4.0)*f(i,j,k-4) + (6.0/5.0)*f(i,j,k-5) - (1.0/6.0)*f(i,j,k-6))
+          /(-(49.0/20.0)*p->ZP[KP] + 6.0*p->ZP[KM1] - 7.5*p->ZP[KM2] + (20.0/3.0)*p->ZP[KM3] - (15.0/4.0)*p->ZP[KM4] + (6.0/5.0)*p->ZP[KM5] - (1.0/6.0)*p->ZP[KM6]);
+              
+        //cout<<" return 6"<<endl;
+            
+        return grad;
+    }*/
+
+    if(p->flag4[IJK]>0 && p->flag4[IJKm1]>0 && p->flag4[IJKm2]>0 && p->flag4[IJKm3]>0)
+    {
+        if(i+p->origin_i>0)
+        grad = (-(25.0/12.0)*f(i,j,k+1) + 4.0*f(i,j,k) - 3.0*f(i,j,k-1) + (4.0/3.0)*f(i,j,k-2) - 0.25*f(i,j,k-3))
+              /(-(25.0/12.0)*p->ZP[KP1] + 4.0*p->ZP[KP] - 3.0*p->ZP[KM1] + (4.0/3.0)*p->ZP[KM2] - 0.25*p->ZP[KM3]);
+              
+        if(i+p->origin_i==0)
+        grad = (-(25.0/12.0)*f(i,j,k) + 4.0*f(i,j,k-1) - 3.0*f(i,j,k-2) + (4.0/3.0)*f(i,j,k-3) - 0.25*f(i,j,k-4))
+              /(-(25.0/12.0)*p->ZP[KP] + 4.0*p->ZP[KM1] - 3.0*p->ZP[KM2] + (4.0/3.0)*p->ZP[KM3] - 0.25*p->ZP[KM4]);
+              
+        //cout<<" return 4"<<endl;
+            
+        return grad;
+    }
     
-    if(0.5*(kvel1+kvel2)<0.0)
-    grad=ddwenoz(f,-1.0);
+    else
+    if(p->flag4[IJK]>0 && p->flag4[IJKm1]>0)
+    {
+        if(i+p->origin_i>0)
+        grad = (-1.5*f(i,j,k+1) + 2.0*f(i,j,k) - 0.5*f(i,j,k-1))/(-1.5*p->ZP[KP1] + 2.0*p->ZP[KP] - 0.5*p->ZP[KM1]);
+              
+        if(i+p->origin_i==0)
+        grad = (-1.5*f(i,j,k) + 2.0*f(i,j,k-1) - 0.5*f(i,j,k-2))/(-1.5*p->ZP[KP] + 2.0*p->ZP[KM1] - 0.5*p->ZP[KM2]);
+            
+        //cout<<" return 2"<<endl;    
+        
+        return grad;
+    }
     
-    return grad;
+    
+    else
+    {
+        if(i+p->origin_i>0)
+        grad = (f(i,j,k) - f(i,j,k-1))/(p->ZP[KM1]);
+              
+        if(i+p->origin_i==0)
+        grad = (f(i,j,k) - f(i,j,k-1))/(p->ZP[KM1]);
+            
+        //cout<<" return 1"<<endl;    
+            
+        return grad;
+    }
 }
 
 double fnpf_weno7::sx(lexer *p, slice &f, double ivel)
