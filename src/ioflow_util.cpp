@@ -52,6 +52,7 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
     {
         if(p->gcb4[n][4]==1)
         {
+        //cout<<p->mpirank<<" ioflow  | "<<p->gcb4[n][0]<<" "<<p->gcb4[n][1]<<" "<<p->gcb4[n][2]<<" . "<<p->gcb4[n][3]<<" "<<p->gcb4[n][4]<<endl;
         p->gcin[count1][0]=p->gcb4[n][0];
         p->gcin[count1][1]=p->gcb4[n][1];
         p->gcin[count1][2]=p->gcb4[n][2];

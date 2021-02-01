@@ -38,7 +38,6 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 {
     p->umax=p->vmax=p->wmax=p->viscmax=irsm=jrsm=krsm=0.0;
     p->epsmax=p->kinmax=p->pressmax=0.0;
-	p->dt_old=p->dt;
 
 	p->umax=p->vmax=p->wmax=p->viscmax=0.0;
 	sqd=1.0/(p->DXM*p->DXM);
@@ -134,8 +133,11 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     
 
 	p->dt=p->N47*cu;
+    
 	p->dt=pgc->timesync(p->dt);
-
+    p->dt = MIN(p->dt,10.0*p->dt_old);
+    p->dt_old=p->dt;
+    
 	a->maxF=0.0;
 	a->maxG=0.0;
 	a->maxH=0.0;

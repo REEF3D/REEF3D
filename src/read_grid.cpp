@@ -519,7 +519,13 @@ void lexer::read_grid()
 
 			if(surfgroup==2 || surfgroup==7 || surfgroup==8)
 			++gcout_count;
+            
+            //if(gcb4[i][4]=surfgroup==1)
+            //cout<<mpirank<<" read_grid  | "<<gcb4[i][0]<<" "<<gcb4[i][1]<<" "<<gcb4[i][2]<<" . "<<gcb4[i][3]<<" "<<gcb4[i][4]<<endl;
 	}
+    
+    
+    
     gcin4a_count=gcin_count;
 	gcout4a_count=gcout_count;
     
