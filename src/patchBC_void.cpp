@@ -41,21 +41,26 @@ void patchBC_void::patchBC_ini(lexer *p, ghostcell *pgc)
 
 void patchBC_void::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
 {
-
-
 } 
-
 
 void patchBC_void::patchBC_pressure(lexer *p, fdm *a, ghostcell *pgc, field &press)
 {
-
-
 } 
 
 void patchBC_void::patchBC_waterlevel(lexer *p, fdm *a, ghostcell *pgc, field &phi)
 {
-
-
 } 
+
+void patchBC_void::patchBC_ioflow2D(lexer*, fdm2D*, ghostcell*, slice&, slice&)
+{
+}
+
+void patchBC_void::patchBC_pressure2D(lexer*, fdm2D*, ghostcell*, slice&)
+{
+}
+
+void patchBC_void::patchBC_waterlevel2D(lexer*, fdm2D*, ghostcell*, slice&)
+{
+}
 
 

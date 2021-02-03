@@ -247,3 +247,10 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
 
 } 
 
+
+void patchBC::patchBC_ioflow2D(lexer*, fdm2D*, ghostcell*, slice&, slice&)
+{
+    
+}
+
+
