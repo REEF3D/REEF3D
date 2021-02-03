@@ -163,7 +163,7 @@ void net_barQuasiStatic::createMesh(lexer *p, fdm *a, ghostcell *pgc)
                 nIt++;
             }
             
-            if (isnan(v_mag_corr))
+            if (std::isnan(v_mag_corr))
             {
                 v_mag_corr = v_mag;
                 screenForceCoeff(p,cd,cl,v_mag_corr,thetan,p->X321_Sn[nNet]);
