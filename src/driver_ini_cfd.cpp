@@ -150,7 +150,7 @@ cout<<"starting driver_ini"<<endl;
 	if(p->I12>=1)
 	pini->hydrostatic(p,a,pgc);
 
-	if(p->I11==1)
+	//if(p->I11==1)
 	ptstep->start(a,p,pgc,pturb);
     
     if(p->I13==1)

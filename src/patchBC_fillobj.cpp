@@ -28,7 +28,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
 {
     
-
 // fill BC options
     
     // discharge
@@ -169,8 +168,47 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
     for(qq=0;qq<obj_count;++qq)
     patch[qq]->counter=0;
     
-
+    // line
     int count=0;
+    for(qn=0;qn<p->B440;++qn)
+    {
+        
+        {
+            istart = p->posc_i(p->B440_xs[qn]);
+            iend = p->posc_i(p->B440_xe[qn]);
+            
+            jstart = p->posc_j(p->B440_ys[qn]);
+            jend = p->posc_j(p->B440_ye[qn]);
+            
+            for(n=0;n<p->gcb4_count;++n)
+            {
+            i=p->gcb4[n][0];
+            j=p->gcb4[n][1];
+            k=p->gcb4[n][2];
+            
+                if(i>=istart && i<iend && j>=jstart && j<jend && p->gcb4[n][3]==p->B440_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
+                {
+                    
+                    for(qq=0;qq<obj_count;++qq)
+                    if(patch[qq]->ID == p->B440_ID[qn])
+                    {
+                    patch[qq]->gcb[patch[qq]->counter][0]=i;
+                    patch[qq]->gcb[patch[qq]->counter][1]=j;
+                    patch[qq]->gcb[patch[qq]->counter][2]=k;
+                    patch[qq]->gcb[patch[qq]->counter][3]=p->B440_face[qn];
+                    ++patch[qq]->counter;
+                    
+                    // convert gcb
+                    p->gcb4[n][4]=patch[qq]->gcb_flag;
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    // box
+    count=0;
     for(qn=0;qn<p->B441;++qn)
     {
         

@@ -41,6 +41,10 @@ public:
     virtual void patchBC_pressure(lexer*, fdm*, ghostcell*, field&);
     virtual void patchBC_waterlevel(lexer*, fdm*, ghostcell*, field&);
     
+    virtual void patchBC_ioflow2D(lexer*, fdm2D*, ghostcell*, slice&, slice&);
+    virtual void patchBC_pressure2D(lexer*, fdm2D*, ghostcell*, slice&);
+    virtual void patchBC_waterlevel2D(lexer*, fdm2D*, ghostcell*, slice&);
+    
 };
 
 #endif

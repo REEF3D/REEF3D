@@ -522,6 +522,9 @@ void lexer::read_control()
                case 417: ++B417;
 						 clear(c,numint);
 						 break;
+               case 440: ++B440;
+						 clear(c,numint);
+						 break;
                case 441: ++B441;
 						 clear(c,numint);
 						 break;
@@ -1860,6 +1863,13 @@ void lexer::read_control()
     Darray(B417_Nz,B417);
     
     
+    Iarray(B440_ID,B440);
+    Iarray(B440_face,B440);
+    Darray(B440_xs,B440);
+    Darray(B440_xe,B440);
+    Darray(B440_ys,B440);
+    Darray(B440_ye,B440);
+    
     Iarray(B441_ID,B441);
     Iarray(B441_face,B441);
     Darray(B441_xs,B441);
@@ -2173,6 +2183,7 @@ void lexer::read_control()
     int countB415=0;
     int countB416=0;
     int countB417=0;
+    int countB440=0;
     int countB441=0;
     int countB442=0;
     int countC75=0;
@@ -2294,6 +2305,10 @@ void lexer::read_control()
 						 break;
                 case 417: control>>B417_ID[countB417]>>B417_Nx[countB417]>>B417_Ny[countB417]>>B417_Nz[countB417];
                         ++countB417;
+						 clear(c,numint);
+						 break;
+                case 440: control>>B440_ID[countB440]>>B440_face[countB440]>>B440_xs[countB440]>>B440_xe[countB440]>>B440_ys[countB440]>>B440_ye[countB440];
+                        ++countB440;
 						 clear(c,numint);
 						 break;
                 case 441: control>>B441_ID[countB441]>>B441_face[countB441]>>B441_xs[countB441]>>B441_xe[countB441]>>B441_ys[countB441]>>B441_ye[countB441]>>B441_zs[countB441]>>B441_ze[countB441];

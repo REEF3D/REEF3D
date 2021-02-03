@@ -27,6 +27,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void patchBC::patchBC_waterlevel(lexer *p, fdm *a, ghostcell *pgc, field &phi)
 {
-
-
 } 
+
+void patchBC::patchBC_waterlevel2D(lexer*, fdm2D*, ghostcell*, slice&)
+{
+}

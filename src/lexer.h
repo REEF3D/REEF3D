@@ -314,6 +314,9 @@ public:
     double *B416_alpha;
     int *B417_ID;
     double *B417_Nx,*B417_Ny,*B417_Nz;
+    int B440;
+    int *B440_ID,*B440_face;
+    double *B440_xs,*B440_xe,*B440_ys,*B440_ye;
     int B441;
     int *B441_ID,*B441_face;
     double *B441_xs,*B441_xe,*B441_ys,*B441_ye,*B441_zs,*B441_ze;
