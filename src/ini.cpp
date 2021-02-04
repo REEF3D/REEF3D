@@ -121,12 +121,10 @@ void lexer::ini_default()
 	B91=0;          // int wave parameter wL
 	B91_1=0.0;      // double wave amplitude
 	B91_2=0.0;      // double wave length
-	B91_3=0.0;      // double wave phase change
 	B92=0;            // int wave type
 	B93=0;          // int wave parameter wT
 	B93_1=0.0;      // double wave amplitude
 	B93_2=0.0;      // double wave period
-	B93_3=0.0;      // double wave phase change
 	B96_1=0.0;      // double dist1 for wave relax
 	B96_2=0.0;      // double dist2 for wave relax
 	B97=0.0;        // double wave direction in degree
