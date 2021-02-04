@@ -34,12 +34,11 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
     
     dist1=p->B96_1;
     dist2=p->B96_2;
-    dist3=p->B96_3;
     
-    dist3_fac=1.0;
+    dist2_fac=1.0;
     
     if(p->B99==1)
-    dist3_fac=2.0;
+    dist2_fac=2.0;
     
     gcval_press=40;
 	
@@ -125,7 +124,7 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
 	p->B107_xe[0]=p->xcoormax;
 	p->B107_ys[0]=p->ycoormin-10.0*p->DXM;
     p->B107_ye[0]=p->ycoormax+10.0*p->DXM;
-    p->B107_d[0]=p->B96_3;
+    p->B107_d[0]=p->B96_2;
 	}
     
     

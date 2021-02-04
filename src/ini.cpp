@@ -129,7 +129,6 @@ void lexer::ini_default()
 	B93_3=0.0;      // double wave phase change
 	B96_1=0.0;      // double dist1 for wave relax
 	B96_2=0.0;      // double dist2 for wave relax
-	B96_3=0.0;      // double dist3 for wave relax
 	B97=0.0;        // double wave direction in degree
 	B98=0;          // int type of wave generation
 	B99=0;			// int type of numerical beach

@@ -224,8 +224,6 @@ void lexer::ctrlrecv()
 	dd++;
     B91_2 = dctrl[dd];
 	dd++;
-    B91_3 = dctrl[dd];
-	dd++;
     B92 = ictrl[ii];
 	ii++;
     B93 = ictrl[ii];
@@ -234,13 +232,9 @@ void lexer::ctrlrecv()
 	dd++;
     B93_2 = dctrl[dd];
 	dd++;
-    B93_3 = dctrl[dd];
-	dd++;
     B96_1 = dctrl[dd];
 	dd++;
     B96_2 = dctrl[dd];
-	dd++;
-    B96_3 = dctrl[dd];
 	dd++;
     B97 = dctrl[dd];
 	dd++;
