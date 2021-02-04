@@ -1,0 +1,389 @@
+
+
+x changed input format for B91, B93 and B96
+x added patchBC
+x renamed WCP to HDC
+x removed several unnused options
+x improved multiple relaxation zone beaches
+x improved initial timestep calc
+x added periodic boundary conditions (CFD)
+x added RK2 implementation for momentum 6DOF direct-forcing solver
+x added multiple floating objects to 6DOF
+x added Taylor Green vortex to benchmark 
+x simplified STL read in 6DOF
+x added SSGW wave generation
+x added IMEX time discretization (CFD)
+x added new approach for iowave relaxation zones, fixing multiple beaches
+x fixed probline related crash 
+x fixed LES strain calculation bug (CFD)
+x fixed a problem with full wave initialization (FNPF)
+
+20.10
+x added new direct forcing 6DOF floating algorithm to CFD
+x added mooring to CFD
+x added net algorithm to CFD
+x added potential flow initialization for water phase only (CFD)
+x fixed a temperature initialization problem (CFD)
+x improved topo/solid interaction (CFD)
+x improved solid handling through more robust  ls reinitialization (CFD)
+x fixed combined wave-current for relaxation wave generation (CFD)
+x added Bingham rheology to SFLOW
+x improved wetting&drying (SFLOW)
+x added fluvial and torrential outflow BC to SFLOW
+x added waterlevel to vtp (SFLOW)
+x added potential flow initialization to SFLOW
+x fixed a problem with bicgstab solver for implicit diffusion (SFLOW)
+x improved wet-dry inflow condition (SFLOW)
+x added RK2 to FNPF
+x added Eigen library
+
+20.09
+x improved sediment transport (CFD)
+x fixed probe lines (CFD)
+x fixed an occasional problem with FNPF vtu and vtp print out
+x fixed a ccipol problem
+x fixed a origin / partition problem
+x fixed an outflow boundary condition (SFLOW)
+
+20.08
+x improved NUG for free surface flows
+x removed unused options
+x change codelite folder structure
+x fixed a problem with relaxation zone wave generation
+x fixed active wave generation 
+x improved potential flow solver initialization for ioflow
+x improved topo-solid intersections
+
+20.06
+x added under the hood improvements for local solvers
+x added WENO discretization to Exner equation in CFD
+x added line velocity source in CFD
+x removed many unused options
+x improved ray-casting for 6DOF in CFD
+x improved stability for complex structures for parallel simulations in CFD
+x fixed H1 and H2 reading from control file in CFD
+x added Boussinesq Approximation for Heat Transfer
+x improved free-stream pressure outflow condition in CFD
+
+x added new FNPF state file numbering 
+
+20.02
+x added FNPF to CFD coupling (WCP)
+x updated CFD output folder and file names
+x added VRANS for sediment bed
+x improved CFD sediment transport
+x improved CFD heat transfer
+x fixed a problem in implicit diffusion calculcation
+x added NUG for concentration modelling in CFD
+x added inflow velocity boundary conditions in CFD
+x added hypre PFMG solver control
+x changed default hypre PFMG relax type to nonsymmetric Red/Black Gauss-Seidel 
+x added print out iteration and time windows for free surface files in CFD
+
+x added 7th-order WENO to FNPF (non wetting-drying)
+x added theory wave gage to FNPF
+x improved FNPF deep water breaking wave detection
+x improved FNPF wetting-drying stability
+x fixed vertical solid structures in FNPF
+x fixed a bug in the viscosity based breaking model to FNPF
+x fixed a bug in bed boundary condiutions in 3D Laplace equation 
+x fixed AWA in FNPF
+x added print out iteration and time windows for free surface files in FNPF
+
+x improved  SFLOW sediment transport
+x added 2nd-order Runge-Kutta to SFLOW
+x fixed an occasional SFLOW segmentation fault
+x added parabolic turbulence model SFLOW
+x added sediment time stopping criterion SFLOW
+x added additional bedload formulations to SFLOW
+
+19.10
+x added vertical solid structures to FNPF
+x added viscosity based breaking model to FNPF
+x added point probes to SFLOW
+x added new dgc algorithm for better numerical stability
+x added irregular wave generation seed number input
+x fixed an occasiaonal problem where the last line of the wave recon file was read twice
+x improved FNPF wave generation time
+x fixed a problem with RK4 timestepping in FNPF
+x added new free surface initialization to SFLOW
+x improved AWA calculation time
+x fixed AWA crash for dry beach
+x added new relaxation beach option
+x fixed a problem with wavegentime calculation
+x fixed and improved desnity calculation for concentration, heat and compressibility
+x fixed vegetation patch location
+x removed implicit momentum
+x removed simple, piso
+x removed implicit level set
+x removed implicit concentration
+x removed implicit heat transfer
+x removed three-phase flow
+x removed earsm 
+x removed explicit k-epsilon
+x removed explicit k-omega
+x removed air entrainment
+q
+19.05
+x added 3D focused waves
+x added sediment transport to SFLOW
+x added mixing length turbulence model to SFLOW
+x added implicit diffusion to SFLOW
+x added ioflow for current to SFLOW
+x added roughness to SFLOW
+x added fsf and bed print out to FNPF
+x fixed NUG related discharge calculation bug
+x fixed 2D diffusion/turbulence problem
+x fixed a concentration problem
+x fixed wsfline print out for FNPF
+x fixed a problem for using local solvers for the poisson equation
+
+19.02
+x added signifcant performance increase for 2D simulations
+x added increased performance overall
+x added REEF3D::FNPF_SG, a fully nonlinear potential flow solver on a sigma grid
+x added hypre_sstruct solver interface for geometric multigrid on flexible stencils
+x added hypre_struct 2D solvers
+x fixed a problem for geodat and sediment transport
+x fixed a problem with the walldist calculation
+x fixed a vtu elevation print out bug 
+x fixed a problem for crashes for ghostcells around complex structures
+x fixed i.e. removed ggc for fluid cells 
+
+18.12
+x fixed a problem for geodat and sediment transport
+x fixed a diffusion calculation bug
+x fixed wfsline print out for SFLOW and FNPF
+x fixed lsm reinitialization bug (for free surface, solid, topo/sediment and 6DOF) 
+x fixed a potential flow initialisation bug
+x removed deprecated options
+x added cylinder VRANS geometry
+
+18.08
+x bug fixes for open channel flow and solid geometry
+
+18.07
+x fixed a crash with the potential flow initialization
+x fixed a bug with the position of porous structures
+x fixed several small bugs around non-uniform grid implementation
+x fixed a problem for sediment and solid/stl combination
+x fixed a bug in sediment sandslide algorithm
+x fixed a bug with solid and topo reinitialization
+x added different types of multidirectional irregular wave calculation
+x changed format of grid file from ascii to binary
+
+18.06
+x added non-uniform grid  NUG
+x added new rheology yield stress implementation
+x added VRANS vegetation model
+x added pressure correction projection method
+x added triangulation based force calculation for 6DOF
+x added 3rd-order WENO
+x improved solid force calculation
+x fixed a problem with multiple force boxes
+x fixed a problem with the wave number calculation for 5th-order Stokes waves
+x fixed a problem for level set reinitalization around complex solids
+x fixed a velocity problem for the full wave tank initialization
+x added space-time decomposition for irregular wave generation for relaxation method
+x optimized overall wave generation for speed 
+x fixed a bug for 2nd-order irregular wave generation
+x added stopping criterion for critical velocities
+x created standalone ccipol and position classes
+x changed ccipol to global coordinates
+x changed statefile format (not backwards compatible)
+x improved wave reconstruction for steep and focused waves
+x moved iterative solvers for velocity and turbulence to hypre BiCGStab
+x added momentum conservative discretization for SFLOW
+x added dirichlet wave generation to SFLOW
+x added active wave absorption to SFLOW
+x fixed SFLOW breaking term
+x fixed vertical offset problem for SFLOW bedlevels
+x reduced memory usage for solid objects on 2D grids
+x moved Z parameters to A
+
+18.01
+x added Mitsuyasu spreading for multidirectional irregular waves
+x added Goda JONSWAP spectrum
+x added solid force calculation
+x added FlowFile support for 2D/3D coupling
+x added flap wavemaker theory based on eta timeseries input
+x added VRANS turbulence modeling closure terms
+x improved fsf file print out around solids
+x improved initial wave quality for dirichlet wavegen
+x fixed a crash with the wave reconstruction method
+x changed all fsf reinitialization schemes to run through solids, topo and floating
+x converted sediment transport algorithms to 2D framework
+
+17.12
+x added REEF3D::SFLOW, a 2D non-hydrostatic shallow water equations solver
+x added excess pore pressure formulations to Non-Newtonian rheology
+x added multidirectional 1st-order and 2nd-order irregular waves 
+x added synchronization of the random phases for parallel irregular wave generation
+x fixed a problem with active wave generation 
+x fixed a crash when using the wave tank without wave generation
+x fixed a problem with wavemaker_eta wave generation
+x added REEF3D::NSEWAVE, a fast 3D Navier-Stokes Solver for wave and free surface flow problems
+x added staggered fully-parallelized 2D framework
+x added 2D hypre struct solver interface
+x fixed a bug for the accuracy of the floating body level set function
+x fixed a bug in the 6DOF transloratory tranformation matrices
+x fixed a problem with file names on UNIX/LINUX systems
+
+17.06
+x added: active wave absorption based on flap wavemaker
+x added: one-phase level set 
+x added: separated topo and solid
+x fixed extragcb bug for 6DOF
+x improved ray-casting for 6DOF floating objects
+x added modular build-up of 6DOF floating objects
+x added scalar velocity magnitude print out to vtu file
+x improved sediment transport accuracy and stability
+x fixed a bug in sandslide algorithm
+x added: combined wave and current
+x improved wave generation velocity prescription at the free surface
+x fixed a bug with 6DOF STL translation
+x fixed a bug with 6DOF floating body density calculation
+
+17.03
+x improved stability for topo/sediment parallel computations
+x improved parallel sandslide algorithm
+x redesign of vector based grid system
+x fixed a problem with weno_hj
+x optimized memory usage
+x removed local time stepping
+
+17.02
+x added new level set reinitialization throughout topo and solid domain
+x added variable depth calculation for wave generation
+x added double-hinged flap wavemaker
+x added wave reconstruction
+x added piston wavemaker kinematics with free surface timeseries input
+x added wavepackets wave focusing method
+x added wave spectrum file input for irregular waves
+x added wave components print out for irregular waves
+x added vector based velocity motion file input for floating body
+x added wedge and hexahedron to floating object geometries
+x changed numerical beach relaxation zone to start/end line concept
+x fixed memory problems for sediment transport
+x fixed a recently introduced with second-order irregular wave generation
+x fixed a recently introduced bug with third-order solitary waves
+x fixed a minor bug related to implicit diffusion in fractional step schemes
+x fixed a minor bug related to vertical velocity component of wave generation
+x improved sandslide alogorithm for sediment transport
+x improved pressure vtu print out at solid boundaries
+x improved sandlside algorithm for sediment transport
+
+16.12
+x added flap wavemaker kinematics with timeseries input
+x added piston wavemaker kinematics with timeseries input
+x added non-Newtonian rheology
+x added new methods for breaking focused waves
+x added sediment bed profile print out
+x added maximum bedshear stress print out
+x added alpha and beta value input for each porous entity 
+x fixed an porosity location inconsistency in the projection method
+x added new VRANS class
+x added revised storage scheme for multiple ghost cells
+x added STL input for floating objects
+x added spring for linear velocities to floating objects
+
+16.11
+x fixed a problem with the pressure correction equation related to hypre
+x fixed P34 for sediment time based .vtu print out
+x added boundary condition options for floating objects
+
+16.09
+x added Torsethaugen wave spectrum
+x fixed pressure ini for uneven free surface
+x fixed B93 for 5th-order Stokes Waves
+x fixed sediment probe print intervals
+x fixed omega for wave spectrum print out
+
+16.06
+x added wave_lib class system, replacing the old wave_theory class for better extensibility
+x added modified 3rd-order RK for momentum
+x added modified 3rd-order FS for momentum
+x added implicit diffusion to explicit heat transfer
+x added implicit diffusion to explicit concentraction function
+x fixed a problem with implicit concentration function
+x fixed problems with VRANS for porous structures
+x fixed a problem with extend boundary conditions for the level set function
+x fixed a problem with slip boundary condtiions
+x fixed a problem with compressible flow
+
+16.05
+x added VRANS for porous structures
+x added force and moment print out for sloshing
+x added different criteria for sediment transport start
+x added different criteria for sediment transport interval
+x added bed shear stress gage
+x added bed shear stress to .vtu print
+x fixed suspended sediments
+x added spatial filter for sediment bed
+x improved walldistance calculation
+x removed T33 and T34 free surface turbulence damping options
+x removed 3D .vtp print out
+x fixed a bug introduced in v16.03, where the hydrostatic pressure in the relaxation beach was turned off
+x improved sandslide algorithm for sediment transport
+x added more 2nd-order irregular wave options
+x added hydrograph for outflow conditions
+x fixed print out intervals after hotstart
+
+16.03
+x added HYPRE integration for conjugated gradient, geometric multigrid and algebraic multigrid solvers
+x improved open channel flow initialization with potential flow
+x improved WENO_HJ speed
+x improved WENO_FLUX speed
+x improved velocity diffusion speed
+x improved sediment transport speed
+x removed unused PJM variants, SIMPLEC and SIMPLER
+x removed unused momentum RK3 variants
+x removed SST turbulence model
+x removed unused momentum_AB3, momentum_AB4, momentum_FS2
+x added 2nd-order irregular waves
+x added 2nd-order focussed waves
+x fixed 1st-order focussed waves
+x fixed URANS
+x fixed B 77 3
+x added sediment bed relaxation zones
+
+15.12
+x added hydrograph/unsteady inflow
+x added state file read and write (hotstart functionality)
+x added URANS turbulence model
+x added option for density vtu file printout
+x added HRIC, HRIC modified and CICSAM for VOF
+x added input wave spectrum print out into log folder for irregular waves
+x fixed recetenly introduced problem with porous media algorithm
+x fixed a problem with implicit source term handling
+x fixed problem with implicit level set discretization
+
+15.04
+x fixed a problem with implicit WENO Flux
+x added air entrainment model
+x improved stability of sediment transport algorithm
+x improved vorticity print out
+x added wave gages with wave theory output
+x added 6DOF algorithm
+
+15.02
+x added implicit source term treatment
+x added free stream outflow BC
+x added levelset_AB3
+x added reini_AB3
+x fixed reini_AB2
+x removed all CRS solvers
+x CDS solvers are working on all equations
+x removed all CRS related code
+x performance improvements for all versions of the WENO scheme
+x performance improvements for the level set reinitialization
+x moved all implicit convection discretization schemes to deffered correction and 7-point stencils
+x added P34 for sediment time based print out
+x added new walldistance calculation
+x added concentration function to the manual
+x added 3D avtive wave generation
+x added 3D active wave absorption
+x fixed 3rd-order solitary wave
+x fixed CDS solver
+x fixed focussed waves
+x fixed irregular waves
