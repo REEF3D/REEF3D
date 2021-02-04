@@ -34,7 +34,7 @@ sflow_hxy_weno::sflow_hxy_weno(lexer* p, fdm2D *bb) :tttw(13.0/12.0),fourth(1.0/
     if(p->A216==1)
     pflux = new sflow_flux_face_FOU(p);
         
-    if(p->A216=2)
+    if(p->A216==2)
     pflux = new sflow_flux_face_CDS(p);
     
     if(p->A216==4)
