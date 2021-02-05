@@ -23,6 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"slice.h"
 #include"fdm2D.h"
+#include"patchBC_interface.h"
 
 void ioflow_f::inflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &bed, slice &eta)
 {
@@ -48,8 +49,9 @@ void ioflow_f::inflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, 
 		Q(i-1,j)=0.0;
         Q(i-2,j)=0.0;
         Q(i-3,j)=0.0;
-        
     }
+    
+    pBC->patchBC_ioflow2D(p,b,pgc,P,Q);
 }
 
 void ioflow_f::rkinflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &bed, slice &eta)
