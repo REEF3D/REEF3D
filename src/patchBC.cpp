@@ -21,7 +21,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"patchBC.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include"patch_obj.h"
 
