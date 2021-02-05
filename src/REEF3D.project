@@ -924,7 +924,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="ioFlow">
         <VirtualDirectory Name="patchBC">
-          <File Name="patchBC_2D_interface.h"/>
+          <File Name="patchBC_2D.h"/>
           <File Name="patchBC_void.h"/>
           <File Name="patchBC_interface.h"/>
           <File Name="patchBC.h"/>
@@ -2434,11 +2434,11 @@
       <VirtualDirectory Name="ioFlow">
         <VirtualDirectory Name="PatchBC">
           <VirtualDirectory Name="PatchBC 2D">
+            <File Name="patchBC_2D_IDcount.cpp"/>
             <File Name="patchBC_2D_waterlevel.cpp"/>
             <File Name="patchBC_2D_pressure.cpp"/>
             <File Name="patchBC_2D_gcb_count.cpp"/>
             <File Name="patchBC_2D_inflow.cpp"/>
-            <File Name="patchB_2D_IDcount.cpp"/>
             <File Name="patchBC_2D_fillobj.cpp"/>
             <File Name="patchBC_2D.cpp"/>
           </VirtualDirectory>
