@@ -47,9 +47,9 @@ public:
     virtual void patchBC_waterlevel(lexer*, fdm*, ghostcell*, field&)=0;
     
     
-    virtual void patchBC_ioflow2D(lexer*, fdm2D*, ghostcell*, slice&, slice&)=0;
-    virtual void patchBC_pressure2D(lexer*, fdm2D*, ghostcell*, slice&)=0;
-    virtual void patchBC_waterlevel2D(lexer*, fdm2D*, ghostcell*, slice&)=0;
+    virtual void patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&)=0;
+    virtual void patchBC_pressure2D(lexer*, ghostcell*, slice&)=0;
+    virtual void patchBC_waterlevel2D(lexer*, ghostcell*, slice&)=0;
     
 };
 

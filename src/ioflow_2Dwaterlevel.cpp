@@ -18,49 +18,39 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
-
-#include"patchBC_void.h"
+#include"ioflow_f.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
-#include"patch_obj.h"
+#include"slice.h"
+#include"fdm2D.h"
+#include"patchBC_interface.h"
 
-patchBC_void::patchBC_void(lexer *p) 
+void ioflow_f::waterlevel2D(lexer *p, ghostcell* pgc, slice &eta)
 {
+    /*
+    for(n=0;n<p->gcslin_count;n++)
+    {
+    i=p->gcslin[n][0];
+    j=p->gcslin[n][1];
     
+        if(b->wet4(i,j)==1 && p->gcslin[n][5]==1)
+        {
+        P(i-1,j)=p->Ui;
+        P(i-2,j)=p->Ui;
+        P(i-3,j)=p->Ui;
+        }
+        
+        if(b->wet4(i,j)==0 || p->gcslin[n][5]==0)
+        {
+        P(i-1,j)=0.0;
+        P(i-2,j)=0.0;
+        P(i-3,j)=0.0;
+        }
+		
+		Q(i-1,j)=0.0;
+        Q(i-2,j)=0.0;
+        Q(i-3,j)=0.0;
+    }
+    
+    pBC->patchBC_ioflow2D(p,b,pgc,P,Q);*/
 }
-
-patchBC_void::~patchBC_void()
-{
-}
-
-void patchBC_void::patchBC_ini(lexer *p, ghostcell *pgc)
-{
-
-} 
-
-void patchBC_void::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
-{
-} 
-
-void patchBC_void::patchBC_pressure(lexer *p, fdm *a, ghostcell *pgc, field &press)
-{
-} 
-
-void patchBC_void::patchBC_waterlevel(lexer *p, fdm *a, ghostcell *pgc, field &phi)
-{
-} 
-
-void patchBC_void::patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&)
-{
-}
-
-void patchBC_void::patchBC_pressure2D(lexer*, ghostcell*, slice&)
-{
-}
-
-void patchBC_void::patchBC_waterlevel2D(lexer*, ghostcell*, slice&)
-{
-}
-
-

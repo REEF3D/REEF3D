@@ -2490,6 +2490,7 @@
           <File Name="iowave_active-beach.cpp"/>
           <File Name="iowave.cpp"/>
           <VirtualDirectory Name="SFLOW">
+            <File Name="iowave_2D_waterlevel.cpp"/>
             <File Name="iowave_2D_wavegen.cpp"/>
             <File Name="iowave_2D_relax.cpp"/>
             <File Name="iowave_2D_precalc_ini.cpp"/>
@@ -2525,6 +2526,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="ioFlow">
+          <File Name="ioflow_2Dwaterlevel.cpp"/>
           <File Name="ioflow_waterlevel.cpp"/>
           <File Name="ioflow_velsource.cpp"/>
           <File Name="ioflow_velini.cpp"/>

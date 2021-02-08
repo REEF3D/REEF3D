@@ -25,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"patch_obj.h"
 
-void patchBC_2D::patchBC_ioflow2D(lexer*, fdm2D*, ghostcell*, slice&, slice&)
+void patchBC_2D::patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&)
 {
     
 }
