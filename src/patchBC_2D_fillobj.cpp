@@ -178,13 +178,12 @@ void patchBC_2D::patchBC_fillobj(lexer *p, ghostcell *pgc)
             jstart = p->posc_j(p->B440_ys[qn]);
             jend = p->posc_j(p->B440_ye[qn]);
             
-            for(n=0;n<p->gcb4_count;++n)
+            for(n=0;n<p->gcbsl4_count;++n)
             {
-            i=p->gcb4[n][0];
-            j=p->gcb4[n][1];
-            k=p->gcb4[n][2];
+            i=p->gcbsl4[n][0];
+            j=p->gcbsl4[n][1];
             
-                if(i>=istart && i<iend && j>=jstart && j<jend && p->gcb4[n][3]==p->B440_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
+                if(i>=istart && i<iend && j>=jstart && j<jend && p->gcb4[n][3]==p->B440_face[qn] && (p->gcbsl4[n][4]==21||p->gcbsl4[n][4]==22))
                 {
                     
                     for(qq=0;qq<obj_count;++qq)
@@ -197,7 +196,7 @@ void patchBC_2D::patchBC_fillobj(lexer *p, ghostcell *pgc)
                     ++patch[qq]->counter;
                     
                     // convert gcb
-                    p->gcb4[n][4]=patch[qq]->gcb_flag;
+                    p->gcbsl4[n][4]=patch[qq]->gcb_flag;
                     }
                 }
             }

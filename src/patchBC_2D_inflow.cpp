@@ -25,8 +25,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"patch_obj.h"
 
-void patchBC_2D::patchBC_ioflow2D(lexer*, ghostcell*, slice &P, slice &Q, slice &eta, slice &bed)
+void patchBC_2D::patchBC_ioflow2D(lexer *p, ghostcell *pgc, slice &P, slice &Q, slice &eta, slice &bed)
 {
+    cout<<p->mpirank<<" patchBC_2D: inflow "<<endl;
+    
     // Uio
     for(qq=0;qq<obj_count;++qq)
     if(patch[qq]->Uio_flag==1)
