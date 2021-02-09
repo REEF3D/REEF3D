@@ -25,10 +25,47 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"patch_obj.h"
 
+void patchBC_2D::patchBC_waterlevel2D(lexer*, ghostcell*, slice &eta)
+{
+    // Uio
+    for(qq=0;qq<obj_count;++qq)
+    if(patch[qq]->Uio_flag==1)
+    for(n=0;n<patch[qq]->gcb_count;++n)
+    {
+    i=patch[qq]->gcb[n][0];
+    j=patch[qq]->gcb[n][1];
+    
+        if(patch[qq]->gcb[n][3]==1)
+        {
+        eta(i-1,j) =  patch[qq]->waterlevel;
+        eta(i-2,j) =  patch[qq]->waterlevel;
+        eta(i-3,j) =  patch[qq]->waterlevel;
+        }
+        
+        if(patch[qq]->gcb[n][3]==2)
+        {
+        eta(i,j)   =  patch[qq]->waterlevel;
+        eta(i,j+1) =  patch[qq]->waterlevel;
+        eta(i,j+2) =  patch[qq]->waterlevel;
+        }
+        
+        if(patch[qq]->gcb[n][3]==3)
+        {
+        eta(i,j-1) =  patch[qq]->waterlevel;
+        eta(i,j-2) =  patch[qq]->waterlevel;
+        eta(i,j-3) =  patch[qq]->waterlevel;
+        }
+        
+        if(patch[qq]->gcb[n][3]==4)
+        {
+        eta(i,j)   =  patch[qq]->waterlevel;
+        eta(i+1,j) =  patch[qq]->waterlevel;
+        eta(i+2,j) =  patch[qq]->waterlevel;
+        }
+    }
+}
+
 void patchBC_2D::patchBC_waterlevel(lexer *p, fdm *a, ghostcell *pgc, field &phi)
 {
 } 
 
-void patchBC_2D::patchBC_waterlevel2D(lexer*, ghostcell*, slice&)
-{
-}

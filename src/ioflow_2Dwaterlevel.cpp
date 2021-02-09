@@ -52,5 +52,5 @@ void ioflow_f::waterlevel2D(lexer *p, ghostcell* pgc, slice &eta)
         Q(i-3,j)=0.0;
     }
     
-    pBC->patchBC_ioflow2D(p,b,pgc,P,Q);*/
+    pBC->patchBC_ioflow2D(p,b,pgc,P,Q,bed,eta);*/
 }

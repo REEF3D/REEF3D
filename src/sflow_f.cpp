@@ -120,8 +120,9 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         pturb->etimesave(p,b,pgc);
 		
         //timestep control
-        ptime->start(p,b,pgc);
         p->simtime+=p->dt;
+        ptime->start(p,b,pgc);
+        
         
         // printer
 		//print_debug(p,b,pgc);

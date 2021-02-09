@@ -41,7 +41,7 @@ public:
     virtual void patchBC_waterlevel(lexer*, fdm*, ghostcell*, field&);
     
     // BC update ::SFLOW
-    virtual void patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&);
+    virtual void patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&);
     virtual void patchBC_pressure2D(lexer*, ghostcell*, slice&);
     virtual void patchBC_waterlevel2D(lexer*,  ghostcell*, slice&);
 

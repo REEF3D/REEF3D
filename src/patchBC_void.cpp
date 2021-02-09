@@ -51,7 +51,7 @@ void patchBC_void::patchBC_waterlevel(lexer *p, fdm *a, ghostcell *pgc, field &p
 {
 } 
 
-void patchBC_void::patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&)
+void patchBC_void::patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&)
 {
 }
 
