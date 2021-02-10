@@ -27,8 +27,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 patchBC_2D::patchBC_2D(lexer *p, ghostcell *pgc) 
 {
-    cout<<p->mpirank<<" start patchBC_2D: "<<endl;
-    
     patchBC_ini(p,pgc);
 }
 

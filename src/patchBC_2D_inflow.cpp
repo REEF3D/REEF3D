@@ -27,8 +27,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void patchBC_2D::patchBC_ioflow2D(lexer *p, ghostcell *pgc, slice &P, slice &Q, slice &eta, slice &bed)
 {
-    cout<<p->mpirank<<" patchBC_2D: inflow "<<endl;
-    
     // Uio
     for(qq=0;qq<obj_count;++qq)
     if(patch[qq]->Uio_flag==1)

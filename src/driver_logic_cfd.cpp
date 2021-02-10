@@ -703,5 +703,4 @@ void driver::patchBC_logic()
     
     if(p->B440==0 && p->B441==0 && p->B442==0)
     pBC = new patchBC_void(p);
-    
 }

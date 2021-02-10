@@ -58,7 +58,7 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
         u(i,j+2,k) =  0.0;
         u(i,j+3,k) =  0.0;
         
-        v(i,j,k) =  patch[qq]->Uio;
+        v(i,j,k)   =  patch[qq]->Uio;
         v(i,j+1,k) =  patch[qq]->Uio;
         v(i,j+2,k) =  patch[qq]->Uio;
         
@@ -248,9 +248,9 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
 } 
 
 
-void patchBC::patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&)
+void patchBC::patchBC_ioflow2D(lexer *p, ghostcell*, slice&, slice&, slice&, slice&)
 {
-    
+    cout<<p->mpirank<<" patchBC_2D: inflow 3D "<<endl;
 }
 
 

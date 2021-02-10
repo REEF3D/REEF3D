@@ -27,8 +27,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void ioflow_f::inflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &bed, slice &eta)
 {
-    cout<<p->mpirank<<" ioflow_2D: "<<endl;
-    
     for(n=0;n<p->gcslin_count;n++)
     {
     i=p->gcslin[n][0];

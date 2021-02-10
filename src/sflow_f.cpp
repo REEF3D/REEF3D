@@ -40,8 +40,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/stat.h>
 #include<sys/types.h>
 
-sflow_f::sflow_f(lexer *p, fdm2D *b, ghostcell* pgc)
+sflow_f::sflow_f(lexer *p, fdm2D *b, ghostcell* pgc, patchBC_interface *ppBC)
 {
+    pBC = ppBC;
+    
 	maxcoor(p,b,pgc);
 }
 

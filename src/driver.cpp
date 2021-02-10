@@ -201,7 +201,7 @@ void driver::sf_driver()
     b=new fdm2D(p);
     bb=b;
 
-    psflow = new sflow_f(p,b,pgc);
+    psflow = new sflow_f(p,b,pgc,pBC);
 
     makegrid2D_cds(p,pgc,b);
 
