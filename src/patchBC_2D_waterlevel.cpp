@@ -25,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"patch_obj.h"
 
-void patchBC_2D::patchBC_waterlevel2D(lexer*, ghostcell*, slice &eta)
+void patchBC_2D::patchBC_waterlevel2D(lexer *p, ghostcell *pgc, slice &eta)
 {
     // Uio
     for(qq=0;qq<obj_count;++qq)
@@ -37,30 +37,30 @@ void patchBC_2D::patchBC_waterlevel2D(lexer*, ghostcell*, slice &eta)
     
         if(patch[qq]->gcb[n][3]==1)
         {
-        eta(i-1,j) =  patch[qq]->waterlevel;
-        eta(i-2,j) =  patch[qq]->waterlevel;
-        eta(i-3,j) =  patch[qq]->waterlevel;
+        eta(i-1,j) =  patch[qq]->waterlevel-p->wd;
+        eta(i-2,j) =  patch[qq]->waterlevel-p->wd;
+        eta(i-3,j) =  patch[qq]->waterlevel-p->wd;
         }
         
         if(patch[qq]->gcb[n][3]==2)
         {
-        eta(i,j)   =  patch[qq]->waterlevel;
-        eta(i,j+1) =  patch[qq]->waterlevel;
-        eta(i,j+2) =  patch[qq]->waterlevel;
+        eta(i,j)   =  patch[qq]->waterlevel-p->wd;
+        eta(i,j+1) =  patch[qq]->waterlevel-p->wd;
+        eta(i,j+2) =  patch[qq]->waterlevel-p->wd;
         }
         
         if(patch[qq]->gcb[n][3]==3)
         {
-        eta(i,j-1) =  patch[qq]->waterlevel;
-        eta(i,j-2) =  patch[qq]->waterlevel;
-        eta(i,j-3) =  patch[qq]->waterlevel;
+        eta(i,j-1) =  patch[qq]->waterlevel-p->wd;
+        eta(i,j-2) =  patch[qq]->waterlevel-p->wd;
+        eta(i,j-3) =  patch[qq]->waterlevel-p->wd;
         }
         
         if(patch[qq]->gcb[n][3]==4)
         {
-        eta(i,j)   =  patch[qq]->waterlevel;
-        eta(i+1,j) =  patch[qq]->waterlevel;
-        eta(i+2,j) =  patch[qq]->waterlevel;
+        eta(i,j)   =  patch[qq]->waterlevel-p->wd;
+        eta(i+1,j) =  patch[qq]->waterlevel-p->wd;
+        eta(i+2,j) =  patch[qq]->waterlevel-p->wd;
         }
     }
 }

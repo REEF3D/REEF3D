@@ -77,6 +77,11 @@ int ghostcell::gcsleval1(lexer *p, int gcv, int bc, int cs)
     else
     if((bc==21||bc==3)&&(gcv==51||gcv==52||gcv==53||gcv==54))
 	return 4;
+    
+    //Patch eta    
+    else
+	if((bc==221 || bc==211 || bc==121 || bc==111) && (gcv==55||gcv==51||gcv==52||gcv==53||gcv==54))
+	return 4;
     /*
     else
     if(bc==2)

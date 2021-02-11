@@ -839,5 +839,5 @@ void ioflow_v::ini_nhflow(lexer *p,fdm *a,ghostcell *pgc)
 
 void ioflow_v::waterlevel2D(lexer *p, ghostcell* pgc, slice &eta)
 {
-    
+    pBC->patchBC_waterlevel2D(p,pgc,eta);
 }

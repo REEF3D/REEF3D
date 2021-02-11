@@ -39,14 +39,14 @@ void patchBC_2D::patchBC_gcb_count(lexer *p, ghostcell *pgc)
             jend = p->posc_j(p->B440_ye[qn]);
             
             //cout<<"p->B440_xs[qn]: "<<p->B440_xs[qn]<<" p->B440_xs[qn]: "<<p->B440_xe[qn]<<" p->B440_ys[qn]: "<<p->B440_ys[qn]<<" p->B440_ye[qn]: "<<p->B440_ye[qn]<<endl;
-            cout<<"istart: "<<istart<<" iend: "<<iend<<" jstart: "<<jstart<<" jend: "<<jend<<" p->gcbsl4_count: "<<p->gcbsl4_count<<endl;
+            //cout<<"istart: "<<istart<<" iend: "<<iend<<" jstart: "<<jstart<<" jend: "<<jend<<" p->gcbsl4_count: "<<p->gcbsl4_count<<endl;
             
             for(n=0;n<p->gcbsl4_count;++n)
             {
             i=p->gcbsl4[n][0];
             j=p->gcbsl4[n][1];
             
-            cout<<p->mpirank<<" i: "<<i<<" j: "<<j<<endl;
+            //cout<<p->mpirank<<" i: "<<i<<" j: "<<j<<endl;
             
                 if(i>=istart && i<iend && j>=jstart && j<jend && p->gcbsl4[n][3]==p->B440_face[qn] && (p->gcbsl4[n][4]==21||p->gcbsl4[n][4]==22))
                 {
@@ -54,7 +54,7 @@ void patchBC_2D::patchBC_gcb_count(lexer *p, ghostcell *pgc)
                 }
             }
             
-            cout<<p->mpirank<<" COUNT: "<<count<<endl;
+            //cout<<p->mpirank<<" COUNT: "<<count<<endl;
 
         
         for(qq=0;qq<obj_count;++qq)

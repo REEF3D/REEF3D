@@ -93,6 +93,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
     pflow->inflow2D(p,b,pgc,b->P,b->Q,b->bed,b->eta);
     pflow->inflow2D(p,b,pgc,Prk1,Qrk1,b->bed,b->eta);
     pflow->inflow2D(p,b,pgc,Prk2,Qrk2,b->bed,b->eta);
+    
 	
 //Step 1
 //--------------------------------------------------------	
