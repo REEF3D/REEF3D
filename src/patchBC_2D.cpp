@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 patchBC_2D::patchBC_2D(lexer *p, ghostcell *pgc) 
 {
-    patchBC_ini(p,pgc);
+
 }
 
 patchBC_2D::~patchBC_2D()

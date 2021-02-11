@@ -52,6 +52,10 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
 	if((bc==8) && (gcv==41 || gcv==42 || gcv==43 || gcv==44))
 	return 4;
     
+    else
+	if((bc==211 || bc==212 || bc==112 || bc==111) && (gcv==41 || gcv==42 || gcv==43 || gcv==44))
+	return 4;
+    
     // Fifsf 60
     else
     if((cs==2 || cs==3) && gcv==60)
@@ -70,6 +74,11 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
     if(gcv==55)
     return 4;
     
+    //Patch    
+    else
+	if((bc==221 || bc==211 || bc==121 || bc==111) && (gcv==55||gcv==51||gcv==52||gcv==53||gcv==54))
+	return 4;
+   
     
     else
     if((bc==1||bc==6) && (gcv==52||gcv==54))

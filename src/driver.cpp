@@ -121,6 +121,7 @@ driver::driver(int& argc, char **argv)
         p->flagini2D();
         p->gridini2D();
         makegrid2D(p,pgc);
+        pBC->patchBC_ini(p,pgc);
         sf_driver();
     }
 }
