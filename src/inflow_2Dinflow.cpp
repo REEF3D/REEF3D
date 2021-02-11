@@ -80,4 +80,6 @@ void ioflow_f::rkinflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q
         Q(i-3,j)=0.0;
     
     }
+    
+    pBC->patchBC_ioflow2D(p,pgc,P,Q,bed,eta);
 }

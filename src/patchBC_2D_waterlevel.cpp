@@ -27,9 +27,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void patchBC_2D::patchBC_waterlevel2D(lexer *p, ghostcell *pgc, slice &eta)
 {
-    // Uio
+    // waterlevel
     for(qq=0;qq<obj_count;++qq)
-    if(patch[qq]->Uio_flag==1)
+    if(patch[qq]->waterlevel_flag==1)
     for(n=0;n<patch[qq]->gcb_count;++n)
     {
     i=patch[qq]->gcb[n][0];

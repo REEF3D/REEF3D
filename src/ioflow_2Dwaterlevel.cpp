@@ -27,30 +27,5 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void ioflow_f::waterlevel2D(lexer *p, ghostcell* pgc, slice &eta)
 {
-    /*
-    for(n=0;n<p->gcslin_count;n++)
-    {
-    i=p->gcslin[n][0];
-    j=p->gcslin[n][1];
-    
-        if(b->wet4(i,j)==1 && p->gcslin[n][5]==1)
-        {
-        P(i-1,j)=p->Ui;
-        P(i-2,j)=p->Ui;
-        P(i-3,j)=p->Ui;
-        }
-        
-        if(b->wet4(i,j)==0 || p->gcslin[n][5]==0)
-        {
-        P(i-1,j)=0.0;
-        P(i-2,j)=0.0;
-        P(i-3,j)=0.0;
-        }
-		
-		Q(i-1,j)=0.0;
-        Q(i-2,j)=0.0;
-        Q(i-3,j)=0.0;
-    }
-    
-    pBC->patchBC_ioflow2D(p,b,pgc,P,Q,bed,eta);*/
+    pBC->patchBC_waterlevel2D(p,pgc,eta);
 }

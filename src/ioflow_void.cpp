@@ -738,10 +738,12 @@ void ioflow_v::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
 
 void ioflow_v::inflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &bed, slice &eta)
 {
+    pBC->patchBC_ioflow2D(p,pgc,P,Q,bed,eta);
 }
 
 void ioflow_v::rkinflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &bed, slice &eta)
 {
+    pBC->patchBC_ioflow2D(p,pgc,P,Q,bed,eta);
 }
 
 void ioflow_v::isource2D(lexer *p, fdm2D* b, ghostcell* pgc)
