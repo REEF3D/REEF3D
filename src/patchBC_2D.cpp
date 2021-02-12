@@ -19,13 +19,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"patchBC.h"
+#include"patchBC_2D.h"
 #include"lexer.h"
+#include"fdm.h"
 #include"ghostcell.h"
 #include"patch_obj.h"
 
-patchBC::patchBC(lexer *p, ghostcell *pgc) 
+patchBC_2D::patchBC_2D(lexer *p, ghostcell *pgc) 
 {
+
+}
+
+patchBC_2D::~patchBC_2D()
+{
+}
+
+void patchBC_2D::patchBC_ini(lexer *p, ghostcell *pgc)
+{
+   
     patchBC_IDcount(p,pgc);
     
     // creat patch objects
@@ -34,14 +45,6 @@ patchBC::patchBC(lexer *p, ghostcell *pgc)
     for(qn=0; qn<obj_count;++qn)
     patch[qn] = new patch_obj(p,ID_array[qn]);
     
-}
-
-patchBC::~patchBC()
-{
-}
-
-void patchBC::patchBC_ini(lexer *p, ghostcell *pgc)
-{
     // fill patch objects
     patchBC_gcb_count(p,pgc);
     patchBC_fillobj(p,pgc);

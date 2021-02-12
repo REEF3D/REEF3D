@@ -24,26 +24,45 @@ Author: Hans Bihs
 
 using namespace std;
 
-#ifndef PATCHBC_VOID_H_
-#define PATCHBC_VOID_H_
+#ifndef PATCHBC_2D_H_
+#define PATCHBC_2D_H_
 
-class patchBC_void : public patchBC_interface
+class patchBC_2D : public patchBC_interface, public increment
 {
 public:
-    patchBC_void(lexer*);
-	virtual ~patchBC_void();
+	patchBC_2D(lexer*,ghostcell*);
+	virtual ~patchBC_2D();
     
+    virtual void patchBC_ini(lexer *p, ghostcell *pgc);
     
-    virtual void patchBC_ini(lexer*, ghostcell*);
-    
-    // BC update
+    // BC update ::CFD
     virtual void patchBC_ioflow(lexer*, fdm*, ghostcell*, field&,field&,field&);
     virtual void patchBC_pressure(lexer*, fdm*, ghostcell*, field&);
     virtual void patchBC_waterlevel(lexer*, fdm*, ghostcell*, field&);
     
+    // BC update ::SFLOW
     virtual void patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&);
     virtual void patchBC_pressure2D(lexer*, ghostcell*, slice&);
-    virtual void patchBC_waterlevel2D(lexer*, ghostcell*, slice&);
+    virtual void patchBC_waterlevel2D(lexer*,  ghostcell*, slice&);
+
+
+        
+private:
+     // ini
+    void patchBC_gcb_count(lexer *p, ghostcell *pgc);
+    void patchBC_IDcount(lexer *p, ghostcell *pgc);
+    void patchBC_fillobj(lexer *p, ghostcell *pgc);
+    
+    int q,n,qn,qq,count,ID_count;
+    int istart,iend,jstart,jend,kstart,kend;
+    
+    int *inflow_ID;
+    int *outflow_ID;
+    
+    int geo_count,obj_count;
+    int *ID_array;
+    
+    patch_obj **patch;
     
 };
 

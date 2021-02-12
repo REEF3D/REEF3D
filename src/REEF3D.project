@@ -924,6 +924,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="ioFlow">
         <VirtualDirectory Name="patchBC">
+          <File Name="patchBC_2D.h"/>
           <File Name="patchBC_void.h"/>
           <File Name="patchBC_interface.h"/>
           <File Name="patchBC.h"/>
@@ -2432,15 +2433,30 @@
       </VirtualDirectory>
       <VirtualDirectory Name="ioFlow">
         <VirtualDirectory Name="PatchBC">
-          <File Name="patchBC_gcb_count.cpp"/>
-          <File Name="patchBC_waterlevel.cpp"/>
-          <File Name="patchBC_pressure.cpp"/>
-          <File Name="patchBC_void.cpp"/>
-          <File Name="patchBC_fillobj.cpp"/>
-          <File Name="patchBC_IDcount.cpp"/>
-          <File Name="patch_obj.cpp"/>
-          <File Name="patchBC_inflow.cpp"/>
-          <File Name="patchBC.cpp"/>
+          <VirtualDirectory Name="PatchBC 2D">
+            <File Name="patchBC_2D_IDcount.cpp"/>
+            <File Name="patchBC_2D_waterlevel.cpp"/>
+            <File Name="patchBC_2D_pressure.cpp"/>
+            <File Name="patchBC_2D_gcb_count.cpp"/>
+            <File Name="patchBC_2D_inflow.cpp"/>
+            <File Name="patchBC_2D_fillobj.cpp"/>
+            <File Name="patchBC_2D.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="PatchBC void">
+            <File Name="patchBC_void.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="PatchBC">
+            <File Name="patchBC_waterlevel.cpp"/>
+            <File Name="patchBC_pressure.cpp"/>
+            <File Name="patchBC_inflow.cpp"/>
+            <File Name="patchBC_IDcount.cpp"/>
+            <File Name="patchBC_gcb_count.cpp"/>
+            <File Name="patchBC_fillobj.cpp"/>
+            <File Name="patchBC.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="PatchBC obj">
+            <File Name="patch_obj.cpp"/>
+          </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Void">
           <File Name="ioflow_void.cpp"/>
@@ -2474,6 +2490,7 @@
           <File Name="iowave_active-beach.cpp"/>
           <File Name="iowave.cpp"/>
           <VirtualDirectory Name="SFLOW">
+            <File Name="iowave_2D_waterlevel.cpp"/>
             <File Name="iowave_2D_wavegen.cpp"/>
             <File Name="iowave_2D_relax.cpp"/>
             <File Name="iowave_2D_precalc_ini.cpp"/>
@@ -2509,6 +2526,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="ioFlow">
+          <File Name="ioflow_2Dwaterlevel.cpp"/>
           <File Name="ioflow_waterlevel.cpp"/>
           <File Name="ioflow_velsource.cpp"/>
           <File Name="ioflow_velini.cpp"/>

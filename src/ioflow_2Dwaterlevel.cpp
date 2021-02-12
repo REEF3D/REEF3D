@@ -18,32 +18,14 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
-
-#include"patchBC.h"
+#include"ioflow_f.h"
 #include"lexer.h"
 #include"ghostcell.h"
-#include"patch_obj.h"
+#include"slice.h"
+#include"fdm2D.h"
+#include"patchBC_interface.h"
 
-patchBC::patchBC(lexer *p, ghostcell *pgc) 
+void ioflow_f::waterlevel2D(lexer *p, ghostcell* pgc, slice &eta)
 {
-    patchBC_IDcount(p,pgc);
-    
-    // creat patch objects
-    patch = new patch_obj*[obj_count];
-    
-    for(qn=0; qn<obj_count;++qn)
-    patch[qn] = new patch_obj(p,ID_array[qn]);
-    
+    pBC->patchBC_waterlevel2D(p,pgc,eta);
 }
-
-patchBC::~patchBC()
-{
-}
-
-void patchBC::patchBC_ini(lexer *p, ghostcell *pgc)
-{
-    // fill patch objects
-    patchBC_gcb_count(p,pgc);
-    patchBC_fillobj(p,pgc);
-} 
-

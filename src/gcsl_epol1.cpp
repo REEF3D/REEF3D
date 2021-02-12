@@ -41,6 +41,10 @@ int ghostcell::gcsleval1(lexer *p, int gcv, int bc, int cs)
 
 //Inflow: none
 
+//Patch    
+    else
+	if((bc==111 || bc==112 || bc==121 || bc==122) && (gcv==10||gcv==1||gcv==20||gcv==7))
+	return 4;
 	
 //Outflow
 	else
@@ -72,14 +76,11 @@ int ghostcell::gcsleval1(lexer *p, int gcv, int bc, int cs)
     else
     if((bc==21||bc==3)&&(gcv==51||gcv==52||gcv==53||gcv==54))
 	return 4;
-    /*
-    else
-    if(bc==2)
-    {
-    cout<<"GCV: "<<gcv<<" "<<endl;    
-	return 4;
-    }*/
     
+    //Patch eta    
+    else
+	if((bc==221 || bc==211 || bc==121 || bc==111) && (gcv==50||gcv==51||gcv==52||gcv==53||gcv==54))
+	return 4;
     
     else
     return -1;

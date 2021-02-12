@@ -21,7 +21,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"patchBC.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include"patch_obj.h"
 
@@ -30,8 +29,8 @@ void patchBC::patchBC_gcb_count(lexer *p, ghostcell *pgc)
 // count gcbs
     for(qn=0;qn<p->B440;++qn)
     {
-        int count=0;
-        {
+            int count=0;
+        
             istart = p->posc_i(p->B440_xs[qn]);
             iend = p->posc_i(p->B440_xe[qn]);
             
@@ -49,7 +48,7 @@ void patchBC::patchBC_gcb_count(lexer *p, ghostcell *pgc)
                 ++count;
                 }
             }
-        }
+        
         
         for(qq=0;qq<obj_count;++qq)
         {
@@ -61,8 +60,8 @@ void patchBC::patchBC_gcb_count(lexer *p, ghostcell *pgc)
     
     for(qn=0;qn<p->B441;++qn)
     {
-        int count=0;
-        {
+            int count=0;
+        
             istart = p->posc_i(p->B441_xs[qn]);
             iend = p->posc_i(p->B441_xe[qn]);
             
@@ -84,7 +83,7 @@ void patchBC::patchBC_gcb_count(lexer *p, ghostcell *pgc)
                 ++count;
                 }
             }
-        }
+    
         
         for(qq=0;qq<obj_count;++qq)
         {
@@ -99,8 +98,8 @@ void patchBC::patchBC_gcb_count(lexer *p, ghostcell *pgc)
     double r;
     for(qn=0;qn<p->B442;++qn)
     {
-        int count=0;
-        {            
+            int count=0;
+          
             
             for(n=0;n<p->gcb4_count;++n)
             {
@@ -142,7 +141,7 @@ void patchBC::patchBC_gcb_count(lexer *p, ghostcell *pgc)
                 }
             }
 
-        }
+        
         
         for(qq=0;qq<obj_count;++qq)
         {

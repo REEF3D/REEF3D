@@ -19,70 +19,55 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"patchBC.h"
+#include"patchBC_2D.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"patch_obj.h"
 
-void patchBC::patchBC_pressure(lexer *p, fdm *a, ghostcell *pgc, field &press)
+void patchBC_2D::patchBC_pressure2D(lexer*, ghostcell*, slice &press)
 {
-
-        
     for(qq=0;qq<obj_count;++qq)
     if(patch[qq]->pressure_flag==1)
     for(n=0;n<patch[qq]->gcb_count;++n)
     {
     i=patch[qq]->gcb[n][0];
     j=patch[qq]->gcb[n][1];
-    k=patch[qq]->gcb[n][2];
-    
+
         if(patch[qq]->gcb[n][3]==1)
         {
-        press(i-1,j,k) =  patch[qq]->pressure;
-        press(i-2,j,k) =  patch[qq]->pressure;
-        press(i-3,j,k) =  patch[qq]->pressure;
+        press(i-1,j) =  patch[qq]->pressure;
+        press(i-2,j) =  patch[qq]->pressure;
+        press(i-3,j) =  patch[qq]->pressure;
         }
         
         if(patch[qq]->gcb[n][3]==2)
         {
-        press(i,j+1,k) =  patch[qq]->pressure;
-        press(i,j+2,k) =  patch[qq]->pressure;
-        press(i,j+3,k) =  patch[qq]->pressure;
+        press(i,j+1) =  patch[qq]->pressure;
+        press(i,j+2) =  patch[qq]->pressure;
+        press(i,j+3) =  patch[qq]->pressure;
         }
         
         if(patch[qq]->gcb[n][3]==3)
         {
-        press(i,j-1,k) =  patch[qq]->pressure;
-        press(i,j-2,k) =  patch[qq]->pressure;
-        press(i,j-3,k) =  patch[qq]->pressure;
+        press(i,j-1) =  patch[qq]->pressure;
+        press(i,j-2) =  patch[qq]->pressure;
+        press(i,j-3) =  patch[qq]->pressure;
         }
         
         if(patch[qq]->gcb[n][3]==4)
         {
-        press(i+1,j,k) =  patch[qq]->pressure;
-        press(i+2,j,k) =  patch[qq]->pressure;
-        press(i+3,j,k) =  patch[qq]->pressure;
+        press(i+1,j) =  patch[qq]->pressure;
+        press(i+2,j) =  patch[qq]->pressure;
+        press(i+3,j) =  patch[qq]->pressure;
         }
-        
-        if(patch[qq]->gcb[n][3]==5)
-        {
-        //cout<<p->mpirank<<" TEST PRESS"<<endl;
-        press(i,j,k-1) =  patch[qq]->pressure;
-        press(i,j,k-2) =  patch[qq]->pressure;
-        press(i,j,k-3) =  patch[qq]->pressure;
-        }
-        
-        if(patch[qq]->gcb[n][3]==6)
-        {
-        press(i,j,k+1) =  patch[qq]->pressure;
-        press(i,j,k+2) =  patch[qq]->pressure;
-        press(i,j,k+3) =  patch[qq]->pressure;
-        }
-    
     }
+}
+
+void patchBC_2D::patchBC_pressure(lexer *p, fdm *a, ghostcell *pgc, field &press)
+{
+
+        
+    
 } 
 
-void patchBC::patchBC_pressure2D(lexer*, ghostcell*, slice&)
-{
-}
