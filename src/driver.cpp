@@ -33,13 +33,12 @@ driver::driver(int& argc, char **argv)
 	p = new lexer;
 	pgc = new ghostcell(argc,argv,p);
     
-    
 
 	if(p->mpirank==0)
     {
     cout<<endl<<"REEF3D (c) 2008-2020 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    cout<<endl<<"v_210211" <<endl<<endl;
+    cout<<endl<<"v_210212" <<endl<<endl;
     }
 
 	p->lexer_read(pgc);

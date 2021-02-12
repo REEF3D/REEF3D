@@ -26,16 +26,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 patchBC::patchBC(lexer *p, ghostcell *pgc) 
 {
-    patchBC_ini(p,pgc);
-}
-
-patchBC::~patchBC()
-{
-}
-
-void patchBC::patchBC_ini(lexer *p, ghostcell *pgc)
-{
-   
     patchBC_IDcount(p,pgc);
     
     // creat patch objects
@@ -44,6 +34,14 @@ void patchBC::patchBC_ini(lexer *p, ghostcell *pgc)
     for(qn=0; qn<obj_count;++qn)
     patch[qn] = new patch_obj(p,ID_array[qn]);
     
+}
+
+patchBC::~patchBC()
+{
+}
+
+void patchBC::patchBC_ini(lexer *p, ghostcell *pgc)
+{
     // fill patch objects
     patchBC_gcb_count(p,pgc);
     patchBC_fillobj(p,pgc);

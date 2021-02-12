@@ -93,6 +93,9 @@ cout<<"starting driver_ini"<<endl;
     pgc->start4a(p,a->topo,150);
     }
     
+    // patchBC ini
+    pBC->patchBC_ini(p,pgc);
+    
     //ioflow ini
     pflow->ini(p,a,pgc);
 
