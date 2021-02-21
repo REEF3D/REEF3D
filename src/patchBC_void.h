@@ -38,10 +38,12 @@ public:
     
     // BC update
     virtual void patchBC_ioflow(lexer*, fdm*, ghostcell*, field&,field&,field&);
+    virtual void patchBC_discharge(lexer*, fdm*, ghostcell*);
     virtual void patchBC_pressure(lexer*, fdm*, ghostcell*, field&);
     virtual void patchBC_waterlevel(lexer*, fdm*, ghostcell*, field&);
     
     virtual void patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&);
+    virtual void patchBC_discharge2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&);
     virtual void patchBC_pressure2D(lexer*, ghostcell*, slice&);
     virtual void patchBC_waterlevel2D(lexer*, ghostcell*, slice&);
     
