@@ -21,7 +21,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"patchBC.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include"patch_obj.h"
 
@@ -30,7 +29,7 @@ void patchBC::patchBC_IDcount(lexer *p, ghostcell *pgc)
 {    
     int check;
     
-    geo_count = p->B441 + p->B442;
+    geo_count = p->B440 + p->B441 + p->B442;
     
     p->Iarray(ID_array,geo_count);
     
@@ -38,6 +37,13 @@ void patchBC::patchBC_IDcount(lexer *p, ghostcell *pgc)
     // ini ID array
     count=0;
     check=0;
+    
+    if(p->B440>0 && check==0)
+    {
+    ID_array[0] = p->B440_ID[0];
+    count=1;
+    check=1;
+    }
     
     if(p->B441>0 && check==0)
     {
@@ -54,6 +60,20 @@ void patchBC::patchBC_IDcount(lexer *p, ghostcell *pgc)
     }
     
     // fill ID array
+    for(n=0; n<p->B440;++n)
+    {
+        check=1;
+        for(qn=0;qn<count;++qn)
+        if(ID_array[qn] == p->B440_ID[n]);
+        check=0;
+        
+        if(check==1)
+        {
+        ID_array[count] = p->B440_ID[n];
+        ++count;       
+        }
+    }
+    
     for(n=0; n<p->B441;++n)
     {
         check=1;

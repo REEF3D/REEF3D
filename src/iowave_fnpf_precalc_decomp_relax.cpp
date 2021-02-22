@@ -106,8 +106,8 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
         
         if(p->B99==1||p->B99==2)
         {
-                // Zone 3
-                if(db<dist3)
+                // Zone 2
+                if(db<dist2)
                 {
                 rb3val[dbcount] = rb3(p,db);
                 ++dbcount;

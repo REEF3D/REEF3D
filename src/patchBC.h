@@ -35,10 +35,15 @@ public:
     
     virtual void patchBC_ini(lexer *p, ghostcell *pgc);
     
-    // BC update
+    // BC update ::CFD
     virtual void patchBC_ioflow(lexer*, fdm*, ghostcell*, field&,field&,field&);
     virtual void patchBC_pressure(lexer*, fdm*, ghostcell*, field&);
     virtual void patchBC_waterlevel(lexer*, fdm*, ghostcell*, field&);
+    
+    // BC update ::SFLOW
+    virtual void patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&);
+    virtual void patchBC_pressure2D(lexer*, ghostcell*, slice&);
+    virtual void patchBC_waterlevel2D(lexer*, ghostcell*, slice&);
 
 
         

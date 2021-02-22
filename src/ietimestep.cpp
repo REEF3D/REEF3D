@@ -189,7 +189,6 @@ void ietimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
     p->dt = MAX(p->dt,1.0e-6);
     
 	p->dt=pgc->timesync(p->dt);
-    p->dt = MIN(p->dt,10.0*p->dt_old);
 	p->dt_old=p->dt;
     
     a->maxF = fabs(a->gi);

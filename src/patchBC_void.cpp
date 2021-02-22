@@ -27,7 +27,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 patchBC_void::patchBC_void(lexer *p) 
 {
-    
 }
 
 patchBC_void::~patchBC_void()
@@ -36,26 +35,30 @@ patchBC_void::~patchBC_void()
 
 void patchBC_void::patchBC_ini(lexer *p, ghostcell *pgc)
 {
-
 } 
 
 void patchBC_void::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
 {
-
-
 } 
-
 
 void patchBC_void::patchBC_pressure(lexer *p, fdm *a, ghostcell *pgc, field &press)
 {
-
-
 } 
 
 void patchBC_void::patchBC_waterlevel(lexer *p, fdm *a, ghostcell *pgc, field &phi)
 {
-
-
 } 
+
+void patchBC_void::patchBC_ioflow2D(lexer *p, ghostcell*, slice&, slice&, slice&, slice&)
+{
+}
+
+void patchBC_void::patchBC_pressure2D(lexer*, ghostcell*, slice&)
+{
+}
+
+void patchBC_void::patchBC_waterlevel2D(lexer*, ghostcell*, slice&)
+{
+}
 
 

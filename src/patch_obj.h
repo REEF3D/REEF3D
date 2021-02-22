@@ -42,7 +42,7 @@ public:
     
     void patch_obj_gcb_generate(lexer *p, ghostcell *pgc);
     
-    // Patch DATA
+    // Patch DATA 3D
     int ID;
     int IO;
     int gcb_count;

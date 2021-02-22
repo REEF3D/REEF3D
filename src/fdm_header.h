@@ -39,4 +39,5 @@ Author: Hans Bihs
 #include"data_void.h"
 
 #include"patchBC.h"
+#include"patchBC_2D.h"
 #include"patchBC_void.h"

@@ -321,10 +321,12 @@ void ioflow_gravity::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
 }
 void ioflow_gravity::inflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &bed, slice &eta)
 {
+    pBC->patchBC_ioflow2D(p,pgc,P,Q,bed,eta);
 }
 
 void ioflow_gravity::rkinflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &bed, slice &eta)
 {
+    pBC->patchBC_ioflow2D(p,pgc,P,Q,bed,eta);
 }
 
 void ioflow_gravity::isource2D(lexer *p, fdm2D* b, ghostcell* pgc)
@@ -413,4 +415,9 @@ void ioflow_gravity::nhflow_inflow(lexer *p,fdm *a,ghostcell *pgc, field &uvel, 
 void ioflow_gravity::ini_nhflow(lexer *p,fdm *a,ghostcell *pgc)
 {
 
+}
+
+void ioflow_gravity::waterlevel2D(lexer *p, ghostcell* pgc, slice &eta)
+{
+    
 }

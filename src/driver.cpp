@@ -43,13 +43,16 @@ driver::driver(int& argc, char **argv)
     cout<<endl<<"REEF3D (c) 2008-2020 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
     cout<< timenow << endl;
-    cout<<endl<<"v_210201"<<"; "<<BRANCH<<"; "<<VERSION<<endl<<endl;
+    cout<<endl<<"v_210212"<<"; "<<BRANCH<<"; "<<VERSION<<endl<<endl;
     }
 
 	p->lexer_read(pgc);
 	pgc->gcini(p);
     p->gridini(pgc);
     patchBC_logic();
+
+    if(p->mpirank==0 && p->B90==1)
+    cout<<endl<<"!!! IMPORTANT NOTICE: changed input for B91, B93 and B96. please check the manual !!!"<<endl<<endl;
 
     if(p->mpirank==0)
     {
@@ -122,6 +125,7 @@ driver::driver(int& argc, char **argv)
         p->flagini2D();
         p->gridini2D();
         makegrid2D(p,pgc);
+        pBC->patchBC_ini(p,pgc);
         sf_driver();
     }
 }
@@ -202,7 +206,7 @@ void driver::sf_driver()
     b=new fdm2D(p);
     bb=b;
 
-    psflow = new sflow_f(p,b,pgc);
+    psflow = new sflow_f(p,b,pgc,pBC);
 
     makegrid2D_cds(p,pgc,b);
 

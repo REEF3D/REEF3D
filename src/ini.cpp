@@ -121,15 +121,12 @@ void lexer::ini_default()
 	B91=0;          // int wave parameter wL
 	B91_1=0.0;      // double wave amplitude
 	B91_2=0.0;      // double wave length
-	B91_3=0.0;      // double wave phase change
 	B92=0;            // int wave type
 	B93=0;          // int wave parameter wT
 	B93_1=0.0;      // double wave amplitude
 	B93_2=0.0;      // double wave period
-	B93_3=0.0;      // double wave phase change
 	B96_1=0.0;      // double dist1 for wave relax
 	B96_2=0.0;      // double dist2 for wave relax
-	B96_3=0.0;      // double dist3 for wave relax
 	B97=0.0;        // double wave direction in degree
 	B98=0;          // int type of wave generation
 	B99=0;			// int type of numerical beach
@@ -215,6 +212,7 @@ void lexer::ini_default()
     B415=0;        // int patchBC velocity components
     B416=0;        // int patchBC horizontal inflow angle
     B417=0;        // int patchBC inflow normals
+    B440=0;        // int patch BC inflow line
 	B441=0;			// int rectangular inflow patch BC
     B442=0;			// int circular inflow patch BC
 	

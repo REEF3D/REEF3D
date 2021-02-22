@@ -23,6 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
+#include"patchBC_interface.h"
 
 void iowave::inflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &bed, slice &eta)
 {
@@ -34,10 +35,14 @@ void iowave::inflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, sl
 	
 	if(p->B99==3 || p->B99==4)
 	active_beach2D(p,b,pgc,P,Q,bed,eta);
+    
+    pBC->patchBC_ioflow2D(p,pgc,P,Q,bed,eta);
 }
 
 void iowave::rkinflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &bed, slice &eta)
 {
+    
+    pBC->patchBC_ioflow2D(p,pgc,P,Q,bed,eta);
 }
 
 void iowave::inflow2D_plain(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &eta)
@@ -55,7 +60,6 @@ void iowave::inflow2D_plain(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice 
         Q(i-2,j)=0.0;
         Q(i-3,j)=0.0;
         
-        //cout<<"eta: "<<eta(i-1,j)<<"  "<<eta(i-2,j)<<"  "<<eta(i-3,j)<<"  .  "<<i<<" "<<j<<endl;
         eta(i-1,j)=0.0;
         eta(i-2,j)=0.0;
         eta(i-3,j)=0.0;
@@ -67,9 +71,5 @@ void iowave::inflow2D_plain(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice 
         b->hy(i-1,j)=b->eta(i-1,j) + b->depth(i-1,j);
         b->hy(i-2,j)=b->eta(i-2,j) + b->depth(i-2,j);
         b->hy(i-3,j)=b->eta(i-3,j) + b->depth(i-3,j);
-        
-       /* b->ws(i-1,j)=0.0;
-        b->ws(i-2,j)=0.0;
-        b->ws(i-3,j)=0.0;*/
     }
 }

@@ -145,9 +145,9 @@ double iowave::rb3_ext(lexer *p, int var)
         
         // relax
         
-        dist3 = p->B107_d[qn]; 
+        dist2 = p->B107_d[qn]; 
         
-        x=(dist3-fabs(x))/(dist3*dist3_fac);
+        x=(dist2-fabs(x))/(dist2*dist2_fac);
         x=MAX(x,0.0);
         
         r += 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
@@ -182,7 +182,7 @@ double iowave::rb3(lexer *p, double x)
 {
     double r=0.0;
 
-    x=(dist3-fabs(x))/(dist3*dist3_fac);
+    x=(dist2-fabs(x))/(dist2*dist2_fac);
     x=MAX(x,0.0);
     
     

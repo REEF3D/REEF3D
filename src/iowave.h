@@ -105,6 +105,7 @@ public:
     
     
     virtual void discharge2D(lexer*,fdm2D*,ghostcell*);
+    virtual void waterlevel2D(lexer*,ghostcell*,slice&);
     virtual void Qin2D(lexer*,fdm2D*,ghostcell*);
 	virtual void Qout2D(lexer*,fdm2D*,ghostcell*);
     virtual void inflow2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&);
@@ -220,7 +221,7 @@ private:
     int wtype;
     double inflow_bed,uvel,vvel,wvel;
     double area,Ai,Ao,Ui,fac;
-    double dist1,dist2,dist3,dist3_fac;
+    double dist1,dist2,dist2_fac;
     double x,y,z;
     double x1,y1,x2,y2,z3;
 	double xg,yg,zg,dg,db;

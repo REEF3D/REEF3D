@@ -133,8 +133,9 @@ void driver::loop_cfd_df(fdm* a)
         }
 
         //timestep control
-        ptstep->start(a,p,pgc,pturb);
         p->simtime+=p->dt;
+        ptstep->start(a,p,pgc,pturb);
+        
 
 
         // printer

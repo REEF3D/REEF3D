@@ -115,7 +115,6 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     
     psolv = new sflow_bicgstab(p,pgc);
     
-    pBC = new patchBC_void(p);
     //IOFlow
 	if(p->B60==0 && p->B90==0)
 	pflow = new ioflow_v(p,pgc,pBC);

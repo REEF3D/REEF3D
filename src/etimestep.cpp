@@ -135,7 +135,7 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 	p->dt=p->N47*cu;
     
 	p->dt=pgc->timesync(p->dt);
-    p->dt = MIN(p->dt,10.0*p->dt_old);
+   // p->dt = MIN(p->dt,10.0*p->dt_old);
     p->dt_old=p->dt;
     
 	a->maxF=0.0;

@@ -90,7 +90,7 @@ Eigen::Vector3d net_barQuasiStatic::screenForce
         nIt++;
     }
     
-    if (isnan(v_mag_corr))
+    if (std::isnan(v_mag_corr))
     {
         v_mag_corr = v_mag;
         screenForceCoeff(p,cd,cl,v_mag_corr,thetan,Sn);
