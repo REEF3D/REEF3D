@@ -69,8 +69,8 @@ void idiff_IMEX::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &
 	double visc_ddy_p,visc_ddy_m,visc_ddz_p,visc_ddz_m;
     
     pgc->start1(p,u,gcval_u);
-
-	count=0;
+	
+    count=0;
     if(p->i_dir==1)
     {
         ULOOP
@@ -99,16 +99,16 @@ void idiff_IMEX::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &
             
             visc_ddz_m = 0.25*(visc_i_j_km+ev_i_j_km + a->visc(i+1,j,k-1)+a->eddyv(i+1,j,k-1) + visc_ijk+ev_ijk + visc_ip_j_k+ev_ip_j_k);
                 
-            a->M.p[count] =  2.0*(visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP]*p->DXP[IP])
-                           + 2.0*(visc_ijk+ev_ijk)/(p->DXN[IM1]*p->DXP[IP])
+            a->M.p[count] =  2.0*(visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP1]*p->DXP[IP])     // changed
+                           + 2.0*(visc_ijk+ev_ijk)/(p->DXN[IP]*p->DXP[IP])            // changed
                            + visc_ddy_p/(p->DYP[JP]*p->DYN[JP])
                            + visc_ddy_m/(p->DYP[JM1]*p->DYN[JP])
                            + visc_ddz_p/(p->DZP[KP]*p->DZN[KP])
                            + visc_ddz_m/(p->DZP[KM1]*p->DZN[KP])
                            + CPOR1/(alpha*p->dt);
                           
-             a->M.s[count] = -2.0*(visc_ijk+ev_ijk)/(p->DXN[IM1]*p->DXP[IP]);
-             a->M.n[count] = -2.0*(visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP]*p->DXP[IP]);
+             a->M.s[count] = -2.0*(visc_ijk+ev_ijk)/(p->DXN[IP]*p->DXP[IP]);          // changed
+             a->M.n[count] = -2.0*(visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP1]*p->DXP[IP]);   // changed
              
              a->M.e[count] = -visc_ddy_m/(p->DYP[JM1]*p->DYN[JP]);
              a->M.w[count] = -visc_ddy_p/(p->DYP[JP]*p->DYN[JP]);
@@ -216,8 +216,8 @@ void idiff_IMEX::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &
             visc_ddz_m = 0.25*(visc_i_j_km+ev_i_j_km + a->visc(i,j+1,k-1)+a->eddyv(i,j+1,k-1) + visc_ijk+ev_ijk + visc_i_jp_k+ev_i_jp_k);
             
             
-            a->M.p[count] = 2.0*(visc_i_jp_k+ev_i_jp_k)/(p->DYN[JP]*p->DYP[JP])
-                          + 2.0*(visc_ijk+ev_ijk)/(p->DYN[JM1]*p->DYP[JP])
+            a->M.p[count] = 2.0*(visc_i_jp_k+ev_i_jp_k)/(p->DYN[JP1]*p->DYP[JP])     // changed
+                          + 2.0*(visc_ijk+ev_ijk)/(p->DYN[JP]*p->DYP[JP])            // changed
                           + visc_ddx_p/(p->DXP[IP]*p->DXN[IP])
                           + visc_ddx_m/(p->DXP[IM1]*p->DXN[IP])
                           + visc_ddz_p/(p->DZP[KP]*p->DZN[KP])
@@ -227,8 +227,8 @@ void idiff_IMEX::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &
             a->M.s[count] = -visc_ddx_m/(p->DXP[IM1]*p->DXN[IP]);
             a->M.n[count] = -visc_ddx_p/(p->DXP[IP]*p->DXN[IP]);
              
-            a->M.e[count] = -2.0*(visc_ijk+ev_ijk)/(p->DYN[JM1]*p->DYP[JP]);
-            a->M.w[count] = -2.0*(visc_i_jp_k+ev_i_jp_k)/(p->DYN[JP]*p->DYP[JP]);
+            a->M.e[count] = -2.0*(visc_ijk+ev_ijk)/(p->DYN[JP]*p->DYP[JP]);          // changed
+            a->M.w[count] = -2.0*(visc_i_jp_k+ev_i_jp_k)/(p->DYN[JP1]*p->DYP[JP]);   // changed
              
             a->M.b[count] = -visc_ddz_m/(p->DZP[KM1]*p->DZN[KP]);
             a->M.t[count] = -visc_ddz_p/(p->DZP[KP]*p->DZN[KP]);
@@ -286,7 +286,9 @@ void idiff_IMEX::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &
         psolv->start(p,a,pgc,v,a->xvec,a->rhsvec,2,gcval_v,p->D29);
     }
     
-	time=pgc->timer()-starttime;
+    pgc->start2(p,v,gcval_v);
+	
+    time=pgc->timer()-starttime;
 	p->viter=p->solveriter;
 	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
 	cout<<"vdiffiter: "<<p->viter<<"  vdifftime: "<<setprecision(3)<<time<<endl;
@@ -323,33 +325,28 @@ void idiff_IMEX::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &
             
             visc_ddx_p = 0.25*(visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp + visc_ip_j_k+ev_ip_j_k + a->visc(i+1,j,k+1)+a->eddyv(i+1,j,k+1));
             
-            visc_ddx_m = 0.25*(visc_im_j_k+ev_im_j_k + a->visc(i-1,j,k-1)+a->eddyv(i-1,j,k-1) + visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp);
+            visc_ddx_m = 0.25*(visc_im_j_k+ev_im_j_k + a->visc(i-1,j,k+1)+a->eddyv(i-1,j,k+1) + visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp);
             
             visc_ddy_p = 0.25*(visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp + visc_i_jp_k+ev_i_jp_k + a->visc(i,j+1,k+1)+a->eddyv(i,j+1,k+1));
             
             visc_ddy_m = 0.25*(visc_i_jm_k+ev_i_jm_k + a->visc(i,j-1,k+1)+a->eddyv(i,j-1,k+1) + visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp);
             
-            a->M.p[count] = 2.0*(visc_i_j_kp+ev_i_j_kp)/(p->DZN[KP]*p->DZP[KP])
-                          + 2.0*(visc_ijk+ev_ijk)/(p->DZN[KM1]*p->DZP[KP])
+            a->M.p[count] = 2.0*(visc_i_j_kp+ev_i_j_kp)/(p->DZN[KP1]*p->DZP[KP])     // changed
+                          + 2.0*(visc_ijk+ev_ijk)/(p->DZN[KP]*p->DZP[KP])            // changed
                           + visc_ddx_p/(p->DXP[IP]*p->DXN[IP])
                           + visc_ddx_m/(p->DXP[IM1]*p->DXN[IP])
                           + visc_ddy_p/(p->DYP[JP]*p->DYN[JP])
                           + visc_ddy_m/(p->DYP[JM1]*p->DYN[JP])
                           + CPOR3/(alpha*p->dt);
                           
-            a->rhsvec.V[count] +=  ((a->u(i,j,k+1)-u(i,j,k))*visc_ddx_p - (u(i-1,j,k+1)-u(i-1,j,k))*visc_ddx_m)/(p->DZP[KP]*p->DXN[IP])
-                                +  ((a->v(i,j,k+1)-v(i,j,k))*visc_ddy_p - (v(i,j-1,k+1)-v(i,j-1,k))*visc_ddy_m)/(p->DZP[KP]*p->DYN[JP])
-                                            
-                                + (CPOR3*w(i,j,k))/(alpha*p->dt);
-             
              a->M.s[count] = -visc_ddx_m/(p->DXP[IM1]*p->DXN[IP]);
              a->M.n[count] = -visc_ddx_p/(p->DXP[IP]*p->DXN[IP]);
              
              a->M.e[count] = -visc_ddy_m/(p->DYP[JM1]*p->DYN[JP]);
              a->M.w[count] = -visc_ddy_p/(p->DYP[JP]*p->DYN[JP]);
              
-             a->M.b[count] = -2.0*(visc_ijk+ev_ijk)/(p->DZN[KM1]*p->DZP[KP]);
-             a->M.t[count] = -2.0*(visc_i_j_kp+ev_i_j_kp)/(p->DZN[KP]*p->DZP[KP]);
+             a->M.b[count] = -2.0*(visc_ijk+ev_ijk)/(p->DZN[KP]*p->DZP[KP]);          // changed
+             a->M.t[count] = -2.0*(visc_i_j_kp+ev_i_j_kp)/(p->DZN[KP1]*p->DZP[KP]);   // changed
             
             a->rhsvec.V[count] += 
                   ((u(i,j,k+1)-u(i,j,k))*visc_ddx_p - (u(i-1,j,k+1)-u(i-1,j,k))*visc_ddx_m)/(p->DZP[KP]*p->DXN[IP])  
