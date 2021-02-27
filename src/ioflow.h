@@ -89,7 +89,7 @@ public:
     virtual void wavegen_2D_precalc_ini(lexer*,ghostcell*)=0;
     
     virtual void discharge2D(lexer*,fdm2D*,ghostcell*)=0;
-    virtual void waterlevel2D(lexer*,ghostcell*,slice&)=0;
+    virtual void waterlevel2D(lexer*,fdm2D*,ghostcell*,slice&)=0;
     virtual void Qin2D(lexer*,fdm2D*,ghostcell*)=0;
 	virtual void Qout2D(lexer*,fdm2D*,ghostcell*)=0;
     virtual void inflow2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&)=0;

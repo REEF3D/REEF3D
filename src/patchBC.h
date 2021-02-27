@@ -45,7 +45,7 @@ public:
     virtual void patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&);
     virtual void patchBC_discharge2D(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&);
     virtual void patchBC_pressure2D(lexer*, ghostcell*, slice&);
-    virtual void patchBC_waterlevel2D(lexer*, ghostcell*, slice&);
+    virtual void patchBC_waterlevel2D(lexer*, fdm2D*, ghostcell*, slice&);
 
 
         

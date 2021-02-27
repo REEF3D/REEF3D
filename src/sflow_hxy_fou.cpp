@@ -46,7 +46,7 @@ void sflow_hxy_fou::start(lexer* p, slice& hx, slice& hy, slice& depth, slice& e
 {
 	double eps=1.0e-7;
 	
-    SLICELOOP1
+    SLICELOOP4
 	{
 	pflux->u_flux(4,uvel,ivel1,ivel2);
 
@@ -60,7 +60,7 @@ void sflow_hxy_fou::start(lexer* p, slice& hx, slice& hy, slice& depth, slice& e
     hx(i,j) = MAX(eta(i,j),eta(i+1,j)) + MIN(depth(i,j), depth(i+1,j));
 	}
     
-    
+    /*
     if(p->F50==1 || p->F50==4)
     for(n=0;n<p->gcslout_count;n++)
     {
@@ -80,9 +80,9 @@ void sflow_hxy_fou::start(lexer* p, slice& hx, slice& hy, slice& depth, slice& e
         if(fabs(ivel1)<=eps)
         hx(i,j) = MAX(eta(i,j),eta(i+1,j)) + MIN(depth(i,j), depth(i+1,j));
         }
-    }
+    }*/
 	
-	SLICELOOP2
+	SLICELOOP4
 	{
 	pflux->v_flux(4,vvel,jvel1,jvel2);
 	

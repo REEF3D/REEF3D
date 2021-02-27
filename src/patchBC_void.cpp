@@ -65,7 +65,7 @@ void patchBC_void::patchBC_pressure2D(lexer*, ghostcell*, slice&)
 {
 }
 
-void patchBC_void::patchBC_waterlevel2D(lexer*, ghostcell*, slice&)
+void patchBC_void::patchBC_waterlevel2D(lexer*, fdm2D*, ghostcell*, slice&)
 {
 }
 
