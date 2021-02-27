@@ -64,7 +64,7 @@ void patchBC::patchBC_IDcount(lexer *p, ghostcell *pgc)
     {
         check=1;
         for(qn=0;qn<count;++qn)
-        if(ID_array[qn] == p->B440_ID[n]);
+        if(ID_array[qn] == p->B440_ID[n])
         check=0;
         
         if(check==1)
@@ -78,7 +78,7 @@ void patchBC::patchBC_IDcount(lexer *p, ghostcell *pgc)
     {
         check=1;
         for(qn=0;qn<count;++qn)
-        if(ID_array[qn] == p->B441_ID[n]);
+        if(ID_array[qn] == p->B441_ID[n])
         check=0;
         
         if(check==1)
@@ -92,7 +92,7 @@ void patchBC::patchBC_IDcount(lexer *p, ghostcell *pgc)
     {
         check=1;
         for(qn=0;qn<count;++qn)
-        if(ID_array[qn] == p->B442_ID[n]);
+        if(ID_array[qn] == p->B442_ID[n])
         check=0;
         
         if(check==1)

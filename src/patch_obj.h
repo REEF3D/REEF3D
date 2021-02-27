@@ -62,7 +62,7 @@ public:
     */
     
     int Q_flag;
-    double Q;
+    double Q, Uq;
     
     int velocity_flag;
     double velocity;

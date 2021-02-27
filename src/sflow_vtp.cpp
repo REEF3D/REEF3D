@@ -250,7 +250,7 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	ffn=float(p->sl_ipol4(b->eta)+p->wd);
 	result.write((char*)&ffn, sizeof (float));
 	}
-	
+    
 	//  Waterlevel
 	iin=4*(p->pointnum2D);
 	result.write((char*)&iin, sizeof (int));

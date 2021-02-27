@@ -216,8 +216,6 @@ void patchBC_2D::patchBC_fillobj(lexer *p, ghostcell *pgc)
                     {
                     // convert gcb
                     p->gcbsl1[n][4]=patch[qq]->gcb_flag;
-                    
-                    //cout<<"convert GCBSL1 "<<endl;
                     }
                 }
             }

@@ -57,7 +57,7 @@ void patchBC_void::patchBC_ioflow2D(lexer *p, ghostcell*, slice&, slice&, slice&
 {
 }
 
-void patchBC_void::patchBC_discharge2D(lexer *p, ghostcell*, slice&, slice&, slice&, slice&)
+void patchBC_void::patchBC_discharge2D(lexer *p, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&)
 {
 }
 
