@@ -87,7 +87,7 @@ int ghostcell::gcsleval2(lexer *p, int gcv, int bc, int cs)
     //Patch Hy
     else
 	if((bc==221 || bc==211 || bc==121 || bc==111) && (gcv==55||gcv==51||gcv==52||gcv==53||gcv==54))
-	return 4;
+	return 42;
     
     
     else
@@ -105,6 +105,9 @@ void ghostcell::gcsldistro2(lexer *p, slice &f, int ii, int jj, int nn, double d
 
 	if(bc_label==4)
 	gcsl_neumann(f,gcv,bc,cs);
+    
+    if(bc_label==42)
+	gcsl_neumann_hy(f,gcv,bc,cs);
 	
 	if(bc_label==5)
 	gcsl_noslip(f,gcv,bc,cs);

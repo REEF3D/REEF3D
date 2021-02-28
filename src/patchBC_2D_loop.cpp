@@ -15,35 +15,21 @@ FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program; if not, see <http://www.gnu.org/liceonephases/>.
+along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
 --------------------------------------------------------------------*/
-
-#include"onephase_v.h"
+#include"patchBC_2D.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm2D.h"
 #include"ghostcell.h"
-#include"ioflow.h"
+#include"patch_obj.h"
 
-
-onephase_v::onephase_v(lexer *p, fdm *a, ghostcell *pgc) 
+void patchBC_2D::patchBC_loop2D(lexer *p, fdm2D *b, int &ii, int &jj, int &cs, int &stopflag)
 {
-
-}
-
-onephase_v::~onephase_v()
-{
-    
-}
-
-void onephase_v::update(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
-{
-    
-}
-
-
-void onephase_v::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
-{
+    /*
+    count
+    for(qq=0;qq<obj_count;++qq)
+    if(patch[qq]->waterlevel_flag==0)
+    for(n=0;n<patch[qq]->gcb_count;++n)*/
     
 }

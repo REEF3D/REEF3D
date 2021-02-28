@@ -61,7 +61,7 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 	// free surface
 	if(p->A240>=1)
-	pfsf = new sflow_eta(p,b,pgc);
+	pfsf = new sflow_eta(p,b,pgc,pBC);
 
 	// diffusion
 	if(p->A212==0)

@@ -55,6 +55,9 @@ void patchBC_2D::patchBC_fillobj(lexer *p, ghostcell *pgc)
         }
     }
     
+    for(qq=0;qq<obj_count;++qq)
+    patch[qq]->waterlevel_flag=0;
+
     // waterlevel
     for(qn=0;qn<p->B413;++qn)
     {
