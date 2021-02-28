@@ -120,6 +120,16 @@ void patchBC_2D::patchBC_fillobj(lexer *p, ghostcell *pgc)
         }
     }
     
+    // pressure outflow
+    for(qn=0;qn<p->B418;++qn)
+    {
+        for(qq=0;qq<obj_count;++qq)
+        if(patch[qq]->ID == p->B418_ID[qn])
+        {
+        patch[qq]->pio_flag=1;
+        }
+    }
+    
     /*
     111 - 222
     110 - 221

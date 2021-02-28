@@ -86,3 +86,11 @@ void patchBC::patchBC_pressure(lexer *p, fdm *a, ghostcell *pgc, field &press)
 void patchBC::patchBC_pressure2D(lexer*, ghostcell*, slice&)
 {
 }
+
+void patchBC::patchBC_pressure2D_ugrad(lexer*, fdm2D*, slice&,slice&)
+{
+}
+
+void patchBC::patchBC_pressure2D_vgrad(lexer*, fdm2D*, slice&, slice&)
+{
+}

@@ -85,7 +85,7 @@ void patchBC_2D::patchBC_waterlevel2D(lexer *p, fdm2D *b, ghostcell *pgc, slice 
         eta(i+2,j) =  patch[qq]->waterlevel-p->wd;
         eta(i+3,j) =  patch[qq]->waterlevel-p->wd;
         
-        b->hx(i,j) =  patch[qq]->waterlevel-b->bed(i,j);
+        b->hx(i,j)   =  patch[qq]->waterlevel-b->bed(i,j);
         b->hx(i+1,j) =  patch[qq]->waterlevel-b->bed(i,j);
         b->hx(i+2,j) =  patch[qq]->waterlevel-b->bed(i,j);
         

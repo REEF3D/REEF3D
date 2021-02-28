@@ -26,6 +26,7 @@ class ghostcell;
 class solver2D;
 class slice;
 class ioflow;
+class patchBC_interface;
 
 using namespace std;
 
