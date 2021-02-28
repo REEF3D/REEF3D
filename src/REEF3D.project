@@ -2434,6 +2434,8 @@
       <VirtualDirectory Name="ioFlow">
         <VirtualDirectory Name="PatchBC">
           <VirtualDirectory Name="PatchBC 2D">
+            <File Name="patchBC_2D_loop.cpp"/>
+            <File Name="patchBC_2D_discharge.cpp"/>
             <File Name="patchBC_2D_IDcount.cpp"/>
             <File Name="patchBC_2D_waterlevel.cpp"/>
             <File Name="patchBC_2D_pressure.cpp"/>
@@ -2446,6 +2448,8 @@
             <File Name="patchBC_void.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="PatchBC">
+            <File Name="patchBC_loop.cpp"/>
+            <File Name="patch2D_discharge.cpp"/>
             <File Name="patchBC_waterlevel.cpp"/>
             <File Name="patchBC_pressure.cpp"/>
             <File Name="patchBC_inflow.cpp"/>

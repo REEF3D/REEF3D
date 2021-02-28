@@ -18,75 +18,13 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
-
-
-#include"patch_obj.h"
+#include"patchBC.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm2D.h"
 #include"ghostcell.h"
+#include"patch_obj.h"
 
-patch_obj::patch_obj(lexer *p, int ID_ini) 
+void patchBC::patchBC_loop2D(lexer*, fdm2D*, int&, int&, int&, int&)
 {
-    ID = ID_ini;
     
-    gcb_count=0;
-    
-    
-    // BC options ini
-    
-    Q_flag=0;
-    Q=0.0;
-    Uq=0.0;
-    
-    velocity_flag=0;
-    velocity=0.0;
-    
-    pressure_flag=0;
-    pressure=0.0;
-    
-    waterlevel_flag=0;
-    waterlevel=0.0;
-    
-    Uio_flag=0;
-    Uio=0.0;
-    
-    velcomp_flag=0;
-    U=V=W=0.0;
-    
-    flowangle_flag=0;
-    alpha=0.0;
-    
-    flownormal_flag=0;
-    Nx=Ny=Nz=0.0;
-    
-    counter=0;
-    
-    
-    // measurements
-    
-    Q0 = 0.0;
-    U0 = 0.0;
-    A0 = 0.0;
-    h0 = 0.0;
-    
-    // gcbflags
-    gcb_uflag=1;
-    gcb_pressflag=1;
-    gcb_phiflag=1;
-    
-    gcb_flag=111;
-    
-}
-
-patch_obj::~patch_obj()
-{
-}
-
-void patch_obj::patch_obj_ini(lexer *p, ghostcell *pgc)
-{
-}
-
-void patch_obj::patch_obj_gcb_generate(lexer *p, ghostcell *pgc)
-{
-    p->Iarray(gcb,gcb_count,4);
 }

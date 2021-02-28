@@ -52,15 +52,22 @@ void patchBC_2D::patchBC_IDcount(lexer *p, ghostcell *pgc)
     {
         check=1;
         for(qn=0;qn<count;++qn)
-        if(ID_array[qn] == p->B440_ID[n]);
-        check=0;
+        {
         
+        if(ID_array[qn] == p->B440_ID[n])
+        check=0;
+        }
+        
+
         if(check==1)
         {
         ID_array[count] = p->B440_ID[n];
         ++count;       
         }
+    
     }
+    
+
     
     
     obj_count=count;

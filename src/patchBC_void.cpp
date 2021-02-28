@@ -41,6 +41,10 @@ void patchBC_void::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, fi
 {
 } 
 
+void patchBC_void::patchBC_discharge(lexer *p, fdm *a, ghostcell *pgc)
+{
+} 
+
 void patchBC_void::patchBC_pressure(lexer *p, fdm *a, ghostcell *pgc, field &press)
 {
 } 
@@ -53,12 +57,26 @@ void patchBC_void::patchBC_ioflow2D(lexer *p, ghostcell*, slice&, slice&, slice&
 {
 }
 
+void patchBC_void::patchBC_discharge2D(lexer *p, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&)
+{
+}
+
 void patchBC_void::patchBC_pressure2D(lexer*, ghostcell*, slice&)
 {
 }
 
-void patchBC_void::patchBC_waterlevel2D(lexer*, ghostcell*, slice&)
+void patchBC_void::patchBC_pressure2D_ugrad(lexer*, fdm2D*, slice&,slice&)
 {
 }
 
+void patchBC_void::patchBC_pressure2D_vgrad(lexer*, fdm2D*, slice&, slice&)
+{
+}
 
+void patchBC_void::patchBC_waterlevel2D(lexer*, fdm2D*, ghostcell*, slice&)
+{
+}
+
+void patchBC_void::patchBC_loop2D(lexer*, fdm2D*, int&, int&, int&, int&)
+{
+}

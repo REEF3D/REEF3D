@@ -62,7 +62,7 @@ public:
     */
     
     int Q_flag;
-    double Q;
+    double Q, Uq;
     
     int velocity_flag;
     double velocity;
@@ -84,6 +84,8 @@ public:
     
     int flownormal_flag;
     double Nx,Ny,Nz;
+    
+    int pio_flag;
     
     // measurement
     double Q0,U0,A0,h0;

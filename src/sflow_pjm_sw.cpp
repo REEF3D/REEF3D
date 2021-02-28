@@ -28,6 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"momentum.h"
 #include"ioflow.h"
 #include"sflow_weno_hj.h"
+#include"patchBC_interface.h"
 
 #define HXIJ (fabs(b->hx(i,j))>1.0e-20?b->hx(i,j):1.0e20)
 #define HXIMJ (fabs(b->hx(i-1,j))>1.0e-20?b->hx(i-1,j):1.0e20)
@@ -45,8 +46,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define HPX (0.5*(HP + HPI))
 #define HPY (0.5*(HP + HPJ))
  
-sflow_pjm_sw::sflow_pjm_sw(lexer* p, fdm2D *b) : wb(p), wsn(p), wbn(p)
+sflow_pjm_sw::sflow_pjm_sw(lexer* p, fdm2D *b, patchBC_interface *ppBC) : wb(p), wsn(p), wbn(p)
 {
+    pBC = ppBC;
+    
     gcval_press=40;  
 
 	gcval_u=10;
@@ -179,12 +182,16 @@ void sflow_pjm_sw::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 {
     SLICELOOP1
 	b->F(i,j) -= fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM); 
+    
+    pBC->patchBC_pressure2D_ugrad(p,b,eta,eta_n);
 }
 
 void sflow_pjm_sw::vpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 {
     SLICELOOP2
 	b->G(i,j) -= fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM); 
+    
+    pBC->patchBC_pressure2D_vgrad(p,b,eta,eta_n);
 }
 
 void sflow_pjm_sw::poisson(lexer*p, fdm2D* b)

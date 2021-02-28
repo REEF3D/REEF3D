@@ -29,6 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"rheology_f.h"
 #include"turbulence.h"
 #include"patchBC_interface.h"
+#include"patchBC_interface.h"
 
 ioflow_v::ioflow_v(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : flowfile_in(p,pgc)
 {
@@ -726,6 +727,8 @@ void ioflow_v::inflow_walldist(lexer *p, fdm *a, ghostcell *pgc, convection *pco
 
 void ioflow_v::discharge2D(lexer *p, fdm2D* b, ghostcell* pgc)
 {
+    // patchBC
+    pBC->patchBC_discharge2D(p,b,pgc,b->P,b->Q,b->eta,b->bed);
 }
 
 void ioflow_v::Qin2D(lexer *p, fdm2D* b, ghostcell* pgc)
@@ -839,7 +842,7 @@ void ioflow_v::ini_nhflow(lexer *p,fdm *a,ghostcell *pgc)
 
 }
 
-void ioflow_v::waterlevel2D(lexer *p, ghostcell* pgc, slice &eta)
+void ioflow_v::waterlevel2D(lexer *p, fdm2D *b, ghostcell* pgc, slice &eta)
 {
-    pBC->patchBC_waterlevel2D(p,pgc,eta);
+    pBC->patchBC_waterlevel2D(p,b,pgc,eta);
 }

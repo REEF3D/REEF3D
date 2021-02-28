@@ -23,6 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
+#include"patchBC_interface.h"
 
 void iowave::discharge2D(lexer *p, fdm2D* b, ghostcell* pgc)
 {
@@ -62,6 +63,9 @@ void iowave::discharge2D(lexer *p, fdm2D* b, ghostcell* pgc)
     cout<<"Inflow:  "<<setprecision(5)<<p->Qi<<" Ui: "<<p->Ua<<endl;
     cout<<"Outflow: "<<setprecision(5)<<p->Qo<<" Uo: "<<p->Uo<<endl;
     }
+    
+    // patchBC
+    pBC->patchBC_discharge2D(p,b,pgc,b->P,b->Q,b->eta,b->bed);
     
 }
 
