@@ -270,6 +270,8 @@ public:
 
     // Slice BCs
     void gcsl_neumann(slice&,int,int,int);
+    void gcsl_neumann_hx(slice&,int,int,int);
+    void gcsl_neumann_hy(slice&,int,int,int);
     void gcsl_neumann_x(slice&,int,int,int);
     void gcsl_neumann_int(sliceint&,int,int,int);
 	void gcsl_noslip(slice&,int,int,int);

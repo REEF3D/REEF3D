@@ -37,15 +37,19 @@ public:
     
     // BC update ::CFD
     virtual void patchBC_ioflow(lexer*, fdm*, ghostcell*, field&,field&,field&);
+    virtual void patchBC_discharge(lexer*, fdm*, ghostcell*);
     virtual void patchBC_pressure(lexer*, fdm*, ghostcell*, field&);
     virtual void patchBC_waterlevel(lexer*, fdm*, ghostcell*, field&);
     
     // BC update ::SFLOW
     virtual void patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&);
+    virtual void patchBC_discharge2D(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&);
     virtual void patchBC_pressure2D(lexer*, ghostcell*, slice&);
-    virtual void patchBC_waterlevel2D(lexer*,  ghostcell*, slice&);
+    virtual void patchBC_pressure2D_ugrad(lexer*, fdm2D*, slice&,slice&);
+    virtual void patchBC_pressure2D_vgrad(lexer*, fdm2D*, slice&, slice&);
+    virtual void patchBC_waterlevel2D(lexer*, fdm2D*,  ghostcell*, slice&);
 
-
+    virtual void patchBC_loop2D(lexer*, fdm2D*, int&, int&, int&, int&);
         
 private:
      // ini
@@ -59,10 +63,8 @@ private:
     int *inflow_ID;
     int *outflow_ID;
     
-    int geo_count,obj_count;
+    int geo_count;
     int *ID_array;
-    
-    patch_obj **patch;
     
 };
 

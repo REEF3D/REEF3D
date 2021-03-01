@@ -26,6 +26,7 @@ Author: Hans Bihs
 
 class sflow_eta_weno;
 class sflow_hxy_disc;
+class patchBC_interface;
 
 using namespace std;
 
@@ -35,7 +36,7 @@ using namespace std;
 class sflow_eta : public sflow_fsf, public increment
 {
 public:    
-	sflow_eta(lexer*, fdm2D*, ghostcell*);
+	sflow_eta(lexer*, fdm2D*, ghostcell*,patchBC_interface*);
 	virtual ~sflow_eta();
 	
     virtual void start(lexer*, fdm2D*, ghostcell*, ioflow*,slice&,slice&,double);
@@ -57,6 +58,7 @@ private:
     
 	sflow_eta_weno *pconvec;
 	sflow_hxy_disc *phxy;
+    patchBC_interface *pBC;
 	
 	slice4 Lab;
     

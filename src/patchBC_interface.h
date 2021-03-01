@@ -28,7 +28,8 @@ class fdm2D;
 class ghostcell;
 class field;
 class slice;
-class patch_obj;
+
+#include"patch_obj.h"
 
 using namespace std;
 
@@ -43,13 +44,22 @@ public:
     
     // BC update
     virtual void patchBC_ioflow(lexer*, fdm*, ghostcell*, field&,field&,field&)=0;
+    virtual void patchBC_discharge(lexer*, fdm*, ghostcell*)=0;
     virtual void patchBC_pressure(lexer*, fdm*, ghostcell*, field&)=0;
     virtual void patchBC_waterlevel(lexer*, fdm*, ghostcell*, field&)=0;
     
     
     virtual void patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&)=0;
+    virtual void patchBC_discharge2D(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&)=0;
     virtual void patchBC_pressure2D(lexer*, ghostcell*, slice&)=0;
-    virtual void patchBC_waterlevel2D(lexer*, ghostcell*, slice&)=0;
+    virtual void patchBC_pressure2D_ugrad(lexer*, fdm2D*, slice&, slice&)=0;
+    virtual void patchBC_pressure2D_vgrad(lexer*, fdm2D*, slice&, slice&)=0;
+    virtual void patchBC_waterlevel2D(lexer*, fdm2D*, ghostcell*, slice&)=0;
+    
+    virtual void patchBC_loop2D(lexer*, fdm2D*, int&, int&, int&, int&)=0;
+    
+    patch_obj **patch;
+    int obj_count;
     
 };
 

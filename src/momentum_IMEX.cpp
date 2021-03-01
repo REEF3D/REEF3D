@@ -58,7 +58,7 @@ momentum_IMEX::momentum_IMEX(lexer *p, fdm *a, convection *pconvection, diffusio
     b2 = 0.0;
     bhat1 = 1.0;
     bhat2 = 0.0;
-/*
+
     // 3rd order scheme
     gamma = 1.0/6.0*(3.0 + sqrt(3.0));
     a11 = gamma;
@@ -71,7 +71,7 @@ momentum_IMEX::momentum_IMEX(lexer *p, fdm *a, convection *pconvection, diffusio
     b2 = 0.5;
     bhat1 = 0.5;
     bhat2 = 0.5;
-*/
+
 
 	pconvec=pconvection;
 	ppress=ppressure;
@@ -137,7 +137,7 @@ void momentum_IMEX::start(lexer *p, fdm* a, ghostcell* pgc, vrans *pvrans)
         a->H(i,j,k) = ahat10/a11*H0_ex(i,j,k) + a->gk + (CPOR3*wn(i,j,k))/(a11*p->dt);
     }
 
-    for (int it_rk = 0; it_rk < 5; it_rk++)
+    for (int it_rk = 0; it_rk < 2; it_rk++)
     {
         // Evaluate momentum predictor step in a->u,v,w 
         pdiff->diff_u(p,a,pgc,psolv,a->u,a->v,a->w,a11);                  
@@ -243,7 +243,7 @@ void momentum_IMEX::start(lexer *p, fdm* a, ghostcell* pgc, vrans *pvrans)
             a->H(i,j,k) = a21/a22*H1_im(i,j,k) + ahat20/a22*H0_ex(i,j,k) + ahat21/a22*H1_ex(i,j,k) + a->gk + (CPOR3*wn(i,j,k))/(a22*p->dt);
         }
        
-        for (int it_rk = 0; it_rk < 10; it_rk++)
+        for (int it_rk = 0; it_rk < 2; it_rk++)
         {
             // Evaluate momentum predictor step in a->u,v,w 
             pdiff->diff_u(p,a,pgc,psolv,a->u,a->v,a->w,a22);     

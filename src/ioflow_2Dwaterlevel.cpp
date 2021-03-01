@@ -25,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm2D.h"
 #include"patchBC_interface.h"
 
-void ioflow_f::waterlevel2D(lexer *p, ghostcell* pgc, slice &eta)
+void ioflow_f::waterlevel2D(lexer *p, fdm2D *b, ghostcell* pgc, slice &eta)
 {
-    pBC->patchBC_waterlevel2D(p,pgc,eta);
+    pBC->patchBC_waterlevel2D(p,b,pgc,eta);
 }

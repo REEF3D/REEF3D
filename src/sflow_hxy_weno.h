@@ -33,7 +33,7 @@ using namespace std;
 class sflow_hxy_weno : public sflow_hxy_disc, public increment
 {
 public:
-	sflow_hxy_weno(lexer*,fdm2D*);
+	sflow_hxy_weno(lexer*,fdm2D*,patchBC_interface*);
 	virtual ~sflow_hxy_weno();
 
 	virtual void start(lexer*,slice&,slice&,slice&,slice&,slice&,slice&);
@@ -65,8 +65,10 @@ private:
     
     sflow_flux *pflux;
     double ivel1,ivel2,jvel1,jvel2;
+    int qq;
     
     fdm2D *b;
+    patchBC_interface *pBC;
 
 };
 

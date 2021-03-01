@@ -61,7 +61,7 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 	// free surface
 	if(p->A240>=1)
-	pfsf = new sflow_eta(p,b,pgc);
+	pfsf = new sflow_eta(p,b,pgc,pBC);
 
 	// diffusion
 	if(p->A212==0)
@@ -75,16 +75,16 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 	// pressure
     if(p->A220==0)
-	ppress = new sflow_hydrostatic(p,b);
+	ppress = new sflow_hydrostatic(p,b,pBC);
     
     if(p->A220==1)
-	ppress = new sflow_pjm_lin(p,b);
+	ppress = new sflow_pjm_lin(p,b,pBC);
     
     if(p->A220==2)
-	ppress = new sflow_pjm_quad(p,b);
+	ppress = new sflow_pjm_quad(p,b,pBC);
     
     if(p->A220==3)
-	ppress = new sflow_pjm_sw(p,b);
+	ppress = new sflow_pjm_sw(p,b,pBC);
     
     // diffusion
 	if(p->A260==0)

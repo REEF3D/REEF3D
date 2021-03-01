@@ -21,7 +21,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"patchBC_2D.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm2D.h"
 #include"ghostcell.h"
 #include"patch_obj.h"
 
@@ -60,6 +60,67 @@ void patchBC_2D::patchBC_pressure2D(lexer*, ghostcell*, slice &press)
         press(i+1,j) =  patch[qq]->pressure;
         press(i+2,j) =  patch[qq]->pressure;
         press(i+3,j) =  patch[qq]->pressure;
+        }
+    }
+}
+
+void patchBC_2D::patchBC_pressure2D_ugrad(lexer *p, fdm2D *b, slice &eta, slice &eta_n)
+{
+    for(qq=0;qq<obj_count;++qq)
+    if(patch[qq]->pio_flag==1)
+    for(n=0;n<patch[qq]->gcb_count;++n)
+    {
+    i=patch[qq]->gcb[n][0];
+    j=patch[qq]->gcb[n][1];
+    
+        if(patch[qq]->gcb[n][3]==4)
+        {
+        i-=1;
+        b->F(i,j) += fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) 
+                                         - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
+                                         
+        b->F(i,j) -= fabs(p->W22)*(p->A223*(b->bed(i,j)-p->wd) + (1.0-p->A223)*(b->bed(i,j)-p->wd)
+                                         - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
+        }
+        
+        if(patch[qq]->gcb[n][3]==1)
+        {
+        b->F(i,j) += fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) 
+                                         - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
+                                         
+        b->F(i,j) -= fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i,j)
+                                         - p->A223*(b->bed(i,j)-p->wd) - (1.0-p->A223)*(b->bed(i,j)-p->wd) )/(p->DXM);
+        }
+    }
+}
+
+void patchBC_2D::patchBC_pressure2D_vgrad(lexer *p, fdm2D *b, slice &eta, slice &eta_n)
+{
+    for(qq=0;qq<obj_count;++qq)
+    if(patch[qq]->pio_flag==1)
+    for(n=0;n<patch[qq]->gcb_count;++n)
+    {
+    i=patch[qq]->gcb[n][0];
+    j=patch[qq]->gcb[n][1];
+    
+    
+        if(patch[qq]->gcb[n][3]==2)
+        {
+        j-=1;
+        b->G(i,j) += fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) 
+                                         - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
+                                         
+        b->G(i,j) -= fabs(p->W22)*(p->A223*(b->bed(i,j)-p->wd) + (1.0-p->A223)*(b->bed(i,j)-p->wd)
+                                         - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
+        }
+        
+        if(patch[qq]->gcb[n][3]==3)
+        {
+        b->G(i,j) += fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) 
+                                         - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
+                                         
+        b->G(i,j) -= fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1)
+                                         - p->A223*(b->bed(i,j)-p->wd) - (1.0-p->A223)*(b->bed(i,j)-p->wd) )/(p->DXM);
         }
     }
 }

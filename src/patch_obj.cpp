@@ -19,6 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
+
 #include"patch_obj.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -34,7 +35,8 @@ patch_obj::patch_obj(lexer *p, int ID_ini)
     // BC options ini
     
     Q_flag=0;
-    Q=1.0;
+    Q=0.0;
+    Uq=0.0;
     
     velocity_flag=0;
     velocity=0.0;

@@ -25,6 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 int ghostcell::gcsleval1(lexer *p, int gcv, int bc, int cs)
 {
+
     // general Neuman
     if(gcv==40 || gcv==50 || gcv==1)
 	return 4;
@@ -77,10 +78,10 @@ int ghostcell::gcsleval1(lexer *p, int gcv, int bc, int cs)
     if((bc==21||bc==3)&&(gcv==51||gcv==52||gcv==53||gcv==54))
 	return 4;
     
-    //Patch eta    
+    //Patch Hx  
     else
 	if((bc==221 || bc==211 || bc==121 || bc==111) && (gcv==50||gcv==51||gcv==52||gcv==53||gcv==54))
-	return 4;
+	return 41;
     
     else
     return -1;
@@ -97,6 +98,9 @@ void ghostcell::gcsldistro1(lexer *p, slice &f, int ii, int jj, int nn, double d
 
 	if(bc_label==4)
 	gcsl_neumann(f,gcv,bc,cs);
+    
+    if(bc_label==41)
+	gcsl_neumann_hx(f,gcv,bc,cs);
 	
 	if(bc_label==5)
 	gcsl_noslip(f,gcv,bc,cs);

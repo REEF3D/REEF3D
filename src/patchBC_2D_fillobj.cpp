@@ -55,6 +55,9 @@ void patchBC_2D::patchBC_fillobj(lexer *p, ghostcell *pgc)
         }
     }
     
+    for(qq=0;qq<obj_count;++qq)
+    patch[qq]->waterlevel_flag=0;
+
     // waterlevel
     for(qn=0;qn<p->B413;++qn)
     {
@@ -120,6 +123,16 @@ void patchBC_2D::patchBC_fillobj(lexer *p, ghostcell *pgc)
         }
     }
     
+    // pressure outflow
+    for(qn=0;qn<p->B418;++qn)
+    {
+        for(qq=0;qq<obj_count;++qq)
+        if(patch[qq]->ID == p->B418_ID[qn])
+        {
+        patch[qq]->pio_flag=1;
+        }
+    }
+    
     /*
     111 - 222
     110 - 221
@@ -172,13 +185,14 @@ void patchBC_2D::patchBC_fillobj(lexer *p, ghostcell *pgc)
     for(qn=0;qn<p->B440;++qn)
     {
         
-        {
+        
             istart = p->posc_i(p->B440_xs[qn]);
             iend = p->posc_i(p->B440_xe[qn]);
             
             jstart = p->posc_j(p->B440_ys[qn]);
             jend = p->posc_j(p->B440_ye[qn]);
             
+            // 4
             for(n=0;n<p->gcbsl4_count;++n)
             {
             i=p->gcbsl4[n][0];
@@ -200,7 +214,44 @@ void patchBC_2D::patchBC_fillobj(lexer *p, ghostcell *pgc)
                     }
                 }
             }
-        }
+            
+            // 1
+            for(n=0;n<p->gcbsl1_count;++n)
+            {
+            i=p->gcbsl1[n][0];
+            j=p->gcbsl1[n][1];
+            
+                if(i>=istart && i<iend && j>=jstart && j<jend && p->gcbsl1[n][3]==p->B440_face[qn] && (p->gcbsl1[n][4]==21||p->gcbsl1[n][4]==22))
+                {
+                    
+                    for(qq=0;qq<obj_count;++qq)
+                    if(patch[qq]->ID == p->B440_ID[qn])
+                    {
+                    // convert gcb
+                    p->gcbsl1[n][4]=patch[qq]->gcb_flag;
+                    }
+                }
+            }
+            
+            
+            // 2
+            for(n=0;n<p->gcbsl2_count;++n)
+            {
+            i=p->gcbsl2[n][0];
+            j=p->gcbsl2[n][1];
+            
+                if(i>=istart && i<iend && j>=jstart && j<jend && p->gcbsl2[n][3]==p->B440_face[qn] && (p->gcbsl2[n][4]==21||p->gcbsl2[n][4]==22))
+                {
+                    
+                    for(qq=0;qq<obj_count;++qq)
+                    if(patch[qq]->ID == p->B440_ID[qn])
+                    {
+                    // convert gcb
+                    p->gcbsl2[n][4]=patch[qq]->gcb_flag;
+                    }
+                }
+            }
+        
     }
 
     

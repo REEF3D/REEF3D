@@ -23,6 +23,7 @@ Author: Hans Bihs
 class lexer;
 class slice;
 class fdm2D;
+class patchBC_interface;
 
 #ifndef SFLOW_HX_DISC_H_
 #define SFLOW_HX_DISC_H_

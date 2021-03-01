@@ -408,6 +408,8 @@ void lexer::ctrlrecv()
 	ii++;
     B417 = ictrl[ii];
 	ii++;
+    B418 = ictrl[ii];
+	ii++;
     B440 = ictrl[ii];
 	ii++;
     B441 = ictrl[ii];
@@ -1584,7 +1586,7 @@ void lexer::ctrlrecv()
     if(B412>0)
     {
     Iarray(B412_ID,B412);
-    Iarray(B412_pressBC,B412);
+    Darray(B412_pressBC,B412);
     }
     
     if(B413>0)
@@ -1619,6 +1621,12 @@ void lexer::ctrlrecv()
     Darray(B417_Nx,B417);
     Darray(B417_Ny,B417);
     Darray(B417_Nz,B417);
+    }
+    
+    if(B418>0)
+    {
+    Iarray(B418_ID,B418);
+    Iarray(B418_pio,B418);
     }
     
     if(B440>0)
@@ -2232,8 +2240,8 @@ void lexer::ctrlrecv()
     {
     B412_ID[n] = ictrl[ii];
     ii++;
-    B412_pressBC[n] = ictrl[ii];
-    ii++;
+    B412_pressBC[n] = dctrl[dd];
+    dd++;
     }
     
     for(n=0;n<B413;++n)
@@ -2282,6 +2290,14 @@ void lexer::ctrlrecv()
     dd++;
     B417_Nz[n] = dctrl[dd];
     dd++;
+    }
+    
+    for(n=0;n<B418;++n)
+    {
+    B418_ID[n] = ictrl[ii];
+    ii++;
+    B418_pio[n] = ictrl[ii];
+    ii++;
     }
 	
 	for(n=0;n<B440;++n)

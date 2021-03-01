@@ -26,9 +26,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_flux_face_FOU.h"
 #include"sflow_flux_face_CDS.h"
 #include"sflow_flux_HJ_CDS.h"
+#include"patchBC_interface.h"
 
-sflow_hxy_cds::sflow_hxy_cds(lexer* p, fdm2D *bb)  
+sflow_hxy_cds::sflow_hxy_cds(lexer* p, fdm2D *bb, patchBC_interface *ppBC)  
 {
+    pBC = ppBC;
+    
     if(p->A216==1)
     pflux = new sflow_flux_face_FOU(p);
         
@@ -81,6 +84,33 @@ void sflow_hxy_cds::start(lexer* p, slice& hx, slice& hy, slice& depth, slice& e
         hx(i,j) = MAX(eta(i,j),eta(i+1,j)) + MIN(depth(i,j), depth(i+1,j));
         }
     }
+    
+    int qq;    
+    for(qq=0;qq<pBC->obj_count;++qq)
+    if(pBC->patch[qq]->waterlevel_flag==0)
+    for(n=0;n<pBC->patch[qq]->gcb_count;++n)
+    if(pBC->patch[qq]->gcb[n][3]==1 || pBC->patch[qq]->gcb[n][3]==4)
+    {
+    if(pBC->patch[qq]->gcb[n][3]==1)
+    i=pBC->patch[qq]->gcb[n][0]-1;
+    
+    j=pBC->patch[qq]->gcb[n][1];
+
+        
+        if(b->wet4(i,j)==1)
+        {
+        pflux->u_flux(4,uvel,ivel1,ivel2);
+
+        if(ivel1>eps)
+        hx(i,j) = eta(i,j) + depth(i,j);
+        
+        if(ivel1<-eps)
+        hx(i,j) = eta(i+1,j) + depth(i+1,j);
+        
+        if(fabs(ivel1)<=eps)
+        hx(i,j) = MAX(eta(i,j),eta(i+1,j)) + MIN(depth(i,j), depth(i+1,j));
+        }
+    }
 	
 	
 	SLICELOOP2
@@ -96,6 +126,33 @@ void sflow_hxy_cds::start(lexer* p, slice& hx, slice& hy, slice& depth, slice& e
 	if(fabs(jvel1)<=eps)
     hy(i,j) = 0.5*(eta(i,j)+eta(i,j+1)) + 0.5*(depth(i,j)+depth(i,j+1));
 	}
+    
+    for(qq=0;qq<pBC->obj_count;++qq)
+    if(pBC->patch[qq]->waterlevel_flag==0)
+    for(n=0;n<pBC->patch[qq]->gcb_count;++n)
+    if(pBC->patch[qq]->gcb[n][3]==3 || pBC->patch[qq]->gcb[n][3]==2)
+    {
+    
+    i=pBC->patch[qq]->gcb[n][0];
+    
+    if(pBC->patch[qq]->gcb[n][3]==3)
+    j=pBC->patch[qq]->gcb[n][1]-1;
+
+        
+        if(b->wet4(i,j)==1)
+        {
+        pflux->v_flux(4,vvel,jvel1,jvel2);
+	
+        if(jvel1>eps)
+        hy(i,j) = eta(i,j) + depth(i,j);
+        
+        if(jvel1<-eps)
+        hy(i,j) = eta(i,j+1) + depth(i,j+1);
+        
+        if(fabs(jvel1)<=eps)
+        hy(i,j) = MAX(eta(i,j),eta(i,j+1)) + MIN(depth(i,j), depth(i,j+1));
+        }
+    }
 
 }
 

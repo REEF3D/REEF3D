@@ -212,6 +212,7 @@ void lexer::ini_default()
     B415=0;        // int patchBC velocity components
     B416=0;        // int patchBC horizontal inflow angle
     B417=0;        // int patchBC inflow normals
+    B418=0;        // int patchBC outflow pressure condition
     B440=0;        // int patch BC inflow line
 	B441=0;			// int rectangular inflow patch BC
     B442=0;			// int circular inflow patch BC
