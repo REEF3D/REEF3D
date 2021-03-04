@@ -26,6 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 patchBC::patchBC(lexer *p, ghostcell *pgc) 
 {
+    obj_count=0;
     patchBC_IDcount(p,pgc);
     
     // creat patch objects
