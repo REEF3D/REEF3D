@@ -49,12 +49,14 @@ public:
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);
 
-    field1 urk1,urk2;
-	field2 vrk1,vrk2;
-	field3 wrk1,wrk2;
+    field1 urk0,urk1,urk2;
+	field2 vrk0,vrk1,vrk2;
+	field3 wrk0,wrk1,wrk2;
 
 private:
     fluid_update *pupdate;
+    
+    void fill_rk0(lexer*,fdm*,ghostcell*);
     
 	void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
