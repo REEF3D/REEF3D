@@ -124,7 +124,7 @@ void mooring_Catenary::buildLine(lexer *p)
     lms = L - FV/w;
     segLen = L/(H-1);
     alpha = atan(dy/dx);
-    
+
     for (int cnt = 0; cnt < H; cnt++)
     {
         if (segLen*cnt <= lms)
@@ -145,11 +145,11 @@ void mooring_Catenary::buildLine(lexer *p)
                 
             if (dy > 0)
             {
-                y[cnt] = p->X311_ys[line] + d_xy*sin(alpha);
+                y[cnt] = p->X311_ys[line] + d_xy*fabs(sin(alpha));
             }
             else
             {
-                y[cnt] = p->X311_ys[line] - d_xy*sin(alpha);
+                y[cnt] = p->X311_ys[line] - d_xy*fabs(sin(alpha));
             }
         }
         else
@@ -171,11 +171,11 @@ void mooring_Catenary::buildLine(lexer *p)
                     
             if (dy > 0)
             {
-                y[cnt] = p->X311_ys[line] + lms*sin(alpha) + d_xy*sin(alpha);
+                y[cnt] = p->X311_ys[line] + lms*fabs(sin(alpha)) + d_xy*fabs(sin(alpha));
             }
             else
             {
-                y[cnt] = p->X311_ys[line] - lms*sin(alpha) - d_xy*sin(alpha);
+                y[cnt] = p->X311_ys[line] - lms*fabs(sin(alpha)) - d_xy*fabs(sin(alpha));
             }					
         }
     }

@@ -31,6 +31,7 @@ Author: Tobias Martin
 #include<fstream>
 #include<iostream>
 #include<vector>
+#include <Eigen/Dense>
 
 
 using namespace std;
@@ -49,7 +50,8 @@ public:
 	virtual void mooringForces(double&, double&, double&);
 	
 	void getForce(lexer*, fdm*, ghostcell*, double&, double&);
-	void getShape(lexer*, fdm*, ghostcell*,double*&,double*&,double*&,double*&);
+	void getShape(lexer*, fdm*, ghostcell*, double*&, double*&, double*&, double*&);
+	void iniShape(lexer*, fdm*, ghostcell*, Eigen::VectorXd&, Eigen::VectorXd&, Eigen::VectorXd&);
 	
 private:	
 
@@ -70,7 +72,7 @@ private:
 	// Mesh
 	int H;
 	double *x, *y, *z, *B, *F, **A;
-	double xs, ys, zs, dx, dy, dz, dxy;
+	double xs, ys, zs, dx, dy, dz, dxy_aim;
 	
 	// Forces
 	double *T;	

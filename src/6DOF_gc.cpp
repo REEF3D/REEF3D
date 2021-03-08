@@ -20,10 +20,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"6DOF_gc.h"
-#include"net_void.h"
-#include"mooring_void.h"
-#include"mooring_DGSEM.h"
-#include"mooring_barQuasiStatic.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"

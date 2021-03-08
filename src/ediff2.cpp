@@ -121,7 +121,7 @@ void ediff2::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u, f
 	ev_ijk=a->eddyv(i,j,k);
 	visc_ijk=a->visc(i,j,k);
 	visc_ddx_p = (visc_ijk+ev_ijk + a->visc(i,j,k+1)+a->eddyv(i,j,k+1) + a->visc(i+1,j,k)+a->eddyv(i+1,j,k) + a->visc(i+1,j,k+1)+a->eddyv(i+1,j,k+1))*0.25;
-	visc_ddx_m = (a->visc(i-1,j,k)+a->eddyv(i-1,j,k) + a->visc(i-1,j,k-1)+a->eddyv(i-1,j,k-1) + visc_ijk+ev_ijk + a->visc(i,j,k+1)+a->eddyv(i,j,k+1))*0.25;
+	visc_ddx_m = (a->visc(i-1,j,k)+a->eddyv(i-1,j,k) + a->visc(i-1,j,k+1)+a->eddyv(i-1,j,k+1) + visc_ijk+ev_ijk + a->visc(i,j,k+1)+a->eddyv(i,j,k+1))*0.25;
 	visc_ddy_p = (visc_ijk+ev_ijk + a->visc(i,j,k+1)+a->eddyv(i,j,k+1) + a->visc(i,j+1,k)+a->eddyv(i,j+1,k) + a->visc(i,j+1,k+1)+a->eddyv(i,j+1,k+1))*0.25;
 	visc_ddy_m = (a->visc(i,j-1,k)+a->eddyv(i,j-1,k) + a->visc(i,j-1,k+1)+a->eddyv(i,j-1,k+1) + visc_ijk+ev_ijk + a->visc(i,j,k+1)+a->eddyv(i,j,k+1))*0.25;
 	
