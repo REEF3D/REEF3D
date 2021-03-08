@@ -327,6 +327,9 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
+      <VirtualDirectory Name="Beam">
+        <File Name="beam.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Particles"/>
       <VirtualDirectory Name="Sediment">
         <VirtualDirectory Name="Bedload">
@@ -425,10 +428,10 @@
         <File Name="6DOF_gc.h"/>
         <File Name="6DOF_df.h"/>
         <VirtualDirectory Name="Mooring">
+          <File Name="mooring_dynamic.h"/>
           <File Name="mooring_Spring.h"/>
           <File Name="mooring_barQuasiStatic.h"/>
           <File Name="mooring_void.h"/>
-          <File Name="mooring_DGSEM.h"/>
           <File Name="mooring_Catenary.h"/>
           <File Name="mooring.h"/>
         </VirtualDirectory>
@@ -1288,6 +1291,14 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
+      <VirtualDirectory Name="Beam">
+        <File Name="beam_solver_routines.cpp"/>
+        <File Name="beam_solver.cpp"/>
+        <File Name="beam_rhs.cpp"/>
+        <File Name="beam_print.cpp"/>
+        <File Name="beam_ini.cpp"/>
+        <File Name="beam.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Particles"/>
       <VirtualDirectory Name="Benchmarks">
         <File Name="benchmark_TaylorGreen.cpp"/>
@@ -1504,15 +1515,10 @@
             <File Name="mooring_barQuasiStatic_ini.cpp"/>
             <File Name="mooring_barQuasiStatic.cpp"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="DGSEM">
-            <File Name="mooring_DGSEM_mesh_eigen.cpp" ExcludeProjConfig=""/>
-            <File Name="mooring_DGSEM_limiter.cpp"/>
-            <File Name="mooring_DGSEM_mesh.cpp" ExcludeProjConfig=""/>
-            <File Name="mooring_DGSEM_print.cpp"/>
-            <File Name="mooring_DGSEM_L.cpp"/>
-            <File Name="mooring_DGSEM_ini.cpp"/>
-            <File Name="mooring_DGSEM_bc.cpp"/>
-            <File Name="mooring_DGSEM.cpp"/>
+          <VirtualDirectory Name="DynamicFDM">
+            <File Name="mooring_dynamic_rhs.cpp"/>
+            <File Name="mooring_dynamic_ini.cpp"/>
+            <File Name="mooring_dynamic.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Catenary">
             <File Name="mooring_Catenary_print.cpp"/>
