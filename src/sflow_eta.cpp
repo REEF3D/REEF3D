@@ -157,12 +157,8 @@ void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slic
     SLICELOOP2
     b->hy(i,j) = MAX(b->hy(i,j), 0.0);
     
-    if(p->F50==1 || p->F50==4)
-	pgc->gcsl_start1(p,b->hx,gcval_eta);
-    
-    if(p->F50==2 || p->F50==3)
-	pgc->gcsl_start1(p,b->hx,gcval_eta);
-    
+
+	pgc->gcsl_start1(p,b->hx,gcval_eta);    
 	pgc->gcsl_start2(p,b->hy,gcval_eta);
     pgc->gcsl_start4(p,b->depth,1);
     
