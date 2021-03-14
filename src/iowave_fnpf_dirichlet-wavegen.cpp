@@ -84,8 +84,18 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
         Fi[FIm2JK] = Fi[FIJK] - Uinval[count]*2.0*p->DXP[IM1];
         Fi[FIm3JK] = Fi[FIJK] - Uinval[count]*3.0*p->DXP[IM1];
         
+        if(k==0)
+        Fi[FIm1JKm1] = Fi[FIJK] - Uinval[count]*1.0*p->DXP[IM1];
+        
+        if(k==p->knoz)
+        Fi[FIm1JKp1] = Fi[FIJK] - Uinval[count]*1.0*p->DXP[IM1];
+
+        
         ++count;
         }
+        
+        
+        
     }
     
     // Uin
