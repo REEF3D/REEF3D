@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -32,6 +32,7 @@ class slice;
 class fdm2D;
 class fdm_fnpf;
 class turbulence;
+class patchBC_interface;
 
 using namespace std;
 
@@ -88,6 +89,7 @@ public:
     virtual void wavegen_2D_precalc_ini(lexer*,ghostcell*)=0;
     
     virtual void discharge2D(lexer*,fdm2D*,ghostcell*)=0;
+    virtual void waterlevel2D(lexer*,fdm2D*,ghostcell*,slice&)=0;
     virtual void Qin2D(lexer*,fdm2D*,ghostcell*)=0;
 	virtual void Qout2D(lexer*,fdm2D*,ghostcell*)=0;
     virtual void inflow2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&)=0;

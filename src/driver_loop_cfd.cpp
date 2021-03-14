@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -99,8 +99,8 @@ void driver::loop_cfd(fdm* a)
         pflow->veltimesave(p,a,pgc,pvrans);
 
         //timestep control
-        ptstep->start(a,p,pgc,pturb);
         p->simtime+=p->dt;
+        ptstep->start(a,p,pgc,pturb);
         
         
         // printer

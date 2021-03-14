@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -32,6 +32,7 @@ Author: Hans Bihs
 
 class vec;
 class fdm_fnpf;
+class patchBC_interface;
 
 using namespace std;
 
@@ -42,7 +43,7 @@ class iowave : public ioflow, public wave_interface, public increment, public fl
 {
 
 public:
-	iowave(lexer*, ghostcell*);
+	iowave(lexer*, ghostcell*,patchBC_interface*);
 	virtual ~iowave();
 	virtual void gcio_update(lexer*,fdm*,ghostcell*);
 	virtual void inflow_walldist(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*);
@@ -104,6 +105,7 @@ public:
     
     
     virtual void discharge2D(lexer*,fdm2D*,ghostcell*);
+    virtual void waterlevel2D(lexer*,fdm2D*,ghostcell*,slice&);
     virtual void Qin2D(lexer*,fdm2D*,ghostcell*);
 	virtual void Qout2D(lexer*,fdm2D*,ghostcell*);
     virtual void inflow2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&);
@@ -219,10 +221,11 @@ private:
     int wtype;
     double inflow_bed,uvel,vvel,wvel;
     double area,Ai,Ao,Ui,fac;
-    double dist1,dist2,dist3,dist3_fac;
+    double dist1,dist2,dist2_fac;
     double x,y,z;
     double x1,y1,x2,y2,z3;
-	double xg,yg,dg,db;
+	double xg,yg,zg,dg,db;
+    double xc,yc,zc;
     int gcval_press;
     const double epsi,psi;
 	double alpha,*beta,gamma;
@@ -230,6 +233,7 @@ private:
 	double kinval,epsval;
 	double tan_alpha,*tan_beta;
 	double wh;
+    int beach_relax;
 	
 	int gcawa1_count,gcawa2_count,gcawa3_count,gcawa4_count;
 	int **gcawa1,**gcawa2,**gcawa3,**gcawa4;
@@ -266,6 +270,8 @@ private:
 	
     double **hydro_in,**hydro_out;
     int hydro_in_count,hydro_out_count;
+    
+    patchBC_interface *pBC;
 };
 
 #endif

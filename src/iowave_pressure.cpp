@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,10 +23,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"patchBC_interface.h"
 
 void iowave::pressure_io(lexer *p, fdm* a, ghostcell *pgc)
 {
     pressure_outlet(p,a,pgc);
+    
+    pBC->patchBC_pressure(p,a,pgc,a->press);
 }
 
 void iowave::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)

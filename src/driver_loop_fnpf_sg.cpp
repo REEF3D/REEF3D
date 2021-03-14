@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -74,8 +74,9 @@ void driver::loop_fnpf()
         pfprint->start(p,c,pgc,pflow);
         
         //timestep control
-        pftstep->start(c,p,pgc);
         p->simtime+=p->dt;
+        pftstep->start(c,p,pgc);
+        
 
         // Shell-Printout
         if(p->mpirank==0)

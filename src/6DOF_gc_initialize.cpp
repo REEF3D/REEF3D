@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -21,10 +21,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"6DOF_gc.h"
 #include"mooring_void.h"
-#include"mooring_DGSEM.h"
 #include"mooring_barQuasiStatic.h"
 #include"mooring_Catenary.h"
 #include"mooring_Spring.h"
+#include"mooring_dynamic.h"
 #include"net_void.h"
 #include"net_barDyn.h"
 #include"net_barQuasiStatic.h"
@@ -39,7 +39,7 @@ void sixdof_gc::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 	print_ini(p,a,pgc);
 	ini_parameter(p,a,pgc);
 	
-	objects(p,a,pgc);
+    objects(p,a,pgc);
 	ray_cast(p,a,pgc);
 	reini_AB2(p,a,pgc,a->fb);
 	geometry_ini(p,a,pgc);
@@ -83,7 +83,7 @@ void sixdof_gc::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 
 		if(p->mpirank==0 && p->P14==1)
 		{
-			mkdir("./REEF3D_6DOF_Mooring",0777);	
+			mkdir("./REEF3D_CFD_6DOF_Mooring",0777);	
 		}		
 
 		pmooring.reserve(p->mooring_count);
@@ -103,7 +103,7 @@ void sixdof_gc::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 			}	
 			else if(p->X310==3)
 			{
-				pmooring.push_back(new mooring_DGSEM(i));
+				pmooring.push_back(new mooring_dynamic(i));
 			}
 			else if(p->X310==4)
 			{
@@ -137,7 +137,7 @@ void sixdof_gc::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
         {
             if(p->P14==1)
             {
-                mkdir("./REEF3D_6DOF_Net",0777);	
+                mkdir("./REEF3D_CFD_6DOF_Net",0777);	
             }
         }
         else

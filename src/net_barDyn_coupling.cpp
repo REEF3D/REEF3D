@@ -162,14 +162,14 @@ void net_barDyn::vransCoupling(lexer *p, fdm *a, ghostcell *pgc)
                 nIt++;
             }
             
-            if (isnan(v_mag_corr))
+            if (std::isnan(v_mag_corr))
             {
                 v_mag_corr = v_mag;
                 screenForceCoeff(p,cd,cl,v_mag_corr,thetan,p->X321_Sn[nNet]);
             }            
             
 
-            // Save directional forces at lagrangian points (w/o density since multiplied later), w/o area now
+            // Save directional forces at lagrangian points (w/o density since multiplied later)
 
             lagrangeForces[i] = 0.5*area*pow(v_mag_corr,2.0)*(cd*n_d + cl*n_l);
 
@@ -354,7 +354,7 @@ void net_barDyn::triangulation(lexer *p, fdm *a, ghostcell *pgc)
     // Save net as .stl
 /*
     ofstream result;
-    result.open("REEF3D_6DOF_Net/REEF3D_net.stl", ios::binary);
+    result.open("REEF3D_CFD_6DOF_Net/REEF3D_net.stl", ios::binary);
 
 	result<<"solid"<<" "<<"ascii"<<endl;
 

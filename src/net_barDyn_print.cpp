@@ -44,7 +44,7 @@ void net_barDyn::print(lexer *p)
     {
         char str[1000];
 
-        sprintf(str,"./REEF3D_6DOF_Net/REEF3D_6DOF_Net_Forces_%i.dat",nNet);
+        sprintf(str,"./REEF3D_CFD_6DOF_Net/REEF3D_6DOF_Net_Forces_%i.dat",nNet);
         ofstream header_out;
         header_out.open(str, std::ofstream::out | std::ofstream::app);
 		header_out<<p->simtime<<" \t "<<Tne<<" "<<Fx<<" "<<Fy<<" "<<Fz<<endl;
@@ -57,7 +57,7 @@ void net_barDyn::print(lexer *p)
         for (int pp = 0; pp < p->X324; pp++)
         {
             char str[1000];
-            sprintf(str,"./REEF3D_6DOF_Net/REEF3D_6DOF_Net_%i_Point_Probe_%i.dat",nNet,pp+1);
+            sprintf(str,"./REEF3D_CFD_6DOF_Net/REEF3D_6DOF_Net_%i_Point_Probe_%i.dat",nNet,pp+1);
             ofstream header_out;
             header_out.open(str, std::ofstream::out | std::ofstream::app);
             header_out<<p->simtime<<" \t "<<x_(probeKnot(pp),0)<<" \t "<<x_(probeKnot(pp),1)<<" \t "<<x_(probeKnot(pp),2)<<endl;
@@ -78,27 +78,27 @@ void net_barDyn::print(lexer *p)
 		if(p->P14==1)
 		{
 			if(num<10)
-			sprintf(name,"./REEF3D_6DOF_Net/REEF3D-Net-%d-00000%d.vtk",nNet,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%d-00000%d.vtk",nNet,num);
 
 			if(num<100&&num>9)
-			sprintf(name,"./REEF3D_6DOF_Net/REEF3D-Net-%d-0000%d.vtk",nNet,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%d-0000%d.vtk",nNet,num);
 
 			if(num<1000&&num>99)
-			sprintf(name,"./REEF3D_6DOF_Net/REEF3D-Net-%d-000%d.vtk",nNet,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%d-000%d.vtk",nNet,num);
 
 			if(num<10000&&num>999)
-			sprintf(name,"./REEF3D_6DOF_Net/REEF3D-Net-%d-00%d.vtk",nNet,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%d-00%d.vtk",nNet,num);
 
 			if(num<100000&&num>9999)
-			sprintf(name,"./REEF3D_6DOF_Net/REEF3D-Net-%d-0%d.vtk",nNet,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%d-0%d.vtk",nNet,num);
 
 			if(num>99999)
-			sprintf(name,"./REEF3D_6DOF_Net/REEF3D-Net-%d-%d.vtk",nNet,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%d-%d.vtk",nNet,num);
 		}	
 
         /*
         char str[1000];
-        sprintf(str,"./REEF3D_6DOF_Net/REEF3D_6DOF_Net_Tension_%i_%d.dat",nNet,num);
+        sprintf(str,"./REEF3D_CFD_6DOF_Net/REEF3D_6DOF_Net_Tension_%i_%d.dat",nNet,num);
         ofstream header_out;
         header_out.open(str, std::ofstream::out | std::ofstream::app);
 		

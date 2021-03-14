@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -93,7 +93,7 @@ void sixdof_df_object::objects(lexer *p, fdm *a, ghostcell *pgc)
 	cout<<"Surface triangles: "<<tricount<<endl;
 	
 	// Refine triangles
-	//geometry_refinement(p);	
+	geometry_refinement(p);	
 
     if(p->mpirank==0)
 	cout<<"Refined surface triangles: "<<tricount<<endl;
@@ -185,7 +185,7 @@ void sixdof_df_object::geometry_refinement(lexer *p)
 	}
 	
 	
-	double critL = p->DXM*1.0;
+	double critL = p->DXM*0.7;
 	
 	for (int n = 0; n < tri_x_r.size(); n++)
 	{
@@ -244,10 +244,10 @@ void sixdof_df_object::geometry_refinement(lexer *p)
 			create_triangle(x01,y01,z01,x1,y1,z1,x12,y12,z12,nx_old,ny_old,nz_old);
 			create_triangle(x02,y02,z02,x12,y12,z12,x2,y2,z2,nx_old,ny_old,nz_old);
 		
-            if (tri_x_r.size() > 40000) break;
+            if (tri_x_r.size() > 100000) break;
 		}
 		
-		if (tri_x_r.size() > 40000) break;
+		if (tri_x_r.size() > 100000) break;
 	}
 	
 	

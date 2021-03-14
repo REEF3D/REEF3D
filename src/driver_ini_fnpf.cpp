@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -143,7 +143,7 @@ void driver::driver_ini_fnpf()
     {
     i=p->gcslout[n][0];
     j=p->gcslout[n][1];
-
+    
     c->bc(i+1,j) = 2;
     }
     

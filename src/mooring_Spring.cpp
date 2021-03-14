@@ -30,21 +30,19 @@ mooring_Spring::~mooring_Spring(){}
 
 
 void mooring_Spring::initialize(lexer *p, fdm *a, ghostcell *pgc)
-{    
-    
+{   
     dx = p->X311_xe[line] - p->X311_xs[line];			
     dy = p->X311_ye[line] - p->X311_ys[line];				
     dz = p->X311_ze[line] - p->X311_zs[line];	
-
 	L0 = sqrt(dx*dx + dy*dy + dz*dz);	
-    
+   
 	k = p->X312_k[line];
     T0 = p->X312_T0[line];
 
 	if(p->mpirank==0 && p->P14==1)
 	{
 		char str[1000];
-		sprintf(str,"./REEF3D_6DOF_Mooring/REEF3D_6DOF_mooring_force_%i.dat",line);
+		sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_mooring_force_%i.dat",line);
 		eTout.open(str);
 		eTout<<"time \t T"<<endl;	
 	}
@@ -59,7 +57,6 @@ void mooring_Spring::start(lexer *p, fdm *a, ghostcell *pgc)
     dx = p->X311_xe[line] - p->X311_xs[line];			
     dy = p->X311_ye[line] - p->X311_ys[line];				
     dz = p->X311_ze[line] - p->X311_zs[line];	
-
 	L = sqrt(dx*dx + dy*dy + dz*dz);			
     
     double dL = L - L0;

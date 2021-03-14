@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
  * 
 This file is part of REEF3D.
 
@@ -30,14 +30,11 @@ void lexer::ini_default()
 	A211=4;		  // int convection scheme for SLOW velocities
 	A212=0;		  // int diffusion treatment for SLOW velocities
     A214=1;      // int convection for vertical velocity
-    A215=0;      // int conservative discretization
     A216=2;      // int convection velocity
     A217=2;      // int slip or no-slip boundary conditions
     A218=0;      // int turn on roughness
     A219=1;      // int additional courant number constraint
 	A220=1;		  // int pressure scheme for SFLOW
-	A221=1;		  // int include hydrostatic pressure for SFLOW
-    A222=1;      // int turn on secondary pressure gradient
     A223=0.5;    // double blending factor pressure gradient
     A230=0;      // int turn on Boussinesq wave model
 	A240=1;      // int FSF algorithm SFLOW
@@ -105,9 +102,6 @@ void lexer::ini_default()
 	B56=-1.0;		// double global wall roughness ks
 	B60=0;            // int ioflow discharge
 	B61=2;            // int plain or logarithmic inflow profile
-	B62=3;            // int plain or logarithmic rans ini
-	B63=3;            // int zero, plain or logarithmic inflow profile for rans
-	B64=1;            // int reduce eddy near inflow
 	B70=0;       // double distance for use relaxation method for fixed water level
 	B71=0;       // double distance for use relaxation method for fixed water level ini
     B74=3;		 // int crossection i-indice for the periodic boundary condition
@@ -127,15 +121,12 @@ void lexer::ini_default()
 	B91=0;          // int wave parameter wL
 	B91_1=0.0;      // double wave amplitude
 	B91_2=0.0;      // double wave length
-	B91_3=0.0;      // double wave phase change
 	B92=0;            // int wave type
 	B93=0;          // int wave parameter wT
 	B93_1=0.0;      // double wave amplitude
 	B93_2=0.0;      // double wave period
-	B93_3=0.0;      // double wave phase change
 	B96_1=0.0;      // double dist1 for wave relax
 	B96_2=0.0;      // double dist2 for wave relax
-	B96_3=0.0;      // double dist3 for wave relax
 	B97=0.0;        // double wave direction in degree
 	B98=0;          // int type of wave generation
 	B99=0;			// int type of numerical beach
@@ -199,7 +190,6 @@ void lexer::ini_default()
 	B192_4=0.0;		// double z-coordinate for rotation around y-axis
 	B194_s=-1.0e9; // double start rotation
 	B194_e= 1.0e9; // double end rotation
-	B210=0;			// int peridic boundary conditions
 	B240=0;			// int porous media  
 	B241=1;			// int porous media in x-direction
 	B242=1;			// int porous media in y-direction
@@ -215,6 +205,17 @@ void lexer::ini_default()
     B308=1;         // int porosity effects on fluid acceleration for vegetation
     B309=2.0;       // double Cm for vegetation
     B310=0;         // int VRANS vegetation box
+    B411=0;        // int patchBC discharge
+    B412=0;        // int patchBC pressure BC
+    B413=0;        // int patchBC waterlevel
+    B414=0;        // int patchBC perpendicular velocity
+    B415=0;        // int patchBC velocity components
+    B416=0;        // int patchBC horizontal inflow angle
+    B417=0;        // int patchBC inflow normals
+    B418=0;        // int patchBC outflow pressure condition
+    B440=0;        // int patch BC inflow line
+	B441=0;			// int rectangular inflow patch BC
+    B442=0;			// int circular inflow patch BC
 	
 	// Concentration
 	C1=10.0;		// double density concentration in water
@@ -329,7 +330,6 @@ void lexer::ini_default()
 	G60=0;            // int number of geotopo boxes
 	G61=0;            // int number of geotopo wedges
 	G81=0;            // int number of inflow boxes
-	G95=0;            // int number of outflow boxes
 
 	// Heat
 	H1=1.4e-7;      // thermal diffusivity water
@@ -392,7 +392,6 @@ void lexer::ini_default()
     I242=0.0;       // double delta t for flowfile
 
     // Numerics
-	N5=1;			// int true 2D
 	N10=14;			// int linear poisson solver
 	N11=11;         // int precondioner
 	N12=1;         // 
@@ -444,6 +443,7 @@ void lexer::ini_default()
 	P54=10;			  // int ith iteration wsfline file  print out
 	P55=-1.0;		  // double ith second wsfline files print out
 	P56=0;            // int print out wsf line in y-dir
+    P57=0;            // add aditional info to WSF gage in FNPF 
 	P59=0;			  // int print runup
 	P61=0;			  // int print point probes
 	P62=0;			  // int print line probes
@@ -544,8 +544,6 @@ void lexer::ini_default()
 	T36=0;				// int explciti free surface dampong through dissipation
 	T37=0.07;		    // int damping coefficient for T36
     T38=1.6;            // double epsi fsf turbulence damping
-    T39=1.0;            // double dirac function factor for fsf damping
-	T41=1;				// int source term definition for omega in kw model
 
     // Water Properties
 	W1=998.2;		// double density water
@@ -618,11 +616,11 @@ void lexer::ini_default()
     X26_Ku=X26_Kv=X26_Kw=0.0;	// double spring coefficients
     X27=0;      // int spring origin given 
     X27_x=X27_y=X27_z=0.0;  // double spring origin
-	X31=3;		// int boundary conditions for parallel velocity on floating body
+	X31=4;		// int boundary conditions for parallel velocity on floating body
 	X32=1;		// int boundary conditions for orthogonal velocity on floating body
 	X33=1;		// int boundary conditions for pressure on floating body
     X34=0;		// int boundary treatment for new solid velocity cells
-    X40=1;		// int type of force calculation
+    X40=3;		// int type of force calculation
 	X41=2.1;    // double eps for continuous forcing heaviside
 	X100=0;		// int delta x,y,z
 	X100_x=X100_y=X100_z=0.0; 
@@ -660,12 +658,18 @@ void lexer::ini_default()
     X221=0;     // int read vec based motion file
     X311=0;     // int number of simple taut mooring lines
     X312=0;     // int number of springs
+    X313=0;     // int initial rotation of mooring end points with 6DOF body
     X321=0;     // int number of nets
     X323_m=X323_d=X323_l=0.0;   // double dynamic net sinker properties
     X325_dt=X325_relX=X325_relY=X325_relZ=0.0;   // double dynamic net time step properties
 	
 	// Developer 
-	Y40=3;
+	Y1=0;   // int turn on/off experimental screen force model
+    Y2=0;   // int turn on/off PC FSI algorithm
+    Y3=0;   // int number of iterations in PC FSI algorithm
+    Y4=0;
+    Y5=0;
+    Y40=3;
     Y50=5;
 	Y60=1;  // int require 
     Y71=0;  // int turn on/off solid gcparax

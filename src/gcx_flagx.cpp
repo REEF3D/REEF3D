@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,6 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void ghostcell::flagx(lexer* p, int *flag)
 {
+
     count=0;
     for(n=0;n<p->gcpara1_count;++n)
     {

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -64,6 +64,7 @@ class sflow;
 class fnpf_vtu3D;
 class fnpf_timestep;
 class grid;
+class patchBC_interface;
 
 #include<iostream>
 #include<fstream>
@@ -103,6 +104,8 @@ public:
     void logic_ptf();
     void logic_fnpf();
     void logic_sflow();
+    
+    void patchBC_logic();
     
 	void driver_ini();
     void driver_ini_nhflow();
@@ -183,6 +186,7 @@ public:
     fnpf_vtu3D *pfprint; 
     fnpf_timestep* pftstep;
     grid *pgrid;
+    patchBC_interface *pBC;
 
 
 private:

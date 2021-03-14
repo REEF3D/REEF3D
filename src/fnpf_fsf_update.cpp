@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/liceonephases/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_fsf_update.h"
+ #include"fnpf_fsf_update.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"

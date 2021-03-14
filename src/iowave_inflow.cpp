@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,6 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 #include"turbulence.h"
+#include"patchBC_interface.h"
 
 void iowave::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {
@@ -45,6 +46,8 @@ void iowave::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field&
     
     if(p->I230>0)
     ff_inflow(p,a,pgc,u,v,w);
+    
+    pBC->patchBC_ioflow(p,a,pgc,u,v,w);
 }
 
 void iowave::rkinflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
@@ -66,6 +69,8 @@ void iowave::rkinflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, fiel
     
     if(p->I230>0)
     ff_inflow(p,a,pgc,u,v,w);
+    
+    pBC->patchBC_ioflow(p,a,pgc,u,v,w);
 }
 
 void iowave::inflow_plain(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
@@ -88,14 +93,12 @@ void iowave::inflow_plain(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
         w(i-2,j,k)=0.0;
         w(i-3,j,k)=0.0;
         
-        if(p->W50_air==1 && a->phi(i,j,k)<-psi)
+        // Air inflow
+        if(p->W50_air==1 && a->phi(i,j,k)<-0.6*p->DXM)
         {
-        u(i-1,j,k)=p->W50;
-        u(i-2,j,k)=p->W50;
-        u(i-3,j,k)=p->W50;
-            
-            
-            
+        u(i-1,j,k)+=p->W50;
+        u(i-2,j,k)+=p->W50;
+        u(i-3,j,k)+=p->W50;
         }
     
     }

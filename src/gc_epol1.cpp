@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,6 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
 {
+    
 //	Velocities
 
     // Parallel
@@ -67,7 +68,12 @@ int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
     
     else
 	if((bc==6 && (cs==1||cs==4) && (gcv==10||gcv==20||gcv==1||gcv==7)))
-	return gclabel_u_in;    
+	return gclabel_u_in;   
+
+//Patch    
+    else
+	if((bc==111 || bc==112 || bc==121 || bc==122) && (gcv==10||gcv==1||gcv==20||gcv==7))
+	return 4;
     
 	
 //Outflow

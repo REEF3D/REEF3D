@@ -163,7 +163,7 @@ void net_barQuasiStatic::createMesh(lexer *p, fdm *a, ghostcell *pgc)
                 nIt++;
             }
             
-            if (isnan(v_mag_corr))
+            if (std::isnan(v_mag_corr))
             {
                 v_mag_corr = v_mag;
                 screenForceCoeff(p,cd,cl,v_mag_corr,thetan,p->X321_Sn[nNet]);
@@ -319,8 +319,8 @@ void net_barQuasiStatic::triangulation(lexer *p, fdm *a, ghostcell *pgc)
 /*
     ofstream result;
     ofstream result2;
-    result.open("REEF3D_6DOF_Net/REEF3D_net.stl", ios::binary);
-    result2.open("REEF3D_6DOF_Net/REEF3D_net_points.csv", ios::binary);
+    result.open("REEF3D_CFD_6DOF_Net/REEF3D_net.stl", ios::binary);
+    result2.open("REEF3D_CFD_6DOF_Net/REEF3D_net_points.csv", ios::binary);
 
 	result<<"solid"<<" "<<"ascii"<<endl;
 

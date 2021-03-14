@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -44,7 +44,7 @@ public:
     virtual void v_source(lexer*, fdm2D*, slice&, slice&);
 
 private:
-    double bingham(lexer*, fdm2D*, double, double, double);
+    double bingham(lexer*, fdm2D*, double, double, double, double);
     
     double cf,manning;
     
@@ -52,6 +52,7 @@ private:
     double tau0,val;
     double press;
     double tanphi;
+    double hc,denom;
 };
 
 #endif

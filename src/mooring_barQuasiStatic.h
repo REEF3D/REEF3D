@@ -21,6 +21,7 @@ Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"mooring.h"
+#include"mooring_Catenary.h"
 #include"field1.h"
 #include"field2.h"
 #include"field3.h"
@@ -55,12 +56,12 @@ private:
 	
 	// Runtime
 	vector< vector<double> > solveGauss(vector< vector<double> >, vector< vector<double> >);
-        void updateVel(lexer*, fdm*, ghostcell*, int);
+    void updateVel(lexer*, fdm*, ghostcell*, int);
  	void getVel(lexer*, fdm*, ghostcell*);
         vector<double> getC(double);
-	void bottomContact(lexer*);
-        void print(lexer*);
-	void buildLine(lexer*);
+    void print(lexer*,fdm*,ghostcell*);
+    void buildLine(lexer*,fdm*,ghostcell*);
+    void checkBottom(lexer*,fdm*,ghostcell*);
 	
 	// ------ 
 	
@@ -89,6 +90,9 @@ private:
 	char name[100];
 	ofstream eTout;
 	double printtime;
+
+    // Catenary
+	mooring_Catenary *pcatenary;
 };
 
 #endif

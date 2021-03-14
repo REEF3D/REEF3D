@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -118,8 +118,7 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
         }
 	}
     
-   // pip=0;
-
+    
 //  SEND / RECEIVE
 
     if(p->gcpara1_count>0)

@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 
 
-void mooring_barQuasiStatic::print(lexer *p)
+void mooring_barQuasiStatic::print(lexer *p,fdm *a, ghostcell *pgc)
 {
 	int num=0;
 	
@@ -39,7 +39,11 @@ void mooring_barQuasiStatic::print(lexer *p)
 	if(num<0)
 	num=0;
 	
-    
+    // Check bottom and switch to catenary if necessary
+    buildLine(p,a,pgc);
+    checkBottom(p,a,pgc);
+   
+
     // Print tension forces
     if (p->mpirank==0)
     {
@@ -59,25 +63,24 @@ void mooring_barQuasiStatic::print(lexer *p)
 		if(p->P14==1)
 		{
 			if(num<10)
-			sprintf(name,"./REEF3D_6DOF_Mooring/REEF3D-Mooring-%d-00000%d.vtk",line,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%d-00000%d.vtk",line,num);
 
 			if(num<100&&num>9)
-			sprintf(name,"./REEF3D_6DOF_Mooring/REEF3D-Mooring-%d-0000%d.vtk",line,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%d-0000%d.vtk",line,num);
 
 			if(num<1000&&num>99)
-			sprintf(name,"./REEF3D_6DOF_Mooring/REEF3D-Mooring-%d-000%d.vtk",line,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%d-000%d.vtk",line,num);
 
 			if(num<10000&&num>999)
-			sprintf(name,"./REEF3D_6DOF_Mooring/REEF3D-Mooring-%d-00%d.vtk",line,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%d-00%d.vtk",line,num);
 
 			if(num<100000&&num>9999)
-			sprintf(name,"./REEF3D_6DOF_Mooring/REEF3D-Mooring-%d-0%d.vtk",line,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%d-0%d.vtk",line,num);
 
 			if(num>99999)
-			sprintf(name,"./REEF3D_6DOF_Mooring/REEF3D-Mooring-%d-%d.vtk",line,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%d-%d.vtk",line,num);
 		}	
 
-		buildLine(p);
 
 		ofstream result;
 		result.open(name, ios::binary);
@@ -118,7 +121,7 @@ void mooring_barQuasiStatic::print(lexer *p)
 }
 
 
-void mooring_barQuasiStatic::buildLine(lexer *p)
+void mooring_barQuasiStatic::buildLine(lexer *p, fdm *a, ghostcell *pgc)
 {
 	x[0] = p->X311_xs[line];
 	y[0] = p->X311_ys[line];
@@ -141,5 +144,24 @@ void mooring_barQuasiStatic::buildLine(lexer *p)
 	y[sigma+1] = y[sigma] + 0.5*(l[sigma])*f[sigma][1];
 	z[sigma+1] = z[sigma] + 0.5*(l[sigma])*f[sigma][2];
 
-	T[sigma] = T[sigma+1] = fabs(A[sigma-1][sigma]);	
+	T[sigma] = T[sigma+1] = fabs(A[sigma-1][sigma]);
+}
+
+
+void mooring_barQuasiStatic::checkBottom
+(
+    lexer *p, 
+    fdm *a, 
+    ghostcell *pgc
+)
+{
+    for(int n=0; n<sigma+2; ++n)
+    {
+        if (z[n] < -0.01)
+        {
+            if (p->mpirank == 0) cout<<"Catenary solution"<<endl;
+            pcatenary->getShape(p,a,pgc,x,y,z,T);
+            break;
+        }
+    }
 }

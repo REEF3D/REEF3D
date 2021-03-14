@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -25,6 +25,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
 {   
+    //if((bc==221 || bc==211 || bc==121 || bc==111) && (gcv==51||gcv==52||gcv==53||gcv==54))
+    //cout<<"HX epol entry  bc: "<<bc<<" gcv: "<<gcv<<endl;
+    
     // general Neuman
     if(gcv==40 || gcv==50 || gcv==1 )
 	return 4;
@@ -52,6 +55,10 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
 	if((bc==8) && (gcv==41 || gcv==42 || gcv==43 || gcv==44))
 	return 4;
     
+    else
+	if((bc==211 || bc==212 || bc==112 || bc==111) && (gcv==41 || gcv==42 || gcv==43 || gcv==44))
+	return 4;
+    
     // Fifsf 60
     else
     if((cs==2 || cs==3) && gcv==60)
@@ -70,13 +77,58 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
     if(gcv==55)
     return 4;
     
+    //Patch eta / Hx / Hy
+    else
+	if((bc==221 || bc==211 || bc==121 || bc==111) && (gcv==50||gcv==51||gcv==52||gcv==53||gcv==54))
+	return 4;
     
+    //Hx
+    else
+    if((bc==1||bc==6)&&(gcv==52||gcv==54))
+	return 4;
+    
+    else
+    if((bc==2||bc==7)&&(gcv==51||gcv==54))
+	return 4;
+    
+    else
+    if(bc==8 && p->B99==3)
+	return 4;
+    
+    else
+    if((bc==21||bc==3)&&(gcv==51||gcv==52||gcv==53||gcv==54))
+	return 4;
+    
+    //Hy
+    else
+    if((bc==1||bc==6)&&(gcv==52||gcv==54))
+	return 4;
+    
+    else
+    if((bc==2||bc==7)&&(gcv==51||gcv==54))
+	return 4;
+    
+    else
+    if(bc==8 && p->B99==3)
+	return 4;
+    
+    else
+    if(bc==8 && p->B99==4)
+	return 4;
+    
+    else
+    if((bc==21||bc==3)&&(gcv==51||gcv==52||gcv==53||gcv==54))
+	return 4;
+    
+    
+    
+    // eta
     else
     if((bc==1||bc==6) && (gcv==52||gcv==54))
 	return 4;
     
     else
-    if((bc==2||bc==7)&&(gcv==51||gcv==54))
+    if((bc==2||bc==7) && (gcv==51||gcv==54))
 	return 4;
     
     else
@@ -106,11 +158,13 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
     if(((bc!=1 && bc!=6 && p->B98<=2))  &&gcv==155)
     return 14;
     
+    else
+    if((bc==2||bc==7) && gcv==155)
+    return 14;
     
     else
     if((bc==1||bc==6) && (gcv==152||gcv==154))
 	return 14;
-    
     
     else
     if((bc==2||bc==7)&&(gcv==151||gcv==154))

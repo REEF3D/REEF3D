@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,6 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 #include"turbulence.h"
+#include"patchBC_interface.h"
 
 void ioflow_f::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {
@@ -56,8 +57,6 @@ void ioflow_f::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, fiel
         }
 
 
-        if(p->B64==1)
-        {
         for(q=0;q<4;++q)
         for(n=0;n<p->gcin_count;++n)
         {
@@ -69,8 +68,10 @@ void ioflow_f::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, fiel
         a->eddyv(i,j,k)=MIN(a->eddyv(i,j,k),1.0e-4);
         }
         pgc->start4(p,a->eddyv,24);
-        }
+        
     }
+    
+    pBC->patchBC_ioflow(p,a,pgc,u,v,w);
 
 }
 
@@ -95,6 +96,14 @@ void ioflow_f::inflow_plain(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
 		w(i-1,j,k)=0.0;
         w(i-2,j,k)=0.0;
         w(i-3,j,k)=0.0;
+        
+            // Air inflow
+            if(p->W50_air==1 && a->phi(i,j,k)<-0.6*p->DXM)
+            {
+            u(i-1,j,k)+=p->W50;
+            u(i-2,j,k)+=p->W50;
+            u(i-3,j,k)+=p->W50;
+            }
         }
         
         if(a->topo(i,j,k)<=0.0)
@@ -159,7 +168,17 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
         k=p->gcin[n][2];
         
             if(a->topo(i,j,k)>0.0)
+            {
             u(i-1,j,k)=u(i-2,j,k)=u(i-3,j,k)= shearvel*2.5*log(MAX(30.0*MIN(walldin[n],dmax)/ks,1.0));
+            
+                // Air inflow
+                if(p->W50_air==1 && a->phi(i,j,k)<-0.6*p->DXM)
+                {
+                u(i-1,j,k)+=p->W50;
+                u(i-2,j,k)+=p->W50;
+                u(i-3,j,k)+=p->W50;
+                }
+            }
             
             if(a->topo(i,j,k)<=0.0)
             u(i-1,j,k)=u(i-2,j,k)=u(i-3,j,k)=0.0;
@@ -199,7 +218,7 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
         }
     }
 
-    if((p->B61==4 || p->B62==5) && p->count>0)
+    if((p->B61==4) && p->count>0)
     for(n=0;n<p->gcin_count;n++)
     {
     i=p->gcin[n][0];
@@ -273,6 +292,14 @@ void ioflow_f::inflow_water(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
         u(i-3,j,k)=0.0;
         }
         
+        // Air inflow
+        if(p->W50_air==1 && a->phi(i,j,k)<-0.6*p->DXM)
+        {
+        u(i-1,j,k)+=p->W50;
+        u(i-2,j,k)+=p->W50;
+        u(i-3,j,k)+=p->W50;
+        }
+        
         if(a->topo(i,j,k)<=0.0)
         u(i-1,j,k)=u(i-2,j,k)=u(i-3,j,k)=0.0;
 
@@ -298,6 +325,7 @@ void ioflow_f::inflow_water(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
 
 void ioflow_f::rkinflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {
+    inflow(p,a,pgc,u,v,w);
 }
 
 void ioflow_f::flowfile(lexer *p, fdm* a, ghostcell* pgc, turbulence *pturb)

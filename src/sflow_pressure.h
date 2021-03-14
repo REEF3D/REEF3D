@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -26,6 +26,7 @@ class ghostcell;
 class solver2D;
 class slice;
 class ioflow;
+class patchBC_interface;
 
 using namespace std;
 

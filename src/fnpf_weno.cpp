@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -68,7 +68,7 @@ double fnpf_weno::fz(lexer *p, field &f, double kvel1, double kvel2)
 {
     grad=0.0;
     
-/*
+
     if(p->flag4[IJK]>0 && p->flag4[IJKm1]>0 && p->flag4[IJKm2]>0 && p->flag4[IJKm3] && p->flag4[IJKm4]>0 && p->flag4[IJKm5])
     {
         if(i+p->origin_i>0)
@@ -82,7 +82,7 @@ double fnpf_weno::fz(lexer *p, field &f, double kvel1, double kvel2)
         //cout<<" return 6"<<endl;
             
         return grad;
-    }*/
+    }
 
     if(p->flag4[IJK]>0 && p->flag4[IJKm1]>0 && p->flag4[IJKm2]>0 && p->flag4[IJKm3]>0)
     {
@@ -117,7 +117,7 @@ double fnpf_weno::fz(lexer *p, field &f, double kvel1, double kvel2)
     else
     {
         if(i+p->origin_i>0)
-        grad = (f(i,j,k+1) - f(i,j,k))/(p->ZP[KP]);
+        grad = (f(i,j,k) - f(i,j,k-1))/(p->ZP[KM1]);
               
         if(i+p->origin_i==0)
         grad = (f(i,j,k) - f(i,j,k-1))/(p->ZP[KM1]);
@@ -158,6 +158,10 @@ double fnpf_weno::sz(lexer *p, double *f)
 {
     grad = (ckz[p->knoz+marge][4]*f[FIJK] + ckz[p->knoz+marge][3]*f[FIJKm1] + ckz[p->knoz+marge][2]*f[FIJKm2] 
           + ckz[p->knoz+marge][1]*f[FIJKm3] + ckz[p->knoz+marge][0]*f[FIJKm4]);
+    /*      
+    grad = (-(49.0/20.0)*f[FIJK] + 6.0*f[FIJKm1] - 7.5*f[FIJKm2] + (20.0/3.0)*f[FIJKm3] - 3.75*f[FIJKm4] + (6.0/5.0)*f[FIJKm5] - (1.0/6.0)*f[FIJKm6])
+          /(-(49.0/20.0)*p->ZN[KP] + 6.0*p->ZN[KM1] - 7.5*p->ZN[KM2] + (20.0/3.0)*p->ZN[KM3] - 3.75*p->ZN[KM4] + (6.0/5.0)*p->ZN[KM5] - (1.0/6.0)*p->ZN[KM6]);
+   */
     
     return grad;   
     

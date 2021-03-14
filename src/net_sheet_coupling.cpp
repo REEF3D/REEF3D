@@ -27,27 +27,33 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void net_sheet::vransCoupling(lexer *p, fdm *a, ghostcell *pgc)
 {
+    double rho;
+
     //- Save Lagrangian coordinates and forces
-    for (int i = 0; i < nK; i++)
+    for (int knotI = 0; knotI < nK; knotI++)
     {
-        lagrangePoints[i] << x_.row(i).transpose();
+        lagrangePoints[knotI] << x_.row(knotI).transpose();
         
         // Forces
-        const Eigen::Vector3d& coordI = lagrangePoints[i];
+        const Eigen::Vector3d& coordI = lagrangePoints[knotI];
+            
+        // Density 
+        rho = coupledField[knotI][3];
         
         if 
         (
             coordI(0) >= xstart[p->mpirank] && coordI(0) < xend[p->mpirank] &&
             coordI(1) >= ystart[p->mpirank] && coordI(1) < yend[p->mpirank] &&
-            coordI(2) >= zstart[p->mpirank] && coordI(2) < zend[p->mpirank]
+            coordI(2) >= zstart[p->mpirank] && coordI(2) < zend[p->mpirank] &&
+            rho > 900.0
         )
         {
             // Divide by rho since multiplied in vrans
-            lagrangeForces[i] = forces_knot.row(i)/coupledField[i][3]; 
+            lagrangeForces[knotI] = forces_knot.row(knotI)/rho; 
         }
         else
         {
-            lagrangeForces[i] << 0.0, 0.0, 0.0;   
+            lagrangeForces[knotI] << 0.0, 0.0, 0.0;   
         }
     }   
 }

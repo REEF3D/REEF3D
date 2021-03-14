@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -33,7 +33,7 @@ using namespace std;
 class sflow_pjm_sw : public sflow_pressure, public increment
 {
 public:
-    sflow_pjm_sw(lexer*, fdm2D*);
+    sflow_pjm_sw(lexer*, fdm2D*,patchBC_interface*);
 	virtual ~sflow_pjm_sw();
     
 	virtual void start(lexer*, fdm2D*, ghostcell*, solver2D*, ioflow*, slice&, slice&, slice&, slice&, slice&, slice&, double);
@@ -62,6 +62,7 @@ private:
     
     slice4 wb,wsn,wbn;
 	sflow_weno_hj *disc;
+    patchBC_interface *pBC;
 
 };
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -28,6 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"momentum.h"
 #include"ioflow.h"
 #include"sflow_weno_hj.h"
+#include"patchBC_interface.h"
 
 #define HXIJ (fabs(b->hx(i,j))>1.0e-20?b->hx(i,j):1.0e20)
 #define HXIMJ (fabs(b->hx(i-1,j))>1.0e-20?b->hx(i-1,j):1.0e20)
@@ -45,8 +46,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define HPX (0.5*(HP + HPI))
 #define HPY (0.5*(HP + HPJ))
  
-sflow_pjm_sw::sflow_pjm_sw(lexer* p, fdm2D *b) : wb(p), wsn(p), wbn(p)
+sflow_pjm_sw::sflow_pjm_sw(lexer* p, fdm2D *b, patchBC_interface *ppBC) : wb(p), wsn(p), wbn(p)
 {
+    pBC = ppBC;
+    
     gcval_press=40;  
 
 	gcval_u=10;
@@ -119,7 +122,6 @@ void sflow_pjm_sw::ucorr(lexer* p, fdm2D* b, slice& P, slice &eta, double alpha)
 	P(i,j) -= alpha*p->dt*(((b->press(i+1,j)-b->press(i,j))/(2.0*p->DXM)));
 
                 
-    if(p->A222==1)           
     SLICELOOP1
     if(b->breaking(i,j)==0 && b->breaking(i+1,j)==0)
 	P(i,j) -= alpha*p->dt*(0.5*(b->press(i+1,j)+b->press(i,j))*((eta(i+1,j)-eta(i,j))-(b->depth(i+1,j)-b->depth(i,j)))
@@ -132,7 +134,6 @@ void sflow_pjm_sw::vcorr(lexer* p, fdm2D* b, slice& Q, slice &eta, double alpha)
     if(b->breaking(i,j)==0 && b->breaking(i,j+1)==0)
 	Q(i,j) -= alpha*p->dt*(((b->press(i,j+1)-b->press(i,j))/(2.0*p->DXM)));
                 
-    if(p->A222==1)
     SLICELOOP2
     if(b->breaking(i,j)==0 && b->breaking(i,j+1)==0)
 	Q(i,j) -= alpha*p->dt*(0.5*(b->press(i,j+1)+b->press(i,j))*((eta(i,j+1)-eta(i,j))-(b->depth(i,j+1)-b->depth(i,j)))
@@ -179,30 +180,18 @@ void sflow_pjm_sw::rhs(lexer *p, fdm2D* b, slice &u, slice &v, slice &ws, double
 
 void sflow_pjm_sw::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 {
-	if(p->A221>=1)
     SLICELOOP1
 	b->F(i,j) -= fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM); 
     
-    if(p->A221==2)
-    SLICELOOP1
-	b->F(i,j) -= ((b->press(i+1,j)-b->press(i,j))/(2.0*p->DXM))
-				
-				+ 0.5*(b->press(i+1,j)+b->press(i,j))*((b->eta(i+1,j)-b->eta(i,j))-(b->depth(i+1,j)-b->depth(i,j)))
-				/(2.0*p->DXM*HXIJ);
+    pBC->patchBC_pressure2D_ugrad(p,b,eta,eta_n);
 }
 
 void sflow_pjm_sw::vpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 {
-	if(p->A221>=1)
     SLICELOOP2
 	b->G(i,j) -= fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM); 
     
-    if(p->A221==2)
-    SLICELOOP2
-	b->G(i,j) -= ((b->press(i,j+1)-b->press(i,j))/(2.0*p->DXM))
-				
-				+ 0.5*(b->press(i,j+1)+b->press(i,j))*((b->eta(i,j+1)-b->eta(i,j))-(b->depth(i,j+1)-b->depth(i,j)))
-				/(2.0*p->DXM*HYIJ); 
+    pBC->patchBC_pressure2D_vgrad(p,b,eta,eta_n);
 }
 
 void sflow_pjm_sw::poisson(lexer*p, fdm2D* b)

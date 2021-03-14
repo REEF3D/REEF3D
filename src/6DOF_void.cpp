@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,10 +27,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/stat.h>
 
 #include"mooring_void.h"
-#include"mooring_DGSEM.h"
 #include"mooring_barQuasiStatic.h"
 #include"mooring_Catenary.h"
 #include"mooring_Spring.h"
+#include"mooring_dynamic.h"
 #include"net.h"
 #include"net_void.h"
 #include"net_barDyn.h"
@@ -65,7 +65,7 @@ void sixdof_void::start
     {
         for (int ii = 0; ii < p->net_count; ii++)
         {
-            pnet[ii]->start(p, a, pgc, 1.0);
+            pnet[ii]->start(p, a, pgc, 1.0, quatRotMat);
             pvrans->start(p, a, pgc, pnet[ii], ii);
 
             // Forces on rigid body
@@ -101,7 +101,7 @@ void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pne
 
 		if(p->mpirank==0 && p->P14==1)
 		{
-			mkdir("./REEF3D_6DOF_Mooring",0777);	
+			mkdir("./REEF3D_CFD_6DOF_Mooring",0777);	
 		}		
 
 		pmooring.reserve(p->mooring_count);
@@ -118,11 +118,10 @@ void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pne
 			}	
 			else if(p->X310==3)
 			{
-				pmooring.push_back(new mooring_DGSEM(i));
+				pmooring.push_back(new mooring_dynamic(i));
 			}
 			else if(p->X310==4)
 			{
-		
                 pmooring.push_back(new mooring_Spring(i));
 			}
 		
@@ -149,7 +148,7 @@ void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pne
         {
             if(p->P14==1)
             {
-                mkdir("./REEF3D_6DOF_Net",0777);	
+                mkdir("./REEF3D_CFD_6DOF_Net",0777);	
             }
         }
         else
@@ -185,5 +184,5 @@ void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pne
 	p->pfbi=p->qfbi=p->rfbi=0.0;
     p->xg=p->yg=p->zg=0.0;
 
-    p->quatRotMat << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0;
+    quatRotMat << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0;
 }

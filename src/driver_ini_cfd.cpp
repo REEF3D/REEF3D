@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -77,9 +77,7 @@ cout<<"starting driver_ini"<<endl;
     }
     
 	// 6DOF
-	if(p->X10==1 && p->X13!=2)
-    {}
-    else
+	if((p->X10==1 && p->X13!=2) || p->X10==0)
     {
 	    p6dof->initialize(p,a,pgc,pnet);
     }
@@ -94,6 +92,9 @@ cout<<"starting driver_ini"<<endl;
     psed->update(p,a,pgc,pflow);
     pgc->start4a(p,a->topo,150);
     }
+    
+    // patchBC ini
+    pBC->patchBC_ini(p,pgc);
     
     //ioflow ini
     pflow->ini(p,a,pgc);
@@ -152,8 +153,13 @@ cout<<"starting driver_ini"<<endl;
 	if(p->I12>=1)
 	pini->hydrostatic(p,a,pgc);
 
-	if(p->I11==1)
-	ptstep->start(a,p,pgc,pturb);
+	//if(p->I11==1)
+    if (p->X10 == 0)
+    {
+        // Hard fix from Tobias so that 6DOF is running
+        ptstep->start(a,p,pgc,pturb);
+    }
+
     
     if(p->I13==1)
     pturb->ini(p,a,pgc);

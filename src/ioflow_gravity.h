@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -36,7 +36,7 @@ class ioflow_gravity : public ioflow, public increment
 
 public:
 
-	ioflow_gravity(lexer*,ghostcell*);
+	ioflow_gravity(lexer*,ghostcell*,patchBC_interface*);
 	virtual ~ioflow_gravity();
 	virtual void gcio_update(lexer*,fdm*,ghostcell*);
 	virtual void inflow_walldist(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*);
@@ -83,6 +83,7 @@ public:
     virtual void wavegen_2D_precalc_ini(lexer*,ghostcell*);
     
     virtual void discharge2D(lexer*,fdm2D*,ghostcell*);
+    virtual void waterlevel2D(lexer*,fdm2D*,ghostcell*,slice&);
     virtual void Qin2D(lexer*,fdm2D*,ghostcell*);
 	virtual void Qout2D(lexer*,fdm2D*,ghostcell*);
     virtual void inflow2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&);
@@ -110,6 +111,8 @@ private:
 	double omega_x,omega_y;
 	double theta_x,theta_y;
 	double dist_x,dist_y,dist_z;
+    
+    patchBC_interface *pBC;
 };
 
 #endif

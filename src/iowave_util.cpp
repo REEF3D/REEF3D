@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -33,7 +33,7 @@ int iowave::iozonecheck(lexer *p, fdm*a)
 	db = distbeach(p);
 	
 	if(p->B98==2)
-	if(dg<dist1 || db<dist3)
+	if(dg<dist1 || db<dist2)
 	check=0;
 
 	return check;		

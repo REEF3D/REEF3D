@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -33,57 +33,35 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	ptime = new sflow_etimestep(p,b);
 	
 	// convection
-    if(p->A215==0)
-    {
-        if(p->A211==0)
-        pconvec = new sflow_voidconv(p);
+    if(p->A211==0)
+    pconvec = new sflow_voidconv(p);
         
-        if(p->A211==1)
-        pconvec = new sflow_fou(p);
+    if(p->A211==1)
+    pconvec = new sflow_fou(p);
         
-        if(p->A211==4)
-        pconvec = new sflow_weno_flux(p);
+    if(p->A211==4)
+    pconvec = new sflow_weno_flux(p);
         
-        if(p->A211==5)
-        pconvec = new sflow_weno_hj(p);
+    if(p->A211==5)
+    pconvec = new sflow_weno_hj(p);
         
-        if(p->A211==6)
-        pconvec = new sflow_hires(p,6);
+    if(p->A211==6)
+    pconvec = new sflow_hires(p,6);
         
-        if(p->A211==7)
-        pconvec = new sflow_hires(p,7);
+    if(p->A211==7)
+    pconvec = new sflow_hires(p,7);
         
-        if(p->A211==8)
-        pconvec = new sflow_hires(p,8);
-    }
-    
-    if(p->A215==1)
-    {
-        if(p->A211==0)
-        pconvec = new sflow_voidconv(p);
-        
-        if(p->A211==1)
-        pconvec = new sflow_cfou(p,b);
-        
-        if(p->A211==4 ||p->A211==5)
-        pconvec = new sflow_weno_cflux(p,b);
-        
-        if(p->A211==6)
-        pconvec = new sflow_chires(p,b,6);
-        
-        if(p->A211==7)
-        pconvec = new sflow_chires(p,b,7);
-        
-        if(p->A211==8)
-        pconvec = new sflow_chires(p,b,8);
-    }
+    if(p->A211==8)
+    pconvec = new sflow_hires(p,8);
+ 
+
     
     // filter
     pfilter = new sflow_filter(p);
 	
 	// free surface
 	if(p->A240>=1)
-	pfsf = new sflow_eta(p,b,pgc);
+	pfsf = new sflow_eta(p,b,pgc,pBC);
 
 	// diffusion
 	if(p->A212==0)
@@ -97,16 +75,16 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 	// pressure
     if(p->A220==0)
-	ppress = new sflow_hydrostatic(p,b);
+	ppress = new sflow_hydrostatic(p,b,pBC);
     
     if(p->A220==1)
-	ppress = new sflow_pjm_lin(p,b);
+	ppress = new sflow_pjm_lin(p,b,pBC);
     
     if(p->A220==2)
-	ppress = new sflow_pjm_quad(p,b);
+	ppress = new sflow_pjm_quad(p,b,pBC);
     
     if(p->A220==3)
-	ppress = new sflow_pjm_sw(p,b);
+	ppress = new sflow_pjm_sw(p,b,pBC);
     
     // diffusion
 	if(p->A260==0)
@@ -137,16 +115,15 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     
     psolv = new sflow_bicgstab(p,pgc);
     
-    
     //IOFlow
 	if(p->B60==0 && p->B90==0)
-	pflow = new ioflow_v(p,pgc);
+	pflow = new ioflow_v(p,pgc,pBC);
 
 	if(p->B60>=1)
-	pflow = new ioflow_f(p,pgc);
+	pflow = new ioflow_f(p,pgc,pBC);
 
 	if(p->B90>=1)
-	pflow= new iowave(p,pgc);
+	pflow= new iowave(p,pgc,pBC);
 
 	
 	// printer

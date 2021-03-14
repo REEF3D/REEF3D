@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -130,7 +130,19 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *p
                   
                   - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(c->By(i,j)*c->Ey(i,j));
     }
+    /*
     
+    FBASELOOP
+    {
+    p->sigxx[FIJK] = - 2.0*((1.0 - p->sig[FIJK])*pow(c->Bx(i,j),2.0)/pow(WLVL,2.0))
+    
+                     + 2.0*(2.0*p->sig[FIJK]-1.0)*(c->Ex(i,j)*c->Bx(i,j))/pow(WLVL,2.0)
+    
+                    + (1.0 - p->sig[FIJK])*c->Bxx(i,j)/WLVL + 2.0*p->sig[FIJK]*pow(c->Ex(i,j),2.0)/pow(WLVL,2.0)
+                    
+                    - p->sigx[FIJK]*c->Ex(i,j) /WLVL;              
+    }
+    */
     // sig BC
     SLICELOOP4
     {

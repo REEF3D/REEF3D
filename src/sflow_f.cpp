@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -40,8 +40,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/stat.h>
 #include<sys/types.h>
 
-sflow_f::sflow_f(lexer *p, fdm2D *b, ghostcell* pgc)
+sflow_f::sflow_f(lexer *p, fdm2D *b, ghostcell* pgc, patchBC_interface *ppBC)
 {
+    pBC = ppBC;
+    
 	maxcoor(p,b,pgc);
 }
 
@@ -120,8 +122,9 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         pturb->etimesave(p,b,pgc);
 		
         //timestep control
-        ptime->start(p,b,pgc);
         p->simtime+=p->dt;
+        ptime->start(p,b,pgc);
+        
         
         // printer
 		//print_debug(p,b,pgc);

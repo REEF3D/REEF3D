@@ -85,7 +85,8 @@ void net_barDyn::start
 	lexer *p, 
 	fdm *a, 
 	ghostcell *pgc,
-    double alpha
+    double alpha,
+    Eigen::Matrix3d quatRotMat
 )
 {
     double starttime1 = pgc->timer();    

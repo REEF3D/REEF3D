@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -39,7 +39,6 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     p->umax=p->vmax=p->wmax=p->viscmax=irsm=jrsm=krsm=0.0;
     p->epsmax=p->kinmax=p->pressmax=0.0;
 	p->pressmin=1.0e9;
-	p->dt_old=p->dt;
 
 	p->umax=p->vmax=p->wmax=p->viscmax=0.0;
 	sqd=1.0/(p->DXM*p->DXM);
@@ -152,7 +151,24 @@ void ietimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
     
     p->viscmax = MAX(p->W2,p->W4);
 
-	p->umax=p->W10;
+	p->umax=MAX(p->W10,p->umax);
+    
+    ULOOP
+	p->umax=MAX(p->umax,fabs(a->u(i,j,k)));
+
+	p->umax=pgc->globalmax(p->umax);
+
+
+	VLOOP
+	p->vmax=MAX(p->vmax,fabs(a->v(i,j,k)));
+
+	p->vmax=pgc->globalmax(p->vmax);
+
+
+	WLOOP
+	p->wmax=MAX(p->wmax,fabs(a->w(i,j,k)));
+
+	p->wmax=pgc->globalmax(p->wmax);
 
 	p->umax=MAX(p->umax,2.0*p->ufbmax);
 	p->umax=MAX(p->umax,2.0*p->vfbmax);
@@ -171,6 +187,7 @@ void ietimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
     
 	p->dt=p->N47*cu*0.25;
     p->dt = MAX(p->dt,1.0e-6);
+    
 	p->dt=pgc->timesync(p->dt);
 	p->dt_old=p->dt;
     

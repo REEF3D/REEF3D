@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -62,7 +62,6 @@ int ghostcell::gceval2(lexer *p, int gcv, int bc, int cs)
 	
 
 //Inflow
-	
 	else
 	if(bc==1 && (gcv==21))
 	return 4;
@@ -79,10 +78,14 @@ int ghostcell::gceval2(lexer *p, int gcv, int bc, int cs)
 	else
 	if((bc==2 && gclabel_outflow==1) && (gcv==11||gcv==21||gcv==2) && (cs==2||cs==3))
 	return gclabel_v_out;
+    
+//Patch    
+    else
+	if((bc==111 || bc==112 || bc==121 || bc==122) && (gcv==11||gcv==2||gcv==21||gcv==8))
+	return 4;
 
 
 //Free Surface
-
 	else
 	if(bc==3 && (cs==1||cs==4||cs==5||cs==6) && (gcv==11||gcv==21||gcv==18 || gcv==2))
 	return 4;

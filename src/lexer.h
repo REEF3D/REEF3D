@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -31,7 +31,6 @@ Author: Hans Bihs
 #include"grid_sigma.h"
 #include<fstream>
 #include"looping.h"
-#include <Eigen/Dense>
 #include<vector>
 
 #ifndef LEXER_H_
@@ -54,9 +53,9 @@ public:
     void lexer_read(ghostcell*);
     void flagini();
 	void gridini(ghostcell*);
-    void gridini_outflow();
+    void gridini_patchBC();
     void makeflag(int*);
-	
+
 	void read_grid();
 	void read_control();
 	void control_calc();
@@ -74,7 +73,7 @@ public:
 	void parse();
 	void fieldlogic();
 	int conv(double);
-    
+
     // 2D
     void grid2Dsize();
     void flagini2D();
@@ -87,8 +86,8 @@ public:
 	double dx,dy,dz;
     double *xpoint,*ypoint,*zpoint;
     double *xnode,*ynode,*znode;
-    
-    
+
+
 	int imin,imax,jmin,jmax,kmin,kmax;
     int kmaxF;
 	int pointnum,cellnum;
@@ -140,7 +139,17 @@ public:
 	int gcb_fix,gcb_solid,gcb_topo,gcb_fb, solid_gcb_est, geotopo_gcb_est;
 	int gcb_sediment_est, gcb_floating_est;
     int bcside1,bcside2,bcside3,bcside4,bcside5,bcside6;
-    
+
+    // serial periodic BC
+    int periodic1,periodic2,periodic3;
+    int periodicX1,periodicX2,periodicX3,periodicX4,periodicX5,periodicX6;
+
+    int **gc4periodic;
+    int **gc4aperiodic;
+    int *gc4periodic_count;
+    int *gc4aperiodic_count;
+    int gc4periodic_maxcount;
+
 
 	//IBM
 	int **facet;
@@ -156,13 +165,6 @@ public:
 	int** gcpara4;
 	int** gcpara5;
 	int** gcpara6;
-	
-	int** gcparavoid1;
-	int** gcparavoid2;
-	int** gcparavoid3;
-	int** gcparavoid4;
-	int** gcparavoid5;
-	int** gcparavoid6;
 
 	int** gcparaco1;
 	int** gcparaco2;
@@ -170,14 +172,13 @@ public:
 	int** gcparaco4;
 	int** gcparaco5;
 	int** gcparaco6;
-    
+
     int*** gcx7;
     int* gcx7_count;
     int*** gcxco7;
     int* gcxco7_count;
 
 	int gcpara1_count, gcpara2_count, gcpara3_count, gcpara4_count, gcpara5_count, gcpara6_count;
-	int gcparavoid1_count, gcparavoid2_count, gcparavoid3_count, gcparavoid4_count, gcparavoid5_count, gcparavoid6_count;
 	int gcparaco1_count, gcparaco2_count, gcparaco3_count, gcparaco4_count, gcparaco5_count, gcparaco6_count;
     int gcslpara1_count, gcslpara2_count, gcslpara3_count, gcslpara4_count;
     int gcslparaco1_count, gcslparaco2_count, gcslparaco3_count, gcslparaco4_count;
@@ -187,19 +188,19 @@ public:
     int mi,mj,mk;
 	int mpi_edgenum,mpi_nodes,mpi_size;
 	int *mpi_index, *mpi_edges;
-	
+
 	int ulast,vlast,wlast,flast,ulastsflow;
 	int velcorr;
 	int* ictrl;
 	double* dctrl;
 	int ctrlsize;
-	int stencil;	
+	int stencil;
 
 	// Solver
 	int *colnum;
     int *range_col4,*range_row4,*range_col7,*range_row7;
 	int *sizeM1,*sizeM2,*sizeM3,*sizeM4,*sizeM4a,*sizeM6;
-    int *sizeS1,*sizeS2,*sizeS4; 
+    int *sizeS1,*sizeS2,*sizeS4;
 	int mglevel_max,*MGL;
 
 	// SMO
@@ -207,17 +208,17 @@ public:
     int C1_size,C2_size,C3_size,C4_size,C4a_size,C6_size;
     int C1_2D_size,C2_2D_size,C4_2D_size;
     int M_size,M_2D_size;
-    
+
     //SLICE
     int *flagslice1,*flagslice2,*flagslice4,*tpflagslice;
     int *mgcsl1,*mgcsl2,*mgcsl3,*mgcsl4,*mgcsl4a;
     int ***gcslorig1,***gcslorig2,***gcslorig3,***gcslorig4,***gcslorig4a;
 	int gcsldirsize1,gcsldirsize2,gcsldirsize3,gcsldirsize4,gcsldirsize4a;
-    
+
     int slicenum,vec2Dlength;
-    
+
     int pointnum2D,cellnum2D,cellnumtot2D,polygon_sum;
-    
+
     // SLICE ghostcell
     int gcbsl1_count,gcbsl2_count,gcbsl3_count,gcbsl4_count,gcbsl4a_count;
     int gcslin_count,gcslout_count;
@@ -232,13 +233,13 @@ public:
 
 	int **dgcsl1,**dgcsl2,**dgcsl3,**dgcsl4;
 	int dgcsl1_count,dgcsl2_count,dgcsl3_count,dgcsl4_count;
-    
+
     int **ggcsl1,**ggcsl2,**ggcsl3,**ggcsl4,**ggcsl4a;
     int *ggcslmem1,*ggcslmem2,*ggcslmem3,*ggcslmem4,*ggcslmem4a;
     int ggcslcount1,ggcslcount2,ggcslcount3,ggcslcount4,ggcslcount4a;
     int ggcslsize1,ggcslsize2,ggcslsize3,ggcslsize4,ggcslsize4a;
 
-    
+
     // SLICE parallel
 	int** gcslpara1;
 	int** gcslpara2;
@@ -249,36 +250,36 @@ public:
 	int** gcslparaco2;
 	int** gcslparaco3;
 	int** gcslparaco4;
-    
-    
+
+
     // flow parameters
     const double cmu;
     double deltax,sigT,Ui,Ua,Uo;
 
     // Hydrodynamics Models
     int A10;
-    
+
     // SFLOW
-	int A209,A210,A211,A212,A214,A215,A216,A217,A218,A219,A220,A221,A222,A230,A240,A241,A242,A243,A244,A245,A246,A248;
+	int A209,A210,A211,A212,A214,A216,A217,A218,A219,A220,A230,A240,A241,A242,A243,A244,A245,A246,A248;
     int A251,A260;
     double A261,A262;
     double A223,A244_val,A245_val,A247,A249,A251_val;
-    
+
     // FNPF
     int A310,A311,A312,A313,A320,A321,A322,A329,A343,A344,A345;
     double A341,A342,A344_val,A345_val,A346;
     int A350,A351,A352,A361,A362,A363,A368;
-    double A354,A355,A356,A365,A369; 
-    
+    double A354,A355,A356,A365,A369;
+
     // NSEWAVE
     int A410;
     double A440;
-    
+
 	// boundary conditions
-	int B10,B20,B26,B30,B60,B61,B62,B63,B64,B70,B71,B74,B75,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B98,B99,B101,B105,B106,B107,B110;
-	int B121,B136,B139,B180,B191,B192,B210,B240,B241,B242,B243;
+	int B10,B20,B26,B30,B60,B61,B70,B71,B74,B75,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B98,B99,B101,B105,B106,B107,B110;
+	int B121,B136,B139,B180,B191,B192,B240,B241,B242,B243;
 	double B29,B50,B51,B52,B53,B54,B55,B56,B81_1,B81_2,B81_3,B83,B117,B87_1,B87_2,B88;
-	double B91_1,B91_2,B91_3,B93_1,B93_2,B93_3,B96_1,B96_2,B96_3,B97,B102,B105_1,B105_2,B105_3,B110_d;
+	double B91_1,B91_2,B93_1,B93_2,B96_1,B96_2,B97,B102,B105_1,B105_2,B105_3,B110_d;
 	double *B70_val,*B70_dist,*B70_b,*B70_x,*B70_y;
 	double *B71_val,*B71_dist,*B71_b,*B71_x,*B71_y;
 	double *B106_b,*B106_x,*B106_y;
@@ -298,6 +299,34 @@ public:
 	double B181_1,B181_2,B181_3,B182_1,B182_2,B182_3,B183_1,B183_2,B183_3;
 	double B191_1,B191_2,B191_3,B191_4,B192_1,B192_2,B192_3,B192_4;
 	double B194_s,B194_e;
+
+    int B411,B412,B413,B414,B415,B416,B417,B418;
+    int *B411_ID;
+    double *B411_Q;
+    int *B412_ID;
+    double *B412_pressBC;
+    int *B413_ID;
+    double *B413_h;
+    int *B414_ID;
+    double *B414_Uio;
+    int *B415_ID;
+    double *B415_U,*B415_V,*B415_W;
+    int *B416_ID;
+    double *B416_alpha;
+    int *B417_ID;
+    double *B417_Nx,*B417_Ny,*B417_Nz;
+    int *B418_ID;
+    int *B418_pio;
+    int B440;
+    int *B440_ID,*B440_face;
+    double *B440_xs,*B440_xe,*B440_ys,*B440_ye;
+    int B441;
+    int *B441_ID,*B441_face;
+    double *B441_xs,*B441_xe,*B441_ys,*B441_ye,*B441_zs,*B441_ze;
+    int B442;
+    int *B442_ID,*B442_face;
+    double *B442_xm,*B442_ym,*B442_zm,*B442_r;
+
 	double *B240_D, *B240_C, *B240_xs, *B240_xe, *B240_ys, *B240_ye, *B240_zs, *B240_ze;
     double B260,B264,B267;
     int B269,B270;
@@ -313,7 +342,7 @@ public:
     double B309;
     double *B310_xs, *B310_xe, *B310_ys, *B310_ye, *B310_zs, *B310_ze, *B310_N, *B310_D, *B310_Cd;
     double *B311_xm, *B311_ym, *B311_r, *B311_zs, *B311ze, *B311_N, *B311_D, *B311_Cd;
-	
+
     // Concentration Options
 	double C1,C2,C3,C4,C5;
 	int C9,C10,C15,C20;
@@ -347,16 +376,15 @@ public:
 	double *F72_xs, *F72_xe, *F72_ys, *F72_ye, *F72_h;
 	int F80,F85;
 	double F84;
-    
+
 	// Grid Options
     int G1,G2;
 	int G10,G11,G12,G20,G21,G22,G30;
 	int G39,G40;
-	int G50, G51,G52,G60, G61,G81,G95;
+	int G50, G51,G52,G60, G61,G81;
 	double *G60_xs, *G60_xe, *G60_ys, *G60_ye, *G60_zs, *G60_ze;
 	double *G61_xs, *G61_xe, *G61_ys, *G61_ye, *G61_zs, *G61_ze;
 	double *G81_xs, *G81_xe, *G81_ys, *G81_ye, *G81_zs, *G81_ze;
-	double *G95_xs, *G95_xe, *G95_ys, *G95_ye, *G95_zs, *G95_ze;
 
 	// Heat Options
 	double H1,H2;
@@ -367,7 +395,7 @@ public:
 	double H58_1,H58_2,H58_3,H58_4;
     int H61,H62,H63,H64,H65,H66;
     double H61_T,H62_T,H63_T,H64_T,H65_T,H66_T;
-	
+
 	// Initialize Options
 	int I10,I11,I12,I13,I30,I40,I41,I56;
 	double I21,I55,I58_1,I58_2;
@@ -377,7 +405,7 @@ public:
     double I241, I242;
 
 	// Numerical Options
-	int N5,N10,N11,N12,N21,N22,N23,N40,N42,N45,N46,N48,N60;
+	int N10,N11,N12,N21,N22,N23,N40,N42,N45,N46,N48,N60;
 	double N41,N43,N44,N47,N49,N61;
 
 	// MPI Options
@@ -420,8 +448,8 @@ public:
     double S77_xs,S77_xe;
 
 	// Turbulence
-	int T10,T11,T12,T36,T41;
-	double T13,T31,T32,T35,T37,T38,T39;
+	int T10,T11,T12,T36;
+	double T13,T31,T32,T35,T37,T38;
 
 	// Waterflow
 	double W1,W2,W3,W4,W5,W10,W_fb;
@@ -440,9 +468,12 @@ public:
     double W103,W104;
     int W110,W111;
     double W112;
-	
+
 	// Grid
 	int Y40,Y50,Y60,Y71,Y72,Y73,Y74;
+
+    // Test options
+    int Y1,Y2,Y3,Y4,Y5;
 
 	// time + iterations
 	int inneriter,count,solveriter,preconiter,count_statestart;
@@ -493,7 +524,7 @@ public:
 	double wHs,wAs,wwp,ww_s,ww_e,wTp;
 	int wN;
     double wts,wte;
-	
+
 	// 6DOF
 	double ufb,vfb,wfb;
 	double pfb,qfb,rfb;
@@ -505,16 +536,16 @@ public:
 	double xgn,ygn,zgn;
 	double phi_fb,theta_fb,psi_fb;
 	double ufbmax, vfbmax, wfbmax;
-	Eigen::Matrix3d quatRotMat;	
+	//Eigen::Matrix3d quatRotMat;
     int X10,X12,X13,X18,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X27,X31,X32,X33,X34,X38,X40,X110,X120,X131,X132,X133;
 	int X100,X101,X102,X103,X141,X142,X143,X153,X180,X181,X182,X183,X210,X211;
-	int X310, X311, X312, X320, X321, mooring_count, net_count;
+	int X310, X311, X312, X313, X320, X321, mooring_count, net_count;
 	double X21_d,X22_m;
 	double X23_x,X23_y,X23_z;
-	double X24_Ix,X24_Iy,X24_Iz;	
-	double X25_Cp,X25_Cq,X25_Cr;	
-    double X26_Ku,X26_Kv,X26_Kw;	
-    double X27_x,X27_y,X27_z;	
+	double X24_Ix,X24_Iy,X24_Iz;
+	double X25_Cp,X25_Cq,X25_Cr;
+    double X26_Ku,X26_Kv,X26_Kw;
+    double X27_x,X27_y,X27_z;
 	double X41;
 	double X100_x,X100_y,X100_z;
 	double X101_phi, X101_theta, X101_psi;
@@ -559,9 +590,9 @@ public:
     double X323_m,X323_d,X323_l;
     double *X324_x,*X324_y,*X324_z;
     double X325_dt,X325_relX,X325_relY,X325_relZ;
-	
+
 	int cctt;
-	
+
 	int pressval;
 
 // Boundary
@@ -580,9 +611,9 @@ public:
 	int gcx_1range2[7],gcx_3range2[7];
 	int gcx_1range3[7],gcx_3range3[7];
 	int gcx_1range4[7],gcx_3range4[7];
-	
 
-// Non-Uniform Mesh    
+
+// Non-Uniform Mesh
     double *XN,*YN,*ZN;
     double *XP,*YP,*ZP;
     double *DXN,*DYN,*DZN;
@@ -590,7 +621,7 @@ public:
     double *ZSN,*ZSP;
     double DXM,DYD,DXD;
     double DYM,DZM;
-    
+
     double *RN,*SN,*TN;
     double *RP,*SP,*TP;
     double *DRN,*DSN,*DTN;
@@ -601,9 +632,9 @@ public:
     double *DRDXP,*DSDYP,*DTDZP;
     double *DDRDDXN,*DDSDDYN,*DDTDDZN;
     double *DDRDDXP,*DDSDDYP,*DDTDDZP;
-    
+
     weno_nug_func *wenofunc;
-    
+
 // sigma coordinate
     double *sig;
     double *sigx,*sigy,*sigz;

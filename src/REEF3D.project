@@ -209,15 +209,11 @@
           <VirtualDirectory Name="Convection">
             <File Name="sflow_weno_hj.h"/>
             <File Name="sflow_weno_flux.h"/>
-            <File Name="sflow_weno_cflux.h"/>
             <File Name="sflow_voidconv.h"/>
             <File Name="sflow_iweno_hj.h"/>
             <File Name="sflow_hires.h"/>
             <File Name="sflow_fou.h"/>
-            <File Name="sflow_csfou.h"/>
             <File Name="sflow_convection.h"/>
-            <File Name="sflow_chires.h"/>
-            <File Name="sflow_cfou.h"/>
             <VirtualDirectory Name="Limiter">
               <File Name="sflow_fluxlim_vanleer.h"/>
               <File Name="sflow_fluxlim_smart.h"/>
@@ -331,6 +327,9 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
+      <VirtualDirectory Name="Beam">
+        <File Name="beam.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Particles"/>
       <VirtualDirectory Name="Sediment">
         <VirtualDirectory Name="Bedload">
@@ -429,10 +428,10 @@
         <File Name="6DOF_gc.h"/>
         <File Name="6DOF_df.h"/>
         <VirtualDirectory Name="Mooring">
+          <File Name="mooring_dynamic.h"/>
           <File Name="mooring_Spring.h"/>
           <File Name="mooring_barQuasiStatic.h"/>
           <File Name="mooring_void.h"/>
-          <File Name="mooring_DGSEM.h"/>
           <File Name="mooring_Catenary.h"/>
           <File Name="mooring.h"/>
         </VirtualDirectory>
@@ -835,6 +834,7 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
+      <File Name="momentum_RK2_df.h"/>
       <File Name="momentum_IMEX.h"/>
       <File Name="momentum_RK3_df.h"/>
       <File Name="bcmom.h"/>
@@ -926,6 +926,13 @@
         <File Name="flowfile_in.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="ioFlow">
+        <VirtualDirectory Name="patchBC">
+          <File Name="patchBC_2D.h"/>
+          <File Name="patchBC_void.h"/>
+          <File Name="patchBC_interface.h"/>
+          <File Name="patchBC.h"/>
+          <File Name="patch_obj.h"/>
+        </VirtualDirectory>
         <File Name="iowave.h"/>
         <File Name="ioflow_void.h"/>
         <File Name="ioflow_gravity.h"/>
@@ -933,8 +940,8 @@
         <File Name="ioflow.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Wave Lib">
+        <File Name="wave_lib_hdc.h"/>
         <File Name="wave_lib_ssgw.h"/>
-        <File Name="wave_lib_wcp.h"/>
         <File Name="wave_lib_flap_eta.h"/>
         <File Name="wave_lib.h"/>
         <File Name="wave_lib_cnoidal_1st.h"/>
@@ -1137,14 +1144,10 @@
           <VirtualDirectory Name="Convection">
             <File Name="sflow_weno_hj.cpp"/>
             <File Name="sflow_weno_flux.cpp"/>
-            <File Name="sflow_weno_cflux.cpp"/>
             <File Name="sflow_voidconv.cpp"/>
             <File Name="sflow_iweno_hj.cpp"/>
             <File Name="sflow_hires.cpp"/>
             <File Name="sflow_fou.cpp"/>
-            <File Name="sflow_csfou.cpp"/>
-            <File Name="sflow_chires.cpp"/>
-            <File Name="sflow_cfou.cpp"/>
             <VirtualDirectory Name="Limiter">
               <File Name="sflow_limiter_vanleer.cpp"/>
               <File Name="sflow_limiter_smart.cpp"/>
@@ -1288,6 +1291,14 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
+      <VirtualDirectory Name="Beam">
+        <File Name="beam_solver_routines.cpp"/>
+        <File Name="beam_solver.cpp"/>
+        <File Name="beam_rhs.cpp"/>
+        <File Name="beam_print.cpp"/>
+        <File Name="beam_ini.cpp"/>
+        <File Name="beam.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Particles"/>
       <VirtualDirectory Name="Benchmarks">
         <File Name="benchmark_TaylorGreen.cpp"/>
@@ -1504,15 +1515,10 @@
             <File Name="mooring_barQuasiStatic_ini.cpp"/>
             <File Name="mooring_barQuasiStatic.cpp"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="DGSEM">
-            <File Name="mooring_DGSEM_mesh_eigen.cpp" ExcludeProjConfig=""/>
-            <File Name="mooring_DGSEM_limiter.cpp"/>
-            <File Name="mooring_DGSEM_mesh.cpp" ExcludeProjConfig=""/>
-            <File Name="mooring_DGSEM_print.cpp"/>
-            <File Name="mooring_DGSEM_L.cpp"/>
-            <File Name="mooring_DGSEM_ini.cpp"/>
-            <File Name="mooring_DGSEM_bc.cpp"/>
-            <File Name="mooring_DGSEM.cpp"/>
+          <VirtualDirectory Name="DynamicFDM">
+            <File Name="mooring_dynamic_rhs.cpp"/>
+            <File Name="mooring_dynamic_ini.cpp"/>
+            <File Name="mooring_dynamic.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Catenary">
             <File Name="mooring_Catenary_print.cpp"/>
@@ -1810,6 +1816,8 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
       <VirtualDirectory Name="Epol">
+        <File Name="gc_patchBC.cpp"/>
+        <File Name="gc_periodic.cpp"/>
         <File Name="gc_heat.cpp"/>
         <File Name="gc_dgcpol4.cpp"/>
         <File Name="gc_dgcpol3.cpp"/>
@@ -1863,6 +1871,8 @@
         <File Name="gcibm_distguard.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Parallel">
+        <File Name="gcx_periodicvec.cpp"/>
+        <File Name="gcx_periodic.cpp"/>
         <File Name="gcx_paraxijk_single.cpp"/>
         <File Name="gcx_paraxijk.cpp"/>
         <File Name="gcx_paraxint.cpp"/>
@@ -1881,7 +1891,6 @@
         <File Name="gcx_update.cpp"/>
         <File Name="gcx_wait.cpp"/>
         <File Name="gcx_walldist.cpp"/>
-        <File Name="gcx_paravoidx.cpp"/>
         <File Name="gcx_paraxvec.cpp"/>
         <File Name="gxc_verticalmax.cpp"/>
         <File Name="gcx_parax_generic.cpp"/>
@@ -2274,6 +2283,7 @@
       <File Name="ini.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
+      <File Name="momentum_RK2_df.cpp"/>
       <File Name="momentum_IMEX.cpp"/>
       <File Name="momentum_RK3_df.cpp"/>
       <VirtualDirectory Name="BC">
@@ -2428,6 +2438,36 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="ioFlow">
+        <VirtualDirectory Name="PatchBC">
+          <VirtualDirectory Name="PatchBC 2D">
+            <File Name="patchBC_2D_loop.cpp"/>
+            <File Name="patchBC_2D_discharge.cpp"/>
+            <File Name="patchBC_2D_IDcount.cpp"/>
+            <File Name="patchBC_2D_waterlevel.cpp"/>
+            <File Name="patchBC_2D_pressure.cpp"/>
+            <File Name="patchBC_2D_gcb_count.cpp"/>
+            <File Name="patchBC_2D_inflow.cpp"/>
+            <File Name="patchBC_2D_fillobj.cpp"/>
+            <File Name="patchBC_2D.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="PatchBC void">
+            <File Name="patchBC_void.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="PatchBC">
+            <File Name="patchBC_loop.cpp"/>
+            <File Name="patch2D_discharge.cpp"/>
+            <File Name="patchBC_waterlevel.cpp"/>
+            <File Name="patchBC_pressure.cpp"/>
+            <File Name="patchBC_inflow.cpp"/>
+            <File Name="patchBC_IDcount.cpp"/>
+            <File Name="patchBC_gcb_count.cpp"/>
+            <File Name="patchBC_fillobj.cpp"/>
+            <File Name="patchBC.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="PatchBC obj">
+            <File Name="patch_obj.cpp"/>
+          </VirtualDirectory>
+        </VirtualDirectory>
         <VirtualDirectory Name="Void">
           <File Name="ioflow_void.cpp"/>
         </VirtualDirectory>
@@ -2460,6 +2500,7 @@
           <File Name="iowave_active-beach.cpp"/>
           <File Name="iowave.cpp"/>
           <VirtualDirectory Name="SFLOW">
+            <File Name="iowave_2D_waterlevel.cpp"/>
             <File Name="iowave_2D_wavegen.cpp"/>
             <File Name="iowave_2D_relax.cpp"/>
             <File Name="iowave_2D_precalc_ini.cpp"/>
@@ -2495,6 +2536,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="ioFlow">
+          <File Name="ioflow_2Dwaterlevel.cpp"/>
           <File Name="ioflow_waterlevel.cpp"/>
           <File Name="ioflow_velsource.cpp"/>
           <File Name="ioflow_velini.cpp"/>
@@ -2518,17 +2560,18 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Wave Lib">
+        <File Name="wave_lib_ssgw_routines.cpp"/>
+        <File Name="wave_lib_hdc.cpp"/>
         <File Name="wave_lib_ssgw.cpp"/>
-        <VirtualDirectory Name="WCP">
-          <File Name="wave_lib_wcp_pos_ijk.cpp"/>
-          <File Name="wave_lib_wcp_allocate.cpp"/>
-          <File Name="wave_lib_wcp_filename.cpp"/>
-          <File Name="wave_lib_wcp_space_interpol.cpp"/>
-          <File Name="wave_lib_wcp_read_result.cpp"/>
-          <File Name="wave_lib_wcp_read_header.cpp"/>
-          <File Name="wave_lib_wcp_time_interpol.cpp"/>
+        <VirtualDirectory Name="HDC">
+          <File Name="wave_lib_hdc_time_interpol.cpp"/>
+          <File Name="wave_lib_hdc_space_interpol.cpp"/>
+          <File Name="wave_lib_hdc_read_result.cpp"/>
+          <File Name="wave_lib_hdc_read_header.cpp"/>
+          <File Name="wave_lib_hdc_pos_ijk.cpp"/>
+          <File Name="wave_lib_hdc_filename.cpp"/>
+          <File Name="wave_lib_hdc_allocate.cpp"/>
         </VirtualDirectory>
-        <File Name="wave_lib_wcp.cpp"/>
         <File Name="wave_lib_flap_eta.cpp"/>
         <VirtualDirectory Name="Interface">
           <File Name="wave_interface_decomp.cpp"/>
@@ -2625,7 +2668,7 @@
       </Completion>
     </Configuration>
     <Configuration Name="Release" CompilerType="mpicxx" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="overwrite" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-O3; -w" C_Options="-O3; -w" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0"/>
+      <Compiler Options="-O3; -w; -std=c++11" C_Options="-O3; -w" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0"/>
       <Linker Options="-lm" Required="yes">
         <LibraryPath Value="/usr/local/hypre/lib"/>
         <Library Value="HYPRE"/>

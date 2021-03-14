@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -32,7 +32,7 @@ using namespace std;
 class sflow_hydrostatic : public sflow_pressure, public increment
 {
 public:
-    sflow_hydrostatic(lexer*, fdm2D*);
+    sflow_hydrostatic(lexer*, fdm2D*,patchBC_interface*);
 	virtual ~sflow_hydrostatic();
     
 	virtual void start(lexer*, fdm2D*, ghostcell*, solver2D*, ioflow*, slice&, slice&, slice&, slice&, slice&, slice&, double);
@@ -46,6 +46,7 @@ public:
     virtual void wcalc(lexer*,fdm2D*,double,slice&,slice&,slice&);
     
 private:
+    patchBC_interface *pBC;
 
 };
 

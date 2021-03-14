@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -75,6 +75,13 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
 			u(i-2,j,k)=0.0 + p->Ui;
 			u(i-3,j,k)=0.0 + p->Ui;
             
+            if(p->W50_air==1)
+            {
+            u(i-1,j,k)+=p->W50;
+            u(i-2,j,k)+=p->W50;
+            u(i-3,j,k)+=p->W50;
+            }
+            
             v(i-1,j,k)=0.0;
 			v(i-2,j,k)=0.0;
 			v(i-3,j,k)=0.0;
@@ -88,7 +95,6 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
         
         
         if(p->B98==3||p->B98==4||p->B99==3||p->B99==4||p->B99==5)
-		if(p->B64==1)
 		{
 		for(int q=0;q<4;++q)
 		for(n=0;n<p->gcin_count;++n)

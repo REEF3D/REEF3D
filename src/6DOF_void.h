@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,6 +24,7 @@ Author: Tobias Martin
 #include<vector>
 #include<fstream>
 #include<iostream>
+#include <Eigen/Dense>
 
 class lexer;
 class fdm;
@@ -45,6 +46,7 @@ public:
 	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
     
 private:
+    Eigen::Matrix3d quatRotMat;
 
     vector<mooring*> pmooring;
 

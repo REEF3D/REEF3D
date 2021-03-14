@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -26,24 +26,28 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm_fnpf.h"
 #include"lexer.h"
 #include"waves_header.h"
+#include"patchBC.h"
 
 driver::driver(int& argc, char **argv)
 {
 	p = new lexer;
 	pgc = new ghostcell(argc,argv,p);
+    
 
 	if(p->mpirank==0)
     {
     cout<<endl<<"REEF3D (c) 2008-2020 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    cout<<endl<<"v_201119" <<endl<<endl;
-    //cout<<"compiled on branch "<<BRANCH<<" from commit "<<VERSION<<endl<<endl;
+    cout<<endl<<"v_210304" <<endl<<endl;
     }
 
 	p->lexer_read(pgc);
 	pgc->gcini(p);
     p->gridini(pgc);
-
+    patchBC_logic();
+    
+    if(p->mpirank==0 && p->B90==1)
+    cout<<endl<<"!!! IMPORTANT NOTICE: changed input for B91, B93 and B96. please check the manual !!!"<<endl<<endl;
 
     if(p->mpirank==0)
     {
@@ -71,7 +75,7 @@ driver::driver(int& argc, char **argv)
     if(p->A10==3)
     {
         p->flagini();
-        p->gridini_outflow();
+        p->gridini_patchBC();
         pgc->flagfield(p);
         pgc->tpflagfield(p);
         makegrid_fnpf(p,pgc);
@@ -85,7 +89,7 @@ driver::driver(int& argc, char **argv)
     if(p->A10==4 || p->A10==5 || p->A10==55 || p->A10==6)
     {
         p->flagini();
-        p->gridini_outflow();
+        p->gridini_patchBC();
         pgc->flagfield(p);
         pgc->tpflagfield(p);
         makegrid(p,pgc);
@@ -116,6 +120,7 @@ driver::driver(int& argc, char **argv)
         p->flagini2D();
         p->gridini2D();
         makegrid2D(p,pgc);
+        pBC->patchBC_ini(p,pgc);
         sf_driver();
     }
 }
@@ -196,7 +201,7 @@ void driver::sf_driver()
     b=new fdm2D(p);
     bb=b;
 
-    psflow = new sflow_f(p,b,pgc);
+    psflow = new sflow_f(p,b,pgc,pBC);
 
     makegrid2D_cds(p,pgc,b);
 

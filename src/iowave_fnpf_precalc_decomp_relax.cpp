@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -55,7 +55,7 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
         if(p->B98==2 && h_switch==1)
         {
             // Zone 1
-            if(dg<dist1+3.0*p->DXM)
+            if(dg<1.0e20)
             {
                 eta(i,j) = 0.0;
                 etaval[count] = 0.0;
@@ -106,8 +106,8 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
         
         if(p->B99==1||p->B99==2)
         {
-                // Zone 3
-                if(db<dist3)
+                // Zone 2
+                if(db<dist2)
                 {
                 rb3val[dbcount] = rb3(p,db);
                 ++dbcount;
@@ -129,7 +129,7 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
         if(p->B98==2 && f_switch==1)
         {
             // Zone 1
-            if(dg<dist1+3.0*p->DXM)
+            if(dg<1.0e20)
             {
                 Fifsfval[count] = 0.0;
                 

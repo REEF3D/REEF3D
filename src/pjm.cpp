@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -71,9 +71,6 @@ pjm::~pjm()
 
 void pjm::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
 {
-    //debug(p,a,pgc,uvel,vvel,wvel,alpha);
-    
-    
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<".";
 			

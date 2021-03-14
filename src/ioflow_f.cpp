@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,10 +23,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"patchBC_interface.h"
 
-ioflow_f::ioflow_f(lexer *p, ghostcell *pgc) 
+ioflow_f::ioflow_f(lexer *p, ghostcell *pgc, patchBC_interface *ppBC) 
 {
-	
+	pBC = ppBC;
+    
 	walldin_size=1;
 	walldout_size=1;
 	

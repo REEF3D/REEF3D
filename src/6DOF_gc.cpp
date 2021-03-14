@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,10 +20,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"6DOF_gc.h"
-#include"net_void.h"
-#include"mooring_void.h"
-#include"mooring_DGSEM.h"
-#include"mooring_barQuasiStatic.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -47,7 +43,7 @@ sixdof_gc::sixdof_gc(
 	Ke = 0.0;
 	Me = 0.0;
 	Ne = 0.0;
-
+    
     zero=0.0;
 }
 
@@ -143,7 +139,7 @@ void sixdof_gc::start_Quaternion
     print_E_position(p,a,pgc);
     print_E_velocity(p,a,pgc);
     print_E_force(p,a,pgc);
-
+    
     if(p->mpirank==0)
     cout<<"6DOF time: "<<setprecision(3)<<pgc->timer()-starttime<<endl;
 }

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -25,5 +25,6 @@ Author: Hans Bihs
 #include"momentum_RK3.h"
 #include"momentum_AB2.h"
 #include"momentum_void.h"
+#include"momentum_RK2_df.h"
 #include"momentum_RK3_df.h"
 #include"momentum_IMEX.h"

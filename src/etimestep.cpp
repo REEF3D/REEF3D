@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -38,7 +38,6 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 {
     p->umax=p->vmax=p->wmax=p->viscmax=irsm=jrsm=krsm=0.0;
     p->epsmax=p->kinmax=p->pressmax=0.0;
-	p->dt_old=p->dt;
 
 	p->umax=p->vmax=p->wmax=p->viscmax=0.0;
 	sqd=1.0/(p->DXM*p->DXM);
@@ -134,8 +133,11 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     
 
 	p->dt=p->N47*cu;
+    
 	p->dt=pgc->timesync(p->dt);
-
+   // p->dt = MIN(p->dt,10.0*p->dt_old);
+    p->dt_old=p->dt;
+    
 	a->maxF=0.0;
 	a->maxG=0.0;
 	a->maxH=0.0;
@@ -146,7 +148,24 @@ void etimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 
 	p->umax=p->vmax=p->wmax=p->viscmax=-1e19;
 
-	p->umax=p->W10;
+	p->umax=MAX(p->W10,p->umax);
+    
+    ULOOP
+	p->umax=MAX(p->umax,fabs(a->u(i,j,k)));
+
+	p->umax=pgc->globalmax(p->umax);
+
+
+	VLOOP
+	p->vmax=MAX(p->vmax,fabs(a->v(i,j,k)));
+
+	p->vmax=pgc->globalmax(p->vmax);
+
+
+	WLOOP
+	p->wmax=MAX(p->wmax,fabs(a->w(i,j,k)));
+
+	p->wmax=pgc->globalmax(p->wmax);
 	
 	p->umax=MAX(p->umax,2.0*p->ufbmax);
 	p->umax=MAX(p->umax,2.0*p->vfbmax);

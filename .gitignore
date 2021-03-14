@@ -14,7 +14,7 @@ obj
 *.o
 *.pyc
 *.json
-*.txt
+src/*.txt
 *.workspace.session
 *.mk
 *.batch_build

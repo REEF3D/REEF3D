@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -407,6 +407,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	pgc->gcparacox(p,a->topo,150);
 	pgc->gcparacox(p,a->topo,150);
     
+     pgc->gcperiodicx(p,a->press,4);
     
     if(p->mpirank==0)
     pvtu(a,p,pgc,pturb,pheat,pdata,pconc,psed);

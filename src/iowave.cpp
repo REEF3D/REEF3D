@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -25,22 +25,26 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"vrans_v.h"
 #include"vrans_f.h"
+#include"patchBC_interface.h"
 
-iowave::iowave(lexer *p, ghostcell *pgc) : wave_interface(p,pgc),flowfile_in(p,pgc),epsi(3.0*p->DXM),psi(0.6*p->DXM), eta(p),
+iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interface(p,pgc),flowfile_in(p,pgc),epsi(3.0*p->DXM),psi(0.6*p->DXM), eta(p),
                                           relax1_wg(p),relax1_nb(p),relax2_wg(p),relax2_nb(p),relax4_wg(p),relax4_nb(p)
 {
+    pBC = ppBC;
+    
     dist1=p->B96_1;
     dist2=p->B96_2;
-    dist3=p->B96_3;
     
-    dist3_fac=1.0;
+    dist2_fac=1.0;
     
     if(p->B99==1)
-    dist3_fac=2.0;
+    dist2_fac=2.0;
     
     gcval_press=40;
 	
 	kinval = 0.00001;	
+    
+    beach_relax=0;
 	
 	if(p->T10==1 || p->T10==11 || p->T10==21)
     epsval=(pow(0.09,0.75)*pow(kinval,1.5))/(0.5*0.4*p->DXM);
@@ -53,9 +57,16 @@ iowave::iowave(lexer *p, ghostcell *pgc) : wave_interface(p,pgc),flowfile_in(p,p
 	
 	// ---------------------------------------
     
-    if(p->B105==0)
+    if(p->B105==0 && p->B92!=61)
     {
     p->B105_2 = p->global_xmin;
+    p->B105_3 = p->global_ymin;
+    }
+    
+    if(p->B105==0 && p->B92==61)
+    {
+    p->B105_2 = 0.0;
+    p->B105_3 = 0.0;
     }
 	
 	if(p->B106==0)
@@ -78,6 +89,8 @@ iowave::iowave(lexer *p, ghostcell *pgc) : wave_interface(p,pgc),flowfile_in(p,p
     p->Darray(B4,p->B107,2);
     p->Darray(Bs,p->B107,2);
     p->Darray(Be,p->B107,2);
+    
+    beach_relax=1;
     }
     
     if(p->B108>0)
@@ -111,7 +124,7 @@ iowave::iowave(lexer *p, ghostcell *pgc) : wave_interface(p,pgc),flowfile_in(p,p
 	p->B107_xe[0]=p->xcoormax;
 	p->B107_ys[0]=p->ycoormin-10.0*p->DXM;
     p->B107_ye[0]=p->ycoormax+10.0*p->DXM;
-    p->B107_d[0]=p->B96_3;
+    p->B107_d[0]=p->B96_2;
 	}
     
     

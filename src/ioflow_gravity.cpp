@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -25,9 +25,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"turbulence.h"
+#include"patchBC_interface.h"
 
-ioflow_gravity::ioflow_gravity(lexer *p, ghostcell *pgc)
+ioflow_gravity::ioflow_gravity(lexer *p, ghostcell *pgc, patchBC_interface *ppBC) 
 {
+    pBC = ppBC;
+    
 	omega_x = 2.0*PI*p->B191_2;
 	omega_y = 2.0*PI*p->B192_2;
 	
@@ -88,14 +91,18 @@ void ioflow_gravity::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
 
     if(p->B183_1>0.0)
     a->gk=  p->B183_1 * sin(2.0*PI*p->B183_2*p->simtime + p->B183_3) +  p->W22;
+    
+    pBC->patchBC_ioflow(p,a,pgc,u,v,w);
 }
 
 void ioflow_gravity::rkinflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {
+    pBC->patchBC_ioflow(p,a,pgc,u,v,w);
 }
 
 void ioflow_gravity::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
 {
+    pBC->patchBC_waterlevel(p,a,pgc,a->phi);
 }
 
 void ioflow_gravity::fsfrkout(lexer *p, fdm *a, ghostcell *pgc, field& f)
@@ -104,6 +111,7 @@ void ioflow_gravity::fsfrkout(lexer *p, fdm *a, ghostcell *pgc, field& f)
 
 void ioflow_gravity::fsfrkin(lexer *p, fdm *a, ghostcell *pgc, field& f)
 {
+    pBC->patchBC_waterlevel(p,a,pgc,f);
 }
 
 void ioflow_gravity::fsfrkoutV(lexer *p, fdm *a, ghostcell *pgc, vec& f)
@@ -206,6 +214,7 @@ void  ioflow_gravity::ksource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 
 void ioflow_gravity::pressure_io(lexer *p, fdm *a, ghostcell *pgc)
 {
+    pBC->patchBC_pressure(p,a,pgc,a->press);
 }
 
 void ioflow_gravity::turbulence_io(lexer *p, fdm* a, ghostcell* pgc)
@@ -312,10 +321,12 @@ void ioflow_gravity::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
 }
 void ioflow_gravity::inflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &bed, slice &eta)
 {
+    pBC->patchBC_ioflow2D(p,pgc,P,Q,bed,eta);
 }
 
 void ioflow_gravity::rkinflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &bed, slice &eta)
 {
+    pBC->patchBC_ioflow2D(p,pgc,P,Q,bed,eta);
 }
 
 void ioflow_gravity::isource2D(lexer *p, fdm2D* b, ghostcell* pgc)
@@ -404,4 +415,9 @@ void ioflow_gravity::nhflow_inflow(lexer *p,fdm *a,ghostcell *pgc, field &uvel, 
 void ioflow_gravity::ini_nhflow(lexer *p,fdm *a,ghostcell *pgc)
 {
 
+}
+
+void ioflow_gravity::waterlevel2D(lexer *p, fdm2D *b, ghostcell* pgc, slice &eta)
+{
+    
 }

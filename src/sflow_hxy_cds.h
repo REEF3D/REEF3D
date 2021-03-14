@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -33,7 +33,7 @@ using namespace std;
 class sflow_hxy_cds : public sflow_hxy_disc, public increment
 {
 public:
-	sflow_hxy_cds(lexer*,fdm2D*);
+	sflow_hxy_cds(lexer*,fdm2D*,patchBC_interface*);
 	virtual ~sflow_hxy_cds();
 
 	virtual void start(lexer*,slice&,slice&,slice&,slice&,slice&,slice&);
@@ -42,8 +42,10 @@ private:
 
     sflow_flux *pflux;
     double ivel1,ivel2,jvel1,jvel2;
+    int qq;
     
     fdm2D *b;
+    patchBC_interface *pBC;
 
 };
 

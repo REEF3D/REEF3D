@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,10 +27,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/stat.h>
 
 #include"mooring_void.h"
-#include"mooring_DGSEM.h"
 #include"mooring_barQuasiStatic.h"
 #include"mooring_Catenary.h"
 #include"mooring_Spring.h"
+#include"mooring_dynamic.h"
 #include"net.h"
 #include"net_void.h"
 #include"net_barQuasiStatic.h"
@@ -70,7 +70,29 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
     // Initialise global variables
 	interface(p,true);
 	maxvel(p,a,pgc);
-    
+   
+    // Initialise floating fields
+     ULOOP
+     {
+         a->fbh1(i,j,k) = Hsolidface(p,a,1,0,0);
+     }
+     VLOOP
+     {
+         a->fbh2(i,j,k) = Hsolidface(p,a,0,1,0);
+     }
+     WLOOP
+     {
+         a->fbh3(i,j,k) = Hsolidface(p,a,0,0,1);
+     }
+     LOOP
+     {
+         a->fbh4(i,j,k) = Hsolidface(p,a,0,0,0);
+     }
+     pgc->start1(p,a->fbh1,10);
+     pgc->start2(p,a->fbh2,11);
+     pgc->start3(p,a->fbh3,12);
+     pgc->start4(p,a->fbh4,40);
+
     // Print initial body 
     print_stl(p,a,pgc);
 
@@ -92,7 +114,7 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
 
 		if(p->mpirank==0 && p->P14==1)
 		{
-			mkdir("./REEF3D_6DOF_Mooring",0777);	
+			mkdir("./REEF3D_CFD_6DOF_Mooring",0777);	
 		}		
 
 		pmooring.reserve(p->mooring_count);
@@ -112,7 +134,7 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
 			}	
 			else if(p->X310==3)
 			{
-				pmooring.push_back(new mooring_DGSEM(i));
+                pmooring.push_back(new mooring_dynamic(i));
 			}
 			else if(p->X310==4)
 			{
@@ -148,7 +170,7 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
         {
             if(p->P14==1)
             {
-                mkdir("./REEF3D_6DOF_Net",0777);	
+                mkdir("./REEF3D_CFD_6DOF_Net",0777);	
             }
         }
         else
@@ -309,6 +331,15 @@ void sixdof_df_object::iniPosition_RBM(lexer *p, fdm *a, ghostcell *pgc)
 			rotation_tri
 				(p,-phi,-theta,-psi,tri_x[n][2],tri_y[n][2],tri_z[n][2],c_(0),c_(1),c_(2));
 		}
+
+        // Rotate mooring end point
+        if (p->X313==1)
+        {
+            for (int line=0; line < p->mooring_count; line++)
+            {
+			    rotation_tri(p,-phi,-theta,-psi,p->X311_xe[line],p->X311_ye[line],p->X311_ze[line],c_(0),c_(1),c_(2));
+            }
+        }
 	}
 	
 

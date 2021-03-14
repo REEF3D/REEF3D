@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -42,6 +42,7 @@ class sflow_diffusion;
 class sflow_filter;
 class sflow_turbulence;
 class sflow_sediment;
+class patchBC_interface;
 
 using namespace std;
 
@@ -51,7 +52,7 @@ using namespace std;
 class sflow_f : public sflow, public increment
 {
 public:
-	sflow_f(lexer*, fdm2D*,ghostcell*);
+	sflow_f(lexer*, fdm2D*,ghostcell*,patchBC_interface*);
 	virtual ~sflow_f();
 	
 	virtual void start(lexer*, fdm2D*, ghostcell*);
@@ -62,6 +63,7 @@ private:
 	void loop(lexer*, fdm2D*, ghostcell*);
     
     void ini_fsf(lexer*, fdm2D*, ghostcell*);
+    void ini_fsf_2(lexer*, fdm2D*, ghostcell*);
 	
 	void maxcoor(lexer*, fdm2D*, ghostcell*);
 	
@@ -82,6 +84,8 @@ private:
     sflow_turbulence *pturb;
     sflow_sediment *psed;
     sflow_potential *potflow;
+    
+    patchBC_interface *pBC;
 	
 	double starttime, endtime;
 };

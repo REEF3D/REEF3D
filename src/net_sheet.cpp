@@ -46,7 +46,8 @@ void net_sheet::start
 	lexer *p, 
 	fdm *a, 
 	ghostcell *pgc,
-    double alpha
+    double alpha,
+    Eigen::Matrix3d quatRotMat
 )
 {
     double starttime1 = pgc->timer();    
@@ -101,7 +102,7 @@ void net_sheet::start
             // (tri_x0 is initial vector between tri_x and xg)
             point << tri_x0[n][q], tri_y0[n][q], tri_z0[n][q];
 					
-            point = p->quatRotMat*point;
+            point = quatRotMat*point;
         
             tri_x[n][q] = point(0) + p->xg;
             tri_y[n][q] = point(1) + p->yg;
@@ -109,7 +110,7 @@ void net_sheet::start
         }
         
         // (x0_ is initial vector between x_ and xg)
-        point = p->quatRotMat*(x0_.row(n)).transpose();
+        point = quatRotMat*(x0_.row(n)).transpose();
     
         x_(n,0) = point(0) + p->xg;
         x_(n,1) = point(1) + p->yg;

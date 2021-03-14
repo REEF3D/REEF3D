@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -32,12 +32,9 @@ Author: Hans Bihs
 #include"sflow_etimestep.h"
 #include"sflow_fixtimestep.h"
 #include"sflow_fou.h"
-#include"sflow_cfou.h"
 #include"sflow_weno_flux.h"
-#include"sflow_weno_cflux.h"
 #include"sflow_weno_hj.h"
 #include"sflow_hires.h"
-#include"sflow_chires.h"
 #include"sflow_voidconv.h"
 #include"sflow_eta.h"
 #include"sflow_momentum_RK3.h"
@@ -66,6 +63,8 @@ Author: Hans Bihs
 
 #include"sflow_potential_f.h"
 #include"sflow_potential_v.h"
+
+#include"patchBC_void.h"
 
 
 

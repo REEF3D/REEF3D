@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -73,21 +73,6 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p
     pconvec = new fnpf_weno7(p);
     pconeta = new fnpf_weno7(p);
     }
-    
-
-    // ---
-    /*
-    if(p->A312==2)
-    {
-    pddx = new fnpf_ddx_cds2_wd(p,c);
-    pdx = new fnpf_cds2_wd(p,c);
-    }
-    
-    if(p->A312==3)
-    {
-    pddx = new fnpf_ddx_cds4_wd(p);
-    pdx = new fnpf_cds4_wd(p);
-    }*/
     
     
     // ---

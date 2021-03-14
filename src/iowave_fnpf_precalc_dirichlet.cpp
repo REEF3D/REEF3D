@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -112,8 +112,8 @@ void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
                     
             if(p->B99==1||p->B99==2)
             {
-                // Zone 3
-                if(db<dist3)
+                // Zone 2
+                if(db<dist2)
                 {
                 rb3val[count] = rb3(p,db);
                 ++count;

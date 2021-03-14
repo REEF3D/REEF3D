@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2020 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -250,7 +250,7 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	ffn=float(p->sl_ipol4(b->eta)+p->wd);
 	result.write((char*)&ffn, sizeof (float));
 	}
-	
+    
 	//  Waterlevel
 	iin=4*(p->pointnum2D);
 	result.write((char*)&iin, sizeof (int));
