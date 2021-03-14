@@ -258,22 +258,21 @@ void sflow_pjm_lin::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
                                      - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
     }
         
-    if(p->B77==2)
-    for(n=0;n<p->gcslout_count;n++)
-    {
-        i=p->gcslout[n][0];
+        if(p->B77==2)
+        for(n=0;n<p->gcslout_count;n++)
+        {
+        i=p->gcslout[n][0]-1;
         j=p->gcslout[n][1];
         
-        if(b->wet4(i,j)==1)
-        {
         b->F(i,j) += fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) 
                                      - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
                                      
-        b->F(i,j) -= fabs(p->W22)*(p->A223*eta(i+1,j)*0.5 + (1.0-p->A223)*eta(i+1,j)*0.5 
+        b->F(i,j) -= fabs(p->W22)*(p->A223*(b->bed(i,j)-p->wd) + (1.0-p->A223)*(b->bed(i,j)-p->wd)
                                      - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
-        }
                                      
-    }   
+        }  
+
+        
 
     pBC->patchBC_pressure2D_ugrad(p,b,eta,eta_n);
 }

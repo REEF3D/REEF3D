@@ -32,6 +32,7 @@ void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, s
     {
       SLICELOOP4
       {
+          
           if(b->hp(i,j)>=wd_criterion)
           b->wet4(i,j)=1;
               
