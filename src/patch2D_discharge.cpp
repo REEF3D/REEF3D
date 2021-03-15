@@ -27,6 +27,94 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
 {
+    double area=0.0;
+    double hval=0.0;
+    int hcount=0;
+    double Ai=0.0;
+    double Qi=0.0;
+    double Ui=0.0;
+    double Hi=0.0;
+
+    
+    // Q calc
+    for(qq=0;qq<obj_count;++qq)
+    {
+        Ai=area=hval=Qi=Hi=Ui=0.0;
+        hcount=0;
+        
+        for(n=0;n<patch[qq]->gcb_count;++n)
+        {
+        i=patch[qq]->gcb[n][0];
+        j=patch[qq]->gcb[n][1];
+        j=patch[qq]->gcb[n][2];
+            
+            
+            // sides 1 & 4
+            if(patch[qq]->gcb[n][3]==1 && b->wet4(i,j)==1)
+            {
+            area = p->DYN[JP]*b->hp(i-1,j);
+            
+            Ai+=area;
+            Qi+=area*b->P(i-1,j);
+            
+            hval += b->hp(i-1,j);
+            ++hcount;
+            }
+            
+            if(patch[qq]->gcb[n][3]==4 && b->wet4(i,j)==1)
+            {
+            area = p->DYN[JP]*b->hp(i+1,j);
+            
+            Ai+=area;
+            Qi+=area*b->P(i+1,j);
+            
+            hval += b->hp(i+1,j);
+            ++hcount;
+            }
+            
+            // sides 3 & 2
+            if(patch[qq]->gcb[n][3]==3 && b->wet4(i,j)==1)
+            {
+            area = p->DXN[JP]*b->hp(i,j-1);
+            
+            Ai+=area;
+            Qi+=area*b->Q(i,j-1);
+            
+            hval += b->hp(i,j-1);
+            ++hcount;
+            }
+            
+            if(patch[qq]->gcb[n][3]==2  && b->wet4(i,j)==1)
+            {
+            area = p->DXN[JP]*b->hp(i,j+1);
+            
+            Ai+=area;
+            Qi+=area*b->Q(i,j+1);
+            
+            hval += b->hp(i,j+1);
+            ++hcount;
+            }
+            
+        }
+            
+            Ai=pgc->globalsum(Ai);
+            Qi=pgc->globalsum(Qi);
+            Hi=pgc->globalsum(hval);
+            hcount=pgc->globalisum(hcount);
+            
+            Hi = Hi/(hcount>1.0e-20?hcount:1.0e20); 
+    
+            patch[qq]->Uq = patch[qq]->Q/(Ai>1.0e-20?Ai:1.0e20); 
+            Ui = Qi/(Ai>1.0e-20?Ai:1.0e20); 
+            
+
+        if(p->mpirank==0)
+        {
+        cout<<"PatchBC Discharge | ID: "<<patch[qq]->ID<<" Qq: "<<patch[qq]->Q<<" Uq: "<<patch[qq]->Uq<<" Qi: "<<setprecision(5)<<Qi<<" Ui: "<<Ui<<" Ai: "<<Ai<<" Hi: "<<Hi<<endl;
+        }
+
+        
+    }
     
 }
 
