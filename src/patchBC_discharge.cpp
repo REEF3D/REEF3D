@@ -49,60 +49,106 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
         j=patch[qq]->gcb[n][2];
             
             
-            // sides 1 & 4
-            if(patch[qq]->gcb[n][3]==1 && b->wet4(i,j)==1)
-            {
-            area = p->DYN[JP]*b->hp(i-1,j);
+            // sides 1
+            if(patch[qq]->gcb[n][3]==1)
+            {            
+            if(a->phi(i,j,k)>=0.5*p->DZN[KP])
+            area=p->DYN[JP]*p->DZN[KP];
+
+            if(a->phi(i,j,k)<0.5*p->DZN[KP] && a->phi(i,j,k)>0.0)
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i,j,k));
+			
+			if(a->phi(i,j,k)>=-0.5*p->DZN[KP] -1.0e-20 && a->phi(i,j,k)<=0.0)
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 - a->phi(i,j,k));
             
             Ai+=area;
-            Qi+=area*b->P(i-1,j);
-            
-            hval += b->hp(i-1,j);
-            ++hcount;
+            Qi+=area*a->u(i-1,j,k);
             }
             
-            if(patch[qq]->gcb[n][3]==4 && b->wet4(i,j)==1)
+            // side 4
+            if(patch[qq]->gcb[n][3]==4)
             {
-            area = p->DYN[JP]*b->hp(i+1,j);
+            if(a->phi(i,j,k)>=0.5*p->DZN[KP])
+            area=p->DYN[JP]*p->DZN[KP];
+
+            if(a->phi(i,j,k)<0.5*p->DZN[KP] && a->phi(i,j,k)>0.0)
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i,j,k));
+			
+			if(a->phi(i,j,k)>=-0.5*p->DZN[KP] -1.0e-20 && a->phi(i,j,k)<=0.0)
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 - a->phi(i,j,k));
             
             Ai+=area;
-            Qi+=area*b->P(i+1,j);
-            
-            hval += b->hp(i+1,j);
-            ++hcount;
+            Qi+=area*a->u(i+1,j,k);
             }
             
-            // sides 3 & 2
-            if(patch[qq]->gcb[n][3]==3 && b->wet4(i,j)==1)
+            // side 3 
+            if(patch[qq]->gcb[n][3]==3)
             {
-            area = p->DXN[JP]*b->hp(i,j-1);
+            if(a->phi(i,j,k)>=0.5*p->DZN[KP])
+            area=p->DYN[JP]*p->DZN[KP];
+
+            if(a->phi(i,j,k)<0.5*p->DZN[KP] && a->phi(i,j,k)>0.0)
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i,j,k));
+			
+			if(a->phi(i,j,k)>=-0.5*p->DZN[KP] -1.0e-20 && a->phi(i,j,k)<=0.0)
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 - a->phi(i,j,k));
             
             Ai+=area;
-            Qi+=area*b->Q(i,j-1);
-            
-            hval += b->hp(i,j-1);
-            ++hcount;
+            Qi+=area*a->v(i,j-1,k);
             }
             
-            if(patch[qq]->gcb[n][3]==2  && b->wet4(i,j)==1)
+            // side 2
+            if(patch[qq]->gcb[n][3]==2)
             {
-            area = p->DXN[JP]*b->hp(i,j+1);
+            if(a->phi(i,j,k)>=0.5*p->DZN[KP])
+            area=p->DYN[JP]*p->DZN[KP];
+
+            if(a->phi(i,j,k)<0.5*p->DZN[KP] && a->phi(i,j,k)>0.0)
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i,j,k));
+			
+			if(a->phi(i,j,k)>=-0.5*p->DZN[KP] -1.0e-20 && a->phi(i,j,k)<=0.0)
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 - a->phi(i,j,k));
             
             Ai+=area;
-            Qi+=area*b->Q(i,j+1);
+            Qi+=area*a->v(i,j+1,k);
+            }
             
-            hval += b->hp(i,j+1);
-            ++hcount;
+            // side 5 
+            if(patch[qq]->gcb[n][3]==5)
+            {
+            if(a->phi(i,j,k)>=0.5*p->DXN[IP])
+            area=p->DYN[JP]*p->DXN[IP];
+
+            if(a->phi(i,j,k)<0.5*p->DXN[IP] && a->phi(i,j,k)>0.0)
+            area=p->DYN[JP]*(p->DXN[IP]*0.5 + a->phi(i,j,k));
+			
+			if(a->phi(i,j,k)>=-0.5*p->DXN[IP] -1.0e-20 && a->phi(i,j,k)<=0.0)
+            area=p->DYN[JP]*(p->DXN[IP]*0.5 - a->phi(i,j,k));
+            
+            Ai+=area;
+            Qi+=area*a->w(i,j,k-1);
+            }
+            
+            // side 6
+            if(patch[qq]->gcb[n][3]==6)
+            {
+            if(a->phi(i,j,k)>=0.5*p->DXN[IP])
+            area=p->DYN[JP]*p->DXN[IP];
+
+            if(a->phi(i,j,k)<0.5*p->DXN[IP] && a->phi(i,j,k)>0.0)
+            area=p->DYN[JP]*(p->DXN[IP]*0.5 + a->phi(i,j,k));
+			
+			if(a->phi(i,j,k)>=-0.5*p->DXN[IP] -1.0e-20 && a->phi(i,j,k)<=0.0)
+            area=p->DYN[JP]*(p->DXN[IP]*0.5 - a->phi(i,j,k));
+            
+            Ai+=area;
+            Qi+=area*a->w(i,j,k+1);
             }
             
         }
             
             Ai=pgc->globalsum(Ai);
             Qi=pgc->globalsum(Qi);
-            Hi=pgc->globalsum(hval);
-            hcount=pgc->globalisum(hcount);
-            
-            Hi = Hi/(hcount>1.0e-20?hcount:1.0e20); 
     
             patch[qq]->Uq = patch[qq]->Q/(Ai>1.0e-20?Ai:1.0e20); 
             Ui = Qi/(Ai>1.0e-20?Ai:1.0e20); 
@@ -110,7 +156,7 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
 
         if(p->mpirank==0)
         {
-        cout<<"PatchBC Discharge | ID: "<<patch[qq]->ID<<" Qq: "<<patch[qq]->Q<<" Uq: "<<patch[qq]->Uq<<" Qi: "<<setprecision(5)<<Qi<<" Ui: "<<Ui<<" Ai: "<<Ai<<" Hi: "<<Hi<<endl;
+        cout<<"PatchBC Discharge | ID: "<<patch[qq]->ID<<" Qq: "<<patch[qq]->Q<<" Uq: "<<patch[qq]->Uq<<" Qi: "<<setprecision(5)<<Qi<<" Ui: "<<Ui<<" Ai: "<<Ai<<endl;
         }
 
         
