@@ -90,6 +90,8 @@ private:
     void fillNonLinSystem(lexer*, fdm*, ghostcell*);
     void fillNonLinRhs(lexer*, fdm*, ghostcell*);
     void limitTension();    
+    
+    void getForces(lexer*);
     void gravityForce(lexer*);
     void dragForce(lexer*);
     void inertiaForce(lexer*);
@@ -137,8 +139,8 @@ private:
     vector<Eigen::Vector3d> lagrangeForces;  
     vector<Eigen::Vector3d> collarVel;    
     vector<Eigen::Vector3d> collarPoints;    
-
-	// Forces
+	
+    // Forces
     double Tne,Fx,Fy,Fz;
 	int **nfK, *nfbK;
 

@@ -452,17 +452,20 @@ void net_barDyn::wall_ini(lexer *p, fdm *a, ghostcell *pgc)
             // Weight (in water)
             weight_knot(i) = p->W1*PI/4.0*d_c*d_c*l_solid; 
             
-            // Added mass assuming ca = 1.0
-            added_mass(i) = p->W1*PI/4.0*d_c*d_c*1.0*l_solid; 
+            // Added mass
+            double c_a = 1.0;
+            added_mass(i) = p->W1*PI/4.0*d_c*d_c*c_a*l_solid; 
       
             // Add sinker to bottom row
             if (i >= nK - nd - 1)
             {
+                if (sinker_m < p->W1*PI/4.0*sinker_d*sinker_d*sinker_l) cout<<"Sinker is too light"<<endl;
+               
                 mass_knot(i) += sinker_m;
                 
                 weight_knot(i) += p->W1*PI/4.0*sinker_d*sinker_d*sinker_l;
 
-                added_mass(i) += p->W1*PI/4.0*sinker_d*sinker_d*sinker_l*0.2;
+                added_mass(i) += p->W1*PI/4.0*sinker_d*sinker_d*sinker_l*c_a;
             }
             
             index++;

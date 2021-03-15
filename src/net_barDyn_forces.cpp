@@ -26,6 +26,26 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"reinidisc_fsf.h"
 #include"vrans.h"
 
+void net_barDyn::getForces(lexer *p)
+{
+    // Reset matrix
+    forces_knot *= 0.0;
+
+    // Add gravity
+    gravityForce(p); 
+    
+    // Add inertia 
+    inertiaForce(p);
+    
+    // Add drag
+    dragForce(p);  
+    
+    // Relax forces
+    forces_knot.col(0) -= xdot_.col(0)*p->X325_relX;
+    forces_knot.col(1) -= xdot_.col(1)*p->X325_relY;
+    forces_knot.col(2) -= xdot_.col(2)*p->X325_relZ;
+}
+
 
 void net_barDyn::gravityForce(lexer *p)
 {    
@@ -41,17 +61,19 @@ void net_barDyn::inertiaForce(lexer *p)
 {   
     int index = 0;
 
+    double c_a = 1.0;
+
     for (int i = 0; i < nK; i++)
     {
         if (i >= nfK[0][0])  // then i is an inner knot 
         {
             int*& barsiKI = nfK[index];
             int& kI = barsiKI[0];
-                     
+   
             // Assign inertia force to knot
-            forces_knot(kI,0) += 2.0*weight_knot(kI)*(coupledField[kI][0] - coupledFieldn[kI][0])/dt_; 
-            forces_knot(kI,1) += 2.0*weight_knot(kI)*(coupledField[kI][1] - coupledFieldn[kI][1])/dt_; 
-            forces_knot(kI,2) += 2.0*weight_knot(kI)*(coupledField[kI][2] - coupledFieldn[kI][2])/dt_;   
+            forces_knot(kI,0) += (1.0 + c_a)*weight_knot(kI)*(coupledField[kI][0] - coupledFieldn[kI][0])/dt_; 
+            forces_knot(kI,1) += (1.0 + c_a)*weight_knot(kI)*(coupledField[kI][1] - coupledFieldn[kI][1])/dt_; 
+            forces_knot(kI,2) += (1.0 + c_a)*weight_knot(kI)*(coupledField[kI][2] - coupledFieldn[kI][2])/dt_;   
     
             index++;
         }
@@ -145,7 +167,7 @@ void net_barDyn::dragForce(lexer *p)
                 }
     
                 Fadd = 0.5*rho*sinker_d*sinker_l*v_rel*v_mag*cd_circ;
- 
+                
                 forces_knot.row(i) += Fadd;
  
                 Fx += Fadd(0);

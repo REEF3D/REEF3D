@@ -660,8 +660,9 @@ void lexer::ini_default()
     X313=0;     // int initial rotation of mooring end points with 6DOF body
     X321=0;     // int number of nets
     X323_m=X323_d=X323_l=0.0;   // double dynamic net sinker properties
-    X325_dt=X325_relX=X325_relY=X325_relZ=0.0;   // double dynamic net time step properties
-	
+    X325_dt=0.001;   // double dynamic net time step
+	X325_relX=X325_relY=X325_relZ=0.01; // double dynamic net relaxation factors
+
 	// Developer 
 	Y1=0;   // int turn on/off experimental screen force model
     Y2=0;   // int turn on/off PC FSI algorithm
