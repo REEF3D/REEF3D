@@ -64,8 +64,8 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 	visc_ddz_m = 0.25*(visc_i_j_km+ev_i_j_km + a->visc(i,j+1,k-1)+a->eddyv(i,j+1,k-1) + visc_ijk+ev_ijk + visc_i_jp_k+ev_i_jp_k);
     
 	
-	a->M.p[count] = 2.0*(visc_i_jp_k+ev_i_jp_k)/(p->DYN[JP]*p->DYP[JP])
-				  + 2.0*(visc_ijk+ev_ijk)/(p->DYN[JM1]*p->DYP[JP])
+	a->M.p[count] = 2.0*(visc_i_jp_k+ev_i_jp_k)/(p->DYN[JP1]*p->DYP[JP])
+				  + 2.0*(visc_ijk+ev_ijk)/(p->DYN[JP]*p->DYP[JP])
 				  + visc_ddx_p/(p->DXP[IP]*p->DXN[IP])
 				  + visc_ddx_m/(p->DXP[IM1]*p->DXN[IP])
 				  + visc_ddz_p/(p->DZP[KP]*p->DZN[KP])
@@ -80,8 +80,8 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 	 a->M.s[count] = -visc_ddx_m/(p->DXP[IM1]*p->DXN[IP]);
 	 a->M.n[count] = -visc_ddx_p/(p->DXP[IP]*p->DXN[IP]);
 	 
-	 a->M.e[count] = -2.0*(visc_ijk+ev_ijk)/(p->DYN[JM1]*p->DYP[JP]);
-	 a->M.w[count] = -2.0*(visc_i_jp_k+ev_i_jp_k)/(p->DYN[JP]*p->DYP[JP]);
+	 a->M.e[count] = -2.0*(visc_ijk+ev_ijk)/(p->DYN[JP]*p->DYP[JP]);
+	 a->M.w[count] = -2.0*(visc_i_jp_k+ev_i_jp_k)/(p->DYN[JP1]*p->DYP[JP]);
 	 
 	 a->M.b[count] = -visc_ddz_m/(p->DZP[KM1]*p->DZN[KP]);
 	 a->M.t[count] = -visc_ddz_p/(p->DZP[KP]*p->DZN[KP]);
@@ -135,7 +135,9 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 	psolv->start(p,a,pgc,v,a->xvec,a->rhsvec,2,gcval_v,p->D29);
     }
     
-	time=pgc->timer()-starttime;
+    pgc->start2(p,v,gcval_v);
+	
+    time=pgc->timer()-starttime;
 	p->viter=p->solveriter;
 	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
 	cout<<"vdiffiter: "<<p->viter<<"  vdifftime: "<<setprecision(3)<<time<<endl;

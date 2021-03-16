@@ -42,8 +42,8 @@ void idiff2_FS_v2::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
     {
     visc = 0.5*(a->visc(i,j,k) + a->visc(i,j,k+1)) + 0.5*(a->eddyv(i,j,k) + a->eddyv(i,j,k+1));
     
-	a->M.p[count] = 2.0*visc/(p->DZN[KP]*p->DZP[KP])
-				  + 2.0*visc/(p->DZN[KM1]*p->DZP[KP])
+	a->M.p[count] = 2.0*visc/(p->DZN[KP1]*p->DZP[KP])
+				  + 2.0*visc/(p->DZN[KP]*p->DZP[KP])
 				  + visc/(p->DXP[IP]*p->DXN[IP])
 				  + visc/(p->DXP[IM1]*p->DXN[IP])
 				  + visc/(p->DYP[JP]*p->DYN[JP])
@@ -61,8 +61,8 @@ void idiff2_FS_v2::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 	 a->M.e[count] = -visc/(p->DYP[JM1]*p->DYN[JP]);
 	 a->M.w[count] = -visc/(p->DYP[JP]*p->DYN[JP]);
 	 
-	 a->M.b[count] = -2.0*visc/(p->DZN[KM1]*p->DZP[KP]);
-	 a->M.t[count] = -2.0*visc/(p->DZN[KP]*p->DZP[KP]);
+	 a->M.b[count] = -2.0*visc/(p->DZN[KP]*p->DZP[KP]);
+	 a->M.t[count] = -2.0*visc/(p->DZN[KP1]*p->DZP[KP]);
 	 
 	 ++count;
 	}
