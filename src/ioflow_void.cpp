@@ -29,7 +29,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"rheology_f.h"
 #include"turbulence.h"
 #include"patchBC_interface.h"
-#include"patchBC_interface.h"
 
 ioflow_v::ioflow_v(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : flowfile_in(p,pgc)
 {
@@ -50,6 +49,8 @@ void ioflow_v::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 
 void ioflow_v::discharge(lexer *p, fdm* a, ghostcell* pgc)
 {
+    // patchBC
+    pBC->patchBC_discharge(p,a,pgc);
 }
 
 void ioflow_v::inflow(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, field &w)

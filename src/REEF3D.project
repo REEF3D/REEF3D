@@ -2454,8 +2454,8 @@
             <File Name="patchBC_void.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="PatchBC">
+            <File Name="patchBC_discharge.cpp"/>
             <File Name="patchBC_loop.cpp"/>
-            <File Name="patch2D_discharge.cpp"/>
             <File Name="patchBC_waterlevel.cpp"/>
             <File Name="patchBC_pressure.cpp"/>
             <File Name="patchBC_inflow.cpp"/>

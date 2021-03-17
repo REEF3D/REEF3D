@@ -99,12 +99,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     b->wet4(i,j)=1;
 
 
-	// P,Q ini
-	pflow->um_relax(p,pgc,b->P,b->bed,b->eta);
-	pflow->vm_relax(p,pgc,b->Q,b->bed,b->eta);
-
-	pgc->gcsl_start1(p,b->P,10);
-	pgc->gcsl_start2(p,b->Q,11);
+	
 
 	
 
@@ -128,6 +123,13 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 	b->hp(i,j) = MAX(b->eta(i,j) + p->wd - b->bed(i,j),0.0);
 
      pflow->ini2D(p,b,pgc);
+     
+     // P,Q ini
+	pflow->um_relax(p,pgc,b->P,b->bed,b->eta);
+	pflow->vm_relax(p,pgc,b->Q,b->bed,b->eta);
+
+	pgc->gcsl_start1(p,b->P,10);
+	pgc->gcsl_start2(p,b->Q,11);
 
 	pgc->gcsl_start1(p,b->P,10);
 	pgc->gcsl_start2(p,b->Q,11);

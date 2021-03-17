@@ -77,6 +77,8 @@ void ioflow_gravity::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 
 void ioflow_gravity::discharge(lexer *p, fdm* a, ghostcell* pgc)
 {
+    // patchBC
+    pBC->patchBC_discharge(p,a,pgc);
 }
 
 
