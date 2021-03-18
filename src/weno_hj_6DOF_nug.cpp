@@ -218,19 +218,19 @@ void weno_hj_6DOF_nug::iqmin(lexer *p,fdm *a, field& f, field& uvel, int ipol)
 {
     q1=q2=q3=q4=q5=0.0;
 
-    if(a->fbh4(i-2,j,k) < 0 && a->fbh4(i-3,j,k) < 0)
+    if(a->fbh4(i-2,j,k)  < 0.5 && a->fbh4(i-3,j,k)  < 0.5)
         q1 = (f(i-2,j,k)-f(i-3,j,k))/DX[IM3];
 
-    if(a->fbh4(i-1,j,k) < 0 && a->fbh4(i-2,j,k) < 0)
+    if(a->fbh4(i-1,j,k)  < 0.5 && a->fbh4(i-2,j,k)  < 0.5)
     q2 = (f(i-1,j,k)-f(i-2,j,k))/DX[IM2];
 
-    if(a->fbh4(i,j,k) < 0 && a->fbh4(i-1,j,k) < 0)
+    if(a->fbh4(i,j,k)  < 0.5 && a->fbh4(i-1,j,k)  < 0.5)
         q3 = (f(i,j,k)-f(i-1,j,k))/DX[IM1];
 
-    if(a->fbh4(i+1,j,k) < 0 && a->fbh4(i,j,k) < 0)
+    if(a->fbh4(i+1,j,k)  < 0.5 && a->fbh4(i,j,k)  < 0.5)
         q4 = (f(i+1,j,k)-f(i,j,k))/DX[IP];
 
-    if(a->fbh4(i+2,j,k) < 0 && a->fbh4(i+1,j,k) < 0)
+    if(a->fbh4(i+2,j,k)  < 0.5 && a->fbh4(i+1,j,k)  < 0.5)
         q5 = (f(i+2,j,k)-f(i+1,j,k))/DX[IP1];
 }
 
@@ -238,19 +238,19 @@ void weno_hj_6DOF_nug::jqmin(lexer *p,fdm *a, field& f, field& vvel, int ipol)
 {
     q1=q2=q3=q4=q5=0.0;
 
-    if(a->fbh4(i,j-2,k) < 0 && a->fbh4(i,j-3,k) < 0)
+    if(a->fbh4(i,j-2,k)  < 0.5 && a->fbh4(i,j-3,k)  < 0.5)
         q1 = (f(i,j-2,k)-f(i,j-3,k))/DY[JM3];
 
-    if(a->fbh4(i,j-1,k) < 0 && a->fbh4(i,j-2,k) < 0)
+    if(a->fbh4(i,j-1,k)  < 0.5 && a->fbh4(i,j-2,k)  < 0.5)
         q2 = (f(i,j-1,k)-f(i,j-2,k))/DY[JM2];
 
-    if(a->fbh4(i,j,k) < 0 && a->fbh4(i,j-1,k) < 0)
+    if(a->fbh4(i,j,k)  < 0.5 && a->fbh4(i,j-1,k)  < 0.5)
     q3 = (f(i,j,k)-f(i,j-1,k))/DY[JM1];
 
-    if(a->fbh4(i,j+1,k) < 0 && a->fbh4(i,j,k) < 0)
+    if(a->fbh4(i,j+1,k)  < 0.5 && a->fbh4(i,j,k)  < 0.5)
     q4 = (f(i,j+1,k)-f(i,j,k))/DY[JP];
 
-    if(a->fbh4(i,j+2,k) < 0 && a->fbh4(i,j+1,k) < 0)
+    if(a->fbh4(i,j+2,k)  < 0.5 && a->fbh4(i,j+1,k)  < 0.5)
     q5 = (f(i,j+2,k)-f(i,j+1,k))/DY[JP1];
 }
 
@@ -258,19 +258,19 @@ void weno_hj_6DOF_nug::kqmin(lexer *p,fdm *a, field& f, field& wvel, int ipol)
 {
     q1=q2=q3=q4=q5=0.0;
 
-    if(a->fbh4(i,j,k-2) < 0 && a->fbh4(i,j,k-3) < 0)
+    if(a->fbh4(i,j,k-2)  < 0.5 && a->fbh4(i,j,k-3)  < 0.5)
         q1 = (f(i,j,k-2)-f(i,j,k-3))/DZ[KM3];
 
-    if(a->fbh4(i,j,k-1) < 0 && a->fbh4(i,j,k-2) < 0)
+    if(a->fbh4(i,j,k-1)  < 0.5 && a->fbh4(i,j,k-2)  < 0.5)
     q2 = (f(i,j,k-1)-f(i,j,k-2))/DZ[KM2];
 
-    if(a->fbh4(i,j,k) < 0 && a->fbh4(i,j,k-1) < 0)
+    if(a->fbh4(i,j,k)  < 0.5 && a->fbh4(i,j,k-1)  < 0.5)
     q3 = (f(i,j,k)-f(i,j,k-1))/DZ[KM1];
 
-    if(a->fbh4(i,j,k+1) < 0 && a->fbh4(i,j,k) < 0)
+    if(a->fbh4(i,j,k+1)  < 0.5 && a->fbh4(i,j,k)  < 0.5)
     q4 = (f(i,j,k+1)-f(i,j,k))/DZ[KP];
 
-    if(a->fbh4(i,j,k+2) < 0 && a->fbh4(i,j,k+1) < 0)
+    if(a->fbh4(i,j,k+2)  < 0.5 && a->fbh4(i,j,k+1)  < 0.5)
     q5 = (f(i,j,k+2)-f(i,j,k+1))/DZ[KP1];
 }
 
@@ -278,19 +278,19 @@ void weno_hj_6DOF_nug::iqmax(lexer *p,fdm *a, field& f, field& uvel, int ipol)
 {
     q1=q2=q3=q4=q5=0.0;
 
-    if(a->fbh4(i-1,j,k) < 0 && a->fbh4(i-2,j,k) < 0)
+    if(a->fbh4(i-1,j,k)  < 0.5 && a->fbh4(i-2,j,k)  < 0.5)
     q1 = (f(i-1,j,k)-f(i-2,j,k))/DX[IM2];
 
-    if(a->fbh4(i,j,k) < 0 && a->fbh4(i-1,j,k) < 0)
+    if(a->fbh4(i,j,k)  < 0.5 && a->fbh4(i-1,j,k)  < 0.5)
     q2 = (f(i,j,k)-f(i-1,j,k))/DX[IM1];
 
-    if(a->fbh4(i+1,j,k) < 0 && a->fbh4(i,j,k) < 0)
+    if(a->fbh4(i+1,j,k)  < 0.5 && a->fbh4(i,j,k)  < 0.5)
     q3 = (f(i+1,j,k)-f(i,j,k))/DX[IP];
 
-    if(a->fbh4(i+2,j,k) < 0 && a->fbh4(i+1,j,k) < 0)
+    if(a->fbh4(i+2,j,k)  < 0.5 && a->fbh4(i+1,j,k)  < 0.5)
     q4 = (f(i+2,j,k)-f(i+1,j,k))/DX[IP1];
 
-    if(a->fbh4(i+3,j,k) < 0 && a->fbh4(i+2,j,k) < 0)
+    if(a->fbh4(i+3,j,k)  < 0.5 && a->fbh4(i+2,j,k)  < 0.5)
     q5 = (f(i+3,j,k)-f(i+2,j,k))/DX[IP2];
 }
 
@@ -298,19 +298,19 @@ void weno_hj_6DOF_nug::jqmax(lexer *p,fdm *a, field& f, field& vvel, int ipol)
 {
     q1=q2=q3=q4=q5=0.0;
 
-    if(a->fbh4(i,j-1,k) < 0 && a->fbh4(i,j-2,k) < 0)
+    if(a->fbh4(i,j-1,k)  < 0.5 && a->fbh4(i,j-2,k)  < 0.5)
         q1 = (f(i,j-1,k)-f(i,j-2,k))/DY[JM2];
 
-    if(a->fbh4(i,j,k) < 0 && a->fbh4(i,j-1,k) < 0)
+    if(a->fbh4(i,j,k)  < 0.5 && a->fbh4(i,j-1,k)  < 0.5)
         q2 = (f(i,j,k)-f(i,j-1,k))/DY[JM1];
 
-    if(a->fbh4(i,j+1,k) < 0 && a->fbh4(i,j,k) < 0)
+    if(a->fbh4(i,j+1,k)  < 0.5 && a->fbh4(i,j,k)  < 0.5)
     q3 = (f(i,j+1,k)-f(i,j,k))/DY[JP];
 
-    if(a->fbh4(i,j+2,k) < 0 && a->fbh4(i,j+1,k) < 0)
+    if(a->fbh4(i,j+2,k)  < 0.5 && a->fbh4(i,j+1,k)  < 0.5)
     q4 = (f(i,j+2,k)-f(i,j+1,k))/DY[JP1];
 
-    if(a->fbh4(i,j+3,k) < 0 && a->fbh4(i,j+2,k) < 0)
+    if(a->fbh4(i,j+3,k)  < 0.5 && a->fbh4(i,j+2,k)  < 0.5)
     q5 = (f(i,j+3,k)-f(i,j+2,k))/DY[JP2];
 }
 
@@ -318,19 +318,19 @@ void weno_hj_6DOF_nug::kqmax(lexer *p,fdm *a, field& f, field& wvel, int ipol)
 {
     q1=q2=q3=q4=q5=0.0;
 
-    if(a->fbh4(i,j,k-1) < 0 && a->fbh4(i,j,k-2) < 0)
+    if(a->fbh4(i,j,k-1)  < 0.5 && a->fbh4(i,j,k-2)  < 0.5)
         q1 = (f(i,j,k-1)-f(i,j,k-2))/DZ[KM2];
 
-    if(a->fbh4(i,j,k) < 0 && a->fbh4(i,j,k-1) < 0)
+    if(a->fbh4(i,j,k)  < 0.5 && a->fbh4(i,j,k-1)  < 0.5)
     q2 = (f(i,j,k)-f(i,j,k-1))/DZ[KM1];
 
-    if(a->fbh4(i,j,k+1) < 0 && a->fbh4(i,j,k) < 0)
+    if(a->fbh4(i,j,k+1)  < 0.5 && a->fbh4(i,j,k)  < 0.5)
     q3 = (f(i,j,k+1)-f(i,j,k))/DZ[KP];
 
-    if(a->fbh4(i,j,k+2) < 0 && a->fbh4(i,j,k+1) < 0)
+    if(a->fbh4(i,j,k+2)  < 0.5 && a->fbh4(i,j,k+1)  < 0.5)
     q4 = (f(i,j,k+2)-f(i,j,k+1))/DZ[KP1];
 
-    if(a->fbh4(i,j,k+3) < 0 && a->fbh4(i,j,k+2) < 0)
+    if(a->fbh4(i,j,k+3)  < 0.5 && a->fbh4(i,j,k+2)  < 0.5)
     q5 = (f(i,j,k+3)-f(i,j,k+2))/DZ[KP2];
 }
 
