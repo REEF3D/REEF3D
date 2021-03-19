@@ -57,6 +57,7 @@ public:
 	
 	virtual void start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&);
 	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
+    
 
 	// Additional functions
     void updateFSI(lexer*, fdm*, ghostcell*, bool);

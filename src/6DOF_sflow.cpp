@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"6DOF_void.h"
+#include"6DOF_sflow.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -37,13 +37,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"net_barQuasiStatic.h"
 #include"net_sheet.h"
     
-sixdof_void::sixdof_void(){}
-
-sixdof_void::~sixdof_void()
+sixdof_sflow::sixdof_sflow()
 {
 }
 
-void sixdof_void::start
+sixdof_sflow::~sixdof_sflow()
+{
+}
+
+void sixdof_sflow::start
 (
 	lexer *p, 
 	fdm *a, 
@@ -82,7 +84,7 @@ void sixdof_void::start
     ++p->printcount_sixdof;
 }
 
-void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
+void sixdof_sflow::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 {
 	if(p->X310==0)
 	{
@@ -185,24 +187,4 @@ void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pne
     p->xg=p->yg=p->zg=0.0;
 
     quatRotMat << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0;
-}
-
-void sixdof_void::isource(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void sixdof_void::jsource(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void sixdof_void::ksource(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void sixdof_void::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
-{
-}
-
-void sixdof_void::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
-{
 }

@@ -35,9 +35,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_sediment_RKv.h"
 #include"sflow_rheology_f.h"
 #include"sflow_rheology_v.h"
+#include"6DOF.h"
 
 sflow_momentum_RK3::sflow_momentum_RK3(lexer *p, fdm2D *b, sflow_convection *pconvection, sflow_diffusion *ppdiff, sflow_pressure* ppressure,
-                                                    solver2D *psolver, solver2D *ppoissonsolver, ioflow *pioflow, sflow_fsf *pfreesurf)
+                                                    solver2D *psolver, solver2D *ppoissonsolver, ioflow *pioflow, sflow_fsf *pfreesurf, sixdof *pp6dof)
                                                     :Prk1(p),Prk2(p),Qrk1(p),Qrk2(p),wrk1(p),wrk2(p),etark1(p),etark2(p)
 {
 	gcval_u=10;
@@ -68,6 +69,7 @@ sflow_momentum_RK3::sflow_momentum_RK3(lexer *p, fdm2D *b, sflow_convection *pco
     ppoissonsolv=ppoissonsolver;
 	pflow=pioflow;
 	pfsf=pfreesurf;
+    p6dof=pp6dof;
     
     if(p->A218==0)
     prough = new sflow_rough_void(p);
@@ -121,6 +123,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	irhs(p,b,pgc,b->P,1.0);
     prough->u_source(p,b,b->P);
     prheo->u_source(p,b,b->P,b->Q);
+    p6dof->isource2D(p,b,pgc);
 	pconvec->start(p,b,b->P,1,b->P,b->Q);
 	pdiff->diff_u(p,b,pgc,psolv,b->P,b->Q,1.0);
 
@@ -141,6 +144,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	jrhs(p,b,pgc,b->Q,1.0);
     prough->v_source(p,b,b->Q);
     prheo->v_source(p,b,b->P,b->Q);
+    p6dof->jsource2D(p,b,pgc);
 	pconvec->start(p,b,b->Q,2,b->P,b->Q);
 	pdiff->diff_v(p,b,pgc,psolv,b->P,b->Q,1.0);
 
@@ -207,6 +211,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	irhs(p,b,pgc,Prk1,0.25);
     prough->u_source(p,b,Prk1);
     prheo->u_source(p,b,Prk1,Qrk1);
+    p6dof->isource2D(p,b,pgc);
 	pconvec->start(p,b,Prk1,1,Prk1,Qrk1);
 	pdiff->diff_u(p,b,pgc,psolv,Prk1,Qrk1,0.25);
 
@@ -227,6 +232,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	jrhs(p,b,pgc,Qrk1,0.25);
     prough->v_source(p,b,Qrk1);
     prheo->v_source(p,b,Prk1,Qrk1);
+    p6dof->jsource2D(p,b,pgc);
 	pconvec->start(p,b,Qrk1,2,Prk1,Qrk1);
 	pdiff->diff_v(p,b,pgc,psolv,Prk1,Qrk1,0.25);
 
@@ -293,6 +299,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	irhs(p,b,pgc,Prk2,2.0/3.0);
     prough->u_source(p,b,Prk2);
     prheo->u_source(p,b,Prk2,Qrk2);
+    p6dof->isource2D(p,b,pgc);
 	pconvec->start(p,b,Prk2,1,Prk2,Qrk2);
 	pdiff->diff_u(p,b,pgc,psolv,Prk2,Qrk2,2.0/3.0);
 
@@ -312,6 +319,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	jrhs(p,b,pgc,Qrk2,2.0/3.0);
     prough->v_source(p,b,Qrk2);
     prheo->v_source(p,b,Prk2,Qrk2);
+    p6dof->jsource2D(p,b,pgc);
 	pconvec->start(p,b,Qrk2,2,Prk2,Qrk2);
 	pdiff->diff_v(p,b,pgc,psolv,Prk2,Qrk2,2.0/3.0);
 

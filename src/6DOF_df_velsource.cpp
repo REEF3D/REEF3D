@@ -10,43 +10,37 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include<vector>
+#include"6DOF_df.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"fdm2D.h"
+#include"ghostcell.h"
 
-class lexer;
-class fdm;
-class fdm2D;
-class ghostcell;
-class vrans;
-class net;
-
-using namespace std;
-
-#ifndef SIXDOF_H_
-#define SIXDOF_H_
-
-class sixdof
+void sixdof_df::isource(lexer *p, fdm *a, ghostcell *pgc)
 {
-public:
+}
 
-	virtual void start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&)=0;
-	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&)=0;
-    
-    virtual void isource(lexer*,fdm*,ghostcell*)=0;
-    virtual void jsource(lexer*,fdm*,ghostcell*)=0;
-    virtual void ksource(lexer*,fdm*,ghostcell*)=0;
-    
-    virtual void isource2D(lexer*,fdm2D*,ghostcell*)=0;
-    virtual void jsource2D(lexer*,fdm2D*,ghostcell*)=0;
-};
+void sixdof_df::jsource(lexer *p, fdm *a, ghostcell *pgc)
+{
+}
 
-#endif
+void sixdof_df::ksource(lexer *p, fdm *a, ghostcell *pgc)
+{
+}
+
+void sixdof_df::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+}
+
+void sixdof_df::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+}
