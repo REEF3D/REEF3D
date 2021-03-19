@@ -42,7 +42,7 @@ class sflow_momentum_RK2 : public sflow_momentum, public increment
 {
 public:
 	sflow_momentum_RK2(lexer*, fdm2D*, sflow_convection*, sflow_diffusion*, sflow_pressure*, 
-                        solver2D*, solver2D*, ioflow*, sflow_fsf*);
+                        solver2D*, solver2D*, ioflow*, sflow_fsf*, sixdof*);
 	virtual ~sflow_momentum_RK2();
 	virtual void start(lexer*, fdm2D*, ghostcell*);
 
@@ -70,6 +70,7 @@ private:
     sflow_roughness *prough;
     sflow_sediment_RK *psedstep;
     sflow_rheology *prheo;
+    sixdof *p6dof;
 };
 
 #endif

@@ -424,6 +424,7 @@
         <File Name="benchmark_convection.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <File Name="6DOF_sflow.h"/>
         <File Name="6DOF_df_object.h"/>
         <File Name="6DOF_gc.h"/>
         <File Name="6DOF_df.h"/>
@@ -1391,7 +1392,15 @@
         <File Name="heat_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <VirtualDirectory Name="6DOF SFLOW">
+          <File Name="6DOF_sflow_velsource.cpp"/>
+          <File Name="6DOF_sflow_update.cpp"/>
+          <File Name="6DOF_sflow_position.cpp"/>
+          <File Name="6DOF_sflow_initialize.cpp"/>
+          <File Name="6DOF_sflow.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="DirectForcing">
+          <File Name="6DOF_df_velsource.cpp"/>
           <File Name="6DOF_df_object.cpp"/>
           <VirtualDirectory Name="RayCast">
             <File Name="6DOF_df_reini_AB2.cpp"/>
@@ -1427,6 +1436,7 @@
           <File Name="6DOF_df.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="GCIBM">
+          <File Name="6DOF_gc_velsource.cpp"/>
           <VirtualDirectory Name="Print">
             <File Name="6DOF_gc_print_log.cpp"/>
             <File Name="6DOF_gc_print_ini.cpp"/>

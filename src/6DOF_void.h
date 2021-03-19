@@ -45,6 +45,13 @@ public:
 	virtual void start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&);
 	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
     
+    virtual void isource(lexer*,fdm*,ghostcell*);
+    virtual void jsource(lexer*,fdm*,ghostcell*);
+    virtual void ksource(lexer*,fdm*,ghostcell*);
+    
+    virtual void isource2D(lexer*,fdm2D*,ghostcell*);
+    virtual void jsource2D(lexer*,fdm2D*,ghostcell*);
+    
 private:
     Eigen::Matrix3d quatRotMat;
 

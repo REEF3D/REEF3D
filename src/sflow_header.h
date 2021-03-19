@@ -66,6 +66,9 @@ Author: Hans Bihs
 
 #include"patchBC_void.h"
 
+#include"6DOF_void.h"
+#include"6DOF_sflow.h"
+
 
 
 

@@ -21,26 +21,29 @@ Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"6DOF.h"
-#include"6DOF_df_object.h"
 #include<vector>
+#include<fstream>
+#include<iostream>
+#include <Eigen/Dense>
 
+class lexer;
+class fdm;
+class ghostcell;
 class mooring;
 class net;
 
 using namespace std;
 
-#ifndef SIXDOF_DF_H_
-#define SIXDOF_DF_H_
+#ifndef SIXDOF_SFLOW_H_
+#define SIXDOF_SFLOW_H_
 
-class sixdof_df : public sixdof
+class sixdof_sflow : public sixdof
 {
 public:
-	sixdof_df(lexer*, fdm*, ghostcell*);
-	virtual ~sixdof_df();
+	sixdof_sflow();
+	virtual ~sixdof_sflow();
 	virtual void start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&);
 	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
-    
-    void forcing(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,double,field&,field&,field&,field1&,field2&,field3&,bool);
     
     virtual void isource(lexer*,fdm*,ghostcell*);
     virtual void jsource(lexer*,fdm*,ghostcell*);
@@ -48,11 +51,14 @@ public:
     
     virtual void isource2D(lexer*,fdm2D*,ghostcell*);
     virtual void jsource2D(lexer*,fdm2D*,ghostcell*);
-
+    
 private:
-   
-    int number6DOF;
-    vector<sixdof_df_object*> p_df_obj;
+    Eigen::Matrix3d quatRotMat;
+
+    vector<mooring*> pmooring;
+
+	vector<double> Xme, Yme, Zme, Kme, Mme, Nme;    
+	vector<double> Xne, Yne, Zne, Kne, Mne, Nne;    
 };
 
 #endif
