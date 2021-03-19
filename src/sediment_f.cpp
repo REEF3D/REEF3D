@@ -39,7 +39,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"vrans_v.h"
 #include"vrans_f.h"
 
-sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb):topo_vel(p,pturb), zh(p), bss(p), bedtau(p), z0(p), z1(p)
+sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb):topo_vel(p,pturb), zh(p), bss(p), bedtau(p)
 {
     if(p->S90==0)
     pslide=new sandslide_v(p);   
@@ -114,25 +114,16 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
     // bedload
     pbed->start(p,a,pgc);
 	
-	filter(p,a,pgc,a->bedload,p->S102,p->S103);
-    
     // Exner
     ptopo->start(a,p,pconvec,pgc,preto);
     
-    SLICELOOP4
-    z0(i,j)=a->bedzh(i,j);
-
     // sandslide
     pslide->start(p,a,pgc);
     
-    SLICELOOP4
-    z1(i,j)=a->bedzh(i,j)-z0(i,j);
-    
-    LOOP
-    a->conc(i,j,k) = z1(i,j);
-		 
 	prelax->start(p,a,pgc);
 	
+    
+    // filter bedzh
 	if(p->S100>0)
 	filter(p,a,pgc,a->bedzh,p->S100,p->S101);
 	
