@@ -37,6 +37,41 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 	printcount=0;
     
     ini_token=0;
+    
+    is_flag=ie_flag=js_flag=je_flag=0;
+    
+    if(p->P43==1)
+    {
+        if(p->P43_xs>=p->originx && p->P43_xs<p->endx)
+        {
+        is = p->posc_i(p->P43_xs);
+        is_flag=1;
+        }
+        
+        
+        if(p->P43_xe>=p->originx && p->P43_xe<p->endx)
+        {
+        ie = p->posc_i(p->P43_xe);
+        ie_flag=1;
+        }
+        
+        if(p->P43_ys>=p->originy && p->P43_ys<p->endy)
+        {
+        js = p->posc_j(p->P43_ys);
+        js_flag=1;
+        }
+        
+        
+        if(p->P43_ye>=p->originy && p->P43_ye<p->endy)
+        {
+        je = p->posc_j(p->P43_ye);
+        je_flag=1;
+        }
+        
+        
+    
+        
+    }
 }
 
 fnpf_state::~fnpf_state()
