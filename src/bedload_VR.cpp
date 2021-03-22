@@ -64,5 +64,22 @@ void bedload_VR::start(lexer* p, fdm* a, ghostcell* pgc)
         
 	}
     
-    pgc->gcsl_start4(p,a->bedload,1);    
+    slice4 tt(p);
+    
+    SLICELOOP4
+    {
+    taubed(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
+    taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
+    
+    
+    tt(i,j) = shields_crit;
+    }
+    
+    ALOOP
+    {
+    a->test(i,j,k) = 0.3; //tt(i,j);
+    }
+    pgc->start4a(p,a->test,1);
+    
+    pgc->gcsl_start4a(p,a->bedload,1);    
 }

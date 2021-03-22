@@ -209,9 +209,6 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
 
 		a->Fifsf(i,j) = wave_fi(p,pgc,xg,yg,z);
     }
-    
-    FLUIDLOOP
-    a->test(i,j,k) = a->Fifsf(i,j);
 }
 
 void iowave::full_initialize_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)

@@ -165,10 +165,10 @@ void initialize::inivofPLIC(fdm*a, lexer* p, ghostcell* pgc)
     {
         iniphi(a, p, pgc);
     } */
-
+/*
 	LOOP
 	{
 		a->test(i,j,k) = a->vof(i,j,k);
 	} 
-	pgc->start4(p,a->test,50);
+	pgc->start4(p,a->test,50);*/
 }
