@@ -19,14 +19,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"topo_direct.h"
+#include"sediment_exner.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"reinitopo.h"
 
 
-topo_direct::topo_direct(lexer* p, fdm *a, ghostcell* pgc, turbulence *pturb) : topo_vel(p,pturb),dh(p)
+sediment_exner::sediment_exner(lexer* p, fdm *a, ghostcell* pgc, turbulence *pturb) : topo_vel(p,pturb),dh(p)
 {
 	if(p->S50==1)
 	gcval_topo=151;
@@ -41,11 +41,11 @@ topo_direct::topo_direct(lexer* p, fdm *a, ghostcell* pgc, turbulence *pturb) : 
 	gcval_topo=154;
 }
 
-topo_direct::~topo_direct()
+sediment_exner::~sediment_exner()
 {
 }
 
-void topo_direct::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,reinitopo* preto)
+void sediment_exner::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,reinitopo* preto)
 {
     starttime=pgc->timer();
 	
@@ -88,10 +88,6 @@ void topo_direct::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,rei
 	
 	SLICELOOP4
     a->bedzh(i,j) += p->dtsed*dh(i,j);
-    
-    
-    //LOOP
-    //a->test(i,j,k) = p->dtsed*dh(i,j);
 
 
 	pgc->gcsl_start4(p,a->bedzh,1);

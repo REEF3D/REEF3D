@@ -29,11 +29,11 @@ using namespace std;
 #ifndef TOPO_DIRECT_H_
 #define TOPO_DIRECT_H_
 
-class topo_direct : public topo, topo_vel
+class sediment_exner : public topo, topo_vel
 {
 public:
-	topo_direct(lexer*, fdm*, ghostcell*,turbulence*);
-	virtual ~topo_direct();
+	sediment_exner(lexer*, fdm*, ghostcell*,turbulence*);
+	virtual ~sediment_exner();
 	virtual void start(fdm*,lexer*, convection*, ghostcell*,reinitopo*);
 
 
