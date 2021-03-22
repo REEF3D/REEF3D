@@ -377,6 +377,7 @@
           <File Name="susprhs.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Topo">
+          <File Name="sediment_exner.h"/>
           <VirtualDirectory Name="Exnerdisc">
             <File Name="sediment_exnerdisc.h"/>
             <File Name="sediment_fou.h"/>
@@ -393,7 +394,6 @@
           <File Name="topo.h"/>
           <File Name="topo_vel.h"/>
           <File Name="topo_void.h"/>
-          <File Name="topo_direct.h"/>
           <VirtualDirectory Name="Relaxation">
             <File Name="topo_relax.h"/>
           </VirtualDirectory>
@@ -1352,6 +1352,7 @@
           <File Name="susprhs.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Topo">
+          <File Name="sediment_exner.cpp"/>
           <VirtualDirectory Name="Exnerdisc">
             <File Name="sediment_cds.cpp"/>
             <File Name="sediment_fou.cpp"/>
@@ -1365,7 +1366,6 @@
           </VirtualDirectory>
           <File Name="topo_vel.cpp"/>
           <File Name="topo_void.cpp"/>
-          <File Name="topo_direct.cpp"/>
           <VirtualDirectory Name="Relaxation">
             <File Name="topo_relax.cpp"/>
           </VirtualDirectory>

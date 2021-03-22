@@ -26,8 +26,8 @@ Author: Hans Bihs
 
 using namespace std;
 
-#ifndef TOPO_DIRECT_H_
-#define TOPO_DIRECT_H_
+#ifndef SEDIMENT_EXNER_H_
+#define SEDIMENT_EXNER_H_
 
 class sediment_exner : public topo, topo_vel
 {
