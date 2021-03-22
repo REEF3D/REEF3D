@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-bedload_VR::bedload_VR(lexer *p, turbulence *pturb) : bedshear(p,pturb), epsi(1.6*p->DXM)
+bedload_VR::bedload_VR(lexer *p, turbulence *pturb) : bedshear(p,pturb), bedload_noneq(p), epsi(1.6*p->DXM)
 {
     rhosed=p->S22;
     rhowat=p->W1;
@@ -45,6 +45,8 @@ void bedload_VR::start(lexer* p, fdm* a, ghostcell* pgc)
 {
     double Ti,r;
 	double qb;
+    
+    // noneq ini
 	
 	SLICELOOP4
     {
@@ -64,6 +66,14 @@ void bedload_VR::start(lexer* p, fdm* a, ghostcell* pgc)
         
 	}
     
+    pgc->gcsl_start4a(p,a->bedload,1);    
+    
+    
+    // non-eq calc
+    
+    
+    
+    
     slice4 tt(p);
     
     SLICELOOP4
@@ -80,6 +90,4 @@ void bedload_VR::start(lexer* p, fdm* a, ghostcell* pgc)
     a->test(i,j,k) = 0.3; //tt(i,j);
     }
     pgc->start4a(p,a->test,1);
-    
-    pgc->gcsl_start4a(p,a->bedload,1);    
 }

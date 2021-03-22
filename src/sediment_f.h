@@ -72,6 +72,9 @@ private:
     
     field4a bss;
     slice4 bedtau;
+    slice4 q0,dqx0,dqy0;
+    
+    
     
     double starttime;
     

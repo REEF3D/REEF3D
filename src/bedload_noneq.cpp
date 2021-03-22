@@ -17,39 +17,37 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"bedload.h"
-#include"bedshear.h"
 #include"bedload_noneq.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
-class turbulence;
-
-using namespace std;
-
-#ifndef BEDLOAD_VR_H_
-#define BEDLOAD_VR_H_
-
-class bedload_VR : public bedload, public bedshear, public bedload_noneq
+bedload_noneq::bedload_noneq(lexer *p) : q0(p)
 {
-public:
+    /*
+    rhosed=p->S22;
+    rhowat=p->W1;
+    g=9.81;
+    d50=p->S20;
+    visc=p->W2;
+    kappa=0.4;
+    ks=p->S21*d50;
+    Rstar=(rhosed-rhowat)/rhowat;
+    Ds= d50*pow((Rstar*g)/(visc*visc),1.0/3.0);*/
+}
 
-    bedload_VR(lexer*,turbulence*);
-    virtual ~bedload_VR();
+bedload_noneq::~bedload_noneq()
+{
+}
 
-	virtual void start(lexer*, fdm*, ghostcell*);
+void bedload_noneq::ini(lexer* p, fdm* a, ghostcell* pgc, slice &q)
+{
 
-private:
-    const double epsi;
-    double rhosed,rhowat,Rstar,Ds;
-    double g,d50;
-    double visc;
-    double kappa,u_plus,ks;
-    double tau_eff, shearvel_eff, shields_eff;
-    double tau_crit, shearvel_crit, shields_crit;
-};
+}
 
-#endif
+void bedload_noneq::start(lexer* p, fdm* a, ghostcell* pgc, slice &q)
+{
 
-
+}

@@ -20,34 +20,31 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"bedload.h"
-#include"bedshear.h"
-#include"bedload_noneq.h"
+#include"increment.h"
+#include"slice4.h"
 
-class turbulence;
+class lexer;
+class fdm;
+class ghostcell;
 
 using namespace std;
 
-#ifndef BEDLOAD_VR_H_
-#define BEDLOAD_VR_H_
+#ifndef BEDLOAD_NONEQ_H_
+#define BEDLOAD_NONEQ_H_
 
-class bedload_VR : public bedload, public bedshear, public bedload_noneq
+class bedload_noneq : public increment
 {
 public:
 
-    bedload_VR(lexer*,turbulence*);
-    virtual ~bedload_VR();
+    bedload_noneq(lexer*);
+    virtual ~bedload_noneq();
 
-	virtual void start(lexer*, fdm*, ghostcell*);
+	void ini(lexer*, fdm*, ghostcell*,slice&);
+    void start(lexer*, fdm*, ghostcell*,slice&);
 
 private:
-    const double epsi;
-    double rhosed,rhowat,Rstar,Ds;
-    double g,d50;
-    double visc;
-    double kappa,u_plus,ks;
-    double tau_eff, shearvel_eff, shields_eff;
-    double tau_crit, shearvel_crit, shields_crit;
+    double Ls;
+    slice4 q0;
 };
 
 #endif

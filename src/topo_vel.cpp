@@ -119,13 +119,13 @@ void topo_vel::topovel(lexer* p,fdm* a, ghostcell *pgc, double& vx, double& vy, 
         sgy2=fabs(uy2_abs)>1.0e-10?vy2/fabs(uy2_abs):0.0;
         
         
+        
+        // complete q
         dqx = pdx->sx(p,a->bedload,sgx1,sgx2);
         dqy = pdx->sy(p,a->bedload,sgy1,sgy2);
 		
 	// Exner equations
     vz =  -prelax->rf(p,a,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy) + ws*(a->conc(i,j,k) - pcb->cbed(p,a,pgc,a->topo)); 
-    
-    //vz =  -prelax->rf(p,a,pgc)*(1.0/(1.0-p->S24))*(dqx*signx + dqy*signy) + ws*(a->conc(i,j,k) - pcb->cbed(p,a,pgc,a->topo)); 
 	}
 }
 
