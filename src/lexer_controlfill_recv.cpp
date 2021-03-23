@@ -832,6 +832,16 @@ void lexer::ctrlrecv()
 	ii++;
 	P42 = dctrl[dd];
 	dd++;
+    P43 = ictrl[ii];
+	ii++;
+	P43_xs = dctrl[dd];
+	dd++;
+    P43_xe = dctrl[dd];
+	dd++;
+    P43_ys = dctrl[dd];
+	dd++;
+    P43_ye = dctrl[dd];
+	dd++;
     P50 = ictrl[ii];
 	ii++;
 	P51 = ictrl[ii];
@@ -1025,10 +1035,6 @@ void lexer::ctrlrecv()
 	S100 = ictrl[ii];
 	ii++;
 	S101 = ictrl[ii];
-	ii++;
-    S102 = ictrl[ii];
-	ii++;
-    S103 = ictrl[ii];
 	ii++;
     S116 = dctrl[dd];
 	dd++;

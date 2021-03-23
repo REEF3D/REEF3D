@@ -20,25 +20,33 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sediment_f.h"
-#include"sediment_void.h"
+#include"increment.h"
+#include"slice4.h"
 
-#include"bedload_VR.h"
-#include"bedload_einstein.h"
-#include"bedload_MPM.h"
-#include"bedload_EF.h"
-#include"bedload_void.h"
+class lexer;
+class fdm;
+class ghostcell;
 
-#include"topo_void.h"
-#include"sediment_exner.h"
+using namespace std;
 
-#include"reinitopo_AB2.h"
-#include"reinitopo_RK3.h"
-#include"reinitopo_void.h"
+#ifndef BEDLOAD_NONEQ_H_
+#define BEDLOAD_NONEQ_H_
 
-#include"suspended_void.h"
-#include"suspended_AB.h"
-#include"suspended_RK2.h"
-#include"suspended_RK3.h"
-#include"suspended_IM1.h"
-#include"suspended_IM2.h"
+class bedload_noneq : public increment
+{
+public:
+
+    bedload_noneq(lexer*);
+    virtual ~bedload_noneq();
+
+	void ini(lexer*, fdm*, ghostcell*,slice&);
+    void start(lexer*, fdm*, ghostcell*,slice&);
+
+private:
+    double Ls;
+    slice4 q0;
+};
+
+#endif
+
+

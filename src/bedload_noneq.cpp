@@ -17,28 +17,37 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sediment_f.h"
-#include"sediment_void.h"
+#include"bedload_noneq.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
-#include"bedload_VR.h"
-#include"bedload_einstein.h"
-#include"bedload_MPM.h"
-#include"bedload_EF.h"
-#include"bedload_void.h"
+bedload_noneq::bedload_noneq(lexer *p) : q0(p)
+{
+    /*
+    rhosed=p->S22;
+    rhowat=p->W1;
+    g=9.81;
+    d50=p->S20;
+    visc=p->W2;
+    kappa=0.4;
+    ks=p->S21*d50;
+    Rstar=(rhosed-rhowat)/rhowat;
+    Ds= d50*pow((Rstar*g)/(visc*visc),1.0/3.0);*/
+}
 
-#include"topo_void.h"
-#include"sediment_exner.h"
+bedload_noneq::~bedload_noneq()
+{
+}
 
-#include"reinitopo_AB2.h"
-#include"reinitopo_RK3.h"
-#include"reinitopo_void.h"
+void bedload_noneq::ini(lexer* p, fdm* a, ghostcell* pgc, slice &q)
+{
 
-#include"suspended_void.h"
-#include"suspended_AB.h"
-#include"suspended_RK2.h"
-#include"suspended_RK3.h"
-#include"suspended_IM1.h"
-#include"suspended_IM2.h"
+}
+
+void bedload_noneq::start(lexer* p, fdm* a, ghostcell* pgc, slice &q)
+{
+
+}

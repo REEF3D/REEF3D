@@ -435,7 +435,8 @@ void lexer::ini_default()
 	P40=0;				// int print state file
 	P41=-10;			// int print state file each ith iteration
 	P42=-1.0;			// double print state file each ith sec
-	P50=0;				// int wave theory wave gages
+    P43=0;             // int state print out selected area
+    P50=0;				// int wave theory wave gages
 	P51=0;             // int print out wsf
 	P52=0;            // int print out wsfline in x-dir
 	P53=0;            // int print out wsfline for wave theory
@@ -528,8 +529,6 @@ void lexer::ini_default()
     S93=0.0;				// double delta phi for sandlide correciton
 	S100=0;					// int number of bed filter outer iterations
     S101=0;					// int number of bed filter inner iterations
-	S102=0;					// int number of bedload filter outer iterations
-    S103=0;					// int number of bedload filter inner iterations
     S116=1.6;              // double bedshear stress z location
     
     // Turbulence

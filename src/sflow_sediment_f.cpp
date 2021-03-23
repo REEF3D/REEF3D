@@ -93,8 +93,7 @@ void sflow_sediment_f::sediment_algorithm(lexer *p, fdm2D *b, ghostcell *pgc, sl
 
     // bedload
     bedload(p,b,pgc);
-	filter(p,b,pgc,b->qb,p->S102,p->S103);
-    
+
     // exner
     exner(p,b,pgc,P,Q,topovel);
 	filter(p,b,pgc,b->bed,p->S100,p->S101);

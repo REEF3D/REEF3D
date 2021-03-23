@@ -412,11 +412,12 @@ public:
 	int M10;
 
 	// Print options
-	int P10,P11,P12,P14,P15,P18,P20,P23,P24,P25,P26,P27,P28,P29,P35,P40,P41,P50,P51,P52,P53,P54,P56,P57,P59;
+	int P10,P11,P12,P14,P15,P18,P20,P23,P24,P25,P26,P27,P28,P29,P35,P40,P41,P43,P50,P51,P52,P53,P54,P56,P57,P59;
 	int P61,P62,P63,P66,P67,P71,P75,P78,P79,P81,P85,P92,P101,P121,P122,P123,P124,P125,P126;
 	int P150,P151,P152,P180,P181,P184,P185,P210,P211,P351,P352;
 	double P30,P34,P42;
 	double *P35_ts,*P35_te,*P35_dt;
+    double P43_xs,P43_xe,P43_ys,P43_ye;
 	double *P50_x,*P50_y;
 	double *P51_x,*P51_y;
 	double *P52_y,*P56_x;
@@ -442,7 +443,7 @@ public:
 	double *P352_x,*P352_y;
 
 	// Sediment Transport
-	int S10,S11,S12,S15,S16,S17,S18,S32,S33,S37,S41,S42,S43,S44,S50,S60,S73,S77,S80,S90,S91,S100,S101,S102,S103;
+	int S10,S11,S12,S15,S16,S17,S18,S32,S33,S37,S41,S42,S43,S44,S50,S60,S73,S77,S80,S90,S91,S100,S101;
 	double S13,S14,S19,S20,S21,S22,S23,S24,S25,S26_a,S26_b,S30,S45,S46,S47,S48,S57,S71,S72,S81,S82,S93,S116;
 	double *S73_val,*S73_dist,*S73_b,*S73_x,*S73_y;
     double S77_xs,S77_xe;
@@ -488,7 +489,7 @@ public:
 	double gcmeantime,gctotaltime;
 	double Xmeantime,Xtotaltime;
 	double maxbed, minbed;
-	double susptime,topotime,maxtopovel;
+	double susptime,maxtopovel;
 	double gctime, xtime;
 	double volume1,volume2,volume3;
 	double Qi,Qo;

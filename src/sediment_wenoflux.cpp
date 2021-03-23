@@ -46,7 +46,6 @@ double sediment_wenoflux::sx(lexer *p, slice &f, double ivel1, double ivel2)
     
     if(i+p->origin_i==0 || i+p->origin_i>=p->gknox-1)
     {
-        //cout<<p->mpirank<<" "<<i<<" "<<p->origin_i<<" "<<p->gknox<<endl;
         if(ivel1>=0.0)
         fu1 = f(i-1,j);
         
@@ -58,9 +57,10 @@ double sediment_wenoflux::sx(lexer *p, slice &f, double ivel1, double ivel2)
         
         if(ivel2<0.0)
         fu2 = f(i+1,j);
+        
+    ivel1=ivel2=0.5*(ivel1+ivel2);
     }
     
-    //cout<<p->mpirank<<" "<<i<<" "<<p->origin_i<<" "<<p->gknox<<endl;
     
     if(i+p->origin_i > 0 && i+p->origin_i<p->gknox-1)
     {
@@ -71,8 +71,10 @@ double sediment_wenoflux::sx(lexer *p, slice &f, double ivel1, double ivel2)
 		
 		fu2 = ffx(p,f,ivel2);
     }
+    
+    
         
-        grad = ((fu2-fu1)/p->DXN[IP]);
+        grad = ((fu2*ivel2-fu1*ivel1)/p->DXN[IP]);
         
     return grad;
 }
@@ -93,7 +95,9 @@ double sediment_wenoflux::sy(lexer *p, slice &f, double jvel1, double jvel2)
         fv2 = f(i,j);
         
         if(jvel2<0.0)
-        fv2 = f(i,j+1);
+        fv2 = f(i,j+1); 
+        
+    jvel1=jvel2=0.5*(jvel1+jvel2);
     }
       
     if(j+p->origin_j>0 && j+p->origin_j<p->gknoy-1)
@@ -105,7 +109,7 @@ double sediment_wenoflux::sy(lexer *p, slice &f, double jvel1, double jvel2)
 		fv2 = ffy(p,f,jvel2);
     }
 
-        grad = ((fv2-fv1)/p->DYN[JP]);
+        grad = ((fv2*jvel2-fv1*jvel1)/p->DYN[JP]);
 			  
     return grad;  
 }

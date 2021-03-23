@@ -21,31 +21,47 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"topo.h"
-#include"topo_vel.h"
 #include"slice4.h"
+
+class bedconc;
+class topo_relax;
+class turbulence;
+class ghostcell;
+class sediment_exnerdisc;
 
 using namespace std;
 
-#ifndef TOPO_DIRECT_H_
-#define TOPO_DIRECT_H_
+#ifndef SEDIMENT_EXNER_H_
+#define SEDIMENT_EXNER_H_
 
-class topo_direct : public topo, topo_vel
+class sediment_exner : public topo, public increment
 {
 public:
-	topo_direct(lexer*, fdm*, ghostcell*,turbulence*);
-	virtual ~topo_direct();
+	sediment_exner(lexer*, fdm*, ghostcell*,turbulence*);
+	virtual ~sediment_exner();
 	virtual void start(fdm*,lexer*, convection*, ghostcell*,reinitopo*);
 
 
 private:
+    void  topovel(lexer*,fdm*,ghostcell*,double&,double&,double&);
+    void  timestep(lexer*,fdm*,ghostcell*);
+    void  non_equillibrium_ini(lexer*,fdm*,ghostcell*);
+    void  non_equillibrium_solve(lexer*,fdm*,ghostcell*);
+    
+    bedconc *pcb;
+    topo_relax *prelax;
+    sediment_exnerdisc *pdx;
+    
 	int gcval_topo;
 	double starttime;
-
+    double maxdh;
 	double vx,vy,vz;
 	double vzmax;
+    double ws;
+    double rhosed, rhowat, g, d50;
     
     slice4 dh;
-
+    slice4 q0,dqx0,dqy0;
 };
 
 #endif

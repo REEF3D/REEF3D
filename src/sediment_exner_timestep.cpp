@@ -19,47 +19,33 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"sediment_f.h"
+#include"sediment_exner.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sediment_f::timestep(lexer *p, fdm *a, ghostcell *pgc)
+void sediment_exner::timestep(lexer* p,fdm* a, ghostcell *pgc)
 {
-    double vx,vy,vz;
-    double xmax,ymax,zmax,vmax;
-
-    xmax=ymax=zmax=vmax=0.0;
+	maxdh=0.0;
     
 	SLICELOOP4
-    {	
-	topovel(p,a,pgc,vx,vy,vz);
-	
-    zmax=MAX(fabs(zmax),fabs(vz));
-	}
+	maxdh = MAX(fabs(dh(i,j)),maxdh);	
 
-    zmax=pgc->globalmax(zmax);
-    
-    if(p->S15==0)
-    p->dtsed=MIN(p->S13, (p->S14*p->DXM)/(fabs(zmax)>1.0e-15?zmax:1.0e-15));
+	
+	double localmaxdh = maxdh;
+	maxdh=pgc->globalmax(maxdh);
+	
+	if(p->S15==0)
+    p->dtsed=MIN(p->S13, (p->S14*p->DXM)/(fabs(maxdh)>1.0e-15?maxdh:1.0e-15));
 
     if(p->S15==1)
-    p->dtsed=MIN(p->dt, (p->S14*p->DXM)/(fabs(zmax)>1.0e-15?zmax:1.0e-15));
+    p->dtsed=MIN(p->dt, (p->S14*p->DXM)/(fabs(maxdh)>1.0e-15?maxdh:1.0e-15));
     
     if(p->S15==2)
     p->dtsed=p->S13;
 
     p->dtsed=pgc->timesync(p->dtsed);
-
-    p->sediter=1;
-
-    if(p->S17==1)
-    p->sediter=MAX(int(p->S13/p->dtsed),1);
-
-    p->sediter=MIN(p->sediter, p->S18);
-
-    if(p->mpirank==0)
-    cout<<endl<<"sediter: "<<p->sediter<<endl;
-
-    cout<<p->mpirank<<" xmax: "<<setprecision(4)<<xmax<<" ymax: "<<setprecision(4)<<ymax<<" zmax: "<<setprecision(4)<<zmax<<" dtsed: "<<setprecision(4)<<p->dtsed<<endl;
+	
+	if(p->mpirank==0)
+	cout<<p->mpirank<<" maxdh: "<<setprecision(4)<<maxdh<<" dtsed: "<<setprecision(4)<<p->dtsed<<endl;
 }

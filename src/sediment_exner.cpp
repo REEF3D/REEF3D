@@ -19,14 +19,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"topo_direct.h"
+#include"sediment_exner.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"reinitopo.h"
+#include"bedconc.h"
+#include"topo_relax.h"
+#include"sediment_fou.h"
+#include"sediment_cds.h"
+#include"sediment_wenoflux.h"
+#include"sediment_weno_hj.h"
 
-
-topo_direct::topo_direct(lexer* p, fdm *a, ghostcell* pgc, turbulence *pturb) : topo_vel(p,pturb),dh(p)
+sediment_exner::sediment_exner(lexer* p, fdm *a, ghostcell* pgc, turbulence *pturb) : dh(p), q0(p),dqx0(p),dqy0(p)
 {
 	if(p->S50==1)
 	gcval_topo=151;
@@ -39,65 +44,70 @@ topo_direct::topo_direct(lexer* p, fdm *a, ghostcell* pgc, turbulence *pturb) : 
 	
 	if(p->S50==4)
 	gcval_topo=154;
+    
+    
+    rhosed=p->S22;
+    rhowat=p->W1;
+    g=9.81;
+    d50=p->S20;
+    ws=1.1*(rhosed/rhowat-1.0)*g*d50*d50;
+    
+    
+    pcb = new bedconc(p, pturb);
+    
+    prelax = new topo_relax(p);
+    
+    if(p->S32==1)
+    pdx = new sediment_fou(p);
+    
+    if(p->S32==2)
+    pdx = new sediment_cds(p);
+    
+    if(p->S32==4)
+    pdx = new sediment_wenoflux(p);
+    
+    if(p->S32==5)
+    pdx = new sediment_weno_hj(p);
 }
 
-topo_direct::~topo_direct()
+sediment_exner::~sediment_exner()
 {
 }
 
-void topo_direct::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,reinitopo* preto)
-{
-    starttime=pgc->timer();
-	
-	
-	
-	double maxdh;
+void sediment_exner::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,reinitopo* preto)
+{   
+
+    non_equillibrium_ini(p,a,pgc);
     
     SLICELOOP4
     {
 		topovel(p,a,pgc,vx,vy,vz);
-		
 		dh(i,j) = vz;
 	}
     
-    
 	pgc->gcsl_start4(p,dh,1);
 	
-
-	maxdh=0.0;
-	SLICELOOP4
-	maxdh = MAX(fabs(dh(i,j)),maxdh);	
-
-	
-	double localmaxdh = maxdh;
-	maxdh=pgc->globalmax(maxdh);
-	
-	if(p->S15==0)
-    p->dtsed=MIN(p->S13, (p->S14*p->DXM)/(fabs(maxdh)>1.0e-15?maxdh:1.0e-15));
-
-    if(p->S15==1)
-    p->dtsed=MIN(p->dt, (p->S14*p->DXM)/(fabs(maxdh)>1.0e-15?maxdh:1.0e-15));
-    
-    if(p->S15==2)
-    p->dtsed=p->S13;
-
-    p->dtsed=pgc->timesync(p->dtsed);
-	
-	if(p->mpirank==0)
-	cout<<p->mpirank<<" maxdh: "<<setprecision(4)<<maxdh<<" dtsed: "<<setprecision(4)<<p->dtsed<<endl;
+    timestep(p,a,pgc);
 	
 	SLICELOOP4
     a->bedzh(i,j) += p->dtsed*dh(i,j);
-    
-    
-    LOOP
-    a->test(i,j,k) = p->dtsed*dh(i,j);
-
 
 	pgc->gcsl_start4(p,a->bedzh,1);
-
-	p->topotime=pgc->timer()-starttime;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

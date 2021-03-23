@@ -17,50 +17,19 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"ccipol.h"
-#include"norm_vec.h"
+#include"sediment_exner.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
-class bedconc;
-class topo_relax;
-class turbulence;
-class ghostcell;
-class sediment_exnerdisc;
-
-using namespace std;
-
-#ifndef TOPO_VEL_H_
-#define TOPO_VEL_H_
-
-class topo_vel : public ccipol, public norm_vec
+void sediment_exner::non_equillibrium_ini(lexer* p,fdm* a, ghostcell *pgc)
 {
-public:
-	topo_vel(lexer*,turbulence*);
-	virtual ~topo_vel();
+    
+}
 
-    void  topovel(lexer*,fdm*,ghostcell*,double&,double&,double&);
-
-	void rkio_update(lexer*,fdm*,ghostcell*,field&);
-
-	double xc,yc,zc;
-	double nx,ny,nz,norm;
-	double a1x,a1y,a1z,a2x,a2y,a2z;
-	double b1x,b1y,b1z,b2x,b2y,b2z;
-	double ascale, bscale;
-	double da,db;
-	double qx1,qx2,qy1,qy2;
-	double dh;
-	double signx,signy;
-	double ws;
-	double rhosed, rhowat, g, d50;
-
-	bedconc *pcb;
-    topo_relax *prelax;
-    sediment_exnerdisc *pdx;
-
-	const double dx,epsi;
-};
-
-#endif
+void sediment_exner::non_equillibrium_solve(lexer* p,fdm* a, ghostcell *pgc)
+{
+    
+}

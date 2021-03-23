@@ -333,6 +333,7 @@
       <VirtualDirectory Name="Particles"/>
       <VirtualDirectory Name="Sediment">
         <VirtualDirectory Name="Bedload">
+          <File Name="bedload_noneq.h"/>
           <File Name="bedload.h"/>
           <File Name="bedload_MPM.h"/>
           <File Name="bedload_void.h"/>
@@ -376,6 +377,7 @@
           <File Name="susprhs.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Topo">
+          <File Name="sediment_exner.h"/>
           <VirtualDirectory Name="Exnerdisc">
             <File Name="sediment_exnerdisc.h"/>
             <File Name="sediment_fou.h"/>
@@ -390,9 +392,7 @@
             <File Name="reinitopo_AB2.h"/>
           </VirtualDirectory>
           <File Name="topo.h"/>
-          <File Name="topo_vel.h"/>
           <File Name="topo_void.h"/>
-          <File Name="topo_direct.h"/>
           <VirtualDirectory Name="Relaxation">
             <File Name="topo_relax.h"/>
           </VirtualDirectory>
@@ -1311,6 +1311,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment">
         <VirtualDirectory Name="Bedload">
+          <File Name="bedload_noneq.cpp"/>
           <File Name="bedload_MPM.cpp"/>
           <File Name="bedload_void.cpp"/>
           <File Name="bedload_VR.cpp"/>
@@ -1350,6 +1351,10 @@
           <File Name="susprhs.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Topo">
+          <File Name="sediment_exner_noneq.cpp"/>
+          <File Name="sediment_exner_topovel.cpp"/>
+          <File Name="sediment_exner_timestep.cpp"/>
+          <File Name="sediment_exner.cpp"/>
           <VirtualDirectory Name="Exnerdisc">
             <File Name="sediment_cds.cpp"/>
             <File Name="sediment_fou.cpp"/>
@@ -1361,9 +1366,7 @@
             <File Name="reinitopo_void.cpp"/>
             <File Name="reinitopo_AB2.cpp"/>
           </VirtualDirectory>
-          <File Name="topo_vel.cpp"/>
           <File Name="topo_void.cpp"/>
-          <File Name="topo_direct.cpp"/>
           <VirtualDirectory Name="Relaxation">
             <File Name="topo_relax.cpp"/>
           </VirtualDirectory>
@@ -1373,7 +1376,6 @@
         <VirtualDirectory Name="Sediment">
           <File Name="sediment_zh.cpp"/>
           <File Name="sediment_ini.cpp"/>
-          <File Name="sediment_timestep.cpp"/>
           <File Name="sediment_filter.cpp"/>
           <File Name="sediment_io.cpp"/>
         </VirtualDirectory>
