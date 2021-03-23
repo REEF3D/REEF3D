@@ -489,7 +489,7 @@ public:
 	double gcmeantime,gctotaltime;
 	double Xmeantime,Xtotaltime;
 	double maxbed, minbed;
-	double susptime,topotime,maxtopovel;
+	double susptime,maxtopovel;
 	double gctime, xtime;
 	double volume1,volume2,volume3;
 	double Qi,Qo;

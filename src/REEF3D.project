@@ -1351,6 +1351,9 @@
           <File Name="susprhs.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Topo">
+          <File Name="sediment_exner_noneq.cpp"/>
+          <File Name="sediment_exner_topovel.cpp"/>
+          <File Name="sediment_exner_timestep.cpp"/>
           <File Name="sediment_exner.cpp"/>
           <VirtualDirectory Name="Exnerdisc">
             <File Name="sediment_cds.cpp"/>

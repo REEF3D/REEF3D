@@ -46,13 +46,11 @@ sediment_exner::sediment_exner(lexer* p, fdm *a, ghostcell* pgc, turbulence *ptu
 	gcval_topo=154;
     
     
-    
     rhosed=p->S22;
     rhowat=p->W1;
     g=9.81;
     d50=p->S20;
     ws=1.1*(rhosed/rhowat-1.0)*g*d50*d50;
-    
     
     
     pcb = new bedconc(p, pturb);
@@ -77,123 +75,40 @@ sediment_exner::~sediment_exner()
 }
 
 void sediment_exner::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,reinitopo* preto)
-{
-    starttime=pgc->timer();
-	
-	
-	
-	double maxdh;
+{   
+
+    non_equillibrium_ini(p,a,pgc);
     
     SLICELOOP4
     {
 		topovel(p,a,pgc,vx,vy,vz);
-		
 		dh(i,j) = vz;
 	}
     
-    
 	pgc->gcsl_start4(p,dh,1);
 	
-
-	maxdh=0.0;
-	SLICELOOP4
-	maxdh = MAX(fabs(dh(i,j)),maxdh);	
-
-	
-	double localmaxdh = maxdh;
-	maxdh=pgc->globalmax(maxdh);
-	
-	if(p->S15==0)
-    p->dtsed=MIN(p->S13, (p->S14*p->DXM)/(fabs(maxdh)>1.0e-15?maxdh:1.0e-15));
-
-    if(p->S15==1)
-    p->dtsed=MIN(p->dt, (p->S14*p->DXM)/(fabs(maxdh)>1.0e-15?maxdh:1.0e-15));
-    
-    if(p->S15==2)
-    p->dtsed=p->S13;
-
-    p->dtsed=pgc->timesync(p->dtsed);
-	
-	if(p->mpirank==0)
-	cout<<p->mpirank<<" maxdh: "<<setprecision(4)<<maxdh<<" dtsed: "<<setprecision(4)<<p->dtsed<<endl;
+    timestep(p,a,pgc);
 	
 	SLICELOOP4
     a->bedzh(i,j) += p->dtsed*dh(i,j);
 
-
 	pgc->gcsl_start4(p,a->bedzh,1);
-
-	p->topotime=pgc->timer()-starttime;
 }
 
 
-void sediment_exner::topovel(lexer* p,fdm* a, ghostcell *pgc, double& vx, double& vy, double& vz)
-{
-	double uvel,vvel,u_abs;
-	double signx,signy;
-	double dqx,dqy;
-    double qx1,qx2,q1x,qy2;
-    
-    double ux1,vx1,ux2,vx2,uy1,vy1,uy2,vy2;
-    double sgx1,sgx2,sgy1,sgy2;
-    double ux1_abs,ux2_abs,uy1_abs,uy2_abs;
-	
-	vx=0.0;
-	vy=0.0;
-	vz=0.0;
-	 
-	if(p->pos_x()>=p->S71 && p->pos_x()<=p->S72)
-	{						
-        pip=1;
-        uvel=0.5*(a->P(i,j)+a->P(i-1,j));
-        pip=0;
 
-        pip=2;
-        vvel=0.5*(a->Q(i,j)+a->Q(i,j-1));
-        pip=0;
-		
-		u_abs = sqrt(uvel*uvel + vvel*vvel);
-		signx=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
-		signy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
 
-    
-    
-    
-        ux1=a->P(i-1,j);
-        vx1=0.25*(a->Q(i,j)+a->Q(i-1,j)+a->Q(i,j-1)+a->Q(i-1,j-1)); 
-        
-        ux2=a->P(i,j);
-        vx2=0.25*(a->Q(i,j)+a->Q(i+1,j)+a->Q(i,j-1)+a->Q(i+1,j-1)); 
-        
-        
-        uy1=0.25*(a->P(i,j-1)+a->P(i,j)+a->P(i-1,j-1)+a->P(i-1,j));
-        vy1=a->Q(i,j-1); 
-        
-        uy2=0.25*(a->P(i,j)+a->P(i,j+1)+a->P(i-1,j)+a->P(i-1,j+1));
-        vy2=a->Q(i,j); 
-        
-        
-        ux1_abs = sqrt(ux1*ux1 + vx1*vx1);
-        ux2_abs = sqrt(ux2*ux2 + vx2*vx2);
-        
-        uy1_abs = sqrt(uy1*uy1 + vy1*vy1);
-        uy2_abs = sqrt(uy2*uy2 + vy2*vy2);
-            
-        sgx1=fabs(ux1_abs)>1.0e-10?ux1/fabs(ux1_abs):0.0;
-        sgx2=fabs(ux2_abs)>1.0e-10?ux2/fabs(ux2_abs):0.0;
-        
-        sgy1=fabs(uy1_abs)>1.0e-10?vy1/fabs(uy1_abs):0.0;
-        sgy2=fabs(uy2_abs)>1.0e-10?vy2/fabs(uy2_abs):0.0;
-        
-        
-        
-        // complete q
-        dqx = pdx->sx(p,a->bedload,sgx1,sgx2);
-        dqy = pdx->sy(p,a->bedload,sgy1,sgy2);
-		
-	// Exner equations
-    vz =  -prelax->rf(p,a,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy) + ws*(a->conc(i,j,k) - pcb->cbed(p,a,pgc,a->topo)); 
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
