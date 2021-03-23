@@ -392,7 +392,6 @@
             <File Name="reinitopo_AB2.h"/>
           </VirtualDirectory>
           <File Name="topo.h"/>
-          <File Name="topo_vel.h"/>
           <File Name="topo_void.h"/>
           <VirtualDirectory Name="Relaxation">
             <File Name="topo_relax.h"/>
@@ -1364,7 +1363,6 @@
             <File Name="reinitopo_void.cpp"/>
             <File Name="reinitopo_AB2.cpp"/>
           </VirtualDirectory>
-          <File Name="topo_vel.cpp"/>
           <File Name="topo_void.cpp"/>
           <VirtualDirectory Name="Relaxation">
             <File Name="topo_relax.cpp"/>
@@ -1375,7 +1373,6 @@
         <VirtualDirectory Name="Sediment">
           <File Name="sediment_zh.cpp"/>
           <File Name="sediment_ini.cpp"/>
-          <File Name="sediment_timestep.cpp"/>
           <File Name="sediment_filter.cpp"/>
           <File Name="sediment_io.cpp"/>
         </VirtualDirectory>

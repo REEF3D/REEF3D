@@ -39,7 +39,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"vrans_v.h"
 #include"vrans_f.h"
 
-sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb):topo_vel(p,pturb), bss(p), bedtau(p)
+sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb):bss(p), bedtau(p)
 {
     if(p->S90==0)
     pslide=new sandslide_v(p);   

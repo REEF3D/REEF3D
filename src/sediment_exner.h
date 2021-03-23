@@ -21,15 +21,20 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"topo.h"
-#include"topo_vel.h"
 #include"slice4.h"
+
+class bedconc;
+class topo_relax;
+class turbulence;
+class ghostcell;
+class sediment_exnerdisc;
 
 using namespace std;
 
 #ifndef SEDIMENT_EXNER_H_
 #define SEDIMENT_EXNER_H_
 
-class sediment_exner : public topo, topo_vel
+class sediment_exner : public topo, public increment
 {
 public:
 	sediment_exner(lexer*, fdm*, ghostcell*,turbulence*);
@@ -38,13 +43,22 @@ public:
 
 
 private:
+    void  topovel(lexer*,fdm*,ghostcell*,double&,double&,double&);
+    
+    bedconc *pcb;
+    topo_relax *prelax;
+    sediment_exnerdisc *pdx;
+    
 	int gcval_topo;
 	double starttime;
 
 	double vx,vy,vz;
 	double vzmax;
+    double ws;
+    double rhosed, rhowat, g, d50;
     
     slice4 dh;
+    slice4 q0,dqx0,dqy0;
 
 };
 
