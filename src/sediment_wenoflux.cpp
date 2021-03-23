@@ -71,8 +71,6 @@ double sediment_wenoflux::sx(lexer *p, slice &f, double ivel1, double ivel2)
 		
 		fu2 = ffx(p,f,ivel2);
     }
-    
-    
         
         grad = ((fu2*ivel2-fu1*ivel1)/p->DXN[IP]);
         

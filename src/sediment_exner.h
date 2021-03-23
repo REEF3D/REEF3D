@@ -59,6 +59,7 @@ private:
 	double vzmax;
     double ws;
     double rhosed, rhowat, g, d50;
+    double Ls;
     
     slice4 dh;
     slice4 q0,dqx0,dqy0;

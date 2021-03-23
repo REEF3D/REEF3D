@@ -51,6 +51,7 @@ sediment_exner::sediment_exner(lexer* p, fdm *a, ghostcell* pgc, turbulence *ptu
     g=9.81;
     d50=p->S20;
     ws=1.1*(rhosed/rhowat-1.0)*g*d50*d50;
+    Ls = 3.5;
     
     
     pcb = new bedconc(p, pturb);
@@ -76,18 +77,21 @@ sediment_exner::~sediment_exner()
 
 void sediment_exner::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,reinitopo* preto)
 {   
-
-    non_equillibrium_ini(p,a,pgc);
-    
+    //non_equillibrium_solve(p,a,pgc); 
+   
     SLICELOOP4
     {
 		topovel(p,a,pgc,vx,vy,vz);
+        dqx0(i,j) = vx;
+        dqy0(i,j) = vy;
 		dh(i,j) = vz;
 	}
     
 	pgc->gcsl_start4(p,dh,1);
 	
     timestep(p,a,pgc);
+    
+    
 	
 	SLICELOOP4
     a->bedzh(i,j) += p->dtsed*dh(i,j);

@@ -31,5 +31,13 @@ void sediment_exner::non_equillibrium_ini(lexer* p,fdm* a, ghostcell *pgc)
 
 void sediment_exner::non_equillibrium_solve(lexer* p,fdm* a, ghostcell *pgc)
 {
+    SLICELOOP4
+    a->bedload(i,j) -= p->dtsed*(0.5*(a->P(i,j)+a->P(i+1,j))*dqx0(i,j) + 0.5*(a->Q(i,j)+a->Q(i,j+1))*dqy0(i,j));
+    
+    ALOOP
+    {
+    a->test(i,j,k) = p->dtsed*(a->P(i,j)*dqx0(i,j) + a->Q(i,j)*dqy0(i,j));
+    }
+    pgc->start4a(p,a->test,1);
     
 }

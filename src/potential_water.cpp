@@ -70,9 +70,6 @@ void potential_water::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
 
     p->N46=itermem;
     
-    LOOP
-    a->test(i,j,k) = psi(i,j,k);
-    
     
     LOOP
     psi(i,j,k) = 0.0;

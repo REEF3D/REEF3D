@@ -74,7 +74,7 @@ void bedload_VR::start(lexer* p, fdm* a, ghostcell* pgc)
     
     
     
-    slice4 tt(p);
+    /*slice4 tt(p);
     
     SLICELOOP4
     {
@@ -87,7 +87,7 @@ void bedload_VR::start(lexer* p, fdm* a, ghostcell* pgc)
     
     ALOOP
     {
-    a->test(i,j,k) = 0.3; //tt(i,j);
+    a->test(i,j,k) = tt(i,j);
     }
-    pgc->start4a(p,a->test,1);
+    pgc->start4a(p,a->test,1);*/
 }
