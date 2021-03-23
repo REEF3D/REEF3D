@@ -51,7 +51,7 @@ sediment_exner::sediment_exner(lexer* p, fdm *a, ghostcell* pgc, turbulence *ptu
     g=9.81;
     d50=p->S20;
     ws=1.1*(rhosed/rhowat-1.0)*g*d50*d50;
-    Ls = 3.5;
+    Ls = p->S20;
     
     
     pcb = new bedconc(p, pturb);
