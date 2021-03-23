@@ -48,9 +48,9 @@ public:
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);
 
-    field1 urk1;
-	field2 vrk1;
-	field3 wrk1;
+    field1 udiff, urk1;
+	field2 vdiff, vrk1;
+	field3 wdiff, wrk1;
 
 private:
 	void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
