@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"topo.h"
 #include"slice4.h"
+#include"bedshear.h"
 
 class bedconc;
 class topo_relax;
@@ -34,7 +35,7 @@ using namespace std;
 #ifndef SEDIMENT_EXNER_H_
 #define SEDIMENT_EXNER_H_
 
-class sediment_exner : public topo, public increment
+class sediment_exner : public topo, public increment, public bedshear
 {
 public:
 	sediment_exner(lexer*, fdm*, ghostcell*,turbulence*);
@@ -60,6 +61,8 @@ private:
     double ws;
     double rhosed, rhowat, g, d50;
     double Ls;
+    double tau_eff, shearvel_eff, shields_eff;
+    double tau_crit, shearvel_crit, shields_crit;
     
     slice4 dh;
     slice4 q0,dqx0,dqy0;

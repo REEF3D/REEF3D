@@ -94,7 +94,7 @@ void sediment_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
     ALOOP
     bss(i,j,k) = bedtau(i,j);
 	
-    pgc->start4(p,bss,1);
+    pgc->start4a(p,bss,1);
 	
 	iin=4*(p->pointnum+p->ccptnum);
     result.write((char*)&iin, sizeof (int));

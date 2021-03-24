@@ -98,30 +98,57 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double
     }
 	
 	if(p->S16==2)
-    {    
-        double wh;
-        count=0;
-        uvel=vvel=wh=0.0;
-        KLOOP
-        PCHECK
-        {
-            if(a->phi(i,j,k)>=0.0)
-            {
-            uvel+=0.5*(a->u(i,j,k)+a->u(i-1,j,k));
-            vvel+=0.5*(a->v(i,j,k)+a->v(i,j-1,k));
-            ++count;
-            wh+=p->DZN[KP];
-            }
-        }
+    {
+    double E,B,dB,ustar,y_plus,visc,ks_plus;
     
-        uvel=uvel/double(count);
-        vvel=vvel/double(count);
+    visc=p->W2;
+    
+    zval = a->bedzh(i,j) + p->S116*p->DZN[KP];
+    
+        if(p->S33==1)
+        {
+        uvel=p->ccipol1(a->u,xip,yip,zval);
+        vvel=p->ccipol2(a->v,xip,yip,zval);
+        wvel=p->ccipol3(a->w,xip,yip,zval);
+        }
         
-        u_abs = sqrt(uvel*uvel + vvel*vvel);
-	
-	fac = 0.125/pow(log(12.0*(wh/ks)),2.0);
+        if(p->S33==2)
+        {
+        uvel=p->ccipol1_a(a->u,xip,yip,zval);
+        vvel=p->ccipol2_a(a->v,xip,yip,zval);
+        wvel=p->ccipol3_a(a->w,xip,yip,zval);
+        }
+        
+    // predictor    
+    u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
 
-	tau = density*fac*pow(u_abs,2.0);
+    u_plus = (1.0/kappa)*log(30.0*(dist/ks));
+
+    tau=density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
+    
+    ustar=sqrt(tau/density);
+    
+    
+    // corrector
+    y_plus = zval*ustar/visc;
+    
+    ks_plus = ustar*ks/visc;
+    
+    B = 5.2;
+    
+    dB = B - 8.5 + (1.0/kappa)*log(ks_plus);
+    
+    E = exp(kappa*(B-dB));
+    
+    u_plus = (1.0/kappa)*log(E*y_plus);
+    
+    tau=density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
+    
+    //cout<<"USTAR_0: "<<ustar<<" USTART_1: ";
+    ustar=sqrt(tau/density);
+    //cout<<ustar<<endl;
+    
+    //cout<<"Y_PLUS: "<<y_plus<<endl;
     }
 
 	
