@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,52 +20,36 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"topo.h"
-#include"slice4.h"
+#include"bedload.h"
 #include"bedshear.h"
+#include"bedload_noneq.h"
 
-class bedconc;
-class topo_relax;
 class turbulence;
-class ghostcell;
-class sediment_exnerdisc;
 
 using namespace std;
 
-#ifndef SEDIMENT_EXNER_H_
-#define SEDIMENT_EXNER_H_
+#ifndef BEDLOAD_VRC_H_
+#define BEDLOAD_VRC_H_
 
-class sediment_exner : public topo, public increment, public bedshear
+class bedload_VRc : public bedload, public bedshear, public bedload_noneq
 {
 public:
-	sediment_exner(lexer*, fdm*, ghostcell*,turbulence*);
-	virtual ~sediment_exner();
-	virtual void start(fdm*,lexer*, convection*, ghostcell*,reinitopo*);
 
+    bedload_VRc(lexer*,turbulence*);
+    virtual ~bedload_VRc();
+
+	virtual void start(lexer*, fdm*, ghostcell*);
 
 private:
-    void  topovel(lexer*,fdm*,ghostcell*,double&,double&,double&);
-    void  timestep(lexer*,fdm*,ghostcell*);
-    void  non_equillibrium_solve(lexer*,fdm*,ghostcell*);
-    
-    bedconc *pcb;
-    topo_relax *prelax;
-    sediment_exnerdisc *pdx;
-    
-	int gcval_topo;
-	double starttime;
-    double maxdh;
-	double vx,vy,vz;
-	double vzmax;
-    double ws;
-    double rhosed, rhowat, g, d50;
-    double Ls;
+    const double epsi;
+    double rhosed,rhowat,Rstar,Ds;
+    double g,d50;
+    double visc;
+    double kappa,u_plus,ks;
     double tau_eff, shearvel_eff, shields_eff;
     double tau_crit, shearvel_crit, shields_crit;
-    
-    slice4 dh;
-    slice4 q0,dqx0,dqy0;
 };
 
 #endif
+
 

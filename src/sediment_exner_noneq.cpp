@@ -24,11 +24,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sediment_exner::non_equillibrium_ini(lexer* p,fdm* a, ghostcell *pgc)
-{
-    
-}
-
 void sediment_exner::non_equillibrium_solve(lexer* p,fdm* a, ghostcell *pgc)
 {
     //SLICELOOP4

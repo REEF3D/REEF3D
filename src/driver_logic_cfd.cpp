@@ -596,6 +596,9 @@ void driver::logic()
     
     if(p->S11==4)
     pbed = new bedload_einstein(p,pturb);
+    
+    if(p->S11==5)
+    pbed = new bedload_VRc(p,pturb);
 
     if(p->S10==0)
     ptopo = new topo_void(p,a,pgc);

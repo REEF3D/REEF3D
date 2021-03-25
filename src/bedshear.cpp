@@ -130,13 +130,20 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double
     
     
     // corrector
+    for(int qn=0; qn<5;++qn)
+    {
     y_plus = zval*ustar/visc;
     
     ks_plus = ustar*ks/visc;
     
     B = 5.2;
     
+    if(ks_plus>=90.0)
     dB = B - 8.5 + (1.0/kappa)*log(ks_plus);
+    
+    
+    if(ks_plus<90.0)
+    dB = 0.0;
     
     E = exp(kappa*(B-dB));
     
@@ -146,9 +153,10 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double
     
     //cout<<"USTAR_0: "<<ustar<<" USTART_1: ";
     ustar=sqrt(tau/density);
+    }
     //cout<<ustar<<endl;
     
-    //cout<<"Y_PLUS: "<<y_plus<<endl;
+    //cout<<"Ks_PLUS: "<<ks_plus<<endl;
     }
 
 	/*

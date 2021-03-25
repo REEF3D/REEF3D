@@ -333,6 +333,7 @@
       <VirtualDirectory Name="Particles"/>
       <VirtualDirectory Name="Sediment">
         <VirtualDirectory Name="Bedload">
+          <File Name="bedload_VRc.h"/>
           <File Name="bedload_noneq.h"/>
           <File Name="bedload.h"/>
           <File Name="bedload_MPM.h"/>
@@ -1311,6 +1312,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment">
         <VirtualDirectory Name="Bedload">
+          <File Name="bedload_VRc.cpp"/>
           <File Name="bedload_noneq.cpp"/>
           <File Name="bedload_MPM.cpp"/>
           <File Name="bedload_void.cpp"/>
