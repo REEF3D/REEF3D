@@ -53,7 +53,7 @@ void sediment_exner::non_equillibrium_solve(lexer* p,fdm* a, ghostcell *pgc)
     
     Ls = p->dtsed/p->DXM*sqrt(pow(0.5*(a->P(i,j)+a->P(i+1,j)),2.0) +  pow(0.5*(a->Q(i,j)+a->Q(i,j+1)),2.0));
     
-    cout<<Ls<<endl;
+    //cout<<Ls<<endl;
 
     a->bedload(i,j) += Ls*(dqx0(i,j) + dqy0(i,j));
     }

@@ -99,7 +99,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double
 	
 	if(p->S16==2)
     {
-    double E,B,dB,ustar,y_plus,visc,ks_plus;
+    double E,B,dB,ustar,y_plus,visc,ks_plus,tau0;
     
     visc=p->W2;
     
@@ -121,73 +121,46 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double
         
     // predictor    
     u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
-
     u_plus = (1.0/kappa)*log(30.0*(dist/ks));
-
-    tau=density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
-    
+    tau0=tau=density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
     ustar=sqrt(tau/density);
     
     
-    // corrector
-    for(int qn=0; qn<5;++qn)
-    {
-    y_plus = zval*ustar/visc;
-    
-    ks_plus = ustar*ks/visc;
-    
-    B = 5.2;
-    
-    if(ks_plus>=90.0)
-    dB = B - 8.5 + (1.0/kappa)*log(ks_plus);
-    
-    
-    if(ks_plus<90.0)
-    dB = 0.0;
-    
-    E = exp(kappa*(B-dB));
-    
-    u_plus = (1.0/kappa)*log(E*y_plus);
-    
-    tau=density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
-    
-    //cout<<"USTAR_0: "<<ustar<<" USTART_1: ";
-    ustar=sqrt(tau/density);
-    }
-    //cout<<ustar<<endl;
-    
-    //cout<<"Ks_PLUS: "<<ks_plus<<endl;
-    }
-
-	/*
-	if(p->S16==3)
-    {
-	double v_t,v_d;
-    zval = a->bedzh(i,j) + p->DZN[KP];
-
-	
-        if(p->S33==1)
+        // corrector
+        for(int qn=0; qn<5;++qn)
         {
-        uvel=p->ccipol1(a->u,xip,yip,zval);
-        vvel=p->ccipol2(a->v,xip,yip,zval);
-        wvel=p->ccipol3(a->w,xip,yip,zval);
+        y_plus = dist*ustar/visc;
+        
+        ks_plus = ks*ustar/visc;
+        
+        B = 5.2;
+        
+        if(ks_plus<2.25)
+        dB = 0.0;
+        
+        if(ks_plus>=2.25 && ks_plus<90.0)
+        dB = B - 8.5 + (1.0/kappa)*log(ks_plus)*sin(0.4258*(log(ks_plus)-0.811));
+        
+        if(ks_plus>=90.0)
+        dB = B - 8.5 + (1.0/kappa)*log(ks_plus);
+
+        E = exp(kappa*(B-dB));
+
+        if(y_plus>11.53)
+        u_plus = (1.0/kappa)*log(MAX(E*y_plus,1.0));
+        
+        if(y_plus<=11.53)
+        {
+        u_plus = u_abs/(y_plus>1.0e-10?y_plus:1.0e20);
+        //cout<<"y_plus: "<<y_plus<<" ustar: "<<ustar<<" u_plus: "<<u_plus<<" u_abs: "<<u_abs<<" tau: "<<density*(u_abs*u_abs)/pow((u_plus>1.0e-10?u_plus:1.0e20),2.0)<<endl;
         }
         
-        if(p->S33==2)
-        {
-        uvel=p->ccipol1_a(a->u,xip,yip,zval);
-        vvel=p->ccipol2_a(a->v,xip,yip,zval);
-        wvel=p->ccipol3_a(a->w,xip,yip,zval);
+        tau=MIN(density*(u_abs*u_abs)/pow((u_plus>1.0e-4?u_plus:1.0e20),2.0), tau0*3.5);
+
+        ustar=sqrt(tau/density);
         }
-        
-	v_d=p->ccipol4_a(a->visc,xip,yip,zval);
-	v_t=p->ccipol4_a(a->eddyv,xip,yip,zval);
 
-    u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
-    
-
-    tau=density*(v_d + v_t)*(u_abs/dist);
-    }*/
+    }
     
     if(p->S16==3)
     {
