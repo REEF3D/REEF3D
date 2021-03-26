@@ -1239,13 +1239,13 @@
           <File Name="fnpf_ini.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSFBC">
+          <File Name="fnpf_fsfbc_breaking.cpp"/>
           <File Name="fnpf_fsfbc_wd_wetdry.cpp"/>
           <File Name="fnpf_fsfbc_wd_damping.cpp"/>
           <File Name="fnpf_fsfbc_wd_breaking.cpp"/>
           <File Name="fnpf_fsfbc_wd.cpp"/>
           <File Name="fnpf_fsfbc_damping.cpp"/>
           <File Name="fnpf_fsfbc.cpp"/>
-          <File Name="fnpf_breaking.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FNPF">
           <File Name="fnpf_RK2.cpp"/>

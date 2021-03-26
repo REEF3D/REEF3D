@@ -260,7 +260,6 @@ void fnpf_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
         if(bx(i,j)>0 || by(i,j)>0)
         {
         c->breaking(i,j)=1;
-        //cout<<"breakmod:  "<<c->breaking(i,j)<<" . "<<i<<endl;
         }
     }
     
@@ -365,18 +364,6 @@ void fnpf_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
          filter(p,c,pgc,eta);
          filter(p,c,pgc,Fifsf);
         }   
-    
-        /*
-        if(p->j_dir==0)
-        for(int qn=0;qn<10;++qn)
-        SLICELOOP4  
-        c->vb(i,j) = 0.5*c->vb(i,j) + 0.25*(c->vb(i-1,j) + c->vb(i+1,j));
-        
-        
-        if(p->j_dir==1)
-        for(int qn=0;qn<10;++qn)
-        SLICELOOP4  
-        c->vb(i,j) = 0.5*c->vb(i,j) + 0.125*(c->vb(i-1,j) + c->vb(i+1,j) + c->vb(i,j-1) + c->vb(i,j+1));*/
         
     pgc->gcsl_start4(p,c->vb,1);
     }

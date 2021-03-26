@@ -770,8 +770,6 @@ void lexer::ctrlrecv()
     ii++;
     N41 = dctrl[dd];
     dd++;
-	N42 = ictrl[ii];
-    ii++;
 	N43 = dctrl[dd];
     dd++;
     N44 = dctrl[dd];

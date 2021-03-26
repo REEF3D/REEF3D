@@ -996,9 +996,6 @@ void lexer::read_control()
 				case 41: control>>N41;
 						 clear(c,numint);
 						 break;
-				case 42: control>>N42;
-						 clear(c,numint);
-						 break;
 				case 43: control>>N43;
 						 clear(c,numint);
 						 break;
