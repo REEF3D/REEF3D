@@ -1240,6 +1240,8 @@
           <File Name="fnpf_ini.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSFBC">
+          <File Name="fnpf_breaking_filter.cpp"/>
+          <File Name="fnpf_breaking_log.cpp"/>
           <File Name="fnpf_breaking.cpp"/>
           <File Name="fnpf_fsfbc_breaking.cpp"/>
           <File Name="fnpf_fsfbc_wd_wetdry.cpp"/>
