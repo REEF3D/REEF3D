@@ -25,24 +25,36 @@ Author: Tobias Martin
 #include<fstream>
 #include<iostream>
 #include <Eigen/Dense>
+#include"increment.h"
+#include"slice1.h"
+#include"slice2.h"
+#include"slice4.h"
+#include"sliceint5.h"
+#include"ddweno_f_nug.h"
 
 class lexer;
-class fdm;
+class fdm2D;
 class ghostcell;
-class mooring;
 class net;
+class slice;
 
 using namespace std;
 
 #ifndef SIXDOF_SFLOW_H_
 #define SIXDOF_SFLOW_H_
 
-class sixdof_sflow : public sixdof
+class sixdof_sflow : public sixdof, public increment, public ddweno_f_nug
 {
 public:
-	sixdof_sflow();
-	virtual ~sixdof_sflow();
+	
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    
+    sixdof_sflow(lexer*, fdm2D*, ghostcell*);
+	void ini(lexer*,fdm2D*,ghostcell*);
+	
+    virtual ~sixdof_sflow();
 	virtual void start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&);
+	void start(lexer*,fdm2D*,ghostcell*);
 	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
     
     virtual void isource(lexer*,fdm*,ghostcell*);
@@ -53,12 +65,54 @@ public:
     virtual void jsource2D(lexer*,fdm2D*,ghostcell*);
     
 private:
+	
+    void cylinder(lexer*,fdm2D*,ghostcell*);
+    void ini_parameter(lexer*, fdm2D*, ghostcell*);
+    void print_ini(lexer*, fdm2D*, ghostcell*);
+    void print_parameter(lexer*,ghostcell*);
+    void print_stl(lexer*,ghostcell*);
+    
+    void iniPosition_RBM(lexer*, fdm2D*, ghostcell*);
+    void rotation_tri(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
+    void quat_matrices(const Eigen::Vector4d&);
+   
+    void ray_cast(lexer*, ghostcell*);
+	void ray_cast_io_x(lexer*, ghostcell*,int,int);
+	void ray_cast_io_ycorr(lexer*, ghostcell*,int,int);
+    void ray_cast_x(lexer*, ghostcell*,int,int);
+	void ray_cast_y(lexer*, ghostcell*,int,int);
+    void reini(lexer*,ghostcell*,slice&);
+    void disc(lexer*,ghostcell*,slice&);
+    void time_preproc(lexer*);
+
+    double Hsolidface(lexer*, int,int);
+    void updateFSI(lexer*, ghostcell*);
+    void updatePosition(lexer*, ghostcell*);
+    void updateForcing_hemisphere(lexer*, ghostcell*);
+    void updateForcing_ship(lexer*, ghostcell*);
+
+    double phi, theta, psi;
+    double Uext, Vext, Wext, Pext, Qext, Rext;
     Eigen::Matrix3d quatRotMat;
+    int reiniter, tricount, n6DOF, printtime;
 
-    vector<mooring*> pmooring;
+    slice1 press_x;
+    slice2 press_y;
+    slice4 frk1,frk2,L,dt,fb;
+    
+    Eigen::Vector4d e_;
+    Eigen::Matrix<double, 3, 4> E_, G_;
+    Eigen::Matrix3d R_, Rinv_;
 
-	vector<double> Xme, Yme, Zme, Kme, Mme, Nme;    
-	vector<double> Xne, Yne, Zne, Kne, Mne, Nne;    
+    // Raycast
+    sliceint5 cutl,cutr,fbio;
+    double **tri_x,**tri_y,**tri_z,**tri_x0,**tri_y0,**tri_z0;
+    double xs,xe,ys,ye,zs,ze;
+    int entity_sum, count, rayiter;
+    int *tstart,*tend;
+    double epsifb;
+    const double epsi; 
+
 };
 
 #endif

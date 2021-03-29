@@ -39,8 +39,16 @@ void sixdof_sflow::ksource(lexer *p, fdm *a, ghostcell *pgc)
 
 void sixdof_sflow::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+	SLICELOOP1
+    {
+        b->F(i,j) += press_x(i,j);
+    }
 }
 
 void sixdof_sflow::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+	SLICELOOP2
+    {
+        b->G(i,j) += press_y(i,j);
+    }
 }

@@ -43,7 +43,7 @@ class sflow_filter;
 class sflow_turbulence;
 class sflow_sediment;
 class patchBC_interface;
-class sixdof;
+class sixdof_sflow;
 
 using namespace std;
 
@@ -88,7 +88,7 @@ private:
     
     patchBC_interface *pBC;
     
-    sixdof *p6dof;
+    sixdof_sflow *p6dof_sflow;
 	
 	double starttime, endtime;
 };
