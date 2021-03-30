@@ -27,10 +27,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"vrans.h"
    
 
-sixdof_sflow::sixdof_sflow(lexer *p, fdm2D *b, ghostcell *pgc):press_x(p),press_y(p),ddweno_f_nug(p),frk1(p),frk2(p),L(p),dt(p),fb(p),fbio(p),cutr(p),cutl(p),epsi(1.6*p->DXM)
+sixdof_sflow::sixdof_sflow(lexer *p, fdm2D *b, ghostcell *pgc):press(p),ddweno_f_nug(p),frk1(p),frk2(p),L(p),dt(p),fb(p),fbio(p),cutr(p),cutl(p),epsi(1.6*p->DXM)
 {
-    // Initialise
-    ini(p,b,pgc);
 }
 
 sixdof_sflow::~sixdof_sflow()
@@ -59,11 +57,28 @@ void sixdof_sflow::start
     p->xg += Uext*p->dt;
     p->yg += Vext*p->dt;
 
-    updateFSI(p,pgc);
-    updateForcing_hemisphere(p,pgc);
+    // Update position
+    updateFSI(p,b,pgc);
 
+    // Update pressure field
+    if (p->X400 == 1)
+    {
+        updateForcing_hemisphere(p,b,pgc);
+    }
+    else if (p->X400 == 2)
+    {
+        updateForcing_ship(p,b,pgc);
+    }
+
+    // Print
     print_parameter(p,pgc);
     print_stl(p,pgc);
-    
-    ++p->printcount_sixdof;
+
+/*
+SLICELOOP4
+{
+    b->test(i,j) = fb(i,j);
+}
+pgc->gcsl_start4(p,b->test,50);
+*/
 }

@@ -41,7 +41,7 @@ void sixdof_sflow::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
 	SLICELOOP1
     {
-        b->F(i,j) += press_x(i,j);
+        b->F(i,j) += 1.0/p->W1*(press(i+1,j) - press(i,j))/p->DXP[IP];
     }
 }
 
@@ -49,6 +49,6 @@ void sixdof_sflow::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
 	SLICELOOP2
     {
-        b->G(i,j) += press_y(i,j);
+        b->G(i,j) += 1.0/p->W1*(press(i,j+1) - press(i,j))/p->DYP[JP];
     }
 }

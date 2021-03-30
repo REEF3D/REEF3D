@@ -26,8 +26,6 @@ Author: Tobias Martin
 #include<iostream>
 #include <Eigen/Dense>
 #include"increment.h"
-#include"slice1.h"
-#include"slice2.h"
 #include"slice4.h"
 #include"sliceint5.h"
 #include"ddweno_f_nug.h"
@@ -67,6 +65,7 @@ public:
 private:
 	
     void cylinder(lexer*,fdm2D*,ghostcell*);
+    void box(lexer*,fdm2D*,ghostcell*);
     void ini_parameter(lexer*, fdm2D*, ghostcell*);
     void print_ini(lexer*, fdm2D*, ghostcell*);
     void print_parameter(lexer*,ghostcell*);
@@ -86,19 +85,17 @@ private:
     void time_preproc(lexer*);
 
     double Hsolidface(lexer*, int,int);
-    void updateFSI(lexer*, ghostcell*);
-    void updatePosition(lexer*, ghostcell*);
-    void updateForcing_hemisphere(lexer*, ghostcell*);
-    void updateForcing_ship(lexer*, ghostcell*);
+    void updateFSI(lexer*, fdm2D*, ghostcell*);
+    void updatePosition(lexer*, fdm2D*, ghostcell*);
+    void updateForcing_hemisphere(lexer*, fdm2D*, ghostcell*);
+    void updateForcing_ship(lexer*, fdm2D*, ghostcell*);
 
     double phi, theta, psi;
     double Uext, Vext, Wext, Pext, Qext, Rext;
     Eigen::Matrix3d quatRotMat;
     int reiniter, tricount, n6DOF, printtime;
 
-    slice1 press_x;
-    slice2 press_y;
-    slice4 frk1,frk2,L,dt,fb;
+    slice4 press,frk1,frk2,L,dt,fb;
     
     Eigen::Vector4d e_;
     Eigen::Matrix<double, 3, 4> E_, G_;

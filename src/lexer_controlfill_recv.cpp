@@ -1427,6 +1427,16 @@ void lexer::ctrlrecv()
 	dd++;
     X325_relZ = dctrl[dd];
 	dd++;
+	X400 = ictrl[ii];
+	ii++;
+	X401_p0 = dctrl[dd];
+    dd++;
+    X401_cl = dctrl[dd]; 
+    dd++;
+    X401_cb = dctrl[dd]; 
+    dd++;
+    X401_a = dctrl[dd]; 
+    dd++;
 	
 
     Y1 = ictrl[ii];

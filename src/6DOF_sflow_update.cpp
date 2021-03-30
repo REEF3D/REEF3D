@@ -24,13 +24,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm2D.h"
 #include"ghostcell.h"
 
-void sixdof_sflow::updateFSI(lexer *p, ghostcell* pgc)
+void sixdof_sflow::updateFSI(lexer *p, fdm2D *b, ghostcell* pgc)
 {
     // Update transformation matrix (Shivarama PhD thesis, p. 19)
     quat_matrices(e_);
 
     // Calculate new position
-    updatePosition(p, pgc);
+    updatePosition(p, b, pgc);
       
     // Global body variables
     //interface(p,false);    
@@ -38,7 +38,7 @@ void sixdof_sflow::updateFSI(lexer *p, ghostcell* pgc)
 }
 
 
-void sixdof_sflow::updatePosition(lexer *p, ghostcell *pgc)
+void sixdof_sflow::updatePosition(lexer *p, fdm2D *b, ghostcell *pgc)
 {
 	// Calculate Euler angles from quaternion
 	
@@ -78,7 +78,7 @@ void sixdof_sflow::updatePosition(lexer *p, ghostcell *pgc)
             Eigen::Vector3d point(tri_x0[n][q], tri_y0[n][q], tri_z0[n][q]);
 					
             point = R_*point;
-        
+
             tri_x[n][q] = point(0) + p->xg;
             tri_y[n][q] = point(1) + p->yg;
             tri_z[n][q] = point(2) + p->zg;
@@ -92,88 +92,61 @@ void sixdof_sflow::updatePosition(lexer *p, ghostcell *pgc)
 }
 
 
-void sixdof_sflow::updateForcing_hemisphere(lexer *p, ghostcell *pgc)
+void sixdof_sflow::updateForcing_hemisphere(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    // Calculate hemisphere forcing fields
+    // Calculate hemisphere pressure field
     double H, press0, r, xpos, ypos, dist;
 
-    press0 = 300.0;
-    r = 40.0;
-
-	SLICELOOP1
+    press0 = p->X401_p0;
+    r = p->X133_rad;
+   
+    SLICELOOP4
     {
-        xpos = p->pos1_x() - p->xg;
-        ypos = p->pos1_y() - p->yg;
+        xpos = p->pos_x() - p->xg;
+        ypos = p->pos_y() - p->yg;
         dist = xpos*xpos + ypos*ypos;
-
-        H = Hsolidface(p,1,0);
+        H = Hsolidface(p,0,0);
        
         if (dist < r*r)
         {
-            press_x(i,j) = -xpos*press0/(r*r*sqrt(1.0 - dist/(r*r))*p->W1);
+            press(i,j) = -H*press0*sqrt(1.0 - dist/(r*r));
         }
         else
         {
-            press_x(i,j) = 0.0;
+            press(i,j) = 0.0;
         }
     }
-    
-	SLICELOOP2
-    {
-        xpos = p->pos2_x() - p->xg;
-        ypos = p->pos2_y() - p->yg;
-        dist = xpos*xpos + ypos*ypos;
-
-        H = Hsolidface(p,0,1);
-       
-        if (dist < r*r)
-        {
-            press_y(i,j) = -ypos*press0/(r*r*sqrt(1.0 - dist/(r*r))*p->W1);
-        }
-        else
-        {
-            press_y(i,j) = 0.0;
-        }
-    }
-	
-    pgc->gcsl_start1(p,press_x,10);
-    pgc->gcsl_start2(p,press_y,11);
+    pgc->gcsl_start4(p,press,50);
 };
 
-
-void sixdof_sflow::updateForcing_ship(lexer *p, ghostcell *pgc)
+void sixdof_sflow::updateForcing_ship(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    // Calculate hemisphere forcing fields
+    // Calculate ship-like pressure field
     double H, press0, xpos, ypos, Ls, Bs, as, cl, cb;
 
-    press0 = 30.0;
-    as = 16.0; 
-    cl = 2.0;
-    cb = 16.0;
+    press0 = p->X401_p0;
+    as = p->X401_a; 
+    cl = p->X401_cl;
+    cb = p->X401_cb;
 
-    Ls = 100.0;
-    Bs = 20.0;
+    Ls = p->X110_xe[0] - p->X110_xs[0];
+    Bs = p->X110_ye[0] - p->X110_ys[0];
 
-	SLICELOOP1
+	SLICELOOP4
     {
-        xpos = p->pos1_x();
-        ypos = p->pos1_y();
-        H = Hsolidface(p,1,0);
+        xpos = p->pos_x() - p->xg;
+        ypos = p->pos_y() - p->yg;
+        H = Hsolidface(p,0,0);
         
-        press_x(i,j) = -H*4.0*press0*cl/Ls*pow(xpos/Ls,3)*(1.0 - cb*pow(ypos/Bs,2))*exp(-as*ypos*ypos/(Bs*Bs));
+        if (xpos <= Ls/2.0 && xpos >= -Ls/2.0 && ypos <= Bs/2.0 && ypos >= -Bs/2.0)
+        {
+            press(i,j) = -H*press0*(1.0 - cl*pow(xpos/Ls,4))*(1.0 - cb*pow(ypos/Bs,2))*exp(-as*pow(ypos/Bs,2));
+        }
+        else
+        {
+            press(i,j) = 0.0;
+        }
     }
-    
-	SLICELOOP2
-    {
-        xpos = p->pos2_x();
-        ypos = p->pos2_y();
-        H = Hsolidface(p,0,1);
-        
-        press_y(i,j) = -H*2.0*press0*as/Bs*(1.0 - cl*pow(xpos/Ls,4))*(cb/as + 1.0 - cb*pow(ypos/Bs,2))*ypos/Bs*exp(-as*ypos*ypos/(Bs*Bs));
-    }
-	
-    pgc->gcsl_start1(p,press_x,10);
-    pgc->gcsl_start2(p,press_y,11);
 };
 
 

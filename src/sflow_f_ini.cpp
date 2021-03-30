@@ -33,6 +33,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_vtp.h"
 #include"sflow_vtp_bed.h"
 #include"sflow_sediment.h"
+#include"6DOF_sflow.h"
 
 void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 {
@@ -156,6 +157,10 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 
     //sediment ini
     psed->ini(p,b,pgc);
+
+    //6DOF ini
+    if(p->X10==3)
+    p6dof_sflow->ini(p,b,pgc);
 
     // print
 	print_debug(p,b,pgc);

@@ -1678,6 +1678,12 @@ void lexer::read_control()
 				case  325: control>>X325_dt>>X325_relX>>X325_relY>>X325_relZ;
                          clear(c,numint);
 						 break;
+				case  400: control>>X400;
+                         clear(c,numint);
+						 break;
+				case  401: control>>X401_p0>>X401_cl>>X401_cb>>X401_a;
+                         clear(c,numint);
+						 break;
 				}
 				break;
 				

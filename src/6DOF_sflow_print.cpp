@@ -32,8 +32,6 @@ void sixdof_sflow::print_ini(lexer *p, fdm2D *b, ghostcell *pgc)
 {
 	if(p->mpirank==0 && p->P14==1)
     {
-        cout<<"Initialise external pressure field"<<endl;     
-        
         mkdir("./REEF3D_SFLOW_6DOF_STL", 0777);
         mkdir("./REEF3D_SFLOW_6DOF", 0777);
     }

@@ -38,64 +38,37 @@ void sixdof_sflow::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     
     // Initialise folder structure
 	print_ini(p,b,pgc);
+    
+    // Initialise object 
+    if (p->X400 == 1)
+    {
+        cylinder(p,b,pgc);
+    }
+    else if (p->X400 == 2)
+    {
+        box(p,b,pgc);
+    }
+    else
+    {
+         cout<<"Missing object, define X 110 or X 133 according to X 401"<<endl;
+    }
 
-    // Initialise object and distance field
-    cylinder(p,b,pgc);
+    // Initialise position of bodies
+    iniPosition_RBM(p,b,pgc);
 
-    ray_cast(p,pgc);
+    // Initialise distance field
+	ray_cast(p,pgc);
     time_preproc(p); 
 	reini(p,pgc,fb);
 
-SLICELOOP1
+SLICELOOP4
 {
     b->test(i,j) = fb(i,j);
 }
 pgc->gcsl_start4(p,b->test,50);
-
-    // Initialise position of bodies
-    iniPosition_RBM(p,b,pgc);
-    
-	// Recalculate distances
-	ray_cast(p,pgc);
-	reini(p,pgc,fb);
     
     // Print initial body 
     print_stl(p,pgc);
-
-
-
-/*
-    // Ini pressure field ship
-	SLICELOOP1
-    {
-        xpos = p->pos1_x();
-        ypos = p->pos1_y();
-       
-        if (-Ls/2.0 <= xpos && xpos <= Ls/2.0 && -Bs/2.0 <= ypos && ypos <= Bs/2.0)
-        {
-            press_x(i,j) = -4.0*press0*cl/Ls*pow(xpos/Ls,3)*(1.0 - cb*pow(ypos/Bs,2))*exp(-as*ypos*ypos/(Bs*Bs));
-        }
-        else
-        {
-             press_x(i,j) = 0.0;
-        }
-    }
-    
-	SLICELOOP2
-    {
-        xpos = p->pos2_x();
-        ypos = p->pos2_y();
-       
-        if (-Ls/2.0 <= xpos && xpos <= Ls/2.0 && -Bs/2.0 <= ypos && ypos <= Bs/2.0)
-        {
-            press_y(i,j) = -2.0*press0*as/Bs*(1.0 - cl*pow(xpos/Ls,4))*(cb/as + 1.0 - cb*pow(ypos/Bs,2))*ypos/Bs*exp(-as*ypos*ypos/(Bs*Bs));
-        }
-        else
-        {
-             press_y(i,j) = 0.0;
-        }
-    }
-    */
 }
 
 
@@ -126,20 +99,9 @@ void sixdof_sflow::ini_parameter(lexer *p, fdm2D *b, ghostcell *pgc)
     // Position
     p->ufbi=p->vfbi=p->wfbi=0.0;
 	p->pfbi=p->qfbi=p->rfbi=0.0;
-    p->xg=p->yg=p->zg=0.0;
     phi = theta = psi = 0.0;
     quatRotMat << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0;
-	
-    // Printing
-    printtime = 0.0;
-    p->printcount_sixdof = 0;
-
-    n6DOF = 0;
-}
-
-void sixdof_sflow::iniPosition_RBM(lexer *p, fdm2D *b, ghostcell *pgc)
-{
-    // Initial position
+    
     if(p->X23==1)
     {
         p->xg = p->X23_x; 
@@ -151,6 +113,16 @@ void sixdof_sflow::iniPosition_RBM(lexer *p, fdm2D *b, ghostcell *pgc)
          cout<<"Please provide centre of floating body using X 23!"<<endl;
     }
 
+	
+    // Printing
+    printtime = 0.0;
+    p->printcount_sixdof = 0;
+
+    n6DOF = 0;
+}
+
+void sixdof_sflow::iniPosition_RBM(lexer *p, fdm2D *b, ghostcell *pgc)
+{
     // Store initial position of triangles
 	for(n=0; n<tricount; ++n)
 	{
@@ -205,12 +177,12 @@ void sixdof_sflow::cylinder(lexer *p, fdm2D *b, ghostcell *pgc)
 	double xm,ym,zm,z1,z2,r;
 	int snum, trisum;
 	
-	xm = p->xg;
-	ym = p->yg;
-    zm = p->phimean;
-	z1 = zm - 1.0;
-	z2 = zm + 1.0;
-    r = 40.0;
+	xm = p->X133_xc;
+	ym = p->X133_yc;
+    zm = p->X133_zc;
+	z1 = zm - 0.5*p->X133_h;
+	z2 = zm + 0.5*p->X133_h;
+    r = p->X133_rad;
 
     // Prepare fields
     U = 2.0 * PI * r;
@@ -290,4 +262,202 @@ void sixdof_sflow::cylinder(lexer *p, fdm2D *b, ghostcell *pgc)
             
         angle+=ds;
 	}
+}
+
+void sixdof_sflow::box(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    // Prepare fields
+    int trisum=12*p->X110;
+    p->Darray(tri_x,trisum,3);
+	p->Darray(tri_y,trisum,3);
+	p->Darray(tri_z,trisum,3);
+    p->Darray(tri_x0,trisum,3);
+	p->Darray(tri_y0,trisum,3);
+	p->Darray(tri_z0,trisum,3);    	
+
+    tricount = 0;
+
+    xs = p->X110_xs[0];
+    xe = p->X110_xe[0];
+	
+    ys = p->X110_ys[0];
+    ye = p->X110_ye[0];
+
+    zs = p->X110_zs[0];
+    ze = p->X110_ze[0];    
+	
+	// Face 3
+	// Tri 1
+	
+	tri_x[tricount][0] = xs;
+	tri_x[tricount][1] = xe;
+	tri_x[tricount][2] = xe;
+
+	tri_y[tricount][0] = ys;
+	tri_y[tricount][1] = ys;
+	tri_y[tricount][2] = ys;
+
+	tri_z[tricount][0] = zs;
+	tri_z[tricount][1] = zs;
+	tri_z[tricount][2] = ze;
+	++tricount;
+
+	// Tri 2
+	tri_x[tricount][0] = xe;
+	tri_x[tricount][1] = xs;
+	tri_x[tricount][2] = xs;
+
+	tri_y[tricount][0] = ys;
+	tri_y[tricount][1] = ys;
+	tri_y[tricount][2] = ys;
+
+	tri_z[tricount][0] = ze;
+	tri_z[tricount][1] = ze;
+	tri_z[tricount][2] = zs;
+	++tricount;
+
+	// Face 4
+	// Tri 3
+	tri_x[tricount][0] = xe;
+	tri_x[tricount][1] = xe;
+	tri_x[tricount][2] = xe;
+
+	tri_y[tricount][0] = ye;
+	tri_y[tricount][1] = ys;
+	tri_y[tricount][2] = ys;
+
+	tri_z[tricount][0] = ze;
+	tri_z[tricount][1] = ze;
+	tri_z[tricount][2] = zs;
+	++tricount;
+
+	// Tri 4
+	tri_x[tricount][0] = xe;
+	tri_x[tricount][1] = xe;
+	tri_x[tricount][2] = xe;
+
+	tri_y[tricount][0] = ye;
+	tri_y[tricount][1] = ye;
+	tri_y[tricount][2] = ys;
+
+	tri_z[tricount][0] = zs;
+	tri_z[tricount][1] = ze;
+	tri_z[tricount][2] = zs;
+	++tricount;
+
+	// Face 1
+	// Tri 5
+	tri_x[tricount][0] = xs;
+	tri_x[tricount][1] = xs;
+	tri_x[tricount][2] = xs;
+
+	tri_y[tricount][0] = ye;
+	tri_y[tricount][1] = ye;
+	tri_y[tricount][2] = ys;
+
+	tri_z[tricount][0] = ze;
+	tri_z[tricount][1] = zs;
+	tri_z[tricount][2] = zs;
+	++tricount;
+
+	// Tri 6
+	tri_x[tricount][0] = xs;
+	tri_x[tricount][1] = xs;
+	tri_x[tricount][2] = xs;
+
+	tri_y[tricount][0] = ys;
+	tri_y[tricount][1] = ye;
+	tri_y[tricount][2] = ys;
+
+	tri_z[tricount][0] = ze;
+	tri_z[tricount][1] = ze;
+	tri_z[tricount][2] = zs;
+	++tricount;
+	
+	// Face 2
+	// Tri 7
+	tri_x[tricount][0] = xe;
+	tri_x[tricount][1] = xe;
+	tri_x[tricount][2] = xs;
+
+	tri_y[tricount][0] = ye;
+	tri_y[tricount][1] = ye;
+	tri_y[tricount][2] = ye;
+
+	tri_z[tricount][0] = ze;
+	tri_z[tricount][1] = zs;
+	tri_z[tricount][2] = zs;
+	++tricount;
+
+	// Tri 8
+	tri_x[tricount][0] = xs;
+	tri_x[tricount][1] = xe;
+	tri_x[tricount][2] = xs;
+
+	tri_y[tricount][0] = ye;
+	tri_y[tricount][1] = ye;
+	tri_y[tricount][2] = ye;
+
+	tri_z[tricount][0] = ze;
+	tri_z[tricount][1] = ze;
+	tri_z[tricount][2] = zs;
+	++tricount;
+
+	// Face 5
+	// Tri 9
+	tri_x[tricount][0] = xe;
+	tri_x[tricount][1] = xe;
+	tri_x[tricount][2] = xs;
+
+	tri_y[tricount][0] = ye;
+	tri_y[tricount][1] = ys;
+	tri_y[tricount][2] = ys;
+
+	tri_z[tricount][0] = zs;
+	tri_z[tricount][1] = zs;
+	tri_z[tricount][2] = zs;
+	++tricount;
+
+	// Tri 10
+	tri_x[tricount][0] = xs;
+	tri_x[tricount][1] = xe;
+	tri_x[tricount][2] = xs;
+
+	tri_y[tricount][0] = ye;
+	tri_y[tricount][1] = ye;
+	tri_y[tricount][2] = ys;
+
+	tri_z[tricount][0] = zs;
+	tri_z[tricount][1] = zs;
+	tri_z[tricount][2] = zs;
+	++tricount;
+
+	// Face 6
+	// Tri 11
+	tri_x[tricount][0] = xs;
+	tri_x[tricount][1] = xe;
+	tri_x[tricount][2] = xe;
+
+	tri_y[tricount][0] = ys;
+	tri_y[tricount][1] = ys;
+	tri_y[tricount][2] = ye;
+
+	tri_z[tricount][0] = ze;
+	tri_z[tricount][1] = ze;
+	tri_z[tricount][2] = ze;
+	++tricount;
+
+	// Tri 12
+	tri_x[tricount][0] = xs;
+	tri_x[tricount][1] = xe;
+	tri_x[tricount][2] = xs;
+
+	tri_y[tricount][0] = ys;
+	tri_y[tricount][1] = ye;
+	tri_y[tricount][2] = ye;
+
+	tri_z[tricount][0] = ze;
+	tri_z[tricount][1] = ze;
+	tri_z[tricount][2] = ze;
+	++tricount;
 }

@@ -591,7 +591,9 @@ public:
     double X323_m,X323_d,X323_l;
     double *X324_x,*X324_y,*X324_z;
     double X325_dt,X325_relX,X325_relY,X325_relZ;
-	
+    int X400;
+    double X401_p0,X401_cl,X401_cb,X401_a;
+
 	int cctt;
 	
 	int pressval;

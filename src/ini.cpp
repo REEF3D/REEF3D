@@ -661,6 +661,11 @@ void lexer::ini_default()
     X323_m=X323_d=X323_l=0.0;   // double dynamic net sinker properties
     X325_dt=0.001;   // double dynamic net time step
 	X325_relX=X325_relY=X325_relZ=0.01; // double dynamic net relaxation factors
+	X400=0;         // sflow external pressure term
+    X401_p0=0.0;    // sflow external pressure term p0
+    X401_cl=2.0;    // sflow external pressure term cl
+    X401_cb=16.0;   // sflow external pressure term cb
+    X401_a=16.0;    // sflow external pressure term a
 
 	// Developer 
 	Y1=0;   // int turn on/off experimental screen force model
