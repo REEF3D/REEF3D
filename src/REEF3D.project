@@ -1405,7 +1405,6 @@
         <VirtualDirectory Name="6DOF SFLOW">
           <File Name="6DOF_sflow_velsource.cpp"/>
           <File Name="6DOF_sflow_update.cpp"/>
-          <File Name="6DOF_sflow_position.cpp"/>
           <File Name="6DOF_sflow_initialize.cpp"/>
           <File Name="6DOF_sflow.cpp"/>
         </VirtualDirectory>
