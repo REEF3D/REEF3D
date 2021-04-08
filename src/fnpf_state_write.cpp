@@ -120,7 +120,7 @@ void fnpf_state::write(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     result.write((char*)&ffn, sizeof (float));
     } 
     
-    if(p->P44==2)
+    if(p->P44==1)
     FLOOP
     {
     ffn=float(c->Fi[FIJK]);

@@ -93,7 +93,7 @@ void fnpf_ini::restart(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     FLOOP
     result.read((char*)&ffn, sizeof (float));
     
-    if(p->P44==2)
+    if(p->I44==1)
     FLOOP
     result.read((char*)&ffn, sizeof (float));
 
