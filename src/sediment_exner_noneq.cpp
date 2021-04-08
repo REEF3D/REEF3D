@@ -24,19 +24,56 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sediment_exner::non_equillibrium_ini(lexer* p,fdm* a, ghostcell *pgc)
-{
-    
-}
-
 void sediment_exner::non_equillibrium_solve(lexer* p,fdm* a, ghostcell *pgc)
 {
-    SLICELOOP4
-    a->bedload(i,j) -= p->dtsed*(0.5*(a->P(i,j)+a->P(i+1,j))*dqx0(i,j) + 0.5*(a->Q(i,j)+a->Q(i,j+1))*dqy0(i,j));
+    //SLICELOOP4
+    //a->bedload(i,j) -= p->dtsed*(0.5*(a->P(i,j)+a->P(i+1,j))*dqx0(i,j) + 0.5*(a->Q(i,j)+a->Q(i,j+1))*dqy0(i,j));
+    double rhosed=p->S22;
+    double rhowat=p->W1;
+    double g=9.81;
+    double d50=p->S20;
+    double visc=p->W2;
+    double kappa=0.4;
+    double ks=p->S21*d50;
+    double Rstar=(rhosed-rhowat)/rhowat;
+    double Ds= d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
+    double Ti;
     
-    ALOOP
+    SLICELOOP4
     {
-    a->test(i,j,k) = p->dtsed*(a->P(i,j)*dqx0(i,j) + a->Q(i,j)*dqy0(i,j));
+        taubed(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
+        taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
+
+        Ti=MAX((shearvel_eff*shearvel_eff-shearvel_crit*shearvel_crit)/(shearvel_crit*shearvel_crit),0.0);
+        
+    Ls = 3.0*d50*pow(Ds,0.6)*pow(Ti,0.9);
+    
+    
+    Ls = 4000.0*MAX(shields_eff-shields_crit, 0.0)*d50;
+    
+    Ls = p->dtsed/p->DXM*sqrt(pow(0.5*(a->P(i,j)+a->P(i+1,j)),2.0) +  pow(0.5*(a->Q(i,j)+a->Q(i,j+1)),2.0));
+    
+    //cout<<Ls<<endl;
+
+    a->bedload(i,j) += Ls*(dqx0(i,j) + dqy0(i,j));
+    }
+    
+    SLICELOOP4
+    {
+        taubed(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
+        taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
+
+        Ti=MAX((shearvel_eff*shearvel_eff-shearvel_crit*shearvel_crit)/(shearvel_crit*shearvel_crit),0.0);
+        
+    Ls = 3.0*d50*pow(Ds,0.6)*pow(Ti,0.9);
+    
+    Ls = 4000.0*MAX(shields_eff-shields_crit, 0.0)*d50;
+    
+    Ls = p->dtsed/p->DXM*sqrt(pow(0.5*(a->P(i,j)+a->P(i+1,j)),2.0) +  pow(0.5*(a->Q(i,j)+a->Q(i,j+1)),2.0));
+    
+    
+    KLOOP
+    a->test(i,j,k) = Ls*(dqx0(i,j) + dqy0(i,j));
     }
     pgc->start4a(p,a->test,1);
     

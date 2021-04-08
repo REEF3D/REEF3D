@@ -379,6 +379,7 @@ void lexer::ini_default()
 	I30=0;			// int Fully intialize NWT
 	I40=0;			// int ini from state file
 	I41=0;			// int ID of state file
+    I44=1;          // int FNPF state with Fi
     I55=0.0;        // double reference pressure
 	I56=0;          // int pressure above F56 set to zero
 	I58_1=0.0;      // double vertical velocity for sphere initialization
@@ -398,9 +399,8 @@ void lexer::ini_default()
     N21=0;         // int PFMG skip relax
     N22=3;         // int PFMG relax type
     N23=0;         // int PFMG RAP type
-	N40=1;			// int time scheme
+	N40=3;			// int time scheme
 	N41=1.0e+19; 	// double total time
-	N42=3;			// int RK3 scheme
 	N43=1.0e-6;     // double stopping criteria convection-diffusion
 	N44=1.0e-8;     // double stopping criteria pressure
 	N45=1e8;		// max outer iter
@@ -436,6 +436,7 @@ void lexer::ini_default()
 	P41=-10;			// int print state file each ith iteration
 	P42=-1.0;			// double print state file each ith sec
     P43=0;             // int state print out selected area
+    P44=0;             // print out 3D potential for FNPF
     P50=0;				// int wave theory wave gages
 	P51=0;             // int print out wsf
 	P52=0;            // int print out wsfline in x-dir

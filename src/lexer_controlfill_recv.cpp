@@ -728,6 +728,8 @@ void lexer::ctrlrecv()
 	ii++;
 	I41 = ictrl[ii];
 	ii++;
+    I44 = ictrl[ii];
+	ii++;
     I55 = dctrl[dd];
 	dd++;
     I56 = ictrl[ii];
@@ -770,8 +772,6 @@ void lexer::ctrlrecv()
     ii++;
     N41 = dctrl[dd];
     dd++;
-	N42 = ictrl[ii];
-    ii++;
 	N43 = dctrl[dd];
     dd++;
     N44 = dctrl[dd];
@@ -842,6 +842,8 @@ void lexer::ctrlrecv()
 	dd++;
     P43_ye = dctrl[dd];
 	dd++;
+    P44 = ictrl[ii];
+	ii++;
     P50 = ictrl[ii];
 	ii++;
 	P51 = ictrl[ii];

@@ -236,7 +236,6 @@ void fnpf_RK3::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, sol
     
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
 
-
     pf->coastline_eta(p,c,pgc,c->eta);
     pf->coastline_fi(p,c,pgc,c->Fifsf);
     
@@ -249,6 +248,30 @@ void fnpf_RK3::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, sol
     
     pgc->gcsl_start4(p,c->eta,gcval_eta);
     pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
+    
+    
+
+    if(p->I40==1)
+    {
+    restart(p,c,pgc);
+    
+    
+    sigma_update(p,c,pgc,pf,c->eta);
+    
+  
+    for(int qn=0;qn<0;++qn)
+    {
+    fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
+    bedbc_sig(p,c,pgc,c->Fi,pf);
+    
+    // solve Fi
+    pgc->start7V(p,c->Fi,c->bc,gcval);
+    plap->start(p,c,pgc,psolv,pf,c->Fi);
+    pflow->fivec_relax(p,pgc,c->Fi);
+    pgc->start7V(p,c->Fi,c->bc,gcval);
+    pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
+    }
+    }
 }
 
 void fnpf_RK3::ini_wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc)

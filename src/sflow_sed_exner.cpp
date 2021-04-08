@@ -47,12 +47,6 @@ void sflow_sediment_f::exner(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice
 		signx=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
 		signy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
 	
-		
-	dqx=dqy=0.0;
-    /*
-    dqx = (b->qb(i+1,j)-b->qb(i-1,j))/(2.0*p->DXM);
-    dqy = (b->qb(i,j+1)-b->qb(i,j-1))/(2.0*p->DXM);*/
-
 
     dqx = pdx->sx(p,b->qb,signx);
     dqy = pdx->sy(p,b->qb,signy);
@@ -61,7 +55,6 @@ void sflow_sediment_f::exner(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice
     topovel(i,j) =  -rf(p,b,pgc)*(1.0/(1.0-p->S24))*(dqx*signx + dqy*signy); 
     b->test(i,j) = topovel(i,j);
 	}
-    
     
     
     // timestep

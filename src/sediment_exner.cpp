@@ -30,8 +30,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sediment_cds.h"
 #include"sediment_wenoflux.h"
 #include"sediment_weno_hj.h"
+#include<math.h>
 
-sediment_exner::sediment_exner(lexer* p, fdm *a, ghostcell* pgc, turbulence *pturb) : dh(p), q0(p),dqx0(p),dqy0(p)
+sediment_exner::sediment_exner(lexer* p, fdm *a, ghostcell* pgc, turbulence *pturb) :  bedshear(p,pturb),dh(p), q0(p),dqx0(p),dqy0(p)
 {
 	if(p->S50==1)
 	gcval_topo=151;
@@ -51,7 +52,7 @@ sediment_exner::sediment_exner(lexer* p, fdm *a, ghostcell* pgc, turbulence *ptu
     g=9.81;
     d50=p->S20;
     ws=1.1*(rhosed/rhowat-1.0)*g*d50*d50;
-    Ls = 3.5;
+    Ls = p->S20;
     
     
     pcb = new bedconc(p, pturb);

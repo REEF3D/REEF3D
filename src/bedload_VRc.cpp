@@ -19,12 +19,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"bedload_VR.h"
+#include"bedload_VRc.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-bedload_VR::bedload_VR(lexer *p, turbulence *pturb) : bedshear(p,pturb), bedload_noneq(p), epsi(1.6*p->DXM)
+bedload_VRc::bedload_VRc(lexer *p, turbulence *pturb) : bedshear(p,pturb), bedload_noneq(p), epsi(1.6*p->DXM)
 {
     rhosed=p->S22;
     rhowat=p->W1;
@@ -37,28 +37,30 @@ bedload_VR::bedload_VR(lexer *p, turbulence *pturb) : bedshear(p,pturb), bedload
     Ds= d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
 }
 
-bedload_VR::~bedload_VR()
+bedload_VRc::~bedload_VRc()
 {
 }
 
-void bedload_VR::start(lexer* p, fdm* a, ghostcell* pgc)
+void bedload_VRc::start(lexer* p, fdm* a, ghostcell* pgc)
 {
     double Ti,r;
-	double qb;
-    
+	double qb,u_abs,uvel,vvel;
+
     // noneq ini
 	
 	SLICELOOP4
     {
-
+        uvel=0.5*(a->P(i,j) + a->P(i+1,j));
+        vvel=0.5*(a->Q(i,j) + a->Q(i,j+1));
+        u_abs = sqrt(uvel*uvel + vvel*vvel);
+        
         taubed(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
         taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
 
-        //Ti=MAX((shearvel_eff*shearvel_eff-shearvel_crit*shearvel_crit)/(shearvel_crit*shearvel_crit),0.0);
         Ti=MAX((shields_eff-shields_crit)/(shields_crit),0.0);
-        
+
         if(shearvel_eff>shearvel_crit)
-        qb =(0.053*pow(d50,1.5)*sqrt(g*Rstar)*pow(Ti,2.1))/pow(Ds,0.3)  ;
+        qb = 0.015*d50*pow(Ti,1.5)/pow(Ds,0.3)*0.5*(p->DXN[IP]+p->DXN[JP])*u_abs;
 
         if(shearvel_eff<=shearvel_crit)
         qb=0.0;
@@ -69,7 +71,12 @@ void bedload_VR::start(lexer* p, fdm* a, ghostcell* pgc)
     
     pgc->gcsl_start4a(p,a->bedload,1);    
     
-
+    
+    // non-eq calc
+    
+    
+    
+    
     /*slice4 tt(p);
     
     SLICELOOP4

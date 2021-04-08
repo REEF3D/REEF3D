@@ -255,10 +255,10 @@ void probe_line::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 			U[n][q] = p->ccipol1(a->u, xp, yp, zp);
 			V[n][q] = p->ccipol2(a->v, xp, yp, zp);
 			W[n][q] = p->ccipol3(a->w, xp, yp, zp);
-			P[n][q] = p->ccipol4(a->press, xp, yp, zp);
+			P[n][q] = p->ccipol4_a(a->press, xp, yp, zp);
 			K[n][q] = pturb->ccipol_kinval(p, pgc, xp, yp, zp);
 			E[n][q] = pturb->ccipol_epsval(p, pgc, xp, yp, zp);
-			VT[n][q] = p->ccipol4(a->eddyv, xp, yp, zp);
+			VT[n][q] = p->ccipol4_a(a->eddyv, xp, yp, zp);
 			LS[n][q] = p->ccipol4(a->phi, xp, yp, zp);
 			}
 			

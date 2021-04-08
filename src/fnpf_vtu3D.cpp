@@ -103,14 +103,12 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
   
 		// Print out based on iteration
         if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)
-      //if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P35<0.0 && p->P10==1 && p->P20>0)
 		{
         print_vtu(p,c,pgc);
 		}
 		
 		// Print out based on time
         if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==1) || (p->count==0 &&  p->P30>0.0))
-      //if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P35<0.0 && p->P10==1) || (p->count==0 &&  p->P30>0.0))
         {
         print_vtu(p,c,pgc);
 		
@@ -239,10 +237,6 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	
 	// scalars
 	
-		// pressure
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
-	++n;
-    
     // Fi
 	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
 	++n;
@@ -281,9 +275,6 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	
-	
-    result<<"<DataArray type=\"Float32\" Name=\"pressure\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
     
     if(p->A10==3)
 	{
@@ -349,21 +340,6 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&ffn, sizeof (float));
 	}
 
-	
-//  Pressure
-	iin=4*(p->pointnum+p->ccptnum);
-	result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(p->ipol4press(c->press));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-	for(n=0;n<p->ccptnum;++n)
-	{
-	ffn=float(0.0);//float(p->ccipol4press(a,c->press,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
-	result.write((char*)&ffn, sizeof (float));
-	}
     
 //  Fi
     iin=4*(p->pointnum+p->ccptnum);

@@ -88,7 +88,6 @@ void fnpf_vtu3D::pvtu(lexer *p, ghostcell* pgc)
 	
 	result<<"<PPointData>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"Fi\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
     if(p->P25==1)

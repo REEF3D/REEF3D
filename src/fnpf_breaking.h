@@ -20,26 +20,47 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sediment_f.h"
-#include"sediment_void.h"
+#include"fnpf_fsf.h"
+#include"sliceint4.h"
 
-#include"bedload_VR.h"
-#include"bedload_VRc.h"
-#include"bedload_einstein.h"
-#include"bedload_MPM.h"
-#include"bedload_EF.h"
-#include"bedload_void.h"
+class fnpf_laplace;
+class field;
+class fnpf_convection;
+class fnpf_ddx;
+class fnpf_etadisc;
+class fnpf_coastline;
+class solver2D;
 
-#include"topo_void.h"
-#include"sediment_exner.h"
+using namespace std;
 
-#include"reinitopo_AB2.h"
-#include"reinitopo_RK3.h"
-#include"reinitopo_void.h"
+#ifndef FNPF_BREAKING_H_
+#define FNPF_BREAKING_H_
 
-#include"suspended_void.h"
-#include"suspended_AB.h"
-#include"suspended_RK2.h"
-#include"suspended_RK3.h"
-#include"suspended_IM1.h"
-#include"suspended_IM2.h"
+class fnpf_breaking : public fnpf_fsf, public increment 
+{
+public:
+	fnpf_breaking(lexer*, fdm_fnpf*, ghostcell*);
+	virtual ~fnpf_breaking();
+    
+    virtual void breaking_algorithm(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
+
+    
+    
+    void filter(lexer*, fdm_fnpf*,ghostcell*, slice&);
+
+    double ivel,jvel,kvel;
+    
+private:
+    double rb3(lexer*,double);
+    double rb4(lexer*,double);
+    
+    double dist3,dist4,db;
+    
+    double visc;
+    
+    sliceint4 bx,by;
+    int count_n;
+    
+};
+
+#endif

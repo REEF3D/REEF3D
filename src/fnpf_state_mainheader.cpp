@@ -54,6 +54,9 @@ void fnpf_state::mainheader_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     iin=p->gknoz+1;
     mainout.write((char*)&iin, sizeof (int));
     
+    iin=file_version;
+    headout.write((char*)&iin, sizeof (int));
+    
     mainout.close();
 }
 

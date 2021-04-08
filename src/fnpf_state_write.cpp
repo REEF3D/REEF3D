@@ -59,11 +59,46 @@ void fnpf_state::write(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 	 
 	ofstream result;
 	result.open(name, ios::binary);
-
     
+     
+    // head section
+    iin=file_version;
+    result.write((char*)&iin, sizeof (int));
+    
+    iin=p->count;
+    result.write((char*)&iin, sizeof (int));
+	
+	iin=p->printcount;
+    result.write((char*)&iin, sizeof (int));
+	
+	ddn=p->simtime;
+    result.write((char*)&ddn, sizeof (double));
+    
+    ddn=p->printtime;
+    result.write((char*)&ddn, sizeof (double));
+    
+    ddn=p->sedprinttime;
+    result.write((char*)&ddn, sizeof (double));
+    
+    ddn=p->fsfprinttime;
+    result.write((char*)&ddn, sizeof (double));
+    
+    ddn=p->probeprinttime;
+    result.write((char*)&ddn, sizeof (double));
+    
+    ddn=p->stateprinttime;
+    result.write((char*)&ddn, sizeof (double)); 
+    
+    // result section
     SLICELOOP4
     {
     ffn=float(c->eta(i,j));
+    result.write((char*)&ffn, sizeof (float));
+    } 
+    
+    SLICELOOP4
+    {
+    ffn=float(c->Fifsf(i,j));
     result.write((char*)&ffn, sizeof (float));
     } 
     
@@ -82,6 +117,13 @@ void fnpf_state::write(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 	FLOOP
     {
     ffn=float(c->W[FIJK]);
+    result.write((char*)&ffn, sizeof (float));
+    } 
+    
+    if(p->P44==2)
+    FLOOP
+    {
+    ffn=float(c->Fi[FIJK]);
     result.write((char*)&ffn, sizeof (float));
     } 
 	
