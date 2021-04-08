@@ -92,6 +92,8 @@ double wave_lib_reconstruct::wave_fi(lexer *p, double x, double y, double z)
 {
     double fi;
     
+    fi = ppwave->wave_fi(p,x,y,z);
+    
     return fi;
 }
 

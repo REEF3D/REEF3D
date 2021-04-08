@@ -243,13 +243,17 @@ double wave_lib_irregular_2nd_a::wave_C(double w1, double w2, double k1, double 
 
 double wave_lib_irregular_2nd_a::wave_D(double w1, double w2, double k1, double k2)
 {
-    double D,a1,a2;
+    double D,a1,a2,denom;
 
     a1 = 1.0/tanh(k1*wd);
     a2 = 1.0/tanh(k2*wd);
     
+    denom = (pow(w1,2.0)*(pow(a1,2.0)-1.0) - 2.0*w1*w2*(a1*a2+1.0) + pow(w2,2.0)*(pow(a2,2.0)-1.0));
+    
+    denom = fabs(denom)>1.0e-20?denom:1.0e20;
+    
     D = ((2.0*w1*w2*(w1+w2)*(a1*a2-1.0) + pow(w1,3.0)*(pow(a1,2.0)-1.0) + pow(w2,3.0)*(pow(a2,2.0)-1.0))*(w1+w2)*(a1*a2+1.0))
-        /(pow(w1,2.0)*(pow(a1,2.0)-1.0) - 2.0*w1*w2*(a1*a2+1.0) + pow(w2,2.0)*(pow(a2,2.0)-1.0))
+        /denom
         - (pow(w1,2.0)+pow(w2,2.0) + w1*w2*(a1*a2-1.0));
     
     return D;

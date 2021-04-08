@@ -69,6 +69,7 @@ void wave_lib_spectrum::recon_parameters(lexer *p, ghostcell *pgc)
     
 	ki[n] = 2.0*PI/Li[n];
 	}
+    
 }
 
 void wave_lib_spectrum::recon_read(lexer *p, ghostcell* pgc)
