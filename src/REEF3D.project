@@ -1237,6 +1237,8 @@
           <File Name="fnpf_laplace_cds2.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Initialize">
+          <File Name="fnpf_ini_restart_filename.cpp"/>
+          <File Name="fnpf_ini_restart.cpp"/>
           <File Name="fnpf_ini.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSFBC">

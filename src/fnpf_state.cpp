@@ -36,6 +36,11 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 	
 	printcount=0;
     
+    file_version=1;
+    
+    if(p->P44==1)
+    file_version=2;
+    
     ini_token=0;
     
     is_flag=ie_flag=js_flag=je_flag=0;
@@ -67,10 +72,6 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         je = p->posc_j(p->P43_ye);
         je_flag=1;
         }
-        
-        
-    
-        
     }
 }
 

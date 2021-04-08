@@ -177,6 +177,9 @@ void fnpf_RK2::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
 
 void fnpf_RK2::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, solver *psolv)
 {	
+    if(p->I40==1)
+    restart(p,c,pgc);
+    
     pgc->gcsl_start4(p,c->eta,gcval_eta);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     etaloc_sig(p,c,pgc);
