@@ -1403,6 +1403,10 @@
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
         <VirtualDirectory Name="6DOF SFLOW">
+          <File Name="6DOF_sflow_rotation.cpp"/>
+          <File Name="6DOF_sflow_reini.cpp"/>
+          <File Name="6DOF_sflow_ray.cpp"/>
+          <File Name="6DOF_sflow_print.cpp"/>
           <File Name="6DOF_sflow_velsource.cpp"/>
           <File Name="6DOF_sflow_update.cpp"/>
           <File Name="6DOF_sflow_initialize.cpp"/>
