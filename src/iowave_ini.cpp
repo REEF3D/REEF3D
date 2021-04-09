@@ -34,6 +34,9 @@ void iowave::ini(lexer *p, fdm* a, ghostcell* pgc)
     
     if(p->B89==1 && p->B98==2)
     wavegen_precalc_space(p,pgc);
+    
+    if(p->B89==1 && p->B98==3)
+    wavegen_precalc_space_dirichlet(p,pgc);
 
     wavegen_precalc(p,pgc);
     
@@ -70,6 +73,9 @@ void iowave::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     if(p->B89==1 && p->B98==2)
     wavegen_precalc_decomp_space_fnpf(p,pgc);
+    
+    if(p->B89==1 && p->B98==3)
+    wavegen_precalc_decomp_space_dirichlet_fnpf(p,pgc);
 
     wavegen_precalc(p,pgc);
 

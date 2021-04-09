@@ -2495,6 +2495,7 @@
           <File Name="ioflow_void.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="ioWave">
+          <File Name="iowave_precalc_decomp_space_dirichlet.cpp"/>
           <File Name="iowave_precalc_relax_func.cpp"/>
           <File Name="iowave_waterlevel.cpp"/>
           <File Name="iowave_velsource.cpp"/>
@@ -2546,6 +2547,7 @@
             <File Name="iowave_nhflow_active-beach.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="FNPF">
+            <File Name="iowave_fnpf_precalc_decomp_space_dirichlet.cpp"/>
             <File Name="iowave_fnpf_precalc_relax.cpp"/>
             <File Name="iowave_fnpf_precalc_ini.cpp"/>
             <File Name="iowave_fnpf_precalc_dirichlet.cpp"/>

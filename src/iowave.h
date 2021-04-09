@@ -76,6 +76,7 @@ public:
 	
     
     void wavegen_precalc_space(lexer*,ghostcell*);
+    void wavegen_precalc_space_dirichlet(lexer*,ghostcell*);
     void wavegen_precalc_time(lexer*,ghostcell*);
     void wavegen_precalc_decomp_relax(lexer*,ghostcell*);
     void wavegen_precalc_decomp_dirichlet(lexer*,ghostcell*);
@@ -172,6 +173,7 @@ public:
     void active_beach_fnpf(lexer*, fdm_fnpf*, ghostcell*, double*, double*, slice&, slice&);
     
     void wavegen_precalc_decomp_space_fnpf(lexer*,ghostcell*);
+    void wavegen_precalc_decomp_space_dirichlet_fnpf(lexer*,ghostcell*);
     void wavegen_precalc_decomp_time_fnpf(lexer*,ghostcell*);
     void wavegen_precalc_decomp_relax_fnpf(lexer*,ghostcell*);
     void wavegen_precalc_decomp_dirichlet_fnpf(lexer*,ghostcell*);

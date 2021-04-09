@@ -74,7 +74,10 @@ void iowave::wavegen_precalc(lexer *p, ghostcell *pgc)
             }
             
             if(p->B98==3 || p->B98==4)
+            {
+            wavegen_precalc_decomp_time_fnpf(p,pgc);
             wavegen_precalc_decomp_dirichlet_fnpf(p,pgc);
+            }
         }
     }
     

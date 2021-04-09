@@ -28,6 +28,29 @@ void iowave::wavegen_precalc_decomp_dirichlet(lexer *p, ghostcell *pgc)
     
 double fsfloc;
 int qn;
+
+        count=0;
+		for(n=0;n<p->gcin_count;n++)
+		{
+		i=p->gcin[n][0];
+		j=p->gcin[n][1];
+        
+        x=xgen(p);
+        y=ygen(p);
+        x1=xgen1(p);
+        y2=ygen2(p);
+        
+
+    // ETA
+        eta(i,j) = 0.0;
+        etaval[count] = 0.0;
+            
+            for(qn=0;qn<wave_comp;++qn)
+            {
+            eta(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
+            etaval[count] = eta(i,j);
+            }
+        }
     
         count=0;
 		for(n=0;n<p->gcin_count;n++)
@@ -42,16 +65,6 @@ int qn;
         y2=ygen2(p);
         
 
-    // ETA
-        eta(i,j) = 0.0;
-        etaval[count] = 0.0;
-            
-        for(qn=0;qn<wave_comp;++qn)
-        {
-        eta(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
-        etaval[count] = eta(i,j);
-        }
-            
             
         zloc3 = p->pos3_z();
         zloc4 = p->pos_z();

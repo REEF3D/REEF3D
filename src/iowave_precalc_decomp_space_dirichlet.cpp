@@ -23,21 +23,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"ghostcell.h"
 
-void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
+void iowave::wavegen_precalc_space_dirichlet(lexer *p, ghostcell *pgc)
 {
     double fsfloc;
     int qn;
 
     count=0;
-    SLICELOOP4
+    for(n=0;n<p->gcslin_count;n++)
     {
+    i=p->gcslin[n][0];
+    j=p->gcslin[n][1];
+    
         xg = xgen(p);
         yg = ygen(p);
 		dg = distgen(p);
 		db = distbeach(p);
 		
 		// Wave Generation
-        if(p->B98==2 && h_switch==1)
+        if(p->B98==3 && h_switch==1)
         {
             // Zone 1
             if(dg<1.0e20)
@@ -56,15 +59,20 @@ void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
 
 
     count=0;
-    ULOOP
+    for(n=0;n<p->gcslin_count;n++)
     {
-		xg = xgen1(p);
-        yg = ygen1(p);
-        dg = distgen(p);
-		db = distbeach(p);
+    i=p->gcslin[n][0];
+    j=p->gcslin[n][1];
+    
+    xg = xgen1(p);
+    yg = ygen1(p);
+    dg = distgen(p);
+    db = distbeach(p);
         
+        KLOOP
+        UCHECK
+        {
         zloc1 = p->pos1_z();
-
 
         if(zloc1<=p->phimean)
         z=-(fabs(p->phimean-zloc1));
@@ -76,7 +84,7 @@ void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
         z = 0.5*(eta(i,j)+eta(i+1,j));
 
 		// Wave Generation
-		if(p->B98==2 && u_switch==1)
+		if(p->B98==3 && u_switch==1)
         {
             // Zone 1
             if(dg<dist1)
@@ -89,16 +97,24 @@ void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
             ++count;
             }
 		}
+        }
     }
 
 
-    count=0;    
-    VLOOP
+    count=0;
+    for(n=0;n<p->gcslin_count;n++)
     {
-        xg = xgen2(p);
-        yg = ygen2(p);
-        dg = distgen(p);
-		db = distbeach(p);
+    i=p->gcslin[n][0];
+    j=p->gcslin[n][1];
+    
+    xg = xgen1(p);
+    yg = ygen1(p);
+    dg = distgen(p);
+    db = distbeach(p);
+        
+        KLOOP
+        VCHECK
+        {
         
         zloc2 = p->pos2_z();
 
@@ -113,7 +129,7 @@ void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
         z = 0.5*(eta(i,j)+eta(i,j+1));
         
 		// Wave Generation		
-		if(p->B98==2 && v_switch==1)
+		if(p->B98==3 && v_switch==1)
         {
             // Zone 1
             if(dg<dist1)
@@ -126,17 +142,26 @@ void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
             ++count;
             }
 		}
+        }
     }
 
 
     
     count=0;
-    WLOOP
+    count=0;
+    for(n=0;n<p->gcslin_count;n++)
     {
-        xg = xgen(p);
-        yg = ygen(p);
-        dg = distgen(p);
-		db = distbeach(p);
+    i=p->gcslin[n][0];
+    j=p->gcslin[n][1];
+    
+    xg = xgen1(p);
+    yg = ygen1(p);
+    dg = distgen(p);
+    db = distbeach(p);
+        
+        KWLOOP
+        WCHECK
+        {
         
         zloc3 = p->pos3_z();
 
@@ -150,7 +175,7 @@ void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
         z = eta(i,j);
         
 		// Wave Generation
-		if(p->B98==2 && w_switch==1)
+		if(p->B98==3 && w_switch==1)
         {
             // Zone 1
             if(dg<dist1)
@@ -163,20 +188,26 @@ void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
             ++count;
             }
 		}
+        }
     }	
 
 
     
     count=0;
     if(f_switch==1)
-    LOOP
+    for(n=0;n<p->gcslin_count;n++)
     {
-		
-        xg = xgen(p);
-        yg = ygen(p);
-        dg = distgen(p);
-		db = distbeach(p);
+    i=p->gcslin[n][0];
+    j=p->gcslin[n][1];
+    
+    xg = xgen1(p);
+    yg = ygen1(p);
+    dg = distgen(p);
+    db = distbeach(p);
         
+        KLOOP
+        PCHECK
+        {
         zloc4 = p->pos_z();
 
         if(zloc4<=p->phimean)
@@ -186,7 +217,7 @@ void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
         z=(fabs(p->phimean-zloc4));
 		
 		// Wave Generation
-		if(p->B98==2)
+		if(p->B98==3)
         {
             // Zone 1
             if(dg<dist1)
@@ -199,6 +230,7 @@ void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
             ++count;
             }
 		}
+        }
     }
 
 }
