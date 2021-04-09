@@ -30,6 +30,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_print_wsfline_y.h"
 #include"fnpf_vtp_fsf.h"
 #include"fnpf_vtp_bed.h"
+#include"fnpf_breaking_log.h"
 #include"potentialfile_out.h"
 #include"fnpf_state.h"
 #include<sys/stat.h>
@@ -86,6 +87,9 @@ fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
     
     if(p->P40>0)
 	pstate=new fnpf_state(p,c,pgc);
+    
+    if(p->P59==1)
+    pbreaklog=new fnpf_breaking_log(p,c,pgc);
 }
 
 fnpf_vtu3D::~fnpf_vtu3D()
@@ -183,6 +187,9 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     
     if((p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0))
     p->probeprinttime+=p->P55;
+    
+    if(p->P59==1)
+    pbreaklog->write(p,c,pgc);
 }
 
 void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)

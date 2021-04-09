@@ -17,45 +17,41 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_breaking_log.h"
-#include"lexer.h"
-#include"fdm_fnpf.h"
-#include"ghostcell.h"
-#include<iostream>
+#include"increment.h"
 #include<fstream>
-#include<sys/stat.h>
-#include<sys/types.h>
 
-fnpf_breaking_log::fnpf_breaking_log(lexer *p, fdm_fnpf *c, ghostcell *pgc)
-{	
-	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_FNPF_Breaking_Log",0777);
-	
-	// result file
-    filename(p,c,pgc);
-	 
-	
-	result.open(name);
-}
+class lexer;
+class fdm_fnpf;
+class ghostcell;
 
-fnpf_breaking_log::~fnpf_breaking_log()
+using namespace std;
+
+#ifndef FNPF_BREAKING_LOG_H_
+#define FNPF_BREAKING_LOG_H_
+
+class fnpf_breaking_log : public increment
 {
-    result.close();
-}
 
-void fnpf_breaking_log::write(lexer *p, fdm_fnpf *c, ghostcell *pgc)
-{
-    
-    // result section
-    SLICELOOP4
-    if(c->breaklog(i,j)>0)
-    {
-    result<<p->simtime<<" "<<p->XP[IP]<<" "<<p->YP[JP]<<endl;
-    cout<<p->simtime<<" "<<p->XP[IP]<<" "<<p->YP[JP]<<endl;
-    } 
+public:
+	fnpf_breaking_log(lexer*,fdm_fnpf*,ghostcell*);
+	virtual ~fnpf_breaking_log();
+	void write(lexer*,fdm_fnpf*,ghostcell*);
 
+	
+private:
+    void filename(lexer*,fdm_fnpf*,ghostcell*);
 
-}
+    char name[500];
+    float ffn;
+	int iin;
+	double ddn;
+	int printcount;
+    int ini_token;
+    int file_version;
+    ofstream result;
+};
+
+#endif

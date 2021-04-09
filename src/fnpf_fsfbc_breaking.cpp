@@ -388,6 +388,12 @@ void fnpf_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sli
          filter(p,c,pgc,Fifsf);
         }   
     }
+    
+    // breaklog
+    SLICELOOP4
+    if(c->breaking(i,j)>0)
+    c->breaklog(i,j)=1;
+    
 }
 
 void fnpf_fsfbc::filter(lexer *p, fdm_fnpf *c,ghostcell *pgc, slice &f)
