@@ -377,6 +377,15 @@ void fnpf_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
          filter(p,c,pgc,Fifsf);
         }   
     }
+    
+    
+    SLICELOOP4
+    c->breaklog(i,j)=0;
+    
+    // breaklog
+    SLICELOOP4
+    if(c->breaking(i,j)>0)
+    c->breaklog(i,j)=1;
 }
 
 void fnpf_fsfbc_wd::filter(lexer *p, fdm_fnpf *c,ghostcell *pgc, slice &f)

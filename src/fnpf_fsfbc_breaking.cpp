@@ -389,6 +389,9 @@ void fnpf_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sli
         }   
     }
     
+    SLICELOOP4
+    c->breaklog(i,j)=0;
+    
     // breaklog
     SLICELOOP4
     if(c->breaking(i,j)>0)

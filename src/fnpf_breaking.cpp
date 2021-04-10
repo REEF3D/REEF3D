@@ -231,6 +231,9 @@ void fnpf_breaking::breaking_algorithm(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
         }   
     }
     
+    SLICELOOP4
+    c->breaklog(i,j)=0;
+    
     // breaklog
     SLICELOOP4
     if(c->breaking(i,j)>0)

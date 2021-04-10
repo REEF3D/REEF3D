@@ -230,7 +230,7 @@ void fnpf_RK3::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, sol
     fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
     sigma_ini(p,c,pgc,pf,c->eta);
     pf->fsfdisc_ini(p,c,pgc,c->eta,c->Fifsf);
-    pf->wetdry(p,c,pgc,c->eta,c->Fifsf);   // coastline ini
+    pf->wetdry(p,c,pgc,c->eta,c->Fifsf);   
     pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
     sigma_update(p,c,pgc,pf,c->eta);
     
