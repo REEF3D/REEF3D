@@ -393,10 +393,19 @@ void fnpf_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sli
     c->breaklog(i,j)=0;
     
     // breaklog
+    count=0; 
+    
     SLICELOOP4
     if(c->breaking(i,j)>0)
+    {
     c->breaklog(i,j)=1;
+    ++count;
+    }
     
+    count=pgc->globalisum(count);
+    
+    if(p->mpirank==0 && (p->count%p->P12==0))
+    cout<<"breaking: "<<count<<endl;
 }
 
 void fnpf_fsfbc::filter(lexer *p, fdm_fnpf *c,ghostcell *pgc, slice &f)

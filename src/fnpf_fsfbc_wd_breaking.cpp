@@ -383,9 +383,19 @@ void fnpf_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     c->breaklog(i,j)=0;
     
     // breaklog
+    int count=0;
+    
     SLICELOOP4
     if(c->breaking(i,j)>0)
+    {
     c->breaklog(i,j)=1;
+    ++count;
+    }
+    
+    count=pgc->globalisum(count);
+    
+    if(p->mpirank==0 && (p->count%p->P12==0))
+    cout<<"breaking: "<<count<<endl;
 }
 
 void fnpf_fsfbc_wd::filter(lexer *p, fdm_fnpf *c,ghostcell *pgc, slice &f)

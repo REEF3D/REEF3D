@@ -94,6 +94,8 @@ void sflow_vtp_bed::pvtu(lexer *p, fdm2D* b, ghostcell* pgc)
     result<<"<PDataArray type=\"Float32\" Name=\"bedchange\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
+    if(p->P23==1)
+    result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
 	result<<"</PPointData>"<<endl;
 	
 	result<<"<Polys>"<<endl;

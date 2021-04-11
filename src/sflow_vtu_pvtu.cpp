@@ -95,6 +95,8 @@ void sflow_vtp::pvtu(lexer *p, fdm2D* b, ghostcell* pgc)
 	result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"waterlevel\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"breaking\"/>"<<endl;
+    if(p->P23==1)
+    result<<"<PDataArray type=\"Float32\" Name=\"breaking\"/>"<<endl;
 	result<<"</PPointData>"<<endl;
 	
 	result<<"<Polys>"<<endl;
