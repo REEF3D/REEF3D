@@ -73,10 +73,10 @@ void pjm::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, io
 {
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<".";
-			
+
 	vel_setup(p,a,pgc,uvel,vvel,wvel,alpha);	
     rhs(p,a,pgc,uvel,vvel,wvel,alpha);
-	
+
     ppois->start(p,a,a->press);
 	
         starttime=pgc->timer();
@@ -84,7 +84,7 @@ void pjm::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, io
     psolv->start(p,a,pgc,a->press,a->xvec,a->rhsvec,5,gcval_press,p->N44);
 	
         endtime=pgc->timer();
-    
+
 	pgc->start4(p,a->press,gcval_press);
 	
 	ucorr(p,a,uvel,alpha);

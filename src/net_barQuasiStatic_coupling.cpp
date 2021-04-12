@@ -26,34 +26,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"reinidisc_fsf.h"
 #include"vrans.h"	
 
-//#include "libqhullcpp/Qhull.h"
-//#include "libqhullcpp/RboxPoints.h"
-//#include "libqhullcpp/QhullFacetList.h"
-//#include "libqhullcpp/QhullVertexSet.h"
-
-
 void net_barQuasiStatic::vransCoupling(lexer *p, fdm *a, ghostcell *pgc)
 {
-    //- Create mesh points around net
-    createMesh(p,a,pgc);
-
-    //- Create triangulated hull
-    // createHull(p,a,pgc);
-    
-    //- Create Delaunay triangulated grid
-    // createDelaunay(p,a,pgc);
-
-    //- Generate net distance function
-    // ray_cast(p,a,pgc);
-    // reini_AB2(p,a,pgc,a->net);
-
-}
-
-
-void net_barQuasiStatic::createMesh(lexer *p, fdm *a, ghostcell *pgc)
-{
     //- Triangulate net
-    
     triangulation(p,a,pgc);
     
     //- Save Lagrangian coordinates and forces
