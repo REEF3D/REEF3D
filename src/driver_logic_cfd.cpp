@@ -126,10 +126,10 @@ void driver::logic()
 	if(p->F35==4)
 	pfsfdisc=new weno_flux_nug(p);
 
-	if(p->F35==5 && p->X13!=2)
+	if(p->F35==5 && (p->X10==0 || p->X13!=2))
 	pfsfdisc=new weno_hj_nug(p);
 	
-	if(p->F35==5 && p->X13==2)
+	if(p->F35==5 && p->X10==1 && p->X13==2)
 	pfsfdisc=new weno_hj_6DOF_nug(p);
 	
     if(p->F35==6)
@@ -446,22 +446,22 @@ void driver::logic()
 	if(p->D30==0)
 	ppress = new pressure_void(p);
 
-	if(p->D30==1 && p->W30==0 && p->F10==2 && p->N40!=4 && p->X13!=2 && p->G2==0)
+	if(p->D30==1 && p->W30==0 && p->F10==2 && p->N40!=4 && (p->X10==0 || p->X13!=2) && p->G2==0)
 	ppress = new pjm(p,a,pheat,pconc);
     
-    if(p->D30==1 && p->W30==0 && p->F10==2 && p->N40!=4 && p->X13!=2 && p->G2==1)
+    if(p->D30==1 && p->W30==0 && p->F10==2 && p->N40!=4 && (p->X10==0 || p->X13!=2) && p->G2==1)
 	ppress = new pjm_sig(p,a,pheat,pconc);
     
-    if(p->D30==1 && p->W30==1 && p->F10==2 && p->N40!=4 && p->X13!=2)
+    if(p->D30==1 && p->W30==1 && p->F10==2 && p->N40!=4 && (p->X10==0 || p->X13!=2))
 	ppress = new pjm_comp(p,a,pgc,pheat,pconc);
     
-    if(p->D30==1 && p->F10==1 && p->N40!=4 && p->X13!=2)
+    if(p->D30==1 && p->F10==1 && p->N40!=4 && (p->X10==0 || p->X13!=2))
 	ppress = new pjm_nse(p,a,pheat,pconc);
     
-    if(p->D30==2 && p->N40!=4 && p->X13!=2)
+    if(p->D30==2 && p->N40!=4 && (p->X10==0 || p->X13!=2))
 	ppress = new pjm_fsm(p,a,pheat,pconc);
     
-    if((p->D30==3 || p->X13==2) && p->N40!=4)
+    if((p->D30==3 || (p->X10==1 && p->X13==2)) && p->N40!=4)
 	ppress = new pjm_corr(p,a,pheat,pconc);
 
     if(p->N40==4)
@@ -647,7 +647,7 @@ void driver::logic()
     psusp = new suspended_IM2(p,a,pturb);
 
 // Velocities
-	if(p->N40==0 || p->X13==2)
+	if(p->N40==0 || (p->X10==1 && p->X13==2))
 	pmom = new momentum_void();	
 	
     if(p->N40==1)

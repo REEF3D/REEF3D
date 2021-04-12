@@ -49,7 +49,7 @@ double density_f::roface(lexer *p, fdm *a, int aa, int bb, int cc)
     if(fabs(phival)<=psi)
     H=0.5*(1.0 + phival/psi + (1.0/PI)*sin((PI*phival)/psi));
     
-    if (p->X13==2)
+    if (p->X10 == 1 && p->X13==2)
     {
         if (aa == 1)
         {

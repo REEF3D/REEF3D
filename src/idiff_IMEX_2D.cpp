@@ -52,7 +52,7 @@ idiff_IMEX_2D::idiff_IMEX_2D(lexer* p, heat* pheat, concentration* pconc)
     
     if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
     pd = new density_rheo(p);
-	
+
     gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;
