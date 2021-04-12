@@ -53,7 +53,7 @@ void sflow_sediment_f::exner(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice
 		
 	// Exner equation
     topovel(i,j) =  -rf(p,b,pgc)*(1.0/(1.0-p->S24))*(dqx*signx + dqy*signy); 
-    b->test(i,j) = topovel(i,j);
+    //b->test(i,j) = topovel(i,j);
 	}
     
     
