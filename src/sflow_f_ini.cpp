@@ -181,6 +181,8 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
     p->phiout=p->F60;
     p->wd=p->F60;
     }
+    
+    cout<<"F60: "<<p->F60<<" wd: "<<p->wd<<endl;
 
     // eta plain
     SLICELOOP4
