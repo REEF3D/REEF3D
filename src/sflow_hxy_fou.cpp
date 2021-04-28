@@ -124,7 +124,7 @@ void sflow_hxy_fou::start(lexer* p, slice& hx, slice& hy, slice& depth, slice& e
     j=pBC->patch[qq]->gcb[n][1];
     
     if(j==25)
-    cout<<"i: "<<i<<" j: "<<j<<" hx_i-1: "<<hx(i-1,j)<<" hx_i: "<<hx(i,j)<<" P_i-1: "<<b->P(i-1,j)<<" P_i: "<<b->P(i,j)<<" P_i+1: "<<b->P(i+1,j)<<" eta_i-1: "<<eta(i,j)<<" eta_i: "<<eta(i-1,j)<<" eta_i+1: "<<eta(i+1,j)<<endl;
+    cout<<"i: "<<i+p->origin_i<<" j: "<<j<<" hx_i-2: "<<hx(i-2,j)<<" hx_i-1: "<<hx(i-1,j)<<" hx_i: "<<hx(i,j)<<" P_i-1: "<<b->P(i-1,j)<<" P_i: "<<b->P(i,j)<<" P_i+1: "<<b->P(i+1,j)<<" eta_i-1: "<<eta(i,j)<<" eta_i: "<<eta(i-1,j)<<" eta_i+1: "<<eta(i+1,j)<<endl;
     }
     
     for(n=0;n<p->gcslout_count;n++)
