@@ -36,7 +36,6 @@ patchBC_2D::~patchBC_2D()
 
 void patchBC_2D::patchBC_ini(lexer *p, ghostcell *pgc)
 {
-   
     patchBC_IDcount(p,pgc);
     
     // creat patch objects

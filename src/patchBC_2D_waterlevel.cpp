@@ -51,7 +51,7 @@ void patchBC_2D::patchBC_waterlevel2D(lexer *p, fdm2D *b, ghostcell *pgc, slice 
         
         if(patch[qq]->gcb[n][3]==2)
         {
-        eta(i,j+1)   =  patch[qq]->waterlevel-p->wd;
+        eta(i,j+1) =  patch[qq]->waterlevel-p->wd;
         eta(i,j+2) =  patch[qq]->waterlevel-p->wd;
         eta(i,j+3) =  patch[qq]->waterlevel-p->wd;
         
@@ -74,7 +74,7 @@ void patchBC_2D::patchBC_waterlevel2D(lexer *p, fdm2D *b, ghostcell *pgc, slice 
         b->hx(i,j-2) =  patch[qq]->waterlevel-b->bed(i,j);
         b->hx(i,j-3) =  patch[qq]->waterlevel-b->bed(i,j);
         
-        b->hy(i,j-1)   =  patch[qq]->waterlevel-b->bed(i,j);
+        b->hy(i,j-1) =  patch[qq]->waterlevel-b->bed(i,j);
         b->hy(i,j-2) =  patch[qq]->waterlevel-b->bed(i,j);
         b->hy(i,j-3) =  patch[qq]->waterlevel-b->bed(i,j);
         }
