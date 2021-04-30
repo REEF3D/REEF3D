@@ -29,8 +29,7 @@ idiff2_FS_2D::idiff2_FS_2D(lexer* p)
 {
 	gcval_u=10;
 	gcval_v=11;
-	gcval_w=12;
-	
+	gcval_w=12;	
 }
 
 idiff2_FS_2D::~idiff2_FS_2D()
@@ -41,7 +40,7 @@ void idiff2_FS_2D::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 {
 	starttime=pgc->timer();
 	double visc_ddy_p,visc_ddy_m,visc_ddz_p,visc_ddz_m;
-    
+
     
     pgc->start1(p,u,gcval_u);
 

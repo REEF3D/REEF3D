@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 idiff2_FS_v2::idiff2_FS_v2(lexer* p)
 {
-	gcval_u=10;
+    gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;
 }

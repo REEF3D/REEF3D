@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 ediff2::ediff2(lexer* p):gradient(p)
 {
-	gcval_u=10;
+    gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;
 }

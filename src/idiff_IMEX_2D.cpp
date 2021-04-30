@@ -37,7 +37,7 @@ idiff_IMEX_2D::idiff_IMEX_2D(lexer* p, heat* pheat, concentration* pconc)
 {
     if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0 && p->W90==0)
 	pd = new density_f(p);
-	
+
 	if(p->F80==0 && p->H10==0 && p->W30==1 && p->W90==0)
 	pd = new density_comp(p);
 	
