@@ -56,7 +56,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 	SLICEBASELOOP
 	++p->polygon_sum;
 
-	p->polygon_sum *=2;
+	p->polygon_sum*=2;
 
 	SLICELOOP4
 	++p->cellnum2D;
@@ -100,17 +100,12 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     b->wet4(i,j)=1;
 
 
-	
-
-	
-
     SLICELOOP4
     b->zb(i,j) = 0.0;
 
 
     SLICELOOP4
     b->breaking(i,j)=0;
-
 
 	pgc->gcsl_start4(p,b->depth,50);
 
@@ -167,7 +162,6 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     pprint->start(p,b,pgc,pflow);
 
 	pprintbed->start(p,b,pgc);
-
 }
 
 void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)

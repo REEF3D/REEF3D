@@ -34,7 +34,6 @@ void patchBC_2D::patchBC_IDcount(lexer *p, ghostcell *pgc)
     
     p->Iarray(ID_array,geo_count);
     
-    
     // ini ID array
     count=0;
     check=0;
@@ -45,7 +44,6 @@ void patchBC_2D::patchBC_IDcount(lexer *p, ghostcell *pgc)
     count=1;
     check=1;
     }
-    
     
     // fill ID array
     for(n=0; n<p->B440;++n)
@@ -64,11 +62,9 @@ void patchBC_2D::patchBC_IDcount(lexer *p, ghostcell *pgc)
         ID_array[count] = p->B440_ID[n];
         ++count;       
         }
-    
     }
     
 
-    
     
     obj_count=count;
 

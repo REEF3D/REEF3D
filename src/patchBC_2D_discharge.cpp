@@ -112,11 +112,8 @@ void patchBC_2D::patchBC_discharge2D(lexer *p, fdm2D* b, ghostcell *pgc, slice &
         cout<<"PatchBC Discharge | ID: "<<patch[qq]->ID<<" Qq: "<<patch[qq]->Q<<" Uq: "<<patch[qq]->Uq<<" Qi: "<<setprecision(5)<<Qi<<" Ui: "<<Ui<<" Ai: "<<Ai<<" Hi: "<<Hi<<endl;
         }
 
-        
     }
-    
 
-    
 }
 
 
