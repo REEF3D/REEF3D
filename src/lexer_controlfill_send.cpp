@@ -236,6 +236,10 @@ void lexer::ctrlsend()
     dd++;
     dctrl[dd] = B93_2;
     dd++;
+    ictrl[ii] = B94;
+    ii++;
+    dctrl[dd] = B94_wdt;
+    dd++;
     dctrl[dd] = B96_1;
     dd++;
     dctrl[dd] = B96_2;
@@ -263,12 +267,6 @@ void lexer::ctrlsend()
 	ictrl[ii] = B107;
     ii++;
     ictrl[ii] = B108;
-    ii++;
-	ictrl[ii] = B109;
-    ii++;
-	dctrl[dd] = B110_d;
-    dd++;
-	ictrl[ii] = B110;
     ii++;
 	dctrl[dd] = B111_zs;
     dd++;

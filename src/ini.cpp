@@ -125,6 +125,8 @@ void lexer::ini_default()
 	B93=0;          // int wave parameter wT
 	B93_1=0.0;      // double wave amplitude
 	B93_2=0.0;      // double wave period
+    B94=0;     // int set water depth for wave theory  
+    B94_wdt=0.0;    // double water depth for wave theory  
 	B96_1=0.0;      // double dist1 for wave relax
 	B96_2=0.0;      // double dist2 for wave relax
 	B97=0.0;        // double wave direction in degree
@@ -139,9 +141,6 @@ void lexer::ini_default()
 	B106=0;			// int read wave generation origin
 	B107=0;			// int read numerical beach origin
     B108=0;        // int read wave generation  origin
-	B109=0;			// int generate depth field
-	B110=0;			// int read water depth
-	B110_d=0.0;		// double water depth
     B111_zs=0.0;	// double flap start
     B111_ze=0.0;	// double flap end
     B112_zs=0.0;	// double flap start

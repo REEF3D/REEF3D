@@ -34,20 +34,20 @@ wave_lib_ssgw::wave_lib_ssgw(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,p
         // Wave length known
         allocated = false;
         allocated = resizing();
-        setWave(wk, wd, wH);
+        setWave(wk, wdt, wH);
         getPhysicsParameters();
         surfaceCalculated = computeSurfaceVariables();
     } 
     else if (p->B93 == 1)
     {
         // Wave period known
-        wk = 2.0*PI/(wT*sqrt(9.81*wd));
+        wk = 2.0*PI/(wT*sqrt(9.81*wdt));
         double delta_omega = 100000;
         int count = 0;
             
         allocated = false;
         allocated = resizing();
-        setWave(wk, wd, wH);
+        setWave(wk, wdt, wH);
         getPhysicsParameters();
         surfaceCalculated = computeSurfaceVariables();
         
@@ -62,12 +62,12 @@ wave_lib_ssgw::wave_lib_ssgw(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,p
                 {
                     cout<<"SSGW has to use shallow water assumption to calculate wavenumber!"<<endl;
                 }
-                wk = ww/sqrt(9.81*wd);
+                wk = ww/sqrt(9.81*wdt);
                 break;
             }
             else
             {
-                setWave(wk, wd, wH);
+                setWave(wk, wdt, wH);
                 getPhysicsParameters();
                 surfaceCalculated = computeSurfaceVariables();
             }
@@ -106,7 +106,7 @@ wave_lib_ssgw::wave_lib_ssgw(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,p
     if(p->mpirank==0)
     {
         cout<<"Wave Tank: steady surface gravity waves; ";
-        cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wd: "<<wd<<" kd: "<<wd*wk<<endl;
+        cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wdt: "<<wdt<<" kd: "<<wdt*wk<<endl;
         writeResult(".");
     }
     

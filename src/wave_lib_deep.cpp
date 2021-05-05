@@ -31,7 +31,7 @@ wave_lib_deep::wave_lib_deep(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,p
     if(p->mpirank==0)
     {
     cout<<"Wave Tank: deep water waves; ";
-    cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wd: "<<wd<<" kd: "<<wd*wk<<endl;
+    cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wdt: "<<wdt<<" kd: "<<wdt*wk<<endl;
     }
     
     singamma = sin((p->B105_1)*(PI/180.0));

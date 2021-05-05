@@ -31,7 +31,7 @@ wave_lib_solitary_1st::wave_lib_solitary_1st(lexer *p, ghostcell *pgc) : wave_li
     if(p->mpirank==0)
     {
     cout<<"Wave Tank: 1st-order solitary wave; ";
-    cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wd: "<<wd<<endl;
+    cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wdt: "<<wdt<<endl;
     }
     
     singamma = sin((p->B105_1)*(PI/180.0));
@@ -66,8 +66,8 @@ double wave_lib_solitary_1st::wave_horzvel(lexer *p, double x, double y, double 
 
 	eta = wave_eta(p,x,y);
 	
-	vel = wC * ( ( wH/wd + 3.0*pow(wH/wd,2.0) * (1.0/6.0 - 0.5*pow((wd+z)/wd,2.0)))*(eta/wH)
-								-pow(wH/wd,2.0)*(7.0/4.0 - (9.0/4.0)*pow((wd+z)/wd,2.0))*pow(eta/wH,2.0));
+	vel = wC * ( ( wH/wdt + 3.0*pow(wH/wdt,2.0) * (1.0/6.0 - 0.5*pow((wdt+z)/wdt,2.0)))*(eta/wH)
+								-pow(wH/wdt,2.0)*(7.0/4.0 - (9.0/4.0)*pow((wdt+z)/wdt,2.0))*pow(eta/wH,2.0));
                             
     return vel;
 }
@@ -80,8 +80,8 @@ double wave_lib_solitary_1st::wave_w(lexer *p, double x, double y, double z)
 	
 	teta = -(wC*(p->simtime) - (x - X0));
 	
-	vel = wC * sqrt((3.0*wH)/wd)*((wd+z)/wd)*(eta/wd) * tanh(sqrt(0.75*(wH/pow(wd,3.0)))*teta)
-		* (1.0 + (wH/(2.0*wd))*(1.0 - 7.0*(eta/wd) - pow((wd+z)/wd,2.0)*(1.0-(3.0*eta)/wH)));
+	vel = wC * sqrt((3.0*wH)/wdt)*((wdt+z)/wdt)*(eta/wdt) * tanh(sqrt(0.75*(wH/pow(wdt,3.0)))*teta)
+		* (1.0 + (wH/(2.0*wdt))*(1.0 - 7.0*(eta/wdt) - pow((wdt+z)/wdt,2.0)*(1.0-(3.0*eta)/wH)));
 		
     return vel;
 }
@@ -92,7 +92,7 @@ double wave_lib_solitary_1st::wave_eta(lexer *p, double x, double y)
 	
 	teta = -(wC*(p->simtime) - (x - X0));
 	
-	eta =  wH/pow(cosh(sqrt(0.75*wH/pow(wd,3.0)) * teta),2.0);
+	eta =  wH/pow(cosh(sqrt(0.75*wH/pow(wdt,3.0)) * teta),2.0);
 	
 	return eta;	
 }
@@ -109,16 +109,16 @@ void wave_lib_solitary_1st::parameters(lexer *p, ghostcell *pgc)
     wH = wa;
 	p->wH = wa;
 	
-	wC = sqrt(9.81*(wH+wd));
+	wC = sqrt(9.81*(wH+wdt));
 	
-	X0 = - (2.12*wd)/(sqrt((0.5*wa)/wd));
+	X0 = - (2.12*wdt)/(sqrt((0.5*wa)/wdt));
 
 	
 	if(p->mpirank==0)
 	cout<<"X0: "<<X0<<endl;
 	
 	if(p->mpirank==0)
-	cout<<"wC: "<<wC<<" wC_old: "<<sqrt(wd*9.81)*(1.0+0.5*(wH/wd))<<endl;
+	cout<<"wC: "<<wC<<" wC_old: "<<sqrt(wdt*9.81)*(1.0+0.5*(wH/wdt))<<endl;
     
 }
 

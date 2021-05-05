@@ -31,7 +31,7 @@ wave_lib_cnoidal_1st::wave_lib_cnoidal_1st(lexer *p, ghostcell *pgc) : wave_lib_
     if(p->mpirank==0)
     {
     cout<<"Wave Tank: 1st-order cnoidal waves; ";
-    cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wd: "<<wd<<" kd: "<<wd*wk<<endl;
+    cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wdt: "<<wdt<<" kd: "<<wdt*wk<<endl;
     }
     
     singamma = sin((p->B105_1)*(PI/180.0));
@@ -71,8 +71,8 @@ double wave_lib_cnoidal_1st::wave_horzvel(lexer *p, double x, double y, double z
 	
 	elliptic(p,teta,sn,cn,dn);
 	
-	vel = wC * (eta/wd - pow(eta/wd,2.0) + 0.5*(1.0/3.0 - pow((z+wd)/wd, 2.0))
-	    * wd*8.0*wH*pow(Km/wL,2.0) * (dn*dn*sn*sn + cn*cn*(-dn*dn + modulus*sn*sn)));
+	vel = wC * (eta/wdt - pow(eta/wdt,2.0) + 0.5*(1.0/3.0 - pow((z+wdt)/wdt, 2.0))
+	    * wdt*8.0*wH*pow(Km/wL,2.0) * (dn*dn*sn*sn + cn*cn*(-dn*dn + modulus*sn*sn)));
 
     return vel;
 }
@@ -88,12 +88,12 @@ double wave_lib_cnoidal_1st::wave_w(lexer *p, double x, double y, double z)
 	
 	elliptic(p,teta,sn,cn,dn);
 	
-	deta = - wa*sqrt(3.0*wa/wd)*(1.0/(modulus*wd))*cn*sqrt(1.0-cn*cn)*sqrt(1.0+modulus*(cn*cn-1.0));
+	deta = - wa*sqrt(3.0*wa/wdt)*(1.0/(modulus*wdt))*cn*sqrt(1.0-cn*cn)*sqrt(1.0+modulus*(cn*cn-1.0));
 	
 	
-	vel = - wC * (wd+z) * (((4.0*wH*(Km/wL)*cn*sn*dn)/wd) * (1.0 - 2.0*(eta/wd)) + (1.0/6.0)*wd
+	vel = - wC * (wdt+z) * (((4.0*wH*(Km/wL)*cn*sn*dn)/wdt) * (1.0 - 2.0*(eta/wdt)) + (1.0/6.0)*wdt
 			*(-cn*dn*sn*(dn*dn + modulus*cn*cn - sn*sn) 
-			* 64.0*wH*pow(Km/wL,3.0)) * (1.0 - pow((z+wd)/wd,2.0)));
+			* 64.0*wH*pow(Km/wL,3.0)) * (1.0 - pow((z+wdt)/wdt,2.0)));
 			
     return vel;
 }
@@ -129,7 +129,7 @@ void wave_lib_cnoidal_1st::parameters(lexer *p, ghostcell *pgc)
 	modulus = 0.9;
 	maxiter =5000;
 	
-	Ur = (wH*wL*wL)/pow(wd,3.0);
+	Ur = (wH*wL*wL)/pow(wdt,3.0);
 	if(p->mpirank==0)
 	cout<<"Ursell number: "<<Ur<<endl;
 	
@@ -140,7 +140,7 @@ void wave_lib_cnoidal_1st::parameters(lexer *p, ghostcell *pgc)
 		modulus_old = modulus;
 		
 		
-		modulus = sqrt((3.0/16.0)* ((wH*wL*wL)/(wd*wd*wd*modulus_old*pow(K_elliptic_1(modulus_old),2.0))));
+		modulus = sqrt((3.0/16.0)* ((wH*wL*wL)/(wdt*wdt*wdt*modulus_old*pow(K_elliptic_1(modulus_old),2.0))));
 		
 		diff = modulus - modulus_old;
 		
@@ -161,13 +161,13 @@ void wave_lib_cnoidal_1st::parameters(lexer *p, ghostcell *pgc)
 	
 	eta2 = (1.0/modulus - 1.0 - Em/(Km*modulus))*wH;
 	
-	//wC = sqrt((9.81*wd)/(1.0 + wH/wd*(1.0/pow(modulus,2.0) -2.0)));
+	//wC = sqrt((9.81*wdt)/(1.0 + wH/wdt*(1.0/pow(modulus,2.0) -2.0)));
 	
-	wC = sqrt(9.81*wd*(1.0 +(wH/wd)*(2.0/modulus - 1.0 - 3.0/modulus*Em/Km)));
+	wC = sqrt(9.81*wdt*(1.0 +(wH/wdt)*(2.0/modulus - 1.0 - 3.0/modulus*Em/Km)));
 	
 	if(p->mpirank==0)	
 	{
-	cout<<"WAVE TROUGH: "<<eta2+wd<<endl;
+	cout<<"WAVE TROUGH: "<<eta2+wdt<<endl;
 	cout<<"wC: "<<wC<<" wC_old: "<<(wL/wT)<<endl;
 	}
     
