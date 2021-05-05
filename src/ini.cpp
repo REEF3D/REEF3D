@@ -125,6 +125,8 @@ void lexer::ini_default()
 	B93=0;          // int wave parameter wT
 	B93_1=0.0;      // double wave amplitude
 	B93_2=0.0;      // double wave period
+    B94=0;     // int set water depth for wave theory  
+    B94_wdt=0.0;    // double water depth for wave theory  
 	B96_1=0.0;      // double dist1 for wave relax
 	B96_2=0.0;      // double dist2 for wave relax
 	B97=0.0;        // double wave direction in degree

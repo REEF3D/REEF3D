@@ -330,6 +330,10 @@ void lexer::read_control()
                         B93=1;
 						 clear(c,numint);
 						 break;
+              case 94: control>>B94_wdt;
+                        B94=1;
+						 clear(c,numint);
+						 break;
                case 96: control>>B96_1>>B96_2;
 						 clear(c,numint);
 						 break;
