@@ -58,6 +58,13 @@ double wave_lib_spectrum::wave_spectrum(lexer *p, double w)
 
 void wave_lib_spectrum::irregular_parameters(lexer *p)
 {
+    
+    if(p->B94==0)
+	wD=p->phimean;
+	
+	if(p->B94==1)
+	wD=p->B94_wdt;
+    
 	if(p->B85==10)
 	spectrum_file_read(p);
 
@@ -320,12 +327,12 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
             Si[n] = wave_spectrum(p,w);
             wL0 = (2.0*PI*9.81)/pow(w,2.0);
             k0 = (2.0*PI)/wL0;
-            S0 = sqrt(k0*p->wd) * (1.0 + (k0*p->wd)/6.0 + (k0*k0*p->wd*p->wd)/30.0);
+            S0 = sqrt(k0*wD) * (1.0 + (k0*wD)/6.0 + (k0*k0*wD*wD)/30.0);
             Li[n] = wL0*tanh(S0);
 
             for(int qn=0; qn<100; ++qn)
             {
-                Li[n] = wL0*tanh(2.0*PI*p->wd/Li[n]);
+                Li[n] = wL0*tanh(2.0*PI*wD/Li[n]);
             }
 
             ki[n] = 2.0*PI/Li[n];

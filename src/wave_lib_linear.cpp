@@ -31,7 +31,7 @@ wave_lib_linear::wave_lib_linear(lexer *p, ghostcell *pgc) : wave_lib_parameters
     if(p->mpirank==0)
     {
     cout<<"Wave Tank: linear waves; ";
-    cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wd: "<<wd<<" kd: "<<wd*wk<<endl;
+    cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wdt: "<<wdt<<" kd: "<<wdt*wk<<endl;
     }
     
     singamma = sin((p->B105_1)*(PI/180.0));
@@ -66,7 +66,7 @@ double wave_lib_linear::wave_horzvel(lexer *p, double x, double y, double z)
 	
 	teta = wk*x-ww*(p->simtime) + pshift;
 
-    vel = ww*wa*( cosh(wk*(wd+z))/sinh(wk*wd) ) * cos(teta);
+    vel = ww*wa*( cosh(wk*(wdt+z))/sinh(wk*wdt) ) * cos(teta);
 
     return vel;
 }
@@ -77,7 +77,7 @@ double wave_lib_linear::wave_w(lexer *p, double x, double y, double z)
 	
 	teta = wk*x-ww*(p->simtime) + pshift;
 
-    vel = ww*wa*( sinh(wk*(wd+z))/sinh(wk*wd) ) * sin(teta);
+    vel = ww*wa*( sinh(wk*(wdt+z))/sinh(wk*wdt) ) * sin(teta);
 
     return vel;
 }
@@ -99,9 +99,9 @@ double wave_lib_linear::wave_fi(lexer *p, double x, double y, double z)
     
     teta = wk*x-ww*(p->simtime) + pshift;
     
-    fi = ((ww*0.5*wH)/(wk))*( cosh(wk*(wd+z))/sinh(wk*wd) ) * sin(teta);
+    fi = ((ww*0.5*wH)/(wk))*( cosh(wk*(wdt+z))/sinh(wk*wdt) ) * sin(teta);
     
-    vel = ww*wa*( cosh(wk*(wd+z))/sinh(wk*wd) ) * cos(teta);
+    vel = ww*wa*( cosh(wk*(wdt+z))/sinh(wk*wdt) ) * cos(teta);
     
     return fi;
 }

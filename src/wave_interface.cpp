@@ -54,6 +54,12 @@ wave_interface::wave_interface(lexer *p, ghostcell *pgc)
     
     wtype=p->B92;
     
+    if(p->B94==0)
+	 wD=p->phimean;
+	
+	if(p->B94==1)
+	wD=p->B94_wdt;
+    
     if(wtype==0)
     pwave = new wave_lib_void(p,pgc);
 	
@@ -149,7 +155,7 @@ double wave_interface::wave_u(lexer *p, ghostcell *pgc, double x, double y, doub
 	
     double uvel=0.0;
     
-    z = MAX(z,-p->wd);
+    z = MAX(z,-wD);
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
     uvel = pwave->wave_u(p,x,y,z);
@@ -165,7 +171,7 @@ double wave_interface::wave_v(lexer *p, ghostcell *pgc, double x, double y, doub
 	
     double vvel=0.0;
     
-    z = MAX(z,-p->wd);
+    z = MAX(z,-wD);
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
     vvel = pwave->wave_v(p,x,y,z);
@@ -181,7 +187,7 @@ double wave_interface::wave_w(lexer *p, ghostcell *pgc, double x, double y, doub
 	
     double wvel=0.0;
     
-    z = MAX(z,-p->wd);
+    z = MAX(z,-wD);
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
     wvel = pwave->wave_w(p,x,y,z);
@@ -211,7 +217,7 @@ double wave_interface::wave_fi(lexer *p, ghostcell *pgc, double x, double y, dou
 	
     double pval=0.0;
     
-    z = MAX(z,-p->wd);
+    z = MAX(z,-wD);
     
     pval = pwave->wave_fi(p,x,y,z);
 	
