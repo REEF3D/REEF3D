@@ -61,6 +61,8 @@ private:
     
     int is,ie,js,je;
     int is_flag,ie_flag,js_flag,je_flag;
+    int flag;
+    int *flag_all;
     
     
 };

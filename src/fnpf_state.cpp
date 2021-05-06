@@ -66,7 +66,6 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         js_flag=1;
         }
         
-        
         if(p->P43_ye>=p->originy && p->P43_ye<p->endy)
         {
         je = p->posc_j(p->P43_ye);
