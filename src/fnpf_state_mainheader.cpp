@@ -57,6 +57,8 @@ void fnpf_state::mainheader_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     iin=file_version;
     headout.write((char*)&iin, sizeof (int));
     
+    // flag: is process within P43 bounds
+    
     mainout.close();
 }
 
