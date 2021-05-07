@@ -100,6 +100,8 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         }
     }
     
+    cout<<p->mpirank<<" FLAG: "<<flag<<endl;
+    
     pgc->gather_int(&flag,1,flag_all,1);
     
     // is communication
@@ -177,11 +179,14 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     cout<<p->mpirank<<" JE_GLOBAL: "<<je_global<<endl;
     
+    if(p->mpirank==0)
+    for(int qn=0;qn<p->M10;++qn)
+    {
+    iin = flag_all[qn];
+    cout<<qn<<" **FLAG_ALL: "<<iin<<endl;
+    }
     
     
-    
-    
-    p->del_Iarray(flag_all,p->M10);
     p->del_Iarray(is_flag_all,p->M10);
     p->del_Iarray(ie_flag_all,p->M10);
     p->del_Iarray(js_flag_all,p->M10);

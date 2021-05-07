@@ -62,6 +62,7 @@ void fnpf_state::ini_mainheader(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     for(int qn=0;qn<p->M10;++qn)
     {
     iin = flag_all[qn];
+    cout<<qn<<" FLAG_ALL: "<<iin<<endl;
     headout.write((char*)&iin, sizeof (int));
     }
     
