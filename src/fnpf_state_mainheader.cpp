@@ -28,7 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void fnpf_state::mainheader_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+void fnpf_state::ini_mainheader(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     // open file
 	if(p->P14==0)
@@ -45,10 +45,10 @@ void fnpf_state::mainheader_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     iin=p->j_dir;
     mainout.write((char*)&iin, sizeof (int));
     
-    iin=p->gknox;
+    iin=ie_global-is_global;
     mainout.write((char*)&iin, sizeof (int));
     
-    iin=p->gknoy;
+    iin=je_global-js_global;
     mainout.write((char*)&iin, sizeof (int));
     
     iin=p->gknoz+1;
@@ -59,10 +59,16 @@ void fnpf_state::mainheader_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     // flag: is process within P43 bounds
     
+    for(int qn=0;qn<p->M10;++qn)
+    {
+    iin = flag_all[qn];
+    headout.write((char*)&iin, sizeof (int));
+    }
+    
     mainout.close();
 }
 
-void fnpf_state::mainheader(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+void fnpf_state::write_mainheader(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     // open file
 	if(p->P14==0)

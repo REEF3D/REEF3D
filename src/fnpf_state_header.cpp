@@ -28,7 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void fnpf_state::header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+void fnpf_state::write_header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     
     // file name
@@ -40,10 +40,10 @@ void fnpf_state::header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
   
     // ini write    
-    iin=p->origin_i;
+    iin=p->origin_i-is_global;
     headout.write((char*)&iin, sizeof (int));
     
-    iin=p->origin_j;
+    iin=p->origin_j-js_global;
     headout.write((char*)&iin, sizeof (int));
     
     iin=p->origin_k;
@@ -60,10 +60,10 @@ void fnpf_state::header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     headout.write((char*)&ffn, sizeof (float));
   
     
-    iin=p->knox;
+    iin=ie-is;
     headout.write((char*)&iin, sizeof (int));
     
-    iin=p->knoy;
+    iin=je-js;
     headout.write((char*)&iin, sizeof (int));
     
     iin=p->knoz+1;
@@ -84,13 +84,13 @@ void fnpf_state::header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     
     //
-    ILOOP
+    for(i=is;i<ie;++i)
     {
     ffn=float(p->XP[IP]);
     headout.write((char*)&ffn, sizeof (float));
     } 
     
-    JLOOP
+    for(j=js;j<je;++j)
     {
     ffn=float(p->YP[JP]);
     headout.write((char*)&ffn, sizeof (float));
@@ -103,7 +103,9 @@ void fnpf_state::header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     } 
     
     
-    SLICELOOP4
+    for(i=is;i<ie;++i)
+    for(j=js;j<je;++j)
+    PSLICECHECK4
     {
     ffn=float(c->bed(i,j));
     headout.write((char*)&ffn, sizeof (float));
