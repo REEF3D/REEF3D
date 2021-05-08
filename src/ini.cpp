@@ -389,7 +389,6 @@ void lexer::ini_default()
     I233=0.0;       // double starting z for flowfile
     I240=0;         // int read flowfile
     I241=0.0;       // double delta t for flowfile
-    I242=0.0;       // double delta t for flowfile
 
     // Numerics
 	N10=14;			// int linear poisson solver
