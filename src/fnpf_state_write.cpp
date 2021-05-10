@@ -57,6 +57,7 @@ void fnpf_state::write(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     // result file
     filename(p,c,pgc,num);
 	 
+    if(p->mpirank==0){ 
 	ofstream result;
 	result.open(name, ios::binary);
     
@@ -128,7 +129,7 @@ void fnpf_state::write(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     } 
 	
 	
-	result.close();
+	result.close();}
 	
 	++printcount;
 }
