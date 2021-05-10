@@ -34,17 +34,27 @@ void fnpf_state::write_header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     // file name
     filename_header(p,c,pgc);
     
-    
     // open file
 	headout.open(name, ios::binary);
     
-  
     // ini write    
     iin=p->origin_i-is_global;
+    
+    if(is_flag==1)
+    iin=0;
+    
+    cout<<p->mpirank<<" IS_GLOBAL: "<<is_global<<" iorig0: "<<p->origin_i-is_global<<" iorig1: "<<iin<<endl;
+    
     headout.write((char*)&iin, sizeof (int));
     
+    
     iin=p->origin_j-js_global;
+    
+    if(js_flag==1)
+    iin=0;
+    
     headout.write((char*)&iin, sizeof (int));
+    
     
     iin=p->origin_k;
     headout.write((char*)&iin, sizeof (int));
@@ -61,10 +71,13 @@ void fnpf_state::write_header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
   
     
     iin=ie-is;
+    
+    cout<<p->mpirank<<" is: "<<is<<" ie: "<<ie<<" NLx: "<<iin<<endl;
     headout.write((char*)&iin, sizeof (int));
     
     iin=je-js;
     headout.write((char*)&iin, sizeof (int));
+    
     
     iin=p->knoz+1;
     headout.write((char*)&iin, sizeof (int));

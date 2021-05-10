@@ -57,15 +57,16 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     is_flag=ie_flag=js_flag=je_flag=0;
     
     is = is_global = 0;
-    ie = ie_global = 0;
+    ie = ie_global = p->knox;
     
-    js = js_global = p->knox;
+    js = js_global = 0;
     je = je_global = p->knoy;
     
     if(p->P43==1)
     {
         
-        if(p->P43_xs<p->endx && p->P43_xe>=p->originx && p->P43_ys<p->endy && p->P43_ye >=p->originy)
+        if(p->P43_xs < p->endx && p->P43_xe >= p->originx)
+        if(p->P43_ys < p->endy && p->P43_ye >= p->originy)
         {
         flag=1;
         }
@@ -120,7 +121,7 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     pgc->bcast_int(&is_global,1);
     
-    //cout<<p->mpirank<<" IS_GLOBAL: "<<is_global<<endl;
+    //cout<<p->mpirank<<" IS_GLOBAL: "<<is_global<<" iorig: "<<p->origin_i-is_global<<endl;
     
     
     // ie communication
