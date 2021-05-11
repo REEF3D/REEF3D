@@ -35,6 +35,7 @@ void wave_lib_hdc::read_result(lexer *p, ghostcell *pgc, double **E0, double ***
         result.read((char*)&ffn, sizeof (float)); 
         E0[i][j]=ffn;
         
+        //if(p->mpirank==0 && i==Nx-1) 
         //cout<<" E0[i][j]: "<<E0[i][j]<<endl;
     } 
     

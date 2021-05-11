@@ -74,12 +74,15 @@ void fnpf_state::write_result(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     result.write((char*)&ddn, sizeof (double)); 
     
     // result section
+    
+    cout<<p->mpirank<<" IS: "<<is<<" IE: "<<ie<<" JS: "<<js<<" JE: "<<je<<endl;
 
     for(i=is;i<ie;++i)
     for(j=js;j<je;++j)
     PSLICECHECK4
     {
     ffn=float(c->eta(i,j));
+cout<<p->mpirank<<" ETA: "<<ffn<<endl;
     result.write((char*)&ffn, sizeof (float));
     } 
     

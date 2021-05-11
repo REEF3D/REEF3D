@@ -72,7 +72,7 @@ void fnpf_state::write_header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     iin=ie-is;
     
-    cout<<p->mpirank<<" is: "<<is<<" ie: "<<ie<<" NLx: "<<iin<<endl;
+    cout<<p->mpirank<<" is: "<<is<<" ie: "<<ie<<" NLx: "<<iin<<endl<<endl;
     headout.write((char*)&iin, sizeof (int));
     
     iin=je-js;
