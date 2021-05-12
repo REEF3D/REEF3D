@@ -57,10 +57,12 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     is_flag=ie_flag=js_flag=je_flag=0;
     
     is = is_global = 0;
-    ie = ie_global = p->knox;
+    ie = p->knox;
+    ie_global = p->gknox;
     
     js = js_global = 0;
-    je = je_global = p->knoy;
+    je = p->knoy;
+    je_global = p->gknoy;
     
     if(p->P43==1)
     {
@@ -161,7 +163,6 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     //cout<<p->mpirank<<" JS_GLOBAL: "<<js_global<<endl;
     
-    
     // je communication
     if(je_flag==1)
     je_global = je + p->origin_j;    
@@ -179,11 +180,7 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     pgc->bcast_int(&je_global,1);
     
     //cout<<p->mpirank<<" JE_GLOBAL: "<<je_global<<endl;
-    
-    if(p->mpirank==0)
-    for(int qn=0;qn<p->M10;++qn)
-    iin = flag_all[qn];
-    
+
     
     p->del_Iarray(is_flag_all,p->M10);
     p->del_Iarray(ie_flag_all,p->M10);
