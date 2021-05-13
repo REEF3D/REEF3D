@@ -45,8 +45,6 @@ void fnpf_state::write_header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(is_flag==1)
     iin=0;
     
-    //cout<<p->mpirank<<" IS_GLOBAL: "<<is_global<<" iorig0: "<<p->origin_i-is_global<<" iorig1: "<<iin<<endl;
-    
     headout.write((char*)&iin, sizeof (int));
     
     
@@ -73,7 +71,6 @@ void fnpf_state::write_header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
   
     
     iin=ie-is;
-    //cout<<p->mpirank<<" is: "<<is<<" ie: "<<ie<<" NLx: "<<iin<<endl<<endl;
     headout.write((char*)&iin, sizeof (int));
     
     iin=je-js;

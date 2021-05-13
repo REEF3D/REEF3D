@@ -78,33 +78,27 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         if(p->P43_xs>=p->originx && p->P43_xs<p->endx)
         {
         is = p->posc_i(p->P43_xs);
-        //cout<<p->mpirank<<" IS_LOCAL: "<<is<<" ORIG_I_LOCAL: "<<p->origin_i<<" p->P43_xs: "<<p->P43_xs<<endl;
         is_flag=1;
         }
         
         if(p->P43_xe>=p->originx && p->P43_xe<p->endx)
         {
         ie = p->posc_i(p->P43_xe);
-        //cout<<p->mpirank<<" IE_LOCAL: "<<ie<<" ORIG_I_LOCAL: "<<p->origin_i<<" p->P43_xe: "<<p->P43_xe<<endl;
         ie_flag=1;
         }
         
         if(p->P43_ys>=p->originy && p->P43_ys<p->endy)
         {
         js = p->posc_j(p->P43_ys);
-        //cout<<p->mpirank<<" JS_LOCAL: "<<js<<" ORIG_J_LOCAL: "<<p->origin_j<<" p->P43_ys: "<<p->P43_ys<<endl;
         js_flag=1;
         }
         
         if(p->P43_ye>=p->originy && p->P43_ye<p->endy)
         {
         je = p->posc_j(p->P43_ye);
-        //cout<<p->mpirank<<" JE_LOCAL: "<<je<<" ORIG_J_LOCAL: "<<p->origin_j<<" p->P43_ye: "<<p->P43_ye<<endl;
         je_flag=1;
         }
     }
-    
-    //cout<<p->mpirank<<" FLAG: "<<flag<<endl;
     
     pgc->gather_int(&flag,1,flag_all,1);
     
@@ -123,10 +117,8 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     }
     
     pgc->bcast_int(&is_global,1);
-    
-    //cout<<p->mpirank<<" IS_GLOBAL: "<<is_global<<" iorig: "<<p->origin_i-is_global<<endl;
-    
-    
+
+
     // ie communication
     if(ie_flag==1)
     ie_global = ie + p->origin_i;    
@@ -142,8 +134,6 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     }
     
     pgc->bcast_int(&ie_global,1);
-    
-    //cout<<p->mpirank<<" IE_GLOBAL: "<<ie_global<<endl;
     
     
     // js communication
@@ -162,8 +152,6 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     pgc->bcast_int(&js_global,1);
     
-    //cout<<p->mpirank<<" JS_GLOBAL: "<<js_global<<endl;
-    
     // je communication
     if(je_flag==1)
     je_global = je + p->origin_j;    
@@ -180,7 +168,6 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     pgc->bcast_int(&je_global,1);
     
-    //cout<<p->mpirank<<" JE_GLOBAL: "<<je_global<<endl;
 
     p->del_Iarray(is_flag_all,p->M10);
     p->del_Iarray(ie_flag_all,p->M10);
