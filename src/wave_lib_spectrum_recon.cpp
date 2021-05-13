@@ -25,6 +25,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void wave_lib_spectrum::recon_parameters(lexer *p, ghostcell *pgc)
 {
+    if(p->B94==0)
+	wD=p->phimean;
+	
+	if(p->B94==1)
+	wD=p->B94_wdt;
+    
     double wL0;
     
     p->wN=wavenum;
