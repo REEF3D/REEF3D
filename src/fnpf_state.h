@@ -58,8 +58,7 @@ private:
     int ini_token;
     int file_version;
     int qn;
-    ofstream headout;
-    ofstream mainout;
+    
     
     int is,ie,js,je;
     int is_global,ie_global,js_global,je_global;

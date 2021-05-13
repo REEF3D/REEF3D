@@ -30,6 +30,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void fnpf_state::ini_mainheader(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
+    ofstream mainout;
+    
     // open file
 	if(p->P14==0)
     mainout.open("REEF3D-FNPF_State_Mainheader.r3d", ios::binary);
@@ -69,6 +71,8 @@ void fnpf_state::ini_mainheader(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
 void fnpf_state::write_mainheader(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
+    ofstream mainout;
+    
     // open file
 	if(p->P14==0)
     mainout.open("REEF3D-FNPF_State_Mainheader.r3d", ios::binary | ios::app);

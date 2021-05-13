@@ -53,7 +53,7 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     p->Iarray(js_global_all,p->M10);
     p->Iarray(je_global_all,p->M10);
     
-    flag=0;
+    flag=1;
     is_flag=ie_flag=js_flag=je_flag=0;
     
     is = is_global = 0;
@@ -66,6 +66,7 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     if(p->P43==1)
     {
+        flag=0;
         
         if(p->P43_xs < p->endx && p->P43_xe >= p->originx)
         if(p->P43_ys < p->endy && p->P43_ye >= p->originy)
@@ -181,7 +182,6 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     //cout<<p->mpirank<<" JE_GLOBAL: "<<je_global<<endl;
 
-    
     p->del_Iarray(is_flag_all,p->M10);
     p->del_Iarray(ie_flag_all,p->M10);
     p->del_Iarray(js_flag_all,p->M10);
@@ -217,5 +217,4 @@ void fnpf_state::write(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     // result file
     if(flag==1)
     write_result(p,c,pgc);
-    
 }
