@@ -44,7 +44,7 @@ public:
     double cosfunc(double);
     
     double teta;
-    double wk,ww,wd,wa,wH,wL,wf,wT,wL0,k0,S0;
+    double wk,ww,wdt,wa,wH,wL,wf,wT,wL0,k0,S0;
     double wk_temp,ww_temp,wL_temp,wT_temp,wf_temp;
     
     

@@ -27,6 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 patchBC_void::patchBC_void(lexer *p) 
 {
+    obj_count=0;
 }
 
 patchBC_void::~patchBC_void()

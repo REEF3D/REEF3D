@@ -67,6 +67,7 @@ void driver::makegrid2D(lexer *p, ghostcell *pgc)
     pgc->gcsl_setbc1(p);
     pgc->gcsl_setbc2(p);
     pgc->gcsl_setbc4(p);
+    
     pgc->gcsl_setbcio(p);
     
     pgc->dgcslini1(p);

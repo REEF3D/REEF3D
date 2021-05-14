@@ -126,11 +126,11 @@ void wave_lib_spectrum::wavepackets_parameters(lexer *p)
 	{
 	wL0 = (2.0*PI*9.81)/pow(w,2.0);
 	k0 = (2.0*PI)/wL0;
-	S0 = sqrt(k0*p->wd) * (1.0 + (k0*p->wd)/6.0 + (k0*k0*p->wd*p->wd)/30.0); 
+	S0 = sqrt(k0*wD) * (1.0 + (k0*wD)/6.0 + (k0*k0*wD*wD)/30.0); 
 	Li[n] = wL0*tanh(S0);
         
     for(int qn=0; qn<100; ++qn)
-    Li[n] = wL0*tanh(2.0*PI*p->wd/Li[n]);
+    Li[n] = wL0*tanh(2.0*PI*wD/Li[n]);
 
 	ki[n] = 2.0*PI/Li[n];
 	
@@ -149,8 +149,8 @@ void wave_lib_spectrum::wavepackets_parameters(lexer *p)
     // Group Velocities
     double duration,duration_tot;
     
-    cmin = sqrt((9.81/ki[0])*tanh(ki[0]/p->wd));
-    cmax = sqrt((9.81/ki[p->wN-1])*tanh(ki[p->wN-1]/p->wd));
+    cmin = sqrt((9.81/ki[0])*tanh(ki[0]/wD));
+    cmax = sqrt((9.81/ki[p->wN-1])*tanh(ki[p->wN-1]/wD));
     
     
     

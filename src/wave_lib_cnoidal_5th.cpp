@@ -31,7 +31,7 @@ wave_lib_cnoidal_5th::wave_lib_cnoidal_5th(lexer *p, ghostcell *pgc) : wave_lib_
     if(p->mpirank==0)
     {
     cout<<"Wave Tank: 5th-order cnoidal waves; ";
-    cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wd: "<<wd<<" kd: "<<wd*wk<<endl;
+    cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wdt: "<<wdt<<" kd: "<<wdt*wk<<endl;
     }
     
     singamma = sin((p->B105_1)*(PI/180.0));
@@ -66,7 +66,7 @@ double wave_lib_cnoidal_5th::wave_horzvel(lexer *p, double x, double y, double z
 	double yh;
 	double sn,cn,dn;
 	
-	yh = (z+wd)/wht; 
+	yh = (z+wdt)/wht; 
 		
 	teta = 2.0*Km*(x/wL - p->simtime/wT) + pshift;
 	
@@ -114,7 +114,7 @@ double wave_lib_cnoidal_5th::wave_w(lexer *p, double x, double y, double z)
 	double yh;
 	double sn,cn,dn;
 	
-	yh = (z+wd)/wht;
+	yh = (z+wdt)/wht;
 	
 	teta = 2.0*Km*(x/wL - p->simtime/wT) + pshift;
 
@@ -165,7 +165,7 @@ double wave_lib_cnoidal_5th::wave_eta(lexer *p, double x, double y)
 	
 	elliptic(p,teta,sn,cn,dn);
 	
-	eta =    -wd + wht + wht*(epsilon*cn*cn + pow(epsilon,2.0)*(-0.75*cn*cn + 0.75*pow(cn,4.0)) 
+	eta =    -wdt + wht + wht*(epsilon*cn*cn + pow(epsilon,2.0)*(-0.75*cn*cn + 0.75*pow(cn,4.0)) 
 	
 			+ pow(epsilon,3.0)*((5.0/8.0)*cn*cn - (151.0/80.0)*pow(cn,4.0) + (101.0/80.0)*pow(cn,6.0))
 			
@@ -194,7 +194,7 @@ void wave_lib_cnoidal_5th::parameters(lexer *p, ghostcell *pgc)
 	modulus = 0.9;
 	maxiter =5000;
 	
-	Ur = (wH*wL*wL)/pow(wd,3.0);
+	Ur = (wH*wL*wL)/pow(wdt,3.0);
 	if(p->mpirank==0)
 	cout<<"Ursell number: "<<Ur<<endl;
 	
@@ -207,7 +207,7 @@ void wave_lib_cnoidal_5th::parameters(lexer *p, ghostcell *pgc)
 		modulus_old = modulus;
 		
 		
-		modulus = (3.0/16.0)* ((wH*wL*wL)/(wd*wd*wd*modulus_old*pow(K_elliptic_5(modulus_old),2.0)));
+		modulus = (3.0/16.0)* ((wH*wL*wL)/(wdt*wdt*wdt*modulus_old*pow(K_elliptic_5(modulus_old),2.0)));
 		
 		diff = modulus - modulus_old;
 		
@@ -229,9 +229,9 @@ void wave_lib_cnoidal_5th::parameters(lexer *p, ghostcell *pgc)
 	
 	// coefficients
 	
-	double md = wd;
+	double md = wdt;
 	
-	wht =  wd*(1.0 - (wH/md)*ell + pow(wH/md,2.0)*(ell/4.0) + pow(wH/md,3.0)*((1.0/25.0)*ell + 0.25*ell*ell)
+	wht =  wdt*(1.0 - (wH/md)*ell + pow(wH/md,2.0)*(ell/4.0) + pow(wH/md,3.0)*((1.0/25.0)*ell + 0.25*ell*ell)
 	    + pow(wH/md,4.0)*((573.0/2000.0)*ell - (57.0/400.0)*pow(ell,2.0) + 0.25*pow(ell,3.0))
 		+ pow(wH/md,5.0)*(-(302159.0/1470000.0)*ell + (1779.0/2000.0)*ell*ell - (123.0/400.0)*pow(ell,3.0) + 0.25*pow(ell,4.0))); 
 

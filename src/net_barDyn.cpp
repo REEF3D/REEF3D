@@ -73,7 +73,6 @@ void net_barDyn::initialize(lexer *p, fdm *a, ghostcell *pgc)
     t_net_n = 0.0;
     t_net = 0.0;
 
-
     //- Initialise printing
     printtime = 0.0;
     print(p);
@@ -99,7 +98,6 @@ void net_barDyn::start
 	
     dt_ = p->X325_dt > 0.0 ? min(dtm, p->X325_dt) : dtm;
 
-
 	//- Start loop
     int loops = ceil(dtm/dt_);
     if (dt_ == 0.0) loops = 0;
@@ -114,7 +112,6 @@ void net_barDyn::start
         startLoop(p,a,pgc,convIt(loop));
     }
 
-    
     //- Coupling forces for vrans model
     vransCoupling(p,a,pgc);
 
@@ -123,10 +120,13 @@ void net_barDyn::start
 
     //- Print output
     double endtime1 = pgc->timer() - starttime1; 
-    if (p->mpirank == 0)
+    if (p->mpirank == 0 && convIt.maxCoeff() < 10)
     {
-        cout<<"Net converged after "<<convIt.transpose()<<" iterations"<<endl;
-        cout<<"Net time: "<<endtime1<<endl;    
+        cout<<"Net converged within "<<convIt.maxCoeff()<<" iterations max, "<<loops<<" steps and "<<endtime1<<" s"<<endl;
+    }
+    if (p->mpirank == 0 && convIt.maxCoeff() >= 10)
+    {
+        cout<<"Net diverged. Adjust X 325 accordingly!"<<endl; 
     }
 }
 
@@ -159,19 +159,10 @@ void net_barDyn::startLoop
     coeffs_ = timeWeight(p);
 
     //- Calculate force vector
-    forces_knot *= 0.0;
+    getForces(p);
 
-    // Add gravity forces
-    gravityForce(p);
-
-    // Add inertia force
-    inertiaForce(p);
-    
-    // Add drag forces 
-    dragForce(p);
-    
     //- Solve dynamics
-    if (p->count == 1 && iter == 0)
+    if (p->count < 1 && iter == 0)
     {
         //- Solve linear system
         
@@ -241,37 +232,52 @@ void net_barDyn::startLoop
 
 
     //- Advance velocitie
-    MatrixXd xdot_new(nK,3); 
+    xdot_ = 
+        1.0/coeffs_(0)*
+        (
+            xdotdot_ - coeffs_(1)*xdot_ - coeffs_(2)*xdotn_ - coeffs_(3)*xdotnn_
+        );
+
+    if (p->X320 == 13)  // 2D solution
+    {
+        xdot_.col(1) *= 0.0;
+    }
+
+    /*MatrixXd xdot_new(nK,3); 
     
     xdot_new = 
         1.0/coeffs_(0)*
         (
             xdotdot_ - coeffs_(1)*xdot_ - coeffs_(2)*xdotn_ - coeffs_(3)*xdotnn_
         );
+    */
 
     // Under-relaxation for velocities below rigid top knots
-    xdot_new.block(nK-niK,0,niK,1) = xdot_.block(nK-niK,0,niK,1) + p->X325_relX*(xdot_new.block(nK-niK,0,niK,1) - xdot_.block(nK-niK,0,niK,1));
+/*    xdot_new.block(nK-niK,0,niK,1) = xdot_.block(nK-niK,0,niK,1) + p->X325_relX*(xdot_new.block(nK-niK,0,niK,1) - xdot_.block(nK-niK,0,niK,1));
     xdot_new.block(nK-niK,1,niK,1) = xdot_.block(nK-niK,1,niK,1) + p->X325_relY*(xdot_new.block(nK-niK,1,niK,1) - xdot_.block(nK-niK,1,niK,1));
     xdot_new.block(nK-niK,2,niK,1) = xdot_.block(nK-niK,2,niK,1) + p->X325_relZ*(xdot_new.block(nK-niK,2,niK,1) - xdot_.block(nK-niK,2,niK,1));
-
+*/
 
     //- Advance position
-    MatrixXd x_new(nK,3); 
-    
+    x_ =         
+        1.0/coeffs_(0)*
+        (
+            xdot_ - coeffs_(1)*x_ - coeffs_(2)*xn_ - coeffs_(3)*xnn_
+        );
+    /*
     x_new =         
         1.0/coeffs_(0)*
         (
             xdot_new - coeffs_(1)*x_ - coeffs_(2)*xn_ - coeffs_(3)*xnn_
         );
-
+    */
 
     //- Save old velocity and position vectors
     xnn_ = xn_;    
     xn_ = x_;
-    x_ = x_new;
     xdotnn_ = xdotn_;    
     xdotn_ = xdot_;
-    xdot_ = xdot_new;
+    //xdot_ = xdot_new;
     
     //- Save old time steps
     dtnn_ = dtn_;

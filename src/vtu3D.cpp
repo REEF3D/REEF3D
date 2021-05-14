@@ -368,9 +368,7 @@ void vtu3D::print_vtu(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *p
 
 void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, solver *psolv, data *pdata, concentration *pconc, sediment *psed)
 {    
-    pgc->start4(p,a->test,1);
-    pgc->start4(p,a->test,1);
-
+    pgc->start4a(p,a->test,1);
     pgc->start1(p,a->u,110);
     pgc->start2(p,a->v,111);
 	pgc->start3(p,a->w,112);
@@ -385,7 +383,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	pgc->dgcpol(p,a->ro,p->dgc4,p->dgc4_count,14);
 	pgc->dgcpol(p,a->visc,p->dgc4,p->dgc4_count,14);
 	pgc->dgcpol(p,a->conc,p->dgc4,p->dgc4_count,14);
-    pgc->dgcpol(p,a->test,p->dgc4,p->dgc4_count,14);
+    //pgc->dgcpol(p,a->test,p->dgc4,p->dgc4_count,14);
 	
 	a->u.ggcpol(p);
 	a->v.ggcpol(p);
@@ -399,7 +397,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	a->phi.ggcpol(p);
 	a->fb.ggcpol(p);
 	a->fbh4.ggcpol(p);
-    a->test.ggcpol(p);
+    //a->test.ggcpol(p);
     
     pgc->gcparacox(p,a->phi,50);
 	pgc->gcparacox(p,a->phi,50);
@@ -1004,7 +1002,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     pgc->dgcslpol(p,a->bed,p->dgcsl4,p->dgcsl4_count,14);
 	
     a->WL.ggcpol(p);
-    a->test.ggcpol(p);
+    //a->test.ggcpol(p);
     
     i=-1;
     j=-1;

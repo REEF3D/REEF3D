@@ -75,6 +75,7 @@ void ioflow_f::Qin2D(lexer *p, fdm2D* b, ghostcell* pgc)
         hval += b->hp(i,j);
         ++hcount;
         }
+
     }
     
     Ai=pgc->globalsum(Ai);

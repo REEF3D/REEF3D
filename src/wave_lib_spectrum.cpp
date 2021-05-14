@@ -57,6 +57,13 @@ double wave_lib_spectrum::wave_spectrum(lexer *p, double w)
 
 void wave_lib_spectrum::irregular_parameters(lexer *p)
 {
+
+    if(p->B94==0)
+	wD=p->phimean;
+
+	if(p->B94==1)
+	wD=p->B94_wdt;
+
 	if(p->B85==10)
 	spectrum_file_read(p);
 
@@ -218,7 +225,7 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
 
         if(p->mpirank==0)
         cout<<"ws: "<<ws<<"  we: "<<we<<endl;
-        
+
         if(p->mpirank==0)
         cout<<"dws: "<<dw[0]<<"  dwe: "<<dw[p->wN-1]<<endl;
 
@@ -313,16 +320,16 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
             {
                 dee[n] = cdf[0]+n*(cdf[NN-1]-cdf[0])/double (p->wN-1);
             }
-        }   
+        }
 
         if(p->B87==0)
         {
-            
+
             ws=0.01*wp;
             we=10.0*wp;
-    
+
             // Integration of spectrum
-    
+
             ddw=0.01;
             NN=int((we-ws)/ddw)+1;
 
@@ -338,18 +345,18 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
                 Sn[n]=S;
                 w+=ddw;
             }
-    
+
             sum=0.0;
             for(n=0;n<NN;++n)
             {
                 sum+=ddw*Sn[n];
                 cdf[n]=sum;
             }
-    
+
             // Create 0.5% - 99.5% caps of the energy
             cdf_s = 0.005*cdf[NN-1];
             cdf_e = 0.995*cdf[NN-1];
-    
+
             for(m=0;m<NN;++m)
             {
                 if(cdf[m]<=cdf_s)
@@ -365,11 +372,11 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
                 we=ww[m];
                 }
             }
-                
+
             // Create equal energy bins
-    
+
             p->Darray(dee,p->wN);
-    
+
             for(n=0;n<p->wN;++n)
             {
                 dee[n] = cdf_s + double (n)*(cdf_e-cdf_s)/double (p->wN-1);
@@ -412,28 +419,23 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
         // Final step: fill Si and the corresponding values for Ai and ki
         if(p->B84!=3)
         {
-            for(n=0;n<p->wN;++n)
+            w=wi[n];
+            Si[n] = wave_spectrum(p,w);
+            wL0 = (2.0*PI*9.81)/pow(w,2.0);
+            k0 = (2.0*PI)/wL0;
+            S0 = sqrt(k0*wD) * (1.0 + (k0*wD)/6.0 + (k0*k0*wD*wD)/30.0);
+            Li[n] = wL0*tanh(S0);
+
+            for(int qn=0; qn<100; ++qn)
             {
-                w=wi[n];
-                Si[n] = wave_spectrum(p,w);
-                wL0 = (2.0*PI*9.81)/pow(w,2.0);
-                k0 = (2.0*PI)/wL0;
-                S0 = sqrt(k0*p->wd) * (1.0 + (k0*p->wd)/6.0 + (k0*k0*p->wd*p->wd)/30.0);
-                Li[n] = wL0*tanh(S0);
-
-                for(int qn=0; qn<100; ++qn)
-                {
-                    Li[n] = wL0*tanh(2.0*PI*p->wd/Li[n]);
-                }
-
-                ki[n] = 2.0*PI/Li[n];
+                Li[n] = wL0*tanh(2.0*PI*wD/Li[n]);
             }
-        }    
-        
+        }
+
         if(p->B84==3)
         {
             double dk;
-            
+
             for(n=0;n<p->wN;++n)
             {
                 w=wi[n];
@@ -451,10 +453,10 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
                 ki[n] = 2.0*PI/Li[n];
                 dk=(ki[n]-ki[0])/(p->wN-1);
             }
-            
+
             if(p->mpirank==0)
             cout<<"dk: "<< dk <<endl;
-                
+
             for(n=0;n<p->wN;++n)
             {
                 ki[n]=ki[0]+dk*n;
@@ -462,7 +464,7 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
                 Si[n] = wave_spectrum(p,wi[n]);
             }
         }
-        
+
     print_spectrum(p);
 
     // directional spreading
@@ -525,7 +527,7 @@ void wave_lib_spectrum::phases_irregular(lexer *p)
 {
     if(p->B139>0)
     srand(p->B139);
-    
+
     if(p->B139==0)
     srand((unsigned)time(0));
 

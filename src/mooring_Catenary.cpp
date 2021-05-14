@@ -52,11 +52,11 @@ void mooring_Catenary::calcForce(lexer *p, fdm *a, ghostcell *pgc)
 	dy = p->X311_ye[line] - p->X311_ys[line];				
 	dz = p->X311_ze[line] - p->X311_zs[line];	
 
-	dxy = sqrt(dx*dx+dy*dy);			
+	dxy_aim = sqrt(dx*dx+dy*dy);			
 
-    double dxy_ = dxy;
+    double dxy_ = dxy_aim;
 
-    for (int loop = 0; loop < 1; loop++)
+    for (int loop = 0; loop < 1000; loop++)
     {
         double f1, f2, df1H, df1V, df2H, df2V;
         FH = FH_0;
@@ -84,23 +84,26 @@ void mooring_Catenary::calcForce(lexer *p, fdm *a, ghostcell *pgc)
             FH = FH + F_eigen[0];
             FV = FV + F_eigen[1];
         }
-
         Xme_ = FH*fabs(cos(atan(dy/dx)));
         Yme_ = FH*fabs(sin(atan(dy/dx)));
         Zme_ = FV;	
-        
-        // Check convergence
+
         buildLine(p);
-        
-        if (fabs(dxy - x[H-1]) > 0.001)
+   
+        // Check convergence
+        double dx_curr = x[H-1] - p->X311_xs[line];			
+        double dy_curr = y[H-1] - p->X311_ys[line];			
+        double dxy_curr = sqrt(dx_curr*dx_curr+dy_curr*dy_curr);			
+
+        if (fabs(dxy_aim - dxy_curr) > 0.0001)
         {
-            if (x[H-1] - dxy > 0.001)
+            if (dxy_curr - dxy_aim > 0.0001)
             {
-                dxy_ -= 0.001;
+                dxy_ -= 0.0001;
             }
             else
             {
-                dxy_ += 0.001;
+                dxy_ += 0.0001;
             }
         }
         else
@@ -204,4 +207,41 @@ void mooring_Catenary::getShape
     y_ = y;
     z_ = z;
     T_ = T;
+}
+
+
+void mooring_Catenary::iniShape
+(
+    lexer *p, fdm *a, ghostcell *pgc,
+    Eigen::VectorXd& x_, Eigen::VectorXd& y_, Eigen::VectorXd& z_
+)
+{
+    // Ini line
+	double rho_f = 1000.0;
+	
+	rho_c = p->X311_rho_c[line];
+	w = p->X311_w[line]*9.81*(rho_c - rho_f)/rho_c;
+	L = p->X311_l[line];
+	H = p->X311_H[line] + 1;
+	EA = p->X311_EA[line];
+	
+    p->Darray(x,H); 
+	p->Darray(y,H);
+	p->Darray(z,H); 
+	p->Darray(T,H);
+
+    // Calculate force
+         
+    FH_0 = 1.0;
+    FV_0 = 1.0; 
+
+    calcForce(p, a, pgc);
+
+    // Return values
+    for (int ii = 0; ii < H; ii++)
+    {
+        x_(ii) = x[ii];
+        y_(ii) = y[ii];
+        z_(ii) = z[ii];
+    }
 }

@@ -148,7 +148,7 @@ void vrans_net::start(lexer *p, fdm *a, ghostcell *pgc, net *&ppnet, int nNet)
     //distributeNetForces_z(p, a, pgc, ppnet, nNet);  
 
     // Distribute collar forces 
-    // if (p->X10 == 3) distributeCollarForces(p, a, pgc, ppnet, nNet);
+    // if (p->X10 == 10) distributeCollarForces(p, a, pgc, ppnet, nNet);
 }
 
 

@@ -26,6 +26,7 @@ class ghostcell;
 class sflow_pressure;
 class solver2D;
 class ioflow;
+class sixdof;
 
 using namespace std;
 

@@ -23,6 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"patchBC_interface.h"
 
 void iowave::discharge(lexer *p, fdm* a, ghostcell* pgc)
 {
@@ -42,6 +43,9 @@ void iowave::discharge(lexer *p, fdm* a, ghostcell* pgc)
     cout<<"Inflow:  "<<setprecision(5)<<p->Qi<<" Ui: "<<p->Ua<<" Hi: "<<p->phimean<<endl;
     cout<<"Outflow: "<<setprecision(5)<<p->Qo<<" Uo: "<<p->Uo<<" Ho: "<<p->phiout<<endl;
     }
+    
+    // patchBC
+    pBC->patchBC_discharge(p,a,pgc);
 }
 
 void iowave::Qin(lexer *p, fdm* a, ghostcell* pgc)

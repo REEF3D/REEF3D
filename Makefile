@@ -1,6 +1,6 @@
 BUILD    := ./build
 BIN    	 := ./bin
-TARGET   := REEF3D
+TARGET   := reef3d
 CXX      := mpicxx
 GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 GIT_VERSION := "$(shell git describe --abbrev=8 --dirty --always --tags)"

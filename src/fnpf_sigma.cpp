@@ -52,20 +52,17 @@ void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *pf, 
     SLICELOOP4
     {
         k=0;
-        if(p->nb5==-2)
-        {
+    
             p->sig[FIJKm1] = p->ZN[KM1];
             p->sig[FIJKm2] = p->ZN[KM2];
             p->sig[FIJKm3] = p->ZN[KM3];
-        }
         
         k=p->knoz;
-        if(p->nb6==-2)
-        {
+
             p->sig[FIJKp1] = p->ZN[KP1];
             p->sig[FIJKp2] = p->ZN[KP2];
             p->sig[FIJKp3] = p->ZN[KP3];
-        } 
+        
     }
     
     
@@ -130,8 +127,8 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *p
                   
                   - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(c->By(i,j)*c->Ey(i,j));
     }
-    /*
     
+    /*
     FBASELOOP
     {
     p->sigxx[FIJK] = - 2.0*((1.0 - p->sig[FIJK])*pow(c->Bx(i,j),2.0)/pow(WLVL,2.0))
@@ -140,65 +137,52 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *p
     
                     + (1.0 - p->sig[FIJK])*c->Bxx(i,j)/WLVL + 2.0*p->sig[FIJK]*pow(c->Ex(i,j),2.0)/pow(WLVL,2.0)
                     
-                    - p->sigx[FIJK]*c->Ex(i,j) /WLVL;              
+                    - p->sig[FIJK]*c->Exx(i,j) /WLVL;              
     }
     */
+    
+
     // sig BC
     SLICELOOP4
     {
         k=0;
-        if(p->nb5==-2)
-        {
-            p->sigx[FIJKm1] = p->sigx[KP];
-            p->sigx[FIJKm2] = p->sigx[KP];
-            p->sigx[FIJKm3] = p->sigx[KP];
-        }
+            p->sigx[FIJKm1] = p->sigx[FIJK];
+            p->sigx[FIJKm2] = p->sigx[FIJK];
+            p->sigx[FIJKm3] = p->sigx[FIJK];
+            
+            
         
         k=p->knoz;
-        if(p->nb6==-2)
-        {
-            p->sigx[FIJKp1] = p->sigx[KP];
-            p->sigx[FIJKp2] = p->sigx[KP];
-            p->sigx[FIJKp3] = p->sigx[KP];
-        } 
+            p->sigx[FIJKp1] = p->sigx[FIJK];
+            p->sigx[FIJKp2] = p->sigx[FIJK];
+            p->sigx[FIJKp3] = p->sigx[FIJK];
     }
     
     SLICELOOP4
     {
         k=0;
-        if(p->nb5==-2)
-        {
-            p->sigy[FIJKm1] = p->sigy[KP];
-            p->sigy[FIJKm2] = p->sigy[KP];
-            p->sigy[FIJKm3] = p->sigy[KP];
-        }
+            p->sigy[FIJKm1] = p->sigy[FIJK];
+            p->sigy[FIJKm2] = p->sigy[FIJK];
+            p->sigy[FIJKm3] = p->sigy[FIJK];
         
         k=p->knoz;
-        if(p->nb6==-2)
-        {
-            p->sigy[FIJKp1] = p->sigy[KP];
-            p->sigy[FIJKp2] = p->sigy[KP];
-            p->sigy[FIJKp3] = p->sigy[KP];
-        } 
+            p->sigy[FIJKp1] = p->sigy[FIJK];
+            p->sigy[FIJKp2] = p->sigy[FIJK];
+            p->sigy[FIJKp3] = p->sigy[FIJK];
     }
     
     SLICELOOP4
     {
         k=0;
-        if(p->nb5==-2)
-        {
-            p->sigxx[FIJKm1] = p->sigxx[KP];
-            p->sigxx[FIJKm2] = p->sigxx[KP];
-            p->sigxx[FIJKm3] = p->sigxx[KP];
-        }
+            p->sigxx[FIJKm1] = p->sigxx[FIJK];
+            p->sigxx[FIJKm2] = p->sigxx[FIJK];
+            p->sigxx[FIJKm3] = p->sigxx[FIJK];
+
         
         k=p->knoz;
-        if(p->nb6==-2)
-        {
-            p->sigxx[FIJKp1] = p->sigxx[KP];
-            p->sigxx[FIJKp2] = p->sigxx[KP];
-            p->sigxx[FIJKp3] = p->sigxx[KP];
-        } 
+            p->sigxx[FIJKp1] = p->sigxx[FIJK];
+            p->sigxx[FIJKp2] = p->sigxx[FIJK];
+            p->sigxx[FIJKp3] = p->sigxx[FIJK];
     }
     
     k=p->knoz;

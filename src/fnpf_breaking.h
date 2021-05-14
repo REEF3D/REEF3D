@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,47 +20,47 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"ccipol.h"
-#include"norm_vec.h"
+#include"fnpf_fsf.h"
+#include"sliceint4.h"
 
-class bedconc;
-class topo_relax;
-class turbulence;
-class ghostcell;
-class sediment_exnerdisc;
+class fnpf_laplace;
+class field;
+class fnpf_convection;
+class fnpf_ddx;
+class fnpf_etadisc;
+class fnpf_coastline;
+class solver2D;
 
 using namespace std;
 
-#ifndef TOPO_VEL_H_
-#define TOPO_VEL_H_
+#ifndef FNPF_BREAKING_H_
+#define FNPF_BREAKING_H_
 
-class topo_vel : public ccipol, public norm_vec
+class fnpf_breaking : public fnpf_fsf, public increment 
 {
 public:
-	topo_vel(lexer*,turbulence*);
-	virtual ~topo_vel();
+	fnpf_breaking(lexer*, fdm_fnpf*, ghostcell*);
+	virtual ~fnpf_breaking();
+    
+    virtual void breaking_algorithm(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
 
-    void  topovel(lexer*,fdm*,ghostcell*,double&,double&,double&);
+    
+    
+    void filter(lexer*, fdm_fnpf*,ghostcell*, slice&);
 
-	void rkio_update(lexer*,fdm*,ghostcell*,field&);
-
-	double xc,yc,zc;
-	double nx,ny,nz,norm;
-	double a1x,a1y,a1z,a2x,a2y,a2z;
-	double b1x,b1y,b1z,b2x,b2y,b2z;
-	double ascale, bscale;
-	double da,db;
-	double qx1,qx2,qy1,qy2;
-	double dh;
-	double signx,signy;
-	double ws;
-	double rhosed, rhowat, g, d50;
-
-	bedconc *pcb;
-    topo_relax *prelax;
-    sediment_exnerdisc *pdx;
-
-	const double dx,epsi;
+    double ivel,jvel,kvel;
+    
+private:
+    double rb3(lexer*,double);
+    double rb4(lexer*,double);
+    
+    double dist3,dist4,db;
+    
+    double visc;
+    
+    sliceint4 bx,by;
+    int count_n;
+    
 };
 
 #endif

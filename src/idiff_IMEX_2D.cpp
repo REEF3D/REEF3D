@@ -37,7 +37,7 @@ idiff_IMEX_2D::idiff_IMEX_2D(lexer* p, heat* pheat, concentration* pconc)
 {
     if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0 && p->W90==0)
 	pd = new density_f(p);
-	
+
 	if(p->F80==0 && p->H10==0 && p->W30==1 && p->W90==0)
 	pd = new density_comp(p);
 	
@@ -52,7 +52,7 @@ idiff_IMEX_2D::idiff_IMEX_2D(lexer* p, heat* pheat, concentration* pconc)
     
     if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
     pd = new density_rheo(p);
-	
+
     gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;
@@ -180,7 +180,7 @@ void idiff_IMEX_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fiel
             visc_i_j_kp=a->visc(i,j,k+1);
             
             visc_ddx_p = (visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp + visc_ip_j_k+ev_ip_j_k + a->visc(i+1,j,k+1)+a->eddyv(i+1,j,k+1))*0.25;
-            visc_ddx_m = (visc_im_j_k+ev_im_j_k + a->visc(i-1,j,k-1)+a->eddyv(i-1,j,k-1) + visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp)*0.25;
+            visc_ddx_m = (visc_im_j_k+ev_im_j_k + a->visc(i-1,j,k+1)+a->eddyv(i-1,j,k+1) + visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp)*0.25;
             
             a->M.p[count] = 2.0*(visc_i_j_kp+ev_i_j_kp)/(p->DZN[KP1]*p->DZP[KP])       // changed
                           + 2.0*(visc_ijk+ev_ijk)/(p->DZN[KP]*p->DZP[KP])              // changed

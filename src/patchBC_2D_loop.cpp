@@ -26,10 +26,4 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void patchBC_2D::patchBC_loop2D(lexer *p, fdm2D *b, int &ii, int &jj, int &cs, int &stopflag)
 {
-    /*
-    count
-    for(qq=0;qq<obj_count;++qq)
-    if(patch[qq]->waterlevel_flag==0)
-    for(n=0;n<patch[qq]->gcb_count;++n)*/
-    
 }

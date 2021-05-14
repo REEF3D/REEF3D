@@ -41,6 +41,13 @@ public:
 	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
     
     void forcing(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,double,field&,field&,field&,field1&,field2&,field3&,bool);
+    
+    virtual void isource(lexer*,fdm*,ghostcell*);
+    virtual void jsource(lexer*,fdm*,ghostcell*);
+    virtual void ksource(lexer*,fdm*,ghostcell*);
+    
+    virtual void isource2D(lexer*,fdm2D*,ghostcell*);
+    virtual void jsource2D(lexer*,fdm2D*,ghostcell*);
 
 private:
    

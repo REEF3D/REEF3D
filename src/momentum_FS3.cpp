@@ -37,7 +37,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 momentum_FS3::momentum_FS3(lexer *p, fdm *a, convection *pconvection, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
                                                     turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow)
-                                                    :bcmom(p),urk1(p),urk2(p),vrk1(p),vrk2(p),wrk1(p),wrk2(p)
+                                                    :bcmom(p),udiff(p),vdiff(p),wdiff(p),urk1(p),urk2(p),vrk1(p),vrk2(p),wrk1(p),wrk2(p)
 {
 	gcval_u=10;
 	gcval_v=11;
@@ -80,10 +80,10 @@ void momentum_FS3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	ppress->upgrad(p,a);
 	irhs(p,a);
 	pconvec->start(p,a,a->u,1,a->u,a->v,a->w);
-	pdiff->diff_u(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
+	pdiff->diff_u(p,a,pgc,psolv,udiff,a->u,a->v,a->w,1.0);
 
 	ULOOP
-	urk1(i,j,k) = a->u(i,j,k)
+	urk1(i,j,k) = udiff(i,j,k)
 				+ p->dt*CPOR1*a->F(i,j,k);
 	
     p->utime=pgc->timer()-starttime;
@@ -98,10 +98,10 @@ void momentum_FS3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	ppress->vpgrad(p,a);
 	jrhs(p,a);
 	pconvec->start(p,a,a->v,2,a->u,a->v,a->w);
-	pdiff->diff_v(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
+	pdiff->diff_v(p,a,pgc,psolv,vdiff,a->u,a->v,a->w,1.0);
 
 	VLOOP
-	vrk1(i,j,k) = a->v(i,j,k)
+	vrk1(i,j,k) = vdiff(i,j,k)
 				+ p->dt*CPOR2*a->G(i,j,k);
 	
     p->vtime=pgc->timer()-starttime;
@@ -115,10 +115,10 @@ void momentum_FS3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	ppress->wpgrad(p,a);
 	krhs(p,a);
 	pconvec->start(p,a,a->w,3,a->u,a->v,a->w);
-	pdiff->diff_w(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
+	pdiff->diff_w(p,a,pgc,psolv,wdiff,a->u,a->v,a->w,1.0);
 
 	WLOOP
-	wrk1(i,j,k) = a->w(i,j,k)
+	wrk1(i,j,k) = wdiff(i,j,k)
 				+ p->dt*CPOR3*a->H(i,j,k);
     
     p->wtime=pgc->timer()-starttime;
@@ -147,10 +147,10 @@ void momentum_FS3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	ppress->upgrad(p,a);
 	irhs(p,a);
 	pconvec->start(p,a,urk1,1,urk1,vrk1,wrk1);
-	pdiff->diff_u(p,a,pgc,psolv,urk1,vrk1,wrk1,0.25);
+	pdiff->diff_u(p,a,pgc,psolv,udiff,urk1,vrk1,wrk1,1.0);
 
 	ULOOP
-	urk2(i,j,k) = 0.75*a->u(i,j,k) + 0.25*urk1(i,j,k)
+	urk2(i,j,k) = 0.75*a->u(i,j,k) + 0.25*udiff(i,j,k)
 				+ 0.25*p->dt*CPOR1*a->F(i,j,k);
     
     p->utime+=pgc->timer()-starttime;
@@ -164,10 +164,10 @@ void momentum_FS3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	ppress->vpgrad(p,a);
 	jrhs(p,a);
 	pconvec->start(p,a,vrk1,2,urk1,vrk1,wrk1);
-	pdiff->diff_v(p,a,pgc,psolv,urk1,vrk1,wrk1,0.25);
+	pdiff->diff_v(p,a,pgc,psolv,vdiff,urk1,vrk1,wrk1,1.0);
 
 	VLOOP
-	vrk2(i,j,k) = 0.75*a->v(i,j,k) + 0.25*vrk1(i,j,k)
+	vrk2(i,j,k) = 0.75*a->v(i,j,k) + 0.25*vdiff(i,j,k)
 				+ 0.25*p->dt*CPOR2*a->G(i,j,k);
 	
     p->vtime+=pgc->timer()-starttime;
@@ -181,10 +181,10 @@ void momentum_FS3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	ppress->wpgrad(p,a);
 	krhs(p,a);
 	pconvec->start(p,a,wrk1,3,urk1,vrk1,wrk1);
-	pdiff->diff_w(p,a,pgc,psolv,urk1,vrk1,wrk1,0.25);
+	pdiff->diff_w(p,a,pgc,psolv,wdiff,urk1,vrk1,wrk1,1.0);
 
 	WLOOP
-	wrk2(i,j,k) = 0.75*a->w(i,j,k) + 0.25*wrk1(i,j,k)
+	wrk2(i,j,k) = 0.75*a->w(i,j,k) + 0.25*wdiff(i,j,k)
 				+ 0.25*p->dt*CPOR3*a->H(i,j,k);
 	
     p->wtime+=pgc->timer()-starttime;
@@ -213,10 +213,10 @@ void momentum_FS3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	ppress->upgrad(p,a);
 	irhs(p,a);
 	pconvec->start(p,a,urk2,1,urk2,vrk2,wrk2);
-	pdiff->diff_u(p,a,pgc,psolv,urk2,vrk2,wrk2,2.0/3.0);
+	pdiff->diff_u(p,a,pgc,psolv,udiff,urk2,vrk2,wrk2,1.0);
 
 	ULOOP
-	a->u(i,j,k) = (1.0/3.0)*a->u(i,j,k) + (2.0/3.0)*urk2(i,j,k)
+	a->u(i,j,k) = (1.0/3.0)*a->u(i,j,k) + (2.0/3.0)*udiff(i,j,k)
 				+ (2.0/3.0)*p->dt*CPOR1*a->F(i,j,k);
 	
     p->utime+=pgc->timer()-starttime;
@@ -230,10 +230,10 @@ void momentum_FS3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	ppress->vpgrad(p,a);
 	jrhs(p,a);
 	pconvec->start(p,a,vrk2,2,urk2,vrk2,wrk2);
-	pdiff->diff_v(p,a,pgc,psolv,urk2,vrk2,wrk2,2.0/3.0);
+	pdiff->diff_v(p,a,pgc,psolv,vdiff,urk2,vrk2,wrk2,1.0);
 
 	VLOOP
-	a->v(i,j,k) = (1.0/3.0)*a->v(i,j,k) + (2.0/3.0)*vrk2(i,j,k)
+	a->v(i,j,k) = (1.0/3.0)*a->v(i,j,k) + (2.0/3.0)*vdiff(i,j,k)
 				+ (2.0/3.0)*p->dt*CPOR2*a->G(i,j,k);
 	
     p->vtime+=pgc->timer()-starttime;
@@ -247,10 +247,10 @@ void momentum_FS3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	ppress->wpgrad(p,a);
 	krhs(p,a);
 	pconvec->start(p,a,wrk2,3,urk2,vrk2,wrk2);
-	pdiff->diff_w(p,a,pgc,psolv,urk2,vrk2,wrk2,2.0/3.0);
+	pdiff->diff_w(p,a,pgc,psolv,wdiff,urk2,vrk2,wrk2,1.0);
 
 	WLOOP
-	a->w(i,j,k) = (1.0/3.0)*a->w(i,j,k) + (2.0/3.0)*wrk2(i,j,k)
+	a->w(i,j,k) = (1.0/3.0)*a->w(i,j,k) + (2.0/3.0)*wdiff(i,j,k)
 				+ (2.0/3.0)*p->dt*CPOR3*a->H(i,j,k);
 	
     

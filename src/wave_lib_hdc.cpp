@@ -90,6 +90,8 @@ double wave_lib_hdc::wave_eta(lexer *p, double x, double y)
     
     if(endseries==0)
     eta = plane_interpol(p,E,x,y);
+    
+    //cout<<"ETA "<<eta<<endl;
 
     return eta;
 }

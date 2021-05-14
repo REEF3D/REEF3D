@@ -36,6 +36,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"6DOF_header.h"
 #include"waves_header.h"
 #include"lexer.h"
+#include"fdm_fnpf.h"
 
 void driver::loop_fnpf()
 {
@@ -65,6 +66,10 @@ void driver::loop_fnpf()
         }
         
         pflow->wavegen_precalc(p,pgc);
+        
+        
+        SLICELOOP4
+        c->breaklog(i,j)=0;
 
 
         // PFLOW

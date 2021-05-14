@@ -19,18 +19,28 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"patchBC.h"
+#include"6DOF_df.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"fdm2D.h"
 #include"ghostcell.h"
-#include"patch_obj.h"
 
-void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
+void sixdof_df::isource(lexer *p, fdm *a, ghostcell *pgc)
 {
-    
 }
 
-void patchBC::patchBC_discharge2D(lexer *p, fdm2D*, ghostcell *pgc, slice &P, slice &Q, slice &eta, slice &bed)
+void sixdof_df::jsource(lexer *p, fdm *a, ghostcell *pgc)
 {
-    
+}
+
+void sixdof_df::ksource(lexer *p, fdm *a, ghostcell *pgc)
+{
+}
+
+void sixdof_df::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+}
+
+void sixdof_df::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
+{
 }

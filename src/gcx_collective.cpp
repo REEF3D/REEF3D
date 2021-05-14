@@ -43,6 +43,11 @@ void ghostcell::gatherv_double(double *sendbuf, int sendcount, double *recvbuf, 
     MPI_Gatherv(sendbuf,sendcount, MPI_DOUBLE, recvbuf, recvcount, recvdispl, MPI_DOUBLE, 0, mpi_comm);
 }
 
+void ghostcell::bcast_int(int *sendbuf, int sendcount)
+{
+    MPI_Bcast(sendbuf,sendcount, MPI_INT, 0, mpi_comm);
+}
+
 void ghostcell::bcast_double(double *sendbuf, int sendcount)
 {
     MPI_Bcast(sendbuf,sendcount, MPI_DOUBLE, 0, mpi_comm);

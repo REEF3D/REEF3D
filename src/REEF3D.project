@@ -255,6 +255,7 @@
           <File Name="fnpf_sigma.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <File Name="fnpf_breaking_log.h"/>
           <File Name="potentialfile_out.h"/>
           <File Name="fnpf_vtu3D.h"/>
           <File Name="fnpf_vtp_fsf.h"/>
@@ -276,6 +277,7 @@
           <File Name="fnpf_ini.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSFBC">
+          <File Name="fnpf_breaking.h"/>
           <File Name="fnpf_fsfbc_wd.h"/>
           <File Name="fnpf_fsfbc.h"/>
           <File Name="fnpf_fsf.h"/>
@@ -327,9 +329,14 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
+      <VirtualDirectory Name="Beam">
+        <File Name="beam.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Particles"/>
       <VirtualDirectory Name="Sediment">
         <VirtualDirectory Name="Bedload">
+          <File Name="bedload_VRc.h"/>
+          <File Name="bedload_noneq.h"/>
           <File Name="bedload.h"/>
           <File Name="bedload_MPM.h"/>
           <File Name="bedload_void.h"/>
@@ -373,6 +380,7 @@
           <File Name="susprhs.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Topo">
+          <File Name="sediment_exner.h"/>
           <VirtualDirectory Name="Exnerdisc">
             <File Name="sediment_exnerdisc.h"/>
             <File Name="sediment_fou.h"/>
@@ -387,9 +395,7 @@
             <File Name="reinitopo_AB2.h"/>
           </VirtualDirectory>
           <File Name="topo.h"/>
-          <File Name="topo_vel.h"/>
           <File Name="topo_void.h"/>
-          <File Name="topo_direct.h"/>
           <VirtualDirectory Name="Relaxation">
             <File Name="topo_relax.h"/>
           </VirtualDirectory>
@@ -421,14 +427,15 @@
         <File Name="benchmark_convection.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <File Name="6DOF_sflow.h"/>
         <File Name="6DOF_df_object.h"/>
         <File Name="6DOF_gc.h"/>
         <File Name="6DOF_df.h"/>
         <VirtualDirectory Name="Mooring">
+          <File Name="mooring_dynamic.h"/>
           <File Name="mooring_Spring.h"/>
           <File Name="mooring_barQuasiStatic.h"/>
           <File Name="mooring_void.h"/>
-          <File Name="mooring_DGSEM.h"/>
           <File Name="mooring_Catenary.h"/>
           <File Name="mooring.h"/>
         </VirtualDirectory>
@@ -1188,6 +1195,10 @@
           <File Name="fnpf_sigma.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Breaking Log">
+            <File Name="fnpf_breaking_log_filename.cpp"/>
+            <File Name="fnpf_breaking_log.cpp"/>
+          </VirtualDirectory>
           <File Name="fnpf_vtu3D.cpp"/>
           <VirtualDirectory Name="WSF">
             <File Name="fnpf_print_wsfline_y.cpp"/>
@@ -1231,16 +1242,20 @@
           <File Name="fnpf_laplace_cds2.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Initialize">
+          <File Name="fnpf_ini_restart_filename.cpp"/>
+          <File Name="fnpf_ini_restart.cpp"/>
           <File Name="fnpf_ini.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSFBC">
+          <File Name="fnpf_breaking_filter.cpp"/>
+          <File Name="fnpf_breaking.cpp"/>
+          <File Name="fnpf_fsfbc_breaking.cpp"/>
           <File Name="fnpf_fsfbc_wd_wetdry.cpp"/>
           <File Name="fnpf_fsfbc_wd_damping.cpp"/>
           <File Name="fnpf_fsfbc_wd_breaking.cpp"/>
           <File Name="fnpf_fsfbc_wd.cpp"/>
           <File Name="fnpf_fsfbc_damping.cpp"/>
           <File Name="fnpf_fsfbc.cpp"/>
-          <File Name="fnpf_breaking.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FNPF">
           <File Name="fnpf_RK2.cpp"/>
@@ -1288,6 +1303,14 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
+      <VirtualDirectory Name="Beam">
+        <File Name="beam_solver_routines.cpp"/>
+        <File Name="beam_solver.cpp"/>
+        <File Name="beam_rhs.cpp"/>
+        <File Name="beam_print.cpp"/>
+        <File Name="beam_ini.cpp"/>
+        <File Name="beam.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Particles"/>
       <VirtualDirectory Name="Benchmarks">
         <File Name="benchmark_TaylorGreen.cpp"/>
@@ -1299,6 +1322,8 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment">
         <VirtualDirectory Name="Bedload">
+          <File Name="bedload_VRc.cpp"/>
+          <File Name="bedload_noneq.cpp"/>
           <File Name="bedload_MPM.cpp"/>
           <File Name="bedload_void.cpp"/>
           <File Name="bedload_VR.cpp"/>
@@ -1338,6 +1363,10 @@
           <File Name="susprhs.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Topo">
+          <File Name="sediment_exner_noneq.cpp"/>
+          <File Name="sediment_exner_topovel.cpp"/>
+          <File Name="sediment_exner_timestep.cpp"/>
+          <File Name="sediment_exner.cpp"/>
           <VirtualDirectory Name="Exnerdisc">
             <File Name="sediment_cds.cpp"/>
             <File Name="sediment_fou.cpp"/>
@@ -1349,9 +1378,7 @@
             <File Name="reinitopo_void.cpp"/>
             <File Name="reinitopo_AB2.cpp"/>
           </VirtualDirectory>
-          <File Name="topo_vel.cpp"/>
           <File Name="topo_void.cpp"/>
-          <File Name="topo_direct.cpp"/>
           <VirtualDirectory Name="Relaxation">
             <File Name="topo_relax.cpp"/>
           </VirtualDirectory>
@@ -1361,7 +1388,6 @@
         <VirtualDirectory Name="Sediment">
           <File Name="sediment_zh.cpp"/>
           <File Name="sediment_ini.cpp"/>
-          <File Name="sediment_timestep.cpp"/>
           <File Name="sediment_filter.cpp"/>
           <File Name="sediment_io.cpp"/>
         </VirtualDirectory>
@@ -1380,7 +1406,18 @@
         <File Name="heat_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <VirtualDirectory Name="6DOF SFLOW">
+          <File Name="6DOF_sflow_rotation.cpp"/>
+          <File Name="6DOF_sflow_reini.cpp"/>
+          <File Name="6DOF_sflow_ray.cpp"/>
+          <File Name="6DOF_sflow_print.cpp"/>
+          <File Name="6DOF_sflow_velsource.cpp"/>
+          <File Name="6DOF_sflow_update.cpp"/>
+          <File Name="6DOF_sflow_initialize.cpp"/>
+          <File Name="6DOF_sflow.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="DirectForcing">
+          <File Name="6DOF_df_velsource.cpp"/>
           <File Name="6DOF_df_object.cpp"/>
           <VirtualDirectory Name="RayCast">
             <File Name="6DOF_df_reini_AB2.cpp"/>
@@ -1416,6 +1453,7 @@
           <File Name="6DOF_df.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="GCIBM">
+          <File Name="6DOF_gc_velsource.cpp"/>
           <VirtualDirectory Name="Print">
             <File Name="6DOF_gc_print_log.cpp"/>
             <File Name="6DOF_gc_print_ini.cpp"/>
@@ -1504,15 +1542,10 @@
             <File Name="mooring_barQuasiStatic_ini.cpp"/>
             <File Name="mooring_barQuasiStatic.cpp"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="DGSEM">
-            <File Name="mooring_DGSEM_mesh_eigen.cpp" ExcludeProjConfig=""/>
-            <File Name="mooring_DGSEM_limiter.cpp"/>
-            <File Name="mooring_DGSEM_mesh.cpp" ExcludeProjConfig=""/>
-            <File Name="mooring_DGSEM_print.cpp"/>
-            <File Name="mooring_DGSEM_L.cpp"/>
-            <File Name="mooring_DGSEM_ini.cpp"/>
-            <File Name="mooring_DGSEM_bc.cpp"/>
-            <File Name="mooring_DGSEM.cpp"/>
+          <VirtualDirectory Name="DynamicFDM">
+            <File Name="mooring_dynamic_rhs.cpp"/>
+            <File Name="mooring_dynamic_ini.cpp"/>
+            <File Name="mooring_dynamic.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Catenary">
             <File Name="mooring_Catenary_print.cpp"/>
@@ -2266,10 +2299,10 @@
         <File Name="driver_logic_cfd.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Mainloop">
+        <File Name="driver_loop_fnpf.cpp"/>
         <File Name="driver_loop_cfd_df.cpp"/>
         <File Name="driver_loop_ptf.cpp"/>
         <File Name="driver_loop_nhflow.cpp"/>
-        <File Name="driver_loop_fnpf_sg.cpp"/>
         <File Name="driver_loop_cfd.cpp"/>
         <File Name="driver_loop_nsewave.cpp"/>
         <File Name="driver_loop_sflow.cpp"/>
@@ -2448,8 +2481,8 @@
             <File Name="patchBC_void.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="PatchBC">
+            <File Name="patchBC_discharge.cpp"/>
             <File Name="patchBC_loop.cpp"/>
-            <File Name="patch2D_discharge.cpp"/>
             <File Name="patchBC_waterlevel.cpp"/>
             <File Name="patchBC_pressure.cpp"/>
             <File Name="patchBC_inflow.cpp"/>
@@ -2466,6 +2499,7 @@
           <File Name="ioflow_void.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="ioWave">
+          <File Name="iowave_precalc_decomp_space_dirichlet.cpp"/>
           <File Name="iowave_precalc_relax_func.cpp"/>
           <File Name="iowave_waterlevel.cpp"/>
           <File Name="iowave_velsource.cpp"/>
@@ -2517,6 +2551,7 @@
             <File Name="iowave_nhflow_active-beach.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="FNPF">
+            <File Name="iowave_fnpf_precalc_decomp_space_dirichlet.cpp"/>
             <File Name="iowave_fnpf_precalc_relax.cpp"/>
             <File Name="iowave_fnpf_precalc_ini.cpp"/>
             <File Name="iowave_fnpf_precalc_dirichlet.cpp"/>

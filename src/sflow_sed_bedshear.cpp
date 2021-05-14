@@ -43,6 +43,9 @@ void sflow_sediment_f::bedshear(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, sl
     
     tau(i,j) = p->W1*9.81*cf*uabs*uabs; 
     
+    //if(p->mpirank==2)
+    //cout<<"uabs: "<<uabs<<" ks: "<<ks(i,j)<<" manning: "<<manning<<" cf: "<<cf<<" tau: "<<tau(i,j)<<endl;
+    
     //b->test(i,j) = tau(i,j);
     }
     

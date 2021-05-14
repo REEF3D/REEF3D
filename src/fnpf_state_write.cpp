@@ -28,24 +28,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void fnpf_state::write(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+void fnpf_state::write_result(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    // header file
-    if(ini_token==0)
-    {
-    if(p->mpirank==0)
-    mainheader_ini(p,c,pgc);
-    
-    header(p,c,pgc);
-    
-    ini_token=1;
-    }
-    
-    if(p->mpirank==0)
-    mainheader(p,c,pgc);
-    
-    
-    
     
     // Open File
 	int num=0;
@@ -59,29 +43,88 @@ void fnpf_state::write(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 	 
 	ofstream result;
 	result.open(name, ios::binary);
-
     
-    SLICELOOP4
+     
+    // head section
+    iin=file_version;
+    result.write((char*)&iin, sizeof (int));
+    
+    iin=p->count;
+    result.write((char*)&iin, sizeof (int));
+	
+	iin=p->printcount;
+    result.write((char*)&iin, sizeof (int));
+	
+	ddn=p->simtime;
+    result.write((char*)&ddn, sizeof (double));
+    
+    ddn=p->printtime;
+    result.write((char*)&ddn, sizeof (double));
+    
+    ddn=p->sedprinttime;
+    result.write((char*)&ddn, sizeof (double));
+    
+    ddn=p->fsfprinttime;
+    result.write((char*)&ddn, sizeof (double));
+    
+    ddn=p->probeprinttime;
+    result.write((char*)&ddn, sizeof (double));
+    
+    ddn=p->stateprinttime;
+    result.write((char*)&ddn, sizeof (double)); 
+    
+    // result section
+    
+    for(i=is;i<ie;++i)
+    for(j=js;j<je;++j)
+    PSLICECHECK4
     {
     ffn=float(c->eta(i,j));
     result.write((char*)&ffn, sizeof (float));
     } 
     
-    FLOOP
+    for(i=is;i<ie;++i)
+    for(j=js;j<je;++j)
+    PSLICECHECK4
+    {
+    ffn=float(c->Fifsf(i,j));
+    result.write((char*)&ffn, sizeof (float));
+    } 
+    
+    for(i=is;i<ie;++i)
+    for(j=js;j<je;++j)
+    for(k=0; k<p->knoz+1; ++k)
+    FPCHECK  
     {
     ffn=float(c->U[FIJK]);
     result.write((char*)&ffn, sizeof (float));
     } 
 
-	FLOOP
+	for(i=is;i<ie;++i)
+    for(j=js;j<je;++j)
+    for(k=0; k<p->knoz+1; ++k)
+    FPCHECK 
     {
     ffn=float(c->V[FIJK]);
     result.write((char*)&ffn, sizeof (float));
     } 
 
-	FLOOP
+	for(i=is;i<ie;++i)
+    for(j=js;j<je;++j)
+    for(k=0; k<p->knoz+1; ++k)
+    FPCHECK 
     {
     ffn=float(c->W[FIJK]);
+    result.write((char*)&ffn, sizeof (float));
+    } 
+    
+    if(p->P44==1)
+    for(i=is;i<ie;++i)
+    for(j=js;j<je;++j)
+    for(k=0; k<p->knoz+1; ++k)
+    FPCHECK 
+    {
+    ffn=float(c->Fi[FIJK]);
     result.write((char*)&ffn, sizeof (float));
     } 
 	

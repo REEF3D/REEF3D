@@ -30,7 +30,7 @@ wave_lib_piston_eta::wave_lib_piston_eta(lexer *p, ghostcell *pgc) : wave_lib_pa
     if(p->mpirank==0)
     {
     cout<<"Wave Tank: piston_eta wavemaker theory; ";
-    cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wd: "<<wd<<endl;
+    cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wdt: "<<wdt<<endl;
     }
 	
 	timecount=0;
@@ -75,7 +75,7 @@ double wave_lib_piston_eta::wave_horzvel(lexer *p, double x, double y, double z)
 	if(p->simtime>eta[timecount+1][0])
 	++timecount;
 	
-	vel = sqrt(9.81/wd) * wave_eta(p,x,y);
+	vel = sqrt(9.81/wdt) * wave_eta(p,x,y);
 
     return vel;
 }

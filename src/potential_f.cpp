@@ -86,10 +86,7 @@ void potential_f::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
 	cout<<"lapltime: "<<p->laplacetime<<"  lapiter: "<<p->laplaceiter<<endl<<endl;
 
     p->N46=itermem;
-    
-    LOOP
-    a->test(i,j,k) = psi(i,j,k);
-    
+
     
     LOOP
     psi(i,j,k) = 0.0;

@@ -41,7 +41,7 @@ void iowave::active_beach_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi
 		j=p->gcslout[n][1];
 		
 		ii=0;
-		if(p->gcslout[n][3]==4)
+        if(p->gcslout[n][3]==4)
 		ii=1;
 		
 		eta_T = 0.0;

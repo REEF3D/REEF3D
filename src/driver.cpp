@@ -40,10 +40,10 @@ driver::driver(int& argc, char **argv)
 
     if(p->mpirank==0)
     {
-    cout<<endl<<"REEF3D (c) 2008-2020 Hans Bihs"<<endl;
+    cout<<endl<<"REEF3D (c) 2008-2021 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
     cout<< timenow << endl;
-    cout<<endl<<"v_210228"<<"; "<<BRANCH<<"; "<<VERSION<<endl<<endl;
+    cout<<endl<<"v_210513"<<"; "<<BRANCH<<"; "<<VERSION<<endl<<endl;
     }
 
 	p->lexer_read(pgc);

@@ -147,6 +147,13 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
     // elevation
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
+    
+    // test
+    if(p->P23==1)
+    {
+	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
+    }
 	
 	// Cells
     offset[n]=offset[n-1] + 4*p->polygon_sum*3+4;
@@ -180,6 +187,11 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"elevation\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
+    if(p->P23==1)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\"elevation\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    }
     result<<"</PointData>"<<endl;
 
     
@@ -265,6 +277,18 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	ffn=float(p->sl_ipol4(b->bed));
 	result.write((char*)&ffn, sizeof (float));
 	}
+    
+    //  Test
+    if(p->P23==1)
+    {
+	iin=4*(p->pointnum2D);
+	result.write((char*)&iin, sizeof (int));
+    TPSLICELOOP
+	{
+	ffn=float(p->sl_ipol4(b->test));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    }
 
     //  Connectivity
     iin=4*(p->polygon_sum)*3;

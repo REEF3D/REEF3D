@@ -130,16 +130,19 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	pprint = new sflow_vtp(p,b,pgc);
 	
 	pprintbed = new sflow_vtp_bed(p,b);
+    
+    //6DOF
+    p6dof_sflow = new sixdof_sflow(p,b,pgc);
 	
 	// momentum
     if(p->A210==1)
-	pmom = new sflow_momentum_AB2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf);
+	pmom = new sflow_momentum_AB2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,p6dof_sflow);
     
     if(p->A210==2)
-	pmom = new sflow_momentum_RK2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf);
+	pmom = new sflow_momentum_RK2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,p6dof_sflow);
     
 	if(p->A210==3)
-	pmom = new sflow_momentum_RK3(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf);
+	pmom = new sflow_momentum_RK3(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,p6dof_sflow);
     
     
     //Potential Flow Solver
@@ -148,4 +151,5 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 
     if(p->I11==1)
     potflow = new sflow_potential_f(p);
+    
 }

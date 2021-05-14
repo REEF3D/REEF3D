@@ -37,7 +37,7 @@ using namespace std;
 class sflow_momentum_AB2 : public sflow_momentum, public increment
 {
 public:
-	sflow_momentum_AB2(lexer*, fdm2D*, sflow_convection*, sflow_diffusion*, sflow_pressure*, solver2D*, solver2D*, ioflow*, sflow_fsf*);
+	sflow_momentum_AB2(lexer*, fdm2D*, sflow_convection*, sflow_diffusion*, sflow_pressure*, solver2D*, solver2D*, ioflow*, sflow_fsf*, sixdof*);
 	virtual ~sflow_momentum_AB2();
 	virtual void start(lexer*, fdm2D*, ghostcell*);
 

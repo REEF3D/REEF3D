@@ -66,7 +66,7 @@ void net_barQuasiStatic::print(lexer *p)
 			}
 		}
         
-		eTout<<p->simtime<<" \t "<<Tmax<<" "<<Fx<<" "<<Fy<<" "<<Fz<<endl;
+		eTout<<p->simtime<<"\t"<<Tmax<<"\t"<<Fx<<"\t"<<Fy<<"\t"<<Fz<<endl;
     }    
     
 	if

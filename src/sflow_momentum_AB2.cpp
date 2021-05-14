@@ -29,9 +29,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_fsf.h"
 #include"ioflow.h"
 #include"solver2D.h"
+#include"6DOF.h"
 
 sflow_momentum_AB2::sflow_momentum_AB2(lexer *p, fdm2D *b, sflow_convection *pconvection, sflow_diffusion *ppdiff, sflow_pressure* ppressure,
-                                                    solver2D *psolver, solver2D *ppoissonsolver, ioflow *pioflow, sflow_fsf *pfreesurf)
+                                                    solver2D *psolver, solver2D *ppoissonsolver, ioflow *pioflow, sflow_fsf *pfreesurf, sixdof *pp6dof)
                                                     :Pab(p),Qab(p)
 {
 	gcval_u=10;

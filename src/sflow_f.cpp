@@ -35,6 +35,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_filter.h"
 #include"sflow_turbulence.h"
 #include"sflow_sediment.h"
+#include"6DOF_sflow.h"
 #include<iostream>
 #include<fstream>
 #include<sys/stat.h>
@@ -117,6 +118,13 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         psed->start(p,b,pgc,b->P,b->Q,b->topovel);
         pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
         
+        // 6DOF
+		if (p->X10==3)
+        {
+            //p6dof->start(p,b,pgc,1.0,pvrans,pnet);
+            p6dof_sflow->start(p,b,pgc);
+        }
+
         // timesave
         pturb->ktimesave(p,b,pgc);
         pturb->etimesave(p,b,pgc);

@@ -27,10 +27,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/stat.h>
 
 #include"mooring_void.h"
-#include"mooring_DGSEM.h"
 #include"mooring_barQuasiStatic.h"
 #include"mooring_Catenary.h"
 #include"mooring_Spring.h"
+#include"mooring_dynamic.h"
 #include"net.h"
 #include"net_void.h"
 #include"net_barDyn.h"
@@ -118,11 +118,10 @@ void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pne
 			}	
 			else if(p->X310==3)
 			{
-				pmooring.push_back(new mooring_DGSEM(i));
+				pmooring.push_back(new mooring_dynamic(i));
 			}
 			else if(p->X310==4)
 			{
-		
                 pmooring.push_back(new mooring_Spring(i));
 			}
 		
@@ -186,4 +185,24 @@ void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pne
     p->xg=p->yg=p->zg=0.0;
 
     quatRotMat << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0;
+}
+
+void sixdof_void::isource(lexer *p, fdm *a, ghostcell *pgc)
+{
+}
+
+void sixdof_void::jsource(lexer *p, fdm *a, ghostcell *pgc)
+{
+}
+
+void sixdof_void::ksource(lexer *p, fdm *a, ghostcell *pgc)
+{
+}
+
+void sixdof_void::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+}
+
+void sixdof_void::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
+{
 }

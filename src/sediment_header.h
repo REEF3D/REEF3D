@@ -24,13 +24,14 @@ Author: Hans Bihs
 #include"sediment_void.h"
 
 #include"bedload_VR.h"
+#include"bedload_VRc.h"
 #include"bedload_einstein.h"
 #include"bedload_MPM.h"
 #include"bedload_EF.h"
 #include"bedload_void.h"
 
 #include"topo_void.h"
-#include"topo_direct.h"
+#include"sediment_exner.h"
 
 #include"reinitopo_AB2.h"
 #include"reinitopo_RK3.h"
