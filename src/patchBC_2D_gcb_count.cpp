@@ -38,6 +38,8 @@ void patchBC_2D::patchBC_gcb_count(lexer *p, ghostcell *pgc)
             jstart = p->posc_j(p->B440_ys[qn]);
             jend = p->posc_j(p->B440_ye[qn]);
             
+            //if(qn==1)
+            //cout<<p->mpirank<<" istart: "<<istart<<" iend: "<<iend<<" jstart: "<<jstart<<" jend: "<<jend<<" xs: "<<p->B440_xs[qn]<<" xe: "<<p->B440_xe[qn]<<endl;
 
             for(n=0;n<p->gcbsl4_count;++n)
             {

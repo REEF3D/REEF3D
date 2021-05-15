@@ -60,7 +60,7 @@ void bedload_VRc::start(lexer* p, fdm* a, ghostcell* pgc)
         Ti=MAX((shields_eff-shields_crit)/(shields_crit),0.0);
 
         if(shearvel_eff>shearvel_crit)
-        qb = 0.015*d50*pow(Ti,1.5)/pow(Ds,0.3)*0.5*(p->DXN[IP]+p->DXN[JP])*u_abs;
+        qb = 0.015*d50*pow(Ti,1.5)/pow(Ds,0.3)*0.5*(p->DXN[IP]+p->DXN[IP1])*u_abs;
 
         if(shearvel_eff<=shearvel_crit)
         qb=0.0;

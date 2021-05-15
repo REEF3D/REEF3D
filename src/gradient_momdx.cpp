@@ -45,7 +45,7 @@ double gradient::udx(fdm* a)
 
 double gradient::udy(fdm* a)
 {
-	grad = (a->u(i,j+1,k) - a->u(i,j-1,k))/(p->DYP[IP]+p->DXP[IM1]);
+	grad = (a->u(i,j+1,k) - a->u(i,j-1,k))/(p->DYP[JP]+p->DXP[IM1]);
 
 	return grad;
 }
@@ -160,7 +160,7 @@ double gradient::wdx(fdm* a)
 
 double gradient::wdy(fdm* a)
 {
-	grad = (a->w(i,j+1,k) - a->w(i,j-1,k))/(p->DYP[JP]+p->DYP[IM1]);
+	grad = (a->w(i,j+1,k) - a->w(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1]);
 
 	return grad;
 }

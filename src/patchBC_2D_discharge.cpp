@@ -74,7 +74,7 @@ void patchBC_2D::patchBC_discharge2D(lexer *p, fdm2D* b, ghostcell *pgc, slice &
             // sides 3 & 2
             if(patch[qq]->gcb[n][3]==3 && b->wet4(i,j)==1)
             {
-            area = p->DXN[JP]*b->hp(i,j-1);
+            area = p->DXN[IP]*b->hp(i,j-1);
             
             Ai+=area;
             Qi+=area*b->Q(i,j-1);
@@ -85,11 +85,10 @@ void patchBC_2D::patchBC_discharge2D(lexer *p, fdm2D* b, ghostcell *pgc, slice &
             
             if(patch[qq]->gcb[n][3]==2  && b->wet4(i,j)==1)
             {
-            area = p->DXN[JP]*b->hp(i,j+1);
+            area = p->DXN[IP]*b->hp(i,j+1);
             
             Ai+=area;
             Qi+=area*b->Q(i,j+1);
-            
             hval += b->hp(i,j+1);
             ++hcount;
             }
