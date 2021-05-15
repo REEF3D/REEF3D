@@ -55,6 +55,8 @@ patch_obj::patch_obj(lexer *p, int ID_ini)
     
     flowangle_flag=0;
     alpha=0.0;
+    cosalpha=0.0;
+    sinalpha=1.0;
     
     flownormal_flag=0;
     Nx=Ny=Nz=0.0;

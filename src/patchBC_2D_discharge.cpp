@@ -54,7 +54,7 @@ void patchBC_2D::patchBC_discharge2D(lexer *p, fdm2D* b, ghostcell *pgc, slice &
             area = p->DYN[JP]*b->hp(i-1,j);
             
             Ai+=area;
-            Qi+=area*b->P(i-1,j);
+            Qi+=area*(patch[qq]->cosalpha*b->Q(i+1,j) + patch[qq]->sinalpha*b->P(i+1,j));
             
             hval += b->hp(i-1,j);
             ++hcount;
@@ -65,7 +65,7 @@ void patchBC_2D::patchBC_discharge2D(lexer *p, fdm2D* b, ghostcell *pgc, slice &
             area = p->DYN[JP]*b->hp(i+1,j);
             
             Ai+=area;
-            Qi+=area*b->P(i+1,j);
+            Qi+=area*(patch[qq]->cosalpha*b->Q(i+1,j) + patch[qq]->sinalpha*b->P(i+1,j));
             
             hval += b->hp(i+1,j);
             ++hcount;
@@ -77,7 +77,7 @@ void patchBC_2D::patchBC_discharge2D(lexer *p, fdm2D* b, ghostcell *pgc, slice &
             area = p->DXN[IP]*b->hp(i,j-1);
             
             Ai+=area;
-            Qi+=area*b->Q(i,j-1);
+            Qi+=area*(patch[qq]->sinalpha*b->Q(i,j-1) + patch[qq]->cosalpha*b->P(i,j+1));
             
             hval += b->hp(i,j-1);
             ++hcount;
@@ -88,7 +88,7 @@ void patchBC_2D::patchBC_discharge2D(lexer *p, fdm2D* b, ghostcell *pgc, slice &
             area = p->DXN[IP]*b->hp(i,j+1);
             
             Ai+=area;
-            Qi+=area*b->Q(i,j+1);
+            Qi+=area*(patch[qq]->sinalpha*b->Q(i,j+1) + patch[qq]->cosalpha*b->P(i,j+1));
             hval += b->hp(i,j+1);
             ++hcount;
             }

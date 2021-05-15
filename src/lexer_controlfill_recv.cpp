@@ -1626,7 +1626,7 @@ void lexer::ctrlrecv()
     if(B416>0)
     {
     Iarray(B416_ID,B416);
-    Darray(B416_alpha,B414);
+    Darray(B416_alpha,B416);
     }
     
     if(B417>0)

@@ -81,6 +81,7 @@ public:
     
     int flowangle_flag;
     double alpha;
+    double sinalpha,cosalpha;
     
     int flownormal_flag;
     double Nx,Ny,Nz;

@@ -1858,9 +1858,10 @@ void lexer::read_control()
     Darray(B415_V,B415);
     Darray(B415_W,B415);
     
+    cout<<"B416: "<<B416<<endl;
     Iarray(B416_ID,B416);
-    Darray(B416_alpha,B414);
-    
+    Darray(B416_alpha,B416);
+    cout<<"B416: "<<B416<<endl;
     Iarray(B417_ID,B417);
     Darray(B417_Nx,B417);
     Darray(B417_Ny,B417);

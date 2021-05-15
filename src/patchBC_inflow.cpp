@@ -140,13 +140,13 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
     
         if(patch[qq]->gcb[n][3]==1)
         {
-        u(i-1,j,k) =  patch[qq]->Uq;
-        u(i-2,j,k) =  patch[qq]->Uq;
-        u(i-3,j,k) =  patch[qq]->Uq;
+        u(i-1,j,k) =  patch[qq]->Uq*patch[qq]->sinalpha;
+        u(i-2,j,k) =  patch[qq]->Uq*patch[qq]->sinalpha;
+        u(i-3,j,k) =  patch[qq]->Uq*patch[qq]->sinalpha;
         
-        v(i-1,j,k) =  0.0;
-        v(i-2,j,k) =  0.0;
-        v(i-3,j,k) =  0.0;
+        v(i-1,j,k) =  patch[qq]->Uq*patch[qq]->cosalpha;
+        v(i-2,j,k) =  patch[qq]->Uq*patch[qq]->cosalpha;
+        v(i-3,j,k) =  patch[qq]->Uq*patch[qq]->cosalpha;
         
         w(i-1,j,k) =  0.0;
         w(i-2,j,k) =  0.0;
@@ -155,13 +155,13 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
         
         if(patch[qq]->gcb[n][3]==2)
         {
-        u(i,j+1,k) =  0.0;
-        u(i,j+2,k) =  0.0;
-        u(i,j+3,k) =  0.0;
+        u(i,j+1,k) =  patch[qq]->Uq*patch[qq]->cosalpha;
+        u(i,j+2,k) =  patch[qq]->Uq*patch[qq]->cosalpha;
+        u(i,j+3,k) =  patch[qq]->Uq*patch[qq]->cosalpha;
         
-        v(i,j,k)   =  patch[qq]->Uq;
-        v(i,j+1,k) =  patch[qq]->Uq;
-        v(i,j+2,k) =  patch[qq]->Uq;
+        v(i,j,k)   =  patch[qq]->Uq*patch[qq]->sinalpha;
+        v(i,j+1,k) =  patch[qq]->Uq*patch[qq]->sinalpha;
+        v(i,j+2,k) =  patch[qq]->Uq*patch[qq]->sinalpha;
         
         w(i,j+1,k) =  0.0;
         w(i,j+2,k) =  0.0;
@@ -170,13 +170,13 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
         
         if(patch[qq]->gcb[n][3]==3)
         {
-        u(i,j-1,k) =  0.0;
-        u(i,j-2,k) =  0.0;
-        u(i,j-3,k) =  0.0;
+        u(i,j-1,k) =  patch[qq]->Uq*patch[qq]->cosalpha;
+        u(i,j-2,k) =  patch[qq]->Uq*patch[qq]->cosalpha;
+        u(i,j-3,k) =  patch[qq]->Uq*patch[qq]->cosalpha;
         
-        v(i,j-1,k) =  patch[qq]->Uq;
-        v(i,j-2,k) =  patch[qq]->Uq;
-        v(i,j-3,k) =  patch[qq]->Uq;
+        v(i,j-1,k) =  patch[qq]->Uq*patch[qq]->sinalpha;
+        v(i,j-2,k) =  patch[qq]->Uq*patch[qq]->sinalpha;
+        v(i,j-3,k) =  patch[qq]->Uq*patch[qq]->sinalpha;
         
         w(i,j-1,k) =  0.0;
         w(i,j-2,k) =  0.0;
@@ -185,13 +185,13 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
         
         if(patch[qq]->gcb[n][3]==4)
         {
-        u(i,j,k)   =  patch[qq]->Uq;
-        u(i+1,j,k) =  patch[qq]->Uq;
-        u(i+2,j,k) =  patch[qq]->Uq;
+        u(i,j,k)   =  patch[qq]->Uq*patch[qq]->sinalpha;
+        u(i+1,j,k) =  patch[qq]->Uq*patch[qq]->sinalpha;
+        u(i+2,j,k) =  patch[qq]->Uq*patch[qq]->sinalpha;
         
-        v(i+1,j,k) =  0.0;
-        v(i+2,j,k) =  0.0;
-        v(i+3,j,k) =  0.0;
+        v(i+1,j,k) =  patch[qq]->Uq*patch[qq]->cosalpha;
+        v(i+2,j,k) =  patch[qq]->Uq*patch[qq]->cosalpha;
+        v(i+3,j,k) =  patch[qq]->Uq*patch[qq]->cosalpha;
         
         w(i+1,j,k) =  0.0;
         w(i+2,j,k) =  0.0;

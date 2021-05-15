@@ -62,7 +62,7 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 - a->phi(i,j,k));
             
             Ai+=area;
-            Qi+=area*a->u(i,j,k);
+            Qi+=area*(patch[qq]->cosalpha*a->v(i-1,j,k) + patch[qq]->sinalpha*a->u(i-1,j,k));
             }
             
             // side 4
@@ -80,7 +80,7 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
             //cout<<"area: "<<area<<" phi: "<<a->phi(i,j,k)<<endl;
             
             Ai+=area;
-            Qi+=area*a->u(i-1,j,k);
+            Qi+=area*(patch[qq]->cosalpha*a->v(i+1,j,k) + patch[qq]->sinalpha*a->u(i,j,k));
             }
             
             // side 3 
@@ -96,7 +96,7 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 - a->phi(i,j,k));
             
             Ai+=area;
-            Qi+=area*a->v(i,j-1,k);
+            Qi+=area*(patch[qq]->sinalpha*a->v(i,j-1,k) + patch[qq]->cosalpha*a->u(i,j-1,k));
             }
             
             // side 2
@@ -112,7 +112,7 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 - a->phi(i,j,k));
             
             Ai+=area;
-            Qi+=area*a->v(i,j+1,k);
+            Qi+=area*(patch[qq]->sinalpha*a->v(i,j,k) + patch[qq]->cosalpha*a->u(i,j+1,k));
             }
             
             // side 5 

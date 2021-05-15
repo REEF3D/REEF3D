@@ -103,7 +103,9 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
         if(patch[qq]->ID == p->B416_ID[qn])
         {
         patch[qq]->flowangle_flag=1;
-        patch[qq]->alpha=p->B416_alpha[qn];
+        patch[qq]->alpha=(PI/180.0)*p->B416_alpha[qn];
+        patch[qq]->sinalpha=sin(patch[qq]->alpha);
+        patch[qq]->cosalpha=cos(patch[qq]->alpha);
         }
     }
     
