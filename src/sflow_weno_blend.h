@@ -74,7 +74,7 @@ private:
 	void alpha();
 	void weight();
     
-    sflow_flux *pflux;
+    sflow_flux *pflux,*pflux_hj;
     double ivel1,ivel2,jvel1,jvel2;
 };
 

@@ -38,6 +38,8 @@ sflow_weno_blend::sflow_weno_blend(lexer* p):tttw(13.0/12.0),fourth(1.0/4.0),thi
     
     if(p->A216==4)
     pflux = new sflow_flux_face_HJ(p);
+    
+    pflux_hj = new sflow_flux_face_HJ(p);
 
 }
 
@@ -104,8 +106,8 @@ double sflow_weno_blend::aij_flux(lexer* p,fdm2D* b,slice& f,int ipol, slice& uv
 
 double sflow_weno_blend::aij_hj(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, slice& vvel)
 {
-		pflux->u_flux(ipol,uvel,iadvec,ivel2);
-		pflux->v_flux(ipol,vvel,jadvec,jvel2);
+		pflux_hj->u_flux(ipol,uvel,iadvec,ivel2);
+		pflux_hj->v_flux(ipol,vvel,jadvec,jvel2);
 
 		L = -iadvec*fx_hj(p,b,f,ipol,iadvec) - jadvec*fy_hj(p,b,f,ipol,jadvec);
 
