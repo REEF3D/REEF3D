@@ -148,7 +148,7 @@ void fnpf_vtp_bed::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
 	{
-	ffn=float(p->sl_ipol4(c->eta)+p->wd);
+	ffn=float(p->sl_ipol4(c->bed));
 	result.write((char*)&ffn, sizeof (float));
 	}
 	
