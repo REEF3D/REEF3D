@@ -68,6 +68,7 @@ private:
 	double q1,q2,q3,q4,q5;
 	double gradx, grady, gradz;
 	double fu1,fv1,fu2,fv2;
+    double iadvec,jadvec;
 
 	void is(slice&);
 	void alpha();
