@@ -174,7 +174,7 @@ double sflow_weno_blend::fx_hj(lexer *p,fdm2D *b, slice& f, int ipol, double adv
 	return grad;
 }
 
-double sflow_weno_blend::fy_Flux(lexer *p,fdm2D *b, slice& f, int ipol, double advec)
+double sflow_weno_blend::fy_flux(lexer *p,fdm2D *b, slice& f, int ipol, double advec)
 {
     grad = 0.0;
 
