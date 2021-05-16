@@ -207,6 +207,7 @@
             <File Name="sflow_diffusion.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Convection">
+            <File Name="sflow_weno_blend.h"/>
             <File Name="sflow_weno_hj.h"/>
             <File Name="sflow_weno_flux.h"/>
             <File Name="sflow_voidconv.h"/>
@@ -1146,6 +1147,7 @@
             <File Name="sflow_diffusion_void.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Convection">
+            <File Name="sflow_weno_blend.cpp"/>
             <File Name="sflow_weno_hj.cpp"/>
             <File Name="sflow_weno_flux.cpp"/>
             <File Name="sflow_voidconv.cpp"/>
