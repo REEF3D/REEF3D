@@ -36,6 +36,12 @@ void patchBC_2D::patchBC_discharge2D(lexer *p, fdm2D* b, ghostcell *pgc, slice &
     double Hi=0.0;
     
     // hydrograph interpolation
+    // waterlevel
+    for(qq=0;qq<obj_count;++qq)
+    if(patch[qq]->hydroQ_flag==1)
+    {
+    patch[qq]->Q = patchBC_hydrograph_ipol(p,pgc,patch[qq]->ID);
+    }
 
     
     // Q calc

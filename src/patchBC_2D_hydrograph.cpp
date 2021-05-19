@@ -24,23 +24,23 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"patch_obj.h"
 
-void patchBC_2D::patchBC_hydrograph_read(lexer *p, ghostcell *pgc, int ID)
+void patchBC_2D::patchBC_hydrograph_read(lexer *p, ghostcell *pgc, int qq)
 {
     char name[100];
 	double val;
 	int count;
 	
-    if(ID<10)
-	sprintf(name,"hydrograph_Q_000%i.dat",ID);
+    if(qq<10)
+	sprintf(name,"hydrograph_Q_000%i.dat",qq);
     
-    if(ID<100 && ID>9)
-	sprintf(name,"hydrograph_Q_00%i.dat",ID);
+    if(qq<100 && qq>9)
+	sprintf(name,"hydrograph_Q_00%i.dat",qq);
     
-    if(ID<1000 && ID>99)
-	sprintf(name,"hydrograph_Q_0%i.dat",ID);
+    if(qq<1000 && qq>99)
+	sprintf(name,"hydrograph_Q_0%i.dat",qq);
     
-    if(ID<10000 && ID>999)
-	sprintf(name,"hydrograph_Q_%i.dat",ID);
+    if(qq<10000 && qq>999)
+	sprintf(name,"hydrograph_Q_%i.dat",qq);
     
 
 // open file------------
@@ -65,7 +65,7 @@ void patchBC_2D::patchBC_hydrograph_read(lexer *p, ghostcell *pgc, int ID)
     
     patch[qq]->hydroQ_count=count;
 	
-	p->Darray(patch[qq]->hydroQ,patch[qq]->hydroQ_count,2);
+	p->Darray(patch[qq]->hydroQ, patch[qq]->hydroQ_count, 2);
 	
 	hg.open (name, ios_base::in);
 	
@@ -75,13 +75,23 @@ void patchBC_2D::patchBC_hydrograph_read(lexer *p, ghostcell *pgc, int ID)
 	hg>>patch[qq]->hydroQ[count][0]>>patch[qq]->hydroQ[count][1];
 	++count;
 	}
-    
 }
 
-
-double patchBC_2D::patchBC_hydrograph_ipol(lexer *p, ghostcell *pgc, int ID)
+double patchBC_2D::patchBC_hydrograph_ipol(lexer *p, ghostcell *pgc, int qq)
 {
+	double val;
+    
+    for(int n=0;n<patch[qq]->hydroQ_count-1;++n)
+    if(p->simtime>=patch[qq]->hydroQ[n][0] && p->simtime<patch[qq]->hydroQ[n+1][0])
+	{
+    val = ((patch[qq]->hydroQ[n+1][1]-patch[qq]->hydroQ[n][1])/(patch[qq]->hydroQ[n+1][0]-patch[qq]->hydroQ[n][0]))*(p->simtime-patch[qq]->hydroQ[n][0]) + patch[qq]->hydroQ[n][1];
+	}
+    
+    if(p->count==0 )
+    val = patch[qq]->hydroQ[0][1];
+	
+	if(p->simtime>=patch[qq]->hydroQ[patch[qq]->hydroQ_count-1][0])
+	val=patch[qq]->hydroQ[patch[qq]->hydroQ_count-1][1];
 
-    return 0.0;
-
+	return val;
 }

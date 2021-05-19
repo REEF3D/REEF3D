@@ -147,7 +147,7 @@ void patchBC_2D::patchBC_fillobj(lexer *p, ghostcell *pgc)
         patch[qq]->gcb_uflag=2;
         
         // read hydrograph
-        
+        patchBC_hydrograph_read(p,pgc,patch[qq]->ID);
         }
     }
     

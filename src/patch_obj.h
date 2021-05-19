@@ -89,9 +89,10 @@ public:
     int pio_flag;
     
     int hydroQ_flag;
+    double **hydroQ;
+    int hydroQ_count,hydroQ_iter;
+    
     int hydroFSF_flag;
-    int **hydroQ;
-    int hydroQ_count;
     
     // measurement
     double Q0,U0,A0,h0;
