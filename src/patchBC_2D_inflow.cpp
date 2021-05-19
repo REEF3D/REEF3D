@@ -80,7 +80,7 @@ void patchBC_2D::patchBC_ioflow2D(lexer *p, ghostcell *pgc, slice &P, slice &Q, 
         }
     }
     
-    // Uq discharge
+    // Uq discharge + Q hydrograph
     for(qq=0;qq<obj_count;++qq)
     if(patch[qq]->Q_flag==1)
     for(n=0;n<patch[qq]->gcb_count;++n)

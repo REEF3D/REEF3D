@@ -40,7 +40,7 @@ if(p->P14==0)
 	if(p->mpirank<9)
 	{
 		if(num<10)
-		sprintf(name,"REEF3D-CFD-00000%d-0000%d.vtu",num,p->mpirank+1);
+		sprintf(name,"REEF3D-CFD-00000%d-0000%i.vtu",num,p->mpirank+1);
 
 		if(num<100&&num>9)
 		sprintf(name,"REEF3D-CFD-0000%d-0000%d.vtu",num,p->mpirank+1);

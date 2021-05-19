@@ -522,6 +522,12 @@ void lexer::read_control()
                case 418: ++B418;
 						 clear(c,numint);
 						 break;
+               case 421: ++B421;
+						 clear(c,numint);
+						 break;
+               case 422: ++B422;
+						 clear(c,numint);
+						 break;
                case 440: ++B440;
 						 clear(c,numint);
 						 break;
@@ -1857,18 +1863,18 @@ void lexer::read_control()
     Darray(B415_U,B415);
     Darray(B415_V,B415);
     Darray(B415_W,B415);
-    
-    cout<<"B416: "<<B416<<endl;
     Iarray(B416_ID,B416);
     Darray(B416_alpha,B416);
-    cout<<"B416: "<<B416<<endl;
     Iarray(B417_ID,B417);
     Darray(B417_Nx,B417);
     Darray(B417_Ny,B417);
     Darray(B417_Nz,B417);
-    
     Iarray(B418_ID,B418);
     Iarray(B418_pio,B418);
+    Iarray(B421_ID,B421);
+    Iarray(B421_Q,B421);
+    Iarray(B422_ID,B422);
+    Iarray(B422_FSF,B422);
     
     
     Iarray(B440_ID,B440);
@@ -2192,6 +2198,8 @@ void lexer::read_control()
     int countB416=0;
     int countB417=0;
     int countB418=0;
+    int countB421=0;
+    int countB422=0;
     int countB440=0;
     int countB441=0;
     int countB442=0;
@@ -2318,6 +2326,14 @@ void lexer::read_control()
 						 break;
                 case 418: control>>B418_ID[countB418]>>B418_pio[countB418];
                         ++countB418;
+						 clear(c,numint);
+						 break;
+                case 421: control>>B421_ID[countB421]>>B421_Q[countB421];
+                        ++countB421;
+						 clear(c,numint);
+						 break;
+                case 422: control>>B422_ID[countB422]>>B422_FSF[countB422];
+                        ++countB422;
 						 clear(c,numint);
 						 break;
                 case 440: control>>B440_ID[countB440]>>B440_face[countB440]>>B440_xs[countB440]>>B440_xe[countB440]>>B440_ys[countB440]>>B440_ye[countB440];

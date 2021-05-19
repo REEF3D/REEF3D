@@ -408,6 +408,10 @@ void lexer::ctrlrecv()
 	ii++;
     B418 = ictrl[ii];
 	ii++;
+    B421 = ictrl[ii];
+	ii++;
+    B422 = ictrl[ii];
+	ii++;
     B440 = ictrl[ii];
 	ii++;
     B441 = ictrl[ii];
@@ -1643,6 +1647,18 @@ void lexer::ctrlrecv()
     Iarray(B418_pio,B418);
     }
     
+    if(B421>0)
+    {
+    Iarray(B421_ID,B421);
+    Iarray(B421_Q,B421);
+    }
+    
+    if(B422>0)
+    {
+    Iarray(B422_ID,B422);
+    Iarray(B422_FSF,B422);
+    }
+    
     if(B440>0)
     {
     Iarray(B440_ID,B440);
@@ -2311,6 +2327,22 @@ void lexer::ctrlrecv()
     B418_ID[n] = ictrl[ii];
     ii++;
     B418_pio[n] = ictrl[ii];
+    ii++;
+    }
+    
+    for(n=0;n<B421;++n)
+    {
+    B421_ID[n] = ictrl[ii];
+    ii++;
+    B421_Q[n] = ictrl[ii];
+    ii++;
+    }
+	
+    for(n=0;n<B422;++n)
+    {
+    B422_ID[n] = ictrl[ii];
+    ii++;
+    B422_FSF[n] = ictrl[ii];
     ii++;
     }
 	

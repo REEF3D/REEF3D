@@ -21,33 +21,60 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"patchBC_2D.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include"patch_obj.h"
 
-patchBC_2D::patchBC_2D(lexer *p, ghostcell *pgc) 
+void patchBC_2D::patchBC_hydrograph_read(lexer *p, ghostcell *pgc, int ID)
 {
-    obj_count=0;
+   /* char name[100];
+	double val;
+	int count;
+	
+    
+	sprintf(name,"hydrograph.dat");
+    
+    if(num<10)
+	sprintf(name,"REEF3D-CFD-00000%d.pvtu",num);
+
+// open file------------
+	ifstream hg(name, ios_base::in);
+	
+	if(!hg)
+	{
+		cout<<endl<<"no "<<name<<" file found !!!"<<endl<<endl;
+	}
+	
+	count=0;
+	while(!hg.eof())
+	{
+	hg>>val;
+	++count;
+	}
+	
+	hg.close();
+	
+	count/=2;
     
     
+    hydro_in_count=count;
+	
+	p->Darray(hydro,hydro_count,2);
+	
+	hg.open ("hydrograph.dat", ios_base::in);
+	
+	count=0;
+	while(!hg.eof())
+	{
+	hg>>hydro_in[count][0]>>hydro_in[count][1];
+	++count;
+	}
+    */
 }
 
-patchBC_2D::~patchBC_2D()
+
+double patchBC_2D::patchBC_hydrograph_ipol(lexer *p, ghostcell *pgc, int ID)
 {
+
+    return 0.0;
+
 }
-
-void patchBC_2D::patchBC_ini(lexer *p, ghostcell *pgc)
-{
-    patchBC_IDcount(p,pgc);
-    
-    // creat patch objects
-    patch = new patch_obj*[obj_count];
-    
-    for(qn=0; qn<obj_count;++qn)
-    patch[qn] = new patch_obj(p,ID_array[qn]);
-    
-    // fill patch objects
-    patchBC_gcb_count(p,pgc);
-    patchBC_fillobj(p,pgc);
-} 
-

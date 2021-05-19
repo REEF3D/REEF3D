@@ -299,7 +299,7 @@ public:
 	double B191_1,B191_2,B191_3,B191_4,B192_1,B192_2,B192_3,B192_4;
 	double B194_s,B194_e;
     
-    int B411,B412,B413,B414,B415,B416,B417,B418;
+    int B411,B412,B413,B414,B415,B416,B417,B418,B421,B422;
     int *B411_ID;
     double *B411_Q;
     int *B412_ID;
@@ -316,6 +316,8 @@ public:
     double *B417_Nx,*B417_Ny,*B417_Nz;
     int *B418_ID;
     int *B418_pio;
+    int *B421_ID,*B421_Q;
+    int *B422_ID,*B422_FSF;
     int B440;
     int *B440_ID,*B440_face;
     double *B440_xs,*B440_xe,*B440_ys,*B440_ye;

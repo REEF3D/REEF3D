@@ -135,6 +135,22 @@ void patchBC_2D::patchBC_fillobj(lexer *p, ghostcell *pgc)
         }
     }
     
+    // hydrograph discharge
+    for(qn=0;qn<p->B421;++qn)
+    {
+        for(qq=0;qq<obj_count;++qq)
+        if(patch[qq]->ID == p->B421_ID[qn])
+        {
+        patch[qq]->hydroQ_flag=1;
+        patch[qq]->Q_flag=1;
+        
+        patch[qq]->gcb_uflag=2;
+        
+        // read hydrograph
+        
+        }
+    }
+    
     /*
     111 - 222
     110 - 221

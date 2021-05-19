@@ -34,6 +34,8 @@ void patchBC_2D::patchBC_discharge2D(lexer *p, fdm2D* b, ghostcell *pgc, slice &
     double Qi=0.0;
     double Ui=0.0;
     double Hi=0.0;
+    
+    // hydrograph interpolation
 
     
     // Q calc

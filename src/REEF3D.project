@@ -2469,6 +2469,7 @@
       <VirtualDirectory Name="ioFlow">
         <VirtualDirectory Name="PatchBC">
           <VirtualDirectory Name="PatchBC 2D">
+            <File Name="patchBC_2D_hydrograph.cpp"/>
             <File Name="patchBC_2D_loop.cpp"/>
             <File Name="patchBC_2D_discharge.cpp"/>
             <File Name="patchBC_2D_IDcount.cpp"/>
