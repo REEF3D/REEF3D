@@ -26,15 +26,22 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void patchBC_2D::patchBC_hydrograph_read(lexer *p, ghostcell *pgc, int ID)
 {
-   /* char name[100];
+    char name[100];
 	double val;
 	int count;
 	
+    if(ID<10)
+	sprintf(name,"hydrograph_Q_000%i.dat",ID);
     
-	sprintf(name,"hydrograph.dat");
+    if(ID<100 && ID>9)
+	sprintf(name,"hydrograph_Q_00%i.dat",ID);
     
-    if(num<10)
-	sprintf(name,"REEF3D-CFD-00000%i.pvtu",num);
+    if(ID<1000 && ID>99)
+	sprintf(name,"hydrograph_Q_0%i.dat",ID);
+    
+    if(ID<10000 && ID>999)
+	sprintf(name,"hydrograph_Q_%i.dat",ID);
+    
 
 // open file------------
 	ifstream hg(name, ios_base::in);
@@ -56,19 +63,19 @@ void patchBC_2D::patchBC_hydrograph_read(lexer *p, ghostcell *pgc, int ID)
 	count/=2;
     
     
-    hydro_in_count=count;
+    patch[qq]->hydroQ_count=count;
 	
-	p->Darray(hydro,hydro_count,2);
+	p->Darray(patch[qq]->hydroQ,patch[qq]->hydroQ_count,2);
 	
-	hg.open ("hydrograph.dat", ios_base::in);
+	hg.open (name, ios_base::in);
 	
 	count=0;
 	while(!hg.eof())
 	{
-	hg>>hydro_in[count][0]>>hydro_in[count][1];
+	hg>>patch[qq]->hydroQ[count][0]>>patch[qq]->hydroQ[count][1];
 	++count;
 	}
-    */
+    
 }
 
 
