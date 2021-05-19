@@ -34,7 +34,7 @@ void patchBC_2D::patchBC_hydrograph_read(lexer *p, ghostcell *pgc, int ID)
 	sprintf(name,"hydrograph.dat");
     
     if(num<10)
-	sprintf(name,"REEF3D-CFD-00000%d.pvtu",num);
+	sprintf(name,"REEF3D-CFD-00000%i.pvtu",num);
 
 // open file------------
 	ifstream hg(name, ios_base::in);

@@ -38,43 +38,43 @@ void fnpf_vtu3D::pvtu(lexer *p, ghostcell* pgc)
 	if(p->P14==0)
 	{
     if(num<10)
-	sprintf(name,"REEF3D-FNPF-00000%d.pvtu",num);
+	sprintf(name,"REEF3D-FNPF-00000%i.pvtu",num);
 
 	if(num<100&&num>9)
-	sprintf(name,"REEF3D-FNPF-0000%d.pvtu",num);
+	sprintf(name,"REEF3D-FNPF-0000%i.pvtu",num);
 
 	if(num<1000&&num>99)
-	sprintf(name,"REEF3D-FNPF-000%d.pvtu",num);
+	sprintf(name,"REEF3D-FNPF-000%i.pvtu",num);
 
 	if(num<10000&&num>999)
-	sprintf(name,"REEF3D-FNPF-00%d.pvtu",num);
+	sprintf(name,"REEF3D-FNPF-00%i.pvtu",num);
 
 	if(num<100000&&num>9999)
-	sprintf(name,"REEF3D-FNPF-0%d.pvtu",num);
+	sprintf(name,"REEF3D-FNPF-0%i.pvtu",num);
 
 	if(num>99999)
-	sprintf(name,"REEF3D-FNPF-%d.pvtu",num);
+	sprintf(name,"REEF3D-FNPF-%i.pvtu",num);
 	}
 
 	if(p->P14==1)
 	{
     if(num<10)
-	sprintf(name,"./REEF3D_FNPF_VTU/REEF3D-FNPF-00000%d.pvtu",num);
+	sprintf(name,"./REEF3D_FNPF_VTU/REEF3D-FNPF-00000%i.pvtu",num);
 
 	if(num<100&&num>9)
-	sprintf(name,"./REEF3D_FNPF_VTU/REEF3D-FNPF-0000%d.pvtu",num);
+	sprintf(name,"./REEF3D_FNPF_VTU/REEF3D-FNPF-0000%i.pvtu",num);
 
 	if(num<1000&&num>99)
-	sprintf(name,"./REEF3D_FNPF_VTU/REEF3D-FNPF-000%d.pvtu",num);
+	sprintf(name,"./REEF3D_FNPF_VTU/REEF3D-FNPF-000%i.pvtu",num);
 
 	if(num<10000&&num>999)
-	sprintf(name,"./REEF3D_FNPF_VTU/REEF3D-FNPF-00%d.pvtu",num);
+	sprintf(name,"./REEF3D_FNPF_VTU/REEF3D-FNPF-00%i.pvtu",num);
 
 	if(num<100000&&num>9999)
-	sprintf(name,"./REEF3D_FNPF_VTU/REEF3D-FNPF-0%d.pvtu",num);
+	sprintf(name,"./REEF3D_FNPF_VTU/REEF3D-FNPF-0%i.pvtu",num);
 
 	if(num>99999)
-	sprintf(name,"./REEF3D_FNPF_VTU/REEF3D-FNPF-%d.pvtu",num);
+	sprintf(name,"./REEF3D_FNPF_VTU/REEF3D-FNPF-%i.pvtu",num);
 	}
 
 	ofstream result;
@@ -131,105 +131,105 @@ void fnpf_vtu3D::piecename(lexer *p, ghostcell *pgc, int n)
 	if(n<9)
 	{
 		if(num<10)
-		sprintf(pname,"REEF3D-FNPF-00000%d-0000%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-00000%i-0000%i.vtu",num,n+1);
 
 		if(num<100&&num>9)
-		sprintf(pname,"REEF3D-FNPF-0000%d-0000%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-0000%i-0000%i.vtu",num,n+1);
 
 		if(num<1000&&num>99)
-		sprintf(pname,"REEF3D-FNPF-000%d-0000%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-000%i-0000%i.vtu",num,n+1);
 
 		if(num<10000&&num>999)
-		sprintf(pname,"REEF3D-FNPF-00%d-0000%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-00%i-0000%i.vtu",num,n+1);
 
 		if(num<100000&&num>9999)
-		sprintf(pname,"REEF3D-FNPF-0%d-0000%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-0%i-0000%i.vtu",num,n+1);
 
 		if(num>99999)
-		sprintf(pname,"REEF3D-FNPF-%d-0000%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-%i-0000%i.vtu",num,n+1);
 	}
 
 	if(n<99&&n>8)
 	{
 		if(num<10)
-		sprintf(pname,"REEF3D-FNPF-00000%d-000%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-00000%i-000%i.vtu",num,n+1);
 
 		if(num<100&&num>9)
-		sprintf(pname,"REEF3D-FNPF-0000%d-000%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-0000%i-000%i.vtu",num,n+1);
 
 		if(num<1000&&num>99)
-		sprintf(pname,"REEF3D-FNPF-000%d-000%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-000%i-000%i.vtu",num,n+1);
 
 		if(num<10000&&num>999)
-		sprintf(pname,"REEF3D-FNPF-00%d-000%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-00%i-000%i.vtu",num,n+1);
 
 		if(num<100000&&num>9999)
-		sprintf(pname,"REEF3D-FNPF-0%d-000%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-0%i-000%i.vtu",num,n+1);
 
 		if(num>99999)
-		sprintf(pname,"REEF3D-FNPF-%d-000%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-%i-000%i.vtu",num,n+1);
 	}
 	if(n<999&&n>98)
 	{
 		if(num<10)
-		sprintf(pname,"REEF3D-FNPF-00000%d-00%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-00000%i-00%i.vtu",num,n+1);
 
 		if(num<100&&num>9)
-		sprintf(pname,"REEF3D-FNPF-0000%d-00%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-0000%i-00%i.vtu",num,n+1);
 
 		if(num<1000&&num>99)
-		sprintf(pname,"REEF3D-FNPF-000%d-00%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-000%i-00%i.vtu",num,n+1);
 
 		if(num<10000&&num>999)
-		sprintf(pname,"REEF3D-FNPF-00%d-00%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-00%i-00%i.vtu",num,n+1);
 
 		if(num<100000&&num>9999)
-		sprintf(pname,"REEF3D-FNPF-0%d-00%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-0%i-00%i.vtu",num,n+1);
 
 		if(num>99999)
-		sprintf(pname,"REEF3D-FNPF-%d-00%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-%i-00%i.vtu",num,n+1);
 	}
 
 	if(n<9999&&n>998)
 	{
 		if(num<10)
-		sprintf(pname,"REEF3D-FNPF-00000%d-0%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-00000%i-0%i.vtu",num,n+1);
 
 		if(num<100&&num>9)
-		sprintf(pname,"REEF3D-FNPF-0000%d-0%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-0000%i-0%i.vtu",num,n+1);
 
 		if(num<1000&&num>99)
-		sprintf(pname,"REEF3D-FNPF-000%d-0%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-000%i-0%i.vtu",num,n+1);
 
 		if(num<10000&&num>999)
-		sprintf(pname,"REEF3D-FNPF-00%d-0%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-00%i-0%i.vtu",num,n+1);
 
 		if(num<100000&&num>9999)
-		sprintf(pname,"REEF3D-FNPF-0%d-0%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-0%i-0%i.vtu",num,n+1);
 
 		if(num>99999)
-		sprintf(pname,"REEF3D-FNPF-%d-0%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-%i-0%i.vtu",num,n+1);
 	}
 
 	if(n>9998)
 	{
 		if(num<10)
-		sprintf(pname,"REEF3D-FNPF-00000%d-%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-00000%i-%i.vtu",num,n+1);
 
 		if(num<100&&num>9)
-		sprintf(pname,"REEF3D-FNPF-0000%d-%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-0000%i-%i.vtu",num,n+1);
 
 		if(num<1000&&num>99)
-		sprintf(pname,"REEF3D-FNPF-000%d-%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-000%i-%i.vtu",num,n+1);
 
 		if(num<10000&&num>999)
-		sprintf(pname,"REEF3D-FNPF-00%d-%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-00%i-%i.vtu",num,n+1);
 
 		if(num<100000&&num>9999)
-		sprintf(pname,"REEF3D-FNPF-0%d-%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-0%i-%i.vtu",num,n+1);
 
 		if(num>99999)
-		sprintf(pname,"REEF3D-FNPF-%d-%d.vtu",num,n+1);
+		sprintf(pname,"REEF3D-FNPF-%i-%i.vtu",num,n+1);
 	}
 
 

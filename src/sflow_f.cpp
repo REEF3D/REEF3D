@@ -220,12 +220,12 @@ void sflow_f::print_debug(lexer *p, fdm2D* b, ghostcell* pgc)
 	mkdir("./REEF3D_SFLOW_Log",0777);
 	
 	
-	sprintf(name,"./REEF3D_PLS/POS-%d-%d.dat",p->count,p->mpirank+1);
+	sprintf(name,"./REEF3D_PLS/POS-%i-%i.dat",p->count,p->mpirank+1);
 
 	if(p->P14==0)
-	sprintf(name,"/SFLOW_Debug-%d-%d.dat",p->count,p->mpirank+1);
+	sprintf(name,"/SFLOW_Debug-%i-%i.dat",p->count,p->mpirank+1);
 	if(p->P14==1)
-	sprintf(name,"./REEF3D_SFLOW_Log/SFLOW_Debug-%d-%d.dat",p->count,p->mpirank+1);
+	sprintf(name,"./REEF3D_SFLOW_Log/SFLOW_Debug-%i-%i.dat",p->count,p->mpirank+1);
 		
 		
 	debug.open(name);

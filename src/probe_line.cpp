@@ -191,43 +191,43 @@ void probe_line::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 			if(p->P14==0)
 			{
 			if(num<10)
-			sprintf(name,"REEF3D-CFD-probeline-%d-00000%d.dat",n+1,num);
+			sprintf(name,"REEF3D-CFD-probeline-%i-00000%i.dat",n+1,num);
 
 			if(num<100&&num>9)
-			sprintf(name,"REEF3D-CFD-probeline-%d-0000%d.dat",n+1,num);
+			sprintf(name,"REEF3D-CFD-probeline-%i-0000%i.dat",n+1,num);
 
 			if(num<1000&&num>99)
-			sprintf(name,"REEF3D-CFD-probeline-%d-000%d.dat",n+1,num);
+			sprintf(name,"REEF3D-CFD-probeline-%i-000%i.dat",n+1,num);
 
 			if(num<10000&&num>999)
-			sprintf(name,"REEF3D-CFD-probeline-%d-00%d.dat",n+1,num);
+			sprintf(name,"REEF3D-CFD-probeline-%i-00%i.dat",n+1,num);
 
 			if(num<100000&&num>9999)
-			sprintf(name,"REEF3D-CFD-probeline-%d-0%d.dat",n+1,num);
+			sprintf(name,"REEF3D-CFD-probeline-%i-0%i.dat",n+1,num);
 
 			if(num>99999)
-			sprintf(name,"REEF3D-CFD-probeline-%d-%d.dat",n+1,num);
+			sprintf(name,"REEF3D-CFD-probeline-%i-%i.dat",n+1,num);
 			}
 			
 			if(p->P14==1)
 			{
 			if(num<10)
-			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%d-00000%d.dat",n+1,num);
+			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-00000%i.dat",n+1,num);
 
 			if(num<100&&num>9)
-			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%d-0000%d.dat",n+1,num);
+			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-0000%i.dat",n+1,num);
 
 			if(num<1000&&num>99)
-			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%d-000%d.dat",n+1,num);
+			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-000%i.dat",n+1,num);
 
 			if(num<10000&&num>999)
-			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%d-00%d.dat",n+1,num);
+			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-00%i.dat",n+1,num);
 
 			if(num<100000&&num>9999)
-			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%d-0%d.dat",n+1,num);
+			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-0%i.dat",n+1,num);
 
 			if(num>99999)
-			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%d-%d.dat",n+1,num);
+			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-%i.dat",n+1,num);
 			}
 			
 			lineout[n].open(name);

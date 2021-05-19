@@ -246,22 +246,22 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
 			{
 			
 			if(numberi<10)
-			sprintf(name,"./REEF3D_CFD_Data/REEF3D-CFD-WX-%d-00000%d.dat",numberi,p->mpirank);
+			sprintf(name,"./REEF3D_CFD_Data/REEF3D-CFD-WX-%i-00000%i.dat",numberi,p->mpirank);
 
 			if(numberi<100&&numberi>9)
-			sprintf(name,"./REEF3D_CFD_Data/REEF3D-CFD-WX-%d-0000%d.dat",numberi,p->mpirank);
+			sprintf(name,"./REEF3D_CFD_Data/REEF3D-CFD-WX-%i-0000%i.dat",numberi,p->mpirank);
 
 			if(numberi<1000&&numberi>99)
-			sprintf(name,"./REEF3D_CFD_Data/REEF3D-CFD-WX-%d-000%d.dat",numberi,p->mpirank);
+			sprintf(name,"./REEF3D_CFD_Data/REEF3D-CFD-WX-%i-000%i.dat",numberi,p->mpirank);
 
 			if(numberi<10000&&numberi>999)
-			sprintf(name,"./REEF3D_CFD_Data/REEF3D-CFD-WX-%d-00%d.dat",numberi,p->mpirank);
+			sprintf(name,"./REEF3D_CFD_Data/REEF3D-CFD-WX-%i-00%i.dat",numberi,p->mpirank);
 
 			if(numberi<100000&&numberi>9999)
-			sprintf(name,"./REEF3D_CFD_Data/REEF3D-CFD-WX-%d-0%d.dat",numberi,p->mpirank);
+			sprintf(name,"./REEF3D_CFD_Data/REEF3D-CFD-WX-%i-0%i.dat",numberi,p->mpirank);
 
 			if(numberi>99999)
-			sprintf(name,"./REEF3D_CFD_Data/REEF3D-CFD-WX-%d-%d.dat",numberi,p->mpirank);
+			sprintf(name,"./REEF3D_CFD_Data/REEF3D-CFD-WX-%i-%i.dat",numberi,p->mpirank);
 			
 			
 			printdata.open(name);
@@ -315,22 +315,22 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
 			{
 			
 			if(numberi<10)
-			sprintf(name,"./REEF3D_CFD_Growth_Ratio/REEF3D_CFD_Gr_Ra-%d-00000%d.dat",numberi,p->mpirank);
+			sprintf(name,"./REEF3D_CFD_Growth_Ratio/REEF3D_CFD_Gr_Ra-%i-00000%i.dat",numberi,p->mpirank);
 
 			if(numberi<100&&numberi>9)
-			sprintf(name,"./REEF3D_CFD_Growth_Ratio/REEF3D_CFD_Gr_Ra-%d-0000%d.dat",numberi,p->mpirank);
+			sprintf(name,"./REEF3D_CFD_Growth_Ratio/REEF3D_CFD_Gr_Ra-%i-0000%i.dat",numberi,p->mpirank);
 
 			if(numberi<1000&&numberi>99)
-			sprintf(name,"./REEF3D_CFD_Growth_Ratio/REEF3D_CFD_Gr_Ra-%d-000%d.dat",numberi,p->mpirank);
+			sprintf(name,"./REEF3D_CFD_Growth_Ratio/REEF3D_CFD_Gr_Ra-%i-000%i.dat",numberi,p->mpirank);
 
 			if(numberi<10000&&numberi>999)
-			sprintf(name,"./REEF3D_CFD_Growth_Ratio/REEF3D_CFD_Gr_Ra-%d-00%d.dat",numberi,p->mpirank);
+			sprintf(name,"./REEF3D_CFD_Growth_Ratio/REEF3D_CFD_Gr_Ra-%i-00%i.dat",numberi,p->mpirank);
 
 			if(numberi<100000&&numberi>9999)
-			sprintf(name,"./REEF3D_CFD_Growth_Ratio/REEF3D_CFD_Gr_Ra-%d-0%d.dat",numberi,p->mpirank);
+			sprintf(name,"./REEF3D_CFD_Growth_Ratio/REEF3D_CFD_Gr_Ra-%i-0%i.dat",numberi,p->mpirank);
 
 			if(numberi>99999)
-			sprintf(name,"./REEF3D_CFD_Growth_Ratio/REEF3D_CFD_Gr_Ra-%d-%d.dat",numberi,p->mpirank);
+			sprintf(name,"./REEF3D_CFD_Growth_Ratio/REEF3D_CFD_Gr_Ra-%i-%i.dat",numberi,p->mpirank);
 			
 			
 			printdata.open(name);

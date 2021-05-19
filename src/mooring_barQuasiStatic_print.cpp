@@ -63,22 +63,22 @@ void mooring_barQuasiStatic::print(lexer *p,fdm *a, ghostcell *pgc)
 		if(p->P14==1)
 		{
 			if(num<10)
-			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%d-00000%d.vtk",line,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%i-00000%i.vtk",line,num);
 
 			if(num<100&&num>9)
-			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%d-0000%d.vtk",line,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%i-0000%i.vtk",line,num);
 
 			if(num<1000&&num>99)
-			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%d-000%d.vtk",line,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%i-000%i.vtk",line,num);
 
 			if(num<10000&&num>999)
-			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%d-00%d.vtk",line,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%i-00%i.vtk",line,num);
 
 			if(num<100000&&num>9999)
-			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%d-0%d.vtk",line,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%i-0%i.vtk",line,num);
 
 			if(num>99999)
-			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%d-%d.vtk",line,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%i-%i.vtk",line,num);
 		}	
 
 

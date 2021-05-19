@@ -82,22 +82,22 @@ void sixdof_sflow::print_stl(lexer *p, ghostcell *pgc)
         if(p->P14==1)
         {
             if(num<10)
-            sprintf(path,"./REEF3D_SFLOW_6DOF_STL/REEF3D-6DOF-%i-00000%d.stl",n6DOF,num);
+            sprintf(path,"./REEF3D_SFLOW_6DOF_STL/REEF3D-6DOF-%i-00000%i.stl",n6DOF,num);
 
             if(num<100&&num>9)
-            sprintf(path,"./REEF3D_SFLOW_6DOF_STL/REEF3D-6DOF-%i-0000%d.stl",n6DOF,num);
+            sprintf(path,"./REEF3D_SFLOW_6DOF_STL/REEF3D-6DOF-%i-0000%i.stl",n6DOF,num);
 
             if(num<1000&&num>99)
-            sprintf(path,"./REEF3D_SFLOW_6DOF_STL/REEF3D-6DOF-%i-000%d.stl",n6DOF,num);
+            sprintf(path,"./REEF3D_SFLOW_6DOF_STL/REEF3D-6DOF-%i-000%i.stl",n6DOF,num);
 
             if(num<10000&&num>999)
-            sprintf(path,"./REEF3D_SFLOW_6DOF_STL/REEF3D-6DOF-%i-00%d.stl",n6DOF,num);
+            sprintf(path,"./REEF3D_SFLOW_6DOF_STL/REEF3D-6DOF-%i-00%i.stl",n6DOF,num);
 
             if(num<100000&&num>9999)
-            sprintf(path,"./REEF3D_SFLOW_6DOF_STL/REEF3D-6DOF-%i-0%d.stl",n6DOF,num);
+            sprintf(path,"./REEF3D_SFLOW_6DOF_STL/REEF3D-6DOF-%i-0%i.stl",n6DOF,num);
 
             if(num>99999)
-            sprintf(path,"./REEF3D_SFLOW_6DOF_STL/REEF3D-6DOF-%i-%d.stl",n6DOF,num);
+            sprintf(path,"./REEF3D_SFLOW_6DOF_STL/REEF3D-6DOF-%i-%i.stl",n6DOF,num);
         }
 
         ofstream result;
