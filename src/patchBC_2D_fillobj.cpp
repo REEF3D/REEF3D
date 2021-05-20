@@ -147,7 +147,23 @@ void patchBC_2D::patchBC_fillobj(lexer *p, ghostcell *pgc)
         patch[qq]->gcb_uflag=2;
         
         // read hydrograph
-        patchBC_hydrograph_read(p,pgc,patch[qq]->ID);
+        patchBC_hydrograph_Q_read(p,pgc,qq,patch[qq]->ID);
+        }
+    }
+    
+    // hydrograph waterlevel
+    for(qn=0;qn<p->B422;++qn)
+    {
+        for(qq=0;qq<obj_count;++qq)
+        if(patch[qq]->ID == p->B422_ID[qn])
+        {
+        patch[qq]->hydroFSF_flag=1;
+        patch[qq]->waterlevel_flag=1;
+        
+        patch[qq]->gcb_phiflag=2;
+        
+        // read hydrograph
+        patchBC_hydrograph_FSF_read(p,pgc,qq,patch[qq]->ID);
         }
     }
     

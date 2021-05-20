@@ -26,6 +26,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void patchBC_2D::patchBC_waterlevel2D(lexer *p, fdm2D *b, ghostcell *pgc, slice &eta)
 {
+    // hydrograph interpolation
+    // waterlevel
+    for(qq=0;qq<obj_count;++qq)
+    if(patch[qq]->hydroFSF_flag==1)
+    {
+    patch[qq]->waterlevel = patchBC_hydrograph_FSF_ipol(p,pgc,qq,patch[qq]->ID);
+    }
+    
     // waterlevel
     for(qq=0;qq<obj_count;++qq)
     if(patch[qq]->waterlevel_flag==1)
@@ -36,7 +44,7 @@ void patchBC_2D::patchBC_waterlevel2D(lexer *p, fdm2D *b, ghostcell *pgc, slice 
     
         if(patch[qq]->gcb[n][3]==1)
         {
-        eta(i,j) =  patch[qq]->waterlevel-p->wd;
+        eta(i,j)   =  patch[qq]->waterlevel-p->wd;
         eta(i-1,j) =  patch[qq]->waterlevel-p->wd;
         eta(i-2,j) =  patch[qq]->waterlevel-p->wd;
         eta(i-3,j) =  patch[qq]->waterlevel-p->wd;
