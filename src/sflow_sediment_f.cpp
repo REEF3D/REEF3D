@@ -26,13 +26,27 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"slice1.h"
 #include"slice2.h"
 #include"fnpf_weno.h"
+#include"sediment_fou.h"
+#include"sediment_cds.h"
+#include"sediment_wenoflux.h"
+#include"sediment_weno_hj.h"
  
 sflow_sediment_f::sflow_sediment_f(lexer* p, fdm2D *b) : tau(p),taucr(p),alpha(p),teta(p),gamma(p),phi(p),
                                                         fh(p),red(p),ks(p)
 {
     p->sedtime=0.0;
     
-    pdx = new fnpf_weno(p);
+    if(p->S32==1)
+    pdx = new sediment_fou(p);
+    
+    if(p->S32==2)
+    pdx = new sediment_cds(p);
+    
+    if(p->S32==4)
+    pdx = new sediment_wenoflux(p);
+    
+    if(p->S32==5)
+    pdx = new sediment_weno_hj(p);
     
     
     SLICELOOP4

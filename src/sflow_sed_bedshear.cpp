@@ -49,5 +49,6 @@ void sflow_sediment_f::bedshear(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, sl
     //b->test(i,j) = tau(i,j);
     }
     
+    //pgc->gcsl_start4(p,b->test,1);
     
 }

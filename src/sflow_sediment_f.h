@@ -28,7 +28,7 @@ class lexer;
 class fdm2D;
 class ghostcell;
 class solver2D;
-class fnpf_convection;
+class sediment_exnerdisc;
 
 using namespace std;
 
@@ -78,7 +78,7 @@ private:
     
     double starttime;
     
-    fnpf_convection *pdx;
+    sediment_exnerdisc *pdx;
     
     double delta, midphi;
     double fac1,fac2;

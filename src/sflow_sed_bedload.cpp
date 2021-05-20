@@ -49,6 +49,11 @@ void sflow_sediment_f::bedload_vanRijn(lexer *p, fdm2D *b, ghostcell *pgc)
     
 	SLICELOOP4
     {
+        b->test(i,j) = 0.0;
+        
+        if(tau(i,j)>taucr(i,j))
+        b->test(i,j) = 1.0;
+
         shearvel_eff = sqrt(tau(i,j)/p->W1);
         shearvel_crit = sqrt(taucr(i,j)/p->W1);
 
