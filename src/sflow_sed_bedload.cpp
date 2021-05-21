@@ -40,7 +40,7 @@ void sflow_sediment_f::bedload(lexer *p, fdm2D *b, ghostcell *pgc)
 void sflow_sediment_f::bedload_vanRijn(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     double Ti,r;
-    double shearvel_eff, shearvel_crit;
+    double tau_eff, tau_crit;
     double d50,Rstar,Ds;
     
     d50=p->S20;
@@ -51,18 +51,18 @@ void sflow_sediment_f::bedload_vanRijn(lexer *p, fdm2D *b, ghostcell *pgc)
     {
         b->test(i,j) = 0.0;
         
-        if(tau(i,j)>taucr(i,j))
+        tau_eff = tau(i,j);
+        tau_crit = taucr(i,j);
+        
+        if(tau_eff>tau_crit)
         b->test(i,j) = 1.0;
 
-        shearvel_eff = sqrt(tau(i,j)/p->W1);
-        shearvel_crit = sqrt(taucr(i,j)/p->W1);
+        Ti=MAX((tau_eff-tau_crit)/tau_crit,0.0);
 
-        Ti=MAX((shearvel_eff*shearvel_eff-shearvel_crit*shearvel_crit)/(shearvel_crit*shearvel_crit),0.0);
-
-        if(shearvel_eff>shearvel_crit)
+        if(tau_eff>tau_crit)
         b->qb(i,j)  = (0.053*pow(d50,1.5)*sqrt(9.81*Rstar)*pow(Ti,2.1))/pow(Ds,0.3)  ;
 
-        if(shearvel_eff<=shearvel_crit)
+        if(tau_eff<=tau_crit)
         b->qb(i,j) = 0.0;
 	}
     
@@ -77,6 +77,11 @@ void sflow_sediment_f::bedload_MPM(lexer *p, fdm2D *b, ghostcell *pgc)
     {
         shearvel_eff = sqrt(tau(i,j)/p->W1);
         shearvel_crit = sqrt(taucr(i,j)/p->W1);
+        
+        b->test(i,j) = 0.0;
+        
+        if(shearvel_eff>shearvel_crit)
+        b->test(i,j) = 1.0;
 
         if(shearvel_eff>shearvel_crit)
         b->qb(i,j)  = 8.0*pow(MAX(shearvel_eff - shearvel_crit,0.0),1.5)* p->S20*sqrt(((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
@@ -101,6 +106,11 @@ void sflow_sediment_f::bedload_EF(lexer *p, fdm2D *b, ghostcell *pgc)
     {
         shearvel_eff = sqrt(tau(i,j)/p->W1);
         shearvel_crit = sqrt(taucr(i,j)/p->W1);
+        
+        b->test(i,j) = 0.0;
+        
+        if(shearvel_eff>shearvel_crit)
+        b->test(i,j) = 1.0;
 
         
         if(shearvel_eff>shearvel_crit)
