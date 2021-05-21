@@ -141,10 +141,13 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
 
 void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
 {
-    double depthmax=0.0;
+    double depthmax;
     
-	p->umax=p->vmax=p->wmax=depthmax=p->viscmax=-1e19;
+	p->umax = p->vmax = p->wmax = -1e19;
+    depthmax = -1e19;
+    
     cu=cv=1.0e10;
+    
     
     FFILOOP4
     FPWDCHECK
@@ -186,6 +189,8 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
 
 	//cu= + 2.0/((p->umax/p->DXM)+sqrt(pow(p->umax/p->DXM,2.0)+(4.0*sqrt(fabs(c->gi) + fabs(c->gj) +fabs(c->gk)))/p->DXM));
     
+    //cout<<p->mpirank<<" p->umax: "<<p->umax<<" depthmax: "<<depthmax<<endl;
+    
     FLOOP
     FPWDCHECK
     {
@@ -199,12 +204,14 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
     cv = MIN(cv, 1.0/((fabs(MAX(p->vmax, sqrt(9.81*depthmax)))/dx)));
     }
 
+cout<<p->mpirank<<" p->umax: "<<p->umax<<" depthmax: "<<depthmax<<" cu: "<<cu<<" cv: "<<cv<<endl;
 
 	cu = MIN(cu,cv);
     
    	p->dt=p->N47*cu;
     
-	p->dt=pgc->timesync(p->dt);
+	//p->dt=pgc->timesync(p->dt);
+    p->dt=pgc->globalmin(p->dt);
 	p->dt_old=p->dt;
 
     
