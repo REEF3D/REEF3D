@@ -200,14 +200,14 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
     if(p->j_dir==0 || p->knoy==1)
     dx = p->DXN[IP];
     
-    if(p->mpirank==0)
-    cout<<"dx: "<<dx<<" p->DXN[IP]: "<<p->DXN[IP]<<" p->DYN[JP]: "<<p->DYN[JP]<<endl;
+    //if(p->mpirank==0)
+    //cout<<"dx: "<<dx<<" p->DXN[IP]: "<<p->DXN[IP]<<" p->DYN[JP]: "<<p->DYN[JP]<<endl;
     
     cu = MIN(cu, 1.0/((fabs(MAX(p->umax, sqrt(9.81*depthmax)))/dx)));
     cv = MIN(cv, 1.0/((fabs(MAX(p->vmax, sqrt(9.81*depthmax)))/dx)));
     }
 
-cout<<p->mpirank<<" p->umax: "<<p->umax<<" depthmax: "<<depthmax<<" cu: "<<cu<<" cv: "<<cv<<endl;
+//cout<<p->mpirank<<" p->umax: "<<p->umax<<" depthmax: "<<depthmax<<" cu: "<<cu<<" cv: "<<cv<<endl;
 
 	cu = MIN(cu,cv);
     
