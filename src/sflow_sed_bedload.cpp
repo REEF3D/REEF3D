@@ -35,6 +35,9 @@ void sflow_sediment_f::bedload(lexer *p, fdm2D *b, ghostcell *pgc)
     
     if(p->S11==3)
     bedload_EF(p,b,pgc);
+    
+    if(p->S11==4)
+    bedload_vanRijn_C(p,b,pgc);
 }
 
 void sflow_sediment_f::bedload_vanRijn(lexer *p, fdm2D *b, ghostcell *pgc)
@@ -117,6 +120,38 @@ void sflow_sediment_f::bedload_EF(lexer *p, fdm2D *b, ghostcell *pgc)
         b->qb(i,j)  = d50*sqrt((p->S22/p->W1-1.0)*9.81*d50) * 11.6* (shearvel_eff-shearvel_crit)*(sqrt(shearvel_eff) - 0.7*sqrt(shearvel_crit));
 
         if(shearvel_eff<=shearvel_crit)
+        b->qb(i,j) = 0.0;
+	}
+    
+    pgc->gcsl_start4(p,b->qb,1);
+}
+
+void sflow_sediment_f::bedload_vanRijn_C(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    double Ti,r;
+    double tau_eff, tau_crit;
+    double d50,Rstar,Ds;
+    
+    d50=p->S20;
+    Rstar=(p->S22-p->W1)/p->W1;
+    Ds= d50*pow((Rstar*9.81)/(p->W2*p->W2),1.0/3.0);
+    
+	SLICELOOP4
+    {
+        b->test(i,j) = 0.0;
+        
+        tau_eff = tau(i,j);
+        tau_crit = taucr(i,j);
+        
+        if(tau_eff>tau_crit)
+        b->test(i,j) = 1.0;
+
+        Ti=MAX((tau_eff-tau_crit)/tau_crit,0.0);
+
+        if(tau_eff>tau_crit)
+        b->qb(i,j)  = (0.053*pow(d50,1.5)*sqrt(9.81*Rstar)*pow(Ti,2.1))/pow(Ds,0.3)  ;
+
+        if(tau_eff<=tau_crit)
         b->qb(i,j) = 0.0;
 	}
     
