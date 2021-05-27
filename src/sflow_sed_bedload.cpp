@@ -52,13 +52,13 @@ void sflow_sediment_f::bedload_vanRijn(lexer *p, fdm2D *b, ghostcell *pgc)
     
 	SLICELOOP4
     {
-        b->test(i,j) = 0.0;
+        b->sedactive(i,j) = 0.0;
         
         tau_eff = tau(i,j);
         tau_crit = taucr(i,j);
         
         if(tau_eff>tau_crit)
-        b->test(i,j) = 1.0;
+        b->sedactive(i,j) = 1.0;
 
         Ti=MAX((tau_eff-tau_crit)/tau_crit,0.0);
 
@@ -70,6 +70,7 @@ void sflow_sediment_f::bedload_vanRijn(lexer *p, fdm2D *b, ghostcell *pgc)
 	}
     
     pgc->gcsl_start4(p,b->qb,1);
+    pgc->gcsl_start4(p,b->sedactive,1);
 }
 
 void sflow_sediment_f::bedload_MPM(lexer *p, fdm2D *b, ghostcell *pgc)
@@ -81,10 +82,10 @@ void sflow_sediment_f::bedload_MPM(lexer *p, fdm2D *b, ghostcell *pgc)
         shearvel_eff = sqrt(tau(i,j)/p->W1);
         shearvel_crit = sqrt(taucr(i,j)/p->W1);
         
-        b->test(i,j) = 0.0;
+        b->sedactive(i,j) = 0.0;
         
         if(shearvel_eff>shearvel_crit)
-        b->test(i,j) = 1.0;
+        b->sedactive(i,j) = 1.0;
 
         if(shearvel_eff>shearvel_crit)
         b->qb(i,j)  = 8.0*pow(MAX(shearvel_eff - shearvel_crit,0.0),1.5)* p->S20*sqrt(((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
@@ -94,6 +95,7 @@ void sflow_sediment_f::bedload_MPM(lexer *p, fdm2D *b, ghostcell *pgc)
 	}
     
     pgc->gcsl_start4(p,b->qb,1);
+    pgc->gcsl_start4(p,b->sedactive,1);
 }
 
 
@@ -110,10 +112,10 @@ void sflow_sediment_f::bedload_EF(lexer *p, fdm2D *b, ghostcell *pgc)
         shearvel_eff = sqrt(tau(i,j)/p->W1);
         shearvel_crit = sqrt(taucr(i,j)/p->W1);
         
-        b->test(i,j) = 0.0;
+        b->sedactive(i,j) = 0.0;
         
         if(shearvel_eff>shearvel_crit)
-        b->test(i,j) = 1.0;
+        b->sedactive(i,j) = 1.0;
 
         
         if(shearvel_eff>shearvel_crit)
@@ -124,6 +126,7 @@ void sflow_sediment_f::bedload_EF(lexer *p, fdm2D *b, ghostcell *pgc)
 	}
     
     pgc->gcsl_start4(p,b->qb,1);
+    pgc->gcsl_start4(p,b->sedactive,1);
 }
 
 void sflow_sediment_f::bedload_vanRijn_C(lexer *p, fdm2D *b, ghostcell *pgc)
@@ -138,13 +141,13 @@ void sflow_sediment_f::bedload_vanRijn_C(lexer *p, fdm2D *b, ghostcell *pgc)
     
 	SLICELOOP4
     {
-        b->test(i,j) = 0.0;
+        b->sedactive(i,j) = 0.0;
         
         tau_eff = tau(i,j);
         tau_crit = taucr(i,j);
         
         if(tau_eff>tau_crit)
-        b->test(i,j) = 1.0;
+        b->sedactive(i,j) = 1.0;
 
         Ti=MAX((tau_eff-tau_crit)/tau_crit,0.0);
 
@@ -156,4 +159,5 @@ void sflow_sediment_f::bedload_vanRijn_C(lexer *p, fdm2D *b, ghostcell *pgc)
 	}
     
     pgc->gcsl_start4(p,b->qb,1);
+    pgc->gcsl_start4(p,b->sedactive,1);
 }
