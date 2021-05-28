@@ -27,6 +27,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void patchBC::patchBC_waterlevel(lexer *p, fdm *a, ghostcell *pgc, field &phi)
 {
+    /*
+    for(n=0;n<p->gcin_count;++n)
+        {
+        i=p->gcin[n][0];
+        j=p->gcin[n][1];
+        k=p->gcin[n][2];
+
+        a->phi(i-1,j,k)=p->phimean-p->pos_z();
+        a->phi(i-2,j,k)=p->phimean-p->pos_z();
+        a->phi(i-3,j,k)=p->phimean-p->pos_z();
+        }*/
 } 
 
 void patchBC::patchBC_waterlevel2D(lexer*, fdm2D*, ghostcell*, slice&)
