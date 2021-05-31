@@ -27,17 +27,53 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void patchBC::patchBC_waterlevel(lexer *p, fdm *a, ghostcell *pgc, field &phi)
 {
-    /*
-    for(n=0;n<p->gcin_count;++n)
+    // hydrograph interpolation
+    // waterlevel
+    for(qq=0;qq<obj_count;++qq)
+    if(patch[qq]->hydroFSF_flag==1)
+    {
+    patch[qq]->waterlevel = patchBC_hydrograph_FSF_ipol(p,pgc,qq,patch[qq]->ID);
+    }
+        
+    // waterlevel
+    for(qq=0;qq<obj_count;++qq)
+    if(patch[qq]->waterlevel_flag==1)
+    for(n=0;n<patch[qq]->gcb_count;++n)
+    {
+    i=patch[qq]->gcb[n][0];
+    j=patch[qq]->gcb[n][1];
+    k=patch[qq]->gcb[n][2];
+    
+        if(patch[qq]->gcb[n][3]==1)
         {
-        i=p->gcin[n][0];
-        j=p->gcin[n][1];
-        k=p->gcin[n][2];
-
-        a->phi(i-1,j,k)=p->phimean-p->pos_z();
-        a->phi(i-2,j,k)=p->phimean-p->pos_z();
-        a->phi(i-3,j,k)=p->phimean-p->pos_z();
-        }*/
+        a->phi(i-1,j,k)=patch[qq]->waterlevel-p->pos_z();
+        a->phi(i-2,j,k)=patch[qq]->waterlevel-p->pos_z();
+        a->phi(i-3,j,k)=patch[qq]->waterlevel-p->pos_z();
+        }
+        
+        if(patch[qq]->gcb[n][3]==2)
+        {
+        a->phi(i,j+1,k)=patch[qq]->waterlevel-p->pos_z();
+        a->phi(i,j+2,k)=patch[qq]->waterlevel-p->pos_z();
+        a->phi(i,j+3,k)=patch[qq]->waterlevel-p->pos_z();
+        }
+        
+        if(patch[qq]->gcb[n][3]==3)
+        {
+        a->phi(i,j-1,k)=patch[qq]->waterlevel-p->pos_z();
+        a->phi(i,j-2,k)=patch[qq]->waterlevel-p->pos_z();
+        a->phi(i,j-3,k)=patch[qq]->waterlevel-p->pos_z();
+        }
+        
+        if(patch[qq]->gcb[n][3]==4)
+        {
+        a->phi(i+1,j,k)=patch[qq]->waterlevel-p->pos_z();
+        a->phi(i+2,j,k)=patch[qq]->waterlevel-p->pos_z();
+        a->phi(i+3,j,k)=patch[qq]->waterlevel-p->pos_z();
+        }
+        
+    
+    }
 } 
 
 void patchBC::patchBC_waterlevel2D(lexer*, fdm2D*, ghostcell*, slice&)
