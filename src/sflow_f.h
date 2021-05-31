@@ -43,6 +43,7 @@ class sflow_filter;
 class sflow_turbulence;
 class sflow_sediment;
 class patchBC_interface;
+class sixdof_sflow;
 
 using namespace std;
 
@@ -52,7 +53,7 @@ using namespace std;
 class sflow_f : public sflow, public increment
 {
 public:
-	sflow_f(lexer*, fdm2D*,ghostcell*);
+	sflow_f(lexer*, fdm2D*,ghostcell*,patchBC_interface*);
 	virtual ~sflow_f();
 	
 	virtual void start(lexer*, fdm2D*, ghostcell*);
@@ -86,6 +87,8 @@ private:
     sflow_potential *potflow;
     
     patchBC_interface *pBC;
+    
+    sixdof_sflow *p6dof_sflow;
 	
 	double starttime, endtime;
 };

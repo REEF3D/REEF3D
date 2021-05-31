@@ -83,6 +83,7 @@ private:
     
     int n,m,count;
     int wtype;
+    double wD;
 
 	double starttime,endtime;
     static int printcheck;

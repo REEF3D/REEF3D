@@ -24,6 +24,7 @@ Author: Hans Bihs
 
 class lexer;
 class fdm;
+class fdm2D;
 class ghostcell;
 class vrans;
 class net;
@@ -39,6 +40,13 @@ public:
 
 	virtual void start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&)=0;
 	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&)=0;
+    
+    virtual void isource(lexer*,fdm*,ghostcell*)=0;
+    virtual void jsource(lexer*,fdm*,ghostcell*)=0;
+    virtual void ksource(lexer*,fdm*,ghostcell*)=0;
+    
+    virtual void isource2D(lexer*,fdm2D*,ghostcell*)=0;
+    virtual void jsource2D(lexer*,fdm2D*,ghostcell*)=0;
 };
 
 #endif

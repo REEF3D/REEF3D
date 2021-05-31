@@ -42,7 +42,7 @@ public:
     
     void patch_obj_gcb_generate(lexer *p, ghostcell *pgc);
     
-    // Patch DATA
+    // Patch DATA 3D
     int ID;
     int IO;
     int gcb_count;
@@ -62,7 +62,7 @@ public:
     */
     
     int Q_flag;
-    double Q;
+    double Q, Uq;
     
     int velocity_flag;
     double velocity;
@@ -81,9 +81,20 @@ public:
     
     int flowangle_flag;
     double alpha;
+    double sinalpha,cosalpha;
     
     int flownormal_flag;
     double Nx,Ny,Nz;
+    
+    int pio_flag;
+    
+    int hydroQ_flag;
+    double **hydroQ;
+    int hydroQ_count,hydroQ_iter;
+    
+    int hydroFSF_flag;
+    double **hydroFSF;
+    int hydroFSF_count,hydroFSF_iter;
     
     // measurement
     double Q0,U0,A0,h0;

@@ -30,7 +30,7 @@ wave_lib_flap_eta::wave_lib_flap_eta(lexer *p, ghostcell *pgc) : wave_lib_parame
     if(p->mpirank==0)
     {
     cout<<"Wave Tank: flap_eta wavemaker theory; ";
-    cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wd: "<<wd<<endl;
+    cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wdt: "<<wdt<<endl;
     }
 	
 	timecount=0;
@@ -77,7 +77,7 @@ double wave_lib_flap_eta::wave_horzvel(lexer *p, double x, double y, double z)
     
     fac = 2.0*(z-p->B111_zs)/(p->B111_ze-p->B111_zs);
 	
-	vel = sqrt(9.81/wd) *fac* wave_eta(p,x,y);
+	vel = sqrt(9.81/wdt) *fac* wave_eta(p,x,y);
 
     return vel;
 }

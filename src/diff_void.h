@@ -37,11 +37,15 @@ public:
 	virtual ~diff_void();
 
 	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double);
+	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double, double){};
     virtual void idiff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double);
     
     virtual void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);
 	virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);
 	virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);
 
+    virtual void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double){};
+	virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double){};
+	virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double){};
 };
 #endif

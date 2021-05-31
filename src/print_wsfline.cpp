@@ -89,43 +89,43 @@ void print_wsfline::wsfline(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
 		if(p->P14==0)
 		{
 		if(num<10)
-		sprintf(name,"REEF3D-CFD-wsfline-00000%d.dat",num);
+		sprintf(name,"REEF3D-CFD-wsfline-00000%i.dat",num);
 
 		if(num<100&&num>9)
-		sprintf(name,"REEF3D-CFD-wsfline-0000%d.dat",num);
+		sprintf(name,"REEF3D-CFD-wsfline-0000%i.dat",num);
 
 		if(num<1000&&num>99)
-		sprintf(name,"REEF3D-CFD-wsfline-000%d.dat",num);
+		sprintf(name,"REEF3D-CFD-wsfline-000%i.dat",num);
 
 		if(num<10000&&num>999)
-		sprintf(name,"REEF3D-CFD-wsfline-00%d.dat",num);
+		sprintf(name,"REEF3D-CFD-wsfline-00%i.dat",num);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"REEF3D-CFD-wsfline-0%d.dat",num);
+		sprintf(name,"REEF3D-CFD-wsfline-0%i.dat",num);
 
 		if(num>99999)
-		sprintf(name,"REEF3D-CFD-wsfline-%d.dat",num);
+		sprintf(name,"REEF3D-CFD-wsfline-%i.dat",num);
 		}
 		
 		if(p->P14==1)
 		{
 		if(num<10)
-		sprintf(name,"./REEF3D_CFD_WSFLINE/REEF3D-CFD-wsfline-00000%d.dat",num);
+		sprintf(name,"./REEF3D_CFD_WSFLINE/REEF3D-CFD-wsfline-00000%i.dat",num);
 
 		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_CFD_WSFLINE/REEF3D-CFD-wsfline-0000%d.dat",num);
+		sprintf(name,"./REEF3D_CFD_WSFLINE/REEF3D-CFD-wsfline-0000%i.dat",num);
 
 		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_CFD_WSFLINE/REEF3D-CFD-wsfline-000%d.dat",num);
+		sprintf(name,"./REEF3D_CFD_WSFLINE/REEF3D-CFD-wsfline-000%i.dat",num);
 
 		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_CFD_WSFLINE/REEF3D-CFD-wsfline-00%d.dat",num);
+		sprintf(name,"./REEF3D_CFD_WSFLINE/REEF3D-CFD-wsfline-00%i.dat",num);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_CFD_WSFLINE/REEF3D-CFD-wsfline-0%d.dat",num);
+		sprintf(name,"./REEF3D_CFD_WSFLINE/REEF3D-CFD-wsfline-0%i.dat",num);
 
 		if(num>99999)
-		sprintf(name,"./REEF3D_CFD_WSFLINE/REEF3D-CFD-wsfline-%d.dat",num);
+		sprintf(name,"./REEF3D_CFD_WSFLINE/REEF3D-CFD-wsfline-%i.dat",num);
 		}
 		
 		wsfout.open(name);

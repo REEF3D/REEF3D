@@ -52,10 +52,10 @@ void forcesolid::print_ini(lexer* p, fdm *a, ghostcell *pgc)
     {
     // open force surf file
 	if(p->P14==0)
-	sprintf(name,"REEF3D_CFD_Forcesolid-%d.dat",ID+1);
+	sprintf(name,"REEF3D_CFD_Forcesolid-%i.dat",ID+1);
     
 	if(p->P14==1)
-	sprintf(name,"./REEF3D_CFD_Forcesolid/REEF3D_CFD_Forcesolid-%d.dat",ID+1);
+	sprintf(name,"./REEF3D_CFD_Forcesolid/REEF3D_CFD_Forcesolid-%i.dat",ID+1);
 	
 	fout.open(name);
 

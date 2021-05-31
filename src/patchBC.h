@@ -37,15 +37,19 @@ public:
     
     // BC update ::CFD
     virtual void patchBC_ioflow(lexer*, fdm*, ghostcell*, field&,field&,field&);
+    virtual void patchBC_discharge(lexer*, fdm*, ghostcell*);
     virtual void patchBC_pressure(lexer*, fdm*, ghostcell*, field&);
     virtual void patchBC_waterlevel(lexer*, fdm*, ghostcell*, field&);
     
     // BC update ::SFLOW
-    virtual void patchBC_ioflow2D(lexer*, fdm2D*, ghostcell*, slice&, slice&);
-    virtual void patchBC_pressure2D(lexer*, fdm2D*, ghostcell*, slice&);
+    virtual void patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&);
+    virtual void patchBC_discharge2D(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&);
+    virtual void patchBC_pressure2D(lexer*, ghostcell*, slice&);
+    virtual void patchBC_pressure2D_ugrad(lexer*, fdm2D*, slice&,slice&);
+    virtual void patchBC_pressure2D_vgrad(lexer*, fdm2D*, slice&, slice&);
     virtual void patchBC_waterlevel2D(lexer*, fdm2D*, ghostcell*, slice&);
 
-
+    virtual void patchBC_loop2D(lexer*, fdm2D*, int&, int&, int&, int&);
         
 private:
      // ini
@@ -53,18 +57,22 @@ private:
     void patchBC_IDcount(lexer *p, ghostcell *pgc);
     void patchBC_fillobj(lexer *p, ghostcell *pgc);
     
+    void patchBC_hydrograph_Q_read(lexer *p, ghostcell *pgc,int,int);
+    double patchBC_hydrograph_Q_ipol(lexer *p, ghostcell *pgc,int,int);
+    
+    void patchBC_hydrograph_FSF_read(lexer *p, ghostcell *pgc,int,int);
+    double patchBC_hydrograph_FSF_ipol(lexer *p, ghostcell *pgc,int,int);
+    
+    
     int q,n,qn,qq,count,ID_count;
     int istart,iend,jstart,jend,kstart,kend;
     
     int *inflow_ID;
     int *outflow_ID;
     
-    int geo_count,obj_count;
+    int geo_count;
     int *ID_array;
     
-    patch_obj **patch;
-    
-
 };
 
 #endif

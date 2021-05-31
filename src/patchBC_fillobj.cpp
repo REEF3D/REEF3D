@@ -21,7 +21,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"patchBC.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include"patch_obj.h"
 
@@ -104,7 +103,9 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
         if(patch[qq]->ID == p->B416_ID[qn])
         {
         patch[qq]->flowangle_flag=1;
-        patch[qq]->alpha=p->B416_alpha[qn];
+        patch[qq]->alpha=(PI/180.0)*p->B416_alpha[qn];
+        patch[qq]->sinalpha=sin(patch[qq]->alpha);
+        patch[qq]->cosalpha=cos(patch[qq]->alpha);
         }
     }
     
@@ -118,6 +119,38 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
         patch[qq]->Nx=p->B417_Nx[qn];
         patch[qq]->Ny=p->B417_Ny[qn];
         patch[qq]->Nz=p->B417_Nz[qn];
+        }
+    }
+    
+    // hydrograph discharge
+    for(qn=0;qn<p->B421;++qn)
+    {
+        for(qq=0;qq<obj_count;++qq)
+        if(patch[qq]->ID == p->B421_ID[qn])
+        {
+        patch[qq]->hydroQ_flag=1;
+        patch[qq]->Q_flag=1;
+        
+        patch[qq]->gcb_uflag=2;
+        
+        // read hydrograph
+        patchBC_hydrograph_Q_read(p,pgc,qq,patch[qq]->ID);
+        }
+    }
+    
+    // hydrograph waterlevel
+    for(qn=0;qn<p->B422;++qn)
+    {
+        for(qq=0;qq<obj_count;++qq)
+        if(patch[qq]->ID == p->B422_ID[qn])
+        {
+        patch[qq]->hydroFSF_flag=1;
+        patch[qq]->waterlevel_flag=1;
+        
+        patch[qq]->gcb_phiflag=2;
+        
+        // read hydrograph
+        patchBC_hydrograph_FSF_read(p,pgc,qq,patch[qq]->ID);
         }
     }
     
@@ -270,7 +303,7 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
                 {
                     r = sqrt(pow(p->YP[JP]-p->B442_ym[qn],2.0)+pow(p->ZP[KP]-p->B442_zm[qn],2.0));
                 
-                    if(r<=p->B442_r[qn] && p->pos_x()>p->B442_xm[qn]-p->DXP[IP] && p->pos_x()<=p->B442_xm[qn]+p->DXP[JP] && p->gcb4[n][3]==p->B442_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
+                    if(r<=p->B442_r[qn] && p->pos_x()>p->B442_xm[qn]-p->DXP[IP] && p->pos_x()<=p->B442_xm[qn]+p->DXP[IP] && p->gcb4[n][3]==p->B442_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
                     {
                         for(qq=0;qq<obj_count;++qq)
                         if(patch[qq]->ID == p->B442_ID[qn])

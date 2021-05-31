@@ -82,11 +82,12 @@ void driver::loop_sflow(fdm* a)
         
 		// Sediment Computation
         psed->start(p,a,pconvec,pgc,pflow,ptopo,preto,psusp,pbed);
-		
-		//p6dof->start(p,a,pgc,1.0,pvrans,pnet);
-
+	
+        // 6DOF 
+		p6dof->start(p,a,pgc,1.0,pvrans,pnet);
+        
+        // Benchmarking
         pbench->start(p,a,pgc,pconvec);
-
 		
         //save previous timestep
         pturb->ktimesave(p,a,pgc);
@@ -94,8 +95,9 @@ void driver::loop_sflow(fdm* a)
         pflow->veltimesave(p,a,pgc,pvrans);
 
         //timestep control
-        ptstep->start(a,p,pgc,pturb);
         p->simtime+=p->dt;
+        ptstep->start(a,p,pgc,pturb);
+        
         
         // printer
         pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);

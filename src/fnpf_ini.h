@@ -48,11 +48,16 @@ public:
     
     void velcalc(lexer*, fdm_fnpf*, ghostcell *pgc, field&);
     
+    void restart(lexer*, fdm_fnpf*, ghostcell *pgc);
+    void filename(lexer*, fdm_fnpf*, ghostcell *pgc,int);
+    
 private:
 
     void lsm_ini(lexer*, fdm_fnpf*, ghostcell*, ioflow*);
 
     int gcval,gcval_u,gcval_v,gcval_w;
+    
+    char name[500];
 
 };
 

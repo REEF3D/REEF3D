@@ -33,6 +33,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_vtp.h"
 #include"sflow_vtp_bed.h"
 #include"sflow_sediment.h"
+#include"6DOF_sflow.h"
 
 void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 {
@@ -55,7 +56,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 	SLICEBASELOOP
 	++p->polygon_sum;
 
-	p->polygon_sum *=2;
+	p->polygon_sum*=2;
 
 	SLICELOOP4
 	++p->cellnum2D;
@@ -72,7 +73,6 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 
     ptime->ini(p,b ,pgc);
     
-    pflow->ini2D(p,b,pgc);
     
     // bed ini
 	ILOOP
@@ -100,25 +100,12 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     b->wet4(i,j)=1;
 
 
-	// P,Q ini
-	pflow->um_relax(p,pgc,b->P,b->bed,b->eta);
-	pflow->vm_relax(p,pgc,b->Q,b->bed,b->eta);
-
-	pgc->gcsl_start1(p,b->P,10);
-	pgc->gcsl_start2(p,b->Q,11);
-
-	
-
     SLICELOOP4
     b->zb(i,j) = 0.0;
-
-	// depth ini
-
 
 
     SLICELOOP4
     b->breaking(i,j)=0;
-
 
 	pgc->gcsl_start4(p,b->depth,50);
 
@@ -131,6 +118,14 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     SLICELOOP4
 	b->hp(i,j) = MAX(b->eta(i,j) + p->wd - b->bed(i,j),0.0);
 
+     pflow->ini2D(p,b,pgc);
+     
+     // P,Q ini
+	pflow->um_relax(p,pgc,b->P,b->bed,b->eta);
+	pflow->vm_relax(p,pgc,b->Q,b->bed,b->eta);
+
+	pgc->gcsl_start1(p,b->P,10);
+	pgc->gcsl_start2(p,b->Q,11);
 
 	pgc->gcsl_start1(p,b->P,10);
 	pgc->gcsl_start2(p,b->Q,11);
@@ -141,7 +136,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     
     pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
     
-    // ioflow ini
+    // potential flow ini
     potflow->start(p,b,ppoissonsolv,pgc);
     
     // FSF ini
@@ -158,12 +153,15 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     //sediment ini
     psed->ini(p,b,pgc);
 
+    //6DOF ini
+    if(p->X10==3)
+    p6dof_sflow->ini(p,b,pgc);
+
     // print
 	print_debug(p,b,pgc);
     pprint->start(p,b,pgc,pflow);
 
 	pprintbed->start(p,b,pgc);
-
 }
 
 void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)

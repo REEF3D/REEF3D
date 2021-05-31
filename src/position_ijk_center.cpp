@@ -45,8 +45,6 @@ int position::posc_i(double xs)
         {
             ii = -1;
 
-            //cout<<"EXIT 0m "<<ii<<" xs: "<<xs<<" XN[0]: "<<p->XN[0+marge]<<endl;
-   
          stop=1;
          break;   
         }
@@ -56,8 +54,6 @@ int position::posc_i(double xs)
         {
             ii = p->knox+1;
             
-            //cout<<"EXIT 0p "<<ii<<endl;
-   
          stop=1;
          break;   
         }
@@ -67,9 +63,6 @@ int position::posc_i(double xs)
         {
             ii = iloc-1;
             
-            //if(p->mpirank==1)
-            //cout<<"EXIT 1 "<<ii<<" xs: "<<xs<<" XN[0]: "<<p->XN[0+marge]<<" iloc: "<<iloc<<endl;
-            
          stop=1;
          break;   
         }
@@ -78,11 +71,6 @@ int position::posc_i(double xs)
         {
             ii = iloc;
             
-            //cout<<"EXIT 2 "<<ii<<endl;
-            
-            //if(p->mpirank==1)
-            //cout<<"EXIT 2 "<<ii<<" xs: "<<xs<<" XN[0]: "<<p->XN[0+marge]<<" iloc: "<<iloc<<endl;
-   
          stop=1;
          break;   
         }
@@ -99,12 +87,7 @@ int position::posc_i(double xs)
         ++count;
     }while(stop==0 && count<1000);
     
-    /*if(p->mpirank==1 && count>900)
-    cout<<"EXIT 99 "<<ii<<" xs: "<<xs<<" XN[0]: "<<p->XN[0+marge]<<" iloc: "<<iloc<<endl;
-    
-    if(p->mpirank==1 && count>100)
-    cout<<"EXIT 55 "<<ii<<" xs: "<<xs<<" XN[0]: "<<p->XN[0+marge]<<" iloc: "<<iloc<<" count: "<<count<<endl;*/
-    
+
     ii=MAX(ii,-1);
     ii=MIN(ii,p->knox+1);
 

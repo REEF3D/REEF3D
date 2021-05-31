@@ -38,7 +38,7 @@ fdm2D::fdm2D(lexer *p)
             wet4(p),
 			 nodeval(p),
 			 cmu(0.09),
-             ks(p),qb(p),topovel(p)
+             ks(p),qb(p),topovel(p),sedactive(p)
 {
 
 	inverse=1.0/p->DXM;

@@ -35,7 +35,7 @@ using namespace std;
 class sflow_pjm_lin : public sflow_pressure, public increment
 {
 public:
-    sflow_pjm_lin(lexer*, fdm2D*);
+    sflow_pjm_lin(lexer*, fdm2D*,patchBC_interface*);
 	virtual ~sflow_pjm_lin();
     
 	virtual void start(lexer*, fdm2D*, ghostcell*, solver2D*, ioflow*, slice&, slice&, slice&, slice&, slice&, slice&, double);
@@ -64,6 +64,7 @@ private:
     
 	sflow_weno_hj *disc;
     sflow_gradient_weno *pgrad;
+    patchBC_interface *pBC;
 
 };
 

@@ -46,22 +46,22 @@ if(p->mpirank==0 && (((p->count%p->P20==0) && p->P30<0.0)  || (p->simtime>printt
 	if(p->P14==1)
 	{
 		if(num<10)
-		sprintf(name,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-00000%d.stl",num);
+		sprintf(name,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-00000%i.stl",num);
 
 		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-0000%d.stl",num);
+		sprintf(name,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-0000%i.stl",num);
 
 		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-000%d.stl",num);
+		sprintf(name,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-000%i.stl",num);
 
 		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-00%d.stl",num);
+		sprintf(name,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-00%i.stl",num);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-0%d.stl",num);
+		sprintf(name,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-0%i.stl",num);
 
 		if(num>99999)
-		sprintf(name,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-%d.stl",num);
+		sprintf(name,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-%i.stl",num);
 	}
 
 	ofstream result;

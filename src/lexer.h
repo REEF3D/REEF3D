@@ -276,17 +276,16 @@ public:
     double A440;
     
 	// boundary conditions
-	int B10,B20,B26,B30,B60,B61,B70,B71,B74,B75,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B98,B99,B101,B105,B106,B107,B110;
+	int B10,B20,B26,B30,B60,B61,B70,B71,B74,B75,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B94,B98,B99,B101,B105,B106,B107;
 	int B121,B136,B139,B180,B191,B192,B240,B241,B242,B243;
 	double B29,B50,B51,B52,B53,B54,B55,B56,B81_1,B81_2,B81_3,B83,B117,B87_1,B87_2,B88;
-	double B91_1,B91_2,B93_1,B93_2,B96_1,B96_2,B97,B102,B105_1,B105_2,B105_3,B110_d;
+	double B91_1,B91_2,B93_1,B93_2,B94_wdt,B96_1,B96_2,B97,B102,B105_1,B105_2,B105_3;
 	double *B70_val,*B70_dist,*B70_b,*B70_x,*B70_y;
 	double *B71_val,*B71_dist,*B71_b,*B71_x,*B71_y;
 	double *B106_b,*B106_x,*B106_y;
     double *B107_xs,*B107_xe,*B107_ys, *B107_ye, *B107_d;
     int B108;
     double *B108_xs,*B108_xe,*B108_ys, *B108_ye, *B108_d;
-	int B109;
 	double B111_zs,B111_ze;
     double B112_zs,B112_z2,B112_ze;
     int B115,B116;
@@ -300,10 +299,11 @@ public:
 	double B191_1,B191_2,B191_3,B191_4,B192_1,B192_2,B192_3,B192_4;
 	double B194_s,B194_e;
     
-    int B411,B412,B413,B414,B415,B416,B417;
+    int B411,B412,B413,B414,B415,B416,B417,B418,B421,B422;
     int *B411_ID;
     double *B411_Q;
-    int *B412_ID,*B412_pressBC;
+    int *B412_ID;
+    double *B412_pressBC;
     int *B413_ID;
     double *B413_h;
     int *B414_ID;
@@ -314,6 +314,10 @@ public:
     double *B416_alpha;
     int *B417_ID;
     double *B417_Nx,*B417_Ny,*B417_Nz;
+    int *B418_ID;
+    int *B418_pio;
+    int *B421_ID,*B421_Q;
+    int *B422_ID,*B422_FSF;
     int B440;
     int *B440_ID,*B440_face;
     double *B440_xs,*B440_xe,*B440_ys,*B440_ye;
@@ -394,26 +398,27 @@ public:
     double H61_T,H62_T,H63_T,H64_T,H65_T,H66_T;
 	
 	// Initialize Options
-	int I10,I11,I12,I13,I30,I40,I41,I56;
+	int I10,I11,I12,I13,I30,I40,I41,I44,I56;
 	double I21,I55,I58_1,I58_2;
     int I230;
     double I231,I232,I233;
     int I240;
-    double I241, I242;
+    double I241;
 
 	// Numerical Options
-	int N10,N11,N12,N21,N22,N23,N40,N42,N45,N46,N48,N60;
+	int N10,N11,N12,N21,N22,N23,N40,N45,N46,N48,N60;
 	double N41,N43,N44,N47,N49,N61;
 
 	// MPI Options
 	int M10;
 
 	// Print options
-	int P10,P11,P12,P14,P15,P18,P20,P23,P24,P25,P26,P27,P28,P29,P35,P40,P41,P50,P51,P52,P53,P54,P56,P57,P59;
+	int P10,P11,P12,P14,P15,P18,P20,P23,P24,P25,P26,P27,P28,P29,P35,P40,P41,P43,P44,P50,P51,P52,P53,P54,P56,P57,P59;
 	int P61,P62,P63,P66,P67,P71,P75,P78,P79,P81,P85,P92,P101,P121,P122,P123,P124,P125,P126;
 	int P150,P151,P152,P180,P181,P184,P185,P210,P211,P351,P352;
 	double P30,P34,P42;
 	double *P35_ts,*P35_te,*P35_dt;
+    double P43_xs,P43_xe,P43_ys,P43_ye;
 	double *P50_x,*P50_y;
 	double *P51_x,*P51_y;
 	double *P52_y,*P56_x;
@@ -439,7 +444,7 @@ public:
 	double *P352_x,*P352_y;
 
 	// Sediment Transport
-	int S10,S11,S12,S15,S16,S17,S18,S32,S33,S37,S41,S42,S43,S44,S50,S60,S73,S77,S80,S90,S91,S100,S101,S102,S103;
+	int S10,S11,S12,S15,S16,S17,S18,S32,S33,S37,S41,S42,S43,S44,S50,S60,S73,S77,S80,S90,S91,S100,S101;
 	double S13,S14,S19,S20,S21,S22,S23,S24,S25,S26_a,S26_b,S30,S45,S46,S47,S48,S57,S71,S72,S81,S82,S93,S116;
 	double *S73_val,*S73_dist,*S73_b,*S73_x,*S73_y;
     double S77_xs,S77_xe;
@@ -485,7 +490,7 @@ public:
 	double gcmeantime,gctotaltime;
 	double Xmeantime,Xtotaltime;
 	double maxbed, minbed;
-	double susptime,topotime,maxtopovel;
+	double susptime,maxtopovel;
 	double gctime, xtime;
 	double volume1,volume2,volume3;
 	double Qi,Qo;
@@ -587,7 +592,9 @@ public:
     double X323_m,X323_d,X323_l;
     double *X324_x,*X324_y,*X324_z;
     double X325_dt,X325_relX,X325_relY,X325_relZ;
-	
+    int X400;
+    double X401_p0,X401_cl,X401_cb,X401_a;
+
 	int cctt;
 	
 	int pressval;

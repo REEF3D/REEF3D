@@ -21,22 +21,23 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sediment.h"
-#include"topo_vel.h"
 #include"sliceint4.h"
 #include"slice4.h"
 #include"field4a.h"
+#include"increment.h"
 
 class sandslide;
 class topo_relax;
 class bedshear;
 class vrans;
+class turbulence;
 
 using namespace std;
 
 #ifndef SEDIMENT_F_H_
 #define SEDIMENT_F_H_
 
-class sediment_f : public sediment, topo_vel
+class sediment_f : public sediment, public increment
 {
 public:
     sediment_f(lexer*,fdm*,ghostcell*,turbulence*);
@@ -51,7 +52,6 @@ public:
     
 	void fill_bss(lexer*,fdm*,ghostcell*);
     void fill_bedk(lexer*,fdm*,ghostcell*);
-	void timestep(lexer*,fdm*,ghostcell*);
 	void bedlevel(lexer*,fdm*,ghostcell*);
 	void topo_zh_update(lexer*,fdm*,ghostcell*);
     void volume_calc(lexer*,fdm*,ghostcell*);
@@ -70,8 +70,11 @@ private:
 	
 	bedshear *pbedshear;
     
-    field4a zh,bss;
-    slice4 bedtau,z0,z1;
+    field4a bss;
+    slice4 bedtau;
+    
+    
+    
     
     double starttime;
     

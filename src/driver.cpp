@@ -33,13 +33,12 @@ driver::driver(int& argc, char **argv)
 	p = new lexer;
 	pgc = new ghostcell(argc,argv,p);
     
-    
 
 	if(p->mpirank==0)
     {
-    cout<<endl<<"REEF3D (c) 2008-2020 Hans Bihs"<<endl;
+    cout<<endl<<"REEF3D (c) 2008-2021 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    cout<<endl<<"v_210204" <<endl<<endl;
+    cout<<endl<<"v_210531" <<endl<<endl;
     }
 
 	p->lexer_read(pgc);
@@ -121,6 +120,7 @@ driver::driver(int& argc, char **argv)
         p->flagini2D();
         p->gridini2D();
         makegrid2D(p,pgc);
+        pBC->patchBC_ini(p,pgc);
         sf_driver();
     }
 }
@@ -201,7 +201,7 @@ void driver::sf_driver()
     b=new fdm2D(p);
     bb=b;
 
-    psflow = new sflow_f(p,b,pgc);
+    psflow = new sflow_f(p,b,pgc,pBC);
 
     makegrid2D_cds(p,pgc,b);
 

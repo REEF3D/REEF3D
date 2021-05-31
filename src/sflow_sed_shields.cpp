@@ -42,10 +42,10 @@ void sflow_sediment_f::shields(lexer *p, fdm2D *b, ghostcell *pgc)
     SLICELOOP4
     {
     taucr(i,j) = (p->S30*fabs(p->W22)*(p->S22-p->W1))*p->S20*red(i,j);
-    //b->test(i,j) = red(i,j);
+    //b->test(i,j) = taucr(i,j);
     }
     
-    pgc->gcsl_start4(p,b->test,1);
+    //pgc->gcsl_start4(p,b->test,1);
 }
 
 void sflow_sediment_f::parker(lexer *p, fdm2D *b, ghostcell *pgc)

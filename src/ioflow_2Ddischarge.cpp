@@ -23,6 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
+#include"patchBC_interface.h"
 
 void ioflow_f::discharge2D(lexer *p, fdm2D* b, ghostcell* pgc)
 {
@@ -42,6 +43,9 @@ void ioflow_f::discharge2D(lexer *p, fdm2D* b, ghostcell* pgc)
     cout<<"Inflow:  "<<setprecision(5)<<p->Qi<<" Ui: "<<p->Ui<<" Ai: "<<Ai<<" Hi: "<<Hi<<endl;
     cout<<"Outflow: "<<setprecision(5)<<p->Qo<<" Uo: "<<p->Uo<<" Ao: "<<Ao<<" Ho: "<<Ho<<endl;
     }
+    
+    // patchBC
+    pBC->patchBC_discharge2D(p,b,pgc,b->P,b->Q,b->eta,b->bed);
 }
 
 void ioflow_f::Qin2D(lexer *p, fdm2D* b, ghostcell* pgc)
@@ -71,6 +75,7 @@ void ioflow_f::Qin2D(lexer *p, fdm2D* b, ghostcell* pgc)
         hval += b->hp(i,j);
         ++hcount;
         }
+
     }
     
     Ai=pgc->globalsum(Ai);

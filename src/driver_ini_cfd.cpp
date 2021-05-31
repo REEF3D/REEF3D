@@ -93,6 +93,9 @@ cout<<"starting driver_ini"<<endl;
     pgc->start4a(p,a->topo,150);
     }
     
+    // patchBC ini
+    pBC->patchBC_ini(p,pgc);
+    
     //ioflow ini
     pflow->ini(p,a,pgc);
 
@@ -151,7 +154,12 @@ cout<<"starting driver_ini"<<endl;
 	pini->hydrostatic(p,a,pgc);
 
 	//if(p->I11==1)
-	ptstep->start(a,p,pgc,pturb);
+    if (p->X10 == 0)
+    {
+        // Hard fix from Tobias so that 6DOF is running
+        ptstep->start(a,p,pgc,pturb);
+    }
+
     
     if(p->I13==1)
     pturb->ini(p,a,pgc);

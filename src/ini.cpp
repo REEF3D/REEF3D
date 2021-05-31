@@ -125,6 +125,8 @@ void lexer::ini_default()
 	B93=0;          // int wave parameter wT
 	B93_1=0.0;      // double wave amplitude
 	B93_2=0.0;      // double wave period
+    B94=0;     // int set water depth for wave theory  
+    B94_wdt=0.0;    // double water depth for wave theory  
 	B96_1=0.0;      // double dist1 for wave relax
 	B96_2=0.0;      // double dist2 for wave relax
 	B97=0.0;        // double wave direction in degree
@@ -139,9 +141,6 @@ void lexer::ini_default()
 	B106=0;			// int read wave generation origin
 	B107=0;			// int read numerical beach origin
     B108=0;        // int read wave generation  origin
-	B109=0;			// int generate depth field
-	B110=0;			// int read water depth
-	B110_d=0.0;		// double water depth
     B111_zs=0.0;	// double flap start
     B111_ze=0.0;	// double flap end
     B112_zs=0.0;	// double flap start
@@ -212,6 +211,9 @@ void lexer::ini_default()
     B415=0;        // int patchBC velocity components
     B416=0;        // int patchBC horizontal inflow angle
     B417=0;        // int patchBC inflow normals
+    B418=0;        // int patchBC outflow pressure condition
+    B421=0;        // int patchBC hydrograph discharge
+    B422=0;        // int patchBC hydrograph waterlevel 
     B440=0;        // int patch BC inflow line
 	B441=0;			// int rectangular inflow patch BC
     B442=0;			// int circular inflow patch BC
@@ -378,6 +380,7 @@ void lexer::ini_default()
 	I30=0;			// int Fully intialize NWT
 	I40=0;			// int ini from state file
 	I41=0;			// int ID of state file
+    I44=1;          // int FNPF state with Fi
     I55=0.0;        // double reference pressure
 	I56=0;          // int pressure above F56 set to zero
 	I58_1=0.0;      // double vertical velocity for sphere initialization
@@ -388,7 +391,6 @@ void lexer::ini_default()
     I233=0.0;       // double starting z for flowfile
     I240=0;         // int read flowfile
     I241=0.0;       // double delta t for flowfile
-    I242=0.0;       // double delta t for flowfile
 
     // Numerics
 	N10=14;			// int linear poisson solver
@@ -397,9 +399,8 @@ void lexer::ini_default()
     N21=0;         // int PFMG skip relax
     N22=3;         // int PFMG relax type
     N23=0;         // int PFMG RAP type
-	N40=1;			// int time scheme
+	N40=3;			// int time scheme
 	N41=1.0e+19; 	// double total time
-	N42=3;			// int RK3 scheme
 	N43=1.0e-6;     // double stopping criteria convection-diffusion
 	N44=1.0e-8;     // double stopping criteria pressure
 	N45=1e8;		// max outer iter
@@ -434,7 +435,9 @@ void lexer::ini_default()
 	P40=0;				// int print state file
 	P41=-10;			// int print state file each ith iteration
 	P42=-1.0;			// double print state file each ith sec
-	P50=0;				// int wave theory wave gages
+    P43=0;             // int state print out selected area
+    P44=0;             // print out 3D potential for FNPF
+    P50=0;				// int wave theory wave gages
 	P51=0;             // int print out wsf
 	P52=0;            // int print out wsfline in x-dir
 	P53=0;            // int print out wsfline for wave theory
@@ -442,7 +445,7 @@ void lexer::ini_default()
 	P55=-1.0;		  // double ith second wsfline files print out
 	P56=0;            // int print out wsf line in y-dir
     P57=0;            // add aditional info to WSF gage in FNPF 
-	P59=0;			  // int print runup
+	P59=0;			  // int print breaking wave log FNPF
 	P61=0;			  // int print point probes
 	P62=0;			  // int print line probes
     P63=0;			  // int print depth averaged point probes
@@ -527,8 +530,6 @@ void lexer::ini_default()
     S93=0.0;				// double delta phi for sandlide correciton
 	S100=0;					// int number of bed filter outer iterations
     S101=0;					// int number of bed filter inner iterations
-	S102=0;					// int number of bedload filter outer iterations
-    S103=0;					// int number of bedload filter inner iterations
     S116=1.6;              // double bedshear stress z location
     
     // Turbulence
@@ -601,7 +602,7 @@ void lexer::ini_default()
 	X10=0;		// int turn 6DOF on 
 	X11_u=X11_v=X11_w=X11_p=X11_q=X11_r=1;		// int turn on degrees of freedom
     X12=1;      // int turn force calculation on
-	X13=0;      // int turn 6DOF algorithm wit quaternions on
+	X13=2;      // int turn 6DOF algorithm wit quaternions on
 	X18=0;		// int relaxation method solid velocities
 	X19=1;		// int print out interval 6DOF log files
 	X21=1;		// int presribe homogeneous density floating body
@@ -659,8 +660,14 @@ void lexer::ini_default()
     X313=0;     // int initial rotation of mooring end points with 6DOF body
     X321=0;     // int number of nets
     X323_m=X323_d=X323_l=0.0;   // double dynamic net sinker properties
-    X325_dt=X325_relX=X325_relY=X325_relZ=0.0;   // double dynamic net time step properties
-	
+    X325_dt=0.001;   // double dynamic net time step
+	X325_relX=X325_relY=X325_relZ=0.01; // double dynamic net relaxation factors
+	X400=0;         // sflow external pressure term
+    X401_p0=0.0;    // sflow external pressure term p0
+    X401_cl=2.0;    // sflow external pressure term cl
+    X401_cb=16.0;   // sflow external pressure term cb
+    X401_a=16.0;    // sflow external pressure term a
+
 	// Developer 
 	Y1=0;   // int turn on/off experimental screen force model
     Y2=0;   // int turn on/off PC FSI algorithm

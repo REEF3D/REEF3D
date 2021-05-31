@@ -76,7 +76,7 @@ public:
     double **recon;
 
 private:
-    double S,Sval,sigma;
+    double S,Sval,sigma,wD;
     double wL0,k0,S0;
     double s_f,G_0;
     double beta_J;

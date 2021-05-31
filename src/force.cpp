@@ -99,10 +99,10 @@ force::force(lexer *p, fdm *a, ghostcell *pgc, int ID) : wave_interface(p,pgc), 
     {
     // open force surf file
 	if(p->P14==0)
-	sprintf(name,"REEF3D_CFD_Force-%d.dat",ID+1);
+	sprintf(name,"REEF3D_CFD_Force-%i.dat",ID+1);
     
 	if(p->P14==1)
-	sprintf(name,"./REEF3D_CFD_Force/REEF3D_Force-%d.dat",ID+1);
+	sprintf(name,"./REEF3D_CFD_Force/REEF3D_Force-%i.dat",ID+1);
 	
 	fout.open(name);
 

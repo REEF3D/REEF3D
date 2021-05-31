@@ -31,7 +31,7 @@ wave_lib_Stokes_2nd::wave_lib_Stokes_2nd(lexer *p, ghostcell *pgc) : wave_lib_pa
     if(p->mpirank==0)
     {
     cout<<"Wave Tank: 2nd-order Stokes waves; ";
-    cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wd: "<<wd<<" kd: "<<wd*wk<<endl;
+    cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wdt: "<<wdt<<" kd: "<<wdt*wk<<endl;
     }
     
     singamma = sin((p->B105_1)*(PI/180.0));
@@ -66,8 +66,8 @@ double wave_lib_Stokes_2nd::wave_w(lexer *p, double x, double y, double z)
 	
 	teta = wk*x-ww*(p->simtime) + pshift;
 
-    vel = ww*wa*( sinh(wk*(wd+z))/sinh(wk*(wd)) ) * sin(teta)
-         + 0.75*wk*ww*wa*wa*( sinh(2.0*wk*(wd+z))/pow(sinh(wk*(wd)),4.0) ) * sin(2.0*teta);
+    vel = ww*wa*( sinh(wk*(wdt+z))/sinh(wk*(wdt)) ) * sin(teta)
+         + 0.75*wk*ww*wa*wa*( sinh(2.0*wk*(wdt+z))/pow(sinh(wk*(wdt)),4.0) ) * sin(2.0*teta);
 
     return vel;
 }
@@ -78,8 +78,8 @@ double wave_lib_Stokes_2nd::wave_horzvel(lexer *p, double x, double y, double z)
 	
 	teta = wk*x-ww*(p->simtime) + pshift;
 
-    vel = ww*wa*( cosh(wk*(wd+z))/sinh(wk*(wd)) ) * cos(teta)
-         + 0.75*wk*ww*wa*wa*( cosh(2.0*wk*(wd+z))/pow(sinh(wk*(wd)),4.0) ) * cos(2.0*teta);
+    vel = ww*wa*( cosh(wk*(wdt+z))/sinh(wk*(wdt)) ) * cos(teta)
+         + 0.75*wk*ww*wa*wa*( cosh(2.0*wk*(wdt+z))/pow(sinh(wk*(wdt)),4.0) ) * cos(2.0*teta);
 
     return vel;
 }
@@ -90,7 +90,7 @@ double wave_lib_Stokes_2nd::wave_eta(lexer *p, double x, double y)
 	
 	teta = wk*x-ww*(p->simtime) + pshift;
 
-    eta =  wa*cos(teta) + 0.25*wk*wa*wa*(cosh(wk*wd)/pow(sinh(wk*wd),3.0)) * (2.0 + cosh(2.0*wk*wd)) * cos(2.0*teta);
+    eta =  wa*cos(teta) + 0.25*wk*wa*wa*(cosh(wk*wdt)/pow(sinh(wk*wdt),3.0)) * (2.0 + cosh(2.0*wk*wdt)) * cos(2.0*teta);
 
     return eta;
 }
@@ -101,9 +101,9 @@ double wave_lib_Stokes_2nd::wave_fi(lexer *p, double x, double y, double z)
     
 	teta = wk*x-ww*(p->simtime) + pshift;
 
-    fi = ((ww*wa)/wk)*( cosh(wk*(wd+z))/sinh(wk*(wd)) ) * sin(teta)
+    fi = ((ww*wa)/wk)*( cosh(wk*(wdt+z))/sinh(wk*(wdt)) ) * sin(teta)
     
-         + (3.0/8.0)*ww*wa*wa*( cosh(2.0*wk*(wd+z))/pow(sinh(wk*(wd)),4.0) ) * sin(2.0*teta);
+         + (3.0/8.0)*ww*wa*wa*( cosh(2.0*wk*(wdt+z))/pow(sinh(wk*(wdt)),4.0) ) * sin(2.0*teta);
 
 
     return fi;

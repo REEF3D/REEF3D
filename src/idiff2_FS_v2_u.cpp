@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 idiff2_FS_v2::idiff2_FS_v2(lexer* p)
 {
-	gcval_u=10;
+    gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;
 }
@@ -53,8 +53,8 @@ void idiff2_FS_v2::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 	{
 	visc = 0.5*(a->visc(i,j,k) + a->visc(i+1,j,k)) + 0.5*(a->eddyv(i,j,k) + a->eddyv(i+1,j,k));
     
-	a->M.p[count] =  2.0*visc/(p->DXN[IP]*p->DXP[IP])
-				   + 2.0*visc/(p->DXN[IM1]*p->DXP[IP])
+	a->M.p[count] =  2.0*visc/(p->DXN[IP1]*p->DXP[IP])
+				   + 2.0*visc/(p->DXN[IP]*p->DXP[IP])
 				   + visc/(p->DYP[JP]*p->DYN[JP])
 				   + visc/(p->DYP[JM1]*p->DYN[JP])
 				   + visc/(p->DZP[KP]*p->DZN[KP])
@@ -67,8 +67,8 @@ void idiff2_FS_v2::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 						 + (CPOR1*u(i,j,k))/(alpha*p->dt);
                          
 	 
-	 a->M.s[count] = -2.0*visc/(p->DXN[IM1]*p->DXP[IP]);
-	 a->M.n[count] = -2.0*visc/(p->DXN[IP]*p->DXP[IP]);
+	 a->M.s[count] = -2.0*visc/(p->DXN[IP]*p->DXP[IP]);
+	 a->M.n[count] = -2.0*visc/(p->DXN[IP1]*p->DXP[IP]);
 	 
 	 a->M.e[count] = -visc/(p->DYP[JM1]*p->DYN[JP]);
 	 a->M.w[count] = -visc/(p->DYP[JP]*p->DYN[JP]);

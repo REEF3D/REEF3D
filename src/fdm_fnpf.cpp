@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 fdm_fnpf::fdm_fnpf(lexer *p) : press(p),Fifsf(p),Fibed(p),
                               nodeval(p),eta(p),etaloc(p),
-                              wet(p),wet_n(p),breaking(p),bc(p),
+                              wet(p),wet_n(p),breaking(p),breaklog(p),bc(p),
                               eta_n(p),WL(p),bed(p),depth(p),Fz(p),K(p),
                               Fx(p),Fy(p),
                               Ex(p),Ey(p),Exx(p),Eyy(p),

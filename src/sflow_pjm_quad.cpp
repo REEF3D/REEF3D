@@ -29,6 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ioflow.h"
 #include"sflow_weno_hj.h"
 #include"sflow_gradient_weno.h"
+#include"patchBC_interface.h"
 
 #define HXIJ (fabs(b->hx(i,j))>1.0e-20?b->hx(i,j):1.0e20)
 #define HXIMJ (fabs(b->hx(i-1,j))>1.0e-20?b->hx(i-1,j):1.0e20)
@@ -53,8 +54,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define HPXM (0.5*(HP + HPIM))
 #define HPYM (0.5*(HP + HPJM))
  
-sflow_pjm_quad::sflow_pjm_quad(lexer* p, fdm2D *b) : press_n(p),phi4(p), Ps(p), Qs(p)
+sflow_pjm_quad::sflow_pjm_quad(lexer* p, fdm2D *b, patchBC_interface *ppBC) : press_n(p),phi4(p), Ps(p), Qs(p)
 {
+    pBC = ppBC;
+    
     gcval_press=40;  
 	
 	gcval_u=10;
@@ -281,7 +284,9 @@ void sflow_pjm_quad::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
         b->F(i,j) -= fabs(p->W22)*(p->A223*(b->bed(i,j)-p->wd) + (1.0-p->A223)*(b->bed(i,j)-p->wd)
                                      - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
                                      
-        }                                
+        }    
+
+        pBC->patchBC_pressure2D_ugrad(p,b,eta,eta_n);
 }
 
 void sflow_pjm_quad::vpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
@@ -289,6 +294,8 @@ void sflow_pjm_quad::vpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
         SLICELOOP2
         b->G(i,j) -= fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) 
                                  - p->A223*eta(i,j) -  (1.0-p->A223)*eta_n(i,j) )/(p->DXM); 
+                                 
+        pBC->patchBC_pressure2D_vgrad(p,b,eta,eta_n);
 }
 
 void sflow_pjm_quad::quad_calc(lexer *p,fdm2D *b,slice &P, slice &Q, slice &Pn, slice &Qn, double alpha)

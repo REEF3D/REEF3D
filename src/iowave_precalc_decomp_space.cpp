@@ -28,8 +28,6 @@ void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
     double fsfloc;
     int qn;
 
-
-    // pre-calc every iteration
     count=0;
     SLICELOOP4
     {

@@ -31,7 +31,7 @@ wave_lib_cnoidal_shallow::wave_lib_cnoidal_shallow(lexer *p, ghostcell *pgc) : w
     if(p->mpirank==0)
     {
     cout<<"Wave Tank: shallow cnoidal waves; ";
-    cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wd: "<<wd<<endl;
+    cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wdt: "<<wdt<<endl;
     }
     
     singamma = sin((p->B105_1)*(PI/180.0));
@@ -66,7 +66,7 @@ double wave_lib_cnoidal_shallow::wave_horzvel(lexer *p, double x, double y, doub
 	
 	eta = wave_eta(p,x,y);
 
-    vel = sqrt(9.81/wd) * eta; 
+    vel = sqrt(9.81/wdt) * eta; 
 
     return vel;
 }
@@ -80,7 +80,7 @@ double wave_lib_cnoidal_shallow::wave_w(lexer *p, double x, double y, double z)
 
 	elliptic(p,teta,sn,cn,dn);
 
-    vel = sqrt(9.81/wd)*wH * ((4.0*Km*wd)/wL) * ((wd+z)/wd) * cn*sn*dn;
+    vel = sqrt(9.81/wdt)*wH * ((4.0*Km*wdt)/wL) * ((wdt+z)/wdt) * cn*sn*dn;
 
     return vel;
 }
@@ -115,7 +115,7 @@ void wave_lib_cnoidal_shallow::parameters(lexer *p, ghostcell *pgc)
 	modulus = 0.9;
 	maxiter =5000;
 	
-	Ur = (wH*wL*wL)/pow(wd,3.0);
+	Ur = (wH*wL*wL)/pow(wdt,3.0);
 	if(p->mpirank==0)
 	cout<<"Ursell number: "<<Ur<<endl;
 	
@@ -126,7 +126,7 @@ void wave_lib_cnoidal_shallow::parameters(lexer *p, ghostcell *pgc)
 		modulus_old = modulus;
 		
 		
-		modulus = sqrt((3.0/16.0)* ((wH*wL*wL)/(wd*wd*wd*modulus_old*pow(K_elliptic_1(modulus_old),2.0))));
+		modulus = sqrt((3.0/16.0)* ((wH*wL*wL)/(wdt*wdt*wdt*modulus_old*pow(K_elliptic_1(modulus_old),2.0))));
 		
 		diff = modulus - modulus_old;
 		
@@ -147,13 +147,13 @@ void wave_lib_cnoidal_shallow::parameters(lexer *p, ghostcell *pgc)
 	
 	eta2 = (1.0/modulus - 1.0 - Em/(Km*modulus))*wH;
 	
-	//wC = sqrt((9.81*wd)/(1.0 + wH/wd*(1.0/pow(modulus,2.0) -2.0)));
+	//wC = sqrt((9.81*wdt)/(1.0 + wH/wdt*(1.0/pow(modulus,2.0) -2.0)));
 	
-	wC = sqrt(9.81*wd*(1.0 +(wH/wd)*(2.0/modulus - 1.0 - 3.0/modulus*Em/Km)));
+	wC = sqrt(9.81*wdt*(1.0 +(wH/wdt)*(2.0/modulus - 1.0 - 3.0/modulus*Em/Km)));
 	
 	if(p->mpirank==0)	
 	{
-	cout<<"WAVE TROUGH: "<<eta2+wd<<endl;
+	cout<<"WAVE TROUGH: "<<eta2+wdt<<endl;
 	cout<<"wC: "<<wC<<" wC_old: "<<(wL/wT)<<endl;
 	}
     

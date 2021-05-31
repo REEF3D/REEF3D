@@ -49,6 +49,8 @@ void ioflow_v::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 
 void ioflow_v::discharge(lexer *p, fdm* a, ghostcell* pgc)
 {
+    // patchBC
+    pBC->patchBC_discharge(p,a,pgc);
 }
 
 void ioflow_v::inflow(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, field &w)
@@ -726,6 +728,8 @@ void ioflow_v::inflow_walldist(lexer *p, fdm *a, ghostcell *pgc, convection *pco
 
 void ioflow_v::discharge2D(lexer *p, fdm2D* b, ghostcell* pgc)
 {
+    // patchBC
+    pBC->patchBC_discharge2D(p,b,pgc,b->P,b->Q,b->eta,b->bed);
 }
 
 void ioflow_v::Qin2D(lexer *p, fdm2D* b, ghostcell* pgc)
@@ -738,10 +742,12 @@ void ioflow_v::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
 
 void ioflow_v::inflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &bed, slice &eta)
 {
+    pBC->patchBC_ioflow2D(p,pgc,P,Q,bed,eta);
 }
 
 void ioflow_v::rkinflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &bed, slice &eta)
 {
+    pBC->patchBC_ioflow2D(p,pgc,P,Q,bed,eta);
 }
 
 void ioflow_v::isource2D(lexer *p, fdm2D* b, ghostcell* pgc)
@@ -835,4 +841,9 @@ void ioflow_v::nhflow_inflow(lexer *p,fdm *a,ghostcell *pgc, field &uvel, field 
 void ioflow_v::ini_nhflow(lexer *p,fdm *a,ghostcell *pgc)
 {
 
+}
+
+void ioflow_v::waterlevel2D(lexer *p, fdm2D *b, ghostcell* pgc, slice &eta)
+{
+    pBC->patchBC_waterlevel2D(p,b,pgc,eta);
 }

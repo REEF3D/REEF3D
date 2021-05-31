@@ -33,9 +33,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_rough_void.h"
 #include"sflow_rheology_f.h"
 #include"sflow_rheology_v.h"
+#include"6DOF.h"
 
 sflow_momentum_RK2::sflow_momentum_RK2(lexer *p, fdm2D *b, sflow_convection *pconvection, sflow_diffusion *ppdiff, sflow_pressure* ppressure,
-                                                    solver2D *psolver, solver2D *ppoissonsolver, ioflow *pioflow, sflow_fsf *pfreesurf)
+                                                    solver2D *psolver, solver2D *ppoissonsolver, ioflow *pioflow, sflow_fsf *pfreesurf, sixdof *pp6dof)
                                                     :Prk1(p),Qrk1(p),wrk1(p),etark1(p)
 {
 	gcval_u=10;
@@ -65,6 +66,7 @@ sflow_momentum_RK2::sflow_momentum_RK2(lexer *p, fdm2D *b, sflow_convection *pco
     ppoissonsolv=ppoissonsolver;
 	pflow=pioflow;
 	pfsf=pfreesurf;
+    p6dof=pp6dof;
     
     if(p->A218==0)
     prough = new sflow_rough_void(p);
@@ -105,6 +107,7 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
     pgc->gcsl_start4(p,etark1,gcval_eta);
     pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,etark1);
     pfsf->breaking(p,b,pgc,etark1,b->eta,1.0);
+    pflow->waterlevel2D(p,b,pgc,etark1);
     pflow->eta_relax(p,pgc,etark1);
     pgc->gcsl_start4(p,etark1,gcval_eta);
     
@@ -116,6 +119,7 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	irhs(p,b,pgc,b->P,1.0);
     prough->u_source(p,b,b->P);
     prheo->u_source(p,b,b->P,b->Q);
+    p6dof->isource2D(p,b,pgc);
 	pconvec->start(p,b,b->P,1,b->P,b->Q);
 	pdiff->diff_u(p,b,pgc,psolv,b->P,b->Q,1.0);
 
@@ -135,6 +139,7 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	jrhs(p,b,pgc,b->Q,1.0);
     prough->v_source(p,b,b->Q);
     prheo->v_source(p,b,b->P,b->Q);
+    p6dof->jsource2D(p,b,pgc);
 	pconvec->start(p,b,b->Q,2,b->P,b->Q);
 	pdiff->diff_v(p,b,pgc,psolv,b->P,b->Q,1.0);
 
@@ -190,6 +195,7 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
     pgc->gcsl_start4(p,b->eta,gcval_eta);
     pfsf->depth_update(p,b,pgc,Prk1,Qrk1,wrk1,b->eta);
     pfsf->breaking(p,b,pgc,b->eta,etark1,0.5);
+    pflow->waterlevel2D(p,b,pgc,b->eta);
     pflow->eta_relax(p,pgc,b->eta);
     pgc->gcsl_start4(p,b->eta,gcval_eta);
 
@@ -202,6 +208,7 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	irhs(p,b,pgc,Prk1,0.5);
     prough->u_source(p,b,Prk1);
     prheo->u_source(p,b,Prk1,Qrk1);
+    p6dof->isource2D(p,b,pgc);
 	pconvec->start(p,b,Prk1,1,Prk1,Qrk1);
 	pdiff->diff_u(p,b,pgc,psolv,Prk1,Qrk1,0.5);
 
@@ -221,6 +228,7 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	jrhs(p,b,pgc,Qrk1,0.5);
     prough->v_source(p,b,Qrk1);
     prheo->v_source(p,b,Prk1,Qrk1);
+    p6dof->jsource2D(p,b,pgc);
 	pconvec->start(p,b,Qrk1,2,Prk1,Qrk1);
 	pdiff->diff_v(p,b,pgc,psolv,Prk1,Qrk1,0.5);
 

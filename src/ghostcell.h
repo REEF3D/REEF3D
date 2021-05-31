@@ -223,6 +223,7 @@ public:
     void gather_double(double *, int, double *, int);
 	void gatherv_int(int*, int, int*, int*, int*);
     void gatherv_double(double *, int, double *, int*, int*);
+    void bcast_int(int*, int);
     void bcast_double(double *, int);
     //Utilities
     void walldistance(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*,field&);
@@ -270,6 +271,8 @@ public:
 
     // Slice BCs
     void gcsl_neumann(slice&,int,int,int);
+    void gcsl_neumann_hx(slice&,int,int,int);
+    void gcsl_neumann_hy(slice&,int,int,int);
     void gcsl_neumann_x(slice&,int,int,int);
     void gcsl_neumann_int(sliceint&,int,int,int);
 	void gcsl_noslip(slice&,int,int,int);

@@ -53,15 +53,17 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
         
     if(p->A211==8)
     pconvec = new sflow_hires(p,8);
+    
+    if(p->A211==9)
+    pconvec = new sflow_weno_blend(p);
  
 
-    
     // filter
     pfilter = new sflow_filter(p);
 	
 	// free surface
 	if(p->A240>=1)
-	pfsf = new sflow_eta(p,b,pgc);
+	pfsf = new sflow_eta(p,b,pgc,pBC);
 
 	// diffusion
 	if(p->A212==0)
@@ -75,16 +77,16 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 	// pressure
     if(p->A220==0)
-	ppress = new sflow_hydrostatic(p,b);
+	ppress = new sflow_hydrostatic(p,b,pBC);
     
     if(p->A220==1)
-	ppress = new sflow_pjm_lin(p,b);
+	ppress = new sflow_pjm_lin(p,b,pBC);
     
     if(p->A220==2)
-	ppress = new sflow_pjm_quad(p,b);
+	ppress = new sflow_pjm_quad(p,b,pBC);
     
     if(p->A220==3)
-	ppress = new sflow_pjm_sw(p,b);
+	ppress = new sflow_pjm_sw(p,b,pBC);
     
     // diffusion
 	if(p->A260==0)
@@ -115,7 +117,6 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     
     psolv = new sflow_bicgstab(p,pgc);
     
-    pBC = new patchBC_void(p);
     //IOFlow
 	if(p->B60==0 && p->B90==0)
 	pflow = new ioflow_v(p,pgc,pBC);
@@ -131,16 +132,19 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	pprint = new sflow_vtp(p,b,pgc);
 	
 	pprintbed = new sflow_vtp_bed(p,b);
+    
+    //6DOF
+    p6dof_sflow = new sixdof_sflow(p,b,pgc);
 	
 	// momentum
     if(p->A210==1)
-	pmom = new sflow_momentum_AB2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf);
+	pmom = new sflow_momentum_AB2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,p6dof_sflow);
     
     if(p->A210==2)
-	pmom = new sflow_momentum_RK2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf);
+	pmom = new sflow_momentum_RK2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,p6dof_sflow);
     
 	if(p->A210==3)
-	pmom = new sflow_momentum_RK3(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf);
+	pmom = new sflow_momentum_RK3(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,p6dof_sflow);
     
     
     //Potential Flow Solver
@@ -149,4 +153,5 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 
     if(p->I11==1)
     potflow = new sflow_potential_f(p);
+    
 }

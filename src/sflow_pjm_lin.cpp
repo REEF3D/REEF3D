@@ -29,6 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ioflow.h"
 #include"sflow_weno_hj.h"
 #include"sflow_gradient_weno.h"
+#include"patchBC_interface.h"
 
 #define HXIJ (fabs(b->hx(i,j))>1.0e-20?b->hx(i,j):1.0e20)
 #define HXIMJ (fabs(b->hx(i-1,j))>1.0e-20?b->hx(i-1,j):1.0e20)
@@ -53,8 +54,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define HPXM (0.5*(HP + HPIM))
 #define HPYM (0.5*(HP + HPJM))
  
-sflow_pjm_lin::sflow_pjm_lin(lexer* p, fdm2D *b) 
+sflow_pjm_lin::sflow_pjm_lin(lexer* p, fdm2D *b, patchBC_interface *ppBC) 
 {
+    pBC = ppBC;
+    
     gcval_press=40;  
 	
 	gcval_u=10;
@@ -255,22 +258,23 @@ void sflow_pjm_lin::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
                                      - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
     }
         
-    if(p->B77==2)
-    for(n=0;n<p->gcslout_count;n++)
-    {
-        i=p->gcslout[n][0];
+        if(p->B77==2)
+        for(n=0;n<p->gcslout_count;n++)
+        {
+        i=p->gcslout[n][0]-1;
         j=p->gcslout[n][1];
         
-        if(b->wet4(i,j)==1)
-        {
         b->F(i,j) += fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) 
                                      - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
                                      
-        b->F(i,j) -= fabs(p->W22)*(p->A223*eta(i+1,j)*0.5 + (1.0-p->A223)*eta(i+1,j)*0.5 
+        b->F(i,j) -= fabs(p->W22)*(p->A223*(b->bed(i,j)-p->wd) + (1.0-p->A223)*(b->bed(i,j)-p->wd)
                                      - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
-        }
                                      
-    }        
+        }  
+
+        
+
+    pBC->patchBC_pressure2D_ugrad(p,b,eta,eta_n);
 }
 
 void sflow_pjm_lin::vpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
@@ -279,6 +283,7 @@ void sflow_pjm_lin::vpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
         b->G(i,j) -= fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) 
                                  - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM); 
                                  
+        pBC->patchBC_pressure2D_vgrad(p,b,eta,eta_n);
 }
 
 void sflow_pjm_lin::wpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)

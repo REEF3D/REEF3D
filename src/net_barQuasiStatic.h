@@ -102,7 +102,6 @@ private:
     void screenForceCoeff(lexer*,double&, double&, const double&, const double&, const double&);
     
     void vransCoupling(lexer*, fdm*, ghostcell*);
-    void createMesh(lexer*, fdm*, ghostcell*);
     void triangulation(lexer*, fdm*, ghostcell*);
     void create_triangle
         (

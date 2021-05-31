@@ -232,6 +232,10 @@ void lexer::ctrlrecv()
 	dd++;
     B93_2 = dctrl[dd];
 	dd++;
+    B94 = ictrl[ii];
+	ii++;
+    B94_wdt = dctrl[dd];
+	dd++;
     B96_1 = dctrl[dd];
 	dd++;
     B96_2 = dctrl[dd];
@@ -259,12 +263,6 @@ void lexer::ctrlrecv()
 	B107 = ictrl[ii];
 	ii++;
     B108 = ictrl[ii];
-	ii++;
-	B109 = ictrl[ii];
-	ii++;
-	B110_d = dctrl[dd];
-	dd++;
-	B110 = ictrl[ii];
 	ii++;
 	B111_zs = dctrl[dd];
 	dd++;
@@ -407,6 +405,12 @@ void lexer::ctrlrecv()
     B416 = ictrl[ii];
 	ii++;
     B417 = ictrl[ii];
+	ii++;
+    B418 = ictrl[ii];
+	ii++;
+    B421 = ictrl[ii];
+	ii++;
+    B422 = ictrl[ii];
 	ii++;
     B440 = ictrl[ii];
 	ii++;
@@ -726,6 +730,8 @@ void lexer::ctrlrecv()
 	ii++;
 	I41 = ictrl[ii];
 	ii++;
+    I44 = ictrl[ii];
+	ii++;
     I55 = dctrl[dd];
 	dd++;
     I56 = ictrl[ii];
@@ -746,9 +752,7 @@ void lexer::ctrlrecv()
 	ii++;
     I241 = dctrl[dd];
 	dd++;
-    I242 = dctrl[dd];
-	dd++;
-    
+
     M10 = ictrl[ii];
 	ii++;
 
@@ -768,8 +772,6 @@ void lexer::ctrlrecv()
     ii++;
     N41 = dctrl[dd];
     dd++;
-	N42 = ictrl[ii];
-    ii++;
 	N43 = dctrl[dd];
     dd++;
     N44 = dctrl[dd];
@@ -830,6 +832,18 @@ void lexer::ctrlrecv()
 	ii++;
 	P42 = dctrl[dd];
 	dd++;
+    P43 = ictrl[ii];
+	ii++;
+	P43_xs = dctrl[dd];
+	dd++;
+    P43_xe = dctrl[dd];
+	dd++;
+    P43_ys = dctrl[dd];
+	dd++;
+    P43_ye = dctrl[dd];
+	dd++;
+    P44 = ictrl[ii];
+	ii++;
     P50 = ictrl[ii];
 	ii++;
 	P51 = ictrl[ii];
@@ -1023,10 +1037,6 @@ void lexer::ctrlrecv()
 	S100 = ictrl[ii];
 	ii++;
 	S101 = ictrl[ii];
-	ii++;
-    S102 = ictrl[ii];
-	ii++;
-    S103 = ictrl[ii];
 	ii++;
     S116 = dctrl[dd];
 	dd++;
@@ -1419,6 +1429,16 @@ void lexer::ctrlrecv()
 	dd++;
     X325_relZ = dctrl[dd];
 	dd++;
+	X400 = ictrl[ii];
+	ii++;
+	X401_p0 = dctrl[dd];
+    dd++;
+    X401_cl = dctrl[dd]; 
+    dd++;
+    X401_cb = dctrl[dd]; 
+    dd++;
+    X401_a = dctrl[dd]; 
+    dd++;
 	
 
     Y1 = ictrl[ii];
@@ -1584,7 +1604,7 @@ void lexer::ctrlrecv()
     if(B412>0)
     {
     Iarray(B412_ID,B412);
-    Iarray(B412_pressBC,B412);
+    Darray(B412_pressBC,B412);
     }
     
     if(B413>0)
@@ -1610,7 +1630,7 @@ void lexer::ctrlrecv()
     if(B416>0)
     {
     Iarray(B416_ID,B416);
-    Darray(B416_alpha,B414);
+    Darray(B416_alpha,B416);
     }
     
     if(B417>0)
@@ -1619,6 +1639,24 @@ void lexer::ctrlrecv()
     Darray(B417_Nx,B417);
     Darray(B417_Ny,B417);
     Darray(B417_Nz,B417);
+    }
+    
+    if(B418>0)
+    {
+    Iarray(B418_ID,B418);
+    Iarray(B418_pio,B418);
+    }
+    
+    if(B421>0)
+    {
+    Iarray(B421_ID,B421);
+    Iarray(B421_Q,B421);
+    }
+    
+    if(B422>0)
+    {
+    Iarray(B422_ID,B422);
+    Iarray(B422_FSF,B422);
     }
     
     if(B440>0)
@@ -2232,8 +2270,8 @@ void lexer::ctrlrecv()
     {
     B412_ID[n] = ictrl[ii];
     ii++;
-    B412_pressBC[n] = ictrl[ii];
-    ii++;
+    B412_pressBC[n] = dctrl[dd];
+    dd++;
     }
     
     for(n=0;n<B413;++n)
@@ -2282,6 +2320,30 @@ void lexer::ctrlrecv()
     dd++;
     B417_Nz[n] = dctrl[dd];
     dd++;
+    }
+    
+    for(n=0;n<B418;++n)
+    {
+    B418_ID[n] = ictrl[ii];
+    ii++;
+    B418_pio[n] = ictrl[ii];
+    ii++;
+    }
+    
+    for(n=0;n<B421;++n)
+    {
+    B421_ID[n] = ictrl[ii];
+    ii++;
+    B421_Q[n] = ictrl[ii];
+    ii++;
+    }
+	
+    for(n=0;n<B422;++n)
+    {
+    B422_ID[n] = ictrl[ii];
+    ii++;
+    B422_FSF[n] = ictrl[ii];
+    ii++;
     }
 	
 	for(n=0;n<B440;++n)

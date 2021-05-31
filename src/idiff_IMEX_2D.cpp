@@ -37,7 +37,7 @@ idiff_IMEX_2D::idiff_IMEX_2D(lexer* p, heat* pheat, concentration* pconc)
 {
     if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0 && p->W90==0)
 	pd = new density_f(p);
-	
+
 	if(p->F80==0 && p->H10==0 && p->W30==1 && p->W90==0)
 	pd = new density_comp(p);
 	
@@ -52,7 +52,7 @@ idiff_IMEX_2D::idiff_IMEX_2D(lexer* p, heat* pheat, concentration* pconc)
     
     if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
     pd = new density_rheo(p);
-	
+
     gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;
@@ -89,14 +89,14 @@ void idiff_IMEX_2D::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fiel
             visc_ddz_p = (visc_ijk+ev_ijk + visc_ip_j_k+ev_ip_j_k + visc_i_j_kp+ev_i_j_kp + a->visc(i+1,j,k+1)+a->eddyv(i+1,j,k+1))*0.25;
             visc_ddz_m = (a->visc(i,j,k-1)+a->eddyv(i,j,k-1) + a->visc(i+1,j,k-1)+a->eddyv(i+1,j,k-1) + visc_ijk+ev_ijk + visc_ip_j_k+ev_ip_j_k)*0.25;
                 
-            a->M.p[count] =  2.0*(visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP]*p->DXP[IP])
-                           + 2.0*(visc_ijk+ev_ijk)/(p->DXN[IM1]*p->DXP[IP])
+            a->M.p[count] =  2.0*(visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP1]*p->DXP[IP])   // changed
+                           + 2.0*(visc_ijk+ev_ijk)/(p->DXN[IP]*p->DXP[IP])          // changed
                            + visc_ddz_p/(p->DZP[KP]*p->DZN[KP])
                            + visc_ddz_m/(p->DZP[KM1]*p->DZN[KP])
                            + CPOR1/(alpha*p->dt);
                           
-             a->M.s[count] = -2.0*(visc_ijk+ev_ijk)/(p->DXN[IM1]*p->DXP[IP]);
-             a->M.n[count] = -2.0*(visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP]*p->DXP[IP]);
+             a->M.s[count] = -2.0*(visc_ijk+ev_ijk)/(p->DXN[IP]*p->DXP[IP]);          // changed
+             a->M.n[count] = -2.0*(visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP1]*p->DXP[IP]);   // changed
              
              a->M.b[count] = -visc_ddz_m/(p->DZP[KM1]*p->DZN[KP]);
              a->M.t[count] = -visc_ddz_p/(p->DZP[KP]*p->DZN[KP]);
@@ -180,10 +180,10 @@ void idiff_IMEX_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fiel
             visc_i_j_kp=a->visc(i,j,k+1);
             
             visc_ddx_p = (visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp + visc_ip_j_k+ev_ip_j_k + a->visc(i+1,j,k+1)+a->eddyv(i+1,j,k+1))*0.25;
-            visc_ddx_m = (visc_im_j_k+ev_im_j_k + a->visc(i-1,j,k-1)+a->eddyv(i-1,j,k-1) + visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp)*0.25;
+            visc_ddx_m = (visc_im_j_k+ev_im_j_k + a->visc(i-1,j,k+1)+a->eddyv(i-1,j,k+1) + visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp)*0.25;
             
-            a->M.p[count] = 2.0*(visc_i_j_kp+ev_i_j_kp)/(p->DZN[KP]*p->DZP[KP])
-                          + 2.0*(visc_ijk+ev_ijk)/(p->DZN[KM1]*p->DZP[KP])
+            a->M.p[count] = 2.0*(visc_i_j_kp+ev_i_j_kp)/(p->DZN[KP1]*p->DZP[KP])       // changed
+                          + 2.0*(visc_ijk+ev_ijk)/(p->DZN[KP]*p->DZP[KP])              // changed
                           + visc_ddx_p/(p->DXP[IP]*p->DXN[IP])
                           + visc_ddx_m/(p->DXP[IM1]*p->DXN[IP])
                           + CPOR3/(alpha*p->dt);
@@ -191,8 +191,8 @@ void idiff_IMEX_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fiel
              a->M.s[count] = -visc_ddx_m/(p->DXP[IM1]*p->DXN[IP]);
              a->M.n[count] = -visc_ddx_p/(p->DXP[IP]*p->DXN[IP]);
              
-             a->M.b[count] = -2.0*(visc_ijk+ev_ijk)/(p->DZN[KM1]*p->DZP[KP]);
-             a->M.t[count] = -2.0*(visc_i_j_kp+ev_i_j_kp)/(p->DZN[KP]*p->DZP[KP]);
+             a->M.b[count] = -2.0*(visc_ijk+ev_ijk)/(p->DZN[KP]*p->DZP[KP]);           // changed
+             a->M.t[count] = -2.0*(visc_i_j_kp+ev_i_j_kp)/(p->DZN[KP1]*p->DZP[KP]);    // changed
             
             a->rhsvec.V[count] += 
                   ((u(i,j,k+1)-u(i,j,k))*visc_ddx_p - (u(i-1,j,k+1)-u(i-1,j,k))*visc_ddx_m)/(p->DZP[KP]*p->DXN[IP])  

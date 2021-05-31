@@ -72,6 +72,10 @@ void ghostcell::velcell_update(lexer *p, fdm *a, int **cellmem, int cellcount,do
 			a->w(i,j,k+1)=0.5*a->w(i,j,k+1);
 			}
     }
+    
+    // NEW vertical interpolation update
+    
+    
 
 }
 

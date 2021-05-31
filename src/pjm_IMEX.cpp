@@ -158,7 +158,7 @@ void pjm_IMEX::presscorr(lexer* p, fdm* a, ghostcell* pgc, field& uvel, field& v
     }
        
     // Calculate relaxation factor omega_k
-    LOOP
+  /*  LOOP
     {
         sum1 += (pressn(i,j,k) - a->press(i,j,k))*(a->press(i,j,k) - Fp(i,j,k));
         sum2 += ((pressn(i,j,k) - a->press(i,j,k))*(pressn(i,j,k) - 2.0*a->press(i,j,k) + Fp(i,j,k)));
@@ -168,7 +168,7 @@ void pjm_IMEX::presscorr(lexer* p, fdm* a, ghostcell* pgc, field& uvel, field& v
     sum2 = pgc->globalsum(sum2);
 
     omega_k = -sum1/sum2;
-
+*/
     omega_k = 0.0;
 
     LOOP

@@ -35,13 +35,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_filter.h"
 #include"sflow_turbulence.h"
 #include"sflow_sediment.h"
+#include"6DOF_sflow.h"
 #include<iostream>
 #include<fstream>
 #include<sys/stat.h>
 #include<sys/types.h>
 
-sflow_f::sflow_f(lexer *p, fdm2D *b, ghostcell* pgc)
+sflow_f::sflow_f(lexer *p, fdm2D *b, ghostcell* pgc, patchBC_interface *ppBC)
 {
+    pBC = ppBC;
+    
 	maxcoor(p,b,pgc);
 }
 
@@ -115,13 +118,21 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         psed->start(p,b,pgc,b->P,b->Q,b->topovel);
         pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
         
+        // 6DOF
+		if (p->X10==3)
+        {
+            //p6dof->start(p,b,pgc,1.0,pvrans,pnet);
+            p6dof_sflow->start(p,b,pgc);
+        }
+
         // timesave
         pturb->ktimesave(p,b,pgc);
         pturb->etimesave(p,b,pgc);
 		
         //timestep control
-        ptime->start(p,b,pgc);
         p->simtime+=p->dt;
+        ptime->start(p,b,pgc);
+        
         
         // printer
 		//print_debug(p,b,pgc);
@@ -209,12 +220,12 @@ void sflow_f::print_debug(lexer *p, fdm2D* b, ghostcell* pgc)
 	mkdir("./REEF3D_SFLOW_Log",0777);
 	
 	
-	sprintf(name,"./REEF3D_PLS/POS-%d-%d.dat",p->count,p->mpirank+1);
+	sprintf(name,"./REEF3D_PLS/POS-%i-%i.dat",p->count,p->mpirank+1);
 
 	if(p->P14==0)
-	sprintf(name,"/SFLOW_Debug-%d-%d.dat",p->count,p->mpirank+1);
+	sprintf(name,"/SFLOW_Debug-%i-%i.dat",p->count,p->mpirank+1);
 	if(p->P14==1)
-	sprintf(name,"./REEF3D_SFLOW_Log/SFLOW_Debug-%d-%d.dat",p->count,p->mpirank+1);
+	sprintf(name,"./REEF3D_SFLOW_Log/SFLOW_Debug-%i-%i.dat",p->count,p->mpirank+1);
 		
 		
 	debug.open(name);

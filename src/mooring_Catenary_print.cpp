@@ -51,22 +51,22 @@ void mooring_Catenary::print(lexer *p)
 		if(p->P14==1)
 		{
 			if(num<10)
-			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%d-00000%d.vtk",line,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%i-00000%i.vtk",line,num);
 
 			if(num<100&&num>9)
-			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%d-0000%d.vtk",line,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%i-0000%i.vtk",line,num);
 
 			if(num<1000&&num>99)
-			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%d-000%d.vtk",line,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%i-000%i.vtk",line,num);
 
 			if(num<10000&&num>999)
-			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%d-00%d.vtk",line,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%i-00%i.vtk",line,num);
 
 			if(num<100000&&num>9999)
-			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%d-0%d.vtk",line,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%i-0%i.vtk",line,num);
 
 			if(num>99999)
-			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%d-%d.vtk",line,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%i-%i.vtk",line,num);
 		}
 		
 		// Reconstruct line
@@ -124,7 +124,7 @@ void mooring_Catenary::buildLine(lexer *p)
     lms = L - FV/w;
     segLen = L/(H-1);
     alpha = atan(dy/dx);
-    
+
     for (int cnt = 0; cnt < H; cnt++)
     {
         if (segLen*cnt <= lms)
@@ -145,11 +145,11 @@ void mooring_Catenary::buildLine(lexer *p)
                 
             if (dy > 0)
             {
-                y[cnt] = p->X311_ys[line] + d_xy*sin(alpha);
+                y[cnt] = p->X311_ys[line] + d_xy*fabs(sin(alpha));
             }
             else
             {
-                y[cnt] = p->X311_ys[line] - d_xy*sin(alpha);
+                y[cnt] = p->X311_ys[line] - d_xy*fabs(sin(alpha));
             }
         }
         else
@@ -171,11 +171,11 @@ void mooring_Catenary::buildLine(lexer *p)
                     
             if (dy > 0)
             {
-                y[cnt] = p->X311_ys[line] + lms*sin(alpha) + d_xy*sin(alpha);
+                y[cnt] = p->X311_ys[line] + lms*fabs(sin(alpha)) + d_xy*fabs(sin(alpha));
             }
             else
             {
-                y[cnt] = p->X311_ys[line] - lms*sin(alpha) - d_xy*sin(alpha);
+                y[cnt] = p->X311_ys[line] - lms*fabs(sin(alpha)) - d_xy*fabs(sin(alpha));
             }					
         }
     }

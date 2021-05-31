@@ -21,10 +21,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"6DOF_gc.h"
 #include"mooring_void.h"
-#include"mooring_DGSEM.h"
 #include"mooring_barQuasiStatic.h"
 #include"mooring_Catenary.h"
 #include"mooring_Spring.h"
+#include"mooring_dynamic.h"
 #include"net_void.h"
 #include"net_barDyn.h"
 #include"net_barQuasiStatic.h"
@@ -103,7 +103,7 @@ void sixdof_gc::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 			}	
 			else if(p->X310==3)
 			{
-				pmooring.push_back(new mooring_DGSEM(i));
+				pmooring.push_back(new mooring_dynamic(i));
 			}
 			else if(p->X310==4)
 			{

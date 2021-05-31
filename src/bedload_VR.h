@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"bedload.h"
 #include"bedshear.h"
+#include"bedload_noneq.h"
 
 class turbulence;
 
@@ -30,7 +31,7 @@ using namespace std;
 #ifndef BEDLOAD_VR_H_
 #define BEDLOAD_VR_H_
 
-class bedload_VR : public bedload, public bedshear
+class bedload_VR : public bedload, public bedshear, public bedload_noneq
 {
 public:
 

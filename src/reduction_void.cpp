@@ -34,9 +34,7 @@ reduction_void::~reduction_void()
 
 double reduction_void::start(lexer *p, fdm * a, ghostcell *pgc)
 {
-    double r=1.0;
-
-    return r;
+    return 1.0;
 }
 
 

@@ -47,10 +47,10 @@ probe_point::probe_point(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P61)
 		for(n=0;n<probenum;++n)
 		{
 		if(p->P14==0)
-		sprintf(name,"REEF3D-CFD-Probe-Point-%d.dat",n+1);
+		sprintf(name,"REEF3D-CFD-Probe-Point-%i.dat",n+1);
 		
 		if(p->P14==1)
-		sprintf(name,"./REEF3D_CFD_ProbePoint/REEF3D-CFD-Probe-Point-%d.dat",n+1);
+		sprintf(name,"./REEF3D_CFD_ProbePoint/REEF3D-CFD-Probe-Point-%i.dat",n+1);
 		
 		pout[n].open(name);
 
@@ -92,10 +92,10 @@ void probe_point::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 		uval = p->ccipol1(a->u, xp, yp, zp);
 		vval = p->ccipol2(a->v, xp, yp, zp);
 		wval = p->ccipol3(a->w, xp, yp, zp);
-		pval = p->ccipol4(a->press, xp, yp, zp);
+		pval = p->ccipol4_a(a->press, xp, yp, zp);
 		kval = pturb->ccipol_kinval(p, pgc, xp, yp, zp);
 		eval = pturb->ccipol_epsval(p, pgc, xp, yp, zp);
-		edval = p->ccipol4(a->eddyv, xp, yp, zp);
+		edval = p->ccipol4_a(a->eddyv, xp, yp, zp);
 		}
 	
 	uval=pgc->globalmax(uval);

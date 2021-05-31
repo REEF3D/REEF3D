@@ -42,7 +42,7 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
         eta(i-3,j) = etaval[count];
         }
         
-        /*
+        
         if(h_switch==0)
         {
         double etax = -(1.0/9.81) * (Fifsfval[count]-Fifsfval0[count])/p->dt;
@@ -51,7 +51,7 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
         eta(i-1,j) = eta(i,j) + etax*1.0*p->DXP[IM1];
         eta(i-2,j) = eta(i,j) + etax*2.0*p->DXP[IM1];
         eta(i-3,j) = eta(i,j) + etax*3.0*p->DXP[IM1];
-        }*/
+        }
         
         if(p->A329==1)
         {
@@ -66,7 +66,7 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
         Fifsf(i-2,j) = (4.0/3.0)*Fifsf(i,j) - (1.0/3.0)*Fifsf(i+1,j) - (2.0/3.0)*Fifsfval[count]*(-1.5*p->XP[IM2] + 2.0*p->XP[IP] - 0.5*p->XP[IP1]);
         Fifsf(i-3,j) = (4.0/3.0)*Fifsf(i,j) - (1.0/3.0)*Fifsf(i+1,j) - (2.0/3.0)*Fifsfval[count]*(-1.5*p->XP[IM3] + 2.0*p->XP[IP] - 0.5*p->XP[IP1]);
         }
-
+    
         ++count;
     }
     
@@ -86,6 +86,9 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
         
         ++count;
         }
+        
+        
+        
     }
     
     // Uin

@@ -120,7 +120,7 @@ void sflow_sediment_f::slide_v2(lexer *p, fdm2D *b, ghostcell *pgc)
         
         if(dh>maxdh && fabs(dh)<1.0e15)
 		{
-			dh_corr = dh-maxdh + tan(p->S93*(PI/180.0))*p->DXP[JP];
+			dh_corr = dh-maxdh + tan(p->S93*(PI/180.0))*p->DXP[IP];
             fh(i,j)-= fac1*dh_corr;
             fh(i,j+1)+= fac1*dh_corr;
 

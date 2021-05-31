@@ -76,6 +76,7 @@ public:
 	
     
     void wavegen_precalc_space(lexer*,ghostcell*);
+    void wavegen_precalc_space_dirichlet(lexer*,ghostcell*);
     void wavegen_precalc_time(lexer*,ghostcell*);
     void wavegen_precalc_decomp_relax(lexer*,ghostcell*);
     void wavegen_precalc_decomp_dirichlet(lexer*,ghostcell*);
@@ -105,6 +106,7 @@ public:
     
     
     virtual void discharge2D(lexer*,fdm2D*,ghostcell*);
+    virtual void waterlevel2D(lexer*,fdm2D*,ghostcell*,slice&);
     virtual void Qin2D(lexer*,fdm2D*,ghostcell*);
 	virtual void Qout2D(lexer*,fdm2D*,ghostcell*);
     virtual void inflow2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&);
@@ -171,6 +173,7 @@ public:
     void active_beach_fnpf(lexer*, fdm_fnpf*, ghostcell*, double*, double*, slice&, slice&);
     
     void wavegen_precalc_decomp_space_fnpf(lexer*,ghostcell*);
+    void wavegen_precalc_decomp_space_dirichlet_fnpf(lexer*,ghostcell*);
     void wavegen_precalc_decomp_time_fnpf(lexer*,ghostcell*);
     void wavegen_precalc_decomp_relax_fnpf(lexer*,ghostcell*);
     void wavegen_precalc_decomp_dirichlet_fnpf(lexer*,ghostcell*);

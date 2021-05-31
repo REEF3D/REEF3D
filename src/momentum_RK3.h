@@ -49,9 +49,9 @@ public:
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);
 
-    field1 urk1,urk2;
-	field2 vrk1,vrk2;
-	field3 wrk1,wrk2;
+    field1 udiff,urk1,urk2;
+	field2 vdiff,vrk1,vrk2;
+	field3 wdiff,wrk1,wrk2;
 
 private:
     fluid_update *pupdate;

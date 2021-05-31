@@ -41,7 +41,7 @@ heat_RK3::~heat_RK3()
 
 void heat_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow)
 {
-    field4 ark1(p),ark2(p);
+    field4 ark1(p),ark2(p),Tdiff(p);
 
 // Step 1
     starttime=pgc->timer();
@@ -49,10 +49,10 @@ void heat_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, so
     
     clearrhs(p,a,pgc);
     pconvec->start(p,a,T,4,a->u,a->v,a->w);
-	pdiff->diff_scalar(p,a,pgc,psolv,T,thermdiff,p->sigT,1.0);
+	pdiff->diff_scalar(p,a,pgc,psolv,Tdiff,T,thermdiff,p->sigT, 1.0);
 
 	LOOP
-	ark1(i,j,k) = T(i,j,k)
+	ark1(i,j,k) = Tdiff(i,j,k)
                    + p->dt*a->L(i,j,k);
 	
     bcheat_start(p,a,pgc,ark1);
@@ -61,11 +61,11 @@ void heat_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, so
 // Step 2
     clearrhs(p,a,pgc);
     pconvec->start(p,a,ark1,4,a->u,a->v,a->w);
-	pdiff->diff_scalar(p,a,pgc,psolv,ark1,thermdiff,p->sigT, 0.25);
+	pdiff->diff_scalar(p,a,pgc,psolv,Tdiff,ark1,thermdiff,p->sigT, 1.0);
 
 	LOOP
 	ark2(i,j,k) = 0.75*T(i,j,k)
-                   + 0.25*ark1(i,j,k)
+                   + 0.25*Tdiff(i,j,k)
 				   + 0.25*p->dt*a->L(i,j,k);
 	
     bcheat_start(p,a,pgc,ark2);
@@ -74,11 +74,11 @@ void heat_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, so
 // Step 3
     clearrhs(p,a,pgc);
     pconvec->start(p,a,ark2,4,a->u,a->v,a->w);
-	pdiff->diff_scalar(p,a,pgc,psolv,ark2,thermdiff,p->sigT, 2.0/3.0);
+	pdiff->diff_scalar(p,a,pgc,psolv,Tdiff,ark2,thermdiff,p->sigT, 1.0);
 
 	LOOP
 	T(i,j,k) = (1.0/3.0)*T(i,j,k)
-				+ (2.0/3.0)*ark2(i,j,k)
+				+ (2.0/3.0)*Tdiff(i,j,k)
 				+ (2.0/3.0)*p->dt*a->L(i,j,k);
 	
     bcheat_start(p,a,pgc,T);

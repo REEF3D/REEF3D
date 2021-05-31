@@ -32,15 +32,14 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
     
 	wtype=p->B92;
     
-    if(p->B110==0)
-	wd=p->phimean;
-	
-	if(p->B110==1)
-	wd=p->B110_d;
+    p->wd = p->phimean;
     
-    p->wd=wd;
-    
+    if(p->B94==0)
+	wdt=p->phimean;
 	
+	if(p->B94==1)
+	wdt=p->B94_wdt;
+
 // Wave Length given
     if(p->B91==1 && (p->B92<30 || p->B92==70))
     {
@@ -54,16 +53,16 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
 
     // define frequency
     if(wtype==1)
-    ww= (2.0*PI*sqrt(9.81*wd))/(wL);
+    ww= (2.0*PI*sqrt(9.81*wdt))/(wL);
 
     if(wtype==2)
-    ww= sqrt(fabs(9.81*wk*tanh(wk*(wd))));
+    ww= sqrt(fabs(9.81*wk*tanh(wk*(wdt))));
 
     if(wtype==3)
     ww= sqrt(9.81*wk);
 
     if(wtype==4 || wtype>5)
-    ww= sqrt(fabs(9.81*wk*tanh(wk*(wd))));
+    ww= sqrt(fabs(9.81*wk*tanh(wk*(wdt))));
 	
 	wf = ww/(2.0*PI);
     wT = 1.0/wf;
@@ -71,10 +70,10 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
 	if(wtype==5)
 	{
 	eps = 0.5*wk*wH;
-	S = 1.0/cosh(2*wk*wd);
+	S = 1.0/cosh(2*wk*wdt);
 	C = 1.0 - S;
 	
-	c0 = sqrt(tanh(wk*wd));
+	c0 = sqrt(tanh(wk*wdt));
 
     c2 = (c0*(2.0 + 7.0*S*S)/(4.0*C*C));
 
@@ -103,7 +102,7 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
 		
 		// define wave length
 		if(wtype==1)
-		wL= wT*sqrt(9.81*wd);
+		wL= wT*sqrt(9.81*wdt);
 
 		if(wtype==3)
 		wL= (9.81/(2.0*PI))*wT*wT;
@@ -113,12 +112,12 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
 		{
 		wL0 = (9.81/(2.0*PI))*wT*wT;	
 		k0 = (2.0*PI)/wL0;
-		S0 = sqrt(k0*wd) * (1.0 + (k0*wd)/6.0 + (k0*k0*wd*wd)/30.0); 
+		S0 = sqrt(k0*wdt) * (1.0 + (k0*wdt)/6.0 + (k0*k0*wdt*wdt)/30.0); 
 		
 		wL = wL0*tanh(S0);
         
         for(int qn=0; qn<500; ++qn)
-        wL = wL0*tanh(2.0*PI*wd/wL);
+        wL = wL0*tanh(2.0*PI*wdt/wL);
 		}
         
         
@@ -126,12 +125,12 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
 		{
 		wL0 = (9.81/(2.0*PI))*wT*wT;	
 		k0 = (2.0*PI)/wL0;
-		S0 = sqrt(k0*wd) * (1.0 + (k0*wd)/6.0 + (k0*k0*wd*wd)/30.0); 
+		S0 = sqrt(k0*wdt) * (1.0 + (k0*wdt)/6.0 + (k0*k0*wdt*wdt)/30.0); 
 		
 		wL = wL0*tanh(S0);
         
         for(int qn=0; qn<500; ++qn)
-        wL = wL0*tanh(2.0*PI*wd/wL);
+        wL = wL0*tanh(2.0*PI*wdt/wL);
         
         diff=10.0;
         int qn=0;
@@ -140,10 +139,10 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
             wk_temp = (2.0*PI)/(wL>1.0e-20?wL:1.0e20); // wk: wavenumber k
             
             eps = 0.5*wk_temp*wH;
-            S = 1.0/cosh(2*wk_temp*wd);
+            S = 1.0/cosh(2*wk_temp*wdt);
             C = 1.0 - S;
             
-            c0 = sqrt(tanh(wk_temp*wd));
+            c0 = sqrt(tanh(wk_temp*wdt));
             c2 = (c0*(2.0 + 7.0*S*S)/(4.0*C*C));
             c4 = (c0*(4.0 + 32.0*S -116.0*S*S - 400.0*S*S*S - 71.0*pow(S,4.0) + 146.0*pow(S,5.0)))/(32.0*pow(C,5.0));
         
@@ -185,7 +184,6 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
     p->wH = wH;
     p->wA = wa;
     p->wL = wL;
-    p->wd = wd;
     p->wk = wk;
     p->ww = ww;
     

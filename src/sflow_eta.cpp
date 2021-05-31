@@ -29,9 +29,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_hxy_weno.h"
 #include"sflow_hxy_cds.h"
 #include"sflow_hxy_fou.h"
+#include"patchBC_interface.h"
 
-sflow_eta::sflow_eta(lexer *p, fdm2D *b , ghostcell *pgc) : Lab(p)
+sflow_eta::sflow_eta(lexer *p, fdm2D *b , ghostcell *pgc, patchBC_interface *ppBC) : Lab(p)
 {   
+    pBC = ppBC;
+    
     if(p->F50==1)
 	gcval_eta = 51;
     
@@ -55,13 +58,13 @@ sflow_eta::sflow_eta(lexer *p, fdm2D *b , ghostcell *pgc) : Lab(p)
 	pconvec = new sflow_eta_weno(p);
 	
 	if(p->A241==1)
-	phxy = new sflow_hxy_fou(p,b);
+	phxy = new sflow_hxy_fou(p,b,pBC);
 	
 	if(p->A241==2)
-	phxy = new sflow_hxy_cds(p,b);
+	phxy = new sflow_hxy_cds(p,b,pBC);
 	
 	if(p->A241==4)
-	phxy = new sflow_hxy_weno(p,b);
+	phxy = new sflow_hxy_weno(p,b,pBC);
     
     wd_criterion=0.00005;
     
@@ -154,12 +157,8 @@ void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slic
     SLICELOOP2
     b->hy(i,j) = MAX(b->hy(i,j), 0.0);
     
-    if(p->F50==1 || p->F50==4)
-	pgc->gcsl_start4(p,b->hx,gcval_eta);
-    
-    if(p->F50==2 || p->F50==3)
-	pgc->gcsl_start1(p,b->hx,50);
-    
+
+	pgc->gcsl_start1(p,b->hx,gcval_eta);    
 	pgc->gcsl_start2(p,b->hy,gcval_eta);
     pgc->gcsl_start4(p,b->depth,1);
     
