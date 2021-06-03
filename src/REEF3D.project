@@ -1111,6 +1111,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <File Name="fdm2D.cpp"/>
           <VirtualDirectory Name="Potential Flow">
             <File Name="sflow_potential_v.cpp"/>
             <File Name="sflow_potential_f.cpp"/>
@@ -1608,7 +1609,6 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="FDM">
-      <File Name="fdm2D.cpp"/>
       <VirtualDirectory Name="DDWENO">
         <File Name="ddweno_f_nug.cpp"/>
         <File Name="weno3_nug_func_precalc_weights.cpp"/>
@@ -2485,6 +2485,8 @@
             <File Name="patchBC_void.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="PatchBC">
+            <File Name="patchBC_hydrograph_Q.cpp"/>
+            <File Name="patchBC_hydrograph_FSF.cpp"/>
             <File Name="patchBC_discharge.cpp"/>
             <File Name="patchBC_loop.cpp"/>
             <File Name="patchBC_waterlevel.cpp"/>

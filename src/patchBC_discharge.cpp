@@ -34,6 +34,14 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
     double Qi=0.0;
     double Ui=0.0;
     double Hi=0.0;
+    
+    // hydrograph interpolation
+    // discharge
+    for(qq=0;qq<obj_count;++qq)
+    if(patch[qq]->hydroQ_flag==1)
+    {
+    patch[qq]->Q = patchBC_hydrograph_Q_ipol(p,pgc,qq,patch[qq]->ID);
+    }
 
     
     // Q calc

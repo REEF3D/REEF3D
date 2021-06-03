@@ -1,4 +1,24 @@
 
+21.05
+x added inflow angle to patchBC
+x added hydrograph discharge input for patchBC (SFLOW and CFD)
+x added hydrograph waterlevel input for patchBC (SFLOW and CFD)
+x added separate water depth d for wave theory (B 94)
+x added definition of print out area to state files (FNPF)
+x added breaking wave log (FNPF)
+x added restart from state file for FNPF 
+x updated state file structure for  FNPF 
+x improved topo print out around solids (CFD)
+x improved dirichlet wave generation for FNPF
+x fixed waverecon for FNPF (works now for both relaxation and Neuman wave gen)
+x fixed space-time decomposition for wave generation for waverecon (FNPF)
+x added more consistent implicit diffusion handling for Runge-Kutta schemes (CFD)
+x added new dynamic mooring model based on Cosserat rod theory (CFD)
+x changed pressure interpolation for probe point and probe line print out (CFD)
+x added moving objects for SFLOW
+x added patchBC for SFLOW
+x fixed outflow boundary conditions for SFLOW
+x fixed patchBC for CFD
 
 21.02
 x changed input format for B91, B93 and B96

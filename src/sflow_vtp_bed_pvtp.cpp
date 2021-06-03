@@ -92,6 +92,7 @@ void sflow_vtp_bed::pvtu(lexer *p, fdm2D* b, ghostcell* pgc)
 	result<<"<PDataArray type=\"Float32\" Name=\"depth\" NumberOfComponents=\"3\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"bedload\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"bedchange\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"sedactive\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
     if(p->P23==1)
