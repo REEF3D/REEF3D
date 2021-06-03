@@ -24,6 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 #include"printer.h"
+#include"waves_header.h"
 
 void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
 {	
@@ -32,7 +33,9 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
     
         if(p->mpirank==0)
         cout<<endl<<"EMERGENCY STOP  --  velocities exceeding critical value N 61"<<endl<<endl;
-        
+    
+     if(p->A10==3)
+     pfprint->start(p,c,pgc,pflow);
     
      if(p->A10==6)
      pprint->print_vtu(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
