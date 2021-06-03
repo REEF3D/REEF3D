@@ -30,6 +30,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void hypre_struct::fill_matrix8_2Dvert(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec &rhs, matrix_diag &M)
 {
+    
+    count=0;
+    LOOP
+    {
+    cval4(i,j,k)=count;
+    ++count;
+    }
 
     nentries=5;
     
