@@ -54,14 +54,11 @@ void sflow_sediment_f::bedload_vanRijn(lexer *p, fdm2D *b, ghostcell *pgc)
     {
         b->sedactive(i,j) = 0.0;
 
-        tau_eff = tau(i,j);
-        tau_crit = taucr(i,j);
-
-        if(tau_eff>tau_crit)
-        b->sedactive(i,j) = 1.0;
-
         shearvel_eff = sqrt(tau(i,j)/p->W1);
         shearvel_crit = sqrt(taucr(i,j)/p->W1);
+        
+        if(shearvel_eff>shearvel_crit)
+        b->sedactive(i,j) = 1.0;
 
         Ti=MAX((shearvel_eff*shearvel_eff-shearvel_crit*shearvel_crit)/(shearvel_crit*shearvel_crit),0.0);
 
