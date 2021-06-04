@@ -116,10 +116,13 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
     dx = p->DXN[IP];
     
     cu = MIN(cu, 1.0/((fabs(MAX(p->umax, sqrt(9.81*depthmax)))/dx)));
+    
+    if(p->j_dir==1 )
     cv = MIN(cv, 1.0/((fabs(MAX(p->vmax, sqrt(9.81*depthmax)))/dx)));
     
     }
 
+    if(p->j_dir==1 )
     cu = MIN(cu,cv);
     
    	p->dt=p->N47*cu;

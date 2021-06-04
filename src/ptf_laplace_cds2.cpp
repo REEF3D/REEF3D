@@ -186,8 +186,8 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             // top
             if(p->flag4[IJKp1]==AIR)
             {
-            a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1);
-            a->M.t[n] = 0.0;
+            //a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1);
+            //a->M.t[n] = 0.0;
             
             /*
             double lsv0,lsv1;
@@ -200,7 +200,21 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
    
             a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1)*(1.0 + lsv1/lsv0);
             a->M.p[n] -= a->M.t[n]*lsv1/lsv0;
-            a->M.t[n] = 0.0;*/
+            a->M.t[n] = 0.0;
+            
+            */
+            
+            double lsv0,lsv1;
+            
+            lsv0 = fabs(a->phi(i,j,k));
+            lsv1 = fabs(a->phi(i,j,k+1));
+
+            lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20;
+            
+   
+            a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1)*(1.0 + lsv1/lsv0);
+            a->M.p[n] -= a->M.t[n]*lsv1/lsv0;
+            a->M.t[n] = 0.0;
             }
     
             // KBEDBC
