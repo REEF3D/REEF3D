@@ -186,36 +186,57 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             // top
             if(p->flag4[IJKp1]==AIR)
             {
-            //a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1);
-            //a->M.t[n] = 0.0;
-            
-            /*
-            double lsv0,lsv1;
-            
-            lsv0 = fabs(a->phi(i,j,k));
-            lsv1 = fabs(a->phi(i,j,k+1));
-
-            lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20;
-            
-   
-            a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1)*(1.0 + lsv1/lsv0);
-            a->M.p[n] -= a->M.t[n]*lsv1/lsv0;
+            if(i+p->origin_i==0)
+            {
+            a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1);
             a->M.t[n] = 0.0;
+            }
             
-            */
             
             double lsv0,lsv1;
             
+            if(i+p->origin_i>0)
+            {
             lsv0 = fabs(a->phi(i,j,k));
             lsv1 = fabs(a->phi(i,j,k+1));
 
             lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20;
             
    
-            a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1)*(1.0 + lsv1/lsv0);
+            a->rhsvec.V[n] -= a->M.t[n]*a->Fifsf(i,j)*(1.0 + lsv1/lsv0);
             a->M.p[n] -= a->M.t[n]*lsv1/lsv0;
             a->M.t[n] = 0.0;
             }
+            
+    
+            
+    
+            
+            /*
+            double x0,x1,x2,y0,y1,y2;
+            double x,y;
+            double Lx0,Lx1,Lx2;
+            
+            x0 = -fabs(a->phi(i,j,k-1));
+            x1 = -fabs(a->phi(i,j,k));
+            x2 = 0.0;
+            
+            y0 = f(i,j,k-1);
+            y1 = f(i,j,k);
+            y2 = a->Fifsf(i,j);
+            x = fabs(a->phi(i,j,k+1));
+            
+            Lx0 = ((x-x1)/(x0-x1)) * ((x-x2)/(x0-x2));
+            Lx1 = ((x-x0)/(x1-x0)) * ((x-x2)/(x1-x2));
+            Lx2 = ((x-x0)/(x2-x0)) * ((x-x1)/(x2-x1));
+   
+            a->rhsvec.V[n]  -= a->M.t[n]*Lx2*y2;
+            a->M.p[n]       -= a->M.t[n]*Lx1;
+            a->M.b[n]       += a->M.t[n]*Lx0;
+            a->M.t[n]       = 0.0;
+            */
+            }
+    
     
             // KBEDBC
             if(p->flag4[IJKm1]<AIR)
