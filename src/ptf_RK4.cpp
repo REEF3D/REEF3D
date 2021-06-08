@@ -115,7 +115,7 @@ void ptf_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     // solve Fi
     pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,gcval);
-    plap->start(p,a,pgc,psolv,a->Fi);
+    plap->start(p,a,pgc,psolv,a->Fi,frk);
     pfsfupdate->fsfbc(p,a,pgc,frk,a->Fi);
     pgc->start4(p,a->Fi,gcval);
 
@@ -158,7 +158,7 @@ void ptf_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     // solve Fi
     pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,gcval);
-    plap->start(p,a,pgc,psolv,a->Fi);
+    plap->start(p,a,pgc,psolv,a->Fi,frk);
     pfsfupdate->fsfbc(p,a,pgc,frk,a->Fi);
     pgc->start4(p,a->Fi,gcval);
    
@@ -200,7 +200,7 @@ void ptf_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     // solve Fi
     pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,gcval);
-    plap->start(p,a,pgc,psolv,a->Fi);
+    plap->start(p,a,pgc,psolv,a->Fi,frk);
     pfsfupdate->fsfbc(p,a,pgc,frk,a->Fi);
     pgc->start4(p,a->Fi,gcval);
 
@@ -236,7 +236,7 @@ void ptf_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     // solve Fi
     pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,gcval);
-    plap->start(p,a,pgc,psolv,a->Fi);
+    plap->start(p,a,pgc,psolv,a->Fi,a->Fifsf);
     pfsfupdate->fsfbc(p,a,pgc,a->Fifsf,a->Fi);
     pgc->start4(p,a->Fi,gcval);
     

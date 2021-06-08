@@ -77,7 +77,7 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     Fi(i,j,k+3) =  Fifsf(i,j);
     }
     
-    
+    /*
     if(i+p->origin_i>0)
     FILOOP4
     {
@@ -96,10 +96,11 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
         Fi(i,j,k+3) =  ((Fifsf(i,j)-fival)/(fabs(lsv0)))*fabs(lsv3) + Fifsf(i,j);
         
         
+        //if(p->mpirank==2)
         //cout<<"F_k: "<<fival<<" Fifsf: "<<Fifsf(i,j)<<" F_k+1: "<<Fi(i,j,k+1)<<"  | lsv0: "<<lsv0<<" lsv1: "<<lsv1<<endl;
     }
+    */
     
-    /*
     double x0,x1,x2,y0,y1,y2;
     double x,y;
     
@@ -135,8 +136,8 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
                      + ((x-x0)/(x1-x0)) * ((x-x2)/(x1-x2)) * y1
                      + ((x-x0)/(x2-x0)) * ((x-x1)/(x2-x1)) * y2;
         
-        //cout<<"F_k: "<<fival<<" Fifsf: "<<Fifsf(i,j)<<" F_k+1: "<<Fi(i,j,k+1)<<"  | lsv0: "<<lsv0<<" lsv1: "<<lsv1<<endl;
-    }*/
+        //cout<<"F_k: "<<Fi(i,j,k)<<" Fifsf: "<<Fifsf(i,j)<<" F_k+1: "<<Fi(i,j,k+1)<<"  | x1: "<<x1<<" x: "<<x<<endl;
+    }
     
     /*
     if(i+p->origin_i>0)

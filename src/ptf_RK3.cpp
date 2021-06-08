@@ -95,14 +95,14 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     pflow->fifsf_relax(p,pgc,frk1);
     pfsfupdate->fsfupdate(p,a,pgc,pflow,poneph,erk1);
     pfsfupdate->etaloc(p,a,pgc);
-    pfsfupdate->fsfbc0(p,a,pgc,frk1,a->Fi);
+    pfsfupdate->fsfbc(p,a,pgc,frk1,a->Fi);
     pbedupdate->waterdepth(p,a,pgc);
     pbedupdate->bedbc(p,a,pgc,a->Fi);
     
     // solve Fi
     pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,gcval);
-    plap->start(p,a,pgc,psolv,a->Fi);
+    plap->start(p,a,pgc,psolv,a->Fi,frk1);
     pfsfupdate->fsfbc(p,a,pgc,frk1,a->Fi);
     pgc->start4(p,a->Fi,gcval);
 
@@ -130,14 +130,14 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     pflow->fifsf_relax(p,pgc,frk2);
     pfsfupdate->fsfupdate(p,a,pgc,pflow,poneph,erk2);
     pfsfupdate->etaloc(p,a,pgc);
-    pfsfupdate->fsfbc0(p,a,pgc,frk2,a->Fi);
+    pfsfupdate->fsfbc(p,a,pgc,frk2,a->Fi);
     pbedupdate->waterdepth(p,a,pgc);
     pbedupdate->bedbc(p,a,pgc,a->Fi);
     
     // solve Fi
     pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,gcval);
-    plap->start(p,a,pgc,psolv,a->Fi);
+    plap->start(p,a,pgc,psolv,a->Fi,frk2);
     pfsfupdate->fsfbc(p,a,pgc,frk2,a->Fi);
     pgc->start4(p,a->Fi,gcval);
 
@@ -165,14 +165,14 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     pflow->fifsf_relax(p,pgc,a->Fifsf);
     pfsfupdate->fsfupdate(p,a,pgc,pflow,poneph,a->eta);
     pfsfupdate->etaloc(p,a,pgc);
-    pfsfupdate->fsfbc0(p,a,pgc,a->Fifsf,a->Fi);
+    pfsfupdate->fsfbc(p,a,pgc,a->Fifsf,a->Fi);
     pbedupdate->waterdepth(p,a,pgc);
     pbedupdate->bedbc(p,a,pgc,a->Fi);
     
     // solve Fi
     pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,gcval);
-    plap->start(p,a,pgc,psolv,a->Fi);
+    plap->start(p,a,pgc,psolv,a->Fi,a->Fifsf);
     pfsfupdate->fsfbc(p,a,pgc,a->Fifsf,a->Fi);
     pgc->start4(p,a->Fi,gcval);
     
@@ -195,7 +195,7 @@ void ptf_RK3::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *preini
     pgc->start4(p,a->Fi,250);
     pgc->gcsl_start4(p,a->Fifsf,50);
     
-    pfsfupdate->fsfbc0(p,a,pgc,a->Fifsf,a->Fi);
+    pfsfupdate->fsfbc(p,a,pgc,a->Fifsf,a->Fi);
     
     pfsfupdate->fsfepol(p,a,pgc,a->eta,a->Fi);
     

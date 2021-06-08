@@ -56,7 +56,7 @@ ptf_laplace_cds2::~ptf_laplace_cds2()
 {
 }
 
-void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, field &f)
+void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, field &f, slice &Fifsf)
 {
 	n=0;
     FLUIDLOOP
@@ -158,28 +158,31 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             // south
             if(p->flag4[Im1JK]==AIR)
             {
-            a->rhsvec.V[n] -= a->M.s[n]*f(i-1,j,k);
+            a->rhsvec.V[n] -= a->M.s[n]*Fifsf(i-1,j);
             a->M.s[n] = 0.0;
+            
+            //if(p->mpirank==2)
+            //cout<<p->mpirank<<" Fifsf(i-1,j): "<<Fifsf(i-1,j)<<" "<<f(i-1,j,k)<<endl;
             }
             
             // north
             if(p->flag4[Ip1JK]==AIR)
             {
-            a->rhsvec.V[n] -= a->M.n[n]*f(i+1,j,k);
+            a->rhsvec.V[n] -= a->M.n[n]*Fifsf(i+1,j);
             a->M.n[n] = 0.0;
             }
             
             // east
             if(p->flag4[IJm1K]==AIR)
             {
-            a->rhsvec.V[n] -= a->M.e[n]*f(i,j-1,k);
+            a->rhsvec.V[n] -= a->M.e[n]*Fifsf(i,j-1);
             a->M.e[n] = 0.0;
             }
             
             // west
             if(p->flag4[IJp1K]==AIR)
             {
-            a->rhsvec.V[n] -= a->M.w[n]*f(i,j+1,k);
+            a->rhsvec.V[n] -= a->M.w[n]*Fifsf(i,j+1);
             a->M.w[n] = 0.0;
             }
             
@@ -188,7 +191,7 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             {
             if(i+p->origin_i==0)
             {
-            a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1);
+            a->rhsvec.V[n] -= a->M.t[n]*Fifsf(i,j);
             a->M.t[n] = 0.0;
             }
             
@@ -197,22 +200,23 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             
             if(i+p->origin_i>0)
             {
+                /*
             lsv0 = fabs(a->phi(i,j,k));
             lsv1 = fabs(a->phi(i,j,k+1));
 
             lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20;
             
+            //if(p->mpirank==2)
+            //cout<<p->mpirank<<" Fifsf(i,j): "<<Fifsf(i,j)<<" "<<f(i,j,k+1)<<endl;
    
-            a->rhsvec.V[n] -= a->M.t[n]*a->Fifsf(i,j)*(1.0 + lsv1/lsv0);
+            a->rhsvec.V[n] -= a->M.t[n]*Fifsf(i,j)*(1.0 + lsv1/lsv0);
             a->M.p[n] -= a->M.t[n]*lsv1/lsv0;
             a->M.t[n] = 0.0;
-            }
+            }*/
             
-    
+
             
-    
-            
-            /*
+ 
             double x0,x1,x2,y0,y1,y2;
             double x,y;
             double Lx0,Lx1,Lx2;
@@ -223,7 +227,8 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             
             y0 = f(i,j,k-1);
             y1 = f(i,j,k);
-            y2 = a->Fifsf(i,j);
+            y2 = Fifsf(i,j);
+            
             x = fabs(a->phi(i,j,k+1));
             
             Lx0 = ((x-x1)/(x0-x1)) * ((x-x2)/(x0-x2));
@@ -231,10 +236,11 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             Lx2 = ((x-x0)/(x2-x0)) * ((x-x1)/(x2-x1));
    
             a->rhsvec.V[n]  -= a->M.t[n]*Lx2*y2;
-            a->M.p[n]       -= a->M.t[n]*Lx1;
-            a->M.b[n]       += a->M.t[n]*Lx0;
+            a->M.p[n]       += a->M.t[n]*Lx1;
+            a->M.b[n]       -= a->M.t[n]*Lx0;
             a->M.t[n]       = 0.0;
-            */
+            }
+            
             }
     
     
