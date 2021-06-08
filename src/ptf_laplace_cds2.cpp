@@ -214,9 +214,6 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             a->M.t[n] = 0.0;
             }*/
             
-
-            
- 
             double x0,x1,x2,y0,y1,y2;
             double x,y;
             double Lx0,Lx1,Lx2;

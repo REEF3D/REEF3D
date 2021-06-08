@@ -116,10 +116,7 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     y0 = Fi(i,j,k-1);
     y1 = Fi(i,j,k);
     y2 = Fifsf(i,j);
-    
 
-
- 
         x = fabs(a->phi(i,j,k+1));
         
         Fi(i,j,k+1) =   ((x-x1)/(x0-x1)) * ((x-x2)/(x0-x2)) * y0
