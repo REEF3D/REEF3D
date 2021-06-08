@@ -371,7 +371,16 @@ void probe_line::ini_global_location(lexer *p, fdm *a, ghostcell *pgc)
 		xloc = p->P62_xs[n] + t*ds[n]*(p->P62_xe[n]-p->P62_xs[n])/(norm[n]>eps?norm[n]:1.0e20);
 		yloc = p->P62_ys[n] + t*ds[n]*(p->P62_ye[n]-p->P62_ys[n])/(norm[n]>eps?norm[n]:1.0e20);
 		zloc = p->P62_zs[n] + t*ds[n]*(p->P62_ze[n]-p->P62_zs[n])/(norm[n]>eps?norm[n]:1.0e20);
-		
+            
+            if(p->j_dir==0)
+			if(xloc>domain_xs+eps_xs && xloc<domain_xe+eps_xe 
+			&& zloc>domain_zs+eps_zs && zloc<domain_ze+eps_ze)
+			{
+			active[n][q]=1;
+			++count;
+			}
+            
+            if(p->j_dir==1)
 			if(xloc>domain_xs+eps_xs && xloc<domain_xe+eps_xe 
 			&& yloc>domain_ys+eps_ys && yloc<domain_ye+eps_ye 
 			&& zloc>domain_zs+eps_zs && zloc<domain_ze+eps_ze)
