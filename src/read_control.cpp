@@ -159,6 +159,9 @@ void lexer::read_control()
                case 322: control>>A322;
 						 clear(c,numint);
 						 break;
+               case 323: control>>A323;
+						 clear(c,numint);
+						 break;
                case 329: control>>A329;
 						 clear(c,numint);
 						 break;

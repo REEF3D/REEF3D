@@ -69,7 +69,7 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     double lsv0,lsv1,lsv2,lsv3;
     double fival,lsval,dx,dist;
     
-    if(i+p->origin_i==0)
+    if(p->A323==1)
     FILOOP4
     {
     Fi(i,j,k+1) =  Fifsf(i,j);
@@ -77,8 +77,8 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     Fi(i,j,k+3) =  Fifsf(i,j);
     }
     
-    /*
-    if(i+p->origin_i>0)
+    
+    if(p->A323==2)
     FILOOP4
     {
     lsv0 = a->phi(i,j,k);
@@ -95,17 +95,16 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
         Fi(i,j,k+2) =  ((Fifsf(i,j)-fival)/(fabs(lsv0)))*fabs(lsv2) + Fifsf(i,j);
         Fi(i,j,k+3) =  ((Fifsf(i,j)-fival)/(fabs(lsv0)))*fabs(lsv3) + Fifsf(i,j);
         
-        
         //if(p->mpirank==2)
         //cout<<"F_k: "<<fival<<" Fifsf: "<<Fifsf(i,j)<<" F_k+1: "<<Fi(i,j,k+1)<<"  | lsv0: "<<lsv0<<" lsv1: "<<lsv1<<endl;
     }
-    */
+    
     
     double x0,x1,x2,y0,y1,y2;
     double x,y;
     
     
-    if(i+p->origin_i>0)
+    if(p->A323==3)
     FILOOP4
     {
     
@@ -117,9 +116,6 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     y1 = Fi(i,j,k);
     y2 = Fifsf(i,j);
     
-
-
- 
         x = fabs(a->phi(i,j,k+1));
         
         Fi(i,j,k+1) =   ((x-x1)/(x0-x1)) * ((x-x2)/(x0-x2)) * y0
