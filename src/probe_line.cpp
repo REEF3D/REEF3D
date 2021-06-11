@@ -476,7 +476,7 @@ void probe_line::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 			
 			check=boundcheck(p,a,iiloc,jjloc,kkloc,0);
             
-            //cout<<p->mpirank<<" n: "<<n<<" i: "<<iloc<<" j: "<<jloc<<" k: "<<kloc<<" check: "<<check<<endl;
+            //cout<<p->mpirank<<" n: "<<n<<" i: "<<iiloc<<" j: "<<jjloc<<" k: "<<kkloc<<" check: "<<check<<endl;
 			
             iloc[n][q] = iiloc;
             kloc[n][q] = kkloc;
