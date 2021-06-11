@@ -52,6 +52,7 @@ private:
 	char name[100];
 
     int **flag,**active,**active_all,**flag_all,**elid,**elid_all;
+    int **iloc, **iloc_all, **kloc, **kloc_all;
 	int *totelnum,*totelnum_all,*elnum,**elnum_all,**displ;
 	int maxelnum,maxlocalelnum,count,allcount;
 	double *length,*ds,*norm;

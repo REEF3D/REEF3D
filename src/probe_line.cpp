@@ -72,6 +72,10 @@ probe_line::probe_line(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P62), eps
 	
 	p->Iarray(active,p->P62,maxelnum);
     p->Iarray(active_all,p->P62,maxelnum);
+    p->Iarray(iloc,p->P62,maxelnum);
+    p->Iarray(iloc_all,p->P62,maxelnum);
+    p->Iarray(kloc,p->P62,maxelnum);
+    p->Iarray(kloc_all,p->P62,maxelnum);
 	p->Iarray(elid,p->P62,maxelnum);
 	p->Iarray(elid_all,p->P62,maxelnum);
 	
@@ -330,6 +334,8 @@ void probe_line::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
         
         pgc->gatherv_int(active[n],elnum[n],active_all[n],elnum_all[n],displ[n]);
         pgc->gatherv_int(flag[n],elnum[n],flag_all[n],elnum_all[n],displ[n]);
+        pgc->gatherv_int(iloc[n],elnum[n],iloc_all[n],elnum_all[n],displ[n]);
+        pgc->gatherv_int(kloc[n],elnum[n],kloc_all[n],elnum_all[n],displ[n]);
 		
 
 
@@ -342,7 +348,7 @@ void probe_line::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 				zp = p->P62_zs[n] + double(elid_all[n][q])*ds[n]*(p->P62_ze[n]-p->P62_zs[n])/(norm[n]>eps?norm[n]:1.0e20);
 				
 			lineout[n]<<xp<<" \t "<<yp<<" \t "<<zp<<" \t "<<U_all[n][q]<<" \t "<<V_all[n][q]<<" \t "<<W_all[n][q];
-			lineout[n]<<" \t "<<P_all[n][q]<<" \t "<<K_all[n][q]<<" \t "<<E_all[n][q]<<" \t "<<VT_all[n][q]<<" \t "<<LS_all[n][q]<<" \t \t "<<active_all[n][q]<<" \t "<<flag_all[n][q]<<endl;
+			lineout[n]<<" \t "<<P_all[n][q]<<" \t "<<K_all[n][q]<<" \t "<<E_all[n][q]<<" \t "<<VT_all[n][q]<<" \t "<<LS_all[n][q]<<" \t \t "<<active_all[n][q]<<" \t "<<flag_all[n][q]<<" \t "<<iloc_all[n][q]<<" \t "<<kloc_all[n][q]<<endl;
 			}
 		lineout[n].close();
 		}
@@ -443,7 +449,7 @@ void probe_line::ini_global_location(lexer *p, fdm *a, ghostcell *pgc)
 
 void probe_line::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 {
-	int iloc,jloc,kloc;
+	int iiloc,jjloc,kkloc;
 	
 	for(n=0;n<p->P62;++n)
 	for(q=0;q<elnum[n];++q)
@@ -458,20 +464,22 @@ void probe_line::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 		{
 			if(active[n][q]==1)
 			{
-			iloc = p->posc_i(p->P62_xs[n] + t*ds[n]*(p->P62_xe[n]-p->P62_xs[n])/(norm[n]>eps?norm[n]:1.0e20));
+			iiloc = p->posc_i(p->P62_xs[n] + t*ds[n]*(p->P62_xe[n]-p->P62_xs[n])/(norm[n]>eps?norm[n]:1.0e20));
             
             if(p->j_dir==0)
-            jloc=0;
+            jjloc=0;
             
             if(p->j_dir==1)
-			jloc = p->posc_j(p->P62_ys[n] + t*ds[n]*(p->P62_ye[n]-p->P62_ys[n])/(norm[n]>eps?norm[n]:1.0e20));
+			jjloc = p->posc_j(p->P62_ys[n] + t*ds[n]*(p->P62_ye[n]-p->P62_ys[n])/(norm[n]>eps?norm[n]:1.0e20));
             
-			kloc = p->posc_k(p->P62_zs[n] + t*ds[n]*(p->P62_ze[n]-p->P62_zs[n])/(norm[n]>eps?norm[n]:1.0e20));
+			kkloc = p->posc_k(p->P62_zs[n] + t*ds[n]*(p->P62_ze[n]-p->P62_zs[n])/(norm[n]>eps?norm[n]:1.0e20));
 			
-			check=boundcheck(p,a,iloc,jloc,kloc,0);
+			check=boundcheck(p,a,iiloc,jjloc,kkloc,0);
             
             //cout<<p->mpirank<<" n: "<<n<<" i: "<<iloc<<" j: "<<jloc<<" k: "<<kloc<<" check: "<<check<<endl;
 			
+            iloc[n][q] = iiloc;
+            kloc[n][q] = kkloc;
             
             if(check==1)
 			flag[n][count]=1;
