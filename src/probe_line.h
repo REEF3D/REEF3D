@@ -51,7 +51,7 @@ private:
     int conv(double);
 	char name[100];
 
-    int **flag,**active,**flag_all,**elid,**elid_all;
+    int **flag,**active,**active_all,**flag_all,**elid,**elid_all;
 	int *totelnum,*totelnum_all,*elnum,**elnum_all,**displ;
 	int maxelnum,maxlocalelnum,count,allcount;
 	double *length,*ds,*norm;
