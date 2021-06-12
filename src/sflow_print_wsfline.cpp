@@ -172,9 +172,8 @@ void sflow_print_wsfline::start(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflo
 
             wsf[q][i]=f(i,j)+p->phimean;
             xloc[q][i]=p->pos_x();
-				
-				
-
+            
+            cout<<p->mpirank<<" wsf[q][i]: "<<wsf[q][i]<<" "<<f(i,j)<<" "<<p->phimean<<" "<<p->wd<<endl;
         }
     }
 	
@@ -264,7 +263,8 @@ void sflow_print_wsfline::ini_location(lexer *p, fdm2D *b, ghostcell *pgc)
         jloc[q]=0;
         
         if(p->j_dir==1)
-        jloc[q]=conv((p->P52_y[q]-p->originy)/p->DXM);
+        jloc[q]=p->posc_j(p->P52_y[q]);
+
 
         if(jloc[q]>=0 && jloc[q]<p->knoy)
         flag[q][count]=1;
