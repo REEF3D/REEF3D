@@ -53,12 +53,14 @@ private:
 
     int **flag,**active,**active_all,**flag_all,**elid,**elid_all;
     int **iloc, **iloc_all, **kloc, **kloc_all;
+    double **xs,**xs_all;
+    
 	int *totelnum,*totelnum_all,*elnum,**elnum_all,**displ;
 	int maxelnum,maxlocalelnum,count,allcount;
 	double *length,*ds,*norm;
-	double **xs,**ys,**zs,**sloc;
 	double **U,**V,**W,**P,**K,**E,**VT,**LS;
 	double **U_all,**V_all,**W_all,**P_all,**K_all,**E_all,**VT_all,**LS_all,**VAL;
+
     int n,q;
 	const int probenum;
 	const double eps;
