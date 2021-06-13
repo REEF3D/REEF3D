@@ -78,8 +78,8 @@ void sflow_turb_ke_IM1::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convecti
 
 	eddyvisc(p,b,pgc);
     
-    //SLICELOOP4
-    //b->test(i,j) = kin(i,j);
+    SLICELOOP4
+    b->test(i,j) = kin(i,j);
 }
 
 void sflow_turb_ke_IM1::ktimesave(lexer* p, fdm2D *b, ghostcell *pgc)
@@ -123,17 +123,12 @@ void sflow_turb_ke_IM1::eps_source(lexer* p, fdm2D *b)
     count=0;
     SLICELOOP4
     {
-    b->M.p[count] += ce2 * MAX(eps(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20));
+    b->M.p[count] += ce2 * MAX(eps(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20)) - ce1 /(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20))*Pk(i,j);
 
-    b->rhsvec.V[count] +=  ce1 * (MAX(eps(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20)))*Pk(i,j)
-    
-                       + (ceg*ce2/pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,0.5)*pow(ustar(i,j),4.0)/(HP*HP);
+    b->rhsvec.V[count] +=  (ceg*ce2/pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,0.5)*pow(ustar(i,j),4.0)/(HP*HP);
     ++count;
     }
     
-    // BC
-    
-
 }
 
 void sflow_turb_ke_IM1::Pk_update(lexer* p, fdm2D *b, ghostcell *pgc)
