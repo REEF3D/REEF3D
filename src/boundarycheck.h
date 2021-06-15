@@ -37,6 +37,7 @@ public:
 	virtual ~boundarycheck();
 
 	int boundcheck(lexer*,fdm*,int,int,int,int);
+    int boundcheck_ik(lexer*,fdm*,int,int,int,int);
 	int positioncheck(lexer*,fdm*,double,double,double,int);
 	int minboundcheck(lexer*,int,int,int,int);
 	int maxboundcheck(lexer*,int,int,int,int);

@@ -53,6 +53,25 @@ int boundarycheck::boundcheck(lexer *p, fdm *a, int ii, int jj, int kk, int marg
     return check;
 }
 
+int boundarycheck::boundcheck_ik(lexer *p, fdm *a, int ii, int jj, int kk, int margin)
+{
+    check=0;
+
+    if(ii>=-margin && ii<p->knox+margin)
+    if(kk>=-margin && kk<p->knoz+margin)
+    check=1;
+
+    if(check==1)
+    if(p->flag4[(ii-p->imin-margin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin]<0)
+    if(p->flag4[(ii-p->imin+margin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin]<0)
+    if(p->flag4[(ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin-margin]<0)
+    if(p->flag4[(ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin+margin]<0)
+    if(p->flag4[(ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin]<0)
+    check=0;
+
+    return check;
+}
+
 int boundarycheck::positioncheck(lexer *p, fdm *a, double posx, double posy, double posz, int margin)
 {
 	int ii,jj,kk;	
