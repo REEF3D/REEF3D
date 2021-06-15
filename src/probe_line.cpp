@@ -90,42 +90,42 @@ probe_line::probe_line(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P62), eps
 
 	// xdir
 	if(p->nb1==-2)
-	eps_xs = -1.0e-6*p->DXM;
+	eps_xs = -1.0e-10*p->DXM;
 	
 	if(p->nb1>=0)
-	eps_xs = 0.0;
+	eps_xs = 1.0e-10*p->DXM;
 	
 	if(p->nb4==-2)
-	eps_xe = 1.0e-6*p->DXM;
+	eps_xe = 1.0e-10*p->DXM;
 	
 	if(p->nb4>=0)
-	eps_xe = 0.0;
+	eps_xe = 1.0e-10*p->DXM;
 	
 	// ydir
 	if(p->nb3==-2)
-	eps_ys = -1.0e-6*p->DXM;
+	eps_ys = -1.0e-10*p->DXM;
 	
 	if(p->nb3>=0)
-	eps_ys = 0.0;
+	eps_ys = 1.0e-10*p->DXM;
 	
 	if(p->nb2==-2)
-	eps_ye = 1.0e-6*p->DXM;
+	eps_ye = 1.0e-10*p->DXM;
 	
 	if(p->nb2>=0)
-	eps_ye = 0.0;
+	eps_ye = 1.0e-10*p->DXM;
 	
 	// zdir
 	if(p->nb5==-2)
-	eps_zs = -1.0e-6*p->DXM;
+	eps_zs = -1.0e-10*p->DXM;
 	
 	if(p->nb5>=0)
-	eps_zs = 0.0;
+	eps_zs = 1.0e-10*p->DXM;
 	
 	if(p->nb6==-2)
-	eps_ze = 1.0e-6*p->DXM;
+	eps_ze = 1.0e-10*p->DXM;
 	
 	if(p->nb6>=0)
-	eps_ze = 0.0;
+	eps_ze = 1.0e-10*p->DXM;
 	
 
 	//------------------------------
@@ -472,7 +472,11 @@ void probe_line::ini_location(lexer *p, fdm *a, ghostcell *pgc)
             
 			kkloc = p->posc_k(p->P62_zs[n] + t*ds[n]*(p->P62_ze[n]-p->P62_zs[n])/(norm[n]>eps?norm[n]:1.0e20));
 			
-			check=boundcheck(p,a,iiloc,jjloc,kkloc,0);
+            if(p->j_dir==0)
+			check=boundcheck_ik(p,a,iiloc,jjloc,kkloc,1);
+            
+            if(p->j_dir==1)
+			check=boundcheck(p,a,iiloc,jjloc,kkloc,1);
             
             //if(n==3 && p->mpirank==3)
             //cout<<p->mpirank<<" n: "<<n<<" i: "<<iiloc<<" j: "<<jjloc<<" k: "<<kkloc<<" check: "<<check<<" p->originx: "<<p->originx<<" p->endx: "<<p->endx<<endl;
