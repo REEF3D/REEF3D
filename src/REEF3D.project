@@ -926,18 +926,18 @@
       <File Name="turbulence.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Wave IO">
+      <VirtualDirectory Name="PatchBC">
+        <File Name="patchBC_void.h"/>
+        <File Name="patchBC_interface.h"/>
+        <File Name="patchBC_2D.h"/>
+        <File Name="patchBC.h"/>
+        <File Name="patch_obj.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="ioCoupling">
         <File Name="potentialfile_in.h"/>
         <File Name="flowfile_in.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="ioFlow">
-        <VirtualDirectory Name="patchBC">
-          <File Name="patchBC_2D.h"/>
-          <File Name="patchBC_void.h"/>
-          <File Name="patchBC_interface.h"/>
-          <File Name="patchBC.h"/>
-          <File Name="patch_obj.h"/>
-        </VirtualDirectory>
         <File Name="iowave.h"/>
         <File Name="ioflow_void.h"/>
         <File Name="ioflow_gravity.h"/>
@@ -2450,6 +2450,41 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Wave IO">
+      <VirtualDirectory Name="PatchBC">
+        <VirtualDirectory Name="PatchBC FNPF"/>
+        <VirtualDirectory Name="PatchBC void">
+          <File Name="patchBC_void.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="PatchBC obj">
+          <File Name="patch_obj.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="PatchBC 2D">
+          <File Name="patchBC_2D_waterlevel.cpp"/>
+          <File Name="patchBC_2D_pressure.cpp"/>
+          <File Name="patchBC_2D_loop.cpp"/>
+          <File Name="patchBC_2D_inflow.cpp"/>
+          <File Name="patchBC_2D_IDcount.cpp"/>
+          <File Name="patchBC_2D_hydrograph_Q.cpp"/>
+          <File Name="patchBC_2D_hydrograph_FSF.cpp"/>
+          <File Name="patchBC_2D_gcb_count.cpp"/>
+          <File Name="patchBC_2D_fillobj.cpp"/>
+          <File Name="patchBC_2D_discharge.cpp"/>
+          <File Name="patchBC_2D.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="PatchBC 3D">
+          <File Name="patchBC_waterlevel.cpp"/>
+          <File Name="patchBC_pressure.cpp"/>
+          <File Name="patchBC_loop.cpp"/>
+          <File Name="patchBC_inflow.cpp"/>
+          <File Name="patchBC_IDcount.cpp"/>
+          <File Name="patchBC_hydrograph_Q.cpp"/>
+          <File Name="patchBC_hydrograph_FSF.cpp"/>
+          <File Name="patchBC_gcb_count.cpp"/>
+          <File Name="patchBC_fillobj.cpp"/>
+          <File Name="patchBC_discharge.cpp"/>
+          <File Name="patchBC.cpp"/>
+        </VirtualDirectory>
+      </VirtualDirectory>
       <VirtualDirectory Name="ioCoupling">
         <VirtualDirectory Name="PotentialFile In">
           <File Name="potentialfile_in_read.cpp"/>
@@ -2467,40 +2502,6 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="ioFlow">
-        <VirtualDirectory Name="PatchBC">
-          <VirtualDirectory Name="PatchBC 2D">
-            <File Name="patchBC_2D_hydrograph_FSF.cpp"/>
-            <File Name="patchBC_2D_hydrograph_Q.cpp"/>
-            <File Name="patchBC_2D_loop.cpp"/>
-            <File Name="patchBC_2D_discharge.cpp"/>
-            <File Name="patchBC_2D_IDcount.cpp"/>
-            <File Name="patchBC_2D_waterlevel.cpp"/>
-            <File Name="patchBC_2D_pressure.cpp"/>
-            <File Name="patchBC_2D_gcb_count.cpp"/>
-            <File Name="patchBC_2D_inflow.cpp"/>
-            <File Name="patchBC_2D_fillobj.cpp"/>
-            <File Name="patchBC_2D.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="PatchBC void">
-            <File Name="patchBC_void.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="PatchBC">
-            <File Name="patchBC_hydrograph_Q.cpp"/>
-            <File Name="patchBC_hydrograph_FSF.cpp"/>
-            <File Name="patchBC_discharge.cpp"/>
-            <File Name="patchBC_loop.cpp"/>
-            <File Name="patchBC_waterlevel.cpp"/>
-            <File Name="patchBC_pressure.cpp"/>
-            <File Name="patchBC_inflow.cpp"/>
-            <File Name="patchBC_IDcount.cpp"/>
-            <File Name="patchBC_gcb_count.cpp"/>
-            <File Name="patchBC_fillobj.cpp"/>
-            <File Name="patchBC.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="PatchBC obj">
-            <File Name="patch_obj.cpp"/>
-          </VirtualDirectory>
-        </VirtualDirectory>
         <VirtualDirectory Name="Void">
           <File Name="ioflow_void.cpp"/>
         </VirtualDirectory>
