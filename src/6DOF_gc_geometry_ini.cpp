@@ -273,14 +273,6 @@ void sixdof_gc::center_gravity(lexer *p, fdm *a, ghostcell *pgc)
 	xgn=xg;
 	ygn=yg;
 	zgn=zg;
-    
-    // spring origin
-    if(p->X27==0)
-    {
-    p->X27_x = xg;
-    p->X27_y = yg;
-    p->X27_z = zg;
-    }
 }
 
 

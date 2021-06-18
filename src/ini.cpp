@@ -613,9 +613,7 @@ void lexer::ini_default()
 	X23=0;		// int prescribe center of gravity
 	X24=0;		// int prescribe moments of inertia
 	X25_Cp=X25_Cq=X25_Cr=0.0;	// double damping rotation
-    X26_Ku=X26_Kv=X26_Kw=0.0;	// double spring coefficients
-    X27=0;      // int spring origin given 
-    X27_x=X27_y=X27_z=0.0;  // double spring origin
+    X26_Cu=X26_Cv=X26_Cw=0.0;	// double damping translational
 	X31=4;		// int boundary conditions for parallel velocity on floating body
 	X32=1;		// int boundary conditions for orthogonal velocity on floating body
 	X33=1;		// int boundary conditions for pressure on floating body

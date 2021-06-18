@@ -269,14 +269,6 @@ void sixdof_df_object::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
 	double xgn = c_(0);
 	double ygn = c_(1);
 	double zgn = c_(2);
-    
-    // spring origin
-    if(p->X27==0)
-    {
-        p->X27_x = c_(0);
-        p->X27_y = c_(1);
-        p->X27_z = c_(2);
-    }
 
 
 // Moments of Inertia

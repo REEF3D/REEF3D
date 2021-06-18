@@ -32,11 +32,11 @@ void sixdof_gc::solve(lexer *p,fdm* a, ghostcell *pgc)
 	dxg=dyg=dzg=0.0;
 	
 	if(p->X11_u==1)
-	dUs = Xs/Mfb + Vs*Rs - Ws*Qs - p->X26_Ku*(xg-p->X27_x);
+	dUs = (Xs - p->X26_Cu*Us)/Mfb + Vs*Rs - Ws*Qs;
 	if(p->X11_v==1)
-	dVs = Ys/Mfb + Ws*Ps - Us*Rs - p->X26_Kv*(xg-p->X27_y);
+	dVs = (Ys - p->X26_Cu*Vs)/Mfb + Ws*Ps - Us*Rs;
 	if(p->X11_w==1)
-	dWs = Zs/Mfb + Us*Qs - Vs*Ps - p->X26_Kw*(xg-p->X27_z);
+	dWs = (Zs - p->X26_Cu*Ws)/Mfb + Us*Qs - Vs*Ps;
 	
 	if(p->X11_p==1)
 	dPs = (Ks - p->X25_Cp*Ps - (Iz-Iy)*Qs*Rs)/Ix;
