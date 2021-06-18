@@ -64,23 +64,23 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
 
     if(p->flag4[IJK]>0)
     {
-	a->M.p[n]  =  1.0/(p->DXP[IP]*p->DXN[IP])*p->x_dir
-                + 1.0/(p->DXP[IM1]*p->DXN[IP])*p->x_dir
+	a->M.p[n]  =  1.0/(p->DXP[IP]*p->DXN[IP])
+                + 1.0/(p->DXP[IM1]*p->DXN[IP])
 
                 + 1.0/(p->DYP[JP]*p->DYN[JP])*p->y_dir
                 + 1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir
 
-                + 1.0/(p->DZP[KP]*p->DZN[KP])*p->z_dir
-                + 1.0/(p->DZP[KM1]*p->DZN[KP])*p->z_dir;
+                + 1.0/(p->DZP[KP]*p->DZN[KP])
+                + 1.0/(p->DZP[KM1]*p->DZN[KP]);
 
-   	a->M.n[n] = -1.0/(p->DXP[IP]*p->DXN[IP])*p->x_dir;
-	a->M.s[n] = -1.0/(p->DXP[IM1]*p->DXN[IP])*p->x_dir;
+   	a->M.n[n] = -1.0/(p->DXP[IP]*p->DXN[IP]);
+	a->M.s[n] = -1.0/(p->DXP[IM1]*p->DXN[IP]);
 
 	a->M.w[n] = -1.0/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
 	a->M.e[n] = -1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
 
-	a->M.t[n] = -1.0/(p->DZP[KP]*p->DZN[KP])*p->z_dir;
-	a->M.b[n] = -1.0/(p->DZP[KM1]*p->DZN[KP])*p->z_dir;
+	a->M.t[n] = -1.0/(p->DZP[KP]*p->DZN[KP]);
+	a->M.b[n] = -1.0/(p->DZP[KM1]*p->DZN[KP]);
 
 	a->rhsvec.V[n] = 0.0;
     }
@@ -183,7 +183,7 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             a->M.w[n] = 0.0;
             }
 
-            // top
+            // Free Surface BC
             if(p->flag4[IJKp1]==AIR)
             {
                 // -----------
