@@ -23,6 +23,7 @@ Author: Hans Bihs
 class lexer;
 class fdm;
 class field;
+class slice;
 class ghostcell;
 class solver;
 
@@ -35,7 +36,7 @@ class ptf_laplace
 {
 public:
 
-    virtual void start(lexer *,fdm*,ghostcell*,solver*,field&)=0;
+    virtual void start(lexer *,fdm*,ghostcell*,solver*,field&,slice&)=0;
 
 };
 

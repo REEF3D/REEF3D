@@ -42,6 +42,7 @@ patch_obj::patch_obj(lexer *p, int ID_ini)
     velocity=0.0;
     
     pressure_flag=0;
+    pio_flag=0;
     pressure=0.0;
     
     waterlevel_flag=0;
@@ -55,9 +56,14 @@ patch_obj::patch_obj(lexer *p, int ID_ini)
     
     flowangle_flag=0;
     alpha=0.0;
+    cosalpha=0.0;
+    sinalpha=1.0;
     
     flownormal_flag=0;
     Nx=Ny=Nz=0.0;
+    
+    hydroQ_flag=0;
+    hydroFSF_flag=0;
     
     counter=0;
     

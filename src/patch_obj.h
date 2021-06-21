@@ -81,11 +81,20 @@ public:
     
     int flowangle_flag;
     double alpha;
+    double sinalpha,cosalpha;
     
     int flownormal_flag;
     double Nx,Ny,Nz;
     
     int pio_flag;
+    
+    int hydroQ_flag;
+    double **hydroQ;
+    int hydroQ_count,hydroQ_iter;
+    
+    int hydroFSF_flag;
+    double **hydroFSF;
+    int hydroFSF_count,hydroFSF_iter;
     
     // measurement
     double Q0,U0,A0,h0;

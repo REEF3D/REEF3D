@@ -34,6 +34,14 @@ void patchBC_2D::patchBC_discharge2D(lexer *p, fdm2D* b, ghostcell *pgc, slice &
     double Qi=0.0;
     double Ui=0.0;
     double Hi=0.0;
+    
+    // hydrograph interpolation
+    // discharge
+    for(qq=0;qq<obj_count;++qq)
+    if(patch[qq]->hydroQ_flag==1)
+    {
+    patch[qq]->Q = patchBC_hydrograph_Q_ipol(p,pgc,qq,patch[qq]->ID);
+    }
 
     
     // Q calc
@@ -54,7 +62,7 @@ void patchBC_2D::patchBC_discharge2D(lexer *p, fdm2D* b, ghostcell *pgc, slice &
             area = p->DYN[JP]*b->hp(i-1,j);
             
             Ai+=area;
-            Qi+=area*b->P(i-1,j);
+            Qi+=area*(patch[qq]->cosalpha*b->Q(i+1,j) + patch[qq]->sinalpha*b->P(i+1,j));
             
             hval += b->hp(i-1,j);
             ++hcount;
@@ -65,7 +73,7 @@ void patchBC_2D::patchBC_discharge2D(lexer *p, fdm2D* b, ghostcell *pgc, slice &
             area = p->DYN[JP]*b->hp(i+1,j);
             
             Ai+=area;
-            Qi+=area*b->P(i+1,j);
+            Qi+=area*(patch[qq]->cosalpha*b->Q(i+1,j) + patch[qq]->sinalpha*b->P(i+1,j));
             
             hval += b->hp(i+1,j);
             ++hcount;
@@ -74,10 +82,10 @@ void patchBC_2D::patchBC_discharge2D(lexer *p, fdm2D* b, ghostcell *pgc, slice &
             // sides 3 & 2
             if(patch[qq]->gcb[n][3]==3 && b->wet4(i,j)==1)
             {
-            area = p->DXN[JP]*b->hp(i,j-1);
+            area = p->DXN[IP]*b->hp(i,j-1);
             
             Ai+=area;
-            Qi+=area*b->Q(i,j-1);
+            Qi+=area*(patch[qq]->sinalpha*b->Q(i,j-1) + patch[qq]->cosalpha*b->P(i,j+1));
             
             hval += b->hp(i,j-1);
             ++hcount;
@@ -85,11 +93,10 @@ void patchBC_2D::patchBC_discharge2D(lexer *p, fdm2D* b, ghostcell *pgc, slice &
             
             if(patch[qq]->gcb[n][3]==2  && b->wet4(i,j)==1)
             {
-            area = p->DXN[JP]*b->hp(i,j+1);
+            area = p->DXN[IP]*b->hp(i,j+1);
             
             Ai+=area;
-            Qi+=area*b->Q(i,j+1);
-            
+            Qi+=area*(patch[qq]->sinalpha*b->Q(i,j+1) + patch[qq]->cosalpha*b->P(i,j+1));
             hval += b->hp(i,j+1);
             ++hcount;
             }

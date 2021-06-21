@@ -24,11 +24,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 int position::posf_i(double xs)
 {
-    int is,ie,iloc;
-    int stop=0;
-    int count=0;
-    int ii;
-    
+    stop=0;
+
     is = 0;
     ie = p->knox;
     
@@ -93,10 +90,7 @@ int position::posf_i(double xs)
 
 int position::posf_j(double ys)
 {
-    int js,je,jloc;
-    int stop=0;
-    int count=0;
-    int jj;
+    stop=0;
     
     js = 0;
     je = p->knoy;
@@ -172,11 +166,8 @@ int position::posf_j(double ys)
 
 int position::posf_k(double zs)
 {
-    int ks,ke,kloc;
-    int stop=0;
-    int count=0;
-    int kk;
-    
+    stop=0;
+
     ks = 0;
     ke = p->knoz;
     
@@ -184,10 +175,8 @@ int position::posf_k(double zs)
     do{
     kloc = ihalf(ks,ke);
     
-    
     if(count%3==0)
     kloc+=1;
-    
     
         // out of bounds
         if(zs<p->ZP[0+marge])

@@ -142,13 +142,13 @@ void sandslide_f::slide(lexer *p, fdm * a, ghostcell *pgc)
 
         // 4
         dh = a->bedzh(i,j) - a->bedzh(i,j+1);
-		dh_corr = dh + tan(p->S93*(PI/180.0))*p->DXP[JP];
+		dh_corr = dh + tan(p->S93*(PI/180.0))*p->DXP[IP];
         
         maxdh = tan(phi)*p->DYP[JP];
         
         if(dh>maxdh && fabs(dh)<1.0e15)
 		{
-            dh_corr = dh + tan(p->S93*(PI/180.0))*p->DXP[JP];
+            dh_corr = dh + tan(p->S93*(PI/180.0))*p->DXP[IP];
             
             fh(i,j)-= fac1*dh_corr;
             fh(i,j+1)+= fac1*dh_corr;

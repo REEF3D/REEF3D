@@ -54,28 +54,26 @@ probe_line::probe_line(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P62), eps
 	totelnum[n] = conv(length[n]/p->DXM) + 1;
     
     // -------
-    /*if(p->P62>0)
-    {
-    cout<<p->mpirank<<" DXM: "<<p->DXM <<endl; 
-    cout<<p->mpirank<<" length[n]: "<<length[0] <<endl; 
-    cout<<p->mpirank<<" totelnum[n]: "<<totelnum[0] <<endl; 
-    }*/
-    // -------
 	
 	for(n=0;n<p->P62;++n)
 	ds[n] = length[n]/double(totelnum[n]-1);
 
 	maxelnum=0;
 	for(n=0;n<p->P62;++n)
-	maxelnum = MAX(maxelnum,totelnum[0]) + p->M10+6;
+	maxelnum = MAX(maxelnum,totelnum[n]);
+    
+    maxelnum += p->M10+6;
  
-    // -------
-    /*if(p->P62>0)
-    cout<<p->mpirank<<" maxelnum: "<<maxelnum<<endl; 
-     */ 
     // -------
 	
 	p->Iarray(active,p->P62,maxelnum);
+    p->Iarray(active_all,p->P62,maxelnum);
+    p->Darray(xs,p->P62,maxelnum);
+    p->Darray(xs_all,p->P62,maxelnum);
+    p->Iarray(iloc,p->P62,maxelnum);
+    p->Iarray(iloc_all,p->P62,maxelnum);
+    p->Iarray(kloc,p->P62,maxelnum);
+    p->Iarray(kloc_all,p->P62,maxelnum);
 	p->Iarray(elid,p->P62,maxelnum);
 	p->Iarray(elid_all,p->P62,maxelnum);
 	
@@ -95,39 +93,39 @@ probe_line::probe_line(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P62), eps
 	eps_xs = -1.0e-10*p->DXM;
 	
 	if(p->nb1>=0)
-	eps_xs = -1.0e-10*p->DXM;
+	eps_xs = 1.0e-10*p->DXM;
 	
 	if(p->nb4==-2)
 	eps_xe = 1.0e-10*p->DXM;
 	
 	if(p->nb4>=0)
-	eps_xe = -1.0e-10*p->DXM;
+	eps_xe = 1.0e-10*p->DXM;
 	
 	// ydir
 	if(p->nb3==-2)
 	eps_ys = -1.0e-10*p->DXM;
 	
 	if(p->nb3>=0)
-	eps_ys = -1.0e-10*p->DXM;
+	eps_ys = 1.0e-10*p->DXM;
 	
 	if(p->nb2==-2)
 	eps_ye = 1.0e-10*p->DXM;
 	
 	if(p->nb2>=0)
-	eps_ye = -1.0e-10*p->DXM;
+	eps_ye = 1.0e-10*p->DXM;
 	
 	// zdir
 	if(p->nb5==-2)
 	eps_zs = -1.0e-10*p->DXM;
 	
 	if(p->nb5>=0)
-	eps_zs = -1.0e-10*p->DXM;
+	eps_zs = 1.0e-10*p->DXM;
 	
 	if(p->nb6==-2)
 	eps_ze = 1.0e-10*p->DXM;
 	
 	if(p->nb6>=0)
-	eps_ze = -1.0e-10*p->DXM;
+	eps_ze = 1.0e-10*p->DXM;
 	
 
 	//------------------------------
@@ -159,6 +157,7 @@ probe_line::probe_line(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P62), eps
 	p->Darray(VAL,p->P62,maxelnum);
 	
 	p->Iarray(flag,p->P62,maxlocalelnum);
+    p->Iarray(flag_all,p->P62,maxelnum);
 	
 	//------------------------------
 	ini_location(p,a,pgc);
@@ -191,43 +190,43 @@ void probe_line::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 			if(p->P14==0)
 			{
 			if(num<10)
-			sprintf(name,"REEF3D-CFD-probeline-%d-00000%d.dat",n+1,num);
+			sprintf(name,"REEF3D-CFD-probeline-%i-00000%i.dat",n+1,num);
 
 			if(num<100&&num>9)
-			sprintf(name,"REEF3D-CFD-probeline-%d-0000%d.dat",n+1,num);
+			sprintf(name,"REEF3D-CFD-probeline-%i-0000%i.dat",n+1,num);
 
 			if(num<1000&&num>99)
-			sprintf(name,"REEF3D-CFD-probeline-%d-000%d.dat",n+1,num);
+			sprintf(name,"REEF3D-CFD-probeline-%i-000%i.dat",n+1,num);
 
 			if(num<10000&&num>999)
-			sprintf(name,"REEF3D-CFD-probeline-%d-00%d.dat",n+1,num);
+			sprintf(name,"REEF3D-CFD-probeline-%i-00%i.dat",n+1,num);
 
 			if(num<100000&&num>9999)
-			sprintf(name,"REEF3D-CFD-probeline-%d-0%d.dat",n+1,num);
+			sprintf(name,"REEF3D-CFD-probeline-%i-0%i.dat",n+1,num);
 
 			if(num>99999)
-			sprintf(name,"REEF3D-CFD-probeline-%d-%d.dat",n+1,num);
+			sprintf(name,"REEF3D-CFD-probeline-%i-%i.dat",n+1,num);
 			}
 			
 			if(p->P14==1)
 			{
 			if(num<10)
-			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%d-00000%d.dat",n+1,num);
+			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-00000%i.dat",n+1,num);
 
 			if(num<100&&num>9)
-			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%d-0000%d.dat",n+1,num);
+			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-0000%i.dat",n+1,num);
 
 			if(num<1000&&num>99)
-			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%d-000%d.dat",n+1,num);
+			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-000%i.dat",n+1,num);
 
 			if(num<10000&&num>999)
-			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%d-00%d.dat",n+1,num);
+			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-00%i.dat",n+1,num);
 
 			if(num<100000&&num>9999)
-			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%d-0%d.dat",n+1,num);
+			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-0%i.dat",n+1,num);
 
 			if(num>99999)
-			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%d-%d.dat",n+1,num);
+			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-%i.dat",n+1,num);
 			}
 			
 			lineout[n].open(name);
@@ -329,6 +328,15 @@ void probe_line::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 		if(p->mpirank==0)
 		for(q=0;q<totelnum_all[n];++q)
 		LS_all[n][elid_all[n][q]] = VAL[n][q];
+        
+        
+        pgc->gatherv_int(active[n],elnum[n],active_all[n],elnum_all[n],displ[n]);
+        pgc->gatherv_int(flag[n],elnum[n],flag_all[n],elnum_all[n],displ[n]);
+        pgc->gatherv_int(iloc[n],elnum[n],iloc_all[n],elnum_all[n],displ[n]);
+        pgc->gatherv_int(kloc[n],elnum[n],kloc_all[n],elnum_all[n],displ[n]);
+        pgc->gatherv_double(xs[n],elnum[n],xs_all[n],elnum_all[n],displ[n]);
+		
+
 
 		if(p->mpirank==0)
 		{
@@ -339,7 +347,7 @@ void probe_line::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 				zp = p->P62_zs[n] + double(elid_all[n][q])*ds[n]*(p->P62_ze[n]-p->P62_zs[n])/(norm[n]>eps?norm[n]:1.0e20);
 				
 			lineout[n]<<xp<<" \t "<<yp<<" \t "<<zp<<" \t "<<U_all[n][q]<<" \t "<<V_all[n][q]<<" \t "<<W_all[n][q];
-			lineout[n]<<" \t "<<P_all[n][q]<<" \t "<<K_all[n][q]<<" \t "<<E_all[n][q]<<" \t "<<VT_all[n][q]<<" \t "<<LS_all[n][q]<<endl;
+			lineout[n]<<" \t "<<P_all[n][q]<<" \t "<<K_all[n][q]<<" \t "<<E_all[n][q]<<" \t "<<VT_all[n][q]<<" \t "<<LS_all[n][q]<<endl;//" \t \t "<<active_all[n][q]<<" \t "<<flag_all[n][q]<<" \t "<<xs_all[n][q]<<" \t "<<iloc_all[n][q]<<" \t "<<kloc_all[n][q]<<endl;
 			}
 		lineout[n].close();
 		}
@@ -371,10 +379,19 @@ void probe_line::ini_global_location(lexer *p, fdm *a, ghostcell *pgc)
 		xloc = p->P62_xs[n] + t*ds[n]*(p->P62_xe[n]-p->P62_xs[n])/(norm[n]>eps?norm[n]:1.0e20);
 		yloc = p->P62_ys[n] + t*ds[n]*(p->P62_ye[n]-p->P62_ys[n])/(norm[n]>eps?norm[n]:1.0e20);
 		zloc = p->P62_zs[n] + t*ds[n]*(p->P62_ze[n]-p->P62_zs[n])/(norm[n]>eps?norm[n]:1.0e20);
-		
-			if(xloc>domain_xs+eps_xs && xloc<domain_xe+eps_xe 
-			&& yloc>domain_ys+eps_ys && yloc<domain_ye+eps_ye 
-			&& zloc>domain_zs+eps_zs && zloc<domain_ze+eps_ze)
+            
+            if(p->j_dir==0)
+			if(xloc>domain_xs+eps_xs && xloc<=domain_xe+eps_xe 
+			&& zloc>domain_zs+eps_zs && zloc<=domain_ze+eps_ze)
+			{
+			active[n][q]=1;
+			++count;
+			}
+            
+            if(p->j_dir==1)
+			if(xloc>domain_xs+eps_xs && xloc<=domain_xe+eps_xe 
+			&& yloc>domain_ys+eps_ys && yloc<=domain_ye+eps_ye 
+			&& zloc>domain_zs+eps_zs && zloc<=domain_ze+eps_ze)
 			{
 			active[n][q]=1;
 			++count;
@@ -385,14 +402,7 @@ void probe_line::ini_global_location(lexer *p, fdm *a, ghostcell *pgc)
 		elnum[n]=count;
 	}
     
-    
-    // -------
-    /*
-    if(p->P62>0)
-    cout<<p->mpirank<<" elnum[n]: "<<elnum[0] <<" xs: "<<domain_xs<<" xe: "<<domain_xe<<" originx: "<<p->originx<<" endx: "<<p->endx<<endl; 
-    */
-    // -------
-	
+    // --------------------
 
 	for(n=0;n<p->P62;++n)
 	{	
@@ -416,17 +426,9 @@ void probe_line::ini_global_location(lexer *p, fdm *a, ghostcell *pgc)
 	for(q=0;q<p->M10;++q)
 	displ[n][q]=0;
 	
-    /*if(p->P62>0)
-    cout<<p->mpirank<<" displ: ";*/
-
 	for(n=0;n<p->P62;++n)
 	for(q=1;q<p->M10;++q)
-    {
 	displ[n][q]=displ[n][q-1]+elnum_all[n][q-1];
-    //cout<<displ[n][q]<<" "<<elnum_all[n][q-1]<<" . ";
-    }
-    //if(p->P62>0)
-    //cout<<endl;
 	
 	for(n=0;n<p->P62;++n)
 	pgc->gatherv_int(elid[n],elnum[n],elid_all[n],elnum_all[n],displ[n]);
@@ -444,7 +446,7 @@ void probe_line::ini_global_location(lexer *p, fdm *a, ghostcell *pgc)
 
 void probe_line::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 {
-	int iloc,jloc,kloc;
+	int iiloc,jjloc,kkloc;
 	
 	for(n=0;n<p->P62;++n)
 	for(q=0;q<elnum[n];++q)
@@ -459,20 +461,30 @@ void probe_line::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 		{
 			if(active[n][q]==1)
 			{
-			iloc = p->posc_i(p->P62_xs[n] + t*ds[n]*(p->P62_xe[n]-p->P62_xs[n])/(norm[n]>eps?norm[n]:1.0e20));
+            xs[n][q] = p->P62_xs[n] + t*ds[n]*(p->P62_xe[n]-p->P62_xs[n])/(norm[n]>eps?norm[n]:1.0e20);
+			iiloc = p->posc_i(p->P62_xs[n] + t*ds[n]*(p->P62_xe[n]-p->P62_xs[n])/(norm[n]>eps?norm[n]:1.0e20));
             
             if(p->j_dir==0)
-            jloc=0;
+            jjloc=0;
             
             if(p->j_dir==1)
-			jloc = p->posc_j(p->P62_ys[n] + t*ds[n]*(p->P62_ye[n]-p->P62_ys[n])/(norm[n]>eps?norm[n]:1.0e20));
+			jjloc = p->posc_j(p->P62_ys[n] + t*ds[n]*(p->P62_ye[n]-p->P62_ys[n])/(norm[n]>eps?norm[n]:1.0e20));
             
-			kloc = p->posc_k(p->P62_zs[n] + t*ds[n]*(p->P62_ze[n]-p->P62_zs[n])/(norm[n]>eps?norm[n]:1.0e20));
+			kkloc = p->posc_k(p->P62_zs[n] + t*ds[n]*(p->P62_ze[n]-p->P62_zs[n])/(norm[n]>eps?norm[n]:1.0e20));
 			
-			check=boundcheck(p,a,iloc,jloc,kloc,0);
+            if(p->j_dir==0)
+			check=boundcheck_ik(p,a,iiloc,jjloc,kkloc,1);
             
-            //cout<<p->mpirank<<" i: "<<iloc<<" j: "<<jloc<<" k: "<<kloc<<" check: "<<check<<endl;
-			if(check==1)
+            if(p->j_dir==1)
+			check=boundcheck(p,a,iiloc,jjloc,kkloc,1);
+            
+            //if(n==3 && p->mpirank==3)
+            //cout<<p->mpirank<<" n: "<<n<<" i: "<<iiloc<<" j: "<<jjloc<<" k: "<<kkloc<<" check: "<<check<<" p->originx: "<<p->originx<<" p->endx: "<<p->endx<<endl;
+			
+            iloc[n][q] = iiloc;
+            kloc[n][q] = p->mpirank;
+            
+            if(check==1)
 			flag[n][count]=1;
 			
 			++count;
@@ -480,8 +492,11 @@ void probe_line::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 			
 		t+=1.0;
 		}
-		
 	}
+    
+    
+
+    //cout<<p->mpirank<<"  POSC_I: "<<p->posc_i(22.0)<<" XN_0: "<<p->XN[0+marge]<<"  "<<p->XN[p->knox+marge]<<" p->originx: "<<p->originx<<" p->endx: "<<p->endx<<endl;
 }
 
 int probe_line::conv(double a)

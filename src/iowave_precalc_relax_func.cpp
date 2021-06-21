@@ -92,6 +92,7 @@ void iowave::wavegen_precalc_relax_func(lexer *p, ghostcell *pgc)
         // Numerical Beach
         if(p->B99==1 || p->B99==2 || p->B107>0)
         {
+        
                 relax4_nb(i,j) = rb3_ext(p,4);
 		}
     }

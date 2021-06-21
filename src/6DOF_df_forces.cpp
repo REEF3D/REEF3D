@@ -138,11 +138,11 @@ void sixdof_df_object::updateForces(fdm *a)
     Mfb_ << 0.0, 0.0, 0.0;
 
     if(p->X11_u == 1)
-    Ffb_(0) = Xext + Xe; 
+    Ffb_(0) = Xext + Xe - p->X26_Cu*p_(0)/Mass_fb; 
     if(p->X11_v == 1)
-    Ffb_(1) = Yext + Ye;
+    Ffb_(1) = Yext + Ye - p->X26_Cv*p_(1)/Mass_fb;
     if(p->X11_w == 1)
-    Ffb_(2) = Zext + Ze; 
+    Ffb_(2) = Zext + Ze - p->X26_Cw*p_(2)/Mass_fb; 
     
     if(p->X11_p == 1)
     Mfb_(0) = Kext + Ke - p->X25_Cp*omega_I(0); 

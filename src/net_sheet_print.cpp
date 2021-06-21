@@ -78,22 +78,22 @@ void net_sheet::print(lexer *p)
         if(p->P14==1)
 		{
 			if(num<10)
-			sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%d-00000%d.stl",nNet,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%i-00000%i.stl",nNet,num);
 
 			if(num<100&&num>9)
-			sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%d-0000%d.stl",nNet,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%i-0000%i.stl",nNet,num);
 
 			if(num<1000&&num>99)
-			sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%d-000%d.stl",nNet,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%i-000%i.stl",nNet,num);
 
 			if(num<10000&&num>999)
-			sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%d-00%d.stl",nNet,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%i-00%i.stl",nNet,num);
 
 			if(num<100000&&num>9999)
-			sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%d-0%d.stl",nNet,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%i-0%i.stl",nNet,num);
 
 			if(num>99999)
-			sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%d-%d.stl",nNet,num);
+			sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%i-%i.stl",nNet,num);
 		}	
 
         // Save net as .stl
@@ -143,22 +143,22 @@ void net_sheet::print(lexer *p)
 
         //- Print Lagrangian points
         if(num<10)
-        sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-00000%d.csv",num);
+        sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-00000%i.csv",num);
 
         if(num<100&&num>9)
-        sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-0000%d.csv",num);
+        sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-0000%i.csv",num);
 
         if(num<1000&&num>99)
-        sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-000%d.csv",num);
+        sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-000%i.csv",num);
 
         if(num<10000&&num>999)
-        sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-00%d.csv",num);
+        sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-00%i.csv",num);
 
         if(num<100000&&num>9999)
-        sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-0%d.csv",num);
+        sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-0%i.csv",num);
 
         if(num>99999)
-        sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-%d.csv",num);
+        sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-%i.csv",num);
         result.open(name, ios::binary);
         for (int ii = 0; ii < nK; ii++)
         {

@@ -167,7 +167,9 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
 {
     int istart,iend,jstart,jend;
-
+    p->phimean = 0.0;
+    p->phiout = 0.0; 
+    
     // depth
     if(p->F60>-1.0e20)
     {

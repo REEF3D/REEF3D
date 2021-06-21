@@ -266,7 +266,7 @@ public:
     double A223,A244_val,A245_val,A247,A249,A251_val;
     
     // FNPF
-    int A310,A311,A312,A313,A320,A321,A322,A329,A343,A344,A345;
+    int A310,A311,A312,A313,A320,A321,A322,A323,A329,A343,A344,A345;
     double A341,A342,A344_val,A345_val,A346;
     int A350,A351,A352,A361,A362,A363,A368;
     double A354,A355,A356,A365,A369; 
@@ -299,7 +299,7 @@ public:
 	double B191_1,B191_2,B191_3,B191_4,B192_1,B192_2,B192_3,B192_4;
 	double B194_s,B194_e;
     
-    int B411,B412,B413,B414,B415,B416,B417,B418;
+    int B411,B412,B413,B414,B415,B416,B417,B418,B421,B422;
     int *B411_ID;
     double *B411_Q;
     int *B412_ID;
@@ -316,6 +316,8 @@ public:
     double *B417_Nx,*B417_Ny,*B417_Nz;
     int *B418_ID;
     int *B418_pio;
+    int *B421_ID,*B421_Q;
+    int *B422_ID,*B422_FSF;
     int B440;
     int *B440_ID,*B440_face;
     double *B440_xs,*B440_xe,*B440_ys,*B440_ye;
@@ -537,15 +539,14 @@ public:
 	double phi_fb,theta_fb,psi_fb;
 	double ufbmax, vfbmax, wfbmax;
 	//Eigen::Matrix3d quatRotMat;	
-    int X10,X12,X13,X18,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X27,X31,X32,X33,X34,X38,X40,X110,X120,X131,X132,X133;
+    int X10,X12,X13,X18,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X31,X32,X33,X34,X38,X40,X110,X120,X131,X132,X133;
 	int X100,X101,X102,X103,X141,X142,X143,X153,X180,X181,X182,X183,X210,X211;
 	int X310, X311, X312, X313, X320, X321, mooring_count, net_count;
 	double X21_d,X22_m;
 	double X23_x,X23_y,X23_z;
 	double X24_Ix,X24_Iy,X24_Iz;	
 	double X25_Cp,X25_Cq,X25_Cr;	
-    double X26_Ku,X26_Kv,X26_Kw;	
-    double X27_x,X27_y,X27_z;	
+    double X26_Cu,X26_Cv,X26_Cw;	
 	double X41;
 	double X100_x,X100_y,X100_z;
 	double X101_phi, X101_theta, X101_psi;

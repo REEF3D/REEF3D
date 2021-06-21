@@ -28,6 +28,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 patchBC_2D::patchBC_2D(lexer *p, ghostcell *pgc) 
 {
     obj_count=0;
+    
+    
 }
 
 patchBC_2D::~patchBC_2D()

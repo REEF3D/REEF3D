@@ -58,22 +58,22 @@ void lexer::read_grid()
 	ccptnum=facetnum=0;
 
 	if(mpirank<9)
-	sprintf(name,"grid-00000%d.dat",mpirank+1);
+	sprintf(name,"grid-00000%i.dat",mpirank+1);
 
 	if(mpirank<99&&mpirank>8)
-	sprintf(name,"grid-0000%d.dat",mpirank+1);
+	sprintf(name,"grid-0000%i.dat",mpirank+1);
 
 	if(mpirank<999&&mpirank>98)
-	sprintf(name,"grid-000%d.dat",mpirank+1);
+	sprintf(name,"grid-000%i.dat",mpirank+1);
 
 	if(mpirank<9999&&mpirank>998)
-	sprintf(name,"grid-00%d.dat",mpirank+1);
+	sprintf(name,"grid-00%i.dat",mpirank+1);
 
 	if(mpirank<99999&&mpirank>9998)
-	sprintf(name,"grid-0%d.dat",mpirank+1);
+	sprintf(name,"grid-0%i.dat",mpirank+1);
 	
 	if(mpirank>99998)
-	sprintf(name,"grid-%d.dat",mpirank+1);
+	sprintf(name,"grid-%i.dat",mpirank+1);
     
     
     

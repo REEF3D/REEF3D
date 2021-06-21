@@ -80,7 +80,7 @@ void patchBC_2D::patchBC_ioflow2D(lexer *p, ghostcell *pgc, slice &P, slice &Q, 
         }
     }
     
-    // Uq discharge
+    // Uq discharge + Q hydrograph
     for(qq=0;qq<obj_count;++qq)
     if(patch[qq]->Q_flag==1)
     for(n=0;n<patch[qq]->gcb_count;++n)
@@ -90,46 +90,46 @@ void patchBC_2D::patchBC_ioflow2D(lexer *p, ghostcell *pgc, slice &P, slice &Q, 
     
         if(patch[qq]->gcb[n][3]==1)
         {
-        P(i-1,j) =  patch[qq]->Uq;
-        P(i-2,j) =  patch[qq]->Uq;
-        P(i-3,j) =  patch[qq]->Uq;
+        P(i-1,j) =  patch[qq]->Uq*patch[qq]->sinalpha;
+        P(i-2,j) =  patch[qq]->Uq*patch[qq]->sinalpha;
+        P(i-3,j) =  patch[qq]->Uq*patch[qq]->sinalpha;
         
-        Q(i-1,j) =  0.0;
-        Q(i-2,j) =  0.0;
-        Q(i-3,j) =  0.0;
+        Q(i-1,j) =  patch[qq]->Uq*patch[qq]->cosalpha;
+        Q(i-2,j) =  patch[qq]->Uq*patch[qq]->cosalpha;
+        Q(i-3,j) =  patch[qq]->Uq*patch[qq]->cosalpha;
         }
         
         if(patch[qq]->gcb[n][3]==2)
         {
-        P(i,j+1) =  0.0;
-        P(i,j+2) =  0.0;
-        P(i,j+3) =  0.0;
+        P(i,j+1) =  patch[qq]->Uq*patch[qq]->cosalpha;
+        P(i,j+2) =  patch[qq]->Uq*patch[qq]->cosalpha;
+        P(i,j+3) =  patch[qq]->Uq*patch[qq]->cosalpha;
         
-        Q(i,j)   =  patch[qq]->Uq;
-        Q(i,j+1) =  patch[qq]->Uq;
-        Q(i,j+2) =  patch[qq]->Uq;
+        Q(i,j)   =  patch[qq]->Uq*patch[qq]->sinalpha;
+        Q(i,j+1) =  patch[qq]->Uq*patch[qq]->sinalpha;
+        Q(i,j+2) =  patch[qq]->Uq*patch[qq]->sinalpha;
         }
         
         if(patch[qq]->gcb[n][3]==3)
         {
-        P(i,j-1) =  0.0;
-        P(i,j-2) =  0.0;
-        P(i,j-3) =  0.0;
+        P(i,j-1) =  patch[qq]->Uq*patch[qq]->cosalpha;
+        P(i,j-2) =  patch[qq]->Uq*patch[qq]->cosalpha;
+        P(i,j-3) =  patch[qq]->Uq*patch[qq]->cosalpha;
         
-        Q(i,j-1) =  patch[qq]->Uq;
-        Q(i,j-2) =  patch[qq]->Uq;
-        Q(i,j-3) =  patch[qq]->Uq;
+        Q(i,j-1) =  patch[qq]->Uq*patch[qq]->sinalpha;
+        Q(i,j-2) =  patch[qq]->Uq*patch[qq]->sinalpha;
+        Q(i,j-3) =  patch[qq]->Uq*patch[qq]->sinalpha;
         }
         
         if(patch[qq]->gcb[n][3]==4)
         {
-        P(i,j)   =  patch[qq]->Uq;
-        P(i+1,j) =  patch[qq]->Uq;
-        P(i+2,j) =  patch[qq]->Uq;
+        P(i,j)   =  patch[qq]->Uq*patch[qq]->sinalpha;
+        P(i+1,j) =  patch[qq]->Uq*patch[qq]->sinalpha;
+        P(i+2,j) =  patch[qq]->Uq*patch[qq]->sinalpha;
         
-        Q(i+1,j) =  0.0;
-        Q(i+2,j) =  0.0;
-        Q(i+3,j) =  0.0;
+        Q(i+1,j) =  patch[qq]->Uq*patch[qq]->cosalpha;
+        Q(i+2,j) =  patch[qq]->Uq*patch[qq]->cosalpha;
+        Q(i+3,j) =  patch[qq]->Uq*patch[qq]->cosalpha;
         }
     }
     

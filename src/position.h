@@ -73,6 +73,13 @@ public:
     
 private:
     lexer *p;
+    
+    int stop,count;
+    int ii,jj,kk;
+    
+    int is,ie,iloc;
+    int js,je,jloc;
+    int ks,ke,kloc;
 
 };
 

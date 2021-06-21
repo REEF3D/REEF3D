@@ -39,6 +39,7 @@ void pftimestep::start(fdm *a, lexer *p,ghostcell *pgc, turbulence *pturb)
     p->umax=p->vmax=p->wmax=p->viscmax=irsm=jrsm=krsm=0.0;
     p->epsmax=p->kinmax=p->pressmax=0.0;
 	p->dt_old=p->dt;
+    depthmax=0.0;
 
 	p->umax=p->vmax=p->wmax=p->viscmax=0.0;
 	sqd=1.0/(p->DXM*p->DXM);
@@ -121,14 +122,18 @@ void pftimestep::start(fdm *a, lexer *p,ghostcell *pgc, turbulence *pturb)
     
     }
     
-    if(p->j_dir==1 )
+    if(p->j_dir==1)
    	cu = MIN(cu,cv);
+    
     
    	p->dt=p->N47*cu;
     
 	p->dt=pgc->timesync(p->dt);
 
 	p->dt=MIN(p->dt,maxtimestep);
+    
+    //cout<<p->mpirank<<" p->umax: "<<p->umax<<" depthmax: "<<depthmax<<" cu: "<<cu<<" cv: "<<cv<<" dt: "<<p->dt<<endl;
+     
 	
 	a->maxF=0.0;
 	a->maxG=0.0;
@@ -138,10 +143,11 @@ void pftimestep::start(fdm *a, lexer *p,ghostcell *pgc, turbulence *pturb)
 void pftimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 {
     cu=cv=1.0e10;
-    p->umax=0.0;
+    p->umax=p->vmax=0.0;
     
     
-    double depthmax=0.0;
+    depthmax=0.0;
+    
     FILOOP4
 	depthmax=MAX(depthmax,a->depth(i,j));
 	
@@ -189,7 +195,7 @@ void pftimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
     
     
     
-    if(p->j_dir==1 )
+    if(p->j_dir==1) 
    	cu = MIN(cu,cv);
     
    	p->dt=p->N47*cu;

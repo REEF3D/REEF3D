@@ -30,105 +30,105 @@ if(p->P14==0)
 	if(p->mpirank<9)
 	{
 		if(num<10)
-		sprintf(name,"REEF3D-Export-00000%d-0000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-00000%i-0000%i.r3d",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"REEF3D-Export-0000%d-0000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-0000%i-0000%i.r3d",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"REEF3D-Export-000%d-0000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-000%i-0000%i.r3d",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"REEF3D-Export-00%d-0000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-00%i-0000%i.r3d",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"REEF3D-Export-0%d-0000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-0%i-0000%i.r3d",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"REEF3D-Export-%d-0000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-%i-0000%i.r3d",num,p->mpirank+1);
 	}
 
 	if(p->mpirank<99&&p->mpirank>8)
 	{
 		if(num<10)
-		sprintf(name,"REEF3D-Export-00000%d-000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-00000%i-000%i.r3d",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"REEF3D-Export-0000%d-000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-0000%i-000%i.r3d",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"REEF3D-Export-000%d-000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-000%i-000%i.r3d",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"REEF3D-Export-00%d-000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-00%i-000%i.r3d",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"REEF3D-Export-0%d-000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-0%i-000%i.r3d",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"REEF3D-Export-%d-000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-%i-000%i.r3d",num,p->mpirank+1);
 	}
 	if(p->mpirank<999&&p->mpirank>98)
 	{
 		if(num<10)
-		sprintf(name,"REEF3D-Export-00000%d-00%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-00000%i-00%i.r3d",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"REEF3D-Export-0000%d-00%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-0000%i-00%i.r3d",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"REEF3D-Export-000%d-00%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-000%i-00%i.r3d",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"REEF3D-Export-00%d-00%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-00%i-00%i.r3d",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"REEF3D-Export-0%d-00%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-0%i-00%i.r3d",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"REEF3D-Export-%d-00%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-%i-00%i.r3d",num,p->mpirank+1);
 	}
 
 	if(p->mpirank<9999&&p->mpirank>998)
 	{
 		if(num<10)
-		sprintf(name,"REEF3D-Export-00000%d-0%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-00000%i-0%i.r3d",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"REEF3D-Export-0000%d-0%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-0000%i-0%i.r3d",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"REEF3D-Export-000%d-0%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-000%i-0%i.r3d",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"REEF3D-Export-00%d-0%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-00%i-0%i.r3d",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"REEF3D-Export-0%d-0%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-0%i-0%i.r3d",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"REEF3D-Export-%d-0%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-%i-0%i.r3d",num,p->mpirank+1);
 	}
 
 	if(p->mpirank>9998)
 	{
 		if(num<10)
-		sprintf(name,"REEF3D-Export-00000%d-%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-00000%i-%i.r3d",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"REEF3D-Export-0000%d-%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-0000%i-%i.r3d",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"REEF3D-Export-000%d-%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-000%i-%i.r3d",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"REEF3D-Export-00%d-%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-00%i-%i.r3d",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"REEF3D-Export-0%d-%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-0%i-%i.r3d",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"REEF3D-Export-%d-%d.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D-Export-%i-%i.r3d",num,p->mpirank+1);
 	}
 }
 
@@ -137,105 +137,105 @@ if(p->P14==1)
 	if(p->mpirank<9)
 	{
 		if(num<10)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-00000%d-0000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-00000%i-0000%i.r3d",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-0000%d-0000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-0000%i-0000%i.r3d",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-000%d-0000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-000%i-0000%i.r3d",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-00%d-0000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-00%i-0000%i.r3d",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-0%d-0000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-0%i-0000%i.r3d",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-%d-0000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-%i-0000%i.r3d",num,p->mpirank+1);
 	}
 
 	if(p->mpirank<99&&p->mpirank>8)
 	{
 		if(num<10)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-00000%d-000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-00000%i-000%i.r3d",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-0000%d-000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-0000%i-000%i.r3d",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-000%d-000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-000%i-000%i.r3d",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-00%d-000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-00%i-000%i.r3d",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-0%d-000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-0%i-000%i.r3d",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-%d-000%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-%i-000%i.r3d",num,p->mpirank+1);
 	}
 	if(p->mpirank<999&&p->mpirank>98)
 	{
 		if(num<10)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-00000%d-00%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-00000%i-00%i.r3d",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-0000%d-00%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-0000%i-00%i.r3d",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-000%d-00%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-000%i-00%i.r3d",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-00%d-00%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-00%i-00%i.r3d",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-0%d-00%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-0%i-00%i.r3d",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-%d-00%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-%i-00%i.r3d",num,p->mpirank+1);
 	}
 
 	if(p->mpirank<9999&&p->mpirank>998)
 	{
 		if(num<10)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-00000%d-0%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-00000%i-0%i.r3d",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-0000%d-0%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-0000%i-0%i.r3d",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-000%d-0%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-000%i-0%i.r3d",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-00%d-0%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-00%i-0%i.r3d",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-0%d-0%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-0%i-0%i.r3d",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-%d-0%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-%i-0%i.r3d",num,p->mpirank+1);
 	}
 
 	if(p->mpirank>9998)
 	{
 		if(num<10)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-00000%d-%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-00000%i-%i.r3d",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-0000%d-%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-0000%i-%i.r3d",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-000%d-%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-000%i-%i.r3d",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-00%d-%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-00%i-%i.r3d",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-0%d-%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-0%i-%i.r3d",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"./REEF3D_Export/REEF3D-Export-%d-%d.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_Export/REEF3D-Export-%i-%i.r3d",num,p->mpirank+1);
 	}
 }
 }

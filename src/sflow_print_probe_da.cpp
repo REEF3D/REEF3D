@@ -46,10 +46,10 @@ sflow_print_probe_da::sflow_print_probe_da(lexer *p, fdm2D *b, ghostcell *pgc) :
 		for(n=0;n<probenum;++n)
 		{
 		if(p->P14==0)
-		sprintf(name,"REEF3D-SFLOW-Probe-Point-%d.dat",n+1);
+		sprintf(name,"REEF3D-SFLOW-Probe-Point-%i.dat",n+1);
 		
 		if(p->P14==1)
-		sprintf(name,"./REEF3D_SFLOW_ProbePoint/REEF3D-SFLOW-Probe-Point-%d.dat",n+1);
+		sprintf(name,"./REEF3D_SFLOW_ProbePoint/REEF3D-SFLOW-Probe-Point-%i.dat",n+1);
 		
 		pout[n].open(name);
 

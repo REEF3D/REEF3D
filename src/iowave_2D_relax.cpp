@@ -50,7 +50,10 @@ void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
 		{
             // Zone 2
             if(db<1.0e20)
+            {
+            
             f(i,j) = relax4_nb(i,j)*f(i,j);
+            }
         }
     }
 }

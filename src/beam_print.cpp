@@ -52,22 +52,22 @@ void beam::print(lexer *p)
 		if(p->P14==1)
 		{
 			if(num<10)
-			sprintf(name,"./REEF3D_CFD_Beam/REEF3D-Beam-%d-00000%d.vtk",nBeam,num);
+			sprintf(name,"./REEF3D_CFD_Beam/REEF3D-Beam-%i-00000%i.vtk",nBeam,num);
 
 			if(num<100&&num>9)
-			sprintf(name,"./REEF3D_CFD_Beam/REEF3D-Beam-%d-0000%d.vtk",nBeam,num);
+			sprintf(name,"./REEF3D_CFD_Beam/REEF3D-Beam-%i-0000%i.vtk",nBeam,num);
 
 			if(num<1000&&num>99)
-			sprintf(name,"./REEF3D_CFD_Beam/REEF3D-Beam-%d-000%d.vtk",nBeam,num);
+			sprintf(name,"./REEF3D_CFD_Beam/REEF3D-Beam-%i-000%i.vtk",nBeam,num);
 
 			if(num<10000&&num>999)
-			sprintf(name,"./REEF3D_CFD_Beam/REEF3D-Beam-%d-00%d.vtk",nBeam,num);
+			sprintf(name,"./REEF3D_CFD_Beam/REEF3D-Beam-%i-00%i.vtk",nBeam,num);
 
 			if(num<100000&&num>9999)
-			sprintf(name,"./REEF3D_CFD_Beam/REEF3D-Beam-%d-0%d.vtk",nBeam,num);
+			sprintf(name,"./REEF3D_CFD_Beam/REEF3D-Beam-%i-0%i.vtk",nBeam,num);
 
 			if(num>99999)
-			sprintf(name,"./REEF3D_CFD_Beam/REEF3D-Beam-%d-%d.vtk",nBeam,num);
+			sprintf(name,"./REEF3D_CFD_Beam/REEF3D-Beam-%i-%i.vtk",nBeam,num);
 		}	
 
 

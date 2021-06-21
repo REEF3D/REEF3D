@@ -34,43 +34,43 @@ void potentialfile_in::filename(lexer *p, fdm *a, ghostcell *pgc, char *name, in
 			if(p->P14==0)
 			{
 			if(num<10)
-			sprintf(name,"REEF3D-flowfile-%d-00000%d.r3d",p->I230,num);
+			sprintf(name,"REEF3D-flowfile-%i-00000%i.r3d",p->I230,num);
  
 			if(num<100&&num>9)
-			sprintf(name,"REEF3D-flowfile-%d-0000%d.r3d",p->I230,num);
+			sprintf(name,"REEF3D-flowfile-%i-0000%i.r3d",p->I230,num);
 
 			if(num<1000&&num>99)
-			sprintf(name,"REEF3D-flowfile-%d-000%d.r3d",p->I230,num);
+			sprintf(name,"REEF3D-flowfile-%i-000%i.r3d",p->I230,num);
 
 			if(num<10000&&num>999)
-			sprintf(name,"REEF3D-flowfile-%d-00%d.r3d",p->I230,num);
+			sprintf(name,"REEF3D-flowfile-%i-00%i.r3d",p->I230,num);
 
 			if(num<100000&&num>9999)
-			sprintf(name,"REEF3D-flowfile-%d-0%d.r3d",p->I230,num);
+			sprintf(name,"REEF3D-flowfile-%i-0%i.r3d",p->I230,num);
 
 			if(num>99999)
-			sprintf(name,"REEF3D-flowfile-%d-%d.r3d",p->I230,num);
+			sprintf(name,"REEF3D-flowfile-%i-%i.r3d",p->I230,num);
 			}
 			
 			if(p->P14==1)
 			{
 			if(num<10)
-			sprintf(name,"./REEF3D_FlowFile/REEF3D-flowfile-%d-00000%d.r3d",p->I230,num);
+			sprintf(name,"./REEF3D_FlowFile/REEF3D-flowfile-%i-00000%i.r3d",p->I230,num);
 
 			if(num<100&&num>9)
-			sprintf(name,"./REEF3D_FlowFile/REEF3D-flowfile-%d-0000%d.r3d",p->I230,num);
+			sprintf(name,"./REEF3D_FlowFile/REEF3D-flowfile-%i-0000%i.r3d",p->I230,num);
 
 			if(num<1000&&num>99)
-			sprintf(name,"./REEF3D_FlowFile/REEF3D-flowfile-%d-000%d.r3d",p->I230,num);
+			sprintf(name,"./REEF3D_FlowFile/REEF3D-flowfile-%i-000%i.r3d",p->I230,num);
 
 			if(num<10000&&num>999)
-			sprintf(name,"./REEF3D_FlowFile/REEF3D-flowfile-%d-00%d.r3d",p->I230,num);
+			sprintf(name,"./REEF3D_FlowFile/REEF3D-flowfile-%i-00%i.r3d",p->I230,num);
 
 			if(num<100000&&num>9999)
-			sprintf(name,"./REEF3D_FlowFile/REEF3D-flowfile-%d-0%d.r3d",p->I230,num);
+			sprintf(name,"./REEF3D_FlowFile/REEF3D-flowfile-%i-0%i.r3d",p->I230,num);
 
 			if(num>99999)
-			sprintf(name,"./REEF3D_FlowFile/REEF3D-flowfile-%d-%d.r3d",p->I230,num);
+			sprintf(name,"./REEF3D_FlowFile/REEF3D-flowfile-%i-%i.r3d",p->I230,num);
 			}
 		}
     

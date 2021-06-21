@@ -34,6 +34,7 @@ Author: Hans Bihs
 #include"sflow_fou.h"
 #include"sflow_weno_flux.h"
 #include"sflow_weno_hj.h"
+#include"sflow_weno_blend.h"
 #include"sflow_hires.h"
 #include"sflow_voidconv.h"
 #include"sflow_eta.h"

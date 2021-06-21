@@ -34,6 +34,14 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
     double Qi=0.0;
     double Ui=0.0;
     double Hi=0.0;
+    
+    // hydrograph interpolation
+    // discharge
+    for(qq=0;qq<obj_count;++qq)
+    if(patch[qq]->hydroQ_flag==1)
+    {
+    patch[qq]->Q = patchBC_hydrograph_Q_ipol(p,pgc,qq,patch[qq]->ID);
+    }
 
     
     // Q calc
@@ -62,7 +70,7 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 - a->phi(i,j,k));
             
             Ai+=area;
-            Qi+=area*a->u(i,j,k);
+            Qi+=area*(patch[qq]->cosalpha*a->v(i-1,j,k) + patch[qq]->sinalpha*a->u(i-1,j,k));
             }
             
             // side 4
@@ -80,7 +88,7 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
             //cout<<"area: "<<area<<" phi: "<<a->phi(i,j,k)<<endl;
             
             Ai+=area;
-            Qi+=area*a->u(i-1,j,k);
+            Qi+=area*(patch[qq]->cosalpha*a->v(i+1,j,k) + patch[qq]->sinalpha*a->u(i,j,k));
             }
             
             // side 3 
@@ -96,7 +104,7 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 - a->phi(i,j,k));
             
             Ai+=area;
-            Qi+=area*a->v(i,j-1,k);
+            Qi+=area*(patch[qq]->sinalpha*a->v(i,j-1,k) + patch[qq]->cosalpha*a->u(i,j-1,k));
             }
             
             // side 2
@@ -112,7 +120,7 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 - a->phi(i,j,k));
             
             Ai+=area;
-            Qi+=area*a->v(i,j+1,k);
+            Qi+=area*(patch[qq]->sinalpha*a->v(i,j,k) + patch[qq]->cosalpha*a->u(i,j+1,k));
             }
             
             // side 5 

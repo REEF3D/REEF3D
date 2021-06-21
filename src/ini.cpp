@@ -61,6 +61,7 @@ void lexer::ini_default()
     A320=1;		  // int order of Laplace equation
     A321=1;      // int boundary condition order for 4th-order Laplace equation
     A322=5;      // int maxiter for 4th-order Laplace after 2nd-order solution
+    A323=1;      // int PTF FSF extrapolation
     A329=1;      // int wave maker BC order
     A341=0.0;    // double coastline damping distance factor for dxm
     A342=0.0;    // double coastline damping absolute distance
@@ -212,6 +213,8 @@ void lexer::ini_default()
     B416=0;        // int patchBC horizontal inflow angle
     B417=0;        // int patchBC inflow normals
     B418=0;        // int patchBC outflow pressure condition
+    B421=0;        // int patchBC hydrograph discharge
+    B422=0;        // int patchBC hydrograph waterlevel 
     B440=0;        // int patch BC inflow line
 	B441=0;			// int rectangular inflow patch BC
     B442=0;			// int circular inflow patch BC
@@ -610,9 +613,7 @@ void lexer::ini_default()
 	X23=0;		// int prescribe center of gravity
 	X24=0;		// int prescribe moments of inertia
 	X25_Cp=X25_Cq=X25_Cr=0.0;	// double damping rotation
-    X26_Ku=X26_Kv=X26_Kw=0.0;	// double spring coefficients
-    X27=0;      // int spring origin given 
-    X27_x=X27_y=X27_z=0.0;  // double spring origin
+    X26_Cu=X26_Cv=X26_Cw=0.0;	// double damping translational
 	X31=4;		// int boundary conditions for parallel velocity on floating body
 	X32=1;		// int boundary conditions for orthogonal velocity on floating body
 	X33=1;		// int boundary conditions for pressure on floating body

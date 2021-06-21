@@ -57,6 +57,13 @@ private:
     void patchBC_IDcount(lexer *p, ghostcell *pgc);
     void patchBC_fillobj(lexer *p, ghostcell *pgc);
     
+    void patchBC_hydrograph_Q_read(lexer *p, ghostcell *pgc,int,int);
+    double patchBC_hydrograph_Q_ipol(lexer *p, ghostcell *pgc,int,int);
+    
+    void patchBC_hydrograph_FSF_read(lexer *p, ghostcell *pgc,int,int);
+    double patchBC_hydrograph_FSF_ipol(lexer *p, ghostcell *pgc,int,int);
+    
+    
     int q,n,qn,qq,count,ID_count;
     int istart,iend,jstart,jend,kstart,kend;
     

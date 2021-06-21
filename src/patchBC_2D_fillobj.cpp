@@ -106,7 +106,9 @@ void patchBC_2D::patchBC_fillobj(lexer *p, ghostcell *pgc)
         if(patch[qq]->ID == p->B416_ID[qn])
         {
         patch[qq]->flowangle_flag=1;
-        patch[qq]->alpha=p->B416_alpha[qn];
+        patch[qq]->alpha=(PI/180.0)*p->B416_alpha[qn];
+        patch[qq]->sinalpha=sin(patch[qq]->alpha);
+        patch[qq]->cosalpha=cos(patch[qq]->alpha);
         }
     }
     
@@ -130,6 +132,38 @@ void patchBC_2D::patchBC_fillobj(lexer *p, ghostcell *pgc)
         if(patch[qq]->ID == p->B418_ID[qn])
         {
         patch[qq]->pio_flag=1;
+        }
+    }
+    
+    // hydrograph discharge
+    for(qn=0;qn<p->B421;++qn)
+    {
+        for(qq=0;qq<obj_count;++qq)
+        if(patch[qq]->ID == p->B421_ID[qn])
+        {
+        patch[qq]->hydroQ_flag=1;
+        patch[qq]->Q_flag=1;
+        
+        patch[qq]->gcb_uflag=2;
+        
+        // read hydrograph
+        patchBC_hydrograph_Q_read(p,pgc,qq,patch[qq]->ID);
+        }
+    }
+    
+    // hydrograph waterlevel
+    for(qn=0;qn<p->B422;++qn)
+    {
+        for(qq=0;qq<obj_count;++qq)
+        if(patch[qq]->ID == p->B422_ID[qn])
+        {
+        patch[qq]->hydroFSF_flag=1;
+        patch[qq]->waterlevel_flag=1;
+        
+        patch[qq]->gcb_phiflag=2;
+        
+        // read hydrograph
+        patchBC_hydrograph_FSF_read(p,pgc,qq,patch[qq]->ID);
         }
     }
     
@@ -171,7 +205,7 @@ void patchBC_2D::patchBC_fillobj(lexer *p, ghostcell *pgc)
     if(patch[qq]->gcb_uflag==1 && patch[qq]->gcb_pressflag==1 && patch[qq]->gcb_phiflag==1)
     patch[qq]->gcb_flag = 111;
     
-    cout<<p->mpirank<<" patch[qq]->gcb_flag: "<<patch[qq]->gcb_flag<<endl;
+    //cout<<p->mpirank<<" patch[qq]->gcb_flag: "<<patch[qq]->gcb_flag<<endl;
     }
     
     

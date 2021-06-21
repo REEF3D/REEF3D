@@ -25,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void ghostcell::gcparax7co(lexer* p,double *f,int gcv)
 {
-    paramargin=margin;
+    paramargin=1;
 
 //  FILL SEND
     count=0;
@@ -114,7 +114,6 @@ void ghostcell::gcparax7co(lexer* p,double *f,int gcv)
     i=p->gcxco7[0][q][0];
     j=p->gcxco7[0][q][1];
     k=p->gcxco7[0][q][2];
-        
 
         f[FIm1JK] = recv1[count];
         ++count;
