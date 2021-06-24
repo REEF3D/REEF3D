@@ -29,11 +29,11 @@ void sixdof_df_object::geometry(lexer *p, fdm *a, ghostcell *pgc)
 {
     I_ = Eigen::Matrix3d::Zero();
 
-//	if (p->X131 > 0 || p->X132 > 0 || p->X133 > 0 ||p->X153 > 0)
+	if (p->X131 > 0 || p->X132 > 0 || p->X133 > 0 || p->X153 > 0)
 	{
-//		geometry_ls(p,a,pgc);
+		geometry_ls(p,a,pgc);
 	}	
-//	else
+	else
 	{
 		double x0, x1, x2, y0, y1, y2, z0, z1, z2;
 		double n0, n1, n2;
