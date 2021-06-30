@@ -25,6 +25,7 @@ void lexer::control_calc()
 {
 	dt=dt_old=0.0;
 	simtime=0.0;
+    rktime=0.0;
 	sedtime=0.0;
 	dtsed=0.0;
 	presstime=veltime=lsmtime=reinitime=reinitime=turbtime=0.0;

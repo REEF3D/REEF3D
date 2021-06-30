@@ -160,14 +160,12 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             c->M.n[n] = 0.0;
             }
             
-            
             if(p->flag7[FIp1JK]<0 && c->bc(i+1,j)==2  && p->A329==1)
             {
             c->rhsvec.V[n] -= c->M.n[n]*c->Uin[FIp1JK]*p->DXP[IP1];
             c->M.p[n] += c->M.n[n];
             c->M.n[n] = 0.0;
             }
-            
             
             if(p->flag7[FIp1JK]<0 && c->bc(i+1,j)==2  && p->A329>=2)
             {
