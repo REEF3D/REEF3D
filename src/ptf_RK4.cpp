@@ -102,8 +102,6 @@ void ptf_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     
     pgc->gcsl_start4(p,frk,gcval_fifsf);
     
-    p->rktime = p->simtime + 0.5*p->dt;
-    
     // Set Boundary Conditions    
     pflow->eta_relax(p,pgc,erk);
     pflow->fifsf_relax(p,pgc,frk);
@@ -125,7 +123,7 @@ void ptf_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     fsfwvel(p,a,pgc,erk,frk);
      
 // Step 2
-  
+    
     // fsf eta
     kfsfbc(p,a,pgc);
     
@@ -147,8 +145,6 @@ void ptf_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     }
     
     pgc->gcsl_start4(p,frk,gcval_fifsf);
-    
-    p->rktime = p->simtime + 0.5*p->dt;
     
     // Set Boundary Conditions
     pflow->eta_relax(p,pgc,erk);
@@ -194,8 +190,6 @@ void ptf_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     
     pgc->gcsl_start4(p,frk,gcval_fifsf);
     
-    p->rktime = p->simtime + p->dt;
-    
     // Set Boundary Conditions
     pflow->eta_relax(p,pgc,erk);
     pflow->fifsf_relax(p,pgc,frk);
@@ -233,8 +227,6 @@ void ptf_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
 	a->Fifsf(i,j) = a->Fifsf(i,j) + (1.0/6.0)*p->dt*(frk1(i,j) + 2.0*frk2(i,j) + 2.0*frk3(i,j) + a->K(i,j));
     
     pgc->gcsl_start4(p,a->Fifsf,gcval_fifsf);
-    
-    p->rktime = p->simtime + p->dt;
 
     // Set Boundary Conditions
     pflow->eta_relax(p,pgc,a->eta);

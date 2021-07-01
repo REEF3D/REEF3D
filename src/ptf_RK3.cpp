@@ -147,9 +147,8 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     pgc->start4(p,a->Fi,gcval);
     fsfwvel(p,a,pgc,erk2,frk2);
 
-// Step 3
-    fsfdisc(p,a,pgc,erk2,frk2,a->Fi);
-    
+// Step 3  
+
     // fsf eta
     kfsfbc(p,a,pgc);
     
