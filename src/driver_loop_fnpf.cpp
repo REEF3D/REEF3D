@@ -42,7 +42,7 @@ void driver::loop_fnpf()
 {
    driver_ini_fnpf(); 
    
-//-----------MAINLOOP PFLOW----------------------------
+//-----------MAINLOOP FNPF----------------------------
 
     
 	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)

@@ -41,7 +41,7 @@ void driver::loop_ptf(fdm* a)
 {
    driver_ini_ptf(); 
    
-//-----------MAINLOOP PFLOW----------------------------
+//-----------MAINLOOP PTF----------------------------
 
     
 	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)

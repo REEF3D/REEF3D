@@ -63,8 +63,8 @@ void ptf_fsf_update::etaloc(lexer *p, fdm *a, ghostcell *pgc)
 
 void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field &Fi)
 {
-    AIRLOOP
-    Fi(i,j,k)=0.0;
+    //AIRLOOP
+    //Fi(i,j,k)=0.0;
 
     double lsv0,lsv1,lsv2,lsv3;
     double fival,lsval,dx,dist;
@@ -81,19 +81,19 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     if(p->A323==2)
     FILOOP4
     {
-    lsv0 = a->phi(i,j,k);
-    lsv1 = a->phi(i,j,k+1);
-    lsv2 = a->phi(i,j,k+2);
-    lsv3 = a->phi(i,j,k+3);
+    lsv0 = fabs(a->phi(i,j,k));
+    lsv1 = fabs(a->phi(i,j,k+1));
+    lsv2 = fabs(a->phi(i,j,k+2));
+    lsv3 = fabs(a->phi(i,j,k+3));
 
     lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20;
 
     fival = Fi(i,j,k);
 
 
-        Fi(i,j,k+1) =  ((Fifsf(i,j)-fival)/(fabs(lsv0)))*fabs(lsv1) + Fifsf(i,j);
-        Fi(i,j,k+2) =  ((Fifsf(i,j)-fival)/(fabs(lsv0)))*fabs(lsv2) + Fifsf(i,j);
-        Fi(i,j,k+3) =  ((Fifsf(i,j)-fival)/(fabs(lsv0)))*fabs(lsv3) + Fifsf(i,j);
+        Fi(i,j,k+1) =  ((Fifsf(i,j)-fival)/(lsv0))*lsv1 + Fifsf(i,j);
+        Fi(i,j,k+2) =  ((Fifsf(i,j)-fival)/(lsv0))*lsv2 + Fifsf(i,j);
+        Fi(i,j,k+3) =  ((Fifsf(i,j)-fival)/(lsv0))*lsv3 + Fifsf(i,j);
 
         //if(p->mpirank==2)
         //cout<<"F_k: "<<fival<<" Fifsf: "<<Fifsf(i,j)<<" F_k+1: "<<Fi(i,j,k+1)<<"  | lsv0: "<<lsv0<<" lsv1: "<<lsv1<<endl;

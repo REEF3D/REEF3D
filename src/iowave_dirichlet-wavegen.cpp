@@ -145,8 +145,6 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
             a->phi(i-3,j,k) = a->eta(i-3,j) + p->phimean - p->pos_z();
             }
         }
-    
-        
         
 
         for(n=0;n<gcgen1_count;++n)
