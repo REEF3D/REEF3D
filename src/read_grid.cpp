@@ -1020,7 +1020,7 @@ void lexer::read_grid()
     
     
     // geodat
-	if(G50>0 && G51>0)
+	if(G51>0)
 	for(i=0; i<knox; ++i)
     for(j=0; j<knoy; ++j)
     {

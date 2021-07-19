@@ -629,10 +629,6 @@ void lexer::ctrlrecv()
 	ii++;
     G40 = ictrl[ii];
 	ii++;
-    G50 = ictrl[ii];
-	ii++;
-    G52 = ictrl[ii];
-	ii++;
     G60 = ictrl[ii];
 	ii++;
     G61 = ictrl[ii];

@@ -26,19 +26,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void geotopo::dat(lexer* p, fdm* a, ghostcell* pgc)
 {
-    if(p->G50>0 && p->G51>0)
+    if(p->G51>0)
     ALOOP
     a->topo(i,j,k)=-p->geodat[(i-p->imin)*p->jmax + (j-p->jmin)]+p->pos_z();
     
     pgc->start4a(p,a->topo,154);
     
-    for(qn=0;qn<p->G52;++qn)
-    {
-    ALOOP
-    a->topo(i,j,k)=0.5*a->topo(i,j,k) + (1.0/12.0)*(a->topo(i-1,j,k)+a->topo(i+1,j,k)+a->topo(i,j-1,k)+a->topo(i,j+1,k)+a->topo(i,j,k-1)+a->topo(i,j,k+1));
-    
-    pgc->start4a(p,a->topo,154);
-    }
 }
 
 

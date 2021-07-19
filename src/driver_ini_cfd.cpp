@@ -70,7 +70,7 @@ cout<<"starting driver_ini"<<endl;
     }
     
     // Geotopo
-    if((p->G50>0 && p->G51>0) || p->G60>0 || p->G61>0)
+    if(p->G51>0 || p->G60>0 || p->G61>0)
     {
     geotopo gtopo(p,a,pgc);
     gtopo.start(p,a,pgc,pflow,pconvec,preto,pvrans);

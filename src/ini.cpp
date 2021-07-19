@@ -327,8 +327,6 @@ void lexer::ini_default()
 	G30=3;			// int extrapolated ghost cells
 	G39=0;			// int read flag_solid
     G40=3;         // int reini scheme for topo
-	G50=1;            // int look for geodat points in grid file
-    G52=0;            // int number of smoothing iterations
 	G60=0;            // int number of geotopo boxes
 	G61=0;            // int number of geotopo wedges
 	G81=0;            // int number of inflow boxes

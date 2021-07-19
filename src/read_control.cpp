@@ -805,12 +805,6 @@ void lexer::read_control()
                 case 40: control>>G40;
 						 clear(c,numint);
 						 break;
-                case 50: control>>G50;
-						 clear(c,numint);
-						 break;
-                case 52: control>>G52;
-						 clear(c,numint);
-						 break;
                 case 60: ++G60;
 						 clear(c,numint);
 						 break;

@@ -382,7 +382,7 @@ public:
     int G1,G2;
 	int G10,G11,G12,G20,G21,G22,G30;
 	int G39,G40;
-	int G50, G51,G52,G60, G61,G81;
+	int G51,G60, G61,G81;
 	double *G60_xs, *G60_xe, *G60_ys, *G60_ye, *G60_zs, *G60_ze;
 	double *G61_xs, *G61_xe, *G61_ys, *G61_ye, *G61_zs, *G61_ze;
 	double *G81_xs, *G81_xe, *G81_ys, *G81_ye, *G81_zs, *G81_ze;
