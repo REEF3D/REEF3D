@@ -304,6 +304,7 @@ void lexer::read_grid()
 	Iarray(mgflag,imax*jmax*kmax);
 	Darray(geodat,imax*jmax);
     Darray(bed,imax*jmax);
+    Darray(sedbed,imax*jmax);
     Darray(depth,imax*jmax);
 	Darray(data,imax*jmax);
     Iarray(flagslice1,imax*jmax);
@@ -1041,6 +1042,13 @@ void lexer::read_grid()
     {
     grid.read((char*)&ddn, sizeof (double));
     bed[(i-imin)*jmax + (j-jmin)]=ddn;
+    }
+    
+    for(i=0; i<knox; ++i)
+    for(j=0; j<knoy; ++j)
+    {
+    grid.read((char*)&ddn, sizeof (double));
+    sedbed[(i-imin)*jmax + (j-jmin)]=ddn;
     }
     
     gcin4a_count=gcin_count;
