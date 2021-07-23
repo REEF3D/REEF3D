@@ -28,7 +28,7 @@ void geotopo::dat(lexer* p, fdm* a, ghostcell* pgc)
 {
     if(p->G51>0)
     ALOOP
-    a->topo(i,j,k)=-p->geodat[(i-p->imin)*p->jmax + (j-p->jmin)]+p->pos_z();
+    a->topo(i,j,k)=-p->topobed[(i-p->imin)*p->jmax + (j-p->jmin)]+p->pos_z();
     
     pgc->start4a(p,a->topo,154);
     

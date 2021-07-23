@@ -269,11 +269,11 @@ void lexer::read_grid()
     
     
     grid.read((char*)&iin, sizeof (int));
-    G51=iin;
+    G51=iin; // topo
     grid.read((char*)&iin, sizeof (int));
     P150=iin;
     grid.read((char*)&iin, sizeof (int));
-    G39=iin;
+    G39=iin; // solid
     grid.read((char*)&iin, sizeof (int));
     solid_gcb_est=iin;
     grid.read((char*)&iin, sizeof (int));
@@ -302,9 +302,9 @@ void lexer::read_grid()
 	Iarray(flag4,imax*jmax*kmax);
 	Darray(flag_solid,imax*jmax*kmax);
 	Iarray(mgflag,imax*jmax*kmax);
-	Darray(geodat,imax*jmax);
+	Darray(solidbed,imax*jmax);
+    Darray(topobed,imax*jmax);
     Darray(bed,imax*jmax);
-    Darray(sedbed,imax*jmax);
     Darray(depth,imax*jmax);
 	Darray(data,imax*jmax);
     Iarray(flagslice1,imax*jmax);
@@ -472,7 +472,7 @@ void lexer::read_grid()
     
 
 
-//  Flag Solid	
+//  Solid	
 	if(G39==1)
 	for(i=0; i<knox; ++i)
     for(j=0; j<knoy; ++j)
@@ -480,6 +480,16 @@ void lexer::read_grid()
     {
     grid.read((char*)&ddn, sizeof (double));
     flag_solid[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin]=ddn;
+    }
+    
+//  Topo
+	if(G51==1)
+	for(i=0; i<knox; ++i)
+    for(j=0; j<knoy; ++j)
+    for(k=0; k<knoz; ++k)
+    {
+    grid.read((char*)&ddn, sizeof (double));
+    flag_topo[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin]=ddn;
     }
 
 //  CC State
@@ -520,12 +530,7 @@ void lexer::read_grid()
 
 			if(surfgroup==2 || surfgroup==7 || surfgroup==8)
 			++gcout_count;
-            
-            //if(gcb4[i][4]=surfgroup==1)
-            //cout<<mpirank<<" read_grid  | "<<gcb4[i][0]<<" "<<gcb4[i][1]<<" "<<gcb4[i][2]<<" . "<<gcb4[i][3]<<" "<<gcb4[i][4]<<endl;
 	}
-    
-    
     
     gcin4a_count=gcin_count;
 	gcout4a_count=gcout_count;
@@ -1020,13 +1025,28 @@ void lexer::read_grid()
 	}
     
     
-    // geodat
+    // bed
+    for(i=0; i<knox; ++i)
+    for(j=0; j<knoy; ++j)
+    {
+    grid.read((char*)&ddn, sizeof (double));
+    bed[(i-imin)*jmax + (j-jmin)]=ddn;
+    }
+    
 	if(G51>0)
 	for(i=0; i<knox; ++i)
     for(j=0; j<knoy; ++j)
     {
     grid.read((char*)&ddn, sizeof (double));
-    geodat[(i-imin)*jmax + (j-jmin)]=ddn;
+    solidbed[(i-imin)*jmax + (j-jmin)]=ddn;
+    }
+    
+    if(G51>0)
+	for(i=0; i<knox; ++i)
+    for(j=0; j<knoy; ++j)
+    {
+    grid.read((char*)&ddn, sizeof (double));
+    topobed[(i-imin)*jmax + (j-jmin)]=ddn;
     }
 	
 	if(P150>0)
@@ -1035,20 +1055,6 @@ void lexer::read_grid()
     {
     grid.read((char*)&ddn, sizeof (double));
     data[(i-imin)*jmax + (j-jmin)]=ddn;
-    }
-    
-    for(i=0; i<knox; ++i)
-    for(j=0; j<knoy; ++j)
-    {
-    grid.read((char*)&ddn, sizeof (double));
-    bed[(i-imin)*jmax + (j-jmin)]=ddn;
-    }
-    
-    for(i=0; i<knox; ++i)
-    for(j=0; j<knoy; ++j)
-    {
-    grid.read((char*)&ddn, sizeof (double));
-    sedbed[(i-imin)*jmax + (j-jmin)]=ddn;
     }
     
     gcin4a_count=gcin_count;
