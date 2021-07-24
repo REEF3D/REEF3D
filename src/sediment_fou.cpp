@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sediment_fou.h"
@@ -27,7 +28,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 sediment_fou::sediment_fou(lexer* p) 
 {
-
 }
 
 sediment_fou::~sediment_fou()
