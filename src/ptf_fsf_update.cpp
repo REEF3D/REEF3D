@@ -63,12 +63,12 @@ void ptf_fsf_update::etaloc(lexer *p, fdm *a, ghostcell *pgc)
 
 void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field &Fi)
 {
-    AIRLOOP
-    Fi(i,j,k)=0.0;
+    //AIRLOOP
+    //Fi(i,j,k)=0.0;
 
     double lsv0,lsv1,lsv2,lsv3;
     double fival,lsval,dx,dist;
-
+// ------
     if(p->A323==1)
     FILOOP4
     {
@@ -77,23 +77,23 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     Fi(i,j,k+3) =  Fifsf(i,j);
     }
 
-
+// ------
     if(p->A323==2)
     FILOOP4
     {
-    lsv0 = a->phi(i,j,k);
-    lsv1 = a->phi(i,j,k+1);
-    lsv2 = a->phi(i,j,k+2);
-    lsv3 = a->phi(i,j,k+3);
+    lsv0 = fabs(a->phi(i,j,k));
+    lsv1 = fabs(a->phi(i,j,k+1));
+    lsv2 = fabs(a->phi(i,j,k+2));
+    lsv3 = fabs(a->phi(i,j,k+3));
 
     lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20;
 
     fival = Fi(i,j,k);
 
 
-        Fi(i,j,k+1) =  ((Fifsf(i,j)-fival)/(fabs(lsv0)))*fabs(lsv1) + Fifsf(i,j);
-        Fi(i,j,k+2) =  ((Fifsf(i,j)-fival)/(fabs(lsv0)))*fabs(lsv2) + Fifsf(i,j);
-        Fi(i,j,k+3) =  ((Fifsf(i,j)-fival)/(fabs(lsv0)))*fabs(lsv3) + Fifsf(i,j);
+        Fi(i,j,k+1) =  ((Fifsf(i,j)-fival)/(lsv0))*lsv1 + Fifsf(i,j);
+        Fi(i,j,k+2) =  ((Fifsf(i,j)-fival)/(lsv0))*lsv2 + Fifsf(i,j);
+        Fi(i,j,k+3) =  ((Fifsf(i,j)-fival)/(lsv0))*lsv3 + Fifsf(i,j);
 
         //if(p->mpirank==2)
         //cout<<"F_k: "<<fival<<" Fifsf: "<<Fifsf(i,j)<<" F_k+1: "<<Fi(i,j,k+1)<<"  | lsv0: "<<lsv0<<" lsv1: "<<lsv1<<endl;
@@ -102,8 +102,7 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
 
     double x0,x1,x2,y0,y1,y2;
     double x,y;
-
-
+// ------
     if(p->A323==3)
     FILOOP4
     {
@@ -134,73 +133,6 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
 
         //cout<<"F_k: "<<Fi(i,j,k)<<" Fifsf: "<<Fifsf(i,j)<<" F_k+1: "<<Fi(i,j,k+1)<<"  | x1: "<<x1<<" x: "<<x<<endl;
     }
-
-    /*
-    if(i+p->origin_i>0)
-    FILOOP4
-    {
-
-    x0 = -fabs(a->phi(i,j,k));
-    x1 = 0.0;
-
-    y0 = Fi(i,j,k);
-    y1 = Fifsf(i,j);
-
-
-
-
-        x = fabs(a->phi(i,j,k+1));
-
-        Fi(i,j,k+1) =   ((x-x1)/(x0-x1))   * y0
-                      + ((x-x0)/(x1-x0))  * y1;
-
-        x = fabs(a->phi(i,j,k+2));
-        Fi(i,j,k+2) =   ((x-x1)/(x0-x1))  * y0
-                     + ((x-x0)/(x1-x0))  * y1;
-
-        x = fabs(a->phi(i,j,k+3));
-        Fi(i,j,k+3) =   ((x-x1)/(x0-x1)) * y0
-                     + ((x-x0)/(x1-x0)) * y1;
-
-        cout<<"x0: "<<x0<<" x1: "<<x1<<" y0: "<<y0<<" y1: "<<y1<<"  | Fi(i,j,k+1): "<<Fi(i,j,k+1)<<endl;
-    }
-    */
-    /*
-
-    //fill pos[]
-	for(m=0;m<=orderdir-3;m++)
-	pos[m]=-dx*double(orderdir-m-2);
-
-	pos[orderdir-2]=0.0;
-	pos[orderdir-1]=dist;
-
-	for(m=0;m<margin;m++)
-	x[m]=dx*double(m+2-ys);
-
-    //fill y[]
-	if(cs==6)
-	for(m=0;m<=orderdir-2;m++)
-	y[m]=f(i,j,k-orderdir+m+2);
-
-	y[orderdir-1]=wallvalue;
-
-
-
-	for(q=0; q<margin; ++q)
-	{
-	    y[orderdir+q]=0.0;
-
-		for(m=0;m<orderdir;m++)
-		{
-			weight=1.0;
-			for(n=0;n<orderdir;++n)
-			{
-			if(m!=n)
-			weight*=(x[q]-pos[n])/(pos[m]-pos[n]+1.0e-20);
-			}
-		y[orderdir+q]+=weight*y[m];
-		}
-	}*/
 }
 
 void ptf_fsf_update::fsfbc0(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field &Fi)
@@ -214,7 +146,6 @@ void ptf_fsf_update::fsfbc0(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, fiel
     Fi(i,j,k+2) =  Fifsf(i,j);
     Fi(i,j,k+3) =  Fifsf(i,j);
     }
-
 }
 
 void ptf_fsf_update::fsfbc1(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field &Fi)
@@ -241,7 +172,6 @@ void ptf_fsf_update::fsfbc1(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, fiel
     Fi(i,j,k+2) =  ((fival1-fival0)/(lsv1-lsv0))*(lsv3-lsv1) + fival1;
     Fi(i,j,k+3) =  ((fival1-fival0)/(lsv1-lsv0))*(lsv4-lsv1) + fival1;
     }
-
 }
 
 void ptf_fsf_update::fsfepol(lexer *p, fdm *a, ghostcell *pgc, slice &eta, field &Fi)

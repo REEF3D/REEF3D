@@ -64,23 +64,23 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
 
     if(p->flag4[IJK]>0)
     {
-	a->M.p[n]  =  1.0/(p->DXP[IP]*p->DXN[IP])*p->x_dir
-                + 1.0/(p->DXP[IM1]*p->DXN[IP])*p->x_dir
+	a->M.p[n]  =  1.0/(p->DXP[IP]*p->DXN[IP])
+                + 1.0/(p->DXP[IM1]*p->DXN[IP])
 
                 + 1.0/(p->DYP[JP]*p->DYN[JP])*p->y_dir
                 + 1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir
 
-                + 1.0/(p->DZP[KP]*p->DZN[KP])*p->z_dir
-                + 1.0/(p->DZP[KM1]*p->DZN[KP])*p->z_dir;
+                + 1.0/(p->DZP[KP]*p->DZN[KP])
+                + 1.0/(p->DZP[KM1]*p->DZN[KP]);
 
-   	a->M.n[n] = -1.0/(p->DXP[IP]*p->DXN[IP])*p->x_dir;
-	a->M.s[n] = -1.0/(p->DXP[IM1]*p->DXN[IP])*p->x_dir;
+   	a->M.n[n] = -1.0/(p->DXP[IP]*p->DXN[IP]);
+	a->M.s[n] = -1.0/(p->DXP[IM1]*p->DXN[IP]);
 
 	a->M.w[n] = -1.0/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
 	a->M.e[n] = -1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
 
-	a->M.t[n] = -1.0/(p->DZP[KP]*p->DZN[KP])*p->z_dir;
-	a->M.b[n] = -1.0/(p->DZP[KM1]*p->DZN[KP])*p->z_dir;
+	a->M.t[n] = -1.0/(p->DZP[KP]*p->DZN[KP]);
+	a->M.b[n] = -1.0/(p->DZP[KM1]*p->DZN[KP]);
 
 	a->rhsvec.V[n] = 0.0;
     }
@@ -183,55 +183,57 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             a->M.w[n] = 0.0;
             }
 
-            // top
+            // Free Surface BC
             if(p->flag4[IJKp1]==AIR)
             {
+                // -----------
+                if(p->A323==1)
+                {
+                a->rhsvec.V[n] -= a->M.t[n]*Fifsf(i,j);
+                a->M.t[n] = 0.0;
+                }
+                
+                // -----------
+                if(p->A323==2)
+                {
+                double lsv0,lsv1;
 
-            if(p->A323==1)
-            {
-            a->rhsvec.V[n] -= a->M.t[n]*Fifsf(i,j);
-            a->M.t[n] = 0.0;
-            }
+                lsv0 = fabs(a->phi(i,j,k));
+                lsv1 = fabs(a->phi(i,j,k+1));
 
-            if(p->A323==2)
-            {
-            double lsv0,lsv1;
+                lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20;
 
-            lsv0 = fabs(a->phi(i,j,k));
-            lsv1 = fabs(a->phi(i,j,k+1));
+                a->rhsvec.V[n] -= a->M.t[n]*Fifsf(i,j)*(1.0 + lsv1/lsv0);
+                a->M.p[n] -= a->M.t[n]*lsv1/lsv0;
+                a->M.t[n] = 0.0;
+                }
+                
+                // -----------
+                if(p->A323==3)
+                {
+                double x0,x1,x2,y0,y1,y2;
+                double x,y;
+                double Lx0,Lx1,Lx2;
 
-            lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20;
+                x0 = -fabs(a->phi(i,j,k-1));
+                x1 = -fabs(a->phi(i,j,k));
+                x2 = 0.0;
 
-            a->rhsvec.V[n] -= a->M.t[n]*Fifsf(i,j)*(1.0 + lsv1/lsv0);
-            a->M.p[n] -= a->M.t[n]*lsv1/lsv0;
-            a->M.t[n] = 0.0;
-            }
+                y0 = f(i,j,k-1);
+                y1 = f(i,j,k);
+                y2 = Fifsf(i,j);
 
-            if(p->A323==3)
-            {
-            double x0,x1,x2,y0,y1,y2;
-            double x,y;
-            double Lx0,Lx1,Lx2;
+                x = fabs(a->phi(i,j,k+1));
 
-            x0 = -fabs(a->phi(i,j,k-1));
-            x1 = -fabs(a->phi(i,j,k));
-            x2 = 0.0;
+                Lx0 = ((x-x1)/(x0-x1)) * ((x-x2)/(x0-x2));
+                Lx1 = ((x-x0)/(x1-x0)) * ((x-x2)/(x1-x2));
+                Lx2 = ((x-x0)/(x2-x0)) * ((x-x1)/(x2-x1));
 
-            y0 = f(i,j,k-1);
-            y1 = f(i,j,k);
-            y2 = Fifsf(i,j);
-
-            x = fabs(a->phi(i,j,k+1));
-
-            Lx0 = ((x-x1)/(x0-x1)) * ((x-x2)/(x0-x2));
-            Lx1 = ((x-x0)/(x1-x0)) * ((x-x2)/(x1-x2));
-            Lx2 = ((x-x0)/(x2-x0)) * ((x-x1)/(x2-x1));
-
-            a->rhsvec.V[n]  -= a->M.t[n]*Lx2*y2;
-            a->M.p[n]       += a->M.t[n]*Lx1;
-            a->M.b[n]       += a->M.t[n]*Lx0;
-            a->M.t[n]       = 0.0;
-            }
+                a->rhsvec.V[n]  -= a->M.t[n]*Lx2*y2;
+                a->M.p[n]       += a->M.t[n]*Lx1;
+                a->M.b[n]       += a->M.t[n]*Lx0;
+                a->M.t[n]       = 0.0;
+                }
 
             }
 

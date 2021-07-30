@@ -173,7 +173,7 @@ void sflow_print_wsfline::start(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflo
             wsf[q][i]=f(i,j)+p->phimean;
             xloc[q][i]=p->pos_x();
             
-            cout<<p->mpirank<<" wsf[q][i]: "<<wsf[q][i]<<" "<<f(i,j)<<" "<<p->phimean<<" "<<p->wd<<endl;
+            //cout<<p->mpirank<<" wsf[q][i]: "<<wsf[q][i]<<" "<<f(i,j)<<" "<<p->phimean<<" "<<p->wd<<endl;
         }
     }
 	

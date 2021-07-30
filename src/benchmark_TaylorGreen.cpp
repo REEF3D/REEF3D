@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"benchmark_TaylorGreen.h"
@@ -24,8 +25,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
-
-
 
 benchmark_TaylorGreen::benchmark_TaylorGreen(lexer *p, fdm *a) : gradient(p)
 {

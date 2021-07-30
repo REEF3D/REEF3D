@@ -90,7 +90,7 @@ void iowave::wavegen_2D_precalc_ini(lexer *p, ghostcell *pgc)
 		}
     }	
     
-    cout<<"EPT_COUNT: "<<ept_count;
+    //cout<<"EPT_COUNT: "<<ept_count;
     
     // precalc array alloc
     upt_count *= (p->B160+1); 

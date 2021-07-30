@@ -61,7 +61,7 @@ cout<<"starting driver_ini_PFLOW"<<endl;
     
     pflow->ini2D(p,b,pgc);
 	
-    if((p->G50>0 && p->G51>0) || p->G60>0 || p->G61 >0 ||p->G39==1)
+    if(p->toporead>0 ||p->solidread==1)
     {
     geotopo gtopo(p,a,pgc);
     gtopo.start(p,a,pgc,pflow,pconvec,preto,pvrans);

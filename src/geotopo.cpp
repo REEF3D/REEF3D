@@ -38,10 +38,6 @@ void geotopo::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection*
 {
     dat(p,a,pgc);
     
-    box(p,a,pgc);
-    wedge(p,a,pgc);
-	
-    
     preto->start(a,p,a->topo,pconvec,pgc);
     
     

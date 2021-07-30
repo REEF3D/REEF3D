@@ -42,6 +42,7 @@ public:
     void fsfdisc(lexer*,fdm*,ghostcell*,slice&,slice&,field&);
     void kfsfbc(lexer*,fdm*,ghostcell*);
     void dfsfbc(lexer*,fdm*,ghostcell*,slice&);
+    void fsfwvel(lexer*,fdm*,ghostcell*,slice&,slice&);
     
 
     fnpf_convection *pconvec;
