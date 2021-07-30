@@ -629,12 +629,6 @@ void lexer::ctrlrecv()
 	ii++;
     G40 = ictrl[ii];
 	ii++;
-    G60 = ictrl[ii];
-	ii++;
-    G61 = ictrl[ii];
-	ii++;
-	G81 = ictrl[ii];
-	ii++;
 
     H1 = dctrl[dd];
 	dd++;
@@ -1729,43 +1723,6 @@ void lexer::ctrlrecv()
 	Darray(F72_h,F72);  
 	}
 	
-	
-	if(G60>0)
-	{
-	Darray(G60_xs,G60); 
-	Darray(G60_xe,G60); 
-	
-	Darray(G60_ys,G60); 
-	Darray(G60_ye,G60); 
-	
-	Darray(G60_zs,G60); 
-	Darray(G60_ze,G60); 
-	}
-	
-	if(G61>0)
-	{
-	Darray(G61_xs,G61); 
-	Darray(G61_xe,G61); 
-	
-	Darray(G61_ys,G61); 
-	Darray(G61_ye,G61); 
-	
-	Darray(G61_zs,G61); 
-	Darray(G61_ze,G61); 
-	}
-	
-	if(G81>0)
-	{
-	Darray(G81_xs,G81); 
-	Darray(G81_xe,G81); 
-	
-	Darray(G81_ys,G81); 
-	Darray(G81_ye,G81); 
-	
-	Darray(G81_zs,G81); 
-	Darray(G81_ze,G81); 
-	}
-	
 	if(P35>0)
 	{
     Darray(P35_ts,P35);  
@@ -2447,54 +2404,6 @@ void lexer::ctrlrecv()
     F72_ye[n] = dctrl[dd];
     dd++;
     F72_h[n] = dctrl[dd];
-    dd++;
-    }
-	
-    for(n=0;n<G60;++n)
-    {
-    G60_xs[n] = dctrl[dd];
-    dd++;
-    G60_xe[n] = dctrl[dd];
-    dd++;
-    G60_ys[n] = dctrl[dd];
-    dd++;
-    G60_ye[n] = dctrl[dd];
-    dd++;
-    G60_zs[n] = dctrl[dd];
-    dd++;
-    G60_ze[n] = dctrl[dd];
-    dd++;
-    }
-
-    for(n=0;n<G61;++n)
-    {
-    G61_xs[n] = dctrl[dd];
-    dd++;
-    G61_xe[n] = dctrl[dd];
-    dd++;
-    G61_ys[n] = dctrl[dd];
-    dd++;
-    G61_ye[n] = dctrl[dd];
-    dd++;
-    G61_zs[n] = dctrl[dd];
-    dd++;
-    G61_ze[n] = dctrl[dd];
-    dd++;
-    }
-	
-	for(n=0;n<G81;++n)
-    {
-    G81_xs[n] = dctrl[dd];
-    dd++;
-    G81_xe[n] = dctrl[dd];
-    dd++;
-    G81_ys[n] = dctrl[dd];
-    dd++;
-    G81_ye[n] = dctrl[dd];
-    dd++;
-    G81_zs[n] = dctrl[dd];
-    dd++;
-    G81_ze[n] = dctrl[dd];
     dd++;
     }
 	

@@ -93,8 +93,6 @@ public:
 	int pointnum,cellnum;
 	int cellnum1,cellnum2,cellnum3;
     int pointnumtot,cellnumtot;
-    int headernum;
-	int boundl;
     int N4,N4_row,N4_col;
     int N7,N7_row,N7_col;
 	double originx,originy,originz;
@@ -106,7 +104,7 @@ public:
 	int surf_tot;
 	int *flag1,*flag2,*flag3,*flag4,*flag5,*flag7,*flag;
 	int*mgflag;
-    double *flag_solid;
+    double *flag_solid,*flag_topo;
     double *data;
 	double *topobed,*solidbed,*bed,*depth;
 	int *tpflag,*ndbaseflag;
@@ -116,6 +114,7 @@ public:
 	int i_dir,j_dir,k_dir;
 	double x_dir,y_dir,z_dir;
     int gcbextra;
+    int solidread,toporead;
 
 
     //GHOSTCELL
@@ -381,11 +380,7 @@ public:
 	// Grid Options
     int G1,G2;
 	int G10,G11,G12,G20,G21,G22,G30;
-	int G39,G40;
-	int G51,G60, G61,G81;
-	double *G60_xs, *G60_xe, *G60_ys, *G60_ye, *G60_zs, *G60_ze;
-	double *G61_xs, *G61_xe, *G61_ys, *G61_ye, *G61_zs, *G61_ze;
-	double *G81_xs, *G81_xe, *G81_ys, *G81_ye, *G81_zs, *G81_ze;
+	int G40;
 
 	// Heat Options
 	double H1,H2;
@@ -615,7 +610,6 @@ public:
 	int gcx_1range3[7],gcx_3range3[7];
 	int gcx_1range4[7],gcx_3range4[7];
 	
-
 // Non-Uniform Mesh    
     double *XN,*YN,*ZN;
     double *XP,*YP,*ZP;
@@ -644,9 +638,6 @@ public:
     double *sigxx;
 
 private:
-
-//boundary
-
 
 	void clear(char&, int&);
 };

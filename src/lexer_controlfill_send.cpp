@@ -634,12 +634,6 @@ void lexer::ctrlsend()
 	ii++;
     ictrl[ii] = G40;
 	ii++;
-    ictrl[ii] = G60;
-	ii++;
-    ictrl[ii] = G61;
-	ii++;
-	ictrl[ii] = G81;
-	ii++;
     
     dctrl[dd] = H1;
 	dd++;
@@ -1869,54 +1863,6 @@ void lexer::ctrlsend()
 	dd++;
     dctrl[dd] = F72_h[n];
 	dd++;
-    }
-	
-    for(n=0;n<G60;++n)
-    {
-    dctrl[dd] = G60_xs[n];
-	dd++;
-    dctrl[dd] = G60_xe[n];
-	dd++;
-    dctrl[dd] = G60_ys[n];
-	dd++;
-    dctrl[dd] = G60_ye[n];
-	dd++;
-    dctrl[dd] = G60_zs[n];
-	dd++;
-    dctrl[dd] = G60_ze[n];
-	dd++;
-    }
-
-    for(n=0;n<G61;++n)
-    {
-    dctrl[dd] = G61_xs[n];
-	dd++;
-    dctrl[dd] = G61_xe[n];
-	dd++;
-    dctrl[dd] = G61_ys[n];
-	dd++;
-    dctrl[dd] = G61_ye[n];
-	dd++;
-    dctrl[dd] = G61_zs[n];
-	dd++;
-    dctrl[dd] = G61_ze[n];
-	dd++;
-    }
-	
-	for(n=0;n<G81;++n)
-    {
-    dctrl[dd] = G81_xs[n];
-    dd++;
-    dctrl[dd] = G81_xe[n];
-    dd++;
-    dctrl[dd] = G81_ys[n];
-    dd++;
-    dctrl[dd] = G81_ye[n];
-    dd++;
-    dctrl[dd] = G81_zs[n];
-    dd++;
-    dctrl[dd] = G81_ze[n];
-    dd++;
     }
 
 	for(n=0;n<P35;++n)

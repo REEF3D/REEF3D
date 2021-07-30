@@ -43,8 +43,6 @@ public:
 	virtual void start(lexer*, fdm*, ghostcell*, ioflow*, convection*, reinitopo*, vrans*);
 
 private:
-    void box(lexer*,fdm*,ghostcell*);
-    void wedge(lexer*,fdm*,ghostcell*);
     void dat(lexer*,fdm*,ghostcell*);
 
     int conv(double);

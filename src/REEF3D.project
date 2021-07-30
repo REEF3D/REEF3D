@@ -2093,10 +2093,8 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Geotopo">
           <File Name="geotopo.cpp"/>
-          <File Name="geotopo_box.cpp"/>
           <File Name="geotopo_conv.cpp"/>
           <File Name="geotopo_dat.cpp"/>
-          <File Name="geotopo_wedge.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Util">
           <File Name="boundarycheck.cpp"/>

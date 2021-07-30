@@ -66,14 +66,14 @@ cout<<"starting driver_ini_PTF"<<endl;
     pgc->start4(p,a->Fi,250);
     
     // Solid
-    if(p->G39==1)
+    if(p->solidread==1)
     {
     solid solid_object(p,a,pgc);
     solid_object.start(p,a,pgc,pflow,pconvec,preto);
     }
     
     // Geotopo
-    if(p->G51>0 || p->G60>0 || p->G61>0)
+    if(p->toporead>0)
     {
     geotopo gtopo(p,a,pgc);
     gtopo.start(p,a,pgc,pflow,pconvec,preto,pvrans);

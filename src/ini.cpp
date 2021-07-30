@@ -325,12 +325,7 @@ void lexer::ini_default()
 	G21=3;			// int ymargin left
 	G22=3;			// int zmargin top
 	G30=3;			// int extrapolated ghost cells
-	G39=0;			// int read flag_solid
     G40=3;         // int reini scheme for topo
-    G51=0;			// int read flag_topo
-	G60=0;            // int number of geotopo boxes
-	G61=0;            // int number of geotopo wedges
-	G81=0;            // int number of inflow boxes
 
 	// Heat
 	H1=1.4e-7;      // thermal diffusivity water
@@ -688,4 +683,5 @@ void lexer::ini_default()
 	poissontime=0.0;
 	pressval=0;
     alpha=0.0;
+    solidread=toporead=0;
 }

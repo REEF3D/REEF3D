@@ -269,11 +269,11 @@ void lexer::read_grid()
     
     
     grid.read((char*)&iin, sizeof (int));
-    G51=iin; // topo
+    toporead=iin; // topo
     grid.read((char*)&iin, sizeof (int));
     P150=iin;
     grid.read((char*)&iin, sizeof (int));
-    G39=iin; // solid
+    solidread=iin; // solid
     grid.read((char*)&iin, sizeof (int));
     solid_gcb_est=iin;
     grid.read((char*)&iin, sizeof (int));
@@ -301,6 +301,7 @@ void lexer::read_grid()
 	
 	Iarray(flag4,imax*jmax*kmax);
 	Darray(flag_solid,imax*jmax*kmax);
+    Darray(flag_topo,imax*jmax*kmax);
 	Iarray(mgflag,imax*jmax*kmax);
 	Darray(solidbed,imax*jmax);
     Darray(topobed,imax*jmax);
@@ -473,7 +474,7 @@ void lexer::read_grid()
 
 
 //  Solid	
-	if(G39==1)
+	if(solidread==1)
 	for(i=0; i<knox; ++i)
     for(j=0; j<knoy; ++j)
     for(k=0; k<knoz; ++k)
@@ -483,7 +484,7 @@ void lexer::read_grid()
     }
     
 //  Topo
-	if(G51==1)
+	if(toporead==1)
 	for(i=0; i<knox; ++i)
     for(j=0; j<knoy; ++j)
     for(k=0; k<knoz; ++k)
@@ -1033,7 +1034,7 @@ void lexer::read_grid()
     bed[(i-imin)*jmax + (j-jmin)]=ddn;
     }
     
-	if(G51>0)
+	if(toporead>0)
 	for(i=0; i<knox; ++i)
     for(j=0; j<knoy; ++j)
     {
@@ -1041,7 +1042,7 @@ void lexer::read_grid()
     solidbed[(i-imin)*jmax + (j-jmin)]=ddn;
     }
     
-    if(G51>0)
+    if(toporead>0)
 	for(i=0; i<knox; ++i)
     for(j=0; j<knoy; ++j)
     {

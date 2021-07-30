@@ -26,11 +26,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void geotopo::dat(lexer* p, fdm* a, ghostcell* pgc)
 {
-    if(p->G51>0)
-    ALOOP
-    a->topo(i,j,k)=-p->topobed[(i-p->imin)*p->jmax + (j-p->jmin)]+p->pos_z();
+    if(p->toporead>0)
+    BASELOOP
+    a->topo(i,j,k) = p->flag_topo[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin];
     
-    pgc->start4a(p,a->topo,154);
+    p->del_Darray(p->flag_topo,p->imax*p->jmax*p->kmax);
     
 }
 

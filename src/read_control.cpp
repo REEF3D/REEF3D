@@ -805,15 +805,6 @@ void lexer::read_control()
                 case 40: control>>G40;
 						 clear(c,numint);
 						 break;
-                case 60: ++G60;
-						 clear(c,numint);
-						 break;
-                case 61: ++G61;
-						 clear(c,numint);
-						 break;
-				case 81: ++G81;
-						 clear(c,numint);
-						 break;
 				}
 				break;
 
@@ -1930,37 +1921,6 @@ void lexer::read_control()
 	Darray(F72_ye,F72);
 	
 	Darray(F72_h,F72);
-    
-	// G
-	Darray(G60_xs,G60);
-	Darray(G60_xe,G60);
-	
-	Darray(G60_ys,G60);
-	Darray(G60_ye,G60);
-	
-	Darray(G60_zs,G60);
-	Darray(G60_ze,G60);
-
-	
-	Darray(G61_xs,G61);
-	Darray(G61_xe,G61);
-	
-	Darray(G61_ys,G61);
-	Darray(G61_ye,G61);
-	
-	Darray(G61_zs,G61);
-	Darray(G61_ze,G61);
-	
-	
-	Darray(G81_xs,G81);
-	Darray(G81_xe,G81);
-	
-	Darray(G81_ys,G81);
-	Darray(G81_ye,G81);
-	
-	Darray(G81_zs,G81);
-	Darray(G81_ze,G81);
-
 
     // P
 	Darray(P35_ts,P35);
@@ -2200,9 +2160,6 @@ void lexer::read_control()
 	int countF70=0;
 	int countF71=0;
 	int countF72=0;
-	int countG60=0;
-	int countG61=0;
-	int countG81=0;
 	int countP35=0;
     int countP50=0;
 	int countP51=0;
@@ -2373,25 +2330,6 @@ void lexer::read_control()
 				}
 				break;
 
-            case 'G': control>>numint;
-				switch(numint)
-				{
-
-                case 60: control>>G60_xs[countG60]>>G60_xe[countG60]>>G60_ys[countG60]>>G60_ye[countG60]>>G60_zs[countG60]>>G60_ze[countG60];
-                        ++countG60;
-						 clear(c,numint);
-						 break;
-                case 61: control>>G61_xs[countG61]>>G61_xe[countG61]>>G61_ys[countG61]>>G61_ye[countG61]>>G61_zs[countG61]>>G61_ze[countG61];
-                        ++countG61;
-						 clear(c,numint);
-						 break;
-				case 81: control>>G81_xs[countG81]>>G81_xe[countG81]>>G81_ys[countG81]>>G81_ye[countG81]>>G81_zs[countG81]>>G81_ze[countG81];
-                        ++countG81;
-						 clear(c,numint);
-						 break;
-					
-				}
-				break;
 
 
 		    case 'P': control>>numint;
