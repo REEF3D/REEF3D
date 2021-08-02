@@ -30,7 +30,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"print_wsf_theory.h"
 #include"print_wsfline.h"
 #include"print_wsfline_y.h"
-#include"force.h"
 #include"vorticity_f.h"
 #include"vorticity_void.h"
 #include"probe_point.h"
@@ -109,13 +108,7 @@ print_interface::print_interface(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p)
 
 	if(p->P75==1)
 	pvort = new vorticity_f(p,a);
-	
-	if(p->P81>0)
-	pforce = new force*[p->P81];
-	
-	if(p->P85>0)
-	pforce = new force*[p->P85];
-	
+
 	if(p->P121>0)
 	pbedpt = new bedprobe_point(p,a,pgc);
 	
@@ -124,13 +117,7 @@ print_interface::print_interface(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p)
 	
 	if(p->P125>0)
 	pbedshear = new bedshear_probe(p,a,pgc);
-	
-	for(n=0;n<p->P81;++n)
-	pforce[n]=new force(p,a,pgc,n);
-	
-	for(n=0;n<p->P85;++n)
-	pforce[n]=new force(p,a,pgc,n);
-	
+
 	if(p->P40>0)
 	pstate=new state(p,a,pgc);
     
@@ -219,14 +206,6 @@ void print_interface::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, h
 		
 		if(p->P67>0)
 		pq->start(p,a,pgc);
-
-		if(p->count>1)
-        for(n=0;n<p->P81;++n)
-        pforce[n]->start(p,a,pgc);
-		
-		if(p->count>1)
-        for(n=0;n<p->P85;++n)
-        pforce[n]->start(p,a,pgc);
         
         if(p->P101>0)
         pslosh->start(p,a,pgc);

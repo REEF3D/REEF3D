@@ -90,7 +90,7 @@ public:
     
 	int imin,imax,jmin,jmax,kmin,kmax;
     int kmaxF;
-	int pointnum,cellnum;
+	int pointnum,cellnum,tpcellnum;
 	int cellnum1,cellnum2,cellnum3;
     int pointnumtot,cellnumtot;
     int N4,N4_row,N4_col;
@@ -149,14 +149,6 @@ public:
     int *gc4aperiodic_count;
     int gc4periodic_maxcount;
     
-
-	//IBM
-	int **facet;
-    double **ccpoint;
-    int ccptnum,facetnum,ccellnum,tpcellnum,ccedgenum;
-    int *ccstate;
-    double *dh,*theta;
-
 	// PARALLEL
 	int** gcpara1;
 	int** gcpara2;

@@ -23,7 +23,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"lexer.h"
 #include"ghostcell.h"
-#include"pvccparse.h"
 
 initialize::initialize(lexer* p):smallnum(1.0e-20)
 {
@@ -71,14 +70,6 @@ void initialize::start(fdm* a, lexer* p, ghostcell* pgc)
 	topoini(p,a,pgc);
 	
 	pgc->flagbase(p,a);
-	pgc->ccstateflag(p,a);
-	
-
-    if(p->P10==1)
-    {
-	pvccparse paraview_cc(p,a,pgc);
-	paraview_cc.start(p,a,pgc);
-    }
 }
 
 void initialize::inifdm(fdm* a, lexer* p, ghostcell* pgc)

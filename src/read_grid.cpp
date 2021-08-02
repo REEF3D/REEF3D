@@ -55,7 +55,6 @@ void lexer::read_grid()
 	gcparaco5_count=0;
 	gcparaco6_count=0;
 	surf_tot=0;
-	ccptnum=facetnum=0;
 
 	if(mpirank<9)
 	sprintf(name,"grid-00000%i.dat",mpirank+1);
@@ -157,10 +156,6 @@ void lexer::read_grid()
     
     grid.read((char*)&iin, sizeof (int));
     gcwall_count=iin;
-    grid.read((char*)&iin, sizeof (int));
-    ccptnum=iin;
-    grid.read((char*)&iin, sizeof (int));
-    facetnum=iin;
     
     grid.read((char*)&iin, sizeof (int));
     gcpara1_count=iin;
@@ -373,12 +368,6 @@ void lexer::read_grid()
     Iarray(gcparaco6, gcparaco6_count,6);
     
     
-    Iarray(ccstate, facetnum*3);
-    Darray(ccpoint, ccptnum*3,3);
-    Iarray(facet, facetnum*2,14);
-    Darray(gcn, facetnum*3,3);
-    
-    
     // Slice allocation
     gcbsl1_count=gcbsl2_count=gcbsl3_count=gcbsl4_count=gcbsl4a_count=1;
     
@@ -470,9 +459,6 @@ void lexer::read_grid()
     TN[KP]=ddn;
     }
     
-    
-
-
 //  Solid	
 	if(solidread==1)
 	for(i=0; i<knox; ++i)
@@ -491,13 +477,6 @@ void lexer::read_grid()
     {
     grid.read((char*)&ddn, sizeof (double));
     flag_topo[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin]=ddn;
-    }
-
-//  CC State
-    for(i=0; i<facetnum; ++i)
-    {
-    grid.read((char*)&iin, sizeof (int));
-    ccstate[i]=iin;
     }
 	
 //  GC Surfaces
@@ -568,70 +547,7 @@ void lexer::read_grid()
         ++count2;
         }
     }
-
-//  GCD
-    for(i=0; i<gcb4_count; ++i)
-    {
-    grid.read((char*)&ddn, sizeof (double));
-    gcd4[i]=ddn;
-    }
-
-//  CC Points
-    for(i=0; i<ccptnum; ++i)
-    {
-    grid.read((char*)&ddn, sizeof (double));
-    ccpoint[i][0]=ddn;
     
-    grid.read((char*)&ddn, sizeof (double));
-    ccpoint[i][1]=ddn;
-    
-    grid.read((char*)&ddn, sizeof (double));
-    ccpoint[i][2]=ddn;
-    }
-
-//  CC Facets
-    for(i=0; i<facetnum; ++i)
-    {
-    grid.read((char*)&iin, sizeof (int));
-    facet[i][0]=iin;
-    
-    grid.read((char*)&iin, sizeof (int));
-    facet[i][1]=iin;
-    
-    grid.read((char*)&iin, sizeof (int));
-    facet[i][2]=iin;
-    
-    grid.read((char*)&iin, sizeof (int));
-    facet[i][3]=iin;
-    
-    grid.read((char*)&iin, sizeof (int));
-    facet[i][4]=iin;
-    
-    grid.read((char*)&iin, sizeof (int));
-    facet[i][5]=iin;
-    
-    
-    grid.read((char*)&ddn, sizeof (double));
-    gcn[i][0]=ddn;
-    
-    grid.read((char*)&ddn, sizeof (double));
-    gcn[i][1]=ddn;
-    
-    grid.read((char*)&ddn, sizeof (double));
-    gcn[i][2]=ddn;
-    
-    
-    grid.read((char*)&iin, sizeof (int));
-    facet[i][6]=iin;
-    
-    
-    for(n=0;n<facet[i][6];n++)
-    {
-    grid.read((char*)&iin, sizeof (int));
-    facet[i][7+n]=iin;
-    }
-    }
-
 //  Para Surfaces
 	for(i=0; i<gcpara1_count; ++i)
 	{ 

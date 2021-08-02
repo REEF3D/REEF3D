@@ -42,7 +42,6 @@ public:
 	virtual void start(lexer*,fdm*,ghostcell*);
 
 private:
-	void ccini(lexer*, fdm*, ghostcell*);
 	void triangulation(lexer*, fdm*, ghostcell*, field&);
 	void reconstruct(lexer*, fdm*, field&);
 	void addpoint(lexer*,fdm*,int,int);
@@ -58,12 +57,8 @@ private:
 	const double zero,interfac;
     double epsi;
 	
-	double ***ccell,**lscc;
-	int *ccnode,**ccid,*ccflag,**vertice_cc,***ccijk;
-	
 	fieldint5 vertice, nodeflag;
 	field5 eta;
-	
 	
 	void print(lexer*,fdm*,ghostcell*);
     void pvtp(lexer*,fdm*,ghostcell*);

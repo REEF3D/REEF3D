@@ -30,7 +30,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"print_wsf_theory.h"
 #include"print_wsfline.h"
 #include"print_wsfline_y.h"
-#include"force.h"
 #include"forcesolid.h"
 #include"vorticity_f.h"
 #include"vorticity_void.h"
@@ -125,14 +124,8 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
 	if(p->P75==1)
 	pvort = new vorticity_f(p,a);
 	
-	if(p->P81>0)
-	pforce = new force*[p->P81];
-    
     if(p->P81>0)
 	pforcesolid = new forcesolid*[p->P81];
-	
-	if(p->P85>0)
-	pforce = new force*[p->P85];
 	
 	if(p->P121>0)
 	pbedpt = new bedprobe_point(p,a,pgc);
@@ -151,15 +144,9 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
 	
 	if(p->P126>0)
 	pbedshearmax = new bedshear_max(p,a,pgc);
-	
-	for(n=0;n<p->P81;++n)
-	pforce[n]=new force(p,a,pgc,n);
     
     for(n=0;n<p->P81;++n)
 	pforcesolid[n]=new forcesolid(p,a,pgc,n);
-	
-	for(n=0;n<p->P85;++n)
-	pforce[n]=new force(p,a,pgc,n);
 	
 	if(p->P40>0)
 	pstate=new state(p,a,pgc);
@@ -192,11 +179,6 @@ vtu3D::~vtu3D()
 
 void vtu3D::ini(lexer* p, fdm* a, ghostcell* pgc)
 {
-	for(n=0;n<p->P81;++n)
-	pforce[n]->ini(p,a,pgc);
-	
-	for(n=0;n<p->P85;++n)
-	pforce[n]->ini(p,a,pgc);
 }
 
 void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, sediment *psed)
@@ -262,10 +244,6 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
 		if(p->P67>0)
 		pq->start(p,a,pgc);
 
-		if(p->count>1)
-        for(n=0;n<p->P81;++n)
-        pforce[n]->start(p,a,pgc);
-        
         if((p->count==0 || p->count==p->count_statestart) && p->P81>0)
         for(n=0;n<p->P81;++n)
         pforcesolid[n]->ini(p,a,pgc);
@@ -274,10 +252,6 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
         for(n=0;n<p->P81;++n)
         pforcesolid[n]->start(p,a,pgc);
 		
-		if(p->count>1)
-        for(n=0;n<p->P85;++n)
-        pforce[n]->start(p,a,pgc);
-        
         if(p->P101>0)
         pslosh->start(p,a,pgc);
 		
@@ -424,22 +398,22 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	++n;
 	
 	// velocity
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)*3+4;
+	offset[n]=offset[n-1]+4*(p->pointnum)*3+4;
 	++n;
 	
 	// scalars
 	
 		// pressure
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	
 		// k and eps
 	pturb->offset_vtu(p,a,pgc,result,offset,n);
 		// eddyv
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 		// phi
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 		// T
 	pheat->offset_vtu(p,a,pgc,result,offset,n);
@@ -452,43 +426,43 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     	// rho
 	if(p->P24==1)
 	{
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
         // viscosity
 	if(p->P71==1)
 	{
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
     
          // velocity magnitude
 	if(p->P78==1)
 	{
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
     
     // Fi
     if(p->A10==4)
 	{
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
 	
 	if(p->P26==1)
 	{
 		// cbed
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 		// conc
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
 		// topo
 	if(p->P27==1)
 	{
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
 	
@@ -499,52 +473,52 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     // test
     if(p->P23==1)
 	{
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
 		// elevation
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
     
     if(p->P25==1)
 	{
 		// solid
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
 	
 	if(p->P28==1)
 	{
 		// floating
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
 	
 	if(p->P29==1)
 	{
 		// walldist
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
 		// end scalars
 	
 	// Points
-    offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)*3+4;
+    offset[n]=offset[n-1]+4*(p->pointnum)*3+4;
     ++n;
 	
 	// Cells
-    offset[n]=offset[n-1] + 4*p->tpcellnum*8 + 4*p->ccedgenum + 4;
+    offset[n]=offset[n-1] + 4*p->tpcellnum*8 + 4;
     ++n;
-    offset[n]=offset[n-1] + 4*(p->tpcellnum+p->ccellnum)+4;
+    offset[n]=offset[n-1] + 4*(p->tpcellnum)+4;
     ++n;
-	offset[n]=offset[n-1] + 4*(p->tpcellnum+p->ccellnum)+4;
+	offset[n]=offset[n-1] + 4*(p->tpcellnum)+4;
     ++n;
 	//---------------------------------------------
 
 	result<<"<?xml version=\"1.0\"?>"<<endl;
 	result<<"<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
 	result<<"<UnstructuredGrid>"<<endl;
-	result<<"<Piece NumberOfPoints=\""<<p->pointnum+p->ccptnum<<"\" NumberOfCells=\""<<p->tpcellnum+p->ccellnum<<"\">"<<endl;
+	result<<"<Piece NumberOfPoints=\""<<p->pointnum<<"\" NumberOfCells=\""<<p->tpcellnum<<"\">"<<endl;
 
     n=0;
     result<<"<PointData >"<<endl;
@@ -661,7 +635,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	
 	
 //  Velocities
-    iin=3*4*(p->pointnum+p->ccptnum);
+    iin=3*4*(p->pointnum);
 	result.write((char*)&iin, sizeof (int));
     TPLOOP
 	{
@@ -674,23 +648,9 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	ffn=float(p->ipol3(a->w));
 	result.write((char*)&ffn, sizeof (float));
 	}
-    
-
-	for(n=0;n<p->ccptnum;++n)
-	{
-	ffn=float(p->ccipol1(a->u,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
-	result.write((char*)&ffn, sizeof (float));
-
-	ffn=float(p->ccipol2(a->v,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
-	result.write((char*)&ffn, sizeof (float));
-
-	ffn=float(p->ccipol3(a->w,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
-	result.write((char*)&ffn, sizeof (float));
-
-	}
 	
 //  Pressure
-	iin=4*(p->pointnum+p->ccptnum);
+	iin=4*(p->pointnum);
 	result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
@@ -698,17 +658,11 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	result.write((char*)&ffn, sizeof (float));
 	}
 
-	for(n=0;n<p->ccptnum;++n)
-	{
-	ffn=float(p->ccipol4press(a,a->press,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
 //  turbulence
     pturb->print_3D(p,a,pgc,result);
 
 //  eddyv
-    iin=4*(p->pointnum+p->ccptnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
@@ -716,15 +670,9 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	result.write((char*)&ffn, sizeof (float));
 	}
 
-	for(n=0;n<p->ccptnum;++n)
-	{
-	ffn=float(p->ccipol4(a->eddyv,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
 //  phi
 	nodefill4(p,a,pgc,a->phi,eta);
-    iin=4*(p->pointnum+p->ccptnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
@@ -732,12 +680,6 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	ffn=float(p->ipol4phi(a,a->phi));
 	if(p->P18==2)
 	ffn = float(eta(i,j,k));
-	result.write((char*)&ffn, sizeof (float));
-	}
-	
-	for(n=0;n<p->ccptnum;++n)
-	{
-	ffn=float(p->ccipol4phi(a,a->phi,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
 	result.write((char*)&ffn, sizeof (float));
 	}
 
@@ -756,17 +698,11 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 //  density
     if(p->P24==1)
 	{
-    iin=4*(p->pointnum+p->ccptnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
 	ffn=float(p->ipol4(a->ro));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-	for(n=0;n<p->ccptnum;++n)
-	{
-	ffn=float(p->ccipol4(a->ro,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}
@@ -774,17 +710,11 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 //  viscosity
     if(p->P71==1)
 	{
-    iin=4*(p->pointnum+p->ccptnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
 	ffn=float(p->ipol4(a->visc));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-	for(n=0;n<p->ccptnum;++n)
-	{
-	ffn=float(p->ccipol4(a->visc,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}
@@ -792,17 +722,11 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 //  velocity scalar
     if(p->P78==1)
 	{
-    iin=4*(p->pointnum+p->ccptnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
 	ffn=float(sqrt(pow(p->ipol1(a->u),2.0) + pow(p->ipol2(a->v),2.0) + pow(p->ipol3(a->w),2.0)));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-	for(n=0;n<p->ccptnum;++n)
-	{
-	ffn=float(sqrt(pow(p->ccipol1(a->u,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]),2.0) + pow(p->ccipol2(a->v,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]),2.0) + pow(p->ccipol3(a->w,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]),2.0)));
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}
@@ -810,25 +734,20 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 //  Fi
     if(p->A10==4)
 	{
-    iin=4*(p->pointnum+p->ccptnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
 	ffn=float(p->ipol4press(a->Fi));
 	result.write((char*)&ffn, sizeof (float));
 	}
-
-	for(n=0;n<p->ccptnum;++n)
-	{
-	ffn=float(p->ccipol4(a->Fi,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    
 	}
 
 	if(p->P26==1)
 	{
 //  cbed
-    iin=4*(p->pointnum+p->ccptnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
@@ -836,24 +755,12 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	result.write((char*)&ffn, sizeof (float));
 	}
 
-	for(n=0;n<p->ccptnum;++n)
-	{
-	ffn=float(p->ccslipol4(a->bedload,p->ccpoint[n][0],p->ccpoint[n][1]));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
 //  conc
-    iin=4*(p->pointnum+p->ccptnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
 	ffn=float(p->ipol4(a->conc));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-	for(n=0;n<p->ccptnum;++n)
-	{
-	ffn=float(p->ccipol4(a->conc,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}
@@ -861,17 +768,11 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	if(p->P27==1)
 	{
 //  topo
-    iin=4*(p->pointnum+p->ccptnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
 	ffn=float(p->ipol4_a(a->topo));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-	for(n=0;n<p->ccptnum;++n)
-	{
-	ffn=float(p->ccipol4_a(a->topo,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}
@@ -883,23 +784,17 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     if(p->P23==1)
 	{
 //  test
-    iin=4*(p->pointnum+p->ccptnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
 	ffn=float(p->ipol4_a(a->test));
 	result.write((char*)&ffn, sizeof (float));
 	}
-
-	for(n=0;n<p->ccptnum;++n)
-	{
-	ffn=float(p->ccipol4_a(a->test,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
-	result.write((char*)&ffn, sizeof (float));
-	}
 	}
 	
 //  elevation
-	iin=4*(p->pointnum+p->ccptnum)*3;
+	iin=4*(p->pointnum)*3;
 	result.write((char*)&iin, sizeof (int));
     TPLOOP
 	{
@@ -907,27 +802,14 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	result.write((char*)&ffn, sizeof (float));
 	}
 
-	for(n=0;n<p->ccptnum;++n)
-	{
-	ffn=float(p->ccpoint[n][2]);
-	result.write((char*)&ffn, sizeof (float));
-	}
-    
-    	
 	if(p->P25==1)
 	{
 //  solid
-    iin=4*(p->pointnum+p->ccptnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
 	ffn=float(p->ipol4_a(a->solid));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-	for(n=0;n<p->ccptnum;++n)
-	{
-	ffn=float(p->ccipol4_a(a->solid,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}
@@ -935,34 +817,22 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	if(p->P28==1 && p->X13==2)
 	{
 //  floating
-    iin=4*(p->pointnum+p->ccptnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
 	ffn=float(p->ipol4_a(a->fbh4));
 	result.write((char*)&ffn, sizeof (float));
 	}
-
-	for(n=0;n<p->ccptnum;++n)
-	{
-	ffn=float(p->ccipol4_a(a->fbh4,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
-	result.write((char*)&ffn, sizeof (float));
-	}
 	}
     else if (p->P28==1)
 	{
 //  floating
-    iin=4*(p->pointnum+p->ccptnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
 	ffn=float(p->ipol4_a(a->fb));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-	for(n=0;n<p->ccptnum;++n)
-	{
-	ffn=float(p->ccipol4_a(a->fb,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}
@@ -970,17 +840,11 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	if(p->P29==1)
 	{
 //  walldist
-    iin=4*(p->pointnum+p->ccptnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
 	ffn=float(p->ipol4(a->walld));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-	for(n=0;n<p->ccptnum;++n)
-	{
-	ffn=float(p->ccipol4(a->walld,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}
@@ -1011,7 +875,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     }
     
     
-	iin=4*(p->pointnum+p->ccptnum)*3;
+	iin=4*(p->pointnum)*3;
 	result.write((char*)&iin, sizeof (int));
     TPLOOP
 	{
@@ -1043,20 +907,8 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	result.write((char*)&ffn, sizeof (float));
 	}
 
-	for(n=0;n<p->ccptnum;++n)
-	{
-    ffn=float(p->ccpoint[n][0]);
-	result.write((char*)&ffn, sizeof (float));
-
-	ffn=float(p->ccpoint[n][1]);
-	result.write((char*)&ffn, sizeof (float));
-
-	ffn=float(p->ccpoint[n][2]);
-	result.write((char*)&ffn, sizeof (float));
-	}
-
 //  Connectivity
-    iin=4*(p->tpcellnum)*8 + 4*p->ccedgenum;
+    iin=4*(p->tpcellnum)*8;
     result.write((char*)&iin, sizeof (int));
     BASELOOP
     if(p->flag5[IJK]!=-20 && p->flag5[IJK]!=-30)
@@ -1086,49 +938,8 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	result.write((char*)&iin, sizeof (int));
 	}
 
-
-	for(n=0;n<p->ccellnum;++n)
-	{
-    iin=abs(a->pvccnode[n][0]);
-	result.write((char*)&iin, sizeof (int));
-
-	iin=abs(a->pvccnode[n][1]);
-	result.write((char*)&iin, sizeof (int));
-
-    iin=abs(a->pvccnode[n][2]);
-	result.write((char*)&iin, sizeof (int));
-
-	iin=abs(a->pvccnode[n][3]);
-	result.write((char*)&iin, sizeof (int));
-
-    if(a->ccedge[n]>4)
-    {
-	iin=abs(a->pvccnode[n][4]);
-	result.write((char*)&iin, sizeof (int));
-
-        if(a->ccedge[n]>5)
-        {
-        iin=abs(a->pvccnode[n][5]);
-        result.write((char*)&iin, sizeof (int));
-
-            if(a->ccedge[n]>6)
-            {
-            iin=abs(a->pvccnode[n][6]);
-            result.write((char*)&iin, sizeof (int));
-
-                if(a->ccedge[n]>7)
-                {
-                iin=abs(a->pvccnode[n][7]);
-                result.write((char*)&iin, sizeof (int));
-                }
-            }
-        }
-    }
-
-	}
-
 //  Offset of Connectivity
-    iin=4*(p->tpcellnum+p->ccellnum);
+    iin=4*(p->tpcellnum);
     result.write((char*)&iin, sizeof (int));
 	for(n=0;n<p->tpcellnum;++n)
 	{
@@ -1136,35 +947,13 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	result.write((char*)&iin, sizeof (int));
 	}
 
-	for(n=0;n<p->ccellnum;++n)
-	{
-	iin+=a->ccedge[n];
-	result.write((char*)&iin, sizeof (int));
-	}
 
 //  Cell types
-    iin=4*(p->tpcellnum+p->ccellnum);
+    iin=4*(p->tpcellnum);
     result.write((char*)&iin, sizeof (int));
 	for(n=0;n<p->tpcellnum;++n)
 	{
 	iin=12;
-	result.write((char*)&iin, sizeof (int));
-	}
-
-	for(n=0;n<p->ccellnum;++n)
-	{
-    if(a->ccedge[n]==4)
-	iin=10;
-	
-	if(a->ccedge[n]==5)
-	iin=14;
-
-    if(a->ccedge[n]==6)
-	iin=13;
-	
-	if(a->ccedge[n]==8)
-	iin=12;
-
 	result.write((char*)&iin, sizeof (int));
 	}
 

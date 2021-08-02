@@ -81,9 +81,6 @@ public:
 	const double cmu;
 	
 	double t1,t2,t3,t4,t5;
-
-	int **pvccnode,**tpccnode,*ccedge;
-    
     
     void gridsize(lexer*);
 };

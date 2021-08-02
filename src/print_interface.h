@@ -84,7 +84,6 @@ private:
     print_wsfline *pwsfline;
 	print_wsfline_y *pwsfline_y;
 
-    force **pforce;
     vorticity *pvort;
 	probe_point *pprobe;
 	probe_line *pline;

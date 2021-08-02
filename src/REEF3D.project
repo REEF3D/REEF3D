@@ -763,12 +763,6 @@
         <VirtualDirectory Name="ccipol">
           <File Name="ccipol.h"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="CCParse">
-          <File Name="pvccparse.h"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Force">
-          <File Name="force.h"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="Print WSF">
           <File Name="print_wsf.h"/>
           <File Name="print_wsfline.h"/>
@@ -1895,10 +1889,6 @@
         <File Name="gc_tpflagfield.cpp"/>
         <File Name="gc_ndflag.cpp"/>
       </VirtualDirectory>
-      <VirtualDirectory Name="IBM">
-        <File Name="gcibm_ccstate.cpp"/>
-        <File Name="gcibm_distguard.cpp"/>
-      </VirtualDirectory>
       <VirtualDirectory Name="Parallel">
         <File Name="gcx_periodicvec.cpp"/>
         <File Name="gcx_periodic.cpp"/>
@@ -2172,43 +2162,7 @@
         <VirtualDirectory Name="ccipol">
           <File Name="ccipol.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="CCParse">
-          <File Name="pvccparse.cpp"/>
-          <File Name="pvccparse_celldivide4.cpp"/>
-          <File Name="pvccparse_celldivide4b.cpp"/>
-          <File Name="pvccparse_celldivide5a.cpp"/>
-          <File Name="pvccparse_celldivide5b.cpp"/>
-          <File Name="pvccparse_celldivide5d.cpp"/>
-          <File Name="pvccparse_celldivide6.cpp"/>
-          <File Name="pvccparse_cellnodes.cpp"/>
-          <File Name="pvccparse_collectpoints.cpp"/>
-          <File Name="pvccparse_hexahedron.cpp"/>
-          <File Name="pvccparse_ini.cpp"/>
-          <File Name="pvccparse_pointcheck.cpp"/>
-          <File Name="pvccparse_reverse-tetra-a.cpp"/>
-          <File Name="pvccparse_reverse-tetra-b.cpp"/>
-          <File Name="pvccparse_reverse-tetra.cpp"/>
-          <File Name="pvccparse_tetra.cpp"/>
-          <File Name="pvccparse_wedge.cpp"/>
-          <File Name="pvccparse_face-wedge.cpp"/>
-          <File Name="pvccparse_face-tetra.cpp"/>
-          <File Name="pvccparse_reverse-tetra-c.cpp"/>
-          <File Name="pvccparse_celldivide4c.cpp"/>
-          <File Name="pvccparse_celldivide4a.cpp"/>
-          <File Name="pvccparse_celldivide5c.cpp"/>
-          <File Name="pvccparse_face-hexahedron.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Force">
-          <File Name="force.cpp"/>
-          <File Name="force_cellnodes.cpp"/>
-          <File Name="force_forcesurf.cpp"/>
-          <File Name="force_print.cpp"/>
-          <File Name="force_surfarea.cpp"/>
-          <File Name="force_velocity.cpp"/>
-          <File Name="force_cellnodes-gcb.cpp"/>
-          <File Name="force_surfarea-gcb.cpp"/>
-          <File Name="force_strips.cpp"/>
-        </VirtualDirectory>
+        <VirtualDirectory Name="Force"/>
         <VirtualDirectory Name="Print WSF">
           <File Name="print_wsf.cpp"/>
           <File Name="print_wsfline.cpp"/>
@@ -2251,7 +2205,6 @@
           <File Name="fsf_reconstruct.cpp"/>
           <File Name="fsf_vtp_print.cpp"/>
           <File Name="fsf_finalize.cpp"/>
-          <File Name="fsf_ccini.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Nodefill">
           <File Name="nodefill.cpp"/>

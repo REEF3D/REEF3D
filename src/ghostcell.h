@@ -189,8 +189,6 @@ public:
     void gcb_generic(lexer* p,field& f,int *gcb_count, int ***gcb);
 
 // IBM
-    void distguard(lexer*);
-    void ccstateflag(lexer*,fdm*);
     void flagfield(lexer*);
     void flagfield_topo(lexer*);
     void tpflagfield(lexer*);

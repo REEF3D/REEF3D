@@ -239,43 +239,43 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	++n;
 	
 	// velocity
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)*3+4;
+	offset[n]=offset[n-1]+4*(p->pointnum)*3+4;
 	++n;
 	
 	// scalars
 	
     // Fi
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 
     // elevation
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
     
     if(p->P25==1)
 	{
 		// solid
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
 	
 	// Points
-    offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)*3+4;
+    offset[n]=offset[n-1]+4*(p->pointnum)*3+4;
     ++n;
 	
 	// Cells
-    offset[n]=offset[n-1] + 4*p->tpcellnum*8 + 4*p->ccedgenum + 4;
+    offset[n]=offset[n-1] + 4*p->tpcellnum*8  + 4;
     ++n;
-    offset[n]=offset[n-1] + 4*(p->tpcellnum+p->ccellnum)+4;
+    offset[n]=offset[n-1] + 4*(p->tpcellnum)+4;
     ++n;
-	offset[n]=offset[n-1] + 4*(p->tpcellnum+p->ccellnum)+4;
+	offset[n]=offset[n-1] + 4*(p->tpcellnum)+4;
     ++n;
 	//---------------------------------------------
 
 	result<<"<?xml version=\"1.0\"?>"<<endl;
 	result<<"<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
 	result<<"<UnstructuredGrid>"<<endl;
-	result<<"<Piece NumberOfPoints=\""<<p->pointnum+p->ccptnum<<"\" NumberOfCells=\""<<p->tpcellnum+p->ccellnum<<"\">"<<endl;
+	result<<"<Piece NumberOfPoints=\""<<p->pointnum<<"\" NumberOfCells=\""<<p->tpcellnum<<"\">"<<endl;
 
     n=0;
     result<<"<PointData >"<<endl;
@@ -322,7 +322,7 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	
 	
 //  Velocities
-    iin=3*4*(p->pointnum+p->ccptnum);
+    iin=3*4*(p->pointnum);
 	result.write((char*)&iin, sizeof (int));
     TPLOOP
 	{
@@ -349,53 +349,34 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 
     
 //  Fi
-    iin=4*(p->pointnum+p->ccptnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
-    ffn=float(c->Fi[FIJKp1]);//float(p->ipol4press(c->Fi4));
+    ffn=float(c->Fi[FIJKp1]);
     
     if(k==-1 && j==-1)
-	ffn=float(c->Fi[FIJp1Kp1]);//float(p->ipol4press(c->Fi4));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-	for(n=0;n<p->ccptnum;++n)
-	{
-	ffn=float(0.0);//float(p->ccipol4(c->Fi4,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
+	ffn=float(c->Fi[FIJp1Kp1]);
 	result.write((char*)&ffn, sizeof (float));
 	}
 	
 //  elevation
-	iin=4*(p->pointnum+p->ccptnum)*3;
+	iin=4*(p->pointnum)*3;
 	result.write((char*)&iin, sizeof (int));
     TPLOOP
 	{
 	ffn=float(p->ZN[KP1]*c->WL(i,j) + c->bed(i,j));
 	result.write((char*)&ffn, sizeof (float));
 	}
-
-	for(n=0;n<p->ccptnum;++n)
-	{
-	ffn=float(p->ccpoint[n][2]);
-	result.write((char*)&ffn, sizeof (float));
-	}
-    
     	
 	if(p->P25==1)
 	{
 //  solid
-    iin=4*(p->pointnum+p->ccptnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
-	ffn=float(1.0);//float(p->ipol4_a(c->solid));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-	for(n=0;n<p->ccptnum;++n)
-	{
-	ffn=float(1.0);//float(p->ccipol4_a(c->solid,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
+	ffn=float(1.0);
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}
@@ -408,7 +389,7 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     if(p->B192==1 && p->simtime>=p->B194_s && p->simtime<=p->B194_e)
     phase = omega_y*p->simtime;
     
-	iin=4*(p->pointnum+p->ccptnum)*3;
+	iin=4*(p->pointnum)*3;
 	result.write((char*)&iin, sizeof (int));
     TPLOOP
 	{
@@ -433,20 +414,8 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&ffn, sizeof (float));
 	}
 
-	for(n=0;n<p->ccptnum;++n)
-	{
-    ffn=float(p->ccpoint[n][0]);
-	result.write((char*)&ffn, sizeof (float));
-
-	ffn=float(p->ccpoint[n][1]);
-	result.write((char*)&ffn, sizeof (float));
-
-	ffn=float(p->ccpoint[n][2]);
-	result.write((char*)&ffn, sizeof (float));
-	}
-
 //  Connectivity
-    iin=4*(p->tpcellnum)*8 + 4*p->ccedgenum;
+    iin=4*(p->tpcellnum)*8;
     result.write((char*)&iin, sizeof (int));
     BASELOOP
     if(p->flag5[IJK]!=-20 && p->flag5[IJK]!=-30)
@@ -476,49 +445,8 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
 	}
 
-
-	for(n=0;n<p->ccellnum;++n)
-	{
-    iin=abs(c->pvccnode[n][0]);
-	result.write((char*)&iin, sizeof (int));
-
-	iin=abs(c->pvccnode[n][1]);
-	result.write((char*)&iin, sizeof (int));
-
-    iin=abs(c->pvccnode[n][2]);
-	result.write((char*)&iin, sizeof (int));
-
-	iin=abs(c->pvccnode[n][3]);
-	result.write((char*)&iin, sizeof (int));
-
-    if(c->ccedge[n]>4)
-    {
-	iin=abs(c->pvccnode[n][4]);
-	result.write((char*)&iin, sizeof (int));
-
-        if(c->ccedge[n]>5)
-        {
-        iin=abs(c->pvccnode[n][5]);
-        result.write((char*)&iin, sizeof (int));
-
-            if(c->ccedge[n]>6)
-            {
-            iin=abs(c->pvccnode[n][6]);
-            result.write((char*)&iin, sizeof (int));
-
-                if(c->ccedge[n]>7)
-                {
-                iin=abs(c->pvccnode[n][7]);
-                result.write((char*)&iin, sizeof (int));
-                }
-            }
-        }
-    }
-
-	}
-
 //  Offset of Connectivity
-    iin=4*(p->tpcellnum+p->ccellnum);
+    iin=4*(p->tpcellnum);
     result.write((char*)&iin, sizeof (int));
 	for(n=0;n<p->tpcellnum;++n)
 	{
@@ -526,35 +454,12 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
 	}
 
-	for(n=0;n<p->ccellnum;++n)
-	{
-	iin+=c->ccedge[n];
-	result.write((char*)&iin, sizeof (int));
-	}
-
 //  Cell types
-    iin=4*(p->tpcellnum+p->ccellnum);
+    iin=4*(p->tpcellnum);
     result.write((char*)&iin, sizeof (int));
 	for(n=0;n<p->tpcellnum;++n)
 	{
 	iin=12;
-	result.write((char*)&iin, sizeof (int));
-	}
-
-	for(n=0;n<p->ccellnum;++n)
-	{
-    if(c->ccedge[n]==4)
-	iin=10;
-	
-	if(c->ccedge[n]==5)
-	iin=14;
-
-    if(c->ccedge[n]==6)
-	iin=13;
-	
-	if(c->ccedge[n]==8)
-	iin=12;
-
 	result.write((char*)&iin, sizeof (int));
 	}
 

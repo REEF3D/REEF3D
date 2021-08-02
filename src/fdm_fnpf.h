@@ -77,8 +77,6 @@ public:
     matrix2D N;
 	matrix_diag M;    
     
-    int **pvccnode,*ccedge;
-    
     double gi,gj,gk;
     double wd_criterion;
 };

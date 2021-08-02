@@ -92,8 +92,6 @@ private:
 	print_wsf_theory *pwsf_theory;
     print_wsfline *pwsfline;
 	print_wsfline_y *pwsfline_y;
-
-    force **pforce;
     forcesolid **pforcesolid;
     vorticity *pvort;
 	probe_point *pprobe;
