@@ -56,10 +56,6 @@ fdm::fdm(lexer *p)
 	gi=p->W20;
 	gj=p->W21;
 	gk=p->W22;
-
-
-    p->Iarray(pvccnode,p->facetnum*4,8);
-	p->Iarray(ccedge,p->facetnum*4);
     
     C4.allocate(p);
     C4a.allocate(p);

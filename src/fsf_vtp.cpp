@@ -41,10 +41,7 @@ fsf_vtp::~fsf_vtp()
 }
 
 void fsf_vtp::start(lexer *p, fdm *a, ghostcell *pgc)
-{
-	if(p->count==0)
-	ccini(p,a,pgc);
-	
+{	
 	triangulation(p,a,pgc,a->phi);
 	reconstruct(p,a,a->phi);
 	

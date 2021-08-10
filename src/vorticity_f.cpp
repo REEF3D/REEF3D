@@ -53,7 +53,7 @@ void vorticity_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 	pgc->dgcpol(p,omega3,p->dgc4,p->dgc4_count,14);
 
     // --
-    iin=4*(p->pointnum+p->ccptnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 
     TPLOOP
@@ -62,16 +62,9 @@ void vorticity_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 
 	result.write((char*)&ffn, sizeof (float));
 	}
-
-	for(n=0;n<p->ccptnum;n++)
-	{
-    ffn=float(p->ccipol4(omega1,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
-
-	result.write((char*)&ffn, sizeof (float));
-	}
 	
 	// --
-    iin=4*(p->pointnum+p->ccptnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 
     TPLOOP
@@ -80,16 +73,9 @@ void vorticity_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 
 	result.write((char*)&ffn, sizeof (float));
 	}
-
-	for(n=0;n<p->ccptnum;n++)
-	{
-    ffn=float(p->ccipol4(omega2,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
-
-	result.write((char*)&ffn, sizeof (float));
-	}
 	
 	// --
-    iin=4*(p->pointnum+p->ccptnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 
     TPLOOP
@@ -98,15 +84,6 @@ void vorticity_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 
 	result.write((char*)&ffn, sizeof (float));
 	}
-
-	for(n=0;n<p->ccptnum;n++)
-	{
-    ffn=float(p->ccipol4(omega3,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
-
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-
 }
 
 void vorticity_f::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
@@ -128,132 +105,14 @@ void vorticity_f::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, i
 
 void vorticity_f::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
-    offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
-	++n;
-}
-
-
-
-
-
-/*
-vorticity_f::vorticity_f(lexer *p, fdm *a)
-{
-}
-
-vorticity_f::~vorticity_f()
-{
-}
-
-void vorticity_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
-{
-    // xy plane
-    iin=4*(p->pointnum+p->ccptnum);
-    result.write((char*)&iin, sizeof (int));
-
-    TPLOOP
-	{
-	val = 0.25*(a->u(i,j,k) + a->u(i,j+1,k) + a->u(i,j,k+1) + a->u(i,j+1,k+1))*p->DXM
-        - 0.25*(a->v(i,j,k) + a->v(i+1,j,k) + a->u(i,j,k+1) + a->u(i+1,j,k+1))*p->DXM;
-
-    ffn=float(val);
-
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-	for(n=0;n<p->ccptnum;n++)
-	{
-	val = p->ccipol1(a->u,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2])*p->DXM
-        - p->ccipol2(a->v,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2])*p->DXM;
-
-    ffn=float(val);
-
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-	// xz plane
-    iin=4*(p->pointnum+p->ccptnum);
-    result.write((char*)&iin, sizeof (int));
-
-    TPLOOP
-	{
-	val = -0.25*(a->u(i,j,k) + a->u(i,j+1,k) + a->u(i,j,k+1) + a->u(i,j+1,k+1))*p->DXM
-        + 0.25*(a->w(i,j,k) + a->w(i+1,j,k) + a->w(i,j+1,k) + a->w(i+1,j+1,k))*p->DXM;
-
-    ffn=float(val);
-
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-	for(n=0;n<p->ccptnum;n++)
-	{
-	val = -p->ccipol1(a->u,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2])*p->DXM
-        + p->ccipol3(a->w,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2])*p->DXM;
-
-    ffn=float(val);
-
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-	// yz plane
-    iin=4*(p->pointnum+p->ccptnum);
-    result.write((char*)&iin, sizeof (int));
-
-    TPLOOP
-	{
-	val = -0.25*(a->v(i,j,k) + a->v(i+1,j,k) + a->u(i,j,k+1) + a->u(i+1,j,k+1))*p->DXM
-        + 0.25*(a->w(i,j,k) + a->w(i,j+1,k) + a->w(i+1,j,k) + a->w(i+1,j+1,k))*p->DXM;
-
-    ffn=float(val);
-
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-	for(n=0;n<p->ccptnum;n++)
-	{
-	val = -p->ccipol2(a->v,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2])*p->DXM
-        + p->ccipol3(a->w,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2])*p->DXM;
-
-    ffn=float(val);
-
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-}
-
-void vorticity_f::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
-{
-    result<<"<PDataArray type=\"Float32\" Name=\"vorticity Zn\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"vorticity Yn\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"vorticity Xn\"/>"<<endl;
-}
-
-void vorticity_f::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
-{
-    result<<"<DataArray type=\"Float32\" Name=\"vorticity Zn\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"vorticity Yn\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"vorticity Xn\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-
-}
-
-void vorticity_f::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
-{
-    offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
-	++n;
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
-	++n;
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 }
 
 
-*/
 
 

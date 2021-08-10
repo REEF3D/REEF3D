@@ -97,18 +97,12 @@ void sediment_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 	
     pgc->start4a(p,bss,1);
 	
-	iin=4*(p->pointnum+p->ccptnum);
+	iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	
 	TPLOOP
 	{
 	ffn=float(p->ipol4_a(bss));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-	for(n=0;n<p->ccptnum;n++)
-	{
-	ffn=float(p->ccipol4_a(bss,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
 	result.write((char*)&ffn, sizeof (float));
 	}
 }
@@ -126,6 +120,6 @@ void sediment_f::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, in
 
 void sediment_f::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
-    offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 }

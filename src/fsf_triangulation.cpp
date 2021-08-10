@@ -35,15 +35,6 @@ void fsf_vtp::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
 
     NDBASELOOP
     nodeflag(i,j,k)=0;
-	
-	for(n=0;n<p->facetnum;n++)
-	{
-		i=p->facet[n][0];
-		j=p->facet[n][1];
-		k=p->facet[n][2];
-		
-		vertice(i,j,k)=1;
-	}
 
     BASELOOP
     {
@@ -78,48 +69,6 @@ void fsf_vtp::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
 	NDBASELOOP
     vertice(i,j,k)=-1;
 	
-	// CC
-	
-	for(n=0;n<p->ccellnum;++n)
-	for(q=0;q<ccnode[n];++q)
-	{
-		if(ccid[n][q]==0)	
-		lscc[n][q] = p->ccipol4(a->phi,ccell[n][q][0],ccell[n][q][1],ccell[n][q][2]);
-		
-		if(ccid[n][q]==1)
-		{
-		i = ccijk[n][q][0];
-		j = ccijk[n][q][1];
-		k = ccijk[n][q][2];
-		lscc[n][q] = eta(i,j,k);
-		}
-	}
-	
-	for(n=0;n<p->ccellnum;++n)
-	ccflag[n]=0;
-	
-	countCC=0;
-	for(n=0;n<p->ccellnum;++n)
-	{
-		check=0;
-		negcount=0;
-		poscount=0;
-		for(q=0;q<ccnode[n];++q)
-		{
-			if(lscc[n][q]<zero)
-			++negcount;
-			
-			if(lscc[n][q]>zero)
-			++poscount;
-		}
-		if(negcount!=ccnode[n] && poscount!=ccnode[n])
-		{
-		++countCC;
-		ccflag[n]=1;
-		check=1;
-		}
-
-	}
 	
 	
 	//------
@@ -214,124 +163,6 @@ void fsf_vtp::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
     ++count;
     }
 
-	
-	// CC tri
-	for(n=0;n<p->ccellnum;++n)
-	if(ccflag[n]==1)
-    {	
-		for(q=0;q<ccnode[n];++q)
-		{
-		pt[countM][0] = ccell[n][q][0];
-		pt[countM][1] = ccell[n][q][1];
-		pt[countM][2] = ccell[n][q][2];
-		ls[countM] = lscc[n][q];
-		vertice_cc[n][q]=countM;
-		++countM;
-		}
-    }
-	
-	for(n=0;n<p->ccellnum;++n)
-	if(ccflag[n]==1)
-	{	
-		if(ccnode[n]==3)
-		{
-		// 1
-		tri[count][0] = vertice_cc[n][0];
-		tri[count][1] = vertice_cc[n][1];
-		tri[count][2] = vertice_cc[n][2];
-		tri[count][3] = vertice_cc[n][3];
-		++count;
-		}
-		
-		if(ccnode[n]==5)
-		{
-		// 1
-		tri[count][0] = vertice_cc[n][0];
-		tri[count][1] = vertice_cc[n][1];
-		tri[count][2] = vertice_cc[n][2];
-		tri[count][3] = vertice_cc[n][4];
-		++count;
-
-		// 2		
-		tri[count][0] = vertice_cc[n][0];
-		tri[count][1] = vertice_cc[n][2];
-		tri[count][2] = vertice_cc[n][3];
-		tri[count][3] = vertice_cc[n][4];
-		++count;
-		}
-		
-		if(ccnode[n]==6)
-		{
-		// 1
-		tri[count][0] = vertice_cc[n][0];
-		tri[count][1] = vertice_cc[n][1];
-		tri[count][2] = vertice_cc[n][2];
-		tri[count][3] = vertice_cc[n][4];
-		++count;
-
-		// 2		
-		tri[count][0] = vertice_cc[n][0];
-		tri[count][1] = vertice_cc[n][2];
-		tri[count][2] = vertice_cc[n][3];
-		tri[count][3] = vertice_cc[n][4];
-		++count;
-
-		// 3
-		tri[count][0] = vertice_cc[n][3];
-		tri[count][1] = vertice_cc[n][4];
-		tri[count][2] = vertice_cc[n][5];
-		tri[count][3] = vertice_cc[n][2];
-		++count;
-		}
-		
-		if(ccnode[n]==8)
-		{
-		// 1
-		tri[count][0] = vertice_cc[n][0];
-		tri[count][1] = vertice_cc[n][3];
-		tri[count][2] = vertice_cc[n][4];
-		tri[count][3] = vertice_cc[n][5];
-		++count;
-
-		// 2		
-		tri[count][0] = vertice_cc[n][0];
-		tri[count][1] = vertice_cc[n][1];
-		tri[count][2] = vertice_cc[n][3];
-		tri[count][3] = vertice_cc[n][5];
-		++count;
-
-		// 3
-		tri[count][0] = vertice_cc[n][3];
-		tri[count][1] = vertice_cc[n][2];
-		tri[count][2] = vertice_cc[n][1];
-		tri[count][3] = vertice_cc[n][5];
-		++count;
-
-		// 4
-		tri[count][0] = vertice_cc[n][2];
-		tri[count][1] = vertice_cc[n][3];
-		tri[count][2] = vertice_cc[n][5];
-		tri[count][3] = vertice_cc[n][6];
-		++count;
-
-		// 5
-		tri[count][0] = vertice_cc[n][3];
-		tri[count][1] = vertice_cc[n][7];
-		tri[count][2] = vertice_cc[n][6];
-		tri[count][3] = vertice_cc[n][5];
-		++count;
-
-		// 6
-		tri[count][0] = vertice_cc[n][3];
-		tri[count][1] = vertice_cc[n][4];
-		tri[count][2] = vertice_cc[n][5];
-		tri[count][3] = vertice_cc[n][7];
-		++count;		
-		}
-		
-		
-	}
-	//cout<<" "<<p->mpirank<<"  numtri_cc: "<<count<<endl;
     numtri=count;
 }
 

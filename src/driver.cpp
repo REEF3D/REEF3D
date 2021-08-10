@@ -43,7 +43,7 @@ driver::driver(int& argc, char **argv)
     cout<<endl<<"REEF3D (c) 2008-2021 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
     cout<< timenow << endl;
-    cout<<endl<<"v_210725"<<"; "<<BRANCH<<"; "<<VERSION<<endl<<endl;
+    cout<<endl<<"v_210802"<<"; "<<BRANCH<<"; "<<VERSION<<endl<<endl;
     }
 
 	p->lexer_read(pgc);
@@ -126,7 +126,7 @@ driver::driver(int& argc, char **argv)
         p->gridini2D();
         makegrid2D(p,pgc);
         pBC->patchBC_ini(p,pgc);
-        sf_driver();
+        sflow_driver();
     }
 }
 
@@ -198,7 +198,7 @@ void driver::ptf_driver()
     logic_ptf();
 }
 
-void driver::sf_driver()
+void driver::sflow_driver()
 {
     if(p->mpirank==0)
 	cout<<"initialize fdm"<<endl;

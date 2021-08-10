@@ -679,17 +679,16 @@ void driver::logic()
 	if(p->A10==5)
     loop_nsewave(a);
     
-    //if(p->A10==55)
-    //loop_nhflow(a);
-    
     if(p->A10==6 && p->X10==1 && p->X13==2) 
 	{
 		loop_cfd_df(a);
 	}
+    
     else if(p->A10==6)
 	{
 		loop_cfd(a);
 	}
+    
     else if(p->A10==55)
 	{
 		loop_nhflow(a);

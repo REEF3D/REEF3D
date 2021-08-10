@@ -37,7 +37,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"waves_header.h"
 #include"lexer.h"
 
-
 void driver::loop_nhflow(fdm* a)
 {
     driver_ini_nhflow();
@@ -78,7 +77,7 @@ void driver::loop_nhflow(fdm* a)
 			
             pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
             pheat->start(a,p,pconvec,pdiff,psolv,pgc,pflow);
-			pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
+			 pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
             psusp->start(a,p,pconcdisc,psuspdiff,psolv,pgc,pflow);
             
         
@@ -86,7 +85,7 @@ void driver::loop_nhflow(fdm* a)
         psed->start(p,a,pconvec,pgc,pflow,ptopo,preto,psusp,pbed);
 		
 		p6dof->start(p,a,pgc,1.0,pvrans,pnet);
-
+        pmom->start(p,a,pgc,pvrans); 
         pbench->start(p,a,pgc,pconvec);
 
         //save previous timestep
@@ -97,7 +96,6 @@ void driver::loop_nhflow(fdm* a)
         //timestep control
         p->simtime+=p->dt;
         ptstep->start(a,p,pgc,pturb);
-        
         
         // printer
         pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);

@@ -36,23 +36,16 @@ concentration_io::~concentration_io()
 void concentration_io::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 {
 	
-	iin=4*(p->pointnum+p->ccptnum);
+	iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	
 	TPLOOP
 	{
 	ffn=float(p->ipol4(C));
 	result.write((char*)&ffn, sizeof (float));
-	}
-
-	for(n=0;n<p->ccptnum;n++)
-	{
-	ffn=float(p->ccipol4(C,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
-	result.write((char*)&ffn, sizeof (float));
-	}
+	}	
 	
-	
-	iin=4*(p->pointnum+p->ccptnum);
+	iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 
 	TPLOOP
@@ -60,21 +53,11 @@ void concentration_io::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &resu
 	ffn=float(p->ipol4(a->ro));
 	result.write((char*)&ffn, sizeof (float));
 	}
-
-	for(n=0;n<p->ccptnum;n++)
-	{
-	ffn=float(p->ccipol4(a->ro,p->ccpoint[n][0],p->ccpoint[n][1],p->ccpoint[n][2]));
-	result.write((char*)&ffn, sizeof (float));
-	}
 }
 
 double concentration_io::val(int ii, int jj, int kk)
 {
     double val;
-    
-    /*i=ii;
-    j=jj;
-    k=kk;*/
 
     val=C(ii,jj,kk);
 
@@ -97,8 +80,8 @@ void concentration_io::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &resu
 
 void concentration_io::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
-    offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
-	offset[n]=offset[n-1]+4*(p->pointnum+p->ccptnum)+4;
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 }

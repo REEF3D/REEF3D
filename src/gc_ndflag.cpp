@@ -75,41 +75,5 @@ void ghostcell::ndflag_update(lexer *p)
     
     p->ndbaseflag[Im1Jm1Km1]=11;
     }
-
-    for(n=0;n<p->facetnum;n++)
-    {
-        i=p->facet[n][0];
-        j=p->facet[n][1];
-        k=p->facet[n][2];
-
-    if(p->ndbaseflag[Im1Jm1K]<0)
-    p->ndbaseflag[Im1Jm1K]=11;
-
-    if(p->ndbaseflag[Im1JK]<0)
-    p->ndbaseflag[Im1JK]=11;
-
-    if(p->ndbaseflag[IJm1K]<0)
-    p->ndbaseflag[IJm1K]=11;
-
-    if(p->ndbaseflag[IJK]<0)
-    p->ndbaseflag[IJK]=11;
-
-
-    if(p->ndbaseflag[Im1Jm1Km1]<0)
-    p->ndbaseflag[Im1Jm1Km1]=11;
-
-    if(p->ndbaseflag[Im1JK-1]<0)
-    p->ndbaseflag[Im1JKm1]=11;
-
-    if(p->ndbaseflag[IJm1K-1]<0)
-    p->ndbaseflag[IJm1Km1]=11;
-
-    if(p->ndbaseflag[IJKm1]<0)
-    p->ndbaseflag[IJKm1]=11;
-    }
-    
-    /*BASELOOP
-    if(k==2 && i==0 && j==0)
-    cout<<p->mpirank<<" . "<<p->flag4[Im1Jm1K]<<"  "<<p->ndbaseflag[Im1Jm1K]<<" . "<<p->ndbaseflag[IJK]<<endl;*/
 }
 
