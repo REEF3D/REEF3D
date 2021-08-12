@@ -478,6 +478,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="FDM">
       <VirtualDirectory Name="DDWENO">
+        <File Name="ddweno3_f_nug.h"/>
         <File Name="ddweno_f_nug.h"/>
         <File Name="weno3_nug_func.h"/>
         <File Name="weno_nug_func.h"/>
@@ -1604,6 +1605,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="FDM">
       <VirtualDirectory Name="DDWENO">
+        <File Name="ddweno3_f_nug.cpp"/>
         <File Name="ddweno_f_nug.cpp"/>
         <File Name="weno3_nug_func_precalc_weights.cpp"/>
         <File Name="weno3_nug_func_precalc_qf.cpp"/>
