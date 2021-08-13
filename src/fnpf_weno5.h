@@ -24,8 +24,8 @@ Author: Hans Bihs
 #include"increment.h"
 #include"ddweno_f_nug.h"
 
-#ifndef FNPF_WENO_H_
-#define FNPF_WENO_H_
+#ifndef FNPF_WENO5_H_
+#define FNPF_WENO5_H_
 
 using namespace std;
 

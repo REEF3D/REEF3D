@@ -37,6 +37,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_cds2.h"
 #include"fnpf_cds4.h"
 #include"fnpf_cds6.h"
+#include"fnpf_weno3.h"
 #include"fnpf_weno5.h"
 #include"fnpf_weno5_wd.h"
 #include"fnpf_weno7.h"
@@ -58,6 +59,9 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p
     
     if(p->A311==2)
     pconvec = pconeta = new fnpf_cds4_wd(p);
+    
+    if(p->A311==3)
+    pconvec = pconeta = new fnpf_weno3(p);
     
     if(p->A311==4  || p->A311==5)
     {
