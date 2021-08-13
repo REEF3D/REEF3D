@@ -24,16 +24,16 @@ Author: Hans Bihs
 #include"increment.h"
 #include"fnpf_ddweno_f_nug.h"
 
-#ifndef FNPF_WENO_WD_H_
-#define FNPF_WENO_WD_H_
+#ifndef FNPF_WENO5_WD_H_
+#define FNPF_WENO5_WD_H_
 
 using namespace std;
 
-class fnpf_weno_wd : public fnpf_convection, public increment, public fnpf_ddweno_f_nug
+class fnpf_weno5_wd : public fnpf_convection, public increment, public fnpf_ddweno_f_nug
 {
 public:
-	fnpf_weno_wd(lexer*,fdm_fnpf*);
-	virtual ~fnpf_weno_wd();
+	fnpf_weno5_wd(lexer*,fdm_fnpf*);
+	virtual ~fnpf_weno5_wd();
 
     virtual double fx(lexer*, field&, double, double);
 	virtual double fy(lexer*, field&, double, double);

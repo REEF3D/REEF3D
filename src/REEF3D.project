@@ -303,6 +303,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="fnpf_weno3.h"/>
           <File Name="fnpf_wenoflux.h"/>
           <File Name="fnpf_weno_wd.h"/>
           <File Name="fnpf_weno7.h"/>
@@ -1276,6 +1277,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="fnpf_weno3.cpp"/>
           <File Name="fnpf_wenoflux.cpp"/>
           <File Name="fnpf_weno_wd.cpp"/>
           <File Name="fnpf_weno7.cpp"/>

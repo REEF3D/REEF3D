@@ -29,11 +29,11 @@ Author: Hans Bihs
 
 using namespace std;
 
-class fnpf_weno : public fnpf_convection, public increment, public ddweno_f_nug
+class fnpf_weno5 : public fnpf_convection, public increment, public ddweno_f_nug
 {
 public:
-	fnpf_weno(lexer*);
-	virtual ~fnpf_weno();
+	fnpf_weno5(lexer*);
+	virtual ~fnpf_weno5();
 
     virtual double fx(lexer*, field&, double, double);
 	virtual double fy(lexer*, field&, double, double);

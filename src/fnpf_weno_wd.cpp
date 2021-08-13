@@ -19,12 +19,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"fnpf_weno_wd.h"
+#include"fnpf_weno5_wd.h"
 #include"lexer.h"
 #include"vec.h"
 #include"fnpf_discrete_weights.h"
 
-fnpf_weno_wd::fnpf_weno_wd(lexer *p,fdm_fnpf *c) :  fnpf_ddweno_f_nug(p,c)
+fnpf_weno5_wd::fnpf_weno5_wd(lexer *p,fdm_fnpf *c) :  fnpf_ddweno_f_nug(p,c)
 {
     p->Darray(ckz,p->knoz+1+4*marge,5);
     
@@ -33,11 +33,11 @@ fnpf_weno_wd::fnpf_weno_wd(lexer *p,fdm_fnpf *c) :  fnpf_ddweno_f_nug(p,c)
     dw.ck_weights(p, ckz, p->ZN, p->knoz+1, 1, 4, 6);
 }
 
-fnpf_weno_wd::~fnpf_weno_wd()
+fnpf_weno5_wd::~fnpf_weno5_wd()
 {
 }
 
-double fnpf_weno_wd::fx(lexer *p, field &f, double ivel1, double ivel2)
+double fnpf_weno5_wd::fx(lexer *p, field &f, double ivel1, double ivel2)
 {
     grad=0.0;
     
@@ -50,7 +50,7 @@ double fnpf_weno_wd::fx(lexer *p, field &f, double ivel1, double ivel2)
     return grad;
 }
 
-double fnpf_weno_wd::fy(lexer *p, field &f, double jvel1, double jvel2)
+double fnpf_weno5_wd::fy(lexer *p, field &f, double jvel1, double jvel2)
 {
     grad=0.0;
     
@@ -63,7 +63,7 @@ double fnpf_weno_wd::fy(lexer *p, field &f, double jvel1, double jvel2)
     return grad;
 }
 
-double fnpf_weno_wd::fz(lexer *p, field &f, double kvel1, double kvel2)
+double fnpf_weno5_wd::fz(lexer *p, field &f, double kvel1, double kvel2)
 {
     grad=0.0;
     
@@ -76,7 +76,7 @@ double fnpf_weno_wd::fz(lexer *p, field &f, double kvel1, double kvel2)
     return grad;
 }
 
-double fnpf_weno_wd::sx(lexer *p, slice &f, double ivel)
+double fnpf_weno5_wd::sx(lexer *p, slice &f, double ivel)
 {
     grad=0.0;
     
@@ -89,7 +89,7 @@ double fnpf_weno_wd::sx(lexer *p, slice &f, double ivel)
     return grad;
 }
 
-double fnpf_weno_wd::sy(lexer *p, slice &f, double jvel)
+double fnpf_weno5_wd::sy(lexer *p, slice &f, double jvel)
 {
     grad=0.0;
     
@@ -102,7 +102,7 @@ double fnpf_weno_wd::sy(lexer *p, slice &f, double jvel)
     return grad;   
 }
 
-double fnpf_weno_wd::sz(lexer *p, double *f)
+double fnpf_weno5_wd::sz(lexer *p, double *f)
 {
     grad = (ckz[p->knoz+marge][4]*f[FIJK] + ckz[p->knoz+marge][3]*f[FIJKm1] + ckz[p->knoz+marge][2]*f[FIJKm2] 
         + ckz[p->knoz+marge][1]*f[FIJKm3] + ckz[p->knoz+marge][0]*f[FIJKm4]);
