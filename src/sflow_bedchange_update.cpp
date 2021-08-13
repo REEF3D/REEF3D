@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm2D.h" 
 #include"ghostcell.h"
-#include"fnpf_weno.h"
+#include"fnpf_weno5.h"
 
 void sflow_sediment_f::bedchange_update(lexer *p, fdm2D *b, ghostcell *pgc)
 {

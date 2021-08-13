@@ -303,11 +303,11 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="fnpf_weno5_wd.h"/>
+          <File Name="fnpf_weno5.h"/>
           <File Name="fnpf_weno3.h"/>
           <File Name="fnpf_wenoflux.h"/>
-          <File Name="fnpf_weno_wd.h"/>
           <File Name="fnpf_weno7.h"/>
-          <File Name="fnpf_weno.h"/>
           <File Name="fnpf_voiddisc.h"/>
           <File Name="fnpf_etadisc.h"/>
           <File Name="fnpf_convection.h"/>
@@ -1277,11 +1277,11 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="fnpf_weno5_wd.cpp"/>
+          <File Name="fnpf_weno5.cpp"/>
           <File Name="fnpf_weno3.cpp"/>
           <File Name="fnpf_wenoflux.cpp"/>
-          <File Name="fnpf_weno_wd.cpp"/>
           <File Name="fnpf_weno7.cpp"/>
-          <File Name="fnpf_weno.cpp"/>
           <File Name="fnpf_voiddisc.cpp"/>
           <File Name="fnpf_cds6_wd.cpp"/>
           <File Name="fnpf_cds6.cpp"/>
