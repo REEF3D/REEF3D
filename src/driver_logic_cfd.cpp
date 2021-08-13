@@ -609,7 +609,7 @@ void driver::logic()
     if(p->S10==0 && p->G1==0)
     preto = new reinitopo_void();
 
-    if(p->S10>=1 || p->G1==1)
+    if(p->S10>=1 || p->G1==1 || p->toporead==1)
     {
     if(p->G40==0)
     preto = new reinitopo_void();
