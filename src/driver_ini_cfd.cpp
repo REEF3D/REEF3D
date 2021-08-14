@@ -61,7 +61,6 @@ cout<<"number of cells: "<<p->cellnumtot<<endl;
 if(p->mpirank==0)
 cout<<"starting driver_ini"<<endl;
     
-    
 	// Solid
     if(p->solidread==1)
     {
