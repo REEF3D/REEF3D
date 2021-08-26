@@ -41,6 +41,7 @@ fdm::fdm(lexer *p)
             eta(p),eta_n(p),WL(p),depth(p),Fifsf(p),
             Fz(p),
             bed(p),bedzh(p),bedzh0(p),
+            dh(p),reduce(p),
             bedk(p),wet(p),
             bedload(p),
             P(p),Q(p),K(p),

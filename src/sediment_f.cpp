@@ -35,11 +35,10 @@ Author: Hans Bihs
 #include"sandslide_pde.h"
 #include"sandslide_v.h"
 #include"topo_relax.h"
-#include"bedslope.h"
 #include"vrans_v.h"
 #include"vrans_f.h"
 
-sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb): bedtau(p)
+sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb): bedtau(p),bedslope(p),f(p)
 {
     if(p->S90==0)
     pslide=new sandslide_v(p);   

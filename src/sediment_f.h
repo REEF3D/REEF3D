@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"slice4.h"
 #include"field4a.h"
 #include"increment.h"
+#include"bedslope.h"
 
 class sandslide;
 class topo_relax;
@@ -37,7 +38,7 @@ using namespace std;
 #ifndef SEDIMENT_F_H_
 #define SEDIMENT_F_H_
 
-class sediment_f : public sediment, public increment
+class sediment_f : public sediment, public bedslope
 {
 public:
     sediment_f(lexer*,fdm*,ghostcell*,turbulence*);
@@ -62,10 +63,15 @@ public:
     virtual void name_vtu_bedshear(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
     virtual void offset_vtu_bedshear(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
     
-    virtual void print_3D_parameters(lexer*, fdm*, ghostcell*,ofstream&);
-	virtual void name_pvtu_parameters(lexer*, fdm*, ghostcell*,ofstream&);
-    virtual void name_vtu_parameters(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
-    virtual void offset_vtu_parameters(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    virtual void print_3D_parameter1(lexer*, fdm*, ghostcell*,ofstream&);
+	virtual void name_pvtu_parameter1(lexer*, fdm*, ghostcell*,ofstream&);
+    virtual void name_vtu_parameter1(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_vtu_parameter1(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    
+    virtual void print_3D_parameter2(lexer*, fdm*, ghostcell*,ofstream&);
+	virtual void name_pvtu_parameter2(lexer*, fdm*, ghostcell*,ofstream&);
+    virtual void name_vtu_parameter2(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_vtu_parameter2(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
     
 
 private:
@@ -75,7 +81,7 @@ private:
 	
 	bedshear *pbedshear;
     
-    slice4 bedtau;
+    slice4 bedtau,f;
     
     
     

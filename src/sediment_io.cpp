@@ -77,10 +77,12 @@ void sediment_f::fill_bedk(lexer *p, fdm *a,ghostcell *pgc)
 void sediment_f::fill_bss(lexer *p, fdm *a,ghostcell *pgc)
 {
 	double tau_eff,shearvel_eff,shields_eff;
+    double tau_crit, shearvel_crit, shields_crit;
 
     SLICELOOP4
     {
 	pbedshear->taubed(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
+    pbedshear->taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
 	bedtau(i,j) = shields_eff;
 	}
 	
@@ -91,7 +93,20 @@ void sediment_f::print_3D_bedshear(lexer* p, fdm *a, ghostcell *pgc, ofstream &r
 {	
 	float ffn;
 	int iin;
-	
+    double tau_eff,shearvel_eff,shields_eff;
+    double tau_crit, shearvel_crit, shields_crit;
+    
+    if(p->P79==1)
+    {
+        
+	// tau_eff
+    SLICELOOP4
+    {
+    pbedshear->taubed(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
+    f(i,j) = tau_eff;
+    }
+    pgc->gcsl_start4(p,f,1);
+    
 	iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	
@@ -100,30 +115,281 @@ void sediment_f::print_3D_bedshear(lexer* p, fdm *a, ghostcell *pgc, ofstream &r
     ffn=float(p->sl_ipol4(bedtau));
 	result.write((char*)&ffn, sizeof (float));
 	}
+    
+    // tau_crit
+    SLICELOOP4
+    {
+    pbedshear->taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
+    f(i,j) = tau_crit;
+    }
+    pgc->gcsl_start4(p,f,1);
+    
+	iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	
+	TPLOOP
+	{
+    ffn=float(p->sl_ipol4(bedtau));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
+    }
+    
+    
+    if(p->P79==2)
+    {
+        
+	// shearvel_eff
+    SLICELOOP4
+    {
+    pbedshear->taubed(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
+    f(i,j) = shearvel_eff;
+    }
+    pgc->gcsl_start4(p,f,1);
+    
+	iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	
+	TPLOOP
+	{
+    ffn=float(p->sl_ipol4(bedtau));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
+    // shearvel_crit
+    SLICELOOP4
+    {
+    pbedshear->taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
+    f(i,j) = shearvel_crit;
+    }
+    pgc->gcsl_start4(p,f,1);
+    
+	iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	
+	TPLOOP
+	{
+    ffn=float(p->sl_ipol4(bedtau));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
+    }
+    
+    
+    if(p->P79==3)
+    {
+        
+	// shields_eff
+    SLICELOOP4
+    {
+    pbedshear->taubed(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
+    f(i,j) = shields_eff;
+    }
+    pgc->gcsl_start4(p,f,1);
+    
+	iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	
+	TPLOOP
+	{
+    ffn=float(p->sl_ipol4(bedtau));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
+    // shields_crit
+    SLICELOOP4
+    {
+    pbedshear->taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
+    f(i,j) = shields_crit;
+    }
+    pgc->gcsl_start4(p,f,1);
+    
+	iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	
+	TPLOOP
+	{
+    ffn=float(p->sl_ipol4(bedtau));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
+    }
 }
 
 void sediment_f::name_pvtu_bedshear(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
-    result<<"<PDataArray type=\"Float32\" Name=\"bedshear\"/>"<<endl;
+    if(p->P79==1)
+    {
+    result<<"<PDataArray type=\"Float32\" Name=\"tau_eff\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"tau_crit\"/>"<<endl;
+    }
+    
+    if(p->P79==2)
+    {
+    result<<"<PDataArray type=\"Float32\" Name=\"shearvel_eff\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"shearvel_crit\"/>"<<endl;
+    }
+    
+    if(p->P79==2)
+    {
+    result<<"<PDataArray type=\"Float32\" Name=\"shields_eff\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"shields_crit\"/>"<<endl;
+    }
 }
 
 void sediment_f::name_vtu_bedshear(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
-    result<<"<DataArray type=\"Float32\" Name=\"bedshear\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    if(p->P79==1)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\"tau_eff\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"tau_crit\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    }
+    
+    if(p->P79==2)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\"shearvel_eff\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"shearvel_crit\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    }
+    
+    if(p->P79==3)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\"shields_eff\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"shields_crit\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    }
 }
 
 void sediment_f::offset_vtu_bedshear(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
 }
 
-void sediment_f::print_3D_parameters(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
+void sediment_f::print_3D_parameter1(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
+{	
+	float ffn;
+    double teta,alpha,gamma,phi;
+	int iin;
+    
+    // alpha
+    SLICELOOP4
+    {
+    slope(p,a,pgc,teta,alpha,gamma,phi);
+    f(i,j) = alpha;
+    }
+    pgc->gcsl_start4(p,f,1);
+	
+	iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	
+	TPLOOP
+	{
+    ffn=float(p->sl_ipol4(f));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
+    // teta
+    SLICELOOP4
+    {
+    slope(p,a,pgc,teta,alpha,gamma,phi);
+    f(i,j) = teta;
+    }
+    pgc->gcsl_start4(p,f,1);
+	
+	iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	
+	TPLOOP
+	{
+    ffn=float(p->sl_ipol4(f));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
+    // gamma
+    SLICELOOP4
+    {
+    slope(p,a,pgc,teta,alpha,gamma,phi);
+    f(i,j) = gamma;
+    }
+    pgc->gcsl_start4(p,f,1);
+	
+	iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	
+	TPLOOP
+	{
+    ffn=float(p->sl_ipol4(f));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
+    // phi
+    SLICELOOP4
+    {
+    slope(p,a,pgc,teta,alpha,gamma,phi);
+    f(i,j) = phi;
+    }
+    pgc->gcsl_start4(p,f,1);
+	
+	iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	
+	TPLOOP
+	{
+    ffn=float(p->sl_ipol4(f));
+	result.write((char*)&ffn, sizeof (float));
+	}
+}
+
+void sediment_f::name_pvtu_parameter1(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+{
+    result<<"<PDataArray type=\"Float32\" Name=\"bed_alpha\"/>"<<endl;
+    
+    result<<"<PDataArray type=\"Float32\" Name=\"bed_teta\"/>"<<endl;
+    
+    result<<"<PDataArray type=\"Float32\" Name=\"bed_gamma\"/>"<<endl;
+    
+    result<<"<PDataArray type=\"Float32\" Name=\"bed_phi\"/>"<<endl;
+}
+
+void sediment_f::name_vtu_parameter1(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+{
+    result<<"<DataArray type=\"Float32\" Name=\"bed_alpha\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"bed_teta\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"bed_gamma\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"bed_phi\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+}
+
+void sediment_f::offset_vtu_parameter1(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+{
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
+}
+
+
+void sediment_f::print_3D_parameter2(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 {	
 	float ffn;
 	int iin;
 	
+    
+    // alpha
 	iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	
@@ -134,18 +400,18 @@ void sediment_f::print_3D_parameters(lexer* p, fdm *a, ghostcell *pgc, ofstream 
 	}
 }
 
-void sediment_f::name_pvtu_parameters(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void sediment_f::name_pvtu_parameter2(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"bedshear\"/>"<<endl;
 }
 
-void sediment_f::name_vtu_parameters(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_f::name_vtu_parameter2(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"bedshear\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 }
 
-void sediment_f::offset_vtu_parameters(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_f::offset_vtu_parameter2(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;

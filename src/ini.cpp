@@ -449,8 +449,8 @@ void lexer::ini_default()
     P71=0;           // int print viscosity to vtu
 	P75=0;            // int print out vorticity vec
     P76=0;            // int print out velocity magnitude as scalar
-    P77=0;            // int print out sediment parameters: dz/dt, r, 
-    P78=0;            // int print out critical shear stress when running sediment transport
+    P77=0;            // int print out sediment parameters: dz/dt
+    P78=0;            // int print out sediment parameters: r 
 	P79=0;            // int print out bed shear stress when running sediment transport
 	P81=0;            // int force print out
 	P85=0;            // int rectangular force print out

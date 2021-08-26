@@ -53,10 +53,15 @@ public:
     virtual void name_vtu_bedshear(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)=0;
     virtual void offset_vtu_bedshear(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)=0;
     
-    virtual void print_3D_parameters(lexer*, fdm*, ghostcell*,ofstream&)=0;
-	virtual void name_pvtu_parameters(lexer*, fdm*, ghostcell*,ofstream&)=0;
-    virtual void name_vtu_parameters(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)=0;
-    virtual void offset_vtu_parameters(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)=0;
+    virtual void print_3D_parameter1(lexer*, fdm*, ghostcell*,ofstream&)=0;
+	virtual void name_pvtu_parameter1(lexer*, fdm*, ghostcell*,ofstream&)=0;
+    virtual void name_vtu_parameter1(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)=0;
+    virtual void offset_vtu_parameter1(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)=0;
+    
+    virtual void print_3D_parameter2(lexer*, fdm*, ghostcell*,ofstream&)=0;
+	virtual void name_pvtu_parameter2(lexer*, fdm*, ghostcell*,ofstream&)=0;
+    virtual void name_vtu_parameter2(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)=0;
+    virtual void offset_vtu_parameter2(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)=0;
 
 };
 
