@@ -112,7 +112,7 @@ void sediment_f::print_3D_bedshear(lexer* p, fdm *a, ghostcell *pgc, ofstream &r
 	
 	TPLOOP
 	{
-    ffn=float(p->sl_ipol4(bedtau));
+    ffn=float(p->sl_ipol4(f));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -129,7 +129,7 @@ void sediment_f::print_3D_bedshear(lexer* p, fdm *a, ghostcell *pgc, ofstream &r
 	
 	TPLOOP
 	{
-    ffn=float(p->sl_ipol4(bedtau));
+    ffn=float(p->sl_ipol4(f));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -152,7 +152,7 @@ void sediment_f::print_3D_bedshear(lexer* p, fdm *a, ghostcell *pgc, ofstream &r
 	
 	TPLOOP
 	{
-    ffn=float(p->sl_ipol4(bedtau));
+    ffn=float(p->sl_ipol4(f));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -169,7 +169,7 @@ void sediment_f::print_3D_bedshear(lexer* p, fdm *a, ghostcell *pgc, ofstream &r
 	
 	TPLOOP
 	{
-    ffn=float(p->sl_ipol4(bedtau));
+    ffn=float(p->sl_ipol4(f));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -192,7 +192,7 @@ void sediment_f::print_3D_bedshear(lexer* p, fdm *a, ghostcell *pgc, ofstream &r
 	
 	TPLOOP
 	{
-    ffn=float(p->sl_ipol4(bedtau));
+    ffn=float(p->sl_ipol4(f));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -209,7 +209,7 @@ void sediment_f::print_3D_bedshear(lexer* p, fdm *a, ghostcell *pgc, ofstream &r
 	
 	TPLOOP
 	{
-    ffn=float(p->sl_ipol4(bedtau));
+    ffn=float(p->sl_ipol4(f));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
