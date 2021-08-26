@@ -38,16 +38,14 @@ driver::driver(int& argc, char **argv)
     {
     cout<<endl<<"REEF3D (c) 2008-2021 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    cout<<endl<<"v_210819" <<endl<<endl;
+    cout<<endl<<"v_210826" <<endl<<endl;
     }
 
 	p->lexer_read(pgc);
 	pgc->gcini(p);
     p->gridini(pgc);
     patchBC_logic();
-    
-    if(p->mpirank==0 && p->B90==1)
-    cout<<endl<<"!!! IMPORTANT NOTICE: changed input for B91, B93 and B96. please check the manual !!!"<<endl<<endl;
+
 
     if(p->mpirank==0)
     {

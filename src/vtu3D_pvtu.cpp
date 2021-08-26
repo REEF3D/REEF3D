@@ -100,13 +100,13 @@ void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
 	result<<"<PDataArray type=\"Float32\" Name=\"eddyv\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"phi\"/>"<<endl;
 
-	pheat->name_vtu(p,a,pgc,result,offset,n);
+	pheat->name_pvtu(p,a,pgc,result);
 
-    pvort->name_vtu(p,a,pgc,result,offset,n);
+    pvort->name_pvtu(p,a,pgc,result);
 	
-	pdata->name_vtu(p,a,pgc,result,offset,n);
+	pdata->name_pvtu(p,a,pgc,result);
 	
-	pconc->name_vtu(p,a,pgc,result,offset,n);
+	pconc->name_pvtu(p,a,pgc,result);
     
     if(p->P24==1)
     result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>"<<endl;
@@ -114,7 +114,7 @@ void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
     if(p->P71==1)
     result<<"<PDataArray type=\"Float32\" Name=\"viscosity\"/>"<<endl;
     
-    if(p->P78==1)
+    if(p->P76==1)
     result<<"<PDataArray type=\"Float32\" Name=\"velocity scalar\"/>"<<endl;
     
     if(p->A10==4)
@@ -129,8 +129,8 @@ void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
 	if(p->P27==1)
 	result<<"<PDataArray type=\"Float32\" Name=\"topo\"/>"<<endl;
 	
-	if(p->P79==1)
-	psed->name_vtu(p,a,pgc,result,offset,n);
+	if(p->P79>=1)
+	psed->name_pvtu_bedshear(p,a,pgc,result);
     
     if(p->P23==1)
 	result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;

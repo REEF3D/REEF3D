@@ -63,6 +63,7 @@ void bedload_EF::start(lexer* p, fdm* a, ghostcell* pgc)
         qb=0.0;
 	
         a->bedload(i,j) = qb;
+        //a->test(i,j,k) = tau_crit;
 	}
     
     pgc->gcsl_start4(p,a->bedload,1);

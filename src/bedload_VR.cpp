@@ -56,14 +56,19 @@ void bedload_VR::start(lexer* p, fdm* a, ghostcell* pgc)
 
         //Ti=MAX((shearvel_eff*shearvel_eff-shearvel_crit*shearvel_crit)/(shearvel_crit*shearvel_crit),0.0);
         Ti=MAX((shields_eff-shields_crit)/(shields_crit),0.0);
+        //cout<<shields_eff<<" "<<shields_crit<<endl;
         
         if(shearvel_eff>shearvel_crit)
-        qb =(0.053*pow(d50,1.5)*sqrt(g*Rstar)*pow(Ti,2.1))/pow(Ds,0.3)  ;
+        {
+        qb =(0.053*pow(d50,1.5)*sqrt(g*Rstar)*pow(Ti,2.1))/pow(Ds,0.3);
+        
+        }
 
         if(shearvel_eff<=shearvel_crit)
         qb=0.0;
 		
 		a->bedload(i,j) = qb;
+        a->test(i,j,k) = shields_crit;
         
 	}
     

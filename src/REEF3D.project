@@ -250,6 +250,9 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="FNPF">
+        <VirtualDirectory Name="Breaking">
+          <File Name="fnpf_breaking.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Update">
           <File Name="fnpf_fsf_update.h"/>
           <File Name="fnpf_bed_update.h"/>
@@ -278,7 +281,6 @@
           <File Name="fnpf_ini.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSFBC">
-          <File Name="fnpf_breaking.h"/>
           <File Name="fnpf_fsfbc_wd.h"/>
           <File Name="fnpf_fsfbc.h"/>
           <File Name="fnpf_fsf.h"/>
@@ -1188,6 +1190,13 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="FNPF">
+        <VirtualDirectory Name="Breaking">
+          <File Name="fnpf_breaking_v3.cpp"/>
+          <File Name="fnpf_breaking_v2.cpp"/>
+          <File Name="fnpf_breaking_v1.cpp"/>
+          <File Name="fnpf_breaking_filter.cpp"/>
+          <File Name="fnpf_breaking.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Update">
           <File Name="fnpf_bed_update.cpp"/>
           <File Name="fnpf_fsf_update.cpp"/>
@@ -1246,8 +1255,6 @@
           <File Name="fnpf_ini.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSFBC">
-          <File Name="fnpf_breaking_filter.cpp"/>
-          <File Name="fnpf_breaking.cpp"/>
           <File Name="fnpf_fsfbc_breaking.cpp"/>
           <File Name="fnpf_fsfbc_wd_wetdry.cpp"/>
           <File Name="fnpf_fsfbc_wd_damping.cpp"/>

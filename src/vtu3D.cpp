@@ -437,7 +437,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
     
          // velocity magnitude
-	if(p->P78==1)
+	if(p->P76==1)
 	{
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
@@ -467,8 +467,8 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
 	
 		// bed shear stress
-	if(p->P79==1)
-	psed->offset_vtu(p,a,pgc,result,offset,n);
+	if(p->P79>=1)
+	psed->offset_vtu_bedshear(p,a,pgc,result,offset,n);
     
     // test
     if(p->P23==1)
@@ -556,7 +556,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     ++n;
 	}
     
-    if(p->P78==1)
+    if(p->P76==1)
 	{
     result<<"<DataArray type=\"Float32\" Name=\"velocity scalar\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -582,8 +582,8 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     ++n;
 	}
 	
-	if(p->P79==1)
-	psed->name_vtu(p,a,pgc,result,offset,n);
+	if(p->P79>=1)
+	psed->name_vtu_bedshear(p,a,pgc,result,offset,n);
     
     if(p->P23==1)
 	{
@@ -720,7 +720,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
     
 //  velocity scalar
-    if(p->P78==1)
+    if(p->P76==1)
 	{
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
@@ -778,8 +778,8 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
 	
 //  bed shear stress
-	if(p->P79==1)
-    psed->print_3D(p,a,pgc,result);
+	if(p->P79>=1)
+    psed->print_3D_bedshear(p,a,pgc,result);
     
     if(p->P23==1)
 	{
