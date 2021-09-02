@@ -20,40 +20,40 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"norm_vec.h"
-#include"bedslope.h"
+
+#include"sliceint4.h"
+#include"slice4.h"
 #include"field4a.h"
-#include"sandslide.h"
 
 using namespace std;
 
-#ifndef SANDSLIDE_PDE_H_
-#define SANDSLIDE_PDE_H_
+#ifndef SEDIMENT_FDM_H_
+#define SEDIMENT_FDM_H_
 
-class sandslide_pde :  public sandslide, public norm_vec, public bedslope
+class sediment_fdm
 {
 public:
-    sandslide_pde(lexer*);
-    virtual ~sandslide_pde();
-
-	virtual void start(lexer*, fdm*,ghostcell*,sediment_fdm*);
-
-private:
-
-    void slide(lexer*, fdm*,ghostcell*);
-    void diff_update(lexer*, fdm*,ghostcell*);
-    void topo_zh_update(lexer*,fdm*,ghostcell*);
-	
-    field4a fh,ci;
+    sediment_fdm(lexer*);
+	virtual ~sediment_fdm();
     
-    int gcval_topo,count;
+    slice4 bedzh,bedzh0;
+    slice4 dh,reduce;
+    
+    slice4 tau_eff,tau_crit;
+    slice4 shearvel_eff,shearvel_crit;
+    slice4 shields_eff, shields_crit;
+    
+    slice4 bedload;
+    
+    slice4 alpha,teta,gamma,phi;
+    
+    
+    sliceint4 bedk;
+    sliceint4 slideflag;
 
-    double fac1, fac2;
-    double dh,maxdh,maxdhs,dxs,dh_corr;
-    double slide_dh,slide_dhs;
-	double teta, alpha, beta, gamma;
-    double phi;
-}; 
+    
+    
+    
+};
 
 #endif
-

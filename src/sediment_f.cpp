@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 #include"sediment_f.h"
+#include"sediment_fdm.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -40,6 +41,8 @@ Author: Hans Bihs
 
 sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb): bedtau(p),bedslope(p),f(p)
 {
+    s = new sediment_fdm(p);
+    
     if(p->S90==0)
     pslide=new sandslide_v(p);   
     
@@ -106,6 +109,10 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
     
     // find bedk
     fill_bedk(p,a,pgc);
+    
+    // bedslope
+    
+    // bedslope reduction 
 	
     // bedshear stress
 	fill_bss(p,a,pgc);
@@ -117,7 +124,7 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
     ptopo->start(a,p,pconvec,pgc,preto);
     
     // sandslide
-    pslide->start(p,a,pgc);
+    pslide->start(p,a,pgc,s);
     
 	prelax->start(p,a,pgc);
 	

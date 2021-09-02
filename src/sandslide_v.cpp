@@ -33,7 +33,7 @@ sandslide_v::~sandslide_v()
 {
 }
 
-void sandslide_v::start(lexer *p, fdm * a, ghostcell *pgc)
+void sandslide_v::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
 
 }

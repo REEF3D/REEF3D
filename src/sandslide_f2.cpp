@@ -48,7 +48,7 @@ sandslide_f2::~sandslide_f2()
 {
 }
 
-void sandslide_f2::start(lexer *p, fdm * a, ghostcell *pgc)
+void sandslide_f2::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
     // mainloop
     for(int qn=0; qn<p->S91; ++qn)

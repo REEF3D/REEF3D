@@ -48,7 +48,7 @@ sandslide_f::~sandslide_f()
 {
 }
 
-void sandslide_f::start(lexer *p, fdm * a, ghostcell *pgc)
+void sandslide_f::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
     // mainloop
     for(int qn=0; qn<p->S91; ++qn)
@@ -65,7 +65,7 @@ void sandslide_f::start(lexer *p, fdm * a, ghostcell *pgc)
         SLICELOOP4
         if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
         {
-            slide(p,a,pgc);
+            slide(p,a,pgc,s);
         }
         
         pgc->gcslparax_fh(p,fh,4);
@@ -89,7 +89,7 @@ void sandslide_f::start(lexer *p, fdm * a, ghostcell *pgc)
     }
 }
 
-void sandslide_f::slide(lexer *p, fdm * a, ghostcell *pgc)
+void sandslide_f::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
 		k = a->bedk(i,j);
 		

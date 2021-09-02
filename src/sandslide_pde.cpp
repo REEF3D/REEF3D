@@ -47,7 +47,7 @@ sandslide_pde::~sandslide_pde()
 {
 }
 
-void sandslide_pde::start(lexer *p, fdm * a, ghostcell *pgc)
+void sandslide_pde::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
     /*for(int qn=0; qn<p->S91; ++qn)
     {

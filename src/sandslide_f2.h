@@ -36,7 +36,7 @@ public:
     sandslide_f2(lexer*);
     virtual ~sandslide_f2();
 
-	virtual void start(lexer*, fdm*,ghostcell*);
+	virtual void start(lexer*, fdm*,ghostcell*,sediment_fdm*);
 
 private:
 

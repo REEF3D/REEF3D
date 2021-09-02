@@ -32,6 +32,7 @@ class topo_relax;
 class bedshear;
 class vrans;
 class turbulence;
+class sediment_fdm;
 
 using namespace std;
 
@@ -75,6 +76,7 @@ public:
     
 
 private:
+    sediment_fdm *s;
     sandslide *pslide;
     topo_relax *prelax;
     vrans *pvrans;
