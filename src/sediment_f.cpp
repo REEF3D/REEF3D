@@ -39,7 +39,7 @@ Author: Hans Bihs
 #include"vrans_v.h"
 #include"vrans_f.h"
 
-sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb): bedtau(p),bedslope(p),f(p)
+sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb): bedslope(p)
 {
     s = new sediment_fdm(p);
     

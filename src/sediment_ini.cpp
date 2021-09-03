@@ -44,11 +44,6 @@ void sediment_f::ini(lexer *p, fdm *a,ghostcell *pgc)
 	
 	pgc->gcsl_start4(p,a->bedzh,1);
 	
-	
-	SLICELOOP4
-	bedtau(i,j)=0.0;
-	
-	pgc->gcsl_start4(p,bedtau,1);
     
     
     topo_zh_update(p,a,pgc);

@@ -21,8 +21,8 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"bedload.h"
-#include"bedshear.h"
 #include"bedload_noneq.h"
+#include"increment.h"
 
 class turbulence;
 
@@ -31,7 +31,7 @@ using namespace std;
 #ifndef BEDLOAD_VRC_H_
 #define BEDLOAD_VRC_H_
 
-class bedload_VRc : public bedload, public bedshear, public bedload_noneq
+class bedload_VRc : public bedload, public bedload_noneq
 {
 public:
 

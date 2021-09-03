@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"sediment_fdm.h"
 #include"turbulence.h"
 #include"reduction_void.h"
 #include"reduction_parker.h"
@@ -58,7 +59,7 @@ bedshear::~bedshear()
 {
 }
 
-void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double &shearvel_eff, double &shields_eff)
+void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
 	int count;
 	double zval,fac,topoval,taukin,tauvel,density;

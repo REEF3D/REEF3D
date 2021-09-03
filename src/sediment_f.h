@@ -83,11 +83,6 @@ private:
 	
 	bedshear *pbedshear;
     
-    slice4 bedtau,f;
-    
-    
-    
-    
     double starttime;
     
     int volume_token;

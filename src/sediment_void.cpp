@@ -59,14 +59,6 @@ void sediment_void::ini(lexer *p, fdm *a,ghostcell *pgc)
 {
 }
 
-double sediment_void::bedshear_point(lexer *p, fdm *a, ghostcell *pgc)
-{
-	double val=0.0;
-
-	return val;	
-}
-
-
 void sediment_void::print_3D_bedshear(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 {	
 }

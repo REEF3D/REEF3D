@@ -44,7 +44,7 @@ void sediment_exner::non_equillibrium_solve(lexer* p,fdm* a, ghostcell *pgc, sed
     SLICELOOP4
     {
    
-        Ti=MAX((s->shearvel_eff(i,j)*s->shearvel_eff(i,j)-s->shearvel_crit(i,j)*s->shearvel_crit(i,j))/(s->shearvel_crit(i,j)*s->shearvel_crit(i,j)),0.0);
+    Ti=MAX((s->shearvel_eff(i,j)*s->shearvel_eff(i,j)-s->shearvel_crit(i,j)*s->shearvel_crit(i,j))/(s->shearvel_crit(i,j)*s->shearvel_crit(i,j)),0.0);
         
     Ls = 3.0*d50*pow(Ds,0.6)*pow(Ti,0.9);
     
@@ -60,10 +60,8 @@ void sediment_exner::non_equillibrium_solve(lexer* p,fdm* a, ghostcell *pgc, sed
     
     SLICELOOP4
     {
-        taubed(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
-        taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
 
-        Ti=MAX((shearvel_eff*shearvel_eff-shearvel_crit*shearvel_crit)/(shearvel_crit*shearvel_crit),0.0);
+    Ti=MAX((s->shearvel_eff(i,j)*s->shearvel_eff(i,j)-s->shearvel_crit(i,j)*s->shearvel_crit(i,j))/(s->shearvel_crit(i,j)*s->shearvel_crit(i,j)),0.0);
         
     Ls = 3.0*d50*pow(Ds,0.6)*pow(Ti,0.9);
     

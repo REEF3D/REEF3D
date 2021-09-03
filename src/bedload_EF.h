@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"bedload.h"
-#include"bedshear.h"
+#include"increment.h"
 
 class turbulence;
 
@@ -30,7 +30,7 @@ using namespace std;
 #ifndef BEDLOAD_EF_H_
 #define BEDLOAD_EF_H_
 
-class bedload_EF : public bedload, public bedshear
+class bedload_EF : public bedload, public increment
 {
 public:
 

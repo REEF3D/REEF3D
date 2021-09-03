@@ -19,19 +19,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-
 #include"sediment_f.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"sediment_fdm.h"
 #include"bedshear.h"
 
 double sediment_f::bedshear_point(lexer *p, fdm *a,ghostcell *pgc)
 {
-	double tau_eff,shearvel_eff,shields_eff;
-	
-	pbedshear->taubed(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
-
+	double tau_eff = s->tau_eff(i,j);
+    
 	return tau_eff;
 }
 
@@ -76,17 +74,7 @@ void sediment_f::fill_bedk(lexer *p, fdm *a,ghostcell *pgc)
 
 void sediment_f::fill_bss(lexer *p, fdm *a,ghostcell *pgc)
 {
-	double tau_eff,shearvel_eff,shields_eff;
-    double tau_crit, shearvel_crit, shields_crit;
 
-    SLICELOOP4
-    {
-	pbedshear->taubed(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
-    pbedshear->taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
-	bedtau(i,j) = shields_eff;
-	}
-	
-	pgc->gcsl_start4(p,bedtau,1);
 }
 
 void sediment_f::print_3D_bedshear(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
@@ -100,36 +88,26 @@ void sediment_f::print_3D_bedshear(lexer* p, fdm *a, ghostcell *pgc, ofstream &r
     {
         
 	// tau_eff
-    SLICELOOP4
-    {
-    pbedshear->taubed(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
-    f(i,j) = tau_eff;
-    }
-    pgc->gcsl_start4(p,f,1);
+    pgc->gcsl_start4(p,s->tau_eff,1);
     
 	iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	
 	TPLOOP
 	{
-    ffn=float(p->sl_ipol4(f));
+    ffn=float(p->sl_ipol4(s->tau_eff));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
     // tau_crit
-    SLICELOOP4
-    {
-    pbedshear->taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
-    f(i,j) = tau_crit;
-    }
-    pgc->gcsl_start4(p,f,1);
+    pgc->gcsl_start4(p,s->tau_crit,1);
     
 	iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	
 	TPLOOP
 	{
-    ffn=float(p->sl_ipol4(f));
+    ffn=float(p->sl_ipol4(s->tau_crit));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -140,36 +118,26 @@ void sediment_f::print_3D_bedshear(lexer* p, fdm *a, ghostcell *pgc, ofstream &r
     {
         
 	// shearvel_eff
-    SLICELOOP4
-    {
-    pbedshear->taubed(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
-    f(i,j) = shearvel_eff;
-    }
-    pgc->gcsl_start4(p,f,1);
+    pgc->gcsl_start4(p,s->shearvel_eff,1);
     
 	iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	
 	TPLOOP
 	{
-    ffn=float(p->sl_ipol4(f));
+    ffn=float(p->sl_ipol4(s->shearvel_eff));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
     // shearvel_crit
-    SLICELOOP4
-    {
-    pbedshear->taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
-    f(i,j) = shearvel_crit;
-    }
-    pgc->gcsl_start4(p,f,1);
+    pgc->gcsl_start4(p,s->shearvel_crit,1);
     
 	iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	
 	TPLOOP
 	{
-    ffn=float(p->sl_ipol4(f));
+    ffn=float(p->sl_ipol4(s->shearvel_crit));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -180,36 +148,26 @@ void sediment_f::print_3D_bedshear(lexer* p, fdm *a, ghostcell *pgc, ofstream &r
     {
         
 	// shields_eff
-    SLICELOOP4
-    {
-    pbedshear->taubed(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
-    f(i,j) = shields_eff;
-    }
-    pgc->gcsl_start4(p,f,1);
+    pgc->gcsl_start4(p,s->shields_eff,1);
     
 	iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	
 	TPLOOP
 	{
-    ffn=float(p->sl_ipol4(f));
+    ffn=float(p->sl_ipol4(s->shields_eff));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
     // shields_crit
-    SLICELOOP4
-    {
-    pbedshear->taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
-    f(i,j) = shields_crit;
-    }
-    pgc->gcsl_start4(p,f,1);
+    pgc->gcsl_start4(p,s->shields_crit,1);
     
 	iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	
 	TPLOOP
 	{
-    ffn=float(p->sl_ipol4(f));
+    ffn=float(p->sl_ipol4(s->shields_crit));
 	result.write((char*)&ffn, sizeof (float));
 	}
     

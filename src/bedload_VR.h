@@ -19,10 +19,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-
-#include"bedload.h"
-#include"bedshear.h"
+#include"bedload.h"
 #include"bedload_noneq.h"
+#include"increment.h"
 
 class turbulence;
 
@@ -31,7 +30,7 @@ using namespace std;
 #ifndef BEDLOAD_VR_H_
 #define BEDLOAD_VR_H_
 
-class bedload_VR : public bedload, public bedshear, public bedload_noneq
+class bedload_VR : public bedload, public bedload_noneq, public increment
 {
 public:
 

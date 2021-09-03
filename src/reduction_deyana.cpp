@@ -49,15 +49,15 @@ double reduction_deyana::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *
 
 	alphaval = fabs(alphaval);
 
-	r = (1.0/((1-eta*tan(phi))*tan(phi)))*( -sin(tetaval)  - eta*tan(phi)*tanphi * sqrt(cos(tetaval)*cos(tetaval)-sin(alphaval)*sin(alphaval))
-		+ pow((pow(( sin(tetaval) + eta*tan(phi)*tan(phi)*sqrt(cos(tetaval)*cos(tetaval)-sin(alphaval)*sin(alphaval))),2.0) +(1.0 - eta*eta*tan(phi)*tan(phi))
-		*(cos(tetaval)*cos(tetaval)*tan(phi)*tanphi - sin(alphaval)*sin(alphaval)*tan(phi)*tanphi - sin(tetaval)*sin(tetaval) - sin(alphaval)*sin(alphaval) ) ),0.5 ));
+	r = (1.0/((1-eta*tanphi)*tanphi))*( -sin(tetaval)  - eta*tanphi*tanphi * sqrt(cos(tetaval)*cos(tetaval)-sin(alphaval)*sin(alphaval))
+		+ pow((pow(( sin(tetaval) + eta*tanphi*tanphi*sqrt(cos(tetaval)*cos(tetaval)-sin(alphaval)*sin(alphaval))),2.0) +(1.0 - eta*eta*tanphi*tanphi)
+		*(cos(tetaval)*cos(tetaval)*tanphi*tanphi - sin(alphaval)*sin(alphaval)*tanphi*tanphi - sin(tetaval)*sin(tetaval) - sin(alphaval)*sin(alphaval) ) ),0.5 ));
 
-	if(  (pow(( sin(tetaval) + eta*tan(phi)*tan(phi)*sqrt(cos(tetaval)*cos(tetaval)-sin(alphaval)*sin(alphaval))),2.0) +(1.0 - eta*eta*tan(phi)*tan(phi))
-		*(cos(tetaval)*cos(tetaval)*tan(phi)*tanphi - sin(alphaval)*sin(alphaval)*tan(phi)*tanphi - sin(tetaval)*sin(tetaval) - sin(alphaval)*sin(alphaval) ) )  < 0.0 || cos(tetaval)*cos(tetaval)-sin(alphaval)*sin(alphaval) < 0.0)
+	if(  (pow(( sin(tetaval) + eta*tanphi*tanphi*sqrt(cos(tetaval)*cos(tetaval)-sin(alphaval)*sin(alphaval))),2.0) +(1.0 - eta*eta*tanphi*tanphi)
+		*(cos(tetaval)*cos(tetaval)*tanphi*tanphi - sin(alphaval)*sin(alphaval)*tanphi*tanphi - sin(tetaval)*sin(tetaval) - sin(alphaval)*sin(alphaval) ) )  < 0.0 || cos(tetaval)*cos(tetaval)-sin(alphaval)*sin(alphaval) < 0.0)
     {
-        r = cos(tetaval)*(1.0 - tan(tetaval/tan(phi)));
-        r*= cos(alphaval)*(1.0 - pow(tan(alphaval),2.0)/pow(tan(phi),2.0));
+        r = cos(tetaval)*(1.0 - tan(tetaval/tanphi));
+        r*= cos(alphaval)*(1.0 - pow(tan(alphaval),2.0)/pow(tanphi,2.0));
     }
 
 

@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-bedload_VRc::bedload_VRc(lexer *p, turbulence *pturb) : bedshear(p,pturb), bedload_noneq(p), epsi(1.6*p->DXM)
+bedload_VRc::bedload_VRc(lexer *p, turbulence *pturb) : bedload_noneq(p), epsi(1.6*p->DXM)
 {
     rhosed=p->S22;
     rhowat=p->W1;
@@ -56,10 +56,7 @@ void bedload_VRc::start(lexer* p, fdm* a, ghostcell* pgc, sediment_fdm *s)
         vvel=0.5*(a->Q(i,j) + a->Q(i,j+1));
         u_abs = sqrt(uvel*uvel + vvel*vvel);
         
-        taubed(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
-        taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
-
-        Ti=MAX((shields_eff-shields_crit)/(shields_crit),0.0);
+        Ti=MAX((s->shields_eff(i,j)-s->shields_crit(i,j))/(s->shields_crit(i,j)),0.0);
 
         if(shearvel_eff>shearvel_crit)
         qb = 0.015*d50*pow(Ti,1.5)/pow(Ds,0.3)*0.5*(p->DXN[IP]+p->DXN[IP1])*u_abs;
