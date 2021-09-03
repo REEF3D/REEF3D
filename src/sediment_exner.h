@@ -40,13 +40,13 @@ class sediment_exner : public topo, public increment, public bedshear
 public:
 	sediment_exner(lexer*, fdm*, ghostcell*,turbulence*);
 	virtual ~sediment_exner();
-	virtual void start(fdm*,lexer*, convection*, ghostcell*,reinitopo*);
+	virtual void start(fdm*,lexer*, convection*, ghostcell*,reinitopo*,sediment_fdm*);
 
 
 private:
     void  topovel(lexer*,fdm*,ghostcell*,double&,double&,double&);
     void  timestep(lexer*,fdm*,ghostcell*);
-    void  non_equillibrium_solve(lexer*,fdm*,ghostcell*);
+    void  non_equillibrium_solve(lexer*,fdm*,ghostcell*,sediment_fdm*);
     
     bedconc *pcb;
     topo_relax *prelax;

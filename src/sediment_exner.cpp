@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"sediment_fdm.h"
 #include"reinitopo.h"
 #include"bedconc.h"
 #include"topo_relax.h"
@@ -77,7 +78,7 @@ sediment_exner::~sediment_exner()
 {
 }
 
-void sediment_exner::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,reinitopo* preto)
+void sediment_exner::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,reinitopo* preto, sediment_fdm *s)
 {   
     //non_equillibrium_solve(p,a,pgc); 
    

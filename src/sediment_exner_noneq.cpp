@@ -24,8 +24,9 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"sediment_fdm.h"
 
-void sediment_exner::non_equillibrium_solve(lexer* p,fdm* a, ghostcell *pgc)
+void sediment_exner::non_equillibrium_solve(lexer* p,fdm* a, ghostcell *pgc, sediment_fdm *s)
 {
     //SLICELOOP4
     //a->bedload(i,j) -= p->dtsed*(0.5*(a->P(i,j)+a->P(i+1,j))*dqx0(i,j) + 0.5*(a->Q(i,j)+a->Q(i,j+1))*dqy0(i,j));
@@ -42,10 +43,8 @@ void sediment_exner::non_equillibrium_solve(lexer* p,fdm* a, ghostcell *pgc)
     
     SLICELOOP4
     {
-        taubed(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
-        taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
-
-        Ti=MAX((shearvel_eff*shearvel_eff-shearvel_crit*shearvel_crit)/(shearvel_crit*shearvel_crit),0.0);
+   
+        Ti=MAX((s->shearvel_eff(i,j)*s->shearvel_eff(i,j)-s->shearvel_crit(i,j)*s->shearvel_crit(i,j))/(s->shearvel_crit(i,j)*s->shearvel_crit(i,j)),0.0);
         
     Ls = 3.0*d50*pow(Ds,0.6)*pow(Ti,0.9);
     

@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"sediment_fdm.h"
 
 bedload_VRc::bedload_VRc(lexer *p, turbulence *pturb) : bedshear(p,pturb), bedload_noneq(p), epsi(1.6*p->DXM)
 {
@@ -42,7 +43,7 @@ bedload_VRc::~bedload_VRc()
 {
 }
 
-void bedload_VRc::start(lexer* p, fdm* a, ghostcell* pgc)
+void bedload_VRc::start(lexer* p, fdm* a, ghostcell* pgc, sediment_fdm *s)
 {
     double Ti,r;
 	double qb,u_abs,uvel,vvel;

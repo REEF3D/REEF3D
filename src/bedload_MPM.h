@@ -36,7 +36,7 @@ public:
 
     bedload_MPM(lexer*,turbulence*);
 	virtual ~bedload_MPM();
-	virtual void start(lexer*, fdm*, ghostcell*);
+	virtual void start(lexer*, fdm*, ghostcell*, sediment_fdm*);
 
 private:
     const double epsi;

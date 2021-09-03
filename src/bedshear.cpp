@@ -63,6 +63,10 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double
 	int count;
 	double zval,fac,topoval,taukin,tauvel,density;
     
+    
+    SLICELOOP4
+    {
+    
     k = a->bedk(i,j);
     
     xip= p->XP[IP];
@@ -271,32 +275,28 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double
     tau=density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
     }
     
-    tau_eff = tau;
-    shearvel_eff = sqrt(tau/p->W1);
-    shields_eff = tau/(p->W1*((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
+    s->tau_eff(i,j) = tau;
+    s->shearvel_eff(i,j) = sqrt(tau/p->W1);
+    s->shields_eff(i,j) = tau/(p->W1*((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
+    
+    }
 }
 
 void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, double &tau_crit, double &shearvel_crit, double &shields_crit)
 {
 	double r;
-
+    
+    SLICELOOP4
+    {
 	k = a->bedk(i,j);
-	
-	r = preduce->start(p,a,pgc);
     
-    tauc = (p->S30*fabs(p->W22)*(p->S22-p->W1))*p->S20*r;
+    tauc = (p->S30*fabs(p->W22)*(p->S22-p->W1))*p->S20*s->;
   
-    tau_crit = tauc;
-    shearvel_crit = sqrt(tauc/p->W1);
-    shields_crit = tauc/(p->W1*((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
+    s->tau_crit(i,j) = tauc;
+    s->shearvel_crit(i,j) = sqrt(tauc/p->W1);
+    s->shields_crit(i,j) = tauc/(p->W1*((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
+    }
 }
 
-double bedshear::shear_reduction(lexer *p, fdm *a, ghostcell *pgc)
-{
-    double r=1.0;
 
-    r=preduce->start(p,a,pgc);
-    
-    return r;
-}
 

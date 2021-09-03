@@ -37,7 +37,7 @@ public:
     bedload_EF(lexer*,turbulence*);
     virtual ~bedload_EF();
 
-	virtual void start(lexer*, fdm*, ghostcell*);
+	virtual void start(lexer*, fdm*, ghostcell*, sediment_fdm*);
 
 private:
     const double epsi;

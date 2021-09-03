@@ -26,6 +26,7 @@ Author: Hans Bihs
 class lexer;
 class fdm;
 class ghostcell;
+class sediment_fdm;
 
 using namespace std;
 
@@ -38,14 +39,13 @@ public:
     reduction_parker(lexer*);
     virtual ~reduction_parker();
 
-	virtual double start(lexer*, fdm*,ghostcell*);
+	virtual double start(lexer*, fdm*,ghostcell*,sediment_fdm*);
 
 private:
 
     double u_abs,u_plus,dist;
     double uvel, vvel;
-    double teta, alpha, beta, gamma;
-    double phi;
+    double tetaval, alphaval, phival, beta;
     double mu,qval,pval,d,eta;
 	double r1,r2;
 };

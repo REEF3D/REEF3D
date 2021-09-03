@@ -38,7 +38,7 @@ public:
     bedload_VRc(lexer*,turbulence*);
     virtual ~bedload_VRc();
 
-	virtual void start(lexer*, fdm*, ghostcell*);
+	virtual void start(lexer*, fdm*, ghostcell*, sediment_fdm*);
 
 private:
     const double epsi;

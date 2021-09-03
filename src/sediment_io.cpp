@@ -281,7 +281,6 @@ void sediment_f::print_3D_parameter1(lexer* p, fdm *a, ghostcell *pgc, ofstream 
     // alpha
     SLICELOOP4
     {
-    slope(p,a,pgc,teta,alpha,gamma,phi);
     f(i,j) = alpha;
     }
     pgc->gcsl_start4(p,f,1);
@@ -298,7 +297,6 @@ void sediment_f::print_3D_parameter1(lexer* p, fdm *a, ghostcell *pgc, ofstream 
     // teta
     SLICELOOP4
     {
-    slope(p,a,pgc,teta,alpha,gamma,phi);
     f(i,j) = teta;
     }
     pgc->gcsl_start4(p,f,1);
@@ -315,7 +313,6 @@ void sediment_f::print_3D_parameter1(lexer* p, fdm *a, ghostcell *pgc, ofstream 
     // gamma
     SLICELOOP4
     {
-    slope(p,a,pgc,teta,alpha,gamma,phi);
     f(i,j) = gamma;
     }
     pgc->gcsl_start4(p,f,1);
@@ -332,7 +329,6 @@ void sediment_f::print_3D_parameter1(lexer* p, fdm *a, ghostcell *pgc, ofstream 
     // phi
     SLICELOOP4
     {
-    slope(p,a,pgc,teta,alpha,gamma,phi);
     f(i,j) = phi;
     }
     pgc->gcsl_start4(p,f,1);

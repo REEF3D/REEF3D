@@ -25,6 +25,7 @@ Author: Hans Bihs
 class lexer;
 class fdm;
 class ghostcell;
+class sediment_fdm;
 class turbulence;
 class reduction;
 class sliceint;
@@ -40,9 +41,8 @@ public:
     bedshear(lexer*,turbulence*);
     virtual ~bedshear();
 
-	virtual void taubed(lexer*, fdm*,ghostcell*,double&,double&,double&);
-	virtual void taucritbed(lexer*, fdm*,ghostcell*,double&,double&,double&);
-	virtual double shear_reduction(lexer*, fdm*,ghostcell*);
+	virtual void taubed(lexer*, fdm*,ghostcell*,sediment_fdm*);
+	virtual void taucritbed(lexer*, fdm*,ghostcell*,sediment_fdm*);
 
 	const double ks,kappa;
 

@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"sediment_fdm.h"
 
 reduction_deyemp::reduction_deyemp(lexer *p) : bedslope(p)
 {
@@ -33,20 +34,20 @@ reduction_deyemp::~reduction_deyemp()
 {
 }
 
-double reduction_deyemp::start(lexer *p, fdm * a, ghostcell *pgc)
+double reduction_deyemp::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
     double r=1.0;
 
-	slope(p,a,pgc,teta,alpha,gamma,phi);
-
-	alpha = fabs(alpha);
-
-	r = 0.954*pow(1.0-teta/phi, 0.745)*pow(1.0-alpha/phi,0.372);
-
-	if( 1.0-teta/phi < 0.0 || 1.0-alpha/phi< 0.0)
+    SLICELOOP4
     {
-	r = cos(teta)*(1.0 - tan(teta/tan(phi)));
-    r*= cos(alpha)*(1.0 - pow(tan(alpha),2.0)/pow(tan(phi),2.0));
+	s->alpha(i,j) = fabs(s->alpha(i,j));
+
+	r = 0.954*pow(1.0-s->teta(i,j)/s->phi(i,j), 0.745)*pow(1.0-s->alpha(i,j)/s->phi(i,j),0.372);
+
+	if( 1.0-s->teta(i,j)/s->phi(i,j) < 0.0 || 1.0-s->alpha(i,j)/s->phi(i,j)< 0.0)
+    {
+	r = cos(s->teta(i,j))*(1.0 - tan(s->teta(i,j)/tan(s->phi(i,j))));
+    r*= cos(s->alpha(i,j))*(1.0 - pow(tan(s->alpha(i,j)),2.0)/pow(tan(s->phi(i,j)),2.0));
     }
 
 
@@ -59,7 +60,8 @@ double reduction_deyemp::start(lexer *p, fdm * a, ghostcell *pgc)
 	if(p->pos_x()>p->S72)
 	r=10.0;
 	
-    return r;
+    s->reduce(i,j)=r;
+    }
 }
 
 
