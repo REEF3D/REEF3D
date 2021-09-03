@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-bedload_VR::bedload_VR(lexer *p, turbulence *pturb) : bedshear(p,pturb), bedload_noneq(p), epsi(1.6*p->DXM)
+bedload_VR::bedload_VR(lexer *p, turbulence *pturb) : bedload_noneq(p), epsi(1.6*p->DXM)
 {
     rhosed=p->S22;
     rhowat=p->W1;

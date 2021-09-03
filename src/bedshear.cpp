@@ -26,33 +26,14 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 #include"turbulence.h"
-#include"reduction_void.h"
-#include"reduction_parker.h"
-#include"reduction_deyemp.h"
-#include"reduction_deyana.h"
-#include"reduction_FD.h"
 #include"sliceint.h"
 
-bedshear::bedshear(lexer *p, turbulence *ppturb) : norm_vec(p), ks(p->S20*p->S21), kappa(0.4)
+bedshear::bedshear(lexer *p, turbulence *ppturb) : norm_vec(p), ks(p->S20*p->S21), kappa(0.4), taueff_loc(p), taucrit_loc(p)
 {
     tau=0.0;
     tauc=0.0;
     pturb=ppturb;
 
-    if(p->S80==0)
-    preduce=new reduction_void(p);
-
-    if(p->S80==1)
-    preduce=new reduction_parker(p);
-
-    if(p->S80==2)
-    preduce=new reduction_deyemp(p);
-
-    if(p->S80==3)
-    preduce=new reduction_deyana(p);
-	
-	if(p->S80==4)
-    preduce=new reduction_FD(p);
 }
 
 bedshear::~bedshear()
@@ -276,14 +257,14 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     tau=density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
     }
     
-    s->tau_eff(i,j) = tau;
+    s->tau_eff(i,j) = taueff_loc(i,j) = tau;
     s->shearvel_eff(i,j) = sqrt(tau/p->W1);
     s->shields_eff(i,j) = tau/(p->W1*((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
     
     }
 }
 
-void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, double &tau_crit, double &shearvel_crit, double &shields_crit)
+void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
 	double r;
     
@@ -291,13 +272,21 @@ void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, double &tau_crit, d
     {
 	k = a->bedk(i,j);
     
-    tauc = (p->S30*fabs(p->W22)*(p->S22-p->W1))*p->S20*s->;
+    tauc = (p->S30*fabs(p->W22)*(p->S22-p->W1))*p->S20*s->reduce(i,j);
   
-    s->tau_crit(i,j) = tauc;
+    s->tau_crit(i,j) = taucrit_loc(i,j) = tauc;
     s->shearvel_crit(i,j) = sqrt(tauc/p->W1);
     s->shields_crit(i,j) = tauc/(p->W1*((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
     }
 }
 
+void bedshear::taubed(lexer*, fdm*, ghostcell*, double &tau_eff)
+{
+    tau_eff = taueff_loc(i,j);
+}
 
+void bedshear::taucritbed(lexer*, fdm*, ghostcell*, double &tau_crit)
+{
+    tau_crit = taucrit_loc(i,j);
+}
 

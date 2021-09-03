@@ -28,7 +28,6 @@ class bedconc;
 class topo_relax;
 class turbulence;
 class ghostcell;
-class sediment_exnerdisc;
 
 using namespace std;
 

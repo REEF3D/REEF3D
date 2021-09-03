@@ -21,13 +21,13 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"norm_vec.h"
+#include"slice4.h"
 
 class lexer;
 class fdm;
 class ghostcell;
 class sediment_fdm;
 class turbulence;
-class reduction;
 class sliceint;
 
 using namespace std;
@@ -43,12 +43,16 @@ public:
 
 	virtual void taubed(lexer*, fdm*,ghostcell*,sediment_fdm*);
 	virtual void taucritbed(lexer*, fdm*,ghostcell*,sediment_fdm*);
+    
+    virtual void taubed(lexer*, fdm*, ghostcell*, double&);
+    virtual void taucritbed(lexer*, fdm*, ghostcell*, double&);
 
 	const double ks,kappa;
+    
+    slice4 taueff_loc,taucrit_loc;
 
 private:
     turbulence *pturb;
-    reduction *preduce;
     double tau,tauc;
     double u_abs,u_plus,dist;
     double nx,ny,nz,norm;

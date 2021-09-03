@@ -33,6 +33,7 @@ class bedshear;
 class vrans;
 class turbulence;
 class sediment_fdm;
+class reduction;
 
 using namespace std;
 
@@ -52,7 +53,6 @@ public:
 	virtual double bedshear_point(lexer*,fdm*,ghostcell*);
 	void sediment_algorithm(lexer*, fdm*, convection*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*, bedload*);
     
-	void fill_bss(lexer*,fdm*,ghostcell*);
     void fill_bedk(lexer*,fdm*,ghostcell*);
 	void bedlevel(lexer*,fdm*,ghostcell*);
 	void topo_zh_update(lexer*,fdm*,ghostcell*);
@@ -80,6 +80,7 @@ private:
     sandslide *pslide;
     topo_relax *prelax;
     vrans *pvrans;
+    reduction *preduce;
 	
 	bedshear *pbedshear;
     

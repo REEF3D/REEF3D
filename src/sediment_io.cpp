@@ -72,11 +72,6 @@ void sediment_f::fill_bedk(lexer *p, fdm *a,ghostcell *pgc)
 	pgc->gcsl_start2(p,a->Q,11);
 }
 
-void sediment_f::fill_bss(lexer *p, fdm *a,ghostcell *pgc)
-{
-
-}
-
 void sediment_f::print_3D_bedshear(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 {	
 	float ffn;
@@ -237,66 +232,51 @@ void sediment_f::print_3D_parameter1(lexer* p, fdm *a, ghostcell *pgc, ofstream 
 	int iin;
     
     // alpha
-    SLICELOOP4
-    {
-    f(i,j) = alpha;
-    }
-    pgc->gcsl_start4(p,f,1);
+    pgc->gcsl_start4(p,s->alpha,1);
 	
 	iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	
 	TPLOOP
 	{
-    ffn=float(p->sl_ipol4(f));
+    ffn=float(p->sl_ipol4(s->alpha));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
     // teta
-    SLICELOOP4
-    {
-    f(i,j) = teta;
-    }
-    pgc->gcsl_start4(p,f,1);
+    pgc->gcsl_start4(p,s->teta,1);
 	
 	iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	
 	TPLOOP
 	{
-    ffn=float(p->sl_ipol4(f));
+    ffn=float(p->sl_ipol4(s->teta));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
     // gamma
     SLICELOOP4
-    {
-    f(i,j) = gamma;
-    }
-    pgc->gcsl_start4(p,f,1);
+    pgc->gcsl_start4(p,s->gamma,1);
 	
 	iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	
 	TPLOOP
 	{
-    ffn=float(p->sl_ipol4(f));
+    ffn=float(p->sl_ipol4(s->gamma));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
     // phi
-    SLICELOOP4
-    {
-    f(i,j) = phi;
-    }
-    pgc->gcsl_start4(p,f,1);
+    pgc->gcsl_start4(p,s->phi,1);
 	
 	iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	
 	TPLOOP
 	{
-    ffn=float(p->sl_ipol4(f));
+    ffn=float(p->sl_ipol4(s->phi));
 	result.write((char*)&ffn, sizeof (float));
 	}
 }
@@ -349,7 +329,7 @@ void sediment_f::print_3D_parameter2(lexer* p, fdm *a, ghostcell *pgc, ofstream 
 	
 	TPLOOP
 	{
-    ffn=float(p->sl_ipol4(bedtau));
+    ffn=float(p->sl_ipol4(s->tau_eff));
 	result.write((char*)&ffn, sizeof (float));
 	}
 }

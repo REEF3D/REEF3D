@@ -106,3 +106,8 @@ void sediment_void::name_vtu_parameter2(lexer *p, fdm *a, ghostcell *pgc, ofstre
 void sediment_void::offset_vtu_parameter2(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
+
+double sediment_void::bedshear_point(lexer *p, fdm *a,ghostcell *pgc)
+{
+	return 0.0;
+}

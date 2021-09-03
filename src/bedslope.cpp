@@ -46,6 +46,9 @@ void bedslope::slope(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     double nx0,ny0,nx1,ny1,nz1;
     double nz0,bx0,by0;
     
+    SLICELOOP4
+    {
+    
     // beta
     uvel=0.5*(a->P(i,j)+a->P(i-1,j));
     vvel=0.5*(a->Q(i,j)+a->Q(i,j-1));
@@ -139,5 +142,5 @@ void bedslope::slope(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 	
     
     s->phi(i,j) = midphi + (s->teta(i,j)/(fabs(s->gamma(i,j))>1.0e-20?fabs(s->gamma(i,j)):1.0e20))*delta; 
-
+    }
 }
