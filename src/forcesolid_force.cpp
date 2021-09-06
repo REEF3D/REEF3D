@@ -136,9 +136,9 @@ double Ay=0.0;
             yloc = yc;
             zloc = zc;
             
-            xlocvel = xc + nx*p->DXM;
-            ylocvel = yc + ny*p->DXM;
-            zlocvel = zc + nz*p->DXM;
+            xlocvel = xc + nx*p->DXP[IP]*p->P91;
+            ylocvel = yc + ny*p->DYP[JP]*p->P91;
+            zlocvel = zc + nz*p->DZP[KP]*p->P91;
             
             uval = p->ccipol1_a(a->u,xlocvel,ylocvel,zlocvel);
             vval = p->ccipol2_a(a->v,xlocvel,ylocvel,zlocvel);

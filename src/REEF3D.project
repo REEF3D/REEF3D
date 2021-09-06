@@ -2175,7 +2175,6 @@
         <VirtualDirectory Name="ccipol">
           <File Name="ccipol.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Force"/>
         <VirtualDirectory Name="Print WSF">
           <File Name="print_wsf.cpp"/>
           <File Name="print_wsfline.cpp"/>
