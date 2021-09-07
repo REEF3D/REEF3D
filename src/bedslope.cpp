@@ -123,10 +123,12 @@ void bedslope::slope(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
    
     
     // rotate bed normal
-	beta=-beta;
+	//beta=-beta;
     nx = (cos(beta)*nx1-sin(beta)*ny1);
 	ny = (sin(beta)*nx1+cos(beta)*ny1);
     nz = nz1;
+    
+    s->beta(i,j) = beta;
     
     s->teta(i,j)  = -atan(nx/(fabs(nz)>1.0e-15?nz:1.0e20));
     s->alpha(i,j) =  fabs(atan(ny/(fabs(nz)>1.0e-15?nz:1.0e20)));

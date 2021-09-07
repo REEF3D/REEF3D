@@ -34,7 +34,7 @@ Author: Hans Bihs
 #include"sediment_weno_hj.h"
 #include<math.h>
 
-sediment_exner::sediment_exner(lexer* p, fdm *a, ghostcell* pgc, turbulence *pturb) :  bedshear(p,pturb),dh(p), q0(p),dqx0(p),dqy0(p)
+sediment_exner::sediment_exner(lexer* p, fdm *a, ghostcell* pgc, turbulence *pturb) :  bedshear(p,pturb), q0(p),dqx0(p),dqy0(p)
 {
 	if(p->S50==1)
 	gcval_topo=151;
@@ -87,17 +87,17 @@ void sediment_exner::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,
 		topovel(p,a,pgc,vx,vy,vz);
         dqx0(i,j) = vx;
         dqy0(i,j) = vy;
-		dh(i,j) = vz;
+		s->dh(i,j) = vz;
 	}
     
-	pgc->gcsl_start4(p,dh,1);
+	pgc->gcsl_start4(p,s->dh,1);
 	
-    timestep(p,a,pgc);
+    timestep(p,a,pgc,s);
     
     
 	
 	SLICELOOP4
-    a->bedzh(i,j) += p->dtsed*dh(i,j);
+    a->bedzh(i,j) += p->dtsed*s->dh(i,j);
 
 	pgc->gcsl_start4(p,a->bedzh,1);
 }

@@ -270,6 +270,19 @@ void sediment_f::print_3D_parameter1(lexer* p, fdm *a, ghostcell *pgc, ofstream 
 	result.write((char*)&ffn, sizeof (float));
 	}
     
+    // beta
+    pgc->gcsl_start4(p,s->beta,1);
+	
+	iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	
+	TPLOOP
+	{
+    ffn=float(p->sl_ipol4(s->beta));
+    ffn*=(180.0/PI);
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
     // phi
     pgc->gcsl_start4(p,s->phi,1);
 	
@@ -286,29 +299,36 @@ void sediment_f::print_3D_parameter1(lexer* p, fdm *a, ghostcell *pgc, ofstream 
 
 void sediment_f::name_pvtu_parameter1(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
-    result<<"<PDataArray type=\"Float32\" Name=\"bed_alpha\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_alpha\"/>"<<endl;
     
-    result<<"<PDataArray type=\"Float32\" Name=\"bed_teta\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_teta\"/>"<<endl;
     
-    result<<"<PDataArray type=\"Float32\" Name=\"bed_gamma\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_gamma\"/>"<<endl;
     
-    result<<"<PDataArray type=\"Float32\" Name=\"bed_phi\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_beta\"/>"<<endl;
+    
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_phi\"/>"<<endl;
 }
 
 void sediment_f::name_vtu_parameter1(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
-    result<<"<DataArray type=\"Float32\" Name=\"bed_alpha\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"ST_alpha\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"bed_teta\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"ST_teta\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"bed_gamma\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"ST_gamma\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"bed_phi\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"ST_beta\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"ST_phi\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    
 }
 
 void sediment_f::offset_vtu_parameter1(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
@@ -353,15 +373,15 @@ void sediment_f::print_3D_parameter2(lexer* p, fdm *a, ghostcell *pgc, ofstream 
 	}
     
     // threshold
-    pgc->gcsl_start4(p,s->threshold,1);
-    
-    
 	iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	
 	TPLOOP
 	{
-    ffn=float(p->sl_ipol4(s->threshold));
+    ffn=0.0;
+    
+    if(s->tau_eff(i,j)>s->tau_crit(i,j))
+    ffn=1.0;
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -380,24 +400,24 @@ void sediment_f::print_3D_parameter2(lexer* p, fdm *a, ghostcell *pgc, ofstream 
 
 void sediment_f::name_pvtu_parameter2(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
-    result<<"<PDataArray type=\"Float32\" Name=\"dh\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_dh\"/>"<<endl;
     
-    result<<"<PDataArray type=\"Float32\" Name=\"reduce\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_reduce\"/>"<<endl;
     
-    result<<"<PDataArray type=\"Float32\" Name=\"threshold\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_threshold\"/>"<<endl;
     
-    result<<"<PDataArray type=\"Float32\" Name=\"slideflag\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_slideflag\"/>"<<endl;
 }
 
 void sediment_f::name_vtu_parameter2(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
-    result<<"<DataArray type=\"Float32\" Name=\"dh\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"ST_dh\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"reduce\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"ST_reduce\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"threshold\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"ST_threshold\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"slideflag\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"ST_slideflag\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 }
 
