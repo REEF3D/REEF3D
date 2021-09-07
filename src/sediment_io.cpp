@@ -239,6 +239,7 @@ void sediment_f::print_3D_parameter1(lexer* p, fdm *a, ghostcell *pgc, ofstream 
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->alpha));
+    ffn*=(180.0/PI);
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -252,6 +253,7 @@ void sediment_f::print_3D_parameter1(lexer* p, fdm *a, ghostcell *pgc, ofstream 
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->teta));
+    ffn*=(180.0/PI);
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -264,6 +266,7 @@ void sediment_f::print_3D_parameter1(lexer* p, fdm *a, ghostcell *pgc, ofstream 
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->gamma));
+    ffn*=(180.0/PI);
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -276,6 +279,7 @@ void sediment_f::print_3D_parameter1(lexer* p, fdm *a, ghostcell *pgc, ofstream 
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->phi));
+    ffn*=(180.0/PI);
 	result.write((char*)&ffn, sizeof (float));
 	}
 }
