@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 
 sediment_fdm::sediment_fdm(lexer *p) : bedzh(p),bedzh0(p),dh(p),reduce(p),
-                                       tau_eff(p),tau_crit(p),shearvel_eff(p),shearvel_crit(p),shields_eff(p),shields_crit(p),
+                                       tau_eff(p),tau_crit(p),shearvel_eff(p),shearvel_crit(p),shields_eff(p),shields_crit(p),threshold(p),
                                        bedload(p),
                                        alpha(p),teta(p),gamma(p),phi(p),
                                        bedk(p),slideflag(p)

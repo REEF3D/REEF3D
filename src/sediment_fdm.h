@@ -42,6 +42,7 @@ public:
     slice4 tau_eff,tau_crit;
     slice4 shearvel_eff,shearvel_crit;
     slice4 shields_eff, shields_crit;
+    slice4 threshold;
     
     slice4 bedload;
     
@@ -49,11 +50,12 @@ public:
     
     
     sliceint4 bedk;
-    sliceint4 slideflag;
+    slice4 slideflag;
+    
+    
+    
 
-    
-    
-    
+
 };
 
 #endif
