@@ -128,7 +128,7 @@ void bedslope::slope_weno(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 	ny = (sin(beta)*nx1+cos(beta)*ny1);
     nz = nz1;
     
-    s->beta(i,j) = beta;
+    s->beta(i,j) = -beta;
     
     s->teta(i,j)  = -atan(nx/(fabs(nz)>1.0e-15?nz:1.0e20));
     s->alpha(i,j) =  fabs(atan(ny/(fabs(nz)>1.0e-15?nz:1.0e20)));
@@ -220,7 +220,7 @@ void bedslope::slope_cds(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     nz = nz0;
     
   
-    s->beta(i,j) = beta;
+    s->beta(i,j) = -beta;
     
     s->teta(i,j)  = -atan(nx/(fabs(nz)>1.0e-15?nz:1.0e20));
     s->alpha(i,j) =  fabs(atan(ny/(fabs(nz)>1.0e-15?nz:1.0e20)));
