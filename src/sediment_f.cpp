@@ -133,7 +133,11 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
     fill_bedk(p,a,pgc);
     
     // bedslope
-    slope(p,a,pgc,s);
+    if(p->S83==2)
+    slope_cds(p,a,pgc,s);
+    
+    if(p->S83==5)
+    slope_weno(p,a,pgc,s);
     
     // bedslope reduction 
     preduce->start(p,a,pgc,s);
