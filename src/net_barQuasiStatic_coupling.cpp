@@ -29,7 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void net_barQuasiStatic::vransCoupling(lexer *p, fdm *a, ghostcell *pgc)
 {
     //- Triangulate net
-    triangulation(p,a,pgc);
+    if (p->count == 0) triangulation(p,a,pgc);
     
     //- Save Lagrangian coordinates and forces
      
