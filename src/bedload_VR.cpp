@@ -23,8 +23,9 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"sediment_fdm.h"
 
-bedload_VR::bedload_VR(lexer *p, turbulence *pturb) : bedshear(p,pturb), bedload_noneq(p), epsi(1.6*p->DXM)
+bedload_VR::bedload_VR(lexer *p, turbulence *pturb) : bedload_noneq(p), epsi(1.6*p->DXM)
 {
     rhosed=p->S22;
     rhowat=p->W1;
@@ -41,49 +42,29 @@ bedload_VR::~bedload_VR()
 {
 }
 
-void bedload_VR::start(lexer* p, fdm* a, ghostcell* pgc)
+void bedload_VR::start(lexer* p, fdm* a, ghostcell* pgc, sediment_fdm *s)
 {
     double Ti,r;
 	double qb;
-    
-    // noneq ini
 	
 	SLICELOOP4
     {
 
-        taubed(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
-        taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
+        Ti=MAX((s->shields_eff(i,j)-s->shields_crit(i,j))/(s->shields_crit(i,j)),0.0);
 
-        //Ti=MAX((shearvel_eff*shearvel_eff-shearvel_crit*shearvel_crit)/(shearvel_crit*shearvel_crit),0.0);
-        Ti=MAX((shields_eff-shields_crit)/(shields_crit),0.0);
         
-        if(shearvel_eff>shearvel_crit)
-        qb =(0.053*pow(d50,1.5)*sqrt(g*Rstar)*pow(Ti,2.1))/pow(Ds,0.3)  ;
+        if(s->shearvel_eff(i,j)>s->shearvel_crit(i,j))
+        {
+        qb =(0.053*pow(d50,1.5)*sqrt(g*Rstar)*pow(Ti,2.1))/pow(Ds,0.3);
+        
+        }
 
-        if(shearvel_eff<=shearvel_crit)
+        if(s->shearvel_eff(i,j)<=s->shearvel_crit(i,j))
         qb=0.0;
 		
 		a->bedload(i,j) = qb;
-        
 	}
     
     pgc->gcsl_start4a(p,a->bedload,1);    
     
-
-    /*slice4 tt(p);
-    
-    SLICELOOP4
-    {
-    taubed(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
-    taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
-    
-    
-    tt(i,j) = shields_crit;
-    }
-    
-    ALOOP
-    {
-    a->test(i,j,k) = tt(i,j);
-    }
-    pgc->start4a(p,a->test,1);*/
 }

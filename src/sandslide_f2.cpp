@@ -20,10 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sandslide_f2.h"
+#include"sandslide_f2.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"sediment_fdm.h"
 #include"sliceint.h"
 
 sandslide_f2::sandslide_f2(lexer *p) : norm_vec(p), bedslope(p), fh(p)
@@ -48,7 +49,7 @@ sandslide_f2::~sandslide_f2()
 {
 }
 
-void sandslide_f2::start(lexer *p, fdm * a, ghostcell *pgc)
+void sandslide_f2::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
     // mainloop
     for(int qn=0; qn<p->S91; ++qn)
@@ -65,7 +66,7 @@ void sandslide_f2::start(lexer *p, fdm * a, ghostcell *pgc)
         SLICELOOP4
         if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
         {
-            slide(p,a,pgc);
+            slide(p,a,pgc,s);
         }
         pgc->gcslparax_fh(p,fh,4);
         
@@ -87,17 +88,15 @@ void sandslide_f2::start(lexer *p, fdm * a, ghostcell *pgc)
     }
 }
 
-void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc)
+void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
 		k = a->bedk(i,j);
 		
-		slope(p,a,pgc,teta,alpha,gamma,phi);
-
 			
         // 1
         dh = a->bedzh(i,j) - a->bedzh(i-1,j);
         
-        maxdh = tan(phi)*p->DXP[IM1];
+        maxdh = tan(s->phi(i,j))*p->DXP[IM1];
         
         if(dh>maxdh && fabs(dh)<1.0e15)
 		{
@@ -112,7 +111,7 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc)
         // 2
         dh = a->bedzh(i,j) - a->bedzh(i+1,j);
         
-        maxdh = tan(phi)*p->DXP[IP];
+        maxdh = tan(s->phi(i,j))*p->DXP[IP];
 		
         if(dh>maxdh && fabs(dh)<1.0e15)
 		{
@@ -127,7 +126,7 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc)
         // 3
         dh = a->bedzh(i,j) - a->bedzh(i,j-1);
         
-        maxdh = tan(phi)*p->DYP[JM1];
+        maxdh = tan(s->phi(i,j))*p->DYP[JM1];
         
         if(dh>maxdh && fabs(dh)<1.0e15)
 		{          
@@ -143,7 +142,7 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc)
         dh = a->bedzh(i,j) - a->bedzh(i,j+1);
 		dh_corr = dh + tan(p->S93*(PI/180.0))*p->DXP[IP];
         
-        maxdh = tan(phi)*p->DYP[JP];
+        maxdh = tan(s->phi(i,j))*p->DYP[JP];
         
         if(dh>maxdh && fabs(dh)<1.0e15)
 		{
@@ -159,7 +158,7 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc)
         // 5
         dh = a->bedzh(i,j) - a->bedzh(i-1,j-1);
         
-        maxdhs = tan(phi)*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]);
+        maxdhs = tan(s->phi(i,j))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]);
 
         if(dh>maxdhs && fabs(dh)<1.0e15)
         {
@@ -175,7 +174,7 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc)
         // 6
         dh = a->bedzh(i,j) - a->bedzh(i-1,j+1);
 
-        maxdhs = tan(phi)*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]);
+        maxdhs = tan(s->phi(i,j))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]);
         
         if(dh>maxdhs && fabs(dh)<1.0e15)
 		{   
@@ -190,7 +189,7 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc)
         // 7
         dh = a->bedzh(i,j) - a->bedzh(i+1,j-1);
  
-        maxdhs = tan(phi)*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]);
+        maxdhs = tan(s->phi(i,j))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]);
         
         if(dh>maxdhs && fabs(dh)<1.0e15)
 		{
@@ -205,7 +204,7 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc)
         // 8
         dh = a->bedzh(i,j) - a->bedzh(i+1,j+1);
   
-        maxdhs = tan(phi)*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);
+        maxdhs = tan(s->phi(i,j))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);
 
         if(dh>maxdhs && fabs(dh)<1.0e15)
 		{   

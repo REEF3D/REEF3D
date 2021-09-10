@@ -24,9 +24,10 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"sediment_fdm.h"
 #include"turbulence.h"
 
-bedload_MPM::bedload_MPM(lexer* p, turbulence *pturb) : bedshear(p,pturb), epsi(1.6*p->DXM)
+bedload_MPM::bedload_MPM(lexer* p, turbulence *pturb) : epsi(1.6*p->DXM)
 {
     rhosed=p->S22;
     rhowat=p->W1;
@@ -45,21 +46,17 @@ bedload_MPM::~bedload_MPM()
 {
 }
 
-void bedload_MPM::start(lexer* p, fdm* a, ghostcell* pgc)
+void bedload_MPM::start(lexer* p, fdm* a, ghostcell* pgc, sediment_fdm *s)
 {
     double qb;
 
 	SLICELOOP4
     {
 
-        taubed(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
-        taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
+        if(s->shields_eff(i,j)>s->shields_crit(i,j))
+        qb = 8.0*pow(MAX(s->shields_eff(i,j) - s->shields_crit(i,j),0.0),1.5)* p->S20*sqrt(((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
 
-
-        if(shields_eff>shields_crit)
-        qb = 8.0*pow(MAX(shields_eff - shields_crit,0.0),1.5)* p->S20*sqrt(((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
-
-        if(shields_eff<=shields_crit)
+        if(s->shields_eff(i,j)<=s->shields_crit(i,j))
         qb=0.0;
 		
         a->bedload(i,j) = qb;

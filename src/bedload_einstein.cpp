@@ -24,9 +24,10 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"sediment_fdm.h"
 #include"turbulence.h"
 
-bedload_einstein::bedload_einstein(lexer* p, turbulence *pturb) : bedshear(p,pturb), epsi(1.6*p->DXM)
+bedload_einstein::bedload_einstein(lexer* p, turbulence *pturb) : epsi(1.6*p->DXM)
 {
     rhosed=p->S22;
     rhowat=p->W1;
@@ -38,7 +39,7 @@ bedload_einstein::bedload_einstein(lexer* p, turbulence *pturb) : bedshear(p,ptu
     kappa=0.4;
     ks=2.5*d50;
     repose=p->S25*(PI/180.0);
-    s=rhosed/rhowat;
+    sval=rhosed/rhowat;
 
 }
 
@@ -46,7 +47,7 @@ bedload_einstein::~bedload_einstein()
 {
 }
 
-void bedload_einstein::start(lexer* p, fdm* a, ghostcell* pgc)
+void bedload_einstein::start(lexer* p, fdm* a, ghostcell* pgc, sediment_fdm *s)
 {
     double qb;
 
@@ -54,11 +55,7 @@ void bedload_einstein::start(lexer* p, fdm* a, ghostcell* pgc)
 	SLICELOOP4
     {
 
-        taubed(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
-       
-
-
-        qb = 2.15*exp((-3.91*rhowat*(s-1.0)*g*d50)/(fabs(tau_eff)>1.0e-20?tau_eff:1.0e20))*sqrt(((p->S22-p->W1)/p->W1)*g*pow(p->S20,3.0));
+        qb = 2.15*exp((-3.91*rhowat*(sval-1.0)*g*d50)/(fabs(s->tau_eff(i,j))>1.0e-20?s->tau_eff(i,j):1.0e20))*sqrt(((p->S22-p->W1)/p->W1)*g*pow(p->S20,3.0));
 
         a->bedload(i,j) = qb;
 	}

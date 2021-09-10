@@ -437,7 +437,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
     
          // velocity magnitude
-	if(p->P78==1)
+	if(p->P76==1)
 	{
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
@@ -465,10 +465,18 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
+    
+    	// sediment parameters 1
+	if(p->P77==1)
+	psed->offset_vtu_parameter1(p,a,pgc,result,offset,n);
+    
+    	// sediment parameters 2
+	if(p->P78==1)
+	psed->offset_vtu_parameter2(p,a,pgc,result,offset,n);
 	
 		// bed shear stress
-	if(p->P79==1)
-	psed->offset_vtu(p,a,pgc,result,offset,n);
+	if(p->P79>=1)
+	psed->offset_vtu_bedshear(p,a,pgc,result,offset,n);
     
     // test
     if(p->P23==1)
@@ -556,7 +564,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     ++n;
 	}
     
-    if(p->P78==1)
+    if(p->P76==1)
 	{
     result<<"<DataArray type=\"Float32\" Name=\"velocity scalar\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -581,9 +589,15 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     result<<"<DataArray type=\"Float32\" Name=\"topo\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	}
+    
+    if(p->P77==1)
+	psed->name_vtu_parameter1(p,a,pgc,result,offset,n);
+    
+    if(p->P78==1)
+	psed->name_vtu_parameter2(p,a,pgc,result,offset,n);
 	
-	if(p->P79==1)
-	psed->name_vtu(p,a,pgc,result,offset,n);
+	if(p->P79>=1)
+	psed->name_vtu_bedshear(p,a,pgc,result,offset,n);
     
     if(p->P23==1)
 	{
@@ -720,7 +734,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
     
 //  velocity scalar
-    if(p->P78==1)
+    if(p->P76==1)
 	{
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
@@ -776,10 +790,17 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}
+//  sediment parameter 1
+	if(p->P77==1)
+    psed->print_3D_parameter1(p,a,pgc,result);
+    
+//  sediment parameter 2
+	if(p->P78==1)
+    psed->print_3D_parameter2(p,a,pgc,result);
 	
 //  bed shear stress
-	if(p->P79==1)
-    psed->print_3D(p,a,pgc,result);
+	if(p->P79>=1)
+    psed->print_3D_bedshear(p,a,pgc,result);
     
     if(p->P23==1)
 	{

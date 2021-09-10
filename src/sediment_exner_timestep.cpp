@@ -24,13 +24,14 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"sediment_fdm.h"
 
-void sediment_exner::timestep(lexer* p,fdm* a, ghostcell *pgc)
+void sediment_exner::timestep(lexer* p,fdm* a, ghostcell *pgc, sediment_fdm *s)
 {
 	maxdh=0.0;
     
 	SLICELOOP4
-	maxdh = MAX(fabs(dh(i,j)),maxdh);	
+	maxdh = MAX(fabs(s->dh(i,j)),maxdh);	
 
 	
 	double localmaxdh = maxdh;

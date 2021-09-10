@@ -28,7 +28,6 @@ class bedconc;
 class topo_relax;
 class turbulence;
 class ghostcell;
-class sediment_exnerdisc;
 
 using namespace std;
 
@@ -40,13 +39,13 @@ class sediment_exner : public topo, public increment, public bedshear
 public:
 	sediment_exner(lexer*, fdm*, ghostcell*,turbulence*);
 	virtual ~sediment_exner();
-	virtual void start(fdm*,lexer*, convection*, ghostcell*,reinitopo*);
+	virtual void start(fdm*,lexer*, convection*, ghostcell*,reinitopo*,sediment_fdm*);
 
 
 private:
     void  topovel(lexer*,fdm*,ghostcell*,double&,double&,double&);
-    void  timestep(lexer*,fdm*,ghostcell*);
-    void  non_equillibrium_solve(lexer*,fdm*,ghostcell*);
+    void  timestep(lexer*,fdm*,ghostcell*,sediment_fdm*);
+    void  non_equillibrium_solve(lexer*,fdm*,ghostcell*,sediment_fdm*);
     
     bedconc *pcb;
     topo_relax *prelax;
@@ -63,7 +62,6 @@ private:
     double tau_eff, shearvel_eff, shields_eff;
     double tau_crit, shearvel_crit, shields_crit;
     
-    slice4 dh;
     slice4 q0,dqx0,dqy0;
 };
 

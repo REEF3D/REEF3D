@@ -24,6 +24,7 @@ class lexer;
 class fdm;
 class ghostcell;
 class slice;
+class sediment_fdm;
 
 using namespace std;
 
@@ -33,7 +34,7 @@ using namespace std;
 class reduction
 {
 public:
-	virtual double start(lexer*, fdm*,ghostcell*)=0;
+	virtual double start(lexer*, fdm*,ghostcell*,sediment_fdm*)=0;
 
 };
 

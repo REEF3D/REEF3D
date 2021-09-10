@@ -25,6 +25,8 @@ Author: Hans Bihs
 #include"slice4.h"
 #include"sandslide.h"
 
+class sediment_fdm;
+
 using namespace std;
 
 #ifndef SANDSLIDE_F_H_
@@ -36,11 +38,11 @@ public:
     sandslide_f(lexer*);
     virtual ~sandslide_f();
 
-	virtual void start(lexer*, fdm*,ghostcell*);
+	virtual void start(lexer*,fdm*,ghostcell*,sediment_fdm*);
 
 private:
 
-    void slide(lexer*, fdm*,ghostcell*);
+    void slide(lexer*, fdm*,ghostcell*,sediment_fdm*);
     void topo_zh_update(lexer*,fdm*,ghostcell*);
 	
     slice4 fh;

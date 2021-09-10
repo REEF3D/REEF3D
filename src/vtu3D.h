@@ -77,7 +77,7 @@ private:
     void piecename(fdm*,lexer*,ghostcell*, int);
 
     char name[200],pname[200],epsvar[200];
-    int n,iin,offset[200];
+    int n,iin,offset[300];
     float ffn;
     int gcval_phi,gcval_phiext;
 	double *printtime_wT;

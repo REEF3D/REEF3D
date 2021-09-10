@@ -36,11 +36,11 @@ public:
     sandslide_f2(lexer*);
     virtual ~sandslide_f2();
 
-	virtual void start(lexer*, fdm*,ghostcell*);
+	virtual void start(lexer*, fdm*,ghostcell*, sediment_fdm*);
 
 private:
 
-    void slide(lexer*, fdm*,ghostcell*);
+    void slide(lexer*, fdm*,ghostcell*, sediment_fdm*);
     void topo_zh_update(lexer*,fdm*,ghostcell*);
 	
     slice4 fh;

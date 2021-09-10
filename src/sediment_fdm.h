@@ -20,23 +20,41 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"topo_void.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"reinitopo.h"
 
-topo_void::topo_void(lexer* p, fdm *a, ghostcell* pgc)
+#include"sliceint4.h"
+#include"slice4.h"
+#include"field4a.h"
+
+using namespace std;
+
+#ifndef SEDIMENT_FDM_H_
+#define SEDIMENT_FDM_H_
+
+class sediment_fdm
 {
-}
+public:
+    sediment_fdm(lexer*);
+	virtual ~sediment_fdm();
+    
+    slice4 bedzh,bedzh0;
+    slice4 dh,reduce;
+    
+    slice4 tau_eff,tau_crit;
+    slice4 shearvel_eff,shearvel_crit;
+    slice4 shields_eff, shields_crit;
+    
+    slice4 bedload;
+    
+    slice4 alpha,teta,gamma,beta,phi;
+    
+    
+    sliceint4 bedk;
+    slice4 slideflag;
+    
+    
+    
 
-topo_void::~topo_void()
-{
-}
 
-void topo_void::start(fdm* a,lexer* p,convection* pconvec, ghostcell* pgc,reinitopo* preto, sediment_fdm *s)
-{
-}
+};
 
-
-
+#endif

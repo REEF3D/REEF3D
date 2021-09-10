@@ -448,8 +448,10 @@ void lexer::ini_default()
 	P67=0;			  // int discharge gages in x-direction
     P71=0;           // int print viscosity to vtu
 	P75=0;            // int print out vorticity vec
-    P78=0;            // int print out velocity magnitude as scalar
-	P79=0;            // int print out sediment shear stress when running sediment transport
+    P76=0;            // int print out velocity magnitude as scalar
+    P77=0;            // int print out sediment parameters: 1
+    P78=0;            // int print out sediment parameters: 2 
+	P79=0;            // int print out bed shear stress when running sediment transport
 	P81=0;            // int force print out
 	P85=0;            // int rectangular force print out
 	P91=0.25;		  // double factor used in force calculation algorithm
@@ -520,6 +522,7 @@ void lexer::ini_default()
     S80=0;                  // int type of slope reduction
     S81=35.0;              // double midphi for slope reduction
     S82=5.0;              // double delta phi for slope reduction
+    S83=2;                // double type of bedslope calc
     S90=0;                  // int sandslide on/off
     S91=1;                  // int number of sandslide iterations
     S93=0.0;				// double delta phi for sandlide correciton

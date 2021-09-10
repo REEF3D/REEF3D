@@ -33,7 +33,7 @@ bedload_void::~bedload_void()
 {
 }
 
-void bedload_void::start(lexer* p, fdm* a, ghostcell* pgc)
+void bedload_void::start(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
 }
 
