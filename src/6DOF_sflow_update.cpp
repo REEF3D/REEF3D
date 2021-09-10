@@ -116,6 +116,7 @@ void sixdof_sflow::updateForcing_hemisphere(lexer *p, fdm2D *b, ghostcell *pgc)
             press(i,j) = 0.0;
         }
     }
+    
     pgc->gcsl_start4(p,press,50);
 };
 
@@ -147,6 +148,27 @@ void sixdof_sflow::updateForcing_ship(lexer *p, fdm2D *b, ghostcell *pgc)
             press(i,j) = 0.0;
         }
     }
+    
+    pgc->gcsl_start4(p,press,50);
+};
+
+
+void sixdof_sflow::updateForcing_oned(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    // Calculate 1D pressure field
+    double press0, xpos, as;
+
+    press0 = p->X401_p0;
+    as = p->X401_a; 
+
+	SLICELOOP4
+    {
+        xpos = (p->pos_x() - p->xg) - p->simtime*Uext;
+   
+        press(i,j) = press0*exp(-pow(xpos/as,2));
+    }
+
+    pgc->gcsl_start4(p,press,50);
 };
 
 

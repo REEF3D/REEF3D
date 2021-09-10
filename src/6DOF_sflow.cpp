@@ -69,16 +69,18 @@ void sixdof_sflow::start
     {
         updateForcing_ship(p,b,pgc);
     }
+    else if (p->X400 == 3)
+    {
+        updateForcing_oned(p,b,pgc);
+    }
 
     // Print
     print_parameter(p,pgc);
     print_stl(p,pgc);
 
-/*
 SLICELOOP4
 {
-    b->test(i,j) = fb(i,j);
+    b->test(i,j) = press(i,j);
 }
 pgc->gcsl_start4(p,b->test,50);
-*/
 }

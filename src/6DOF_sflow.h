@@ -89,6 +89,7 @@ private:
     void updatePosition(lexer*, fdm2D*, ghostcell*);
     void updateForcing_hemisphere(lexer*, fdm2D*, ghostcell*);
     void updateForcing_ship(lexer*, fdm2D*, ghostcell*);
+    void updateForcing_oned(lexer*, fdm2D*, ghostcell*);
 
     double phi, theta, psi;
     double Uext, Vext, Wext, Pext, Qext, Rext;
