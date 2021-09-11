@@ -140,8 +140,8 @@ void vrans_net::start(lexer *p, fdm *a, ghostcell *pgc, net *&ppnet, int nNet)
     } 
     
     pgc->start1(p,Fx_net,10); 
-    pgc->start1(p,Fy_net,11); 
-    pgc->start1(p,Fz_net,12); 
+    pgc->start2(p,Fy_net,11); 
+    pgc->start3(p,Fz_net,12); 
 
 
     //distributeNetForces_x(p, a, pgc, ppnet, nNet);
