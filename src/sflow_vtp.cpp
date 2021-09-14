@@ -181,7 +181,7 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
     ++n;
     if(p->P23==1)
     {
-    result<<"<DataArray type=\"Float32\" Name=\"breaking\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     }
     result<<"</PointData>"<<endl;

@@ -41,10 +41,12 @@ void sixdof_df_object::forces_stl
 	double dudxf, dudyf, dudzf, dvdxf, dvdyf, dvdzf, dwdxf, dwdyf, dwdzf;
 	double dudxb, dudyb, dudzb, dvdxb, dvdyb, dvdzb, dwdxb, dwdyb, dwdzb;
 	double xlocvel,ylocvel,zlocvel;
-	double Fx,Fy,Fz;
-    
+	double Fx,Fy,Fz,Fp_x,Fp_y,Fp_z,Fv_x,Fv_y,Fv_z;
+    double Xe_p,Ye_p,Ze_p,Xe_v,Ye_v,Ze_v;
+
     A=0.0;
     Xe=Ye=Ze=Ke=Me=Ne=0.0;
+    Xe_p=Ye_p=Ze_p=Xe_v=Ye_v=Ze_v=0.0;
 
     for (int n = 0; n < tricount; ++n)
     {     
@@ -107,9 +109,9 @@ void sixdof_df_object::forces_stl
 
 			p_int = p->ccipol4_a(a->press,xc,yc,zc);
 			
-			Fx = -nx*p_int*A_triang;
-			Fy = -ny*p_int*A_triang;
-            Fz = -nz*p_int*A_triang;
+			Fp_x = -nx*p_int*A_triang;
+			Fp_y = -ny*p_int*A_triang;
+            Fp_z = -nz*p_int*A_triang;
 		
 		   
              // Add tangential stress contributions
@@ -174,9 +176,9 @@ void sixdof_df_object::forces_stl
              dwdy = (rho_yp1*(nu_yp1+enu_yp1)*wpy1 - rho_ym1*(nu_ym1+enu_ym1)*wmy1)/(2.0*p->DYP[JP]);
              dwdy = (rho_zp1*(nu_zp1+enu_zp1)*wpz1 - rho_zm1*(nu_zm1+enu_zm1)*wmz1)/(2.0*p->DZP[KP]);
 
-             Fx += A_triang*(2.0*dudx*nx + (dudy + dvdx)*ny + (dudz + dwdx)*nz);
-             Fy += A_triang*((dudy + dvdx)*nx + 2.0*dvdy*ny + (dvdz + dwdy)*nz);
-             Fz += A_triang*((dudz + dwdx)*nx + (dvdz + dwdy)*ny + 2.0*dwdz*nz);
+             Fv_x = A_triang*(2.0*dudx*nx + (dudy + dvdx)*ny + (dudz + dwdx)*nz);
+             Fv_y = A_triang*((dudy + dvdx)*nx + 2.0*dvdy*ny + (dvdz + dwdy)*nz);
+             Fv_z = A_triang*((dudz + dwdx)*nx + (dvdz + dwdy)*ny + 2.0*dwdz*nz);
 */
 
 
@@ -203,9 +205,16 @@ void sixdof_df_object::forces_stl
             dwdy = (wvel(i,j+1,k) - wvel(i,j-1,k))/(p->DYP[JP] + p->DYP[JM1]);
             dwdz = (wvel(i,j,k+1) - wvel(i,j,k-1))/(p->DZP[KP] + p->DZP[KM1]);
 
-            Fx += rho_int*(nu_int + enu_int)*A_triang*(2.0*dudx*nx + (dudy + dvdx)*ny + (dudz + dwdx)*nz);
-            Fy += rho_int*(nu_int + enu_int)*A_triang*((dudy + dvdx)*nx + 2.0*dvdy*ny + (dvdz + dwdy)*nz);
-            Fz += rho_int*(nu_int + enu_int)*A_triang*((dudz + dwdx)*nx + (dvdz + dwdy)*ny + 2.0*dwdz*nz);
+            Fv_x = rho_int*(nu_int + enu_int)*A_triang*(2.0*dudx*nx + (dudy + dvdx)*ny + (dudz + dwdx)*nz);
+            Fv_y = rho_int*(nu_int + enu_int)*A_triang*((dudy + dvdx)*nx + 2.0*dvdy*ny + (dvdz + dwdy)*nz);
+            Fv_z = rho_int*(nu_int + enu_int)*A_triang*((dudz + dwdx)*nx + (dvdz + dwdy)*ny + 2.0*dwdz*nz);
+
+
+            // Total forces
+            
+            Fx = Fp_x + Fv_x;
+            Fy = Fp_y + Fv_y;
+            Fz = Fp_z + Fv_z;
             
 
 			// Add forces to global forces
@@ -217,6 +226,14 @@ void sixdof_df_object::forces_stl
 			Ke += (yc - c_(1))*Fz - (zc - c_(2))*Fy;
 			Me += (zc - c_(2))*Fx - (xc - c_(0))*Fz;
 			Ne += (xc - c_(0))*Fy - (yc - c_(1))*Fx;
+            
+            Xe_p += Fp_x;
+            Ye_p += Fp_y;
+            Ze_p += Fp_z;
+            
+            Xe_v += Fv_x;
+            Ye_v += Fv_y;
+            Ze_v += Fv_z;
 							
 			A += A_triang;
 		}
@@ -233,6 +250,12 @@ void sixdof_df_object::forces_stl
 	Me = pgc->globalsum(Me);
 	Ne = pgc->globalsum(Ne);
 
+	Xe_p = pgc->globalsum(Xe_p);
+	Ye_p = pgc->globalsum(Ye_p);
+	Ze_p = pgc->globalsum(Ze_p);
+	Xe_v = pgc->globalsum(Xe_v);
+	Ye_v = pgc->globalsum(Ye_v);
+	Ze_v = pgc->globalsum(Ze_v);
 
 	// Add gravity force
 	
@@ -255,7 +278,7 @@ void sixdof_df_object::forces_stl
 
         print.open(str, std::ofstream::out | std::ofstream::app);
         print<<p->simtime<<" \t "<<Xe<<" \t "<<Ye<<" \t "<<Ze<<" \t "<<Ke
-        <<" \t "<<Me<<" \t "<<Ne<<endl;   
+        <<" \t "<<Me<<" \t "<<Ne<<" \t "<<Xe_p<<" \t "<<Ye_p<<" \t "<<Ze_p<<" \t "<<Xe_v<<" \t "<<Ye_v<<" \t "<<Ze_v<<endl;   
         print.close();
     }
 

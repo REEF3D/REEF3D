@@ -65,7 +65,7 @@ void sixdof_df_object::print_ini(lexer *p, fdm *a, ghostcell *pgc)
     sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
 	
     print.open(str);
-	print<<"time \t Fx \t Fy \t Fz \t Mx \t My \t Mz"<<endl;
+	print<<"time \t Fx \t Fy \t Fz \t Mx \t My \t Mz \t Fx_p \t Fy_p \t Fz_p \t Fx_v \t Fy_v \t Fz_v"<<endl;
     print.close();    
 }
 
