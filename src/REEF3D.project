@@ -850,6 +850,7 @@
       <File Name="momentum_AB2.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Pressure">
+      <File Name="pjm_hydrostatic.h"/>
       <File Name="pjm_IMEX.h"/>
       <File Name="pjm_corr.h"/>
       <VirtualDirectory Name="Poisson">
@@ -2288,6 +2289,7 @@
       <File Name="momentum_FS3.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Pressure">
+      <File Name="pjm_hydrostatic.cpp"/>
       <File Name="pjm_IMEX.cpp"/>
       <VirtualDirectory Name="Debug">
         <File Name="pjm_debug.cpp"/>

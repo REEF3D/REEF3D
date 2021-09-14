@@ -186,9 +186,6 @@ void pjm_IMEX::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &
     count=0;
 	double uvel,vvel,wvel;
 	
-    NLOOP4
-	a->rhsvec.V[n]=0.0;
-	
     pip=p->Y50;
 
     LOOP
