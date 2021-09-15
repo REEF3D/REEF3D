@@ -41,6 +41,11 @@
   <Dependencies/>
   <VirtualDirectory Name="HEADERS">
     <VirtualDirectory Name="Hydrodynamics">
+      <VirtualDirectory Name="PIC">
+        <File Name="pic_f.h"/>
+        <File Name="pic_v.h"/>
+        <File Name="pic.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="PTF">
         <VirtualDirectory Name="Update">
           <File Name="ptf_fsf_update.h"/>
@@ -336,7 +341,6 @@
       <VirtualDirectory Name="Beam">
         <File Name="beam.h"/>
       </VirtualDirectory>
-      <VirtualDirectory Name="Particles"/>
       <VirtualDirectory Name="Sediment">
         <File Name="sediment_fdm.h"/>
         <VirtualDirectory Name="Bedload">
@@ -850,6 +854,7 @@
       <File Name="momentum_AB2.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Pressure">
+      <File Name="pjm_hydrostatic.h"/>
       <File Name="pjm_IMEX.h"/>
       <File Name="pjm_corr.h"/>
       <VirtualDirectory Name="Poisson">
@@ -984,6 +989,10 @@
   </VirtualDirectory>
   <VirtualDirectory Name="SOURCES">
     <VirtualDirectory Name="Hydrodynamics">
+      <VirtualDirectory Name="PIC">
+        <File Name="pic_v.cpp"/>
+        <File Name="pic_f.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="PTF">
         <VirtualDirectory Name="Update">
           <File Name="ptf_fsf_update.cpp"/>
@@ -1319,7 +1328,6 @@
         <File Name="beam_ini.cpp"/>
         <File Name="beam.cpp"/>
       </VirtualDirectory>
-      <VirtualDirectory Name="Particles"/>
       <VirtualDirectory Name="Benchmarks">
         <File Name="benchmark_TaylorGreen.cpp"/>
         <File Name="benchmark_disk.cpp"/>
@@ -2288,6 +2296,7 @@
       <File Name="momentum_FS3.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Pressure">
+      <File Name="pjm_hydrostatic.cpp"/>
       <File Name="pjm_IMEX.cpp"/>
       <VirtualDirectory Name="Debug">
         <File Name="pjm_debug.cpp"/>

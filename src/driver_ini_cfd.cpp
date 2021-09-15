@@ -152,7 +152,6 @@ cout<<"starting driver_ini"<<endl;
 	if(p->I12>=1)
 	pini->hydrostatic(p,a,pgc);
 
-	//if(p->I11==1)
     if (p->X10 == 0)
     {
         // Hard fix from Tobias so that 6DOF is running

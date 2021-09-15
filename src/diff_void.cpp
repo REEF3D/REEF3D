@@ -20,9 +20,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"diff_void.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"solver.h"
 
 diff_void::diff_void()
 {
+	gcval_u=10;
+	gcval_v=11;
+	gcval_w=12;
 }
 
 diff_void::~diff_void()
@@ -50,3 +57,26 @@ void diff_void::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 {
 }
 
+void diff_void::diff_u(lexer* p, fdm* a, ghostcell* pgc, solver* psolv, field &udiff, field &u, field &v, field &w, double alpha)
+{
+	ULOOP
+	udiff(i,j,k) = u(i,j,k);
+
+    pgc->start1(p,udiff,gcval_u);
+}
+
+void diff_void::diff_v(lexer* p, fdm* a, ghostcell* pgc, solver* psolv, field &vdiff, field &u, field &v, field &w, double alpha)
+{
+	VLOOP
+	vdiff(i,j,k) = v(i,j,k);
+
+    pgc->start2(p,vdiff,gcval_v);
+}
+
+void diff_void::diff_w(lexer* p, fdm* a, ghostcell* pgc, solver* psolv, field &wdiff, field &u, field &v, field &w, double alpha)
+{
+	WLOOP
+	wdiff(i,j,k) = w(i,j,k);
+
+    pgc->start3(p,wdiff,gcval_w);
+}

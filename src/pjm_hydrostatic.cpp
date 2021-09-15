@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"pjm.h"
+#include"pjm_hydrostatic.h"
 #include"lexer.h"
 #include"fdm.h" 
 #include"ghostcell.h"
@@ -36,7 +36,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"density_vof.h"
 #include"density_rheo.h"
  
-pjm::pjm(lexer* p, fdm *a, heat *&pheat, concentration *&ppconc)
+pjm_hydrostatic::pjm_hydrostatic(lexer* p, fdm *a, heat *&pheat, concentration *&ppconc)
 {
     pconc = ppconc;
     
@@ -65,25 +65,17 @@ pjm::pjm(lexer* p, fdm *a, heat *&pheat, concentration *&ppconc)
 	gcval_w=9;
 }
 
-pjm::~pjm()
+pjm_hydrostatic::~pjm_hydrostatic()
 {
 }
 
-void pjm::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
+void pjm_hydrostatic::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
 {
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<".";
 
 	vel_setup(p,a,pgc,uvel,vvel,wvel,alpha);	
     rhs(p,a,pgc,uvel,vvel,wvel,alpha);
-
-    ppois->start(p,a,a->press);
-	
-        starttime=pgc->timer();
-
-    psolv->start(p,a,pgc,a->press,a->xvec,a->rhsvec,5,gcval_press,p->N44);
-	
-        endtime=pgc->timer();
 
 	pgc->start4(p,a->press,gcval_press);
 	
@@ -99,76 +91,89 @@ void pjm::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, io
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
 }
 
-void pjm::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
+void pjm_hydrostatic::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 {	
 	ULOOP
 	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((a->press(i+1,j,k)-a->press(i,j,k))
 	/(p->DXP[IP]*pd->roface(p,a,1,0,0)));
 }
 
-void pjm::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
+void pjm_hydrostatic::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
 {	
     VLOOP
     vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))
     /(p->DYP[JP]*(pd->roface(p,a,0,1,0)));
 }
 
-void pjm::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
+void pjm_hydrostatic::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
 {	
 	WLOOP
 	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))
 	/(p->DZP[KP]*pd->roface(p,a,0,0,1)));
 }
  
-void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, double alpha)
+void pjm_hydrostatic::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, double alpha)
 {
-    pip=p->Y50;
+    double H,roval,phival,epsi,psi;
     
-    count=0;
+    
+    if(p->j_dir==0)        
+    psi = 1.6*(1.0/2.0)*(p->DRM+p->DTM);
+        
+    if(p->j_dir==1)
+    psi = 1.6*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
+
     LOOP
     {
-    a->rhsvec.V[count] =  -(u(i,j,k)-u(i-1,j,k))/(alpha*p->dt*p->DXN[IP])
-						   -(v(i,j,k)-v(i,j-1,k))/(alpha*p->dt*p->DYN[JP])
-						   -(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DZN[KP]);
+    phival = a->phi(i,j,k);
+
+    if(phival>psi)
+    H=1.0;
+
+    if(phival<-psi)
+    H=0.0;
+
+    if(fabs(phival)<=psi)
+    H=0.5*(1.0 + phival/psi + (1.0/PI)*sin((PI*phival)/psi));
     
-    ++count;
-    }
-    pip=0;
+    roval = p->W1*H + p->W3*(1.0-H);
     
+    a->press(i,j,k) = a->phi(i,j,k)*roval*fabs(p->W22); 
+    } 
 }
  
-void pjm::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
+void pjm_hydrostatic::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
 {
 	pgc->start1(p,u,gcval_u);
 	pgc->start2(p,v,gcval_v);
 	pgc->start3(p,w,gcval_w);
 }
 
-void pjm::upgrad(lexer*p,fdm* a)
+void pjm_hydrostatic::upgrad(lexer*p,fdm* a)
 {
 }
 
-void pjm::vpgrad(lexer*p,fdm* a)
+void pjm_hydrostatic::vpgrad(lexer*p,fdm* a)
 {
 }
 
-void pjm::wpgrad(lexer*p,fdm* a)
+void pjm_hydrostatic::wpgrad(lexer*p,fdm* a)
 {
 }
 
-void pjm::fillapu(lexer*p,fdm* a)
+void pjm_hydrostatic::fillapu(lexer*p,fdm* a)
 {
 }
 
-void pjm::fillapv(lexer*p,fdm* a)
+void pjm_hydrostatic::fillapv(lexer*p,fdm* a)
 {
 }
 
-void pjm::fillapw(lexer*p,fdm* a)
+void pjm_hydrostatic::fillapw(lexer*p,fdm* a)
 {
 }
 
-void pjm::ptimesave(lexer *p, fdm *a, ghostcell *pgc)
+void pjm_hydrostatic::ptimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
