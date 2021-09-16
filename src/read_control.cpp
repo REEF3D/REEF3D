@@ -24,6 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void lexer::read_control()
 {
+    std::string line;
 	char c;
 	int numint;
     int count=0;
@@ -322,24 +323,69 @@ void lexer::read_control()
                case 90: control>>B90;
 						 clear(c,numint);
 						 break;
-               case 91: control>>B91_1>>B91_2;
-                        B91=1;
-						 clear(c,numint);
-						 break;
+               case 91: { 
+                            getline(control,line);
+                            vector<string> v = split (line);
+                            if (v.size() == 3)
+                            {
+                                B91_1 = atof(v[1].c_str());
+                                B91_2 = atof(v[2].c_str());
+                            }
+                            else
+                            {
+                                cout<<endl;
+                                cout<<"!!! wrong input for B 91 !!!"<<endl<<endl;
+                                cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
+                                exit(0);
+                            }
+                            B91=1;
+						    clear(c,numint);
+						    break;
+                        }
                case 92: control>>B92;
 						 clear(c,numint);
 						 break;
-               case 93: control>>B93_1>>B93_2;
-                        B93=1;
-						 clear(c,numint);
-						 break;
+               case 93: { 
+                            getline(control,line);
+                            vector<string> v = split (line);
+                            if (v.size() == 3)
+                            {
+                                B93_1 = atof(v[1].c_str());
+                                B93_2 = atof(v[2].c_str());
+                            }
+                            else
+                            {
+                                cout<<endl;
+                                cout<<"!!! wrong input for B 93 !!!"<<endl<<endl;
+                                cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
+                                exit(0);
+                            }
+                            B93=1;
+						    clear(c,numint);
+						    break;
+                        }
               case 94: control>>B94_wdt;
                         B94=1;
 						 clear(c,numint);
 						 break;
-               case 96: control>>B96_1>>B96_2;
-						 clear(c,numint);
-						 break;
+               case 96: {
+                            getline(control,line);
+                            vector<string> v = split (line);
+                            if (v.size() == 3)
+                            {
+                                B96_1 = atof(v[1].c_str());
+                                B96_2 = atof(v[2].c_str());
+                            }
+                            else
+                            {
+                                cout<<endl;
+                                cout<<"!!! wrong input for B 96 !!!"<<endl<<endl;
+                                cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
+                                exit(0);
+                            }
+						    clear(c,numint);
+						    break;
+                        }
                case 97: control>>B97;
 						 clear(c,numint);
 						 break;
@@ -2515,4 +2561,21 @@ void lexer::read_control()
 	}
 
 	control.close();
+}
+
+vector<string> lexer::split(string s) 
+{
+    string delimiter = " ";
+    size_t pos_start = 0, pos_end, delim_len = delimiter.length();
+    string token;
+    vector<string> res;
+
+    while ((pos_end = s.find (delimiter, pos_start)) != string::npos) {
+        token = s.substr (pos_start, pos_end - pos_start);
+        pos_start = pos_end + delim_len;
+        res.push_back (token);
+    }
+
+    res.push_back (s.substr (pos_start));
+    return res;
 }
