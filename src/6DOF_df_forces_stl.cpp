@@ -40,7 +40,7 @@ void sixdof_df_object::forces_stl
 	double du,dv,dw, dudx, dudy, dudz, dvdx, dvdy, dvdz, dwdx, dwdy, dwdz;
 	double dudxf, dudyf, dudzf, dvdxf, dvdyf, dvdzf, dwdxf, dwdyf, dwdzf;
 	double dudxb, dudyb, dudzb, dvdxb, dvdyb, dvdzb, dwdxb, dwdyb, dwdzb;
-	double xlocvel,ylocvel,zlocvel;
+	double xlocvel,ylocvel,zlocvel,xlocp,ylocp,zlocp;
 	double Fx,Fy,Fz,Fp_x,Fp_y,Fp_z,Fv_x,Fv_y,Fv_z;
     double Xe_p,Ye_p,Ze_p,Xe_v,Ye_v,Ze_v;
 
@@ -100,14 +100,14 @@ void sixdof_df_object::forces_stl
 			nx /= norm > 1.0e-20 ? norm : 1.0e20;
 			ny /= norm > 1.0e-20 ? norm : 1.0e20;
 			nz /= norm > 1.0e-20 ? norm : 1.0e20;
-			
-            xlocvel = xc + nx*p->DXP[IP];
-			ylocvel = yc + ny*p->DYP[JP];
-			zlocvel = zc + nz*p->DZP[KP];
+
+            xlocp = xc + p->X42*nx*p->DXP[IP];
+			ylocp = yc + p->X42*ny*p->DYP[JP];
+			zlocp = zc + p->X42*nz*p->DZP[KP];
 
 			// Add normal stress contributions
 
-			p_int = p->ccipol4_a(a->press,xc,yc,zc);
+			p_int = p->ccipol4_a(a->press,xlocp,ylocp,zlocp);
 			
 			Fp_x = -nx*p_int*A_triang;
 			Fp_y = -ny*p_int*A_triang;
