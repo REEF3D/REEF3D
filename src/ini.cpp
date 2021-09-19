@@ -130,7 +130,6 @@ void lexer::ini_default()
     B94_wdt=0.0;    // double water depth for wave theory  
 	B96_1=0.0;      // double dist1 for wave relax
 	B96_2=0.0;      // double dist2 for wave relax
-	B97=0.0;        // double wave direction in degree
 	B98=0;          // int type of wave generation
 	B99=0;			// int type of numerical beach
 	B101=0;        // int ramp function wave geneartion
@@ -617,6 +616,7 @@ void lexer::ini_default()
     X34=0;		// int boundary treatment for new solid velocity cells
     X40=3;		// int type of force calculation
 	X41=2.1;    // double eps for continuous forcing heaviside
+	X42=0.0;    // double distance for pressure force evaluation
 	X100=0;		// int delta x,y,z
 	X100_x=X100_y=X100_z=0.0; 
 	X101=0;		// int ini Euler angles

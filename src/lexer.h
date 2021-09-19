@@ -270,7 +270,7 @@ public:
 	int B10,B20,B26,B30,B60,B61,B70,B71,B74,B75,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B94,B98,B99,B101,B105,B106,B107;
 	int B121,B136,B139,B180,B191,B192,B240,B241,B242,B243;
 	double B29,B50,B51,B52,B53,B54,B55,B56,B81_1,B81_2,B81_3,B83,B117,B87_1,B87_2,B88;
-	double B91_1,B91_2,B93_1,B93_2,B94_wdt,B96_1,B96_2,B97,B102,B105_1,B105_2,B105_3;
+	double B91_1,B91_2,B93_1,B93_2,B94_wdt,B96_1,B96_2,B102,B105_1,B105_2,B105_3;
 	double *B70_val,*B70_dist,*B70_b,*B70_x,*B70_y;
 	double *B71_val,*B71_dist,*B71_b,*B71_x,*B71_y;
 	double *B106_b,*B106_x,*B106_y;
@@ -534,7 +534,7 @@ public:
 	double X24_Ix,X24_Iy,X24_Iz;	
 	double X25_Cp,X25_Cq,X25_Cr;	
     double X26_Cu,X26_Cv,X26_Cw;	
-	double X41;
+	double X41,X42;
 	double X100_x,X100_y,X100_z;
 	double X101_phi, X101_theta, X101_psi;
 	double X102_u, X102_v, X102_w;
@@ -632,6 +632,7 @@ public:
 private:
 
 	void clear(char&, int&);
+    vector<string> split(string);
 };
 
 #endif

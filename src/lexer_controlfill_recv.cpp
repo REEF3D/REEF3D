@@ -242,8 +242,6 @@ void lexer::ctrlrecv()
 	dd++;
     B96_2 = dctrl[dd];
 	dd++;
-    B97 = dctrl[dd];
-	dd++;
     B98 = ictrl[ii];
 	ii++;
     B99 = ictrl[ii];
@@ -1230,6 +1228,8 @@ void lexer::ctrlrecv()
     X40 = ictrl[ii];
 	ii++;
 	X41 = dctrl[dd];
+	dd++;
+	X42 = dctrl[dd];
 	dd++;
 	X100 = ictrl[ii];
 	ii++;
