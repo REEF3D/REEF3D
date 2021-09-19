@@ -24,6 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void lexer::read_control()
 {
+    std::string line;
 	char c;
 	int numint;
     int count=0;
@@ -34,7 +35,7 @@ void lexer::read_control()
 		cout<<endl<<("no 'ctrl.txt' file found")<<endl<<endl;
 		exit(0);
 	}
-	
+
 	if(mpirank==0)
 	cout<<"read ctrl"<<endl;
 
@@ -43,12 +44,12 @@ void lexer::read_control()
 	{
 		control>>c;
 
-	if (c == '/') 
+	if (c == '/')
 	{
 	control.ignore(1000, '\n');
 	}
 	else
-	{	
+	{
 		switch(c)
 		{
         case 'A': control>>numint;
@@ -226,7 +227,7 @@ void lexer::read_control()
                         break;
                case 440: control>>A440;
                         clear(c,numint);
-                        break;						
+                        break;
 
 				}
 				break;
@@ -283,7 +284,7 @@ void lexer::read_control()
 						 break;
               case 74: control>>B74;
 						 clear(c,numint);
-						 break; 
+						 break;
 			   case 75: control>>B75;
 						 clear(c,numint);
 						 break;
@@ -322,22 +323,70 @@ void lexer::read_control()
                case 90: control>>B90;
 						 clear(c,numint);
 						 break;
-               case 91: control>>B91_1>>B91_2;
-                        B91=1;
-						 clear(c,numint);
-						 break;
+               case 91: {
+                            getline(control,line);
+                            vector<string> v = split (line);
+                            if (v.size() == 3)
+                            {
+                                B91_1 = atof(v[1].c_str());
+                                B91_2 = atof(v[2].c_str());
+                            }
+                            else
+                            {
+                                cout<<endl;
+                                cout<<"!!! wrong input for B 91 !!!"<<endl<<endl;
+                                cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
+                                exit(0);
+                            }
+                            B91=1;
+						    clear(c,numint);
+						    break;
+                        }
                case 92: control>>B92;
 						 clear(c,numint);
 						 break;
-               case 93: control>>B93_1>>B93_2;
-                        B93=1;
-						 clear(c,numint);
-						 break;
+               case 93: {
+                            getline(control,line);
+                            vector<string> v = split (line);
+                            if (v.size() == 3)
+                            {
+                                B93_1 = atof(v[1].c_str());
+                                B93_2 = atof(v[2].c_str());
+                            }
+                            else
+                            {
+                                cout<<endl;
+                                cout<<"!!! wrong input for B 93 !!!"<<endl<<endl;
+                                cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
+                                exit(0);
+                            }
+                            B93=1;
+						    clear(c,numint);
+						    break;
+                        }
               case 94: control>>B94_wdt;
                         B94=1;
 						 clear(c,numint);
 						 break;
-               case 96: control>>B96_1>>B96_2;
+               case 96: {
+                            getline(control,line);
+                            vector<string> v = split (line);
+                            if (v.size() == 3)
+                            {
+                                B96_1 = atof(v[1].c_str());
+                                B96_2 = atof(v[2].c_str());
+                            }
+                            else
+                            {
+                                cout<<endl;
+                                cout<<"!!! wrong input for B 96 !!!"<<endl<<endl;
+                                cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
+                                exit(0);
+                            }
+						    clear(c,numint);
+						    break;
+                        }
+               case 97: control>>B97;
 						 clear(c,numint);
 						 break;
                case 98: control>>B98;
@@ -539,7 +588,7 @@ void lexer::read_control()
 						 break;
 				}
 				break;
-				
+
 		case 'C': control>>numint;
 				switch(numint)
 				{
@@ -881,7 +930,7 @@ void lexer::read_control()
                         H66=1;
 						 clear(c,numint);
 						 break;
-                         
+
 
 				}
 				break;
@@ -1198,7 +1247,7 @@ void lexer::read_control()
 						 break;
                case 185: ++P185;
 						 clear(c,numint);
-						 break; 
+						 break;
                case 210: control>>P210;
 						 clear(c,numint);
 						 break;
@@ -1312,7 +1361,7 @@ void lexer::read_control()
 						 break;
 				 case 48: control>>S48;
 						 clear(c,numint);
-						 break;		 
+						 break;
                 case 50: control>>S50;
 						 clear(c,numint);
 						 break;
@@ -1509,7 +1558,7 @@ void lexer::read_control()
 						 break;
 				}
 				break;
-				
+
 		case 'X': control>>numint;
 				switch(numint)
 				{
@@ -1569,6 +1618,9 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
                case  41: control>>X41;
+						 clear(c,numint);
+						 break;
+               case  42: control>>X42;
 						 clear(c,numint);
 						 break;
 				case  100: control>>X100_x>>X100_y>>X100_z;
@@ -1645,7 +1697,7 @@ void lexer::read_control()
 						 break;
 				case  310: control>>X310;
 						 clear(c,numint);
-						 break;	
+						 break;
                 case  311: ++X311;
 						 clear(c,numint);
 						 break;
@@ -1654,7 +1706,7 @@ void lexer::read_control()
 						 break;
 				case  313: control>>X313;
 						 clear(c,numint);
-						 break;	
+						 break;
 				case  320: ++X320;
                          B269=3;
 						 clear(c,numint);
@@ -1679,7 +1731,7 @@ void lexer::read_control()
 						 break;
 				}
 				break;
-				
+
 		case 'Y': control>>numint;
 				switch(numint)
 				{
@@ -1722,57 +1774,57 @@ void lexer::read_control()
 
 				}
 				break;
-        
+
 		}
-        
+
         ++count;
-        		
+
 	}
         if(count>1e7)
         {
         cout<<endl;
         cout<<"!!! missing input parameter in ctrl.txt !!!"<<endl<<endl;
         cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
-        
+
         exit(0);
         }
 	}
 	control.close();
 	control.clear();
-	
+
 
     // re-read
-	
+
 	// B
 	Darray(B70_val,B70);
 	Darray(B70_dist,B70);
 	Darray(B70_b,B70);
 	Darray(B70_x,B70);
 	Darray(B70_y,B70);
-	
+
 	Darray(B71_val,B71);
 	Darray(B71_dist,B71);
 	Darray(B71_b,B71);
 	Darray(B71_x,B71);
 	Darray(B71_y,B71);
-	
+
 	Darray(B106_b,B106);
 	Darray(B106_x,B106);
 	Darray(B106_y,B106);
-	
+
 	Darray(B107_xs,B107);
     Darray(B107_xe,B107);
 	Darray(B107_ys,B107);
     Darray(B107_ye,B107);
     Darray(B107_d,B107);
-    
+
     Darray(B108_xs,B108);
     Darray(B108_xe,B108);
 	Darray(B108_ys,B108);
     Darray(B108_ye,B108);
     Darray(B108_d,B108);
 
-	
+
 	Darray(B240_C,B240);
 	Darray(B240_D,B240);
 	Darray(B240_xs,B240);
@@ -1781,7 +1833,7 @@ void lexer::read_control()
 	Darray(B240_ye,B240);
 	Darray(B240_zs,B240);
 	Darray(B240_ze,B240);
-    
+
     Darray(B270_xs,B270);
 	Darray(B270_xe,B270);
 	Darray(B270_ys,B270);
@@ -1792,7 +1844,7 @@ void lexer::read_control()
     Darray(B270_d50,B270);
 	Darray(B270_alpha,B270);
 	Darray(B270_beta,B270);
-    
+
 	Darray(B274_xc,B274);
 	Darray(B274_yc,B274);
 	Darray(B274_zs,B274);
@@ -1802,7 +1854,7 @@ void lexer::read_control()
     Darray(B274_d50,B274);
 	Darray(B274_alpha,B274);
 	Darray(B274_beta,B274);
-    
+
     Darray(B281_xs,B281);
 	Darray(B281_xe,B281);
 	Darray(B281_ys,B281);
@@ -1813,7 +1865,7 @@ void lexer::read_control()
     Darray(B281_d50,B281);
 	Darray(B281_alpha,B281);
 	Darray(B281_beta,B281);
-    
+
     Darray(B291_xs,B291);
 	Darray(B291_xe,B291);
 	Darray(B291_ys,B291);
@@ -1825,7 +1877,7 @@ void lexer::read_control()
     Darray(B291_d50,B291);
 	Darray(B291_alpha,B291);
 	Darray(B291_beta,B291);
-    
+
     Darray(B310_xs,B310);
 	Darray(B310_xe,B310);
 	Darray(B310_ys,B310);
@@ -1835,20 +1887,20 @@ void lexer::read_control()
     Darray(B310_N,B310);
     Darray(B310_D,B310);
 	Darray(B310_Cd,B310);
-   
- 
+
+
     Iarray(B411_ID,B411);
     Darray(B411_Q,B411);
-    
+
     Iarray(B412_ID,B412);
     Darray(B412_pressBC,B412);
-    
+
     Iarray(B413_ID,B413);
     Darray(B413_h,B413);
-    
+
     Iarray(B414_ID,B414);
     Darray(B414_Uio,B414);
-    
+
     Iarray(B415_ID,B415);
     Darray(B415_U,B415);
     Darray(B415_V,B415);
@@ -1865,15 +1917,15 @@ void lexer::read_control()
     Iarray(B421_Q,B421);
     Iarray(B422_ID,B422);
     Iarray(B422_FSF,B422);
-    
-    
+
+
     Iarray(B440_ID,B440);
     Iarray(B440_face,B440);
     Darray(B440_xs,B440);
     Darray(B440_xe,B440);
     Darray(B440_ys,B440);
     Darray(B440_ye,B440);
-    
+
     Iarray(B441_ID,B441);
     Iarray(B441_face,B441);
     Darray(B441_xs,B441);
@@ -1882,14 +1934,14 @@ void lexer::read_control()
     Darray(B441_ye,B441);
     Darray(B441_zs,B441);
     Darray(B441_ze,B441);
-    
+
     Iarray(B442_ID,B442);
     Iarray(B442_face,B442);
     Darray(B442_xm,B442);
     Darray(B442_ym,B442);
     Darray(B442_zm,B442);
     Darray(B442_r,B442);
-	
+
 	// C
 	Darray(C75_x,C75);
 	Darray(C75_z,C75);
@@ -1897,114 +1949,114 @@ void lexer::read_control()
 	Darray(C75_s,C75);
 	Darray(C75_l,C75);
 	Darray(C75_v,C75);
-	
+
 
     // F
 	Darray(F70_xs,F70);
 	Darray(F70_xe,F70);
-	
+
 	Darray(F70_ys,F70);
 	Darray(F70_ye,F70);
-	
+
 	Darray(F70_zs,F70);
 	Darray(F70_ze,F70);
 
 
 	Darray(F71_xs,F71);
 	Darray(F71_xe,F71);
-	
+
 	Darray(F71_ys,F71);
 	Darray(F71_ye,F71);
-	
+
 	Darray(F71_zs,F71);
 	Darray(F71_ze,F71);
-	
-	
+
+
 	Darray(F72_xs,F72);
 	Darray(F72_xe,F72);
-	
+
 	Darray(F72_ys,F72);
 	Darray(F72_ye,F72);
-	
+
 	Darray(F72_h,F72);
 
     // P
 	Darray(P35_ts,P35);
 	Darray(P35_te,P35);
 	Darray(P35_dt,P35);
-	
+
 	Darray(P50_x,P50);
 	Darray(P50_y,P50);
-	
+
 	Darray(P51_x,P51);
 	Darray(P51_y,P51);
-	
+
 	Darray(P52_y,P52);
 	Darray(P56_x,P56);
-	
+
 	Darray(P61_x,P61);
 	Darray(P61_y,P61);
 	Darray(P61_z,P61);
-	
+
 	Darray(P62_xs,P62);
 	Darray(P62_ys,P62);
 	Darray(P62_zs,P62);
 	Darray(P62_xe,P62);
 	Darray(P62_ye,P62);
 	Darray(P62_ze,P62);
-    
+
     Darray(P63_x,P63);
 	Darray(P63_y,P63);
-	
+
 	Darray(P67_x,P67);
-	
+
 	Darray(P81_xs,P81);
 	Darray(P81_ys,P81);
 	Darray(P81_zs,P81);
 	Darray(P81_xe,P81);
 	Darray(P81_ye,P81);
 	Darray(P81_ze,P81);
-	
+
 	Darray(P85_xs,P85);
 	Darray(P85_ys,P85);
 	Darray(P85_zs,P85);
 	Darray(P85_xe,P85);
 	Darray(P85_ye,P85);
 	Darray(P85_ze,P85);
-	
+
 	Darray(P121_x,P121);
 	Darray(P121_y,P121);
-	
+
 	Darray(P123_y,P123);
-	
+
 	Darray(P124_x,P124);
-	
+
 	Darray(P125_x,P125);
 	Darray(P125_y,P125);
-    
+
     Iarray(P184_its,P184);
 	Iarray(P184_ite,P184);
 	Iarray(P184_dit,P184);
-    
+
     Darray(P185_ts,P185);
 	Darray(P185_te,P185);
 	Darray(P185_dt,P185);
-    
+
     Darray(P230_x,P230);
     Darray(P240_x,P240);
-	
+
 	Darray(P351_x,P351);
 	Darray(P351_y,P351);
 	Darray(P352_x,P352);
 	Darray(P352_y,P352);
-	
+
 	// S
 	Darray(S73_val,S73);
 	Darray(S73_dist,S73);
 	Darray(S73_b,S73);
 	Darray(S73_x,S73);
-	Darray(S73_y,S73);	
-    
+	Darray(S73_y,S73);
+
     // W
     Darray(W41_xc,W41);
     Darray(W41_yc,W41);
@@ -2012,7 +2064,7 @@ void lexer::read_control()
     Darray(W41_ze,W41);
     Darray(W41_vel,W41);
     Darray(W41_beta,W41);
-	
+
 	// X
 	Darray(X110_xs,X110);
 	Darray(X110_ys,X110);
@@ -2020,7 +2072,7 @@ void lexer::read_control()
 	Darray(X110_xe,X110);
 	Darray(X110_ye,X110);
 	Darray(X110_ze,X110);
-    
+
     Darray(X163_x1,X163);
     Darray(X163_y1,X163);
     Darray(X163_z1,X163);
@@ -2039,7 +2091,7 @@ void lexer::read_control()
     Darray(X163_x6,X163);
     Darray(X163_y6,X163);
     Darray(X163_z6,X163);
-    
+
     Darray(X164_x1,X164);
     Darray(X164_y1,X164);
     Darray(X164_z1,X164);
@@ -2073,15 +2125,15 @@ void lexer::read_control()
         Darray(X311_xe,X311);
         Darray(X311_ye,X311);
         Darray(X311_ze,X311);
-        Darray(X311_w,X311); 
-        Darray(X311_rho_c,X311); 
-        Darray(X311_EA,X311); 
-        Darray(X311_d,X311);  
-        Darray(X311_l,X311); 
-        Darray(X311_H,X311); 
-        Darray(X311_P,X311); 
+        Darray(X311_w,X311);
+        Darray(X311_rho_c,X311);
+        Darray(X311_EA,X311);
+        Darray(X311_d,X311);
+        Darray(X311_l,X311);
+        Darray(X311_H,X311);
+        Darray(X311_P,X311);
         Darray(X311_facT,X311);
-        
+
         mooring_count = X311;
     }
     else
@@ -2092,45 +2144,45 @@ void lexer::read_control()
         Darray(X311_xe,X312);
         Darray(X311_ye,X312);
         Darray(X311_ze,X312);
-        Darray(X312_k,X312); 
-        Darray(X312_T0,X312); 
-    
-        Darray(X311_w,X311); 
-        Darray(X311_rho_c,X311); 
-        Darray(X311_EA,X311); 
-        Darray(X311_d,X311);  
-        Darray(X311_l,X311); 
-        Darray(X311_H,X311); 
-        Darray(X311_P,X311); 
+        Darray(X312_k,X312);
+        Darray(X312_T0,X312);
+
+        Darray(X311_w,X311);
+        Darray(X311_rho_c,X311);
+        Darray(X311_EA,X311);
+        Darray(X311_d,X311);
+        Darray(X311_l,X311);
+        Darray(X311_H,X311);
+        Darray(X311_P,X311);
         Darray(X311_facT,X311);
-    
-        mooring_count = X312;	
+
+        mooring_count = X312;
     }
-    
+
     if (X321 > 0)
     {
-		Iarray(X320_type,X320);  
-		
-        Darray(X321_Sn,X321);  
-		Darray(X321_d,X321);  
-        Darray(X321_lambda,X321);  
-		Darray(X321_dk,X321);  
-		Darray(X321_rho,X321);
-		Darray(X321_nd,X321);  
-		Darray(X321_nl,X321);  
+		Iarray(X320_type,X320);
 
-        Darray(X322_D,X321);  
-        Darray(X322_L,X321);  
-        Darray(X322_x0,X321);  
-        Darray(X322_y0,X321);  
-        Darray(X322_z0,X321);  
-        Darray(X322_phi,X321);  
-        Darray(X322_theta,X321);  
-        Darray(X322_psi,X321);  
-        
+        Darray(X321_Sn,X321);
+		Darray(X321_d,X321);
+        Darray(X321_lambda,X321);
+		Darray(X321_dk,X321);
+		Darray(X321_rho,X321);
+		Darray(X321_nd,X321);
+		Darray(X321_nl,X321);
+
+        Darray(X322_D,X321);
+        Darray(X322_L,X321);
+        Darray(X322_x0,X321);
+        Darray(X322_y0,X321);
+        Darray(X322_z0,X321);
+        Darray(X322_phi,X321);
+        Darray(X322_theta,X321);
+        Darray(X322_psi,X321);
+
         net_count = X321;
-    }    
-	
+    }
+
     Darray(X324_x,X324);
 	Darray(X324_y,X324);
 	Darray(X324_z,X324);
@@ -2306,7 +2358,7 @@ void lexer::read_control()
 						 break;
 				}
 				break;
-				
+
 			case 'C': control>>numint;
 				switch(numint)
 				{
@@ -2316,7 +2368,7 @@ void lexer::read_control()
 						 break;
 				}
 				break;
-				
+
 		    case 'F': control>>numint;
 				switch(numint)
 				{
@@ -2368,7 +2420,7 @@ void lexer::read_control()
 				case 62: control>>P62_xs[countP62]>>P62_xe[countP62]>>P62_ys[countP62]>>P62_ye[countP62]>>P62_zs[countP62]>>P62_ze[countP62];
                         ++countP62;
 						 clear(c,numint);
-						 break;       
+						 break;
                case 63: control>>P63_x[countP63]>>P63_y[countP63];
                         ++countP63;
 						 clear(c,numint);
@@ -2427,7 +2479,7 @@ void lexer::read_control()
 						 break;
 				}
 				break;
-                
+
             case 'S': control>>numint;
 				switch(numint)
 				{
@@ -2437,7 +2489,7 @@ void lexer::read_control()
 						 break;
 				}
 				break;
-                
+
             case 'W': control>>numint;
 				switch(numint)
 				{
@@ -2447,8 +2499,8 @@ void lexer::read_control()
 						 break;
 				}
 				break;
-				
-				
+
+
 			case 'X': control>>numint;
 				switch(numint)
 				{
@@ -2475,41 +2527,58 @@ void lexer::read_control()
 								>>X311_P[countX311]>>X311_facT[countX311];
                         ++countX311;
 						 clear(c,numint);
-						 break;		
+						 break;
                 case 312: control>>X311_xs[countX312]>>X311_xe[countX312]>>X311_ys[countX312]>>X311_ye[countX312]>>X311_zs[countX312]>>X311_ze[countX312]
 								>>X312_k[countX312]>>X312_T0[countX312];
                         ++countX312;
 						 clear(c,numint);
-						 break;		 
+						 break;
 				case 320: control>>X320_type[countX320];
                         ++countX320;
 						 clear(c,numint);
-						 break;		                         
+						 break;
 				case 321: control>>X321_Sn[countX321]>>X321_d[countX321]>>X321_lambda[countX321]>>X321_dk[countX321]>>X321_rho[countX321]>>X321_nd[countX321]>>X321_nl[countX321];
                         ++countX321;
 						 clear(c,numint);
-						 break;		                         
+						 break;
 				case 322: control>>X322_D[countX322]>>X322_L[countX322]>>X322_x0[countX322]>>X322_y0[countX322]>>X322_z0[countX322]>>X322_phi[countX322]>>X322_theta[countX322]>>X322_psi[countX322];
                         ++countX322;
 						 clear(c,numint);
-						 break;		                         
+						 break;
 				case 324: control>>X324_x[countX324]>>X324_y[countX324]>>X324_z[countX324];
                         ++countX324;
 						 clear(c,numint);
-						 break;        
+						 break;
 				}
 				break;
 		}
-        
+
         if(count>1e7)
         {
         cout<<endl;
         cout<<"!!! missing input parameter in ctrl.txt !!!"<<endl<<endl;
         cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
-        
+
         exit(0);
         }
 	}
 
 	control.close();
+}
+
+vector<string> lexer::split(string s)
+{
+    string delimiter = " ";
+    size_t pos_start = 0, pos_end, delim_len = delimiter.length();
+    string token;
+    vector<string> res;
+
+    while ((pos_end = s.find (delimiter, pos_start)) != string::npos) {
+        token = s.substr (pos_start, pos_end - pos_start);
+        pos_start = pos_end + delim_len;
+        res.push_back (token);
+    }
+
+    res.push_back (s.substr (pos_start));
+    return res;
 }

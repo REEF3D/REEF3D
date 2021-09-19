@@ -616,6 +616,7 @@ void lexer::ini_default()
     X34=0;		// int boundary treatment for new solid velocity cells
     X40=3;		// int type of force calculation
 	X41=2.1;    // double eps for continuous forcing heaviside
+	X42=0.0;    // double distance for pressure force evaluation
 	X100=0;		// int delta x,y,z
 	X100_x=X100_y=X100_z=0.0; 
 	X101=0;		// int ini Euler angles
