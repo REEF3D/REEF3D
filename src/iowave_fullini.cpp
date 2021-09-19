@@ -31,24 +31,17 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
     cout<<"full NWT initialize"<<endl;
     
     
-	LOOP
+	FLUIDLOOP
     {
         xg = xgen(p);
         yg = ygen(p);
 		dg = distgen(p);
 		db = distbeach(p);
 		
-        if(p->pos_z()<=p->phimean)
-        z=-(fabs(p->phimean-p->pos_z()));
-		
-		if(p->pos_z()>p->phimean)
-        z=(fabs(p->phimean-p->pos_z()));
-		
 		a->phi(i,j,k) = (wave_h(p,pgc,xg,yg,0.0)-p->pos_z());
-
 	}
 	
-	ULOOP
+	UFLUIDLOOP
     {
 		xg = xgen1(p);
         yg = ygen1(p);
@@ -79,7 +72,7 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
 	}	
 	
 	
-	VLOOP
+	VFLUIDLOOP
     {
         xg = xgen2(p);
         yg = ygen2(p);
@@ -109,7 +102,7 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
 		a->v(i,j,k) = wave_v(p,pgc,xg,yg,z)*H;
 	}
 	
-	WLOOP
+	WFLUIDLOOP
     {
         xg = xgen(p);
         yg = ygen(p);
@@ -139,7 +132,7 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
 		a->w(i,j,k) = wave_w(p,pgc,xg,yg,z)*H;
 	}
 	
-	LOOP
+	FLUIDLOOP
     {
         xg = xgen(p);
         yg = ygen(p);
@@ -156,7 +149,7 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
 	}
 	
 	
-	LOOP
+	FLUIDLOOP
     {
         xg = xgen(p);
         yg = ygen(p);
@@ -194,7 +187,7 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
 		dg = distgen(p);
 		db = distbeach(p);
 
-		a->eta(i,j) = wave_eta(p,pgc,xg,0.0);
+		a->eta(i,j) = wave_eta(p,pgc,xg,yg);
     }
     
     // Fifsf

@@ -29,6 +29,13 @@ void ghostcell::nse1(lexer *p, fdm *a, field &f, int gcv)
     double nx,ny,nz,dnorm;
     double xp, yp, zp;
     double lsv;
+    double psi;
+    
+        if(p->j_dir==0)        
+        psi = 4.1*(1.0/2.0)*(p->DRM+p->DTM);
+        
+        if(p->j_dir==1)
+        psi = 4.1*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
     
     
     UAIRLOOP
@@ -38,6 +45,8 @@ void ghostcell::nse1(lexer *p, fdm *a, field &f, int gcv)
     UAIRLOOP
     {
     lsv = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
+    
+        
     
         if(lsv>-4.1*(1.0/3.0)*(p->DXN[IP] + p->DYP[JP] + p->DZP[KP]))
         {
@@ -56,9 +65,9 @@ void ghostcell::nse1(lexer *p, fdm *a, field &f, int gcv)
         zp = p->pos1_z() + nz*(1.0*fabs(lsv)+2.0*p->DZP[KP]);
         
         
-        f(i,j,k) = p->ccipol1(f, xp, yp, zp);
+        f(i,j,k) = p->ccipol1_a(f, xp, yp, zp);
         
-        //if(p->mpirank==0)
+        //if(p->mpirank==3)
         //cout<<" xp: "<<nx<<" yp: "<<yp<<" zp: "<<zp<<" |  nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<" lsm: "<<lsv<<" |  "<<p->ccipol1_a(f, xp, yp, zp)<<" "<<p->ccipol4_a(a->phi, xp, yp, zp)<<endl;
         }
     

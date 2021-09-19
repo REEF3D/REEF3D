@@ -95,7 +95,8 @@ cout<<"starting driver_ini"<<endl;
     // patchBC ini
     pBC->patchBC_ini(p,pgc);
     
-    //ioflow ini
+    //ioflow ini --------------------------------------------------------------
+    poneph->update(p,a,pgc,pflow);
     pflow->ini(p,a,pgc);
 
     
@@ -109,16 +110,11 @@ cout<<"starting driver_ini"<<endl;
 	
 	if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"Walldist time: "<<setprecision(4)<<walltime<<endl;
-
-	if(p->P150==0)
-	pdata = new data_void(p,a,pgc);
-	
-	if(p->P150>0)
-	pdata = new data_f(p,a,pgc);
 	
 	pdata->start(p,a,pgc);
+    
 
-    pnse->ini(p,a,pgc,pflow);
+    pnse->ini(p,a,pgc,pflow);     //*************************************************
 	
     pheat->heat_ini(p,a,pgc,pheat);
 	pconc->ini(p,a,pgc,pconc);
@@ -129,10 +125,8 @@ cout<<"starting driver_ini"<<endl;
 	pflow->pressure_io(p,a,pgc);
     
     if (p->F80>0)
-    {
-        pflow->vof_relax(p,pgc,a->vof);
-    }
-    
+    pflow->vof_relax(p,pgc,a->vof);
+
     else
     if(p->F30>0 || p->F40>0)
     {
@@ -142,7 +136,7 @@ cout<<"starting driver_ini"<<endl;
         pfsf->update(p,a,pgc,a->phi);        
         pini->iniphi_surfarea(p,a,pgc);
     }
-    
+
 	ppart->setup(p,a,pgc);
 	pini->iniphi_io(a,p,pgc);
 	pflow->discharge(p,a,pgc);
@@ -151,18 +145,14 @@ cout<<"starting driver_ini"<<endl;
     pflow->wavegen_precalc(p,pgc);
 	if(p->I12>=1)
 	pini->hydrostatic(p,a,pgc);
-
-    if (p->X10 == 0)
-    {
-        // Hard fix from Tobias so that 6DOF is running
-        ptstep->start(a,p,pgc,pturb);
-    }
-
+    
+    // Hard fix from Tobias so that 6DOF is running
+    if(p->X10==0)
+    ptstep->start(a,p,pgc,pturb);
     
     if(p->I13==1)
     pturb->ini(p,a,pgc);
 	
-
     if(p->I58_2>0.0)
 	pini->droplet_ini(p,a,pgc);
 
@@ -181,7 +171,6 @@ cout<<"starting driver_ini"<<endl;
     
 	pgc->start4(p,a->press,40);
 	
-
     pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
 
 // ini variables

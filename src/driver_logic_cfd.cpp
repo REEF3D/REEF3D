@@ -577,6 +577,12 @@ void driver::logic()
 
 // Printer
 	pprint = new vtu3D(p,a,pgc);
+    
+    if(p->P150==0)
+	pdata = new data_void(p,a,pgc);
+	
+	if(p->P150>0)
+	pdata = new data_f(p,a,pgc);
 	
 // Sediment
     if(p->S10==0)

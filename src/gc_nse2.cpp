@@ -50,12 +50,12 @@ void ghostcell::nse2(lexer *p, fdm *a, field &f, int gcv)
         ny/=dnorm;
         nz/=dnorm;
         
-        xp = p->pos2_x() + nx*(2.0*fabs(lsv)+1.0*p->DXP[IP]);
+        xp = p->pos2_x() + nx*(2.0*fabs(lsv)+2.0*p->DXP[IP]);
         yp = p->pos2_y() + ny*(2.0*fabs(lsv)+2.0*p->DYN[JP]);
-        zp = p->pos2_z() + nz*(2.0*fabs(lsv)+1.0*p->DZP[KP]);
+        zp = p->pos2_z() + nz*(2.0*fabs(lsv)+2.0*p->DZP[KP]);
         
         // chk bounds
-        f(i,j,k) = p->ccipol2(f, xp, yp, zp);
+        f(i,j,k) = p->ccipol2_a(f, xp, yp, zp);
         }
     
     }

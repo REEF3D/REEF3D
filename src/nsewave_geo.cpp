@@ -60,45 +60,14 @@ nsewave_geo::nsewave_geo(lexer *p, fdm *a, ghostcell *pgc, heat *&pheat, concent
 	if(p->F50==4)
 	gcval_phi=54;
 
-    /*
-	if(p->H10==0 && p->W30==0 && p->W90==0)
-	pupdate = new fluid_update_fsf(p,a,pgc);
-	
-	if(p->H10==0 && p->W30==1 && p->W90==0)
-	pupdate = new fluid_update_fsf_comp(p,a,pgc);
-	
-	if(p->H10>0 && p->W90==0 && p->H3==1)
-	pupdate = new fluid_update_fsf_heat(p,a,pgc,pheat);
-    
-    if(p->H10>0 && p->W90==0 && p->H3==2)
-	pupdate = new fluid_update_fsf_heat_Bouss(p,a,pgc,pheat);
-	
-	if(p->C10>0 && p->W90==0)
-	pupdate = new fluid_update_fsf_concentration(p,a,pgc,pconc);
-	
-	if(p->H10==0 && p->W30==0 && p->W90>0)
-	pupdate = new fluid_update_rheology(p,a);*/
-
     pupdate = new fluid_update_fsf(p,a,pgc);
     
-	if(p->F46==2)
-	ppicard = new picard_f(p);
-
-	if(p->F46==3)
-	ppicard = new picard_lsm(p);
-
-	if(p->F46!=2 && p->F46!=3)
-	ppicard = new picard_void(p);
     
     p->phimean=p->F60;
-    
-    SLICELOOP4
-    a->eta(i,j) = 0.0;
 
-    
     pgc->gcsl_start4(p,a->eta,gcval_phi);
     
-    LOOP
+    FLUIDLOOP
     a->phi(i,j,k) = a->eta(i,j) + p->phimean - p->pos_z();
     
     pgc->start4(p,a->phi,gcval_phi);
@@ -138,7 +107,7 @@ void nsewave_geo::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
     {
 		d=0.0;
 		KULOOP
-        UCHECK
+        UFLUIDCHECK
 		{
 		//phival = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
         phival = (1.0/16.0)*(-a->phi(i-1,j,k) + 9.0*a->phi(i,j,k) + 9.0*a->phi(i+1,j,k) - a->phi(i+2,j,k));
@@ -162,7 +131,7 @@ void nsewave_geo::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	{	
 			d=0.0;
 			KVLOOP
-            VCHECK
+            VFLUIDCHECK
 			{
     
 			//phival = 0.5*(a->phi(i,j,k)+a->phi(i,j+1,k));
@@ -216,14 +185,11 @@ void nsewave_geo::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
     
     p->phimean=p->F60;
     
-    SLICELOOP4
-    a->eta(i,j) = 0.0;
-    
     pflow->eta_relax(p,pgc,a->eta);
     
     pgc->gcsl_start4(p,a->eta,gcval_phi);
     
-    LOOP
+    FLUIDLOOP
     a->phi(i,j,k) = a->eta(i,j) + p->phimean - p->pos_z();
     
     pgc->start4(p,a->phi,gcval_phi);
