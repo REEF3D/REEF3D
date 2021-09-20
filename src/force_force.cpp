@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include <math.h>
 
 
-void force::force(lexer* p, fdm *a, ghostcell *pgc)
+void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
 {
     double ux,vy,wz,vel,pressure,density,viscosity;
     double du,dv,dw;

@@ -82,7 +82,7 @@ void force::start(lexer *p, fdm *a, ghostcell *pgc)
     pgc->start4(p,a->press,gcval_press);
 
 	// forcecalc
-    force(p,a,pgc);
+    force_calc(p,a,pgc);
     
         if(p->mpirank==0)
         {

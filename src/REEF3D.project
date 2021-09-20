@@ -763,7 +763,9 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Printer">
-        <VirtualDirectory Name="Force ALE"/>
+        <VirtualDirectory Name="Force ALE">
+          <File Name="force_ale.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Flowfile Out">
           <File Name="flowfile_out.h"/>
         </VirtualDirectory>
@@ -833,7 +835,7 @@
           <File Name="export.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Force">
-          <File Name="forcesolid.h"/>
+          <File Name="force.h"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <File Name="lexer.h"/>
@@ -2171,7 +2173,9 @@
         <File Name="lexer_gridini2D.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Printer">
-        <VirtualDirectory Name="Force ALE"/>
+        <VirtualDirectory Name="Force ALE">
+          <File Name="force_ale.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="FlowFile Out">
           <File Name="flowfile_out.cpp"/>
           <File Name="flowfile_out_ini.cpp"/>
@@ -2254,15 +2258,15 @@
           <File Name="export_preproc.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Force">
-          <File Name="forcesolid_finalize.cpp"/>
-          <File Name="forcesolid_pvtp.cpp"/>
-          <File Name="forcesolid_header.cpp"/>
-          <File Name="forcesolid_reconstruction.cpp"/>
-          <File Name="forcesolid_triangulation.cpp"/>
-          <File Name="forcesolid.cpp"/>
-          <File Name="forcesolid_vtp.cpp"/>
-          <File Name="forcesolid_print.cpp"/>
-          <File Name="forcesolid_force.cpp"/>
+          <File Name="force_vtp.cpp"/>
+          <File Name="force_triangulation.cpp"/>
+          <File Name="force_reconstruction.cpp"/>
+          <File Name="force_pvtp.cpp"/>
+          <File Name="force_print.cpp"/>
+          <File Name="force_header.cpp"/>
+          <File Name="force_force.cpp"/>
+          <File Name="force_finalize.cpp"/>
+          <File Name="force.cpp"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <File Name="main.cpp"/>

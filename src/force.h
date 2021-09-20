@@ -65,7 +65,7 @@ private:
     field5 eta;
 	
 	
-    void force(lexer*,fdm*,ghostcell*);
+    void force_calc(lexer*,fdm*,ghostcell*);
 	void print_force(lexer*,fdm*,ghostcell*);
     void print_ini(lexer*,fdm*,ghostcell*);
     
