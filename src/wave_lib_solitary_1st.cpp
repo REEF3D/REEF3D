@@ -105,10 +105,7 @@ double wave_lib_solitary_1st::wave_fi(lexer *p, double x, double y, double z)
 }
 
 void wave_lib_solitary_1st::parameters(lexer *p, ghostcell *pgc)
-{
-    wH = wa;
-	p->wH = wa;
-	
+{	
 	wC = sqrt(9.81*(wH+wdt));
 	
 	X0 = - (2.12*wdt)/(sqrt((0.5*wa)/wdt));
