@@ -19,11 +19,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"forcesolid.h"
+#include"force.h"
 #include"lexer.h"
 #include"fdm.h"
 
-void forcesolid::finalize(lexer *p, fdm* a)
+void force::finalize(lexer *p, fdm* a)
 {
 	p->del_Iarray(tri,numtri_mem,4);
     p->del_Darray(pt,numvert_mem,3);

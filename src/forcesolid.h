@@ -30,17 +30,17 @@ class lexer;
 class fdm;
 class ghostcell;
 
-#ifndef FORCESOLID_H_
-#define FORCESOLID_H_
+#ifndef FORCE_H_
+#define FORCE_H_
 
 using namespace std;
 
-class forcesolid :  public nodefill
+class force :  public nodefill
 {
 
 public:
-	forcesolid(lexer*,fdm*,ghostcell*,int);
-	virtual ~forcesolid();
+	force(lexer*,fdm*,ghostcell*,int);
+	virtual ~force();
 	virtual void start(lexer*,fdm*,ghostcell*);
     virtual void ini(lexer*,fdm*,ghostcell*);
 

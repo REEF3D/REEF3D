@@ -763,6 +763,7 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Printer">
+        <VirtualDirectory Name="Force ALE"/>
         <VirtualDirectory Name="Flowfile Out">
           <File Name="flowfile_out.h"/>
         </VirtualDirectory>
@@ -831,7 +832,7 @@
         <VirtualDirectory Name="Export">
           <File Name="export.h"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Force Solid">
+        <VirtualDirectory Name="Force">
           <File Name="forcesolid.h"/>
         </VirtualDirectory>
       </VirtualDirectory>
@@ -2170,6 +2171,7 @@
         <File Name="lexer_gridini2D.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Printer">
+        <VirtualDirectory Name="Force ALE"/>
         <VirtualDirectory Name="FlowFile Out">
           <File Name="flowfile_out.cpp"/>
           <File Name="flowfile_out_ini.cpp"/>
@@ -2251,7 +2253,7 @@
           <File Name="export_filename.cpp"/>
           <File Name="export_preproc.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Force Solid">
+        <VirtualDirectory Name="Force">
           <File Name="forcesolid_finalize.cpp"/>
           <File Name="forcesolid_pvtp.cpp"/>
           <File Name="forcesolid_header.cpp"/>

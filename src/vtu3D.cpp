@@ -30,7 +30,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"print_wsf_theory.h"
 #include"print_wsfline.h"
 #include"print_wsfline_y.h"
-#include"forcesolid.h"
+#include"force.h"
 #include"vorticity_f.h"
 #include"vorticity_void.h"
 #include"probe_point.h"
@@ -125,7 +125,7 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
 	pvort = new vorticity_f(p,a);
 	
     if(p->P81>0)
-	pforcesolid = new forcesolid*[p->P81];
+	pforce = new force*[p->P81];
 	
 	if(p->P121>0)
 	pbedpt = new bedprobe_point(p,a,pgc);
@@ -146,7 +146,7 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
 	pbedshearmax = new bedshear_max(p,a,pgc);
     
     for(n=0;n<p->P81;++n)
-	pforcesolid[n]=new forcesolid(p,a,pgc,n);
+	pforce[n]=new force(p,a,pgc,n);
 	
 	if(p->P40>0)
 	pstate=new state(p,a,pgc);
@@ -246,11 +246,11 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
 
         if((p->count==0 || p->count==p->count_statestart) && p->P81>0)
         for(n=0;n<p->P81;++n)
-        pforcesolid[n]->ini(p,a,pgc);
+        pforce[n]->ini(p,a,pgc);
     
         if(p->count>1 && p->P81>0)
         for(n=0;n<p->P81;++n)
-        pforcesolid[n]->start(p,a,pgc);
+        pforce[n]->start(p,a,pgc);
 		
         if(p->P101>0)
         pslosh->start(p,a,pgc);

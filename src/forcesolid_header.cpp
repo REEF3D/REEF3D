@@ -19,13 +19,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"forcesolid.h"
+#include"force.h"
 #include<string>
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-void forcesolid::name_iter(lexer* p,fdm* a,ghostcell* pgc)
+void force::name_iter(lexer* p,fdm* a,ghostcell* pgc)
 {
     int num=0;
 

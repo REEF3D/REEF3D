@@ -19,11 +19,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"forcesolid.h"
+#include"force.h"
 #include"lexer.h"
 #include"fdm.h"
 
-void forcesolid::reconstruct(lexer *p,fdm* a, field& b)
+void force::reconstruct(lexer *p,fdm* a, field& b)
 {
     ccptcount=0;
 
@@ -54,7 +54,7 @@ void forcesolid::reconstruct(lexer *p,fdm* a, field& b)
     }
 }
 
-void forcesolid::addpoint(lexer *p, fdm *a, int q1, int q2)
+void force::addpoint(lexer *p, fdm *a, int q1, int q2)
 {
 	// p. 917
 	

@@ -19,14 +19,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"forcesolid.h"
+#include"force.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void forcesolid::print_force(lexer* p, fdm *a, ghostcell *pgc)
+void force::print_force(lexer* p, fdm *a, ghostcell *pgc)
 {
     // write to surf file
 
@@ -42,7 +42,7 @@ void forcesolid::print_force(lexer* p, fdm *a, ghostcell *pgc)
 
 }
 
-void forcesolid::print_ini(lexer* p, fdm *a, ghostcell *pgc)
+void force::print_ini(lexer* p, fdm *a, ghostcell *pgc)
 {
     // Create Folder
 	if(p->mpirank==0 && p->P14==1)

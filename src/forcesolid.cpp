@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"forcesolid.h"
+#include"force.h"
 #include"gradient.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -28,7 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/stat.h>
 #include<sys/types.h>
 
-forcesolid::forcesolid(lexer* p, fdm *a, ghostcell *pgc, int qn):nodefill(p),vertice(p),nodeflag(p),interfac(1.6),zero(0.0),eta(p),ID(qn)
+force::force(lexer* p, fdm *a, ghostcell *pgc, int qn):nodefill(p),vertice(p),nodeflag(p),interfac(1.6),zero(0.0),eta(p),ID(qn)
 {
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
@@ -66,10 +66,10 @@ forcesolid::forcesolid(lexer* p, fdm *a, ghostcell *pgc, int qn):nodefill(p),ver
     gcval_press=40;  
 }
 
-forcesolid::~forcesolid()
+force::~force()
 {
 }
-void forcesolid::ini(lexer *p, fdm *a, ghostcell *pgc)
+void force::ini(lexer *p, fdm *a, ghostcell *pgc)
 {
     triangulation(p,a,pgc,a->phi);
 	reconstruct(p,a,a->phi);
@@ -77,7 +77,7 @@ void forcesolid::ini(lexer *p, fdm *a, ghostcell *pgc)
 	print_vtp(p,a,pgc);
 } 
 
-void forcesolid::start(lexer *p, fdm *a, ghostcell *pgc)
+void force::start(lexer *p, fdm *a, ghostcell *pgc)
 {
     pgc->start4(p,a->press,gcval_press);
 
