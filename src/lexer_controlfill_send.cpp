@@ -1967,17 +1967,9 @@ void lexer::ctrlsend()
 	
 	for(n=0;n<P85;++n)
     {
-    dctrl[dd] = P85_xs[n];
+    dctrl[dd] = P85_x[n];
 	dd++;
-    dctrl[dd] = P85_xe[n];
-	dd++;
-	dctrl[dd] = P85_ys[n];
-	dd++;
-	dctrl[dd] = P85_ye[n];
-	dd++;
-    dctrl[dd] = P85_zs[n];
-	dd++;
-	dctrl[dd] = P85_ze[n];
+    dctrl[dd] = P85_y[n];
 	dd++;
     }
 	

@@ -1796,14 +1796,8 @@ void lexer::ctrlrecv()
 	
 	if(P85>0)
 	{
-	Darray(P85_xs,P85); 
-	Darray(P85_xe,P85); 
-	
-	Darray(P85_ys,P85); 
-	Darray(P85_ye,P85); 
-	
-	Darray(P85_zs,P85); 
-	Darray(P85_ze,P85); 
+	Darray(P85_x,P85); 
+	Darray(P85_y,P85); 
 	}
 	
 	if(P121>0)
@@ -2509,17 +2503,9 @@ void lexer::ctrlrecv()
 	
 	for(n=0;n<P85;++n)
     {
-    P85_xs[n] = dctrl[dd];
+    P85_x[n] = dctrl[dd];
     dd++;
-    P85_xe[n] = dctrl[dd];
-    dd++;
-	P85_ys[n] = dctrl[dd];
-    dd++;
-	P85_ye[n] = dctrl[dd];
-    dd++;
-    P85_zs[n] = dctrl[dd];
-    dd++;
-	P85_ze[n] = dctrl[dd];
+    P85_y[n] = dctrl[dd];
     dd++;
     }
 	

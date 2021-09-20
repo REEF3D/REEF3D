@@ -20,36 +20,54 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"force_ale.h"
-#include"gradient.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"ioflow.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-force_ale::force_ale(lexer* p, fdm *a, ghostcell *pgc, int qn) : ID(qn)
+void force_ale::print_force_ale(lexer* p, fdm *a, ghostcell *pgc)
 {
+    // write to surf file
+
+    fout<<p->count<<"\t";
+    fout<<setprecision(9)<<p->simtime<<"\t";
+    fout<<Fx<<" \t ";
+    fout<<Fy;
+
 	
-    force_aleprintcount=0;
-        
-    // open files
-    print_ini(p,a,pgc);
+    fout<<endl;
+
+}
+
+void force_ale::print_ini(lexer* p, fdm *a, ghostcell *pgc)
+{
+    // Create Folder
+	if(p->mpirank==0 && p->P14==1)
+	mkdir("./REEF3D_FNPF_Force_ALE",0777);
+	
+    if(p->mpirank==0)
+    {
+    // open force_ale surf file
+	if(p->P14==0)
+	sprintf(name,"REEF3D_ALE_Force-%i.dat",ID+1);
     
-    is = p->posc_i(p->P85_x[ID]);
-    js = p->posc_j(p->P85_y[ID]);
+	if(p->P14==1)
+	sprintf(name,"./REEF3D_FNPF_Force_ALE/REEF3D_ALE_Force-%i.dat",ID+1);
+	
+	fout.open(name);
 
+    fout<<"x          y"<<endl;
+
+    fout<<p->P85_x[ID]<<" "<<p->P85_y[ID]<<endl;
+    fout<<endl<<endl;
+    
+ 
+    fout<<"it \t time \t Fx \t Fy ";
+    
+
+    fout<<endl;
+	}
+
+    
 }
-
-force_ale::~force_ale()
-{
-}
-void force_ale::ini(lexer *p, fdm *a, ghostcell *pgc)
-{
-
-} 
-
-void force_ale::start(lexer *p, fdm *a, ghostcell *pgc)
-{
-} 
-

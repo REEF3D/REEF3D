@@ -415,7 +415,7 @@ public:
     double *P63_x,*P63_y;
 	double *P67_x;
 	double *P81_xs,*P81_xe,*P81_ys,*P81_ye,*P81_zs,*P81_ze;
-	double *P85_xs,*P85_xe,*P85_ys,*P85_ye,*P85_zs,*P85_ze;
+	double *P85_x,*P85_y;
 	double P91;
 	double P101_xm,P101_ym,P101_zs,P101_ze,P101_r1,P101_r2;
 	double *P121_x,*P121_y;

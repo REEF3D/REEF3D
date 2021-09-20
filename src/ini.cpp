@@ -452,7 +452,7 @@ void lexer::ini_default()
     P78=0;            // int print out sediment parameters: 2 
 	P79=0;            // int print out bed shear stress when running sediment transport
 	P81=0;            // int force print out
-	P85=0;            // int rectangular force print out
+	P85=0;            // int ALE force print out for FNPF
 	P91=0.25;		  // double factor used in force calculation algorithm
     P92=0;           // int force from water or from water+air
 	P101=0;			  // int print sloshing forces
