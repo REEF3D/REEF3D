@@ -326,10 +326,10 @@ void lexer::read_control()
                case 91: { 
                             getline(control,line);
                             vector<string> v = split (line);
-                            if (v.size() == 3)
+                            if (v.size() == 2)
                             {
-                                B91_1 = atof(v[1].c_str());
-                                B91_2 = atof(v[2].c_str());
+                                B91_1 = atof(v[0].c_str());
+                                B91_2 = atof(v[1].c_str());
                             }
                             else
                             {
@@ -348,10 +348,10 @@ void lexer::read_control()
                case 93: { 
                             getline(control,line);
                             vector<string> v = split (line);
-                            if (v.size() == 3)
+                            if (v.size() == 2)
                             {
-                                B93_1 = atof(v[1].c_str());
-                                B93_2 = atof(v[2].c_str());
+                                B93_1 = atof(v[0].c_str());
+                                B93_2 = atof(v[1].c_str());
                             }
                             else
                             {
@@ -371,10 +371,10 @@ void lexer::read_control()
                case 96: {
                             getline(control,line);
                             vector<string> v = split (line);
-                            if (v.size() == 3)
+                            if (v.size() == 2)
                             {
-                                B96_1 = atof(v[1].c_str());
-                                B96_2 = atof(v[2].c_str());
+                                B96_1 = atof(v[0].c_str());
+                                B96_2 = atof(v[1].c_str());
                             }
                             else
                             {
@@ -2568,17 +2568,24 @@ void lexer::read_control()
 
 vector<string> lexer::split(string s) 
 {
+    string token;
     string delimiter = " ";
     size_t pos_start = 0, pos_end, delim_len = delimiter.length();
-    string token;
-    vector<string> res;
+    vector<string> res, res_clear;
 
-    while ((pos_end = s.find (delimiter, pos_start)) != string::npos) {
+    while ((pos_end = s.find (delimiter, pos_start)) != string::npos) 
+    {
         token = s.substr (pos_start, pos_end - pos_start);
         pos_start = pos_end + delim_len;
         res.push_back (token);
     }
-
     res.push_back (s.substr (pos_start));
-    return res;
+    
+    // Remove whitespace
+    for (int ind = 0; ind < res.size(); ind++)
+    {
+        if (res[ind] != "") res_clear.push_back(res[ind]);
+    }
+
+    return res_clear;
 }
