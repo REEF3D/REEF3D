@@ -109,7 +109,7 @@ void sixdof_sflow::updateForcing_hemisphere(lexer *p, fdm2D *b, ghostcell *pgc)
        
         if (dist < r*r)
         {
-            press(i,j) = -press0*sqrt(1.0 - dist/(r*r));
+            press(i,j) = -H*press0*sqrt(1.0 - dist/(r*r));
         }
         else
         {
@@ -141,7 +141,7 @@ void sixdof_sflow::updateForcing_ship(lexer *p, fdm2D *b, ghostcell *pgc)
         
         if (xpos <= Ls/2.0 && xpos >= -Ls/2.0 && ypos <= Bs/2.0 && ypos >= -Bs/2.0)
         {
-            press(i,j) = -press0*(1.0 - cl*pow(xpos/Ls,4))*(1.0 - cb*pow(ypos/Bs,2))*exp(-as*pow(ypos/Bs,2));
+            press(i,j) = -H*press0*(1.0 - cl*pow(xpos/Ls,4))*(1.0 - cb*pow(ypos/Bs,2))*exp(-as*pow(ypos/Bs,2));
         }
         else
         {
