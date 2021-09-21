@@ -66,6 +66,8 @@ private:
 	
     void cylinder(lexer*,fdm2D*,ghostcell*);
     void box(lexer*,fdm2D*,ghostcell*);
+	void geometry_refinement(lexer*);
+	void create_triangle(double&,double&,double&,double&,double&,double&,double&,double&,double&,const double&,const double&,const double&);
     void ini_parameter(lexer*, fdm2D*, ghostcell*);
     void print_ini(lexer*, fdm2D*, ghostcell*);
     void print_parameter(lexer*,ghostcell*);
@@ -105,6 +107,9 @@ private:
     // Raycast
     sliceint5 cutl,cutr,fbio;
     double **tri_x,**tri_y,**tri_z,**tri_x0,**tri_y0,**tri_z0;
+	vector<vector<double> > tri_x_r;
+	vector<vector<double> > tri_y_r;
+	vector<vector<double> > tri_z_r;
     double xs,xe,ys,ye,zs,ze;
     int entity_sum, count, rayiter;
     int *tstart,*tend;

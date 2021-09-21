@@ -78,9 +78,9 @@ void sixdof_sflow::start
     print_parameter(p,pgc);
     print_stl(p,pgc);
 
-SLICELOOP4
-{
-    b->test(i,j) = press(i,j);
-}
-pgc->gcsl_start4(p,b->test,50);
+    SLICELOOP4
+    {
+        b->test(i,j) = Hsolidface(p,0,0);
+    }
+    pgc->gcsl_start4(p,b->test,50);
 }
