@@ -46,7 +46,7 @@ void ghostcell::gcsolid_buildflag(lexer *p, fdm *a, int& cellcount)
         if(a->solid(i,j,k)>=0.0 && a->topo(i,j,k)>=0.0)
         p->flag[IJK]=1;
     }
-
+    flagx(p,p->flag);
     flagx(p,p->flag4);
 
 	if(p->Y60==1)
