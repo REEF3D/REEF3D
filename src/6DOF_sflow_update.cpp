@@ -163,7 +163,7 @@ void sixdof_sflow::updateForcing_oned(lexer *p, fdm2D *b, ghostcell *pgc)
 
 	SLICELOOP4
     {
-        xpos = (p->pos_x() - p->xg) - p->simtime*Uext;
+        xpos = p->pos_x() - p->xg;
    
         press(i,j) = press0*exp(-pow(xpos/as,2));
     }
