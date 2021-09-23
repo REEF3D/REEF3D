@@ -280,7 +280,7 @@ void potential_f::ini_bc(lexer *p, fdm *a, ghostcell *pgc)
 
     GC4LOOP
     {
-        if(p->gcb4[n][4]==1)
+        if(p->gcb4[n][4]==1 || p->gcb4[n][4]==6)
         {
             i=p->gcb4[n][0]; 
             j=p->gcb4[n][1];
@@ -300,7 +300,7 @@ void potential_f::ini_bc(lexer *p, fdm *a, ghostcell *pgc)
  
         }
         
-        if(p->gcb4[n][4]==2)
+        if(p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8)
         {
             i=p->gcb4[n][0]; 
             j=p->gcb4[n][1];
