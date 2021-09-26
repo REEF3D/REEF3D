@@ -29,7 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #define HP (fabs(b->hp(i,j))>1.0e-20?b->hp(i,j):1.0e20)
 
-sflow_turb_ke_IM1::sflow_turb_ke_IM1(lexer* p) : kin(p), eps(p), kn(p), en(p), Pk(p), S(p), ustar(p), cf(p),
+sflow_turb_ke_IM1::sflow_turb_ke_IM1(lexer* p) : sflow_turb_io(p), kn(p), en(p), Pk(p), S(p), ustar(p), cf(p),
                                                  ce1(1.44),ce2(1.92),sigk(1.0),sige(1.3),ceg(1.8)
 {
     gcval_kin=20;

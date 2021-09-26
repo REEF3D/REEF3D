@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #define HPIJ (fabs(b->hp(i,j))>1.0e-20?b->hp(i,j):1.0e20)
 
-sflow_turb_parabolic::sflow_turb_parabolic(lexer* p)
+sflow_turb_parabolic::sflow_turb_parabolic(lexer* p) : sflow_turb_io(p)
 {
 }
 

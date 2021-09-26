@@ -71,6 +71,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <VirtualDirectory Name="Turbulence">
+          <File Name="sflow_turb_io.h"/>
           <File Name="sflow_turbulence.h"/>
           <File Name="sflow_turb_void.h"/>
           <File Name="sflow_turb_prandtl.h"/>
@@ -1020,6 +1021,7 @@
         <File Name="sflow_f_ini.cpp"/>
         <File Name="sflow_f.cpp"/>
         <VirtualDirectory Name="Turbulence">
+          <File Name="sflow_turb_io.cpp"/>
           <File Name="sflow_turb_void.cpp"/>
           <File Name="sflow_turb_prandtl.cpp"/>
           <File Name="sflow_turb_parabolic.cpp"/>

@@ -42,3 +42,42 @@ void sflow_turb_void::ktimesave(lexer* p, fdm2D *b, ghostcell *pgc)
 void sflow_turb_void::etimesave(lexer* p, fdm2D *b, ghostcell *pgc)
 {
 }
+
+
+void sflow_turb_void::print_2D(lexer *p, fdm2D *b, ghostcell *pgc, ofstream &result)
+{
+}
+
+void sflow_turb_void::kinget(int ii, int jj, double val)
+{
+}
+
+void sflow_turb_void::epsget(int ii, int jj, double val)
+{
+}
+    
+double sflow_turb_void::kinval(int ii, int jj)
+{
+    val=0.0;
+
+    return val;
+}
+    
+double sflow_turb_void::epsval(int ii, int jj)
+{
+    val=0.0;
+
+    return val;
+}
+    
+void sflow_turb_void::name_pvtp(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &result)
+{
+}
+
+void sflow_turb_void::name_vtp(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &result, int *offset, int &n)
+{
+}
+    
+void sflow_turb_void::offset_vtp(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &result, int *offset, int &n)
+{
+}

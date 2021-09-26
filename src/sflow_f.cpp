@@ -139,7 +139,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 		
 		double ptime=pgc->timer();
 		
-        pprint->start(p,b,pgc,pflow);
+        pprint->start(p,b,pgc,pflow,pturb);
 		pprintbed->start(p,b,pgc);
 		
 		p->printouttime=pgc->timer()-ptime;
@@ -190,10 +190,10 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         if(p->mpirank==0)
         cout<<endl<<"EMERGENCY STOP  --  velocities exceeding critical value N 61"<<endl<<endl;
         
-        pprint->print2D(p,b,pgc);
+        pprint->print2D(p,b,pgc,pturb);
     
     pgc->final();
-     exit(0);
+    exit(0);
     }
 	}
 

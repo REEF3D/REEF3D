@@ -20,8 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sflow_turbulence.h"
-#include"increment.h"
+#include"sflow_turb_io.h"
 #include"slice4.h"
 
 class sflow_convection;
@@ -32,7 +31,7 @@ class sflow_diffusion;
 
 using namespace std;
 
-class sflow_turb_ke_IM1 : public sflow_turbulence, public increment
+class sflow_turb_ke_IM1 : public sflow_turb_io
 {
 
 public:
@@ -52,7 +51,7 @@ private:
     void eddyvisc(lexer*, fdm2D*, ghostcell*);
     void clearrhs(lexer*, fdm2D*);
     
-    slice4 kin, eps, kn, en, Pk, S, ustar, cf;
+    slice4 kn, en, Pk, S, ustar, cf;
     double const ce1,ce2,sigk,sige,ceg;
     
     int gcval_kin, gcval_eps;
