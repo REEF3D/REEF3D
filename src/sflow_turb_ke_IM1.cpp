@@ -200,11 +200,47 @@ void sflow_turb_ke_IM1::clearrhs(lexer* p, fdm2D *b)
     }
 }
 
+// ****************************
+// WALL KIN
+// ****************************
+void sflow_turb_ke_IM1::wall_law_kin(lexer* p, fdm2D *b)
+{
+    double uvel,vvel,wvel;
+    double dist=0.5*p->DXM;
+    double u_abs,uplus,tau,kappa;
+
+    // GCLOOP
+
+        pip=1;
+        uvel=0.5*(b->P(i,j)+b->P(i-1,j));
+        pip=0;
+
+        pip=2;
+        vvel=0.5*(b->Q(i,j)+b->Q(i,j-1));
+        pip=0;
+
+        u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
+
+		if(30.0*dist<b->ks(i,j))
+		dist=b->ks(i,j)/30.0;
+
+		uplus = (1.0/kappa)*log(30.0*(dist/b->ks(i,j)));
+
+	tau=(u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
 
 
+	//b->M.p[id] += (pow(p->cmu,0.75)*pow(fabs(kin(i,j)),0.5)*uplus)/dist;
+	//b->rhsvec.V[id] += (tau*u_abs)/dist;
 
+}
 
+void sflow_turb_ke_IM1::wall_law_eps(lexer* p, fdm2D *b)
+{
+    // GCLOOP
+    double dist=0.5*p->DXM;
 
+	eps(i,j) = (pow(p->cmu, 0.75)*pow((kin(i,j)>(0.0)?(kin(i,j)):(0.0)),1.5)) / (0.4*dist);
+}
 
 
 
