@@ -47,8 +47,8 @@ double bedconc::cbed(lexer* p,fdm* a,ghostcell *pgc, field& topo)
 {
 	double adist=2.0*d50;
 	
-    taubed(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
-    taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
+    taubed(p,a,pgc,tau_eff);
+    taucritbed(p,a,pgc,tau_crit);
 
     Ti=MAX((tau_eff-tau_crit)/tau_crit,0.0);
 

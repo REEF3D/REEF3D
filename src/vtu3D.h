@@ -34,7 +34,7 @@ class print_wsf_theory;
 class print_wsfline;
 class print_wsfline_y;
 class force;
-class forcesolid;
+class force;
 class vorticity;
 class solver;
 class probe_point;
@@ -77,7 +77,7 @@ private:
     void piecename(fdm*,lexer*,ghostcell*, int);
 
     char name[200],pname[200],epsvar[200];
-    int n,iin,offset[200];
+    int n,iin,offset[300];
     float ffn;
     int gcval_phi,gcval_phiext;
 	double *printtime_wT;
@@ -92,7 +92,7 @@ private:
 	print_wsf_theory *pwsf_theory;
     print_wsfline *pwsfline;
 	print_wsfline_y *pwsfline_y;
-    forcesolid **pforcesolid;
+    force **pforce;
     vorticity *pvort;
 	probe_point *pprobe;
 	probe_line *pline;

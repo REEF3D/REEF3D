@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"sediment_fdm.h"
 
 reduction_deyana::reduction_deyana(lexer *p) : bedslope(p)
 {
@@ -33,25 +34,30 @@ reduction_deyana::~reduction_deyana()
 {
 }
 
-double reduction_deyana::start(lexer *p, fdm * a, ghostcell *pgc)
+double reduction_deyana::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
     double r=1.0;
     eta = 0.85;
-
-	slope(p,a,pgc,teta,alpha,gamma,phi);
-
-
-	alpha = fabs(alpha);
-
-	r = (1.0/((1-eta*tan(phi))*tan(phi)))*( -sin(teta)  - eta*tan(phi)*tan(phi) * sqrt(cos(teta)*cos(teta)-sin(alpha)*sin(alpha))
-		+ pow((pow(( sin(teta) + eta*tan(phi)*tan(phi)*sqrt(cos(teta)*cos(teta)-sin(alpha)*sin(alpha))),2.0) +(1.0 - eta*eta*tan(phi)*tan(phi))
-		*(cos(teta)*cos(teta)*tan(phi)*tan(phi) - sin(alpha)*sin(alpha)*tan(phi)*tan(phi) - sin(teta)*sin(teta) - sin(alpha)*sin(alpha) ) ),0.5 ));
-
-	if(  (pow(( sin(teta) + eta*tan(phi)*tan(phi)*sqrt(cos(teta)*cos(teta)-sin(alpha)*sin(alpha))),2.0) +(1.0 - eta*eta*tan(phi)*tan(phi))
-		*(cos(teta)*cos(teta)*tan(phi)*tan(phi) - sin(alpha)*sin(alpha)*tan(phi)*tan(phi) - sin(teta)*sin(teta) - sin(alpha)*sin(alpha) ) )  < 0.0 || cos(teta)*cos(teta)-sin(alpha)*sin(alpha) < 0.0)
+    
+    SLICELOOP4
     {
-        r = cos(teta)*(1.0 - tan(teta/tan(phi)));
-        r*= cos(alpha)*(1.0 - pow(tan(alpha),2.0)/pow(tan(phi),2.0));
+    
+    alphaval = s->alpha(i,j);
+    tetaval = s->teta(i,j);
+    phival = s->phi(i,j);
+    tanphi = tan(phival);
+
+	alphaval = fabs(alphaval);
+
+	r = (1.0/((1-eta*tanphi)*tanphi))*( -sin(tetaval)  - eta*tanphi*tanphi * sqrt(cos(tetaval)*cos(tetaval)-sin(alphaval)*sin(alphaval))
+		+ pow((pow(( sin(tetaval) + eta*tanphi*tanphi*sqrt(cos(tetaval)*cos(tetaval)-sin(alphaval)*sin(alphaval))),2.0) +(1.0 - eta*eta*tanphi*tanphi)
+		*(cos(tetaval)*cos(tetaval)*tanphi*tanphi - sin(alphaval)*sin(alphaval)*tanphi*tanphi - sin(tetaval)*sin(tetaval) - sin(alphaval)*sin(alphaval) ) ),0.5 ));
+
+	if(  (pow(( sin(tetaval) + eta*tanphi*tanphi*sqrt(cos(tetaval)*cos(tetaval)-sin(alphaval)*sin(alphaval))),2.0) +(1.0 - eta*eta*tanphi*tanphi)
+		*(cos(tetaval)*cos(tetaval)*tanphi*tanphi - sin(alphaval)*sin(alphaval)*tanphi*tanphi - sin(tetaval)*sin(tetaval) - sin(alphaval)*sin(alphaval) ) )  < 0.0 || cos(tetaval)*cos(tetaval)-sin(alphaval)*sin(alphaval) < 0.0)
+    {
+        r = cos(tetaval)*(1.0 - tan(tetaval/tanphi));
+        r*= cos(alphaval)*(1.0 - pow(tan(alphaval),2.0)/pow(tanphi,2.0));
     }
 
 
@@ -65,7 +71,8 @@ double reduction_deyana::start(lexer *p, fdm * a, ghostcell *pgc)
 	r=10.0;
     
     
-    return r;
+    s->reduce(i,j)=r;
+    }
 }
 
 

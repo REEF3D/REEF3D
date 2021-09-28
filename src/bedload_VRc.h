@@ -21,8 +21,8 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"bedload.h"
-#include"bedshear.h"
 #include"bedload_noneq.h"
+#include"increment.h"
 
 class turbulence;
 
@@ -31,14 +31,14 @@ using namespace std;
 #ifndef BEDLOAD_VRC_H_
 #define BEDLOAD_VRC_H_
 
-class bedload_VRc : public bedload, public bedshear, public bedload_noneq
+class bedload_VRc : public bedload, public bedload_noneq
 {
 public:
 
     bedload_VRc(lexer*,turbulence*);
     virtual ~bedload_VRc();
 
-	virtual void start(lexer*, fdm*, ghostcell*);
+	virtual void start(lexer*, fdm*, ghostcell*, sediment_fdm*);
 
 private:
     const double epsi;

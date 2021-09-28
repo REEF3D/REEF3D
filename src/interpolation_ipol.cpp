@@ -30,13 +30,13 @@ double interpolation::ipol1(field& b)
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
     pip=4;
-    if(p->flag[IJK]>0)
+    if(p->flag4[IJK]>0)
     v1=b(i,j,k);
-    if(p->flag[IJp1K]>0)
+    if(p->flag4[IJp1K]>0)
     v2=b(i,j+1,k);
-    if(p->flag[IJKp1]>0)
+    if(p->flag4[IJKp1]>0)
     v3=b(i,j,k+1);
-    if(p->flag[IJp1Kp1]>0)
+    if(p->flag4[IJp1Kp1]>0)
     v4=b(i,j+1,k+1);
     pip=0;
 
@@ -45,13 +45,13 @@ double interpolation::ipol1(field& b)
     if(p->flag5[Ip1JK]==-4)
     {
     pip=4;
-    if(p->flag[Ip1JK]>0)
+    if(p->flag4[Ip1JK]>0)
     v5=b(i+1,j,k);
-    if(p->flag[Ip1Jp1K]>0)
+    if(p->flag4[Ip1Jp1K]>0)
     v6=b(i+1,j+1,k);
-    if(p->flag[Ip1JKp1]>0)
+    if(p->flag4[Ip1JKp1]>0)
     v7=b(i+1,j,k+1);
-    if(p->flag[Ip1Jp1Kp1]>0)
+    if(p->flag4[Ip1Jp1Kp1]>0)
     v8=b(i+1,j+1,k+1);
     pip=0;
 
@@ -61,13 +61,13 @@ double interpolation::ipol1(field& b)
     if(p->flag5[IJK]==-1)
     {
     pip=4;
-    if(p->flag[Ip1JK]>0)
+    if(p->flag4[Ip1JK]>0)
     v5=b(i+1,j,k);
-    if(p->flag[Ip1Jp1K]>0)
+    if(p->flag4[Ip1Jp1K]>0)
     v6=b(i+1,j+1,k);
-    if(p->flag[Ip1JKp1]>0)
+    if(p->flag4[Ip1JKp1]>0)
     v7=b(i+1,j,k+1);
-    if(p->flag[Ip1Jp1Kp1]>0)
+    if(p->flag4[Ip1Jp1Kp1]>0)
     v8=b(i+1,j+1,k+1);
     pip=0;
 
@@ -82,13 +82,13 @@ double interpolation::ipol2( field& b)
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
     pip=4;
-    if(p->flag[IJK]>0)
+    if(p->flag4[IJK]>0)
     v1=b(i,j,k);
-    if(p->flag[Ip1JK]>0)
+    if(p->flag4[Ip1JK]>0)
     v2=b(i+1,j,k);
-    if(p->flag[IJKp1]>0)
+    if(p->flag4[IJKp1]>0)
     v3=b(i,j,k+1);
-    if(p->flag[Ip1JKp1]>0)
+    if(p->flag4[Ip1JKp1]>0)
     v4=b(i+1,j,k+1);
     pip=0;
 
@@ -97,13 +97,13 @@ double interpolation::ipol2( field& b)
     if(p->flag5[IJp1K]==-2)
     {
     pip=4;
-    if(p->flag[IJp1K]>0)
+    if(p->flag4[IJp1K]>0)
     v5=b(i,j+1,k);
-    if(p->flag[Ip1Jp1K]>0)
+    if(p->flag4[Ip1Jp1K]>0)
     v6=b(i+1,j+1,k);
-    if(p->flag[IJp1Kp1]>0)
+    if(p->flag4[IJp1Kp1]>0)
     v7=b(i,j+1,k+1);
-    if(p->flag[Ip1Jp1Kp1]>0)
+    if(p->flag4[Ip1Jp1Kp1]>0)
     v8=b(i+1,j+1,k+1);
     pip=0;
 
@@ -113,13 +113,13 @@ double interpolation::ipol2( field& b)
     if( p->flag5[IJK]==-3)
     {
     pip=4;
-    if(p->flag[IJp1K]>0)
+    if(p->flag4[IJp1K]>0)
     v5=b(i,j+1,k);
-    if(p->flag[Ip1Jp1K]>0)
+    if(p->flag4[Ip1Jp1K]>0)
     v6=b(i+1,j+1,k);
-    if(p->flag[IJp1Kp1]>0)
+    if(p->flag4[IJp1Kp1]>0)
     v7=b(i,j+1,k+1);
-    if(p->flag[Ip1Jp1Kp1]>0)
+    if(p->flag4[Ip1Jp1Kp1]>0)
     v8=b(i+1,j+1,k+1);
     pip=0;
 
@@ -134,13 +134,13 @@ double interpolation::ipol3( field& b)
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
     pip=4;
-    if(p->flag[IJK]>0)
+    if(p->flag4[IJK]>0)
     v1=b(i,j,k);
-    if(p->flag[IJp1K]>0)
+    if(p->flag4[IJp1K]>0)
     v2=b(i,j+1,k);
-    if(p->flag[Ip1JK]>0)
+    if(p->flag4[Ip1JK]>0)
     v3=b(i+1,j,k);
-    if(p->flag[Ip1Jp1K]>0)
+    if(p->flag4[Ip1Jp1K]>0)
     v4=b(i+1,j+1,k);
     pip=0;
 
@@ -149,13 +149,13 @@ double interpolation::ipol3( field& b)
     if(p->flag5[IJKp1]==-6)
     {
      pip=4;
-    if(p->flag[IJKp1]>0)
+    if(p->flag4[IJKp1]>0)
     v5=b(i,j,k+1);
-    if(p->flag[IJp1Kp1]>0)
+    if(p->flag4[IJp1Kp1]>0)
     v6=b(i,j+1,k+1);
-    if(p->flag[Ip1JKp1]>0)
+    if(p->flag4[Ip1JKp1]>0)
     v7=b(i+1,j,k+1);
-    if(p->flag[Ip1Jp1Kp1]>0)
+    if(p->flag4[Ip1Jp1Kp1]>0)
     v8=b(i+1,j+1,k+1);
     pip=0;
 
@@ -165,13 +165,13 @@ double interpolation::ipol3( field& b)
      if(p->flag5[IJK]==-5)
     {
      pip=4;
-    if(p->flag[IJKp1]>0)
+    if(p->flag4[IJKp1]>0)
     v5=b(i,j,k+1);
-    if(p->flag[IJp1Kp1]>0)
+    if(p->flag4[IJp1Kp1]>0)
     v6=b(i,j+1,k+1);
-    if(p->flag[Ip1JKp1]>0)
+    if(p->flag4[Ip1JKp1]>0)
     v7=b(i+1,j,k+1);
-    if(p->flag[Ip1Jp1Kp1]>0)
+    if(p->flag4[Ip1Jp1Kp1]>0)
     v8=b(i+1,j+1,k+1);
     pip=0;
 
@@ -186,21 +186,21 @@ double interpolation::ipol4( field& b)
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
     pip=4;
-    if(p->flag[IJK]>0)
+    if(p->flag4[IJK]>0)
     v1=b(i,j,k);
-    if(p->flag[IJp1K]>0)
+    if(p->flag4[IJp1K]>0)
     v2=b(i,j+1,k);
-    if(p->flag[Ip1JK]>0)
+    if(p->flag4[Ip1JK]>0)
     v3=b(i+1,j,k);
-    if(p->flag[Ip1Jp1K]>0)
+    if(p->flag4[Ip1Jp1K]>0)
     v4=b(i+1,j+1,k);
-    if(p->flag[IJKp1]>0)
+    if(p->flag4[IJKp1]>0)
     v5=b(i,j,k+1);
-    if(p->flag[IJp1Kp1]>0)
+    if(p->flag4[IJp1Kp1]>0)
     v6=b(i,j+1,k+1);
-    if(p->flag[Ip1JKp1]>0)
+    if(p->flag4[Ip1JKp1]>0)
     v7=b(i+1,j,k+1);
-    if(p->flag[Ip1Jp1Kp1]>0)
+    if(p->flag4[Ip1Jp1Kp1]>0)
     v8=b(i+1,j+1,k+1);
     pip=0;
 
@@ -237,21 +237,21 @@ double interpolation::ipol4ro(fdm *a, field& b)
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
     pip=4;
-    if(p->flag[IJK]>0)
+    if(p->flag4[IJK]>0)
     v1=a->phi(i,j,k);
-    if(p->flag[IJp1K]>0)
+    if(p->flag4[IJp1K]>0)
     v2=a->phi(i,j+1,k);
-    if(p->flag[Ip1JK]>0)
+    if(p->flag4[Ip1JK]>0)
     v3=a->phi(i+1,j,k);
-    if(p->flag[Ip1Jp1K]>0)
+    if(p->flag4[Ip1Jp1K]>0)
     v4=a->phi(i+1,j+1,k);
-    if(p->flag[IJKp1]>0)
+    if(p->flag4[IJKp1]>0)
     v5=a->phi(i,j,k+1);
-    if(p->flag[IJp1Kp1]>0)
+    if(p->flag4[IJp1Kp1]>0)
     v6=a->phi(i,j+1,k+1);
-    if(p->flag[Ip1JKp1]>0)
+    if(p->flag4[Ip1JKp1]>0)
     v7=a->phi(i+1,j,k+1);
-    if(p->flag[Ip1Jp1Kp1]>0)
+    if(p->flag4[Ip1Jp1Kp1]>0)
     v8=a->phi(i+1,j+1,k+1);
     pip=0;
 

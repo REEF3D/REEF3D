@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 #include"sediment_f.h"
+#include"sediment_fdm.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -35,12 +36,18 @@ Author: Hans Bihs
 #include"sandslide_pde.h"
 #include"sandslide_v.h"
 #include"topo_relax.h"
-#include"bedslope.h"
 #include"vrans_v.h"
 #include"vrans_f.h"
+#include"reduction_void.h"
+#include"reduction_parker.h"
+#include"reduction_deyemp.h"
+#include"reduction_deyana.h"
+#include"reduction_FD.h"
 
-sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb):bss(p), bedtau(p)
+sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb): bedslope(p)
 {
+    s = new sediment_fdm(p);
+    
     if(p->S90==0)
     pslide=new sandslide_v(p);   
     
@@ -58,6 +65,23 @@ sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb):bss(
 	
 	if(p->S10==2)
 	pvrans = new vrans_f(p,a,pgc);
+    
+    
+    if(p->S80==0)
+    preduce=new reduction_void(p);
+
+    if(p->S80==1)
+    preduce=new reduction_parker(p);
+
+    if(p->S80==2)
+    preduce=new reduction_deyemp(p);
+
+    if(p->S80==3)
+    preduce=new reduction_deyana(p);
+	
+	if(p->S80==4)
+    preduce=new reduction_FD(p);
+    
 	
 	p->gcin4a_count=p->gcin_count;
 	p->gcout4a_count=p->gcout_count;
@@ -107,18 +131,29 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
     
     // find bedk
     fill_bedk(p,a,pgc);
+    
+    // bedslope
+    if(p->S83==2)
+    slope_cds(p,a,pgc,s);
+    
+    if(p->S83==5)
+    slope_weno(p,a,pgc,s);
+    
+    // bedslope reduction 
+    preduce->start(p,a,pgc,s);
 	
     // bedshear stress
-	fill_bss(p,a,pgc);
+	pbedshear->taubed(p,a,pgc,s);
+    pbedshear->taucritbed(p,a,pgc,s);
 
     // bedload
-    pbed->start(p,a,pgc);
+    pbed->start(p,a,pgc,s);
 	
     // Exner
-    ptopo->start(a,p,pconvec,pgc,preto);
+    ptopo->start(a,p,pconvec,pgc,preto,s);
     
     // sandslide
-    pslide->start(p,a,pgc);
+    pslide->start(p,a,pgc,s);
     
 	prelax->start(p,a,pgc);
 	

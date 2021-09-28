@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"sediment_fdm.h"
 
 reduction_parker::reduction_parker(lexer *p) : bedslope(p)
 {
@@ -34,31 +35,35 @@ reduction_parker::~reduction_parker()
 }
 
 
-double reduction_parker::start(lexer *p, fdm * a, ghostcell *pgc)
+double reduction_parker::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
     double r=1.0;
 	double r1,r2;
+    
+    SLICELOOP4
+    {
+	alphaval = s->alpha(i,j);
+    tetaval = s->teta(i,j);
+    phival = s->phi(i,j);
 
-	slope(p,a,pgc,teta,alpha,gamma,phi);
+	alphaval = fabs(alphaval);
 
-	alpha = fabs(alpha);
-
-	mu = atan(1.0/phi);
+	mu = atan(1.0/phival);
 	d = (4.0/3.0)*mu*0.85*0.74;
 	
-	pval = (2.0/(1.0-d))*(d/sqrt(1.0 + tan(alpha)*tan(alpha) + tan(teta)*tan(teta)) + sin(teta)/mu);
+	pval = (2.0/(1.0-d))*(d/sqrt(1.0 + tan(alphaval)*tan(alphaval) + tan(tetaval)*tan(tetaval)) + sin(tetaval)/mu);
 
-	qval = ((1.0+d)/(1.0-d))*(1.0/(1.0 + tan(alpha)*tan(alpha) + tan(teta)*tan(teta)))*(-1.0 + ((tan(alpha)*tan(alpha) + tan(teta)*tan(teta))/mu));
+	qval = ((1.0+d)/(1.0-d))*(1.0/(1.0 + tan(alphaval)*tan(alphaval) + tan(tetaval)*tan(tetaval)))*(-1.0 + ((tan(alphaval)*tan(alphaval) + tan(tetaval)*tan(tetaval))/mu));
 
 	r1 = -0.5*pval - sqrt(pval*pval*0.25 - qval);
 	
 	r = -0.5*pval + sqrt(pval*pval*0.25 - qval);
 
 	
-	if(((1.0 + tan(alpha)*tan(alpha) + tan(teta)*tan(teta))  < 0.0 || (pval*pval*0.25 - qval) < 0.0) || r<0.0)
+	if(((1.0 + tan(alphaval)*tan(alphaval) + tan(tetaval)*tan(tetaval))  < 0.0 || (pval*pval*0.25 - qval) < 0.0) || r<0.0)
 	{
-	r = cos(teta)*(1.0 - tan(teta/tan(phi)));
-    r*= cos(alpha)*(1.0 - pow(tan(alpha),2.0)/pow(tan(phi),2.0));
+	r = cos(tetaval)*(1.0 - tan(tetaval/tan(phival)));
+    r*= cos(alphaval)*(1.0 - pow(tan(alphaval),2.0)/pow(tan(phival),2.0));
 	}
 	
     r = MAX(r,0.01);
@@ -70,7 +75,8 @@ double reduction_parker::start(lexer *p, fdm * a, ghostcell *pgc)
 	if(p->pos_x()>p->S72)
 	r=1.0;
     
-    return r;
+    s->reduce(i,j)=r;
+    }
 }
 
 

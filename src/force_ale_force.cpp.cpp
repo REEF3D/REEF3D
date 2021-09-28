@@ -10,43 +10,26 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_convection.h"
-#include"increment.h"
-#include"fnpf_ddweno_f_nug.h"
+#include"force_ale.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include <math.h>
 
-#ifndef FNPF_WENO_WD_H_
-#define FNPF_WENO_WD_H_
-
-using namespace std;
-
-class fnpf_weno_wd : public fnpf_convection, public increment, public fnpf_ddweno_f_nug
+void force_ale::force_ale_force(lexer* p, fdm *a, ghostcell *pgc)
 {
-public:
-	fnpf_weno_wd(lexer*,fdm_fnpf*);
-	virtual ~fnpf_weno_wd();
-
-    virtual double fx(lexer*, field&, double, double);
-	virtual double fy(lexer*, field&, double, double);
-	virtual double fz(lexer*, field&, double, double);
     
-    virtual double sx(lexer*, slice&, double);
-	virtual double sy(lexer*, slice&, double);
-    virtual double sz(lexer*, double*);
-
-private:
-    double **ckz;
+}
 
 
-};
 
-#endif
+

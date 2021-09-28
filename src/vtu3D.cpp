@@ -30,7 +30,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"print_wsf_theory.h"
 #include"print_wsfline.h"
 #include"print_wsfline_y.h"
-#include"forcesolid.h"
+#include"force.h"
 #include"vorticity_f.h"
 #include"vorticity_void.h"
 #include"probe_point.h"
@@ -125,7 +125,7 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
 	pvort = new vorticity_f(p,a);
 	
     if(p->P81>0)
-	pforcesolid = new forcesolid*[p->P81];
+	pforce = new force*[p->P81];
 	
 	if(p->P121>0)
 	pbedpt = new bedprobe_point(p,a,pgc);
@@ -146,7 +146,7 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
 	pbedshearmax = new bedshear_max(p,a,pgc);
     
     for(n=0;n<p->P81;++n)
-	pforcesolid[n]=new forcesolid(p,a,pgc,n);
+	pforce[n]=new force(p,a,pgc,n);
 	
 	if(p->P40>0)
 	pstate=new state(p,a,pgc);
@@ -246,11 +246,11 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
 
         if((p->count==0 || p->count==p->count_statestart) && p->P81>0)
         for(n=0;n<p->P81;++n)
-        pforcesolid[n]->ini(p,a,pgc);
+        pforce[n]->ini(p,a,pgc);
     
         if(p->count>1 && p->P81>0)
         for(n=0;n<p->P81;++n)
-        pforcesolid[n]->start(p,a,pgc);
+        pforce[n]->start(p,a,pgc);
 		
         if(p->P101>0)
         pslosh->start(p,a,pgc);
@@ -437,7 +437,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
     
          // velocity magnitude
-	if(p->P78==1)
+	if(p->P76==1)
 	{
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
@@ -465,10 +465,18 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
+    
+    	// sediment parameters 1
+	if(p->P77==1)
+	psed->offset_vtu_parameter1(p,a,pgc,result,offset,n);
+    
+    	// sediment parameters 2
+	if(p->P78==1)
+	psed->offset_vtu_parameter2(p,a,pgc,result,offset,n);
 	
 		// bed shear stress
-	if(p->P79==1)
-	psed->offset_vtu(p,a,pgc,result,offset,n);
+	if(p->P79>=1)
+	psed->offset_vtu_bedshear(p,a,pgc,result,offset,n);
     
     // test
     if(p->P23==1)
@@ -556,7 +564,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     ++n;
 	}
     
-    if(p->P78==1)
+    if(p->P76==1)
 	{
     result<<"<DataArray type=\"Float32\" Name=\"velocity scalar\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -581,9 +589,15 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     result<<"<DataArray type=\"Float32\" Name=\"topo\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	}
+    
+    if(p->P77==1)
+	psed->name_vtu_parameter1(p,a,pgc,result,offset,n);
+    
+    if(p->P78==1)
+	psed->name_vtu_parameter2(p,a,pgc,result,offset,n);
 	
-	if(p->P79==1)
-	psed->name_vtu(p,a,pgc,result,offset,n);
+	if(p->P79>=1)
+	psed->name_vtu_bedshear(p,a,pgc,result,offset,n);
     
     if(p->P23==1)
 	{
@@ -720,7 +734,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
     
 //  velocity scalar
-    if(p->P78==1)
+    if(p->P76==1)
 	{
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
@@ -776,10 +790,17 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}
+//  sediment parameter 1
+	if(p->P77==1)
+    psed->print_3D_parameter1(p,a,pgc,result);
+    
+//  sediment parameter 2
+	if(p->P78==1)
+    psed->print_3D_parameter2(p,a,pgc,result);
 	
 //  bed shear stress
-	if(p->P79==1)
-    psed->print_3D(p,a,pgc,result);
+	if(p->P79>=1)
+    psed->print_3D_bedshear(p,a,pgc,result);
     
     if(p->P23==1)
 	{

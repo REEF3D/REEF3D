@@ -246,8 +246,6 @@ void lexer::ctrlsend()
     dd++;
     dctrl[dd] = B96_2;
     dd++;
-    dctrl[dd] = B97;
-    dd++;
     ictrl[ii] = B98;
     ii++;
     ictrl[ii] = B99;
@@ -872,7 +870,11 @@ void lexer::ctrlsend()
 	ii++;
     ictrl[ii] = P75;
 	ii++;
-	ictrl[ii] = P78;
+	ictrl[ii] = P76;
+	ii++;
+    ictrl[ii] = P77;
+	ii++;
+    ictrl[ii] = P78;
 	ii++;
     ictrl[ii] = P79;
 	ii++;
@@ -1023,6 +1025,8 @@ void lexer::ctrlsend()
 	dd++;
     dctrl[dd] = S82;
 	dd++;
+    ictrl[ii] = S83;
+	ii++;
     ictrl[ii] = S90;
 	ii++;
     ictrl[ii] = S91;
@@ -1227,6 +1231,8 @@ void lexer::ctrlsend()
     ictrl[ii] = X40;
 	ii++;
 	dctrl[dd] = X41;
+	dd++;
+	dctrl[dd] = X42;
 	dd++;
 	ictrl[ii] = X100;
 	ii++;
@@ -1961,17 +1967,9 @@ void lexer::ctrlsend()
 	
 	for(n=0;n<P85;++n)
     {
-    dctrl[dd] = P85_xs[n];
+    dctrl[dd] = P85_x[n];
 	dd++;
-    dctrl[dd] = P85_xe[n];
-	dd++;
-	dctrl[dd] = P85_ys[n];
-	dd++;
-	dctrl[dd] = P85_ye[n];
-	dd++;
-    dctrl[dd] = P85_zs[n];
-	dd++;
-	dctrl[dd] = P85_ze[n];
+    dctrl[dd] = P85_y[n];
 	dd++;
     }
 	

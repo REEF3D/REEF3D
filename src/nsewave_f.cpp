@@ -43,10 +43,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 nsewave_f::nsewave_f(lexer *p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc) : 
                 epsi(p->A440*p->DXM),depth(p),bed(p),L(p),hp(p),hx(p),hy(p)
 {
-	//peta = new sflow_eta_weno(p);
-	//phxy = new sflow_hxy_weno(p);
-	
-	
 	// bed ini
 	SLICELOOP4
 	bed(i,j) = p->bed[IJ];
@@ -64,42 +60,9 @@ nsewave_f::nsewave_f(lexer *p, fdm *a, ghostcell *pgc, heat *&pheat, concentrati
 	if(p->F50==4)
 	gcval_phi=54;
 
-	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90==0)
-	pupdate = new fluid_update_fsf(p,a,pgc);
-	
-	if(p->F30>0 && p->H10==0 && p->W30==1 && p->W90==0)
-	pupdate = new fluid_update_fsf_comp(p,a,pgc);
-	
-	if(p->F30>0 && p->H10>0 && p->W90==0 && p->H3==1)
-	pupdate = new fluid_update_fsf_heat(p,a,pgc,pheat);
-    
-    if(p->F30>0 && p->H10>0 && p->W90==0 && p->H3==2)
-	pupdate = new fluid_update_fsf_heat_Bouss(p,a,pgc,pheat);
-	
-	if(p->F30>0 && p->C10>0 && p->W90==0)
-	pupdate = new fluid_update_fsf_concentration(p,a,pgc,pconc);
-	
-	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
-	pupdate = new fluid_update_rheology(p,a);
-
     pupdate = new fluid_update_fsf(p,a,pgc);
     
-	if(p->F46==2)
-	ppicard = new picard_f(p);
-
-	if(p->F46==3)
-	ppicard = new picard_lsm(p);
-
-	if(p->F46!=2 && p->F46!=3)
-	ppicard = new picard_void(p);
-    
     p->phimean=p->F60;
-    
-    SLICELOOP4
-    a->eta(i,j) = 0.0;
-
-    
-    pgc->gcsl_start4(p,a->eta,gcval_phi);
     
     LOOP
     a->phi(i,j,k) = a->eta(i,j) + p->phimean - p->pos_z();
@@ -143,7 +106,7 @@ void nsewave_f::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusio
     {
 		d=0.0;
 		KULOOP
-        UCHECK
+        UFLUIDCHECK
 		{
 		//phival = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
         phival = (1.0/16.0)*(-a->phi(i-1,j,k) + 9.0*a->phi(i,j,k) + 9.0*a->phi(i+1,j,k) - a->phi(i+2,j,k));
@@ -167,7 +130,7 @@ void nsewave_f::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusio
 	{	
 			d=0.0;
 			KVLOOP
-            VCHECK
+            VFLUIDCHECK
 			{
     
 			//phival = 0.5*(a->phi(i,j,k)+a->phi(i,j+1,k));
@@ -251,17 +214,13 @@ void nsewave_f::update(lexer *p, fdm *a, ghostcell *pgc, slice &f)
 
 void nsewave_f::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
 {
-    
     p->phimean=p->F60;
-    
-    SLICELOOP4
-    a->eta(i,j) = 0.0;
     
     pflow->eta_relax(p,pgc,a->eta);
     
     pgc->gcsl_start4(p,a->eta,gcval_phi);
     
-    LOOP
+    FLUIDLOOP
     a->phi(i,j,k) = a->eta(i,j) + p->phimean - p->pos_z();
     
     pgc->start4(p,a->phi,gcval_phi);

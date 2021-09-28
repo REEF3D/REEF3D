@@ -130,7 +130,6 @@ void lexer::ini_default()
     B94_wdt=0.0;    // double water depth for wave theory  
 	B96_1=0.0;      // double dist1 for wave relax
 	B96_2=0.0;      // double dist2 for wave relax
-	B97=0.0;        // double wave direction in degree
 	B98=0;          // int type of wave generation
 	B99=0;			// int type of numerical beach
 	B101=0;        // int ramp function wave geneartion
@@ -448,10 +447,12 @@ void lexer::ini_default()
 	P67=0;			  // int discharge gages in x-direction
     P71=0;           // int print viscosity to vtu
 	P75=0;            // int print out vorticity vec
-    P78=0;            // int print out velocity magnitude as scalar
-	P79=0;            // int print out sediment shear stress when running sediment transport
+    P76=0;            // int print out velocity magnitude as scalar
+    P77=0;            // int print out sediment parameters: 1
+    P78=0;            // int print out sediment parameters: 2 
+	P79=0;            // int print out bed shear stress when running sediment transport
 	P81=0;            // int force print out
-	P85=0;            // int rectangular force print out
+	P85=0;            // int ALE force print out for FNPF
 	P91=0.25;		  // double factor used in force calculation algorithm
     P92=0;           // int force from water or from water+air
 	P101=0;			  // int print sloshing forces
@@ -520,6 +521,7 @@ void lexer::ini_default()
     S80=0;                  // int type of slope reduction
     S81=35.0;              // double midphi for slope reduction
     S82=5.0;              // double delta phi for slope reduction
+    S83=2;                // double type of bedslope calc
     S90=0;                  // int sandslide on/off
     S91=1;                  // int number of sandslide iterations
     S93=0.0;				// double delta phi for sandlide correciton
@@ -614,6 +616,7 @@ void lexer::ini_default()
     X34=0;		// int boundary treatment for new solid velocity cells
     X40=3;		// int type of force calculation
 	X41=2.1;    // double eps for continuous forcing heaviside
+	X42=0.0;    // double distance for pressure force evaluation
 	X100=0;		// int delta x,y,z
 	X100_x=X100_y=X100_z=0.0; 
 	X101=0;		// int ini Euler angles

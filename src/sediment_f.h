@@ -25,19 +25,22 @@ Author: Hans Bihs
 #include"slice4.h"
 #include"field4a.h"
 #include"increment.h"
+#include"bedslope.h"
 
 class sandslide;
 class topo_relax;
 class bedshear;
 class vrans;
 class turbulence;
+class sediment_fdm;
+class reduction;
 
 using namespace std;
 
 #ifndef SEDIMENT_F_H_
 #define SEDIMENT_F_H_
 
-class sediment_f : public sediment, public increment
+class sediment_f : public sediment, public bedslope
 {
 public:
     sediment_f(lexer*,fdm*,ghostcell*,turbulence*);
@@ -50,31 +53,36 @@ public:
 	virtual double bedshear_point(lexer*,fdm*,ghostcell*);
 	void sediment_algorithm(lexer*, fdm*, convection*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*, bedload*);
     
-	void fill_bss(lexer*,fdm*,ghostcell*);
     void fill_bedk(lexer*,fdm*,ghostcell*);
 	void bedlevel(lexer*,fdm*,ghostcell*);
 	void topo_zh_update(lexer*,fdm*,ghostcell*);
     void volume_calc(lexer*,fdm*,ghostcell*);
 	void filter(lexer*,fdm*,ghostcell*,slice&,int,int);
     
-	virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
-	virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&);
-    virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
-    virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+	virtual void print_3D_bedshear(lexer*, fdm*, ghostcell*,ofstream&);
+	virtual void name_pvtu_bedshear(lexer*, fdm*, ghostcell*,ofstream&);
+    virtual void name_vtu_bedshear(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_vtu_bedshear(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    
+    virtual void print_3D_parameter1(lexer*, fdm*, ghostcell*,ofstream&);
+	virtual void name_pvtu_parameter1(lexer*, fdm*, ghostcell*,ofstream&);
+    virtual void name_vtu_parameter1(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_vtu_parameter1(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    
+    virtual void print_3D_parameter2(lexer*, fdm*, ghostcell*,ofstream&);
+	virtual void name_pvtu_parameter2(lexer*, fdm*, ghostcell*,ofstream&);
+    virtual void name_vtu_parameter2(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_vtu_parameter2(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
     
 
 private:
+    sediment_fdm *s;
     sandslide *pslide;
     topo_relax *prelax;
     vrans *pvrans;
+    reduction *preduce;
 	
 	bedshear *pbedshear;
-    
-    field4a bss;
-    slice4 bedtau;
-    
-    
-    
     
     double starttime;
     

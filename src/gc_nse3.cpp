@@ -52,7 +52,7 @@ void ghostcell::nse3(lexer *p, fdm *a, field &f, int gcv)
         yp = p->pos3_y() + ny*(1.0*fabs(lsv)+2.0*p->DYP[JP]);
         zp = p->pos3_z() + nz*(1.0*fabs(lsv)+2.0*p->DZN[KP]);
   
-        f(i,j,k) = p->ccipol3(f, xp, yp, zp);  
+        f(i,j,k) = p->ccipol3_a(f, xp, yp, zp);  
         }
 
     }

@@ -60,11 +60,7 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
     if((bc==6 ) && (gcv==51 || gcv==52 || gcv==53 || gcv==54) )
 	return gclabel_lsm_in;
 
-// Pressure
-    else 
-    if((bc==41) && (gcv==40||gcv==41||gcv==42||gcv==43||gcv==44||gcv==45))
-    return 5;
-    
+// Pressure    
 	else
 	if((bc==21||bc==22||bc==5||bc==3||bc==2||bc==6||(bc==7&&awa_label==0)||bc==211||bc==212||bc==112||bc==111) && gcv==40)
 	return gclabel_press;
@@ -92,7 +88,7 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	else
 	if((bc==41||bc==42||bc==43) && (gcv==40||gcv==41||gcv==42||gcv==43||gcv==44||gcv==45)&&(cs==2||cs==3||cs==1||cs==4))
 	return 9;
-	
+    
 	else
 	if((bc==41||bc==42||bc==43) && (gcv==40||gcv==41||gcv==42||gcv==43||gcv==44||gcv==45)  && (cs==5||cs==6) )
 	return 9;

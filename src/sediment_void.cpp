@@ -59,26 +59,55 @@ void sediment_void::ini(lexer *p, fdm *a,ghostcell *pgc)
 {
 }
 
-double sediment_void::bedshear_point(lexer *p, fdm *a, ghostcell *pgc)
-{
-	double val=0.0;
-
-	return val;	
-}
-
-
-void sediment_void::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
+void sediment_void::print_3D_bedshear(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 {	
 }
 
-void sediment_void::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void sediment_void::name_pvtu_bedshear(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
 }
 
-void sediment_void::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_void::name_vtu_bedshear(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
 
-void sediment_void::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_void::offset_vtu_bedshear(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
+}
+
+void sediment_void::print_3D_parameter1(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
+{	
+}
+
+void sediment_void::name_pvtu_parameter1(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+{
+}
+
+void sediment_void::name_vtu_parameter1(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+{
+}
+
+void sediment_void::offset_vtu_parameter1(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+{
+}
+
+void sediment_void::print_3D_parameter2(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
+{	
+}
+
+void sediment_void::name_pvtu_parameter2(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+{
+}
+
+void sediment_void::name_vtu_parameter2(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+{
+}
+
+void sediment_void::offset_vtu_parameter2(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+{
+}
+
+double sediment_void::bedshear_point(lexer *p, fdm *a,ghostcell *pgc)
+{
+	return 0.0;
 }

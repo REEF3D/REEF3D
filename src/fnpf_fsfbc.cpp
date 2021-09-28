@@ -34,9 +34,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_cds2.h"
 #include"fnpf_cds4.h"
 #include"fnpf_cds6.h"
-#include"fnpf_weno.h"
+#include"fnpf_weno3.h"
+#include"fnpf_weno5.h"
 #include"fnpf_weno7.h"
-#include"fnpf_weno_wd.h"
+#include"fnpf_weno5_wd.h"
 #include"fnpf_wenoflux.h"
 #include"fnpf_ddx_cds2.h"
 #include"fnpf_ddx_cds4.h"
@@ -46,21 +47,42 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p)
 {    
     if(p->A311==0)
-    pconvec = pconeta = new fnpf_voiddisc(p);
+    {
+    pconvec = new fnpf_voiddisc(p);
+    pconeta = new fnpf_voiddisc(p);
+    }
     
     if(p->A311==1)
-    pconvec = pconeta = new fnpf_cds2(p);
+    {
+    pconvec = new fnpf_cds2(p);
+    pconeta = new fnpf_cds2(p);
+    }
     
     if(p->A311==2)
-    pconvec = pconeta = new fnpf_cds4(p);
+    {
+    pconvec = new fnpf_cds4(p);
+    pconeta = new fnpf_cds4(p);
+    }
+    
+    if(p->A311==3)
+    {
+    pconvec = new fnpf_weno3(p);
+    pconeta = new fnpf_weno3(p);
+    }
     
     if(p->A311==4 || p->A311==5)
-    pconvec = pconeta = new fnpf_weno(p);
+    {
+    pconvec = new fnpf_weno5(p);
+    pconeta = new fnpf_weno5(p);
+    }
     
     pdf = new fnpf_wenoflux(p);
 
     if(p->A311==6)
-    pconvec = pconeta = new fnpf_cds6(p);
+    {
+    pconvec = new fnpf_cds6(p);
+    pconeta = new fnpf_cds6(p);
+    }
     
     if(p->A311==7)
     {

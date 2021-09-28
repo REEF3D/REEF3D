@@ -24,8 +24,9 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"sediment_fdm.h"
 
-bedload_EF::bedload_EF(lexer *p, turbulence *pturb) : bedshear(p,pturb), epsi(1.6*p->DXM)
+bedload_EF::bedload_EF(lexer *p, turbulence *pturb) : epsi(1.6*p->DXM)
 {
     rhosed=p->S22;
     rhowat=p->W1;
@@ -43,18 +44,15 @@ bedload_EF::~bedload_EF()
 {
 }
 
-void bedload_EF::start(lexer* p, fdm* a, ghostcell* pgc)
+void bedload_EF::start(lexer* p, fdm* a, ghostcell* pgc, sediment_fdm *s)
 {
 
 	double qb,qbx,qby,Ts,Tb;
 	
 	SLICELOOP4
     {
-        taubed(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
-        taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
-
-        Ts = shields_crit;
-	    Tb = shields_eff;
+        Ts = s->shields_crit(i,j);
+	    Tb = s->shields_eff(i,j);
 
         if(Tb>Ts)
         qb =  d50*sqrt((rhosed/rhowat-1.0)*g*d50) * 11.6* (Tb-Ts)*(sqrt(Tb) - 0.7*sqrt(Ts));

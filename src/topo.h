@@ -24,6 +24,8 @@ class lexer;
 class fdm;
 class convection;
 class ghostcell;
+class sediment_fdm;
+class sediment_exnerdisc;
 class reinitopo;
 class slice;
 
@@ -36,7 +38,7 @@ class topo
 {
 public:
 
-	virtual void start(fdm*,lexer*, convection*, ghostcell*,reinitopo*)=0;
+	virtual void start(fdm*,lexer*, convection*, ghostcell*,reinitopo*,sediment_fdm*)=0;
 
 };
 

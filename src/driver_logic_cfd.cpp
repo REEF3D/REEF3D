@@ -463,6 +463,9 @@ void driver::logic()
     
     if((p->D30==3 || (p->X10==1 && p->X13==2)) && p->N40!=4)
 	ppress = new pjm_corr(p,a,pheat,pconc);
+    
+    if(p->D30==10)
+	ppress = new pjm_hydrostatic(p,a,pheat,pconc);
 
     if(p->N40==4)
 	ppress = new pjm_IMEX(p,a,pheat,pconc);
@@ -538,10 +541,10 @@ void driver::logic()
 	pflow = new ioflow_f(p,pgc,pBC);
 
 	if(p->B90>=1)
-	pflow= new iowave(p,pgc,pBC);
+	pflow = new iowave(p,pgc,pBC);
 
 	if(p->B180==1||p->B191==1||p->B192==1)
-	pflow= new ioflow_gravity(p,pgc,pBC);
+	pflow = new ioflow_gravity(p,pgc,pBC);
 
 //Potential Flow Solver
     if(p->I11==0)
@@ -574,6 +577,12 @@ void driver::logic()
 
 // Printer
 	pprint = new vtu3D(p,a,pgc);
+    
+    if(p->P150==0)
+	pdata = new data_void(p,a,pgc);
+	
+	if(p->P150>0)
+	pdata = new data_f(p,a,pgc);
 	
 // Sediment
     if(p->S10==0)
@@ -609,7 +618,7 @@ void driver::logic()
     if(p->S10==0 && p->G1==0)
     preto = new reinitopo_void();
 
-    if(p->S10>=1 || p->G1==1)
+    if(p->S10>=1 || p->G1==1 || p->toporead==1)
     {
     if(p->G40==0)
     preto = new reinitopo_void();

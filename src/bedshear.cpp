@@ -24,44 +24,30 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"sediment_fdm.h"
 #include"turbulence.h"
-#include"reduction_void.h"
-#include"reduction_parker.h"
-#include"reduction_deyemp.h"
-#include"reduction_deyana.h"
-#include"reduction_FD.h"
 #include"sliceint.h"
 
-bedshear::bedshear(lexer *p, turbulence *ppturb) : norm_vec(p), ks(p->S20*p->S21), kappa(0.4)
+bedshear::bedshear(lexer *p, turbulence *ppturb) : norm_vec(p), ks(p->S20*p->S21), kappa(0.4), taueff_loc(p), taucrit_loc(p)
 {
     tau=0.0;
     tauc=0.0;
     pturb=ppturb;
 
-    if(p->S80==0)
-    preduce=new reduction_void(p);
-
-    if(p->S80==1)
-    preduce=new reduction_parker(p);
-
-    if(p->S80==2)
-    preduce=new reduction_deyemp(p);
-
-    if(p->S80==3)
-    preduce=new reduction_deyana(p);
-	
-	if(p->S80==4)
-    preduce=new reduction_FD(p);
 }
 
 bedshear::~bedshear()
 {
 }
 
-void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double &shearvel_eff, double &shields_eff)
+void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
 	int count;
 	double zval,fac,topoval,taukin,tauvel,density;
+    
+    
+    SLICELOOP4
+    {
     
     k = a->bedk(i,j);
     
@@ -172,16 +158,27 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double
 	zip= p->ZP[KP];
     zval = a->bedzh(i,j) + p->S116*p->DZN[KP];
 	
-	uvel=p->ccipol1_a(a->u,xip,yip,zval);
-	vvel=p->ccipol2_a(a->v,xip,yip,zval);
-	wvel=p->ccipol3_a(a->w,xip,yip,zval);
+        if(p->S33==1)
+        {
+        uvel=p->ccipol1(a->u,xip,yip,zval);
+        vvel=p->ccipol2(a->v,xip,yip,zval);
+        wvel=p->ccipol3(a->w,xip,yip,zval);
+        }
+        
+        if(p->S33==2)
+        {
+        uvel=p->ccipol1_a(a->u,xip,yip,zval);
+        vvel=p->ccipol2_a(a->v,xip,yip,zval);
+        wvel=p->ccipol3_a(a->w,xip,yip,zval);
+        }
+        
 	v_d=p->ccipol4_a(a->visc,xip,yip,zval);
 	v_t=p->ccipol4_a(a->eddyv,xip,yip,zval);
 
     u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
     
 
-    tau=density*(v_d + v_t)*(u_abs/dist);
+    tau=density*(v_d + v_t)*(u_abs/(p->S116*dist));
     }
 	
 	if(p->S16==4)
@@ -260,32 +257,36 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, double &tau_eff, double
     tau=density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
     }
     
-    tau_eff = tau;
-    shearvel_eff = sqrt(tau/p->W1);
-    shields_eff = tau/(p->W1*((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
+    s->tau_eff(i,j) = taueff_loc(i,j) = tau;
+    s->shearvel_eff(i,j) = sqrt(tau/p->W1);
+    s->shields_eff(i,j) = tau/(p->W1*((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
+    
+    }
 }
 
-void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, double &tau_crit, double &shearvel_crit, double &shields_crit)
+void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
 	double r;
-
-	k = a->bedk(i,j);
-	
-	r = preduce->start(p,a,pgc);
     
-    tauc = (p->S30*fabs(p->W22)*(p->S22-p->W1))*p->S20*r;
+    SLICELOOP4
+    {
+	k = a->bedk(i,j);
+    
+    tauc = (p->S30*fabs(p->W22)*(p->S22-p->W1))*p->S20*s->reduce(i,j);
   
-    tau_crit = tauc;
-    shearvel_crit = sqrt(tauc/p->W1);
-    shields_crit = tauc/(p->W1*((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
+    s->tau_crit(i,j) = taucrit_loc(i,j) = tauc;
+    s->shearvel_crit(i,j) = sqrt(tauc/p->W1);
+    s->shields_crit(i,j) = tauc/(p->W1*((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
+    }
 }
 
-double bedshear::shear_reduction(lexer *p, fdm *a, ghostcell *pgc)
+void bedshear::taubed(lexer*, fdm*, ghostcell*, double &tau_eff)
 {
-    double r=1.0;
+    tau_eff = taueff_loc(i,j);
+}
 
-    r=preduce->start(p,a,pgc);
-    
-    return r;
+void bedshear::taucritbed(lexer*, fdm*, ghostcell*, double &tau_crit)
+{
+    tau_crit = taucrit_loc(i,j);
 }
 

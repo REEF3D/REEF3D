@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"bedload.h"
-#include"bedshear.h"
+#include"increment.h"
 
 class turbulence;
 
@@ -30,18 +30,18 @@ using namespace std;
 #ifndef BEDLOAD_EINSTEIN_H_
 #define BEDLOAD_EINSTEIN_H_
 
-class bedload_einstein : public bedload, public bedshear
+class bedload_einstein : public bedload, public increment
 {
 public:
 
     bedload_einstein(lexer*,turbulence*);
 	virtual ~bedload_einstein();
-	virtual void start(lexer*, fdm*, ghostcell*);
+	virtual void start(lexer*, fdm*, ghostcell*, sediment_fdm*);
 
 private:
     const double epsi;
     double rhosed,rhowat;
-    double g,d50,s;
+    double g,d50,sval;
     double shields,eta,visc;
     double kappa,u_plus,ks,repose;
     double tau_eff, shearvel_eff, shields_eff;

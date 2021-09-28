@@ -23,6 +23,7 @@ Author: Hans Bihs
 class lexer;
 class fdm;
 class ghostcell;
+class sediment_fdm;
 class slice;
 class sliceint;
 
@@ -35,7 +36,7 @@ class sandslide
 {
 public:
 
-	virtual void start(lexer*, fdm*,ghostcell*)=0;
+	virtual void start(lexer*, fdm*,ghostcell*,sediment_fdm*)=0;
 };
 
 #endif

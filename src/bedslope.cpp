@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"sediment_fdm.h"
 #include"ddweno_f_nug.h"
 
 bedslope::bedslope(lexer *p) : norm_vec(p)
@@ -38,12 +39,15 @@ bedslope::~bedslope()
 {
 }
 
-void bedslope::slope(lexer *p, fdm * a, ghostcell *pgc, double &teta, double &alpha, double &gamma, double &phi)
+void bedslope::slope_weno(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
     double uvel,vvel;
     double nx,ny,nz,norm;
     double nx0,ny0,nx1,ny1,nz1;
     double nz0,bx0,by0;
+    
+    SLICELOOP4
+    {
     
     // beta
     uvel=0.5*(a->P(i,j)+a->P(i-1,j));
@@ -124,32 +128,34 @@ void bedslope::slope(lexer *p, fdm * a, ghostcell *pgc, double &teta, double &al
 	ny = (sin(beta)*nx1+cos(beta)*ny1);
     nz = nz1;
     
-    teta  = -atan(nx/(fabs(nz)>1.0e-15?nz:1.0e20));
-    alpha =  fabs(atan(ny/(fabs(nz)>1.0e-15?nz:1.0e20)));
+    s->beta(i,j) = -beta;
+    
+    s->teta(i,j)  = -atan(nx/(fabs(nz)>1.0e-15?nz:1.0e20));
+    s->alpha(i,j) =  fabs(atan(ny/(fabs(nz)>1.0e-15?nz:1.0e20)));
     
     
     //-----------
 
     if(fabs(nx)<1.0e-10 && fabs(ny)<1.0e-10)
-    gamma=0.0;
+    s->gamma(i,j)=0.0;
 
 	if(fabs(nx)>=1.0e-10 || fabs(ny)>=1.0e-10)
-	gamma = PI*0.5 - acos(	(nx*nx + ny*ny + nz*0.0)/( sqrt(nx*nx + ny*ny + nz*nz )*sqrt(nx*nx + ny*ny + nz*0.0))+1e-20);
+	s->gamma(i,j) = PI*0.5 - acos(	(nx*nx + ny*ny + nz*0.0)/( sqrt(nx*nx + ny*ny + nz*nz )*sqrt(nx*nx + ny*ny + nz*0.0))+1e-20);
 	
     
-    phi = midphi + (teta/(fabs(gamma)>1.0e-20?fabs(gamma):1.0e20))*delta; 
-
+    s->phi(i,j) = midphi + (s->teta(i,j)/(fabs(s->gamma(i,j))>1.0e-20?fabs(s->gamma(i,j)):1.0e20))*delta; 
+    }
 }
 
-
-/*
- * 
-void bedslope::slope(lexer *p, fdm * a, ghostcell *pgc, double &teta, double &alpha, double &gamma, double &phi)
+void bedslope::slope_cds(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
     double uvel,vvel;
     double nx,ny,nz,norm;
     double nx0,ny0;
     double nz0,bx0,by0;
+    
+    SLICELOOP4
+    {
     
     // beta
     uvel=0.5*(a->P(i,j)+a->P(i-1,j));
@@ -213,20 +219,22 @@ void bedslope::slope(lexer *p, fdm * a, ghostcell *pgc, double &teta, double &al
 	ny = (sin(beta)*nx0+cos(beta)*ny0);
     nz = nz0;
     
-    teta  = -atan(nx/(fabs(nz)>1.0e-15?nz:1.0e20));
-    alpha =  fabs(atan(ny/(fabs(nz)>1.0e-15?nz:1.0e20)));
+  
+    s->beta(i,j) = -beta;
+    
+    s->teta(i,j)  = -atan(nx/(fabs(nz)>1.0e-15?nz:1.0e20));
+    s->alpha(i,j) =  fabs(atan(ny/(fabs(nz)>1.0e-15?nz:1.0e20)));
     
     
     //-----------
 
     if(fabs(nx)<1.0e-10 && fabs(ny)<1.0e-10)
-    gamma=0.0;
+    s->gamma(i,j)=0.0;
 
 	if(fabs(nx)>=1.0e-10 || fabs(ny)>=1.0e-10)
-	gamma = PI*0.5 - acos(	(nx*nx + ny*ny + nz*0.0)/( sqrt(nx*nx + ny*ny + nz*nz )*sqrt(nx*nx + ny*ny + nz*0.0))+1e-20);
+	s->gamma(i,j) = PI*0.5 - acos(	(nx*nx + ny*ny + nz*0.0)/( sqrt(nx*nx + ny*ny + nz*nz )*sqrt(nx*nx + ny*ny + nz*0.0))+1e-20);
 	
     
-    phi = midphi + (teta/(fabs(gamma)>1.0e-20?fabs(gamma):1.0e20))*delta; 
-
+    s->phi(i,j) = midphi + (s->teta(i,j)/(fabs(s->gamma(i,j))>1.0e-20?fabs(s->gamma(i,j)):1.0e20))*delta; 
+    }
 }
-*/

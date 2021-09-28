@@ -20,7 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"increment.h"
 #include"diffusion.h"
+#include"looping.h"
 
 using namespace std;
 
@@ -28,7 +30,7 @@ using namespace std;
 #define DIFF_VOID_H_
 
 
-class diff_void : public diffusion
+class diff_void : public diffusion, public increment
 {
 
 public:
@@ -44,8 +46,11 @@ public:
 	virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);
 	virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);
 
-    virtual void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double){};
-	virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double){};
-	virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double){};
+    virtual void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double);
+	virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double);
+	virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double);
+
+private:
+	int gcval_u,gcval_v,gcval_w;
 };
 #endif

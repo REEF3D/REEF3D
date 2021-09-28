@@ -19,13 +19,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"forcesolid.h"
+#include"force.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
 
-void forcesolid::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
+void force::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
 {
 	int negcount, poscount;
     

@@ -25,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"slice1.h"
 #include"slice2.h"
-#include"fnpf_weno.h"
+#include"fnpf_weno5.h"
 #include"sediment_fou.h"
 #include"sediment_cds.h"
 #include"sediment_wenoflux.h"

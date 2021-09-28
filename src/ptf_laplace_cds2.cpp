@@ -88,7 +88,7 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
 
     if(p->flag4[IJK]<0)
     {
-	a->M.p[n]  =  1.0;
+	a->M.p[n] =  1.0;
 
    	a->M.n[n] = 0.0;
 	a->M.s[n] = 0.0;
@@ -234,7 +234,6 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 a->M.b[n]       += a->M.t[n]*Lx0;
                 a->M.t[n]       = 0.0;
                 }
-
             }
 
 

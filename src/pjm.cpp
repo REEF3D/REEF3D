@@ -122,9 +122,6 @@ void pjm::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
  
 void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, double alpha)
 {
-    NLOOP4
-	a->rhsvec.V[n]=0.0;
-	
     pip=p->Y50;
     
     count=0;

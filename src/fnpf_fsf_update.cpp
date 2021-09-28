@@ -66,7 +66,7 @@ void fnpf_fsf_update::fsfbc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Fi
         Fi[FIJKp3] = Fifsf(i,j);
     }
     
-    
+    /*
     for(n=0;n<p->gcslin_count;n++)
     {
         i=p->gcslin[n][0];
@@ -74,7 +74,7 @@ void fnpf_fsf_update::fsfbc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Fi
         
         k=p->knoz;
         Fi[FIm1JKp1] = Fifsf(i,j);
-    }
+    }*/
 }
 
 void fnpf_fsf_update::fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Fifsf, field &Fi)

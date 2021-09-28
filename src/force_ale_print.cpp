@@ -19,53 +19,51 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"forcesolid.h"
+#include"force_ale.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void forcesolid::print_force(lexer* p, fdm *a, ghostcell *pgc)
+void force_ale::print_force_ale(lexer* p, fdm *a, ghostcell *pgc)
 {
     // write to surf file
 
     fout<<p->count<<"\t";
     fout<<setprecision(9)<<p->simtime<<"\t";
     fout<<Fx<<" \t ";
-    fout<<Fy<<" \t ";
-	fout<<Fz;
-    
+    fout<<Fy;
 
 	
     fout<<endl;
 
 }
 
-void forcesolid::print_ini(lexer* p, fdm *a, ghostcell *pgc)
+void force_ale::print_ini(lexer* p, fdm *a, ghostcell *pgc)
 {
     // Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_CFD_Forcesolid",0777);
+	mkdir("./REEF3D_FNPF_Force_ALE",0777);
 	
     if(p->mpirank==0)
     {
-    // open force surf file
+    // open force_ale surf file
 	if(p->P14==0)
-	sprintf(name,"REEF3D_CFD_Forcesolid-%i.dat",ID+1);
+	sprintf(name,"REEF3D_ALE_Force-%i.dat",ID+1);
     
 	if(p->P14==1)
-	sprintf(name,"./REEF3D_CFD_Forcesolid/REEF3D_CFD_Forcesolid-%i.dat",ID+1);
+	sprintf(name,"./REEF3D_FNPF_Force_ALE/REEF3D_ALE_Force-%i.dat",ID+1);
 	
 	fout.open(name);
 
-    fout<<"x_start xend     y_start y_end     z_start z_end"<<endl;
+    fout<<"x          y"<<endl;
 
-    fout<<p->P81_xs[ID]<<" "<<p->P81_xe[ID]<<" . "<<p->P81_ys[ID]<<" "<<p->P81_ye[ID]<<" . "<<p->P81_zs[ID]<<" "<<p->P81_ze[ID]<<endl;
+    fout<<p->P85_x[ID]<<" "<<p->P85_y[ID]<<endl;
     fout<<endl<<endl;
     
  
-    fout<<"it \t time \t Fx \t Fy \t Fz ";
+    fout<<"it \t time \t Fx \t Fy ";
     
 
     fout<<endl;

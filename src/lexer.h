@@ -270,7 +270,7 @@ public:
 	int B10,B20,B26,B30,B60,B61,B70,B71,B74,B75,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B94,B98,B99,B101,B105,B106,B107;
 	int B121,B136,B139,B180,B191,B192,B240,B241,B242,B243;
 	double B29,B50,B51,B52,B53,B54,B55,B56,B81_1,B81_2,B81_3,B83,B117,B87_1,B87_2,B88;
-	double B91_1,B91_2,B93_1,B93_2,B94_wdt,B96_1,B96_2,B97,B102,B105_1,B105_2,B105_3;
+	double B91_1,B91_2,B93_1,B93_2,B94_wdt,B96_1,B96_2,B102,B105_1,B105_2,B105_3;
 	double *B70_val,*B70_dist,*B70_b,*B70_x,*B70_y;
 	double *B71_val,*B71_dist,*B71_b,*B71_x,*B71_y;
 	double *B106_b,*B106_x,*B106_y;
@@ -401,7 +401,7 @@ public:
 
 	// Print options
 	int P10,P11,P12,P14,P15,P18,P20,P23,P24,P25,P26,P27,P28,P29,P35,P40,P41,P43,P44,P50,P51,P52,P53,P54,P56,P57,P59;
-	int P61,P62,P63,P66,P67,P71,P75,P78,P79,P81,P85,P92,P101,P121,P122,P123,P124,P125,P126;
+	int P61,P62,P63,P66,P67,P71,P75,P76,P77,P78,P79,P81,P85,P92,P101,P121,P122,P123,P124,P125,P126;
 	int P150,P151,P152,P180,P181,P184,P185,P210,P211,P351,P352;
 	double P30,P34,P42;
 	double *P35_ts,*P35_te,*P35_dt;
@@ -415,7 +415,7 @@ public:
     double *P63_x,*P63_y;
 	double *P67_x;
 	double *P81_xs,*P81_xe,*P81_ys,*P81_ye,*P81_zs,*P81_ze;
-	double *P85_xs,*P85_xe,*P85_ys,*P85_ye,*P85_zs,*P85_ze;
+	double *P85_x,*P85_y;
 	double P91;
 	double P101_xm,P101_ym,P101_zs,P101_ze,P101_r1,P101_r2;
 	double *P121_x,*P121_y;
@@ -431,7 +431,7 @@ public:
 	double *P352_x,*P352_y;
 
 	// Sediment Transport
-	int S10,S11,S12,S15,S16,S17,S18,S32,S33,S37,S41,S42,S43,S44,S50,S60,S73,S77,S80,S90,S91,S100,S101;
+	int S10,S11,S12,S15,S16,S17,S18,S32,S33,S37,S41,S42,S43,S44,S50,S60,S73,S77,S80,S83,S90,S91,S100,S101;
 	double S13,S14,S19,S20,S21,S22,S23,S24,S25,S26_a,S26_b,S30,S45,S46,S47,S48,S57,S71,S72,S81,S82,S93,S116;
 	double *S73_val,*S73_dist,*S73_b,*S73_x,*S73_y;
     double S77_xs,S77_xe;
@@ -534,7 +534,7 @@ public:
 	double X24_Ix,X24_Iy,X24_Iz;	
 	double X25_Cp,X25_Cq,X25_Cr;	
     double X26_Cu,X26_Cv,X26_Cw;	
-	double X41;
+	double X41,X42;
 	double X100_x,X100_y,X100_z;
 	double X101_phi, X101_theta, X101_psi;
 	double X102_u, X102_v, X102_w;
@@ -632,6 +632,7 @@ public:
 private:
 
 	void clear(char&, int&);
+    vector<string> split(string);
 };
 
 #endif

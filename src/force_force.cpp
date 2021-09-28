@@ -19,27 +19,27 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"forcesolid.h"
+#include"force.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include <math.h>
 
 
-void forcesolid::force(lexer* p, fdm *a, ghostcell *pgc)
+void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
 {
     double ux,vy,wz,vel,pressure,density,viscosity;
     double du,dv,dw;
     double xloc,yloc,zloc;
 	double xlocvel,ylocvel,zlocvel;
-    double Ff,Fb;
-
-double Ax=0.0;
-double Ay=0.0;
+    double Ax=0.0;
+    double Ay=0.0;
 
     Fx=Fy=Fz=0.0;
-    Ff=Fb=0.0;
     A_tot=0.0;
+    
+    pgc->dgcpol(p,a->press,p->dgc4,p->dgc4_count,14);
+    a->press.ggcpol(p);
 
     for(n=0;n<polygon_num;++n)
     {       
@@ -132,13 +132,13 @@ double Ay=0.0;
             nz/=norm>1.0e-20?norm:1.0e20;
             
             
-            xloc = xc;
-            yloc = yc;
-            zloc = zc;
+            xloc = xc + nx*p->DXP[IP]*p->P91;
+            yloc = yc + ny*p->DYP[JP]*p->P91;
+            zloc = zc + nz*p->DZP[KP]*p->P91;
             
-            xlocvel = xc + nx*p->DXM;
-            ylocvel = yc + ny*p->DXM;
-            zlocvel = zc + nz*p->DXM;
+            xlocvel = xc + nx*p->DXP[IP];
+            ylocvel = yc + ny*p->DYP[JP];
+            zlocvel = zc + nz*p->DZP[KP];
             
             uval = p->ccipol1_a(a->u,xlocvel,ylocvel,zlocvel);
             vval = p->ccipol2_a(a->v,xlocvel,ylocvel,zlocvel);
@@ -152,12 +152,7 @@ double Ay=0.0;
             density =   p->ccipol4_a(a->ro,xloc,yloc,zloc);
             viscosity = p->ccipol4_a(a->visc,xloc,yloc,zloc);
             phival =    p->ccipol4_a(a->phi,xloc,yloc,zloc);
-        
-            //cout<<"A: "<<A<<" nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<" pval: "<<pval<<" Fx: "<<-(pval)*A*nx<<" Fy: "<<-(pval)*A*ny<<" Fz: "<<-(pval)*A*nz<<endl;
-            
-            //if(k==2)
-            //cout<<"A: "<<A<<" xloc: "<<xloc<<" yloc: "<<yloc<<" zloc: "<<zloc<<" pval: "<<pval<<" Fx: "<<-(pval)*A*nx<<" Fy: "<<-(pval)*A*ny<<" Fz: "<<-(pval)*A*nz<<endl;
-        
+
             // Force
             if(phival>-1.6*p->DXM || p->P92==1)
             {
@@ -170,12 +165,6 @@ double Ay=0.0;
             Fz += -(pval)*A*nz
                        + density*viscosity*A*(dw*nx+dw*ny);   
                        
-                       
-            if(xloc<7.5)
-            Ff+=A*nx;
-            
-            if(xloc>=7.5)
-            Fb+=A*nx;
             }
     Ax+=A*nx;
     Ay+=A*ny;
@@ -189,18 +178,7 @@ double Ay=0.0;
     Fy = pgc->globalsum(Fy);
     Fz = pgc->globalsum(Fz);
     
-    Ff = pgc->globalsum(Ff);
-    Fb = pgc->globalsum(Fb);
-    
     A_tot = pgc->globalsum(A_tot);
-    
-    
-    /*Ax = pgc->globalsum(Ax);
-    Ay = pgc->globalsum(Ay);
-    if(p->mpirank==0)
-	cout<<"Ax: "<<Ax<<" Ay: "<<Ay<<endl;*/
-    
-    //cout<<"Ff: "<<Ff<<" Fb: "<<Fb<<endl;
 }
 
 

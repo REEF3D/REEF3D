@@ -312,9 +312,6 @@ void fnpf_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
             
                 }
             }
-            
-            //if(c->coastline(i,j)<0.0)
-            //c->vb(i,j) = 2.1;
         }
         
         if(p->j_dir==0)

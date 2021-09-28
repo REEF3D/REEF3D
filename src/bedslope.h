@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"reduction.h"
 #include"norm_vec.h"
 
 class lexer;
 class fdm;
 class ghostcell;
 class ddweno_f_nug;
+class sediment_fdm;
 
 using namespace std;
 
@@ -39,13 +39,14 @@ public:
     bedslope(lexer*);
     virtual ~bedslope();
 
-	virtual void slope(lexer*, fdm*,ghostcell*,double&,double&,double&,double&);
+	virtual void slope_weno(lexer*, fdm*,ghostcell*,sediment_fdm*);
+    virtual void slope_cds(lexer*, fdm*,ghostcell*,sediment_fdm*);
 
 private:
 
     double u_abs,u_plus,dist;
     double uvel, vvel;
-    double midphi, delta,beta;
+    double midphi,delta,beta;
     double alpha0, teta0;
     
     ddweno_f_nug *pdx;

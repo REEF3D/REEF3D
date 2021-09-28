@@ -41,6 +41,11 @@
   <Dependencies/>
   <VirtualDirectory Name="HEADERS">
     <VirtualDirectory Name="Hydrodynamics">
+      <VirtualDirectory Name="PIC">
+        <File Name="pic_f.h"/>
+        <File Name="pic_v.h"/>
+        <File Name="pic.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="PTF">
         <VirtualDirectory Name="Update">
           <File Name="ptf_fsf_update.h"/>
@@ -250,6 +255,9 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="FNPF">
+        <VirtualDirectory Name="Breaking">
+          <File Name="fnpf_breaking.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Update">
           <File Name="fnpf_fsf_update.h"/>
           <File Name="fnpf_bed_update.h"/>
@@ -278,7 +286,6 @@
           <File Name="fnpf_ini.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSFBC">
-          <File Name="fnpf_breaking.h"/>
           <File Name="fnpf_fsfbc_wd.h"/>
           <File Name="fnpf_fsfbc.h"/>
           <File Name="fnpf_fsf.h"/>
@@ -303,10 +310,11 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="fnpf_weno5_wd.h"/>
+          <File Name="fnpf_weno5.h"/>
+          <File Name="fnpf_weno3.h"/>
           <File Name="fnpf_wenoflux.h"/>
-          <File Name="fnpf_weno_wd.h"/>
           <File Name="fnpf_weno7.h"/>
-          <File Name="fnpf_weno.h"/>
           <File Name="fnpf_voiddisc.h"/>
           <File Name="fnpf_etadisc.h"/>
           <File Name="fnpf_convection.h"/>
@@ -333,8 +341,8 @@
       <VirtualDirectory Name="Beam">
         <File Name="beam.h"/>
       </VirtualDirectory>
-      <VirtualDirectory Name="Particles"/>
       <VirtualDirectory Name="Sediment">
+        <File Name="sediment_fdm.h"/>
         <VirtualDirectory Name="Bedload">
           <File Name="bedload_VRc.h"/>
           <File Name="bedload_noneq.h"/>
@@ -478,6 +486,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="FDM">
       <VirtualDirectory Name="DDWENO">
+        <File Name="ddweno3_f_nug.h"/>
         <File Name="ddweno_f_nug.h"/>
         <File Name="weno3_nug_func.h"/>
         <File Name="weno_nug_func.h"/>
@@ -754,6 +763,9 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Printer">
+        <VirtualDirectory Name="Force ALE">
+          <File Name="force_ale.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Flowfile Out">
           <File Name="flowfile_out.h"/>
         </VirtualDirectory>
@@ -822,8 +834,8 @@
         <VirtualDirectory Name="Export">
           <File Name="export.h"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Force Solid">
-          <File Name="forcesolid.h"/>
+        <VirtualDirectory Name="Force">
+          <File Name="force.h"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <File Name="lexer.h"/>
@@ -845,6 +857,7 @@
       <File Name="momentum_AB2.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Pressure">
+      <File Name="pjm_hydrostatic.h"/>
       <File Name="pjm_IMEX.h"/>
       <File Name="pjm_corr.h"/>
       <VirtualDirectory Name="Poisson">
@@ -979,6 +992,10 @@
   </VirtualDirectory>
   <VirtualDirectory Name="SOURCES">
     <VirtualDirectory Name="Hydrodynamics">
+      <VirtualDirectory Name="PIC">
+        <File Name="pic_v.cpp"/>
+        <File Name="pic_f.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="PTF">
         <VirtualDirectory Name="Update">
           <File Name="ptf_fsf_update.cpp"/>
@@ -1186,6 +1203,13 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="FNPF">
+        <VirtualDirectory Name="Breaking">
+          <File Name="fnpf_breaking_v3.cpp"/>
+          <File Name="fnpf_breaking_v2.cpp"/>
+          <File Name="fnpf_breaking_v1.cpp"/>
+          <File Name="fnpf_breaking_filter.cpp"/>
+          <File Name="fnpf_breaking.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Update">
           <File Name="fnpf_bed_update.cpp"/>
           <File Name="fnpf_fsf_update.cpp"/>
@@ -1244,8 +1268,6 @@
           <File Name="fnpf_ini.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSFBC">
-          <File Name="fnpf_breaking_filter.cpp"/>
-          <File Name="fnpf_breaking.cpp"/>
           <File Name="fnpf_fsfbc_breaking.cpp"/>
           <File Name="fnpf_fsfbc_wd_wetdry.cpp"/>
           <File Name="fnpf_fsfbc_wd_damping.cpp"/>
@@ -1275,10 +1297,11 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="fnpf_weno5_wd.cpp"/>
+          <File Name="fnpf_weno5.cpp"/>
+          <File Name="fnpf_weno3.cpp"/>
           <File Name="fnpf_wenoflux.cpp"/>
-          <File Name="fnpf_weno_wd.cpp"/>
           <File Name="fnpf_weno7.cpp"/>
-          <File Name="fnpf_weno.cpp"/>
           <File Name="fnpf_voiddisc.cpp"/>
           <File Name="fnpf_cds6_wd.cpp"/>
           <File Name="fnpf_cds6.cpp"/>
@@ -1308,7 +1331,6 @@
         <File Name="beam_ini.cpp"/>
         <File Name="beam.cpp"/>
       </VirtualDirectory>
-      <VirtualDirectory Name="Particles"/>
       <VirtualDirectory Name="Benchmarks">
         <File Name="benchmark_TaylorGreen.cpp"/>
         <File Name="benchmark_disk.cpp"/>
@@ -1318,6 +1340,7 @@
         <File Name="benchmark_convection.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment">
+        <File Name="sediment_fdm.cpp"/>
         <VirtualDirectory Name="Bedload">
           <File Name="bedload_VRc.cpp"/>
           <File Name="bedload_noneq.cpp"/>
@@ -1604,6 +1627,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="FDM">
       <VirtualDirectory Name="DDWENO">
+        <File Name="ddweno3_f_nug.cpp"/>
         <File Name="ddweno_f_nug.cpp"/>
         <File Name="weno3_nug_func_precalc_weights.cpp"/>
         <File Name="weno3_nug_func_precalc_qf.cpp"/>
@@ -2149,6 +2173,11 @@
         <File Name="lexer_gridini2D.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Printer">
+        <VirtualDirectory Name="Force ALE">
+          <File Name="force_ale_force.cpp.cpp"/>
+          <File Name="force_ale_print.cpp"/>
+          <File Name="force_ale.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="FlowFile Out">
           <File Name="flowfile_out.cpp"/>
           <File Name="flowfile_out_ini.cpp"/>
@@ -2162,7 +2191,6 @@
         <VirtualDirectory Name="ccipol">
           <File Name="ccipol.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Force"/>
         <VirtualDirectory Name="Print WSF">
           <File Name="print_wsf.cpp"/>
           <File Name="print_wsfline.cpp"/>
@@ -2231,16 +2259,16 @@
           <File Name="export_filename.cpp"/>
           <File Name="export_preproc.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Force Solid">
-          <File Name="forcesolid_finalize.cpp"/>
-          <File Name="forcesolid_pvtp.cpp"/>
-          <File Name="forcesolid_header.cpp"/>
-          <File Name="forcesolid_reconstruction.cpp"/>
-          <File Name="forcesolid_triangulation.cpp"/>
-          <File Name="forcesolid.cpp"/>
-          <File Name="forcesolid_vtp.cpp"/>
-          <File Name="forcesolid_print.cpp"/>
-          <File Name="forcesolid_force.cpp"/>
+        <VirtualDirectory Name="Force">
+          <File Name="force_vtp.cpp"/>
+          <File Name="force_triangulation.cpp"/>
+          <File Name="force_reconstruction.cpp"/>
+          <File Name="force_pvtp.cpp"/>
+          <File Name="force_print.cpp"/>
+          <File Name="force_header.cpp"/>
+          <File Name="force_force.cpp"/>
+          <File Name="force_finalize.cpp"/>
+          <File Name="force.cpp"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <File Name="main.cpp"/>
@@ -2276,6 +2304,7 @@
       <File Name="momentum_FS3.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Pressure">
+      <File Name="pjm_hydrostatic.cpp"/>
       <File Name="pjm_IMEX.cpp"/>
       <VirtualDirectory Name="Debug">
         <File Name="pjm_debug.cpp"/>
