@@ -19,49 +19,56 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"sflow_turb_parabolic.h"
+#include"sflow_turb_io_void.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
 
-#define HPIJ (fabs(b->hp(i,j))>1.0e-20?b->hp(i,j):1.0e20)
-
-sflow_turb_parabolic::sflow_turb_parabolic(lexer* p) : sflow_turb_io_void(p)
-{
-}
-
-sflow_turb_parabolic::~sflow_turb_parabolic()
-{
-}
-
-void sflow_turb_parabolic::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convection *pconvec, sflow_diffusion *pdiff, solver2D *psolv, ioflow *pflow)
-{
-    double dudx,dvdy,dudy,dvdx;
-    double alpha_t,Ustar;
-    double manning,cf;
-    
-    alpha_t = p->A262;
-    
-	SLICELOOP4
-    {
-    manning = pow(b->ks(i,j),1.0/6.0)/26.0;
-    
-    cf = pow(manning,2.0)*9.81/pow(HPIJ,1.0/3.0);
-    
-    Ustar = sqrt(cf*(b->P(i,j)*b->P(i,j) + b->Q(i,j)*b->Q(i,j)));
-    
-    b->eddyv(i,j) = alpha_t*Ustar*b->hp(i,j);
-    }
-    
-    pgc->gcsl_start4(p,b->eddyv,24);
-}
-
-void sflow_turb_parabolic::ktimesave(lexer* p, fdm2D *b, ghostcell *pgc)
+sflow_turb_io_void::sflow_turb_io_void(lexer* p)
 {
 
 }
 
-void sflow_turb_parabolic::etimesave(lexer* p, fdm2D *b, ghostcell *pgc)
+sflow_turb_io_void::~sflow_turb_io_void()
+{
+}
+
+void sflow_turb_io_void::print_2D(lexer *p, fdm2D *b, ghostcell *pgc, ofstream &result)
+{
+
+}
+
+void sflow_turb_io_void::kinget(int ii, int jj, double val)
+{
+
+}
+
+void sflow_turb_io_void::epsget(int ii, int jj, double val)
+{
+    
+}
+    
+double sflow_turb_io_void::kinval(int ii, int jj)
+{
+
+}
+    
+double sflow_turb_io_void::epsval(int ii, int jj)
+{
+
+}
+    
+void sflow_turb_io_void::name_pvtp(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &result)
+{
+
+}
+
+void sflow_turb_io_void::name_vtp(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &result, int *offset, int &n)
+{
+
+}
+    
+void sflow_turb_io_void::offset_vtp(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &result, int *offset, int &n)
 {
 
 }

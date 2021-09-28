@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sflow_turb_io.h"
+#include"sflow_turb_io_void.h"
 
 #ifndef SFLOW_TURB_PARABOLIC_H_
 #define SFLOW_TURB_PARABOLIC_H_
 
 using namespace std;
 
-class sflow_turb_parabolic : public sflow_turb_io
+class sflow_turb_parabolic : public sflow_turb_io_void
 {
 
 public:
