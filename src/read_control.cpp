@@ -326,15 +326,15 @@ void lexer::read_control()
                case 91: {
                             getline(control,line);
                             vector<string> v = split (line);
-                            if (v.size() == 2)
+                            if (v.size() == 3)
                             {
-                                B91_1 = atof(v[0].c_str());
-                                B91_2 = atof(v[1].c_str());
+                                B91_1 = atof(v[1].c_str());
+                                B91_2 = atof(v[2].c_str());
                             }
                             else
                             {
                                 cout<<endl;
-                                cout<<"!!! wrong input for B 91 !!!"<<endl<<endl;
+                                cout<<"!!! wrong input or whitespace error for B 91 !!!"<<endl<<endl;
                                 cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
                                 exit(0);
                             }
@@ -348,15 +348,15 @@ void lexer::read_control()
                case 93: {
                             getline(control,line);
                             vector<string> v = split (line);
-                            if (v.size() == 2)
+                            if (v.size() == 3)
                             {
-                                B93_1 = atof(v[0].c_str());
-                                B93_2 = atof(v[1].c_str());
+                                B93_1 = atof(v[1].c_str());
+                                B93_2 = atof(v[2].c_str());
                             }
                             else
                             {
                                 cout<<endl;
-                                cout<<"!!! wrong input for B 93 !!!"<<endl<<endl;
+                                cout<<"!!! wrong input or whitespace error for B 93 !!!"<<endl<<endl;
                                 cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
                                 exit(0);
                             }
@@ -371,15 +371,15 @@ void lexer::read_control()
                case 96: {
                             getline(control,line);
                             vector<string> v = split (line);
-                            if (v.size() == 2)
+                            if (v.size() == 3)
                             {
-                                B96_1 = atof(v[0].c_str());
-                                B96_2 = atof(v[1].c_str());
+                                B96_1 = atof(v[1].c_str());
+                                B96_2 = atof(v[2].c_str());
                             }
                             else
                             {
                                 cout<<endl;
-                                cout<<"!!! wrong input for B 96 !!!"<<endl<<endl;
+                                cout<<"!!! wrong input or whitespace error for B 96 !!!"<<endl<<endl;
                                 cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
                                 exit(0);
                             }
@@ -2575,10 +2575,11 @@ vector<string> lexer::split(string s)
     res.push_back (s.substr (pos_start));
     
     // Remove whitespace
-    for (int ind = 0; ind < res.size(); ind++)
-    {
-        if (res[ind] != "") res_clear.push_back(res[ind]);
-    }
+//    for (int ind = 0; ind < res.size(); ind++)
+//    {
+//        if (res[ind] != "") res_clear.push_back(res[ind]);
+//    }
+//    return res_clear;
 
-    return res_clear;
+    return res;
 }
