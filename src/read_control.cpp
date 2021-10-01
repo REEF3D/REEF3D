@@ -311,7 +311,7 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
 			   case 87: control>>B87_1>>B87_2;
-                        B87=1;
+                         B87=1;
 						 clear(c,numint);
 						 break;
 			   case 88: control>>B88;

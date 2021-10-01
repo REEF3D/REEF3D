@@ -37,15 +37,16 @@ public:
 
     void irregular_parameters(lexer*);
     double wave_spectrum(lexer*, double);
-	void wavepackets_parameters(lexer*);
+	  void wavepackets_parameters(lexer*);
 
-	double PM(lexer*, double);
-	double JONSWAP(lexer*, double);
+	  double PM(lexer*, double);
+	  double JONSWAP(lexer*, double);
     double Goda_JONSWAP(lexer*, double);
-	double Torsethaugen(lexer*, double);
-	double spectrum_file(lexer*, double);
+    double TMA(lexer*, double);
+	  double Torsethaugen(lexer*, double);
+	  double spectrum_file(lexer*, double);
 
-	void spectrum_file_read(lexer*);
+	  void spectrum_file_read(lexer*);
 
     void amplitudes_irregular(lexer*);
     void amplitudes_focused(lexer*);
@@ -62,7 +63,7 @@ public:
 
     double *Si,*Ai,*Li,*ki,*Ti,*wi,*ei,*ww,*cdf,*wee,*dee,*Sn;
     int NN, ND;
-	double wp,ws,we,*dw;
+	  double wp,ws,we,*dw;
 
     // directional spreading
     double *beta,*cosbeta,*sinbeta,*Dn,*Dcdf,*Ddee,*betat;

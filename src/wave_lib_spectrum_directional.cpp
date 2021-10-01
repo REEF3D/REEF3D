@@ -48,7 +48,7 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
         p->B132_s *= PI / 180.0;
         p->B132_e *= PI / 180.0;
 
-        if(p->B84==1 || p->B84==3 || p->B84==4 )
+        if(p->B84==1)
         {
             dbeta = (p->B132_e - p->B132_s) / double(p->B133 - 1);
 
@@ -212,7 +212,7 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
             // Create 0.5% - 99.5% caps of the energy
             Dcdf_s = 0.005*Dcdf[ND-1];
             Dcdf_e = 0.995*Dcdf[ND-1];
-            
+
             for(m=0;m<ND;++m)
             {
                 if(Dcdf[m]<=Dcdf_s)
@@ -230,7 +230,7 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
                     d_high=betat[m];
                 }
             }
-            
+
             if(d_low==d_high)
             {
                 d_s=d_low;
@@ -258,7 +258,7 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
                     d_high=betat[m];
                 }
             }
-            
+
             if(d_low==d_high)
             {
                 d_e=d_high;
@@ -268,7 +268,7 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
             {
                 d_e=(Dcdf_e-cdf_low)*(d_high-d_low)/(cdf_high-cdf_low)+d_low;
             }
-            
+
             // Create equal energy bins cdf_s:(cdf_e-cdf_s)/double (p->B133-1):cdf_e
             for(n=0;n<p->B133;++n)
             {
@@ -378,7 +378,7 @@ double wave_lib_spectrum::spreading_function(lexer* p, double beta, double w)
 {
     double D = 0.0;
 
-    // PNJ     
+    // PNJ
     if(p->B130 == 1)
     {
         s_f = p->B134; // CAN BE ANY POSITIVE INTEGER
@@ -390,7 +390,7 @@ double wave_lib_spectrum::spreading_function(lexer* p, double beta, double w)
             D = 0.0;
     }
 
-    // Mitsuyasu 
+    // Mitsuyasu
     if(p->B130 == 2)
     {
 

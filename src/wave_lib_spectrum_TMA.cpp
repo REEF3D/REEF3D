@@ -1,0 +1,61 @@
+/*--------------------------------------------------------------------
+REEF3D
+Copyright 2008-2021 Hans Bihs
+
+This file is part of REEF3D.
+
+REEF3D is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+--------------------------------------------------------------------
+--------------------------------------------------------------------*/
+
+#include"wave_lib_spectrum.h"
+#include"lexer.h"
+#include"ghostcell.h"
+
+double wave_lib_spectrum::TMA(lexer *p, double w)
+{
+  if(w<=p->wwp)
+	sigma=0.07;
+
+	if(w>p->wwp)
+	sigma=0.09;
+
+    // PM
+    Sval = (5.0/16.0)*pow(p->wHs,2.0)*pow(p->wwp,4.0)*pow(w,-5.0)*exp(-(5.0/4.0)*pow(w/p->wwp,-4.0));
+
+    // JONSWAP
+    Sval *= (1.0-0.287*log(p->B88))*pow(p->B88,exp(-0.5*pow(((w-p->wwp)/(sigma*p->wwp)),2.0)));
+
+    // TMA
+
+    double phi_tma;
+
+    if(w*sqrt(p->F60/9.81)<1)
+    phi_tma=0.5*pow(w*sqrt(p->F60/9.81),2);
+
+    if(w*sqrt(p->F60/9.81)>=1 && w*sqrt(p->F60/9.81)<2)
+    phi_tma=1-0.5*pow(2-w*sqrt(p->F60/9.81),2);
+
+    if(w*sqrt(p->F60/9.81)>=2)
+    phi_tma=1.0;
+
+    // if( p->mpirank == 0)
+    // {
+    //   cout<<" phi_tma: "<< phi_tma << endl;
+    // }
+
+    Sval *= phi_tma;
+
+    return Sval;
+}
