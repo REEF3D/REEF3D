@@ -1,4 +1,26 @@
 
+21.09 
+x fixed a problem with potential flow ini  for combined wave-current simulations (CFD)
+x fixed a ghostcell bug for 6DOF_gc (CFD)
+x fixed FNPF state file print out on Unix systems
+x updated 6DOF SFLOW
+x fixed an issue for solitary wave height calulation
+x fixed NSEWAVE issues
+x improved one-phase flow  (NSEWAVE)
+x fixed a bug for when diffision is turned off, setting all velocities to zero (CFD)
+x added CDS and WENO bedslope calculation option for sediment transport (CFD)
+x added extended sediment paramter paraview print out (CFD)
+x added output of pressure and viscous forces for 6DOF_df (CFD)
+x added 3rd-order WENO (FNPF)
+x removed topo geometry, moved to DIVEMesh 
+x removed objects, fully replaced with solids
+x removed all cut cell code 
+x fixed probeline problem (CFD)
+x fixed problem with X 132 (CFD)
+x fixed a bug for quasistatic nets (CFD)
+x fixed a problem where Paraview would not display contours using Gouraud interpolation (CFD)
+x fix for phase difference when modeling nonlinear waves (FNPF)
+
 21.05
 x added inflow angle to patchBC
 x added hydrograph discharge input for patchBC (SFLOW and CFD)
