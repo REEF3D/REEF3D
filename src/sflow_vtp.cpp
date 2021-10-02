@@ -27,6 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_print_wsfline.h"
 #include"sflow_print_wsfline_y.h"
 #include"sflow_print_probe_da.h"
+#include"sflow_turbulence.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -57,18 +58,18 @@ sflow_vtp::~sflow_vtp()
 {
 }
 
-void sflow_vtp::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow)
+void sflow_vtp::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sflow_turbulence *pturb)
 {	
 	// Print out based on iteration
     if((p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)  || (p->count==0 &&  p->P30<0.0))
     {
-    print2D(p,b,pgc);
+    print2D(p,b,pgc,pturb);
     }
 		
     // Print out based on time
     if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==1) || (p->count==0 &&  p->P30>0.0))
     {
-    print2D(p,b,pgc);
+    print2D(p,b,pgc,pturb);
 		
     p->printtime+=p->P30;
     }
@@ -91,12 +92,12 @@ void sflow_vtp::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow)
 
 }
 
-void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
+void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb)
 {	
     b->eta.ggcpol(p);
     
 	if(p->mpirank==0)
-    pvtu(p,b,pgc);
+    pvtp(p,b,pgc,pturb);
     
 	name_iter(p,b,pgc);
 	
@@ -130,9 +131,12 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
 	
-	// 
+	// eddyv
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
+    
+    // k and eps
+	pturb->offset_vtp(p,b,pgc,result,offset,n);
     
     // breaking
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
@@ -173,6 +177,7 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
     ++n;
 	result<<"<DataArray type=\"Float32\" Name=\"eddyv\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
+    pturb->name_vtp(p,b,pgc,result,offset,n);
     result<<"<DataArray type=\"Float32\" Name=\"elevation\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	result<<"<DataArray type=\"Float32\" Name=\"waterlevel\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
@@ -253,6 +258,9 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	ffn=float(p->sl_ipol4(b->eddyv));
 	result.write((char*)&ffn, sizeof (float));
 	}
+    
+    //  turbulence
+    pturb->print_2D(p,b,pgc,result);
     
     //  Elevation
 	iin=4*(p->pointnum2D);

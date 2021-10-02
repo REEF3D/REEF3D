@@ -20,12 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"sflow_vtp.h"
+#include"sflow_turbulence.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
 
 
-void sflow_vtp::pvtu(lexer *p, fdm2D* b, ghostcell* pgc)
+void sflow_vtp::pvtp(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb)
 {	
 	int num=0;
 
@@ -92,6 +93,7 @@ void sflow_vtp::pvtu(lexer *p, fdm2D* b, ghostcell* pgc)
 	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"eddyv\"/>"<<endl;
+    pturb->name_pvtp(p,b,pgc,result);
 	result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"waterlevel\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"breaking\"/>"<<endl;

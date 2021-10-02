@@ -20,39 +20,41 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-class fdm2D;
-class lexer;
-class sflow_convection;
-class sflow_diffusion;
-class solver2D;
-class ghostcell;
-class ioflow;
-class slice;
-
+#include"sflow_turbulence.h"
+#include"increment.h"
+#include"slice4.h"
 #include<fstream>
 
-#ifndef SFLOW_TURBULENCE_H_
-#define SFLOW_TURBULENCE_H_
+class fdm2D;
+class lexer;
+class ghostcell;
+
+#ifndef SFLOW_TURB_IO_VOID_H_
+#define SFLOW_TURB_IO_VOID_H_
 
 using namespace std;
 
-class sflow_turbulence
+class sflow_turb_io_void : public sflow_turbulence, public increment
 {
 
 public:
-	virtual void start(lexer*, fdm2D*, ghostcell*, sflow_convection*, sflow_diffusion*, solver2D*, ioflow*)=0;
-	virtual void ktimesave(lexer*, fdm2D*, ghostcell*)=0;
-	virtual void etimesave(lexer*, fdm2D*, ghostcell*)=0;
+    sflow_turb_io_void(lexer*);
+	virtual ~sflow_turb_io_void();
     
-    virtual void print_2D(lexer*, fdm2D*, ghostcell*,ofstream&)=0;
-    virtual void kinget(int,int,double)=0;
-    virtual void epsget(int,int,double)=0;
-    virtual double kinval(int,int)=0;
-    virtual double epsval(int,int)=0;
-	virtual void name_pvtp(lexer*, fdm2D*, ghostcell*,ofstream&)=0;
-    virtual void name_vtp(lexer*, fdm2D*, ghostcell*,ofstream&, int*, int &)=0;
-    virtual void offset_vtp(lexer*, fdm2D*, ghostcell*,ofstream&, int*, int &)=0;
-	
+    virtual void print_2D(lexer*, fdm2D*, ghostcell*,ofstream&);
+    
+    virtual void kinget(int,int,double);
+    virtual void epsget(int,int,double);
+    
+    virtual double kinval(int,int);
+    virtual double epsval(int,int);
+    
+	virtual void name_pvtp(lexer*, fdm2D*, ghostcell*,ofstream&);
+    virtual void name_vtp(lexer*, fdm2D*, ghostcell*,ofstream&, int*, int &);
+    
+    virtual void offset_vtp(lexer*, fdm2D*, ghostcell*,ofstream&, int*, int &);
+    
+
 };
 
 #endif

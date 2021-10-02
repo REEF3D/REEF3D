@@ -114,7 +114,6 @@ double rans_io::epsval(int ii, int jj, int kk)
 
 void rans_io::kinget(int ii, int jj, int kk,double val)
 {
-
     kin(ii,jj,kk)=val;
 }
 

@@ -30,6 +30,7 @@ class sflow_print_wsf;
 class sflow_print_wsfline;
 class sflow_print_wsfline_y;
 class sflow_print_probe_da;
+class sflow_turbulence;
 
 using namespace std;
 
@@ -42,13 +43,13 @@ public:
 	sflow_vtp(lexer*,fdm2D*,ghostcell*);
 	virtual ~sflow_vtp();
 	
-    virtual void start(lexer*,fdm2D*,ghostcell*,ioflow*);
-    virtual void print2D(lexer*,fdm2D*,ghostcell*);
+    virtual void start(lexer*,fdm2D*,ghostcell*,ioflow*,sflow_turbulence*);
+    virtual void print2D(lexer*,fdm2D*,ghostcell*,sflow_turbulence*);
 	
 private:
 	
 	void etend(lexer*,fdm2D*,ghostcell*);
-	void pvtu(lexer*,fdm2D*,ghostcell*);
+	void pvtp(lexer*,fdm2D*,ghostcell*,sflow_turbulence*);
 	void name_iter(lexer*,fdm2D*,ghostcell*);
     void piecename(lexer*,fdm2D*,ghostcell*,int);
 	

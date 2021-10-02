@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm2D.h"
 #include"ghostcell.h"
 
-sflow_turb_prandtl::sflow_turb_prandtl(lexer* p)
+sflow_turb_prandtl::sflow_turb_prandtl(lexer* p) : sflow_turb_io_void(p)
 {
 }
 

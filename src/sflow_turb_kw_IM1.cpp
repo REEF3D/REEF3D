@@ -29,11 +29,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #define HP (fabs(b->hp(i,j))>1.0e-20?b->hp(i,j):1.0e20)
 
-sflow_turb_kw_IM1::sflow_turb_kw_IM1(lexer* p) : kin(p), omega(p), kn(p), wn(p), Pk(p), S(p), ustar(p), cf(p),
+sflow_turb_kw_IM1::sflow_turb_kw_IM1(lexer* p) : sflow_turb_io(p), kn(p), wn(p), Pk(p), S(p), ustar(p), cf(p),
                                                  kw_alpha(5.0/9.0), kw_beta(3.0/40.0),kw_sigma_k(2.0),kw_sigma_w(2.0)
 {
     gcval_kin=20;
-	gcval_omega=30;
+	gcval_eps=30;
     
     pconvec = new sflow_iweno_hj(p);
     pdiff = new sflow_idiff(p);
@@ -65,16 +65,16 @@ void sflow_turb_kw_IM1::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convecti
 //omega
     starttime=pgc->timer();
 	clearrhs(p,b);
-    pconvec->start(p,b,omega,4,b->P,b->Q);
-    pdiff->diff_scalar(p,b,pgc,psolv,omega,kw_sigma_w,1.0);
+    pconvec->start(p,b,eps,4,b->P,b->Q);
+    pdiff->diff_scalar(p,b,pgc,psolv,eps,kw_sigma_w,1.0);
 	omega_source(p,b);
 	timesource(p,b,wn);
-	psolv->start(p,pgc,omega,b->M,b->xvec,b->rhsvec,4,gcval_omega,p->T13);
-    pgc->gcsl_start4(p,omega,gcval_omega);
+	psolv->start(p,pgc,eps,b->M,b->xvec,b->rhsvec,4,gcval_eps,p->T13);
+    pgc->gcsl_start4(p,eps,gcval_eps);
 	p->epstime=pgc->timer()-starttime;
 	p->epsiter=p->solveriter;
 	if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"omega_iter: "<<p->epsiter<<"  omega_time: "<<setprecision(3)<<p->epstime<<endl;
+	cout<<"eps_iter: "<<p->epsiter<<"  eps_time: "<<setprecision(3)<<p->epstime<<endl;
 
 	eddyvisc(p,b,pgc);
 }
@@ -88,14 +88,14 @@ void sflow_turb_kw_IM1::ktimesave(lexer* p, fdm2D *b, ghostcell *pgc)
 void sflow_turb_kw_IM1::etimesave(lexer* p, fdm2D *b, ghostcell *pgc)
 {
     SLICELOOP4
-    wn(i,j) = omega(i,j);
+    wn(i,j) = eps(i,j);
 }
     
 void sflow_turb_kw_IM1::eddyvisc(lexer* p, fdm2D *b, ghostcell *pgc)
 {
     SLICELOOP4
     b->eddyv(i,j) = MAX(MIN(MAX(kin(i,j)
-                        /((omega(i,j))>(1.0e-20)?(omega(i,j)):(1.0e20)),0.0),fabs(p->T31*kin(i,j))/S(i,j)),
+                        /((eps(i,j))>(1.0e-20)?(eps(i,j)):(1.0e20)),0.0),fabs(p->T31*kin(i,j))/S(i,j)),
                         0.0001*p->W2);
 
 	pgc->gcsl_start4(p,b->eddyv,24);
@@ -106,7 +106,7 @@ void sflow_turb_kw_IM1::kin_source(lexer* p, fdm2D *b)
     count=0;
     SLICELOOP4
     {
-    b->M.p[count] += p->cmu * MAX(omega(i,j),0.0);
+    b->M.p[count] += p->cmu * MAX(eps(i,j),0.0);
     
 	b->rhsvec.V[count]  += Pk(i,j)
                     
@@ -121,9 +121,9 @@ void sflow_turb_kw_IM1::omega_source(lexer* p, fdm2D *b)
     count=0;
     SLICELOOP4
     {
-    b->M.p[count] += kw_beta * MAX(omega(i,j),0.0);
+    b->M.p[count] += kw_beta * MAX(eps(i,j),0.0);
 
-    b->rhsvec.V[count] +=  kw_alpha * (MAX(omega(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20)))*Pk(i,j)
+    b->rhsvec.V[count] +=  kw_alpha * (MAX(eps(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20)))*Pk(i,j)
     
                        + (6.912/pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,1.5)*pow(ustar(i,j),4.0)*p->cmu*kin(i,j)/(HP*HP);
     ++count;
