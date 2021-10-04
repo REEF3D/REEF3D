@@ -356,9 +356,9 @@
           <File Name="bedload_einstein.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Bedshear">
+          <File Name="bedshear_reduction.h"/>
           <File Name="bedshear.h"/>
           <File Name="bedslope.h"/>
-          <File Name="reduction.h"/>
           <File Name="reduction_deyana.h"/>
           <File Name="reduction_deyemp.h"/>
           <File Name="reduction_parker.h"/>

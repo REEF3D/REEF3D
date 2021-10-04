@@ -28,10 +28,10 @@ class sediment_fdm;
 
 using namespace std;
 
-#ifndef REDUCTION_H_
-#define REDUCTION_H_
+#ifndef BEDSHEAR_REDUCTION_H_
+#define BEDSHEAR_REDUCTION_H_
 
-class reduction
+class bedshear_reduction
 {
 public:
 	virtual double start(lexer*, fdm*,ghostcell*,sediment_fdm*)=0;

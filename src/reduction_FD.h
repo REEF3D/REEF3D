@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"reduction.h"
+#include"bedshear_reduction.h"
 #include"bedslope.h"
 
 class lexer;
@@ -33,7 +33,7 @@ using namespace std;
 #ifndef REDUCTION_FD_H_
 #define REDUCTION_FD_H_
 
-class reduction_FD :  public reduction, public bedslope
+class reduction_FD :  public bedshear_reduction, public bedslope
 {
 public:
     reduction_FD(lexer*);
