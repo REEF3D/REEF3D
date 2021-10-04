@@ -29,6 +29,8 @@ class ghostcell;
 class ioflow;
 class slice;
 
+#include<fstream>
+
 #ifndef SFLOW_TURBULENCE_H_
 #define SFLOW_TURBULENCE_H_
 
@@ -41,6 +43,15 @@ public:
 	virtual void start(lexer*, fdm2D*, ghostcell*, sflow_convection*, sflow_diffusion*, solver2D*, ioflow*)=0;
 	virtual void ktimesave(lexer*, fdm2D*, ghostcell*)=0;
 	virtual void etimesave(lexer*, fdm2D*, ghostcell*)=0;
+    
+    virtual void print_2D(lexer*, fdm2D*, ghostcell*,ofstream&)=0;
+    virtual void kinget(int,int,double)=0;
+    virtual void epsget(int,int,double)=0;
+    virtual double kinval(int,int)=0;
+    virtual double epsval(int,int)=0;
+	virtual void name_pvtp(lexer*, fdm2D*, ghostcell*,ofstream&)=0;
+    virtual void name_vtp(lexer*, fdm2D*, ghostcell*,ofstream&, int*, int &)=0;
+    virtual void offset_vtp(lexer*, fdm2D*, ghostcell*,ofstream&, int*, int &)=0;
 	
 };
 

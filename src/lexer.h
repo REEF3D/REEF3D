@@ -632,7 +632,6 @@ public:
 private:
 
 	void clear(char&, int&);
-    vector<string> split(string);
 };
 
 #endif
