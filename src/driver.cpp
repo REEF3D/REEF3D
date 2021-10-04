@@ -32,18 +32,13 @@ driver::driver(int& argc, char **argv)
 {
 	p = new lexer;
 	pgc = new ghostcell(argc,argv,p);
+    
 
-
-
-    time_t now = time(0);
-    char* timenow = ctime(&now);
-
-    if(p->mpirank==0)
+	if(p->mpirank==0)
     {
     cout<<endl<<"REEF3D (c) 2008-2021 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    cout<< timenow << endl;
-    cout<<endl<<"v_210926"<<"; "<<BRANCH<<"; "<<VERSION<<endl<<endl;
+    cout<<endl<<"v_210926" <<endl<<endl;
     }
 
 	p->lexer_read(pgc);
