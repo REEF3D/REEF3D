@@ -39,7 +39,7 @@ public:
     reduction_FD(lexer*);
     virtual ~reduction_FD();
 
-	virtual double start(lexer*,fdm*,ghostcell*,sediment_fdm*);
+	virtual void start(lexer*,fdm*,ghostcell*,sediment_fdm*);
 
 private:
 

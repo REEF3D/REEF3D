@@ -34,7 +34,7 @@ using namespace std;
 class bedshear_reduction
 {
 public:
-	virtual double start(lexer*, fdm*,ghostcell*,sediment_fdm*)=0;
+	virtual void start(lexer*, fdm*,ghostcell*,sediment_fdm*)=0;
 
 };
 

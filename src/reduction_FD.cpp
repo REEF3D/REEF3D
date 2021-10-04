@@ -19,7 +19,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-
 #include"reduction_FD.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -34,10 +33,10 @@ reduction_FD::~reduction_FD()
 {
 }
 
-double reduction_FD::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
+void reduction_FD::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
     double r=1.0;
-
+    
     SLICELOOP4
     {
     r = cos(s->teta(i,j))*(1.0 - tan(s->teta(i,j))/tan(s->phi(i,j)));

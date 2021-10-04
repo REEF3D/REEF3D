@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"bedshear_reduction.h"
+#include"bedshear_reduction.h"
 #include"bedslope.h"
 
 class lexer;
@@ -39,7 +39,7 @@ public:
     reduction_parker(lexer*);
     virtual ~reduction_parker();
 
-	virtual double start(lexer*, fdm*,ghostcell*,sediment_fdm*);
+	virtual void start(lexer*, fdm*,ghostcell*,sediment_fdm*);
 
 private:
 
