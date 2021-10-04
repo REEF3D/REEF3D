@@ -259,7 +259,7 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
 
             // Integration of spectrum
 
-            ddw=0.01;
+            ddw=0.1/p->wN;
             NN=int((we-ws)/ddw)+1;
 
             p->Darray(Sn,NN);
@@ -300,7 +300,7 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
 
             // Integration of spectrum
 
-            ddw=0.01;
+            ddw=0.1/p->wN;
             NN=int((we-ws)/ddw)+1;
 
             p->Darray(Sn,NN);

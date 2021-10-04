@@ -40,20 +40,28 @@ double wave_lib_spectrum::TMA(lexer *p, double w)
     // TMA
 
     double phi_tma;
-
     if(w*sqrt(p->F60/9.81)<1)
     phi_tma=0.5*pow(w*sqrt(p->F60/9.81),2);
 
     if(w*sqrt(p->F60/9.81)>=1 && w*sqrt(p->F60/9.81)<2)
-    phi_tma=1-0.5*pow(2-w*sqrt(p->F60/9.81),2);
+    phi_tma=(1-0.5*pow(2-w*sqrt(p->F60/9.81),2));
 
     if(w*sqrt(p->F60/9.81)>=2)
     phi_tma=1.0;
 
-    // if( p->mpirank == 0)
-    // {
-    //   cout<<" phi_tma: "<< phi_tma << endl;
-    // }
+    // if(w*sqrt(p->F60/9.81)<1)
+    // Sval *= (1.0-0.287*log(p->B88))*pow(p->B88,exp(-0.5*pow(((w-p->wwp)/(sigma*p->wwp)),2.0)))*0.5*pow(w*sqrt(p->F60/9.81),2);
+    //
+    // if(w*sqrt(p->F60/9.81)>=1 && w*sqrt(p->F60/9.81)<2)
+    // Sval *= (1.0-0.287*log(p->B88))*pow(p->B88,exp(-0.5*pow(((w-p->wwp)/(sigma*p->wwp)),2.0)))*(1-0.5*pow(2-w*sqrt(p->F60/9.81),2));
+    //
+    // if(w*sqrt(p->F60/9.81)>=2)
+    // Sval *= (1.0-0.287*log(p->B88))*pow(p->B88,exp(-0.5*pow(((w-p->wwp)/(sigma*p->wwp)),2.0)));
+
+    if( p->mpirank == 0)
+    {
+      cout<<" phi_tma: "<< phi_tma << endl;
+    }
 
     Sval *= phi_tma;
 
