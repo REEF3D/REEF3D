@@ -180,6 +180,13 @@ void net_barDyn::vransCoupling(lexer *p, fdm *a, ghostcell *pgc)
             lagrangeForces[i] << 0.0, 0.0, 0.0;   
         }
     }    
+    
+    for (int pI = 0; pI < tend; pI++)
+    {
+        Eigen::Vector3d& forceI = lagrangeForces[pI];
+        forceI << pgc->globalsum(forceI(0)), pgc->globalsum(forceI(1)), pgc->globalsum(forceI(2));
+    }
+
 }
 
 

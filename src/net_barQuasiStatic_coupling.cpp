@@ -155,12 +155,12 @@ void net_barQuasiStatic::vransCoupling(lexer *p, fdm *a, ghostcell *pgc)
         }
     }    
 
+    for (int pI = 0; pI < tend; pI++)
+    {
+        Eigen::Vector3d& forceI = lagrangeForces[pI];
+        forceI << pgc->globalsum(forceI(0)), pgc->globalsum(forceI(1)), pgc->globalsum(forceI(2));
+    }
 
-if (p->mpirank==0)
-{
-//  for (int i = 0; i < lagrangePoints.size();i++)    cout<<lagrangePoints[i]<<endl;  
-//  for (int i = 0; i < lagrangeForces.size();i++)    cout<<lagrangeForces[i]<<endl;
-}
 }
 
 
