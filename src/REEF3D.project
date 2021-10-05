@@ -2706,15 +2706,15 @@
       </Debugger>
       <PreBuild/>
       <PostBuild/>
-      <CustomBuild Enabled="yes">
-        <RebuildCommand>make -f Makefile_terminal_r3 -j 8</RebuildCommand>
-        <CleanCommand>make -f Makefile_terminal_r3 clean</CleanCommand>
-        <BuildCommand>make -f Makefile_terminal_r3 -j 8</BuildCommand>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
         <PreprocessFileCommand/>
         <SingleFileCommand/>
         <MakefileGenerationCommand/>
         <ThirdPartyToolName>None</ThirdPartyToolName>
-        <WorkingDirectory>/Users/weizhiwang/Documents/GitHub/REEF3D_dev</WorkingDirectory>
+        <WorkingDirectory/>
       </CustomBuild>
       <AdditionalRules>
         <CustomPostBuild/>
