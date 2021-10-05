@@ -74,7 +74,7 @@ void sflow_turb_kw_IM1::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convecti
 	p->epstime=pgc->timer()-starttime;
 	p->epsiter=p->solveriter;
 	if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"eps_iter: "<<p->epsiter<<"  eps_time: "<<setprecision(3)<<p->epstime<<endl;
+	cout<<"omega_iter: "<<p->epsiter<<"  omega_time: "<<setprecision(3)<<p->epstime<<endl;
 
 	eddyvisc(p,b,pgc);
 }
@@ -140,16 +140,16 @@ void sflow_turb_kw_IM1::Pk_update(lexer* p, fdm2D *b, ghostcell *pgc)
     dudx=dvdy=dudy=dvdx=0.0;
     
     
-	if(p->flagslice1[IJ]>0 && p->flagslice1[Im1J]>0)
+	//if(p->flagslice1[IJ]>0 && p->flagslice1[Im1J]>0)
     dudx = (b->P(i,j) - b->P(i-1,j))/(p->DXM);
     
-    if(p->flagslice2[IJ]>0 && p->flagslice2[IJm1]>0)
+    //if(p->flagslice2[IJ]>0 && p->flagslice2[IJm1]>0)
     dvdy = (b->Q(i,j) - b->Q(i,j-1))/(p->DXM);
     
-    if(p->flagslice1[IJp1]>0 && p->flagslice1[Im1Jp1]>0 && p->flagslice1[IJm1]>0 && p->flagslice1[Im1Jm1]>0)
+    //if(p->flagslice1[IJp1]>0 && p->flagslice1[Im1Jp1]>0 && p->flagslice1[IJm1]>0 && p->flagslice1[Im1Jm1]>0)
     dudy = (0.5*(b->P(i,j+1)+b->P(i-1,j+1)) - 0.5*(b->P(i,j-1)+b->P(i-1,j-1)))/(2.0*p->DXM);
     
-    if(p->flagslice2[Ip1J]>0 && p->flagslice2[Ip1Jm1]>0 && p->flagslice2[Im1J]>0 && p->flagslice2[Im1Jm1]>0)
+    //if(p->flagslice2[Ip1J]>0 && p->flagslice2[Ip1Jm1]>0 && p->flagslice2[Im1J]>0 && p->flagslice2[Im1Jm1]>0)
     dvdx = (0.5*(b->Q(i+1,j)+b->Q(i+1,j-1)) - 0.5*(b->Q(i-1,j)+b->Q(i-1,j-1)))/(2.0*p->DXM);
 
     Pk(i,j) = b->eddyv(i,j)*(2.0*pow(dudx,2.0) + 2.0*pow(dvdy,2.0) + pow(dudy+dvdx,2.0));
@@ -198,6 +198,120 @@ void sflow_turb_kw_IM1::clearrhs(lexer* p, fdm2D *b)
 	b->L(i,j)=0.0;
 	++count;
     }
+}
+
+// ****************************
+// WALL KIN
+// ****************************
+void sflow_turb_kw_IM1::wall_law_kin(lexer* p, fdm2D *b)
+{
+    double uvel,vvel;
+    double dist=0.5*p->DXM;
+    double u_abs,uplus,tau,kappa;
+    kappa=0.4;
+    
+    n=0;
+	SLICELOOP4
+	{
+        pip=1;
+        uvel=0.5*(b->P(i,j)+b->P(i-1,j));
+        pip=0;
+
+        pip=2;
+        vvel=0.5*(b->Q(i,j)+b->Q(i,j-1));
+        pip=0;
+
+        u_abs = sqrt(uvel*uvel + vvel*vvel);
+
+		if(30.0*dist<b->ks(i,j))
+		dist=b->ks(i,j)/30.0;
+
+		uplus = (1.0/kappa)*log(30.0*(dist/b->ks(i,j)));
+
+        tau=(u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
+    
+    
+		if(p->flagslice4[Im1J]<0 || p->flagslice4[Ip1J]<0 || p->flagslice4[IJm1]<0 || p->flagslice4[IJp1]<0)
+		{
+		b->M.p[n] += (pow(p->cmu,0.75)*pow(fabs(kin(i,j)),0.5)*uplus)/dist;
+        b->rhsvec.V[n] += (tau*u_abs)/dist;
+		}
+		
+	++n;
+	}
+    
+    
+    n=0;
+	SLICELOOP4
+	{
+		if(p->flagslice4[Im1J]<0)
+		{
+        b->rhsvec.V[n] -= b->M.s[n]*kin(i-1,j);
+		b->M.s[n] = 0.0;
+		}
+        
+        if(p->flagslice4[Ip1J]<0)
+		{
+        b->rhsvec.V[n] -= b->M.n[n]*kin(i+1,j);
+		b->M.n[n] = 0.0;
+		}
+        
+        if(p->flagslice4[IJm1]<0)
+		{
+        b->rhsvec.V[n] -= b->M.e[n]*kin(i,j-1);
+		b->M.e[n] = 0.0;
+		}
+        
+        if(p->flagslice4[IJp1]<0)
+		{
+        b->rhsvec.V[n] -= b->M.w[n]*kin(i,j+1);
+		b->M.w[n] = 0.0;
+		}
+		
+	++n;
+	}
+
+}
+
+void sflow_turb_kw_IM1::wall_law_eps(lexer* p, fdm2D *b)
+{
+
+    double dist=0.5*p->DXM;
+    
+    SLICELOOP4
+    if(p->flagslice4[Im1J]<0 || p->flagslice4[Ip1J]<0 || p->flagslice4[IJm1]<0 || p->flagslice4[IJp1]<0)
+    eps(i,j) = pow((kin(i,j)>(0.0)?(kin(i,j)):(0.0)),0.5) / (0.4*dist*pow(p->cmu, 0.25));
+    
+    
+    n=0;
+	SLICELOOP4
+	{
+		if(p->flagslice4[Im1J]<0)
+		{
+        b->rhsvec.V[n] -= b->M.s[n]*eps(i-1,j);
+		b->M.s[n] = 0.0;
+		}
+        
+        if(p->flagslice4[Ip1J]<0)
+		{
+        b->rhsvec.V[n] -= b->M.n[n]*eps(i+1,j);
+		b->M.n[n] = 0.0;
+		}
+        
+        if(p->flagslice4[IJm1]<0)
+		{
+        b->rhsvec.V[n] -= b->M.e[n]*eps(i,j-1);
+		b->M.e[n] = 0.0;
+		}
+        
+        if(p->flagslice4[IJp1]<0)
+		{
+        b->rhsvec.V[n] -= b->M.w[n]*eps(i,j+1);
+		b->M.w[n] = 0.0;
+		}
+		
+	++n;
+	}
 }
 
 

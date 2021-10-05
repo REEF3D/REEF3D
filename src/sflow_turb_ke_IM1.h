@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sflow_turb_io.h"
+#include"sflow_turb_io.h"
 #include"slice4.h"
 
 class sflow_convection;
