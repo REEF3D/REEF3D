@@ -208,9 +208,11 @@ void sflow_turb_ke_IM1::wall_law_kin(lexer* p, fdm2D *b)
     double uvel,vvel,wvel;
     double dist=0.5*p->DXM;
     double u_abs,uplus,tau,kappa;
-
-    // GCLOOP
-
+    
+    
+    n=0;
+	SLICELOOP4
+	{
         pip=1;
         uvel=0.5*(b->P(i,j)+b->P(i-1,j));
         pip=0;
@@ -226,11 +228,17 @@ void sflow_turb_ke_IM1::wall_law_kin(lexer* p, fdm2D *b)
 
 		uplus = (1.0/kappa)*log(30.0*(dist/b->ks(i,j)));
 
-	tau=(u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
-
-
-	//b->M.p[id] += (pow(p->cmu,0.75)*pow(fabs(kin(i,j)),0.5)*uplus)/dist;
-	//b->rhsvec.V[id] += (tau*u_abs)/dist;
+    tau=(u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
+    
+    
+		if(p->flagslice4[Im1J]<0 || p->flagslice4[Ip1J]<0 || p->flagslice4[IJm1]<0 || p->flagslice4[IJp1]<0)
+		{
+		b->M.p[n] += (pow(p->cmu,0.75)*pow(fabs(kin(i,j)),0.5)*uplus)/dist;
+        b->rhsvec.V[n] += (tau*u_abs)/dist;
+		}
+		
+	++n;
+	}
 
 }
 

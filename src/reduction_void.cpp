@@ -33,9 +33,8 @@ reduction_void::~reduction_void()
 {
 }
 
-double reduction_void::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
+void reduction_void::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
-    return 1.0;
 }
 
 

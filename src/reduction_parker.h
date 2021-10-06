@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"reduction.h"
+#include"bedshear_reduction.h"
 #include"bedslope.h"
 
 class lexer;
@@ -33,13 +33,13 @@ using namespace std;
 #ifndef REDUCTION_PARKER_H_
 #define REDUCTION_PARKER_H_
 
-class reduction_parker :  public reduction, public bedslope
+class reduction_parker :  public bedshear_reduction, public bedslope
 {
 public:
     reduction_parker(lexer*);
     virtual ~reduction_parker();
 
-	virtual double start(lexer*, fdm*,ghostcell*,sediment_fdm*);
+	virtual void start(lexer*, fdm*,ghostcell*,sediment_fdm*);
 
 private:
 

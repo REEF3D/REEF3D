@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"reduction_parker.h"
+#include"reduction_parker.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -35,7 +35,7 @@ reduction_parker::~reduction_parker()
 }
 
 
-double reduction_parker::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
+void reduction_parker::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
     double r=1.0;
 	double r1,r2;

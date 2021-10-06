@@ -34,7 +34,7 @@ reduction_deyemp::~reduction_deyemp()
 {
 }
 
-double reduction_deyemp::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
+void reduction_deyemp::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
     double r=1.0;
 

@@ -33,7 +33,7 @@ class bedshear;
 class vrans;
 class turbulence;
 class sediment_fdm;
-class reduction;
+class bedshear_reduction;
 
 using namespace std;
 
@@ -80,7 +80,7 @@ private:
     sandslide *pslide;
     topo_relax *prelax;
     vrans *pvrans;
-    reduction *preduce;
+    bedshear_reduction *preduce;
 	
 	bedshear *pbedshear;
     

@@ -486,8 +486,6 @@ void lexer::ini_default()
 	S14=0.3;               // double relaxation timestep size for sediment transport
 	S15=0;                  // int synchronize sediment time step with main solver
 	S16=1;                  // int bed shear stress formulation
-	S17=0;                  // int use inner topo iterations
-	S18=100;                  // int maximum inner topo iterations
 	S19=1.0e+19; 			// double total time sediment
 	S20=0.001;          // double sediment d50
 	S21=3.0;          // double factor for d50 for calculation of ks in bedshear routine

@@ -34,7 +34,7 @@ reduction_deyana::~reduction_deyana()
 {
 }
 
-double reduction_deyana::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
+void reduction_deyana::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
     double r=1.0;
     eta = 0.85;

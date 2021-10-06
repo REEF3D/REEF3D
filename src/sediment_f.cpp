@@ -141,7 +141,7 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
     
     // bedslope reduction 
     preduce->start(p,a,pgc,s);
-	
+    
     // bedshear stress
 	pbedshear->taubed(p,a,pgc,s);
     pbedshear->taucritbed(p,a,pgc,s);

@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"reduction.h"
+#include"bedshear_reduction.h"
 
 class lexer;
 class fdm;
@@ -31,13 +31,13 @@ using namespace std;
 #ifndef REDUCTION_VOID_H_
 #define REDUCTION_VOID_H_
 
-class reduction_void :  public reduction
+class reduction_void :  public bedshear_reduction
 {
 public:
     reduction_void(lexer*);
     virtual ~reduction_void();
 
-	virtual double start(lexer*, fdm*,ghostcell*,sediment_fdm*);
+	virtual void start(lexer*, fdm*,ghostcell*,sediment_fdm*);
 
 };
 

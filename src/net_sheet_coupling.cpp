@@ -56,6 +56,13 @@ void net_sheet::vransCoupling(lexer *p, fdm *a, ghostcell *pgc)
             lagrangeForces[knotI] << 0.0, 0.0, 0.0;   
         }
     }   
+    
+    for (int pI = 0; pI < nK; pI++)
+    {
+        Eigen::Vector3d& forceI = lagrangeForces[pI];
+        forceI << pgc->globalsum(forceI(0)), pgc->globalsum(forceI(1)), pgc->globalsum(forceI(2));
+    }
+
 }
 
 
