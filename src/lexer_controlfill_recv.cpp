@@ -1452,6 +1452,8 @@ void lexer::ctrlrecv()
     Y74 = ictrl[ii];
 	ii++;
     
+	Z10 = ictrl[ii];
+	ii++;
     
 
 // --------------------------	

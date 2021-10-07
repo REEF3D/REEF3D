@@ -581,6 +581,9 @@ public:
     int X400;
     double X401_p0,X401_cl,X401_cb,X401_a;
 
+    // FSI
+    int Z10;
+
 	int cctt;
 	
 	int pressval;

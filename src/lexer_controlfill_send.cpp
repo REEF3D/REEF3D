@@ -1454,6 +1454,8 @@ void lexer::ctrlsend()
     ictrl[ii] = Y74;
 	ii++;
     
+	ictrl[ii] = Z10;
+	ii++;
     
     
 	

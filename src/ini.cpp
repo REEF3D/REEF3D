@@ -676,6 +676,8 @@ void lexer::ini_default()
     Y73=0;  // int turn on/off solid gcparax
     Y74=0;  // int turn on/off solid gcparax
     
+	// FSI
+	Z10=0;		// int turn FSI on 
 	
 	solveriter=0;
 	mpirank=0;

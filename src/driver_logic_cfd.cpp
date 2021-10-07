@@ -35,6 +35,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"concentration_header.h"
 #include"benchmark_header.h"
 #include"6DOF_header.h"
+#include"FSI_header.h"
 #include"vrans_header.h"
 #include"waves_header.h"
 
@@ -684,6 +685,10 @@ void driver::logic()
 	if(p->X10==1 && p->X13==2)
     p6dof = new sixdof_void();
 	
+// FSI
+	if(p->Z10==0)
+    pfsi = new fsi_void();
+
 // Start MAINLOOP
 	if(p->A10==5)
     loop_nsewave(a);

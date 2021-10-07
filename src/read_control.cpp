@@ -1773,6 +1773,13 @@ void lexer::read_control()
 				}
 				break;
 
+		case 'Z': control>>numint;
+				switch(numint)
+				{
+				case  10: control>>Z10;
+						 clear(c,numint);
+						 break;
+                }
 		}
 
         ++count;
