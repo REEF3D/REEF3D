@@ -187,6 +187,8 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
 		// Print out based on iteration
         if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)
 		{
+        if(p->mpirank==0)
+        cout<<"PRINTCOUNT: "<<p->printcount<<endl;
         print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,psed);
 		}
 		

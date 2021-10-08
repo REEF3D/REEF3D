@@ -54,7 +54,9 @@ void state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 	p->count=p->count_statestart=iin;
 	
     result.read((char*)&iin, sizeof (int));
-	p->printcount=iin;
+	p->printcount=iin-1;
+    
+    p->printcount = MAX(p->printcount,0);
 	
     result.read((char*)&ddn, sizeof (double));
 	p->simtime=ddn;
@@ -80,6 +82,8 @@ void state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
     result.read((char*)&ffn, sizeof (float));
     a->topo(i,j,k)=double(ffn);
     }
+    
+    pgc->start4a(p,a->topo,150);
     
     // topoupdate
     pgc->topo_update(p,a);

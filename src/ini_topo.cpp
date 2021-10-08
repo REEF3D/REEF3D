@@ -32,7 +32,7 @@ void initialize::topoini(lexer *p, fdm *a, ghostcell *pgc)
 	a->topo(i,j,k)=1.0;
 
 
-    if(p->S57>-1.0e20 && p->I40==0)
+    if(p->S57>-1.0e20)
     ALOOP
     a->topo(i,j,k)=-p->S57+p->ZP[KP];
 	
