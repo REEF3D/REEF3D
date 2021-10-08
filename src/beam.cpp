@@ -76,9 +76,8 @@ void beam::setExternalLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matrix3Xd&
     Mext = Mext_;
 }
 
-void beam::setFieldBC(Matrix3Xd& c_, Matrix3Xd& cdot_, Matrix4Xd& q_, Matrix4Xd& qdot_, double time)
+void beam::setFieldBC(Matrix3Xd& c_, Matrix3Xd& cdot_, Matrix4Xd& q_, Matrix4Xd& q0_, Matrix4Xd& qdot_, Matrix3Xd& f_, Matrix4Xd& m0_, Matrix3Xd& rhs_cdot_, double time , int ind)
 {
-
 }
 
 void beam::setStateDot(double *state)

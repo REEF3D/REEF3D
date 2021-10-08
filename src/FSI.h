@@ -20,6 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#include"field1.h"
+#include"field2.h"
+#include"field3.h"
+#include"field4.h"
+
 class lexer;
 class fdm;
 class ghostcell;
@@ -35,6 +40,7 @@ public:
 
 	virtual void start(lexer*,fdm*,ghostcell*)=0;
 	virtual void initialize(lexer*,fdm*,ghostcell*)=0;
+    virtual void forcing(lexer*,fdm*,ghostcell*,double,field&,field&,field&,field1&,field2&,field3&,bool)=0;
 };
 
 #endif

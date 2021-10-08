@@ -1779,6 +1779,9 @@ void lexer::read_control()
 				case  10: control>>Z10;
 						 clear(c,numint);
 						 break;
+                case  11: ++Z11;
+						 clear(c,numint);
+						 break;
                 }
 		}
 
@@ -2188,6 +2191,19 @@ void lexer::read_control()
 	Darray(X324_y,X324);
 	Darray(X324_z,X324);
 
+    if (Z11 > 0)
+    {
+        Darray(Z11_l,Z11);
+        Darray(Z11_w,Z11);
+        Darray(Z11_t,Z11);
+        Darray(Z11_rho,Z11);
+        Darray(Z11_e,Z11);
+        Darray(Z11_ix,Z11);
+        Darray(Z11_iy,Z11);
+        Darray(Z11_iz,Z11);
+        Darray(Z11_nu,Z11);
+        Darray(Z11_n,Z11);
+    }
 
 	int countB70=0;
 	int countB71=0;
@@ -2251,6 +2267,7 @@ void lexer::read_control()
     int countX321=0;
     int countX322=0;
 	int countX324=0;
+	int countZ11=0;
 
 	control.open("ctrl.txt", ios_base::in);
 	while(!control.eof())
@@ -2548,6 +2565,16 @@ void lexer::read_control()
 						 break;
 				case 324: control>>X324_x[countX324]>>X324_y[countX324]>>X324_z[countX324];
                         ++countX324;
+						 clear(c,numint);
+						 break;
+				}
+				break;
+				
+			case 'Z': control>>numint;
+				switch(numint)
+				{
+                case 11: control>>Z11_l[countZ11]>>Z11_w[countZ11]>>Z11_t[countZ11]>>Z11_rho[countZ11]>>Z11_e[countZ11]>>Z11_ix[countZ11]>>Z11_iy[countZ11]>>Z11_iz[countZ11]>>Z11_nu[countZ11]>>Z11_n[countZ11];
+                        ++countZ11;
 						 clear(c,numint);
 						 break;
 				}

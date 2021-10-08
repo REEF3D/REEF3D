@@ -40,6 +40,7 @@ class density;
 class poisson;
 class sixdof_df;
 class net;
+class fsi;
 
 using namespace std;
 
@@ -62,7 +63,7 @@ public:
     virtual void fillaij2(lexer*, fdm*, ghostcell*, solver*);
     virtual void fillaij3(lexer*, fdm*, ghostcell*, solver*);
 
-	void starti(lexer*, fdm*, ghostcell*, sixdof_df*, vrans*, vector<net*>&);
+	void starti(lexer*, fdm*, ghostcell*, sixdof_df*, vrans*, vector<net*>&, fsi*);
 
 private:
 

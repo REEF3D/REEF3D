@@ -32,7 +32,7 @@ using namespace std;
 #ifndef SIXDOF_DF_H_
 #define SIXDOF_DF_H_
 
-class sixdof_df : public sixdof
+class sixdof_df : public sixdof, public increment
 {
 public:
 	sixdof_df(lexer*, fdm*, ghostcell*);

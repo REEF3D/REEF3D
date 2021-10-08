@@ -33,20 +33,44 @@ using namespace std;
 #ifndef FSI_STRIP_H_
 #define FSI_STRIP_H_
 
-class fsi_strip : public beam
+class fsi_strip : public beam, public increment
 {
 public:
 	
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    
+    typedef Eigen::Matrix<double,3,Eigen::Dynamic> Matrix3Xd;
 	
     fsi_strip(int);
 	virtual ~fsi_strip();
 	virtual void start(lexer*,fdm*,ghostcell*);
 	virtual void initialize(lexer*,fdm*,ghostcell*);
     
+    void interpolate_vel(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    void update_points();
+    void coupling_vel();
+    void coupling_force(lexer*,double);
+    void distribute_forces(lexer*,fdm*,ghostcell*,field1&,field2&,field3&);
+    
+    void setFieldBC(Matrix3Xd&, Matrix3Xd&, Matrix4Xd&, Matrix4Xd&, Matrix4Xd&, Matrix3Xd&, Matrix4Xd&, Matrix3Xd&, double, int);
+    void setExternalLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&);
     
 private:
+
+    void ini_parallel(lexer*,fdm*,ghostcell*);
+    void get_cellsize(lexer*,fdm*,ghostcell*);
+    double kernel_roma(const double&);
+
+    // Parallelisation
     int nstrip;
+	double *xstart, *xend, *ystart, *yend, *zstart, *zend;
+
+    // Strip
+    int Ne;
+    vector<Matrix3Xd> Xil, Xil_0, lagrangePoints, lagrangeVel, lagrangeVelCoup, lagrangeForceCoup; 
+    Matrix3Xd x_el, xdot_el, omega_el;
+    vector<Eigen::VectorXd> lagrangeArea;
+    double dx_body,t_strip,t_strip_n;
 };
 
 #endif

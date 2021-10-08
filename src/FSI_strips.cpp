@@ -29,7 +29,7 @@ fsi_strips::fsi_strips()
 {
     numberStrips = 1;
 	pstrip.reserve(numberStrips);
-		
+
     for (int num = 0; num < numberStrips; num++)
 	{
         pstrip.push_back(new fsi_strip(num));
@@ -40,27 +40,54 @@ fsi_strips::~fsi_strips(){}
 
 void fsi_strips::initialize(lexer *p, fdm *a, ghostcell *pgc)
 {
+    if (p->mpirank == 0) cout<<"Initializing strips"<<endl;
+
     for (int num = 0; num < numberStrips; num++)
     {
         pstrip[num]->initialize(p, a, pgc);
     }
 }
 
-void fsi_strips::start(lexer*,fdm*,ghostcell*)
+void fsi_strips::start(lexer*,fdm*,ghostcell*){}
+
+
+void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field& uvel, field& vvel, field& wvel, field1& fx, field2& fy, field3& fz, bool finalise)
 {
     for (int num = 0; num < numberStrips; num++)
     {
-        // Calculate forces
-       /* p_df_obj[nb]->forces_stl(p,a,pgc,alpha,uvel,vvel,wvel);
+        // Update Lagrangian points 
+        pstrip[num]->update_points();
+        
+        // Get velocity at Lagrangian points
+        pstrip[num]->interpolate_vel(p,a,pgc,uvel,vvel,wvel);
 
-        // Advance body in time
-        p_df_obj[nb]->start(p,a,pgc,alpha,pvrans,pnet);
+        // Advance strip in time
+        pstrip[num]->start(p,a,pgc);
 
-        // Update position and fb level set
-        p_df_obj[nb]->updateFSI(p,a,pgc,finalise);
+        // Get coupling velocities at Lagrangian points
+        pstrip[num]->coupling_vel();
+        
+        // Get coupling forces at Lagrangian points
+        pstrip[num]->coupling_force(p,alpha);
+        
+        // Distribute coupling forces on Eulerian grid 
+        pstrip[num]->distribute_forces(p,a,pgc,fx,fy,fz);
 
-        // Update forcing terms
-        p_df_obj[nb]->updateForcing(p,a,pgc,alpha,uvel,vvel,wvel,fx,fy,fz);
+        // Calculate body velocities
+        //p_df_obj[nb]->calculate_fb_vel(p,a,pgc,alpha,uvel,vvel,wvel,uveln,vveln,wveln);
+/*
+// Calculate forces
+//p_df_obj[nb]->forces_stl(p,a,pgc,alpha,uvel,vvel,wvel);
+        // Calculate external forces
+        p_df_obj[nb]->calculate_forces(p,a,pgc,alpha,uvel,vvel,wvel,uveln,vveln,wveln);
+// Update position and fb level set
+p_df_obj[nb]->updateFSI(p,a,pgc,finalise);
+// Update forcing terms
+p_df_obj[nb]->updateForcing(p,a,pgc,alpha,uvel,vvel,wvel,fx,fy,fz);
+
+        //finalise=true;
+
+
 
         // Save and print
         p_df_obj[nb]->interface(p,true);

@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void beam::rhs(Matrix3Xd& c_, Matrix3Xd& cdot_, Matrix4Xd& q_, Matrix4Xd& qdot_, double time)
 {
     // Set field boundary conditions
-    setFieldBC(c_, cdot_, q_, qdot_, time);
+    setFieldBC(c_, cdot_, q_, q0, qdot_, f, m0, rhs_cdot, time, 0);
     
     // Internal forces
     for (int i = 1; i < Ne+1; i++)
@@ -35,6 +35,9 @@ void beam::rhs(Matrix3Xd& c_, Matrix3Xd& cdot_, Matrix4Xd& q_, Matrix4Xd& qdot_,
         f0.col(i) = f0_(c_.col(i),c_.col(i-1),c0.col(i),c0.col(i-1),cdot_.col(i),cdot_.col(i-1),q_.col(i),qdot_.col(i),q0.col(i));
         f.col(i) = R(q_.col(i))*f0.col(i).tail(3);
     }
+
+    // Set field boundary conditions
+    setFieldBC(c_, cdot_, q_, q0, qdot_, f, m0, rhs_cdot, time, 1);
     
     // Internal moments
     for (int i = 0; i < Ne+1; i++)
@@ -42,9 +45,8 @@ void beam::rhs(Matrix3Xd& c_, Matrix3Xd& cdot_, Matrix4Xd& q_, Matrix4Xd& qdot_,
         m0.col(i) = m0_(q_.col(i+1),q_.col(i),q0.col(i+1),q0.col(i),qdot_.col(i+1),qdot_.col(i));
     }
     
-    // BC: Free rotatory end with vanishing moments 
-    m0.col(0) = Eigen::Vector4d::Zero(4); q_.col(0) = q_.col(1); q0.col(0) = q0.col(1); 
-    m0.col(Ne) = Eigen::Vector4d::Zero(4); q_.col(Ne+1) = q_.col(Ne); q0.col(Ne+1) = q0.col(Ne);  
+    // Set field boundary conditions
+    setFieldBC(c_, cdot_, q_, q0, qdot_, f, m0, rhs_cdot, time, 2);
 
     // Determine internal RHS
     rhs_cdot = 
@@ -69,9 +71,8 @@ void beam::rhs(Matrix3Xd& c_, Matrix3Xd& cdot_, Matrix4Xd& q_, Matrix4Xd& qdot_,
             - qdot_.col(i).dot(qdot_.col(i))*q_.col(i);
     }
 
-    // BC: Fixed translatory end
-    rhs_cdot.col(0) = Eigen::Vector3d::Zero(3);
-    rhs_cdot.col(Ne) = Eigen::Vector3d::Zero(3);
+    // Set field boundary conditions
+    setFieldBC(c_, cdot_, q_, q0, qdot_, f, m0, rhs_cdot, time, 3);
 }
 
 
@@ -218,3 +219,10 @@ Eigen::Matrix3d beam::R(const Eigen::Vector4d& e)
     return R_; 
 }
 
+void beam::getAngVel(Matrix3Xd& omega_)
+{
+    for (int i = 1; i < Ne+1; i++)
+    {
+        omega_.col(i) = 2.0*qMult(qdot.col(i),qconj(q.col(i))).tail(3);
+    }
+}

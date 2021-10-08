@@ -55,7 +55,7 @@ public:
     virtual void iniMaterial();
     virtual void meshBeam(const Eigen::VectorXd&, const Eigen::VectorXd&, const Eigen::VectorXd&);
     virtual void setExternalLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&);
-    virtual void setFieldBC(Matrix3Xd&, Matrix3Xd&, Matrix4Xd&, Matrix4Xd&, double);
+    virtual void setFieldBC(Matrix3Xd&, Matrix3Xd&, Matrix4Xd&, Matrix4Xd&, Matrix4Xd&, Matrix3Xd&, Matrix4Xd&, Matrix3Xd&, double, int);
     virtual void print(lexer *p);
 
     void iniDamping(double, double, double, double, double, double, bool);
@@ -67,9 +67,12 @@ public:
     void getTransVel(Matrix3Xd& cdot_){cdot_ = cdot;};
     void getRotPos(Matrix4Xd& q_){q_ = q;};
     void getRotVel(Matrix4Xd& qdot_){qdot_ = qdot;};
+    void getAngVel(Matrix3Xd& omega_);
 
     double getTensLoc(int n){return f0.col(n).norm();};
     Eigen::Vector3d getTensGlob(int n){return R(q.col(n+1))*f0.col(n).tail(3);};
+    
+    Eigen::Vector3d rotVec(const Eigen::Vector3d& vec_, int eI){cout<<R(q.col(eI))<<endl;return R(q.col(eI))*vec_;};
 
 private:
 

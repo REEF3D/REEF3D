@@ -36,6 +36,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"solver.h"
 #include"6DOF_df.h"
 #include"net.h"
+#include"FSI.h"
 
 momentum_RK3_df::momentum_RK3_df
 (
@@ -77,7 +78,7 @@ momentum_RK3_df::~momentum_RK3_df(){}
 
 void momentum_RK3_df::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans){}
 
-void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_df, vrans* pvrans, vector<net*>& pnet)
+void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_df, vrans* pvrans, vector<net*>& pnet, fsi* pfsi)
 {	
     // Set inflow 
     double udisctime=0.0;
@@ -149,30 +150,24 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
     ULOOP
     {
         fx(i,j,k) = 0.0;
-        a->fbh1(i,j,k) = 0.0;
     }
     VLOOP
     {
         fy(i,j,k) = 0.0;
-        a->fbh2(i,j,k) = 0.0;
     }
     WLOOP
     {
         fz(i,j,k) = 0.0;
-        a->fbh3(i,j,k) = 0.0;
     }
-    LOOP
-        a->fbh4(i,j,k) = 0.0;
     
     pgc->start1(p,fx,10);
     pgc->start2(p,fy,11);
     pgc->start3(p,fz,12);           
-    pgc->start1(p,a->fbh1,10);
-    pgc->start2(p,a->fbh2,11);
-    pgc->start3(p,a->fbh3,12);
-    pgc->start4(p,a->fbh4,40);
     
+    if (p->X10 > 0)
     p6dof_df->forcing(p,a,pgc,pvrans,pnet,1.0,urk1,vrk1,wrk1,fx,fy,fz,false);
+    
+    pfsi->forcing(p,a,pgc,1.0,urk1,vrk1,wrk1,fx,fy,fz,false);
 	
     ULOOP
     urk1(i,j,k) += 1.0*p->dt*CPOR1*(fx(i,j,k));
@@ -266,9 +261,12 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
     pgc->start2(p,fy,11);
     pgc->start3(p,fz,12);           
 
+    if (p->X10 > 0)
     p6dof_df->forcing(p,a,pgc,pvrans,pnet,0.25,urk2,vrk2,wrk2,fx,fy,fz,false);
 
-	ULOOP
+    pfsi->forcing(p,a,pgc,0.25,urk2,vrk2,wrk2,fx,fy,fz,false);
+	
+    ULOOP
 	urk2(i,j,k) += 0.25*p->dt*CPOR1*(fx(i,j,k));
 	VLOOP
 	vrk2(i,j,k) += 0.25*p->dt*CPOR2*(fy(i,j,k));
@@ -278,10 +276,6 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
     pgc->start1(p,urk2,gcval_urk);
 	pgc->start2(p,vrk2,gcval_vrk);
 	pgc->start3(p,wrk2,gcval_wrk);
-	
-	//urk2.ggcpol(p);
-	//vrk2.ggcpol(p);
-	//wrk2.ggcpol(p);
 
     pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc, pflow, urk2, vrk2, wrk2, 0.25);
@@ -364,23 +358,21 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
     pgc->start2(p,fy,11);
     pgc->start3(p,fz,12);   
 
+    if (p->X10 > 0)
     p6dof_df->forcing(p,a,pgc,pvrans,pnet,2.0/3.0,a->u,a->v,a->w,fx,fy,fz,true);
 
-	ULOOP
+    pfsi->forcing(p,a,pgc,2.0/3.0,a->u,a->v,a->w,fx,fy,fz,true);
+	
+    ULOOP
 	a->u(i,j,k) += 2.0/3.0*p->dt*CPOR1*(fx(i,j,k));
 	VLOOP
 	a->v(i,j,k) += 2.0/3.0*p->dt*CPOR2*(fy(i,j,k));
 	WLOOP
 	a->w(i,j,k) += 2.0/3.0*p->dt*CPOR3*(fz(i,j,k));
-	
 
     pgc->start1(p,a->u,gcval_u);
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
-	
-	a->u.ggcpol(p);
-	a->v.ggcpol(p);
-	a->w.ggcpol(p);
 
 	//--------------------------------------------------------
 	// pressure

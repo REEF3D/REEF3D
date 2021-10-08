@@ -32,50 +32,93 @@ fsi_strip::~fsi_strip(){}
 void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
 {
 	// Initialise parameter
-	double gamma = p->X311_w[nstrip];			// specific weight [kg/m]
-	double EA = p->X311_EA[nstrip];   	// stiffness [N]
-    double L = p->X311_l[nstrip];      			// length of unstretched cable [m]
-	double rho_c = p->X311_rho_c[nstrip];   		// density of material [kg/m3]
-	double d_c = p->X311_d[nstrip];      		// diameter of the cable [m]
-	double Ne = p->X311_H[nstrip];				// number of elements
- 
-    double A = gamma/rho_c;
-    
+    double L = p->Z11_l[nstrip];     // Length of strip [m]
+    double W = p->Z11_w[nstrip];     // Width of strip [m]
+    double T = p->Z11_t[nstrip];     // Thickness of strip [m]
+	double Rho = p->Z11_rho[nstrip]; // Density of material [kg/m3]
+	double E = p->Z11_e[nstrip];   	 // Young modulus [N/m^2]
+	double Ix = p->Z11_ix[nstrip];   // X-moment of area [m^4]
+	double Iy = p->Z11_iy[nstrip];   // Y-moment of area [m^4]
+	double Iz = p->Z11_iz[nstrip];   // Z-moment of area [m^4]
+	double Nu = p->Z11_nu[nstrip];   // Poisson ratio [-]
+	Ne = p->Z11_n[nstrip];    // Number of elements
+
     // Initialise beam
-    iniBeam(Ne, EA/A, gamma/rho_c, rho_c, L, (EA/A)/(2.0*(1.0 + 0.5)), 1e-8, 1e-8, 1e-8);
-    
+    iniBeam(Ne, E, W*T, Rho, L, E/(2.0*(1.0 + Nu)), Ix, Iy, Iz);
+
     // Initialise material
     iniMaterial();
 
     // Initialise damping and compression effects
-    iniDamping(10,0,0,0,0,0,true);
+    iniDamping(0,0,0,0,0,0,true);
 
     // Meshing
-    Eigen::VectorXd xIni = Eigen::VectorXd::Zero(Ne+1);   
-    Eigen::VectorXd yIni = Eigen::VectorXd::Zero(Ne+1);   
-    Eigen::VectorXd zIni = Eigen::VectorXd::Zero(Ne+1);   
-	//mooring_Catenary *pcatenary;
-	//pcatenary = new mooring_Catenary(line);
-    //pcatenary->iniShape(p,a,pgc,xIni,yIni,zIni);
-    meshBeam(xIni, yIni, zIni);
+    Eigen::Matrix3Xd ini_coord = Eigen::Matrix3Xd::Zero(3,Ne+1); 
+    for (int n = 0; n < Ne+1; n++)
+    {
+        ini_coord.col(n) << T/2.0, W/2.0, L/Ne*n;
+    }
+    meshBeam(ini_coord.row(0), ini_coord.row(1), ini_coord.row(2));
 
     // Initialise solver
     iniSolver();
 	
 	// Initialise communication 
-//	ini_parallel(p, a, pgc);
+	ini_parallel(p, a, pgc);
 
-    // Initialise print
-	if(p->mpirank==0 && p->P14==1)
-	{
-		/*char str[1000];
-		sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_mooring_force_%i.dat",line);
-		eTout.open(str);
-		eTout<<"time \t T"<<endl;*/	
-	}
+    // Initialise cell size
+    get_cellsize(p, a, pgc);
 
-    // Initialise fields
-   /* c_moor = Matrix3Xd::Zero(3,Ne+1); 
+    // Initialise Lagrangian fields
+    lagrangePoints.resize(Ne);  
+    lagrangeVel.resize(Ne); 
+    lagrangeVelCoup.resize(Ne); 
+    lagrangeForceCoup.resize(Ne); 
+    lagrangeArea.resize(Ne);    
+    Xil.resize(Ne); 
+    Xil_0.resize(Ne);
+ 
+    double l_el = L/Ne;
+    int nl = ceil(l_el/dx_body);
+    int nw = ceil(W/dx_body);
+    double dl = l_el/nl;
+    double dw = W/nw;
+
+    for (int n = 0; n < Ne; n++)
+    {
+        lagrangePoints[n] = Eigen::Matrix3Xd::Zero(3,nl*nw);   
+        lagrangeVel[n] = Eigen::MatrixXd::Zero(3,nl*nw);   
+        lagrangeVelCoup[n] = Eigen::MatrixXd::Zero(3,nl*nw);   
+        lagrangeForceCoup[n] = Eigen::MatrixXd::Zero(3,nl*nw);   
+        lagrangeArea[n] = Eigen::VectorXd::Zero(nl*nw);   
+        Xil[n] = Eigen::Matrix3Xd::Zero(3,nl*nw);   
+        Xil_0[n] = Eigen::Matrix3Xd::Zero(3,nl*nw);   
+        
+        double l_0 = n*l_el;
+        Eigen::Vector3d cg; cg << T/2.0, W/2.0, 0.5*l_el + l_0; 
+
+        int ind = 0;
+        for (int ii = 0; ii < nl; ii++)
+        {
+            for (int jj = 0; jj < nw; jj++)
+            {
+                lagrangePoints[n].col(ind) << T/2.0, 0.5*dw+dw*jj, l_0 + 0.5*dl + dl*ii;
+                lagrangeArea[n](ind) = dw*dl;
+                Xil_0[n].col(ind) << lagrangePoints[n].col(ind) - cg;
+                ind++;
+            }
+        }
+    }
+
+    // Initialise field
+    getTransPos(x_el);
+    getTransVel(xdot_el);
+    omega_el = Eigen::Matrix3Xd::Zero(3,Ne+2);   
+    getAngVel(omega_el);
+    
+    t_strip = 0.0;
+    t_strip_n = 0.0;
+    /*
     c_moor_n = Matrix3Xd::Zero(3,Ne+1); 
     cdot_moor = Matrix3Xd::Zero(3,Ne+1); 
     cdot_moor_n = Matrix3Xd::Zero(3,Ne+1);
@@ -87,9 +130,317 @@ void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
 	fluid_vel.resize(Ne+1, three);
 	fluid_vel_n.resize(Ne+1, three);
 	fluid_acc.resize(Ne+1, three);
+*/
+}
 
-    t_mooring = 0.0;
-    t_mooring_n = 0.0;*/
+void fsi_strip::ini_parallel(lexer *p, fdm *a, ghostcell *pgc)
+{
+	p->Darray(xstart, p->mpi_size);
+	p->Darray(xend, p->mpi_size);
+	p->Darray(ystart, p->mpi_size);
+	p->Darray(yend, p->mpi_size);
+	p->Darray(zstart, p->mpi_size);
+	p->Darray(zend, p->mpi_size);
+	
+	xstart[p->mpirank] = p->originx;
+	ystart[p->mpirank] = p->originy;
+	zstart[p->mpirank] = p->originz;
+	xend[p->mpirank] = p->endx;
+	yend[p->mpirank] = p->endy;
+	zend[p->mpirank] = p->endz;
+	
+	for (int i = 0; i < p->mpi_size; i++)
+	{
+		MPI_Bcast(&xstart[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
+		MPI_Bcast(&xend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
+		MPI_Bcast(&ystart[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
+		MPI_Bcast(&yend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
+		MPI_Bcast(&zstart[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
+		MPI_Bcast(&zend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
+	}
 }
 	
-void fsi_strip::start(lexer*,fdm*,ghostcell*){};
+
+void fsi_strip::interpolate_vel(lexer* p, fdm* a, ghostcell* pgc, field& uvel, field& vvel, field& wvel)
+{
+    int ii, jj, kk;
+    double dx, dy, dz, dist, D;
+
+    for (int eI = 0; eI < Ne; eI++)
+    {
+        lagrangeVel[eI] = Eigen::MatrixXd::Zero(3,lagrangePoints[eI].cols());   
+    
+        for (int pI = 0; pI < lagrangePoints[eI].cols(); pI++)
+        {
+            const Eigen::Vector3d& coordI = lagrangePoints[eI].col(pI);
+
+            if 
+            (
+                coordI(0) >= xstart[p->mpirank] && coordI(0) < xend[p->mpirank] &&
+                coordI(1) >= ystart[p->mpirank] && coordI(1) < yend[p->mpirank] &&
+                coordI(2) >= zstart[p->mpirank] && coordI(2) < zend[p->mpirank]
+            )
+            {
+                ii = p->posc_i(coordI(0));
+                jj = p->posc_j(coordI(1));
+                kk = p->posc_k(coordI(2));
+                
+                dx = p->DXN[ii + marge];
+                dy = p->DYN[jj + marge];
+                dz = p->DZN[kk + marge];
+
+                for (int i_it = ii - 2; i_it <= ii + 2; i_it++)
+                {
+                    for (int j_it = jj - 2; j_it <= jj + 2; j_it++)
+                    {
+                        for (int k_it = kk - 2; k_it <= kk + 2; k_it++)
+                        {
+                            dist = (p->XN[i_it + 1 + marge] - coordI(0))/dx;
+                            D = kernel_roma(dist);
+                            dist = (p->YP[j_it + marge] - coordI(1))/dy;
+                            D *= kernel_roma(dist);
+                            dist = (p->ZP[k_it + marge] - coordI(2))/dz;
+                            D *= kernel_roma(dist);
+                            
+                            lagrangeVel[eI](0,pI) += uvel(i_it,j_it,k_it)*D;
+
+                            dist = (p->XP[i_it + marge] - coordI(0))/dx;
+                            D = kernel_roma(dist);
+                            dist = (p->YN[j_it + 1 + marge] - coordI(1))/dy;
+                            D *= kernel_roma(dist);
+                            dist = (p->ZP[k_it + marge] - coordI(2))/dz;
+                            D *= kernel_roma(dist);
+                                
+                            lagrangeVel[eI](1,pI) += vvel(i_it,j_it,k_it)*D;
+                            
+                            dist = (p->XP[i_it + marge] - coordI(0))/dx;
+                            D = kernel_roma(dist);
+                            dist = (p->YP[j_it + marge] - coordI(1))/dy;
+                            D *= kernel_roma(dist);
+                            dist = (p->ZN[k_it + 1 + marge] - coordI(2))/dz;
+                            D *= kernel_roma(dist);
+                             
+                            lagrangeVel[eI](2,pI) += wvel(i_it,j_it,k_it)*D;
+                        }
+                    }
+                }
+            }
+        }
+        
+        for (int pI = 0; pI < lagrangePoints[eI].cols(); pI++)
+        {
+            lagrangeVel[eI].col(pI) << pgc->globalsum(lagrangeVel[eI](0,pI)), pgc->globalsum(lagrangeVel[eI](1,pI)), pgc->globalsum(lagrangeVel[eI](2,pI));
+        }
+    }
+/*
+    char name[100];
+    sprintf(name,"./REEF3D-CFD-Lagrange.csv");
+    ofstream result;
+    result.open(name, ios::binary);
+
+    for (int eI = 0; eI < lagrangePoints.size(); eI++)
+    {
+        for (int pI = 0; pI < lagrangePoints[eI].cols(); pI++)
+        {
+            const Eigen::Vector3d& coordI = lagrangePoints[eI].col(pI);
+            const Eigen::Vector3d& velI = lagrangeVel[eI].col(pI);
+        
+            result<<coordI(0)<<","<<coordI(1)<<","<<coordI(2)<<","<<velI(0)<<","<<velI(1)<<","<<velI(2)<<endl;
+        }
+    }
+    result.close();
+*/
+}
+    
+double fsi_strip::kernel_roma(const double& dist)
+{
+    double D = 0.0;
+
+    if (fabs(dist) <= 0.5)
+    {
+        D = 1.0/3.0*(1.0 + sqrt(-3*dist*dist + 1));
+    }
+    else if (fabs(dist) <= 1.5)
+    {    
+        D = 1.0/6.0*(5.0 - 3.0*fabs(dist) - sqrt(-3*(1 - fabs(dist))*(1 - fabs(dist)) + 1));
+    }
+    
+    return D;
+}
+
+void fsi_strip::coupling_vel()
+{
+    getTransVel(xdot_el);
+    getAngVel(omega_el);
+
+    for (int eI = 0; eI < Ne; eI++)
+    {
+        for (int pI = 0; pI < lagrangePoints[eI].cols(); pI++)
+        {
+            lagrangeVelCoup[eI].col(pI) = (xdot_el.col(eI+1) + xdot_el.col(eI))/2.0 + omega_el.col(eI+1).cross(Xil[eI].col(pI));
+        }
+    }
+}
+
+void fsi_strip::coupling_force(lexer *p, double alpha)
+{
+    for (int eI = 0; eI < Ne; eI++)
+    {
+        lagrangeForceCoup[eI] = (lagrangeVelCoup[eI] - lagrangeVel[eI])/(alpha*p->dt);
+    }
+}
+
+void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field1& fx, field2& fy, field3& fz)
+{
+    int ii, jj, kk;
+    double dx, dy, dz, dV, dist, D;
+
+    for (int eI = 0; eI < Ne; eI++)
+    {
+        for (int pI = 0; pI < lagrangePoints[eI].cols(); pI++)
+        {
+            const Eigen::Vector3d& coordI = lagrangePoints[eI].col(pI);
+            const Eigen::Vector3d& forceI = lagrangeForceCoup[eI].col(pI);
+            const double& areaI = lagrangeArea[eI](pI);
+
+            ii = p->posc_i(coordI(0));
+            jj = p->posc_j(coordI(1));
+            kk = p->posc_k(coordI(2));
+
+            dx = p->DXN[ii + marge];
+            dy = p->DYN[jj + marge];
+            dz = p->DZN[kk + marge];
+
+            for (int i_it = ii - 2; i_it <= ii + 2; i_it++)
+            {
+                for (int j_it = jj - 2; j_it <= jj + 2; j_it++)
+                {
+                    for (int k_it = kk - 2; k_it <= kk + 2; k_it++)
+                    {
+                        dV = areaI*dx_body;
+
+                        dist = (p->XN[i_it + 1 + marge] - coordI(0))/dx;
+                        D = kernel_roma(dist);
+                        dist = (p->YP[j_it + marge] - coordI(1))/dy;
+                        D *= kernel_roma(dist);
+                        dist = (p->ZP[k_it + marge] - coordI(2))/dz;
+                        D *= kernel_roma(dist);
+                        
+                        fx(i_it,j_it,k_it) += forceI(0)*D*dV/(dx*dy*dz);
+      
+
+                        dist = (p->XP[i_it + marge] - coordI(0))/dx;
+                        D = kernel_roma(dist);
+                        dist = (p->YN[j_it + 1 + marge] - coordI(1))/dy;
+                        D *= kernel_roma(dist);
+                        dist = (p->ZP[k_it + marge] - coordI(2))/dz;
+                        D *= kernel_roma(dist);
+                        
+                        fy(i_it,j_it,k_it) += forceI(1)*D*dV/(dx*dy*dz);
+                
+
+                        dist = (p->XP[i_it + marge] - coordI(0))/dx;
+                        D = kernel_roma(dist);
+                        dist = (p->YP[j_it + marge] - coordI(1))/dy;
+                        D *= kernel_roma(dist);
+                        dist = (p->ZN[k_it + 1 + marge] - coordI(2))/dz;
+                        D *= kernel_roma(dist);
+                        
+                        fz(i_it,j_it,k_it) += forceI(2)*D*dV/(dx*dy*dz);
+                    }
+                }
+            }
+        }
+    }
+    
+    pgc->start1(p,fx,10);
+    pgc->start2(p,fy,11);
+    pgc->start3(p,fz,12);
+
+    ULOOP
+    a->test(i,j,k) = fx(i,j,k); 
+    
+    pgc->start4(p,a->test,10);
+}
+
+void fsi_strip::get_cellsize(lexer *p, fdm *a, ghostcell *pgc)
+{
+    Eigen::Vector3d coordI;
+    coordI << p->Z11_t[nstrip]/2.0, p->Z11_w[nstrip]/2.0, p->Z11_l[nstrip]/2.0;
+    
+    if 
+    (
+        coordI(0) >= xstart[p->mpirank] && coordI(0) < xend[p->mpirank] &&
+        coordI(1) >= ystart[p->mpirank] && coordI(1) < yend[p->mpirank] &&
+        coordI(2) >= zstart[p->mpirank] && coordI(2) < zend[p->mpirank]
+    )
+    {
+        int ii = p->posc_i(coordI(0));
+        int jj = p->posc_j(coordI(1));
+        int kk = p->posc_k(coordI(2));
+        
+        dx_body = p->DXN[ii + marge];
+    }
+    else
+    {
+         dx_body = 0.0;
+    }
+
+    dx_body = pgc->globalsum(dx_body);
+}
+
+void fsi_strip::update_points()
+{
+    for (int eI = 0; eI < lagrangePoints.size(); eI++)
+    {
+        for (int pI = 0; pI < lagrangePoints[eI].cols(); pI++)
+        {
+            Xil[eI].col(pI) = Xil_0[eI].col(pI); //rotVec(Xil_0[eI].col(pI),eI+1);
+            lagrangePoints[eI].col(pI) = (x_el.col(eI+1) + x_el.col(eI))/2.0 + Xil[eI].col(pI);
+        }
+    }
+cout<<"no transformation!"<<endl;
+}
+
+
+void fsi_strip::start(lexer *p, fdm *a, ghostcell *pgc)
+{
+	// Set mooring time step
+	double phi_strip = 0.0;
+	t_strip_n = t_strip;
+	t_strip = phi_strip*p->simtime + (1.0 - phi_strip)*(p->simtime + p->dt);
+
+    // Integrate from t_mooring_n to t_mooring
+    Integrate(t_strip_n,t_strip);
+};
+
+void fsi_strip::setFieldBC(Matrix3Xd& c_, Matrix3Xd& cdot_, Matrix4Xd& q_, Matrix4Xd& q0_, Matrix4Xd& qdot_, Matrix3Xd& f_, Matrix4Xd& m0_, Matrix3Xd& rhs_cdot_, double time , int ind)
+{
+    if (ind == 0){}
+    else if (ind == 1)
+    {
+        // BC: Free translatory end with vanishing forces
+        f_.col(Ne+1) = -f_.col(Ne); // correct?
+    }
+    else if (ind == 2)
+    {
+        // BC: Free rotatory end with vanishing moments 
+        m0_.col(Ne) = Eigen::Vector4d::Zero(4); q_.col(Ne+1) = q_.col(Ne); q0_.col(Ne+1) = q0_.col(Ne);
+    }
+    else if (ind == 3)
+    {
+        // BC: Fixed translatory end
+        rhs_cdot_.col(0) = Eigen::Vector3d::Zero(3);
+    }
+}
+
+
+void fsi_strip::setExternalLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matrix3Xd& c_, const Matrix3Xd& cdot_, const Matrix4Xd& q_, const Matrix4Xd& qdot_)
+{
+    for (int i = 0; i < Ne+1; i++)
+    {
+        Fext_(0,i) = 0.0;
+        Fext_(1,i) = 0.0;
+        Fext_(2,i) = 0.0;
+    }
+}

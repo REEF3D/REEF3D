@@ -1454,7 +1454,8 @@ void lexer::ctrlrecv()
     
 	Z10 = ictrl[ii];
 	ii++;
-    
+    Z11 = ictrl[ii];
+    ii++;
 
 // --------------------------	
 	
@@ -1994,6 +1995,20 @@ void lexer::ctrlrecv()
     Darray(X324_x,X324);
 	Darray(X324_y,X324);
 	Darray(X324_z,X324);
+	}
+    
+    if(Z11>0)
+	{
+		Darray(Z11_l,Z11);  
+		Darray(Z11_w,Z11);  
+		Darray(Z11_t,Z11);  
+		Darray(Z11_rho,Z11);  
+		Darray(Z11_e,Z11);  
+		Darray(Z11_ix,Z11);  
+		Darray(Z11_iy,Z11);  
+		Darray(Z11_iz,Z11);  
+		Darray(Z11_nu,Z11);  
+		Darray(Z11_n,Z11);  
 	}
 
 // --------------------------
@@ -2818,6 +2833,29 @@ void lexer::ctrlrecv()
     dd++;
     }
 
+    for(n=0;n<Z11;++n)
+    {
+    Z11_l[n] = dctrl[dd];
+    dd++;
+    Z11_w[n] = dctrl[dd];
+    dd++;
+    Z11_t[n] = dctrl[dd];
+    dd++;
+    Z11_rho[n] = dctrl[dd];
+    dd++;
+    Z11_e[n] = dctrl[dd];
+    dd++;
+    Z11_ix[n] = dctrl[dd];
+    dd++;
+    Z11_iy[n] = dctrl[dd];
+    dd++;
+    Z11_iz[n] = dctrl[dd];
+    dd++;
+    Z11_nu[n] = dctrl[dd];
+    dd++;
+    Z11_n[n] = dctrl[dd];
+    dd++;
+    }
 
 	//if(mpirank==1)
 	//cout<<"RECV  ii: "<<ii<<" dd: "<<dd<<endl;

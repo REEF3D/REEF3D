@@ -686,14 +686,13 @@ void driver::logic()
     p6dof = new sixdof_void();
 	
 // FSI
-	if(p->Z10==0)
     pfsi = new fsi_void();
 
 // Start MAINLOOP
 	if(p->A10==5)
     loop_nsewave(a);
     
-    if(p->A10==6 && p->X10==1 && p->X13==2) 
+    if(p->A10==6 && ((p->X10==1 && p->X13==2) || p->Z10>0) ) 
 	{
 		loop_cfd_df(a);
 	}
