@@ -48,9 +48,6 @@ void vorticity_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
     pgc->start4(p,omega1,1);
 	pgc->start4(p,omega2,1);
 	pgc->start4(p,omega3,1);
-    pgc->dgcpol(p,omega1,p->dgc4,p->dgc4_count,14);
-	pgc->dgcpol(p,omega2,p->dgc4,p->dgc4_count,14);
-	pgc->dgcpol(p,omega3,p->dgc4,p->dgc4_count,14);
 
     // --
     iin=4*(p->pointnum);

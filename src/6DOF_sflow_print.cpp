@@ -128,7 +128,6 @@ void sixdof_sflow::print_stl(lexer *p, ghostcell *pgc)
     }
 }
 
-
 void sixdof_sflow::print_parameter(lexer *p, ghostcell *pgc)
 {
 	if(p->mpirank == 0 && p->count%p->X19==0)
