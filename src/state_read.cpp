@@ -74,6 +74,16 @@ void state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
     result.read((char*)&ddn, sizeof (double));
 	p->stateprinttime=ddn;
     
+    
+    ALOOP
+    {
+    result.read((char*)&ffn, sizeof (float));
+    a->topo(i,j,k)=double(ffn);
+    }
+    
+    // topoupdate
+    pgc->topo_update(p,a);
+    
     ULOOP
     {
     result.read((char*)&ffn, sizeof (float));
@@ -120,12 +130,6 @@ void state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
     {
     result.read((char*)&ffn, sizeof (float));
     a->eddyv(i,j,k)=double(ffn);
-    }
-	
-	ALOOP
-    {
-    result.read((char*)&ffn, sizeof (float));
-    a->topo(i,j,k)=double(ffn);
     }
 	
 	SLICELOOP4
