@@ -55,9 +55,6 @@ void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field& 
 {
     for (int num = 0; num < numberStrips; num++)
     {
-        // Update Lagrangian points 
-        pstrip[num]->update_points();
-        
         // Get velocity at Lagrangian points
         pstrip[num]->interpolate_vel(p,a,pgc,uvel,vvel,wvel);
 
@@ -72,31 +69,18 @@ void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field& 
         
         // Distribute coupling forces on Eulerian grid 
         pstrip[num]->distribute_forces(p,a,pgc,fx,fy,fz);
+        
+        // Update Lagrangian points 
+        pstrip[num]->update_points();
 
-        // Calculate body velocities
-        //p_df_obj[nb]->calculate_fb_vel(p,a,pgc,alpha,uvel,vvel,wvel,uveln,vveln,wveln);
-/*
-// Calculate forces
-//p_df_obj[nb]->forces_stl(p,a,pgc,alpha,uvel,vvel,wvel);
-        // Calculate external forces
-        p_df_obj[nb]->calculate_forces(p,a,pgc,alpha,uvel,vvel,wvel,uveln,vveln,wveln);
-// Update position and fb level set
-p_df_obj[nb]->updateFSI(p,a,pgc,finalise);
-// Update forcing terms
-p_df_obj[nb]->updateForcing(p,a,pgc,alpha,uvel,vvel,wvel,fx,fy,fz);
+        // Store variables
+        pstrip[num]->store_variables(p);
 
-        //finalise=true;
-
-
-
-        // Save and print
-        p_df_obj[nb]->interface(p,true);
-
+        // Print
         if (finalise == true)
         {
-            p_df_obj[nb]->saveTimeStep(p,alpha);
-            p_df_obj[nb]->print_stl(p,a,pgc);
-            p_df_obj[nb]->print_parameter(p, a, pgc);
-        }*/
+            pstrip[num]->print_stl(p,a,pgc);
+            pstrip[num]->print_parameter(p, a, pgc);
+        }
     }
 };

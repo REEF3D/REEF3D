@@ -51,15 +51,21 @@ public:
     void coupling_vel();
     void coupling_force(lexer*,double);
     void distribute_forces(lexer*,fdm*,ghostcell*,field1&,field2&,field3&);
+    void store_variables(lexer*);
+    void print_ini(lexer *p);
+    void print_stl(lexer*,fdm*,ghostcell*);
+    void print_parameter(lexer*,fdm*,ghostcell*);
     
     void setFieldBC(Matrix3Xd&, Matrix3Xd&, Matrix4Xd&, Matrix4Xd&, Matrix4Xd&, Matrix3Xd&, Matrix4Xd&, Matrix3Xd&, double, int);
     void setConstantLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&);
     void setVariableLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&, const double);
-    
+
+
 private:
 
     void ini_parallel(lexer*,fdm*,ghostcell*);
     void get_cellsize(lexer*,fdm*,ghostcell*);
+    void build_strip();
     double kernel_roma(const double&);
 
     // Parallelisation
@@ -69,10 +75,16 @@ private:
     // Strip
     int Ne;
     vector<Matrix3Xd> Xil, Xil_0, lagrangePoints, lagrangeVel, lagrangeVelCoup, lagrangeForceCoup; 
-    Matrix3Xd x_el, xdot_el, omega_el, F_el, P_el, P_el_n, M_el, I_el, I_el_n;
+    Matrix3Xd x_el, xdot_el, F_el, P_el, P_el_n, M_el, I_el, I_el_n;
+    Matrix4Xd q_el, qdot_el;
     vector<Eigen::VectorXd> lagrangeArea;
-    double rho_s,rho_f,dx_body,t_strip,t_strip_n,l_el,A_el;
+    double rho_s,rho_f,dx_body,t_strip,t_strip_n,l_el,A_el,W_el;
     Eigen::Vector3d gravity_vec;
+
+    // Print
+    int printcount_fsi;
+	double printtime;
+    Matrix3Xd tri_x, tri_y, tri_z;
 };
 
 #endif

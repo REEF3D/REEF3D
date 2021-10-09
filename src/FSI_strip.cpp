@@ -41,13 +41,23 @@ void fsi_strip::start(lexer *p, fdm *a, ghostcell *pgc, double alpha)
 
 void fsi_strip::update_points()
 {
-    for (int eI = 0; eI < lagrangePoints.size(); eI++)
+    getTransPos(x_el);
+    getTransVel(xdot_el);
+    getRotPos(q_el);
+    getRotVel(qdot_el);
+
+    for (int eI = 0; eI < Ne; eI++)
     {
         for (int pI = 0; pI < lagrangePoints[eI].cols(); pI++)
         {
-            Xil[eI].col(pI) = Xil_0[eI].col(pI); //rotVec(Xil_0[eI].col(pI),eI+1);
+            Xil[eI].col(pI) = rotVec(Xil_0[eI].col(pI),q_el.col(eI+1));
             lagrangePoints[eI].col(pI) = (x_el.col(eI+1) + x_el.col(eI))/2.0 + Xil[eI].col(pI);
         }
     }
-cout<<"no transformation!"<<endl;
+}
+
+void fsi_strip::store_variables(lexer *p)
+{
+    P_el_n = P_el;
+    I_el_n = I_el;
 }

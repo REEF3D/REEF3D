@@ -28,7 +28,7 @@ void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
 {
 	// Initialise parameter
     double L = p->Z11_l[nstrip];     // Length of strip [m]
-    double W = p->Z11_w[nstrip];     // Width of strip [m]
+    W_el = p->Z11_w[nstrip];     // Width of strip [m]
     double T = p->Z11_t[nstrip];     // Thickness of strip [m]
 	rho_s = p->Z11_rho[nstrip];      // Density of material [kg/m3]
 	double E = p->Z11_e[nstrip];   	 // Young modulus [N/m^2]
@@ -40,7 +40,7 @@ void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
 
     gravity_vec << a->gi, a->gj, a->gk;
     rho_f = p->W1;
-    A_el = W*T;
+    A_el = W_el*T;
 
     // Initialise beam
     iniBeam(Ne, E, A_el, rho_s, L, E/(2.0*(1.0 + Nu)), Ix, Iy, Iz);
@@ -55,9 +55,11 @@ void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
     Eigen::Matrix3Xd ini_coord = Eigen::Matrix3Xd::Zero(3,Ne+1); 
     for (int n = 0; n < Ne+1; n++)
     {
-        ini_coord.col(n) << T/2.0, W/2.0, L/Ne*n;
+        ini_coord.col(n) << T/2.0, W_el/2.0, L/Ne*n;
     }
-    meshBeam(ini_coord.row(0), ini_coord.row(1), ini_coord.row(2));
+    
+    Eigen::Vector3d d0;  d0 << 0, 0, 1;
+    meshBeam(ini_coord.row(0), ini_coord.row(1), ini_coord.row(2),d0);
 
     // Initialise solver
     iniSolver();
@@ -67,6 +69,22 @@ void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
 
     // Initialise cell size
     get_cellsize(p, a, pgc);
+
+    // Initialise field
+    getTransPos(x_el);
+    getTransVel(xdot_el);
+    getRotPos(q_el);
+    getRotVel(qdot_el);
+    
+    t_strip = 0.0;
+    t_strip_n = 0.0;
+
+    F_el = Eigen::Matrix3Xd::Zero(3,Ne+2);   
+    P_el = Eigen::Matrix3Xd::Zero(3,Ne+2);   
+    P_el_n = Eigen::Matrix3Xd::Zero(3,Ne+2);   
+    M_el = Eigen::Matrix3Xd::Zero(3,Ne+2);   
+    I_el = Eigen::Matrix3Xd::Zero(3,Ne+2);   
+    I_el_n = Eigen::Matrix3Xd::Zero(3,Ne+2);   
 
     // Initialise Lagrangian fields
     lagrangePoints.resize(Ne);  
@@ -79,9 +97,9 @@ void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
  
     l_el = L/Ne;
     int nl = ceil(l_el/dx_body);
-    int nw = ceil(W/dx_body);
+    int nw = ceil(W_el/dx_body);
     double dl = l_el/nl;
-    double dw = W/nw;
+    double dw = W_el/nw;
 
     for (int n = 0; n < Ne; n++)
     {
@@ -90,12 +108,8 @@ void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
         lagrangeVelCoup[n] = Eigen::MatrixXd::Zero(3,nl*nw);   
         lagrangeForceCoup[n] = Eigen::MatrixXd::Zero(3,nl*nw);   
         lagrangeArea[n] = Eigen::VectorXd::Zero(nl*nw);   
-        Xil[n] = Eigen::Matrix3Xd::Zero(3,nl*nw);   
-        Xil_0[n] = Eigen::Matrix3Xd::Zero(3,nl*nw);   
         
         double l_0 = n*l_el;
-        Eigen::Vector3d cg; cg << T/2.0, W/2.0, 0.5*l_el + l_0; 
-
         int ind = 0;
         for (int ii = 0; ii < nl; ii++)
         {
@@ -103,40 +117,27 @@ void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
             {
                 lagrangePoints[n].col(ind) << T/2.0, 0.5*dw+dw*jj, l_0 + 0.5*dl + dl*ii;
                 lagrangeArea[n](ind) = dw*dl;
-                Xil_0[n].col(ind) << lagrangePoints[n].col(ind) - cg;
                 ind++;
             }
         }
     }
 
-    // Initialise field
-    getTransPos(x_el);
-    getTransVel(xdot_el);
-    omega_el = Eigen::Matrix3Xd::Zero(3,Ne+2);   
-    getAngVel(omega_el);
-    
-    t_strip = 0.0;
-    t_strip_n = 0.0;
+    // Initialise relative distance vectors
+    for (int eI = 0; eI < Ne; eI++)
+    {
+        Xil[eI] = Eigen::Matrix3Xd::Zero(3,lagrangePoints[eI].cols());   
+        Xil_0[eI] = Eigen::Matrix3Xd::Zero(3,lagrangePoints[eI].cols());   
+        
+        Eigen::Vector3d cg = (x_el.col(eI+1) + x_el.col(eI))/2.0;
 
-    F_el = Eigen::Matrix3Xd::Zero(3,Ne+2);   
-    P_el = Eigen::Matrix3Xd::Zero(3,Ne+2);   
-    P_el_n = Eigen::Matrix3Xd::Zero(3,Ne+2);   
-    M_el = Eigen::Matrix3Xd::Zero(3,Ne+2);   
-    I_el = Eigen::Matrix3Xd::Zero(3,Ne+2);   
-    I_el_n = Eigen::Matrix3Xd::Zero(3,Ne+2);   
-    /*
-    c_moor_n = Matrix3Xd::Zero(3,Ne+1); 
-    cdot_moor = Matrix3Xd::Zero(3,Ne+1); 
-    cdot_moor_n = Matrix3Xd::Zero(3,Ne+1);
-    cdotdot_moor = Matrix3Xd::Zero(3,Ne+1);
+        for (int pI = 0; pI < lagrangePoints[eI].cols(); pI++)
+        {
+            Xil_0[eI].col(pI) << lagrangePoints[eI].col(pI) - cg;
+        }
+    } 
 
-    getTransPos(c_moor); c_moor_n = c_moor;
-
-    vector<double> three(3, 0);
-	fluid_vel.resize(Ne+1, three);
-	fluid_vel_n.resize(Ne+1, three);
-	fluid_acc.resize(Ne+1, three);
-*/
+    // Initialise print
+    print_ini(p);
 }
 
 void fsi_strip::ini_parallel(lexer *p, fdm *a, ghostcell *pgc)

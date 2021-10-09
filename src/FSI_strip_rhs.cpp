@@ -26,7 +26,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void fsi_strip::setFieldBC(Matrix3Xd& c_, Matrix3Xd& cdot_, Matrix4Xd& q_, Matrix4Xd& q0_, Matrix4Xd& qdot_, Matrix3Xd& f_, Matrix4Xd& m0_, Matrix3Xd& rhs_cdot_, double time , int ind)
 {
-    if (ind == 0){}
+    if (ind == 0)
+    {
+        //BC: Fixed rotatory end
+        Eigen::Vector4d qb; 
+        Eigen::Matrix4d J; 
+
+        qb << 1.0, 0, 0, 0;
+        J << 2.0*qb(0)*qb(0) - 1.0, 2*qb(1)*qb(0), 2*qb(2)*qb(0), 2*qb(3)*qb(0),
+             2*qb(0)*qb(1), 2.0*qb(1)*qb(1) - 1.0, 2*qb(2)*qb(1), 2*qb(3)*qb(1),
+             2*qb(0)*qb(2), 2*qb(1)*qb(2), 2.0*qb(2)*qb(2) - 1.0, 2*qb(3)*qb(2),
+             2*qb(0)*qb(3), 2*qb(1)*qb(3), 2*qb(2)*qb(3), 2.0*qb(3)*qb(3) - 1.0;
+         
+        q_.col(0) = 2.0*qb.dot(q_.col(1))*qb - q_.col(1);
+        qdot_.col(0) = J*qdot_.col(1); 
+    }
     else if (ind == 1)
     {
         // BC: Free translatory end with vanishing forces
@@ -53,7 +67,7 @@ void fsi_strip::setConstantLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matri
 void fsi_strip::setVariableLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matrix3Xd& c_, const Matrix3Xd& cdot_, const Matrix4Xd& q_, const Matrix4Xd& qdot_, const double time)
 {
     double dm_el, m_el;
-    Eigen::Vector3d P_el_star,I_el_star,s0;
+    Eigen::Vector3d P_el_star,I_el_star,s0,omega_el,omega_el_0;
     Eigen::Matrix3d J0,Xil_0_skew;
 
     for (int eI = 1; eI < Ne+1; eI++)
@@ -86,17 +100,18 @@ void fsi_strip::setVariableLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matri
         }
 
         // Determine linear momentum
-        P_el.col(eI) = m_el*(cdot_.col(eI-1)+cdot_.col(eI))/2.0 + omega_el.col(eI).cross(rotVec(s0,eI));;
+        omega_el = getOmega(q_.col(eI),qdot_.col(eI));
+        P_el.col(eI) = m_el*(cdot_.col(eI-1)+cdot_.col(eI))/2.0 + omega_el.cross(rotVec(s0,q_.col(eI)));;
 
         // Determine coupling force
-        F_el.col(eI) = -(P_el.col(eI) - P_el_n.col(eI))/(time - t_strip_n) + (P_el_n.col(eI) - P_el_star)/(t_strip - t_strip_n);
+        F_el.col(eI) = -(P_el.col(eI) - P_el_n.col(eI))/(time - t_strip_n) - (P_el_n.col(eI) - P_el_star)/(t_strip - t_strip_n);
 
         // Determine angular momentum
-        Eigen::Vector3d omega_0;
-        I_el.col(eI) = rotVec(s0,eI).cross((cdot_.col(eI-1)+cdot_.col(eI))/2.0) + rotVec(J0*omega_0,eI);
-
+        omega_el_0 = getOmega0(q_.col(eI),qdot_.col(eI));
+        I_el.col(eI) = rotVec(s0,q_.col(eI)).cross((cdot_.col(eI-1)+cdot_.col(eI))/2.0) + rotVec(J0*omega_el_0,q_.col(eI));
+        
         // Determine coupling moment
-        M_el.col(eI) = -(I_el.col(eI) - I_el_n.col(eI))/(time - t_strip_n) + (I_el_n.col(eI) - I_el_star)/(t_strip - t_strip_n);
+        M_el.col(eI) = -(I_el.col(eI) - I_el_n.col(eI))/(time - t_strip_n) - (I_el_n.col(eI) - I_el_star)/(t_strip - t_strip_n);
     }
     
     // Assign external forces

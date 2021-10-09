@@ -44,7 +44,7 @@ void mooring_dynamic::initialize(lexer *p, fdm *a, ghostcell *pgc)
     iniMaterial();
 
     // Initialise damping and compression effects
-    iniDamping(10,0,0,0,0,0,true);
+    iniDamping(10,0,0,0,0,0,false);
 
     // Meshing
     Eigen::VectorXd xIni = Eigen::VectorXd::Zero(Ne+1);   
@@ -53,7 +53,8 @@ void mooring_dynamic::initialize(lexer *p, fdm *a, ghostcell *pgc)
 	mooring_Catenary *pcatenary;
 	pcatenary = new mooring_Catenary(line);
     pcatenary->iniShape(p,a,pgc,xIni,yIni,zIni);
-    meshBeam(xIni, yIni, zIni);
+    Eigen::Vector3d d0;  d0 << 1, 0, 0;
+    meshBeam(xIni, yIni, zIni, d0);
 
     // Initialise solver
     iniSolver();

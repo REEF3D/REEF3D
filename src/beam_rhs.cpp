@@ -98,8 +98,8 @@ Eigen::Vector4d beam::f0_
     
     force.tail(3) = Ceps*(R(qi).transpose()*dcdz.tail(3) - R(q0i).transpose()*dc0dz.tail(3)) + 2.0*Cepsdot*fdot.tail(3);
 
-    // f0 calculation with compression effects included
-    if (compression == true)
+    // f0 calculation without compression effects 
+    if (compression == false)
     {
         Eigen::Vector3d f0_ini; f0_ini << 1,0,0;
         Eigen::Vector3d f0_cur = R(qi).transpose()*dcdz.tail(3);
@@ -222,10 +222,18 @@ Eigen::Matrix3d beam::R(const Eigen::Vector4d& e)
     return R_; 
 }
 
-void beam::getAngVel(Matrix3Xd& omega_)
+Eigen::Vector3d beam::getOmega(const Eigen::Vector4d& qI, const Eigen::Vector4d& qdotI)
 {
-    for (int i = 1; i < Ne+1; i++)
-    {
-        omega_.col(i) = 2.0*qMult(qdot.col(i),qconj(q.col(i))).tail(3);
-    }
+    return 2.0*qMult(qdotI,qconj(qI)).tail(3);
 }
+
+Eigen::Vector3d beam::getOmega0(const Eigen::Vector4d& qI, const Eigen::Vector4d& qdotI)
+{
+    return 2.0*qMult(qconj(qI),qdotI).tail(3);
+}
+    
+Eigen::Vector3d beam::rotVec(const Eigen::Vector3d& vec_, const Eigen::Vector4d& qI)
+{
+    return R(qI)*vec_;
+}
+

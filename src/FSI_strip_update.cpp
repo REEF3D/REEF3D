@@ -134,13 +134,18 @@ double fsi_strip::kernel_roma(const double& dist)
 void fsi_strip::coupling_vel()
 {
     getTransVel(xdot_el);
-    getAngVel(omega_el);
+    getRotPos(q_el);
+    getRotVel(qdot_el);
+
+    Eigen::Vector3d omega_el;
 
     for (int eI = 0; eI < Ne; eI++)
     {
+        omega_el = getOmega(q_el.col(eI),qdot_el.col(eI));
+
         for (int pI = 0; pI < lagrangePoints[eI].cols(); pI++)
         {
-            lagrangeVelCoup[eI].col(pI) = (xdot_el.col(eI+1) + xdot_el.col(eI))/2.0 + omega_el.col(eI+1).cross(Xil[eI].col(pI));
+            lagrangeVelCoup[eI].col(pI) = (xdot_el.col(eI+1) + xdot_el.col(eI))/2.0 + omega_el.cross(Xil[eI].col(pI));
         }
     }
 }

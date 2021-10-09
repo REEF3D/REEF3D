@@ -124,7 +124,7 @@ void beam::iniFields()
     compression = false;
 }
 
-void beam::meshBeam(const Eigen::VectorXd& x_, const Eigen::VectorXd& y_, const Eigen::VectorXd& z_)
+void beam::meshBeam(const Eigen::VectorXd& x_, const Eigen::VectorXd& y_, const Eigen::VectorXd& z_, const Eigen::Vector3d& d0)
 {
     // Coordinates
     c.row(0) = x_;
@@ -134,8 +134,6 @@ void beam::meshBeam(const Eigen::VectorXd& x_, const Eigen::VectorXd& y_, const 
 
     // Quaternions
     // R*q rotates point into body-fixed coordinate system
-    Eigen::Vector3d d0;  d0 << 1, 0, 0;
-
     for (int i=1; i < Ne+1; i++)
     {
         Eigen::Vector3d dc = (c.col(i) - c.col(i-1)).normalized(); 
