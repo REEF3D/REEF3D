@@ -26,6 +26,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void beam::rhs(Matrix3Xd& c_, Matrix3Xd& cdot_, Matrix4Xd& q_, Matrix4Xd& qdot_, double time)
 {
+    // Set variable loads 
+    setVariableLoads(Fext, Mext, c_, cdot_, q_, qdot_, time);
+
     // Set field boundary conditions
     setFieldBC(c_, cdot_, q_, q0, qdot_, f, m0, rhs_cdot, time, 0);
     
@@ -53,8 +56,8 @@ void beam::rhs(Matrix3Xd& c_, Matrix3Xd& cdot_, Matrix4Xd& q_, Matrix4Xd& qdot_,
         1.0/(rho*A)*
         (
             (f.block(0,1,3,Ne+1) - f.block(0,0,3,Ne+1))/dZ
-            + Fext 
-        );
+        )
+        + Fext; 
    
     for (int i = 1; i < Ne+1; i++)
     {

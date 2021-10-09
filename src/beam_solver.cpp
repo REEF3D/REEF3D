@@ -263,8 +263,8 @@ void beam::Integrate(double t_old, double t_new)
     // Reset solver 
     resetSolver();
     
-    // Set external forces and moments
-    setExternalLoads(Fext, Mext, c, cdot, q, qdot);
+    // Set constant external forces and moments
+    setConstantLoads(Fext, Mext, c, cdot, q, qdot);
 
     // Integrate
     int idid = CoreIntegrator(t_old, t_new);

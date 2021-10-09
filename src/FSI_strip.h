@@ -43,7 +43,7 @@ public:
 	
     fsi_strip(int);
 	virtual ~fsi_strip();
-	virtual void start(lexer*,fdm*,ghostcell*);
+	virtual void start(lexer*,fdm*,ghostcell*,double);
 	virtual void initialize(lexer*,fdm*,ghostcell*);
     
     void interpolate_vel(lexer*,fdm*,ghostcell*,field&,field&,field&);
@@ -53,7 +53,8 @@ public:
     void distribute_forces(lexer*,fdm*,ghostcell*,field1&,field2&,field3&);
     
     void setFieldBC(Matrix3Xd&, Matrix3Xd&, Matrix4Xd&, Matrix4Xd&, Matrix4Xd&, Matrix3Xd&, Matrix4Xd&, Matrix3Xd&, double, int);
-    void setExternalLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&);
+    void setConstantLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&);
+    void setVariableLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&, const double);
     
 private:
 
@@ -68,9 +69,10 @@ private:
     // Strip
     int Ne;
     vector<Matrix3Xd> Xil, Xil_0, lagrangePoints, lagrangeVel, lagrangeVelCoup, lagrangeForceCoup; 
-    Matrix3Xd x_el, xdot_el, omega_el;
+    Matrix3Xd x_el, xdot_el, omega_el, F_el, P_el, P_el_n, M_el, I_el, I_el_n;
     vector<Eigen::VectorXd> lagrangeArea;
-    double dx_body,t_strip,t_strip_n;
+    double rho_s,rho_f,dx_body,t_strip,t_strip_n,l_el,A_el;
+    Eigen::Vector3d gravity_vec;
 };
 
 #endif

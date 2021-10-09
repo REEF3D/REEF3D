@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-void mooring_dynamic::setExternalLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matrix3Xd& c_, const Matrix3Xd& cdot_, const Matrix4Xd& q_, const Matrix4Xd& qdot_)
+void mooring_dynamic::setConstantLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matrix3Xd& c_, const Matrix3Xd& cdot_, const Matrix4Xd& q_, const Matrix4Xd& qdot_)
 {
     double zg = 0.0;
     double cd_t = 0.5;
@@ -39,7 +39,7 @@ void mooring_dynamic::setExternalLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const
     double t_x, t_y, t_z, t_mag, v_x, v_y, v_z, vn_x, vn_y, vn_z, vn_mag, v_t;
     double a_t, a_x, a_y, a_z, an_x, an_y, an_z;
         
-    double Fb = -9.81*rho_c*A*(rho_c - 1000)/rho_c;
+    double Fb = -9.81*(rho_c - 1000)/rho_c;
 
     for (int i = 0; i < Ne+1; i++)
     {

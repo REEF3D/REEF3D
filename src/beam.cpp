@@ -32,7 +32,7 @@ beam::beam(int number):nBeam(number),iout(0),imas(0),ijac(0)
     // iniMaterial();
     // meshBeam(x,y,z);
     // iniSolver();
-    // setExternalLoads(Fext,Mext,c,cdot,q,qdot);
+    // setConstantLoads(Fext,Mext,c,cdot,q,qdot);
     // Integrate(t_old, t_new);
 }
 
@@ -67,13 +67,19 @@ beam::~beam()
 	delete [] y;
 }
 
-void beam::setExternalLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matrix3Xd& c_, const Matrix3Xd& cdot_, const Matrix4Xd& q_, const Matrix4Xd& qdot_)
+void beam::setConstantLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matrix3Xd& c_, const Matrix3Xd& cdot_, const Matrix4Xd& q_, const Matrix4Xd& qdot_)
 {
-    // Set external forces
+    // Set constant external forces
     Fext = Fext_;
 
-    // Set external moments
+    // Set constant external moments
     Mext = Mext_;
+}
+
+void beam::setVariableLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matrix3Xd& c_, const Matrix3Xd& cdot_, const Matrix4Xd& q_, const Matrix4Xd& qdot_, const double time)
+{
+    // Add time dependent loads to external forces
+    // Add time dependent loads to external moments
 }
 
 void beam::setFieldBC(Matrix3Xd& c_, Matrix3Xd& cdot_, Matrix4Xd& q_, Matrix4Xd& q0_, Matrix4Xd& qdot_, Matrix3Xd& f_, Matrix4Xd& m0_, Matrix3Xd& rhs_cdot_, double time , int ind)

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2018-2021 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -62,7 +62,7 @@ void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field& 
         pstrip[num]->interpolate_vel(p,a,pgc,uvel,vvel,wvel);
 
         // Advance strip in time
-        pstrip[num]->start(p,a,pgc);
+        pstrip[num]->start(p,a,pgc,alpha);
 
         // Get coupling velocities at Lagrangian points
         pstrip[num]->coupling_vel();

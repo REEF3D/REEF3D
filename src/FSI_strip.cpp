@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2018-2021 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -35,16 +35,20 @@ void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
     double L = p->Z11_l[nstrip];     // Length of strip [m]
     double W = p->Z11_w[nstrip];     // Width of strip [m]
     double T = p->Z11_t[nstrip];     // Thickness of strip [m]
-	double Rho = p->Z11_rho[nstrip]; // Density of material [kg/m3]
+	rho_s = p->Z11_rho[nstrip];      // Density of material [kg/m3]
 	double E = p->Z11_e[nstrip];   	 // Young modulus [N/m^2]
 	double Ix = p->Z11_ix[nstrip];   // X-moment of area [m^4]
 	double Iy = p->Z11_iy[nstrip];   // Y-moment of area [m^4]
 	double Iz = p->Z11_iz[nstrip];   // Z-moment of area [m^4]
 	double Nu = p->Z11_nu[nstrip];   // Poisson ratio [-]
-	Ne = p->Z11_n[nstrip];    // Number of elements
+	Ne = p->Z11_n[nstrip];           // Number of elements
+
+    gravity_vec << a->gi, a->gj, a->gk;
+    rho_f = p->W1;
+    A_el = W*T;
 
     // Initialise beam
-    iniBeam(Ne, E, W*T, Rho, L, E/(2.0*(1.0 + Nu)), Ix, Iy, Iz);
+    iniBeam(Ne, E, A_el, rho_s, L, E/(2.0*(1.0 + Nu)), Ix, Iy, Iz);
 
     // Initialise material
     iniMaterial();
@@ -78,7 +82,7 @@ void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
     Xil.resize(Ne); 
     Xil_0.resize(Ne);
  
-    double l_el = L/Ne;
+    l_el = L/Ne;
     int nl = ceil(l_el/dx_body);
     int nw = ceil(W/dx_body);
     double dl = l_el/nl;
@@ -118,6 +122,13 @@ void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
     
     t_strip = 0.0;
     t_strip_n = 0.0;
+
+    F_el = Eigen::Matrix3Xd::Zero(3,Ne+2);   
+    P_el = Eigen::Matrix3Xd::Zero(3,Ne+2);   
+    P_el_n = Eigen::Matrix3Xd::Zero(3,Ne+2);   
+    M_el = Eigen::Matrix3Xd::Zero(3,Ne+2);   
+    I_el = Eigen::Matrix3Xd::Zero(3,Ne+2);   
+    I_el_n = Eigen::Matrix3Xd::Zero(3,Ne+2);   
     /*
     c_moor_n = Matrix3Xd::Zero(3,Ne+1); 
     cdot_moor = Matrix3Xd::Zero(3,Ne+1); 
@@ -403,12 +414,12 @@ cout<<"no transformation!"<<endl;
 }
 
 
-void fsi_strip::start(lexer *p, fdm *a, ghostcell *pgc)
+void fsi_strip::start(lexer *p, fdm *a, ghostcell *pgc, double alpha)
 {
 	// Set mooring time step
 	double phi_strip = 0.0;
 	t_strip_n = t_strip;
-	t_strip = phi_strip*p->simtime + (1.0 - phi_strip)*(p->simtime + p->dt);
+	t_strip = phi_strip*p->simtime + (1.0 - phi_strip)*(p->simtime + alpha*p->dt);
 
     // Integrate from t_mooring_n to t_mooring
     Integrate(t_strip_n,t_strip);
@@ -435,12 +446,69 @@ void fsi_strip::setFieldBC(Matrix3Xd& c_, Matrix3Xd& cdot_, Matrix4Xd& q_, Matri
 }
 
 
-void fsi_strip::setExternalLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matrix3Xd& c_, const Matrix3Xd& cdot_, const Matrix4Xd& q_, const Matrix4Xd& qdot_)
+void fsi_strip::setConstantLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matrix3Xd& c_, const Matrix3Xd& cdot_, const Matrix4Xd& q_, const Matrix4Xd& qdot_)
 {
-    for (int i = 0; i < Ne+1; i++)
+}
+
+
+void fsi_strip::setVariableLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matrix3Xd& c_, const Matrix3Xd& cdot_, const Matrix4Xd& q_, const Matrix4Xd& qdot_, const double time)
+{
+    double dm_el, m_el;
+    Eigen::Vector3d P_el_star,I_el_star,s0;
+    Eigen::Matrix3d J0,Xil_0_skew;
+
+    for (int eI = 1; eI < Ne+1; eI++)
     {
-        Fext_(0,i) = 0.0;
-        Fext_(1,i) = 0.0;
-        Fext_(2,i) = 0.0;
+        m_el = 0.0;   
+        P_el.col(eI) << 0.0, 0.0, 0.0;
+        P_el_star << 0.0, 0.0, 0.0;
+        I_el_star << 0.0, 0.0, 0.0;
+        s0 << 0.0, 0.0, 0.0;
+        J0 << Eigen::Matrix3d::Zero();
+        for (int pI = 0; pI < lagrangePoints[eI-1].cols(); pI++)
+        {
+            // Mass of element
+            dm_el = rho_f*dx_body*lagrangeArea[eI-1](pI);
+            m_el += dm_el;
+
+            // Preliminary linear momentum
+            P_el_star += dm_el*lagrangeVel[eI-1].col(pI);
+    
+            // Static moment
+            s0 += dm_el*Xil_0[eI-1].col(pI);
+            
+            // Preliminary angular momentum
+            I_el_star += dm_el*Xil[eI-1].col(pI).cross(lagrangeVel[eI-1].col(pI));
+
+            // Quaternionic tensor of inertia
+            Xil_0_skew << 0, -Xil_0[eI-1](2,pI), Xil_0[eI-1](1,pI), Xil_0[eI-1](2,pI), 0, -Xil_0[eI-1](0,pI), -Xil_0[eI-1](1,pI), Xil_0[eI-1](0,pI), 0;
+            Xil_0_skew = Xil_0_skew.transpose()*Xil_0_skew;
+            J0 += dm_el*Xil_0_skew;
+        }
+
+        // Determine linear momentum
+        P_el.col(eI) = m_el*(cdot_.col(eI-1)+cdot_.col(eI))/2.0 + omega_el.col(eI).cross(rotVec(s0,eI));;
+
+        // Determine coupling force
+        F_el.col(eI) = -(P_el.col(eI) - P_el_n.col(eI))/(time - t_strip_n) + (P_el_n.col(eI) - P_el_star)/(t_strip - t_strip_n);
+
+        // Determine angular momentum
+        Eigen::Vector3d omega_0;
+        I_el.col(eI) = rotVec(s0,eI).cross((cdot_.col(eI-1)+cdot_.col(eI))/2.0) + rotVec(J0*omega_0,eI);
+
+        // Determine coupling moment
+        M_el.col(eI) = -(I_el.col(eI) - I_el_n.col(eI))/(time - t_strip_n) + (I_el_n.col(eI) - I_el_star)/(t_strip - t_strip_n);
+    }
+    
+    // Assign external forces
+    for (int eI = 0; eI < Ne+1; eI++)
+    {
+        Fext_.col(eI) = (F_el.col(eI) + F_el.col(eI+1))/(2.0*rho_s*A_el*l_el) + (1.0 - rho_f/rho_s)*gravity_vec;
+    }
+    
+    // Assign external moments
+    for (int eI = 0; eI < Ne+2; eI++)
+    {
+        Mext_.col(eI) << 0.0, M_el.col(eI)/l_el;
     }
 }
