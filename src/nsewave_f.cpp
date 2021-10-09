@@ -108,8 +108,7 @@ void nsewave_f::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusio
 		KULOOP
         UFLUIDCHECK
 		{
-		//phival = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
-        phival = (1.0/16.0)*(-a->phi(i-1,j,k) + 9.0*a->phi(i,j,k) + 9.0*a->phi(i+1,j,k) - a->phi(i+2,j,k));
+		phival = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
         
 		
 			if(phival>epsi)
@@ -121,7 +120,7 @@ void nsewave_f::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusio
 			if(fabs(phival)<=epsi)
 			H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
 			
-			a->P(i,j) += a->u(i,j,k)*p->DXM*H;
+			a->P(i,j) += a->u(i,j,k)*p->DZN[KP]*H;
 		}
     }
     
@@ -132,9 +131,7 @@ void nsewave_f::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusio
 			KVLOOP
             VFLUIDCHECK
 			{
-    
-			//phival = 0.5*(a->phi(i,j,k)+a->phi(i,j+1,k));
-            phival = (1.0/16.0)*(-a->phi(i,j-1,k) + 9.0*a->phi(i,j,k) + 9.0*a->phi(i,j+1,k) - a->phi(i,j+2,k));
+			 phival = 0.5*(a->phi(i,j,k)+a->phi(i,j+1,k));
 			
 				if(phival>epsi)
 				H=1.0;
@@ -145,7 +142,7 @@ void nsewave_f::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusio
 				if(fabs(phival)<=epsi)
 				H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
 				
-				a->Q(i,j) += a->v(i,j,k)*p->DXM*H;
+				a->Q(i,j) += a->v(i,j,k)*p->DZN[KP]*H;
 
 			}
     }

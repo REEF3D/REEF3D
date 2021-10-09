@@ -871,6 +871,7 @@
       <File Name="pressure_void.h"/>
       <File Name="pjm.h"/>
       <VirtualDirectory Name="Density">
+        <File Name="density_fsm.h"/>
         <File Name="density_rheo.h"/>
         <File Name="density_conc.h"/>
         <File Name="density_vof.h"/>
@@ -2321,6 +2322,7 @@
       <File Name="pressure_void.cpp"/>
       <File Name="pjm.cpp"/>
       <VirtualDirectory Name="Density">
+        <File Name="density_fsm.cpp"/>
         <File Name="density_rheo.cpp"/>
         <File Name="density_vof.cpp"/>
         <File Name="density_conc.cpp"/>
