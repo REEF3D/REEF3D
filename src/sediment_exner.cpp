@@ -87,17 +87,17 @@ void sediment_exner::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,
 		topovel(p,a,pgc,vx,vy,vz);
         dqx0(i,j) = vx;
         dqy0(i,j) = vy;
-		s->dh(i,j) = vz;
+		s->vz(i,j) = vz;
 	}
     
-	pgc->gcsl_start4(p,s->dh,1);
+	pgc->gcsl_start4(p,s->vz,1);
 	
     timestep(p,a,pgc,s);
     
     
 	
 	SLICELOOP4
-    a->bedzh(i,j) += p->dtsed*s->dh(i,j);
+    a->bedzh(i,j) += p->dtsed*s->vz(i,j);
 
 	pgc->gcsl_start4(p,a->bedzh,1);
 }
