@@ -55,6 +55,7 @@ void sflow_turb_kw_IM1::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convecti
     pdiff->diff_scalar(p,b,pgc,psolv,kin,kw_sigma_k,1.0);
 	kin_source(p,b);
 	timesource(p,b,kn);
+    wall_law_kin(p,b);
     psolv->start(p,pgc,kin,b->M,b->xvec,b->rhsvec,4,gcval_kin,p->T13);
     pgc->gcsl_start4(p,kin,gcval_kin);
 	p->kintime=pgc->timer()-starttime;
@@ -69,6 +70,7 @@ void sflow_turb_kw_IM1::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convecti
     pdiff->diff_scalar(p,b,pgc,psolv,eps,kw_sigma_w,1.0);
 	omega_source(p,b);
 	timesource(p,b,wn);
+    wall_law_omega(p,b);
 	psolv->start(p,pgc,eps,b->M,b->xvec,b->rhsvec,4,gcval_eps,p->T13);
     pgc->gcsl_start4(p,eps,gcval_eps);
 	p->epstime=pgc->timer()-starttime;
@@ -125,7 +127,7 @@ void sflow_turb_kw_IM1::omega_source(lexer* p, fdm2D *b)
 
     b->rhsvec.V[count] +=  kw_alpha * (MAX(eps(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20)))*Pk(i,j)
     
-                       + (6.912/pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,1.5)*pow(ustar(i,j),4.0)*p->cmu*kin(i,j)/(HP*HP);
+                       + (6.912/pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,1.5)*pow(ustar(i,j),4.0)*kin(i,j)/(HP*HP);
     ++count;
     }
 
@@ -273,7 +275,7 @@ void sflow_turb_kw_IM1::wall_law_kin(lexer* p, fdm2D *b)
 
 }
 
-void sflow_turb_kw_IM1::wall_law_eps(lexer* p, fdm2D *b)
+void sflow_turb_kw_IM1::wall_law_omega(lexer* p, fdm2D *b)
 {
 
     double dist=0.5*p->DXM;
