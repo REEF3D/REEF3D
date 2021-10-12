@@ -25,11 +25,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"FSI_strip.h"
 
-fsi_strips::fsi_strips()
+fsi_strips::fsi_strips(lexer *p, ghostcell *pgc)
 {
-    numberStrips = 1;
-	pstrip.reserve(numberStrips);
+	MPI_Bcast(&p->FSI_count,1,MPI_DOUBLE,0,pgc->mpi_comm);
+    numberStrips = p->FSI_count;
 
+    pstrip.reserve(numberStrips);
     for (int num = 0; num < numberStrips; num++)
 	{
         pstrip.push_back(new fsi_strip(num));
@@ -63,7 +64,7 @@ void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field& 
 
         // Get coupling velocities at Lagrangian points
         pstrip[num]->coupling_vel();
-        
+
         // Get coupling forces at Lagrangian points
         pstrip[num]->coupling_force(p,alpha);
         

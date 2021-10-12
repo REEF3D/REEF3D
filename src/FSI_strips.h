@@ -40,7 +40,7 @@ public:
 	
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 	
-    fsi_strips();
+    fsi_strips(lexer*,ghostcell*);
 	virtual ~fsi_strips();
 	virtual void start(lexer*,fdm*,ghostcell*);
 	virtual void initialize(lexer*,fdm*,ghostcell*);

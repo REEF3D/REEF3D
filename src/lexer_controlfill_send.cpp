@@ -1459,7 +1459,6 @@ void lexer::ctrlsend()
     ictrl[ii] = Z11;
 	ii++;
     
-    
 	
 // --------------------------
 
@@ -2292,6 +2291,12 @@ void lexer::ctrlsend()
     
     for(n=0;n<Z11;++n)
     {
+    dctrl[dd] = Z11_x[n];
+    dd++;
+    dctrl[dd] = Z11_y[n];
+    dd++;
+    dctrl[dd] = Z11_z[n];
+    dd++;
     dctrl[dd] = Z11_l[n];
     dd++;
     dctrl[dd] = Z11_w[n];
@@ -2311,6 +2316,7 @@ void lexer::ctrlsend()
     dctrl[dd] = Z11_nu[n];
     dd++;
     dctrl[dd] = Z11_n[n];
+    dd++;
     }
 }
 

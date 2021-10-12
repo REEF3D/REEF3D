@@ -42,7 +42,6 @@ void lexer::lexer_read(ghostcell *pgc)
     Iarray(ictrl,ctrlsize);
     Darray(dctrl,ctrlsize);
     
-
 		if(mpirank==0)
 		ctrlsend();
 		
@@ -53,7 +52,7 @@ void lexer::lexer_read(ghostcell *pgc)
     
     del_Iarray(ictrl,ctrlsize);
     del_Darray(dctrl,ctrlsize);
-    
+
 
 	read_grid();
 	

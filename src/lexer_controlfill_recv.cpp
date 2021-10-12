@@ -1999,6 +1999,9 @@ void lexer::ctrlrecv()
     
     if(Z11>0)
 	{
+		Darray(Z11_x,Z11);  
+		Darray(Z11_y,Z11);  
+		Darray(Z11_z,Z11);  
 		Darray(Z11_l,Z11);  
 		Darray(Z11_w,Z11);  
 		Darray(Z11_t,Z11);  
@@ -2768,7 +2771,7 @@ void lexer::ctrlrecv()
     dd++;
     }
 
-        for(n=0;n<X312;++n)
+    for(n=0;n<X312;++n)
     {
     X311_xs[n] = dctrl[dd];
     dd++;
@@ -2835,6 +2838,12 @@ void lexer::ctrlrecv()
 
     for(n=0;n<Z11;++n)
     {
+    Z11_x[n] = dctrl[dd];
+    dd++;
+    Z11_y[n] = dctrl[dd];
+    dd++;
+    Z11_z[n] = dctrl[dd];
+    dd++;
     Z11_l[n] = dctrl[dd];
     dd++;
     Z11_w[n] = dctrl[dd];

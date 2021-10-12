@@ -70,6 +70,8 @@ void fsi_strip::setVariableLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matri
     Eigen::Vector3d P_el_star,I_el_star,s0,omega_el,omega_el_0;
     Eigen::Matrix3d J0,Xil_0_skew;
 
+    double delta_time = (time != t_strip_n) ? time - t_strip_n : 1e20;
+
     for (int eI = 1; eI < Ne+1; eI++)
     {
         m_el = 0.0;   
@@ -78,6 +80,7 @@ void fsi_strip::setVariableLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matri
         I_el_star << 0.0, 0.0, 0.0;
         s0 << 0.0, 0.0, 0.0;
         J0 << Eigen::Matrix3d::Zero();
+        
         for (int pI = 0; pI < lagrangePoints[eI-1].cols(); pI++)
         {
             // Mass of element
@@ -86,7 +89,7 @@ void fsi_strip::setVariableLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matri
 
             // Preliminary linear momentum
             P_el_star += dm_el*lagrangeVel[eI-1].col(pI);
-    
+
             // Static moment
             s0 += dm_el*Xil_0[eI-1].col(pI);
             
@@ -101,10 +104,10 @@ void fsi_strip::setVariableLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matri
 
         // Determine linear momentum
         omega_el = getOmega(q_.col(eI),qdot_.col(eI));
-        P_el.col(eI) = m_el*(cdot_.col(eI-1)+cdot_.col(eI))/2.0 + omega_el.cross(rotVec(s0,q_.col(eI)));;
+        P_el.col(eI) = m_el*(cdot_.col(eI-1)+cdot_.col(eI))/2.0 + omega_el.cross(rotVec(s0,q_.col(eI)));
 
         // Determine coupling force
-        F_el.col(eI) = -(P_el.col(eI) - P_el_n.col(eI))/(time - t_strip_n) - (P_el_n.col(eI) - P_el_star)/(t_strip - t_strip_n);
+        F_el.col(eI) = -(P_el.col(eI) - P_el_n.col(eI))/delta_time - (P_el_n.col(eI) - P_el_star)/(t_strip - t_strip_n);
 
         // Determine angular momentum
         omega_el_0 = getOmega0(q_.col(eI),qdot_.col(eI));
@@ -117,12 +120,12 @@ void fsi_strip::setVariableLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matri
     // Assign external forces
     for (int eI = 0; eI < Ne+1; eI++)
     {
-        Fext_.col(eI) = (F_el.col(eI) + F_el.col(eI+1))/(2.0*rho_s*A_el*l_el) + (1.0 - rho_f/rho_s)*gravity_vec;
+        Fext_.col(eI) = (1.0 - rho_f/rho_s)*gravity_vec + (F_el.col(eI) + F_el.col(eI+1))/(2.0*rho_s*A_el*l_el);
     }
     
     // Assign external moments
     for (int eI = 0; eI < Ne+2; eI++)
     {
-        Mext_.col(eI) << 0.0, M_el.col(eI)/l_el;
+//        Mext_.col(eI) << 0.0, M_el.col(eI)/l_el;
     }
 }

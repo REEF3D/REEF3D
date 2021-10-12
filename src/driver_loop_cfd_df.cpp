@@ -53,10 +53,10 @@ void driver::loop_cfd_df(fdm* a)
 
     // FSI
     if(p->Z10==0)
-    pfsi = new fsi_void();
+    pfsi = new fsi_void(p,pgc);
 	
     if(p->Z10==1)
-    pfsi = new fsi_strips();
+    pfsi = new fsi_strips(p,pgc);
 
     pfsi->initialize(p,a,pgc);
 

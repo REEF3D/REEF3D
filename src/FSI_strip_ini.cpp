@@ -27,8 +27,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
 {
 	// Initialise parameter
+    double x_ini = p->Z11_x[nstrip]; // x-position of strip bottom
+    double y_ini = p->Z11_y[nstrip]; // y-position of strip bottom
+    double z_ini = p->Z11_z[nstrip]; // z-position of strip bottom
     double L = p->Z11_l[nstrip];     // Length of strip [m]
-    W_el = p->Z11_w[nstrip];     // Width of strip [m]
+    W_el = p->Z11_w[nstrip];         // Width of strip [m]
     double T = p->Z11_t[nstrip];     // Thickness of strip [m]
 	rho_s = p->Z11_rho[nstrip];      // Density of material [kg/m3]
 	double E = p->Z11_e[nstrip];   	 // Young modulus [N/m^2]
@@ -55,7 +58,7 @@ void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
     Eigen::Matrix3Xd ini_coord = Eigen::Matrix3Xd::Zero(3,Ne+1); 
     for (int n = 0; n < Ne+1; n++)
     {
-        ini_coord.col(n) << T/2.0, W_el/2.0, L/Ne*n;
+        ini_coord.col(n) << x_ini, y_ini, z_ini + L/Ne*n;
     }
     
     Eigen::Vector3d d0;  d0 << 0, 0, 1;
@@ -115,7 +118,7 @@ void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
         {
             for (int jj = 0; jj < nw; jj++)
             {
-                lagrangePoints[n].col(ind) << T/2.0, 0.5*dw+dw*jj, l_0 + 0.5*dl + dl*ii;
+                lagrangePoints[n].col(ind) << x_ini, (y_ini - W_el/2.0 + 0.5*dw) + dw*jj, z_ini + l_0 + 0.5*dl + dl*ii;
                 lagrangeArea[n](ind) = dw*dl;
                 ind++;
             }

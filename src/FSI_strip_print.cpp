@@ -136,16 +136,16 @@ void fsi_strip::build_strip()
     for (int eI = 0; eI < Ne; eI++)
     {
         // Triangle 1
-        tri_x.col(ind) << x_el(0,eI), x_el(0,eI), x_el(0,eI);
+        tri_x.col(ind) << x_el(0,eI), x_el(0,eI+1), x_el(0,eI+1);
         tri_y.col(ind) << x_el(1,eI)-W_el/2, x_el(1,eI)-W_el/2, x_el(1,eI)+W_el/2;
-        tri_z.col(ind) << x_el(2,eI), x_el(2,eI)+l_el, x_el(2,eI)+l_el;
+        tri_z.col(ind) << x_el(2,eI), x_el(2,eI+1), x_el(2,eI+1);
        
         ind++;
 
         // Triangle 2
-        tri_x.col(ind) << x_el(0,eI), x_el(0,eI), x_el(0,eI);
+        tri_x.col(ind) << x_el(0,eI), x_el(0,eI+1), x_el(0,eI);
         tri_y.col(ind) << x_el(1,eI)+W_el/2, x_el(1,eI)+W_el/2, x_el(1,eI)-W_el/2;
-        tri_z.col(ind) << x_el(2,eI), x_el(2,eI)+l_el, x_el(2,eI);
+        tri_z.col(ind) << x_el(2,eI), x_el(2,eI+1), x_el(2,eI);
 
         ind++;
     }

@@ -686,7 +686,7 @@ void driver::logic()
     p6dof = new sixdof_void();
 	
 // FSI
-    pfsi = new fsi_void();
+    pfsi = new fsi_void(p,pgc);
 
 // Start MAINLOOP
 	if(p->A10==5)
