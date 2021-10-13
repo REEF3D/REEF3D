@@ -97,7 +97,7 @@ void sflow_turb_kw_IM1::eddyvisc(lexer* p, fdm2D *b, ghostcell *pgc)
 {
     SLICELOOP4
     b->eddyv(i,j) = MAX(MIN(MAX(kin(i,j)
-                        /((eps(i,j))>(1.0e-20)?(eps(i,j)):(1.0e20)),0.0),fabs(p->T31*kin(i,j))/S(i,j)),
+                        /pow(((eps(i,j))>(1.0e-20)?(eps(i,j)):(1.0e20)),0.5),0.0),fabs(p->T31*kin(i,j))/S(i,j)),
                         0.0001*p->W2);
 
 	pgc->gcsl_start4(p,b->eddyv,24);
@@ -108,7 +108,7 @@ void sflow_turb_kw_IM1::kin_source(lexer* p, fdm2D *b)
     count=0;
     SLICELOOP4
     {
-    b->M.p[count] += p->cmu * MAX(eps(i,j),0.0);
+    b->M.p[count] += p->cmu / pow(((eps(i,j))>(1.0e-20)?(eps(i,j)):(1.0e20)),0.5);
     
 	b->rhsvec.V[count]  += Pk(i,j)
                     
@@ -123,11 +123,13 @@ void sflow_turb_kw_IM1::omega_source(lexer* p, fdm2D *b)
     count=0;
     SLICELOOP4
     {
-    b->M.p[count] += kw_beta * MAX(eps(i,j),0.0);
+    b->M.p[count] += 0.17 * MAX(pow(eps(i,j),0.5),0.0);
 
-    b->rhsvec.V[count] +=  kw_alpha * (MAX(eps(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20)))*Pk(i,j)
+    b->rhsvec.V[count] +=  1.12 * (MAX(eps(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20)))*Pk(i,j)
     
-                       + (6.912/pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,1.5)*pow(ustar(i,j),4.0)*kin(i,j)/(HP*HP);
+                       //+ (6.912/pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,1.5)*pow(ustar(i,j),4.0)*kin(i,j)/(HP*HP);
+                       
+                       + (7.184/(pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,1.5)) * (pow(ustar(i,j),3.0)/(HP*HP*HP));
     ++count;
     }
 
@@ -142,16 +144,9 @@ void sflow_turb_kw_IM1::Pk_update(lexer* p, fdm2D *b, ghostcell *pgc)
     dudx=dvdy=dudy=dvdx=0.0;
     
     
-	//if(p->flagslice1[IJ]>0 && p->flagslice1[Im1J]>0)
     dudx = (b->P(i,j) - b->P(i-1,j))/(p->DXM);
-    
-    //if(p->flagslice2[IJ]>0 && p->flagslice2[IJm1]>0)
     dvdy = (b->Q(i,j) - b->Q(i,j-1))/(p->DXM);
-    
-    //if(p->flagslice1[IJp1]>0 && p->flagslice1[Im1Jp1]>0 && p->flagslice1[IJm1]>0 && p->flagslice1[Im1Jm1]>0)
     dudy = (0.5*(b->P(i,j+1)+b->P(i-1,j+1)) - 0.5*(b->P(i,j-1)+b->P(i-1,j-1)))/(2.0*p->DXM);
-    
-    //if(p->flagslice2[Ip1J]>0 && p->flagslice2[Ip1Jm1]>0 && p->flagslice2[Im1J]>0 && p->flagslice2[Im1Jm1]>0)
     dvdx = (0.5*(b->Q(i+1,j)+b->Q(i+1,j-1)) - 0.5*(b->Q(i-1,j)+b->Q(i-1,j-1)))/(2.0*p->DXM);
 
     Pk(i,j) = b->eddyv(i,j)*(2.0*pow(dudx,2.0) + 2.0*pow(dvdy,2.0) + pow(dudy+dvdx,2.0));
@@ -176,6 +171,20 @@ void sflow_turb_kw_IM1::ustar_update(lexer* p, fdm2D *b, ghostcell *pgc)
     
     ustar(i,j) = sqrt(cf(i,j)*(uvel*uvel + vvel*vvel));
     }
+    
+    /*
+    int n;
+	SLICELOOP4
+	wallf(i,j)=0;
+	
+	GC4LOOP
+	if(p->gcbsl4[n][4]==21)
+	{
+	i = p->gcbsl4[n][0];
+	j = p->gcbsl4[n][1];
+	
+	wallf(i,j)=1;
+	}*/
 }
 
 void sflow_turb_kw_IM1::timesource(lexer* p, fdm2D *b, slice &fn)
@@ -282,7 +291,7 @@ void sflow_turb_kw_IM1::wall_law_omega(lexer* p, fdm2D *b)
     
     SLICELOOP4
     if(p->flagslice4[Im1J]<0 || p->flagslice4[Ip1J]<0 || p->flagslice4[IJm1]<0 || p->flagslice4[IJp1]<0)
-    eps(i,j) = pow((kin(i,j)>(0.0)?(kin(i,j)):(0.0)),0.5) / (0.4*dist*pow(p->cmu, 0.25));
+    eps(i,j) = (kin(i,j)>(0.0)?(kin(i,j)):(0.0)) / (0.4*0.4*dist*dist*pow(p->cmu, 0.25));
     
     
     n=0;
