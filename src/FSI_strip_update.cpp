@@ -98,24 +98,6 @@ void fsi_strip::interpolate_vel(lexer* p, fdm* a, ghostcell* pgc, field& uvel, f
             lagrangeVel[eI].col(pI) << pgc->globalsum(lagrangeVel[eI](0,pI)), pgc->globalsum(lagrangeVel[eI](1,pI)), pgc->globalsum(lagrangeVel[eI](2,pI));
         }
     }
-/*
-    char name[100];
-    sprintf(name,"./REEF3D-CFD-Lagrange.csv");
-    ofstream result;
-    result.open(name, ios::binary);
-
-    for (int eI = 0; eI < lagrangePoints.size(); eI++)
-    {
-        for (int pI = 0; pI < lagrangePoints[eI].cols(); pI++)
-        {
-            const Eigen::Vector3d& coordI = lagrangePoints[eI].col(pI);
-            const Eigen::Vector3d& velI = lagrangeVel[eI].col(pI);
-        
-            result<<coordI(0)<<","<<coordI(1)<<","<<coordI(2)<<","<<velI(0)<<","<<velI(1)<<","<<velI(2)<<endl;
-        }
-    }
-    result.close();
-*/
 }
     
 double fsi_strip::kernel_roma(const double& dist)

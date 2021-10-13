@@ -120,7 +120,7 @@ void fsi_strip::setVariableLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matri
     // Assign external forces
     for (int eI = 0; eI < Ne+1; eI++)
     {
-        Fext_.col(eI) = (1.0 - rho_f/rho_s)*gravity_vec + (F_el.col(eI) + F_el.col(eI+1))/(2.0*rho_s*A_el*l_el);
+        Fext_.col(eI) << 7,0,0;// = (1.0 - rho_f/rho_s)*gravity_vec + (F_el.col(eI) + F_el.col(eI+1))/(2.0*rho_s*A_el*l_el);
     }
     
     // Assign external moments

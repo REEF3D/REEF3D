@@ -73,9 +73,9 @@ private:
 	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);    
     
-    field1 udiff, urk1, urk2, fx;
-	field2 vdiff, vrk1, vrk2, fy;
-	field3 wdiff, wrk1, wrk2, fz;
+    field1 udiff, urk1, urk2, Cu, fx;
+	field2 vdiff, vrk1, vrk2, Cv, fy;
+	field3 wdiff, wrk1, wrk2, Cw, fz;
 
 	convection *pconvec;
 	diffusion *pdiff;

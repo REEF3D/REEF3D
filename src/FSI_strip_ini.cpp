@@ -61,8 +61,11 @@ void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
         ini_coord.col(n) << x_ini, y_ini, z_ini + L/Ne*n;
     }
     
-    Eigen::Vector3d d0;  d0 << 0, 0, 1;
-    meshBeam(ini_coord.row(0), ini_coord.row(1), ini_coord.row(2),d0);
+    Eigen::Vector3d d1,d2,d3;  
+    d1 << 0, 0, 1;
+    d2 << 0, 1, 0;
+    d3 << 1, 0, 0;
+    meshBeam(x_ini,y_ini,z_ini,d1,d2,d3);
 
     // Initialise solver
     iniSolver();
