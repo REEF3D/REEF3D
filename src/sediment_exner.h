@@ -53,7 +53,7 @@ private:
     
 	int gcval_topo;
 	double starttime;
-    double maxdh;
+    double maxdh,maxvz;
 	double vx,vy,vz;
 	double vzmax;
     double ws;

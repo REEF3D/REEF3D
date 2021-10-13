@@ -50,6 +50,8 @@ private:
     void timesource(lexer*, fdm2D*, slice&);
     void eddyvisc(lexer*, fdm2D*, ghostcell*);
     void clearrhs(lexer*, fdm2D*);
+    void wall_law_kin(lexer*, fdm2D*);
+    void wall_law_eps(lexer*, fdm2D*);
     
     slice4 kn, wn, Pk, S, ustar, cf;
     double const kw_alpha, kw_beta,kw_sigma_k,kw_sigma_w;

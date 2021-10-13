@@ -37,7 +37,7 @@ public:
 	virtual ~sediment_fdm();
     
     slice4 bedzh,bedzh0;
-    slice4 dh,reduce;
+    slice4 vz,dh,reduce;
     
     slice4 tau_eff,tau_crit;
     slice4 shearvel_eff,shearvel_crit;

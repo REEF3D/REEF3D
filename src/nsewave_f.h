@@ -57,8 +57,8 @@ private:
     int gcval_phi;
 	double starttime;
     double phival,H;
+    double epsi;
 	double d;
-    const double epsi;
 	
 	sflow_eta_disc *peta;
 	sflow_hxy_disc *phxy;
