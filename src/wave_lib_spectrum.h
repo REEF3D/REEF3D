@@ -60,13 +60,14 @@ public:
     void print_spectrum(lexer*);
     void print_amplitude_spectrum(lexer*);
     void print_components(lexer*);
+    void print_spreading(lexer*);
 
     double *Si,*Ai,*Li,*ki,*Ti,*wi,*ei,*ww,*cdf,*wee,*dee,*Sn;
     int NN, ND;
 	  double wp,ws,we,*dw;
 
     // directional spreading
-    double *beta,*cosbeta,*sinbeta,*Dn,*Dcdf,*Ddee,*betat;
+    double *beta,*cosbeta,*sinbeta,*Dn,*Dcdf,*Ddee,*betat,*beta_n,*Di,*Di_n;
     double dbeta;
 
     // recon

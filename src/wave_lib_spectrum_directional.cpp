@@ -149,22 +149,11 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
             {
                 for(q = 0; q < p->B133; ++q)
                 {
-                    Si[count] = Si_temp[n] * spreading_function(p, beta[count], wi[count]); // modified
-                    ++count;
+                  Di[count]=spreading_function(p, beta[count], wi[count]);
+                  Si[count] = Si_temp[n] * Di[count];
+                  ++count;
                 }
             }
-
-            // Calc Ai
-            /*count=0;
-            for(n = 0; n < p->wN; ++n)
-            {
-                for(q = 0; q < p->B133; ++q)
-                    {
-                        Ai[count] = sqrt(2.0 * Si[count] * dw[n] * dbeta);
-                        ++count;
-                    }
-            }*/
-
 
             p->del_Darray(Si_temp, p->wN);
 
@@ -305,6 +294,10 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
                 {
                     beta[n]=(Ddee[n]-cdf_low)*(d_high-d_low)/(cdf_high-cdf_low)+d_low;
                 }
+
+                beta_n[n]=beta[n];
+                Di_n[n]=spreading_function(p, beta[n], wi[n]);
+
             }
 
             // p->B133 divided by p->wN must be an interger
@@ -365,7 +358,8 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
             count = 0;
             for(n = 0; n < p->wN; ++n)
             {
-                Si[count] = Si_temp[n] * spreading_function(p, beta[count], wi[count]); // modified
+                Di[count]=spreading_function(p, beta[count], wi[count]);
+                Si[count] = Si_temp[n] * Di[count];
                 ++count;
             }
 
