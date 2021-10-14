@@ -196,7 +196,6 @@ void bedslope::slope_cds(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 	if(fabs(uvel)<=1.0e-10 && fabs(vvel)<=1.0e-10)
 	beta = 0.0;
    
-    
     // ----
     
      bx0 = (a->bedzh(i+1,j)-a->bedzh(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);

@@ -167,7 +167,12 @@ cout<<"starting driver_ini"<<endl;
     pgc->start4(p,a->press,40);
 
 	if(p->I40==1)
+    {
 	pini->stateini(p,a,pgc,pturb);
+    
+    if(p->S10==1)
+    psed->ini(p,a,pgc);
+    }
     
 	pgc->start4(p,a->press,40);
 	

@@ -55,6 +55,7 @@ void sflow_turb_ke_IM1::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convecti
     pdiff->diff_scalar(p,b,pgc,psolv,kin,sigk,1.0);
 	kin_source(p,b);
 	timesource(p,b,kn);
+    wall_law_kin(p,b);
     psolv->start(p,pgc,kin,b->M,b->xvec,b->rhsvec,4,gcval_kin,p->T13);
     pgc->gcsl_start4(p,kin,gcval_kin);
 	p->kintime=pgc->timer()-starttime;
@@ -69,6 +70,7 @@ void sflow_turb_ke_IM1::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convecti
     pdiff->diff_scalar(p,b,pgc,psolv,eps,sige,1.0);
 	eps_source(p,b);
 	timesource(p,b,en);
+    wall_law_eps(p,b);
 	psolv->start(p,pgc,eps,b->M,b->xvec,b->rhsvec,4,gcval_eps,p->T13);
     pgc->gcsl_start4(p,eps,gcval_eps);
 	p->epstime=pgc->timer()-starttime;
@@ -156,7 +158,6 @@ void sflow_turb_ke_IM1::Pk_update(lexer* p, fdm2D *b, ghostcell *pgc)
     
     S(i,j) = sqrt(pow(dudx,2.0) + pow(dvdy,2.0) + 0.5*pow(dudy+dvdx,2.0));
     }
-    
 }
 
 void sflow_turb_ke_IM1::ustar_update(lexer* p, fdm2D *b, ghostcell *pgc)
@@ -205,10 +206,10 @@ void sflow_turb_ke_IM1::clearrhs(lexer* p, fdm2D *b)
 // ****************************
 void sflow_turb_ke_IM1::wall_law_kin(lexer* p, fdm2D *b)
 {
-    double uvel,vvel,wvel;
+    double uvel,vvel;
     double dist=0.5*p->DXM;
     double u_abs,uplus,tau,kappa;
-    
+    kappa=0.4;
     
     n=0;
 	SLICELOOP4
@@ -221,14 +222,14 @@ void sflow_turb_ke_IM1::wall_law_kin(lexer* p, fdm2D *b)
         vvel=0.5*(b->Q(i,j)+b->Q(i,j-1));
         pip=0;
 
-        u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
+        u_abs = sqrt(uvel*uvel + vvel*vvel);
 
 		if(30.0*dist<b->ks(i,j))
 		dist=b->ks(i,j)/30.0;
 
 		uplus = (1.0/kappa)*log(30.0*(dist/b->ks(i,j)));
 
-    tau=(u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
+        tau=(u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
     
     
 		if(p->flagslice4[Im1J]<0 || p->flagslice4[Ip1J]<0 || p->flagslice4[IJm1]<0 || p->flagslice4[IJp1]<0)
@@ -239,15 +240,79 @@ void sflow_turb_ke_IM1::wall_law_kin(lexer* p, fdm2D *b)
 		
 	++n;
 	}
+    
+    
+    n=0;
+	SLICELOOP4
+	{
+		if(p->flagslice4[Im1J]<0)
+		{
+        b->rhsvec.V[n] -= b->M.s[n]*kin(i-1,j);
+		b->M.s[n] = 0.0;
+		}
+        
+        if(p->flagslice4[Ip1J]<0)
+		{
+        b->rhsvec.V[n] -= b->M.n[n]*kin(i+1,j);
+		b->M.n[n] = 0.0;
+		}
+        
+        if(p->flagslice4[IJm1]<0)
+		{
+        b->rhsvec.V[n] -= b->M.e[n]*kin(i,j-1);
+		b->M.e[n] = 0.0;
+		}
+        
+        if(p->flagslice4[IJp1]<0)
+		{
+        b->rhsvec.V[n] -= b->M.w[n]*kin(i,j+1);
+		b->M.w[n] = 0.0;
+		}
+		
+	++n;
+	}
 
 }
 
 void sflow_turb_ke_IM1::wall_law_eps(lexer* p, fdm2D *b)
 {
-    // GCLOOP
-    double dist=0.5*p->DXM;
 
+    double dist=0.5*p->DXM;
+    
+    SLICELOOP4
+    if(p->flagslice4[Im1J]<0 || p->flagslice4[Ip1J]<0 || p->flagslice4[IJm1]<0 || p->flagslice4[IJp1]<0)
 	eps(i,j) = (pow(p->cmu, 0.75)*pow((kin(i,j)>(0.0)?(kin(i,j)):(0.0)),1.5)) / (0.4*dist);
+    
+    
+    n=0;
+	SLICELOOP4
+	{
+		if(p->flagslice4[Im1J]<0)
+		{
+        b->rhsvec.V[n] -= b->M.s[n]*eps(i-1,j);
+		b->M.s[n] = 0.0;
+		}
+        
+        if(p->flagslice4[Ip1J]<0)
+		{
+        b->rhsvec.V[n] -= b->M.n[n]*eps(i+1,j);
+		b->M.n[n] = 0.0;
+		}
+        
+        if(p->flagslice4[IJm1]<0)
+		{
+        b->rhsvec.V[n] -= b->M.e[n]*eps(i,j-1);
+		b->M.e[n] = 0.0;
+		}
+        
+        if(p->flagslice4[IJp1]<0)
+		{
+        b->rhsvec.V[n] -= b->M.w[n]*eps(i,j+1);
+		b->M.w[n] = 0.0;
+		}
+		
+	++n;
+	}
 }
 
 

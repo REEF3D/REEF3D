@@ -41,7 +41,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_hxy_weno.h"
 
 nsewave_f::nsewave_f(lexer *p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc) : 
-                epsi(p->A440*p->DXM),depth(p),bed(p),L(p),hp(p),hx(p),hy(p)
+                depth(p),bed(p),L(p),hp(p),hx(p),hy(p)
 {
 	// bed ini
 	SLICELOOP4
@@ -68,6 +68,13 @@ nsewave_f::nsewave_f(lexer *p, fdm *a, ghostcell *pgc, heat *&pheat, concentrati
     a->phi(i,j,k) = a->eta(i,j) + p->phimean - p->pos_z();
     
     pgc->start4(p,a->phi,gcval_phi);
+    
+    
+    if(p->j_dir==0)        
+    epsi = p->A440*(1.0/2.0)*(p->DRM+p->DTM);
+        
+    if(p->j_dir==1)
+    epsi = p->A440*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
 }
 
 nsewave_f::~nsewave_f()
@@ -108,8 +115,7 @@ void nsewave_f::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusio
 		KULOOP
         UFLUIDCHECK
 		{
-		//phival = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
-        phival = (1.0/16.0)*(-a->phi(i-1,j,k) + 9.0*a->phi(i,j,k) + 9.0*a->phi(i+1,j,k) - a->phi(i+2,j,k));
+		phival = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
         
 		
 			if(phival>epsi)
@@ -121,7 +127,7 @@ void nsewave_f::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusio
 			if(fabs(phival)<=epsi)
 			H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
 			
-			a->P(i,j) += a->u(i,j,k)*p->DXM*H;
+			a->P(i,j) += a->u(i,j,k)*p->DZN[KP]*H;
 		}
     }
     
@@ -132,9 +138,7 @@ void nsewave_f::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusio
 			KVLOOP
             VFLUIDCHECK
 			{
-    
-			//phival = 0.5*(a->phi(i,j,k)+a->phi(i,j+1,k));
-            phival = (1.0/16.0)*(-a->phi(i,j-1,k) + 9.0*a->phi(i,j,k) + 9.0*a->phi(i,j+1,k) - a->phi(i,j+2,k));
+			 phival = 0.5*(a->phi(i,j,k)+a->phi(i,j+1,k));
 			
 				if(phival>epsi)
 				H=1.0;
@@ -145,50 +149,17 @@ void nsewave_f::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusio
 				if(fabs(phival)<=epsi)
 				H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
 				
-				a->Q(i,j) += a->v(i,j,k)*p->DXM*H;
+				a->Q(i,j) += a->v(i,j,k)*p->DZN[KP]*H;
 
 			}
     }
 	pgc->gcsl_start1(p,a->P,10);
     pgc->gcsl_start2(p,a->Q,11);
 	
-	// depth update
-	/*
-    SLICELOOP4
-	depth(i,j) = p->wd - bed(i,j);
-	
-	pgc->gcsl_start4(p,depth,50);
-	
-	SLICELOOP4
-	hp(i,j) = a->eta(i,j) + p->wd - bed(i,j);
-	
-	pgc->gcsl_start4(p,hp,50);
-	
-	phxy->start(p,hx,hy,depth,a->eta,a->P,a->Q);
-	
-	pgc->gcsl_start1(p,hx,50);
-	pgc->gcsl_start2(p,hy,50);
-	
-	SLICELOOP1
-	a->P(i,j)/=hx(i,j);
-	
-	SLICELOOP2
-	a->Q(i,j)/=hy(i,j);
-	
-	pgc->gcsl_start1(p,a->P,10);
-    pgc->gcsl_start2(p,a->Q,11);
-	
-	// eta disc
-	peta->start(p,a->eta,4,a->P,a->Q,depth,L);
-    
-	
-	SLICELOOP4
-	a->eta(i,j) +=	p->dt*L(i,j);	*/
 
     SLICELOOP4
-    a->eta(i,j) -= (p->dt*(a->P(i,j)-a->P(i-1,j) + a->Q(i,j)-a->Q(i,j-1)))/p->DXM;	  
+    a->eta(i,j) -= p->dt*((a->P(i,j)-a->P(i-1,j))/p->DXN[IP] + (a->Q(i,j)-a->Q(i,j-1))/p->DYN[JP]);	  
 
-    
     
     pflow->eta_relax(p,pgc,a->eta);
     

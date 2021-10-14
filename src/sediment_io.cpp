@@ -349,14 +349,14 @@ void sediment_f::print_3D_parameter2(lexer* p, fdm *a, ghostcell *pgc, ofstream 
     // dh,reduce,threshold,slideflag
     
     // dh
-    pgc->gcsl_start4(p,s->dh,1);
+    pgc->gcsl_start4(p,s->vz,1);
     
 	iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	
 	TPLOOP
 	{
-    ffn=float(p->sl_ipol4(s->dh));
+    ffn=float(p->dtsed*p->sl_ipol4(s->vz));
 	result.write((char*)&ffn, sizeof (float));
 	}
     

@@ -72,6 +72,11 @@ void state::write(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
     ddn=p->stateprinttime;
     result.write((char*)&ddn, sizeof (double));   
     
+    ALOOP
+    {
+    ffn=a->topo(i,j,k);
+    result.write((char*)&ffn, sizeof (float));
+    } 
     
     ULOOP
     {
@@ -120,13 +125,7 @@ void state::write(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
     ffn=a->eddyv(i,j,k);
     result.write((char*)&ffn, sizeof (float));
     } 
-	
-	ALOOP
-    {
-    ffn=a->topo(i,j,k);
-    result.write((char*)&ffn, sizeof (float));
-    } 
-	
+
 	SLICELOOP4
     {
     ffn=a->bedload(i,j);

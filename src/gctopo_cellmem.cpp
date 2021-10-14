@@ -37,10 +37,10 @@ void ghostcell::velcell_update(lexer *p, fdm *a, int **cellmem, int cellcount,do
     k=cellmem[nn][2];
 
     if(dir==1)
-	a->u(i,j,k)=0.75*a->u(i,j,k+1);
+	a->u(i,j,k)=0.95*a->u(i,j,k+1);
 
 	if(dir==2)
-	a->v(i,j,k)=0.75*a->v(i,j,k+1);
+	a->v(i,j,k)=0.95*a->v(i,j,k+1);
 
 	if(dir==3)
 	a->w(i,j,k)=0.0;
