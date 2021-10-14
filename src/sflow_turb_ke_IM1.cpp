@@ -30,7 +30,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define HP (fabs(b->hp(i,j))>1.0e-20?b->hp(i,j):1.0e20)
 
 sflow_turb_ke_IM1::sflow_turb_ke_IM1(lexer* p) : sflow_turb_io(p), kn(p), en(p), Pk(p), S(p), ustar(p), cf(p),
-                                                 ce1(1.44),ce2(1.92),sigk(1.0),sige(1.3),ceg(1.8)
+                                                 wallf(p),ce1(1.44),ce2(1.92),sigk(1.0),sige(1.3),ceg(1.8)
 {
     gcval_kin=20;
 	gcval_eps=30;
@@ -111,6 +111,7 @@ void sflow_turb_ke_IM1::kin_source(lexer* p, fdm2D *b)
     count=0;
     SLICELOOP4
     {    
+    if(wallf(i,j)==0)
 	b->rhsvec.V[count]  += Pk(i,j)
                     
                         + (1.0/sqrt(fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20))*pow(ustar(i,j),3.0)/HP 
@@ -125,9 +126,13 @@ void sflow_turb_ke_IM1::eps_source(lexer* p, fdm2D *b)
     count=0;
     SLICELOOP4
     {
-    b->M.p[count] += ce2 * MAX(eps(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20)) - ce1 /(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20))*Pk(i,j);
+    b->M.p[count] += ce2 * MAX(eps(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20));
 
-    b->rhsvec.V[count] +=  (ceg*ce2/pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,0.5)*pow(ustar(i,j),4.0)/(HP*HP);
+    b->rhsvec.V[count] +=  ce1 * MAX(eps(i,j),0.0) /(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20))*Pk(i,j) 
+    
+           + (ceg*ce2/pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,0.5)*pow(ustar(i,j),4.0)/(HP*HP);
+    
+                            
     ++count;
     }
     
@@ -141,17 +146,9 @@ void sflow_turb_ke_IM1::Pk_update(lexer* p, fdm2D *b, ghostcell *pgc)
     {
     dudx=dvdy=dudy=dvdx=0.0;
     
-    
-	//if(p->flagslice1[IJ]>0 && p->flagslice1[Im1J]>0)
     dudx = (b->P(i,j) - b->P(i-1,j))/(p->DXM);
-    
-    //if(p->flagslice2[IJ]>0 && p->flagslice2[IJm1]>0)
     dvdy = (b->Q(i,j) - b->Q(i,j-1))/(p->DXM);
-    
-    //if(p->flagslice1[IJp1]>0 && p->flagslice1[Im1Jp1]>0 && p->flagslice1[IJm1]>0 && p->flagslice1[Im1Jm1]>0)
     dudy = (0.5*(b->P(i,j+1)+b->P(i-1,j+1)) - 0.5*(b->P(i,j-1)+b->P(i-1,j-1)))/(2.0*p->DXM);
-    
-    //if(p->flagslice2[Ip1J]>0 && p->flagslice2[Ip1Jm1]>0 && p->flagslice2[Im1J]>0 && p->flagslice2[Im1Jm1]>0)
     dvdx = (0.5*(b->Q(i+1,j)+b->Q(i+1,j-1)) - 0.5*(b->Q(i-1,j)+b->Q(i-1,j-1)))/(2.0*p->DXM);
 
     Pk(i,j) = b->eddyv(i,j)*(2.0*pow(dudx,2.0) + 2.0*pow(dvdy,2.0) + pow(dudy+dvdx,2.0));
@@ -175,6 +172,20 @@ void sflow_turb_ke_IM1::ustar_update(lexer* p, fdm2D *b, ghostcell *pgc)
     
     ustar(i,j) = sqrt(cf(i,j)*(uvel*uvel + vvel*vvel));
     }
+    
+    // wallf
+    int n;
+	SLICELOOP4
+	wallf(i,j)=0;
+	
+	GCSL4LOOP
+	if(p->gcbsl4[n][4]==21)
+	{
+	i = p->gcbsl4[n][0];
+	j = p->gcbsl4[n][1];
+	
+	wallf(i,j)=1;
+	}
 }
 
 void sflow_turb_ke_IM1::timesource(lexer* p, fdm2D *b, slice &fn)
