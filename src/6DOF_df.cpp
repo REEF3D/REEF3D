@@ -52,7 +52,7 @@ void sixdof_df::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 	
 void sixdof_df::start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&){};
 
-void sixdof_df::forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, double alpha, field& uvel, field& vvel, field& wvel, field1& fx, field2& fy, field3& fz, bool finalise)
+void sixdof_df::forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, double alpha, double gamma, double zeta, field& uvel, field& vvel, field& wvel, field1& fx, field2& fy, field3& fz, bool finalise)
 {
     // Reset heaviside field
     ULOOP
@@ -82,7 +82,7 @@ void sixdof_df::forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<
         p_df_obj[nb]->forces_stl(p,a,pgc,alpha,uvel,vvel,wvel);
 
         // Advance body in time
-        p_df_obj[nb]->start(p,a,pgc,alpha,pvrans,pnet);
+        p_df_obj[nb]->start(p,a,pgc,alpha,gamma,zeta,pvrans,pnet);
 
         // Update position and fb level set
         p_df_obj[nb]->updateFSI(p,a,pgc,finalise);

@@ -55,7 +55,7 @@ public:
     sixdof_df_object(lexer*, fdm*, ghostcell*, int);
 	virtual ~sixdof_df_object();
 	
-	virtual void start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&);
+	virtual void start(lexer*,fdm*,ghostcell*,double,double,double,vrans*,vector<net*>&);
 	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
     
 
@@ -151,7 +151,7 @@ private:
     );
     void abam4(lexer*, fdm*, ghostcell*, double);
     void rk2(lexer*, fdm*, ghostcell*,double);
-    void rk3(lexer*, fdm*, ghostcell*,double);
+    void rk3(lexer*, fdm*, ghostcell*,double,double,double);
     void rk4(lexer*, fdm*, ghostcell*,double);
 
     void rotation_tri(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);

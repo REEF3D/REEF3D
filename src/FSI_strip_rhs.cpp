@@ -67,10 +67,10 @@ void fsi_strip::setConstantLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matri
 void fsi_strip::setVariableLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matrix3Xd& c_, const Matrix3Xd& cdot_, const Matrix4Xd& q_, const Matrix4Xd& qdot_, const double time)
 {
     double dm_el, m_el;
-    Eigen::Vector3d P_el_star,I_el_star,s0,omega_el,omega_el_0;
-    Eigen::Matrix3d J0,Xil_0_skew;
+    Eigen::Vector3d P_el_star, I_el_star, s0, omega_el, omega_el_0;
+    Eigen::Matrix3d J0, Xil_0_skew;
 
-    double delta_time = (time != t_strip_n) ? time - t_strip_n : 1e20;
+    double delta_time = (time - t_strip_n)/(t_strip - t_strip_n) > 0.01 ? time - t_strip_n : 1e20;
 
     for (int eI = 1; eI < Ne+1; eI++)
     {
@@ -114,18 +114,18 @@ void fsi_strip::setVariableLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matri
         I_el.col(eI) = rotVec(s0,q_.col(eI)).cross((cdot_.col(eI-1)+cdot_.col(eI))/2.0) + rotVec(J0*omega_el_0,q_.col(eI));
         
         // Determine coupling moment
-        M_el.col(eI) = -(I_el.col(eI) - I_el_n.col(eI))/(time - t_strip_n) - (I_el_n.col(eI) - I_el_star)/(t_strip - t_strip_n);
+        M_el.col(eI) = -(I_el.col(eI) - I_el_n.col(eI))/delta_time - (I_el_n.col(eI) - I_el_star)/(t_strip - t_strip_n);
     }
     
     // Assign external forces
     for (int eI = 0; eI < Ne+1; eI++)
     {
-        Fext_.col(eI) << 7,0,0;// = (1.0 - rho_f/rho_s)*gravity_vec + (F_el.col(eI) + F_el.col(eI+1))/(2.0*rho_s*A_el*l_el);
+        Fext_.col(eI) = (1.0 - rho_f/rho_s)*gravity_vec + (F_el.col(eI) + F_el.col(eI+1))/(2.0*rho_s*A_el*l_el);
     }
     
     // Assign external moments
     for (int eI = 0; eI < Ne+2; eI++)
     {
-//        Mext_.col(eI) << 0.0, M_el.col(eI)/l_el;
+        Mext_.col(eI) << 0.0, M_el.col(eI)/l_el;
     }
 }
