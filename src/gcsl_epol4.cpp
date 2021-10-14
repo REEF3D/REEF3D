@@ -185,7 +185,7 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
 	return 4;
     
     else
-	if(gcv==24)
+	if(gcv==24 && bc!=1)
 	return 4;
     
     else

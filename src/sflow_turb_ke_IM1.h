@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"sflow_turb_io.h"
 #include"slice4.h"
+#include"sliceint4.h"
 
 class sflow_convection;
 class sflow_diffusion;
@@ -54,6 +55,7 @@ private:
     void wall_law_eps(lexer*, fdm2D*);
 
     slice4 kn, en, Pk, S, ustar, cf;
+    sliceint4 wallf;
     double const ce1,ce2,sigk,sige,ceg;
     
     int gcval_kin, gcval_eps;

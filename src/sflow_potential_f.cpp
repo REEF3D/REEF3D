@@ -153,7 +153,7 @@ void sflow_potential_f::laplace(lexer *p, fdm2D *b, slice &phi)
             if((p->flagslice4[Ip1J]<0 || b->wet4(i+1,j)==0) && bc(i+1,j)==2)
             {
             b->rhsvec.V[n] -= b->M.n[n]*(p->Uo*HP)*p->DXP[IP1];
-
+            b->M.p[n] += b->M.n[n];
             b->M.n[n] = 0.0;
             }
             

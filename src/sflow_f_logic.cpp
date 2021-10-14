@@ -104,6 +104,9 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->A260==4)
 	pturb =  new sflow_turb_parabolic(p);
     
+    if(p->A260==5)
+	pturb =  new sflow_turb_kw_IM1_v1(p);
+    
     // Sediment
     if(p->S10==0)
     psed = new sflow_sediment_v(p,b);
