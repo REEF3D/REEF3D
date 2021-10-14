@@ -133,6 +133,8 @@ void sflow_turb_kw_IM1_v1::omega_source(lexer* p, fdm2D *b)
     
                        //+ (6.912/pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,1.5)*pow(ustar(i,j),4.0)*kin(i,j)/(HP*HP);
                        
+                       + 3.5*b->eddyv(i,j)*Qw(i,j)
+                       
                        + (7.184/(pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,1.5)) * (pow(ustar(i,j),3.0)/(HP*HP*HP));
     ++count;
     }
@@ -157,8 +159,7 @@ void sflow_turb_kw_IM1_v1::Pk_update(lexer* p, fdm2D *b, ghostcell *pgc)
     
     S(i,j) = sqrt(pow(dudx,2.0) + pow(dvdy,2.0) + 0.5*pow(dudy+dvdx,2.0));
     
-    
-    // Vw
+    Qw(i,j) = sqrt(fabs(0.5*(dudy - dvdx)*(dvdx - dudy)));
     
     }
     
