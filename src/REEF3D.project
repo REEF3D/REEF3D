@@ -340,8 +340,14 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
-      <VirtualDirectory Name="Beam">
-        <File Name="beam.h"/>
+      <VirtualDirectory Name="FSI">
+        <VirtualDirectory Name="Beam">
+          <File Name="beam.h"/>
+        </VirtualDirectory>
+        <File Name="FSI_strip.h"/>
+        <File Name="FSI_void.h"/>
+        <File Name="FSI_strips.h"/>
+        <File Name="FSI.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment">
         <File Name="sediment_fdm.h"/>
@@ -657,6 +663,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
       <VirtualDirectory Name="Driver">
+        <File Name="FSI_header.h"/>
         <File Name="vrans_header.h"/>
         <File Name="convection_header.h"/>
         <File Name="fdm_header.h"/>
@@ -847,7 +854,6 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
-      <File Name="momentum_RK2_df.h"/>
       <File Name="momentum_IMEX.h"/>
       <File Name="momentum_RK3_df.h"/>
       <File Name="bcmom.h"/>
@@ -1328,13 +1334,23 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
-      <VirtualDirectory Name="Beam">
-        <File Name="beam_solver_routines.cpp"/>
-        <File Name="beam_solver.cpp"/>
-        <File Name="beam_rhs.cpp"/>
-        <File Name="beam_print.cpp"/>
-        <File Name="beam_ini.cpp"/>
-        <File Name="beam.cpp"/>
+      <VirtualDirectory Name="FSI">
+        <VirtualDirectory Name="Beam">
+          <File Name="beam_solver_routines.cpp"/>
+          <File Name="beam_solver.cpp"/>
+          <File Name="beam_rhs.cpp"/>
+          <File Name="beam_print.cpp"/>
+          <File Name="beam_ini.cpp"/>
+          <File Name="beam.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Strip">
+          <File Name="FSI_strips.cpp"/>
+          <File Name="FSI_strip_update.cpp"/>
+          <File Name="FSI_strip_rhs.cpp"/>
+          <File Name="FSI_strip_print.cpp"/>
+          <File Name="FSI_strip_ini.cpp"/>
+          <File Name="FSI_strip.cpp"/>
+        </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Benchmarks">
         <File Name="benchmark_TaylorGreen.cpp"/>
@@ -2296,7 +2312,6 @@
       <File Name="ini.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
-      <File Name="momentum_RK2_df.cpp"/>
       <File Name="momentum_IMEX.cpp"/>
       <File Name="momentum_RK3_df.cpp"/>
       <VirtualDirectory Name="BC">
