@@ -70,7 +70,6 @@ void potential_f::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
 	psolv->start(p,a,pgc,psi,a->xvec,a->rhsvec,4,gcval_pot,p->N43);
     pgc->start4(p,psi,gcval_pot);
 
-	
     ucalc(p,a,psi);
 	vcalc(p,a,psi);
 	wcalc(p,a,psi);
@@ -205,7 +204,7 @@ void potential_f::laplace(lexer *p, fdm *a, field &phi)
         
         if(p->flag4[Im1JK]<0 && bc(i-1,j,k)==1)
 		{
-        a->rhsvec.V[n] += a->M.s[n]*p->Ui*p->DXP[IM1];// - a->M.s[n]*phi(i,j,k);
+        a->rhsvec.V[n] += a->M.s[n]*p->Ui*p->DXP[IM1];
 		a->M.p[n] += a->M.s[n];
 		a->M.s[n] = 0.0;
 		}
@@ -219,7 +218,7 @@ void potential_f::laplace(lexer *p, fdm *a, field &phi)
         if(p->flag4[Ip1JK]<0 && bc(i+1,j,k)==2)
 		{
         a->rhsvec.V[n] -= a->M.n[n]*p->Uo*p->DXP[IP1];
-		//a->M.p[n] += a->M.n[n];
+        a->M.p[n] += a->M.n[n];
 		a->M.n[n] = 0.0;
 		}
 		
