@@ -27,9 +27,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"solver2D.h"
 #include"sflow_iweno_hj.h"
 
+
 #define HP (fabs(b->hp(i,j))>1.0e-20?b->hp(i,j):1.0e20)
 
 sflow_turb_kw_IM1::sflow_turb_kw_IM1(lexer* p) : sflow_turb_io(p), kn(p), wn(p), Pk(p), S(p), ustar(p), cf(p),
+                                                 wallf(p), Vw(p), Qw(p),
                                                  kw_alpha(5.0/9.0), kw_beta(3.0/40.0),kw_sigma_k(2.0),kw_sigma_w(2.0)
 {
     gcval_kin=20;
@@ -97,7 +99,7 @@ void sflow_turb_kw_IM1::eddyvisc(lexer* p, fdm2D *b, ghostcell *pgc)
 {
     SLICELOOP4
     b->eddyv(i,j) = MAX(MIN(MAX(kin(i,j)
-                        /pow(((eps(i,j))>(1.0e-20)?(eps(i,j)):(1.0e20)),0.5),0.0),fabs(p->T31*kin(i,j))/S(i,j)),
+                        /((eps(i,j))>(1.0e-20)?(eps(i,j)):(1.0e20)),0.0),fabs(p->T31*kin(i,j))/S(i,j)),
                         0.0001*p->W2);
 
 	pgc->gcsl_start4(p,b->eddyv,24);
@@ -108,8 +110,10 @@ void sflow_turb_kw_IM1::kin_source(lexer* p, fdm2D *b)
     count=0;
     SLICELOOP4
     {
-    b->M.p[count] += p->cmu / pow(((eps(i,j))>(1.0e-20)?(eps(i,j)):(1.0e20)),0.5);
+    if(wallf(i,j)==0)
+    b->M.p[count] +=  p->cmu * MAX(eps(i,j),0.0);
     
+    if(wallf(i,j)==0)
 	b->rhsvec.V[count]  += Pk(i,j)
                     
                         + (1.0/sqrt(fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20))*pow(ustar(i,j),3.0)/HP;
@@ -123,13 +127,11 @@ void sflow_turb_kw_IM1::omega_source(lexer* p, fdm2D *b)
     count=0;
     SLICELOOP4
     {
-    b->M.p[count] += 0.17 * MAX(pow(eps(i,j),0.5),0.0);
+    b->M.p[count] += kw_beta * MAX(eps(i,j),0.0);
 
-    b->rhsvec.V[count] +=  1.12 * (MAX(eps(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20)))*Pk(i,j)
+    b->rhsvec.V[count] +=   kw_alpha * (MAX(eps(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20)))*Pk(i,k)
     
-                       //+ (6.912/pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,1.5)*pow(ustar(i,j),4.0)*kin(i,j)/(HP*HP);
-                       
-                       + (7.184/(pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,1.5)) * (pow(ustar(i,j),3.0)/(HP*HP*HP));
+                       + (6.912/(pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,1.5)) * (pow(ustar(i,j),3.0)/(HP));
     ++count;
     }
 
@@ -153,7 +155,6 @@ void sflow_turb_kw_IM1::Pk_update(lexer* p, fdm2D *b, ghostcell *pgc)
     
     S(i,j) = sqrt(pow(dudx,2.0) + pow(dvdy,2.0) + 0.5*pow(dudy+dvdx,2.0));
     }
-    
 }
 
 void sflow_turb_kw_IM1::ustar_update(lexer* p, fdm2D *b, ghostcell *pgc)
@@ -172,19 +173,19 @@ void sflow_turb_kw_IM1::ustar_update(lexer* p, fdm2D *b, ghostcell *pgc)
     ustar(i,j) = sqrt(cf(i,j)*(uvel*uvel + vvel*vvel));
     }
     
-    /*
+    
     int n;
 	SLICELOOP4
 	wallf(i,j)=0;
 	
-	GC4LOOP
+	GCSL4LOOP
 	if(p->gcbsl4[n][4]==21)
 	{
 	i = p->gcbsl4[n][0];
 	j = p->gcbsl4[n][1];
 	
 	wallf(i,j)=1;
-	}*/
+	}
 }
 
 void sflow_turb_kw_IM1::timesource(lexer* p, fdm2D *b, slice &fn)
@@ -291,7 +292,7 @@ void sflow_turb_kw_IM1::wall_law_omega(lexer* p, fdm2D *b)
     
     SLICELOOP4
     if(p->flagslice4[Im1J]<0 || p->flagslice4[Ip1J]<0 || p->flagslice4[IJm1]<0 || p->flagslice4[IJp1]<0)
-    eps(i,j) = (kin(i,j)>(0.0)?(kin(i,j)):(0.0)) / (0.4*0.4*dist*dist*pow(p->cmu, 0.25));
+    eps(i,j) = pow((kin(i,j)>(0.0)?(kin(i,j)):(0.0)),0.5) / (0.4*dist*pow(p->cmu, 0.25));
     
     
     n=0;
