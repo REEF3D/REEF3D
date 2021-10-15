@@ -24,6 +24,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
+
+void sixdof_df_object::rk3(lexer *p, fdm *a, ghostcell *pgc, double alpha, double gamma, double zeta)
+{
+    get_trans(p,a,pgc, dp_, dc_, p_, c_);    
+    get_rot(dh_, de_, h_, e_);
+
+    p_ = p_ + gamma*p->dt*dp_ + zeta*p->dt*pk_;
+    c_ = c_ + gamma*p->dt*dc_ + zeta*p->dt*ck_;
+    h_ = h_ + gamma*p->dt*dh_ + zeta*p->dt*hk_;
+    e_ = e_ + gamma*p->dt*de_ + zeta*p->dt*ek_;
+    
+    pk_ = dp_;
+    ck_ = dc_;
+    hk_ = dh_;
+    ek_ = de_;
+}
+
+/*
 void sixdof_df_object::abam4(lexer *p, fdm *a, ghostcell *pgc, double alpha)
 {
     if (alpha == 1.0)
@@ -131,23 +149,6 @@ void sixdof_df_object::rk2(lexer *p, fdm *a, ghostcell *pgc, double alpha)
         de_ = dek_;
     }
 }
-
-void sixdof_df_object::rk3(lexer *p, fdm *a, ghostcell *pgc, double alpha, double gamma, double zeta)
-{
-    get_trans(p,a,pgc, dp_, dc_, p_, c_);    
-    get_rot(dh_, de_, h_, e_);
-
-    p_ = p_ + gamma*p->dt*dp_ + zeta*p->dt*pk_;
-    c_ = c_ + gamma*p->dt*dc_ + zeta*p->dt*ck_;
-    h_ = h_ + gamma*p->dt*dh_ + zeta*p->dt*hk_;
-    e_ = e_ + gamma*p->dt*de_ + zeta*p->dt*ek_;
-    
-    pk_ = dp_;
-    ck_ = dc_;
-    hk_ = dh_;
-    ek_ = de_;
-}
-
 
 void sixdof_df_object::rk4(lexer *p, fdm *a, ghostcell *pgc, double alpha)
 {
@@ -314,3 +315,4 @@ Eigen::Vector4d sixdof_df_object::am4_4
     
     return am4_4;
 }
+*/
