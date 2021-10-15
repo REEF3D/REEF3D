@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-void mooring_dynamic::setExternalLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matrix3Xd& c_, const Matrix3Xd& cdot_, const Matrix4Xd& q_, const Matrix4Xd& qdot_)
+void mooring_dynamic::setConstantLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matrix3Xd& c_, const Matrix3Xd& cdot_, const Matrix4Xd& q_, const Matrix4Xd& qdot_)
 {
     double zg = 0.0;
     double cd_t = 0.5;
@@ -39,7 +39,7 @@ void mooring_dynamic::setExternalLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const
     double t_x, t_y, t_z, t_mag, v_x, v_y, v_z, vn_x, vn_y, vn_z, vn_mag, v_t;
     double a_t, a_x, a_y, a_z, an_x, an_y, an_z;
         
-    double Fb = -9.81*rho_c*A*(rho_c - 1000)/rho_c;
+    double Fb = -9.81*(rho_c - 1000)/rho_c;
 
     for (int i = 0; i < Ne+1; i++)
     {
@@ -106,18 +106,38 @@ void mooring_dynamic::setExternalLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const
     }
 }
 
-void mooring_dynamic::setFieldBC(Matrix3Xd& c_, Matrix3Xd& cdot_, Matrix4Xd& q_, Matrix4Xd& qdot_, double time)
+void mooring_dynamic::setFieldBC(Matrix3Xd& c_, Matrix3Xd& cdot_, Matrix4Xd& q_, Matrix4Xd& q0_, Matrix4Xd& qdot_, Matrix3Xd& f_, Matrix4Xd& m0_, Matrix3Xd& rhs_cdot_, double time , int ind)
 {
-	double delta_tm = t_mooring - t_mooring_n;
-    double tau = time - t_mooring_n;
+    if (ind == 0)
+    {
+        double delta_tm = t_mooring - t_mooring_n;
+        double tau = time - t_mooring_n;
 
-    // Quadratic interpolation
-    //a_O = 1.0/(1.0/2.0*delta_tm*delta_tm)*(fixPoint - c_moor_n.col(Ne) - cdot_n.col(Ne)*delta_tm);
-	//cdot_.col(Ne) = cdot_n.col(Ne) + a_O*tau;
-	//c_.col(Ne) = c_moor_n.col(Ne) + cdot_n.col(Ne)*tau + 0.5*a_O*tau*tau;
+        // Quadratic interpolation
+        //a_O = 1.0/(1.0/2.0*delta_tm*delta_tm)*(fixPoint - c_moor_n.col(Ne) - cdot_n.col(Ne)*delta_tm);
+        //cdot_.col(Ne) = cdot_n.col(Ne) + a_O*tau;
+        //c_.col(Ne) = c_moor_n.col(Ne) + cdot_n.col(Ne)*tau + 0.5*a_O*tau*tau;
 
-    // Linear interpolation in solver
-    cdot_.col(Ne) = (fixPoint - c_moor_n.col(Ne))/delta_tm;
+        // Linear interpolation in solver
+        cdot_.col(Ne) = (fixPoint - c_moor_n.col(Ne))/delta_tm;
+    }
+    else if (ind == 1)
+    {
+        // BC: Free translatory end with vanishing forces
+        // f.col(Ne+1) = -f.col(Ne); // correct?
+    }
+    else if (ind == 2)
+    {
+        // BC: Free rotatory end with vanishing moments 
+        m0_.col(0) = Eigen::Vector4d::Zero(4); q_.col(0) = q_.col(1); q0_.col(0) = q0_.col(1); 
+        m0_.col(Ne) = Eigen::Vector4d::Zero(4); q_.col(Ne+1) = q_.col(Ne); q0_.col(Ne+1) = q0_.col(Ne);
+    }
+    else if (ind == 3)
+    {
+        // BC: Fixed translatory end
+        rhs_cdot_.col(0) = Eigen::Vector3d::Zero(3);
+        rhs_cdot_.col(Ne) = Eigen::Vector3d::Zero(3);
+    }
 }
 
 

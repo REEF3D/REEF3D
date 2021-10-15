@@ -53,9 +53,11 @@ public:
     ~beam();
     
     virtual void iniMaterial();
-    virtual void meshBeam(const Eigen::VectorXd&, const Eigen::VectorXd&, const Eigen::VectorXd&);
-    virtual void setExternalLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&);
-    virtual void setFieldBC(Matrix3Xd&, Matrix3Xd&, Matrix4Xd&, Matrix4Xd&, double);
+    virtual void meshBeam(const Eigen::VectorXd&, const Eigen::VectorXd&, const Eigen::VectorXd&, const Eigen::Vector3d&);
+    virtual void meshBeam(double, double, double, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector3d&);
+    virtual void setConstantLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&);
+    virtual void setVariableLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&, const double);
+    virtual void setFieldBC(Matrix3Xd&, Matrix3Xd&, Matrix4Xd&, Matrix4Xd&, Matrix4Xd&, Matrix3Xd&, Matrix4Xd&, Matrix3Xd&, double, int);
     virtual void print(lexer *p);
 
     void iniDamping(double, double, double, double, double, double, bool);
@@ -67,10 +69,14 @@ public:
     void getTransVel(Matrix3Xd& cdot_){cdot_ = cdot;};
     void getRotPos(Matrix4Xd& q_){q_ = q;};
     void getRotVel(Matrix4Xd& qdot_){qdot_ = qdot;};
+    
+    Eigen::Vector3d getOmega(const Eigen::Vector4d&, const Eigen::Vector4d&);
+    Eigen::Vector3d getOmega0(const Eigen::Vector4d&, const Eigen::Vector4d&);
+    Eigen::Vector3d rotVec(const Eigen::Vector3d&, const Eigen::Vector4d&);
 
     double getTensLoc(int n){return f0.col(n).norm();};
     Eigen::Vector3d getTensGlob(int n){return R(q.col(n+1))*f0.col(n).tail(3);};
-
+    
 private:
 
     // Initialisation

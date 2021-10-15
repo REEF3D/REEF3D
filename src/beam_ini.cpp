@@ -124,7 +124,46 @@ void beam::iniFields()
     compression = false;
 }
 
-void beam::meshBeam(const Eigen::VectorXd& x_, const Eigen::VectorXd& y_, const Eigen::VectorXd& z_)
+void beam::meshBeam(double x_ini, double y_ini, double z_ini, Eigen::Vector3d& d1, Eigen::Vector3d& d2, Eigen::Vector3d& d3)
+{
+    // Direction vectors
+    d1.normalize();
+    d2.normalize();
+    d3.normalize();
+            
+    double sp = (d3(1)*d2(2)-d3(2)*d2(1))*d1(0) +(d3(2)*d2(0)-d3(0)*d2(2))*d1(1)+(d3(0)*d2(1)-d3(1)*d2(0))*d1(2);
+    if (sp < 0.0) d3 = -d3; 
+    
+    if( (1+d3(0)+d2(1)+d1(2)) < 1e-3)
+    {
+        d3 = -d3;
+        d2 = -d2;
+    }
+    
+    // Coordinates
+    dZ = L/Ne; 
+    for (int i=0; i < Ne+1; i++)
+    {
+        c.col(i) << x_ini + d1(0), y_ini + d1(1), z_ini + dZ*i*d1(2);
+    }
+    c0 = c; 
+
+    // Quaternions
+    for (int i=0; i < Ne+2; i++)
+    {
+        q(0,i) = sqrt( 1 + d3(0) + d2(1) + d1(2) )/2;
+        q(1,i) = ( d1(1) - d2(2) )/(4*q(0,i));
+        q(2,i) = ( d3(2) - d1(0) )/(4*q(0,i));
+        q(3,i) = ( d2(0) - d3(1) )/(4*q(0,i));
+        q.col(i)= qconj(q.col(i));
+    }
+    q0=q;
+
+    // Fixed end quaternion
+    qb = q.col(0);
+}
+
+void beam::meshBeam(const Eigen::VectorXd& x_, const Eigen::VectorXd& y_, const Eigen::VectorXd& z_, const Eigen::Vector3d& d0)
 {
     // Coordinates
     c.row(0) = x_;
@@ -134,8 +173,6 @@ void beam::meshBeam(const Eigen::VectorXd& x_, const Eigen::VectorXd& y_, const 
 
     // Quaternions
     // R*q rotates point into body-fixed coordinate system
-    Eigen::Vector3d d0;  d0 << 1, 0, 0;
-
     for (int i=1; i < Ne+1; i++)
     {
         Eigen::Vector3d dc = (c.col(i) - c.col(i-1)).normalized(); 

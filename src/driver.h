@@ -51,6 +51,7 @@ class potential;
 class heat;
 class benchmark;
 class sixdof;
+class fsi;
 class vrans;
 class net;
 class data;
@@ -173,6 +174,7 @@ public:
 	potential* potflow;
 	benchmark* pbench;
 	sixdof* p6dof;
+	fsi* pfsi;
 	vrans* pvrans;
     vector<net*> pnet;
 	data *pdata;

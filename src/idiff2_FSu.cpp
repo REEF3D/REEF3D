@@ -30,7 +30,6 @@ idiff2_FS::idiff2_FS(lexer* p)
 	gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;
-	
 }
 
 idiff2_FS::~idiff2_FS()
