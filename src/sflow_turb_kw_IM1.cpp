@@ -27,9 +27,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"solver2D.h"
 #include"sflow_iweno_hj.h"
 
+
 #define HP (fabs(b->hp(i,j))>1.0e-20?b->hp(i,j):1.0e20)
 
 sflow_turb_kw_IM1::sflow_turb_kw_IM1(lexer* p) : sflow_turb_io(p), kn(p), wn(p), Pk(p), S(p), ustar(p), cf(p),
+                                                 wallf(p), Vw(p), Qw(p),
                                                  kw_alpha(5.0/9.0), kw_beta(3.0/40.0),kw_sigma_k(2.0),kw_sigma_w(2.0)
 {
     gcval_kin=20;
@@ -55,6 +57,7 @@ void sflow_turb_kw_IM1::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convecti
     pdiff->diff_scalar(p,b,pgc,psolv,kin,kw_sigma_k,1.0);
 	kin_source(p,b);
 	timesource(p,b,kn);
+    wall_law_kin(p,b);
     psolv->start(p,pgc,kin,b->M,b->xvec,b->rhsvec,4,gcval_kin,p->T13);
     pgc->gcsl_start4(p,kin,gcval_kin);
 	p->kintime=pgc->timer()-starttime;
@@ -69,6 +72,7 @@ void sflow_turb_kw_IM1::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convecti
     pdiff->diff_scalar(p,b,pgc,psolv,eps,kw_sigma_w,1.0);
 	omega_source(p,b);
 	timesource(p,b,wn);
+    wall_law_omega(p,b);
 	psolv->start(p,pgc,eps,b->M,b->xvec,b->rhsvec,4,gcval_eps,p->T13);
     pgc->gcsl_start4(p,eps,gcval_eps);
 	p->epstime=pgc->timer()-starttime;
@@ -106,8 +110,10 @@ void sflow_turb_kw_IM1::kin_source(lexer* p, fdm2D *b)
     count=0;
     SLICELOOP4
     {
-    b->M.p[count] += p->cmu * MAX(eps(i,j),0.0);
+    if(wallf(i,j)==0)
+    b->M.p[count] +=  p->cmu * MAX(eps(i,j),0.0);
     
+    if(wallf(i,j)==0)
 	b->rhsvec.V[count]  += Pk(i,j)
                     
                         + (1.0/sqrt(fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20))*pow(ustar(i,j),3.0)/HP;
@@ -123,9 +129,11 @@ void sflow_turb_kw_IM1::omega_source(lexer* p, fdm2D *b)
     {
     b->M.p[count] += kw_beta * MAX(eps(i,j),0.0);
 
-    b->rhsvec.V[count] +=  kw_alpha * (MAX(eps(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20)))*Pk(i,j)
+    b->rhsvec.V[count] +=   kw_alpha * (MAX(eps(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20)))*Pk(i,k)
     
-                       + (6.912/pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,1.5)*pow(ustar(i,j),4.0)*p->cmu*kin(i,j)/(HP*HP);
+                       + (3.456/(pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,1.0)) * (pow(ustar(i,j),4.0)/(HP*HP));
+                       
+                       //+ (ceg*ce2/pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,0.5)*pow(ustar(i,j),4.0)/(HP*HP);
     ++count;
     }
 
@@ -140,23 +148,19 @@ void sflow_turb_kw_IM1::Pk_update(lexer* p, fdm2D *b, ghostcell *pgc)
     dudx=dvdy=dudy=dvdx=0.0;
     
     
-	//if(p->flagslice1[IJ]>0 && p->flagslice1[Im1J]>0)
     dudx = (b->P(i,j) - b->P(i-1,j))/(p->DXM);
-    
-    //if(p->flagslice2[IJ]>0 && p->flagslice2[IJm1]>0)
     dvdy = (b->Q(i,j) - b->Q(i,j-1))/(p->DXM);
-    
-    //if(p->flagslice1[IJp1]>0 && p->flagslice1[Im1Jp1]>0 && p->flagslice1[IJm1]>0 && p->flagslice1[Im1Jm1]>0)
     dudy = (0.5*(b->P(i,j+1)+b->P(i-1,j+1)) - 0.5*(b->P(i,j-1)+b->P(i-1,j-1)))/(2.0*p->DXM);
-    
-    //if(p->flagslice2[Ip1J]>0 && p->flagslice2[Ip1Jm1]>0 && p->flagslice2[Im1J]>0 && p->flagslice2[Im1Jm1]>0)
     dvdx = (0.5*(b->Q(i+1,j)+b->Q(i+1,j-1)) - 0.5*(b->Q(i-1,j)+b->Q(i-1,j-1)))/(2.0*p->DXM);
 
     Pk(i,j) = b->eddyv(i,j)*(2.0*pow(dudx,2.0) + 2.0*pow(dvdy,2.0) + pow(dudy+dvdx,2.0));
     
     S(i,j) = sqrt(pow(dudx,2.0) + pow(dvdy,2.0) + 0.5*pow(dudy+dvdx,2.0));
-    }
     
+    Qw(i,j) = sqrt(MAX(0.5*(dudy - dvdx)*(dvdx - dudy),0.0));
+
+
+    }
 }
 
 void sflow_turb_kw_IM1::ustar_update(lexer* p, fdm2D *b, ghostcell *pgc)
@@ -174,6 +178,20 @@ void sflow_turb_kw_IM1::ustar_update(lexer* p, fdm2D *b, ghostcell *pgc)
     
     ustar(i,j) = sqrt(cf(i,j)*(uvel*uvel + vvel*vvel));
     }
+    
+    
+    int n;
+	SLICELOOP4
+	wallf(i,j)=0;
+	
+	GCSL4LOOP
+	if(p->gcbsl4[n][4]==21)
+	{
+	i = p->gcbsl4[n][0];
+	j = p->gcbsl4[n][1];
+	
+	wallf(i,j)=1;
+	}
 }
 
 void sflow_turb_kw_IM1::timesource(lexer* p, fdm2D *b, slice &fn)
@@ -273,7 +291,7 @@ void sflow_turb_kw_IM1::wall_law_kin(lexer* p, fdm2D *b)
 
 }
 
-void sflow_turb_kw_IM1::wall_law_eps(lexer* p, fdm2D *b)
+void sflow_turb_kw_IM1::wall_law_omega(lexer* p, fdm2D *b)
 {
 
     double dist=0.5*p->DXM;
