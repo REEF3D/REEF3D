@@ -52,6 +52,7 @@
           <File Name="ptf_bed_update.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
+          <File Name="ptf_laplace_cds2_cc.h"/>
           <File Name="ptf_laplace_cds4.h"/>
           <File Name="ptf_laplace_cds2.h"/>
           <File Name="ptf_laplace.h"/>
@@ -1006,6 +1007,7 @@
           <File Name="ptf_bed_update.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
+          <File Name="ptf_laplace_cds2_cc.cpp"/>
           <File Name="ptf_laplace_cds4.cpp"/>
           <File Name="ptf_laplace_cds2.cpp"/>
         </VirtualDirectory>
