@@ -158,29 +158,79 @@ void ptf_laplace_cds2_cc::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv,
             // south
             if(p->flag4[Im1JK]==AIR)
             {
-            a->rhsvec.V[n] -= a->M.s[n]*f(i-1,j,k);
-            a->M.s[n] = 0.0;
+                // -----------
+                if(p->A323==1)
+                {
+                a->rhsvec.V[n] -= a->M.s[n]*f(i-1,j,k);
+                a->M.s[n] = 0.0;
+                }
+                
+                // -----------
+                if(p->A323==2)
+                {
+                teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k)));
+                
+                cout<<i<<" Teta: "<<teta<<" a->phi(i,j,k)"<<a->phi(i,j,k)<<" a->phi(i-1,j,k): "<<a->phi(i-1,j,k)<<endl;
+                
+                a->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                a->M.p[n] += 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
+                           
+                a->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                a->M.s[n] -= 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
+                
+                a->rhsvec.V[n] -= a->M.s[n]*Fifsf(i-1,j);
+                a->M.s[n] = 0.0;
+                }
             }
 
             // north
             if(p->flag4[Ip1JK]==AIR)
             {
-            a->rhsvec.V[n] -= a->M.n[n]*f(i+1,j,k);
-            a->M.n[n] = 0.0;
+                // -----------
+                if(p->A323==1)
+                {
+                a->rhsvec.V[n] -= a->M.n[n]*f(i+1,j,k);
+                a->M.n[n] = 0.0;
+                }
+                
+                // -----------
+                if(p->A323==2)
+                {
+                teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k)));
+                
+                //cout<<" Teta: "<<teta<<" a->phi(i,j,k)"<<a->phi(i,j,k)<<" a->phi(i+1,j,k): "<<a->phi(i+1,j,k)<<endl;
+                
+                a->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
+                a->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
+                
+                a->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
+                a->M.n[n] -= 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
+                
+                a->rhsvec.V[n] -= a->M.n[n]*Fifsf(i+1,j);
+                a->M.n[n] = 0.0;
+                }
             }
 
             // east
             if(p->flag4[IJm1K]==AIR)
             {
-            a->rhsvec.V[n] -= a->M.e[n]*f(i,j-1,k);
-            a->M.e[n] = 0.0;
+                // -----------
+                if(p->A323==1)
+                {
+                a->rhsvec.V[n] -= a->M.e[n]*f(i,j-1,k);
+                a->M.e[n] = 0.0;
+                }
             }
 
             // west
             if(p->flag4[IJp1K]==AIR)
             {
-            a->rhsvec.V[n] -= a->M.w[n]*f(i,j+1,k);
-            a->M.w[n] = 0.0;
+                // -----------
+                if(p->A323==1)
+                {
+                a->rhsvec.V[n] -= a->M.w[n]*f(i,j+1,k);
+                a->M.w[n] = 0.0;
+                }
             }
 
             // Free Surface BC
@@ -193,28 +243,23 @@ void ptf_laplace_cds2_cc::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv,
                 a->M.t[n] = 0.0;
                 }
                 
+
                 // -----------
                 if(p->A323==2)
                 {
-                double lsv0,lsv1;
+                teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
+                
+                //cout<<" Teta: "<<teta<<" a->phi(i,j,k)"<<a->phi(i,j,k)<<" a->phi(i+1,j,k): "<<a->phi(i+1,j,k)<<endl;
+                
 
-                lsv0 = fabs(a->phi(i,j,k));
-                lsv1 = fabs(a->phi(i,j,k+1));
-
-                lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20;
-
-                a->rhsvec.V[n] -= a->M.t[n]*Fifsf(i,j)*(1.0 + lsv1/lsv0);
-                a->M.p[n] -= a->M.t[n]*lsv1/lsv0;
+                a->M.p[n] -= 1.0/(p->DZP[KP]*p->DZN[KP]);
+                a->M.p[n] += 1.0/(teta*p->DZP[KP]*p->DZN[KP]);
+                           
+                a->M.t[n] += 1.0/(p->DZP[KP]*p->DZN[KP]);
+                a->M.t[n] -= 1.0/(teta*p->DZP[KP]*p->DZN[KP]);
+                
+                a->rhsvec.V[n] -= a->M.t[n]*Fifsf(i,j);
                 a->M.t[n] = 0.0;
-                }
-                
-                // -----------
-                if(p->A323==3)
-                {
-                double teta;
-                
-                teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i+1,j,k))-fabs(a->phi(i,j,k)));
-
                 }
             }
 
