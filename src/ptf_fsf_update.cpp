@@ -25,12 +25,16 @@ along with this program; if not, see <http://www.gnu.org/liceonephases/>.
 #include"ioflow.h"
 #include"onephase.h"
 #include"slice.h"
+#include"reinifluid_RK3.h"
+
 
 ptf_fsf_update::ptf_fsf_update(lexer *p, fdm *a, ghostcell *pgc)
 {
     gcval_u = 10;
     gcval_v = 11;
     gcval_w = 12;
+    
+    preini = new reinifluid_RK3(p,1);
 }
 
 ptf_fsf_update::~ptf_fsf_update()
@@ -43,6 +47,8 @@ void ptf_fsf_update::fsfupdate(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, 
     // update phi
     FLUIDLOOP
     a->phi(i,j,k) = eta(i,j) + p->phimean - p->pos_z();
+    
+    preini->start(a,p, a->phi, pgc, pflow);
 
     pgc->start4(p,a->phi,50);
 

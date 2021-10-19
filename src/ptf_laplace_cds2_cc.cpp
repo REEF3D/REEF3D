@@ -168,9 +168,11 @@ void ptf_laplace_cds2_cc::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv,
                 // -----------
                 if(p->A323==2)
                 {
+                //teta = fabs(a->phi(i,j,k))/p->DXP[IM1] + 0.0001*p->DXN[IP]/p->DXP[IM1];
+                
                 teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k)));
                 
-                cout<<i<<" Teta: "<<teta<<" a->phi(i,j,k)"<<a->phi(i,j,k)<<" a->phi(i-1,j,k): "<<a->phi(i-1,j,k)<<endl;
+                cout<<i<<" Teta: "<<teta<<" a->phi(i,j,k): "<<a->phi(i,j,k)<<" a->phi(i-1,j,k): "<<a->phi(i-1,j,k)<<" p->DXP[IM1]: "<<p->DXP[IM1]<<endl;
                 
                 a->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
                 a->M.p[n] += 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
@@ -178,7 +180,7 @@ void ptf_laplace_cds2_cc::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv,
                 a->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
                 a->M.s[n] -= 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
                 
-                a->rhsvec.V[n] -= a->M.s[n]*Fifsf(i-1,j);
+                a->rhsvec.V[n] -= a->M.s[n]*f(i-1,j,k);
                 a->M.s[n] = 0.0;
                 }
             }
@@ -196,6 +198,8 @@ void ptf_laplace_cds2_cc::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv,
                 // -----------
                 if(p->A323==2)
                 {
+                //teta = fabs(a->phi(i,j,k))/p->DXP[IP] + 0.0001*p->DXN[IP]/p->DXP[IP];
+                
                 teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k)));
                 
                 //cout<<" Teta: "<<teta<<" a->phi(i,j,k)"<<a->phi(i,j,k)<<" a->phi(i+1,j,k): "<<a->phi(i+1,j,k)<<endl;
@@ -206,7 +210,7 @@ void ptf_laplace_cds2_cc::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv,
                 a->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
                 a->M.n[n] -= 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
                 
-                a->rhsvec.V[n] -= a->M.n[n]*Fifsf(i+1,j);
+                a->rhsvec.V[n] -= a->M.n[n]*f(i+1,j,k);
                 a->M.n[n] = 0.0;
                 }
             }
