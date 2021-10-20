@@ -41,6 +41,7 @@ private:
     
     double Bx,By;
     double ab,denom;
+    double teta;
     
     
     sliceint4 bc;

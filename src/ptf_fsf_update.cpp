@@ -48,7 +48,7 @@ void ptf_fsf_update::fsfupdate(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, 
     FLUIDLOOP
     a->phi(i,j,k) = eta(i,j) + p->phimean - p->pos_z();
     
-    preini->start(a,p, a->phi, pgc, pflow);
+    //preini->start(a,p, a->phi, pgc, pflow);
 
     pgc->start4(p,a->phi,50);
 
