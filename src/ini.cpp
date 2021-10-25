@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2021 Hans Bihs
- * 
+ *
 This file is part of REEF3D.
 
 REEF3D is free software; you can redistribute it and/or modify it
@@ -26,25 +26,25 @@ void lexer::ini_default()
     // Hydrodynamic Models
     A10=6;       // int turn on wave models
     A209=2;      // int interpolation sweeps for bed
-	A210=3;		  // int time scheme for SFLOW velocities
-	A211=4;		  // int convection scheme for SLOW velocities
-	A212=0;		  // int diffusion treatment for SLOW velocities
+	  A210=3;		  // int time scheme for SFLOW velocities
+	  A211=4;		  // int convection scheme for SLOW velocities
+	  A212=0;		  // int diffusion treatment for SLOW velocities
     A214=1;      // int convection for vertical velocity
     A216=2;      // int convection velocity
     A217=2;      // int slip or no-slip boundary conditions
     A218=0;      // int turn on roughness
     A219=1;      // int additional courant number constraint
-	A220=1;		  // int pressure scheme for SFLOW
+	  A220=1;		  // int pressure scheme for SFLOW
     A223=0.5;    // double blending factor pressure gradient
     A230=0;      // int turn on Boussinesq wave model
-	A240=1;      // int FSF algorithm SFLOW
-	A241=1;		  // int discretization of water level SFLOW
-	A242=0;		  // int hydostatic pressure for shallow areas
+	  A240=1;      // int FSF algorithm SFLOW
+	  A241=1;		  // int discretization of water level SFLOW
+  	A242=0;		  // int hydostatic pressure for shallow areas
     A243=1;      // int turn on wetting-drying
-    A244_val=0.00005; // double absolute wetting criterion value
+      A244_val=0.00005; // double absolute wetting criterion value
     A244=1;      // int absolute wetting criterion
     A245=0;      // int dx-based relative wetting citerion
-    A245_val=0.001; // double dx-based relative wetting citerion value
+      A245_val=0.001; // double dx-based relative wetting citerion value
     A246=1;      // int turn on breaking
     A247=0.6;    // double breaking parameter alpha
     A248=0;      // int turn on breaking persistence
@@ -53,7 +53,7 @@ void lexer::ini_default()
     A260=0;      // int turbulence model
     A261=0.267;  // double length scale factor
     A262=0.0667; // double parabolic turbulence model factor
-    
+
     A310=3;		  // int time scheme for FNPF velocities
     A311=5;		  // int convection scheme for FNPF velocities
     A312=2;      // int discretization for second-order gradient
@@ -67,10 +67,10 @@ void lexer::ini_default()
     A342=0.0;    // double coastline damping absolute distance
     A343=1;      // int turn on wetting-drying
     A344=1;      // int absolute wetting criterion
-    A344_val=0.00005; // double absolute wetting criterion value
+      A344_val=0.00005; // double absolute wetting criterion value
     A345=0;      // int dx-based relative wetting citerion
-    A345_val=0.001; // double dx-based relative wetting citerion value
-    A346=0.0;    // double viscosity damping within the coastline 
+      A345_val=0.001; // double dx-based relative wetting citerion value
+    A346=0.0;    // double viscosity damping within the coastline
     A350=0;      // int turn on breaking (which method)
     A351=0;      // int type of breaking detection (deep / shallow)
     A352=1;      // int additional filtering to viscosity based breaking
@@ -83,11 +83,11 @@ void lexer::ini_default()
     A365=1.86;   // double viscosity breaking wave
     A368=0;      // int breaking waves in numerical beach
     A369=1.86;   // double viscosity relaxation breaking wave
-    
-    
-    A410=1;      // int scheme eta       
+
+
+    A410=1;      // int scheme eta
     A440=1.6;    // double epsi for depth integration
-    
+
     // Boundary Conditions
 	B10=0;			// int wall laws velocities on/off
 	B20=2;			// int slip or no-slip boundary condition for velocity
@@ -105,14 +105,14 @@ void lexer::ini_default()
 	B61=2;            // int plain or logarithmic inflow profile
 	B70=0;       // double distance for use relaxation method for fixed water level
 	B71=0;       // double distance for use relaxation method for fixed water level ini
-    B74=3;		 // int crossection i-indice for the periodic boundary condition
+  B74=3;		 // int crossection i-indice for the periodic boundary condition
 	B75=1;		 // int type of outflow boundary conditions
 	B77=1;           // int outflow pressure controlled or free stream
 	B81=0;		 // int focussed wave parameter
-    B81_3=0.0;    // double unidirectional focused wave y is condisered 0
-    B82=1;      // int type of focus point and time calculation
+  B81_3=0.0;    // double unidirectional focused wave y is condisered 0
+  B82=1;      // int type of focus point and time calculation
 	B83=0.0025;  // double wave steepness parameter for focused breaking waves
-    B84=1;       // Peak enhance method
+  B84=1;       // Peak enhance method
 	B85=1;		 // int PM or JONSWAP spectrum for irregular waves
 	B86=10;		 // int number of regular waves for irregular wave generation
 	B87=0;		 // int give ws and we for irregular wave generation
@@ -126,47 +126,47 @@ void lexer::ini_default()
 	B93=0;          // int wave parameter wT
 	B93_1=0.0;      // double wave amplitude
 	B93_2=0.0;      // double wave period
-    B94=0;     // int set water depth for wave theory  
-    B94_wdt=0.0;    // double water depth for wave theory  
+  B94=0;     // int set water depth for wave theory
+    B94_wdt=0.0;    // double water depth for wave theory
 	B96_1=0.0;      // double dist1 for wave relax
 	B96_2=0.0;      // double dist2 for wave relax
 	B98=0;          // int type of wave generation
 	B99=0;			// int type of numerical beach
 	B101=0;        // int ramp function wave geneartion
 	B102=1.0;        // double factor ramp function wave generation
-    B105=0;            // int wave generation origin changed
- 	B105_1=0.0;        // double wave generation direction and line origin in Cartesian coordianate system 
+  B105=0;            // int wave generation origin changed
+ 	B105_1=0.0;        // double wave generation direction and line origin in Cartesian coordianate system
 	B105_2=0.0;        // double wave generation line x origin
-	B105_3=0.0;        // double wave generation line y origin 
+	B105_3=0.0;        // double wave generation line y origin
 	B106=0;			// int read wave generation origin
 	B107=0;			// int read numerical beach origin
-    B108=0;        // int read wave generation  origin
+  B108=0;        // int read wave generation  origin
     B111_zs=0.0;	// double flap start
     B111_ze=0.0;	// double flap end
     B112_zs=0.0;	// double flap start
     B112_z2=0.0;	// double flap2 end/flap2 start
-	B112_ze=1.0;	// double flag end
-    B115=0;         // int activate vertical velocity component for flap wavemaker theory
-    B116=1;         // int x or beta input for flap wavemaker theories
-    B117=0.0;		  // double starting time shift for timeseries input
-    B120=-90.0;       // doubel delta t for wave generation
+	  B112_ze=1.0;	// double flag end
+  B115=0;         // int activate vertical velocity component for flap wavemaker theory
+  B116=1;         // int x or beta input for flap wavemaker theories
+  B117=0.0;		  // double starting time shift for timeseries input
+  B120=-90.0;       // doubel delta t for wave generation
 	B121=1;        // int air velocity on/off in wave relaxation zone
-    B122=1.0;        // int air velocity on/off for active wave generation
-    B123=0.0;       // double flap AWA hinge location
-    B130=0;         // int directional spreading for irregular waves
-    B131=0.0;       // double main direction for multidirectional irregular waves
+  B122=1.0;        // int air velocity on/off for active wave generation
+  B123=0.0;       // double flap AWA hinge location
+  B130=0;         // int directional spreading for irregular waves
+  B131=0.0;       // double main direction for multidirectional irregular waves
     B132_s=-90.0;  // double start directional spreading
     B132_e= 90.0;  // double end directional spreading
-    B133=1;         // int number of direction intervals for spreading function
-    B134=-1.0;      // double shape parameter for spreading function
-    B135=10.0;       // double peak value
-    B136=1;         // int double summation method frequency vector 
-    B139=0;         // int seed number 
+  B133=1;         // int number of direction intervals for spreading function
+  B134=-1.0;      // double shape parameter for spreading function
+  B135=10.0;       // double peak value
+  B136=1;         // int double summation method frequency vector
+  B139=0;         // int seed number
 	B140_1=0.0;    // doube x1 numerical beach
 	B140_2=0.0;    // doube x2 numerical beach
 	B140_3=0.0;    // doube beta numerical beach
-    B160=5;        // int number of vertical layers for 2D wave generation
-    B170=1024;     // int number of Fourier modes for the generation of steady surface gravity waves 
+  B160=5;        // int number of vertical layers for 2D wave generation
+  B170=1024;     // int number of Fourier modes for the generation of steady surface gravity waves
 	B180=0;           // int gravity waves
 	B181_1=0.0;     // double x-acceleration amplitude
 	B181_2=0.0;      //double x-acceleration frequency
@@ -187,44 +187,44 @@ void lexer::ini_default()
 	B192_2=0.0;		// double frequency forrotation around y-axis
 	B192_3=0.0;		// double x-coordinate for rotation around y-axis
 	B192_4=0.0;		// double z-coordinate for rotation around y-axis
-	B194_s=-1.0e9; // double start rotation
-	B194_e= 1.0e9; // double end rotation
-	B240=0;			// int porous media  
+	  B194_s=-1.0e9; // double start rotation
+	  B194_e= 1.0e9; // double end rotation
+	B240=0;			// int porous media
 	B241=1;			// int porous media in x-direction
 	B242=1;			// int porous media in y-direction
 	B243=1;			// int porous media in z-direction
-    B260=0.0;       // double C coefficient for VRANS
-    B264=1.0e20;    // double KC number for VRANS
-    B267=0.001;     // double d50 for VRANS
+  B260=0.0;       // double C coefficient for VRANS
+  B264=1.0e20;    // double KC number for VRANS
+  B267=0.001;     // double d50 for VRANS
 	B269=0;			// int VRANS on/off -> assigned as 1 for VRANS Structure, 2 for Vegetation, 3 for Net interaction
-    B270=0;         // int VRANS porous media box
-    B274=0;         // int VRANS porous media vertical cylinder
-    B281=0;         // int VRANS porous media wedge in x-direction
-    B291=0;         // int VRANS porous media plate in x-direction
-    B308=1;         // int porosity effects on fluid acceleration for vegetation
-    B309=2.0;       // double Cm for vegetation
-    B310=0;         // int VRANS vegetation box
-    B411=0;        // int patchBC discharge
-    B412=0;        // int patchBC pressure BC
-    B413=0;        // int patchBC waterlevel
-    B414=0;        // int patchBC perpendicular velocity
-    B415=0;        // int patchBC velocity components
-    B416=0;        // int patchBC horizontal inflow angle
-    B417=0;        // int patchBC inflow normals
-    B418=0;        // int patchBC outflow pressure condition
-    B421=0;        // int patchBC hydrograph discharge
-    B422=0;        // int patchBC hydrograph waterlevel 
-    B440=0;        // int patch BC inflow line
+  B270=0;         // int VRANS porous media box
+  B274=0;         // int VRANS porous media vertical cylinder
+  B281=0;         // int VRANS porous media wedge in x-direction
+  B291=0;         // int VRANS porous media plate in x-direction
+  B308=1;         // int porosity effects on fluid acceleration for vegetation
+  B309=2.0;       // double Cm for vegetation
+  B310=0;         // int VRANS vegetation box
+  B411=0;        // int patchBC discharge
+  B412=0;        // int patchBC pressure BC
+  B413=0;        // int patchBC waterlevel
+  B414=0;        // int patchBC perpendicular velocity
+  B415=0;        // int patchBC velocity components
+  B416=0;        // int patchBC horizontal inflow angle
+  B417=0;        // int patchBC inflow normals
+  B418=0;        // int patchBC outflow pressure condition
+  B421=0;        // int patchBC hydrograph discharge
+  B422=0;        // int patchBC hydrograph waterlevel
+  B440=0;        // int patch BC inflow line
 	B441=0;			// int rectangular inflow patch BC
-    B442=0;			// int circular inflow patch BC
-	
+  B442=0;			// int circular inflow patch BC
+
 	// Concentration
 	C1=10.0;		// double density concentration in water
-	C2=0.0;			// double viscosity water + concentration	
+	C2=0.0;			// double viscosity water + concentration
 	C3=10.0;		// double density concentration in air
 	C4=0.0;			// double viscosity air + concentration
 	C5=1.0;			// double Schmidt number
-    C9=1;          // int only phase 1 concentration
+  C9=1;          // int only phase 1 concentration
 	C10=0;          // int concentration transfer on/off
 	C15=0;          // int concentration convection
 	C20=0;          // int concentration diffusion
@@ -248,18 +248,18 @@ void lexer::ini_default()
 
     // Discretization
 	D10=4;			// int convection scheme
-	D11=2;			// int convection velocity scheme   
+	D11=2;			// int convection velocity scheme
 	D20=2;			// int diffusion scheme
 	D21=0;			// int print out implicit diffusion time and iterations
 	D29=1.0e-5;     // double stopping criteria implicit diffusion
 	D30=1;			// int pressure scheme
-    D38=0;          // int add hydrostatic pressure gradients to NSE 
+    D38=0;          // int add hydrostatic pressure gradients to NSE
     D39=0;          // int activate 2nd-order pressure correction for PJM CORR
-	
+
     // Free Surface
 	F10=2;			    // int free surface scheme
     F11=0;              // int mom-fsf coupled solver
-	F19=1.0e-5;     	// double stopping criteria level set 
+	F19=1.0e-5;     	// double stopping criteria level set
 	F30=0;			    // int level set scheme
 	F31=0;             // particle level set
 	F32=64;			// number of particles per cell
@@ -333,7 +333,7 @@ void lexer::ini_default()
     H4=0;           // int use beta coeff
     H4_beta1=0.0;   // double beta1
     H4_beta2=0.0;   // double beta2
-    H9=1;           // int air-water assignment    
+    H9=1;           // int air-water assignment
 	H10=0;          // int heat transfer on/off
     H15=5;          // int convection for heat transfer
 	H50_1=20.0; // double temperature 1
@@ -351,7 +351,7 @@ void lexer::ini_default()
 	H58_1=0.0;      // x0, sphere
 	H58_2=0.0;      // y0
 	H58_3=0.0;      // z0
-	H58_4=0.0;      // r    
+	H58_4=0.0;      // r
     H61=0;          // int heat bc
     H62=0;          // int heat bc
     H63=0;          // int heat bc
@@ -389,7 +389,7 @@ void lexer::ini_default()
     // Numerics
 	N10=14;			// int linear poisson solver
 	N11=11;         // int precondioner
-	N12=1;         // 
+	N12=1;         //
     N21=0;         // int PFMG skip relax
     N22=3;         // int PFMG relax type
     N23=0;         // int PFMG RAP type
@@ -438,7 +438,7 @@ void lexer::ini_default()
 	P54=10;			  // int ith iteration wsfline file  print out
 	P55=-1.0;		  // double ith second wsfline files print out
 	P56=0;            // int print out wsf line in y-dir
-    P57=0;            // add aditional info to WSF gage in FNPF 
+    P57=0;            // add aditional info to WSF gage in FNPF
 	P59=0;			  // int print breaking wave log FNPF
 	P61=0;			  // int print point probes
 	P62=0;			  // int print line probes
@@ -449,7 +449,7 @@ void lexer::ini_default()
 	P75=0;            // int print out vorticity vec
     P76=0;            // int print out velocity magnitude as scalar
     P77=0;            // int print out sediment parameters: 1
-    P78=0;            // int print out sediment parameters: 2 
+    P78=0;            // int print out sediment parameters: 2
 	P79=0;            // int print out bed shear stress when running sediment transport
 	P81=0;            // int force print out
 	P85=0;            // int ALE force print out for FNPF
@@ -469,7 +469,7 @@ void lexer::ini_default()
 	P181=-10;		  // int ith iteration fsf printed
 	P182=-1.0;       // double time between fsf file printout in seconds
     P184=0;       // int time between file printout in iterations
-	P185=0;        	// int time between file printout in seconds 
+	P185=0;        	// int time between file printout in seconds
     P210=0;			  // int print exportfile
 	P211=1;		  // int ith iteration export printed
 	P212=-1.0;       // double time between export file printout in seconds
@@ -477,7 +477,7 @@ void lexer::ini_default()
     P240=0;         // int print potentialfile
 	P351=0;             // int print out wsf lsm1
 	P352=0;             // int print out wsf lsm2
-	
+
 	// Sediment Transport
 	S10=0;                  // int sediment transport module
 	S11=0;                  // int bedload formula
@@ -526,7 +526,7 @@ void lexer::ini_default()
 	S100=0;					// int number of bed filter outer iterations
     S101=0;					// int number of bed filter inner iterations
     S116=1.6;              // double bedshear stress z location
-    
+
     // Turbulence
 	T10=0;			    // int turbulence model
 	T11=11;             // int time scheme for 2-eq turbulence models
@@ -582,8 +582,8 @@ void lexer::ini_default()
     W95=0.001;       // double nu_0
 	W96=1.0;         // double tau_0
     W97=0.00001;     // double K
-    W98=1.0;         // int 
-    W101=0;          // int turn on Mohr-Coloumb 
+    W98=1.0;         // int
+    W101=0;          // int turn on Mohr-Coloumb
     W102_phi=30.0;   // double angle of repose
     W102_c=0.0;      // double c factor
     W103=1.0;        // double MC transition factor
@@ -594,7 +594,7 @@ void lexer::ini_default()
     W_fb=0.0;        // double density of floating body
 
 	// 6DOF
-	X10=0;		// int turn 6DOF on 
+	X10=0;		// int turn 6DOF on
 	X11_u=X11_v=X11_w=X11_p=X11_q=X11_r=1;		// int turn on degrees of freedom
     X12=1;      // int turn force calculation on
 	X13=2;      // int turn 6DOF algorithm wit quaternions on
@@ -616,13 +616,13 @@ void lexer::ini_default()
 	X41=2.1;    // double eps for continuous forcing heaviside
 	X42=0.0;    // double distance for pressure force evaluation
 	X100=0;		// int delta x,y,z
-	X100_x=X100_y=X100_z=0.0; 
+	X100_x=X100_y=X100_z=0.0;
 	X101=0;		// int ini Euler angles
-	X101_phi=X101_theta=X101_psi=0.0; 
+	X101_phi=X101_theta=X101_psi=0.0;
 	X102=0;		// int ini linear velocity
-	X102_u=X102_v=X102_w=0.0; 
+	X102_u=X102_v=X102_w=0.0;
 	X103=0;		// int ini angular velocity
-	X103_p=X103_q=X103_r=0.0; 
+	X103_p=X103_q=X103_r=0.0;
 	X110=0;		// int rectangular box floating body
 	X120=0;		// int sphere floating bod
 	X120_rad=X120_xc=X120_yc=X120_zc=0.0;
@@ -662,23 +662,23 @@ void lexer::ini_default()
     X401_cb=16.0;   // sflow external pressure term cb
     X401_a=16.0;    // sflow external pressure term a
 
-	// Developer 
+	// Developer
 	Y1=0;   // int turn on/off experimental screen force model
-    Y2=0;  
-    Y3=0; 
+    Y2=0;
+    Y3=0;
     Y4=0;
     Y5=0;
     Y40=3;
     Y50=5;
-	Y60=1;  // int require 
+	Y60=1;  // int require
     Y71=0;  // int turn on/off solid gcparax
     Y72=0;  // int turn on/off solid gcparax
     Y73=0;  // int turn on/off solid gcparax
     Y74=0;  // int turn on/off solid gcparax
-    
+
 	// FSI
-	Z10=0;		// int turn FSI on 
-	
+	Z10=0;		// int turn FSI on
+
 	solveriter=0;
 	mpirank=0;
 
