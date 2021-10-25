@@ -24,6 +24,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
+
+void sixdof_df_object::rk3(lexer *p, fdm *a, ghostcell *pgc, double alpha, double gamma, double zeta)
+{
+    get_trans(p,a,pgc, dp_, dc_, p_, c_);    
+    get_rot(dh_, de_, h_, e_);
+
+    p_ = p_ + gamma*p->dt*dp_ + zeta*p->dt*pk_;
+    c_ = c_ + gamma*p->dt*dc_ + zeta*p->dt*ck_;
+    h_ = h_ + gamma*p->dt*dh_ + zeta*p->dt*hk_;
+    e_ = e_ + gamma*p->dt*de_ + zeta*p->dt*ek_;
+    
+    pk_ = dp_;
+    ck_ = dc_;
+    hk_ = dh_;
+    ek_ = de_;
+}
+
+/*
 void sixdof_df_object::abam4(lexer *p, fdm *a, ghostcell *pgc, double alpha)
 {
     if (alpha == 1.0)
@@ -131,46 +149,6 @@ void sixdof_df_object::rk2(lexer *p, fdm *a, ghostcell *pgc, double alpha)
         de_ = dek_;
     }
 }
-
-void sixdof_df_object::rk3(lexer *p, fdm *a, ghostcell *pgc, double alpha)
-{
-    if (alpha == 1.0)
-    {
-        pk_ = p_;
-        ck_ = c_;
-        hk_ = h_;
-        ek_ = e_;
-
-        get_trans(p,a,pgc, dp_, dc_, p_, c_);    
-        get_rot(dh_, de_, h_, e_);
-
-        p_ = p_ + alpha*p->dt*dp_;
-        c_ = c_ + alpha*p->dt*dc_;
-        h_ = h_ + alpha*p->dt*dh_;
-        e_ = e_ + alpha*p->dt*de_;
-    }
-    else if (alpha == 0.25)
-    {
-        get_trans(p,a,pgc, dp_, dc_, p_, c_);    
-        get_rot(dh_, de_, h_, e_);        
-        
-        p_ = 0.75*pk_ + 0.25*p_ + alpha*p->dt*dp_;
-        c_ = 0.75*ck_ + 0.25*c_ + alpha*p->dt*dc_;
-        h_ = 0.75*hk_ + 0.25*h_ + alpha*p->dt*dh_;
-        e_ = 0.75*ek_ + 0.25*e_ + alpha*p->dt*de_;         
-    }  
-    else
-    {
-        get_trans(p,a,pgc, dp_, dc_, p_, c_);    
-        get_rot(dh_, de_, h_, e_);        
-        
-        p_ = (1.0/3.0)*pk_ + (2.0/3.0)*p_ + alpha*p->dt*dp_;
-        c_ = (1.0/3.0)*ck_ + (2.0/3.0)*c_ + alpha*p->dt*dc_;
-        h_ = (1.0/3.0)*hk_ + (2.0/3.0)*h_ + alpha*p->dt*dh_;
-        e_ = (1.0/3.0)*ek_ + (2.0/3.0)*e_ + alpha*p->dt*de_;         
-    }
-}
-
 
 void sixdof_df_object::rk4(lexer *p, fdm *a, ghostcell *pgc, double alpha)
 {
@@ -337,3 +315,4 @@ Eigen::Vector4d sixdof_df_object::am4_4
     
     return am4_4;
 }
+*/

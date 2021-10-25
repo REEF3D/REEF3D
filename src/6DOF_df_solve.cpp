@@ -25,52 +25,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 
 
-void sixdof_df_object::start(lexer *p, fdm *a, ghostcell *pgc, double alpha, vrans *pvrans, vector<net*>& pnet)
+void sixdof_df_object::start(lexer *p, fdm *a, ghostcell *pgc, double alpha, double gamma, double zeta, vrans *pvrans, vector<net*>& pnet)
 {
-    double err_norm = 0.0;
-    
-    double Fxold = Ffb_(0); 
-    double Fyold = Ffb_(1); 
-    double Fzold = Ffb_(2); 
-    double Mxold = Mfb_(0); 
-    double Myold = Mfb_(1); 
-    double Mzold = Mfb_(2); 
-
-    if (alpha == 1.0)
-    {
-        p_ = pn1_;
-        c_ = cn1_;
-        h_ = hn1_;
-        e_ = en1_;
-
-        externalForces(p, a, pgc, alpha, pvrans, pnet);
-    }
+    externalForces(p, a, pgc, alpha, pvrans, pnet);
     
     updateForces(a);
    
-    if (p->Y2 == 1)
-    {
-      //  if (p->count < 5)
-        {
-            rk2(p,a,pgc,alpha);
-        }
-      //  else
-        {
-      //    abam4(p,a,pgc,alpha);
-        }
-    }
-    else
-    {
-        rk3(p,a,pgc,alpha);
-    }
-
-    err_norm = 
-          fabs(Fxold - Ffb_(0)) + fabs(Fyold - Ffb_(1)) + fabs(Fzold - Ffb_(2)) 
-        + fabs(Mxold - Mfb_(0)) + fabs(Myold - Mfb_(1)) + fabs(Mzold - Mfb_(2)); 
+    rk3(p,a,pgc,alpha,gamma,zeta);
 }
-
-
-
 
 void sixdof_df_object::get_trans
 (

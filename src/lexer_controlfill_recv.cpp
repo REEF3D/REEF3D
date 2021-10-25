@@ -1452,7 +1452,10 @@ void lexer::ctrlrecv()
     Y74 = ictrl[ii];
 	ii++;
     
-    
+	Z10 = ictrl[ii];
+	ii++;
+    Z11 = ictrl[ii];
+    ii++;
 
 // --------------------------	
 	
@@ -1992,6 +1995,23 @@ void lexer::ctrlrecv()
     Darray(X324_x,X324);
 	Darray(X324_y,X324);
 	Darray(X324_z,X324);
+	}
+    
+    if(Z11>0)
+	{
+		Darray(Z11_x,Z11);  
+		Darray(Z11_y,Z11);  
+		Darray(Z11_z,Z11);  
+		Darray(Z11_l,Z11);  
+		Darray(Z11_w,Z11);  
+		Darray(Z11_t,Z11);  
+		Darray(Z11_rho,Z11);  
+		Darray(Z11_e,Z11);  
+		Darray(Z11_ix,Z11);  
+		Darray(Z11_iy,Z11);  
+		Darray(Z11_iz,Z11);  
+		Darray(Z11_nu,Z11);  
+		Darray(Z11_n,Z11);  
 	}
 
 // --------------------------
@@ -2751,7 +2771,7 @@ void lexer::ctrlrecv()
     dd++;
     }
 
-        for(n=0;n<X312;++n)
+    for(n=0;n<X312;++n)
     {
     X311_xs[n] = dctrl[dd];
     dd++;
@@ -2816,6 +2836,35 @@ void lexer::ctrlrecv()
     dd++;
     }
 
+    for(n=0;n<Z11;++n)
+    {
+    Z11_x[n] = dctrl[dd];
+    dd++;
+    Z11_y[n] = dctrl[dd];
+    dd++;
+    Z11_z[n] = dctrl[dd];
+    dd++;
+    Z11_l[n] = dctrl[dd];
+    dd++;
+    Z11_w[n] = dctrl[dd];
+    dd++;
+    Z11_t[n] = dctrl[dd];
+    dd++;
+    Z11_rho[n] = dctrl[dd];
+    dd++;
+    Z11_e[n] = dctrl[dd];
+    dd++;
+    Z11_ix[n] = dctrl[dd];
+    dd++;
+    Z11_iy[n] = dctrl[dd];
+    dd++;
+    Z11_iz[n] = dctrl[dd];
+    dd++;
+    Z11_nu[n] = dctrl[dd];
+    dd++;
+    Z11_n[n] = dctrl[dd];
+    dd++;
+    }
 
 	//if(mpirank==1)
 	//cout<<"RECV  ii: "<<ii<<" dd: "<<dd<<endl;

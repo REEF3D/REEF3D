@@ -32,7 +32,7 @@ using namespace std;
 #ifndef SIXDOF_DF_H_
 #define SIXDOF_DF_H_
 
-class sixdof_df : public sixdof
+class sixdof_df : public sixdof, public increment
 {
 public:
 	sixdof_df(lexer*, fdm*, ghostcell*);
@@ -40,7 +40,7 @@ public:
 	virtual void start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&);
 	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
     
-    void forcing(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,double,field&,field&,field&,field1&,field2&,field3&,bool);
+    void forcing(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,double,double,double,field&,field&,field&,field1&,field2&,field3&,bool);
     
     virtual void isource(lexer*,fdm*,ghostcell*);
     virtual void jsource(lexer*,fdm*,ghostcell*);

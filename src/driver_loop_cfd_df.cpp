@@ -34,21 +34,36 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"solver_header.h"
 #include"field_header.h"
 #include"6DOF_header.h"
+#include"FSI_header.h"
 #include"lexer.h"
 
 
 void driver::loop_cfd_df(fdm* a)
 {
-    momentum_RK2_df* pmom_df2 = new momentum_RK2_df(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);      
+    // Momentum
     momentum_RK3_df* pmom_df = new momentum_RK3_df(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
 
+    // 6DOF
     sixdof_df* p6dof_df = new sixdof_df(p,a,pgc);
-    p6dof_df->initialize(p, a, pgc, pnet);
+    if (p->X10 > 0)
+    {
+        p6dof_df->initialize(p, a, pgc, pnet);
+    }
 
+    // FSI
+    if(p->Z10==0)
+    pfsi = new fsi_void(p,pgc);
+	
+    if(p->Z10==1)
+    pfsi = new fsi_strips(p,pgc);
+
+    pfsi->initialize(p,a,pgc);
+
+    // Driver ini
 	driver_ini();
 
     if(p->mpirank==0)
-    cout<<"starting mainloop.CFD 6DOF"<<endl;
+    cout<<"starting mainloop.CFD DF"<<endl;
 
 
 //-----------MAINLOOP CFD FSI----------------------------
@@ -222,32 +237,16 @@ void driver::loop_cfd_df(fdm* a)
 		pflow->w_relax(p,a,pgc,a->w);
 		pfsf->update(p,a,pgc,a->phi);
 	
-        if (p->Y2 == 1)
-        {
-            // Momentum and 6DOF motion
-            pmom_df2->starti(p,a,pgc,p6dof_df,pvrans,pnet);
+        // Momentum and 6DOF motion
+        pmom_df->starti(p,a,pgc,p6dof_df,pvrans,pnet,pfsi);
 
-            // Save previous timestep
-            pmom_df2->utimesave(p,a,pgc);
-            pmom_df2->vtimesave(p,a,pgc);
-            pmom_df2->wtimesave(p,a,pgc);
-            pflow->veltimesave(p,a,pgc,pvrans);
-            pturb->ktimesave(p,a,pgc);
-            pturb->etimesave(p,a,pgc);
-        }
-        else
-        {
-            // Momentum and 6DOF motion
-            pmom_df->starti(p,a,pgc,p6dof_df,pvrans,pnet);
-
-            // Save previous timestep
-            pmom_df->utimesave(p,a,pgc);
-            pmom_df->vtimesave(p,a,pgc);
-            pmom_df->wtimesave(p,a,pgc);
-            pflow->veltimesave(p,a,pgc,pvrans);
-            pturb->ktimesave(p,a,pgc);
-            pturb->etimesave(p,a,pgc);
-        }
+        // Save previous timestep
+        pmom_df->utimesave(p,a,pgc);
+        pmom_df->vtimesave(p,a,pgc);
+        pmom_df->wtimesave(p,a,pgc);
+        pflow->veltimesave(p,a,pgc,pvrans);
+        pturb->ktimesave(p,a,pgc);
+        pturb->etimesave(p,a,pgc);
 
         //timestep control
         p->simtime+=p->dt;

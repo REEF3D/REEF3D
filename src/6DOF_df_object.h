@@ -55,7 +55,7 @@ public:
     sixdof_df_object(lexer*, fdm*, ghostcell*, int);
 	virtual ~sixdof_df_object();
 	
-	virtual void start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&);
+	virtual void start(lexer*,fdm*,ghostcell*,double,double,double,vrans*,vector<net*>&);
 	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
     
 
@@ -113,7 +113,7 @@ private:
     void get_rot(Eigen::Vector3d&, Eigen::Vector4d&, const Eigen::Vector3d&, const Eigen::Vector4d&);
     Eigen::Matrix3d quatRotMat;
     
-    Eigen::Vector3d ab4_3
+    /*Eigen::Vector3d ab4_3
     (   
         lexer*,
         const Eigen::Vector3d&, 
@@ -151,8 +151,9 @@ private:
     );
     void abam4(lexer*, fdm*, ghostcell*, double);
     void rk2(lexer*, fdm*, ghostcell*,double);
-    void rk3(lexer*, fdm*, ghostcell*,double);
     void rk4(lexer*, fdm*, ghostcell*,double);
+    */
+    void rk3(lexer*, fdm*, ghostcell*,double,double,double);
 
     void rotation_tri(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
    
