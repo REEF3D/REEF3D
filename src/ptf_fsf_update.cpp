@@ -48,7 +48,7 @@ void ptf_fsf_update::fsfupdate(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, 
     FLUIDLOOP
     a->phi(i,j,k) = eta(i,j) + p->phimean - p->pos_z();
     
-    //preini->start(a,p, a->phi, pgc, pflow);
+    preini->start(a,p, a->phi, pgc, pflow);
 
     pgc->start4(p,a->phi,50);
 
@@ -83,7 +83,7 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     }
 
 // ------
-    if(p->A323==2)
+    if(p->A323==2 || p->A323==4)
     FILOOP4
     {
     lsv0 = fabs(a->phi(i,j,k));

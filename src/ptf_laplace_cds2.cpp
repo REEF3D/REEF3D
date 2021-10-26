@@ -285,7 +285,7 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 
                 teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k)));
                 
-                //cout<<" Teta: "<<teta<<" a->phi(i,j,k)"<<a->phi(i,j,k)<<" a->phi(i+1,j,k): "<<a->phi(i+1,j,k)<<endl;
+                //cout<<" Teta: "<<teta<<" a->phi(i,j,k): "<<a->phi(i,j,k)<<" a->phi(i+1,j,k): "<<a->phi(i+1,j,k)<<endl;
                 
                 a->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
                 a->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
@@ -369,7 +369,7 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 {
                 teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
                 
-                //cout<<" Teta: "<<teta<<" a->phi(i,j,k)"<<a->phi(i,j,k)<<" a->phi(i+1,j,k): "<<a->phi(i+1,j,k)<<endl;
+                //cout<<" Teta: "<<teta<<" a->phi(i,j,k): "<<a->phi(i,j,k)<<" a->phi(i+1,j,k): "<<a->phi(i+1,j,k)<<endl;
                 
                 a->M.p[n] -= 1.0/(p->DZP[KP]*p->DZN[KP]);
                 a->M.p[n] += 1.0/(teta*p->DZP[KP]*p->DZN[KP]);
