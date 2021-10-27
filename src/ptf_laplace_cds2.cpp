@@ -170,8 +170,8 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 {
                 double lsv0,lsv1;
 
-                lsv1 = fabs(a->phi(i,j,k));
-                lsv0 = fabs(a->phi(i-1,j,k));
+                lsv0 = fabs(a->phi(i,j,k));
+                lsv1 = fabs(a->phi(i-1,j,k));
 
                 lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20;
 
@@ -236,6 +236,7 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 a->rhsvec.V[n] -= a->M.n[n]*f(i+1,j,k);
                 a->M.n[n] = 0.0;
                 }
+                
                 /*
                 if(p->A323==2)
                 {

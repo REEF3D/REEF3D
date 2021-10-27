@@ -29,7 +29,13 @@ double ptf_fsfbc::fz(lexer *p, fdm *a, field &f, slice &Fifsf)
     teta=0.0;
     
     teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
-    /*
+    
+    teta = MAX(teta,0.5);
+    
+    teta = 0.5;
+    
+    //cout<<"TETA: "<<teta<<" p->ZP[KP]: "<<p->ZP[KP]<<" p->ZP[KP]+teta*p->DZN[KP]: "<<p->ZP[KP]+teta*p->DZN[KP]<<endl;
+    
     if(p->flag4[IJK]>0 && p->flag4[IJKm1]>0 && p->flag4[IJKm2]>0 && p->flag4[IJKm3] && p->flag4[IJKm4]>0 && p->flag4[IJKm5])
     {
         if(i+p->origin_i>0)
@@ -41,8 +47,8 @@ double ptf_fsfbc::fz(lexer *p, fdm *a, field &f, slice &Fifsf)
           /(-(49.0/20.0)*p->ZP[KP] + 6.0*p->ZP[KM1] - 7.5*p->ZP[KM2] + (20.0/3.0)*p->ZP[KM3] - (15.0/4.0)*p->ZP[KM4] + (6.0/5.0)*p->ZP[KM5] - (1.0/6.0)*p->ZP[KM6]);
               
         return grad;
-    }*/
-    /*
+    }
+    
     //else
     if(p->flag4[IJK]>0 && p->flag4[IJKm1]>0 && p->flag4[IJKm2]>0 && p->flag4[IJKm3]>0)
     {
@@ -70,7 +76,7 @@ double ptf_fsfbc::fz(lexer *p, fdm *a, field &f, slice &Fifsf)
     }
     
     else
-    {*/
+    {
         if(i+p->origin_i>0)
         grad = (f(i,j,k+1) - f(i,j,k))/(p->ZP[KP]+p->DZN[KP]);
               
@@ -78,7 +84,7 @@ double ptf_fsfbc::fz(lexer *p, fdm *a, field &f, slice &Fifsf)
         grad = (f(i,j,k) - f(i,j,k-1))/(p->ZP[KM1]);
             
         return grad;
-    //}
+    }
 }
 
 
