@@ -91,7 +91,7 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     lsv2 = fabs(a->phi(i,j,k+2));
     lsv3 = fabs(a->phi(i,j,k+3));
 
-    lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20;
+    lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
 
     fival = Fi(i,j,k);
 

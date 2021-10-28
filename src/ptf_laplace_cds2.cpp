@@ -331,7 +331,7 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 lsv0 = fabs(a->phi(i,j,k));
                 lsv1 = fabs(a->phi(i,j,k+1));
 
-                lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20;
+                lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
 
                 a->rhsvec.V[n] -= a->M.t[n]*Fifsf(i,j)*(1.0 + lsv1/lsv0);
                 a->M.p[n] -= a->M.t[n]*lsv1/lsv0;

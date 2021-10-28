@@ -191,7 +191,7 @@ void ghostcell::gcini(lexer* p)
 	awa_label=1;
     
     hs_label=0;
-	if(p->B77==3)
+	if(p->B77==-1)
 	hs_label=1;
 	
 	if(p->B75==1)
