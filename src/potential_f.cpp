@@ -38,7 +38,7 @@ potential_f::~potential_f()
 void potential_f::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
 {
     if(p->mpirank==0 )
-	cout<<"starting potential flow solver..."<<endl<<endl;
+	cout<<"potential flow solver..."<<endl<<endl;
     
     field4 psi(p);
     

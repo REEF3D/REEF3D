@@ -44,7 +44,7 @@ void ioflow_f::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, fiel
         {
         inflow_log(p,a,pgc,u,v,w);
 
-            if(p->B60==3||p->B60==4)
+            if((p->count==0&&p->I11==1)||p->B60==3||p->B60==4)
             outflow_log(p,a,pgc,u,v,w);
         }
 
@@ -128,10 +128,11 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
         i=p->gcin[n][0];
         j=p->gcin[n][1];
         k=p->gcin[n][2];
+        
         if(a->phi(i,j,k)>0.0)
         {
-        hmin=MIN(hmin,p->pos_z());
-        hmax=MAX(hmax,a->phi(i,j,k));
+        hmin=MIN(hmin,p->ZN[KP]);
+        hmax=MAX(hmax,p->ZN[KP1]);
         dmax=MAX(dmax,walldin[n]);
         }
     }
@@ -140,7 +141,10 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
     dmax=pgc->globalmax(dmax);
 
 
-    depth=hmax;//-hmin;
+    depth=hmax-hmin;
+    
+    //if(p->mpirank==0)
+    //cout<<"HMAX   "<<hmax<<endl;
 	
 	
     // bed shear stress and bed shear velocity
@@ -150,11 +154,10 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
         if(p->S10>0)
         ks=p->S20*p->S21;
         
-        H=B=depth+0.5*p->DXM;
+        H=B=depth;
         M=26.0/pow(ks,(1.0/6.0));
         I=pow(p->Ui/(M*pow(H,(2.0/3.0))),2.0);
         tau=(9.81*H*I*1000.0);
-        //shearvel= sqrt(fabs(tau/1000.0));
 		
 		if(p->mpirank==0 && p->count==0)
 		cout<<"I   "<<I<<endl;
@@ -200,7 +203,7 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
 	ratio=1.0;
 	
 	//if(p->mpirank==0)
-	//cout<<"RATIO: "<<ratio<<" Ui: "<<p->Ui<<" Qi: "<<p->Qi<<" HGQ: "<<hydrograph_ipol(p,a,pgc)<<endl;
+	//cout<<"RATIO: "<<ratio<<" Ui: "<<p->Ui<<" Qi: "<<p->Qi<<endl;
 	
 
         for(n=0;n<p->gcin_count;++n)

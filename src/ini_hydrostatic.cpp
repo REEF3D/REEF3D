@@ -66,6 +66,7 @@ void initialize::hydrostatic(lexer *p, fdm *a, ghostcell *pgc)
 	
     a->press(i,j,k) = a->phi(i,j,k)*a->ro(i,j,k)*fabs(p->W22) + p->I55;
 	}
+
     
     
     
