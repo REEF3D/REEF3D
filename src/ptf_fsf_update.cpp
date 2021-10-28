@@ -25,12 +25,16 @@ along with this program; if not, see <http://www.gnu.org/liceonephases/>.
 #include"ioflow.h"
 #include"onephase.h"
 #include"slice.h"
+#include"reinifluid_RK3.h"
+
 
 ptf_fsf_update::ptf_fsf_update(lexer *p, fdm *a, ghostcell *pgc)
 {
     gcval_u = 10;
     gcval_v = 11;
     gcval_w = 12;
+    
+    //preini = new reinifluid_RK3(p,1);
 }
 
 ptf_fsf_update::~ptf_fsf_update()
@@ -43,6 +47,8 @@ void ptf_fsf_update::fsfupdate(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, 
     // update phi
     FLUIDLOOP
     a->phi(i,j,k) = eta(i,j) + p->phimean - p->pos_z();
+    
+    //preini->start(a,p, a->phi, pgc, pflow);
 
     pgc->start4(p,a->phi,50);
 
@@ -77,7 +83,7 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     }
 
 // ------
-    if(p->A323==2)
+    if(p->A323==2 || p->A323==4)
     FILOOP4
     {
     lsv0 = fabs(a->phi(i,j,k));
@@ -85,7 +91,7 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     lsv2 = fabs(a->phi(i,j,k+2));
     lsv3 = fabs(a->phi(i,j,k+3));
 
-    lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20;
+    lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
 
     fival = Fi(i,j,k);
 

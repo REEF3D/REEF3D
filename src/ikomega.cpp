@@ -142,25 +142,33 @@ void ikomega::epssource(lexer *p, fdm* a, vrans* pvrans)
 
 void ikomega::epsfsf(lexer *p, fdm* a, ghostcell *pgc)
 {
-	double epsi = p->T38*p->DXM;
+	double epsi;
 	double dirac;
+    
+        
+        if(p->j_dir==0)        
+        epsi = p->T38*(1.0/2.0)*(p->DRM+p->DTM);
+        
+        if(p->j_dir==1)
+        epsi = p->T38*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
 
 	
 	if(p->T36>0)
 	LOOP
 	{
+            /*
             if(p->j_dir==0)
             epsi = p->T38*(1.0/2.0)*(p->DXN[IP]+p->DZN[KP]);
             
             if(p->j_dir==1)
-            epsi = p->T38*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+            epsi = p->T38*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);*/
         
         
-		if(fabs(a->phi(i,j,k))<epsi)
-		dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
+    if(fabs(a->phi(i,j,k))<epsi)
+    dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
 		
-		if(fabs(a->phi(i,j,k))>=epsi)
-		dirac=0.0;
+    if(fabs(a->phi(i,j,k))>=epsi)
+    dirac=0.0;
         
 	
 	if(dirac>0.0 && p->T36==1)

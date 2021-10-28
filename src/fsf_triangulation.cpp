@@ -65,11 +65,7 @@ void fsf_vtp::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
             }
         }
     }
-	
-	NDBASELOOP
-    vertice(i,j,k)=-1;
-	
-	
+
 	
 	//------
     countM=0;

@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,39 +20,31 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"ptf.h"
-#include"slice4.h"
+#include"ptf_laplace.h"
+#include"increment.h"
+#include"sliceint4.h"
 
-class ptf_laplace;
-class field;
-class fnpf_convection;
+#ifndef LAPLACE_PTF_CDS2_CC_H_
+#define LAPLACE_PTF_CDS2_CC_H_
 
 using namespace std;
 
-#ifndef PTF_FSFBC_H_
-#define PTF_FSFBC_H_
-
-class ptf_fsfbc : public increment
+class ptf_laplace_cds2_cc : public ptf_laplace, public increment
 {
 public:
-	ptf_fsfbc(lexer*, fdm*, ghostcell*);
-	virtual ~ptf_fsfbc();
-    
-    
-    void fsfdisc(lexer*,fdm*,ghostcell*,slice&,slice&,field&);
-    void kfsfbc(lexer*,fdm*,ghostcell*);
-    void dfsfbc(lexer*,fdm*,ghostcell*,slice&);
-    void fsfwvel(lexer*,fdm*,ghostcell*,slice&,slice&);
-    double fz(lexer*,fdm*,field&,slice&);
+    ptf_laplace_cds2_cc(lexer*,fdm*,ghostcell*);
+	virtual ~ptf_laplace_cds2_cc();
 
-    fnpf_convection *pconvec;
-
-    double ivel,jvel,kvel;
+    virtual void start(lexer *,fdm*,ghostcell*,solver*,field&,slice&);
     
-    slice4 Fx,Fy,Fz;
-    slice4 Ex,Ey;
+private:
     
-    double grad, teta;
+    double Bx,By;
+    double ab,denom;
+    double teta;
+    
+    
+    sliceint4 bc;
 
 };
 

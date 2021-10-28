@@ -29,6 +29,7 @@ class onephase;
 class ioflow;
 class slice;
 class field;
+class reinifluid_RK3;
 
 using namespace std;
 
@@ -52,7 +53,7 @@ public:
     
 private: 
     int gcval,gcval_u,gcval_v,gcval_w;
-
+    reinifluid_RK3 *preini;
 };
 
 #endif
