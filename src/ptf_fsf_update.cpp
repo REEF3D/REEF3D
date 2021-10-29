@@ -68,8 +68,8 @@ void ptf_fsf_update::etaloc(lexer *p, fdm *a, ghostcell *pgc)
 
 void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field &Fi)
 {
-    //AIRLOOP
-    //Fi(i,j,k)=0.0;
+    AIRLOOP
+    Fi(i,j,k)=0.0;
 
     double lsv0,lsv1,lsv2,lsv3;
     double fival,lsval,dx,dist;
@@ -91,7 +91,7 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     lsv2 = fabs(a->phi(i,j,k+2));
     lsv3 = fabs(a->phi(i,j,k+3));
 
-    lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
+    lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
 
     fival = Fi(i,j,k);
 
@@ -107,6 +107,7 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
 
     double x0,x1,x2,y0,y1,y2;
     double x,y;
+    double denom1,denom2,denom3,denom4,denom5,denom6;
 // ------
     if(p->A323==3)
     FILOOP4
@@ -119,22 +120,31 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     y0 = Fi(i,j,k-1);
     y1 = Fi(i,j,k);
     y2 = Fifsf(i,j);
+    
+    denom1 = fabs(x0-x1)>1.0e-6?(x0-x1):1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
+    denom2 = fabs(x1-x0)>1.0e-6?(x1-x0):1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
+    denom3 = fabs(x2-x0)>1.0e-6?(x2-x0):1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
+    
+    denom4 = fabs(x0-x2)>1.0e-6?(x0-x2):1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
+    denom5 = fabs(x1-x2)>1.0e-6?(x1-x2):1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
+    denom6 = fabs(x2-x1)>1.0e-6?(x2-x1):1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
+    
 
         x = fabs(a->phi(i,j,k+1));
 
-        Fi(i,j,k+1) =   ((x-x1)/(x0-x1)) * ((x-x2)/(x0-x2)) * y0
-                      + ((x-x0)/(x1-x0)) * ((x-x2)/(x1-x2)) * y1
-                      + ((x-x0)/(x2-x0)) * ((x-x1)/(x2-x1)) * y2;
+        Fi(i,j,k+1) =   ((x-x1)/denom1) * ((x-x2)/denom4) * y0
+                      + ((x-x0)/denom2) * ((x-x2)/denom5) * y1
+                      + ((x-x0)/denom3) * ((x-x1)/denom6) * y2;
 
         x = fabs(a->phi(i,j,k+2));
-        Fi(i,j,k+2) =   ((x-x1)/(x0-x1)) * ((x-x2)/(x0-x2)) * y0
-                     + ((x-x0)/(x1-x0)) * ((x-x2)/(x1-x2)) * y1
-                     + ((x-x0)/(x2-x0)) * ((x-x1)/(x2-x1)) * y2;
+        Fi(i,j,k+2) =   ((x-x1)/denom1) * ((x-x2)/denom4) * y0
+                      + ((x-x0)/denom2) * ((x-x2)/denom5) * y1
+                      + ((x-x0)/denom3) * ((x-x1)/denom6) * y2;
 
         x = fabs(a->phi(i,j,k+3));
-        Fi(i,j,k+3) =   ((x-x1)/(x0-x1)) * ((x-x2)/(x0-x2)) * y0
-                     + ((x-x0)/(x1-x0)) * ((x-x2)/(x1-x2)) * y1
-                     + ((x-x0)/(x2-x0)) * ((x-x1)/(x2-x1)) * y2;
+        Fi(i,j,k+3) =   ((x-x1)/denom1) * ((x-x2)/denom4) * y0
+                      + ((x-x0)/denom2) * ((x-x2)/denom5) * y1
+                      + ((x-x0)/denom3) * ((x-x1)/denom6) * y2;
 
         //cout<<"F_k: "<<Fi(i,j,k)<<" Fifsf: "<<Fifsf(i,j)<<" F_k+1: "<<Fi(i,j,k+1)<<"  | x1: "<<x1<<" x: "<<x<<endl;
     }
@@ -206,8 +216,8 @@ void ptf_fsf_update::velcalc(lexer *p, fdm *a, ghostcell *pgc, field &f)
     a->u(i,j,k) = H*(f(i+1,j,k)-f(i,j,k))/p->DXP[IP];
 
 
-    if(i+p->origin_i==0)
-    a->u(i,j,k)=0.0;
+    //if(i+p->origin_i==0)
+    //a->u(i,j,k)=0.0;
 
     }
 
@@ -228,8 +238,8 @@ void ptf_fsf_update::velcalc(lexer *p, fdm *a, ghostcell *pgc, field &f)
 
 	a->v(i,j,k) = H*(f(i,j+1,k)-f(i,j,k))/p->DYP[JP];
 
-    if(i+p->origin_i==0)
-    a->v(i,j,k)=0.0;
+    //if(i+p->origin_i==0)
+    //a->v(i,j,k)=0.0;
     }
 
     WFLUIDLOOP
@@ -249,8 +259,8 @@ void ptf_fsf_update::velcalc(lexer *p, fdm *a, ghostcell *pgc, field &f)
 
 	a->w(i,j,k) = H*(f(i,j,k+1)-f(i,j,k))/p->DZP[KP];
 
-    if(i+p->origin_i==0)
-    a->w(i,j,k)=0.0;
+    //if(i+p->origin_i==0)
+    //a->w(i,j,k)=0.0;
     }
 
     pgc->start1(p,a->u,gcval_u);

@@ -101,7 +101,8 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
 
 	a->rhsvec.V[n] = 0.0;
     }
-
+    
+    
 	++n;
 	}
 
@@ -344,6 +345,7 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 double x0,x1,x2,y0,y1,y2;
                 double x,y;
                 double Lx0,Lx1,Lx2;
+                double denom1,denom2,denom3,denom4,denom5,denom6;
 
                 x0 = -fabs(a->phi(i,j,k-1));
                 x1 = -fabs(a->phi(i,j,k));
@@ -352,12 +354,21 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 y0 = f(i,j,k-1);
                 y1 = f(i,j,k);
                 y2 = Fifsf(i,j);
+                
+                denom1 = fabs(x0-x1)>1.0e-6?(x0-x1):1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
+                denom2 = fabs(x1-x0)>1.0e-6?(x1-x0):1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
+                denom3 = fabs(x2-x0)>1.0e-6?(x2-x0):1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
+                
+                denom4 = fabs(x0-x2)>1.0e-6?(x0-x2):1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
+                denom5 = fabs(x1-x2)>1.0e-6?(x1-x2):1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
+                denom6 = fabs(x2-x1)>1.0e-6?(x2-x1):1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
+    
 
                 x = fabs(a->phi(i,j,k+1));
 
-                Lx0 = ((x-x1)/(x0-x1)) * ((x-x2)/(x0-x2));
-                Lx1 = ((x-x0)/(x1-x0)) * ((x-x2)/(x1-x2));
-                Lx2 = ((x-x0)/(x2-x0)) * ((x-x1)/(x2-x1));
+                Lx0 = ((x-x1)/denom1) * ((x-x2)/denom4);
+                Lx1 = ((x-x0)/denom2) * ((x-x2)/denom5);
+                Lx2 = ((x-x0)/denom3) * ((x-x1)/denom6);
 
                 a->rhsvec.V[n]  -= a->M.t[n]*Lx2*y2;
                 a->M.p[n]       += a->M.t[n]*Lx1;

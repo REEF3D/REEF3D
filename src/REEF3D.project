@@ -1008,6 +1008,7 @@
         <File Name="pic_f.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="PTF">
+        <VirtualDirectory Name="Breaking"/>
         <VirtualDirectory Name="Update">
           <File Name="ptf_fsf_update.cpp"/>
           <File Name="ptf_bed_update.cpp"/>
