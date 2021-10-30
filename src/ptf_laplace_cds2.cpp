@@ -118,6 +118,9 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             {
             a->M.p[n] += a->M.s[n];
             a->M.s[n] = 0.0;
+            
+            //a->rhsvec.V[n] -= a->M.s[n]*f(i,j,k);
+            //a->M.s[n] = 0.0;
             }
 
             if(p->flag4[Im1JK]<AIR && bc(i-1,j)==1)

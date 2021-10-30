@@ -147,6 +147,9 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
                       + ((x-x0)/denom3) * ((x-x1)/denom6) * y2;
 
         //cout<<"F_k: "<<Fi(i,j,k)<<" Fifsf: "<<Fifsf(i,j)<<" F_k+1: "<<Fi(i,j,k+1)<<"  | x1: "<<x1<<" x: "<<x<<endl;
+        
+    if(i+p->origin_i==0)
+    Fi(i-1,j,k+1) = Fi(i,j,k+1);
     }
 }
 
