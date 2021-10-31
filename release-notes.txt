@@ -1,4 +1,18 @@
 
+21.10
+x introducing FSI for flexible bodies (Z options)
+x change of momentum scheme from TVD-RK3 to low-storage RK3 for 6DOF + FSI simulations
+x added depth-averaged k-epsilon turbulence model to SFLOW
+x fixed inflow showing zero velocities in paraview (CFD)
+x fixed potential flow initialization (SFLOW and CFD)
+x fixed a ioflow inflow bug (CFD)
+x fixed state file naming (FNPF)
+x update irregular wave generation EEM and TMA
+x net bug fix (CFD)
+x hot start support added (and working now) for sediment transport (CFD)
+x narrow contraction tutorial case updated
+x added NUG support to NSEWAVE 
+
 21.09 
 x fixed a problem with potential flow ini  for combined wave-current simulations (CFD)
 x fixed a ghostcell bug for 6DOF_gc (CFD)
