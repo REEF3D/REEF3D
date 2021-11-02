@@ -77,6 +77,7 @@ void lexer::ini_default()
     A354=0.6;    // double breaking parameter alpha
     A355=1.25;   // double breaking parameter slope alpha
     A356=0.1;   // double breaking parameter slope beta
+    A357=1;     // int breaking for Fi and eta
     A361=5;      // int breaking filter outer iter
     A362=2;      // int breaking filter inner iter
     A363=1;      // int breaking filter width
