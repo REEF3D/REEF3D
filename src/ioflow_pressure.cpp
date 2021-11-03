@@ -78,7 +78,6 @@ void ioflow_f::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
 			a->press(i+3,j,k)=pval;
 			}
 			
-			
         }
 }
 

@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-fluid_update_fsf::fluid_update_fsf(lexer *p, fdm* a, ghostcell* pgc) : dx(p->DXM),visc_air(p->W4),visc_water(p->W2),
+fluid_update_fsf::fluid_update_fsf(lexer *p, fdm* a, ghostcell* pgc) : dx(p->DXM),visc_air(p->W4),visc_water(p->W2),visc_body(p->X44),
                                                                       ro_air(p->W3),ro_water(p->W1)
 {
     gcval_ro=1;
@@ -68,7 +68,7 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
             H_fb = a->fbh4(i,j,k);
 		
             a->ro(i,j,k)= p->W_fb*H_fb + (1.0 - H_fb)*(ro_water*H +   ro_air*(1.0-H));
-		    a->visc(i,j,k)= 0.0*H_fb + (1.0 - H_fb)*(visc_water*H + visc_air*(1.0-H));
+		    a->visc(i,j,k)= visc_body*H_fb + (1.0 - H_fb)*(visc_water*H + visc_air*(1.0-H));
 
 		    p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));
 		    p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));

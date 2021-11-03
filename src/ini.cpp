@@ -77,6 +77,7 @@ void lexer::ini_default()
     A354=0.6;    // double breaking parameter alpha
     A355=1.25;   // double breaking parameter slope alpha
     A356=0.1;   // double breaking parameter slope beta
+    A357=1;     // int breaking for Fi and eta
     A361=5;      // int breaking filter outer iter
     A362=2;      // int breaking filter inner iter
     A363=1;      // int breaking filter width
@@ -452,6 +453,7 @@ void lexer::ini_default()
     P78=0;            // int print out sediment parameters: 2
 	P79=0;            // int print out bed shear stress when running sediment transport
 	P81=0;            // int force print out
+    P82=0;            // int add eddyv to viscous force
 	P85=0;            // int ALE force print out for FNPF
 	P91=0.25;		  // double factor used in force calculation algorithm
     P92=0;           // int force from water or from water+air
@@ -615,6 +617,8 @@ void lexer::ini_default()
     X40=3;		// int type of force calculation
 	X41=2.1;    // double eps for continuous forcing heaviside
 	X42=0.0;    // double distance for pressure force evaluation
+	X43=1.0;    // double distance for shear stress evaluation
+	X44=0.0;    // double viscosity in body
 	X100=0;		// int delta x,y,z
 	X100_x=X100_y=X100_z=0.0;
 	X101=0;		// int ini Euler angles

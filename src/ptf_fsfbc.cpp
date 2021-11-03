@@ -55,6 +55,7 @@ ptf_fsfbc::ptf_fsfbc(lexer *p, fdm *a, ghostcell *pgc) : Fx(p),Fy(p),Fz(p),Ex(p)
     
     if(p->A311==7)
     pconvec = new fnpf_weno7(p);
+    
 }
 
 ptf_fsfbc::~ptf_fsfbc()
@@ -99,8 +100,13 @@ void ptf_fsfbc::fsfwvel(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &Fif
     {
     kvel = (a->Fi(i,j,k) - a->Fi(i,j,k-1))/(p->DZP[KP]);
     
+    //if(p->A323<4)
     a->Fz(i,j) = pconvec->fz(p,a->Fi,kvel,kvel);
     
+    //if(p->A323==4)
+    //a->Fz(i,j) = fz(p,a,a->Fi,Fifsf);
+    
+    //cout<<"Fz: "<<a->Fz(i,j)<<endl;
     //if(c->wet(i,j)==0)
     //c->Fz(i,j) = 0.0;
     }

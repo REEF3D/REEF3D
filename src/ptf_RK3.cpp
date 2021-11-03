@@ -28,6 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"solver.h"
 #include"reini.h"
 #include"ptf_laplace_cds2.h"
+#include"ptf_laplace_cds2_cc.h"
 #include"ptf_laplace_cds4.h"
 #include"onephase.h"
 #include"ptf_fsf_update.h"
@@ -49,14 +50,25 @@ ptf_RK3::ptf_RK3(lexer *p, fdm *a, ghostcell *pgc) : ptf_fsfbc(p,a,pgc),erk1(p),
     if(p->F50==4)
 	gcval_eta = 54;
     
-    gcval_eta = 50;
-    gcval_fifsf = 50;
+    // 3D
+    gcval_eta = 55;
+    gcval_fifsf = 60;
+    
+    // 2D
+    if(p->j_dir==0)
+    {
+    gcval_eta = 155;
+    gcval_fifsf = 160;
+    }
     
     if(p->A320==1)
     plap = new ptf_laplace_cds2(p,a,pgc);
     
     if(p->A320==2)
     plap = new ptf_laplace_cds4;
+    
+    if(p->A320==11)
+    plap = new ptf_laplace_cds2_cc(p,a,pgc);
     
     pfsfupdate = new ptf_fsf_update(p,a,pgc);
     

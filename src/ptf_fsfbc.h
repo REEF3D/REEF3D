@@ -43,7 +43,7 @@ public:
     void kfsfbc(lexer*,fdm*,ghostcell*);
     void dfsfbc(lexer*,fdm*,ghostcell*,slice&);
     void fsfwvel(lexer*,fdm*,ghostcell*,slice&,slice&);
-    
+    double fz(lexer*,fdm*,field&,slice&);
 
     fnpf_convection *pconvec;
 
@@ -51,6 +51,8 @@ public:
     
     slice4 Fx,Fy,Fz;
     slice4 Ex,Ey;
+    
+    double grad, teta;
 
 };
 

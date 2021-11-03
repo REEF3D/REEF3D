@@ -137,7 +137,7 @@ if(p->P14==0)
 	if(p->mpirank>9998)
 	{
 		if(num<10)
-		sprintf(name,"REEF3D_FNPF-State-00000%i-%i.r3d",num,p->mpirank+1);
+		sprintf(name,"REEF3D_FNPF-State-0000000%i-%i.r3d",num,p->mpirank+1);
 
 		if(num<100&&num>9)
 		sprintf(name,"REEF3D_FNPF-State-000000%i-%i.r3d",num,p->mpirank+1);
@@ -247,7 +247,7 @@ if(p->P14==1)
 	if(p->mpirank<9999&&p->mpirank>998)
 	{
 		if(num<10)
-		sprintf(name,"./REEF3D_FNPF_STATE/REEF3D_FNPF-State-00000%i-0%i.r3d",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_FNPF_STATE/REEF3D_FNPF-State-0000000%i-0%i.r3d",num,p->mpirank+1);
 
 		if(num<100&&num>9)
 		sprintf(name,"./REEF3D_FNPF_STATE/REEF3D_FNPF-State-000000%i-0%i.r3d",num,p->mpirank+1);

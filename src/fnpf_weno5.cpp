@@ -83,7 +83,8 @@ double fnpf_weno5::fz(lexer *p, field &f, double kvel1, double kvel2)
             
         return grad;
     }
-
+    
+    else
     if(p->flag4[IJK]>0 && p->flag4[IJKm1]>0 && p->flag4[IJKm2]>0 && p->flag4[IJKm3]>0)
     {
         if(i+p->origin_i>0)

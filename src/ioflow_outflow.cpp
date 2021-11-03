@@ -56,10 +56,11 @@ void ioflow_f::outflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v,
         i=p->gcout[n][0]-1;
         j=p->gcout[n][1];
         k=p->gcout[n][2];
+        
         if(a->phi(i,j,k)>0.0)
         {
-        hmin=MIN(hmin,p->pos_z());
-        hmax=MAX(hmax,a->phi(i,j,k));
+        hmin=MIN(hmin,p->ZN[KP]);
+        hmax=MAX(hmax,p->ZN[KP1]);
         dmax=MAX(dmax,walldout[n]);
         }
     }
@@ -67,7 +68,7 @@ void ioflow_f::outflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v,
     hmin=pgc->globalmin(hmin);
     dmax=pgc->globalmax(dmax);
 
-    depth=hmax;
+    depth=hmax-hmin;
 
     // bed shear stress and bed shear velocity
         if(p->S10==0)
@@ -76,7 +77,7 @@ void ioflow_f::outflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v,
         if(p->S10>0)
         ks=p->S20*p->S21;
         
-        H=B=depth+0.5*p->DXM;
+        H=B=depth;
         M=26.0/pow(ks,(1.0/6.0));
         I=pow(p->Uo/(M*pow(H,(2.0/3.0))),2.0);
         tau=(9.81*H*I*1000.0);

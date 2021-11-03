@@ -78,7 +78,12 @@ void sixdof_df_object::forces_stl
 			zc >= p->originz && zc < p->endz
 		)
 		{
-			// Area of triangle using Heron's formula
+            // Position of triangle
+            i = p->posc_i(xc);
+			j = p->posc_j(yc);
+			k = p->posc_k(zc);
+			
+            // Area of triangle using Heron's formula
 
 			at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
 			bt = sqrt(pow(x1-x2,2.0) + pow(y1-y2,2.0) + pow(z1-z2,2.0));
@@ -101,11 +106,12 @@ void sixdof_df_object::forces_stl
 			ny /= norm > 1.0e-20 ? norm : 1.0e20;
 			nz /= norm > 1.0e-20 ? norm : 1.0e20;
 
+
+			// Add normal stress contributions
+
             xlocp = xc + p->X42*nx*p->DXP[IP];
 			ylocp = yc + p->X42*ny*p->DYP[JP];
 			zlocp = zc + p->X42*nz*p->DZP[KP];
-
-			// Add normal stress contributions
 
 			p_int = p->ccipol4_a(a->press,xlocp,ylocp,zlocp);
 			
@@ -115,79 +121,14 @@ void sixdof_df_object::forces_stl
 		
 		   
              // Add tangential stress contributions
-
-             xlocvel = xc + nx*p->DXP[IP];
-             ylocvel = yc + ny*p->DYP[JP];
-             zlocvel = zc + nz*p->DZP[KP];
-/*
-             double xlocvelp1 = xlocvel + p->DXP[IP];
-             double ylocvelp1 = ylocvel + p->DYP[JP];
-             double zlocvelp1 = zlocvel + p->DZP[KP];
-             double upx1 = p->ccipol1_a(uvel,xlocvelp1,ylocvel,zlocvel);
-             double upy1 = p->ccipol1_a(uvel,xlocvel,ylocvelp1,zlocvel);
-             double upz1 = p->ccipol1_a(uvel,xlocvel,ylocvel,zlocvelp1);
-             double vpx1 = p->ccipol2_a(vvel,xlocvelp1,ylocvel,zlocvel);
-             double vpy1 = p->ccipol2_a(vvel,xlocvel,ylocvelp1,zlocvel);
-             double vpz1 = p->ccipol2_a(vvel,xlocvel,ylocvel,zlocvelp1);
-             double wpx1 = p->ccipol3_a(wvel,xlocvelp1,ylocvel,zlocvel);
-             double wpy1 = p->ccipol3_a(wvel,xlocvel,ylocvelp1,zlocvel);
-             double wpz1 = p->ccipol3_a(wvel,xlocvel,ylocvel,zlocvelp1);
-             double nu_xp1 = p->ccipol4_a(a->visc,xlocvelp1,ylocvel,zlocvel);
-             double nu_yp1 = p->ccipol4_a(a->visc,xlocvel,ylocvelp1,zlocvel);
-             double nu_zp1 = p->ccipol4_a(a->visc,xlocvel,ylocvel,zlocvelp1);
-             double enu_xp1 = p->ccipol4_a(a->eddyv,xlocvelp1,ylocvel,zlocvel);
-             double enu_yp1 = p->ccipol4_a(a->eddyv,xlocvel,ylocvelp1,zlocvel);
-             double enu_zp1 = p->ccipol4_a(a->eddyv,xlocvel,ylocvel,zlocvelp1);
-             double rho_xp1 = p->ccipol4_a(a->ro,xlocvelp1,ylocvel,zlocvel);
-             double rho_yp1 = p->ccipol4_a(a->ro,xlocvel,ylocvelp1,zlocvel);
-             double rho_zp1 = p->ccipol4_a(a->ro,xlocvel,ylocvel,zlocvelp1);
-
-             double xlocvelm1 = xlocvel - p->DXP[IP];
-             double ylocvelm1 = ylocvel - p->DYP[JP];
-             double zlocvelm1 = zlocvel - p->DZP[KP];
-             double umx1 = p->ccipol1_a(uvel,xlocvelm1,ylocvel,zlocvel);
-             double umy1 = p->ccipol1_a(uvel,xlocvel,ylocvelm1,zlocvel);
-             double umz1 = p->ccipol1_a(uvel,xlocvel,ylocvel,zlocvelm1);
-             double vmx1 = p->ccipol2_a(vvel,xlocvelm1,ylocvel,zlocvel);
-             double vmy1 = p->ccipol2_a(vvel,xlocvel,ylocvelm1,zlocvel);
-             double vmz1 = p->ccipol2_a(vvel,xlocvel,ylocvel,zlocvelm1);
-             double wmx1 = p->ccipol3_a(wvel,xlocvelm1,ylocvel,zlocvel);
-             double wmy1 = p->ccipol3_a(wvel,xlocvel,ylocvelm1,zlocvel);
-             double wmz1 = p->ccipol3_a(wvel,xlocvel,ylocvel,zlocvelm1);
-             double nu_xm1 = p->ccipol4_a(a->visc,xlocvelm1,ylocvel,zlocvel);
-             double nu_ym1 = p->ccipol4_a(a->visc,xlocvel,ylocvelm1,zlocvel);
-             double nu_zm1 = p->ccipol4_a(a->visc,xlocvel,ylocvel,zlocvelm1);
-             double enu_xm1 = p->ccipol4_a(a->eddyv,xlocvelm1,ylocvel,zlocvel);
-             double enu_ym1 = p->ccipol4_a(a->eddyv,xlocvel,ylocvelm1,zlocvel);
-             double enu_zm1 = p->ccipol4_a(a->eddyv,xlocvel,ylocvel,zlocvelm1);
-             double rho_xm1 = p->ccipol4_a(a->ro,xlocvelm1,ylocvel,zlocvel);
-             double rho_ym1 = p->ccipol4_a(a->ro,xlocvel,ylocvelm1,zlocvel);
-             double rho_zm1 = p->ccipol4_a(a->ro,xlocvel,ylocvel,zlocvelm1);
-
-             dudx = (rho_xp1*(nu_xp1+enu_xp1)*upx1 - rho_xm1*(nu_xm1+enu_xm1)*umx1)/(2.0*p->DXP[IP]);
-             dudy = (rho_yp1*(nu_yp1+enu_yp1)*upy1 - rho_ym1*(nu_ym1+enu_ym1)*umy1)/(2.0*p->DYP[JP]);
-             dudy = (rho_zp1*(nu_zp1+enu_zp1)*upz1 - rho_zm1*(nu_zm1+enu_zm1)*umz1)/(2.0*p->DZP[KP]);
-
-             dvdx = (rho_xp1*(nu_xp1+enu_xp1)*vpx1 - rho_xm1*(nu_xm1+enu_xm1)*vmx1)/(2.0*p->DXP[IP]);
-             dvdy = (rho_yp1*(nu_yp1+enu_yp1)*vpy1 - rho_ym1*(nu_ym1+enu_ym1)*vmy1)/(2.0*p->DYP[JP]);
-             dvdy = (rho_zp1*(nu_zp1+enu_zp1)*vpz1 - rho_zm1*(nu_zm1+enu_zm1)*vmz1)/(2.0*p->DZP[KP]);
-
-             dwdx = (rho_xp1*(nu_xp1+enu_xp1)*wpx1 - rho_xm1*(nu_xm1+enu_xm1)*wmx1)/(2.0*p->DXP[IP]);
-             dwdy = (rho_yp1*(nu_yp1+enu_yp1)*wpy1 - rho_ym1*(nu_ym1+enu_ym1)*wmy1)/(2.0*p->DYP[JP]);
-             dwdy = (rho_zp1*(nu_zp1+enu_zp1)*wpz1 - rho_zm1*(nu_zm1+enu_zm1)*wmz1)/(2.0*p->DZP[KP]);
-
-             Fv_x = A_triang*(2.0*dudx*nx + (dudy + dvdx)*ny + (dudz + dwdx)*nz);
-             Fv_y = A_triang*((dudy + dvdx)*nx + 2.0*dvdy*ny + (dvdz + dwdy)*nz);
-             Fv_z = A_triang*((dudz + dwdx)*nx + (dvdz + dwdy)*ny + 2.0*dwdz*nz);
-*/
-
-
-
-			nu_int = p->ccipol4_a(a->visc,xlocvel,ylocvel,zlocvel);
+             
+            xlocvel = xc + p->X43*nx*p->DXP[IP];
+            ylocvel = yc + p->X43*ny*p->DYP[JP];
+            zlocvel = zc + p->X43*nz*p->DZP[KP];
+            
+            nu_int = p->ccipol4_a(a->visc,xlocvel,ylocvel,zlocvel);
 			enu_int = 0.0; //p->ccipol4_a(a->eddyv,xlocvel,ylocvel,zlocvel);
 			rho_int = p->ccipol4_a(a->ro,xlocvel,ylocvel,zlocvel);
-			
-            // Central differences                                 
 	        
             i = p->posc_i(xlocvel);
 			j = p->posc_j(ylocvel);
@@ -286,13 +227,4 @@ void sixdof_df_object::forces_stl
 	{
 		cout<<"Xe: "<<Xe<<" Ye: "<<Ye<<" Ze: "<<Ze<<" Ke: "<<Ke<<" Me: "<<Me<<" Ne: "<<Ne<<endl;
 	}
-
-
-    // Save dynamic pressure
-/*    LOOP
-    {
-        a->test(i,j,k) = a->press(i,j,k) + a->ro(i,j,k)*a->gk*p->pos_z();
-    }
-    pgc->start4(p,a->test,40);
-*/
 }
