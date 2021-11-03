@@ -152,6 +152,10 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
             density =   p->ccipol4_a(a->ro,xloc,yloc,zloc);
             viscosity = p->ccipol4_a(a->visc,xloc,yloc,zloc);
             phival =    p->ccipol4_a(a->phi,xloc,yloc,zloc);
+            
+            if(p->P82==1)
+            viscosity += p->ccipol4_a(a->eddyv,xloc,yloc,zloc);   
+                
 
             // Force
             if(phival>-1.6*p->DXM || p->P92==1)
