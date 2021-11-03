@@ -125,10 +125,10 @@ void hypre_struct2D::start(lexer* p, ghostcell* pgc, slice &f, matrix2D &M, vec2
     
     feedback = pgc->globalimax(feedback);
     
-    if(feedback==1)
+    if(feedback>=1)
     {
     if(p->mpirank==0)
-    cout<<endl<<" HYPRE solver broke down! Emergency Exit!"<<endl<<endl;
+    cout<<endl<<" HYPRE solver broke down! Emergency Stop! "<<feedback<<endl<<endl;
     
     exit(0);
     }
