@@ -27,7 +27,42 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"waves_header.h"
 
 void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
-{	
+{	 
+    
+    int check=0;
+    
+    ULOOP
+    if(a->u(i,j,k)!=a->u(i,j,k))
+    check=1;
+    
+    VLOOP
+    if(a->v(i,j,k)!=a->v(i,j,k))
+    check=1;
+    
+    WLOOP
+    if(a->w(i,j,k)!=a->w(i,j,k))
+    check=1;
+    
+    LOOP
+    if(a->press(i,j,k)!=a->press(i,j,k))
+    check=1;
+    
+    if(check==1)
+    {
+    
+        if(p->mpirank==0)
+        cout<<endl<<"EMERGENCY STOP  --  solver breaking down - NAN values"<<endl<<endl;
+    
+     if(p->A10==3)
+     pfprint->print_vtu(p,c,pgc);
+    
+     if(p->A10==6)
+     pprint->print_vtu(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
+     
+     pgc->final();
+     exit(0);
+    }
+        
     if(p->umax>p->N61 || p->vmax>p->N61 || p->wmax>p->N61)
     {
     

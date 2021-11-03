@@ -45,7 +45,7 @@ public:
 
 private:
 
-	double sqd;
+    double teta,phival;
 	int count,n,q;
     
     density *pd;
