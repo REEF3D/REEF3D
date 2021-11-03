@@ -59,7 +59,8 @@ public:
 
 private:
 	double starttime,endtime;
-	int count, gcval_press;
+    double teta;
+	int count, gcval_press, check;
 	int gcval_u, gcval_v, gcval_w;
 	
 	void debug(lexer*,fdm*);
