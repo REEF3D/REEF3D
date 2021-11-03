@@ -616,6 +616,8 @@ void lexer::ini_default()
     X40=3;		// int type of force calculation
 	X41=2.1;    // double eps for continuous forcing heaviside
 	X42=0.0;    // double distance for pressure force evaluation
+	X43=1.0;    // double distance for shear stress evaluation
+	X44=0.0;    // double viscosity in body
 	X100=0;		// int delta x,y,z
 	X100_x=X100_y=X100_z=0.0; 
 	X101=0;		// int ini Euler angles

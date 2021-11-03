@@ -1232,6 +1232,10 @@ void lexer::ctrlsend()
 	dd++;
 	dctrl[dd] = X42;
 	dd++;
+	dctrl[dd] = X43;
+	dd++;
+	dctrl[dd] = X44;
+	dd++;
 	ictrl[ii] = X100;
 	ii++;
 	dctrl[dd] = X100_x;
