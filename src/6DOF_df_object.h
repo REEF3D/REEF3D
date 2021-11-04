@@ -218,6 +218,7 @@ private:
     double kernel(const double&);
 
     // Print
+    double curr_time;
     double printtime;
     int nCorr;
     

@@ -67,6 +67,8 @@ void sixdof_df_object::print_ini(lexer *p, fdm *a, ghostcell *pgc)
     print.open(str);
 	print<<"time \t Fx \t Fy \t Fz \t Mx \t My \t Mz \t Fx_p \t Fy_p \t Fz_p \t Fx_v \t Fy_v \t Fz_v"<<endl;
     print.close();    
+
+    curr_time = 0.0;
 }
 
 
