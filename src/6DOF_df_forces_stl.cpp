@@ -47,6 +47,10 @@ void sixdof_df_object::forces_stl
     A=0.0;
     Xe=Ye=Ze=Ke=Me=Ne=0.0;
     Xe_p=Ye_p=Ze_p=Xe_v=Ye_v=Ze_v=0.0;
+    
+    // Set new time
+    curr_time += alpha*p->dt; 
+
 
     for (int n = 0; n < tricount; ++n)
     {     
@@ -207,7 +211,7 @@ void sixdof_df_object::forces_stl
 
     // Print results
 	
-    if (p->mpirank == 0 && alpha == 1.0) 
+    if (p->mpirank == 0) 
     {
         ofstream print;
         char str[1000];
@@ -218,7 +222,7 @@ void sixdof_df_object::forces_stl
         sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
 
         print.open(str, std::ofstream::out | std::ofstream::app);
-        print<<p->simtime<<" \t "<<Xe<<" \t "<<Ye<<" \t "<<Ze<<" \t "<<Ke
+        print<<curr_time<<" \t "<<Xe<<" \t "<<Ye<<" \t "<<Ze<<" \t "<<Ke
         <<" \t "<<Me<<" \t "<<Ne<<" \t "<<Xe_p<<" \t "<<Ye_p<<" \t "<<Ze_p<<" \t "<<Xe_v<<" \t "<<Ye_v<<" \t "<<Ze_v<<endl;   
         print.close();
     }

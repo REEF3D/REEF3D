@@ -17,12 +17,13 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"benchmark.h"
 #include"increment.h"
 #include"gradient.h"
+#include"field4.h"
 
 class fdm;
 class lexer;
@@ -41,6 +42,9 @@ public:
 	virtual ~benchmark_TaylorGreen();
 
 	virtual void start(lexer*, fdm*, ghostcell*, convection*);
+private:
+	
+	field4 vx,vy,vz;
 };
 
 #endif
