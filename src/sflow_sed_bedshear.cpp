@@ -29,12 +29,27 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void sflow_sediment_f::bedshear(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q)
 {
     double ux,vy,uabs,cf,manning;
+    double U,V;
     
     SLICELOOP4
     {
-    ux = 0.5*(P(i,j) + P(i+1,j));
-    vy = 0.5*(Q(i,j) + Q(i,j+1));
-    uabs = sqrt(ux*ux + vy*vy);
+    ux = 0.5*(P(i,j) + P(i-1,j));
+    vy = 0.5*(Q(i,j) + Q(i,j-1));
+    
+    
+    if(ux>=0.0)
+    U = P(i-1,j);
+    
+    if(ux<0.0)
+    U = P(i,j);
+    
+    if(vy>=0.0)
+    V = Q(i,j);
+    
+    if(vy<0.0)
+    V = Q(i,j-1);
+    
+    uabs = sqrt(U*U + V*V);
     
 
     manning = pow(p->S21*ks(i,j),1.0/6.0)/26.0;
