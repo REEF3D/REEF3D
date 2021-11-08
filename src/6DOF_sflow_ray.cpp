@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"slice.h"
 
 
-void sixdof_sflow::ray_cast(lexer *p, ghostcell *pgc)
+void sixdof_sflow::ray_cast(lexer *p, fdm2D *b, ghostcell *pgc)
 {
 	SLICELOOP4
 	{
@@ -38,16 +38,16 @@ void sixdof_sflow::ray_cast(lexer *p, ghostcell *pgc)
     {
         if(rayiter==0)
         {
-            ray_cast_io_x(p,pgc,0,tricount);
-            ray_cast_io_ycorr(p,pgc,0,tricount);
+            ray_cast_io_x(p,b,pgc,0,tricount);
+            ray_cast_io_ycorr(p,b,pgc,0,tricount);
         }
     
         if(rayiter==1)
         {
             pgc->gcslparax_int(p,fbio,1);
             
-            ray_cast_x(p,pgc,0,tricount);
-            ray_cast_y(p,pgc,0,tricount);
+            ray_cast_x(p,b,pgc,0,tricount);
+            ray_cast_y(p,b,pgc,0,tricount);
         }
     }
     
@@ -72,7 +72,7 @@ void sixdof_sflow::ray_cast(lexer *p, ghostcell *pgc)
 	pgc->gcsl_start4(p,fb,50);
 }
 
-void sixdof_sflow::ray_cast_io_x(lexer* p, ghostcell* pgc,int ts,int te)
+void sixdof_sflow::ray_cast_io_x(lexer* p, fdm2D *b, ghostcell* pgc,int ts,int te)
 {
 	double ys,ye,zs,ze;
 	double Px,Py,Pz;
@@ -143,15 +143,14 @@ void sixdof_sflow::ray_cast_io_x(lexer* p, ghostcell* pgc,int ts,int te)
         ke = MIN(ke,p->knoz);			
     
 		for(j=js;j<je;j++)
-		for(k=ks;k<ke;k++)
 		{
             Px = p->global_xmin-10.0*p->DXM;
             Py = p->YP[JP]+psi;
-            Pz = p->ZP[KP]+psi;
+            Pz = b->bed(i,j)+p->wd+psi;
             
             Qx = p->global_xmax+10.0*p->DXM;
             Qy = p->YP[JP]+psi;
-            Qz = p->ZP[KP]+psi;
+            Qz = b->bed(i,j)+p->wd+psi;
 		
             PQx = Qx-Px;
             PQy = Qy-Py;
@@ -214,7 +213,7 @@ void sixdof_sflow::ray_cast_io_x(lexer* p, ghostcell* pgc,int ts,int te)
 
 }
 
-void sixdof_sflow::ray_cast_io_ycorr(lexer* p, ghostcell* pgc, int ts, int te)
+void sixdof_sflow::ray_cast_io_ycorr(lexer* p, fdm2D *b, ghostcell* pgc, int ts, int te)
 {
 	double ys,ye,zs,ze;
 	double Px,Py,Pz;
@@ -289,16 +288,14 @@ void sixdof_sflow::ray_cast_io_ycorr(lexer* p, ghostcell* pgc, int ts, int te)
 	
 	
 		for(i=is;i<ie;i++)
-		for(k=ks;k<ke;k++)
 		{
 		Px = p->XP[IP]+psi;
 		Py = p->global_ymin-10.0*p->DXM ;
-		Pz = p->ZP[KP]+psi;
+		Pz = b->bed(i,j)+p->wd+psi;;
 		
 		Qx = p->XP[IP]+psi;
 		Qy = p->global_ymax+10.0*p->DXM ;
-		Qz = p->ZP[KP]+psi;
-		
+		Qz = b->bed(i,j)+p->wd+psi;
 		
 		PQx = Qx-Px;
 		PQy = Qy-Py;
@@ -366,7 +363,7 @@ void sixdof_sflow::ray_cast_io_ycorr(lexer* p, ghostcell* pgc, int ts, int te)
 }
 
 
-void sixdof_sflow::ray_cast_x(lexer *p, ghostcell *pgc, int ts, int te)
+void sixdof_sflow::ray_cast_x(lexer *p, fdm2D *b, ghostcell *pgc, int ts, int te)
 {
 	double ys,ye,zs,ze;
 	double Px,Py,Pz;
@@ -434,15 +431,14 @@ void sixdof_sflow::ray_cast_x(lexer *p, ghostcell *pgc, int ts, int te)
 	ke = MIN(ke,p->knoz);			
 	
 		for(j=js;j<je;j++)
-		for(k=ks;k<ke;k++)
 		{
-		Px = p->global_xmin-10.0*p->DXM;
-		Py = p->YP[JP]+psi;
-		Pz = p->ZP[KP]+psi;
-		
-		Qx = p->global_xmax+10.0*p->DXM;
-		Qy = p->YP[JP]+psi;
-		Qz = p->ZP[KP]+psi;
+            Px = p->global_xmin-10.0*p->DXM;
+            Py = p->YP[JP]+psi;
+            Pz = b->bed(i,j)+p->wd+psi;
+            
+            Qx = p->global_xmax+10.0*p->DXM;
+            Qy = p->YP[JP]+psi;
+            Qz = b->bed(i,j)+p->wd+psi;
 		
 		
 		PQx = Qx-Px;
@@ -515,7 +511,7 @@ void sixdof_sflow::ray_cast_x(lexer *p, ghostcell *pgc, int ts, int te)
 }
 
 
-void sixdof_sflow::ray_cast_y(lexer *p, ghostcell *pgc, int ts, int te)
+void sixdof_sflow::ray_cast_y(lexer *p, fdm2D *b, ghostcell *pgc, int ts, int te)
 {
 	double ys,ye,zs,ze;
 	double Px,Py,Pz;
@@ -584,15 +580,14 @@ void sixdof_sflow::ray_cast_y(lexer *p, ghostcell *pgc, int ts, int te)
 	
 	
 		for(i=is;i<ie;i++)
-		for(k=ks;k<ke;k++)
 		{
 		Px = p->XP[IP]+psi;
 		Py = p->global_ymin-10.0*p->DXM ;
-		Pz = p->ZP[KP]+psi;
+		Pz = b->bed(i,j)+p->wd+psi;;
 		
 		Qx = p->XP[IP]+psi;
 		Qy = p->global_ymax+10.0*p->DXM ;
-		Qz = p->ZP[KP]+psi;
+		Qz = b->bed(i,j)+p->wd+psi;
 		
 		
 		PQx = Qx-Px;
