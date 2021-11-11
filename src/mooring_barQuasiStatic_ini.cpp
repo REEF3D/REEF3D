@@ -113,6 +113,12 @@ void mooring_barQuasiStatic::initialize(lexer *p, fdm *a, ghostcell *pgc)
 
     // Initialise catenary
 	pcatenary = new mooring_Catenary(line);
+
+    // Initialise breaking
+    broken = false;
+    curr_time = 0.0;
+    breakTension = p->X314;
+    breakTime = p->X315;
 }
 
 

@@ -93,6 +93,10 @@ private:
 
     // Catenary
 	mooring_Catenary *pcatenary;
+
+    // Breaking
+    bool broken;
+    double breakTension, breakTime, curr_time;
 };
 
 #endif

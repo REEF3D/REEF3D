@@ -30,6 +30,9 @@ mooring_barQuasiStatic::~mooring_barQuasiStatic(){}
 
 void mooring_barQuasiStatic::start(lexer *p, fdm *a, ghostcell *pgc)
 {
+    // Current time
+    curr_time = p->simtime;
+
 	// Correct geometrical constraint
 	dx = p->X311_xe[line] - p->X311_xs[line];
 	dy = p->X311_ye[line] - p->X311_ys[line];
@@ -509,7 +512,31 @@ void mooring_barQuasiStatic::mooringForces
 	double& Xme, double& Yme, double& Zme
 )
 {
-	Xme = Xme_; 
-	Yme = Yme_;
-	Zme = Zme_;
+    // Tension forces if line is not broken
+    if (broken == false)
+    {
+        Xme = Xme_; 
+        Yme = Yme_;
+        Zme = Zme_;
+    }
+
+    // Breakage due to max tension force
+    if (breakTension > 0.0 && fabs(A[sigma-1][sigma]) >= breakTension)
+    {
+        Xme = 0.0; 
+        Yme = 0.0;
+        Zme = 0.0;
+
+        broken = true;
+    }
+
+    // Breakage due to time limit
+    if (breakTime > 0.0 && curr_time >= breakTime)
+    {
+        Xme = 0.0; 
+        Yme = 0.0;
+        Zme = 0.0;
+
+        broken = true;
+    }
 }

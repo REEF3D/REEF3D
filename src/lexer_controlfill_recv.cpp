@@ -1405,6 +1405,10 @@ void lexer::ctrlrecv()
 	ii++;    
     X313 = ictrl[ii];
 	ii++;    
+	X314 = dctrl[dd];
+	dd++;
+	X315 = dctrl[dd];
+	dd++;
     X320 = ictrl[ii];
 	ii++;
     X321 = ictrl[ii];

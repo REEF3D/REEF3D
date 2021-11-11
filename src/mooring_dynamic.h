@@ -93,6 +93,10 @@ private:
 
 	// Print
 	ofstream eTout;
+    
+    // Breaking
+    bool broken;
+    double breakTension, breakTime;
 };
 
 #endif

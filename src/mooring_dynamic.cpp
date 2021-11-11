@@ -247,9 +247,33 @@ void mooring_dynamic::mooringForces
 	double& Xme, double& Yme, double& Zme
 )
 {
-	Xme = Xme_; 
-	Yme = Yme_;
-	Zme = Zme_;
+    // Tension forces if line is not broken
+    if (broken == false)
+    {
+        Xme = Xme_; 
+        Yme = Yme_;
+        Zme = Zme_;
+    }
+
+    // Breakage due to max tension force
+    if (breakTension > 0.0 && fabs(getTensLoc(Ne)) >= breakTension)
+    {
+        Xme = 0.0; 
+        Yme = 0.0;
+        Zme = 0.0;
+
+        broken = true;
+    }
+
+    // Breakage due to time limit
+    if (breakTime > 0.0 && t_mooring >= breakTime)
+    {
+        Xme = 0.0; 
+        Yme = 0.0;
+        Zme = 0.0;
+
+        broken = true;
+    }
 }
 
 

@@ -31,6 +31,8 @@ mooring_Spring::~mooring_Spring(){}
 
 void mooring_Spring::initialize(lexer *p, fdm *a, ghostcell *pgc)
 {   
+    curr_time = p->simtime;
+
     dx = p->X311_xe[line] - p->X311_xs[line];			
     dy = p->X311_ye[line] - p->X311_ys[line];				
     dz = p->X311_ze[line] - p->X311_zs[line];	
@@ -48,6 +50,12 @@ void mooring_Spring::initialize(lexer *p, fdm *a, ghostcell *pgc)
 	}
     
 	printtime = 0.0;     
+    
+    // Initialise breaking
+    broken = false;
+    curr_time = 0.0;
+    breakTension = p->X314;
+    breakTime = p->X315;
 }
 
 
@@ -101,9 +109,33 @@ void mooring_Spring::mooringForces
 	double& Xme, double& Yme, double& Zme
 )
 {
-	Xme = Xme_; 
-	Yme = Yme_;
-	Zme = Zme_;
+    // Tension forces if line is not broken
+    if (broken == false)
+    {
+        Xme = Xme_; 
+        Yme = Yme_;
+        Zme = Zme_;
+    }
+
+    // Breakage due to max tension force
+    if (breakTension > 0.0 && fabs(T) >= breakTension)
+    {
+        Xme = 0.0; 
+        Yme = 0.0;
+        Zme = 0.0;
+
+        broken = true;
+    }
+
+    // Breakage due to time limit
+    if (breakTime > 0.0 && curr_time >= breakTime)
+    {
+        Xme = 0.0; 
+        Yme = 0.0;
+        Zme = 0.0;
+
+        broken = true;
+    }
 }
 
 

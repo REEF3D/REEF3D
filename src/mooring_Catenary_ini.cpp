@@ -56,4 +56,10 @@ void mooring_Catenary::initialize(lexer *p, fdm *a, ghostcell *pgc)
 		eTout<<"time \t T"<<endl;	
 	}
 	printtime = 0.0;
+    
+    // Initialise breaking
+    broken = false;
+    curr_time = 0.0;
+    breakTension = p->X314;
+    breakTime = p->X315;
 }
