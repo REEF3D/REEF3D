@@ -118,9 +118,6 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             {
             a->M.p[n] += a->M.s[n];
             a->M.s[n] = 0.0;
-            
-            //a->rhsvec.V[n] -= a->M.s[n]*f(i,j,k);
-            //a->M.s[n] = 0.0;
             }
 
             if(p->flag4[Im1JK]<AIR && bc(i-1,j)==1)
@@ -163,23 +160,26 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             if(p->flag4[Im1JK]==AIR)
             {
                 // -----------
-                if(p->A323>=1)
+                if(p->A323==1)
                 {
                 a->rhsvec.V[n] -= a->M.s[n]*f(i-1,j,k);
                 a->M.s[n] = 0.0;
                 }
-                /*
+                
                 // -----------
                 if(p->A323==2)
                 {
-                double lsv0,lsv1;
+                double lsv0,lsv1,Fival;
 
                 lsv0 = fabs(a->phi(i,j,k));
                 lsv1 = fabs(a->phi(i-1,j,k));
 
                 lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20;
+                
+                teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k)));
+                Fival = teta*Fifsf(i-1,j) + (1.0-teta)*Fifsf(i,j);
 
-                a->rhsvec.V[n] -= a->M.s[n]*Fifsf(i-1,j)*(1.0 + lsv1/lsv0);
+                a->rhsvec.V[n] -= a->M.s[n]*Fival*(1.0 + lsv1/lsv0);
                 a->M.p[n] -= a->M.s[n]*lsv1/lsv0;
                 a->M.s[n] = 0.0;
                 }
@@ -187,17 +187,18 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 // -----------
                 if(p->A323==3)
                 {
-                double x0,x1,x2,y0,y1,y2;
-                double x,y;
+                double x0,x1,x2,y2;
+                double x,y,Fival;
                 double Lx0,Lx1,Lx2;
+                
+                teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k)));
+                Fival = teta*Fifsf(i-1,j) + (1.0-teta)*Fifsf(i,j);
 
                 x0 = -fabs(a->phi(i+1,j,k));
                 x1 = -fabs(a->phi(i,j,k));
                 x2 = 0.0;
-
-                y0 = f(i+1,j,k);
-                y1 = f(i,j,k);
-                y2 = Fifsf(i-1,j);
+                
+                y2 = Fival;
 
                 x = fabs(a->phi(i-1,j,k));
 
@@ -214,10 +215,10 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 // -----------
                 if(p->A323==4)
                 {
-                //teta = fabs(a->phi(i,j,k))/p->DXP[IM1] + 0.0001*p->DXN[IP]/p->DXP[IM1];
-                
+                double Fival;
+
                 teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k)));
-                
+                Fival = teta*Fifsf(i-1,j) + (1.0-teta)*Fifsf(i,j);
                 //cout<<i<<" Teta: "<<teta<<" a->phi(i,j,k): "<<a->phi(i,j,k)<<" a->phi(i-1,j,k): "<<a->phi(i-1,j,k)<<" p->DXP[IM1]: "<<p->DXP[IM1]<<endl;
                 
                 a->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
@@ -226,32 +227,36 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 a->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
                 a->M.s[n] -= 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
                 
-                a->rhsvec.V[n] -= a->M.s[n]*f(i-1,j,k);
+                a->rhsvec.V[n] -= a->M.s[n]*Fival;
                 a->M.s[n] = 0.0;
-                }*/
+                }
             }
 
             // north
             if(p->flag4[Ip1JK]==AIR)
             {
                 // -----------
-                if(p->A323>=1)
+                if(p->A323==1)
                 {
                 a->rhsvec.V[n] -= a->M.n[n]*f(i+1,j,k);
                 a->M.n[n] = 0.0;
                 }
                 
-                /*
+                
                 if(p->A323==2)
                 {
-                double lsv0,lsv1;
+                double lsv0,lsv1,Fival;
 
                 lsv0 = fabs(a->phi(i,j,k));
                 lsv1 = fabs(a->phi(i+1,j,k));
 
                 lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20;
+                
+                teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k)));
+                Fival = teta*Fifsf(i+1,j) + (1.0-teta)*Fifsf(i,j);
 
-                a->rhsvec.V[n] -= a->M.n[n]*Fifsf(i+1,j)*(1.0 + lsv1/lsv0);
+
+                a->rhsvec.V[n] -= a->M.n[n]*Fival*(1.0 + lsv1/lsv0);
                 a->M.p[n] -= a->M.n[n]*lsv1/lsv0;
                 a->M.n[n] = 0.0;
                 }
@@ -259,17 +264,18 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 // -----------
                 if(p->A323==3)
                 {
-                double x0,x1,x2,y0,y1,y2;
-                double x,y;
+                double x0,x1,x2,y2;
+                double x,y,Fival;
                 double Lx0,Lx1,Lx2;
+                
+                teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k)));
+                Fival = teta*Fifsf(i+1,j) + (1.0-teta)*Fifsf(i,j);
 
                 x0 = -fabs(a->phi(i-1,j,k));
                 x1 = -fabs(a->phi(i,j,k));
                 x2 = 0.0;
 
-                y0 = f(i-1,j,k);
-                y1 = f(i,j,k);
-                y2 = Fifsf(i+1,j);
+                y2 = Fival;
 
                 x = fabs(a->phi(i+1,j,k));
 
@@ -286,21 +292,21 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 // -----------
                 if(p->A323==4)
                 {
-                //teta = fabs(a->phi(i,j,k))/p->DXP[IP] + 0.0001*p->DXN[IP]/p->DXP[IP];
-                
+                double Fival;
+
                 teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k)));
+                Fival = teta*Fifsf(i+1,j) + (1.0-teta)*Fifsf(i,j);
                 
-                //cout<<" Teta: "<<teta<<" a->phi(i,j,k): "<<a->phi(i,j,k)<<" a->phi(i+1,j,k): "<<a->phi(i+1,j,k)<<endl;
-                
+
                 a->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
                 a->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
                 
                 a->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
                 a->M.n[n] -= 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
                 
-                a->rhsvec.V[n] -= a->M.n[n]*f(i+1,j,k);
+                a->rhsvec.V[n] -= a->M.n[n]*Fival;
                 a->M.n[n] = 0.0;
-                }*/
+                }
             }
 
             // east
@@ -345,7 +351,7 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 // -----------
                 if(p->A323==3)
                 {
-                double x0,x1,x2,y0,y1,y2;
+                double x0,x1,x2,y2;
                 double x,y;
                 double Lx0,Lx1,Lx2;
                 double denom1,denom2,denom3,denom4,denom5,denom6;
@@ -354,8 +360,6 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 x1 = -fabs(a->phi(i,j,k));
                 x2 = 0.0;
 
-                y0 = f(i,j,k-1);
-                y1 = f(i,j,k);
                 y2 = Fifsf(i,j);
                 
                 denom1 = fabs(x0-x1)>1.0e-6?(x0-x1):1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;

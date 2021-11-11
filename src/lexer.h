@@ -466,6 +466,7 @@ public:
 
 	// time + iterations
 	int inneriter,count,solveriter,preconiter,count_statestart;
+    int solver_status;
     double final_res;
 	double dt,dt_old,simtime,viscmax;
 	double mindt,maxdt;

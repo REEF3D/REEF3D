@@ -29,7 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
 {	 
     
-    if(p->A10==6)
+    if(p->A10==4 || p->A10==6)
     {
     int check=0;
     
@@ -71,11 +71,28 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
      if(p->A10==3)
      pfprint->print_vtu(p,c,pgc);
     
-     if(p->A10==6)
+     if(p->A10==4 || p->A10==6)
      pprint->print_vtu(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
      
      pgc->final();
      exit(0);
     }
     
+    // Solver Status
+    p->solver_status = pgc->globalimax(p->solver_status);
+    
+    if(p->solver_status>=1)
+    {
+    if(p->mpirank==0)
+    cout<<endl<<" HYPRE solver broke down! Emergency Stop! "<<p->solver_status<<endl<<endl;
+    
+    if(p->A10==3)
+     pfprint->print_vtu(p,c,pgc);
+    
+     if(p->A10==4 || p->A10==6)
+     pprint->print_vtu(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
+    
+    pgc->final();
+    exit(0);
+    }
 }
