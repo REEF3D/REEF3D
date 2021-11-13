@@ -96,22 +96,21 @@ void pjm_sig::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc
 void pjm_sig::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 {	
 	ULOOP
-	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((a->press(i+1,j,k)-a->press(i,j,k))
-	/(p->DXP[IP]*pd->roface(p,a,1,0,0)) + p->sigx[FIJK]*(0.5*(a->press(i,j,k+1)+a->press(i+1,j,k+1))-0.5*(a->press(i,j,k-1)+a->press(i+1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
+	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((a->press(i+1,j,k)-a->press(i,j,k))/(p->DXP[IP]*pd->roface(p,a,1,0,0)) 
+                + p->sigx[FIJK]*(0.5*(a->press(i,j,k+1)+a->press(i+1,j,k+1))-0.5*(a->press(i,j,k-1)+a->press(i+1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
 }
 
 void pjm_sig::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
 {	 
     VLOOP
-    vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))
-    /(p->DYP[JP]*(pd->roface(p,a,0,1,0)) + p->sigy[FIJK]*(0.5*(a->press(i,j,k+1)+a->press(i,j+1,k+1))-0.5*(a->press(i,j,k-1)+a->press(i,j+1,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
+    vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))/(p->DYP[JP]*(pd->roface(p,a,0,1,0)) 
+                + p->sigy[FIJK]*(0.5*(a->press(i,j,k+1)+a->press(i,j+1,k+1))-0.5*(a->press(i,j,k-1)+a->press(i,j+1,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
 }
 
 void pjm_sig::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
 {	
 	WLOOP
-	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))
-	/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
+	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
 }
  
 void pjm_sig::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)

@@ -58,6 +58,7 @@ void nhflow_fsf_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow)
 {
     
     // Momentum
+	//cout<<endl<<"FSF"<<endl<<endl;
 
     
     // fill eta_n
@@ -133,7 +134,11 @@ void nhflow_fsf_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow)
 	a->eta(i,j) +=	p->dt*L(i,j);	*/
 
     SLICELOOP4
+    {
     a->eta(i,j) -= p->dt*((a->P(i,j)-a->P(i-1,j))/p->DXN[IP] + (a->Q(i,j)-a->Q(i,j-1))/p->DYN[JP]);	  
+    //if(p->mpirank==3)
+    //cout<<"deta/dt: "<<p->dt*((a->P(i,j)-a->P(i-1,j))/p->DXN[IP] + (a->Q(i,j)-a->Q(i,j-1))/p->DYN[JP])<<"   "<<p->G2<<endl;
+    }
 
     
     
