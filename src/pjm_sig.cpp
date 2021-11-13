@@ -130,6 +130,9 @@ void pjm_sig::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w
                            + p->sigy[FIJK]*(0.5*(v(i,j,k+1)+v(i,j-1,k+1))-0.5*(v(i,j,k-1)+v(i,j-1,k-1)))/(p->DZP[KP]+p->DZP[KP1])
                            
 						   -(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DZN[KP])*p->sigz[IJ];
+                           
+    //a->test(i,j,k) = a->rhsvec.V[count];
+    
     ++count;
     }
     pip=0;
@@ -142,43 +145,43 @@ void pjm_sig::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, fi
 	pgc->start3(p,w,gcval_w);
 }
 
-void pjm_sig::pressure_norm(lexer*p, fdm* a, ghostcell* pgc)
-{
-    double sum=0.0;
-
-    LOOP
-    sum+=a->press(i,j,k);
-
-    sum=pgc->globalsum(sum);
-
-    sum/=double(p->cellnumtot);
-
-    LOOP
-    a->press(i,j,k)-=sum;
-}
-
 void pjm_sig::upgrad(lexer*p,fdm* a)
 {
+    if(p->D38==1)
+    ULOOP
+    {
+	a->F(i,j,k)-=PORVAL1*fabs(p->W22)*(a->eta(i+1,j)-a->eta(i,j))/p->DXP[IP];
+    }
+    
+    if(p->D38==2)
+    ULOOP
+    {
+	a->F(i,j,k)-=PORVAL1*(a->eta(i+1,j)-a->eta(i,j))/p->DXP[IP];
+    }
 }
 
 void pjm_sig::vpgrad(lexer*p,fdm* a)
 {
+    if(p->D38==1)
+    VLOOP
+    {
+	a->G(i,j,k)-=PORVAL2*fabs(p->W22)*(a->eta(i,j+1)-a->eta(i,j))/p->DYP[JP];
+    }
+    
+    if(p->D38==2)
+    VLOOP
+    {
+	a->G(i,j,k)-=PORVAL2*(a->eta(i,j+1)-a->eta(i,j))/p->DYP[JP];
+    }
 }
 
 void pjm_sig::wpgrad(lexer*p,fdm* a)
 {
-}
-
-void pjm_sig::fillapu(lexer*p,fdm* a)
-{
-}
-
-void pjm_sig::fillapv(lexer*p,fdm* a)
-{
-}
-
-void pjm_sig::fillapw(lexer*p,fdm* a)
-{
+    if(p->D38==1)
+    WLOOP
+	{
+	a->H(i,j,k) -= a->gk*PORVAL3;
+	}
 }
 
 void pjm_sig::ptimesave(lexer *p, fdm *a, ghostcell *pgc)

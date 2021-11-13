@@ -133,7 +133,7 @@ void poisson_sig::start(lexer* p, fdm *a, field &f)
             
             if(p->flag4[IJKp1]<0)
             {
-            a->rhsvec.V[n] -= 0.0;
+            a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1);
             a->M.t[n] = 0.0;
             }
         }

@@ -275,21 +275,6 @@ void pjm_nse::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, fi
 	pgc->start3(p,w,gcval_w);
 }
 
-void pjm_nse::pressure_norm(lexer*p, fdm* a, ghostcell* pgc)
-{
-    double sum=0.0;
-
-    LOOP
-    sum+=a->press(i,j,k);
-
-    sum=pgc->globalsum(sum);
-
-    sum/=double(p->cellnumtot);
-
-    LOOP
-    a->press(i,j,k)-=sum;
-}
-
 void pjm_nse::upgrad(lexer*p,fdm* a)
 {
     //dp/dx = g*d(eta-z)/dx
@@ -324,6 +309,7 @@ void pjm_nse::vpgrad(lexer*p,fdm* a)
 
 void pjm_nse::wpgrad(lexer*p,fdm* a)
 {
+    /*
     double z1,z2;
     
     if(p->D38==1)
@@ -340,19 +326,12 @@ void pjm_nse::wpgrad(lexer*p,fdm* a)
     z1 = p->ZP[KP];
     z2 = p->ZP[KP1];
 	a->H(i,j,k)-=PORVAL3*(-z2+z1)/p->DZP[KP];
-    }
-}
-
-void pjm_nse::fillapu(lexer*p,fdm* a)
-{
-}
-
-void pjm_nse::fillapv(lexer*p,fdm* a)
-{
-}
-
-void pjm_nse::fillapw(lexer*p,fdm* a)
-{
+    }*/
+    
+	WLOOP
+	{
+	a->H(i,j,k) -= (a->gk)*PORVAL3;
+	}
 }
 
 void pjm_nse::ptimesave(lexer *p, fdm *a, ghostcell *pgc)

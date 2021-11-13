@@ -519,7 +519,6 @@ void driver::logic()
 	ppoissonsolv = new hypre_sstruct(p,a,pgc);
 	#endif
 
-    //psolv=ppoissonsolv;
 
 //VRANS
     if(p->B269==0)

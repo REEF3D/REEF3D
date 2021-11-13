@@ -45,9 +45,6 @@ public:
     virtual void ucorr(lexer*p,fdm*,field&,double)=0;
 	virtual void vcorr(lexer*p,fdm*,field&,double)=0;
 	virtual void wcorr(lexer*p,fdm*,field&,double)=0;
-	virtual void fillapu(lexer*,fdm*)=0;
-	virtual void fillapv(lexer*,fdm*)=0;
-	virtual void fillapw(lexer*,fdm*)=0;
 	virtual void ptimesave(lexer*,fdm*,ghostcell*)=0;
 };
 

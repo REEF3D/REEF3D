@@ -56,10 +56,8 @@ nhflow_fsf_f::~nhflow_fsf_f()
 
 void nhflow_fsf_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow)
 {
-    
-    // Momentum
-	//cout<<endl<<"FSF"<<endl<<endl;
-
+    pgc->start4(p,a->ro,1);
+    pgc->start4(p,a->visc,1);
     
     // fill eta_n
     SLICELOOP4
