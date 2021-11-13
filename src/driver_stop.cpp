@@ -29,7 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
 {	 
     
-    if(p->A10==4 || p->A10==6)
+    if(p->A10==4 || p->A10==6)
     {
     int check=0;
     

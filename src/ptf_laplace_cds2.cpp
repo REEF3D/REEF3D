@@ -58,6 +58,7 @@ ptf_laplace_cds2::~ptf_laplace_cds2()
 
 void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, field &f, slice &Fifsf)
 {
+
 	n=0;
     FLUIDLOOP
 	{
@@ -102,11 +103,10 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
 	a->rhsvec.V[n] = 0.0;
     }
     
-    
 	++n;
 	}
 
-
+    // Boundary Conditions
     n=0;
 	FLUIDLOOP
 	{
@@ -219,8 +219,8 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
 
                 teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k)));
                 Fival = teta*Fifsf(i-1,j) + (1.0-teta)*Fifsf(i,j);
-                //cout<<i<<" Teta: "<<teta<<" a->phi(i,j,k): "<<a->phi(i,j,k)<<" a->phi(i-1,j,k): "<<a->phi(i-1,j,k)<<" p->DXP[IM1]: "<<p->DXP[IM1]<<endl;
-                
+                teta = (fabs(teta)>1.0e-6?teta:1.0e20);
+            
                 a->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
                 a->M.p[n] += 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
                            
@@ -242,7 +242,7 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 a->M.n[n] = 0.0;
                 }
                 
-                
+                // -----------
                 if(p->A323==2)
                 {
                 double lsv0,lsv1,Fival;
@@ -297,7 +297,8 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k)));
                 Fival = teta*Fifsf(i+1,j) + (1.0-teta)*Fifsf(i,j);
                 
-
+                teta = (fabs(teta)>1.0e-6?teta:1.0e20);
+                
                 a->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
                 a->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
                 
@@ -388,6 +389,7 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 {
                 teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
                 
+                teta = (fabs(teta)>1.0e-6?teta:1.0e20);
                 //cout<<" Teta: "<<teta<<" a->phi(i,j,k): "<<a->phi(i,j,k)<<" a->phi(i+1,j,k): "<<a->phi(i+1,j,k)<<endl;
                 
                 a->M.p[n] -= 1.0/(p->DZP[KP]*p->DZN[KP]);
@@ -413,6 +415,8 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
 
 	++n;
 	}
+    
+    
 
 
     double starttime=pgc->timer();
