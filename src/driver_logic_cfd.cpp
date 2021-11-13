@@ -343,7 +343,7 @@ void driver::logic()
 
     if(p->A10==55)
     {
-    if(p->A410==1)
+    //if(p->A410==1)
     pnhfsf = new nhflow_fsf_f(p,a,pgc,pflow);
     }
     
