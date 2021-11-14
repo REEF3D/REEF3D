@@ -47,12 +47,8 @@ pjm_sig::pjm_sig(lexer* p, fdm *a, heat *&pheat, concentration *&pconc)
 	
 	if(p->F80==0 && p->C10>0)
 	pd = new density_conc(p,pconc);
-    
-    if(p->F80>0 && p->H10==0 && p->W30==0)
-	pd = new density_vof(p);
-    
 
-    gcval_press=40;  
+    gcval_press=540;  
 
 	gcval_u=7;
 	gcval_v=8;
@@ -96,14 +92,14 @@ void pjm_sig::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc
 void pjm_sig::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 {	
 	ULOOP
-	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((a->press(i+1,j,k)-a->press(i,j,k))/(p->DXP[IP]*pd->roface(p,a,1,0,0)) 
+	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*(1.0/pd->roface(p,a,1,0,0))*((a->press(i+1,j,k)-a->press(i,j,k))/(p->DXP[IP]) 
                 + p->sigx[FIJK]*(0.5*(a->press(i,j,k+1)+a->press(i+1,j,k+1))-0.5*(a->press(i,j,k-1)+a->press(i+1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
 }
 
 void pjm_sig::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
 {	 
     VLOOP
-    vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))/(p->DYP[JP]*(pd->roface(p,a,0,1,0)) 
+    vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(1.0/pd->roface(p,a,0,1,0))*((a->press(i,j+1,k)-a->press(i,j,k))/(p->DYP[JP]) 
                 + p->sigy[FIJK]*(0.5*(a->press(i,j,k+1)+a->press(i,j+1,k+1))-0.5*(a->press(i,j,k-1)+a->press(i,j+1,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
 }
 
@@ -131,8 +127,6 @@ void pjm_sig::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w
                            
 						   -(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DZN[KP])*p->sigz[IJ];
                            
-    //a->test(i,j,k) = a->rhsvec.V[count];
-    
     ++count;
     }
     pip=0;

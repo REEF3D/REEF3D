@@ -161,8 +161,7 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	if(cs==5 && gcv==144)
 	return 5;
 	
-	
-	
+
 	else
 	if((bc==21||bc==22||bc==5||bc==3) && (cs!=5)  && gcv==145)
 	return gclabel_press;
@@ -352,7 +351,17 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
     else
 	if(gcv==999)
 	return 99;
-
+    
+// NHFLOW
+    else
+	if((bc==21||bc==22||bc==5||bc==3||(bc==2&&hs_label==0)||bc==6||(bc==7&&awa_label==0)||bc==211||bc==212||bc==112||bc==111) && cs!=6 && gcv==540)
+	return gclabel_press;
+    
+    else
+	if((bc==21||bc==22||bc==5||bc==3||(bc==2&&hs_label==0)||bc==6||(bc==7&&awa_label==0)||bc==211||bc==212||bc==112||bc==111) && cs==6 && gcv==540)
+	return gclabel_press;
+    
+    
 	else
 	return 0;
 }
@@ -393,6 +402,9 @@ void ghostcell::gcdistro4(lexer *p, field &f, int ii, int jj, int kk, int nn, do
 	
 	if(bc_label==10)
 	gravity_press(p,f,dist,gcv,bc,cs);
+    
+    if(bc_label==11)
+    nhpress(p,f,dist,gcv,bc,cs);
 
 	if(bc_label==21)
 	atmosphere(p,f,gcv,bc,cs);

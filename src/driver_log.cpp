@@ -99,7 +99,7 @@ sedlogout.open("./REEF3D_Log/REEF3D_sedimentlog.dat");
 
 sedlogout<<"number of cells:  "<<p->cellnumtot<<endl;
 sedlogout<<"number of points: "<<p->pointnumtot<<endl<<endl;
-sedlogout<<"#iteration \t # \t #dtsed \t| #sedtime \t #sediter \t #slidecells \t| #bedmin \t #bedmax \t|"<<endl;
+sedlogout<<"#iteration \t #simtime \t # \t #dtsed \t| #sedtime \t #sediter \t #slidecells \t| #bedmin \t #bedmax \t|"<<endl;
 }
 
 }
@@ -152,6 +152,7 @@ void driver::sedimentlog(lexer* p)
 {
      sedlogout<<p->count<<"\t \t \t";
      sedlogout<<setprecision(4)<<p->dtsed<<" \t ";
+     sedlogout<<setprecision(5)<<p->simtime<<" \t ";
      sedlogout<<setprecision(4)<<p->sedtime<<" \t ";
      sedlogout<<setprecision(4)<<p->sediter<<" \t ";
      sedlogout<<setprecision(4)<<p->slidecells<<" \t ";
