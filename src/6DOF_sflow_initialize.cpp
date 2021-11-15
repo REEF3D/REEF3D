@@ -58,7 +58,7 @@ void sixdof_sflow::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     iniPosition_RBM(p,b,pgc);
 
     // Initialise distance field
-	ray_cast(p,pgc);
+	ray_cast(p,b,pgc);
     time_preproc(p); 
 	reini(p,pgc,fb);
 

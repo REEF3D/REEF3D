@@ -71,6 +71,10 @@ private:
 	// Print
 	char name[100];
 	ofstream eTout;
+    
+    // Breaking
+    bool broken;
+    double breakTension, breakTime, curr_time;
 	double printtime;
 };
 

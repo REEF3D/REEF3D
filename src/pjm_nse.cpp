@@ -103,23 +103,143 @@ void pjm_nse::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc
 
 void pjm_nse::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 {	
+    if(p->D37==1)
 	ULOOP
 	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((a->press(i+1,j,k)-a->press(i,j,k))
-	/(p->DXP[IP]*p->W1));
+	/(p->DXP[IP]*pd->roface(p,a,1,0,0)));
+    
+    if(p->D37>=2)
+	ULOOP
+    {
+    check=0;
+        
+        if(p->D37==3)
+        {
+        if(p->flag4[Ip1JK]==AIR)
+        {
+        teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
+        check=1;
+        }
+        
+        if(p->flag4[Im1JK]==AIR)
+        {
+        teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i,j,k-1))+fabs(a->phi(i,j,k)));
+        check=2;
+        }
+        
+        if(p->flag4[IJp1K]==AIR)
+        {
+        teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j+1,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DYN[JP]/(fabs(a->phi(i,j+1,k))+fabs(a->phi(i,j,k)));
+        check=1;
+        }
+        
+        if(p->flag4[IJm1K]==AIR)
+        {
+        teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j-1,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DYN[JP]/(fabs(a->phi(i,j-1,k))+fabs(a->phi(i,j,k)));
+        check=2;
+        }
+    
+        if(p->flag4[IJKm1]==AIR)
+        {
+        teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j,k-1))+fabs(a->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k-1))+fabs(a->phi(i,j,k)));
+        check=2;
+        }
+        }
+        
+        
+        if(p->flag4[IJKp1]==AIR)
+        {
+        teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
+        check=1;
+        }
+        
+        
+    if(check==1)    
+    uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*(((1.0 - 1.0/teta)*a->press(i,j,k)-a->press(i,j,k))
+    /(p->DXP[IP]*pd->roface(p,a,1,0,0)));
+    
+    if(check==2)    
+    uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((a->press(i,j,k)-(1.0/teta)*a->press(i,j,k))
+    /(p->DXP[IP]*pd->roface(p,a,1,0,0)));
+
+        
+    if(check==0)
+    uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((a->press(i+1,j,k)-a->press(i,j,k))
+	/(p->DXP[IP]*pd->roface(p,a,1,0,0)));
+    }
 }
 
 void pjm_nse::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
 {	
 	VLOOP
 	vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*((a->press(i,j+1,k)-a->press(i,j,k))
-	/(p->DYP[JP]*p->W1));
+	/(p->DYP[JP]*pd->roface(p,a,0,1,0)));
 }
 
 void pjm_nse::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
-{	
+{	    
+    if(p->D37==1)
 	WLOOP
 	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))
-	/(p->DZP[KP]*p->W1));
+	/(p->DZP[KP]*pd->roface(p,a,0,0,1)));
+    
+    if(p->D37>=2)
+	WLOOP
+    {
+    check=0;
+    
+        if(p->D37==3)
+        {
+        if(p->flag4[Ip1JK]==AIR)
+        {
+        teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
+        check=1;
+        }
+        
+        if(p->flag4[Im1JK]==AIR)
+        {
+        teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i,j,k-1))+fabs(a->phi(i,j,k)));
+        check=2;
+        }
+        
+        if(p->flag4[IJp1K]==AIR)
+        {
+        teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j+1,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DYN[JP]/(fabs(a->phi(i,j+1,k))+fabs(a->phi(i,j,k)));
+        check=1;
+        }
+        
+        if(p->flag4[IJm1K]==AIR)
+        {
+        teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j-1,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DYN[JP]/(fabs(a->phi(i,j-1,k))+fabs(a->phi(i,j,k)));
+        check=2;
+        }
+        
+        if(p->flag4[IJKm1]==AIR)
+        {
+        teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j,k-1))+fabs(a->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k-1))+fabs(a->phi(i,j,k)));
+        check=2;
+        }
+        }
+        
+        if(p->flag4[IJKp1]==AIR)
+        {
+        teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
+        check=1;
+        }
+
+    if(check==1)    
+    wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*(((1.0 - 1.0/teta)*a->press(i,j,k)-a->press(i,j,k))
+    /(p->DZP[KP]*pd->roface(p,a,0,0,1)));
+    
+    if(check==2)    
+    wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k)-(1.0/teta)*a->press(i,j,k))
+    /(p->DZP[KP]*pd->roface(p,a,0,0,1)));
+
+        
+    if(check==0)
+    wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))
+	/(p->DZP[KP]*pd->roface(p,a,0,0,1)));
+    }
 }
  
 void pjm_nse::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)

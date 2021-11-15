@@ -254,6 +254,7 @@ void lexer::ini_default()
 	D21=0;			// int print out implicit diffusion time and iterations
 	D29=1.0e-5;     // double stopping criteria implicit diffusion
 	D30=1;			// int pressure scheme
+    D37=0;          // int type of FSFBC for single fluid flow
     D38=0;          // int add hydrostatic pressure gradients to NSE
     D39=0;          // int activate 2nd-order pressure correction for PJM CORR
 
@@ -656,6 +657,8 @@ void lexer::ini_default()
     X311=0;     // int number of simple taut mooring lines
     X312=0;     // int number of springs
     X313=0;     // int initial rotation of mooring end points with 6DOF body
+    X314=0;     // int breaking mooring lines due to tension
+    X315=0;     // int breaking mooring lines due to time
     X321=0;     // int number of nets
     X323_m=X323_d=X323_l=0.0;   // double dynamic net sinker properties
     X325_dt=0.001;   // double dynamic net time step

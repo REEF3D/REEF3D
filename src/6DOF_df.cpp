@@ -75,7 +75,7 @@ void sixdof_df::forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<
     pgc->start2(p,a->fbh2,11);
     pgc->start3(p,a->fbh3,12);
     pgc->start4(p,a->fbh4,40);
-    
+ 
     for (int nb = 0; nb < number6DOF; nb++)
     {
         // Calculate forces

@@ -87,7 +87,7 @@ void sixdof_sflow::updatePosition(lexer *p, fdm2D *b, ghostcell *pgc)
 	}
 	
     // Update floating level set function
-	ray_cast(p,pgc);
+	ray_cast(p,b,pgc);
 	reini(p,pgc,fb);
 }
 

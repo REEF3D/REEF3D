@@ -84,6 +84,9 @@ private:
 	ofstream eTout;
 	double printtime;
 	
+    // Breaking
+    bool broken;
+    double breakTension, breakTime, curr_time;
 };
 
 #endif
