@@ -117,8 +117,8 @@ void mooring_barQuasiStatic::initialize(lexer *p, fdm *a, ghostcell *pgc)
     // Initialise breaking
     broken = false;
     curr_time = 0.0;
-    breakTension = p->X314;
-    breakTime = p->X315;
+    breakTension = p->X314 > 0 ? p->X314_T[line]: 0.0;
+    breakTime = p->X315 > 0 ? p->X315_t[line]: 0.0;
 }
 
 

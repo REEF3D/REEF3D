@@ -1720,10 +1720,10 @@ void lexer::read_control()
 				case  313: control>>X313;
 						 clear(c,numint);
 						 break;
-               case  314: control>>X314;
+                case  314: X314 = 1; 
 						 clear(c,numint);
 						 break;
-               case  315: control>>X315;
+                case  315:  X315 = 1;
 						 clear(c,numint);
 						 break;
 				case  320: ++X320;
@@ -2160,6 +2160,9 @@ void lexer::read_control()
         Darray(X311_facT,X311);
 
         mooring_count = X311;
+
+        Darray(X314_T,X311);
+        Darray(X315_t,X311);
     }
     else
     {
@@ -2182,6 +2185,9 @@ void lexer::read_control()
         Darray(X311_facT,X311);
 
         mooring_count = X312;
+
+        Darray(X314_T,X312);
+        Darray(X315_t,X312);
     }
 
     if (X321 > 0)
@@ -2576,6 +2582,18 @@ void lexer::read_control()
 								>>X312_k[countX312]>>X312_T0[countX312];
                         ++countX312;
 						 clear(c,numint);
+						 break;
+                case 314: 
+                         for (int i = 0; i < mooring_count; i++)
+                              control>>X314_T[i];
+						 
+                         clear(c,numint);
+						 break;
+                case 315: 
+                         for (int i = 0; i < mooring_count; i++)
+                              control>>X315_t[i];
+						 
+                         clear(c,numint);
 						 break;
 				case 320: control>>X320_type[countX320];
                         ++countX320;

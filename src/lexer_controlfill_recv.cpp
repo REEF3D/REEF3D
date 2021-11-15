@@ -1405,10 +1405,10 @@ void lexer::ctrlrecv()
 	ii++;    
     X313 = ictrl[ii];
 	ii++;    
-	X314 = dctrl[dd];
-	dd++;
-	X315 = dctrl[dd];
-	dd++;
+    X314 = ictrl[ii];
+	ii++;    
+    X315 = ictrl[ii];
+	ii++;    
     X320 = ictrl[ii];
 	ii++;
     X321 = ictrl[ii];
@@ -1965,6 +1965,9 @@ void lexer::ctrlrecv()
 		Darray(X311_H,X311); 
 		Darray(X311_P,X311); 
 		Darray(X311_facT,X311);  
+		
+        Darray(X314_T,X311);  
+        Darray(X315_t,X311);  
 	}
 
     if(X312>0)
@@ -1977,6 +1980,9 @@ void lexer::ctrlrecv()
 		Darray(X311_ze,X312);
 		Darray(X312_k,X312);
 		Darray(X312_T0,X312);
+		
+        Darray(X314_T,X312);  
+        Darray(X315_t,X312);  
 	}
 
     if(X320>0)
@@ -2803,6 +2809,33 @@ void lexer::ctrlrecv()
     dd++;
     X312_T0[n] = dctrl[dd];
     dd++;
+    }
+
+    if (X314 > 0)
+    {
+        for(n=0;n<X311;++n)
+        {
+            X314_T[n] = dctrl[dd]; 
+            dd++;
+        }
+        for(n=0;n<X312;++n)
+        {
+            X314_T[n] = dctrl[dd]; 
+            dd++;
+        }
+    }
+    if (X315 > 0)
+    {
+        for(n=0;n<X311;++n)
+        {
+            X315_t[n] = dctrl[dd];
+            dd++;
+        }
+        for(n=0;n<X312;++n)
+        {
+            X315_t[n] = dctrl[dd]; 
+            dd++;
+        }
     }
 
     for(n=0;n<X321;++n)

@@ -159,7 +159,7 @@ void mooring_barQuasiStatic::checkBottom
     {
         if (z[n] < -0.01)
         {
-            if (p->mpirank == 0) cout<<"Catenary solution"<<endl;
+            if (p->mpirank == 0 && broken == false) cout<<"Catenary solution"<<endl;
             pcatenary->getShape(p,a,pgc,x,y,z,T);
             break;
         }

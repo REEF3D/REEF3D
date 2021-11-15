@@ -657,8 +657,8 @@ void lexer::ini_default()
     X311=0;     // int number of simple taut mooring lines
     X312=0;     // int number of springs
     X313=0;     // int initial rotation of mooring end points with 6DOF body
-    X314=0.0;     // double maximum tension force before line breaking 
-    X315=0.0;     // double maximum simulation time before line breaking 
+    X314=0;     // int breaking mooring lines due to tension
+    X315=0;     // int breaking mooring lines due to time
     X321=0;     // int number of nets
     X323_m=X323_d=X323_l=0.0;   // double dynamic net sinker properties
     X325_dt=0.001;   // double dynamic net time step

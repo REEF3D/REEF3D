@@ -45,185 +45,192 @@ void mooring_barQuasiStatic::start(lexer *p, fdm *a, ghostcell *pgc)
 	double length = 0.0;
 
 	// Solving the system of equations
-	for (int it = 0; it < 1000; it++)
-	{	
-		// Reconstruct current line
-		buildLine(p,a,pgc);
-		
-		// Calculating velocities at knots
-		// updateVel(p, a, pgc, 0);
-		// updateVel(p, a, pgc, 1);
-		// updateVel(p, a, pgc, 2);
-
-		// Calculating force directions
-		for (int j = 0; j < sigma + 1; j++)
-		{
-            v[j][0] = 1e-10;
-            v[j][1] = 1e-10;
-            v[j][2] = 1e-10;
+    if (broken == false)
+    {
+        for (int it = 0; it < 1000; it++)
+        {	
+            // Reconstruct current line
+            buildLine(p,a,pgc);
             
+            // Calculating velocities at knots
+            // updateVel(p, a, pgc, 0);
+            // updateVel(p, a, pgc, 1);
+            // updateVel(p, a, pgc, 2);
+
+            // Calculating force directions
+            for (int j = 0; j < sigma + 1; j++)
+            {
+                v[j][0] = 1e-10;
+                v[j][1] = 1e-10;
+                v[j][2] = 1e-10;
+                
+                
+                double vt = v[j][0]*f[j][0] + v[j][1]*f[j][1] + v[j][2]*f[j][2];
+                double vt_mag = fabs(vt);
+
+                e_d[j][0] = vt_mag*vt*f[j][0];
+                e_d[j][1] = vt_mag*vt*f[j][1];
+                e_d[j][2] = vt_mag*vt*f[j][2];
+
+                double vvtt_x = v[j][0] - vt*f[j][0];
+                double vvtt_y = v[j][1] - vt*f[j][1];
+                double vvtt_z = v[j][2] - vt*f[j][2];
+                
+                vt_mag = sqrt(vvtt_x*vvtt_x + vvtt_y*vvtt_y + vvtt_z*vvtt_z);
+                
+                e_l[j][0] = vt_mag*vvtt_x;
+                e_l[j][1] = vt_mag*vvtt_y;
+                e_l[j][2] = vt_mag*vvtt_z;
+
+            /*
+                double magVal = sqrt(v[j][0]*v[j][0]+v[j][1]*v[j][1]+v[j][2]*v[j][2]);
+
+                e[j][0] = v[j][0]/magVal;	
+                e[j][1] = v[j][1]/magVal;	
+                e[j][2] = v[j][2]/magVal;
+
+                // Drag force
+                e_d[j][0] = -e[j][0];
+                e_d[j][1] = -e[j][1];
+                e_d[j][2] = -e[j][2];			
+                
+                // Shear force
+                double val_x = f[j][2]*e[j][1] - f[j][1]*e[j][2];
+                double val_y = f[j][0]*e[j][2] - f[j][2]*e[j][0];
+                double val_z = f[j][1]*e[j][0] - f[j][0]*e[j][1];
+                    
+                magVal = sqrt(val_x*val_x+val_y*val_y+val_z*val_z);
+                    
+                e_q[j][0] = val_x / magVal;
+                e_q[j][1] = val_y / magVal;
+                e_q[j][2] = val_z / magVal;
+                
+                //	Lift force	
+                val_x = e_q[j][2]*e[j][1] - e_q[j][1]*e[j][2];
+                val_y = e_q[j][0]*e[j][2] - e_q[j][2]*e[j][0];
+                val_z = e_q[j][1]*e[j][0] - e_q[j][0]*e[j][1];			
+
+                magVal = sqrt(val_x*val_x+val_y*val_y+val_z*val_z);
+                    
+                e_l[j][0] = val_x / magVal;
+                e_l[j][1] = val_y / magVal;
+                e_l[j][2] = val_z / magVal;
+
+                // Calculating force coefficients
+                if (sqrt(f[j][0]*f[j][0] + f[j][1]*f[j][1] + f[j][2]*f[j][2]) <= 1.0)
+                {
+                    double theta = acos(e[j][0]*f[j][0] + e[j][1]*f[j][1] + e[j][2]*f[j][2]);
+                        
+                    c_coeff[j] = getC(theta);
+                }	*/		
+            }
+                
+            // Calculating hydrodynamic forces
+            for (int j=1; j<sigma+1; j++)
+            {
+                double cdt = 0.5;
+                double cdn = 2.5;
+
+                R[j][0] = 
+                    p->W1/2.0*p->X311_d[line]*l[j-1]/2.0*(cdt*e_d[j-1][0] + cdn*e_l[j-1][0])
+                    + p->W1/2.0*p->X311_d[line]*l[j]/2.0*(cdt*e_d[j][0] + cdn*e_l[j][0]);
+                
+                R[j][1] = 
+                    p->W1/2.0*p->X311_d[line]*l[j-1]/2.0*(cdt*e_d[j-1][1] + cdn*e_l[j-1][1])
+                    + p->W1/2.0*p->X311_d[line]*l[j]/2.0*(cdt*e_d[j][1] + cdn*e_l[j][1]);
+                        
+                R[j][2] = 
+                    p->W1/2.0*p->X311_d[line]*l[j-1]/2.0*(cdt*e_d[j-1][2] + cdn*e_l[j-1][2])
+                    + p->W1/2.0*p->X311_d[line]*l[j]/2.0*(cdt*e_d[j][2] + cdn*e_l[j][2]);
+                    
+                
+            /*	R[j][0] = 
+                    0.5*p->W1*v[j][0]*v[j][0]*0.5*l[j]*p->X311_d[line]*
+                    (
+                          c_coeff[j-1][0]*e_d[j-1][0] + c_coeff[j][0]*e_d[j][0] 
+                        + c_coeff[j-1][1]*e_q[j-1][0] + c_coeff[j][1]*e_q[j][0] 
+                        + c_coeff[j-1][2]*e_l[j-1][0] + c_coeff[j][2]*e_l[j][0]
+                    );
+                R[j][1] = 
+                    0.5*p->W1*v[j][1]*v[j][1]*0.5*l[j]*p->X311_d[line]*
+                    (
+                          c_coeff[j-1][0]*e_d[j-1][1] + c_coeff[j][0]*e_d[j][1] 
+                        + c_coeff[j-1][1]*e_q[j-1][1] + c_coeff[j][1]*e_q[j][1] 
+                        + c_coeff[j-1][2]*e_l[j-1][1] + c_coeff[j][2]*e_l[j][1]
+                    );	
+                R[j][2] = 
+                    0.5*p->W1*v[j][2]*v[j][2]*0.5*l[j]*p->X311_d[line]*
+                    (
+                          c_coeff[j-1][0]*e_d[j-1][2] + c_coeff[j][0]*e_d[j][2] 
+                        + c_coeff[j-1][1]*e_q[j-1][2] + c_coeff[j][1]*e_q[j][2] 
+                        + c_coeff[j-1][2]*e_l[j-1][2] + c_coeff[j][2]*e_l[j][2]
+                    );	*/		
+            } 
+                
+            // Filling right hand side
+            for (int j=0; j<sigma; j++)
+            {
+                B[j][0] = -R[j+1][0];
+                B[j][1] = -R[j+1][1];
+                B[j][2] = -R[j+1][2] + l[j+1] * w - Fb[j+1];
+            }
             
-			double vt = v[j][0]*f[j][0] + v[j][1]*f[j][1] + v[j][2]*f[j][2];
-			double vt_mag = fabs(vt);
+            // Solving the system
+            f = solveGauss(A, B);
 
-			e_d[j][0] = vt_mag*vt*f[j][0];
-			e_d[j][1] = vt_mag*vt*f[j][1];
-			e_d[j][2] = vt_mag*vt*f[j][2];
+            // Check error norm
+            double norm, error;
+                
+            error = 0.0;
+            for (int j=0; j<sigma+1; j++)
+            {
+                norm = sqrt(f[j][0]*f[j][0] + f[j][1]*f[j][1] + f[j][2]*f[j][2]);
+                
+                if (norm > error) error = norm;
+            }
 
-			double vvtt_x = v[j][0] - vt*f[j][0];
-			double vvtt_y = v[j][1] - vt*f[j][1];
-			double vvtt_z = v[j][2] - vt*f[j][2];
-			
-			vt_mag = sqrt(vvtt_x*vvtt_x + vvtt_y*vvtt_y + vvtt_z*vvtt_z);
-			
-			e_l[j][0] = vt_mag*vvtt_x;
-			e_l[j][1] = vt_mag*vvtt_y;
-			e_l[j][2] = vt_mag*vvtt_z;
+            if (fabs(error-1.0) < 1e-4)
+            {
+                if (p->mpirank == 0)
+                {
+                    cout<<"Number of iterations = "<<it<<setprecision(6)<<" with error = "<<error-1.0<<endl;
+                }
+                break;
+            }
+                
+            // Correct system
+            for (int j = 0; j < sigma + 1; j++)	
+            {
+                norm = sqrt(f[j][0]*f[j][0] + f[j][1]*f[j][1] + f[j][2]*f[j][2]);
+                    
+                f[j][0] /= norm;
+                f[j][1] /= norm;
+                f[j][2] /= norm;
+            
+                for (int k=0; k<sigma; k++) 
+                {
+                    A[k][j] *= norm;
+                }
+            }
 
-		/*
-			double magVal = sqrt(v[j][0]*v[j][0]+v[j][1]*v[j][1]+v[j][2]*v[j][2]);
-
-			e[j][0] = v[j][0]/magVal;	
-			e[j][1] = v[j][1]/magVal;	
-			e[j][2] = v[j][2]/magVal;
-
-			// Drag force
-			e_d[j][0] = -e[j][0];
-			e_d[j][1] = -e[j][1];
-			e_d[j][2] = -e[j][2];			
-			
-			// Shear force
-			double val_x = f[j][2]*e[j][1] - f[j][1]*e[j][2];
-			double val_y = f[j][0]*e[j][2] - f[j][2]*e[j][0];
-			double val_z = f[j][1]*e[j][0] - f[j][0]*e[j][1];
-				
-			magVal = sqrt(val_x*val_x+val_y*val_y+val_z*val_z);
-				
-			e_q[j][0] = val_x / magVal;
-			e_q[j][1] = val_y / magVal;
-			e_q[j][2] = val_z / magVal;
-			
-			//	Lift force	
-			val_x = e_q[j][2]*e[j][1] - e_q[j][1]*e[j][2];
-			val_y = e_q[j][0]*e[j][2] - e_q[j][2]*e[j][0];
-			val_z = e_q[j][1]*e[j][0] - e_q[j][0]*e[j][1];			
-
-			magVal = sqrt(val_x*val_x+val_y*val_y+val_z*val_z);
-				
-			e_l[j][0] = val_x / magVal;
-			e_l[j][1] = val_y / magVal;
-			e_l[j][2] = val_z / magVal;
-
-			// Calculating force coefficients
-			if (sqrt(f[j][0]*f[j][0] + f[j][1]*f[j][1] + f[j][2]*f[j][2]) <= 1.0)
-			{
-				double theta = acos(e[j][0]*f[j][0] + e[j][1]*f[j][1] + e[j][2]*f[j][2]);
-					
-				c_coeff[j] = getC(theta);
-			}	*/		
-		}
-			
-		// Calculating hydrodynamic forces
-		for (int j=1; j<sigma+1; j++)
-		{
-			double cdt = 0.5;
-			double cdn = 2.5;
-
-			R[j][0] = 
-				p->W1/2.0*p->X311_d[line]*l[j-1]/2.0*(cdt*e_d[j-1][0] + cdn*e_l[j-1][0])
-				+ p->W1/2.0*p->X311_d[line]*l[j]/2.0*(cdt*e_d[j][0] + cdn*e_l[j][0]);
-			
-			R[j][1] = 
-				p->W1/2.0*p->X311_d[line]*l[j-1]/2.0*(cdt*e_d[j-1][1] + cdn*e_l[j-1][1])
-				+ p->W1/2.0*p->X311_d[line]*l[j]/2.0*(cdt*e_d[j][1] + cdn*e_l[j][1]);
-					
-			R[j][2] = 
-				p->W1/2.0*p->X311_d[line]*l[j-1]/2.0*(cdt*e_d[j-1][2] + cdn*e_l[j-1][2])
-				+ p->W1/2.0*p->X311_d[line]*l[j]/2.0*(cdt*e_d[j][2] + cdn*e_l[j][2]);
-				
-			
-		/*	R[j][0] = 
-				0.5*p->W1*v[j][0]*v[j][0]*0.5*l[j]*p->X311_d[line]*
-				(
-					  c_coeff[j-1][0]*e_d[j-1][0] + c_coeff[j][0]*e_d[j][0] 
-					+ c_coeff[j-1][1]*e_q[j-1][0] + c_coeff[j][1]*e_q[j][0] 
-					+ c_coeff[j-1][2]*e_l[j-1][0] + c_coeff[j][2]*e_l[j][0]
-				);
-			R[j][1] = 
-				0.5*p->W1*v[j][1]*v[j][1]*0.5*l[j]*p->X311_d[line]*
-				(
-					  c_coeff[j-1][0]*e_d[j-1][1] + c_coeff[j][0]*e_d[j][1] 
-					+ c_coeff[j-1][1]*e_q[j-1][1] + c_coeff[j][1]*e_q[j][1] 
-					+ c_coeff[j-1][2]*e_l[j-1][1] + c_coeff[j][2]*e_l[j][1]
-				);	
-			R[j][2] = 
-				0.5*p->W1*v[j][2]*v[j][2]*0.5*l[j]*p->X311_d[line]*
-				(
-					  c_coeff[j-1][0]*e_d[j-1][2] + c_coeff[j][0]*e_d[j][2] 
-					+ c_coeff[j-1][1]*e_q[j-1][2] + c_coeff[j][1]*e_q[j][2] 
-					+ c_coeff[j-1][2]*e_l[j-1][2] + c_coeff[j][2]*e_l[j][2]
-				);	*/		
-		} 
-			
-		// Filling right hand side
-		for (int j=0; j<sigma; j++)
-		{
-			B[j][0] = -R[j+1][0];
-			B[j][1] = -R[j+1][1];
-			B[j][2] = -R[j+1][2] + l[j+1] * w - Fb[j+1];
-		}
-		
-		// Solving the system
-		f = solveGauss(A, B);
-
-		// Check error norm
-		double norm, error;
-			
-		error = 0.0;
-		for (int j=0; j<sigma+1; j++)
-		{
-			norm = sqrt(f[j][0]*f[j][0] + f[j][1]*f[j][1] + f[j][2]*f[j][2]);
-			
-			if (norm > error) error = norm;
-		}
-
-		if (fabs(error-1.0) < 1e-4)
-		{
-			if (p->mpirank == 0)
-			{
-				cout<<"Number of iterations = "<<it<<setprecision(6)<<" with error = "<<error-1.0<<endl;
-			}
-			break;
-		}
-			
-		// Correct system
-		for (int j = 0; j < sigma + 1; j++)	
-		{
-			norm = sqrt(f[j][0]*f[j][0] + f[j][1]*f[j][1] + f[j][2]*f[j][2]);
-				
-			f[j][0] /= norm;
-			f[j][1] /= norm;
-			f[j][2] /= norm;
-        
-			for (int k=0; k<sigma; k++) 
-			{
-				A[k][j] *= norm;
-			}
-		}
-
-		length = 0.0;
-		for (int j = 1; j < sigma+1; j++)	
-		{			
-			l[j] = l0[j]*(1.0 + 0.5*(fabs(A[j][j]) + fabs(A[j-1][j-1]))/(p->X311_EA[line]));
-			length += l[j];
-		}
-			
-		for (int j = 0; j < sigma; j++)
-		{			
-			A[sigma][j] = 0.5*(l[j] + l[j+1]);  
-		}
-		A[sigma][sigma] = 0.5*l[sigma];
-	}	
+            length = 0.0;
+            for (int j = 1; j < sigma+1; j++)	
+            {			
+                l[j] = l0[j]*(1.0 + 0.5*(fabs(A[j][j]) + fabs(A[j-1][j-1]))/(p->X311_EA[line]));
+                length += l[j];
+            }
+                
+            for (int j = 0; j < sigma; j++)
+            {			
+                A[sigma][j] = 0.5*(l[j] + l[j+1]);  
+            }
+            A[sigma][sigma] = 0.5*l[sigma];
+        }	
+    }
+    else
+    {
+        if (p->mpirank == 0) cout<<"Line "<<line<<" broken"<<endl;
+    }
 
     //if (p->mpirank == 0) cout<<"Current length = "<<length<<endl;
 	

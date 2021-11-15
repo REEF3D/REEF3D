@@ -528,7 +528,7 @@ public:
 	//Eigen::Matrix3d quatRotMat;	
     int X10,X12,X13,X18,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X31,X32,X33,X34,X38,X40,X110,X120,X131,X132,X133;
 	int X100,X101,X102,X103,X141,X142,X143,X153,X180,X181,X182,X183,X210,X211;
-	int X310, X311, X312, X313, X320, X321, mooring_count, net_count;
+	int X310, X311, X312, X313, X314, X315, X320, X321, mooring_count, net_count;
 	double X21_d,X22_m;
 	double X23_x,X23_y,X23_z;
 	double X24_Ix,X24_Iy,X24_Iz;	
@@ -571,7 +571,7 @@ public:
     double *X311_xs,*X311_xe,*X311_ys,*X311_ye,*X311_zs,*X311_ze;
     double *X311_w,*X311_rho_c,*X311_EA,*X311_d,*X311_l,*X311_H,*X311_P,*X311_facT;
     double *X312_k,*X312_T0;
-    double X314, X315;
+    double *X314_T, *X315_t;
     int *X320_type;
 	double *X321_Sn,*X321_d,*X321_lambda,*X321_dk,*X321_rho,*X321_nd,*X321_nl;
     double *X322_D,*X322_L,*X322_x0,*X322_y0,*X322_z0,*X322_phi,*X322_theta,*X322_psi;
