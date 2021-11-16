@@ -73,7 +73,10 @@ void driver::driver_ini_nhflow()
     
     // eta ini
 	SLICELOOP4
+    {
 	a->eta(i,j) = 0.0;
+    a->wet(i,j) = 1;
+    }
 
     pgc->gcsl_start4(p,a->eta,50);
     
@@ -124,12 +127,15 @@ void driver::driver_ini_nhflow()
     pturb->ini(p,a,pgc);
 	
 	pflow->pressure_io(p,a,pgc);
+    
+    SLICELOOP4
+    a->eta_n(i,j) = a->eta(i,j);
 
 	pgc->start1(p,a->u,10);
 	pgc->start2(p,a->v,11);
 	pgc->start3(p,a->w,12);
 
-    pgc->start4(p,a->press,40);
+    pgc->start4(p,a->press,540);
     pgc->dgcpol(p,a->topo,p->dgc4,p->dgc4_count,14);
 	a->topo.ggcpol(p);
 	
@@ -154,6 +160,8 @@ void driver::driver_ini_nhflow()
 	p->reinitime=0.0;
 	p->wavetime=0.0;
 	p->field4time=0.0;
+    
+    
 }
 
 

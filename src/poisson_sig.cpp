@@ -61,7 +61,7 @@ void poisson_sig::start(lexer* p, fdm *a, field &f)
 	{
         if(a->wet(i,j)==1)
         {
-            sigxyz2 = pow(p->sigmax(p,f,4),2.0) + pow(p->sigmay(p,f,4),2.0) + pow(p->sigmaz(p,f,4),2.0);
+            sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
             
             a->M.p[n]  =   (CPOR1*PORVAL1)/(pd->roface(p,a,1,0,0)*p->DXP[IP]*p->DXN[IP])*p->x_dir
                         + (CPOR1m*PORVAL1m)/(pd->roface(p,a,-1,0,0)*p->DXP[IM1]*p->DXN[IP])*p->x_dir
@@ -86,10 +86,10 @@ void poisson_sig::start(lexer* p, fdm *a, field &f)
                         - CPOR4*PORVAL4*p->sigxx[FIJK]/(a->ro(i,j,k)*(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
             
             
-            a->rhsvec.V[n] =  CPOR4*PORVAL4*2.0*p->sigmax(p,f,4)*(f(i+1,j,k+1) - f(i-1,j,k+1) - f(i+1,j,k-1) + f(i-1,j,k-1))
+            a->rhsvec.V[n] +=  CPOR4*PORVAL4*2.0*p->sigx[FIJK]*(f(i+1,j,k+1) - f(i-1,j,k+1) - f(i+1,j,k-1) + f(i-1,j,k-1))
                         /(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir
                         
-                        + CPOR4*PORVAL4*2.0*p->sigmay(p,f,4)*(f(i,j+1,k+1) - f(i,j-1,k+1) - f(i,j+1,k-1) + f(i,j-1,k-1))
+                        + CPOR4*PORVAL4*2.0*p->sigy[FIJK]*(f(i,j+1,k+1) - f(i,j-1,k+1) - f(i,j+1,k-1) + f(i,j-1,k-1))
                         /((a->ro(i,j,k)*p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
         }
 	

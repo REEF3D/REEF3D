@@ -1888,6 +1888,8 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
       <VirtualDirectory Name="Epol">
+        <File Name="gc_kinematic_fsf.cpp"/>
+        <File Name="gc_nhpress.cpp"/>
         <File Name="gc_patchBC.cpp"/>
         <File Name="gc_periodic.cpp"/>
         <File Name="gc_heat.cpp"/>

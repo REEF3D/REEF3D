@@ -30,10 +30,6 @@ double ptf_fsfbc::fz(lexer *p, fdm *a, field &f, slice &Fifsf)
     
     teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
     
-    teta = MAX(teta,0.5);
-    
-    teta = 0.5;
-    
     //cout<<"TETA: "<<teta<<" p->ZP[KP]: "<<p->ZP[KP]<<" p->ZP[KP]+teta*p->DZN[KP]: "<<p->ZP[KP]+teta*p->DZN[KP]<<endl;
     
     if(p->flag4[IJK]>0 && p->flag4[IJKm1]>0 && p->flag4[IJKm2]>0 && p->flag4[IJKm3] && p->flag4[IJKm4]>0 && p->flag4[IJKm5])

@@ -156,18 +156,6 @@ void pjm::wpgrad(lexer*p,fdm* a)
 {
 }
 
-void pjm::fillapu(lexer*p,fdm* a)
-{
-}
-
-void pjm::fillapv(lexer*p,fdm* a)
-{
-}
-
-void pjm::fillapw(lexer*p,fdm* a)
-{
-}
-
 void pjm::ptimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }

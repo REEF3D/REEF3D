@@ -190,21 +190,6 @@ void pjm_corr::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, f
 	pgc->start3(p,w,gcval_w);
 }
 
-void pjm_corr::pressure_norm(lexer*p, fdm* a, ghostcell* pgc)
-{
-    double sum=0.0;
-
-    LOOP
-    sum+=a->press(i,j,k);
-
-    sum=pgc->globalsum(sum);
-
-    sum/=double(p->cellnumtot);
-
-    LOOP
-    a->press(i,j,k)-=sum;
-}
-
 void pjm_corr::upgrad(lexer*p,fdm* a)
 {
     ULOOP
@@ -221,18 +206,6 @@ void pjm_corr::wpgrad(lexer*p,fdm* a)
 {
     WLOOP
     a->H(i,j,k)-=PORVAL3*(a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1));
-}
-
-void pjm_corr::fillapu(lexer*p,fdm* a)
-{
-}
-
-void pjm_corr::fillapv(lexer*p,fdm* a)
-{
-}
-
-void pjm_corr::fillapw(lexer*p,fdm* a)
-{
 }
 
 void pjm_corr::ptimesave(lexer *p, fdm *a, ghostcell *pgc)
