@@ -126,7 +126,7 @@ void pjm_sig::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w
                            + p->sigy[FIJK]*(0.5*(v(i,j,k+1)+v(i,j-1,k+1))-0.5*(v(i,j,k-1)+v(i,j-1,k-1)))/(p->DZP[KP]+p->DZP[KP1])
                            
 						   -(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DZN[KP])*p->sigz[IJ];
-                           
+                                                 
     ++count;
     }
     pip=0;

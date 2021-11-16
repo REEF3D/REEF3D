@@ -137,7 +137,7 @@ void nhflow_fsf_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow)
     
     
     pflow->eta_relax(p,pgc,a->eta);
-    pgc->gcsl_start4(p,a->eta,gcval_phi);
+    pgc->gcsl_start4(p,a->eta,1);
     
 }
 

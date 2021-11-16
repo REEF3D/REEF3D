@@ -28,5 +28,5 @@ void ghostcell::nhpress(lexer *p,field& f, double dist, int gcv, int bc, int cs)
 {
 	if(cs==6)
 	for(q=0;q<margin;++q)
-	f(i,j,k+q+1) = -f(i,j,k);
+	f(i,j,k+q+1) = 0.0;//-f(i,j,k);
 }
