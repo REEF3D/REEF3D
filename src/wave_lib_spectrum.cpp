@@ -37,7 +37,7 @@ wave_lib_spectrum::~wave_lib_spectrum()
 
 double wave_lib_spectrum::wave_spectrum(lexer *p, double w)
 {
-	if(p->B85==1)
+	  if(p->B85==1)
     Sval = PM(p,w);
 
     if(p->B85==2)
@@ -52,7 +52,7 @@ double wave_lib_spectrum::wave_spectrum(lexer *p, double w)
 		if(p->B85==22)
     Sval = TMA(p,w);
 
-	 if(p->B85==10)
+	  if(p->B85==10)
     Sval = spectrum_file(p,w);
 
     return Sval;
@@ -61,7 +61,7 @@ double wave_lib_spectrum::wave_spectrum(lexer *p, double w)
 void wave_lib_spectrum::irregular_parameters(lexer *p)
 {
 
-    if(p->B94==0)
+  if(p->B94==0)
 	wD=p->phimean;
 
 	if(p->B94==1)
@@ -71,12 +71,12 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
 	spectrum_file_read(p);
 
 
-    double maxS=-1.0;
+  double maxS=-1.0;
 	double S,w,sigma;
 	int check_s,check_e;
-    int n;
+  int n;
 
-    p->wN = p->B86;
+  p->wN = p->B86;
 
 	w=0.0;
 	wp=0.0;
@@ -164,6 +164,9 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
     }
 
     p->Darray(Si,numcomp);
+		p->Darray(Sn,numcomp);
+		p->Darray(Di,numcomp);
+		p->Darray(Di_n,numcomp);
     p->Darray(wi,numcomp);
     p->Darray(dw,numcomp);
     p->Darray(Ai,numcomp);
@@ -172,6 +175,7 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
     p->Darray(Ti,numcomp);
     p->Darray(ei,numcomp);
     p->Darray(beta,numcomp);
+		p->Darray(beta_n,numcomp);
     p->Darray(cosbeta,numcomp);
     p->Darray(sinbeta,numcomp);
 
@@ -366,7 +370,7 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
             }
             for(m=(NN-1);m>=0;--m)
             {
-                if(Sn[m]>=dee[n])
+                if(cdf[m]>=dee[n])
                 {
                     cdf_high=cdf[m];
                     w_high=ww[m];
@@ -382,8 +386,10 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
                 wi[n]=(dee[n]-cdf_low)*(w_high-w_low)/(cdf_high-cdf_low)+w_low;
             }
             Si[n] = wave_spectrum(p,wi[n]);
+						Sn[n] = Si[n];
             dw[n]=(cdf[NN-1]-cdf[0])/p->wN/Si[n];
         	}
+
     }
 
         // Final step: fill Si and the corresponding values for Ai and ki
@@ -405,9 +411,9 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
         }
 
         print_spectrum(p);
-
         // directional spreading
         directional_spreading(p);
+				print_spreading(p);
 }
 
 void wave_lib_spectrum::amplitudes_irregular(lexer *p)
@@ -426,7 +432,7 @@ void wave_lib_spectrum::amplitudes_irregular(lexer *p)
         // Amplitudes
         for(int n=0;n<p->wN;++n)
         {
-            Ai[n] = sqrt(2.0*Si[n]*dw[n]);
+            Ai[n] = sqrt(2.0*Sn[n]*dw[n]);
         }
     }
 }
@@ -448,7 +454,7 @@ void wave_lib_spectrum::amplitudes_focused(lexer *p)
 	Ai[n] = (p->wAs*Si[n]*dw[n])/Sw_sum;
 	}
 
-    if(p->B82==2 || p->B82==12)
+  if(p->B82==2 || p->B82==12)
 	for(n=0;n<p->wN;++n)
 	Ai[n] = sqrt(2.0*Si[n]*dw[n]);
 
@@ -541,23 +547,24 @@ void wave_lib_spectrum::print_spectrum(lexer *p)
 	if(p->mpirank==0 && p->P14==1)
 	mkdir("./REEF3D_Log",0777);
 
-    if(p->mpirank==0)
-    {
-    // open file
-	if(p->P14==0)
-    result.open("REEF3D_wave-spectrum.dat");
+  if(p->mpirank==0)
+  {
+  	// open file
+   	if(p->P14==0)
+   	result.open("REEF3D_wave-spectrum.dat");
 
-	if(p->P14==1)
-	result.open("./REEF3D_Log/REEF3D_wave-spectrum.dat");
+	  if(p->P14==1)
+  	result.open("./REEF3D_Log/REEF3D_wave-spectrum.dat");
 	}
 
 	for(int n=0;n<p->wN;++n)
 	{
-	xval+=dw[n];
-	result<<xval<<" "<<Si[n]<<endl;
+		xval+=dw[n];
+		result<<xval<<" "<<Si[n]<<endl;
 	}
 
 	result.close();
+
 }
 
 void wave_lib_spectrum::print_components(lexer *p)
@@ -570,20 +577,49 @@ void wave_lib_spectrum::print_components(lexer *p)
 	if(p->mpirank==0 && p->P14==1)
 	mkdir("./REEF3D_Log",0777);
 
-    if(p->mpirank==0)
-    {
+  if(p->mpirank==0)
+  {
     // open file
-	if(p->P14==0)
-    result.open("REEF3D_wave-components.dat");
+		if(p->P14==0)
+    	result.open("REEF3D_wave-components.dat");
 
-	if(p->P14==1)
-	result.open("./REEF3D_Log/REEF3D_wave-components.dat");
+		if(p->P14==1)
+			result.open("./REEF3D_Log/REEF3D_wave-components.dat");
 	}
 
 	for(int n=0;n<p->wN;++n)
 	{
-	xval+=dw[n];
-	result<<Ai[n]<<" "<<wi[n]<<" "<<ei[n]<<endl;
+		xval+=dw[n];
+		result<<Ai[n]<<" "<<wi[n]<<" "<<ei[n]<<endl;
+	}
+
+	result.close();
+}
+
+void wave_lib_spectrum::print_spreading(lexer *p)
+{
+	ofstream result;
+
+	// double xval=p->B132_s;
+
+	// Create Folder
+	if(p->mpirank==0 && p->P14==1)
+	mkdir("./REEF3D_Log",0777);
+
+  if(p->mpirank==0)
+  {
+    // open file
+		if(p->P14==0)
+    	result.open("REEF3D_spreading-function.dat");
+
+		if(p->P14==1)
+			result.open("./REEF3D_Log/REEF3D_spreading-function.dat");
+	}
+
+	for(int n=0;n<p->B133;++n)
+	{
+		// xval+=dbeta[n];
+		result<<beta_n[n]<<" "<<Di_n[n]<<endl;
 	}
 
 	result.close();

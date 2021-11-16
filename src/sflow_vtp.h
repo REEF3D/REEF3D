@@ -27,6 +27,7 @@ class fdm2D;
 class ghostcell;
 class ioflow;
 class sflow_print_wsf;
+class sflow_print_wsf_theory;
 class sflow_print_wsfline;
 class sflow_print_wsfline_y;
 class sflow_print_probe_da;
@@ -42,29 +43,30 @@ class sflow_vtp : public increment
 public:
 	sflow_vtp(lexer*,fdm2D*,ghostcell*);
 	virtual ~sflow_vtp();
-	
+
     virtual void start(lexer*,fdm2D*,ghostcell*,ioflow*,sflow_turbulence*);
     virtual void print2D(lexer*,fdm2D*,ghostcell*,sflow_turbulence*);
-	
+
 private:
-	
+
 	void etend(lexer*,fdm2D*,ghostcell*);
 	void pvtp(lexer*,fdm2D*,ghostcell*,sflow_turbulence*);
 	void name_iter(lexer*,fdm2D*,ghostcell*);
-    void piecename(lexer*,fdm2D*,ghostcell*,int);
-	
-	
+  void piecename(lexer*,fdm2D*,ghostcell*,int);
+
+
 	char name[200],pname[200];
-    int n,iin,offset[200];
-    float ffn;
-	
+  int n,iin,offset[200];
+  float ffn;
+
 	double xs_local,ys_local,zs_local,xe_local,ye_local,ze_local;
 	double xs_global,ys_global,zs_global,xe_global,ye_global,ze_global;
-	
+
 	sflow_print_wsf *pwsf;
-    sflow_print_wsfline *pwsfline;
-    sflow_print_wsfline_y *pwsfline_y;
-    sflow_print_probe_da *pprobe;
+	sflow_print_wsf_theory *pwsf_theory;
+  sflow_print_wsfline *pwsfline;
+  sflow_print_wsfline_y *pwsfline_y;
+  sflow_print_probe_da *pprobe;
 
 };
 
