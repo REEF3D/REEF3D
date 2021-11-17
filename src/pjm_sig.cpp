@@ -125,7 +125,7 @@ void pjm_sig::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w
 						   +(v(i,j,k)-v(i,j-1,k))/p->DYN[JP] 
                            + p->sigy[FIJK]*(0.5*(v(i,j,k+1)+v(i,j-1,k+1))-0.5*(v(i,j,k-1)+v(i,j-1,k-1)))/(p->DZP[KP]+p->DZP[KP1])
                            
-						   + p->sigz[IJ]*(w(i,j,k)-w(i,j,k-1)/p->DZN[KP]))*(1.0/(alpha*p->dt));
+						   + p->sigz[IJ]*(w(i,j,k)-w(i,j,k-1)/p->DZN[KP]))/(alpha*p->dt);
                            
     a->test(i,j,k) = a->rhsvec.V[count];
     
@@ -134,7 +134,6 @@ void pjm_sig::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w
     ++count;
     }
     pip=0;
-    
     
     pgc->start4(p,a->test,1);
 }

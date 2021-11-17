@@ -104,7 +104,7 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
             // Zone 1
             if(dg<1.0e20)
             {
-            uvel(i,j,k) = (1.0-relax1_wg(i,j))*ramp(p)*uval[count] * H + relax1_wg(i,j)*H*uvel(i,j,k) + (1.0-G)*uvel(i,j,k);
+            uvel(i,j,k) = (1.0-relax1_wg(i,j))*ramp(p)*uval[count] + relax1_wg(i,j)*uvel(i,j,k);
             ++count;
             }
 		}
@@ -116,8 +116,6 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
             if(db<1.0e20)
             uvel(i,j,k) = relax1_nb(i,j)*uvel(i,j,k);
         }
-        
-        
     }
 }
 
@@ -200,7 +198,7 @@ void iowave::v_relax(lexer *p, fdm *a, ghostcell *pgc, field& vvel)
             // Zone 1
             if(dg<1.0e20)
             {
-            vvel(i,j,k) = (1.0-relax2_wg(i,j))*ramp(p)*vval[count] * H + relax2_wg(i,j)*H*vvel(i,j,k) + (1.0-G)*vvel(i,j,k);
+            vvel(i,j,k) = (1.0-relax2_wg(i,j))*ramp(p)*vval[count] + relax2_wg(i,j)*vvel(i,j,k);
             ++count;
             }
 		}
@@ -296,7 +294,7 @@ void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
             // Zone 1
             if(dg<1.0e20)
             {
-            wvel(i,j,k) = (1.0-relax4_wg(i,j)) * ramp(p)* wval[count] * H + relax4_wg(i,j)*H*wvel(i,j,k) + (1.0-G)*wvel(i,j,k);
+            wvel(i,j,k) = (1.0-relax4_wg(i,j)) * ramp(p)* wval[count] + relax4_wg(i,j)*wvel(i,j,k);
             ++count;
             }
 
