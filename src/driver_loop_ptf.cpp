@@ -111,6 +111,8 @@ void driver::loop_ptf(fdm* a)
     p->xtime=0.0;
 	p->reinitime=0.0;
 	p->wavetime=0.0;
+    
+    stop(p,a,pgc);
 	}
 
 	if(p->mpirank==0)

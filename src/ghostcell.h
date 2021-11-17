@@ -361,7 +361,9 @@ public:
 	void fbvel3(lexer*,field&,double,int,int,int);
 	void fbpress(lexer*,field&,double,int,int,int);
 	void gravity_press(lexer*,field&,double,int,int,int);
+    void nhpress(lexer*,field&,double,int,int,int);
     void kinematic_bed(lexer*,field&,double,int,int,int);
+    void kinematic_fsf(lexer*,field&,double,int,int,int);
     void fivec(lexer*,double*,sliceint&);
     void fivec2D(lexer*,double*,sliceint&);
     void fivec_vel(lexer*,double*,sliceint&);

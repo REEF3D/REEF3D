@@ -105,18 +105,6 @@ void pressure_void::wpgrad(lexer*p,fdm* a)
     }
 }
 
-void pressure_void::fillapu(lexer*p,fdm* a)
-{
-}
-
-void pressure_void::fillapv(lexer*p,fdm* a)
-{
-}
-
-void pressure_void::fillapw(lexer*p,fdm* a)
-{
-}
-
 void pressure_void::rhs(lexer *p, fdm* a, ghostcell *pgc, field& uu, field& vv, field& ww, double alpha)
 {
 }

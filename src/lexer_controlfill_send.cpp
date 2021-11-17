@@ -1052,6 +1052,8 @@ void lexer::ctrlsend()
     dd++;
     dctrl[dd] = T31;
     dd++;
+    dctrl[dd] = T32;
+    dd++;
 	dctrl[dd] = T35;
     dd++;
 	ictrl[ii] = T36;

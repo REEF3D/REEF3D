@@ -194,7 +194,14 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     fsfwvel(p,a,pgc,a->eta,a->Fifsf);
     
     FLUIDLOOP
-    a->test(i,j,k) = a->Fifsf(i,j);
+    {
+    if(p->flag4[IJK]<0)
+    a->test(i,j,k) = 0.0;
+    
+    if(p->flag4[IJK]>0)
+    a->test(i,j,k) = 1.0;
+    
+    }
     
     pfsfupdate->velcalc(p,a,pgc,a->Fi);
 }

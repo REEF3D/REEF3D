@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 -------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"ghostcell.h"
+#include"ghostcell.h"
 #include"lexer.h"
 
 int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
@@ -99,12 +99,16 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
 	return 4;
 
 	else
-	if(bc==3 && (cs==5||cs==6)&&(gcv==12||gcv==22||gcv==19 || gcv==3) && p->A10!=3)
+	if(bc==3 && (cs==5||cs==6)&&(gcv==12||gcv==22||gcv==19 || gcv==3) && p->A10!=3 && p->A10!=55)
 	return 5;
     
     else
 	if(bc==3 && (cs==5||cs==6)&&(gcv==12||gcv==22||gcv==19 || gcv==3) && p->A10==3)
 	return 4;
+    
+    else
+	if(bc==3 && (cs==5||cs==6)&&(gcv==12||gcv==22||gcv==19||gcv==3||gcv==112) && p->A10==55)
+	return 9;
 	
 	else
 	if(bc==9 && cs==6 && (gcv==12||gcv==22||gcv==19 || gcv==3))
@@ -119,6 +123,7 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
     else
 	if(gcv==999)
 	return 99;
+    
 
 	else
 	return 0;
@@ -156,6 +161,9 @@ void ghostcell::gcdistro3(lexer *p,field& f, int ii, int jj, int kk, int nn, dou
     
     if(bc_label==8)
 	kinematic_bed(p,f,dist,gcv,bc,cs);
+    
+     if(bc_label==9)
+	kinematic_fsf(p,f,dist,gcv,bc,cs);
 	
 	if(bc_label==11)
 	fbvel3(p,f,dist,gcv,bc,cs);

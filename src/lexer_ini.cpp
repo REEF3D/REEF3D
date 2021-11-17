@@ -48,6 +48,7 @@ void lexer::lexer_ini()
     sediter=0;
     slidecells=0;
     bedmin=bedmax=0.0;
+    solver_status=0;
 	
 	maxdt=mindt=0.0;
 
