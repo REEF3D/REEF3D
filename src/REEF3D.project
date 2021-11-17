@@ -1099,6 +1099,7 @@
             <File Name="sflow_print_probe_da.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Print WSF">
+            <File Name="sflow_print_wsf_theory.cpp"/>
             <File Name="sflow_print_wsfline_y.cpp"/>
             <File Name="sflow_print_wsfline.cpp"/>
             <File Name="sflow_print_wsf.cpp"/>

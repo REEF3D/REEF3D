@@ -114,8 +114,13 @@ void bedshear_probe::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 
     for(n=0;n<p->P125;++n)
     {
-    iloc[n]=conv((p->P125_x[n]-p->originx)/p->DXM);
-    jloc[n]=conv((p->P125_y[n]-p->originy)/p->DXM);
+    iloc[n] = p->posc_i(p->P125_x[n]); 
+    
+    if(p->j_dir==0)
+    jloc[n]=0;
+    
+    if(p->j_dir==1)
+    jloc[n] = p->posc_j(p->P125_y[n]); 
 
     check=ij_boundcheck(p,a,iloc[n],jloc[n],0);
 
