@@ -76,11 +76,11 @@ void pjm_sig::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc
         endtime=pgc->timer();
     
 	pgc->start4(p,a->press,gcval_press);
-	/*
+	
 	ucorr(p,a,uvel,alpha);
 	vcorr(p,a,vvel,alpha);
-	wcorr(p,a,wvel,alpha);*/
-    
+	wcorr(p,a,wvel,alpha);
+
     p->poissoniter=p->solveriter;
 
 	p->poissontime=endtime-starttime;
@@ -92,21 +92,29 @@ void pjm_sig::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc
 void pjm_sig::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 {	
 	ULOOP
-	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*(1.0/pd->roface(p,a,1,0,0))*((a->press(i+1,j,k)-a->press(i,j,k))/(p->DXP[IP]) 
+    {
+	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*(1.0/pd->roface(p,a,1,0,0))*((a->press(i+1,j,k)-a->press(i,j,k))/p->DXP[IP]
                 + p->sigx[FIJK]*(0.5*(a->press(i,j,k+1)+a->press(i+1,j,k+1))-0.5*(a->press(i,j,k-1)+a->press(i+1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
+                
+    //a->test(i,j,k) = a->press(i+1,j,k)-a->press(i,j,k);
+    }
 }
 
 void pjm_sig::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
 {	 
     VLOOP
-    vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(1.0/pd->roface(p,a,0,1,0))*((a->press(i,j+1,k)-a->press(i,j,k))/(p->DYP[JP]) 
+    vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(1.0/pd->roface(p,a,0,1,0))*((a->press(i,j+1,k)-a->press(i,j,k))/p->DYP[JP] 
                 + p->sigy[FIJK]*(0.5*(a->press(i,j,k+1)+a->press(i,j+1,k+1))-0.5*(a->press(i,j,k-1)+a->press(i,j+1,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
 }
 
 void pjm_sig::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
-{	
-	WLOOP
+{
+    WLOOP
+    {   	
 	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
+    
+    //a->test(i,j,k) = a->press(i,j,k+1)-a->press(i,j,k);
+    }
 }
  
 void pjm_sig::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
@@ -122,12 +130,12 @@ void pjm_sig::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w
     a->rhsvec.V[count] =  -((u(i,j,k)-u(i-1,j,k))/p->DXN[IP]
                             + p->sigx[FIJK]*(0.5*(u(i,j,k+1)+u(i-1,j,k+1))-0.5*(u(i,j,k-1)+u(i-1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1])
                             
-						   +(v(i,j,k)-v(i,j-1,k))/p->DYN[JP] 
-                           + p->sigy[FIJK]*(0.5*(v(i,j,k+1)+v(i,j-1,k+1))-0.5*(v(i,j,k-1)+v(i,j-1,k-1)))/(p->DZP[KP]+p->DZP[KP1])
+						   + (v(i,j,k)-v(i,j-1,k))/p->DYN[JP] 
+                          + p->sigy[FIJK]*(0.5*(v(i,j,k+1)+v(i,j-1,k+1))-0.5*(v(i,j,k-1)+v(i,j-1,k-1)))/(p->DZP[KP]+p->DZP[KP1])
                            
-						   + p->sigz[IJ]*(w(i,j,k)-w(i,j,k-1)/p->DZN[KP]))/(alpha*p->dt);
+						   + p->sigz[IJ]*(w(i,j,k)-w(i,j,k-1))/p->DZN[KP] )/(alpha*p->dt);
                            
-    a->test(i,j,k) = a->rhsvec.V[count];
+    //a->test(i,j,k) = a->rhsvec.V[count];
     
                                                  
     ++count;

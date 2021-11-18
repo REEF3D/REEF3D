@@ -224,7 +224,7 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     FLOOP
     {
     if(a->wet(i,j)==1)
-    p->sigt[FIJK] = -(p->sig[FIJK]*/WLVL)*(a->WL(i,j)-a->WL_n(i,j))/p->dt;
+    p->sigt[FIJK] = -(p->sig[FIJK]/WLVL)*(a->WL(i,j)-a->WL_n(i,j))/p->dt;
     
     if(a->wet(i,j)==0)
     p->sigt[FIJK] = 0.0;
