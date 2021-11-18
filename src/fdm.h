@@ -93,7 +93,7 @@ public:
     sliceint4 wet;
     
     // fnpf
-    slice4 eta,eta_n,WL,depth;
+    slice4 eta,eta_n,WL,WL_n,depth;
     slice4 Fifsf,Fz;
     slice4 K;
     sliceint4 etaloc;

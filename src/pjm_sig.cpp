@@ -76,10 +76,10 @@ void pjm_sig::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc
         endtime=pgc->timer();
     
 	pgc->start4(p,a->press,gcval_press);
-	
+	/*
 	ucorr(p,a,uvel,alpha);
 	vcorr(p,a,vvel,alpha);
-	wcorr(p,a,wvel,alpha);
+	wcorr(p,a,wvel,alpha);*/
     
     p->poissoniter=p->solveriter;
 
@@ -128,7 +128,6 @@ void pjm_sig::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w
 						   + p->sigz[IJ]*(w(i,j,k)-w(i,j,k-1)/p->DZN[KP]))/(alpha*p->dt);
                            
     a->test(i,j,k) = a->rhsvec.V[count];
-    
     
                                                  
     ++count;

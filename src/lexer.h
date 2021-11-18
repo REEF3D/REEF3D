@@ -634,7 +634,7 @@ public:
     
 // sigma coordinate
     double *sig;
-    double *sigx,*sigy,*sigz;
+    double *sigx,*sigy,*sigz,*sigt;
     double *sigxx;
 
 private:

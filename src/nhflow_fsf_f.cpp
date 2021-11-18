@@ -75,26 +75,12 @@ void nhflow_fsf_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow)
     SLICELOOP2
     a->Q(i,j)=0.0;
 
-	
-    IULOOP
-	JULOOP
-    {
-		KULOOP
-        UCHECK
-		{
-			a->P(i,j) += a->u(i,j,k)*p->DZN[KP]*p->sigz[IJ];
-		}
-    }
-    
-    IVLOOP
-	JVLOOP
-	{	
-			KVLOOP
-            VCHECK
-			{
-            a->Q(i,j) += a->v(i,j,k)*p->DZN[KP]*p->sigz[IJ];
-			}
-    }
+    ULOOP
+    a->P(i,j) += a->u(i,j,k)*p->DZN[KP]*p->sigz[IJ];
+
+    VLOOP
+	a->Q(i,j) += a->v(i,j,k)*p->DZN[KP]*p->sigz[IJ];
+
 	pgc->gcsl_start1(p,a->P,10);
     pgc->gcsl_start2(p,a->Q,11);
 	

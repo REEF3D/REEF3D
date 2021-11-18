@@ -84,6 +84,7 @@ void grid_sigma::sigma_ini(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     p->Darray(p->sigx,p->imax*p->jmax*(p->kmax+1));
     p->Darray(p->sigy,p->imax*p->jmax*(p->kmax+1));
     p->Darray(p->sigz,p->imax*p->jmax);
+    p->Darray(p->sigt,p->imax*p->jmax*(p->kmax+1));
     
     p->Darray(p->sigxx,p->imax*p->jmax*(p->kmax+1));
     
@@ -128,13 +129,19 @@ void grid_sigma::sigma_ini(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     
     SLICELOOP4
     p->sigz[IJ] = 1.0/WLVL;
+    
+    SLICELOOP4
+    p->sigt[FIJK] = 0.0;
 
 }
 
 void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
 {
     SLICELOOP4
+    {
+    a->WL_n(i,j) = a->WL(i,j);
     a->WL(i,j) = MAX(0.0, a->eta(i,j) + p->wd - a->bed(i,j));
+    }
     
     // calculate: Ex,Ey,Exx,Eyy
     // 3D
@@ -211,6 +218,16 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     
     if(a->wet(i,j)==0)
     p->sigz[IJ] = 1.0/WLVLDRY;
+    }
+    
+    // sigt
+    FLOOP
+    {
+    if(a->wet(i,j)==1)
+    p->sigt[FIJK] = -(p->sig[FIJK]*/WLVL)*(a->WL(i,j)-a->WL_n(i,j))/p->dt;
+    
+    if(a->wet(i,j)==0)
+    p->sigt[FIJK] = 0.0;
     }
     
     // sigxx
