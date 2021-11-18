@@ -241,6 +241,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
         <VirtualDirectory Name="Pressure">
+          <File Name="pjm_sig_hs.h"/>
           <File Name="poisson_sig.h"/>
           <File Name="pjm_sig.h"/>
         </VirtualDirectory>
@@ -1199,6 +1200,7 @@
       <VirtualDirectory Name="NHFLOW">
         <File Name="nhflow_f.cpp"/>
         <VirtualDirectory Name="Pressure">
+          <File Name="pjm_sig_hs.cpp"/>
           <File Name="poisson_sig.cpp"/>
           <File Name="pjm_sig.cpp"/>
         </VirtualDirectory>

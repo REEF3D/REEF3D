@@ -465,8 +465,11 @@ void driver::logic()
     if((p->D30==3 || (p->X10==1 && p->X13==2) || p->Z10!=0 ) && p->N40!=4)
 	ppress = new pjm_corr(p,a,pheat,pconc);
     
-    if(p->D30==10)
+    if(p->D30==10 && p->G2==0)
 	ppress = new pjm_hydrostatic(p,a,pheat,pconc);
+    
+    if(p->D30==10 && p->W30==0 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2) && p->G2==1)
+	ppress = new pjm_sig_hs(p,a,pheat,pconc);
 
     if(p->N40==4)
 	ppress = new pjm_IMEX(p,a,pheat,pconc);
