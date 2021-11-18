@@ -341,6 +341,9 @@ void net_sheet::ini(lexer *p, fdm *a, ghostcell *pgc)
     int triL3 = int(h/dz3);
     tend += triL3*triD;
 
+    // Bulkheads
+    tend += 8;
+
     vector<double> vec3(3,0.0);
     tri_x.resize(tend, vec3);
     tri_y.resize(tend, vec3);
@@ -460,6 +463,121 @@ void net_sheet::ini(lexer *p, fdm *a, ghostcell *pgc)
             ++tricount;
         }
     }
+
+    // Bulkhead 1
+    double psi_angle = 0*(PI/180.0);
+    tri_x[tricount][0] = xm - r;
+    tri_y[tricount][0] = ym;
+    tri_z[tricount][0] = zb;
+    tri_x[tricount][1] = xm - r2/3;
+    tri_y[tricount][1] = ym;
+    tri_z[tricount][1] = zb2;
+    tri_x[tricount][2] = xm - r2/3;
+    tri_y[tricount][2] = ym;
+    tri_z[tricount][2] = zb3;
+    rotation_tri(p,0.0,0.0,psi_angle,tri_x[tricount][0],tri_y[tricount][0],tri_z[tricount][0],p->xg,p->yg,p->zg);
+    rotation_tri(p,0.0,0.0,psi_angle,tri_x[tricount][1],tri_y[tricount][1],tri_z[tricount][1],p->xg,p->yg,p->zg);
+    rotation_tri(p,0.0,0.0,psi_angle,tri_x[tricount][2],tri_y[tricount][2],tri_z[tricount][2],p->xg,p->yg,p->zg);
+    ++tricount;
+    tri_x[tricount][0] = xm - r;
+    tri_y[tricount][0] = ym;
+    tri_z[tricount][0] = zb;
+    tri_x[tricount][1] = xm - r;
+    tri_y[tricount][1] = ym;
+    tri_z[tricount][1] = zb + p->X322_L[nNet];
+    tri_x[tricount][2] = xm - r2/3;
+    tri_y[tricount][2] = ym;
+    tri_z[tricount][2] = zb3;
+    rotation_tri(p,0.0,0.0,psi_angle,tri_x[tricount][0],tri_y[tricount][0],tri_z[tricount][0],p->xg,p->yg,p->zg);
+    rotation_tri(p,0.0,0.0,psi_angle,tri_x[tricount][1],tri_y[tricount][1],tri_z[tricount][1],p->xg,p->yg,p->zg);
+    rotation_tri(p,0.0,0.0,psi_angle,tri_x[tricount][2],tri_y[tricount][2],tri_z[tricount][2],p->xg,p->yg,p->zg);
+    ++tricount;
+    
+    // Bulkhead 2
+    psi_angle = 90*(PI/180.0);
+    tri_x[tricount][0] = xm - r;
+    tri_y[tricount][0] = ym;
+    tri_z[tricount][0] = zb;
+    tri_x[tricount][1] = xm - r2/3;
+    tri_y[tricount][1] = ym;
+    tri_z[tricount][1] = zb2;
+    tri_x[tricount][2] = xm - r2/3;
+    tri_y[tricount][2] = ym;
+    tri_z[tricount][2] = zb3;
+    rotation_tri(p,0.0,0.0,psi_angle,tri_x[tricount][0],tri_y[tricount][0],tri_z[tricount][0],p->xg,p->yg,p->zg);
+    rotation_tri(p,0.0,0.0,psi_angle,tri_x[tricount][1],tri_y[tricount][1],tri_z[tricount][1],p->xg,p->yg,p->zg);
+    rotation_tri(p,0.0,0.0,psi_angle,tri_x[tricount][2],tri_y[tricount][2],tri_z[tricount][2],p->xg,p->yg,p->zg);
+    ++tricount;
+    tri_x[tricount][0] = xm - r;
+    tri_y[tricount][0] = ym;
+    tri_z[tricount][0] = zb;
+    tri_x[tricount][1] = xm - r;
+    tri_y[tricount][1] = ym;
+    tri_z[tricount][1] = zb + p->X322_L[nNet];
+    tri_x[tricount][2] = xm - r2/3;
+    tri_y[tricount][2] = ym;
+    tri_z[tricount][2] = zb3;
+    rotation_tri(p,0.0,0.0,psi_angle,tri_x[tricount][0],tri_y[tricount][0],tri_z[tricount][0],p->xg,p->yg,p->zg);
+    rotation_tri(p,0.0,0.0,psi_angle,tri_x[tricount][1],tri_y[tricount][1],tri_z[tricount][1],p->xg,p->yg,p->zg);
+    rotation_tri(p,0.0,0.0,psi_angle,tri_x[tricount][2],tri_y[tricount][2],tri_z[tricount][2],p->xg,p->yg,p->zg);
+    ++tricount;
+    
+    // Bulkhead 3
+    psi_angle = 180*(PI/180.0);
+    tri_x[tricount][0] = xm - r;
+    tri_y[tricount][0] = ym;
+    tri_z[tricount][0] = zb;
+    tri_x[tricount][1] = xm - r2/3;
+    tri_y[tricount][1] = ym;
+    tri_z[tricount][1] = zb2;
+    tri_x[tricount][2] = xm - r2/3;
+    tri_y[tricount][2] = ym;
+    tri_z[tricount][2] = zb3;
+    rotation_tri(p,0.0,0.0,psi_angle,tri_x[tricount][0],tri_y[tricount][0],tri_z[tricount][0],p->xg,p->yg,p->zg);
+    rotation_tri(p,0.0,0.0,psi_angle,tri_x[tricount][1],tri_y[tricount][1],tri_z[tricount][1],p->xg,p->yg,p->zg);
+    rotation_tri(p,0.0,0.0,psi_angle,tri_x[tricount][2],tri_y[tricount][2],tri_z[tricount][2],p->xg,p->yg,p->zg);
+    ++tricount;
+    tri_x[tricount][0] = xm - r;
+    tri_y[tricount][0] = ym;
+    tri_z[tricount][0] = zb;
+    tri_x[tricount][1] = xm - r;
+    tri_y[tricount][1] = ym;
+    tri_z[tricount][1] = zb + p->X322_L[nNet];
+    tri_x[tricount][2] = xm - r2/3;
+    tri_y[tricount][2] = ym;
+    tri_z[tricount][2] = zb3;
+    rotation_tri(p,0.0,0.0,psi_angle,tri_x[tricount][0],tri_y[tricount][0],tri_z[tricount][0],p->xg,p->yg,p->zg);
+    rotation_tri(p,0.0,0.0,psi_angle,tri_x[tricount][1],tri_y[tricount][1],tri_z[tricount][1],p->xg,p->yg,p->zg);
+    rotation_tri(p,0.0,0.0,psi_angle,tri_x[tricount][2],tri_y[tricount][2],tri_z[tricount][2],p->xg,p->yg,p->zg);
+    ++tricount;
+
+    // Bulkhead 4
+    psi_angle = 270*(PI/180.0);
+    tri_x[tricount][0] = xm - r;
+    tri_y[tricount][0] = ym;
+    tri_z[tricount][0] = zb;
+    tri_x[tricount][1] = xm - r2/3;
+    tri_y[tricount][1] = ym;
+    tri_z[tricount][1] = zb2;
+    tri_x[tricount][2] = xm - r2/3;
+    tri_y[tricount][2] = ym;
+    tri_z[tricount][2] = zb3;
+    rotation_tri(p,0.0,0.0,psi_angle,tri_x[tricount][0],tri_y[tricount][0],tri_z[tricount][0],p->xg,p->yg,p->zg);
+    rotation_tri(p,0.0,0.0,psi_angle,tri_x[tricount][1],tri_y[tricount][1],tri_z[tricount][1],p->xg,p->yg,p->zg);
+    rotation_tri(p,0.0,0.0,psi_angle,tri_x[tricount][2],tri_y[tricount][2],tri_z[tricount][2],p->xg,p->yg,p->zg);
+    ++tricount;
+    tri_x[tricount][0] = xm - r;
+    tri_y[tricount][0] = ym;
+    tri_z[tricount][0] = zb;
+    tri_x[tricount][1] = xm - r;
+    tri_y[tricount][1] = ym;
+    tri_z[tricount][1] = zb + p->X322_L[nNet];
+    tri_x[tricount][2] = xm - r2/3;
+    tri_y[tricount][2] = ym;
+    tri_z[tricount][2] = zb3;
+    rotation_tri(p,0.0,0.0,psi_angle,tri_x[tricount][0],tri_y[tricount][0],tri_z[tricount][0],p->xg,p->yg,p->zg);
+    rotation_tri(p,0.0,0.0,psi_angle,tri_x[tricount][1],tri_y[tricount][1],tri_z[tricount][1],p->xg,p->yg,p->zg);
+    rotation_tri(p,0.0,0.0,psi_angle,tri_x[tricount][2],tri_y[tricount][2],tri_z[tricount][2],p->xg,p->yg,p->zg);
 */
 /*
 // Estonia fish farm
