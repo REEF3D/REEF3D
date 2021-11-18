@@ -175,21 +175,6 @@ void pjm_comp::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, f
 	pgc->start3(p,w,gcval_w);
 }
 
-void pjm_comp::pressure_norm(lexer*p, fdm* a, ghostcell* pgc)
-{
-    double sum=0.0;
-
-    LOOP
-    sum+=a->press(i,j,k);
-
-    sum=pgc->globalsum(sum);
-
-    sum/=double(p->cellnumtot);
-
-    LOOP
-    a->press(i,j,k)-=sum;
-}
-
 void pjm_comp::density_ini(lexer*p,fdm* a, ghostcell *pgc)
 {
     if(p->count<=1)
@@ -212,19 +197,6 @@ void pjm_comp::vpgrad(lexer*p,fdm* a)
 void pjm_comp::wpgrad(lexer*p,fdm* a)
 {
 }
-
-void pjm_comp::fillapu(lexer*p,fdm* a)
-{
-}
-
-void pjm_comp::fillapv(lexer*p,fdm* a)
-{
-}
-
-void pjm_comp::fillapw(lexer*p,fdm* a)
-{
-}
-
 
 void pjm_comp::ptimesave(lexer *p, fdm *a, ghostcell *pgc)
 {

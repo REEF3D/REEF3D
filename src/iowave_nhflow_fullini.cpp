@@ -77,6 +77,7 @@ void iowave::full_initialize_nhflow(lexer *p, fdm*a, ghostcell *pgc)
 		a->w(i,j,k) = wave_w(p,pgc,xg,yg,z);
 	}
 	
+    if(p->I10==1 || p->I12==1)
 	LOOP
     {
         xg = xgen(p);

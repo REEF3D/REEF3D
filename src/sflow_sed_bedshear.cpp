@@ -49,6 +49,9 @@ void sflow_sediment_f::bedshear(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, sl
     if(vy<0.0)
     V = Q(i,j-1);
     
+    //U = ux;
+    //V = vy;
+    
     uabs = sqrt(U*U + V*V);
     
 

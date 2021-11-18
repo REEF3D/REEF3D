@@ -1049,6 +1049,8 @@ void lexer::ctrlrecv()
     dd++;
     T31 = dctrl[dd];
     dd++;
+    T32 = dctrl[dd];
+    dd++;
 	T35 = dctrl[dd];
     dd++;
 	T36 = ictrl[ii];

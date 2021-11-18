@@ -10,42 +10,34 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-class lexer;
-class fdm;
-class ghostcell;
-class ioflow;
-class poisson;
-class solver;
-class field;
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"field.h"
+#include"cpt.h"
 
-using namespace std;
-
-#ifndef PRESSURE_H_
-#define PRESSURE_H_
-
-class pressure
+void ghostcell::kinematic_fsf(lexer *p,field& f,double dist,int gcv, int bc, int cs)
 {
-public:
+    double wval;
+    
+	wval = (a->eta(i,j) - a->eta_n(i,j))/p->dt
+    
+         + 0.5*(a->u(i,j,k)+a->u(i-1,j,k))*((a->eta(i+1,j)-a->eta(i-1,j))/(2.0*p->DXP[IP]))
+    
+         + 0.5*(a->v(i,j,k)+a->v(i,j-1,k))*((a->eta(i,j+1)-a->eta(i,j-1))/(2.0*p->DYP[JP]));
 
-	virtual void start(fdm*,lexer*, poisson*, solver*, ghostcell*,ioflow*,field&,field&,field&,double)=0;
-	virtual void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double)=0;
-	virtual void upgrad(lexer*,fdm*)=0;
-	virtual void vpgrad(lexer*,fdm*)=0;
-	virtual void wpgrad(lexer*,fdm*)=0;
-    virtual void ucorr(lexer*p,fdm*,field&,double)=0;
-	virtual void vcorr(lexer*p,fdm*,field&,double)=0;
-	virtual void wcorr(lexer*p,fdm*,field&,double)=0;
-	virtual void ptimesave(lexer*,fdm*,ghostcell*)=0;
-};
+    //cout<<"WAVL: "<<wval<<endl;
+	for(q=0;q<margin;++q)
+	f(i,j,k+q+1)= f(i,j,k);//wval;
+    
+}
 
-#endif

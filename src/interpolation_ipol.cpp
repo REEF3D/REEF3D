@@ -177,6 +177,18 @@ double interpolation::ipol3( field& b)
 
     value= 0.5*(value + 0.25*(v5+v6+v7+v8));
     }
+    
+    if(p->flag5[IJKp1]==3)
+    {
+     pip=4;
+    v5=b(i,j,k+1);
+    v6=b(i,j+1,k+1);
+    v7=b(i+1,j,k+1);
+    v8=b(i+1,j+1,k+1);
+    pip=0;
+
+    value= 0.5*(value + 0.25*(v5+v6+v7+v8));
+    }
 
     return value;
 }

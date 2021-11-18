@@ -161,18 +161,6 @@ void pjm_hydrostatic::wpgrad(lexer*p,fdm* a)
 {
 }
 
-void pjm_hydrostatic::fillapu(lexer*p,fdm* a)
-{
-}
-
-void pjm_hydrostatic::fillapv(lexer*p,fdm* a)
-{
-}
-
-void pjm_hydrostatic::fillapw(lexer*p,fdm* a)
-{
-}
-
 void pjm_hydrostatic::ptimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }

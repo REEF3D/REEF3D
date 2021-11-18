@@ -50,15 +50,9 @@ public:
 	virtual void wcorr(lexer*p,fdm*,field&,double);
 	virtual void upgrad(lexer*,fdm*);
 	virtual void vpgrad(lexer*,fdm*);
+    virtual void wpgrad(lexer*,fdm*);
 	virtual void ptimesave(lexer*,fdm*,ghostcell*);
 
-	virtual void wpgrad(lexer*,fdm*);
-	virtual void fillapu(lexer*,fdm*);
-	virtual void fillapv(lexer*,fdm*);
-	virtual void fillapw(lexer*,fdm*);
-	virtual void pressure_norm(lexer*,fdm*,ghostcell*);
-    
-    
     field4 pcorr;
 
 private:
