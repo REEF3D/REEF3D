@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"flux_HJ_CDS2_vrans.h"
+#include"flux_HJ_CDS2_vrans.h"
 #include"lexer.h"
 #include"fdm.h"
 
@@ -87,7 +87,6 @@ void flux_HJ_CDS2_vrans::v_flux(fdm* a,int ipol,field&vvel, double &vflux1, doub
 	{
     pip=2;
 	vflux1 = 0.5*(vvel(i,j,k) + vvel(i,j-1,k))*(1.0/a->porosity(i,j,k));
-    //jadvec = (1.0/16.0)*(-vvel(i,j-2,k) + 9.0*vvel(i,j-1,k) + 9.0*vvel(i,j,k) - vvel(i,j+1,k))*(1.0/a->porosity(i,j,k));
     pip=0;
 	}
 }
@@ -118,7 +117,39 @@ void flux_HJ_CDS2_vrans::w_flux(fdm* a,int ipol,field& wvel, double &wflux1, dou
 	{
     pip=3;
 	wflux1 = 0.5*(wvel(i,j,k) + wvel(i,j,k-1))*(1.0/a->porosity(i,j,k));
-    //kadvec = (1.0/16.0)*(-wvel(i,j,k-2) + 9.0*wvel(i,j,k-1) + 9.0*wvel(i,j,k) - wvel(i,j,k+1))*(1.0/a->porosity(i,j,k));
+    pip=0;
+	}
+}
+
+
+void flux_HJ_CDS2_vrans::omega_flux(fdm* a,int ipol,field& wvel, double &wflux1, double &wflux2)
+{
+
+	if(ipol==1)
+	{
+	pip=3;
+	wflux1 = 0.5*(wvel(i,j,k) + wvel(i+1,j,k));
+	pip=0;
+	}
+
+	if(ipol==2)
+	{
+	pip=3;
+	wflux1 = 0.5*(wvel(i,j,k) + wvel(i,j+1,k));
+	pip=0;
+	}
+
+	if(ipol==3)
+	{
+    pip=3;
+	wflux1 = 0.5*(wvel(i,j,k) + wvel(i,j,k+1));
+    pip=0;
+	}
+
+	if(ipol==4)
+	{
+    pip=3;
+	wflux1 = wvel(i,j,k)*(1.0/a->porosity(i,j,k));
     pip=0;
 	}
 }

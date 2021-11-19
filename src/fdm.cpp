@@ -26,6 +26,7 @@ fdm::fdm(lexer *p)
 			:u(p),F(p),
 			v(p),G(p),
 			w(p),H(p),
+            omega(p),
 			press(p),
             Fi(p),
 			eddyv(p),

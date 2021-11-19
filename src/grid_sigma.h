@@ -52,6 +52,8 @@ public:
     double sigmay(lexer*,field&,int);
     double sigmaz(lexer*,field&,int);
     double sigmat(lexer*,field&,int);
+    
+    void omega_update(lexer*,fdm*,ghostcell*,field&,field&,field&);
 
         
 private:
