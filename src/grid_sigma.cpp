@@ -363,24 +363,16 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
 double grid_sigma::sigmax(lexer *p, field &f, int ipol)
 {    
     if(ipol==1)
-    sig = 0.25*(p->sigx[FIJKm1] + p->sigx[FIp1JKm1] + p->sigx[FIJK] + p->sigx[FIp1JK])
-        
-        *((f(i,j,k+1)-f(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]));
+    sig = 0.25*(p->sigx[FIJKm1] + p->sigx[FIp1JKm1] + p->sigx[FIJK] + p->sigx[FIp1JK]);
 
     if(ipol==2)
-    sig = 0.25*(p->sigx[FIJKm1] + p->sigx[FIJp1Km1] + p->sigx[FIJK] + p->sigx[FIJp1K])
-    
-        *((f(i,j,k+1)-f(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]));
+    sig = 0.25*(p->sigx[FIJKm1] + p->sigx[FIJp1Km1] + p->sigx[FIJK] + p->sigx[FIJp1K]);
     
     if(ipol==3)
-    sig = p->sigx[FIJKm1]
-    
-        *((f(i,j,k+1)-f(i,j,k-1))/(p->DZN[KP]+p->DZN[KM1]));
+    sig = p->sigx[FIJKm1];
 
     if(ipol==4)
-    sig = 0.5*(p->sigx[FIJKm1] + p->sigx[FIJK])
-    
-        *((f(i,j,k+1)-f(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]));
+    sig = 0.5*(p->sigx[FIJKm1] + p->sigx[FIJK]);
 
     return sig;
 }
@@ -388,24 +380,16 @@ double grid_sigma::sigmax(lexer *p, field &f, int ipol)
 double grid_sigma::sigmay(lexer *p, field &f, int ipol)
 {  
     if(ipol==1)
-    sig = 0.25*(p->sigy[FIJKm1] + p->sigy[FIp1JKm1] + p->sigy[FIJK] + p->sigy[FIp1JK])
-    
-        *((f(i,j,k+1)-f(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]));
+    sig = 0.25*(p->sigy[FIJKm1] + p->sigy[FIp1JKm1] + p->sigy[FIJK] + p->sigy[FIp1JK]);
 
     if(ipol==2)
-    sig = 0.25*(p->sigy[FIJKm1] + p->sigy[FIJp1Km1] + p->sigy[FIJK] + p->sigy[FIJp1K])
+    sig = 0.25*(p->sigy[FIJKm1] + p->sigy[FIJp1Km1] + p->sigy[FIJK] + p->sigy[FIJp1K]);
     
-        *((f(i,j,k+1)-f(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]));
-
     if(ipol==3)
-    sig = p->sigy[FIJKm1]
-    
-        *((f(i,j,k+1)-f(i,j,k-1))/(p->DZN[KP]+p->DZN[KM1]));
+    sig = p->sigy[FIJKm1];
 
     if(ipol==4)
-    sig = 0.5*(p->sigy[FIJKm1] + p->sigy[FIJK])
-    
-        *((f(i,j,k+1)-f(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]));
+    sig = 0.5*(p->sigy[FIJKm1] + p->sigy[FIJK]);
 
     return sig;
 }
@@ -423,6 +407,23 @@ double grid_sigma::sigmaz(lexer *p, field &f, int ipol)
 
     if(ipol==4)
     sig = p->sigz[IJ];
+
+    return sig;
+}
+
+double grid_sigma::sigmat(lexer *p, field &f, int ipol)
+{    
+    if(ipol==1)
+    sig = 0.25*(p->sigt[FIJKm1] + p->sigt[FIp1JKm1] + p->sigt[FIJK] + p->sigt[FIp1JK]);
+
+    if(ipol==2)
+    sig = 0.25*(p->sigt[FIJKm1] + p->sigt[FIJp1Km1] + p->sigt[FIJK] + p->sigt[FIJp1K]);
+    
+    if(ipol==3)
+    sig = p->sigt[FIJKm1];
+
+    if(ipol==4)
+    sig = 0.5*(p->sigt[FIJKm1] + p->sigt[FIJK]);
 
     return sig;
 }

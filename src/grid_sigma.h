@@ -51,6 +51,7 @@ public:
     double sigmax(lexer*,field&,int);
     double sigmay(lexer*,field&,int);
     double sigmaz(lexer*,field&,int);
+    double sigmat(lexer*,field&,int);
 
         
 private:
