@@ -43,8 +43,10 @@ public:
 	hypre_sstruct_fnpf(lexer*,ghostcell*,int,int);
 	virtual ~hypre_sstruct_fnpf();
 
+    virtual void start(lexer*, fdm_fnpf*, ghostcell*, double*, double*, double*, int, double);
     virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, double*, double*, int, double);
     
+    void start_solver5(lexer*, fdm_fnpf*, ghostcell*, double*, double*, double*);
     void start_solver8(lexer*, fdm_fnpf*, ghostcell*, double*, double*, double*);
     
     virtual void solve(lexer*,ghostcell*);

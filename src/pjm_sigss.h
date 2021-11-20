@@ -30,19 +30,19 @@ class concentration;
 
 using namespace std;
 
-#ifndef PJM_SIG_H_
-#define PJM_SIG_H_
+#ifndef PJM_SIGSS_H_
+#define PJM_SIGSS_H_
 
-class pjm_sig : public pressure, public increment
+class pjm_sigss : public pressure, public increment
 {
 
 public:
 
-	pjm_sig(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
-	virtual ~pjm_sig();
+	pjm_sigss(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
+	virtual ~pjm_sigss();
 
 	virtual void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,ioflow*, field&, field&, field&,double);
-	virtual void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
+	virtual void rhscalc(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 	virtual void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 	virtual void ucorr(lexer*p,fdm*,field&,double);
 	virtual void vcorr(lexer*p,fdm*,field&,double);
@@ -51,6 +51,9 @@ public:
 	virtual void vpgrad(lexer*,fdm*);
     virtual void wpgrad(lexer*,fdm*);
 	virtual void ptimesave(lexer*,fdm*,ghostcell*);
+    
+    void poisson2D(lexer *,fdm*,field&);
+    void poisson3D(lexer *,fdm*,field&);
 
 private:
 	double starttime,endtime;
@@ -60,6 +63,10 @@ private:
 	void debug(lexer*,fdm*);
     
     density *pd;
+    solver *psolv;
+    int vecsize;
+    
+    double *M,*x,*rhs;
 
 };
 

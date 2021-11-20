@@ -20,28 +20,26 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-
-#include"sflow_v.h"
-#include"sflow_f.h"
-#include"nsewave_v.h"
-#include"nsewave_f.h"
-#include"nsewave_geo.h"
-#include"nsewave_RK3.h"
-#include"nhflow_fsf.h"
-#include"nhflow_fsf_f.h"
-#include"nhflow_fsf_v.h"
 #include"nhflow.h"
-#include"nhflow_f.h"
-#include"nhflow_v.h"
-#include"ptf_v.h"
-#include"fnpf_v.h"
-#include"ptf_RK3.h"
-#include"ptf_RK4.h"
-#include"fnpf_RK2.h"
-#include"fnpf_RK3.h"
-#include"fnpf_RK4.h"
-#include"fnpf_vtu3D.h"
-#include"fnpf_timestep.h"
 
+using namespace std;
 
+#ifndef NHFLOW_V_H_
+#define NHFLOW_V_H_
 
+class nhflow_v : public nhflow
+{
+public: 
+
+    nhflow_v(lexer*, fdm*, ghostcell*);
+	virtual ~nhflow_v();
+
+    virtual void ini(lexer*, fdm*, ghostcell*, ioflow*);
+    
+    virtual void kinematic_fsf(lexer*, fdm*, field&, field&, field&);
+
+        
+
+};
+
+#endif

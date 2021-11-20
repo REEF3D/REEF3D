@@ -97,6 +97,7 @@ void poisson_sig::start(lexer* p, fdm *a, field &f)
 	++n;
 	}
     
+    /*
     n=0;
 	LOOP
 	{
@@ -129,6 +130,52 @@ void poisson_sig::start(lexer* p, fdm *a, field &f)
             if(p->flag4[IJKm1]<0)
             {
             a->rhsvec.V[n] -= a->M.b[n]*f(i,j,k-1);
+            a->M.b[n] = 0.0;
+            }
+            
+            if(p->flag4[IJKp1]<0)
+            {
+            a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1);
+            a->M.t[n] = 0.0;
+            }
+        }
+
+	++n;
+	}
+*/    
+
+    n=0;
+	LOOP
+	{
+        if(a->wet(i,j)==1)
+        {
+            if(p->flag4[Im1JK]<0)
+            {
+            a->M.p[n] += a->M.s[n];
+            a->M.s[n] = 0.0;
+            }
+            
+            if(p->flag4[Ip1JK]<0)
+            {
+            a->M.p[n] += a->M.n[n];
+            a->M.n[n] = 0.0;
+            }
+            
+            if(p->flag4[IJm1K]<0)
+            {
+            a->M.p[n] += a->M.e[n];
+            a->M.e[n] = 0.0;
+            }
+            
+            if(p->flag4[IJp1K]<0)
+            {
+            a->M.p[n] += a->M.w[n];
+            a->M.w[n] = 0.0;
+            }
+            
+            if(p->flag4[IJKm1]<0)
+            {
+            a->M.p[n] += a->M.b[n];
             a->M.b[n] = 0.0;
             }
             

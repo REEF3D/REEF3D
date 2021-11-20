@@ -48,11 +48,39 @@ hypre_sstruct_fnpf::~hypre_sstruct_fnpf()
 {
 }
 
+void hypre_sstruct_fnpf::start(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, double *rhs, double *M, int var, double stop_crit)
+{
+    start_solver5(p,c,pgc,f,rhs,M);
+}
+
 void hypre_sstruct_fnpf::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, double *rhs, double *M, int var, double stop_crit)
 {
     start_solver8(p,c,pgc,f,rhs,M);
 }
 
+
+void hypre_sstruct_fnpf::start_solver5(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, double *rhs, double *M)
+{
+    numiter=0;
+	p->solveriter=0;
+	
+    create_solver5(p,pgc);
+
+    if(p->j_dir==1)
+    fill_matrix8(p,c,pgc,f,rhs,M);
+    
+    if(p->j_dir==0)
+    fill_matrix8_2Dvert(p,c,pgc,f,rhs,M);
+
+    solve(p,pgc);
+
+	p->solveriter=num_iterations;
+    p->final_res = final_res_norm;
+        
+    fillbackvec8(p,c,f,rhs,M);
+	
+	delete_solver5(p,pgc);
+}
 
 void hypre_sstruct_fnpf::start_solver8(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, double *rhs, double *M)
 {

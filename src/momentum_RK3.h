@@ -33,6 +33,7 @@ class turbulence;
 class solver;
 class poisson;
 class fluid_update;
+class nhflow;
 
 using namespace std;
 
@@ -42,7 +43,7 @@ using namespace std;
 class momentum_RK3 : public momentum, public bcmom
 {
 public:
-	momentum_RK3(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*);
+	momentum_RK3(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*, nhflow*);
 	virtual ~momentum_RK3();
 	virtual void start(lexer*, fdm*, ghostcell*, vrans*);
     virtual void utimesave(lexer*, fdm*, ghostcell*);
@@ -74,6 +75,7 @@ private:
 	solver *psolv;
     solver *ppoissonsolv;
 	ioflow *pflow;
+    nhflow *pnh;
 };
 
 #endif

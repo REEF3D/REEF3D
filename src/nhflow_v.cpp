@@ -17,31 +17,30 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-
-#include"sflow_v.h"
-#include"sflow_f.h"
-#include"nsewave_v.h"
-#include"nsewave_f.h"
-#include"nsewave_geo.h"
-#include"nsewave_RK3.h"
-#include"nhflow_fsf.h"
-#include"nhflow_fsf_f.h"
-#include"nhflow_fsf_v.h"
-#include"nhflow.h"
-#include"nhflow_f.h"
 #include"nhflow_v.h"
-#include"ptf_v.h"
-#include"fnpf_v.h"
-#include"ptf_RK3.h"
-#include"ptf_RK4.h"
-#include"fnpf_RK2.h"
-#include"fnpf_RK3.h"
-#include"fnpf_RK4.h"
-#include"fnpf_vtu3D.h"
-#include"fnpf_timestep.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
+nhflow_v::nhflow_v(lexer *p, fdm *a, ghostcell *pgc) 
+{
+}
+
+nhflow_v::~nhflow_v()
+{
+}
+
+
+void nhflow_v::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
+{
+
+}
+
+void nhflow_v::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w)
+{
+
+}
 
 

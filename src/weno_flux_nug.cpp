@@ -183,34 +183,6 @@ double weno_flux_nug::aij_sig(lexer* p,fdm* a,field& b,int ipol, field& uvel, fi
         pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
         pflux->omega_flux(a,ipol,a->omega,kvel1,kvel2);
         
-        double etaS,etaN,etaE,etaW;
-        double dS,dN,dE,dW;
-        
-        double hsS,hsN,hsE,hsW;
-        hsS=hsN=hsE=hsW=0.0;
-        
-        
-        if(ipol==1)
-        {
-        etaS = a->eta(i,j);
-        etaN = a->eta(i+1,j);
-        dS = 0.5*(a->depth(i,j)+a->depth(i+1,j));
-        dN = 0.5*(a->depth(i,j)+a->depth(i+1,j));
-        hsS = 0.5*fabs(p->W22)*etaS*etaS + fabs(p->W22)*dS*etaS;
-        hsN = 0.5*fabs(p->W22)*etaN*etaN + fabs(p->W22)*dN*etaN;    
-        }
-        
-        if(ipol==2)
-        {
-        etaE = a->eta(i,j);
-        etaW = a->eta(i,j+1);
-        dE = 0.5*(a->depth(i,j)+a->depth(i,j+1));
-        dW = 0.5*(a->depth(i,j)+a->depth(i,j+1));
-        hsE = 0.5*fabs(p->W22)*etaE*etaE + fabs(p->W22)*dE*etaE;
-        hsW = 0.5*fabs(p->W22)*etaW*etaW + fabs(p->W22)*dW*etaW;    
-        }
-        
-        
         fv1=fv2=0.0;
 		
 		i-=1;
@@ -237,8 +209,8 @@ double weno_flux_nug::aij_sig(lexer* p,fdm* a,field& b,int ipol, field& uvel, fi
 		fw2 = fz(p,a,b,wvel,ipol,kvel2);
 		
 		
-		L =   - ((ivel2*fu2-ivel1*fu1 + hsN-hsS)/DX[IP]) 
-		      - ((jvel2*fv2-jvel1*fv1 + hsW-hsE)/DY[JP])
+		L =   - ((ivel2*fu2-ivel1*fu1)/DX[IP]) 
+		      - ((jvel2*fv2-jvel1*fv1)/DY[JP])
 			  - ((kvel2*fw2-kvel1*fw1)/DZ[KP]);
         
 		return L;

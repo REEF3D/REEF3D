@@ -66,6 +66,7 @@ class fnpf_vtu3D;
 class fnpf_timestep;
 class grid;
 class patchBC_interface;
+class nhflow;
 
 #include<iostream>
 #include<fstream>
@@ -189,6 +190,7 @@ public:
     fnpf_timestep* pftstep;
     grid *pgrid;
     patchBC_interface *pBC;
+    nhflow *pnh;
 
 
 private:

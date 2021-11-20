@@ -67,6 +67,8 @@ public:
     
     void make_grid_7p(lexer*,fdm*, ghostcell*);
     void make_grid_13p(lexer*,fdm*, ghostcell*);
+    void make_grid_15p(lexer*,fdm*, ghostcell*);
+    void make_grid_2Dvert_9p(lexer*,fdm*, ghostcell*);
     
     void fill_matrix1(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix2(lexer*,fdm*, ghostcell*,field&);

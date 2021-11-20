@@ -240,7 +240,11 @@
         <File Name="nsewave.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
+        <File Name="nhflow_f.h"/>
+        <File Name="nhflow_v.h"/>
+        <File Name="nhflow.h"/>
         <VirtualDirectory Name="Pressure">
+          <File Name="pjm_sigss.h"/>
           <File Name="pjm_sig_hs.h"/>
           <File Name="poisson_sig.h"/>
           <File Name="pjm_sig.h"/>
@@ -1198,8 +1202,11 @@
         <File Name="nsewave_f.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
+        <File Name="nhflow_v.cpp"/>
         <File Name="nhflow_f.cpp"/>
         <VirtualDirectory Name="Pressure">
+          <File Name="pjm_sigss.cpp"/>
+          <File Name="poisson_sigss.cpp"/>
           <File Name="pjm_sig_hs.cpp"/>
           <File Name="poisson_sig.cpp"/>
           <File Name="pjm_sig.cpp"/>

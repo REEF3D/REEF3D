@@ -39,11 +39,17 @@ hypre_sstruct::hypre_sstruct(lexer* p,fdm* a,ghostcell *pgc)
     p->Iarray(iupper,3);
     p->Darray(values,vecsize*13);
     
-    if(p->A320!=2)
+    if(p->A320!=2 && p->D30!=4)
     make_grid_7p(p,a,pgc);	
     
     if(p->A320==2)
     make_grid_13p(p,a,pgc);	
+    
+    if(p->D30==4 && p->j_dir==0)
+    make_grid_2Dvert_9p(p,a,pgc);
+    
+    if(p->D30==4 && p->j_dir==1)
+    make_grid_15p(p,a,pgc);	
 }
 
 hypre_sstruct::~hypre_sstruct()
