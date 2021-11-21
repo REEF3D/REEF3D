@@ -337,16 +337,16 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     k=p->knoz;
     SLICELOOP4
     {
-        if(p->flag7[FIm1JK]<0 || i==0)
+        if(p->flag4[FIm1JK]<0 || i==0)
         p->sigz[Im1J] = p->sigz[IJ];
         
-        if(p->flag7[FIp1JK]<0 || i==p->knox-1)
+        if(p->flag4[FIp1JK]<0 || i==p->knox-1)
         p->sigz[Ip1J] = p->sigz[IJ];
         
-        if(p->flag7[FIJm1K]<0 || j==0)
+        if(p->flag4[FIJm1K]<0 || j==0)
         p->sigz[IJm1] = p->sigz[IJ];
         
-        if(p->flag7[FIJp1K]<0 || j==p->knoy-1)
+        if(p->flag4[FIJp1K]<0 || j==p->knoy-1)
         p->sigz[IJp1] = p->sigz[IJ];
     }
     

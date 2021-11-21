@@ -317,7 +317,7 @@ nt 8
 	}
 
     double starttime=pgc->timer();
-    psolv->startF(p,c,pgc,x,rhs,M,8,p->N44);
+    psolv->startF(p,pgc,x,rhs,M,8,p->N44);
     double endtime=pgc->timer();
     
         n=0;
@@ -690,7 +690,7 @@ wt 14
 	}
 
     double starttime=pgc->timer();
-    psolv->startF(p,c,pgc,x,rhs,M,8,p->N44);
+    psolv->startF(p,pgc,x,rhs,M,8,p->N44);
     double endtime=pgc->timer();
     
         n=0;

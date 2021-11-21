@@ -57,11 +57,8 @@ pjm_sigss::pjm_sigss(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentrati
 	gcval_w=9;
     
     // solver
-    /*if(p->D30==1)
-    psolv = new hypre_struct(p,a,pgc,p->N10,p->N11);
-    
-    if(p->D30==4)
-    psolv = new hypre_sstruct_fnpf(p,pgc,p->N10,p->N11);*/
+    //if(p->D30==4)
+    //psolv = new hypre_sstruct_fnpf(p,pgc,p->N10,p->N11);
     
     //
     vecsize=p->knox*p->knoy*(p->knoz+1); 
@@ -95,6 +92,7 @@ void pjm_sigss::start(fdm* a,lexer*p, poisson* ppois,solver* psolvreg, ghostcell
         starttime=pgc->timer();
 
     //psolv->start(p,a,pgc,a->press,a->xvec,a->rhsvec,5,gcval_press,p->N44);
+    //psolv->start(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, double *rhs, double *M, int var, double stop_crit)
 	
         endtime=pgc->timer();
     
@@ -151,10 +149,10 @@ void pjm_sigss::rhscalc(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, fi
     LOOP
     {
     rhs[count] =          -((u(i,j,k)-u(i-1,j,k))/p->DXN[IP]
-                            + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(0.5*(u(i,j,k+1)+u(i-1,j,k+1))-0.5*(u(i,j,k-1)+u(i-1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1])
+                          + 0.25*(p->sigx[FIJK]+p->sigx[FIJKp1]+p->sigx[FIp1JK]+p->sigx[FIp1JKp1])*(0.5*(u(i,j,k+1)+u(i-1,j,k+1))-0.5*(u(i,j,k-1)+u(i-1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1])
                             
 						   + (v(i,j,k)-v(i,j-1,k))/p->DYN[JP] 
-                          + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(0.5*(v(i,j,k+1)+v(i,j-1,k+1))-0.5*(v(i,j,k-1)+v(i,j-1,k-1)))/(p->DZP[KP]+p->DZP[KP1])
+                          + 0.25*(p->sigy[FIJK]+p->sigy[FIJKp1]+p->sigy[FIJp1K]+p->sigy[FIJp1Kp1])*(0.5*(v(i,j,k+1)+v(i,j-1,k+1))-0.5*(v(i,j,k-1)+v(i,j-1,k-1)))/(p->DZP[KP]+p->DZP[KP1])
                            
 						   + p->sigz[IJ]*(w(i,j,k)-w(i,j,k-1))/p->DZN[KP] )/(alpha*p->dt);
                            

@@ -59,7 +59,7 @@ nt 8
 	{
         if(p->flag7[FIJK]>0 && a->wet(i,j)==1)
         {
-        sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
+        sigxyz2 = pow(0.5*(p->sigx[FIJK]+p->sigx[FIJKp1]),2.0) + pow(0.5*(p->sigy[FIJK]+p->sigy[FIJKp1]),2.0) + pow(p->sigz[IJ],2.0);
         
         M[n*9]  =         (CPOR1*PORVAL1)/(pd->roface(p,a,1,0,0)*p->DXP[IP]*p->DXN[IP])
                         + (CPOR1m*PORVAL1m)/(pd->roface(p,a,-1,0,0)*p->DXP[IM1]*p->DXN[IP])
@@ -77,15 +77,14 @@ nt 8
                         - CPOR4*PORVAL4*0.5*(p->sigxx[FIJK]+p->sigxx[FIJKp1])/(a->ro(i,j,k)*(p->DZN[KP]+p->DZN[KM1]));
         
       
-        M[n*9+5]  = -2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
-        M[n*9+6]  =  2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
-        M[n*9+7]  =  2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
-        M[n*9+8]  = -2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
+        M[n*9+5]  = -CPOR4*PORVAL4*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
+        M[n*9+6]  =  CPOR4*PORVAL4*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
+        M[n*9+7]  =  CPOR4*PORVAL4*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
+        M[n*9+8]  = -CPOR4*PORVAL4*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
 
         x[n] = f(i,j,k);
         
         rhs[n] =  0.0;
-                        
         }
         
         if(a->wet(i,j)==0 || p->flag7[FIJK]<0)
@@ -294,50 +293,7 @@ nt 8
 	++n;
 	}
     
-    n=0;
-	LOOP
-	{
-        if(a->wet(i,j)==1)
-        {
-            if(p->flag4[Im1JK]<0)
-            {
-            a->rhsvec.V[n] -= a->M.s[n]*f(i-1,j,k);
-            a->M.s[n] = 0.0;
-            }
-            
-            if(p->flag4[Ip1JK]<0)
-            {
-            a->rhsvec.V[n] -= a->M.n[n]*f(i+1,j,k);
-            a->M.n[n] = 0.0;
-            }
-            
-            if(p->flag4[IJm1K]<0)
-            {
-            a->rhsvec.V[n] -= a->M.e[n]*f(i,j-1,k);
-            a->M.e[n] = 0.0;
-            }
-            
-            if(p->flag4[IJp1K]<0)
-            {
-            a->rhsvec.V[n] -= a->M.w[n]*f(i,j+1,k);
-            a->M.w[n] = 0.0;
-            }
-            
-            if(p->flag4[IJKm1]<0)
-            {
-            a->rhsvec.V[n] -= a->M.b[n]*f(i,j,k-1);
-            a->M.b[n] = 0.0;
-            }
-            
-            if(p->flag4[IJKp1]<0)
-            {
-            a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1);
-            a->M.t[n] = 0.0;
-            }
-        }
-
-	++n;
-	}
+   
 }
 
 

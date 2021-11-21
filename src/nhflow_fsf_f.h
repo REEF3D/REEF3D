@@ -62,11 +62,6 @@ private:
 	
 	sflow_eta_disc *peta;
 	sflow_hxy_disc *phxy;
-	
-	slice4 depth,bed,L,hp;
-	slice1 hx;
-	slice2 hy;
-
 };
 
 #endif
