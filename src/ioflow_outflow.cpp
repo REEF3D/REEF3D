@@ -32,7 +32,6 @@ void ioflow_f::outflow_plain(lexer *p, fdm* a, ghostcell* pgc, field& u, field& 
     j=p->gcout[n][1];
     k=p->gcout[n][2];
 	
-		//u(i,j,k)=p->Uo;
         u(i+1,j,k)=p->Uo;
         u(i+2,j,k)=p->Uo;
         u(i+3,j,k)=p->Uo;
@@ -157,6 +156,53 @@ void ioflow_f::outflow_water(lexer *p, fdm* a, ghostcell* pgc, field& u, field& 
         u(i+1,j,k)=p->Uo*fac;
         u(i+2,j,k)=p->Uo*fac;
         u(i+3,j,k)=p->Uo*fac;
+        }
+
+
+        if(a->phi(i-1,j,k)<-epsi2*p->DXM)
+        {
+        u(i+1,j,k)=0.0;
+        u(i+2,j,k)=0.0;
+        u(i+3,j,k)=0.0;
+        }
+    }
+}
+
+void ioflow_f::outflow_corresponding(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
+{
+    double factor=1.0,uout;
+    
+    for(n=0;n<p->gcout_count;n++)
+    {
+    i=p->gcout[n][0]-1;
+    j=p->gcout[n][1];
+    k=p->gcout[n][2];
+    
+    factor = p->W10/p->Qo;
+    
+    factor = MIN(factor, 2.0);
+    
+    factor = MAX(factor, 0.1);
+    
+    uout=u(i,j,k)*factor;
+    
+    uout=MAX(uout,0.0);
+    
+    //cout<<"factor: "<<factor<<endl;
+
+        if(a->phi(i,j,k)>=-epsi1*p->DXM)
+        {
+        u(i+1,j,k)=uout;
+        u(i+2,j,k)=uout;
+        u(i+3,j,k)=uout;
+        }
+
+        if(a->phi(i-1,j,k)<-epsi1*p->DXM && a->phi(i-1,j,k)>=-epsi2*p->DXM)
+        {
+        fac=1.0 - fabs(a->phi(i-1,j,k))/((epsi2-epsi1)*p->DXM);
+        u(i+1,j,k)=uout;
+        u(i+2,j,k)=uout;
+        u(i+3,j,k)=uout;
         }
 
 

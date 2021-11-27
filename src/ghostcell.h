@@ -435,7 +435,7 @@ private:
 	int precv[6];
 	double recvsum,recvmin,recvmax;
 	int recvisum,recvimin,recvimax;
-	int awa_label,hs_label;
+	int awa_lable,pressout_lable,pressin_lable;
 	const int gcx;
 	int gcx_count[6];
 

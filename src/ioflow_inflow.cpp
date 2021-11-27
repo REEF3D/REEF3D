@@ -30,7 +30,7 @@ void ioflow_f::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, fiel
 {
     int q;
     
-    if(p->B60<5 || p->count==0)
+    if(p->B60>0 || p->count==0)
     {
         if(p->B61==1)
         {
@@ -55,6 +55,9 @@ void ioflow_f::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, fiel
             if(p->B60==3||p->B60==4)
             outflow_water(p,a,pgc,u,v,w);
         }
+        
+        if(p->B75==3)
+        outflow_corresponding(p,a,pgc,u,v,w);\
 
 
         for(q=0;q<4;++q)

@@ -28,13 +28,13 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
     
     // Parallel
 	// Wall
-	if((bc==21||bc==22||(bc==7&&awa_label==0))&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==12||gcv==22||gcv==3))
+	if((bc==21||bc==22||(bc==7&&awa_lable==0))&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==12||gcv==22||gcv==3))
 	return gclabel_w;
 	
-	if((bc==21||bc==22||(bc==7&&awa_label==0))&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==112))
+	if((bc==21||bc==22||(bc==7&&awa_lable==0))&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==112))
 	return 5;
 	
-	if((bc==21||bc==22||(bc==7&&awa_label==0))&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==116))
+	if((bc==21||bc==22||(bc==7&&awa_lable==0))&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==116))
 	return gclabel_w;
     
     // Topo
@@ -53,19 +53,19 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
 	
     // Othogonal
 	else
-	if((bc==21||bc==22||bc==5||(bc==7&&awa_label==0))&&(cs==6)&&(gcv==12||gcv==22||gcv==3))
+	if((bc==21||bc==22||bc==5||(bc==7&&awa_lable==0))&&(cs==6)&&(gcv==12||gcv==22||gcv==3))
 	return gclabel_w_orth;
     
     else
-	if((bc==21||bc==22||bc==5||(bc==7&&awa_label==0))&&(cs==5)&&(gcv==12||gcv==22||gcv==3)&&p->A10==6)
+	if((bc==21||bc==22||bc==5||(bc==7&&awa_lable==0))&&(cs==5)&&(gcv==12||gcv==22||gcv==3)&&p->A10==6)
 	return gclabel_w_orth;
     
     else
-	if((bc==21||bc==22||bc==5||(bc==7&&awa_label==0))&&(cs==5)&&(gcv==12||gcv==22||gcv==3)&&p->A10==5)
+	if((bc==21||bc==22||bc==5||(bc==7&&awa_lable==0))&&(cs==5)&&(gcv==12||gcv==22||gcv==3)&&p->A10==5)
 	return gclabel_w_orth;
 
 	else
-	if((bc==21||bc==22||bc==5||(bc==7&&awa_label==0))&&(cs==5||cs==6)&&gcv==9)
+	if((bc==21||bc==22||bc==5||(bc==7&&awa_lable==0))&&(cs==5||cs==6)&&gcv==9)
 	return gclabel_vel;
 
 //Inflow	

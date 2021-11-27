@@ -186,13 +186,12 @@ void ghostcell::gcini(lexer* p)
 	gclabel_lsm=22;
 	
 	
-	awa_label=0;
+	awa_lable=0;
 	if(p->B99>=3)
-	awa_label=1;
+	awa_lable=1;
     
-    hs_label=0;
-	if(p->B77==-1)
-	hs_label=1;
+
+	
 	
 	if(p->B75==1)
     {
@@ -208,11 +207,11 @@ void ghostcell::gcini(lexer* p)
     gclabel_w_out=6;
     }
     
-    if(p->B75==3 || p->B99==6)
+    if(p->B75==3)
     {
-    gclabel_u_out=7;
-    gclabel_v_out=7;
-    gclabel_w_out=7;
+    gclabel_u_out=0;
+    gclabel_v_out=6;
+    gclabel_w_out=6;
     }
 	
 	gclabel_outflow=1;
@@ -242,6 +241,13 @@ void ghostcell::gcini(lexer* p)
     gclabel_lsm_in=0;
     //gclabel_press_in=0;
     }
+    
+    if(p->B76==2 || p->B76==3)
+	gclabel_press_in=0;
+
+    pressout_lable=0;
+	if(p->B77==-1 || p->B77==2)
+	pressout_lable=1;
     
     
     // sflow slip/no-slip

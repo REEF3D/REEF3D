@@ -52,6 +52,7 @@ public:
     virtual void outflow_log(lexer*,fdm*,ghostcell*,field&,field&,field&);
     virtual void outflow_plain(lexer*,fdm*,ghostcell*,field&,field&,field&);
     virtual void outflow_water(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    virtual void outflow_corresponding(lexer*,fdm*,ghostcell*,field&,field&,field&);
     virtual void inflow_water(lexer*,fdm*,ghostcell*,field&,field&,field&);
 	virtual void fsfinflow(lexer*,fdm*,ghostcell*);
 	virtual void fsfrkin(lexer*,fdm*,ghostcell*,field&);
