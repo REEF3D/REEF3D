@@ -897,6 +897,10 @@
       <File Name="pjm_nse.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
+      <VirtualDirectory Name="HYPRE FNPF">
+        <File Name="hypre_sstruct_fnpf.h"/>
+        <File Name="hypre_struct_fnpf.h"/>
+      </VirtualDirectory>
       <File Name="solver_fnpf.h"/>
       <VirtualDirectory Name="CG">
         <File Name="bicgstab_ijk_2D.h"/>
@@ -912,8 +916,6 @@
         <File Name="solver_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="HYPRE">
-        <File Name="hypre_sstruct_fnpf.h"/>
-        <File Name="hypre_struct_fnpf.h"/>
         <File Name="hypre_sstruct.h"/>
         <File Name="hypre_aij.h"/>
         <File Name="hypre_struct.h"/>

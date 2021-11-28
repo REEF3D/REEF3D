@@ -33,8 +33,9 @@ public:
 
 	solver_void(lexer*,fdm*,ghostcell*);
 	virtual ~solver_void();
-	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, vec&, int, int, double);
+	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int, int, double);
     virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int, int, double);
+    virtual void startM(lexer*, fdm*, ghostcell*, field&, vec&, matrix_diag&, int, int, double);
 	virtual void solve(lexer*,fdm*, ghostcell*, vec&, vec&, int, int, int&, int, double);
 	virtual void setup(lexer*,fdm*, ghostcell*,int);
 	virtual void fillxvec1(lexer*,fdm*,field&);

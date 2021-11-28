@@ -166,7 +166,7 @@ void idiff_IMEX::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &
             ++n;
         }
         
-        psolv->start(p,a,pgc,u,a->xvec,a->rhsvec,1,gcval_u,p->D29);
+        psolv->start(p,a,pgc,u,a->rhsvec,1,gcval_u,p->D29);
     }
 	
     pgc->start1(p,u,gcval_u);
@@ -283,7 +283,7 @@ void idiff_IMEX::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &
         ++n;
         }
 
-        psolv->start(p,a,pgc,v,a->xvec,a->rhsvec,2,gcval_v,p->D29);
+        psolv->start(p,a,pgc,v,a->rhsvec,2,gcval_v,p->D29);
     }
     
     pgc->start2(p,v,gcval_v);
@@ -398,7 +398,7 @@ void idiff_IMEX::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &
         ++n;
         }
         
-        psolv->start(p,a,pgc,w,a->xvec,a->rhsvec,3,gcval_w,p->D29);
+        psolv->start(p,a,pgc,w,a->rhsvec,3,gcval_w,p->D29);
     }
     
     pgc->start3(p,w,gcval_w);

@@ -71,7 +71,7 @@ void pjm_sig::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc
 	
         starttime=pgc->timer();
 
-    psolv->start(p,a,pgc,a->press,a->xvec,a->rhsvec,5,gcval_press,p->N44);
+    psolv->start(p,a,pgc,a->press,a->rhsvec,5,gcval_press,p->N44);
 	
         endtime=pgc->timer();
     

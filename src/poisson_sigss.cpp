@@ -57,7 +57,7 @@ nt 8
 	n=0;
     KJILOOP
 	{
-        if(p->flag7[FIJK]>0 && a->wet(i,j)==1)
+        if(p->flag4[IJK]>0 && a->wet(i,j)==1)
         {
         sigxyz2 = pow(0.5*(p->sigx[FIJK]+p->sigx[FIJKp1]),2.0) + pow(0.5*(p->sigy[FIJK]+p->sigy[FIJKp1]),2.0) + pow(p->sigz[IJ],2.0);
         
@@ -87,7 +87,7 @@ nt 8
         rhs[n] =  0.0;
         }
         
-        if(a->wet(i,j)==0 || p->flag7[FIJK]<0)
+        if(a->wet(i,j)==0 || p->flag4[IJK]<0)
         {
         M[n*9]  =  1.0;
         M[n*9+1] = 0.0;
@@ -105,43 +105,43 @@ nt 8
         
 	++n;
 	}
-    /*
+    
     n=0;
 	KJILOOP
 	{
-            if(p->flag7[FIJK]>0 && a->wet(i,j)==1)
+            if(p->flag4[IJK]>0 && a->wet(i,j)==1)
             {
             // south
-            if((p->flag7[FIm1JK]<0 || a->wet(i-1,j)==0))
+            if((p->flag4[Im1JK]<0 || a->wet(i-1,j)==0))
             {
             M[n*9] += M[n*9+1];  
             M[n*9+1] = 0.0;        
             }
             
             // north
-            if((p->flag7[FIp1JK]<0 || a->wet(i+1,j)==0))
+            if((p->flag4[Ip1JK]<0 || a->wet(i+1,j)==0))
             {
             M[n*9] += M[n*9+2];
             M[n*9+2] = 0.0;
             }
 
             // top
-            if(p->flag7[FIJKp2]<0 && p->flag7[FIJKp1]>0)
+            if(p->flag4[IJKp2]<0 && p->flag4[IJKp1]>0)
             {
-            rhs[n] -= M[n*9+4]*f[FIJKp2];
+            rhs[n] -= M[n*9+4]*f[IJKp2];
             M[n*9+4] = 0.0;
             }
    
         // diagonal entries
             // st
                 // fsfbc
-            if(p->flag7[FIm1JKp2]<0 && p->flag7[FIJKp2]<0 && p->flag7[FIJKp1]>0) // fsfbc
+            if(p->flag4[Im1JKp2]<0 && p->flag4[IJKp2]<0 && p->flag4[IJKp1]>0) // fsfbc
             {
-            rhs[n] -= M[n*9+6]*f[FIm1JKp1];
+            rhs[n] -= M[n*9+6]*f[Im1JKp1];
             M[n*9+6] = 0.0;
             }
                 // wall
-            if((p->flag7[FIm1JKp1]<0 && p->flag7[FIJKp2]>0)) //
+            if((p->flag4[Im1JKp1]<0 && p->flag4[IJKp2]>0)) //
             {
             M[n*9] += M[n*9+6];  
             M[n*9+6] = 0.0;   //cout<<p->mpirank<<" ST i: "<<i<<" k: "<<k<<endl;  
@@ -149,14 +149,14 @@ nt 8
             
             // nt
                 // fsfbc
-            if(p->flag7[FIp1JKp2]<0 && p->flag7[FIJKp2]<0 && p->flag7[FIJKp1]>0) 
+            if(p->flag4[Ip1JKp2]<0 && p->flag4[IJKp2]<0 && p->flag4[IJKp1]>0) 
             {
-            rhs[n] -= M[n*9+8]*f[FIp1JKp2];
+            rhs[n] -= M[n*9+8]*f[Ip1JKp2];
             M[n*9+8] = 0.0;
             }
             
                 // wall
-            if(p->flag7[FIp1JKp1]<0 && p->flag7[FIJKp2]>0)
+            if(p->flag4[Ip1JKp1]<0 && p->flag4[IJKp2]>0)
             {
             M[n*9] += M[n*9+8];
             M[n*9+8] = 0.0;
@@ -164,7 +164,7 @@ nt 8
             
             // sb 
                 // wall
-            if(((p->flag7[FIm1JKm1]<0 && p->flag7[FIJKm1]>0)|| a->wet(i-1,j)==0))
+            if(((p->flag4[Im1JKm1]<0 && p->flag4[IJKm1]>0)|| a->wet(i-1,j)==0))
             {
             M[n*9] += M[n*9+5];  
             M[n*9+5] = 0.0;        
@@ -172,23 +172,23 @@ nt 8
         
             // nb 
                 // wall
-            if(((p->flag7[FIp1JKm1]<0 && p->flag7[FIJKm1]>0)|| a->wet(i+1,j)==0))
+            if(((p->flag4[Ip1JKm1]<0 && p->flag4[IJKm1]>0)|| a->wet(i+1,j)==0))
             {
             M[n*9] += M[n*9+7];  
             M[n*9+7] = 0.0;        
             }
                 
             // sb KBEDBC
-            if(p->flag7[FIm1JKm1]<0 && p->flag7[FIJKm1]<0)
+            if(p->flag4[Im1JKm1]<0 && p->flag4[IJKm1]<0)
             {  
             M[n*9] += M[n*9+5]; 
             M[n*9+5] = 0.0;
             }
             
             // nb KBEDBC
-            if(p->flag7[FIp1JKm1]<0 && p->flag7[FIJKm1]<0)
+            if(p->flag4[Ip1JKm1]<0 && p->flag4[IJKm1]<0)
             {
-            ab = 2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
+            /*ab = 2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
             
             denom = p->sigz[IJ] + a->Bx(i,j)*p->sigx[FIJK];
 
@@ -199,13 +199,16 @@ nt 8
                     }
                 
                 M[n*9+8] += ab;
-            M[n*9+7] = 0.0;
+            M[n*9+7] = 0.0;*/
+            
+            M[n*9] += M[n*9+7];  
+            M[n*9+7] = 0.0; 
             }
  
             // KBEDBC
-            if(p->flag7[FIJKm1]<0)
+            if(p->flag4[IJKm1]<0)
             {
-            sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
+            /*sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
             
             ab = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]));
             
@@ -218,22 +221,25 @@ nt 8
                     }
                     
                 M[n*9+4] += ab;
-                M[n*9+3] = 0.0;
+                M[n*9+3] = 0.0;*/
+                
+            M[n*9] += M[n*9+5]; 
+            M[n*9+5] = 0.0;
 
             }
             }
 	++n;
 	}
-    
-    double starttime=pga->timer();
+    /*
+    double starttime=pgc->timer();
     psolv->startF(p,c,pgc,x,rhs,M,8,p->N44);
-    double endtime=pga->timer();
+    double endtime=pgc->timer();
     
         n=0;
         KJILOOP
         {
 		 FPWDCHECK
-        f[FIJK]=x[n];
+        f[IJK]=x[n];
 		
         ++n;
         }
@@ -249,49 +255,8 @@ nt 8
     
     
     
-    
 
 
-	n=0;
-    LOOP
-	{
-        if(a->wet(i,j)==1)
-        {
-            sigxyz2 = pow(0.5*(p->sigx[FIJK]+p->sigx[FIJKp1]),2.0) + pow(0.5*(p->sigy[FIJK]+p->sigy[FIJKp1]),2.0) + pow(p->sigz[IJ],2.0);
-            
-            
-            a->M.p[n]  =  (CPOR1*PORVAL1)/(pd->roface(p,a,1,0,0)*p->DXP[IP]*p->DXN[IP])
-                        + (CPOR1m*PORVAL1m)/(pd->roface(p,a,-1,0,0)*p->DXP[IM1]*p->DXN[IP])
-                        
-                        + (CPOR2*PORVAL2)/(pd->roface(p,a,0,1,0)*p->DYP[JP]*p->DYN[JP])*p->y_dir
-                        + (CPOR2m*PORVAL2m)/(pd->roface(p,a,0,-1,0)*p->DYP[JM1]*p->DYN[JP])*p->y_dir
-                        
-                        + (sigxyz2*CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*p->DZP[KP]*p->DZN[KP])
-                        + (sigxyz2*CPOR3m*PORVAL3m)/(pd->roface(p,a,0,0,-1)*p->DZP[KM1]*p->DZN[KP]);
-
-
-            a->M.n[n] = -(CPOR1*PORVAL1)/(pd->roface(p,a,1,0,0)*p->DXP[IP]*p->DXN[IP]);
-            a->M.s[n] = -(CPOR1m*PORVAL1m)/(pd->roface(p,a,-1,0,0)*p->DXP[IM1]*p->DXN[IP]);
-
-            a->M.w[n] = -(CPOR2*PORVAL2)/(pd->roface(p,a,0,1,0)*p->DYP[JP]*p->DYN[JP])*p->y_dir;
-            a->M.e[n] = -(CPOR2m*PORVAL2m)/(pd->roface(p,a,0,-1,0)*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
-
-            a->M.t[n] = -(sigxyz2*CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*p->DZP[KP]*p->DZN[KP])     
-                        + CPOR4*PORVAL4*0.5*(p->sigxx[FIJK]+p->sigxx[FIJKp1])/(a->ro(i,j,k)*(p->DZN[KP]+p->DZN[KM1]));
-                        
-            a->M.b[n] = -(sigxyz2*CPOR3m*PORVAL3m)/(pd->roface(p,a,0,0,-1)*p->DZP[KM1]*p->DZN[KP]) 
-                        - CPOR4*PORVAL4*0.5*(p->sigxx[FIJK]+p->sigxx[FIJKp1])/(a->ro(i,j,k)*(p->DZN[KP]+p->DZN[KM1]));
-            
-            
-            a->rhsvec.V[n] +=  CPOR4*PORVAL4*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(f(i+1,j,k+1) - f(i-1,j,k+1) - f(i+1,j,k-1) + f(i-1,j,k-1))
-                        /(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))
-                        
-                        + CPOR4*PORVAL4*2.0*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(f(i,j+1,k+1) - f(i,j-1,k+1) - f(i,j+1,k-1) + f(i,j-1,k-1))
-                        /((a->ro(i,j,k)*p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
-        }
-	
-	++n;
-	}
     
    
 }

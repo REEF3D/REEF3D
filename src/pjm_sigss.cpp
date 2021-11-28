@@ -73,7 +73,7 @@ pjm_sigss::~pjm_sigss()
 {
 }
 
-void pjm_sigss::start(fdm* a,lexer*p, poisson* ppois,solver* psolvreg, ghostcell* pgc, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
+void pjm_sigss::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
 {
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<".";
@@ -91,10 +91,33 @@ void pjm_sigss::start(fdm* a,lexer*p, poisson* ppois,solver* psolvreg, ghostcell
 	
         starttime=pgc->timer();
 
-    //psolv->start(p,a,pgc,a->press,a->xvec,a->rhsvec,5,gcval_press,p->N44);
-    //psolv->start(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, double *rhs, double *M, int var, double stop_crit)
+    psolv->start(p,a,pgc,a->press,a->rhsvec,5,gcval_press,p->N44);
+
 	
         endtime=pgc->timer();
+        
+        
+        /*
+    double starttime=pgc->timer();
+    psolv->startF(p,c,pgc,x,rhs,M,8,p->N44);
+    double endtime=pgc->timer();
+    
+        n=0;
+        KJILOOP
+        {
+		 FPWDCHECK
+        f[IJK]=x[n];
+		
+        ++n;
+        }
+    
+    p->poissoniter+=p->solveriter;
+    p->poissontime+=endtime-starttime;
+    
+    
+	if(p->mpirank==0 && (p->count%p->P12==0))
+	cout<<"Fi_iter: "<<p->poissoniter<<" Final_residual: "<<p->final_res<<"  Fi_time: "<<setprecision(3)<<p->poissontime<<endl;
+    */
     
 	pgc->start4(p,a->press,gcval_press);
 	

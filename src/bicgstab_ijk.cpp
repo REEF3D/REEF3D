@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"bicgstab_ijk.h"
+#include"bicgstab_ijk.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -47,7 +47,7 @@ void bicgstab_ijk::setup(lexer* p,fdm* a, ghostcell* pgc, int var)
 {
 }
 
-void bicgstab_ijk::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, vec& rhsvec, int var, int gcv, double stop_crit)
+void bicgstab_ijk::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, int var, int gcv, double stop_crit)
 {
 	p->preconiter=0;
     
@@ -85,16 +85,20 @@ void bicgstab_ijk::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, v
     }
     
     fillxvec(p,a,f,rhsvec);
-	solve(p,a,pgc,xvec,rhsvec,var,gcv,p->solveriter,p->N46,stop_crit);
+	solve(p,a,pgc,rhsvec,var,gcv,p->solveriter,p->N46,stop_crit);
 	
 	finalize(p,a,f);
+}
+
+void bicgstab_ijk::startM(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, matrix_diag& M, int var, int gcv, double stop_crit)
+{
 }
 
 void bicgstab_ijk::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var, int gcv, double stop_crit)
 {
 }
 	
-void bicgstab_ijk::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit)
+void bicgstab_ijk::solve(lexer* p,fdm* a, ghostcell* pgc, vec& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit)
 {
 	solveriter=0;
 	residual = 1.0e9;

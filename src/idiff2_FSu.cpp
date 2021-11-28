@@ -140,7 +140,7 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 	++n;
 	}
 	
-	psolv->start(p,a,pgc,u,a->xvec,a->rhsvec,1,gcval_u,p->D29);
+	psolv->start(p,a,pgc,u,a->rhsvec,1,gcval_u,p->D29);
     }
 	
     pgc->start1(p,u,gcval_u);
@@ -256,7 +256,7 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
 	++n;
 	}
 	
-	psolv->start(p,a,pgc,diff,a->xvec,a->rhsvec,1,gcval_u,p->D29);
+	psolv->start(p,a,pgc,diff,a->rhsvec,1,gcval_u,p->D29);
     }
 	
     pgc->start1(p,diff,gcval_u);

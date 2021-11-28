@@ -136,7 +136,7 @@ void hypre_struct::fill_matrix4(lexer* p,fdm* a, ghostcell* pgc, field &f)
     HYPRE_StructVectorAssemble(b);
 }
 
-void hypre_struct::fillbackvec4(lexer *p, field &f, vec &xvec, int var)
+void hypre_struct::fillbackvec4(lexer *p, field &f, int var)
 {
 	HYPRE_StructVectorGetBoxValues(x, ilower, iupper, values);
 	

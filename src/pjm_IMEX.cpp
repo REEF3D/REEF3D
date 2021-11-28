@@ -85,7 +85,7 @@ void pjm_IMEX::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
 	
         starttime=pgc->timer();
 
-    psolv->start(p,a,pgc,pcorr,a->xvec,a->rhsvec,5,gcval_press,p->N44);
+    psolv->start(p,a,pgc,pcorr,a->rhsvec,5,gcval_press,p->N44);
 	
         endtime=pgc->timer();
     

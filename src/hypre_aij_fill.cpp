@@ -100,13 +100,13 @@ void hypre_aij::fill_matrix_7p(lexer* p,fdm* a, ghostcell* pgc, field &f)
 	n=0;
 	LOOP
 	{
-		a->xvec.V[n] = f(i,j,k);
+		xvec.V[n] = f(i,j,k);
 		rows[n] = rownum4(i,j,k);
 	++n;
 	}
 
 	HYPRE_IJVectorSetValues(b, p->N4_row, rows, a->rhsvec.V);
-	HYPRE_IJVectorSetValues(x, p->N4_row, rows, a->xvec.V);
+	HYPRE_IJVectorSetValues(x, p->N4_row, rows, xvec.V);
 	
 	HYPRE_IJVectorAssemble(b);
     HYPRE_IJVectorGetObject(b, (void **) &par_b);
@@ -233,13 +233,13 @@ void hypre_aij::fill_matrix_13p(lexer* p,fdm* a, ghostcell* pgc, field &f)
 	n=0;
 	LOOP
 	{
-		a->xvec.V[n] = f(i,j,k);
+		xvec.V[n] = f(i,j,k);
 		rows[n] = rownum4(i,j,k);
 	++n;
 	}
 
 	HYPRE_IJVectorSetValues(b, p->N4_row, rows, a->rhsvec.V);
-	HYPRE_IJVectorSetValues(x, p->N4_row, rows, a->xvec.V);
+	HYPRE_IJVectorSetValues(x, p->N4_row, rows, xvec.V);
 	
 	HYPRE_IJVectorAssemble(b);
     HYPRE_IJVectorGetObject(b, (void **) &par_b);
@@ -412,13 +412,13 @@ void hypre_aij::fill_matrix_19p(lexer* p,fdm* a, ghostcell* pgc, field &f)
 	n=0;
 	LOOP
 	{
-		a->xvec.V[n] = f(i,j,k);
+		xvec.V[n] = f(i,j,k);
 		rows[n] = rownum4(i,j,k);
 	++n;
 	}
 
 	HYPRE_IJVectorSetValues(b, p->N4_row, rows, a->rhsvec.V);
-	HYPRE_IJVectorSetValues(x, p->N4_row, rows, a->xvec.V);
+	HYPRE_IJVectorSetValues(x, p->N4_row, rows, xvec.V);
 	
 	HYPRE_IJVectorAssemble(b);
     HYPRE_IJVectorGetObject(b, (void **) &par_b);

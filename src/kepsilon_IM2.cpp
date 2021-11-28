@@ -52,7 +52,7 @@ void kepsilon_IM2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff
 	kinsource(p,a,pvrans);
 	timesource(p,a,kn,knn);
     bckeps_start(a,p,kin,eps,gcval_kin);
-	psolv->start(p,a,pgc,kin,a->xvec,a->rhsvec,4,gcval_kin,p->T13);
+	psolv->start(p,a,pgc,kin,a->rhsvec,4,gcval_kin,p->T13);
 	pgc->start4(p,kin,gcval_kin);
 	p->kintime=pgc->timer()-starttime;
 	p->kiniter=p->solveriter;
@@ -66,7 +66,7 @@ void kepsilon_IM2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff
 	pdiff->idiff_scalar(p,a,pgc,psolv,eps,a->visc,ke_sigma_e,1.0);
 	epssource(p,a,pvrans);
 	timesource(p,a,en,enn);
-	psolv->start(p,a,pgc,eps,a->xvec,a->rhsvec,4,gcval_eps,p->T13);
+	psolv->start(p,a,pgc,eps,a->rhsvec,4,gcval_eps,p->T13);
 	epsfsf(p,a,pgc);
 	bckeps_start(a,p,kin,eps,gcval_eps);
 	pgc->start4(p,eps,gcval_kin);

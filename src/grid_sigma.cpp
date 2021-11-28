@@ -125,7 +125,15 @@ void grid_sigma::sigma_ini(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     SLICELOOP4
 	a->depth(i,j) = p->wd - a->bed(i,j);
     
+    SLICELOOP4
+    {
+    a->Bx(i,j) = 0.0;
+    a->By(i,j) = 0.0;
+    }
+    
     pgc->gcsl_start4(p,a->depth,50);
+    pgc->gcsl_start4(p,a->Bx,50);
+    pgc->gcsl_start4(p,a->By,50);
     
     SLICELOOP4
     p->sigz[IJ] = 1.0/WLVL;

@@ -95,6 +95,7 @@ public:
     
     // fnpf
     slice4 eta,eta_n,WL,WL_n,depth;
+    slice4 Bx,By;
     slice4 Fifsf,Fz;
     slice4 K;
     sliceint4 etaloc;
@@ -103,7 +104,7 @@ public:
 
     
     
-	vec xvec,rhsvec;
+	vec rhsvec;
 
 	matrix_diag M;
 	cpt C4,C4a,C6;

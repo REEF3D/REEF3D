@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#define HYPRE_COMPILATION
+#define HYPRE_COMPILATION
 
 #ifdef HYPRE_COMPILATION
 
@@ -43,18 +43,19 @@ public:
 	hypre_struct(lexer*,fdm*,ghostcell*,int,int);
 	virtual ~hypre_struct();
     
-	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, vec&, int, int, double);
+	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int, int, double);
     virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int, int, double);
+    virtual void startM(lexer*, fdm*, ghostcell*, field&, vec&, matrix_diag&, int, int, double);
     
-    virtual void start_solver1234(lexer*,fdm*, ghostcell*, field&, vec&, vec&,int);
-    virtual void start_solver5(lexer*,fdm*, ghostcell*, field&, vec&, vec&,int);
+    virtual void start_solver1234(lexer*,fdm*, ghostcell*, field&, vec&,int);
+    virtual void start_solver5(lexer*,fdm*, ghostcell*, field&, vec&, int);
     virtual void start_solver7(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     virtual void start_solver8(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int);
     
     virtual void solve(lexer*,ghostcell*);
     virtual void solve1234(lexer*);
     
-	virtual void solve(lexer*,fdm*, ghostcell*, vec&, vec&, int, int, int&, int, double);
+	virtual void solve(lexer*,fdm*, ghostcell*, vec&, int, int, int&, int, double);
 	virtual void setup(lexer*,fdm*, ghostcell*,int);
     
 	virtual void fillxvec1(lexer*,fdm*,field&);
@@ -79,10 +80,10 @@ public:
     void fill_matrix8(lexer*, fdm_fnpf*, ghostcell*,double*, vec&, matrix_diag&);
     void fill_matrix8_2Dvert(lexer*, fdm_fnpf*, ghostcell*,double*, vec&, matrix_diag&);
 
-    virtual void fillbackvec1(lexer*,field&,vec&,int);
-    virtual void fillbackvec2(lexer*,field&,vec&,int);
-    virtual void fillbackvec3(lexer*,field&,vec&,int);
-    virtual void fillbackvec4(lexer*,field&,vec&,int);
+    virtual void fillbackvec1(lexer*,field&,int);
+    virtual void fillbackvec2(lexer*,field&,int);
+    virtual void fillbackvec3(lexer*,field&,int);
+    virtual void fillbackvec4(lexer*,field&,int);
 
     virtual void fillbackvec7(lexer*,double*,int);
     virtual void fillbackvec8(lexer*,fdm_fnpf*,double*,int);
