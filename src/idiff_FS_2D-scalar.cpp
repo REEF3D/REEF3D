@@ -87,7 +87,7 @@ void idiff2_FS_2D::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, 
 	++n;
 	}
     
-    psolv->start(p,a,pgc,b,a->rhsvec,4,1,p->D29);
+    psolv->start(p,a,pgc,b,a->rhsvec,4);
     time=pgc->timer()-starttime;
 	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
 	cout<<"scalar_diffiter: "<<p->solveriter<<"  scalar_difftime: "<<setprecision(3)<<time<<endl;

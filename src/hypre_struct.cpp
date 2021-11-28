@@ -59,7 +59,7 @@ hypre_struct::~hypre_struct()
 {
 }
 
-void hypre_struct::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, int var, int gcv, double stop_crit)
+void hypre_struct::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, int var)
 {
     if(var>=1 && var<=4)
     start_solver1234(p,a,pgc,f,rhsvec,var);
@@ -68,7 +68,7 @@ void hypre_struct::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec,
     start_solver5(p,a,pgc,f,rhsvec,var);
 }
 
-void hypre_struct::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var, int gcv, double stop_crit)
+void hypre_struct::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
 {
     if(var==7)
     start_solver7(p,pgc,f,rhs,M,var);
@@ -77,7 +77,7 @@ void hypre_struct::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec&
     start_solver8(p,c,pgc,f,rhs,M,var);
 }
 
-void hypre_struct::startM(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, matrix_diag& M, int var, int gcv, double stop_crit)
+void hypre_struct::startM(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, double *M, int var)
 {
 }
 
@@ -206,14 +206,6 @@ void hypre_struct::start_solver8(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *
     fillbackvec8(p,c,f,var);
 	
 	delete_solver5(p,pgc);
-}
-
-void hypre_struct::setup(lexer* p,fdm* a, ghostcell* pgc, int var)
-{
-}
-
-void hypre_struct::solve(lexer* p,fdm* a, ghostcell* pgc, vec& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit)
-{
 }
 
 void hypre_struct::fillxvec1(lexer* p, fdm* a, field& f)

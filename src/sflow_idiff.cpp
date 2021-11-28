@@ -95,7 +95,7 @@ void sflow_idiff::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
 	++n;
 	}
     
-	psolv->start(p,pgc,u,b->M,b->xvec,b->rhsvec,1,gcval_u,p->D29);
+	psolv->start(p,pgc,u,b->M,b->xvec,b->rhsvec,1);
     
     pgc->gcsl_start1(p,u,gcval_u);
     
@@ -165,7 +165,7 @@ void sflow_idiff::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
 	++n;
 	}
     
-	psolv->start(p,pgc,v,b->M,b->xvec,b->rhsvec,2,gcval_v,p->D29);
+	psolv->start(p,pgc,v,b->M,b->xvec,b->rhsvec,2);
     
     pgc->gcsl_start2(p,v,gcval_v);
     

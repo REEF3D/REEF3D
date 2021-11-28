@@ -47,7 +47,7 @@ hypre_struct_fnpf::~hypre_struct_fnpf()
 {
 }
 
-void hypre_struct_fnpf::startF(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M, int var, double stop_crit)
+void hypre_struct_fnpf::startF(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M, int var)
 {
     start_solver8(p,pgc,f,rhs,M);
 }

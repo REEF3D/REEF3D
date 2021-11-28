@@ -347,7 +347,6 @@ public:
 
 	// discretization
 	int D10,D11,D20,D21,D30,D37,D38,D39;
-	double D29;
 
 	// Free Surface
 	int F10,F11,F30,F31,F32,F34,F35,F36,F40,F44,F46,F47,F49,F50,F150,F151;
@@ -438,7 +437,7 @@ public:
 
 	// Turbulence
 	int T10,T11,T12,T36;
-	double T13,T31,T32,T35,T37,T38;
+	double T31,T32,T35,T37,T38;
 
 	// Waterflow
 	double W1,W2,W3,W4,W5,W10,W_fb;

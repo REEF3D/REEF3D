@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#define HYPRE_COMPILATION
+#define HYPRE_COMPILATION
 
 #ifdef HYPRE_COMPILATION
 
@@ -45,15 +45,16 @@ public:
 	hypre_sstruct(lexer*,fdm*,ghostcell*);
 	virtual ~hypre_sstruct();
     
-	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int, int, double);
-    virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int, int, double);
-    virtual void startM(lexer*, fdm*, ghostcell*, field&, vec&, matrix_diag&, int, int, double);
+	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
+    virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int);
+    virtual void startM(lexer*, fdm*, ghostcell*, field&, vec&, double*, int);
     
     virtual void start_solver1234(lexer*,fdm*, ghostcell*, field&, vec&, int);
     virtual void start_solver5(lexer*,fdm*, ghostcell*, field&, vec&,int);
     virtual void start_solver7(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     virtual void start_solver8(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     virtual void start_solver10(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
+    virtual void start_solverM(lexer*, ghostcell*, field&, vec&, double*);
     
     virtual void solve(lexer*);
     virtual void solve1234(lexer*);

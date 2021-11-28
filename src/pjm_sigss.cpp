@@ -91,7 +91,7 @@ void pjm_sigss::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* p
 	
         starttime=pgc->timer();
 
-    psolv->start(p,a,pgc,a->press,a->rhsvec,5,gcval_press,p->N44);
+    psolv->startM(p,a,pgc,a->press,a->rhsvec,M,5);
 
 	
         endtime=pgc->timer();
@@ -99,7 +99,7 @@ void pjm_sigss::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* p
         
         /*
     double starttime=pgc->timer();
-    psolv->startF(p,c,pgc,x,rhs,M,8,p->N44);
+    psolv->startF(p,c,pgc,x,rhs,M,8);
     double endtime=pgc->timer();
     
         n=0;

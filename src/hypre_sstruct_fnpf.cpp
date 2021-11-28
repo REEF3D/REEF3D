@@ -47,12 +47,12 @@ hypre_sstruct_fnpf::~hypre_sstruct_fnpf()
 {
 }
 
-void hypre_sstruct_fnpf::start(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M, int var, double stop_crit)
+void hypre_sstruct_fnpf::start(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M, int var)
 {
     start_solver5(p,pgc,f,rhs,M);
 }
 
-void hypre_sstruct_fnpf::startF(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M, int var, double stop_crit)
+void hypre_sstruct_fnpf::startF(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M, int var)
 {
     start_solver8(p,pgc,f,rhs,M);
 }

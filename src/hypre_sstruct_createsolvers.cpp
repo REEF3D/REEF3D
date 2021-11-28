@@ -31,7 +31,7 @@ void hypre_sstruct::create_solver1234(lexer* p,ghostcell* pgc)
     // solver for velocities and other scalar variables, e.g. turbulence
     HYPRE_SStructBiCGSTABCreate(pgc->mpi_comm, &solver);
     HYPRE_SStructBiCGSTABSetMaxIter(solver, p->N46);
-    HYPRE_SStructBiCGSTABSetTol(solver, p->D29);
+    HYPRE_SStructBiCGSTABSetTol(solver, p->N43);
     HYPRE_SStructBiCGSTABSetPrintLevel(solver, 0 ); 
     HYPRE_SStructBiCGSTABSetLogging(solver, 1);
     

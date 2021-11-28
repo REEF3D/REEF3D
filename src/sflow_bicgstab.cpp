@@ -34,11 +34,8 @@ sflow_bicgstab::~sflow_bicgstab()
 {
 }
 
-void sflow_bicgstab::setup(lexer* p, ghostcell* pgc, int var)
-{
-}
 
-void sflow_bicgstab::start(lexer* p, ghostcell* pgc, slice &f, matrix2D &M, vec2D &xvec, vec2D &rhsvec, int var, int gcv, double stop_crit)
+void sflow_bicgstab::start(lexer* p, ghostcell* pgc, slice &f, matrix2D &M, vec2D &xvec, vec2D &rhsvec, int var)
 {
 	p->preconiter=0;
     
@@ -65,13 +62,13 @@ void sflow_bicgstab::start(lexer* p, ghostcell* pgc, slice &f, matrix2D &M, vec2
     }
     
     fillxvec(p,f,rhsvec);
-	solve(p,pgc,M,xvec,rhsvec,var,gcv,p->solveriter,p->N46,stop_crit);
+	solve(p,pgc,M,xvec,rhsvec,var,p->solveriter);
 	
 	finalize(p,f);
 }
 
 	
-void sflow_bicgstab::solve(lexer* p, ghostcell* pgc, matrix2D &M, vec2D &xvec, vec2D &rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit)
+void sflow_bicgstab::solve(lexer* p, ghostcell* pgc, matrix2D &M, vec2D &xvec, vec2D &rhsvec, int var, int &solveriter)
 {
 	solveriter=0;
 	residual = 1.0e9;
@@ -95,7 +92,7 @@ void sflow_bicgstab::solve(lexer* p, ghostcell* pgc, matrix2D &M, vec2D &xvec, v
     r_j=pgc->globalsum(r_j);
     norm_r0=sqrt(r_j);
 
-    if((residual>=stop_crit) && (solveriter<maxiter))
+    if((residual>=p->N44) && (solveriter<p->N46))
 	{
 
 	do{
@@ -149,7 +146,7 @@ void sflow_bicgstab::solve(lexer* p, ghostcell* pgc, matrix2D &M, vec2D &xvec, v
 
 	    norm_sj=sqrt(pgc->globalsum(norm_sj));
 
-    if(norm_sj>stop_crit)
+    if(norm_sj>p->N44)
 	{
 		// -------------------------
 		precon_solve(p,pgc,sh,sj);
@@ -189,7 +186,7 @@ void sflow_bicgstab::solve(lexer* p, ghostcell* pgc, matrix2D &M, vec2D &xvec, v
 	}
 
 
-	if(norm_sj<=stop_crit)
+	if(norm_sj<=p->N44)
 	{
 	r_j1=0.0;
 		
@@ -214,7 +211,7 @@ void sflow_bicgstab::solve(lexer* p, ghostcell* pgc, matrix2D &M, vec2D &xvec, v
 		
 	    ++solveriter;
         
-	}while((residual>=stop_crit) && (solveriter<maxiter));
+	}while((residual>=p->N44) && (solveriter<p->N46));
 
     } 
 		

@@ -39,9 +39,9 @@ class solver
 
 public:
 
-	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int, int, double)=0;
-    virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int, int, double)=0;
-    virtual void startM(lexer*, fdm*, ghostcell*, field&, vec&, matrix_diag&, int, int, double)=0;
+	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int)=0;
+    virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int)=0;
+    virtual void startM(lexer*, fdm*, ghostcell*, field&, vec&, double*, int)=0;
 	
 };
 

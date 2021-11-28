@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#define HYPRE_COMPILATION
+#define HYPRE_COMPILATION
 
 #ifdef HYPRE_COMPILATION
 
@@ -43,8 +43,8 @@ public:
 	hypre_sstruct_fnpf(lexer*,ghostcell*,int,int);
 	virtual ~hypre_sstruct_fnpf();
 
-    virtual void start(lexer*, ghostcell*, double*, double*, double*, int, double);
-    virtual void startF(lexer*, ghostcell*, double*, double*, double*, int, double);
+    virtual void start(lexer*, ghostcell*, double*, double*, double*, int);
+    virtual void startF(lexer*, ghostcell*, double*, double*, double*, int);
     
     void start_solver5(lexer*, ghostcell*, double*, double*, double*);
     void start_solver8(lexer*, ghostcell*, double*, double*, double*);

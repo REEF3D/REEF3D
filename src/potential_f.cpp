@@ -67,7 +67,7 @@ void potential_f::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
 
 
     laplace(p,a,psi);
-	psolv->start(p,a,pgc,psi,a->rhsvec,4,gcval_pot,p->N43);
+	psolv->start(p,a,pgc,psi,a->rhsvec,4);
     pgc->start4(p,psi,gcval_pot);
 
     ucalc(p,a,psi);

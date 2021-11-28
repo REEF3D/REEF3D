@@ -65,7 +65,7 @@ void sflow_potential_f::start(lexer *p, fdm2D *b, solver2D *psolv, ghostcell *pg
     pgc->gcsl_start4(p,psi,gcval_pot);
     
     laplace(p,b,psi);
-    psolv->start(p,pgc,psi,b->M,b->xvec,b->rhsvec,4,gcval_pot,p->N44);
+    psolv->start(p,pgc,psi,b->M,b->xvec,b->rhsvec,4);
     pgc->gcsl_start4(p,psi,gcval_pot);
 
 	

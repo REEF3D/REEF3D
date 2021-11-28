@@ -42,7 +42,7 @@ hypre_aij::~hypre_aij()
 {
 }
 
-void hypre_aij::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, int var, int gcv, double stop_crit)
+void hypre_aij::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, int var)
 {
     make_grid(p,pgc);
     create_solvers(p,pgc);
@@ -111,11 +111,11 @@ void hypre_aij::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, in
     delete_grid(p,pgc);
 }
 
-void hypre_aij::startM(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, matrix_diag& M, int var, int gcv, double stop_crit)
+void hypre_aij::startM(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, double *M, int var)
 {
 }
 
-void hypre_aij::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit)
+void hypre_aij::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsvec, int var, int gcv, int &solveriter)
 {
 	
 	numiter=0;

@@ -50,7 +50,7 @@ void potential_water::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
     p->N46=2500;
 
     laplace(p,a,psi);
-	psolv->start(p,a,pgc,psi,a->rhsvec,4,gcval_pot,p->N43);
+	psolv->start(p,a,pgc,psi,a->rhsvec,4);
     pgc->start4(p,psi,gcval_pot);
 
 	

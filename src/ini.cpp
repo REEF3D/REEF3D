@@ -253,7 +253,6 @@ void lexer::ini_default()
 	D11=2;			// int convection velocity scheme
 	D20=2;			// int diffusion scheme
 	D21=0;			// int print out implicit diffusion time and iterations
-	D29=1.0e-5;     // double stopping criteria implicit diffusion
 	D30=1;			// int pressure scheme
     D37=0;          // int type of FSFBC for single fluid flow
     D38=0;          // int add hydrostatic pressure gradients to NSE
@@ -398,7 +397,7 @@ void lexer::ini_default()
     N23=0;         // int PFMG RAP type
 	N40=3;			// int time scheme
 	N41=1.0e+19; 	// double total time
-	N43=1.0e-6;     // double stopping criteria convection-diffusion
+	N43=1.0e-5;     // double stopping criteria convection-diffusion
 	N44=1.0e-8;     // double stopping criteria pressure
 	N45=1e8;		// max outer iter
 	N46=250;		// int max number of solver iterations
@@ -535,7 +534,6 @@ void lexer::ini_default()
 	T10=0;			    // int turbulence model
 	T11=11;             // int time scheme for 2-eq turbulence models
 	T12=5;              // int convection scheme
-	T13=1.0e-5;     	// double stopping criteria turbulence
 	T31=0.816;	        // double factor for limiter for eddy limiter in phase 1
 	T32=0.816;	        // double factor for limiter for eddy limiter in phase 2
 	T35=0.816; 			// double factor for limiter for eddy limiter near wall
