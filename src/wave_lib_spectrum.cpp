@@ -560,7 +560,7 @@ void wave_lib_spectrum::print_spectrum(lexer *p)
 	for(int n=0;n<p->wN;++n)
 	{
 		xval+=dw[n];
-		result<<xval<<" "<<Si[n]<<endl;
+		result<<wi[n]<<" "<<Si[n]<<endl;
 	}
 
 	result.close();
