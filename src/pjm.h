@@ -49,7 +49,6 @@ public:
 	virtual void upgrad(lexer*,fdm*);
 	virtual void vpgrad(lexer*,fdm*);
     virtual void wpgrad(lexer*,fdm*);
-	virtual void ptimesave(lexer*,fdm*,ghostcell*);
 
 private:    
     void debug(lexer*,fdm*,ghostcell*,field&,field&,field&,double);

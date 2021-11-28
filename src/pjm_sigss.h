@@ -50,7 +50,9 @@ public:
 	virtual void upgrad(lexer*,fdm*);
 	virtual void vpgrad(lexer*,fdm*);
     virtual void wpgrad(lexer*,fdm*);
-	virtual void ptimesave(lexer*,fdm*,ghostcell*);
+    
+    void fillvec(lexer*,fdm*,ghostcell*);
+    void fillvec_back(lexer*,fdm*,ghostcell*);
     
     void poisson2D(lexer *,fdm*,field&);
     void poisson3D(lexer *,fdm*,field&);
@@ -63,11 +65,9 @@ private:
 	void debug(lexer*,fdm*);
     
     density *pd;
-    solver *psolv;
     int vecsize;
     
     double *M,*x,*rhs;
-
 };
 
 

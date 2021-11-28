@@ -239,11 +239,6 @@ void pjm_IMEX::wpgrad(lexer*p,fdm* a)
 {
 }
 
-void pjm_IMEX::ptimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-
 
 
 

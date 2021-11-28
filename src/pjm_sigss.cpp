@@ -55,17 +55,14 @@ pjm_sigss::pjm_sigss(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentrati
 	gcval_u=7;
 	gcval_v=8;
 	gcval_w=9;
-    
-    // solver
-    //if(p->D30==4)
-    //psolv = new hypre_sstruct_fnpf(p,pgc,p->N10,p->N11);
-    
-    //
+
     vecsize=p->knox*p->knoy*(p->knoz+1); 
     
     p->Darray(M,vecsize*15);
     p->Darray(x,vecsize);
     p->Darray(rhs,vecsize);
+    
+    cout<<p->mpirank<<" PJM_SGSS . 0"<<endl;
     
 }
 
@@ -76,7 +73,7 @@ pjm_sigss::~pjm_sigss()
 void pjm_sigss::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
 {
     if(p->mpirank==0 && (p->count%p->P12==0))
-    cout<<".";
+    cout<<"PJM_SGSS .";
 			
 	vel_setup(p,a,pgc,uvel,vvel,wvel,alpha);	
     rhscalc(p,a,pgc,uvel,vvel,wvel,alpha);
@@ -84,17 +81,20 @@ void pjm_sigss::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* p
     ppois->start(p,a,a->press);
     
     if(p->j_dir==0)
-    poisson2D(p, a, a->press);
+    poisson2D(p,a,a->press);
     
     if(p->j_dir==1)
-    poisson3D(p, a, a->press);
+    poisson3D(p,a,a->press);
+    
+    fillvec(p,a,pgc);
 	
         starttime=pgc->timer();
 
-    //psolv->startM(p,a,pgc,a->press,a->rhsvec,M,5);
+    psolv->startM(p,a,pgc,x,rhs,M,5);
 
-	
         endtime=pgc->timer();
+        
+    fillvec_back(p,a,pgc);
         
         
         /*
@@ -169,8 +169,9 @@ void pjm_sigss::rhscalc(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, fi
     pip=p->Y50;
 
     count=0;
-    LOOP
+    KJILOOP
     {
+    PCHECK
     rhs[count] =          -((u(i,j,k)-u(i-1,j,k))/p->DXN[IP]
                           + 0.25*(p->sigx[FIJK]+p->sigx[FIJKp1]+p->sigx[FIp1JK]+p->sigx[FIp1JKp1])*(0.5*(u(i,j,k+1)+u(i-1,j,k+1))-0.5*(u(i,j,k-1)+u(i-1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1])
                             
@@ -179,6 +180,8 @@ void pjm_sigss::rhscalc(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, fi
                            
 						   + p->sigz[IJ]*(w(i,j,k)-w(i,j,k-1))/p->DZN[KP] )/(alpha*p->dt);
                            
+    SCHECK
+    rhs[count] = 0.0;
     //a->test(i,j,k) = a->rhsvec.V[count];
     
                                                  
@@ -214,8 +217,31 @@ void pjm_sigss::wpgrad(lexer*p,fdm* a)
 	a->H(i,j,k) -= a->gk*PORVAL3;
 }
 
-void pjm_sigss::ptimesave(lexer *p, fdm *a, ghostcell *pgc)
+void pjm_sigss::fillvec(lexer *p, fdm *a, ghostcell *pgc)
 {
+    n=0;
+    KJILOOP
+    {
+    PCHECK
+    x[n] = a->press(i,j,k);
+    
+    SCHECK
+    x[n] = 0.0;
+    
+    ++n;
+    }
+}
+
+void pjm_sigss::fillvec_back(lexer *p, fdm *a, ghostcell *pgc)
+{
+    n=0;
+    KJILOOP
+    {
+    PCHECK
+    a->press(i,j,k) = x[n];
+    
+    ++n;
+    }
 }
 
 

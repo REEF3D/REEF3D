@@ -102,11 +102,6 @@ void pjm_sig_hs::wpgrad(lexer*p,fdm* a)
 	a->H(i,j,k) -= a->gk*PORVAL3;
 }
 
-void pjm_sig_hs::ptimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-
 
 
 

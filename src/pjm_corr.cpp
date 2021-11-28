@@ -208,10 +208,6 @@ void pjm_corr::wpgrad(lexer*p,fdm* a)
     a->H(i,j,k)-=PORVAL3*(a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1));
 }
 
-void pjm_corr::ptimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
 
 
 

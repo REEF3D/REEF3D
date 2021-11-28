@@ -230,35 +230,7 @@ nt 8
             }
 	++n;
 	}
-    /*
-    double starttime=pgc->timer();
-    psolv->startF(p,c,pgc,x,rhs,M,8);
-    double endtime=pgc->timer();
-    
-        n=0;
-        KJILOOP
-        {
-		 FPWDCHECK
-        f[IJK]=x[n];
-		
-        ++n;
-        }
-    
-    p->poissoniter+=p->solveriter;
-    p->poissontime+=endtime-starttime;
-    
-    
-	if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"Fi_iter: "<<p->poissoniter<<" Final_residual: "<<p->final_res<<"  Fi_time: "<<setprecision(3)<<p->poissontime<<endl;
-    */
-    
-    
-    
-    
 
-
-    
-   
 }
 
 

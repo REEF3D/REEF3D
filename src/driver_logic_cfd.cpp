@@ -451,13 +451,15 @@ void driver::logic()
 
 
 //pressure scheme
+    cout<<"PJM_SGSS . 1 "<<p->D30<<endl;
+    
 	if(p->D30==0)
 	ppress = new pressure_void(p);
 
 	if(p->D30==1 && p->W30==0 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2) && p->G2==0)
 	ppress = new pjm(p,a,pheat,pconc);
     
-    if((p->D30==1||p->D30==4) && p->W30==0 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2) && p->G2==1)
+    if((p->D30==1) && p->W30==0 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2) && p->G2==1)
 	ppress = new pjm_sig(p,a,pgc,pheat,pconc);
     
     if(p->D30==1 && p->W30==1 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2))
@@ -471,6 +473,9 @@ void driver::logic()
     
     if((p->D30==3 || (p->X10==1 && p->X13==2) || p->Z10!=0 ) && p->N40!=4)
 	ppress = new pjm_corr(p,a,pheat,pconc);
+    
+    if((p->D30==4) && p->W30==0 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2) && p->G2==1)
+	ppress = new pjm_sigss(p,a,pgc,pheat,pconc);
     
     if(p->D30==10 && p->G2==0)
 	ppress = new pjm_hydrostatic(p,a,pheat,pconc);

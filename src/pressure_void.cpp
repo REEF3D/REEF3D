@@ -109,8 +109,4 @@ void pressure_void::rhs(lexer *p, fdm* a, ghostcell *pgc, field& uu, field& vv, 
 {
 }
 
-void pressure_void::ptimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
 

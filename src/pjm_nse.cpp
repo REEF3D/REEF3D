@@ -334,11 +334,6 @@ void pjm_nse::wpgrad(lexer*p,fdm* a)
 	}
 }
 
-void pjm_nse::ptimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-
 
 
 
