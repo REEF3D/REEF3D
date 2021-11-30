@@ -451,8 +451,6 @@ void driver::logic()
 
 
 //pressure scheme
-    cout<<"PJM_SGSS . 1 "<<p->D30<<endl;
-    
 	if(p->D30==0)
 	ppress = new pressure_void(p);
 

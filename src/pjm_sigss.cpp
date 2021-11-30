@@ -62,7 +62,7 @@ pjm_sigss::pjm_sigss(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentrati
     p->Darray(x,vecsize);
     p->Darray(rhs,vecsize);
     
-    cout<<p->mpirank<<" PJM_SGSS . 0"<<endl;
+    //cout<<p->mpirank<<" PJM_SGSS . 0  vecsize: "<<vecsize<<endl;
     
 }
 
@@ -73,12 +73,10 @@ pjm_sigss::~pjm_sigss()
 void pjm_sigss::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
 {
     if(p->mpirank==0 && (p->count%p->P12==0))
-    cout<<"PJM_SGSS .";
+    cout<<".";
 			
 	vel_setup(p,a,pgc,uvel,vvel,wvel,alpha);	
     rhscalc(p,a,pgc,uvel,vvel,wvel,alpha);
-	
-    ppois->start(p,a,a->press);
     
     if(p->j_dir==0)
     poisson2D(p,a,a->press);
@@ -96,29 +94,7 @@ void pjm_sigss::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* p
         
     fillvec_back(p,a,pgc);
         
-        
-        /*
-    double starttime=pgc->timer();
-    psolv->startF(p,c,pgc,x,rhs,M,8);
-    double endtime=pgc->timer();
-    
-        n=0;
-        KJILOOP
-        {
-		 FPWDCHECK
-        f[IJK]=x[n];
-		
-        ++n;
-        }
-    
-    p->poissoniter+=p->solveriter;
-    p->poissontime+=endtime-starttime;
-    
-    
-	if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"Fi_iter: "<<p->poissoniter<<" Final_residual: "<<p->final_res<<"  Fi_time: "<<setprecision(3)<<p->poissontime<<endl;
-    */
-    
+
 	pgc->start4(p,a->press,gcval_press);
 	
 	ucorr(p,a,uvel,alpha);
