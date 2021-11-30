@@ -61,9 +61,6 @@ pjm_sigss::pjm_sigss(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentrati
     p->Darray(M,vecsize*15);
     p->Darray(x,vecsize);
     p->Darray(rhs,vecsize);
-    
-    //cout<<p->mpirank<<" PJM_SGSS . 0  vecsize: "<<vecsize<<endl;
-    
 }
 
 pjm_sigss::~pjm_sigss()
@@ -112,12 +109,8 @@ void pjm_sigss::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* p
 void pjm_sigss::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 {	
 	ULOOP
-    {
 	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*(1.0/pd->roface(p,a,1,0,0))*((a->press(i+1,j,k)-a->press(i,j,k))/p->DXP[IP]
                 + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(0.5*(a->press(i,j,k+1)+a->press(i+1,j,k+1))-0.5*(a->press(i,j,k-1)+a->press(i+1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
-                
-    //a->test(i,j,k) = a->press(i+1,j,k)-a->press(i,j,k);
-    }
 }
 
 void pjm_sigss::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
@@ -129,12 +122,8 @@ void pjm_sigss::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
 
 void pjm_sigss::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
 {
-    WLOOP
-    {   	
-	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
-    
-    //a->test(i,j,k) = a->press(i,j,k+1)-a->press(i,j,k);
-    }
+    WLOOP 	
+	wvel(i,j,k) -= a->test(i,j,k) = alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
 }
  
 void pjm_sigss::rhscalc(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
@@ -158,7 +147,8 @@ void pjm_sigss::rhscalc(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, fi
                            
     SCHECK
     rhs[count] = 0.0;
-    //a->test(i,j,k) = a->rhsvec.V[count];
+    
+    //a->test(i,j,k) = rhs[count];
     
                                                  
     ++count;

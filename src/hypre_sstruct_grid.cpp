@@ -150,16 +150,13 @@ void hypre_sstruct::make_grid_13p(lexer* p,fdm* a, ghostcell* pgc)
 
 void hypre_sstruct::make_grid_15p(lexer* p,fdm* a, ghostcell* pgc)
 {
-    kend=0;
+     kend=0;
     numparts=1;
     part=0;
     dimensions = 3;
     variable = 0;
     numvar = 1;
-    object_type = HYPRE_PARCSR;
-    
-    if(p->A10==3)
-    kend=0;
+    object_type = HYPRE_SSTRUCT;
     
     // grid
     ilower[0] = p->origin_i;
@@ -214,14 +211,11 @@ void hypre_sstruct::make_grid_2Dvert_9p(lexer* p,fdm* a, ghostcell* pgc)
     kend=0;
     numparts=1;
     part=0;
-    dimensions = 3;
+    dimensions = 2;
     variable = 0;
     numvar = 1;
-    object_type = HYPRE_PARCSR;
-    
-    if(p->A10==3)
-    kend=0;
-    
+    object_type = HYPRE_SSTRUCT;
+     
     // grid
     ilower[0] = p->origin_i;
     ilower[1] = p->origin_j;
@@ -243,7 +237,7 @@ void hypre_sstruct::make_grid_2Dvert_9p(lexer* p,fdm* a, ghostcell* pgc)
     HYPRE_SStructStencilCreate(2, 9, &stencil);
 
     int entry;
-    int offsets[9][2] = {{0,0}, {-1,0}, {1,0},  {0,-1}, {0,1}, {-1,-1},{-1,1},{1,-1},{1,1}};
+    int offsets[9][2] = {{0,0}, {-1,0},{1,0}, {0,-1},{0,1}, {-1,-1},{-1,1},{1,-1},{1,1}};
 
     for (entry=0; entry<9; ++entry)
     HYPRE_SStructStencilSetEntry(stencil, entry, offsets[entry], variable);

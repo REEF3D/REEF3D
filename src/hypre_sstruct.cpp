@@ -138,7 +138,6 @@ void hypre_sstruct::start_solver5(lexer* p,fdm* a, ghostcell* pgc, field &f, vec
 	delete_solver5(p,pgc);
 }
 
-
 void hypre_sstruct::start_solver7(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
 {
     numiter=0;

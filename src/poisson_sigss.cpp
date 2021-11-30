@@ -34,9 +34,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void pjm_sigss::poisson2D(lexer* p, fdm *a, field &f)
 {
-    
-    double sigxyz2;
-    double ab,denom;
+    double sigxyz2,ab,denom;
     double fbxm,fbxp,fbym,fbyp;
     p->poissoniter=0;
     p->poissontime=0.0;
@@ -83,8 +81,6 @@ nt 8
         M[n*9+8]  = -CPOR4*PORVAL4*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
 
         x[n] = f(i,j,k);
-        
-        rhs[n] =  0.0;
         }
         
         if(a->wet(i,j)==0 || p->flag4[IJK]<0)
@@ -126,62 +122,62 @@ nt 8
             }
 
             // top
-            if(p->flag4[IJKp2]<0 && p->flag4[IJKp1]>0)
+            if(p->flag4[IJKp1]<0 && p->flag4[IJKp1]>0)
             {
-            rhs[n] -= M[n*9+4]*f[IJKp2];
+            rhs[n] -= M[n*9+4]*f[IJKp1];
             M[n*9+4] = 0.0;
             }
    
         // diagonal entries
             // st
                 // fsfbc
-            if(p->flag4[Im1JKp2]<0 && p->flag4[IJKp2]<0 && p->flag4[IJKp1]>0) // fsfbc
+            if(p->flag4[Im1JKp2]<0 && p->flag4[IJKp1]<0 && p->flag4[IJKp1]>0) // fsfbc
             {
             rhs[n] -= M[n*9+6]*f[Im1JKp1];
             M[n*9+6] = 0.0;
             }
                 // wall
-            if((p->flag4[Im1JKp1]<0 && p->flag4[IJKp2]>0)) //
+            if((p->flag4[Im1JKp1]<0 && p->flag4[IJKp1]>0)) //
             {
             M[n*9] += M[n*9+6];  
-            M[n*9+6] = 0.0;   //cout<<p->mpirank<<" ST i: "<<i<<" k: "<<k<<endl;  
+            M[n*9+6] = 0.0;   
             }
             
             // nt
                 // fsfbc
-            if(p->flag4[Ip1JKp2]<0 && p->flag4[IJKp2]<0 && p->flag4[IJKp1]>0) 
+            if(p->flag4[Ip1JKp2]<0 && p->flag4[IJKp1]<0 && p->flag4[IJKp1]>0) 
             {
-            rhs[n] -= M[n*9+8]*f[Ip1JKp2];
-            M[n*9+8] = 0.0;
+            rhs[n] -= M[n*9+8]*f(i+1,j,k+1);
+            M[n*9+8] = 0.0; 
             }
             
                 // wall
-            if(p->flag4[Ip1JKp1]<0 && p->flag4[IJKp2]>0)
+            if(p->flag4[Ip1JKp1]<0 && p->flag4[IJKp1]>0)
             {
-            M[n*9] += M[n*9+8];
-            M[n*9+8] = 0.0;
+            rhs[n] -= M[n*9+8]*f(i+1,j,k+1);
+            M[n*9+8] = 0.0; 
             }
             
             // sb 
                 // wall
             if(((p->flag4[Im1JKm1]<0 && p->flag4[IJKm1]>0)|| a->wet(i-1,j)==0))
             {
-            M[n*9] += M[n*9+5];  
-            M[n*9+5] = 0.0;        
+            rhs[n] -= M[n*9+5]*f(i-1,j,k-1);
+            M[n*9+5] = 0.0;       
             }
         
             // nb 
                 // wall
             if(((p->flag4[Ip1JKm1]<0 && p->flag4[IJKm1]>0)|| a->wet(i+1,j)==0))
             {
-            M[n*9] += M[n*9+7];  
-            M[n*9+7] = 0.0;        
+            rhs[n] -= M[n*9+7]*f(i+1,j,k-1);
+            M[n*9+7] = 0.0;       
             }
                 
             // sb KBEDBC
             if(p->flag4[Im1JKm1]<0 && p->flag4[IJKm1]<0)
             {  
-            M[n*9] += M[n*9+5]; 
+            rhs[n] -= M[n*9+5]*f(i-1,j,k-1);
             M[n*9+5] = 0.0;
             }
             
@@ -201,8 +197,8 @@ nt 8
                 M[n*9+8] += ab;
             M[n*9+7] = 0.0;*/
             
-            M[n*9] += M[n*9+7];  
-            M[n*9+7] = 0.0; 
+            rhs[n] -= M[n*9+7]*f(i+1,j,k-1);
+            M[n*9+7] = 0.0;
             }
  
             // KBEDBC
@@ -223,8 +219,9 @@ nt 8
                 M[n*9+4] += ab;
                 M[n*9+3] = 0.0;*/
                 
-            M[n*9] += M[n*9+5]; 
-            M[n*9+5] = 0.0;
+            
+            rhs[n] -= M[n*9+3]*f(i,j,k-1);
+            M[n*9+3] = 0.0;
 
             }
             }
