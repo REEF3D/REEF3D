@@ -122,7 +122,7 @@ nt 8
             }
 
             // top
-            if(p->flag4[IJKp1]<0 && p->flag4[IJKp1]>0)
+            if(p->flag4[IJKp1]<0)
             {
             rhs[n] -= M[n*9+4]*f[IJKp1];
             M[n*9+4] = 0.0;
@@ -131,7 +131,7 @@ nt 8
         // diagonal entries
             // st
                 // fsfbc
-            if(p->flag4[Im1JKp2]<0 && p->flag4[IJKp1]<0 && p->flag4[IJKp1]>0) // fsfbc
+            if(p->flag4[Im1JKp2]<0 && p->flag4[IJKp1]<0) // fsfbc
             {
             rhs[n] -= M[n*9+6]*f[Im1JKp1];
             M[n*9+6] = 0.0;
@@ -145,7 +145,7 @@ nt 8
             
             // nt
                 // fsfbc
-            if(p->flag4[Ip1JKp2]<0 && p->flag4[IJKp1]<0 && p->flag4[IJKp1]>0) 
+            if(p->flag4[Ip1JKp2]<0 && p->flag4[IJKp1]<0) 
             {
             rhs[n] -= M[n*9+8]*f(i+1,j,k+1);
             M[n*9+8] = 0.0; 
