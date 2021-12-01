@@ -66,17 +66,17 @@ void nhflow_fsf_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow)
     a->Q(i,j)=0.0;
 
     ULOOP
-    a->P(i,j) += a->u(i,j,k)*p->DZN[KP];
+    a->P(i,j) += a->u(i,j,k)*p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[Ip1J]);
 
     VLOOP
-	a->Q(i,j) += a->v(i,j,k)*p->DZN[KP];
+	a->Q(i,j) += a->v(i,j,k)*p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[IJp1]);
 
 	pgc->gcsl_start1(p,a->P,10);
     pgc->gcsl_start2(p,a->Q,11);
 
     // fsf equation
     SLICELOOP4
-    a->eta(i,j) -= p->dt*p->sigz[IJ]*((a->P(i,j)-a->P(i-1,j))/p->DXN[IP] + (a->Q(i,j)-a->Q(i,j-1))/p->DYN[JP]);	  
+    a->eta(i,j) -= p->dt*((a->P(i,j)-a->P(i-1,j))/p->DXN[IP] + (a->Q(i,j)-a->Q(i,j-1))/p->DYN[JP]);	  
     
     pflow->eta_relax(p,pgc,a->eta);
     pgc->gcsl_start4(p,a->eta,1);

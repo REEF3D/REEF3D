@@ -123,7 +123,7 @@ void pjm_sigss::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
 void pjm_sigss::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
 {
     WLOOP 	
-	wvel(i,j,k) -= a->test(i,j,k) = alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
+	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
 }
  
 void pjm_sigss::rhscalc(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)

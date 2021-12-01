@@ -441,6 +441,7 @@ void grid_sigma::omega_update(lexer *p, fdm *a, ghostcell *pgc, field &u, field 
     if(p->G2==1)
     {
     LOOP
+    {
     a->omega(i,j,k) =  0.5*(p->sigt[FIJKm1] + p->sigt[FIJK])
                     
                     +  0.5*(u(i-1,j,k) + u(i,j,k))*0.5*(p->sigx[FIJKm1] + p->sigx[FIJK])
@@ -448,8 +449,8 @@ void grid_sigma::omega_update(lexer *p, fdm *a, ghostcell *pgc, field &u, field 
                     +  0.5*(v(i,j-1,k) + v(i,j,k))*0.5*(p->sigy[FIJKm1] + p->sigy[FIJK])
                     
                     +  0.5*(w(i,j,k-1) + w(i,j,k))*p->sigz[IJ];
-        
-        
+                    
+    }
     
     pgc->start4(p,a->omega,1);
     }

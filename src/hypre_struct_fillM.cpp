@@ -27,10 +27,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 
 void hypre_sstruct::fill_matrixM(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M)
-{    
+{  
     nentries=15;
     
-    for (j = 0; j < nentries; j++)
+    for (j=0; j< nentries; j++)
     stencil_indices[j] = j;
 
 	// M
@@ -46,16 +46,11 @@ void hypre_sstruct::fill_matrixM(lexer* p, ghostcell* pgc, double *f, double *rh
     HYPRE_SStructVectorAssemble(b);
 }
 
-void hypre_sstruct::fillbackvecM(lexer *p, double *f)
-{
-	HYPRE_SStructVectorGetBoxValues(x, part, ilower, iupper, variable, f);
-}
-
 void hypre_sstruct::fill_matrixM_2Dvert(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M)
 {
     nentries=9;
     
-    for (j = 0; j < nentries; j++)
+    for (j=0; j< nentries; j++)
     stencil_indices[j] = j;
 
     // M
@@ -69,6 +64,11 @@ void hypre_sstruct::fill_matrixM_2Dvert(lexer* p, ghostcell* pgc, double *f, dou
     // rhs
     HYPRE_SStructVectorSetBoxValues(b, part, ilower, iupper, variable, rhs);
     HYPRE_SStructVectorAssemble(b);
+}
+
+void hypre_sstruct::fillbackvecM(lexer *p, double *f)
+{
+	HYPRE_SStructVectorGetBoxValues(x, part, ilower, iupper, variable, f);
 }
 
 #endif

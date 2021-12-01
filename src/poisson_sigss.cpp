@@ -110,14 +110,14 @@ nt 8
             // south
             if((p->flag4[Im1JK]<0 || a->wet(i-1,j)==0))
             {
-            M[n*9] += M[n*9+1];  
-            M[n*9+1] = 0.0;        
+            rhs[n] -= M[n*9+1]*f[Im1JK];
+            M[n*9+1] = 0.0;       
             }
             
             // north
             if((p->flag4[Ip1JK]<0 || a->wet(i+1,j)==0))
             {
-            M[n*9] += M[n*9+2];
+            rhs[n] -= M[n*9+2]*f[Ip1JK];
             M[n*9+2] = 0.0;
             }
 
@@ -131,7 +131,7 @@ nt 8
         // diagonal entries
             // st
                 // fsfbc
-            if(p->flag4[Im1JKp2]<0 && p->flag4[IJKp1]<0) // fsfbc
+            if(p->flag4[Im1JKp1]<0 && p->flag4[IJKp1]<0) // fsfbc
             {
             rhs[n] -= M[n*9+6]*f[Im1JKp1];
             M[n*9+6] = 0.0;
@@ -145,7 +145,7 @@ nt 8
             
             // nt
                 // fsfbc
-            if(p->flag4[Ip1JKp2]<0 && p->flag4[IJKp1]<0) 
+            if(p->flag4[Ip1JKp1]<0 && p->flag4[IJKp1]<0) 
             {
             rhs[n] -= M[n*9+8]*f(i+1,j,k+1);
             M[n*9+8] = 0.0; 
@@ -176,7 +176,20 @@ nt 8
                 
             // sb KBEDBC
             if(p->flag4[Im1JKm1]<0 && p->flag4[IJKm1]<0)
-            {  
+            { 
+            /*ab = -2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
+            
+            denom = p->sigz[Im1J] + c->Bx(i-1,j)*p->sigx[FIm1JK];
+
+                    if(c->wet(i+1,j)==1 && c->wet(i-1,j)==1)
+                    {
+                    M[n*9+2] +=  ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
+                    M[n*9+1] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
+                    }
+                
+                M[n*9+6] += ab;
+                M[n*9+5] = 0.0;*/
+                
             rhs[n] -= M[n*9+5]*f(i-1,j,k-1);
             M[n*9+5] = 0.0;
             }
