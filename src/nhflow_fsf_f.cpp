@@ -37,7 +37,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"concentration.h"
 #include"momentum.h"
 
-nhflow_fsf_f::nhflow_fsf_f(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow) : epsi(p->A440*p->DXM)
+nhflow_fsf_f::nhflow_fsf_f(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow) : epsi(p->A440*p->DXM), etark1(p),etark2(p)
 {
 	pupdate = new fluid_update_void();
 }
@@ -48,7 +48,7 @@ nhflow_fsf_f::~nhflow_fsf_f()
 
 void nhflow_fsf_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow)
 {
-    pgc->start4(p,a->ro,1);
+    /*pgc->start4(p,a->ro,1);
     pgc->start4(p,a->visc,1);
     
     // fill eta_n
@@ -79,7 +79,7 @@ void nhflow_fsf_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow)
     a->eta(i,j) -= p->dt*((a->P(i,j)-a->P(i-1,j))/p->DXN[IP] + (a->Q(i,j)-a->Q(i,j-1))/p->DYN[JP]);	  
     
     pflow->eta_relax(p,pgc,a->eta);
-    pgc->gcsl_start4(p,a->eta,1);
+    pgc->gcsl_start4(p,a->eta,1);*/
 }
 
 void nhflow_fsf_f::ltimesave(lexer* p, fdm *a, slice &ls)
@@ -93,6 +93,87 @@ void nhflow_fsf_f::update(lexer *p, fdm *a, ghostcell *pgc, slice &f)
 
 void nhflow_fsf_f::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
 {
+}
+
+void nhflow_fsf_f::step1(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, double alpha)
+{
+
+    SLICELOOP1
+    a->P(i,j)=0.0;
+    
+    SLICELOOP2
+    a->Q(i,j)=0.0;
+
+    ULOOP
+    a->P(i,j) += u(i,j,k)*p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[Ip1J]);
+
+    VLOOP
+	a->Q(i,j) += v(i,j,k)*p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[IJp1]);
+
+	pgc->gcsl_start1(p,a->P,10);
+    pgc->gcsl_start2(p,a->Q,11);
+
+    SLICELOOP4
+    etark1(i,j) =      a->eta(i,j)
+
+                -      p->dt*((a->P(i,j)-a->P(i-1,j))/p->DXN[IP] + (a->Q(i,j)-a->Q(i,j-1))/p->DYN[JP]);
+
+    pflow->eta_relax(p,pgc,a->eta);
+    pgc->gcsl_start4(p,a->eta,1);
+}
+
+void nhflow_fsf_f::step2(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, double alpha)
+{
+    SLICELOOP1
+    a->P(i,j)=0.0;
+    
+    SLICELOOP2
+    a->Q(i,j)=0.0;
+
+    ULOOP
+    a->P(i,j) += u(i,j,k)*p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[Ip1J]);
+
+    VLOOP
+	a->Q(i,j) += v(i,j,k)*p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[IJp1]);
+
+	pgc->gcsl_start1(p,a->P,10);
+    pgc->gcsl_start2(p,a->Q,11);
+
+    SLICELOOP4
+    etark2(i,j) = 0.75*a->eta(i,j) + 0.25*etark1(i,j)
+
+                - 0.25*p->dt*((a->P(i,j)-a->P(i-1,j))/p->DXN[IP] + (a->Q(i,j)-a->Q(i,j-1))/p->DYN[JP]);
+
+    pflow->eta_relax(p,pgc,a->eta);
+    pgc->gcsl_start4(p,a->eta,1);
+    
+}
+
+void nhflow_fsf_f::step3(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, double alpha)
+{
+    SLICELOOP1
+    a->P(i,j)=0.0;
+    
+    SLICELOOP2
+    a->Q(i,j)=0.0;
+
+    ULOOP
+    a->P(i,j) += u(i,j,k)*p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[Ip1J]);
+
+    VLOOP
+	a->Q(i,j) += v(i,j,k)*p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[IJp1]);
+
+	pgc->gcsl_start1(p,a->P,10);
+    pgc->gcsl_start2(p,a->Q,11);
+
+    SLICELOOP4
+    a->eta(i,j) = (1.0/3.0)*a->eta(i,j) + (2.0/3.0)*etark2(i,j)
+
+                - (2.0/3.0)*p->dt*((a->P(i,j)-a->P(i-1,j))/p->DXN[IP] + (a->Q(i,j)-a->Q(i,j-1))/p->DYN[JP]);
+
+    pflow->eta_relax(p,pgc,a->eta);
+    pgc->gcsl_start4(p,a->eta,1);
+    
 }
 
 

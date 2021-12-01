@@ -33,6 +33,8 @@ class turbulence;
 class solver;
 class poisson;
 class fluid_update;
+class nhflow;
+class nhflow_fsf;
 
 using namespace std;
 
@@ -42,19 +44,16 @@ using namespace std;
 class nhflow_momentum_RK3 : public momentum, public bcmom
 {
 public:
-	nhflow_momentum_RK3(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*);
+	nhflow_momentum_RK3(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*, nhflow*, nhflow_fsf*);
 	virtual ~nhflow_momentum_RK3();
 	virtual void start(lexer*, fdm*, ghostcell*, vrans*);
-	virtual void utimesave(lexer*, fdm*, ghostcell*);
+    virtual void utimesave(lexer*, fdm*, ghostcell*);
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);
-    virtual void fillaij1(lexer*, fdm*, ghostcell*, solver*);
-    virtual void fillaij2(lexer*, fdm*, ghostcell*, solver*);
-    virtual void fillaij3(lexer*, fdm*, ghostcell*, solver*);
 
-    field1 urk1,urk2;
-	field2 vrk1,vrk2;
-	field3 wrk1,wrk2;
+    field1 udiff,urk1,urk2;
+	field2 vdiff,vrk1,vrk2;
+	field3 wdiff,wrk1,wrk2;
 
 private:
     fluid_update *pupdate;
@@ -63,6 +62,8 @@ private:
 	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	
+    void timecheck(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    
 	int gcval_u, gcval_v, gcval_w;
 	int gcval_urk, gcval_vrk, gcval_wrk;
 	double starttime;
@@ -75,6 +76,8 @@ private:
 	solver *psolv;
     solver *ppoissonsolv;
 	ioflow *pflow;
+    nhflow *pnh;
+    nhflow_fsf *pnhfsf;
 };
 
 #endif

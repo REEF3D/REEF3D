@@ -47,6 +47,10 @@ public:
     virtual void start(lexer*, fdm*, ghostcell*, ioflow*);
     virtual void ini(lexer*, fdm*, ghostcell*, ioflow*);
     
+    virtual void step1(lexer*, fdm*, ghostcell*, ioflow*, field&, field&, double);
+    virtual void step2(lexer*, fdm*, ghostcell*, ioflow*, field&, field&, double);
+    virtual void step3(lexer*, fdm*, ghostcell*, ioflow*, field&, field&, double);
+    
 	void ltimesave(lexer*,fdm*,slice&);
     void update(lexer*,fdm*,ghostcell*,slice&);
     
@@ -62,6 +66,8 @@ private:
 	
 	sflow_eta_disc *peta;
 	sflow_hxy_disc *phxy;
+    
+    slice4 etark1,etark2;
 };
 
 #endif

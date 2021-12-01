@@ -105,8 +105,8 @@ nt 8
     n=0;
 	KJILOOP
 	{
-            if(p->flag4[IJK]>0 && a->wet(i,j)==1)
-            {
+        if(p->flag4[IJK]>0 && a->wet(i,j)==1)
+        {
             // south
             if((p->flag4[Im1JK]<0 || a->wet(i-1,j)==0))
             {
@@ -237,7 +237,7 @@ nt 8
             M[n*9+3] = 0.0;
 
             }
-            }
+        }
 	++n;
 	}
 

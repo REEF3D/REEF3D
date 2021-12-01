@@ -35,9 +35,8 @@ void ghostcell::kinematic_fsf(lexer *p,field& f,double dist,int gcv, int bc, int
     
          + 0.5*(a->v(i,j,k)+a->v(i,j-1,k))*((a->eta(i,j+1)-a->eta(i,j-1))/(2.0*p->DYP[JP]));
 
-    //cout<<"WAVL: "<<wval<<endl;
 	for(q=0;q<margin;++q)
-	f(i,j,k+q+1)= f(i,j,k);//wval;
+	f(i,j,k+q+1)= wval;
     
 }
 

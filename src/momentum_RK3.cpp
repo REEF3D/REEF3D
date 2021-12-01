@@ -133,6 +133,7 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     
     pgc->start1(p,urk1,gcval_urk);
 	pgc->start2(p,vrk1,gcval_vrk);
+    pgc->start3(p,vrk1,gcval_vrk);
     pnh->kinematic_fsf(p,a,urk1,vrk1,wrk1);
 
     pflow->pressure_io(p,a,pgc);

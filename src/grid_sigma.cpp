@@ -31,8 +31,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #define WLVL (fabs(a->WL(i,j))>1.0e-20?a->WL(i,j):1.0-20)
 
-#define WLVLDRY (0.01*a->wd_criterion)
-
 grid_sigma::grid_sigma(lexer *p) 
 {
     
@@ -55,7 +53,6 @@ void grid_sigma::sigma_coord_ini(lexer *p)
     
 void grid_sigma::sigma_ini(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
 {	
-    
     // generate Ex,Bx slices
     pd = new grid_sigma_data(p);
     
@@ -200,49 +197,25 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     
     // sigx
     FLOOP
-    {
-    if(a->wet(i,j)==1)
     p->sigx[FIJK] = (1.0 - p->sig[FIJK])*(pd->Bx(i,j)/WLVL) - p->sig[FIJK]*(pd->Ex(i,j)/WLVL);
-    
-    if(a->wet(i,j)==0)
-    p->sigx[FIJK] = (1.0 - p->sig[FIJK])*(pd->Bx(i,j)/WLVLDRY) - p->sig[FIJK]*(pd->Bx(i,j)/WLVLDRY);
-    }
     
     // sigy
     FLOOP
-    {
-    if(a->wet(i,j)==1)
     p->sigy[FIJK] = (1.0 - p->sig[FIJK])*(pd->By(i,j)/WLVL) - p->sig[FIJK]*(pd->Ey(i,j)/WLVL);
-    
-    if(a->wet(i,j)==0)
-    p->sigy[FIJK] = (1.0 - p->sig[FIJK])*(pd->By(i,j)/WLVLDRY) - p->sig[FIJK]*(pd->By(i,j)/WLVLDRY);
-    }
     
     // sigz
     SLICELOOP4
-    {
-    if(a->wet(i,j)==1)
     p->sigz[IJ] = 1.0/WLVL;
-    
-    if(a->wet(i,j)==0)
-    p->sigz[IJ] = 1.0/WLVLDRY;
-    }
+
     
     // sigt
     FLOOP
-    {
-    if(a->wet(i,j)==1)
     p->sigt[FIJK] = -(p->sig[FIJK]/WLVL)*(a->WL(i,j)-a->WL_n(i,j))/p->dt;
-    
-    if(a->wet(i,j)==0)
-    p->sigt[FIJK] = 0.0;
-    }
+
     
     // sigxx
     FLOOP
     {
-        if(a->wet(i,j)==1)
-        {
         p->sigxx[FIJK] = ((1.0 - p->sig[FIJK])/WLVL)*(pd->Bxx(i,j) - pow(pd->Bx(i,j),2.0)/WLVL) // xx
         
                       - (p->sig[FIJK]/WLVL)*(pd->Exx(i,j) - pow(pd->Ex(i,j),2.0)/WLVL)
@@ -259,28 +232,6 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
                       - (p->sigy[FIJK]/WLVL)*(pd->By(i,j) + pd->Ey(i,j))
                       
                       - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(pd->By(i,j)*pd->Ey(i,j));
-        }
-                      
-                      
-        if(a->wet(i,j)==0)
-        {
-        p->sigxx[FIJK] = ((1.0 - p->sig[FIJK])/WLVLDRY)*(pd->Bxx(i,j) - pow(pd->Bx(i,j),2.0)/WLVLDRY) // xx
-        
-                      - (p->sig[FIJK]/WLVLDRY)*(pd->Bxx(i,j) - pow(pd->Bx(i,j),2.0)/WLVLDRY)
-                      
-                      - (p->sigx[FIJK]/WLVLDRY)*(pd->Bx(i,j) + pd->Bx(i,j))
-                      
-                      - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVLDRY,2.0))*(pd->Bx(i,j)*pd->Bx(i,j))
-                      
-                      
-                      + ((1.0 - p->sig[FIJK])/WLVLDRY)*(pd->Byy(i,j) - pow(pd->By(i,j),2.0)/WLVLDRY) // yy
-        
-                      - (p->sig[FIJK]/WLVLDRY)*(pd->Byy(i,j) - pow(pd->By(i,j),2.0)/WLVLDRY)
-                      
-                      - (p->sigy[FIJK]/WLVLDRY)*(pd->By(i,j) + pd->By(i,j))
-                      
-                      - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVLDRY,2.0))*(pd->By(i,j)*pd->By(i,j));
-        }
     }
     
     // sig BC

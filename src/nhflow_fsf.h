@@ -26,6 +26,7 @@ class pressure;
 class solver;
 class fdm;
 class lexer;
+class field;
 class ghostcell;
 class fluid_update;
 class heat;
@@ -47,6 +48,10 @@ class nhflow_fsf
 public:    
     virtual void start(lexer*, fdm*, ghostcell*, ioflow*)=0;
     virtual void ini(lexer*, fdm*, ghostcell*, ioflow*)=0;
+    
+    virtual void step1(lexer*, fdm*, ghostcell*, ioflow*, field&, field&, double)=0;
+    virtual void step2(lexer*, fdm*, ghostcell*, ioflow*, field&, field&, double)=0;
+    virtual void step3(lexer*, fdm*, ghostcell*, ioflow*, field&, field&, double)=0;
 
         
 
