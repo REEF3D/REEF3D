@@ -297,7 +297,6 @@ void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
             wvel(i,j,k) = (1.0-relax4_wg(i,j)) * ramp(p)* wval[count] + relax4_wg(i,j)*wvel(i,j,k);
             ++count;
             }
-
 		}
 		
 		// Numerical Beach

@@ -24,15 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 #include"ioflow.h"
-#include"fluid_update_fsf.h"
-#include"fluid_update_fsf_heat.h"
-#include"fluid_update_fsf_comp.h"
-#include"fluid_update_fsf_concentration.h"
-#include"fluid_update_rheology.h"
 #include"fluid_update_void.h"
-#include"picard_f.h"
-#include"picard_lsm.h"
-#include"picard_void.h"
 #include"heat.h"
 #include"concentration.h"
 #include"momentum.h"
@@ -79,7 +71,9 @@ void nhflow_fsf_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow)
     a->eta(i,j) -= p->dt*((a->P(i,j)-a->P(i-1,j))/p->DXN[IP] + (a->Q(i,j)-a->Q(i,j-1))/p->DYN[JP]);	  
     
     pflow->eta_relax(p,pgc,a->eta);
-    pgc->gcsl_start4(p,a->eta,1);*/
+    pgc->gcsl_start4(p,a->eta,1);
+    p->sigma_update(p,a,pgc,a->eta);
+    */
 }
 
 void nhflow_fsf_f::ltimesave(lexer* p, fdm *a, slice &ls)
@@ -97,7 +91,6 @@ void nhflow_fsf_f::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
 
 void nhflow_fsf_f::step1(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, double alpha)
 {
-
     SLICELOOP1
     a->P(i,j)=0.0;
     
@@ -120,6 +113,8 @@ void nhflow_fsf_f::step1(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field 
 
     pflow->eta_relax(p,pgc,a->eta);
     pgc->gcsl_start4(p,a->eta,1);
+    
+    p->sigma_update(p,a,pgc,etark1);
 }
 
 void nhflow_fsf_f::step2(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, double alpha)
@@ -147,6 +142,7 @@ void nhflow_fsf_f::step2(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field 
     pflow->eta_relax(p,pgc,a->eta);
     pgc->gcsl_start4(p,a->eta,1);
     
+    p->sigma_update(p,a,pgc,etark2);
 }
 
 void nhflow_fsf_f::step3(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, double alpha)
@@ -174,6 +170,7 @@ void nhflow_fsf_f::step3(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field 
     pflow->eta_relax(p,pgc,a->eta);
     pgc->gcsl_start4(p,a->eta,1);
     
+    p->sigma_update(p,a,pgc,a->eta);
 }
 
 

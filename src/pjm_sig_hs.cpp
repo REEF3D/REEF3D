@@ -77,7 +77,6 @@ void pjm_sig_hs::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
  
 void pjm_sig_hs::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
 {
-
 }
  
 void pjm_sig_hs::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)

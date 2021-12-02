@@ -705,7 +705,9 @@ void driver::logic()
 
 // Start MAINLOOP
 	if(p->A10==5)
-    loop_nsewave(a);
+    {
+        loop_nsewave(a);
+    }
     
     if(p->A10==6 && ((p->X10==1 && p->X13==2) || p->Z10!=0) ) 
 	{
