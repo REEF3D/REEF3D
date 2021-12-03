@@ -153,19 +153,19 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     if(p->i_dir==1 && p->j_dir==1)
     SLICELOOP4
     {
-    pd->Ex(i,j) = pdx->sx(p,a->eta,1.0);
-    pd->Ey(i,j) = pdx->sy(p,a->eta,1.0);
+    pd->Ex(i,j) = pdx->sx(p,eta,1.0);
+    pd->Ey(i,j) = pdx->sy(p,eta,1.0);
     
-    pd->Exx(i,j) = pddx->sxx(p,a->eta);
-    pd->Eyy(i,j) = pddx->syy(p,a->eta);
+    pd->Exx(i,j) = pddx->sxx(p,eta);
+    pd->Eyy(i,j) = pddx->syy(p,eta);
     }
     
     // 2D
     if(p->i_dir==1 && p->j_dir==0)
     SLICELOOP4
     {
-    pd->Ex(i,j) = pdx->sx(p,a->eta,1.0);    
-    pd->Exx(i,j) = pddx->sxx(p,a->eta);
+    pd->Ex(i,j) = pdx->sx(p,eta,1.0);    
+    pd->Exx(i,j) = pddx->sxx(p,eta);
     }
     
     pgc->gcsl_start4(p,pd->Ex,1);

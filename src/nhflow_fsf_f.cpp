@@ -116,6 +116,12 @@ void nhflow_fsf_f::step1(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field 
     
     p->sigma_update(p,a,pgc,etark1);
     p->omega_update(p,a,pgc,u,v,w);
+    
+    ULOOP
+	a->F(i,j,k) = -PORVAL1*fabs(p->W22)*(etark1(i+1,j)-etark1(i,j))/p->DXP[IP];
+    
+    VLOOP
+	a->G(i,j,k) = -PORVAL2*fabs(p->W22)*(etark1(i,j+1)-etark1(i,j))/p->DYP[JP];
 }
 
 void nhflow_fsf_f::step2(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, field&w, double alpha)
@@ -145,6 +151,12 @@ void nhflow_fsf_f::step2(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field 
     
     p->sigma_update(p,a,pgc,etark2);
     p->omega_update(p,a,pgc,u,v,w);
+    
+    ULOOP
+	a->F(i,j,k) = -PORVAL1*fabs(p->W22)*(etark2(i+1,j)-etark2(i,j))/p->DXP[IP];
+    
+    VLOOP
+	a->G(i,j,k) = -PORVAL2*fabs(p->W22)*(etark2(i,j+1)-etark2(i,j))/p->DYP[JP];
 }
 
 void nhflow_fsf_f::step3(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, field&w, double alpha)
@@ -174,6 +186,12 @@ void nhflow_fsf_f::step3(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field 
     
     p->sigma_update(p,a,pgc,a->eta);
     p->omega_update(p,a,pgc,u,v,w);
+    
+    ULOOP
+	a->F(i,j,k) = -PORVAL1*fabs(p->W22)*(a->eta(i+1,j)-a->eta(i,j))/p->DXP[IP];
+    
+    VLOOP
+	a->G(i,j,k) = -PORVAL2*fabs(p->W22)*(a->eta(i,j+1)-a->eta(i,j))/p->DYP[JP];
 }
 
 

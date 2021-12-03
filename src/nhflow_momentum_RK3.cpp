@@ -86,7 +86,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	// U
 	starttime=pgc->timer();
 
-	pturb->isource(p,a);
+	//pturb->isource(p,a);
 	pflow->isource(p,a,pgc,pvrans); 
 	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,a);
@@ -103,7 +103,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	// V
 	starttime=pgc->timer();
 
-	pturb->jsource(p,a);
+	//pturb->jsource(p,a);
 	pflow->jsource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
 	ppress->vpgrad(p,a);
@@ -163,7 +163,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	// U
 	starttime=pgc->timer();
 
-	pturb->isource(p,a);
+	//pturb->isource(p,a);
 	pflow->isource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,a);
@@ -180,7 +180,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	// V
 	starttime=pgc->timer();
 
-	pturb->jsource(p,a);
+	//pturb->jsource(p,a);
 	pflow->jsource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
 	ppress->vpgrad(p,a);
@@ -240,7 +240,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	// U
 	starttime=pgc->timer();
 
-	pturb->isource(p,a);
+	//pturb->isource(p,a);
 	pflow->isource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,a);
@@ -257,7 +257,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	// V
 	starttime=pgc->timer();
 
-	pturb->jsource(p,a);
+	//pturb->jsource(p,a);
 	pflow->jsource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
 	ppress->vpgrad(p,a);

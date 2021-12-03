@@ -85,14 +85,14 @@ void pjm_sig_hs::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v,
 
 void pjm_sig_hs::upgrad(lexer*p,fdm* a)
 {
-    ULOOP
-	a->F(i,j,k) -= PORVAL1*fabs(p->W22)*(a->eta(i+1,j)-a->eta(i,j))/p->DXP[IP];
+    //ULOOP
+	//a->F(i,j,k) -= PORVAL1*fabs(p->W22)*(a->eta(i+1,j)-a->eta(i,j))/p->DXP[IP];
 }
 
 void pjm_sig_hs::vpgrad(lexer*p,fdm* a)
 {
-    VLOOP
-	a->G(i,j,k) -= PORVAL2*fabs(p->W22)*(a->eta(i,j+1)-a->eta(i,j))/p->DYP[JP];
+    //VLOOP
+	//a->G(i,j,k) -= PORVAL2*fabs(p->W22)*(a->eta(i,j+1)-a->eta(i,j))/p->DYP[JP];
 }
 
 void pjm_sig_hs::wpgrad(lexer*p,fdm* a)
