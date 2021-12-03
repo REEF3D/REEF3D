@@ -89,7 +89,7 @@ void nhflow_fsf_f::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
 {
 }
 
-void nhflow_fsf_f::step1(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, double alpha)
+void nhflow_fsf_f::step1(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, field&w, double alpha)
 {
     SLICELOOP1
     a->P(i,j)=0.0;
@@ -111,13 +111,14 @@ void nhflow_fsf_f::step1(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field 
 
                 -      p->dt*((a->P(i,j)-a->P(i-1,j))/p->DXN[IP] + (a->Q(i,j)-a->Q(i,j-1))/p->DYN[JP]);
 
-    pflow->eta_relax(p,pgc,a->eta);
+    pflow->eta_relax(p,pgc,etark1);
     pgc->gcsl_start4(p,a->eta,1);
     
     p->sigma_update(p,a,pgc,etark1);
+    p->omega_update(p,a,pgc,u,v,w);
 }
 
-void nhflow_fsf_f::step2(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, double alpha)
+void nhflow_fsf_f::step2(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, field&w, double alpha)
 {
     SLICELOOP1
     a->P(i,j)=0.0;
@@ -139,13 +140,14 @@ void nhflow_fsf_f::step2(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field 
 
                 - 0.25*p->dt*((a->P(i,j)-a->P(i-1,j))/p->DXN[IP] + (a->Q(i,j)-a->Q(i,j-1))/p->DYN[JP]);
 
-    pflow->eta_relax(p,pgc,a->eta);
+    pflow->eta_relax(p,pgc,etark2);
     pgc->gcsl_start4(p,a->eta,1);
     
     p->sigma_update(p,a,pgc,etark2);
+    p->omega_update(p,a,pgc,u,v,w);
 }
 
-void nhflow_fsf_f::step3(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, double alpha)
+void nhflow_fsf_f::step3(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, field&w, double alpha)
 {
     SLICELOOP1
     a->P(i,j)=0.0;
@@ -171,6 +173,7 @@ void nhflow_fsf_f::step3(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field 
     pgc->gcsl_start4(p,a->eta,1);
     
     p->sigma_update(p,a,pgc,a->eta);
+    p->omega_update(p,a,pgc,u,v,w);
 }
 
 

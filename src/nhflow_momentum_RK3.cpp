@@ -81,7 +81,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 //Step 1
 //--------------------------------------------------------
 
-    pnhfsf->step1(p, a, pgc, pflow, a->u, a->v, 1.0);
+    pnhfsf->step1(p, a, pgc, pflow, a->u, a->v, a->w, 1.0);
 
 	// U
 	starttime=pgc->timer();
@@ -152,14 +152,13 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	pgc->start3(p,wrk1,gcval_wrk);
     
     pnh->kinematic_fsf(p,a,urk1,vrk1,wrk1);
-    p->omega_update(p,a,pgc,urk1,vrk1,wrk1);
     
     pupdate->start(p,a,pgc);
 	
 //Step 2
 //--------------------------------------------------------
 	
-    pnhfsf->step2(p, a, pgc, pflow, urk1, vrk1, 0.25);
+    pnhfsf->step2(p, a, pgc, pflow, urk1, vrk1, wrk2, 0.25);
     
 	// U
 	starttime=pgc->timer();
@@ -230,14 +229,13 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	pgc->start3(p,wrk2,gcval_wrk);
     
     pnh->kinematic_fsf(p,a,urk2,vrk2,wrk2);
-    p->omega_update(p,a,pgc,urk2,vrk2,wrk2);
     
     pupdate->start(p,a,pgc);
 
 //Step 3
 //--------------------------------------------------------
     
-    pnhfsf->step3(p, a, pgc, pflow, urk2, vrk2, 2.0/3.0);
+    pnhfsf->step3(p, a, pgc, pflow, urk2, vrk2, wrk2, 2.0/3.0);
     
 	// U
 	starttime=pgc->timer();
@@ -308,12 +306,14 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	pgc->start3(p,a->w,gcval_w);
     
     pnh->kinematic_fsf(p,a,a->u,a->v,a->w);
-    p->omega_update(p,a,pgc,a->u,a->v,a->w);
     
     pupdate->start(p,a,pgc);
     
     SLICELOOP4
+    {
+    a->WL_n(i,j) = a->WL(i,j);
     a->eta_n(i,j) = a->eta(i,j);
+    }
 }
 
 void nhflow_momentum_RK3::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)

@@ -144,8 +144,8 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
 {
     SLICELOOP4
     {
-    a->WL_n(i,j) = a->WL(i,j);
-    a->WL(i,j) = MAX(0.0, a->eta(i,j) + p->wd - a->bed(i,j));
+    //a->WL_n(i,j) = a->WL(i,j);
+    a->WL(i,j) = MAX(0.0, eta(i,j) + p->wd - a->bed(i,j));
     }
     
     // calculate: Ex,Ey,Exx,Eyy

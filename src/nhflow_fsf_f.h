@@ -47,9 +47,9 @@ public:
     virtual void start(lexer*, fdm*, ghostcell*, ioflow*);
     virtual void ini(lexer*, fdm*, ghostcell*, ioflow*);
     
-    virtual void step1(lexer*, fdm*, ghostcell*, ioflow*, field&, field&, double);
-    virtual void step2(lexer*, fdm*, ghostcell*, ioflow*, field&, field&, double);
-    virtual void step3(lexer*, fdm*, ghostcell*, ioflow*, field&, field&, double);
+    virtual void step1(lexer*, fdm*, ghostcell*, ioflow*, field&, field&, field&, double);
+    virtual void step2(lexer*, fdm*, ghostcell*, ioflow*, field&, field&, field&, double);
+    virtual void step3(lexer*, fdm*, ghostcell*, ioflow*, field&, field&, field&, double);
     
 	void ltimesave(lexer*,fdm*,slice&);
     void update(lexer*,fdm*,ghostcell*,slice&);
