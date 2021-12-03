@@ -2233,7 +2233,7 @@ void lexer::read_control()
 
         FSI_count = Z11;
     }
-
+    
 	int countB70=0;
 	int countB71=0;
 	int countB106=0;
@@ -2616,6 +2616,9 @@ void lexer::read_control()
 				{
                 case 11: control>>Z11_x[countZ11]>>Z11_y[countZ11]>>Z11_z[countZ11]>>Z11_l[countZ11]>>Z11_w[countZ11]>>Z11_t[countZ11]>>Z11_rho[countZ11]>>Z11_e[countZ11]>>Z11_ix[countZ11]>>Z11_iy[countZ11]>>Z11_iz[countZ11]>>Z11_nu[countZ11]>>Z11_n[countZ11];
                         ++countZ11;
+						 clear(c,numint);
+						 break;
+                case 12: control>>Z12_cdx>>Z12_cdy>>Z12_cdz>>Z12_ckx>>Z12_cky>>Z12_ckz;
 						 clear(c,numint);
 						 break;
 				}

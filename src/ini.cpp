@@ -684,6 +684,7 @@ void lexer::ini_default()
 
 	// FSI
 	Z10=0;		// int turn FSI on
+    Z12_ckx=Z12_cky=Z12_ckz=Z12_cdx=Z12_cdy=Z12_cdz=0.0;   // double fsi beam structural damping coefficients.
 
 	solveriter=0;
 	mpirank=0;
