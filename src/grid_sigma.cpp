@@ -140,11 +140,11 @@ void grid_sigma::sigma_ini(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
 
 }
 
-void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
+void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, double alpha)
 {
     SLICELOOP4
     {
-    //a->WL_n(i,j) = a->WL(i,j);
+    a->WL_n(i,j) = a->WL(i,j);
     a->WL(i,j) = MAX(0.0, eta(i,j) + p->wd - a->bed(i,j));
     }
     
@@ -210,7 +210,7 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     
     // sigt
     FLOOP
-    p->sigt[FIJK] = -(p->sig[FIJK]/WLVL)*(a->WL(i,j)-a->WL_n(i,j))/p->dt;
+    p->sigt[FIJK] = -(p->sig[FIJK]/WLVL)*(a->WL(i,j)-a->WL_n(i,j))/(alpha*p->dt);
 
     
     // sigxx

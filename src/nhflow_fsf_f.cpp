@@ -72,7 +72,7 @@ void nhflow_fsf_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow)
     
     pflow->eta_relax(p,pgc,a->eta);
     pgc->gcsl_start4(p,a->eta,1);
-    p->sigma_update(p,a,pgc,a->eta);
+    p->sigma_update(p,a,pgc,a->eta,1.0);
     */
 }
 
@@ -114,7 +114,7 @@ void nhflow_fsf_f::step1(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field 
     pflow->eta_relax(p,pgc,etark1);
     pgc->gcsl_start4(p,a->eta,1);
     
-    p->sigma_update(p,a,pgc,etark1);
+    p->sigma_update(p,a,pgc,etark1,1.0);
     p->omega_update(p,a,pgc,u,v,w);
     
     ULOOP
@@ -149,7 +149,7 @@ void nhflow_fsf_f::step2(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field 
     pflow->eta_relax(p,pgc,etark2);
     pgc->gcsl_start4(p,a->eta,1);
     
-    p->sigma_update(p,a,pgc,etark2);
+    p->sigma_update(p,a,pgc,etark2,0.25);
     p->omega_update(p,a,pgc,u,v,w);
     
     ULOOP
@@ -184,7 +184,7 @@ void nhflow_fsf_f::step3(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field 
     pflow->eta_relax(p,pgc,a->eta);
     pgc->gcsl_start4(p,a->eta,1);
     
-    p->sigma_update(p,a,pgc,a->eta);
+    p->sigma_update(p,a,pgc,a->eta,2.0/3.0);
     p->omega_update(p,a,pgc,u,v,w);
     
     ULOOP

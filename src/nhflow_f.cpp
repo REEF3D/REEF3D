@@ -58,7 +58,6 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w)
 	w(i,j,k+q+1) = wval;
     }
     
-    
 
     k=0;
     GCSL4LOOP
@@ -70,7 +69,6 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w)
 	for(q=0;q<margin;++q)
 	w(i,j,k-q-1) = 0.0;
     }
-
 }
 
 

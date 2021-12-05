@@ -311,7 +311,6 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     
     SLICELOOP4
     {
-    a->WL_n(i,j) = a->WL(i,j);
     a->eta_n(i,j) = a->eta(i,j);
     }
 }

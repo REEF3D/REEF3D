@@ -85,7 +85,7 @@ void driver::driver_ini_nhflow()
     
     // sigma ini
     p->sigma_ini(p,a,pgc,a->eta);
-    p->sigma_update(p,a,pgc,a->eta);
+    p->sigma_update(p,a,pgc,a->eta,1.0);
 
     
     //ioflow ini
@@ -144,7 +144,7 @@ void driver::driver_ini_nhflow()
     
 	pgc->start4(p,a->press,40);
 	
-    p->sigma_update(p,a,pgc,a->eta);
+    p->sigma_update(p,a,pgc,a->eta,1.0);
     pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
 
 
