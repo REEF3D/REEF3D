@@ -157,19 +157,19 @@ void pjm_fsm::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, fi
 	pgc->start3(p,w,gcval_w);
 }
 
-void pjm_fsm::upgrad(lexer*p,fdm* a)
+void pjm_fsm::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
     ULOOP
     a->F(i,j,k)-=PORVAL1*(a->press(i+1,j,k)-a->press(i,j,k))/(p->DXM*pd->roface(p,a,1,0,0));
 }
 
-void pjm_fsm::vpgrad(lexer*p,fdm* a)
+void pjm_fsm::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
     VLOOP
     a->G(i,j,k)-=PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))/(p->DXM*pd->roface(p,a,0,1,0));
 }
 
-void pjm_fsm::wpgrad(lexer*p,fdm* a)
+void pjm_fsm::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
     WLOOP
     a->H(i,j,k)-=PORVAL3*(a->press(i,j,k+1)-a->press(i,j,k))/(p->DXM*pd->roface(p,a,0,0,1));

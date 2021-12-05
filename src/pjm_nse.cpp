@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"pjm_nse.h"
+#include"pjm_nse.h"
 #include"lexer.h"
 #include"fdm.h" 
 #include"ghostcell.h"
@@ -275,7 +275,7 @@ void pjm_nse::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, fi
 	pgc->start3(p,w,gcval_w);
 }
 
-void pjm_nse::upgrad(lexer*p,fdm* a)
+void pjm_nse::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
     //dp/dx = g*d(eta-z)/dx
     
@@ -292,7 +292,7 @@ void pjm_nse::upgrad(lexer*p,fdm* a)
     }
 }
 
-void pjm_nse::vpgrad(lexer*p,fdm* a)
+void pjm_nse::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
     if(p->D38==1)
     VLOOP
@@ -307,7 +307,7 @@ void pjm_nse::vpgrad(lexer*p,fdm* a)
     }
 }
 
-void pjm_nse::wpgrad(lexer*p,fdm* a)
+void pjm_nse::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
     /*
     double z1,z2;

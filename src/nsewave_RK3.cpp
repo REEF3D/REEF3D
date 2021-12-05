@@ -47,10 +47,7 @@ nsewave_RK3::nsewave_RK3(lexer *p, fdm *a, ghostcell *pgc, heat *&pheat, concent
     gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;
-	
-	gcval_urk=20;
-	gcval_vrk=21;
-	gcval_wrk=22;
+
     
     if(p->F50==1)
 	gcval_phi=51;
@@ -106,7 +103,7 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	pturb->isource(p,a);
 	pflow->isource(p,a,pgc,pvrans); 
 	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
-	ppress->upgrad(p,a);
+	ppress->upgrad(p,a,a->eta,a->eta_n);
 	irhs(p,a,pgc,a->u,a->u,a->v,a->w,1.0);
 	pconvec->start(p,a,a->u,1,a->u,a->v,a->w);
 	pdiff->diff_u(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
@@ -123,7 +120,7 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	pturb->jsource(p,a);
 	pflow->jsource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
-	ppress->vpgrad(p,a);
+	ppress->vpgrad(p,a,a->eta,a->eta_n);
 	jrhs(p,a,pgc,a->v,a->u,a->v,a->w,1.0);
 	pconvec->start(p,a,a->v,2,a->u,a->v,a->w);
 	pdiff->diff_v(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
@@ -140,7 +137,7 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	pturb->ksource(p,a);
 	pflow->ksource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
-	ppress->wpgrad(p,a);
+	ppress->wpgrad(p,a,a->eta,a->eta_n);
 	krhs(p,a,pgc,a->w,a->u,a->v,a->w,1.0);
 	pconvec->start(p,a,a->w,3,a->u,a->v,a->w);
 	pdiff->diff_w(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
@@ -151,9 +148,9 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	
     p->wtime=pgc->timer()-starttime;
 
-	pgc->start1(p,urk1,gcval_urk);
-	pgc->start2(p,vrk1,gcval_vrk);
-	pgc->start3(p,wrk1,gcval_wrk);
+	pgc->start1(p,urk1,gcval_u);
+	pgc->start2(p,vrk1,gcval_v);
+	pgc->start3(p,wrk1,gcval_w);
 
 	
     pflow->pressure_io(p,a,pgc);
@@ -164,9 +161,9 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	pflow->w_relax(p,a,pgc,wrk1);
 	pflow->p_relax(p,a,pgc,a->press);
 
-	pgc->start1(p,urk1,gcval_urk);
-	pgc->start2(p,vrk1,gcval_vrk);
-	pgc->start3(p,wrk1,gcval_wrk);
+	pgc->start1(p,urk1,gcval_u);
+	pgc->start2(p,vrk1,gcval_v);
+	pgc->start3(p,wrk1,gcval_w);
     
     // Calculate Eta
     eta_disc(p,a,pgc,urk1,vrk1);
@@ -192,7 +189,7 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	pturb->isource(p,a);
 	pflow->isource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
-	ppress->upgrad(p,a);
+	ppress->upgrad(p,a,a->eta,a->eta_n);
 	irhs(p,a,pgc,urk1,urk1,vrk1,wrk1,0.25);
 	pconvec->start(p,a,urk1,1,urk1,vrk1,wrk1);
 	pdiff->diff_u(p,a,pgc,psolv,urk1,vrk1,wrk1,0.25);
@@ -209,7 +206,7 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	pturb->jsource(p,a);
 	pflow->jsource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
-	ppress->vpgrad(p,a);
+	ppress->vpgrad(p,a,a->eta,a->eta_n);
 	jrhs(p,a,pgc,vrk1,urk1,vrk1,wrk1,0.25);
 	pconvec->start(p,a,vrk1,2,urk1,vrk1,wrk1);
 	pdiff->diff_v(p,a,pgc,psolv,urk1,vrk1,wrk1,80.25);
@@ -226,7 +223,7 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	pturb->ksource(p,a);
 	pflow->ksource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
-	ppress->wpgrad(p,a);
+	ppress->wpgrad(p,a,a->eta,a->eta_n);
 	krhs(p,a,pgc,wrk1,urk1,vrk1,wrk1,0.25);
 	pconvec->start(p,a,wrk1,3,urk1,vrk1,wrk1);
 	pdiff->diff_w(p,a,pgc,psolv,urk1,vrk1,wrk1,0.25);
@@ -237,9 +234,9 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 
     p->wtime+=pgc->timer()-starttime;
 
-	pgc->start1(p,urk2,gcval_urk);
-	pgc->start2(p,vrk2,gcval_vrk);
-	pgc->start3(p,wrk2,gcval_wrk);
+	pgc->start1(p,urk2,gcval_u);
+	pgc->start2(p,vrk2,gcval_v);
+	pgc->start3(p,wrk2,gcval_w);
 	
     pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, urk2, vrk2, wrk2,0.25);
@@ -249,9 +246,9 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	pflow->w_relax(p,a,pgc,wrk2);
 	pflow->p_relax(p,a,pgc,a->press);
 	
-	pgc->start1(p,urk2,gcval_urk);
-	pgc->start2(p,vrk2,gcval_vrk);
-	pgc->start3(p,wrk2,gcval_wrk);
+	pgc->start1(p,urk2,gcval_u);
+	pgc->start2(p,vrk2,gcval_v);
+	pgc->start3(p,wrk2,gcval_w);
     
     // Calculate Eta
     eta_disc(p,a,pgc,urk2,vrk2);
@@ -276,7 +273,7 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	pturb->isource(p,a);
 	pflow->isource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
-	ppress->upgrad(p,a);
+	ppress->upgrad(p,a,a->eta,a->eta_n);
 	irhs(p,a,pgc,urk2,urk2,vrk2,wrk2,2.0/3.0);
 	pconvec->start(p,a,urk2,1,urk2,vrk2,wrk2);
 	pdiff->diff_u(p,a,pgc,psolv,urk2,vrk2,wrk2,2.0/3.0);
@@ -293,7 +290,7 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	pturb->jsource(p,a);
 	pflow->jsource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
-	ppress->vpgrad(p,a);
+	ppress->vpgrad(p,a,a->eta,a->eta_n);
 	jrhs(p,a,pgc,vrk2,urk2,vrk2,wrk2,2.0/3.0);
 	pconvec->start(p,a,vrk2,2,urk2,vrk2,wrk2);
 	pdiff->diff_v(p,a,pgc,psolv,urk2,vrk2,wrk2,2.0/3.0);
@@ -310,7 +307,7 @@ void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
 	pturb->ksource(p,a);
 	pflow->ksource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
-	ppress->wpgrad(p,a);
+	ppress->wpgrad(p,a,a->eta,a->eta_n);
 	krhs(p,a,pgc,wrk2,urk2,vrk2,wrk2,2.0/3.0);
 	pconvec->start(p,a,wrk2,3,urk2,vrk2,wrk2);
 	pdiff->diff_w(p,a,pgc,psolv,urk2,vrk2,wrk2,2.0/3.0);

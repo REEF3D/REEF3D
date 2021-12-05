@@ -46,9 +46,9 @@ public:
 	virtual void ucorr(lexer*,fdm*,field&,double);
 	virtual void vcorr(lexer*,fdm*,field&,double);
 	virtual void wcorr(lexer*,fdm*,field&,double);
-	virtual void upgrad(lexer*,fdm*);
-	virtual void vpgrad(lexer*,fdm*);
-    virtual void wpgrad(lexer*,fdm*);
+	virtual void upgrad(lexer*,fdm*,slice&,slice&);
+	virtual void vpgrad(lexer*,fdm*,slice&,slice&);
+    virtual void wpgrad(lexer*,fdm*,slice&,slice&);
 
 private:    
     void debug(lexer*,fdm*,ghostcell*,field&,field&,field&,double);

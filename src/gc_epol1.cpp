@@ -29,7 +29,7 @@ int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
 
     // Parallel
 	//Wall
-	if((bc==21||bc==22||(bc==7&&awa_lable==0))&&(cs==2||cs==3||cs==5||cs==6)&&(gcv==10||gcv==1||gcv==20))
+	if((bc==21||bc==22||(bc==7&&awa_lable==0))&&(cs==2||cs==3||cs==5||cs==6)&&(gcv==10||gcv==1))
 	return gclabel_u;
 	
 	if((bc==21||bc==22||(bc==7&&awa_lable==0))&&(cs==2||cs==3||cs==5||cs==6)&&(gcv==110))
@@ -39,7 +39,7 @@ int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
 	return gclabel_u;
     
     // Topo
-    if((bc==5)&&(cs==2||cs==3||cs==5||cs==6)&&(gcv==10||gcv==1||gcv==20))
+    if((bc==5)&&(cs==2||cs==3||cs==5||cs==6)&&(gcv==10||gcv==1))
 	return gclabel_utopo;
 	
 	if((bc==5)&&(cs==2||cs==3||cs==5||cs==6)&&(gcv==110))
@@ -54,7 +54,7 @@ int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
 	
     // Orthogonal
 	else
-	if((bc==21||bc==22||bc==5||(bc==7&&awa_lable==0))&&(cs==1||cs==4)&&(gcv==10||gcv==20||gcv==1))
+	if((bc==21||bc==22||bc==5||(bc==7&&awa_lable==0))&&(cs==1||cs==4)&&(gcv==10||gcv==1))
 	return gclabel_u_orth;
 
 	else
@@ -62,40 +62,36 @@ int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
 	return gclabel_vel;
 
 //Inflow
-	else
-	if((bc==1 && (gcv==20)))
-	return 4;
-    
     else
-	if((bc==6 && (cs==1||cs==4) && (gcv==10||gcv==20||gcv==1||gcv==7)))
+	if((bc==6 && (cs==1||cs==4) && (gcv==10||gcv==1||gcv==7)))
 	return gclabel_u_in;   
 
 //Patch    
     else
-	if((bc==111 || bc==112 || bc==121 || bc==122) && (gcv==10||gcv==1||gcv==20||gcv==7))
+	if((bc==111 || bc==112 || bc==121 || bc==122) && (gcv==10||gcv==1||gcv==7))
 	return 4;
     
 	
 //Outflow
 	else
-	if((bc==2 && gclabel_outflow==1) && (gcv==10||gcv==20||gcv==1) && (cs==2||cs==3||cs==5||cs==6))
+	if((bc==2 && gclabel_outflow==1) && (gcv==10||gcv==1) && (cs==2||cs==3||cs==5||cs==6))
 	return 4;
 	
 	else
-	if((bc==2 && gclabel_outflow==1) && (gcv==10||gcv==20||gcv==1) && (cs==1||cs==4))
+	if((bc==2 && gclabel_outflow==1) && (gcv==10||gcv==1) && (cs==1||cs==4))
 	return gclabel_u_out;
 
 //Free Surface
 	else
-	if(bc==3 && (cs==2||cs==3||cs==5||cs==6) && (gcv==10||gcv==20||gcv==17||gcv==1))
+	if(bc==3 && (cs==2||cs==3||cs==5||cs==6) && (gcv==10||gcv==17||gcv==1))
 	return 4;
 
 	else
-	if(bc==3 && (cs==1||cs==4)&&(gcv==10||gcv==20||gcv==17||gcv==1))
+	if(bc==3 && (cs==1||cs==4)&&(gcv==10||gcv==17||gcv==1))
 	return gclabel_u_orth;
 	
 	else
-	if((bc==9) && cs==6 && (gcv==10||gcv==20||gcv==17||gcv==1))
+	if((bc==9) && cs==6 && (gcv==10||gcv==17||gcv==1))
 	return 4;
 	
 // 6DOF

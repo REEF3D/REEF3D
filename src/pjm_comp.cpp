@@ -186,15 +186,15 @@ void pjm_comp::density_ini(lexer*p,fdm* a, ghostcell *pgc)
     }
 }
 
-void pjm_comp::upgrad(lexer*p,fdm* a)
+void pjm_comp::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
 }
 
-void pjm_comp::vpgrad(lexer*p,fdm* a)
+void pjm_comp::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
 }
 
-void pjm_comp::wpgrad(lexer*p,fdm* a)
+void pjm_comp::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
 }
 

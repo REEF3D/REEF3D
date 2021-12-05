@@ -38,9 +38,6 @@ sflow_momentum_AB2::sflow_momentum_AB2(lexer *p, fdm2D *b, sflow_convection *pco
 	gcval_u=10;
 	gcval_v=11;
 
-	gcval_urk=20;
-	gcval_vrk=21;
-
 	pconvec=pconvection;
 	pdiff=ppdiff;
 	ppress=ppressure;

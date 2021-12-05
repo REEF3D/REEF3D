@@ -190,19 +190,19 @@ void pjm_corr::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, f
 	pgc->start3(p,w,gcval_w);
 }
 
-void pjm_corr::upgrad(lexer*p,fdm* a)
+void pjm_corr::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
     ULOOP
     a->F(i,j,k)-=PORVAL1*(a->press(i+1,j,k)-a->press(i,j,k))/(p->DXP[IP]*pd->roface(p,a,1,0,0));
 }
 
-void pjm_corr::vpgrad(lexer*p,fdm* a)
+void pjm_corr::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
     VLOOP
     a->G(i,j,k)-=PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))/(p->DYP[JP]*pd->roface(p,a,0,1,0));
 }
 
-void pjm_corr::wpgrad(lexer*p,fdm* a)
+void pjm_corr::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
     WLOOP
     a->H(i,j,k)-=PORVAL3*(a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1));

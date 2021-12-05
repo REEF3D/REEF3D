@@ -88,7 +88,7 @@ private:
     solver *ppoissonsolv;
 	ioflow *pflow;    
     
-	int gcval_u, gcval_v, gcval_w, gcval_urk, gcval_vrk, gcval_wrk;
+	int gcval_u, gcval_v, gcval_w;
 
     Eigen::Vector3d alpha, gamma, zeta;
 

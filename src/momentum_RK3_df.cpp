@@ -57,10 +57,6 @@ momentum_RK3_df::momentum_RK3_df
 	gcval_v=11;
 	gcval_w=12;
 	
-	gcval_urk=20;
-	gcval_vrk=21;
-	gcval_wrk=22;
-
 	pconvec=pconvection;
 	pdiff=pdiffusion;
 	ppress=ppressure;
@@ -107,7 +103,7 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         pturb->isource(p,a);
         pflow->isource(p,a,pgc,pvrans); 
         bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
-        ppress->upgrad(p,a);
+        ppress->upgrad(p,a,a->eta,a->eta_n);
         irhs(p,a,pgc,a->u,a->u,a->v,a->w,2.0*alpha(loop));
         pdiff->diff_u(p,a,pgc,psolv,urk,a->u,a->v,a->w,2.0*alpha(loop));
 
@@ -138,7 +134,7 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         pturb->jsource(p,a);
         pflow->jsource(p,a,pgc,pvrans);
         bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
-        ppress->vpgrad(p,a);
+        ppress->vpgrad(p,a,a->eta,a->eta_n);
         jrhs(p,a,pgc,a->v,a->u,a->v,a->w,2.0*alpha(loop));
         pdiff->diff_v(p,a,pgc,psolv,vrk,a->u,a->v,a->w,2.0*alpha(loop));
         
@@ -168,7 +164,7 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         pturb->ksource(p,a);
         pflow->ksource(p,a,pgc,pvrans);
         bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
-        ppress->wpgrad(p,a);
+        ppress->wpgrad(p,a,a->eta,a->eta_n);
         krhs(p,a,pgc,a->w,a->u,a->v,a->w,2.0*alpha(loop));
         pdiff->diff_w(p,a,pgc,psolv,wrk,a->u,a->v,a->w,2.0*alpha(loop));
 
@@ -190,9 +186,9 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
 
         p->wtime=pgc->timer()-starttime;
 
-        pgc->start1(p,urk,gcval_urk);
-        pgc->start2(p,vrk,gcval_vrk);
-        pgc->start3(p,wrk,gcval_wrk);
+        pgc->start1(p,urk,gcval_u);
+        pgc->start2(p,vrk,gcval_v);
+        pgc->start3(p,wrk,gcval_w);
 
 
         // Forcing
@@ -234,9 +230,9 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         pflow->w_relax(p,a,pgc,a->w);
         pflow->p_relax(p,a,pgc,a->press);
 
-        pgc->start1(p,a->u,gcval_urk);
-        pgc->start2(p,a->v,gcval_vrk);
-        pgc->start3(p,a->w,gcval_wrk);
+        pgc->start1(p,a->u,gcval_u);
+        pgc->start2(p,a->v,gcval_v);
+        pgc->start3(p,a->w,gcval_w);
     }
 
 
@@ -366,9 +362,9 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
 
         p->wtime=pgc->timer()-starttime;
 
-        pgc->start1(p,urk,gcval_urk);
-        pgc->start2(p,vrk,gcval_vrk);
-        pgc->start3(p,wrk,gcval_wrk);
+        pgc->start1(p,urk,gcval_u);
+        pgc->start2(p,vrk,gcval_v);
+        pgc->start3(p,wrk,gcval_w);
 
 
         // Forcing
@@ -397,9 +393,9 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         WLOOP
         wrk(i,j,k) += 2.0*alpha(loop)*p->dt*CPOR3*fz(i,j,k) - alpha(loop)*p->dt*CPOR3*Dw(i,j,k);
 
-        pgc->start1(p,urk,gcval_urk);
-        pgc->start2(p,vrk,gcval_vrk);
-        pgc->start3(p,wrk,gcval_wrk);
+        pgc->start1(p,urk,gcval_u);
+        pgc->start2(p,vrk,gcval_v);
+        pgc->start3(p,wrk,gcval_w);
         
 
         // Second-order diffusion
@@ -421,9 +417,9 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         pflow->w_relax(p,a,pgc,a->w);
         pflow->p_relax(p,a,pgc,a->press);
 
-        pgc->start1(p,a->u,gcval_urk);
-        pgc->start2(p,a->v,gcval_vrk);
-        pgc->start3(p,a->w,gcval_wrk);
+        pgc->start1(p,a->u,gcval_u);
+        pgc->start2(p,a->v,gcval_v);
+        pgc->start3(p,a->w,gcval_w);
     }*/
 }
 

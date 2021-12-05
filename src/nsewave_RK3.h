@@ -69,7 +69,6 @@ private:
     double phival,H;
     const double epsi;
     int gcval_u, gcval_v, gcval_w;
-	int gcval_urk, gcval_vrk, gcval_wrk;
     
     slice1 P;
     slice2 Q;

@@ -227,15 +227,15 @@ void pjm_IMEX::pressure_norm(lexer*p, fdm* a, ghostcell* pgc)
     cout<<"Pressure splitting error = "<<" "<<sqrt(sum1/sum2)<<endl;
 }
 
-void pjm_IMEX::upgrad(lexer*p,fdm* a)
+void pjm_IMEX::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
 }
 
-void pjm_IMEX::vpgrad(lexer*p,fdm* a)
+void pjm_IMEX::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
 }
 
-void pjm_IMEX::wpgrad(lexer*p,fdm* a)
+void pjm_IMEX::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
 }
 

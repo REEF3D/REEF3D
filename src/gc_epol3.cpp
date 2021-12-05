@@ -28,7 +28,7 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
     
     // Parallel
 	// Wall
-	if((bc==21||bc==22||(bc==7&&awa_lable==0))&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==12||gcv==22||gcv==3))
+	if((bc==21||bc==22||(bc==7&&awa_lable==0))&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==12||gcv==3))
 	return gclabel_w;
 	
 	if((bc==21||bc==22||(bc==7&&awa_lable==0))&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==112))
@@ -38,7 +38,7 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
 	return gclabel_w;
     
     // Topo
-    if((bc==5)&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==12||gcv==22||gcv==3))
+    if((bc==5)&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==12||gcv==3))
 	return gclabel_wtopo;
 	
 	if((bc==5)&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==112))
@@ -53,15 +53,15 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
 	
     // Othogonal
 	else
-	if((bc==21||bc==22||bc==5||(bc==7&&awa_lable==0))&&(cs==6)&&(gcv==12||gcv==22||gcv==3))
+	if((bc==21||bc==22||bc==5||(bc==7&&awa_lable==0))&&(cs==6)&&(gcv==12||gcv==3))
 	return gclabel_w_orth;
     
     else
-	if((bc==21||bc==22||bc==5||(bc==7&&awa_lable==0))&&(cs==5)&&(gcv==12||gcv==22||gcv==3)&&p->A10==6)
+	if((bc==21||bc==22||bc==5||(bc==7&&awa_lable==0))&&(cs==5)&&(gcv==12||gcv==3)&&p->A10==6)
 	return gclabel_w_orth;
     
     else
-	if((bc==21||bc==22||bc==5||(bc==7&&awa_lable==0))&&(cs==5)&&(gcv==12||gcv==22||gcv==3)&&p->A10==5)
+	if((bc==21||bc==22||bc==5||(bc==7&&awa_lable==0))&&(cs==5)&&(gcv==12||gcv==3)&&p->A10==5)
 	return gclabel_w_orth;
 
 	else
@@ -69,49 +69,44 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
 	return gclabel_vel;
 
 //Inflow	
-	else
-	if(bc==1 && (gcv==22))
-	return 4;	
-    
     else
-	if((bc==6 && (gcv==12||gcv==22||gcv==3||gcv==9)))
+	if((bc==6 && (gcv==12||gcv==3||gcv==9)))
 	return gclabel_w_in;
 	
 //Outflow
-
 	else
-	if((bc==2 && gclabel_outflow==1) && (gcv==12||gcv==22||gcv==3) && (cs==2||cs==3||cs==1||cs==4))
+	if((bc==2 && gclabel_outflow==1) && (gcv==12||gcv==3) && (cs==2||cs==3||cs==1||cs==4))
 	return 4;
 	
 	else
-	if((bc==2 && gclabel_outflow==1) && (gcv==12||gcv==22||gcv==3) && (cs==5||cs==6))
+	if((bc==2 && gclabel_outflow==1) && (gcv==12||gcv==3) && (cs==5||cs==6))
 	return gclabel_w_out;
     
 //Patch    
     else
-	if((bc==111 || bc==112 || bc==121 || bc==122) && (gcv==12||gcv==3||gcv==22||gcv==9))
+	if((bc==111 || bc==112 || bc==121 || bc==122) && (gcv==12||gcv==3||gcv==9))
 	return 4;
 
 //Free Surface
 
 	else
-	if((bc==3) && (cs==2||cs==3||cs==1||cs==4) && (gcv==12||gcv==22||gcv==19 || gcv==3))
+	if((bc==3) && (cs==2||cs==3||cs==1||cs==4) && (gcv==12||gcv==19 || gcv==3))
 	return 4;
 
 	else
-	if(bc==3 && (cs==5||cs==6)&&(gcv==12||gcv==22||gcv==19 || gcv==3) && p->A10!=3 && p->A10!=55)
+	if(bc==3 && (cs==5||cs==6)&&(gcv==12||gcv==19 || gcv==3) && p->A10!=3 && p->A10!=55)
 	return 5;
     
     else
-	if(bc==3 && (cs==5||cs==6)&&(gcv==12||gcv==22||gcv==19 || gcv==3) && p->A10==3)
+	if(bc==3 && (cs==5||cs==6)&&(gcv==12||gcv==19 || gcv==3) && p->A10==3)
 	return 4;
     
     else
-	if(bc==3 && (cs==5||cs==6)&&(gcv==12||gcv==22||gcv==19||gcv==3||gcv==112) && p->A10==55)
+	if(bc==3 && (cs==5||cs==6)&&(gcv==12||gcv==19||gcv==3||gcv==112) && p->A10==55)
 	return 9;
 	
 	else
-	if(bc==9 && cs==6 && (gcv==12||gcv==22||gcv==19 || gcv==3))
+	if(bc==9 && cs==6 && (gcv==12||gcv==19 || gcv==3))
 	return 4;
 
 // 6DOF

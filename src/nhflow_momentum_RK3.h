@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"field1.h"
 #include"field2.h"
 #include"field3.h"
+#include"slice4.h"
 
 class convection;
 class diffusion;
@@ -54,6 +55,8 @@ public:
     field1 udiff,urk1,urk2;
 	field2 vdiff,vrk1,vrk2;
 	field3 wdiff,wrk1,wrk2;
+    
+    slice4 etark1,etark2;
 
 private:
     fluid_update *pupdate;
@@ -65,7 +68,6 @@ private:
     void timecheck(lexer*,fdm*,ghostcell*,field&,field&,field&);
     
 	int gcval_u, gcval_v, gcval_w;
-	int gcval_urk, gcval_vrk, gcval_wrk;
 	double starttime;
 
 	convection *pconvec;

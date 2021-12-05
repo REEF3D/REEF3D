@@ -149,15 +149,15 @@ void pjm_hydrostatic::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, fiel
 	pgc->start3(p,w,gcval_w);
 }
 
-void pjm_hydrostatic::upgrad(lexer*p,fdm* a)
+void pjm_hydrostatic::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
 }
 
-void pjm_hydrostatic::vpgrad(lexer*p,fdm* a)
+void pjm_hydrostatic::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
 }
 
-void pjm_hydrostatic::wpgrad(lexer*p,fdm* a)
+void pjm_hydrostatic::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
 }
 

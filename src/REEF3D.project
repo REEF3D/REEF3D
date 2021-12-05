@@ -2080,6 +2080,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Sigma">
+          <File Name="grid_sigma_update.cpp"/>
           <File Name="grid_sigma_data.cpp"/>
           <File Name="grid_sigma.cpp"/>
         </VirtualDirectory>

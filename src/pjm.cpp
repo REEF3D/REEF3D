@@ -143,15 +143,15 @@ void pjm::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field 
 	pgc->start3(p,w,gcval_w);
 }
 
-void pjm::upgrad(lexer*p,fdm* a)
+void pjm::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
 }
 
-void pjm::vpgrad(lexer*p,fdm* a)
+void pjm::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
 }
 
-void pjm::wpgrad(lexer*p,fdm* a)
+void pjm::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
 }
 

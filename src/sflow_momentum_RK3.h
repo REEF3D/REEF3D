@@ -56,7 +56,7 @@ private:
 	void jrhs(lexer*,fdm2D*,ghostcell*,slice&,double);
 	
 	int gcval_u, gcval_v, gcval_w;
-	int gcval_urk, gcval_vrk, gcval_wrk,gcval_eta;
+	int gcval_eta;
 	double starttime;
 
 	sflow_convection *pconvec;

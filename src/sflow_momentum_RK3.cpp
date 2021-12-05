@@ -45,10 +45,6 @@ sflow_momentum_RK3::sflow_momentum_RK3(lexer *p, fdm2D *b, sflow_convection *pco
 	gcval_v=11;
     gcval_w=12;
 
-	gcval_urk=20;
-	gcval_vrk=21;
-    gcval_wrk=12;
-
     if(p->F50==1)
 	gcval_eta = 51;
 
@@ -135,7 +131,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	Prk1(i,j) = b->P(i,j)
 				+ p->dt*b->F(i,j);
 
-	pgc->gcsl_start1(p,Prk1,gcval_urk);
+	pgc->gcsl_start1(p,Prk1,gcval_u);
 
 
     p->utime=pgc->timer()-starttime;
@@ -156,7 +152,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	Qrk1(i,j) = b->Q(i,j)
 			  + p->dt*b->G(i,j);
 
-	pgc->gcsl_start2(p,Qrk1,gcval_vrk);
+	pgc->gcsl_start2(p,Qrk1,gcval_v);
 
     p->vtime=pgc->timer()-starttime;
 
@@ -184,9 +180,9 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	pflow->vm_relax(p,pgc,Qrk1,b->bed,b->eta);
     pflow->wm_relax(p,pgc,wrk1,b->bed,b->eta);
 
-	pgc->gcsl_start1(p,Prk1,gcval_urk);
-	pgc->gcsl_start2(p,Qrk1,gcval_vrk);
-    pgc->gcsl_start4(p,wrk1,gcval_wrk);
+	pgc->gcsl_start1(p,Prk1,gcval_u);
+	pgc->gcsl_start2(p,Qrk1,gcval_v);
+    pgc->gcsl_start4(p,wrk1,gcval_w);
 
 //Step 2
 //--------------------------------------------------------
@@ -228,7 +224,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 			  + 0.25*p->dt*b->F(i,j);
 
 
-	pgc->gcsl_start1(p,Prk2,gcval_urk);
+	pgc->gcsl_start1(p,Prk2,gcval_u);
 
     p->utime+=pgc->timer()-starttime;
 
@@ -248,7 +244,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	Qrk2(i,j) = 0.75*b->Q(i,j) + 0.25*Qrk1(i,j)
 			  + 0.25*p->dt*b->G(i,j);
 
-	pgc->gcsl_start2(p,Qrk2,gcval_vrk);
+	pgc->gcsl_start2(p,Qrk2,gcval_v);
 
 	p->vtime+=pgc->timer()-starttime;
 
@@ -275,9 +271,9 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	pflow->vm_relax(p,pgc,Qrk2,b->bed,b->eta);
     pflow->wm_relax(p,pgc,wrk2,b->bed,b->eta);
 
-	pgc->gcsl_start1(p,Prk2,gcval_urk);
-	pgc->gcsl_start2(p,Qrk2,gcval_vrk);
-    pgc->gcsl_start4(p,wrk2,gcval_wrk);
+	pgc->gcsl_start1(p,Prk2,gcval_u);
+	pgc->gcsl_start2(p,Qrk2,gcval_v);
+    pgc->gcsl_start4(p,wrk2,gcval_w);
 
 //Step 3
 //--------------------------------------------------------
