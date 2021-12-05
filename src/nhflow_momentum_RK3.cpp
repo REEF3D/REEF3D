@@ -79,7 +79,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 //--------------------------------------------------------
 
     pnhfsf->step1(p, a, pgc, pflow, a->u, a->v, a->w, etark1, etark2, 1.0);
-    p->omega_update(p,a,pgc,a->u,a->v,a->w);
+    //p->omega_update(p,a,pgc,a->u,a->v,a->w);
     
 	// U
 	starttime=pgc->timer();
@@ -157,7 +157,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 //--------------------------------------------------------
 	
     pnhfsf->step2(p, a, pgc, pflow, urk1, vrk1, wrk1, etark1, etark2, 0.25);
-    p->omega_update(p,a,pgc,urk1,vrk1,wrk1);
+    //p->omega_update(p,a,pgc,urk1,vrk1,wrk1);
     
 	// U
 	starttime=pgc->timer();
@@ -235,7 +235,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 //--------------------------------------------------------
     
     pnhfsf->step3(p, a, pgc, pflow, urk2, vrk2, wrk2, etark1, etark2, 2.0/3.0);
-    p->omega_update(p,a,pgc,urk2,vrk2,wrk2);
+    //p->omega_update(p,a,pgc,urk2,vrk2,wrk2);
     
 	// U
 	starttime=pgc->timer();
@@ -308,6 +308,9 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     pnh->kinematic_fsf(p,a,a->u,a->v,a->w);
     
     pupdate->start(p,a,pgc);
+    
+    LOOP
+    a->test(i,j,k) = a->omega(i,j,k);
 }
 
 void nhflow_momentum_RK3::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)

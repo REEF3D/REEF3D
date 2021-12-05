@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"nsewave_RK3.h"
 #include"nhflow_fsf.h"
 #include"nhflow_fsf_f.h"
+#include"nhflow_fsf_fsm.h"
 #include"nhflow_fsf_v.h"
 #include"nhflow.h"
 #include"nhflow_f.h"

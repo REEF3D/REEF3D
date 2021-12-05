@@ -37,5 +37,8 @@ void ghostcell::kinematic_fsf(lexer *p,field& f,double dist,int gcv, int bc, int
 
 	for(q=0;q<margin;++q)
 	f(i,j,k+q+1)= wval;
+    
+    
+    //cout<<"KINEMATIC FSF"<<endl;
 }
 

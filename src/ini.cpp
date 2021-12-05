@@ -88,6 +88,10 @@ void lexer::ini_default()
 
     A410=1;      // int scheme eta
     A440=1.6;    // double epsi for depth integration
+    
+    A510=3;      // int NFHLOW time scheme
+    A540=1;      // int NFHLOW fsf scheme
+    A541=1;      // int NFHLOW fsf discretization
 
     // Boundary Conditions
 	B10=0;			// int wall laws velocities on/off

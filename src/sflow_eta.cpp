@@ -58,13 +58,13 @@ sflow_eta::sflow_eta(lexer *p, fdm2D *b , ghostcell *pgc, patchBC_interface *ppB
 	pconvec = new sflow_eta_weno(p);
 	
 	if(p->A241==1)
-	phxy = new sflow_hxy_fou(p,b,pBC);
+	phxy = new sflow_hxy_fou(p,pBC);
 	
 	if(p->A241==2)
-	phxy = new sflow_hxy_cds(p,b,pBC);
+	phxy = new sflow_hxy_cds(p,pBC);
 	
 	if(p->A241==4)
-	phxy = new sflow_hxy_weno(p,b,pBC);
+	phxy = new sflow_hxy_weno(p,pBC);
     
     wd_criterion=0.00005;
     
@@ -148,7 +148,7 @@ void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slic
     
 	pgc->gcsl_start4(p,b->hp,gcval_eta);
 	
-	phxy->start(p,b->hx,b->hy,b->depth,etark,P,Q);
+	phxy->start(p,b->hx,b->hy,b->depth,b->wet4,etark,P,Q);
     
     
     SLICELOOP1

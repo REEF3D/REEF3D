@@ -55,7 +55,7 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w)
          + 0.5*(v(i,j,k)+v(i,j-1,k))*((a->eta(i,j+1)-a->eta(i,j-1))/(2.0*p->DYP[JP]));
 
 	for(q=0;q<margin;++q)
-	w(i,j,k+q+1) = wval;
+	w(i,j,k+q+1) = w(i,j,k);//wval;
     }
     
 

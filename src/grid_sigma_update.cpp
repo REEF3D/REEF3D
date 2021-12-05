@@ -224,6 +224,8 @@ void grid_sigma::omega_update(lexer *p, fdm *a, ghostcell *pgc, field &u, field 
                     +  0.5*(w(i,j,k-1) + w(i,j,k))*p->sigz[IJ];
                     
     }
+    
+    pgc->start4(p,a->omega,1);
 }
 
 

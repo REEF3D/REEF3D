@@ -253,6 +253,7 @@
           <File Name="nhflow_momentum_RK3.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <File Name="nhflow_fsf_fsm.h"/>
           <File Name="nhflow_fsf_v.h"/>
           <File Name="nhflow_fsf_f.h"/>
           <File Name="nhflow_fsf.h"/>
@@ -1217,6 +1218,7 @@
           <File Name="nhflow_momentum_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <File Name="nhflow_fsf_fsm.cpp"/>
           <File Name="nhflow_fsf_v.cpp"/>
           <File Name="nhflow_fsf_f.cpp"/>
         </VirtualDirectory>

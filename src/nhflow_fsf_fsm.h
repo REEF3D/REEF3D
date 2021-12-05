@@ -36,14 +36,14 @@ class patchBC_interface;
 
 using namespace std;
 
-#ifndef NHFLOW_FSF_F_H_
-#define NHFLOW_FSF_F_H_
+#ifndef NHFLOW_FSF_FSM_H_
+#define NHFLOW_FSF_FSM_H_
 
-class nhflow_fsf_f : public nhflow_fsf, public increment
+class nhflow_fsf_fsm : public nhflow_fsf, public increment
 {
 public:
-    nhflow_fsf_f(lexer*, fdm*, ghostcell*,ioflow*,patchBC_interface*);
-	virtual ~nhflow_fsf_f();
+    nhflow_fsf_fsm(lexer*, fdm*, ghostcell*,ioflow*,patchBC_interface*);
+	virtual ~nhflow_fsf_fsm();
     
     virtual void start(lexer*, fdm*, ghostcell*, ioflow*);
     virtual void ini(lexer*, fdm*, ghostcell*, ioflow*);
@@ -69,8 +69,6 @@ private:
     double phival,H;
 	double d;
     const double epsi;
-	
-	
 
 };
 

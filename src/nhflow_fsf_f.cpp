@@ -28,10 +28,25 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"heat.h"
 #include"concentration.h"
 #include"momentum.h"
+#include"sflow_hxy_weno.h"
+#include"sflow_hxy_cds.h"
+#include"sflow_hxy_fou.h"
+#include"patchBC_interface.h"
 
-nhflow_fsf_f::nhflow_fsf_f(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow) : epsi(p->A440*p->DXM)
+nhflow_fsf_f::nhflow_fsf_f(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, patchBC_interface *ppBC) : epsi(p->A440*p->DXM), hx(p), hy(p)
 {
+    pBC = ppBC;
+    
 	pupdate = new fluid_update_void();
+    
+    if(p->A541==1)
+	phxy = new sflow_hxy_fou(p,pBC);
+	
+	if(p->A541==2)
+	phxy = new sflow_hxy_cds(p,pBC);
+	
+	if(p->A541==4)
+	phxy = new sflow_hxy_weno(p,pBC);
 }
 
 nhflow_fsf_f::~nhflow_fsf_f()
@@ -39,43 +54,7 @@ nhflow_fsf_f::~nhflow_fsf_f()
 }
 
 void nhflow_fsf_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow)
-{/*
-    pgc->start4(p,a->ro,1);
-    pgc->start4(p,a->visc,1);
-    
-    // fill eta_n
-    SLICELOOP4
-    a->eta_n(i,j) = a->eta(i,j);
-
-    pgc->gcsl_start4(p,a->eta_n,gcval_phi);
-    
-    
-    // Calculate Eta
-    SLICELOOP1
-    a->P(i,j)=0.0;
-    
-    SLICELOOP2
-    a->Q(i,j)=0.0;
-
-    ULOOP
-    a->P(i,j) += a->u(i,j,k)*p->DZN[KP];//*0.5*(p->sigz[IJ]+p->sigz[Ip1J]);
-
-    VLOOP
-	a->Q(i,j) += a->v(i,j,k)*p->DZN[KP];//*0.5*(p->sigz[IJ]+p->sigz[IJp1]);
-
-	pgc->gcsl_start1(p,a->P,10);
-    pgc->gcsl_start2(p,a->Q,11);
-
-    // fsf equation
-    SLICELOOP4
-    a->eta(i,j) -= p->dt*p->sigz[IJ]*((a->P(i,j)-a->P(i-1,j))/p->DXN[IP] + (a->Q(i,j)-a->Q(i,j-1))/p->DYN[JP]);	  
-    
-    pflow->eta_relax(p,pgc,a->eta);
-    pgc->gcsl_start4(p,a->eta,1);
-    
-    p->sigma_update(p,a,pgc,a->eta,1.0);
-    //p->omega_update(p,a,pgc,a->u,a->v,a->w);*/
-    
+{
 }
 
 void nhflow_fsf_f::ltimesave(lexer* p, fdm *a, slice &ls)
@@ -100,10 +79,21 @@ void nhflow_fsf_f::step1(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field 
     a->Q(i,j)=0.0;
 
     ULOOP
-    a->P(i,j) += u(i,j,k)*p->DZN[KP]*0.5*(a->WL(i,j)+a->WL(i+1,j));
+    a->P(i,j) += u(i,j,k)*p->DZN[KP];
 
     VLOOP
-	a->Q(i,j) += v(i,j,k)*p->DZN[KP]*0.5*(a->WL(i,j)+a->WL(i,j+1));
+	a->Q(i,j) += v(i,j,k)*p->DZN[KP];
+    
+    pgc->gcsl_start1(p,a->P,10);
+    pgc->gcsl_start2(p,a->Q,11);
+    
+    phxy->start(p,hx,hy,a->depth,a->wet,a->eta,a->P,a->Q);
+    
+    SLICELOOP1
+    a->P(i,j) *= hx(i,j);
+
+    SLICELOOP2
+	a->Q(i,j) *= hy(i,j);
 
 	pgc->gcsl_start1(p,a->P,10);
     pgc->gcsl_start2(p,a->Q,11);
@@ -129,10 +119,21 @@ void nhflow_fsf_f::step2(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field 
     a->Q(i,j)=0.0;
 
     ULOOP
-    a->P(i,j) += u(i,j,k)*p->DZN[KP]*0.5*(a->WL(i,j)+a->WL(i+1,j));
+    a->P(i,j) += u(i,j,k)*p->DZN[KP];
 
     VLOOP
-	a->Q(i,j) += v(i,j,k)*p->DZN[KP]*0.5*(a->WL(i,j)+a->WL(i,j+1));
+	a->Q(i,j) += v(i,j,k)*p->DZN[KP];
+    
+    pgc->gcsl_start1(p,a->P,10);
+    pgc->gcsl_start2(p,a->Q,11);
+    
+    phxy->start(p,hx,hy,a->depth,a->wet,etark1,a->P,a->Q);
+    
+    SLICELOOP1
+    a->P(i,j) *= hx(i,j);
+
+    SLICELOOP2
+	a->Q(i,j) *= hy(i,j);
 
 	pgc->gcsl_start1(p,a->P,10);
     pgc->gcsl_start2(p,a->Q,11);
@@ -158,10 +159,21 @@ void nhflow_fsf_f::step3(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field 
     a->Q(i,j)=0.0;
 
     ULOOP
-    a->P(i,j) += u(i,j,k)*p->DZN[KP]*0.5*(a->WL(i,j)+a->WL(i+1,j));
+    a->P(i,j) += u(i,j,k)*p->DZN[KP];
 
     VLOOP
-	a->Q(i,j) += v(i,j,k)*p->DZN[KP]*0.5*(a->WL(i,j)+a->WL(i,j+1));
+	a->Q(i,j) += v(i,j,k)*p->DZN[KP];
+    
+    pgc->gcsl_start1(p,a->P,10);
+    pgc->gcsl_start2(p,a->Q,11);
+    
+    phxy->start(p,hx,hy,a->depth,a->wet,etark2,a->P,a->Q);
+    
+    SLICELOOP1
+    a->P(i,j) *= hx(i,j);
+
+    SLICELOOP2
+	a->Q(i,j) *= hy(i,j);
 
 	pgc->gcsl_start1(p,a->P,10);
     pgc->gcsl_start2(p,a->Q,11);

@@ -22,7 +22,7 @@ Author: Hans Bihs
 
 class lexer;
 class slice;
-class fdm2D;
+class sliceint;
 class patchBC_interface;
 
 #ifndef SFLOW_HX_DISC_H_
@@ -33,7 +33,7 @@ using namespace std;
 class sflow_hxy_disc 
 {
 public:
-	virtual void start(lexer*,slice&,slice&,slice&,slice&,slice&,slice&)=0;
+	virtual void start(lexer*,slice&,slice&,slice&,sliceint&,slice&,slice&,slice&)=0;
 
 };
 

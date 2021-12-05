@@ -28,7 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_flux_HJ_CDS.h"
 #include"patchBC_interface.h"
 
-sflow_hxy_cds::sflow_hxy_cds(lexer* p, fdm2D *bb, patchBC_interface *ppBC)  
+sflow_hxy_cds::sflow_hxy_cds(lexer* p, patchBC_interface *ppBC)  
 {
     pBC = ppBC;
     
@@ -38,14 +38,13 @@ sflow_hxy_cds::sflow_hxy_cds(lexer* p, fdm2D *bb, patchBC_interface *ppBC)
     if(p->A216==2)
     pflux = new sflow_flux_face_CDS(p);
     
-    b=bb;
 }
 
 sflow_hxy_cds::~sflow_hxy_cds()
 {
 }
 
-void sflow_hxy_cds::start(lexer* p, slice& hx, slice& hy, slice& depth, slice& eta, slice& uvel, slice& vvel)
+void sflow_hxy_cds::start(lexer* p, slice& hx, slice& hy, slice& depth, sliceint &wet, slice& eta, slice& uvel, slice& vvel)
 {
 	double eps=0.0;
 
@@ -70,7 +69,7 @@ void sflow_hxy_cds::start(lexer* p, slice& hx, slice& hy, slice& depth, slice& e
     i=p->gcslout[n][0];
     j=p->gcslout[n][1];
     
-        if(b->wet4(i,j)==1)
+        if(wet(i,j)==1)
         {
         pflux->u_flux(4,uvel,ivel1,ivel2);
 
@@ -97,7 +96,7 @@ void sflow_hxy_cds::start(lexer* p, slice& hx, slice& hy, slice& depth, slice& e
     j=pBC->patch[qq]->gcb[n][1];
 
         
-        if(b->wet4(i,j)==1)
+        if(wet(i,j)==1)
         {
         pflux->u_flux(4,uvel,ivel1,ivel2);
 
@@ -139,7 +138,7 @@ void sflow_hxy_cds::start(lexer* p, slice& hx, slice& hy, slice& depth, slice& e
     j=pBC->patch[qq]->gcb[n][1]-1;
 
         
-        if(b->wet4(i,j)==1)
+        if(wet(i,j)==1)
         {
         pflux->v_flux(4,vvel,jvel1,jvel2);
 	
