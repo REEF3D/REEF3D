@@ -35,9 +35,8 @@ public:
 
 	sflow_bicgstab(lexer*,ghostcell*);
 	virtual ~sflow_bicgstab();
-	virtual void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int, int, double);
-	virtual void solve(lexer*, ghostcell*, matrix2D&, vec2D&, vec2D&, int, int, int&, int, double);
-	virtual void setup(lexer*, ghostcell*,int);
+	virtual void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int);
+	virtual void solve(lexer*, ghostcell*, matrix2D&, vec2D&, vec2D&, int, int&);
     
     void fillxvec(lexer*,slice&,vec2D&);
 	void finalize(lexer*,slice&);

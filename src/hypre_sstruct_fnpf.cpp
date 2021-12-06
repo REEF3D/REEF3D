@@ -23,7 +23,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #ifdef HYPRE_COMPILATION
 #include"lexer.h"
-#include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include"field.h"
 #include"vec.h"
@@ -48,13 +47,18 @@ hypre_sstruct_fnpf::~hypre_sstruct_fnpf()
 {
 }
 
-void hypre_sstruct_fnpf::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, double *rhs, double *M, int var, double stop_crit)
+void hypre_sstruct_fnpf::start(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M, int var)
 {
-    start_solver8(p,c,pgc,f,rhs,M);
+    start_solver5(p,pgc,f,rhs,M);
+}
+
+void hypre_sstruct_fnpf::startF(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M, int var)
+{
+    start_solver8(p,pgc,f,rhs,M);
 }
 
 
-void hypre_sstruct_fnpf::start_solver8(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, double *rhs, double *M)
+void hypre_sstruct_fnpf::start_solver5(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M)
 {
     numiter=0;
 	p->solveriter=0;
@@ -62,17 +66,40 @@ void hypre_sstruct_fnpf::start_solver8(lexer* p, fdm_fnpf* c, ghostcell* pgc, do
     create_solver5(p,pgc);
 
     if(p->j_dir==1)
-    fill_matrix8(p,c,pgc,f,rhs,M);
+    fill_matrix8(p,pgc,f,rhs,M);
     
     if(p->j_dir==0)
-    fill_matrix8_2Dvert(p,c,pgc,f,rhs,M);
+    fill_matrix8_2Dvert(p,pgc,f,rhs,M);
 
     solve(p,pgc);
 
 	p->solveriter=num_iterations;
     p->final_res = final_res_norm;
         
-    fillbackvec8(p,c,f,rhs,M);
+    fillbackvec8(p,f,rhs,M);
+	
+	delete_solver5(p,pgc);
+}
+
+void hypre_sstruct_fnpf::start_solver8(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M)
+{
+    numiter=0;
+	p->solveriter=0;
+	
+    create_solver5(p,pgc);
+
+    if(p->j_dir==1)
+    fill_matrix8(p,pgc,f,rhs,M);
+    
+    if(p->j_dir==0)
+    fill_matrix8_2Dvert(p,pgc,f,rhs,M);
+
+    solve(p,pgc);
+
+	p->solveriter=num_iterations;
+    p->final_res = final_res_norm;
+        
+    fillbackvec8(p,f,rhs,M);
 	
 	delete_solver5(p,pgc);
 }

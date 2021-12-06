@@ -45,11 +45,7 @@ bicgstab_ijk_2D::~bicgstab_ijk_2D()
 {
 }
 
-void bicgstab_ijk_2D::setup(lexer* p,fdm* a, ghostcell* pgc, int var)
-{
-}
-
-void bicgstab_ijk_2D::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, vec& rhsvec, int var, int gcv, double stop_crit)
+void bicgstab_ijk_2D::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, int var)
 {
 	p->preconiter=0;
     
@@ -60,6 +56,7 @@ void bicgstab_ijk_2D::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec
     ulast=p->ulast;
     vlast=0;
     wlast=0;
+    stop_crit=p->N43;
     }
 	
 	if(var==2)
@@ -68,6 +65,7 @@ void bicgstab_ijk_2D::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec
     ulast=0;
     vlast=p->vlast;
     wlast=0;
+    stop_crit=p->N43;
     }
 	
 	if(var==3)
@@ -76,6 +74,7 @@ void bicgstab_ijk_2D::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec
     ulast=0;
     vlast=0;
     wlast=p->wlast;
+    stop_crit=p->N43;
     }
 	
 	if(var==4||var==5)
@@ -84,19 +83,24 @@ void bicgstab_ijk_2D::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec
     ulast=0;
     vlast=0;
     wlast=0;
+    stop_crit=p->N44;
     }
     
     fillxvec(p,a,f,rhsvec);
-	solve(p,a,pgc,xvec,rhsvec,var,gcv,p->solveriter,p->N46,stop_crit);
+	solve(p,a,pgc,rhsvec,var,p->solveriter,p->N46,stop_crit);
 	
 	finalize(p,a,f);
 }
 
-void bicgstab_ijk_2D::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var, int gcv, double stop_crit)
+void bicgstab_ijk_2D::startM(lexer* p,fdm* a, ghostcell* pgc, double *x, double *rhs, double *M, int var)
+{
+}
+
+void bicgstab_ijk_2D::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var)
 {
 }
 	
-void bicgstab_ijk_2D::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit)
+void bicgstab_ijk_2D::solve(lexer* p,fdm* a, ghostcell* pgc, vec& rhsvec, int var, int &solveriter, int maxiter, double stop_crit)
 {
 	solveriter=0;
 	residual = 1.0e9;

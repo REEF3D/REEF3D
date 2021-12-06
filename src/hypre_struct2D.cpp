@@ -42,7 +42,7 @@ hypre_struct2D::~hypre_struct2D()
 {
 }
 
-void hypre_struct2D::start(lexer* p, ghostcell* pgc, slice &f, matrix2D &M, vec2D& xvec, vec2D& rhsvec, int var, int gcv, double stop_crit)
+void hypre_struct2D::start(lexer* p, ghostcell* pgc, slice &f, matrix2D &M, vec2D& xvec, vec2D& rhsvec, int var)
 {
     int feedback=0;
     
@@ -138,14 +138,6 @@ void hypre_struct2D::start(lexer* p, ghostcell* pgc, slice &f, matrix2D &M, vec2
 	
 	delete_solvers(p,pgc);
 	 
-}
-
-void hypre_struct2D::setup(lexer* p, ghostcell* pgc, int var)
-{
-}
-
-void hypre_struct2D::solve(lexer* p, ghostcell* pgc, matrix2D &M, vec2D& xvec, vec2D& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit)
-{
 }
 
 

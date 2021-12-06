@@ -56,7 +56,7 @@ void sflow_turb_ke_IM1::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convecti
 	kin_source(p,b);
 	timesource(p,b,kn);
     wall_law_kin(p,b);
-    psolv->start(p,pgc,kin,b->M,b->xvec,b->rhsvec,4,gcval_kin,p->T13);
+    psolv->start(p,pgc,kin,b->M,b->xvec,b->rhsvec,4);
     pgc->gcsl_start4(p,kin,gcval_kin);
 	p->kintime=pgc->timer()-starttime;
 	p->kiniter=p->solveriter;
@@ -71,7 +71,7 @@ void sflow_turb_ke_IM1::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convecti
 	eps_source(p,b);
 	timesource(p,b,en);
     wall_law_eps(p,b);
-	psolv->start(p,pgc,eps,b->M,b->xvec,b->rhsvec,4,gcval_eps,p->T13);
+	psolv->start(p,pgc,eps,b->M,b->xvec,b->rhsvec,4);
     pgc->gcsl_start4(p,eps,gcval_eps);
 	p->epstime=pgc->timer()-starttime;
 	p->epsiter=p->solveriter;

@@ -26,9 +26,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 #include"field.h"
-#include"vec.h"
 
-hypre_aij::hypre_aij(lexer* p,fdm* a,ghostcell *pgc)
+
+hypre_aij::hypre_aij(lexer* p,fdm* a,ghostcell *pgc) : xvec(p)
 {	
     int vecsize=p->knox*p->knoy*p->knoz;
     
@@ -42,7 +42,7 @@ hypre_aij::~hypre_aij()
 {
 }
 
-void hypre_aij::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, vec& rhsvec, int var, int gcv, double stop_crit)
+void hypre_aij::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, int var)
 {
     make_grid(p,pgc);
     create_solvers(p,pgc);
@@ -111,12 +111,11 @@ void hypre_aij::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, vec&
     delete_grid(p,pgc);
 }
 
-
-void hypre_aij::setup(lexer* p,fdm* a, ghostcell* pgc, int var)
+void hypre_aij::startM(lexer* p,fdm* a, ghostcell* pgc, double *x, double *rhs, double *M, int var)
 {
 }
 
-void hypre_aij::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit)
+void hypre_aij::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsvec, int var, int gcv, int &solveriter)
 {
 	
 	numiter=0;

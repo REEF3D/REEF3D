@@ -108,7 +108,7 @@ void idiff2_FS_v2::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 	}
 
 
-	psolv->start(p,a,pgc,v,a->xvec,a->rhsvec,2,gcval_v,p->D29);
+	psolv->start(p,a,pgc,v,a->rhsvec,2);
     }
 
     pgc->start2(p,v,gcval_v);

@@ -28,7 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fieldint4.h"
 #include"matrix_diag.h"
 
-void hypre_sstruct_fnpf::fill_matrix8(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, double *rhs, double *M)
+void hypre_sstruct_fnpf::fill_matrix8(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M)
 {    
     nentries=15;
     
@@ -51,7 +51,7 @@ void hypre_sstruct_fnpf::fill_matrix8(lexer* p, fdm_fnpf* c, ghostcell* pgc, dou
     
 }
 
-void hypre_sstruct_fnpf::fillbackvec8(lexer *p, fdm_fnpf* c, double *f, double *rhs, double *M)
+void hypre_sstruct_fnpf::fillbackvec8(lexer *p, double *f, double *rhs, double *M)
 {
 	HYPRE_SStructVectorGetBoxValues(x, part, ilower, iupper, variable, f);
 }

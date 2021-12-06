@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#define HYPRE_COMPILATION
+#define HYPRE_COMPILATION
 
 #ifdef HYPRE_COMPILATION
 
@@ -45,28 +45,29 @@ public:
 	hypre_sstruct(lexer*,fdm*,ghostcell*);
 	virtual ~hypre_sstruct();
     
-	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, vec&, int, int, double);
-    virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int, int, double);
+	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
+    virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int);
+    virtual void startM(lexer*, fdm*, ghostcell*, double*, double*, double*, int);
     
-    virtual void start_solver1234(lexer*,fdm*, ghostcell*, field&, vec&, vec&,int);
-    virtual void start_solver5(lexer*,fdm*, ghostcell*, field&, vec&, vec&,int);
-    virtual void start_solver7(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
-    virtual void start_solver8(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
-    virtual void start_solver10(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
+    void start_solver1234(lexer*,fdm*, ghostcell*, field&, vec&, int);
+    void start_solver5(lexer*,fdm*, ghostcell*, field&, vec&,int);
+    void start_solver7(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
+    void start_solver8(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
+    void start_solver10(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
+    void start_solverM(lexer*, ghostcell*, double*, double*, double*);
     
-    virtual void solve(lexer*);
-    virtual void solve1234(lexer*);
+    void solve(lexer*);
+    void solve1234(lexer*);
     
-	virtual void solve(lexer*,fdm*, ghostcell*, vec&, vec&, int, int, int&, int, double);
-	virtual void setup(lexer*,fdm*, ghostcell*,int);
-    
-	virtual void fillxvec1(lexer*,fdm*,field&);
-    virtual void fillxvec2(lexer*,fdm*,field&);
-    virtual void fillxvec3(lexer*,fdm*,field&);
-    virtual void fillxvec4(lexer*,fdm*,field&);
+	void fillxvec1(lexer*,fdm*,field&);
+    void fillxvec2(lexer*,fdm*,field&);
+    void fillxvec3(lexer*,fdm*,field&);
+    void fillxvec4(lexer*,fdm*,field&);
     
     void make_grid_7p(lexer*,fdm*, ghostcell*);
     void make_grid_13p(lexer*,fdm*, ghostcell*);
+    void make_grid_15p(lexer*,fdm*, ghostcell*);
+    void make_grid_2Dvert_9p(lexer*,fdm*, ghostcell*);
     
     void fill_matrix1(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix2(lexer*,fdm*, ghostcell*,field&);
@@ -75,15 +76,22 @@ public:
     void fill_matrix7(lexer*, ghostcell*,double*, vec&, matrix_diag&);
     void fill_matrix8(lexer*, ghostcell*,double*, vec&, matrix_diag&);
     void fill_matrix10(lexer*, ghostcell*,double*, vec&, matrix_diag&);
+    
+    void fill_matrixM(lexer*, ghostcell*,double*, double*, double*);
+    void fill_matrixM_2Dvert(lexer*, ghostcell*,double*, double*, double*);
 
-    virtual void fillbackvec1(lexer*,field&,vec&,int);
-    virtual void fillbackvec2(lexer*,field&,vec&,int);
-    virtual void fillbackvec3(lexer*,field&,vec&,int);
-    virtual void fillbackvec4(lexer*,field&,vec&,int);
+    void fillbackvec1(lexer*,field&,int);
+    void fillbackvec2(lexer*,field&,int);
+    void fillbackvec3(lexer*,field&,int);
+    void fillbackvec4(lexer*,field&,int);
 
-    virtual void fillbackvec7(lexer*,double*,int);
-    virtual void fillbackvec8(lexer*,double*,int);
-    virtual void fillbackvec10(lexer*,double*,int);
+    void fillbackvec7(lexer*,double*,int);
+    void fillbackvec8(lexer*,double*,int);
+    void fillbackvec10(lexer*,double*,int);
+    
+    void fillbackvecM(lexer*,double*);
+    
+    
 	
 	void create_solver1234(lexer*,ghostcell*);
     void delete_solver1234(lexer*,ghostcell*);

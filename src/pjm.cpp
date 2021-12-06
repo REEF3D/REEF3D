@@ -81,7 +81,7 @@ void pjm::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, io
 	
         starttime=pgc->timer();
 
-    psolv->start(p,a,pgc,a->press,a->xvec,a->rhsvec,5,gcval_press,p->N44);
+    psolv->start(p,a,pgc,a->press,a->rhsvec,5);
 	
         endtime=pgc->timer();
 
@@ -153,10 +153,6 @@ void pjm::vpgrad(lexer*p,fdm* a)
 }
 
 void pjm::wpgrad(lexer*p,fdm* a)
-{
-}
-
-void pjm::ptimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 

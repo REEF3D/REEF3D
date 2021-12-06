@@ -83,7 +83,7 @@ void pjm_nse::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc
 	
         starttime=pgc->timer();
 
-    psolv->start(p,a,pgc,a->press,a->xvec,a->rhsvec,5,gcval_press,p->N44);
+    psolv->start(p,a,pgc,a->press,a->rhsvec,5);
 	
         endtime=pgc->timer();
 
@@ -333,11 +333,6 @@ void pjm_nse::wpgrad(lexer*p,fdm* a)
 	a->H(i,j,k) -= (a->gk)*PORVAL3;
 	}
 }
-
-void pjm_nse::ptimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
 
 
 

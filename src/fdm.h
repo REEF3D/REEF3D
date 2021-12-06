@@ -64,6 +64,7 @@ public:
 	field1 u,F;
 	field2 v,G;
 	field3 w,H;
+    field4 omega;
 	field4 press;
     field4 Fi;
 	field4 eddyv;
@@ -93,7 +94,8 @@ public:
     sliceint4 wet;
     
     // fnpf
-    slice4 eta,eta_n,WL,depth;
+    slice4 eta,eta_n,WL,WL_n,depth;
+    slice4 Bx,By;
     slice4 Fifsf,Fz;
     slice4 K;
     sliceint4 etaloc;
@@ -102,7 +104,7 @@ public:
 
     
     
-	vec xvec,rhsvec;
+	vec rhsvec;
 
 	matrix_diag M;
 	cpt C4,C4a,C6;

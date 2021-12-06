@@ -86,6 +86,7 @@ void pressure_void::vpgrad(lexer*p,fdm* a)
 
 void pressure_void::wpgrad(lexer*p,fdm* a)
 {
+    /*
     double z1,z2;
     
     if(p->D38==1)
@@ -102,14 +103,10 @@ void pressure_void::wpgrad(lexer*p,fdm* a)
     z1 = p->ZP[KP];
     z2 = p->ZP[KP1];
 	a->H(i,j,k)-=PORVAL3*(-z2+z1)/p->DZP[KP];
-    }
+    }*/
 }
 
 void pressure_void::rhs(lexer *p, fdm* a, ghostcell *pgc, field& uu, field& vv, field& ww, double alpha)
-{
-}
-
-void pressure_void::ptimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 

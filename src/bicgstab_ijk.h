@@ -36,10 +36,11 @@ public:
 
 	virtual ~bicgstab_ijk();
 
-	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, vec&, int, int,double);
-    virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int, int, double);
+	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
+    virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int);
+    virtual void startM(lexer*, fdm*, ghostcell*, double*, double*, double*, int);
     
-	virtual void solve(lexer*,fdm*, ghostcell*, vec&, vec&, int, int,int&,int,double);
+	virtual void solve(lexer*,fdm*, ghostcell*, vec&, int, int&,int,double);
 	virtual void setup(lexer*,fdm*, ghostcell*,int);
 	
 	void fillxvec(lexer*,fdm*,field&,vec&);
@@ -66,6 +67,7 @@ private:
 	int margin;
     int ulast,vlast,wlast;
     int *flag;
+    double stop_crit;
 	
 	double alpha,beta,w1,w2,w,residual,norm_vj,norm_r0,norm_sj,norm_rj ;
     double r_j1, r_j, sigma ;

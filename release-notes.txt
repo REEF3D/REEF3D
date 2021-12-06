@@ -1,4 +1,17 @@
 
+21.11
+x added FNPF tutorial cases
+x added SFLOW tutorial cases
+x fixed NUG support for NSEWAVE
+x added heave decay test to tutorials (CFD)
+x added solver breakdown check and emergency exit for NAN values
+x fixed a bug for air turbulence damping (CFD)
+x fixed a problem causing smaller Hs in a short-crested sea when EEM is used
+x added print-out of directional spreading function in REEF3D_Log as REEF3D_spreading-function.dat
+x enabled irregular wave generation using B 91 option. In this case, the peak period will be calculated with linear wave theory at intermediate water depth
+x added SFLOW wsf theory print out
+x fixed iowave2D for multiple relaxation zones (SFLOW)
+
 21.10
 x introducing FSI for flexible bodies (Z options)
 x change of momentum scheme from TVD-RK3 to low-storage RK3 for 6DOF + FSI simulations
@@ -443,4 +456,4 @@ x added 3D active wave absorption
 x fixed 3rd-order solitary wave
 x fixed CDS solver
 x fixed focussed waves
-x fixed irregular waves
+x fixed irregular wave

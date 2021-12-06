@@ -111,7 +111,6 @@ void nsewave_f::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusio
     IULOOP
 	JULOOP
     {
-		d=0.0;
 		KULOOP
         UFLUIDCHECK
 		{
@@ -134,7 +133,6 @@ void nsewave_f::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusio
     IVLOOP
 	JVLOOP
 	{	
-			d=0.0;
 			KVLOOP
             VFLUIDCHECK
 			{

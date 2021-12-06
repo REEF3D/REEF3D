@@ -23,6 +23,8 @@ Author: Hans Bihs
 #include"pressure_void.h"
 #include"pjm.h"
 #include"pjm_sig.h"
+#include"pjm_sigss.h"
+#include"pjm_sig_hs.h"
 #include"pjm_fsm.h"
 #include"pjm_corr.h"
 #include"pjm_comp.h"

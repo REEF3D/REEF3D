@@ -137,4 +137,39 @@ void flux_face_CDS2_vrans::w_flux(fdm* a, int ipol, field& wvel, double &wflux1,
 	}
 }
 
- 
+void flux_face_CDS2_vrans::omega_flux(fdm* a, int ipol, field& wvel, double &wflux1, double &wflux2)
+{
+
+	if(ipol==1)
+	{
+	pip=3;
+	wflux1= 0.25*(wvel(i,j,k-1)+wvel(i+1,j,k-1)+wvel(i,j,k)+wvel(i+1,j,k))*(1.0/(0.25*(a->porosity(i,j,k-1)+a->porosity(i+1,j,k-1)+a->porosity(i,j,k)+a->porosity(i+1,j,k))));
+	wflux2= 0.25*(wvel(i,j,k)+wvel(i+1,j,k)+wvel(i,j,k+1)+wvel(i+1,j,k+1))*(1.0/(0.25*(a->porosity(i,j,k)+a->porosity(i+1,j,k)+a->porosity(i,j,k+1)+a->porosity(i+1,j,k+1))));
+	pip=0;
+	}
+
+	if(ipol==2)
+	{
+	pip=3;
+	wflux1= 0.25*(wvel(i,j,k-1)+wvel(i,j+1,k-1)+wvel(i,j,k)+wvel(i,j+1,k))*(1.0/(0.25*(a->porosity(i,j,k-1)+a->porosity(i,j+1,k-1)+a->porosity(i,j,k)+a->porosity(i,j+1,k))));
+	wflux2= 0.25*(wvel(i,j,k)+wvel(i,j+1,k)+wvel(i,j,k+1)+wvel(i,j+1,k+1))*(1.0/(0.25*(a->porosity(i,j,k)+a->porosity(i,j+1,k)+a->porosity(i,j,k+1)+a->porosity(i,j+1,k+1))));
+	pip=0;
+	pip=0;
+	}
+
+	if(ipol==3)
+	{
+    pip=3;
+	wflux1= wvel(i,j,k)*(1.0/a->porosity(i,j,k-1));
+	wflux2= wvel(i,j,k+1)*(1.0/a->porosity(i,j,k));
+	pip=0;
+	}
+
+	if(ipol==4)
+	{
+    pip=3;
+	wflux1= 0.5*(wvel(i,j,k-1)+wvel(i,j,k))*(1.0/(0.5*(a->porosity(i,j,k)+a->porosity(i,j,k-1))));
+	wflux2= 0.5*(wvel(i,j,k)+wvel(i,j,k+1))*(1.0/(0.5*(a->porosity(i,j,k+1)+a->porosity(i,j,k))));
+    pip=0;
+	}
+}

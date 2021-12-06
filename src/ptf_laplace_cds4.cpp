@@ -108,7 +108,7 @@ void ptf_laplace_cds4::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
 
 	++n;
 	}
-    psolv->start(p,a,pgc,a->Fi,a->xvec,a->rhsvec,5,250,p->N44);
+    psolv->start(p,a,pgc,a->Fi,a->rhsvec,5);
     pgc->start4(p,a->Fi,250);
     
     
@@ -306,7 +306,7 @@ void ptf_laplace_cds4::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
     
     
     double starttime=pgc->timer();
-    psolv->start(p,a,pgc,a->Fi,a->xvec,a->rhsvec,7,250,p->N44);
+    psolv->start(p,a,pgc,a->Fi,a->rhsvec,7);
     double endtime=pgc->timer();
     pgc->start4(p,a->Fi,250);
     
@@ -447,7 +447,7 @@ void ptf_laplace_cds4::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
     
     
     double starttime=pgc->timer();
-    psolv->start(p,a,pgc,a->Fi,a->xvec,a->rhsvec,6,250,p->N44);
+    psolv->start(p,a,pgc,a->Fi,a->rhsvec,6);
     double endtime=pgc->timer();
     pgc->start4(p,a->Fi,250);
     

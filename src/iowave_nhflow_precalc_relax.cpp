@@ -117,12 +117,7 @@ void iowave::nhflow_precalc_relax(lexer *p, ghostcell *pgc)
             // Zone 1
             if(dg<dist1)
             {
-            if(zloc3<=fsfloc+epsi)
             wval[count] = wave_w(p,pgc,xg,yg,z);
-            
-            if(zloc3>fsfloc+epsi)
-            wval[count] = 0.0;
-            
             ++count;
             }
 		}

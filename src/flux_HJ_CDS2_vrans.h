@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"flux.h"
+#include"flux.h"
 #include"increment.h"
 
 
@@ -39,6 +39,7 @@ public:
 	virtual void u_flux(fdm* a,int,field&,double&,double&);
 	virtual void v_flux(fdm* a,int,field&,double&,double&);
 	virtual void w_flux(fdm* a,int,field&,double&,double&);
+    virtual void omega_flux(fdm* a,int,field&,double&,double&);
 
 
 };

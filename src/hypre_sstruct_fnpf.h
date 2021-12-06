@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#define HYPRE_COMPILATION
+#define HYPRE_COMPILATION
 
 #ifdef HYPRE_COMPILATION
 
@@ -43,20 +43,22 @@ public:
 	hypre_sstruct_fnpf(lexer*,ghostcell*,int,int);
 	virtual ~hypre_sstruct_fnpf();
 
-    virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, double*, double*, int, double);
+    virtual void start(lexer*, ghostcell*, double*, double*, double*, int);
+    virtual void startF(lexer*, ghostcell*, double*, double*, double*, int);
     
-    void start_solver8(lexer*, fdm_fnpf*, ghostcell*, double*, double*, double*);
+    void start_solver5(lexer*, ghostcell*, double*, double*, double*);
+    void start_solver8(lexer*, ghostcell*, double*, double*, double*);
     
     virtual void solve(lexer*,ghostcell*);
     
     void make_grid(lexer*, ghostcell*);
     void make_grid_2Dvert(lexer*, ghostcell*);
 
-    void fill_matrix8(lexer*, fdm_fnpf*, ghostcell*, double*, double*, double*);
-    void fill_matrix8_2Dvert(lexer*, fdm_fnpf*, ghostcell*, double*, double*, double*);
+    void fill_matrix8(lexer*, ghostcell*, double*, double*, double*);
+    void fill_matrix8_2Dvert(lexer*, ghostcell*, double*, double*, double*);
 
 
-    virtual void fillbackvec8(lexer*,fdm_fnpf*,double*,double*,double*);
+    virtual void fillbackvec8(lexer*,double*,double*,double*);
 	
 
     void create_solver5(lexer*,ghostcell*);

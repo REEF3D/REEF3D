@@ -39,6 +39,7 @@ public:
 	virtual void u_flux(fdm* a,int,field&,double&,double&);
 	virtual void v_flux(fdm* a,int,field&,double&,double&);
 	virtual void w_flux(fdm* a,int,field&,double&,double&);
+    virtual void omega_flux(fdm* a,int,field&,double&,double&);
 
 
 };

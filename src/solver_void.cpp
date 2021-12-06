@@ -25,39 +25,19 @@ solver_void::solver_void(lexer* p,fdm* a,ghostcell *pgc)
 {
 }
 
-void solver_void::start(lexer* p,fdm* a, ghostcell* pgc, field& xfield, vec& xvec, vec& rhsvec, int var, int gcv, double stop_crit)
-{
-}
-
-void solver_void::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var, int gcv, double stop_crit)
-{
-}
-
 solver_void::~solver_void()
 {
 }
 
-void solver_void::setup(lexer* p,fdm* a, ghostcell* pgc, int var)
+void solver_void::start(lexer* p,fdm* a, ghostcell* pgc, field& xfield, vec& rhsvec, int var)
 {
 }
 
-void solver_void::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit)
-{	
-}
-
-void solver_void::fillxvec1(lexer* p, fdm* a, field& f)
+void solver_void::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var)
 {
 }
 
-void solver_void::fillxvec2( lexer* p, fdm* a, field& f)
-{
-}
-
-void solver_void::fillxvec3( lexer* p, fdm* a, field& f)
-{
-}
-
-void solver_void::fillxvec4( lexer* p, fdm* a, field& f)
+void solver_void::startM(lexer* p,fdm* a, ghostcell* pgc, double *x, double *rhs, double *M, int var)
 {
 }
 

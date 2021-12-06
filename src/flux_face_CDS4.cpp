@@ -132,4 +132,39 @@ void flux_face_CDS4::w_flux(fdm* a, int ipol, field& wvel, double &wflux1, doubl
     
 }
 
+void flux_face_CDS4::omega_flux(fdm* a, int ipol, field& wvel, double &wflux1, double &wflux2)
+{
+
+	if(ipol==1)
+	{
+	pip=3;
+	wflux1= 0.25*(wvel(i,j,k-1)+wvel(i+1,j,k-1)+wvel(i,j,k)+wvel(i+1,j,k));
+	wflux2= 0.25*(wvel(i,j,k)+wvel(i+1,j,k)+wvel(i,j,k+1)+wvel(i+1,j,k+1));
+	pip=0;
+	}
+
+	if(ipol==2)
+	{
+	pip=3;
+	wflux1= 0.25*(wvel(i,j,k-1)+wvel(i,j+1,k-1)+wvel(i,j,k)+wvel(i,j+1,k));
+	wflux2= 0.25*(wvel(i,j,k)+wvel(i,j+1,k)+wvel(i,j,k+1)+wvel(i,j+1,k+1));
+	pip=0;
+	}
+
+	if(ipol==3)
+	{
+    pip=3;
+	wflux1= wvel(i,j,k);
+	wflux2= wvel(i,j,k+1);
+	pip=0;
+	}
+
+	if(ipol==4)
+	{
+    pip=3;
+	wflux1= 0.5*(wvel(i,j,k-1)+wvel(i,j,k));
+	wflux2= 0.5*(wvel(i,j,k)+wvel(i,j,k+1));
+    pip=0;
+	}
+}
  

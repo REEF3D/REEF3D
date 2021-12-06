@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"increment.h"
 
 class density;
+class solver;
 class heat;
 class concentration;
 
@@ -37,7 +38,7 @@ class pjm_sig : public pressure, public increment
 
 public:
 
-	pjm_sig(lexer* p, fdm *a, heat*&, concentration*&);
+	pjm_sig(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
 	virtual ~pjm_sig();
 
 	virtual void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,ioflow*, field&, field&, field&,double);
@@ -49,7 +50,6 @@ public:
 	virtual void upgrad(lexer*,fdm*);
 	virtual void vpgrad(lexer*,fdm*);
     virtual void wpgrad(lexer*,fdm*);
-	virtual void ptimesave(lexer*,fdm*,ghostcell*);
 
 private:
 	double starttime,endtime;
@@ -59,6 +59,7 @@ private:
 	void debug(lexer*,fdm*);
     
     density *pd;
+
 };
 
 

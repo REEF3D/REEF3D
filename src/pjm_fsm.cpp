@@ -80,7 +80,7 @@ void pjm_fsm::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc
 	
         starttime=pgc->timer();
 
-    psolv->start(p,a,pgc,a->press,a->xvec,a->rhsvec,5,gcval_press,p->N44);
+    psolv->start(p,a,pgc,a->press,a->rhsvec,5);
 	
         endtime=pgc->timer();
 
@@ -174,11 +174,6 @@ void pjm_fsm::wpgrad(lexer*p,fdm* a)
     WLOOP
     a->H(i,j,k)-=PORVAL3*(a->press(i,j,k+1)-a->press(i,j,k))/(p->DXM*pd->roface(p,a,0,0,1));
 }
-
-void pjm_fsm::ptimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
 
 
 

@@ -62,11 +62,11 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 
 // Pressure    
 	else
-	if((bc==21||bc==22||bc==5||bc==3||(bc==2&&hs_label==0)||bc==6||(bc==7&&awa_label==0)||bc==211||bc==212||bc==112||bc==111) && gcv==40)
+	if((bc==21||bc==22||bc==5||bc==3||(bc==2&&pressout_lable==0)||bc==6||(bc==7&&awa_lable==0)||bc==211||bc==212||bc==112||bc==111) && gcv==40)
 	return gclabel_press;
 	
 	else
-	if((bc==21||bc==22||bc==5||bc==3||(bc==2&&hs_label==0)||(bc==7&&awa_label==0)||bc==211||bc==212||bc==112||bc==111) && gcv==41)
+	if((bc==21||bc==22||bc==5||bc==3||(bc==2&&pressout_lable==0)||(bc==7&&awa_lable==0)||bc==211||bc==212||bc==112||bc==111) && gcv==41)
 	return gclabel_press;
 	
 	else
@@ -78,7 +78,7 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	return gclabel_press;
 	
 	else
-	if((bc==21||bc==22||bc==5||bc==3||(bc==2&&hs_label==0)||(bc==7&&awa_label==0)||bc==211||bc==212||bc==112||bc==111) && (cs!=5) && gcv==44)
+	if((bc==21||bc==22||bc==5||bc==3||(bc==2&&pressout_lable==0)||(bc==7&&awa_lable==0)||bc==211||bc==212||bc==112||bc==111) && (cs!=5) && gcv==44)
 	return gclabel_press;
 	
 	else
@@ -108,7 +108,7 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	
 	else
 	if((bc==6||bc==211||bc==212||bc==112||bc==111) && (gcv==42||gcv==44))
-	return 4;
+	return gclabel_press_in;
 	
 // Solver Poisson
 	else
@@ -176,7 +176,7 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	return gclabel_press;
 	
 	else
-	if((bc==1||bc==6||(bc==2&&hs_label==0)||(bc==7&&awa_label==0)) && gcv==45)
+	if((bc==1||bc==6||(bc==2&&pressout_lable==0)||(bc==7&&awa_lable==0)) && gcv==45)
 	return gclabel_press;
 	
 	else
@@ -354,11 +354,11 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
     
 // NHFLOW
     else
-	if((bc==21||bc==22||bc==5||bc==3||(bc==2&&hs_label==0)||bc==6||(bc==7&&awa_label==0)||bc==211||bc==212||bc==112||bc==111) && cs!=6 && gcv==540)
+	if((bc==21||bc==22||bc==5||bc==3||(bc==2&&pressout_lable==0)||bc==6||(bc==7&&awa_lable==0)||bc==211||bc==212||bc==112||bc==111) && cs!=6 && gcv==540)
 	return gclabel_press;
     
     else
-	if((bc==21||bc==22||bc==5||bc==3||(bc==2&&hs_label==0)||bc==6||(bc==7&&awa_label==0)||bc==211||bc==212||bc==112||bc==111) && cs==6 && gcv==540)
+	if((bc==21||bc==22||bc==5||bc==3||(bc==2&&pressout_lable==0)||bc==6||(bc==7&&awa_lable==0)||bc==211||bc==212||bc==112||bc==111) && cs==6 && gcv==540)
 	return gclabel_press;
     
     

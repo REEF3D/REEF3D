@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"lexer.h"
+#include"lexer.h"
 
 void lexer::ctrlrecv()
 {
@@ -189,6 +189,8 @@ void lexer::ctrlrecv()
 	B74 = ictrl[ii];
 	ii++;
     B75 = ictrl[ii];
+	ii++;
+    B76 = ictrl[ii];
 	ii++;
 	B77 = ictrl[ii];
 	ii++;
@@ -482,8 +484,6 @@ void lexer::ctrlrecv()
 	ii++;
 	D21 = ictrl[ii];
 	ii++;
-	D29 = dctrl[dd];
-	dd++;
     D30 = ictrl[ii];
 	ii++;
     D37 = ictrl[ii];
@@ -1045,8 +1045,6 @@ void lexer::ctrlrecv()
     ii++;
     T12 = ictrl[ii];
     ii++;
-	T13 = dctrl[dd];
-    dd++;
     T31 = dctrl[dd];
     dd++;
     T32 = dctrl[dd];
@@ -1472,6 +1470,18 @@ void lexer::ctrlrecv()
 	ii++;
     Z11 = ictrl[ii];
     ii++;
+    Z12_cdx = dctrl[dd];
+	dd++;
+    Z12_cdy = dctrl[dd];
+	dd++;
+    Z12_cdz = dctrl[dd];
+	dd++;
+    Z12_ckx = dctrl[dd];
+	dd++;
+    Z12_cky = dctrl[dd];
+	dd++;
+    Z12_ckz = dctrl[dd];
+	dd++;
 
 // --------------------------	
 	

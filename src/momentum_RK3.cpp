@@ -33,9 +33,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"solver.h"
 #include"fluid_update_rheology.h"
 #include"fluid_update_void.h"
+#include"nhflow.h"
 
 momentum_RK3::momentum_RK3(lexer *p, fdm *a, convection *pconvection, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
-                                                    turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow)
+                                                    turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow,
+                                                    nhflow *ppnh)
                                                     :bcmom(p),udiff(p),vdiff(p),wdiff(p),urk1(p),urk2(p),vrk1(p),vrk2(p),wrk1(p),wrk2(p)
 {
 	gcval_u=10;
@@ -54,6 +56,7 @@ momentum_RK3::momentum_RK3(lexer *p, fdm *a, convection *pconvection, diffusion 
 	psolv=psolver;
     ppoissonsolv=ppoissonsolver;
 	pflow=pioflow;
+    pnh=ppnh;
     
     
     if(p->W90>0)
@@ -127,6 +130,10 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 				+ p->dt*CPOR3*a->H(i,j,k);
 	
     p->wtime=pgc->timer()-starttime;
+    
+    pgc->start1(p,urk1,gcval_urk);
+	pgc->start2(p,vrk1,gcval_vrk);
+    pnh->kinematic_fsf(p,a,urk1,vrk1,wrk1);
 
     pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, urk1, vrk1, wrk1, 1.0);
@@ -139,6 +146,9 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	pgc->start1(p,urk1,gcval_urk);
 	pgc->start2(p,vrk1,gcval_vrk);
 	pgc->start3(p,wrk1,gcval_wrk);
+    
+    pnh->kinematic_fsf(p,a,urk1,vrk1,wrk1);
+    p->omega_update(p,a,pgc,urk1,vrk1,wrk1);
     
     pupdate->start(p,a,pgc);
 	
@@ -195,6 +205,10 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 				+ 0.25*p->dt*CPOR3*a->H(i,j,k);
 
     p->wtime+=pgc->timer()-starttime;
+    
+    pgc->start1(p,urk2,gcval_urk);
+	pgc->start2(p,vrk2,gcval_vrk);
+    pnh->kinematic_fsf(p,a,urk2,vrk2,wrk2);
 
     pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, urk2, vrk2, wrk2, 0.25);
@@ -207,6 +221,9 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	pgc->start1(p,urk2,gcval_urk);
 	pgc->start2(p,vrk2,gcval_vrk);
 	pgc->start3(p,wrk2,gcval_wrk);
+    
+    pnh->kinematic_fsf(p,a,urk2,vrk2,wrk2);
+    p->omega_update(p,a,pgc,urk2,vrk2,wrk2);
     
     pupdate->start(p,a,pgc);
 
@@ -263,6 +280,10 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 				+ (2.0/3.0)*p->dt*CPOR3*a->H(i,j,k);
 	
     p->wtime+=pgc->timer()-starttime;
+    
+    pgc->start1(p,a->u,gcval_u);
+	pgc->start2(p,a->v,gcval_v);
+    pnh->kinematic_fsf(p,a,a->u,a->v,a->w);
 
 	pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, a->u, a->v,a->w,2.0/3.0);
@@ -275,6 +296,9 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	pgc->start1(p,a->u,gcval_u);
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
+    
+    pnh->kinematic_fsf(p,a,a->u,a->v,a->w);
+    p->omega_update(p,a,pgc,a->u,a->v,a->w);
     
     pupdate->start(p,a,pgc);
 }

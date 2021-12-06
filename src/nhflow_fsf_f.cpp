@@ -36,18 +36,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"heat.h"
 #include"concentration.h"
 #include"momentum.h"
-#include"sflow_eta_weno.h"
-#include"sflow_hxy_weno.h"
 
-nhflow_fsf_f::nhflow_fsf_f(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow) : 
-                epsi(p->A440*p->DXM),depth(p),bed(p),L(p),hp(p),hx(p),hy(p)
+nhflow_fsf_f::nhflow_fsf_f(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow) : epsi(p->A440*p->DXM)
 {
-	//peta = new sflow_eta_weno(p);
-	//phxy = new sflow_hxy_weno(p);
-
 	pupdate = new fluid_update_void();
-
-    //pupdate = new fluid_update_fsf(p,a,pgc);
 }
 
 nhflow_fsf_f::~nhflow_fsf_f()
@@ -61,10 +53,8 @@ void nhflow_fsf_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow)
     
     // fill eta_n
     SLICELOOP4
-	{
     a->eta_n(i,j) = a->eta(i,j);
-	L(i,j)=0.0;
-	}
+
     pgc->gcsl_start4(p,a->eta_n,gcval_phi);
     
     
@@ -75,70 +65,21 @@ void nhflow_fsf_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow)
     SLICELOOP2
     a->Q(i,j)=0.0;
 
-	
-    IULOOP
-	JULOOP
-    {
-		KULOOP
-        UCHECK
-		{
-			a->P(i,j) += a->u(i,j,k)*p->DZN[KP]*p->sigz[IJ];
-		}
-    }
-    
-    IVLOOP
-	JVLOOP
-	{	
-			KVLOOP
-            VCHECK
-			{
-            a->Q(i,j) += a->v(i,j,k)*p->DZN[KP]*p->sigz[IJ];
-			}
-    }
+    ULOOP
+    a->P(i,j) += a->u(i,j,k)*p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[Ip1J]);
+
+    VLOOP
+	a->Q(i,j) += a->v(i,j,k)*p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[IJp1]);
+
 	pgc->gcsl_start1(p,a->P,10);
     pgc->gcsl_start2(p,a->Q,11);
-	
-	// depth update
-	/*
-    SLICELOOP4
-	depth(i,j) = p->wd - bed(i,j);
-	
-	pgc->gcsl_start4(p,depth,50);
-	
-	SLICELOOP4
-	hp(i,j) = a->eta(i,j) + p->wd - bed(i,j);
-	
-	pgc->gcsl_start4(p,hp,50);
-	
-	phxy->start(p,hx,hy,depth,a->eta,a->P,a->Q);
-	
-	pgc->gcsl_start1(p,hx,50);
-	pgc->gcsl_start2(p,hy,50);
-	
-	SLICELOOP1
-	a->P(i,j)/=hx(i,j);
-	
-	SLICELOOP2
-	a->Q(i,j)/=hy(i,j);
-	
-	pgc->gcsl_start1(p,a->P,10);
-    pgc->gcsl_start2(p,a->Q,11);
-	
-	// eta disc
-	peta->start(p,a->eta,4,a->P,a->Q,depth,L);
-    
-	
-	SLICELOOP4
-	a->eta(i,j) +=	p->dt*L(i,j);	*/
 
     // fsf equation
     SLICELOOP4
     a->eta(i,j) -= p->dt*((a->P(i,j)-a->P(i-1,j))/p->DXN[IP] + (a->Q(i,j)-a->Q(i,j-1))/p->DYN[JP]);	  
     
-    
     pflow->eta_relax(p,pgc,a->eta);
     pgc->gcsl_start4(p,a->eta,1);
-    
 }
 
 void nhflow_fsf_f::ltimesave(lexer* p, fdm *a, slice &ls)

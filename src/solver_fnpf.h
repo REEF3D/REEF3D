@@ -39,7 +39,7 @@ class solver_fnpf
 
 public:
 
-    virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, double*, double*, int, double)=0;
+    virtual void startF(lexer*, ghostcell*, double*, double*, double*, int)=0;
 
 	
 };

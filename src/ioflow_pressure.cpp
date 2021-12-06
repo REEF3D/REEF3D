@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void ioflow_f::pressure_io(lexer *p, fdm* a, ghostcell *pgc)
 {
-    
+    pressure_inlet(p,a,pgc);
     pressure_outlet(p,a,pgc);
     
     
@@ -85,6 +85,7 @@ void ioflow_f::pressure_inlet(lexer *p, fdm *a, ghostcell *pgc)
 {
     double pval=0.0;
 
+    if(p->B76==2)
     for(n=0;n<p->gcin_count;n++)
     {
     i=p->gcin[n][0];
@@ -97,6 +98,25 @@ void ioflow_f::pressure_inlet(lexer *p, fdm *a, ghostcell *pgc)
 		if(a->phi(i,j,k)<0.0)
         pval = a->press(i,j,k);
 
+        a->press(i-1,j,k)=pval;
+        a->press(i-2,j,k)=pval;
+        a->press(i-3,j,k)=pval;
+    }
+    
+    if(p->B76==3)
+    for(n=0;n<p->gcin_count;n++)
+    {
+    i=p->gcin[n][0];
+    j=p->gcin[n][1];
+    k=p->gcin[n][2];
+    
+		
+		if(a->phi(i,j,k)>=0.0)
+        pval=a->press(i,j,k) + p->Ui*p->DXP[IM1]; 
+		
+		if(a->phi(i,j,k)<0.0)
+        pval = a->press(i,j,k);
+    
         a->press(i-1,j,k)=pval;
         a->press(i-2,j,k)=pval;
         a->press(i-3,j,k)=pval;

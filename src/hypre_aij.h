@@ -43,16 +43,16 @@ public:
 
 	hypre_aij(lexer*,fdm*,ghostcell*);
 	virtual ~hypre_aij();
-	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, vec&, int, int, double);
+	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
+    virtual void startM(lexer*, fdm*, ghostcell*, double*, double*, double*, int);
     
-	virtual void solve(lexer*,fdm*, ghostcell*, vec&, vec&, int, int, int&, int, double);
-	virtual void setup(lexer*,fdm*, ghostcell*,int);
-    
-	virtual void fillxvec1(lexer*,fdm*,field&);
-    virtual void fillxvec2(lexer*,fdm*,field&);
-    virtual void fillxvec3(lexer*,fdm*,field&);
-    virtual void fillxvec4(lexer*,fdm*,field&);
-	virtual void fillbackvec(lexer*,fdm*,field&,vec&,int);
+	void solve(lexer*,fdm*, ghostcell*, vec&, vec&, int, int, int&);
+
+	void fillxvec1(lexer*,fdm*,field&);
+    void fillxvec2(lexer*,fdm*,field&);
+    void fillxvec3(lexer*,fdm*,field&);
+    void fillxvec4(lexer*,fdm*,field&);
+	void fillbackvec(lexer*,fdm*,field&,vec&,int);
     
     
     void make_grid(lexer*,ghostcell*);
@@ -61,15 +61,15 @@ public:
     void fill_matrix_13p(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix_19p(lexer*,fdm*, ghostcell*,field&);
     
-    virtual void fillbackvec_F(lexer*,double*,double*,int);
-    virtual void fillbackvec_F_v2(lexer*,double*,double*,int);
+    void fillbackvec_F(lexer*,double*,double*,int);
+    void fillbackvec_F_v2(lexer*,double*,double*,int);
     
     
     void create_solvers(lexer*,ghostcell*);
     void delete_solvers(lexer*,ghostcell*);
     
     // FNPF Laplace solver 
-    virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int, int, double);
+    virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int);
     void make_grid_F(lexer*, ghostcell*);
     void fill_matrix_F_7p(lexer*,ghostcell*, matrix_diag&,double*,double*,vec&);
     void fill_matrix_F_13p(lexer*, ghostcell*, matrix_diag&,double*,double*,vec&);
@@ -91,6 +91,8 @@ private:
     HYPRE_ParVector par_x;
     
     HYPRE_Solver solver, precond;
+    
+    vec xvec;
    
 	double val[19];
 	int col[19];

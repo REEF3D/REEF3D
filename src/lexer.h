@@ -267,7 +267,7 @@ public:
     double A440;
     
 	// boundary conditions
-	int B10,B20,B26,B30,B60,B61,B70,B71,B74,B75,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B94,B98,B99,B101,B105,B106,B107;
+	int B10,B20,B26,B30,B60,B61,B70,B71,B74,B75,B76,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B94,B98,B99,B101,B105,B106,B107;
 	int B121,B136,B139,B180,B191,B192,B240,B241,B242,B243;
 	double B29,B50,B51,B52,B53,B54,B55,B56,B81_1,B81_2,B81_3,B83,B117,B87_1,B87_2,B88;
 	double B91_1,B91_2,B93_1,B93_2,B94_wdt,B96_1,B96_2,B102,B105_1,B105_2,B105_3;
@@ -347,7 +347,6 @@ public:
 
 	// discretization
 	int D10,D11,D20,D21,D30,D37,D38,D39;
-	double D29;
 
 	// Free Surface
 	int F10,F11,F30,F31,F32,F34,F35,F36,F40,F44,F46,F47,F49,F50,F150,F151;
@@ -438,7 +437,7 @@ public:
 
 	// Turbulence
 	int T10,T11,T12,T36;
-	double T13,T31,T32,T35,T37,T38;
+	double T31,T32,T35,T37,T38;
 
 	// Waterflow
 	double W1,W2,W3,W4,W5,W10,W_fb;
@@ -586,6 +585,7 @@ public:
     // FSI
     int Z10,Z11,FSI_count;
     double *Z11_x,*Z11_y,*Z11_z,*Z11_l,*Z11_w,*Z11_t,*Z11_rho,*Z11_e,*Z11_ix,*Z11_iy,*Z11_iz,*Z11_nu,*Z11_n;
+    double Z12_ckx,Z12_cky,Z12_ckz,Z12_cdx,Z12_cdy,Z12_cdz;
 
 
 
@@ -634,7 +634,7 @@ public:
     
 // sigma coordinate
     double *sig;
-    double *sigx,*sigy,*sigz;
+    double *sigx,*sigy,*sigz,*sigt;
     double *sigxx;
 
 private:

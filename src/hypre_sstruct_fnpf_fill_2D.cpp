@@ -28,7 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fieldint4.h"
 #include"matrix_diag.h"
 
-void hypre_sstruct_fnpf::fill_matrix8_2Dvert(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, double *rhs, double *M)
+void hypre_sstruct_fnpf::fill_matrix8_2Dvert(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M)
 {
     nentries=9;
     

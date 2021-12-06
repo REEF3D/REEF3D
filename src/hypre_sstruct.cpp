@@ -39,27 +39,33 @@ hypre_sstruct::hypre_sstruct(lexer* p,fdm* a,ghostcell *pgc)
     p->Iarray(iupper,3);
     p->Darray(values,vecsize*13);
     
-    if(p->A320!=2)
+    if(p->A320!=2 && p->D30!=4)
     make_grid_7p(p,a,pgc);	
     
     if(p->A320==2)
     make_grid_13p(p,a,pgc);	
+    
+    if(p->D30==4 && p->j_dir==0)
+    make_grid_2Dvert_9p(p,a,pgc);
+    
+    if(p->D30==4 && p->j_dir==1)
+    make_grid_15p(p,a,pgc);	
 }
 
 hypre_sstruct::~hypre_sstruct()
 {
 }
 
-void hypre_sstruct::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, vec& rhsvec, int var, int gcv, double stop_crit)
+void hypre_sstruct::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, int var)
 {
     if(var>=1 && var<=4)
-    start_solver1234(p,a,pgc,f,xvec,rhsvec,var);
+    start_solver1234(p,a,pgc,f,rhsvec,var);
     
     if(var==5)
-    start_solver5(p,a,pgc,f,xvec,rhsvec,var);
+    start_solver5(p,a,pgc,f,rhsvec,var);
 }
 
-void hypre_sstruct::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var, int gcv, double stop_crit)
+void hypre_sstruct::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
 {
     if(var==7)
     start_solver7(p,pgc,f,rhs,M,var);
@@ -71,7 +77,12 @@ void hypre_sstruct::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec
     start_solver10(p,pgc,f,rhs,M,var);
 }
 
-void hypre_sstruct::start_solver1234(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, vec& rhsvec, int var)
+void hypre_sstruct::startM(lexer* p,fdm* a, ghostcell* pgc, double *f, double *rhs, double *M, int var)
+{
+    start_solverM(p,pgc,f,rhs,M);
+}
+
+void hypre_sstruct::start_solver1234(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, int var)
 {
     numiter=0;
 	p->solveriter=0;
@@ -95,21 +106,21 @@ void hypre_sstruct::start_solver1234(lexer* p,fdm* a, ghostcell* pgc, field &f, 
         
     
     if(var==1)
-    fillbackvec1(p,f,xvec,var);
+    fillbackvec1(p,f,var);
     
     if(var==2)
-    fillbackvec2(p,f,xvec,var);
+    fillbackvec2(p,f,var);
     
     if(var==3)
-    fillbackvec3(p,f,xvec,var);
+    fillbackvec3(p,f,var);
     
     if(var==4)
-    fillbackvec4(p,f,xvec,var);
+    fillbackvec4(p,f,var);
 	
 	delete_solver1234(p,pgc);
 }
 
-void hypre_sstruct::start_solver5(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& xvec, vec& rhsvec, int var)
+void hypre_sstruct::start_solver5(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, int var)
 {
 	numiter=0;
 	p->solveriter=0;
@@ -122,11 +133,10 @@ void hypre_sstruct::start_solver5(lexer* p,fdm* a, ghostcell* pgc, field &f, vec
 	
 	p->solveriter=num_iterations;
         
-    fillbackvec4(p,f,xvec,var);
+    fillbackvec4(p,f,var);
 	
 	delete_solver5(p,pgc);
 }
-
 
 void hypre_sstruct::start_solver7(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
 {
@@ -186,13 +196,30 @@ void hypre_sstruct::start_solver10(lexer* p, ghostcell* pgc, double *f, vec& rhs
 	delete_solver5(p,pgc);
 }
 
-void hypre_sstruct::setup(lexer* p,fdm* a, ghostcell* pgc, int var)
+
+void hypre_sstruct::start_solverM(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M)
 {
+    numiter=0;
+	p->solveriter=0;
+	
+    create_solver5(p,pgc);
+
+    if(p->j_dir==1)
+    fill_matrixM(p,pgc,f,rhs,M);
+    
+    if(p->j_dir==0)
+    fill_matrixM_2Dvert(p,pgc,f,rhs,M);
+
+    solve(p);
+
+	p->solveriter=num_iterations;
+    p->final_res = final_res_norm;
+        
+    fillbackvecM(p,f);
+	
+	delete_solver5(p,pgc);
 }
 
-void hypre_sstruct::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsvec, int var, int gcv, int &solveriter, int maxiter, double stop_crit)
-{
-}
 
 void hypre_sstruct::fillxvec1(lexer* p, fdm* a, field& f)
 {

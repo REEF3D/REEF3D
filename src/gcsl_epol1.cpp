@@ -37,7 +37,7 @@ int ghostcell::gcsleval1(lexer *p, int gcv, int bc, int cs)
 	
     // Orthogonal
 	else
-	if((bc==21||bc==22||bc==5||(bc==7&&awa_label==0))&&(cs==1||cs==4)&&(gcv==10||gcv==20||gcv==1))
+	if((bc==21||bc==22||bc==5||(bc==7&&awa_lable==0))&&(cs==1||cs==4)&&(gcv==10||gcv==20||gcv==1))
 	return 5;
 
 //Inflow: none

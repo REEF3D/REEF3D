@@ -49,7 +49,6 @@ public:
 	virtual void ucorr(lexer*,fdm*,field&,double);
 	virtual void vcorr(lexer*,fdm*,field&,double);
 	virtual void wcorr(lexer*,fdm*,field&,double);
-	virtual void ptimesave(lexer*,fdm*,ghostcell*);
     
     field4 pcorr, Fp, pressn;
 

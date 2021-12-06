@@ -84,6 +84,7 @@ void grid_sigma::sigma_ini(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     p->Darray(p->sigx,p->imax*p->jmax*(p->kmax+1));
     p->Darray(p->sigy,p->imax*p->jmax*(p->kmax+1));
     p->Darray(p->sigz,p->imax*p->jmax);
+    p->Darray(p->sigt,p->imax*p->jmax*(p->kmax+1));
     
     p->Darray(p->sigxx,p->imax*p->jmax*(p->kmax+1));
     
@@ -124,17 +125,31 @@ void grid_sigma::sigma_ini(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     SLICELOOP4
 	a->depth(i,j) = p->wd - a->bed(i,j);
     
+    SLICELOOP4
+    {
+    a->Bx(i,j) = 0.0;
+    a->By(i,j) = 0.0;
+    }
+    
     pgc->gcsl_start4(p,a->depth,50);
+    pgc->gcsl_start4(p,a->Bx,50);
+    pgc->gcsl_start4(p,a->By,50);
     
     SLICELOOP4
     p->sigz[IJ] = 1.0/WLVL;
+    
+    SLICELOOP4
+    p->sigt[FIJK] = 0.0;
 
 }
 
 void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
 {
     SLICELOOP4
+    {
+    a->WL_n(i,j) = a->WL(i,j);
     a->WL(i,j) = MAX(0.0, a->eta(i,j) + p->wd - a->bed(i,j));
+    }
     
     // calculate: Ex,Ey,Exx,Eyy
     // 3D
@@ -211,6 +226,16 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     
     if(a->wet(i,j)==0)
     p->sigz[IJ] = 1.0/WLVLDRY;
+    }
+    
+    // sigt
+    FLOOP
+    {
+    if(a->wet(i,j)==1)
+    p->sigt[FIJK] = -(p->sig[FIJK]/WLVL)*(a->WL(i,j)-a->WL_n(i,j))/p->dt;
+    
+    if(a->wet(i,j)==0)
+    p->sigt[FIJK] = 0.0;
     }
     
     // sigxx
@@ -320,16 +345,16 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     k=p->knoz;
     SLICELOOP4
     {
-        if(p->flag7[FIm1JK]<0 || i==0)
+        if(p->flag4[FIm1JK]<0 || i==0)
         p->sigz[Im1J] = p->sigz[IJ];
         
-        if(p->flag7[FIp1JK]<0 || i==p->knox-1)
+        if(p->flag4[FIp1JK]<0 || i==p->knox-1)
         p->sigz[Ip1J] = p->sigz[IJ];
         
-        if(p->flag7[FIJm1K]<0 || j==0)
+        if(p->flag4[FIJm1K]<0 || j==0)
         p->sigz[IJm1] = p->sigz[IJ];
         
-        if(p->flag7[FIJp1K]<0 || j==p->knoy-1)
+        if(p->flag4[FIJp1K]<0 || j==p->knoy-1)
         p->sigz[IJp1] = p->sigz[IJ];
     }
     
@@ -346,24 +371,16 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
 double grid_sigma::sigmax(lexer *p, field &f, int ipol)
 {    
     if(ipol==1)
-    sig = 0.25*(p->sigx[FIJKm1] + p->sigx[FIp1JKm1] + p->sigx[FIJK] + p->sigx[FIp1JK])
-        
-        *((f(i,j,k+1)-f(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]));
+    sig = 0.25*(p->sigx[FIJKm1] + p->sigx[FIp1JKm1] + p->sigx[FIJK] + p->sigx[FIp1JK]);
 
     if(ipol==2)
-    sig = 0.25*(p->sigx[FIJKm1] + p->sigx[FIJp1Km1] + p->sigx[FIJK] + p->sigx[FIJp1K])
-    
-        *((f(i,j,k+1)-f(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]));
+    sig = 0.25*(p->sigx[FIJKm1] + p->sigx[FIJp1Km1] + p->sigx[FIJK] + p->sigx[FIJp1K]);
     
     if(ipol==3)
-    sig = p->sigx[FIJKm1]
-    
-        *((f(i,j,k+1)-f(i,j,k-1))/(p->DZN[KP]+p->DZN[KM1]));
+    sig = p->sigx[FIJKm1];
 
     if(ipol==4)
-    sig = 0.5*(p->sigx[FIJKm1] + p->sigx[FIJK])
-    
-        *((f(i,j,k+1)-f(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]));
+    sig = 0.5*(p->sigx[FIJKm1] + p->sigx[FIJK]);
 
     return sig;
 }
@@ -371,24 +388,16 @@ double grid_sigma::sigmax(lexer *p, field &f, int ipol)
 double grid_sigma::sigmay(lexer *p, field &f, int ipol)
 {  
     if(ipol==1)
-    sig = 0.25*(p->sigy[FIJKm1] + p->sigy[FIp1JKm1] + p->sigy[FIJK] + p->sigy[FIp1JK])
-    
-        *((f(i,j,k+1)-f(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]));
+    sig = 0.25*(p->sigy[FIJKm1] + p->sigy[FIp1JKm1] + p->sigy[FIJK] + p->sigy[FIp1JK]);
 
     if(ipol==2)
-    sig = 0.25*(p->sigy[FIJKm1] + p->sigy[FIJp1Km1] + p->sigy[FIJK] + p->sigy[FIJp1K])
+    sig = 0.25*(p->sigy[FIJKm1] + p->sigy[FIJp1Km1] + p->sigy[FIJK] + p->sigy[FIJp1K]);
     
-        *((f(i,j,k+1)-f(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]));
-
     if(ipol==3)
-    sig = p->sigy[FIJKm1]
-    
-        *((f(i,j,k+1)-f(i,j,k-1))/(p->DZN[KP]+p->DZN[KM1]));
+    sig = p->sigy[FIJKm1];
 
     if(ipol==4)
-    sig = 0.5*(p->sigy[FIJKm1] + p->sigy[FIJK])
-    
-        *((f(i,j,k+1)-f(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]));
+    sig = 0.5*(p->sigy[FIJKm1] + p->sigy[FIJK]);
 
     return sig;
 }
@@ -410,5 +419,43 @@ double grid_sigma::sigmaz(lexer *p, field &f, int ipol)
     return sig;
 }
 
+double grid_sigma::sigmat(lexer *p, field &f, int ipol)
+{    
+    if(ipol==1)
+    sig = 0.25*(p->sigt[FIJKm1] + p->sigt[FIp1JKm1] + p->sigt[FIJK] + p->sigt[FIp1JK]);
+
+    if(ipol==2)
+    sig = 0.25*(p->sigt[FIJKm1] + p->sigt[FIJp1Km1] + p->sigt[FIJK] + p->sigt[FIJp1K]);
+    
+    if(ipol==3)
+    sig = p->sigt[FIJKm1];
+
+    if(ipol==4)
+    sig = 0.5*(p->sigt[FIJKm1] + p->sigt[FIJK]);
+
+    return sig;
+}
+
+void grid_sigma::omega_update(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
+{  
+    if(p->G2==1)
+    {
+    LOOP
+    {
+    a->omega(i,j,k) =  0.5*(p->sigt[FIJKm1] + p->sigt[FIJK])
+                    
+                    +  0.5*(u(i-1,j,k) + u(i,j,k))*0.5*(p->sigx[FIJKm1] + p->sigx[FIJK])
+                    
+                    +  0.5*(v(i,j-1,k) + v(i,j,k))*0.5*(p->sigy[FIJKm1] + p->sigy[FIJK])
+                    
+                    +  0.5*(w(i,j,k-1) + w(i,j,k))*p->sigz[IJ];
+                    
+    }
+    
+    pgc->start4(p,a->omega,1);
+    }
+    
+    
+}
 
 
