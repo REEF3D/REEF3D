@@ -146,15 +146,10 @@ void pjm_sigss::rhscalc(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, fi
                            
     SCHECK
     rhs[n] = 0.0;
-    
-    //PCHECK
-    //a->test(i,j,k) = rhs[n];
-                                           
+                                        
     ++n;
     }
     pip=0;
-    
-    pgc->start4(p,a->test,1);
 }
  
 void pjm_sigss::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
