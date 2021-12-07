@@ -42,7 +42,7 @@ hypre_sstruct::hypre_sstruct(lexer* p,fdm* a,ghostcell *pgc)
     if(p->A320!=2 && p->D30!=4)
     make_grid_7p(p,a,pgc);	
     
-    if(p->A320==2)
+    if(p->A320==2 && p->D30!=4)
     make_grid_13p(p,a,pgc);	
     
     if(p->D30==4 && p->j_dir==0)
@@ -216,7 +216,7 @@ void hypre_sstruct::start_solverM(lexer* p, ghostcell* pgc, double *f, double *r
     p->final_res = final_res_norm;
         
     fillbackvecM(p,f);
-	
+    
 	delete_solver5(p,pgc);
 }
 

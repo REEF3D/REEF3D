@@ -38,32 +38,41 @@ void nhflow_f::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
 {
 }
 
-void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w)
+void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, slice &eta, slice &eta_n, double alpha)
 {
     double wval;
     
-    k=p->knoz-2;
-    GCSL4LOOP
+    GC4LOOP
+    if(p->gcb4[n][3]==6 && p->gcb4[n][4]==3)
     {
-    i=p->gcbsl4[n][0];
-    j=p->gcbsl4[n][1];
+    i=p->gcb4[n][0];
+    j=p->gcb4[n][1];
+    k=p->gcb4[n][2];
     
-	wval = (a->eta(i,j) - a->eta_n(i,j))/p->dt
+	wval = (eta(i,j) - eta_n(i,j))/(p->dt*alpha)
     
-         + 0.5*(u(i,j,k)+u(i-1,j,k))*((a->eta(i+1,j)-a->eta(i-1,j))/(2.0*p->DXP[IP]))
+         + 0.5*(u(i,j,k)+u(i-1,j,k))*((eta(i+1,j)-eta(i-1,j))/(p->DXP[IP]+p->DXP[IP1]))
     
-         + 0.5*(v(i,j,k)+v(i,j-1,k))*((a->eta(i,j+1)-a->eta(i,j-1))/(2.0*p->DYP[JP]));
-
+         + 0.5*(v(i,j,k)+v(i,j-1,k))*((eta(i,j+1)-eta(i,j-1))/(p->DYP[JP]+p->DYP[JP1]));
+    
+    //cout<<"KFSFBC i: "<<i+p->origin_i<<" k: "<<k<<" wval: "<<wval<<endl;
+    
 	for(q=0;q<margin;++q)
-	w(i,j,k+q+1) = w(i,j,k);//wval;
+    {
+	w(i,j,k+q) = wval;
+    a->test(i,j,k-1+q) = wval; 
+    }
+    
+    
     }
     
 
     k=0;
-    GCSL4LOOP
+    GC4LOOP
+    if(p->gcb4[n][3]==5 && p->gcb4[n][4]==21)
     {
-    i=p->gcbsl4[n][0];
-    j=p->gcbsl4[n][1];
+    i=p->gcb4[n][0];
+    j=p->gcb4[n][1];
     
 
 	for(q=0;q<margin;++q)

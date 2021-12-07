@@ -393,11 +393,11 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 // NHFLOW
     else
 	if((bc==21||bc==22||bc==5||bc==3||(bc==2&&pressout_lable==0)||bc==6||(bc==7&&awa_lable==0)||bc==211||bc==212||bc==112||bc==111) && cs!=6 && gcv==540)
-	return gclabel_press;
+	return 4;
     
     else
-	if((bc==21||bc==22||bc==5||bc==3||(bc==2&&pressout_lable==0)||bc==6||(bc==7&&awa_lable==0)||bc==211||bc==212||bc==112||bc==111) && cs==6 && gcv==540)
-	return gclabel_press;
+	if(bc==3 && cs==6 && gcv==540)
+	return 11;
     
     
 	else

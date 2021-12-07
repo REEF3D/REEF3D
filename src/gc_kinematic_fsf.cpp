@@ -29,7 +29,7 @@ void ghostcell::kinematic_fsf(lexer *p,field& f,double dist,int gcv, int bc, int
 {
     double wval;
     
-	wval = (a->eta(i,j) - a->eta_n(i,j))/p->dt
+	wval = 0.0*(a->eta(i,j) - a->eta_n(i,j))/p->dt
     
          + 0.5*(a->u(i,j,k)+a->u(i-1,j,k))*((a->eta(i+1,j)-a->eta(i-1,j))/(2.0*p->DXP[IP]))
     
@@ -39,6 +39,6 @@ void ghostcell::kinematic_fsf(lexer *p,field& f,double dist,int gcv, int bc, int
 	f(i,j,k+q+1)= wval;
     
     
-    //cout<<"KINEMATIC FSF"<<endl;
+    cout<<"KINEMATIC FSF"<<endl;
 }
 

@@ -90,10 +90,9 @@ void pjm_sigss::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* p
         endtime=pgc->timer();
         
     fillvec_back(p,a,pgc);
-        
-
+    
 	pgc->start4(p,a->press,gcval_press);
-	
+    
 	ucorr(p,a,uvel,alpha);
 	vcorr(p,a,vvel,alpha);
 	wcorr(p,a,wvel,alpha);
@@ -133,25 +132,25 @@ void pjm_sigss::rhscalc(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, fi
 	
     pip=p->Y50;
 
-    count=0;
+    n=0;
     KJILOOP
     {
     PCHECK
-    rhs[count] =          -((u(i,j,k)-u(i-1,j,k))/p->DXN[IP]
-                          + 0.25*(p->sigx[FIJK]+p->sigx[FIJKp1]+p->sigx[FIp1JK]+p->sigx[FIp1JKp1])*(0.5*(u(i,j,k+1)+u(i-1,j,k+1))-0.5*(u(i,j,k-1)+u(i-1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1])
+    rhs[n] =        - ((u(i,j,k)-u(i-1,j,k))/p->DXN[IP]
+                     + 0.25*(p->sigx[FIJK]+p->sigx[FIJKp1]+p->sigx[FIp1JK]+p->sigx[FIp1JKp1])*(0.5*(u(i,j,k+1)+u(i-1,j,k+1))-0.5*(u(i,j,k-1)+u(i-1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1])
                             
-						   + (v(i,j,k)-v(i,j-1,k))/p->DYN[JP] 
-                          + 0.25*(p->sigy[FIJK]+p->sigy[FIJKp1]+p->sigy[FIJp1K]+p->sigy[FIJp1Kp1])*(0.5*(v(i,j,k+1)+v(i,j-1,k+1))-0.5*(v(i,j,k-1)+v(i,j-1,k-1)))/(p->DZP[KP]+p->DZP[KP1])
+                     + (v(i,j,k)-v(i,j-1,k))/p->DYN[JP] 
+                     + 0.25*(p->sigy[FIJK]+p->sigy[FIJKp1]+p->sigy[FIJp1K]+p->sigy[FIJp1Kp1])*(0.5*(v(i,j,k+1)+v(i,j-1,k+1))-0.5*(v(i,j,k-1)+v(i,j-1,k-1)))/(p->DZP[KP]+p->DZP[KP1])
                            
-						   + p->sigz[IJ]*(w(i,j,k)-w(i,j,k-1))/p->DZN[KP] )/(alpha*p->dt);
+                     + p->sigz[IJ]*(w(i,j,k)-w(i,j,k-1))/p->DZN[KP] )/(alpha*p->dt);
                            
     SCHECK
-    rhs[count] = 0.0;
+    rhs[n] = 0.0;
     
-    PCHECK
-    a->test(i,j,k) = rhs[count];
+    //PCHECK
+    //a->test(i,j,k) = rhs[n];
                                            
-    ++count;
+    ++n;
     }
     pip=0;
     
@@ -162,7 +161,7 @@ void pjm_sigss::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, 
 {
 	pgc->start1(p,u,gcval_u);
 	pgc->start2(p,v,gcval_v);
-	//pgc->start3(p,w,gcval_w);
+	pgc->start3(p,w,gcval_w);
 }
 
 void pjm_sigss::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)

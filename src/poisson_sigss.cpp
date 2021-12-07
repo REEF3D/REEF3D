@@ -75,12 +75,10 @@ nt 8
                         - CPOR4*PORVAL4*0.5*(p->sigxx[FIJK]+p->sigxx[FIJKp1])/(a->ro(i,j,k)*(p->DZN[KP]+p->DZN[KM1]));
         
       
-        M[n*9+5]  = -CPOR4*PORVAL4*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
-        M[n*9+6]  =  CPOR4*PORVAL4*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
-        M[n*9+7]  =  CPOR4*PORVAL4*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
-        M[n*9+8]  = -CPOR4*PORVAL4*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
-
-        x[n] = f(i,j,k);
+        M[n*9+5]  = -CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
+        M[n*9+6]  =  CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
+        M[n*9+7]  =  CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
+        M[n*9+8]  = -CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1])); 
         }
         
         if(p->flag4[IJK]<0 || a->wet(i,j)==0)
@@ -94,13 +92,11 @@ nt 8
         M[n*9+6] = 0.0;
         M[n*9+7] = 0.0;
         M[n*9+8] = 0.0;
-        
-        x[n] = 0.0;
-        rhs[n] =  0.0;
         }
-        
+    
 	++n;
 	}
+    
     
     n=0;
 	KJILOOP
@@ -139,8 +135,8 @@ nt 8
                 // wall
             if((p->flag4[Im1JKp1]<0 && p->flag4[IJKp1]>0)) //
             {
-            M[n*9] += M[n*9+6];  
-            M[n*9+6] = 0.0;   
+            rhs[n] -= M[n*9+6]*f[Im1JKp1];
+            M[n*9+6] = 0.0;  
             }
             
             // nt
@@ -238,8 +234,12 @@ nt 8
 
             }
         }
+        
 	++n;
 	}
+    
+    
+    
 
 }
 

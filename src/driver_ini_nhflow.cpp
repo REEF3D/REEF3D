@@ -144,7 +144,9 @@ void driver::driver_ini_nhflow()
     
 	pgc->start4(p,a->press,40);
 	
+    pnh->kinematic_fsf(p,a,a->u,a->v,a->w,a->eta,a->eta_n,1.0);
     p->sigma_update(p,a,pgc,a->eta,1.0);
+    
     pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
 
 
