@@ -38,7 +38,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
  
 pjm_sigss::pjm_sigss(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc)
 {
-    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0)
+    if((p->F80==0||p->A10==5||p->A10==55) && p->H10==0 && p->W30==0)
 	pd = new density_f(p);
 	
 	if(p->F80==0 && p->H10==0 && p->W30==1)
