@@ -83,7 +83,7 @@ nt 8
         x[n] = f(i,j,k);
         }
         
-        if(a->wet(i,j)==0 || p->flag4[IJK]<0)
+        if(p->flag4[IJK]<0 || a->wet(i,j)==0)
         {
         M[n*9]  =  1.0;
         M[n*9+1] = 0.0;

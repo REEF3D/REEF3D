@@ -2388,10 +2388,10 @@
         <File Name="hypre_struct_fnpf.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="HYPRE SStruct">
-        <File Name="hypre_struct_fillM.cpp"/>
+        <File Name="hypre_sstruct_fillM.cpp"/>
+        <File Name="hypre_sstruct_fill10.cpp"/>
         <File Name="hypre_sstruct_solve.cpp"/>
         <File Name="hypre_sstruct_grid.cpp"/>
-        <File Name="hypre_struct_fill10.cpp"/>
         <File Name="hypre_sstruct_fill8.cpp"/>
         <File Name="hypre_sstruct_fill7.cpp"/>
         <File Name="hypre_sstruct_fill4.cpp"/>

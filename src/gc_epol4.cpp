@@ -243,7 +243,45 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	else
 	if((bc==6 || bc==7 || bc==8) && gcv==24)
 	return 5;
+    
+// omega (sigma coordinate)
+    // Parallel
+	// Wall
+	if((bc==21||bc==22||bc==5||(bc==7&&awa_lable==0))&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==12))
+	return 4;
 
+    // Othogonal
+	else
+	if((bc==21||bc==22||bc==5||(bc==7&&awa_lable==0))&&(cs==6)&&(gcv==12))
+	return 5;
+
+    //Inflow	
+    else
+	if((bc==6 && gcv==12))
+	return 4;
+	
+    //Outflow
+	else
+	if((bc==2 && gclabel_outflow==1) && (gcv==12||gcv==3) && (cs==2||cs==3||cs==1||cs==4))
+	return 4;
+	
+	else
+	if((bc==2 && gclabel_outflow==1) && (gcv==12) && (cs==5||cs==6))
+	return 5;
+    
+    //Patch    
+    else
+	if((bc==111 || bc==112 || bc==121 || bc==122) && (gcv==12))
+	return 4;
+
+    //Free Surface
+	else
+	if((bc==3) && (cs==2||cs==3||cs==1||cs==4) && (gcv==12))
+	return 4;
+
+	else
+	if(bc==3 && (cs==5||cs==6)&&(gcv==12||gcv==19 || gcv==3) && p->A10!=3 && p->A10!=55)
+	return 4;
 	
 // VOF
 	else
