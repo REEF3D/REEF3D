@@ -208,6 +208,12 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, doub
     
     LOOP
     p->ZSP[IJK]  = p->ZP[KP]*a->WL(i,j) + a->bed(i,j);
+    
+    pgc->start7S(p,p->sigx,1);
+    pgc->start7S(p,p->sigy,1);
+    pgc->start7S(p,p->sigxx,1);
+    pgc->start7S(p,p->sigt,1);
+    pgc->start7S(p,p->ZSN,1);
         
 }
 

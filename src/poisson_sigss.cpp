@@ -97,6 +97,105 @@ nt 8
 	++n;
 	}
     
+    n=0;
+	KJILOOP
+	{
+        if(p->flag4[IJK]>0 && a->wet(i,j)==1)
+        {
+            // south
+            if((p->flag4[Im1JK]<0 || a->wet(i-1,j)==0))
+            {
+            M[n*9] += M[n*9+1];
+            M[n*9+1] = 0.0;     
+            }
+            
+            // north
+            if((p->flag4[Ip1JK]<0 || a->wet(i+1,j)==0))
+            {
+            M[n*9] += M[n*9+2];
+            M[n*9+2] = 0.0;  
+            }
+
+            // top
+            if(p->flag4[IJKp1]<0)
+            {
+            rhs[n] -= M[n*9+4]*f[IJKp1];
+            M[n*9+4] = 0.0;
+            }
+   
+        // diagonal entries
+            // st
+                // fsfbc
+            if(p->flag4[Im1JKp1]<0 && p->flag4[IJKp1]<0) // fsfbc
+            {
+            rhs[n] -= M[n*9+6]*f[Im1JKp1];
+            M[n*9+6] = 0.0;
+            }
+                // wall
+            if((p->flag4[Im1JKp1]<0 && p->flag4[IJKp1]>0)) //
+            {
+            M[n*9] += M[n*9+6];
+            M[n*9+6] = 0.0;   
+            }
+            
+            // nt
+                // fsfbc
+            if(p->flag4[Ip1JKp1]<0 && p->flag4[IJKp1]<0) 
+            {
+            rhs[n] -= M[n*9+8]*f(i+1,j,k+1);
+            M[n*9+8] = 0.0; 
+            }
+            
+                // wall
+            if(p->flag4[Ip1JKp1]<0 && p->flag4[IJKp1]>0)
+            {
+            M[n*9] += M[n*9+8];
+            M[n*9+8] = 0.0;  
+            }
+            
+            // sb 
+                // wall
+            if(((p->flag4[Im1JKm1]<0 && p->flag4[IJKm1]>0)|| a->wet(i-1,j)==0))
+            {
+            M[n*9] += M[n*9+5];
+            M[n*9+5] = 0.0;        
+            }
+        
+            // nb 
+                // wall
+            if(((p->flag4[Ip1JKm1]<0 && p->flag4[IJKm1]>0)|| a->wet(i+1,j)==0))
+            {
+            M[n*9] += M[n*9+7];
+            M[n*9+7] = 0.0;        
+            }
+        
+        // BED
+            // sb KBEDBC
+            if(p->flag4[Im1JKm1]<0 && p->flag4[IJKm1]<0)
+            {
+            M[n*9] += M[n*9+5];
+            M[n*9+5] = 0.0;  
+            }
+            
+            // nb KBEDBC
+            if(p->flag4[Ip1JKm1]<0 && p->flag4[IJKm1]<0)
+            {
+            M[n*9] += M[n*9+7];
+            M[n*9+7] = 0.0;  
+            }
+ 
+            // KBEDBC
+            if(p->flag4[IJKm1]<0)
+            {
+            M[n*9] += M[n*9+3];
+            M[n*9+3] = 0.0;  
+
+            }
+        }
+        
+	++n;
+	}
+    /*
     
     n=0;
 	KJILOOP
@@ -172,20 +271,7 @@ nt 8
                 
             // sb KBEDBC
             if(p->flag4[Im1JKm1]<0 && p->flag4[IJKm1]<0)
-            { 
-            /*ab = -2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
-            
-            denom = p->sigz[Im1J] + c->Bx(i-1,j)*p->sigx[FIm1JK];
-
-                    if(c->wet(i+1,j)==1 && c->wet(i-1,j)==1)
-                    {
-                    M[n*9+2] +=  ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
-                    M[n*9+1] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
-                    }
-                
-                M[n*9+6] += ab;
-                M[n*9+5] = 0.0;*/
-                
+            {
             rhs[n] -= M[n*9+5]*f(i-1,j,k-1);
             M[n*9+5] = 0.0;
             }
@@ -193,19 +279,6 @@ nt 8
             // nb KBEDBC
             if(p->flag4[Ip1JKm1]<0 && p->flag4[IJKm1]<0)
             {
-            /*ab = 2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
-            
-            denom = p->sigz[IJ] + a->Bx(i,j)*p->sigx[FIJK];
-
-                    if(a->wet(i+1,j)==1 && a->wet(i-1,j)==1)
-                    {
-                    M[n*9+2] +=  ab*2.0*p->DZN[KP]*a->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
-                    M[n*9+1] += -ab*2.0*p->DZN[KP]*a->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
-                    }
-                
-                M[n*9+8] += ab;
-            M[n*9+7] = 0.0;*/
-            
             rhs[n] -= M[n*9+7]*f(i+1,j,k-1);
             M[n*9+7] = 0.0;
             }
@@ -213,22 +286,6 @@ nt 8
             // KBEDBC
             if(p->flag4[IJKm1]<0)
             {
-            /*sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
-            
-            ab = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]));
-            
-            denom = p->sigz[IJ] + a->Bx(i,j)*p->sigx[FIJK];
-
-                    if(a->wet(i+1,j)==1 && a->wet(i-1,j)==1)
-                    {
-                    M[n*9+2] +=  ab*2.0*p->DZN[KP]*a->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
-                    M[n*9+1] += -ab*2.0*p->DZN[KP]*a->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
-                    }
-                    
-                M[n*9+4] += ab;
-                M[n*9+3] = 0.0;*/
-                
-            
             rhs[n] -= M[n*9+3]*f(i,j,k-1);
             M[n*9+3] = 0.0;
 
@@ -236,7 +293,7 @@ nt 8
         }
         
 	++n;
-	}
+	}*/
     
     
     

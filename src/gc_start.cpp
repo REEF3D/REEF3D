@@ -348,3 +348,16 @@ void ghostcell::start7V(lexer *p, double *x, sliceint &bc, int gcv)
     if(gcv==110)
     fivec2D_vel(p,x,bc);
 }
+
+void ghostcell::start7S(lexer *p, double *x, int gcv)
+{
+    if(p->M10>0)
+    {
+    starttime=timer();
+	gcparax7(p,x,7);
+    gcparax7co(p,x,7);
+    gcparax7co(p,x,7);
+	endtime=timer();
+	p->xtime+=endtime-starttime;
+    }
+}

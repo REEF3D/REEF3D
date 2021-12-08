@@ -38,7 +38,7 @@ driver::driver(int& argc, char **argv)
     {
     cout<<endl<<"REEF3D (c) 2008-2021 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    cout<<endl<<"v_211207" <<endl<<endl;
+    cout<<endl<<"v_211208" <<endl<<endl;
     }
 
 	p->lexer_read(pgc);
@@ -104,7 +104,7 @@ driver::driver(int& argc, char **argv)
 
         if(p->A10==55)
         {
-        makegrid_nhflow(p,pgc);
+        makegrid_fnpf(p,pgc);
         nhflow_driver();
         }
 

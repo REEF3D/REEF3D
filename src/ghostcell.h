@@ -65,6 +65,7 @@ public:
 	void start4aV(lexer*,vec&,int);
     void start6V(lexer*,vec&,int);
     void start7V(lexer*,double*,sliceint&, int);
+    void start7S(lexer*,double*, int);
 
 
 	void final();
