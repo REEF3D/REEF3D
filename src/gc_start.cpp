@@ -68,6 +68,9 @@ void ghostcell::start1(lexer *p, field& f, int gcv)
         
     if(p->Y40==2  || p->Y40==3)
     f.ggcpol(p);
+    
+    if(p->M10>0)
+	gcparacox(p,f,gcv);
 }
 
 void ghostcell::start2(lexer *p, field& f, int gcv)
@@ -117,6 +120,9 @@ void ghostcell::start2(lexer *p, field& f, int gcv)
         
     if(p->Y40==2  || p->Y40==3)
     f.ggcpol(p);
+    
+    if(p->M10>0)
+	gcparacox(p,f,gcv);
 }
 
 void ghostcell::start3(lexer *p, field& f, int gcv)
@@ -161,6 +167,9 @@ void ghostcell::start3(lexer *p, field& f, int gcv)
         
     if(p->Y40==2  || p->Y40==3)
     f.ggcpol(p);
+    
+    if(p->M10>0)
+	gcparacox(p,f,gcv);
 }
 
 void ghostcell::start4(lexer *p, field &f, int gcv)
@@ -207,6 +216,9 @@ void ghostcell::start4(lexer *p, field &f, int gcv)
         
     if(p->Y40==2  || p->Y40==3)
     f.ggcpol(p);
+    
+    if(p->M10>0)
+	gcparacox(p,f,gcv);
 }
 
 void ghostcell::start4a(lexer *p, field& f, int gcv)
@@ -242,6 +254,9 @@ void ghostcell::start4a(lexer *p, field& f, int gcv)
     
     if(p->Y40==2  || p->Y40==3)
     f.ggcpol(p);
+    
+    if(p->M10>0)
+	gcparacox(p,f,gcv);
 }
 
 void ghostcell::start4V(lexer *p, vec &x, int gcv)

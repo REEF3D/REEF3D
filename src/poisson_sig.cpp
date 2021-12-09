@@ -97,7 +97,7 @@ void poisson_sig::start(lexer* p, fdm *a, field &f)
 	++n;
 	}
     
-    /*
+    
     n=0;
 	LOOP
 	{
@@ -142,8 +142,8 @@ void poisson_sig::start(lexer* p, fdm *a, field &f)
 
 	++n;
 	}
-*/    
 
+/*
     n=0;
 	LOOP
 	{
@@ -188,4 +188,5 @@ void poisson_sig::start(lexer* p, fdm *a, field &f)
 
 	++n;
 	}
+    */
 }

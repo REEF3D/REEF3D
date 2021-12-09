@@ -87,6 +87,9 @@ void pjm_sig::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc
 
 	if(p->mpirank==0 && p->count%p->P12==0)
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
+    
+
+    pgc->start4(p,a->test,1);
 }
 
 void pjm_sig::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
@@ -106,7 +109,7 @@ void pjm_sig::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
 void pjm_sig::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
 {
     WLOOP 	
-	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
+	wvel(i,j,k) -= a->test(i,j,k) = alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
 }
  
 void pjm_sig::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)

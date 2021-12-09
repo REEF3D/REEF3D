@@ -52,9 +52,9 @@ pjm_sigss::pjm_sigss(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentrati
 
     gcval_press=540;  
 
-	gcval_u=7;
-	gcval_v=8;
-	gcval_w=9;
+	gcval_u=10;
+	gcval_v=11;
+	gcval_w=12;
 
     vecsize=p->knox*p->knoy*(p->knoz+1); 
     
@@ -68,11 +68,11 @@ pjm_sigss::~pjm_sigss()
 }
 
 void pjm_sigss::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
-{
+{    
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<".";
 			
-	vel_setup(p,a,pgc,uvel,vvel,wvel,alpha);	
+	//vel_setup(p,a,pgc,uvel,vvel,wvel,alpha);	
     rhscalc(p,a,pgc,uvel,vvel,wvel,alpha);
     
     if(p->j_dir==0)
@@ -103,6 +103,11 @@ void pjm_sigss::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* p
 
 	if(p->mpirank==0 && p->count%p->P12==0)
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
+    
+    LOOP
+    a->test(i,j,k) = 0.5*(p->sigx[FIJK]+p->sigx[FIp1JK]);
+    
+    pgc->start4(p,a->test,1);
 }
 
 void pjm_sigss::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
@@ -122,10 +127,10 @@ void pjm_sigss::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
 void pjm_sigss::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
 {
     WLOOP 	
-	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
+	wvel(i,j,k) -= a->test(i,j,k) = alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
 }
  
-void pjm_sigss::rhscalc(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
+void pjm_sigss::rhscalc(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, double alpha)
 {
     NLOOP4
 	rhs[n]=0.0;

@@ -57,10 +57,11 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, sli
     
     //cout<<"KFSFBC i: "<<i+p->origin_i<<" k: "<<k<<" wval: "<<wval<<endl;
     
+    //wval = w(i,j,k);
+    
 	for(q=0;q<margin;++q)
     {
-	w(i,j,k+q) = wval;
-    a->test(i,j,k-1+q) = wval; 
+	w(i,j,k+q) = wval; 
     }
     
     
@@ -74,9 +75,12 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, sli
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
     
+    wval = - 0.5*(u(i,j,k)+u(i-1,j,k))*((a->bed(i+1,j)-a->bed(i-1,j))/(p->DXP[IP]+p->DXP[IP1]))
+    
+           - 0.5*(v(i,j,k)+v(i,j-1,k))*((a->bed(i,j+1)-a->bed(i,j-1))/(p->DYP[JP]+p->DYP[JP1]));
 
 	for(q=0;q<margin;++q)
-	w(i,j,k-q-1) = 0.0;
+	w(i,j,k-q-1) = wval;
     }
 }
 
