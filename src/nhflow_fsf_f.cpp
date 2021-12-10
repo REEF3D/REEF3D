@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"nhflow_fsf_f.h"
+#include"nhflow_fsf_rk.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -33,7 +33,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_hxy_fou.h"
 #include"patchBC_interface.h"
 
-nhflow_fsf_f::nhflow_fsf_f(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, patchBC_interface *ppBC) : epsi(p->A440*p->DXM), hx(p), hy(p)
+nhflow_fsf_rk::nhflow_fsf_rk(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, patchBC_interface *ppBC) : epsi(p->A440*p->DXM), hx(p), hy(p)
 {
     pBC = ppBC;
     
@@ -49,28 +49,28 @@ nhflow_fsf_f::nhflow_fsf_f(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, patc
 	phxy = new sflow_hxy_weno(p,pBC);
 }
 
-nhflow_fsf_f::~nhflow_fsf_f()
+nhflow_fsf_rk::~nhflow_fsf_rk()
 {
 }
 
-void nhflow_fsf_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow)
+void nhflow_fsf_rk::start(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow)
 {
 }
 
-void nhflow_fsf_f::ltimesave(lexer* p, fdm *a, slice &ls)
+void nhflow_fsf_rk::ltimesave(lexer* p, fdm *a, slice &ls)
 {
 }
 
-void nhflow_fsf_f::update(lexer *p, fdm *a, ghostcell *pgc, slice &f)
+void nhflow_fsf_rk::update(lexer *p, fdm *a, ghostcell *pgc, slice &f)
 {
     pupdate->start(p,a,pgc);
 }
 
-void nhflow_fsf_f::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
+void nhflow_fsf_rk::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
 {
 }
 
-void nhflow_fsf_f::step1(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, field&w, slice& etark1, slice &etark2, double alpha)
+void nhflow_fsf_rk::step1(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, field&w, slice& etark1, slice &etark2, double alpha)
 {
     SLICELOOP1
     a->P(i,j)=0.0;
@@ -110,7 +110,7 @@ void nhflow_fsf_f::step1(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field 
     p->omega_update(p,a,pgc,u,v,w);
 }
 
-void nhflow_fsf_f::step2(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, field&w, slice& etark1, slice &etark2, double alpha)
+void nhflow_fsf_rk::step2(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, field&w, slice& etark1, slice &etark2, double alpha)
 {
     SLICELOOP1
     a->P(i,j)=0.0;
@@ -150,7 +150,7 @@ void nhflow_fsf_f::step2(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field 
     p->omega_update(p,a,pgc,u,v,w);
 }
 
-void nhflow_fsf_f::step3(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, field&w, slice& etark1, slice &etark2, double alpha)
+void nhflow_fsf_rk::step3(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, field&w, slice& etark1, slice &etark2, double alpha)
 {
     SLICELOOP1
     a->P(i,j)=0.0;
