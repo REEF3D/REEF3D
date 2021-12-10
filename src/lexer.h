@@ -643,6 +643,7 @@ public:
 private:
 
 	void clear(char&, int&);
+    
 };
 
 #endif

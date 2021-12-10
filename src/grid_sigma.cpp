@@ -41,13 +41,16 @@ grid_sigma::~grid_sigma()
 
 void grid_sigma::sigma_coord_ini(lexer *p)
 {
-    double L;
+    double L, ZN0temp;
     
     L = p->ZN[p->knoz+marge] - p->ZN[0+marge];
-
+    
+    ZN0temp = p->ZN[0+marge];
     
     for(k=-marge;k<p->knoz+marge;++k)
-    p->ZN[KP] = (p->ZN[KP]-p->ZN[0+marge])/L;
+    {
+    p->ZN[KP] = (p->ZN[KP]-ZN0temp)/L;
+    }
 }
     
 void grid_sigma::sigma_ini(lexer *p, fdm *a, ghostcell *pgc, slice &eta)

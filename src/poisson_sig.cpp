@@ -135,8 +135,34 @@ void poisson_sig::start(lexer* p, fdm *a, field &f)
             
             if(p->flag4[IJKp1]<0)
             {
-            a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1);
-            a->M.t[n] = 0.0;
+                if(p->D37==1)
+                {
+                a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1);
+                a->M.t[n] = 0.0;
+                }
+                
+                if(p->D37==3)
+                {
+                double teta = 0.5;
+                
+                a->M.p[n] -= (sigxyz2*CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*p->DZP[KP]*p->DZN[KP])*p->z_dir;
+                a->M.p[n] += (sigxyz2*CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*teta*p->DZP[KP]*p->DZN[KP])*p->z_dir;
+                           
+                a->M.t[n] = 0.0;
+                
+                
+                a->rhsvec.V[n] -=  CPOR4*PORVAL4*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(f(i+1,j,k+1) - f(i-1,j,k+1) - f(i+1,j,k-1) + f(i-1,j,k-1))
+                        /(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir
+                        
+                        + CPOR4*PORVAL4*2.0*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(f(i,j+1,k+1) - f(i,j-1,k+1) - f(i,j+1,k-1) + f(i,j-1,k-1))
+                        /((a->ro(i,j,k)*p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
+                        
+                a->rhsvec.V[n] +=  CPOR4*PORVAL4*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(f(i+1,j,k+1) - f(i-1,j,k+1) - f(i+1,j,k-1) + f(i-1,j,k-1))
+                        /(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(teta*p->DZN[KP]+p->DZN[KM1]))*p->x_dir
+                        
+                        + CPOR4*PORVAL4*2.0*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(f(i,j+1,k+1) - f(i,j-1,k+1) - f(i,j+1,k-1) + f(i,j-1,k-1))
+                        /((a->ro(i,j,k)*p->DYN[JP]+p->DYN[JM1])*(teta*p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
+                }
             }
         }
 

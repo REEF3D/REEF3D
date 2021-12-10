@@ -74,6 +74,7 @@ public:
 private:
     lexer *p;
     
+    double pos;
     int stop,count;
     int ii,jj,kk;
     

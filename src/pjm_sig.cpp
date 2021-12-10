@@ -49,10 +49,6 @@ pjm_sig::pjm_sig(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *
 	pd = new density_conc(p,pconc);
 
     gcval_press=540;  
-
-	gcval_u=7;
-	gcval_v=8;
-	gcval_w=9;
 }
 
 pjm_sig::~pjm_sig()
@@ -64,7 +60,6 @@ void pjm_sig::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<".";
 			
-	vel_setup(p,a,pgc,uvel,vvel,wvel,alpha);	
     rhs(p,a,pgc,uvel,vvel,wvel,alpha);
 	
     ppois->start(p,a,a->press);
@@ -96,7 +91,7 @@ void pjm_sig::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 {	
 	ULOOP
 	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*(1.0/pd->roface(p,a,1,0,0))*((a->press(i+1,j,k)-a->press(i,j,k))/p->DXP[IP]
-                + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(0.5*(a->press(i,j,k+1)+a->press(i+1,j,k+1))-0.5*(a->press(i,j,k-1)+a->press(i+1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
+                + .5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(0.5*(a->press(i,j,k+1)+a->press(i+1,j,k+1))-0.5*(a->press(i,j,k-1)+a->press(i+1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
 }
 
 void pjm_sig::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
@@ -108,8 +103,28 @@ void pjm_sig::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
 
 void pjm_sig::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
 {
+    int check;
+    double teta=0.5;
+    
+    if(p->D37==1)
     WLOOP 	
 	wvel(i,j,k) -= a->test(i,j,k) = alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
+    
+    
+    if(p->D37>=2)
+	WLOOP
+    {
+    check=0;
+    
+        if(p->flag4[IJKp1]<0)
+        check=1;
+
+    if(check==1)    
+    wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*(((1.0 - 1.0/teta)*a->press(i,j,k)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
+    
+    if(check==0)
+    wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
+    }
 }
  
 void pjm_sig::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
@@ -119,10 +134,10 @@ void pjm_sig::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w
 	
     pip=p->Y50;
 
-    count=0;
+    n=0;
     LOOP
     {
-    a->rhsvec.V[count] =  -  ((u(i,j,k)-u(i-1,j,k))/p->DXN[IP]
+    a->rhsvec.V[n] =  -  ((u(i,j,k)-u(i-1,j,k))/p->DXN[IP]
                             + 0.25*(p->sigx[FIJK]+p->sigx[FIJKp1]+p->sigx[FIp1JK]+p->sigx[FIp1JKp1])*(0.5*(u(i,j,k+1)+u(i-1,j,k+1))-0.5*(u(i,j,k-1)+u(i-1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1])
                             
                             + (v(i,j,k)-v(i,j-1,k))/p->DYN[JP] 
@@ -132,7 +147,7 @@ void pjm_sig::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w
                            
 
                                                  
-    ++count;
+    ++n;
     }
     pip=0;
     
@@ -141,19 +156,19 @@ void pjm_sig::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w
  
 void pjm_sig::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
 {
-	pgc->start1(p,u,gcval_u);
-	pgc->start2(p,v,gcval_v);
-	//pgc->start3(p,w,gcval_w);
+
 }
 
 void pjm_sig::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
+    if(p->D38==1)
     ULOOP
 	a->F(i,j,k) -= PORVAL1*fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j))/p->DXP[IP];
 }
 
 void pjm_sig::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
+    if(p->D38==1)
     VLOOP
 	a->G(i,j,k) -= PORVAL2*fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j))/p->DYP[JP];
 }
