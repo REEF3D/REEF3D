@@ -34,11 +34,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, double alpha)
 {
-    SLICELOOP4
-    {
-    a->WL_n(i,j) = a->WL(i,j);
-    a->WL(i,j) = MAX(0.0, eta(i,j) + p->wd - a->bed(i,j));
-    }
+    
     
     // calculate: Ex,Ey,Exx,Eyy
     // 3D
@@ -53,7 +49,7 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, doub
     }
     
     // 2D
-    if(p->i_dir==1 && p->j_dir==0)
+    if(p->j_dir==0)
     SLICELOOP4
     {
     pd->Ex(i,j) = pdx->sx(p,eta,1.0);    
@@ -65,7 +61,7 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, doub
     
     // calculate: Bx,By,Bxx,Byy
     // 3D
-    if(p->i_dir==1 && p->j_dir==1)
+    if(p->j_dir==1)
     SLICELOOP4
     {
     pd->Bx(i,j) = pdx->sx(p,a->depth,1.0);
@@ -76,7 +72,7 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, doub
     }
 
     // 2D
-    if(p->i_dir==1 && p->j_dir==0)
+    if(p->j_dir==0)
     SLICELOOP4
     {
     pd->Bx(i,j) = pdx->sx(p,a->depth,1.0);    
@@ -102,7 +98,7 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, doub
     
     // sigt
     FLOOP
-    p->sigt[FIJK] = -(p->sig[FIJK]/WLVL)*(a->WL(i,j)-a->WL_n(i,j))/(alpha*p->dt);
+    p->sigt[FIJK] = -(p->sig[FIJK]/WLVL)*(a->WL(i,j)-a->WL_n(i,j))/(p->dt);
 
     
     // sigxx

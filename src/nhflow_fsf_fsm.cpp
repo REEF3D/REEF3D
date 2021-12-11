@@ -60,7 +60,10 @@ void nhflow_fsf_fsm::start(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow)
     
     // fill eta_n
     SLICELOOP4
+    {
     a->eta_n(i,j) = a->eta(i,j);
+    a->WL_n(i,j) = a->WL(i,j);
+    }
 
     pgc->gcsl_start4(p,a->eta_n,gcval_phi);
     
@@ -98,6 +101,9 @@ void nhflow_fsf_fsm::start(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow)
     
     pflow->eta_relax(p,pgc,a->eta);
     pgc->gcsl_start4(p,a->eta,1);
+    
+    SLICELOOP4
+    a->WL(i,j) = MAX(0.0, a->eta(i,j) + p->wd - a->bed(i,j));
     
     p->sigma_update(p,a,pgc,a->eta,1.0);
     p->omega_update(p,a,pgc,a->u,a->v,a->w);

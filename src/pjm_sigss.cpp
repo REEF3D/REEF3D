@@ -61,6 +61,8 @@ pjm_sigss::pjm_sigss(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentrati
     p->Darray(M,vecsize*15);
     p->Darray(x,vecsize);
     p->Darray(rhs,vecsize);
+    
+    teta=0.5;
 }
 
 pjm_sigss::~pjm_sigss()
@@ -125,8 +127,27 @@ void pjm_sigss::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
 
 void pjm_sigss::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
 {
+    int check;
+    
+    if(p->D37==1)
     WLOOP 	
 	wvel(i,j,k) -= a->test(i,j,k) = alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
+    
+    
+    if(p->D37>=2)
+	WLOOP
+    {
+    check=0;
+    
+        if(p->flag4[IJKp1]<0)
+        check=1;
+
+    if(check==1)    
+    wvel(i,j,k) -= a->test(i,j,k) = alpha*p->dt*CPOR3*PORVAL3*(((1.0 - 1.0/teta)*a->press(i,j,k)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
+    
+    if(check==0)
+    wvel(i,j,k) -= a->test(i,j,k) = alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
+    }
 }
  
 void pjm_sigss::rhscalc(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, double alpha)
