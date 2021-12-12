@@ -108,6 +108,15 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
 	else
 	if(bc==9 && cs==6 && (gcv==12||gcv==19 || gcv==3))
 	return 4;
+    
+//Omega_sig
+    else
+	if(bc==3 && cs==5 && gcv==17)
+	return 4;
+
+	else
+	if((bc!=3 || cs!=5) && gcv==17)
+	return 4;
 
 // 6DOF
 	else

@@ -184,7 +184,7 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *p
             p->sigxx[FIJKp2] = p->sigxx[FIJK];
             p->sigxx[FIJKp3] = p->sigxx[FIJK];
     }
-    
+    /*
     k=p->knoz;
     SLICELOOP4
     {
@@ -199,7 +199,10 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *p
         
         if(p->flag7[FIJp1K]<0 || j==p->knoy-1)
         p->sigz[IJp1] = p->sigz[IJ];
-    }
+    }*/
+    
+    LOOP
+    c->test(i,j,k) = p->sigz[IJ];
     
     
     FLOOP

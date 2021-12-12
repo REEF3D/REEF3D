@@ -181,7 +181,7 @@ double weno_flux_nug::aij_sig(lexer* p,fdm* a,field& b,int ipol, field& uvel, fi
 {
 		pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
         pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
-        pflux->omega_flux(a,ipol,a->omega,kvel1,kvel2);
+        pflux->w_flux(a,ipol,a->omega,kvel1,kvel2);
         
         fv1=fv2=0.0;
 		

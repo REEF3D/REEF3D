@@ -150,7 +150,7 @@ void print_wsf::height_gauge(lexer *p, fdm *a, ghostcell *pgc, field &f)
     for(n=0;n<gauge_num;++n)
     wsf[n]=-1.0e20;
 
-	
+	if(p->A10==6)
     for(n=0;n<gauge_num;++n)
     if(flag[n]>0)
     {
@@ -159,16 +159,25 @@ void print_wsf::height_gauge(lexer *p, fdm *a, ghostcell *pgc, field &f)
     i=iloc[n];
     j=jloc[n];
 	
-	
-
         KLOOP
         PCHECK
         {
             if(f(i,j,k)>=0.0 && f(i,j,k+1)<0.0)
             wsf[n]=MAX(wsf[n],-(f(i,j,k)*p->DZP[KP])/(f(i,j,k+1)-f(i,j,k)) + p->pos_z());
         }
-        
-    //cout<<p->mpirank<<" n: "<<n<<" wsf: "<<wsf[n]<<" flag: "<<flag[n]<<" x: "<<x[n]<<" y: "<<y[n]<<" iloc: "<<iloc[n]<<" jloc: "<<jloc[n]<<endl;
+    }
+    
+    if(p->A10==55)
+    for(n=0;n<gauge_num;++n)
+    if(flag[n]>0)
+    {
+    zval=0.0;
+
+    i=iloc[n];
+    j=jloc[n];
+	
+			wsf[n] = a->eta(i,j);
+
     }
 	
     for(n=0;n<gauge_num;++n)

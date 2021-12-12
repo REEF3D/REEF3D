@@ -44,8 +44,6 @@ void lexer::assign_margin()
     if(A311==7)
 	margin=4;
     
-	
-
 	imax=knox+2*margin;
 	jmax=knoy+2*margin;
 	kmax=knoz+2*margin;

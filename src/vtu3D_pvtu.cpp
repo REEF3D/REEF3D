@@ -114,6 +114,9 @@ void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
     if(p->P71==1)
     result<<"<PDataArray type=\"Float32\" Name=\"viscosity\"/>"<<endl;
     
+    if(p->P72==1)
+    result<<"<PDataArray type=\"Float32\" Name=\"omega_sig\"/>"<<endl;
+    
     if(p->P76==1)
     result<<"<PDataArray type=\"Float32\" Name=\"velocity scalar\"/>"<<endl;
     

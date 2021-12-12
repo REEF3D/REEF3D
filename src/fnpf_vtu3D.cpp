@@ -208,6 +208,7 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     pgc->gcsl_start4(p,c->WL,50);
     pgc->gcsl_start4(p,c->bed,50);
     pgc->gcsl_start4(p,c->breaking_print,50);
+    pgc->start4(p,c->test,1);
 
     pgc->dgcslpol(p,c->WL,p->dgcsl4,p->dgcsl4_count,14);
     pgc->dgcslpol(p,c->breaking_print,p->dgcsl4,p->dgcsl4_count,14);
@@ -251,10 +252,17 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     // elevation
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
-
+    
+    // test
+    if(p->P23==1)
+	{
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
+	}
+    
+    // solid
     if(p->P25==1)
 	{
-		// solid
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
@@ -291,6 +299,12 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 
     result<<"<DataArray type=\"Float32\" Name=\"elevation\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
+    
+    if(p->P23==1)
+	{
+    result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+	}
 
     if(p->P25==1)
 	{
@@ -369,9 +383,21 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&ffn, sizeof (float));
 	}
 
+//  test
+    if(p->P23==1)
+	{
+    iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	TPLOOP
+	{
+	ffn=float(p->ipol4_a(c->test));
+	result.write((char*)&ffn, sizeof (float));
+	}
+	}
+
+//  solid
 	if(p->P25==1)
 	{
-//  solid
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP

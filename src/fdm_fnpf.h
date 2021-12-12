@@ -47,7 +47,7 @@ public:
 
     fdm_fnpf(lexer*);
    
-    field4 press;
+    field4 press,test;
     fieldint5 nodeval;
     
     slice4 eta,eta_n,WL;

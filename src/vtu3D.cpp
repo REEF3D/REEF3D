@@ -436,6 +436,13 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	++n;
 	}
     
+        // omega_sig
+	if(p->P72==1)
+	{
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
+	}
+    
          // velocity magnitude
 	if(p->P76==1)
 	{
@@ -561,6 +568,12 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     if(p->P71==1)
 	{
     result<<"<DataArray type=\"Float32\" Name=\"viscosity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+	}
+    
+    if(p->P72==1)
+	{
+    result<<"<DataArray type=\"Float32\" Name=\"omega_sig\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	}
     
@@ -733,6 +746,18 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
 	}
     
+//  omega_sig
+    if(p->P72==1)
+	{
+    iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	TPLOOP
+	{
+	ffn=float(p->ipol3(a->omega));
+	result.write((char*)&ffn, sizeof (float));
+	}
+	}
+    
 //  velocity scalar
     if(p->P76==1)
 	{
@@ -802,9 +827,9 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	if(p->P79>=1)
     psed->print_3D_bedshear(p,a,pgc,result);
     
+//  test
     if(p->P23==1)
 	{
-//  test
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP

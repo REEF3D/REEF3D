@@ -264,7 +264,7 @@ nt 8
             {
             ab = -2.0*p->sigx[FIJK]/((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
             
-            denom = p->sigz[Im1J] + c->Bx(i-1,j)*p->sigx[FIm1JK];
+            denom = p->sigz[IJ] + c->Bx(i-1,j)*p->sigx[FIm1JK];
 
                     if(c->wet(i+1,j)==1 && c->wet(i-1,j)==1)
                     {

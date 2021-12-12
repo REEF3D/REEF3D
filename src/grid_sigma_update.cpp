@@ -94,6 +94,7 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, doub
     // sigz
     SLICELOOP4
     p->sigz[IJ] = 1.0/WLVL;
+    
 
     
     // sigt
@@ -180,22 +181,22 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, doub
             p->sigxx[FIJKp3] = p->sigxx[KP];
         } 
     }
-    
+    /*
     k=p->knoz;
     SLICELOOP4
     {
-        if(p->flag4[FIm1JK]<0 || i==0)
+        if(p->flag4[Im1JK]<0 || i==0)
         p->sigz[Im1J] = p->sigz[IJ];
         
-        if(p->flag4[FIp1JK]<0 || i==p->knox-1)
+        if(p->flag4[Ip1JK]<0 || i==p->knox-1)
         p->sigz[Ip1J] = p->sigz[IJ];
         
-        if(p->flag4[FIJm1K]<0 || j==0)
+        if(p->flag4[IJm1K]<0 || j==0)
         p->sigz[IJm1] = p->sigz[IJ];
         
-        if(p->flag4[FIJp1K]<0 || j==p->knoy-1)
+        if(p->flag4[IJp1K]<0 || j==p->knoy-1)
         p->sigz[IJp1] = p->sigz[IJ];
-    }
+    }*/
     
     
     FLOOP
@@ -204,7 +205,8 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, doub
     
     LOOP
     p->ZSP[IJK]  = p->ZP[KP]*a->WL(i,j) + a->bed(i,j);
-    
+
+
     pgc->start7S(p,p->sigx,1);
     pgc->start7S(p,p->sigy,1);
     pgc->start7S(p,p->sigxx,1);
@@ -215,19 +217,51 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, doub
 
 void grid_sigma::omega_update(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
 {  
-    LOOP
+    WLOOP
     {
-    a->omega(i,j,k) =  0.5*(p->sigt[FIJKm1] + p->sigt[FIJK])
+    a->omega(i,j,k) =  p->sigt[FIJKp1]
                     
-                    +  0.5*(u(i-1,j,k) + u(i,j,k))*0.5*(p->sigx[FIJKm1] + p->sigx[FIJK])
+                    +  0.25*(u(i-1,j,k) + u(i-1,j,k+1) + u(i,j,k) + u(i,j,k+1))*p->sigx[FIJKp1]
                     
-                    +  0.5*(v(i,j-1,k) + v(i,j,k))*0.5*(p->sigy[FIJKm1] + p->sigy[FIJK])
+                    +  0.25*(v(i,j-1,k) + v(i,j-1,k+1) + v(i,j,k) + v(i,j,k+1))*p->sigy[FIJKp1]
                     
-                    +  0.5*(w(i,j,k-1) + w(i,j,k))*p->sigz[IJ];
+                    +  w(i,j,k)*p->sigz[IJ];
                     
     }
     
-    pgc->start4(p,a->omega,12);
+    /*LOOP
+    {
+    a->omega(i,j,k) =  0.5*(p->sigt[FIJK] + p->sigt[FIJKp1])
+                    
+                    +  0.5*(u(i-1,j,k) + u(i,j,k))*0.5*(p->sigx[FIJK] + p->sigx[FIJKp1])
+                    
+                    +  0.5*(v(i,j-1,k) + v(i,j,k))*0.5*(p->sigy[FIJK] + p->sigy[FIJKp1])
+                    
+                    +  0.5*(w(i,j,k-1) + w(i,j,k))*p->sigz[IJ];
+                    
+    }*/
+    
+    pgc->start3(p,a->omega,17);
+    
+    /*
+    double wval;
+    
+    GC4LOOP
+    if(p->gcb4[n][3]==6 && p->gcb4[n][4]==3)
+    {
+    i=p->gcb4[n][0];
+    j=p->gcb4[n][1];
+    k=p->gcb4[n][2];
+    
+	wval = (a->eta(i,j) - a->eta_n(i,j))/(p->dt)
+    
+         + 0.5*(u(i,j,k)+u(i-1,j,k))*((a->eta(i+1,j)-a->eta(i-1,j))/(p->DXP[IP]+p->DXP[IP1]))
+    
+         + 0.5*(v(i,j,k)+v(i,j-1,k))*((a->eta(i,j+1)-a->eta(i,j-1))/(p->DYP[JP]+p->DYP[JP1]));
+    
+	for(int q=0;q<3;++q)
+	a->omega(i,j,k+q) = wval; 
+    }*/
 }
 
 
