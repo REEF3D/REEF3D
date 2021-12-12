@@ -243,7 +243,7 @@ void grid_sigma::omega_update(lexer *p, fdm *a, ghostcell *pgc, field &u, field 
     
     pgc->start3(p,a->omega,17);
     
-    /*
+    
     double wval;
     
     GC4LOOP
@@ -260,8 +260,15 @@ void grid_sigma::omega_update(lexer *p, fdm *a, ghostcell *pgc, field &u, field 
          + 0.5*(v(i,j,k)+v(i,j-1,k))*((a->eta(i,j+1)-a->eta(i,j-1))/(p->DYP[JP]+p->DYP[JP1]));
     
 	for(int q=0;q<3;++q)
-	a->omega(i,j,k+q) = wval; 
-    }*/
+	a->omega(i,j,k) =  p->sigt[FIJKp1]
+                    
+                    +  0.25*(u(i-1,j,k) + u(i-1,j,k+1) + u(i,j,k) + u(i,j,k+1))*p->sigx[FIJKp1]
+                    
+                    +  0.25*(v(i,j-1,k) + v(i,j-1,k+1) + v(i,j,k) + v(i,j,k+1))*p->sigy[FIJKp1]
+                    
+                    +  wval*p->sigz[IJ];
+                    
+    }
 }
 
 
