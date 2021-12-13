@@ -99,7 +99,10 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, doub
     
     // sigt
     FLOOP
+    {
     p->sigt[FIJK] = -(p->sig[FIJK]/WLVL)*(a->WL(i,j)-a->WL_n(i,j))/(p->dt);
+    a->test(i,j,k) = p->sigt[FIJK];
+    }
 
     
     // sigxx
