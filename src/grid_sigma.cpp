@@ -145,16 +145,16 @@ void grid_sigma::sigma_ini(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
 double grid_sigma::sigmax(lexer *p, field &f, int ipol)
 {    
     if(ipol==1)
-    sig = 0.25*(p->sigx[FIJKm1] + p->sigx[FIp1JKm1] + p->sigx[FIJK] + p->sigx[FIp1JK]);
+    sig = 0.25*(p->sigx[FIJK] + p->sigx[FIp1JK] + p->sigx[FIJKp1] + p->sigx[FIp1JKp1]);
 
     if(ipol==2)
-    sig = 0.25*(p->sigx[FIJKm1] + p->sigx[FIJp1Km1] + p->sigx[FIJK] + p->sigx[FIJp1K]);
+    sig = 0.25*(p->sigx[FIJK] + p->sigx[FIJp1K] + p->sigx[FIJKp1] + p->sigx[FIJp1Kp1]);
     
     if(ipol==3)
-    sig = p->sigx[FIJKm1];
+    sig = p->sigx[FIJKp1];
 
     if(ipol==4)
-    sig = 0.5*(p->sigx[FIJKm1] + p->sigx[FIJK]);
+    sig = 0.5*(p->sigx[FIJK] + p->sigx[FIJKp1]);
 
     return sig;
 }
@@ -162,16 +162,16 @@ double grid_sigma::sigmax(lexer *p, field &f, int ipol)
 double grid_sigma::sigmay(lexer *p, field &f, int ipol)
 {  
     if(ipol==1)
-    sig = 0.25*(p->sigy[FIJKm1] + p->sigy[FIp1JKm1] + p->sigy[FIJK] + p->sigy[FIp1JK]);
+    sig = 0.25*(p->sigy[FIJK] + p->sigy[FIp1JK] + p->sigy[FIJKp1] + p->sigy[FIp1JKp1]);
 
     if(ipol==2)
-    sig = 0.25*(p->sigy[FIJKm1] + p->sigy[FIJp1Km1] + p->sigy[FIJK] + p->sigy[FIJp1K]);
+    sig = 0.25*(p->sigy[FIJK] + p->sigy[FIJp1K] + p->sigy[FIJKp1] + p->sigy[FIJp1Kp1]);
     
     if(ipol==3)
-    sig = p->sigy[FIJKm1];
+    sig = p->sigy[FIJKp1];
 
     if(ipol==4)
-    sig = 0.5*(p->sigy[FIJKm1] + p->sigy[FIJK]);
+    sig = 0.5*(p->sigy[FIJK] + p->sigy[FIJKp1]);
 
     return sig;
 }
@@ -196,16 +196,16 @@ double grid_sigma::sigmaz(lexer *p, field &f, int ipol)
 double grid_sigma::sigmat(lexer *p, field &f, int ipol)
 {    
     if(ipol==1)
-    sig = 0.25*(p->sigt[FIJKm1] + p->sigt[FIp1JKm1] + p->sigt[FIJK] + p->sigt[FIp1JK]);
+    sig = 0.25*(p->sigt[FIJK] + p->sigt[FIp1JK] + p->sigt[FIJKp1] + p->sigt[FIp1JKp1]);
 
     if(ipol==2)
-    sig = 0.25*(p->sigt[FIJKm1] + p->sigt[FIJp1Km1] + p->sigt[FIJK] + p->sigt[FIJp1K]);
+    sig = 0.25*(p->sigt[FIJK] + p->sigt[FIJp1K] + p->sigt[FIJKp1] + p->sigt[FIJp1Kp1]);
     
     if(ipol==3)
-    sig = p->sigt[FIJKm1];
+    sig = p->sigt[FIJKp1];
 
     if(ipol==4)
-    sig = 0.5*(p->sigt[FIJKm1] + p->sigt[FIJK]);
+    sig = 0.5*(p->sigt[FIJK] + p->sigt[FIJKp1]);
 
     return sig;
 }

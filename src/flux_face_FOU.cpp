@@ -210,7 +210,7 @@ void flux_face_FOU::w_flux(fdm *a, int ipol, field& wvel, double &wflux1, double
 	}
 }
 
-void flux_face_FOU::omega_flux(fdm *a, int ipol, field& wvel, double &wflux1, double &wflux2)
+void flux_face_FOU::omega_flux(lexer *p, fdm *a, int ipol, field& wvel, double &wflux1, double &wflux2)
 {
 
 	if(ipol==1)

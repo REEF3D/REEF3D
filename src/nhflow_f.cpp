@@ -40,7 +40,7 @@ void nhflow_f::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
 
 void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, slice &eta, slice &eta_n, double alpha)
 {
-    double wval;
+    double wval,w_n;
     
     GC4LOOP
     if(p->gcb4[n][3]==6 && p->gcb4[n][4]==3)
@@ -51,7 +51,7 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, sli
     
 	wval = (a->eta(i,j) - a->eta_n(i,j))/(p->dt)
     
-         + 0.5*(u(i,j,k)+u(i-1,j,k))*((eta(i+1,j)-eta(i-1,j))/(p->DXP[IP]+p->DXP[IP1]))
+         + 0.5*(a->u(i,j,k)+a->u(i-1,j,k))*((a->eta(i+1,j)-a->eta(i-1,j))/(p->DXP[IP]+p->DXP[IP1]))
     
          + 0.5*(v(i,j,k)+v(i,j-1,k))*((eta(i,j+1)-eta(i,j-1))/(p->DYP[JP]+p->DYP[JP1]));
     
@@ -67,6 +67,7 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, sli
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
     
+
     wval = - 0.5*(u(i,j,k)+u(i-1,j,k))*((a->depth(i+1,j)-a->depth(i-1,j))/(p->DXP[IP]+p->DXP[IP1]))
     
            - 0.5*(v(i,j,k)+v(i,j-1,k))*((a->depth(i,j+1)-a->depth(i,j-1))/(p->DYP[JP]+p->DYP[JP1]));
@@ -78,9 +79,16 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, sli
     */
     
     //wval = 0.0;
+    //cout<<"KINEMATIC Bed:"<<endl;
     
-	for(q=0;q<margin;++q)
-	w(i,j,k-q-1) = wval;
+        for(q=0;q<margin;++q)
+        w(i,j,k-q-1) = wval;
+        
+        w_n = a->wbed(i,j);
+        a->wbed(i,j) = wval;
+        
+        a->dwdt(i,j) = (wval - w_n)/(alpha*p->dt);
+        //cout<<"KINEMATIC Bed: "<<a->dwdt(i,j)<<endl;
     }
 }
 

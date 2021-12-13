@@ -62,6 +62,8 @@ void pjm_sig::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc
     cout<<".";
 			
     rhs(p,a,pgc,uvel,vvel,wvel,alpha);
+    
+    bedbc(p,a,pgc,uvel,vvel,wvel,alpha);
 	
     ppois->start(p,a,a->press);
 	
@@ -166,6 +168,11 @@ void pjm_sig::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w
     ++n;
     }
     pip=0;
+}
+
+void pjm_sig::bedbc(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
+{
+    
 }
  
 void pjm_sig::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)

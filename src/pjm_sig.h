@@ -42,14 +42,16 @@ public:
 	virtual ~pjm_sig();
 
 	virtual void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,ioflow*, field&, field&, field&,double);
-	virtual void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	virtual void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 	virtual void ucorr(lexer*p,fdm*,field&,double);
 	virtual void vcorr(lexer*p,fdm*,field&,double);
 	virtual void wcorr(lexer*p,fdm*,field&,double);
 	virtual void upgrad(lexer*,fdm*,slice&,slice&);
 	virtual void vpgrad(lexer*,fdm*,slice&,slice&);
     virtual void wpgrad(lexer*,fdm*,slice&,slice&);
+    
+    void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
+	void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
+    void bedbc(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 
 private:
 	double starttime,endtime;

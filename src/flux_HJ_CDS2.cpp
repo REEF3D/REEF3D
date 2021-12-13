@@ -126,7 +126,7 @@ void flux_HJ_CDS2::w_flux(fdm* a,int ipol,field& wvel, double &wflux1, double &w
 	}
 }
 
-void flux_HJ_CDS2::omega_flux(fdm* a,int ipol,field& wvel, double &wflux1, double &wflux2)
+void flux_HJ_CDS2::omega_flux(lexer *p, fdm* a,int ipol,field& wvel, double &wflux1, double &wflux2)
 {
 
 	if(ipol==1)

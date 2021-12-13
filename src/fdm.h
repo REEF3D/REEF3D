@@ -88,6 +88,7 @@ public:
     
     slice1 P;
     slice2 Q;
+    slice4 wbed,dwdt;
     slice4 bed,bedzh,bedzh0;
     slice4 dh,reduce;
     sliceint4 bedk;

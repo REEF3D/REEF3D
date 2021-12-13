@@ -71,7 +71,7 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
      if(p->A10==3)
      pfprint->print_vtu(p,c,pgc);
     
-     if(p->A10==4 || p->A10==6)
+     if(p->A10==4 || p->A10==55 || p->A10==6)
      pprint->print_vtu(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
      
      pgc->final();
@@ -89,7 +89,7 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
     if(p->A10==3)
      pfprint->print_vtu(p,c,pgc);
     
-     if(p->A10==4 || p->A10==6)
+     if(p->A10==4 || p->A10==55 || p->A10==6)
      pprint->print_vtu(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
     
     pgc->final();
