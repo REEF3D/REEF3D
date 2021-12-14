@@ -42,7 +42,7 @@ void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
 	Ne = p->Z11_n[nstrip];           // Number of elements
 
     thinStrip = false;
-    if (p->Z13 == 1) thinStrip = true;
+    if (p->Y2 == 1) thinStrip = true;
 
     gravity_vec << a->gi, a->gj, a->gk;
     rho_f = p->W1;

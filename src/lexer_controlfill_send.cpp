@@ -1484,8 +1484,6 @@ void lexer::ctrlsend()
 	dd++;
     dctrl[dd] = Z12_ckz;
 	dd++;
-	ictrl[ii] = Z13;
-	ii++;
     
 	
 // --------------------------

@@ -670,7 +670,7 @@ void lexer::ini_default()
 
 	// Developer
 	Y1=0;   // int turn on/off experimental screen force model
-    Y2=0;
+    Y2=0;   // int turn external moments on/off
     Y3=0;
     Y4=0;
     Y5=0;
@@ -685,7 +685,6 @@ void lexer::ini_default()
 	// FSI
 	Z10=0;		// int turn FSI on
     Z12_ckx=Z12_cky=Z12_ckz=Z12_cdx=Z12_cdy=Z12_cdz=0.0;   // double fsi beam structural damping coefficients
-    Z13=0;  // int turn external moments on/off
 
 	solveriter=0;
 	mpirank=0;
