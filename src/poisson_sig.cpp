@@ -134,7 +134,7 @@ void poisson_sig::start(lexer* p, fdm *a, field &f)
             {
             //cout<<"BEDBC:  "<<a->M.b[n]*p->DZP[KP]*a->WL(i,j)*a->ro(i,j,k)*a->dwdt(i,j)<<"  "<<a->M.b[n]<<endl;
             
-            a->rhsvec.V[n] += a->M.b[n]*p->DZP[KM1]*a->WL(i,j)*a->ro(i,j,k)*a->dwdt(i,j);
+            a->rhsvec.V[n] -= a->M.b[n]*p->DZP[KM1]*a->WL(i,j)*a->ro(i,j,k)*a->dwdt(i,j);
             a->M.p[n] += a->M.b[n];
             a->M.b[n] = 0.0;
             }
