@@ -41,6 +41,9 @@ void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
 	double Nu = p->Z11_nu[nstrip];   // Poisson ratio [-]
 	Ne = p->Z11_n[nstrip];           // Number of elements
 
+    thinStrip = false;
+    if (p->Z13 == 1) thinStrip = true;
+
     gravity_vec << a->gi, a->gj, a->gk;
     rho_f = p->W1;
     A_el = W_el*T;

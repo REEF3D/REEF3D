@@ -80,6 +80,7 @@ private:
     vector<Eigen::VectorXd> lagrangeArea;
     double rho_s,rho_f,dx_body,t_strip,t_strip_n,l_el,A_el,W_el;
     Eigen::Vector3d gravity_vec;
+    bool thinStrip;
 
     // Print
     int printcount_fsi;

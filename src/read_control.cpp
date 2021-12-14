@@ -1800,6 +1800,9 @@ void lexer::read_control()
                 case  11: ++Z11;
 						 clear(c,numint);
 						 break;
+				case  13: control>>Z13;
+						 clear(c,numint);
+						 break;
                 }
 		}
 
