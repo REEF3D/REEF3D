@@ -146,13 +146,13 @@ void flux_face_CDS2::omega_flux(lexer *p, fdm* a, int ipol, field &u, field &v, 
 	pip=3;
 	wflux1  = 0.5*(a->w(i,j,k-1)+a->w(i+1,j,k-1))*0.5*(p->sigz[IJ]+p->sigz[Ip1J]) 
             + 0.5*(p->sigt[FIJK]+p->sigt[FIp1JK])
-            + 0.5*(a->u(i,j,k) + a->u(i,j,k-1))*p->sigx[FIJK]
-            + 0.25*(a->v(i,j,k) + a->v(i,j,k-1) + a->v(i,j+1,k) + a->v(i,j+1,k-1))*p->sigy[FIJK];
+            + 0.5*(a->u(i,j,k) + a->u(i,j,k-1))*0.5*(p->sigx[FIJK]+p->sigx[FIp1JK])
+            + 0.25*(a->v(i,j,k) + a->v(i,j,k-1) + a->v(i,j+1,k) + a->v(i,j+1,k-1))*0.5*(p->sigy[FIJK]+p->sigy[FIp1JK]);
             
 	wflux2  = 0.5*(a->w(i,j,k)+a->w(i+1,j,k))*0.5*(p->sigz[IJ]+p->sigz[Ip1J])     
             + 0.5*(p->sigt[FIJKp1]+p->sigt[FIp1JKp1])
-            + 0.5*(a->u(i,j,k) + a->u(i,j,k+1))*p->sigx[FIJKp1]
-            + 0.25*(a->v(i,j,k) + a->v(i,j,k+1) + a->v(i,j+1,k) + a->v(i,j+1,k+1))*p->sigy[FIJKp1];
+            + 0.5*(a->u(i,j,k) + a->u(i,j,k+1))*0.5*(p->sigx[FIJKp1]+p->sigx[FIp1JKp1])
+            + 0.25*(a->v(i,j,k) + a->v(i,j,k+1) + a->v(i,j+1,k) + a->v(i,j+1,k+1))*0.5*(p->sigy[FIJKp1]+p->sigy[FIp1JKp1]);
 	pip=0;
 	}
 
@@ -176,13 +176,13 @@ void flux_face_CDS2::omega_flux(lexer *p, fdm* a, int ipol, field &u, field &v, 
     pip=3;
 	wflux1  = 0.5*(a->w(i,j,k)+a->w(i,j,k-1))*p->sigz[IJ] 
             + 0.5*(p->sigt[FIJKp1]+p->sigt[FIJK]) 
-            + 0.5*(a->u(i-1,j,k) + a->u(i,j,k))*p->sigx[FIJK]
-            + 0.5*(a->v(i,j-1,k) + a->v(i,j,k))*p->sigy[FIJK];
+            + 0.5*(a->u(i-1,j,k) + a->u(i,j,k))*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])
+            + 0.5*(a->v(i,j-1,k) + a->v(i,j,k))*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1]);
          
 	wflux2  = 0.5*(a->w(i,j,k)+a->w(i,j,k+1))*p->sigz[IJ] 
             + 0.5*(p->sigt[FIJKp1]+p->sigt[FIJKp2]);
-            + 0.5*(a->u(i-1,j,k+1) + a->u(i,j,k+1))*p->sigx[FIJKp1]
-            + 0.5*(a->v(i,j-1,k+1) + a->v(i,j,k+1))*p->sigy[FIJKp1];
+            + 0.5*(a->u(i-1,j,k+1) + a->u(i,j,k+1))*0.5*(p->sigx[FIJKp1]+p->sigx[FIJKp2])
+            + 0.5*(a->v(i,j-1,k+1) + a->v(i,j,k+1))*0.5*(p->sigy[FIJKp1]+p->sigy[FIJKp2]);
 	pip=0;
 	}
 

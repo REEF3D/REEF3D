@@ -105,9 +105,6 @@ void pjm_sigss::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* p
 	if(p->mpirank==0 && p->count%p->P12==0)
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
     
-    LOOP
-    a->test(i,j,k) = 0.5*(p->sigx[FIJK]+p->sigx[FIp1JK]);
-    
     pgc->start4(p,a->test,1);
 }
 

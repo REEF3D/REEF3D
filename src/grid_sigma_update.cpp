@@ -101,8 +101,10 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, doub
     FLOOP
     {
     p->sigt[FIJK] = -(p->sig[FIJK]/WLVL)*(a->WL(i,j)-a->WL_n(i,j))/(p->dt);
-    a->test(i,j,k) = p->sigt[FIJK];
     }
+    
+    LOOP
+    a->test(i,j,k) = 0.5*(p->sigxx[FIJK]+p->sigxx[FIp1JK]);
 
     
     // sigxx
@@ -125,6 +127,19 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, doub
                       
                       - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(pd->By(i,j)*pd->Ey(i,j));
     }
+    
+    /*
+    FBASELOOP
+    {
+    p->sigxx[FIJK] = - 2.0*((1.0 - p->sig[FIJK])*pow(pd->Bx(i,j),2.0)/pow(WLVL,2.0))
+    
+                     + 2.0*(2.0*p->sig[FIJK]-1.0)*(pd->Ex(i,j)*pd->Bx(i,j))/pow(WLVL,2.0)
+    
+                    + (1.0 - p->sig[FIJK])*pd->Bxx(i,j)/WLVL + 2.0*p->sig[FIJK]*pow(pd->Ex(i,j),2.0)/pow(WLVL,2.0)
+                    
+                    - p->sig[FIJK]*pd->Exx(i,j) /WLVL;              
+    }
+    */
     
     // sig BC
     SLICELOOP4
@@ -265,17 +280,5 @@ void grid_sigma::omega_update(lexer *p, fdm *a, ghostcell *pgc, field &u, field 
     }
 }
 
-
-   /*LOOP
-    {
-    a->omega(i,j,k) =  0.5*(p->sigt[FIJK] + p->sigt[FIJKp1])
-                    
-                    +  0.5*(u(i-1,j,k) + u(i,j,k))*0.5*(p->sigx[FIJK] + p->sigx[FIJKp1])
-                    
-                    +  0.5*(v(i,j-1,k) + v(i,j,k))*0.5*(p->sigy[FIJK] + p->sigy[FIJKp1])
-                    
-                    +  0.5*(w(i,j,k-1) + w(i,j,k))*p->sigz[IJ];
-                    
-    }*/
 
 
