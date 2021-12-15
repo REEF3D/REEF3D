@@ -17,17 +17,42 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"komega_IM1.h"
-#include"komega_IM2.h"
-
-#include"kepsilon_IM1.h"
-#include"kepsilon_IM2.h"
-#include"kepsilon_void.h"
-
-#include"LES_smagorinsky.h"
-#include"LES_germano.h"
 #include"LES_WALE.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"strain.h"
+#include"solver.h"
+#include"diffusion.h"
+#include"ioflow.h"
+#include"convection.h"
+
+LES_WALE::LES_WALE(lexer* p, fdm* a) : LES(p,a)
+{
+	gcval_sgs=24;
+	c_wale=0.2;
+}
+
+LES_WALE::~LES_WALE()
+{
+}
+
+void LES_WALE::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow, vrans* pvrans)
+{
+    LOOP
+    a->eddyv(i,j,k) = pow(p->DXM*c_wale,2.0) *  (pow(magSqrSd(p,a), 3.0/2.0) / (pow(strainterm(p,a), 5.0) + pow(magSqrSd(p,a), 5.0/4.0)));
+
+    pgc->start4(p,a->eddyv,gcval_sgs);
+}
+
+void LES_WALE::ktimesave(lexer* p, fdm* a, ghostcell *pgc)
+{
+}
+
+void LES_WALE::etimesave(lexer* p, fdm* a, ghostcell *pgc)
+{
+}
+
 

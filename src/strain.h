@@ -49,11 +49,16 @@ public:
 	void Pk_update(lexer*,fdm*,ghostcell*);
 	void wallf_update(lexer*,fdm*,ghostcell*,fieldint&);
 	virtual double strainterm(lexer*,fdm*);
+	virtual double rotationterm(lexer*,fdm*);
+	virtual double magSqrSd(lexer*,fdm*);
 	double strainplain(lexer*,fdm*);
 	field4 Pk;
 
 private:
     double s11,s22,s33,s12,s13,s23;
+    double r11,r22,r33,r12,r13,r23;
+    double ss11,ss22,ss33,ss12,ss13,ss23;
+    double rr11,rr22,rr33,rr12,rr13,rr23;
     double q11,q22,q33,q12,q13,q23;
 	double pkterm,s,q,val;
 	const double epsi;
