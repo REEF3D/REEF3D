@@ -107,7 +107,7 @@ void nhflow_fsf_rk::step1(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field
     pgc->gcsl_start4(p,etark1,1);
     
     p->sigma_update(p,a,pgc,etark1,1.0);
-    p->omega_update(p,a,pgc,u,v,w);
+    p->omega_update(p,a,pgc,u,v,w,etark1);
 }
 
 void nhflow_fsf_rk::step2(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, field&w, slice& etark1, slice &etark2, double alpha)
@@ -147,7 +147,7 @@ void nhflow_fsf_rk::step2(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field
     pgc->gcsl_start4(p,etark2,1);
     
     p->sigma_update(p,a,pgc,etark2,0.25);
-    p->omega_update(p,a,pgc,u,v,w);
+    p->omega_update(p,a,pgc,u,v,w,etark2);
 }
 
 void nhflow_fsf_rk::step3(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, field&w, slice& etark1, slice &etark2, double alpha)
@@ -197,7 +197,7 @@ void nhflow_fsf_rk::step3(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field
     a->WL(i,j) = MAX(0.0, a->eta(i,j) + p->wd - a->bed(i,j));
     
     p->sigma_update(p,a,pgc,a->eta,2.0/3.0);
-    p->omega_update(p,a,pgc,u,v,w);
+    p->omega_update(p,a,pgc,u,v,w,a->eta);
 }
 
 

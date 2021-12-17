@@ -106,7 +106,7 @@ void nhflow_fsf_fsm::start(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow)
     a->WL(i,j) = MAX(0.0, a->eta(i,j) + p->wd - a->bed(i,j));
     
     p->sigma_update(p,a,pgc,a->eta,1.0);
-    p->omega_update(p,a,pgc,a->u,a->v,a->w);
+    p->omega_update(p,a,pgc,a->u,a->v,a->w,a->eta);
     
 }
 

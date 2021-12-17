@@ -372,6 +372,7 @@ void ghostcell::start7S(lexer *p, double *x, int gcv)
 	gcparax7(p,x,7);
     gcparax7co(p,x,7);
     gcparax7co(p,x,7);
+    gcparax7co(p,x,7);
 	endtime=timer();
 	p->xtime+=endtime-starttime;
     }
