@@ -85,14 +85,24 @@ void pjm_sig_hs::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v,
 
 void pjm_sig_hs::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
+    if(p->D38==1 && p->A540==1)
     ULOOP
 	a->F(i,j,k) -= PORVAL1*fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j))/p->DXP[IP];
+    
+    if(p->D38==1 && p->A540==2)
+    ULOOP
+	a->F(i,j,k) -= PORVAL1*fabs(p->W22)*(a->eta(i+1,j) - a->eta(i,j))/p->DXP[IP];
 }
 
 void pjm_sig_hs::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
+    if(p->D38==1 && p->A540==1)
     VLOOP
 	a->G(i,j,k) -= PORVAL2*fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j))/p->DYP[JP];
+    
+    if(p->D38==1 && p->A540==2)
+    VLOOP
+	a->G(i,j,k) -= PORVAL2*fabs(p->W22)*(a->eta(i,j+1) - a->eta(i,j))/p->DYP[JP];
 }
 
 void pjm_sig_hs::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)

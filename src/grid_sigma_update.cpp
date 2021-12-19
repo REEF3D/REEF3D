@@ -32,7 +32,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define WLVL (fabs(a->WL(i,j))>1.0e-20?a->WL(i,j):1.0-20)
 
 
-void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, double alpha)
+void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &eta_n, double alpha)
 {
     
     
@@ -98,9 +98,16 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, doub
 
     
     // sigt
+    if(p->A518==1)
     FLOOP
     {
     p->sigt[FIJK] = -(p->sig[FIJK]/WLVL)*(a->WL(i,j)-a->WL_n(i,j))/(p->dt);
+    }
+    
+    if(p->A518==2)
+    FLOOP
+    {
+    p->sigt[FIJK] = -(p->sig[FIJK]/WLVL)*(eta(i,j)-eta_n(i,j))/(alpha*p->dt);
     }
     
     
@@ -231,14 +238,13 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, doub
     pgc->start7S(p,p->ZSN,1);
     
     
-    LOOP
-    a->test(i,j,k) = p->sigx[FIJKp1];
+    
         
 }
 
-void grid_sigma::omega_update(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w, slice &eta)
+void grid_sigma::omega_update(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w, slice &eta, slice &eta_n, double alpha)
 { 
-    double wval;
+    double wval,detadt;
     
     WLOOP
     {
@@ -259,19 +265,27 @@ void grid_sigma::omega_update(lexer *p, fdm *a, ghostcell *pgc, field &u, field 
     j=p->gcb3[n][1];
     k=p->gcb3[n][2]+1;
     
-    if(p->A540==1)
-	wval = (a->eta(i,j) - a->eta_n(i,j))/(p->dt)
+    if(p->A518==1)
+    {
+    detadt = (a->eta(i,j) - a->eta_n(i,j))/(p->dt);
+    
+    wval = detadt
     
          + 0.5*(u(i,j,k)+u(i-1,j,k))*((eta(i+1,j)-eta(i-1,j))/(p->DXP[IP]+p->DXP[IP1]))
     
          + 0.5*(v(i,j,k)+v(i,j-1,k))*((eta(i,j+1)-eta(i,j-1))/(p->DYP[JP]+p->DYP[JP1]));
+    }
     
-    if(p->A540==2)
-	wval = (a->eta(i,j) - a->eta_n(i,j))/(p->dt)
+    if(p->A518==2)
+    {
+    detadt = (eta(i,j) - eta_n(i,j))/(alpha*p->dt);
     
-         + 0.5*(u(i,j,k)+u(i-1,j,k))*((a->eta(i+1,j)-a->eta(i-1,j))/(p->DXP[IP]+p->DXP[IP1]))
+	wval = detadt
     
-         + 0.5*(v(i,j,k)+v(i,j-1,k))*((a->eta(i,j+1)-a->eta(i,j-1))/(p->DYP[JP]+p->DYP[JP1]));
+         + 0.5*(u(i,j,k)+u(i-1,j,k))*((p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j))/(p->DXP[IP]+p->DXP[IP1]))
+    
+         + 0.5*(v(i,j,k)+v(i,j-1,k))*((p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j))/(p->DYP[JP]+p->DYP[JP1]));
+    }
     
     
 	for(int q=0;q<3;++q)

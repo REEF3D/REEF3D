@@ -90,6 +90,8 @@ void lexer::ini_default()
     A440=1.6;    // double epsi for depth integration
     
     A510=3;      // int NFHLOW time scheme
+    A517=1;      // int NFHLOW omega flux interpolation
+    A518=1;      // int NFHLOW deta/dt scheme
     A540=1;      // int NFHLOW fsf scheme
     A541=1;      // int NFHLOW fsf discretization
 

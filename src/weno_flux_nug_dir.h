@@ -54,8 +54,6 @@ private:
 	void iqmax(lexer*, field&, field&, int);
 	void jqmax(lexer*, field&, field&, int);
 	void kqmax(lexer*, field&, field&, int);
-
-    double sigmax1(lexer*,field&);
     
 	double L,grad;
     double sig;

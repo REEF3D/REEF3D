@@ -51,14 +51,14 @@ void sflow_hxy_cds::start(lexer* p, slice& hx, slice& hy, slice& depth, sliceint
     SLICELOOP1
 	{
 	pflux->u_flux(4,uvel,ivel1,ivel2);
-
+/*
 	if(ivel1>eps)
     hx(i,j) = eta(i,j) +  MIN(depth(i,j), depth(i+1,j));
 	
 	if(ivel1<-eps)
     hx(i,j) = eta(i+1,j) +  MIN(depth(i,j), depth(i+1,j));
 	
-	if(fabs(ivel1)<=eps)
+	if(fabs(ivel1)<=eps)*/
     hx(i,j) = 0.5*(eta(i,j)+eta(i+1,j)) + 0.5*(depth(i,j)+depth(i+1,j));
 	}
     
@@ -116,13 +116,13 @@ void sflow_hxy_cds::start(lexer* p, slice& hx, slice& hy, slice& depth, sliceint
 	{
 	pflux->v_flux(4,vvel,jvel1,jvel2);
 	
-	if(jvel1>eps)
+	/*if(jvel1>eps)
     hy(i,j) = eta(i,j) + MIN(depth(i,j), depth(i,j+1));
 	
 	if(jvel1<-eps)
     hy(i,j) = eta(i,j+1) + MIN(depth(i,j), depth(i,j+1));
 	
-	if(fabs(jvel1)<=eps)
+	if(fabs(jvel1)<=eps)*/
     hy(i,j) = 0.5*(eta(i,j)+eta(i,j+1)) + 0.5*(depth(i,j)+depth(i,j+1));
 	}
     

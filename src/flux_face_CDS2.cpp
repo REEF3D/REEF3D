@@ -140,57 +140,63 @@ void flux_face_CDS2::w_flux(fdm* a, int ipol, field& wvel, double &wflux1, doubl
 
 void flux_face_CDS2::omega_flux(lexer *p, fdm* a, int ipol, field &u, field &v, field &w, double &wflux1, double &wflux2)
 {
+    /*{
+    a->omega(i,j,k) =  p->sigt[FIJKp1]
+                    +  0.5*(u(i-1,j,k) + u(i-1,j,k+1) + u(i,j,k) + u(i,j,k+1))*p->sigx[FIJKp1]
+                    +  0.5*(v(i,j-1,k) + v(i,j-1,k+1) + v(i,j,k) + v(i,j,k+1))*p->sigy[FIJKp1]
+                    +  w(i,j,k)*p->sigz[IJ];
+    }*/
 
 	if(ipol==1)
 	{
 	pip=3;
-	wflux1  = 0.5*(a->w(i,j,k-1)+a->w(i+1,j,k-1))*0.5*(p->sigz[IJ]+p->sigz[Ip1J]) 
-            + 0.5*(p->sigt[FIJK]+p->sigt[FIp1JK])
-            + 0.5*(a->u(i,j,k) + a->u(i,j,k-1))*0.5*(p->sigx[FIJK]+p->sigx[FIp1JK])
-            + 0.25*(a->v(i,j,k) + a->v(i,j,k-1) + a->v(i,j+1,k) + a->v(i,j+1,k-1))*0.5*(p->sigy[FIJK]+p->sigy[FIp1JK]);
+	wflux1  = 0.5*(p->sigt[FIJK]+p->sigt[FIp1JK])
+            + 0.5*(u(i,j,k) + u(i,j,k-1))*0.5*(p->sigx[FIJK]+p->sigx[FIp1JK])
+            + 0.25*(v(i,j,k) + v(i,j,k-1) + v(i,j+1,k) + v(i,j+1,k-1))*0.5*(p->sigy[FIJK]+p->sigy[FIp1JK])
+            + 0.5*(w(i,j,k-1) + w(i+1,j,k-1))*0.5*(p->sigz[IJ]+p->sigz[Ip1J]); 
             
-	wflux2  = 0.5*(a->w(i,j,k)+a->w(i+1,j,k))*0.5*(p->sigz[IJ]+p->sigz[Ip1J])     
-            + 0.5*(p->sigt[FIJKp1]+p->sigt[FIp1JKp1])
-            + 0.5*(a->u(i,j,k) + a->u(i,j,k+1))*0.5*(p->sigx[FIJKp1]+p->sigx[FIp1JKp1])
-            + 0.25*(a->v(i,j,k) + a->v(i,j,k+1) + a->v(i,j+1,k) + a->v(i,j+1,k+1))*0.5*(p->sigy[FIJKp1]+p->sigy[FIp1JKp1]);
+	wflux2  = 0.5*(p->sigt[FIJKp1]+p->sigt[FIp1JKp1])
+            + 0.5*(u(i,j,k) + u(i,j,k+1))*0.5*(p->sigx[FIJKp1]+p->sigx[FIp1JKp1])
+            + 0.25*(v(i,j,k) + v(i,j,k+1) + v(i,j+1,k) + v(i,j+1,k+1))*0.5*(p->sigy[FIJKp1]+p->sigy[FIp1JKp1])
+            + 0.5*(w(i,j,k) + w(i+1,j,k))*0.5*(p->sigz[IJ]+p->sigz[Ip1J]);
 	pip=0;
 	}
 
 	if(ipol==2)
 	{
 	pip=3;
-	wflux1  = 0.5*(a->w(i,j,k-1)+a->w(i,j+1,k-1))*0.5*(p->sigz[IJ]+p->sigz[IJp1]) 
-            + 0.5*(p->sigt[FIJK]+p->sigt[FIJp1K])
-            + 0.25*(a->u(i-1,j,k) + a->u(i-1,j,k-1) + a->u(i,j,k) + a->u(i,j,k-1))*p->sigx[FIJK]
-            + 0.25*(a->v(i,j-1,k) + a->v(i,j-1,k-1) + a->v(i,j,k) + a->v(i,j,k-1))*p->sigy[FIJK];
+	wflux1  = 0.5*(p->sigt[FIJK]+p->sigt[FIJp1K])
+            + 0.25*(u(i-1,j,k) + u(i-1,j,k-1) + u(i,j,k) + u(i,j,k-1))*p->sigx[FIJK]
+            + 0.5*(v(i,j,k) + v(i,j,k-1))*p->sigy[FIJK]
+            + 0.5*(w(i,j,k-1)+w(i,j+1,k-1))*0.5*(p->sigz[IJ]+p->sigz[IJp1]);
             
-	wflux2  = 0.5*(a->w(i,j,k)+a->w(i,j+1,k))*0.5*(p->sigz[IJ]+p->sigz[IJp1])     
-            + 0.5*(p->sigt[FIJKp1]+p->sigt[FIJp1Kp1])
-            + 0.25*(a->u(i-1,j,k) + a->u(i-1,j,k+1) + a->u(i,j,k) + a->u(i,j,k+1))*p->sigx[FIJKp1]
-            + 0.25*(a->v(i,j-1,k) + a->v(i,j-1,k+1) + a->v(i,j,k) + a->v(i,j,k+1))*p->sigy[FIJKp1];
+	wflux2  = 0.5*(p->sigt[FIJKp1]+p->sigt[FIJp1Kp1])
+            + 0.25*(u(i-1,j,k) + u(i-1,j,k+1) + u(i,j,k) + u(i,j,k+1))*p->sigx[FIJKp1]
+            + 0.5*(v(i,j,k) + v(i,j,k+1))*p->sigy[FIJKp1]
+            + 0.5*(w(i,j,k) + w(i,j+1,k))*0.5*(p->sigz[IJ]+p->sigz[IJp1]);  
 	pip=0;
 	}
 
 	if(ipol==3)
 	{
     pip=3;
-	wflux1  = 0.5*(a->w(i,j,k)+a->w(i,j,k-1))*p->sigz[IJ] 
-            + 0.5*(p->sigt[FIJKp1]+p->sigt[FIJK]) 
-            + 0.5*(a->u(i-1,j,k) + a->u(i,j,k))*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])
-            + 0.5*(a->v(i,j-1,k) + a->v(i,j,k))*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1]);
+	wflux1  = 0.5*(p->sigt[FIJK]+p->sigt[FIJKp1]) 
+            + 0.5*(u(i-1,j,k) + u(i,j,k))*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])
+            + 0.5*(v(i,j-1,k) + v(i,j,k))*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])
+            + 0.5*(w(i,j,k) + w(i,j,k-1))*p->sigz[IJ];
          
-	wflux2  = 0.5*(a->w(i,j,k)+a->w(i,j,k+1))*p->sigz[IJ] 
-            + 0.5*(p->sigt[FIJKp1]+p->sigt[FIJKp2]);
-            + 0.5*(a->u(i-1,j,k+1) + a->u(i,j,k+1))*0.5*(p->sigx[FIJKp1]+p->sigx[FIJKp2])
-            + 0.5*(a->v(i,j-1,k+1) + a->v(i,j,k+1))*0.5*(p->sigy[FIJKp1]+p->sigy[FIJKp2]);
+	wflux2  = 0.5*(p->sigt[FIJKp1]+p->sigt[FIJKp2]);
+            + 0.5*(u(i-1,j,k+1) + u(i,j,k+1))*0.5*(p->sigx[FIJKp1]+p->sigx[FIJKp2])
+            + 0.5*(v(i,j-1,k+1) + v(i,j,k+1))*0.5*(p->sigy[FIJKp1]+p->sigy[FIJKp2])
+            + 0.5*(w(i,j,k) + w(i,j,k+1))*p->sigz[IJ];
 	pip=0;
 	}
 
 	if(ipol==4)
 	{
     pip=3;
-	wflux1= a->w(i,j,k-1)*p->sigz[IJ] + p->sigt[FIJK];
-	wflux2= a->w(i,j,k)*p->sigz[IJ]   + p->sigt[FIJKp1];
+	wflux1= w(i,j,k-1)*p->sigz[IJ] + p->sigt[FIJK];
+	wflux2= w(i,j,k)*p->sigz[IJ]   + p->sigt[FIJKp1];
     pip=0;
 	}
 }

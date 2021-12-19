@@ -40,7 +40,10 @@ void nhflow_f::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
 
 void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, slice &eta, slice &eta_n, double alpha)
 {
-    double wval,w_n;
+    double wval,w_n,detadt;
+    
+    LOOP
+    a->test(i,j,k)=0.0;
     
     GC4LOOP
     if(p->gcb4[n][3]==6 && p->gcb4[n][4]==3)
@@ -49,14 +52,35 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, sli
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
     
-	wval = (a->eta(i,j) - a->eta_n(i,j))/(p->dt)
+    if(p->A518==1)
+    {
+    detadt = (a->eta(i,j) - a->eta_n(i,j))/(p->dt);
+    
+    wval = detadt
     
          + 0.5*(u(i,j,k)+u(i-1,j,k))*((eta(i+1,j)-eta(i-1,j))/(p->DXP[IP]+p->DXP[IP1]))
     
          + 0.5*(v(i,j,k)+v(i,j-1,k))*((eta(i,j+1)-eta(i,j-1))/(p->DYP[JP]+p->DYP[JP1]));
+    }
+    
+    if(p->A518==2)
+    {
+    detadt = (eta(i,j) - eta_n(i,j))/(alpha*p->dt);
+    
+    wval = detadt
+    
+         + 0.5*(u(i,j,k)+u(i-1,j,k))*((p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j))/(p->DXP[IP]+p->DXP[IP1]))
+    
+         + 0.5*(v(i,j,k)+v(i,j-1,k))*((p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j))/(p->DYP[JP]+p->DYP[JP1]));
+    }
+    
+	
     
 	for(q=0;q<margin;++q)
+    {
 	w(i,j,k+q) = wval; 
+    a->test(i,j,k+q) = wval;
+    }
     }
     
 

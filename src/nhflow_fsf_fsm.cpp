@@ -105,9 +105,8 @@ void nhflow_fsf_fsm::start(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow)
     SLICELOOP4
     a->WL(i,j) = MAX(0.0, a->eta(i,j) + p->wd - a->bed(i,j));
     
-    p->sigma_update(p,a,pgc,a->eta,1.0);
-    p->omega_update(p,a,pgc,a->u,a->v,a->w,a->eta);
-    
+    p->sigma_update(p,a,pgc,a->eta,a->eta_n,1.0);
+    p->omega_update(p,a,pgc,a->u,a->v,a->w,a->eta,a->eta_n,1.0);
 }
 
 void nhflow_fsf_fsm::ltimesave(lexer* p, fdm *a, slice &ls)

@@ -45,7 +45,7 @@ public:
     
     virtual void sigma_coord_ini(lexer*);
     virtual void sigma_ini(lexer*, fdm*, ghostcell*, slice&);
-    virtual void sigma_update(lexer*, fdm*, ghostcell*, slice&, double);
+    virtual void sigma_update(lexer*, fdm*, ghostcell*, slice&, slice&, double);
     
     
     double sigmax(lexer*,field&,int);
@@ -53,7 +53,7 @@ public:
     double sigmaz(lexer*,field&,int);
     double sigmat(lexer*,field&,int);
     
-    void omega_update(lexer*,fdm*,ghostcell*,field&,field&,field&,slice&);
+    void omega_update(lexer*,fdm*,ghostcell*,field&,field&,field&,slice&,slice&,double);
 
         
 private:
