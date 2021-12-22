@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 
-void ghostcell::gcslparaxijk(lexer* p, slice &f, int gcv)
+void ghostcell::gcslparaxijk(lexer* p, double *f, int gcv)
 {
 	starttime=timer();
 	
@@ -36,13 +36,13 @@ void ghostcell::gcslparaxijk(lexer* p, slice &f, int gcv)
     i=p->gcslpara1[q][0];
     j=p->gcslpara1[q][1];
     
-        send1[count]=f.V[IJ];
+        send1[count]=f[IJ];
         ++count;
 
-        send1[count]=f.V[Ip1J];
+        send1[count]=f[Ip1J];
         ++count;
         
-        send1[count]=f.V[Ip2J];
+        send1[count]=f[Ip2J];
         ++count;
     }
 	
@@ -52,13 +52,13 @@ void ghostcell::gcslparaxijk(lexer* p, slice &f, int gcv)
     i=p->gcslpara2[q][0];
     j=p->gcslpara2[q][1];
     
-        send2[count]=f.V[IJ];
+        send2[count]=f[IJ];
         ++count;
 
-        send2[count]=f.V[IJm1];
+        send2[count]=f[IJm1];
         ++count;
   
-        send2[count]=f.V[IJm2];
+        send2[count]=f[IJm2];
         ++count;
 	}
 
@@ -68,13 +68,13 @@ void ghostcell::gcslparaxijk(lexer* p, slice &f, int gcv)
     i=p->gcslpara3[q][0];
     j=p->gcslpara3[q][1];
     
-        send3[count]=f.V[IJ];
+        send3[count]=f[IJ];
         ++count;
         
-        send3[count]=f.V[IJp1];
+        send3[count]=f[IJp1];
         ++count;
      
-        send3[count]=f.V[IJp2];
+        send3[count]=f[IJp2];
         ++count;
     }
 	
@@ -84,13 +84,13 @@ void ghostcell::gcslparaxijk(lexer* p, slice &f, int gcv)
     i=p->gcslpara4[q][0];
     j=p->gcslpara4[q][1];
     
-        send4[count]=f.V[IJ];
+        send4[count]=f[IJ];
         ++count;
 
-        send4[count]=f.V[Im1J];
+        send4[count]=f[Im1J];
         ++count;
 
-        send4[count]=f.V[Im2J];
+        send4[count]=f[Im2J];
         ++count;
 	}
 
@@ -135,13 +135,13 @@ void ghostcell::gcslparaxijk(lexer* p, slice &f, int gcv)
     i=p->gcslpara1[q][0];
     j=p->gcslpara1[q][1];
     
-        f.V[Im1J]=recv1[count];
+        f[Im1J]=recv1[count];
         ++count;
 
-        f.V[Im2J]=recv1[count];
+        f[Im2J]=recv1[count];
         ++count;
 
-        f.V[Im3J]=recv1[count];
+        f[Im3J]=recv1[count];
         ++count; 
     }
 
@@ -151,13 +151,13 @@ void ghostcell::gcslparaxijk(lexer* p, slice &f, int gcv)
     i=p->gcslpara2[q][0];
     j=p->gcslpara2[q][1];
     
-        f.V[IJp1]=recv2[count];
+        f[IJp1]=recv2[count];
         ++count;
 
-        f.V[IJp2]=recv2[count];
+        f[IJp2]=recv2[count];
         ++count;
         
-        f.V[IJp3]=recv2[count];
+        f[IJp3]=recv2[count];
         ++count;
 	}	
 	
@@ -167,13 +167,13 @@ void ghostcell::gcslparaxijk(lexer* p, slice &f, int gcv)
     i=p->gcslpara3[q][0];
     j=p->gcslpara3[q][1];
     
-        f.V[IJm1]=recv3[count];
+        f[IJm1]=recv3[count];
         ++count;
 
-        f.V[IJm2]=recv3[count];
+        f[IJm2]=recv3[count];
         ++count;
         
-        f.V[IJm3]=recv3[count];
+        f[IJm3]=recv3[count];
         ++count;
 	}
 
@@ -183,13 +183,13 @@ void ghostcell::gcslparaxijk(lexer* p, slice &f, int gcv)
     i=p->gcslpara4[q][0];
     j=p->gcslpara4[q][1];
     
-        f.V[Ip1J]=recv4[count];
+        f[Ip1J]=recv4[count];
         ++count;
 
-        f.V[Ip2J]=recv4[count];
+        f[Ip2J]=recv4[count];
         ++count;
         
-        f.V[Ip3J]=recv4[count];
+        f[Ip3J]=recv4[count];
         ++count;
 	}
 	

@@ -141,61 +141,68 @@ nt 8 -
                 // fsfbc
             if(p->flag4[Im1JKp1]<0 && p->flag4[IJKp1]<0) // fsfbc
             {
-   
+                if(p->D37==1)
+                {
                 rhs[n] -= M[n*9+6]*f(i-1,j,k+1);
                 M[n*9+6] = 0.0;
+                }
                 
-                /*
                 if(p->D37==3)
                 {
                 M[n*9+6] -= CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1])); 
                 M[n*9+6] += CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(teta*p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));         
-                } */
+                } 
             }
                 // wall
             if((p->flag4[Im1JKp1]<0 && p->flag4[IJKp1]>0)) //
             {
-
+                if(p->D37==1)
+                {
                 rhs[n] -= M[n*9+6]*f(i-1,j,k+1);
                 M[n*9+6] = 0.0;
+                }
                 
-                /*
                 if(p->D37==3)
                 {
                 M[n*9+6] -= CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1])); 
                 M[n*9+6] += CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(teta*p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));         
-                } */
+                } 
             }
             
             // nt
                 // fsfbc
             if(p->flag4[Ip1JKp1]<0 && p->flag4[IJKp1]<0) 
             {
-
+                
+                if(p->D37==1)
+                {
                 rhs[n] -= M[n*9+8]*f(i+1,j,k+1);
                 M[n*9+8] = 0.0; 
+                }
                 
-                /*
+                
                 if(p->D37==3)
                 {
                 M[n*9+8] += CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1])); 
                 M[n*9+8] -= CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(teta*p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));         
-                } */
+                } 
             }
             
                 // wall
             if(p->flag4[Ip1JKp1]<0 && p->flag4[IJKp1]>0)
             {
-
+                if(p->D37==1)
+                {
                 rhs[n] -= M[n*9+8]*f(i+1,j,k+1);
                 M[n*9+8] = 0.0; 
+                }
                 
-                /*
+                
                 if(p->D37==3)
                 {
                 M[n*9+8] += CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1])); 
                 M[n*9+8] -= CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(teta*p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));         
-                } */
+                } 
             }
             
             // sb 

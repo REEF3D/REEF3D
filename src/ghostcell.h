@@ -289,8 +289,8 @@ public:
     void gcslwait(lexer*);
     void gcslflagx(lexer*, int*);
     void gcxslupdate(lexer*);
-    void gcslparaxijk(lexer*, slice&, int);
-    void gcslparaxijk_single(lexer*, slice&, int);
+    void gcslparaxijk(lexer*, double*, int);
+    void gcslparaxijk_single(lexer*, double*, int);
 
 
     double mini1(fdm*,lexer*, field&);

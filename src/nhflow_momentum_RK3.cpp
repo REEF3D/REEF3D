@@ -77,9 +77,12 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 		
 //Step 1
 //--------------------------------------------------------
-
-    /*pnhfsf->step1(p, a, pgc, pflow, a->u, a->v, a->w, etark1, etark2, 1.0);
-    pnh->kinematic_fsf(p,a,a->u,a->v,a->w,etark1,a->eta,1.0);*/
+    if(p->A518==1)
+    {
+    pnhfsf->step1(p, a, pgc, pflow, a->u, a->v, a->w, etark1, etark2, 1.0);
+    pnh->kinematic_fsf(p,a,a->u,a->v,a->w,etark1,a->eta,1.0);
+    p->omega_update(p,a,pgc,a->u,a->v,a->w,etark1,etark1,1.0);
+    }
     
 	// U
 	starttime=pgc->timer();
@@ -149,11 +152,12 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	pgc->start2(p,vrk1,gcval_v);
 	pgc->start3(p,wrk1,gcval_w);
     
+    if(p->A518==2)
+    {
     pnhfsf->step1(p, a, pgc, pflow, urk1, vrk1, wrk1, etark1, etark2, 1.0);
-
-    
     pnh->kinematic_fsf(p,a,urk1,vrk1,wrk1,etark1,a->eta,1.0);
     p->omega_update(p,a,pgc,urk1,vrk1,wrk1,etark1,a->eta,1.0);
+    }
     
     pupdate->start(p,a,pgc);
     
@@ -161,8 +165,12 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 //Step 2
 //--------------------------------------------------------
 	
-    /*pnhfsf->step2(p, a, pgc, pflow, urk1, vrk1, wrk1, etark1, etark2, 0.25);
-    pnh->kinematic_fsf(p,a,urk1,vrk1,wrk1,etark2,etark1,0.25);*/
+    if(p->A518==1)
+    {
+    pnhfsf->step2(p, a, pgc, pflow, urk1, vrk1, wrk1, etark1, etark2, 0.25);
+    pnh->kinematic_fsf(p,a,urk1,vrk1,wrk1,etark2,etark1,0.25);
+    p->omega_update(p,a,pgc,urk2,vrk1,wrk1,etark2,etark1,0.25);
+    }
     
 	// U
 	starttime=pgc->timer();
@@ -232,18 +240,24 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	pgc->start2(p,vrk2,gcval_v);
 	pgc->start3(p,wrk2,gcval_w);
     
+    if(p->A518==2)
+    {
     pnhfsf->step2(p, a, pgc, pflow, urk2, vrk2, wrk2, etark1, etark2, 0.25);
-    
     pnh->kinematic_fsf(p,a,urk2,vrk2,wrk2,etark2,etark1,0.25);
     p->omega_update(p,a,pgc,urk2,vrk2,wrk2,etark2,etark1,0.25);
+    }
     
     pupdate->start(p,a,pgc);
 
 //Step 3
 //--------------------------------------------------------
     
-    /*pnhfsf->step3(p, a, pgc, pflow, urk2, vrk2, wrk2, etark1, etark2, 2.0/3.0);
-    pnh->kinematic_fsf(p,a,urk2,vrk2,wrk2,a->eta,etark2,2.0/3.0);*/
+    if(p->A518==1)
+    {
+    pnhfsf->step3(p, a, pgc, pflow, urk2, vrk2, wrk2, etark1, etark2, 2.0/3.0);
+    pnh->kinematic_fsf(p,a,urk2,vrk2,wrk2,a->eta,etark2,2.0/3.0);
+    p->omega_update(p,a,pgc,urk2,vrk2,wrk2,a->eta,etark2,0.25);
+    }
     
 	// U
 	starttime=pgc->timer();
@@ -313,10 +327,12 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
     
+    if(p->A518==2)
+    {
     pnhfsf->step3(p, a, pgc, pflow, a->u, a->v, a->w, etark1, etark2, 2.0/3.0);
-    
     pnh->kinematic_fsf(p,a,a->u,a->v,a->w,a->eta,etark2,2.0/3.0);
     p->omega_update(p,a,pgc,a->u,a->v,a->w,a->eta,etark2,2.0/3.0);
+    }
     
     pupdate->start(p,a,pgc);
 }

@@ -116,10 +116,29 @@ void pjm_sig::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 }
 
 void pjm_sig::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
-{	 
+{	
+    if(p->D37==1)
     VLOOP
     vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(1.0/pd->roface(p,a,0,1,0))*((a->press(i,j+1,k)-a->press(i,j,k))/p->DYP[JP] 
                 + 0.25*(p->sigy[FIJK]+p->sigy[FIJKp1]+p->sigy[FIJp1K]+p->sigy[FIJp1Kp1])*(0.5*(a->press(i,j,k+1)+a->press(i,j+1,k+1))-0.5*(a->press(i,j,k-1)+a->press(i,j+1,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
+                
+                
+    if(p->D37>=2)
+    VLOOP
+    {       
+     check=0;
+    
+        if(p->flag2[IJKp1]<0)
+        check=1;        
+    
+    if(check==1)
+    vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(1.0/pd->roface(p,a,0,1,0))*((a->press(i,j+1,k)-a->press(i,j,k))/p->DYP[JP] 
+                + 0.25*(p->sigy[FIJK]+p->sigy[FIJKp1]+p->sigy[FIJp1K]+p->sigy[FIJp1Kp1])*(0.5*(1.0 - 1.0/teta)*(a->press(i,j,k)+a->press(i,j+1,k))-0.5*(a->press(i,j,k-1)+a->press(i,j+1,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
+    
+    if(check==0)
+    vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(1.0/pd->roface(p,a,0,1,0))*((a->press(i,j+1,k)-a->press(i,j,k))/p->DYP[JP] 
+                + 0.25*(p->sigy[FIJK]+p->sigy[FIJKp1]+p->sigy[FIJp1K]+p->sigy[FIJp1Kp1])*(0.5*(a->press(i,j,k+1)+a->press(i,j+1,k+1))-0.5*(a->press(i,j,k-1)+a->press(i,j+1,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
+    }
 }
 
 void pjm_sig::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
@@ -134,7 +153,7 @@ void pjm_sig::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
     {
     check=0;
     
-        if(p->flag4[IJKp1]<0)
+        if(p->flag3[IJKp1]<0)
         check=1;
 
     if(check==1)    

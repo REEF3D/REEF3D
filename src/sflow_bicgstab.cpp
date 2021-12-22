@@ -24,10 +24,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm2D.h"
 #include"ghostcell.h"
 
-sflow_bicgstab::sflow_bicgstab(lexer* p,ghostcell *pgc):sj(p),rj(p),r0(p),vj(p),tj(p),pj(p),x(p),
-                                                        ph(p),sh(p),aii(p),rhs(p),epsi(1e-19)
+sflow_bicgstab::sflow_bicgstab(lexer* p,ghostcell *pgc):epsi(1e-19)
 {	
 	margin=3;
+    
+    p->Darray(sj,p->imax*p->jmax*p->kmax);
+    p->Darray(rj,p->imax*p->jmax*p->kmax);
+    p->Darray(r0,p->imax*p->jmax*p->kmax);
+    p->Darray(vj,p->imax*p->jmax*p->kmax);
+    p->Darray(tj,p->imax*p->jmax*p->kmax);
+    p->Darray(pj,p->imax*p->jmax*p->kmax); 
+    p->Darray(ph,p->imax*p->jmax*p->kmax);
+    p->Darray(sh,p->imax*p->jmax*p->kmax);
+    p->Darray(aii,p->imax*p->jmax*p->kmax);
+    p->Darray(x,p->imax*p->jmax*p->kmax);
+    p->Darray(rhs,p->imax*p->jmax*p->kmax);
 }
 
 sflow_bicgstab::~sflow_bicgstab()
@@ -85,8 +96,8 @@ void sflow_bicgstab::solve(lexer* p, ghostcell* pgc, matrix2D &M, vec2D &xvec, v
 	
 	SLICEFLEXLOOP
 	{
-		r0.V[IJ]=pj.V[IJ]=rj.V[IJ];
-		r_j += rj.V[IJ]*r0.V[IJ];
+		r0[IJ]=pj[IJ]=rj[IJ];
+		r_j += rj[IJ]*r0[IJ];
     }
 
     r_j=pgc->globalsum(r_j);
@@ -109,9 +120,9 @@ void sflow_bicgstab::solve(lexer* p, ghostcell* pgc, matrix2D &M, vec2D &xvec, v
 		
 		SLICEFLEXLOOP
 		{
-			sigma   += vj.V[IJ]*r0.V[IJ];
-			norm_vj += vj.V[IJ]*vj.V[IJ];
-			norm_rj += rj.V[IJ]*rj.V[IJ];
+			sigma   += vj[IJ]*r0[IJ];
+			norm_vj += vj[IJ]*vj[IJ];
+			norm_rj += rj[IJ]*rj[IJ];
 	    }
 		
         sigma = pgc->globalsum(sigma);
@@ -140,8 +151,8 @@ void sflow_bicgstab::solve(lexer* p, ghostcell* pgc, matrix2D &M, vec2D &xvec, v
 		
 		SLICEFLEXLOOP
 		{
-		sj.V[IJ] = rj.V[IJ] - alpha*vj.V[IJ];
-		norm_sj += sj.V[IJ]*sj.V[IJ];
+		sj[IJ] = rj[IJ] - alpha*vj[IJ];
+		norm_sj += sj[IJ]*sj[IJ];
 		}
 
 	    norm_sj=sqrt(pgc->globalsum(norm_sj));
@@ -159,8 +170,8 @@ void sflow_bicgstab::solve(lexer* p, ghostcell* pgc, matrix2D &M, vec2D &xvec, v
 		
 		SLICEFLEXLOOP
 		{
-		    w1 += tj.V[IJ]*sj.V[IJ];
-		    w2 += tj.V[IJ]*tj.V[IJ];
+		    w1 += tj[IJ]*sj[IJ];
+		    w2 += tj[IJ]*tj[IJ];
 		}
 
 		w1=pgc->globalsum(w1);
@@ -172,9 +183,9 @@ void sflow_bicgstab::solve(lexer* p, ghostcell* pgc, matrix2D &M, vec2D &xvec, v
 		
 		SLICEFLEXLOOP
 		{
-		x.V[IJ] += alpha*ph.V[IJ] + w*sh.V[IJ];
-		rj.V[IJ]  = sj.V[IJ]-w*tj.V[IJ];
-		r_j1 += rj.V[IJ]*r0.V[IJ];
+		x[IJ] += alpha*ph[IJ] + w*sh[IJ];
+		rj[IJ]  = sj[IJ]-w*tj[IJ];
+		r_j1 += rj[IJ]*r0[IJ];
 		}
 
 		r_j1=pgc->globalsum(r_j1);
@@ -182,7 +193,7 @@ void sflow_bicgstab::solve(lexer* p, ghostcell* pgc, matrix2D &M, vec2D &xvec, v
 		beta=alpha*r_j1/(w*r_j==0?1.0e-15:(w*r_j));
 		
 		SLICEFLEXLOOP
-		pj.V[IJ] = rj.V[IJ] + beta*(pj.V[IJ]-w*vj.V[IJ]);
+		pj[IJ] = rj[IJ] + beta*(pj[IJ]-w*vj[IJ]);
 	}
 
 
@@ -192,9 +203,9 @@ void sflow_bicgstab::solve(lexer* p, ghostcell* pgc, matrix2D &M, vec2D &xvec, v
 		
 		SLICEFLEXLOOP
 		{
-		x.V[IJ] += alpha*ph.V[IJ];
-		rj.V[IJ]=sj.V[IJ];
-		r_j1 += rj.V[IJ]*r0.V[IJ];
+		x[IJ] += alpha*ph[IJ];
+		rj[IJ]=sj[IJ];
+		r_j1 += rj[IJ]*r0[IJ];
 		}
 
     r_j1=pgc->globalsum(r_j1);
@@ -205,7 +216,7 @@ void sflow_bicgstab::solve(lexer* p, ghostcell* pgc, matrix2D &M, vec2D &xvec, v
 	    residual=0.0;
 		
 		SLICEFLEXLOOP
-		residual += rj.V[IJ]*rj.V[IJ];
+		residual += rj[IJ]*rj[IJ];
 
 	    residual = sqrt(pgc->globalsum(residual))/double(p->cellnumtot2D);
 		
@@ -218,45 +229,45 @@ void sflow_bicgstab::solve(lexer* p, ghostcell* pgc, matrix2D &M, vec2D &xvec, v
 	
 	SLICELOOP4
 	{
-	ph.V[IJ]=0.0;
-	sh.V[IJ]=0.0;
+	ph[IJ]=0.0;
+	sh[IJ]=0.0;
 	}
     
     pgc->gcslparaxijk_single(p,ph,var);	
     pgc->gcslparaxijk_single(p,sh,var);	
 }
 
-void sflow_bicgstab::matvec_axb(lexer *p, matrix2D &M, slice &x, slice &y)
+void sflow_bicgstab::matvec_axb(lexer *p, matrix2D &M, double *x, double *y)
 {
     n=0;
 	SLICEFLEXLOOP
 	{
-	y.V[IJ]  = rhs.V[IJ]
+	y[IJ]  = rhs[IJ]
 
-			-(M.p[n]*x.V[IJ]
-			+ M.n[n]*x.V[Ip1J] 
-			+ M.s[n]*x.V[Im1J]
-			+ M.w[n]*x.V[IJp1]
-			+ M.e[n]*x.V[IJm1]);
+			-(M.p[n]*x[IJ]
+			+ M.n[n]*x[Ip1J] 
+			+ M.s[n]*x[Im1J]
+			+ M.w[n]*x[IJp1]
+			+ M.e[n]*x[IJm1]);
     ++n;
 	}
 }
 
-void sflow_bicgstab::matvec_std(lexer *p, matrix2D &M, slice &x, slice &y)
+void sflow_bicgstab::matvec_std(lexer *p, matrix2D &M, double *x, double *y)
 {
     n=0;
 	SLICEFLEXLOOP
 	{
-	y.V[IJ]      = M.p[n]*x.V[IJ]
-				+ M.n[n]*x.V[Ip1J] 
-				+ M.s[n]*x.V[Im1J]
-				+ M.w[n]*x.V[IJp1]
-				+ M.e[n]*x.V[IJm1];
+	y[IJ]      = M.p[n]*x[IJ]
+				+ M.n[n]*x[Ip1J] 
+				+ M.s[n]*x[Im1J]
+				+ M.w[n]*x[IJp1]
+				+ M.e[n]*x[IJm1];
     ++n;
 	}
 }
 
-double sflow_bicgstab::res_calc(lexer *p, matrix2D &M, ghostcell *pgc, slice &x)
+double sflow_bicgstab::res_calc(lexer *p, matrix2D &M, ghostcell *pgc, double *x)
 {
 	double y;
 	double resi=0.0;
@@ -264,13 +275,13 @@ double sflow_bicgstab::res_calc(lexer *p, matrix2D &M, ghostcell *pgc, slice &x)
     n=0;
 	SLICEFLEXLOOP
 	{	
-	y  = rhs.V[IJ]
+	y  = rhs[IJ]
 
-		-(M.p[n]*x.V[IJ]
-		+ M.n[n]*x.V[Ip1J] 
-		+ M.s[n]*x.V[Im1J]
-		+ M.w[n]*x.V[IJp1]
-		+ M.e[n]*x.V[IJm1]);
+		-(M.p[n]*x[IJ]
+		+ M.n[n]*x[Ip1J] 
+		+ M.s[n]*x[Im1J]
+		+ M.w[n]*x[IJp1]
+		+ M.e[n]*x[IJm1]);
 
 	resi+=y*y;
     
@@ -287,15 +298,15 @@ void sflow_bicgstab::precon_setup(lexer* p, matrix2D &M, ghostcell* pgc)
     n=0;
 	SLICEFLEXLOOP
     {
-	aii.V[IJ]=-1.0/(M.p[n]+epsi);
+	aii[IJ]=-1.0/(M.p[n]+epsi);
     ++n;
     }
 }
 
-void sflow_bicgstab::precon_solve(lexer* p, ghostcell* pgc, slice &f, slice &b)
+void sflow_bicgstab::precon_solve(lexer* p, ghostcell* pgc, double *f, double *b)
 {
 	SLICEFLEXLOOP
-	f.V[IJ]=b.V[IJ]*aii.V[IJ];
+	f[IJ]=b[IJ]*aii[IJ];
 }
 
 void sflow_bicgstab::fillxvec(lexer* p, slice& f, vec2D &rhsvec)
@@ -303,9 +314,9 @@ void sflow_bicgstab::fillxvec(lexer* p, slice& f, vec2D &rhsvec)
     n=0;
 	SLICEFLEXLOOP
 	{
-	x.V[IJ] = f(i,j);
+	x[IJ] = f(i,j);
     
-    rhs.V[IJ] = rhsvec.V[n];
+    rhs[IJ] = rhsvec.V[n];
 
     ++n;
     }
@@ -315,5 +326,5 @@ void sflow_bicgstab::fillxvec(lexer* p, slice& f, vec2D &rhsvec)
 void sflow_bicgstab::finalize(lexer *p, slice &f)
 {  
         SLICEFLEXLOOP
-        f(i,j)=x.V[IJ];
+        f(i,j)=x[IJ];
 }
