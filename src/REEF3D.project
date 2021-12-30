@@ -941,6 +941,7 @@
         <File Name="bc_ikomega.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="LES">
+        <File Name="LES_WALE.h"/>
         <File Name="LES.h"/>
         <File Name="LES_germano.h"/>
         <File Name="LES_smagorinsky.h"/>
@@ -2464,6 +2465,7 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="LES">
+        <File Name="LES_WALE.cpp"/>
         <File Name="LES.cpp"/>
         <File Name="LES_germano.cpp"/>
         <File Name="LES_smagorinsky.cpp"/>

@@ -64,7 +64,7 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, sli
         for(q=0;q<margin;++q)
         {
         w(i,j,k+q) = wval; 
-        a->test(i,j,k+q-1) = wval;
+        //a->test(i,j,k+q-1) = wval;
         }
     }
     
@@ -86,7 +86,7 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, sli
         for(q=0;q<margin;++q)
         {
         w(i,j,k+q) = wval; 
-        a->test(i,j,k+q-1) = wval;
+        //a->test(i,j,k+q-1) = wval;
         }
     }
     

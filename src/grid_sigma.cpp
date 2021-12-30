@@ -88,9 +88,9 @@ void grid_sigma::sigma_ini(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     p->Darray(p->sigxx,p->imax*p->jmax*(p->kmax+1));
     
 
-    // p->sig[FIJK]
-    FLOOP
-    p->sig[FIJK] =  p->ZN[KP];
+
+    //FLOOP
+    //p->sig[FIJK] =  p->ZN[KP];
     
     // bc
     SLICELOOP4

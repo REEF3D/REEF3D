@@ -260,9 +260,9 @@ void grid_sigma::omega_update(lexer *p, fdm *a, ghostcell *pgc, field &u, field 
     {
     a->omega(i,j,k) =  p->sigt[FIJKp1]
                     
-                    +  0.5*(u(i-1,j,k) + u(i-1,j,k+1) + u(i,j,k) + u(i,j,k+1))*p->sigx[FIJKp1]
+                    +  0.25*(u(i-1,j,k) + u(i-1,j,k+1) + u(i,j,k) + u(i,j,k+1))*p->sigx[FIJKp1]
                     
-                    +  0.5*(v(i,j-1,k) + v(i,j-1,k+1) + v(i,j,k) + v(i,j,k+1))*p->sigy[FIJKp1]
+                    +  0.25*(v(i,j-1,k) + v(i,j-1,k+1) + v(i,j,k) + v(i,j,k+1))*p->sigy[FIJKp1]
                     
                     +  w(i,j,k)*p->sigz[IJ];
                     
@@ -273,36 +273,17 @@ void grid_sigma::omega_update(lexer *p, fdm *a, ghostcell *pgc, field &u, field 
     {
     i=p->gcb3[n][0];
     j=p->gcb3[n][1];
-    k=p->gcb3[n][2]+1;
+    k=p->gcb3[n][2];
     
         for(int q=0;q<3;++q)
-        a->omega(i,j,k+q) =   w(i,j,k+q);
+        a->omega(i,j,k+1+q) =   p->sigt[FIJKp2]
+                    
+                    +  0.5*(u(i-1,j,k+1) + u(i,j,k+1))*p->sigx[FIJKp2]
+                    
+                    +  0.5*(v(i,j-1,k+1) + v(i,j,k+1))*p->sigy[FIJKp2]
+                    
+                    +  w(i,j,k+1)*p->sigz[IJ];
     }
-    
-    /*
-    GC3LOOP
-    if(p->gcb3[n][3]==6 && p->gcb3[n][4]==3)
-    {
-    i=p->gcb3[n][0];
-    j=p->gcb3[n][1];
-    k=p->gcb3[n][2]+1;
-    
-    wval = (a->eta(i,j) - a->eta_n(i,j))/(p->dt)
-    
-         + 0.5*(u(i,j,k)+u(i-1,j,k))*((eta(i+1,j)-eta(i-1,j))/(p->DXP[IP]+p->DXP[IP1]))
-    
-         + 0.5*(v(i,j,k)+v(i,j-1,k))*((eta(i,j+1)-eta(i,j-1))/(p->DYP[JP]+p->DYP[JP1]));
-    
-	for(int q=0;q<3;++q)
-	a->omega(i,j,k+q) =   p->sigt[FIJKp1]
-                    
-                    +  0.5*(u(i-1,j,k) + u(i-1,j,k+1) + u(i,j,k) + u(i,j,k+1))*p->sigx[FIJKp1]
-                    
-                    +  0.5*(v(i,j-1,k) + v(i,j-1,k+1) + v(i,j,k) + v(i,j,k+1))*p->sigy[FIJKp1]
-                    
-                    +  wval*p->sigz[IJ];
-                             
-    }*/
     
     pgc->start3(p,a->omega,17);
     pgc->start3(p,a->omega,17);

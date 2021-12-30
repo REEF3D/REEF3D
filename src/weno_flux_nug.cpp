@@ -149,6 +149,10 @@ double weno_flux_nug::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field&
 		k+=1;
 		
 		fw2 = fz(p,a,b,wvel,ipol,kvel2);
+    
+    
+        if(ipol==1)
+        a->test(i,j,k) = 0.5*(kvel2+kvel1);
 		
 		
        if(p->G2==0 || p->A517!=3)
