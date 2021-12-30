@@ -41,6 +41,9 @@ void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
 	double Nu = p->Z11_nu[nstrip];   // Poisson ratio [-]
 	Ne = p->Z11_n[nstrip];           // Number of elements
 
+    thinStrip = false;
+    if (p->Y2 == 1) thinStrip = true;
+
     gravity_vec << a->gi, a->gj, a->gk;
     rho_f = p->W1;
     A_el = W_el*T;
@@ -52,7 +55,7 @@ void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
     iniMaterial();
 
     // Initialise damping and compression effects
-    iniDamping(0,0,0,0,0,0,true);
+    iniDamping(p->Z12_cdx,p->Z12_cdy,p->Z12_cdz,p->Z12_ckx,p->Z12_cky,p->Z12_ckz,true);
 
     // Meshing
     Eigen::Matrix3Xd ini_coord = Eigen::Matrix3Xd::Zero(3,Ne+1); 

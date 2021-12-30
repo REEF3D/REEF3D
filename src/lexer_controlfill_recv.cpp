@@ -1482,6 +1482,18 @@ void lexer::ctrlrecv()
 	ii++;
     Z11 = ictrl[ii];
     ii++;
+    Z12_cdx = dctrl[dd];
+	dd++;
+    Z12_cdy = dctrl[dd];
+	dd++;
+    Z12_cdz = dctrl[dd];
+	dd++;
+    Z12_ckx = dctrl[dd];
+	dd++;
+    Z12_cky = dctrl[dd];
+	dd++;
+    Z12_ckz = dctrl[dd];
+	dd++;
 
 // --------------------------	
 	
