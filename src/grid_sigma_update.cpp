@@ -247,8 +247,8 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slic
     pgc->start7S(p,p->ZSN,1);
     pgc->gcslparaxijk(p, p->sigz, 1);
     
-    LOOP
-    a->test(i,j,k) = p->sigx[FIJKp1];
+    //LOOP
+    //a->test(i,j,k) = p->sigx[FIJKp1];
         
 }
 
@@ -266,6 +266,17 @@ void grid_sigma::omega_update(lexer *p, fdm *a, ghostcell *pgc, field &u, field 
                     
                     +  w(i,j,k)*p->sigz[IJ];
                     
+    }
+    
+    GC3LOOP
+    if(p->gcb3[n][3]==6 && p->gcb3[n][4]==3)
+    {
+    i=p->gcb3[n][0];
+    j=p->gcb3[n][1];
+    k=p->gcb3[n][2]+1;
+    
+        for(int q=0;q<3;++q)
+        a->omega(i,j,k+q) =   w(i,j,k+q);
     }
     
     /*

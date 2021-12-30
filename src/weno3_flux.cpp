@@ -129,13 +129,15 @@ double weno3_flux::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vv
 		
 		fu2 = fx(p,a,b,uvel,ipol,ivel2);
 
-
-		
+        fv1=fv2=0.0;
+		if(p->j_dir==1)
+        {
 		j-=1;
 		fv1 = fy(p,a,b,vvel,ipol,jvel1);
 		j+=1;
 		
 		fv2 = fy(p,a,b,vvel,ipol,jvel2);
+        }
 
 
 

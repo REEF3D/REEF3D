@@ -33,12 +33,11 @@ nhflow_f::~nhflow_f()
 {
 }
 
-
 void nhflow_f::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
 {
 }
 
-void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, slice &eta, slice &eta_n, double alpha)
+void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, slice &eta1, slice &eta2, double alpha)
 {
     double wval,w_n;
     
@@ -46,6 +45,8 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, sli
 
     
     // Kinematic Free Surface BC
+    
+    if(p->A518==1)
     GC4LOOP
     if(p->gcb4[n][3]==6 && p->gcb4[n][4]==3)
     {
@@ -55,19 +56,39 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, sli
     
     wval = (a->eta(i,j) - a->eta_n(i,j))/(p->dt)
     
-         + 0.5*(u(i,j,k)+u(i-1,j,k))*((eta(i+1,j)-eta(i-1,j))/(p->DXP[IP]+p->DXP[IP1]))
+         + 0.5*(u(i,j,k)+u(i-1,j,k))*((eta1(i+1,j)-eta1(i-1,j))/(p->DXP[IP]+p->DXP[IP1]))
     
-         + 0.5*(v(i,j,k)+v(i,j-1,k))*((eta(i,j+1)-eta(i,j-1))/(p->DYP[JP]+p->DYP[JP1]));
+         + 0.5*(v(i,j,k)+v(i,j-1,k))*((eta1(i,j+1)-eta1(i,j-1))/(p->DYP[JP]+p->DYP[JP1]));
          
          
         for(q=0;q<margin;++q)
         {
         w(i,j,k+q) = wval; 
-        //a->test(i,j,k+q) = wval;
+        a->test(i,j,k+q-1) = wval;
         }
     }
     
+    if(p->A518==2)
+    GC4LOOP
+    if(p->gcb4[n][3]==6 && p->gcb4[n][4]==3)
+    {
+    i=p->gcb4[n][0];
+    j=p->gcb4[n][1];
+    k=p->gcb4[n][2];
     
+    wval = (a->eta(i,j) - a->eta_n(i,j))/(p->dt)
+    
+         + 0.5*(u(i,j,k)+u(i-1,j,k))*((eta2(i+1,j)-eta2(i-1,j))/(p->DXP[IP]+p->DXP[IP1]))
+    
+         + 0.5*(v(i,j,k)+v(i,j-1,k))*((eta2(i,j+1)-eta2(i,j-1))/(p->DYP[JP]+p->DYP[JP1]));
+         
+         
+        for(q=0;q<margin;++q)
+        {
+        w(i,j,k+q) = wval; 
+        a->test(i,j,k+q-1) = wval;
+        }
+    }
     
     // Kinematic Bed BC
     GC4LOOP
