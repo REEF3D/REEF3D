@@ -154,6 +154,10 @@ void lexer::ctrlrecv()
 	dd++;
     A510 = ictrl[ii];
 	ii++;
+    A515 = ictrl[ii];
+	ii++;
+    A516 = ictrl[ii];
+	ii++;
     A517 = ictrl[ii];
 	ii++;
     A518 = ictrl[ii];

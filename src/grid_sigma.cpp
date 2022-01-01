@@ -89,8 +89,8 @@ void grid_sigma::sigma_ini(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     
 
 
-    //FLOOP
-    //p->sig[FIJK] =  p->ZN[KP];
+    FLOOP
+    p->sig[FIJK] =  p->ZN[KP];
     
     // bc
     SLICELOOP4
@@ -98,19 +98,21 @@ void grid_sigma::sigma_ini(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
         k=0;
         if(p->nb5==-2)
         {
-            p->sig[FIJKm1] = p->ZN[KM1];
-            p->sig[FIJKm2] = p->ZN[KM2];
-            p->sig[FIJKm3] = p->ZN[KM3];
+            p->sig[FIJKm1] = p->ZN[FIJK];
+            p->sig[FIJKm2] = p->ZN[FIJK];
+            p->sig[FIJKm3] = p->ZN[FIJK];
         }
         
         k=p->knoz;
         if(p->nb6==-2)
         {
-            p->sig[FIJKp1] = p->ZN[KP1];
-            p->sig[FIJKp2] = p->ZN[KP2];
-            p->sig[FIJKp3] = p->ZN[KP3];
+            p->sig[FIJKp1] = p->ZN[FIJK];
+            p->sig[FIJKp2] = p->ZN[FIJK];
+            p->sig[FIJKp3] = p->ZN[FIJK];
         } 
     }
+    
+    pgc->start7S(p,p->sig,1);
 
     
     SLICELOOP4

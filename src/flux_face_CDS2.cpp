@@ -142,8 +142,8 @@ void flux_face_CDS2::omega_flux(lexer *p, fdm* a, int ipol, field &u, field &v, 
 {
     /*{
     a->omega(i,j,k) =  p->sigt[FIJKp1]
-                    +  0.5*(u(i-1,j,k) + u(i-1,j,k+1) + u(i,j,k) + u(i,j,k+1))*p->sigx[FIJKp1]
-                    +  0.5*(v(i,j-1,k) + v(i,j-1,k+1) + v(i,j,k) + v(i,j,k+1))*p->sigy[FIJKp1]
+                    +  0.25*(u(i-1,j,k) + u(i-1,j,k+1) + u(i,j,k) + u(i,j,k+1))*p->sigx[FIJKp1]
+                    +  0.25*(v(i,j-1,k) + v(i,j-1,k+1) + v(i,j,k) + v(i,j,k+1))*p->sigy[FIJKp1]
                     +  w(i,j,k)*p->sigz[IJ];
     }*/
 

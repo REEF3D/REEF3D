@@ -335,6 +335,26 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     }
     
     pupdate->start(p,a,pgc);
+    
+    /*
+    pnh->kinematic_fsf(p,a,a->u,a->v,a->w,a->eta,a->eta,2.0/3.0);
+    p->omega_update(p,a,pgc,a->u,a->v,a->w,a->eta,etark2,2.0/3.0);
+    
+    
+    
+    
+    if(p->mpirank==3)
+    GC4LOOP
+    if(p->gcb4[n][3]==6 && p->gcb4[n][4]==3)
+    {
+    i=p->gcb4[n][0];
+    j=p->gcb4[n][1];
+    k=p->gcb4[n][2];
+    
+    cout<<a->w(i,j,k-1)<<" "<<a->w(i,j,k)<<endl;
+    }*/
+    
+    
 }
 
 void nhflow_momentum_RK3::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)

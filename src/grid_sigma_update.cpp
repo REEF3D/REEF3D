@@ -114,12 +114,9 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slic
     p->sigy[FIJK] = (1.0 - p->sig[FIJK])*(pd->By(i,j)/WLVL) - p->sig[FIJK]*(pd->Ey(i,j)/WLVL);
     
     // sigz
-    //SLICELOOP4
-    //p->sigz[IJ] = 1.0/WLVL;
-    
     SLICELOOP4
     {
-    wl=MAX(0.0, eta(i,j) + p->wd - a->bed(i,j));
+    wl = MAX(0.0, eta(i,j) + p->wd - a->bed(i,j));
     
     wl = (fabs(wl)>1.0e-20?wl:1.0-20);
     
@@ -162,17 +159,17 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slic
         k=0;
         if(p->nb5==-2)
         {
-            p->sigx[FIJKm1] = p->sigx[KP];
-            p->sigx[FIJKm2] = p->sigx[KP];
-            p->sigx[FIJKm3] = p->sigx[KP];
+            p->sigx[FIJKm1] = p->sigx[FIJK];
+            p->sigx[FIJKm2] = p->sigx[FIJK];
+            p->sigx[FIJKm3] = p->sigx[FIJK];
         }
         
         k=p->knoz;
         if(p->nb6==-2)
         {
-            p->sigx[FIJKp1] = p->sigx[KP];
-            p->sigx[FIJKp2] = p->sigx[KP];
-            p->sigx[FIJKp3] = p->sigx[KP];
+            p->sigx[FIJKp1] = p->sigx[FIJK];
+            p->sigx[FIJKp2] = p->sigx[FIJK];
+            p->sigx[FIJKp3] = p->sigx[FIJK];
         } 
     }
     
@@ -182,17 +179,17 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slic
         k=0;
         if(p->nb5==-2)
         {
-            p->sigy[FIJKm1] = p->sigy[KP];
-            p->sigy[FIJKm2] = p->sigy[KP];
-            p->sigy[FIJKm3] = p->sigy[KP];
+            p->sigy[FIJKm1] = p->sigy[FIJK];
+            p->sigy[FIJKm2] = p->sigy[FIJK];
+            p->sigy[FIJKm3] = p->sigy[FIJK];
         }
         
         k=p->knoz;
         if(p->nb6==-2)
         {
-            p->sigy[FIJKp1] = p->sigy[KP];
-            p->sigy[FIJKp2] = p->sigy[KP];
-            p->sigy[FIJKp3] = p->sigy[KP];
+            p->sigy[FIJKp1] = p->sigy[FIJK];
+            p->sigy[FIJKp2] = p->sigy[FIJK];
+            p->sigy[FIJKp3] = p->sigy[FIJK];
         } 
     }
     
@@ -201,35 +198,19 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slic
         k=0;
         if(p->nb5==-2)
         {
-            p->sigxx[FIJKm1] = p->sigxx[KP];
-            p->sigxx[FIJKm2] = p->sigxx[KP];
-            p->sigxx[FIJKm3] = p->sigxx[KP];
+            p->sigxx[FIJKm1] = p->sigxx[FIJK];
+            p->sigxx[FIJKm2] = p->sigxx[FIJK];
+            p->sigxx[FIJKm3] = p->sigxx[FIJK];
         }
         
         k=p->knoz;
         if(p->nb6==-2)
         {
-            p->sigxx[FIJKp1] = p->sigxx[KP];
-            p->sigxx[FIJKp2] = p->sigxx[KP];
-            p->sigxx[FIJKp3] = p->sigxx[KP];
+            p->sigxx[FIJKp1] = p->sigxx[FIJK];
+            p->sigxx[FIJKp2] = p->sigxx[FIJK];
+            p->sigxx[FIJKp3] = p->sigxx[FIJK];
         } 
     }
-    /*
-    k=p->knoz;
-    SLICELOOP4
-    {
-        if(p->flag4[Im1JK]<0 || i==0)
-        p->sigz[Im1J] = p->sigz[IJ];
-        
-        if(p->flag4[Ip1JK]<0 || i==p->knox-1)
-        p->sigz[Ip1J] = p->sigz[IJ];
-        
-        if(p->flag4[IJm1K]<0 || j==0)
-        p->sigz[IJm1] = p->sigz[IJ];
-        
-        if(p->flag4[IJp1K]<0 || j==p->knoy-1)
-        p->sigz[IJp1] = p->sigz[IJ];
-    }*/
     
     
     FLOOP
@@ -239,7 +220,8 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slic
     LOOP
     p->ZSP[IJK]  = p->ZP[KP]*a->WL(i,j) + a->bed(i,j);
 
-
+    
+    
     pgc->start7S(p,p->sigx,1);
     pgc->start7S(p,p->sigy,1);
     pgc->start7S(p,p->sigxx,1);
@@ -247,8 +229,8 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slic
     pgc->start7S(p,p->ZSN,1);
     pgc->gcslparaxijk(p, p->sigz, 1);
     
-    LOOP
-    a->test(i,j,k) = p->sigx[FIJKp1];
+    //LOOP
+    //a->test(i,j,k) = p->sigx[FIJKp1];
         
 }
 
@@ -275,17 +257,20 @@ void grid_sigma::omega_update(lexer *p, fdm *a, ghostcell *pgc, field &u, field 
     j=p->gcb3[n][1];
     k=p->gcb3[n][2];
     
-        for(int q=0;q<3;++q)
-        a->omega(i,j,k+1+q) =  a->omega(i,j,k);
     
-        /*for(int q=0;q<3;++q)
+        if(p->A516==1)
+        for(int q=0;q<3;++q)
         a->omega(i,j,k+1+q) =   p->sigt[FIJKp2]
                     
                     +  0.5*(u(i-1,j,k+1) + u(i,j,k+1))*p->sigx[FIJKp2]
                     
                     +  0.5*(v(i,j-1,k+1) + v(i,j,k+1))*p->sigy[FIJKp2]
                     
-                    +  w(i,j,k+1)*p->sigz[IJ];*/
+                    +  w(i,j,k+1)*p->sigz[IJ];
+                    
+        if(p->A516==2)
+        for(int q=0;q<3;++q)
+        a->omega(i,j,k+1+q) =  a->omega(i,j,k);
     }
     
     pgc->start3(p,a->omega,17);

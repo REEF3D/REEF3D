@@ -267,7 +267,7 @@ public:
     double A440;
     
     // NHFLOW
-    int A510,A517,A518;
+    int A510,A515,A516,A517,A518;
     int A540,A541;
     
 	// boundary conditions
