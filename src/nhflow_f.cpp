@@ -42,6 +42,8 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, sli
     double wval,w_n;
     
     double detax;
+    double uvel1,uvel2;
+    double zloc1,zloc2;
 
     
     // Kinematic Free Surface BC
@@ -54,33 +56,20 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, sli
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
     
+    uvel1 = u(i-1,j,k);
+    uvel2 = u(i,j,k);
+    
+    zloc1 = 0.5*p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[Ip1J]);
+    zloc2 = 0.5*p->DZN[KP]*0.5*(p->sigz[Im1J]+p->sigz[IJ]);
+    
+    uvel1 = u(i-1,j,k) + (u(i-1,j,k)-u(i-1,j,k-1))/(p->DZN[KP]*0.5*(p->sigz[Im1J]+p->sigz[IJ]))*zloc1;
+    uvel2 = u(i,j,k) + (u(i,j,k)-u(i,j,k-1))/(p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[Ip1J]))*zloc2;
+    
     wval = (a->eta(i,j) - a->eta_n(i,j))/(p->dt)
     
-         + 0.5*(u(i,j,k)+u(i-1,j,k))*((eta1(i+1,j)-eta1(i-1,j))/(p->DXP[IP]+p->DXP[IP1]))
+         + 0.5*(uvel2+uvel1)*((eta1(i+1,j)-eta1(i-1,j))/(p->DXP[IP]+p->DXP[IP1]))
     
          + 0.5*(v(i,j,k)+v(i,j-1,k))*((eta1(i,j+1)-eta1(i,j-1))/(p->DYP[JP]+p->DYP[JP1]));
-         
-         
-        for(q=0;q<margin;++q)
-        {
-        w(i,j,k+q) = wval; 
-        //a->test(i,j,k+q-1) = wval;
-        }
-    }
-    
-    if(p->A518==2)
-    GC4LOOP
-    if(p->gcb4[n][3]==6 && p->gcb4[n][4]==3)
-    {
-    i=p->gcb4[n][0];
-    j=p->gcb4[n][1];
-    k=p->gcb4[n][2];
-    
-    wval = (a->eta(i,j) - a->eta_n(i,j))/(p->dt)
-    
-         + 0.5*(u(i,j,k)+u(i-1,j,k))*((eta2(i+1,j)-eta2(i-1,j))/(p->DXP[IP]+p->DXP[IP1]))
-    
-         + 0.5*(v(i,j,k)+v(i,j-1,k))*((eta2(i,j+1)-eta2(i,j-1))/(p->DYP[JP]+p->DYP[JP1]));
          
          
         for(q=0;q<margin;++q)
