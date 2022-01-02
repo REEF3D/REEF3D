@@ -163,10 +163,10 @@ void poisson_sig::start(lexer* p, fdm *a, field &f)
                         + CPOR4*PORVAL4*(p->sigy[FIJK]+p->sigy[FIJKp1])*(f(i,j+1,k+1) - f(i,j-1,k+1) - f(i,j+1,k-1) + f(i,j-1,k-1))
                         /((a->ro(i,j,k)*p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
                         
-                a->rhsvec.V[n] +=  CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])*(f(i+1,j,k+1) - f(i-1,j,k+1) - f(i+1,j,k-1) + f(i-1,j,k-1))
+                a->rhsvec.V[n] +=  CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])*( - f(i+1,j,k-1) + f(i-1,j,k-1))
                         /(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(teta*p->DZN[KP]+p->DZN[KM1]))
                         
-                        + CPOR4*PORVAL4*(p->sigy[FIJK]+p->sigy[FIJKp1])*(f(i,j+1,k+1) - f(i,j-1,k+1) - f(i,j+1,k-1) + f(i,j-1,k-1))
+                        + CPOR4*PORVAL4*(p->sigy[FIJK]+p->sigy[FIJKp1])*( - f(i,j+1,k-1) + f(i,j-1,k-1))
                         /((a->ro(i,j,k)*p->DYN[JP]+p->DYN[JM1])*(teta*p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
                 }
             }

@@ -72,7 +72,6 @@ void nhflow_fsf_rk::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
 
 void nhflow_fsf_rk::step1(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, field&w, slice& etark1, slice &etark2, double alpha)
 {
-
     SLICELOOP1
     a->P(i,j)=0.0;
     
