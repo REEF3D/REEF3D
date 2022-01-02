@@ -82,29 +82,6 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slic
     pgc->gcsl_start4(p,pd->Bx,1);
     pgc->gcsl_start4(p,pd->By,1);
     
-    
-    // updwind
-    /*double Pval,Qval;
-    
-    SLICELOOP4
-    {
-    Pval = 0.5*(a->P(i-1,j)+a->P(i,j));
-    Qval = 0.5*(a->Q(i,j-1)+a->Q(i,j));
-    
-    if(Pval>=0.0)
-    {
-    pd->Ex(i,j) = (eta(i,j)-eta(i-1,j))/p->DXP[IM1];    
-    pd->Bx(i,j) = (a->depth(i,j)-a->depth(i-1,j))/p->DXP[IM1];   
-    }
-    
-    if(Pval<0.0)
-    {
-    pd->Ex(i,j) = (eta(i+1,j)-eta(i,j))/p->DXP[IP];    
-    pd->Bx(i,j) = (a->depth(i+1,j)-a->depth(i,j))/p->DXP[IP];   
-    }
-    
-    }*/
-    
     // sigx
     FLOOP
     p->sigx[FIJK] = (1.0 - p->sig[FIJK])*(pd->Bx(i,j)/WLVL) - p->sig[FIJK]*(pd->Ex(i,j)/WLVL);
@@ -117,7 +94,6 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slic
     SLICELOOP4
     {
     wl = MAX(0.0, eta(i,j) + p->wd - a->bed(i,j));
-    
     wl = (fabs(wl)>1.0e-20?wl:1.0-20);
     
     p->sigz[IJ] = 1.0/wl;
@@ -125,10 +101,8 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slic
 
     // sigt
     FLOOP
-    {
     p->sigt[FIJK] = -(p->sig[FIJK]/WLVL)*(a->WL(i,j)-a->WL_n(i,j))/(p->dt);
-    }
-    
+
     // sigxx
     FLOOP
     {
@@ -228,8 +202,7 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slic
     pgc->gcslparaxijk(p, p->sigz, 1);
     
     //LOOP
-    //a->test(i,j,k) = p->sigxx[FIJKp1];
-        
+    //a->test(i,j,k) = p->sigz[IJ];
 }
 
 void grid_sigma::omega_update(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w, slice &eta, slice &eta_n, double alpha)
@@ -248,6 +221,16 @@ void grid_sigma::omega_update(lexer *p, fdm *a, ghostcell *pgc, field &u, field 
                     
     }
     
+    WLOOP
+    {
+    a->test(i,j,k) =  0.0*p->sigt[FIJKp1]
+                    
+                    +  1.0*(u(i-1,j,k) + u(i-1,j,k+1) + u(i,j,k) + u(i,j,k+1))*p->sigx[FIJKp1]  
+                    
+                    + 0.0*w(i,j,k)*p->sigz[IJ];
+                    
+    }
+    
     GC3LOOP
     if(p->gcb3[n][3]==6 && p->gcb3[n][4]==3)
     {
@@ -255,8 +238,12 @@ void grid_sigma::omega_update(lexer *p, fdm *a, ghostcell *pgc, field &u, field 
     j=p->gcb3[n][1];
     k=p->gcb3[n][2];
     
-    
+        
         if(p->A516==1)
+        for(int q=0;q<3;++q)
+        a->omega(i,j,k+1+q) =  0.0;
+        
+        if(p->A516==2)
         for(int q=0;q<3;++q)
         a->omega(i,j,k+1+q) =   p->sigt[FIJKp2]
                     
@@ -266,13 +253,11 @@ void grid_sigma::omega_update(lexer *p, fdm *a, ghostcell *pgc, field &u, field 
                     
                     +  w(i,j,k+1)*p->sigz[IJ];
                     
-        if(p->A516==2)
+        if(p->A516==3)
         for(int q=0;q<3;++q)
         a->omega(i,j,k+1+q) =  a->omega(i,j,k);
         
-        if(p->A516==3)
-        for(int q=0;q<3;++q)
-        a->omega(i,j,k+1+q) =  0.0;
+        
     }
     
     GC3LOOP
