@@ -122,9 +122,7 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slic
     
     p->sigz[IJ] = 1.0/wl;
     }
-    
 
-    
     // sigt
     FLOOP
     {

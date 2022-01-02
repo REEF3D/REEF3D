@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_f.h"
@@ -92,12 +93,8 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, sli
     if(p->A515==4)     
     wval = w(i,j,k-1);
          
-         
         for(q=0;q<margin;++q)
-        {
         w(i,j,k+q) = wval; 
-        //a->test(i,j,k+q-1) = wval;
-        }
     }
     
     // Kinematic Bed BC
