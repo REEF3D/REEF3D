@@ -90,8 +90,6 @@ void ghostcell::extend(lexer *p,field& f,double dist,int gcv, int bc, int cs)
 	y[m]=f(i,j,k-orderext+m+1);
 	
 	
-
-
 	for(q=0; q<margin; ++q)
 	{
 	    y[orderext+q]=0.0;

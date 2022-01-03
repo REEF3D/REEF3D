@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"particle_void.h"
@@ -44,11 +45,9 @@ void particle_void::setup(lexer *p, fdm *a, ghostcell * pgc)
 void particle_void::correct(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
 {
 
-
 }
 
 void particle_void::picardmove(lexer *p, fdm *a, ghostcell *pgc)
 {
-
 
 }

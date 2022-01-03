@@ -17,13 +17,13 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fnpf_vtp_bed.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
-
 
 void fnpf_vtp_bed::pvtu(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 {	

@@ -17,13 +17,12 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
 #include"lexer.h"
 #include"fdm.h"
-
-
 
 void ghostcell::gcfb_velupdate(lexer *p, fdm *a, int **cellmem, int cellcount,double xdelt, double ydelt, double zdelt, int dir)
 {

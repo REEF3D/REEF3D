@@ -17,9 +17,10 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/liceonephases/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
- #include"fnpf_bed_update.h"
+#include"fnpf_bed_update.h"
 #include"fnpf_fsf.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"

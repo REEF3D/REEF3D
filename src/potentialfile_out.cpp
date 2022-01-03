@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"potentialfile_out.h"
@@ -24,7 +25,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include"turbulence.h"
-
 
 potentialfile_out::potentialfile_out(lexer *p, fdm_fnpf *c, ghostcell *pgc) : probenum(p->P230), eps(1.0e-10*p->DXM)
 {
