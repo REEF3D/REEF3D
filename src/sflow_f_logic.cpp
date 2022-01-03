@@ -17,9 +17,9 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
-
-#include"sflow_f.h"
+#include"sflow_f.h"
 #include"sflow_header.h"
 
 void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)

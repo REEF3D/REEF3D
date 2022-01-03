@@ -17,7 +17,9 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/liceonephases/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
+
 #include"ptf_fsf_update.h"
 #include"lexer.h"
 #include"fdm.h"

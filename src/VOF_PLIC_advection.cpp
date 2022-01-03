@@ -35,7 +35,6 @@ Author: Tobias Martin
 #include"weno_hj.h"
 #include"hric.h"
 
-
 void VOF_PLIC::advectPlane
 (
 	fdm* a, 

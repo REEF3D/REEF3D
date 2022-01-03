@@ -186,7 +186,6 @@
           <File Name="fdm2D.h"/>
           <VirtualDirectory Name="Time">
             <File Name="sflow_timestep.h"/>
-            <File Name="sflow_ietimestep.h"/>
             <File Name="sflow_fixtimestep.h"/>
             <File Name="sflow_etimestep.h"/>
           </VirtualDirectory>
@@ -1159,7 +1158,6 @@
             <File Name="sflow_rheology_f.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Time">
-            <File Name="sflow_ietimestep.cpp"/>
             <File Name="sflow_fixtimestep.cpp"/>
             <File Name="sflow_etimestep.cpp"/>
           </VirtualDirectory>
