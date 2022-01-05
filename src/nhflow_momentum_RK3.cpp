@@ -158,7 +158,6 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     
     pupdate->start(p,a,pgc);
     
-	
 //Step 2
 //--------------------------------------------------------
 	
