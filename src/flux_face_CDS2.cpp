@@ -147,7 +147,7 @@ void flux_face_CDS2::omega_flux(lexer *p, fdm* a, int ipol, field &u, field &v, 
                     +  0.25*(v(i,j-1,k) + v(i,j-1,k+1) + v(i,j,k) + v(i,j,k+1))*p->sigy[FIJKp1]
                     +  w(i,j,k)*p->sigz[IJ];
     }*/
-
+    
 	if(ipol==1)
 	{
 	pip=3;
@@ -162,6 +162,14 @@ void flux_face_CDS2::omega_flux(lexer *p, fdm* a, int ipol, field &u, field &v, 
             + 0.5*(w(i,j,k) + w(i+1,j,k))*0.5*(p->sigz[IJ]+p->sigz[Ip1J]);
 	pip=0;
 	}
+    /*
+    if(ipol==1)
+	{
+	pip=3;
+	wflux1= 0.5*(a->omega(i,j,k-1)+a->omega(i+1,j,k-1));
+	wflux2= 0.5*(a->omega(i,j,k)+a->omega(i+1,j,k));
+	pip=0;
+	}*/
 
 	if(ipol==2)
 	{
@@ -178,6 +186,12 @@ void flux_face_CDS2::omega_flux(lexer *p, fdm* a, int ipol, field &u, field &v, 
 	pip=0;
 	}
 
+    /*{
+    a->omega(i,j,k) =  p->sigt[FIJKp1]
+                    +  0.25*(u(i-1,j,k) + u(i-1,j,k+1) + u(i,j,k) + u(i,j,k+1))*p->sigx[FIJKp1]
+                    +  0.25*(v(i,j-1,k) + v(i,j-1,k+1) + v(i,j,k) + v(i,j,k+1))*p->sigy[FIJKp1]
+                    +  w(i,j,k)*p->sigz[IJ];
+    }*/
 	if(ipol==3)
 	{
     pip=3;
@@ -186,12 +200,29 @@ void flux_face_CDS2::omega_flux(lexer *p, fdm* a, int ipol, field &u, field &v, 
             + 0.5*(v(i,j-1,k) + v(i,j,k))*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])
             + 0.5*(w(i,j,k) + w(i,j,k-1))*p->sigz[IJ];
          
-	wflux2  = 0.5*(p->sigt[FIJKp1]+p->sigt[FIJKp2]);
+	wflux2  = 0.5*(p->sigt[FIJKp1]+p->sigt[FIJKp2])
             + 0.5*(u(i-1,j,k+1) + u(i,j,k+1))*0.5*(p->sigx[FIJKp1]+p->sigx[FIJKp2])
             + 0.5*(v(i,j-1,k+1) + v(i,j,k+1))*0.5*(p->sigy[FIJKp1]+p->sigy[FIJKp2])
             + 0.5*(w(i,j,k) + w(i,j,k+1))*p->sigz[IJ];
 	pip=0;
 	}
+    /*
+    if(ipol==3)
+	{
+	pip=1;
+	uflux1= 0.5*(uvel(i-1,j,k)+uvel(i-1,j,k+1));
+	uflux2= 0.5*(uvel(i,j,k)+uvel(i,j,k+1));
+	pip=0;
+	}*/
+    
+    /*
+    if(ipol==3)
+	{
+    pip=3;
+	wflux1= 0.5*(a->omega(i,j,k)+a->omega(i,j,k-1));
+	wflux2= 0.5*(a->omega(i,j,k)+a->omega(i,j,k+1));
+	pip=0;
+	}*/
 
 	if(ipol==4)
 	{
