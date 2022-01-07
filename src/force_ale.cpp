@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021  Arun Kamath/ Tobias Martin
+Copyright 2008-2021  Hans Bihs
 
 This file is part of REEF3D.
 

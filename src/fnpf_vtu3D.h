@@ -55,7 +55,6 @@ private:
     void name_iter(lexer*,ghostcell*);
     void name_time(lexer*,ghostcell*);
     void piecename(lexer*,ghostcell*, int);
-	force_ale **pforce_ale;
 
     char name[200],pname[200],epsvar[200];
     int n,iin,offset[200];
@@ -78,6 +77,7 @@ private:
     fnpf_vtp_bed *pbed;
     fnpf_state *pstate;
     fnpf_breaking_log *pbreaklog;
+	force_ale **pforce_ale;
 };
 
 #endif
