@@ -23,6 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
+#include "force_ale.h"
 #include"ioflow.h"
 #include"fnpf_print_wsf.h"
 #include"fnpf_print_wsf_theory.h"
@@ -37,7 +38,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/types.h>
 
 fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
-{
+{	
     if(p->I40==0)
     {
 	p->printtime=0.0;
@@ -90,6 +91,13 @@ fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 
     if(p->P59==1)
     pbreaklog=new fnpf_breaking_log(p,c,pgc);
+	
+	if(p->P85>0)
+	pforce_ale = new force_ale*[p->P85];
+	
+	for(n=0;n<p->P85;++n)
+	pforce_ale[n]=new force_ale(p,c,pgc,n);
+
 }
 
 fnpf_vtu3D::~fnpf_vtu3D()
@@ -190,6 +198,18 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 
     if(p->P59==1)
     pbreaklog->write(p,c,pgc);
+	
+	// ALE force
+	  if((p->count==0 || p->count==p->count_statestart) && p->P85>0)
+	  {
+		for(n=0;n<p->P85;++n)
+        pforce_ale[n]->ini(p,c,pgc);
+	  }
+        if(p->count>0 && p->P85>0)
+		{
+        for(n=0;n<p->P85;++n)
+        pforce_ale[n]->start(p,c,pgc);
+		}
 }
 
 void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)

@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"increment.h"
 
 class fdm_fnpf;
+class force_ale;
 class fnpf_print_wsf;
 class fnpf_print_wsf_theory;
 class fnpf_print_wsfline;
@@ -54,6 +55,7 @@ private:
     void name_iter(lexer*,ghostcell*);
     void name_time(lexer*,ghostcell*);
     void piecename(lexer*,ghostcell*, int);
+	force_ale **pforce_ale;
 
     char name[200],pname[200],epsvar[200];
     int n,iin,offset[200];
