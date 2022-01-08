@@ -118,7 +118,7 @@ nt 8 -
             M[n*9+2] = 0.0;
             }
 
-            // top
+            // KFSFBC
             if(p->flag4[IJKp1]<0)
             {
                 if(p->D37==1)
