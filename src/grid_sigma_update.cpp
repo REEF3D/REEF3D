@@ -29,7 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_cds4.h"
 #include"grid_sigma_data.h"
 
-#define WLVL (fabs(a->WL(i,j))>1.0e-20?a->WL(i,j):1.0-20)
+#define WLVL (fabs(a->WL(i,j))>1.0e-20?a->WL(i,j):1.0e20)
 
 
 void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &eta_n, double alpha)
@@ -94,7 +94,7 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slic
     SLICELOOP4
     {
     wl = MAX(0.0, eta(i,j) + p->wd - a->bed(i,j));
-    wl = (fabs(wl)>1.0e-20?wl:1.0-20);
+    wl = (fabs(wl)>1.0e-20?wl:1.0e20);
     
     p->sigz[IJ] = 1.0/wl;
     }
@@ -201,8 +201,8 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slic
     pgc->start7S(p,p->ZSN,1);
     pgc->gcslparaxijk(p, p->sigz, 1);
     
-    //LOOP
-    //a->test(i,j,k) = p->sigz[IJ];
+    LOOP
+    a->test(i,j,k) = p->sigx[FIJK];
 }
 
 void grid_sigma::omega_update(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w, slice &eta, slice &eta_n, double alpha)

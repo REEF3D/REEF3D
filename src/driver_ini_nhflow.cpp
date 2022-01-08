@@ -46,7 +46,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/stat.h>
 #include<sys/types.h>
 
-#define WLVL (fabs(a->WL(i,j))>1.0e-20?a->WL(i,j):1.0-20)
+#define WLVL (fabs(a->WL(i,j))>1.0e-20?a->WL(i,j):1.0e20)
 
 void driver::driver_ini_nhflow()
 {

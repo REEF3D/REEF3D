@@ -247,20 +247,12 @@ nt 8 -
         
 	++n;
 	}
-    
-    
-    
-
 }
-
 
 void pjm_sigss::poisson3D(lexer* p, fdm *a, field &f)
 {
     
 }
-
-
-
 
 
 /*

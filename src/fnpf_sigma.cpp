@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"fnpf_fsf.h"
 
-#define WLVL (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0-20)
+#define WLVL (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0e20)
 
 #define WLVLDRY (0.01*c->wd_criterion)
 
@@ -63,7 +63,6 @@ void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *pf, 
             p->sig[FIJKp1] = p->ZN[KP1];
             p->sig[FIJKp2] = p->ZN[KP2];
             p->sig[FIJKp3] = p->ZN[KP3];
-        
     }
     
     
@@ -141,7 +140,6 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *p
                     - p->sig[FIJK]*c->Exx(i,j) /WLVL;              
     }
     */
-    
 
     // sig BC
     SLICELOOP4
@@ -203,14 +201,13 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *p
     }*/
     
     LOOP
-    c->test(i,j,k) = p->sigz[IJ];
+    c->test(i,j,k) = p->sigx[FIJK];
     
     
     FLOOP
     {
     FPCHECK
-    p->ZSN[FIJK] = p->ZN[KP]*c->WL(i,j) + c->bed(i,j); // new
-    //p->ZSN[FIJK] = p->ZN[KP]*(eta(i,j) + p->wd);
+    p->ZSN[FIJK] = p->ZN[KP]*c->WL(i,j) + c->bed(i,j); 
     
     FSCHECK
     p->ZSN[FIJK] = p->ZN[KP]*(p->wd);

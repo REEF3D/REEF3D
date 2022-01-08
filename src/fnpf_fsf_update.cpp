@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"onephase.h"
 #include"slice.h"
 
-#define WLVL (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0-20)
+#define WLVL (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0e20)
 
 fnpf_fsf_update::fnpf_fsf_update(lexer *p, fdm_fnpf *c, ghostcell *pgc) 
 {
@@ -93,7 +93,6 @@ void fnpf_fsf_update::velcalc(lexer *p, fdm_fnpf *c, ghostcell *pgc, field &f)
 
 void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *f)
 {
-    
     FLOOP
     {
     if(k<p->knoz)
@@ -120,18 +119,25 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
     c->W[FIJK] = ((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]))*p->sigz[IJ];
     
     if(p->A319==2)
-    c->W[FIJK] = -(p->sig[FIJK]/WLVL)*(c->eta(i,j)-c->eta_n(i,j))/(p->dt);
+    if(k<p->knoz)
+    c->W[FIJK] = -(p->sig[FIJK]/WLVL)*(c->eta(i,j)-c->eta_n(i,j))/(p->dt)
                 
                 + c->U[FIJK]*p->sigx[FIJK]
                 
                 + c->V[FIJK]*p->sigy[FIJK]
-                
+            
                 + ((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]))*p->sigz[IJ]*p->sigz[IJ];
                 
-    
-    
-    
-    
+    if(p->A319==2)
+    if(k==p->knoz)
+    c->W[FIJK] = -(p->sig[FIJK]/WLVL)*(c->eta(i,j)-c->eta_n(i,j))/(p->dt)
+                
+                + c->U[FIJK]*p->sigx[FIJK]
+                
+                + c->V[FIJK]*p->sigy[FIJK]
+            
+                + c->Fz(i,j)*p->sigz[IJ];
+                
     }
     
     if(p->A343>=1)
@@ -161,7 +167,7 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
         }
     }*/
         
-    
+    if(p->A319==1)
     FFILOOP4
     c->W[FIJK] = c->Fz(i,j);
     
@@ -171,6 +177,12 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
     pgc->start7V(p,c->U,c->bc,gcval);
     pgc->start7V(p,c->V,c->bc,gcval);
     pgc->start7V(p,c->W,c->bc,gcval);
-        
+    
+    
+    SLICELOOP4
+    {
+    c->eta_n(i,j) = c->eta(i,j);
+    }
+     pgc->gcsl_start4(p,c->eta_n,1);   
 }
 
