@@ -221,16 +221,6 @@ void grid_sigma::omega_update(lexer *p, fdm *a, ghostcell *pgc, field &u, field 
                     
     }
     
-    WLOOP
-    {
-    a->test(i,j,k) =  0.0*p->sigt[FIJKp1]
-                    
-                    +  1.0*(u(i-1,j,k) + u(i-1,j,k+1) + u(i,j,k) + u(i,j,k+1))*p->sigx[FIJKp1]  
-                    
-                    + 0.0*w(i,j,k)*p->sigz[IJ];
-                    
-    }
-    
     GC3LOOP
     if(p->gcb3[n][3]==6 && p->gcb3[n][4]==3)
     {
