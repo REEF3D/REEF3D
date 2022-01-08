@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"lexer.h"
+#include"lexer.h"
 
 void lexer::ctrlsend()
 {
@@ -100,6 +100,8 @@ void lexer::ctrlsend()
     ictrl[ii] = A312;
 	ii++;
     ictrl[ii] = A313;
+	ii++;
+    ictrl[ii] = A319;
 	ii++;
     ictrl[ii] = A320;
 	ii++;

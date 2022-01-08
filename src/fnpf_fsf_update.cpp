@@ -27,6 +27,8 @@ Author: Hans Bihs
 #include"onephase.h"
 #include"slice.h"
 
+#define WLVL (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0-20)
+
 fnpf_fsf_update::fnpf_fsf_update(lexer *p, fdm_fnpf *c, ghostcell *pgc) 
 {
     gcval_u = 10;
@@ -114,8 +116,22 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
                 
                 + p->sigy[FIJK]*((c->Fi[FIJK]-c->Fi[FIJKm1])/(p->DZN[KP]));
                 
-                
+    if(p->A319==1)
     c->W[FIJK] = ((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]))*p->sigz[IJ];
+    
+    if(p->A319==2)
+    c->W[FIJK] = -(p->sig[FIJK]/WLVL)*(c->eta(i,j)-c->eta_n(i,j))/(p->dt);
+                
+                + c->U[FIJK]*p->sigx[FIJK]
+                
+                + c->V[FIJK]*p->sigy[FIJK]
+                
+                + ((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]))*p->sigz[IJ]*p->sigz[IJ];
+                
+    
+    
+    
+    
     }
     
     if(p->A343>=1)

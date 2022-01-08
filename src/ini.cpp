@@ -58,6 +58,7 @@ void lexer::ini_default()
     A311=5;		  // int convection scheme for FNPF velocities
     A312=2;      // int discretization for second-order gradient
     A313=3;      // int discretization for bed bc
+    A319=1;      // int print W or omega_sig
     A320=1;		  // int order of Laplace equation
     A321=1;      // int boundary condition order for 4th-order Laplace equation
     A322=5;      // int maxiter for 4th-order Laplace after 2nd-order solution
