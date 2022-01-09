@@ -55,40 +55,33 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, sli
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
     
-    uvel1 = u(i-1,j,k);
-    uvel2 = u(i,j,k);
-    
-    zloc1 = 0.5*p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[Ip1J]);
-    zloc2 = 0.5*p->DZN[KP]*0.5*(p->sigz[Im1J]+p->sigz[IJ]);
-    
-    
-   
-    
     if(p->A515==1)
     {
     Pval = 0.5*(u(i,j,k)+u(i-1,j,k));
+    Qval = 0.5*(a->v(i,j,k)+a->v(i,j-1,k));
     
     wval = (a->eta(i,j) - a->eta_n(i,j))/(p->dt)
     
          + MAX(0.0,Pval)*((eta1(i,j)-eta1(i-1,j))/(p->DXP[IP]))
          + MIN(0.0,Pval)*((eta1(i+1,j)-eta1(i,j))/(p->DXP[IP1]))
     
-         + 0.5*(v(i,j,k)+v(i,j-1,k))*((eta1(i,j+1)-eta1(i,j-1))/(p->DYP[JP]+p->DYP[JP1]));
+         + MAX(0.0,Qval)*((eta1(i,j)-eta1(i,j-1))/(p->DYP[JP]))
+         + MIN(0.0,Qval)*((eta1(i,j+1)-eta1(i,j))/(p->DYP[JP1]));
     }
          
     if(p->A515==2)
     {
     Pval = 0.5*(a->u(i,j,k)+a->u(i-1,j,k));
+    Qval = 0.5*(a->v(i,j,k)+a->v(i,j-1,k));
     
-    wval = (a->eta(i,j) - a->eta_n(i,j))/(p->dt)
+    wval = (a->eta(i,j) - a->eta_n(i,j))/p->dt
     
          + MAX(0.0,Pval)*((a->eta(i,j)-a->eta(i-1,j))/(p->DXP[IP]))
          + MIN(0.0,Pval)*((a->eta(i+1,j)-a->eta(i,j))/(p->DXP[IP1]))
-    
-         + 0.5*(a->v(i,j,k)+a->v(i,j-1,k))*((a->eta(i,j+1)-a->eta(i,j-1))/(p->DYP[JP]+p->DYP[JP1]));
          
+         + MAX(0.0,Qval)*((a->eta(i,j)-a->eta(i,j-1))/(p->DYP[JP]))
+         + MIN(0.0,Qval)*((a->eta(i,j+1)-a->eta(i,j))/(p->DYP[JP1]));
     }
-         
          
     if(p->A515==3)
     wval = (eta1(i,j) - eta2(i,j))/(alpha*p->dt)
@@ -102,14 +95,42 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, sli
     
     if(p->A515==11)
     {
+    zloc1 = 0.5*p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[Ip1J]);
+    zloc2 = 0.5*p->DZN[KP]*0.5*(p->sigz[Im1J]+p->sigz[IJ]);
+    
     uvel1 = u(i-1,j,k) + (u(i-1,j,k)-u(i-1,j,k-1))/(p->DZN[KP]*0.5*(p->sigz[Im1J]+p->sigz[IJ]))*zloc1;
     uvel2 = u(i,j,k) + (u(i,j,k)-u(i,j,k-1))/(p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[Ip1J]))*zloc2;
     
+    Pval = 0.5*(uvel1 + uvel2);
+    Qval = 0.5*(a->v(i,j,k)+a->v(i,j-1,k));
+    
     wval = (a->eta(i,j) - a->eta_n(i,j))/(p->dt)
     
-         + 0.5*(uvel2+uvel1)*((eta1(i+1,j)-eta1(i-1,j))/(p->DXP[IP]+p->DXP[IP1]))
+         + MAX(0.0,Pval)*((eta1(i,j)-eta1(i-1,j))/(p->DXP[IP]))
+         + MIN(0.0,Pval)*((eta1(i+1,j)-eta1(i,j))/(p->DXP[IP1]))
+         
+         + MAX(0.0,Qval)*((eta1(i,j)-eta1(i,j-1))/(p->DYP[JP]))
+         + MIN(0.0,Qval)*((eta1(i,j+1)-eta1(i,j))/(p->DYP[JP1]));
+    }
     
-         + 0.5*(v(i,j,k)+v(i,j-1,k))*((eta1(i,j+1)-eta1(i,j-1))/(p->DYP[JP]+p->DYP[JP1]));
+    if(p->A515==12)
+    {
+    zloc1 = 0.5*p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[Ip1J]);
+    zloc2 = 0.5*p->DZN[KP]*0.5*(p->sigz[Im1J]+p->sigz[IJ]);
+    
+    uvel1 = u(i-1,j,k) + (u(i-1,j,k)-u(i-1,j,k-1))/(p->DZN[KP]*0.5*(p->sigz[Im1J]+p->sigz[IJ]))*zloc1;
+    uvel2 = u(i,j,k) + (u(i,j,k)-u(i,j,k-1))/(p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[Ip1J]))*zloc2;
+    
+    Pval = 0.5*(uvel1 + uvel2);
+    Qval = 0.5*(a->v(i,j,k)+a->v(i,j-1,k));
+    
+    wval = (a->eta(i,j) - a->eta_n(i,j))/(p->dt)
+    
+         + MAX(0.0,Pval)*((a->eta(i,j)-a->eta(i-1,j))/(p->DXP[IP]))
+         + MIN(0.0,Pval)*((a->eta(i+1,j)-a->eta(i,j))/(p->DXP[IP1]))
+         
+         + MAX(0.0,Qval)*((a->eta(i,j)-a->eta(i,j-1))/(p->DYP[JP]))
+         + MIN(0.0,Qval)*((a->eta(i,j+1)-a->eta(i,j))/(p->DYP[JP1]));
     }
          
         for(q=0;q<margin;++q)
