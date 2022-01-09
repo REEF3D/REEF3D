@@ -200,9 +200,6 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *p
         p->sigz[IJp1] = p->sigz[IJ];
     }*/
     
-    LOOP
-    c->test(i,j,k) = p->sigx[FIJK];
-    
     
     FLOOP
     {

@@ -250,13 +250,13 @@ void ghostcell::gcini(lexer* p)
     
     
     // sflow slip/no-slip
-    if(p->A217==1)
+    if(p->A217==1 && p->A10==2)
     {
     gclabel_u=4;
     gclabel_v=4;
     }
 
-    if(p->A217==2)
+    if(p->A217==2 && p->A10==2)
     {
     gclabel_u=5;
     gclabel_v=5;
