@@ -210,6 +210,12 @@ void grid_sigma::omega_update(lexer *p, fdm *a, ghostcell *pgc, field &u, field 
     
     WLOOP
     {
+    if(0.5*(u(i-1,j,k+1) + u(i,j,k+1))>=0.0)
+    Pval=0.5*(u(i-1,j,k) + u(i-1,j,k+1));
+        
+    if(0.5*(u(i-1,j,k+1) + u(i,j,k+1))<0.0)
+    Pval=0.5*(u(i,j,k) + u(i,j,k+1));
+        
     a->omega(i,j,k) =  p->sigt[FIJKp1]
                     
                     +  0.25*(u(i-1,j,k) + u(i-1,j,k+1) + u(i,j,k) + u(i,j,k+1))*p->sigx[FIJKp1]
