@@ -2014,6 +2014,12 @@ void lexer::ctrlsend()
 	dd++;
     dctrl[dd] = P85_y[n];
 	dd++;
+	dctrl[dd] = P85_r[n];
+	dd++;
+	dctrl[dd] = P85_cd[n];
+	dd++;
+	dctrl[dd] = P85_cm[n];
+	dd++;
     }
 	
 	for(n=0;n<P121;++n)

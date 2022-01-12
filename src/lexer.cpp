@@ -53,7 +53,6 @@ void lexer::lexer_read(ghostcell *pgc)
     del_Iarray(ictrl,ctrlsize);
     del_Darray(dctrl,ctrlsize);
 
-
 	read_grid();
 	
 	lexer_ini();

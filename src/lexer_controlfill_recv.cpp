@@ -1841,6 +1841,9 @@ void lexer::ctrlrecv()
 	{
 	Darray(P85_x,P85); 
 	Darray(P85_y,P85); 
+	Darray(P85_r,P85);
+	Darray(P85_cd,P85);
+	Darray(P85_cm,P85);
 	}
 	
 	if(P121>0)
@@ -2572,6 +2575,12 @@ void lexer::ctrlrecv()
     P85_x[n] = dctrl[dd];
     dd++;
     P85_y[n] = dctrl[dd];
+    dd++;
+	 P85_r[n] = dctrl[dd];
+    dd++;
+	 P85_cd[n] = dctrl[dd];
+    dd++;
+	 P85_cm[n] = dctrl[dd];
     dd++;
     }
 	
