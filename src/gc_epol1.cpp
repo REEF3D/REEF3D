@@ -81,6 +81,10 @@ int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
 	else
 	if((bc==2 && gclabel_outflow==1) && (gcv==10||gcv==1) && (cs==1||cs==4))
 	return gclabel_u_out;
+    
+    else
+	if(((bc==8 || bc==7) && gclabel_outflow==1) && (gcv==10||gcv==1) && (cs==2||cs==3||cs==5||cs==6) && p->I10==1 && p->count<=1)
+	return 4;
 
 //Free Surface
 	else
