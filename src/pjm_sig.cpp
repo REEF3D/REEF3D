@@ -209,6 +209,22 @@ void pjm_sig::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
     if(p->D38==1 && p->A540==2)
     ULOOP
 	a->F(i,j,k) -= PORVAL1*fabs(p->W22)*(a->eta(i+1,j) - a->eta(i,j))/p->DXP[IP];
+    
+    if(p->D38==2 && p->A540==1)
+    ULOOP
+	a->F(i,j,k) -= PORVAL1*fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j))/p->DXP[IP];
+    
+    if(p->D38==2 && p->A540==2)
+    ULOOP
+	a->F(i,j,k) -= PORVAL1*fabs(p->W22)*
+                    (0.5*(pow(a->eta(i+1,j),2.0) - pow(a->eta(i,j),2.0))/p->DXP[IP]
+                    
+                    - (a->eta(i+1,j)*a->bed(i+1,j) - a->eta(i,j)*a->bed(i,j))/p->DXP[IP]
+                    
+                    + 0.5*(a->eta(i,j) + a->eta(i+1,j))*(a->bed(i+1,j)-a->bed(i,j))/p->DXP[IP]);
+    
+    // fx = 1/2 g (eta^2 - 2* eta *z_b)
+    // Sx = -g * eta * eta * Bx
 }
 
 void pjm_sig::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)

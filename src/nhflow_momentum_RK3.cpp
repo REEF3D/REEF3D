@@ -80,9 +80,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 //--------------------------------------------------------
 
     pnhfsf->step1(p, a, pgc, pflow, a->u, a->v, a->w, etark1, etark2, 1.0);
-    //pnh->kinematic_fsf(p,a,a->u,a->v,a->w,etark1,a->eta,1.0);
-    //p->omega_update(p,a,pgc,a->u,a->v,a->w,etark1,etark1,1.0);
-    
+
     p->alpha_rk=1.0;
 	// U
 	starttime=pgc->timer();
@@ -163,8 +161,6 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 //--------------------------------------------------------
 	
     pnhfsf->step2(p, a, pgc, pflow, urk1, vrk1, wrk1, etark1, etark2, 0.25);
-    //pnh->kinematic_fsf(p,a,urk1,vrk1,wrk1,etark2,etark1,0.25);
-    //p->omega_update(p,a,pgc,urk1,vrk1,wrk1,etark2,etark1,0.25);
     
     p->alpha_rk=0.25;
 	// U
@@ -246,8 +242,6 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 //--------------------------------------------------------
     
     pnhfsf->step3(p, a, pgc, pflow, urk2, vrk2, wrk2, etark1, etark2, 2.0/3.0);
-    //pnh->kinematic_fsf(p,a,urk2,vrk2,wrk2,a->eta,etark2,2.0/3.0);
-    //p->omega_update(p,a,pgc,urk2,vrk2,wrk2,a->eta,etark2,0.25);
     
     p->alpha_rk=2.0/3.0;
 	// U
@@ -324,26 +318,6 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     p->omega_update(p,a,pgc,a->u,a->v,a->w,a->eta,etark2,0.25);
     
     pupdate->start(p,a,pgc);
-    
-    /*
-    pnh->kinematic_fsf(p,a,a->u,a->v,a->w,a->eta,a->eta,2.0/3.0);
-    p->omega_update(p,a,pgc,a->u,a->v,a->w,a->eta,etark2,2.0/3.0);
-    
-    
-    
-    
-    if(p->mpirank==3)
-    GC4LOOP
-    if(p->gcb4[n][3]==6 && p->gcb4[n][4]==3)
-    {
-    i=p->gcb4[n][0];
-    j=p->gcb4[n][1];
-    k=p->gcb4[n][2];
-    
-    cout<<a->w(i,j,k-1)<<" "<<a->w(i,j,k)<<endl;
-    }*/
-    
-    
 }
 
 void nhflow_momentum_RK3::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
@@ -380,7 +354,7 @@ void nhflow_momentum_RK3::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field
     if(p->D38==0)
     a->H(i,j,k) += (a->rhsvec.V[n] + a->gk)*PORVAL3;
     
-    if(p->D38==1)
+    if(p->D38>0)
 	a->H(i,j,k) += (a->rhsvec.V[n])*PORVAL3;
     
     
