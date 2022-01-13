@@ -48,18 +48,18 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void driver::driver_ini()
 {
-p->count=0;
+    p->count=0;
 
-p->cellnumtot=pgc->globalisum(p->cellnum);
-p->pointnumtot=pgc->globalisum(p->pointnum);
+    p->cellnumtot=pgc->globalisum(p->cellnum);
+    p->pointnumtot=pgc->globalisum(p->pointnum);
 
-if(p->mpirank==0)
-cout<<"number of cells: "<<p->cellnumtot<<endl;
+    if(p->mpirank==0)
+    cout<<"number of cells: "<<p->cellnumtot<<endl;
 
-	log_ini();
+        log_ini();
 
-if(p->mpirank==0)
-cout<<"starting driver_ini"<<endl;
+    if(p->mpirank==0)
+    cout<<"starting driver_ini"<<endl;
     
 	// Solid
     if(p->solidread==1)
@@ -114,7 +114,7 @@ cout<<"starting driver_ini"<<endl;
 	pdata->start(p,a,pgc);
     
 
-    pnse->ini(p,a,pgc,pflow);     //*************************************************
+    pnse->ini(p,a,pgc,pflow);     
 	
     pheat->heat_ini(p,a,pgc,pheat);
 	pconc->ini(p,a,pgc,pconc);
