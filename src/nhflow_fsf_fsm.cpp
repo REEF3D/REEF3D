@@ -34,7 +34,7 @@ Author: Hans Bihs
 #include"sflow_hxy_fou.h"
 #include"patchBC_interface.h"
 
-nhflow_fsf_fsm::nhflow_fsf_fsm(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, patchBC_interface *ppBC) : epsi(p->A440*p->DXM), hx(p), hy(p)
+nhflow_fsf_fsm::nhflow_fsf_fsm(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, patchBC_interface *ppBC) : epsi(p->A440*p->DXM)
 {
     pBC = ppBC;
     
@@ -85,13 +85,13 @@ void nhflow_fsf_fsm::start(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow)
     pgc->gcsl_start1(p,a->P,10);
     pgc->gcsl_start2(p,a->Q,11);
     
-    phxy->start(p,hx,hy,a->depth,a->wet,a->eta,a->P,a->Q);
+    phxy->start(p,a->hx,a->hy,a->depth,a->wet,a->eta,a->P,a->Q);
     
     SLICELOOP1
-    a->P(i,j) *= hx(i,j);
+    a->P(i,j) *= a->hx(i,j);
 
     SLICELOOP2
-	a->Q(i,j) *= hy(i,j);
+	a->Q(i,j) *= a->hy(i,j);
 
 	pgc->gcsl_start1(p,a->P,10);
     pgc->gcsl_start2(p,a->Q,11);

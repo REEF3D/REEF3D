@@ -61,8 +61,6 @@ private:
 	sflow_hxy_disc *phxy;
     patchBC_interface *pBC;
     
-    slice1 hx;
-    slice2 hy;
     
     int gcval_phi;
 	double starttime;

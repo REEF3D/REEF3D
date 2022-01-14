@@ -86,8 +86,8 @@ public:
     field3 fbh3;
     field4 fbh4;
     
-    slice1 P;
-    slice2 Q;
+    slice1 P,hx;
+    slice2 Q,hy;
     slice4 wbed,dwdt;
     slice4 bed,bedzh,bedzh0;
     slice4 dh,reduce;
