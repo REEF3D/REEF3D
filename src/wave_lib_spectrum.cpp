@@ -410,6 +410,33 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
             ki[n] = 2.0*PI/Li[n];
         }
 
+
+    // Uniform frequency distribution
+    if (p->B84==3)
+    {
+        double F, dF, delta_w;
+
+        ws=p->B87_1;
+        we=p->B87_2;
+        delta_w = we - ws;
+
+        for(n=0;n<p->wN;++n)
+        {
+            wi[n] = ws + n*delta_w/(p->wN-1);
+
+            ki[n] = (2.0*PI)/p->B91_2;
+
+            for (int it = 0; it < 10; it++)
+            {
+                F = 9.81*ki[n]*tanh(p->wd*ki[n]) - wi[n]*wi[n];
+                dF = 9.81*(tanh(p->wd*ki[n]) + p->wd*ki[n]*1.0/(cosh(p->wd*ki[n])*cosh(p->wd*ki[n])));
+                ki[n] -= F/dF;
+            }
+        }
+    }
+
+
+
         print_spectrum(p);
         // directional spreading
         directional_spreading(p);
@@ -460,31 +487,11 @@ void wave_lib_spectrum::amplitudes_focused(lexer *p)
 
 	if(p->B82==3 || p->B82==13)
     {
-        double F, dF, delta_w;
-
-        ws=p->B87_1;
-        we=p->B87_2;
-        delta_w = we - ws;
-
-        for(n=0;n<p->wN;++n)
-        {
-            wi[n] = ws + n*delta_w/(p->wN-1);
-
-            ki[n] = (2.0*PI)/p->B91_2;
-
-            for (int it = 0; it < 10; it++)
-            {
-                F = 9.81*ki[n]*tanh(p->wd*ki[n]) - wi[n]*wi[n];
-                dF = 9.81*(tanh(p->wd*ki[n]) + p->wd*ki[n]*1.0/(cosh(p->wd*ki[n])*cosh(p->wd*ki[n])));
-                ki[n] -= F/dF;
-            }
-        }
-
         for(n=0;n<p->wN;++n)
         {
             Ai[n] = p->B83/(ki[n]);
 
-            cout<<Ai[n]<<" "<<ki[n]<<endl;
+            if (p->mpirank == 0) cout<<Ai[n]<<" "<<ki[n]<<" "<<wi[n]<<endl;
         }
     }
 
