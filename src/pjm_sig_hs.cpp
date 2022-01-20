@@ -34,6 +34,10 @@ Author: Hans Bihs
 #include"density_conc.h"
 #include"density_heat.h"
 #include"density_vof.h"
+
+#define HX (fabs(a->hx(i,j))>1.0e-20?a->hx(i,j):1.0e20)
+#define HXP (fabs(0.5*(a->WL(i,j)+a->WL(i+1,j)))>1.0e-20?0.5*(a->WL(i,j)+a->WL(i+1,j)):1.0e20)
+#define HY (fabs(a->hy(i,j))>1.0e-20?a->hy(i,j):1.0e20)
  
 pjm_sig_hs::pjm_sig_hs(lexer* p, fdm *a, heat *&pheat, concentration *&pconc)
 {
@@ -93,6 +97,27 @@ void pjm_sig_hs::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
     if(p->D38==1 && p->A540==2)
     ULOOP
 	a->F(i,j,k) -= PORVAL1*fabs(p->W22)*(a->eta(i+1,j) - a->eta(i,j))/p->DXP[IP];
+    
+    if(p->D38==2 && p->A540==1)
+    ULOOP
+	a->F(i,j,k) -= PORVAL1*fabs(p->W22)*(1.0/HX)*
+    
+                    (0.5*(pow(eta(i+1,j),2.0) - pow(eta(i,j),2.0))/p->DXP[IP]
+                    
+                    + ((p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j))*a->depth(i+1,j) - (p->A223*eta(i,j) + (1.0-p->A223)*eta_n(i,j))*a->depth(i,j))/p->DXP[IP]
+                    
+                    - 0.5*((p->A223*eta(i,j) + (1.0-p->A223)*eta_n(i,j)) + (p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j)))*(a->depth(i+1,j)-a->depth(i,j))/p->DXP[IP]);
+    
+    
+    if(p->D38==2 && p->A540==2)
+    ULOOP
+	a->F(i,j,k) -= PORVAL1*fabs(p->W22)*(1.0/HX)*
+    
+                    (0.5*(pow(a->eta(i+1,j),2.0) - pow(a->eta(i,j),2.0))/p->DXP[IP]
+                    
+                    + (a->eta(i+1,j)*a->depth(i+1,j) - a->eta(i,j)*a->depth(i,j))/p->DXP[IP]
+                    
+                    - 0.5*(a->eta(i,j) + a->eta(i+1,j))*(a->depth(i+1,j)-a->depth(i,j))/p->DXP[IP]);
 }
 
 void pjm_sig_hs::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)

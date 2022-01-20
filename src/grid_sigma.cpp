@@ -84,6 +84,10 @@ void grid_sigma::sigma_ini(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     p->Darray(p->sigy,p->imax*p->jmax*(p->kmax+1));
     p->Darray(p->sigz,p->imax*p->jmax);
     p->Darray(p->sigt,p->imax*p->jmax*(p->kmax+1));
+    p->Darray(p->sigx1,p->imax*p->jmax*(p->kmax+1));
+    p->Darray(p->sigy2,p->imax*p->jmax*(p->kmax+1));
+    p->Darray(p->sigx4,p->imax*p->jmax*(p->kmax+1));
+    p->Darray(p->sigy4,p->imax*p->jmax*(p->kmax+1));
     
     p->Darray(p->sigxx,p->imax*p->jmax*(p->kmax+1));
     

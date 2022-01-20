@@ -30,11 +30,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"grid_sigma_data.h"
 
 #define WLVL (fabs(a->WL(i,j))>1.0e-20?a->WL(i,j):1.0e20)
-
+#define HX (fabs(a->hx(i,j))>1.0e-20?a->hx(i,j):1.0e20)
+#define HXP (fabs(0.5*(a->WL(i,j)+a->WL(i+1,j)))>1.0e-20?0.5*(a->WL(i,j)+a->WL(i+1,j)):1.0e20)
+#define HY (fabs(a->hy(i,j))>1.0e-20?a->hy(i,j):1.0e20)
 
 void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &eta_n, double alpha)
 {
-    double wl;
+    double wl,sigval;
+    double bx,by,ex,ey;
     
     // calculate: Ex,Ey,Exx,Eyy
     // 3D
@@ -85,6 +88,23 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slic
     // sigx
     FLOOP
     p->sigx[FIJK] = (1.0 - p->sig[FIJK])*(pd->Bx(i,j)/WLVL) - p->sig[FIJK]*(pd->Ex(i,j)/WLVL);
+    
+    ULOOP
+    {
+    sigval = 0.25*(p->sig[FIJK]+p->sig[FIJKp1]+p->sig[FIp1JK]+p->sig[FIp1JKp1]);
+    
+    bx = (a->depth(i+1,j)-a->depth(i,j))/p->DXP[IP];
+    ex = (eta(i+1,j)-eta(i,j))/p->DXP[IP]; 
+    
+    p->sigx1[IJK] = (1.0 - sigval)*(bx/HX) - sigval*(ex/HX);
+    }
+    
+    LOOP
+    {
+    sigval = 0.5*(p->sig[FIJK]+p->sig[FIJKp1]);
+    
+    p->sigx4[IJK] = (1.0 - sigval)*(pd->Bx(i,j)/HXP) - sigval*(pd->Ex(i,j)/HXP);
+    }
     
     // sigy
     FLOOP
@@ -201,7 +221,7 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slic
     pgc->gcslparaxijk(p, p->sigz, 1);
     
     LOOP
-    a->test(i,j,k) = p->sigxx[FIJK];
+    a->test(i,j,k) = p->sigx[FIJK];
 }
 
 void grid_sigma::omega_update(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w, slice &eta, slice &eta_n, double alpha)
