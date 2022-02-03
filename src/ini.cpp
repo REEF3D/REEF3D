@@ -34,7 +34,8 @@ void lexer::ini_default()
     A217=2;      // int slip or no-slip boundary conditions
     A218=0;      // int turn on roughness
     A219=1;      // int additional courant number constraint
-    A220=1;		  // int pressure scheme for SFLOW
+    A220=1;		  // int non-hydrostatic pressure scheme for SFLOW
+    A221=1;		  // int hydrostatic pressure scheme for SFLOW
     A223=0.5;    // double blending factor pressure gradient
     A230=0;      // int turn on Boussinesq wave model
     A240=1;      // int FSF algorithm SFLOW
