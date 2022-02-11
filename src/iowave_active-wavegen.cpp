@@ -110,8 +110,8 @@ void iowave::active_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
                 
                 wsf=wsfmax[i][j];
                 
-                eta_T = wave_h(p,pgc,x,0.0,0.0);
-                eta_M = wsf; 
+                eta_T = wave_eta(p,pgc,x,0.0);
+                eta_M = wsf-p->wd; 
                 eta_R = eta_T-eta_M;
                 
                 

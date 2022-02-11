@@ -2215,7 +2215,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Printer">
         <VirtualDirectory Name="Force ALE">
-          <File Name="force_ale_force.cpp.cpp"/>
+          <File Name="force_ale_force.cpp"/>
           <File Name="force_ale_print.cpp"/>
           <File Name="force_ale.cpp"/>
         </VirtualDirectory>
