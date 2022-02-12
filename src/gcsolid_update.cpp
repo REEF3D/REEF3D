@@ -52,7 +52,6 @@ void ghostcell::solid_update(lexer *p, fdm *a)
     
     p->gridini_patchBC();	
 
-
     gcsolid_velflag1(p,a,cellcount1);
     gcsolid_velflag2(p,a,cellcount2);
     gcsolid_velflag3(p,a,cellcount3);
@@ -125,4 +124,7 @@ void ghostcell::solid_update(lexer *p, fdm *a)
 	
 	if(p->mpirank==0)
 	cout<<"Solid: active number of cells: "<<count<<endl;
+    
+    
+    //cout<<p->mpirank<<" p->gcb4_count_solid: "<<p->gcb4_count<<endl;
 }

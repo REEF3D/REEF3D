@@ -28,15 +28,20 @@ void lexer::vecsize(ghostcell *pgc)
     gcbextra=0;
 	int gcbnum=0;
     int solid_gcb_est_max, geotopo_gcb_est_max, gcextra_max;
+    
+    int gcbextra0;
 
     solid_gcb_est_max = pgc->globalimax(solid_gcb_est);
     geotopo_gcb_est_max = pgc->globalimax(geotopo_gcb_est);
+    
     gcextra_max = pgc->globalimax(gcextra4);
 
 	gcb_sediment_est = gcb4_count*margin;	
 	gcb_floating_est = gcb4_count;
     
     gcbextra=gcextra_max*margin;
+    
+    gcbextra0=gcbextra;
     
     // solid and topo
 	if(S10>0 || G1>0)
@@ -64,10 +69,20 @@ void lexer::vecsize(ghostcell *pgc)
 	gcbnum+=500;
     
 
-    //cout<<mpirank<<" CELLNUM: "<<cellnum<<endl;
-    
     veclength = cellnum + gcbnum*margin + gcpara_sum*4  + gcbextra;
     
-    C1_size=C2_size=C3_size=C4_size=C4a_size=C6_size=M_size=veclength;
+    cout<<mpirank<<" CELLNUM: "<<cellnum<<" veclength: "<<veclength<<" gcextra0: "<<gcbextra0<<" gcextra: "<<gcbextra<<endl;
+    
+    gcbextra=gcbextra0;
+    
+    C4_size=C4a_size=C6_size=M_size=veclength;
 }
 
+void lexer::gcbextra_est(ghostcell *pgc)
+{
+    
+    
+    
+    
+    
+}

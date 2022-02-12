@@ -110,6 +110,7 @@ driver::driver(int& argc, char **argv)
 
         if(p->A10==6)
         cfd_driver();
+        
     }
 
     // 2D Framework
@@ -127,12 +128,18 @@ void driver::cfd_driver()
 {
     if(p->mpirank==0)
 	cout<<"initialize fdm"<<endl;
-
-	a=new fdm(p);
-
+    
+    
+    
 	aa=a;
     pgc->fdm_update(a);
-
+    
+    a=new fdm(p);
+    
+    double val;
+    for(n=0;++n;n>-1)
+    val = 0.0;
+    
     logic();
 }
 

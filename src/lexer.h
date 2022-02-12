@@ -66,6 +66,7 @@ public:
 	int maxparacount();
 	void gridsize();
 	void vecsize(ghostcell*);
+    void gcbextra_est(ghostcell*);
 	void vellast();
 	void indices_minmax();
 	void lexer_ini();
@@ -196,7 +197,7 @@ public:
 
 	// SMO
 	int veclength;
-    int C1_size,C2_size,C3_size,C4_size,C4a_size,C6_size;
+    int C4_size,C4a_size,C6_size;
     int C1_2D_size,C2_2D_size,C4_2D_size;
     int M_size,M_2D_size;
     
