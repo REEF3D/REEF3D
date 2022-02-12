@@ -68,6 +68,7 @@ double wave_lib_piston::wave_v(lexer *p, double x, double y, double z)
 double wave_lib_piston::wave_horzvel(lexer *p, double x, double y, double z)
 {
     double vel;
+    
 
     if(p->simtime<ts || p->simtime>te)
 	return 0.0;
@@ -79,6 +80,14 @@ double wave_lib_piston::wave_horzvel(lexer *p, double x, double y, double z)
 	++timecount;
 	
 	vel = (kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]);
+    
+    if(p->B110==1)
+    {
+    z+=p->wd;
+    
+    if(z<p->B110_zs || z>p->B110_ze)
+    vel=0.0;
+    }
     
     return vel;
 }

@@ -281,6 +281,8 @@ public:
     double *B107_xs,*B107_xe,*B107_ys, *B107_ye, *B107_d;
     int B108;
     double *B108_xs,*B108_xe,*B108_ys, *B108_ye, *B108_d;
+    int B110;
+    double B110_zs,B110_ze;
 	double B111_zs,B111_ze;
     double B112_zs,B112_z2,B112_ze;
     int B115,B116;

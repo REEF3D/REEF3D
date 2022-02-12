@@ -65,9 +65,7 @@ double wave_lib_piston_eta::wave_v(lexer *p, double x, double y, double z)
 
 double wave_lib_piston_eta::wave_horzvel(lexer *p, double x, double y, double z)
 {
-    double vel,zcoor;
-    
-    zcoor=p->pos_z();
+    double vel;
 
     if(p->simtime<ts || p->simtime>te || timecount>=ptnum-1)
 	return 0.0;
@@ -76,6 +74,14 @@ double wave_lib_piston_eta::wave_horzvel(lexer *p, double x, double y, double z)
 	++timecount;
 	
 	vel = sqrt(9.81/wdt) * wave_eta(p,x,y);
+    
+    if(p->B110==1)
+    {
+    z+=p->wd;
+    
+    if(z<p->B110_zs || z>p->B110_ze)
+    vel=0.0;
+    }
 
     return vel;
 }
