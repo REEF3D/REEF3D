@@ -262,29 +262,43 @@ void lexer::read_grid()
     grid.read((char*)&iin, sizeof (int));
     periodicX6=iin;
     
-    
-    grid.read((char*)&iin, sizeof (int));
-    toporead=iin; // topo
-    grid.read((char*)&iin, sizeof (int));
-    P150=iin;
-    grid.read((char*)&iin, sizeof (int));
-    solidread=iin; // solid
-    grid.read((char*)&iin, sizeof (int));
-    solid_gcb_est=iin;
     grid.read((char*)&iin, sizeof (int));
     i_dir=iin;
     grid.read((char*)&iin, sizeof (int));
     j_dir=iin;
     grid.read((char*)&iin, sizeof (int));
     k_dir=iin;
-    grid.read((char*)&iin, sizeof (int));
-    geotopo_gcb_est=iin;
     
+    grid.read((char*)&iin, sizeof (int));
+    P150=iin;
+    
+    grid.read((char*)&iin, sizeof (int));
+    solidread=iin; // solid
+    grid.read((char*)&iin, sizeof (int));
+    toporead=iin; // topo
+    grid.read((char*)&iin, sizeof (int));
+    solid_gcb_est=iin;
+    grid.read((char*)&iin, sizeof (int));
+    topo_gcb_est=iin;
+    
+    grid.read((char*)&iin, sizeof (int));
+    solid_gcbextra_est=iin;
+    grid.read((char*)&iin, sizeof (int));
+    topo_gcbextra_est=iin;
+    grid.read((char*)&iin, sizeof (int));
+    tot_gcbextra_est=iin;
+    
+    grid.read((char*)&iin, sizeof (int));
+    grid.read((char*)&iin, sizeof (int));
+    grid.read((char*)&iin, sizeof (int));
+    grid.read((char*)&iin, sizeof (int));
+    grid.read((char*)&iin, sizeof (int));
+
     
 // ---------------------------------------------------------------------------------------------------------------------	
 // ---------------------------------------------------------------------------------------------------------------------	
    
-    geotopo_gcb_est*=4;
+    topo_gcb_est*=4;
 		
 	gcb1_count=gcb2_count=gcb3_count=gcb4_count=gcb4a_count=gcb_fix=gcb_solid=gcb_topo=gcb_fb=gcwall_count;
 	

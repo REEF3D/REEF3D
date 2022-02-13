@@ -136,7 +136,7 @@ public:
 	int gcin4a_count, gcout4a_count;
 	int gcb1_count,gcb2_count,gcb3_count,gcb4_count,gcb4a_count;
 	int gcpara_sum, gcparaco_sum;
-	int gcb_fix,gcb_solid,gcb_topo,gcb_fb, solid_gcb_est, geotopo_gcb_est;
+	int gcb_fix,gcb_solid,gcb_topo,gcb_fb, solid_gcb_est, topo_gcb_est, solid_gcbextra_est, topo_gcbextra_est, tot_gcbextra_est;
 	int gcb_sediment_est, gcb_floating_est;
     int bcside1,bcside2,bcside3,bcside4,bcside5,bcside6;
     
