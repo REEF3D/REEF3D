@@ -75,7 +75,6 @@ void sixdof_gc::start
     }
 }
 
-
 void sixdof_gc::start_Euler
 (
 	lexer *p, 
@@ -118,7 +117,6 @@ void sixdof_gc::start_Euler
     if(p->mpirank==0)
     cout<<"6DOF time: "<<setprecision(3)<<pgc->timer()-starttime<<"  update time: "<<endtime1<<endl;	
 }
-
 
 void sixdof_gc::start_Quaternion
 (

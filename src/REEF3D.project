@@ -450,6 +450,11 @@
         <File Name="benchmark_convection.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <VirtualDirectory Name="Common">
+          <VirtualDirectory Name="Objects"/>
+          <VirtualDirectory Name="Ray Cast"/>
+        </VirtualDirectory>
+        <File Name="6DOF_precalc.h"/>
         <File Name="6DOF_sflow.h"/>
         <File Name="6DOF_df_object.h"/>
         <File Name="6DOF_gc.h"/>
@@ -1464,7 +1469,26 @@
         <File Name="heat_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
-        <VirtualDirectory Name="6DOF SFLOW">
+        <VirtualDirectory Name="Common">
+          <VirtualDirectory Name="Objects"/>
+          <VirtualDirectory Name="Ray Cast"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Precalc">
+          <File Name="6DOF_precalc_ray_io_z.cpp"/>
+          <File Name="6DOF_precalc_ray_io_y.cpp"/>
+          <File Name="6DOF_precalc_ray_io_x.cpp"/>
+          <File Name="6DOF_precalc_ray.cpp"/>
+          <File Name="6DOF_precalc_sym.cpp"/>
+          <File Name="6DOF_precalc_wedge.cpp"/>
+          <File Name="6DOF_precalc_STL_read.cpp"/>
+          <File Name="6DOF_precalc_objects.cpp"/>
+          <File Name="6DOF_precalc_hexahedron.cpp"/>
+          <File Name="6DOF_precalc_geometry_ini.cpp"/>
+          <File Name="6DOF_precalc_cylinder.cpp"/>
+          <File Name="6DOF_precalc_box.cpp"/>
+          <File Name="6DOF_precalc.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="SFLOW 6DOF ">
           <File Name="6DOF_sflow_rotation.cpp"/>
           <File Name="6DOF_sflow_reini.cpp"/>
           <File Name="6DOF_sflow_ray.cpp"/>
@@ -2195,6 +2219,7 @@
         <File Name="grid2D.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Lexer">
+        <File Name="lexer_read.cpp"/>
         <File Name="lexer_gridspacing.cpp"/>
         <File Name="lexer_ini.cpp"/>
         <File Name="lexer_assign.cpp"/>

@@ -22,23 +22,32 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"ghostcell.h"
 
-
-lexer::lexer() : cmu(0.09), position(this), interpolation(this), grid_sigma(this)
+void lexer::lexer_read(ghostcell *pgc)
 {
-    sigT=0.9;
+
+    if(mpirank==0)
+	read_control();
+
+	ctrlsize=12500;
+	
+    Iarray(ictrl,ctrlsize);
+    Darray(dctrl,ctrlsize);
     
-	ini_default();
-    mpirank=0;
+		if(mpirank==0)
+		ctrlsend();
+		
+		pgc->globalctrl(this);
+		
+		if(mpirank>0)
+		ctrlrecv();
+    
+    del_Iarray(ictrl,ctrlsize);
+    del_Darray(dctrl,ctrlsize);
+
+	read_grid();
+	
+	lexer_ini();
 }
-
-lexer::~lexer()
-{
-}
-
-int lexer::xmax,lexer::ymax,lexer::zmax;
-int lexer::knox,lexer::knoy,lexer::knoz;
-int lexer::margin;
-
 
 
 

@@ -37,6 +37,10 @@ void lexer::vecsize(ghostcell *pgc)
     gcextra_max = pgc->globalimax(gcextra4);
 
 	gcb_sediment_est = gcb4_count*margin;	
+    
+    gcb_floating_est=0;
+    
+    if(X13==0 || X13==1)
 	gcb_floating_est = gcb4_count;
     
 // gcbextra
