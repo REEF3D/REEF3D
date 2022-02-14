@@ -59,11 +59,17 @@ void reduction_parker::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 	
 	r = -0.5*pval + sqrt(pval*pval*0.25 - qval);
 
-	
-	if(((1.0 + tan(alphaval)*tan(alphaval) + tan(tetaval)*tan(tetaval))  < 0.0 || (pval*pval*0.25 - qval) < 0.0) || r<0.0)
+	// limiter
+	if(( (1.0 + tan(alphaval)*tan(alphaval) + tan(tetaval)*tan(tetaval))  < 0.0 || (pval*pval*0.25 - qval) < 0.0) || r<0.0)
 	{
-	r = cos(tetaval)*(1.0 - tan(tetaval/tan(phival)));
-    r*= cos(alphaval)*(1.0 - pow(tan(alphaval),2.0)/pow(tan(phival),2.0));
+        if(p->S84==1)
+        {
+        r = cos(tetaval)*(1.0 - tan(tetaval/tanphi));
+        r*= cos(alphaval)*(1.0 - pow(tan(alphaval),2.0)/pow(tanphi,2.0));
+        }
+        
+        if(p->S84==2)
+        r = 0.1/(fabs(gamma) + 0.0000001)+0.1;
 	}
 	
     r = MAX(r,0.01);

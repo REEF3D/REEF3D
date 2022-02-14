@@ -53,11 +53,18 @@ void reduction_deyana::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 		+ pow((pow(( sin(tetaval) + eta*tanphi*tanphi*sqrt(cos(tetaval)*cos(tetaval)-sin(alphaval)*sin(alphaval))),2.0) +(1.0 - eta*eta*tanphi*tanphi)
 		*(cos(tetaval)*cos(tetaval)*tanphi*tanphi - sin(alphaval)*sin(alphaval)*tanphi*tanphi - sin(tetaval)*sin(tetaval) - sin(alphaval)*sin(alphaval) ) ),0.5 ));
 
+    // limiter
 	if(  (pow(( sin(tetaval) + eta*tanphi*tanphi*sqrt(cos(tetaval)*cos(tetaval)-sin(alphaval)*sin(alphaval))),2.0) +(1.0 - eta*eta*tanphi*tanphi)
 		*(cos(tetaval)*cos(tetaval)*tanphi*tanphi - sin(alphaval)*sin(alphaval)*tanphi*tanphi - sin(tetaval)*sin(tetaval) - sin(alphaval)*sin(alphaval) ) )  < 0.0 || cos(tetaval)*cos(tetaval)-sin(alphaval)*sin(alphaval) < 0.0)
     {
+        if(p->S84==1)
+        {
         r = cos(tetaval)*(1.0 - tan(tetaval/tanphi));
         r*= cos(alphaval)*(1.0 - pow(tan(alphaval),2.0)/pow(tanphi,2.0));
+        }
+        
+        if(p->S84==2)
+        r = 0.1/(fabs(gamma) + 0.0000001)+0.1;
     }
 
 

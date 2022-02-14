@@ -42,6 +42,11 @@ void reduction_FD::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     r = cos(s->teta(i,j))*(1.0 - tan(s->teta(i,j))/tan(s->phi(i,j)));
     
     r*= cos(s->alpha(i,j))*(1.0 - pow(tan(s->alpha(i,j)),2.0)/pow(tan(s->phi(i,j)),2.0));
+        
+        // limiter
+        if( 1.0-s->teta(i,j)/s->phi(i,j) < 0.0 || 1.0-s->alpha(i,j)/s->phi(i,j)< 0.0)
+        if(p->S84==2)
+        r = 0.1/(fabs(gamma) + 0.0000001)+0.1;
     
     r=MIN(r,1.25);
     r=MAX(r,0.01);
