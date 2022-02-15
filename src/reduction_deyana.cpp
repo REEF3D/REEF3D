@@ -46,7 +46,6 @@ void reduction_deyana::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     tetaval = s->teta(i,j);
     phival = s->phi(i,j);
     tanphi = tan(phival);
-
 	alphaval = fabs(alphaval);
 
 	r = (1.0/((1-eta*tanphi)*tanphi))*( -sin(tetaval)  - eta*tanphi*tanphi * sqrt(cos(tetaval)*cos(tetaval)-sin(alphaval)*sin(alphaval))
@@ -64,7 +63,7 @@ void reduction_deyana::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         }
         
         if(p->S84==2)
-        r = 0.1/(fabs(gamma) + 0.0000001)+0.1;
+        r = 0.1/(fabs(s->gamma(i,j)) + 0.0000001)+0.1;
     }
 
 

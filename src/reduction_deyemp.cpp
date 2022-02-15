@@ -37,6 +37,7 @@ reduction_deyemp::~reduction_deyemp()
 void reduction_deyemp::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
     double r=1.0;
+    
 
     SLICELOOP4
     {
@@ -49,12 +50,12 @@ void reduction_deyemp::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     {
         if(p->S84==1)
         {
-        r = cos(tetaval)*(1.0 - tan(tetaval/tanphi));
-        r*= cos(alphaval)*(1.0 - pow(tan(alphaval),2.0)/pow(tanphi,2.0));
+        r = cos(s->teta(i,j))*(1.0 - tan(s->teta(i,j)/tan(s->phi(i,j))));
+        r*= cos(s->alpha(i,j))*(1.0 - pow(tan(s->alpha(i,j)),2.0)/pow(tan(s->phi(i,j)),2.0));
         }
         
         if(p->S84==2)
-        r = 0.1/(fabs(gamma) + 0.0000001)+0.1;
+        r = 0.1/(fabs(s->gamma(i,j)) + 0.0000001)+0.1;
     }
 
 

@@ -45,6 +45,7 @@ void reduction_parker::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 	alphaval = s->alpha(i,j);
     tetaval = s->teta(i,j);
     phival = s->phi(i,j);
+    tanphi = tan(phival);
 
 	alphaval = fabs(alphaval);
 
@@ -69,7 +70,7 @@ void reduction_parker::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         }
         
         if(p->S84==2)
-        r = 0.1/(fabs(gamma) + 0.0000001)+0.1;
+        r = 0.1/(fabs(s->gamma(i,j)) + 0.0000001)+0.1;
 	}
 	
     r = MAX(r,0.01);

@@ -90,6 +90,7 @@ void lexer::read_grid()
     {
     cout<<endl;
     cout<<"!!! Inconsistent M 10 parameter, needs to be the same in REEF3D and DIVEMesh !"<<endl;
+    cout<<"mpi_size: "<<mpi_size<<" REEFD M10: "<<M10<<" DIVEMesh M10: "<<DM_M10<<endl;
     cout<<"!!! please check the manual!"<<endl<<endl<<endl<<endl;
     
     exit(0);

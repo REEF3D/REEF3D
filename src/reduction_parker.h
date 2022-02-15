@@ -45,7 +45,7 @@ private:
 
     double u_abs,u_plus,dist;
     double uvel, vvel;
-    double tetaval, alphaval, phival, beta;
+    double tetaval, alphaval, phival, tanphi, beta;
     double mu,qval,pval,d,eta;
 	double r1,r2;
 };
