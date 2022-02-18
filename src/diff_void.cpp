@@ -42,6 +42,13 @@ void diff_void::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fie
 {
 }
 
+void diff_void::diff_scalar(lexer* p, fdm* a, ghostcell* pgc, solver* psolv, field &diff, field &b, field &visc, double sig, double alpha)
+{
+    LOOP
+	diff(i,j,k) = b(i,j,k);
+
+}
+
 void diff_void::idiff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &b, field &visc, double sig, double alpha)
 {
 }

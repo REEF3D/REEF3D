@@ -41,6 +41,7 @@ public:
     virtual void diff_update(lexer*, fdm*, ghostcell*);
     
     field4 thermdiff;
+    field4 ark1,ark2,Tdiff;
 
 private:
     void clearrhs(lexer*,fdm*,ghostcell*);
