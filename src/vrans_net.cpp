@@ -29,7 +29,7 @@ Author: Hans Bihs
 vrans_net::vrans_net(lexer *p, fdm *a, ghostcell *pgc) 
 : Fx_net(p), Fy_net(p), Fz_net(p),kernel_x(p), kernel_y(p), kernel_z(p)
 {
-    initialize(p,a,pgc);
+    //initialize(p,a,pgc);
 }
 
 vrans_net::~vrans_net(){}

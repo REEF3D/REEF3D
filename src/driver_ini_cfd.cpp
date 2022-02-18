@@ -68,6 +68,9 @@ void driver::driver_ini()
     solid_object.start(p,a,pgc,pflow,pconvec,preso);
     }
     
+    // VRANS ini
+    pvrans->initialize(p,a,pgc);
+    
     // Geotopo
     if(p->toporead>0)
     {

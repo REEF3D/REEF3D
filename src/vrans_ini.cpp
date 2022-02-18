@@ -147,5 +147,10 @@ void vrans_f::initialize(lexer *p, fdm *a, ghostcell *pgc)
 	pgc->start4a(p,porpart,1);
 	pgc->start4a(p,alpha,1);
 	pgc->start4a(p,beta,1);
+    
+    
+    // Sediment
+    if(p->S10==2)
+    sed_update(p,a,pgc);
 }
 

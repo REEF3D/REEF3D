@@ -134,12 +134,6 @@ void driver::cfd_driver()
 	aa=a;
     pgc->fdm_update(a);
     
-    
-    
-    /*double val;
-    for(n=0;++n;n>-1)
-    val = 0.0;*/
-    
     logic();
 }
 
