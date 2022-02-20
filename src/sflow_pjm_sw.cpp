@@ -182,6 +182,7 @@ void sflow_pjm_sw::rhs(lexer *p, fdm2D* b, slice &u, slice &v, slice &ws, double
 void sflow_pjm_sw::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 {
     SLICELOOP1
+    WETDRY1
 	b->F(i,j) -= fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM); 
     
     pBC->patchBC_pressure2D_ugrad(p,b,eta,eta_n);
