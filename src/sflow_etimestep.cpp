@@ -66,8 +66,12 @@ void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
 
 	SLICELOOP4
 	depthmax=MAX(depthmax,b->depth(i,j));
+    
+    depthmax=MAX(depthmax,0.00001);
 	
 	depthmax=pgc->globalmax(depthmax);
+    
+    
 	
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
