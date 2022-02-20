@@ -460,6 +460,7 @@ void lexer::ini_default()
 	P67=0;			  // int discharge gages in x-direction
     P71=0;           // int print viscosity to vtu
     P72=0;           // int print omega_sig to vtu
+    P73=0;           // int print hx and hy for sflow vtp
 	P75=0;            // int print out vorticity vec
     P76=0;            // int print out velocity magnitude as scalar
     P77=0;            // int print out sediment parameters: 1

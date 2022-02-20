@@ -240,7 +240,9 @@ public:
 	void gcsl_start3(lexer*,slice&, int);
 	void gcsl_start4(lexer*,slice&, int);
 	void gcsl_start4a(lexer*,slice&, int);
-
+    
+    void gcsl_start1int(lexer*,sliceint&, int);
+    void gcsl_start2int(lexer*,sliceint&, int);
     void gcsl_start4int(lexer*,sliceint&, int);
 
     
@@ -252,6 +254,8 @@ public:
 	void gcsldistro4(lexer*, slice&,int, int, int, double, int, int, int);
 	void gcsldistro4a(lexer*, slice&,int, int, int, double, int, int, int);
 
+    void gcsldistro1int(lexer*, sliceint&,int, int, int, double, int, int, int);
+    void gcsldistro2int(lexer*, sliceint&,int, int, int, double, int, int, int);
     void gcsldistro4int(lexer*, sliceint&,int, int, int, double, int, int, int);
 
     int gcsleval1(lexer*,int,int,int);

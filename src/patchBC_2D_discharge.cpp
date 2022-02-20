@@ -62,7 +62,7 @@ void patchBC_2D::patchBC_discharge2D(lexer *p, fdm2D* b, ghostcell *pgc, slice &
             area = p->DYN[JP]*b->hp(i-1,j);
             
             Ai+=area;
-            Qi+=area*(patch[qq]->cosalpha*b->Q(i+1,j) + patch[qq]->sinalpha*b->P(i+1,j));
+            Qi+=area*(patch[qq]->cosalpha*b->Q(i-1,j) + patch[qq]->sinalpha*b->P(i-1,j));
             
             hval += b->hp(i-1,j);
             ++hcount;

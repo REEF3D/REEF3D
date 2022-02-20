@@ -47,18 +47,32 @@ void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, s
       
       
       SLICELOOP1
-      if(b->hx(i,j)<wd_criterion)
       {
-       b->P(i,j)=0.0; 
-       P(i,j)=0.0; 
+          if(b->hx(i,j)>=wd_criterion)
+           b->wet1(i,j)=1;
+           
+          if(b->hx(i,j)<wd_criterion || (b->wet4(i,j)==0 && b->wet4(i+1,j)==0))
+          {
+           b->P(i,j)=0.0; 
+           P(i,j)=0.0; 
+           b->wet1(i,j)=0;
+          }
       }
       
       SLICELOOP2
-      if(b->hy(i,j)<wd_criterion)
       {
-       b->Q(i,j)=0.0; 
-       Q(i,j)=0.0; 
+          if(b->hy(i,j)>=wd_criterion)
+           b->wet2(i,j)=1;
+           
+          if(b->hy(i,j)<wd_criterion || (b->wet4(i,j)==0 && b->wet4(i,j+1)==0))
+          {
+           b->Q(i,j)=0.0; 
+           Q(i,j)=0.0; 
+           b->wet2(i,j)=0;
+          }
       }
+    pgc->gcsl_start1int(p,b->wet1,50);
+     pgc->gcsl_start2int(p,b->wet2,50);
       
     // gcslin update
     if(p->count<=1)
@@ -74,4 +88,5 @@ void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, s
     }
     
     }
+    
 }

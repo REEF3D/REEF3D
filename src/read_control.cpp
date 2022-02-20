@@ -1223,6 +1223,9 @@ void lexer::read_control()
                 case 72: control>>P72;
 						 clear(c,numint);
 						 break;
+                case 73: control>>P73;
+						 clear(c,numint);
+						 break;
                 case 75: control>>P75;
 						 clear(c,numint);
 						 break;

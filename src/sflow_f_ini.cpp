@@ -343,8 +343,6 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
 
 }
 
-
-
 void sflow_f::ini_fsf_2(lexer *p, fdm2D* b, ghostcell* pgc)
 {
     // eta ini
@@ -354,4 +352,6 @@ void sflow_f::ini_fsf_2(lexer *p, fdm2D* b, ghostcell* pgc)
     // eta_n ini
     SLICELOOP4
     b->eta_n(i,j) = b->eta(i,j);
+    
+    pgc->gcsl_start4(p,b->eta_n,50);
 }

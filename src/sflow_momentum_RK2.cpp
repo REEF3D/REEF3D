@@ -269,11 +269,12 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
     
     SLICELOOP4
     b->eta_n(i,j) = b->eta(i,j);
+    
+    pgc->gcsl_start4(p,b->eta_n,gcval_eta);
 }
 
 void sflow_momentum_RK2::irhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &f, double alpha)
 {
-
 	n=0;
 	if(p->D20<4)
 	SLICELOOP1
@@ -282,7 +283,6 @@ void sflow_momentum_RK2::irhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &f, doub
 	b->rhsvec.V[n]=0.0;
 	++n;
 	}
-	
 }
 
 void sflow_momentum_RK2::jrhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &f, double alpha)

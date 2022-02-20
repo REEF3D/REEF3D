@@ -124,3 +124,12 @@ void ghostcell::gcsldistro1(lexer *p, slice &f, int ii, int jj, int nn, double d
 	gcsl_outflow_fsf(p,f,gcv,bc,cs);
     
 }
+
+void ghostcell::gcsldistro1int(lexer *p, sliceint &f, int ii, int jj, int nn, double dist,  int gcv, int bc, int cs)
+{
+    i=ii;
+	j=jj;
+	n=nn;
+
+	gcsl_neumann_int(f,gcv,bc,cs);    
+}

@@ -373,7 +373,8 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 
     SLICELOOP4
     b->eta_n(i,j) = b->eta(i,j);
-
+    
+    pgc->gcsl_start4(p,b->eta_n,gcval_eta);
 }
 
 void sflow_momentum_RK3::irhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &f, double alpha)

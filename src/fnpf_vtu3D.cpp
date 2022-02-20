@@ -440,7 +440,7 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPLOOP
 	{
-    waterlevel = p->sl_ipol4eta(c->eta,c->bed)+p->wd - p->sl_ipol4(c->bed);
+    waterlevel = p->sl_ipol4eta(c->wet,c->eta,c->bed)+p->wd - p->sl_ipol4(c->bed);
 
     zcoor = p->ZN[KP1]*waterlevel + p->sl_ipol4(c->bed);
 

@@ -228,7 +228,19 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pt
 	ffn=float(p->YN[JP1]);
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(p->sl_ipol4eta(b->eta,b->bed)+p->wd);
+    if(p->P73==0)
+	ffn=float(p->sl_ipol4eta(b->wet4,b->eta,b->bed)+p->wd);
+    
+    if(p->P73==1)
+    {
+    ffn=float(0.5*(b->hx(i,j)+b->hx(i,j+1)) + p->sl_ipol4(b->bed));
+    }
+    
+    if(p->P73==2)
+	{
+    ffn=float(0.5*(b->hy(i,j)+b->hy(i+1,j)) + p->sl_ipol4(b->bed));
+    }
+    
 	result.write((char*)&ffn, sizeof (float));
 	}
 
