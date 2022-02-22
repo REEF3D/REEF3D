@@ -126,7 +126,7 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	++n;
 	
 	// Points
-    offset[n]=offset[n-1]+4*(p->pointnum2D)*3+4;
+    offset[n]=offset[n-1]+8*(p->pointnum2D)*3+4;
     ++n;
 	
 	// velocity
@@ -176,7 +176,7 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
     
     n=0;
 	result<<"<Points>"<<endl;
-    result<<"<DataArray type=\"Float32\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float64\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"</Points>"<<endl;
 	
@@ -220,18 +220,18 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc)
     result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
 	
 	//  XYZ
-	iin=4*(p->pointnum2D)*3;
+	iin=8*(p->pointnum2D)*3;
 	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
 	{
-	ffn=float(p->XN[IP1]);
-	result.write((char*)&ffn, sizeof (float));
+	ddn=p->XN[IP1];
+	result.write((char*)&ddn, sizeof (double));
 
-	ffn=float(p->YN[JP1]);
-	result.write((char*)&ffn, sizeof (float));
+	ddn=p->YN[JP1];
+	result.write((char*)&ddn, sizeof (double));
 
-	ffn=float(b->bednode(i,j));
-	result.write((char*)&ffn, sizeof (float));
+	ddn=b->bednode(i,j);
+	result.write((char*)&ddn, sizeof (double));
 	}
 	
     //  Velocities

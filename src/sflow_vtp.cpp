@@ -107,6 +107,34 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pt
     pvtp(p,b,pgc,pturb);
 
 	name_iter(p,b,pgc);
+    
+    if(p->origin_i==0 && p->origin_j==0)
+    {
+    i=0;
+    j=0;
+	b->wet4(i-1,j-1) = b->wet4(i,j);
+    }
+    
+    if(p->origin_i==0 && p->gknoy==p->knoy+p->origin_j)
+    {
+    i=0;
+    j=p->knoy-1;
+	b->wet4(i-1,j+1) = b->wet4(i,j);
+    }
+    
+    if(p->gknox==p->knox+p->origin_i && p->origin_j==0)
+    {
+    i=p->knox-1;
+    j=0;
+	b->wet4(i+1,j-1) = b->wet4(i,j);
+    }
+    
+    if(p->gknox==p->knox+p->origin_i && p->gknoy==p->knoy+p->origin_j)
+    {
+    i=p->knox-1;
+    j=p->knoy-1;
+	b->wet4(i+1,j+1) = b->wet4(i,j);
+    }
 
 
 	// Open File
@@ -119,7 +147,7 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pt
 	++n;
 
 	// Points
-    offset[n]=offset[n-1]+4*(p->pointnum2D)*3+4;
+    offset[n]=offset[n-1]+8*(p->pointnum2D)*3+4;
     ++n;
 
 	// velocity
@@ -172,7 +200,7 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pt
 
     n=0;
 	result<<"<Points>"<<endl;
-    result<<"<DataArray type=\"Float32\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float64\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"</Points>"<<endl;
 
@@ -217,31 +245,31 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pt
     result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
 
 	//  XYZ
-	iin=4*(p->pointnum2D)*3;
+	iin=8*(p->pointnum2D)*3;
 	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
 	{
 
-	ffn=float(p->XN[IP1]);
-	result.write((char*)&ffn, sizeof (float));
+	ddn=p->XN[IP1];
+	result.write((char*)&ddn, sizeof (double));
 
-	ffn=float(p->YN[JP1]);
-	result.write((char*)&ffn, sizeof (float));
+	ddn=p->YN[JP1];
+	result.write((char*)&ddn, sizeof (double));
 
     if(p->P73==0)
-	ffn=float(p->sl_ipol4eta(b->wet4,b->eta,b->bed)+p->wd);
+	ddn=p->sl_ipol4eta(b->wet4,b->eta,b->bed)+p->wd;
     
     if(p->P73==1)
     {
-    ffn=float(0.5*(b->hx(i,j)+b->hx(i,j+1)) + p->sl_ipol4(b->bed));
+    ddn=0.5*(b->hx(i,j)+b->hx(i,j+1)) + p->sl_ipol4(b->bed);
     }
     
     if(p->P73==2)
 	{
-    ffn=float(0.5*(b->hy(i,j)+b->hy(i+1,j)) + p->sl_ipol4(b->bed));
+    ddn=0.5*(b->hy(i,j)+b->hy(i+1,j)) + p->sl_ipol4(b->bed);
     }
     
-	result.write((char*)&ffn, sizeof (float));
+	result.write((char*)&ddn, sizeof (double));
 	}
 
     //  Velocities

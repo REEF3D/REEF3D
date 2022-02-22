@@ -283,12 +283,6 @@ double interpolation::sl_ipol2eta(sliceint &wet,slice &f, slice &bed)
     bedvalue = 0.25*(v1+v2+v3+v4);
     }
     
-    
-    //if(value+p->wd>bedvalue)
-    //if(value+p->wd<wd_criterion+bedvalue)
-    //value=value-3.0*wd_criterion;
-    
-
     return value;
 }
 
@@ -342,27 +336,32 @@ double interpolation::sl_ipol4eta(sliceint &wet,slice &f, slice &bed)
     v1=f(i,j);
     
     if(wet(i,j)==0)
-    v1=MIN(f(i,j),bed(i,j)-p->wd-30.0*wd_criterion);
+    v1=MIN(f(i,j),bed(i,j)-p->wd-1.0*p->DXM);
 
     if(wet(i+1,j)==1)
     v2=f(i+1,j);
     
     if(wet(i+1,j)==0)
-    v2=MIN(f(i+1,j),bed(i+1,j)-p->wd-30.0*wd_criterion);
+    v2=MIN(f(i+1,j),bed(i+1,j)-p->wd-1.0*p->DXM);
 
     if(wet(i,j+1)==1)
     v3=f(i,j+1);
 
     if(wet(i,j+1)==0)
-    v3=MIN(f(i,j+1),bed(i,j+1)-p->wd-30.0*wd_criterion);
+    v3=MIN(f(i,j+1),bed(i,j+1)-p->wd-1.0*p->DXM);
 
     if(wet(i+1,j+1)==1)
     v4=f(i+1,j+1);
     
     if(wet(i+1,j+1)==0)
-    v4=MIN(f(i+1,j+1),bed(i+1,j+1)-p->wd-30.0*wd_criterion);
+    v4=MIN(f(i+1,j+1),bed(i+1,j+1)-p->wd-1.0*p->DXM);
     
     pip=0;
+    /*
+    v1=f(i,j);
+    v2=f(i+1,j);
+    v3=f(i,j+1);
+    v4=f(i+1,j+1);*/
 
     value = 0.25*(v1+v2+v3+v4);
     
@@ -378,14 +377,11 @@ double interpolation::sl_ipol4eta(sliceint &wet,slice &f, slice &bed)
     pip=0;
 
     bedvalue = 0.25*(v1+v2+v3+v4);
+    
+    if(wet(i,j)==0 && wet(i+1,j)==0 && wet(i,j+1)==0 && wet(i+1,j+1)==0)
+    value = MIN(value, bedvalue-p->wd-p->DXM);
     }
     
-    
-    //if(value+p->wd>bedvalue)
-    //if(value+p->wd<wd_criterion+bedvalue)
-    //value=value-3.0*wd_criterion;
-    
-
     return value;
 }
 

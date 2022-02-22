@@ -87,7 +87,7 @@ void sflow_vtp::pvtp(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb
 	result<<"<PPolyData  GhostLevel=\"0\">"<<endl;
 	
 	result<<"<PPoints>"<<endl;
-	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>"<<endl;
+	result<<"<PDataArray type=\"Float64\" NumberOfComponents=\"3\"/>"<<endl;
 	result<<"</PPoints>"<<endl;
 	
 	result<<"<PPointData>"<<endl;
