@@ -37,6 +37,7 @@ void patchBC_2D::patchBC_ioflow2D(lexer *p, ghostcell *pgc, slice &P, slice &Q, 
     
         if(patch[qq]->gcb[n][3]==1)
         {
+        P(i,j) =  patch[qq]->Uio;
         P(i-1,j) =  patch[qq]->Uio;
         P(i-2,j) =  patch[qq]->Uio;
         P(i-3,j) =  patch[qq]->Uio;

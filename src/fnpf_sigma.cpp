@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"fnpf_fsf.h"
 
-#define WLVL (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0e20)
+#define WLVL (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0e-5)
 
 #define WLVLDRY (0.01*c->wd_criterion)
 
