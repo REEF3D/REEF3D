@@ -231,7 +231,7 @@ void ioflow_v::velocity_inlet(lexer *p, fdm* a, ghostcell* pgc, field &u, field 
     
     
     
-    GC1LOOP
+    GC3LOOP
     {
         if(p->W11==1)
         if(p->gcb3[n][3]==1 && p->gcb3[n][4]==1)
