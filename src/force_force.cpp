@@ -156,6 +156,8 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
             if(p->P82==1)
             viscosity += p->ccipol4_a(a->eddyv,xloc,yloc,zloc);   
                 
+            //if(k==5)
+            //cout<<pval<<endl;
 
             // Force
             if(phival>-1.6*p->DXM || p->P92==1)
