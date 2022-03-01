@@ -25,13 +25,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-sixdof_df::sixdof_df
-(
-	lexer *p, 
-	fdm *a, 
-	ghostcell *pgc 
-)
+sixdof_df::sixdof_df(lexer *p, fdm *a, ghostcell *pgc)
 {
+    if(p->mpirank==0)
+    cout<<"6DOF_df startup ..."<<endl;
+    
     number6DOF = 1;
     
     for (int nb = 0; nb < number6DOF; nb++)
@@ -40,7 +38,9 @@ sixdof_df::sixdof_df
     }
 }
     
-sixdof_df::~sixdof_df(){}
+sixdof_df::~sixdof_df()
+{
+}
 
 void sixdof_df::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 {
@@ -50,7 +50,9 @@ void sixdof_df::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
     }
 }
 	
-void sixdof_df::start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&){};
+void sixdof_df::start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&)
+{
+}
 
 void sixdof_df::forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, double alpha, double gamma, double zeta, field& uvel, field& vvel, field& wvel, field1& fx, field2& fy, field3& fz, bool finalise)
 {

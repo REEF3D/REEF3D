@@ -36,6 +36,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void sixdof_gc::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 {
+    if(p->mpirank==0)
+    cout<<"6DOF_gc_ini "<<endl;
+    
 	print_ini(p,a,pgc);
 	ini_parameter(p,a,pgc);
 	

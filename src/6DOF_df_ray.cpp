@@ -75,7 +75,7 @@ void sixdof_df_object::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
 		if(a->fb(i,j,k)<-10.0*p->DXM)
 		a->fb(i,j,k)=-10.0*p->DXM;
 	}
-	
+    
 	pgc->start4a(p,a->fb,50);
 }
 

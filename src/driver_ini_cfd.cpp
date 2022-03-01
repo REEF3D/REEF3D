@@ -149,7 +149,6 @@ void driver::driver_ini()
 	if(p->I12>=1)
 	pini->hydrostatic(p,a,pgc);
     
-    // Hard fix from Tobias so that 6DOF is running
     if(p->X10==0)
     ptstep->start(a,p,pgc,pturb);
     

@@ -45,11 +45,12 @@ void driver::loop_cfd_df(fdm* a)
 
     // 6DOF
     sixdof_df* p6dof_df = new sixdof_df(p,a,pgc);
-    if (p->X10 > 0)
+    
+    if(p->X10>0)
     {
         p6dof_df->initialize(p, a, pgc, pnet);
     }
-
+    
     // FSI
     if(p->Z10==0)
     pfsi = new fsi_void(p,pgc);

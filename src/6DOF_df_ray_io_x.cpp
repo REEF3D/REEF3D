@@ -178,12 +178,12 @@ void sixdof_df_object::ray_cast_io_x(lexer *p, fdm *a, ghostcell *pgc, int ts, i
 	/*
 	count=0;
 	ALOOP
-	if(a->fb(i,j,k)>0)
+	if(fbio(i,j,k)<0)
 	++count;
     
     count=pgc->globalisum(count);
     
     if(p->mpirank==0)
-    cout<<"Number of active cells after fb_ray_io_x: "<<count<<endl;*/
+    cout<<"Number of floating body cells after fb_ray_io_x: "<<count<<endl;*/
 	
 }

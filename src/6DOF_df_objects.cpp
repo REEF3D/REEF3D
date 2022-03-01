@@ -80,13 +80,12 @@ void sixdof_df_object::objects(lexer *p, fdm *a, ghostcell *pgc)
 		++entity_count;
     }
 
-    
 
 	if (entity_count > 1)
 	{
 		cout<<"Multiple floating bodies are not supported yet."<<endl<<endl;
-		pgc->final();
-		exit(0);
+		//pgc->final();
+		//exit(0);
 	}
 
     if(p->mpirank==0)
@@ -156,7 +155,6 @@ void sixdof_df_object::objects_allocate(lexer *p, fdm *a, ghostcell *pgc)
 	p->Iarray(tstart,entity_sum);
 	p->Iarray(tend,entity_sum);
 }
-
 
 void sixdof_df_object::geometry_refinement(lexer *p)
 {

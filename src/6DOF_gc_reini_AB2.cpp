@@ -43,7 +43,7 @@ void sixdof_gc::reini_AB2(lexer* p, fdm* a, ghostcell* pgc, field& b)
 	++n;
 	}
 	
-	reiniter=10;
+	reiniter=3;
 	
 	
 	if(p->count==0)

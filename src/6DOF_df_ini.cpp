@@ -40,6 +40,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 {
+    if(p->mpirank==0)
+    cout<<"6DOF_df_ini "<<endl;
     // Initialise folder structure
 	print_ini(p,a,pgc);
  
@@ -201,7 +203,6 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
 		}
     }
 }
-
 
 void sixdof_df_object::ini_parameter(lexer *p, fdm *a, ghostcell *pgc)
 {

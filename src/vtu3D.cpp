@@ -867,10 +867,11 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
-	ffn=float(p->ipol4_a(a->fbh4));
+	ffn=float(p->ipol4_a(a->fb));
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}
+    
     else if (p->P28==1)
 	{
 //  floating
