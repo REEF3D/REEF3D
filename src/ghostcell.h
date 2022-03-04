@@ -453,6 +453,8 @@ private:
 // 6DOF
 	int ***gcbfb,*gcbfb_count;
 	int ***gcxfb,*gcxfb_count;
+// Solid pressure
+    int ***gcxsd,*gcxsd_count;
 
     fdm *a;
     fdm_fnpf *c;
