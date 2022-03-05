@@ -2035,6 +2035,8 @@
       </VirtualDirectory>
       <File Name="ghostcell.cpp"/>
       <VirtualDirectory Name="Solidupdate">
+        <File Name="gcsolid_gcb_update.cpp"/>
+        <File Name="gcsolid_gcb_seed.cpp"/>
         <File Name="gcsolid_gcx_update.cpp"/>
         <File Name="gcsolid_gcx_seed.cpp"/>
         <File Name="gcsolid_update.cpp"/>

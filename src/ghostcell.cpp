@@ -300,6 +300,7 @@ void ghostcell::gcini(lexer* p)
 	
 	p->Iarray(gcbfb_count,6);
     p->Iarray(gcxfb_count,6);
+    p->Iarray(gcbsd_count,6);
     p->Iarray(gcxsd_count,6);
 	
 	for(n=0;n<6;++n)
@@ -318,6 +319,12 @@ void ghostcell::gcini(lexer* p)
 	gcxsd_count[n]=1;
 	
 	p->Iarray(gcxsd,6,gcxsd_count,6);
+    
+    
+    for(n=0;n<6;++n)
+	gcbsd_count[n]=1;
+	
+	p->Iarray(gcbsd,6,gcbsd_count,6);
 	
 	
 	p->colnum = new int[p->M10+1];

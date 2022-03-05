@@ -159,6 +159,8 @@ public:
     void gcb_velflagio(lexer*, fdm*);
     void gcxsd_seed(lexer*,fdm*);
     void gcxsd_update(lexer*,fdm*,field&);
+    void gcbsd_seed(lexer*,fdm*);
+    void gcbsd_update(lexer*,fdm*,field&);
 
 // topo update
 	void topo_update(lexer*,fdm*);
@@ -175,7 +177,6 @@ public:
 	void gctopo_scalarupdate(lexer*, fdm*, int **, int, field&);
 
 
-
 // 6DOF update
 	void gcfb_update(lexer*,fdm*);
 	void gcfb_buildflag(lexer*,fdm*, int**, int&);
@@ -190,6 +191,7 @@ public:
 	void gcfb_scalarupdate(lexer*, fdm*, int **, int, field&);
     void gcfb_update_extra_gcb(lexer*,fdm*,field&);
     void gcb_generic(lexer* p,field& f,int *gcb_count, int ***gcb);
+    void gcb_generic_fbpress(lexer* p,field& f,int *gcb_count, int ***gcb);
 
 // IBM
     void flagfield(lexer*);
@@ -456,6 +458,7 @@ private:
 	int ***gcbfb,*gcbfb_count;
 	int ***gcxfb,*gcxfb_count;
 // Solid pressure
+    int ***gcbsd,*gcbsd_count;
     int ***gcxsd,*gcxsd_count;
 
     fdm *a;

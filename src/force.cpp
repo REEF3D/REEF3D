@@ -74,6 +74,8 @@ void force::ini(lexer *p, fdm *a, ghostcell *pgc)
     triangulation(p,a,pgc,a->phi);
 	reconstruct(p,a,a->phi);
     pgc->gcxsd_seed(p,a);
+    pgc->gcbsd_seed(p,a);
+    
 	
 	print_vtp(p,a,pgc);
 } 
@@ -82,6 +84,7 @@ void force::start(lexer *p, fdm *a, ghostcell *pgc)
 {
     pgc->start4(p,a->press,gcval_press);
     pgc->gcxsd_update(p, a, a->press);
+    pgc->gcbsd_update(p, a, a->press);
     
 	// forcecalc
     force_calc(p,a,pgc);

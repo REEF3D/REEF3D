@@ -39,7 +39,6 @@ void ghostcell::gcxsd_seed(lexer *p, fdm *a)
 		
 		if(p->flag4[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==SOLID || p->flag4[IJK]==SOLID)
         ++count[0];
-
     }
 
     for(n=0;n<p->gcpara2_count;++n)

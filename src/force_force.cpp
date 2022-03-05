@@ -162,9 +162,9 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
             //if(k==5)
             //cout<<pval<<endl;
             
-           /* i = p->posc_i(xloc);
+            i = p->posc_i(xloc);
             j = p->posc_j(yloc);
-            k = p->posc_k(zloc);*/
+            k = p->posc_k(zloc);
             
             
             // Force
@@ -173,8 +173,8 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
             Fx += -(pval)*A*nx
                        + density*viscosity*A*(du*ny+du*nz);
                        
-            //a->test(i,j,k) += -(pval)*A*nx
-            //           + density*viscosity*A*(du*ny+du*nz);
+            a->test(i,j,k) += -(pval)*A*nx
+                       + density*viscosity*A*(du*ny+du*nz);
                        
             Fy += -(pval)*A*ny
                        + density*viscosity*A*(dv*nx+dv*nz);
