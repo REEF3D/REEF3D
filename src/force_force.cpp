@@ -38,6 +38,9 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
     Fx=Fy=Fz=0.0;
     A_tot=0.0;
     
+    ALOOP
+    a->test(i,j,k) =0.0;
+    
     pgc->dgcpol(p,a->press,p->dgc4,p->dgc4_count,14);
     a->press.ggcpol(p);
 
@@ -144,9 +147,9 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
             vval = p->ccipol2_a(a->v,xlocvel,ylocvel,zlocvel);
             wval = p->ccipol3_a(a->w,xlocvel,ylocvel,zlocvel);
             
-            du = uval/p->DXM;
-            dv = vval/p->DXM;
-            dw = wval/p->DXM;
+            du = uval/p->DXN[IP];
+            dv = vval/p->DYN[JP];
+            dw = wval/p->DZN[KP];
             
             pval =      p->ccipol4_a(a->press,xloc,yloc,zloc);
             density =   p->ccipol4_a(a->ro,xloc,yloc,zloc);
@@ -158,12 +161,20 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
                 
             //if(k==5)
             //cout<<pval<<endl;
-
+            
+           /* i = p->posc_i(xloc);
+            j = p->posc_j(yloc);
+            k = p->posc_k(zloc);*/
+            
+            
             // Force
             if(phival>-1.6*p->DXM || p->P92==1)
             {
             Fx += -(pval)*A*nx
                        + density*viscosity*A*(du*ny+du*nz);
+                       
+            //a->test(i,j,k) += -(pval)*A*nx
+            //           + density*viscosity*A*(du*ny+du*nz);
                        
             Fy += -(pval)*A*ny
                        + density*viscosity*A*(dv*nx+dv*nz);

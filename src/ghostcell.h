@@ -157,6 +157,8 @@ public:
 	void gcsolid_velflag2(lexer*,fdm*, int&);
 	void gcsolid_velflag3(lexer*,fdm*, int&);
     void gcb_velflagio(lexer*, fdm*);
+    void gcxsd_seed(lexer*,fdm*);
+    void gcxsd_update(lexer*,fdm*,field&);
 
 // topo update
 	void topo_update(lexer*,fdm*);
