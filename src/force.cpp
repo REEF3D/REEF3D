@@ -75,7 +75,6 @@ void force::ini(lexer *p, fdm *a, ghostcell *pgc)
 	reconstruct(p,a,a->phi);
     pgc->gcxsd_seed(p,a);
     pgc->gcbsd_seed(p,a);
-    
 	
 	print_vtp(p,a,pgc);
 } 
@@ -98,7 +97,9 @@ void force::start(lexer *p, fdm *a, ghostcell *pgc)
 
         print_force(p,a,pgc);
         }
-        
+    
+    pgc->gcxsd_update(p, a, a->test);
+    pgc->gcbsd_update(p, a, a->test);
     pgc->start4(p,a->press,gcval_press);
 } 
 

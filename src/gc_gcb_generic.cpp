@@ -43,7 +43,7 @@ void ghostcell::gcb_generic(lexer* p,field& f,int *gcb_count, int ***gcb)
 		for(r=1;r<=3;++r)
 		{
 		if(n==0)
-		aa=-r;
+		aa=r;
 
 		if(n==1)
 		bb=r;
@@ -52,16 +52,19 @@ void ghostcell::gcb_generic(lexer* p,field& f,int *gcb_count, int ***gcb)
 		bb=-r;
 		
 		if(n==3)
-		aa=r;
+		aa=-r;
 		
 		if(n==4)
 		cc=-r;
 		
 		if(n==5)
 		cc=r;
-			
-        //cout<<"F: "<<i<<" "<<k<<" "<<f(i,j,k)<<endl;
+        
+        
 		f(i+aa,j+bb,k+cc)=f(i,j,k);
+        
+        if(k==5)
+        cout<<p->mpirank<<" i: "<<i<<" n: "<<n<<" f(i,j,k): "<<f(i,j,k)<<" f(i+aa,j+bb,k+cc): "<<f(i+aa,j+bb,k+cc)<<" aa: "<<aa<<endl;
 		}
     }
 

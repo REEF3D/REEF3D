@@ -40,6 +40,10 @@ void ghostcell::gcbsd_seed(lexer *p, fdm *a)
         if(p->flag4[IJK]==SOLID)
         if(p->flag4[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]>0)
         ++count[3];
+        
+        if(p->flag4[IJK]>0)
+        if(p->flag4[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==SOLID)
+        ++count[3];
     }
     
     for(q=0;q<p->gcpara2_count;++q)
@@ -72,7 +76,11 @@ void ghostcell::gcbsd_seed(lexer *p, fdm *a)
         
         if(p->flag4[IJK]==SOLID)
         if(p->flag4[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]>0)
-        ++count[0];   
+        ++count[0];  
+        
+        if(p->flag4[IJK]>0)
+        if(p->flag4[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==SOLID)
+        ++count[0];  
     }
     
     for(q=0;q<p->gcpara5_count;++q)
@@ -103,8 +111,8 @@ void ghostcell::gcbsd_seed(lexer *p, fdm *a)
 	for(q=0;q<6;++q)
 	gcbsd_count[q]=count[q];
 	
-	//for(q=0;q<6;++q)
-	//cout<<p->mpirank<<" GCBSD_COUNT_"<<q+1<<"  "<<count[q]<<endl;
+	for(q=0;q<6;++q)
+	cout<<p->mpirank<<" GCBSD_COUNT_"<<q+1<<"  "<<count[q]<<endl;
 	
 	
 	for(q=0;q<6;++q)
@@ -118,6 +126,16 @@ void ghostcell::gcbsd_seed(lexer *p, fdm *a)
         
         if(p->flag4[IJK]==SOLID)
         if(p->flag4[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]>0)
+        {
+		gcbsd[3][count[3]][0]=i-1;
+		gcbsd[3][count[3]][1]=j;
+		gcbsd[3][count[3]][2]=k;
+		gcbsd[3][count[3]][3]=21;
+		++count[3];
+        }
+        
+        if(p->flag4[IJK]>0)
+        if(p->flag4[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==SOLID)
         {
 		gcbsd[3][count[3]][0]=i-1;
 		gcbsd[3][count[3]][1]=j;
@@ -169,6 +187,16 @@ void ghostcell::gcbsd_seed(lexer *p, fdm *a)
         
         if(p->flag4[IJK]==SOLID)
         if(p->flag4[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]>0)
+        {
+        gcbsd[0][count[0]][0]=i+1;
+		gcbsd[0][count[0]][1]=j;
+		gcbsd[0][count[0]][2]=k;
+		gcbsd[0][count[0]][3]=21;
+		++count[0];
+        }
+        
+        if(p->flag4[IJK]>0)
+        if(p->flag4[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==SOLID)
         {
         gcbsd[0][count[0]][0]=i+1;
 		gcbsd[0][count[0]][1]=j;

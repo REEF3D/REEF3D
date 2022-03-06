@@ -34,6 +34,7 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
 	double xlocvel,ylocvel,zlocvel;
     double Ax=0.0;
     double Ay=0.0;
+    double Px=0.0;
 
     Fx=Fy=Fz=0.0;
     A_tot=0.0;
@@ -43,6 +44,8 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
     
     pgc->dgcpol(p,a->press,p->dgc4,p->dgc4_count,14);
     a->press.ggcpol(p);
+    
+    //cout<<p->mpirank<<" polygon_num: "<<polygon_num<<endl;
 
     for(n=0;n<polygon_num;++n)
     {       
@@ -166,6 +169,12 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
             j = p->posc_j(yloc);
             k = p->posc_k(zloc);
             
+            //if(p->mpirank==5)
+            //if(i==0&&k==5)
+            //cout<<p->mpirank<<" xloc: "<<xloc<<" yloc: "<<yloc<<" zloc: "<<zloc<<" i: "<<i<<" j: "<<j<<" k: "<<k<<endl;
+            
+            //if(i==0&&k==5)
+            //cout<<p->mpirank<<" xloc: "<<xloc<<" xc: "<<xc<<" nx: "<<nx<<" nx*p->DXP[IP]*p->P91: "<<nx*p->DXP[IP]*p->P91<<" ny: "<<ny<<" pval: "<<pval<<endl;
             
             // Force
             if(phival>-1.6*p->DXM || p->P92==1)
@@ -185,17 +194,29 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
             }
     Ax+=A*nx;
     Ay+=A*ny;
+    
+    Px += pval*nx/fabs(nx);
+    
                        
     A_tot+=A;
         
     }
-        
+    
+    
 
     Fx = pgc->globalsum(Fx);
     Fy = pgc->globalsum(Fy);
     Fz = pgc->globalsum(Fz);
     
+    Ax = pgc->globalsum(Ax);
+    Ay = pgc->globalsum(Ay);
     A_tot = pgc->globalsum(A_tot);
+    Px = pgc->globalsum(Px);
+    
+    if(p->mpirank==0)
+    cout<<"Ax : "<<Ax<<" Ay: "<<Ay<<" A_tot: "<<A_tot<<" Px: "<<Px<<endl;
+    
+    
 }
 
 
