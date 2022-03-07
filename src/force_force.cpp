@@ -40,13 +40,11 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
     A_tot=0.0;
     
     ALOOP
-    a->test(i,j,k) =0.0;
+    a->test(i,j,k)=0.0;
     
     pgc->dgcpol(p,a->press,p->dgc4,p->dgc4_count,14);
     a->press.ggcpol(p);
     
-    //cout<<p->mpirank<<" polygon_num: "<<polygon_num<<endl;
-
     for(n=0;n<polygon_num;++n)
     {       
             // triangle
@@ -183,7 +181,7 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
                        + density*viscosity*A*(du*ny+du*nz);
                        
             a->test(i,j,k) += -(pval)*A*nx
-                       + density*viscosity*A*(du*ny+du*nz);
+                           + density*viscosity*A*(du*ny+du*nz);
                        
             Fy += -(pval)*A*ny
                        + density*viscosity*A*(dv*nx+dv*nz);
@@ -199,11 +197,8 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
     
                        
     A_tot+=A;
-        
     }
     
-    
-
     Fx = pgc->globalsum(Fx);
     Fy = pgc->globalsum(Fy);
     Fz = pgc->globalsum(Fz);
@@ -215,8 +210,7 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
     
     if(p->mpirank==0)
     cout<<"Ax : "<<Ax<<" Ay: "<<Ay<<" A_tot: "<<A_tot<<" Px: "<<Px<<endl;
-    
-    
+ 
 }
 
 

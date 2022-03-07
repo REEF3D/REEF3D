@@ -62,7 +62,6 @@ force::force(lexer* p, fdm *a, ghostcell *pgc, int qn):nodefill(p),vertice(p),no
 	ym = ys + (ye-ys)*0.5;
 	zm = zs + (ze-zs)*0.5;
 	
-
     gcval_press=40;  
 }
 

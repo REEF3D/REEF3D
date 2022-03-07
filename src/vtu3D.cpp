@@ -402,8 +402,6 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	++n;
 	
 	// scalars
-	pgc->gcxsd_update(p, a, a->press);
-    pgc->gcbsd_update(p, a, a->press);
     
 		// pressure
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
