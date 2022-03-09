@@ -32,6 +32,7 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
     double du,dv,dw;
     double xloc,yloc,zloc;
 	double xlocvel,ylocvel,zlocvel;
+    double sgnx,sgny,sgnz;
     double Ax=0.0;
     double Ay=0.0;
     double Px=0.0;
@@ -120,6 +121,16 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
             }
             
             //----
+            /*
+            nx=fabs(yp[0]*zp[1] - zp[0]*yp[1]);
+            ny=fabs(zp[0]*xp[1] - xp[0]*zp[1]);
+            nz=fabs(xp[0]*yp[1] - yp[0]*xp[1]);
+
+            nl = sqrt(nx*nx + ny*ny + nz*nz);
+
+            a->gcn[q][0]= nx=nx/nl;
+            a->gcn[q][1]= ny=ny/nl;
+            a->gcn[q][2]= nz=nz/nl;*/
             
             i = p->posc_i(xc);
             j = p->posc_j(yc);
@@ -195,7 +206,6 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
     
     Px += pval*nx/fabs(nx);
     
-                       
     A_tot+=A;
     }
     
