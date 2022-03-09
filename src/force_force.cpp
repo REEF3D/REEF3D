@@ -36,6 +36,8 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
     double Ax=0.0;
     double Ay=0.0;
     double Px=0.0;
+    double xp1,xp2,yp1,yp2,zp1,zp2;
+    
 
     Fx=Fy=Fz=0.0;
     A_tot=0.0;
@@ -120,31 +122,38 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
             A += sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
             }
             
-            //----
-            /*
-            nx=fabs(yp[0]*zp[1] - zp[0]*yp[1]);
-            ny=fabs(zp[0]*xp[1] - xp[0]*zp[1]);
-            nz=fabs(xp[0]*yp[1] - yp[0]*xp[1]);
-
-            nl = sqrt(nx*nx + ny*ny + nz*nz);
-
-            a->gcn[q][0]= nx=nx/nl;
-            a->gcn[q][1]= ny=ny/nl;
-            a->gcn[q][2]= nz=nz/nl;*/
+            xp1 = x2-x1;
+            yp1 = y2-y1;
+            zp1 = z2-z1;
             
-            i = p->posc_i(xc);
-            j = p->posc_j(yc);
-            k = p->posc_k(zc);
+            xp2 = x3-x1;
+            yp2 = y3-y1;
+            zp2 = z3-z1;
+        
             
-            nx = (a->solid(i+1,j,k)-a->solid(i-1,j,k))/(p->DXP[IM1] + p->DXP[IP]);
-            ny = (a->solid(i,j+1,k)-a->solid(i,j-1,k))/(p->DYP[JM1] + p->DYP[JP]);
-            nz = (a->solid(i,j,k+1)-a->solid(i,j,k-1))/(p->DZP[KM1] + p->DZP[KP]);
+            nx=fabs(yp1*zp2 - zp1*yp2);
+            ny=fabs(zp1*xp2 - xp1*zp2);
+            nz=fabs(xp1*yp2 - yp1*xp2);
             
             norm = sqrt(nx*nx + ny*ny + nz*nz);
             
             nx/=norm>1.0e-20?norm:1.0e20;
             ny/=norm>1.0e-20?norm:1.0e20;
             nz/=norm>1.0e-20?norm:1.0e20;
+            //----
+
+            
+            i = p->posc_i(xc);
+            j = p->posc_j(yc);
+            k = p->posc_k(zc);
+            
+            sgnx = (a->solid(i+1,j,k)-a->solid(i-1,j,k))/(p->DXP[IM1] + p->DXP[IP]);
+            sgny = (a->solid(i,j+1,k)-a->solid(i,j-1,k))/(p->DYP[JM1] + p->DYP[JP]);
+            sgnz = (a->solid(i,j,k+1)-a->solid(i,j,k-1))/(p->DZP[KM1] + p->DZP[KP]);
+            
+            nx = nx*sgnx/fabs(fabs(sgnx)>1.0e-20?sgnx:1.0e20);
+            ny = ny*sgny/fabs(fabs(sgny)>1.0e-20?sgny:1.0e20);
+            nz = nz*sgnz/fabs(fabs(sgnz)>1.0e-20?sgnz:1.0e20);
             
             
             xloc = xc + nx*p->DXP[IP]*p->P91;
@@ -219,7 +228,7 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
     Px = pgc->globalsum(Px);
     
     if(p->mpirank==0)
-    cout<<"Ax : "<<Ax<<" Ay: "<<Ay<<" A_tot: "<<A_tot<<" Px: "<<Px<<endl;
+    cout<<"Ax : "<<Ax<<" Ay: "<<Ay<<" A_tot: "<<A_tot<<endl;
  
 }
 
