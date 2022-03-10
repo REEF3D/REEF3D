@@ -200,8 +200,8 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
             Fx += -(pval)*A*nx
                        + density*viscosity*A*(du*ny+du*nz);
                        
-            a->test(i,j,k) += -(pval)*A*nx
-                           + density*viscosity*A*(du*ny+du*nz);
+            /*a->test(i,j,k) += -(pval)*A*nx
+                           + density*viscosity*A*(du*ny+du*nz);*/
                        
             Fy += -(pval)*A*ny
                        + density*viscosity*A*(dv*nx+dv*nz);
@@ -229,6 +229,11 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
     
     if(p->mpirank==0)
     cout<<"Ax : "<<Ax<<" Ay: "<<Ay<<" A_tot: "<<A_tot<<endl;
+    
+    LOOP
+    a->test(i,j,k) = a->press(i,j,k) - a->phi(i,j,k)*a->ro(i,j,k)*fabs(p->W22);
+    
+    pgc->start4(p,a->test,gcval_press);
  
 }
 
