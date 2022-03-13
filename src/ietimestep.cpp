@@ -41,6 +41,28 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 	p->pressmin=1.0e9;
 
 	p->umax=p->vmax=p->wmax=p->viscmax=0.0;
+    
+    p->umax=MAX(p->W11_u,p->umax);
+    p->umax=MAX(p->W12_u,p->umax);
+    p->umax=MAX(p->W13_u,p->umax);
+    p->umax=MAX(p->W14_u,p->umax);
+    p->umax=MAX(p->W15_u,p->umax);
+    p->umax=MAX(p->W16_u,p->umax);
+    
+    p->vmax=MAX(p->W11_v,p->vmax);
+    p->vmax=MAX(p->W12_v,p->vmax);
+    p->vmax=MAX(p->W13_v,p->vmax);
+    p->vmax=MAX(p->W14_v,p->vmax);
+    p->vmax=MAX(p->W15_v,p->vmax);
+    p->vmax=MAX(p->W16_v,p->vmax);
+    
+    p->wmax=MAX(p->W11_w,p->wmax);
+    p->wmax=MAX(p->W12_w,p->wmax);
+    p->wmax=MAX(p->W13_w,p->wmax);
+    p->wmax=MAX(p->W14_w,p->wmax);
+    p->wmax=MAX(p->W15_w,p->wmax);
+    p->wmax=MAX(p->W16_w,p->wmax);
+    
 	sqd=1.0/(p->DXM*p->DXM);
 	
 // maximum velocities
@@ -153,6 +175,27 @@ void ietimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 
 	p->umax=MAX(p->W10,p->umax);
     
+    p->umax=MAX(p->W11_u,p->umax);
+    p->umax=MAX(p->W12_u,p->umax);
+    p->umax=MAX(p->W13_u,p->umax);
+    p->umax=MAX(p->W14_u,p->umax);
+    p->umax=MAX(p->W15_u,p->umax);
+    p->umax=MAX(p->W16_u,p->umax);
+    
+    p->vmax=MAX(p->W11_v,p->vmax);
+    p->vmax=MAX(p->W12_v,p->vmax);
+    p->vmax=MAX(p->W13_v,p->vmax);
+    p->vmax=MAX(p->W14_v,p->vmax);
+    p->vmax=MAX(p->W15_v,p->vmax);
+    p->vmax=MAX(p->W16_v,p->vmax);
+    
+    p->wmax=MAX(p->W11_w,p->wmax);
+    p->wmax=MAX(p->W12_w,p->wmax);
+    p->wmax=MAX(p->W13_w,p->wmax);
+    p->wmax=MAX(p->W14_w,p->wmax);
+    p->wmax=MAX(p->W15_w,p->wmax);
+    p->wmax=MAX(p->W16_w,p->wmax);
+    
     ULOOP
 	p->umax=MAX(p->umax,fabs(a->u(i,j,k)));
 
@@ -179,11 +222,18 @@ void ietimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 	p->umax=MAX(p->umax,2.0*p->X210_w);
     
     p->umax=MAX(p->umax,2.0);
+    
+    
+    cu=1.0e10;
 
+    LOOP
+    {
+    dx = MIN3(p->DXN[IP],p->DYN[JP],p->DZN[KP]);
 
-    cu=2.0/((p->umax/dx)+sqrt((4.0*sqrt(fabs(a->gi) + fabs(a->gj) +fabs(a->gk)))/dx));// + (8.0*p->maxkappa*p->W5)/(2.0*dx*dx*(p->W1+p->W3)));
-
-
+	cu = MIN(cu, 2.0/((sqrt(p->umax*p->umax + p->vmax*p->vmax + p->wmax*p->wmax))/dx
+    
+            + sqrt((4.0*fabs(MAX3(a->maxF,a->maxG,a->maxH)))/dx)));
+    }
     
 	p->dt=p->N47*cu*0.25;
     p->dt = MAX(p->dt,1.0e-6);
