@@ -378,6 +378,7 @@
           <File Name="reduction_FD.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sandslide">
+          <File Name="sandslide_f3.h"/>
           <File Name="sandslide_f2.h"/>
           <File Name="sandslide_f.h"/>
           <File Name="sandslide.h"/>
@@ -1403,6 +1404,7 @@
           <File Name="reduction_FD.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sandslide">
+          <File Name="sandslide_f3.cpp"/>
           <File Name="sandslide_f2.cpp"/>
           <File Name="sandslide_v.cpp"/>
           <File Name="sandslide_f.cpp"/>
@@ -2756,7 +2758,7 @@
         <SearchPaths/>
       </Completion>
     </Configuration>
-    <Configuration Name="Release" CompilerType="mpicxx" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="overwrite" BuildLnkWithGlobalSettings="overwrite" BuildResWithGlobalSettings="append">
+    <Configuration Name="Release" CompilerType="mpic++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="overwrite" BuildLnkWithGlobalSettings="overwrite" BuildResWithGlobalSettings="append">
       <Compiler Options="-O3; -w; -std=c++11; " C_Options="-O3; -w" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0"/>
       <Linker Options="-lm" Required="yes">
         <LibraryPath Value="/usr/local/hypre/lib"/>
