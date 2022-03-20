@@ -472,6 +472,7 @@ void lexer::ini_default()
 	P91=0.25;		  // double factor used in force calculation algorithm
     P92=0;           // int force from water or from water+air
 	P101=0;			  // int print sloshing forces
+    P120=1;          // int sediment log print out
 	P121=0;             // int bed level gages
 	P122=0;             // int max bed level gages
 	P123=0;             // int topoline in x-direction

@@ -930,7 +930,9 @@ void lexer::ctrlrecv()
 	dd++;
 	P101_r2 = dctrl[dd];
 	dd++;
-	P121 = ictrl[ii];
+	P120 = ictrl[ii];
+	ii++;
+    P121 = ictrl[ii];
 	ii++;
 	P122 = ictrl[ii];
 	ii++;
