@@ -280,7 +280,7 @@ void momentum_FS3::irhs(lexer *p, fdm *a)
 	ULOOP
 	{
     a->maxF=MAX(fabs(a->rhsvec.V[n]+ a->gi),a->maxF);
-	a->F(i,j,k) += (a->rhsvec.V[n] + a->gi)*PORVAL1;
+	a->F(i,j,k) += (a->rhsvec.V[n] + a->gi + p->W29_x)*PORVAL1;
 	a->rhsvec.V[n]=0.0;
 	++n;
 	}
@@ -292,7 +292,7 @@ void momentum_FS3::jrhs(lexer *p, fdm *a)
 	VLOOP
 	{
     a->maxG=MAX(fabs(a->rhsvec.V[n]+ a->gj),a->maxG);
-	a->G(i,j,k) += (a->rhsvec.V[n] + a->gj)*PORVAL2;
+	a->G(i,j,k) += (a->rhsvec.V[n] + a->gj + p->W29_y)*PORVAL2;
 	a->rhsvec.V[n]=0.0;
 	++n;
 	}
@@ -304,7 +304,7 @@ void momentum_FS3::krhs(lexer *p, fdm *a)
 	WLOOP
 	{
     a->maxH=MAX(fabs(a->rhsvec.V[n]+ a->gk),a->maxH);
-	a->H(i,j,k) += (a->rhsvec.V[n] + a->gk)*PORVAL3;
+	a->H(i,j,k) += (a->rhsvec.V[n] + a->gk + p->W29_z)*PORVAL3;
 	a->rhsvec.V[n]=0.0;
 	++n;
 	}

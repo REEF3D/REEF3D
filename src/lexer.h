@@ -450,7 +450,7 @@ public:
 	double W1,W2,W3,W4,W5,W10,W_fb;
     int W11,W12,W13,W14,W15,W16;
     double W11_u,W11_v,W11_w,W12_u,W12_v,W12_w,W13_u,W13_v,W13_w,W14_u,W14_v,W14_w,W15_u,W15_v,W15_w,W16_u,W16_v,W16_w;
-    double W20,W21,W22,W31;
+    double W20,W21,W22,W31,W29_x,W29_y,W29_z;
 	int W30;
     int W41;
     double *W41_xc,*W41_yc,*W41_zs,*W41_ze,*W41_vel,*W41_beta;

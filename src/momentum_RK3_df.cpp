@@ -432,7 +432,7 @@ void momentum_RK3_df::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uv
         {
             a->maxF = MAX(fabs(a->rhsvec.V[n] + a->gi), a->maxF);
             
-            a->F(i,j,k) += (a->rhsvec.V[n] + a->gi)*PORVAL1;
+            a->F(i,j,k) += (a->rhsvec.V[n] + a->gi + p->W29_x)*PORVAL1;
             
             a->rhsvec.V[n] = 0.0;
             
@@ -462,7 +462,7 @@ void momentum_RK3_df::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uv
         {
             a->maxG = MAX(fabs(a->rhsvec.V[n] + a->gj), a->maxG);
             
-            a->G(i,j,k) += (a->rhsvec.V[n] + a->gj)*PORVAL2;
+            a->G(i,j,k) += (a->rhsvec.V[n] + a->gj + p->W29_y)*PORVAL2;
             
             a->rhsvec.V[n]=0.0;
             
@@ -491,7 +491,7 @@ void momentum_RK3_df::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uv
         {
             a->maxH = MAX(fabs(a->rhsvec.V[n] + a->gk), a->maxH);
             
-            a->H(i,j,k) += (a->rhsvec.V[n] + a->gk)*PORVAL3;
+            a->H(i,j,k) += (a->rhsvec.V[n] + a->gk + p->W29_z)*PORVAL3;
             
             a->rhsvec.V[n]=0.0;
             

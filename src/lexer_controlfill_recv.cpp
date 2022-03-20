@@ -1156,6 +1156,12 @@ void lexer::ctrlrecv()
     dd++;
     W22 = dctrl[dd];
     dd++;
+    W29_x = dctrl[dd];
+    dd++;
+    W29_y = dctrl[dd];
+    dd++;
+    W29_z = dctrl[dd];
+    dd++;
 	W30 = ictrl[ii];
     ii++;
 	W31 = dctrl[dd];

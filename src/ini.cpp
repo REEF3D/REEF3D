@@ -590,6 +590,9 @@ void lexer::ini_default()
 	W20=0.0;		// double gi
 	W21=0.0;		// double gj
 	W22=0.0;		// double gk
+    W29_x=0.0;		// double pressure gradient x-direction
+    W29_y=0.0;		// double pressure gradient y-direction
+    W29_z=0.0;		// double pressure gradient z-direction
 	W30=0;			// int air compressibility on/off
 	W31=20.0;		// double temperature for air compressibility in celsius
     W41=0;         // int velocity source phase 1

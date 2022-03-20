@@ -1159,6 +1159,12 @@ void lexer::ctrlsend()
     dd++;
     dctrl[dd] = W22;
     dd++;
+    dctrl[dd] = W29_x;
+    dd++;
+    dctrl[dd] = W29_y;
+    dd++;
+    dctrl[dd] = W29_z;
+    dd++;
 	ictrl[ii] = W30;
     ii++;
 	dctrl[dd] = W31;
