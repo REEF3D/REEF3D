@@ -241,6 +241,10 @@ void sandslide_f3::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
             
         ++count;
         }
+        
+        dzp = dzp/double(Iup + 1);
+        
+        fh(i,j) +=dzp;
 }
 
 void sandslide_f3::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc)
