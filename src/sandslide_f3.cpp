@@ -54,6 +54,9 @@ void sandslide_f3::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     SLICELOOP4
     s->slideflag(i,j)=0.0;
     
+    if(p->mpirank==0)
+    cout<<"sandslide_f3"<<endl;
+    
     // mainloop
     for(int qn=0; qn<p->S91; ++qn)
     {
@@ -98,7 +101,12 @@ void sandslide_f3::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         
         double dzp=0.0;
         int Iup=0;
+        int id[8];
 		k = a->bedk(i,j);
+        
+        
+        for(int qn=0; qn<8; ++qn)
+        id[qn]=0;
         
 			
         // 1
@@ -113,6 +121,8 @@ void sandslide_f3::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 
             dzp += dh_corr;
             ++Iup;
+            
+            id[0]=1;
             
             s->slideflag(i,j)=1.0;
             
@@ -131,6 +141,8 @@ void sandslide_f3::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
             dzp += dh_corr;
             ++Iup;
             
+            id[1]=1;
+            
             s->slideflag(i,j)=1.0;
 			
         ++count;
@@ -147,6 +159,8 @@ void sandslide_f3::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 
             dzp += dh_corr;
             ++Iup;
+            
+            id[2]=1;
             
             s->slideflag(i,j)=1.0;
 			
@@ -166,6 +180,8 @@ void sandslide_f3::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
             dzp += dh_corr;
             ++Iup;
             
+            id[3]=1;
+            
             s->slideflag(i,j)=1.0;
 
         ++count;
@@ -183,6 +199,8 @@ void sandslide_f3::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 
             dzp += dh_corr;
             ++Iup;
+            
+            id[4]=1;
             
             s->slideflag(i,j)=1.0;
         
@@ -202,6 +220,8 @@ void sandslide_f3::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
             dzp += dh_corr;
             ++Iup;
             
+            id[5]=1;
+            
             s->slideflag(i,j)=1.0;
 			
         ++count;
@@ -218,6 +238,8 @@ void sandslide_f3::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 
             dzp += dh_corr;
             ++Iup;
+            
+            id[6]=1;
             
             s->slideflag(i,j)=1.0;
 
@@ -237,6 +259,8 @@ void sandslide_f3::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
             dzp += dh_corr;
             ++Iup;
             
+            id[7]=1;
+            
             s->slideflag(i,j)=1.0;
             
         ++count;
@@ -245,6 +269,34 @@ void sandslide_f3::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         dzp = dzp/double(Iup + 1);
         
         fh(i,j) +=dzp;
+        
+        if(id[0]==1)
+        fh(i-1,j) += dzp + a->bedzh(i,j) - a->bedzh(i-1,j) + tan(s->phi(i,j))*p->DXP[IM1]; 
+        
+        if(id[1]==1)
+        fh(i+1,j) += dzp + a->bedzh(i,j) - a->bedzh(i+1,j) + tan(s->phi(i,j))*p->DXP[IP];
+        
+        if(id[2]==1)
+        fh(i,j-1) += dzp + a->bedzh(i,j) - a->bedzh(i,j-1) + tan(s->phi(i,j))*p->DYP[JM1];
+        
+        if(id[3]==1)
+        fh(i,j+1) += dzp + a->bedzh(i,j) - a->bedzh(i,j+1) + tan(s->phi(i,j))*p->DYP[JP];
+        
+        if(id[4]==1)
+        fh(i-1,j-1) += dzp + a->bedzh(i,j) - a->bedzh(i-1,j-1) + tan(s->phi(i,j))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]);
+        
+        if(id[5]==1)
+        fh(i-1,j+1) += dzp + a->bedzh(i,j) - a->bedzh(i-1,j+1) + tan(s->phi(i,j))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]);  
+        
+        if(id[6]==1)
+        fh(i+1,j-1) += dzp + a->bedzh(i,j) - a->bedzh(i+1,j-1) + tan(s->phi(i,j))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]);
+        
+        if(id[7]==1)
+        fh(i+1,j+1) += dzp + a->bedzh(i,j) - a->bedzh(i+1,j+1) + tan(s->phi(i,j))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]); 
+        
+        
+        
+    // dzi
 }
 
 void sandslide_f3::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc)

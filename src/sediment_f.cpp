@@ -33,6 +33,7 @@ Author: Hans Bihs
 #include"bedshear.h"
 #include"sandslide_f.h"
 #include"sandslide_f2.h"
+#include"sandslide_f3.h"
 #include"sandslide_pde.h"
 #include"sandslide_v.h"
 #include"topo_relax.h"
@@ -58,6 +59,9 @@ sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb): bed
     pslide=new sandslide_f2(p);
     
     if(p->S90==3)
+    pslide=new sandslide_f3(p);
+    
+    if(p->S90==4)
     pslide=new sandslide_pde(p);
     
     if(p->S10!=2)
