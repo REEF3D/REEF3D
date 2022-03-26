@@ -50,7 +50,6 @@ void lexer::vecsize(ghostcell *pgc)
 
     // solid and topo
 	if(S10>0 || G1>0)
-	//gcbextra+=(solid_gcb_est_max*4+topo_gcb_est_max*3);
     gcbextra+=(solid_gcbextra_est*3+topo_gcbextra_est*3+tot_gcbextra_est*3);
     
     // floating 
