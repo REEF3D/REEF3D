@@ -84,7 +84,6 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
         
         if(patch[qq]->gcb[n][3]==4)
         {
-        cout<<"Ui_patch_0: "<<u(i,j,k)<<" "<<u(i+1,j,k)<<" "<<u(i+2,j,k)<<endl;
         u(i,j,k)   =  patch[qq]->Uio;
         u(i+1,j,k) =  patch[qq]->Uio;
         u(i+2,j,k) =  patch[qq]->Uio;
@@ -96,7 +95,6 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
         w(i+1,j,k) =  0.0;
         w(i+2,j,k) =  0.0;
         w(i+3,j,k) =  0.0;
-        cout<<"Ui_patch_1: "<<u(i,j,k)<<" "<<u(i+1,j,k)<<" "<<u(i+2,j,k)<<endl;
         }
         
         if(patch[qq]->gcb[n][3]==5)
@@ -187,7 +185,6 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
         
         if(patch[qq]->gcb[n][3]==4)
         {
-        cout<<"Uq_patch_0: "<<u(i,j,k)<<" "<<u(i+1,j,k)<<" "<<u(i+2,j,k)<<endl;
         u(i,j,k)   =  patch[qq]->Uq*patch[qq]->sinalpha;
         u(i+1,j,k) =  patch[qq]->Uq*patch[qq]->sinalpha;
         u(i+2,j,k) =  patch[qq]->Uq*patch[qq]->sinalpha;
@@ -199,8 +196,6 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
         w(i+1,j,k) =  0.0;
         w(i+2,j,k) =  0.0;
         w(i+3,j,k) =  0.0;
-        
-        cout<<"Uq_patch_1: "<<u(i,j,k)<<" "<<u(i+1,j,k)<<" "<<u(i+2,j,k)<<endl;
         }
         
         if(patch[qq]->gcb[n][3]==5)
@@ -299,7 +294,6 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
         
         if(patch[qq]->gcb[n][3]==4)
         {
-        cout<<"Ucomp_patch_0: "<<u(i-1,j,k)<<" "<<u(i,j,k)<<" "<<u(i+1,j,k)<<" "<<u(i+2,j,k)<<endl;
         u(i,j,k)   =  patch[qq]->U;
         u(i+1,j,k) =  patch[qq]->U;
         u(i+2,j,k) =  patch[qq]->U;
@@ -313,7 +307,6 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
         w(i+1,j,k) =  patch[qq]->W;
         w(i+2,j,k) =  patch[qq]->W;
         w(i+3,j,k) =  patch[qq]->W;
-        cout<<"Ucomp_patch_1: "<<u(i-1,j,k)<<" "<<u(i,j,k)<<" "<<u(i+1,j,k)<<" "<<u(i+2,j,k)<<endl;
         }
         
         if(patch[qq]->gcb[n][3]==5)

@@ -46,5 +46,6 @@ void patchBC::patchBC_ini(lexer *p, ghostcell *pgc)
     // fill patch objects
     patchBC_gcb_count(p,pgc);
     patchBC_fillobj(p,pgc);
+    patchBC_gcb_convert(p,pgc);
 } 
 
