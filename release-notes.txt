@@ -1,4 +1,29 @@
 
+22.03
+x added LES with WALE subgrid scale model (CFD)
+x added RAM usage optimizaiton for solid, topo and direct forcing floating (CFD)
+x added vertical restriction for piston wavemaker 
+x added bounded hydrostatic pressure gradient (SFLOW)
+x added ALE Force implementation (FNPF)
+x added viscous damping coefficients for FSI strips (CFD)
+x added optional frequency distribution for constant wave steepness method for focused waves (uses B 84 now)
+x added option for sediment file printout intervall  (CFD)
+x added new sandslide algorithms (CFD)
+x improved wetting and drying (SFLOW)
+x fixed patchBC velocity boundary conditions (CFD)
+x fixed force calculation on solids (CFD)
+x fixed AWA wave generation (CFD)
+x fixed VRANS and solid crash (CFD)
+x fixed 2D scalar diffusion bug (CFD)
+x fixed timestep ini for velocity inlet (CFD)
+x fixed velocity inlet crash (CFD)
+x fixed statefile file name numbering (FNPF)
+x fixed a crash related to wetting and drying (FNPF)
+x fixed T vtu printout for solid boundaries (CFD)
+x fixed issue with explicit diffusion for scalars (CFD)
+x fixed floating level set print out (CFD)
+x improved vtu contours for parallel borders
+ 
 21.11
 x added FNPF tutorial cases
 x added SFLOW tutorial cases
