@@ -89,6 +89,8 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
             
             Ai+=area;
             Qi+=area*(patch[qq]->cosalpha*a->v(i+1,j,k) + patch[qq]->sinalpha*a->u(i,j,k));
+            
+            //cout<<"sinalpha: "<<patch[qq]->sinalpha<<" cosalpha: "<<patch[qq]->cosalpha<<endl;
             }
             
             // side 3 

@@ -2526,6 +2526,7 @@
           <File Name="patchBC_2D.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="PatchBC 3D">
+          <File Name="patchBC_gcb_convert.cpp"/>
           <File Name="patchBC_waterlevel.cpp"/>
           <File Name="patchBC_pressure.cpp"/>
           <File Name="patchBC_loop.cpp"/>
