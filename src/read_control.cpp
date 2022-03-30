@@ -314,9 +314,6 @@ void lexer::read_control()
 			   case 71: ++B71;
 						 clear(c,numint);
 						 break;
-              case 74: control>>B74;
-						 clear(c,numint);
-						 break;
 			   case 75: control>>B75;
 						 clear(c,numint);
 						 break;

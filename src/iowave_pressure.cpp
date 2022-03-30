@@ -43,7 +43,7 @@ void iowave::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
         k=p->gcout[n][2];
 		pval=0.0;
 		
-			if(p->B77==-1)
+			if(p->B77==0)
 			{
 			pval=(p->phiout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
 			

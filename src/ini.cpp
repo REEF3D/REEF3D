@@ -116,7 +116,6 @@ void lexer::ini_default()
 	B61=2;            // int plain or logarithmic inflow profile
 	B70=0;       // double distance for use relaxation method for fixed water level
 	B71=0;       // double distance for use relaxation method for fixed water level ini
-    B74=3;		 // int crossection i-indice for the periodic boundary condition
 	B75=1;		 // int type of outflow boundary conditions
     B76=1;      // int type of pressure inlet boundary condition
 	B77=1;           // int outflow pressure controlled or free stream
