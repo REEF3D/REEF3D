@@ -244,6 +244,10 @@ void ghostcell::gcini(lexer* p)
     if(p->B76==2 || p->B76==3)
 	gclabel_press_in=0;
 
+    pressin_lable=0;
+	if(p->B76!=1)
+	pressout_lable=1;
+    
     pressout_lable=0;
 	if(p->B77==-1 || p->B77==2)
 	pressout_lable=1;

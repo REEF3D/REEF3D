@@ -27,6 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void iowave::pressure_io(lexer *p, fdm* a, ghostcell *pgc)
 {
+    pressure_inlet(p,a,pgc);
     pressure_outlet(p,a,pgc);
     
     pBC->patchBC_pressure(p,a,pgc,a->press);
@@ -85,55 +86,23 @@ void iowave::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
 void iowave::pressure_inlet(lexer *p, fdm *a, ghostcell *pgc)
 {
     double pval=0.0;
-	double maxh,zval;
-	
-	count=0;
-    maxh=zval=0.0;
-    for(n=0;n<p->gcin_count;++n)
-    if(p->gcin[n][3]>0)
+    
+    if(p->B76==0)
+    for(n=0;n<p->gcin_count;n++)
     {
     i=p->gcin[n][0];
     j=p->gcin[n][1];
     k=p->gcin[n][2];
 		
-        if(a->phi(i-1,j,k)>=0.0 && a->phi(i-1,j,k+1)<0.0)
-        {
-        zval+=-(a->phi(i-1,j,k)*p->DXM)/(a->phi(i-1,j,k+1)-a->phi(i-1,j,k)) + p->pos_z();
-        ++count;
-        }
-    }
-    count=pgc->globalisum(count);
-    zval=pgc->globalsum(zval);
-
-    if(count>0)
-    {
-	maxh=zval/double(count);
-    maxh=pgc->globalmax(maxh);
-    }
-
-    for(n=0;n<p->gcin_count;n++)
-    {
-        i=p->gcin[n][0];
-        j=p->gcin[n][1];
-        k=p->gcin[n][2];
+		if(a->phi(i,j,k)>=0.0)
+        pval=(p->phimean - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
 		
 		if(a->phi(i,j,k)<0.0)
-		{
         pval = a->press(i,j,k);
-		
-        a->press(i-1,j,k)=pval;
-        a->press(i-2,j,k)=pval;
-        a->press(i-3,j,k)=pval;
-		}
 
-		if(a->phi(i,j,k)>=0.0)
-		{
-        pval = (maxh-p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
-		
         a->press(i-1,j,k)=pval;
         a->press(i-2,j,k)=pval;
         a->press(i-3,j,k)=pval;
-		}
     }
 }
 

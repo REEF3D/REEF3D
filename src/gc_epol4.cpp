@@ -63,7 +63,7 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 
 // Pressure    
 	else
-	if((bc==21||bc==22||bc==5||bc==3||(bc==2&&pressout_lable==0)||bc==6||(bc==7&&awa_lable==0)||bc==211||bc==212||bc==112||bc==111) && gcv==40)
+	if((bc==21||bc==22||bc==5||bc==3||(bc==2&&pressout_lable==0)||(bc==6&&pressin_lable==0)||(bc==7&&awa_lable==0)||bc==211||bc==212||bc==112||bc==111) && gcv==40)
 	return gclabel_press;
 	
 	else
@@ -104,11 +104,11 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	
     // Inflow
     else
-	if((bc==1||bc==211||bc==212||bc==112||bc==111) && (gcv==40||gcv==42||((cs!=5) && gcv==44)))
+	if(((bc==1&&pressin_lable==0)||bc==211||bc==212||bc==112||bc==111) && (gcv==40||gcv==42||((cs!=5) && gcv==44)))
 	return gclabel_press_in;
 	
 	else
-	if((bc==6||bc==211||bc==212||bc==112||bc==111) && (gcv==42||gcv==44))
+	if(((bc==6&&pressin_lable==0)||bc==211||bc==212||bc==112||bc==111) && (gcv==42||gcv==44))
 	return gclabel_press_in;
 	
 // Solver Poisson

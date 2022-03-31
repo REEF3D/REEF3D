@@ -85,7 +85,7 @@ void ioflow_f::pressure_inlet(lexer *p, fdm *a, ghostcell *pgc)
 {
     double pval=0.0;
 
-    if(p->B76==2)
+    if(p->B76==0)
     for(n=0;n<p->gcin_count;n++)
     {
     i=p->gcin[n][0];
