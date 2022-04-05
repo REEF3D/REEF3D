@@ -35,7 +35,6 @@ void ghostcell::gc_periodic(lexer *p, field& f, int gcv, int cs)
     KLOOP
     PCHECK
     {
-        
     // 4 to 1 coupling
     i=p->knox-1;
     

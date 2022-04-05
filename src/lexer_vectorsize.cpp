@@ -25,8 +25,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void lexer::vecsize(ghostcell *pgc)
 {
     int n;
-    gcbextra=0;
+    gcbextra=10;
 	int gcbnum=0;
+    int safetymargin=0;
     int solid_gcb_est_max, topo_gcb_est_max, gcextra_max;
     
     int gcbextra0;
@@ -47,10 +48,14 @@ void lexer::vecsize(ghostcell *pgc)
     gcbextra=gcextra_max*margin;
     
     gcbextra0=gcbextra;
+    
+    safetymargin = 0.2*double(solid_gcbextra_est+topo_gcbextra_est+tot_gcbextra_est) + 100.0;
+    
+    
 
     // solid and topo
 	if(S10>0 || G1>0)
-    gcbextra+=(solid_gcbextra_est*3+topo_gcbextra_est*3+tot_gcbextra_est*3);
+    gcbextra+=MAX(MAX(solid_gcbextra_est,topo_gcbextra_est),tot_gcbextra_est) + int(safetymargin);
     
     // floating 
 	if(X10>0)

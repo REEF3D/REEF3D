@@ -80,7 +80,7 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
     
     // Solver Status
     p->solver_status = pgc->globalimax(p->solver_status);
-    
+    /*
     if(p->solver_status>=1)
     {
     if(p->mpirank==0)
@@ -94,5 +94,5 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
     
     pgc->final();
     exit(0);
-    }
+    }*/
 }

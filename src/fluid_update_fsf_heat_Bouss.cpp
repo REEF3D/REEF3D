@@ -115,6 +115,8 @@ void fluid_update_fsf_heat_Bouss::start(lexer *p, fdm* a, ghostcell* pgc)
             
             if(p->H9==2)
             {
+            //cout<<" H4: "<<(temp - T0_1)<<" "<<(temp - T0_2)<<" "<<temp<<" "<<T0_1<<endl;
+            
             ro_1 = p->W3 - p->W3*p->H4_beta2*(temp - T0_2);
             ro_2 = p->W1 - p->W1*p->H4_beta1*(temp - T0_1);
 
