@@ -134,6 +134,8 @@ void idiff2_FS_2D::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 	starttime=pgc->timer();
 	double visc_ddy_p,visc_ddy_m,visc_ddz_p,visc_ddz_m;
     
+    ULOOP
+    diff(i,j,k) = u(i,j,k);
     
     pgc->start1(p,u,gcval_u);
 

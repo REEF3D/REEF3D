@@ -41,6 +41,7 @@ void idiff2_FS_v2::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 {
 	starttime=pgc->timer();
 	double visc;
+    
 
     pgc->start1(p,u,gcval_u);
 

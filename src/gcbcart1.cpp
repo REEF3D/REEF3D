@@ -44,7 +44,7 @@ void mgc1::fillgcb(lexer *p)
 	p->gcb1[q][n]=p->gcb4[q][n];
 
     if(p->gcb1[q][3]==1 || p->gcb1[q][3]==4)
-	p->gcd1[q]=p->gcd4[q]+0.5*p->DXM;
+	p->gcd1[q]=p->gcd4[q];
 
 	if(p->gcb1[q][3]!=1 && p->gcb1[q][3]!=4)
 	p->gcd1[q]=p->gcd4[q];
@@ -56,6 +56,12 @@ void mgc1::fillgcb(lexer *p)
 	    i=p->gcb1[q][0];
 		j=p->gcb1[q][1];
 		k=p->gcb1[q][2];
+        
+        if(p->gcb1[q][3]==1 || p->gcb1[q][3]==4)
+        {
+        p->gcd1[q] += 0.5*p->DXP[IP];
+        
+        }
 
 		p->fgc[IJK][p->gcb1[q][3]-1]=1;
 	}

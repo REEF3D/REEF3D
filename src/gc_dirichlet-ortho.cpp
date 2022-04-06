@@ -48,6 +48,7 @@ void ghostcell::dirichlet_ortho(lexer *p,field& f,double dist,int gcv, int bc, i
     if(dist>p->DXM*(1.0-1.0e-6) && dist<p->DXM*(1.0+1.0e-6))
     ys=0;
     
+    //cout<<" dist: "<<dist<<endl;
 
 //fill pos[]
 	for(m=0;m<=orderdir-3;m++)

@@ -153,6 +153,9 @@ void idiff2_FS::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
 
 	count=0;
     
+    WLOOP
+    diff(i,j,k) = w(i,j,k);
+    
     pgc->start3(p,w,gcval_w);
 
 	count=0;

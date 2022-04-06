@@ -53,6 +53,7 @@ public:
     void lexer_read(ghostcell*);
     void flagini();
 	void gridini(ghostcell*);
+    void gcd_ini(ghostcell*);
     void gridini_patchBC();
     void makeflag(int*);
 	

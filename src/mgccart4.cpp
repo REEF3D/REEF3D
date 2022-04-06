@@ -323,7 +323,7 @@ void mgc4::fillmgc(lexer* p)
         }
 	}
     
-    cout<<p->mpirank<<" GCEXTRA4: "<<p->gcextra4<<" solid_est_gcextra: "<<MAX(MAX(p->solid_gcbextra_est,p->topo_gcbextra_est),p->tot_gcbextra_est)+10 <<endl;
+    //cout<<p->mpirank<<" GCEXTRA4: "<<p->gcextra4<<" solid_est_gcextra: "<<MAX(MAX(p->solid_gcbextra_est,p->topo_gcbextra_est),p->tot_gcbextra_est)+10 <<endl;
 }
 
 void mgc4::gcdirfill(lexer* p)
