@@ -76,6 +76,7 @@ void lexer::ini_default()
     A350=0;      // int turn on breaking (which method)
     A351=0;      // int type of breaking detection (deep / shallow)
     A352=1;      // int additional filtering to viscosity based breaking
+    A353=1;      // int breaking wave identification algorithm
     A354=0.6;    // double breaking parameter alpha
     A355=1.25;   // double breaking parameter slope alpha
     A356=0.1;   // double breaking parameter slope beta
