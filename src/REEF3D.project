@@ -1326,8 +1326,8 @@
             <File Name="fnpf_discrete_weights.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Coastline">
-            <File Name="fnpf_sg_coastline_reini.cpp"/>
-            <File Name="fnpf_sg_coastline.cpp"/>
+            <File Name="fnpf_coastline_reini.cpp"/>
+            <File Name="fnpf_coastline.cpp"/>
             <File Name="fnpf_coastline_disc.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>

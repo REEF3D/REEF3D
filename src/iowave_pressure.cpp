@@ -44,9 +44,18 @@ void iowave::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
         k=p->gcout[n][2];
 		pval=0.0;
 		
-			if(p->B77==0)
+			if(p->B77==0 && p->A10!=55)
 			{
 			pval=(p->phiout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
+			
+			a->press(i+1,j,k)=pval;
+			a->press(i+2,j,k)=pval;
+			a->press(i+3,j,k)=pval;
+			}
+            
+            if(p->B77==0 && p->A10==55)
+			{
+			pval=0.0;
 			
 			a->press(i+1,j,k)=pval;
 			a->press(i+2,j,k)=pval;
@@ -87,7 +96,7 @@ void iowave::pressure_inlet(lexer *p, fdm *a, ghostcell *pgc)
 {
     double pval=0.0;
     
-    if(p->B76==0)
+    if(p->B76==0 && p->A10 != 55)
     for(n=0;n<p->gcin_count;n++)
     {
     i=p->gcin[n][0];
@@ -99,6 +108,20 @@ void iowave::pressure_inlet(lexer *p, fdm *a, ghostcell *pgc)
 		
 		if(a->phi(i,j,k)<0.0)
         pval = a->press(i,j,k);
+
+        a->press(i-1,j,k)=pval;
+        a->press(i-2,j,k)=pval;
+        a->press(i-3,j,k)=pval;
+    }
+    
+    if(p->B76==0 && p->A10==55)
+    for(n=0;n<p->gcin_count;n++)
+    {
+    i=p->gcin[n][0];
+    j=p->gcin[n][1];
+    k=p->gcin[n][2];
+		
+        pval = 0.0;
 
         a->press(i-1,j,k)=pval;
         a->press(i-2,j,k)=pval;

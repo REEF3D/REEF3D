@@ -104,7 +104,7 @@ void sflow_bicgstab::solve(lexer* p, ghostcell* pgc, matrix2D &M, vec2D &xvec, v
     r_j=pgc->globalsum(r_j);
     norm_r0=sqrt(r_j);
 
-    if((residual>=p->N43) && (solveriter<p->N46))
+    if((residual>=p->N44) && (solveriter<p->N46))
 	{
 
 	do{
@@ -158,7 +158,7 @@ void sflow_bicgstab::solve(lexer* p, ghostcell* pgc, matrix2D &M, vec2D &xvec, v
 
 	    norm_sj=sqrt(pgc->globalsum(norm_sj));
 
-    if(norm_sj>p->N43)
+    if(norm_sj>p->N44)
 	{
 		// -------------------------
 		precon_solve(p,pgc,sh,sj);
@@ -198,7 +198,7 @@ void sflow_bicgstab::solve(lexer* p, ghostcell* pgc, matrix2D &M, vec2D &xvec, v
 	}
 
 
-	if(norm_sj<=p->N43)
+	if(norm_sj<=p->N44)
 	{
 	r_j1=0.0;
 		
@@ -223,7 +223,7 @@ void sflow_bicgstab::solve(lexer* p, ghostcell* pgc, matrix2D &M, vec2D &xvec, v
 		
 	    ++solveriter;
         
-	}while((residual>=p->N43) && (solveriter<p->N46));
+	}while((residual>=p->N44) && (solveriter<p->N46));
 
     } 
 		
