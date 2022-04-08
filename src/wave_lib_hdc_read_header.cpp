@@ -106,6 +106,11 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
         header.read((char*)&iin, sizeof (int));
         numiter=iin;
         
+        // delta iterations
+        header.read((char*)&iin, sizeof (int));
+        diter=iin;
+        
+        
         p->Darray(simtime,numiter);
         
         for(n=0;n<numiter;++n)

@@ -47,6 +47,10 @@ void mooring_barQuasiStatic::print(lexer *p,fdm *a, ghostcell *pgc)
     // Print tension forces
     if (p->mpirank==0)
     {
+        if(broken==true)
+		eTout<<p->simtime<<" \t "<<0.0<<endl;
+        
+        if(broken==false)
 		eTout<<p->simtime<<" \t "<<T[sigma+1]<<endl;
     }
     

@@ -114,8 +114,8 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
     {
         t1 = simtime[0];
         t2 = simtime[1];
-        q1 = 0;
-        q2 = 1;
+        q1 = diter;
+        q2 = diter+1;
     
         read_result(p,pgc,E1,U1,V1,W1,q1);
         read_result(p,pgc,E2,U2,V2,W2,q2);
@@ -128,18 +128,21 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
     // check: open next timestep
            
     // find q1
-    while(simtime[q1+1]<=p->simtime+p->I241)
+    while(simtime[q1+1-diter]<=p->simtime+p->I241)
     ++q1;
         
     // find q2
-    while(simtime[q2]<p->simtime+p->I241)
+    while(simtime[q2-diter]<p->simtime+p->I241)
     ++q2;
     
-    if(q2>=numiter)
+    if(p->mpirank==0)
+    cout<<"!!! q1: "<<q1<<" q2: "<<q2<<endl;
+    
+    if(q2>=numiter+diter)
     endseries=1;
         
-    q1=MIN(q1,numiter);
-    q2=MIN(q2,numiter);
+    q1=MIN(q1,numiter+diter);
+    q2=MIN(q2,numiter+diter);
     
     if(q1==q2)
     ++q2;
@@ -162,13 +165,13 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
         }
         
 
-        deltaT = simtime[q2]-simtime[q1];
+        deltaT = simtime[q2-diter]-simtime[q1-diter];
         
         if(p->mpirank==0)
-        cout<<"HDC  q1: "<<q1<<" q2: "<<q2<<" deltaT: "<<deltaT<<" simtime[q1]: "<<simtime[q1]<<" simtime[q2]: "<<simtime[q2]<<endl;
+        cout<<"HDC  q1: "<<q1<<" q2: "<<q2<<" deltaT: "<<deltaT<<" simtime[q1]: "<<simtime[q1-diter]<<" simtime[q2]: "<<simtime[q2-diter]<<endl;
 
-        t1 = (simtime[q2]-(p->simtime+p->I241))/deltaT;
-        t2 = ((p->simtime+p->I241)-simtime[q1])/deltaT;
+        t1 = (simtime[q2-diter]-(p->simtime+p->I241))/deltaT;
+        t2 = ((p->simtime+p->I241)-simtime[q1-diter])/deltaT;
         
         
     // time interpolation
