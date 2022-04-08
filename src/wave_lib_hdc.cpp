@@ -135,9 +135,6 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
     while(simtime[q2-diter]<p->simtime+p->I241)
     ++q2;
     
-    if(p->mpirank==0)
-    cout<<"!!! q1: "<<q1<<" q2: "<<q2<<endl;
-    
     if(q2>=numiter+diter)
     endseries=1;
         
