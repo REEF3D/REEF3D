@@ -40,7 +40,7 @@ fluid_update_rheology::~fluid_update_rheology()
 {
 }
 
-void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc, field &ls)
+void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc)
 {
 	double H=0.0;
 	double Hro=0.0;
@@ -63,14 +63,14 @@ void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc, field &ls)
 	// density
 	LOOP
 	{
-		if(ls(i,j,k)>epsi)
+		if(a->phi(i,j,k)>epsi)
 		H=1.0;
 
-		if(ls(i,j,k)<-epsi)
+		if(a->phi(i,j,k)<-epsi)
 		H=0.0;
 
-		if(fabs(ls(i,j,k))<=epsi)
-		H=0.5*(1.0 + ls(i,j,k)/epsi + (1.0/PI)*sin((PI*ls(i,j,k))/epsi));
+		if(fabs(a->phi(i,j,k))<=epsi)
+		H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
 
 		a->ro(i,j,k)=      ro1*H +   ro2*(1.0-H);
 
@@ -82,18 +82,18 @@ void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc, field &ls)
 	// viscosity
 	LOOP
 	{  
-		if(ls(i,j,k)>epsi)
+		if(a->phi(i,j,k)>epsi)
 		{
 		H=1.0;
 		visc1 = prheo->viscosity(p,a,pgc);
 		}
 
-		if(ls(i,j,k)<-epsi)
+		if(a->phi(i,j,k)<-epsi)
 		H=0.0;
 
-		if(fabs(ls(i,j,k))<=epsi)
+		if(fabs(a->phi(i,j,k))<=epsi)
 		{
-		H=0.5*(1.0 + ls(i,j,k)/epsi + (1.0/PI)*sin((PI*ls(i,j,k))/epsi));
+		H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
 		visc1 = prheo->viscosity(p,a,pgc);
 		}
 

@@ -36,7 +36,7 @@ fluid_update_fsf_comp::~fluid_update_fsf_comp()
 {
 }
 
-void fluid_update_fsf_comp::start(lexer *p, fdm* a, ghostcell* pgc, field &ls)
+void fluid_update_fsf_comp::start(lexer *p, fdm* a, ghostcell* pgc)
 {
 	double H=0.0;
 	double Hro=0.0;
@@ -59,19 +59,19 @@ void fluid_update_fsf_comp::start(lexer *p, fdm* a, ghostcell* pgc, field &ls)
         
 		ro_air = (0.0035*(101325.0 + a->press(i,j,k)))  / (273.15 + p->W31);
 		
-		if(ls(i,j,k)>epsi)
+		if(a->phi(i,j,k)>epsi)
 		H=1.0;
 
-		if(ls(i,j,k)<-epsi)
+		if(a->phi(i,j,k)<-epsi)
 		H=0.0;
 
-		if(fabs(ls(i,j,k))<=epsi)
-		H=0.5*(1.0 + ls(i,j,k)/epsi + (1.0/PI)*sin((PI*ls(i,j,k))/epsi));
+		if(fabs(a->phi(i,j,k))<=epsi)
+		H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
 		
-		if(ls(i,j,k)>=0.0)
+		if(a->phi(i,j,k)>=0.0)
 		Hro=1.0;
 
-		if(ls(i,j,k)<0.0)
+		if(a->phi(i,j,k)<0.0)
 		Hro=0.0;
 
 		a->ro(i,j,k)=     ro_water*H +   ro_air*(1.0-H);

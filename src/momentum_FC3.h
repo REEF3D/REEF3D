@@ -59,7 +59,7 @@ public:
     field1 udiff,urk1,urk2;
 	field2 vdiff,vrk1,vrk2;
 	field3 wdiff,wrk1,wrk2;
-    field4 frk1,frk2;
+    field4 ls,frk1,frk2;
 
 private:
     fluid_update *pupdate;

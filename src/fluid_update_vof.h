@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fluid_update.h"
+#include"fluid_update.h"
 #include"increment.h"
 
 class fdm;
@@ -38,7 +38,7 @@ public:
     fluid_update_vof(lexer*, fdm*, ghostcell*);
 	virtual ~fluid_update_vof();
 
-	virtual void start(lexer*, fdm*, ghostcell*,field&);
+	virtual void start(lexer*, fdm*, ghostcell*);
 
 private:
     static int iocheck,iter;

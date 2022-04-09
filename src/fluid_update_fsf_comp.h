@@ -38,7 +38,7 @@ public:
     fluid_update_fsf_comp(lexer*, fdm*, ghostcell*);
 	virtual ~fluid_update_fsf_comp();
 
-	virtual void start(lexer*, fdm*, ghostcell*,field&);
+	virtual void start(lexer*, fdm*, ghostcell*);
 
 private:
     static int iocheck,iter;

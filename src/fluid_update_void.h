@@ -38,7 +38,7 @@ public:
     fluid_update_void();
 	virtual ~fluid_update_void();
 
-	virtual void start(lexer*, fdm*, ghostcell*,field&);
+	virtual void start(lexer*, fdm*, ghostcell*);
 };
 
 #endif

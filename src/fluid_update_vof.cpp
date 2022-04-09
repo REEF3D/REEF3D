@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"fluid_update_vof.h"
+#include"fluid_update_vof.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -35,7 +35,7 @@ fluid_update_vof::~fluid_update_vof()
 {
 }
 
-void fluid_update_vof::start(lexer *p, fdm* a, ghostcell* pgc, field &ls)
+void fluid_update_vof::start(lexer *p, fdm* a, ghostcell* pgc)
 {
 	double H=0.0;
 	p->volume1=0.0;
@@ -49,9 +49,9 @@ void fluid_update_vof::start(lexer *p, fdm* a, ghostcell* pgc, field &ls)
 	{
         double fx,fy,fz,fn;
         
-        fx = fabs((ls(i+1,j,k) - ls(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]));
-        fy = fabs((ls(i,j+1,k) - ls(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]));
-        fz = fabs((ls(i,j,k+1) - ls(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]));
+        fx = fabs((a->phi(i+1,j,k) - a->phi(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]));
+        fy = fabs((a->phi(i,j+1,k) - a->phi(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]));
+        fz = fabs((a->phi(i,j,k+1) - a->phi(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]));
         
         fn = sqrt(fx*fx + fy*fy + fz*fz);
         
@@ -67,14 +67,14 @@ void fluid_update_vof::start(lexer *p, fdm* a, ghostcell* pgc, field &ls)
         if(p->j_dir==1)
         epsi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
         
-		if(ls(i,j,k)>epsi)
+		if(a->phi(i,j,k)>epsi)
 		H=1.0;
 
-		if(ls(i,j,k)<-epsi)
+		if(a->phi(i,j,k)<-epsi)
 		H=0.0;
 
-		if(fabs(ls(i,j,k))<=epsi)
-		H=0.5*(1.0 + ls(i,j,k)/epsi + (1.0/PI)*sin((PI*ls(i,j,k))/epsi));
+		if(fabs(a->phi(i,j,k))<=epsi)
+		H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
 
 		H=MAX(H,0.0);
 		H=MIN(H,1.0);

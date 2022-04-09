@@ -47,10 +47,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"heat.h"
 #include"concentration.h"
 
-momentum_FC3::momentum_FC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconvection, convection *pfsfdisc, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
+momentum_FC3::momentum_FC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconvection, convection *ppfsfdisc, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
                                                     turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow,
                                                     heat *&pheat, concentration *&pconc, nhflow *ppnh, reini *ppreini)
-                                                    :bcmom(p),udiff(p),vdiff(p),wdiff(p),urk1(p),urk2(p),vrk1(p),vrk2(p),wrk1(p),wrk2(p),frk1(p),frk2(p)
+                                                    :bcmom(p),udiff(p),vdiff(p),wdiff(p),urk1(p),urk2(p),vrk1(p),vrk2(p),wrk1(p),wrk2(p),ls(p),frk1(p),frk2(p)
 {
 	gcval_u=10;
 	gcval_v=11;
@@ -69,6 +69,7 @@ momentum_FC3::momentum_FC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec
 	gcval_phi=54;
 
 	pconvec=pconvection;
+    pfsfdisc=ppfsfdisc;
 	pdiff=pdiffusion;
 	ppress=ppressure;
 	ppois=ppoisson;
@@ -77,6 +78,7 @@ momentum_FC3::momentum_FC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec
     ppoissonsolv=ppoissonsolver;
 	pflow=pioflow;
     pnh=ppnh;
+    preini=ppreini;
     
     
     if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90==0)
@@ -117,13 +119,17 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
 	pflow->rkinflow(p,a,pgc,urk1,vrk1,wrk1);
 	pflow->rkinflow(p,a,pgc,urk2,vrk2,wrk2);
+    
 		
 //Step 1
 //--------------------------------------------------------
 
     // FSF
     FLUIDLOOP
+    {
 	a->L(i,j,k)=0.0;
+    ls(i,j,k)=a->phi(i,j,k);
+    }
 
 	pfsfdisc->start(p,a,ls,4,a->u,a->v,a->w);
 	
@@ -138,6 +144,11 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     
     preini->start(a,p,frk1, pgc, pflow);
     ppicard->correct_ls(p,a,pgc,frk1);
+    
+    FLUIDLOOP
+    a->phi(i,j,k)=ls(i,j,k);
+    
+    pgc->start4(p,a->phi,gcval_phi);
     
     pupdate->start(p,a,pgc);
 
@@ -231,6 +242,13 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     preini->start(a,p,frk2, pgc, pflow);
     ppicard->correct_ls(p,a,pgc,frk2);
     
+    FLUIDLOOP
+    a->phi(i,j,k)=frk2(i,j,k);
+    
+    pgc->start4(p,a->phi,gcval_phi);
+    
+    pupdate->start(p,a,pgc);
+    
 	// U
 	starttime=pgc->timer();
 
@@ -310,15 +328,18 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	pfsfdisc->start(p,a,frk2,4,urk2,vrk2,wrk2);
 
 	FLUIDLOOP
-	ls(i,j,k) =     (1.0/3.0)*ls(i,j,k)
+	a->phi(i,j,k) =  (1.0/3.0)*ls(i,j,k)
 				  + (2.0/3.0)*frk2(i,j,k)
 				  + (2.0/3.0)*p->dt*a->L(i,j,k);
 
-    pflow->phi_relax(p,pgc,ls);
-	pgc->start4(p,ls,gcval_phi);
+    pflow->phi_relax(p,pgc,a->phi);
+	pgc->start4(p,a->phi,gcval_phi);
     
-    preini->start(a,p,ls, pgc, pflow);
-    ppicard->correct_ls(p,a,pgc,ls);
+    preini->start(a,p,a->phi, pgc, pflow);
+    ppicard->correct_ls(p,a,pgc,a->phi);
+    
+
+    pupdate->start(p,a,pgc);
     
 	// U
 	starttime=pgc->timer();

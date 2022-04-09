@@ -39,7 +39,7 @@ public:
     fluid_update_rheology(lexer*, fdm*);
 	virtual ~fluid_update_rheology();
 
-	virtual void start(lexer*, fdm*, ghostcell*,field&);
+	virtual void start(lexer*, fdm*, ghostcell*);
 
 private:
 	rheology *prheo;
