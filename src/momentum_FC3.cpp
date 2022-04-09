@@ -142,6 +142,7 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	
 	pgc->start4(p,frk1,gcval_phi);
     
+    p->F44=1;
     preini->start(a,p,frk1, pgc, pflow);
     ppicard->correct_ls(p,a,pgc,frk1);
     
@@ -239,6 +240,7 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	
 	pgc->start4(p,frk2,gcval_phi);
     
+    p->F44=1;
     preini->start(a,p,frk2, pgc, pflow);
     ppicard->correct_ls(p,a,pgc,frk2);
     
@@ -335,6 +337,7 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     pflow->phi_relax(p,pgc,a->phi);
 	pgc->start4(p,a->phi,gcval_phi);
     
+    p->F44=3;
     preini->start(a,p,a->phi, pgc, pflow);
     ppicard->correct_ls(p,a,pgc,a->phi);
     
