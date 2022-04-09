@@ -866,6 +866,7 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
+      <File Name="momentum_FC3.h"/>
       <File Name="momentum_RK3_old.h"/>
       <File Name="momentum_IMEX.h"/>
       <File Name="momentum_RK3_df.h"/>
@@ -2364,6 +2365,7 @@
       <File Name="ini.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
+      <File Name="momentum_FC3.cpp"/>
       <File Name="momentum_RK3_old.cpp"/>
       <File Name="momentum_IMEX.cpp"/>
       <File Name="momentum_RK3_df.cpp"/>

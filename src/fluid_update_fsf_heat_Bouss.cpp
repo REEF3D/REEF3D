@@ -58,7 +58,7 @@ fluid_update_fsf_heat_Bouss::~fluid_update_fsf_heat_Bouss()
 {
 }
 
-void fluid_update_fsf_heat_Bouss::start(lexer *p, fdm* a, ghostcell* pgc)
+void fluid_update_fsf_heat_Bouss::start(lexer *p, fdm* a, ghostcell* pgc, field &ls)
 {
     
 	double H=0.0;
@@ -125,14 +125,14 @@ void fluid_update_fsf_heat_Bouss::start(lexer *p, fdm* a, ghostcell* pgc)
             }
         }
 
-		if(a->phi(i,j,k)>epsi)
+		if(ls(i,j,k)>epsi)
 		H=1.0;
 
-		if(a->phi(i,j,k)<-epsi)
+		if(ls(i,j,k)<-epsi)
 		H=0.0;
 
-		if(fabs(a->phi(i,j,k))<=epsi)
-		H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
+		if(fabs(ls(i,j,k))<=epsi)
+		H=0.5*(1.0 + ls(i,j,k)/epsi + (1.0/PI)*sin((PI*ls(i,j,k))/epsi));
 
 		a->ro(i,j,k)=     ro_1*H +   ro_2*(1.0-H);
 		a->visc(i,j,k)= visc_1*H + visc_2*(1.0-H);

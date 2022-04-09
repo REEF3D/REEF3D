@@ -43,7 +43,7 @@ fluid_update_fsf_concentration::~fluid_update_fsf_concentration()
 {
 }
 
-void fluid_update_fsf_concentration::start(lexer *p, fdm* a, ghostcell* pgc)
+void fluid_update_fsf_concentration::start(lexer *p, fdm* a, ghostcell* pgc, field &ls)
 {
 	double H=0.0;
 	double conc;
@@ -63,14 +63,14 @@ void fluid_update_fsf_concentration::start(lexer *p, fdm* a, ghostcell* pgc)
 	LOOP
 	{        
         
-		if(a->phi(i,j,k)>epsi)
+		if(ls(i,j,k)>epsi)
 		H=1.0;
 
-		if(a->phi(i,j,k)<-epsi)
+		if(ls(i,j,k)<-epsi)
 		H=0.0;
 
-		if(fabs(a->phi(i,j,k))<=epsi)
-		H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
+		if(fabs(ls(i,j,k))<=epsi)
+		H=0.5*(1.0 + ls(i,j,k)/epsi + (1.0/PI)*sin((PI*ls(i,j,k))/epsi));
 		
 		conc=pconcentration->val(i,j,k);
 

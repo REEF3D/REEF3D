@@ -377,8 +377,11 @@ void driver::logic()
 	if(p->F30==2)
 	pfsf = new levelset_RK2(p,a,pgc,pheat,pconc);
 
-	if(p->F30==3 && p->F11==0)
+	if(p->F30==3 && p->F11==0 && p->N40!=23)
 	pfsf = new levelset_RK3(p,a,pgc,pheat,pconc);
+    
+    if(p->F30==3 && p->F11==0 && p->N40==23)
+	pfsf = new levelset_void(p,a,pgc,pheat,pconc);
 	
 
 	if(p->F40==0)
@@ -695,6 +698,9 @@ void driver::logic()
     
     if(p->N40==7 && p->F11==0)
 	pmom = new momentum_RK3_old(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pnh);
+    
+    if(p->N40==23)
+	pmom = new momentum_FC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,pnh,preini);
     
     if(p->N40==33)
 	pmom = new nhflow_momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pnh,pnhfsf);
