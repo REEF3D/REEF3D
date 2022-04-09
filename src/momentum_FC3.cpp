@@ -147,7 +147,7 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     ppicard->correct_ls(p,a,pgc,frk1);
     
     FLUIDLOOP
-    a->phi(i,j,k) = 0.5*(frk1(i,j,k) + ls(i,j,k));
+    a->phi(i,j,k) =  frk2(i,j,k);
      
     pgc->start4(p,a->phi,gcval_phi);
     
@@ -245,7 +245,7 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     ppicard->correct_ls(p,a,pgc,frk2);
     
     FLUIDLOOP
-    a->phi(i,j,k) = 0.5*(frk2(i,j,k) + ls(i,j,k));
+    a->phi(i,j,k) =  frk2(i,j,k);
     
     pgc->start4(p,a->phi,gcval_phi);
     
@@ -342,12 +342,10 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     ppicard->correct_ls(p,a,pgc,ls);
     
     FLUIDLOOP
-    a->phi(i,j,k) = 0.5*(frk2(i,j,k) + ls(i,j,k));
+    a->phi(i,j,k) =  ls(i,j,k);
 
     pupdate->start(p,a,pgc);
     
-    FLUIDLOOP
-    a->phi(i,j,k) =  ls(i,j,k);
     
 	// U
 	starttime=pgc->timer();
