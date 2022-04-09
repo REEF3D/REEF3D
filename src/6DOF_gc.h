@@ -267,7 +267,7 @@ private:
     
     double zero;
     const double epsi;
-    int check,facount,countCC,countM;
+    int check,facount,countM;
     int numvert,numtri_mem,numvert_mem,polygon_num;
     int nn;
     int entity_sum;

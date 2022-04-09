@@ -227,8 +227,8 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
     A_tot = pgc->globalsum(A_tot);
     Px = pgc->globalsum(Px);
     
-    if(p->mpirank==0)
-    cout<<"Ax : "<<Ax<<" Ay: "<<Ay<<" A_tot: "<<A_tot<<endl;
+    //if(p->mpirank==0)
+    //cout<<"Ax : "<<Ax<<" Ay: "<<Ay<<" A_tot: "<<A_tot<<endl;
     
     LOOP
     a->test(i,j,k) = a->press(i,j,k) - a->phi(i,j,k)*a->ro(i,j,k)*fabs(p->W22);

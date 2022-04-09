@@ -73,8 +73,8 @@ void fsf_vtp::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
     if(nodeflag(i,j,k)==1)
     ++countM;
 
-    numtri = 6*(countM+countCC);
-    numvert = countM+countCC*8;
+    numtri = 6*(countM);
+    numvert = countM;
 
     numtri_mem = numtri;
     numvert_mem = numvert;

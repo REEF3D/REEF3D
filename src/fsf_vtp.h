@@ -72,7 +72,7 @@ private:
     float ffn;
     int gcval_phi;
     double printtime,printtime2;
-	int fsfprintcount,countCC;
+	int fsfprintcount;
 	
 
 };

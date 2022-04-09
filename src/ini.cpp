@@ -118,7 +118,7 @@ void lexer::ini_default()
 	B70=0;       // double distance for use relaxation method for fixed water level
 	B71=0;       // double distance for use relaxation method for fixed water level ini
 	B75=1;		 // int type of outflow boundary conditions
-    B76=0;      // int type of pressure inlet boundary condition
+    B76=1;      // int type of pressure inlet boundary condition
 	B77=1;           // int outflow pressure controlled or free stream
 	B81=0;		 // int focussed wave parameter
     B81_3=0.0;    // double unidirectional focused wave y is condisered 0

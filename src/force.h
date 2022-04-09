@@ -81,7 +81,7 @@ private:
     float ffn;
     int gcval_phi;
     double printtime,printtime2;
-	int forceprintcount,countCC;
+	int forceprintcount;
     int gcval_press;
     
     // force
