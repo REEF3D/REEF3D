@@ -133,7 +133,6 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 
 	pfsfdisc->start(p,a,ls,4,a->u,a->v,a->w);
 	
-
 	FLUIDLOOP
 	frk1(i,j,k) = ls(i,j,k)
 				+ p->dt*a->L(i,j,k);
@@ -147,7 +146,7 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     ppicard->correct_ls(p,a,pgc,frk1);
     
     FLUIDLOOP
-    a->phi(i,j,k) =  frk2(i,j,k);
+    a->phi(i,j,k) =  frk1(i,j,k);
      
     pgc->start4(p,a->phi,gcval_phi);
     
@@ -343,6 +342,8 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     
     FLUIDLOOP
     a->phi(i,j,k) =  ls(i,j,k);
+    
+    pgc->start4(p,a->phi,gcval_phi);
 
     pupdate->start(p,a,pgc);
     
