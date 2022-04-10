@@ -192,7 +192,7 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
     if(patch[qq]->gcb_uflag==1 && patch[qq]->gcb_pressflag==1 && patch[qq]->gcb_phiflag==1)
     patch[qq]->gcb_flag = 111;
     
-    cout<<p->mpirank<<" patch[qq]->gcb_flag: "<<patch[qq]->gcb_flag<<endl;
+    //cout<<p->mpirank<<" patch[qq]->gcb_flag: "<<patch[qq]->gcb_flag<<endl;
     }
     
     
