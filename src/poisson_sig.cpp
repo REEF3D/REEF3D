@@ -87,19 +87,18 @@ void poisson_sig::start(lexer* p, fdm *a, field &f)
                         + CPOR4*PORVAL4*0.5*(p->sigxx[FIJK]+p->sigxx[FIJKp1])/(a->ro(i,j,k)*(p->DZN[KP]+p->DZN[KM1]));
                         
             a->M.b[n] = -(sigxyz2*CPOR3m*PORVAL3m)/(pd->roface(p,a,0,0,-1)*p->DZP[KM1]*p->DZN[KP]) 
-                        - CPOR4*PORVAL4*0.5*(p->sigxx[FIJK]+p->sigxx[FIJKm1])/(a->ro(i,j,k)*(p->DZN[KP]+p->DZN[KM1]));
+                        - CPOR4*PORVAL4*0.5*(p->sigxx[FIJK]+p->sigxx[FIJKp1])/(a->ro(i,j,k)*(p->DZN[KP]+p->DZN[KM1]));
             
             
             a->rhsvec.V[n] +=  CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])*(f(i+1,j,k+1) - f(i-1,j,k+1) - f(i+1,j,k-1) + f(i-1,j,k-1))
-                        /(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))
+                            /(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))
                         
-                        + CPOR4*PORVAL4*(p->sigy[FIJK]+p->sigy[FIJKp1])*(f(i,j+1,k+1) - f(i,j-1,k+1) - f(i,j+1,k-1) + f(i,j-1,k-1))
-                        /((a->ro(i,j,k)*p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
+                            + CPOR4*PORVAL4*(p->sigy[FIJK]+p->sigy[FIJKp1])*(f(i,j+1,k+1) - f(i,j-1,k+1) - f(i,j+1,k-1) + f(i,j-1,k-1))
+                            /((a->ro(i,j,k)*p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
         }
 	
 	++n;
 	}
-    
     
     n=0;
 	LOOP
@@ -133,12 +132,12 @@ void poisson_sig::start(lexer* p, fdm *a, field &f)
             // BEDBC
             if(p->flag4[IJKm1]<0)
             {
-            /*a->rhsvec.V[n] += a->M.b[n]*p->DZP[KM1]*a->WL(i,j)*a->ro(i,j,k)*a->dwdt(i,j);
+            a->rhsvec.V[n] += a->M.b[n]*p->DZP[KM1]*a->WL(i,j)*a->ro(i,j,k)*a->dwdt(i,j);
             a->M.p[n] += a->M.b[n];
-            a->M.b[n] = 0.0;*/
-            
-            a->rhsvec.V[n] -= a->M.b[n]*f(i,j,k-1);
             a->M.b[n] = 0.0;
+            /*
+            a->rhsvec.V[n] -= a->M.b[n]*f(i,j,k-1);
+            a->M.b[n] = 0.0;*/
             }
             
             // FSFBC

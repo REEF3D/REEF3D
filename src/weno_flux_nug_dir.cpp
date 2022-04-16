@@ -288,7 +288,7 @@ double weno_flux_nug_dir::aij_sig(lexer* p,fdm* a,field& b,int ipol, field& uvel
 		fw2 = fz(p,a,b,wvel,ipol,kvel2);
 		
 		
-		L =   - ((ivel2*fu2-ivel1*fu1)/DX[IP]) + p->sigmax(p,b,ipol)*0.5*(ivel1+ivel2)
+		L =   - ((ivel2*fu2-ivel1*fu1)/DX[IP]) + p->sigmax(p,b,uvel,ipol)*0.5*(ivel1+ivel2)
 		      - ((jvel2*fv2-jvel1*fv1)/DY[JP]) + p->sigmay(p,b,ipol)*0.5*(jvel1+jvel2)
 			  - ((kvel2*fw2-kvel1*fw1)/DZ[KP])*p->sigmaz(p,b,ipol);
         

@@ -109,7 +109,7 @@ double weno_hj_nug::aij_sig(lexer* p,fdm* a,field& b,int ipol, field& uvel, fiel
         pflux->v_flux(a,ipol,vvel,jadvec,jvel2);
         pflux->w_flux(a,ipol,wvel,kadvec,kvel2);
 		
-		L = -iadvec*fx(p,a,b,uvel,ipol,iadvec) + p->sigmax(p,b,ipol)*iadvec;
+		L = -iadvec*fx(p,a,b,uvel,ipol,iadvec) + p->sigmax(p,b,uvel,ipol)*iadvec;
         
         if(p->j_dir==1)
         L -= jadvec*fy(p,a,b,vvel,ipol,jadvec) + p->sigmay(p,b,ipol)*jadvec;
@@ -141,11 +141,6 @@ double weno_hj_nug::fx(lexer *p,fdm *a, field& b, field& uvel, int ipol, double 
             a2 = cfx[IP][uf][1]/pow(is2x+psi,2.0); 
             a3 = cfx[IP][uf][2]/pow(is3x+psi,2.0); 
     
-/*
-     if(p->mpirank==0)
-     cout<<" w1x : "<<w1x<<"  w1 : "<<w3<<" | w2x : "<<w2x<<"  w2 : "<<w2<<" | w3x : "<<w3x<<"  w3 : "<<w1<<"  | is1x : "<<is3x<<"  is1 : "<<is3<<" | is2x : "<<is2x<<"  is2 : "<<is2<<" | is3x : "<<is1x<<"  is3 : "<<is1<<" | a1: "
-            <<a3<<" alpha1: "<<alpha1<<" a2: "<<a2<<" alpha2: "<<alpha2<<" a3: "<<a1<<" alpha3: "<<alpha3<<endl;
-*/
 	grad = w1x*(q4 + qfx[IP][uf][0][0]*(q3-q4) - qfx[IP][uf][0][1]*(q5-q4))
     
          + w2x*(q3 + qfx[IP][uf][1][0]*(q4-q3) - qfx[IP][uf][1][1]*(q2-q3))

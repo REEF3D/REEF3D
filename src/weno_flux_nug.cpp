@@ -163,7 +163,7 @@ double weno_flux_nug::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field&
 		      - ((jvel2*fv2-jvel1*fv1)/DY[JP])
               - 0.0*((kvel2*fw2-kvel1*fw1)/DZ[KP]);
         
-             /* 
+        /* 
         if((p->G1==0 && p->A517!=3) && (ipol==3 && k==p->knoz-2))
 		L =   - ((ivel2*fu2-ivel1*fu1)/DX[IP]) 
 		      - ((jvel2*fv2-jvel1*fv1)/DY[JP])
@@ -176,7 +176,7 @@ double weno_flux_nug::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field&
 			  - ((kvel2*fw2-kvel1*fw1)/DZ[KP])*p->sigmaz(p,b,ipol)
               
               - ((b(i,j,k+1)-b(i,j,k-1))/(DZ[KP]+DZ[KM1]))*p->sigmat(p,b,ipol)
-              - 0.5*(ivel1+ivel2)*((b(i,j,k+1)-b(i,j,k-1))/(DZ[KP]+DZ[KM1]))*p->sigmax(p,b,ipol)
+              - 0.5*(ivel1+ivel2)*((b(i,j,k+1)-b(i,j,k-1))/(DZ[KP]+DZ[KM1]))*p->sigmax(p,b,uvel,ipol)
               - 0.5*(jvel1+jvel2)*((b(i,j,k+1)-b(i,j,k-1))/(DZ[KP]+DZ[KM1]))*p->sigmay(p,b,ipol);
         
 		return L;

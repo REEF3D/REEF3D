@@ -39,7 +39,7 @@ void nhflow_f::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
 
 void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, slice &eta1, slice &eta2, double alpha)
 {
-    double wval,w_n;
+    double wval,w_n,udetax;
     double Pval,Qval;
     double detax;
     double uvel1,uvel2;
@@ -47,7 +47,6 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, sli
 
     
     // Kinematic Free Surface BC
-
     GC4LOOP
     if(p->gcb4[n][3]==6 && p->gcb4[n][4]==3)
     {
@@ -58,7 +57,7 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, sli
     if(p->A515==1 && p->A540==1)
     {
     Pval = 0.5*(u(i,j,k)+u(i-1,j,k));
-    Qval = 0.5*(v(i,j,k)+ v(i,j-1,k));
+    Qval = 0.5*(v(i,j,k)+v(i,j-1,k));
     
     wval = (a->eta(i,j) - a->eta_n(i,j))/(p->dt)
     
@@ -73,14 +72,39 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, sli
     {
     Pval = 0.5*(a->u(i,j,k)+a->u(i-1,j,k));
     Qval = 0.5*(a->v(i,j,k)+a->v(i,j-1,k));
-    
+    /*
+    if(Pval>=0.0)
+     udetax  = a->u(i-1,j,k)*(a->eta(i,j)-a->eta(i-1,j))/p->DXP[IP];
+     
+     if(Pval<0.0)
+     udetax  = a->u(i,j,k)*(a->eta(i+1,j)-a->eta(i,j))/p->DXP[IP1];
+        */
+        
     wval = (a->eta(i,j) - a->eta_n(i,j))/p->dt
-    
+        
          + MAX(0.0,Pval)*((a->eta(i,j)-a->eta(i-1,j))/(p->DXP[IP]))
          + MIN(0.0,Pval)*((a->eta(i+1,j)-a->eta(i,j))/(p->DXP[IP1]))
          
          + MAX(0.0,Qval)*((a->eta(i,j)-a->eta(i,j-1))/(p->DYP[JP]))
          + MIN(0.0,Qval)*((a->eta(i,j+1)-a->eta(i,j))/(p->DYP[JP1]));
+    }
+    
+    if(p->A515==2 && p->A540==1)
+    {
+    wval = (a->eta(i,j) - a->eta_n(i,j))/p->dt
+    
+         + (eta1(i+1,j)-eta1(i-1,j))/(p->DXP[IP]+p->DXP[IP1])
+
+         + (eta1(i,j+1)-eta1(i,j-1))/(p->DYP[JP]+p->DYP[JP1]);
+    }
+         
+    if(p->A515==2 && p->A540==2)
+    {
+    wval = (a->eta(i,j) - a->eta_n(i,j))/p->dt
+    
+         + (a->eta(i+1,j)-a->eta(i-1,j))/(p->DXP[IP]+p->DXP[IP1])
+
+         + (a->eta(i,j+1)-a->eta(i,j-1))/(p->DYP[JP]+p->DYP[JP1]);
     }
          
 

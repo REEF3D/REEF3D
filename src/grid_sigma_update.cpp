@@ -52,10 +52,27 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slic
     }
     
     // 2D
-    if(p->j_dir==0)
+    if(p->j_dir==0 && p->A312!=1)
     SLICELOOP4
     {
     pd->Ex(i,j) = pdx->sx(p,eta,1.0);    
+    pd->Exx(i,j) = pddx->sxx(p,eta);
+    }
+    
+    double Pval,Qval;
+    // 2D
+    if(p->j_dir==0 && p->A312==1)
+    SLICELOOP4
+    {
+    Pval = 0.5*(a->u(i,j,k)+a->u(i-1,j,k));
+    Qval = 0.5*(a->v(i,j,k)+a->v(i,j-1,k));
+    
+    if(Pval>=0.0)
+    pd->Ex(i,j) = (eta(i,j)-eta(i-1,j))/(p->DXP[IP]);
+    
+    if(Pval<0.0)
+    pd->Ex(i,j) = (eta(i+1,j)-eta(i,j))/(p->DXP[IP]);
+
     pd->Exx(i,j) = pddx->sxx(p,eta);
     }
     
@@ -75,10 +92,25 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slic
     }
 
     // 2D
-    if(p->j_dir==0)
+    if(p->j_dir==0 && p->A312!=1)
     SLICELOOP4
     {
     pd->Bx(i,j) = pdx->sx(p,a->depth,1.0);    
+    pd->Bxx(i,j) = pddx->sxx(p,a->depth);
+    }
+    
+    if(p->j_dir==0 && p->A312==1)
+    SLICELOOP4
+    {
+    Pval = 0.5*(a->u(i,j,k)+a->u(i-1,j,k));
+    
+    if(Pval>=0.0)
+    pd->Bx(i,j) = (a->depth(i,j)-a->depth(i-1,j))/(p->DXP[IP]);
+    
+    if(Pval<0.0)
+    pd->Bx(i,j) = (a->depth(i+1,j)-a->depth(i,j))/(p->DXP[IP]);
+        
+        
     pd->Bxx(i,j) = pddx->sxx(p,a->depth);
     }
     
@@ -211,7 +243,6 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slic
     LOOP
     p->ZSP[IJK]  = p->ZP[KP]*a->WL(i,j) + a->bed(i,j);
 
-    
     
     pgc->start7S(p,p->sigx,1);
     pgc->start7S(p,p->sigy,1);

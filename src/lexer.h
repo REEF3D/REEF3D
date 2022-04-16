@@ -647,8 +647,6 @@ public:
     double *sigx1,*sigy2;
     double *sigx4,*sigy4;
     double *sigxx;
-    
-    double alpha_rk;
 
 private:
 

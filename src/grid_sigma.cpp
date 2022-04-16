@@ -59,7 +59,7 @@ void grid_sigma::sigma_ini(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     pd = new grid_sigma_data(p);
     
     // generate discretization 
-    if(p->A312==2)
+    if(p->A312==1||p->A312==2)
     {
     pddx = new fnpf_ddx_cds2(p);
     pdx  = new fnpf_cds2(p);
@@ -91,7 +91,6 @@ void grid_sigma::sigma_ini(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     
     p->Darray(p->sigxx,p->imax*p->jmax*(p->kmax+1));
     
-
 
     FLOOP
     p->sig[FIJK] =  p->ZN[KP];
@@ -148,10 +147,20 @@ void grid_sigma::sigma_ini(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
 
 }
 
-double grid_sigma::sigmax(lexer *p, field &f, int ipol)
+double grid_sigma::sigmax(lexer *p, field &f, field &u, int ipol)
 {    
     if(ipol==1)
     sig = 0.25*(p->sigx[FIJK] + p->sigx[FIp1JK] + p->sigx[FIJKp1] + p->sigx[FIp1JKp1]);
+    
+    /*
+    if(ipol==1)
+    {
+    if(u(i,j,k)>=0.0)
+    sig = 0.5*(p->sigx[FIJK] + p->sigx[FIJKp1]);
+    
+    if(u(i,j,k)<0.0)
+    sig = 0.5*(p->sigx[FIp1JK] + p->sigx[FIp1JKp1]);
+    }*/
 
     if(ipol==2)
     sig = 0.25*(p->sigx[FIJK] + p->sigx[FIJp1K] + p->sigx[FIJKp1] + p->sigx[FIJp1Kp1]);

@@ -48,7 +48,7 @@ public:
     virtual void sigma_update(lexer*, fdm*, ghostcell*, slice&, slice&, double);
     
     
-    double sigmax(lexer*,field&,int);
+    double sigmax(lexer*,field&,field&,int);
     double sigmay(lexer*,field&,int);
     double sigmaz(lexer*,field&,int);
     double sigmat(lexer*,field&,int);

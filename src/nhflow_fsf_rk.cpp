@@ -100,15 +100,15 @@ void nhflow_fsf_rk::step1(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field
     pgc->gcsl_start2(p,a->Q,11);
 
     SLICELOOP4
-    etark1(i,j) =      a->eta(i,j)
+    etark1(i,j) = a->eta(i,j)
 
-                -      p->dt*((a->P(i,j)-a->P(i-1,j))/p->DXN[IP] + (a->Q(i,j)-a->Q(i,j-1))/p->DYN[JP]);
+                - p->dt*((a->P(i,j)-a->P(i-1,j))/p->DXN[IP] + (a->Q(i,j)-a->Q(i,j-1))/p->DYN[JP]);
 
     pflow->eta_relax(p,pgc,etark1);
     pgc->gcsl_start4(p,etark1,1);
     
     p->sigma_update(p,a,pgc,etark1,a->eta,1.0);
-    //p->omega_update(p,a,pgc,u,v,w,etark1,a->eta,1.0);
+    p->omega_update(p,a,pgc,u,v,w,etark1,a->eta,1.0);
 }
 
 void nhflow_fsf_rk::step2(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, field&w, slice& etark1, slice &etark2, double alpha)
@@ -148,7 +148,7 @@ void nhflow_fsf_rk::step2(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field
     pgc->gcsl_start4(p,etark2,1);
     
     p->sigma_update(p,a,pgc,etark2,etark1,0.25);
-    //p->omega_update(p,a,pgc,u,v,w,etark2,etark1,0.25);
+    p->omega_update(p,a,pgc,u,v,w,etark2,etark1,0.25);
 }
 
 void nhflow_fsf_rk::step3(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, field&w, slice& etark1, slice &etark2, double alpha)
@@ -200,7 +200,7 @@ void nhflow_fsf_rk::step3(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field
     a->WL(i,j) = MAX(0.0, a->eta(i,j) + p->wd - a->bed(i,j));
     
     p->sigma_update(p,a,pgc,a->eta,etark2,2.0/3.0);
-    //p->omega_update(p,a,pgc,u,v,w,a->eta,etark2,2.0/3.0);
+    p->omega_update(p,a,pgc,u,v,w,a->eta,etark2,2.0/3.0);
 }
 
 
