@@ -94,6 +94,8 @@ double position::pos2_z()
     
     if(p->G2==1)
     pos = p->ZSP[IJK];
+    
+    return pos;
 }
 
 double position::pos3_x()
