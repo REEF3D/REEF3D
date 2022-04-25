@@ -77,7 +77,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         }
         
         
-    u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
+    u_abs = sqrt(uvel*uvel + vvel*vvel);
 
     u_plus = (1.0/kappa)*log(30.0*(dist/ks));
 
@@ -107,7 +107,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         }
         
     // predictor    
-    u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
+    u_abs = sqrt(uvel*uvel + vvel*vvel);
     u_plus = (1.0/kappa)*log(30.0*(dist/ks));
     tau0=tau=density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
     ustar=sqrt(tau/density);
@@ -156,6 +156,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 	xip= p->XP[IP];
 	yip= p->YP[JP];
 	zip= p->ZP[KP];
+
     zval = a->bedzh(i,j) + p->S116*p->DZN[KP];
 	
         if(p->S33==1)
@@ -163,6 +164,9 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         uvel=p->ccipol1(a->u,xip,yip,zval);
         vvel=p->ccipol2(a->v,xip,yip,zval);
         wvel=p->ccipol3(a->w,xip,yip,zval);
+        
+        v_d=p->ccipol4(a->visc,xip,yip,zval);
+        v_t=p->ccipol4(a->eddyv,xip,yip,zval);
         }
         
         if(p->S33==2)
@@ -170,17 +174,19 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         uvel=p->ccipol1_a(a->u,xip,yip,zval);
         vvel=p->ccipol2_a(a->v,xip,yip,zval);
         wvel=p->ccipol3_a(a->w,xip,yip,zval);
+        
+        v_d=p->ccipol4_a(a->visc,xip,yip,zval);
+        v_t=p->ccipol4_a(a->eddyv,xip,yip,zval);
         }
         
-	v_d=p->ccipol4_a(a->visc,xip,yip,zval);
-	v_t=p->ccipol4_a(a->eddyv,xip,yip,zval);
+	
 
-    u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
+    u_abs = sqrt(uvel*uvel + vvel*vvel);
     
 
-    tau=density*(v_d + v_t)*(u_abs/(p->S116*dist));
+    tau=density*(v_d + v_t)*(u_abs/dist);
     }
-	
+    
 	if(p->S16==4)
     {
     zval = a->bedzh(i,j) + 0.5*p->DZN[KP];
@@ -196,7 +202,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         vvel=p->ccipol2(a->v,xip,yip,zval);
         wvel=p->ccipol3(a->w,xip,yip,zval);
 
-        u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
+        u_abs = sqrt(uvel*uvel + vvel*vvel);
 			   
     u_plus = (1.0/kappa)*log(30.0*(dist/ks));
 
