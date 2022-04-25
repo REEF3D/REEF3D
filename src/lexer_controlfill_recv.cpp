@@ -1000,8 +1000,6 @@ void lexer::ctrlrecv()
 	dd++;
     S24 = dctrl[dd];
 	dd++;
-    S25 = dctrl[dd];
-	dd++;
     S26_a = dctrl[dd];
 	dd++;
     S26_b = dctrl[dd];

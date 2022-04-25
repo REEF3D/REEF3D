@@ -44,7 +44,7 @@ private:
     double rhosed,rhowat,Rstar,Ds;
     double g,d50;
     double visc;
-    double kappa,u_plus,ks,repose;
+    double kappa,u_plus,ks;
     double tau_eff, shearvel_eff, shields_eff;
     double tau_crit, shearvel_crit, shields_crit;
 };

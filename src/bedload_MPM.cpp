@@ -38,8 +38,6 @@ bedload_MPM::bedload_MPM(lexer* p, turbulence *pturb) : epsi(1.6*p->DXM)
     visc=p->W2;
     kappa=0.4;
     ks=2.5*d50;
-    repose=p->S25*(PI/180.0);
-
 }
 
 bedload_MPM::~bedload_MPM()

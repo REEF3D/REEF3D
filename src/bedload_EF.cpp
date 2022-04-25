@@ -35,7 +35,6 @@ bedload_EF::bedload_EF(lexer *p, turbulence *pturb) : epsi(1.6*p->DXM)
     visc=p->W2;
     kappa=0.4;
     ks=p->S21*d50;
-    repose=p->S25* (3.14159/180.0);
     Rstar=(rhosed-rhowat)/rhowat;
     Ds= d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
 }

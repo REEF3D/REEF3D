@@ -509,7 +509,6 @@ void lexer::ini_default()
     S22=2650.0;        // double sediment density
     S23=0.000001;     // double sediment fall velocity
     S24=0.5;               // double porosity of sediment layer
-    S25=30.0;             // double angle of respose
     S26_a=650.0;          // double alpha for VRANS sediment
     S26_b=2.2;            // double beta for VRANS sediment
     S30=0.047;          // double Shields parameter
