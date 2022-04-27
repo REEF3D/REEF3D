@@ -75,8 +75,21 @@ void strain::Pk_update(lexer *p, fdm *a, ghostcell *pgc)
 	s13 = (pudz(p,a) + pwdx(p,a));
 	s23 = 0.0;
     }
+    
+            
+    if(i==p->knox-1 && j==5 && p->mpirank==7)
+    cout<<k<<" pudz: "<<pudz(p,a)<<" "<<a->u(i,j,k)<<endl;
+    
+    if(i==p->knox-2 && j==5 && p->mpirank==7)
+    cout<<k<<" pudz_i-1: "<<pudz(p,a)<<" "<<a->u(i,j,k)<<endl;
+    
+    if(i==p->knox-3 && j==5 && p->mpirank==7)
+    cout<<k<<" pudz_i-2: "<<pudz(p,a)<<" "<<a->u(i,j,k)<<endl;
+
 
     Pk(i,j,k) = a->eddyv(i,j,k)*(2.0*s11*s11 + 2.0*s22*s22 + 2.0*s33*s33 + s12*s12 + s13*s13 + s23*s23);
+    
+    a->test(i,j,k)=(pudz(p,a) *pudz(p,a)  );
     }	
 }
 

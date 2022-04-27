@@ -45,6 +45,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 	int count;
 	double zval,fac,topoval,taukin,tauvel,density;
     
+    pgc->start4(p,a->eddyv,1);
     
     SLICELOOP4
     {
@@ -155,7 +156,6 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 		
 	xip= p->XP[IP];
 	yip= p->YP[JP];
-	zip= p->ZP[KP];
 
     zval = a->bedzh(i,j) + p->S116*p->DZN[KP];
 	
@@ -178,9 +178,16 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         v_d=p->ccipol4_a(a->visc,xip,yip,zval);
         v_t=p->ccipol4_a(a->eddyv,xip,yip,zval);
         }
-        
-	
-
+      /*  
+    if(i==p->knox-1 && j==5 && p->mpirank==7)
+    cout<<"eddyv_i: "<<v_t<<" "<<a->eddyv(i,j,k+1)<<endl;
+    
+    if(i==p->knox-2 && j==5 && p->mpirank==7)
+    cout<<"eddyv_i-1: "<<v_t<<" "<<a->eddyv(i,j,k+1)<<endl;
+    
+    if(i==p->knox-3 && j==5 && p->mpirank==7)
+    cout<<"eddyv_i-2: "<<v_t<<" "<<a->eddyv(i,j,k+1)<<endl;
+*/
     u_abs = sqrt(uvel*uvel + vvel*vvel);
     
 
@@ -268,6 +275,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     s->shields_eff(i,j) = tau/(p->W1*((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
     
     }
+    
 }
 
 void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)

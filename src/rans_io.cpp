@@ -52,7 +52,7 @@ void rans_io::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 
 	TPLOOP
 	{
-	ffn=float(p->ipol4(eps));
+	ffn=float(p->ipol4_a(eps));
 	result.write((char*)&ffn, sizeof (float));
 	}
 

@@ -38,9 +38,6 @@ void rans_io::ini(lexer* p, fdm*a, ghostcell* pgc)
 	
 
     plain_wallfunc(p,a,pgc);
-	
-    inflow(p,a,pgc);
-	
 }
 
 
@@ -131,6 +128,22 @@ void rans_io::inflow(lexer* p, fdm*a, ghostcell* pgc)
 		kin(i-1,j,k)=kin(i,j,k);
 		kin(i-2,j,k)=kin(i,j,k);
 		kin(i-3,j,k)=kin(i,j,k);
+        }
+        
+        GC4LOOP
+        if(p->gcb4[n][4]==2)
+        {
+		i=p->gcb4[n][0];
+		j=p->gcb4[n][1];
+		k=p->gcb4[n][2];
+
+		eps(i+1,j,k)=eps(i,j,k);
+		eps(i+2,j,k)=eps(i,j,k);
+		eps(i+2,j,k)=eps(i,j,k);
+
+		kin(i+1,j,k)=kin(i,j,k);
+		kin(i+2,j,k)=kin(i,j,k);
+		kin(i+3,j,k)=kin(i,j,k);
         }
 }
 

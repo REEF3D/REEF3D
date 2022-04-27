@@ -173,20 +173,20 @@ void sediment_f::name_pvtu_bedshear(lexer *p, fdm *a, ghostcell *pgc, ofstream &
 {
     if(p->P79==1)
     {
-    result<<"<PDataArray type=\"Float32\" Name=\"tau_eff\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"tau_crit\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_tau_eff\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_tau_crit\"/>"<<endl;
     }
     
     if(p->P79==2)
     {
-    result<<"<PDataArray type=\"Float32\" Name=\"shearvel_eff\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"shearvel_crit\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_shearvel_eff\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_shearvel_crit\"/>"<<endl;
     }
     
     if(p->P79==2)
     {
-    result<<"<PDataArray type=\"Float32\" Name=\"shields_eff\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"shields_crit\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_shields_eff\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_shields_crit\"/>"<<endl;
     }
 }
 
@@ -194,25 +194,25 @@ void sediment_f::name_vtu_bedshear(lexer *p, fdm *a, ghostcell *pgc, ofstream &r
 {
     if(p->P79==1)
     {
-    result<<"<DataArray type=\"Float32\" Name=\"tau_eff\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"ST_tau_eff\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"tau_crit\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"ST_tau_crit\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     }
     
     if(p->P79==2)
     {
-    result<<"<DataArray type=\"Float32\" Name=\"shearvel_eff\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"ST_shearvel_eff\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"shearvel_crit\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"ST_shearvel_crit\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     }
     
     if(p->P79==3)
     {
-    result<<"<DataArray type=\"Float32\" Name=\"shields_eff\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"ST_shields_eff\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"shields_crit\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"ST_shields_crit\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     }
 }

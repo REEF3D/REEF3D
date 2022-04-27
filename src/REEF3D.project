@@ -407,6 +407,7 @@
         <VirtualDirectory Name="Topo">
           <File Name="sediment_exner.h"/>
           <VirtualDirectory Name="Exnerdisc">
+            <File Name="sediment_cds_hj.h"/>
             <File Name="sediment_exnerdisc.h"/>
             <File Name="sediment_fou.h"/>
             <File Name="sediment_cds.h"/>
@@ -793,9 +794,6 @@
         </VirtualDirectory>
         <VirtualDirectory Name="1D Print">
           <File Name="print_1Dline.h"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="ccipol">
-          <File Name="ccipol.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Print WSF">
           <File Name="print_wsf.h"/>
@@ -1437,6 +1435,7 @@
           <File Name="sediment_exner_timestep.cpp"/>
           <File Name="sediment_exner.cpp"/>
           <VirtualDirectory Name="Exnerdisc">
+            <File Name="sediment_cds_hj.cpp"/>
             <File Name="sediment_cds.cpp"/>
             <File Name="sediment_fou.cpp"/>
             <File Name="sediment_weno_hj.cpp"/>
@@ -2263,9 +2262,6 @@
         </VirtualDirectory>
         <VirtualDirectory Name="1D Print">
           <File Name="print_1Dline.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="ccipol">
-          <File Name="ccipol.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Print WSF">
           <File Name="print_wsf.cpp"/>

@@ -47,7 +47,7 @@ double gradient::pudy(lexer *p, fdm* a)
 
 double gradient::pudz(lexer *p, fdm* a)
 {
-	pip=3;
+	pip=4;
 	grad = (0.5*(a->u(i,j,k+1)+a->u(i-1,j,k+1)) - 0.5*(a->u(i,j,k-1)+a->u(i-1,j,k-1)))/(p->DZP[KP]+p->DZP[KM1]);
 	pip=0;
 

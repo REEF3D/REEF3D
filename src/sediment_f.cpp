@@ -105,6 +105,9 @@ sediment_f::~sediment_f()
 void sediment_f::start(lexer *p, fdm *a, convection *pconvec, ghostcell *pgc, ioflow *pflow,
                                     topo *ptopo, reinitopo *preto, suspended *psusp, bedload *pbed)
 {
+    // bedshear stress
+	pbedshear->taubed(p,a,pgc,s);
+    
 	if((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47))
 	{
 		if(p->S42==1 && p->count%p->S44==0)

@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"topo_relax.h"
 #include"sediment_fou.h"
 #include"sediment_cds.h"
+#include"sediment_cds_hj.h"
 #include"sediment_wenoflux.h"
 #include"sediment_weno_hj.h"
 #include<math.h>
@@ -66,6 +67,9 @@ sediment_exner::sediment_exner(lexer* p, fdm *a, ghostcell* pgc, turbulence *ptu
     
     if(p->S32==2)
     pdx = new sediment_cds(p);
+    
+    if(p->S32==3)
+    pdx = new sediment_cds_hj(p);
     
     if(p->S32==4)
     pdx = new sediment_wenoflux(p);
