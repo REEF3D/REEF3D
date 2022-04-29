@@ -106,7 +106,7 @@ void sediment_f::start(lexer *p, fdm *a, convection *pconvec, ghostcell *pgc, io
                                     topo *ptopo, reinitopo *preto, suspended *psusp, bedload *pbed)
 {
     // bedshear stress
-	pbedshear->taubed(p,a,pgc,s);
+    sedcalc=0;
     
 	if((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47))
 	{
@@ -124,7 +124,12 @@ void sediment_f::start(lexer *p, fdm *a, convection *pconvec, ghostcell *pgc, io
 		sediment_algorithm(p,a,pconvec,pgc,pflow,ptopo,preto,psusp,pbed);
 		p->sedwavetime = p->simtime/p->wT + p->S48;
 		}
+    
+    sedcalc=1;
 	}
+    
+    if(sedcalc==0)
+    pbedshear->taubed(p,a,pgc,s);
 }
 
 void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghostcell *pgc, ioflow *pflow,
@@ -164,7 +169,6 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
     
 	prelax->start(p,a,pgc);
 	
-    
     // filter bedzh
 	if(p->S100>0)
 	filter(p,a,pgc,a->bedzh,p->S100,p->S101);

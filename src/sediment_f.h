@@ -86,7 +86,7 @@ private:
     
     double starttime;
     
-    int volume_token;
+    int volume_token,sedcalc;
     double volume0;
 	
 };

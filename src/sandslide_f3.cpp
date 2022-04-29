@@ -78,8 +78,8 @@ void sandslide_f3::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         pgc->gcslparax_fh(p,fh,4);
         
         // fill back
-        SLICELOOP4
-        a->bedzh(i,j)+=fh(i,j);
+        //SLICELOOP4
+        //a->bedzh(i,j)+=fh(i,j);
         
 
         pgc->gcsl_start4(p,a->bedzh,1);
@@ -271,28 +271,28 @@ void sandslide_f3::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         fh(i,j) +=dzp;
         
         if(id[0]==1)
-        fh(i-1,j) += dzp + a->bedzh(i,j) - a->bedzh(i-1,j) + tan(s->phi(i,j))*p->DXP[IM1] - tan(p->S93*(PI/180.0))*p->DXP[IM1]; 
+        a->bedzh(i-1,j) += dzp + a->bedzh(i,j) - a->bedzh(i-1,j) + tan(s->phi(i,j))*p->DXP[IM1] - tan(p->S93*(PI/180.0))*p->DXP[IM1]; 
         
         if(id[1]==1)
-        fh(i+1,j) += dzp + a->bedzh(i,j) - a->bedzh(i+1,j) + tan(s->phi(i,j))*p->DXP[IP] - tan(p->S93*(PI/180.0))*p->DXP[IP];
+        a->bedzh(i+1,j) += dzp + a->bedzh(i,j) - a->bedzh(i+1,j) + tan(s->phi(i,j))*p->DXP[IP] - tan(p->S93*(PI/180.0))*p->DXP[IP];
         
         if(id[2]==1)
-        fh(i,j-1) += dzp + a->bedzh(i,j) - a->bedzh(i,j-1) + tan(s->phi(i,j))*p->DYP[JM1] - tan(p->S93*(PI/180.0))*p->DYP[JM1];
+        a->bedzh(i,j-1) += dzp + a->bedzh(i,j) - a->bedzh(i,j-1) + tan(s->phi(i,j))*p->DYP[JM1] - tan(p->S93*(PI/180.0))*p->DYP[JM1];
         
         if(id[3]==1)
-        fh(i,j+1) += dzp + a->bedzh(i,j) - a->bedzh(i,j+1) + tan(s->phi(i,j))*p->DYP[JP] - tan(p->S93*(PI/180.0))*p->DYP[JP];
+        a->bedzh(i,j+1) += dzp + a->bedzh(i,j) - a->bedzh(i,j+1) + tan(s->phi(i,j))*p->DYP[JP] - tan(p->S93*(PI/180.0))*p->DYP[JP];
         
         if(id[4]==1)
-        fh(i-1,j-1) += dzp + a->bedzh(i,j) - a->bedzh(i-1,j-1) + tan(s->phi(i,j))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]) - tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]);
+        a->bedzh(i-1,j-1) += dzp + a->bedzh(i,j) - a->bedzh(i-1,j-1) + tan(s->phi(i,j))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]) - tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]);
         
         if(id[5]==1)
-        fh(i-1,j+1) += dzp + a->bedzh(i,j) - a->bedzh(i-1,j+1) + tan(s->phi(i,j))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]) - tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]);  
+        a->bedzh(i-1,j+1) += dzp + a->bedzh(i,j) - a->bedzh(i-1,j+1) + tan(s->phi(i,j))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]) - tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]);  
         
         if(id[6]==1)
-        fh(i+1,j-1) += dzp + a->bedzh(i,j) - a->bedzh(i+1,j-1) + tan(s->phi(i,j))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]) - tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]);
+        a->bedzh(i+1,j-1) += dzp + a->bedzh(i,j) - a->bedzh(i+1,j-1) + tan(s->phi(i,j))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]) - tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]);
         
         if(id[7]==1)
-        fh(i+1,j+1) += dzp + a->bedzh(i,j) - a->bedzh(i+1,j+1) + tan(s->phi(i,j))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]) -tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);
+        a->bedzh(i+1,j+1) += dzp + a->bedzh(i,j) - a->bedzh(i+1,j+1) + tan(s->phi(i,j))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]) -tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);
         
         
         
