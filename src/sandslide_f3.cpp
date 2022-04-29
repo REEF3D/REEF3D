@@ -268,7 +268,7 @@ void sandslide_f3::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         
         dzp = dzp/double(Iup + 1);
         
-        fh(i,j) +=dzp;
+        a->bedzh(i-1,j)(i,j) +=dzp;
         
         if(id[0]==1)
         a->bedzh(i-1,j) += dzp + a->bedzh(i,j) - a->bedzh(i-1,j) + tan(s->phi(i,j))*p->DXP[IM1] - tan(p->S93*(PI/180.0))*p->DXP[IM1]; 
@@ -294,9 +294,6 @@ void sandslide_f3::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         if(id[7]==1)
         a->bedzh(i+1,j+1) += dzp + a->bedzh(i,j) - a->bedzh(i+1,j+1) + tan(s->phi(i,j))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]) -tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);
         
-        
-        
-    // dzi
 }
 
 void sandslide_f3::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc)
