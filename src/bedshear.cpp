@@ -45,7 +45,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 	int count;
 	double zval,fac,topoval,taukin,tauvel,density;
     
-    pgc->start4(p,a->eddyv,1);
+    //pgc->start4(p,a->eddyv,1);
     
     SLICELOOP4
     {
@@ -54,7 +54,6 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     
     xip= p->XP[IP];
 	yip= p->YP[JP];
-    zip= p->ZP[KP];
     dist = p->DZN[KP];
 		
     density = p->W1;
@@ -147,7 +146,6 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 
         ustar=sqrt(tau/density);
         }
-
     }
     
     if(p->S16==3)
@@ -178,7 +176,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         v_d=p->ccipol4_a(a->visc,xip,yip,zval);
         v_t=p->ccipol4_a(a->eddyv,xip,yip,zval);
         }
-      /*  
+/*    
     if(i==p->knox-1 && j==5 && p->mpirank==7)
     cout<<"eddyv_i: "<<v_t<<" "<<a->eddyv(i,j,k+1)<<endl;
     
@@ -190,7 +188,6 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 */
     u_abs = sqrt(uvel*uvel + vvel*vvel);
     
-
     tau=density*(v_d + v_t)*(u_abs/dist);
     }
     
@@ -273,9 +270,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     s->tau_eff(i,j) = taueff_loc(i,j) = tau;
     s->shearvel_eff(i,j) = sqrt(tau/p->W1);
     s->shields_eff(i,j) = tau/(p->W1*((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
-    
     }
-    
 }
 
 void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)

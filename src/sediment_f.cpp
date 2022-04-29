@@ -191,7 +191,6 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
 
 	if(p->mpirank==0)
     cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl<<endl;
-
 }
 
 
