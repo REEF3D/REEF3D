@@ -139,7 +139,7 @@ void state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 	SLICELOOP4
     {
     result.read((char*)&ffn, sizeof (float));
-    a->bedload(i,j)=double(ffn);
+    a->qbe(i,j)=double(ffn);
     }
 	
 	LOOP

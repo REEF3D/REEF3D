@@ -86,14 +86,25 @@ void sediment_exner::topovel(lexer* p,fdm* a, ghostcell *pgc, double& vx, double
         
         
         // complete q
-        dqx = pdx->sx(p,a->bedload,sgx1,sgx2);
-        dqy = pdx->sy(p,a->bedload,sgy1,sgy2);
+        dqx = pdx->sx(p,a->qbe,sgx1,sgx2);
+        dqy = pdx->sy(p,a->qbe,sgy1,sgy2);
         
         vx=dqx;
         vy=dqy;
 		
 	// Exner equations
+    // eq
     vz =  -prelax->rf(p,a,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy) + ws*(a->conc(i,j,k) - pcb->cbed(p,a,pgc,a->topo)); 
+    
+    // non-eq
+    //vz =  -prelax->rf(p,a,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy) + ws*(a->conc(i,j,k) - pcb->cbed(p,a,pgc,a->topo)); 
+    
+    // complete q
+        dqx = pdx->sx(p,a->qbe,sgx1,sgx2);
+        dqy = pdx->sy(p,a->qbe,sgy1,sgy2);
+        
+        vx=dqx;
+        vy=dqy;
 	}
     
 }

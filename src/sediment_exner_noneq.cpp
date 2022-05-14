@@ -28,8 +28,6 @@ Author: Hans Bihs
 
 void sediment_exner::non_equillibrium_solve(lexer* p,fdm* a, ghostcell *pgc, sediment_fdm *s)
 {
-    //SLICELOOP4
-    //a->bedload(i,j) -= p->dtsed*(0.5*(a->P(i,j)+a->P(i+1,j))*dqx0(i,j) + 0.5*(a->Q(i,j)+a->Q(i,j+1))*dqy0(i,j));
     double rhosed=p->S22;
     double rhowat=p->W1;
     double g=9.81;
@@ -43,36 +41,19 @@ void sediment_exner::non_equillibrium_solve(lexer* p,fdm* a, ghostcell *pgc, sed
     
     SLICELOOP4
     {
-   
     Ti=MAX((s->shearvel_eff(i,j)*s->shearvel_eff(i,j)-s->shearvel_crit(i,j)*s->shearvel_crit(i,j))/(s->shearvel_crit(i,j)*s->shearvel_crit(i,j)),0.0);
         
     Ls = 3.0*d50*pow(Ds,0.6)*pow(Ti,0.9);
     
+    //Ls = 4000.0*MAX(s->shields_eff(i,j)-s->shields_crit(i,j), 0.0)*d50;
     
-    Ls = 4000.0*MAX(shields_eff-shields_crit, 0.0)*d50;
-    
-    Ls = p->dtsed/p->DXM*sqrt(pow(0.5*(a->P(i,j)+a->P(i+1,j)),2.0) +  pow(0.5*(a->Q(i,j)+a->Q(i,j+1)),2.0));
+    //Ls = p->dtsed/p->DXM*sqrt(pow(0.5*(a->P(i,j)+a->P(i+1,j)),2.0) +  pow(0.5*(a->Q(i,j)+a->Q(i,j+1)),2.0));
     
     //cout<<Ls<<endl;
 
-    a->bedload(i,j) += Ls*(dqx0(i,j) + dqy0(i,j));
+    a->qb(i,j) =  a->qbe(i,j) + Ls*(dqx0(i,j) + dqy0(i,j));
     }
     
-    SLICELOOP4
-    {
-
-    Ti=MAX((s->shearvel_eff(i,j)*s->shearvel_eff(i,j)-s->shearvel_crit(i,j)*s->shearvel_crit(i,j))/(s->shearvel_crit(i,j)*s->shearvel_crit(i,j)),0.0);
-        
-    Ls = 3.0*d50*pow(Ds,0.6)*pow(Ti,0.9);
-    
-    Ls = 4000.0*MAX(shields_eff-shields_crit, 0.0)*d50;
-    
-    Ls = p->dtsed/p->DXM*sqrt(pow(0.5*(a->P(i,j)+a->P(i+1,j)),2.0) +  pow(0.5*(a->Q(i,j)+a->Q(i,j+1)),2.0));
-    
-    
-    KLOOP
-    a->test(i,j,k) = Ls*(dqx0(i,j) + dqy0(i,j));
-    }
-    pgc->start4a(p,a->test,1);
+    pgc->gcsl_start4(p,a->qb,1);
     
 }

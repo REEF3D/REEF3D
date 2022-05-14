@@ -128,7 +128,7 @@ void state::write(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 
 	SLICELOOP4
     {
-    ffn=a->bedload(i,j);
+    ffn=a->qbe(i,j);
     result.write((char*)&ffn, sizeof (float));
     } 
 	
