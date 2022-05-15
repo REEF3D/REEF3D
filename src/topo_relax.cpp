@@ -62,10 +62,10 @@ void topo_relax::start(lexer *p, fdm * a, ghostcell *pgc)
 			{
 			val = a->topo(i,j,k);
 			zhval = a->bedzh(i,j);
-            qbval = a->bedload(i,j);
+            qbval = a->qbe(i,j);
 			a->topo(i,j,k)=0.0;
 			a->bedzh(i,j)=0.0;
-            a->bedload(i,j)=0.0;
+            a->qbe(i,j)=0.0;
 			distot += dist_S73[n];
 			++distcount;
 			}
@@ -81,7 +81,7 @@ void topo_relax::start(lexer *p, fdm * a, ghostcell *pgc)
 			{
             a->topo(i,j,k) += (1.0-relax)*(-p->S73_val[n]+p->pos_z()) + relax*val;
 			a->bedzh(i,j) += (1.0-relax)*p->S73_val[n] + relax*zhval;
-            a->bedload(i,j) +=  relax*qbval;
+            a->qbe(i,j) +=  relax*qbval;
 			}
 			
 			
@@ -89,7 +89,7 @@ void topo_relax::start(lexer *p, fdm * a, ghostcell *pgc)
 			{
             a->topo(i,j,k) += ((1.0-relax)*(-p->S73_val[n]+p->pos_z()) + relax*val) * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
 			a->bedzh(i,j) += ((1.0-relax)*p->S73_val[n] + relax*zhval) * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
-            a->bedload(i,j) +=  relax*qbval * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
+            a->qbe(i,j) +=  relax*qbval * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
 			}
 			
 			}

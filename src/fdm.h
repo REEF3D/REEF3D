@@ -101,7 +101,7 @@ public:
     slice4 K;
     sliceint4 etaloc;
     
-    slice4 bedload;
+    slice4 qb,qbe;
 
     
     

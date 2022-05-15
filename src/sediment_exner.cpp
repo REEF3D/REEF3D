@@ -84,7 +84,7 @@ sediment_exner::~sediment_exner()
 
 void sediment_exner::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,reinitopo* preto, sediment_fdm *s)
 {   
-    //non_equillibrium_solve(p,a,pgc); 
+    non_equillibrium_solve(p,a,pgc,s); 
    
     SLICELOOP4
     {

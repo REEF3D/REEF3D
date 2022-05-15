@@ -40,7 +40,7 @@ void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
 
     if(p->P15==2)
     num = p->count;
-	
+
 	if(p->P14==0)
 	{
     if(num<10)
@@ -92,7 +92,7 @@ void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
 
 	result<<"<PPointData>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
-	
+
 	result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>"<<endl;
 
 	pturb->name_pvtu(p,a,pgc,result);
@@ -103,64 +103,65 @@ void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
 	pheat->name_pvtu(p,a,pgc,result);
 
     pvort->name_pvtu(p,a,pgc,result);
-	
+
 	pdata->name_pvtu(p,a,pgc,result);
-	
+
 	pconc->name_pvtu(p,a,pgc,result);
-    
+
     if(p->P24==1)
     result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>"<<endl;
-    
+
     if(p->P71==1)
     result<<"<PDataArray type=\"Float32\" Name=\"viscosity\"/>"<<endl;
-    
+
     if(p->P72==1)
     result<<"<PDataArray type=\"Float32\" Name=\"omega_sig\"/>"<<endl;
-    
+
     if(p->P76==1)
     result<<"<PDataArray type=\"Float32\" Name=\"velocity scalar\"/>"<<endl;
-    
+
     if(p->A10==4)
     result<<"<PDataArray type=\"Float32\" Name=\"Fi\"/>"<<endl;
-	
+
 	if(p->P26==1)
 	{
-	result<<"<PDataArray type=\"Float32\" Name=\"ST_cbed\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"ST_qbe\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_qb\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"ST_conc\"/>"<<endl;
 	}
-	
+
 	if(p->P27==1)
 	result<<"<PDataArray type=\"Float32\" Name=\"topo\"/>"<<endl;
-    
+
     if(p->P77==1)
 	psed->name_pvtu_parameter1(p,a,pgc,result);
-    
+
     if(p->P78==1)
 	psed->name_pvtu_parameter2(p,a,pgc,result);
-	
+
 	if(p->P79>=1)
 	psed->name_pvtu_bedshear(p,a,pgc,result);
-    
+
     if(p->P23==1)
 	result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
-	
+
 	result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
-	
+
     if(p->P25==1)
 	result<<"<PDataArray type=\"Float32\" Name=\"solid\"/>"<<endl;
-    
+
 	if(p->P28==1)
 	result<<"<PDataArray type=\"Float32\" Name=\"floating\"/>"<<endl;
-	
+
 	if(p->P29==1)
 	result<<"<PDataArray type=\"Float32\" Name=\"walldist\"/>"<<endl;
-	
+
 	result<<"</PPointData>"<<endl;
 
 	result<<"<PPoints>"<<endl;
 	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>"<<endl;
 	result<<"</PPoints>"<<endl;
-	
+
 	result<<"<Cells>"<<endl;
     result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"/>"<<endl;
     ++n;

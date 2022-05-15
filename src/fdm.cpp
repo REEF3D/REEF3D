@@ -46,7 +46,7 @@ fdm::fdm(lexer *p)
             bed(p),bedzh(p),bedzh0(p),
             dh(p),reduce(p),
             bedk(p),wet(p),
-            bedload(p),
+            qb(p),qbe(p),
             P(p),hx(p),Q(p),hy(p),K(p),
             wbed(p),dwdt(p),
 			rhsvec(p),M(p)
