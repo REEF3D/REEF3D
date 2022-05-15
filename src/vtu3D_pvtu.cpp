@@ -125,8 +125,8 @@ void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
 	
 	if(p->P26==1)
 	{
-	result<<"<PDataArray type=\"Float32\" Name=\"cbed\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"conc\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"ST_cbed\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"ST_conc\"/>"<<endl;
 	}
 	
 	if(p->P27==1)
