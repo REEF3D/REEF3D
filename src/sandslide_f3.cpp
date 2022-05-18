@@ -76,11 +76,6 @@ void sandslide_f3::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         }
         
         pgc->gcslparax_fh(p,fh,4);
-        
-        // fill back
-        //SLICELOOP4
-        //a->bedzh(i,j)+=fh(i,j);
-        
 
         pgc->gcsl_start4(p,a->bedzh,1);
 
@@ -124,8 +119,6 @@ void sandslide_f3::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
             
             id[0]=1;
             
-            s->slideflag(i,j)=1.0;
-            
 		++count;
 		}
 
@@ -143,8 +136,6 @@ void sandslide_f3::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
             
             id[1]=1;
             
-            s->slideflag(i,j)=1.0;
-			
         ++count;
         }
 
@@ -162,8 +153,6 @@ void sandslide_f3::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
             
             id[2]=1;
             
-            s->slideflag(i,j)=1.0;
-			
         ++count;
         }
 
@@ -181,8 +170,6 @@ void sandslide_f3::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
             ++Iup;
             
             id[3]=1;
-            
-            s->slideflag(i,j)=1.0;
 
         ++count;
         }
@@ -201,9 +188,7 @@ void sandslide_f3::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
             ++Iup;
             
             id[4]=1;
-            
-            s->slideflag(i,j)=1.0;
-        
+              
         ++count;
         }
     
@@ -221,9 +206,7 @@ void sandslide_f3::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
             ++Iup;
             
             id[5]=1;
-            
-            s->slideflag(i,j)=1.0;
-			
+            	
         ++count;
         }
 
@@ -241,8 +224,6 @@ void sandslide_f3::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
             
             id[6]=1;
             
-            s->slideflag(i,j)=1.0;
-
         ++count;
         }
     
@@ -260,9 +241,7 @@ void sandslide_f3::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
             ++Iup;
             
             id[7]=1;
-            
-            s->slideflag(i,j)=1.0;
-            
+                      
         ++count;
         }
         
@@ -297,7 +276,9 @@ void sandslide_f3::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         if(id[7]==1)
         a->bedzh(i+1,j+1) += dzp + a->bedzh(i,j) - a->bedzh(i+1,j+1) + tan(s->phi(i,j))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]) -tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);
         
-        a->bedzh(i,j) +=dzp;
+        a->bedzh(i,j) += dzp;
+        s->slideflag(i,j) += dzp;
+        
 }
 
 void sandslide_f3::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc)

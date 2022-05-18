@@ -73,6 +73,10 @@ private:
     void print_parameter(lexer*,ghostcell*);
     void print_stl(lexer*,ghostcell*);
     
+    void read_stl(lexer*, fdm2D*, ghostcell*);
+    void rotation_stl(lexer*,double&,double&,double&);
+    void rotation_stl_quaternion(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
+    
     void iniPosition_RBM(lexer*, fdm2D*, ghostcell*);
     void rotation_tri(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
     void quat_matrices(const Eigen::Vector4d&);
@@ -97,6 +101,7 @@ private:
     double Uext, Vext, Wext, Pext, Qext, Rext;
     Eigen::Matrix3d quatRotMat;
     int reiniter, tricount, n6DOF, printtime;
+    int q;
 
     slice4 press,frk1,frk2,L,dt,fb;
     
@@ -107,12 +112,14 @@ private:
     // Raycast
     sliceint5 cutl,cutr,fbio;
     double **tri_x,**tri_y,**tri_z,**tri_x0,**tri_y0,**tri_z0;
+    double **tri_xn,**tri_yn,**tri_zn;
 	vector<vector<double> > tri_x_r;
 	vector<vector<double> > tri_y_r;
 	vector<vector<double> > tri_z_r;
     double xs,xe,ys,ye,zs,ze;
-    int entity_sum, count, rayiter;
+    int entity_sum,entity_count, count, rayiter;
     int *tstart,*tend;
+    int trisum;
     double epsifb;
     const double epsi; 
 

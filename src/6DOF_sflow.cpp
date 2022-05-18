@@ -29,6 +29,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 sixdof_sflow::sixdof_sflow(lexer *p, fdm2D *b, ghostcell *pgc):press(p),ddweno_f_nug(p),frk1(p),frk2(p),L(p),dt(p),fb(p),fbio(p),cutr(p),cutl(p),epsi(1.6*p->DXM)
 {
+    trisum=1;
+    p->Darray(tri_xn,trisum,3);
+	p->Darray(tri_yn,trisum,3);
+	p->Darray(tri_zn,trisum,3);
 }
 
 sixdof_sflow::~sixdof_sflow()
