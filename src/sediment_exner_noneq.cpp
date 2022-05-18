@@ -39,13 +39,20 @@ void sediment_exner::non_equillibrium_solve(lexer* p,fdm* a, ghostcell *pgc, sed
     double Ds= d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
     double Ti;
     
+    /*
+    SLICELOOP4
+    {
+    dqx0(i,j) = (a->qb(i+1,j)-a->qb(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+    dqy0(i,j) = (a->qb(i,j+1)-a->qb(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+    }*/
+    
     SLICELOOP4
     {
     Ti=MAX((s->shearvel_eff(i,j)*s->shearvel_eff(i,j)-s->shearvel_crit(i,j)*s->shearvel_crit(i,j))/(s->shearvel_crit(i,j)*s->shearvel_crit(i,j)),0.0);
         
-    Ls = 3.0*d50*pow(Ds,0.6)*pow(Ti,0.9);
+    //Ls = 3.0*d50*pow(Ds,0.6)*pow(Ti,0.9);
     
-    //Ls = 4000.0*MAX(s->shields_eff(i,j)-s->shields_crit(i,j), 0.0)*d50;
+    Ls = 4000.0*MAX(s->shields_eff(i,j)-s->shields_crit(i,j), 0.0)*d50;
     
     //Ls = p->dtsed/p->DXM*sqrt(pow(0.5*(a->P(i,j)+a->P(i+1,j)),2.0) +  pow(0.5*(a->Q(i,j)+a->Q(i,j+1)),2.0));
     

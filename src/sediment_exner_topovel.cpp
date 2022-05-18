@@ -86,25 +86,32 @@ void sediment_exner::topovel(lexer* p,fdm* a, ghostcell *pgc, double& vx, double
         
         
         // complete q
+        if(p->S17==0)
+        {
         dqx = pdx->sx(p,a->qbe,sgx1,sgx2);
         dqy = pdx->sy(p,a->qbe,sgy1,sgy2);
+        }
+        
+        if(p->S17==1)
+        {
+        dqx = pdx->sx(p,a->qb,sgx1,sgx2);
+        dqy = pdx->sy(p,a->qb,sgy1,sgy2);
+        }
         
         vx=dqx;
         vy=dqy;
 		
 	// Exner equations
     // eq
+    if(p->S17==0)
     vz =  -prelax->rf(p,a,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy) + ws*(a->conc(i,j,k) - pcb->cbed(p,a,pgc,a->topo)); 
     
     // non-eq
-    //vz =  -prelax->rf(p,a,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy) + ws*(a->conc(i,j,k) - pcb->cbed(p,a,pgc,a->topo)); 
+    if(p->S17==1)
+    vz =  -prelax->rf(p,a,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy) + ws*(a->conc(i,j,k) - pcb->cbed(p,a,pgc,a->topo)); 
     
-    // complete q
-        dqx = pdx->sx(p,a->qbe,sgx1,sgx2);
-        dqy = pdx->sy(p,a->qbe,sgy1,sgy2);
-        
-        vx=dqx;
-        vy=dqy;
+    vx=dqx;
+    vy=dqy;
 	}
     
 }
