@@ -68,6 +68,9 @@ void sixdof_sflow::ray_cast(lexer *p, fdm2D *b, ghostcell *pgc)
 		if(fb(i,j) < -10.0*p->DXM)
 		fb(i,j) = -10.0*p->DXM;
 	}
+    
+    SLICELOOP4
+	b->test(i,j) = fb(i,j);
 	
 	pgc->gcsl_start4(p,fb,50);
 }
@@ -582,11 +585,11 @@ void sixdof_sflow::ray_cast_y(lexer *p, fdm2D *b, ghostcell *pgc, int ts, int te
 		for(i=is;i<ie;i++)
 		{
 		Px = p->XP[IP]+psi;
-		Py = p->global_ymin-10.0*p->DXM ;
-		Pz = b->bed(i,j)+p->wd+psi;;
+		Py = p->global_ymin-10.0*p->DXM;
+		Pz = b->bed(i,j)+p->wd+psi;
 		
 		Qx = p->XP[IP]+psi;
-		Qy = p->global_ymax+10.0*p->DXM ;
+		Qy = p->global_ymax+10.0*p->DXM;
 		Qz = b->bed(i,j)+p->wd+psi;
 		
 		

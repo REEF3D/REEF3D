@@ -44,10 +44,17 @@ void sixdof_sflow::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     {
         cylinder(p,b,pgc);
     }
+    
     else if (p->X400 == 2)
     {
         box(p,b,pgc);
     }
+    
+    else if (p->X400 == 10)
+    {
+        read_stl(p,b,pgc);
+    }
+    
     else
     {
          cout<<"Missing object, define X 110 or X 133 according to X 401"<<endl;

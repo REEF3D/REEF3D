@@ -50,12 +50,7 @@ void sixdof_sflow::start
 )
 {}
 
-void sixdof_sflow::start
-(
-	lexer *p, 
-	fdm2D *b, 
-	ghostcell *pgc
-)
+void sixdof_sflow::start(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     // Move body
     p->xg += Uext*p->dt;
@@ -69,7 +64,7 @@ void sixdof_sflow::start
     {
         updateForcing_hemisphere(p,b,pgc);
     }
-    else if (p->X400 == 2)
+    else if (p->X400 == 2 || p->X400 == 10)
     {
         updateForcing_ship(p,b,pgc);
     }

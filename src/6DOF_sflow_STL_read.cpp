@@ -29,12 +29,22 @@ void sixdof_sflow::read_stl(lexer *p, fdm2D *b, ghostcell *pgc)
 	string word;
 	int count, vert_count;
     double trivec_x,trivec_y,trivec_z;
+    
+    trisum=1;
+    p->Darray(tri_x,trisum,3);
+	p->Darray(tri_y,trisum,3);
+	p->Darray(tri_z,trisum,3);
+    p->Darray(tri_x0,trisum,3);
+	p->Darray(tri_y0,trisum,3);
+	p->Darray(tri_z0,trisum,3); 
 	
 	// read and count number of triangles
-	
+    if(p->mpirank==0)
+	cout<<"reading 6DOF STL "<<endl;
+    
 	ifstream stl("floating.stl", ios_base::in);
     
-    tstart[entity_count]=tricount;
+    //tstart[entity_count]=tricount;
 	
 	count=tricount;
     
@@ -61,16 +71,23 @@ void sixdof_sflow::read_stl(lexer *p, fdm2D *b, ghostcell *pgc)
     pgc->final();
 	exit(0);
 	}
-	
+    
+    if(p->mpirank==0)
+	cout<<"6DOF STL trisum: "<<count<<endl;
+	++count;
 	// create vecs
-	p->Dresize(tri_x,tricount,count,3,3);
-	p->Dresize(tri_y,tricount,count,3,3);
-	p->Dresize(tri_z,tricount,count,3,3);
-	p->Dresize(tri_xn,tricount,count,3,3);
-	p->Dresize(tri_yn,tricount,count,3,3);
-	p->Dresize(tri_zn,tricount,count,3,3);		
+	p->Dresize(tri_x,trisum,count,3,3);
+	p->Dresize(tri_y,trisum,count,3,3);
+	p->Dresize(tri_z,trisum,count,3,3);
+	p->Dresize(tri_x0,trisum,count,3,3);
+	p->Dresize(tri_y0,trisum,count,3,3);
+	p->Dresize(tri_z0,trisum,count,3,3);		
+    
 	
-	tricount=count;
+	trisum=count;
+    
+    if(p->mpirank==0)
+	cout<<"re-reading 6DOF STL "<<endl;
 	
 	// reopen and read triangles
 	stl.open("floating.stl", ios_base::in);
@@ -95,11 +112,17 @@ void sixdof_sflow::read_stl(lexer *p, fdm2D *b, ghostcell *pgc)
 		stl>>tri_x[count][vert_count]>>tri_y[count][vert_count]>>tri_z[count][vert_count];
 		++vert_count;
 		}
+    //if(p->mpirank==0)
+	//cout<<"6DOF STL count "<<count<<endl;
+        
 	}
 	stl.close();
+    
+    if(p->mpirank==0)
+	cout<<"6DOF STL closed "<<endl;
 	
 	tricount = count + 1;
-    tend[entity_count] = tricount;
+    //tend[entity_count] = tricount;
 	
 	// scale STL model
 	if (p->X181 == 1)
