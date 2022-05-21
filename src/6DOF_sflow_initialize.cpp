@@ -38,7 +38,11 @@ void sixdof_sflow::ini(lexer *p, fdm2D *b, ghostcell *pgc)
 	ini_parameter(p,b,pgc);
     
     // Initialise folder structure
+    if(p->X50==1)
 	print_ini_vtp(p,b,pgc);
+    
+    if(p->X50==2)
+    print_ini_stl(p,b,pgc);
     
     // Initialise object 
     if (p->X400 == 1)
@@ -77,6 +81,10 @@ void sixdof_sflow::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     pgc->gcsl_start4(p,b->test,50);
     
     // Print initial body 
+    if(p->X50==1)
+    print_vtp(p,pgc);
+    
+    if(p->X50==2)
     print_stl(p,pgc);
 }
 

@@ -77,8 +77,11 @@ void sixdof_sflow::start(lexer *p, fdm2D *b, ghostcell *pgc)
     // Print
     print_parameter(p,pgc);
     
-    //print_stl(p,pgc);
+    if(p->X50==1)
     print_vtp(p,pgc);
+    
+    if(p->X50==2)
+    print_stl(p,pgc);
 
     SLICELOOP4
     {

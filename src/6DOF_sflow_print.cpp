@@ -29,7 +29,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 
-void sixdof_sflow::print_ini(lexer *p, fdm2D *b, ghostcell *pgc)
+void sixdof_sflow::print_ini_stl(lexer *p, fdm2D *b, ghostcell *pgc)
 {
 	if(p->mpirank==0 && p->P14==1)
     {

@@ -69,7 +69,7 @@ private:
 	void geometry_refinement(lexer*);
 	void create_triangle(double&,double&,double&,double&,double&,double&,double&,double&,double&,const double&,const double&,const double&);
     void ini_parameter(lexer*, fdm2D*, ghostcell*);
-    void print_ini(lexer*, fdm2D*, ghostcell*);
+    void print_ini_stl(lexer*, fdm2D*, ghostcell*);
     void print_parameter(lexer*,ghostcell*);
     void print_stl(lexer*,ghostcell*);
     void print_ini_vtp(lexer*, fdm2D*, ghostcell*);
