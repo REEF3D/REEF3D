@@ -28,7 +28,6 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 
-
 void sixdof_sflow::print_ini_vtp(lexer *p, fdm2D *b, ghostcell *pgc)
 {
 	if(p->mpirank==0 && p->P14==1)
