@@ -1495,8 +1495,8 @@
         </VirtualDirectory>
         <VirtualDirectory Name="SFLOW 6DOF ">
           <VirtualDirectory Name="Print">
+            <File Name="6DOF_sflow_print_stl.cpp"/>
             <File Name="6DOF_sflow_print_vtp.cpp"/>
-            <File Name="6DOF_sflow_print.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="RayCast">
             <File Name="6DOF_sflow_ray_y.cpp"/>
