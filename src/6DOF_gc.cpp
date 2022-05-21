@@ -108,7 +108,12 @@ void sixdof_gc::start_Euler
     pgc->gcfb_update(p,a);
     double endtime1 = pgc->timer()-starttime1;
 
+    if(p->X50==1)
+    print_vtp(p,a,pgc);
+    
+    if(p->X50==2)
     print_stl(p,a,pgc);
+    
     print_E_position(p,a,pgc);
     print_E_velocity(p,a,pgc);
     print_E_force(p,a,pgc);
@@ -134,8 +139,13 @@ void sixdof_gc::start_Quaternion
     solve_quaternion();
 
     solidUpdate(p,a,pgc,e_);
-
+    
+    if(p->X50==1)
+    print_vtp(p,a,pgc);
+    
+    if(p->X50==2)
     print_stl(p,a,pgc);
+    
     print_E_position(p,a,pgc);
     print_E_velocity(p,a,pgc);
     print_E_force(p,a,pgc);

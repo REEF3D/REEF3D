@@ -37,7 +37,7 @@ void sixdof_gc::fluidForces(lexer *p,fdm* a, ghostcell *pgc)
     {
         forces_triang_triangulation(p,a,pgc);
 		forces_triang_reconstruction(p,a,pgc);
-		print_vtp(p,a,pgc);
+		print_forces_vtp(p,a,pgc);
 		forces_triang(p,a,pgc);
 		forces_triang_finalize(p,a,pgc);
     }

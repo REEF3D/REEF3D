@@ -104,13 +104,9 @@ void sixdof_sflow::print_vtp(lexer *p, ghostcell *pgc)
 
         ofstream result;
         result.open(path, ios::binary);
-
+  
         
-        
-        
-        
-        
-       // ---------------------------------------------------
+    // ---------------------------------------------------
     n=0;
 
 	offset[n]=0;

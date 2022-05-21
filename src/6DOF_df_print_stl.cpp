@@ -27,51 +27,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-
-void sixdof_df_object::print_ini(lexer *p, fdm *a, ghostcell *pgc)
-{
-	if(p->mpirank==0 && p->P14==1)
-    {
-        mkdir("./REEF3D_CFD_6DOF_STL", 0777);
-        mkdir("./REEF3D_CFD_6DOF", 0777);
-    }
-	
-    ofstream print;
-    char str[1000];
-
-	if(p->P14==0)
-    sprintf(str,"REEF3D_6DOF_position_%i.dat",n6DOF);
-	if(p->P14==1)
-    sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_position_%i.dat",n6DOF);
-	
-    print.open(str);
-	print<<"time \t XG \t YG \t ZG \t Phi \t Theta \t Psi"<<endl;
-	print.close();
-    
-	
-	if(p->P14==0)
-    sprintf(str,"REEF3D_6DOF_velocity_%i.dat",n6DOF);
-	if(p->P14==1)
-    sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_velocity_%i.dat",n6DOF);
-	
-    print.open(str);
-	print<<"time \t Ue [m/s] \t Ve [m/s] \t We [m/s] \t Pe [rad/s] \t Qe [rad/s] \t Re [rad/s]"<<endl;
-    print.close();
-    
-
-    if(p->P14==0)
-    sprintf(str,"REEF3D_6DOF_forces_%i.dat",n6DOF);
-	if(p->P14==1)
-    sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
-	
-    print.open(str);
-	print<<"time \t Fx \t Fy \t Fz \t Mx \t My \t Mz \t Fx_p \t Fy_p \t Fz_p \t Fx_v \t Fy_v \t Fz_v"<<endl;
-    print.close();    
-
-    curr_time = 0.0;
-}
-
-
 void sixdof_df_object::print_stl(lexer *p, fdm *a, ghostcell *pgc)
 {
 	int num=0;

@@ -24,11 +24,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_gc::print_vtp(lexer* p, fdm* a, ghostcell *pgc)
+void sixdof_gc::print_forces_vtp(lexer* p, fdm* a, ghostcell *pgc)
 {
 	int polygon_num3,polygon_sum3,polygon_sum,vertice_num;
 	if(p->mpirank==0)
-    pvtp(p,a,pgc);
+    forces_pvtp(p,a,pgc);
 	
 	name_iter(p,a,pgc);
 
@@ -221,7 +221,7 @@ void sixdof_gc::print_vtp(lexer* p, fdm* a, ghostcell *pgc)
 }
 
 
-void sixdof_gc::pvtp(lexer* p, fdm* a, ghostcell* pgc)
+void sixdof_gc::forces_pvtp(lexer* p, fdm* a, ghostcell* pgc)
 {
     int num=0;
 
