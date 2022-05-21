@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"6DOF_sflow.h"
@@ -37,7 +38,7 @@ void sixdof_sflow::ini(lexer *p, fdm2D *b, ghostcell *pgc)
 	ini_parameter(p,b,pgc);
     
     // Initialise folder structure
-	print_ini(p,b,pgc);
+	print_ini_vtp(p,b,pgc);
     
     // Initialise object 
     if (p->X400 == 1)
@@ -79,8 +80,6 @@ void sixdof_sflow::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     print_stl(p,pgc);
 }
 
-
-
 void sixdof_sflow::ini_parameter(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     // Prescribed motions
@@ -116,7 +115,9 @@ void sixdof_sflow::ini_parameter(lexer *p, fdm2D *b, ghostcell *pgc)
         p->yg = p->X23_y; 
         p->zg = p->X23_z; 
     }
+    
     else
+    if(p->X400 != 10)
     {
          cout<<"Please provide centre of floating body using X 23!"<<endl;
     }

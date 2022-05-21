@@ -72,6 +72,8 @@ private:
     void print_ini(lexer*, fdm2D*, ghostcell*);
     void print_parameter(lexer*,ghostcell*);
     void print_stl(lexer*,ghostcell*);
+    void print_ini_vtp(lexer*, fdm2D*, ghostcell*);
+    void print_vtp(lexer*,ghostcell*);
     
     void read_stl(lexer*, fdm2D*, ghostcell*);
     void rotation_stl(lexer*,double&,double&,double&);
@@ -94,16 +96,18 @@ private:
     void updateFSI(lexer*, fdm2D*, ghostcell*);
     void updatePosition(lexer*, fdm2D*, ghostcell*);
     void updateForcing_hemisphere(lexer*, fdm2D*, ghostcell*);
+    void updateForcing_box(lexer*, fdm2D*, ghostcell*);
     void updateForcing_ship(lexer*, fdm2D*, ghostcell*);
     void updateForcing_oned(lexer*, fdm2D*, ghostcell*);
 
     double phi, theta, psi;
     double Uext, Vext, Wext, Pext, Qext, Rext;
     Eigen::Matrix3d quatRotMat;
-    int reiniter, tricount, n6DOF, printtime;
+    int reiniter, tricount, n6DOF;
+    double printtime;
     int q;
 
-    slice4 press,frk1,frk2,L,dt,fb;
+    slice4 press,frk1,frk2,L,dt,fb,Ls,Bs;
     
     Eigen::Vector4d e_;
     Eigen::Matrix<double, 3, 4> E_, G_;
@@ -122,6 +126,11 @@ private:
     int trisum;
     double epsifb;
     const double epsi; 
+    
+    // STL
+    double STL_xmin,STL_xmax,STL_ymin,STL_ymax;
+    int iin,offset[100];
+    float ffn;
 
 };
 

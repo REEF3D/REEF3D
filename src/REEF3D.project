@@ -1494,6 +1494,17 @@
           <File Name="6DOF_precalc.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="SFLOW 6DOF ">
+          <VirtualDirectory Name="Print">
+            <File Name="6DOF_sflow_print_vtp.cpp"/>
+            <File Name="6DOF_sflow_print.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="RayCast">
+            <File Name="6DOF_sflow_ray_y.cpp"/>
+            <File Name="6DOF_sflow_ray_x.cpp"/>
+            <File Name="6DOF_sflow_ray_io_ycorr.cpp"/>
+            <File Name="6DOF_sflow_ray_io_x.cpp"/>
+            <File Name="6DOF_sflow_ray.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Objects">
             <File Name="6DOF_sflow_cylinder.cpp"/>
             <File Name="6DOF_sflow_box.cpp"/>
@@ -1501,8 +1512,6 @@
           </VirtualDirectory>
           <File Name="6DOF_sflow_rotation.cpp"/>
           <File Name="6DOF_sflow_reini.cpp"/>
-          <File Name="6DOF_sflow_ray.cpp"/>
-          <File Name="6DOF_sflow_print.cpp"/>
           <File Name="6DOF_sflow_velsource.cpp"/>
           <File Name="6DOF_sflow_update.cpp"/>
           <File Name="6DOF_sflow_initialize.cpp"/>

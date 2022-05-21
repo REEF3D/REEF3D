@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include<sys/stat.h>
@@ -73,6 +74,7 @@ void sixdof_sflow::print_stl(lexer *p, ghostcell *pgc)
 	if(num<0)
 	num=0;
 
+    
     if(p->mpirank==0 && (((p->count%p->P20==0) && p->P30<0.0)  || (p->simtime>printtime && p->P30>0.0)   || p->count==0))
     {
         printtime+=p->P30;

@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"6DOF_sflow.h"
@@ -27,7 +28,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"vrans.h"
    
 
-sixdof_sflow::sixdof_sflow(lexer *p, fdm2D *b, ghostcell *pgc):press(p),ddweno_f_nug(p),frk1(p),frk2(p),L(p),dt(p),fb(p),fbio(p),cutr(p),cutl(p),epsi(1.6*p->DXM)
+sixdof_sflow::sixdof_sflow(lexer *p, fdm2D *b, ghostcell *pgc):press(p),ddweno_f_nug(p),frk1(p),frk2(p),L(p),dt(p),
+                                                              fb(p),fbio(p),cutr(p),cutl(p),Ls(p),Bs(p),epsi(1.6*p->DXM)
 {
     trisum=1;
     p->Darray(tri_xn,trisum,3);
@@ -39,15 +41,7 @@ sixdof_sflow::~sixdof_sflow()
 {
 }
 
-void sixdof_sflow::start
-(
-	lexer *p, 
-	fdm *a, 
-	ghostcell *pgc,
-    double alpha,
-    vrans *pvrans,
-    vector<net*>& pnet
-)
+void sixdof_sflow::start(lexer *p, fdm *a, ghostcell *pgc,double alpha,vrans *pvrans,vector<net*>& pnet)
 {}
 
 void sixdof_sflow::start(lexer *p, fdm2D *b, ghostcell *pgc)
@@ -64,18 +58,27 @@ void sixdof_sflow::start(lexer *p, fdm2D *b, ghostcell *pgc)
     {
         updateForcing_hemisphere(p,b,pgc);
     }
-    else if (p->X400 == 2 || p->X400 == 10)
+    
+    else if (p->X400 == 2)
     {
-        updateForcing_ship(p,b,pgc);
+        updateForcing_box(p,b,pgc);
     }
+    
     else if (p->X400 == 3)
     {
         updateForcing_oned(p,b,pgc);
     }
+    
+    else if (p->X400 == 10)
+    {
+        updateForcing_ship(p,b,pgc);
+    }
 
     // Print
     print_parameter(p,pgc);
-    print_stl(p,pgc);
+    
+    //print_stl(p,pgc);
+    print_vtp(p,pgc);
 
     SLICELOOP4
     {

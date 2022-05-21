@@ -170,6 +170,24 @@ void sixdof_sflow::read_stl(lexer *p, fdm2D *b, ghostcell *pgc)
 		}
 	}
     
+    // xg analysis
+    STL_xmin=1.0e10;
+    STL_xmax=-1.0e10;
+    STL_ymin=1.0e10;
+    STL_ymax=-1.0e10;
+    
+	for(n=0; n<tricount; ++n)
+	for(q=0; q<3; ++q)
+	{
+		STL_xmin = MIN(STL_xmin,tri_x[n][q]);
+        STL_xmax = MAX(STL_xmin,tri_x[n][q]);
+        
+        STL_ymin = MIN(STL_ymin,tri_y[n][q]);
+        STL_ymax = MAX(STL_ymin,tri_y[n][q]);
+	}
+    
+    p->xg = STL_xmin + 0.5*(STL_xmax-STL_xmin);
+    p->yg = STL_ymin + 0.5*(STL_ymax-STL_ymin);
 }
 
 void sixdof_sflow::rotation_stl_quaternion
