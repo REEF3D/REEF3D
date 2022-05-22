@@ -107,7 +107,7 @@ private:
     double printtime;
     int q;
 
-    slice4 press,frk1,frk2,L,dt,fb,Ls,Bs;
+    slice4 press,frk1,frk2,L,dt,fb,Ls,Bs,Rxmin,Rxmax,Rymin,Rymax;
     
     Eigen::Vector4d e_;
     Eigen::Matrix<double, 3, 4> E_, G_;

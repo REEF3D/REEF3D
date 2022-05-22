@@ -166,6 +166,13 @@ void sixdof_sflow::ray_cast_x(lexer *p, fdm2D *b, ghostcell *pgc, int ts, int te
             if(distcheck==1)
 			for(i=0;i<p->knox;++i)
 			fb(i,j)=MIN(fabs(Rx-p->XP[IP]),fabs(fb(i,j)));
+
+            
+			for(i=0;i<p->knox;++i)
+            {
+            Rxmin(i,j) = MIN(Rx,Rxmin(i,j));
+            Rxmax(i,j) = MAX(Rx,Rxmax(i,j));
+            }
 			}
 		}
 	}

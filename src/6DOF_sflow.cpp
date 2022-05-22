@@ -29,7 +29,8 @@ Author: Tobias Martin
    
 
 sixdof_sflow::sixdof_sflow(lexer *p, fdm2D *b, ghostcell *pgc):press(p),ddweno_f_nug(p),frk1(p),frk2(p),L(p),dt(p),
-                                                              fb(p),fbio(p),cutr(p),cutl(p),Ls(p),Bs(p),epsi(1.6*p->DXM)
+                                                              fb(p),fbio(p),cutr(p),cutl(p),Ls(p),Bs(p),
+                                                              Rxmin(p),Rxmax(p),Rymin(p),Rymax(p),epsi(1.6*p->DXM)
 {
     trisum=1;
     p->Darray(tri_xn,trisum,3);

@@ -169,6 +169,12 @@ void sixdof_sflow::ray_cast_y(lexer *p, fdm2D *b, ghostcell *pgc, int ts, int te
             if(distcheck==1)
 			for(j=0;j<p->knoy;++j)
 			fb(i,j)=MIN(fabs(Ry-p->YP[JP]),fabs(fb(i,j)));
+            
+			for(j=0;j<p->knoy;++j)
+            {
+            Rymin(i,j) = MIN(Ry,Rymin(i,j));
+            Rymax(i,j) = MAX(Ry,Rymax(i,j));
+            }
 			}
 		}
 	}

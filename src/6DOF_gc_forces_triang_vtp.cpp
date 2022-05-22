@@ -27,6 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void sixdof_gc::print_forces_vtp(lexer* p, fdm* a, ghostcell *pgc)
 {
 	int polygon_num3,polygon_sum3,polygon_sum,vertice_num;
+    
 	if(p->mpirank==0)
     forces_pvtp(p,a,pgc);
 	

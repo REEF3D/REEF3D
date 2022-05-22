@@ -156,17 +156,12 @@ void sixdof_sflow::updateForcing_box(lexer *p, fdm2D *b, ghostcell *pgc)
 void sixdof_sflow::updateForcing_ship(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     // Calculate ship-like pressure field
-    double H, press0, xpos, ypos, Ls, Bs, as, cl, cb;
+    double H, press0, xpos, ypos, as, cl, cb;
 
     press0 = p->X401_p0;
     as = p->X401_a; 
     cl = p->X401_cl;
     cb = p->X401_cb;
-
- 
-    Ls = STL_xmax-STL_xmin;
-    Bs = STL_ymax-STL_ymin;
-
 
 	SLICELOOP4
     {
@@ -174,14 +169,17 @@ void sixdof_sflow::updateForcing_ship(lexer *p, fdm2D *b, ghostcell *pgc)
         ypos = p->pos_y() - p->yg;
         H = Hsolidface(p,0,0);
         
-        if (xpos <= Ls/2.0 && xpos >= -Ls/2.0 && ypos <= Bs/2.0 && ypos >= -Bs/2.0)
+        //if (xpos <= Ls/2.0 && xpos >= -Ls/2.0 && ypos <= Bs/2.0 && ypos >= -Bs/2.0)
+        if(fb(i,j)<0.0)
         {
-            press(i,j) = -H*press0*(1.0 - cl*pow(xpos/Ls,4.0))*(1.0 - cb*pow(ypos/Bs,2.0))*exp(-as*pow(ypos/Bs,2.0));
+            press(i,j) = -H*press0*(1.0 - cl*pow(xpos/Ls(i,j),4.0))*(1.0 - cb*pow(ypos/Bs(i,j),2.0))*exp(-as*pow(ypos/Bs(i,j),2.0));
         }
+        
         else
         {
             press(i,j) = 0.0;
         }
+    //b->test(i,j) = Bs(i,j);
     }
     
     pgc->gcsl_start4(p,press,50);

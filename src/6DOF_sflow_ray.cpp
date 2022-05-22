@@ -33,6 +33,12 @@ void sixdof_sflow::ray_cast(lexer *p, fdm2D *b, ghostcell *pgc)
 	{
         fbio(i,j)=1;
 	    fb(i,j)=1.0e9;
+        Rxmin(i,j)=1.0e9;
+        Rxmax(i,j)=-1.0e9;
+        Rymin(i,j)=1.0e9;
+        Rymax(i,j)=-1.0e9;
+        Ls(i,j) = 1.0e-6;
+        Bs(i,j) = 1.0e-6;
 	}
 	
     for(int rayiter=0; rayiter<2; ++rayiter)
@@ -69,6 +75,15 @@ void sixdof_sflow::ray_cast(lexer *p, fdm2D *b, ghostcell *pgc)
 		if(fb(i,j) < -10.0*p->DXM)
 		fb(i,j) = -10.0*p->DXM;
 	}
+    
+    SLICELOOP4
+	{
+    if(Rxmax(i,j)>-1.0e9 && Rxmin(i,j)<1.0e9)
+    Ls(i,j) = Rxmax(i,j)-Rxmin(i,j);
+    
+    if(Rymax(i,j)>-1.0e8 && Rymin(i,j)<1.0e8)
+    Bs(i,j) = Rymax(i,j)-Rymin(i,j);
+    }
     
     SLICELOOP4
 	b->test(i,j) = fb(i,j);
