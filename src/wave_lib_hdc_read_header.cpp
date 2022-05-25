@@ -117,6 +117,7 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
         {
         header.read((char*)&ddn, sizeof (double));
         simtime[n]=ddn;
+        //cout<<simtime[n]<<endl;
         }
         
         t_start = simtime[0];
