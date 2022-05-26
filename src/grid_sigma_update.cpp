@@ -64,6 +64,7 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slic
     if(p->j_dir==0 && p->A312==1)
     SLICELOOP4
     {
+    k=p->knoz-1;
     Pval = 0.5*(a->u(i,j,k)+a->u(i-1,j,k));
     Qval = 0.5*(a->v(i,j,k)+a->v(i,j-1,k));
     
@@ -102,6 +103,7 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slic
     if(p->j_dir==0 && p->A312==1)
     SLICELOOP4
     {
+    k=0;
     Pval = 0.5*(a->u(i,j,k)+a->u(i-1,j,k));
     
     if(Pval>=0.0)

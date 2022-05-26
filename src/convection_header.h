@@ -33,7 +33,7 @@ Author: Hans Bihs
 #include"weno_hj_6DOF_nug.h"
 #include"weno_flux.h"
 #include"weno_flux_nug.h"
-#include"weno_flux_nug_dir.h"
+#include"weno_flux_nug_sig.h"
 #include"iweno_hj.h"
 #include"iweno_hj_nug.h"
 #include"weno3_hj.h"
