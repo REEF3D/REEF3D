@@ -129,6 +129,9 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
     ULOOP
     {
         uf = u_fb(0) + u_fb(4)*(p->pos1_z() - c_(2)) - u_fb(5)*(p->pos1_y() - c_(1));
+        
+        // blend uf with tangential velocity
+        
         H = Hsolidface(p,a,1,0,0);
        
         fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha*p->dt);   
@@ -154,6 +157,7 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
     {
         H = Hsolidface(p,a,0,0,0);
         a->fbh4(i,j,k) = min(a->fbh4(i,j,k) + H, 1.0); 
+        a->test(i,j,k) = a->fbh4(i,j,k);
     }
 
     pgc->start1(p,a->fbh1,10);

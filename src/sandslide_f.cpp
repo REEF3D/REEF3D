@@ -76,7 +76,10 @@ void sandslide_f::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         
         // fill back
         SLICELOOP4
+        {
+        s->slideflag(i,j)+=fh(i,j);
         a->bedzh(i,j)+=fh(i,j);
+        }
         
 
         pgc->gcsl_start4(p,a->bedzh,1);
@@ -110,8 +113,6 @@ void sandslide_f::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
             fh(i,j)-= fac1*dh_corr;
             fh(i-1,j)+= fac1*dh_corr;
             
-            s->slideflag(i,j)=1.0;
-            
 		++count;
 		}
 
@@ -126,9 +127,7 @@ void sandslide_f::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
             
             fh(i,j)-= fac1*dh_corr;
             fh(i+1,j)+= fac1*dh_corr;
-            
-            s->slideflag(i,j)=1.0;
-			
+
         ++count;
         }
 
@@ -144,8 +143,6 @@ void sandslide_f::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
             fh(i,j)-= fac1*dh_corr;
             fh(i,j-1)+= fac1*dh_corr;
             
-            s->slideflag(i,j)=1.0;
-			
         ++count;
         }
 
@@ -162,8 +159,6 @@ void sandslide_f::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
             fh(i,j)-= fac1*dh_corr;
             fh(i,j+1)+= fac1*dh_corr;
             
-            s->slideflag(i,j)=1.0;
-
         ++count;
         }
 		
@@ -180,8 +175,6 @@ void sandslide_f::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
             fh(i,j)-= fac2*dh_corr;
             fh(i-1,j-1)+= fac2*dh_corr;
             
-            s->slideflag(i,j)=1.0;
-        
         ++count;
         }
     
@@ -198,8 +191,6 @@ void sandslide_f::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
             fh(i,j)-= fac2*dh_corr;
             fh(i-1,j+1)+= fac2*dh_corr;
             
-            s->slideflag(i,j)=1.0;
-			
         ++count;
         }
 
@@ -215,8 +206,6 @@ void sandslide_f::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 			fh(i,j)-= fac2*dh_corr;
             fh(i+1,j-1)+= fac2*dh_corr;
             
-            s->slideflag(i,j)=1.0;
-
         ++count;
         }
     
@@ -231,8 +220,6 @@ void sandslide_f::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
       
             fh(i,j)-= fac2*dh_corr;
             fh(i+1,j+1)+= fac2*dh_corr;
-            
-            s->slideflag(i,j)=1.0;
             
         ++count;
         }

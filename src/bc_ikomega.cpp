@@ -85,6 +85,7 @@ void bc_ikomega::bckeps_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
         }
 	}
 
+// ----------------- 
 	if(gcval==30)
 	{
 		QGC4LOOP
