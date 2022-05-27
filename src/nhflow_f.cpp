@@ -72,13 +72,6 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, sli
     {
     Pval = 0.5*(a->u(i,j,k)+a->u(i-1,j,k));
     Qval = 0.5*(a->v(i,j,k)+a->v(i,j-1,k));
-    /*
-    if(Pval>=0.0)
-     udetax  = a->u(i-1,j,k)*(a->eta(i,j)-a->eta(i-1,j))/p->DXP[IP];
-     
-     if(Pval<0.0)
-     udetax  = a->u(i,j,k)*(a->eta(i+1,j)-a->eta(i,j))/p->DXP[IP1];
-        */
         
     wval = (a->eta(i,j) - a->eta_n(i,j))/p->dt
         

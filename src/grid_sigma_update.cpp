@@ -259,7 +259,7 @@ void grid_sigma::sigma_update(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slic
 
 void grid_sigma::omega_update(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w, slice &eta, slice &eta_n, double alpha)
 { 
-    double wval,Pval;
+    double wval,Pval,Qval,Rval;
     
     WLOOP
     {
@@ -268,14 +268,31 @@ void grid_sigma::omega_update(lexer *p, fdm *a, ghostcell *pgc, field &u, field 
         
     if(0.5*(u(i-1,j,k+1) + u(i,j,k+1))<0.0)
     Pval=0.5*(u(i,j,k) + u(i,j,k+1));
+    
+    
+    if(0.5*(v(i,j-1,k+1) + v(i,j,k+1))>=0.0)
+    Qval=0.5*(v(i,j-1,k) + v(i,j-1,k+1));
+        
+    if(0.5*(v(i,j-1,k+1) + v(i,j,k+1))<0.0)
+    Qval=0.5*(v(i,j,k) + v(i,j,k+1));
+    
+    
+    
+    if(w(i,j,k)>=0.0)
+    Rval=0.5*(w(i,j,k) + w(i,j,k-1));
+        
+    if(w(i,j,k)<0.0)
+    Rval=0.5*(w(i,j,k) + w(i,j,k+1));
+    
+    
         
     a->omega(i,j,k) =  p->sigt[FIJKp1]
                     
                     +  Pval*p->sigx[FIJKp1]
                     
-                    +  0.25*(v(i,j-1,k) + v(i,j-1,k+1) + v(i,j,k) + v(i,j,k+1))*p->sigy[FIJKp1]
+                    +  Qval*p->sigy[FIJKp1]
                     
-                    +  w(i,j,k)*p->sigz[IJ];
+                    +  Rval*p->sigz[IJ];
                     
     }
     

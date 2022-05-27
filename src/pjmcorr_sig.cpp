@@ -39,7 +39,7 @@ Author: Hans Bihs
 #include"density_heat.h"
 #include"density_vof.h"
  
-pjmcorr_sig::pjmcorr_sig(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc)
+pjmcorr_sig::pjmcorr_sig(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc) : teta(0.5)
 {
     if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0)
 	pd = new density_f(p);
@@ -54,7 +54,6 @@ pjmcorr_sig::pjmcorr_sig(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concent
 	pd = new density_conc(p,pconc);
 
     gcval_press=540;  
-    teta=0.5;
 }
 
 pjmcorr_sig::~pjmcorr_sig()

@@ -31,7 +31,7 @@ Author: Hans Bihs
 #include"density_heat.h"
 #include"density_vof.h"
 
-poisson_sig::poisson_sig(lexer * p, heat *&pheat, concentration *&pconc)  
+poisson_sig::poisson_sig(lexer * p, heat *&pheat, concentration *&pconc) : teta(0.5)  
 {
     if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0)
 	pd = new density_f(p);
@@ -47,8 +47,7 @@ poisson_sig::poisson_sig(lexer * p, heat *&pheat, concentration *&pconc)
     
     if(p->F80>0 && p->H10==0 && p->W30==0)
 	pd = new density_vof(p);
-    
-    teta=0.5;
+
 }
 
 poisson_sig::~poisson_sig()

@@ -129,7 +129,6 @@ nt 8 -
                 
                 if(p->D37==3)
                 {
-
                 M[n*9] -= (sigxyz2*CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*p->DZP[KP]*p->DZN[KP]);
                 M[n*9] += (sigxyz2*CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*teta*p->DZP[KP]*p->DZN[KP]);
                            

@@ -55,7 +55,7 @@ public:
 
 private:
 	double starttime,endtime;
-    double teta;
+    const double teta;
     int check;
 	int count, gcval_press;
 	int gcval_u, gcval_v, gcval_w;
