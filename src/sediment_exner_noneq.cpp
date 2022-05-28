@@ -57,8 +57,11 @@ void sediment_exner::non_equillibrium_solve(lexer* p,fdm* a, ghostcell *pgc, sed
     //Ls = p->dtsed/p->DXM*sqrt(pow(0.5*(a->P(i,j)+a->P(i+1,j)),2.0) +  pow(0.5*(a->Q(i,j)+a->Q(i,j+1)),2.0));
     
     //cout<<Ls<<endl;
+    
+    Ls = MAX(Ls,0.0);
+    Ls = MIN(Ls,1.0);
 
-    a->qb(i,j) =  a->qbe(i,j) + Ls*(dqx0(i,j) + dqy0(i,j));
+    a->qb(i,j) =  a->qbe(i,j) - Ls*(dqx0(i,j) + dqy0(i,j));
     }
     
     pgc->gcsl_start4(p,a->qb,1);

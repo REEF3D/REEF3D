@@ -27,8 +27,9 @@ Author: Hans Bihs
 #include"bedconc.h"
 #include"topo_relax.h"
 #include"sediment_exnerdisc.h"
+#include"sediment_fdm.h"
 
-void sediment_exner::topovel(lexer* p,fdm* a, ghostcell *pgc, double& vx, double& vy, double& vz)
+void sediment_exner::topovel(lexer* p,fdm* a, ghostcell *pgc, sediment_fdm *s, double& vx, double& vy, double& vz)
 {
 	double uvel,vvel,u_abs;
 	double signx,signy;
@@ -101,17 +102,22 @@ void sediment_exner::topovel(lexer* p,fdm* a, ghostcell *pgc, double& vx, double
         vx=dqx;
         vy=dqy;
 		
-	// Exner equations
-    // eq
-    if(p->S17==0)
-    vz =  -prelax->rf(p,a,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy) + ws*(a->conc(i,j,k) - pcb->cbed(p,a,pgc,a->topo)); 
-    
-    // non-eq
-    if(p->S17==1)
-    vz =  -prelax->rf(p,a,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy) + ws*(a->conc(i,j,k) - pcb->cbed(p,a,pgc,a->topo)); 
-    
-    vx=dqx;
-    vy=dqy;
+        // Exner equations
+        // eq
+        if(p->S17==0)
+        vz =  -prelax->rf(p,a,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy) + ws*(a->conc(i,j,k) - pcb->cbed(p,a,pgc,a->topo)); 
+        
+        // non-eq
+        if(p->S17==1)
+        {
+        Ls = 4000.0*MAX(s->shields_eff(i,j)-s->shields_crit(i,j), 0.0)*d50;
+        
+         
+        vz =  prelax->rf(p,a,pgc)*(1.0/(1.0-p->S24))*(1.0/(Ls>1.0e-10?Ls:1.0e10))*(a->qb(i,j)-a->qbe(i,j)) + ws*(a->conc(i,j,k) - pcb->cbed(p,a,pgc,a->topo)); 
+        
+        //vz =  -prelax->rf(p,a,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy) + ws*(a->conc(i,j,k) - pcb->cbed(p,a,pgc,a->topo));
+        }
+        
 	}
     
 }

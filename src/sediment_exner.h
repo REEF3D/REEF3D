@@ -43,7 +43,7 @@ public:
 
 
 private:
-    void  topovel(lexer*,fdm*,ghostcell*,double&,double&,double&);
+    void  topovel(lexer*,fdm*,ghostcell*,sediment_fdm*,double&,double&,double&);
     void  timestep(lexer*,fdm*,ghostcell*,sediment_fdm*);
     void  non_equillibrium_solve(lexer*,fdm*,ghostcell*,sediment_fdm*);
     

@@ -88,7 +88,7 @@ void sediment_exner::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,
    
     SLICELOOP4
     {
-		topovel(p,a,pgc,vx,vy,vz);
+		topovel(p,a,pgc,s,vx,vy,vz);
         dqx0(i,j) = vx;
         dqy0(i,j) = vy;
 		s->vz(i,j) = vz;
