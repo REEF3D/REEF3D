@@ -540,6 +540,7 @@ void lexer::ini_default()
     S84=1;                  // int type of critical bed shear stress reduction limiters
     S90=0;                  // int sandslide on/off
     S91=1;                  // int number of sandslide iterations
+    S92=1.0;                // double sandslide correction factor
     S93=0.0;				// double delta phi for sandlide correciton
 	S100=0;					// int number of bed filter outer iterations
     S101=0;					// int number of bed filter inner iterations

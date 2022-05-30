@@ -1062,8 +1062,8 @@ void lexer::ctrlrecv()
 	ii++;
     S91 = ictrl[ii];
 	ii++;
-    S93 = dctrl[dd];
-	dd++;
+    S92 = dctrl[dd];
+	dd++;    S93 = dctrl[dd];	dd++;
 	S100 = ictrl[ii];
 	ii++;
 	S101 = ictrl[ii];
