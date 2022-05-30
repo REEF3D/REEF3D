@@ -89,7 +89,7 @@ void strain::Pk_update(lexer *p, fdm *a, ghostcell *pgc)
 
     Pk(i,j,k) = a->eddyv(i,j,k)*(2.0*s11*s11 + 2.0*s22*s22 + 2.0*s33*s33 + s12*s12 + s13*s13 + s23*s23);
     
-    a->test(i,j,k)=(2.0*s11*s11 + 2.0*s22*s22 + 2.0*s33*s33 + s12*s12 + s13*s13 + s23*s23);
+    //a->test(i,j,k)=(2.0*s11*s11 + 2.0*s22*s22 + 2.0*s33*s33 + s12*s12 + s13*s13 + s23*s23);
     }	
 }
 

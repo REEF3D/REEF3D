@@ -70,26 +70,4 @@ void bedload_VRc::start(lexer* p, fdm* a, ghostcell* pgc, sediment_fdm *s)
     
     pgc->gcsl_start4a(p,a->qbe,1);    
     
-    
-    // non-eq calc
-    
-    
-    
-    
-    /*slice4 tt(p);
-    
-    SLICELOOP4
-    {
-    taubed(p,a,pgc,tau_eff,shearvel_eff,shields_eff);
-    taucritbed(p,a,pgc,tau_crit,shearvel_crit,shields_crit);
-    
-    
-    tt(i,j) = shields_crit;
-    }
-    
-    ALOOP
-    {
-    a->test(i,j,k) = tt(i,j);
-    }
-    pgc->start4a(p,a->test,1);*/
 }
