@@ -33,9 +33,10 @@ Author: Hans Bihs
 #include"sediment_cds_hj.h"
 #include"sediment_wenoflux.h"
 #include"sediment_weno_hj.h"
+#include"sflow_bicgstab.h"
 #include<math.h>
 
-sediment_exner::sediment_exner(lexer* p, fdm *a, ghostcell* pgc, turbulence *pturb) :  bedshear(p,pturb), q0(p),dqx0(p),dqy0(p)
+sediment_exner::sediment_exner(lexer* p, fdm *a, ghostcell* pgc, turbulence *pturb) :  bedshear(p,pturb), q0(p),dqx0(p),dqy0(p), xvec(p),rhsvec(p),M(p)
 {
 	if(p->S50==1)
 	gcval_topo=151;
@@ -76,6 +77,8 @@ sediment_exner::sediment_exner(lexer* p, fdm *a, ghostcell* pgc, turbulence *ptu
     
     if(p->S32==5)
     pdx = new sediment_weno_hj(p);
+    
+    psolv = new sflow_bicgstab(p,pgc);
 }
 
 sediment_exner::~sediment_exner()

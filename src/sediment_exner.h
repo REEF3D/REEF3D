@@ -23,9 +23,12 @@ Author: Hans Bihs
 #include"topo.h"
 #include"slice4.h"
 #include"bedshear.h"
+#include"vec2D.h"
+#include"matrix2D.h"
 
 class bedconc;
 class topo_relax;
+class solver2D;
 class turbulence;
 class ghostcell;
 
@@ -50,6 +53,11 @@ private:
     bedconc *pcb;
     topo_relax *prelax;
     sediment_exnerdisc *pdx;
+    solver2D *psolv;
+    
+    vec2D xvec,rhsvec;
+
+	matrix2D M;
     
 	int gcval_topo;
 	double starttime;
