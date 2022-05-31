@@ -378,8 +378,73 @@ double interpolation::sl_ipol4eta(sliceint &wet,slice &f, slice &bed)
 
     bedvalue = 0.25*(v1+v2+v3+v4);
     
-    if(wet(i,j)==0 && wet(i+1,j)==0 && wet(i,j+1)==0 && wet(i+1,j+1)==0)
+    if(wet(i,j)==0 && wet(i+1,j)==0 && wet(i,j+1)==0 && wet(i+1,j+1)==0 && p->flagslice4[IJ]==1 && p->flagslice4[Ip1J]==1 && p->flagslice4[IJp1]==1 && p->flagslice4[Ip1Jp1]==1)
     value = MIN(value, bedvalue-p->wd-p->DXM);
+    }
+    
+    if(p->flagslice4[IJ]<0 || p->flagslice4[Ip1J]<0 || p->flagslice4[IJp1]<0 || p->flagslice4[Ip1Jp1]<0)
+    {
+    v1=v2=v3=v4=0.0;
+    
+    if(p->j_dir==0)
+    {
+    jj=j;
+    
+    j=0;
+    pip=4;
+    v1=f(i,j);
+
+    v2=f(i+1,j);
+
+    pip=0;
+
+    value = 0.5*(v1+v2);
+    
+    //bed
+    pip=4;
+    v1=bed(i,j);
+
+    v2=bed(i+1,j);
+
+    pip=0;
+
+    bedvalue = 0.5*(v1+v2);
+    
+    j=jj;
+    }
+    
+    if(p->j_dir==1)
+    {
+    pip=4;
+    v1=f(i,j);
+
+    v2=f(i+1,j);
+
+    v3=f(i,j+1);
+
+    v4=f(i+1,j+1);
+    pip=0;
+
+    value = 0.25*(v1+v2+v3+v4);
+    
+    //bed
+    pip=4;
+    v1=bed(i,j);
+
+    v2=bed(i+1,j);
+    
+    v3=bed(i,j+1);
+
+    v4=bed(i+1,j+1);
+    pip=0;
+
+    bedvalue = 0.25*(v1+v2+v3+v4);
+    }
+    
+    
+    if(value+p->wd>bedvalue)
+    if(value+p->wd-bedvalue<wd_criterion)
+    value=value-1.0*wd_criterion;
     }
     
     return value;
