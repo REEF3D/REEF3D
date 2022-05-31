@@ -140,7 +140,7 @@ void bedslope::slope_weno(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     s->gamma(i,j)=0.0;
 
 	if(fabs(nx)>=1.0e-10 || fabs(ny)>=1.0e-10)
-	s->gamma(i,j) = PI*0.5 - acos(	(nx0*nx0 + ny0*ny0 + nz0*0.0)/( sqrt(nx0*nx0 + ny0*ny0 + nz0*nz0 )*sqrt(nx0*nx0 + ny0*ny0 + nz0*0.0))+1e-20);
+	s->gamma(i,j) = PI*0.5 - acos(	(nx1*nx1 + ny1*ny1 + nz1*0.0)/( sqrt(nx1*nx1 + ny1*ny1 + nz1*nz1 )*sqrt(nx1*nx1 + ny1*ny1 + nz1*0.0))+1e-20);
 	
     
     s->phi(i,j) = midphi + MIN(1.0,fabs(s->teta(i,j)/midphi))*(s->teta(i,j)/(fabs(s->gamma(i,j))>1.0e-20?fabs(s->gamma(i,j)):1.0e20))*delta; 
@@ -233,9 +233,14 @@ void bedslope::slope_cds(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 	//if(fabs(nx0)>=1.0e-10 || fabs(ny0)>=1.0e-10)
 	//s->gamma(i,j) = PI*0.5 - acos((nx0*nx0 + ny0*ny0 + nz0*0.0)/( sqrt(nx0*nx0 + ny0*ny0 + nz0*nz0 )*sqrt(nx0*nx0 + ny0*ny0 + nz0*0.0))+1e-20);
     
-    if(fabs(nx)>=1.0e-10 || fabs(ny)>=1.0e-10)
-	s->gamma(i,j) = PI*0.5 - acos((nx*nx + ny*ny + nz*0.0)/( sqrt(nx*nx + ny*ny + nz*nz)*sqrt(nx*nx + ny*ny + nz*0.0))+1e-20);
+    //if(fabs(nx)>=1.0e-10 || fabs(ny)>=1.0e-10)
+	//s->gamma(i,j) = PI*0.5 - acos((nx*nx + ny*ny + nz*0.0)/( sqrt(nx*nx + ny*ny + nz*nz)*sqrt(nx*nx + ny*ny + nz*0.0))+1e-20);
+    
+    s->gamma(i,j) = atan(sqrt(bx0*bx0 + by0*by0));
 	
+    KLOOP
+    if(fabs(nx)>=1.0e-10 || fabs(ny)>=1.0e-10)
+    a->test(i,j,k) = (PI*0.5 - acos((nx*nx + ny*ny + nz*0.0)/( sqrt(nx*nx + ny*ny + nz*nz)*sqrt(nx*nx + ny*ny + nz*0.0))+1e-20))*180.0/PI;
     
     s->phi(i,j) = midphi + MIN(1.0,fabs(s->teta(i,j)/midphi))*(s->teta(i,j)/(fabs(s->gamma(i,j))>1.0e-20?fabs(s->gamma(i,j)):1.0e20))*delta; 
     }

@@ -113,7 +113,7 @@ void sixdof_df_object::forces_stl
 
 			// Add normal stress contributions
 
-            xlocp = xc + p->X42*nx*p->DXP[IP];
+             xlocp = xc + p->X42*nx*p->DXP[IP];
 			ylocp = yc + p->X42*ny*p->DYP[JP];
 			zlocp = zc + p->X42*nz*p->DZP[KP];
 
@@ -121,7 +121,7 @@ void sixdof_df_object::forces_stl
 			
 			Fp_x = -nx*p_int*A_triang;
 			Fp_y = -ny*p_int*A_triang;
-            Fp_z = -nz*p_int*A_triang;
+             Fp_z = -nz*p_int*A_triang;
 		
 		   
              // Add tangential stress contributions
@@ -130,11 +130,11 @@ void sixdof_df_object::forces_stl
             ylocvel = yc + p->X43*ny*p->DYP[JP];
             zlocvel = zc + p->X43*nz*p->DZP[KP];
             
-            nu_int = p->ccipol4_a(a->visc,xlocvel,ylocvel,zlocvel);
+             nu_int = p->ccipol4_a(a->visc,xlocvel,ylocvel,zlocvel);
 			enu_int = 0.0; //p->ccipol4_a(a->eddyv,xlocvel,ylocvel,zlocvel);
 			rho_int = p->ccipol4_a(a->ro,xlocvel,ylocvel,zlocvel);
 	        
-            i = p->posc_i(xlocvel);
+             i = p->posc_i(xlocvel);
 			j = p->posc_j(ylocvel);
 			k = p->posc_k(zlocvel);
             

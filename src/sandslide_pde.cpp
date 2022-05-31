@@ -141,24 +141,7 @@ void sandslide_pde::diff_update(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm 
     bx0 = (a->bedzh(i+1,j)-a->bedzh(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
     by0 = (a->bedzh(i,j+1)-a->bedzh(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
      
-    nx0 = bx0/sqrt(bx0*bx0 + by0*by0 + 1.0);
-    ny0 = by0/sqrt(bx0*bx0 + by0*by0 + 1.0);
-    nz0 = 1.0;
-     
-    norm=sqrt(nx0*nx0 + ny0*ny0 + nz0*nz0);
-     
-     
-    nx0/=norm>1.0e-20?norm:1.0e20;
-	ny0/=norm>1.0e-20?norm:1.0e20;
-	nz0/=norm>1.0e-20?norm:1.0e20;
-	
-    //-----------
-
-    if(fabs(nx)<1.0e-10 && fabs(ny)<1.0e-10)
-    gamma=0.0;
-
-	if(fabs(nx)>=1.0e-10 || fabs(ny)>=1.0e-10)
-	gamma = PI*0.5 - acos(	(nx0*nx0 + ny0*ny0 + nz0*0.0)/( sqrt(nx0*nx0 + ny0*ny0 + nz0*nz0 )*sqrt(nx0*nx0 + ny0*ny0 + nz0*0.0))+1e-20);
+    gamma = atan(sqrt(bx0*bx0 + by0*by0));
 
             /*
             if(fabs(dH)>tan(s->phi(i,j)))
