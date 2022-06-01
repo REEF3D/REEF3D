@@ -376,7 +376,7 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pt
 	}
 
 
-    //  Offset of Connectivity
+    // Offset of Connectivity
     iin=4*(p->polygon_sum);
     result.write((char*)&iin, sizeof (int));
 	for(n=0;n<p->polygon_sum;++n)
