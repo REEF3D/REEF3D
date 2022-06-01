@@ -165,25 +165,13 @@ void sixdof_sflow::updateForcing_ship(lexer *p, fdm2D *b, ghostcell *pgc)
 
 	SLICELOOP4
     {
-        xpos = p->pos_x() - p->xg;
-        ypos = p->pos_y() - p->yg;
         H = Hsolidface(p,0,0);
-        
-        //if (xpos <= Ls/2.0 && xpos >= -Ls/2.0 && ypos <= Bs/2.0 && ypos >= -Bs/2.0)
-        if(fb(i,j)<0.0)
-        {
-            press(i,j) = -H*press0*draft(i,j);
-        }
-        
-        else
-        {
-            press(i,j) = 0.0;
-        }
+
+        press(i,j) = -H*fabs(p->W22)*p->W1*draft(i,j);
     }
     
     pgc->gcsl_start4(p,press,50);
 }
-
 
 void sixdof_sflow::updateForcing_oned(lexer *p, fdm2D *b, ghostcell *pgc)
 {
