@@ -39,6 +39,7 @@ void sixdof_sflow::ray_cast(lexer *p, fdm2D *b, ghostcell *pgc)
         Rymax(i,j)=-1.0e9;
         Ls(i,j) = 1.0e-6;
         Bs(i,j) = 1.0e-6;
+        draft(i,j) = 0.0;
 	}
 	
     for(int rayiter=0; rayiter<2; ++rayiter)
@@ -55,6 +56,7 @@ void sixdof_sflow::ray_cast(lexer *p, fdm2D *b, ghostcell *pgc)
             
             ray_cast_x(p,b,pgc,0,tricount);
             ray_cast_y(p,b,pgc,0,tricount);
+            ray_cast_z(p,b,pgc,0,tricount);
         }
     }
     
@@ -86,7 +88,8 @@ void sixdof_sflow::ray_cast(lexer *p, fdm2D *b, ghostcell *pgc)
     }
     
     SLICELOOP4
-	b->test(i,j) = fb(i,j);
+	b->test(i,j) = draft(i,j);
 	
 	pgc->gcsl_start4(p,fb,50);
+    pgc->gcsl_start4(p,draft,50);
 }

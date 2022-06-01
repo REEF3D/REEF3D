@@ -88,6 +88,7 @@ private:
 	void ray_cast_io_ycorr(lexer*, fdm2D*, ghostcell*,int,int);
     void ray_cast_x(lexer*, fdm2D*, ghostcell*,int,int);
 	void ray_cast_y(lexer*, fdm2D*, ghostcell*,int,int);
+    void ray_cast_z(lexer*, fdm2D*, ghostcell*,int,int);
     void reini(lexer*,ghostcell*,slice&);
     void disc(lexer*,ghostcell*,slice&);
     void time_preproc(lexer*);
@@ -107,7 +108,7 @@ private:
     double printtime;
     int q;
 
-    slice4 press,frk1,frk2,L,dt,fb,Ls,Bs,Rxmin,Rxmax,Rymin,Rymax;
+    slice4 press,frk1,frk2,L,dt,fb,Ls,Bs,Rxmin,Rxmax,Rymin,Rymax,draft;
     
     Eigen::Vector4d e_;
     Eigen::Matrix<double, 3, 4> E_, G_;

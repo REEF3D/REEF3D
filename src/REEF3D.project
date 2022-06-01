@@ -1499,6 +1499,7 @@
             <File Name="6DOF_sflow_print_vtp.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="RayCast">
+            <File Name="6DOF_sflow_ray_z.cpp"/>
             <File Name="6DOF_sflow_ray_y.cpp"/>
             <File Name="6DOF_sflow_ray_x.cpp"/>
             <File Name="6DOF_sflow_ray_io_ycorr.cpp"/>

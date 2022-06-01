@@ -172,14 +172,13 @@ void sixdof_sflow::updateForcing_ship(lexer *p, fdm2D *b, ghostcell *pgc)
         //if (xpos <= Ls/2.0 && xpos >= -Ls/2.0 && ypos <= Bs/2.0 && ypos >= -Bs/2.0)
         if(fb(i,j)<0.0)
         {
-            press(i,j) = -H*press0*(1.0 - cl*pow(xpos/Ls(i,j),4.0))*(1.0 - cb*pow(ypos/Bs(i,j),2.0))*exp(-as*pow(ypos/Bs(i,j),2.0));
+            press(i,j) = -H*press0*draft(i,j);
         }
         
         else
         {
             press(i,j) = 0.0;
         }
-    //b->test(i,j) = Bs(i,j);
     }
     
     pgc->gcsl_start4(p,press,50);

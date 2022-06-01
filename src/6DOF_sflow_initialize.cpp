@@ -76,7 +76,7 @@ void sixdof_sflow::ini(lexer *p, fdm2D *b, ghostcell *pgc)
 
     SLICELOOP4
     {
-        b->test(i,j) = fb(i,j);
+        b->test(i,j) = draft(i,j);
     }
     pgc->gcsl_start4(p,b->test,50);
     
