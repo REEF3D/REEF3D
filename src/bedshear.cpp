@@ -176,16 +176,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         v_d=p->ccipol4_a(a->visc,xip,yip,zval);
         v_t=p->ccipol4_a(a->eddyv,xip,yip,zval);
         }
-/*    
-    if(i==p->knox-1 && j==5 && p->mpirank==7)
-    cout<<"eddyv_i: "<<v_t<<" "<<a->eddyv(i,j,k+1)<<endl;
-    
-    if(i==p->knox-2 && j==5 && p->mpirank==7)
-    cout<<"eddyv_i-1: "<<v_t<<" "<<a->eddyv(i,j,k+1)<<endl;
-    
-    if(i==p->knox-3 && j==5 && p->mpirank==7)
-    cout<<"eddyv_i-2: "<<v_t<<" "<<a->eddyv(i,j,k+1)<<endl;
-*/
+
     u_abs = sqrt(uvel*uvel + vvel*vvel);
     
     tau=density*(v_d + v_t)*(u_abs/dist);
@@ -194,7 +185,12 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 	if(p->S16==4)
     {
     zval = a->bedzh(i,j) + 0.5*p->DZN[KP];
+    
+    if(p->S33==1)
     tau=density*pturb->ccipol_a_kinval(p,pgc,xip,yip,zval)*0.3;
+    
+    if(p->S33==2)
+    tau=density*pturb->ccipol_kinval(p,pgc,xip,yip,zval)*0.3;
     }
     
 	

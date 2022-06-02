@@ -41,7 +41,6 @@ suspended_AB::~suspended_AB()
 
 void suspended_AB::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow)
 {
-
     starttime=pgc->timer();
 
 	suspsource(p,a,a->conc);
