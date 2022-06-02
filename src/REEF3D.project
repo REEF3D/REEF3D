@@ -125,6 +125,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Print">
+          <File Name="sflow_state.h"/>
           <File Name="sflow_vtp_bed.h"/>
           <File Name="sflow_vtp.h"/>
           <File Name="sflow_printer.h"/>
@@ -1104,6 +1105,13 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Print">
+          <VirtualDirectory Name="State">
+            <File Name="sflow_state_write.cpp"/>
+            <File Name="sflow_state_mainheader.cpp"/>
+            <File Name="sflow_state_header.cpp"/>
+            <File Name="sflow_state_filename.cpp"/>
+            <File Name="sflow_state.cpp"/>
+          </VirtualDirectory>
           <File Name="sflow_printer.cpp"/>
           <VirtualDirectory Name="VTP bottom">
             <File Name="sflow_vtp_bed_pvtp.cpp"/>
