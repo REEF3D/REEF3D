@@ -140,7 +140,10 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 	visccrit=p->viscmax*(6.0/pow(p->DXM,2.0));  
  
     cu=1.0e10;
+    cv=1.0e10;
+    cw=1.0e10;
     
+    if(p->N50==1)
     LOOP
     {
     dx = MIN3(p->DXP[IP],p->DYN[JP],p->DZN[KP]);
@@ -151,9 +154,38 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     
             +sqrt(pow(sqrt(p->umax*p->umax + p->vmax*p->vmax + p->wmax*p->wmax)/dx+visc,2.0)
             
-            + (4.0*fabs(fabs(a->gi) + MAX3(a->maxF,a->maxG,a->maxH)))/dx)));
+            + (4.0*fabs(MAX3(a->maxF,a->maxG,a->maxH)))/dx)));
     }
     
+    if(p->N50==2)
+    LOOP
+    {
+    dx = MIN3(p->DXP[IP],p->DYN[JP],p->DZN[KP]);
+    
+    visc = 0.5*(a->eddyv(i,j,k) + a->eddyv(i+1,j,k)) + 0.5*(a->visc(i,j,k) + a->visc(i+1,j,k));
+    
+	cu = MIN(cu, 2.0/((sqrt(p->umax*p->umax)/p->DXP[IP] +  visc*(6.0/pow(p->DXP[IP],2.0)))
+    
+            +sqrt(pow(sqrt(p->umax*p->umax)/p->DXP[IP]+visc,2.0)
+            
+            + (4.0*fabs(a->maxF))/p->DXN[IP])));
+            
+            
+    cv = MIN(cv, 2.0/((sqrt(p->vmax*p->vmax)/p->DYN[JP] +  visc*(6.0/pow(p->DYN[JP],2.0)))
+    
+            +sqrt(pow(sqrt(p->vmax*p->vmax)/p->DYN[JP]+visc,2.0)
+            
+            + (4.0*fabs(a->maxG))/p->DYN[JP])));
+            
+            
+    cw = MIN(cw, 2.0/((sqrt(p->wmax*p->wmax)/p->DZN[KP] +  visc*(6.0/pow(p->DZN[KP],2.0)))
+    
+            +sqrt(pow(sqrt(p->wmax*p->wmax)/p->DZN[KP]+visc,2.0)
+            
+            + (4.0*fabs(a->maxH))/p->DZN[KP])));
+    }
+    
+    cu = MIN3(cu,cv,cw);
 
 	p->dt=p->N47*cu;
     

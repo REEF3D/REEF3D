@@ -141,11 +141,12 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 // maximum reynolds stress source term
 	visccrit=p->viscmax*(6.0/pow(p->DXM,2.0));
 	
-	
     
     cu=1.0e10;
+    cv=1.0e10;
+    cw=1.0e10;
     
-
+    if(p->N50==1)
     LOOP
     {
     dx = MIN3(p->DXN[IP],p->DYN[JP],p->DZN[KP]);
@@ -154,6 +155,24 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     
             + sqrt((4.0*fabs(MAX3(a->maxF,a->maxG,a->maxH)))/dx)));
     }
+    
+    if(p->N50==2)
+    LOOP
+    {
+	cu = MIN(cu, 2.0/((sqrt(p->umax*p->umax))/p->DXN[IP]
+    
+            + sqrt((4.0*fabs(a->maxF))/p->DXN[IP])));
+            
+    cv = MIN(cv, 2.0/((sqrt(p->vmax*p->vmax))/p->DYN[JP]
+    
+            + sqrt((4.0*fabs(a->maxG))/p->DYN[JP])));
+            
+    cw = MIN(cw, 2.0/((sqrt(p->wmax*p->wmax))/p->DZN[KP]
+    
+            + sqrt((4.0*fabs(a->maxH))/p->DZN[KP])));
+    }
+    
+    cu = MIN3(cu,cv,cw);
     
 
 	p->dt=p->N47*cu;
@@ -225,7 +244,10 @@ void ietimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
     
     
     cu=1.0e10;
-
+    cv=1.0e10;
+    cw=1.0e10;
+    
+    if(p->N50==1)
     LOOP
     {
     dx = MIN3(p->DXN[IP],p->DYN[JP],p->DZN[KP]);
@@ -234,6 +256,24 @@ void ietimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
     
             + sqrt((4.0*fabs(MAX3(a->maxF,a->maxG,a->maxH)))/dx)));
     }
+    
+    if(p->N50==2)
+    LOOP
+    {
+	cu = MIN(cu, 2.0/((sqrt(p->umax*p->umax))/p->DXN[IP]
+    
+            + sqrt((4.0*fabs(a->maxF))/p->DXN[IP])));
+            
+    cv = MIN(cv, 2.0/((sqrt(p->vmax*p->vmax))/p->DYN[JP]
+    
+            + sqrt((4.0*fabs(a->maxG))/p->DYN[JP])));
+            
+    cw = MIN(cw, 2.0/((sqrt(p->wmax*p->wmax))/p->DZN[KP]
+    
+            + sqrt((4.0*fabs(a->maxH))/p->DZN[KP])));
+    }
+    
+    cu = MIN3(cu,cv,cw);
     
 	p->dt=p->N47*cu*0.25;
     p->dt = MAX(p->dt,1.0e-6);

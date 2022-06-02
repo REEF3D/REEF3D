@@ -808,8 +808,8 @@ void lexer::ctrlsend()
     ii++;
     dctrl[dd] = N49;
     dd++;
-    ictrl[ii] = N60;
-    ii++;
+    ictrl[ii] = N50;
+    ii++;    ictrl[ii] = N60;    ii++;
     dctrl[dd] = N61;
     dd++;
 	

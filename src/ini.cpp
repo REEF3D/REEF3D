@@ -416,6 +416,7 @@ void lexer::ini_default()
 	N47=0.3;		// doubel relaxation factor for time stepping
 	N48=1;          // int adaptive timestepping
 	N49=1.0;		// double max timestep or fixed timesteps
+    N50=1;          // int adaptive timestepping method
 	N60=10;        // int maximum iteration of pjm correction
 	N61=500.0;      // double stopping criteria velocities
 

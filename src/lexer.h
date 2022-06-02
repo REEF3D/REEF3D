@@ -402,7 +402,7 @@ public:
 
 	// Numerical Options
 	int N10,N11,N12,N21,N22,N23,N40,N45,N46,N48,N60;
-	double N41,N43,N44,N47,N49,N61;
+	double N41,N43,N44,N47,N49,N50,N61;
 
 	// MPI Options
 	int M10;
