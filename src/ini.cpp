@@ -552,6 +552,7 @@ void lexer::ini_default()
 	T10=0;			    // int turbulence model
 	T11=11;             // int time scheme for 2-eq turbulence models
 	T12=5;              // int convection scheme
+    T21=0;              // int type of LES filter
 	T31=0.816;	        // double factor for limiter for eddy limiter in phase 1
 	T32=0.816;	        // double factor for limiter for eddy limiter in phase 2
 	T35=0.816; 			// double factor for limiter for eddy limiter near wall

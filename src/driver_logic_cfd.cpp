@@ -218,9 +218,6 @@ void driver::logic()
 	if(p->T10==31)
 	pturb =new LES_smagorinsky(p,a);
 
-	if(p->T10==32)
-	pturb =new LES_germano(p,a);
-	
     if(p->T10==33)
 	pturb =new LES_WALE(p,a);
 

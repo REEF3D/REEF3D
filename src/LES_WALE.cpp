@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"LES_WALE.h"
+#include"LES_filter_v.h"
+#include"LES_filter_f1.h"
+#include"LES_filter_f2.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -33,6 +36,15 @@ LES_WALE::LES_WALE(lexer* p, fdm* a) : LES(p,a)
 {
 	gcval_sgs=24;
 	c_wale=0.2;
+    
+    if(p->T21==0)
+    pfilter = new LES_filter_v(p,a);
+    
+    if(p->T21==1)
+    pfilter = new LES_filter_f1(p,a);
+    
+    if(p->T21==2)
+    pfilter = new LES_filter_f2(p,a);
 }
 
 LES_WALE::~LES_WALE()
@@ -41,6 +53,8 @@ LES_WALE::~LES_WALE()
 
 void LES_WALE::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow, vrans* pvrans)
 {
+    pfilter->start(p,a,pgc);
+    
     LOOP
     a->eddyv(i,j,k) = pow(p->DXM*c_wale,2.0) *  (pow(magSqrSd(p,a), 3.0/2.0) / (pow(strainterm(p,a), 5.0) + pow(magSqrSd(p,a), 5.0/4.0)));
 

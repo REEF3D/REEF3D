@@ -26,6 +26,8 @@ Flow, Turbulence and Combustion 62, 183–200 (1999). https://doi.org/10.1023/A:
 #include"LES.h"
 #include"field4.h"
 
+class LES_filter;
+
 using namespace std;
 
 #ifndef LES_WALE_H_
@@ -45,6 +47,8 @@ private:
 	double c_wale;
 	int gcval_u1, gcval_v1, gcval_w1;
 	int gcval_u2, gcval_v2, gcval_w2;
+    
+    LES_filter *pfilter;
 
 };
 

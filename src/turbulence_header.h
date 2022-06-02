@@ -28,6 +28,5 @@ Author: Hans Bihs
 #include"kepsilon_void.h"
 
 #include"LES_smagorinsky.h"
-#include"LES_germano.h"
 #include"LES_WALE.h"
 
