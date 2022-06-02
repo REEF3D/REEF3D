@@ -947,9 +947,14 @@
         <File Name="bc_ikomega.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="LES">
+        <VirtualDirectory Name="Filter">
+          <File Name="LES_filter_v.h"/>
+          <File Name="LES_filter_f2.h"/>
+          <File Name="LES_filter_f1.h"/>
+          <File Name="LES_filter.h"/>
+        </VirtualDirectory>
         <File Name="LES_WALE.h"/>
         <File Name="LES.h"/>
-        <File Name="LES_germano.h"/>
         <File Name="LES_smagorinsky.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Strain">
@@ -2517,9 +2522,13 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="LES">
+        <VirtualDirectory Name="Filter">
+          <File Name="LES_filter_v.cpp"/>
+          <File Name="LES_filter_f2.cpp"/>
+          <File Name="LES_filter_f1.cpp"/>
+        </VirtualDirectory>
         <File Name="LES_WALE.cpp"/>
         <File Name="LES.cpp"/>
-        <File Name="LES_germano.cpp"/>
         <File Name="LES_smagorinsky.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Strain">

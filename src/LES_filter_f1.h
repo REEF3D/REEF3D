@@ -20,30 +20,35 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"LES.h"
-#include"field4.h"
+#include"LES_filter.h"
+#include"strain.h"
+#include"field1.h"
+#include"field2.h"
+#include"field3.h"
+
+class lexer;
+class fdm;
+class ghostcell;
 
 using namespace std;
 
-#ifndef LES_GERMANO_H_
-#define LES_GERMANO_H_
+#ifndef LES_FILTER_F1_H_
+#define LES_FILTER_F1_H_
 
-class LES_germano : public LES
+class LES_filter_f1 : public LES_filter, public strain
 {
 public:
-	LES_germano(lexer *, fdm*);
-	virtual ~LES_germano();
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
-	virtual void ktimesave(lexer*, fdm*, ghostcell*);
-	virtual void etimesave(lexer*, fdm*, ghostcell*);
-
-private:
-	int gcval_sgs;
-	double c_sgs;
+	LES_filter_f1(lexer *, fdm*);
+	virtual ~LES_filter_f1();
+    
+	virtual void start(lexer*, fdm*, ghostcell*);
+    
+    field1 uprime;
+    field2 vprime;
+    field3 wprime;
 
 };
 
 #endif
-
 
 
