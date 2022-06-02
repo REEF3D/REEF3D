@@ -241,134 +241,50 @@ pip=0;
 
 double interpolation::lint4b(field& f, int& i,int& j, int& k, double wa, double wb, double wc)
 {
-    int f1,f2,f3,f4,f5,f6,f7,f8;
-    
-    v1=v2=v3=v4=v5=v6=v7=v8=0.0;
-    f1=f2=f3=f4=f5=f6=f7=f8=0;
-    
-    y1=y2=0.0;
+     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
     pip=4;
     if(p->flag4[IJK]>TOPO)
-    {
     v1=f(i,j,k);
-    f1=1;
-    }
-    
     if(p->flag4[IJp1K]>TOPO)
-    {
     v2=f(i,j+1,k);
-    f2=1;
-    }
-    
     if(p->flag4[Ip1JK]>TOPO)
-    {
     v3=f(i+1,j,k);
-    f3=1;
-    }
-    
     if(p->flag4[Ip1Jp1K]>TOPO)
-    {
     v4=f(i+1,j+1,k);
-    f4=1;
-    }
     
-    if(p->flag4[IJKp1]>TOPO)
-    {
+    if(p->flag4[IJK]<=TOPO)
+    v1=f(i,j,k+1);
+    if(p->flag4[IJp1K]<=TOPO)
+    v2=f(i,j+1,k+1);
+    if(p->flag4[Ip1JK]<=TOPO)
+    v3=f(i+1,j,k+1);
+    if(p->flag4[Ip1Jp1K]<=TOPO)
+    v4=f(i+1,j+1,k+1);
+    
     v5=f(i,j,k+1);
-    f5=1;
-    }
-    
-    if(p->flag4[IJp1Kp1]>TOPO)
-    {
     v6=f(i,j+1,k+1);
-    f6=1;
-    }
-    
-    if(p->flag4[Ip1JKp1]>TOPO)
-    {
     v7=f(i+1,j,k+1);
-    f6=1;
-    }
-    
-    if(p->flag4[Ip1JKp1]>TOPO)
-    {
     v8=f(i+1,j+1,k+1);
-    f8=1;
-    }
+    
+    
+    
     pip=0;
-    
-    
 
-    // x
-    if(f1==1 && f3==1)
+
     x1 = wa*v1 + (1.0-wa)*v3;
-    
-    if(f1==1 && f3==0)
-    x1 = v1;
-    
-    if(f1==0 && f3==1)
-    x1 = v3;
-    
-    
-    if(f2==1 && f4==1)
     x2 = wa*v2 + (1.0-wa)*v4;
-    
-    if(f2==1 && f4==0)
-    x2 = v2;
-    
-    if(f2==0 && f4==1)
-    x2 = v4;
-    
-    
-    if(f5==1 && f7==1)
+
     x3 = wa*v5 + (1.0-wa)*v7;
-    
-    if(f5==1 && f7==0)
-    x3 = v5;
-    
-    if(f5==0 && f7==1)
-    x3 = v7;
-    
-    
-    if(f6==1 && f8==1)
     x4 = wa*v6 + (1.0-wa)*v8;
-    
-    if(f6==1 && f8==0)
-    x4 = v6;
-    
-    if(f6==0 && f8==1)
-    x4 = v8;
 
-    //y
-    //if(f1==1 && f3==1 && f2==1 && f4==1)
     y1 = wb*x1 +(1.0-wb)*x2;
-    
-    if(f1==1 && f3==1 && f2==0 && f4==0)
-    y1 = x1;
-    
-    if(f1==0 && f3==0 && f2==1 && f4==1)
-    y1 = x2;
-    
-    
-    //if(f5==1 && f7==1 && f6==1 && f8==1)
     y2 = wb*x3 +(1.0-wb)*x4;
-    
-    if(f5==1 && f7==1 && f6==0 && f8==0)
-    y2 = x3;
-    
-    if(f5==0 && f7==0 && f6==1 && f8==1)
-    y2 = x4;
 
-    if(f1==0 && f3==0 && f2==0 && f4==0)
-    wc=0.0;
-        
-    if(f5==0 && f7==0 && f6==0 && f8==0)
-    wc=1.0;
-        
+
     value = wc*y1 +(1.0-wc)*y2;
 
-pip=0;
+    pip=0;
  return value;
 
 }

@@ -80,7 +80,7 @@ double rans_io::ccipol_a_kinval(lexer *p, ghostcell *pgc, double xp, double yp, 
 {
     double val;
 
-    val=p->ccipol4_a( kin, xp, yp, zp);
+    val=p->ccipol4_b( kin, xp, yp, zp);
 
     return val;
 }
