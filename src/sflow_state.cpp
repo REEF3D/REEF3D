@@ -29,7 +29,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-sflow_state::sflow_state(lexer *p, fdm2D *c, ghostcell *pgc)
+sflow_state::sflow_state(lexer *p, fdm2D *b, ghostcell *pgc)
 {	
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)

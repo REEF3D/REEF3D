@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"sflow_print_wsfline_y.h"
 #include"sflow_print_probe_da.h"
 #include"sflow_turbulence.h"
+#include"sflow_state.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -56,6 +57,9 @@ sflow_vtp::sflow_vtp(lexer *p, fdm2D *b, ghostcell *pgc)
     pwsfline_y=new sflow_print_wsfline_y(p,b,pgc);
 
     pprobe=new sflow_print_probe_da(p,b,pgc);
+    
+    if(p->P40>0)
+	pstate=new sflow_state(p,b,pgc);
 }
 
 sflow_vtp::~sflow_vtp()

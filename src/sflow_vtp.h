@@ -32,6 +32,7 @@ class sflow_print_wsfline;
 class sflow_print_wsfline_y;
 class sflow_print_probe_da;
 class sflow_turbulence;
+class sflow_state;
 
 using namespace std;
 
@@ -52,22 +53,23 @@ private:
 	void etend(lexer*,fdm2D*,ghostcell*);
 	void pvtp(lexer*,fdm2D*,ghostcell*,sflow_turbulence*);
 	void name_iter(lexer*,fdm2D*,ghostcell*);
-  void piecename(lexer*,fdm2D*,ghostcell*,int);
+    void piecename(lexer*,fdm2D*,ghostcell*,int);
 
 
 	char name[200],pname[200];
-  int n,iin,offset[200];
-  float ffn;
-  double ddn;
+    int n,iin,offset[200];
+    float ffn;
+    double ddn;
 
 	double xs_local,ys_local,zs_local,xe_local,ye_local,ze_local;
 	double xs_global,ys_global,zs_global,xe_global,ye_global,ze_global;
 
 	sflow_print_wsf *pwsf;
 	sflow_print_wsf_theory *pwsf_theory;
-  sflow_print_wsfline *pwsfline;
-  sflow_print_wsfline_y *pwsfline_y;
-  sflow_print_probe_da *pprobe;
+    sflow_print_wsfline *pwsfline;
+    sflow_print_wsfline_y *pwsfline_y;
+    sflow_print_probe_da *pprobe;
+    sflow_state *pstate;
 
 };
 
