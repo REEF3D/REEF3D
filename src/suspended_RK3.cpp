@@ -49,13 +49,13 @@ void suspended_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
 
     suspsource(p,a,a->conc);
     pconvec->start(p,a,a->conc,4,a->u,a->v,a->w);
-	pdiff->diff_scalar(p,a,pgc,psolv,a->conc,a->visc,1.0,1.0);
+	pdiff->diff_scalar(p,a,pgc,psolv,a->conc,a->eddyv,1.0,1.0);
 
 	LOOP
 	ark1(i,j,k) = a->conc(i,j,k)
                    + p->dt*a->L(i,j,k);
 	
-	pdiff->idiff_scalar(p,a,pgc,psolv,ark1,a->visc,1.0,1.0);
+	pdiff->idiff_scalar(p,a,pgc,psolv,ark1,a->eddyv,1.0,1.0);
     bcsusp_start(p,a,pgc,ark1);
     sedfsf(p,a,ark1);
 	pgc->start4(p,ark1,gcval_susp);
@@ -63,14 +63,14 @@ void suspended_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
 // Step 2
     suspsource(p,a,a->conc);
     pconvec->start(p,a,ark1,4,a->u,a->v,a->w);
-	pdiff->diff_scalar(p,a,pgc,psolv,ark1,a->visc,1.0,0.25);
+	pdiff->diff_scalar(p,a,pgc,psolv,ark1,a->eddyv,1.0,0.25);
 
 	LOOP
 	ark2(i,j,k) = 0.75*a->conc(i,j,k)
                    + 0.25*ark1(i,j,k)
 				   + 0.25*p->dt*a->L(i,j,k);
 	
-	pdiff->idiff_scalar(p,a,pgc,psolv,ark2,a->visc,1.0,0.25);
+	pdiff->idiff_scalar(p,a,pgc,psolv,ark2,a->eddyv,1.0,0.25);
     bcsusp_start(p,a,pgc,ark2);
     sedfsf(p,a,ark2);
 	pgc->start4(p,ark2,gcval_susp);
@@ -78,14 +78,14 @@ void suspended_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
 // Step 3
     suspsource(p,a,a->conc);
     pconvec->start(p,a,ark2,4,a->u,a->v,a->w);
-	pdiff->diff_scalar(p,a,pgc,psolv,ark2,a->visc,1.0,2.0/3.0);
+	pdiff->diff_scalar(p,a,pgc,psolv,ark2,a->eddyv,1.0,2.0/3.0);
 
 	LOOP
 	a->conc(i,j,k) = (1.0/3.0)*a->conc(i,j,k)
 				+ (2.0/3.0)*ark2(i,j,k)
 				+ (2.0/3.0)*p->dt*a->L(i,j,k);
 	
-	pdiff->idiff_scalar(p,a,pgc,psolv,a->conc,a->visc,1.0,2.0/3.0);
+	pdiff->idiff_scalar(p,a,pgc,psolv,a->conc,a->eddyv,1.0,2.0/3.0);
     bcsusp_start(p,a,pgc,a->conc);
     sedfsf(p,a,a->conc);
 	pgc->start4(p,a->conc,gcval_susp);

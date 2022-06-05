@@ -204,6 +204,7 @@ void etimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 	p->umax=p->vmax=p->wmax=p->viscmax=-1e19;
 
 	p->umax=MAX(p->W10,p->umax);
+    p->viscmax = MAX(p->W2,p->W4);
     
     p->umax=MAX(p->W11_u,p->umax);
     p->umax=MAX(p->W12_u,p->umax);
@@ -252,6 +253,8 @@ void etimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
     p->umax=MAX(p->umax,2.0*p->X210_u);
 	p->umax=MAX(p->umax,2.0*p->X210_v);
 	p->umax=MAX(p->umax,2.0*p->X210_w);
+    
+    p->umax=MAX(p->umax,2.0);
     
     p->umax+=2.0;
 

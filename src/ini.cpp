@@ -555,10 +555,13 @@ void lexer::ini_default()
     T21=0;              // int type of LES filter
 	T31=0.816;	        // double factor for limiter for eddy limiter in phase 1
 	T32=0.816;	        // double factor for limiter for eddy limiter in phase 2
+    T33=0;               // int kin source
 	T35=0.816; 			// double factor for limiter for eddy limiter near wall
 	T36=0;				// int explciti free surface dampong through dissipation
 	T37=0.07;		    // int damping coefficient for T36
     T38=1.6;            // double epsi fsf turbulence damping
+    T41=0;              // int RANS stabilization
+    T42=0.05;           // double lambda1 factor
 
     // Water Properties
 	W1=998.2;		// double density water

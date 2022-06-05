@@ -59,7 +59,7 @@ void suspended_AB::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff
 	cab(i,j,k)=a->L(i,j,k);
 	}
 	
-	pdiff->idiff_scalar(p,a,pgc,psolv,a->conc,a->visc,1.0,1.0);
+	pdiff->idiff_scalar(p,a,pgc,psolv,a->conc,a->eddyv,1.0,1.0);
     bcsusp_start(p,a,pgc,a->conc);
     sedfsf(p,a,a->conc);
 	pgc->start4(p,a->conc,gcval_susp);

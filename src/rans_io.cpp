@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-rans_io::rans_io(lexer *p, fdm *a) : strain(p,a), eps(p), kin(p), wallf(p), 
+rans_io::rans_io(lexer *p, fdm *a) : strain(p,a), eps(p), kin(p), eddyv0(p), wallf(p),
 									 ke_c_1e(1.44), ke_c_2e(1.92),ke_sigma_k(1.0),ke_sigma_e(1.3),
 									 kw_alpha(5.0/9.0), kw_beta(3.0/40.0),kw_sigma_k(2.0),kw_sigma_w(2.0),
 									 sst_alpha1(5.0/9.0), sst_alpha2(0.44), sst_beta1(3.0/40.0), sst_beta2(0.0828), 

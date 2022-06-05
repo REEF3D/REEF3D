@@ -44,7 +44,7 @@ void suspended_IM2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
     starttime=pgc->timer();
     clearrhs(p,a);
     pconvec->start(p,a,a->conc,4,a->u,a->v,a->w);
-	pdiff->idiff_scalar(p,a,pgc,psolv,a->conc,a->visc,1.0,1.0);
+	pdiff->idiff_scalar(p,a,pgc,psolv,a->conc,a->eddyv,1.0,1.0);
 	isuspsource(p,a,a->conc);
 	timesource(p,a,a->conc);
 	psolv->start(p,a,pgc,a->conc,a->rhsvec,4);

@@ -38,31 +38,31 @@ ediff2::~ediff2()
 {
 }
 
-void ediff2::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &b, field &visc, double sig, double alpha)
+void ediff2::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &b, field &eddyv, double sig, double alpha)
 {	
     LOOP
-	 a->L(i,j,k) += ((b(i+1,j,k)-b(i,j,k))*0.5*(visc(i+1,j,k)+a->eddyv(i+1,j,k)/sig+visc(i,j,k)+a->eddyv(i,j,k)/sig)*(1.0/p->DXP[IP])
-		-(b(i,j,k)-b(i-1,j,k))*0.5*(visc(i,j,k)+a->eddyv(i,j,k)/sig+visc(i-1,j,k)+a->eddyv(i-1,j,k)/sig)*(1.0/p->DXP[IM1]))/p->DXN[IP]
+	 a->L(i,j,k) += ((b(i+1,j,k)-b(i,j,k))*0.5*(a->visc(i+1,j,k)+eddyv(i+1,j,k)/sig+a->visc(i,j,k)+eddyv(i,j,k)/sig)*(1.0/p->DXP[IP])
+		-(b(i,j,k)-b(i-1,j,k))*0.5*(a->visc(i,j,k)+eddyv(i,j,k)/sig+a->visc(i-1,j,k)+eddyv(i-1,j,k)/sig)*(1.0/p->DXP[IM1]))/p->DXN[IP]
 
-		+((b(i,j+1,k)-b(i,j,k))*0.5*(visc(i,j+1,k)+a->eddyv(i,j+1,k)/sig+visc(i,j,k)+a->eddyv(i,j,k)/sig)*(1.0/p->DYP[JP])
-		-(b(i,j,k)-b(i,j-1,k))*0.5*(visc(i,j,k)+a->eddyv(i,j,k)/sig+visc(i,j-1,k)+a->eddyv(i,j-1,k)/sig)*(1.0/p->DYP[JM1]))/p->DYN[JP]
+		+((b(i,j+1,k)-b(i,j,k))*0.5*(a->visc(i,j+1,k)+eddyv(i,j+1,k)/sig+a->visc(i,j,k)+eddyv(i,j,k)/sig)*(1.0/p->DYP[JP])
+		-(b(i,j,k)-b(i,j-1,k))*0.5*(a->visc(i,j,k)+eddyv(i,j,k)/sig+a->visc(i,j-1,k)+eddyv(i,j-1,k)/sig)*(1.0/p->DYP[JM1]))/p->DYN[JP]
 
-		+((b(i,j,k+1)-b(i,j,k))*0.5*(visc(i,j,k+1)+a->eddyv(i,j,k+1)/sig+visc(i,j,k)+a->eddyv(i,j,k)/sig)*(1.0/p->DZP[KP])
-		-(b(i,j,k)-b(i,j,k-1))*0.5*(visc(i,j,k)+a->eddyv(i,j,k)/sig+visc(i,j,k-1)+a->eddyv(i,j,k-1)/sig)*(1.0/p->DZP[KM1]))/p->DZN[KP];
+		+((b(i,j,k+1)-b(i,j,k))*0.5*(a->visc(i,j,k+1)+eddyv(i,j,k+1)/sig+a->visc(i,j,k)+eddyv(i,j,k)/sig)*(1.0/p->DZP[KP])
+		-(b(i,j,k)-b(i,j,k-1))*0.5*(a->visc(i,j,k)+eddyv(i,j,k)/sig+a->visc(i,j,k-1)+eddyv(i,j,k-1)/sig)*(1.0/p->DZP[KM1]))/p->DZN[KP];
 }
 
-void ediff2::diff_scalar(lexer* p, fdm* a, ghostcell* pgc, solver* psolv, field &diff, field &b, field &visc, double sig, double alpha)
+void ediff2::diff_scalar(lexer* p, fdm* a, ghostcell* pgc, solver* psolv, field &diff, field &b, field &eddyv, double sig, double alpha)
 {	
     LOOP
     {
-        a->L(i,j,k) += ((b(i+1,j,k)-b(i,j,k))*0.5*(visc(i+1,j,k)+a->eddyv(i+1,j,k)/sig+visc(i,j,k)+a->eddyv(i,j,k)/sig)*(1.0/p->DXP[IP])
-            -(b(i,j,k)-b(i-1,j,k))*0.5*(visc(i,j,k)+a->eddyv(i,j,k)/sig+visc(i-1,j,k)+a->eddyv(i-1,j,k)/sig)*(1.0/p->DXP[IM1]))/p->DXN[IP]
+        a->L(i,j,k) += ((b(i+1,j,k)-b(i,j,k))*0.5*(a->visc(i+1,j,k)+eddyv(i+1,j,k)/sig+a->visc(i,j,k)+eddyv(i,j,k)/sig)*(1.0/p->DXP[IP])
+            -(b(i,j,k)-b(i-1,j,k))*0.5*(a->visc(i,j,k)+eddyv(i,j,k)/sig+a->visc(i-1,j,k)+eddyv(i-1,j,k)/sig)*(1.0/p->DXP[IM1]))/p->DXN[IP]
 
-            +((b(i,j+1,k)-b(i,j,k))*0.5*(visc(i,j+1,k)+a->eddyv(i,j+1,k)/sig+visc(i,j,k)+a->eddyv(i,j,k)/sig)*(1.0/p->DYP[JP])
-            -(b(i,j,k)-b(i,j-1,k))*0.5*(visc(i,j,k)+a->eddyv(i,j,k)/sig+visc(i,j-1,k)+a->eddyv(i,j-1,k)/sig)*(1.0/p->DYP[JM1]))/p->DYN[JP]
+            +((b(i,j+1,k)-b(i,j,k))*0.5*(a->visc(i,j+1,k)+eddyv(i,j+1,k)/sig+a->visc(i,j,k)+eddyv(i,j,k)/sig)*(1.0/p->DYP[JP])
+            -(b(i,j,k)-b(i,j-1,k))*0.5*(a->visc(i,j,k)+eddyv(i,j,k)/sig+a->visc(i,j-1,k)+eddyv(i,j-1,k)/sig)*(1.0/p->DYP[JM1]))/p->DYN[JP]
 
-            +((b(i,j,k+1)-b(i,j,k))*0.5*(visc(i,j,k+1)+a->eddyv(i,j,k+1)/sig+visc(i,j,k)+a->eddyv(i,j,k)/sig)*(1.0/p->DZP[KP])
-            -(b(i,j,k)-b(i,j,k-1))*0.5*(visc(i,j,k)+a->eddyv(i,j,k)/sig+visc(i,j,k-1)+a->eddyv(i,j,k-1)/sig)*(1.0/p->DZP[KM1]))/p->DZN[KP];
+            +((b(i,j,k+1)-b(i,j,k))*0.5*(a->visc(i,j,k+1)+eddyv(i,j,k+1)/sig+a->visc(i,j,k)+eddyv(i,j,k)/sig)*(1.0/p->DZP[KP])
+            -(b(i,j,k)-b(i,j,k-1))*0.5*(a->visc(i,j,k)+eddyv(i,j,k)/sig+a->visc(i,j,k-1)+eddyv(i,j,k-1)/sig)*(1.0/p->DZP[KM1]))/p->DZN[KP];
         
         diff(i,j,k) = b(i,j,k);
     }
@@ -169,7 +169,7 @@ void ediff2::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u, f
 	}
 }
 
-void ediff2::idiff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &b, field &visc, double sig, double alpha)
+void ediff2::idiff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &b, field &eddyv, double sig, double alpha)
 {	
 }
 

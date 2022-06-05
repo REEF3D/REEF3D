@@ -2507,6 +2507,7 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Turbulence">
+      <VirtualDirectory Name="EARSM"/>
       <VirtualDirectory Name="IO">
         <File Name="les_io.cpp"/>
         <File Name="rans_ini.cpp"/>
