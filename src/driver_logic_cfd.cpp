@@ -213,6 +213,13 @@ void driver::logic()
 
 	if((p->T10==2 || p->T10==22) && p->T11==12)
 	pturb = new komega_IM2(p,a,pgc);
+    
+    //EARSM
+	if((p->T10==12) && p->T11==11)
+	pturb = new EARSM_kw_IM1(p,a,pgc);
+
+	if((p->T10==12) && p->T11==12)
+	pturb = new EARSM_kw_IM2(p,a,pgc);
 
     // LES
 	if(p->T10==31)

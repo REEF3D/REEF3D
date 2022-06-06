@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2019 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,19 +17,33 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"komega_IM1.h"
-#include"komega_IM2.h"
+#include"EARSM.h"
 
-#include"EARSM_kw_IM1.h"
-#include"EARSM_kw_IM2.h"
+class multiphase;
 
-#include"kepsilon_IM1.h"
-#include"kepsilon_IM2.h"
-#include"kepsilon_void.h"
+using namespace std;
 
-#include"LES_smagorinsky.h"
-#include"LES_WALE.h"
+#ifndef EARSM_KW_IM1_H_
+#define EARSM_KW_IM1_H_
+
+
+class EARSM_kw_IM1 : public komega_IM1, public EARSM
+{
+
+public:
+	EARSM_kw_IM1(lexer *,fdm*,ghostcell*);
+	virtual ~EARSM_kw_IM1();
+	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
+	virtual void aniso(fdm*);
+	virtual double tau(fdm*);
+    
+private:
+	int gcval_earsm;
+    const double cmu;
+};
+
+#endif
 
