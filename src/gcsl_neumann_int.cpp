@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"field.h"
 #include"sliceint.h"
 
-void ghostcell::gcsl_neumann_int(sliceint& f, int gcv, int bc, int cs)
+void ghostcell::gcsl_neumann_int(sliceint &f, int gcv, int bc, int cs)
 {
 	if(cs==1)
 	for(q=0;q<margin;++q)

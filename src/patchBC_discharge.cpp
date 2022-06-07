@@ -34,6 +34,7 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
     double Qi=0.0;
     double Ui=0.0;
     double Hi=0.0;
+    double zval=0.0;
     
     // hydrograph interpolation
     // discharge
@@ -47,7 +48,7 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
     // Q calc
     for(qq=0;qq<obj_count;++qq)
     {
-        Ai=area=hval=Qi=Hi=Ui=0.0;
+        Ai=area=hval=Qi=Hi=Ui=zval=0.0;
         hcount=0;
         
         for(n=0;n<patch[qq]->gcb_count;++n)
@@ -71,6 +72,12 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
             
             Ai+=area;
             Qi+=area*(patch[qq]->cosalpha*a->v(i-1,j,k) + patch[qq]->sinalpha*a->u(i-1,j,k));
+            
+                if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
+                {
+                zval+=-(a->phi(i,j,k)*p->DZP[KP])/(a->phi(i,j,k+1)-a->phi(i,j,k)) + p->pos_z();
+                ++hcount;
+                }
             }
             
             // side 4
@@ -85,12 +92,14 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
 			if(a->phi(i,j,k)>=-0.5*p->DZN[KP] -1.0e-20 && a->phi(i,j,k)<=0.0)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 - a->phi(i,j,k));
             
-            //cout<<"area: "<<area<<" phi: "<<a->phi(i,j,k)<<endl;
-            
             Ai+=area;
             Qi+=area*(patch[qq]->cosalpha*a->v(i+1,j,k) + patch[qq]->sinalpha*a->u(i,j,k));
             
-            //cout<<"sinalpha: "<<patch[qq]->sinalpha<<" cosalpha: "<<patch[qq]->cosalpha<<endl;
+                if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
+                {
+                zval+=-(a->phi(i,j,k)*p->DZP[KP])/(a->phi(i,j,k+1)-a->phi(i,j,k)) + p->pos_z();
+                ++hcount;
+                }
             }
             
             // side 3 
@@ -107,6 +116,12 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
             
             Ai+=area;
             Qi+=area*(patch[qq]->sinalpha*a->v(i,j-1,k) + patch[qq]->cosalpha*a->u(i,j-1,k));
+            
+                if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
+                {
+                zval+=-(a->phi(i,j,k)*p->DZP[KP])/(a->phi(i,j,k+1)-a->phi(i,j,k)) + p->pos_z();
+                ++hcount;
+                }
             }
             
             // side 2
@@ -123,6 +138,12 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
             
             Ai+=area;
             Qi+=area*(patch[qq]->sinalpha*a->v(i,j,k) + patch[qq]->cosalpha*a->u(i,j+1,k));
+            
+                if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
+                {
+                zval+=-(a->phi(i,j,k)*p->DZP[KP])/(a->phi(i,j,k+1)-a->phi(i,j,k)) + p->pos_z();
+                ++hcount;
+                }
             }
             
             // side 5 
@@ -161,14 +182,23 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
             
             Ai=pgc->globalsum(Ai);
             Qi=pgc->globalsum(Qi);
+            zval=pgc->globalsum(zval);
+            hcount=pgc->globalisum(hcount);
     
             patch[qq]->Uq = patch[qq]->Q/(Ai>1.0e-20?Ai:1.0e20); 
             Ui = Qi/(Ai>1.0e-20?Ai:1.0e20); 
             
+            if(hcount>0)
+            {
+            Hi=zval/double(hcount);
+            }
+            
+            Hi=pgc->globalmax(Hi);
+            
 
         if(p->mpirank==0)
         {
-        cout<<"PatchBC Discharge | ID: "<<patch[qq]->ID<<" Qq: "<<patch[qq]->Q<<" Uq: "<<patch[qq]->Uq<<" Qi: "<<setprecision(5)<<Qi<<" Ui: "<<Ui<<" Ai: "<<Ai<<endl;
+        cout<<"PatchBC Discharge | ID: "<<patch[qq]->ID<<" Qq: "<<patch[qq]->Q<<" Uq: "<<patch[qq]->Uq<<" Qi: "<<setprecision(5)<<Qi<<" Ui: "<<Ui<<" Hi: "<<Hi<<endl;
         }
 
         

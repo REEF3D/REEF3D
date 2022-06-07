@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
@@ -38,7 +39,7 @@ driver::driver(int& argc, char **argv)
     {
     cout<<endl<<"REEF3D (c) 2008-2022 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    cout<<endl<<"v_220606" <<endl<<endl;
+    cout<<endl<<"v_220607" <<endl<<endl;
     }
 
 	p->lexer_read(pgc);

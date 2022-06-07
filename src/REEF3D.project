@@ -780,7 +780,6 @@
           <File Name="sliceint.h"/>
           <File Name="sliceint1.h"/>
           <File Name="sliceint2.h"/>
-          <File Name="sliceint3.h"/>
           <File Name="sliceint4.h"/>
           <File Name="sliceint4a.h"/>
           <File Name="sliceint5.h"/>
@@ -2259,7 +2258,6 @@
         <VirtualDirectory Name="Sliceint">
           <File Name="sliceint1.cpp"/>
           <File Name="sliceint2.cpp"/>
-          <File Name="sliceint3.cpp"/>
           <File Name="sliceint4.cpp"/>
           <File Name="sliceint4a.cpp"/>
           <File Name="sliceint5.cpp"/>

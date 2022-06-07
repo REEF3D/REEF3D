@@ -93,7 +93,8 @@ void sliceint4::fieldgcalloc(lexer* p)
 }
 
 int & sliceint4::operator()(int ii, int jj)
-{			
+{		
+
 	if(pp->mgcsl4[(ii-imin)*jmax + (jj-jmin)]<2)
 	return V[(ii-imin)*jmax + (jj-jmin)];
 	
