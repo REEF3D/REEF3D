@@ -187,8 +187,8 @@ void sediment_f::print_3D_bedshear(lexer* p, fdm *a, ghostcell *pgc, ofstream &r
 void sediment_f::name_pvtu_bedload(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
 
-    result<<"<PDataArray type=\"Float32\" Name=\"ST_shields_qbe\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"ST_shields_qb\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_qbe\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_qb\"/>"<<endl;
 }
 
 void sediment_f::name_vtu_bedload(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
