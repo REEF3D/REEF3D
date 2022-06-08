@@ -71,8 +71,8 @@ void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, s
            b->wet2(i,j)=0;
           }
       }
-    /*pgc->gcsl_start1int(p,b->wet1,50);
-    pgc->gcsl_start2int(p,b->wet2,50);*/
+    pgc->gcsl_start1int(p,b->wet1,50);
+    pgc->gcsl_start2int(p,b->wet2,50);
       
     // gcslin update
     if(p->count<=1)
