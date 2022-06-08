@@ -118,22 +118,20 @@ void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
     if(p->P72==1)
     result<<"<PDataArray type=\"Float32\" Name=\"omega_sig\"/>"<<endl;
 
-    if(p->P76==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"velocity scalar\"/>"<<endl;
-
     if(p->A10==4)
     result<<"<PDataArray type=\"Float32\" Name=\"Fi\"/>"<<endl;
 
 	if(p->P26==1)
 	{
-	result<<"<PDataArray type=\"Float32\" Name=\"ST_qbe\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"ST_qb\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"ST_conc\"/>"<<endl;
 	}
 
 	if(p->P27==1)
 	result<<"<PDataArray type=\"Float32\" Name=\"topo\"/>"<<endl;
-
+    
+    if(p->P76==1)
+	psed->name_pvtu_bedload(p,a,pgc,result);
+    
     if(p->P77==1)
 	psed->name_pvtu_parameter1(p,a,pgc,result);
 

@@ -33,7 +33,6 @@ bedshear::bedshear(lexer *p, turbulence *ppturb) : norm_vec(p), ks(p->S20*p->S21
     tau=0.0;
     tauc=0.0;
     pturb=ppturb;
-
 }
 
 bedshear::~bedshear()
@@ -50,7 +49,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     SLICELOOP4
     {
     
-    k = a->bedk(i,j);
+    k = s->bedk(i,j);
     
     xip= p->XP[IP];
 	yip= p->YP[JP];
@@ -60,7 +59,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 	
     if(p->S16==1)
     {
-    zval = a->bedzh(i,j) + p->S116*p->DZN[KP];
+    zval = s->bedzh(i,j) + p->S116*p->DZN[KP];
     
         if(p->S33==1)
         {
@@ -90,7 +89,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     
     visc=p->W2;
     
-    zval = a->bedzh(i,j) + p->S116*p->DZN[KP];
+    zval = s->bedzh(i,j) + p->S116*p->DZN[KP];
     
         if(p->S33==1)
         {
@@ -155,7 +154,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 	xip= p->XP[IP];
 	yip= p->YP[JP];
 
-    zval = a->bedzh(i,j) + p->S116*p->DZN[KP];
+    zval = s->bedzh(i,j) + p->S116*p->DZN[KP];
 	
         if(p->S33==1)
         {
@@ -184,7 +183,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     
 	if(p->S16==4)
     {
-    zval = a->bedzh(i,j) + 0.5*p->DZN[KP];
+    zval = s->bedzh(i,j) + 0.5*p->DZN[KP];
     
     if(p->S33==1)
     tau=density*pturb->ccipol_a_kinval(p,pgc,xip,yip,zval)*0.3;
@@ -196,7 +195,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 	
 	if(p->S16==5)
     {
-    zval = a->bedzh(i,j) + 0.5*p->DZN[KP];
+    zval = s->bedzh(i,j) + 0.5*p->DZN[KP];
     
         uvel=p->ccipol1(a->u,xip,yip,zval);
         vvel=p->ccipol2(a->v,xip,yip,zval);
@@ -275,7 +274,7 @@ void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     
     SLICELOOP4
     {
-	k = a->bedk(i,j);
+	k = s->bedk(i,j);
     
     tauc = (p->S30*fabs(p->W22)*(p->S22-p->W1))*p->S20*s->reduce(i,j);
   

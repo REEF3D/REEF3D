@@ -53,11 +53,19 @@ public:
 	virtual double bedshear_point(lexer*,fdm*,ghostcell*);
 	void sediment_algorithm(lexer*, fdm*, convection*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*, bedload*);
     
+    virtual double qbeval(int,int);
+    virtual void qbeget(int,int,double);
+    
     void fill_bedk(lexer*,fdm*,ghostcell*);
 	void bedlevel(lexer*,fdm*,ghostcell*);
-	void topo_zh_update(lexer*,fdm*,ghostcell*);
+	void topo_zh_update(lexer*,fdm*,ghostcell*,sediment_fdm*);
     void volume_calc(lexer*,fdm*,ghostcell*);
 	void filter(lexer*,fdm*,ghostcell*,slice&,int,int);
+    
+    virtual void print_3D_bedload(lexer*, fdm*, ghostcell*,ofstream&);
+	virtual void name_pvtu_bedload(lexer*, fdm*, ghostcell*,ofstream&);
+    virtual void name_vtu_bedload(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_vtu_bedload(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
     
 	virtual void print_3D_bedshear(lexer*, fdm*, ghostcell*,ofstream&);
 	virtual void name_pvtu_bedshear(lexer*, fdm*, ghostcell*,ofstream&);

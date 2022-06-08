@@ -465,7 +465,7 @@ void lexer::ini_default()
     P72=0;           // int print omega_sig to vtu
     P73=0;           // int print hx and hy for sflow vtp
 	P75=0;            // int print out vorticity vec
-    P76=0;            // int print out velocity magnitude as scalar
+    P76=0;            // int print out bedload
     P77=0;            // int print out sediment parameters: 1
     P78=0;            // int print out sediment parameters: 2
 	P79=0;            // int print out bed shear stress when running sediment transport

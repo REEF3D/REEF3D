@@ -64,10 +64,10 @@ void bedload_VRc::start(lexer* p, fdm* a, ghostcell* pgc, sediment_fdm *s)
         if(shearvel_eff<=shearvel_crit)
         qb=0.0;
 		
-		a->qbe(i,j) = qb;
+		s->qbe(i,j) = qb;
         
 	}
     
-    pgc->gcsl_start4a(p,a->qbe,1);    
+    pgc->gcsl_start4a(p,s->qbe,1);    
     
 }

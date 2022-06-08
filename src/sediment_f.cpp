@@ -167,13 +167,13 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
     // sandslide
     pslide->start(p,a,pgc,s);
     
-	prelax->start(p,a,pgc);
+	prelax->start(p,a,pgc,s);
 	
     // filter bedzh
 	if(p->S100>0)
-	filter(p,a,pgc,a->bedzh,p->S100,p->S101);
+	filter(p,a,pgc,s->bedzh,p->S100,p->S101);
 	
-	topo_zh_update(p,a,pgc);
+	topo_zh_update(p,a,pgc,s);
     preto->start(a,p,a->topo,pconvec,pgc);
 
     volume_calc(p,a,pgc);

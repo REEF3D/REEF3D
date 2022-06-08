@@ -55,9 +55,9 @@ void sediment_exner::non_equillibrium_solve(lexer* p,fdm* a, ghostcell *pgc, sed
     Ls = MAX(Ls,0.0);
     Ls = MIN(Ls,1.0);
 
-    a->qb(i,j) =  a->qbe(i,j) - Ls*(dqx0(i,j) + dqy0(i,j));
+    s->qb(i,j) =  s->qbe(i,j) - Ls*(dqx0(i,j) + dqy0(i,j));
     }
-    pgc->gcsl_start4(p,a->qb,1);
+    pgc->gcsl_start4(p,s->qb,1);
     
     
 // Implicit Solution
@@ -79,8 +79,8 @@ starttime=pgc->timer();
 	M.w[n] = Ls/(p->DYP[JP]+p->DYP[JM1])*p->y_dir;
 	M.e[n] = -Ls/(p->DYP[JP]+p->DYP[JM1])*p->y_dir;
     
-    rhsvec.V[n] = a->qbe(i,j);
-    a->qb(i,j)  = a->qbe(i,j);
+    rhsvec.V[n] = s->qbe(i,j);
+    s->qb(i,j)  = s->qbe(i,j);
     
 	++n;
 	}
@@ -91,34 +91,34 @@ starttime=pgc->timer();
 	{
 		if(p->flagslice4[Im1J]<0)
 		{
-		rhsvec.V[n] -= M.s[n]*a->qb(i-1,j);
+		rhsvec.V[n] -= M.s[n]*s->qb(i-1,j);
 		M.s[n] = 0.0;
 		}
 		
 		if(p->flagslice4[Ip1J]<0)
 		{
-		rhsvec.V[n] -= M.n[n]*a->qb(i+1,j);
+		rhsvec.V[n] -= M.n[n]*s->qb(i+1,j);
 		M.n[n] = 0.0;
 		}
 		
 		if(p->flagslice4[IJm1]<0)
 		{
-		rhsvec.V[n] -= M.e[n]*a->qb(i,j-1);
+		rhsvec.V[n] -= M.e[n]*s->qb(i,j-1);
 		M.e[n] = 0.0;
 		}
 		
 		if(p->flagslice4[IJp1]<0)
 		{
-		rhsvec.V[n] -= M.w[n]*a->qb(i,j+1);
+		rhsvec.V[n] -= M.w[n]*s->qb(i,j+1);
 		M.w[n] = 0.0;
 		}
 		
 	++n;
 	}
     
-    psolv->start(p,pgc,a->qb,M,xvec,rhsvec,4);
+    psolv->start(p,pgc,qb,M,xvec,rhsvec,4);
     
-    pgc->gcsl_start4(p,a->qb,1);
+    pgc->gcsl_start4(p,qb,1);
     
 	time=pgc->timer()-starttime;
 	p->uiter=p->solveriter;

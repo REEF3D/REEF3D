@@ -88,13 +88,13 @@ void sandslide_pde::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         SLICELOOP4
         {
         s->slideflag(i,j)+=fh(i,j);
-        a->bedzh(i,j)+=fh(i,j);
+        s->bedzh(i,j)+=fh(i,j);
         }
         
         LOOP
         a->test(i,j,k) = ci(i,j);
 
-        pgc->gcsl_start4(p,a->bedzh,1);
+        pgc->gcsl_start4(p,s->bedzh,1);
 
         count=pgc->globalimax(count);
 
@@ -113,11 +113,11 @@ void sandslide_pde::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     double dt = 0.1*p->DXM*p->DXM;
     double sqd = (1.0/(p->DXM*p->DXM));
 
-    fh(i,j) =  dt*sqd*( (a->bedzh(i+1,j)-a->bedzh(i,j))*0.5*(ci(i+1,j)+ci(i,j)) 
-                        -(a->bedzh(i,j)-a->bedzh(i-1,j))*0.5*(ci(i,j)+ci(i-1,j))
+    fh(i,j) =  dt*sqd*( (s->bedzh(i+1,j)-s->bedzh(i,j))*0.5*(ci(i+1,j)+ci(i,j)) 
+                        -(s->bedzh(i,j)-s->bedzh(i-1,j))*0.5*(ci(i,j)+ci(i-1,j))
                                 
-                        +(a->bedzh(i,j+1)-a->bedzh(i,j))*0.5*(ci(i,j+1)+ci(i,j)) 
-                        -(a->bedzh(i,j)-a->bedzh(i,j-1))*0.5*(ci(i,j)+ci(i,j-1)));
+                        +(s->bedzh(i,j+1)-s->bedzh(i,j))*0.5*(ci(i,j+1)+ci(i,j)) 
+                        -(s->bedzh(i,j)-s->bedzh(i,j-1))*0.5*(ci(i,j)+ci(i,j-1)));
     
   
 }
@@ -132,14 +132,14 @@ void sandslide_pde::diff_update(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm 
     int kmem=0;
     double dH;
     
-    k = a->bedk(i,j);
+    k = s->bedk(i,j);
         
 
-    dH = sqrt(pow((a->bedzh(i+1,j)-a->bedzh(i-1,j))/p->DXM,2.0) + pow((a->bedzh(i,j+1)-a->bedzh(i,j-1))/p->DXM,2.0));
+    dH = sqrt(pow((s->bedzh(i+1,j)-s->bedzh(i-1,j))/p->DXM,2.0) + pow((s->bedzh(i,j+1)-s->bedzh(i,j-1))/p->DXM,2.0));
         
         
-    bx0 = (a->bedzh(i+1,j)-a->bedzh(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
-    by0 = (a->bedzh(i,j+1)-a->bedzh(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+    bx0 = (s->bedzh(i+1,j)-s->bedzh(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+    by0 = (s->bedzh(i,j+1)-s->bedzh(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
      
     gamma = atan(sqrt(bx0*bx0 + by0*by0));
 
@@ -166,12 +166,12 @@ void sandslide_pde::diff_update(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm 
 
 }
 
-void sandslide_pde::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc)
+void sandslide_pde::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc, sediment_fdm *s)
 {	
     ALOOP
     {
     if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
-    a->topo(i,j,k)=-a->bedzh(i,j)+p->pos_z();
+    a->topo(i,j,k)=-s->bedzh(i,j)+p->pos_z();
     }
 	
 	pgc->start4a(p,a->topo,150);

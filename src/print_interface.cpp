@@ -239,13 +239,13 @@ void print_interface::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, h
 		// Print state out based on iteration
         if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && p->P41>0)
 		{
-        pstate->write(p,a,pgc,pturb);
+        pstate->write(p,a,pgc,pturb,psed);
 		}
 		
 		// Print sate out based on time
         if(p->simtime>p->stateprinttime && p->P42>0.0 && p->P40>0 || (p->count==0 &&  p->P42>0.0))
         {
-        pstate->write(p,a,pgc,pturb);
+        pstate->write(p,a,pgc,pturb,psed);
 		
         p->stateprinttime+=p->P42;
         }

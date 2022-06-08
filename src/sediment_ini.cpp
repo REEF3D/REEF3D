@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"sediment_fdm.h"
 
 void sediment_f::ini(lexer *p, fdm *a,ghostcell *pgc)
 {
@@ -39,13 +40,13 @@ void sediment_f::ini(lexer *p, fdm *a,ghostcell *pgc)
         h = -(a->topo(i,j,k-1)*p->DZP[KP])/(a->topo(i,j,k)-a->topo(i,j,k-1)) + p->pos_z()-p->DZP[KP];
 		}
 		
-		a->bedzh(i,j)=h;
+		s->bedzh(i,j)=h;
 	}
 	
-	pgc->gcsl_start4(p,a->bedzh,1);
+	pgc->gcsl_start4(p,s->bedzh,1);
 	
     
     
-    topo_zh_update(p,a,pgc);
+    topo_zh_update(p,a,pgc,s);
 }
 

@@ -50,24 +50,14 @@ void sflow_sediment_f::bedshear(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, sl
     if(vy<0.0)
     V = Q(i,j-1);
     
-    //U = ux;
-    //V = vy;
-    
+
     uabs = sqrt(U*U + V*V);
     
-
     manning = pow(p->S21*ks(i,j),1.0/6.0)/26.0;
     
     cf = pow(manning,2.0)/pow(HP,1.0/3.0);
     
     tau(i,j) = p->W1*9.81*cf*uabs*uabs; 
-    
-    //if(p->mpirank==2)
-    //cout<<"uabs: "<<uabs<<" ks: "<<ks(i,j)<<" manning: "<<manning<<" cf: "<<cf<<" tau: "<<tau(i,j)<<endl;
-    
-    //b->test(i,j) = tau(i,j);
     }
-    
-    //pgc->gcsl_start4(p,b->test,1);
     
 }

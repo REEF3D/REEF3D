@@ -59,9 +59,9 @@ void bedload_EF::start(lexer* p, fdm* a, ghostcell* pgc, sediment_fdm *s)
         if(Tb<=Ts)
         qb=0.0;
 	
-        a->qbe(i,j) = qb;
+        s->qbe(i,j) = qb;
 	}
     
-    pgc->gcsl_start4(p,a->qbe,1);
+    pgc->gcsl_start4(p,s->qbe,1);
     
 }

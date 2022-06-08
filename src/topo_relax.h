@@ -25,6 +25,7 @@ Author: Hans Bihs
 class lexer;
 class fdm;
 class ghostcell;
+class sediment_fdm;
 class slice;
 
 using namespace std;
@@ -38,7 +39,7 @@ public:
     topo_relax(lexer*);
     virtual ~topo_relax();
 
-	virtual void start(lexer*, fdm*,ghostcell*);
+	virtual void start(lexer*, fdm*,ghostcell*,sediment_fdm*);
     virtual double rf(lexer*, fdm*,ghostcell*);
 
 private:

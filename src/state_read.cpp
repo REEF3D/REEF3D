@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"turbulence.h"
+#include"sediment.h"
 #include<iostream>
 #include<fstream>
 #include<sys/stat.h>
@@ -42,7 +43,7 @@ Author: Hans Bihs
   * conc
  */
 
-void state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
+void state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sediment *psed)
 {
     // Open File
 	filename(p,a,pgc,p->I41);
@@ -140,7 +141,7 @@ void state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 	SLICELOOP4
     {
     result.read((char*)&ffn, sizeof (float));
-    a->qbe(i,j)=double(ffn);
+    psed->qbeget(i,j,double(ffn));
     }
 	
 	LOOP

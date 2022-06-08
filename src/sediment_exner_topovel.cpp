@@ -89,14 +89,14 @@ void sediment_exner::topovel(lexer* p,fdm* a, ghostcell *pgc, sediment_fdm *s, d
         // complete q
         if(p->S17==0)
         {
-        dqx = pdx->sx(p,a->qbe,sgx1,sgx2);
-        dqy = pdx->sy(p,a->qbe,sgy1,sgy2);
+        dqx = pdx->sx(p,s->qbe,sgx1,sgx2);
+        dqy = pdx->sy(p,s->qbe,sgy1,sgy2);
         }
         
         if(p->S17==1)
         {
-        dqx = pdx->sx(p,a->qb,sgx1,sgx2);
-        dqy = pdx->sy(p,a->qb,sgy1,sgy2);
+        dqx = pdx->sx(p,s->qb,sgx1,sgx2);
+        dqy = pdx->sy(p,s->qb,sgy1,sgy2);
         }
         
         vx=dqx;
@@ -113,7 +113,7 @@ void sediment_exner::topovel(lexer* p,fdm* a, ghostcell *pgc, sediment_fdm *s, d
         Ls = 4000.0*MAX(s->shields_eff(i,j)-s->shields_crit(i,j), 0.0)*d50;
         
          
-        vz =  prelax->rf(p,a,pgc)*(1.0/(1.0-p->S24))*(1.0/(Ls>1.0e-10?Ls:1.0e10))*(a->qb(i,j)-a->qbe(i,j)) + ws*(a->conc(i,j,k) - pcb->cbed(p,a,pgc,a->topo)); 
+        vz =  prelax->rf(p,a,pgc)*(1.0/(1.0-p->S24))*(1.0/(Ls>1.0e-10?Ls:1.0e10))*(s->qb(i,j)-s->qbe(i,j)) + ws*(a->conc(i,j,k) - pcb->cbed(p,a,pgc,a->topo)); 
         
         //vz =  -prelax->rf(p,a,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy) + ws*(a->conc(i,j,k) - pcb->cbed(p,a,pgc,a->topo));
         }

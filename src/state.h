@@ -27,6 +27,7 @@ class lexer;
 class fdm;
 class ghostcell;
 class turbulence;
+class sediment;
 
 using namespace std;
 
@@ -39,8 +40,8 @@ class state : public increment
 public:
 	state(lexer*,fdm*,ghostcell*);
 	virtual ~state();
-	virtual void write(lexer*,fdm*,ghostcell*,turbulence*);
-    virtual void read(lexer*,fdm*,ghostcell*,turbulence*);
+	virtual void write(lexer*,fdm*,ghostcell*,turbulence*,sediment*);
+    virtual void read(lexer*,fdm*,ghostcell*,turbulence*,sediment*);
 	
 private:
     virtual void filename(lexer*,fdm*,ghostcell*,int);

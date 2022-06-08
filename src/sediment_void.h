@@ -39,6 +39,14 @@ public:
     virtual void ini(lexer*,fdm*,ghostcell*);
 	virtual double bedshear_point(lexer*,fdm*,ghostcell*);
     
+    virtual double qbeval(int,int);
+    virtual void qbeget(int,int,double);
+    
+    virtual void print_3D_bedload(lexer*, fdm*, ghostcell*,ofstream&);
+	virtual void name_pvtu_bedload(lexer*, fdm*, ghostcell*,ofstream&);
+    virtual void name_vtu_bedload(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_vtu_bedload(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    
 	virtual void print_3D_bedshear(lexer*, fdm*, ghostcell*,ofstream&);
 	virtual void name_pvtu_bedshear(lexer*, fdm*, ghostcell*,ofstream&);
     virtual void name_vtu_bedshear(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);

@@ -43,7 +43,7 @@ public:
 private:
 
     void slide(lexer*, fdm*,ghostcell*,sediment_fdm*);
-    void topo_zh_update(lexer*,fdm*,ghostcell*);
+    void topo_zh_update(lexer*,fdm*,ghostcell*,sediment_fdm*);
 	
     slice4 fh;
     

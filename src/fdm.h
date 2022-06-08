@@ -86,22 +86,22 @@ public:
     field3 fbh3;
     field4 fbh4;
     
+    // NHFLOW
     slice1 P,hx;
     slice2 Q,hy;
-    slice4 wbed,dwdt;
-    slice4 bed,bedzh,bedzh0;
-    slice4 dh,reduce;
-    sliceint4 bedk;
+    slice4 wbed,dwdt,bed;
     sliceint4 wet;
     
-    // fnpf
+    // PTF
     slice4 eta,eta_n,WL,WL_n,depth;
     slice4 Bx,By;
     slice4 Fifsf,Fz;
     slice4 K;
     sliceint4 etaloc;
     
-    slice4 qb,qbe;
+    // Sediment
+    
+    
 
     
     
@@ -113,9 +113,7 @@ public:
     double maxF,maxG,maxH;
     double wd_criterion;
 	
-	
 	double t1,t2,t3,t4,t5;
-    
 };
 
 #endif

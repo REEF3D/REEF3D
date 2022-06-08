@@ -25,12 +25,13 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"turbulence.h"
+#include"sediment.h"
 #include<iostream>
 #include<fstream>
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void state::write(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
+void state::write(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sediment *psed)
 {
     // Open File
 	int num=0;
@@ -129,7 +130,7 @@ void state::write(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 
 	SLICELOOP4
     {
-    ffn=a->qbe(i,j);
+    ffn=psed->qbeval(i,j);
     result.write((char*)&ffn, sizeof (float));
     } 
 	

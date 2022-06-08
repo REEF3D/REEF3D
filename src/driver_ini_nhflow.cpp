@@ -141,7 +141,7 @@ void driver::driver_ini_nhflow()
 	a->topo.ggcpol(p);
 	
 	if(p->I40==1)
-	pini->stateini(p,a,pgc,pturb);
+	pini->stateini(p,a,pgc,pturb,psed);
     
 	pgc->start4(p,a->press,40);
 	

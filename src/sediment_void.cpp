@@ -59,6 +59,33 @@ void sediment_void::ini(lexer *p, fdm *a,ghostcell *pgc)
 {
 }
 
+double sediment_void::qbeval(int ii, int jj)
+{
+    double val=0.0;
+
+    return val;
+}
+
+void sediment_void::qbeget(int ii, int jj, double val)
+{
+}
+
+void sediment_void::print_3D_bedload(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
+{	
+}
+
+void sediment_void::name_pvtu_bedload(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+{
+}
+
+void sediment_void::name_vtu_bedload(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+{
+}
+
+void sediment_void::offset_vtu_bedload(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+{
+}
+
 void sediment_void::print_3D_bedshear(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 {	
 }

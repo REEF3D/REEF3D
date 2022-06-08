@@ -170,7 +170,7 @@ void driver::driver_ini()
 
 	if(p->I40==1)
     {
-	pini->stateini(p,a,pgc,pturb);
+	pini->stateini(p,a,pgc,pturb,psed);
     
     if(p->S10==1)
     psed->ini(p,a,pgc);

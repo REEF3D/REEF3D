@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"sediment_fdm.h"
 
 topo_relax::topo_relax(lexer *p) 
 {
@@ -43,7 +44,7 @@ topo_relax::~topo_relax()
 {
 }
 
-void topo_relax::start(lexer *p, fdm * a, ghostcell *pgc)
+void topo_relax::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
     
 	double relax,distot,distcount,zhval,qbval;
@@ -61,11 +62,11 @@ void topo_relax::start(lexer *p, fdm * a, ghostcell *pgc)
 			if(dist_S73[n]<p->S73_dist[n])
 			{
 			val = a->topo(i,j,k);
-			zhval = a->bedzh(i,j);
-            qbval = a->qbe(i,j);
+			zhval = s->bedzh(i,j);
+            qbval = s->qbe(i,j);
 			a->topo(i,j,k)=0.0;
-			a->bedzh(i,j)=0.0;
-            a->qbe(i,j)=0.0;
+			s->bedzh(i,j)=0.0;
+            s->qbe(i,j)=0.0;
 			distot += dist_S73[n];
 			++distcount;
 			}
@@ -80,16 +81,16 @@ void topo_relax::start(lexer *p, fdm * a, ghostcell *pgc)
 			if(distcount==1)
 			{
             a->topo(i,j,k) += (1.0-relax)*(-p->S73_val[n]+p->pos_z()) + relax*val;
-			a->bedzh(i,j) += (1.0-relax)*p->S73_val[n] + relax*zhval;
-            a->qbe(i,j) +=  relax*qbval;
+			s->bedzh(i,j) += (1.0-relax)*p->S73_val[n] + relax*zhval;
+            s->qbe(i,j) +=  relax*qbval;
 			}
 			
 			
 			if(distcount>1)
 			{
             a->topo(i,j,k) += ((1.0-relax)*(-p->S73_val[n]+p->pos_z()) + relax*val) * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
-			a->bedzh(i,j) += ((1.0-relax)*p->S73_val[n] + relax*zhval) * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
-            a->qbe(i,j) +=  relax*qbval * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
+			s->bedzh(i,j) += ((1.0-relax)*p->S73_val[n] + relax*zhval) * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
+            s->qbe(i,j) +=  relax*qbval * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
 			}
 			
 			}

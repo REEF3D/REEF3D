@@ -54,8 +54,8 @@ void bedload_einstein::start(lexer* p, fdm* a, ghostcell* pgc, sediment_fdm *s)
 
         qb = 2.15*exp((-3.91*rhowat*(sval-1.0)*g*d50)/(fabs(s->tau_eff(i,j))>1.0e-20?s->tau_eff(i,j):1.0e20))*sqrt(((p->S22-p->W1)/p->W1)*g*pow(p->S20,3.0));
 
-        a->qbe(i,j) = qb;
+        s->qbe(i,j) = qb;
 	}
     
-    pgc->gcsl_start4(p,a->qbe,1);
+    pgc->gcsl_start4(p,s->qbe,1);
 }

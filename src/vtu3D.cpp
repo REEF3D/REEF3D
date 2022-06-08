@@ -322,13 +322,13 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
 		// Print state out based on iteration
         if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && p->P41>0)
 		{
-        pstate->write(p,a,pgc,pturb);
+        pstate->write(p,a,pgc,pturb,psed);
 		}
 
 		// Print sate out based on time
         if((p->simtime>p->stateprinttime && p->P42>0.0 || (p->count==0 &&  p->P42>0.0)) && p->P40>0)
         {
-        pstate->write(p,a,pgc,pturb);
+        pstate->write(p,a,pgc,pturb,psed);
 
         p->stateprinttime+=p->P42;
         }
@@ -444,13 +444,6 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	++n;
 	}
 
-         // velocity magnitude
-	if(p->P76==1)
-	{
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	}
-
     // Fi
     if(p->A10==4)
 	{
@@ -460,14 +453,6 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 
 	if(p->P26==1)
 	{
-		// qbe
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-
-    	// qb
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-
 		// conc
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
@@ -478,6 +463,10 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
+    
+    	// sediment bedlaod
+	if(p->P77==1)
+	psed->offset_vtu_bedload(p,a,pgc,result,offset,n);
 
     	// sediment parameters 1
 	if(p->P77==1)
@@ -583,12 +572,6 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     ++n;
 	}
 
-    if(p->P76==1)
-	{
-    result<<"<DataArray type=\"Float32\" Name=\"velocity scalar\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	}
-
     if(p->A10==4)
 	{
     result<<"<DataArray type=\"Float32\" Name=\"Fi\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
@@ -597,10 +580,6 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 
 	if(p->P26==1)
 	{
-    result<<"<DataArray type=\"Float32\" Name=\"ST_qbe\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"ST_qb\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
     result<<"<DataArray type=\"Float32\" Name=\"ST_conc\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	}
@@ -610,7 +589,10 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     result<<"<DataArray type=\"Float32\" Name=\"topo\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	}
-
+    
+    if(p->P77==1)
+	psed->name_vtu_bedload(p,a,pgc,result,offset,n);
+    
     if(p->P77==1)
 	psed->name_vtu_parameter1(p,a,pgc,result,offset,n);
 
@@ -766,18 +748,6 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
 	}
 
-//  velocity scalar
-    if(p->P76==1)
-	{
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(sqrt(pow(p->ipol1(a->u),2.0) + pow(p->ipol2(a->v),2.0) + pow(p->ipol3(a->w),2.0)));
-	result.write((char*)&ffn, sizeof (float));
-	}
-	}
-
 //  Fi
     if(p->A10==4)
 	{
@@ -793,24 +763,6 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 
 	if(p->P26==1)
 	{
-//  qbe
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-    ffn=float(p->sl_ipol4(a->qbe));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-//  qb
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-    ffn=float(p->sl_ipol4(a->qb));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
 //  conc
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
@@ -832,6 +784,11 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}
+    
+//  sediment bedload
+	if(p->P76==1)
+    psed->print_3D_parameter1(p,a,pgc,result);
+    
 //  sediment parameter 1
 	if(p->P77==1)
     psed->print_3D_parameter1(p,a,pgc,result);

@@ -198,8 +198,8 @@ void bedslope::slope_cds(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
    
     // ----
     
-     bx0 = (a->bedzh(i+1,j)-a->bedzh(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
-     by0 = (a->bedzh(i,j+1)-a->bedzh(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+     bx0 = (s->bedzh(i+1,j)-s->bedzh(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+     by0 = (s->bedzh(i,j+1)-s->bedzh(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
      
      nx0 = bx0/sqrt(bx0*bx0 + by0*by0 + 1.0);
      ny0 = by0/sqrt(bx0*bx0 + by0*by0 + 1.0);

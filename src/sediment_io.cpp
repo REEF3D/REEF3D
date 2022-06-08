@@ -37,33 +37,33 @@ void sediment_f::fill_bedk(lexer *p, fdm *a,ghostcell *pgc)
 {
     double zval,xip,yip;
     SLICELOOP4
-    a->bedk(i,j)=0;
+    s->bedk(i,j)=0;
     
     SLICELOOP4
     KLOOP
     PBASECHECK
     if(a->topo(i,j,k)<0.0 && a->topo(i,j,k+1)>=0.0)
-    a->bedk(i,j)=k+1;
+    s->bedk(i,j)=k+1;
     
     
     SLICELOOP1
     {
-    k=a->bedk(i,j);
+    k=s->bedk(i,j);
     
     xip= p->XN[IP1];
 	yip= p->YP[JP];
-    zval = 0.5*(a->bedzh(i,j)+a->bedzh(i+1,j)) + 1.6*p->DZN[k];
+    zval = 0.5*(s->bedzh(i,j)+s->bedzh(i+1,j)) + 1.6*p->DZN[k];
     
     a->P(i,j) = p->ccipol1(a->u,xip,yip,zval);
     }
     
     SLICELOOP2
     {
-    k=a->bedk(i,j);
+    k=s->bedk(i,j);
     
     xip= p->XP[IP];
 	yip= p->YN[JP1];
-    zval = 0.5*(a->bedzh(i,j)+a->bedzh(i,j+1)) + 1.6*p->DZN[k];
+    zval = 0.5*(s->bedzh(i,j)+s->bedzh(i,j+1)) + 1.6*p->DZN[k];
     
     a->Q(i,j) = p->ccipol2(a->v,xip,yip,zval);
     }
@@ -71,6 +71,21 @@ void sediment_f::fill_bedk(lexer *p, fdm *a,ghostcell *pgc)
     pgc->gcsl_start1(p,a->P,10);
 	pgc->gcsl_start2(p,a->Q,11);
 }
+
+double sediment_f::qbeval(int ii, int jj)
+{
+    double val;
+
+    val=s->qbe(ii,jj);
+
+    return val;
+}
+
+void sediment_f::qbeget(int ii, int jj, double val)
+{
+    s->qbe(ii,jj)=val;
+}
+
 
 void sediment_f::print_3D_bedshear(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 {	
@@ -167,6 +182,60 @@ void sediment_f::print_3D_bedshear(lexer* p, fdm *a, ghostcell *pgc, ofstream &r
 	}
     
     }
+}
+
+void sediment_f::name_pvtu_bedload(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+{
+
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_shields_qbe\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_shields_qb\"/>"<<endl;
+}
+
+void sediment_f::name_vtu_bedload(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+{
+    result<<"<DataArray type=\"Float32\" Name=\"ST_qbe\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"ST_qb\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+}
+
+void sediment_f::offset_vtu_bedload(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+{
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
+}
+
+void sediment_f::print_3D_bedload(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
+{	
+	float ffn;
+	int iin;
+
+	// qbe
+    pgc->gcsl_start4(p,s->qbe,1);
+    
+	iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	
+	TPLOOP
+	{
+    ffn=float(p->sl_ipol4(s->qbe));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
+    // qb
+    pgc->gcsl_start4(p,s->qb,1);
+    
+	iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	
+	TPLOOP
+	{
+    ffn=float(p->sl_ipol4(s->qb));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
 }
 
 void sediment_f::name_pvtu_bedshear(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)

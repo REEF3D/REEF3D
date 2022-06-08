@@ -43,12 +43,9 @@ fdm::fdm(lexer *p)
             eta(p),eta_n(p),WL(p),WL_n(p),depth(p),
             Bx(p),By(p),
             Fifsf(p),Fz(p),
-            bed(p),bedzh(p),bedzh0(p),
-            dh(p),reduce(p),
-            bedk(p),wet(p),
-            qb(p),qbe(p),
+            wet(p),
             P(p),hx(p),Q(p),hy(p),K(p),
-            wbed(p),dwdt(p),
+            wbed(p),dwdt(p),bed(p),
 			rhsvec(p),M(p)
 {
 

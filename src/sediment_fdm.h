@@ -43,17 +43,13 @@ public:
     slice4 shearvel_eff,shearvel_crit;
     slice4 shields_eff, shields_crit;
     
-    slice4 bedload;
-    
     slice4 alpha,teta,gamma,beta,phi;
     
     
     sliceint4 bedk;
     slice4 slideflag;
     
-    
-    
-
+    slice4 qb,qbe;
 
 };
 
