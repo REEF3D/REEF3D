@@ -38,6 +38,7 @@ public:
     
     slice4 bedzh,bedzh0;
     slice4 vz,dh,reduce;
+    slice4 ks;
     
     slice4 tau_eff,tau_crit;
     slice4 shearvel_eff,shearvel_crit;

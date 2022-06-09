@@ -100,7 +100,6 @@ public:
     void loop_nhflow(fdm*);
     void loop_ptf(fdm*);
     void loop_fnpf();
-    void loop_sflow(fdm*);
     
 	void logic();
     void logic_ptf();

@@ -32,11 +32,16 @@ class sediment_void : public sediment
 public:
     sediment_void();
 	virtual ~sediment_void();
-
-	virtual void start(lexer*, fdm*, convection*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*, bedload*);
+    
+    virtual void start_cfd(lexer*, fdm*, convection*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*, bedload*);
+    virtual void ini_cfd(lexer*,fdm*,ghostcell*);
+    
+    virtual void start_sflow(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&);
+    virtual void ini_sflow(lexer*, fdm2D*, ghostcell*);
+    
+    // ---
 	virtual void update(lexer*,fdm*,ghostcell*,ioflow*);
     virtual void relax(lexer*,fdm*,ghostcell*);
-    virtual void ini(lexer*,fdm*,ghostcell*);
 	virtual double bedshear_point(lexer*,fdm*,ghostcell*);
     
     virtual double qbeval(int,int);

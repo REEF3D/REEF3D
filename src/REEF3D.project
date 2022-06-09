@@ -358,11 +358,6 @@
         <File Name="FSI.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment">
-        <VirtualDirectory Name="Interface">
-          <File Name="sediment_interface_sflow.h"/>
-          <File Name="sediment_interface_cfd.h"/>
-          <File Name="sediment_interface.h"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="Sediment FDM">
           <File Name="sediment_fdm.h"/>
         </VirtualDirectory>
@@ -1413,10 +1408,6 @@
         <VirtualDirectory Name="Sediment FDM">
           <File Name="sediment_fdm.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Interface">
-          <File Name="sediment_interface_sflow.cpp"/>
-          <File Name="sediment_interface_cfd.cpp"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="Bedload">
           <File Name="bedload_VRc.cpp"/>
           <File Name="bedload_noneq.cpp"/>
@@ -2408,7 +2399,6 @@
         <File Name="driver_loop_nhflow.cpp"/>
         <File Name="driver_loop_cfd.cpp"/>
         <File Name="driver_loop_nsewave.cpp"/>
-        <File Name="driver_loop_sflow.cpp"/>
       </VirtualDirectory>
       <File Name="ini.cpp"/>
     </VirtualDirectory>

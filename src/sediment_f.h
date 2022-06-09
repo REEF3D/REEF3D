@@ -45,11 +45,18 @@ class sediment_f : public sediment, public bedslope
 public:
     sediment_f(lexer*,fdm*,ghostcell*,turbulence*);
 	virtual ~sediment_f();
-
-	virtual void start(lexer*, fdm*, convection*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*, bedload*);
+    
+    // CFD interface
+    virtual void start_cfd(lexer*, fdm*, convection*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*, bedload*);
+    virtual void ini_cfd(lexer*,fdm*,ghostcell*);
+    
+    // SFLOW interface
+    virtual void start_sflow(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&);
+    virtual void ini_sflow(lexer*, fdm2D*, ghostcell*);
+    
+    // ---
 	virtual void update(lexer*,fdm*,ghostcell*,ioflow*);
     virtual void relax(lexer*,fdm*,ghostcell*);
-    virtual void ini(lexer*,fdm*,ghostcell*);
 	virtual double bedshear_point(lexer*,fdm*,ghostcell*);
 	void sediment_algorithm(lexer*, fdm*, convection*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*, bedload*);
     
@@ -62,6 +69,7 @@ public:
     void volume_calc(lexer*,fdm*,ghostcell*);
 	void filter(lexer*,fdm*,ghostcell*,slice&,int,int);
     
+    // print
     virtual void print_3D_bedload(lexer*, fdm*, ghostcell*,ofstream&);
 	virtual void name_pvtu_bedload(lexer*, fdm*, ghostcell*,ofstream&);
     virtual void name_vtu_bedload(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);

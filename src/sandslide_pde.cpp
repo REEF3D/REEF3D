@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -22,7 +22,6 @@ Author: Hans Bihs
 #include"sandslide_pde.h"
 #include"sediment_fdm.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
 sandslide_pde::sandslide_pde(lexer *p) : norm_vec(p), bedslope(p), fh(p), ci(p)
@@ -48,7 +47,7 @@ sandslide_pde::~sandslide_pde()
 {
 }
 
-void sandslide_pde::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
+void sandslide_pde::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     
     SLICELOOP4
@@ -67,7 +66,7 @@ void sandslide_pde::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         {
         fh(i,j)=0.0;
         
-        diff_update(p,a,pgc,s);
+        diff_update(p,pgc,s);
         }
         
         pgc->gcsl_start4(p,fh,1);
@@ -79,7 +78,7 @@ void sandslide_pde::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         SLICELOOP4
         if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
         {
-            slide(p,a,pgc,s);
+            slide(p,pgc,s);
         }
         
         pgc->gcslparax_fh(p,fh,4);
@@ -91,9 +90,6 @@ void sandslide_pde::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         s->bedzh(i,j)+=fh(i,j);
         }
         
-        LOOP
-        a->test(i,j,k) = ci(i,j);
-
         pgc->gcsl_start4(p,s->bedzh,1);
 
         count=pgc->globalimax(count);
@@ -108,7 +104,7 @@ void sandslide_pde::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     }
 }
 
-void sandslide_pde::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
+void sandslide_pde::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     double dt = 0.1*p->DXM*p->DXM;
     double sqd = (1.0/(p->DXM*p->DXM));
@@ -122,7 +118,7 @@ void sandslide_pde::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
   
 }
 
-void sandslide_pde::diff_update(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
+void sandslide_pde::diff_update(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     double uvel,vvel;
     double nx,ny,nz,norm;
@@ -166,14 +162,4 @@ void sandslide_pde::diff_update(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm 
 
 }
 
-void sandslide_pde::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc, sediment_fdm *s)
-{	
-    ALOOP
-    {
-    if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
-    a->topo(i,j,k)=-s->bedzh(i,j)+p->pos_z();
-    }
-	
-	pgc->start4a(p,a->topo,150);
-}
 

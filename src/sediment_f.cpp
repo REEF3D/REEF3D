@@ -64,10 +64,10 @@ sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb): bed
     if(p->S90==4)
     pslide=new sandslide_pde(p);
     
-    if(p->S10!=2)
+    if(p->S10!=2 && p->A10==6)
 	pvrans = new vrans_v(p,a,pgc);
 	
-	if(p->S10==2)
+	if(p->S10==2 && p->A10==6)
 	pvrans = new vrans_f(p,a,pgc);
     
     
@@ -102,7 +102,7 @@ sediment_f::~sediment_f()
 {
 }
 
-void sediment_f::start(lexer *p, fdm *a, convection *pconvec, ghostcell *pgc, ioflow *pflow,
+void sediment_f::start_cfd(lexer *p, fdm *a, convection *pconvec, ghostcell *pgc, ioflow *pflow,
                                     topo *ptopo, reinitopo *preto, suspended *psusp, bedload *pbed)
 {
     // bedshear stress
@@ -130,6 +130,28 @@ void sediment_f::start(lexer *p, fdm *a, convection *pconvec, ghostcell *pgc, io
     
     if(sedcalc==0)
     pbedshear->taubed(p,a,pgc,s);
+}
+
+void sediment_f::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q, slice &topovel)
+{
+    /*
+    if((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47))
+	{
+		if(p->S42==1 && p->count%p->S44==0)
+		sediment_algorithm(p,b,pgc,P,Q,topovel);
+		
+		if(p->S42==2 && p->simtime>=p->sedsimtime)
+		{
+		sediment_algorithm(p,b,pgc,P,Q,topovel);
+		p->sedsimtime = p->simtime + p->S46;
+		}
+		
+		if(p->S42==3  && p->simtime/p->wT>=p->sedwavetime)
+		{
+		sediment_algorithm(p,b,pgc,P,Q,topovel);
+		p->sedwavetime = p->simtime/p->wT + p->S48;
+		}
+	}*/
 }
 
 void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghostcell *pgc, ioflow *pflow,
@@ -165,7 +187,7 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
     ptopo->start(a,p,pconvec,pgc,preto,s);
     
     // sandslide
-    pslide->start(p,a,pgc,s);
+    pslide->start(p,pgc,s);
     
 	prelax->start(p,a,pgc,s);
 	

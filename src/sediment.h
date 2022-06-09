@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 class lexer;
 class fdm;
+class fdm2D;
 class convection;
 class ghostcell;
 class ioflow;
@@ -30,6 +31,8 @@ class suspended;
 class bedload;
 class topo;
 class reinitopo;
+class field;
+class slice;
 
 #include<fstream>
 
@@ -42,10 +45,15 @@ class sediment
 {
 public:
 
-	virtual void start(lexer*, fdm*, convection*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*, bedload*)=0;
+	virtual void start_cfd(lexer*, fdm*, convection*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*, bedload*)=0;
+    virtual void ini_cfd(lexer*,fdm*,ghostcell*)=0;
+    
+    virtual void start_sflow(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&)=0;
+    virtual void ini_sflow(lexer*, fdm2D*, ghostcell*)=0;
+    
+    //
 	virtual void update(lexer*,fdm*,ghostcell*,ioflow*)=0;
     virtual void relax(lexer*,fdm*,ghostcell*)=0;
-    virtual void ini(lexer*,fdm*,ghostcell*)=0;
 	virtual double bedshear_point(lexer*,fdm*,ghostcell*)=0;
     
     virtual double qbeval(int,int)=0;

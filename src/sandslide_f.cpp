@@ -23,7 +23,6 @@ Author: Hans Bihs
 #include"sandslide_f.h"
 #include"sediment_fdm.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include"sliceint.h"
 
@@ -49,7 +48,7 @@ sandslide_f::~sandslide_f()
 {
 }
 
-void sandslide_f::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
+void sandslide_f::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     SLICELOOP4
     s->slideflag(i,j)=0.0;
@@ -69,7 +68,7 @@ void sandslide_f::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         SLICELOOP4
         if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
         {
-            slide(p,a,pgc,s);
+            slide(p,pgc,s);
         }
         
         pgc->gcslparax_fh(p,fh,4);
@@ -96,7 +95,7 @@ void sandslide_f::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     }
 }
 
-void sandslide_f::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
+void sandslide_f::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
 		k = s->bedk(i,j);
 
@@ -225,17 +224,3 @@ void sandslide_f::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         }
         
 }
-
-void sandslide_f::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc, sediment_fdm *s)
-{
-	pgc->gcsl_start4(p,s->bedzh,1);
-	
-    ALOOP
-    {
-    if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
-    a->topo(i,j,k)=-s->bedzh(i,j)+p->pos_z();
-    }
-	
-	pgc->start4a(p,a->topo,150);
-}
-

@@ -84,7 +84,7 @@ void driver::loop_cfd(fdm* a)
             psusp->start(a,p,pconcdisc,psuspdiff,psolv,pgc,pflow);
 
 				
-        psed->start(p,a,pconvec,pgc,pflow,ptopo,preto,psusp,pbed);
+        psed->start_cfd(p,a,pconvec,pgc,pflow,ptopo,preto,psusp,pbed);
         pflow->u_relax(p,a,pgc,a->u);
 		pflow->v_relax(p,a,pgc,a->v);
 		pflow->w_relax(p,a,pgc,a->w);

@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -36,14 +36,13 @@ public:
     sandslide_pde(lexer*);
     virtual ~sandslide_pde();
 
-	virtual void start(lexer*, fdm*,ghostcell*,sediment_fdm*);
+	virtual void start(lexer*,ghostcell*,sediment_fdm*);
 
 private:
 
-    void slide(lexer*, fdm*,ghostcell*,sediment_fdm*);
-    void diff_update(lexer*, fdm*,ghostcell*,sediment_fdm*);
-    void topo_zh_update(lexer*,fdm*,ghostcell*,sediment_fdm*);
-	
+    void slide(lexer*,ghostcell*,sediment_fdm*);
+    void diff_update(lexer*,ghostcell*,sediment_fdm*);
+
     slice4 fh,ci;
     
     int gcval_topo,count;

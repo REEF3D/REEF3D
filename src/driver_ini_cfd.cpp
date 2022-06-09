@@ -87,7 +87,7 @@ void driver::driver_ini()
     // Sediment
 	if(p->S10>0)
     {
-    psed->ini(p,a,pgc);
+    psed->ini_cfd(p,a,pgc);
     for(int qn=0;qn<5;++qn)
     psed->relax(p,a,pgc);
     preto->start(a,p,a->topo,pconvec,pgc);
@@ -173,7 +173,7 @@ void driver::driver_ini()
 	pini->stateini(p,a,pgc,pturb,psed);
     
     if(p->S10==1)
-    psed->ini(p,a,pgc);
+    psed->ini_cfd(p,a,pgc);
     }
     
 	pgc->start4(p,a->press,40);

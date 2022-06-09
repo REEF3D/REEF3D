@@ -23,10 +23,11 @@ Author: Hans Bihs
 #include"sediment_f.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"fdm2D.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-void sediment_f::ini(lexer *p, fdm *a,ghostcell *pgc)
+void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
 {
 	double h,h1;
 
@@ -50,3 +51,12 @@ void sediment_f::ini(lexer *p, fdm *a,ghostcell *pgc)
     topo_zh_update(p,a,pgc,s);
 }
 
+void sediment_f::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    //relax(p,b,pgc);
+    
+    SLICELOOP4
+    {
+    s->ks(i,j) = p->S20;
+    }
+}

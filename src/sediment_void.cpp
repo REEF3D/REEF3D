@@ -41,21 +41,29 @@ sediment_void::~sediment_void()
 
 }
 
-void sediment_void::start(lexer *p, fdm *a, convection *pconvec, ghostcell *pgc, ioflow *pflow,
+void sediment_void::start_cfd(lexer *p, fdm *a, convection *pconvec, ghostcell *pgc, ioflow *pflow,
                                         topo *ptopo, reinitopo *preto, suspended *psusp, bedload *pbed)
 {
 
 }
 
+void sediment_void::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
+{
+}
+
+void sediment_void::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q, slice &topovel)
+{
+}
+
+void sediment_void::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+}
+    
 void sediment_void::update(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow)
 {
 }
 
 void sediment_void::relax(lexer *p, fdm *a,ghostcell *pgc)
-{
-}
-
-void sediment_void::ini(lexer *p, fdm *a,ghostcell *pgc)
 {
 }
 
