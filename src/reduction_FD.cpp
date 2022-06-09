@@ -21,7 +21,6 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 #include"reduction_FD.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
@@ -33,7 +32,7 @@ reduction_FD::~reduction_FD()
 {
 }
 
-void reduction_FD::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
+void reduction_FD::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     double r=1.0;
     

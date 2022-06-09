@@ -22,7 +22,6 @@ Author: Hans Bihs
 
 #include"reduction_deyemp.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
@@ -34,7 +33,7 @@ reduction_deyemp::~reduction_deyemp()
 {
 }
 
-void reduction_deyemp::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
+void reduction_deyemp::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     double r=1.0;
     

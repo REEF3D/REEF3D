@@ -54,7 +54,7 @@ void sediment_f::fill_bedk(lexer *p, fdm *a,ghostcell *pgc)
 	yip= p->YP[JP];
     zval = 0.5*(s->bedzh(i,j)+s->bedzh(i+1,j)) + 1.6*p->DZN[k];
     
-    a->P(i,j) = p->ccipol1(a->u,xip,yip,zval);
+    s->P(i,j) = p->ccipol1(a->u,xip,yip,zval);
     }
     
     SLICELOOP2
@@ -65,11 +65,11 @@ void sediment_f::fill_bedk(lexer *p, fdm *a,ghostcell *pgc)
 	yip= p->YN[JP1];
     zval = 0.5*(s->bedzh(i,j)+s->bedzh(i,j+1)) + 1.6*p->DZN[k];
     
-    a->Q(i,j) = p->ccipol2(a->v,xip,yip,zval);
+    s->Q(i,j) = p->ccipol2(a->v,xip,yip,zval);
     }
     
-    pgc->gcsl_start1(p,a->P,10);
-	pgc->gcsl_start2(p,a->Q,11);
+    pgc->gcsl_start1(p,s->P,10);
+	pgc->gcsl_start2(p,s->Q,11);
 }
 
 double sediment_f::qbeval(int ii, int jj)

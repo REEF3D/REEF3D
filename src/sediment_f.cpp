@@ -185,13 +185,13 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
     
     // bedslope
     if(p->S83==2)
-    slope_cds(p,a,pgc,s);
+    slope_cds(p,pgc,s);
     
     if(p->S83==5)
-    slope_weno(p,a,pgc,s);
+    slope_weno(p,pgc,s,a->topo);
     
     // bedslope reduction 
-    preduce->start(p,a,pgc,s);
+    preduce->start(p,pgc,s);
     
     // bedshear stress
 	pbedshear->taubed(p,a,pgc,s);
