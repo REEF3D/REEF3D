@@ -362,8 +362,6 @@
           <File Name="sediment_fdm.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Bedload">
-          <File Name="bedload_VRc.h"/>
-          <File Name="bedload_noneq.h"/>
           <File Name="bedload.h"/>
           <File Name="bedload_MPM.h"/>
           <File Name="bedload_void.h"/>
@@ -1409,8 +1407,6 @@
           <File Name="sediment_fdm.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Bedload">
-          <File Name="bedload_VRc.cpp"/>
-          <File Name="bedload_noneq.cpp"/>
           <File Name="bedload_MPM.cpp"/>
           <File Name="bedload_void.cpp"/>
           <File Name="bedload_VR.cpp"/>

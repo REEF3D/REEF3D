@@ -22,7 +22,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sediment_fdm.h"
 #include"lexer.h"
 
-sediment_fdm::sediment_fdm(lexer *p) : bedzh(p),bedzh0(p),vz(p),dh(p),reduce(p),
+sediment_fdm::sediment_fdm(lexer *p) : P(p),Q(p),
+                                       bedzh(p),bedzh0(p),vz(p),dh(p),reduce(p),
                                        ks(p),
                                        tau_eff(p),tau_crit(p),shearvel_eff(p),shearvel_crit(p),shields_eff(p),shields_crit(p),
                                        qb(p),qbe(p),

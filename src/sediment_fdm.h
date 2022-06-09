@@ -22,6 +22,8 @@ Author: Hans Bihs
 
 
 #include"sliceint4.h"
+#include"slice1.h"
+#include"slice2.h"
 #include"slice4.h"
 #include"field4a.h"
 
@@ -35,6 +37,9 @@ class sediment_fdm
 public:
     sediment_fdm(lexer*);
 	virtual ~sediment_fdm();
+    
+    slice1 P;
+    slice2 Q;
     
     slice4 bedzh,bedzh0;
     slice4 vz,dh,reduce;

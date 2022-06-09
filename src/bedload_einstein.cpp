@@ -22,12 +22,10 @@ Author: Hans Bihs
 
 #include"bedload_einstein.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
-#include"turbulence.h"
 
-bedload_einstein::bedload_einstein(lexer* p, turbulence *pturb) : epsi(1.6*p->DXM)
+bedload_einstein::bedload_einstein(lexer* p)
 {
     rhosed=p->S22;
     rhowat=p->W1;
@@ -45,7 +43,7 @@ bedload_einstein::~bedload_einstein()
 {
 }
 
-void bedload_einstein::start(lexer* p, fdm* a, ghostcell* pgc, sediment_fdm *s)
+void bedload_einstein::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {
     double qb;
 

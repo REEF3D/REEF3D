@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"vrans_v.h"
 #include"vrans_f.h"
 
-void sediment_f::update(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow)
+void sediment_f::update_cfd(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow)
 {
     for(int qn=0;qn<3;++qn)
     prelax->start(p,a,pgc,s);
@@ -44,6 +44,23 @@ void sediment_f::update(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow)
     pvrans->sed_update(p,a,pgc);
     
     pflow->gcio_update(p,a,pgc);
+}
+
+void sediment_f::update_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow)
+{
+    /*
+    for(int qn=0;qn<3;++qn)
+    prelax->start(p,a,pgc,s);
+    
+    p->sedtime+=p->dtsed;
+    
+    if(p->S10==1)
+    pgc->topo_update(p,a);
+    
+    if(p->S10==2)
+    pvrans->sed_update(p,a,pgc);
+    
+    pflow->gcio_update(p,a,pgc);*/
 }
 
 void sediment_f::bedlevel(lexer *p, fdm *a, ghostcell *pgc)

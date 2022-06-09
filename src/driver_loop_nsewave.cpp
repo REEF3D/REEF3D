@@ -85,7 +85,7 @@ void driver::loop_nsewave(fdm* a)
             
         
 		// Sediment Computation
-        psed->start_cfd(p,a,pconvec,pgc,pflow,ptopo,preto,psusp,pbed);
+        psed->start_cfd(p,a,pconvec,pgc,pflow,ptopo,preto,psusp);
 		pflow->u_relax(p,a,pgc,a->u);
 		pflow->v_relax(p,a,pgc,a->v);
 		pflow->w_relax(p,a,pgc,a->w);

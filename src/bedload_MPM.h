@@ -34,12 +34,11 @@ class bedload_MPM : public bedload, public increment
 {
 public:
 
-    bedload_MPM(lexer*,turbulence*);
+    bedload_MPM(lexer*);
 	virtual ~bedload_MPM();
-	virtual void start(lexer*, fdm*, ghostcell*, sediment_fdm*);
+	virtual void start(lexer*, ghostcell*, sediment_fdm*);
 
 private:
-    const double epsi;
     double rhosed,rhowat;
     double g,d50;
     double shields,eta,visc;

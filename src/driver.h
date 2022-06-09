@@ -165,7 +165,6 @@ public:
 	reini* preini;
 	particlecorr* ppart;
 	sediment* psed;
-	bedload* pbed;
 	suspended* psusp;
 	topo* ptopo;
 	reinitopo* preto;

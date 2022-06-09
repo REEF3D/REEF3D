@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-bedload_EF::bedload_EF(lexer *p, turbulence *pturb) : epsi(1.6*p->DXM)
+bedload_EF::bedload_EF(lexer *p)
 {
     rhosed=p->S22;
     rhowat=p->W1;
@@ -43,7 +43,7 @@ bedload_EF::~bedload_EF()
 {
 }
 
-void bedload_EF::start(lexer* p, fdm* a, ghostcell* pgc, sediment_fdm *s)
+void bedload_EF::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {
 
 	double qb,qbx,qby,Ts,Tb;

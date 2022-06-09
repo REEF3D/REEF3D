@@ -49,6 +49,23 @@ sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb): bed
 {
     s = new sediment_fdm(p);
     
+    
+    if(p->S11==0)
+    pbed = new bedload_void();
+
+    if(p->S11==1)
+    pbed = new bedload_VR(p);
+
+    if(p->S11==2)
+    pbed = new bedload_MPM(p);
+	
+	if(p->S11==3)
+    pbed = new bedload_EF(p);
+    
+    if(p->S11==4)
+    pbed = new bedload_einstein(p);
+    
+    
     if(p->S90==0)
     pslide=new sandslide_v(p);   
     
@@ -103,7 +120,7 @@ sediment_f::~sediment_f()
 }
 
 void sediment_f::start_cfd(lexer *p, fdm *a, convection *pconvec, ghostcell *pgc, ioflow *pflow,
-                                    topo *ptopo, reinitopo *preto, suspended *psusp, bedload *pbed)
+                                    topo *ptopo, reinitopo *preto, suspended *psusp)
 {
     // bedshear stress
     sedcalc=0;
@@ -111,17 +128,17 @@ void sediment_f::start_cfd(lexer *p, fdm *a, convection *pconvec, ghostcell *pgc
 	if((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47))
 	{
 		if(p->S42==1 && p->count%p->S44==0)
-		sediment_algorithm(p,a,pconvec,pgc,pflow,ptopo,preto,psusp,pbed);
+		sediment_algorithm(p,a,pconvec,pgc,pflow,ptopo,preto,psusp);
 		
 		if(p->S42==2 && p->simtime>=p->sedsimtime)
 		{
-		sediment_algorithm(p,a,pconvec,pgc,pflow,ptopo,preto,psusp,pbed);
+		sediment_algorithm(p,a,pconvec,pgc,pflow,ptopo,preto,psusp);
 		p->sedsimtime = p->simtime + p->S46;
 		}
 		
 		if(p->S42==3  && p->simtime/p->wT>=p->sedwavetime)
 		{
-		sediment_algorithm(p,a,pconvec,pgc,pflow,ptopo,preto,psusp,pbed);
+		sediment_algorithm(p,a,pconvec,pgc,pflow,ptopo,preto,psusp);
 		p->sedwavetime = p->simtime/p->wT + p->S48;
 		}
     
@@ -155,7 +172,7 @@ void sediment_f::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice
 }
 
 void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghostcell *pgc, ioflow *pflow,
-                                    topo *ptopo, reinitopo *preto, suspended *psusp, bedload *pbed)
+                                    topo *ptopo, reinitopo *preto, suspended *psusp)
 {
     starttime=pgc->timer();
     
@@ -181,7 +198,7 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
     pbedshear->taucritbed(p,a,pgc,s);
 
     // bedload
-    pbed->start(p,a,pgc,s);
+    pbed->start(p,pgc,s);
 	
     // Exner
     ptopo->start(a,p,pconvec,pgc,preto,s);
@@ -195,6 +212,9 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
 	if(p->S100>0)
 	filter(p,a,pgc,s->bedzh,p->S100,p->S101);
 	
+    
+    
+    // update cfd
 	topo_zh_update(p,a,pgc,s);
     preto->start(a,p,a->topo,pconvec,pgc);
 
@@ -207,7 +227,7 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
     if(p->mpirank==0)
     cout<<"Topo: update grid..."<<endl;
     
-    update(p,a,pgc,pflow);
+    update_cfd(p,a,pgc,pflow);
     bedlevel(p,a,pgc); 
 	
 	pgc->start4(p,a->conc,40);

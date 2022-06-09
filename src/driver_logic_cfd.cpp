@@ -618,24 +618,8 @@ void driver::logic()
     if(p->S10>0)
     psed = new sediment_f(p,a,pgc,pturb);
 
-    if(p->S11==0)
-    pbed = new bedload_void();
-
-    if(p->S11==1)
-    pbed = new bedload_VR(p,pturb);
-
-    if(p->S11==2)
-    pbed = new bedload_MPM(p,pturb);
-	
-	if(p->S11==3)
-    pbed = new bedload_EF(p,pturb);
     
-    if(p->S11==4)
-    pbed = new bedload_einstein(p,pturb);
     
-    if(p->S11==5)
-    pbed = new bedload_VRc(p,pturb);
-
     if(p->S10==0)
     ptopo = new topo_void(p,a,pgc);
 	
