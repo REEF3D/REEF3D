@@ -75,7 +75,7 @@ void driver::driver_ini()
     if(p->toporead>0)
     {
     geotopo gtopo(p,a,pgc);
-    gtopo.start(p,a,pgc,pflow,pconvec,preto,pvrans);
+    gtopo.start(p,a,pgc,pflow,preto,pvrans);
     }
     
 	// 6DOF
@@ -90,7 +90,7 @@ void driver::driver_ini()
     psed->ini_cfd(p,a,pgc);
     for(int qn=0;qn<5;++qn)
     psed->relax(p,pgc);
-    preto->start(a,p,a->topo,pconvec,pgc);
+    preto->start(p,a,pgc,a->topo);
     psed->update_cfd(p,a,pgc,pflow);
     pgc->start4a(p,a->topo,150);
     }

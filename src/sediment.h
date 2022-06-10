@@ -44,7 +44,7 @@ class sediment
 {
 public:
 
-	virtual void start_cfd(lexer*, fdm*, convection*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*)=0;
+	virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*)=0;
     virtual void ini_cfd(lexer*,fdm*,ghostcell*)=0;
     virtual void update_cfd(lexer*,fdm*,ghostcell*,ioflow*)=0;
     

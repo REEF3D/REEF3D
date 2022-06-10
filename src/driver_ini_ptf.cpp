@@ -77,7 +77,7 @@ cout<<"starting driver_ini_PTF"<<endl;
     if(p->toporead>0)
     {
     geotopo gtopo(p,a,pgc);
-    gtopo.start(p,a,pgc,pflow,pconvec,preto,pvrans);
+    gtopo.start(p,a,pgc,pflow,preto,pvrans);
     }
 
     SLICELOOP4

@@ -247,10 +247,7 @@ void sandslide_f3::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
         
         dzp = dzp/double(Iup + 1);
         
-        
-        //if(Iup>0)
-        //cout<<"dzp: "<<dzp<<" count: "<<count<<" double(Iup + 1): "<<double(Iup + 1)<<endl;
-        
+    
         
         if(id[0]==1)
         s->bedzh(i-1,j) += dzp + s->bedzh(i,j) - s->bedzh(i-1,j) + tan(s->phi(i,j))*p->DXP[IM1] - tan(p->S93*(PI/180.0))*p->DXP[IM1]; 

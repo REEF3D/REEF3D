@@ -21,15 +21,6 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sediment_void.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"convection.h"
-#include"ioflow.h"
-#include"topo.h"
-#include"reinitopo.h"
-#include"suspended.h"
-#include"bedload.h"
 
 sediment_void::sediment_void()
 {
@@ -41,7 +32,7 @@ sediment_void::~sediment_void()
 
 }
 
-void sediment_void::start_cfd(lexer *p, fdm *a, convection *pconvec, ghostcell *pgc, ioflow *pflow,
+void sediment_void::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow,
                                         topo *ptopo, reinitopo *preto, suspended *psusp)
 {
 

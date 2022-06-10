@@ -35,11 +35,11 @@ geotopo::~geotopo()
 {
 }
 
-void geotopo::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection* pconvec, reinitopo* preto, vrans* pvrans)
+void geotopo::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, reinitopo* preto, vrans* pvrans)
 {
     dat(p,a,pgc);
     
-    preto->start(a,p,a->topo,pconvec,pgc);
+    preto->start(p,a,pgc,a->topo);
     
     
     if(p->S10!=2)

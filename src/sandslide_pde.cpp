@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -139,17 +139,7 @@ void sandslide_pde::diff_update(lexer *p, ghostcell *pgc, sediment_fdm *s)
      
     gamma = atan(sqrt(bx0*bx0 + by0*by0));
 
-            /*
-            if(fabs(dH)>tan(s->phi(i,j)))
-            {
-            ci(i,j) = 1.0;
-            
-            ++count;
-            }
-            
-            if(fabs(dH)<tan(s->phi(i,j)))
-            ci(i,j) = 0.0;*/
-            
+
             if(gamma>s->phi(i,j))
             {
             ci(i,j) = 1.0;

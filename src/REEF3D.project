@@ -1403,6 +1403,8 @@
         <File Name="benchmark_convection.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment">
+        <File Name="sediment_algorithm_sflow.cpp"/>
+        <File Name="sediment_algorithm_cfd.cpp"/>
         <VirtualDirectory Name="Sediment FDM">
           <File Name="sediment_fdm.cpp"/>
         </VirtualDirectory>
@@ -1469,8 +1471,10 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <File Name="sediment_f.cpp"/>
-        <File Name="sediment_void.cpp"/>
         <VirtualDirectory Name="Sediment">
+          <File Name="sediment_void.cpp"/>
+          <File Name="sediment_prep.cpp"/>
+          <File Name="sediment_update.cpp"/>
           <File Name="sediment_zh.cpp"/>
           <File Name="sediment_ini.cpp"/>
           <File Name="sediment_filter.cpp"/>

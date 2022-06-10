@@ -21,6 +21,8 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
+#include"lexer.h"
+#include"fdm.h"
 #include"ghostcell.h"
 #include"freesurface_header.h"
 #include"turbulence_header.h"
@@ -35,7 +37,6 @@ Author: Hans Bihs
 #include"solver_header.h"
 #include"field_header.h"
 #include"6DOF_header.h"
-#include"lexer.h"
 
 
 void driver::loop_cfd(fdm* a)
@@ -84,7 +85,7 @@ void driver::loop_cfd(fdm* a)
             psusp->start(a,p,pconcdisc,psuspdiff,psolv,pgc,pflow);
 
 				
-        psed->start_cfd(p,a,pconvec,pgc,pflow,ptopo,preto,psusp);
+        psed->start_cfd(p,a,pgc,pflow,ptopo,preto,psusp);
         pflow->u_relax(p,a,pgc,a->u);
 		pflow->v_relax(p,a,pgc,a->v);
 		pflow->w_relax(p,a,pgc,a->w);

@@ -20,9 +20,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fdm.h"
-#include"convection.h"
-#include"ghostcell.h"
+class lexer;
+class fdm;
+class ghostcell;
+class field;
 
 using namespace std;
 
@@ -33,7 +34,7 @@ class reinitopo
 {
 public:
 
-	virtual void start(fdm*,lexer*,field&, convection*, ghostcell*)=0;
+	virtual void start(lexer*,fdm*,ghostcell*,field&)=0;
 
 };
 

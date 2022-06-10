@@ -60,7 +60,7 @@ reinisolid_RK3::~reinisolid_RK3()
 {
 }
 
-void reinisolid_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostcell* pgc)
+void reinisolid_RK3::start(lexer *p, fdm *a, ghostcell *pgc,field& b)
 { 
     starttime=pgc->timer();
 	

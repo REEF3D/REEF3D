@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -26,12 +26,6 @@ Author: Hans Bihs
 #include"field4a.h"
 #include"increment.h"
 #include"bedslope.h"
-#include"bedload_VR.h"
-#include"bedload_einstein.h"
-#include"bedload_MPM.h"
-#include"bedload_MPM.h"
-#include"bedload_EF.h"
-#include"bedload_void.h"
 
 class bedload;
 class sandslide;
@@ -54,21 +48,26 @@ public:
 	virtual ~sediment_f();
     
     // CFD interface
-    virtual void start_cfd(lexer*, fdm*, convection*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*);
+    virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*);
     virtual void ini_cfd(lexer*,fdm*,ghostcell*);
+    void sediment_algorithm_cfd(lexer*, fdm*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*);
     
     virtual void update_cfd(lexer*,fdm*,ghostcell*,ioflow*);
     
     // SFLOW interface
     virtual void start_sflow(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&);
     virtual void ini_sflow(lexer*, fdm2D*, ghostcell*);
+    void sediment_algorithm_sflow(lexer*, fdm2D*, ghostcell*, ioflow*,slice&,slice&,slice&);
     
     void update_sflow(lexer*,fdm2D*,ghostcell*,ioflow*);
+    
+    
     // ---
 	
     virtual void relax(lexer*,ghostcell*);
 	virtual double bedshear_point(lexer*,fdm*,ghostcell*);
-	void sediment_algorithm(lexer*, fdm*, convection*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*);
+    
+	
     
     virtual double qbeval(int,int);
     virtual void qbeget(int,int,double);

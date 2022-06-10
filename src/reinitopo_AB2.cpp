@@ -25,7 +25,6 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"convection.h"
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"picard_f.h"
@@ -60,7 +59,7 @@ reinitopo_AB2::~reinitopo_AB2()
 {
 }
 
-void reinitopo_AB2::start(fdm* a,lexer* p,field& b, convection* pconvec, ghostcell* pgc)
+void reinitopo_AB2::start(lexer* p, fdm* a, ghostcell* pgc,field &b)
 {
 
 	sizeM=p->sizeM4;

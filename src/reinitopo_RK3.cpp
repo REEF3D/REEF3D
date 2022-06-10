@@ -61,7 +61,7 @@ reinitopo_RK3::~reinitopo_RK3()
 {
 }
 
-void reinitopo_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostcell* pgc)
+void reinitopo_RK3::start(lexer* p, fdm* a, ghostcell* pgc, field& b)
 { 
     
     starttime=pgc->timer();
