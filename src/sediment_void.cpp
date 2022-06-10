@@ -67,7 +67,7 @@ void sediment_void::update_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pfl
 {
 }
 
-void sediment_void::relax(lexer *p, fdm *a,ghostcell *pgc)
+void sediment_void::relax(lexer *p,ghostcell *pgc)
 {
 }
 

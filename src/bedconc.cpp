@@ -22,11 +22,11 @@ Author: Hans Bihs
 
 #include"bedconc.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"sediment_fdm.h"
 #include"ghostcell.h"
 #include"turbulence.h"
 
-bedconc::bedconc(lexer *p, turbulence *pturb) : bedshear(p,pturb)
+bedconc::bedconc(lexer *p)
 {
     rhosed=p->S22;
     rhowat=p->W1;
@@ -43,14 +43,12 @@ bedconc::~bedconc()
 {
 }
 
-double bedconc::cbed(lexer* p,fdm* a,ghostcell *pgc, field& topo)
+double bedconc::cbed(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
 	double adist=2.0*d50;
 	
-    taubed(p,a,pgc,tau_eff);
-    taucritbed(p,a,pgc,tau_crit);
 
-    Ti=MAX((tau_eff-tau_crit)/tau_crit,0.0);
+    Ti=MAX((s->tau_eff(i,j)-s->tau_crit(i,j)/s->tau_crit(i,j)),0.0);
 
     Ds= d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
 

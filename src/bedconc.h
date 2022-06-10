@@ -21,11 +21,9 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"increment.h"
-#include"bedshear.h"
 
 class lexer;
-class fdm;
-class sl;
+class sediment_fdm;
 class ghostcell;
 
 #ifndef BEDCONC_H_
@@ -33,12 +31,12 @@ class ghostcell;
 
 using namespace std;
 
-class bedconc : public bedshear
+class bedconc : public increment
 {
 public:
-	bedconc(lexer*,turbulence*);
+	bedconc(lexer*);
 	virtual ~bedconc();
-	double cbed(lexer*,fdm*,ghostcell*,field&);
+	double cbed(lexer*,ghostcell*,sediment_fdm*);
 
 
 private:

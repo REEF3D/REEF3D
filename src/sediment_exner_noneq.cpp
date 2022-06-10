@@ -22,12 +22,11 @@ Author: Hans Bihs
 
 #include"sediment_exner.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 #include"solver2D.h"
 
-void sediment_exner::non_equillibrium_solve(lexer* p,fdm* a, ghostcell *pgc, sediment_fdm *s)
+void sediment_exner::non_equillibrium_solve(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
     double rhosed=p->S22;
     double rhowat=p->W1;
@@ -50,7 +49,7 @@ void sediment_exner::non_equillibrium_solve(lexer* p,fdm* a, ghostcell *pgc, sed
     
     Ls = 4000.0*MAX(s->shields_eff(i,j)-s->shields_crit(i,j), 0.0)*d50;
     
-    //Ls = p->dtsed/p->DXM*sqrt(pow(0.5*(a->P(i,j)+a->P(i+1,j)),2.0) +  pow(0.5*(a->Q(i,j)+a->Q(i,j+1)),2.0));
+    //Ls = p->dtsed/p->DXM*sqrt(pow(0.5*(s->P(i,j)+s->P(i+1,j)),2.0) +  pow(0.5*(s->Q(i,j)+s->Q(i,j+1)),2.0));
     
     Ls = MAX(Ls,0.0);
     Ls = MIN(Ls,1.0);

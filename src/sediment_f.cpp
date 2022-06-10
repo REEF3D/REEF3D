@@ -176,45 +176,58 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
 {
     starttime=pgc->timer();
     
+    // Prep CFD ---------------
+    // vel prep --------
     pgc->start1(p,a->u,14);
 	pgc->start2(p,a->v,15);
 	pgc->start3(p,a->w,16);
     
-    // find bedk
+    // find bedk -------
     fill_bedk(p,a,pgc);
     
-    // bedslope
+    // fill P/Q --------
+    //-------------------------
+    
+    
+    // Prep SFLOW ++++++++
+    // fill P/Q ++++++++++
+    // +++++++++++++++++++
+    
+    
+    
+    // bedslope cds ******
     if(p->S83==2)
     slope_cds(p,pgc,s);
     
+    // bedslope weno -------
     if(p->S83==5)
     slope_weno(p,pgc,s,a->topo);
     
-    // bedslope reduction 
+    // bedslope reduction ******
     preduce->start(p,pgc,s);
     
-    // bedshear stress
+    // bedshear stress -------
 	pbedshear->taubed(p,a,pgc,s);
     pbedshear->taucritbed(p,a,pgc,s);
 
-    // bedload
+    // bedload *******
     pbed->start(p,pgc,s);
 	
-    // Exner
-    ptopo->start(a,p,pconvec,pgc,preto,s);
+    // Exner *******
+    ptopo->start(p,pgc,s);
     
-    // sandslide
+    // sandslide ********
     pslide->start(p,pgc,s);
     
-	prelax->start(p,a,pgc,s);
+    // relax bedzh *******
+	prelax->start(p,pgc,s);
 	
-    // filter bedzh
+    // filter bedzh *******
 	if(p->S100>0)
 	filter(p,a,pgc,s->bedzh,p->S100,p->S101);
-	
     
-    
-    // update cfd
+    // -------------------
+    // update cfd -------
 	topo_zh_update(p,a,pgc,s);
     preto->start(a,p,a->topo,pconvec,pgc);
 
@@ -231,6 +244,7 @@ void sediment_f::sediment_algorithm(lexer *p, fdm *a, convection *pconvec, ghost
     bedlevel(p,a,pgc); 
 	
 	pgc->start4(p,a->conc,40);
+    // ---------------------
     
     if(p->mpirank==0 && p->count>0)
     cout<<"Sediment Timestep: "<<p->dtsed<<" Sediment Total Timestep: "<<p->dtsed<<"  Total Time: "<<setprecision(7)<<p->sedtime<<endl;

@@ -21,12 +21,8 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"topo_void.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"reinitopo.h"
 
-topo_void::topo_void(lexer* p, fdm *a, ghostcell* pgc)
+topo_void::topo_void()
 {
 }
 
@@ -34,7 +30,7 @@ topo_void::~topo_void()
 {
 }
 
-void topo_void::start(fdm* a,lexer* p,convection* pconvec, ghostcell* pgc,reinitopo* preto, sediment_fdm *s)
+void topo_void::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {
 }
 

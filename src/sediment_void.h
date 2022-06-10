@@ -43,7 +43,7 @@ public:
     
     // ---
 	
-    virtual void relax(lexer*,fdm*,ghostcell*);
+    virtual void relax(lexer*,ghostcell*);
 	virtual double bedshear_point(lexer*,fdm*,ghostcell*);
     
     virtual double qbeval(int,int);

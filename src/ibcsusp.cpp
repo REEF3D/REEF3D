@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"turbulence.h"
 
-ibcsusp::ibcsusp(lexer *p, turbulence *pturb) : bedconc(p,pturb), epsi(1.6*p->DXM)
+ibcsusp::ibcsusp(lexer *p, turbulence *pturb) : bedconc(p), epsi(1.6*p->DXM)
 {
     rhosed=p->S22;
     rhowat=p->W1;
@@ -61,7 +61,7 @@ void ibcsusp::ibcsusp_start(lexer* p,fdm* a,ghostcell *pgc,field& conc)
         h=a->phi(i,j,k) + p->DZP[KP];
         zdist = p->DZP[KP];
 
-        concval = cbed(p,a,pgc,a->topo)*pow(((h-zdist)/zdist)*(adist/(h-adist)),zdist);
+        //concval = cbed(p,pgc,s)*pow(((h-zdist)/zdist)*(adist/(h-adist)),zdist);
 		
 		k=kmem;
 		conc(i,j,k) =  concval;

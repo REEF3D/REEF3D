@@ -32,9 +32,6 @@ Author: Hans Bihs
 
 void sediment_f::update_cfd(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow)
 {
-    for(int qn=0;qn<3;++qn)
-    prelax->start(p,a,pgc,s);
-    
     p->sedtime+=p->dtsed;
     
     if(p->S10==1)
@@ -50,7 +47,7 @@ void sediment_f::update_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow)
 {
     /*
     for(int qn=0;qn<3;++qn)
-    prelax->start(p,a,pgc,s);
+    prelax->start(p,pgc,s);
     
     p->sedtime+=p->dtsed;
     
@@ -84,13 +81,16 @@ void sediment_f::bedlevel(lexer *p, fdm *a, ghostcell *pgc)
     }
 }
 
-void sediment_f::relax(lexer *p, fdm *a,ghostcell *pgc)
+void sediment_f::relax(lexer *p, ghostcell *pgc)
 {
-    prelax->start(p,a,pgc,s);
+    prelax->start(p,pgc,s);
 }
 
 void sediment_f::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc, sediment_fdm *s)
 {
+    for(int qn=0;qn<3;++qn)
+    prelax->start(p,pgc,s);
+    
 	pgc->gcsl_start4(p,s->bedzh,1);
 	
     ALOOP

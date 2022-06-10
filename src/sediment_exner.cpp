@@ -22,10 +22,8 @@ Author: Hans Bihs
 
 #include"sediment_exner.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
-#include"reinitopo.h"
 #include"bedconc.h"
 #include"topo_relax.h"
 #include"sediment_fou.h"
@@ -36,7 +34,7 @@ Author: Hans Bihs
 #include"sflow_bicgstab.h"
 #include<math.h>
 
-sediment_exner::sediment_exner(lexer* p, fdm *a, ghostcell* pgc, turbulence *pturb) :  bedshear(p,pturb), q0(p),dqx0(p),dqy0(p), xvec(p),rhsvec(p),M(p)
+sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),dqx0(p),dqy0(p), xvec(p),rhsvec(p),M(p)
 {
 	if(p->S50==1)
 	gcval_topo=151;
@@ -59,7 +57,7 @@ sediment_exner::sediment_exner(lexer* p, fdm *a, ghostcell* pgc, turbulence *ptu
     Ls = p->S20;
     
     
-    pcb = new bedconc(p, pturb);
+    pcb = new bedconc(p);
     
     prelax = new topo_relax(p);
     
@@ -85,13 +83,13 @@ sediment_exner::~sediment_exner()
 {
 }
 
-void sediment_exner::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,reinitopo* preto, sediment_fdm *s)
+void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {   
-    non_equillibrium_solve(p,a,pgc,s); 
+    non_equillibrium_solve(p,pgc,s); 
    
     SLICELOOP4
     {
-		topovel(p,a,pgc,s,vx,vy,vz);
+		topovel(p,pgc,s,vx,vy,vz);
         dqx0(i,j) = vx;
         dqy0(i,j) = vy;
 		s->vz(i,j) = vz;
@@ -99,7 +97,7 @@ void sediment_exner::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,
     
 	pgc->gcsl_start4(p,s->vz,1);
 	
-    timestep(p,a,pgc,s);
+    timestep(p,pgc,s);
     
     
 	

@@ -53,7 +53,7 @@ public:
     virtual void update_sflow(lexer*,fdm2D*,ghostcell*,ioflow*)=0;
     
     //
-    virtual void relax(lexer*,fdm*,ghostcell*)=0;
+    virtual void relax(lexer*,ghostcell*)=0;
 	virtual double bedshear_point(lexer*,fdm*,ghostcell*)=0;
     
     virtual double qbeval(int,int)=0;

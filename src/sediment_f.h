@@ -66,7 +66,7 @@ public:
     void update_sflow(lexer*,fdm2D*,ghostcell*,ioflow*);
     // ---
 	
-    virtual void relax(lexer*,fdm*,ghostcell*);
+    virtual void relax(lexer*,ghostcell*);
 	virtual double bedshear_point(lexer*,fdm*,ghostcell*);
 	void sediment_algorithm(lexer*, fdm*, convection*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*);
     
