@@ -23,7 +23,6 @@ Author: Hans Bihs
 #include"sediment_f.h"
 #include"sediment_void.h"
 
-#include"topo_void.h"
 #include"sediment_exner.h"
 
 #include"reinitopo_AB2.h"

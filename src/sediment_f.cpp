@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"convection.h"
 #include"ioflow.h"
 #include"topo.h"
+#include"sediment_exner.h"
 #include"reinitopo.h"
 #include"suspended.h"
 #include"bedload_VR.h"
@@ -108,6 +109,8 @@ sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb): bed
 	if(p->S80==4)
     preduce=new reduction_FD(p);
     
+    ptopo = new sediment_exner(p,pgc);
+    
 	
 	p->gcin4a_count=p->gcin_count;
 	p->gcout4a_count=p->gcout_count;
@@ -125,7 +128,7 @@ sediment_f::~sediment_f()
 }
 
 void sediment_f::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow,
-                                    topo *ptopo, reinitopo *preto, suspended *psusp)
+                                    reinitopo *preto, suspended *psusp)
 {
     // bedshear stress
     sedcalc=0;
@@ -133,17 +136,17 @@ void sediment_f::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow,
 	if((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47))
 	{
 		if(p->S42==1 && p->count%p->S44==0)
-		sediment_algorithm_cfd(p,a,pgc,pflow,ptopo,preto,psusp);
+		sediment_algorithm_cfd(p,a,pgc,pflow,preto,psusp);
 		
 		if(p->S42==2 && p->simtime>=p->sedsimtime)
 		{
-		sediment_algorithm_cfd(p,a,pgc,pflow,ptopo,preto,psusp);
+		sediment_algorithm_cfd(p,a,pgc,pflow,preto,psusp);
 		p->sedsimtime = p->simtime + p->S46;
 		}
 		
 		if(p->S42==3  && p->simtime/p->wT>=p->sedwavetime)
 		{
-		sediment_algorithm_cfd(p,a,pgc,pflow,ptopo,preto,psusp);
+		sediment_algorithm_cfd(p,a,pgc,pflow,preto,psusp);
 		p->sedwavetime = p->simtime/p->wT + p->S48;
 		}
     

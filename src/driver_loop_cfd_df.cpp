@@ -232,7 +232,7 @@ void driver::loop_cfd_df(fdm* a)
         psusp->start(a,p,pconcdisc,psuspdiff,psolv,pgc,pflow);
         
         // Sediment computation
-        psed->start_cfd(p,a,pgc,pflow,ptopo,preto,psusp);
+        psed->start_cfd(p,a,pgc,pflow,preto,psusp);
 
         pflow->u_relax(p,a,pgc,a->u);
 		pflow->v_relax(p,a,pgc,a->v);

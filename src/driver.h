@@ -45,7 +45,6 @@ class particlecorr;
 class sediment;
 class bedload;
 class suspended;
-class topo;
 class reinitopo;
 class potential;
 class heat;
@@ -166,7 +165,6 @@ public:
 	particlecorr* ppart;
 	sediment* psed;
 	suspended* psusp;
-	topo* ptopo;
 	reinitopo* preto;
     reinitopo* preso;
 	heat* pheat;

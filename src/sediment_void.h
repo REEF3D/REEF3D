@@ -33,9 +33,9 @@ public:
     sediment_void();
 	virtual ~sediment_void();
     
-    virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*);
+    virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, suspended*);
     virtual void ini_cfd(lexer*,fdm*,ghostcell*);
-    virtual void update_cfd(lexer*,fdm*,ghostcell*,ioflow*);
+    virtual void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*);
     
     virtual void start_sflow(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&);
     virtual void ini_sflow(lexer*, fdm2D*, ghostcell*);

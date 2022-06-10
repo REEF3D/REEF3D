@@ -38,38 +38,45 @@ Author: Hans Bihs
 
 void sediment_f::sediment_algorithm_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice &P, slice &Q, slice &topovel)
 {
-    /*
     starttime=pgc->timer();
     
-    // bedshear
-    bedslope(p,b,pgc,P,Q);
-    bedshear(p,b,pgc,P,Q);
-    shields(p,b,pgc);
+    // prep SFLOW
+    prep_sflow(p,b,pgc,P,Q);
+    
+    // bedslope cds ******
+    slope_cds(p,pgc,s);
+    
+    // bedslope reduction ******
+    preduce->start(p,pgc,s);
+    
+    // bedshear stress -------
+	pbedshear->taubed(p,b,pgc,s);
+    pbedshear->taucritbed(p,b,pgc,s);
 
-    // bedload
-    bedload(p,b,pgc);
-
-    // exner
-    exner(p,b,pgc,P,Q,topovel);
-	filter(p,b,pgc,b->bed,p->S100,p->S101);
+    // bedload *******
+    pbed->start(p,pgc,s);
+	
+    // Exner *******
+    ptopo->start(p,pgc,s);
     
-    // sandslide
-    bedslope(p,b,pgc,P,Q);
+    // sandslide ********
+    pslide->start(p,pgc,s);
     
-    if(p->S90==1)
-    sandslide(p,b,pgc,P,Q);
+    // relax bedzh *******
+	prelax->start(p,pgc,s);
+	
+    // filter bedzh *******
+	if(p->S100>0)
+	filter(p,pgc,s->bedzh,p->S100,p->S101);
     
-    if(p->S90==2)
-    sandslide_v2(p,b,pgc,P,Q);
+    // update sflow  --------
+    update_sflow(p,b,pgc,pflow);
     
-    relax(p,b,pgc);
-    
-    bedchange_update(p,b,pgc);   
-    */
     
     if(p->mpirank==0 && p->count>0)
-    cout<<"Sediment Timestep: "<<p->dtsed<<"  Total Time: "<<setprecision(7)<<p->sedtime<<endl;
+    cout<<"Sediment Timestep: "<<p->dtsed<<" Sediment Total Timestep: "<<p->dtsed<<"  Total Time: "<<setprecision(7)<<p->sedtime<<endl;
 
 	if(p->mpirank==0)
-    cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
+    cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl<<endl;
+
 }

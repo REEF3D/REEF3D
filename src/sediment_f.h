@@ -48,17 +48,17 @@ public:
 	virtual ~sediment_f();
     
     // CFD interface
-    virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*);
+    virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, suspended*);
     virtual void ini_cfd(lexer*,fdm*,ghostcell*);
-    void sediment_algorithm_cfd(lexer*, fdm*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*);
+    void sediment_algorithm_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, suspended*);    void prep_cfd(lexer*,fdm*,ghostcell*);    void fill_PQ_cfd(lexer*,fdm*,ghostcell*);
     
-    virtual void update_cfd(lexer*,fdm*,ghostcell*,ioflow*);
+    virtual void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*);
     
     // SFLOW interface
     virtual void start_sflow(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&);
     virtual void ini_sflow(lexer*, fdm2D*, ghostcell*);
     void sediment_algorithm_sflow(lexer*, fdm2D*, ghostcell*, ioflow*,slice&,slice&,slice&);
-    
+    void prep_sflow(lexer*, fdm2D*, ghostcell*,slice&,slice&);    void fill_PQ_sflow(lexer*,fdm2D*,ghostcell*,slice&,slice&);
     void update_sflow(lexer*,fdm2D*,ghostcell*,ioflow*);
     
     
@@ -76,7 +76,7 @@ public:
 	void bedlevel(lexer*,fdm*,ghostcell*);
 	void topo_zh_update(lexer*,fdm*,ghostcell*,sediment_fdm*);
     void volume_calc(lexer*,fdm*,ghostcell*);
-	void filter(lexer*,fdm*,ghostcell*,slice&,int,int);
+	void filter(lexer*,ghostcell*,slice&,int,int);
     
     // print
     virtual void print_3D_bedload(lexer*, fdm*, ghostcell*,ofstream&);
@@ -106,7 +106,7 @@ private:
     sandslide *pslide;
     topo_relax *prelax;
     vrans *pvrans;
-    bedshear_reduction *preduce;
+    bedshear_reduction *preduce;    topo* ptopo;
 	
 	bedshear *pbedshear;
     

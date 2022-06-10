@@ -91,7 +91,7 @@ void driver::driver_ini()
     for(int qn=0;qn<5;++qn)
     psed->relax(p,pgc);
     preto->start(p,a,pgc,a->topo);
-    psed->update_cfd(p,a,pgc,pflow);
+    psed->update_cfd(p,a,pgc,pflow,preto);
     pgc->start4a(p,a->topo,150);
     }
     

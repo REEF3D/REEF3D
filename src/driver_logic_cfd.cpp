@@ -618,16 +618,6 @@ void driver::logic()
     if(p->S10>0)
     psed = new sediment_f(p,a,pgc,pturb);
 
-    
-    
-    if(p->S10==0)
-    ptopo = new topo_void();
-	
-	if(p->S10>=1)
-    ptopo = new sediment_exner(p,pgc);
-
-    if(p->S10==0 && p->G1==0)
-    preto = new reinitopo_void();
 
     if(p->S10>=1 || p->G1==1 || p->toporead==1)
     {

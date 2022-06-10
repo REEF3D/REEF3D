@@ -33,7 +33,7 @@ sediment_void::~sediment_void()
 }
 
 void sediment_void::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow,
-                                        topo *ptopo, reinitopo *preto, suspended *psusp)
+                                        reinitopo *preto, suspended *psusp)
 {
 
 }
@@ -50,7 +50,7 @@ void sediment_void::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
 {
 }
     
-void sediment_void::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
+void sediment_void::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo*)
 {
 }
 

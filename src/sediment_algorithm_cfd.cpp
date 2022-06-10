@@ -36,29 +36,12 @@ Author: Hans Bihs
 #include"bedshear_reduction.h"
 
 void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow,
-                                    topo *ptopo, reinitopo *preto, suspended *psusp)
+                                    reinitopo *preto, suspended *psusp)
 {
     starttime=pgc->timer();
     
-    // Prep CFD ---------------
-    // vel prep --------
-    pgc->start1(p,a->u,14);
-	pgc->start2(p,a->v,15);
-	pgc->start3(p,a->w,16);
-    
-    // find bedk -------
-    fill_bedk(p,a,pgc);
-    
-    // fill P/Q --------
-    //-------------------------
-    
-    
-    
-    // Prep SFLOW ++++++++
-    // fill P/Q ++++++++++
-    // +++++++++++++++++++
-    
-    
+    // prep CFD
+    prep_cfd(p,a,pgc);
     
     // bedslope cds ******
     if(p->S83==2)
@@ -89,27 +72,11 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
 	
     // filter bedzh *******
 	if(p->S100>0)
-	filter(p,a,pgc,s->bedzh,p->S100,p->S101);
+	filter(p,pgc,s->bedzh,p->S100,p->S101);
     
-    // -------------------
-    // update cfd -------
-	topo_zh_update(p,a,pgc,s);
-    preto->start(p,a,pgc,a->topo);
-
-    volume_calc(p,a,pgc);
+    // update cfd  --------
+    update_cfd(p,a,pgc,pflow,preto);
     
-    pgc->start1(p,a->u,10);
-	pgc->start2(p,a->v,11);
-	pgc->start3(p,a->w,12);
-    
-    if(p->mpirank==0)
-    cout<<"Topo: update grid..."<<endl;
-    
-    update_cfd(p,a,pgc,pflow);
-    bedlevel(p,a,pgc); 
-	
-	pgc->start4(p,a->conc,40);
-    // ---------------------
     
     if(p->mpirank==0 && p->count>0)
     cout<<"Sediment Timestep: "<<p->dtsed<<" Sediment Total Timestep: "<<p->dtsed<<"  Total Time: "<<setprecision(7)<<p->sedtime<<endl;

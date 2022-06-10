@@ -35,7 +35,6 @@ double sediment_f::bedshear_point(lexer *p, fdm *a,ghostcell *pgc)
 
 void sediment_f::fill_bedk(lexer *p, fdm *a,ghostcell *pgc)
 {
-    double zval,xip,yip;
     SLICELOOP4
     s->bedk(i,j)=0;
     
@@ -44,7 +43,11 @@ void sediment_f::fill_bedk(lexer *p, fdm *a,ghostcell *pgc)
     PBASECHECK
     if(a->topo(i,j,k)<0.0 && a->topo(i,j,k+1)>=0.0)
     s->bedk(i,j)=k+1;
-    
+}
+
+void sediment_f::fill_PQ_cfd(lexer *p, fdm *a,ghostcell *pgc)
+{
+    double zval,xip,yip;
     
     SLICELOOP1
     {
@@ -67,6 +70,18 @@ void sediment_f::fill_bedk(lexer *p, fdm *a,ghostcell *pgc)
     
     s->Q(i,j) = p->ccipol2(a->v,xip,yip,zval);
     }
+    
+    pgc->gcsl_start1(p,s->P,10);
+	pgc->gcsl_start2(p,s->Q,11);
+}
+
+void sediment_f::fill_PQ_sflow(lexer *p, fdm2D *b,ghostcell *pgc,slice &P, slice &Q)
+{
+    SLICELOOP1
+    s->P(i,j) = P(i,j);
+    
+    SLICELOOP2
+    s->Q(i,j) = Q(i,j);
     
     pgc->gcsl_start1(p,s->P,10);
 	pgc->gcsl_start2(p,s->Q,11);
