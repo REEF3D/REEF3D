@@ -42,7 +42,7 @@ void sediment_void::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
 {
 }
 
-void sediment_void::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q, slice &topovel)
+void sediment_void::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow*, slice &P, slice &Q)
 {
 }
 

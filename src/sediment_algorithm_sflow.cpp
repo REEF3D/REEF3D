@@ -36,7 +36,7 @@ Author: Hans Bihs
 #include"topo_relax.h"
 #include"bedshear_reduction.h"
 
-void sediment_f::sediment_algorithm_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice &P, slice &Q, slice &topovel)
+void sediment_f::sediment_algorithm_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice &P, slice &Q)
 {
     starttime=pgc->timer();
     

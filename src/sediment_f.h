@@ -55,9 +55,9 @@ public:
     virtual void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*);
     
     // SFLOW interface
-    virtual void start_sflow(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&);
+    virtual void start_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&);
     virtual void ini_sflow(lexer*, fdm2D*, ghostcell*);
-    void sediment_algorithm_sflow(lexer*, fdm2D*, ghostcell*, ioflow*,slice&,slice&,slice&);
+    void sediment_algorithm_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&);
     void prep_sflow(lexer*, fdm2D*, ghostcell*,slice&,slice&);    void fill_PQ_sflow(lexer*,fdm2D*,ghostcell*,slice&,slice&);
     void update_sflow(lexer*,fdm2D*,ghostcell*,ioflow*);
     

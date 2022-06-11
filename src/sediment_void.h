@@ -37,7 +37,7 @@ public:
     virtual void ini_cfd(lexer*,fdm*,ghostcell*);
     virtual void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*);
     
-    virtual void start_sflow(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&);
+    virtual void start_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&);
     virtual void ini_sflow(lexer*, fdm2D*, ghostcell*);
     virtual void update_sflow(lexer*,fdm2D*,ghostcell*,ioflow*);
     
