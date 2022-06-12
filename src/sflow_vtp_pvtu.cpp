@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
+#include"sediment.h"
 
 void sflow_vtp::pvtp(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb, sediment *psed)
 {	
@@ -97,6 +98,19 @@ void sflow_vtp::pvtp(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb
 	result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"waterlevel\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"breaking\"/>"<<endl;
+    
+    if(p->P76==1)
+	psed->name_pvtu_bedload(p,pgc,result);
+    
+    if(p->P77==1)
+	psed->name_pvtu_parameter1(p,pgc,result);
+
+    if(p->P78==1)
+	psed->name_pvtu_parameter2(p,pgc,result);
+
+	if(p->P79>=1)
+	psed->name_pvtu_bedshear(p,pgc,result);
+    
     if(p->P23==1)
     result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
 	result<<"</PPointData>"<<endl;

@@ -130,16 +130,16 @@ void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
 	result<<"<PDataArray type=\"Float32\" Name=\"topo\"/>"<<endl;
     
     if(p->P76==1)
-	psed->name_pvtu_bedload(p,a,pgc,result);
+	psed->name_pvtu_bedload(p,pgc,result);
     
     if(p->P77==1)
-	psed->name_pvtu_parameter1(p,a,pgc,result);
+	psed->name_pvtu_parameter1(p,pgc,result);
 
     if(p->P78==1)
-	psed->name_pvtu_parameter2(p,a,pgc,result);
+	psed->name_pvtu_parameter2(p,pgc,result);
 
 	if(p->P79>=1)
-	psed->name_pvtu_bedshear(p,a,pgc,result);
+	psed->name_pvtu_bedshear(p,pgc,result);
 
     if(p->P23==1)
 	result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;

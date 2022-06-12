@@ -84,11 +84,11 @@ void sflow_vtp::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sflow_t
     }
 
 	// Gages
-	  if(p->P51>0)
-	  pwsf->height_gauge(p,b,pgc,b->eta);
+    if(p->P51>0)
+    pwsf->height_gauge(p,b,pgc,b->eta);
 
     if(p->P50>0)
-	  pwsf_theory->height_gauge(p,b,pgc,pflow);
+    pwsf_theory->height_gauge(p,b,pgc,pflow);
 
     if((p->P52>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P52>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
     pwsfline->start(p,b,pgc,pflow,b->eta);
@@ -97,7 +97,7 @@ void sflow_vtp::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sflow_t
     pwsfline_y->start(p,b,pgc,pflow,b->eta);
 
     if(p->P63>0 && p->count%p->P54==0)
-	  pprobe->start(p,b,pgc);
+    pprobe->start(p,b,pgc);
 
     if((p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0))
     p->probeprinttime+=p->P55;
@@ -181,6 +181,22 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pt
     // breaking
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
+    
+    // sediment bedlaod
+	if(p->P76==1)
+	psed->offset_vtp_bedload(p,pgc,result,offset,n);
+
+    // sediment parameters 1
+	if(p->P77==1)
+	psed->offset_vtp_parameter1(p,pgc,result,offset,n);
+
+    // sediment parameters 2
+	if(p->P78==1)
+	psed->offset_vtp_parameter2(p,pgc,result,offset,n);
+
+    // bed shear stress
+	if(p->P79>=1)
+	psed->offset_vtp_bedshear(p,pgc,result,offset,n);
 
     // test
     if(p->P23==1)
@@ -224,6 +240,19 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pt
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"breaking\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
+    
+    if(p->P76==1)
+	psed->name_vtu_bedload(p,pgc,result,offset,n);
+    
+    if(p->P77==1)
+	psed->name_vtu_parameter1(p,pgc,result,offset,n);
+
+    if(p->P78==1)
+	psed->name_vtu_parameter2(p,pgc,result,offset,n);
+
+	if(p->P79>=1)
+	psed->name_vtu_bedshear(p,pgc,result,offset,n);
+    
     if(p->P23==1)
     {
     result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
@@ -340,6 +369,22 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pt
 	ffn=float(p->sl_ipol4(b->breaking_print));
 	result.write((char*)&ffn, sizeof (float));
 	}
+    
+    //  sediment bedload
+	if(p->P76==1)
+    psed->print_2D_bedload(p,pgc,result);
+    
+    //  sediment parameter 1
+	if(p->P77==1)
+    psed->print_2D_parameter1(p,pgc,result);
+
+    //  sediment parameter 2
+	if(p->P78==1)
+    psed->print_2D_parameter2(p,pgc,result);
+
+    //  bed shear stress
+	if(p->P79>=1)
+    psed->print_2D_bedshear(p,pgc,result);
 
     //  test
     if(p->P23==1)

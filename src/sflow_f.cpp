@@ -142,7 +142,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 		double ptime=pgc->timer();
 		
         pprint->start(p,b,pgc,pflow,pturb,psed);
-		pprintbed->start(p,b,pgc);
+		pprintbed->start(p,b,pgc,psed);
 		
 		p->printouttime=pgc->timer()-ptime;
 

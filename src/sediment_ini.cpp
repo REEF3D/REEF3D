@@ -58,5 +58,7 @@ void sediment_f::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     SLICELOOP4
     {
     s->ks(i,j) = p->S20;
+    
+    s->bedzh(i,j)=b->bed(i,j);
     }
 }

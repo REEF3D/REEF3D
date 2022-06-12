@@ -466,19 +466,19 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     
     	// sediment bedlaod
 	if(p->P76==1)
-	psed->offset_vtu_bedload(p,a,pgc,result,offset,n);
+	psed->offset_vtu_bedload(p,pgc,result,offset,n);
 
     	// sediment parameters 1
 	if(p->P77==1)
-	psed->offset_vtu_parameter1(p,a,pgc,result,offset,n);
+	psed->offset_vtu_parameter1(p,pgc,result,offset,n);
 
     	// sediment parameters 2
 	if(p->P78==1)
-	psed->offset_vtu_parameter2(p,a,pgc,result,offset,n);
+	psed->offset_vtu_parameter2(p,pgc,result,offset,n);
 
 		// bed shear stress
 	if(p->P79>=1)
-	psed->offset_vtu_bedshear(p,a,pgc,result,offset,n);
+	psed->offset_vtu_bedshear(p,pgc,result,offset,n);
 
     // test
     if(p->P23==1)
@@ -591,16 +591,16 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
     
     if(p->P76==1)
-	psed->name_vtu_bedload(p,a,pgc,result,offset,n);
+	psed->name_vtu_bedload(p,pgc,result,offset,n);
     
     if(p->P77==1)
-	psed->name_vtu_parameter1(p,a,pgc,result,offset,n);
+	psed->name_vtu_parameter1(p,pgc,result,offset,n);
 
     if(p->P78==1)
-	psed->name_vtu_parameter2(p,a,pgc,result,offset,n);
+	psed->name_vtu_parameter2(p,pgc,result,offset,n);
 
 	if(p->P79>=1)
-	psed->name_vtu_bedshear(p,a,pgc,result,offset,n);
+	psed->name_vtu_bedshear(p,pgc,result,offset,n);
 
     if(p->P23==1)
 	{
@@ -787,19 +787,19 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     
 //  sediment bedload
 	if(p->P76==1)
-    psed->print_3D_bedload(p,a,pgc,result);
+    psed->print_3D_bedload(p,pgc,result);
     
 //  sediment parameter 1
 	if(p->P77==1)
-    psed->print_3D_parameter1(p,a,pgc,result);
+    psed->print_3D_parameter1(p,pgc,result);
 
 //  sediment parameter 2
 	if(p->P78==1)
-    psed->print_3D_parameter2(p,a,pgc,result);
+    psed->print_3D_parameter2(p,pgc,result);
 
 //  bed shear stress
 	if(p->P79>=1)
-    psed->print_3D_bedshear(p,a,pgc,result);
+    psed->print_3D_bedshear(p,pgc,result);
 
 //  test
     if(p->P23==1)

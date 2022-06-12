@@ -62,6 +62,9 @@ void sediment_f::update_cfd(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow, rein
 
 void sediment_f::update_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow)
 {
+    SLICELOOP4
+    b->bed(i,j) = s->bedzh(i,j);
     
+    pgc->gcsl_start4(p,b->bed,50);
     
 }
