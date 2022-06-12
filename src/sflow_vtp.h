@@ -26,6 +26,7 @@ class lexer;
 class fdm2D;
 class ghostcell;
 class ioflow;
+class sediment;
 class sflow_print_wsf;
 class sflow_print_wsf_theory;
 class sflow_print_wsfline;
@@ -45,13 +46,13 @@ public:
 	sflow_vtp(lexer*,fdm2D*,ghostcell*);
 	virtual ~sflow_vtp();
 
-    virtual void start(lexer*,fdm2D*,ghostcell*,ioflow*,sflow_turbulence*);
-    virtual void print2D(lexer*,fdm2D*,ghostcell*,sflow_turbulence*);
+    virtual void start(lexer*,fdm2D*,ghostcell*,ioflow*,sflow_turbulence*,sediment*);
+    virtual void print2D(lexer*,fdm2D*,ghostcell*,sflow_turbulence*,sediment*);
 
 private:
 
 	void etend(lexer*,fdm2D*,ghostcell*);
-	void pvtp(lexer*,fdm2D*,ghostcell*,sflow_turbulence*);
+	void pvtp(lexer*,fdm2D*,ghostcell*,sflow_turbulence*,sediment*);
 	void name_iter(lexer*,fdm2D*,ghostcell*);
     void piecename(lexer*,fdm2D*,ghostcell*,int);
 

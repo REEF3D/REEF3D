@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"lexer.h"
 #include"fdm2D.h"
+#include"fdm.h"
 #include"ghostcell.h"
 #include"iowave.h"
 #include"ioflow_f.h"
@@ -60,8 +61,8 @@ Author: Hans Bihs
 #include"sflow_pjm_sw.h"
 #include"sflow_filter.h"
 
-#include"sflow_sediment_f.h"
-#include"sflow_sediment_v.h"
+#include"sediment_f.h"
+#include"sediment_void.h"
 
 #include"sflow_potential_f.h"
 #include"sflow_potential_v.h"
@@ -71,6 +72,7 @@ Author: Hans Bihs
 #include"6DOF_void.h"
 #include"6DOF_sflow.h"
 #include"vrans_header.h"
+#include"turbulence.h"
 
 
 

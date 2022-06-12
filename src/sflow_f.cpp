@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"iowave.h"
+#include"sediment.h"
 #include"hypre_struct2D.h"
 #include"sflow_etimestep.h"
 #include"sflow_weno_flux.h"
@@ -116,7 +117,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         b->breaking(i,j)=0;
         
         // sediment transport
-        psed->start(p,b,pgc,b->P,b->Q,b->topovel);
+        psed->start_sflow(p,b,pgc,pflow,b->P,b->Q);
         pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
         
         // 6DOF
@@ -140,7 +141,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 		
 		double ptime=pgc->timer();
 		
-        pprint->start(p,b,pgc,pflow,pturb);
+        pprint->start(p,b,pgc,pflow,pturb,psed);
 		pprintbed->start(p,b,pgc);
 		
 		p->printouttime=pgc->timer()-ptime;
@@ -191,7 +192,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         if(p->mpirank==0)
         cout<<endl<<"EMERGENCY STOP  --  velocities exceeding critical value N 61"<<endl<<endl;
         
-        pprint->print2D(p,b,pgc,pturb);
+        pprint->print2D(p,b,pgc,pturb,psed);
     
     pgc->final();
     exit(0);

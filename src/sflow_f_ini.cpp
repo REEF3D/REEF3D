@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"iowave.h"
+#include"sediment.h"
 #include"hypre_struct2D.h"
 #include"sflow_etimestep.h"
 #include"sflow_weno_flux.h"
@@ -152,7 +153,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     pgc->gcsl_start4(p,b->ks,50);
 
     //sediment ini
-    psed->ini(p,b,pgc);
+    psed->ini_sflow(p,b,pgc);
 
     //6DOF ini
     if(p->X10==3)
@@ -160,7 +161,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 
     // print
 	print_debug(p,b,pgc);
-    pprint->start(p,b,pgc,pflow,pturb);
+    pprint->start(p,b,pgc,pflow,pturb,psed);
 
 	pprintbed->start(p,b,pgc);
 }

@@ -465,7 +465,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
     
     	// sediment bedlaod
-	if(p->P77==1)
+	if(p->P76==1)
 	psed->offset_vtu_bedload(p,a,pgc,result,offset,n);
 
     	// sediment parameters 1
@@ -590,7 +590,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     ++n;
 	}
     
-    if(p->P77==1)
+    if(p->P76==1)
 	psed->name_vtu_bedload(p,a,pgc,result,offset,n);
     
     if(p->P77==1)
@@ -787,7 +787,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     
 //  sediment bedload
 	if(p->P76==1)
-    psed->print_3D_parameter1(p,a,pgc,result);
+    psed->print_3D_bedload(p,a,pgc,result);
     
 //  sediment parameter 1
 	if(p->P77==1)

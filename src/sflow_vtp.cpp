@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
+#include"sediment.h"
 #include"sflow_print_wsf.h"
 #include"sflow_print_wsf_theory.h"
 #include"sflow_print_wsfline.h"
@@ -66,18 +67,18 @@ sflow_vtp::~sflow_vtp()
 {
 }
 
-void sflow_vtp::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sflow_turbulence *pturb)
+void sflow_vtp::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sflow_turbulence *pturb, sediment *psed)
 {
 	// Print out based on iteration
     if((p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)  || (p->count==0 &&  p->P30<0.0))
     {
-    print2D(p,b,pgc,pturb);
+    print2D(p,b,pgc,pturb,psed);
     }
 
     // Print out based on time
     if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==1) || (p->count==0 &&  p->P30>0.0))
     {
-    print2D(p,b,pgc,pturb);
+    print2D(p,b,pgc,pturb,psed);
 
     p->printtime+=p->P30;
     }
@@ -103,12 +104,12 @@ void sflow_vtp::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sflow_t
 
 }
 
-void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb)
+void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb, sediment *psed)
 {
     b->eta.ggcpol(p);
 
 	if(p->mpirank==0)
-    pvtp(p,b,pgc,pturb);
+    pvtp(p,b,pgc,pturb,psed);
 
 	name_iter(p,b,pgc);
     

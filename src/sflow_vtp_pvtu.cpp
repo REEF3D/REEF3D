@@ -26,8 +26,7 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 
-
-void sflow_vtp::pvtp(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb)
+void sflow_vtp::pvtp(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb, sediment *psed)
 {	
 	int num=0;
 

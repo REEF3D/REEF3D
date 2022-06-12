@@ -1123,7 +1123,7 @@
             <File Name="sflow_vtp_bed.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTP">
-            <File Name="sflow_vtu_pvtu.cpp"/>
+            <File Name="sflow_vtp_pvtu.cpp"/>
             <File Name="sflow_vtp_header.cpp"/>
             <File Name="sflow_vtp.cpp"/>
           </VirtualDirectory>
