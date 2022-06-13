@@ -95,35 +95,7 @@
             <File Name="sflow_bicgstab.h"/>
           </VirtualDirectory>
         </VirtualDirectory>
-        <VirtualDirectory Name="Sediment">
-          <File Name="sflow_sediment_v.h"/>
-          <File Name="sflow_sediment_RKv.h"/>
-          <File Name="sflow_sediment_RK3.h"/>
-          <File Name="sflow_sediment_RK.h"/>
-          <File Name="sflow_sediment_f.h"/>
-          <File Name="sflow_sediment.h"/>
-          <VirtualDirectory Name="Suspended">
-            <File Name="sflow_suspended_void.h"/>
-            <File Name="sflow_suspended_RK2.h"/>
-            <File Name="sflow_suspended.h"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Sandslide">
-            <File Name="sflow_sed_sandslide.h"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Bedshear">
-            <File Name="sflow_sed_bedslope.h"/>
-            <File Name="sflow_sed_bedshear.h"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Bedload">
-            <File Name="sflow_sed_bedload_vanRijn.h"/>
-            <File Name="sflow_sed_bedload_MPM.h"/>
-            <File Name="sflow_sed_bedload_EF.h"/>
-            <File Name="sflow_sed_bedload.h"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Bedlevel">
-            <File Name="sflow_sed_bedlevel.h"/>
-          </VirtualDirectory>
-        </VirtualDirectory>
+        <VirtualDirectory Name="Sediment"/>
         <VirtualDirectory Name="Print">
           <File Name="sflow_state.h"/>
           <File Name="sflow_vtp_bed.h"/>
@@ -1080,32 +1052,6 @@
           </VirtualDirectory>
           <VirtualDirectory Name="CG">
             <File Name="sflow_bicgstab.cpp"/>
-          </VirtualDirectory>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Sediment">
-          <File Name="sflow_sediment_v.cpp"/>
-          <File Name="sflow_sediment_RKv.cpp"/>
-          <File Name="sflow_sediment_RK3.cpp"/>
-          <File Name="sflow_sediment_f.cpp"/>
-          <VirtualDirectory Name="Suspended"/>
-          <VirtualDirectory Name="Sandslide">
-            <File Name="sflow_sed_sandslide_v2.cpp"/>
-            <File Name="sflow_sed_sandslide.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Bedshear">
-            <File Name="sflow_sed_shields.cpp"/>
-            <File Name="sflow_sed_bedshear.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Bedload">
-            <File Name="sflow_sed_bedload.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Bedlevel">
-            <File Name="sflow_sed_relax.cpp"/>
-            <File Name="sflow_sed_exner.cpp"/>
-            <File Name="sflow_sed_bedslope.cpp"/>
-            <File Name="sflow_sed_bednode.cpp"/>
-            <File Name="sflow_bedchange_update.cpp"/>
-            <File Name="sflow_bed_filter.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Print">

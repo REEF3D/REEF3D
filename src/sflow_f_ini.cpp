@@ -34,7 +34,6 @@ Author: Hans Bihs
 #include"sflow_potential.h"
 #include"sflow_vtp.h"
 #include"sflow_vtp_bed.h"
-#include"sflow_sediment.h"
 #include"6DOF_sflow.h"
 
 void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
