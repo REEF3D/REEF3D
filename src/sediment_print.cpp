@@ -133,7 +133,7 @@ void sediment_f::name_pvtu_bedshear(lexer *p, ghostcell *pgc, ofstream &result)
     result<<"<PDataArray type=\"Float32\" Name=\"ST_shearvel_crit\"/>"<<endl;
     }
     
-    if(p->P79==2)
+    if(p->P79==3)
     {
     result<<"<PDataArray type=\"Float32\" Name=\"ST_shields_eff\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"ST_shields_crit\"/>"<<endl;
@@ -216,13 +216,11 @@ void sediment_f::print_2D_bedshear(lexer* p, ghostcell *pgc, ofstream &result)
     ffn=float(p->sl_ipol4(s->tau_crit));
 	result.write((char*)&ffn, sizeof (float));
 	}
-    
     }
     
     
     if(p->P79==2)
     {
-        
 	// shearvel_eff
     pgc->gcsl_start4(p,s->shearvel_eff,1);
     
@@ -246,13 +244,11 @@ void sediment_f::print_2D_bedshear(lexer* p, ghostcell *pgc, ofstream &result)
     ffn=float(p->sl_ipol4(s->shearvel_crit));
 	result.write((char*)&ffn, sizeof (float));
 	}
-    
     }
     
     
     if(p->P79==3)
     {
-        
 	// shields_eff
     pgc->gcsl_start4(p,s->shields_eff,1);
     
@@ -313,13 +309,11 @@ void sediment_f::print_3D_bedshear(lexer* p, ghostcell *pgc, ofstream &result)
     ffn=float(p->sl_ipol4(s->tau_crit));
 	result.write((char*)&ffn, sizeof (float));
 	}
-    
     }
     
     
     if(p->P79==2)
     {
-        
 	// shearvel_eff
     pgc->gcsl_start4(p,s->shearvel_eff,1);
     
@@ -343,13 +337,11 @@ void sediment_f::print_3D_bedshear(lexer* p, ghostcell *pgc, ofstream &result)
     ffn=float(p->sl_ipol4(s->shearvel_crit));
 	result.write((char*)&ffn, sizeof (float));
 	}
-    
     }
     
     
     if(p->P79==3)
     {
-        
 	// shields_eff
     pgc->gcsl_start4(p,s->shields_eff,1);
     

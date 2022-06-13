@@ -134,18 +134,6 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
 	offset[n]=offset[n-1]+4*(p->pointnum2D)*3+4;
 	++n;
 	
-	// bedload
-	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
-    
-    // bedchange
-	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
-    
-    // sedactive
-	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
-	
     // pressure
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
@@ -199,16 +187,7 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
 	
 	
     result<<"<PointData >"<<endl;
-    result<<"<DataArray type=\"Float32\" Name=\"depth\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"bedload\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"bedchange\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"sedactive\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
+
     result<<"<DataArray type=\"Float32\" Name=\"elevation\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     
@@ -226,7 +205,7 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
     
     if(p->P23==1)
     {
-    result<<"<DataArray type=\"Float32\" Name=\"elevation\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     }
     result<<"</PointData>"<<endl;
@@ -264,7 +243,7 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
 	result.write((char*)&ddn, sizeof (double));
 	}
 	
-    //  Velocities
+    //  Depth
     iin=4*(p->pointnum2D)*3;
 	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
@@ -276,33 +255,6 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
 	result.write((char*)&ffn, sizeof (float));
 	
 	ffn=float(p->sl_ipol4(b->depth));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-    //  bedload
-	iin=4*(p->pointnum2D);
-	result.write((char*)&iin, sizeof (int));
-	TPSLICELOOP
-	{
-	ffn=float(p->sl_ipol4(b->qb));
-	result.write((char*)&ffn, sizeof (float));
-	}
-    
-    //  bedchange
-	iin=4*(p->pointnum2D);
-	result.write((char*)&iin, sizeof (int));
-	TPSLICELOOP
-	{
-	ffn=float(p->sl_ipol4(b->zb));
-	result.write((char*)&ffn, sizeof (float));
-	}
-    
-    //  sedactive
-	iin=4*(p->pointnum2D);
-	result.write((char*)&iin, sizeof (int));
-	TPSLICELOOP
-	{
-	ffn=float(p->sl_ipol4(b->sedactive));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
