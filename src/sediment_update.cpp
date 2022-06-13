@@ -34,7 +34,8 @@ void sediment_f::update_cfd(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow, rein
 {
     topo_zh_update(p,a,pgc,s);
     preto->start(p,a,pgc,a->topo);
-
+    bedchange_update(p, pgc);
+    
     volume_calc(p,a,pgc);
     
     pgc->start1(p,a->u,10);
@@ -66,5 +67,7 @@ void sediment_f::update_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow)
     b->bed(i,j) = s->bedzh(i,j);
     
     pgc->gcsl_start4(p,b->bed,50);
+    
+    bedchange_update(p, pgc);
     
 }

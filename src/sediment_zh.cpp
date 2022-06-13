@@ -72,6 +72,14 @@ void sediment_f::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc, sediment_fdm *s
 	pgc->start4a(p,a->topo,150);
 }
 
+void sediment_f::bedchange_update(lexer *p, ghostcell *pgc)
+{
+    SLICELOOP4
+    s->bedch(i,j) = s->bedzh(i,j) - s->bedzh0(i,j);
+    
+    pgc->gcsl_start4(p,s->bedch,50);
+}
+
 void sediment_f::volume_calc(lexer *p, fdm *a,ghostcell *pgc)
 {
     double H=0.0;

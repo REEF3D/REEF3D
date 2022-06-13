@@ -49,16 +49,16 @@ public:
     
     // CFD interface
     virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, suspended*);
-    virtual void ini_cfd(lexer*,fdm*,ghostcell*);
-    void sediment_algorithm_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, suspended*);    void prep_cfd(lexer*,fdm*,ghostcell*);    void fill_PQ_cfd(lexer*,fdm*,ghostcell*);
+    virtual void ini_cfd(lexer*,fdm*,ghostcell*);
+    void sediment_algorithm_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, suspended*);    void prep_cfd(lexer*,fdm*,ghostcell*);    void fill_PQ_cfd(lexer*,fdm*,ghostcell*);    void active_cfd(lexer*,fdm*,ghostcell*);    void active_ini_cfd(lexer*,fdm*,ghostcell*);
     
-    virtual void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*);
+    void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*);    void bedchange_update(lexer*, ghostcell*);
     
     // SFLOW interface
     virtual void start_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&);
-    virtual void ini_sflow(lexer*, fdm2D*, ghostcell*);
+    virtual void ini_sflow(lexer*, fdm2D*, ghostcell*);
     void sediment_algorithm_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&);
-    void prep_sflow(lexer*, fdm2D*, ghostcell*,slice&,slice&);    void fill_PQ_sflow(lexer*,fdm2D*,ghostcell*,slice&,slice&);
+    void prep_sflow(lexer*, fdm2D*, ghostcell*,slice&,slice&);    void fill_PQ_sflow(lexer*,fdm2D*,ghostcell*,slice&,slice&);    void active_sflow(lexer*, fdm2D*, ghostcell*);    void active_ini_sflow(lexer*, fdm2D*, ghostcell*);
     void update_sflow(lexer*,fdm2D*,ghostcell*,ioflow*);
     
     

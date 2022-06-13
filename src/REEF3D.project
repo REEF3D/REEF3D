@@ -1472,6 +1472,7 @@
         </VirtualDirectory>
         <File Name="sediment_f.cpp"/>
         <VirtualDirectory Name="Sediment">
+          <File Name="sediment_active.cpp"/>
           <File Name="sediment_print.cpp"/>
           <File Name="sediment_void.cpp"/>
           <File Name="sediment_prep.cpp"/>

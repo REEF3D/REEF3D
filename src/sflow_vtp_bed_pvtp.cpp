@@ -89,8 +89,9 @@ void sflow_vtp_bed::pvtu(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
 	result<<"</PPoints>"<<endl;
 	
 	result<<"<PPointData>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"depth\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
     
     if(p->P76==1)
 	psed->name_pvtu_bedload(p,pgc,result);

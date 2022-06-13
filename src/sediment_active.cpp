@@ -20,44 +20,49 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"sediment_f.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"fdm2D.h"
+#include"ghostcell.h"
+#include"sediment_fdm.h"
 
-#include"sliceint4.h"
-#include"slice1.h"
-#include"slice2.h"
-#include"slice4.h"
-#include"field4a.h"
-
-using namespace std;
-
-#ifndef SEDIMENT_FDM_H_
-#define SEDIMENT_FDM_H_
-
-class sediment_fdm
+void sediment_f::active_cfd(lexer *p, fdm *a,ghostcell *pgc)
 {
-public:
-    sediment_fdm(lexer*);
-	virtual ~sediment_fdm();
+    SLICELOOP4
+    s->active(i,j)=1;
     
-    slice1 P;
-    slice2 Q;
-    
-    slice4 bedzh,bedzh0,bedch,bedsole;
-    slice4 vz,dh,reduce;
-    slice4 ks;
-    
-    slice4 tau_eff,tau_crit;
-    slice4 shearvel_eff,shearvel_crit;
-    slice4 shields_eff, shields_crit;
-    
-    slice4 alpha,teta,gamma,beta,phi;
-    slice4 active;
-    
-    
-    sliceint4 bedk;
-    slice4 slideflag;
-    
-    slice4 qb,qbe;
 
-};
 
-#endif
+    
+}
+
+void sediment_f::active_ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
+{
+    SLICELOOP4
+    s->active(i,j)=1;
+    
+
+
+    
+}
+
+void sediment_f::active_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    SLICELOOP4
+    s->active(i,j)=1;
+    
+    //SLICELOOP4
+    //if(p->
+    
+}
+
+void sediment_f::active_ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    SLICELOOP4
+    s->active(i,j)=1;
+    
+    //SLICELOOP4
+    //if(p->
+    
+}

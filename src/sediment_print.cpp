@@ -574,7 +574,7 @@ void sediment_f::print_2D_parameter2(lexer* p, ghostcell *pgc, ofstream &result)
 	float ffn;
 	int iin;
 	
-    // dh,reduce,threshold,slideflag
+    // dh,bedch,reduce,threshold,slideflag
     
     // dh
     pgc->gcsl_start4(p,s->vz,1);
@@ -585,6 +585,18 @@ void sediment_f::print_2D_parameter2(lexer* p, ghostcell *pgc, ofstream &result)
 	TPSLICELOOP
 	{
     ffn=float(p->dtsed*p->sl_ipol4(s->vz));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
+    // bedchange
+    pgc->gcsl_start4(p,s->bedch,1);
+    
+	iin=4*(p->pointnum2D);
+    result.write((char*)&iin, sizeof (int));
+	
+	TPSLICELOOP
+	{
+    ffn=float(p->dtsed*p->sl_ipol4(s->bedch));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -631,7 +643,7 @@ void sediment_f::print_3D_parameter2(lexer* p, ghostcell *pgc, ofstream &result)
 	float ffn;
 	int iin;
 	
-    // dh,reduce,threshold,slideflag
+    // dh,bedch,reduce,threshold,slideflag
     
     // dh
     pgc->gcsl_start4(p,s->vz,1);
@@ -642,6 +654,18 @@ void sediment_f::print_3D_parameter2(lexer* p, ghostcell *pgc, ofstream &result)
 	TPLOOP
 	{
     ffn=float(p->dtsed*p->sl_ipol4(s->vz));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
+    // bedchange
+    pgc->gcsl_start4(p,s->bedch,1);
+    
+	iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	
+	TPLOOP
+	{
+    ffn=float(p->dtsed*p->sl_ipol4(s->bedch));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -687,6 +711,8 @@ void sediment_f::name_pvtu_parameter2(lexer *p, ghostcell *pgc, ofstream &result
 {
     result<<"<PDataArray type=\"Float32\" Name=\"ST_dh\"/>"<<endl;
     
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_bedch\"/>"<<endl;
+    
     result<<"<PDataArray type=\"Float32\" Name=\"ST_reduce\"/>"<<endl;
     
     result<<"<PDataArray type=\"Float32\" Name=\"ST_threshold\"/>"<<endl;
@@ -697,6 +723,8 @@ void sediment_f::name_pvtu_parameter2(lexer *p, ghostcell *pgc, ofstream &result
 void sediment_f::name_vtu_parameter2(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"ST_dh\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"ST_bedch\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"ST_reduce\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -716,10 +744,14 @@ void sediment_f::offset_vtp_parameter2(lexer *p, ghostcell *pgc, ofstream &resul
 	++n;
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
+    offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
 }
 
 void sediment_f::offset_vtu_parameter2(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
