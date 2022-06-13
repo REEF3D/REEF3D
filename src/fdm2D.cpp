@@ -30,7 +30,8 @@ fdm2D::fdm2D(lexer *p)
             ws(p),
             press(p),
             eddyv(p),kin(p),eps(p),
-            geo(p),bed(p),bed0(p),zb(p),depth(p),
+            bed(p),bed0(p),depth(p),
+            bedsole(p),
             bednode(p),
 			 hx(p),hy(p),hp(p),
 			 xvec(p),rhsvec(p),M(p),
@@ -39,7 +40,7 @@ fdm2D::fdm2D(lexer *p)
             wet1(p),wet2(p),wet4(p),
 			 nodeval(p),
 			 cmu(0.09),
-             ks(p),qb(p),topovel(p),sedactive(p)
+            ks(p)
 {
 
 	inverse=1.0/p->DXM;

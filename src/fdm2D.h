@@ -62,7 +62,8 @@ public:
 	slice4 hp,dpx,dpy;
     slice4 test;
     
-    slice4 geo,bed,bed0,zb,depth;
+    slice4 bed,bed0,depth;
+    slice4 bedsole;
     slice5 bednode;
     sliceint5 nodeval;
     sliceint4 breaking; 
@@ -72,7 +73,7 @@ public:
     sliceint2 wet2;
     sliceint4 wet4;
     
-    slice4 ks,qb,topovel,sedactive;
+    slice4 ks;
 	
 	vec2D xvec,rhsvec;
 

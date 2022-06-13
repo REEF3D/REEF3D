@@ -89,7 +89,7 @@ public:
     // NHFLOW
     slice1 P,hx;
     slice2 Q,hy;
-    slice4 wbed,dwdt,bed;
+    slice4 wbed,dwdt,bed,bedsole;
     sliceint4 wet;
     
     // PTF

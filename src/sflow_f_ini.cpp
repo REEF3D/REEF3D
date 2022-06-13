@@ -126,10 +126,6 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 
 
     SLICELOOP4
-    b->zb(i,j) = 0.0;
-
-
-    SLICELOOP4
     b->breaking(i,j)=0;
 
 	pgc->gcsl_start4(p,b->depth,50);
@@ -157,7 +153,6 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 	pgc->gcsl_start4(p,b->eta,50);
     pgc->gcsl_start4(p,b->hp,50);
     pgc->gcsl_start4(p,b->bed,50);
-    pgc->gcsl_start4(p,b->zb,50);
     
     pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
     
