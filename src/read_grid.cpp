@@ -966,7 +966,7 @@ void lexer::read_grid()
     bed[(i-imin)*jmax + (j-jmin)]=ddn;
     }
     
-	if(toporead>0)
+	if(solidread>0)
 	for(i=0; i<knox; ++i)
     for(j=0; j<knoy; ++j)
     {

@@ -57,6 +57,8 @@ void sediment_f::update_cfd(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow, rein
     pflow->gcio_update(p,a,pgc);
     
     bedlevel(p,a,pgc); 
+    
+    active_cfd(p,a,pgc);
 	
 	pgc->start4(p,a->conc,40);
 }
@@ -69,5 +71,7 @@ void sediment_f::update_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow)
     pgc->gcsl_start4(p,b->bed,50);
     
     bedchange_update(p, pgc);
+    
+    active_sflow(p,b,pgc);
     
 }

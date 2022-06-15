@@ -52,8 +52,13 @@ void sediment_f::active_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     SLICELOOP4
     s->active(i,j)=1;
     
-    //SLICELOOP4
-    //if(p->
+    SLICELOOP4
+    if(b->solidbed(i,j) >= s->bedzh(i,j))
+    {
+    b->test(i,j) = b->solidbed(i,j);
+    cout<<"solidbed: "<<b->solidbed(i,j)<<endl;
+    s->active(i,j)=0;
+    }
     
 }
 

@@ -63,7 +63,7 @@ public:
     slice4 test;
     
     slice4 bed,bed0,depth;
-    slice4 bedsole;
+    slice4 solidbed,topobed;
     slice5 bednode;
     sliceint5 nodeval;
     sliceint4 breaking; 

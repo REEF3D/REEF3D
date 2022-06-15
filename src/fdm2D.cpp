@@ -31,7 +31,7 @@ fdm2D::fdm2D(lexer *p)
             press(p),
             eddyv(p),kin(p),eps(p),
             bed(p),bed0(p),depth(p),
-            bedsole(p),
+            solidbed(p),topobed(p),
             bednode(p),
 			 hx(p),hy(p),hp(p),
 			 xvec(p),rhsvec(p),M(p),

@@ -47,7 +47,7 @@ void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
 	
 	pgc->gcsl_start4(p,s->bedzh,1);
 	
-    
+    active_ini_cfd(p,a,pgc);
     
     topo_zh_update(p,a,pgc,s);
 }
@@ -63,4 +63,6 @@ void sediment_f::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     s->bedzh(i,j)=b->bed(i,j);
     s->bedzh0(i,j)=b->bed(i,j);
     }
+    
+    active_ini_sflow(p,b,pgc);
 }
