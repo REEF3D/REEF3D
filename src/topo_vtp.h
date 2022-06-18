@@ -20,49 +20,48 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sediment_f.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"fdm2D.h"
-#include"ghostcell.h"
-#include"sediment_fdm.h"
+#include"increment.h"
+#include"fieldint5.h"
+#include"field5.h"
 
-void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
+class lexer;
+class fdm;
+class ghostcell;
+class sediment;
+
+#ifndef TOPO_VTP_H_
+#define TOPO_VTP_H_
+
+using namespace std;
+
+class topo_vtp :  public increment
 {
-	double h,h1;
 
-	ILOOP
-    JLOOP
-	{
-		KLOOP
-		PBASECHECK
-		{
-        if(a->topo(i,j,k-1)<0.0 && a->topo(i,j,k)>0.0)
-        h = -(a->topo(i,j,k-1)*p->DZP[KP])/(a->topo(i,j,k)-a->topo(i,j,k-1)) + p->pos_z()-p->DZP[KP];
-		}
-		
-		s->bedzh(i,j)=h;
-        s->bedzh0(i,j)=h;
-	}
-	
-	pgc->gcsl_start4(p,s->bedzh,1);
-	
-    active_ini_cfd(p,a,pgc);
-    
-    topo_zh_update(p,a,pgc,s);
-}
+public:
+	topo_vtp(lexer*,fdm*,ghostcell*);
+	virtual ~topo_vtp();
+	virtual void start(lexer*,fdm*,ghostcell*,sediment*);
 
-void sediment_f::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
-{
-    //relax(p,b,pgc);
+private:
+	void print(lexer*,fdm*,ghostcell*,sediment*);
+    void pvtp(lexer*,fdm*,ghostcell*,sediment*);
+    void header(lexer*,fdm*,ghostcell*);
     
-    SLICELOOP4
-    {
-    s->ks(i,j) = p->S20;
-    
-    s->bedzh(i,j)=b->topobed(i,j);
-    s->bedzh0(i,j)=b->topobed(i,j);
-    }
-    
-    active_ini_sflow(p,b,pgc);
-}
+    void name_iter(lexer*,fdm*,ghostcell*);
+    void name_time(lexer*,fdm*,ghostcell*);
+    void piecename(lexer*,fdm*,ghostcell*,int);
+
+    char name[100],pname[100],epsvar[100];
+    int iin,offset[100];
+    float ffn;
+    double ddn;
+    int gcval_phi;
+    double printtime,printtime2;
+	int topoprintcount;
+	int polygon_sum,polygon_num;
+
+};
+
+#endif
+
+

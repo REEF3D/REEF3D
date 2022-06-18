@@ -43,6 +43,7 @@ class bedprobe_point;
 class bedprobe_max;
 class gage_discharge;
 class fsf_vtp;
+class topo_vtp;
 class state;
 class bedshear_probe;
 class bedshear_max;
@@ -104,6 +105,7 @@ private:
 	bedshear_max *pbedshearmax;
 	gage_discharge *pq;
 	fsf_vtp *pfsf;
+    topo_vtp *ptopo;
 	state *pstate;
     sloshing_force *pslosh;
 	print_porous *ppor;

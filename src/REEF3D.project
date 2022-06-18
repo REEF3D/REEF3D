@@ -758,6 +758,9 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Printer">
+        <VirtualDirectory Name="Topo">
+          <File Name="topo_vtp.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Force ALE">
           <File Name="force_ale.h"/>
         </VirtualDirectory>
@@ -2237,6 +2240,12 @@
         <File Name="lexer_gridini2D.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Printer">
+        <VirtualDirectory Name="Topo">
+          <File Name="topo_vtp_print.cpp"/>
+          <File Name="topo_pvtp.cpp"/>
+          <File Name="topo_header.cpp"/>
+          <File Name="topo_vtp.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Force ALE">
           <File Name="force_ale_force.cpp"/>
           <File Name="force_ale_print.cpp"/>
@@ -2296,6 +2305,7 @@
           <File Name="fsf_finalize.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Nodefill">
+          <File Name="nodefill_4a.cpp"/>
           <File Name="nodefill.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="State">

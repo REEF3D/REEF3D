@@ -29,11 +29,23 @@ Author: Hans Bihs
 
 void sediment_f::active_cfd(lexer *p, fdm *a,ghostcell *pgc)
 {
-    SLICELOOP4
-    s->active(i,j)=1;
     
-
-
+    SLICELOOP4
+    s->active(i,j)=0;
+    
+    // #define ALOOP ILOOP JLOOP KLOOP PSOLIDCHECK
+    ILOOP
+    JLOOP
+    {
+        KWLOOP
+        PSOLIDCHECK
+        {
+            
+        if(a->topo(i,j,k)<0.0 && a->topo(i,j,k+1)>=0.0)
+        s->active(i,j)=1;
+        }
+    }
+    
     
 }
 
@@ -41,10 +53,6 @@ void sediment_f::active_ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
 {
     SLICELOOP4
     s->active(i,j)=1;
-    
-
-
-    
 }
 
 void sediment_f::active_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
@@ -56,7 +64,7 @@ void sediment_f::active_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     if(b->solidbed(i,j) >= s->bedzh(i,j))
     {
     b->test(i,j) = b->solidbed(i,j);
-    cout<<"solidbed: "<<b->solidbed(i,j)<<endl;
+
     s->active(i,j)=0;
     }
     
@@ -67,7 +75,7 @@ void sediment_f::active_ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     SLICELOOP4
     s->active(i,j)=1;
     
-    //SLICELOOP4
-    //if(p->
+  
+  
     
 }

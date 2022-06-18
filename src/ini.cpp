@@ -489,7 +489,7 @@ void lexer::ini_default()
 	P181=-10;		  // int ith iteration fsf printed
 	P182=-1.0;       // double time between fsf file printout in seconds
     P184=0;       // int time between file printout in iterations
-	P185=0;        	// int time between file printout in seconds
+	P185=0;        	// int time between file printout in seconds    P190=0;			  // int print topo	P191=-10;		  // int ith iteration topo printed	P192=-1.0;       // double time between topo file printout in seconds    P194=0;       // int time between file printout in iterations	P195=0;        	// int time between file printout in seconds
     P210=0;			  // int print exportfile
 	P211=1;		  // int ith iteration export printed
 	P212=-1.0;       // double time between export file printout in seconds

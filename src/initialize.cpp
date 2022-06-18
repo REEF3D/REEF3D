@@ -126,7 +126,8 @@ void initialize::nodecalc(fdm* a, lexer* p)
 	p->pointnum=0;
 	p->cellnum=0;
 	i=0;
-
+    
+    // 3D
 	TPLOOP
 	{
 	++count;
@@ -139,6 +140,15 @@ void initialize::nodecalc(fdm* a, lexer* p)
     
     LOOP
     ++p->tpcellnum;
+    
+    // 2D
+    count=0;
+    TPSLICELOOP
+	{
+	++count;
+	++p->pointnum2D;
+	a->nodeval2D(i,j)=count;
+    }
 }
 
 void initialize::maxcoor(fdm* a, lexer* p, ghostcell* pgc)

@@ -57,7 +57,7 @@ void sediment_f::fill_PQ_cfd(lexer *p, fdm *a,ghostcell *pgc)
 	yip= p->YP[JP];
     zval = 0.5*(s->bedzh(i,j)+s->bedzh(i+1,j)) + 1.6*p->DZN[k];
     
-    s->P(i,j) = p->ccipol1(a->u,xip,yip,zval);
+    s->P(i,j) = a->P(i,j) = p->ccipol1(a->u,xip,yip,zval);
     }
     
     SLICELOOP2
@@ -68,11 +68,26 @@ void sediment_f::fill_PQ_cfd(lexer *p, fdm *a,ghostcell *pgc)
 	yip= p->YN[JP1];
     zval = 0.5*(s->bedzh(i,j)+s->bedzh(i,j+1)) + 1.6*p->DZN[k];
     
-    s->Q(i,j) = p->ccipol2(a->v,xip,yip,zval);
+    s->Q(i,j) = a->Q(i,j)  = p->ccipol2(a->v,xip,yip,zval);
+    }
+    
+    SLICELOOP4
+    {
+    k=s->bedk(i,j);
+    
+    xip= p->XP[IP];
+	yip= p->YP[JP];
+    zval = 0.5*(s->bedzh(i,j)+s->bedzh(i,j+1)) + 1.6*p->DZN[k];
+    
+    a->R(i,j)  = p->ccipol3(a->w,xip,yip,zval);
     }
     
     pgc->gcsl_start1(p,s->P,10);
 	pgc->gcsl_start2(p,s->Q,11);
+    
+    pgc->gcsl_start1(p,a->P,10);
+	pgc->gcsl_start2(p,a->Q,11);
+    pgc->gcsl_start4(p,a->R,12);
 }
 
 void sediment_f::fill_PQ_sflow(lexer *p, fdm2D *b,ghostcell *pgc,slice &P, slice &Q)

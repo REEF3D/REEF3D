@@ -36,7 +36,7 @@ Author: Hans Bihs
 #include"slice2.h"
 #include"slice4.h"
 #include"sliceint4.h"
-#include"sliceint4.h"
+#include"sliceint5.h"
 #include"increment.h"
 #include"vec.h"
 #include"matrix_diag.h"
@@ -79,6 +79,7 @@ public:
 	field5 walld;
 	 
 	fieldint5 nodeval,flag;
+    sliceint5 nodeval2D;
    
     // 6DOF
     field1 fbh1;
@@ -89,7 +90,7 @@ public:
     // NHFLOW
     slice1 P,hx;
     slice2 Q,hy;
-    slice4 wbed,dwdt,bed,bedsole;
+    slice4 R,wbed,dwdt,bed,bedsole;
     sliceint4 wet;
     
     // PTF

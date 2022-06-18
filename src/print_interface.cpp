@@ -103,6 +103,9 @@ print_interface::print_interface(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p)
 	
 	if(p->P180==1)
 	pfsf = new fsf_vtp(p,a,pgc);
+    
+    if(p->P190==1)
+	pfsf = new fsf_vtp(p,a,pgc);
 	
 	if(p->P75==0)
 	pvort = new vorticity_void(p,a);

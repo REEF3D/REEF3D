@@ -62,6 +62,7 @@ public:
     
 	double ipol4ro(fdm*,field&);
     double ipol4phi(fdm*,field&);
+    double ipol4topo(fdm*,field&);
     double ipol4press(field&);
     double ipol4_a(field&);
     

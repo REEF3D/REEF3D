@@ -82,38 +82,16 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     
     ILOOP
     JLOOP
-    {
 	b->solidbed(i,j) = p->solidbed[IJ];
-    cout<<b->solidbed(i,j)<<endl;
-    }
-    /*
-    // bed
-    for(i=0; i<knox; ++i)
-    for(j=0; j<knoy; ++j)
-    {
-    grid.read((char*)&ddn, sizeof (double));
-    bed[(i-imin)*jmax + (j-jmin)]=ddn;
-    }
-    
-	if(toporead>0)
-	for(i=0; i<knox; ++i)
-    for(j=0; j<knoy; ++j)
-    {
-    grid.read((char*)&ddn, sizeof (double));
-    solidbed[(i-imin)*jmax + (j-jmin)]=ddn;
-    }
-    
-    if(toporead>0)
-	for(i=0; i<knox; ++i)
-    for(j=0; j<knoy; ++j)
-    {
-    grid.read((char*)&ddn, sizeof (double));
-    topobed[(i-imin)*jmax + (j-jmin)]=ddn;
-    }*/
+
+    ILOOP
+    JLOOP
+	b->topobed(i,j) = p->topobed[IJ];
 
 
     pgc->gcsl_start4(p,b->bed,50);
     pgc->gcsl_start4(p,b->solidbed,50);
+    pgc->gcsl_start4(p,b->topobed,50);
 
     
 	for(int qn=0; qn<p->A209;++qn)

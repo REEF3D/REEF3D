@@ -68,8 +68,13 @@ void sediment_f::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc, sediment_fdm *s
     if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
     a->topo(i,j,k)=-s->bedzh(i,j)+p->pos_z();
     }
-	
+    
+    SLICELOOP4
+	a->bed(i,j)=s->bedzh(i,j);
+    
 	pgc->start4a(p,a->topo,150);
+    
+    pgc->gcsl_start4(p,a->bed,50);
 }
 
 void sediment_f::bedchange_update(lexer *p, ghostcell *pgc)

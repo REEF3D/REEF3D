@@ -255,7 +255,6 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pt
 	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
 	{
-
 	ddn=p->XN[IP1];
 	result.write((char*)&ddn, sizeof (double));
 

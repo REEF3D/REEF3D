@@ -1309,6 +1309,21 @@ void lexer::read_control()
                case 185: ++P185;
 						 clear(c,numint);
 						 break;
+                case 190: control>>P190;
+						 clear(c,numint);
+						 break;
+				case 191: control>>P191;
+						 clear(c,numint);
+						 break;
+				case 192: control>>P192;
+						 clear(c,numint);
+						 break;
+               case 194: ++P194;
+						 clear(c,numint);
+						 break;
+               case 195: ++P195;
+						 clear(c,numint);
+						 break;
                case 210: control>>P210;
 						 clear(c,numint);
 						 break;
@@ -2132,6 +2147,14 @@ void lexer::read_control()
     Darray(P185_ts,P185);
 	Darray(P185_te,P185);
 	Darray(P185_dt,P185);
+    
+    Iarray(P194_its,P194);
+	Iarray(P194_ite,P194);
+	Iarray(P194_dit,P194);
+
+    Darray(P195_ts,P195);
+	Darray(P195_te,P195);
+	Darray(P195_dt,P195);
 
     Darray(P230_x,P230);
     Darray(P240_x,P240);
@@ -2350,6 +2373,8 @@ void lexer::read_control()
 	int countP125=0;
     int countP184=0;
     int countP185=0;
+    int countP194=0;
+    int countP195=0;
     int countP230=0;
     int countP240=0;
 	int countP351=0;
@@ -2575,6 +2600,14 @@ void lexer::read_control()
 						 break;
                case 185: control>>P185_ts[countP185]>>P185_te[countP185]>>P185_dt[countP185];
                         ++countP185;
+						 clear(c,numint);
+						 break;
+               case 194: control>>P194_its[countP194]>>P194_ite[countP194]>>P194_dit[countP194];
+                        ++countP194;
+						 clear(c,numint);
+						 break;
+               case 195: control>>P195_ts[countP195]>>P195_te[countP195]>>P195_dt[countP195];
+                        ++countP195;
 						 clear(c,numint);
 						 break;
                case 230: control>>P230_x[countP230];

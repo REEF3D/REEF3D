@@ -43,6 +43,7 @@ Author: Hans Bihs
 #include"concentration.h"
 #include"gage_discharge.h"
 #include"fsf_vtp.h"
+#include"topo_vtp.h"
 #include"state.h"
 #include"bedshear_probe.h"
 #include"bedshear_max.h"
@@ -115,6 +116,9 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
 
 	if(p->P180==1)
 	pfsf = new fsf_vtp(p,a,pgc);
+    
+    if(p->P190==1)
+	ptopo = new topo_vtp(p,a,pgc);
 
     if(p->P210==1)
 	pexport = new exportfile(p,a,pgc);
@@ -305,6 +309,32 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
 
 		printfsftime_wT[qn]+=p->P185_dt[qn];
 		}
+        
+        // Print TOPO
+        if(((p->count%p->P191==0 && p->P182<0.0 && p->P190==1 )|| (p->count==0 &&  p->P192<0.0 && p->P190==1)) && p->P191>0)
+		ptopo->start(p,a,pgc,psed);
+
+		if((p->simtime>p->fsfprinttime && p->P192>0.0 && p->P190==1) || (p->count==0 &&  p->P192>0.0))
+        {
+        ptopo->start(p,a,pgc,psed);
+        p->fsfprinttime+=p->P192;
+        }
+
+        if(p->P190==1 && p->P194>0)
+		for(int qn=0; qn<p->P194; ++qn)
+		if(p->count%p->P194_dit[qn]==0 && p->count>=p->P194_its[qn] && p->count<=(p->P194_ite[qn]))
+		{
+		ptopo->start(p,a,pgc,psed);
+		}
+
+        if(p->P190==1 && p->P195>0)
+		for(int qn=0; qn<p->P195; ++qn)
+		if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P195_ts[qn] && p->simtime<=(p->P195_te[qn]+0.5*p->P195_dt[qn]))
+		{
+		ptopo->start(p,a,pgc,psed);
+
+		printfsftime_wT[qn]+=p->P195_dt[qn];
+		}
 
         // Print Export
         if(p->count%p->P211==0 && p->P212<0.0 && p->P210==1)
@@ -379,6 +409,8 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 
 	pgc->gcparacox(p,a->topo,150);
 	pgc->gcparacox(p,a->topo,150);
+    
+    //pgc->start4a(p,a->topo,159);
 
      pgc->gcperiodicx(p,a->press,4);
 
@@ -780,7 +812,8 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
-	ffn=float(p->ipol4_a(a->topo));
+    ffn=float(p->ipol4_a(a->topo));
+    //ffn = float(-a->bed(i,j)+p->ZN[KP1]);
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}
@@ -994,6 +1027,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	pgc->dgcpol(p,a->u,p->dgc1,p->dgc1_count,11);
 	pgc->dgcpol(p,a->v,p->dgc2,p->dgc2_count,12);
 	pgc->dgcpol(p,a->w,p->dgc3,p->dgc3_count,13);
+    pgc->start4a(p,a->topo,150);
 
 	a->u.ggcpol(p);
 	a->v.ggcpol(p);

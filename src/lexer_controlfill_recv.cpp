@@ -954,7 +954,7 @@ void lexer::ctrlrecv()
     P184 = ictrl[ii];
 	ii++;
     P185 = ictrl[ii];
-	ii++;
+	ii++;    P190 = ictrl[ii];	ii++;	P191 = ictrl[ii];	ii++;	P192 = dctrl[dd];	dd++;    P194 = ictrl[ii];	ii++;    P195 = ictrl[ii];	ii++;
     P210 = ictrl[ii];
 	ii++;
 	P211 = ictrl[ii];
@@ -1895,7 +1895,7 @@ void lexer::ctrlrecv()
     Darray(P185_ts,P185);  
 	Darray(P185_te,P185);  
 	Darray(P185_dt,P185);  
-	}
+	}    if(P194>0)	{    Iarray(P194_its,P194);  	Iarray(P194_ite,P194);  	Iarray(P194_dit,P194);  	}        if(P195>0)	{    Darray(P195_ts,P195);  	Darray(P195_te,P195);  	Darray(P195_dt,P195);  	}
     
     if(P230>0)
 	{
@@ -2649,7 +2649,7 @@ void lexer::ctrlrecv()
     dd++;
 	P185_dt[n] = dctrl[dd];
     dd++;
-    }
+    }    for(n=0;n<P194;++n)    {    P194_its[n] = ictrl[ii];    ii++;    P194_ite[n] = ictrl[ii];    ii++;	P194_dit[n] = ictrl[ii];    ii++;    }        for(n=0;n<P195;++n)    {    P195_ts[n] = dctrl[dd];    dd++;    P195_te[n] = dctrl[dd];    dd++;	P195_dt[n] = dctrl[dd];    dd++;    }
     
     for(n=0;n<P230;++n)
     {
