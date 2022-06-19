@@ -54,9 +54,10 @@ void bedload_EF::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 	    Tb = s->shields_eff(i,j);
 
         if(Tb>Ts)
+        if(s->active(i,j)==1)
         qb =  d50*sqrt((rhosed/rhowat-1.0)*g*d50) * 11.6* (Tb-Ts)*(sqrt(Tb) - 0.7*sqrt(Ts));
 
-        if(Tb<=Ts)
+        if(Tb<=Ts || s->active(i,j)==0)
         qb=0.0;
 	
         s->qbe(i,j) = qb;

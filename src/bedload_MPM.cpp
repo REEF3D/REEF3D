@@ -50,9 +50,10 @@ void bedload_MPM::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
     {
 
         if(s->shields_eff(i,j)>s->shields_crit(i,j))
+        if(s->active(i,j)==1)
         qb = 8.0*pow(MAX(s->shields_eff(i,j) - s->shields_crit(i,j),0.0),1.5)* p->S20*sqrt(((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
 
-        if(s->shields_eff(i,j)<=s->shields_crit(i,j))
+        if(s->shields_eff(i,j)<=s->shields_crit(i,j) || s->active(i,j)==0)
         qb=0.0;
 		
         s->qbe(i,j) = qb;

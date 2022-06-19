@@ -47,7 +47,6 @@ double bedconc::cbed(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
 	double adist=2.0*d50;
 	
-
     Ti=MAX((s->tau_eff(i,j)-s->tau_crit(i,j)/s->tau_crit(i,j)),0.0);
 
     Ds= d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
