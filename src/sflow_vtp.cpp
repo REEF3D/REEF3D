@@ -30,6 +30,9 @@ Author: Hans Bihs
 #include"sflow_print_wsfline.h"
 #include"sflow_print_wsfline_y.h"
 #include"sflow_print_probe_da.h"
+#include"sflow_print_bed.h"
+#include"sflow_print_bedline.h"
+#include"sflow_print_bedline_y.h"
 #include"sflow_turbulence.h"
 #include"sflow_state.h"
 #include<sys/stat.h>
@@ -59,6 +62,12 @@ sflow_vtp::sflow_vtp(lexer *p, fdm2D *b, ghostcell *pgc)
 
     pprobe=new sflow_print_probe_da(p,b,pgc);
     
+    pbed=new sflow_print_bed(p,b);
+
+    pbedline=new sflow_print_bedline(p,b,pgc);
+
+    pbedline_y=new sflow_print_bedline_y(p,b,pgc);
+    
     if(p->P40>0)
 	pstate=new sflow_state(p,b,pgc);
 }
@@ -83,7 +92,7 @@ void sflow_vtp::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sflow_t
     p->printtime+=p->P30;
     }
 
-	// Gages
+	// WSF Gages
     if(p->P51>0)
     pwsf->height_gauge(p,b,pgc,b->eta);
 
@@ -95,13 +104,28 @@ void sflow_vtp::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sflow_t
 
     if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
     pwsfline_y->start(p,b,pgc,pflow,b->eta);
-
+    
+    // DA Gages
     if(p->P63>0 && p->count%p->P54==0)
     pprobe->start(p,b,pgc);
+    
+    // BED Gages
+    if(((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47) ) && p->S10>0)
+    if((p->S42==1 && p->count%p->S44==0 && p->sediter%p->P120==0) || (p->S42==2 && p->simtime>=p->sedsimtime && p->sediter%p->P120==0) || (p->S42==3  && p->simtime/p->wT>=p->sedwavetime && p->sediter%p->P120==0))
+    {      
+    if(p->P121>0)
+    pbed->height_gauge(p,b,pgc,b->bed);
+
+    if(p->P123>0)
+    pbedline->start(p,b,pgc,pflow,b->bed);
+
+    if(p->P124>0)
+    pbedline_y->start(p,b,pgc,pflow,b->bed);
+    }
+
 
     if((p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0))
     p->probeprinttime+=p->P55;
-
 }
 
 void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb, sediment *psed)

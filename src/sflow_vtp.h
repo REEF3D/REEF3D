@@ -31,6 +31,9 @@ class sflow_print_wsf;
 class sflow_print_wsf_theory;
 class sflow_print_wsfline;
 class sflow_print_wsfline_y;
+class sflow_print_bed;
+class sflow_print_bedline;
+class sflow_print_bedline_y;
 class sflow_print_probe_da;
 class sflow_turbulence;
 class sflow_state;
@@ -70,6 +73,9 @@ private:
     sflow_print_wsfline *pwsfline;
     sflow_print_wsfline_y *pwsfline_y;
     sflow_print_probe_da *pprobe;
+    sflow_print_bed *pbed;
+    sflow_print_bedline *pbedline;
+    sflow_print_bedline_y *pbedline_y;
     sflow_state *pstate;
 
 };

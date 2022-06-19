@@ -97,6 +97,9 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Sediment"/>
         <VirtualDirectory Name="Print">
+          <File Name="sflow_print_bed.h"/>
+          <File Name="sflow_print_bedline_y.h"/>
+          <File Name="sflow_print_bedline.h"/>
           <File Name="sflow_state.h"/>
           <File Name="sflow_vtp_bed.h"/>
           <File Name="sflow_vtp.h"/>
@@ -1058,6 +1061,11 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Print">
+          <VirtualDirectory Name="Print Bed">
+            <File Name="sflow_print_bedline_y.cpp"/>
+            <File Name="sflow_print_bedline.cpp"/>
+            <File Name="sflow_print.bed.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="State">
             <File Name="sflow_state_write.cpp"/>
             <File Name="sflow_state_mainheader.cpp"/>
