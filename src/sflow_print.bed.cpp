@@ -30,16 +30,16 @@ Author: Hans Bihs
 sflow_print_bed::sflow_print_bed(lexer *p, fdm2D* b)
 {
 
-	gauge_num = p->P51;
-	x = p->P51_x;
-	y = p->P51_y;
+	gauge_num = p->P121;
+	x = p->P121_x;
+	y = p->P121_y;
 
 	
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
 	mkdir("./REEF3D_SFLOW_BED",0777);
 	
-    if(p->mpirank==0 && p->P51>0)
+    if(p->mpirank==0 && p->P121>0)
     {
     // open file
 	if(p->P14==0)

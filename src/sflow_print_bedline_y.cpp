@@ -32,30 +32,30 @@ Author: Hans Bihs
 
 sflow_print_bedline_y::sflow_print_bedline_y(lexer *p, fdm2D *b, ghostcell *pgc)
 {	
-	p->Iarray(iloc,p->P56);
+	p->Iarray(iloc,p->P124);
 
     maxknoy=pgc->globalimax(p->knoy);
     sumknoy=pgc->globalisum(maxknoy);
 	
-    p->Darray(yloc,p->P56+2,maxknoy);
-    p->Darray(wsf,p->P56+2,maxknoy);
-    p->Iarray(flag,p->P56+2,maxknoy);
-	p->Iarray(wsfpoints,p->P56+2);
+    p->Darray(yloc,p->P124+2,maxknoy);
+    p->Darray(wsf,p->P124+2,maxknoy);
+    p->Iarray(flag,p->P124+2,maxknoy);
+	p->Iarray(wsfpoints,p->P124+2);
 	
 
-    p->Darray(yloc_all,p->P56+2,sumknoy);
-    p->Darray(wsf_all,p->P56+2,sumknoy);
-	p->Iarray(flag_all,p->P56+2,sumknoy);
+    p->Darray(yloc_all,p->P124+2,sumknoy);
+    p->Darray(wsf_all,p->P124+2,sumknoy);
+	p->Iarray(flag_all,p->P124+2,sumknoy);
 	p->Iarray(rowflag,sumknoy);
 
-    for(q=0;q<p->P56;++q)
+    for(q=0;q<p->P124;++q)
     for(n=0;n<maxknoy;++n)
     {
     yloc[q][n]=0.0;
     wsf[q][n]=0.0;
     }
 
-    for(q=0;q<p->P56;++q)
+    for(q=0;q<p->P124;++q)
     for(n=0;n<sumknoy;++n)
     {
     yloc_all[q][n]=0.0;
@@ -68,7 +68,7 @@ sflow_print_bedline_y::sflow_print_bedline_y(lexer *p, fdm2D *b, ghostcell *pgc)
 	
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_SFLOW_WSFLINE_Y",0777);
+	mkdir("./REEF3D_SFLOW_BEDLINE_Y",0777);
 }
 
 sflow_print_bedline_y::~sflow_print_bedline_y()
@@ -112,44 +112,40 @@ void sflow_print_bedline_y::start(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pf
 		if(p->P14==1)
 		{
 		if(num<10)
-		sprintf(name,"./REEF3D_SFLOW_WSFLINE_Y/REEF3D-SFLOW-bedline_y-00000%i.dat",num);
+		sprintf(name,"./REEF3D_SFLOW_BEDLINE_Y/REEF3D-SFLOW-bedline_y-00000%i.dat",num);
 
 		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_SFLOW_WSFLINE_Y/REEF3D-SFLOW-bedline_y-0000%i.dat",num);
+		sprintf(name,"./REEF3D_SFLOW_BEDLINE_Y/REEF3D-SFLOW-bedline_y-0000%i.dat",num);
 
 		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_SFLOW_WSFLINE_Y/REEF3D-SFLOW-bedline_y-000%i.dat",num);
+		sprintf(name,"./REEF3D_SFLOW_BEDLINE_Y/REEF3D-SFLOW-bedline_y-000%i.dat",num);
 
 		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_SFLOW_WSFLINE_Y/REEF3D-SFLOW-bedline_y-00%i.dat",num);
+		sprintf(name,"./REEF3D_SFLOW_BEDLINE_Y/REEF3D-SFLOW-bedline_y-00%i.dat",num);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_SFLOW_WSFLINE_Y/REEF3D-SFLOW-bedline_y-0%i.dat",num);
+		sprintf(name,"./REEF3D_SFLOW_BEDLINE_Y/REEF3D-SFLOW-bedline_y-0%i.dat",num);
 
 		if(num>99999)
-		sprintf(name,"./REEF3D_SFLOW_WSFLINE_Y/REEF3D-SFLOW-bedline_y-%i.dat",num);
+		sprintf(name,"./REEF3D_SFLOW_BEDLINE_Y/REEF3D-SFLOW-bedline_y-%i.dat",num);
 		}
 		
 		wsfout.open(name);
 
 		wsfout<<"simtime:  "<<p->simtime<<endl;
-		wsfout<<"number of wsf-lines:  "<<p->P56<<endl<<endl;
+		wsfout<<"number of bed-lines:  "<<p->P124<<endl<<endl;
 		wsfout<<"line_No     x_coord"<<endl;
-		for(q=0;q<p->P56;++q)
-		wsfout<<q+1<<"\t "<<p->P56_x[q]<<endl;
+		for(q=0;q<p->P124;++q)
+		wsfout<<q+1<<"\t "<<p->P124_x[q]<<endl;
 
-		if(p->P53==1)
-		wsfout<<q+1<<"\t "<<" Wave Theory "<<endl;
 
 		wsfout<<endl<<endl;
 
 		
-		for(q=0;q<p->P56;++q)
+		for(q=0;q<p->P124;++q)
 		{
 		wsfout<<"Y "<<q+1;
 		wsfout<<"\t P "<<q+1<<" \t \t ";
-		if(p->P53==1)
-		wsfout<<"\t \t W "<<q+1;
 		}
 
 		wsfout<<endl<<endl;
@@ -157,14 +153,14 @@ void sflow_print_bedline_y::start(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pf
 
     //-------------------
 
-    for(q=0;q<p->P56;++q)
+    for(q=0;q<p->P124;++q)
     for(n=0;n<maxknoy;++n)
     {
     yloc[q][n]=1.0e20;
     wsf[q][n]=-1.0e20;
     }
 
-    for(q=0;q<p->P56;++q)
+    for(q=0;q<p->P124;++q)
     {
         JLOOP
         if(flag[q][j]>0)
@@ -172,17 +168,17 @@ void sflow_print_bedline_y::start(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pf
         i=iloc[q];
 
 
-            wsf[q][j]=f(i,j)+p->phimean;
+            wsf[q][j]=f(i,j);
             yloc[q][j]=p->pos_y();
         }
     }
 	
 	
-	for(q=0;q<p->P56;++q)
+	for(q=0;q<p->P124;++q)
     wsfpoints[q]=sumknoy;
 	
     // gather
-    for(q=0;q<p->P56;++q)
+    for(q=0;q<p->P124;++q)
     {
     pgc->gather_double(yloc[q],maxknoy,yloc_all[q],maxknoy);
     pgc->gather_double(wsf[q],maxknoy,wsf_all[q],maxknoy);
@@ -206,7 +202,7 @@ void sflow_print_bedline_y::start(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pf
 		for(n=0;n<sumknoy;++n)
         {
 			check=0;
-		    for(q=0;q<p->P56;++q)
+		    for(q=0;q<p->P124;++q)
 			if(flag_all[q][n]>0 && yloc_all[q][n]<1.0e20)
 			check=1;
 			
@@ -218,7 +214,7 @@ void sflow_print_bedline_y::start(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pf
         for(n=0;n<sumknoy;++n)
         {
 			check=0;
-		    for(q=0;q<p->P56;++q)
+		    for(q=0;q<p->P124;++q)
 			{
 				if(flag_all[q][n]>0 && yloc_all[q][n]<1.0e20)
 				{
@@ -226,9 +222,6 @@ void sflow_print_bedline_y::start(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pf
 				wsfout<<setprecision(5)<<wsf_all[q][n]<<" \t  ";
 				
 				
-					if(p->P53==1)
-					wsfout<<pflow->wave_fsf(p,pgc,yloc_all[q][n])<<" \t  ";
-					
 				check=1;
 				}
 				
@@ -254,12 +247,12 @@ void sflow_print_bedline_y::ini_location(lexer *p, fdm2D *b, ghostcell *pgc)
     int check,count;
     
     
-    for(q=0;q<p->P56;++q)
+    for(q=0;q<p->P124;++q)
     {
         count=0;
         JLOOP
         {
-        iloc[q]=p->posc_i(p->P56_x[q]);
+        iloc[q]=p->posc_i(p->P124_x[q]);
 
         if(iloc[q]>=0 && iloc[q]<p->knox)
         flag[q][count]=1;
