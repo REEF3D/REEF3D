@@ -295,6 +295,7 @@ void bedshear::taucritbed(lexer*, fdm*, ghostcell*, double &tau_crit)
     tau_crit = taucrit_loc(i,j);
 }
 
+// SFLOW
 void bedshear::taubed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
 {
     double ux,vy,uabs,cf,manning,tau;
@@ -322,6 +323,8 @@ void bedshear::taubed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
     uabs = sqrt(U*U + V*V);
     
     manning = pow(p->S21*s->ks(i,j),1.0/6.0)/26.0;
+    
+    //cout<<"MANNING: "<<manning<<" uabs: "<<uabs<<endl;
     
     cf = pow(manning,2.0)/pow(HP,1.0/3.0);
     

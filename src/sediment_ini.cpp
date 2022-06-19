@@ -64,5 +64,8 @@ void sediment_f::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     s->bedzh0(i,j)=b->topobed(i,j);
     }
     
+    SLICELOOP4
+    b->bed(i,j) = MAX(b->topobed(i,j),b->solidbed(i,j));
+    
     active_ini_sflow(p,b,pgc);
 }
