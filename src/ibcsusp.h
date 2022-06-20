@@ -39,7 +39,6 @@ public:
 	virtual ~ibcsusp();
 	void ibcsusp_start(lexer*,fdm*,ghostcell*,field&);
 
-
 private:
 	int ii,jj,kk;
 	int count,q,n;

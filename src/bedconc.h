@@ -37,12 +37,13 @@ public:
 	bedconc(lexer*);
 	virtual ~bedconc();
 	double cbed(lexer*,ghostcell*,sediment_fdm*);
-
+    
+    double ws;
 
 private:
 	int ii,jj,kk;
-	int count,q;
-	double ws,d50,ks,shields,kappa;
+	
+	double d50,ks,shields,kappa;
 	double Rstar, g, visc;
 	double rhosed,rhowat;
 	double tau, taucrit;

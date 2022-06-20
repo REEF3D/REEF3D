@@ -38,6 +38,7 @@ public:
 	bcsusp(lexer*,turbulence*);
 	virtual ~bcsusp();
 	void bcsusp_start(lexer*,fdm*,ghostcell*,field&);
+    
 
 private:
 	int ii,jj,kk;

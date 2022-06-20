@@ -31,7 +31,7 @@ Author: Hans Bihs
 #include"solver.h"
 #include"sediment.h"
 
-suspended_IM2::suspended_IM2(lexer* p, fdm* a, turbulence *pturb) : ibcsusp(p,pturb),isusprhs(p),concn(p),concnn(p),wvel(p)
+suspended_IM2::suspended_IM2(lexer* p, fdm* a, turbulence *pturb) : ibcsusp(p,pturb),concn(p),concnn(p),wvel(p)
 {
 	gcval_susp=60;
 }
@@ -44,10 +44,10 @@ void suspended_IM2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
 {
     starttime=pgc->timer();
     clearrhs(p,a);
-    fill_wvel(p,a,pgc.psed);
+    fill_wvel(p,a,pgc,psed);
     pconvec->start(p,a,a->conc,4,a->u,a->v,wvel);
 	pdiff->idiff_scalar(p,a,pgc,psolv,a->conc,a->eddyv,1.0,1.0);
-	isuspsource(p,a,a->conc);
+	suspsource(p,a,a->conc);
 	timesource(p,a,a->conc);
 	psolv->start(p,a,pgc,a->conc,a->rhsvec,4);
 	ibcsusp_start(p,a,pgc,a->conc);
@@ -91,5 +91,5 @@ void suspended_IM2::fill_wvel(lexer *p, fdm* a, ghostcell *pgc, sediment *psed)
     wvel(i,j,k) = a->w(i,j,k) + ws;
     
     pgc->start3(p,wvel,12);
-}
+}void suspended_IM2::suspsource(lexer* p,fdm* a,field& conc){    count=0;    LOOP    {	if(a->phi(i,j,k)>0.0)	a->rhsvec.V[count]  += -ws*(conc(i,j,k+1)-conc(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);		++count;    }}void suspended_IM2::sedfsf(lexer* p,fdm* a,field& conc){    LOOP    if(a->phi(i,j,k)<0.0)    conc(i,j,k)=0.0;}void suspended_IM2::clearrhs(lexer* p, fdm* a){    count=0;    LOOP    {    a->rhsvec.V[count]=0.0;	++count;    }}
 

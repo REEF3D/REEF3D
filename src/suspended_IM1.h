@@ -22,7 +22,6 @@ Author: Hans Bihs
 
 #include"suspended.h"
 #include"ibcsusp.h"
-#include"isusprhs.h"
 #include"field3.h"
 #include"field4.h"
 
@@ -33,13 +32,17 @@ using namespace std;
 #ifndef SUSPENDED_IM1_H_
 #define SUSPENDED_IM1_H_
 
-class suspended_IM1 : public suspended, public ibcsusp, public isusprhs
+class suspended_IM1 : public suspended, public ibcsusp
 {
 public:
 	suspended_IM1(lexer *, fdm*,turbulence*);
 	virtual ~suspended_IM1();
 	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment*);
 	virtual void ctimesave(lexer*, fdm*);
+    
+    void suspsource(lexer*,fdm*,field&);
+	void sedfsf(lexer*,fdm*,field&);
+	void clearrhs(lexer*,fdm*);
 
 	int gcval_susp;
 
@@ -50,6 +53,8 @@ private:
     double starttime;
     void fill_wvel(lexer*,fdm*,ghostcell*,sediment*); 
     field3 wvel;
+    
+    int count,q;
 
 };
 
