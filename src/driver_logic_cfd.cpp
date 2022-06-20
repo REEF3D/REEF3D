@@ -641,9 +641,6 @@ void driver::logic()
     if(p->S60==0)
     psusp = new suspended_void();
 
-    if(p->S60==1)
-    psusp = new suspended_AB(p,a,pturb);
-
     if(p->S60==2)
     psusp = new suspended_RK2(p,a,pturb);
 

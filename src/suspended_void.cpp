@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"turbulence.h"
 #include"solver.h"
+#include"sediment.h"
 
 suspended_void::suspended_void()
 {
@@ -37,7 +38,7 @@ suspended_void::~suspended_void()
 {
 }
 
-void suspended_void::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow)
+void suspended_void::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow, sediment *psed)
 {
 }
 

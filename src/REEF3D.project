@@ -372,7 +372,6 @@
           </VirtualDirectory>
           <File Name="isusprhs.h"/>
           <File Name="suspended.h"/>
-          <File Name="suspended_AB.h"/>
           <File Name="suspended_IM1.h"/>
           <File Name="suspended_IM2.h"/>
           <File Name="suspended_RK2.h"/>
@@ -1397,7 +1396,6 @@
             <File Name="bedconc.cpp"/>
           </VirtualDirectory>
           <File Name="isusprhs.cpp"/>
-          <File Name="suspended_AB.cpp"/>
           <File Name="suspended_IM1.cpp"/>
           <File Name="suspended_IM2.cpp"/>
           <File Name="suspended_RK2.cpp"/>

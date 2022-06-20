@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"suspended.h"
 #include"ibcsusp.h"
 #include"isusprhs.h"
+#include"field3.h"
 #include"field4.h"
 
 class turbulence;
@@ -37,7 +38,7 @@ class suspended_IM2 : public suspended, public ibcsusp, public isusprhs
 public:
 	suspended_IM2(lexer *, fdm*,turbulence*);
 	virtual ~suspended_IM2();
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*);
+	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment*);
 	virtual void ctimesave(lexer*, fdm*);
 
 	field4 concn,concnn;
@@ -46,6 +47,8 @@ public:
 private:
     void timesource(lexer* p, fdm* a, field& fn);
     double starttime;
+    void fill_wvel(lexer*,fdm*,ghostcell*,sediment*); 
+    field3 wvel;
 
 };
 

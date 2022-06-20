@@ -29,8 +29,9 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"turbulence.h"
 #include"solver.h"
+#include"sediment.h"
 
-suspended_IM1::suspended_IM1(lexer* p, fdm* a, turbulence *pturb) : ibcsusp(p,pturb),isusprhs(p),concn(p)
+suspended_IM1::suspended_IM1(lexer* p, fdm* a, turbulence *pturb) : ibcsusp(p,pturb),isusprhs(p),concn(p),wvel(p)
 {
 	gcval_susp=60;
 }
@@ -39,11 +40,12 @@ suspended_IM1::~suspended_IM1()
 {
 }
 
-void suspended_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow)
+void suspended_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow, sediment *psed)
 {
     starttime=pgc->timer();
     clearrhs(p,a);
-    pconvec->start(p,a,a->conc,4,a->u,a->v,a->w);
+    fill_wvel(p,a,pgc.psed);
+    pconvec->start(p,a,a->conc,4,a->u,a->v,wvel);
 	pdiff->idiff_scalar(p,a,pgc,psolv,a->conc,a->eddyv,1.0,1.0);
 	isuspsource(p,a,a->conc);
 	timesource(p,a,a->conc);
@@ -77,4 +79,12 @@ void suspended_IM1::ctimesave(lexer *p, fdm* a)
     LOOP
     concn(i,j,k)=a->conc(i,j,k);
 
+}
+
+void suspended_IM1::fill_wvel(lexer *p, fdm* a, ghostcell *pgc, sediment *psed)
+{
+    WLOOP
+    wvel(i,j,k) = a->w(i,j,k) + ws;
+    
+    pgc->start3(p,wvel,12);
 }

@@ -29,8 +29,9 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"turbulence.h"
 #include"solver.h"
+#include"sediment.h"
 
-suspended_RK2::suspended_RK2(lexer* p, fdm* a, turbulence *pturb) : bcsusp(p,pturb),susprhs(p)
+suspended_RK2::suspended_RK2(lexer* p, fdm* a, turbulence *pturb) : bcsusp(p,pturb),susprhs(p),wvel(p)
 {
 	gcval_susp=60;
 }
@@ -40,15 +41,16 @@ suspended_RK2::~suspended_RK2()
 }
 
 
-void suspended_RK2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow)
+void suspended_RK2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow, sediment *psed)
 {
     field4 ark1(p);
+    fill_wvel(p,a,pgc.psed);
     
 // Step 1
     starttime=pgc->timer();
 
     suspsource(p,a,a->conc);
-    pconvec->start(p,a,a->conc,4,a->u,a->v,a->w);
+    pconvec->start(p,a,a->conc,4,a->u,a->v,wvel);
 	pdiff->diff_scalar(p,a,pgc,psolv,a->conc,a->eddyv,1.0,1.0);
 
 	LOOP
@@ -64,7 +66,7 @@ void suspended_RK2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
 
 // Step 2
     suspsource(p,a,a->conc);
-    pconvec->start(p,a,ark1,4,a->u,a->v,a->w);
+    pconvec->start(p,a,ark1,4,a->u,a->v,wvel);
 	pdiff->diff_scalar(p,a,pgc,psolv,ark1,a->eddyv,1.0,0.5);
 
 	LOOP
@@ -83,4 +85,12 @@ void suspended_RK2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
 
 void suspended_RK2::ctimesave(lexer *p, fdm* a)
 {
+}
+
+void suspended_RK2::fill_wvel(lexer *p, fdm* a, ghostcell *pgc, sediment *psed)
+{
+    WLOOP
+    wvel(i,j,k) = a->w(i,j,k) + ws;
+    
+    pgc->start3(p,wvel,12);
 }

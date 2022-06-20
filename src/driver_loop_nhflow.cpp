@@ -77,7 +77,7 @@ void driver::loop_nhflow(fdm* a)
             pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
             pheat->start(a,p,pconvec,pdiff,psolv,pgc,pflow);
 			 pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
-            psusp->start(a,p,pconcdisc,psuspdiff,psolv,pgc,pflow);
+            psusp->start(a,p,pconcdisc,psuspdiff,psolv,pgc,pflow,psed);
             
         
 		// Sediment Computation
