@@ -35,8 +35,7 @@ Author: Hans Bihs
 #include"topo_relax.h"
 #include"bedshear_reduction.h"
 
-void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow,
-                                    reinitopo *preto, solver *psolv)
+void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo *preto, solver *psolv)
 {
     starttime=pgc->timer();
     
@@ -63,7 +62,7 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     
     // suspended load
     //pcbed->start(p,pgc,s);
-    //psusp->start(a,p,pconcdisc,psuspdiff,psolv,pgc,pflow,psed);
+    //psusp->start(a,p,psuspdisc,psuspdiff,psolv,pgc,pflow,psed);
 	
     // Exner *******
     ptopo->start(p,pgc,s);
