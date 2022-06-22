@@ -31,7 +31,7 @@ Author: Hans Bihs
 #include"solver.h"
 #include"sediment.h"
 
-suspended_RK3::suspended_RK3(lexer* p, fdm* a, turbulence *pturb) : bcsusp(p,pturb),wvel(p)
+suspended_RK3::suspended_RK3(lexer* p, fdm* a) : wvel(p)
 {
 	gcval_susp=60;
 }
@@ -39,7 +39,6 @@ suspended_RK3::suspended_RK3(lexer* p, fdm* a, turbulence *pturb) : bcsusp(p,ptu
 suspended_RK3::~suspended_RK3()
 {
 }
-
 
 void suspended_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow, sediment *psed)
 {
@@ -116,6 +115,24 @@ void suspended_RK3::suspsource(lexer* p,fdm* a,field& conc)
         if(a->phi(i,j,k)>0.0)
         a->L(i,j,k)=-ws*(conc(i,j,k+1)-conc(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
     }
+}
+
+void suspended_RK3::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, field& conc)
+{
+	double concval;
+
+		GC4LOOP
+		if(p->gcb4[n][4]==5)
+		{
+        i=p->gcb4[n][0];
+        j=p->gcb4[n][1];
+        k=p->gcb4[n][2];
+		
+        
+        //concval = cbed(p,pgc,s)*pow(((h-zdist)/zdist)*(adist/(h-adist)),zdist);
+    
+		conc(i,j,k) =  concval;
+		}
 }
 
 void suspended_RK3::sedfsf(lexer* p,fdm* a,field& conc)

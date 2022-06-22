@@ -27,98 +27,15 @@ Author: Hans Bihs
 #include"convection.h"
 #include"ioflow.h"
 #include"topo.h"
-#include"sediment_exner.h"
-#include"reinitopo.h"
-#include"suspended.h"
-#include"bedload_VR.h"
-#include"bedload_einstein.h"
-#include"bedload_MPM.h"
-#include"bedload_MPM.h"
-#include"bedload_EF.h"
-#include"bedload_void.h"
-#include"bedshear.h"
-#include"sandslide_f.h"
-#include"sandslide_f2.h"
-#include"sandslide_f3.h"
-#include"sandslide_pde.h"
-#include"sandslide_v.h"
-#include"topo_relax.h"
-#include"vrans_v.h"
-#include"vrans_f.h"
-#include"reduction_void.h"
-#include"reduction_parker.h"
-#include"reduction_deyemp.h"
-#include"reduction_deyana.h"
-#include"reduction_FD.h"
 
-sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb): bedslope(p)
+sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, solver *psolv): bedslope(p)
 {
-    s = new sediment_fdm(p);
-    
-    
-    if(p->S11==0)
-    pbed = new bedload_void();
 
-    if(p->S11==1)
-    pbed = new bedload_VR(p);
+    sediment_logic(p,a,pgc,pturb,psolv);
 
-    if(p->S11==2)
-    pbed = new bedload_MPM(p);
-	
-	if(p->S11==3)
-    pbed = new bedload_EF(p);
-    
-    if(p->S11==4)
-    pbed = new bedload_einstein(p);
-    
-    
-    if(p->S90==0)
-    pslide=new sandslide_v(p);   
-    
-    if(p->S90==1)
-    pslide=new sandslide_f(p);
-    
-    if(p->S90==2)
-    pslide=new sandslide_f2(p);
-    
-    if(p->S90==3)
-    pslide=new sandslide_f3(p);
-    
-    if(p->S90==4)
-    pslide=new sandslide_pde(p);
-    
-    if(p->S10!=2 && p->A10==6)
-	pvrans = new vrans_v(p,a,pgc);
-	
-	if(p->S10==2 && p->A10==6)
-	pvrans = new vrans_f(p,a,pgc);
-    
-    
-    if(p->S80==0)
-    preduce=new reduction_void(p);
-
-    if(p->S80==1)
-    preduce=new reduction_parker(p);
-
-    if(p->S80==2)
-    preduce=new reduction_deyemp(p);
-
-    if(p->S80==3)
-    preduce=new reduction_deyana(p);
-	
-	if(p->S80==4)
-    preduce=new reduction_FD(p);
-    
-    ptopo = new sediment_exner(p,pgc);
-    
-	
 	p->gcin4a_count=p->gcin_count;
 	p->gcout4a_count=p->gcout_count;
 	
-    
-    prelax = new topo_relax(p);
-	
-	pbedshear  = new bedshear(p,pturb);
     
     volume_token=0;
 }

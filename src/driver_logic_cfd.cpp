@@ -332,15 +332,7 @@ void driver::logic()
 	if(p->D20>=2 && p->C10<=10 && p->C10>0)
 	pconcdiff=new idiff2_FS(p);
 	
-	// susepdended 
-	if(p->S60<11 && p->S60>0)
-	psuspdiff=new ediff2(p);
 	
-	if(p->D20==1 && p->S60<=10 && p->S60>0)
-	psuspdiff=new ediff2(p);
-	
-	if(p->D20>=2 && p->S60<=10 && p->S60>0)
-	psuspdiff=new idiff2_FS(p);
 
 // Wave Models
     if(p->A10==6 || p->A10==0)
@@ -637,21 +629,6 @@ void driver::logic()
     if(p->solidread==1 && p->G40>0)
     preso = new reinisolid_RK3(p);
     
-
-    if(p->S60==0)
-    psusp = new suspended_void();
-
-    if(p->S60==2)
-    psusp = new suspended_RK2(p,a,pturb);
-
-    if(p->S60==3)
-    psusp = new suspended_RK3(p,a,pturb);
-
-    if(p->S60==11)
-    psusp = new suspended_IM1(p,a,pturb);
-
-    if(p->S60==12)
-    psusp = new suspended_IM2(p,a,pturb);
 
 // Velocities
 	if(p->N40==0 || p->Z10!=0 || (p->X10==1 && p->X13==2))

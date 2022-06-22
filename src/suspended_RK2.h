@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"suspended.h"
-#include"bcsusp.h"
+#include"increment.h"
 #include"field3.h"
 
 class turbulence;
@@ -31,13 +31,13 @@ using namespace std;
 #ifndef SUSPENDED_RK2_H_
 #define SUSPENDED_RK2_H_
 
-class suspended_RK2 : public suspended, public bcsusp
+class suspended_RK2 : public suspended, public increment
 {
 public:
 	suspended_RK2(lexer *, fdm*,turbulence*);
 	virtual ~suspended_RK2();
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment*);
-	virtual void ctimesave(lexer*, fdm*);    void suspsource(lexer*,fdm*,field&);	void sedfsf(lexer*,fdm*,field&);	void clearrhs(lexer*,fdm*);
+	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*);
+	virtual void ctimesave(lexer*, fdm*);    void suspsource(lexer*,fdm*,field&);    void bcsusp_start(lexer*,fdm*,ghostcell*,field&);	void sedfsf(lexer*,fdm*,field&);	void clearrhs(lexer*,fdm*);
 
 	int gcval_susp;
 

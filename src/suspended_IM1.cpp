@@ -101,6 +101,24 @@ void suspended_IM1::suspsource(lexer* p,fdm* a,field& conc)
     }
 }
 
+void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, field& conc)
+{
+	double concval;
+
+		GC4LOOP
+		if(p->gcb4[n][4]==5)
+		{
+        i=p->gcb4[n][0];
+        j=p->gcb4[n][1];
+        k=p->gcb4[n][2];
+		
+        
+        //concval = cbed(p,pgc,s)*pow(((h-zdist)/zdist)*(adist/(h-adist)),zdist);
+    
+		conc(i,j,k) =  concval;
+		}
+}
+
 void suspended_IM1::sedfsf(lexer* p,fdm* a,field& conc)
 {
     LOOP

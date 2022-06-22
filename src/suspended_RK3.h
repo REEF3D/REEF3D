@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"suspended.h"
-#include"bcsusp.h"#include"field3.h"
+#include"increment.h"#include"field3.h"
 
 class turbulence;
 
@@ -30,13 +30,13 @@ using namespace std;
 #ifndef SUSPENDED_RK3_H_
 #define SUSPENDED_RK3_H_
 
-class suspended_RK3 : public suspended, public bcsusp
+class suspended_RK3 : public suspended, public increment
 {
 public:
 	suspended_RK3(lexer *, fdm*,turbulence*);
 	virtual ~suspended_RK3();
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment*);
-	virtual void ctimesave(lexer*, fdm*);    void suspsource(lexer*,fdm*,field&);	void sedfsf(lexer*,fdm*,field&);	void clearrhs(lexer*,fdm*);
+	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*);
+	virtual void ctimesave(lexer*, fdm*);    void suspsource(lexer*,fdm*,field&);    void bcsusp_start(lexer*,fdm*,ghostcell*,field&);	void sedfsf(lexer*,fdm*,field&);	void clearrhs(lexer*,fdm*);
 
 	int gcval_susp;
 

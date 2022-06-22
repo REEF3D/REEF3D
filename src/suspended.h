@@ -27,7 +27,7 @@ class diffusion;
 class solver;
 class ghostcell;
 class ioflow;
-class sediment;
+class sediment_fdm;
 
 using namespace std;
 
@@ -38,7 +38,7 @@ class suspended
 {
 public:
 
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment*)=0;
+	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*)=0;
 	virtual void ctimesave(lexer*, fdm*)=0;
 
 };

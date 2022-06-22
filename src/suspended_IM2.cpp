@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -91,5 +91,5 @@ void suspended_IM2::fill_wvel(lexer *p, fdm* a, ghostcell *pgc, sediment *psed)
     wvel(i,j,k) = a->w(i,j,k) + ws;
     
     pgc->start3(p,wvel,12);
-}void suspended_IM2::suspsource(lexer* p,fdm* a,field& conc){    count=0;    LOOP    {	if(a->phi(i,j,k)>0.0)	a->rhsvec.V[count]  += -ws*(conc(i,j,k+1)-conc(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);		++count;    }}void suspended_IM2::sedfsf(lexer* p,fdm* a,field& conc){    LOOP    if(a->phi(i,j,k)<0.0)    conc(i,j,k)=0.0;}void suspended_IM2::clearrhs(lexer* p, fdm* a){    count=0;    LOOP    {    a->rhsvec.V[count]=0.0;	++count;    }}
+}void suspended_IM2::suspsource(lexer* p,fdm* a,field& conc){    count=0;    LOOP    {	if(a->phi(i,j,k)>0.0)	a->rhsvec.V[count]  += -ws*(conc(i,j,k+1)-conc(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);		++count;    }}void suspended_IM2::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, field& conc){	double concval;		GC4LOOP		if(p->gcb4[n][4]==5)		{        i=p->gcb4[n][0];        j=p->gcb4[n][1];        k=p->gcb4[n][2];		                //concval = cbed(p,pgc,s)*pow(((h-zdist)/zdist)*(adist/(h-adist)),zdist);    		conc(i,j,k) =  concval;		}}void suspended_IM2::sedfsf(lexer* p,fdm* a,field& conc){    LOOP    if(a->phi(i,j,k)<0.0)    conc(i,j,k)=0.0;}void suspended_IM2::clearrhs(lexer* p, fdm* a){    count=0;    LOOP    {    a->rhsvec.V[count]=0.0;	++count;    }}
 

@@ -34,7 +34,7 @@ class bedshear;
 class vrans;
 class turbulence;
 class sediment_fdm;
-class bedshear_reduction;
+class bedshear_reduction;class suspended;class diffusion;class convection;
 
 using namespace std;
 
@@ -48,9 +48,9 @@ public:
 	virtual ~sediment_f();
     
     // CFD interface
-    virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, suspended*);
-    virtual void ini_cfd(lexer*,fdm*,ghostcell*);
-    void sediment_algorithm_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, suspended*);    void prep_cfd(lexer*,fdm*,ghostcell*);    void fill_PQ_cfd(lexer*,fdm*,ghostcell*);    void active_cfd(lexer*,fdm*,ghostcell*);    void active_ini_cfd(lexer*,fdm*,ghostcell*);
+    virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*);
+    virtual void ini_cfd(lexer*,fdm*,ghostcell*);        void sediment_logic(lexer*,fdm*,ghostcell*,pturb);
+    void sediment_algorithm_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*);    void prep_cfd(lexer*,fdm*,ghostcell*);    void fill_PQ_cfd(lexer*,fdm*,ghostcell*);    void active_cfd(lexer*,fdm*,ghostcell*);    void active_ini_cfd(lexer*,fdm*,ghostcell*);
     
     void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*);    void bedchange_update(lexer*, ghostcell*);
     
@@ -84,11 +84,11 @@ public:
 
 private:
     sediment_fdm *s;
-    bedload* pbed;
+    bedload *pbed;
     sandslide *pslide;
     topo_relax *prelax;
     vrans *pvrans;
-    bedshear_reduction *preduce;    topo* ptopo;
+    bedshear_reduction *preduce;    topo *ptopo;    suspended *psusp;    diffusion *psuspdiff;    convection *psuspdisc;
 	
 	bedshear *pbedshear;
     

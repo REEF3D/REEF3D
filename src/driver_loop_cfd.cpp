@@ -82,15 +82,13 @@ void driver::loop_cfd(fdm* a)
             pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
             pheat->start(a,p,pheatdisc,pdiff,psolv,pgc,pflow);
             pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
-            psusp->start(a,p,pconcdisc,psuspdiff,psolv,pgc,pflow,psed);
-
 				
         psed->start_cfd(p,a,pgc,pflow,preto,psusp);
         pflow->u_relax(p,a,pgc,a->u);
-		pflow->v_relax(p,a,pgc,a->v);
-		pflow->w_relax(p,a,pgc,a->w);
-		pfsf->update(p,a,pgc,a->phi);
-		p6dof->start(p,a,pgc,1.0,pvrans,pnet);
+        pflow->v_relax(p,a,pgc,a->v);
+        pflow->w_relax(p,a,pgc,a->w);
+        pfsf->update(p,a,pgc,a->phi);
+        p6dof->start(p,a,pgc,1.0,pvrans,pnet);
         pmom->start(p,a,pgc,pvrans); 
         pbench->start(p,a,pgc,pconvec);
 		
@@ -102,7 +100,6 @@ void driver::loop_cfd(fdm* a)
         //timestep control
         p->simtime+=p->dt;
         ptstep->start(a,p,pgc,pturb);
-        
         
         // printer
         pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);

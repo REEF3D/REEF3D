@@ -363,10 +363,6 @@
           <File Name="sandslide_pde.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Suspended">
-          <VirtualDirectory Name="BC">
-            <File Name="bcsusp.h"/>
-            <File Name="ibcsusp.h"/>
-          </VirtualDirectory>
           <VirtualDirectory Name="bedconc">
             <File Name="bedconc.h"/>
           </VirtualDirectory>
@@ -1388,10 +1384,7 @@
           <File Name="sandslide_pde.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Suspended">
-          <VirtualDirectory Name="BC">
-            <File Name="bcsusp.cpp"/>
-            <File Name="ibcsusp.cpp"/>
-          </VirtualDirectory>
+          <VirtualDirectory Name="BC"/>
           <VirtualDirectory Name="bedconc">
             <File Name="bedconc.cpp"/>
           </VirtualDirectory>
@@ -1427,6 +1420,7 @@
         </VirtualDirectory>
         <File Name="sediment_f.cpp"/>
         <VirtualDirectory Name="Sediment">
+          <File Name="sediment_logic.cpp"/>
           <File Name="sediment_active.cpp"/>
           <File Name="sediment_print.cpp"/>
           <File Name="sediment_void.cpp"/>
