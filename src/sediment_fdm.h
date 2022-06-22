@@ -57,6 +57,7 @@ public:
     slice4 slideflag;
     
     slice4 qb,qbe;
+    slice4 cbe,cb,cbn;
 
 };
 

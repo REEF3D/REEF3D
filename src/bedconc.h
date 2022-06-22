@@ -38,6 +38,8 @@ public:
 	virtual ~bedconc();
 	double cbed(lexer*,ghostcell*,sediment_fdm*);
     
+    void ibcsusp_start(lexer*,fdm*,ghostcell*,field&);
+    
     double ws;
 
 private:
