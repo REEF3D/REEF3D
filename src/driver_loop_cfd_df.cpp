@@ -228,11 +228,8 @@ void driver::loop_cfd_df(fdm* a)
         // Concentration computation
         pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
         
-        // Suspension computation
-        psusp->start(a,p,pconcdisc,psuspdiff,psolv,pgc,pflow,psed);
-        
         // Sediment computation
-        psed->start_cfd(p,a,pgc,pflow,preto,psusp);
+        psed->start_cfd(p,a,pgc,pflow,preto,psolv);
 
         pflow->u_relax(p,a,pgc,a->u);
 		pflow->v_relax(p,a,pgc,a->v);

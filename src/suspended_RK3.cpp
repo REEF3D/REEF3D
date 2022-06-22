@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -29,7 +29,7 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"turbulence.h"
 #include"solver.h"
-#include"sediment.h"
+#include"sediment_fdm.h"
 
 suspended_RK3::suspended_RK3(lexer* p, fdm* a) : wvel(p)
 {
@@ -40,15 +40,15 @@ suspended_RK3::~suspended_RK3()
 {
 }
 
-void suspended_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow, sediment *psed)
+void suspended_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow, sediment_fdm *s)
 {
     field4 ark1(p),ark2(p);
-    fill_wvel(p,a,pgc,psed);
+    fill_wvel(p,a,pgc,s);
     
 // Step 1
     starttime=pgc->timer();
 
-    suspsource(p,a,a->conc);
+    suspsource(p,a,a->conc,s);
     pconvec->start(p,a,a->conc,4,a->u,a->v,wvel);
 	pdiff->diff_scalar(p,a,pgc,psolv,a->conc,a->eddyv,1.0,1.0);
 
@@ -62,7 +62,7 @@ void suspended_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
 	pgc->start4(p,ark1,gcval_susp);
 
 // Step 2
-    suspsource(p,a,a->conc);
+    suspsource(p,a,a->conc,s);
     pconvec->start(p,a,ark1,4,a->u,a->v,wvel);
 	pdiff->diff_scalar(p,a,pgc,psolv,ark1,a->eddyv,1.0,0.25);
 
@@ -77,7 +77,7 @@ void suspended_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
 	pgc->start4(p,ark2,gcval_susp);
 
 // Step 3
-    suspsource(p,a,a->conc);
+    suspsource(p,a,a->conc,s);
     pconvec->start(p,a,ark2,4,a->u,a->v,wvel);
 	pdiff->diff_scalar(p,a,pgc,psolv,ark2,a->eddyv,1.0,2.0/3.0);
 
@@ -98,22 +98,22 @@ void suspended_RK3::ctimesave(lexer *p, fdm* a)
 {
 }
 
-void suspended_RK3::fill_wvel(lexer *p, fdm* a, ghostcell *pgc, sediment *psed)
+void suspended_RK3::fill_wvel(lexer *p, fdm* a, ghostcell *pgc, sediment_fdm *s)
 {
     WLOOP
-    wvel(i,j,k) = a->w(i,j,k) + ws;
+    wvel(i,j,k) = a->w(i,j,k) + s->ws;
     
     pgc->start3(p,wvel,12);
 }
 
-void suspended_RK3::suspsource(lexer* p,fdm* a,field& conc)
+void suspended_RK3::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
 {
     LOOP
     {
     a->L(i,j,k)=0.0;
 
         if(a->phi(i,j,k)>0.0)
-        a->L(i,j,k)=-ws*(conc(i,j,k+1)-conc(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
+        a->L(i,j,k)=-s->ws*(conc(i,j,k+1)-conc(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
     }
 }
 

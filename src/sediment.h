@@ -32,6 +32,7 @@ class topo;
 class reinitopo;
 class field;
 class slice;
+class solver;
 
 #include<fstream>
 
@@ -44,7 +45,7 @@ class sediment
 {
 public:
 
-	virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, suspended*)=0;
+	virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*)=0;
     virtual void ini_cfd(lexer*,fdm*,ghostcell*)=0;
     virtual void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*)=0;
     

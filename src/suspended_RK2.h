@@ -24,8 +24,6 @@ Author: Hans Bihs
 #include"increment.h"
 #include"field3.h"
 
-class turbulence;
-
 using namespace std;
 
 #ifndef SUSPENDED_RK2_H_
@@ -34,16 +32,16 @@ using namespace std;
 class suspended_RK2 : public suspended, public increment
 {
 public:
-	suspended_RK2(lexer *, fdm*,turbulence*);
+	suspended_RK2(lexer *, fdm*);
 	virtual ~suspended_RK2();
 	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*);
-	virtual void ctimesave(lexer*, fdm*);    void suspsource(lexer*,fdm*,field&);    void bcsusp_start(lexer*,fdm*,ghostcell*,field&);	void sedfsf(lexer*,fdm*,field&);	void clearrhs(lexer*,fdm*);
+	virtual void ctimesave(lexer*, fdm*);    void suspsource(lexer*,fdm*,field&,sediment_fdm*);    void bcsusp_start(lexer*,fdm*,ghostcell*,field&);	void sedfsf(lexer*,fdm*,field&);	void clearrhs(lexer*,fdm*);
 
 	int gcval_susp;
 
 private:
     double starttime;
-    void fill_wvel(lexer*,fdm*,ghostcell*,sediment*); 
+    void fill_wvel(lexer*,fdm*,ghostcell*,sediment_fdm*); 
     field3 wvel;        int count,q;
 
 };

@@ -34,8 +34,7 @@ class bedshear;
 class vrans;
 class turbulence;
 class sediment_fdm;
-class bedshear_reduction;class suspended;class diffusion;class convection;
-
+class bedshear_reduction;class suspended;class diffusion;class convection;
 using namespace std;
 
 #ifndef SEDIMENT_F_H_
@@ -49,7 +48,7 @@ public:
     
     // CFD interface
     virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*);
-    virtual void ini_cfd(lexer*,fdm*,ghostcell*);        void sediment_logic(lexer*,fdm*,ghostcell*,pturb);
+    virtual void ini_cfd(lexer*,fdm*,ghostcell*);        void sediment_logic(lexer*,fdm*,ghostcell*,turbulence*);
     void sediment_algorithm_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*);    void prep_cfd(lexer*,fdm*,ghostcell*);    void fill_PQ_cfd(lexer*,fdm*,ghostcell*);    void active_cfd(lexer*,fdm*,ghostcell*);    void active_ini_cfd(lexer*,fdm*,ghostcell*);
     
     void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*);    void bedchange_update(lexer*, ghostcell*);

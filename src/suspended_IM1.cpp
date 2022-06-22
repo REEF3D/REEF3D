@@ -27,11 +27,10 @@ Author: Hans Bihs
 #include"convection.h"
 #include"diffusion.h"
 #include"ioflow.h"
-#include"turbulence.h"
 #include"solver.h"
-#include"sediment.h"
+#include"sediment_fdm.h"
 
-suspended_IM1::suspended_IM1(lexer* p, fdm* a, turbulence *pturb) : ibcsusp(p,pturb),concn(p),wvel(p)
+suspended_IM1::suspended_IM1(lexer* p, fdm* a) : concn(p),wvel(p)
 {
 	gcval_susp=60;
 }
@@ -40,17 +39,17 @@ suspended_IM1::~suspended_IM1()
 {
 }
 
-void suspended_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow, sediment *psed)
+void suspended_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow, sediment_fdm *s)
 {
     starttime=pgc->timer();
     clearrhs(p,a);
-    fill_wvel(p,a,pgc,psed);
+    fill_wvel(p,a,pgc,s);
     pconvec->start(p,a,a->conc,4,a->u,a->v,wvel);
 	pdiff->idiff_scalar(p,a,pgc,psolv,a->conc,a->eddyv,1.0,1.0);
-	suspsource(p,a,a->conc);
+	suspsource(p,a,a->conc,s);
 	timesource(p,a,a->conc);
 	psolv->start(p,a,pgc,a->conc,a->rhsvec,4);
-	ibcsusp_start(p,a,pgc,a->conc);
+	bcsusp_start(p,a,pgc,a->conc);
 	sedfsf(p,a,a->conc);
 	pgc->start4(p,a->conc,gcval_susp);
 	p->susptime=pgc->timer()-starttime;
@@ -81,21 +80,21 @@ void suspended_IM1::ctimesave(lexer *p, fdm* a)
 
 }
 
-void suspended_IM1::fill_wvel(lexer *p, fdm* a, ghostcell *pgc, sediment *psed)
+void suspended_IM1::fill_wvel(lexer *p, fdm* a, ghostcell *pgc, sediment_fdm *s)
 {
     WLOOP
-    wvel(i,j,k) = a->w(i,j,k) + ws;
+    wvel(i,j,k) = a->w(i,j,k) + s->ws;
     
     pgc->start3(p,wvel,12);
 }
 
-void suspended_IM1::suspsource(lexer* p,fdm* a,field& conc)
+void suspended_IM1::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
 {
     count=0;
     LOOP
     {
 	if(a->phi(i,j,k)>0.0)
-	a->rhsvec.V[count]  += -ws*(conc(i,j,k+1)-conc(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
+	a->rhsvec.V[count]  += -s->ws*(conc(i,j,k+1)-conc(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
 	
 	++count;
     }

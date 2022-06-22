@@ -49,6 +49,19 @@ Author: Hans Bihs
 #include"reduction_deyemp.h"
 #include"reduction_deyana.h"
 #include"reduction_FD.h"
+#include"diff_void.h"
+#include"ediff2.h"
+#include"idiff2.h"
+#include"idiff2_FS.h"
+#include"idiff2_FS_2D.h"
+#include"convection_void.h"
+#include"weno_hj_nug.h"
+#include"iweno_hj_nug.h"
+#include"suspended_void.h"
+#include"suspended_RK2.h"
+#include"suspended_RK3.h"
+#include"suspended_IM1.h"
+#include"suspended_IM2.h"
 
 void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *pturb)
 {
@@ -111,14 +124,20 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
     ptopo = new sediment_exner(p,pgc);
     
     // susepended diff
-	if(p->S60<11 && p->S60>0)
+    if(p->S60==0)
+	psuspdiff=new diff_void();
+    
+	if(p->D20==1 && p->S60<11 && p->S60>0)
 	psuspdiff=new ediff2(p);
-	
-	if(p->D20==1 && p->S60<=10 && p->S60>0)
-	psuspdiff=new ediff2(p);
-	
-	if(p->D20>=2 && p->S60<=10 && p->S60>0)
+    
+    if(p->D20==1 && p->S60<11 && p->S60>0 && p->j_dir==0)
+	psuspdiff=new idiff2_FS_2D(p);
+    
+    if(p->D20==1 && p->S60<11 && p->S60>0 && p->j_dir==1)
 	psuspdiff=new idiff2_FS(p);
+	
+	if(p->D20>=2 || p->S60>10)
+	psuspdiff=new idiff2(p);
     
     // suspended conv
 	if(p->S60==0)
@@ -135,16 +154,16 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
     psusp = new suspended_void();
 
     if(p->S60==2)
-    psusp = new suspended_RK2(p,a,pturb);
+    psusp = new suspended_RK2(p,a);
 
     if(p->S60==3)
-    psusp = new suspended_RK3(p,a,pturb);
+    psusp = new suspended_RK3(p,a);
 
     if(p->S60==11)
-    psusp = new suspended_IM1(p,a,pturb);
+    psusp = new suspended_IM1(p,a);
 
     if(p->S60==12)
-    psusp = new suspended_IM2(p,a,pturb);
+    psusp = new suspended_IM2(p,a);
     
 	
 	p->gcin4a_count=p->gcin_count;

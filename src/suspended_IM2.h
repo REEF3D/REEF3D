@@ -25,8 +25,6 @@ Author: Hans Bihs
 #include"field3.h"
 #include"field4.h"
 
-class turbulence;
-
 using namespace std;
 
 #ifndef SUSPENDED_IM2_H_
@@ -35,12 +33,12 @@ using namespace std;
 class suspended_IM2 : public suspended, public increment
 {
 public:
-	suspended_IM2(lexer *, fdm*,turbulence*);
+	suspended_IM2(lexer *, fdm*);
 	virtual ~suspended_IM2();
 	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*);
 	virtual void ctimesave(lexer*, fdm*);
     
-    void suspsource(lexer*,fdm*,field&);
+    void suspsource(lexer*,fdm*,field&,sediment_fdm*);
     void bcsusp_start(lexer*,fdm*,ghostcell*,field&);
 	void sedfsf(lexer*,fdm*,field&);
 	void clearrhs(lexer*,fdm*);
@@ -51,7 +49,7 @@ public:
 private:
     void timesource(lexer* p, fdm* a, field& fn);
     double starttime;
-    void fill_wvel(lexer*,fdm*,ghostcell*,sediment*); 
+    void fill_wvel(lexer*,fdm*,ghostcell*,sediment_fdm*); 
     field3 wvel;
     
     int count,q;

@@ -20,15 +20,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 #include"suspended_void.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"convection.h"
-#include"diffusion.h"
-#include"ioflow.h"
-#include"turbulence.h"
-#include"solver.h"
-#include"sediment.h"
 
 suspended_void::suspended_void()
 {
@@ -38,7 +29,7 @@ suspended_void::~suspended_void()
 {
 }
 
-void suspended_void::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow, sediment *psed)
+void suspended_void::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow, sediment_fdm*)
 {
 }
 

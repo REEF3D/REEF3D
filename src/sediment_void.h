@@ -33,7 +33,7 @@ public:
     sediment_void();
 	virtual ~sediment_void();
     
-    virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, suspended*);
+    virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*);
     virtual void ini_cfd(lexer*,fdm*,ghostcell*);
     virtual void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*);
     

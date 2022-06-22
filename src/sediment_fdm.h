@@ -58,6 +58,8 @@ public:
     
     slice4 qb,qbe;
     slice4 cbe,cb,cbn;
+    
+    double ws;
 
 };
 

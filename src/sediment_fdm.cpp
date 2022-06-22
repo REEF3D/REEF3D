@@ -31,7 +31,7 @@ sediment_fdm::sediment_fdm(lexer *p) : P(p),Q(p),
                                        qb(p),qbe(p),
                                        alpha(p),teta(p),gamma(p),beta(p),phi(p),
                                        active(p),
-                                       bedk(p),slideflag(p)
+                                       bedk(p),slideflag(p),
                                        cbe(p),cb(p),cbn(p)
 {
 

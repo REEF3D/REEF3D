@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -23,8 +23,6 @@ Author: Hans Bihs
 #include"suspended.h"
 #include"increment.h"#include"field3.h"
 
-class turbulence;
-
 using namespace std;
 
 #ifndef SUSPENDED_RK3_H_
@@ -33,15 +31,15 @@ using namespace std;
 class suspended_RK3 : public suspended, public increment
 {
 public:
-	suspended_RK3(lexer *, fdm*,turbulence*);
+	suspended_RK3(lexer *, fdm*);
 	virtual ~suspended_RK3();
 	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*);
-	virtual void ctimesave(lexer*, fdm*);    void suspsource(lexer*,fdm*,field&);    void bcsusp_start(lexer*,fdm*,ghostcell*,field&);	void sedfsf(lexer*,fdm*,field&);	void clearrhs(lexer*,fdm*);
+	virtual void ctimesave(lexer*, fdm*);    void suspsource(lexer*,fdm*,field&,sediment_fdm*);    void bcsusp_start(lexer*,fdm*,ghostcell*,field&);	void sedfsf(lexer*,fdm*,field&);	void clearrhs(lexer*,fdm*);
 
 	int gcval_susp;
 
 private:
-    double starttime;    void fill_wvel(lexer*,fdm*,ghostcell*,sediment*);     field3 wvel;    int count,q;
+    double starttime;    void fill_wvel(lexer*,fdm*,ghostcell*,sediment_fdm*);     field3 wvel;    int count,q;
 
 };
 

@@ -76,12 +76,10 @@ void driver::loop_nhflow(fdm* a)
 			
             pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
             pheat->start(a,p,pconvec,pdiff,psolv,pgc,pflow);
-			 pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
-            psusp->start(a,p,pconcdisc,psuspdiff,psolv,pgc,pflow,psed);
-            
+            pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);            
         
 		// Sediment Computation
-        psed->start_cfd(p,a,pgc,pflow,preto,psusp);
+        psed->start_cfd(p,a,pgc,pflow,preto,psolv);
 		
 		p6dof->start(p,a,pgc,1.0,pvrans,pnet);
         pmom->start(p,a,pgc,pvrans); 
