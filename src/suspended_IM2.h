@@ -39,7 +39,7 @@ public:
 	virtual void ctimesave(lexer*, fdm*);
     
     void suspsource(lexer*,fdm*,field&,sediment_fdm*);
-    void bcsusp_start(lexer*,fdm*,ghostcell*,field&);
+    void bcsusp_start(lexer*,fdm*,ghostcell*,sediment_fdm*,field&);
 	void sedfsf(lexer*,fdm*,field&);
 	void clearrhs(lexer*,fdm*);
 

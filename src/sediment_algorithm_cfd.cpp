@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"reinitopo.h"
 #include"suspended.h"
 #include"bedload.h"
+#include"bedconc.h"
 #include"bedshear.h"
 #include"sandslide.h"
 #include"topo_relax.h"
@@ -60,10 +61,10 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     // bedload *******
     pbed->start(p,pgc,s);
     
-    // suspended load
-    //pcbed->start(p,pgc,s);
-    //psusp->start(a,p,psuspdisc,psuspdiff,psolv,pgc,pflow,psed);
-	
+    // suspended load -------
+    pcbed->start(p,pgc,s);
+    psusp->start(a,p,psuspdisc,psuspdiff,psolv,pgc,pflow,s);
+    
     // Exner *******
     ptopo->start(p,pgc,s);
     

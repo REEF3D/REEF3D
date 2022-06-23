@@ -49,7 +49,7 @@ void suspended_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
 	suspsource(p,a,a->conc,s);
 	timesource(p,a,a->conc);
 	psolv->start(p,a,pgc,a->conc,a->rhsvec,4);
-	bcsusp_start(p,a,pgc,a->conc);
+	bcsusp_start(p,a,pgc,s,a->conc);
 	sedfsf(p,a,a->conc);
 	pgc->start4(p,a->conc,gcval_susp);
 	p->susptime=pgc->timer()-starttime;
@@ -90,6 +90,7 @@ void suspended_IM1::fill_wvel(lexer *p, fdm* a, ghostcell *pgc, sediment_fdm *s)
 
 void suspended_IM1::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
 {
+    /*
     count=0;
     LOOP
     {
@@ -97,25 +98,20 @@ void suspended_IM1::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
 	a->rhsvec.V[count]  += -s->ws*(conc(i,j,k+1)-conc(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
 	
 	++count;
-    }
+    }*/
 }
 
-void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, field& conc)
+void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *s, field& conc)
 {
-	double concval;
-
-		GC4LOOP
-		if(p->gcb4[n][4]==5)
-		{
+    GC4LOOP
+    if(p->gcb4[n][4]==5)
+    {
         i=p->gcb4[n][0];
         j=p->gcb4[n][1];
         k=p->gcb4[n][2];
-		
         
-        //concval = cbed(p,pgc,s)*pow(((h-zdist)/zdist)*(adist/(h-adist)),zdist);
-    
-		conc(i,j,k) =  concval;
-		}
+        conc(i,j,k) =  s->cb(i,j);
+    }
 }
 
 void suspended_IM1::sedfsf(lexer* p,fdm* a,field& conc)

@@ -20,35 +20,31 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"increment.h"
+#include"sediment_f.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"sediment_fdm.h"
+#include"topo_relax.h"
+#include"ioflow.h"
+#include"vrans_v.h"
+#include"vrans_f.h"
 
-class lexer;
-class sediment_fdm;
-class ghostcell;
-
-#ifndef BEDCONC_H_
-#define BEDCONC_H_
-
-using namespace std;
-
-class bedconc : public increment
+void sediment_f::waterlevel(lexer *p, fdm *a, ghostcell *pgc)
 {
-public:
-	bedconc(lexer*);
-	virtual ~bedconc();
-	void start(lexer*,ghostcell*,sediment_fdm*);
+    double zval=0.0;
 
-private:
-	int ii,jj,kk;
-	
-	double d50,ks,shields,kappa;
-	double Rstar, g, visc;
-	double rhosed,rhowat;
-	double Ti,Ds;
-    double adist,zdist;
+    SLICELOOP4
+    {
+        zval = s->bedzh(i,j);
 
-};
-#endif
-
-
-
+        KLOOP
+        PCHECK
+        if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
+        {
+        zval=MAX(zval,-(a->phi(i-1,j,k)*p->DXM)/(a->phi(i,j,k+1)-a->phi(i,j,k)) + p->pos_z());
+        }
+        
+    s->waterlevel(i,j) = zval-s->bedzh(i,j);
+    }
+}

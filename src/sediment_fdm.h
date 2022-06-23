@@ -59,6 +59,8 @@ public:
     slice4 qb,qbe;
     slice4 cbe,cb,cbn;
     
+    slice4 waterlevel;
+    
     double ws;
 
 };

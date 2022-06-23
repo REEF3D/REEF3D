@@ -57,7 +57,7 @@ void suspended_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
                    + p->dt*a->L(i,j,k);
 	
 	pdiff->idiff_scalar(p,a,pgc,psolv,ark1,a->eddyv,1.0,1.0);
-    bcsusp_start(p,a,pgc,ark1);
+    bcsusp_start(p,a,pgc,s,ark1);
     sedfsf(p,a,ark1);
 	pgc->start4(p,ark1,gcval_susp);
 
@@ -72,7 +72,7 @@ void suspended_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
 				   + 0.25*p->dt*a->L(i,j,k);
 	
 	pdiff->idiff_scalar(p,a,pgc,psolv,ark2,a->eddyv,1.0,0.25);
-    bcsusp_start(p,a,pgc,ark2);
+    bcsusp_start(p,a,pgc,s,ark2);
     sedfsf(p,a,ark2);
 	pgc->start4(p,ark2,gcval_susp);
 
@@ -87,7 +87,7 @@ void suspended_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
 				+ (2.0/3.0)*p->dt*a->L(i,j,k);
 	
 	pdiff->idiff_scalar(p,a,pgc,psolv,a->conc,a->eddyv,1.0,2.0/3.0);
-    bcsusp_start(p,a,pgc,a->conc);
+    bcsusp_start(p,a,pgc,s,a->conc);
     sedfsf(p,a,a->conc);
 	pgc->start4(p,a->conc,gcval_susp);
 
@@ -112,28 +112,13 @@ void suspended_RK3::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
     {
     a->L(i,j,k)=0.0;
 
-        if(a->phi(i,j,k)>0.0)
-        a->L(i,j,k)=-s->ws*(conc(i,j,k+1)-conc(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
+    // if(a->phi(i,j,k)>0.0)
+    //a->L(i,j,k)=-s->ws*(conc(i,j,k+1)-conc(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
     }
 }
 
-void suspended_RK3::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, field& conc)
-{
-	double concval;
-
-		GC4LOOP
-		if(p->gcb4[n][4]==5)
-		{
-        i=p->gcb4[n][0];
-        j=p->gcb4[n][1];
-        k=p->gcb4[n][2];
-		
-        
-        //concval = cbed(p,pgc,s)*pow(((h-zdist)/zdist)*(adist/(h-adist)),zdist);
-    
-		conc(i,j,k) =  concval;
-		}
-}
+void suspended_RK3::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *s, field& conc)
+{    GC4LOOP    if(p->gcb4[n][4]==5)    {        i=p->gcb4[n][0];        j=p->gcb4[n][1];        k=p->gcb4[n][2];                conc(i,j,k) =  s->cb(i,j);    }}
 
 void suspended_RK3::sedfsf(lexer* p,fdm* a,field& conc)
 {

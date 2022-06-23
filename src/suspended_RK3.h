@@ -34,7 +34,7 @@ public:
 	suspended_RK3(lexer *, fdm*);
 	virtual ~suspended_RK3();
 	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*);
-	virtual void ctimesave(lexer*, fdm*);    void suspsource(lexer*,fdm*,field&,sediment_fdm*);    void bcsusp_start(lexer*,fdm*,ghostcell*,field&);	void sedfsf(lexer*,fdm*,field&);	void clearrhs(lexer*,fdm*);
+	virtual void ctimesave(lexer*, fdm*);    void suspsource(lexer*,fdm*,field&,sediment_fdm*);    void bcsusp_start(lexer*,fdm*,ghostcell*,sediment_fdm*,field&);	void sedfsf(lexer*,fdm*,field&);	void clearrhs(lexer*,fdm*);
 
 	int gcval_susp;
 

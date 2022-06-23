@@ -39,6 +39,8 @@ void sediment_f::prep_cfd(lexer *p, fdm *a,ghostcell *pgc)
     
     fill_PQ_cfd(p,a,pgc);
     
+    waterlevel(p,a,pgc);
+    
 }
 
 void sediment_f::prep_sflow(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q)

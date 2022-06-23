@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"increment.h"
 #include"bedslope.h"
 
-class bedload;
+class bedload;class bedconc;
 class sandslide;
 class topo_relax;
 class bedshear;
@@ -67,12 +67,12 @@ public:
 	virtual double bedshear_point(lexer*,fdm*,ghostcell*);
     
 	
-    
+
     virtual double qbeval(int,int);
     virtual void qbeget(int,int,double);
     
     void fill_bedk(lexer*,fdm*,ghostcell*);
-	void bedlevel(lexer*,fdm*,ghostcell*);
+	void bedlevel(lexer*,fdm*,ghostcell*);    void waterlevel(lexer*,fdm*,ghostcell*);
 	void topo_zh_update(lexer*,fdm*,ghostcell*,sediment_fdm*);
     void volume_calc(lexer*,fdm*,ghostcell*);
 	void filter(lexer*,ghostcell*,slice&,int,int);
@@ -83,12 +83,11 @@ public:
 
 private:
     sediment_fdm *s;
-    bedload *pbed;
+    bedload *pbed;      bedconc *pcbed;
     sandslide *pslide;
     topo_relax *prelax;
     vrans *pvrans;
     bedshear_reduction *preduce;    topo *ptopo;    suspended *psusp;    diffusion *psuspdiff;    convection *psuspdisc;
-	
 	bedshear *pbedshear;
     
     double starttime;
