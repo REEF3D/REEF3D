@@ -69,7 +69,7 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i,j,k));
 			
 			if(a->phi(i,j,k)>=-0.5*p->DZN[KP] -1.0e-20 && a->phi(i,j,k)<=0.0)
-            area=p->DYN[JP]*(p->DZN[KP]*0.5 - a->phi(i,j,k));
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 - fabs(a->phi(i,j,k)));
             
             Ai+=area;
             Qi+=area*(patch[qq]->cosalpha*a->v(i-1,j,k) + patch[qq]->sinalpha*a->u(i-1,j,k));
@@ -91,7 +91,7 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i,j,k));
 			
 			if(a->phi(i,j,k)>=-0.5*p->DZN[KP] -1.0e-20 && a->phi(i,j,k)<=0.0)
-            area=p->DYN[JP]*(p->DZN[KP]*0.5 - a->phi(i,j,k));
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 - fabs(a->phi(i,j,k)));
             
             Ai+=area;
             Qi+=area*(patch[qq]->cosalpha*a->v(i+1,j,k) + patch[qq]->sinalpha*a->u(i,j,k));
@@ -113,7 +113,7 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i,j,k));
 			
 			if(a->phi(i,j,k)>=-0.5*p->DZN[KP] -1.0e-20 && a->phi(i,j,k)<=0.0)
-            area=p->DYN[JP]*(p->DZN[KP]*0.5 - a->phi(i,j,k));
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 - fabs(a->phi(i,j,k)));
             
             Ai+=area;
             Qi+=area*(patch[qq]->sinalpha*a->v(i,j-1,k) + patch[qq]->cosalpha*a->u(i,j-1,k));
@@ -135,7 +135,7 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i,j,k));
 			
 			if(a->phi(i,j,k)>=-0.5*p->DZN[KP] -1.0e-20 && a->phi(i,j,k)<=0.0)
-            area=p->DYN[JP]*(p->DZN[KP]*0.5 - a->phi(i,j,k));
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 - fabs(a->phi(i,j,k)));
             
             Ai+=area;
             Qi+=area*(patch[qq]->sinalpha*a->v(i,j,k) + patch[qq]->cosalpha*a->u(i,j+1,k));
@@ -157,7 +157,7 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
             area=p->DYN[JP]*(p->DXN[IP]*0.5 + a->phi(i,j,k));
 			
 			if(a->phi(i,j,k)>=-0.5*p->DXN[IP] -1.0e-20 && a->phi(i,j,k)<=0.0)
-            area=p->DYN[JP]*(p->DXN[IP]*0.5 - a->phi(i,j,k));
+            area=p->DYN[JP]*(p->DXN[IP]*0.5 - fabs(a->phi(i,j,k)));
             
             Ai+=area;
             Qi+=area*a->w(i,j,k-1);
@@ -173,7 +173,7 @@ void patchBC::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
             area=p->DYN[JP]*(p->DXN[IP]*0.5 + a->phi(i,j,k));
 			
 			if(a->phi(i,j,k)>=-0.5*p->DXN[IP] -1.0e-20 && a->phi(i,j,k)<=0.0)
-            area=p->DYN[JP]*(p->DXN[IP]*0.5 - a->phi(i,j,k));
+            area=p->DYN[JP]*(p->DXN[IP]*0.5 - fabs(a->phi(i,j,k)));
             
             Ai+=area;
             Qi+=area*a->w(i,j,k+1);

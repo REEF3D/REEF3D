@@ -74,7 +74,7 @@ void ioflow_f::Qin(lexer *p, fdm* a, ghostcell* pgc)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i,j,k));
 			
 			if(a->phi(i,j,k)>=-0.5*p->DZN[KP] -1.0e-20 && a->phi(i,j,k)<=0.0)
-            area=p->DYN[JP]*(p->DZN[KP]*0.5 - a->phi(i,j,k));
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 - fabs(a->phi(i,j,k)));
 
 
             Ai+=area;
@@ -123,14 +123,12 @@ void ioflow_f::Qout(lexer *p, fdm* a, ghostcell* pgc)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i+1,j,k));
 			
 			if(a->phi(i,j,k)>=-0.5*p->DZN[KP]-1.0e-20 && a->phi(i,j,k)<=0.0)
-            area=p->DYN[JP]*(p->DZN[KP]*0.5 - a->phi(i,j,k));
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 - fabs(a->phi(i,j,k)));
 
             Ao+=area;
             p->Qo+=area*a->u(i+1,j,k);
         }
     }
-    
-    //cout<<p->mpirank<<" area_o: "<<Ao<<endl;
     
     Ao=pgc->globalsum(Ao);
     p->Qo=pgc->globalsum(p->Qo);
