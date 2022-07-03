@@ -129,7 +129,6 @@ void driver::loop_fnpf()
     mainlogout.close();
     maxlogout.close();
     solvlogout.close();
-    sedlogout.close();
 	}
 
     pgc->final();

@@ -71,6 +71,9 @@ private:
 	void maxcoor(lexer*, fdm2D*, ghostcell*);
 	
 	void print_debug(lexer*, fdm2D*, ghostcell*);
+    
+    void log_ini(lexer*);
+    void mainlog(lexer*);
 	
 	sflow_timestep *ptime;
 	sflow_momentum *pmom;
@@ -96,6 +99,8 @@ private:
     sixdof_sflow *p6dof_sflow;
 	
 	double starttime, endtime;
+    
+    ofstream mainlogout;
 };
 
 #endif

@@ -126,7 +126,6 @@ void driver::loop_ptf(fdm* a)
     mainlogout.close();
     maxlogout.close();
     solvlogout.close();
-    sedlogout.close();
 	}
 
     pgc->final();

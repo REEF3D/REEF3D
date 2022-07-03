@@ -116,7 +116,6 @@ public:
 	void mainlog(lexer*);
 	void maxlog(lexer*);
 	void solverlog(lexer*);
-	void sedimentlog(lexer*);
     
 	void makegrid(lexer*,ghostcell*);
 	void makegrid_cds();
@@ -192,7 +191,7 @@ private:
     ofstream mainlogout;
     ofstream maxlogout;
     ofstream solvlogout;
-    ofstream sedlogout;
+    
 	
 	double nom,val;
 };

@@ -23,53 +23,37 @@ Author: Hans Bihs
 #include"sediment_f.h"
 #include"lexer.h"
 #include"fdm.h"
-#include"fdm2D.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
+void sediment_f::log_ini(lexer *p)
 {
-	double h,h1;
-
-	ILOOP
-    JLOOP
-	{
-		KLOOP
-		PBASECHECK
-		{
-        if(a->topo(i,j,k-1)<0.0 && a->topo(i,j,k)>0.0)
-        h = -(a->topo(i,j,k-1)*p->DZP[KP])/(a->topo(i,j,k)-a->topo(i,j,k-1)) + p->pos_z()-p->DZP[KP];
-		}
-		
-		s->bedzh(i,j)=h;
-        s->bedzh0(i,j)=h;
-	}
-	
-	pgc->gcsl_start4(p,s->bedzh,1);
-	
-    active_ini_cfd(p,a,pgc);
-    
-    topo_zh_update(p,a,pgc,s);
-    
-    log_ini(p);
-}
-
-void sediment_f::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
-{
-    //relax(p,b,pgc);
-    
-    SLICELOOP4
+    if(p->mpirank==0)
     {
-    s->ks(i,j) = p->S20;
-    
-    s->bedzh(i,j)=b->topobed(i,j);
-    s->bedzh0(i,j)=b->topobed(i,j);
+    if(p->P14==0)
+    sedlogout.open("REEF3D_sedimentlog.dat");
+    if(p->P14==1)
+    sedlogout.open("./REEF3D_Log/REEF3D_sedimentlog.dat");
+
+    sedlogout<<"number of cells:  "<<p->cellnumtot<<endl<<endl;
+    sedlogout<<"#iteration \t #simtime  \t #dtsed \t| #sedtime \t #sediter \t #slidecells \t| #bedmin \t #bedmax \t|"<<endl;
     }
     
-    SLICELOOP4
-    b->bed(i,j) = MAX(b->topobed(i,j),b->solidbed(i,j));
+}
+
+void sediment_f::sedimentlog(lexer *p)
+{
+    if(p->mpirank==0)
+    {
+    sedlogout<<p->count<<"\t \t \t";
+    sedlogout<<setprecision(4)<<p->dtsed<<" \t ";
+    sedlogout<<setprecision(5)<<p->simtime<<" \t ";
+    sedlogout<<setprecision(4)<<p->sedtime<<" \t ";
+    sedlogout<<setprecision(4)<<p->sediter<<" \t ";
+    sedlogout<<setprecision(4)<<p->slidecells<<" \t ";
+
+    sedlogout<<setprecision(4)<<p->bedmin<<" \t ";
+    sedlogout<<setprecision(4)<<p->bedmax<<" \t "<<endl;
+    }
     
-    active_ini_sflow(p,b,pgc);
-    
-    log_ini(p);
 }

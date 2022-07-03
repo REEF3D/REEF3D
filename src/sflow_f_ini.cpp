@@ -163,6 +163,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     p6dof_sflow->ini(p,b,pgc);
 
     // print
+    log_ini(p);
 	print_debug(p,b,pgc);
     pprint->start(p,b,pgc,pflow,pturb,psed);
 

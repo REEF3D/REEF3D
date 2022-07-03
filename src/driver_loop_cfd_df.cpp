@@ -284,8 +284,6 @@ void driver::loop_cfd_df(fdm* a)
         mainlog(p);
         maxlog(p);
         solverlog(p);
-        if(p->count%p->S44==0 && p->count>=p->S43 && p->S10>0)
-        sedimentlog(p);
         }
     p->gctime=0.0;
     p->xtime=0.0;
@@ -306,7 +304,6 @@ void driver::loop_cfd_df(fdm* a)
     mainlogout.close();
     maxlogout.close();
     solvlogout.close();
-    sedlogout.close();
 	}
 
     pgc->final();

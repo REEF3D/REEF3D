@@ -169,6 +169,8 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
             cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
             cout<<"timer per step: "<<setprecision(3)<<p->itertime<<endl;
             }
+            
+        mainlog(p);
         }
         
     p->gctime=0.0;
@@ -238,3 +240,36 @@ void sflow_f::print_debug(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 	debug.close();
 }
+
+void sflow_f::log_ini(lexer *p)
+{
+
+	// Create Folder
+	if(p->mpirank==0 && p->P14==1)
+	mkdir("./REEF3D_SFLOW_Log",0777);
+
+    if(p->mpirank==0)
+    {
+    if(p->P14==0)
+    mainlogout.open("REEF3D_SFLOW_mainlog.dat");
+    if(p->P14==1)
+    mainlogout.open("./REEF3D_SFLOW_Log/REEF3D_SFLOW_mainlog.dat");
+
+    mainlogout<<"number of cells:  "<<p->cellnumtot2D<<endl;
+    mainlogout<<"#iteration \t #timestep \t #simtime \t #itertime \t #piter \t #ptime "<<endl;
+    }
+
+    
+}
+
+void sflow_f::mainlog(lexer *p)
+{
+	 if(p->count%p->P12==0)
+	 {
+     mainlogout<<fixed<<p->count<<" \t "<<setprecision(5)<<p->dt<<" \t "<<setprecision(5)<<p->simtime<<" \t ";
+	 mainlogout<<fixed<<setprecision(4)<<p->itertime<<" \t ";
+	 mainlogout<<p->poissoniter<<" \t "<<setprecision(4)<<p->poissontime<<" \t ";
+	 mainlogout<<endl;
+	 }
+}
+

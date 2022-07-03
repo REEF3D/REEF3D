@@ -40,6 +40,8 @@ void sediment_f::sediment_algorithm_sflow(lexer *p, fdm2D *b, ghostcell *pgc, io
 {
     starttime=pgc->timer();
     
+    ++p->sediter;
+    
     // prep SFLOW
     prep_sflow(p,b,pgc,P,Q);
     
@@ -72,9 +74,11 @@ void sediment_f::sediment_algorithm_sflow(lexer *p, fdm2D *b, ghostcell *pgc, io
     // update sflow  --------
     update_sflow(p,b,pgc,pflow);
     
+    // sediment log
+    sedimentlog(p);
     
     if(p->mpirank==0 && p->count>0)
-    cout<<"Sediment Timestep: "<<p->dtsed<<" Sediment Total Timestep: "<<p->dtsed<<"  Total Time: "<<setprecision(7)<<p->sedtime<<endl;
+    cout<<"Sediment Iter: "<<p->sediter<<" Sediment Timestep: "<<p->dtsed<<"  Total Time: "<<setprecision(7)<<p->sedtime<<endl;
 
 	if(p->mpirank==0)
     cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl<<endl;
