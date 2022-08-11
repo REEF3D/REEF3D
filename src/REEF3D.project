@@ -208,11 +208,18 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="NSEWAVE">
-        <File Name="nsewave_v.h"/>
-        <File Name="nsewave_RK3.h"/>
-        <File Name="nsewave_geo.h"/>
-        <File Name="nsewave_f.h"/>
-        <File Name="nsewave.h"/>
+        <VirtualDirectory Name="Wetdry">
+          <File Name="nsewave_wetdry_v.h"/>
+          <File Name="nsewave_wetdry_f.h"/>
+          <File Name="nsewave_wetdry.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Free Surface">
+          <File Name="nsewave_v.h"/>
+          <File Name="nsewave_RK3.h"/>
+          <File Name="nsewave_geo.h"/>
+          <File Name="nsewave_f.h"/>
+          <File Name="nsewave.h"/>
+        </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
         <File Name="nhflow_f.h"/>
@@ -1174,10 +1181,16 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="NSEWAVE">
-        <File Name="nsewave_v.cpp"/>
-        <File Name="nsewave_RK3.cpp"/>
-        <File Name="nsewave_geo.cpp"/>
-        <File Name="nsewave_f.cpp"/>
+        <VirtualDirectory Name="Wetdry">
+          <File Name="nsewave_wetdry_v.cpp"/>
+          <File Name="nsewave_wetdry_f.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Free Surface">
+          <File Name="nsewave_v.cpp"/>
+          <File Name="nsewave_RK3.cpp"/>
+          <File Name="nsewave_geo.cpp"/>
+          <File Name="nsewave_f.cpp"/>
+        </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
         <File Name="nhflow_v.cpp"/>
