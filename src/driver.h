@@ -108,6 +108,7 @@ public:
     
 	void driver_ini();
     void driver_ini_nhflow();
+    void driver_ini_nsewave();
     void driver_ini_fnpf();
     void driver_ini_ptf();
     void driver_ini_sflow();

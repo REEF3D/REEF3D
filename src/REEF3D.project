@@ -2092,6 +2092,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
       <VirtualDirectory Name="Driver">
+        <File Name="driver_ini_nsewave.cpp"/>
         <File Name="driver_ini_fnpf.cpp"/>
         <File Name="driver_ini_ptf.cpp"/>
         <File Name="driver_makegrid_nhflow.cpp"/>

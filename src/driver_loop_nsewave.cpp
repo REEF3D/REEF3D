@@ -41,7 +41,11 @@ Author: Hans Bihs
 
 void driver::loop_nsewave(fdm* a)
 {
+    driver_ini_nsewave();
+    
 	driver_ini();
+    
+    
     
     if(p->mpirank==0)
     cout<<"starting mainloop.NSEWAVE"<<endl;
@@ -163,4 +167,5 @@ void driver::loop_nsewave(fdm* a)
 
     pgc->final();
 }
+
 
