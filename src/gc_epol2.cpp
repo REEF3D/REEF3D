@@ -21,7 +21,6 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
-#include"fdm.h"
 
 int ghostcell::gceval2(lexer *p, int gcv, int bc, int cs)
 {
