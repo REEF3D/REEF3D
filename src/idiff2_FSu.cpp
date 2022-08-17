@@ -31,6 +31,20 @@ idiff2_FS::idiff2_FS(lexer* p)
 	gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;
+    
+    if(p->B21==1)
+    {
+    gcval_udiff=117;
+	gcval_vdiff=118;
+	gcval_wdiff=119;
+    }
+    
+    if(p->B21==2)
+    {
+    gcval_udiff=110;
+	gcval_vdiff=111;
+	gcval_wdiff=112;
+    }
 }
 
 idiff2_FS::~idiff2_FS()
@@ -42,7 +56,9 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 	starttime=pgc->timer();
 	double visc_ddy_p,visc_ddy_m,visc_ddz_p,visc_ddz_m;
 
-    pgc->start1(p,u,gcval_u);
+    pgc->start1(p,u,gcval_udiff);
+	pgc->start2(p,v,gcval_vdiff);
+	pgc->start3(p,w,gcval_wdiff);
 
     count=0;
 
@@ -146,6 +162,10 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 	
     pgc->start1(p,u,gcval_u);
     
+    pgc->start1(p,u,gcval_u);
+	pgc->start2(p,v,gcval_v);
+	pgc->start3(p,w,gcval_w);
+    
 	time=pgc->timer()-starttime;
 	p->uiter=p->solveriter;
 	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
@@ -157,6 +177,10 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
 {
 	starttime=pgc->timer();
 	double visc_ddy_p,visc_ddy_m,visc_ddz_p,visc_ddz_m;
+    
+    pgc->start1(p,u,gcval_udiff);
+	pgc->start2(p,v,gcval_vdiff);
+	pgc->start3(p,w,gcval_wdiff);
 
     ULOOP
     diff(i,j,k) = u(i,j,k);
@@ -264,6 +288,10 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
     }
 	
     pgc->start1(p,diff,gcval_u);
+    
+    pgc->start1(p,u,gcval_u);
+	pgc->start2(p,v,gcval_v);
+	pgc->start3(p,w,gcval_w);
     
 	time=pgc->timer()-starttime;
 	p->uiter=p->solveriter;

@@ -31,6 +31,20 @@ idiff2_FS_v2::idiff2_FS_v2(lexer* p)
     gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;
+    
+    if(p->B21==1)
+    {
+    gcval_udiff=117;
+	gcval_vdiff=118;
+	gcval_wdiff=119;
+    }
+    
+    if(p->B21==2)
+    {
+    gcval_udiff=110;
+	gcval_vdiff=111;
+	gcval_wdiff=112;
+    }
 }
 
 idiff2_FS_v2::~idiff2_FS_v2()
@@ -42,8 +56,9 @@ void idiff2_FS_v2::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 	starttime=pgc->timer();
 	double visc;
     
-
-    pgc->start1(p,u,gcval_u);
+    pgc->start1(p,u,gcval_udiff);
+	pgc->start2(p,v,gcval_vdiff);
+	pgc->start3(p,w,gcval_wdiff);
 
     count=0;
 
@@ -127,6 +142,10 @@ void idiff2_FS_v2::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
     }
 	
     pgc->start1(p,u,gcval_u);
+    
+    pgc->start1(p,u,gcval_u);
+	pgc->start2(p,v,gcval_v);
+	pgc->start3(p,w,gcval_w);
     
 	time=pgc->timer()-starttime;
 	p->uiter=p->solveriter;

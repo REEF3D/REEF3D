@@ -33,16 +33,16 @@ ediff2::ediff2(lexer* p):gradient(p)
     
     if(p->B21==1)
     {
-    gcval_udiff=110;
-	gcval_vdiff=111;
-	gcval_wdiff=112;
+    gcval_udiff=117;
+	gcval_vdiff=118;
+	gcval_wdiff=119;
     }
     
     if(p->B21==2)
     {
-    gcval_udiff=10;
-	gcval_vdiff=11;
-	gcval_wdiff=12;
+    gcval_udiff=110;
+	gcval_vdiff=111;
+	gcval_wdiff=112;
     }
 	
     gcval_scalar=80;
@@ -83,7 +83,6 @@ void ediff2::diff_scalar(lexer* p, fdm* a, ghostcell* pgc, solver* psolv, field 
     }
 
 }
-
 
 void ediff2::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u, field &v, field &w, double alpha)
 {
