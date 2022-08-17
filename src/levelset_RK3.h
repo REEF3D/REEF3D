@@ -50,6 +50,8 @@ private:
     field4 ark1,ark2;
 
 	int gcval_phi;
+    int gcval_u,gcval_v,gcval_w;
+    int gcval_uls,gcval_vls,gcval_wls;
 	double starttime;
 };
 #endif

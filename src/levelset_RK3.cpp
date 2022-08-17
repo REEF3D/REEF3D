@@ -84,6 +84,24 @@ levelset_RK3::levelset_RK3(lexer* p, fdm *a, ghostcell* pgc, heat *&pheat, conce
 
 	if(p->F46!=2 && p->F46!=3)
 	ppicard = new picard_void(p);
+    
+    gcval_u=10;
+	gcval_v=11;
+	gcval_w=12;
+    
+    if(p->B22==1)
+    {
+    gcval_uls=117;
+	gcval_vls=118;
+	gcval_wls=119;
+    }
+    
+    if(p->B22==2)
+    {
+    gcval_uls=110;
+	gcval_vls=111;
+	gcval_wls=112;
+    }
 }
 
 levelset_RK3::~levelset_RK3()
@@ -99,9 +117,9 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
     pflow->fsfrkout(p,a,pgc,ark2);
     ppicard->volcalc(p,a,pgc,ls);
     
-    pgc->start1(p,a->u,117);
-	pgc->start2(p,a->v,118);
-	pgc->start3(p,a->w,119);
+    pgc->start1(p,a->u,gcval_uls);
+	pgc->start2(p,a->v,gcval_vls);
+	pgc->start3(p,a->w,gcval_wls);
 	
 
 // Step 1
