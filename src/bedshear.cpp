@@ -58,7 +58,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 	yip= p->YP[JP];
     dist = p->DZN[KP];
 		
-    density = p->W1;
+    density = a->ro(i,j,k);
 	
     if(p->S16==1)
     {
@@ -273,15 +273,19 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 
 void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
-	double r;
+	double r,density;
     
     SLICELOOP4
     {
-    tauc = (p->S30*fabs(p->W22)*(p->S22-p->W1))*p->S20*s->reduce(i,j);
+    k = s->bedk(i,j);
+    
+    density = a->ro(i,j,k);
+    
+    tauc = (p->S30*fabs(p->W22)*(p->S22-density))*p->S20*s->reduce(i,j);
   
     s->tau_crit(i,j) = taucrit_loc(i,j) = tauc;
-    s->shearvel_crit(i,j) = sqrt(tauc/p->W1);
-    s->shields_crit(i,j) = tauc/(p->W1*((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
+    s->shearvel_crit(i,j) = sqrt(tauc/density);
+    s->shields_crit(i,j) = tauc/(density*((p->S22-density)/density)*fabs(p->W22)*p->S20);
     }
 }
 
