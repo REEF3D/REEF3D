@@ -54,7 +54,7 @@ LES_smagorinsky::~LES_smagorinsky()
 
 void LES_smagorinsky::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow, vrans* pvrans)
 {
-    pfilter->start(p,a,pgc);
+    pfilter->start(p,a,pgc,uprime,vprime,wprime);
     
     LOOP
     a->eddyv(i,j,k) = pow(p->DXM*c_sgs,2.0) * sqrt(2.0) * strainterm(p,a);

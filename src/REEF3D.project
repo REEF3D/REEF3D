@@ -1816,6 +1816,7 @@
         <File Name="flux_face_FOU_vrans.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Gradient">
+        <File Name="gradient_momscalar_generic.cpp"/>
         <File Name="gradient_dfweno.cpp"/>
         <File Name="gradient_curvddx.cpp"/>
         <File Name="gradient_momdx.cpp"/>

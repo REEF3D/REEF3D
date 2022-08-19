@@ -41,11 +41,8 @@ public:
 	LES_filter_f1(lexer *, fdm*);
 	virtual ~LES_filter_f1();
     
-	virtual void start(lexer*, fdm*, ghostcell*);
+	virtual void start(lexer*, fdm*, ghostcell*,field&,field&,field&);
     
-    field1 uprime;
-    field2 vprime;
-    field3 wprime;
 
 };
 
