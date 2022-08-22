@@ -131,12 +131,12 @@ void poisson_sig::start(lexer* p, fdm *a, field &f)
             // BEDBC
             if(p->flag4[IJKm1]<0)
             {
-            a->rhsvec.V[n] += a->M.b[n]*p->DZP[KM1]*a->WL(i,j)*a->ro(i,j,k)*a->dwdt(i,j);
+            /*a->rhsvec.V[n] += a->M.b[n]*p->DZP[KM1]*a->WL(i,j)*a->ro(i,j,k)*a->dwdt(i,j);
             a->M.p[n] += a->M.b[n];
-            a->M.b[n] = 0.0;
-            /*
-            a->rhsvec.V[n] -= a->M.b[n]*f(i,j,k-1);
             a->M.b[n] = 0.0;*/
+            
+            a->rhsvec.V[n] -= a->M.b[n]*f(i,j,k-1);
+            a->M.b[n] = 0.0;
             }
             
             // FSFBC
@@ -148,7 +148,7 @@ void poisson_sig::start(lexer* p, fdm *a, field &f)
                 a->M.t[n] = 0.0;
                 }
                 
-                if(p->D37==3)
+                if(p->D37==2)
                 {
                 sigxyz2 = pow(0.5*(p->sigx[FIJK]+p->sigx[FIJKp1]),2.0) + pow(0.5*(p->sigy[FIJK]+p->sigy[FIJKp1]),2.0) + pow(p->sigz[IJ],2.0);
                 

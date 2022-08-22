@@ -115,40 +115,75 @@ void pjm_sigss::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* p
 
 void pjm_sigss::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 {	
+	if(p->D37==1)
 	ULOOP
 	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*(1.0/pd->roface(p,a,1,0,0))*((a->press(i+1,j,k)-a->press(i,j,k))/p->DXP[IP]
                 + 0.25*(p->sigx[FIJK]+p->sigx[FIJKp1]+p->sigx[FIp1JK]+p->sigx[FIp1JKp1])*(0.5*(a->press(i,j,k+1)+a->press(i+1,j,k+1))-0.5*(a->press(i,j,k-1)+a->press(i+1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
+    
+    if(p->D37==2)
+    ULOOP
+    {       
+     check=0;
+    
+        if(p->flag1[IJKp1]<0)
+        check=1;        
+    
+    if(check==1)
+    uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*(1.0/pd->roface(p,a,1,0,0))*((a->press(i+1,j,k)-a->press(i,j,k))/p->DXP[IP]
+                + 0.25*(p->sigx[FIJK]+p->sigx[FIJKp1]+p->sigx[FIp1JK]+p->sigx[FIp1JKp1])*(0.5*((1.0 - 1.0/teta)*(a->press(i,j,k)+a->press(i+1,j,k)))-0.5*(a->press(i,j,k-1)+a->press(i+1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
+    
+    if(check==0)
+    uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*(1.0/pd->roface(p,a,1,0,0))*((a->press(i+1,j,k)-a->press(i,j,k))/p->DXP[IP]
+                + 0.25*(p->sigx[FIJK]+p->sigx[FIJKp1]+p->sigx[FIp1JK]+p->sigx[FIp1JKp1])*(0.5*(a->press(i,j,k+1)+a->press(i+1,j,k+1))-0.5*(a->press(i,j,k-1)+a->press(i+1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
+    }
 }
 
 void pjm_sigss::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
 {	 
+    if(p->D37==1)
     VLOOP
     vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(1.0/pd->roface(p,a,0,1,0))*((a->press(i,j+1,k)-a->press(i,j,k))/p->DYP[JP] 
                 + 0.25*(p->sigy[FIJK]+p->sigy[FIJKp1]+p->sigy[FIJp1K]+p->sigy[FIJp1Kp1])*(0.5*(a->press(i,j,k+1)+a->press(i,j+1,k+1))-0.5*(a->press(i,j,k-1)+a->press(i,j+1,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
+                
+                
+    if(p->D37==2)
+    VLOOP
+    {       
+     check=0;
+    
+        if(p->flag2[IJKp1]<0)
+        check=1;        
+    
+    if(check==1)
+    vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(1.0/pd->roface(p,a,0,1,0))*((a->press(i,j+1,k)-a->press(i,j,k))/p->DYP[JP] 
+                + 0.25*(p->sigy[FIJK]+p->sigy[FIJKp1]+p->sigy[FIJp1K]+p->sigy[FIJp1Kp1])*(0.5*(1.0 - 1.0/teta)*(a->press(i,j,k)+a->press(i,j+1,k))-0.5*(a->press(i,j,k-1)+a->press(i,j+1,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
+    
+    if(check==0)
+    vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(1.0/pd->roface(p,a,0,1,0))*((a->press(i,j+1,k)-a->press(i,j,k))/p->DYP[JP] 
+                + 0.25*(p->sigy[FIJK]+p->sigy[FIJKp1]+p->sigy[FIJp1K]+p->sigy[FIJp1Kp1])*(0.5*(a->press(i,j,k+1)+a->press(i,j+1,k+1))-0.5*(a->press(i,j,k-1)+a->press(i,j+1,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
+    }
 }
 
 void pjm_sigss::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
 {
-    int check;
-    
     if(p->D37==1)
     WLOOP 	
-	wvel(i,j,k) -= a->test(i,j,k) = alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
+	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
     
     
-    if(p->D37>=2)
+    if(p->D37==2)
 	WLOOP
     {
     check=0;
     
-        if(p->flag4[IJKp1]<0)
+        if(p->flag3[IJKp1]<0)
         check=1;
 
     if(check==1)    
-    wvel(i,j,k) -= a->test(i,j,k) = alpha*p->dt*CPOR3*PORVAL3*(((1.0 - 1.0/teta)*a->press(i,j,k)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
+    wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*(((1.0 - 1.0/teta)*a->press(i,j,k)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
     
     if(check==0)
-    wvel(i,j,k) -= a->test(i,j,k) = alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
+    wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
     }
 }
  
@@ -163,13 +198,13 @@ void pjm_sigss::rhscalc(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, fi
     KJILOOP
     {
     PCHECK
-    rhs[n] =        - ((u(i,j,k)-u(i-1,j,k))/p->DXN[IP]
-                     + 0.25*(p->sigx[FIJK]+p->sigx[FIJKp1]+p->sigx[FIp1JK]+p->sigx[FIp1JKp1])*(0.5*(u(i,j,k+1)+u(i-1,j,k+1))-0.5*(u(i,j,k-1)+u(i-1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1])
+    rhs[n] =        -  ((u(i,j,k)-u(i-1,j,k))/p->DXN[IP]
+                            + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(0.5*(u(i,j,k+1)+u(i-1,j,k+1))-0.5*(u(i,j,k-1)+u(i-1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1])
                             
-                     + (v(i,j,k)-v(i,j-1,k))/p->DYN[JP] 
-                     + 0.25*(p->sigy[FIJK]+p->sigy[FIJKp1]+p->sigy[FIJp1K]+p->sigy[FIJp1Kp1])*(0.5*(v(i,j,k+1)+v(i,j-1,k+1))-0.5*(v(i,j,k-1)+v(i,j-1,k-1)))/(p->DZP[KP]+p->DZP[KP1])
+                            + (v(i,j,k)-v(i,j-1,k))/p->DYN[JP] 
+                            + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(0.5*(v(i,j,k+1)+v(i,j-1,k+1))-0.5*(v(i,j,k-1)+v(i,j-1,k-1)))/(p->DZP[KP]+p->DZP[KP1])
                            
-                     + p->sigz[IJ]*(w(i,j,k)-w(i,j,k-1))/p->DZN[KP] )/(alpha*p->dt);
+                            + p->sigz[IJ]*(w(i,j,k)-w(i,j,k-1))/p->DZN[KP])/(alpha*p->dt);
                            
     SCHECK
     rhs[n] = 0.0;
