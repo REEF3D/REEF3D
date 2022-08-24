@@ -233,6 +233,7 @@
           <File Name="pjm_sig.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
+          <File Name="nhflow_momentum_RK2.h"/>
           <File Name="nhflow_momentum_RK3.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
@@ -1204,6 +1205,7 @@
           <File Name="pjm_sig.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
+          <File Name="nhflow_momentum_RK2.cpp"/>
           <File Name="nhflow_momentum_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">

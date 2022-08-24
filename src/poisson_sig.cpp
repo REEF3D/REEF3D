@@ -154,7 +154,8 @@ void poisson_sig::start(lexer* p, fdm *a, field &f)
                 
                 a->M.p[n] -= (sigxyz2*CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*p->DZP[KP]*p->DZN[KP]);
                 a->M.p[n] += (sigxyz2*CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*teta*p->DZP[KP]*p->DZN[KP]);
-                           
+                
+                // a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1) == 0.0, so no need to add to rhs
                 a->M.t[n] = 0.0;
                 
                 

@@ -189,9 +189,9 @@ void nhflow_fsf_rk::step3(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field
     pgc->gcsl_start2(p,a->Q,11);
 
     SLICELOOP4
-    a->eta(i,j) = (1.0/3.0)*a->eta(i,j) + (2.0/3.0)*etark2(i,j)
+    a->eta(i,j) = (1.0-alpha)*a->eta(i,j) + alpha*etark2(i,j)
 
-                - (2.0/3.0)*p->dt*((a->P(i,j)-a->P(i-1,j))/p->DXN[IP] + (a->Q(i,j)-a->Q(i,j-1))/p->DYN[JP]);
+                - alpha*p->dt*((a->P(i,j)-a->P(i-1,j))/p->DXN[IP] + (a->Q(i,j)-a->Q(i,j-1))/p->DYN[JP]);
 
     pflow->eta_relax(p,pgc,a->eta);
     pgc->gcsl_start4(p,a->eta,1);
@@ -199,8 +199,8 @@ void nhflow_fsf_rk::step3(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field
     SLICELOOP4
     a->WL(i,j) = MAX(0.0, a->eta(i,j) + p->wd - a->bed(i,j));
     
-    p->sigma_update(p,a,pgc,a->eta,etark2,2.0/3.0);
-    p->omega_update(p,a,pgc,u,v,w,a->eta,etark2,2.0/3.0);
+    p->sigma_update(p,a,pgc,a->eta,etark2,alpha);
+    p->omega_update(p,a,pgc,u,v,w,a->eta,etark2,alpha);
 }
 
 

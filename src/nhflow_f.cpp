@@ -99,6 +99,20 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, sli
 
          + (a->eta(i,j+1)-a->eta(i,j-1))/(p->DYP[JP]+p->DYP[JP1]);
     }
+    
+    if(p->A515==3 && p->A540==1)
+    {
+    Pval = 0.5*(u(i,j,k)+u(i-1,j,k));
+    Qval = 0.5*(v(i,j,k)+v(i,j-1,k));
+    
+    wval = (a->eta(i,j) - a->eta_n(i,j))/(p->dt)
+    
+         + MAX(0.0,Pval)*(((p->A223*eta1(i,j)+(1.0-p->A223)*eta2(i,j))-(p->A223*eta1(i-1,j)+(1.0-p->A223)*eta2(i-1,j)))/(p->DXP[IP]))
+         + MIN(0.0,Pval)*(((p->A223*eta1(i+1,j)+(1.0-p->A223)*eta2(i+1,j))-(p->A223*eta1(i+1,j)+(1.0-p->A223)*eta2(i+1,j)))/(p->DXP[IP1]))
+    
+         + MAX(0.0,Qval)*(((p->A223*eta1(i,j)+(1.0-p->A223)*eta2(i,j))-(p->A223*eta1(i,j-1)+(1.0-p->A223)*eta2(i,j-1)))/(p->DYP[JP]))
+         + MIN(0.0,Qval)*(((p->A223*eta1(i,j+1)+(1.0-p->A223)*eta2(i,j+1))-(p->A223*eta1(i,j)+(1.0-p->A223)*eta2(i,j)))/(p->DYP[JP1]));
+    }
          
 
     if(p->A515==11 && p->A540==1)
@@ -162,6 +176,11 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, sli
            
            - MAX(0.0,Qval)*((a->depth(i,j)-a->depth(i,j-1))/(p->DYP[JP]))
            - MIN(0.0,Qval)*((a->depth(i,j+1)-a->depth(i,j))/(p->DYP[JP1]));
+    
+       
+    /*wval = - Pval*((a->depth(i+1,j)-a->depth(i-1,j))/(p->DXP[IP]+p->DXP[IP1]))
+           - Qval*((a->depth(i,j+1)-a->depth(i,j-1))/(p->DYP[JP]+p->DYP[JP1]));*/
+    
 
     //wval =0.0;
         for(q=0;q<margin;++q)
