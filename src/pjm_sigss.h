@@ -62,6 +62,7 @@ private:
     double teta;
 	int count, gcval_press;
 	int gcval_u, gcval_v, gcval_w;
+    int check;
 	
 	void debug(lexer*,fdm*);
     

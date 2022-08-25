@@ -108,12 +108,12 @@ void pjm_nse::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((a->press(i+1,j,k)-a->press(i,j,k))
 	/(p->DXP[IP]*pd->roface(p,a,1,0,0)));
     
-    if(p->D37>=2)
+    if(p->D37==2)
 	ULOOP
     {
     check=0;
         
-        if(p->D37==3)
+        if(p->D37==2)
         {
         if(p->flag4[Ip1JK]==AIR)
         {
@@ -183,7 +183,7 @@ void pjm_nse::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
 	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))
 	/(p->DZP[KP]*pd->roface(p,a,0,0,1)));
     
-    if(p->D37>=2)
+    if(p->D37==2)
 	WLOOP
     {
     check=0;

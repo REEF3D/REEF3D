@@ -38,6 +38,8 @@ public:
     
     virtual void kinematic_fsf(lexer*, fdm*, field&, field&, field&, slice&, slice&, double);
     
+    virtual void kinematic_fsf_co(lexer*, fdm*, field&, field&, field&, slice&, slice&, double);
+    
 private:
     int q,margin;
         

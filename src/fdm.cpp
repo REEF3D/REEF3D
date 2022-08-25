@@ -44,6 +44,7 @@ fdm::fdm(lexer *p)
             Bx(p),By(p),
             Fifsf(p),Fz(p),
             wet(p),
+            U(p),V(p),W(p),
             P(p),hx(p),Q(p),hy(p),K(p),R(p),
             wbed(p),dwdt(p),bed(p),bedsole(p),
 			rhsvec(p),M(p)

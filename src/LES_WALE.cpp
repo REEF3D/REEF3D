@@ -54,7 +54,7 @@ LES_WALE::~LES_WALE()
 
 void LES_WALE::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow, vrans* pvrans)
 {
-    pfilter->start(p,a,pgc);
+    pfilter->start(p,a,pgc,uprime,vprime,wprime);    //strainterm(p,uprime,vprime,wprime);
     
     LOOP
     a->eddyv(i,j,k) = pow(p->DXM*c_wale,2.0) *  (pow(magSqrSd(p,a), 3.0/2.0) / (pow(strainterm(p,a), 5.0) + pow(magSqrSd(p,a), 5.0/4.0)));

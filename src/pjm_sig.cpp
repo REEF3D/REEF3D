@@ -39,7 +39,7 @@ Author: Hans Bihs
 #include"density_heat.h"
 #include"density_vof.h"
  
-pjm_sig::pjm_sig(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc) : teta(0.5)
+pjm_sig::pjm_sig(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc) : teta(1.0)
 {
     if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0)
 	pd = new density_f(p);
@@ -100,7 +100,7 @@ void pjm_sig::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*(1.0/pd->roface(p,a,1,0,0))*((a->press(i+1,j,k)-a->press(i,j,k))/p->DXP[IP]
                 + 0.25*(p->sigx[FIJK]+p->sigx[FIJKp1]+p->sigx[FIp1JK]+p->sigx[FIp1JKp1])*(0.5*(a->press(i,j,k+1)+a->press(i+1,j,k+1))-0.5*(a->press(i,j,k-1)+a->press(i+1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
     
-    if(p->D37>=2)
+    if(p->D37==2)
     ULOOP
     {       
      check=0;
@@ -126,7 +126,7 @@ void pjm_sig::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
                 + 0.25*(p->sigy[FIJK]+p->sigy[FIJKp1]+p->sigy[FIJp1K]+p->sigy[FIJp1Kp1])*(0.5*(a->press(i,j,k+1)+a->press(i,j+1,k+1))-0.5*(a->press(i,j,k-1)+a->press(i,j+1,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
                 
                 
-    if(p->D37>=2)
+    if(p->D37==2)
     VLOOP
     {       
      check=0;
@@ -151,7 +151,7 @@ void pjm_sig::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
 	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
     
     
-    if(p->D37>=2)
+    if(p->D37==2)
 	WLOOP
     {
     check=0;

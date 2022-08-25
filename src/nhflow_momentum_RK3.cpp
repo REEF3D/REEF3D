@@ -297,7 +297,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     pgc->start3(p,a->w,gcval_w);
     
     pnh->kinematic_fsf(p,a,urk2,vrk2,a->w,a->eta,etark2,2.0/3.0);
-    p->omega_update(p,a,pgc,urk2,vrk2,a->w,a->eta,etark2,0.25);
+    p->omega_update(p,a,pgc,urk2,vrk2,a->w,a->eta,etark2,2.0/3.0);
 
 	pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, a->u, a->v, a->w, 2.0/3.0);
@@ -312,7 +312,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	pgc->start3(p,a->w,gcval_w);
     
     pnh->kinematic_fsf(p,a,a->u,a->v,a->w,a->eta,etark2,2.0/3.0);
-    p->omega_update(p,a,pgc,a->u,a->v,a->w,a->eta,etark2,0.25);
+    p->omega_update(p,a,pgc,a->u,a->v,a->w,a->eta,etark2,2.0/3.0);
     
     pupdate->start(p,a,pgc);
 }

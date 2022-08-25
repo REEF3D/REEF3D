@@ -23,6 +23,7 @@ Author: Hans Bihs
 class lexer;
 class fdm;
 class ghostcell;
+class field;
 
 using namespace std;
 
@@ -32,7 +33,7 @@ using namespace std;
 class LES_filter 
 {
 public:    
-	virtual void start(lexer*, fdm*, ghostcell*)=0;
+	virtual void start(lexer*, fdm*, ghostcell*,field&,field&,field&)=0;
 
 
 

@@ -208,17 +208,26 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="NSEWAVE">
-        <File Name="nsewave_v.h"/>
-        <File Name="nsewave_RK3.h"/>
-        <File Name="nsewave_geo.h"/>
-        <File Name="nsewave_f.h"/>
-        <File Name="nsewave.h"/>
+        <VirtualDirectory Name="Wetdry">
+          <File Name="nsewave_wetdry_v.h"/>
+          <File Name="nsewave_wetdry_f.h"/>
+          <File Name="nsewave_wetdry.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Free Surface">
+          <File Name="nsewave_v.h"/>
+          <File Name="nsewave_RK3.h"/>
+          <File Name="nsewave_geo.h"/>
+          <File Name="nsewave_f.h"/>
+          <File Name="nsewave.h"/>
+        </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
         <File Name="nhflow_f.h"/>
         <File Name="nhflow_v.h"/>
         <File Name="nhflow.h"/>
         <VirtualDirectory Name="Pressure">
+          <File Name="poisson_sigco.h"/>
+          <File Name="pjm_sigco.h"/>
           <File Name="pjmcorr_sig.h"/>
           <File Name="pjm_sigss.h"/>
           <File Name="pjm_sig_hs.h"/>
@@ -226,9 +235,13 @@
           <File Name="pjm_sig.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
+          <File Name="nhflow_momentum_RK3co.h"/>
+          <File Name="nhflow_momentum_RK2.h"/>
           <File Name="nhflow_momentum_RK3.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <File Name="nhflow_fsf_rk_co.h"/>
+          <File Name="nhflow_fsf_fsm_co.h"/>
           <File Name="nhflow_fsf_rk.h"/>
           <File Name="nhflow_fsf_fsm.h"/>
           <File Name="nhflow_fsf_v.h"/>
@@ -1174,15 +1187,23 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="NSEWAVE">
-        <File Name="nsewave_v.cpp"/>
-        <File Name="nsewave_RK3.cpp"/>
-        <File Name="nsewave_geo.cpp"/>
-        <File Name="nsewave_f.cpp"/>
+        <VirtualDirectory Name="Wetdry">
+          <File Name="nsewave_wetdry_v.cpp"/>
+          <File Name="nsewave_wetdry_f.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Free Surface">
+          <File Name="nsewave_v.cpp"/>
+          <File Name="nsewave_RK3.cpp"/>
+          <File Name="nsewave_geo.cpp"/>
+          <File Name="nsewave_f.cpp"/>
+        </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
         <File Name="nhflow_v.cpp"/>
         <File Name="nhflow_f.cpp"/>
         <VirtualDirectory Name="Pressure">
+          <File Name="poisson_sigco.cpp"/>
+          <File Name="pjm_sigco.cpp"/>
           <File Name="pjmcorr_sig.cpp"/>
           <File Name="pjm_sigss.cpp"/>
           <File Name="poisson_sigss.cpp"/>
@@ -1191,9 +1212,13 @@
           <File Name="pjm_sig.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
+          <File Name="nhflow_momentum_RK3co.cpp"/>
+          <File Name="nhflow_momentum_RK2.cpp"/>
           <File Name="nhflow_momentum_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <File Name="nhflow_fsf_rk_co.cpp"/>
+          <File Name="nhflow_fsf_fsm_co.cpp"/>
           <File Name="nhflow_fsf_rk.cpp"/>
           <File Name="nhflow_fsf_fsm.cpp"/>
           <File Name="nhflow_fsf_v.cpp"/>
@@ -1803,6 +1828,7 @@
         <File Name="flux_face_FOU_vrans.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Gradient">
+        <File Name="gradient_momscalar_generic.cpp"/>
         <File Name="gradient_dfweno.cpp"/>
         <File Name="gradient_curvddx.cpp"/>
         <File Name="gradient_momdx.cpp"/>
@@ -2079,6 +2105,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
       <VirtualDirectory Name="Driver">
+        <File Name="driver_ini_nsewave.cpp"/>
         <File Name="driver_ini_fnpf.cpp"/>
         <File Name="driver_ini_ptf.cpp"/>
         <File Name="driver_makegrid_nhflow.cpp"/>

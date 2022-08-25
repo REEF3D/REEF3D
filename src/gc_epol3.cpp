@@ -37,6 +37,9 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
 	if((bc==21||bc==22||(bc==7&&awa_lable==0))&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==116))
 	return gclabel_w;
     
+    if((bc==21||bc==22||(bc==7&&awa_lable==0))&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==119))
+	return 4;
+    
     // Topo
     if((bc==5)&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==12||gcv==3))
 	return gclabel_wtopo;
@@ -46,6 +49,9 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
 	
 	if((bc==5)&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==116))
 	return gclabel_wtopo;
+    
+    if((bc==5)&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==119))
+	return 4;
 	
 	else
 	if((bc==21||bc==22||bc==5) && gcv==16)

@@ -240,6 +240,35 @@ double strain::strainterm(lexer *p, fdm *a)
 	return s;
 }
 
+double strain::strainterm(lexer *p, field &u, field &v, field &w)
+{
+	double s=0.0;
+    
+    if(p->j_dir==1)
+    {
+	s11 = pudx(p,u);
+	s22 = pvdy(p,v);
+	s33 = pwdz(p,w);
+	s12 = (pudy(p,u) + pvdx(p,v));
+	s13 = (pudz(p,u) + pwdx(p,w));
+	s23 = (pvdz(p,v) + pwdy(p,w));
+    }
+    
+    if(p->j_dir==0)
+    {
+	s11 = pudx(p,u);
+	s22 = 0.0;
+	s33 = pwdz(p,w);
+	s12 = 0.0;
+	s13 = (pudz(p,u) + pwdx(p,w));
+	s23 = 0.0;
+    }
+
+    s = sqrt(s11*s11 + s22*s22 + s33*s33 + 0.5*s12*s12 + 0.5*s13*s13 + 0.5*s23*s23);
+
+	return s;
+}
+
 double strain::rotationterm(lexer *p, fdm *a)
 {
 	double r=0.0;
