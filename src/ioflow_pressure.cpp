@@ -69,10 +69,7 @@ void ioflow_f::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
             if(fabs(a->phi(i,j,k))<=eps)
             H=0.5*(1.0 + a->phi(i,j,k)/eps + (1.0/PI)*sin((PI*a->phi(i,j,k))/eps));
         
-        
-    
             pval=(1.0-H)*a->press(i,j,k);
-			
 
 			a->press(i+1,j,k)=pval;
 			a->press(i+2,j,k)=pval;

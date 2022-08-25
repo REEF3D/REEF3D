@@ -51,6 +51,7 @@ public:
     virtual void wpgrad(lexer*,fdm*,slice&,slice&);
 
 private:    
+    void normalize(lexer*,fdm*,ghostcell*);
     void debug(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 	double starttime,endtime;
 	int count, gcval_press;

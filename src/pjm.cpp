@@ -85,6 +85,9 @@ void pjm::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, io
     psolv->start(p,a,pgc,a->press,a->rhsvec,5);
 	
         endtime=pgc->timer();
+        
+    if(p->D31==1)
+    normalize(p,a,pgc);
 
 	pgc->start4(p,a->press,gcval_press);
 	
@@ -154,6 +157,56 @@ void pjm::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 
 void pjm::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
+}
+
+
+void pjm::normalize(lexer*p,fdm* a, ghostcell *pgc)
+{
+    double epsi;
+	double dirac;
+    double pressval;
+    int count;
+    
+    // epsi
+    if(p->j_dir==0)        
+    epsi = 2.1*(1.0/2.0)*(p->DRM+p->DTM);
+        
+    if(p->j_dir==1)
+    epsi = 2.1*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
+
+	
+    // pressval
+    pressval=0.0;
+    count=0;
+	LOOP
+	{
+        if(fabs(a->phi(i,j,k))<epsi)
+        dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
+            
+        if(fabs(a->phi(i,j,k))>=epsi)
+        dirac=0.0;
+        
+        if(dirac>1.0e-10 && a->phi(i,j,k)<0.0)
+        {
+        pressval += a->press(i,j,k);
+        ++count;
+        }
+	}
+    
+    pressval = pgc->globalsum(pressval);
+    
+    count = pgc->globalisum(count);
+    
+    if(count>0)
+    pressval = pressval/double(count);
+    
+    //if(p->mpirank==0)
+    //cout<<"PRESSVAL: "<<pressval<<" count: "<<count<<endl;
+    
+    LOOP
+    a->press(i,j,k) -= pressval;
+    
+    
 }
 
 
