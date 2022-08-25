@@ -92,6 +92,7 @@ public:
     slice2 Q,hy;
     slice4 R,wbed,dwdt,bed,bedsole;
     sliceint4 wet;
+    field4 U,V,W;
     
     // PTF
     slice4 eta,eta_n,WL,WL_n,depth;

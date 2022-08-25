@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,30 +20,39 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow.h"
+#include"poisson.h"
 #include"increment.h"
+
+class heat;
+class concentration;
+class density;
+
+#ifndef POISSON_SIGCO_H_
+#define POISSON_SIGCO_H_
 
 using namespace std;
 
-#ifndef NHFLOW_F_H_
-#define NHFLOW_F_H_
 
-class nhflow_f : public nhflow, public increment
+class poisson_sigco : public poisson, public increment
 {
-public:    
-    nhflow_f(lexer*, fdm*, ghostcell*);
-	virtual ~nhflow_f();
 
-    virtual void ini(lexer*, fdm*, ghostcell*, ioflow*);
-    
-    virtual void kinematic_fsf(lexer*, fdm*, field&, field&, field&, slice&, slice&, double);
-    
-    virtual void kinematic_fsf_co(lexer*, fdm*, field&, field&, field&, slice&, slice&, double);
-    
+public:
+
+	poisson_sigco (lexer *, heat*&, concentration*&);
+	virtual ~poisson_sigco();
+
+	virtual void start(lexer *,fdm*,field&);
+
 private:
-    int q,margin;
-        
 
+	double teta;
+	int count,n,q;
+    
+    density *pd;
 };
 
+
 #endif
+
+
+

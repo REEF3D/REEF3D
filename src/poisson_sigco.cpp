@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"poisson_sig.h"
+#include"poisson_sigco.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"heat.h"
@@ -31,7 +31,7 @@ Author: Hans Bihs
 #include"density_heat.h"
 #include"density_vof.h"
 
-poisson_sig::poisson_sig(lexer * p, heat *&pheat, concentration *&pconc) : teta(0.5)  
+poisson_sigco::poisson_sigco(lexer * p, heat *&pheat, concentration *&pconc) : teta(0.5)  
 {
     if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0)
 	pd = new density_f(p);
@@ -50,11 +50,11 @@ poisson_sig::poisson_sig(lexer * p, heat *&pheat, concentration *&pconc) : teta(
 
 }
 
-poisson_sig::~poisson_sig()
+poisson_sigco::~poisson_sigco()
 {
 }
 
-void poisson_sig::start(lexer* p, fdm *a, field &f)
+void poisson_sigco::start(lexer* p, fdm *a, field &f)
 {	
     double sigxyz2;
    

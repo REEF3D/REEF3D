@@ -192,8 +192,11 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, sli
         a->dwdt(i,j) = (wval - w_n)/(alpha*p->dt);
     }
     
-    
+}
 
+void nhflow_f::kinematic_fsf_co(lexer *p, fdm *a, field &u, field &v, field &w, slice &eta1, slice &eta2, double alpha)
+{
+    
 }
 
 
