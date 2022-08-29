@@ -39,7 +39,7 @@ driver::driver(int& argc, char **argv)
     {
     cout<<endl<<"REEF3D (c) 2008-2022 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    cout<<endl<<"v_220824" <<endl<<endl;
+    cout<<endl<<"v_220829" <<endl<<endl;
     }
 
 	p->lexer_read(pgc);
@@ -68,9 +68,19 @@ driver::driver(int& argc, char **argv)
     if(p->A10==6)
     cout<<endl<<"REEF3D::CFD" <<endl<<endl;
     }
-
+    
+// 2D Framework - SFLOW
+    if(p->A10==2)
+    {
+        p->flagini2D();
+        p->gridini2D();
+        makegrid2D(p,pgc);
+        pBC->patchBC_ini(p,pgc);
+        sflow_driver();
+    }
+    
 // 3D Framework
-    // sigma grid
+    // sigma grid - FNPF & NHFLOW
     if(p->A10==3)
     {
         p->flagini();
@@ -83,9 +93,22 @@ driver::driver(int& argc, char **argv)
 
         fnpf_driver();
     }
+    
+    if(p->A10==55)
+    {
+        p->flagini();
+        p->gridini_patchBC();
+        pgc->flagfield(p);
+        pgc->tpflagfield(p);
+        makegrid_fnpf(p,pgc);
 
-    // fixed grid
-    if(p->A10==4 || p->A10==5 || p->A10==55 || p->A10==6)
+        pgc->ndflag_update(p);
+
+        nhflow_driver();
+    }
+
+    // fixed grid - PTF & NSEWAVE & CFD
+    if(p->A10==4 || p->A10==5 || p->A10==6)
     {
         p->flagini();
         p->gridini_patchBC();
@@ -103,25 +126,9 @@ driver::driver(int& argc, char **argv)
         if(p->A10==5)
         nsewave_driver();
 
-        if(p->A10==55)
-        {
-        makegrid_fnpf(p,pgc);
-        nhflow_driver();
-        }
-
         if(p->A10==6)
         cfd_driver();
         
-    }
-
-    // 2D Framework
-    if(p->A10==2)
-    {
-        p->flagini2D();
-        p->gridini2D();
-        makegrid2D(p,pgc);
-        pBC->patchBC_ini(p,pgc);
-        sflow_driver();
     }
 }
 
