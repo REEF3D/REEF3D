@@ -20,18 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"field1.h"
-#include"field2.h"
-#include"field3.h"
 #include"field4.h"
-#include"field4a.h"
-#include"field5.h"
 #include"fieldint5.h"
-#include"fieldint1.h"
-#include"fieldint2.h"
-#include"fieldint3.h"
-#include"fieldint4.h"
-#include"fieldint4a.h"
 #include"slice1.h"
 #include"slice2.h"
 #include"slice4.h"
@@ -39,78 +29,56 @@ Author: Hans Bihs
 #include"sliceint5.h"
 #include"increment.h"
 #include"vec.h"
+#include"vec2D.h"
 #include"matrix_diag.h"
-#include"cpt.h"
-#include"looping.h"
-#include"iterators.h"
-#include<iostream>
-#include<vector>
+#include"matrix2D.h"
+#include"cpt2D.h"
 
 class lexer;
 
-#ifndef FDM_H_
-#define FDM_H_
+#ifndef FDM_NHF_H_
+#define FDM_NHF_H_
 
 using namespace std;
 
-class fdm : public increment
+class fdm_nhf : public increment
 {
 public:
 
-    fdm(lexer*);
-
-	double gi,gj,gk;
-
-	field1 u,F;
-	field2 v,G;
-	field3 w,H;
-    field3 omega;
-	field4 press;
-    field4 Fi;
-	field4 eddyv;
-	field4 L;
-	field4 ro,visc;
-	field4 phi,vof;
-	field4 conc;
-    field4 test;
-	field4a topo,solid;
-	field4a fb;
-	field4a porosity;
-	field5 walld;
-	 
-	fieldint5 nodeval,flag;
-    sliceint5 nodeval2D;
+    fdm_nhf(lexer*);
    
-    // 6DOF
-    field1 fbh1;
-    field2 fbh2;
-    field3 fbh3;
-    field4 fbh4;
+    field4 press,test;
+    fieldint5 nodeval;
     
-    // NHFLOW
-    slice1 P,hx;
-    slice2 Q,hy;
-    slice4 R,wbed,dwdt,bed,bedsole;
-    sliceint4 wet;
-    field4 U,V,W;
-    
-    // PTF
-    slice4 eta,eta_n,WL,WL_n,depth;
-    slice4 Bx,By;
-    slice4 Fifsf,Fz;
+    slice4 eta,eta_n,WL;
+    slice4 bed,depth;
+    slice4 Fifsf,Fibed,Fz;
     slice4 K;
-    sliceint4 etaloc;
+    sliceint4 etaloc,wet,wet_n,breaking,breaklog,bc;
     
+    slice4 Fx,Fy;
+    slice4 Ex,Ey;
+    slice4 Exx,Eyy;
+    slice4 Bx,By;
+    slice4 Bxx,Byy;
+    slice4 Hx,Hy;
+    slice4 coastline;
+    slice4 vb;
     
-	vec rhsvec;
-
-	matrix_diag M;
-	cpt C4,C4a,C6;
-
-    double maxF,maxG,maxH;
-    double wd_criterion;
+    sliceint5 nodeval2D;
+    slice4 breaking_print;
+    
+    cpt2D C4;
 	
-	double t1,t2,t3,t4,t5;
+    vec rhsvec;
+    vec2D xvec,rvec;
+    double *Fi,*Uin,*Uout,*U,*V,*W,*P,*visc,*eddyv;
+
+    matrix2D N;
+	matrix_diag M;    
+    
+    double gi,gj,gk;
+    double wd_criterion;
 };
 
 #endif

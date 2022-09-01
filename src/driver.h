@@ -29,6 +29,7 @@ class diffusion;
 class fdm;
 class fdm2D;
 class fdm_fnpf;
+class fdm_nhf;
 class lexer;
 class momentum;
 class ioflow;
@@ -122,8 +123,8 @@ public:
 	void makegrid_cds();
     void makegrid2D(lexer*,ghostcell*);
     void makegrid2D_cds(lexer*,ghostcell*,fdm2D*);
-    void makegrid_fnpf(lexer*,ghostcell*);
-    void makegrid_fnpf_cds(lexer*,ghostcell*);
+    void makegrid_sigma(lexer*,ghostcell*);
+    void makegrid_sigma_cds(lexer*,ghostcell*);
     void makegrid_nhflow(lexer*,ghostcell*);    
     
 	void fill_vel(lexer*,fdm*,ghostcell*);
@@ -143,6 +144,7 @@ public:
 	fdm* a;
     fdm2D* b;
     fdm_fnpf *c;
+    fdm_nhf *d;
 	lexer* p;
 	momentum* pmom;
 	ioflow* pflow;

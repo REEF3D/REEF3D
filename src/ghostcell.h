@@ -28,6 +28,7 @@ Author: Hans Bihs
 class fdm;
 class fdm2D;
 class fdm_fnpf;
+class fdm_nhf;
 class lexer;
 class field;
 class fieldint;
@@ -142,6 +143,7 @@ public:
 
     void fdm_update(fdm*);
     void fdm_fnpf_update(fdm_fnpf*);
+    void fdm_nhf_update(fdm_nhf*);
 
 // 2D CPT_    
 
@@ -463,6 +465,7 @@ private:
 
     fdm *a;
     fdm_fnpf *c;
+    fdm_nhf *d;
 
 };
 #endif

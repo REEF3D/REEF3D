@@ -39,7 +39,7 @@ driver::driver(int& argc, char **argv)
     {
     cout<<endl<<"REEF3D (c) 2008-2022 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    cout<<endl<<"v_220829" <<endl<<endl;
+    cout<<endl<<"v_220901" <<endl<<endl;
     }
 
 	p->lexer_read(pgc);
@@ -87,7 +87,7 @@ driver::driver(int& argc, char **argv)
         p->gridini_patchBC();
         pgc->flagfield(p);
         pgc->tpflagfield(p);
-        makegrid_fnpf(p,pgc);
+        makegrid_sigma(p,pgc);
 
         pgc->ndflag_update(p);
 
@@ -100,7 +100,7 @@ driver::driver(int& argc, char **argv)
         p->gridini_patchBC();
         pgc->flagfield(p);
         pgc->tpflagfield(p);
-        makegrid_fnpf(p,pgc);
+        makegrid_sigma(p,pgc);
 
         pgc->ndflag_update(p);
 
@@ -128,7 +128,6 @@ driver::driver(int& argc, char **argv)
 
         if(p->A10==6)
         cfd_driver();
-        
     }
 }
 
@@ -182,7 +181,7 @@ void driver::fnpf_driver()
 
     pgc->fdm_fnpf_update(c);
 
-    makegrid_fnpf_cds(p,pgc);
+    makegrid_sigma_cds(p,pgc);
 
     logic_fnpf();
 }

@@ -222,6 +222,11 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
+        <VirtualDirectory Name="Printer"/>
+        <VirtualDirectory Name="Initialize"/>
+        <VirtualDirectory Name="FDM">
+          <File Name="fdm_nhf.h"/>
+        </VirtualDirectory>
         <File Name="nhflow_f.h"/>
         <File Name="nhflow_v.h"/>
         <File Name="nhflow.h"/>
@@ -1199,6 +1204,11 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
+        <VirtualDirectory Name="Initialize"/>
+        <VirtualDirectory Name="Printer"/>
+        <VirtualDirectory Name="FDM">
+          <File Name="fdm_nhf.cpp"/>
+        </VirtualDirectory>
         <File Name="nhflow_v.cpp"/>
         <File Name="nhflow_f.cpp"/>
         <VirtualDirectory Name="Pressure">
