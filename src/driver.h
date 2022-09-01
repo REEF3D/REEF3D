@@ -103,6 +103,7 @@ public:
 	void logic();
     void logic_ptf();
     void logic_fnpf();
+    void logic_nhflow();
     void logic_sflow();
     
     void patchBC_logic();

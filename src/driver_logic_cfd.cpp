@@ -68,6 +68,9 @@ void driver::logic()
 	
 	if((p->N48==1) && (p->D20==0||p->D20>=2))
 	ptstep=new ietimestep(p);
+    
+// Printer
+    pfprint = new fnpf_vtu3D(p,c,pgc);
 
 //discretization scheme
 
