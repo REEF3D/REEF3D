@@ -165,11 +165,11 @@ void driver::nhflow_driver()
 	a=new fdm(p);
 
 	aa=a;
-    pgc->fdm_update(a);
+    pgc->fdm_nhf_update(d);
     
     makegrid_sigma_cds(p,pgc);
 
-    logic();
+    logic_nhflow();
 }
 
 void driver::fnpf_driver()
@@ -185,7 +185,7 @@ void driver::fnpf_driver()
 
     makegrid_sigma_cds(p,pgc);
 
-    logic_nhflow();
+    logic_fnpf();
 }
 
 void driver::ptf_driver()

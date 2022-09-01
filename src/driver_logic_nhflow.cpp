@@ -45,6 +45,19 @@ void driver::logic_nhflow()
     
     p->phimean = p->F60;
     
+//IOFlow
+	if(p->B60==0 && p->B90==0 && p->B180==0)
+	pflow = new ioflow_v(p,pgc,pBC);
+
+	if(p->B60>=1)
+	pflow = new ioflow_f(p,pgc,pBC);
+
+	if(p->B90>=1)
+	pflow = new iowave(p,pgc,pBC);
+
+	if(p->B180==1||p->B191==1||p->B192==1)
+	pflow = new ioflow_gravity(p,pgc,pBC);
+    
 // nhflow
     if(p->A10!=55)
     pnh=new nhflow_v(p,a,pgc);
@@ -157,5 +170,27 @@ void driver::logic_nhflow()
 	if(p->N10>=30 && p->N10<40)
 	ppoissonsolv = new hypre_sstruct(p,a,pgc);
 	#endif
+    
+// Velocities
+	if(p->N40==0)
+	pmom = new momentum_void();	
+	
+    if(p->N40==32)
+	pmom = new nhflow_momentum_RK2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pnh,pnhfsf);
+    
+    if(p->N40==33)
+	pmom = new nhflow_momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pnh,pnhfsf);
+    
+// Turbulence
+    pturb = new kepsilon_void(p,a,pgc);
+    
+// Sediment
+    if(p->S10==0)
+    psed = new sediment_void();
+
+    if(p->S10>0)
+    psed = new sediment_f(p,a,pgc,pturb);
+    
+    loop_nhflow();
     
 }

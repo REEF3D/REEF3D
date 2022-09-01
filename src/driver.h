@@ -96,7 +96,7 @@ public:
 	void loop_cfd(fdm*);
 	void loop_cfd_df(fdm*);
     void loop_nsewave(fdm*);
-    void loop_nhflow(fdm*);
+    void loop_nhflow();
     void loop_ptf(fdm*);
     void loop_fnpf();
     
