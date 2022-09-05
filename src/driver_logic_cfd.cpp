@@ -70,7 +70,7 @@ void driver::logic()
 	ptstep=new ietimestep(p);
     
 // Printer
-    pfprint = new fnpf_vtu3D(p,c,pgc);
+    //pfprint = new fnpf_vtu3D(p,c,pgc);
 
 //discretization scheme
 
@@ -349,6 +349,17 @@ void driver::logic()
     if(p->A410==2)
     pnse = new nsewave_geo(p,a,pgc,pheat,pconc);
     }
+    
+
+    if(p->A10==55)
+    {
+    if(p->A540==1)
+    pnhfsf = new nhflow_fsf_rk(p,a,pgc,pflow,pBC);
+    
+    if(p->A540==2)
+    pnhfsf = new nhflow_fsf_fsm(p,a,pgc,pflow,pBC);
+    }
+    
 
 // Free Surface
     if(p->F10==1)
@@ -646,7 +657,13 @@ void driver::logic()
     
     if(p->N40==23)
 	pmom = new momentum_FC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,pnh,preini);
-
+    
+    if(p->N40==32)
+	pmom = new nhflow_momentum_RK2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pnh,pnhfsf);
+    
+    if(p->N40==33)
+	pmom = new nhflow_momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pnh,pnhfsf);
+	
 // 6DOF
 	if(p->X10==0)
     p6dof = new sixdof_void();
@@ -674,6 +691,11 @@ void driver::logic()
     else if(p->A10==6)
 	{
 		loop_cfd(a);
+	}
+    
+    else if(p->A10==55)
+	{
+		loop_nhflow();
 	}
 }
 
