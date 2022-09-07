@@ -20,25 +20,25 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_vtu3D.h"
+#include"nhflow_vtu3D.h"
 #include"lexer.h"
-#include"fdm_fnpf.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"force_ale.h"
 #include"ioflow.h"
-#include"fnpf_print_wsf.h"
-#include"fnpf_print_wsf_theory.h"
-#include"fnpf_print_wsfline.h"
-#include"fnpf_print_wsfline_y.h"
-#include"fnpf_vtp_fsf.h"
-#include"fnpf_vtp_bed.h"
-#include"fnpf_breaking_log.h"
+/*#include"nhflow_print_wsf.h"
+#include"nhflow_print_wsf_theory.h"
+#include"nhflow_print_wsfline.h"
+#include"nhflow_print_wsfline_y.h"
+#include"nhflow_vtp_fsf.h"
+#include"nhflow_vtp_bed.h"
+#include"nhflow_breaking_log.h"
 #include"potentialfile_out.h"
-#include"fnpf_state.h"
+#include"nhflow_state.h"*/
 #include<sys/stat.h>
 #include<sys/types.h>
 
-fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
+nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
 {	
     if(p->I40==0)
     {
@@ -68,51 +68,51 @@ fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_FNPF_VTU",0777);
+	mkdir("./REEF3D_NHFLOW_VTU",0777);
 
+    /*
+    pwsf=new nhflow_print_wsf(p,c);
 
-    pwsf=new fnpf_print_wsf(p,c);
+    pwsf_theory=new nhflow_print_wsf_theory(p,c,pgc);
 
-    pwsf_theory=new fnpf_print_wsf_theory(p,c,pgc);
+    pwsfline=new nhflow_print_wsfline(p,c,pgc);
 
-    pwsfline=new fnpf_print_wsfline(p,c,pgc);
-
-    pwsfline_y=new fnpf_print_wsfline_y(p,c,pgc);
+    pwsfline_y=new nhflow_print_wsfline_y(p,c,pgc);
 
     if(p->P230>0)
     ppotentialfile = new potentialfile_out(p,c,pgc);
 
     if(p->P180==1)
-	pfsf = new fnpf_vtp_fsf(p,c,pgc);
+	pfsf = new nhflow_vtp_fsf(p,c,pgc);
 
-    pbed = new fnpf_vtp_bed(p,c,pgc);
+    pbed = new nhflow_vtp_bed(p,c,pgc);
 
     if(p->P40>0)
-	pstate=new fnpf_state(p,c,pgc);
+	pstate=new nhflow_state(p,c,pgc);
 
     if(p->P59==1)
-    pbreaklog=new fnpf_breaking_log(p,c,pgc);
+    pbreaklog=new nhflow_breaking_log(p,c,pgc);
 	
 	if(p->P85>0)
 	pforce_ale = new force_ale*[p->P85];
 	
 	for(n=0;n<p->P85;++n)
-	pforce_ale[n]=new force_ale(p,c,pgc,n);
+	pforce_ale[n]=new force_ale(p,c,pgc,n);*/
 
 }
 
-fnpf_vtu3D::~fnpf_vtu3D()
+nhflow_vtu3D::~nhflow_vtu3D()
 {
 }
 
-void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
+void nhflow_vtu3D::start(lexer* p, fdm_nhf* c,ghostcell* pgc, ioflow *pflow)
 {
     // Gages
-	if(p->P51>0)
-	pwsf->height_gauge(p,c,pgc,c->eta);
+	/*if(p->P51>0)
+	pwsf->height_gauge(p,c,pgc,d->eta);
 
     if(p->P50>0)
-    pwsf_theory->height_gauge(p,c,pgc,pflow);
+    pwsf_theory->height_gauge(p,c,pgc,pflow);*/
 
 		// Print out based on iteration
         if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)
@@ -137,7 +137,7 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 
 		printtime_wT[qn]+=p->P35_dt[qn];
 		}
-
+/*
         // Print FSF
 		if(((p->count%p->P181==0 && p->P182<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
         {
@@ -174,10 +174,10 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 
     // Gages
     if((p->P52>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P52>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
-    pwsfline->start(p,c,pgc,pflow,c->eta);
+    pwsfline->start(p,c,pgc,pflow,d->eta);
 
     if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
-    pwsfline_y->start(p,c,pgc,pflow,c->eta);
+    pwsfline_y->start(p,c,pgc,pflow,d->eta);
 
 
     // Print state out based on iteration
@@ -211,37 +211,38 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
         for(n=0;n<p->P85;++n)
         pforce_ale[n]->start(p,c,pgc);
 		}
+        */
 }
 
-void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
+void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 {
     SLICELOOP4
     {
-    if(c->breaking(i,j)==1)
-    c->breaking_print(i,j)=1.0;
+    if(d->breaking(i,j)==1)
+    d->breaking_print(i,j)=1.0;
 
-    if(c->breaking(i,j)==0)
-    c->breaking_print(i,j)=0.0;
+    if(d->breaking(i,j)==0)
+    d->breaking_print(i,j)=0.0;
     }
 
      //
-    pgc->start7V(p,c->Fi,c->bc,250);
-    pgc->gcsl_start4(p,c->WL,50);
-    pgc->gcsl_start4(p,c->bed,50);
-    pgc->gcsl_start4(p,c->breaking_print,50);
-    pgc->start4(p,c->test,1);
+    pgc->start7V(p,d->Fi,d->bc,250);
+    pgc->gcsl_start4(p,d->WL,50);
+    pgc->gcsl_start4(p,d->bed,50);
+    pgc->gcsl_start4(p,d->breaking_print,50);
+    pgc->start4(p,d->test,1);
 
-    pgc->dgcslpol(p,c->WL,p->dgcsl4,p->dgcsl4_count,14);
-    pgc->dgcslpol(p,c->breaking_print,p->dgcsl4,p->dgcsl4_count,14);
-    pgc->dgcslpol(p,c->bed,p->dgcsl4,p->dgcsl4_count,14);
+    pgc->dgcslpol(p,d->WL,p->dgcsl4,p->dgcsl4_count,14);
+    pgc->dgcslpol(p,d->breaking_print,p->dgcsl4,p->dgcsl4_count,14);
+    pgc->dgcslpol(p,d->bed,p->dgcsl4,p->dgcsl4_count,14);
 
-    c->WL.ggcpol(p);
-    c->breaking_print.ggcpol(p);
+    d->WL.ggcpol(p);
+    d->breaking_print.ggcpol(p);
 
     i=-1;
     j=-1;
     if(i+p->origin_i==-1 && j+p->origin_j==-1 )
-    c->WL(i,j) = c->WL(i+1,j+1);
+    d->WL(i,j) = d->WL(i+1,j+1);
 
 
     //----------
@@ -361,24 +362,24 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPLOOP
 	{
-	ffn=float(c->U[FIJKp1]);
+	ffn=float(d->U[FIJKp1]);
 
     if(k==-1 && j==-1)
-	ffn=float(c->U[FIJp1Kp1]);
+	ffn=float(d->U[FIJp1Kp1]);
 	result.write((char*)&ffn, sizeof (float));
 
 
-	ffn=float(c->V[FIJKp1]);
+	ffn=float(d->V[FIJKp1]);
 
     if(k==-1 && j==-1)
-	ffn=float(c->V[FIJp1Kp1]);
+	ffn=float(d->V[FIJp1Kp1]);
 	result.write((char*)&ffn, sizeof (float));
 
 
-	ffn=float(c->W[FIJKp1]);
+	ffn=float(d->W[FIJKp1]);
 
     if(k==-1 && j==-1)
-	ffn=float(c->W[FIJp1Kp1]);
+	ffn=float(d->W[FIJp1Kp1]);
 	result.write((char*)&ffn, sizeof (float));
 	}
 
@@ -388,10 +389,10 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
-    ffn=float(c->Fi[FIJKp1]);
+    ffn=float(d->Fi[FIJKp1]);
 
     if(k==-1 && j==-1)
-	ffn=float(c->Fi[FIJp1Kp1]);
+	ffn=float(d->Fi[FIJp1Kp1]);
 	result.write((char*)&ffn, sizeof (float));
 	}
 
@@ -400,7 +401,7 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPLOOP
 	{
-	ffn=float(p->ZN[KP1]*c->WL(i,j) + c->bed(i,j));
+	ffn=float(p->ZN[KP1]*d->WL(i,j) + d->bed(i,j));
 	result.write((char*)&ffn, sizeof (float));
 	}
 
@@ -411,7 +412,7 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
-	ffn=float(p->ipol4_a(c->test));
+	ffn=float(p->ipol4_a(d->test));
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}
@@ -440,16 +441,16 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPLOOP
 	{
-    waterlevel = p->sl_ipol4eta(c->wet,c->eta,c->bed)+p->wd - p->sl_ipol4(c->bed);
+    waterlevel = p->sl_ipol4eta(d->wet,d->eta,d->bed)+p->wd - p->sl_ipol4(d->bed);
 
-    zcoor = p->ZN[KP1]*waterlevel + p->sl_ipol4(c->bed);
+    zcoor = p->ZN[KP1]*waterlevel + p->sl_ipol4(d->bed);
 
 
-    if(c->wet(i,j)==0)
-    zcoor=c->bed(i,j);
+    if(d->wet(i,j)==0)
+    zcoor=d->bed(i,j);
 
-    if(i+p->origin_i==-1 && j+p->origin_j==-1 && c->wet(0,0)==1)
-    zcoor = p->ZN[KP1]*c->WL(i,j) + c->bed(i,j);
+    if(i+p->origin_i==-1 && j+p->origin_j==-1 && d->wet(0,0)==1)
+    zcoor = p->ZN[KP1]*d->WL(i,j) + d->bed(i,j);
 
     ffn=float( (p->XN[IP1]-p->B192_3)*cos(theta_y*sin(phase)) - (zcoor-p->B192_4)*sin(theta_y*sin(phase)) + p->B192_3);
 	result.write((char*)&ffn, sizeof (float));
@@ -467,28 +468,28 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     BASELOOP
     if(p->flag5[IJK]!=-20 && p->flag5[IJK]!=-30)
 	{
-	iin=int(c->nodeval(i-1,j-1,k-1)-1);
+	iin=int(d->nodeval(i-1,j-1,k-1)-1);
 	result.write((char*)&iin, sizeof (int));
 
-	iin=int(c->nodeval(i,j-1,k-1))-1;
+	iin=int(d->nodeval(i,j-1,k-1))-1;
 	result.write((char*)&iin, sizeof (int));
 
-    iin= int(c->nodeval(i,j,k-1))-1;
+    iin= int(d->nodeval(i,j,k-1))-1;
 	result.write((char*)&iin, sizeof (int));
 
-	iin=int(c->nodeval(i-1,j,k-1))-1;
+	iin=int(d->nodeval(i-1,j,k-1))-1;
 	result.write((char*)&iin, sizeof (int));
 
-	iin=int(c->nodeval(i-1,j-1,k))-1;
+	iin=int(d->nodeval(i-1,j-1,k))-1;
 	result.write((char*)&iin, sizeof (int));
 
-	iin=int(c->nodeval(i,j-1,k))-1;
+	iin=int(d->nodeval(i,j-1,k))-1;
 	result.write((char*)&iin, sizeof (int));
 
-	iin=int(c->nodeval(i,j,k))-1;
+	iin=int(d->nodeval(i,j,k))-1;
 	result.write((char*)&iin, sizeof (int));
 
-	iin=int(c->nodeval(i-1,j,k))-1;
+	iin=int(d->nodeval(i-1,j,k))-1;
 	result.write((char*)&iin, sizeof (int));
 	}
 
