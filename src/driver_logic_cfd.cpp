@@ -87,11 +87,8 @@ void driver::logic()
 	if(p->D10==3)
 	pconvec=new quick(p);
 
-	if(p->D10==4 && p->G2==0)
+	if(p->D10==4)
 	pconvec=new weno_flux_nug(p);
-    
-    if(p->D10==4 && p->G2==1)
-	pconvec=new weno_flux_nug_sig(p);
 	
 	if(p->D10==5)
 	pconvec=new weno_hj_nug(p);

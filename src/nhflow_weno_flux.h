@@ -20,36 +20,36 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"convection.h"
+#include"nhflow_convection.h"
 #include"weno_nug_func.h"
 
-class flux;
+class nhflow_flux;
 
-#ifndef WENO_FLUX_NUG_SIG_H_
-#define WENO_FLUX_NUG_SIG_H_
+#ifndef NHFLOW_WENO_FLUX_H_
+#define NHFLOW_WENO_FLUX_H_
 
 using namespace std;
 
-class weno_flux_nug_sig : public convection, public weno_nug_func
+class nhflow_weno_flux : public nhflow_convection, public weno_nug_func
 {
 public:
-	weno_flux_nug_sig(lexer*);
-	virtual ~weno_flux_nug_sig();
+	nhflow_weno_flux(lexer*);
+	virtual ~nhflow_weno_flux();
 
-	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
+	virtual void start(lexer*, fdm_nhf*, double*, int, double*, double*,double*);
 
 private:
-    double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
+    double aij(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);
     
-	virtual double fx(lexer*, fdm*, field&, field&, int, double);
-	virtual double fy(lexer*, fdm*, field&, field&, int, double);
-	virtual double fz(lexer*, fdm*, field&, field&, int, double);
-	void iqmin(lexer*, field&, field&, int);
-	void jqmin(lexer*, field&, field&, int);
-	void kqmin(lexer*, field&, field&, int);
-	void iqmax(lexer*, field&, field&, int);
-	void jqmax(lexer*, field&, field&, int);
-	void kqmax(lexer*, field&, field&, int);
+	virtual double fx(lexer*, fdm_nhf*, double*, double*, int, double);
+	virtual double fy(lexer*, fdm_nhf*, double*, double*, int, double);
+	virtual double fz(lexer*, fdm_nhf*, double*, double*, int, double);
+	void iqmin(lexer*, double*, double*, int);
+	void jqmin(lexer*, double*, double*, int);
+	void kqmin(lexer*, double*, double*, int);
+	void iqmax(lexer*, double*, double*, int);
+	void jqmax(lexer*, double*, double*, int);
+	void kqmax(lexer*, double*, double*, int);
 
     
 	double L,grad;
@@ -62,7 +62,7 @@ private:
     double Pval,Qval;
 
     
-    flux *pflux;
+    nhflow_flux *pflux;
 
 };
 

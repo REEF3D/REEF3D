@@ -56,10 +56,10 @@ void iowave::nhflow_precalc_relax(lexer *p, ghostcell *pgc)
     
     // U
     count=0;
-    ULOOP
+    LOOP
     {
-		xg = xgen1(p);
-        yg = ygen1(p);
+		xg = xgen(p);
+        yg = ygen(p);
         dg = distgen(p);
 		db = distbeach(p);
         
@@ -79,10 +79,10 @@ void iowave::nhflow_precalc_relax(lexer *p, ghostcell *pgc)
 	
     // V	
     count=0;
-    VLOOP
+    LOOP
     {
-        xg = xgen2(p);
-        yg = ygen2(p);
+        xg = xgen(p);
+        yg = ygen(p);
         dg = distgen(p);
 		db = distbeach(p);
         
@@ -102,14 +102,14 @@ void iowave::nhflow_precalc_relax(lexer *p, ghostcell *pgc)
     
     // W
     count=0;
-    WLOOP
+    LOOP
     {
         xg = xgen(p);
         yg = ygen(p);
         dg = distgen(p);
 		db = distbeach(p);
         
-        z=p->ZSN[(i-p->imin)*p->jmax*p->kmaxF + (j-p->jmin)*p->kmaxF + (k+1)-p->kmin]-p->phimean;
+        z=p->ZSP[IJK]-p->phimean;
 
 
 		// Wave Generation		

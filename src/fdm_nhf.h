@@ -72,7 +72,8 @@ public:
 	
     vec rhsvec;
     vec2D xvec,rvec;
-    double *Fi,*Uin,*Uout,*U,*V,*W,*P,*visc,*eddyv;
+    double *Fi,*Uin,*Uout,*U,*V,*W,*omega,*P,*visc,*eddyv;
+    double *F,*G,*H,*L;
 
     matrix2D N;
 	matrix_diag M;    

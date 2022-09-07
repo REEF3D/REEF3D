@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 class lexer;
+class fdm_nhf;
 
 using namespace std;
 
@@ -31,7 +32,7 @@ class nhflow_convection
 {
 public:
 
-    virtual double start(lexer*, double*, int, double*, double*,double*)=0;
+    virtual void start(lexer*, fdm_nhf*, double*, int, double*, double*,double*)=0;
 
 };
 

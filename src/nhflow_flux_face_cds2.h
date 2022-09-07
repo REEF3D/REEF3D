@@ -20,54 +20,29 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf.h"
+#include"nhflow_flux.h"
 #include"increment.h"
 
-class lexer;
-class fdm_nhf;
-class ghostcell;
-class field;
-class fnpf_convection;
-class fnpf_ddx;
-class grid_sigma_data;
-class slice;
+#ifndef NHFLOW_FLUX_FACE_CDS2_H_
+#define NHFLOW_FLUX_FACE_CDS2_H_
 
 using namespace std;
 
-#ifndef GRID_SIGMA_H_
-#define GRID_SIGMA_H_
-
-class grid_sigma : public increment
+class nhflow_flux_face_cds2 : public nhflow_flux, public increment
 {
 public:
-	grid_sigma(lexer*);
-	virtual ~grid_sigma();
-    
-    virtual void sigma_coord_ini(lexer*);
-    virtual void sigma_ini(lexer*, fdm*_nhf, ghostcell*, slice&);
-    virtual void sigma_update(lexer*, ghostcell*, slice&, slice&, double);
-    
-    
-    double sigmax(lexer*,field&,field&,int);
-    double sigmay(lexer*,field&,int);
-    double sigmaz(lexer*,field&,int);
-    double sigmat(lexer*,field&,int);
-    
-    void omega_update(lexer*,fdm_nhf*,ghostcell*,field&,field&,field&,slice&,slice&,double);
 
-        
+	nhflow_flux_face_cds2 (lexer *p);
+	virtual ~nhflow_flux_face_cds2();
+
+	virtual void u_flux(fdm_nhf*,int,double*,double&,double&);
+	virtual void v_flux(fdm_nhf*,int,double*,double&,double&);
+	virtual void w_flux(fdm_nhf*,int,double*,double&,double&);
+    virtual void omega_flux(lexer*,fdm_nhf*,int,double*,double*,double*,double&,double&);
+    
 private:
-    
-    void disc_bed(lexer*, fdm_nhf*, ghostcell*);
-    void disc_eta(lexer*, fdm_nhf*, ghostcell*);
-    
-    fnpf_convection *pdx;
-    fnpf_ddx *pddx;
-    grid_sigma_data *pd;
-    
-    
-    
-    double sig;
+    lexer *p;
+
 };
 
 #endif

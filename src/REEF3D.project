@@ -223,6 +223,11 @@
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
         <VirtualDirectory Name="Convect">
+          <File Name="nhflow_weno_flux.h"/>
+          <VirtualDirectory Name="Flux">
+            <File Name="nhflow_flux.h"/>
+            <File Name="nhflow_flux_face_cds2.h"/>
+          </VirtualDirectory>
           <File Name="nhflow_convection.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
@@ -518,7 +523,6 @@
         <File Name="interpolation.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Convection">
-        <File Name="weno_flux_nug_sig.h"/>
         <File Name="weno_hj_6DOF_nug.h"/>
         <File Name="lust.h"/>
         <File Name="iweno3_hj.h"/>
@@ -1212,6 +1216,9 @@
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
         <VirtualDirectory Name="Convect">
+          <VirtualDirectory Name="Flux">
+            <File Name="nhflow_flux_face_cds2.cpp"/>
+          </VirtualDirectory>
           <File Name="nhflow_fou.cpp"/>
           <File Name="nhflow_cds2.cpp"/>
           <File Name="nhflow_weno_hj.cpp"/>
@@ -1779,7 +1786,6 @@
         <File Name="interpolation_ipol.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Convection">
-        <File Name="weno_flux_nug_sig.cpp"/>
         <File Name="weno_hj_6DOF_nug.cpp"/>
         <File Name="lust.cpp"/>
         <File Name="ifou.cpp"/>

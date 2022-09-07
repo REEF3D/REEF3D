@@ -74,7 +74,7 @@ void driver::logic_nhflow()
 //discretization scheme
 
     //Convection	
-	if(p->D10==0)
+	/*if(p->D10==0)
 	pconvec=new convection_void(p);
 
 	if(p->D10==1)
@@ -87,12 +87,12 @@ void driver::logic_nhflow()
 	pconvec=new quick(p);
 
 	if(p->D10==4 && p->G2==0)
-	pconvec=new weno_flux_nug(p);
+	pconvec=new weno_flux_nug(p);*/
     
-    if(p->D10==4 && p->G2==1)
-	pconvec=new weno_flux_nug_sig(p);
+    if(p->D10==4)
+	pnhfconvec=new nhflow_weno_flux(p);
 	
-	if(p->D10==5)
+	/*if(p->D10==5)
 	pconvec=new weno_hj_nug(p);
 	
 	if(p->D10==6)
@@ -105,7 +105,7 @@ void driver::logic_nhflow()
 	pconvec=new weno3_hj(p);
 	
 	if(p->D10>=10 && p->D10<30)
-	pconvec=new hires(p,p->D10);
+	pconvec=new hires(p,p->D10);*/
     
     
 //pressure scheme

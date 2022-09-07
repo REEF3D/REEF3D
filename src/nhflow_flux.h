@@ -20,41 +20,23 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"convection_void.h"
-#include"fou.h"
-#include"ifou.h"
-#include"cds2.h"
-#include"cds2_alt.h"
-#include"cds4.h"
-#include"quick.h"
-#include"lust.h"
-#include"weno_hj.h"
-#include"weno_hj_nug.h"
-#include"weno_hj_6DOF_nug.h"
-#include"weno_flux.h"
-#include"weno_flux_nug.h"
-#include"iweno_hj.h"
-#include"iweno_hj_nug.h"
-#include"weno3_hj.h"
-#include"weno3_flux.h"
-#include"diff_void.h"
-#include"ediff2.h"
-#include"idiff2.h"
-#include"idiff2_FS.h"
-#include"idiff2_FS_v2.h"
-#include"idiff2_FS_2D.h"
-#include"idiff_IMEX.h"
-#include"idiff_IMEX_2D.h"
+class fdm_nhf;
+class lexer;
 
-#include"nhflow_weno_flux.h"
+#ifndef NHFLOW_FLUX_H_
+#define NHFLOW_FLUX_H_
 
-#include"hires.h"
+using namespace std;
 
-#include"hric.h"
-#include"hric_mod.h"
-#include"cicsam.h"
+class nhflow_flux 
+{
+public:
 
-#include"potential_v.h"
-#include"potential_f.h"
-#include"potential_water.h"
+    virtual void u_flux(fdm_nhf*,int,double*,double&,double&)=0;
+	virtual void v_flux(fdm_nhf*,int,double*,double&,double&)=0;
+	virtual void w_flux(fdm_nhf*,int,double*,double&,double&)=0;
+    virtual void omega_flux(lexer*,fdm_nhf*,int,double*,double*,double*,double&,double&)=0;
 
+};
+
+#endif

@@ -38,12 +38,18 @@ fdm_nhf::fdm_nhf(lexer *p) : press(p),test(p),Fifsf(p),Fibed(p),
     p->Darray(U,p->imax*p->jmax*(p->kmax+2));
     p->Darray(V,p->imax*p->jmax*(p->kmax+2));
     p->Darray(W,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(omega,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fi,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Uin,p->imax*p->jmax*(p->kmax+2));
     
     p->Darray(P,p->imax*p->jmax*(p->kmax+2));
     p->Darray(visc,p->imax*p->jmax*(p->kmax+2));
     p->Darray(eddyv,p->imax*p->jmax*(p->kmax+2));
+    
+    p->Darray(F,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(G,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(H,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(L,p->imax*p->jmax*(p->kmax+2));
 
     C4.allocate(p);
 }
