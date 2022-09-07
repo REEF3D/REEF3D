@@ -82,8 +82,8 @@ void gage_discharge::start(lexer *p, fdm *a, ghostcell *pgc)
 
     i=iloc[n];
 		
-		if(flag[n]==1)
-		JLOOP
+        if(flag[n]==1)
+        JLOOP
         KLOOP
         PCHECK
         {
