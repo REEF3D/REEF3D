@@ -222,7 +222,14 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
-        <VirtualDirectory Name="Printer"/>
+        <VirtualDirectory Name="Convect">
+          <File Name="nhflow_convection.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="VTU">
+            <File Name="nhflow_vtu3D.h"/>
+          </VirtualDirectory>
+        </VirtualDirectory>
         <VirtualDirectory Name="Initialize"/>
         <VirtualDirectory Name="FDM">
           <File Name="fdm_nhf.h"/>
@@ -1204,8 +1211,20 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
+        <VirtualDirectory Name="Convect">
+          <File Name="nhflow_fou.cpp"/>
+          <File Name="nhflow_cds2.cpp"/>
+          <File Name="nhflow_weno_hj.cpp"/>
+          <File Name="nhflow_weno_flux.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Initialize"/>
-        <VirtualDirectory Name="Printer"/>
+        <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="VTU">
+            <File Name="nhflow_vtu3D_pvtu.cpp"/>
+            <File Name="nhflow_vtu3D_header.cpp"/>
+            <File Name="nhflow_vtu3D.cpp"/>
+          </VirtualDirectory>
+        </VirtualDirectory>
         <VirtualDirectory Name="FDM">
           <File Name="fdm_nhf.cpp"/>
         </VirtualDirectory>
