@@ -24,7 +24,7 @@ Author: Hans Bihs
 class convection;
 class pressure;
 class solver;
-class fdm;
+class fdm_nhf;
 class lexer;
 class field;
 class ghostcell;
@@ -46,12 +46,12 @@ using namespace std;
 class nhflow_fsf
 {
 public:    
-    virtual void start(lexer*, fdm*, ghostcell*, ioflow*)=0;
-    virtual void ini(lexer*, fdm*, ghostcell*, ioflow*)=0;
+    virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*)=0;
+    virtual void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*)=0;
     
-    virtual void step1(lexer*, fdm*, ghostcell*, ioflow*, field&, field&, field&, slice&, slice&, double)=0;
-    virtual void step2(lexer*, fdm*, ghostcell*, ioflow*, field&, field&, field&, slice&, slice&, double)=0;
-    virtual void step3(lexer*, fdm*, ghostcell*, ioflow*, field&, field&, field&, slice&, slice&, double)=0;
+    virtual void step1(lexer*, fdm_nhf*, ghostcell*, ioflow*, field&, field&, field&, slice&, slice&, double)=0;
+    virtual void step2(lexer*, fdm_nhf*, ghostcell*, ioflow*, field&, field&, field&, slice&, slice&, double)=0;
+    virtual void step3(lexer*, fdm_nhf*, ghostcell*, ioflow*, field&, field&, field&, slice&, slice&, double)=0;
 
         
 

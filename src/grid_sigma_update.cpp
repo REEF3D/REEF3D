@@ -35,7 +35,7 @@ Author: Hans Bihs
 #define HXP (fabs(0.5*(d->WL(i,j)+d->WL(i+1,j)))>1.0e-20?0.5*(d->WL(i,j)+d->WL(i+1,j)):1.0e20)
 #define HY (fabs(d->hy(i,j))>1.0e-20?d->hy(i,j):1.0e20)
 
-void grid_sigma::sigma_update(lexer *p, ghostcell *pgc, slice &eta, slice &eta_n, double alpha)
+void grid_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, slice &eta_n, double alpha)
 {
     double wl,sigval;
     double bx,by,ex,ey;
@@ -62,7 +62,7 @@ void grid_sigma::sigma_update(lexer *p, ghostcell *pgc, slice &eta, slice &eta_n
     
     double Pval,Qval;
     // 2D
-    if(p->j_dir==0 && p->A312==1)
+   /* if(p->j_dir==0 && p->A312==1)
     SLICELOOP4
     {
     k=p->knoz-1;
@@ -76,7 +76,7 @@ void grid_sigma::sigma_update(lexer *p, ghostcell *pgc, slice &eta, slice &eta_n
     pd->Ex(i,j) = (eta(i+1,j)-eta(i,j))/(p->DXP[IP]);
 
     pd->Exx(i,j) = pddx->sxx(p,eta);
-    }
+    }*/
     
     pgc->gcsl_start4(p,pd->Ex,1);
     pgc->gcsl_start4(p,pd->Ey,1);

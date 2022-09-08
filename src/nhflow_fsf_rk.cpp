@@ -22,7 +22,7 @@ Author: Hans Bihs
 
 #include"nhflow_fsf_rk.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"fluid_update_void.h"
@@ -34,7 +34,7 @@ Author: Hans Bihs
 #include"sflow_hxy_fou.h"
 #include"patchBC_interface.h"
 
-nhflow_fsf_rk::nhflow_fsf_rk(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, patchBC_interface *ppBC) : epsi(p->A440*p->DXM)
+nhflow_fsf_rk::nhflow_fsf_rk(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow, patchBC_interface *ppBC) : epsi(p->A440*p->DXM)
 {
     pBC = ppBC;
     
@@ -58,16 +58,16 @@ void nhflow_fsf_rk::start(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow)
 {
 }
 
-void nhflow_fsf_rk::ltimesave(lexer* p, fdm *a, slice &ls)
+void nhflow_fsf_rk::ltimesave(lexer* p, fdm_nhf* d, slice &ls)
 {
 }
 
-void nhflow_fsf_rk::update(lexer *p, fdm *a, ghostcell *pgc, slice &f)
+void nhflow_fsf_rk::update(lexer *p, fdm_nhf* d, ghostcell *pgc, slice &f)
 {
     pupdate->start(p,a,pgc);
 }
 
-void nhflow_fsf_rk::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
+void nhflow_fsf_rk::ini(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow)
 {
 }
 

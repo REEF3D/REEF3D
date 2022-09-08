@@ -42,18 +42,18 @@ using namespace std;
 class nhflow_fsf_fsm : public nhflow_fsf, public increment
 {
 public:
-    nhflow_fsf_fsm(lexer*, fdm*, ghostcell*,ioflow*,patchBC_interface*);
+    nhflow_fsf_fsm(lexer*, fdm_nhf*, ghostcell*,ioflow*,patchBC_interface*);
 	virtual ~nhflow_fsf_fsm();
     
-    virtual void start(lexer*, fdm*, ghostcell*, ioflow*);
-    virtual void ini(lexer*, fdm*, ghostcell*, ioflow*);
+    virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*);
+    virtual void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*);
     
-    virtual void step1(lexer*, fdm*, ghostcell*, ioflow*, field&, field&, field&, slice&, slice&, double);
-    virtual void step2(lexer*, fdm*, ghostcell*, ioflow*, field&, field&, field&, slice&, slice&, double);
-    virtual void step3(lexer*, fdm*, ghostcell*, ioflow*, field&, field&, field&, slice&, slice&, double);
+    virtual void step1(lexer*, fdm_nhf*, ghostcell*, ioflow*, field&, field&, field&, slice&, slice&, double);
+    virtual void step2(lexer*, fdm_nhf*, ghostcell*, ioflow*, field&, field&, field&, slice&, slice&, double);
+    virtual void step3(lexer*, fdm_nhf*, ghostcell*, ioflow*, field&, field&, field&, slice&, slice&, double);
     
-	void ltimesave(lexer*,fdm*,slice&);
-    void update(lexer*,fdm*,ghostcell*,slice&);
+	void ltimesave(lexer*,fdm_nhf*,slice&);
+    void update(lexer*,fdm_nhf*,ghostcell*,slice&);
     
 private: 
     fluid_update *pupdate;

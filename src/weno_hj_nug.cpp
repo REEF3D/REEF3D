@@ -109,12 +109,12 @@ double weno_hj_nug::aij_sig(lexer* p,fdm* a,field& b,int ipol, field& uvel, fiel
         pflux->v_flux(a,ipol,vvel,jadvec,jvel2);
         pflux->w_flux(a,ipol,wvel,kadvec,kvel2);
 		
-		L = -iadvec*fx(p,a,b,uvel,ipol,iadvec) + p->sigmax(p,b,uvel,ipol)*iadvec;
+		L = -iadvec*fx(p,a,b,uvel,ipol,iadvec) + p->sigmax(p,ipol)*iadvec;
         
         if(p->j_dir==1)
-        L -= jadvec*fy(p,a,b,vvel,ipol,jadvec) + p->sigmay(p,b,ipol)*jadvec;
+        L -= jadvec*fy(p,a,b,vvel,ipol,jadvec) + p->sigmay(p,ipol)*jadvec;
         
-        L -= kadvec*fz(p,a,b,wvel,ipol,kadvec)*p->sigmaz(p,b,ipol);
+        L -= kadvec*fz(p,a,b,wvel,ipol,kadvec)*p->sigmaz(p,ipol);
         
 		return L;
 }
