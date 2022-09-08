@@ -21,10 +21,10 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 #include"nhflow_f.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 
-nhflow_f::nhflow_f(lexer *p, fdm *a, ghostcell *pgc) 
+nhflow_f::nhflow_f(lexer *p, fdm_nhf *d, ghostcell *pgc) 
 {
     margin=3;
 }
@@ -33,11 +33,11 @@ nhflow_f::~nhflow_f()
 {
 }
 
-void nhflow_f::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
+void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 {
 }
 
-void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, slice &eta1, slice &eta2, double alpha)
+void nhflow_f::kinematic_fsf(lexer *p, fdm_nhf *d, field &u, field &v, field &w, slice &eta1, slice &eta2, double alpha)
 {
     double wval,w_n,udetax;
     double Pval,Qval;
@@ -194,7 +194,7 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm *a, field &u, field &v, field &w, sli
     
 }
 
-void nhflow_f::kinematic_fsf_co(lexer *p, fdm *a, field &u, field &v, field &w, slice &eta1, slice &eta2, double alpha)
+void nhflow_f::kinematic_fsf_co(lexer *p, fdm_nhf *d, field &u, field &v, field &w, slice &eta1, slice &eta2, double alpha)
 {
     
 }

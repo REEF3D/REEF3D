@@ -47,18 +47,18 @@ void driver::logic_nhflow()
     
 // nhflow
     if(p->A10!=55)
-    pnh=new nhflow_v(p,a,pgc);
+    pnh=new nhflow_v(p,d,pgc);
     
     if(p->A10==55)
-    pnh=new nhflow_f(p,a,pgc);
+    pnh=new nhflow_f(p,d,pgc);
     
     if(p->A10==55)
     {
     if(p->A540==1)
-    pnhfsf = new nhflow_fsf_rk(p,a,pgc,pflow,pBC);
+    pnhfsf = new nhflow_fsf_rk(p,d,pgc,pflow,pBC);
     
     if(p->A540==2)
-    pnhfsf = new nhflow_fsf_fsm(p,a,pgc,pflow,pBC);
+    pnhfsf = new nhflow_fsf_fsm(p,d,pgc,pflow,pBC);
     }
     
 // time stepping
