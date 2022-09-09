@@ -243,14 +243,14 @@
         <File Name="nhflow_v.h"/>
         <File Name="nhflow.h"/>
         <VirtualDirectory Name="Pressure">
+          <File Name="nhflow_pjmcorr.h"/>
+          <File Name="nhflow_pjm_ss.h"/>
+          <File Name="nhflow_pjm_hs.h"/>
+          <File Name="nhflow_pjm.h"/>
+          <VirtualDirectory Name="Poisson">
+            <File Name="nhflow_poisson.h"/>
+          </VirtualDirectory>
           <File Name="nhflow_pressure.h"/>
-          <File Name="poisson_sigco.h"/>
-          <File Name="pjm_sigco.h"/>
-          <File Name="pjmcorr_sig.h"/>
-          <File Name="pjm_sigss.h"/>
-          <File Name="pjm_sig_hs.h"/>
-          <File Name="poisson_sig.h"/>
-          <File Name="pjm_sig.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
           <File Name="nhflow_momentum_RK3co.h"/>
@@ -1237,14 +1237,14 @@
         <File Name="nhflow_v.cpp"/>
         <File Name="nhflow_f.cpp"/>
         <VirtualDirectory Name="Pressure">
-          <File Name="poisson_sigco.cpp"/>
-          <File Name="pjm_sigco.cpp"/>
-          <File Name="pjmcorr_sig.cpp"/>
-          <File Name="pjm_sigss.cpp"/>
-          <File Name="poisson_sigss.cpp"/>
-          <File Name="pjm_sig_hs.cpp"/>
-          <File Name="poisson_sig.cpp"/>
-          <File Name="pjm_sig.cpp"/>
+          <File Name="nhflow_pjmcorr.cpp"/>
+          <File Name="nhflow_pjm_ss.cpp"/>
+          <File Name="nhflow_pjm_hs.cpp"/>
+          <File Name="nhflow_pjm.cpp"/>
+          <VirtualDirectory Name="Poisson">
+            <File Name="nhflow_poisson_ss.cpp"/>
+            <File Name="nhflow_poisson.cpp"/>
+          </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
           <File Name="nhflow_momentum_RK3co.cpp"/>
