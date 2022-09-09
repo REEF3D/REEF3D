@@ -125,11 +125,11 @@ double nhflow_weno_flux::aij(lexer* p,fdm_nhf* d, double *B, int ipol, double *U
        if(p->A517==3)
 		L =   - ((ivel2*fu2-ivel1*fu1)/DX[IP]) 
 		      - ((jvel2*fv2-jvel1*fv1)/DY[JP]) 
-			  - ((kvel2*fw2-kvel1*fw1)/DZ[KP])*p->sigmaz(p,b,ipol)
+			  - ((kvel2*fw2-kvel1*fw1)/DZ[KP])*p->sigmaz(p,ipol)
               
-              - ((B[IJKp1]-B[IJKm1])/(DZ[KP]+DZ[KM1]))*p->sigmat(p,b,ipol)
+              - ((B[IJKp1]-B[IJKm1])/(DZ[KP]+DZ[KM1]))*p->sigmat(p,ipol)
               
-              - 0.5*(ivel1+ivel2)*((B[IJKp1]-B[IJKm1])/(DZ[KP]+DZ[KM1]))*p->sigmax(p,,ipol)
+              - 0.5*(ivel1+ivel2)*((B[IJKp1]-B[IJKm1])/(DZ[KP]+DZ[KM1]))*p->sigmax(p,ipol)
               - 0.5*(jvel1+jvel2)*((B[IJKp1]-B[IJKm1])/(DZ[KP]+DZ[KM1]))*p->sigmay(p,ipol);
               
         if(p->A517==4)
@@ -139,15 +139,15 @@ double nhflow_weno_flux::aij(lexer* p,fdm_nhf* d, double *B, int ipol, double *U
 
 		L =   - ((ivel2*fu2-ivel1*fu1)/DX[IP]) 
 		      - ((jvel2*fv2-jvel1*fv1)/DY[JP]) 
-			  - ((kvel2*fw2-kvel1*fw1)/DZ[KP])*p->sigmaz(p,b,ipol)
+			  - ((kvel2*fw2-kvel1*fw1)/DZ[KP])*p->sigmaz(p,ipol)
               
-              - ((b(i,j,k+1)-b(i,j,k-1))/(DZ[KP]+DZ[KM1]))*p->sigmat(p,b,ipol)
+              - ((B[IJKp1]-B[IJKm1])/(DZ[KP]+DZ[KM1]))*p->sigmat(p,ipol)
               
-              - MAX(0.0,Pval)*((0.5*(b(i-1,j,k+1)+b(i,j,k+1))-0.5*(b(i-1,j,k-1)+b(i,j,k-1)))/(DZ[KP]+DZ[KM1]))*p->sigmax(p,,ipol)
-              - MIN(0.0,Pval)*((0.5*(b(i+1,j,k+1)+b(i,j,k+1))-0.5*(b(i+1,j,k-1)+b(i,j,k-1)))/(DZ[KP]+DZ[KM1]))*p->sigmax(p,,ipol)
+              - MAX(0.0,Pval)*((0.5*(B[Im1JKp1]+B[IJKp1])-0.5*(B[Im1JKm1]+B[IJKm1]))/(DZ[KP]+DZ[KM1]))*p->sigmax(p,ipol)
+              - MIN(0.0,Pval)*((0.5*(B[Ip1JKp1]+B[IJKp1])-0.5*(B[Ip1JKm1]+B[IJKm1]))/(DZ[KP]+DZ[KM1]))*p->sigmax(p,ipol)
               
-              - MAX(0.0,Qval)*((0.5*(b(i,j-1,k+1)+b(i,j,k+1))-0.5*(b(i,j-1,k-1)+b(i,j-1,k-1)))/(DZ[KP]+DZ[KM1]))*p->sigmay(p,ipol)
-              - MIN(0.0,Qval)*((0.5*(b(i,j+1,k+1)+b(i,j,k+1))-0.5*(b(i,j+1,k-1)+b(i,j-1,k-1)))/(DZ[KP]+DZ[KM1]))*p->sigmay(p,ipol);
+              - MAX(0.0,Qval)*((0.5*(B[IJm1Kp1]+B[IJKp1])-0.5*(B[IJm1Km1]+B[IJKm1]))/(DZ[KP]+DZ[KM1]))*p->sigmay(p,ipol)
+              - MIN(0.0,Qval)*((0.5*(B[IJp1Kp1]+B[IJKp1])-0.5*(B[IJp1Km1]+B[IJKm1]))/(DZ[KP]+DZ[KM1]))*p->sigmay(p,ipol);
         }
         
 		return L;

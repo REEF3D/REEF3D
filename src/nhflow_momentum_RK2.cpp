@@ -70,7 +70,7 @@ nhflow_momentum_RK2::~nhflow_momentum_RK2()
 }
 
 void nhflow_momentum_RK2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
-{	
+{	/*
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
 	pflow->rkinflow(p,a,pgc,urk1,vrk1,wrk1);
@@ -234,7 +234,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     pnh->kinematic_fsf(p,a,a->u,a->v,a->w,a->eta,etark1,0.5);
     p->omega_update(p,a,pgc,a->u,a->v,a->w,a->eta,etark1,0.5);
     
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc);*/
 }
 
 void nhflow_momentum_RK2::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)

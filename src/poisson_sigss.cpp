@@ -56,7 +56,7 @@ nt 8 -
 	n=0;
     KJILOOP
 	{
-        if(p->flag4[IJK]>0 && a->wet(i,j)==1)
+        if(p->flag4[IJK]>0 && d->wet(i,j)==1)
         {
         sigxyz2 = pow(0.5*(p->sigx[FIJK]+p->sigx[FIJKp1]),2.0) + pow(p->sigz[IJ],2.0);
         

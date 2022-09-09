@@ -87,12 +87,6 @@ public:
     field3 fbh3;
     field4 fbh4;
     
-    // NHFLOW
-    slice1 P,hx;
-    slice2 Q,hy;
-    slice4 R,wbed,dwdt,bed,bedsole;
-    sliceint4 wet;
-    field4 U,V,W;
     
     // PTF
     slice4 eta,eta_n,WL,WL_n,depth;
@@ -101,6 +95,10 @@ public:
     slice4 K;
     sliceint4 etaloc;
     
+    slice1 P,hx;
+    slice2 Q,hy;
+    
+    slice4 bed;
     
 	vec rhsvec;
 

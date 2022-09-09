@@ -48,9 +48,9 @@ public:
     virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*);
     virtual void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*);
     
-    virtual void step1(lexer*, fdm_nhf*, ghostcell*, ioflow*, field&, field&, field&, slice&, slice&, double);
-    virtual void step2(lexer*, fdm_nhf*, ghostcell*, ioflow*, field&, field&, field&, slice&, slice&, double);
-    virtual void step3(lexer*, fdm_nhf*, ghostcell*, ioflow*, field&, field&, field&, slice&, slice&, double);
+    virtual void step1(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
+    virtual void step2(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
+    virtual void step3(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
     
 	void ltimesave(lexer*,fdm_nhf*,slice&);
     void update(lexer*,fdm_nhf*,ghostcell*,slice&);
@@ -61,6 +61,8 @@ private:
 	sflow_hxy_disc *phxy;
     patchBC_interface *pBC;
     
+    slice1 P;
+    slice2 Q;    
     
     int gcval_phi;
 	double starttime;

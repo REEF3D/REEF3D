@@ -41,7 +41,7 @@ public:
 	poisson_sigco (lexer *, heat*&, concentration*&);
 	virtual ~poisson_sigco();
 
-	virtual void start(lexer *,fdm*,field&);
+	virtual void start(lexer *,fdm_nhf*,field&);
 
 private:
 

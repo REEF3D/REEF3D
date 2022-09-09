@@ -34,7 +34,7 @@ Author: Hans Bihs
 #include"sflow_hxy_fou.h"
 #include"patchBC_interface.h"
 
-nhflow_fsf_fsm::nhflow_fsf_fsm(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow, patchBC_interface *ppBC) : epsi(p->A440*p->DXM)
+nhflow_fsf_fsm::nhflow_fsf_fsm(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow, patchBC_interface *ppBC) : epsi(p->A440*p->DXM),P(p),Q(p)
 {
     pBC = ppBC;
     
@@ -71,34 +71,34 @@ void nhflow_fsf_fsm::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow)
     
     // Calculate Eta
     SLICELOOP1
-    a->P(i,j)=0.0;
+    P(i,j)=0.0;
     
     SLICELOOP2
-    a->Q(i,j)=0.0;
+    Q(i,j)=0.0;
 
     ULOOP
-    a->P(i,j) += a->u(i,j,k)*p->DZN[KP];
+    P(i,j) += a->u(i,j,k)*p->DZN[KP];
 
     VLOOP
-	a->Q(i,j) += a->v(i,j,k)*p->DZN[KP];
+	Q(i,j) += a->v(i,j,k)*p->DZN[KP];
     
-    pgc->gcsl_start1(p,a->P,10);
-    pgc->gcsl_start2(p,a->Q,11);
+    pgc->gcsl_start1(p,P,10);
+    pgc->gcsl_start2(p,Q,11);
     
-    phxy->start(p,a->hx,a->hy,a->depth,a->wet,a->eta,a->P,a->Q);
+    phxy->start(p,a->hx,a->hy,a->depth,a->wet,a->eta,P,Q);
     
     SLICELOOP1
-    a->P(i,j) *= a->hx(i,j);
+    P(i,j) *= a->hx(i,j);
 
     SLICELOOP2
-	a->Q(i,j) *= a->hy(i,j);
+	Q(i,j) *= a->hy(i,j);
 
-	pgc->gcsl_start1(p,a->P,10);
-    pgc->gcsl_start2(p,a->Q,11);
+	pgc->gcsl_start1(p,P,10);
+    pgc->gcsl_start2(p,Q,11);
 
     // fsf equation
     SLICELOOP4
-    a->eta(i,j) -= p->dt*((a->P(i,j)-a->P(i-1,j))/p->DXN[IP] + (a->Q(i,j)-a->Q(i,j-1))/p->DYN[JP]);	  
+    a->eta(i,j) -= p->dt*((P(i,j)-P(i-1,j))/p->DXN[IP] + (Q(i,j)-Q(i,j-1))/p->DYN[JP]);	  
     
     pflow->eta_relax(p,pgc,a->eta);
     pgc->gcsl_start4(p,a->eta,1);

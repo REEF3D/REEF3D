@@ -243,6 +243,7 @@
         <File Name="nhflow_v.h"/>
         <File Name="nhflow.h"/>
         <VirtualDirectory Name="Pressure">
+          <File Name="nhflow_pressure.h"/>
           <File Name="poisson_sigco.h"/>
           <File Name="pjm_sigco.h"/>
           <File Name="pjmcorr_sig.h"/>

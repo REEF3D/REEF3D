@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,30 +20,31 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow.h"
-#include"increment.h"
+class lexer;
+class fdm_nhf;
+class ghostcell;
+class ioflow;
+class poisson;
+class solver;
+class field;
+class slice;
 
 using namespace std;
 
-#ifndef NHFLOW_F_H_
-#define NHFLOW_F_H_
+#ifndef NHFLOW_PRESSURE_H_
+#define NHFLOW_PRESSURE_H_
 
-class nhflow_f : public nhflow, public increment
+class pressure
 {
-public:    
-    nhflow_f(lexer*, fdm_nhf*, ghostcell*);
-	virtual ~nhflow_f();
+public:
 
-    virtual void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*);
-    
-    virtual void kinematic_fsf(lexer*, fdm_nhf*, field&, field&, field&, slice&, slice&, double);
-    
-    virtual void kinematic_fsf_co(lexer*, fdm_nhf*, field&, field&, field&, slice&, slice&, double);
-    
-private:
-    int q,margin;
-        
-
+	virtual void start(fdm*,lexer*, poisson*, solver*, ghostcell*,ioflow*,double*,double*,double*,double)=0;
+	virtual void upgrad(lexer*,fdm*,slice&,slice&)=0;
+	virtual void vpgrad(lexer*,fdm*,slice&,slice&)=0;
+	virtual void wpgrad(lexer*,fdm*,slice&,slice&)=0;
+    virtual void ucorr(lexer*p,fdm*,double*,double)=0;
+	virtual void vcorr(lexer*p,fdm*,double*,double)=0;
+	virtual void wcorr(lexer*p,fdm*,double*,double)=0;
 };
 
 #endif

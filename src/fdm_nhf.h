@@ -50,7 +50,7 @@ public:
     field4 press,test;
     fieldint5 nodeval;
     
-    slice4 eta,eta_n,WL;
+    slice4 eta,eta_n,WL,WL_n;
     slice4 bed,depth;
     slice4 Fifsf,Fibed,Fz;
     slice4 K;
@@ -61,12 +61,15 @@ public:
     slice4 Exx,Eyy;
     slice4 Bx,By;
     slice4 Bxx,Byy;
-    slice4 Hx,Hy;
+    slice4 hx,hy;
     slice4 coastline;
     slice4 vb;
     
     sliceint5 nodeval2D;
     slice4 breaking_print;
+    
+    // NHFLOW
+    slice4 wbed,dwdt;
     
     cpt2D C4;
 	
