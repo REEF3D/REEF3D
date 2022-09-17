@@ -20,9 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"pjm_sig_hs.h"
+#include"nhflow_pjm_hs.h"
 #include"lexer.h"
-#include"fdm.h" 
+#include"fdm_nhf.h" 
 #include"ghostcell.h"
 #include"poisson.h"
 #include"solver.h"
@@ -35,11 +35,11 @@ Author: Hans Bihs
 #include"density_heat.h"
 #include"density_vof.h"
 
-#define HX (fabs(a->hx(i,j))>1.0e-20?a->hx(i,j):1.0e20)
-#define HXP (fabs(0.5*(a->WL(i,j)+a->WL(i+1,j)))>1.0e-20?0.5*(a->WL(i,j)+a->WL(i+1,j)):1.0e20)
-#define HY (fabs(a->hy(i,j))>1.0e-20?a->hy(i,j):1.0e20)
+#define HX (fabs(d->hx(i,j))>1.0e-20?d->hx(i,j):1.0e20)
+#define HXP (fabs(0.5*(d->WL(i,j)+d->WL(i+1,j)))>1.0e-20?0.5*(d->WL(i,j)+d->WL(i+1,j)):1.0e20)
+#define HY (fabs(d->hy(i,j))>1.0e-20?d->hy(i,j):1.0e20)
  
-pjm_sig_hs::pjm_sig_hs(lexer* p, fdm *a, heat *&pheat, concentration *&pconc)
+nhflow_pjm_hs::nhflow_pjm_hs(lexer* p, fdm_nhf *d, heat *&pheat, concentration *&pconc)
 {
     if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0)
 	pd = new density_f(p);
@@ -60,78 +60,78 @@ pjm_sig_hs::pjm_sig_hs(lexer* p, fdm *a, heat *&pheat, concentration *&pconc)
 	gcval_w=9;
 }
 
-pjm_sig_hs::~pjm_sig_hs()
+nhflow_pjm_hs::~nhflow_pjm_hs()
 {
 }
 
-void pjm_sig_hs::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
+void nhflow_pjm_hs::start(fdm_nhf *d,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, ioflow *pflow, double *U, double *V, double *W, double alpha)
 {
 }
 
-void pjm_sig_hs::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
+void nhflow_pjm_hs::ucorr(lexer* p, fdm_nhf *d, double *U, double alpha)
 {	
 }
 
-void pjm_sig_hs::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
+void nhflow_pjm_hs::vcorr(lexer* p, fdm_nhf *d, double *U, double alpha)
 {	 
 }
 
-void pjm_sig_hs::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
+void nhflow_pjm_hs::wcorr(lexer* p, fdm_nhf *d, double *W, double alpha)
 {
 }
  
-void pjm_sig_hs::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
+void nhflow_pjm_hs::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
 {
 }
  
-void pjm_sig_hs::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
+void nhflow_pjm_hs::vel_setup(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
 {
 }
 
-void pjm_sig_hs::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
+void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 {
     if(p->D38==1 && p->A540==1)
     ULOOP
-	a->F(i,j,k) -= PORVAL1*fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j))/p->DXP[IP];
+	d->F(i,j,k) -= PORVAL1*fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j))/p->DXP[IP];
     
     if(p->D38==1 && p->A540==2)
     ULOOP
-	a->F(i,j,k) -= PORVAL1*fabs(p->W22)*(a->eta(i+1,j) - a->eta(i,j))/p->DXP[IP];
+	d->F(i,j,k) -= PORVAL1*fabs(p->W22)*(d->eta(i+1,j) - d->eta(i,j))/p->DXP[IP];
     
     if(p->D38==2 && p->A540==1)
     ULOOP
-	a->F(i,j,k) -= PORVAL1*fabs(p->W22)*(1.0/HX)*
+	d->F(i,j,k) -= PORVAL1*fabs(p->W22)*(1.0/HX)*
     
                     (0.5*(pow(eta(i+1,j),2.0) - pow(eta(i,j),2.0))/p->DXP[IP]
                     
-                    + ((p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j))*a->depth(i+1,j) - (p->A223*eta(i,j) + (1.0-p->A223)*eta_n(i,j))*a->depth(i,j))/p->DXP[IP]
+                    + ((p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j))*d->depth(i+1,j) - (p->A223*eta(i,j) + (1.0-p->A223)*eta_n(i,j))*d->depth(i,j))/p->DXP[IP]
                     
-                    - 0.5*((p->A223*eta(i,j) + (1.0-p->A223)*eta_n(i,j)) + (p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j)))*(a->depth(i+1,j)-a->depth(i,j))/p->DXP[IP]);
+                    - 0.5*((p->A223*eta(i,j) + (1.0-p->A223)*eta_n(i,j)) + (p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j)))*(d->depth(i+1,j)-d->depth(i,j))/p->DXP[IP]);
     
     
     if(p->D38==2 && p->A540==2)
     ULOOP
-	a->F(i,j,k) -= PORVAL1*fabs(p->W22)*(1.0/HX)*
+	d->F(i,j,k) -= PORVAL1*fabs(p->W22)*(1.0/HX)*
     
-                    (0.5*(pow(a->eta(i+1,j),2.0) - pow(a->eta(i,j),2.0))/p->DXP[IP]
+                    (0.5*(pow(d->eta(i+1,j),2.0) - pow(d->eta(i,j),2.0))/p->DXP[IP]
                     
-                    + (a->eta(i+1,j)*a->depth(i+1,j) - a->eta(i,j)*a->depth(i,j))/p->DXP[IP]
+                    + (d->eta(i+1,j)*d->depth(i+1,j) - d->eta(i,j)*d->depth(i,j))/p->DXP[IP]
                     
-                    - 0.5*(a->eta(i,j) + a->eta(i+1,j))*(a->depth(i+1,j)-a->depth(i,j))/p->DXP[IP]);
+                    - 0.5*(d->eta(i,j) + d->eta(i+1,j))*(d->depth(i+1,j)-d->depth(i,j))/p->DXP[IP]);
 }
 
-void pjm_sig_hs::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
+void nhflow_pjm_hs::vpgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 {
     if(p->D38==1 && p->A540==1)
     VLOOP
-	a->G(i,j,k) -= PORVAL2*fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j))/p->DYP[JP];
+	d->G(i,j,k) -= PORVAL2*fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j))/p->DYP[JP];
     
     if(p->D38==1 && p->A540==2)
     VLOOP
-	a->G(i,j,k) -= PORVAL2*fabs(p->W22)*(a->eta(i,j+1) - a->eta(i,j))/p->DYP[JP];
+	d->G(i,j,k) -= PORVAL2*fabs(p->W22)*(d->eta(i,j+1) - d->eta(i,j))/p->DYP[JP];
 }
 
-void pjm_sig_hs::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
+void nhflow_pjm_hs::wpgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 {
 }
 

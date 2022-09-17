@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"pressure.h"
+#include"nhflow_pressure.h"
 #include"increment.h"
 
 class density;
@@ -30,28 +30,28 @@ class concentration;
 
 using namespace std;
 
-#ifndef PJM_SIG_H_
-#define PJM_SIG_H_
+#ifndef NHFLOW_PJM_H_
+#define NHFLOW_PJM_H_
 
-class pjm_sig : public pressure, public increment
+class nhflow_pjm : public nhflow_pressure, public increment
 {
 
 public:
 
-	pjm_sig(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
-	virtual ~pjm_sig();
+	nhflow_pjm(lexer*, fdm_nhf*, ghostcell*, heat*&, concentration*&);
+	virtual ~nhflow_pjm();
 
-	virtual void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,ioflow*, field&, field&, field&,double);
-	virtual void ucorr(lexer*p,fdm*,field&,double);
-	virtual void vcorr(lexer*p,fdm*,field&,double);
-	virtual void wcorr(lexer*p,fdm*,field&,double);
-	virtual void upgrad(lexer*,fdm*,slice&,slice&);
-	virtual void vpgrad(lexer*,fdm*,slice&,slice&);
-    virtual void wpgrad(lexer*,fdm*,slice&,slice&);
+	virtual void start(fdm_nhf*,lexer* p, poisson*, solver*, ghostcell*,ioflow*,double*,double*,double*,double);
+	virtual void ucorr(lexer*p,fdm_nhf*,double*,double);
+	virtual void vcorr(lexer*p,fdm_nhf*,double*,double);
+	virtual void wcorr(lexer*p,fdm_nhf*,double*,double);
+	virtual void upgrad(lexer*,fdm_nhf*,slice&,slice&);
+	virtual void vpgrad(lexer*,fdm_nhf*,slice&,slice&);
+    virtual void wpgrad(lexer*,fdm_nhf*,slice&,slice&);
     
-    void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-    void bedbc(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
+    void rhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
+	void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
+    void bedbc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 
 private:
 	double starttime,endtime;
@@ -60,7 +60,7 @@ private:
 	int count, gcval_press;
 	int gcval_u, gcval_v, gcval_w;
 	
-	void debug(lexer*,fdm*);
+	void debug(lexer*,fdm_nhf*);
     
     density *pd;
 

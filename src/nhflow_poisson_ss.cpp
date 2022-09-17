@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"pjm_sigss.h"
+#include"nhflow_pjm_ss.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"heat.h"
@@ -33,7 +33,7 @@ Author: Hans Bihs
 #include"hypre_struct_fnpf.h"
 #include"hypre_sstruct_fnpf.h"
 
-void pjm_sigss::poisson2D(lexer* p, fdm *a, field &f)
+void nhflow_pjm_ss::poisson2D(lexer* p, fdm *a, field &f)
 {
     double sigxyz2,ab,denom;
     double fbxm,fbxp,fbym,fbyp;
@@ -248,7 +248,7 @@ nt 8 -
 	}
 }
 
-void pjm_sigss::poisson3D(lexer* p, fdm *a, field &f)
+void nhflow_pjm_ss::poisson3D(lexer* p, fdm *a, field &f)
 {
     
 }

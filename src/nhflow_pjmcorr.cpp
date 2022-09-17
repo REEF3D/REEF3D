@@ -24,7 +24,7 @@ Author: Hans Bihs
 #define HXP (fabs(0.5*(a->WL(i,j)+a->WL(i+1,j)))>1.0e-20?0.5*(a->WL(i,j)+a->WL(i+1,j)):1.0e20)
 #define HY (fabs(a->hy(i,j))>1.0e-20?a->hy(i,j):1.0e20)
 
-#include"pjmcorr_sig.h"
+#include"nhflow_pjmcorr.h"
 #include"lexer.h"
 #include"fdm.h" 
 #include"ghostcell.h"
@@ -39,7 +39,7 @@ Author: Hans Bihs
 #include"density_heat.h"
 #include"density_vof.h"
  
-pjmcorr_sig::pjmcorr_sig(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc) : teta(0.5)
+nhflow_pjmcorr::nhflow_pjmcorr(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc) : teta(0.5)
 {
     if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0)
 	pd = new density_f(p);
@@ -56,11 +56,11 @@ pjmcorr_sig::pjmcorr_sig(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concent
     gcval_press=540;  
 }
 
-pjmcorr_sig::~pjmcorr_sig()
+nhflow_pjmcorr::~nhflow_pjmcorr()
 {
 }
 
-void pjmcorr_sig::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
+void nhflow_pjmcorr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, ioflow *pflow, double *U, double *V, double *W, double alpha)
 {
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<".";
@@ -93,7 +93,7 @@ void pjmcorr_sig::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell*
     pgc->start4(p,a->test,1);
 }
 
-void pjmcorr_sig::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
+void nhflow_pjmcorr::ucorr(lexer* p, fdm* a, double *U, double alpha)
 {	
     if(p->D37==1)
 	ULOOP
@@ -118,7 +118,7 @@ void pjmcorr_sig::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
     }
 }
 
-void pjmcorr_sig::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
+void nhflow_pjmcorr::vcorr(lexer* p, fdm* a, double *V, double alpha)
 {	
     if(p->D37==1)
     VLOOP
@@ -144,7 +144,7 @@ void pjmcorr_sig::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
     }
 }
 
-void pjmcorr_sig::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
+void nhflow_pjmcorr::wcorr(lexer* p, fdm* a, double *W, double alpha)
 {
     if(p->D37==1)
     WLOOP 	
@@ -167,7 +167,7 @@ void pjmcorr_sig::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
     }
 }
  
-void pjmcorr_sig::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
+void nhflow_pjmcorr::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
 {
     NLOOP4
 	a->rhsvec.V[n]=0.0;
@@ -190,17 +190,17 @@ void pjmcorr_sig::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, fiel
     pip=0;
 }
 
-void pjmcorr_sig::bedbc(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
+void nhflow_pjmcorr::bedbc(lexer *p, fdm* a, ghostcell *pgc, double *U, double *V, double *W, double alpha)
 {
     
 }
  
-void pjmcorr_sig::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
+void nhflow_pjmcorr::vel_setup(lexer *p, fdm* a, ghostcell *pgc, double *U, double *V, double *W, double alpha)
 {
 
 }
 
-void pjmcorr_sig::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
+void nhflow_pjmcorr::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
     if(p->D38==1 && p->A540==1)
     ULOOP
@@ -235,7 +235,7 @@ void pjmcorr_sig::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
     // Sx = -g * eta * eta * Bx
 }
 
-void pjmcorr_sig::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
+void nhflow_pjmcorr::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
     if(p->D38==1 && p->A540==1)
     VLOOP
@@ -246,7 +246,7 @@ void pjmcorr_sig::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 	a->G(i,j,k) -= PORVAL2*fabs(p->W22)*(a->eta(i,j+1) - a->eta(i,j))/p->DYP[JP];
 }
 
-void pjmcorr_sig::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
+void nhflow_pjmcorr::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
 }
 

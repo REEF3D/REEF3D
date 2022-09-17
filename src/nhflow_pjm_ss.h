@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"pressure.h"
+#include"nhflow_pressure.h"
 #include"increment.h"
 
 class density;
@@ -30,32 +30,35 @@ class concentration;
 
 using namespace std;
 
-#ifndef PJM_SIGSS_H_
-#define PJM_SIGSS_H_
+#ifndef NHFLOW_PJM_H_
+#define NHFLOW_PJM_H_
 
-class pjm_sigss : public pressure, public increment
+class nhflow_pjm : public nhflow_pressure, public increment
 {
 
 public:
 
-	pjm_sigss(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
-	virtual ~pjm_sigss();
+	nhflow_pjm(lexer*, fdm_nhf*, ghostcell*, heat*&, concentration*&);
+	virtual ~nhflow_pjm();
 
-	virtual void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,ioflow*, field&, field&, field&,double);
-	virtual void rhscalc(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	virtual void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	virtual void ucorr(lexer*p,fdm*,field&,double);
-	virtual void vcorr(lexer*p,fdm*,field&,double);
-	virtual void wcorr(lexer*p,fdm*,field&,double);
-	virtual void upgrad(lexer*,fdm*,slice&,slice&);
-	virtual void vpgrad(lexer*,fdm*,slice&,slice&);
-    virtual void wpgrad(lexer*,fdm*,slice&,slice&);
+	virtual void start(fdm_nhf*,lexer* p, poisson*, solver*, ghostcell*,ioflow*,double*,double*,double*,double);
+	virtual void ucorr(lexer*p,fdm_nhf*,double*,double);
+	virtual void vcorr(lexer*p,fdm_nhf*,double*,double);
+	virtual void wcorr(lexer*p,fdm_nhf*,double*,double);
+	virtual void upgrad(lexer*,fdm_nhf*,slice&,slice&);
+	virtual void vpgrad(lexer*,fdm_nhf*,slice&,slice&);
+    virtual void wpgrad(lexer*,fdm_nhf*,slice&,slice&);
     
-    void fillvec(lexer*,fdm*,ghostcell*);
-    void fillvec_back(lexer*,fdm*,ghostcell*);
+	void rhscalc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
+	void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
+    void bedbc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
+
     
-    void poisson2D(lexer *,fdm*,field&);
-    void poisson3D(lexer *,fdm*,field&);
+    void fillvec(lexer*,fdm_nhf*,ghostcell*);
+    void fillvec_back(lexer*,fdm_nhf*,ghostcell*);
+    
+    void poisson2D(lexer *,fdm_nhf*,field&);
+    void poisson3D(lexer *,fdm_nhf*,field&);
 
 private:
 	double starttime,endtime;
@@ -64,7 +67,7 @@ private:
 	int gcval_u, gcval_v, gcval_w;
     int check;
 	
-	void debug(lexer*,fdm*);
+	void debug(lexer*,fdm_nhf*);
     
     density *pd;
     int vecsize;

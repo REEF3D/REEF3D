@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -41,7 +41,7 @@ Author: Hans Bihs
 #include"hypre_struct.h"
 #include"hypre_sstruct_fnpf.h"
  
-pjm_sigss::pjm_sigss(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc)
+pjm_sigss::pjm_sigss(lexer* p, fdm_nhf *d, ghostcell *pgc, heat *&pheat, concentration *&pconc)
 {
     if((p->F80==0||p->A10==5||p->A10==55) && p->H10==0 && p->W30==0)
 	pd = new density_f(p);
@@ -74,7 +74,7 @@ pjm_sigss::~pjm_sigss()
 {
 }
 
-void pjm_sigss::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
+void pjm_sigss::start(fdm_nhf *d,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, ioflow *pflow, double *U, double *V, double *W, double alpha)
 {    
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<".";
@@ -113,7 +113,7 @@ void pjm_sigss::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* p
     pgc->start4(p,a->test,1);
 }
 
-void pjm_sigss::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
+void pjm_sigss::ucorr(lexer* p, fdm_nhf *d, double *U, double alpha)
 {	
 	if(p->D37==1)
 	ULOOP
@@ -138,7 +138,7 @@ void pjm_sigss::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
     }
 }
 
-void pjm_sigss::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
+void pjm_sigss::vcorr(lexer* p, fdm_nhf *d, double *V, double alpha)
 {	 
     if(p->D37==1)
     VLOOP
@@ -164,7 +164,7 @@ void pjm_sigss::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
     }
 }
 
-void pjm_sigss::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
+void pjm_sigss::wcorr(lexer* p, fdm_nhf *d, double *W, double alpha)
 {
     if(p->D37==1)
     WLOOP 	
@@ -187,7 +187,7 @@ void pjm_sigss::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
     }
 }
  
-void pjm_sigss::rhscalc(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, double alpha)
+void pjm_sigss::rhscalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
 {
     NLOOP4
 	rhs[n]=0.0;
@@ -214,14 +214,14 @@ void pjm_sigss::rhscalc(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, fi
     pip=0;
 }
  
-void pjm_sigss::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
+void pjm_sigss::vel_setup(lexer *p, fdm_nhf *d, ghostcell *pgc, ouble *U, double *V, double *W, double alpha)
 {
 	pgc->start1(p,u,gcval_u);
 	pgc->start2(p,v,gcval_v);
 	pgc->start3(p,w,gcval_w);
 }
 
-void pjm_sigss::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
+void pjm_sigss::upgrad(lexer*p,fdm_nhf *d, slice &eta, slice &eta_n)
 {
     if(p->D38==1 && p->A540==1)
     ULOOP
@@ -256,7 +256,7 @@ void pjm_sigss::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
     // Sx = -g * eta * eta * Bx
 }
 
-void pjm_sigss::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
+void pjm_sigss::vpgrad(lexer*p,fdm_nhf *d, slice &eta, slice &eta_n)
 {
    if(p->D38==1 && p->A540==1)
     VLOOP
@@ -267,11 +267,11 @@ void pjm_sigss::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 	a->G(i,j,k) -= PORVAL2*fabs(p->W22)*(a->eta(i,j+1) - a->eta(i,j))/p->DYP[JP];
 }
 
-void pjm_sigss::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
+void pjm_sigss::wpgrad(lexer*p,fdm_nhf *d, slice &eta, slice &eta_n)
 {
 }
 
-void pjm_sigss::fillvec(lexer *p, fdm *a, ghostcell *pgc)
+void pjm_sigss::fillvec(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     n=0;
     KJILOOP
@@ -286,7 +286,7 @@ void pjm_sigss::fillvec(lexer *p, fdm *a, ghostcell *pgc)
     }
 }
 
-void pjm_sigss::fillvec_back(lexer *p, fdm *a, ghostcell *pgc)
+void pjm_sigss::fillvec_back(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     n=0;
     KJILOOP

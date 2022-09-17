@@ -20,28 +20,27 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"poisson.h"
 #include"increment.h"
-
+class lexer;class fdm_nhf;class ghostcell;class ioflow;class poisson;class solver;class field;class slice;
 class heat;
 class concentration;
 class density;
 
-#ifndef POISSON_SIG_H_
-#define POISSON_SIG_H_
+#ifndef NHFLOW_POISSON_H_
+#define NHFLOW_POISSON_H_
 
 using namespace std;
 
 
-class poisson_sig : public poisson, public increment
+class nhflow_poisson : public increment
 {
 
 public:
 
-	poisson_sig (lexer *, heat*&, concentration*&);
-	virtual ~poisson_sig();
+	nhflow_poisson (lexer *, heat*&, concentration*&);
+	virtual ~nhflow_poisson();
 
-	virtual void start(lexer *,fdm*,field&);
+	virtual void start(lexer *,fdm_nhf*,field&);
 
 private:
 
