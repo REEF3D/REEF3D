@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -41,19 +41,9 @@ Author: Hans Bihs
 #include"hypre_struct.h"
 #include"hypre_sstruct_fnpf.h"
  
-pjm_sigss::pjm_sigss(lexer* p, fdm_nhf *d, ghostcell *pgc, heat *&pheat, concentration *&pconc)
+pjm_sigss::pjm_sigss(lexer* p, fdm_nhf *d, ghostcell *pgc)
 {
-    if((p->F80==0||p->A10==5||p->A10==55) && p->H10==0 && p->W30==0)
 	pd = new density_f(p);
-	
-	if(p->F80==0 && p->H10==0 && p->W30==1)
-	pd = new density_comp(p);
-	
-	if(p->F80==0 && p->H10>0)
-	pd = new density_heat(p,pheat);
-	
-	if(p->F80==0 && p->C10>0)
-	pd = new density_conc(p,pconc);
 
     gcval_press=540;  
 

@@ -113,19 +113,15 @@ void driver::logic_nhflow()
 	ppress = new pressure_void(p);
 
     if(p->D30==1)
-	ppress = new pjm_sig(p,a,pgc,pheat,pconc);
+    ppress = new nhflow_pjm(p,d,pgc);
     
     if(p->D30==4)
-	ppress = new pjm_sigss(p,a,pgc,pheat,pconc);
+	ppress = new nhflow_pjm_ss(p,d,pgc);
 
     if(p->D30==10)
-	ppress = new pjm_sig_hs(p,a,pheat,pconc);
+	ppress = new nhflow_pjm_hs(p,d);
 
 
-//poisson scheme for pressure
-    if(p->D30==1)
-	ppois = new poisson_sig(p,pheat,pconc);
-	
 //Solver
     if(p->j_dir==0)
 	psolv = new bicgstab_ijk_2D(p,a,pgc);

@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -37,7 +37,7 @@ class nhflow_pjmcorr : public nhflow_pressure, public increment
 {
 
 public:
-	nhflow_pjmcorr(lexer*, fdm_nhf*, ghostcell*, heat*&, concentration*&);
+	nhflow_pjmcorr(lexer*, fdm_nhf*, ghostcell*);
 	virtual ~nhflow_pjmcorr();
 
 	virtual void start(fdm_nhf*,lexer* p, poisson*, solver*, ghostcell*,ioflow*,double*,double*,double*,double);

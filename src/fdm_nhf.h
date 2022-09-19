@@ -75,8 +75,11 @@ public:
 	
     vec rhsvec;
     vec2D xvec,rvec;
+    
+    // 3D array
     double *Fi,*Uin,*Uout,*U,*V,*W,*omega,*P,*visc,*eddyv;
     double *F,*G,*H,*L;
+    double *porosity;
 
     matrix2D N;
 	matrix_diag M;    

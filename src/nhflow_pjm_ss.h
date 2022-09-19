@@ -38,7 +38,7 @@ class nhflow_pjm : public nhflow_pressure, public increment
 
 public:
 
-	nhflow_pjm(lexer*, fdm_nhf*, ghostcell*, heat*&, concentration*&);
+	nhflow_pjm(lexer*, fdm_nhf*, ghostcell*);
 	virtual ~nhflow_pjm();
 
 	virtual void start(fdm_nhf*,lexer* p, poisson*, solver*, ghostcell*,ioflow*,double*,double*,double*,double);

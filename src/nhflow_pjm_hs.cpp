@@ -39,19 +39,9 @@ Author: Hans Bihs
 #define HXP (fabs(0.5*(d->WL(i,j)+d->WL(i+1,j)))>1.0e-20?0.5*(d->WL(i,j)+d->WL(i+1,j)):1.0e20)
 #define HY (fabs(d->hy(i,j))>1.0e-20?d->hy(i,j):1.0e20)
  
-nhflow_pjm_hs::nhflow_pjm_hs(lexer* p, fdm_nhf *d, heat *&pheat, concentration *&pconc)
+nhflow_pjm_hs::nhflow_pjm_hs(lexer* p, fdm_nhf *d)
 {
-    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0)
 	pd = new density_f(p);
-	
-	if(p->F80==0 && p->H10==0 && p->W30==1)
-	pd = new density_comp(p);
-	
-	if(p->F80==0 && p->H10>0)
-	pd = new density_heat(p,pheat);
-	
-	if(p->F80==0 && p->C10>0)
-	pd = new density_conc(p,pconc);
 
     gcval_press=540;  
 
@@ -91,16 +81,16 @@ void nhflow_pjm_hs::vel_setup(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
 void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 {
     if(p->D38==1 && p->A540==1)
-    ULOOP
-	d->F(i,j,k) -= PORVAL1*fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j))/p->DXP[IP];
+    LOOP
+	d->F[IJK] -= PORVALNH*fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j))/p->DXP[IP];
     
     if(p->D38==1 && p->A540==2)
-    ULOOP
-	d->F(i,j,k) -= PORVAL1*fabs(p->W22)*(d->eta(i+1,j) - d->eta(i,j))/p->DXP[IP];
+    LOOP
+	d->F[IJK] -= PORVALNH*fabs(p->W22)*(d->eta(i+1,j) - d->eta(i,j))/p->DXP[IP];
     
     if(p->D38==2 && p->A540==1)
-    ULOOP
-	d->F(i,j,k) -= PORVAL1*fabs(p->W22)*(1.0/HX)*
+    LOOP
+	d->F[IJK] -= PORVALNH*fabs(p->W22)*(1.0/HX)*
     
                     (0.5*(pow(eta(i+1,j),2.0) - pow(eta(i,j),2.0))/p->DXP[IP]
                     
@@ -110,8 +100,8 @@ void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
     
     
     if(p->D38==2 && p->A540==2)
-    ULOOP
-	d->F(i,j,k) -= PORVAL1*fabs(p->W22)*(1.0/HX)*
+    LOOP
+	d->F[IJK] -= PORVALNH*fabs(p->W22)*(1.0/HX)*
     
                     (0.5*(pow(d->eta(i+1,j),2.0) - pow(d->eta(i,j),2.0))/p->DXP[IP]
                     
@@ -123,12 +113,12 @@ void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 void nhflow_pjm_hs::vpgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 {
     if(p->D38==1 && p->A540==1)
-    VLOOP
-	d->G(i,j,k) -= PORVAL2*fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j))/p->DYP[JP];
+    LOOP
+	d->G[IJK] -= PORVALNH*fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j))/p->DYP[JP];
     
     if(p->D38==1 && p->A540==2)
-    VLOOP
-	d->G(i,j,k) -= PORVAL2*fabs(p->W22)*(d->eta(i,j+1) - d->eta(i,j))/p->DYP[JP];
+    LOOP
+	d->G[IJK] -= PORVALNH*fabs(p->W22)*(d->eta(i,j+1) - d->eta(i,j))/p->DYP[JP];
 }
 
 void nhflow_pjm_hs::wpgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)

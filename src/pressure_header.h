@@ -22,9 +22,6 @@ Author: Hans Bihs
 
 #include"pressure_void.h"
 #include"pjm.h"
-#include"pjm_sig.h"
-#include"pjm_sigss.h"
-#include"pjm_sig_hs.h"
 #include"pjm_fsm.h"
 #include"pjm_corr.h"
 #include"pjm_comp.h"
@@ -32,7 +29,10 @@ Author: Hans Bihs
 #include"pjm_IMEX.h"
 #include"pjm_hydrostatic.h"
 #include"poisson_f.h"
-#include"poisson_sig.h"
 #include"poisson_nse.h"
 
-
+#include"nhflow_pjm.h"
+#include"nhflow_pjm_ss.h"
+#include"nhflow_pjm_hs.h"
+#include"nhflow_pjmcorr.h"
+#include"nhflow_poisson.h"
