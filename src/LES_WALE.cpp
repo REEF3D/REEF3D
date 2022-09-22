@@ -1,4 +1,5 @@
-/*--------------------------------------------------------------------
+
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -35,8 +36,13 @@ Author: Elyas Larkermani
 
 LES_WALE::LES_WALE(lexer* p, fdm* a) : LES(p,a)
 {
+
+    gcval_u1=10;
+	gcval_v1=11;
+	gcval_w1=12;
+
 	gcval_sgs=24;
-	c_wale=0.2;
+	c_wale=0.5;
     
     if(p->T21==0)
     pfilter = new LES_filter_v(p,a);
@@ -54,10 +60,16 @@ LES_WALE::~LES_WALE()
 
 void LES_WALE::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow, vrans* pvrans)
 {
-    pfilter->start(p,a,pgc,uprime,vprime,wprime);    //strainterm(p,uprime,vprime,wprime);
+    pfilter->start(p,a,pgc,uprime,vprime,wprime,gcval_u1);
+    pfilter->start(p,a,pgc,uprime,vprime,wprime,gcval_v1);
+    pfilter->start(p,a,pgc,uprime,vprime,wprime,gcval_w1);
+
+
+    //strainterm(p,uprime,vprime,wprime);
     
     LOOP
-    a->eddyv(i,j,k) = pow(p->DXM*c_wale,2.0) *  (pow(magSqrSd(p,a), 3.0/2.0) / (pow(strainterm(p,a), 5.0) + pow(magSqrSd(p,a), 5.0/4.0)));
+    a->eddyv(i,j,k) = pow(p->DXM*c_wale,2.0) *  (pow(magSqrSd(p,uprime,vprime,wprime), 3.0/2.0) / (pow(strainterm(p,uprime,vprime,wprime), 5.0) + pow(magSqrSd(p,uprime,vprime,wprime), 5.0/4.0)));
+//    a->eddyv(i,j,k) = pow(p->DXM*c_wale,2.0) *  (pow(magSqrSd(p,a), 3.0/2.0) / (pow(strainterm(p,a), 5.0) + pow(magSqrSd(p,a), 5.0/4.0)));
 
     pgc->start4(p,a->eddyv,gcval_sgs);
 }

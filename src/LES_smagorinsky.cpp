@@ -35,6 +35,10 @@ Author: Hans Bihs
 
 LES_smagorinsky::LES_smagorinsky(lexer* p, fdm* a) : LES(p,a)
 {
+    gcval_u1=10;
+	gcval_v1=11;
+	gcval_w1=12;
+    
 	gcval_sgs=24;
 	c_sgs=0.2;
     
@@ -54,10 +58,15 @@ LES_smagorinsky::~LES_smagorinsky()
 
 void LES_smagorinsky::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow, vrans* pvrans)
 {
-    pfilter->start(p,a,pgc,uprime,vprime,wprime);
+    pfilter->start(p,a,pgc,uprime,vprime,wprime,gcval_u1);
+    pfilter->start(p,a,pgc,uprime,vprime,wprime,gcval_v1);
+    pfilter->start(p,a,pgc,uprime,vprime,wprime,gcval_w1);
+	
     
     LOOP
-    a->eddyv(i,j,k) = pow(p->DXM*c_sgs,2.0) * sqrt(2.0) * strainterm(p,a);
+    a->eddyv(i,j,k) = pow(p->DXM*c_sgs,2.0) * sqrt(2.0) * strainterm(p,uprime,vprime,wprime);
+
+//    a->eddyv(i,j,k) = pow(p->DXM*c_sgs,2.0) * sqrt(2.0) * strainterm(p,a);
 
     pgc->start4(p,a->eddyv,gcval_sgs);
 }
