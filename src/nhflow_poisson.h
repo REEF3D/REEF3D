@@ -37,7 +37,7 @@ class nhflow_poisson : public increment
 
 public:
 
-	nhflow_poisson (lexer *, heat*&, concentration*&);
+	nhflow_poisson (lexer *);
 	virtual ~nhflow_poisson();
 
 	virtual void start(lexer *,fdm_nhf*,field&);

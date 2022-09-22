@@ -25,8 +25,7 @@ Author: Hans Bihs
 
 class density;
 class solver;
-class heat;
-class concentration;
+class nhflow_poisson;
 
 using namespace std;
 
@@ -63,6 +62,7 @@ private:
 	void debug(lexer*,fdm_nhf*);
     
     density *pd;
+    nhflow_poisson *ppois;
 
 };
 

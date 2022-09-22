@@ -28,16 +28,11 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h" 
 #include"ghostcell.h"
-#include"poisson.h"
 #include"solver.h"
 #include"ioflow.h"
-#include"heat.h"
-#include"concentration.h"
+#include"nhflow_poisson.h"
 #include"density_f.h"
-#include"density_comp.h"
-#include"density_conc.h"
-#include"density_heat.h"
-#include"density_vof.h"
+
  
 nhflow_pjm::nhflow_pjm(lexer* p, fdm_nhf *d, ghostcell *pgc) : teta(1.0)
 {

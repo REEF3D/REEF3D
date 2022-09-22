@@ -31,23 +31,9 @@ Author: Hans Bihs
 #include"density_heat.h"
 #include"density_vof.h"
 
-nhflow_poisson::nhflow_poisson(lexer *p, heat *&pheat, concentration *&pconc) : teta(0.5)  
+nhflow_poisson::nhflow_poisson(lexer *p) : teta(0.5)  
 {
-    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0)
 	pd = new density_f(p);
-	
-	if(p->F80==0 && p->H10==0 && p->W30==1)
-	pd = new density_comp(p);
-	
-	if(p->F80==0 && p->H10>0)
-	pd = new density_heat(p,pheat);
-	
-	if(p->F80==0 && p->C10>0)
-	pd = new density_conc(p,pconc);
-    
-    if(p->F80>0 && p->H10==0 && p->W30==0)
-	pd = new density_vof(p);
-
 }
 
 nhflow_poisson::~nhflow_poisson()
@@ -66,26 +52,26 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, field &f)
             sigxyz2 = pow(0.5*(p->sigx[FIJK]+p->sigx[FIJKp1]),2.0) + pow(0.5*(p->sigy[FIJK]+p->sigy[FIJKp1]),2.0) + pow(p->sigz[IJ],2.0);
             
             
-            d->M.p[n]  =  (CPOR1*PORVAL1)/(pd->roface(p,a,1,0,0)*p->DXP[IP]*p->DXN[IP])
-                        + (CPOR1m*PORVAL1m)/(pd->roface(p,a,-1,0,0)*p->DXP[IM1]*p->DXN[IP])
+            d->M.p[n]  =  (CPOR1*PORVAL1)/(p->W1*p->DXP[IP]*p->DXN[IP])
+                        + (CPOR1m*PORVAL1m)/(p->W1*p->DXP[IM1]*p->DXN[IP])
                         
-                        + (CPOR2*PORVAL2)/(pd->roface(p,a,0,1,0)*p->DYP[JP]*p->DYN[JP])*p->y_dir
-                        + (CPOR2m*PORVAL2m)/(pd->roface(p,a,0,-1,0)*p->DYP[JM1]*p->DYN[JP])*p->y_dir
+                        + (CPOR2*PORVAL2)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir
+                        + (CPOR2m*PORVAL2m)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir
                         
-                        + (sigxyz2*CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*p->DZP[KP]*p->DZN[KP])
+                        + (sigxyz2*CPOR3*PORVAL3)/(p->W1*p->DZP[KP]*p->DZN[KP])
                         + (sigxyz2*CPOR3m*PORVAL3m)/(pd->roface(p,a,0,0,-1)*p->DZP[KM1]*p->DZN[KP]);
 
 
-            d->M.n[n] = -(CPOR1*PORVAL1)/(pd->roface(p,a,1,0,0)*p->DXP[IP]*p->DXN[IP]);
-            d->M.s[n] = -(CPOR1m*PORVAL1m)/(pd->roface(p,a,-1,0,0)*p->DXP[IM1]*p->DXN[IP]);
+            d->M.n[n] = -(CPOR1*PORVAL1)/(p->W1*p->DXP[IP]*p->DXN[IP]);
+            d->M.s[n] = -(CPOR1m*PORVAL1m)/(p->W1*p->DXP[IM1]*p->DXN[IP]);
 
-            d->M.w[n] = -(CPOR2*PORVAL2)/(pd->roface(p,a,0,1,0)*p->DYP[JP]*p->DYN[JP])*p->y_dir;
-            d->M.e[n] = -(CPOR2m*PORVAL2m)/(pd->roface(p,a,0,-1,0)*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+            d->M.w[n] = -(CPOR2*PORVAL2)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir;
+            d->M.e[n] = -(CPOR2m*PORVAL2m)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
 
-            d->M.t[n] = -(sigxyz2*CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*p->DZP[KP]*p->DZN[KP])     
+            d->M.t[n] = -(sigxyz2*CPOR3*PORVAL3)/(p->W1*p->DZP[KP]*p->DZN[KP])     
                         + CPOR4*PORVAL4*0.5*(p->sigxx[FIJK]+p->sigxx[FIJKp1])/(d->ro(i,j,k)*(p->DZN[KP]+p->DZN[KM1]));
                         
-            d->M.b[n] = -(sigxyz2*CPOR3m*PORVAL3m)/(pd->roface(p,a,0,0,-1)*p->DZP[KM1]*p->DZN[KP]) 
+            d->M.b[n] = -(sigxyz2*CPOR3m*PORVAL3m)/(p->W1*p->DZP[KM1]*p->DZN[KP]) 
                         - CPOR4*PORVAL4*0.5*(p->sigxx[FIJK]+p->sigxx[FIJKp1])/(d->ro(i,j,k)*(p->DZN[KP]+p->DZN[KM1]));
             
             
