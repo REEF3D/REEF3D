@@ -26,9 +26,9 @@ Author: Hans Bihs
 
 #include"pjm_sigss.h"
 #include"lexer.h"
-#include"fdm.h" 
+#include"fdm_nhf.h" 
 #include"ghostcell.h"
-#include"poisson.h"
+#include"nhflow_poisson.h"
 #include"solver.h"
 #include"ioflow.h"
 #include"heat.h"

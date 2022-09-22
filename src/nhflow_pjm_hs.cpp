@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h" 
 #include"ghostcell.h"
-#include"poisson.h"
+#include"nhflow_poisson.h"
 #include"solver.h"
 #include"ioflow.h"
 #include"heat.h"

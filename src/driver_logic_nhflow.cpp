@@ -113,7 +113,7 @@ void driver::logic_nhflow()
 	ppress = new pressure_void(p);
 
     if(p->D30==1)
-    ppress = new nhflow_pjm(p,d,pgc);
+    ppress = new nhflow_pjm(p,d,pgc);
     
     if(p->D30==4)
 	ppress = new nhflow_pjm_ss(p,d,pgc);
