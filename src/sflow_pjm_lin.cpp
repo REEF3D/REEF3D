@@ -276,7 +276,6 @@ void sflow_pjm_lin::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
                                      
         }  
 
-        
 
     pBC->patchBC_pressure2D_ugrad(p,b,eta,eta_n);
 }

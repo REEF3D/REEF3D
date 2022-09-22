@@ -24,7 +24,6 @@ class lexer;
 class fdm_nhf;
 class ghostcell;
 class ioflow;
-class poisson;
 class solver;
 class field;
 class slice;
@@ -38,7 +37,7 @@ class nhflow_pressure
 {
 public:
 
-	virtual void start(lexer*,fdm_nhf*,poisson*,solver*,ghostcell*,ioflow*,double*,double*,double*,double)=0;
+	virtual void start(lexer*,fdm_nhf*,solver*,ghostcell*,ioflow*,double*,double*,double*,double)=0;
 	virtual void upgrad(lexer*,fdm_nhf*,slice&,slice&)=0;
 	virtual void vpgrad(lexer*,fdm_nhf*,slice&,slice&)=0;
 	virtual void wpgrad(lexer*,fdm_nhf*,slice&,slice&)=0;

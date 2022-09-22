@@ -40,7 +40,7 @@ public:
 	nhflow_pjmcorr(lexer*, fdm_nhf*, ghostcell*);
 	virtual ~nhflow_pjmcorr();
 
-	virtual void start(fdm_nhf*,lexer* p, poisson*, solver*, ghostcell*,ioflow*,double*,double*,double*,double);
+	virtual void start(lexer*,fdm_nhf*,solver*,ghostcell*,ioflow*,double*,double*,double*,double);
 	virtual void ucorr(lexer*p,fdm_nhf*,double*,double);
 	virtual void vcorr(lexer*p,fdm_nhf*,double*,double);
 	virtual void wcorr(lexer*p,fdm_nhf*,double*,double);

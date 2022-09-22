@@ -28,7 +28,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h" 
 #include"ghostcell.h"
-#include"poisson.h"
+#include"nhflow_poisson.h"
 #include"solver.h"
 #include"ioflow.h"
 #include"heat.h"
@@ -52,7 +52,8 @@ nhflow_pjm::~nhflow_pjm()
 {
 }
 
-void nhflow_pjm::start(fdm_nhf *d,lexer *p, poisson* ppois,solver* psolv, ghostcell* pgc, ioflow *pflow, double *U, double *V, double *W, double alpha)
+void nhflow_pjm::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, ioflow *pflow, 
+                        double *U, double *V, double *W, double alpha)
 {
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<".";
