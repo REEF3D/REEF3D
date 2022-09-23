@@ -40,7 +40,7 @@ class solver
 public:
 
 	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int)=0;
-    virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int)=0;
+    virtual void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int)=0;
     virtual void startM(lexer*, fdm*, ghostcell*, double*, double*, double*, int)=0;
 	
 };

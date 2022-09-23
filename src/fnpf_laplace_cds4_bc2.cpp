@@ -388,7 +388,7 @@ void fnpf_laplace_cds4_bc2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver 
 
 
     double starttime=pgc->timer();
-    psolv->startF(p,c,pgc,f,c->rhsvec,c->M,10);
+    psolv->startF(p,pgc,f,c->rhsvec,c->M,10);
     double endtime=pgc->timer();
     
     p->poissoniter=p->solveriter;

@@ -29,7 +29,7 @@ Author: Hans Bihs
 #include"field.h"
 #include"vec.h"
 
-void hypre_aij::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var)
+void hypre_aij::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var)
 {     
     double *xvec;
     

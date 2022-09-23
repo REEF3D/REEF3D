@@ -62,8 +62,7 @@ void nhflow_pjm::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, iofl
 
         starttime=pgc->timer();
 
-    //psolv->start(p,d,pgc,d->P,d->rhsvec,5);
-    psolv->startF(p,c,pgc,P,d->rhsvec,c->M,8);
+    psolv->startF(p,pgc,d->P,d->rhsvec,d->M,8);
 
         endtime=pgc->timer();
 

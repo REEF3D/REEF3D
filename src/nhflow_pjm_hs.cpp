@@ -50,7 +50,7 @@ nhflow_pjm_hs::~nhflow_pjm_hs()
 {
 }
 
-void nhflow_pjm_hs::start(lexer*p, fdm_nhf *d, poisson* ppois,solver* psolv, ghostcell* pgc, ioflow *pflow, double *U, double *V, double *W, double alpha)
+void nhflow_pjm_hs::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pgc, ioflow *pflow, double *U, double *V, double *W, double alpha)
 {
 }
 
