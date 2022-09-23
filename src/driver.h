@@ -61,6 +61,7 @@ class onephase;
 class nsewave;
 class nhflow_fsf;
 class nhflow_convection;
+class nhflow_pressure;
 class sflow;
 class fnpf_vtu3D;
 class fnpf_timestep;
@@ -189,6 +190,7 @@ public:
     patchBC_interface *pBC;
     nhflow *pnh;
     nhflow_convection *pnhfconvec;
+    nhflow_pressure *pnhpress;
 
 
 private:

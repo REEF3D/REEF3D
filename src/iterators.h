@@ -207,7 +207,11 @@ Author: Hans Bihs
 
 
 #define PORVALNH d->porosity[IJK]
-#define CPORNH (1.0/(1.0+(p->B260*(PORVALNH<1.0?1.0:0.0))))
+#define PORVALNHm d->porosity[IJK]
+#define PORVALNHp d->porosity[IJK]
+#define CPORNH  (1.0/(1.0+(p->B260*(PORVALNH<1.0?1.0:0.0))))
+#define CPORNHm (1.0/(1.0+(p->B260*(PORVALNHm<1.0?1.0:0.0))))
+#define CPORNHp (1.0/(1.0+(p->B260*(PORVALNHp<1.0?1.0:0.0))))
 
 //-----------------------------------------------------------
 

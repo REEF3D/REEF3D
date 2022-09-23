@@ -40,7 +40,7 @@ nhflow_poisson::~nhflow_poisson()
 {
 }
 
-void nhflow_poisson::start(lexer* p, fdm_nhf *d, field &f)
+void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
 {	
     double sigxyz2;
    
@@ -52,34 +52,34 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, field &f)
             sigxyz2 = pow(0.5*(p->sigx[FIJK]+p->sigx[FIJKp1]),2.0) + pow(0.5*(p->sigy[FIJK]+p->sigy[FIJKp1]),2.0) + pow(p->sigz[IJ],2.0);
             
             
-            d->M.p[n]  =  (CPOR1*PORVAL1)/(p->W1*p->DXP[IP]*p->DXN[IP])
-                        + (CPOR1m*PORVAL1m)/(p->W1*p->DXP[IM1]*p->DXN[IP])
+            d->M.p[n]  =  (CPORNH*PORVALNH)/(p->W1*p->DXP[IP]*p->DXN[IP])
+                        + (CPORNHm*PORVALNHm)/(p->W1*p->DXP[IM1]*p->DXN[IP])
                         
-                        + (CPOR2*PORVAL2)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir
-                        + (CPOR2m*PORVAL2m)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir
+                        + (CPORNH*PORVALNH)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir
+                        + (CPORNHm*PORVALNHm)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir
                         
-                        + (sigxyz2*CPOR3*PORVAL3)/(p->W1*p->DZP[KP]*p->DZN[KP])
-                        + (sigxyz2*CPOR3m*PORVAL3m)/(pd->roface(p,a,0,0,-1)*p->DZP[KM1]*p->DZN[KP]);
+                        + (sigxyz2*CPORNH*PORVALNH)/(p->W1*p->DZP[KP]*p->DZN[KP])
+                        + (sigxyz2*CPORNHm*PORVALNHm)/(pd->roface(p,a,0,0,-1)*p->DZP[KM1]*p->DZN[KP]);
 
 
-            d->M.n[n] = -(CPOR1*PORVAL1)/(p->W1*p->DXP[IP]*p->DXN[IP]);
-            d->M.s[n] = -(CPOR1m*PORVAL1m)/(p->W1*p->DXP[IM1]*p->DXN[IP]);
+            d->M.n[n] = -(CPORNH*PORVALNH)/(p->W1*p->DXP[IP]*p->DXN[IP]);
+            d->M.s[n] = -(CPORNHm*PORVALNHm)/(p->W1*p->DXP[IM1]*p->DXN[IP]);
 
-            d->M.w[n] = -(CPOR2*PORVAL2)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir;
-            d->M.e[n] = -(CPOR2m*PORVAL2m)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+            d->M.w[n] = -(CPORNH*PORVALNH)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir;
+            d->M.e[n] = -(CPORNHm*PORVALNHm)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
 
-            d->M.t[n] = -(sigxyz2*CPOR3*PORVAL3)/(p->W1*p->DZP[KP]*p->DZN[KP])     
-                        + CPOR4*PORVAL4*0.5*(p->sigxx[FIJK]+p->sigxx[FIJKp1])/(d->ro(i,j,k)*(p->DZN[KP]+p->DZN[KM1]));
+            d->M.t[n] = -(sigxyz2*CPORNH*PORVALNH)/(p->W1*p->DZP[KP]*p->DZN[KP])     
+                        + CPORNH*PORVALNH*0.5*(p->sigxx[FIJK]+p->sigxx[FIJKp1])/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
                         
-            d->M.b[n] = -(sigxyz2*CPOR3m*PORVAL3m)/(p->W1*p->DZP[KM1]*p->DZN[KP]) 
-                        - CPOR4*PORVAL4*0.5*(p->sigxx[FIJK]+p->sigxx[FIJKp1])/(d->ro(i,j,k)*(p->DZN[KP]+p->DZN[KM1]));
+            d->M.b[n] = -(sigxyz2*CPORNHm*PORVALNHm)/(p->W1*p->DZP[KM1]*p->DZN[KP]) 
+                        - CPORNH*PORVALNH*0.5*(p->sigxx[FIJK]+p->sigxx[FIJKp1])/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
             
             
-            d->rhsvec.V[n] +=  CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])*(f(i+1,j,k+1) - f(i-1,j,k+1) - f(i+1,j,k-1) + f(i-1,j,k-1))
-                            /(d->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))
+            d->rhsvec.V[n] +=  CPORNH*PORVALNH*(p->sigx[FIJK]+p->sigx[FIJKp1])*(f(i+1,j,k+1) - f(i-1,j,k+1) - f(i+1,j,k-1) + f(i-1,j,k-1))
+                            /(p->W1*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))
                         
-                            + CPOR4*PORVAL4*(p->sigy[FIJK]+p->sigy[FIJKp1])*(f(i,j+1,k+1) - f(i,j-1,k+1) - f(i,j+1,k-1) + f(i,j-1,k-1))
-                            /((d->ro(i,j,k)*p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
+                            + CPORNH*PORVALNH*(p->sigy[FIJK]+p->sigy[FIJKp1])*(f(i,j+1,k+1) - f(i,j-1,k+1) - f(i,j+1,k-1) + f(i,j-1,k-1))
+                            /((p->W1*p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
         }
 	
 	++n;
@@ -117,7 +117,7 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, field &f)
             // BEDBC
             if(p->flag4[IJKm1]<0)
             {
-            /*d->rhsvec.V[n] += d->M.b[n]*p->DZP[KM1]*d->WL(i,j)*d->ro(i,j,k)*d->dwdt(i,j);
+            /*d->rhsvec.V[n] += d->M.b[n]*p->DZP[KM1]*d->WL(i,j)*p->W1*d->dwdt(i,j);
             d->M.p[n] += d->M.b[n];
             d->M.b[n] = 0.0;*/
             
@@ -145,16 +145,16 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, field &f)
                 
                 
                 d->rhsvec.V[n] -=  CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])*(f(i+1,j,k+1) - f(i-1,j,k+1) - f(i+1,j,k-1) + f(i-1,j,k-1))
-                        /(d->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))
+                        /(p->W1*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))
                         
                         + CPOR4*PORVAL4*(p->sigy[FIJK]+p->sigy[FIJKp1])*(f(i,j+1,k+1) - f(i,j-1,k+1) - f(i,j+1,k-1) + f(i,j-1,k-1))
-                        /((d->ro(i,j,k)*p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
+                        /((p->W1*p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
                         
                 d->rhsvec.V[n] +=  CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])*( - f(i+1,j,k-1) + f(i-1,j,k-1))
-                        /(d->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(teta*p->DZN[KP]+p->DZN[KM1]))
+                        /(p->W1*(p->DXN[IP]+p->DXN[IM1])*(teta*p->DZN[KP]+p->DZN[KM1]))
                         
                         + CPOR4*PORVAL4*(p->sigy[FIJK]+p->sigy[FIJKp1])*( - f(i,j+1,k-1) + f(i,j-1,k-1))
-                        /((d->ro(i,j,k)*p->DYN[JP]+p->DYN[JM1])*(teta*p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
+                        /((p->W1*p->DYN[JP]+p->DYN[JM1])*(teta*p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
                 }
             }
         }

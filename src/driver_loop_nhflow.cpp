@@ -72,7 +72,7 @@ void driver::loop_nhflow()
 			fill_vel(p,a,pgc);
         
         // Free Surface
-        pnhfsf->start(p,a,pgc,pflow);
+        pnhfsf->start(p,d,pgc,pflow);
 			
             //pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
             //pheat->start(a,p,pconvec,pdiff,psolv,pgc,pflow);

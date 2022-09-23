@@ -30,10 +30,6 @@ Author: Hans Bihs
 #include"heat.h"
 #include"concentration.h"
 #include"density_f.h"
-#include"density_comp.h"
-#include"density_conc.h"
-#include"density_heat.h"
-#include"density_vof.h"
 
 #define HX (fabs(d->hx(i,j))>1.0e-20?d->hx(i,j):1.0e20)
 #define HXP (fabs(0.5*(d->WL(i,j)+d->WL(i+1,j)))>1.0e-20?0.5*(d->WL(i,j)+d->WL(i+1,j)):1.0e20)
@@ -54,7 +50,7 @@ nhflow_pjm_hs::~nhflow_pjm_hs()
 {
 }
 
-void nhflow_pjm_hs::start(fdm_nhf *d,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, ioflow *pflow, double *U, double *V, double *W, double alpha)
+void nhflow_pjm_hs::start(lexer*p, fdm_nhf *d, poisson* ppois,solver* psolv, ghostcell* pgc, ioflow *pflow, double *U, double *V, double *W, double alpha)
 {
 }
 

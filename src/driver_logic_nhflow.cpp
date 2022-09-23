@@ -109,17 +109,14 @@ void driver::logic_nhflow()
     
     
 //pressure scheme
-	if(p->D30==0)
-	ppress = new pressure_void(p);
 
-    if(p->D30==1)
-    ppress = new nhflow_pjm(p,d,pgc);
+    if(p->D30==1)    pnhpress = new nhflow_pjm(p,d,pgc);
     
     if(p->D30==4)
-	ppress = new nhflow_pjm_ss(p,d,pgc);
+	pnhpress = new nhflow_pjm_ss(p,d,pgc);
 
     if(p->D30==10)
-	ppress = new nhflow_pjm_hs(p,d);
+	pnhpress = new nhflow_pjm_hs(p,d);
 
 
 //Solver

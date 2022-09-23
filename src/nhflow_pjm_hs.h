@@ -24,8 +24,8 @@ Author: Hans Bihs
 #include"increment.h"
 
 class density;
-class heat;
-class concentration;
+class solver;
+class nhflow_poisson;
 
 using namespace std;
 

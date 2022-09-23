@@ -243,7 +243,6 @@
         <File Name="nhflow_v.h"/>
         <File Name="nhflow.h"/>
         <VirtualDirectory Name="Pressure">
-          <File Name="nhflow_pjmcorr.h"/>
           <File Name="nhflow_pjm_ss.h"/>
           <File Name="nhflow_pjm_hs.h"/>
           <File Name="nhflow_pjm.h"/>
@@ -1237,7 +1236,6 @@
         <File Name="nhflow_v.cpp"/>
         <File Name="nhflow_f.cpp"/>
         <VirtualDirectory Name="Pressure">
-          <File Name="nhflow_pjmcorr.cpp"/>
           <File Name="nhflow_pjm_ss.cpp"/>
           <File Name="nhflow_pjm_hs.cpp"/>
           <File Name="nhflow_pjm.cpp"/>

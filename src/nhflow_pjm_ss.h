@@ -23,23 +23,20 @@ Author: Hans Bihs
 #include"nhflow_pressure.h"
 #include"increment.h"
 
-class density;
-class solver;
-class heat;
-class concentration;
+class density;class solver;class nhflow_poisson;
 
 using namespace std;
 
-#ifndef NHFLOW_PJM_H_
-#define NHFLOW_PJM_H_
+#ifndef NHFLOW_PJM_SS_H_
+#define NHFLOW_PJM_SS_H_
 
-class nhflow_pjm : public nhflow_pressure, public increment
+class nhflow_pjm_ss : public nhflow_pressure, public increment
 {
 
 public:
 
-	nhflow_pjm(lexer*, fdm_nhf*, ghostcell*);
-	virtual ~nhflow_pjm();
+	nhflow_pjm_ss(lexer*, fdm_nhf*, ghostcell*);
+	virtual ~nhflow_pjm_ss();
 
 	virtual void start(lexer*,fdm_nhf*,solver*,ghostcell*,ioflow*,double*,double*,double*,double);
 	virtual void ucorr(lexer*p,fdm_nhf*,double*,double);
@@ -49,7 +46,7 @@ public:
 	virtual void vpgrad(lexer*,fdm_nhf*,slice&,slice&);
     virtual void wpgrad(lexer*,fdm_nhf*,slice&,slice&);
     
-	void rhscalc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
+	void rhscalc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 	void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
     void bedbc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 

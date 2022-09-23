@@ -21,10 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"increment.h"
-class lexer;class fdm_nhf;class ghostcell;class ioflow;class poisson;class solver;class field;class slice;
-class heat;
-class concentration;
-class density;
+class lexer;class fdm_nhf;class ghostcell;class ioflow;class poisson;class solver;
 
 #ifndef NHFLOW_POISSON_H_
 #define NHFLOW_POISSON_H_
@@ -40,7 +37,7 @@ public:
 	nhflow_poisson (lexer *);
 	virtual ~nhflow_poisson();
 
-	virtual void start(lexer *,fdm_nhf*,field&);
+	virtual void start(lexer *,fdm_nhf*,double*);
 
 private:
 
@@ -49,7 +46,6 @@ private:
     
     density *pd;
 };
-
 
 #endif
 
