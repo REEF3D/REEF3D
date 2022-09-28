@@ -44,7 +44,6 @@ private:
 	double teta;
 	int count,n,q;
     
-    density *pd;
 };
 
 #endif

@@ -33,7 +33,6 @@ Author: Hans Bihs
 
 nhflow_poisson::nhflow_poisson(lexer *p) : teta(0.5)  
 {
-	pd = new density_f(p);
 }
 
 nhflow_poisson::~nhflow_poisson()
@@ -59,7 +58,7 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
                         + (CPORNHm*PORVALNHm)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir
                         
                         + (sigxyz2*CPORNH*PORVALNH)/(p->W1*p->DZP[KP]*p->DZN[KP])
-                        + (sigxyz2*CPORNHm*PORVALNHm)/(pd->roface(p,a,0,0,-1)*p->DZP[KM1]*p->DZN[KP]);
+                        + (sigxyz2*CPORNHm*PORVALNHm)/(p->W1*p->DZP[KM1]*p->DZN[KP]);
 
 
             d->M.n[n] = -(CPORNH*PORVALNH)/(p->W1*p->DXP[IP]*p->DXN[IP]);
@@ -75,10 +74,10 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
                         - CPORNH*PORVALNH*0.5*(p->sigxx[FIJK]+p->sigxx[FIJKp1])/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
             
             
-            d->rhsvec.V[n] +=  CPORNH*PORVALNH*(p->sigx[FIJK]+p->sigx[FIJKp1])*(f(i+1,j,k+1) - f(i-1,j,k+1) - f(i+1,j,k-1) + f(i-1,j,k-1))
+            d->rhsvec.V[n] +=  CPORNH*PORVALNH*(p->sigx[FIJK]+p->sigx[FIJKp1])*(P[FIp1JKp1] - P[FIm1JKp1] - P[FIp1JKm1] + P[FIm1JKm1])
                             /(p->W1*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))
                         
-                            + CPORNH*PORVALNH*(p->sigy[FIJK]+p->sigy[FIJKp1])*(f(i,j+1,k+1) - f(i,j-1,k+1) - f(i,j+1,k-1) + f(i,j-1,k-1))
+                            + CPORNH*PORVALNH*(p->sigy[FIJK]+p->sigy[FIJKp1])*(P[FIJp1Kp1] - P[FIJm1Kp1] - P[FIJp1Km1] + P[FIJm1Km1])
                             /((p->W1*p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
         }
 	
@@ -92,25 +91,25 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
         {
             if(p->flag4[Im1JK]<0)
             {
-            d->rhsvec.V[n] -= d->M.s[n]*f(i-1,j,k);
+            d->rhsvec.V[n] -= d->M.s[n]*P[FIm1JK];
             d->M.s[n] = 0.0;
             }
             
             if(p->flag4[Ip1JK]<0)
             {
-            d->rhsvec.V[n] -= d->M.n[n]*f(i+1,j,k);
+            d->rhsvec.V[n] -= d->M.n[n]*P[FIp1JK];
             d->M.n[n] = 0.0;
             }
             
             if(p->flag4[IJm1K]<0)
             {
-            d->rhsvec.V[n] -= d->M.e[n]*f(i,j-1,k)*p->y_dir;
+            d->rhsvec.V[n] -= d->M.e[n]*P[FIJm1K]*p->y_dir;
             d->M.e[n] = 0.0;
             }
             
             if(p->flag4[IJp1K]<0)
             {
-            d->rhsvec.V[n] -= d->M.w[n]*f(i,j+1,k)*p->y_dir;
+            d->rhsvec.V[n] -= d->M.w[n]*P[FIJp1K]*p->y_dir;
             d->M.w[n] = 0.0;
             }
             
@@ -121,7 +120,7 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             d->M.p[n] += d->M.b[n];
             d->M.b[n] = 0.0;*/
             
-            d->rhsvec.V[n] -= d->M.b[n]*f(i,j,k-1);
+            d->rhsvec.V[n] -= d->M.b[n]*P[FIJKp1];
             d->M.b[n] = 0.0;
             }
             
@@ -130,31 +129,8 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             {
                 if(p->D37==1)
                 {
-                d->rhsvec.V[n] -= d->M.t[n]*f(i,j,k+1);
+                d->rhsvec.V[n] -= d->M.t[n]*P[FIJKp1];
                 d->M.t[n] = 0.0;
-                }
-                
-                if(p->D37==2)
-                {
-                sigxyz2 = pow(0.5*(p->sigx[FIJK]+p->sigx[FIJKp1]),2.0) + pow(0.5*(p->sigy[FIJK]+p->sigy[FIJKp1]),2.0) + pow(p->sigz[IJ],2.0);
-                
-                d->M.p[n] -= (sigxyz2*CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*p->DZP[KP]*p->DZN[KP]);
-                d->M.p[n] += (sigxyz2*CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*teta*p->DZP[KP]*p->DZN[KP]);
-                
-                d->M.t[n] = 0.0;
-                
-                
-                d->rhsvec.V[n] -=  CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])*(f(i+1,j,k+1) - f(i-1,j,k+1) - f(i+1,j,k-1) + f(i-1,j,k-1))
-                        /(p->W1*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))
-                        
-                        + CPOR4*PORVAL4*(p->sigy[FIJK]+p->sigy[FIJKp1])*(f(i,j+1,k+1) - f(i,j-1,k+1) - f(i,j+1,k-1) + f(i,j-1,k-1))
-                        /((p->W1*p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
-                        
-                d->rhsvec.V[n] +=  CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])*( - f(i+1,j,k-1) + f(i-1,j,k-1))
-                        /(p->W1*(p->DXN[IP]+p->DXN[IM1])*(teta*p->DZN[KP]+p->DZN[KM1]))
-                        
-                        + CPOR4*PORVAL4*(p->sigy[FIJK]+p->sigy[FIJKp1])*( - f(i,j+1,k-1) + f(i,j-1,k-1))
-                        /((p->W1*p->DYN[JP]+p->DYN[JM1])*(teta*p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
                 }
             }
         }

@@ -84,7 +84,7 @@ void hypre_struct::make_grid(lexer* p, ghostcell* pgc)
     HYPRE_StructVectorInitialize(x);
 }
 
-void hypre_struct::make_grid_2Dvert(lexer* p,fdm* a, ghostcell* pgc)
+void hypre_struct::make_grid_2Dvert(lexer* p,ghostcell* pgc)
 {
     int kend=0;
     
