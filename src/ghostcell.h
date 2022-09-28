@@ -62,9 +62,11 @@ public:
 	void start4(lexer*,field&, int);
 	void start4a(lexer*,field&, int);
 
-	void start4V(lexer*,vec&,int);
-	void start4aV(lexer*,vec&,int);
-    void start6V(lexer*,vec&,int);
+	void start4vec(lexer*,vec&,int);
+	void start4avec(lexer*,vec&,int);
+    void start6vec(lexer*,vec&,int);
+    
+    void start4V(lexer*,double*,sliceint&, int);
     void start7V(lexer*,double*,sliceint&, int);
     void start7S(lexer*,double*, int);
 

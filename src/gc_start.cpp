@@ -263,7 +263,7 @@ void ghostcell::start4a(lexer *p, field& f, int gcv)
 	gcparacox(p,f,gcv);
 }
 
-void ghostcell::start4V(lexer *p, vec &x, int gcv)
+void ghostcell::start4vec(lexer *p, vec &x, int gcv)
 {
     if(p->M10>0)
     {
@@ -292,7 +292,7 @@ void ghostcell::start4V(lexer *p, vec &x, int gcv)
     gcV_periodic(p, x, 4, 3);
 }
 
-void ghostcell::start4aV(lexer *p, vec &x, int gcv)
+void ghostcell::start4avec(lexer *p, vec &x, int gcv)
 {
     if(p->M10>0)
     {
@@ -321,7 +321,7 @@ void ghostcell::start4aV(lexer *p, vec &x, int gcv)
     gcV_periodic_all(p, x, 4, 3);
 }
 
-void ghostcell::start6V(lexer *p, vec &x, int gcv)
+void ghostcell::start6vec(lexer *p, vec &x, int gcv)
 {
     if(p->M10>0)
     {
@@ -340,6 +340,32 @@ void ghostcell::start6V(lexer *p, vec &x, int gcv)
     
     // periodic ghostcells
     gcperiodicxvec(p,x,6);
+}
+
+void ghostcell::start4V(lexer *p, double *x, sliceint &bc, int gcv)
+{
+    if(p->M10>0)
+    {
+    starttime=timer();
+	gcparax7(p,x,7);
+    gcparax7co(p,x,7);
+    gcparax7co(p,x,7);
+	endtime=timer();
+	p->xtime+=endtime-starttime;
+    }
+    
+    
+    if(gcv==250)
+    fivec(p,x,bc);
+    
+    if(gcv==150)
+    fivec2D(p,x,bc);
+    
+    if(gcv==210)
+    fivec_vel(p,x,bc);
+    
+    if(gcv==110)
+    fivec2D_vel(p,x,bc);
 }
 
 void ghostcell::start7V(lexer *p, double *x, sliceint &bc, int gcv)
