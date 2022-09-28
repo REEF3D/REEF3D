@@ -40,7 +40,7 @@ class hypre_struct : public solver, public increment
 {
 public:
 
-	hypre_struct(lexer*,fdm*,ghostcell*,int,int);
+	hypre_struct(lexer*,ghostcell*,int,int);
 	virtual ~hypre_struct();
     
 	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
@@ -62,8 +62,8 @@ public:
     
     
     
-    void make_grid(lexer*,fdm*, ghostcell*);
-    void make_grid_2Dvert(lexer*,fdm*, ghostcell*);
+    void make_grid(lexer*, ghostcell*);
+    void make_grid_2Dvert(lexer*, ghostcell*);
     
     void fill_matrix1(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix1_2Dvert(lexer*,fdm*, ghostcell*,field&);

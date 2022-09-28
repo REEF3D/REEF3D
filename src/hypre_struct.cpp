@@ -29,7 +29,7 @@ Author: Hans Bihs
 #include"field.h"
 #include"vec.h"
 
-hypre_struct::hypre_struct(lexer* p,fdm* a,ghostcell *pgc, int solve_input, int precon_input) : cval4(p),  
+hypre_struct::hypre_struct(lexer* p,ghostcell *pgc, int solve_input, int precon_input) : cval4(p),  
                                                                                                solve_type(solve_input), precon_type(precon_input)
 {	
     int vecsize=p->knox*p->knoy*p->knoz; 
