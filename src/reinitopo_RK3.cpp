@@ -78,7 +78,7 @@ void reinitopo_RK3::start(lexer* p, fdm* a, ghostcell* pgc, field& b)
     
     gcval=gcval_topo;
 
-	pgc->start4aV(p,f,gcval);
+	pgc->start4avec(p,f,gcval);
 	
 	if(p->count==0)
 	{
@@ -86,7 +86,7 @@ void reinitopo_RK3::start(lexer* p, fdm* a, ghostcell* pgc, field& b)
 	cout<<"initializing topo..."<<endl<<endl;
 	reiniter=2*int(p->maxlength/(p->F43*p->DXM));
     gcval=gcval_initopo;
-	pgc->start4aV(p,f,gcval);
+	pgc->start4avec(p,f,gcval);
 	}
 
 	if(p->count>0)
@@ -100,7 +100,7 @@ void reinitopo_RK3::start(lexer* p, fdm* a, ghostcell* pgc, field& b)
 	NLOOP4A
 	frk1.V[n] = f.V[n] + dt.V[n]*L.V[n];
 
-	pgc->start4aV(p,frk1,gcval);
+	pgc->start4avec(p,frk1,gcval);
     
 
     // Step 2
@@ -109,7 +109,7 @@ void reinitopo_RK3::start(lexer* p, fdm* a, ghostcell* pgc, field& b)
 	NLOOP4A
 	frk2.V[n]=  0.75*f.V[n] + 0.25*frk1.V[n] + 0.25*dt.V[n]*L.V[n];
 
-	pgc->start4aV(p,frk2,gcval);
+	pgc->start4avec(p,frk2,gcval);
 
 
     // Step 3
@@ -118,7 +118,7 @@ void reinitopo_RK3::start(lexer* p, fdm* a, ghostcell* pgc, field& b)
 	NLOOP4A
 	f.V[n] = (1.0/3.0)*f.V[n] + (2.0/3.0)*frk2.V[n] + (2.0/3.0)*dt.V[n]*L.V[n];
 
-	pgc->start4aV(p,f,gcval);
+	pgc->start4avec(p,f,gcval);
 	}
 	
 	// backfill
