@@ -22,7 +22,7 @@ Author: Hans Bihs
 
 #include"nhflow_pjm_ss.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_nhf.h"
 #include"heat.h"
 #include"concentration.h"
 #include"density_f.h"
@@ -33,7 +33,7 @@ Author: Hans Bihs
 #include"hypre_struct_fnpf.h"
 #include"hypre_sstruct_fnpf.h"
 
-void nhflow_pjm_ss::poisson2D(lexer* p, fdm *a, field &f)
+void nhflow_pjm_ss::poisson2D(lexer* p, fdm_nhf *d, field &f)
 {
     double sigxyz2,ab,denom;
     double fbxm,fbxp,fbym,fbyp;
@@ -60,28 +60,28 @@ nt 8 -
         {
         sigxyz2 = pow(0.5*(p->sigx[FIJK]+p->sigx[FIJKp1]),2.0) + pow(p->sigz[IJ],2.0);
         
-        M[n*9]  =         (CPOR1*PORVAL1)/(pd->roface(p,a,1,0,0)*p->DXP[IP]*p->DXN[IP])
-                        + (CPOR1m*PORVAL1m)/(pd->roface(p,a,-1,0,0)*p->DXP[IM1]*p->DXN[IP])
+        M[n*9]  =         (CPORNH*PORVALNH)/(p->W1*p->DXP[IP]*p->DXN[IP])
+                        + (CPORNH*PORVALNH)/(p->W1*p->DXP[IM1]*p->DXN[IP])
                         
-                        + (sigxyz2*CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*p->DZP[KP]*p->DZN[KP])
-                        + (sigxyz2*CPOR3m*PORVAL3m)/(pd->roface(p,a,0,0,-1)*p->DZP[KM1]*p->DZN[KP]);
+                        + (sigxyz2*CPORNH*PORVALNH)/(p->W1*p->DZP[KP]*p->DZN[KP])
+                        + (sigxyz2*CPORNH*PORVALNH)/(p->W1*p->DZP[KM1]*p->DZN[KP]);
 
         
-        M[n*9+1] = -(CPOR1*PORVAL1)/(pd->roface(p,a,1,0,0)*p->DXP[IP]*p->DXN[IP]);
+        M[n*9+1] = -(CPOR1*PORVALNH)/(p->W1*p->DXP[IP]*p->DXN[IP]);
         
-        M[n*9+2] = -(CPOR1m*PORVAL1m)/(pd->roface(p,a,-1,0,0)*p->DXP[IM1]*p->DXN[IP]);
+        M[n*9+2] = -(CPOR1m*PORVALNH)/(p->W1*p->DXP[IM1]*p->DXN[IP]);
         
-        M[n*9+3] = -(sigxyz2*CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*p->DZP[KP]*p->DZN[KP])     
-                        + CPOR4*PORVAL4*0.5*(p->sigxx[FIJK]+p->sigxx[FIJKp1])/(a->ro(i,j,k)*(p->DZN[KP]+p->DZN[KM1]));
+        M[n*9+3] = -(sigxyz2*CPORNH*PORVALNH)/(p->W1*p->DZP[KP]*p->DZN[KP])     
+                        + CPORNH*PORVALNH*0.5*(p->sigxx[FIJK]+p->sigxx[FIJKp1])/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
                         
-        M[n*9+4] = -(sigxyz2*CPOR3m*PORVAL3m)/(pd->roface(p,a,0,0,-1)*p->DZP[KM1]*p->DZN[KP]) 
-                        - CPOR4*PORVAL4*0.5*(p->sigxx[FIJK]+p->sigxx[FIJKp1])/(a->ro(i,j,k)*(p->DZN[KP]+p->DZN[KM1]));
+        M[n*9+4] = -(sigxyz2*CPOR3m*PORVALNH)/(p->W1*p->DZP[KM1]*p->DZN[KP]) 
+                        - CPORNH*PORVALNH*0.5*(p->sigxx[FIJK]+p->sigxx[FIJKp1])/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
         
       
-        M[n*9+5]  = -CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
-        M[n*9+6]  =  CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
-        M[n*9+7]  =  CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
-        M[n*9+8]  = -CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1])); 
+        M[n*9+5]  = -CPORNH*PORVALNH*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
+        M[n*9+6]  =  CPORNH*PORVALNH*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
+        M[n*9+7]  =  CPORNH*PORVALNH*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
+        M[n*9+8]  = -CPORNH*PORVALNH*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1])); 
         }
         
         if(p->flag4[IJK]<0 || a->wet(i,j)==0)
@@ -126,14 +126,6 @@ nt 8 -
                 rhs[n] -= M[n*9+4]*f(i,j,k+1);
                 M[n*9+4] = 0.0;
                 }
-                
-                if(p->D37==2)
-                {
-                M[n*9] -= (sigxyz2*CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*p->DZP[KP]*p->DZN[KP]);
-                M[n*9] += (sigxyz2*CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*teta*p->DZP[KP]*p->DZN[KP]);
-                           
-                M[n*9+4] = 0.0;
-                }
             }
    
         // diagonal entries
@@ -146,12 +138,6 @@ nt 8 -
                 rhs[n] -= M[n*9+6]*f(i-1,j,k+1);
                 M[n*9+6] = 0.0;
                 }
-                
-                if(p->D37==2)
-                {
-                M[n*9+6] -= CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1])); 
-                M[n*9+6] += CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(teta*p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));         
-                } 
             }
                 // wall
             if((p->flag4[Im1JKp1]<0 && p->flag4[IJKp1]>0)) //
@@ -161,12 +147,6 @@ nt 8 -
                 rhs[n] -= M[n*9+6]*f(i-1,j,k+1);
                 M[n*9+6] = 0.0;
                 }
-                
-                if(p->D37==2)
-                {
-                M[n*9+6] -= CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1])); 
-                M[n*9+6] += CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(teta*p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));         
-                } 
             }
             
             // nt
@@ -180,12 +160,6 @@ nt 8 -
                 M[n*9+8] = 0.0; 
                 }
                 
-                
-                if(p->D37==2)
-                {
-                M[n*9+8] += CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1])); 
-                M[n*9+8] -= CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(teta*p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));         
-                } 
             }
             
                 // wall
@@ -196,13 +170,7 @@ nt 8 -
                 rhs[n] -= M[n*9+8]*f(i+1,j,k+1);
                 M[n*9+8] = 0.0; 
                 }
-                
-                
-                if(p->D37==2)
-                {
-                M[n*9+8] += CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1])); 
-                M[n*9+8] -= CPOR4*PORVAL4*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(teta*p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));         
-                } 
+
             }
             
             // sb 
