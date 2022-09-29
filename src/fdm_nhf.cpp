@@ -25,7 +25,7 @@ Author: Hans Bihs
 
 fdm_nhf::fdm_nhf(lexer *p) : press(p),test(p),Fifsf(p),Fibed(p),
                               nodeval(p),eta(p),etaloc(p),
-                              wet(p),wet_n(p),breaking(p),breaklog(p),bc(p),
+                              wet_n(p),breaking(p),breaklog(p),bc(p),
                               eta_n(p),WL(p),WL_n(p),
                               bed(p),depth(p),Fz(p),K(p),
                               Fx(p),Fy(p),

@@ -46,7 +46,7 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
 	n=0;
     LOOP
 	{
-        if(d->wet(i,j)==1)
+        if(p->wet[IJ]==1)
         {
             sigxyz2 = pow(0.5*(p->sigx[FIJK]+p->sigx[FIJKp1]),2.0) + pow(0.5*(p->sigy[FIJK]+p->sigy[FIJKp1]),2.0) + pow(p->sigz[IJ],2.0);
             
@@ -87,7 +87,7 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
     n=0;
 	LOOP
 	{
-        if(d->wet(i,j)==1)
+        if(p->wet[IJ]==1)
         {
             if(p->flag4[Im1JK]<0)
             {

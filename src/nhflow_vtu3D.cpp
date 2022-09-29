@@ -446,10 +446,10 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     zcoor = p->ZN[KP1]*waterlevel + p->sl_ipol4(d->bed);
 
 
-    if(d->wet(i,j)==0)
+    if(p->wet[IJ]==0)
     zcoor=d->bed(i,j);
 
-    if(i+p->origin_i==-1 && j+p->origin_j==-1 && d->wet(0,0)==1)
+    if(i+p->origin_i==-1 && j+p->origin_j==-1 && p->wet[(0-p->imin)*p->jmax + (0-p->jmin)]==1)
     zcoor = p->ZN[KP1]*d->WL(i,j) + d->bed(i,j);
 
     ffn=float( (p->XN[IP1]-p->B192_3)*cos(theta_y*sin(phase)) - (zcoor-p->B192_4)*sin(theta_y*sin(phase)) + p->B192_3);

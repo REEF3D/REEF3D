@@ -108,7 +108,7 @@ void ptf_fsfbc::fsfwvel(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &Fif
     //a->Fz(i,j) = fz(p,a,a->Fi,Fifsf);
     
     //cout<<"Fz: "<<a->Fz(i,j)<<endl;
-    //if(c->wet(i,j)==0)
+    //if(p->wet[IJ]==0)
     //c->Fz(i,j) = 0.0;
     }
 }

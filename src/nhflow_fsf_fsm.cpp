@@ -56,8 +56,8 @@ nhflow_fsf_fsm::~nhflow_fsf_fsm()
 
 void nhflow_fsf_fsm::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow)
 {
-    pgc->start4(p,d->ro,1);
-    pgc->start4(p,d->visc,1);
+    //pgc->start4(p,d->ro,1);
+    //pgc->start4(p,d->visc,1);
     
     // fill eta_n
     SLICELOOP4

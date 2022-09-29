@@ -73,7 +73,7 @@ void grid_sigma::sigma_ini(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta)
     }
     
     SLICELOOP4
-    d->wet(i,j)=1;
+    p->wet[IJ]=1;
     
     pgc->gcsl_start4int(p,d->wet,50);
     

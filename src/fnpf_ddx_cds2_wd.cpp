@@ -36,7 +36,7 @@ fnpf_ddx_cds2_wd::~fnpf_ddx_cds2_wd()
 
 double fnpf_ddx_cds2_wd::sxx(lexer *p, slice &f)
 {
-    if(c->wet(i-1,j)>0 && c->wet(i+1,j)>0)
+    if(p->wet[Im1J]>0 && p->wet[Ip1J]>0)
     return ((f(i+1,j)-f(i,j))/p->DXP[IP] - (f(i,j)-f(i-1,j))/p->DXP[IM1])/p->DXN[IP];
     
     else
@@ -45,7 +45,7 @@ double fnpf_ddx_cds2_wd::sxx(lexer *p, slice &f)
 
 double fnpf_ddx_cds2_wd::syy(lexer *p, slice &f)
 {
-    if(c->wet(i,j-1)>0 && c->wet(i,j+1)>0)
+    if(p->wet[IJm1]>0 && p->wet[IJp1]>0)
     return ((f(i,j+1)-f(i,j))/p->DYP[JP] - (f(i,j)-f(i,j-1))/p->DYP[JM1])/p->DYN[JP];   
 
     else

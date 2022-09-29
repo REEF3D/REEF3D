@@ -29,7 +29,7 @@ Author: Hans Bihs
 #include"fieldint4.h"
 #include"matrix_diag.h"
 
-void hypre_struct::fill_matrix8(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec &rhs, matrix_diag &M)
+void hypre_struct::fill_matrix8(lexer* p, ghostcell* pgc, double *f, vec &rhs, matrix_diag &M)
 {    
     count=0;
     LOOP

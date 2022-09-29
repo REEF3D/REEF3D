@@ -317,6 +317,7 @@ void lexer::read_grid()
 	Darray(solidbed,imax*jmax);
     Darray(topobed,imax*jmax);
     Darray(bed,imax*jmax);
+    Iarray(wet,imax*jmax);
     Darray(depth,imax*jmax);
 	Darray(data,imax*jmax);
     Iarray(flagslice1,imax*jmax);

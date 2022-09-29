@@ -74,8 +74,8 @@ public:
     void fill_matrix4(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix4_2Dvert(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix7(lexer*, ghostcell*,double*, vec&, matrix_diag&);
-    void fill_matrix8(lexer*, fdm_fnpf*, ghostcell*,double*, vec&, matrix_diag&);
-    void fill_matrix8_2Dvert(lexer*, fdm_fnpf*, ghostcell*,double*, vec&, matrix_diag&);
+    void fill_matrix8(lexer*, ghostcell*,double*, vec&, matrix_diag&);
+    void fill_matrix8_2Dvert(lexer*, ghostcell*,double*, vec&, matrix_diag&);
 
     virtual void fillbackvec1(lexer*,field&,int);
     virtual void fillbackvec2(lexer*,field&,int);

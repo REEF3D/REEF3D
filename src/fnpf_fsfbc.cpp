@@ -199,7 +199,7 @@ void fnpf_fsfbc::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     pgc->gcsl_start4(p,c->By,1);
     
     SLICELOOP4
-    c->wet(i,j)=1;
+    p->wet[IJ]=1;
     
     pgc->gcsl_start4int(p,c->wet,50);
 }
@@ -211,7 +211,7 @@ void fnpf_fsfbc::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slic
     {
     c->Fz(i,j) = p->sigz[IJ]*pconvec->sz(p,c->Fi);
     
-    if(c->wet(i,j)==0)
+    if(p->wet[IJ]==0)
     c->Fz(i,j) = 0.0;
     }
 }
@@ -236,7 +236,7 @@ void fnpf_fsfbc::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
 void fnpf_fsfbc::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf) 
 {   
     SLICELOOP4
-    c->wet(i,j)=1;
+    p->wet[IJ]=1;
 }
 
 void fnpf_fsfbc::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 

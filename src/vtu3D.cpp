@@ -940,10 +940,10 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
         {
         zcoor = p->ZN[KP1]*a->WL(i,j) + a->bed(i,j);
 
-        if(a->wet(i,j)==0 && p->flagslice4[IJ]>0)
+        if(p->wet[IJ]==0 && p->flagslice4[IJ]>0)
         zcoor=a->bed(i,j);
 
-        if(i+p->origin_i==-1 && j+p->origin_j==-1 && a->wet(0,0)==1)
+        if(i+p->origin_i==-1 && j+p->origin_j==-1 && p->wet[(0-p->imin)*p->jmax + (0-p->jmin)]==1)
         zcoor = p->ZN[KP1]*a->WL(i,j) + a->bed(i,j);
 
 

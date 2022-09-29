@@ -29,15 +29,15 @@ Author: Hans Bihs
 void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf) 
 {   
       SLICELOOP4
-      c->wet_n(i,j)=c->wet(i,j);
+      c->wet_n(i,j)=p->wet[IJ];
       
       SLICELOOP4
       {     
-          c->wet(i,j)=1;
+          p->wet[IJ]=1;
           
           if(p->A343>=1)
           if(eta(i,j) + p->wd - c->bed(i,j) < c->wd_criterion)
-          c->wet(i,j)=0;
+          p->wet[IJ]=0;
 
       } 
       

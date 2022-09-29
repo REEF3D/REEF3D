@@ -77,7 +77,7 @@ void driver::driver_ini_nhflow()
 	SLICELOOP4
     {
 	a->eta(i,j) = 0.0;
-    a->wet(i,j) = 1;
+    p->wet[IJ] = 1;
     }
 
     pgc->gcsl_start4(p,a->eta,50);
