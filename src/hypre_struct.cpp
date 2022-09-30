@@ -204,7 +204,7 @@ void hypre_struct::start_solver8(lexer* p, ghostcell* pgc, double *f, vec& rhs, 
 	p->solveriter=num_iterations;
     p->final_res = final_res_norm;
         
-    fillbackvec8(p,c,f,var);
+    fillbackvec8(p,f,var);
 	
 	delete_solver5(p,pgc);
 }

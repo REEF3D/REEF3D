@@ -441,7 +441,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPLOOP
 	{
-    waterlevel = p->sl_ipol4eta(d->wet,d->eta,d->bed)+p->wd - p->sl_ipol4(d->bed);
+    waterlevel = p->sl_ipol4eta(p->wet,d->eta,d->bed)+p->wd - p->sl_ipol4(d->bed);
 
     zcoor = p->ZN[KP1]*waterlevel + p->sl_ipol4(d->bed);
 

@@ -148,7 +148,7 @@ void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slic
     
 	pgc->gcsl_start4(p,b->hp,gcval_eta);
 	
-	phxy->start(p,b->hx,b->hy,b->depth,b->wet4,etark,P,Q);
+	phxy->start(p,b->hx,b->hy,b->depth,p->wet,etark,P,Q);
     
     
     SLICELOOP1

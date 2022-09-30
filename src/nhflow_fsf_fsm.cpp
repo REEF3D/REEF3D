@@ -85,7 +85,7 @@ void nhflow_fsf_fsm::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow)
     pgc->gcsl_start1(p,P,10);
     pgc->gcsl_start2(p,Q,11);
     
-    phxy->start(p,d->hx,d->hy,d->depth,d->wet,d->eta,P,Q);
+    phxy->start(p,d->hx,d->hy,d->depth,p->wet,d->eta,P,Q);
     
     SLICELOOP1
     P(i,j) *= d->hx(i,j);

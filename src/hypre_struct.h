@@ -83,7 +83,7 @@ public:
     virtual void fillbackvec4(lexer*,field&,int);
 
     virtual void fillbackvec7(lexer*,double*,int);
-    virtual void fillbackvec8(lexer*,fdm_fnpf*,double*,int);
+    virtual void fillbackvec8(lexer*,double*,int);
 	
 	void create_solver1234(lexer*,ghostcell*);
     void delete_solver1234(lexer*,ghostcell*);

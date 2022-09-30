@@ -88,7 +88,7 @@ void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     pgc->gcsl_start1(p,P,10);
     pgc->gcsl_start2(p,Q,11);
     
-    phxy->start(p,d->hx,d->hy,d->depth,d->wet,d->eta,P,Q);
+    phxy->start(p,d->hx,d->hy,d->depth,p->wet,d->eta,P,Q);
     
     SLICELOOP1
     P(i,j) *= d->hx(i,j);
@@ -128,7 +128,7 @@ void nhflow_fsf_rk::step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     pgc->gcsl_start1(p,P,10);
     pgc->gcsl_start2(p,Q,11);
     
-    phxy->start(p,d->hx,d->hy,d->depth,d->wet,etark1,P,Q);
+    phxy->start(p,d->hx,d->hy,d->depth,p->wet,etark1,P,Q);
     
     SLICELOOP1
     P(i,j) *= d->hx(i,j);
@@ -177,7 +177,7 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     pgc->gcsl_start1(p,P,10);
     pgc->gcsl_start2(p,Q,11);
     
-    phxy->start(p,d->hx,d->hy,d->depth,d->wet,etark2,P,Q);
+    phxy->start(p,d->hx,d->hy,d->depth,p->wet,etark2,P,Q);
     
     SLICELOOP1
     P(i,j) *= d->hx(i,j);

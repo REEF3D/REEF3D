@@ -78,10 +78,10 @@ nt 8 -
                         - CPORNH*PORVALNH*0.5*(p->sigxx[FIJK]+p->sigxx[FIJKp1])/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
         
       
-        M[n*9+5]  = -CPORNH*PORVALNH*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
-        M[n*9+6]  =  CPORNH*PORVALNH*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
-        M[n*9+7]  =  CPORNH*PORVALNH*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
-        M[n*9+8]  = -CPORNH*PORVALNH*(p->sigx[FIJK]+p->sigx[FIJKp1])/(a->ro(i,j,k)*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1])); 
+        M[n*9+5]  = -CPORNH*PORVALNH*(p->sigx[FIJK]+p->sigx[FIJKp1])/(p->W1*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
+        M[n*9+6]  =  CPORNH*PORVALNH*(p->sigx[FIJK]+p->sigx[FIJKp1])/(p->W1*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
+        M[n*9+7]  =  CPORNH*PORVALNH*(p->sigx[FIJK]+p->sigx[FIJKp1])/(p->W1*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
+        M[n*9+8]  = -CPORNH*PORVALNH*(p->sigx[FIJK]+p->sigx[FIJKp1])/(p->W1*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1])); 
         }
         
         if(p->flag4[IJK]<0 || p->wet[IJ]==0)
