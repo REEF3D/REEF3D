@@ -911,6 +911,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     phase = omega_y*p->simtime;
 
 
+/*
     if(p->G2==1)
     {
     pgc->gcsl_start4(p,a->WL,50);
@@ -926,7 +927,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     j=-1;
     if(i+p->origin_i==-1 && j+p->origin_j==-1 )
     a->WL(i,j) = a->WL(i+1,j+1);
-    }
+    }*/
 
 
 	iin=4*(p->pointnum)*3;
@@ -935,7 +936,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	{
         if(p->G2==0)
         zcoor=p->ZN[KP1];
-
+/*
         if(p->G2==1)
         {
         zcoor = p->ZN[KP1]*a->WL(i,j) + a->bed(i,j);
@@ -948,7 +949,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 
 
         //cout<<"ZN: "<<p->ZN[KP1]<<" WL: "<<a->WL(i,j)<<" eta: "<<a->eta(i,j)<<" zcoor: "<<zcoor<<endl;
-        }
+        }*/
 
 
     ffn=float( (p->XN[IP1]-p->B192_3)*cos(theta_y*sin(phase)) - (zcoor-p->B192_4)*sin(theta_y*sin(phase)) + p->B192_3);

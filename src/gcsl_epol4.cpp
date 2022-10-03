@@ -244,3 +244,12 @@ void ghostcell::gcsldistro4int(lexer *p, sliceint &f, int ii, int jj, int nn, do
 
 	gcsl_neumann_int(f,gcv,bc,cs);    
 }
+
+void ghostcell::gcsldistro4Vint(lexer *p, int *f, int ii, int jj, int nn, double dist,  int gcv, int bc, int cs)
+{
+    i=ii;
+	j=jj;
+	n=nn;
+
+	gcsl_neumann_V_int(p,f,gcv,bc,cs);    
+}

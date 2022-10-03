@@ -77,10 +77,10 @@ void nhflow_fsf_fsm::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow)
     Q(i,j)=0.0;
 
     ULOOP
-    P(i,j) += d->u(i,j,k)*p->DZN[KP];
+    P(i,j) += d->U[IJK]*p->DZN[KP];
 
     VLOOP
-	Q(i,j) += d->v(i,j,k)*p->DZN[KP];
+	Q(i,j) += d->V[IJK]*p->DZN[KP];
     
     pgc->gcsl_start1(p,P,10);
     pgc->gcsl_start2(p,Q,11);
