@@ -51,7 +51,7 @@ void ghostcell::gcini(lexer* p)
     Qi=p->W10;
     orderext=2;
     orderext2=2;
-    orderdir=2;
+    orderdir=3;
     orderpress=2;
     orderdir2=2;
 	
