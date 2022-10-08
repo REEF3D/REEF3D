@@ -41,7 +41,7 @@ double sixdof_sflow::ramp(lexer *p)
     f = p->simtime/(p->X206_T) - (1.0/PI)*sin(PI*(p->simtime/(p->X206_T)));
     }
     
-    cout<<"RAMP F: "<<f<<endl;
+    //cout<<"RAMP F: "<<f<<endl;
 
     return f;
 }
