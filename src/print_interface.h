@@ -40,7 +40,7 @@ class probe_point;
 class probe_line;
 class bedprobe_point;
 class bedprobe_max;
-class gage_discharge;
+class gage_discharge_x;
 class fsf_vtp;
 class state;
 class bedshear_probe;
@@ -90,7 +90,7 @@ private:
 	bedprobe_point *pbedpt;
 	bedprobe_max *pbedmax;
 	bedshear_probe *pbedshear;
-	gage_discharge *pq;
+	gage_discharge_x *pq;
 	fsf_vtp *pfsf;
 	state *pstate;
     sloshing_force *pslosh;

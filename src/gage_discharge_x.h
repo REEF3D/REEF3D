@@ -31,20 +31,19 @@ class field;
 
 using namespace std;
 
-#ifndef GAGE_DISCHARGE_H_
-#define GAGE_DISCHARGE_H_
+#ifndef GAGE_DISCHARGE_X_H_
+#define GAGE_DISCHARGE_X_H_
 
-class gage_discharge : public boundarycheck
+class gage_discharge_x : public boundarycheck
 {
 public:
-    gage_discharge(lexer*,fdm*,ghostcell*);
-	virtual ~gage_discharge();
+    gage_discharge_x(lexer*,fdm*,ghostcell*);
+	virtual ~gage_discharge_x();
 
 	void start(lexer*, fdm*, ghostcell*);
 
 private:
     void ini_location(lexer*, fdm*, ghostcell*);
-    int conv(double);
 
     int *iloc,*flag;
     double *q;

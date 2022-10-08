@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"gage_discharge.h"
+#include"gage_discharge_x.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-gage_discharge::gage_discharge(lexer *p, fdm* a, ghostcell *pgc)
+gage_discharge_x::gage_discharge_x(lexer *p, fdm* a, ghostcell *pgc)
 {
 	p->Iarray(iloc,p->P67);
 	p->Iarray(flag,p->P67);
@@ -41,12 +41,12 @@ gage_discharge::gage_discharge(lexer *p, fdm* a, ghostcell *pgc)
     {
     // open file
 	if(p->P14==0)
-    qout.open("REEF3D-discharge.dat");
+    qout.open("REEF3D-discharge_x.dat");
 	
 	if(p->P14==1)
-	qout.open("./REEF3D_Log/REEF3D-discharge.dat");
+	qout.open("./REEF3D_Log/REEF3D-discharge_x.dat");
 
-    qout<<"number of gages:  "<<p->P67<<endl<<endl;
+    qout<<"number of x-discharge gages:  "<<p->P67<<endl<<endl;
     qout<<"x_coord  "<<endl;
     for(n=0;n<p->P67;++n)
     qout<<n+1<<"\t "<<p->P67_x[n]<<endl;
@@ -63,12 +63,12 @@ gage_discharge::gage_discharge(lexer *p, fdm* a, ghostcell *pgc)
 	ini_location(p,a,pgc);
 }
 
-gage_discharge::~gage_discharge()
+gage_discharge_x::~gage_discharge_x()
 {
     qout.close();
 }
 
-void gage_discharge::start(lexer *p, fdm *a, ghostcell *pgc)
+void gage_discharge_x::start(lexer *p, fdm *a, ghostcell *pgc)
 {
 
     for(n=0;n<p->P67;++n)
@@ -88,16 +88,16 @@ void gage_discharge::start(lexer *p, fdm *a, ghostcell *pgc)
         PCHECK
         {
 			area=0.0;
-            if(a->phi(i,j,k)>-0.5*p->DXM-1.0e-20 && a->topo(i,j,k)>0.0)
+            if(a->phi(i,j,k)>-0.5*p->DZN[KP]-1.0e-20 && a->topo(i,j,k)>0.0)
 			{
-            if(a->phi(i,j,k)>=0.5*p->DXM)
-            area=p->DXM*p->DXM;
+            if(a->phi(i,j,k)>=0.5*p->DZN[KP])
+            area=p->DYN[JP]*p->DZN[KP];
 
-            if(a->phi(i,j,k)<0.5*p->DXM && a->phi(i,j,k)>0.0*p->DXM)
-            area=p->DXM*(p->DXM*0.5 + a->phi(i,j,k));
+            if(a->phi(i,j,k)<0.5*p->DZN[KP] && a->phi(i,j,k)>0.0)
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i,j,k));
 			
-			if(a->phi(i,j,k)>=-0.5*p->DXM -1.0e-20 && a->phi(i,j,k)<=0.0*p->DXM)
-            area=p->DXM*(p->DXM*0.5 - a->phi(i,j,k));
+			if(a->phi(i,j,k)>=-0.5*p->DZN[KP] -1.0e-20 && a->phi(i,j,k)<=0.0*p->DZN[KP])
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 - fabs(a->phi(i,j,k)));
 
             q[n]+=area*0.5*(a->u(i,j,k) + a->u(i-1,j,k));
 			}
@@ -123,41 +123,18 @@ void gage_discharge::start(lexer *p, fdm *a, ghostcell *pgc)
     }
 }
 
-void gage_discharge::ini_location(lexer *p, fdm *a, ghostcell *pgc)
+void gage_discharge_x::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 {
-    int check;
 	
 	for(n=0;n<p->P67;++n)
 	flag[n]=0;
 
     for(n=0;n<p->P67;++n)
     {
-    iloc[n] = p->posc_i(x[n]);
+    iloc[n] = p->posc_i(p->P67_x[n]);
 	
 	if(iloc[n]>=0 && iloc[n]<p->knox)
 	flag[n]=1;
 	}
 }
 
-
-int gage_discharge::conv(double a)
-{
-
-int b,c;
-double d,diff;
-
-c= int( a);
-d=double(c);
-diff=a-d;
-
-b=c;
-
-if(diff>0.5)
-b=c+1;
-
-if(diff<=-0.5)
-b=c-1;
-
-return b;
-
-}
