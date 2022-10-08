@@ -132,7 +132,7 @@ void gage_discharge::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 
     for(n=0;n<p->P67;++n)
     {
-    iloc[n]=conv((p->P67_x[n]-p->originx)/p->DXM);
+    iloc[n] = p->posc_i(x[n]);
 	
 	if(iloc[n]>=0 && iloc[n]<p->knox)
 	flag[n]=1;

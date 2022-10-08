@@ -825,7 +825,7 @@
           <File Name="data_void.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Discharge">
-          <File Name="gage_discharge.h"/>
+          <File Name="gage_discharge_x.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
           <File Name="fsf_vtp.h"/>
@@ -2351,7 +2351,7 @@
           <File Name="data_void.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Discharge">
-          <File Name="gage_discharge.cpp"/>
+          <File Name="gage_discharge_x.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
           <File Name="fsf_vtp.cpp"/>
