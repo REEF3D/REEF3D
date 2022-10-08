@@ -50,7 +50,7 @@ public:
 
     virtual void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*)=0;
     
-    virtual void kinematic_fsf(lexer*, fdm_nhf*, field&, field&, field&, slice&, slice&, double)=0;
+    virtual void kinematic_fsf(lexer*, fdm_nhf*, double*, double*, double*, slice&, slice&, double)=0;
 
         
 

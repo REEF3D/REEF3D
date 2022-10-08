@@ -148,10 +148,10 @@ void driver::driver_ini_nhflow()
 	pgc->start4(p,a->press,40);
 	
     pnh->kinematic_fsf(p,d,d->U,d->V,d->W,a->eta,a->eta_n,1.0);
-    p->sigma_update(p,a,pgc,a->eta,a->eta,1.0);
+    p->sigma_update(p,d,pgc,a->eta,a->eta,1.0);
     
     SLICELOOP4
-    a->WL(i,j) = MAX(0.0, a->eta(i,j) + p->wd - a->bed(i,j));
+    d->WL(i,j) = MAX(0.0, a->eta(i,j) + p->wd - a->bed(i,j));
     
     
     pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
