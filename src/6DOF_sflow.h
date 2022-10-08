@@ -100,6 +100,9 @@ private:
     void updateForcing_box(lexer*, fdm2D*, ghostcell*);
     void updateForcing_ship(lexer*, fdm2D*, ghostcell*);
     void updateForcing_oned(lexer*, fdm2D*, ghostcell*);
+    
+    // motion
+    double ramp(lexer*);
 
     double phi, theta, psi;
     double Uext, Vext, Wext, Pext, Qext, Rext;

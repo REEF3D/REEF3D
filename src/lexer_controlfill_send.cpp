@@ -513,7 +513,7 @@ void lexer::ctrlsend()
 	ictrl[ii] = D21;
 	ii++;
     ictrl[ii] = D30;
-	ii++;
+	ii++;    ictrl[ii] = D31;	ii++;
     ictrl[ii] = D37;
 	ii++;
     ictrl[ii] = D38;
@@ -1406,7 +1406,7 @@ void lexer::ctrlsend()
     dctrl[dd] = X183_theta;
 	dd++;
     dctrl[dd] = X183_psi;
-	dd++;
+	dd++;    ictrl[ii] = X205;	ii++;    ictrl[ii] = X206;	ii++;    dctrl[dd] = X206_T;	dd++;
 	ictrl[ii] = X210;
 	ii++;
 	dctrl[dd] = X210_u;

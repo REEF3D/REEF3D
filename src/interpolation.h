@@ -84,9 +84,9 @@ public:
 	double sl_ipol1a(slice&);
     double sl_ipol2a(slice&);
     double sl_ipol4(slice&);
-    double sl_ipol1eta(sliceint&,slice&,slice&);
-    double sl_ipol2eta(sliceint&,slice&,slice&);
-    double sl_ipol4eta(sliceint&,slice&,slice&);
+    double sl_ipol1eta(int*,slice&,slice&);
+    double sl_ipol2eta(int*,slice&,slice&);
+    double sl_ipol4eta(int*,slice&,slice&);
     double sl_ipolint(sliceint&);
     
     double ccslipol1(slice&,double,double);

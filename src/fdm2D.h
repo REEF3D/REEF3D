@@ -71,7 +71,6 @@ public:
     
     sliceint1 wet1;
     sliceint2 wet2;
-    sliceint4 wet4;
     
     slice4 ks;
 	

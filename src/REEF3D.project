@@ -222,17 +222,38 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
+        <VirtualDirectory Name="Convect">
+          <File Name="nhflow_weno_flux.h"/>
+          <VirtualDirectory Name="Flux">
+            <File Name="nhflow_flux.h"/>
+            <File Name="nhflow_flux_face_cds2.h"/>
+          </VirtualDirectory>
+          <File Name="nhflow_convection.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="VTU">
+            <File Name="nhflow_vtu3D.h"/>
+          </VirtualDirectory>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Initialize"/>
+        <VirtualDirectory Name="FDM">
+          <File Name="fdm_nhf.h"/>
+        </VirtualDirectory>
         <File Name="nhflow_f.h"/>
         <File Name="nhflow_v.h"/>
         <File Name="nhflow.h"/>
         <VirtualDirectory Name="Pressure">
-          <File Name="pjmcorr_sig.h"/>
-          <File Name="pjm_sigss.h"/>
-          <File Name="pjm_sig_hs.h"/>
-          <File Name="poisson_sig.h"/>
-          <File Name="pjm_sig.h"/>
+          <File Name="nhflow_pjm_ss.h"/>
+          <File Name="nhflow_pjm_hs.h"/>
+          <File Name="nhflow_pjm.h"/>
+          <VirtualDirectory Name="Poisson">
+            <File Name="nhflow_poisson.h"/>
+          </VirtualDirectory>
+          <File Name="nhflow_pressure.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
+          <File Name="nhflow_momentum_RK3co.h"/>
+          <File Name="nhflow_momentum_RK2.h"/>
           <File Name="nhflow_momentum_RK3.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
@@ -500,7 +521,6 @@
         <File Name="interpolation.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Convection">
-        <File Name="weno_flux_nug_sig.h"/>
         <File Name="weno_hj_6DOF_nug.h"/>
         <File Name="lust.h"/>
         <File Name="iweno3_hj.h"/>
@@ -805,7 +825,7 @@
           <File Name="data_void.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Discharge">
-          <File Name="gage_discharge.h"/>
+          <File Name="gage_discharge_x.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
           <File Name="fsf_vtp.h"/>
@@ -1193,17 +1213,40 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
+        <VirtualDirectory Name="Convect">
+          <VirtualDirectory Name="Flux">
+            <File Name="nhflow_flux_face_cds2.cpp"/>
+          </VirtualDirectory>
+          <File Name="nhflow_fou.cpp"/>
+          <File Name="nhflow_cds2.cpp"/>
+          <File Name="nhflow_weno_hj.cpp"/>
+          <File Name="nhflow_weno_flux.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Initialize"/>
+        <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="VTU">
+            <File Name="nhflow_vtu3D_pvtu.cpp"/>
+            <File Name="nhflow_vtu3D_header.cpp"/>
+            <File Name="nhflow_vtu3D.cpp"/>
+          </VirtualDirectory>
+        </VirtualDirectory>
+        <VirtualDirectory Name="FDM">
+          <File Name="fdm_nhf.cpp"/>
+        </VirtualDirectory>
         <File Name="nhflow_v.cpp"/>
         <File Name="nhflow_f.cpp"/>
         <VirtualDirectory Name="Pressure">
-          <File Name="pjmcorr_sig.cpp"/>
-          <File Name="pjm_sigss.cpp"/>
-          <File Name="poisson_sigss.cpp"/>
-          <File Name="pjm_sig_hs.cpp"/>
-          <File Name="poisson_sig.cpp"/>
-          <File Name="pjm_sig.cpp"/>
+          <File Name="nhflow_pjm_ss.cpp"/>
+          <File Name="nhflow_pjm_hs.cpp"/>
+          <File Name="nhflow_pjm.cpp"/>
+          <VirtualDirectory Name="Poisson">
+            <File Name="nhflow_poisson_ss.cpp"/>
+            <File Name="nhflow_poisson.cpp"/>
+          </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
+          <File Name="nhflow_momentum_RK3co.cpp"/>
+          <File Name="nhflow_momentum_RK2.cpp"/>
           <File Name="nhflow_momentum_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
@@ -1486,6 +1529,7 @@
             <File Name="6DOF_sflow_print_vtp.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="RayCast">
+            <File Name="6DOF_sflow_motion.cpp"/>
             <File Name="6DOF_sflow_ray_z.cpp"/>
             <File Name="6DOF_sflow_ray_y.cpp"/>
             <File Name="6DOF_sflow_ray_x.cpp"/>
@@ -1738,7 +1782,6 @@
         <File Name="interpolation_ipol.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Convection">
-        <File Name="weno_flux_nug_sig.cpp"/>
         <File Name="weno_hj_6DOF_nug.cpp"/>
         <File Name="lust.cpp"/>
         <File Name="ifou.cpp"/>
@@ -2093,12 +2136,11 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
       <VirtualDirectory Name="Driver">
+        <File Name="driver_makegrid_sigma.cpp"/>
         <File Name="driver_ini_nsewave.cpp"/>
         <File Name="driver_ini_fnpf.cpp"/>
         <File Name="driver_ini_ptf.cpp"/>
-        <File Name="driver_makegrid_nhflow.cpp"/>
         <File Name="driver_ini_nhflow.cpp"/>
-        <File Name="driver_makegrid_fnpf.cpp"/>
         <File Name="driver_memory.cpp"/>
         <File Name="driver_log.cpp"/>
         <File Name="driver_test.cpp"/>
@@ -2310,7 +2352,7 @@
           <File Name="data_void.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Discharge">
-          <File Name="gage_discharge.cpp"/>
+          <File Name="gage_discharge_x.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
           <File Name="fsf_vtp.cpp"/>
@@ -2363,6 +2405,7 @@
       <File Name="driver.cpp"/>
       <File Name="lexer.cpp" ExcludeProjConfig=""/>
       <VirtualDirectory Name="Logic">
+        <File Name="driver_logic_nhflow.cpp"/>
         <File Name="driver_logic_fnpf.cpp"/>
         <File Name="driver_logic_ptf.cpp"/>
         <File Name="driver_logic_cfd.cpp"/>

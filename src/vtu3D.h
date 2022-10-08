@@ -41,7 +41,7 @@ class probe_point;
 class probe_line;
 class bedprobe_point;
 class bedprobe_max;
-class gage_discharge;
+class gage_discharge_x;
 class fsf_vtp;
 class topo_vtp;
 class state;
@@ -103,7 +103,7 @@ private:
 	bedprobe_max *pbedmax;
 	bedshear_probe *pbedshear;
 	bedshear_max *pbedshearmax;
-	gage_discharge *pq;
+	gage_discharge_x *pq;
 	fsf_vtp *pfsf;
     topo_vtp *ptopo;
 	state *pstate;

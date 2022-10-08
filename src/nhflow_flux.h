@@ -20,28 +20,23 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"driver.h"
-#include"lexer.h"
-#include"ghostcell.h"
+class fdm_nhf;
+class lexer;
 
-void driver::makegrid_nhflow(lexer *p, ghostcell *pgc)
-{	
-    int q;
-    
-// flag7
-    p->Iarray(p->flag7,p->imax*p->jmax*(p->kmax+2));
-    
-    for(i=0;i<p->imax*p->jmax*(p->kmax+2);++i)
-    p->flag7[i]=-10;
-    
-    BASELOOP
-    {
-        p->flag7[FIJK]=p->flag4[IJK];
-    }
-    
-    k=p->knoz;
-    SLICEBASELOOP
-    p->flag7[FIJK] = p->flag7[FIJKm1];
-    
-    
-}
+#ifndef NHFLOW_FLUX_H_
+#define NHFLOW_FLUX_H_
+
+using namespace std;
+
+class nhflow_flux 
+{
+public:
+
+    virtual void u_flux(fdm_nhf*,int,double*,double&,double&)=0;
+	virtual void v_flux(fdm_nhf*,int,double*,double&,double&)=0;
+	virtual void w_flux(fdm_nhf*,int,double*,double&,double&)=0;
+    virtual void omega_flux(lexer*,fdm_nhf*,int,double*,double*,double*,double&,double&)=0;
+
+};
+
+#endif

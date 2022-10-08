@@ -29,21 +29,21 @@ Author: Hans Bihs
 void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf) 
 {   
       SLICELOOP4
-      c->wet_n(i,j)=c->wet(i,j);
+      c->wet_n(i,j)=p->wet[IJ];
       
       SLICELOOP4
       {     
-          c->wet(i,j)=1;
+          p->wet[IJ]=1;
           
           if(p->A343>=1)
           if(eta(i,j) + p->wd - c->bed(i,j) < c->wd_criterion)
-          c->wet(i,j)=0;
+          p->wet[IJ]=0;
 
       } 
       
       pgc->gcsl_start4int(p,c->wet,50);
       
-      pcoast->start(p,pgc,c->coastline,c->wet,c->wet_n);
+      pcoast->start(p,pgc,c->coastline,p->wet,c->wet_n);
 }
 
 void fnpf_fsfbc_wd::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 

@@ -151,7 +151,7 @@ void topo_vtp::print(lexer* p, fdm* a, ghostcell *pgc, sediment *psed)
 	ffn=float(p->sl_ipol2a(a->Q));
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(p->sl_ipol4(a->R));
+	ffn=0.0;
 	result.write((char*)&ffn, sizeof (float));
 	}
 	

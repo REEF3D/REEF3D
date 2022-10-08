@@ -20,39 +20,28 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"poisson.h"
-#include"increment.h"
+#include"6DOF_sflow.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"fdm2D.h"
+#include"ghostcell.h"
+#include"vrans.h"
 
-class heat;
-class concentration;
-class density;
-
-#ifndef POISSON_SIG_H_
-#define POISSON_SIG_H_
-
-using namespace std;
-
-
-class poisson_sig : public poisson, public increment
+double sixdof_sflow::ramp(lexer *p)
 {
-
-public:
-
-	poisson_sig (lexer *, heat*&, concentration*&);
-	virtual ~poisson_sig();
-
-	virtual void start(lexer *,fdm*,field&);
-
-private:
-
-	double teta;
-	int count,n,q;
+    double f=1.0;
     
-    density *pd;
-};
+    if(p->X205==1 && p->X206==1 && p->simtime<p->X206_T)
+    {
+    f = p->simtime/(p->X206_T);
+    }
+    
+    if(p->X205==2 && p->X206==1 && p->simtime<p->X206_T)
+    {
+    f = p->simtime/(p->X206_T) - (1.0/PI)*sin(PI*(p->simtime/(p->X206_T)));
+    }
+    
+    //cout<<"RAMP F: "<<f<<endl;
 
-
-#endif
-
-
-
+    return f;
+}

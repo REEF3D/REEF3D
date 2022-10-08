@@ -81,7 +81,7 @@ cout<<"starting driver_ini_PTF"<<endl;
     }
 
     SLICELOOP4
-    a->wet(i,j)=1;
+    p->wet[IJ]=1;
 
     SLICELOOP4
 	a->bed(i,j) = p->bed[IJ];

@@ -54,10 +54,10 @@ void driver::logic()
     
 // nhflow
     if(p->A10!=55)
-    pnh=new nhflow_v(p,a,pgc);
+    pnh=new nhflow_v(p,d,pgc);
     
     if(p->A10==55)
-    pnh=new nhflow_f(p,a,pgc);
+    pnh=new nhflow_f(p,d,pgc);
 
 // time stepping
     if(p->N48==0)
@@ -68,6 +68,9 @@ void driver::logic()
 	
 	if((p->N48==1) && (p->D20==0||p->D20>=2))
 	ptstep=new ietimestep(p);
+    
+// Printer
+    //pfprint = new fnpf_vtu3D(p,c,pgc);
 
 //discretization scheme
 
@@ -84,11 +87,8 @@ void driver::logic()
 	if(p->D10==3)
 	pconvec=new quick(p);
 
-	if(p->D10==4 && p->G2==0)
+	if(p->D10==4)
 	pconvec=new weno_flux_nug(p);
-    
-    if(p->D10==4 && p->G2==1)
-	pconvec=new weno_flux_nug_sig(p);
 	
 	if(p->D10==5)
 	pconvec=new weno_hj_nug(p);
@@ -351,10 +351,10 @@ void driver::logic()
     if(p->A10==55)
     {
     if(p->A540==1)
-    pnhfsf = new nhflow_fsf_rk(p,a,pgc,pflow,pBC);
+    pnhfsf = new nhflow_fsf_rk(p,d,pgc,pflow,pBC);
     
     if(p->A540==2)
-    pnhfsf = new nhflow_fsf_fsm(p,a,pgc,pflow,pBC);
+    pnhfsf = new nhflow_fsf_fsm(p,d,pgc,pflow,pBC);
     }
     
 
@@ -460,11 +460,8 @@ void driver::logic()
 	if(p->D30==0)
 	ppress = new pressure_void(p);
 
-	if(p->D30==1 && p->W30==0 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2) && p->G2==0)
+	if(p->D30==1 && p->W30==0 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2))
 	ppress = new pjm(p,a,pheat,pconc);
-    
-    if((p->D30==1) && p->W30==0 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2) && p->G2==1)
-	ppress = new pjm_sig(p,a,pgc,pheat,pconc);
     
     if(p->D30==1 && p->W30==1 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2))
 	ppress = new pjm_comp(p,a,pgc,pheat,pconc);
@@ -478,27 +475,15 @@ void driver::logic()
     if((p->D30==3 || (p->X10==1 && p->X13==2) || p->Z10!=0 ) && p->N40!=4)
 	ppress = new pjm_corr(p,a,pheat,pconc);
     
-    if((p->D30==4) && p->W30==0 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2) && p->G2==1)
-	ppress = new pjm_sigss(p,a,pgc,pheat,pconc);
-    
-    if(p->D30==10 && p->G2==0)
+    if(p->D30==10)
 	ppress = new pjm_hydrostatic(p,a,pheat,pconc);
-    
-    if(p->D30==10 && p->W30==0 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2) && p->G2==1)
-	ppress = new pjm_sig_hs(p,a,pheat,pconc);
 
     if(p->N40==4)
 	ppress = new pjm_IMEX(p,a,pheat,pconc);
 
 //poisson scheme for pressure
 	if(p->D30<5 && p->F10==2)
-    {
-    if(p->G2==0)
 	ppois = new poisson_f(p,pheat,pconc);
-    
-    if(p->G2==1 && p->D30==1)
-	ppois = new poisson_sig(p,pheat,pconc);
-    }
     
     if(p->D30==5 && p->F10==2)
 	ppois = new poisson_f(p,pheat,pconc);
@@ -525,7 +510,7 @@ void driver::logic()
 	
 	#ifdef HYPRE_COMPILATION
 	if(p->N10>=10 && p->N10<20)
-	ppoissonsolv = new hypre_struct(p,a,pgc,p->N10,p->N11);
+	ppoissonsolv = new hypre_struct(p,pgc,p->N10,p->N11);
 	#endif
     
     #ifdef HYPRE_COMPILATION
@@ -655,6 +640,9 @@ void driver::logic()
     if(p->N40==23)
 	pmom = new momentum_FC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,pnh,preini);
     
+    if(p->N40==32)
+	pmom = new nhflow_momentum_RK2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pnh,pnhfsf);
+    
     if(p->N40==33)
 	pmom = new nhflow_momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pnh,pnhfsf);
 	
@@ -689,7 +677,7 @@ void driver::logic()
     
     else if(p->A10==55)
 	{
-		loop_nhflow(a);
+		loop_nhflow();
 	}
 }
 

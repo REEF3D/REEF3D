@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"fdm_fnpf.h"
+#include"fdm_nhf.h"
 #include"freesurface_header.h"
 #include"turbulence_header.h"
 #include"momentum_header.h"
@@ -77,17 +78,17 @@ void driver::driver_ini_nhflow()
 	SLICELOOP4
     {
 	a->eta(i,j) = 0.0;
-    a->wet(i,j) = 1;
+    p->wet[IJ] = 1;
     }
 
     pgc->gcsl_start4(p,a->eta,50);
     
     SLICELOOP4
-    a->WL(i,j) = MAX(0.0,a->eta(i,j) + p->wd - a->bed(i,j));
+    d->WL(i,j) = MAX(0.0,a->eta(i,j) + p->wd - a->bed(i,j));
     
     // sigma ini
-    p->sigma_ini(p,a,pgc,a->eta);
-    p->sigma_update(p,a,pgc,a->eta,a->eta,1.0);
+    p->sigma_ini(p,d,pgc,a->eta);
+    p->sigma_update(p,d,pgc,a->eta,a->eta,1.0);
 
     
     //ioflow ini
@@ -146,11 +147,11 @@ void driver::driver_ini_nhflow()
     
 	pgc->start4(p,a->press,40);
 	
-    pnh->kinematic_fsf(p,a,a->u,a->v,a->w,a->eta,a->eta_n,1.0);
-    p->sigma_update(p,a,pgc,a->eta,a->eta,1.0);
+    pnh->kinematic_fsf(p,d,d->U,d->V,d->W,a->eta,a->eta_n,1.0);
+    p->sigma_update(p,d,pgc,a->eta,a->eta,1.0);
     
     SLICELOOP4
-    a->WL(i,j) = MAX(0.0, a->eta(i,j) + p->wd - a->bed(i,j));
+    d->WL(i,j) = MAX(0.0, a->eta(i,j) + p->wd - a->bed(i,j));
     
     
     pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);

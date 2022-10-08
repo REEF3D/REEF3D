@@ -99,13 +99,13 @@ void fnpf_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
 	{
             
             // south
-            if(p->flag7[FIm1JK]<0 && c->wet(i-1,j)==1 && c->bc(i-1,j)==0)
+            if(p->flag7[FIm1JK]<0 && p->wet[Im1J]==1 && c->bc(i-1,j)==0)
             {
             c->M.p[n] += -1.0/(p->DXP[IM1]*p->DXN[IM1])*p->x_dir;
             c->M.s[n] = 0.0;
             }
             
-            if(c->wet(i-1,j)==0)
+            if(p->wet[Im1J]==0)
             {
             c->rhsvec.V[n] -= c->M.s[n]*f[FIJK];
             c->M.s[n] = 0.0;
@@ -119,13 +119,13 @@ void fnpf_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             }
             
             // north
-            if(p->flag7[FIp1JK]<0 && c->wet(i+1,j)==1)
+            if(p->flag7[FIp1JK]<0 && p->wet[Ip1J]==1)
             {
             c->M.p[n] += -1.0/(p->DXP[IM1]*p->DXN[IP])*p->x_dir;
             c->M.n[n] = 0.0;
             }
             
-            if(c->wet(i+1,j)==0)
+            if(p->wet[Ip1J]==0)
             {
             c->rhsvec.V[n] -= c->M.n[n]*f[FIJK];
             c->M.n[n] = 0.0;
@@ -133,13 +133,13 @@ void fnpf_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             
 
             // east
-            if(p->flag7[FIJm1K]<0 && c->wet(i,j-1)==1)
+            if(p->flag7[FIJm1K]<0 && p->wet[IJm1]==1)
             {
             c->M.p[n] += -1.0/(p->DYP[JM1]*p->DYN[JM1])*p->y_dir;
             c->M.e[n] = 0.0;
             }
             
-            if(c->wet(i,j-1)==0)
+            if(p->wet[IJm1]==0)
             {
             c->rhsvec.V[n] -= c->M.e[n]*f[FIJK];
             c->M.e[n] = 0.0;
@@ -147,13 +147,13 @@ void fnpf_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             
             
             // west
-            if(p->flag7[FIJp1K]<0 && c->wet(i,j+1)==1)
+            if(p->flag7[FIJp1K]<0 && p->wet[IJp1]==1)
             {
             c->M.p[n] += -1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
             c->M.w[n] = 0.0;
             }
             
-            if(c->wet(i,j+1)==0)
+            if(p->wet[IJp1]==0)
             {
             c->rhsvec.V[n] -= c->M.w[n]*f[FIJK];
             c->M.w[n] = 0.0;
@@ -346,7 +346,7 @@ void fnpf_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
 
 
     double starttime=pgc->timer();
-    psolv->startF(p,c,pgc,f,c->rhsvec,c->M,10);
+    psolv->startF(p,pgc,f,c->rhsvec,c->M,10);
     double endtime=pgc->timer();
     
     p->poissoniter=p->solveriter;

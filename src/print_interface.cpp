@@ -40,7 +40,7 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"data.h"
 #include"concentration.h"
-#include"gage_discharge.h"
+#include"gage_discharge_x.h"
 #include"fsf_vtp.h"
 #include"state.h"
 #include"bedshear_probe.h"
@@ -99,7 +99,7 @@ print_interface::print_interface(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p)
 	pwsfline_y=new print_wsfline_y(p,a,pgc);
 	pprobe = new probe_point(p,a,pgc);
 	pline = new probe_line(p,a,pgc);
-	pq = new gage_discharge(p,a,pgc);
+	pq = new gage_discharge_x(p,a,pgc);
 	
 	if(p->P180==1)
 	pfsf = new fsf_vtp(p,a,pgc);

@@ -31,13 +31,13 @@ using namespace std;
 class nhflow_f : public nhflow, public increment
 {
 public:    
-    nhflow_f(lexer*, fdm*, ghostcell*);
+    nhflow_f(lexer*, fdm_nhf*, ghostcell*);
 	virtual ~nhflow_f();
 
-    virtual void ini(lexer*, fdm*, ghostcell*, ioflow*);
+    virtual void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*);
     
-    virtual void kinematic_fsf(lexer*, fdm*, field&, field&, field&, slice&, slice&, double);
-    
+    virtual void kinematic_fsf(lexer*, fdm_nhf*, double*, double*, double*, slice&, slice&, double);
+
 private:
     int q,margin;
         

@@ -205,6 +205,14 @@ Author: Hans Bihs
 #define CPOR2p   (1.0/(1.0+(p->B260*(PORVAL2p<1.0?1.0:0.0))))
 #define CPOR3p   (1.0/(1.0+(p->B260*(PORVAL3p<1.0?1.0:0.0))))
 
+
+#define PORVALNH d->porosity[IJK]
+#define PORVALNHm d->porosity[IJK]
+#define PORVALNHp d->porosity[IJK]
+#define CPORNH  (1.0/(1.0+(p->B260*(PORVALNH<1.0?1.0:0.0))))
+#define CPORNHm (1.0/(1.0+(p->B260*(PORVALNHm<1.0?1.0:0.0))))
+#define CPORNHp (1.0/(1.0+(p->B260*(PORVALNHp<1.0?1.0:0.0))))
+
 //-----------------------------------------------------------
 
 #define IJK  (i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin

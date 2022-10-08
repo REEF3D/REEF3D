@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
-#include "force_ale.h"
+#include"force_ale.h"
 #include"ioflow.h"
 #include"fnpf_print_wsf.h"
 #include"fnpf_print_wsf_theory.h"
@@ -440,15 +440,15 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPLOOP
 	{
-    waterlevel = p->sl_ipol4eta(c->wet,c->eta,c->bed)+p->wd - p->sl_ipol4(c->bed);
+    waterlevel = p->sl_ipol4eta(p->wet,c->eta,c->bed)+p->wd - p->sl_ipol4(c->bed);
 
     zcoor = p->ZN[KP1]*waterlevel + p->sl_ipol4(c->bed);
 
 
-    if(c->wet(i,j)==0)
+    if(p->wet[IJ]==0)
     zcoor=c->bed(i,j);
 
-    if(i+p->origin_i==-1 && j+p->origin_j==-1 && c->wet(0,0)==1)
+    if(i+p->origin_i==-1 && j+p->origin_j==-1 && p->wet[(0-p->imin)*p->jmax + (0-p->jmin)]==1)
     zcoor = p->ZN[KP1]*c->WL(i,j) + c->bed(i,j);
 
     ffn=float( (p->XN[IP1]-p->B192_3)*cos(theta_y*sin(phase)) - (zcoor-p->B192_4)*sin(theta_y*sin(phase)) + p->B192_3);

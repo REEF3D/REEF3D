@@ -234,7 +234,7 @@ void sflow_pjm_lin::poisson(lexer*p, fdm2D* b, double alpha)
     n=0;
     SLICELOOP4
 	{
-        if(b->wet4(i,j)==0 || b->breaking(i,j)==1)
+        if(p->wet[IJ]==0 || b->breaking(i,j)==1)
         {
         b->M.p[n]  = 1.0;
 
@@ -276,7 +276,6 @@ void sflow_pjm_lin::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
                                      
         }  
 
-        
 
     pBC->patchBC_pressure2D_ugrad(p,b,eta,eta_n);
 }

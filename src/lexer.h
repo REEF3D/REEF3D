@@ -109,6 +109,7 @@ public:
     double *flag_solid,*flag_topo;
     double *data;
 	double *topobed,*solidbed,*bed,*depth;
+    int *wet;
 	int *tpflag,*ndbaseflag;
 	int *mgc1,*mgc2,*mgc3,*mgc4,*mgc4a,*mgc6;
 	int ***gcorig1,***gcorig2,***gcorig3,***gcorig4,***gcorig4a,***gcorig6;
@@ -355,7 +356,7 @@ public:
 	double *C75_x,*C75_z,*C75_a,*C75_s,*C75_l,*C75_v;
 
 	// discretization
-	int D10,D11,D20,D21,D30,D37,D38,D39;
+	int D10,D11,D20,D21,D30,D31,D37,D38,D39;
 
 	// Free Surface
 	int F10,F11,F30,F31,F32,F34,F35,F36,F40,F44,F46,F47,F49,F50,F150,F151;
@@ -577,6 +578,10 @@ public:
     double X181_x,X181_y,X181_z;
     double X182_x,X182_y,X182_z;
     double X183_x,X183_y,X183_z,X183_phi,X183_theta,X183_psi;
+    
+    int X205;
+    int X206;
+    double X206_T;
 	double X210_u,X210_v,X210_w;
 	double X211_p,X211_q,X211_r;
     int X221;

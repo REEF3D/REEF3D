@@ -38,7 +38,7 @@ public:
     fnpf_coastline(lexer*);
 	virtual ~fnpf_coastline();
 
-   void start(lexer*,ghostcell*,slice&,sliceint&,sliceint&);
+   void start(lexer*,ghostcell*,slice&,int*,sliceint&);
    
 private:
    void reini(lexer*,ghostcell*,slice&);

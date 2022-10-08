@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"mgc4.h"
 #include"mgcslice4.h"
 
-void driver::makegrid_fnpf(lexer *p, ghostcell *pgc)
+void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
 {	
     int q;
     
@@ -369,7 +369,7 @@ void driver::makegrid_fnpf(lexer *p, ghostcell *pgc)
     
 }
 	
-void driver::makegrid_fnpf_cds(lexer *p, ghostcell *pgc)
+void driver::makegrid_sigma_cds(lexer *p, ghostcell *pgc)
 {	
     p->flagini2D();
     p->gridini2D();	

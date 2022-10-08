@@ -33,7 +33,6 @@ Author: Hans Bihs
 #include"weno_hj_6DOF_nug.h"
 #include"weno_flux.h"
 #include"weno_flux_nug.h"
-#include"weno_flux_nug_sig.h"
 #include"iweno_hj.h"
 #include"iweno_hj_nug.h"
 #include"weno3_hj.h"
@@ -46,6 +45,8 @@ Author: Hans Bihs
 #include"idiff2_FS_2D.h"
 #include"idiff_IMEX.h"
 #include"idiff_IMEX_2D.h"
+
+#include"nhflow_weno_flux.h"
 
 #include"hires.h"
 

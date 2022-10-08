@@ -45,7 +45,7 @@ sflow_hxy_cds::~sflow_hxy_cds()
 {
 }
 
-void sflow_hxy_cds::start(lexer* p, slice& hx, slice& hy, slice& depth, sliceint &wet, slice& eta, slice& uvel, slice& vvel)
+void sflow_hxy_cds::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet, slice& eta, slice& uvel, slice& vvel)
 {
 	double eps=0.0;
 
@@ -70,7 +70,7 @@ void sflow_hxy_cds::start(lexer* p, slice& hx, slice& hy, slice& depth, sliceint
     i=p->gcslout[n][0];
     j=p->gcslout[n][1];
     
-        if(wet(i,j)==1)
+        if(wet[IJ]==1)
         {
         pflux->u_flux(4,uvel,ivel1,ivel2);
 
@@ -97,7 +97,7 @@ void sflow_hxy_cds::start(lexer* p, slice& hx, slice& hy, slice& depth, sliceint
     j=pBC->patch[qq]->gcb[n][1];
 
         
-        if(wet(i,j)==1)
+        if(wet[IJ]==1)
         {
         pflux->u_flux(4,uvel,ivel1,ivel2);
 
@@ -139,7 +139,7 @@ void sflow_hxy_cds::start(lexer* p, slice& hx, slice& hy, slice& depth, sliceint
     j=pBC->patch[qq]->gcb[n][1]-1;
 
         
-        if(wet(i,j)==1)
+        if(wet[IJ]==1)
         {
         pflux->v_flux(4,vvel,jvel1,jvel2);
 	

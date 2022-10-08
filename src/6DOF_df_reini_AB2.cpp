@@ -34,7 +34,7 @@ void sixdof_df_object::reini_AB2(lexer* p, fdm* a, ghostcell* pgc, field& b)
 	++n;
 	}
     
-    pgc->start4aV(p,f,50);
+    pgc->start4avec(p,f,50);
 	
     n=0;
 	LOOP
@@ -69,7 +69,7 @@ void sixdof_df_object::reini_AB2(lexer* p, fdm* a, ghostcell* pgc, field& b)
 		frk1.V[n]=L.V[n];
 		}
 
-	pgc->start4aV(p,f,50);
+	pgc->start4avec(p,f,50);
 	}
 		
 	n=0;

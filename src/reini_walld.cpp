@@ -52,7 +52,7 @@ void reini_walld::start(fdm* a,lexer* p,field& b, ghostcell* pgc,ioflow* pflow)
 	++n;
 	}
 
-	pgc->start4V(p,f,50);
+	pgc->start4vec(p,f,50);
     
     int qq;
 	QQGC4LOOP

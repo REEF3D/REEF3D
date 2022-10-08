@@ -71,7 +71,7 @@ void reinitopo_AB2::start(lexer* p, fdm* a, ghostcell* pgc,field &b)
 	++n;
 	}
     
-    pgc->start4aV(p,f,gcval_initopo);
+    pgc->start4avec(p,f,gcval_initopo);
 	
 	reiniter=p->S37;
 	gcval=gcval_topo;
@@ -83,7 +83,7 @@ void reinitopo_AB2::start(lexer* p, fdm* a, ghostcell* pgc,field &b)
 	cout<<endl<<"initializing topo..."<<endl<<endl;
     reiniter=2*int(p->maxlength/(p->F43*p->DXM));
 	gcval=gcval_initopo;
-	pgc->start4aV(p,f,gcval);
+	pgc->start4avec(p,f,gcval);
     
 	NLOOP4A
 	L.V[n]=frk1.V[n]=0.0;
@@ -106,7 +106,7 @@ void reinitopo_AB2::start(lexer* p, fdm* a, ghostcell* pgc,field &b)
 		frk1.V[n]=L.V[n];
 		}
 
-	pgc->start4aV(p,f,gcval);
+	pgc->start4avec(p,f,gcval);
 	}
 		
 	n=0;

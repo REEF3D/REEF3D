@@ -41,7 +41,7 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"data.h"
 #include"concentration.h"
-#include"gage_discharge.h"
+#include"gage_discharge_x.h"
 #include"fsf_vtp.h"
 #include"topo_vtp.h"
 #include"state.h"
@@ -112,7 +112,7 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
 	pwsfline_y=new print_wsfline_y(p,a,pgc);
 	pprobe = new probe_point(p,a,pgc);
 	pline = new probe_line(p,a,pgc);
-	pq = new gage_discharge(p,a,pgc);
+	pq = new gage_discharge_x(p,a,pgc);
 
 	if(p->P180==1)
 	pfsf = new fsf_vtp(p,a,pgc);
@@ -911,6 +911,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     phase = omega_y*p->simtime;
 
 
+/*
     if(p->G2==1)
     {
     pgc->gcsl_start4(p,a->WL,50);
@@ -926,7 +927,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     j=-1;
     if(i+p->origin_i==-1 && j+p->origin_j==-1 )
     a->WL(i,j) = a->WL(i+1,j+1);
-    }
+    }*/
 
 
 	iin=4*(p->pointnum)*3;
@@ -935,20 +936,20 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	{
         if(p->G2==0)
         zcoor=p->ZN[KP1];
-
+/*
         if(p->G2==1)
         {
         zcoor = p->ZN[KP1]*a->WL(i,j) + a->bed(i,j);
 
-        if(a->wet(i,j)==0 && p->flagslice4[IJ]>0)
+        if(p->wet[IJ]==0 && p->flagslice4[IJ]>0)
         zcoor=a->bed(i,j);
 
-        if(i+p->origin_i==-1 && j+p->origin_j==-1 && a->wet(0,0)==1)
+        if(i+p->origin_i==-1 && j+p->origin_j==-1 && p->wet[(0-p->imin)*p->jmax + (0-p->jmin)]==1)
         zcoor = p->ZN[KP1]*a->WL(i,j) + a->bed(i,j);
 
 
         //cout<<"ZN: "<<p->ZN[KP1]<<" WL: "<<a->WL(i,j)<<" eta: "<<a->eta(i,j)<<" zcoor: "<<zcoor<<endl;
-        }
+        }*/
 
 
     ffn=float( (p->XN[IP1]-p->B192_3)*cos(theta_y*sin(phase)) - (zcoor-p->B192_4)*sin(theta_y*sin(phase)) + p->B192_3);

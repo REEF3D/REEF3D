@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,38 +20,33 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"boundarycheck.h"
-#include<iostream>
-#include<fstream>
+#include"increment.h"
+class lexer;class fdm_nhf;class ghostcell;class ioflow;class poisson;class solver;
 
-class lexer;
-class fdm;
-class ghostcell;
-class field;
+#ifndef NHFLOW_POISSON_H_
+#define NHFLOW_POISSON_H_
 
 using namespace std;
 
-#ifndef GAGE_DISCHARGE_H_
-#define GAGE_DISCHARGE_H_
 
-class gage_discharge : public boundarycheck
+class nhflow_poisson : public increment
 {
-public:
-    gage_discharge(lexer*,fdm*,ghostcell*);
-	virtual ~gage_discharge();
 
-	void start(lexer*, fdm*, ghostcell*);
+public:
+
+	nhflow_poisson (lexer *);
+	virtual ~nhflow_poisson();
+
+	virtual void start(lexer *,fdm_nhf*,double*);
 
 private:
-    void ini_location(lexer*, fdm*, ghostcell*);
-    int conv(double);
 
-    int *iloc,*flag;
-    double *q;
-	double area,Ai;
-    int n;
-    ofstream qout;
-
+	double teta;
+	int count,n,q;
+    
 };
 
 #endif
+
+
+
