@@ -107,7 +107,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     ini_fsf(p,b,pgc);
 
     SLICELOOP4
-    b->wet4(i,j)=1;
+    p->wet[IJ]=1;
 
 
     SLICELOOP4
