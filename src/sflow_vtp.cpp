@@ -286,7 +286,7 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pt
 	result.write((char*)&ddn, sizeof (double));
 
     if(p->P73==0)
-	ddn=p->sl_ipol4eta(b->wet4,b->eta,b->bed)+p->wd;
+	ddn=p->sl_ipol4eta(p->wet,b->eta,b->bed)+p->wd;
     
     if(p->P73==1)
     {

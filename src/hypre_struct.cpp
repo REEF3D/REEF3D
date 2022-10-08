@@ -78,7 +78,7 @@ void hypre_struct::startF(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_
     start_solver8(p,pgc,f,rhs,M,var);
 }
 
-void hypre_struct::startM(lexer* p,fdm* a, ghostcell* pgc, double *x, double *rhs, double *M, int var)
+void hypre_struct::startM(lexer* p, ghostcell* pgc, double *x, double *rhs, double *M, int var)
 {
 }
 

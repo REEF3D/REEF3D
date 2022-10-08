@@ -37,7 +37,7 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 {
 }
 
-void nhflow_f::kinematic_fsf(lexer *p, fdm_nhf *d, field &u, field &v, field &w, slice &eta1, slice &eta2, double alpha)
+void nhflow_f::kinematic_fsf(lexer *p, fdm_nhf *d, double U*, double V*, double W*, slice &eta1, slice &eta2, double alpha)
 {
     double wval,w_n,udetax;
     double Pval,Qval;
@@ -191,11 +191,6 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm_nhf *d, field &u, field &v, field &w,
         
         d->dwdt(i,j) = (wval - w_n)/(alpha*p->dt);
     }
-    
-}
-
-void nhflow_f::kinematic_fsf_co(lexer *p, fdm_nhf *d, field &u, field &v, field &w, slice &eta1, slice &eta2, double alpha)
-{
     
 }
 

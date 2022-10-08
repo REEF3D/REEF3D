@@ -54,10 +54,10 @@ void driver::logic()
     
 // nhflow
     if(p->A10!=55)
-    pnh=new nhflow_v(p,a,pgc);
+    pnh=new nhflow_v(p,d,pgc);
     
     if(p->A10==55)
-    pnh=new nhflow_f(p,a,pgc);
+    pnh=new nhflow_f(p,d,pgc);
 
 // time stepping
     if(p->N48==0)
@@ -351,10 +351,10 @@ void driver::logic()
     if(p->A10==55)
     {
     if(p->A540==1)
-    pnhfsf = new nhflow_fsf_rk(p,a,pgc,pflow,pBC);
+    pnhfsf = new nhflow_fsf_rk(p,d,pgc,pflow,pBC);
     
     if(p->A540==2)
-    pnhfsf = new nhflow_fsf_fsm(p,a,pgc,pflow,pBC);
+    pnhfsf = new nhflow_fsf_fsm(p,d,pgc,pflow,pBC);
     }
     
 
@@ -460,11 +460,8 @@ void driver::logic()
 	if(p->D30==0)
 	ppress = new pressure_void(p);
 
-	if(p->D30==1 && p->W30==0 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2) && p->G2==0)
+	if(p->D30==1 && p->W30==0 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2))
 	ppress = new pjm(p,a,pheat,pconc);
-    
-    if((p->D30==1) && p->W30==0 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2) && p->G2==1)
-	ppress = new pjm_sig(p,a,pgc,pheat,pconc);
     
     if(p->D30==1 && p->W30==1 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2))
 	ppress = new pjm_comp(p,a,pgc,pheat,pconc);
@@ -478,27 +475,15 @@ void driver::logic()
     if((p->D30==3 || (p->X10==1 && p->X13==2) || p->Z10!=0 ) && p->N40!=4)
 	ppress = new pjm_corr(p,a,pheat,pconc);
     
-    if((p->D30==4) && p->W30==0 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2) && p->G2==1)
-	ppress = new pjm_sigss(p,a,pgc,pheat,pconc);
-    
-    if(p->D30==10 && p->G2==0)
+    if(p->D30==10)
 	ppress = new pjm_hydrostatic(p,a,pheat,pconc);
-    
-    if(p->D30==10 && p->W30==0 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2) && p->G2==1)
-	ppress = new pjm_sig_hs(p,a,pheat,pconc);
 
     if(p->N40==4)
 	ppress = new pjm_IMEX(p,a,pheat,pconc);
 
 //poisson scheme for pressure
 	if(p->D30<5 && p->F10==2)
-    {
-    if(p->G2==0)
 	ppois = new poisson_f(p,pheat,pconc);
-    
-    if(p->G2==1 && p->D30==1)
-	ppois = new poisson_sig(p,pheat,pconc);
-    }
     
     if(p->D30==5 && p->F10==2)
 	ppois = new poisson_f(p,pheat,pconc);
@@ -525,7 +510,7 @@ void driver::logic()
 	
 	#ifdef HYPRE_COMPILATION
 	if(p->N10>=10 && p->N10<20)
-	ppoissonsolv = new hypre_struct(p,a,pgc,p->N10,p->N11);
+	ppoissonsolv = new hypre_struct(p,pgc,p->N10,p->N11);
 	#endif
     
     #ifdef HYPRE_COMPILATION

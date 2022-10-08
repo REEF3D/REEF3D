@@ -36,10 +36,8 @@ public:
 
     virtual void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*);
     
-    virtual void kinematic_fsf(lexer*, fdm_nhf*, field&, field&, field&, slice&, slice&, double);
-    
-    virtual void kinematic_fsf_co(lexer*, fdm_nhf*, field&, field&, field&, slice&, slice&, double);
-    
+    virtual void kinematic_fsf(lexer*, fdm_nhf*, double*, double*, double*, slice&, slice&, double);
+
 private:
     int q,margin;
         

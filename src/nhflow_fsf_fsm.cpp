@@ -106,8 +106,8 @@ void nhflow_fsf_fsm::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow)
     SLICELOOP4
     d->WL(i,j) = MAX(0.0, d->eta(i,j) + p->wd - d->bed(i,j));
     
-    p->sigma_update(p,a,pgc,d->eta,d->eta_n,1.0);
-    p->omega_update(p,a,pgc,d->u,d->v,d->w,d->eta,d->eta_n,1.0);
+    p->sigma_update(p,d,pgc,d->eta,d->eta_n,1.0);
+    p->omega_update(p,d,pgc,d->U,d->V,d->W,d->eta,d->eta_n,1.0);
 }
 
 void nhflow_fsf_fsm::ltimesave(lexer* p, fdm_nhf* d, slice &ls)
@@ -116,14 +116,13 @@ void nhflow_fsf_fsm::ltimesave(lexer* p, fdm_nhf* d, slice &ls)
 
 void nhflow_fsf_fsm::update(lexer *p, fdm_nhf* d, ghostcell *pgc, slice &f)
 {
-    pupdate->start(p,a,pgc);
 }
 
 void nhflow_fsf_fsm::ini(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow)
 {
 }
 
-void nhflow_fsf_fsm::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, field &u, field&v, field&w, slice& etark1, slice &etark2, double alpha)
+void nhflow_fsf_fsm::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
 {
     SLICELOOP4
     etark1(i,j) = etark2(i,j) = d->eta(i,j);
@@ -133,12 +132,12 @@ void nhflow_fsf_fsm::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, 
 
 }
 
-void nhflow_fsf_fsm::step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, field &u, field&v, field&w, slice& etark1, slice &etark2, double alpha)
+void nhflow_fsf_fsm::step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
 {
 
 }
 
-void nhflow_fsf_fsm::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, field &u, field&v, field&w, slice& etark1, slice &etark2, double alpha)
+void nhflow_fsf_fsm::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
 {
 
 }
