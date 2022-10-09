@@ -796,8 +796,8 @@
           <File Name="print_1Dline.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Print WSF">
+          <File Name="print_wsfline_x.h"/>
           <File Name="print_wsf.h"/>
-          <File Name="print_wsfline.h"/>
           <File Name="print_wsfline_y.h"/>
           <File Name="print_wsf_theory.h"/>
         </VirtualDirectory>
@@ -2321,8 +2321,8 @@
           <File Name="print_1Dline.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Print WSF">
+          <File Name="print_wsfline_x.cpp"/>
           <File Name="print_wsf.cpp"/>
-          <File Name="print_wsfline.cpp"/>
           <File Name="print_wsfline_y.cpp"/>
           <File Name="print_wsf_theory.cpp"/>
         </VirtualDirectory>

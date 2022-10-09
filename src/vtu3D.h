@@ -31,7 +31,7 @@ class bedload;
 class topo;
 class print_wsf;
 class print_wsf_theory;
-class print_wsfline;
+class print_wsfline_x;
 class print_wsfline_y;
 class force;
 class force;
@@ -91,7 +91,7 @@ private:
 
     print_wsf *pwsf;
 	print_wsf_theory *pwsf_theory;
-    print_wsfline *pwsfline;
+    print_wsfline_x *pwsfline_x;
 	print_wsfline_y *pwsfline_y;
     force **pforce;
     vorticity *pvort;

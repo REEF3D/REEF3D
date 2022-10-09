@@ -33,14 +33,14 @@ class wave_theory;
 
 using namespace std;
 
-#ifndef PRINT_WSFLINE_H_
-#define PRINT_WSFLINE_H_
+#ifndef PRINT_WSFLINE_X_H_
+#define PRINT_WSFLINE_X_H_
 
-class print_wsfline : public boundarycheck
+class print_wsfline_x : public boundarycheck
 {
 public:
-    print_wsfline(lexer*,fdm*,ghostcell*);
-	virtual ~print_wsfline();
+    print_wsfline_x(lexer*,fdm*,ghostcell*);
+	virtual ~print_wsfline_x();
 
 	void wsfline(lexer*, fdm*, ghostcell*,ioflow*);
 

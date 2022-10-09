@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include<iomanip>
-#include"print_wsfline.h"
+#include"print_wsfline_x.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-print_wsfline::print_wsfline(lexer *p, fdm* a, ghostcell *pgc)
+print_wsfline_x::print_wsfline_x(lexer *p, fdm* a, ghostcell *pgc)
 {	
 	p->Iarray(jloc,p->P52);
 
@@ -71,12 +71,12 @@ print_wsfline::print_wsfline(lexer *p, fdm* a, ghostcell *pgc)
 	mkdir("./REEF3D_CFD_WSFLINE",0777);
 }
 
-print_wsfline::~print_wsfline()
+print_wsfline_x::~print_wsfline_x()
 {
     wsfout.close();
 }
 
-void print_wsfline::wsfline(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
+void print_wsfline_x::wsfline(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
 {
 	
     char name[250];
@@ -256,7 +256,7 @@ void print_wsfline::wsfline(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
     }
 }
 
-void print_wsfline::ini_location(lexer *p, fdm *a, ghostcell *pgc)
+void print_wsfline_x::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 {
     int check,count;
 
@@ -281,7 +281,7 @@ void print_wsfline::ini_location(lexer *p, fdm *a, ghostcell *pgc)
     }
 }
 
- void print_wsfline::sort(double *a, double *b, int *c, int left, int right)
+ void print_wsfline_x::sort(double *a, double *b, int *c, int left, int right)
  {
 
   if (left < right)
@@ -320,7 +320,7 @@ void print_wsfline::ini_location(lexer *p, fdm *a, ghostcell *pgc)
   }
 }
 
-void print_wsfline::remove_multientry(lexer *p, double* b, double* c, int *d, int& num)
+void print_wsfline_x::remove_multientry(lexer *p, double* b, double* c, int *d, int& num)
 {
     int oldnum=num;
     double xval=-1.12e23;
