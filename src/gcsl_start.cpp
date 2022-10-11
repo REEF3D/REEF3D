@@ -192,6 +192,53 @@ void ghostcell::gcsl_start4int(lexer *p, sliceint &f, int gcv)
     }
 }
 
+void ghostcell::gcsl_start4Vint(lexer *p, int *f, int gcv)
+{
+    /*
+    starttime=timer();
+	QQGCSL4LOOP
+	gcsldistro4int(p,f,p->gcbsl4[qq][0],p->gcbsl4[qq][1], p->gcbsl4[qq][5], p->gcdsl4[qq], gcv, p->gcbsl4[qq][4], p->gcbsl4[qq][3]);
+	endtime=timer();
+	p->gctime+=endtime-starttime;
+    
+	//  MPI Boundary Swap
+    if(p->M10>0)
+    {
+    starttime=timer();
+	gcslparax_int(p,f,4);
+    gcslparacox_int(p,f,gcv);
+	gcslparacox_int(p,f,gcv);
+	endtime=timer();
+	p->xtime+=endtime-starttime;
+    }
+    */
+    
+// -----
+/*
+    if(p->M10>0)
+    {
+    starttime=timer();
+	gcparax7(p,x,7);
+    gcparax7co(p,x,7);
+    gcparax7co(p,x,7);
+	endtime=timer();
+	p->xtime+=endtime-starttime;
+    }
+    
+    
+    if(gcv==250)
+    fivec(p,x,bc);
+    
+    if(gcv==150)
+    fivec2D(p,x,bc);
+    
+    if(gcv==210)
+    fivec_vel(p,x,bc);
+    
+    if(gcv==110)
+    fivec2D_vel(p,x,bc);*/
+}
+
 void ghostcell::gcsl_start4a(lexer *p, slice &f, int gcv)
 {
     starttime=timer();

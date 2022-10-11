@@ -463,9 +463,6 @@ void driver::logic()
 	if(p->D30==1 && p->W30==0 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2) && p->G2==0)
 	ppress = new pjm(p,a,pheat,pconc);
     
-    if((p->D30==1) && p->W30==0 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2) && p->G2==1)
-	ppress = new pjm_sig(p,a,pgc,pheat,pconc);
-    
     if(p->D30==1 && p->W30==1 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2))
 	ppress = new pjm_comp(p,a,pgc,pheat,pconc);
     
@@ -478,27 +475,15 @@ void driver::logic()
     if((p->D30==3 || (p->X10==1 && p->X13==2) || p->Z10!=0 ) && p->N40!=4)
 	ppress = new pjm_corr(p,a,pheat,pconc);
     
-    if((p->D30==4) && p->W30==0 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2) && p->G2==1)
-	ppress = new pjm_sigss(p,a,pgc,pheat,pconc);
-    
     if(p->D30==10 && p->G2==0)
 	ppress = new pjm_hydrostatic(p,a,pheat,pconc);
     
-    if(p->D30==10 && p->W30==0 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2) && p->G2==1)
-	ppress = new pjm_sig_hs(p,a,pheat,pconc);
-
     if(p->N40==4)
 	ppress = new pjm_IMEX(p,a,pheat,pconc);
 
 //poisson scheme for pressure
 	if(p->D30<5 && p->F10==2)
-    {
-    if(p->G2==0)
 	ppois = new poisson_f(p,pheat,pconc);
-    
-    if(p->G2==1 && p->D30==1)
-	ppois = new poisson_sig(p,pheat,pconc);
-    }
     
     if(p->D30==5 && p->F10==2)
 	ppois = new poisson_f(p,pheat,pconc);
@@ -525,7 +510,7 @@ void driver::logic()
 	
 	#ifdef HYPRE_COMPILATION
 	if(p->N10>=10 && p->N10<20)
-	ppoissonsolv = new hypre_struct(p,a,pgc,p->N10,p->N11);
+	ppoissonsolv = new hypre_struct(p,pgc,p->N10,p->N11);
 	#endif
     
     #ifdef HYPRE_COMPILATION

@@ -252,6 +252,8 @@ public:
     void gcsl_start1int(lexer*,sliceint&, int);
     void gcsl_start2int(lexer*,sliceint&, int);
     void gcsl_start4int(lexer*,sliceint&, int);
+    
+    void gcsl_start4Vint(lexer*,int*, int);
 
     
     void gcsl_solidupdate(lexer*);
