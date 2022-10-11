@@ -43,7 +43,7 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
       
       pgc->gcsl_start4int(p,c->wet,50);
       
-      pcoast->start(p,pgc,c->coastline,c->wet,c->wet_n);
+      pcoast->start(p,pgc,c->coastline,p->wet,c->wet_n);
 }
 
 void fnpf_fsfbc_wd::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 

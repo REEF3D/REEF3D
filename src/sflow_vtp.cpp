@@ -141,28 +141,28 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pt
     {
     i=0;
     j=0;
-	b->wet4(i-1,j-1) = b->wet4(i,j);
+	p->wet[Im1Jm1] = p->wet[IJ];
     }
     
     if(p->origin_i==0 && p->gknoy==p->knoy+p->origin_j)
     {
     i=0;
     j=p->knoy-1;
-	b->wet4(i-1,j+1) = b->wet4(i,j);
+	p->wet[Im1Jp1] = p->wet[IJ];
     }
     
     if(p->gknox==p->knox+p->origin_i && p->origin_j==0)
     {
     i=p->knox-1;
     j=0;
-	b->wet4(i+1,j-1) = b->wet4(i,j);
+	p->wet[Ip1Jm1] = p->wet[IJ];
     }
     
     if(p->gknox==p->knox+p->origin_i && p->gknoy==p->knoy+p->origin_j)
     {
     i=p->knox-1;
     j=p->knoy-1;
-	b->wet4(i+1,j+1) = b->wet4(i,j);
+	p->wet[Ip1Jp1] = p->wet[IJ];
     }
 
 
@@ -286,7 +286,7 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pt
 	result.write((char*)&ddn, sizeof (double));
 
     if(p->P73==0)
-	ddn=p->sl_ipol4eta(b->wet4,b->eta,b->bed)+p->wd;
+	ddn=p->sl_ipol4eta(p->wet,b->eta,b->bed)+p->wd;
     
     if(p->P73==1)
     {

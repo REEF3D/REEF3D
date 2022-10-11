@@ -39,7 +39,7 @@ void nhflow_v::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 
 }
 
-void nhflow_v::kinematic_fsf(lexer *p, fdm_nhf *d, field &u, field &v, field &w, slice &eta, slice &eta_n, double alpha)
+void nhflow_v::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, double *W, slice &eta1, slice &eta2, double alpha)
 {
 
 }

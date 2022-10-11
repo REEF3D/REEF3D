@@ -31,7 +31,7 @@ class bedload;
 class topo;
 class print_wsf;
 class print_wsf_theory;
-class print_wsfline;
+class print_wsfline_x;
 class print_wsfline_y;
 class force;
 class force;
@@ -41,7 +41,7 @@ class probe_point;
 class probe_line;
 class bedprobe_point;
 class bedprobe_max;
-class gage_discharge;
+class gage_discharge_x;
 class fsf_vtp;
 class topo_vtp;
 class state;
@@ -91,7 +91,7 @@ private:
 
     print_wsf *pwsf;
 	print_wsf_theory *pwsf_theory;
-    print_wsfline *pwsfline;
+    print_wsfline_x *pwsfline_x;
 	print_wsfline_y *pwsfline_y;
     force **pforce;
     vorticity *pvort;
@@ -103,7 +103,7 @@ private:
 	bedprobe_max *pbedmax;
 	bedshear_probe *pbedshear;
 	bedshear_max *pbedshearmax;
-	gage_discharge *pq;
+	gage_discharge_x *pq;
 	fsf_vtp *pfsf;
     topo_vtp *ptopo;
 	state *pstate;

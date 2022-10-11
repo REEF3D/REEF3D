@@ -311,9 +311,7 @@ void iowave::full_initialize_ptf(lexer *p, fdm *a, ghostcell *pgc)
       
     }
     
-    SLICELOOP4
-    a->WL(i,j) = a->eta(i,j) + p->wd - a->bed(i,j);
-    
+
     pgc->start4(p,a->Fi,50);
 
 }

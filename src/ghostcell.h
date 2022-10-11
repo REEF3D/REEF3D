@@ -65,7 +65,7 @@ public:
 	void start4vec(lexer*,vec&,int);
 	void start4avec(lexer*,vec&,int);
     void start6vec(lexer*,vec&,int);
-    
+
     void start4V(lexer*,double*,sliceint&, int);
     void start7V(lexer*,double*,sliceint&, int);
     void start7S(lexer*,double*, int);
@@ -81,14 +81,14 @@ public:
 	double timesync(double);
 	void globalctrl(lexer*);
 	void dgcpol(lexer*,field&, int**,int, int);
-    
+
     void dgcpol1(lexer*,field&, int);
     void dgcpol2(lexer*,field&, int);
     void dgcpol3(lexer*,field&, int);
     void dgcpol4(lexer*,field&, int);
     void dgcpol4a(lexer*,field&, int);
     void dgcpol6(lexer*,field&, int);
-    
+
     void dgcslpol(lexer*, slice&, int**,int, int);
     void dgcslpol1(lexer*, slice&);
     void dgcslpol2(lexer*, slice&);
@@ -147,7 +147,7 @@ public:
     void fdm_fnpf_update(fdm_fnpf*);
     void fdm_nhf_update(fdm_nhf*);
 
-// 2D CPT_    
+// 2D CPT_
 
     void sizeS_update(lexer*);
 
@@ -248,14 +248,13 @@ public:
 	void gcsl_start3(lexer*,slice&, int);
 	void gcsl_start4(lexer*,slice&, int);
 	void gcsl_start4a(lexer*,slice&, int);
-    
+
     void gcsl_start1int(lexer*,sliceint&, int);
     void gcsl_start2int(lexer*,sliceint&, int);
     void gcsl_start4int(lexer*,sliceint&, int);
-    
     void gcsl_start4Vint(lexer*,int*, int);
 
-    
+
     void gcsl_solidupdate(lexer*);
 
     void gcsldistro1(lexer*, slice&,int, int, int, double, int, int, int);
@@ -267,6 +266,7 @@ public:
     void gcsldistro1int(lexer*, sliceint&,int, int, int, double, int, int, int);
     void gcsldistro2int(lexer*, sliceint&,int, int, int, double, int, int, int);
     void gcsldistro4int(lexer*, sliceint&,int, int, int, double, int, int, int);
+    void gcsldistro4Vint(lexer*, int*,int, int, int, double, int, int, int);
 
     int gcsleval1(lexer*,int,int,int);
 	int gcsleval2(lexer*,int,int,int);
@@ -288,6 +288,7 @@ public:
     void gcsl_neumann_hy(slice&,int,int,int);
     void gcsl_neumann_x(slice&,int,int,int);
     void gcsl_neumann_int(sliceint&,int,int,int);
+    void gcsl_neumann_V_int(lexer*,int*,int,int,int);
 	void gcsl_noslip(slice&,int,int,int);
     void gcsl_sommerfeld(lexer*,slice&,int,int,int);
     void gcsl_outflow(lexer*,slice&,int,int,int);
@@ -298,8 +299,10 @@ public:
     void gcslparax(lexer*, slice&, int);
     void gcslparax_fh(lexer*, slice&, int);
     void gcslparax_int(lexer*, sliceint&, int);
+    void gcslparaxV_int(lexer*, int*, int);
     void gcslparacox(lexer*, slice&, int);
     void gcslparacox_int(lexer*, sliceint&, int);
+    void gcslparacoxV_int(lexer*, int*, int);
     void gcslwait(lexer*);
     void gcslflagx(lexer*, int*);
     void gcxslupdate(lexer*);

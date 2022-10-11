@@ -37,7 +37,7 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 {
 }
 
-void nhflow_f::kinematic_fsf(lexer *p, fdm_nhf *d, field &u, field &v, field &w, slice &eta1, slice &eta2, double alpha)
+void nhflow_f::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, double *W, slice &eta1, slice &eta2, double alpha)
 {
     double wval,w_n,udetax;
     double Pval,Qval;
@@ -56,8 +56,8 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm_nhf *d, field &u, field &v, field &w,
     
     if(p->A515==1 && p->A540==1)
     {
-    Pval = 0.5*(u(i,j,k)+u(i-1,j,k));
-    Qval = 0.5*(v(i,j,k)+v(i,j-1,k));
+    Pval = 0.5*(U[IJK]+U[Im1JK]);
+    Qval = 0.5*(V[IJK]+V[IJm1K]);
     
     wval = (d->eta(i,j) - d->eta_n(i,j))/(p->dt)
     
@@ -102,8 +102,8 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm_nhf *d, field &u, field &v, field &w,
     
     if(p->A515==3 && p->A540==1)
     {
-    Pval = 0.5*(u(i,j,k)+u(i-1,j,k));
-    Qval = 0.5*(v(i,j,k)+v(i,j-1,k));
+    Pval = 0.5*(U[IJK]+U[Im1JK]);
+    Qval = 0.5*(V[IJK]+V[IJm1K]);
     
     wval = (d->eta(i,j) - d->eta_n(i,j))/(p->dt)
     
@@ -120,8 +120,8 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm_nhf *d, field &u, field &v, field &w,
     zloc1 = 0.5*p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[Ip1J]);
     zloc2 = 0.5*p->DZN[KP]*0.5*(p->sigz[Im1J]+p->sigz[IJ]);
     
-    uvel1 = u(i-1,j,k) + (u(i-1,j,k)-u(i-1,j,k-1))/(p->DZN[KP]*0.5*(p->sigz[Im1J]+p->sigz[IJ]))*zloc1;
-    uvel2 = u(i,j,k) + (u(i,j,k)-u(i,j,k-1))/(p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[Ip1J]))*zloc2;
+    uvel1 = U[Im1JK] + (U[Im1JK]-U[Im1JKm1])/(p->DZN[KP]*0.5*(p->sigz[Im1J]+p->sigz[IJ]))*zloc1;
+    uvel2 = U[IJK] + (U[IJK]-U[IJKm1])/(p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[Ip1J]))*zloc2;
     
     Pval = 0.5*(uvel1 + uvel2);
     Qval = 0.5*(d->V[IJK]+d->V[IJm1K]);
@@ -140,8 +140,8 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm_nhf *d, field &u, field &v, field &w,
     zloc1 = 0.5*p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[Ip1J]);
     zloc2 = 0.5*p->DZN[KP]*0.5*(p->sigz[Im1J]+p->sigz[IJ]);
     
-    uvel1 = u(i-1,j,k) + (u(i-1,j,k)-u(i-1,j,k-1))/(p->DZN[KP]*0.5*(p->sigz[Im1J]+p->sigz[IJ]))*zloc1;
-    uvel2 = u(i,j,k) + (u(i,j,k)-u(i,j,k-1))/(p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[Ip1J]))*zloc2;
+    uvel1 = U[Im1JK] + (U[Im1JK]-U[Im1JKm1])/(p->DZN[KP]*0.5*(p->sigz[Im1J]+p->sigz[IJ]))*zloc1;
+    uvel2 = U[IJK] + (U[IJK]-U[IJKm1])/(p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[Ip1J]))*zloc2;
     
     Pval = 0.5*(uvel1 + uvel2);
     Qval = 0.5*(d->V[IJK]+d->V[IJm1K]);
@@ -155,8 +155,9 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm_nhf *d, field &u, field &v, field &w,
          + MIN(0.0,Qval)*((d->eta(i,j+1)-d->eta(i,j))/(p->DYP[JP1]));
     }
          
-        for(q=0;q<margin;++q)
-        w(i,j,k+q) = wval; 
+        W[IJKp1] = wval;
+        W[IJKp2] = wval;
+        W[IJKp3] = wval;
     }
     
     // Kinematic Bed BC
@@ -167,8 +168,8 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm_nhf *d, field &u, field &v, field &w,
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
     
-    Pval = 0.5*(u(i,j,k)+u(i-1,j,k));
-    Qval = 0.5*(v(i,j,k)+v(i,j-1,k));
+    Pval = 0.5*(U[IJK]+U[Im1JK]);
+    Qval = 0.5*(V[IJK]+V[IJm1K]);
     
 
     wval = - MAX(0.0,Pval)*((d->depth(i,j)-d->depth(i-1,j))/(p->DXP[IP]))
@@ -183,19 +184,16 @@ void nhflow_f::kinematic_fsf(lexer *p, fdm_nhf *d, field &u, field &v, field &w,
     
 
     //wval =0.0;
-        for(q=0;q<margin;++q)
-        w(i,j,k-q-1) = wval;
+        
+        W[IJKm1] = wval;
+        W[IJKm2] = wval;
+        W[IJKm3] = wval;
         
         w_n = d->wbed(i,j);
         d->wbed(i,j) = wval;
         
         d->dwdt(i,j) = (wval - w_n)/(alpha*p->dt);
     }
-    
-}
-
-void nhflow_f::kinematic_fsf_co(lexer *p, fdm_nhf *d, field &u, field &v, field &w, slice &eta1, slice &eta2, double alpha)
-{
     
 }
 

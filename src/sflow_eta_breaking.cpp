@@ -44,25 +44,25 @@ void sflow_eta::breaking(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice &
     
     if(p->A242==1)
     SLICELOOP4
-    if(b->wet4(i,j)==1)
+    if(p->wet[IJ]==1)
     {
-        if(b->wet4(i+1,j)==0 || b->wet4(i+2,j)==0)
+        if(p->wet[Ip1J]==0 || p->wet[Ip2J]==0)
         b->breaking(i,j)=1;
             
-        if(b->wet4(i-1,j)==0 || b->wet4(i-2,j)==0)
+        if(p->wet[Im1J]==0 || p->wet[Im2J]==0)
         b->breaking(i,j)=1;
         
         
-        if(b->wet4(i,j+1)==0 || b->wet4(i,j+2)==0)
+        if(p->wet[IJp1]==0 || p->wet[IJp2]==0)
         b->breaking(i,j)=1;
             
-        if(b->wet4(i,j-1)==0 || b->wet4(i,j-2)==0)
+        if(p->wet[IJm1]==0 || p->wet[IJm2]==0)
         b->breaking(i,j)=1;
             
-        //if(b->wet4(i,j+1)==0)
+        //if(p->wet[IJp1]==0)
        // b->breaking(i,j)=1;
 
-        //if(b->wet4(i,j-1)==0)
+        //if(p->wet[IJm1]==0)
         //b->breaking(i,j)=1;
         
         if(b->hp(i,j) < 0.01)
@@ -79,12 +79,12 @@ void sflow_eta::breaking(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice &
     
     if(p->A242>=2)
     SLICELOOP4
-    if(b->wet4(i,j)==1)
+    if(p->wet[IJ]==1)
     {
-        if(b->wet4(i+1,j)==0 || b->wet4(i+2,j)==0)
+        if(p->wet[Ip1J]==0 || p->wet[Ip2J]==0)
         b->breaking(i,j)=1;
             
-        if(b->wet4(i-1,j)==0 || b->wet4(i-2,j)==0)
+        if(p->wet[Im1J]==0 || p->wet[Im2J]==0)
         b->breaking(i,j)=1;
         
         
@@ -127,10 +127,10 @@ void sflow_eta::breaking(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice &
             }
 
             
-        //if(b->wet4(i,j+1)==0)
+        //if(p->wet(i,j+1)==0)
        // b->breaking(i,j)=1;
 
-        //if(b->wet4(i,j-1)==0)
+        //if(p->wet(i,j-1)==0)
         //b->breaking(i,j)=1;
     }
     

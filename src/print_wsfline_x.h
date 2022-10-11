@@ -20,40 +20,50 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"boundarycheck.h"
+#include<iostream>
+#include<fstream>
 
-class convection;
-class pressure;
-class solver;
-class fdm_nhf;
 class lexer;
+class fdm;
 class ghostcell;
 class field;
-class fluid_update;
-class heat;
-class concentration;
 class ioflow;
-class slice;
-class momentum;
-class diffusion;
-class poisson;
-class vrans;
-class turbulence;
+class wave_theory;
 
 using namespace std;
 
-#ifndef NHFLOW_H_
-#define NHFLOW_H_
+#ifndef PRINT_WSFLINE_X_H_
+#define PRINT_WSFLINE_X_H_
 
-class nhflow
+class print_wsfline_x : public boundarycheck
 {
-public:    
+public:
+    print_wsfline_x(lexer*,fdm*,ghostcell*);
+	virtual ~print_wsfline_x();
 
-    virtual void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*)=0;
-    
-    virtual void kinematic_fsf(lexer*, fdm_nhf*, double*, double*, double*, slice&, slice&, double)=0;
+	void wsfline(lexer*, fdm*, ghostcell*,ioflow*);
 
-        
+
+private:
+    void ini_location(lexer*, fdm*, ghostcell*);
+    void sort(double*, double*, int*, int,int);
+    void remove_multientry(lexer*,double*, double*, int*, int&);
+
+    int *jloc,**flag,**flag_all,*rowflag,*wsfpoints;
+    double **wsf,**wsf_all;
+    double **xloc, **xloc_all;
+    double *yloc;
+    int n,q;
+    ofstream wsfout;
+
+    double xcoor;
+	
+	wave_theory *pwave;
+
+    int maxknox,sumknox;
 
 };
 
 #endif
+

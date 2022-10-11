@@ -47,8 +47,8 @@ void sixdof_sflow::start(lexer *p, fdm *a, ghostcell *pgc,double alpha,vrans *pv
 void sixdof_sflow::start(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     // Move body
-    p->xg += Uext*p->dt;
-    p->yg += Vext*p->dt;
+    p->xg += ramp(p)*Uext*p->dt;
+    p->yg += ramp(p)*Vext*p->dt;
 
     // Update position
     updateFSI(p,b,pgc);

@@ -89,14 +89,13 @@ public:
     
     
     // PTF
-    slice4 eta,eta_n,WL,WL_n,depth;
-    slice4 Bx,By;
-    slice4 Fifsf,Fz;
+    slice4 eta,eta_n,depth;
+    slice4 Fifsf;
     slice4 K;
     sliceint4 etaloc;
     
-    slice1 P,hx;
-    slice2 Q,hy;
+    slice1 P;
+    slice2 Q;
     
     slice4 bed;
     

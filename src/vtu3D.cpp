@@ -29,7 +29,7 @@ Author: Hans Bihs
 #include"solver.h"
 #include"print_wsf.h"
 #include"print_wsf_theory.h"
-#include"print_wsfline.h"
+#include"print_wsfline_x.h"
 #include"print_wsfline_y.h"
 #include"force.h"
 #include"vorticity_f.h"
@@ -41,7 +41,7 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"data.h"
 #include"concentration.h"
-#include"gage_discharge.h"
+#include"gage_discharge_x.h"
 #include"fsf_vtp.h"
 #include"topo_vtp.h"
 #include"state.h"
@@ -108,11 +108,11 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
 
 	pwsf=new print_wsf(p,a,pgc,0);
 	pwsf_theory=new print_wsf_theory(p,a,pgc,0);
-	pwsfline=new print_wsfline(p,a,pgc);
+	pwsfline_x=new print_wsfline_x(p,a,pgc);
 	pwsfline_y=new print_wsfline_y(p,a,pgc);
 	pprobe = new probe_point(p,a,pgc);
 	pline = new probe_line(p,a,pgc);
-	pq = new gage_discharge(p,a,pgc);
+	pq = new gage_discharge_x(p,a,pgc);
 
 	if(p->P180==1)
 	pfsf = new fsf_vtp(p,a,pgc);
@@ -233,7 +233,7 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
         pwsf->height_gauge(p,a,pgc,a->phi);
 
 		if((p->P52>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P52>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
-        pwsfline->wsfline(p,a,pgc,pflow);
+        pwsfline_x->wsfline(p,a,pgc,pflow);
 
 		if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
         pwsfline_y->wsfline(p,a,pgc,pflow);
@@ -911,6 +911,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     phase = omega_y*p->simtime;
 
 
+/*
     if(p->G2==1)
     {
     pgc->gcsl_start4(p,a->WL,50);
@@ -926,7 +927,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     j=-1;
     if(i+p->origin_i==-1 && j+p->origin_j==-1 )
     a->WL(i,j) = a->WL(i+1,j+1);
-    }
+    }*/
 
 
 	iin=4*(p->pointnum)*3;
@@ -935,7 +936,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	{
         if(p->G2==0)
         zcoor=p->ZN[KP1];
-
+/*
         if(p->G2==1)
         {
         zcoor = p->ZN[KP1]*a->WL(i,j) + a->bed(i,j);
@@ -948,7 +949,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 
 
         //cout<<"ZN: "<<p->ZN[KP1]<<" WL: "<<a->WL(i,j)<<" eta: "<<a->eta(i,j)<<" zcoor: "<<zcoor<<endl;
-        }
+        }*/
 
 
     ffn=float( (p->XN[IP1]-p->B192_3)*cos(theta_y*sin(phase)) - (zcoor-p->B192_4)*sin(theta_y*sin(phase)) + p->B192_3);

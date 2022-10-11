@@ -99,6 +99,7 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         je = p->posc_j(p->P43_ye);
         je_flag=1;
         }
+    
     }
     
     pgc->gather_int(&flag,1,flag_all,1);
@@ -168,6 +169,13 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     }
     
     pgc->bcast_int(&je_global,1);
+    
+    if(p->P43==1 && p->j_dir==0)
+    {
+    js = js_global = 0;
+    je = 1;
+    je_global = 1;
+    }
     
 
     p->del_Iarray(is_flag_all,p->M10);

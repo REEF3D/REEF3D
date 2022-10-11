@@ -796,8 +796,8 @@
           <File Name="print_1Dline.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Print WSF">
+          <File Name="print_wsfline_x.h"/>
           <File Name="print_wsf.h"/>
-          <File Name="print_wsfline.h"/>
           <File Name="print_wsfline_y.h"/>
           <File Name="print_wsf_theory.h"/>
         </VirtualDirectory>
@@ -825,7 +825,7 @@
           <File Name="data_void.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Discharge">
-          <File Name="gage_discharge.h"/>
+          <File Name="gage_discharge_x.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
           <File Name="fsf_vtp.h"/>
@@ -1529,6 +1529,7 @@
             <File Name="6DOF_sflow_print_vtp.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="RayCast">
+            <File Name="6DOF_sflow_motion.cpp"/>
             <File Name="6DOF_sflow_ray_z.cpp"/>
             <File Name="6DOF_sflow_ray_y.cpp"/>
             <File Name="6DOF_sflow_ray_x.cpp"/>
@@ -2320,8 +2321,8 @@
           <File Name="print_1Dline.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Print WSF">
+          <File Name="print_wsfline_x.cpp"/>
           <File Name="print_wsf.cpp"/>
-          <File Name="print_wsfline.cpp"/>
           <File Name="print_wsfline_y.cpp"/>
           <File Name="print_wsf_theory.cpp"/>
         </VirtualDirectory>
@@ -2351,7 +2352,7 @@
           <File Name="data_void.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Discharge">
-          <File Name="gage_discharge.cpp"/>
+          <File Name="gage_discharge_x.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
           <File Name="fsf_vtp.cpp"/>

@@ -1404,6 +1404,12 @@ void lexer::ctrlrecv()
 	dd++;
     X183_psi = dctrl[dd];
 	dd++;
+    X205 = ictrl[ii];
+	ii++;
+    X206 = ictrl[ii];
+	ii++;
+	X206_T = dctrl[dd];
+	dd++;
 	X210 = ictrl[ii];
 	ii++;
 	X210_u = dctrl[dd];
