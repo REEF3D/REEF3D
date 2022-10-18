@@ -41,8 +41,16 @@ public:
 	LES_filter_f1(lexer *, fdm*);
 	virtual ~LES_filter_f1();
     
-	virtual void start(lexer*, fdm*, ghostcell*,field&,field&,field&);
+	virtual void start(lexer*, fdm*, ghostcell*,field&,field&,field&, int);
     
+//    int veleval(lexer*,int);
+
+
+private:
+    field1 ubar,etta_u1,etta_u2;
+    field2 vbar,etta_v1,etta_v2;
+    field3 wbar,etta_w1,etta_w2;
+
 
 };
 

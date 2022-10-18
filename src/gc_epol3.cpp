@@ -29,7 +29,7 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
     // Parallel
 	// Wall
 	if((bc==21||bc==22||(bc==7&&awa_lable==0))&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==12||gcv==3))
-	return gclabel_w;
+	return 2;
 	
 	if((bc==21||bc==22||(bc==7&&awa_lable==0))&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==112))
 	return 5;

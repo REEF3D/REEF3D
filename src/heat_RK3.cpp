@@ -48,7 +48,7 @@ void heat_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, so
     
     clearrhs(p,a,pgc);
     pconvec->start(p,a,T,4,a->u,a->v,a->w);
-	pdiff->diff_scalar(p,a,pgc,psolv,Tdiff,T,thermdiff,p->sigT, 1.0);
+	pdiff->diff_scalar(p,a,pgc,psolv,Tdiff,T,thermdiff,a->eddyv,p->sigT, 1.0);
     
 	LOOP
 	ark1(i,j,k) = Tdiff(i,j,k)
@@ -60,7 +60,7 @@ void heat_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, so
 // Step 2
     clearrhs(p,a,pgc);
     pconvec->start(p,a,ark1,4,a->u,a->v,a->w);
-	pdiff->diff_scalar(p,a,pgc,psolv,Tdiff,ark1,thermdiff,p->sigT, 1.0);
+	pdiff->diff_scalar(p,a,pgc,psolv,Tdiff,ark1,thermdiff,a->eddyv,p->sigT, 1.0);
     
 	LOOP
 	ark2(i,j,k) = 0.75*T(i,j,k)
@@ -73,7 +73,7 @@ void heat_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, so
 // Step 3
     clearrhs(p,a,pgc);
     pconvec->start(p,a,ark2,4,a->u,a->v,a->w);
-	pdiff->diff_scalar(p,a,pgc,psolv,Tdiff,ark2,thermdiff,p->sigT, 1.0);
+	pdiff->diff_scalar(p,a,pgc,psolv,Tdiff,ark2,thermdiff,a->eddyv,p->sigT, 1.0);
     
 	LOOP
 	T(i,j,k) = (1.0/3.0)*T(i,j,k)

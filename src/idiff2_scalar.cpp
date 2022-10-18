@@ -57,7 +57,7 @@ void idiff2::idiff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 	}
 }
 
-void idiff2::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &b, field &visc, double sig, double alpha)
+void idiff2::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &b, field &visc, field &eddyv, double sig, double alpha)
 {
 }
 

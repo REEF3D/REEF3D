@@ -39,8 +39,8 @@ public:
 	idiff2_FS_2D(lexer*);
 	virtual ~idiff2_FS_2D();
 
-	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double);
 	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double, double);
+	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double, double);
     virtual void idiff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double);
     
 	virtual void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);
