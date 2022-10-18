@@ -31,7 +31,7 @@ void idiff2_FS::idiff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fi
 
 }
 
-void idiff2_FS::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field& b, field& visc, double sig, double alpha)
+void idiff2_FS::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field& b, field &visc, field &eddyv, double sig, double alpha)
 {
     starttime=pgc->timer();
     
@@ -116,7 +116,7 @@ void idiff2_FS::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fie
 
 
 
-void idiff2_FS::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field& diff, field& b, field& visc, double sig, double alpha)
+void idiff2_FS::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field& diff, field& b, field &visc, field &eddyv, double sig, double alpha)
 {
 
     starttime=pgc->timer();

@@ -38,8 +38,8 @@ public:
 	ediff2(lexer*);
 	virtual ~ediff2();
 
-	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double);
 	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double, double);
+	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double, double);
     virtual void idiff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double);
     
 	virtual void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);

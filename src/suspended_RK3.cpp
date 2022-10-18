@@ -50,7 +50,7 @@ void suspended_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
 
     suspsource(p,a,a->conc,s);
     pconvec->start(p,a,a->conc,4,a->u,a->v,wvel);
-	pdiff->diff_scalar(p,a,pgc,psolv,a->conc,a->eddyv,1.0,1.0);
+	pdiff->diff_scalar(p,a,pgc,psolv,a->conc,a->visc,a->eddyv,1.0,1.0);
 
 	LOOP
 	ark1(i,j,k) = a->conc(i,j,k)
@@ -64,7 +64,7 @@ void suspended_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
 // Step 2
     suspsource(p,a,a->conc,s);
     pconvec->start(p,a,ark1,4,a->u,a->v,wvel);
-	pdiff->diff_scalar(p,a,pgc,psolv,ark1,a->eddyv,1.0,0.25);
+	pdiff->diff_scalar(p,a,pgc,psolv,ark1,a->visc,a->eddyv,1.0,0.25);
 
 	LOOP
 	ark2(i,j,k) = 0.75*a->conc(i,j,k)
@@ -79,7 +79,7 @@ void suspended_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
 // Step 3
     suspsource(p,a,a->conc,s);
     pconvec->start(p,a,ark2,4,a->u,a->v,wvel);
-	pdiff->diff_scalar(p,a,pgc,psolv,ark2,a->eddyv,1.0,2.0/3.0);
+	pdiff->diff_scalar(p,a,pgc,psolv,ark2,a->visc,a->eddyv,1.0,2.0/3.0);
 
 	LOOP
 	a->conc(i,j,k) = (1.0/3.0)*a->conc(i,j,k)
