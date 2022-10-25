@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -29,7 +29,7 @@ int ghostcell::gceval2(lexer *p, int gcv, int bc, int cs)
     // Parallel
 	//Wall
 	if((bc==21||bc==22||bc==7||bc==6)&&(cs==1||cs==4||cs==5||cs==6)&&(gcv==11||gcv==2))
-	return 2;
+	return gclabel_v;
 	
 	if((bc==21||bc==22||bc==7||bc==6)&&(cs==1||cs==4||cs==5||cs==6)&&(gcv==111))
 	return 5;
@@ -103,7 +103,7 @@ int ghostcell::gceval2(lexer *p, int gcv, int bc, int cs)
 // 6DOF
 	else
 	if(bc==41||bc==42||bc==43)
-	return 11;
+	return 9;
 
 
      else
@@ -146,8 +146,14 @@ void ghostcell::gcdistro2(lexer *p,field& f, int ii, int jj, int kk, int nn, dou
     if(bc_label==7)
 	sommerfeld(p,f,gcv,bc,cs);
 	
-	if(bc_label==11)
+	if(bc_label==9)
 	fbvel2(p,f,dist,gcv,bc,cs);
+    
+    if(bc_label==11)
+	dirichlet_ortho_reflect(p,f,dist,gcv,bc,cs);
+
+	if(bc_label==12)
+	dirichlet_para_reflect(p,f,dist,gcv,bc,cs);
     
     if(bc_label==99)
 	gcb_debug(f,gcv,bc,cs);

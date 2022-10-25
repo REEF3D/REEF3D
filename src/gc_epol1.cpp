@@ -31,7 +31,7 @@ int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
     // Parallel
 	//Wall
 	if((bc==21||bc==22||(bc==7&&awa_lable==0))&&(cs==2||cs==3||cs==5||cs==6)&&(gcv==10||gcv==1))
-	return 2;
+	return gclabel_u;
 	
 	if((bc==21||bc==22||(bc==7&&awa_lable==0))&&(cs==2||cs==3||cs==5||cs==6)&&(gcv==110))
 	return 5;
@@ -108,7 +108,7 @@ int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
 // 6DOF
 	else
 	if(bc==41||bc==42||bc==43)
-	return 11;
+	return 9;
 
 
      else
@@ -149,8 +149,14 @@ void ghostcell::gcdistro1(lexer *p,field& f, int ii, int jj, int kk, int nn, dou
     if(bc_label==7)
 	sommerfeld(p,f,gcv,bc,cs);
 	
-	if(bc_label==11)
+	if(bc_label==9)
 	fbvel1(p,f,dist,gcv,bc,cs);
+    
+    if(bc_label==11)
+	dirichlet_ortho_reflect(p,f,dist,gcv,bc,cs);
+
+	if(bc_label==12)
+	dirichlet_para_reflect(p,f,dist,gcv,bc,cs);
     
     if(bc_label==99)
 	gcb_debug(f,gcv,bc,cs);

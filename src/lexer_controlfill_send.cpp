@@ -180,7 +180,7 @@ void lexer::ctrlsend()
     ictrl[ii] = B10;
     ii++;
     ictrl[ii] = B20;
-    ii++;    ictrl[ii] = B21;    ii++;    ictrl[ii] = B22;    ii++;
+    ii++;    ictrl[ii] = B21;    ii++;    ictrl[ii] = B22;    ii++;    ictrl[ii] = B23;    ii++;
 	ictrl[ii] = B26;
     ii++;
 	dctrl[dd] = B29;

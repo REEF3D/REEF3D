@@ -29,7 +29,7 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
     // Parallel
 	// Wall
 	if((bc==21||bc==22||(bc==7&&awa_lable==0))&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==12||gcv==3))
-	return 2;
+	return gclabel_w;
 	
 	if((bc==21||bc==22||(bc==7&&awa_lable==0))&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==112))
 	return 5;
@@ -131,7 +131,7 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
 // 6DOF
 	else
 	if(bc==41||bc==42||bc==43)
-	return 11;
+	return 9;
 
 
     else
@@ -176,11 +176,14 @@ void ghostcell::gcdistro3(lexer *p,field& f, int ii, int jj, int kk, int nn, dou
     if(bc_label==8)
 	kinematic_bed(p,f,dist,gcv,bc,cs);
     
-    //if(bc_label==9)
-	//kinematic_fsf(p,f,dist,gcv,bc,cs);
-	
-	if(bc_label==11)
+	if(bc_label==9)
 	fbvel3(p,f,dist,gcv,bc,cs);
+    
+    if(bc_label==11)
+	dirichlet_ortho_reflect(p,f,dist,gcv,bc,cs);
+
+	if(bc_label==12)
+	dirichlet_para_reflect(p,f,dist,gcv,bc,cs);
     
     if(bc_label==99)
 	gcb_debug(f,gcv,bc,cs);

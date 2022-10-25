@@ -1982,6 +1982,8 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
       <VirtualDirectory Name="Epol">
+        <File Name="gc_dirichlet-para-reflect.cpp"/>
+        <File Name="gc_dirichlet-ortho-reflect.cpp"/>
         <File Name="gc_kinematic_fsf.cpp"/>
         <File Name="gc_nhpress.cpp"/>
         <File Name="gc_patchBC.cpp"/>
