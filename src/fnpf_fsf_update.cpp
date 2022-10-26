@@ -100,6 +100,9 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
     
                 + p->sigx[FIJK]*((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZN[KP]+p->DZN[KM1]));
                 
+    //if(p->mpirank==0)
+    //cout<<"U2: "<<c->U[FIJK]<<endl;
+                
     if(k==p->knoz)
     c->U[FIJK] = (c->Fi[FIp1JK]-c->Fi[FIm1JK])/(p->DXP[IP]+p->DXP[IM1])
     
@@ -150,12 +153,15 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
         if(p->wet[Im1J]==0 || p->wet[Ip1J]==0 || p->wet[IJm1]==0 || p->wet[IJp1]==0 
         || p->wet[Im1Jm1]==0 || p->wet[Ip1Jm1]==0 || p->wet[Im1Jp1]==0 || p->wet[Ip1Jp1]==0)
         {
+        
         c->U[FIJK]=0.0;
         c->V[FIJK]=0.0;
         c->W[FIJK]=0.0;
         }
     }
     
+    //SLICELOOP4
+    //cout<<p->wet[Im1J]<<" "<<p->wet[Ip1J]<<" "<<p->wet[IJm1]<<" "<<p->wet[IJp1]<<" "<<p->wet[Im1Jm1]<<" "<<p->wet[Ip1Jm1]<<" "<<p->wet[Im1Jp1]<<" "<<p->wet[Ip1Jp1]<<" "<<endl;
     
     /*
     for(n=0;n<p->gcslin_count;n++)

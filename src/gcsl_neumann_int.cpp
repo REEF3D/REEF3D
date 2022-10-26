@@ -58,9 +58,9 @@ void ghostcell::gcsl_neumann_V_int(lexer *p,int *f, int gcv, int bc, int cs)
 	if(cs==2)
 	for(q=0;q<margin;++q)
 	{
-	f[Ip1J]=f[IJ];
-    f[Ip2J]=f[IJ];
-    f[Ip3J]=f[IJ];
+	f[IJp1]=f[IJ];
+    f[IJp2]=f[IJ];
+    f[IJp3]=f[IJ];
     }
 
 	if(cs==3)
@@ -74,9 +74,9 @@ void ghostcell::gcsl_neumann_V_int(lexer *p,int *f, int gcv, int bc, int cs)
 	if(cs==4)
 	for(q=0;q<margin;++q)
 	{
-	f[IJp1]=f[IJ];
-    f[IJp2]=f[IJ];
-    f[IJp3]=f[IJ];
+	f[Ip1J]=f[IJ];
+    f[Ip1J]=f[IJ];
+    f[Ip1J]=f[IJ];
     }
 
 }
