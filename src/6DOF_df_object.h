@@ -99,7 +99,8 @@ private:
     void ini_parallel(lexer*, fdm*, ghostcell*);
     
     double Hsolidface(lexer*, fdm*, int,int,int);
-
+	double Hsolidface_t(lexer*, fdm*, int,int,int);
+	
 	void geometry(lexer*, fdm*, ghostcell*);
 	void geometry_f(double&,double&,double&,double&,double&,double&,double&,double&,double&);
     void geometry_ls(lexer*, fdm*, ghostcell*);
