@@ -192,7 +192,8 @@ void fnpf_fsfbc_wd::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
     SLICELOOP4
     p->wet[IJ]=1;
     
-    pgc->gcsl_start4int(p,c->wet,50);
+    pgc->gcsl_start4Vint(p,p->wet,50);
+    
 }
 
 void fnpf_fsfbc_wd::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)

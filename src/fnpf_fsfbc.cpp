@@ -237,6 +237,8 @@ void fnpf_fsfbc::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice
 {   
     SLICELOOP4
     p->wet[IJ]=1;
+    
+    pgc->gcsl_start4Vint(p,p->wet,50);
 }
 
 void fnpf_fsfbc::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 
