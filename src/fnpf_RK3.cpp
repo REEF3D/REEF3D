@@ -222,12 +222,6 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
 
     bedbc_sig(p,c,pgc,c->Fi,pf);
     velcalc_sig(p,c,pgc,c->Fi);
-    
-    //pgc->gcsl_start4Vint(p,p->wet,50);
-    
-    i=p->knox-1;
-    j=0;
-    cout<<p->mpirank<<" WET_i: "<<p->wet[IJ]<<" WET_ip1: "<<p->wet[Ip1J]<<endl;
 }
 
 void fnpf_RK3::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, solver *psolv)
