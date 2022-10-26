@@ -243,14 +243,14 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pf->damping(p,c,pgc,erk,gcval_eta,1.0);
     
     SLICELOOP4
-    c->eta(i,j) = c->eta(i,j) + p->dt*(1.0/6.0)*(erk1(i,j) + 2.0*erk2(i,j) + 2.0*erk3(i,j) + p->dt*c->K(i,j));
+    c->eta(i,j) = c->eta(i,j) + p->dt*(1.0/6.0)*(erk1(i,j) + 2.0*erk2(i,j) + 2.0*erk3(i,j) + c->K(i,j));
     
     // fsf Fi
     pf->dfsfbc(p,c,pgc,erk);
     pf->damping(p,c,pgc,frk,gcval_fifsf,1.0);
     
     SLICELOOP4
-	c->Fifsf(i,j) = c->Fifsf(i,j) +p->dt*(1.0/6.0)*(frk1(i,j) + 2.0*frk2(i,j) + 2.0*frk3(i,j) + p->dt*c->K(i,j));
+	c->Fifsf(i,j) = c->Fifsf(i,j) +p->dt*(1.0/6.0)*(frk1(i,j) + 2.0*frk2(i,j) + 2.0*frk3(i,j) + c->K(i,j));
     
     pflow->eta_relax(p,pgc,c->eta);
     pgc->gcsl_start4(p,c->eta,gcval_eta);
