@@ -54,14 +54,9 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
 	depthmax=pgc->globalmax(depthmax);
 
 	FFILOOP4
-    {
-     //cout<<p->mpirank<<" wet: "<<p->wet[IJ]<<endl;   
     FPWDCHECK
     {
 	p->umax=MAX(p->umax,fabs(c->U[FIJK]));
-    //if(p->mpirank==0)
-    //cout<<"U: "<<c->U[FIJK]<<endl;
-    }
     }
 
 	p->umax=pgc->globalmax(p->umax);
