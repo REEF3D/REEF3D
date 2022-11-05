@@ -45,6 +45,7 @@ fdm_nhf::fdm_nhf(lexer *p) : press(p),test(p),Fifsf(p),Fibed(p),
     p->Darray(Uin,p->imax*p->jmax*(p->kmax+2));
     
     p->Darray(P,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(ro,p->imax*p->jmax*(p->kmax+2));
     p->Darray(visc,p->imax*p->jmax*(p->kmax+2));
     p->Darray(eddyv,p->imax*p->jmax*(p->kmax+2));
     

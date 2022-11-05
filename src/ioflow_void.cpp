@@ -669,6 +669,22 @@ void ioflow_v::turb_relax(lexer *p, fdm *a, ghostcell *pgc, field &f)
 {
 }
 
+void ioflow_v::U_relax(lexer *p, ghostcell *pgc, double *U)
+{
+}
+
+void ioflow_v::V_relax(lexer *p, ghostcell *pgc, double *V)
+{
+}
+
+void ioflow_v::W_relax(lexer *p, ghostcell *pgc, double *W)
+{
+}
+
+void ioflow_v::P_relax(lexer *p, ghostcell *pgc, double *P)
+{
+}
+
 void ioflow_v::fi_relax(lexer *p, ghostcell *pgc, field &f, field &phi)
 {
 }
