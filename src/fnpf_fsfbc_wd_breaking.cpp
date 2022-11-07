@@ -299,7 +299,7 @@ void fnpf_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
         SLICELOOP4
         c->vb(i,j) = 0.0;
         
-        // coastline
+        // coastline viscosity
         SLICELOOP4
         {
             
@@ -363,6 +363,22 @@ void fnpf_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
          filter(p,c,pgc,Fifsf);
         }   
         
+        // coastline filter
+        /*SLICELOOP4
+        {
+            
+            if(c->coastline(i,j)>=0.0)
+            {
+                db = c->coastline(i,j);
+                
+                if(db<dist3)
+                {
+                filter(p,c,pgc,eta);
+                filter(p,c,pgc,Fifsf);
+                }
+            }
+        }*/
+        
     pgc->gcsl_start4(p,c->vb,1);
     }
     
@@ -389,6 +405,9 @@ void fnpf_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     c->breaklog(i,j)=1;
     ++count;
     }
+    
+    SLICELOOP4
+    c->test2D(i,j)=c->vb(i,j);
     
     count=pgc->globalisum(count);
     

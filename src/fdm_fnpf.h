@@ -64,6 +64,7 @@ public:
     slice4 Hx,Hy;
     slice4 coastline;
     slice4 vb;
+    slice4 test2D;
     
     sliceint5 nodeval2D;
     slice4 breaking_print;
