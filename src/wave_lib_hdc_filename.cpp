@@ -23,7 +23,7 @@ Author: Hans Bihs
 #include"wave_lib_hdc.h"
 #include"lexer.h"
 
-void wave_lib_hdc::filename(lexer *p, ghostcell *pgc,int num)
+void wave_lib_hdc::filename_single(lexer *p, ghostcell *pgc,int num)
 {
     if(p->mpirank<9)
 	{
@@ -160,6 +160,25 @@ void wave_lib_hdc::filename(lexer *p, ghostcell *pgc,int num)
 	}
     
     
+}
+
+void wave_lib_hdc::filename_continuous(lexer *p, ghostcell *pgc)
+{
+    if(p->mpirank<9)
+    sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-0000%i.r3d",p->mpirank+1);
+
+	if(p->mpirank<99&&p->mpirank>8)
+	sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-000%i.r3d",p->mpirank+1);
+
+	if(p->mpirank<999&&p->mpirank>98)
+	sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-00%i.r3d",p->mpirank+1);
+
+	if(p->mpirank<9999&&p->mpirank>998)
+	sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-0%i.r3d",p->mpirank+1);
+
+	if(p->mpirank>9998)
+	sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-%i.r3d",p->mpirank+1);
+ 
 }
 
 void wave_lib_hdc::filename_header(lexer *p, ghostcell *pgc)

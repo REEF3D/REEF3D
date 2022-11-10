@@ -34,6 +34,10 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
     // open header
     header.open(name, ios::binary);
     
+        // file_type
+        header.read((char*)&iin, sizeof (int));
+        file_type=iin;
+        
         // jdir
         header.read((char*)&iin, sizeof (int));
         jdir=iin;
@@ -76,9 +80,6 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
         {
         header.read((char*)&ffn, sizeof (float)); 
         X[i]=ffn;
-        
-        //if(p->mpirank==0)
-        //cout<<i<<" "<<X[i]<<endl;
         }
             
         for(j=0; j<Ny; ++j)
@@ -91,8 +92,6 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
         {
         header.read((char*)&ffn, sizeof (float)); 
         Zsig[k]=ffn;
-        //if(p->mpirank==0)
-        //cout<<i<<" "<<Zsig[k]<<endl;
         }
         
         for(i=0; i<Nx; ++i)
@@ -118,7 +117,6 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
         {
         header.read((char*)&ddn, sizeof (double));
         simtime[n]=ddn;
-        //cout<<simtime[n]<<endl;
         }
         
         t_start = simtime[0];
@@ -136,7 +134,6 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
         Xstart = X[0];
         Xend = X[Nx-1];
         }
-        
         
         
         

@@ -31,16 +31,15 @@ wave_lib_hdc::wave_lib_hdc(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc
     read_header(p,pgc);
     allocate(p,pgc);
     
-    
     // time_interpol
     if(p->mpirank==0)
     {
     cout<<"Wave Tank: wave coupling FNPF->CFD "<<endl;
-    cout<<p->mpirank<<" HDC Nx: "<<Nx<<" Ny: "<<Ny<<" Nz: "<<Nz<<" . jdir: "<<jdir<<endl;
-    cout<<p->mpirank<<" HDC Xs: "<<Xstart<<" Xe: "<<Xend<<" Ys: "<<Ystart<<" Ye: "<<Yend<<endl;
-    cout<<p->mpirank<<" HDC numiter: "<<numiter<<" t_start: "<<t_start<<" t_end: "<<t_end<<endl;
+    cout<<" HDC Nx: "<<Nx<<" Ny: "<<Ny<<" Nz: "<<Nz<<" . jdir: "<<jdir<<endl;
+    cout<<" HDC Xs: "<<Xstart<<" Xe: "<<Xend<<" Ys: "<<Ystart<<" Ye: "<<Yend<<endl;
+    cout<<" HDC numiter: "<<numiter<<" t_start: "<<t_start<<" t_end: "<<t_end<<endl;
+    cout<<" HDC simtime[0]: "<<simtime[0]<<" simtime[numiter-1]: "<<simtime[numiter-1]<<endl;
     }
-        
     
     singamma = sin((p->B105_1)*(PI/180.0));
     cosgamma = cos((p->B105_1)*(PI/180.0));
@@ -60,8 +59,6 @@ double wave_lib_hdc::wave_u(lexer *p, double x, double y, double z)
     if(endseries==0)
     vel = space_interpol(p,U,x,y,z);
     
-    //cout<<"U "<<vel<<endl;
-
     return cosgamma*vel;
 }
 
@@ -92,8 +89,6 @@ double wave_lib_hdc::wave_eta(lexer *p, double x, double y)
     if(endseries==0)
     eta = plane_interpol(p,E,x,y);
     
-    //cout<<"ETA "<<eta<<endl;
-
     return eta;
 }
 
@@ -117,10 +112,37 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
         t2 = simtime[1];
         q1 = diter;
         q2 = diter+1;
+        
+        if(file_type==2)
+        {
+        filename_continuous(p,pgc);
+        result.open(name, ios::binary);
+        }
     
         read_result(p,pgc,E1,U1,V1,W1,q1);
         read_result(p,pgc,E2,U2,V2,W2,q2);
         startup=1;
+        
+        
+        // find q1
+        while(simtime[q1+1-diter]<=p->simtime+p->I241)
+        {
+        ++q1;
+        
+        cout<<"HDC ++q1: "<<q1<<endl;
+        if(file_type==2)
+        read_result_continuous(p,pgc,E1,U1,V1,W1,q1);
+        }
+            
+        // find q2
+        while(simtime[q2-diter]<p->simtime+p->I241)
+        {
+        ++q2;
+        
+        //cout<<"HDC ++q2: "<<q2<<endl;
+        if(file_type==2 )
+        read_result_continuous(p,pgc,E2,U2,V2,W2,q2);
+        }
     }
     
     q1n=q1;
@@ -146,21 +168,33 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
     ++q2;
     
     
-    
+    // single file read 
+    if(file_type==1)
+    {
         if(q1!=q1n)
         {
         // Open File 1
-        filename(p,pgc,q1);
+        filename_single(p,pgc,q1);
         read_result(p,pgc,E1,U1,V1,W1,q1);
         }
-        
         
         if(q2!=q2n)
         {
         // Open File 2
-        filename(p,pgc,q2);
+        filename_single(p,pgc,q2);
         read_result(p,pgc,E2,U2,V2,W2,q2);
         }
+    }
+        
+    // contiuous file read
+    if(file_type==2)
+    {
+        if(q1!=q1n)
+        fill_result_continuous(p,pgc);
+        
+        if(q2!=q2n)
+        read_result_continuous(p,pgc,E2,U2,V2,W2,q2);
+    }
         
 
         deltaT = simtime[q2-diter]-simtime[q1-diter];
@@ -175,6 +209,5 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
     // time interpolation
     if(q1!=q1n || q2!=q2n)
     time_interpol(p);
-    
     
 }

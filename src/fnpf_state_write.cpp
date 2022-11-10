@@ -31,20 +31,18 @@ Author: Hans Bihs
 
 void fnpf_state::write_result(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    
-    // Open File
-	int num=0;
+    // Open result file single file
+    if(p->P45==1)
+    {
+    int num=0;
 
     if(p->P15>=1)
     num = printcount;
-
     
-    // result file
-    filename(p,c,pgc,num);
+    filename_single(p,c,pgc,num);
 	 
-	ofstream result;
 	result.open(name, ios::binary);
-    
+    }
      
     // head section
     iin=file_version;
@@ -129,7 +127,7 @@ void fnpf_state::write_result(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     result.write((char*)&ffn, sizeof (float));
     } 
 	
-	
+	if(p->P45==1)
 	result.close();
 	
 	++printcount;

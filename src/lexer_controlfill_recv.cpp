@@ -860,7 +860,7 @@ void lexer::ctrlrecv()
     P43_ye = dctrl[dd];
 	dd++;
     P44 = ictrl[ii];
-	ii++;
+	ii++;    P45 = ictrl[ii];	ii++;
     P50 = ictrl[ii];
 	ii++;
 	P51 = ictrl[ii];

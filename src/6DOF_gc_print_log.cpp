@@ -28,18 +28,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void sixdof_gc::print_E_position(lexer *p, fdm *a, ghostcell *pgc)
 {
-	
 	if(p->count%p->X19==0)
 	eposout<<p->simtime<<" \t "<<xg<<" \t "<<yg<<" \t "<<zg<<" \t "<<phi*(180.0/PI)<<" \t "<<theta*(180.0/PI)<<" \t "<<psi*(180.0/PI)<<endl;
-	
 }
 
 void sixdof_gc::print_E_velocity(lexer *p, fdm *a, ghostcell *pgc)
 {
-	
 	if(p->count%p->X19==0)
 	evelout<<p->simtime<<" \t "<<Ue<<" \t "<<Ve<<" \t "<<We<<" \t "<<Pe*(180.0/PI)<<" \t "<<Qe*(180.0/PI)<<" \t "<<Re*(180.0/PI)<<endl;
-	
 }
 
 void sixdof_gc::print_E_force(lexer *p, fdm *a, ghostcell *pgc)

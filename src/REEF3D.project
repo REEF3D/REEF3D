@@ -2726,6 +2726,8 @@
         <File Name="wave_lib_hdc.cpp"/>
         <File Name="wave_lib_ssgw.cpp"/>
         <VirtualDirectory Name="HDC">
+          <File Name="wave_lib_hdc_fill_continuous.cpp"/>
+          <File Name="wave_lib_hdc_read_result_continuous.cpp"/>
           <File Name="wave_lib_hdc_time_interpol.cpp"/>
           <File Name="wave_lib_hdc_space_interpol.cpp"/>
           <File Name="wave_lib_hdc_read_result.cpp"/>

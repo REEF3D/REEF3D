@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"wave_lib_precalc.h"
 #include"wave_lib_parameters.h"
+#include<fstream>
 #include"increment.h"
 
 #ifndef WAVE_LIB_HDC_H_
@@ -49,9 +50,14 @@ private:
     // functions
     void read_header(lexer*,ghostcell*);
     void read_result(lexer*,ghostcell*,double**,double***,double***,double***,int);
+    void read_result_continuous(lexer*,ghostcell*,double**,double***,double***,double***,int);
+    
+    void fill_result_continuous(lexer*,ghostcell*);
     
     void filename_header(lexer*,ghostcell*);
-    void filename(lexer*,ghostcell*,int);
+    void filename_single(lexer*,ghostcell*,int);
+    void filename_continuous(lexer*,ghostcell*);
+    
     
     void allocate(lexer*,ghostcell*);
     
@@ -98,7 +104,9 @@ private:
     float ffn;
     double ddn;;
 	char name[200];
+    ifstream result;
     
+    int file_type;
     int ip1,jp1,kp1;
     int ii,jj,kk;
     int iii,jjj,kkk;
@@ -112,6 +120,7 @@ private:
 
     int startup;
     int numiter,diter,jdir;
+    int file_iter;
 };
 
 #endif

@@ -20,47 +20,34 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_state.h"
+#include"wave_lib_hdc.h"
 #include"lexer.h"
 
-void fnpf_state::filename_single(lexer *p, fdm_fnpf *c, ghostcell *pgc, int num)
+void wave_lib_hdc::fill_result_continuous(lexer *p, ghostcell *pgc)
 {
-    if(p->P14==0)
-    {
-    sprintf(name,"REEF3D_FNPF-State-%08d-%05d.r3d",num,p->mpirank+1);
-    }
-    
-    if(p->P14==1)
-    {
-    sprintf(name,"./REEF3D_FNPF_STATE/REEF3D_FNPF-State-%08d-%05d.r3d",num,p->mpirank+1);
-    }
-}
 
-void fnpf_state::filename_continuous(lexer *p, fdm_fnpf *c, ghostcell *pgc)
-{
-    if(p->P14==0)
-    {
-    sprintf(name,"REEF3D_FNPF-State-%05d.r3d",p->mpirank+1);
-    }
+    // fill
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    E1[i][j]=E2[i][j];
     
-    if(p->P14==1)
-    {
-    sprintf(name,"./REEF3D_FNPF_STATE/REEF3D_FNPF-State-%05d.r3d",p->mpirank+1);
-    }
-}
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    for(k=0; k<Nz; ++k)
+    U1[i][j][k]=U2[i][j][k];
+    
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    for(k=0; k<Nz; ++k)
+    V1[i][j][k]=V2[i][j][k];
 
-void fnpf_state::filename_header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
-{
-    if(p->P14==0)
-    {
-	sprintf(name,"REEF3D-FNPF-State-Header-%05d.r3d",p->mpirank+1);
-    }
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    for(k=0; k<Nz; ++k)
+    W1[i][j][k]=W2[i][j][k];
     
-    if(p->P14==1)
-    {
-	sprintf(name,"./REEF3D_FNPF_STATE/REEF3D-FNPF-State-Header-%05d.r3d",p->mpirank+1);
-    }
+    
 }
 
 
-
+        

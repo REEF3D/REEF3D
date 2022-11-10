@@ -42,6 +42,8 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(p->P44==1)
     file_version=2;
     
+    file_type=p->P45;
+    
     ini_token=0;
     
     p->Iarray(flag_all,p->M10+1);
@@ -120,7 +122,6 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     pgc->bcast_int(&is_global,1);
 
-
     // ie communication
     if(ie_flag==1)
     ie_global = ie + p->origin_i;    
@@ -177,6 +178,13 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     je_global = 1;
     }
     
+    if(p->P45==2)
+    {
+    filename_continuous(p,c,pgc);
+	 
+	result.open(name, ios::binary);
+    }
+    
 
     p->del_Iarray(is_flag_all,p->M10);
     p->del_Iarray(ie_flag_all,p->M10);
@@ -190,6 +198,7 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
 fnpf_state::~fnpf_state()
 {
+    result.close();
 }
 
 void fnpf_state::write(lexer *p, fdm_fnpf *c, ghostcell *pgc)

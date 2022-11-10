@@ -446,7 +446,7 @@ void lexer::ini_default()
 	P41=-10;			// int print state file each ith iteration
 	P42=-1.0;			// double print state file each ith sec
     P43=0;             // int state print out selected area
-    P44=0;             // print out 3D potential for FNPF
+    P44=0;             // int print out 3D potential for FNPF    P45=1;             // int print into single or continous state file
     P50=0;				// int wave theory wave gages
 	P51=0;             // int print out wsf
 	P52=0;            // int print out wsfline in x-dir

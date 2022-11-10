@@ -47,7 +47,8 @@ public:
     void write_header(lexer*,fdm_fnpf*,ghostcell*);
 	
 private:
-    void filename(lexer*,fdm_fnpf*,ghostcell*,int);
+    void filename_single(lexer*,fdm_fnpf*,ghostcell*,int);
+    void filename_continuous(lexer*,fdm_fnpf*,ghostcell*);
     void filename_header(lexer*,fdm_fnpf*,ghostcell*);
 
     char name[500];
@@ -56,9 +57,9 @@ private:
 	double ddn;
 	int printcount;
     int ini_token;
-    int file_version;
+    int file_version,file_type;
     int qn;
-    
+    ofstream result;
     
     int is,ie,js,je;
     int is_global,ie_global,js_global,je_global;
