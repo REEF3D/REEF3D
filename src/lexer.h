@@ -378,6 +378,25 @@ public:
 	int F80,F85;
 	double F84;
     
+    int F300,F305,F310,F350;
+	double F321,F322,F323,F360,F361,F362;
+	int F369,F370,F371,F374,F375,F378,F379;
+    double *F369_x,*F369_z,*F369_a,*F369_s,*F369_l,*F369_v;
+	double *F370_xs, *F370_xe, *F370_ys, *F370_ye, *F370_zs, *F370_ze;
+	double *F371_xs, *F371_xe, *F371_ys, *F371_ye, *F371_zs, *F371_ze;
+	double *F374_xc, *F374_zc, *F374_r;
+    double *F375_xc, *F375_zc, *F375_r;
+    double *F378_xc, *F378_yc,*F378_zc, *F378_r;
+    double *F379_xc, *F379_yc,*F379_zc, *F379_r;
+	double F380,F381,F382;
+	int F390,F391,F394,F395,F398,F399;
+	double *F390_xs, *F390_xe, *F390_ys, *F390_ye, *F390_zs, *F390_ze;
+	double *F391_xs, *F391_xe, *F391_ys, *F391_ye, *F391_zs, *F391_ze;
+    double *F394_xc, *F394_zc, *F394_r;
+    double *F395_xc, *F395_zc, *F395_r;
+    double *F398_xc, *F398_yc,*F398_zc, *F398_r;
+    double *F399_xc, *F399_yc,*F399_zc, *F399_r;
+    
 	// Grid Options
     int G1,G2;
 	int G10,G11,G12,G20,G21,G22,G30;
@@ -453,7 +472,7 @@ public:
 	double T31,T32,T35,T37,T38,T42;
 
 	// Waterflow
-	double W1,W2,W3,W4,W5,W10,W_fb;
+	double W1,W2,W3,W4,W5,W6,W7,W10,W_fb;
     int W11,W12,W13,W14,W15,W16;
     double W11_u,W11_v,W11_w,W12_u,W12_v,W12_w,W13_u,W13_v,W13_w,W14_u,W14_v,W14_w,W15_u,W15_v,W15_w,W16_u,W16_v,W16_w;
     double W20,W21,W22,W31,W29_x,W29_y,W29_z;

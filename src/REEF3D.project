@@ -351,6 +351,16 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
+      <VirtualDirectory Name="Multiphase">
+        <VirtualDirectory Name="Fluid Update">
+          <File Name="multiphase_fluid_update_rheology.h"/>
+          <File Name="multiphase_fluid_update_f.h"/>
+          <File Name="multiphase_fluid_update.h"/>
+        </VirtualDirectory>
+        <File Name="multiphase.h"/>
+        <File Name="multiphase_v.h"/>
+        <File Name="multiphase_f.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="FSI">
         <VirtualDirectory Name="Beam">
           <File Name="beam.h"/>
@@ -1384,6 +1394,18 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
+      <VirtualDirectory Name="Multiphase">
+        <VirtualDirectory Name="Fluid Update">
+          <File Name="multiphase_fluid_update_rheology.cpp"/>
+          <File Name="multiphase_fluid_update_f.cpp"/>
+        </VirtualDirectory>
+        <File Name="multiphase_v.cpp"/>
+        <File Name="multiphase_update.cpp"/>
+        <File Name="multiphase_logic.cpp"/>
+        <File Name="multiphase_io.cpp"/>
+        <File Name="multiphase_ini.cpp"/>
+        <File Name="multiphase_f.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="FSI">
         <VirtualDirectory Name="Beam">
           <File Name="beam_solver_routines.cpp"/>
