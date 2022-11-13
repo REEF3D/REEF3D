@@ -68,6 +68,7 @@ class fnpf_timestep;
 class grid;
 class patchBC_interface;
 class nhflow;
+class multiphase;
 
 #include<iostream>
 #include<fstream>
@@ -155,6 +156,7 @@ public:
 	convection* pconvec;
 	convection* pturbdisc;
 	convection* pfsfdisc;
+    convection* pmpconvec;
 	convection* pconcdisc;
     convection* pheatdisc;
 	turbulence* pturb;
@@ -191,6 +193,7 @@ public:
     nhflow *pnh;
     nhflow_convection *pnhfconvec;
     nhflow_pressure *pnhpress;
+    multiphase *pmp;
 
 
 private:

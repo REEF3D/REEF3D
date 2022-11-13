@@ -41,3 +41,6 @@ Author: Hans Bihs
 
 #include"onephase_v.h"
 #include"onephase_f.h"
+
+#include"multiphase_v.h"
+#include"multiphase_f.h"
