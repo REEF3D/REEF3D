@@ -95,7 +95,6 @@ void ghostcell::dirichlet_ortho(lexer *p,field& f,double dist,int gcv, int bc, i
     y[orderdir-2] = val_ip;
     }
 		
-/*
 	for(q=0; q<margin; ++q)
 	{
 	    y[orderdir+q]=0.0;
@@ -107,26 +106,6 @@ void ghostcell::dirichlet_ortho(lexer *p,field& f,double dist,int gcv, int bc, i
 			{
 			if(m!=n)
 			weight*=(x[q]-pos[n])/(pos[m]-pos[n]+1.0e-20);
-			}
-		y[orderdir+q]+=weight*y[m];
-		}
-	}
-*/
-	
-	for(q=0; q<margin; ++q)
-	{
-	    y[orderdir+q]=0.0;
-
-		for(m=0;m<orderdir;m++)
-		{
-			weight=0.0;
-			for(n=0;n<orderdir;++n)
-			{
-			if(ys==0 && m==n && q+m==1)
-//			weight*=(x[q]-pos[n])/(pos[m]-pos[n]+1.0e-20);
-			weight = -1.0;
-			else if(ys==1 && m==n && q+m==2)
-			weight = -1.0;
 			}
 		y[orderdir+q]+=weight*y[m];
 		}

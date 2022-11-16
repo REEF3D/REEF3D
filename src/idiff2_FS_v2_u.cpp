@@ -34,12 +34,19 @@ idiff2_FS_v2::idiff2_FS_v2(lexer* p)
     
     if(p->B21==1)
     {
+    gcval_udiff=10;
+	gcval_vdiff=11;
+	gcval_wdiff=12;
+    }
+    
+    if(p->B21==2)
+    {
     gcval_udiff=117;
 	gcval_vdiff=118;
 	gcval_wdiff=119;
     }
     
-    if(p->B21==2)
+    if(p->B21==3)
     {
     gcval_udiff=110;
 	gcval_vdiff=111;
