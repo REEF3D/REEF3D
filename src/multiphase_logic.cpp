@@ -43,7 +43,7 @@ void multiphase_f::logic(lexer *p, fdm *a, ghostcell *pgc)
 	pfsf2 = new levelset_void(p,a,pgc,pheat,pconc);
 	}
 
-	if(p->F300==1)
+	if(p->F300>=1)
 	{
 	pfsf1 = new levelset_AB2(p,a,pgc,pheat,pconc);
 	pfsf2 = new levelset_AB2(p,a,pgc,pheat,pconc);

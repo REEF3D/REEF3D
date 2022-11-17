@@ -59,7 +59,7 @@ pjm::pjm(lexer* p, fdm *a, heat *&pheat, concentration *&ppconc)
     if(p->F30>0 && p->H10==0 && p->W30==0  && p->F300==0 && p->W90>0)
     pd = new density_rheo(p);
     
-    if(p->F300==1)
+    if(p->F300>=1)
     pd = new density_rheo(p);
     
     gcval_press=40;  
