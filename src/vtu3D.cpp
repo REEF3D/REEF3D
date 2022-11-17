@@ -366,9 +366,17 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
 
 }
 
+void vtu3D::print_stop(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, sediment *psed)
+{
+    print_vtu(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
+    
+}
+
 void vtu3D::print_vtu(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, sediment *psed)
 {
-
+    if(p->P180==1)
+	pfsf->start(p,a,pgc);
+    
     print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,psed);
 }
 

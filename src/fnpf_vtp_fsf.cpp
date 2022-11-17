@@ -59,7 +59,7 @@ fnpf_vtp_fsf::~fnpf_vtp_fsf()
 {
 }
 
-void fnpf_vtp_fsf::start(lexer *p, fdm_fnpf *c, ghostcell* pgc, ioflow *pflow)
+void fnpf_vtp_fsf::start(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 {	
     print2D(p,c,pgc);
 }
