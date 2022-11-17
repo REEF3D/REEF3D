@@ -145,22 +145,18 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
 		
 		H = Hsolidface(p,a,1,0,0);
 	    Ht = Hsolidface_t(p,a,1,0,0);
-		if (H <=1.0e-6 )
-		{
-        fx(i,j,k) += 0.0;
-		}
+	
 	   //cout<<"Htx: "<<Ht<<endl;
 		
-		else
-		{
-		fx(i,j,k) +=fabs(nx)*(1-Ht)*H*(uf - uvel(i,j,k))/(alpha*p->dt)+(1-fabs(nx))*Ht*H*(uf - uvel(i,j,k))/(alpha*p->dt); //1st and 3rd
-		//fx(i,j,k) += fabs(nx)*H*(uf - uvel(i,j,k))/(alpha*p->dt); 
+		
+		fx(i,j,k) +=fabs(nx)*(1-Ht)*H*(uf - uvel(i,j,k))/(alpha*p->dt)+(1-fabs(nx))*Ht*H*(uf - uvel(i,j,k))/(alpha*p->dt); //2nd modification
+		//fx(i,j,k) += fabs(nx)*H*(uf - uvel(i,j,k))/(alpha*p->dt); //1st modification
 		//fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha*p->dt); 		
 		//fx(i,j,k) +=fabs(nx)*(Ht)*H*(uf - uvel(i,j,k))/(alpha*p->dt)-(1-fabs(nx))*Ht*H*(uf - uvel(i,j,k))/(alpha*p->dt); 
 		//fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha*p->dt)-fabs(1-nx)*H*(uf - uvel(i,j,k))/(alpha*p->dt); 
-		//fx(i,j,k) +=fabs(nx)*(Ht)*(1-H)*(uf - uvel(i,j,k))/(alpha*p->dt)+(1-fabs(nx))*Ht*H*(uf - uvel(i,j,k))/(alpha*p->dt); //1st and 3rd
-		//fx(i,j,k) +=fabs(nx)*(Ht)*H*(uf - uvel(i,j,k))/(alpha*p->dt)+(1-fabs(nx))*(1-Ht)*H*(uf - uvel(i,j,k))/(alpha*p->dt); //1st and 3rd
-		}
+		//fx(i,j,k) +=fabs(nx)*(Ht)*(1-H)*(uf - uvel(i,j,k))/(alpha*p->dt)+(1-fabs(nx))*Ht*H*(uf - uvel(i,j,k))/(alpha*p->dt); 
+		//fx(i,j,k) +=fabs(nx)*(Ht)*H*(uf - uvel(i,j,k))/(alpha*p->dt)+(1-fabs(nx))*(1-Ht)*H*(uf - uvel(i,j,k))/(alpha*p->dt); 
+		
 		
         a->fbh1(i,j,k) = min(a->fbh1(i,j,k) + H, 1.0); 
     }
@@ -181,14 +177,10 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
         vf = u_fb(1) + u_fb(5)*(p->pos2_x() - c_(0)) - u_fb(3)*(p->pos2_z() - c_(2));
         H = Hsolidface(p,a,0,1,0);
 		Ht = Hsolidface_t(p,a,0,1,0);
-		if (H <=1.0e-6 )
-		{
-        fy(i,j,k) += 0.0;
-		}
+		
 		//cout<<"Hty: "<<Ht<<endl;
       
-		else
-		{
+	
 		//fy(i,j,k) += fabs(ny)*(Ht)*H*(vf - vvel(i,j,k))/(alpha*p->dt)+(1-fabs(ny))*(1-Ht)*H*(vf - vvel(i,j,k))/(alpha*p->dt);
 		//fy(i,j,k) += fabs(ny)*H*(vf - vvel(i,j,k))/(alpha*p->dt);
 		//fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha*p->dt);
@@ -196,7 +188,7 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
 		fy(i,j,k) += fabs(ny)*(1-Ht)*H*(vf - vvel(i,j,k))/(alpha*p->dt)+(1-fabs(ny))*Ht*H*(vf - vvel(i,j,k))/(alpha*p->dt);
 		//fy(i,j,k) += fabs(ny)*(Ht)*H*(vf - vvel(i,j,k))/(alpha*p->dt)-(1-fabs(ny))*Ht*H*(vf - vvel(i,j,k))/(alpha*p->dt);
 		//fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha*p->dt)-fabs(1-ny)*H*(vf - vvel(i,j,k))/(alpha*p->dt);
-		}
+		
 		
 		
         a->fbh2(i,j,k) = min(a->fbh2(i,j,k) + H , 1.0); 
@@ -221,22 +213,17 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
         wf = u_fb(2) + u_fb(3)*(p->pos3_y() - c_(1)) - u_fb(4)*(p->pos3_x() - c_(0));
         H = Hsolidface(p,a,0,0,1);
 		Ht = Hsolidface_t(p,a,0,0,1);
-		if (H <=1.0e-6 )
-		{
-        fz(i,j,k) += 0.0;
-		
-		}
+
 		//cout<<"Htz: "<<Ht<<endl;
         
-		else
-		{
+		
 		//fz(i,j,k) += fabs(nz)*H*(wf - wvel(i,j,k))/(alpha*p->dt);
 		//fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha*p->dt);
 		fz(i,j,k) += fabs(nz)*(1-Ht)*H*(wf - wvel(i,j,k))/(alpha*p->dt)+(1-fabs(nz))*Ht*H*(wf - wvel(i,j,k))/(alpha*p->dt);
 		//fz(i,j,k) += fabs(nz)*(Ht)*H*(wf - wvel(i,j,k))/(alpha*p->dt)-(1-fabs(nz))*Ht*H*(wf - wvel(i,j,k))/(alpha*p->dt);
 		//fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha*p->dt)-fabs(1-nz)*H*(wf - wvel(i,j,k))/(alpha*p->dt);
 		//fz(i,j,k) += fabs(nz)*(1-Ht)*H*(wf - wvel(i,j,k))/(alpha*p->dt)+(1-fabs(nz))*(1-Ht)*H*(wf - wvel(i,j,k))/(alpha*p->dt);
-		}
+		
         a->fbh3(i,j,k) = min(a->fbh3(i,j,k) + H , 1.0); 
     }
     LOOP
@@ -327,8 +314,6 @@ double sixdof_df_object::Hsolidface_t(lexer *p, fdm *a, int aa, int bb, int cc)
     // Construct solid heaviside function
 
     phival_fb = 0.5*(a->fb(i,j,k) + a->fb(i+aa,j+bb,k+cc));
-	
-	
 	
     if (-phival_fb > psi)
     {

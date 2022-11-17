@@ -83,7 +83,7 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
             p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
         }
 	}
-    
+     
 	pgc->start4(p,a->ro,gcval_ro);
 	pgc->start4(p,a->visc,gcval_visc);
 
