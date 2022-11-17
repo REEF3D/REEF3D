@@ -403,6 +403,8 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	a->fb.ggcpol(p);
 	a->fbh4.ggcpol(p);
     //a->test.ggcpol(p);
+    
+    pgc->gcparax4a(p,a->phi,5);
 
     pgc->gcparacox(p,a->phi,50);
 	pgc->gcparacox(p,a->phi,50);
