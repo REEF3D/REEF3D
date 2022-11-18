@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -39,6 +39,7 @@ public:
 	virtual ~fluid_update_vof();
 
 	virtual void start(lexer*, fdm*, ghostcell*);
+    virtual void start3(lexer*, fdm*, ghostcell*,field&,field&);
 
 private:
     static int iocheck,iter;

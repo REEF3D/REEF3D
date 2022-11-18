@@ -101,6 +101,10 @@ void fluid_update_vof::start(lexer *p, fdm* a, ghostcell* pgc)
 
 }
 
+void fluid_update_vof::start3(lexer *p, fdm* a, ghostcell* pgc, field&, field&)
+{
+}
+
 
 int fluid_update_vof::iocheck;
 int fluid_update_vof::iter;

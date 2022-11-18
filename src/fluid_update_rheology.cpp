@@ -114,6 +114,10 @@ void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc)
 
 }
 
+void fluid_update_rheology::start3(lexer *p, fdm* a, ghostcell* pgc, field&, field&)
+{
+}
+
 int fluid_update_rheology::iocheck;
 int fluid_update_rheology::iter;
 

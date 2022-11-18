@@ -156,5 +156,9 @@ void fluid_update_fsf_heat_Bouss::start(lexer *p, fdm* a, ghostcell* pgc)
 
 }
 
+void fluid_update_fsf_heat_Bouss::start3(lexer *p, fdm* a, ghostcell* pgc, field&, field&)
+{
+}
+
 int fluid_update_fsf_heat_Bouss::iocheck;
 int fluid_update_fsf_heat_Bouss::iter;
