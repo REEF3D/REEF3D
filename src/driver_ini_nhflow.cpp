@@ -154,7 +154,7 @@ void driver::driver_ini_nhflow()
     d->WL(i,j) = MAX(0.0, d->eta(i,j) + p->wd - d->bed(i,j));
     
     
-    pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
+    pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
 
 
 // ini variables

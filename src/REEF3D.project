@@ -853,11 +853,6 @@
         <VirtualDirectory Name="Porous Geometry">
           <File Name="print_porous.h"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Print Interface">
-          <File Name="print_probepoint.h"/>
-          <File Name="print_probeline.h"/>
-          <File Name="print_parallel.h"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="VTU">
           <File Name="vtu3D.h"/>
         </VirtualDirectory>
@@ -2406,9 +2401,6 @@
           <File Name="print_porous.cpp"/>
           <File Name="print_porous_vtp.cpp"/>
           <File Name="print_porous_obj.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Print Interface">
-          <File Name="print_interface.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Export">
           <File Name="export.cpp"/>

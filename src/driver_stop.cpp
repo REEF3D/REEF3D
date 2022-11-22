@@ -56,7 +56,7 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
         if(p->mpirank==0)
         cout<<endl<<"EMERGENCY STOP  --  solver breaking down - NAN values"<<endl<<endl;
 
-     pprint->print_stop(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
+     pprint->print_stop(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
      
      pgc->final();
      exit(0);
@@ -73,7 +73,7 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
      pfprint->print_stop(p,c,pgc);
     
      if(p->A10==4 || p->A10==55 || p->A10==6)
-     pprint->print_stop(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
+     pprint->print_stop(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
      
      pgc->final();
      exit(0);

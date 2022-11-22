@@ -178,7 +178,7 @@ void driver::driver_ini()
     
 	pgc->start4(p,a->press,40);
 	
-    pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
+    pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
 
 // ini variables
     for(int qn=0; qn<2; ++qn)

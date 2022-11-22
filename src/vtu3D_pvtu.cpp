@@ -30,9 +30,10 @@ Author: Hans Bihs
 #include"vorticity.h"
 #include"data.h"
 #include"concentration.h"
+#include"multiphase.h"
 #include"sediment.h"
 
-void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *pheat, data *pdata, concentration *pconc, sediment *psed)
+void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *pheat, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
     int num=0;
 
@@ -102,6 +103,8 @@ void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
 	result<<"<PDataArray type=\"Float32\" Name=\"phi\"/>"<<endl;
 
 	pheat->name_pvtu(p,a,pgc,result);
+    
+    pmp->name_vtu(p,a,pgc,result,offset,n);
 
     pvort->name_pvtu(p,a,pgc,result);
 
