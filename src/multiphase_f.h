@@ -69,7 +69,6 @@ public:
     virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
 	
 	void logic(lexer*,fdm*,ghostcell*);
-	int conv(double);
 	
 	freesurface *pfsf1,*pfsf2;
 	reini *preini;

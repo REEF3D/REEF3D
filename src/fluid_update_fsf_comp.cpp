@@ -95,10 +95,6 @@ void fluid_update_fsf_comp::start(lexer *p, fdm* a, ghostcell* pgc)
     ++iocheck;
 }
 
-void fluid_update_fsf_comp::start3(lexer *p, fdm* a, ghostcell* pgc, field&, field&)
-{
-}
-
 int fluid_update_fsf_comp::iocheck;
 int fluid_update_fsf_comp::iter;
 

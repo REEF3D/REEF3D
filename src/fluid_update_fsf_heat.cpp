@@ -118,10 +118,6 @@ void fluid_update_fsf_heat::start(lexer *p, fdm* a, ghostcell* pgc)
 
 }
 
-void fluid_update_fsf_heat::start3(lexer *p, fdm* a, ghostcell* pgc, field&, field&)
-{
-}
-
 double fluid_update_fsf_heat::material_ipol(double **pm, int num, double temp)
 {
     double val=0.0;

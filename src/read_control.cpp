@@ -2192,6 +2192,125 @@ void lexer::read_control()
 	Darray(F72_ye,F72);
 
 	Darray(F72_h,F72);
+    
+    if(F369>0)
+	{
+	Darray(F369_x,F369);   
+	Darray(F369_z,F369);  
+	
+	Darray(F369_a,F369);  	
+	Darray(F369_s,F369);  
+	Darray(F369_l,F369);  
+	Darray(F369_v,F369);  
+	}
+    
+	if(F370>0)
+	{
+	Darray(F370_xs,F370);  
+	Darray(F370_xe,F370);  
+	
+	Darray(F370_ys,F370);  
+	Darray(F370_ye,F370);  
+	
+	Darray(F370_zs,F370);  
+	Darray(F370_ze,F370);  
+	}
+	
+	if(F371>0)
+	{
+	Darray(F371_xs,F371);  
+	Darray(F371_xe,F371);  
+	
+	Darray(F371_ys,F371);  
+	Darray(F371_ye,F371);  
+	
+	Darray(F371_zs,F371);  
+	Darray(F371_ze,F371);  
+	}
+	
+    if(F374>0)
+	{
+	Darray(F374_xc,F374);  
+	Darray(F374_zc,F374);
+    Darray(F374_r,F374);  
+	}
+    
+    if(F375>0)
+	{
+	Darray(F375_xc,F375);  
+	Darray(F375_zc,F375);
+    Darray(F375_r,F375);  
+	}
+    
+    if(F378>0)
+	{
+	Darray(F378_xc,F378);  
+    Darray(F378_yc,F378);  
+	Darray(F378_zc,F378);
+    Darray(F378_r,F378);  
+	}
+	
+    if(F379>0)
+	{
+	Darray(F379_xc,F379);  
+    Darray(F379_yc,F379);  
+	Darray(F379_zc,F379);
+    Darray(F379_r,F379);  
+	}
+	
+	if(F390>0)
+	{
+	Darray(F390_xs,F390);  
+	Darray(F390_xe,F390);  
+	
+	Darray(F390_ys,F390);  
+	Darray(F390_ye,F390);  
+	
+	Darray(F390_zs,F390);  
+	Darray(F390_ze,F390);  
+	}
+	
+	if(F391>0)
+	{
+	Darray(F391_xs,F391);  
+	Darray(F391_xe,F391);  
+	
+	Darray(F391_ys,F391);  
+	Darray(F391_ye,F391);  
+	
+	Darray(F391_zs,F391);  
+	Darray(F391_ze,F391);  
+	}
+    
+    if(F394>0)
+	{
+	Darray(F394_xc,F394);  
+	Darray(F394_zc,F394);
+    Darray(F394_r,F394);  
+	}
+    
+    if(F395>0)
+	{
+	Darray(F395_xc,F395);  
+	Darray(F395_zc,F395);
+    Darray(F395_r,F395);  
+	}
+    
+    if(F398>0)
+	{
+	Darray(F398_xc,F398);  
+    Darray(F398_yc,F398);  
+	Darray(F398_zc,F398);
+    Darray(F398_r,F398);  
+	}
+	
+    if(F399>0)
+	{
+	Darray(F399_xc,F399);  
+    Darray(F399_yc,F399);  
+	Darray(F399_zc,F399);
+    Darray(F399_r,F399);  
+	}
 
     // P
 	Darray(P35_ts,P35);
@@ -2462,6 +2581,19 @@ void lexer::read_control()
 	int countF70=0;
 	int countF71=0;
 	int countF72=0;
+    int countF369=0;
+	int countF370=0;
+	int countF371=0;
+	int countF374=0;
+    int countF375=0;
+    int countF378=0;
+    int countF379=0;
+	int countF390=0;
+	int countF391=0;
+    int countF394=0;
+    int countF395=0;
+    int countF398=0;
+    int countF399=0;
 	int countP35=0;
     int countP50=0;
 	int countP51=0;
@@ -2630,6 +2762,58 @@ void lexer::read_control()
 						 break;
 				case 72: control>>F72_xs[countF72]>>F72_xe[countF72]>>F72_ys[countF72]>>F72_ye[countF72]>>F72_h[countF72];
                         ++countF72;
+						 clear(c,numint);
+						 break;
+                case 369: control>>F369_x[countF369]>>F369_z[countF369]>>F369_a[countF369]>>F369_s[countF369]>>F369_l[countF369]>>F369_v[countF369];
+                        ++countF369;
+						 clear(c,numint);
+						 break;
+				case 370: control>>F370_xs[countF370]>>F370_xe[countF370]>>F370_ys[countF370]>>F370_ye[countF370]>>F370_zs[countF370]>>F370_ze[countF370];
+                        ++countF370;
+						 clear(c,numint);
+						 break;
+				case 371: control>>F371_xs[countF371]>>F371_xe[countF371]>>F371_ys[countF371]>>F371_ye[countF371]>>F371_zs[countF371]>>F371_ze[countF371];
+                        ++countF371;
+						 clear(c,numint);
+						 break;
+               case 374: control>>F374_xc[countF374]>>F374_zc[countF374]>>F374_r[countF374];
+                        ++countF374;
+						 clear(c,numint);
+						 break;
+               case 375: control>>F375_xc[countF375]>>F375_zc[countF375]>>F375_r[countF375];
+                        ++countF375;
+						 clear(c,numint);
+						 break;
+               case 378: control>>F378_xc[countF378]>>F378_yc[countF378]>>F378_zc[countF378]>>F378_r[countF378];
+                        ++countF378;
+						 clear(c,numint);
+						 break;
+               case 379: control>>F379_xc[countF379]>>F379_yc[countF379]>>F379_zc[countF379]>>F379_r[countF379];
+                        ++countF379;
+						 clear(c,numint);
+						 break;
+				case 390: control>>F390_xs[countF390]>>F390_xe[countF390]>>F390_ys[countF390]>>F390_ye[countF390]>>F390_zs[countF390]>>F390_ze[countF390];
+                        ++countF390;
+						 clear(c,numint);
+						 break;
+				case 391: control>>F391_xs[countF391]>>F391_xe[countF391]>>F391_ys[countF391]>>F391_ye[countF391]>>F391_zs[countF391]>>F391_ze[countF391];
+                        ++countF391;
+						 clear(c,numint);
+						 break;
+               case 394: control>>F394_xc[countF394]>>F394_zc[countF394]>>F394_r[countF394];
+                        ++countF394;
+						 clear(c,numint);
+						 break;
+               case 395: control>>F395_xc[countF395]>>F395_zc[countF395]>>F395_r[countF395];
+                        ++countF395;
+						 clear(c,numint);
+						 break;
+               case 398: control>>F398_xc[countF398]>>F398_yc[countF398]>>F398_zc[countF398]>>F398_r[countF398];
+                        ++countF398;
+						 clear(c,numint);
+						 break;
+               case 399: control>>F399_xc[countF399]>>F399_yc[countF399]>>F399_zc[countF399]>>F399_r[countF399];
+                        ++countF399;
 						 clear(c,numint);
 						 break;
 				}

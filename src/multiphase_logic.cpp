@@ -67,7 +67,10 @@ void multiphase_f::logic(lexer *p, fdm *a, ghostcell *pgc)
 	
 	
 	if(p->F310==3)
+    {
+    cout<<p->mpirank<<" F310: "<<p->F310<<" "<<p->F305<<endl;
 	preini = new reini_RK3(p,1);
+    }
 	
 	
 	if(p->F310==5)

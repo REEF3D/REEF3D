@@ -77,7 +77,7 @@ void multiphase_f::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, printer 
 		alpha = fabs(p->F369_a[qn]*(PI/180.0));
 		s = p->F369_s[qn];
 		ls = p->F369_l[qn];
-		vel =p->F369_v[qn];
+		vel = p->F369_v[qn];
 		
 		xp1 = x0;
 		zp1 = z0;
@@ -136,16 +136,15 @@ void multiphase_f::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, printer 
 // F370
     for(qn=0;qn<p->F370;++qn)
     {
-        istart = conv((p->F370_xs[qn]-p->originx)/p->dx);
-        iend = conv((p->F370_xe[qn]-p->originx)/p->dx);
-
-        jstart = conv((p->F370_ys[qn]-p->originy)/p->dx);
-        jend = conv((p->F370_ye[qn]-p->originy)/p->dx);
-
-        kstart = conv((p->F370_zs[qn]-p->originz)/p->dx);
-        kend = conv((p->F370_ze[qn]-p->originz)/p->dx);
-
-
+        istart = p->posc_i(p->F370_xs[qn]);
+        iend = p->posc_i(p->F370_xe[qn]);
+        
+        jstart = p->posc_j(p->F370_ys[qn]);
+        jend = p->posc_j(p->F370_ye[qn]);
+        
+        kstart = p->posc_k(p->F370_zs[qn]);
+        kend = p->posc_k(p->F370_ze[qn]);
+    
         LOOP
         if(i>=istart && i<iend && j>=jstart && j<jend && k>=kstart && k<kend)
         ls1(i,j,k)=1;
@@ -153,14 +152,14 @@ void multiphase_f::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, printer 
 	
 	for(qn=0;qn<p->F371;++qn)
     {
-        istart = conv((p->F371_xs[qn]-p->originx)/p->dx);
-        iend = conv((p->F371_xe[qn]-p->originx)/p->dx);
-
-        jstart = conv((p->F371_ys[qn]-p->originy)/p->dx);
-        jend = conv((p->F371_ye[qn]-p->originy)/p->dx);
-
-        kstart = conv((p->F371_zs[qn]-p->originz)/p->dx);
-        kend = conv((p->F371_ze[qn]-p->originz)/p->dx);
+        istart = p->posc_i(p->F371_xs[qn]);
+        iend = p->posc_i(p->F371_xe[qn]);
+        
+        jstart = p->posc_j(p->F371_ys[qn]);
+        jend = p->posc_j(p->F371_ye[qn]);
+        
+        kstart = p->posc_k(p->F371_zs[qn]);
+        kend = p->posc_k(p->F371_ze[qn]);
 
 
         LOOP
@@ -228,14 +227,14 @@ void multiphase_f::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, printer 
 
     for(qn=0;qn<p->F390;++qn)
     {
-        istart = conv((p->F390_xs[qn]-p->originx)/p->dx);
-        iend = conv((p->F390_xe[qn]-p->originx)/p->dx);
-
-        jstart = conv((p->F390_ys[qn]-p->originy)/p->dx);
-        jend = conv((p->F390_ye[qn]-p->originy)/p->dx);
-
-        kstart = conv((p->F390_zs[qn]-p->originz)/p->dx);
-        kend = conv((p->F390_ze[qn]-p->originz)/p->dx);
+        istart = p->posc_i(p->F390_xs[qn]);
+        iend = p->posc_i(p->F390_xe[qn]);
+        
+        jstart = p->posc_j(p->F390_ys[qn]);
+        jend = p->posc_j(p->F390_ye[qn]);
+        
+        kstart = p->posc_k(p->F390_zs[qn]);
+        kend = p->posc_k(p->F390_ze[qn]);
 
 
         LOOP
@@ -245,14 +244,14 @@ void multiphase_f::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, printer 
 	
 	for(qn=0;qn<p->F391;++qn)
     {
-        istart = conv((p->F391_xs[qn]-p->originx)/p->dx);
-        iend = conv((p->F391_xe[qn]-p->originx)/p->dx);
-
-        jstart = conv((p->F391_ys[qn]-p->originy)/p->dx);
-        jend = conv((p->F391_ye[qn]-p->originy)/p->dx);
-
-        kstart = conv((p->F391_zs[qn]-p->originz)/p->dx);
-        kend = conv((p->F391_ze[qn]-p->originz)/p->dx);
+        istart = p->posc_i(p->F391_xs[qn]);
+        iend = p->posc_i(p->F391_xe[qn]);
+        
+        jstart = p->posc_j(p->F391_ys[qn]);
+        jend = p->posc_j(p->F391_ye[qn]);
+        
+        kstart = p->posc_k(p->F391_zs[qn]);
+        kend = p->posc_k(p->F391_ze[qn]);
 
 
         LOOP
@@ -311,8 +310,6 @@ void multiphase_f::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, printer 
 
 		if(r<=p->F374_r[qn])
 		ls2(i,j,k)=-1.0;
-		
-
 		}
 	}
 	
@@ -343,27 +340,4 @@ double multiphase_f::fz(double x1, double z1, double x2, double z2, double z)
 	
 	return f;
 	
-}
-
-int multiphase_f::conv(double a)
-{
-
-int b,c;
-double d,diff;
-
-c= int( a);
-d=double(c);
-diff=a-d;
-
-b=c;
-
-if(diff>0.5)
-b=c+1;
-
-if(diff<=-0.5)
-b=c-1;
-
-
-return b;
-
 }

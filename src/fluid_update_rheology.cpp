@@ -75,7 +75,7 @@ void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc)
 		a->ro(i,j,k)=      ro1*H +   ro2*(1.0-H);
 
         p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));
-		p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
+        p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
 	}
 	pgc->start4(p,a->ro,gcval_ro);
     
@@ -111,11 +111,6 @@ void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc)
 	cout<<"Volume 2: "<<p->volume2<<endl;
     }
     ++iocheck;
-
-}
-
-void fluid_update_rheology::start3(lexer *p, fdm* a, ghostcell* pgc, field&, field&)
-{
 }
 
 int fluid_update_rheology::iocheck;

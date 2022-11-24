@@ -96,9 +96,5 @@ void fluid_update_fsf_concentration::start(lexer *p, fdm* a, ghostcell* pgc)
     ++iocheck;
 }
 
-void fluid_update_fsf_concentration::start3(lexer *p, fdm* a, ghostcell* pgc, field&, field&)
-{
-}
-
 int fluid_update_fsf_concentration::iocheck;
 int fluid_update_fsf_concentration::iter;

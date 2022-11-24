@@ -36,7 +36,3 @@ fluid_update_void::~fluid_update_void()
 void fluid_update_void::start(lexer *p, fdm* a, ghostcell* pgc)
 {
 }
-
-void fluid_update_void::start3(lexer *p, fdm* a, ghostcell* pgc, field&, field&)
-{
-}

@@ -61,7 +61,8 @@ private:
 	double starttime,endtime;
 
 	int gcval_phi,gcval_ro,gcval_iniphi,reiniter;
-	const double deltax,epsi;
+	const double epsi;
+    double deltax;
 	
 	int count,numvert,n;
 	double dV1,dV,H,H0,eta;

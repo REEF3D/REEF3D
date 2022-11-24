@@ -186,7 +186,6 @@ void reini_RK3::start(fdm* a,lexer* p,field& b,ghostcell* pgc,ioflow* pflow)
 
 void reini_RK3::startV(fdm* a,lexer* p,vec &f, ghostcell* pgc,ioflow* pflow)
 { 
-    
 }
 
 void reini_RK3::step(lexer* p, fdm *a)

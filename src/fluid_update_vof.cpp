@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -99,10 +99,6 @@ void fluid_update_vof::start(lexer *p, fdm* a, ghostcell* pgc)
     }
     ++iocheck;
 
-}
-
-void fluid_update_vof::start3(lexer *p, fdm* a, ghostcell* pgc, field&, field&)
-{
 }
 
 
