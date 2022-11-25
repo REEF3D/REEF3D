@@ -472,7 +472,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 		// concentration
 	pconc->offset_vtu(p,a,pgc,result,offset,n);
     	// rho
-	if(p->P24==1)
+	if(p->P24==1 && p->F300==0)
 	{
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
@@ -603,7 +603,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 
 	pconc->name_vtu(p,a,pgc,result,offset,n);
 
-    if(p->P24==1)
+    if(p->P24==1 && p->F300==0)
 	{
     result<<"<DataArray type=\"Float32\" Name=\"rho\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -765,7 +765,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     pconc->print_3D(p,a,pgc,result);
 
 //  density
-    if(p->P24==1)
+    if(p->P24==1 && p->F300==0)
 	{
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));

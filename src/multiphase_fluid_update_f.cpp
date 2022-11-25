@@ -131,8 +131,8 @@ void multiphase_fluid_update_f::start(lexer *p, fdm* a, ghostcell* pgc, field &l
 			}
 		}
 
-		a->ro(i,j,k)=     ro1*H1 + ro2*H2 + ro3*H3;
-		a->visc(i,j,k)=   visc1*H1 + visc2*H2 + visc3*H3;
+		a->ro(i,j,k) =     ro1*H1 + ro2*H2 + ro3*H3;
+		a->visc(i,j,k) =   visc1*H1 + visc2*H2 + visc3*H3;
         
         p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*H1;
         p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*H2;

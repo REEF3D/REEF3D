@@ -62,7 +62,7 @@ void multiphase_f::print_3D(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 
 	TPLOOP
 	{
-	ffn=float(p->ipol4(a->ro));
+	ffn=float(p->ipol4_a(a->ro));
 	result.write((char*)&ffn, sizeof (float));
 	}
 	
