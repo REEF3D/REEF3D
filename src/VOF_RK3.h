@@ -42,7 +42,6 @@ public:
 	VOF_RK3(lexer*, fdm*, ghostcell*,heat*);
 	virtual ~VOF_RK3();
 	virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particlecorr*,field&);
-	virtual void ltimesave(lexer*,fdm*,field&);
 	virtual void update(lexer*,fdm*,ghostcell*,field&);
 
 	void compression(lexer*,fdm*,ghostcell*,convection*,field&,double);

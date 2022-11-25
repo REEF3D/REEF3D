@@ -100,10 +100,6 @@ void VOF_AB::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell
 
 }
 
-void VOF_AB::ltimesave(lexer* p, fdm *a, field &F)
-{
-}
-
 void VOF_AB::update(lexer *p, fdm *a, ghostcell *pgc, field &F)
 {
     pupdate->start(p,a,pgc);

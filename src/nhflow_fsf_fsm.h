@@ -52,7 +52,6 @@ public:
     virtual void step2(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
     virtual void step3(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
     
-	void ltimesave(lexer*,fdm_nhf*,slice&);
     void update(lexer*,fdm_nhf*,ghostcell*,slice&);
     
 private: 

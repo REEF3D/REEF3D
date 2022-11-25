@@ -74,10 +74,6 @@ void levelset_void::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gh
     pupdate->start(p,a,pgc);
 }
 
-void levelset_void::ltimesave(lexer* p, fdm* a, field&)
-{
-}
-
 void levelset_void::update(lexer *p, fdm *a, ghostcell *pgc, field &f)
 {
     pupdate->start(p,a,pgc);

@@ -44,7 +44,6 @@ public:
 	VOF_PLIC(lexer*, fdm*, ghostcell*,heat*);
 	virtual ~VOF_PLIC();
 	virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particlecorr*,field&);
-	virtual void ltimesave(lexer*,fdm*,field&);
 	virtual void update(lexer*,fdm*,ghostcell*,field&);
 	
 private:	

@@ -110,10 +110,6 @@ void nhflow_fsf_fsm::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow)
     p->omega_update(p,d,pgc,d->U,d->V,d->W,d->eta,d->eta_n,1.0);
 }
 
-void nhflow_fsf_fsm::ltimesave(lexer* p, fdm_nhf* d, slice &ls)
-{
-}
-
 void nhflow_fsf_fsm::update(lexer *p, fdm_nhf* d, ghostcell *pgc, slice &f)
 {
 }

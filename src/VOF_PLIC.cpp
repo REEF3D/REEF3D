@@ -193,12 +193,6 @@ void VOF_PLIC::start
 
 }
 
-
-void VOF_PLIC::ltimesave(lexer* p, fdm *a, field &F)
-{
-}
-
-
 void VOF_PLIC::update
 (
     lexer *p,

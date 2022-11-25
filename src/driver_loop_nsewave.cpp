@@ -100,7 +100,6 @@ void driver::loop_nsewave(fdm* a)
         pbench->start(p,a,pgc,pconvec);
 		
         //save previous timestep
-        pfsf->ltimesave(p,a,a->phi);
         pturb->ktimesave(p,a,pgc);
         pturb->etimesave(p,a,pgc);
         pheat->ttimesave(p,a);

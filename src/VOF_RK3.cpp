@@ -126,10 +126,6 @@ void VOF_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcel
 	cout<<"voftime: "<<setprecision(3)<<p->lsmtime<<endl;
 }
 
-void VOF_RK3::ltimesave(lexer* p, fdm *a, field &F)
-{
-}
-
 void VOF_RK3::update(lexer *p, fdm *a, ghostcell *pgc, field &F)
 {
     pupdate->start(p,a,pgc);

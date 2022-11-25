@@ -137,10 +137,6 @@ void levelset_AB2::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 
 }
 
-void levelset_AB2::ltimesave(lexer* p, fdm *a, field &ls)
-{
-}
-
 void levelset_AB2::update(lexer *p, fdm *a, ghostcell *pgc, field &f)
 {
     pupdate->start(p,a,pgc);

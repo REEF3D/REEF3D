@@ -43,7 +43,7 @@ void multiphase_f::logic(lexer *p, fdm *a, ghostcell *pgc)
 	pfsf2 = new levelset_void(p,a,pgc,pheat,pconc);
 	}
 
-	if(p->F300>=1)
+	if(p->F300==1)
 	{
 	pfsf1 = new levelset_AB2(p,a,pgc,pheat,pconc);
 	pfsf2 = new levelset_AB2(p,a,pgc,pheat,pconc);
@@ -61,17 +61,12 @@ void multiphase_f::logic(lexer *p, fdm *a, ghostcell *pgc)
 	pfsf2 = new levelset_RK3(p,a,pgc,pheat,pconc);
 	}
 	
-	
+    
 	if(p->F310==0)
 	preini = new reini_void(p);
 	
-	
 	if(p->F310==3)
-    {
-    cout<<p->mpirank<<" F310: "<<p->F310<<" "<<p->F305<<endl;
-	preini = new reini_RK3(p,1);
-    }
-	
+	preini = new reinifluid_RK3(p,1);
 	
 	if(p->F310==5)
 	preini = new reinivc_RK3(p);
@@ -79,11 +74,10 @@ void multiphase_f::logic(lexer *p, fdm *a, ghostcell *pgc)
 	if(p->F310==7)
 	preini = new reinigc_RK3(p,a);
 	
-
 	if(p->F310==11 || p->F310==13 || p->F310==14)
 	preini = new directreini(p,a);
 	
-	
+
 	if(p->F31==0)
 	ppart = new particle_void();
 
@@ -92,6 +86,4 @@ void multiphase_f::logic(lexer *p, fdm *a, ghostcell *pgc)
 	
 	
 	pupdate = new multiphase_fluid_update_f(p,a,pgc);
-	
-	
 }

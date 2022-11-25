@@ -45,7 +45,6 @@ public:
 	virtual ~multiphase_v();
 	virtual void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particlecorr*,printer*);
 	virtual void ini(lexer*,fdm*,ghostcell*,ioflow*,printer*,convection*,solver*);
-	virtual void timesave(lexer*,fdm*,ghostcell*);
 	virtual void update(lexer*,fdm*,ghostcell*);
 	
 	virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);

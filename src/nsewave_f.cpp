@@ -173,10 +173,6 @@ void nsewave_f::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusio
     
 }
 
-void nsewave_f::ltimesave(lexer* p, fdm *a, slice &ls)
-{
-}
-
 void nsewave_f::update(lexer *p, fdm *a, ghostcell *pgc, slice &f)
 {
     pupdate->start(p,a,pgc);

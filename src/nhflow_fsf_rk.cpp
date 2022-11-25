@@ -58,10 +58,6 @@ void nhflow_fsf_rk::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow)
 {
 }
 
-void nhflow_fsf_rk::ltimesave(lexer* p, fdm_nhf* d, slice &ls)
-{
-}
-
 void nhflow_fsf_rk::update(lexer *p, fdm_nhf* d, ghostcell *pgc, slice &f)
 {
     //pupdate->start(p,a,pgc);

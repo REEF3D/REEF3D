@@ -41,10 +41,6 @@ void nsewave_v::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusio
 {
 }
 
-void nsewave_v::ltimesave(lexer* p, fdm *a, slice &ls)
-{
-}
-
 void nsewave_v::update(lexer *p, fdm *a, ghostcell *pgc, slice &f)
 {
 }

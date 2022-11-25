@@ -172,10 +172,6 @@ void nsewave_geo::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffus
     
 }
 
-void nsewave_geo::ltimesave(lexer* p, fdm *a, slice &ls)
-{
-}
-
 void nsewave_geo::update(lexer *p, fdm *a, ghostcell *pgc, slice &f)
 {
     pupdate->start(p,a,pgc);

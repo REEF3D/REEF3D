@@ -45,6 +45,7 @@ void multiphase_fluid_update_f::start(lexer *p, fdm* a, ghostcell* pgc, field &l
 	double H1=0.0;
 	double H2=0.0;
 	double H3=0.0;
+    
 	p->volume1=0.0;
 	p->volume2=0.0;
 	p->volume3=0.0;
@@ -52,10 +53,15 @@ void multiphase_fluid_update_f::start(lexer *p, fdm* a, ghostcell* pgc, field &l
     if(p->count>iter)
     iocheck=0;
 	iter=p->count;
+    
+    if(p->j_dir==0)        
+    epsi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
+        
+    if(p->j_dir==1)
+    epsi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
 
 	LOOP
 	{
-        epsi = p->F45*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
         
 		// water
 		if(ls1(i,j,k)>epsi)
@@ -130,7 +136,7 @@ void multiphase_fluid_update_f::start(lexer *p, fdm* a, ghostcell* pgc, field &l
         
         p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*H1;
         p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*H2;
-        p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*H3;
+        p->volume3 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*H3;
 	}
 	
 	

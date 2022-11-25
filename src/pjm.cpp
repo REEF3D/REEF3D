@@ -203,13 +203,8 @@ void pjm::normalize(lexer*p,fdm* a, ghostcell *pgc)
     if(count>0)
     pressval = pressval/double(count);
     
-    //if(p->mpirank==0)
-    //cout<<"PRESSVAL: "<<pressval<<" count: "<<count<<endl;
-    
     LOOP
     a->press(i,j,k) -= pressval;
-    
-    
 }
 
 

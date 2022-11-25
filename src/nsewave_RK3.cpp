@@ -402,10 +402,6 @@ void nsewave_RK3::eta_disc(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v)
     
 }
 
-void nsewave_RK3::ltimesave(lexer* p, fdm *a, slice &ls)
-{
-}
-
 void nsewave_RK3::update(lexer *p, fdm *a, ghostcell *pgc, slice &f)
 {
     pupdate->start(p,a,pgc);

@@ -435,7 +435,6 @@ void driver::logic()
 	preini = new directreini(p,a);
 
 
-
 	if(p->F31==0)
 	ppart = new particle_void();
 

@@ -89,6 +89,7 @@ levelset_RK3::levelset_RK3(lexer* p, fdm *a, ghostcell* pgc, heat *&pheat, conce
 	if(p->F46!=2 && p->F46!=3)
 	ppicard = new picard_void(p);
     
+    
     gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;
@@ -191,10 +192,6 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
     pgc->start1(p,a->u,10);
 	pgc->start2(p,a->v,11);
 	pgc->start3(p,a->w,12);
-}
-
-void levelset_RK3::ltimesave(lexer* p, fdm *a, field &ls)
-{
 }
 
 void levelset_RK3::update(lexer *p, fdm *a, ghostcell *pgc, field &f)

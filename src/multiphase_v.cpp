@@ -51,10 +51,6 @@ void multiphase_v::start(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec, 
 {
 }
 
-void multiphase_v::timesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
 void multiphase_v::update(lexer *p, fdm *a, ghostcell *pgc)
 {
 }

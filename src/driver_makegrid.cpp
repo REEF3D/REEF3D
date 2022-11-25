@@ -113,8 +113,6 @@ void driver::makegrid(lexer *p, ghostcell *pgc)
     m4.fill_dgc(p);
     
     p->vecsize(pgc);
-    
-    //cout<<p->mpirank<<" p->gcb4_count: "<<p->gcb4_count<<endl;
 }
 	
 void driver::makegrid_cds()
