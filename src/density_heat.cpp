@@ -76,7 +76,6 @@ double density_heat::roface(lexer *p, fdm *a, int aa, int bb, int cc)
         visc_2 = material_ipol(water_viscosity,water_viscosity_num, temp);
         }
         
-        
     
         if(phival>psi)
         H=1.0;
@@ -89,7 +88,6 @@ double density_heat::roface(lexer *p, fdm *a, int aa, int bb, int cc)
         
         roval = ro_1*H + ro_2*(1.0-H);
 
-	
 	return roval;		
 }
 
