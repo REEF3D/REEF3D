@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"LES_filter.h"
+#include"strain.h"
 
 class lexer;
 class fdm;
@@ -31,7 +32,7 @@ using namespace std;
 #ifndef LES_FILTER_V_H_
 #define LES_FILTER_V_H_
 
-class LES_filter_v : public LES_filter
+class LES_filter_v : public LES_filter, public strain
 {
 public:
 	LES_filter_v(lexer *, fdm*);
