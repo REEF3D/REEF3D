@@ -54,12 +54,13 @@ momentum_RK3::momentum_RK3(lexer *p, fdm *a, convection *pconvection, diffusion 
     ppoissonsolv=ppoissonsolver;
 	pflow=pioflow;
     pnh=ppnh;
-        
-    if(p->W90>0)
-	pupdate = new fluid_update_rheology(p,a);
     
-    if(p->W90==0)
+
+    if(p->W90==0  || p->F300>0)
 	pupdate = new fluid_update_void();
+    
+    if(p->W90==1 && p->F300==0)
+	pupdate = new fluid_update_rheology(p,a);
 }
 
 momentum_RK3::~momentum_RK3()

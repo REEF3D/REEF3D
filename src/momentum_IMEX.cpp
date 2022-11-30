@@ -79,11 +79,11 @@ momentum_IMEX::momentum_IMEX(lexer *p, fdm *a, convection *pconvection, diffusio
     ppoissonsolv=ppoissonsolver;
 	pflow=pioflow;
     
-    if(p->W90>0)
-	pupdate = new fluid_update_rheology(p,a);
-    
-    if(p->W90==0)
+    if(p->W90==0  || p->F300>0)
 	pupdate = new fluid_update_void();
+    
+    if(p->W90==1 && p->F300==0)
+	pupdate = new fluid_update_rheology(p,a);
 }
 
 momentum_IMEX::~momentum_IMEX()

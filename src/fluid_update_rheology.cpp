@@ -32,8 +32,7 @@ fluid_update_rheology::fluid_update_rheology(lexer *p, fdm* a) : dx(p->DXM),
     gcval_ro=1;
 	gcval_visc=1;
 	
-	prheo = new rheology_f(p,a);
-	
+	prheo = new rheology_f(p,a);	
 }
 
 fluid_update_rheology::~fluid_update_rheology()
@@ -89,7 +88,10 @@ void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc)
 		}
 
 		if(a->phi(i,j,k)<-epsi)
+        {
 		H=0.0;
+        visc1 = 0.0;
+        }
 
 		if(fabs(a->phi(i,j,k))<=epsi)
 		{
