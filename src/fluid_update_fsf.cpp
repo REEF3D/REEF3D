@@ -30,8 +30,6 @@ fluid_update_fsf::fluid_update_fsf(lexer *p, fdm* a, ghostcell* pgc) : dx(p->DXM
 {
     gcval_ro=1;
 	gcval_visc=1;
-    
-    cout<<"FLUID_UOPDATE !!!"<<endl;
 }
 
 fluid_update_fsf::~fluid_update_fsf()
