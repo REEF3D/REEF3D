@@ -116,8 +116,8 @@ void pjm::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 void pjm::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
 {	
     VLOOP
-    vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))
-    /(p->DYP[JP]*(pd->roface(p,a,0,1,0)));
+    vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*((a->press(i,j+1,k)-a->press(i,j,k))
+    /(p->DYP[JP]*pd->roface(p,a,0,1,0)));
 }
 
 void pjm::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
@@ -162,7 +162,6 @@ void pjm::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
 }
 
-
 void pjm::normalize(lexer*p,fdm* a, ghostcell *pgc)
 {
     double epsi;
@@ -177,7 +176,6 @@ void pjm::normalize(lexer*p,fdm* a, ghostcell *pgc)
     if(p->j_dir==1)
     epsi = 2.1*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
 
-	
     // pressval
     pressval=0.0;
     count=0;

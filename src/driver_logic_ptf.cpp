@@ -129,5 +129,4 @@ void driver::logic_ptf()
     if(p->A310==4)
     pptf = new ptf_RK4(p,a,pgc);
     
-    loop_ptf(a);
 }

@@ -180,7 +180,6 @@ void ghostcell::gcini(lexer* p)
     gclabel_u_orth=1;
     gclabel_v_orth=1;
     gclabel_w_orth=1;
-    gclabel_press=4;
 	gclabel_vel=5;    
 
     // for reflective BC
@@ -239,7 +238,6 @@ void ghostcell::gcini(lexer* p)
     gclabel_u_in=1;
     gclabel_v_in=1;
     gclabel_w_in=1;
-    gclabel_press_in=gclabel_press;
     gclabel_lsm_in=gclabel_lsm;
     
     if(p->I230>0 || p->B98>=3 || p->B60>0)
@@ -248,7 +246,6 @@ void ghostcell::gcini(lexer* p)
     gclabel_v_in=0;
     gclabel_w_in=0;
     gclabel_lsm_in=0;
-    //gclabel_press_in=0;
     }
     
     if(p->B98>=3)
@@ -257,16 +254,21 @@ void ghostcell::gcini(lexer* p)
     gclabel_v_in=0;
     gclabel_w_in=0;
     gclabel_lsm_in=0;
-    //gclabel_press_in=0;
     }
+    
+    // pressure bc labels
+    gclabel_press=4;
+    gclabel_press_in=gclabel_press;
     
     if(p->B76==2 || p->B76==3)
 	gclabel_press_in=0;
-
+    
+    // pressure inflow
     pressin_lable=0;
 	if(p->B76!=1)
-	pressout_lable=1;
+	pressin_lable=1;
     
+    // pressure outflow
     pressout_lable=0;
 	if(p->B77==-1 || p->B77==2)
 	pressout_lable=1;

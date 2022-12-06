@@ -39,7 +39,7 @@ driver::driver(int& argc, char **argv)
     {
     cout<<endl<<"REEF3D (c) 2008-2022 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    cout<<endl<<"v_221202" <<endl<<endl;
+    cout<<endl<<"v_221206" <<endl<<endl;
     }
 
 	p->lexer_read(pgc);
@@ -142,6 +142,13 @@ void driver::cfd_driver()
     pgc->fdm_update(a);
     
     logic();
+    
+    // Start MAINLOOP
+    if(((p->X10==0 || p->X13!=0) && p->Z10==0))
+    loop_cfd(a);
+    
+    if(((p->X10==1 && p->X13==2) || p->Z10!=0))
+    loop_cfd_df(a);
 }
 
 void driver::nsewave_driver()
@@ -155,6 +162,9 @@ void driver::nsewave_driver()
     pgc->fdm_update(a);
 
     logic();
+    
+    // Start MAINLOOP
+    loop_nsewave(a);
 }
 
 void driver::nhflow_driver()
@@ -170,6 +180,9 @@ void driver::nhflow_driver()
     makegrid_sigma_cds(p,pgc);
 
     logic_nhflow();
+    
+    // Start MAINLOOP
+    loop_nhflow();
 }
 
 void driver::fnpf_driver()
@@ -186,6 +199,9 @@ void driver::fnpf_driver()
     makegrid_sigma_cds(p,pgc);
 
     logic_fnpf();
+    
+    // Start MAINLOOP
+    loop_fnpf();
 }
 
 void driver::ptf_driver()
@@ -199,6 +215,9 @@ void driver::ptf_driver()
     pgc->fdm_update(a);
 
     logic_ptf();
+    
+    // Start MAINLOOP
+    loop_ptf(a);
 }
 
 void driver::sflow_driver()
@@ -212,7 +231,8 @@ void driver::sflow_driver()
     psflow = new sflow_f(p,b,pgc,pBC);
 
     makegrid2D_cds(p,pgc,b);
-
+    
+    // Start SFLOW
 	psflow->start(p,b,pgc);
 }
 

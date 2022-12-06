@@ -147,10 +147,6 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
 
     depth=hmax-hmin;
     
-    //if(p->mpirank==0)
-    //cout<<"HMAX   "<<hmax<<endl;
-	
-	
     // bed shear stress and bed shear velocity
         if(p->S10==0)
         ks=p->B50;
@@ -205,10 +201,7 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
 
 	if(fabs(p->Qi)<1.0e-20)
 	ratio=1.0;
-	
-	//if(p->mpirank==0)
-	//cout<<"RATIO: "<<ratio<<" Ui: "<<p->Ui<<" Qi: "<<p->Qi<<endl;
-	
+
 
         for(n=0;n<p->gcin_count;++n)
         {

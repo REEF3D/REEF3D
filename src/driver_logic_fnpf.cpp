@@ -126,5 +126,4 @@ void driver::logic_fnpf()
     if(p->A310==4)
     ppfsg = new fnpf_RK4(p,c,pgc);
     
-    loop_fnpf();
 }

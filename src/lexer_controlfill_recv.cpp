@@ -508,7 +508,7 @@ void lexer::ctrlrecv()
 	D21 = ictrl[ii];
 	ii++;
     D30 = ictrl[ii];
-	ii++;    D31 = ictrl[ii];	ii++;
+	ii++;    D31 = ictrl[ii];	ii++;    D32 = ictrl[ii];	ii++;
     D37 = ictrl[ii];
 	ii++;
     D38 = ictrl[ii];

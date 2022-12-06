@@ -175,10 +175,10 @@ void driver::logic()
 	pmpconvec=new quick(p);
 
 	if(p->F305==4)
-	pmpconvec=new weno_flux(p);
+	pmpconvec=new weno_flux_nug(p);
 
 	if(p->F305==5)
-	pmpconvec=new weno_hj(p);
+	pmpconvec=new weno_hj_nug(p);
 	
 	if(p->F305==6)
 	pmpconvec=new cds4(p);
@@ -466,10 +466,10 @@ void driver::logic()
 	pfsfdisc=new quick(p);
 
 	if(p->F85==4)
-	pfsfdisc=new weno_flux(p);
+	pfsfdisc=new weno_flux_nug(p);
 
 	if(p->F85==5)
-	pfsfdisc=new weno_hj(p);
+	pfsfdisc=new weno_hj_nug(p);
 
 	if(p->F85==6)
 	pfsfdisc=new cds4(p);
@@ -693,26 +693,6 @@ void driver::logic()
 // FSI
     pfsi = new fsi_void(p,pgc);
 
-// Start MAINLOOP
-	if(p->A10==5)
-    {
-        loop_nsewave(a);
-    }
-
-    if(p->A10==6 && ((p->X10==1 && p->X13==2) || p->Z10!=0) )
-	{
-		loop_cfd_df(a);
-	}
-
-    else if(p->A10==6)
-	{
-		loop_cfd(a);
-	}
-
-    else if(p->A10==55)
-	{
-		loop_nhflow();
-	}
 }
 
 void driver::patchBC_logic()

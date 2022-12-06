@@ -38,7 +38,8 @@ fluid_update_fsf::~fluid_update_fsf()
 
 void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
 {
-	double H=0.0, H_fb=0.0;
+	double H=0.0;
+    double H_fb=0.0;
 	p->volume1=0.0;
 	p->volume2=0.0;
     
