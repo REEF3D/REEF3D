@@ -325,7 +325,22 @@ void ioflow_f::inflow_water(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
 
 void ioflow_f::rkinflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {
-    inflow(p,a,pgc,u,v,w);
+    for(n=0;n<p->gcin_count;n++)
+    {
+    i=p->gcin[n][0];
+    j=p->gcin[n][1];
+    k=p->gcin[n][2];
+    
+    u(i-1,j,k) = u(i-2,j,k) = u(i-3,j,k) = a->u(i-1,j,k);
+    v(i-1,j,k) = v(i-2,j,k) = v(i-3,j,k) = a->v(i-1,j,k);
+    w(i-1,j,k) = w(i-2,j,k) = w(i-3,j,k) = a->w(i-1,j,k);
+    
+    u(i-1,j,k) = u(i-2,j,k) = u(i-3,j,k) = u(i,j,k);
+    v(i-1,j,k) = v(i-2,j,k) = v(i-3,j,k) = v(i,j,k);
+    w(i-1,j,k) = w(i-2,j,k) = w(i-3,j,k) = w(i,j,k);
+    }
+    
+    pBC->patchBC_rkioflow(p,a,pgc,u,v,w);
 }
 
 void ioflow_f::flowfile(lexer *p, fdm* a, ghostcell* pgc, turbulence *pturb)
@@ -335,4 +350,9 @@ void ioflow_f::flowfile(lexer *p, fdm* a, ghostcell* pgc, turbulence *pturb)
 void ioflow_f::inflow_fnpf(lexer *p, fdm_fnpf*, ghostcell *pgc, double *Fi, double *Uin,slice &Fifsf, slice &eta)
 {
 
+}
+
+void ioflow_f::rkinflow_fnpf(lexer *p, fdm_fnpf*, ghostcell *pgc, slice &frk, slice &f)
+{
+    
 }

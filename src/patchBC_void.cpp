@@ -43,6 +43,10 @@ void patchBC_void::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, fi
 {
 } 
 
+void patchBC_void::patchBC_rkioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
+{
+} 
+
 void patchBC_void::patchBC_discharge(lexer *p, fdm *a, ghostcell *pgc)
 {
 } 
@@ -56,6 +60,9 @@ void patchBC_void::patchBC_waterlevel(lexer *p, fdm *a, ghostcell *pgc, field &p
 } 
 
 void patchBC_void::patchBC_ioflow2D(lexer *p, ghostcell*, slice&, slice&, slice&, slice&)
+{
+}
+void patchBC_void::patchBC_rkioflow2D(lexer *p, ghostcell*, slice&, slice&, slice&, slice&)
 {
 }
 
