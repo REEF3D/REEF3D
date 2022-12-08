@@ -53,17 +53,26 @@ Author: Hans Bihs
 
 void driver::driver_ini_nhflow()
 {
-
+    if(p->mpirank==0)
+    cout<<"NHFLOW_ini 001 "<<endl;
+    
     p->count=0;
 
     p->cellnumtot=pgc->globalisum(p->cellnum);
+    
     p->pointnumtot=pgc->globalisum(p->pointnum);
+    
+    if(p->mpirank==0)
+    cout<<"NHFLOW_ini 002 "<<endl;
 
 	log_ini();
     
     if(p->mpirank==0)
     cout<<"number of cells: "<<p->cellnumtot<<endl;
-
+    
+    if(p->mpirank==0)
+    cout<<"NHFLOW_ini 003 "<<endl;
+    
     if(p->mpirank==0)
     cout<<"starting driver_ini_NHFLOW"<<endl;
     
@@ -73,6 +82,7 @@ void driver::driver_ini_nhflow()
 	d->bed(i,j) = p->bed[IJ];
     
     pgc->gcsl_start4(p,d->bed,50);
+
     
     // eta ini
 	SLICELOOP4

@@ -41,9 +41,6 @@ Author: Hans Bihs
 
 void driver::loop_cfd(fdm* a)
 {
-	driver_ini();
-    
-
     if(p->mpirank==0)
     cout<<"starting mainloop.CFD"<<endl;
     

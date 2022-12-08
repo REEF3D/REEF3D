@@ -40,8 +40,6 @@ Author: Hans Bihs
 
 void driver::loop_nhflow()
 {
-    driver_ini_nhflow();
-    
     if(p->mpirank==0)
     cout<<"starting mainloop.NHFLOW"<<endl;
     

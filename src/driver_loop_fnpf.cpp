@@ -41,7 +41,6 @@ Author: Hans Bihs
 
 void driver::loop_fnpf()
 {
-   driver_ini_fnpf(); 
    
 //-----------MAINLOOP FNPF----------------------------
 

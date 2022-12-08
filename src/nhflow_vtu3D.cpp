@@ -226,7 +226,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     }
 
      //
-    pgc->start7V(p,d->Fi,d->bc,250);
+    //pgc->start7V(p,d->Fi,d->bc,250);
     pgc->gcsl_start4(p,d->WL,50);
     pgc->gcsl_start4(p,d->bed,50);
     pgc->gcsl_start4(p,d->breaking_print,50);
@@ -389,10 +389,10 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
-    ffn=float(d->Fi[FIJKp1]);
+    //ffn=float(d->Fi[FIJKp1]);
 
     if(k==-1 && j==-1)
-	ffn=float(d->Fi[FIJp1Kp1]);
+	//ffn=float(d->Fi[FIJp1Kp1]);
 	result.write((char*)&ffn, sizeof (float));
 	}
 

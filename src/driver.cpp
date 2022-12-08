@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"fdm2D.h"
 #include"fdm_fnpf.h"
+#include"fdm_nhf.h"
 #include"lexer.h"
 #include"waves_header.h"
 #include"patchBC.h"
@@ -39,7 +40,7 @@ driver::driver(int& argc, char **argv)
     {
     cout<<endl<<"REEF3D (c) 2008-2022 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    cout<<endl<<"v_221207" <<endl<<endl;
+    cout<<endl<<"v_221208 🎄🎅🏼" <<endl<<endl;
     }
 
 	p->lexer_read(pgc);
@@ -143,6 +144,8 @@ void driver::cfd_driver()
     
     logic();
     
+    driver_ini();
+    
     // Start MAINLOOP
     if(((p->X10==0 || p->X13!=0) && p->Z10==0))
     loop_cfd(a);
@@ -163,6 +166,10 @@ void driver::nsewave_driver()
 
     logic();
     
+    driver_ini_nsewave();
+    
+	driver_ini();
+    
     // Start MAINLOOP
     loop_nsewave(a);
 }
@@ -172,14 +179,15 @@ void driver::nhflow_driver()
     if(p->mpirank==0)
 	cout<<"initialize fdm"<<endl;
 
-	a=new fdm(p);
+	d=new fdm_nhf(p);
 
-	aa=a;
     pgc->fdm_nhf_update(d);
     
     makegrid_sigma_cds(p,pgc);
 
     logic_nhflow();
+    
+    driver_ini_nhflow();
     
     // Start MAINLOOP
     loop_nhflow();
@@ -200,6 +208,8 @@ void driver::fnpf_driver()
 
     logic_fnpf();
     
+    driver_ini_fnpf(); 
+    
     // Start MAINLOOP
     loop_fnpf();
 }
@@ -215,6 +225,8 @@ void driver::ptf_driver()
     pgc->fdm_update(a);
 
     logic_ptf();
+    
+    driver_ini_ptf(); 
     
     // Start MAINLOOP
     loop_ptf(a);
