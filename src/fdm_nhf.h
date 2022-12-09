@@ -47,12 +47,11 @@ public:
 
     fdm_nhf(lexer*);
    
-    field4 press,test;
+    field4 press;
     fieldint5 nodeval;
     
     slice4 eta,eta_n,WL,WL_n;
     slice4 bed,depth;
-    slice4 Fifsf,Fibed,Fz;
     slice4 K;
     sliceint4 etaloc,wet_n,breaking,breaklog,bc;
     

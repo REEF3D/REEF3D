@@ -23,11 +23,10 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"lexer.h"
 
-fdm_nhf::fdm_nhf(lexer *p) : press(p),test(p),Fifsf(p),Fibed(p),
-                              nodeval(p),eta(p),etaloc(p),
+fdm_nhf::fdm_nhf(lexer *p) :  press(p),nodeval(p),eta(p),etaloc(p),
                               wet_n(p),breaking(p),breaklog(p),bc(p),
                               eta_n(p),WL(p),WL_n(p),
-                              bed(p),depth(p),Fz(p),K(p),
+                              bed(p),depth(p),K(p),
                               Fx(p),Fy(p),
                               Ex(p),Ey(p),Exx(p),Eyy(p),
                               Bx(p),By(p),Bxx(p),Byy(p),

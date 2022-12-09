@@ -81,7 +81,13 @@ void driver::driver_ini_nhflow()
     SLICELOOP4
 	d->bed(i,j) = p->bed[IJ];
     
+    if(p->mpirank==0)
+    cout<<"NHFLOW_ini 004 "<<endl;
+    
     pgc->gcsl_start4(p,d->bed,50);
+    
+    if(p->mpirank==0)
+    cout<<"NHFLOW_ini 005 "<<endl;
 
     
     // eta ini
@@ -90,6 +96,10 @@ void driver::driver_ini_nhflow()
 	d->eta(i,j) = 0.0;
     p->wet[IJ] = 1;
     }
+    
+    if(p->mpirank==0)
+    cout<<"NHFLOW_ini 006 "<<endl;    
+
 
     pgc->gcsl_start4(p,d->eta,50);
     
@@ -100,12 +110,18 @@ void driver::driver_ini_nhflow()
     p->sigma_ini(p,d,pgc,d->eta);
     p->sigma_update(p,d,pgc,d->eta,d->eta,1.0);
 
-    
+    if(p->mpirank==0)
+    cout<<"NHFLOW_ini 007 "<<endl;
     //ioflow ini
-    pflow->ini_nhflow(p,a,pgc);
+    pflow->ini_nhflow(p,a,pgc); // replace a with d
+    if(p->mpirank==0)
+    cout<<"NHFLOW_ini 008 "<<endl;
     
     pflow->eta_relax(p,pgc,d->eta);
     pgc->gcsl_start4(p,d->eta,50);
+    
+    if(p->mpirank==0)
+    cout<<"NHFLOW_ini 009 "<<endl;
     
     if(p->P150==0)
 	pdata = new data_void(p,a,pgc);
@@ -113,16 +129,22 @@ void driver::driver_ini_nhflow()
 	if(p->P150>0)
 	pdata = new data_f(p,a,pgc);
 	
+    if(p->mpirank==0)
+    cout<<"NHFLOW_ini 010 "<<endl;
+    
 	pdata->start(p,a,pgc);
 	
     pheat->heat_ini(p,a,pgc,pheat);
 	pconc->ini(p,a,pgc,pconc);
+    
+    
 
     ptstep->ini(a,p,pgc);
 	pflow->gcio_update(p,a,pgc);
 	pflow->pressure_io(p,a,pgc);
     
-    
+    if(p->mpirank==0)
+    cout<<"NHFLOW_ini 011 "<<endl;  
     
     // inflow ini
 	pflow->discharge(p,a,pgc);

@@ -254,8 +254,6 @@ void grid_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, 
     pgc->start7S(p,p->ZSN,1);
     pgc->gcslparaxijk(p, p->sigz, 1);
     
-    LOOP
-    d->test(i,j,k) = p->sigx[FIJK];
 }
 
 void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, slice &eta, slice &eta_n, double alpha)
