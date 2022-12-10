@@ -118,8 +118,9 @@ public:
     
     virtual void ini_ptf(lexer*,fdm*,ghostcell*);
     
-    virtual void ini_nhflow(lexer*,fdm*,ghostcell*);
-    virtual void nhflow_inflow(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    virtual void ini_nhflow(lexer*,fdm_nhf*,ghostcell*);
+    virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
+    virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
     
     virtual void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*);
 	

@@ -379,7 +379,6 @@ void iowave::turb_relax(lexer *p, fdm *a, ghostcell *pgc, field &f)
 
 		}
     }
-    
 }
 
 void iowave::U_relax(lexer *p, ghostcell *pgc, double *U)

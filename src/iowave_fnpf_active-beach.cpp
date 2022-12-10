@@ -33,18 +33,14 @@ void iowave::active_beach_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi
 		double x=0.0;
 		double z=0.0;
 		double fac1,fac,multiplier;
-		int aa,bb,ii,jj;
+		int aa,bb;
 
 		// U / FI
 		for(n=0;n<p->gcslout_count;++n)
 		{
 		i=p->gcslout[n][0];
 		j=p->gcslout[n][1];
-		
-		ii=0;
-        if(p->gcslout[n][3]==4)
-		ii=1;
-		
+
 		eta_T = 0.0;
 		eta_M = eta(i,j); 
 		eta_R = eta_M-eta_T;

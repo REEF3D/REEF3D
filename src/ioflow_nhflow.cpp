@@ -22,15 +22,20 @@ Author: Hans Bihs
 
 #include"ioflow_f.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void ioflow_f::nhflow_inflow(lexer *p,fdm *a,ghostcell *pgc, field &uvel, field &vvel, field &wvel)
+void ioflow_f::inflow_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U, double *V, double *W)
 {
 
 }
 
-void ioflow_f::ini_nhflow(lexer *p,fdm *a,ghostcell *pgc)
+void ioflow_f::rkinflow_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U, double *V, double *W)
+{
+
+}
+
+void ioflow_f::ini_nhflow(lexer *p,fdm_nhf *d,ghostcell *pgc)
 {
 
 }

@@ -129,3 +129,32 @@ void iowave::wavegen_precalc_relax_func_fnpf(lexer *p, ghostcell *pgc)
     pgc->gcsl_start4(p,relax4_wg,50);
     pgc->gcsl_start4(p,relax4_nb,50);
 }
+
+void iowave::wavegen_precalc_relax_func_nhflow(lexer *p, ghostcell *pgc)
+{
+    // ini fill
+    SLICELOOP4
+    {
+    relax4_wg(i,j) = 1.0;
+    relax4_nb(i,j) = 1.0;
+    }
+    
+    
+    // 4
+    SLICELOOP4
+    {
+		// Wave Generation
+        if(p->B98==2)
+        {
+                relax4_wg(i,j) = rb1_ext(p,4);
+		}
+        
+        // Numerical Beach
+        if(p->B99==1 || p->B99==2 || p->B107>0)
+        {
+                relax4_nb(i,j) = rb3_ext(p,4);
+		}
+    }
+    pgc->gcsl_start4(p,relax4_wg,50);
+    pgc->gcsl_start4(p,relax4_nb,50);
+}

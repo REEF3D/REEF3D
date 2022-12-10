@@ -2687,7 +2687,11 @@
             <File Name="iowave_2D_active-beach.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="NHFLOW">
-            <File Name="iowave_nhflow_precalc_relax.cpp"/>
+            <File Name="iowave_nhflow_precalc_decomp_time.cpp"/>
+            <File Name="iowave_nhflow_precalc_decomp_space_dirichlet.cpp"/>
+            <File Name="iowave_nhflow_precalc_decomp_space.cpp"/>
+            <File Name="iowave_nhflow_precalc_decomp_relax.cpp"/>
+            <File Name="iowave_nhflow_precalc_decomp_dirichlet.cpp"/>
             <File Name="iowave_nhflow_precalc_ini.cpp"/>
             <File Name="iowave_nhflow_precalc_inflow.cpp"/>
             <File Name="iowave_nhflow_precalc_dirichlet.cpp"/>

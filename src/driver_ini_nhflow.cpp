@@ -23,8 +23,6 @@ Author: Hans Bihs
 #include"driver.h"
 #include"ghostcell.h"
 #include"lexer.h"
-#include"fdm.h"
-#include"fdm_fnpf.h"
 #include"fdm_nhf.h"
 #include"freesurface_header.h"
 #include"turbulence_header.h"
@@ -53,25 +51,16 @@ Author: Hans Bihs
 
 void driver::driver_ini_nhflow()
 {
-    if(p->mpirank==0)
-    cout<<"NHFLOW_ini 001 "<<endl;
-    
     p->count=0;
 
     p->cellnumtot=pgc->globalisum(p->cellnum);
     
     p->pointnumtot=pgc->globalisum(p->pointnum);
-    
-    if(p->mpirank==0)
-    cout<<"NHFLOW_ini 002 "<<endl;
 
 	log_ini();
     
     if(p->mpirank==0)
     cout<<"number of cells: "<<p->cellnumtot<<endl;
-    
-    if(p->mpirank==0)
-    cout<<"NHFLOW_ini 003 "<<endl;
     
     if(p->mpirank==0)
     cout<<"starting driver_ini_NHFLOW"<<endl;
@@ -81,14 +70,7 @@ void driver::driver_ini_nhflow()
     SLICELOOP4
 	d->bed(i,j) = p->bed[IJ];
     
-    if(p->mpirank==0)
-    cout<<"NHFLOW_ini 004 "<<endl;
-    
     pgc->gcsl_start4(p,d->bed,50);
-    
-    if(p->mpirank==0)
-    cout<<"NHFLOW_ini 005 "<<endl;
-
     
     // eta ini
 	SLICELOOP4
@@ -97,10 +79,6 @@ void driver::driver_ini_nhflow()
     p->wet[IJ] = 1;
     }
     
-    if(p->mpirank==0)
-    cout<<"NHFLOW_ini 006 "<<endl;    
-
-
     pgc->gcsl_start4(p,d->eta,50);
     
     SLICELOOP4
@@ -113,7 +91,7 @@ void driver::driver_ini_nhflow()
     if(p->mpirank==0)
     cout<<"NHFLOW_ini 007 "<<endl;
     //ioflow ini
-    pflow->ini_nhflow(p,a,pgc); // replace a with d
+    pflow->ini_nhflow(p,d,pgc); // replace a with d
     if(p->mpirank==0)
     cout<<"NHFLOW_ini 008 "<<endl;
     
@@ -148,7 +126,7 @@ void driver::driver_ini_nhflow()
     
     // inflow ini
 	pflow->discharge(p,a,pgc);
-	pflow->inflow(p,a,pgc,a->u,a->v,a->w);
+	pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W);
 	potflow->start(p,a,psolv,pgc);
     pflow->wavegen_precalc(p,pgc);
     
@@ -166,19 +144,12 @@ void driver::driver_ini_nhflow()
     SLICELOOP4
     d->eta_n(i,j) = d->eta(i,j);
 
-	pgc->start1(p,a->u,10);
-	pgc->start2(p,a->v,11);
-	pgc->start3(p,a->w,12);
-
-    pgc->start4(p,a->press,540);
-    pgc->dgcpol(p,a->topo,p->dgc4,p->dgc4_count,14);
-	a->topo.ggcpol(p);
-	
-	if(p->I40==1)
-	pini->stateini(p,a,pgc,pturb,psed);
+	pgc->start4V(p,d->U,d->bc,10);
+    pgc->start4V(p,d->V,d->bc,11);
+    pgc->start4V(p,d->W,d->bc,12);
+    pgc->start4V(p,d->P,d->bc,540);
     
-	pgc->start4(p,a->press,40);
-	
+
     pnh->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta,d->eta_n,1.0);
     p->sigma_update(p,d,pgc,d->eta,d->eta,1.0);
     
@@ -186,7 +157,7 @@ void driver::driver_ini_nhflow()
     d->WL(i,j) = MAX(0.0, d->eta(i,j) + p->wd - d->bed(i,j));
     
     
-    pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
+    //pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
 
 
 // ini variables
