@@ -107,6 +107,7 @@ public:
     virtual void ini_ptf(lexer*,fdm*,ghostcell*);
     
     virtual void ini_nhflow(lexer*,fdm_nhf*,ghostcell*);
+    virtual void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*);
     virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
     virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
     

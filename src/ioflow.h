@@ -112,6 +112,7 @@ public:
     virtual void ini_ptf(lexer*,fdm*,ghostcell*)=0;
     
     virtual void ini_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
+    virtual void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
     virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*)=0;
     virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*)=0;
     

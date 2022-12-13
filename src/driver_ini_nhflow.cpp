@@ -88,50 +88,29 @@ void driver::driver_ini_nhflow()
     p->sigma_ini(p,d,pgc,d->eta);
     p->sigma_update(p,d,pgc,d->eta,d->eta,1.0);
 
-    if(p->mpirank==0)
-    cout<<"NHFLOW_ini 007 "<<endl;
     //ioflow ini
     pflow->ini_nhflow(p,d,pgc); // replace a with d
-    if(p->mpirank==0)
-    cout<<"NHFLOW_ini 008 "<<endl;
-    
+
     pflow->eta_relax(p,pgc,d->eta);
     pgc->gcsl_start4(p,d->eta,50);
-    
-    if(p->mpirank==0)
-    cout<<"NHFLOW_ini 009 "<<endl;
-    
+
     if(p->P150==0)
 	pdata = new data_void(p,a,pgc);
 	
 	if(p->P150>0)
 	pdata = new data_f(p,a,pgc);
 	
-    if(p->mpirank==0)
-    cout<<"NHFLOW_ini 010 "<<endl;
-    
 	pdata->start(p,a,pgc);
-	
-    pheat->heat_ini(p,a,pgc,pheat);
-	pconc->ini(p,a,pgc,pconc);
-    
-    
 
-    ptstep->ini(a,p,pgc);
-	pflow->gcio_update(p,a,pgc);
+    pnhfstep->ini(p,d,pgc);
+ 
+	pflow->gcio_update(p,a,pgc); 
 	pflow->pressure_io(p,a,pgc);
-    
-    if(p->mpirank==0)
-    cout<<"NHFLOW_ini 011 "<<endl;  
-    
+     
     // inflow ini
-	pflow->discharge(p,a,pgc);
-	pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W);
-	potflow->start(p,a,psolv,pgc);
+	pflow->discharge_nhflow(p,d,pgc);
+
     pflow->wavegen_precalc(p,pgc);
-    
-	if(p->I12>=1)
-	pini->hydrostatic(p,a,pgc);
 
 	if(p->I11==1)
 	ptstep->start(a,p,pgc,pturb);
@@ -140,6 +119,7 @@ void driver::driver_ini_nhflow()
     pturb->ini(p,a,pgc);
 	
 	pflow->pressure_io(p,a,pgc);
+
     
     SLICELOOP4
     d->eta_n(i,j) = d->eta(i,j);
@@ -149,16 +129,13 @@ void driver::driver_ini_nhflow()
     pgc->start4V(p,d->W,d->bc,12);
     pgc->start4V(p,d->P,d->bc,540);
     
-
     pnh->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta,d->eta_n,1.0);
     p->sigma_update(p,d,pgc,d->eta,d->eta,1.0);
-    
+
     SLICELOOP4
     d->WL(i,j) = MAX(0.0, d->eta(i,j) + p->wd - d->bed(i,j));
     
-    
     //pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
-
 
 // ini variables
     for(int qn=0; qn<2; ++qn)
@@ -172,8 +149,6 @@ void driver::driver_ini_nhflow()
 	p->reinitime=0.0;
 	p->wavetime=0.0;
 	p->field4time=0.0;
-    
-    
 }
 
 

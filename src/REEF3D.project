@@ -237,6 +237,9 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Initialize"/>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Timestep">
+            <File Name="nhflow_timestep.h"/>
+          </VirtualDirectory>
           <File Name="fdm_nhf.h"/>
         </VirtualDirectory>
         <File Name="nhflow_f.h"/>
@@ -312,7 +315,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
           <File Name="fdm_fnpf.h"/>
-          <VirtualDirectory Name="Time">
+          <VirtualDirectory Name="Timestep">
             <File Name="fnpf_timestep.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Discrete Weights">
@@ -1236,6 +1239,9 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Timestep">
+            <File Name="nhflow_timestep.cpp"/>
+          </VirtualDirectory>
           <File Name="fdm_nhf.cpp"/>
         </VirtualDirectory>
         <File Name="nhflow_v.cpp"/>
@@ -1350,7 +1356,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
           <File Name="fdm_fnpf.cpp"/>
-          <VirtualDirectory Name="Time">
+          <VirtualDirectory Name="Timestep">
             <File Name="fnpf_timestep.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Discrete Weights">
@@ -2716,6 +2722,11 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="ioFlow">
+          <VirtualDirectory Name="NHFLOW">
+            <File Name="ioflow_nhflow_ini.cpp"/>
+            <File Name="ioflow_nhflow_discharge.cpp"/>
+            <File Name="ioflow_nhflow_inflow.cpp"/>
+          </VirtualDirectory>
           <File Name="ioflow_2Dwaterlevel.cpp"/>
           <File Name="ioflow_waterlevel.cpp"/>
           <File Name="ioflow_velsource.cpp"/>
@@ -2726,7 +2737,6 @@
           <File Name="ioflow_pressure.cpp"/>
           <File Name="ioflow_periodic.cpp"/>
           <File Name="ioflow_outflow.cpp"/>
-          <File Name="ioflow_nhflow.cpp"/>
           <File Name="ioflow_ini.cpp"/>
           <File Name="ioflow_inflow.cpp"/>
           <File Name="ioflow_f.cpp"/>

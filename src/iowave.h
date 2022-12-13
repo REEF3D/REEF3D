@@ -186,6 +186,7 @@ public:
     
     // NHFLOW
     virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
+    virtual void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*);
     virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
     void nhflow_precalc_relax(lexer*,ghostcell*);
     void nhflow_precalc_relax_ini(lexer*,ghostcell*);

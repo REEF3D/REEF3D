@@ -20,30 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"ioflow_f.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
 
-#include"sflow_v.h"
-#include"sflow_f.h"
-#include"nsewave_v.h"
-#include"nsewave_f.h"
-#include"nsewave_geo.h"
-#include"nsewave_RK3.h"
-#include"nhflow_fsf.h"
-#include"nhflow_fsf_rk.h"
-#include"nhflow_fsf_fsm.h"
-#include"nhflow_fsf_v.h"
-#include"nhflow.h"
-#include"nhflow_f.h"
-#include"nhflow_v.h"
-#include"nhflow_timestep.h"
-#include"ptf_v.h"
-#include"fnpf_v.h"
-#include"ptf_RK3.h"
-#include"ptf_RK4.h"
-#include"fnpf_RK2.h"
-#include"fnpf_RK3.h"
-#include"fnpf_RK4.h"
-#include"fnpf_vtu3D.h"
-#include"fnpf_timestep.h"
+void ioflow_f::discharge_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc)
+{
 
-
-
+}

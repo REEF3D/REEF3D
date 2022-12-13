@@ -859,6 +859,11 @@ void ioflow_v::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 }
 
+void ioflow_v::discharge_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+
+}
+
 void ioflow_v::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W)
 {
 

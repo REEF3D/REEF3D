@@ -62,14 +62,8 @@ void driver::logic_nhflow()
     }
     
 // time stepping
-    if(p->N48==0)
-	ptstep=new fixtimestep(p);
-
-    if((p->N48==1)  && (p->D20!=0&&p->D20!=2))
-	ptstep=new etimestep(p);
-	
-	if((p->N48==1) && (p->D20==0||p->D20>=2))
-	ptstep=new ietimestep(p);
+    // time stepping
+	pnhfstep=new nhflow_timestep(p);
 
 //discretization scheme
 
@@ -118,6 +112,9 @@ void driver::logic_nhflow()
     if(p->D30==10)
 	pnhpress = new nhflow_pjm_hs(p,d);
 
+//Turbulence
+    if(p->T10==0)
+	pturb = new kepsilon_void(p,a,pgc);
 
 //Solver
     if(p->j_dir==0)
@@ -150,6 +147,13 @@ void driver::logic_nhflow()
 	if(p->N10>=30 && p->N10<40)
 	ppoissonsolv = new hypre_sstruct(p,a,pgc);
 	#endif
+    
+//Printer
+    if(p->P150==0)
+	pdata = new data_void(p,a,pgc);
+
+	if(p->P150>0)
+	pdata = new data_f(p,a,pgc);
     
 //IOFlow
 	if(p->B60==0 && p->B90==0 && p->B180==0)

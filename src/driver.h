@@ -65,6 +65,7 @@ class nhflow_pressure;
 class sflow;
 class fnpf_vtu3D;
 class fnpf_timestep;
+class nhflow_timestep;
 class grid;
 class patchBC_interface;
 class nhflow;
@@ -187,13 +188,14 @@ public:
     nhflow_fsf *pnhfsf;
     sflow *psflow;
     fnpf_vtu3D *pfprint; 
-    fnpf_timestep* pftstep;
+    fnpf_timestep *pftstep;
     grid *pgrid;
     patchBC_interface *pBC;
     nhflow *pnh;
     nhflow_convection *pnhfconvec;
     nhflow_pressure *pnhpress;
     multiphase *pmp;
+    nhflow_timestep *pnhfstep;
 
 
 private:
