@@ -255,7 +255,7 @@
           <File Name="nhflow_pressure.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
-          <File Name="nhflow_momentum_RK3co.h"/>
+          <File Name="nhflow_momentum.h"/>
           <File Name="nhflow_momentum_RK2.h"/>
           <File Name="nhflow_momentum_RK3.h"/>
         </VirtualDirectory>
@@ -1256,7 +1256,6 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
-          <File Name="nhflow_momentum_RK3co.cpp"/>
           <File Name="nhflow_momentum_RK2.cpp"/>
           <File Name="nhflow_momentum_RK3.cpp"/>
         </VirtualDirectory>

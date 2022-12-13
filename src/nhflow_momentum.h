@@ -20,36 +20,29 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_momentum.h"
-#include"bcmom.h"
-
+class lexer;
+class fdm_nhf;
+class ghostcell;
+class convection;
+class diffusion;
+class nhflow_pressure;
+class turbulence;
+class solver;
+class ioflow;
+class nhflow;
+class nhflow_fsf;
 
 using namespace std;
 
-#ifndef NHFLOW_MOMENTUM_RK3_H_
-#define NHFLOW_MOMENTUM_RK3_H_
+#ifndef NHFLOW_MOMENTUM_H_
+#define NHFLOW_MOMENTUM_H_
 
-class nhflow_momentum_RK3 : public nhflow_momentum, public bcmom
+class nhflow_momentum
 {
 public:
-	nhflow_momentum_RK3(lexer*, fdm_nhf*, ghostcell*);
-	virtual ~nhflow_momentum_RK3();
-    
-	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, convection*, diffusion*, nhflow_pressure*, solver*, nhflow*, nhflow_fsf*);
 
+	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, convection*, diffusion*, nhflow_pressure*, solver*, nhflow*, nhflow_fsf*)=0;
 
-    double *UDIFF,*URK1,*URK2;
-    double *VDIFF,*VRK1,*VRK2;
-    double *WDIFF,*WRK1,*WRK2;
-
-private:
-
-	void irhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
-	void jrhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
-	void krhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
-	
-	int gcval_u, gcval_v, gcval_w;
-	double starttime;
 };
 
 #endif

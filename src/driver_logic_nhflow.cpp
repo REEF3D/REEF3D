@@ -168,4 +168,8 @@ void driver::logic_nhflow()
 	if(p->B180==1||p->B191==1||p->B192==1)
 	pflow = new ioflow_gravity(p,pgc,pBC);
     
+//Momentum
+    //if(p->N40==3)
+	//pmom = new nhflow_momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pnh,pnhfsf);
+    
 }
