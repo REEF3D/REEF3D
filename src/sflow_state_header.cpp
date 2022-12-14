@@ -56,9 +56,7 @@ void sflow_state::write_header(lexer *p, fdm2D *b, ghostcell *pgc)
     
     headout.write((char*)&iin, sizeof (int));
     
-    
-    iin=p->origin_k;
-    headout.write((char*)&iin, sizeof (int));
+
 
 
     ffn=float(p->originx);
@@ -77,9 +75,6 @@ void sflow_state::write_header(lexer *p, fdm2D *b, ghostcell *pgc)
     iin=je-js;
     headout.write((char*)&iin, sizeof (int));
     
-    
-    iin=p->knoz+1;
-    headout.write((char*)&iin, sizeof (int));
     
     
     iin=p->nb1;
@@ -107,13 +102,6 @@ void sflow_state::write_header(lexer *p, fdm2D *b, ghostcell *pgc)
     ffn=float(p->YP[JP]);
     headout.write((char*)&ffn, sizeof (float));
     } 
-    
-    FKLOOP
-    {
-    ffn=float(p->ZN[KP]);
-    headout.write((char*)&ffn, sizeof (float));
-    } 
-    
     
     for(i=is;i<ie;++i)
     for(j=js;j<je;++j)
