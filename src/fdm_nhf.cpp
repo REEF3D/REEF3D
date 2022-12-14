@@ -52,6 +52,7 @@ fdm_nhf::fdm_nhf(lexer *p) :  press(p),nodeval(p),eta(p),etaloc(p),
     p->Darray(L,p->imax*p->jmax*(p->kmax+2));
     
     p->Darray(porosity,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(test,p->imax*p->jmax*(p->kmax+2));
 
     C4.allocate(p);
 }
