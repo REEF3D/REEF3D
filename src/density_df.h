@@ -26,18 +26,18 @@ Author: Hans Bihs
 class fdm;
 class lexer;
 
-#ifndef DENSITY_FSM_H_
-#define DENSITY_FSM_H_
+#ifndef DENSITY_DF_H_
+#define DENSITY_DF_H_
 
 
 using namespace std;
 
-class density_fsm : public density, virtual public increment
+class density_df : public density, virtual public increment
 {
 
 public:
-    density_fsm(lexer*);
-	virtual ~density_fsm();
+    density_df(lexer*);
+	virtual ~density_df();
 
 	virtual double roface(lexer*,fdm*,int,int,int);
 	

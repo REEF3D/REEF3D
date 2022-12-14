@@ -31,7 +31,7 @@ Author: Hans Bihs
 #include"heat.h"
 #include"concentration.h"
 #include"density_f.h"
-#include"density_fsm.h"
+#include"density_df.h"
 #include"density_comp.h"
 #include"density_conc.h"
 #include"density_heat.h"
@@ -42,6 +42,9 @@ pjm_corr::pjm_corr(lexer* p, fdm *a, heat *&pheat, concentration *&pconc) : pcor
 {
     if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && (p->X10==0 || p->X13!=2))
 	pd = new density_f(p);
+    
+    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && (p->X10==1 || p->X13!=2))  
+	pd = new density_df(p);
     
 	if(p->F80==0 && p->H10==0 && p->W30==1  && p->F300==0 && p->W90==0)
 	pd = new density_comp(p);

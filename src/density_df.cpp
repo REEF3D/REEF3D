@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"density_fsm.h"
+#include"density_df.h"
 #include"lexer.h"
 #include"fdm.h"
 
-density_fsm::density_fsm(lexer* p) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
+density_df::density_df(lexer* p) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
 {
         if(p->j_dir==0)        
         psi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
@@ -33,11 +33,11 @@ density_fsm::density_fsm(lexer* p) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
         psi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
 }
 
-density_fsm::~density_fsm()
+density_df::~density_df()
 {
 }
 
-double density_fsm::roface(lexer *p, fdm *a, int aa, int bb, int cc)
+double density_df::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
     phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
 
