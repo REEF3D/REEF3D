@@ -37,8 +37,7 @@ Author: Hans Bihs
 #include"nhflow.h"
 
 momentum_RK3::momentum_RK3(lexer *p, fdm *a, convection *pconvection, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
-                                                    turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow,
-                                                    nhflow *ppnh)
+                                                    turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow)
                                                     :bcmom(p),udiff(p),vdiff(p),wdiff(p),urk1(p),urk2(p),vrk1(p),vrk2(p),wrk1(p),wrk2(p)
 {
 	gcval_u=10;
@@ -52,9 +51,7 @@ momentum_RK3::momentum_RK3(lexer *p, fdm *a, convection *pconvection, diffusion 
 	pturb=pturbulence;
 	psolv=psolver;
     ppoissonsolv=ppoissonsolver;
-	pflow=pioflow;
-    pnh=ppnh;
-    
+	pflow=pioflow;    
 
     if(p->W90==0  || p->F300>0)
 	pupdate = new fluid_update_void();

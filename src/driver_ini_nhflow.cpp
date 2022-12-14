@@ -129,7 +129,7 @@ void driver::driver_ini_nhflow()
     pgc->start4V(p,d->W,d->bc,12);
     pgc->start4V(p,d->P,d->bc,540);
     
-    pnh->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta,d->eta_n,1.0);
+    pnhf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta,d->eta_n,1.0);
     p->sigma_update(p,d,pgc,d->eta,d->eta,1.0);
 
     SLICELOOP4

@@ -52,13 +52,6 @@ void driver::logic()
 	if(p->mpirank==0)
     cout<<"creating objects"<<endl;
 
-// nhflow
-    if(p->A10!=55)
-    pnh=new nhflow_v(p,d,pgc);
-
-    if(p->A10==55)
-    pnh=new nhflow_f(p,d,pgc);
-
 // time stepping
     if(p->N48==0)
 	ptstep=new fixtimestep(p);
@@ -660,7 +653,7 @@ void driver::logic()
 	pmom = new momentum_RK2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
 
 	if(p->N40==3 && p->F11==0)
-	pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pnh);
+	pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
 
     if(p->N40==4 && p->F11==0)
 	pmom = new momentum_IMEX(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
@@ -669,10 +662,10 @@ void driver::logic()
 	pmom = new momentum_FS3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
 
     if(p->N40==7 && p->F11==0)
-	pmom = new momentum_RK3_old(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pnh);
+	pmom = new momentum_RK3_old(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
 
     if(p->N40==23)
-	pmom = new momentum_FC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,pnh,preini);
+	pmom = new momentum_FC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini);
     
 // 6DOF
 	if(p->X10==0)

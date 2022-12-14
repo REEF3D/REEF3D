@@ -64,21 +64,11 @@ void driver::loop_nhflow()
 		cout<<"t/T: "<<p->simtime/p->wTp<<endl;
         }
         
-        if(p->mpirank==0)
-        cout<<"NHFLOW_loop  001"<<endl;
-    
+
         pflow->flowfile(p,a,pgc,pturb);
-        
-        if(p->mpirank==0)
-        cout<<"NHFLOW_loop  002"<<endl;
-        
         pflow->wavegen_precalc(p,pgc);
         
-        if(p->mpirank==0)
-        cout<<"NHFLOW_loop  003"<<endl;
-            
-        
-        
+
         // Free Surface
         pnhfsf->start(p,d,pgc,pflow);
 			
@@ -86,22 +76,13 @@ void driver::loop_nhflow()
         
 		// Sediment Computation
         //psed->start_cfd(p,a,pgc,pflow,preto,psolv);
-        
-        if(p->mpirank==0)
-        cout<<"NHFLOW_loop  004"<<endl;
-		
-        pmom->start(p,a,pgc,pvrans); 
-        
-        if(p->mpirank==0)
-        cout<<"NHFLOW_loop  005"<<endl;
+
+        pnhfmom->start(p,d,pgc,pflow,pconvec,pdiff,pnhpress,psolv,pnhf,pnhfsf); 
 
         //save previous timestep
-        pturb->ktimesave(p,a,pgc);
-        pturb->etimesave(p,a,pgc);
-        pflow->veltimesave(p,a,pgc,pvrans);
-        
-        if(p->mpirank==0)
-        cout<<"NHFLOW_loop  006"<<endl;
+        //pturb->ktimesave(p,a,pgc);
+        //pturb->etimesave(p,a,pgc);
+        //pflow->veltimesave(p,a,pgc,pvrans);
         
         //timestep control
         p->simtime+=p->dt;

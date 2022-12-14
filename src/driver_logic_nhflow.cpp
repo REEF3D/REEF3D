@@ -47,10 +47,10 @@ void driver::logic_nhflow()
     
 // nhflow
     if(p->A10!=55)
-    pnh=new nhflow_v(p,d,pgc);
+    pnhf=new nhflow_v(p,d,pgc);
     
     if(p->A10==55)
-    pnh=new nhflow_f(p,d,pgc);
+    pnhf=new nhflow_f(p,d,pgc);
     
     if(p->A10==55)
     {
@@ -170,6 +170,6 @@ void driver::logic_nhflow()
     
 //Momentum
     //if(p->N40==3)
-	//pmom = new nhflow_momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pnh,pnhfsf);
+	pnhfmom = new nhflow_momentum_RK3(p,d,pgc);
     
 }

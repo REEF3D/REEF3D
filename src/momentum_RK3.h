@@ -43,7 +43,7 @@ using namespace std;
 class momentum_RK3 : public momentum, public bcmom
 {
 public:
-	momentum_RK3(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*, nhflow*);
+	momentum_RK3(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*);
 	virtual ~momentum_RK3();
 	virtual void start(lexer*, fdm*, ghostcell*, vrans*);
     virtual void utimesave(lexer*, fdm*, ghostcell*);

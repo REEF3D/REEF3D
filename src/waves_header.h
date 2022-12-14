@@ -35,6 +35,7 @@ Author: Hans Bihs
 #include"nhflow_f.h"
 #include"nhflow_v.h"
 #include"nhflow_timestep.h"
+#include"nhflow_momentum.h"
 #include"ptf_v.h"
 #include"fnpf_v.h"
 #include"ptf_RK3.h"

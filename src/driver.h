@@ -70,6 +70,7 @@ class grid;
 class patchBC_interface;
 class nhflow;
 class multiphase;
+class nhflow_momentum;
 
 #include<iostream>
 #include<fstream>
@@ -191,11 +192,12 @@ public:
     fnpf_timestep *pftstep;
     grid *pgrid;
     patchBC_interface *pBC;
-    nhflow *pnh;
+    nhflow *pnhf;
     nhflow_convection *pnhfconvec;
     nhflow_pressure *pnhpress;
     multiphase *pmp;
     nhflow_timestep *pnhfstep;
+    nhflow_momentum *pnhfmom;
 
 
 private:

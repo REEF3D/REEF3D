@@ -50,7 +50,7 @@ Author: Hans Bihs
 
 momentum_FC3::momentum_FC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconvection, convection *ppfsfdisc, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
                                                     turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow,
-                                                    heat *&pheat, concentration *&pconc, nhflow *ppnh, reini *ppreini)
+                                                    heat *&pheat, concentration *&pconc, reini *ppreini)
                                                     :bcmom(p),udiff(p),vdiff(p),wdiff(p),urk1(p),urk2(p),vrk1(p),vrk2(p),wrk1(p),wrk2(p),ls(p),frk1(p),frk2(p)
 {
 	gcval_u=10;
@@ -78,7 +78,6 @@ momentum_FC3::momentum_FC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec
 	psolv=psolver;
     ppoissonsolv=ppoissonsolver;
 	pflow=pioflow;
-    pnh=ppnh;
     preini=ppreini;
     
     
