@@ -49,11 +49,5 @@ void wave_lib_hdc::time_interpol(lexer *p)
     for(i=0; i<Nx; ++i)
     for(j=0; j<Ny; ++j)
     for(k=0; k<Nz; ++k)
-    {
     Z[i][j][k] = Zsig[k]*(E[i][j]+p->wd-B[i][j]) + B[i][j];
-    
-    //if(k==Nz-1)
-    //cout<<"Z[i][j][k]: "<<Z[i][j][k]<<" "<<Zsig[k]<<" "<<E[i][j]<<" "<<p->wd<<" "<<B[i][j]<<endl;
-    }
-    
 }

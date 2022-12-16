@@ -28,12 +28,22 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
     int is,js,xs,ys;
     ifstream header;
     
+    if(p->mpirank==0)
+    cout<<"HDC 001"<<endl;
+    
     // filename
     filename_header(p,pgc);
+    
+    if(p->mpirank==0)
+    cout<<"HDC 002"<<endl;
     
     // open header
     header.open(name, ios::binary);
     
+        // file_version
+        header.read((char*)&iin, sizeof (int));
+        file_version=iin;
+        
         // file_type
         header.read((char*)&iin, sizeof (int));
         file_type=iin;
@@ -66,6 +76,8 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
         header.read((char*)&iin, sizeof (int));
         Nz=iin;
     
+        if(p->mpirank==0)
+        cout<<"HDC 003  "<<Nx<<" "<<Ny<<" "<<Nz<<endl;
         
         // allocate arrays
         p->Darray(X,Nx);
@@ -74,6 +86,8 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
         p->Darray(Z,Nx,Ny,Nz);
         p->Darray(B,Nx,Ny);
         
+        if(p->mpirank==0)
+        cout<<"HDC 004"<<endl;
         
         // write coordinates
         for(i=0; i<Nx; ++i)
@@ -101,7 +115,8 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
         B[i][j]=ffn;
         }  
         
-        
+        if(p->mpirank==0)
+        cout<<"HDC 005"<<endl;
         // numer of iterations
         header.read((char*)&iin, sizeof (int));
         numiter=iin;
@@ -110,6 +125,8 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
         header.read((char*)&iin, sizeof (int));
         diter=iin;
         
+        if(p->mpirank==0)
+        cout<<"HDC 006"<<endl;
         
         p->Darray(simtime,numiter);
         
@@ -122,6 +139,8 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
         t_start = simtime[0];
         t_end   = simtime[numiter-1];
         
+        if(p->mpirank==0)
+        cout<<"HDC 007"<<endl;
         
         if(Nx==0)
         {
@@ -149,6 +168,8 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
         Yend = Y[Ny-1];
         }
         
+        if(p->mpirank==0)
+        cout<<"HDC 008"<<endl;
         
         
     header.close();

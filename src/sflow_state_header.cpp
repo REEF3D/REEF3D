@@ -76,7 +76,7 @@ void sflow_state::write_header(lexer *p, fdm2D *b, ghostcell *pgc)
     iin=je-js;
     headout.write((char*)&iin, sizeof (int));
     
-    iin=2; //knoz
+    iin=1; //knoz
     headout.write((char*)&iin, sizeof (int));
     
     
@@ -108,9 +108,6 @@ void sflow_state::write_header(lexer *p, fdm2D *b, ghostcell *pgc)
     
     // ZN
     ddn=0.0;
-    headout.write((char*)&ddn, sizeof (double));
-    
-    ddn=1.0;
     headout.write((char*)&ddn, sizeof (double));
 
     
