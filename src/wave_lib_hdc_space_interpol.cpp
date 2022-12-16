@@ -56,11 +56,9 @@ double wave_lib_hdc::space_interpol(lexer *p, double ***F, double x, double y, d
         
         if(file_version==2)
         {
-        k = pos_k(p,zp,i,j);
-
         val=ccpol2DM(p,F,x,y);
         
-        cout<<"$#% SPACEPOLVAL "<<val<<" zp: "<<zp<<" E1: "<<E1[i][j]<<" E2: "<<E2[i][j]<<" E: "<<E[i][j]<<endl;
+        //cout<<"$#% SPACEPOLVAL "<<val<<" zp: "<<zp<<" E1: "<<E1[i][j]<<" E2: "<<E2[i][j]<<" E: "<<E[i][j]<<endl;
         }
     }
     
@@ -427,9 +425,6 @@ double wave_lib_hdc::ccpol2DM(lexer *p, double ***F, double x, double y)
     if(yp>=Y[Ny-1])
     wb=1.0;
     }
-    
-    //cout<<"wb2D: "<<wb<<endl;
-
 
     v1=v2=v3=v4=0.0;
 

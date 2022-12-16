@@ -130,7 +130,7 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
         {
         ++q1;
         
-        cout<<"HDC ++q1: "<<q1<<endl;
+        //cout<<"HDC ++q1: "<<q1<<endl;
         if(file_type==2)
         read_result_continuous(p,pgc,E1,U1,V1,W1,q1);
         }
