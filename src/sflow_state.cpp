@@ -37,9 +37,6 @@ sflow_state::sflow_state(lexer *p, fdm2D *b, ghostcell *pgc)
 	
 	printcount=0;
     
-    file_version=1;
-    
-    if(p->P44==1)
     file_version=2;
     
     file_type=p->P45;
