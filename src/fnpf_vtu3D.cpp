@@ -186,7 +186,7 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     pstate->write(p,c,pgc);
     }
 
-    // Print sate out based on time
+    // Print state out based on time
     if((p->simtime>p->stateprinttime && p->P42>0.0 || (p->count==0 &&  p->P42>0.0)) && p->P40>0)
     {
     pstate->write(p,c,pgc);

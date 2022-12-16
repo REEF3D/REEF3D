@@ -84,6 +84,14 @@ void sflow_state::write_result(lexer *p, fdm2D *b, ghostcell *pgc)
     
     for(i=is;i<ie;++i)
     for(j=js;j<je;++j)
+    PSLICECHECK4
+    {
+    ffn=float(b->bed(i,j));
+    result.write((char*)&ffn, sizeof (float));
+    } 
+    
+    for(i=is;i<ie;++i)
+    for(j=js;j<je;++j)
     PSLICECHECK4 
     {
     ffn=float(b->P(i,j));
