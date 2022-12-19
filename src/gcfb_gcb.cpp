@@ -136,6 +136,15 @@ void ghostcell::gcfb_seed(lexer *p, fdm *a)
         }
     }
     
+    GCDF4LOOP
+    {
+    i=p->gcdf4[n][0];
+    j=p->gcdf4[n][1];
+    k=p->gcdf4[n][2];
+	
+	p->gcdf4[n][5]=cval(i,j,k);
+	}
+    
     //if(p->mpirank==0)
 	//cout<<p->mpirank<<" 2. old gcb4: "<<p->gcb4_count<<" new gcb4: "<<count<<endl;
 }

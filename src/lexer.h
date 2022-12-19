@@ -129,6 +129,9 @@ public:
 	int *gcside4;
 	int gcside4_size;
 	int gcextra1,gcextra2,gcextra3,gcextra4,gcextra4a,gcextra6;
+    
+    int gcdf1_count,gcdf2_count,gcdf3_count,gcdf4_count;
+    int **gcdf1,**gcdf2,**gcdf3,**gcdf4;
 
 	int **dgc1,**dgc2,**dgc3,**dgc4;
 	int dgc1_count,dgc2_count,dgc3_count,dgc4_count;

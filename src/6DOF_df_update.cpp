@@ -108,7 +108,7 @@ void sixdof_df_object::updatePosition(lexer *p, fdm *a, ghostcell *pgc, bool fin
 }
 
 void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double alpha,
-                                     field& uvel, field& vvel, field& wvel,field1& fx, field2& fy, field3& fz)
+                                     field &uvel, field &vvel, field &wvel,field1 &fx, field2 &fy, field3 &fz)
 {
     // Determine floating body velocities
     Eigen::Matrix<double, 6, 1> u_fb;

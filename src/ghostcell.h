@@ -180,8 +180,10 @@ public:
 	void gctopo_pressureupdate(lexer*, fdm*, int **, int, field&);
 	void gctopo_scalarupdate(lexer*, fdm*, int **, int, field&);
 
-
-// 6DOF update
+// 6DOF update gcdf
+	void gcdf_update(lexer*,fdm*);
+    
+// 6DOF update gcfb
 	void gcfb_update(lexer*,fdm*);
 	void gcfb_buildflag(lexer*,fdm*, int**, int&);
 	void gcfb_velflag1(lexer*,fdm*, int **, int&);

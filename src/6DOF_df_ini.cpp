@@ -210,6 +210,9 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
             pnet[ii]->initialize(p,a,pgc);
 		}
     }
+    
+    // ghostcell update
+    pgc->gcdf_update(p,a);
 }
 
 void sixdof_df_object::ini_parameter(lexer *p, fdm *a, ghostcell *pgc)

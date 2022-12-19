@@ -256,6 +256,15 @@ Author: Hans Bihs
 #define QQGCB4CHECK if(p->gcb4[qq][3]>0)
 #define QQGC4LOOP QQGCB4 QQGCB4CHECK
 
+//df
+#define QGCDF4 for(q=0;q<p->gcdf4_count;++q)
+#define QGCDF4CHECK if(p->gcdf4[q][3]>0)
+#define QGCDF4LOOP QGCDF4 QGCDF4CHECK
+
+#define GCDF4 for(n=0;n<p->gcdf4_count;++n)
+#define GCDF4CHECK if(p->gcdf4[n][3]>0)
+#define GCDF4LOOP GCDF4 GCDF4CHECK
+
 
 #define GCB for(n=0;n<gcb_count;++n)
 #define GCBCHECK if(gcb[n][3]>0)
