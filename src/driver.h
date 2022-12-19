@@ -29,6 +29,7 @@ class diffusion;
 class fdm;
 class fdm2D;
 class fdm_fnpf;
+class fdm_nhf;
 class lexer;
 class momentum;
 class ioflow;
@@ -44,8 +45,6 @@ class reini;
 class particlecorr;
 class sediment;
 class bedload;
-class suspended;
-class topo;
 class reinitopo;
 class potential;
 class heat;
@@ -61,6 +60,8 @@ class fnpf;
 class onephase;
 class nsewave;
 class nhflow_fsf;
+class nhflow_convection;
+class nhflow_pressure;
 class sflow;
 class fnpf_vtu3D;
 class fnpf_timestep;
@@ -97,20 +98,21 @@ public:
 	void loop_cfd(fdm*);
 	void loop_cfd_df(fdm*);
     void loop_nsewave(fdm*);
-    void loop_nhflow(fdm*);
+    void loop_nhflow();
     void loop_ptf(fdm*);
     void loop_fnpf();
-    void loop_sflow(fdm*);
     
 	void logic();
     void logic_ptf();
     void logic_fnpf();
+    void logic_nhflow();
     void logic_sflow();
     
     void patchBC_logic();
     
 	void driver_ini();
     void driver_ini_nhflow();
+    void driver_ini_nsewave();
     void driver_ini_fnpf();
     void driver_ini_ptf();
     void driver_ini_sflow();
@@ -119,15 +121,13 @@ public:
 	void mainlog(lexer*);
 	void maxlog(lexer*);
 	void solverlog(lexer*);
-	void sedimentlog(lexer*);
     
 	void makegrid(lexer*,ghostcell*);
 	void makegrid_cds();
     void makegrid2D(lexer*,ghostcell*);
     void makegrid2D_cds(lexer*,ghostcell*,fdm2D*);
-    void makegrid_fnpf(lexer*,ghostcell*);
-    void makegrid_fnpf_cds(lexer*,ghostcell*);
-    void makegrid_nhflow(lexer*,ghostcell*);    
+    void makegrid_sigma(lexer*,ghostcell*);
+    void makegrid_sigma_cds(lexer*,ghostcell*);  
     
 	void fill_vel(lexer*,fdm*,ghostcell*);
 	void vec_test(lexer*,fdm*,ghostcell*,field&);
@@ -146,6 +146,7 @@ public:
 	fdm* a;
     fdm2D* b;
     fdm_fnpf *c;
+    fdm_nhf *d;
 	lexer* p;
 	momentum* pmom;
 	ioflow* pflow;
@@ -166,9 +167,6 @@ public:
 	reini* preini;
 	particlecorr* ppart;
 	sediment* psed;
-	bedload* pbed;
-	suspended* psusp;
-	topo* ptopo;
 	reinitopo* preto;
     reinitopo* preso;
 	heat* pheat;
@@ -191,6 +189,8 @@ public:
     grid *pgrid;
     patchBC_interface *pBC;
     nhflow *pnh;
+    nhflow_convection *pnhfconvec;
+    nhflow_pressure *pnhpress;
 
 
 private:
@@ -198,7 +198,7 @@ private:
     ofstream mainlogout;
     ofstream maxlogout;
     ofstream solvlogout;
-    ofstream sedlogout;
+    
 	
 	double nom,val;
 };

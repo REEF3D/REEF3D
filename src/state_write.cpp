@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"state.h"
@@ -24,12 +25,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 #include"turbulence.h"
+#include"sediment.h"
 #include<iostream>
 #include<fstream>
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void state::write(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
+void state::write(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sediment *psed)
 {
     // Open File
 	int num=0;
@@ -128,7 +130,7 @@ void state::write(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 
 	SLICELOOP4
     {
-    ffn=a->bedload(i,j);
+    ffn=psed->qbeval(i,j);
     result.write((char*)&ffn, sizeof (float));
     } 
 	

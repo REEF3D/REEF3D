@@ -100,7 +100,7 @@ void reinifluid_RK3::start(fdm* a,lexer* p,field& b,ghostcell* pgc,ioflow* pflow
 	++n;
 	}
     
-	pgc->start4V(p,f,gcval_iniphi);
+	pgc->start4vec(p,f,gcval_iniphi);
     
     
     startV(a,p,f,pgc,pflow);
@@ -133,7 +133,7 @@ void reinifluid_RK3::startV(fdm* a,lexer* p,vec &f, ghostcell* pgc,ioflow* pflow
     if(p->mpirank==0)
 	cout<<"initializing level set..."<<endl<<endl;
 	reiniter=2*int(p->maxlength/(p->F43*p->DXM));
-	pgc->start4V(p,f,gcval_iniphi);
+	pgc->start4vec(p,f,gcval_iniphi);
 	pflow->fsfrkinV(p,a,pgc,f);
 	pflow->fsfrkoutV(p,a,pgc,f);
 	}
@@ -155,10 +155,10 @@ void reinifluid_RK3::startV(fdm* a,lexer* p,vec &f, ghostcell* pgc,ioflow* pflow
 	frk1.V[n] = f.V[n] + dt.V[n]*L.V[n];
 
 	if(p->count==0)
-	pgc->start4V(p,frk1,gcval_iniphi);
+	pgc->start4vec(p,frk1,gcval_iniphi);
     
     if(p->count>0)
-	pgc->start4V(p,frk1,gcval_phi);
+	pgc->start4vec(p,frk1,gcval_phi);
 
     // Step 2
     prdisc->start(p,a,pgc,frk1,L,4);
@@ -167,10 +167,10 @@ void reinifluid_RK3::startV(fdm* a,lexer* p,vec &f, ghostcell* pgc,ioflow* pflow
 	frk2.V[n]=  0.75*f.V[n] + 0.25*frk1.V[n] + 0.25*dt.V[n]*L.V[n];
 
 	if(p->count==0)
-	pgc->start4V(p,frk2,gcval_iniphi);
+	pgc->start4vec(p,frk2,gcval_iniphi);
     
     if(p->count>0)
-	pgc->start4V(p,frk2,gcval_phi);
+	pgc->start4vec(p,frk2,gcval_phi);
 
     // Step 3
     prdisc->start(p,a,pgc,frk2,L,4);
@@ -179,10 +179,10 @@ void reinifluid_RK3::startV(fdm* a,lexer* p,vec &f, ghostcell* pgc,ioflow* pflow
 	f.V[n] = (1.0/3.0)*f.V[n] + (2.0/3.0)*frk2.V[n] + (2.0/3.0)*dt.V[n]*L.V[n];
 
 	if(p->count==0)
-	pgc->start4V(p,f,gcval_iniphi);
+	pgc->start4vec(p,f,gcval_iniphi);
     
     if(p->count>0)
-	pgc->start4V(p,f,gcval_phi);
+	pgc->start4vec(p,f,gcval_phi);
 	}
     
     p->reinitime+=pgc->timer()-starttime;  

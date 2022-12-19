@@ -24,12 +24,17 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
+#include"sediment.h"
 #include"sflow_print_wsf.h"
 #include"sflow_print_wsf_theory.h"
 #include"sflow_print_wsfline.h"
 #include"sflow_print_wsfline_y.h"
 #include"sflow_print_probe_da.h"
+#include"sflow_print_bed.h"
+#include"sflow_print_bedline.h"
+#include"sflow_print_bedline_y.h"
 #include"sflow_turbulence.h"
+#include"sflow_state.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -56,55 +61,79 @@ sflow_vtp::sflow_vtp(lexer *p, fdm2D *b, ghostcell *pgc)
     pwsfline_y=new sflow_print_wsfline_y(p,b,pgc);
 
     pprobe=new sflow_print_probe_da(p,b,pgc);
+    
+    pbed=new sflow_print_bed(p,b);
+
+    pbedline=new sflow_print_bedline(p,b,pgc);
+
+    pbedline_y=new sflow_print_bedline_y(p,b,pgc);
+    
+    if(p->P40>0)
+	pstate=new sflow_state(p,b,pgc);
 }
 
 sflow_vtp::~sflow_vtp()
 {
 }
 
-void sflow_vtp::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sflow_turbulence *pturb)
+void sflow_vtp::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sflow_turbulence *pturb, sediment *psed)
 {
 	// Print out based on iteration
     if((p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)  || (p->count==0 &&  p->P30<0.0))
     {
-    print2D(p,b,pgc,pturb);
+    print2D(p,b,pgc,pturb,psed);
     }
 
     // Print out based on time
     if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==1) || (p->count==0 &&  p->P30>0.0))
     {
-    print2D(p,b,pgc,pturb);
+    print2D(p,b,pgc,pturb,psed);
 
     p->printtime+=p->P30;
     }
 
-	// Gages
-	  if(p->P51>0)
-	  pwsf->height_gauge(p,b,pgc,b->eta);
+	// WSF Gages
+    if(p->P51>0)
+    pwsf->height_gauge(p,b,pgc,b->eta);
 
     if(p->P50>0)
-	  pwsf_theory->height_gauge(p,b,pgc,pflow);
+    pwsf_theory->height_gauge(p,b,pgc,pflow);
 
     if((p->P52>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P52>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
     pwsfline->start(p,b,pgc,pflow,b->eta);
 
     if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
     pwsfline_y->start(p,b,pgc,pflow,b->eta);
-
+    
+    // DA Gages
     if(p->P63>0 && p->count%p->P54==0)
-	  pprobe->start(p,b,pgc);
+    pprobe->start(p,b,pgc);
+    
+    // BED Gages
+    if(((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47) ) && p->S10>0)
+    if((p->S42==1 && p->count%p->S44==0 && p->sediter%p->P120==0) || (p->S42==2 && p->simtime>=p->sedsimtime && p->sediter%p->P120==0) || (p->S42==3  && p->simtime/p->wT>=p->sedwavetime && p->sediter%p->P120==0))
+    {      
+    if(p->P121>0)
+    pbed->height_gauge(p,b,pgc,b->bed);
+
+    if(p->P123>0)
+    pbedline->start(p,b,pgc,pflow,b->bed);
+
+    if(p->P124>0)
+    pbedline_y->start(p,b,pgc,pflow,b->bed);
+    }
+
 
     if((p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0))
     p->probeprinttime+=p->P55;
-
 }
 
-void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb)
+void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb, sediment *psed)
 {
     b->eta.ggcpol(p);
 
 	if(p->mpirank==0)
-    pvtp(p,b,pgc,pturb);
+    pvtp(p,b,pgc,pturb,psed);
 
 	name_iter(p,b,pgc);
     
@@ -112,28 +141,28 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pt
     {
     i=0;
     j=0;
-	b->wet4(i-1,j-1) = b->wet4(i,j);
+	p->wet[Im1Jm1] = p->wet[IJ];
     }
     
     if(p->origin_i==0 && p->gknoy==p->knoy+p->origin_j)
     {
     i=0;
     j=p->knoy-1;
-	b->wet4(i-1,j+1) = b->wet4(i,j);
+	p->wet[Im1Jp1] = p->wet[IJ];
     }
     
     if(p->gknox==p->knox+p->origin_i && p->origin_j==0)
     {
     i=p->knox-1;
     j=0;
-	b->wet4(i+1,j-1) = b->wet4(i,j);
+	p->wet[Ip1Jm1] = p->wet[IJ];
     }
     
     if(p->gknox==p->knox+p->origin_i && p->gknoy==p->knoy+p->origin_j)
     {
     i=p->knox-1;
     j=p->knoy-1;
-	b->wet4(i+1,j+1) = b->wet4(i,j);
+	p->wet[Ip1Jp1] = p->wet[IJ];
     }
 
 
@@ -219,6 +248,7 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pt
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"breaking\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
+    
     if(p->P23==1)
     {
     result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
@@ -249,7 +279,6 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pt
 	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
 	{
-
 	ddn=p->XN[IP1];
 	result.write((char*)&ddn, sizeof (double));
 
@@ -257,7 +286,7 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pt
 	result.write((char*)&ddn, sizeof (double));
 
     if(p->P73==0)
-	ddn=p->sl_ipol4eta(b->wet4,b->eta,b->bed)+p->wd;
+	ddn=p->sl_ipol4eta(p->wet,b->eta,b->bed)+p->wd;
     
     if(p->P73==1)
     {
@@ -376,7 +405,7 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pt
 	}
 
 
-    //  Offset of Connectivity
+    // Offset of Connectivity
     iin=4*(p->polygon_sum);
     result.write((char*)&iin, sizeof (int));
 	for(n=0;n<p->polygon_sum;++n)

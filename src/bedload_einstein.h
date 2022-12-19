@@ -34,16 +34,15 @@ class bedload_einstein : public bedload, public increment
 {
 public:
 
-    bedload_einstein(lexer*,turbulence*);
+    bedload_einstein(lexer*);
 	virtual ~bedload_einstein();
-	virtual void start(lexer*, fdm*, ghostcell*, sediment_fdm*);
+	virtual void start(lexer*, ghostcell*, sediment_fdm*);
 
 private:
-    const double epsi;
     double rhosed,rhowat;
     double g,d50,sval;
     double shields,eta,visc;
-    double kappa,u_plus,ks,repose;
+    double kappa,u_plus,ks;
     double tau_eff, shearvel_eff, shields_eff;
     double tau_crit, shearvel_crit, shields_crit;
 

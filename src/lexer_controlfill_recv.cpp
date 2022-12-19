@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -16,10 +16,7 @@ for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
---------------------------------------------------------------------
---------------------------------------------------------------------*/
-
-#include"lexer.h"
+--------------------------------------------------------------------Author: Hans Bihs--------------------------------------------------------------------*/#include"lexer.h"
 
 void lexer::ctrlrecv()
 {
@@ -80,7 +77,7 @@ void lexer::ctrlrecv()
     A248 = ictrl[ii];
 	ii++;
     A249 = dctrl[dd];
-	dd++;
+	dd++;    A250 = dctrl[dd];	dd++;
     A251 = ictrl[ii];
 	ii++;
     A260 = ictrl[ii];
@@ -177,6 +174,8 @@ void lexer::ctrlrecv()
     B10 = ictrl[ii];
 	ii++;
     B20 = ictrl[ii];
+	ii++;    B21 = ictrl[ii];	ii++;    B22 = ictrl[ii];	ii++;
+    B23 = ictrl[ii];
 	ii++;
 	B26 = ictrl[ii];
 	ii++;
@@ -509,7 +508,7 @@ void lexer::ctrlrecv()
 	D21 = ictrl[ii];
 	ii++;
     D30 = ictrl[ii];
-	ii++;
+	ii++;    D31 = ictrl[ii];	ii++;
     D37 = ictrl[ii];
 	ii++;
     D38 = ictrl[ii];
@@ -804,8 +803,8 @@ void lexer::ctrlrecv()
     ii++;
     N49 = dctrl[dd];
     dd++;
-    N60 = ictrl[ii];
-    ii++;
+    N50 = ictrl[ii];
+    ii++;    N60 = ictrl[ii];    ii++;
     N61 = dctrl[dd];
     dd++;
     
@@ -861,7 +860,7 @@ void lexer::ctrlrecv()
     P43_ye = dctrl[dd];
 	dd++;
     P44 = ictrl[ii];
-	ii++;
+	ii++;    P45 = ictrl[ii];	ii++;
     P50 = ictrl[ii];
 	ii++;
 	P51 = ictrl[ii];
@@ -957,7 +956,7 @@ void lexer::ctrlrecv()
     P184 = ictrl[ii];
 	ii++;
     P185 = ictrl[ii];
-	ii++;
+	ii++;    P190 = ictrl[ii];	ii++;	P191 = ictrl[ii];	ii++;	P192 = dctrl[dd];	dd++;    P194 = ictrl[ii];	ii++;    P195 = ictrl[ii];	ii++;
     P210 = ictrl[ii];
 	ii++;
 	P211 = ictrl[ii];
@@ -988,6 +987,8 @@ void lexer::ctrlrecv()
 	ii++;
     S16 = ictrl[ii];
 	ii++;
+    S17 = ictrl[ii];
+	ii++;
 	S19 = dctrl[dd];
 	dd++;
     S20 = dctrl[dd];
@@ -999,8 +1000,6 @@ void lexer::ctrlrecv()
     S23 = dctrl[dd];
 	dd++;
     S24 = dctrl[dd];
-	dd++;
-    S25 = dctrl[dd];
 	dd++;
     S26_a = dctrl[dd];
 	dd++;
@@ -1062,8 +1061,8 @@ void lexer::ctrlrecv()
 	ii++;
     S91 = ictrl[ii];
 	ii++;
-    S93 = dctrl[dd];
-	dd++;
+    S92 = dctrl[dd];
+	dd++;    S93 = dctrl[dd];	dd++;
 	S100 = ictrl[ii];
 	ii++;
 	S101 = ictrl[ii];
@@ -1076,11 +1075,11 @@ void lexer::ctrlrecv()
     T11 = ictrl[ii];
     ii++;
     T12 = ictrl[ii];
-    ii++;
+    ii++;    T21 = ictrl[ii];    ii++;
     T31 = dctrl[dd];
     dd++;
     T32 = dctrl[dd];
-    dd++;
+    dd++;    T33 = ictrl[ii];    ii++;
 	T35 = dctrl[dd];
     dd++;
 	T36 = ictrl[ii];
@@ -1088,7 +1087,7 @@ void lexer::ctrlrecv()
 	T37 = dctrl[dd];
     dd++;
     T38 = dctrl[dd];
-    dd++;
+    dd++;    T41 = ictrl[ii];    ii++;    T42 = dctrl[dd];    dd++;
 	
     W1  = dctrl[dd];
     dd++;
@@ -1275,6 +1274,8 @@ void lexer::ctrlrecv()
 	dd++;
 	X44 = dctrl[dd];
 	dd++;
+    X50 = ictrl[ii];
+	ii++;
 	X100 = ictrl[ii];
 	ii++;
 	X100_x = dctrl[dd];
@@ -1404,6 +1405,12 @@ void lexer::ctrlrecv()
     X183_theta = dctrl[dd];
 	dd++;
     X183_psi = dctrl[dd];
+	dd++;
+    X205 = ictrl[ii];
+	ii++;
+    X206 = ictrl[ii];
+	ii++;
+	X206_T = dctrl[dd];
 	dd++;
 	X210 = ictrl[ii];
 	ii++;
@@ -1896,7 +1903,7 @@ void lexer::ctrlrecv()
     Darray(P185_ts,P185);  
 	Darray(P185_te,P185);  
 	Darray(P185_dt,P185);  
-	}
+	}    if(P194>0)	{    Iarray(P194_its,P194);  	Iarray(P194_ite,P194);  	Iarray(P194_dit,P194);  	}        if(P195>0)	{    Darray(P195_ts,P195);  	Darray(P195_te,P195);  	Darray(P195_dt,P195);  	}
     
     if(P230>0)
 	{
@@ -2650,7 +2657,7 @@ void lexer::ctrlrecv()
     dd++;
 	P185_dt[n] = dctrl[dd];
     dd++;
-    }
+    }    for(n=0;n<P194;++n)    {    P194_its[n] = ictrl[ii];    ii++;    P194_ite[n] = ictrl[ii];    ii++;	P194_dit[n] = ictrl[ii];    ii++;    }        for(n=0;n<P195;++n)    {    P195_ts[n] = dctrl[dd];    dd++;    P195_te[n] = dctrl[dd];    dd++;	P195_dt[n] = dctrl[dd];    dd++;    }
     
     for(n=0;n<P230;++n)
     {

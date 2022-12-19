@@ -36,7 +36,7 @@ Author: Hans Bihs
 #include"slice2.h"
 #include"slice4.h"
 #include"sliceint4.h"
-#include"sliceint4.h"
+#include"sliceint5.h"
 #include"increment.h"
 #include"vec.h"
 #include"matrix_diag.h"
@@ -79,6 +79,7 @@ public:
 	field5 walld;
 	 
 	fieldint5 nodeval,flag;
+    sliceint5 nodeval2D;
    
     // 6DOF
     field1 fbh1;
@@ -86,24 +87,17 @@ public:
     field3 fbh3;
     field4 fbh4;
     
-    slice1 P,hx;
-    slice2 Q,hy;
-    slice4 wbed,dwdt;
-    slice4 bed,bedzh,bedzh0;
-    slice4 dh,reduce;
-    sliceint4 bedk;
-    sliceint4 wet;
     
-    // fnpf
-    slice4 eta,eta_n,WL,WL_n,depth;
-    slice4 Bx,By;
-    slice4 Fifsf,Fz;
+    // PTF
+    slice4 eta,eta_n,depth;
+    slice4 Fifsf;
     slice4 K;
     sliceint4 etaloc;
     
-    slice4 bedload;
-
+    slice1 P;
+    slice2 Q;
     
+    slice4 bed;
     
 	vec rhsvec;
 
@@ -113,9 +107,7 @@ public:
     double maxF,maxG,maxH;
     double wd_criterion;
 	
-	
 	double t1,t2,t3,t4,t5;
-    
 };
 
 #endif

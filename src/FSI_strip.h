@@ -27,6 +27,7 @@ Author: Tobias Martin
 class lexer;
 class fdm;
 class ghostcell;
+class field;
 
 using namespace std;
 
@@ -50,7 +51,7 @@ public:
     void update_points();
     void coupling_vel();
     void coupling_force(lexer*,double);
-    void distribute_forces(lexer*,fdm*,ghostcell*,field1&,field2&,field3&);
+    void distribute_forces(lexer*,fdm*,ghostcell*,field&,field&,field&);
     void store_variables(lexer*);
     void print_ini(lexer *p);
     void print_stl(lexer*,fdm*,ghostcell*);

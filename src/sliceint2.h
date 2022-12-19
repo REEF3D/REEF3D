@@ -43,7 +43,6 @@ public:
 	int di,dj;
 	int imin,imax,jmax,jmin;
 
-	int *V;
 	int ***gcfeld;
 
 private:

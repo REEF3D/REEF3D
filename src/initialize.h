@@ -27,6 +27,7 @@ class fdm;
 class lexer;
 class ghostcell;
 class turbulence;
+class sediment;
 
 #ifndef INITIALIZE_H_
 #define INITIALIZE_H_
@@ -46,7 +47,7 @@ public:
 	void iniphi_io(fdm*, lexer*,ghostcell*);
 	void inivof_io(fdm*, lexer*,ghostcell*);
 	void iniphi_surfarea(lexer*,fdm*,ghostcell*);
-	void stateini(lexer*,fdm*,ghostcell*,turbulence*);
+	void stateini(lexer*,fdm*,ghostcell*,turbulence*,sediment*);
 
 private:
 	void inifdm(fdm*, lexer*, ghostcell*);

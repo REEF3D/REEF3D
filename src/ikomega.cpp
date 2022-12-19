@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ikomega.h"
@@ -41,20 +42,35 @@ void  ikomega::clearfield(lexer *p, fdm*  a, field& b)
 
 void ikomega::isource(lexer *p, fdm* a)
 {
+    if(p->T33==0)
 	ULOOP
 	a->F(i,j,k)=0.0;
+    
+    if(p->T33==1)
+    ULOOP
+	a->F(i,j,k) = (2.0/3.0)*(kin(i+1,j,k)-kin(i,j,k))/p->DXP[IP];
 }
 
 void ikomega::jsource(lexer *p, fdm* a)
 {
+    if(p->T33==0)
 	VLOOP
 	a->G(i,j,k)=0.0;
+    
+    if(p->T33==1)
+    VLOOP
+	a->G(i,j,k) = (2.0/3.0)*(kin(i,j+1,k)-kin(i,j,k))/p->DYP[JP];
 }
 
 void ikomega::ksource(lexer *p, fdm* a)
 {
+    if(p->T33==0)
 	WLOOP
 	a->H(i,j,k)=0.0;
+    
+    if(p->T33==1)
+    WLOOP
+	a->H(i,j,k) = (2.0/3.0)*(kin(i,j,k+1)-kin(i,j,k))/p->DZP[KP];
 }
 
 void ikomega::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
@@ -77,7 +93,7 @@ void ikomega::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
 			
 			factor = H*p->T31 + (1.0-H)*p->T32;
 			
-		a->eddyv(i,j,k) = MAX(MIN(MAX(kin(i,j,k)
+		eddyv0(i,j,k) = MAX(MIN(MAX(kin(i,j,k)
 						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(factor*kin(i,j,k))/strainterm(p,a)),
 						  0.0001*a->visc(i,j,k));
 		}
@@ -89,20 +105,50 @@ void ikomega::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
 		j = p->gcb4[n][1];
 		k = p->gcb4[n][2];
 		
-		a->eddyv(i,j,k) = MAX(MIN(MAX(kin(i,j,k)
+		eddyv0(i,j,k) = MAX(MIN(MAX(kin(i,j,k)
 						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T35*kin(i,j,k))/strainterm(p,a)),
 						  0.0001*a->visc(i,j,k));
 		}
 	
 	if(p->T10==22)
 	LOOP
-	a->eddyv(i,j,k) = MIN(a->eddyv(i,j,k), p->DXM*p->cmu*pow((kin(i,j,k)>(1.0e-20)?(kin(i,j,k)):(1.0e20)),0.5));
+	eddyv0(i,j,k) = MIN(eddyv0(i,j,k), p->DXM*p->cmu*pow((kin(i,j,k)>(1.0e-20)?(kin(i,j,k)):(1.0e20)),0.5));
+    
+    // stabilization
+    if(p->T41==0)
+    LOOP
+    a->eddyv(i,j,k) = eddyv0(i,j,k);
+    
+    if(p->T41==1)
+    LOOP
+	a->eddyv(i,j,k) = MIN(eddyv0(i,j,k), MAX(kin(i,j,k)/((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0)
+                                         *(p->cmu*kw_alpha*rotationterm(p,a))/(p->T42*kw_beta*strainterm(p,a)));
 	
     
+    if(p->B98==3||p->B98==4||p->B99==3||p->B99==4||p->B99==5)
+    {
+		for(int q=0;q<5;++q)
+		for(n=0;n<p->gcin_count;++n)
+		{
+		i=p->gcin[n][0]+q;
+		j=p->gcin[n][1];
+		k=p->gcin[n][2];
+
+		if(a->phi(i,j,k)<0.0)
+		a->eddyv(i,j,k)=MIN(a->eddyv(i,j,k),1.0e-4);
+        
+        if(a->phi(i,j,k)>=0.0)
+		a->eddyv(i,j,k) = MAX(MIN(MAX(kin(i,j,k)
+						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(0.212*kin(i,j,k))/strainterm(p,a)),
+						  0.0001*a->visc(i,j,k));
+		}
+    }
+        
     pvrans->eddyv_func(p,a);
     
-	pgc->start4(p,a->eddyv,24);
-
+	pgc->start4(p,eddyv0,24);
+    pgc->start4(p,a->eddyv,24);
+    
 }
 
 void ikomega::kinsource(lexer *p, fdm* a, vrans* pvrans)
@@ -156,21 +202,12 @@ void ikomega::epsfsf(lexer *p, fdm* a, ghostcell *pgc)
 	if(p->T36>0)
 	LOOP
 	{
-            /*
-            if(p->j_dir==0)
-            epsi = p->T38*(1.0/2.0)*(p->DXN[IP]+p->DZN[KP]);
-            
-            if(p->j_dir==1)
-            epsi = p->T38*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);*/
-        
-        
     if(fabs(a->phi(i,j,k))<epsi)
     dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
 		
     if(fabs(a->phi(i,j,k))>=epsi)
     dirac=0.0;
-        
-	
+
 	if(dirac>0.0 && p->T36==1)
 	eps(i,j,k) = dirac*2.5*pow(p->cmu,-0.25)*pow(fabs(kin(i,j,k)),0.5)*(1.0/p->T37);
 

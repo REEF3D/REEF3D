@@ -75,7 +75,7 @@ void driver::driver_ini()
     if(p->toporead>0)
     {
     geotopo gtopo(p,a,pgc);
-    gtopo.start(p,a,pgc,pflow,pconvec,preto,pvrans);
+    gtopo.start(p,a,pgc,pflow,preto,pvrans);
     }
     
 	// 6DOF
@@ -87,11 +87,11 @@ void driver::driver_ini()
     // Sediment
 	if(p->S10>0)
     {
-    psed->ini(p,a,pgc);
+    psed->ini_cfd(p,a,pgc);
     for(int qn=0;qn<5;++qn)
-    psed->relax(p,a,pgc);
-    preto->start(a,p,a->topo,pconvec,pgc);
-    psed->update(p,a,pgc,pflow);
+    psed->relax(p,pgc);
+    preto->start(p,a,pgc,a->topo);
+    psed->update_cfd(p,a,pgc,pflow,preto);
     pgc->start4a(p,a->topo,150);
     }
     
@@ -170,10 +170,10 @@ void driver::driver_ini()
 
 	if(p->I40==1)
     {
-	pini->stateini(p,a,pgc,pturb);
+	pini->stateini(p,a,pgc,pturb,psed);
     
     if(p->S10==1)
-    psed->ini(p,a,pgc);
+    psed->ini_cfd(p,a,pgc);
     }
     
 	pgc->start4(p,a->press,40);

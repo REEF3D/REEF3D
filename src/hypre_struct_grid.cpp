@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"hypre_struct.h"
@@ -26,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-void hypre_struct::make_grid(lexer* p,fdm* a, ghostcell* pgc)
+void hypre_struct::make_grid(lexer* p, ghostcell* pgc)
 {
     int kend=0;
     
@@ -83,7 +84,7 @@ void hypre_struct::make_grid(lexer* p,fdm* a, ghostcell* pgc)
     HYPRE_StructVectorInitialize(x);
 }
 
-void hypre_struct::make_grid_2Dvert(lexer* p,fdm* a, ghostcell* pgc)
+void hypre_struct::make_grid_2Dvert(lexer* p,ghostcell* pgc)
 {
     int kend=0;
     

@@ -130,6 +130,7 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
     ULOOP
     {
         uf = u_fb(0) + u_fb(4)*(p->pos1_z() - c_(2)) - u_fb(5)*(p->pos1_y() - c_(1));
+
 		
 		nx = -(a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
 		ny = -(a->fb(i,j+1,k) - a->fb(i,j-1,k))/(2.0*p->DYN[JP]);
@@ -158,6 +159,9 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
 		//fx(i,j,k) +=fabs(nx)*(Ht)*H*(uf - uvel(i,j,k))/(alpha*p->dt)+(1-fabs(nx))*(1-Ht)*H*(uf - uvel(i,j,k))/(alpha*p->dt); 
 		
 		
+
+          
+
         a->fbh1(i,j,k) = min(a->fbh1(i,j,k) + H, 1.0); 
     }
     VLOOP
@@ -231,6 +235,7 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
         H = Hsolidface(p,a,0,0,0);
 		Ht = Hsolidface_t(p,a,0,0,0);
         a->fbh4(i,j,k) = min(a->fbh4(i,j,k) + H, 1.0); 
+        a->test(i,j,k) = a->fbh4(i,j,k);
     }
 	
 	

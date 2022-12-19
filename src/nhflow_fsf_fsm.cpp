@@ -22,7 +22,7 @@ Author: Hans Bihs
 
 #include"nhflow_fsf_fsm.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"fluid_update_void.h"
@@ -34,7 +34,7 @@ Author: Hans Bihs
 #include"sflow_hxy_fou.h"
 #include"patchBC_interface.h"
 
-nhflow_fsf_fsm::nhflow_fsf_fsm(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, patchBC_interface *ppBC) : epsi(p->A440*p->DXM)
+nhflow_fsf_fsm::nhflow_fsf_fsm(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow, patchBC_interface *ppBC) : epsi(p->A440*p->DXM),P(p),Q(p)
 {
     pBC = ppBC;
     
@@ -54,91 +54,90 @@ nhflow_fsf_fsm::~nhflow_fsf_fsm()
 {
 }
 
-void nhflow_fsf_fsm::start(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow)
+void nhflow_fsf_fsm::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow)
 {
-    pgc->start4(p,a->ro,1);
-    pgc->start4(p,a->visc,1);
+    //pgc->start4(p,d->ro,1);
+    //pgc->start4(p,d->visc,1);
     
     // fill eta_n
     SLICELOOP4
     {
-    a->eta_n(i,j) = a->eta(i,j);
-    a->WL_n(i,j) = a->WL(i,j);
+    d->eta_n(i,j) = d->eta(i,j);
+    d->WL_n(i,j) = d->WL(i,j);
     }
 
-    pgc->gcsl_start4(p,a->eta_n,gcval_phi);
+    pgc->gcsl_start4(p,d->eta_n,gcval_phi);
     
     
     // Calculate Eta
     SLICELOOP1
-    a->P(i,j)=0.0;
+    P(i,j)=0.0;
     
     SLICELOOP2
-    a->Q(i,j)=0.0;
+    Q(i,j)=0.0;
 
     ULOOP
-    a->P(i,j) += a->u(i,j,k)*p->DZN[KP];
+    P(i,j) += d->U[IJK]*p->DZN[KP];
 
     VLOOP
-	a->Q(i,j) += a->v(i,j,k)*p->DZN[KP];
+	Q(i,j) += d->V[IJK]*p->DZN[KP];
     
-    pgc->gcsl_start1(p,a->P,10);
-    pgc->gcsl_start2(p,a->Q,11);
+    pgc->gcsl_start1(p,P,10);
+    pgc->gcsl_start2(p,Q,11);
     
-    phxy->start(p,a->hx,a->hy,a->depth,a->wet,a->eta,a->P,a->Q);
+    phxy->start(p,d->hx,d->hy,d->depth,p->wet,d->eta,P,Q);
     
     SLICELOOP1
-    a->P(i,j) *= a->hx(i,j);
+    P(i,j) *= d->hx(i,j);
 
     SLICELOOP2
-	a->Q(i,j) *= a->hy(i,j);
+	Q(i,j) *= d->hy(i,j);
 
-	pgc->gcsl_start1(p,a->P,10);
-    pgc->gcsl_start2(p,a->Q,11);
+	pgc->gcsl_start1(p,P,10);
+    pgc->gcsl_start2(p,Q,11);
 
     // fsf equation
     SLICELOOP4
-    a->eta(i,j) -= p->dt*((a->P(i,j)-a->P(i-1,j))/p->DXN[IP] + (a->Q(i,j)-a->Q(i,j-1))/p->DYN[JP]);	  
+    d->eta(i,j) -= p->dt*((P(i,j)-P(i-1,j))/p->DXN[IP] + (Q(i,j)-Q(i,j-1))/p->DYN[JP]);	  
     
-    pflow->eta_relax(p,pgc,a->eta);
-    pgc->gcsl_start4(p,a->eta,1);
+    pflow->eta_relax(p,pgc,d->eta);
+    pgc->gcsl_start4(p,d->eta,1);
     
     SLICELOOP4
-    a->WL(i,j) = MAX(0.0, a->eta(i,j) + p->wd - a->bed(i,j));
+    d->WL(i,j) = MAX(0.0, d->eta(i,j) + p->wd - d->bed(i,j));
     
-    p->sigma_update(p,a,pgc,a->eta,a->eta_n,1.0);
-    p->omega_update(p,a,pgc,a->u,a->v,a->w,a->eta,a->eta_n,1.0);
+    p->sigma_update(p,d,pgc,d->eta,d->eta_n,1.0);
+    p->omega_update(p,d,pgc,d->U,d->V,d->W,d->eta,d->eta_n,1.0);
 }
 
-void nhflow_fsf_fsm::ltimesave(lexer* p, fdm *a, slice &ls)
+void nhflow_fsf_fsm::ltimesave(lexer* p, fdm_nhf* d, slice &ls)
 {
 }
 
-void nhflow_fsf_fsm::update(lexer *p, fdm *a, ghostcell *pgc, slice &f)
-{
-    pupdate->start(p,a,pgc);
-}
-
-void nhflow_fsf_fsm::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
+void nhflow_fsf_fsm::update(lexer *p, fdm_nhf* d, ghostcell *pgc, slice &f)
 {
 }
 
-void nhflow_fsf_fsm::step1(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, field&w, slice& etark1, slice &etark2, double alpha)
+void nhflow_fsf_fsm::ini(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow)
+{
+}
+
+void nhflow_fsf_fsm::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
 {
     SLICELOOP4
-    etark1(i,j) = etark2(i,j) = a->eta(i,j);
+    etark1(i,j) = etark2(i,j) = d->eta(i,j);
     
     pgc->gcsl_start4(p,etark1,1);
     pgc->gcsl_start4(p,etark2,1);
 
 }
 
-void nhflow_fsf_fsm::step2(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, field&w, slice& etark1, slice &etark2, double alpha)
+void nhflow_fsf_fsm::step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
 {
 
 }
 
-void nhflow_fsf_fsm::step3(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, field &u, field&v, field&w, slice& etark1, slice &etark2, double alpha)
+void nhflow_fsf_fsm::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
 {
 
 }

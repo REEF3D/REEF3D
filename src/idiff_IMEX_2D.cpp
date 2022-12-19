@@ -258,6 +258,6 @@ void idiff_IMEX_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fiel
 }
 
 
-void idiff_IMEX_2D::diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double){}
+void idiff_IMEX_2D::diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double, double){}
 void idiff_IMEX_2D::idiff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double){}
 

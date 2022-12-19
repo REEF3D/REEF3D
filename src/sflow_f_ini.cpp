@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"iowave.h"
+#include"sediment.h"
 #include"hypre_struct2D.h"
 #include"sflow_etimestep.h"
 #include"sflow_weno_flux.h"
@@ -33,7 +34,6 @@ Author: Hans Bihs
 #include"sflow_potential.h"
 #include"sflow_vtp.h"
 #include"sflow_vtp_bed.h"
-#include"sflow_sediment.h"
 #include"6DOF_sflow.h"
 
 void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
@@ -79,11 +79,20 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 	ILOOP
     JLOOP
 	b->bed(i,j) = p->bed[IJ];
+    
+    ILOOP
+    JLOOP
+	b->solidbed(i,j) = p->solidbed[IJ];
+
+    ILOOP
+    JLOOP
+	b->topobed(i,j) = p->topobed[IJ];
+
 
     pgc->gcsl_start4(p,b->bed,50);
-    pgc->gcsl_start4a(p,b->bed,50);
-    pgc->gcsl_start4(p,b->bed,50);
-    b->bed.ggcpol(p);
+    pgc->gcsl_start4(p,b->solidbed,50);
+    pgc->gcsl_start4(p,b->topobed,50);
+
     
 	for(int qn=0; qn<p->A209;++qn)
     {
@@ -98,11 +107,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     ini_fsf(p,b,pgc);
 
     SLICELOOP4
-    b->wet4(i,j)=1;
-
-
-    SLICELOOP4
-    b->zb(i,j) = 0.0;
+    p->wet[IJ]=1;
 
 
     SLICELOOP4
@@ -133,7 +138,6 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 	pgc->gcsl_start4(p,b->eta,50);
     pgc->gcsl_start4(p,b->hp,50);
     pgc->gcsl_start4(p,b->bed,50);
-    pgc->gcsl_start4(p,b->zb,50);
     
     pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
     
@@ -152,17 +156,18 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     pgc->gcsl_start4(p,b->ks,50);
 
     //sediment ini
-    psed->ini(p,b,pgc);
+    psed->ini_sflow(p,b,pgc);
 
     //6DOF ini
     if(p->X10==3)
     p6dof_sflow->ini(p,b,pgc);
 
     // print
+    log_ini(p);
 	print_debug(p,b,pgc);
-    pprint->start(p,b,pgc,pflow,pturb);
+    pprint->start(p,b,pgc,pflow,pturb,psed);
 
-	pprintbed->start(p,b,pgc);
+	pprintbed->start(p,b,pgc,psed);
 }
 
 void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)

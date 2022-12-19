@@ -25,13 +25,13 @@ Author: Hans Bihs
 
 fdm_fnpf::fdm_fnpf(lexer *p) : press(p),test(p),Fifsf(p),Fibed(p),
                               nodeval(p),eta(p),etaloc(p),
-                              wet(p),wet_n(p),breaking(p),breaklog(p),bc(p),
+                              wet_n(p),breaking(p),breaklog(p),bc(p),
                               eta_n(p),WL(p),bed(p),depth(p),Fz(p),K(p),
                               Fx(p),Fy(p),
                               Ex(p),Ey(p),Exx(p),Eyy(p),
                               Bx(p),By(p),Bxx(p),Byy(p),
                               Hx(p),Hy(p),
-                              coastline(p),vb(p),
+                              coastline(p),vb(p),test2D(p),
                               nodeval2D(p),breaking_print(p),
                               rhsvec(p),rvec(p),xvec(p),N(p),M(p)
 {    

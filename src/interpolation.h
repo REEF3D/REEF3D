@@ -62,6 +62,7 @@ public:
     
 	double ipol4ro(fdm*,field&);
     double ipol4phi(fdm*,field&);
+    double ipol4topo(fdm*,field&);
     double ipol4press(field&);
     double ipol4_a(field&);
     
@@ -83,9 +84,9 @@ public:
 	double sl_ipol1a(slice&);
     double sl_ipol2a(slice&);
     double sl_ipol4(slice&);
-    double sl_ipol1eta(sliceint&,slice&,slice&);
-    double sl_ipol2eta(sliceint&,slice&,slice&);
-    double sl_ipol4eta(sliceint&,slice&,slice&);
+    double sl_ipol1eta(int*,slice&,slice&);
+    double sl_ipol2eta(int*,slice&,slice&);
+    double sl_ipol4eta(int*,slice&,slice&);
     double sl_ipolint(sliceint&);
     
     double ccslipol1(slice&,double,double);

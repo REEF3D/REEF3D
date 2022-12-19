@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ioflow_f.h"
@@ -64,7 +65,7 @@ void ioflow_f::Qin2D(lexer *p, fdm2D* b, ghostcell* pgc)
     i=p->gcslin[n][0];
     j=p->gcslin[n][1];
     
-        if(b->wet4(i,j)==1)
+        if(p->wet[IJ]==1)
         {
     
         area = p->DYN[JP]*b->hp(i-1,j);

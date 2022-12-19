@@ -17,7 +17,9 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
+
 #include"ioflow_f.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -32,14 +34,14 @@ void ioflow_f::inflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, 
     i=p->gcslin[n][0];
     j=p->gcslin[n][1];
     
-        if(b->wet4(i,j)==1 && p->gcslin[n][5]==1)
+        if(p->wet[IJ]==1 && p->gcslin[n][5]==1)
         {
         P(i-1,j)=p->Ui;
         P(i-2,j)=p->Ui;
         P(i-3,j)=p->Ui;
         }
         
-        if(b->wet4(i,j)==0 || p->gcslin[n][5]==0)
+        if(p->wet[IJ]==0 || p->gcslin[n][5]==0)
         {
         P(i-1,j)=0.0;
         P(i-2,j)=0.0;
@@ -61,14 +63,14 @@ void ioflow_f::rkinflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q
     i=p->gcslin[n][0];
     j=p->gcslin[n][1];
 
-        if(b->wet4(i,j)==1 && p->gcslin[n][5]==1)
+        if(p->wet[IJ]==1 && p->gcslin[n][5]==1)
         {
         P(i-1,j)=p->Ui;
         P(i-2,j)=p->Ui;
         P(i-3,j)=p->Ui;
         }
         
-        if(b->wet4(i,j)==0 || p->gcslin[n][5]==0)
+        if(p->wet[IJ]==0 || p->gcslin[n][5]==0)
         {
         P(i-1,j)=0.0;
         P(i-2,j)=0.0;

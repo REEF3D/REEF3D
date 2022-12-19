@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
@@ -128,7 +129,6 @@ void driver::loop_fnpf()
     mainlogout.close();
     maxlogout.close();
     solvlogout.close();
-    sedlogout.close();
 	}
 
     pgc->final();

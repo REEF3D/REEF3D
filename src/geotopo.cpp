@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"geotopo.h"
@@ -34,11 +35,11 @@ geotopo::~geotopo()
 {
 }
 
-void geotopo::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection* pconvec, reinitopo* preto, vrans* pvrans)
+void geotopo::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, reinitopo* preto, vrans* pvrans)
 {
     dat(p,a,pgc);
     
-    preto->start(a,p,a->topo,pconvec,pgc);
+    preto->start(p,a,pgc,a->topo);
     
     
     if(p->S10!=2)

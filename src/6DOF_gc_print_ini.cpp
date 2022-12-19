@@ -28,7 +28,50 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_gc::print_ini(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_gc::print_ini_vtp(lexer *p, fdm *a, ghostcell *pgc)
+{
+	if(p->mpirank==0 && p->P14==1)
+	mkdir("./REEF3D_CFD_6DOF_VTP",0777);
+	
+	if(p->mpirank==0 && p->P14==1)
+	mkdir("./REEF3D_CFD_6DOF",0777);
+	
+	
+	if(p->P14==0)
+	eposout.open("REEF3D_6DOF_E_position.dat");
+	if(p->P14==1)
+	eposout.open("./REEF3D_CFD_6DOF/REEF3D_6DOF_E_position.dat");
+	
+	eposout<<"time \t XG \t YG \t ZG \t Phi \t Theta \t Psi"<<endl;
+	
+	
+	
+	if(p->P14==0)
+	evelout.open("REEF3D_6DOF_E_velocity.dat");
+	if(p->P14==1)
+	evelout.open("./REEF3D_CFD_6DOF/REEF3D_6DOF_E_velocity.dat");
+	
+	evelout<<"time \t Ue \t Ve \t We \t Pe \t Qe \t Re"<<endl;
+	
+	
+	if(p->P14==0)
+	evelout.open("REEF3D_6DOF_E_force.dat");
+	if(p->P14==1)
+	eforceout.open("./REEF3D_CFD_6DOF/REEF3D_6DOF_E_force.dat");
+	
+	eforceout<<"time \t Xe \t Ye \t Ze \t Ke \t Me \t Ne"<<endl;
+	
+	
+	if(p->P14==0)
+	evelout.open("REEF3D_6DOF_S_force.dat");
+	if(p->P14==1)
+	sforceout.open("./REEF3D_CFD_6DOF/REEF3D_6DOF_S_force.dat");
+	
+	sforceout<<"time \t Xs \t Ys \t Zs \t Ks \t Ms \t Ns"<<endl;
+	
+}
+
+void sixdof_gc::print_ini_stl(lexer *p, fdm *a, ghostcell *pgc)
 {
 	if(p->mpirank==0 && p->P14==1)
 	mkdir("./REEF3D_CFD_6DOF_STL",0777);
@@ -68,6 +111,5 @@ void sixdof_gc::print_ini(lexer *p, fdm *a, ghostcell *pgc)
 	sforceout.open("./REEF3D_CFD_6DOF/REEF3D_6DOF_S_force.dat");
 	
 	sforceout<<"time \t Xs \t Ys \t Zs \t Ks \t Ms \t Ns"<<endl;
-	
 	
 }

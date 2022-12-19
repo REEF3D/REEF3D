@@ -26,6 +26,7 @@ class lexer;
 class fdm2D;
 class ghostcell;
 class sflow_print_wsf;
+class sediment;
 
 using namespace std;
 
@@ -38,12 +39,12 @@ public:
 	sflow_vtp_bed(lexer*,fdm2D*);
 	virtual ~sflow_vtp_bed();
 	
-    virtual void start(lexer*,fdm2D*,ghostcell*);
+    virtual void start(lexer*,fdm2D*,ghostcell*,sediment*);
 	
 private:
-	void print2D(lexer*,fdm2D*,ghostcell*);
+	void print2D(lexer*,fdm2D*,ghostcell*,sediment*);
 	void etend(lexer*,fdm2D*,ghostcell*);
-	void pvtu(lexer*,fdm2D*,ghostcell*);
+	void pvtu(lexer*,fdm2D*,ghostcell*,sediment*);
 	void name_iter(lexer*,fdm2D*,ghostcell*);
     void piecename(lexer*,fdm2D*,ghostcell*,int);
 	

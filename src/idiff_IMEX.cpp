@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -411,6 +411,6 @@ void idiff_IMEX::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &
 }
 
 
-void idiff_IMEX::diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double){}
+void idiff_IMEX::diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double, double){}
 void idiff_IMEX::idiff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double){}
 

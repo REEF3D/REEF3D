@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
@@ -37,7 +38,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"waves_header.h"
 #include"lexer.h"
 
-void driver::loop_nhflow(fdm* a)
+void driver::loop_nhflow()
 {
     driver_ini_nhflow();
     
@@ -71,20 +72,16 @@ void driver::loop_nhflow(fdm* a)
 			fill_vel(p,a,pgc);
         
         // Free Surface
-        pnhfsf->start(p,a,pgc,pflow);
+        pnhfsf->start(p,d,pgc,pflow);
 			
-            pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
-            pheat->start(a,p,pconvec,pdiff,psolv,pgc,pflow);
-			 pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
-            psusp->start(a,p,pconcdisc,psuspdiff,psolv,pgc,pflow);
-            
+            //pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
+            //pheat->start(a,p,pconvec,pdiff,psolv,pgc,pflow);
+            //pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);            
         
 		// Sediment Computation
-        psed->start(p,a,pconvec,pgc,pflow,ptopo,preto,psusp,pbed);
+        psed->start_cfd(p,a,pgc,pflow,preto,psolv);
 		
-		p6dof->start(p,a,pgc,1.0,pvrans,pnet);
         pmom->start(p,a,pgc,pvrans); 
-        pbench->start(p,a,pgc,pconvec);
 
         //save previous timestep
         pturb->ktimesave(p,a,pgc);
@@ -127,8 +124,6 @@ void driver::loop_nhflow(fdm* a)
         mainlog(p);
         maxlog(p);
         solverlog(p);
-        if(p->count%p->S44==0 && p->count>=p->S43 && p->S10>0)
-        sedimentlog(p);
         }
     p->gctime=0.0;
     p->xtime=0.0;
@@ -149,7 +144,6 @@ void driver::loop_nhflow(fdm* a)
     mainlogout.close();
     maxlogout.close();
     solvlogout.close();
-    sedlogout.close();
 	}
 
     pgc->final();

@@ -24,26 +24,11 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"sediment_fdm.h"
 #include"topo_relax.h"
 #include"ioflow.h"
 #include"vrans_v.h"
 #include"vrans_f.h"
-
-void sediment_f::update(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow)
-{
-    for(int qn=0;qn<3;++qn)
-    prelax->start(p,a,pgc);
-    
-    p->sedtime+=p->dtsed;
-    
-    if(p->S10==1)
-    pgc->topo_update(p,a);
-    
-    if(p->S10==2)
-    pvrans->sed_update(p,a,pgc);
-    
-    pflow->gcio_update(p,a,pgc);
-}
 
 void sediment_f::bedlevel(lexer *p, fdm *a, ghostcell *pgc)
 {
@@ -52,8 +37,8 @@ void sediment_f::bedlevel(lexer *p, fdm *a, ghostcell *pgc)
 
     SLICELOOP4
     {
-        p->bedmin = MIN(p->bedmin, a->bedzh(i,j));
-        p->bedmax = MAX(p->bedmax, a->bedzh(i,j));
+        p->bedmin = MIN(p->bedmin, s->bedzh(i,j));
+        p->bedmax = MAX(p->bedmax, s->bedzh(i,j));
     }
 	
     p->bedmin=pgc->globalmin(p->bedmin);
@@ -66,22 +51,38 @@ void sediment_f::bedlevel(lexer *p, fdm *a, ghostcell *pgc)
     }
 }
 
-void sediment_f::relax(lexer *p, fdm *a,ghostcell *pgc)
+void sediment_f::relax(lexer *p, ghostcell *pgc)
 {
-    prelax->start(p,a,pgc);
+    prelax->start(p,pgc,s);
 }
 
-void sediment_f::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc)
+void sediment_f::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc, sediment_fdm *s)
 {
-	pgc->gcsl_start4(p,a->bedzh,1);
+    for(int qn=0;qn<3;++qn)
+    prelax->start(p,pgc,s);
+    
+	pgc->gcsl_start4(p,s->bedzh,1);
 	
     ALOOP
     {
     if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
-    a->topo(i,j,k)=-a->bedzh(i,j)+p->pos_z();
+    a->topo(i,j,k)=-s->bedzh(i,j)+p->pos_z();
     }
-	
+    
+    SLICELOOP4
+	a->bed(i,j)=s->bedzh(i,j);
+    
 	pgc->start4a(p,a->topo,150);
+    
+    pgc->gcsl_start4(p,a->bed,50);
+}
+
+void sediment_f::bedchange_update(lexer *p, ghostcell *pgc)
+{
+    SLICELOOP4
+    s->bedch(i,j) = s->bedzh(i,j) - s->bedzh0(i,j);
+    
+    pgc->gcsl_start4(p,s->bedch,50);
 }
 
 void sediment_f::volume_calc(lexer *p, fdm *a,ghostcell *pgc)

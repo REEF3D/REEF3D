@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -22,7 +22,7 @@ Author: Hans Bihs
 
 #include"norm_vec.h"
 #include"bedslope.h"
-#include"field4a.h"
+#include"slice4.h"
 #include"sandslide.h"
 
 using namespace std;
@@ -36,15 +36,14 @@ public:
     sandslide_pde(lexer*);
     virtual ~sandslide_pde();
 
-	virtual void start(lexer*, fdm*,ghostcell*,sediment_fdm*);
+	virtual void start(lexer*,ghostcell*,sediment_fdm*);
 
 private:
 
-    void slide(lexer*, fdm*,ghostcell*);
-    void diff_update(lexer*, fdm*,ghostcell*);
-    void topo_zh_update(lexer*,fdm*,ghostcell*);
-	
-    field4a fh,ci;
+    void slide(lexer*,ghostcell*,sediment_fdm*);
+    void diff_update(lexer*,ghostcell*,sediment_fdm*);
+
+    slice4 fh,ci;
     
     int gcval_topo,count;
 
@@ -52,7 +51,6 @@ private:
     double dh,maxdh,maxdhs,dxs,dh_corr;
     double slide_dh,slide_dhs;
 	double teta, alpha, beta, gamma;
-    double phi;
 }; 
 
 #endif

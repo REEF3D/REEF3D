@@ -107,7 +107,9 @@ private:
     void motion_vec(lexer*, fdm*, ghostcell*);
 	void preventMotion(lexer*);
 	
-	void print_ini(lexer*,fdm*,ghostcell*);
+	void print_ini_vtp(lexer*,fdm*,ghostcell*);
+	void print_vtp(lexer*,fdm*,ghostcell*);
+    void print_ini_stl(lexer*,fdm*,ghostcell*);
 	void print_stl(lexer*,fdm*,ghostcell*);
 	void print_E_position(lexer*,fdm*,ghostcell*);
 	void print_E_velocity(lexer*,fdm*,ghostcell*);
@@ -296,9 +298,9 @@ private:
     
     int rayiter;
 
-void print_vtp(lexer*,fdm*,ghostcell*);
-    void pvtp(lexer*,fdm*,ghostcell*);
-    void header(lexer*,fdm*,ghostcell*);
+    void print_forces_vtp(lexer*,fdm*,ghostcell*);
+    void forces_pvtp(lexer*,fdm*,ghostcell*);
+    void forces_header(lexer*,fdm*,ghostcell*);
     void name_iter(lexer*,fdm*,ghostcell*);
     void name_time(lexer*,fdm*,ghostcell*);
     void piecename(lexer*,fdm*,ghostcell*, int);

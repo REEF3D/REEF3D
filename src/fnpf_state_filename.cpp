@@ -23,7 +23,7 @@ Author: Hans Bihs
 #include"fnpf_state.h"
 #include"lexer.h"
 
-void fnpf_state::filename(lexer *p, fdm_fnpf *c, ghostcell *pgc, int num)
+void fnpf_state::filename_single(lexer *p, fdm_fnpf *c, ghostcell *pgc, int num)
 {
     if(p->P14==0)
     {
@@ -33,6 +33,19 @@ void fnpf_state::filename(lexer *p, fdm_fnpf *c, ghostcell *pgc, int num)
     if(p->P14==1)
     {
     sprintf(name,"./REEF3D_FNPF_STATE/REEF3D_FNPF-State-%08d-%05d.r3d",num,p->mpirank+1);
+    }
+}
+
+void fnpf_state::filename_continuous(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+{
+    if(p->P14==0)
+    {
+    sprintf(name,"REEF3D_FNPF-State-%05d.r3d",p->mpirank+1);
+    }
+    
+    if(p->P14==1)
+    {
+    sprintf(name,"./REEF3D_FNPF_STATE/REEF3D_FNPF-State-%05d.r3d",p->mpirank+1);
     }
 }
 

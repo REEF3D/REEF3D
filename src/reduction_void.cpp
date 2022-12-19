@@ -22,7 +22,6 @@ Author: Hans Bihs
 
 #include"reduction_void.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
 reduction_void::reduction_void(lexer *p)
@@ -33,7 +32,7 @@ reduction_void::~reduction_void()
 {
 }
 
-void reduction_void::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
+void reduction_void::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
 }
 

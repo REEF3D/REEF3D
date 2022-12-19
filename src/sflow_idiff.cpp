@@ -44,6 +44,9 @@ void sflow_idiff::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
     SLICELOOP1
     {
 	visc = p->W2 + 0.5*(b->eddyv(i,j) + b->eddyv(i+1,j));
+    
+    if(p->A246==2 && b->breaking(i,j)==1)
+    visc += p->A250;
 
         
 	b->M.p[n] =   4.0*visc/(p->DXM*p->DXM)
@@ -114,7 +117,10 @@ void sflow_idiff::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
     SLICELOOP2
     {
 	visc = p->W2 + 0.5*(b->eddyv(i,j) + b->eddyv(i,j+1));
-
+    
+    if(p->A246==2 && b->breaking(i,j)==1)
+    visc += p->A250;
+    
         
 	b->M.p[n] =   2.0*visc/(p->DXM*p->DXM)
     

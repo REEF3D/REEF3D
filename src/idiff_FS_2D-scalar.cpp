@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"solver.h"
 
-void idiff2_FS_2D::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field& b, field& visc, double sig, double alpha)
+void idiff2_FS_2D::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field& b, field &visc, field &eddyv, double sig, double alpha)
 {
     starttime=pgc->timer();
     
@@ -94,7 +94,7 @@ void idiff2_FS_2D::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, 
 	cout<<"scalar_diffiter: "<<p->solveriter<<"  scalar_difftime: "<<setprecision(3)<<time<<endl;
 }
 
-void idiff2_FS_2D::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field& diff, field& b, field& visc, double sig, double alpha)
+void idiff2_FS_2D::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field& diff, field& b, field &visc, field &eddyv, double sig, double alpha)
 {
     starttime=pgc->timer();
     

@@ -27,6 +27,7 @@ Author: Hans Bihs
 
 class lexer;
 class fdm2D;
+class fdm;
 class ghostcell;
 class sflow_timestep;
 class sflow_momentum;
@@ -41,7 +42,8 @@ class sflow_convection;
 class sflow_diffusion;
 class sflow_filter;
 class sflow_turbulence;
-class sflow_sediment;
+class sediment;
+class turbulence;
 class patchBC_interface;
 class sixdof_sflow;
 
@@ -69,6 +71,9 @@ private:
 	void maxcoor(lexer*, fdm2D*, ghostcell*);
 	
 	void print_debug(lexer*, fdm2D*, ghostcell*);
+    
+    void log_ini(lexer*);
+    void mainlog(lexer*);
 	
 	sflow_timestep *ptime;
 	sflow_momentum *pmom;
@@ -83,14 +88,19 @@ private:
 	sflow_diffusion *pdiff;
     sflow_filter *pfilter;
     sflow_turbulence *pturb;
-    sflow_sediment *psed;
+    sediment *psed;
     sflow_potential *potflow;
+    
+    fdm *aa;
+    turbulence *pturbcfd;
     
     patchBC_interface *pBC;
     
     sixdof_sflow *p6dof_sflow;
 	
 	double starttime, endtime;
+    
+    ofstream mainlogout;
 };
 
 #endif

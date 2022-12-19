@@ -241,7 +241,7 @@ pip=0;
 
 double interpolation::lint4b(field& f, int& i,int& j, int& k, double wa, double wb, double wc)
 {
-    v1=v2=v3=v4=v5=v6=v7=v8=0.0;
+     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
     pip=4;
     if(p->flag4[IJK]>TOPO)
@@ -252,14 +252,23 @@ double interpolation::lint4b(field& f, int& i,int& j, int& k, double wa, double 
     v3=f(i+1,j,k);
     if(p->flag4[Ip1Jp1K]>TOPO)
     v4=f(i+1,j+1,k);
-    if(p->flag4[IJKp1]>TOPO)
+    
+    if(p->flag4[IJK]<=TOPO)
+    v1=f(i,j,k+1);
+    if(p->flag4[IJp1K]<=TOPO)
+    v2=f(i,j+1,k+1);
+    if(p->flag4[Ip1JK]<=TOPO)
+    v3=f(i+1,j,k+1);
+    if(p->flag4[Ip1Jp1K]<=TOPO)
+    v4=f(i+1,j+1,k+1);
+    
     v5=f(i,j,k+1);
-    if(p->flag4[IJp1Kp1]>TOPO)
     v6=f(i,j+1,k+1);
-    if(p->flag4[Ip1JKp1]>TOPO)
     v7=f(i+1,j,k+1);
-    if(p->flag4[Ip1JKp1]>TOPO)
     v8=f(i+1,j+1,k+1);
+    
+    
+    
     pip=0;
 
 
@@ -275,7 +284,7 @@ double interpolation::lint4b(field& f, int& i,int& j, int& k, double wa, double 
 
     value = wc*y1 +(1.0-wc)*y2;
 
-pip=0;
+    pip=0;
  return value;
 
 }

@@ -33,6 +33,8 @@ class sliceint
 public:
 	virtual int& operator()(int, int)=0;
     virtual void resize(lexer*)=0;
+    
+    int *V;
 
 };
 

@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"lexer.h"
@@ -128,6 +129,9 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
                case 249: control>>A249;
+						 clear(c,numint);
+						 break;
+               case 250: control>>A250;
 						 clear(c,numint);
 						 break;
                case 251: control>>A251_val;
@@ -273,6 +277,15 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
 				case 20: control>>B20;
+						 clear(c,numint);
+						 break;
+                 case 21: control>>B21;
+						 clear(c,numint);
+						 break;
+                 case 22: control>>B22;
+						 clear(c,numint);
+						 break;
+                 case 23: control>>B23;
 						 clear(c,numint);
 						 break;
 				case 26: control>>B26;
@@ -715,6 +728,9 @@ void lexer::read_control()
 				case 30: control>>D30;
 						 clear(c,numint);
 						 break;
+                case 31: control>>D31;
+						 clear(c,numint);
+						 break;
                 case 37: control>>D37;
 						 clear(c,numint);
 						 break;       
@@ -1090,16 +1106,19 @@ void lexer::read_control()
 				case 47: control>>N47;
 						 clear(c,numint);
 						 break;
-               case 48: control>>N48;
+                 case 48: control>>N48;
 						 clear(c,numint);
 						 break;
 				case 49: control>>N49;
 						 clear(c,numint);
 						 break;
-               case 60: control>>N60;
+                 case 50: control>>N50;
 						 clear(c,numint);
 						 break;
-               case 61: control>>N61;
+                 case 60: control>>N60;
+						 clear(c,numint);
+						 break;
+                 case 61: control>>N61;
 						 clear(c,numint);
 						 break;
 				}
@@ -1173,6 +1192,9 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
                 case 44: control>>P44;
+						 clear(c,numint);
+						 break;
+                case 45: control>>P45;
 						 clear(c,numint);
 						 break;
                 case 50: ++P50;
@@ -1302,6 +1324,21 @@ void lexer::read_control()
                case 185: ++P185;
 						 clear(c,numint);
 						 break;
+                case 190: control>>P190;
+						 clear(c,numint);
+						 break;
+				case 191: control>>P191;
+						 clear(c,numint);
+						 break;
+				case 192: control>>P192;
+						 clear(c,numint);
+						 break;
+               case 194: ++P194;
+						 clear(c,numint);
+						 break;
+               case 195: ++P195;
+						 clear(c,numint);
+						 break;
                case 210: control>>P210;
 						 clear(c,numint);
 						 break;
@@ -1350,6 +1387,9 @@ void lexer::read_control()
                 case 16: control>>S16;
 						 clear(c,numint);
 						 break;
+               case 17: control>>S17;
+						 clear(c,numint);
+						 break;
 				case 19: control>>S19;
 						 clear(c,numint);
 						 break;
@@ -1366,9 +1406,6 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
                 case 24: control>>S24;
-						 clear(c,numint);
-						 break;
-                case 25: control>>S25;
 						 clear(c,numint);
 						 break;
                 case 26: control>>S26_a>>S26_b;
@@ -1453,6 +1490,9 @@ void lexer::read_control()
                 case 91: control>>S91;
 						 clear(c,numint);
 						 break;
+                case 92: control>>S92;
+						 clear(c,numint);
+						 break;
                 case 93: control>>S93;
 						 clear(c,numint);
 						 break;
@@ -1480,10 +1520,16 @@ void lexer::read_control()
                 case 12: control>>T12;
 						 clear(c,numint);
 						 break;
+                case 21: control>>T21;
+						 clear(c,numint);
+						 break;
                 case 31: control>>T31;
 						 clear(c,numint);
 						 break;
 				case 32: control>>T32;
+						 clear(c,numint);
+						 break;
+                 case 33: control>>T33;
 						 clear(c,numint);
 						 break;
 				case 35: control>>T35;
@@ -1680,6 +1726,9 @@ void lexer::read_control()
                case  44: control>>X44;
 						 clear(c,numint);
 						 break;
+               case  50: control>>X50;
+						 clear(c,numint);
+						 break;
 				case  100: control>>X100_x>>X100_y>>X100_z;
 						 X100=1;
 						 clear(c,numint);
@@ -1738,6 +1787,13 @@ void lexer::read_control()
 						 break;
                 case  183: control>>X183_x>>X183_y>>X183_z>>X183_phi>>X183_theta>>X183_psi;
                          X183=1;
+						 clear(c,numint);
+						 break;
+                case  205: control>>X205;
+						 clear(c,numint);
+						 break;
+                case  206: control>>X206_T;
+                            X206=1;
 						 clear(c,numint);
 						 break;
 				case  210: control>>X210_u>>X210_v>>X210_w;
@@ -2113,6 +2169,14 @@ void lexer::read_control()
     Darray(P185_ts,P185);
 	Darray(P185_te,P185);
 	Darray(P185_dt,P185);
+    
+    Iarray(P194_its,P194);
+	Iarray(P194_ite,P194);
+	Iarray(P194_dit,P194);
+
+    Darray(P195_ts,P195);
+	Darray(P195_te,P195);
+	Darray(P195_dt,P195);
 
     Darray(P230_x,P230);
     Darray(P240_x,P240);
@@ -2331,6 +2395,8 @@ void lexer::read_control()
 	int countP125=0;
     int countP184=0;
     int countP185=0;
+    int countP194=0;
+    int countP195=0;
     int countP230=0;
     int countP240=0;
 	int countP351=0;
@@ -2556,6 +2622,14 @@ void lexer::read_control()
 						 break;
                case 185: control>>P185_ts[countP185]>>P185_te[countP185]>>P185_dt[countP185];
                         ++countP185;
+						 clear(c,numint);
+						 break;
+               case 194: control>>P194_its[countP194]>>P194_ite[countP194]>>P194_dit[countP194];
+                        ++countP194;
+						 clear(c,numint);
+						 break;
+               case 195: control>>P195_ts[countP195]>>P195_te[countP195]>>P195_dt[countP195];
+                        ++countP195;
 						 clear(c,numint);
 						 break;
                case 230: control>>P230_x[countP230];

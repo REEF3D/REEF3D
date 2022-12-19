@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ioflow_void.h"
@@ -665,6 +666,22 @@ void ioflow_v::vof_relax(lexer *p, ghostcell *pgc, field &f)
 }
 
 void ioflow_v::turb_relax(lexer *p, fdm *a, ghostcell *pgc, field &f)
+{
+}
+
+void ioflow_v::U_relax(lexer *p, ghostcell *pgc, double *U)
+{
+}
+
+void ioflow_v::V_relax(lexer *p, ghostcell *pgc, double *V)
+{
+}
+
+void ioflow_v::W_relax(lexer *p, ghostcell *pgc, double *W)
+{
+}
+
+void ioflow_v::P_relax(lexer *p, ghostcell *pgc, double *P)
 {
 }
 

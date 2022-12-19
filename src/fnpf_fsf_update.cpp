@@ -147,16 +147,16 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
     if(p->A343>=1)
     FLOOP
     {
-        if(c->wet(i-1,j)==0 || c->wet(i+1,j)==0 || c->wet(i,j-1)==0 || c->wet(i,j+1)==0 
-        || c->wet(i-1,j-1)==0 || c->wet(i+1,j-1)==0 || c->wet(i-1,j+1)==0 || c->wet(i+1,j+1)==0)
+        if(p->wet[Im1J]==0 || p->wet[Ip1J]==0 || p->wet[IJm1]==0 || p->wet[IJp1]==0 
+        || p->wet[Im1Jm1]==0 || p->wet[Ip1Jm1]==0 || p->wet[Im1Jp1]==0 || p->wet[Ip1Jp1]==0)
         {
+        
         c->U[FIJK]=0.0;
         c->V[FIJK]=0.0;
         c->W[FIJK]=0.0;
         }
     }
-    
-    
+
     /*
     for(n=0;n<p->gcslin_count;n++)
     {

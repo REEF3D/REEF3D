@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -16,8 +16,7 @@ for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
---------------------------------------------------------------------
---------------------------------------------------------------------*/
+--------------------------------------------------------------------Author: Hans Bihs--------------------------------------------------------------------*/
 
 #include"lexer.h"
 
@@ -85,7 +84,7 @@ void lexer::ctrlsend()
     ictrl[ii] = A248;
 	ii++;
     dctrl[dd] = A249;
-	dd++;
+	dd++;    dctrl[dd] = A250;	dd++;
     ictrl[ii] = A251;
 	ii++;
     ictrl[ii] = A260;
@@ -181,7 +180,7 @@ void lexer::ctrlsend()
     ictrl[ii] = B10;
     ii++;
     ictrl[ii] = B20;
-    ii++;
+    ii++;    ictrl[ii] = B21;    ii++;    ictrl[ii] = B22;    ii++;    ictrl[ii] = B23;    ii++;
 	ictrl[ii] = B26;
     ii++;
 	dctrl[dd] = B29;
@@ -514,7 +513,7 @@ void lexer::ctrlsend()
 	ictrl[ii] = D21;
 	ii++;
     ictrl[ii] = D30;
-	ii++;
+	ii++;    ictrl[ii] = D31;	ii++;
     ictrl[ii] = D37;
 	ii++;
     ictrl[ii] = D38;
@@ -808,8 +807,8 @@ void lexer::ctrlsend()
     ii++;
     dctrl[dd] = N49;
     dd++;
-    ictrl[ii] = N60;
-    ii++;
+    ictrl[ii] = N50;
+    ii++;    ictrl[ii] = N60;    ii++;
     dctrl[dd] = N61;
     dd++;
 	
@@ -865,7 +864,7 @@ void lexer::ctrlsend()
     dctrl[dd] = P43_ye;
 	dd++;
     ictrl[ii] = P44;
-	ii++;
+	ii++;    ictrl[ii] = P45;	ii++;
     ictrl[ii] = P50;
 	ii++;
 	ictrl[ii] = P51;
@@ -961,7 +960,7 @@ void lexer::ctrlsend()
     ictrl[ii] = P184;
 	ii++;
     ictrl[ii] = P185;
-	ii++;
+	ii++;    ictrl[ii] = P190;	ii++;	ictrl[ii] = P191;	ii++;	dctrl[dd] = P192;	dd++;    ictrl[ii] = P194;	ii++;    ictrl[ii] = P195;	ii++;
     ictrl[ii] = P210;
 	ii++;
 	ictrl[ii] = P211;
@@ -991,6 +990,8 @@ void lexer::ctrlsend()
 	ii++;
     ictrl[ii] = S16;
 	ii++;
+    ictrl[ii] = S17;
+	ii++;
 	dctrl[dd] = S19;
 	dd++;
     dctrl[dd] = S20;
@@ -1002,8 +1003,6 @@ void lexer::ctrlsend()
     dctrl[dd] = S23;
 	dd++;
     dctrl[dd] = S24;
-	dd++;
-    dctrl[dd] = S25;
 	dd++;
     dctrl[dd] = S26_a;
 	dd++;
@@ -1064,7 +1063,7 @@ void lexer::ctrlsend()
     ictrl[ii] = S90;
 	ii++;
     ictrl[ii] = S91;
-	ii++;
+	ii++;    dctrl[dd] = S92;	dd++;
     dctrl[dd] = S93;
 	dd++;
 	ictrl[ii] = S100;
@@ -1079,11 +1078,11 @@ void lexer::ctrlsend()
     ictrl[ii] = T11;
     ii++;
     ictrl[ii] = T12;
-    ii++;
+    ii++;    ictrl[ii] = T21;    ii++;
     dctrl[dd] = T31;
     dd++;
     dctrl[dd] = T32;
-    dd++;
+    dd++;    ictrl[ii] = T33;    ii++;
 	dctrl[dd] = T35;
     dd++;
 	ictrl[ii] = T36;
@@ -1091,7 +1090,7 @@ void lexer::ctrlsend()
 	dctrl[dd] = T37;
     dd++;
     dctrl[dd] = T38;
-    dd++;
+    dd++;    ictrl[ii] = T41;    ii++;    dctrl[dd] = T42;    dd++;
     
     dctrl[dd] = W1;
     dd++;
@@ -1277,7 +1276,7 @@ void lexer::ctrlsend()
 	dctrl[dd] = X43;
 	dd++;
 	dctrl[dd] = X44;
-	dd++;
+	dd++;    ictrl[ii] = X50;	ii++;
 	ictrl[ii] = X100;
 	ii++;
 	dctrl[dd] = X100_x;
@@ -1407,7 +1406,7 @@ void lexer::ctrlsend()
     dctrl[dd] = X183_theta;
 	dd++;
     dctrl[dd] = X183_psi;
-	dd++;
+	dd++;    ictrl[ii] = X205;	ii++;    ictrl[ii] = X206;	ii++;    dctrl[dd] = X206_T;	dd++;
 	ictrl[ii] = X210;
 	ii++;
 	dctrl[dd] = X210_u;
@@ -2088,7 +2087,7 @@ void lexer::ctrlsend()
 	dd++;
     dctrl[dd] = P185_dt[n];
 	dd++;
-    }
+    }    for(n=0;n<P194;++n)    {    ictrl[ii]  = P194_its[n];	ii++;	ictrl[ii]  = P194_ite[n];	ii++;    ictrl[ii] = P194_dit[n];	ii++;    }        for(n=0;n<P195;++n)    {    dctrl[dd]  = P195_ts[n];	dd++;	dctrl[dd]  = P195_te[n];	dd++;    dctrl[dd] = P195_dt[n];	dd++;    }
     
     for(n=0;n<P230;++n)
     {

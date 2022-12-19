@@ -34,16 +34,16 @@ fnpf_coastline::~fnpf_coastline()
 {
 }
 
-void fnpf_coastline::start(lexer *p, ghostcell *pgc, slice &coastline, sliceint &wet, sliceint &wet_n)
+void fnpf_coastline::start(lexer *p, ghostcell *pgc, slice &coastline, int *wet, sliceint &wet_n)
 {
     if(p->count==0)
     {
         SLICELOOP4
         {
-            if(wet(i,j)==0)
+            if(wet[IJ]==0)
             coastline(i,j)=-1.0;
             
-            if(wet(i,j)==1)
+            if(wet[IJ]==1)
             coastline(i,j)=1.0;
    
         }

@@ -38,7 +38,7 @@ fnpf_cds2_wd::~fnpf_cds2_wd()
 
 double fnpf_cds2_wd::fx(lexer *p, field &f, double ivel1, double ivel2)
 {
-    if(c->wet(i-1,j)>0 && c->wet(i+1,j)>0)
+    if(p->wet[Im1J]>0 && p->wet[Ip1J]>0)
     return (f(i+1,j,k)-f(i-1,j,k))/(p->DXN[IP]+p->DXN[IM1]);
     
     else
@@ -47,7 +47,7 @@ double fnpf_cds2_wd::fx(lexer *p, field &f, double ivel1, double ivel2)
 
 double fnpf_cds2_wd::fy(lexer *p, field &f, double jvel1, double jvel2)
 {
-    if(c->wet(i,j-1)>0 && c->wet(i,j+1)>0)
+    if(p->wet[IJm1]>0 && p->wet[IJp1]>0)
     return (f(i,j+1,k)-f(i,j-1,k))/(p->DYN[JP]+p->DYN[JM1]);
     
     else
@@ -61,7 +61,7 @@ double fnpf_cds2_wd::fz(lexer *p, field &f, double kvel1, double kvel2)
 
 double fnpf_cds2_wd::sx(lexer *p, slice &f, double ivel)
 {
-    if(c->wet(i-1,j)>0 && c->wet(i+1,j)>0)
+    if(p->wet[Im1J]>0 && p->wet[Ip1J]>0)
     return (f(i+1,j)-f(i-1,j))/(p->DXN[IP]+p->DXN[IM1]);
     
     else
@@ -70,7 +70,7 @@ double fnpf_cds2_wd::sx(lexer *p, slice &f, double ivel)
 
 double fnpf_cds2_wd::sy(lexer *p, slice &f, double jvel)
 {
-    if(c->wet(i,j-1)>0 && c->wet(i,j+1)>0)
+    if(p->wet[IJm1]>0 && p->wet[IJp1]>0)
     return (f(i,j+1)-f(i,j-1))/(p->DYN[JP]+p->DYN[JM1]);    
     
     else

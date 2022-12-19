@@ -43,7 +43,11 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
     if(p->mpirank==0)
     cout<<"6DOF_df_ini "<<endl;
     // Initialise folder structure
-	print_ini(p,a,pgc);
+    if(p->X50==1)
+	print_ini_vtp(p,a,pgc);
+    
+    if(p->X50==2)
+    print_ini_stl(p,a,pgc);
  
     // Initialise processor boundaries
     ini_parallel(p,a,pgc);
@@ -97,6 +101,10 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
      pgc->start4(p,a->fbh4,40);
 
     // Print initial body 
+    if(p->X50==1)
+    print_vtp(p,a,pgc);
+    
+    if(p->X50==2)
     print_stl(p,a,pgc);
 
 	// Mooring

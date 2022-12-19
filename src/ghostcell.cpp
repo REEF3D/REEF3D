@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"fdm_fnpf.h"
+#include"fdm_nhf.h"
 #include"density_f.h"
 
 ghostcell::ghostcell(int& argc, char **argv,lexer* p):norm_vec(p),size(15),tag1(1),tag2(2),tag3(3),tag4(4),tag5(5),tag6(6),eps(1.0e-10),
@@ -51,9 +52,14 @@ void ghostcell::gcini(lexer* p)
     Qi=p->W10;
     orderext=2;
     orderext2=2;
-    orderdir=2;
     orderpress=2;
     orderdir2=2;
+    
+    if(p->B23==1)
+    orderdir=2;
+    
+    if(p->B23==2)
+    orderdir=3;
 	
 	imin=p->imin;
     imax=p->imax;
@@ -166,6 +172,7 @@ void ghostcell::gcini(lexer* p)
     gclabel_vtopo=4;
     gclabel_wtopo=4;
     }
+    
 
     gclabel_k=4;
     gclabel_e=4;
@@ -174,7 +181,19 @@ void ghostcell::gcini(lexer* p)
     gclabel_v_orth=1;
     gclabel_w_orth=1;
     gclabel_press=4;
-	gclabel_vel=5;        
+	gclabel_vel=5;    
+
+    // for reflective BC
+    if(p->B23==2)
+    {
+    gclabel_u=12;
+    gclabel_v=12;
+    gclabel_w=12;
+    
+    gclabel_u_orth=11;
+    gclabel_v_orth=11;
+    gclabel_w_orth=11;
+    }
 	
 	
 	if(p->B26==1 || p->B26==3)
@@ -344,6 +363,11 @@ void ghostcell::fdm_update(fdm *aa)
 void ghostcell::fdm_fnpf_update(fdm_fnpf *cc)
 {
     c=cc;
+}
+
+void ghostcell::fdm_nhf_update(fdm_nhf *dd)
+{
+    d=dd;
 }
 
 void ghostcell::final()

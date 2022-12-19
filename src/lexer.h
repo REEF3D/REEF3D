@@ -109,6 +109,7 @@ public:
     double *flag_solid,*flag_topo;
     double *data;
 	double *topobed,*solidbed,*bed,*depth;
+    int *wet;
 	int *tpflag,*ndbaseflag;
 	int *mgc1,*mgc2,*mgc3,*mgc4,*mgc4a,*mgc6;
 	int ***gcorig1,***gcorig2,***gcorig3,***gcorig4,***gcorig4a,***gcorig6;
@@ -257,6 +258,7 @@ public:
     int A251,A260;
     double A261,A262;
     double A223,A244_val,A245_val,A247,A249,A251_val;
+    double A250;
     
     // FNPF
     int A310,A311,A312,A313,A319,A320,A321,A322,A323,A329,A343,A344,A345;
@@ -273,7 +275,7 @@ public:
     int A540,A541;
     
 	// boundary conditions
-	int B10,B20,B26,B30,B60,B61,B70,B71,B75,B76,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B94,B98,B99,B101,B105,B106,B107;
+	int B10,B20,B21,B22,B23,B26,B30,B60,B61,B70,B71,B75,B76,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B94,B98,B99,B101,B105,B106,B107;
 	int B121,B136,B139,B180,B191,B192,B240,B241,B242,B243;
 	double B29,B50,B51,B52,B53,B54,B55,B56,B81_1,B81_2,B81_3,B83,B117,B87_1,B87_2,B88;
 	double B91_1,B91_2,B93_1,B93_2,B94_wdt,B96_1,B96_2,B102,B105_1,B105_2,B105_3;
@@ -354,7 +356,7 @@ public:
 	double *C75_x,*C75_z,*C75_a,*C75_s,*C75_l,*C75_v;
 
 	// discretization
-	int D10,D11,D20,D21,D30,D37,D38,D39;
+	int D10,D11,D20,D21,D30,D31,D37,D38,D39;
 
 	// Free Surface
 	int F10,F11,F30,F31,F32,F34,F35,F36,F40,F44,F46,F47,F49,F50,F150,F151;
@@ -401,15 +403,15 @@ public:
 
 	// Numerical Options
 	int N10,N11,N12,N21,N22,N23,N40,N45,N46,N48,N60;
-	double N41,N43,N44,N47,N49,N61;
+	double N41,N43,N44,N47,N49,N50,N61;
 
 	// MPI Options
 	int M10;
 
 	// Print options
-	int P10,P11,P12,P14,P15,P18,P20,P23,P24,P25,P26,P27,P28,P29,P35,P40,P41,P43,P44,P50,P51,P52,P53,P54,P56,P57,P59;
+	int P10,P11,P12,P14,P15,P18,P20,P23,P24,P25,P26,P27,P28,P29,P35,P40,P41,P43,P44,P45,P50,P51,P52,P53,P54,P56,P57,P59;
 	int P61,P62,P63,P66,P67,P71,P72,P73,P75,P76,P77,P78,P79,P81,P82,P85,P92,P101,P120,P121,P122,P123,P124,P125,P126;
-	int P150,P151,P152,P180,P181,P184,P185,P210,P211,P351,P352;
+	int P150,P151,P152,P180,P181,P184,P185,P190,P191,P194,P195,P210,P211,P351,P352;
 	double P30,P34,P42;
 	double *P35_ts,*P35_te,*P35_dt;
     double P43_xs,P43_xe,P43_ys,P43_ye;
@@ -431,6 +433,9 @@ public:
 	double P182;
     int *P184_its,*P184_ite,*P184_dit;
     double *P185_ts,*P185_te,*P185_dt;
+    double P192;
+    int *P194_its,*P194_ite,*P194_dit;
+    double *P195_ts,*P195_te,*P195_dt;
     double P212;
     int P230,P240;
     double *P230_x,*P240_x;
@@ -438,14 +443,14 @@ public:
 	double *P352_x,*P352_y;
 
 	// Sediment Transport
-	int S10,S11,S12,S15,S16,S32,S33,S37,S41,S42,S43,S44,S50,S60,S73,S77,S80,S83,S84,S90,S91,S100,S101;
-	double S13,S14,S19,S20,S21,S22,S23,S24,S25,S26_a,S26_b,S30,S45,S46,S47,S48,S57,S71,S72,S81,S82,S93,S116;
+	int S10,S11,S12,S15,S16,S17,S32,S33,S37,S41,S42,S43,S44,S50,S60,S73,S77,S80,S83,S84,S90,S91,S100,S101;
+	double S13,S14,S19,S20,S21,S22,S23,S24,S26_a,S26_b,S30,S45,S46,S47,S48,S57,S71,S72,S81,S82,S92,S93,S116;
 	double *S73_val,*S73_dist,*S73_b,*S73_x,*S73_y;
     double S77_xs,S77_xe;
 
 	// Turbulence
-	int T10,T11,T12,T36;
-	double T31,T32,T35,T37,T38;
+	int T10,T11,T12,T21,T33,T36,T41;
+	double T31,T32,T35,T37,T38,T42;
 
 	// Waterflow
 	double W1,W2,W3,W4,W5,W10,W_fb;
@@ -535,7 +540,7 @@ public:
 	double phi_fb,theta_fb,psi_fb;
 	double ufbmax, vfbmax, wfbmax;
 	//Eigen::Matrix3d quatRotMat;	
-    int X10,X12,X13,X18,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X31,X32,X33,X34,X38,X40,X110,X120,X131,X132,X133;
+    int X10,X12,X13,X18,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X31,X32,X33,X34,X38,X40,X50,X110,X120,X131,X132,X133;
 	int X100,X101,X102,X103,X141,X142,X143,X153,X180,X181,X182,X183,X210,X211;
 	int X310, X311, X312, X313, X314, X315, X320, X321, mooring_count, net_count;
 	double X21_d,X22_m;
@@ -573,6 +578,10 @@ public:
     double X181_x,X181_y,X181_z;
     double X182_x,X182_y,X182_z;
     double X183_x,X183_y,X183_z,X183_phi,X183_theta,X183_psi;
+    
+    int X205;
+    int X206;
+    double X206_T;
 	double X210_u,X210_v,X210_w;
 	double X211_p,X211_q,X211_r;
     int X221;

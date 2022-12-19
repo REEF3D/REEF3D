@@ -232,6 +232,10 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	else
 	if((bc==3||bc==2||bc==1)&&(gcv==24))
 	return 4;
+    
+    else
+	if((bc==1)&&(gcv==24))
+	return 5;
 	
 	else
 	if((cs==6 && bc==3)&&(gcv==24))

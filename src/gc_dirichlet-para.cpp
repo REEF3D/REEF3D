@@ -57,30 +57,30 @@ void ghostcell::dirichlet_para(lexer *p,field& f,double dist,int gcv, int bc, in
 
 //fill y[]
 	if(cs==1 )
-	for(m=0;m<=orderdir-2;m++)
-	y[m]=f(i+orderdir-m-2,j,k);
+	for(m=0;m<=orderdir-1;m++)
+	y[m]=f(i+orderdir-m-1,j,k);
 
 	if(cs==2)
-	for(m=0;m<=orderdir-2;m++)
-	y[m]=f(i,j-orderdir+m+2,k);
+	for(m=0;m<=orderdir-1;m++)
+	y[m]=f(i,j-orderdir+m+1,k);
 
 	if(cs==3)
-	for(m=0;m<=orderdir-2;m++)
-	y[m]=f(i,j+orderdir-m-2,k);
+	for(m=0;m<=orderdir-1;m++)
+	y[m]=f(i,j+orderdir-m-1,k);
 
 	if(cs==4)
-	for(m=0;m<=orderdir-2;m++)
-	y[m]=f(i-orderdir+m+2,j,k);
+	for(m=0;m<=orderdir-1;m++)
+	y[m]=f(i-orderdir+m+1,j,k);
 
 	if(cs==5)
-	for(m=0;m<=orderdir-2;m++)
-	y[m]=f(i,j,k+orderdir-m-2);
+	for(m=0;m<=orderdir-1;m++)
+	y[m]=f(i,j,k+orderdir-m-1);
 
 	if(cs==6)
-	for(m=0;m<=orderdir-2;m++)
-	y[m]=f(i,j,k-orderdir+m+2);
+	for(m=0;m<=orderdir-1;m++)
+	y[m]=f(i,j,k-orderdir+m+1);
 
-	y[orderdir-1]=wallvalue;
+	y[orderdir]=wallvalue;
 
 	if(ys==1 && dist<gamma*dx)
     {
@@ -93,17 +93,18 @@ void ghostcell::dirichlet_para(lexer *p,field& f,double dist,int gcv, int bc, in
 
 	for(q=0; q<margin; ++q)
 	{
-	    y[orderdir+q]=0.0;
+	    y[orderdir+q+1]=0.0;
 
 		for(m=0;m<orderdir;m++)
 		{
-			weight=1.0;
+			weight=0.0;
 			for(n=0;n<orderdir;++n)
 			{
-			if(m!=n)
-			weight*=(x[q]-pos[n])/(pos[m]-pos[n]+1.0e-20);
+			if(m==n && q+m==2)
+//			weight*=(x[q]-pos[n])/(pos[m]-pos[n]+1.0e-20);
+			weight = -1.0;
 			}
-		y[orderdir+q]+=weight*y[m];
+		y[orderdir+q+1]+=weight*y[m];
 		}
 	}
 
@@ -112,25 +113,36 @@ void ghostcell::dirichlet_para(lexer *p,field& f,double dist,int gcv, int bc, in
 
 	if(cs==1)
 	for(q=0;q<margin;++q)
-	f(i-q-1,j,k)=y[orderdir+q-1+ys];
+	f(i-q-1,j,k)=y[orderdir+q-1+1+ys];
 
 	if(cs==2)
 	for(q=0;q<margin;++q)
-	f(i,j+q+1,k)=y[orderdir+q-1+ys];
+	f(i,j+q+1,k)=y[orderdir+q-1+1+ys];
 
 	if(cs==3)
 	for(q=0;q<margin;++q)
-	f(i,j-q-1,k)=y[orderdir+q-1+ys];
+	f(i,j-q-1,k)=y[orderdir+q-1+1+ys];
 
 	if(cs==4 )
 	for(q=0;q<margin;++q)
-	f(i+q+1,j,k)=y[orderdir+q-1+ys];
+	f(i+q+1,j,k)=y[orderdir+q-1+1+ys];
 
 	if(cs==5)
 	for(q=0;q<margin;++q)
-	f(i,j,k-q-1)=y[orderdir+q-1+ys];
+	f(i,j,k-q-1)=y[orderdir+q-1+1+ys];
 
 	if(cs==6)
 	for(q=0;q<margin;++q)
-	f(i,j,k+q+1)=y[orderdir+q-1+ys];
+	f(i,j,k+q+1)=y[orderdir+q-1+1+ys];
+
+/*    if(p->mpirank==0)
+   if(cs==1 && gcv==10)
+    {
+    cout<<"U: "<<f(i,j,k)<<" . ";
+        for(q=0;q<margin;++q)
+    cout<<y[orderdir+q-1+ys]<<" ";
+ cout<<ys<<" ";
+
+    cout<<endl;
+    }*/
 }

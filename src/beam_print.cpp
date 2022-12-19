@@ -22,9 +22,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/stat.h>
 #include"beam.h"
 #include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-
 
 void beam::print(lexer *p)
 {

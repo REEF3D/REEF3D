@@ -30,9 +30,9 @@ using namespace std;
 class topo_void : public topo
 {
 public:
-	topo_void(lexer*, fdm*, ghostcell*);
+	topo_void();
 	virtual ~topo_void();
-	virtual void start(fdm*,lexer*, convection*, ghostcell*,reinitopo*,sediment_fdm*);
+	virtual void start(lexer*, ghostcell*, sediment_fdm*);
 };
 
 #endif

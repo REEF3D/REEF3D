@@ -32,7 +32,9 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 	
 	double visc_ddx_p,visc_ddx_m,visc_ddz_p,visc_ddz_m;
     
-    pgc->start2(p,v,gcval_v);
+    pgc->start1(p,u,gcval_udiff);
+	pgc->start2(p,v,gcval_vdiff);
+	pgc->start3(p,w,gcval_wdiff);
 	 
 	count=0;
 
@@ -136,7 +138,9 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 	psolv->start(p,a,pgc,v,a->rhsvec,2);
     }
     
-    pgc->start2(p,v,gcval_v);
+    pgc->start1(p,u,gcval_u);
+	pgc->start2(p,v,gcval_v);
+	pgc->start3(p,w,gcval_w);
 	
     time=pgc->timer()-starttime;
 	p->viter=p->solveriter;
@@ -154,7 +158,9 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
     VLOOP
     diff(i,j,k) = v(i,j,k);
     
-    pgc->start2(p,v,gcval_v);
+    pgc->start1(p,u,gcval_udiff);
+	pgc->start2(p,v,gcval_vdiff);
+	pgc->start3(p,w,gcval_wdiff);
 	 
 	count=0;
 
@@ -258,7 +264,9 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
 	psolv->start(p,a,pgc,diff,a->rhsvec,2);
     }
     
-    pgc->start2(p,diff,gcval_v);
+    pgc->start1(p,u,gcval_u);
+	pgc->start2(p,v,gcval_v);
+	pgc->start3(p,w,gcval_w);
 	
     time=pgc->timer()-starttime;
 	p->viter=p->solveriter;

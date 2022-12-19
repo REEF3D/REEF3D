@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"lexer.h"
@@ -316,6 +317,7 @@ void lexer::read_grid()
 	Darray(solidbed,imax*jmax);
     Darray(topobed,imax*jmax);
     Darray(bed,imax*jmax);
+    Iarray(wet,imax*jmax);
     Darray(depth,imax*jmax);
 	Darray(data,imax*jmax);
     Iarray(flagslice1,imax*jmax);
@@ -965,7 +967,7 @@ void lexer::read_grid()
     bed[(i-imin)*jmax + (j-jmin)]=ddn;
     }
     
-	if(toporead>0)
+	if(solidread>0)
 	for(i=0; i<knox; ++i)
     for(j=0; j<knoy; ++j)
     {

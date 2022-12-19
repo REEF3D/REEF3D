@@ -22,10 +22,12 @@ Author: Hans Bihs
 
 #include"topo.h"
 #include"slice4.h"
-#include"bedshear.h"
+#include"vec2D.h"
+#include"matrix2D.h"
 
 class bedconc;
 class topo_relax;
+class solver2D;
 class turbulence;
 class ghostcell;
 
@@ -34,22 +36,27 @@ using namespace std;
 #ifndef SEDIMENT_EXNER_H_
 #define SEDIMENT_EXNER_H_
 
-class sediment_exner : public topo, public increment, public bedshear
+class sediment_exner : public topo, public increment
 {
 public:
-	sediment_exner(lexer*, fdm*, ghostcell*,turbulence*);
+	sediment_exner(lexer*, ghostcell*);
 	virtual ~sediment_exner();
-	virtual void start(fdm*,lexer*, convection*, ghostcell*,reinitopo*,sediment_fdm*);
+	virtual void start(lexer*, ghostcell*, sediment_fdm*);
 
 
 private:
-    void  topovel(lexer*,fdm*,ghostcell*,double&,double&,double&);
-    void  timestep(lexer*,fdm*,ghostcell*,sediment_fdm*);
-    void  non_equillibrium_solve(lexer*,fdm*,ghostcell*,sediment_fdm*);
+    void  topovel(lexer*,ghostcell*,sediment_fdm*,double&,double&,double&);
+    void  timestep(lexer*,ghostcell*,sediment_fdm*);
+    void  non_equillibrium_solve(lexer*,ghostcell*,sediment_fdm*);
     
     bedconc *pcb;
     topo_relax *prelax;
     sediment_exnerdisc *pdx;
+    solver2D *psolv;
+    
+    vec2D xvec,rhsvec;
+
+	matrix2D M;
     
 	int gcval_topo;
 	double starttime;

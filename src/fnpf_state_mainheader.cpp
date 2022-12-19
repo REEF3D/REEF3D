@@ -58,6 +58,9 @@ void fnpf_state::ini_mainheader(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     iin=file_version;
     mainout.write((char*)&iin, sizeof (int));
+    
+    iin=file_type;
+    mainout.write((char*)&iin, sizeof (int));
 
     // flag: is process within P43 bounds
     for(int qn=0;qn<p->M10;++qn)

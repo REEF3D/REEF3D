@@ -17,9 +17,12 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
+#include"lexer.h"
+#include"fdm.h"
 #include"ghostcell.h"
 #include"freesurface_header.h"
 #include"turbulence_header.h"
@@ -35,8 +38,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"field_header.h"
 #include"6DOF_header.h"
 #include"FSI_header.h"
-#include"lexer.h"
-
 
 void driver::loop_cfd_df(fdm* a)
 {
@@ -227,11 +228,8 @@ void driver::loop_cfd_df(fdm* a)
         // Concentration computation
         pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
         
-        // Suspension computation
-        psusp->start(a,p,pconcdisc,psuspdiff,psolv,pgc,pflow);
-        
         // Sediment computation
-        psed->start(p,a,pconvec,pgc,pflow,ptopo,preto,psusp,pbed);
+        psed->start_cfd(p,a,pgc,pflow,preto,psolv);
 
         pflow->u_relax(p,a,pgc,a->u);
 		pflow->v_relax(p,a,pgc,a->v);
@@ -286,8 +284,6 @@ void driver::loop_cfd_df(fdm* a)
         mainlog(p);
         maxlog(p);
         solverlog(p);
-        if(p->count%p->S44==0 && p->count>=p->S43 && p->S10>0)
-        sedimentlog(p);
         }
     p->gctime=0.0;
     p->xtime=0.0;
@@ -308,7 +304,6 @@ void driver::loop_cfd_df(fdm* a)
     mainlogout.close();
     maxlogout.close();
     solvlogout.close();
-    sedlogout.close();
 	}
 
     pgc->final();

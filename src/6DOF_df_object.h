@@ -66,7 +66,10 @@ public:
     
     void saveTimeStep(lexer*,double);
     void print_parameter(lexer*,fdm*,ghostcell*);
-    void print_stl(lexer*,fdm*,ghostcell*);
+    void print_ini_vtp(lexer*,fdm*,ghostcell*);
+	void print_vtp(lexer*,fdm*,ghostcell*);
+    void print_ini_stl(lexer*,fdm*,ghostcell*);
+	void print_stl(lexer*,fdm*,ghostcell*);
 	void interface(lexer*, bool);
     
     double Mass_fb;
@@ -75,7 +78,6 @@ public:
 private:
 
 	void ini_parameter(lexer*, fdm*, ghostcell*);
-    void print_ini(lexer*, fdm*, ghostcell*);
     void maxvel(lexer*, fdm*, ghostcell*);
     
     void externalForces(lexer*, fdm*, ghostcell*, double, vrans*, vector<net*>&);
@@ -222,6 +224,9 @@ private:
     double curr_time;
     double printtime;
     int nCorr;
+    int q,iin;
+    float ffn;
+    int offset[100];
     
     
     // Forces

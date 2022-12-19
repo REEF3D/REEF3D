@@ -55,7 +55,9 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
 
 	FFILOOP4
     FPWDCHECK
+    {
 	p->umax=MAX(p->umax,fabs(c->U[FIJK]));
+    }
 
 	p->umax=pgc->globalmax(p->umax);
 

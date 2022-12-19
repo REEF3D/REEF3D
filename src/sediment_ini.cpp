@@ -23,9 +23,11 @@ Author: Hans Bihs
 #include"sediment_f.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"fdm2D.h"
 #include"ghostcell.h"
+#include"sediment_fdm.h"
 
-void sediment_f::ini(lexer *p, fdm *a,ghostcell *pgc)
+void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
 {
 	double h,h1;
 
@@ -39,13 +41,35 @@ void sediment_f::ini(lexer *p, fdm *a,ghostcell *pgc)
         h = -(a->topo(i,j,k-1)*p->DZP[KP])/(a->topo(i,j,k)-a->topo(i,j,k-1)) + p->pos_z()-p->DZP[KP];
 		}
 		
-		a->bedzh(i,j)=h;
+		s->bedzh(i,j)=h;
+        s->bedzh0(i,j)=h;
 	}
 	
-	pgc->gcsl_start4(p,a->bedzh,1);
+	pgc->gcsl_start4(p,s->bedzh,1);
 	
+    active_ini_cfd(p,a,pgc);
     
+    topo_zh_update(p,a,pgc,s);
     
-    topo_zh_update(p,a,pgc);
+    log_ini(p);
 }
 
+void sediment_f::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    //relax(p,b,pgc);
+    
+    SLICELOOP4
+    {
+    s->ks(i,j) = p->S20;
+    
+    s->bedzh(i,j)=b->topobed(i,j);
+    s->bedzh0(i,j)=b->topobed(i,j);
+    }
+    
+    SLICELOOP4
+    b->bed(i,j) = MAX(b->topobed(i,j),b->solidbed(i,j));
+    
+    active_ini_sflow(p,b,pgc);
+    
+    log_ini(p);
+}

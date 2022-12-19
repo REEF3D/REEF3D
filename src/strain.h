@@ -49,8 +49,11 @@ public:
 	void Pk_update(lexer*,fdm*,ghostcell*);
 	void wallf_update(lexer*,fdm*,ghostcell*,fieldint&);
 	virtual double strainterm(lexer*,fdm*);
+    virtual double strainterm(lexer*,field&,field&,field&);
 	virtual double rotationterm(lexer*,fdm*);
+    virtual double rotationterm(lexer*,field&,field&,field&);
 	virtual double magSqrSd(lexer*,fdm*);
+    virtual double magSqrSd(lexer*,field&,field&,field&);
 	double strainplain(lexer*,fdm*);
 	field4 Pk;
 

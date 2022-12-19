@@ -44,7 +44,6 @@ public:
 	int di,dj;
 	int imin,imax,jmax,jmin;
 
-	//double *V;
 	double ***gcfeld;
 
 private:

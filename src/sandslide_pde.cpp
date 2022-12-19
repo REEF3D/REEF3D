@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 #include"sandslide_pde.h"
+#include"sediment_fdm.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
 sandslide_pde::sandslide_pde(lexer *p) : norm_vec(p), bedslope(p), fh(p), ci(p)
@@ -47,113 +47,109 @@ sandslide_pde::~sandslide_pde()
 {
 }
 
-void sandslide_pde::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
+void sandslide_pde::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    /*for(int qn=0; qn<p->S91; ++qn)
+    
+    SLICELOOP4
     {
-    count=0;
-    
-    ALOOP
-    ci(i,j,k)=0.0;
-    pgc->start4a(p,ci,150);
-    
-    
-    topo_zh_update(p,a,pgc,zh);
-    
-    ILOOP
-    JLOOP
-    {
-		diff_update(p,a,pgc,zh);
+    s->slideflag(i,j)=0.0;
+    ci(i,j)=0.0;
     }
     
-    pgc->start4a(p,ci,150);
-
-    ILOOP
-    JLOOP
+    // mainloop
+    for(int qn=0; qn<p->S91; ++qn)
     {
-		slide(p,a,pgc,zh);
+        count=0;
+        
+        // fill
+        SLICELOOP4
+        {
+        fh(i,j)=0.0;
+        
+        diff_update(p,pgc,s);
+        }
+        
+        pgc->gcsl_start4(p,fh,1);
+        pgc->gcsl_start4(p,ci,1);
+        
+
+        
+        // slide loop
+        SLICELOOP4
+        if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
+        {
+            slide(p,pgc,s);
+        }
+        
+        pgc->gcslparax_fh(p,fh,4);
+        
+        // fill back
+        SLICELOOP4
+        {
+        s->slideflag(i,j)+=fh(i,j);
+        s->bedzh(i,j)+=fh(i,j);
+        }
+        
+        pgc->gcsl_start4(p,s->bedzh,1);
+
+        count=pgc->globalimax(count);
+
+        p->slidecells=count;
+        
+        if(p->slidecells==0)
+        break;
+
+        if(p->mpirank==0)
+        cout<<"sandslide_ped corrections: "<<p->slidecells<<endl;
     }
-    
-    ALOOP 
-    zh(i,j,k)=fh(i,j,k);
-
-    pgc->start4a(p,zh,150);
-
-    count=pgc->globalimax(count);
-
-    p->slidecells=count;
-    
-    if(p->slidecells==0)
-    break;
-
-    if(p->mpirank==0)
-    cout<<"sandslide_pde corrections: "<<p->slidecells<<endl;
-    }*/
 }
 
-void sandslide_pde::slide(lexer *p, fdm * a, ghostcell *pgc)
+void sandslide_pde::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     double dt = 0.1*p->DXM*p->DXM;
     double sqd = (1.0/(p->DXM*p->DXM));
 
-    /*
-    KLOOP
-    PBASECHECK
-    {
-    fh(i,j,k) = zh(i,j,k) + dt*sqd*( (zh(i+1,j,k)-zh(i,j,k))*0.5*(ci(i+1,j,k)+ci(i,j,k)) -(zh(i,j,k)-zh(i-1,j,k))*0.5*(ci(i,j,k)+ci(i-1,j,k))
-                                    +(zh(i,j+1,k)-zh(i,j,k))*0.5*(ci(i,j+1,k)+ci(i,j,k)) -(zh(i,j,k)-zh(i,j-1,k))*0.5*(ci(i,j,k)+ci(i,j-1,k)));
-    }
-    */
+    fh(i,j) =  dt*sqd*( (s->bedzh(i+1,j)-s->bedzh(i,j))*0.5*(ci(i+1,j)+ci(i,j)) 
+                        -(s->bedzh(i,j)-s->bedzh(i-1,j))*0.5*(ci(i,j)+ci(i-1,j))
+                                
+                        +(s->bedzh(i,j+1)-s->bedzh(i,j))*0.5*(ci(i,j+1)+ci(i,j)) 
+                        -(s->bedzh(i,j)-s->bedzh(i,j-1))*0.5*(ci(i,j)+ci(i,j-1)));
+    
   
 }
 
-void sandslide_pde::diff_update(lexer *p, fdm * a, ghostcell *pgc)
-{/*
+void sandslide_pde::diff_update(lexer *p, ghostcell *pgc, sediment_fdm *s)
+{
+    double uvel,vvel;
+    double nx,ny,nz,norm;
+    double nx0,ny0;
+    double nz0,bx0,by0,gamma;
+    
     int kmem=0;
     double dH;
-
-        KLOOP
-        PBASECHECK
-        {
-            if(a->topo(i,j,k)<0.0 && a->topo(i,j,k+1)>=0.0)
-            kmem=k+1;
-        }
-
-		k = kmem;
-		
-		slope(p,a,pgc,zh,teta,alpha,gamma,phi);
+    
+    k = s->bedk(i,j);
         
 
-        dH = sqrt(pow((zh(i+1,j,k)-zh(i-1,j,k))/p->DXM,2.0) + pow((zh(i,j+1,k)-zh(i,j-1,k))/p->DXM,2.0));
+    dH = sqrt(pow((s->bedzh(i+1,j)-s->bedzh(i-1,j))/p->DXM,2.0) + pow((s->bedzh(i,j+1)-s->bedzh(i,j-1))/p->DXM,2.0));
+        
+        
+    bx0 = (s->bedzh(i+1,j)-s->bedzh(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+    by0 = (s->bedzh(i,j+1)-s->bedzh(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+     
+    gamma = atan(sqrt(bx0*bx0 + by0*by0));
 
-            if(fabs(dH)>=tan(phi))
+
+            if(gamma>s->phi(i,j))
             {
-            //cout<<i<<" "<<j<<"  SAND "<<gamma*(180.0/PI)<<" "<<teta*(180.0/PI)<<"  "<<phi*(180.0/PI)<<endl;
-            KLOOP
-            PBASECHECK
-            ci(i,j,k) = 1.0;
+            ci(i,j) = 1.0;
             
             ++count;
             }
             
-            if(fabs(dH)<tan(phi))
-            KLOOP
-            PBASECHECK
-            ci(i,j,k) = 0.0;*/
+            if(gamma<s->phi(i,j))
+            ci(i,j) = 0.0;
 
-}
-
-void sandslide_pde::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc)
-{/*
-	pgc->start4a(p,zh,150);
-	
-    ALOOP
-    {
-    if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
-    a->topo(i,j,k)=-zh(i,j,k)+p->pos_z();
-    }
-	
-	pgc->start4a(p,a->topo,150);*/
 }
 
 

@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ioflow_gravity.h"
@@ -248,6 +249,22 @@ void ioflow_gravity::vof_relax(lexer *p, ghostcell *pgc, field &f)
 }
 
 void ioflow_gravity::turb_relax(lexer *p, fdm *a, ghostcell *pgc, field &f)
+{
+}
+
+void ioflow_gravity::U_relax(lexer *p, ghostcell *pgc, double *U)
+{
+}
+
+void ioflow_gravity::V_relax(lexer *p, ghostcell *pgc, double *V)
+{
+}
+
+void ioflow_gravity::W_relax(lexer *p, ghostcell *pgc, double *W)
+{
+}
+
+void ioflow_gravity::P_relax(lexer *p, ghostcell *pgc, double *P)
 {
 }
 

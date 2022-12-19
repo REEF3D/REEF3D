@@ -49,7 +49,7 @@ void heat_AB::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, sol
 
     clearrhs(p,a,pgc);
 	pconvec->start(p,a,T,4,a->u,a->v,a->w);
-	pdiff->diff_scalar(p,a,pgc,psolv,T,thermdiff,p->sigT,1.0);
+	pdiff->diff_scalar(p,a,pgc,psolv,T,thermdiff,a->eddyv,p->sigT,1.0);
 
 	if(p->count==1)
 	LOOP

@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-bedload_VR::bedload_VR(lexer *p, turbulence *pturb) : bedload_noneq(p), epsi(1.6*p->DXM)
+bedload_VR::bedload_VR(lexer *p)
 {
     rhosed=p->S22;
     rhowat=p->W1;
@@ -42,7 +42,7 @@ bedload_VR::~bedload_VR()
 {
 }
 
-void bedload_VR::start(lexer* p, fdm* a, ghostcell* pgc, sediment_fdm *s)
+void bedload_VR::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {
     double Ti,r;
 	double qb;
@@ -53,18 +53,16 @@ void bedload_VR::start(lexer* p, fdm* a, ghostcell* pgc, sediment_fdm *s)
         Ti=MAX((s->shields_eff(i,j)-s->shields_crit(i,j))/(s->shields_crit(i,j)),0.0);
 
         
-        if(s->shearvel_eff(i,j)>s->shearvel_crit(i,j))
-        {
-        qb =(0.053*pow(d50,1.5)*sqrt(g*Rstar)*pow(Ti,2.1))/pow(Ds,0.3);
-        
-        }
+        if(s->shearvel_eff(i,j)>s->shearvel_crit(i,j))        if(s->active(i,j)==1)
+        qb = (0.053*pow(d50,1.5)*sqrt(g*Rstar)*pow(Ti,2.1))/pow(Ds,0.3);
 
-        if(s->shearvel_eff(i,j)<=s->shearvel_crit(i,j))
+
+        if(s->shearvel_eff(i,j)<=s->shearvel_crit(i,j) || s->active(i,j)==0)
         qb=0.0;
 		
-		a->bedload(i,j) = qb;
+		s->qbe(i,j) = qb;
 	}
     
-    pgc->gcsl_start4a(p,a->bedload,1);    
+    pgc->gcsl_start4a(p,s->qbe,1);    
     
 }

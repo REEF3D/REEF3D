@@ -22,7 +22,6 @@ Author: Hans Bihs
 
 #include"sandslide_f2.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 #include"sliceint.h"
@@ -41,16 +40,19 @@ sandslide_f2::sandslide_f2(lexer *p) : norm_vec(p), bedslope(p), fh(p)
 	if(p->S50==4)
 	gcval_topo=154;
 
-	fac1 = (1.0/6.0);
-	fac2 = (1.0/12.0);
+	fac1 = p->S92*(1.0/6.0);
+	fac2 = p->S92*(1.0/12.0);
 }
 
 sandslide_f2::~sandslide_f2()
 {
 }
 
-void sandslide_f2::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
+void sandslide_f2::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
+    SLICELOOP4
+    s->slideflag(i,j)=0.0;
+    
     // mainloop
     for(int qn=0; qn<p->S91; ++qn)
     {
@@ -66,15 +68,18 @@ void sandslide_f2::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         SLICELOOP4
         if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
         {
-            slide(p,a,pgc,s);
+            slide(p,pgc,s);
         }
         pgc->gcslparax_fh(p,fh,4);
         
         // fill back
         SLICELOOP4
-        a->bedzh(i,j)+=fh(i,j);
+        {
+        s->slideflag(i,j)+=fh(i,j);
+        s->bedzh(i,j)+=fh(i,j);
+        }
 
-        pgc->gcsl_start4(p,a->bedzh,1);
+        pgc->gcsl_start4(p,s->bedzh,1);
 
         count=pgc->globalimax(count);
 
@@ -88,13 +93,13 @@ void sandslide_f2::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     }
 }
 
-void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
+void sandslide_f2::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-		k = a->bedk(i,j);
+		k = s->bedk(i,j);
 		
 			
         // 1
-        dh = a->bedzh(i,j) - a->bedzh(i-1,j);
+        dh = s->bedzh(i,j) - s->bedzh(i-1,j);
         
         maxdh = tan(s->phi(i,j))*p->DXP[IM1];
         
@@ -109,7 +114,7 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 		}
 
         // 2
-        dh = a->bedzh(i,j) - a->bedzh(i+1,j);
+        dh = s->bedzh(i,j) - s->bedzh(i+1,j);
         
         maxdh = tan(s->phi(i,j))*p->DXP[IP];
 		
@@ -119,12 +124,13 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
             
             fh(i,j)-= fac1*dh_corr;
             fh(i+1,j)+= fac1*dh_corr;
+            
 			
         ++count;
         }
 
         // 3
-        dh = a->bedzh(i,j) - a->bedzh(i,j-1);
+        dh = s->bedzh(i,j) - s->bedzh(i,j-1);
         
         maxdh = tan(s->phi(i,j))*p->DYP[JM1];
         
@@ -139,7 +145,7 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         }
 
         // 4
-        dh = a->bedzh(i,j) - a->bedzh(i,j+1);
+        dh = s->bedzh(i,j) - s->bedzh(i,j+1);
 		dh_corr = dh + tan(p->S93*(PI/180.0))*p->DYP[JP];
         
         maxdh = tan(s->phi(i,j))*p->DYP[JP];
@@ -156,7 +162,7 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 		
 		
         // 5
-        dh = a->bedzh(i,j) - a->bedzh(i-1,j-1);
+        dh = s->bedzh(i,j) - s->bedzh(i-1,j-1);
         
         maxdhs = tan(s->phi(i,j))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]);
 
@@ -172,7 +178,7 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     
 
         // 6
-        dh = a->bedzh(i,j) - a->bedzh(i-1,j+1);
+        dh = s->bedzh(i,j) - s->bedzh(i-1,j+1);
 
         maxdhs = tan(s->phi(i,j))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]);
         
@@ -187,7 +193,7 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         }
 
         // 7
-        dh = a->bedzh(i,j) - a->bedzh(i+1,j-1);
+        dh = s->bedzh(i,j) - s->bedzh(i+1,j-1);
  
         maxdhs = tan(s->phi(i,j))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]);
         
@@ -202,7 +208,7 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         }
     
         // 8
-        dh = a->bedzh(i,j) - a->bedzh(i+1,j+1);
+        dh = s->bedzh(i,j) - s->bedzh(i+1,j+1);
   
         maxdhs = tan(s->phi(i,j))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);
 
@@ -216,18 +222,5 @@ void sandslide_f2::slide(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         ++count;
         }
         
-}
-
-void sandslide_f2::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc)
-{
-	pgc->gcsl_start4(p,a->bedzh,1);
-	
-    ALOOP
-    {
-    if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
-    a->topo(i,j,k)=-a->bedzh(i,j)+p->pos_z();
-    }
-	
-	pgc->start4a(p,a->topo,150);
 }
 

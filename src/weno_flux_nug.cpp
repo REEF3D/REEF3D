@@ -103,27 +103,9 @@ void weno_flux_nug::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, fie
 
 double weno_flux_nug::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, field& wvel, double *DX,double *DY, double *DZ)
 {
-		if(p->G2==0)
-        {
         pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
         pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
         pflux->w_flux(a,ipol,wvel,kvel1,kvel2);
-        }
-        
-        if(p->G2==1)
-        {
-        pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
-        pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
-        
-        if(p->A517==1)
-        pflux->w_flux(a,ipol,a->omega,kvel1,kvel2);
-        
-        if(p->A517==2)
-        pflux->omega_flux(p,a,ipol,uvel,vvel,wvel,kvel1,kvel2);
-        
-        if(p->A517==3)
-        pflux->w_flux(a,ipol,wvel,kvel1,kvel2);
-        }
         
         fv1=fv2=0.0;
 		
@@ -150,35 +132,10 @@ double weno_flux_nug::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field&
 		
 		fw2 = fz(p,a,b,wvel,ipol,kvel2);
     
-        //if(ipol==1)
-        //a->test(i,j,k) = - ((kvel2*fw2-kvel1*fw1)/DZ[KP]);
-		
-       if(p->G2==0 || p->A517!=3)
 		L =   - ((ivel2*fu2-ivel1*fu1)/DX[IP]) 
 		      - ((jvel2*fv2-jvel1*fv1)/DY[JP]) 
 			  - ((kvel2*fw2-kvel1*fw1)/DZ[KP]);
-           
-        if((p->G2==1 && p->A517!=3) && (ipol==1 && k==p->knoz-1))
-		L =   - ((ivel2*fu2-ivel1*fu1)/DX[IP]) 
-		      - ((jvel2*fv2-jvel1*fv1)/DY[JP])
-              - 0.0*((kvel2*fw2-kvel1*fw1)/DZ[KP]);
-        
-        /* 
-        if((p->G1==0 && p->A517!=3) && (ipol==3 && k==p->knoz-2))
-		L =   - ((ivel2*fu2-ivel1*fu1)/DX[IP]) 
-		      - ((jvel2*fv2-jvel1*fv1)/DY[JP])
-              - 0.0*((kvel2*fw2-kvel1*fw1)/DZ[KP]);*/
-       
-       
-       if(p->G2==1 && p->A517==3)
-		L =   - ((ivel2*fu2-ivel1*fu1)/DX[IP]) 
-		      - ((jvel2*fv2-jvel1*fv1)/DY[JP]) 
-			  - ((kvel2*fw2-kvel1*fw1)/DZ[KP])*p->sigmaz(p,b,ipol)
-              
-              - ((b(i,j,k+1)-b(i,j,k-1))/(DZ[KP]+DZ[KM1]))*p->sigmat(p,b,ipol)
-              - 0.5*(ivel1+ivel2)*((b(i,j,k+1)-b(i,j,k-1))/(DZ[KP]+DZ[KM1]))*p->sigmax(p,b,uvel,ipol)
-              - 0.5*(jvel1+jvel2)*((b(i,j,k+1)-b(i,j,k-1))/(DZ[KP]+DZ[KM1]))*p->sigmay(p,b,ipol);
-        
+                   
 		return L;
 }
 

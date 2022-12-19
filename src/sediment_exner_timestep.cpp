@@ -22,11 +22,10 @@ Author: Hans Bihs
 
 #include"sediment_exner.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-void sediment_exner::timestep(lexer* p,fdm* a, ghostcell *pgc, sediment_fdm *s)
+void sediment_exner::timestep(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
 	maxvz=maxdh=0.0;
     

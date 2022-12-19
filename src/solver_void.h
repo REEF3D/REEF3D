@@ -34,8 +34,8 @@ public:
 	solver_void(lexer*,fdm*,ghostcell*);
 	virtual ~solver_void();
 	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
-    virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int);
-    virtual void startM(lexer*, fdm*, ghostcell*, double*, double*, double*, int);
+    virtual void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
+    virtual void startM(lexer*, ghostcell*, double*, double*, double*, int);
 };
 
 #endif

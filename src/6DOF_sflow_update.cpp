@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"6DOF_sflow.h"
@@ -83,7 +84,6 @@ void sixdof_sflow::updatePosition(lexer *p, fdm2D *b, ghostcell *pgc)
             tri_y[n][q] = point(1) + p->yg;
             tri_z[n][q] = point(2) + p->zg;
         }
-
 	}
 	
     // Update floating level set function
@@ -118,9 +118,9 @@ void sixdof_sflow::updateForcing_hemisphere(lexer *p, fdm2D *b, ghostcell *pgc)
     }
     
     pgc->gcsl_start4(p,press,50);
-};
+}
 
-void sixdof_sflow::updateForcing_ship(lexer *p, fdm2D *b, ghostcell *pgc)
+void sixdof_sflow::updateForcing_box(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     // Calculate ship-like pressure field
     double H, press0, xpos, ypos, Ls, Bs, as, cl, cb;
@@ -130,6 +130,7 @@ void sixdof_sflow::updateForcing_ship(lexer *p, fdm2D *b, ghostcell *pgc)
     cl = p->X401_cl;
     cb = p->X401_cb;
 
+   
     Ls = p->X110_xe[0] - p->X110_xs[0];
     Bs = p->X110_ye[0] - p->X110_ys[0];
 
@@ -141,7 +142,7 @@ void sixdof_sflow::updateForcing_ship(lexer *p, fdm2D *b, ghostcell *pgc)
         
         if (xpos <= Ls/2.0 && xpos >= -Ls/2.0 && ypos <= Bs/2.0 && ypos >= -Bs/2.0)
         {
-            press(i,j) = -H*press0*(1.0 - cl*pow(xpos/Ls,4))*(1.0 - cb*pow(ypos/Bs,2))*exp(-as*pow(ypos/Bs,2));
+            press(i,j) = -H*press0*(1.0 - cl*pow(xpos/Ls,4.0))*(1.0 - cb*pow(ypos/Bs,2.0))*exp(-as*pow(ypos/Bs,2.0));
         }
         else
         {
@@ -150,8 +151,27 @@ void sixdof_sflow::updateForcing_ship(lexer *p, fdm2D *b, ghostcell *pgc)
     }
     
     pgc->gcsl_start4(p,press,50);
-};
+}
 
+void sixdof_sflow::updateForcing_ship(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    // Calculate ship-like pressure field
+    double H, press0, xpos, ypos, as, cl, cb;
+
+    press0 = p->X401_p0;
+    as = p->X401_a; 
+    cl = p->X401_cl;
+    cb = p->X401_cb;
+
+	SLICELOOP4
+    {
+        H = Hsolidface(p,0,0);
+
+        press(i,j) = -H*fabs(p->W22)*p->W1*draft(i,j);
+    }
+    
+    pgc->gcsl_start4(p,press,50);
+}
 
 void sixdof_sflow::updateForcing_oned(lexer *p, fdm2D *b, ghostcell *pgc)
 {

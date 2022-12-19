@@ -17,7 +17,9 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
+
 #include<iomanip>
 #include"bedprobe_line_x.h"
 #include"lexer.h"
@@ -171,7 +173,7 @@ void bedprobe_line_x::start(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
             {
                 if(a->topo(i,j,k)<0.0 && a->topo(i,j,k+1)>=0.0)
                 {
-                wsf[q][i]=MAX(wsf[q][i],-(a->topo(i,j,k)*p->DXM)/(a->topo(i,j,k+1)-a->topo(i,j,k)) + p->pos_z());
+                wsf[q][i]=MAX(wsf[q][i],-(a->topo(i,j,k)*p->DZP[KP])/(a->topo(i,j,k+1)-a->topo(i,j,k)) + p->pos_z());
                 xloc[q][i]=p->pos_x();
 				
 				
@@ -258,7 +260,7 @@ void bedprobe_line_x::ini_location(lexer *p, fdm *a, ghostcell *pgc)
         count=0;
         ILOOP
         {
-        jloc[q]=conv((p->P123_y[q]-p->originy)/p->DXM);
+        jloc[q]=p->posc_j(p->P123_y[q]);
 
         check=ij_boundcheck_topo(p,a,i,jloc[q],0);
 
@@ -270,30 +272,8 @@ void bedprobe_line_x::ini_location(lexer *p, fdm *a, ghostcell *pgc)
     }
 }
 
-int bedprobe_line_x::conv(double a)
+void bedprobe_line_x::sort(double *a, double *b, int *c, int left, int right)
 {
-
-int b,c;
-double d,diff;
-
-c= int( a);
-d=double(c);
-diff=a-d;
-
-b=c;
-
-if(diff>0.5)
-b=c+1;
-
-if(diff<=-0.5)
-b=c-1;
-
-return b;
-
-}
-
- void bedprobe_line_x::sort(double *a, double *b, int *c, int left, int right)
- {
 
   if (left < right)
   {

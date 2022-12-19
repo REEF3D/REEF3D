@@ -98,7 +98,13 @@ void sixdof_df::forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<
         if (finalise == true)
         {
             p_df_obj[nb]->saveTimeStep(p,alpha);
+            
+            if(p->X50==1)
+            p_df_obj[nb]->print_vtp(p,a,pgc);
+            
+            if(p->X50==2)
             p_df_obj[nb]->print_stl(p,a,pgc);
+            
             p_df_obj[nb]->print_parameter(p, a, pgc);
         }
     }

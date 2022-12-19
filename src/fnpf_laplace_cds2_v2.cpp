@@ -83,7 +83,7 @@ nt 8
 	n=0;
     KJILOOP
 	{
-        if(p->flag7[FIJK]>0 && c->wet(i,j)==1)
+        if(p->flag7[FIJK]>0 && p->wet[IJ]==1)
         {
         sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
         
@@ -111,7 +111,7 @@ nt 8
                         
         }
         
-        if(c->wet(i,j)==0 || p->flag7[FIJK]<0)
+        if(p->wet[IJ]==0 || p->flag7[FIJK]<0)
         {
         M[n*9]  =  1.0;
         M[n*9+1] = 0.0;
@@ -133,10 +133,10 @@ nt 8
     n=0;
 	KJILOOP
 	{
-            if(p->flag7[FIJK]>0 && c->wet(i,j)==1)
+            if(p->flag7[FIJK]>0 && p->wet[IJ]==1)
             {
             // south
-            if((p->flag7[FIm1JK]<0 || c->wet(i-1,j)==0) && c->bc(i-1,j)==0)
+            if((p->flag7[FIm1JK]<0 || p->wet[Im1J]==0) && c->bc(i-1,j)==0)
             {
             M[n*9] += M[n*9+1];  
             M[n*9+1] = 0.0;        
@@ -150,7 +150,7 @@ nt 8
             }
             
             // north
-            if((p->flag7[FIp1JK]<0 || c->wet(i+1,j)==0) && c->bc(i+1,j)==0)
+            if((p->flag7[FIp1JK]<0 || p->wet[Ip1J]==0) && c->bc(i+1,j)==0)
             {
             M[n*9] += M[n*9+2];
             M[n*9+2] = 0.0;
@@ -229,7 +229,7 @@ nt 8
             
             // sb 
                 // wall
-            if(((p->flag7[FIm1JKm1]<0 && p->flag7[FIJKm1]>0)|| c->wet(i-1,j)==0) && c->bc(i-1,j)==0)
+            if(((p->flag7[FIm1JKm1]<0 && p->flag7[FIJKm1]>0)|| p->wet[Im1J]==0) && c->bc(i-1,j)==0)
             {
             M[n*9] += M[n*9+5];  
             M[n*9+5] = 0.0;        
@@ -246,7 +246,7 @@ nt 8
             
             // nb 
                 // wall
-            if(((p->flag7[FIp1JKm1]<0 && p->flag7[FIJKm1]>0)|| c->wet(i+1,j)==0) && c->bc(i+1,j)==0)
+            if(((p->flag7[FIp1JKm1]<0 && p->flag7[FIJKm1]>0)|| p->wet[Ip1J]==0) && c->bc(i+1,j)==0)
             {
             M[n*9] += M[n*9+7];  
             M[n*9+7] = 0.0;        
@@ -267,7 +267,7 @@ nt 8
             
             denom = p->sigz[IJ] + c->Bx(i-1,j)*p->sigx[FIm1JK];
 
-                    if(c->wet(i+1,j)==1 && c->wet(i-1,j)==1)
+                    if(p->wet[Ip1J]==1 && p->wet[Im1J]==1)
                     {
                     M[n*9+2] +=  ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     M[n*9+1] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
@@ -284,7 +284,7 @@ nt 8
             
             denom = p->sigz[IJ] + c->Bx(i,j)*p->sigx[FIJK];
 
-                    if(c->wet(i+1,j)==1 && c->wet(i-1,j)==1)
+                    if(p->wet[Ip1J]==1 && p->wet[Im1J]==1)
                     {
                     M[n*9+2] +=  ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     M[n*9+1] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
@@ -303,7 +303,7 @@ nt 8
             
             denom = p->sigz[IJ] + c->Bx(i,j)*p->sigx[FIJK];
 
-                    if(c->wet(i+1,j)==1 && c->wet(i-1,j)==1)
+                    if(p->wet[Ip1J]==1 && p->wet[Im1J]==1)
                     {
                     M[n*9+2] +=  ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     M[n*9+1] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
@@ -379,7 +379,7 @@ void fnpf_laplace_cds2_v2::laplace3D(lexer* p, fdm_fnpf *c, ghostcell *pgc, solv
 	n=0;
     KJILOOP
 	{
-        if(c->wet(i,j)==1 && p->flag7[FIJK]>0)
+        if(p->wet[IJ]==1 && p->flag7[FIJK]>0)
         {
         sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
         
@@ -418,7 +418,7 @@ void fnpf_laplace_cds2_v2::laplace3D(lexer* p, fdm_fnpf *c, ghostcell *pgc, solv
                         
         }
         
-        if(c->wet(i,j)==0 || p->flag7[FIJK]<0)
+        if(p->wet[IJ]==0 || p->flag7[FIJK]<0)
         {
         M[n*15]  =  1.0;
         M[n*15+1] = 0.0;
@@ -446,10 +446,10 @@ void fnpf_laplace_cds2_v2::laplace3D(lexer* p, fdm_fnpf *c, ghostcell *pgc, solv
     n=0;
 	KJILOOP
 	{
-            if(c->wet(i,j)==1 && p->flag7[FIJK]>0)
+            if(p->wet[IJ]==1 && p->flag7[FIJK]>0)
             {
             // south
-            if((p->flag7[FIm1JK]<0 || c->wet(i-1,j)==0) && c->bc(i-1,j)==0)
+            if((p->flag7[FIm1JK]<0 || p->wet[Im1J]==0) && c->bc(i-1,j)==0)
             {
             M[n*15] += M[n*15+1];  
             M[n*15+1] = 0.0;        
@@ -463,7 +463,7 @@ void fnpf_laplace_cds2_v2::laplace3D(lexer* p, fdm_fnpf *c, ghostcell *pgc, solv
             }
             
             // north
-            if((p->flag7[FIp1JK]<0 || c->wet(i+1,j)==0) && c->bc(i+1,j)==0)
+            if((p->flag7[FIp1JK]<0 || p->wet[Ip1J]==0) && c->bc(i+1,j)==0)
             {
             M[n*15] += M[n*15+2];
             M[n*15+2] = 0.0;
@@ -477,14 +477,14 @@ void fnpf_laplace_cds2_v2::laplace3D(lexer* p, fdm_fnpf *c, ghostcell *pgc, solv
             }
 
             // east
-            if(p->flag7[FIJm1K]<0 || c->wet(i,j-1)==0)
+            if(p->flag7[FIJm1K]<0 || p->wet[IJm1]==0)
             {
             M[n*15] += M[n*15+3];
             M[n*15+3] = 0.0;
             }
             
             // west
-            if(p->flag7[FIJp1K]<0 || c->wet(i,j+1)==0)
+            if(p->flag7[FIJp1K]<0 || p->wet[IJp1]==0)
             {
             M[n*15] += M[n*15+4];
             M[n*15+4] = 0.0;
@@ -520,13 +520,13 @@ void fnpf_laplace_cds2_v2::laplace3D(lexer* p, fdm_fnpf *c, ghostcell *pgc, solv
             
            denom = p->sigz[Im1J] + c->Bx(i-1,j)*p->sigx[FIm1JK] + c->By(i-1,j)*p->sigy[FIm1JK];
 
-                    if(c->wet(i+1,j)==1 && c->wet(i-1,j)==1)
+                    if(p->wet[Ip1J]==1 && p->wet[Im1J]==1)
                     {
                     M[n*15+2] +=  ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     M[n*15+1] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     }
                     
-                    if(c->wet(i,j-1)==1 && c->wet(i,j+1)==1)
+                    if(p->wet[IJm1]==1 && p->wet[IJp1]==1)
                     {
                     M[n*15+4] +=  ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
                     M[n*15+3] += -ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
@@ -544,13 +544,13 @@ void fnpf_laplace_cds2_v2::laplace3D(lexer* p, fdm_fnpf *c, ghostcell *pgc, solv
             
             denom = p->sigz[Ip1J] + c->Bx(i+1,j)*p->sigx[FIp1JK] + c->By(i+1,j)*p->sigy[FIp1JK];
 
-                    if(c->wet(i+1,j)==1 && c->wet(i-1,j)==1)
+                    if(p->wet[Ip1J]==1 && p->wet[Im1J]==1)
                     {
                     M[n*15+2] +=  ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     M[n*15+1] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     }
                     
-                    if(c->wet(i,j-1)==1 && c->wet(i,j+1)==1)
+                    if(p->wet[IJm1]==1 && p->wet[IJp1]==1)
                     {
                     M[n*15+4] +=  ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
                     M[n*15+3] += -ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
@@ -614,13 +614,13 @@ wt 14
             
             denom = p->sigz[IJm1] + c->Bx(i,j-1)*p->sigx[FIJm1K] + c->By(i,j-1)*p->sigy[FIJm1K];
 
-                    if(c->wet(i+1,j)==1 && c->wet(i-1,j)==1)
+                    if(p->wet[Ip1J]==1 && p->wet[Im1J]==1)
                     {
                     M[n*15+2] +=  ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     M[n*15+1] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     }
                     
-                    if(c->wet(i,j-1)==1 && c->wet(i,j+1)==1)
+                    if(p->wet[IJm1]==1 && p->wet[IJp1]==1)
                     {
                     M[n*15+4] +=  ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
                     M[n*15+3] += -ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
@@ -638,13 +638,13 @@ wt 14
             
             denom = p->sigz[IJp1] + c->Bx(i,j+1)*p->sigx[FIJp1K] + c->By(i,j+1)*p->sigy[FIJp1K];
 
-                    if(c->wet(i+1,j)==1 && c->wet(i-1,j)==1)
+                    if(p->wet[Ip1J]==1 && p->wet[Im1J]==1)
                     {
                     M[n*15+2] +=  ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     M[n*15+1] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     }
                     
-                    if(c->wet(i,j-1)==1 && c->wet(i,j+1)==1)
+                    if(p->wet[IJm1]==1 && p->wet[IJp1]==1)
                     {
                     M[n*15+4] +=  ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
                     M[n*15+3] += -ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
@@ -669,13 +669,13 @@ wt 14
             
             denom = p->sigz[IJ] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
 
-                    if(c->wet(i+1,j)==1 && c->wet(i-1,j)==1)
+                    if(p->wet[Ip1J]==1 && p->wet[Im1J]==1)
                     {
                     M[n*15+2] +=  ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     M[n*15+1] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     }
                     
-                    if(c->wet(i,j-1)==1 && c->wet(i,j+1)==1)
+                    if(p->wet[IJm1]==1 && p->wet[IJp1]==1)
                     {
                     M[n*15+4] +=  ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
                     M[n*15+3] += -ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));

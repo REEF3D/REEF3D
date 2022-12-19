@@ -38,13 +38,12 @@ public:
     sandslide_f(lexer*);
     virtual ~sandslide_f();
 
-	virtual void start(lexer*,fdm*,ghostcell*,sediment_fdm*);
+	virtual void start(lexer*,ghostcell*,sediment_fdm*);
 
 private:
 
-    void slide(lexer*, fdm*,ghostcell*,sediment_fdm*);
-    void topo_zh_update(lexer*,fdm*,ghostcell*);
-	
+    void slide(lexer*,ghostcell*,sediment_fdm*);
+
     slice4 fh;
     
     int gcval_topo,count;

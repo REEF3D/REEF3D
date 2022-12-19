@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
@@ -76,11 +77,11 @@ cout<<"starting driver_ini_PTF"<<endl;
     if(p->toporead>0)
     {
     geotopo gtopo(p,a,pgc);
-    gtopo.start(p,a,pgc,pflow,pconvec,preto,pvrans);
+    gtopo.start(p,a,pgc,pflow,preto,pvrans);
     }
 
     SLICELOOP4
-    a->wet(i,j)=1;
+    p->wet[IJ]=1;
 
     SLICELOOP4
 	a->bed(i,j) = p->bed[IJ];

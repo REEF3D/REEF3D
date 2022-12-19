@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"poisson_nse.h"
@@ -130,7 +131,7 @@ void poisson_nse::start(lexer* p, fdm *a, field &press)
                 a->M.s[n] = 0.0;
                 }
                 
-                if(p->D37==3)
+                if(p->D37==2)
                 {
                 teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IM1]/(fabs(a->phi(i,j,k-1))+fabs(a->phi(i,j,k)));
                 
@@ -151,7 +152,7 @@ void poisson_nse::start(lexer* p, fdm *a, field &press)
                 a->M.n[n] = 0.0;
                 }
                 
-                if(p->D37==3)
+                if(p->D37==2)
                 {
                 teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
                 
@@ -200,7 +201,7 @@ void poisson_nse::start(lexer* p, fdm *a, field &press)
                 }
             
 
-                if(p->D37>=2)
+                if(p->D37==2)
                 {
                 teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
                 

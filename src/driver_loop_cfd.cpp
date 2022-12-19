@@ -17,9 +17,12 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
+#include"lexer.h"
+#include"fdm.h"
 #include"ghostcell.h"
 #include"freesurface_header.h"
 #include"turbulence_header.h"
@@ -34,7 +37,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"solver_header.h"
 #include"field_header.h"
 #include"6DOF_header.h"
-#include"lexer.h"
 
 
 void driver::loop_cfd(fdm* a)
@@ -79,16 +81,14 @@ void driver::loop_cfd(fdm* a)
             poneph->update(p,a,pgc,pflow);
             pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
             pheat->start(a,p,pheatdisc,pdiff,psolv,pgc,pflow);
-			 pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
-            psusp->start(a,p,pconcdisc,psuspdiff,psolv,pgc,pflow);
-
+            pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
 				
-        psed->start(p,a,pconvec,pgc,pflow,ptopo,preto,psusp,pbed);
+        psed->start_cfd(p,a,pgc,pflow,preto,psolv);
         pflow->u_relax(p,a,pgc,a->u);
-		pflow->v_relax(p,a,pgc,a->v);
-		pflow->w_relax(p,a,pgc,a->w);
-		pfsf->update(p,a,pgc,a->phi);
-		p6dof->start(p,a,pgc,1.0,pvrans,pnet);
+        pflow->v_relax(p,a,pgc,a->v);
+        pflow->w_relax(p,a,pgc,a->w);
+        pfsf->update(p,a,pgc,a->phi);
+        p6dof->start(p,a,pgc,1.0,pvrans,pnet);
         pmom->start(p,a,pgc,pvrans); 
         pbench->start(p,a,pgc,pconvec);
 		
@@ -100,7 +100,6 @@ void driver::loop_cfd(fdm* a)
         //timestep control
         p->simtime+=p->dt;
         ptstep->start(a,p,pgc,pturb);
-        
         
         // printer
         pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
@@ -133,8 +132,6 @@ void driver::loop_cfd(fdm* a)
         mainlog(p);
         maxlog(p);
         solverlog(p);
-        if(p->count%p->S44==0 && p->count>=p->S43 && p->S10>0)
-        sedimentlog(p);
         }
     p->gctime=0.0;
     p->xtime=0.0;
@@ -158,7 +155,6 @@ void driver::loop_cfd(fdm* a)
     mainlogout.close();
     maxlogout.close();
     solvlogout.close();
-    sedlogout.close();
 	}
 
     pgc->final();

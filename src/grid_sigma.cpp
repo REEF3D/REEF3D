@@ -17,11 +17,12 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"grid_sigma.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"fnpf_ddx_cds2.h"
 #include"fnpf_ddx_cds4.h"
@@ -29,7 +30,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fnpf_cds4.h"
 #include"grid_sigma_data.h"
 
-#define WLVL (fabs(a->WL(i,j))>1.0e-20?a->WL(i,j):1.0-20)
+#define WLVL (fabs(d->WL(i,j))>1.0e-20?d->WL(i,j):1.0-20)
 
 grid_sigma::grid_sigma(lexer *p) 
 {
@@ -53,7 +54,7 @@ void grid_sigma::sigma_coord_ini(lexer *p)
     }
 }
     
-void grid_sigma::sigma_ini(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
+void grid_sigma::sigma_ini(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta)
 {	
     // generate Ex,Bx slices
     pd = new grid_sigma_data(p);
@@ -72,12 +73,12 @@ void grid_sigma::sigma_ini(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
     }
     
     SLICELOOP4
-    a->wet(i,j)=1;
+    p->wet[IJ]=1;
     
-    pgc->gcsl_start4int(p,a->wet,50);
+    pgc->gcsl_start4Vint(p,p->wet,50);
     
     
-    a->wd_criterion=0.00005;
+    d->wd_criterion=0.00005;
     
     p->Darray(p->sig, p->imax*p->jmax*(p->kmax+1));
     p->Darray(p->sigx,p->imax*p->jmax*(p->kmax+1));
@@ -119,25 +120,25 @@ void grid_sigma::sigma_ini(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
 
     
     SLICELOOP4
-	a->bed(i,j) = p->bed[IJ];
+	d->bed(i,j) = p->bed[IJ];
     
     
     SLICELOOP4
-    a->WL(i,j) = MAX(0.0, a->eta(i,j) + p->wd - a->bed(i,j));
+    d->WL(i,j) = MAX(0.0, d->eta(i,j) + p->wd - d->bed(i,j));
     
     
     SLICELOOP4
-	a->depth(i,j) = p->wd - a->bed(i,j);
+	d->depth(i,j) = p->wd - d->bed(i,j);
     
     SLICELOOP4
     {
-    a->Bx(i,j) = 0.0;
-    a->By(i,j) = 0.0;
+    d->Bx(i,j) = 0.0;
+    d->By(i,j) = 0.0;
     }
     
-    pgc->gcsl_start4(p,a->depth,50);
-    pgc->gcsl_start4(p,a->Bx,50);
-    pgc->gcsl_start4(p,a->By,50);
+    pgc->gcsl_start4(p,d->depth,50);
+    pgc->gcsl_start4(p,d->Bx,50);
+    pgc->gcsl_start4(p,d->By,50);
     
     SLICELOOP4
     p->sigz[IJ] = 1.0/WLVL;
@@ -147,20 +148,10 @@ void grid_sigma::sigma_ini(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
 
 }
 
-double grid_sigma::sigmax(lexer *p, field &f, field &u, int ipol)
+double grid_sigma::sigmax(lexer *p, int ipol)
 {    
     if(ipol==1)
     sig = 0.25*(p->sigx[FIJK] + p->sigx[FIp1JK] + p->sigx[FIJKp1] + p->sigx[FIp1JKp1]);
-    
-    /*
-    if(ipol==1)
-    {
-    if(u(i,j,k)>=0.0)
-    sig = 0.5*(p->sigx[FIJK] + p->sigx[FIJKp1]);
-    
-    if(u(i,j,k)<0.0)
-    sig = 0.5*(p->sigx[FIp1JK] + p->sigx[FIp1JKp1]);
-    }*/
 
     if(ipol==2)
     sig = 0.25*(p->sigx[FIJK] + p->sigx[FIJp1K] + p->sigx[FIJKp1] + p->sigx[FIJp1Kp1]);
@@ -174,7 +165,7 @@ double grid_sigma::sigmax(lexer *p, field &f, field &u, int ipol)
     return sig;
 }
 
-double grid_sigma::sigmay(lexer *p, field &f, int ipol)
+double grid_sigma::sigmay(lexer *p, int ipol)
 {  
     if(ipol==1)
     sig = 0.25*(p->sigy[FIJK] + p->sigy[FIp1JK] + p->sigy[FIJKp1] + p->sigy[FIp1JKp1]);
@@ -191,7 +182,7 @@ double grid_sigma::sigmay(lexer *p, field &f, int ipol)
     return sig;
 }
 
-double grid_sigma::sigmaz(lexer *p, field &f, int ipol)
+double grid_sigma::sigmaz(lexer *p, int ipol)
 {    
     if(ipol==1)
     sig = 0.5*(p->sigz[IJ] + p->sigz[Ip1J]);
@@ -208,7 +199,7 @@ double grid_sigma::sigmaz(lexer *p, field &f, int ipol)
     return sig;
 }
 
-double grid_sigma::sigmat(lexer *p, field &f, int ipol)
+double grid_sigma::sigmat(lexer *p, int ipol)
 {    
     if(ipol==1)
     sig = 0.25*(p->sigt[FIJK] + p->sigt[FIp1JK] + p->sigt[FIJKp1] + p->sigt[FIp1JKp1]);

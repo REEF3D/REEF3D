@@ -25,7 +25,6 @@ Author: Hans Bihs
 #include"slice4.h"
 
 class lexer;
-class fdm;
 class ghostcell;
 
 using namespace std;

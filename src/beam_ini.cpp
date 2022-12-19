@@ -20,9 +20,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"beam.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
 #include<sys/stat.h>
 
 void beam::iniBeam(double Ne_, double E_, double A_, double rho_, double L_, double G_, double IX_, double IY_, double IZ_)

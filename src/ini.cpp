@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
  *
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"lexer.h"
@@ -50,6 +51,7 @@ void lexer::ini_default()
     A247=0.6;    // double breaking parameter alpha
     A248=0;      // int turn on breaking persistence
     A249=0.3;    // double breaking persistence parameter beta
+    A250=1.86;   // double viscosity breaking wave
     A251=0;    // double fsf-slope in x-dir
     A260=0;      // int turbulence model
     A261=0.267;  // double length scale factor
@@ -102,7 +104,7 @@ void lexer::ini_default()
 
     // Boundary Conditions
 	B10=0;			// int wall laws velocities on/off
-	B20=2;			// int slip or no-slip boundary condition for velocity
+	B20=2;			// int slip or no-slip boundary condition for velocity    B21=2;			// int slip or no-slip boundary condition for velocity gradients    B22=2;			// int slip or no-slip boundary condition for level set convection    B23=1;            // int ghostcell extrapolation or refective
 	B26=1;			// int boundary condition implementation level set method
 	B29=0.5;		// double gamma for gc image point
 	B30=0;			// int inflow crossection via cbc
@@ -264,7 +266,7 @@ void lexer::ini_default()
 	D11=2;			// int convection velocity scheme
 	D20=2;			// int diffusion scheme
 	D21=0;			// int print out implicit diffusion time and iterations
-	D30=1;			// int pressure scheme
+	D30=1;			// int pressure scheme    D31=0;			// int normalize pressure to free surface
     D37=0;          // int type of FSFBC for single fluid flow
     D38=0;          // int add hydrostatic pressure gradients to NSE
     D39=0;          // int activate 2nd-order pressure correction for PJM CORR
@@ -415,6 +417,7 @@ void lexer::ini_default()
 	N47=0.3;		// doubel relaxation factor for time stepping
 	N48=1;          // int adaptive timestepping
 	N49=1.0;		// double max timestep or fixed timesteps
+    N50=1;          // int adaptive timestepping method
 	N60=10;        // int maximum iteration of pjm correction
 	N61=500.0;      // double stopping criteria velocities
 
@@ -443,7 +446,7 @@ void lexer::ini_default()
 	P41=-10;			// int print state file each ith iteration
 	P42=-1.0;			// double print state file each ith sec
     P43=0;             // int state print out selected area
-    P44=0;             // print out 3D potential for FNPF
+    P44=0;             // int print out 3D potential for FNPF    P45=1;             // int print into single or continous state file
     P50=0;				// int wave theory wave gages
 	P51=0;             // int print out wsf
 	P52=0;            // int print out wsfline in x-dir
@@ -462,7 +465,7 @@ void lexer::ini_default()
     P72=0;           // int print omega_sig to vtu
     P73=0;           // int print hx and hy for sflow vtp
 	P75=0;            // int print out vorticity vec
-    P76=0;            // int print out velocity magnitude as scalar
+    P76=0;            // int print out bedload
     P77=0;            // int print out sediment parameters: 1
     P78=0;            // int print out sediment parameters: 2
 	P79=0;            // int print out bed shear stress when running sediment transport
@@ -486,7 +489,7 @@ void lexer::ini_default()
 	P181=-10;		  // int ith iteration fsf printed
 	P182=-1.0;       // double time between fsf file printout in seconds
     P184=0;       // int time between file printout in iterations
-	P185=0;        	// int time between file printout in seconds
+	P185=0;        	// int time between file printout in seconds    P190=0;			  // int print topo	P191=-10;		  // int ith iteration topo printed	P192=-1.0;       // double time between topo file printout in seconds    P194=0;       // int time between file printout in iterations	P195=0;        	// int time between file printout in seconds
     P210=0;			  // int print exportfile
 	P211=1;		  // int ith iteration export printed
 	P212=-1.0;       // double time between export file printout in seconds
@@ -503,13 +506,13 @@ void lexer::ini_default()
 	S14=0.3;               // double relaxation timestep size for sediment transport
 	S15=0;                  // int synchronize sediment time step with main solver
 	S16=1;                  // int bed shear stress formulation
+    S17=0;                  // int non-equillibrium bedload 
 	S19=1.0e+19; 			// double total time sediment
 	S20=0.001;          // double sediment d50
 	S21=3.0;          // double factor for d50 for calculation of ks in bedshear routine
     S22=2650.0;        // double sediment density
     S23=0.000001;     // double sediment fall velocity
     S24=0.5;               // double porosity of sediment layer
-    S25=30.0;             // double angle of respose
     S26_a=650.0;          // double alpha for VRANS sediment
     S26_b=2.2;            // double beta for VRANS sediment
     S30=0.047;          // double Shields parameter
@@ -540,6 +543,7 @@ void lexer::ini_default()
     S84=1;                  // int type of critical bed shear stress reduction limiters
     S90=0;                  // int sandslide on/off
     S91=1;                  // int number of sandslide iterations
+    S92=1.0;                // double sandslide correction factor
     S93=0.0;				// double delta phi for sandlide correciton
 	S100=0;					// int number of bed filter outer iterations
     S101=0;					// int number of bed filter inner iterations
@@ -549,12 +553,16 @@ void lexer::ini_default()
 	T10=0;			    // int turbulence model
 	T11=11;             // int time scheme for 2-eq turbulence models
 	T12=5;              // int convection scheme
+    T21=0;              // int type of LES filter
 	T31=0.816;	        // double factor for limiter for eddy limiter in phase 1
 	T32=0.816;	        // double factor for limiter for eddy limiter in phase 2
+    T33=0;               // int kin source
 	T35=0.816; 			// double factor for limiter for eddy limiter near wall
 	T36=0;				// int explciti free surface dampong through dissipation
 	T37=0.07;		    // int damping coefficient for T36
     T38=1.6;            // double epsi fsf turbulence damping
+    T41=0;              // int RANS stabilization
+    T42=0.05;           // double lambda1 factor
 
     // Water Properties
 	W1=998.2;		// double density water
@@ -617,7 +625,7 @@ void lexer::ini_default()
 	X10=0;		// int turn 6DOF on
 	X11_u=X11_v=X11_w=X11_p=X11_q=X11_r=1;		// int turn on degrees of freedom
     X12=1;      // int turn force calculation on
-	X13=2;      // int turn 6DOF algorithm wit quaternions on
+	X13=2;      // int turn 6DOF algorithm with quaternions on
 	X18=0;		// int relaxation method solid velocities
 	X19=1;		// int print out interval 6DOF log files
 	X21=1;		// int presribe homogeneous density floating body
@@ -637,6 +645,7 @@ void lexer::ini_default()
 	X42=0.0;    // double distance for pressure force evaluation
 	X43=1.0;    // double distance for shear stress evaluation
 	X44=0.0;    // double viscosity in body
+    X50=1;
 	X100=0;		// int delta x,y,z
 	X100_x=X100_y=X100_z=0.0;
 	X101=0;		// int ini Euler angles
@@ -664,7 +673,7 @@ void lexer::ini_default()
     X182=0;     // int translation on/off
     X182_x=X182_y=X182_z=0.0;  // double translation of stl geometry
     X183=0;
-    X183_x=X183_y=X183_z=X183_phi=X183_theta=X183_psi=0.0;
+    X183_x=X183_y=X183_z=X183_phi=X183_theta=X183_psi=0.0;    X205=1;     // type of ramp up function    X206=0;     // int ramp up     X206_T=0.0;   // double ramp up duration
 	X210=0;		// int give fixed linear velocity
     X210_u=0.0; // double fixed u vel
     X210_v=0.0; // double fixed v vel

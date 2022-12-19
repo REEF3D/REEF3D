@@ -22,7 +22,6 @@ Author: Hans Bihs
 
 #include"sandslide_v.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
 sandslide_v::sandslide_v(lexer *p)
@@ -33,7 +32,7 @@ sandslide_v::~sandslide_v()
 {
 }
 
-void sandslide_v::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
+void sandslide_v::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
 
 }

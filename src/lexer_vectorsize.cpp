@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"lexer.h"
@@ -86,6 +87,23 @@ void lexer::vecsize(ghostcell *pgc)
     //gcbextra=gcbextra0;
     
     C4_size=C4a_size=C6_size=M_size=veclength;
+    
+    
+    
+    
+    // 2D
+     slicenum= 0;
+    for(i=0; i<knox; ++i)
+    for(j=0; j<knoy; ++j)
+	if(flagslice4[(i-imin)*jmax + (j-jmin)]>0)
+    ++slicenum;
+    
+    gcpara_sum = gcslpara1_count + gcslpara2_count + gcslpara3_count + gcslpara4_count
+              + gcslparaco1_count + gcslparaco2_count + gcslparaco3_count + gcslparaco4_count;
+    
+    vec2Dlength = slicenum + gcbnum*3  + gcpara_sum*4;    
+    
+    C1_2D_size=C2_2D_size=C4_2D_size=M_2D_size=vec2Dlength;
 }
 
 void lexer::gcbextra_est(ghostcell *pgc)

@@ -32,8 +32,6 @@ Author: Hans Bihs
 #include"sflow_rough_void.h"
 #include"ioflow.h"
 #include"solver2D.h"
-#include"sflow_sediment_RK3.h"
-#include"sflow_sediment_RKv.h"
 #include"sflow_rheology_f.h"
 #include"sflow_rheology_v.h"
 #include"6DOF.h"
@@ -68,7 +66,6 @@ sflow_momentum_RK3::sflow_momentum_RK3(lexer *p, fdm2D *b, sflow_convection *pco
 	pfsf=pfreesurf;
     p6dof=pp6dof;
     
-    psedstep = new sflow_sediment_RKv(p,b);
 
     if(p->A218==0)
     prough = new sflow_rough_void(p);
@@ -112,9 +109,6 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
     pflow->waterlevel2D(p,b,pgc,etark1);
     pflow->eta_relax(p,pgc,etark1);
     pgc->gcsl_start4(p,etark1,gcval_eta);
-    
-    // sed
-    psedstep->step1(p, b, pgc, b->P, b->Q, 1.0);
 
 
     // U
@@ -205,8 +199,6 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
     pflow->eta_relax(p,pgc,etark2);
     pgc->gcsl_start4(p,etark2,gcval_eta);
     
-    // sed
-    psedstep->step2(p, b, pgc, Prk1, Qrk1, 0.25);
 
 	// U
 	starttime=pgc->timer();
@@ -295,9 +287,6 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
     pflow->waterlevel2D(p,b,pgc,b->eta);
     pflow->eta_relax(p,pgc,b->eta);
     pgc->gcsl_start4(p,b->eta,gcval_eta);
-    
-    // sed
-    psedstep->step3(p, b, pgc, Prk2, Qrk2, (2.0/3.0));
 
 
 	// U

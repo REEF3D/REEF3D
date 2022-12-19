@@ -26,34 +26,43 @@ Author: Hans Bihs
 
 void sflow_eta::breaking(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice &eta_n, double alpha)
 {    
-    if(p->A246==1)
+    if(p->A246>=1)
     SLICELOOP4
     {
             if( (eta(i,j)-eta_n(i,j))/(alpha*p->dt) > p->A247*sqrt(9.81*b->hp(i,j)))
             b->breaking(i,j)=1;
+            
+            if(p->A246==2)
+            {
+            if((eta(i+1,j)-eta(i-1,j))/(2.0*p->DXM)   < -p->A355 || (eta(i+1,j)-eta(i-1,j))/(2.0*p->DXM)   > p->A355)
+            b->breaking(i,j)=1;
+            
+            if((eta(i,j+1)-eta(i,j+1))/(2.0*p->DXM)   < -p->A355 || (eta(i,j+1)-eta(i,j-1))/(2.0*p->DXM)   > p->A355)
+            b->breaking(i,j)=1;
+            }
     }
     
     if(p->A242==1)
     SLICELOOP4
-    if(b->wet4(i,j)==1)
+    if(p->wet[IJ]==1)
     {
-        if(b->wet4(i+1,j)==0 || b->wet4(i+2,j)==0)
+        if(p->wet[Ip1J]==0 || p->wet[Ip2J]==0)
         b->breaking(i,j)=1;
             
-        if(b->wet4(i-1,j)==0 || b->wet4(i-2,j)==0)
+        if(p->wet[Im1J]==0 || p->wet[Im2J]==0)
         b->breaking(i,j)=1;
         
         
-        if(b->wet4(i,j+1)==0 || b->wet4(i,j+2)==0)
+        if(p->wet[IJp1]==0 || p->wet[IJp2]==0)
         b->breaking(i,j)=1;
             
-        if(b->wet4(i,j-1)==0 || b->wet4(i,j-2)==0)
+        if(p->wet[IJm1]==0 || p->wet[IJm2]==0)
         b->breaking(i,j)=1;
             
-        //if(b->wet4(i,j+1)==0)
+        //if(p->wet[IJp1]==0)
        // b->breaking(i,j)=1;
 
-        //if(b->wet4(i,j-1)==0)
+        //if(p->wet[IJm1]==0)
         //b->breaking(i,j)=1;
         
         if(b->hp(i,j) < 0.01)
@@ -70,12 +79,12 @@ void sflow_eta::breaking(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice &
     
     if(p->A242>=2)
     SLICELOOP4
-    if(b->wet4(i,j)==1)
+    if(p->wet[IJ]==1)
     {
-        if(b->wet4(i+1,j)==0 || b->wet4(i+2,j)==0)
+        if(p->wet[Ip1J]==0 || p->wet[Ip2J]==0)
         b->breaking(i,j)=1;
             
-        if(b->wet4(i-1,j)==0 || b->wet4(i-2,j)==0)
+        if(p->wet[Im1J]==0 || p->wet[Im2J]==0)
         b->breaking(i,j)=1;
         
         
@@ -118,10 +127,10 @@ void sflow_eta::breaking(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice &
             }
 
             
-        //if(b->wet4(i,j+1)==0)
+        //if(p->wet(i,j+1)==0)
        // b->breaking(i,j)=1;
 
-        //if(b->wet4(i,j-1)==0)
+        //if(p->wet(i,j-1)==0)
         //b->breaking(i,j)=1;
     }
     

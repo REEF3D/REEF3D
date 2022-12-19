@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
@@ -59,8 +60,7 @@ void driver::log_ini()
     if(p->P14==1)
     mainlogout.open("./REEF3D_Log/REEF3D_mainlog.dat");
 
-    mainlogout<<"number of cells:  "<<p->cellnumtot<<endl;
-    mainlogout<<"number of points: "<<p->pointnumtot<<endl<<endl;
+    mainlogout<<"number of cells:  "<<p->cellnumtot<<endl<<endl;
     mainlogout<<"#iteration \t #timestep \t #simtime \t #itertime \t #piter \t #ptime \t #Volume 1 \t #Volume2 \t #Inflow \t #Outflow \t #Ui \t #Phimean \t #Phiout "<<endl;
     }
 
@@ -71,8 +71,7 @@ void driver::log_ini()
     if(p->P14==1)
     maxlogout.open("./REEF3D_Log/REEF3D_maxlog.dat");
 
-    maxlogout<<"number of cells:  "<<p->cellnumtot<<endl;
-    maxlogout<<"number of points: "<<p->pointnumtot<<endl<<endl;
+    maxlogout<<"number of cells:  "<<p->cellnumtot<<endl<<endl;
     maxlogout<<"#iteration \t #umax \t\t #vmax \t\t #wmax \t\t #viscmax \t\t #kinmax \t\t #epsmax \t\t #pressmax "<<endl;
     }
 
@@ -83,24 +82,11 @@ void driver::log_ini()
     if(p->P14==1)
     solvlogout.open("./REEF3D_Log/REEF3D_solverlog.dat");
 
-    solvlogout<<"number of cells:  "<<p->cellnumtot<<endl;
-    solvlogout<<"number of points: "<<p->pointnumtot<<endl<<endl;
+    solvlogout<<"number of cells:  "<<p->cellnumtot<<endl<<endl;
     solvlogout<<"#iteration \t #itertime \t #totaltime \t |#piter \t #ptime \t| #uiter \t #utime \t| #viter \t #vtime \t| #witer \t #wtime \t|";
     solvlogout<<"#kiter \t #ktime \t| #eiter \t #etime \t|";
     solvlogout<<"#liter \t #ltime \t| #reiniiter \t #reinitime"<<endl;
     }
-
-    if(p->mpirank==0 && p->S10>=1)
-    {
-    if(p->P14==0)
-    sedlogout.open("REEF3D_sedimentlog.dat");
-    if(p->P14==1)
-    sedlogout.open("./REEF3D_Log/REEF3D_sedimentlog.dat");
-
-    sedlogout<<"number of cells:  "<<p->cellnumtot<<endl;
-    sedlogout<<"number of points: "<<p->pointnumtot<<endl<<endl;
-    sedlogout<<"#iteration \t #simtime  \t #dtsed \t| #sedtime \t #sediter \t #slidecells \t| #bedmin \t #bedmax \t|"<<endl;
-}
 
 }
 
@@ -147,20 +133,6 @@ void driver::solverlog(lexer* p)
      solvlogout<<p->F44<<" \t "<<setprecision(4)<<p->reinitime<<" \t "<<endl;
 	 }
 }
-
-void driver::sedimentlog(lexer* p)
-{
-     sedlogout<<p->count<<"\t \t \t";
-     sedlogout<<setprecision(4)<<p->dtsed<<" \t ";
-     sedlogout<<setprecision(5)<<p->simtime<<" \t ";
-     sedlogout<<setprecision(4)<<p->sedtime<<" \t ";
-     sedlogout<<setprecision(4)<<p->sediter<<" \t ";
-     sedlogout<<setprecision(4)<<p->slidecells<<" \t ";
-
-     sedlogout<<setprecision(4)<<p->bedmin<<" \t ";
-     sedlogout<<setprecision(4)<<p->bedmax<<" \t "<<endl;
-}
-
 
 
 

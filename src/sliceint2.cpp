@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sliceint2.h"
@@ -116,94 +117,94 @@ int & sliceint2::operator()(int ii, int jj)
 //1
 		if(di<0 && (dj==0||pip==1))
 		{
-			if(pp->gcslorig1[pp->mgcsl2[iter]-10][0][-di]==0)
+			if(pp->gcslorig2[pp->mgcsl2[iter]-10][0][-di]==0)
             {
             if(di<-2)
-            if(pp->gcslorig1[pp->mgcsl2[iter]-10][0][-di-1]==1)
+            if(pp->gcslorig2[pp->mgcsl2[iter]-10][0][-di-1]==1)
 			return gcfeld[pp->mgcsl2[iter]-10][0][-di-1];
             
             if(di<-2)
-            if(pp->gcslorig1[pp->mgcsl2[iter]-10][0][-di-2]==1)
+            if(pp->gcslorig2[pp->mgcsl2[iter]-10][0][-di-2]==1)
 			return gcfeld[pp->mgcsl2[iter]-10][0][-di-2];
             
             if(di<-1)
-            if(pp->gcslorig1[pp->mgcsl2[iter]-10][0][-di-1]==1)
+            if(pp->gcslorig2[pp->mgcsl2[iter]-10][0][-di-1]==1)
 			return gcfeld[pp->mgcsl2[iter]-10][0][-di-1];
             
             return V[iter];
             }
 			
-			if(pp->gcslorig1[pp->mgcsl2[iter]-10][0][-di]==1)
+			if(pp->gcslorig2[pp->mgcsl2[iter]-10][0][-di]==1)
 			return gcfeld[pp->mgcsl2[iter]-10][0][-di];
 		}
 //4
 		if(di>0 && (dj==0||pip==1))
 		{
-            if(pp->gcslorig1[pp->mgcsl2[iter]-10][3][di]==0)
+            if(pp->gcslorig2[pp->mgcsl2[iter]-10][3][di]==0)
             {
             if(di>2)
-            if(pp->gcslorig1[pp->mgcsl2[iter]-10][3][di-1]==1)
+            if(pp->gcslorig2[pp->mgcsl2[iter]-10][3][di-1]==1)
 			return gcfeld[pp->mgcsl2[iter]-10][3][di-1];
             
             if(di>2)
-            if(pp->gcslorig1[pp->mgcsl2[iter]-10][3][di-2]==1)
+            if(pp->gcslorig2[pp->mgcsl2[iter]-10][3][di-2]==1)
 			return gcfeld[pp->mgcsl2[iter]-10][3][di-2];
             
             if(di>1)
-            if(pp->gcslorig1[pp->mgcsl2[iter]-10][3][di-1]==1)
+            if(pp->gcslorig2[pp->mgcsl2[iter]-10][3][di-1]==1)
 			return gcfeld[pp->mgcsl2[iter]-10][3][di-1];
             
             return V[iter];
             }
 			
-			if(pp->gcslorig1[pp->mgcsl2[iter]-10][3][di]==1)
+			if(pp->gcslorig2[pp->mgcsl2[iter]-10][3][di]==1)
 			return gcfeld[pp->mgcsl2[iter]-10][3][di];
 		}
 
 //3
 		if(dj<0 && (di==0||pip==2))
 		{
-            if(pp->gcslorig1[pp->mgcsl2[iter]-10][2][-dj]==0)
+            if(pp->gcslorig2[pp->mgcsl2[iter]-10][2][-dj]==0)
             {
             if(dj<-2)
-            if(pp->gcslorig1[pp->mgcsl2[iter]-10][2][-dj-1]==1)
+            if(pp->gcslorig2[pp->mgcsl2[iter]-10][2][-dj-1]==1)
 			return gcfeld[pp->mgcsl2[iter]-10][2][-dj-1];
             
             if(dj<-2)
-            if(pp->gcslorig1[pp->mgcsl2[iter]-10][2][-dj-2]==1) 
+            if(pp->gcslorig2[pp->mgcsl2[iter]-10][2][-dj-2]==1) 
 			return gcfeld[pp->mgcsl2[iter]-10][2][-dj-2];
             
             if(dj<-1)
-            if(pp->gcslorig1[pp->mgcsl2[iter]-10][2][-dj-1]==1)
+            if(pp->gcslorig2[pp->mgcsl2[iter]-10][2][-dj-1]==1)
 			return gcfeld[pp->mgcsl2[iter]-10][2][-dj-1];
             
             return V[iter];
             }
 			
-			if(pp->gcslorig1[pp->mgcsl2[iter]-10][2][-dj]==1)
+			if(pp->gcslorig2[pp->mgcsl2[iter]-10][2][-dj]==1)
 			return gcfeld[pp->mgcsl2[iter]-10][2][-dj];
 		}
 //2
 		if(dj>0 && (di==0||pip==2))
 		{
-            if(pp->gcslorig1[pp->mgcsl2[iter]-10][1][dj]==0)
+            if(pp->gcslorig2[pp->mgcsl2[iter]-10][1][dj]==0)
             {
             if(dj>2)
-            if(pp->gcslorig1[pp->mgcsl2[iter]-10][1][dj-1]==1)
+            if(pp->gcslorig2[pp->mgcsl2[iter]-10][1][dj-1]==1)
 			return gcfeld[pp->mgcsl2[iter]-10][1][dj-1];
             
             if(dj>2)
-            if(pp->gcslorig1[pp->mgcsl2[iter]-10][1][dj-2]==1) 
+            if(pp->gcslorig2[pp->mgcsl2[iter]-10][1][dj-2]==1) 
 			return gcfeld[pp->mgcsl2[iter]-10][1][dj-2];
             
             if(dj>1)
-            if(pp->gcslorig1[pp->mgcsl2[iter]-10][1][dj-1]==1)
+            if(pp->gcslorig2[pp->mgcsl2[iter]-10][1][dj-1]==1)
 			return gcfeld[pp->mgcsl2[iter]-10][1][dj-1];
             
             return V[iter];
             }
 			
-			if(pp->gcslorig1[pp->mgcsl2[iter]-10][1][dj]==1)
+			if(pp->gcslorig2[pp->mgcsl2[iter]-10][1][dj]==1)
 			return gcfeld[pp->mgcsl2[iter]-10][1][dj];
 		}
 

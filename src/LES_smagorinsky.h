@@ -23,6 +23,8 @@ Author: Hans Bihs
 #include"LES.h"
 #include"field4.h"
 
+class LES_filter;
+
 using namespace std;
 
 #ifndef LES_SMAGORINSKY_H_
@@ -42,6 +44,8 @@ private:
 	double c_sgs;
 	int gcval_u1, gcval_v1, gcval_w1;
 	int gcval_u2, gcval_v2, gcval_w2;
+    
+    LES_filter *pfilter;
 
 };
 

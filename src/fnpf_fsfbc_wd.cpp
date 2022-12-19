@@ -190,9 +190,10 @@ void fnpf_fsfbc_wd::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
     pgc->gcsl_start4(p,c->By,1);
     
     SLICELOOP4
-    c->wet(i,j)=1;
+    p->wet[IJ]=1;
     
-    pgc->gcsl_start4int(p,c->wet,50);
+    pgc->gcsl_start4Vint(p,p->wet,50);
+    
 }
 
 void fnpf_fsfbc_wd::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
@@ -202,7 +203,7 @@ void fnpf_fsfbc_wd::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     {
     c->Fz(i,j) = p->sigz[IJ]*pconvec->sz(p,c->Fi);
 
-    if(c->wet(i,j)==0)
+    if(p->wet[IJ]==0)
     c->Fz(i,j) = 0.0;
     }
     
@@ -216,13 +217,6 @@ void fnpf_fsfbc_wd::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     c->K(i,j) =  - c->Fx(i,j)*c->Ex(i,j) - c->Fy(i,j)*c->Ey(i,j)
     
                  + c->Fz(i,j)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0));
-     /*
-    if(c->wet(i-1,j)==0 || c->wet(i+1,j)==0 || c->wet(i,j-1)==0 || c->wet(i,j+1)==0 
-  || c->wet(i-1,j-1)==0 || c->wet(i+1,j-1)==0 || c->wet(i-1,j+1)==0 || c->wet(i+1,j+1)==0)
-      c->K(i,j) = c->Fz(i,j);*/
-      
-    //if(c->wet(i,j)==0)
-    //c->K(i,j)=0.0;
     }
 }
 
@@ -234,13 +228,8 @@ void fnpf_fsfbc_wd::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
     
                  + 0.5*pow(c->Fz(i,j),2.0)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0)) - fabs(p->W22)*eta(i,j);   
 
-
-          /* 
-    if(c->wet(i-1,j)==0 || c->wet(i+1,j)==0 || c->wet(i,j-1)==0 || c->wet(i,j+1)==0 
-  || c->wet(i-1,j-1)==0 || c->wet(i+1,j-1)==0 || c->wet(i-1,j+1)==0 || c->wet(i+1,j+1)==0)
-      c->K(i,j) =  - fabs(p->W22)*eta(i,j);*/
       
-    if(c->wet(i,j)==0)
+    if(p->wet[IJ]==0)
     c->K(i,j)=0.0;
     }
 }

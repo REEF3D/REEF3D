@@ -143,7 +143,7 @@ void fsi_strip::coupling_force(lexer *p, double alpha)
     }
 }
 
-void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field1& fx, field2& fy, field3& fz)
+void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, field& fy, field& fz)
 {
     int ii, jj, kk;
     double dx, dy, dz, dV, dist, D;

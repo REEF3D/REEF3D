@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"wave_lib_hdc.h"
@@ -24,31 +25,26 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void wave_lib_hdc::read_result(lexer *p, ghostcell *pgc, double **E0, double ***U0, double ***V0, double ***W0, int q0)
 {
-    filename(p,pgc,q0);
-    
-    ifstream result;
+    // open
+    if(file_type==1)
+    {
+    filename_single(p,pgc,q0);
 	result.open(name, ios::binary);
+    }
     
+    // read file_iter
+    result.read((char*)&iin, sizeof (int));
+    file_iter=iin;
+    
+    if(p->mpirank==0)
+    cout<<"HDC file_iter: "<<file_iter<<endl;
+    
+    // read
     for(i=0; i<Nx; ++i)
     for(j=0; j<Ny; ++j)
     {
         result.read((char*)&ffn, sizeof (float)); 
-        E0[i][j]=ffn;
-        
-        //if(p->mpirank==0 && i==Nx-1) 
-        //cout<<" E0[i][j]: "<<E0[i][j]<<endl;
-    } 
-    
-    
-    for(i=0; i<Nx; ++i)
-    for(j=0; j<Ny; ++j)
-    for(k=0; k<Nz; ++k)
-    {
-        result.read((char*)&ffn, sizeof (float)); 
-        U0[i][j][k]=ffn;
-        
-        //if(p->mpirank==0 && i==Nx-1) 
-        //cout<<" U0[i][j]: "<<U0[i][j][k]<<endl;
+        E0[i][j]=double(ffn);
     } 
     
     for(i=0; i<Nx; ++i)
@@ -56,7 +52,7 @@ void wave_lib_hdc::read_result(lexer *p, ghostcell *pgc, double **E0, double ***
     for(k=0; k<Nz; ++k)
     {
         result.read((char*)&ffn, sizeof (float)); 
-        V0[i][j][k]=ffn;
+        U0[i][j][k]=double(ffn);
     } 
     
     for(i=0; i<Nx; ++i)
@@ -64,9 +60,19 @@ void wave_lib_hdc::read_result(lexer *p, ghostcell *pgc, double **E0, double ***
     for(k=0; k<Nz; ++k)
     {
         result.read((char*)&ffn, sizeof (float)); 
-        W0[i][j][k]=ffn;
+        V0[i][j][k]=double(ffn);
     } 
     
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    for(k=0; k<Nz; ++k)
+    {
+        result.read((char*)&ffn, sizeof (float)); 
+        W0[i][j][k]=double(ffn);
+    } 
+    
+    // close
+    if(file_type==1)
     result.close();
     
 }
