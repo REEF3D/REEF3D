@@ -68,6 +68,7 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
 	ray_cast(p,a,pgc);
 	reini_AB2(p,a,pgc,a->fb);
     pgc->start4a(p,a->fb,50);
+	
     
     // Initialise global variables
 	interface(p,true);
@@ -411,3 +412,5 @@ void sixdof_df_object::ini_parallel(lexer *p, fdm *a, ghostcell *pgc)
         MPI_Bcast(&zend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
     }
 }    
+
+

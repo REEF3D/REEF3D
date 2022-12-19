@@ -240,6 +240,11 @@ private:
 
     // Number
     int n6DOF;
+	
+
+		
+	
+
 };
 
 #endif
