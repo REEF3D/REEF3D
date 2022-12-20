@@ -335,9 +335,9 @@ void ioflow_f::rkinflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, fi
     v(i-1,j,k) = v(i-2,j,k) = v(i-3,j,k) = a->v(i-1,j,k);
     w(i-1,j,k) = w(i-2,j,k) = w(i-3,j,k) = a->w(i-1,j,k);
     
-    u(i-1,j,k) = u(i-2,j,k) = u(i-3,j,k) = u(i,j,k);
-    v(i-1,j,k) = v(i-2,j,k) = v(i-3,j,k) = v(i,j,k);
-    w(i-1,j,k) = w(i-2,j,k) = w(i-3,j,k) = w(i,j,k);
+    //u(i-1,j,k) = u(i-2,j,k) = u(i-3,j,k) = u(i,j,k);
+    //v(i-1,j,k) = v(i-2,j,k) = v(i-3,j,k) = v(i,j,k);
+    //w(i-1,j,k) = w(i-2,j,k) = w(i-3,j,k) = w(i,j,k);
     }
     
     pBC->patchBC_rkioflow(p,a,pgc,u,v,w);

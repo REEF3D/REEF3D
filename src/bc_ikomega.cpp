@@ -142,6 +142,32 @@ void bc_ikomega::bckeps_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
         }
     
 	}
+    
+    // turn off inside direct forcing body
+    if(p->X10==1 && p->X13==2)
+    {
+    
+        n=0;
+        LOOP
+        if(a->fb(i,j,k)<0.0)
+        {
+        a->M.p[n]  =   1.0;
+
+
+        a->M.n[n] = 0.0;
+        a->M.s[n] = 0.0;
+
+        a->M.w[n] = 0.0;
+        a->M.e[n] = 0.0;
+
+        a->M.t[n] = 0.0;
+        a->M.b[n] = 0.0;
+        
+        a->rhsvec.V[n] = 0.0;
+        
+        ++n;
+        }
+    }
 }
 
 void bc_ikomega::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj,int kk,int cs,int bc, int id, double dist)

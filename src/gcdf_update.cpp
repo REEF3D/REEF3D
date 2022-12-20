@@ -23,11 +23,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"lexer.h"
 #include"fdm.h"
-#include"mgc1.h"
-#include"mgc2.h"
-#include"mgc3.h"
-#include"mgc4.h"
-#include"mgc4a.h"
+#include"fieldint4.h"
 
 void ghostcell::gcdf_update(lexer *p, fdm *a)
 {
@@ -130,4 +126,25 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
         ++count;
         }       
     }
+    
+    fieldint4 cval(p);
+    
+    count=0;
+
+    FLUIDLOOP
+	{
+    cval(i,j,k)=count;
+    ++count;
+	}
+    
+    GCDF4LOOP
+    {
+    i=p->gcdf4[n][0];
+    j=p->gcdf4[n][1];
+    k=p->gcdf4[n][2];
+	
+	p->gcdf4[n][5]=cval(i,j,k);
+	}
+    
+    //delete cval();
 }

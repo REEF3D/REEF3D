@@ -108,7 +108,7 @@ void sixdof_df_object::updatePosition(lexer *p, fdm *a, ghostcell *pgc, bool fin
 }
 
 void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double alpha,
-                                     field &uvel, field &vvel, field &wvel,field1 &fx, field2 &fy, field3 &fz)
+                                     field& uvel, field& vvel, field& wvel,field1& fx, field2& fy, field3& fz)
 {
     // Determine floating body velocities
     Eigen::Matrix<double, 6, 1> u_fb;
@@ -122,16 +122,14 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
         u_fb << p_(0)/Mass_fb, p_(1)/Mass_fb, p_(2)/Mass_fb, omega_I(0), omega_I(1), omega_I(2);
     }
 
-    // Calculate forcing fields
-    double H, uf, vf, wf;
-
-
+// Calculate forcing fields
+    double H,Ht, uf, vf, wf;
+	double nx, ny, nz,norm ;
+	double psi, phival_fb;
+    
     ULOOP
     {
         uf = u_fb(0) + u_fb(4)*(p->pos1_z() - c_(2)) - u_fb(5)*(p->pos1_y() - c_(1));
-        
-        // blend uf with tangential velocity
-        
         H = Hsolidface(p,a,1,0,0);
        
         fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha*p->dt);   
@@ -157,8 +155,141 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
     {
         H = Hsolidface(p,a,0,0,0);
         a->fbh4(i,j,k) = min(a->fbh4(i,j,k) + H, 1.0); 
+    }
+
+// Construct solid heaviside function	
+ /*   psi = p->X41*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+
+    if (p->knoy == 1)
+    {
+        psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
+    }
+
+    
+    ULOOP
+    {
+        uf = u_fb(0) + u_fb(4)*(p->pos1_z() - c_(2)) - u_fb(5)*(p->pos1_y() - c_(1));
+
+		// Normal vectors calculation 
+		nx = -(a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
+		ny = -(a->fb(i,j+1,k) - a->fb(i,j-1,k))/(2.0*p->DYN[JP]);
+		nz = -(a->fb(i,j,k+1) - a->fb(i,j,k-1))/(2.0*p->DZN[KP]);
+
+		norm = sqrt(nx*nx + ny*ny + nz*nz);
+                
+		nx /= norm > 1.0e-20 ? norm : 1.0e20;
+		ny /= norm > 1.0e-20 ? norm : 1.0e20;
+		nz /= norm > 1.0e-20 ? norm : 1.0e20;
+
+		H = Hsolidface(p,a,1,0,0);
+	    Ht = Hsolidface_t(p,a,1,0,0);
+	
+	   //cout<<"Htx: "<<Ht<<endl;
+		
+		// Level set function
+		phival_fb = 0.5*(a->fb(i,j,k) + a->fb(i+1,j,k));	
+		
+		// Construct the field around the solid body to adjust the tangential velocity and calculate forcing
+		if (phival_fb < 0)
+		{
+			fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha*p->dt); 
+		}
+		else if (phival_fb >0 && phival_fb<psi )
+		{
+			fx(i,j,k) +=   fabs(nx)*H*(uf - uvel(i,j,k))/(alpha*p->dt);
+		}
+		else
+		{
+			fx(i,j,k) += 0;
+		}
+	
+        a->fbh1(i,j,k) = min(a->fbh1(i,j,k) + H, 1.0); 
+    }
+    VLOOP
+    {
+		// Normal vectors calculation 
+		nx = -(a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
+		ny = -(a->fb(i,j+1,k) - a->fb(i,j-1,k))/(2.0*p->DYN[JP]);
+		nz = -(a->fb(i,j,k+1) - a->fb(i,j,k-1))/(2.0*p->DZN[KP]);
+
+		norm = sqrt(nx*nx + ny*ny + nz*nz);
+                
+		nx /= norm > 1.0e-20 ? norm : 1.0e20;
+		ny /= norm > 1.0e-20 ? norm : 1.0e20;
+		nz /= norm > 1.0e-20 ? norm : 1.0e20;
+
+        vf = u_fb(1) + u_fb(5)*(p->pos2_x() - c_(0)) - u_fb(3)*(p->pos2_z() - c_(2));
+        H = Hsolidface(p,a,0,1,0);
+		Ht = Hsolidface_t(p,a,0,1,0);
+		
+      
+		//Level set function
+		phival_fb = 0.5*(a->fb(i,j,k) + a->fb(i,j+1,k));
+	  
+		//Construct the field around the solid body to adjust the tangential velocity and calculate forcing
+	    if (phival_fb < 0)
+		{
+			fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha*p->dt); 
+		}
+		else if (phival_fb >0 && phival_fb<psi )
+		{
+			fy(i,j,k) +=   fabs(ny)*H*(vf - vvel(i,j,k))/(alpha*p->dt);
+		}
+		else
+		{
+			fy(i,j,k) += 0;
+		}
+	  
+        a->fbh2(i,j,k) = min(a->fbh2(i,j,k) + H , 1.0); 
+    }
+	
+    WLOOP
+    {
+		// Normal vectors calculation 
+		nx = -(a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
+		ny = -(a->fb(i,j+1,k) - a->fb(i,j-1,k))/(2.0*p->DYN[JP]);
+		nz = -(a->fb(i,j,k+1) - a->fb(i,j,k-1))/(2.0*p->DZN[KP]);
+
+		norm = sqrt(nx*nx + ny*ny + nz*nz);
+                
+		nx /= norm > 1.0e-20 ? norm : 1.0e20;
+		ny /= norm > 1.0e-20 ? norm : 1.0e20;
+		nz /= norm > 1.0e-20 ? norm : 1.0e20;
+
+        wf = u_fb(2) + u_fb(3)*(p->pos3_y() - c_(1)) - u_fb(4)*(p->pos3_x() - c_(0));
+        H = Hsolidface(p,a,0,0,1);
+		Ht = Hsolidface_t(p,a,0,0,1);
+
+
+		// Level set function
+		phival_fb = 0.5*(a->fb(i,j,k) + a->fb(i,j,k+1));
+		
+		// Construct the field around the solid body to adjust the tangential velocity and calculate forcing
+
+		if (phival_fb < 0)
+		{
+			fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha*p->dt); 
+		}
+		else if (phival_fb >0 && phival_fb<psi )
+		{
+			fz(i,j,k) +=   fabs(nz)*H*(wf - wvel(i,j,k))/(alpha*p->dt);
+		}
+		else
+		{
+			fz(i,j,k) += 0;
+		}
+	
+        a->fbh3(i,j,k) = min(a->fbh3(i,j,k) + H , 1.0); 
+    }
+    LOOP
+    {
+        H = Hsolidface(p,a,0,0,0);
+		Ht = Hsolidface_t(p,a,0,0,0);
+        a->fbh4(i,j,k) = min(a->fbh4(i,j,k) + H, 1.0); 
         a->test(i,j,k) = a->fbh4(i,j,k);
     }
+	
+	*/
 
     pgc->start1(p,a->fbh1,10);
     pgc->start2(p,a->fbh2,11);
@@ -189,7 +320,7 @@ void sixdof_df_object::quat_matrices(const Eigen::Vector4d& e)
 
 double sixdof_df_object::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
-    double psi, H, phival_fb;
+    double psi, H, phival_fb,dirac;
 	
     psi = p->X41*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
 
@@ -199,9 +330,8 @@ double sixdof_df_object::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
     }
 
     // Construct solid heaviside function
-
     phival_fb = 0.5*(a->fb(i,j,k) + a->fb(i+aa,j+bb,k+cc));
-    
+	
     if (-phival_fb > psi)
     {
         H = 1.0;
@@ -214,6 +344,39 @@ double sixdof_df_object::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
     {
         H = 0.5*(1.0 + -phival_fb/psi + (1.0/PI)*sin((PI*-phival_fb)/psi));
     }
-        
+	
     return H;
 }
+
+double sixdof_df_object::Hsolidface_t(lexer *p, fdm *a, int aa, int bb, int cc)
+{
+    double psi, H, phival_fb,dirac;
+	
+    psi = p->X41*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+
+    if (p->knoy == 1)
+    {
+        psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
+    }
+
+    // Construct solid heaviside function
+    phival_fb = 0.5*(a->fb(i,j,k) + a->fb(i+aa,j+bb,k+cc));
+	
+    if (-phival_fb > psi)
+    {
+        H = 1.0;
+    }
+    else if (-phival_fb < -psi)
+    {
+        H = 0.0;
+    }
+    else
+    {
+        H = 0.5*(1.0 + -phival_fb/psi + (1.0/PI)*sin((PI*-phival_fb)/psi));
+    }
+	
+    return H;
+}
+
+
+
