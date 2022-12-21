@@ -41,10 +41,10 @@ public:
 
 	virtual double roface(lexer*,fdm*,int,int,int);
 	
-	double H,H_fb,roval,phival;
+	double H,H_fb,roval,phival,fbval;
 	int ii,jj,kk;
 	const double epsi,eps;
-    double psi;
+    double psi,chi;
     double r,s;
 
 };

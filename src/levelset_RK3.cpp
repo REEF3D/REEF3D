@@ -184,7 +184,7 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
     ppicard->correct_ls(p,a,pgc,ls);
 	ppart->picardmove(p,a,pgc);
     
-	//pupdate->start(p,a,pgc);
+	pupdate->start(p,a,pgc);
 
 	if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"lsmtime: "<<setprecision(3)<<p->lsmtime<<endl;

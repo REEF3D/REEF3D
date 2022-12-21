@@ -1218,7 +1218,7 @@ void lexer::ctrlsend()
 	ictrl[ii] = X12;
 	ii++;
 	ictrl[ii] = X13;
-	ii++;  	
+	ii++;     ictrl[ii] = X14;	ii++;  	
     ictrl[ii] = X18;
 	ii++;
 	ictrl[ii] = X19;

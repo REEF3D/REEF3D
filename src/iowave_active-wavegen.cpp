@@ -81,7 +81,7 @@ void iowave::active_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
 			u(i-2,j,k)=uvel*fac + p->Ui;
 			u(i-3,j,k)=uvel*fac + p->Ui;
             
-            v(i-1,j,k)=vvel*fac;
+             v(i-1,j,k)=vvel*fac;
 			v(i-2,j,k)=vvel*fac;
 			v(i-3,j,k)=vvel*fac;
             

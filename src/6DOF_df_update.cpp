@@ -127,6 +127,9 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
 	double nx, ny, nz,norm ;
 	double psi, phival_fb;
     
+    if(p->X14==1)
+    {
+        
     ULOOP
     {
         uf = u_fb(0) + u_fb(4)*(p->pos1_z() - c_(2)) - u_fb(5)*(p->pos1_y() - c_(1));
@@ -156,19 +159,21 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
         H = Hsolidface(p,a,0,0,0);
         a->fbh4(i,j,k) = min(a->fbh4(i,j,k) + H, 1.0); 
     }
-
-// Construct solid heaviside function	
- /*   psi = p->X41*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
-
-    if (p->knoy == 1)
-    {
-        psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
+    
     }
 
-    
+// Construct solid heaviside function	
+    if(p->X14==2)
+    {
+        
     ULOOP
     {
         uf = u_fb(0) + u_fb(4)*(p->pos1_z() - c_(2)) - u_fb(5)*(p->pos1_y() - c_(1));
+        
+        psi = p->X41*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+
+        if (p->j_dir==0)
+        psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
 
 		// Normal vectors calculation 
 		nx = -(a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
@@ -207,6 +212,15 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
     }
     VLOOP
     {
+        vf = u_fb(1) + u_fb(5)*(p->pos2_x() - c_(0)) - u_fb(3)*(p->pos2_z() - c_(2));
+        
+        
+        psi = p->X41*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+
+        if (p->j_dir==0)
+        psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
+
+    
 		// Normal vectors calculation 
 		nx = -(a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
 		ny = -(a->fb(i,j+1,k) - a->fb(i,j-1,k))/(2.0*p->DYN[JP]);
@@ -218,7 +232,7 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
 		ny /= norm > 1.0e-20 ? norm : 1.0e20;
 		nz /= norm > 1.0e-20 ? norm : 1.0e20;
 
-        vf = u_fb(1) + u_fb(5)*(p->pos2_x() - c_(0)) - u_fb(3)*(p->pos2_z() - c_(2));
+        
         H = Hsolidface(p,a,0,1,0);
 		Ht = Hsolidface_t(p,a,0,1,0);
 		
@@ -245,6 +259,13 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
 	
     WLOOP
     {
+        wf = u_fb(2) + u_fb(3)*(p->pos3_y() - c_(1)) - u_fb(4)*(p->pos3_x() - c_(0));
+        
+        psi = p->X41*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+
+        if (p->j_dir==0)
+        psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
+        
 		// Normal vectors calculation 
 		nx = -(a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
 		ny = -(a->fb(i,j+1,k) - a->fb(i,j-1,k))/(2.0*p->DYN[JP]);
@@ -256,7 +277,7 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
 		ny /= norm > 1.0e-20 ? norm : 1.0e20;
 		nz /= norm > 1.0e-20 ? norm : 1.0e20;
 
-        wf = u_fb(2) + u_fb(3)*(p->pos3_y() - c_(1)) - u_fb(4)*(p->pos3_x() - c_(0));
+        
         H = Hsolidface(p,a,0,0,1);
 		Ht = Hsolidface_t(p,a,0,0,1);
 
@@ -289,7 +310,7 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
         a->test(i,j,k) = a->fbh4(i,j,k);
     }
 	
-	*/
+	}
 
     pgc->start1(p,a->fbh1,10);
     pgc->start2(p,a->fbh2,11);
