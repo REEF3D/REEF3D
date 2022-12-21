@@ -391,7 +391,7 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 		
             if(wsf>-1.0e19)
 			KLOOP 
-            sPCHECK
+            PCHECK
 			{
 			pval=(wsf - p->pos_z()+0.5*p->DZP[KP])*a->ro(i,j,k)*fabs(p->W22);
 			
