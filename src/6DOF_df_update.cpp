@@ -122,16 +122,26 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
         u_fb << p_(0)/Mass_fb, p_(1)/Mass_fb, p_(2)/Mass_fb, omega_I(0), omega_I(1), omega_I(2);
     }
 
-    // Calculate forcing fields
     double H,Ht, uf, vf, wf;
 	
 	double nx, ny, nz,norm ;
+	
+	double psi, phival_fb;
+	
+	// Transition thickhness 
+    psi = p->X41*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+
+    if (p->knoy == 1)
+    {
+        psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
+    }
+
 	
     ULOOP
     {
         uf = u_fb(0) + u_fb(4)*(p->pos1_z() - c_(2)) - u_fb(5)*(p->pos1_y() - c_(1));
 
-		
+		// Normal vectors calculation 
 		nx = -(a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
 		ny = -(a->fb(i,j+1,k) - a->fb(i,j-1,k))/(2.0*p->DYN[JP]);
 		nz = -(a->fb(i,j,k+1) - a->fb(i,j,k-1))/(2.0*p->DZN[KP]);
@@ -149,23 +159,39 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
 	
 	   //cout<<"Htx: "<<Ht<<endl;
 		
+		// Level set function
+		phival_fb = 0.5*(a->fb(i,j,k) + a->fb(i+1,j,k));	
 		
-		fx(i,j,k) +=fabs(nx)*(1-Ht)*H*(uf - uvel(i,j,k))/(alpha*p->dt)+(1-fabs(nx))*Ht*H*(uf - uvel(i,j,k))/(alpha*p->dt); //2nd modification
+		// Construct the field around the solid body to adjust the tangential velocity and calculate forcing
+		if (phival_fb < 0)
+		{
+			fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha*p->dt); 
+		}
+		else if (phival_fb >0 && phival_fb<psi )
+		{
+			fx(i,j,k) +=   fabs(nx)*H*(uf - uvel(i,j,k))/(alpha*p->dt);
+		}
+		else
+		{
+			fx(i,j,k) += 0;
+		}
+	
+		
+		
+		//fx(i,j,k) +=fabs(nx)*(1-Ht)*H*(uf - uvel(i,j,k))/(alpha*p->dt)+(1-fabs(nx))*Ht*H*(uf - uvel(i,j,k))/(alpha*p->dt); //2nd modification
 		//fx(i,j,k) += fabs(nx)*H*(uf - uvel(i,j,k))/(alpha*p->dt); //1st modification
 		//fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha*p->dt); 		
 		//fx(i,j,k) +=fabs(nx)*(Ht)*H*(uf - uvel(i,j,k))/(alpha*p->dt)-(1-fabs(nx))*Ht*H*(uf - uvel(i,j,k))/(alpha*p->dt); 
 		//fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha*p->dt)-fabs(1-nx)*H*(uf - uvel(i,j,k))/(alpha*p->dt); 
 		//fx(i,j,k) +=fabs(nx)*(Ht)*(1-H)*(uf - uvel(i,j,k))/(alpha*p->dt)+(1-fabs(nx))*Ht*H*(uf - uvel(i,j,k))/(alpha*p->dt); 
 		//fx(i,j,k) +=fabs(nx)*(Ht)*H*(uf - uvel(i,j,k))/(alpha*p->dt)+(1-fabs(nx))*(1-Ht)*H*(uf - uvel(i,j,k))/(alpha*p->dt); 
-		
-		
-
+	
           
-
         a->fbh1(i,j,k) = min(a->fbh1(i,j,k) + H, 1.0); 
     }
     VLOOP
     {
+		// Normal vectors calculation 
 		nx = -(a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
 		ny = -(a->fb(i,j+1,k) - a->fb(i,j-1,k))/(2.0*p->DYN[JP]);
 		nz = -(a->fb(i,j,k+1) - a->fb(i,j,k-1))/(2.0*p->DZN[KP]);
@@ -184,12 +210,29 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
 		
 		//cout<<"Hty: "<<Ht<<endl;
       
+		//Level set function
+		phival_fb = 0.5*(a->fb(i,j,k) + a->fb(i,j+1,k));
+	  
+		//Construct the field around the solid body to adjust the tangential velocity and calculate forcing
+	    if (phival_fb < 0)
+		{
+			fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha*p->dt); 
+		}
+		else if (phival_fb >0 && phival_fb<psi )
+		{
+			fy(i,j,k) +=   fabs(ny)*H*(vf - vvel(i,j,k))/(alpha*p->dt);
+		}
+		else
+		{
+			fy(i,j,k) += 0;
+		}
+	  
 	
 		//fy(i,j,k) += fabs(ny)*(Ht)*H*(vf - vvel(i,j,k))/(alpha*p->dt)+(1-fabs(ny))*(1-Ht)*H*(vf - vvel(i,j,k))/(alpha*p->dt);
 		//fy(i,j,k) += fabs(ny)*H*(vf - vvel(i,j,k))/(alpha*p->dt);
 		//fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha*p->dt);
 
-		fy(i,j,k) += fabs(ny)*(1-Ht)*H*(vf - vvel(i,j,k))/(alpha*p->dt)+(1-fabs(ny))*Ht*H*(vf - vvel(i,j,k))/(alpha*p->dt);
+		//fy(i,j,k) += fabs(ny)*(1-Ht)*H*(vf - vvel(i,j,k))/(alpha*p->dt)+(1-fabs(ny))*Ht*H*(vf - vvel(i,j,k))/(alpha*p->dt);
 		//fy(i,j,k) += fabs(ny)*(Ht)*H*(vf - vvel(i,j,k))/(alpha*p->dt)-(1-fabs(ny))*Ht*H*(vf - vvel(i,j,k))/(alpha*p->dt);
 		//fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha*p->dt)-fabs(1-ny)*H*(vf - vvel(i,j,k))/(alpha*p->dt);
 		
@@ -200,6 +243,7 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
 	
     WLOOP
     {
+		// Normal vectors calculation 
 		nx = -(a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
 		ny = -(a->fb(i,j+1,k) - a->fb(i,j-1,k))/(2.0*p->DYN[JP]);
 		nz = -(a->fb(i,j,k+1) - a->fb(i,j,k-1))/(2.0*p->DZN[KP]);
@@ -219,11 +263,28 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
 		Ht = Hsolidface_t(p,a,0,0,1);
 
 		//cout<<"Htz: "<<Ht<<endl;
-        
 		
+		// Level set function
+		phival_fb = 0.5*(a->fb(i,j,k) + a->fb(i,j,k+1));
+		
+		// Construct the field around the solid body to adjust the tangential velocity and calculate forcing
+
+		if (phival_fb < 0)
+		{
+			fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha*p->dt); 
+		}
+		else if (phival_fb >0 && phival_fb<psi )
+		{
+			fz(i,j,k) +=   fabs(nz)*H*(wf - wvel(i,j,k))/(alpha*p->dt);
+		}
+		else
+		{
+			fz(i,j,k) += 0;
+		}
+	
 		//fz(i,j,k) += fabs(nz)*H*(wf - wvel(i,j,k))/(alpha*p->dt);
 		//fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha*p->dt);
-		fz(i,j,k) += fabs(nz)*(1-Ht)*H*(wf - wvel(i,j,k))/(alpha*p->dt)+(1-fabs(nz))*Ht*H*(wf - wvel(i,j,k))/(alpha*p->dt);
+		//fz(i,j,k) += fabs(nz)*(1-Ht)*H*(wf - wvel(i,j,k))/(alpha*p->dt)+(1-fabs(nz))*Ht*H*(wf - wvel(i,j,k))/(alpha*p->dt);
 		//fz(i,j,k) += fabs(nz)*(Ht)*H*(wf - wvel(i,j,k))/(alpha*p->dt)-(1-fabs(nz))*Ht*H*(wf - wvel(i,j,k))/(alpha*p->dt);
 		//fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha*p->dt)-fabs(1-nz)*H*(wf - wvel(i,j,k))/(alpha*p->dt);
 		//fz(i,j,k) += fabs(nz)*(1-Ht)*H*(wf - wvel(i,j,k))/(alpha*p->dt)+(1-fabs(nz))*(1-Ht)*H*(wf - wvel(i,j,k))/(alpha*p->dt);
