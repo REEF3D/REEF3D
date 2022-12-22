@@ -144,6 +144,8 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 	
 	pgc->start4(p,ark1,gcval_phi);
     
+    df_update(p,ark1);
+    
 // Step 2
     FLUIDLOOP
 	a->L(i,j,k)=0.0;
@@ -158,6 +160,8 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 	pflow->phi_relax(p,pgc,ark2);
 	
 	pgc->start4(p,ark2,gcval_phi);
+    
+    df_update(p,ark2);
 
 // Step 3
     FLUIDLOOP
@@ -172,6 +176,8 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 
     pflow->phi_relax(p,pgc,ls);
 	pgc->start4(p,ls,gcval_phi);
+    
+    df_update(p,ls);
 
     ppart->start(p,a,pgc,pflow);
     
@@ -179,6 +185,8 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 	p->lsmtime=pgc->timer()-starttime;
 
 	preini->start(a,p,ls, pgc, pflow);
+    
+    df_update(p,ls);
 	
 
     ppicard->correct_ls(p,a,pgc,ls);
@@ -199,3 +207,41 @@ void levelset_RK3::update(lexer *p, fdm *a, ghostcell *pgc, field &f)
     pupdate->start(p,a,pgc);
 }
 
+void levelset_RK3::df_update(lexer *p, field &f)
+{
+    int margin=3;
+    int q;
+    /*
+    for(n=0;n<p->gcdf4_count;++n)
+    {
+    i = p->gcdf4[n][0];
+    j = p->gcdf4[n][1];
+    k = p->gcdf4[n][2];
+    
+    //cout<<p->mpirank<<" i: "<<i<<" j: "<<j<<" k: "<<k<<" cs: "<<p->gcdf4[n][3]<<endl;
+    
+    if(p->gcdf4[n][3]==1)
+	for(q=0;q<margin;++q)
+	f(i-q-1,j,k)=f(i,j,k);
+
+	if(p->gcdf4[n][3]==2)
+	for(q=0;q<margin;++q)
+	f(i,j+q+1,k)=f(i,j,k);
+
+	if(p->gcdf4[n][3]==3)
+	for(q=0;q<margin;++q)
+	f(i,j-q-1,k)=f(i,j,k);
+
+	if(p->gcdf4[n][3]==4)
+	for(q=0;q<margin;++q)
+	f(i+q+1,j,k)=f(i,j,k);
+
+	if(p->gcdf4[n][3]==5)
+	for(q=0;q<margin;++q)
+	f(i,j,k-q-1)=f(i,j,k);
+
+	if(p->gcdf4[n][3]==6)
+	for(q=0;q<margin;++q)
+	f(i,j,k+q+1)=f(i,j,k);
+    }*/
+}

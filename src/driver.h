@@ -71,6 +71,8 @@ class patchBC_interface;
 class nhflow;
 class multiphase;
 class nhflow_momentum;
+class sixdof_df;
+class momentum_RK3_df;
 
 #include<iostream>
 #include<fstream>
@@ -105,7 +107,7 @@ public:
     void loop_ptf(fdm*);
     void loop_fnpf();
     
-	void logic();
+	void logic_cfd();
     void logic_ptf();
     void logic_fnpf();
     void logic_nhflow();
@@ -113,7 +115,7 @@ public:
     
     void patchBC_logic();
     
-	void driver_ini();
+	void driver_ini_cfd();
     void driver_ini_nhflow();
     void driver_ini_nsewave();
     void driver_ini_fnpf();
@@ -198,6 +200,8 @@ public:
     multiphase *pmp;
     nhflow_timestep *pnhfstep;
     nhflow_momentum *pnhfmom;
+    sixdof_df *p6dof_df;
+    momentum_RK3_df *pmom_df;
 
 
 private:

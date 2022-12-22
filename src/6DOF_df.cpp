@@ -24,6 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"ddweno_f_nug.h"
 
 sixdof_df::sixdof_df(lexer *p, fdm *a, ghostcell *pgc)
 {
@@ -36,6 +37,9 @@ sixdof_df::sixdof_df(lexer *p, fdm *a, ghostcell *pgc)
     {
         p_df_obj.push_back(new sixdof_df_object(p,a,pgc,nb));
     }
+    
+    
+    pdx = new ddweno_f_nug(p);
 }
     
 sixdof_df::~sixdof_df()

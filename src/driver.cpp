@@ -142,9 +142,9 @@ void driver::cfd_driver()
 	aa=a;
     pgc->fdm_update(a);
     
-    logic();
+    logic_cfd();
     
-    driver_ini();
+    driver_ini_cfd();
     
     // Start MAINLOOP
     if(((p->X10==0 || p->X13!=2) && p->Z10==0))
@@ -164,11 +164,11 @@ void driver::nsewave_driver()
 	aa=a;
     pgc->fdm_update(a);
 
-    logic();
+    logic_cfd();
     
     driver_ini_nsewave();
     
-	driver_ini();
+	driver_ini_cfd();
     
     // Start MAINLOOP
     loop_nsewave(a);

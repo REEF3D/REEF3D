@@ -163,18 +163,13 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
     }
 
 // Construct solid heaviside function	
-    if(p->X14==2)
+    if(p->X14>=2)
     {
         
     ULOOP
     {
         uf = u_fb(0) + u_fb(4)*(p->pos1_z() - c_(2)) - u_fb(5)*(p->pos1_y() - c_(1));
         
-        psi = p->X41*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
-
-        if (p->j_dir==0)
-        psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
-
 		// Normal vectors calculation 
 		nx = -(a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
 		ny = -(a->fb(i,j+1,k) - a->fb(i,j-1,k))/(2.0*p->DYN[JP]);
@@ -201,7 +196,11 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
 		}
 		else if (phival_fb >0 && phival_fb<psi )
 		{
+            if(p->X14==2)
 			fx(i,j,k) +=   fabs(nx)*H*(uf - uvel(i,j,k))/(alpha*p->dt);
+            
+            if(p->X14==3)
+			fx(i,j,k) +=   (fabs(nx)*H + ((1.0-fabs(nx))*Ht))*(uf - uvel(i,j,k))/(alpha*p->dt);
 		}
 		else
 		{
@@ -214,12 +213,6 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
     {
         vf = u_fb(1) + u_fb(5)*(p->pos2_x() - c_(0)) - u_fb(3)*(p->pos2_z() - c_(2));
         
-        
-        psi = p->X41*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
-
-        if (p->j_dir==0)
-        psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
-
     
 		// Normal vectors calculation 
 		nx = -(a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
@@ -247,7 +240,11 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
 		}
 		else if (phival_fb >0 && phival_fb<psi )
 		{
-			fy(i,j,k) +=   fabs(ny)*H*(vf - vvel(i,j,k))/(alpha*p->dt);
+            if(p->X14==2)
+            fy(i,j,k) +=   fabs(ny)*H*(vf - vvel(i,j,k))/(alpha*p->dt);
+            
+            if(p->X14==3)
+            fy(i,j,k) +=   (fabs(ny)*H + ((1.0-fabs(ny))*Ht))*(vf - vvel(i,j,k))/(alpha*p->dt);
 		}
 		else
 		{
@@ -261,11 +258,7 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
     {
         wf = u_fb(2) + u_fb(3)*(p->pos3_y() - c_(1)) - u_fb(4)*(p->pos3_x() - c_(0));
         
-        psi = p->X41*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
 
-        if (p->j_dir==0)
-        psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
-        
 		// Normal vectors calculation 
 		nx = -(a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
 		ny = -(a->fb(i,j+1,k) - a->fb(i,j-1,k))/(2.0*p->DYN[JP]);
@@ -293,7 +286,11 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
 		}
 		else if (phival_fb >0 && phival_fb<psi )
 		{
-			fz(i,j,k) +=   fabs(nz)*H*(wf - wvel(i,j,k))/(alpha*p->dt);
+            if(p->X14==2)
+            fz(i,j,k) +=   fabs(nz)*H*(wf - wvel(i,j,k))/(alpha*p->dt);
+            
+            if(p->X14==3)
+            fz(i,j,k) +=   (fabs(nz)*H + ((1.0-fabs(nz))*Ht))*(wf - wvel(i,j,k))/(alpha*p->dt);
 		}
 		else
 		{
@@ -373,11 +370,11 @@ double sixdof_df_object::Hsolidface_t(lexer *p, fdm *a, int aa, int bb, int cc)
 {
     double psi, H, phival_fb,dirac;
 	
-    psi = p->X41*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+    psi = 0.5*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
 
     if (p->knoy == 1)
     {
-        psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
+        psi = 0.5*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
     }
 
     // Construct solid heaviside function

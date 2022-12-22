@@ -562,7 +562,7 @@ public:
 	double phi_fb,theta_fb,psi_fb;
 	double ufbmax, vfbmax, wfbmax;
 	//Eigen::Matrix3d quatRotMat;	
-    int X10,X12,X13,X14,X18,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X31,X32,X33,X34,X38,X40,X50,X110,X120,X131,X132,X133;
+    int X10,X12,X13,X14,X15,X18,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X31,X32,X33,X34,X38,X40,X50,X110,X120,X131,X132,X133;
 	int X100,X101,X102,X103,X141,X142,X143,X153,X180,X181,X182,X183,X210,X211;
 	int X310, X311, X312, X313, X314, X315, X320, X321, mooring_count, net_count;
 	double X21_d,X22_m;
@@ -600,6 +600,7 @@ public:
     double X181_x,X181_y,X181_z;
     double X182_x,X182_y,X182_z;
     double X183_x,X183_y,X183_z,X183_phi,X183_theta,X183_psi;
+    double X184;
     
     int X205;
     int X206;

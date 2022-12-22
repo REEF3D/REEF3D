@@ -627,6 +627,7 @@ void lexer::ini_default()
     X12=1;      // int turn force calculation on
 	X13=2;      // int turn 6DOF algorithm with quaternions on
     X14=1;      // int tangential velocity 
+    X15=1;      // int density treatment for direct forcing
 	X18=0;		// int relaxation method solid velocities
 	X19=1;		// int print out interval 6DOF log files
 	X21=1;		// int presribe homogeneous density floating body
@@ -674,7 +675,8 @@ void lexer::ini_default()
     X182=0;     // int translation on/off
     X182_x=X182_y=X182_z=0.0;  // double translation of stl geometry
     X183=0;
-    X183_x=X183_y=X183_z=X183_phi=X183_theta=X183_psi=0.0;    X205=1;     // type of ramp up function    X206=0;     // int ramp up     X206_T=0.0;   // double ramp up duration
+    X183_x=X183_y=X183_z=X183_phi=X183_theta=X183_psi=0.0;
+    X184=0.7;   // double refinement factor    X205=1;     // type of ramp up function    X206=0;     // int ramp up     X206_T=0.0;   // double ramp up duration
 	X210=0;		// int give fixed linear velocity
     X210_u=0.0; // double fixed u vel
     X210_v=0.0; // double fixed v vel

@@ -51,7 +51,7 @@ void sixdof_df_object::geometry_refinement(lexer *p)
 	}
 	
 	
-	double critL = p->DXM*0.7;
+	double critL = p->DXM*p->X184;
 	
 	for (int n = 0; n < tri_x_r.size(); n++)
 	{

@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -1219,6 +1219,8 @@ void lexer::ctrlsend()
 	ii++;
 	ictrl[ii] = X13;
 	ii++;     ictrl[ii] = X14;	ii++;  	
+    ictrl[ii] = X15;
+	ii++;  	
     ictrl[ii] = X18;
 	ii++;
 	ictrl[ii] = X19;
@@ -1406,7 +1408,7 @@ void lexer::ctrlsend()
     dctrl[dd] = X183_theta;
 	dd++;
     dctrl[dd] = X183_psi;
-	dd++;    ictrl[ii] = X205;	ii++;    ictrl[ii] = X206;	ii++;    dctrl[dd] = X206_T;	dd++;
+	dd++;    dctrl[dd] = X184;	dd++;    ictrl[ii] = X205;	ii++;    ictrl[ii] = X206;	ii++;    dctrl[dd] = X206_T;	dd++;
 	ictrl[ii] = X210;
 	ii++;
 	dctrl[dd] = X210_u;

@@ -41,32 +41,8 @@ Author: Hans Bihs
 
 void driver::loop_cfd_df(fdm* a)
 {
-    // Momentum
-    momentum_RK3_df* pmom_df = new momentum_RK3_df(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
-
-    // 6DOF
-    sixdof_df* p6dof_df = new sixdof_df(p,a,pgc);
-    
-    if(p->X10>0)
-    {
-        p6dof_df->initialize(p, a, pgc, pnet);
-    }
-    
-    // FSI
-    if(p->Z10==0)
-    pfsi = new fsi_void(p,pgc);
-	
-    if(p->Z10==1)
-    pfsi = new fsi_strips(p,pgc);
-
-    pfsi->initialize(p,a,pgc);
-
-    // Driver ini
-	driver_ini();
-
     if(p->mpirank==0)
-    cout<<"starting mainloop.CFD DF"<<endl;
-
+    cout<<"starting mainloop.CFD_DF"<<endl;
 
 //-----------MAINLOOP CFD FSI----------------------------
 	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
@@ -76,7 +52,7 @@ void driver::loop_cfd_df(fdm* a)
 
         if(p->mpirank==0 && (p->count%p->P12==0))
         {
-            cout<<"------------------------------"<<endl;
+            cout<<"------------------------------------"<<endl;
             cout<<p->count<<endl;
 
             cout<<"simtime: "<<p->simtime<<endl;

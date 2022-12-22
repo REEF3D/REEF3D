@@ -26,6 +26,7 @@ Author: Tobias Martin
 
 class mooring;
 class net;
+class ddweno_f_nug;
 
 using namespace std;
 
@@ -53,6 +54,8 @@ private:
    
     int number6DOF;
     vector<sixdof_df_object*> p_df_obj;
+    
+    ddweno_f_nug *pdx;
 };
 
 #endif

@@ -40,7 +40,7 @@ Author: Hans Bihs
 #include"vrans_header.h"
 #include"waves_header.h"
 
-void driver::logic()
+void driver::logic_cfd()
 {
 	makegrid_cds();
 	pini = new initialize(p);
@@ -668,6 +668,9 @@ void driver::logic()
 	pmom = new momentum_FC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini);
     
 // 6DOF
+    if(((p->X10==1 && p->X13==2) || p->Z10!=0))
+    pmom_df = new momentum_RK3_df(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
+    
 	if(p->X10==0)
     p6dof = new sixdof_void();
 
@@ -676,9 +679,16 @@ void driver::logic()
 
 	if(p->X10==1 && p->X13==2)
     p6dof = new sixdof_void();
+    
+    if(((p->X10==1 && p->X13==2) || p->Z10!=0))
+    p6dof_df = new sixdof_df(p,a,pgc);
 
 // FSI
+    if(p->Z10==0)
     pfsi = new fsi_void(p,pgc);
+	
+    if(p->Z10==1)
+    pfsi = new fsi_strips(p,pgc);
 
 }
 
