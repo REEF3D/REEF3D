@@ -102,7 +102,10 @@ double density_df::roface(lexer *p, fdm *a, int aa, int bb, int cc)
         H_fb = a->fbh4(i,j,k);
     }*/
      
-    roval = p->W_fb*H_fb + (1.0 - H_fb)*(p->W1*H + p->W3*(1.0 - H));
+    //roval = p->W_fb*H_fb + (1.0 - H_fb)*(p->W1*H + p->W3*(1.0 - H));
+    
+    
+    roval = p->W1*H + p->W3*(1.0-H);
 
 	return roval;		
 }
