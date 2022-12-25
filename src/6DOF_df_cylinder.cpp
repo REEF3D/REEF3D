@@ -236,9 +236,7 @@ void sixdof_df_object::cylinder_y(lexer *p, fdm *a, ghostcell *pgc, int id)
 	}
 		
 	tend[entity_count]=tricount;
-	
 }
-
 
 void sixdof_df_object::cylinder_z(lexer *p, fdm *a, ghostcell *pgc, int id)
 {

@@ -83,7 +83,7 @@ void sixdof_df_object::objects(lexer *p, fdm *a, ghostcell *pgc)
 
 	if (entity_count > 1)
 	{
-		cout<<"Multiple floating bodies are not supported yet."<<endl<<endl;
+		cout<<"Multiple floating bodies are not fully supported yet."<<endl<<endl;
 		//pgc->final();
 		//exit(0);
 	}
