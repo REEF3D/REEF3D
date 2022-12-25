@@ -98,7 +98,6 @@ void sixdof_df_object::updatePosition(lexer *p, fdm *a, ghostcell *pgc, bool fin
 				tri_y[n][q] = tri_y0[n][q] + c_(1);	
 			}
         }
-
 	}
 	
     // Update floating level set function

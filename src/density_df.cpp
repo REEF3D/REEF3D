@@ -60,6 +60,14 @@ double density_df::roface(lexer *p, fdm *a, int aa, int bb, int cc)
     
     fbval = -0.5*(a->fb(i,j,k) + a->fb(i+aa,j+bb,k+cc));
 
+    
+    
+    
+    
+    
+    if(p->X15==1)
+    {
+    /*
     if(fbval>chi)
     H_fb=1.0;
 
@@ -68,12 +76,7 @@ double density_df::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 
     if(fabs(fbval)<=chi)
     H_fb=0.5*(1.0 + fbval/chi + (1.0/PI)*sin((PI*fbval)/chi));
-    
-    
-    
-    
-    if(p->X15==1)
-    {
+    */
     if (aa == 1)
     {
         H_fb = a->fbh1(i,j,k);

@@ -62,21 +62,17 @@ void sixdof_df::forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<
 {
     // Reset heaviside field
     ULOOP
-    {
-        a->fbh1(i,j,k) = 0.0;
-    }
+    a->fbh1(i,j,k) = 0.0;
+
     VLOOP
-    {
-        a->fbh2(i,j,k) = 0.0;
-    }
+    a->fbh2(i,j,k) = 0.0;
+    
     WLOOP
-    {
-        a->fbh3(i,j,k) = 0.0;
-    }
+    a->fbh3(i,j,k) = 0.0;
+
     LOOP
-    {
-        a->fbh4(i,j,k) = 0.0;
-    }
+    a->fbh4(i,j,k) = 0.0;
+
     pgc->start1(p,a->fbh1,10);
     pgc->start2(p,a->fbh2,11);
     pgc->start3(p,a->fbh3,12);
