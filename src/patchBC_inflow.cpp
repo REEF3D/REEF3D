@@ -445,9 +445,9 @@ void patchBC::patchBC_rkioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field
         v(i,j,k+2) =  a->v(i,j,k+2);
         v(i,j,k+3) =  a->v(i,j,k+3);
         
-        w(i,j,k)   =  patch[qq]->W;
-        w(i,j,k+1) =  patch[qq]->W;
-        w(i,j,k+2) =  patch[qq]->W;
+        w(i,j,k)   =  a->w(i,j,k);
+        w(i,j,k+1) =  a->w(i,j,k+1);
+        w(i,j,k+2) =  a->w(i,j,k+2);
         }
     
     }
