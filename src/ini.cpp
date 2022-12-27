@@ -515,6 +515,7 @@ void lexer::ini_default()
     S24=0.5;               // double porosity of sediment layer
     S26_a=650.0;          // double alpha for VRANS sediment
     S26_b=2.2;            // double beta for VRANS sediment
+    S27=1;              // int number of inner iterations
     S30=0.047;          // double Shields parameter
     S32=4;              // int exner discretization
     S33=1;              // type of near bead velocity interpolation
