@@ -187,7 +187,7 @@ void bc_ikomega::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int j
         vvel=0.5*(a->v(i,j,k)+a->v(i,j-1,k));
         wvel=0.5*(a->w(i,j,k)+a->w(i,j,k-1));
         
-        if(bc==5 && p->S10>0)
+        if(bc==5 && p->S10>0 && p->S16==4)
         {
         zval = a->bed(i,j) + p->DZN[KP];
         
