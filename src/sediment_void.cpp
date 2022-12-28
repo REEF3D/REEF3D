@@ -73,6 +73,13 @@ void sediment_void::qbeget(int ii, int jj, double val)
 {
 }
 
+double sediment_void::bedzhval(int ii, int jj)
+{
+    double val=0.0;
+
+    return val;
+}
+
 void sediment_void::print_2D_bedload(lexer* p, ghostcell *pgc, ofstream &result)
 {	
 }

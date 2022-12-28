@@ -103,3 +103,12 @@ void sediment_f::qbeget(int ii, int jj, double val)
 {
     s->qbe(ii,jj)=val;
 }
+
+double sediment_f::bedzhval(int ii, int jj)
+{
+    double val;
+
+    val=s->bedzh(ii,jj);
+
+    return val;
+}

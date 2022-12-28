@@ -173,6 +173,7 @@ void bc_ikomega::bckeps_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
 void bc_ikomega::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj,int kk,int cs,int bc, int id, double dist)
 {
     double uvel,vvel,wvel;
+    double zval;
 	dist=0.5*p->DXM;
 
 	i=ii;
@@ -185,6 +186,19 @@ void bc_ikomega::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int j
         uvel=0.5*(a->u(i,j,k)+a->u(i-1,j,k));
         vvel=0.5*(a->v(i,j,k)+a->v(i,j-1,k));
         wvel=0.5*(a->w(i,j,k)+a->w(i,j,k-1));
+        
+        if(bc==5 && p->S10>0)
+        {
+        zval = a->bed(i,j) + p->DZN[KP];
+        
+            uvel=p->ccipol1(a->u,p->XP[IP],p->YP[JP],zval);
+            vvel=p->ccipol2(a->v,p->XP[IP],p->YP[JP],zval);
+            wvel=p->ccipol3(a->w,p->XP[IP],p->YP[JP],zval);
+        
+        //if(p->mpirank==2)
+        //cout<<"ZVAL: "<<zval<<" a->bed(i,j): "<<a->bed(i,j)<<endl;
+            
+        }
         
         u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
 
