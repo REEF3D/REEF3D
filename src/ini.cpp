@@ -564,6 +564,7 @@ void lexer::ini_default()
     T38=1.6;            // double epsi fsf turbulence damping
     T41=0;              // int RANS stabilization
     T42=0.05;           // double lambda1 factor
+    T43=1.0;            // double komega wall BC velocity factor
 
     // Water Properties
 	W1=998.2;		// double density water

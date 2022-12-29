@@ -189,7 +189,7 @@ void bc_ikomega::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int j
         
         if(bc==5 && p->S10>0 && p->S16==4)
         {
-        zval = a->bed(i,j) + p->DZN[KP];
+        zval = a->bed(i,j) + p->T43*p->DZN[KP];
         
             uvel=p->ccipol1(a->u,p->XP[IP],p->YP[JP],zval);
             vvel=p->ccipol2(a->v,p->XP[IP],p->YP[JP],zval);
