@@ -42,7 +42,6 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
     }
 	
 	//cout<<p->mpirank<<"  gcin_count: "<<p->gcin_count<<" count1: "<<count1<<"  gcout_count: "<<p->gcout_count<<" count2: "<<count2<<endl;
-	
 	p->Iresize(p->gcin,p->gcin_count, count1, 6, 6); 
 	p->Iresize(p->gcout,p->gcout_count, count2, 6, 6); 
 

@@ -193,11 +193,7 @@ void bc_ikomega::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int j
         
             uvel=p->ccipol1(a->u,p->XP[IP],p->YP[JP],zval);
             vvel=p->ccipol2(a->v,p->XP[IP],p->YP[JP],zval);
-            wvel=p->ccipol3(a->w,p->XP[IP],p->YP[JP],zval);
-        
-        //if(p->mpirank==2)
-        //cout<<"ZVAL: "<<zval<<" a->bed(i,j): "<<a->bed(i,j)<<endl;
-            
+            wvel=p->ccipol3(a->w,p->XP[IP],p->YP[JP],zval);    
         }
         
         u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
