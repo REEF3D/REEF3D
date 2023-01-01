@@ -629,7 +629,7 @@ void lexer::ini_default()
     X12=1;      // int turn force calculation on
 	X13=2;      // int turn 6DOF algorithm with quaternions on
     X14=1;      // int tangential velocity 
-    X15=1;      // int density treatment for direct forcing
+    X15=2;      // int density treatment for direct forcing
 	X18=0;		// int relaxation method solid velocities
 	X19=1;		// int print out interval 6DOF log files
 	X21=1;		// int presribe homogeneous density floating body
