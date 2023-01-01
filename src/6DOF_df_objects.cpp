@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_df_object.h"
@@ -24,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_df_object::objects(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_df_object::objects_create(lexer *p, fdm *a, ghostcell *pgc)
 {
     int qn;
 

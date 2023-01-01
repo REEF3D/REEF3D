@@ -132,7 +132,6 @@ void sixdof_df_object::forces_stl
             k = p->posc_k(zc);
 			
             // Area of triangle using Heron's formula
-
 			at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
 			bt = sqrt(pow(x1-x2,2.0) + pow(y1-y2,2.0) + pow(z1-z2,2.0));
 			ct = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
@@ -164,9 +163,25 @@ void sixdof_df_object::forces_stl
             sgy = n1/(fabs(n1)>1.0e-20?fabs(n1):1.0e20);
             sgz = n2/(fabs(n2)>1.0e-20?fabs(n2):1.0e20);
             
+            norm = sqrt(n0*n0 + n1*n1 + n2*n2);
+            
+             n0 /= norm > 1.0e-20 ? norm : 1.0e20;
+			n1 /= norm > 1.0e-20 ? norm : 1.0e20;
+			n2 /= norm > 1.0e-20 ? norm : 1.0e20;
+            
+            /*
+            if(fabs(ny)<0.00001)// && ((nx>0.0&& sgx<0.0) || (nx<0.0&&sgx>0.0) || (nz>0.0&&sgz<0.0) || (nz<0.0&& sgz>0.0)))
+            {
+            if( ((nx>0.0&& sgx<0.0) || (nx<0.0&&sgx>0.0) || (nz>0.0&&sgz<0.0) || (nz<0.0&& sgz>0.0)))
+            cout<<"*** ";
+            
+            cout<<"sgx: "<<n0<<" sgy: "<<n1<<" sgz: "<<n2<<" | nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<endl;
+            }
+            
             nx = fabs(nx)*sgx;
             ny = fabs(ny)*sgy;
-            nz = fabs(nz)*sgz;
+            nz = fabs(nz)*sgz;*/
+            
             /*
             norm = sqrt(n0*n0 + n0*n0 + n0*n0);
             
@@ -174,10 +189,8 @@ void sixdof_df_object::forces_stl
             ny = n1/(norm > 1.0e-20 ? norm : 1.0e20);
             nz = n2/(norm > 1.0e-20 ? norm : 1.0e20);*/
             
-            
 
 			// Add normal stress contributions
-
              xlocp = xc + p->X42*nx*p->DXP[IP];
 			ylocp = yc + p->X42*ny*p->DYP[JP];
 			zlocp = zc + p->X42*nz*p->DZP[KP];

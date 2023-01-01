@@ -85,7 +85,7 @@ private:
     void netForces(lexer*, fdm*, ghostcell*, double, vrans*, vector<net*>&);
     void updateForces(fdm*);
     
-    void objects(lexer*, fdm*, ghostcell*);
+    void objects_create(lexer*, fdm*, ghostcell*);
     void objects_allocate(lexer*, fdm*, ghostcell*);
 	void geometry_refinement(lexer*);
 	void create_triangle(double&,double&,double&,double&,double&,double&,double&,double&,double&,const double&,const double&,const double&);
@@ -97,6 +97,7 @@ private:
     void wedge(lexer*, fdm*, ghostcell*,int);
     void hexahedron(lexer*, fdm*, ghostcell*,int);
     void read_stl(lexer*, fdm*, ghostcell*);
+    void triangle_order(lexer*, fdm*, ghostcell*);
    
     void ini_parallel(lexer*, fdm*, ghostcell*);
     
@@ -245,6 +246,8 @@ private:
 
     // Number
     int n6DOF;
+    
+    int triangle_token;
 };
 
 #endif

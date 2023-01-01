@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"6DOF_df_object.h"
@@ -37,7 +38,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"net_barDyn.h"
 #include"net_sheet.h"
 
-
 void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 {
     if(p->mpirank==0)
@@ -55,12 +55,16 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
     // Initialise parameters
 	ini_parameter(p,a,pgc);
 	
-    // Initialise objects and distance field
-	objects(p,a,pgc);
+    // Initialise objects
+	objects_create(p,a,pgc);
 	
+    // Level Set for floating body
     ray_cast(p,a,pgc);
 	reini_AB2(p,a,pgc,a->fb);
     pgc->start4a(p,a->fb,50);
+    
+    // Order Triangles for correct inside/outside orientation
+    triangle_order(p,a,pgc);
     
     // Calculate geometrical properties
 	geometry(p,a,pgc);
