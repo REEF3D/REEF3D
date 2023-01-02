@@ -25,12 +25,46 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_df_object::geometry_refinement(lexer *p)
+void sixdof_df_object::geometry_refinement(lexer *p, ghostcell *pgc)
 {
 	double x0,x1,x2,y0,y1,y2,z0,z1,z2;
 	double x01,x02,x12,y01,y02,y12,z01,z02,z12;
 	double at,bt,ct,st;
 	double nx_old,ny_old,nz_old;	
+    double A_triang,A;
+    
+    A=0.0;
+    for (int n = 0; n < tricount; ++n)
+    {
+        x0 = tri_x[n][0];
+        y0 = tri_y[n][0];
+        z0 = tri_z[n][0];
+        
+        x1 = tri_x[n][1];
+        y1 = tri_y[n][1];
+        z1 = tri_z[n][1];
+        
+        x2 = tri_x[n][2];
+        y2 = tri_y[n][2];
+        z2 = tri_z[n][2]; 
+        
+            at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
+			bt = sqrt(pow(x1-x2,2.0) + pow(y1-y2,2.0) + pow(z1-z2,2.0));
+			ct = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
+				
+			st = 0.5*(at+bt+ct);
+				
+			A_triang = sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
+            
+            A+=A_triang;
+    }
+    
+    A = pgc->globalsum(A);
+    
+    if(p->mpirank==0)
+    cout<<endl<<"A_orig: "<<A<<endl<<endl;
+    
+    
 	
 	tri_x_r.reserve(3*tricount);
 	tri_y_r.reserve(3*tricount);
@@ -137,6 +171,38 @@ void sixdof_df_object::geometry_refinement(lexer *p)
 			tri_z[i][j] = tri_z_r[i][j];
 		}
 	}
+    
+    
+    A=0.0;
+    for (int n = 0; n < tricount; ++n)
+    {
+        x0 = tri_x[n][0];
+        y0 = tri_y[n][0];
+        z0 = tri_z[n][0];
+        
+        x1 = tri_x[n][1];
+        y1 = tri_y[n][1];
+        z1 = tri_z[n][1];
+        
+        x2 = tri_x[n][2];
+        y2 = tri_y[n][2];
+        z2 = tri_z[n][2]; 
+        
+            at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
+			bt = sqrt(pow(x1-x2,2.0) + pow(y1-y2,2.0) + pow(z1-z2,2.0));
+			ct = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
+				
+			st = 0.5*(at+bt+ct);
+				
+			A_triang = sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
+            
+            A+=A_triang;
+    }
+    
+    A = pgc->globalsum(A);
+    
+    if(p->mpirank==0)
+    cout<<"A_refined: "<<A<<endl<<endl;
 }
 
 

@@ -31,8 +31,8 @@ void sixdof_df_object::triangle_order(lexer *p, fdm *a, ghostcell *pgc)
 	double xc,yc,zc;
 	double at,bt,ct,st;
 	double nx,ny,nz,norm;
+    double n0,n1,n2;
     double fbval;
-
     
     for (int n = 0; n < tricount; ++n)
     {
@@ -48,9 +48,9 @@ void sixdof_df_object::triangle_order(lexer *p, fdm *a, ghostcell *pgc)
         y2 = tri_y[n][2];
         z2 = tri_z[n][2]; 
         
-        nx = (y1 - y0) * (z2 - z0) - (y2 - y0) * (z1 - z0);
-        ny = (x2 - x0) * (z1 - z0) - (x1 - x0) * (z2 - z0); 
-        nz = (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0);
+        nx = (y1 - y0)*(z2 - z0) - (y2 - y0)*(z1 - z0);
+        ny = (x2 - x0)*(z1 - z0) - (x1 - x0)*(z2 - z0); 
+        nz = (x1 - x0)*(y2 - y0) - (x2 - x0)*(y1 - y0);
 
         norm = sqrt(nx*nx + ny*ny + nz*nz);
 			
@@ -74,12 +74,26 @@ void sixdof_df_object::triangle_order(lexer *p, fdm *a, ghostcell *pgc)
         
         fbval = p->ccipol4_a(a->fb,xc,yc,zc);
         
-        if(fbval<0.0 && (   xc >= p->originx && xc < p->endx &&
-                            yc >= p->originy && yc < p->endy &&
-                            zc >= p->originz && zc < p->endz)
+        
+        // Normal vector sign
+            n0 = (a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
+            n1 = (a->fb(i,j+1,k) - a->fb(i,j-1,k))/(2.0*p->DYN[JP]);
+            n2 = (a->fb(i,j,k+1) - a->fb(i,j,k-1))/(2.0*p->DZN[KP]);
+    
+            norm = sqrt(n0*n0 + n1*n1 + n2*n2);
+            
+             n0 /= norm > 1.0e-20 ? norm : 1.0e20;
+			n1 /= norm > 1.0e-20 ? norm : 1.0e20;
+			n2 /= norm > 1.0e-20 ? norm : 1.0e20;
+            
+            
+        
+        if(fbval<0.0 && (xc >= p->originx && xc < p->endx &&
+                         yc >= p->originy && yc < p->endy &&
+                         zc >= p->originz && zc < p->endz)
 		)
         {
-        cout<<"TRIANGLE SWITCH "<<fbval<<" | nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<endl;
+        cout<<"TRIANGLE SWITCH "<<fbval<<" | nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<" || n0: "<<n0<<" n1: "<<n1<<" n2: "<<n2<<endl;
         
         if(triangle_token==1)
         cout<<"TRIANGLE SWITCH !!!!!!!!"<<endl;

@@ -103,9 +103,9 @@ void sixdof_df_object::forces_stl
 
 			// Normal vectors (always pointing outwards)      
 				
-			nx = (y1 - y0) * (z2 - z0) - (y2 - y0) * (z1 - z0);
-			ny = (x2 - x0) * (z1 - z0) - (x1 - x0) * (z2 - z0); 
-			nz = (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0);
+			nx = (y1 - y0)*(z2 - z0) - (y2 - y0)*(z1 - z0);
+            ny = (x2 - x0)*(z1 - z0) - (x1 - x0)*(z2 - z0); 
+            nz = (x1 - x0)*(y2 - y0) - (x2 - x0)*(y1 - y0);
 
 			norm = sqrt(nx*nx + ny*ny + nz*nz);
 			

@@ -93,7 +93,7 @@ void sixdof_df_object::objects_create(lexer *p, fdm *a, ghostcell *pgc)
 	cout<<"Surface triangles: "<<tricount<<endl;
 	
 	// Refine triangles
-	geometry_refinement(p);	
+	geometry_refinement(p,pgc);	
 
     if(p->mpirank==0)
 	cout<<"Refined surface triangles: "<<tricount<<endl;
