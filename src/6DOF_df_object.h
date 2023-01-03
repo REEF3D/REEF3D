@@ -59,7 +59,7 @@ public:
 	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
     
 	// Additional functions
-    void updateFSI(lexer*, fdm*, ghostcell*, bool);
+    void transform(lexer*, fdm*, ghostcell*, bool);
     void updateForcing(lexer*, fdm*, ghostcell*,double,field&,field&,field&,field1&,field2&,field3&);
 	void forces_stl(lexer*, fdm*, ghostcell*,double,field&,field&,field&);
     

@@ -88,7 +88,7 @@ void sixdof_df::forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<
         p_df_obj[nb]->solve_eqmotion(p,a,pgc,alpha,gamma,zeta,pvrans,pnet);
 
         // Update position and fb level set
-        p_df_obj[nb]->updateFSI(p,a,pgc,finalise);
+        p_df_obj[nb]->transform(p,a,pgc,finalise);
 
         // Update forcing terms
         p_df_obj[nb]->updateForcing(p,a,pgc,alpha,uvel,vvel,wvel,fx,fy,fz);

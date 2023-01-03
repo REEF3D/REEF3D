@@ -10,13 +10,14 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"6DOF_df_object.h"
@@ -24,14 +25,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_df_object::updateFSI(lexer *p, fdm *a, ghostcell* pgc, bool finalise)
+void sixdof_df_object::transform(lexer *p, fdm *a, ghostcell* pgc, bool finalise)
 {
-    // Print quaternion
-	if(p->mpirank==0)
-    {
-		//cout<<"Quaternion: "<<e_(0)<<" "<<e_(1)<<" "<<e_(2)<<" "<<e_(3)<<endl;
-    }
-	
     // Update transformation matrix (Shivarama PhD thesis, p. 19)
     quat_matrices(e_);
 
@@ -46,7 +41,6 @@ void sixdof_df_object::updateFSI(lexer *p, fdm *a, ghostcell* pgc, bool finalise
     interface(p,false);    
     maxvel(p,a,pgc);
 }
-
 
 void sixdof_df_object::update_Position(lexer *p, fdm *a, ghostcell *pgc, bool finalise)
 {

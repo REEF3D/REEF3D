@@ -1525,7 +1525,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
         <VirtualDirectory Name="Common">
-          <VirtualDirectory Name="Objects"/>
+          <VirtualDirectory Name="Geometry"/>
           <VirtualDirectory Name="Ray Cast"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Precalc">
@@ -1570,6 +1570,7 @@
           <File Name="6DOF_sflow.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="DirectForcing">
+          <File Name="6DOF_df_transform.cpp"/>
           <File Name="6DOF_df_forcing.cpp"/>
           <File Name="6DOF_df_main.cpp"/>
           <VirtualDirectory Name="Print">
@@ -1606,7 +1607,6 @@
             <File Name="6DOF_df_cylinder.cpp"/>
             <File Name="6DOF_df_box.cpp"/>
           </VirtualDirectory>
-          <File Name="6DOF_df_update.cpp"/>
           <File Name="6DOF_df_solve.cpp"/>
           <File Name="6DOF_df_rotation.cpp"/>
           <File Name="6DOF_df_interface.cpp"/>

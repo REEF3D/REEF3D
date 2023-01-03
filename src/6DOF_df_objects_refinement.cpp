@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"6DOF_df_object.h"
@@ -188,7 +188,7 @@ void sixdof_df_object::geometry_refinement(lexer *p, ghostcell *pgc)
         y2 = tri_y[n][2];
         z2 = tri_z[n][2]; 
         
-            at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
+             at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
 			bt = sqrt(pow(x1-x2,2.0) + pow(y1-y2,2.0) + pow(z1-z2,2.0));
 			ct = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
 				
