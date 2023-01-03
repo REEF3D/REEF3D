@@ -34,6 +34,7 @@ sixdof_df_object::sixdof_df_object(lexer *p, fdm *a, ghostcell *pgc,int number) 
     prdisc = new reinidisc_fsf(p);
     
     triangle_token=0;
+    printnormal_count=0;
 }
 
 sixdof_df_object::~sixdof_df_object(){}

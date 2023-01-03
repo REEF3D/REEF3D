@@ -248,7 +248,7 @@ private:
     // Number
     int n6DOF;
     
-    int triangle_token;
+    int triangle_token,printnormal_count;
 };
 
 #endif

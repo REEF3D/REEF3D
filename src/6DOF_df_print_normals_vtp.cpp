@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include<sys/stat.h>
@@ -38,7 +39,9 @@ void sixdof_df_object::print_normals_vtp(lexer *p, fdm *a, ghostcell *pgc)
     double factor = 2.0;
     
 	int num=0;
-	
+    
+    num = printnormal_count;
+    
 
 
     if(p->mpirank==0 && (((p->count%p->P20==0) && p->P30<0.0)  || (p->simtime>printtime && p->P30>0.0)   || p->count==0))
@@ -215,6 +218,8 @@ void sixdof_df_object::print_normals_vtp(lexer *p, fdm *a, ghostcell *pgc)
 
 	result.close();	
     }
+    
+    ++printnormal_count;
 }
 
 
