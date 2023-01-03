@@ -1606,7 +1606,6 @@
             <File Name="6DOF_df_box.cpp"/>
           </VirtualDirectory>
           <File Name="6DOF_df_update.cpp"/>
-          <File Name="6DOF_df_solve_routines.cpp"/>
           <File Name="6DOF_df_solve.cpp"/>
           <File Name="6DOF_df_rotation.cpp"/>
           <File Name="6DOF_df_interface.cpp"/>

@@ -152,6 +152,5 @@ void sixdof_df_object::triangle_order(lexer *p, fdm *a, ghostcell *pgc)
     }
     ++triangle_token;
     
-    if(p->mpirank==0)
-    print_normals_vtp(p,a,pgc);
+    
 }

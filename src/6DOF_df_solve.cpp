@@ -25,13 +25,29 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 
 
-void sixdof_df_object::start(lexer *p, fdm *a, ghostcell *pgc, double alpha, double gamma, double zeta, vrans *pvrans, vector<net*>& pnet)
+void sixdof_df_object::solve_eqmotion(lexer *p, fdm *a, ghostcell *pgc, double alpha, double gamma, double zeta, vrans *pvrans, vector<net*>& pnet)
 {
     externalForces(p, a, pgc, alpha, pvrans, pnet);
     
     updateForces(a);
    
     rk3(p,a,pgc,alpha,gamma,zeta);
+}
+
+void sixdof_df_object::rk3(lexer *p, fdm *a, ghostcell *pgc, double alpha, double gamma, double zeta)
+{
+    get_trans(p,a,pgc, dp_, dc_, p_, c_);    
+    get_rot(dh_, de_, h_, e_);
+
+    p_ = p_ + gamma*p->dt*dp_ + zeta*p->dt*pk_;
+    c_ = c_ + gamma*p->dt*dc_ + zeta*p->dt*ck_;
+    h_ = h_ + gamma*p->dt*dh_ + zeta*p->dt*hk_;
+    e_ = e_ + gamma*p->dt*de_ + zeta*p->dt*ek_;
+    
+    pk_ = dp_;
+    ck_ = dc_;
+    hk_ = dh_;
+    ek_ = de_;
 }
 
 void sixdof_df_object::get_trans

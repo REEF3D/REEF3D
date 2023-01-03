@@ -85,7 +85,7 @@ void sixdof_df::forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<
         p_df_obj[nb]->forces_stl(p,a,pgc,alpha,uvel,vvel,wvel);
 
         // Advance body in time
-        p_df_obj[nb]->start(p,a,pgc,alpha,gamma,zeta,pvrans,pnet);
+        p_df_obj[nb]->solve_eqmotion(p,a,pgc,alpha,gamma,zeta,pvrans,pnet);
 
         // Update position and fb level set
         p_df_obj[nb]->updateFSI(p,a,pgc,finalise);

@@ -55,7 +55,7 @@ public:
     sixdof_df_object(lexer*, fdm*, ghostcell*, int);
 	virtual ~sixdof_df_object();
 	
-	virtual void start(lexer*,fdm*,ghostcell*,double,double,double,vrans*,vector<net*>&);
+	virtual void solve_eqmotion(lexer*,fdm*,ghostcell*,double,double,double,vrans*,vector<net*>&);
 	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
     
 

@@ -39,14 +39,7 @@ void sixdof_df_object::print_normals_vtp(lexer *p, fdm *a, ghostcell *pgc)
     
 	int num=0;
 	
-	if(p->P15==1)
-    num = p->printcount_sixdof;
 
-    if(p->P15==2)
-    num = p->count;
-	
-	if(num<0)
-	num=0;
 
     if(p->mpirank==0 && (((p->count%p->P20==0) && p->P30<0.0)  || (p->simtime>printtime && p->P30>0.0)   || p->count==0))
     {
@@ -95,7 +88,7 @@ void sixdof_df_object::print_normals_vtp(lexer *p, fdm *a, ghostcell *pgc)
 	result<<"<?xml version=\"1.0\"?>"<<endl;
 	result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
 	result<<"<PolyData>"<<endl;
-	result<<"<Piece NumberOfPoints=\""<<tricount*3<<"\" NumberOfPolys=\""<<tricount<<"\">"<<endl;
+	result<<"<Piece NumberOfPoints=\""<<tricount*2<<"\" NumberOfPolys=\""<<tricount<<"\">"<<endl;
 
     n=0;
     result<<"<Points>"<<endl;
@@ -168,11 +161,14 @@ void sixdof_df_object::print_normals_vtp(lexer *p, fdm *a, ghostcell *pgc)
 	ffn=zc;
 	result.write((char*)&ffn, sizeof (float));
     
-    
+                        if(xc >= p->originx && xc < p->endx &&
+                         yc >= p->originy && yc < p->endy &&
+                         zc >= p->originz && zc < p->endz && (p->j_dir==1 || fabs(ny)<0.001))
+                         {
         xc += nx*p->DXN[IP]*factor;
         yc += ny*p->DYN[JP]*factor;
         zc += nz*p->DZN[KP]*factor;
-    
+                         }
     ffn=xc;
 	result.write((char*)&ffn, sizeof (float));
 
@@ -218,8 +214,6 @@ void sixdof_df_object::print_normals_vtp(lexer *p, fdm *a, ghostcell *pgc)
     result<<"</VTKFile>"<<endl;
 
 	result.close();	
-
-        ++p->printcount_sixdof;	
     }
 }
 
