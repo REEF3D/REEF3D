@@ -75,7 +75,7 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
     pgc->start4a(p,a->fb,50);
     
     // Order Triangles for correct inside/outside orientation
-    triangle_order(p,a,pgc);
+    //triangle_order(p,a,pgc);
     
     // Initialise global variables
 	interface(p,true);

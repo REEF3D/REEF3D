@@ -92,7 +92,7 @@ void sixdof_df_object::forces_stl
 		)
         check=1;
         
-            at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
+             at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
 			bt = sqrt(pow(x1-x2,2.0) + pow(y1-y2,2.0) + pow(z1-z2,2.0));
 			ct = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
 				
@@ -103,7 +103,7 @@ void sixdof_df_object::forces_stl
 
 			// Normal vectors (always pointing outwards)      
 				
-			nx = (y1 - y0)*(z2 - z0) - (y2 - y0)*(z1 - z0);
+            nx = (y1 - y0)*(z2 - z0) - (y2 - y0)*(z1 - z0);
             ny = (x2 - x0)*(z1 - z0) - (x1 - x0)*(z2 - z0); 
             nz = (x1 - x0)*(y2 - y0) - (x2 - x0)*(y1 - y0);
 
@@ -176,11 +176,13 @@ void sixdof_df_object::forces_stl
             cout<<"*** ";
             
             cout<<"sgx: "<<n0<<" sgy: "<<n1<<" sgz: "<<n2<<" | nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<endl;
-            }
-            
+            }*/
+           
+            /* 
             nx = fabs(nx)*sgx;
             ny = fabs(ny)*sgy;
-            nz = fabs(nz)*sgz;*/
+            nz = fabs(nz)*sgz;
+            */
             
             /*
             norm = sqrt(n0*n0 + n0*n0 + n0*n0);
@@ -196,6 +198,8 @@ void sixdof_df_object::forces_stl
 			zlocp = zc + p->X42*nz*p->DZP[KP];
 
 			p_int = p->ccipol4_a(a->press,xlocp,ylocp,zlocp);
+            
+            //p_int =1.0;
             
 			
 			Fp_x = -nx*p_int*A_triang;
@@ -286,8 +290,8 @@ void sixdof_df_object::forces_stl
 
 	// Add gravity force
 	
-    //if(p->mpirank==1)
-    //cout<<"Hydrodynamic Force: "<<Ze<<" A: "<<A<<endl<<endl;
+    if(p->mpirank==0)
+    cout<<"Hydrodynamic Force Fz: "<<Ze<<" A: "<<A<<endl<<endl;
     
 	Xe += a->gi*Mass_fb;
 	Ye += a->gj*Mass_fb;

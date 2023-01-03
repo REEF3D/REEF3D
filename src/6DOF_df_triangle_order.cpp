@@ -82,18 +82,19 @@ void sixdof_df_object::triangle_order(lexer *p, fdm *a, ghostcell *pgc)
     
             norm = sqrt(n0*n0 + n1*n1 + n2*n2);
             
-             n0 /= norm > 1.0e-20 ? norm : 1.0e20;
-			n1 /= norm > 1.0e-20 ? norm : 1.0e20;
-			n2 /= norm > 1.0e-20 ? norm : 1.0e20;
+            n0 /= norm>1.0e-20?norm:1.0e20;
+            n1 /= norm>1.0e-20?norm:1.0e20;
+            n2 /= norm>1.0e-20?norm:1.0e20;
             
             
         
         if(fbval<0.0 && (xc >= p->originx && xc < p->endx &&
                          yc >= p->originy && yc < p->endy &&
-                         zc >= p->originz && zc < p->endz)
-		)
+                         zc >= p->originz && zc < p->endz))
         {
         cout<<"TRIANGLE SWITCH "<<fbval<<" | nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<" || n0: "<<n0<<" n1: "<<n1<<" n2: "<<n2;
+        
+        cout<<" | xc: "<<xc<<" yc: "<<yc<<" zc: "<<zc<<endl;
         
         if(triangle_token==1)
         cout<<"TRIANGLE SWITCH !!!!!!!!"<<endl;
@@ -131,11 +132,23 @@ void sixdof_df_object::triangle_order(lexer *p, fdm *a, ghostcell *pgc)
         ny /= norm > 1.0e-20 ? norm : 1.0e20;
         nz /= norm > 1.0e-20 ? norm : 1.0e20;
         
-        cout<<" ||| nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<endl;
+        // Center of triangle
+		xc = (x0 + x1 + x2)/3.0;
+		yc = (y0 + y1 + y2)/3.0;
+		zc = (z0 + z1 + z2)/3.0;
         
+        i = p->posc_i(xc);
+        j = p->posc_j(yc);
+        k = p->posc_k(zc);
+        
+        xc += nx*p->DXN[IP];
+        yc += ny*p->DYN[JP];
+        zc += nz*p->DZN[KP];
+        
+        fbval = p->ccipol4_a(a->fb,xc,yc,zc);
+        
+        //cout<<" ||| nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<" | fbval: "<<fbval<<endl;
         }
-        
-        
     }
     ++triangle_token;
     

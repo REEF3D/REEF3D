@@ -1571,7 +1571,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="DirectForcing">
           <VirtualDirectory Name="Print">
-            <File Name="6DOF_print_normals_vtp.cpp"/>
+            <File Name="6DOF_df_print_normals_vtp.cpp"/>
             <File Name="6DOF_df_print_log.cpp"/>
             <File Name="6DOF_df_print_ini.cpp"/>
             <File Name="6DOF_df_print_stl.cpp"/>
