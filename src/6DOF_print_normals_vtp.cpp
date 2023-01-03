@@ -27,8 +27,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_df_object::print_vtp(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_df_object::print_normals_vtp(lexer *p, fdm *a, ghostcell *pgc)
 {
+    double x0,x1,x2,y0,y1,y2,z0,z1,z2;
+	double xc,yc,zc;
+	double at,bt,ct,st;
+	double nx,ny,nz,norm;
+    double n0,n1,n2;
+    
+    double factor = 2.0;
+    
 	int num=0;
 	
 	if(p->P15==1)
@@ -49,22 +57,22 @@ void sixdof_df_object::print_vtp(lexer *p, fdm *a, ghostcell *pgc)
         if(p->P14==1)
         {
             if(num<10)
-            sprintf(path,"./REEF3D_CFD_6DOF_VTP/REEF3D-6DOF-%i-00000%i.vtp",n6DOF,num);
+            sprintf(path,"./REEF3D_CFD_6DOF_NORMALS_VTP/REEF3D-6DOF-NORMALS-%i-00000%i.vtp",n6DOF,num);
 
             if(num<100&&num>9)
-            sprintf(path,"./REEF3D_CFD_6DOF_VTP/REEF3D-6DOF-%i-0000%i.vtp",n6DOF,num);
+            sprintf(path,"./REEF3D_CFD_6DOF_NORMALS_VTP/REEF3D-6DOF-NORMALS-%i-0000%i.vtp",n6DOF,num);
 
             if(num<1000&&num>99)
-            sprintf(path,"./REEF3D_CFD_6DOF_VTP/REEF3D-6DOF-%i-000%i.vtp",n6DOF,num);
+            sprintf(path,"./REEF3D_CFD_6DOF_NORMALS_VTP/REEF3D-6DOF-NORMALS-%i-000%i.vtp",n6DOF,num);
 
             if(num<10000&&num>999)
-            sprintf(path,"./REEF3D_CFD_6DOF_VTP/REEF3D-6DOF-%i-00%i.vtp",n6DOF,num);
+            sprintf(path,"./REEF3D_CFD_6DOF_NORMALS_VTP/REEF3D-6DOF-NORMALS-%i-00%i.vtp",n6DOF,num);
 
             if(num<100000&&num>9999)
-            sprintf(path,"./REEF3D_CFD_6DOF_VTP/REEF3D-6DOF-%i-0%i.vtp",n6DOF,num);
+            sprintf(path,"./REEF3D_CFD_6DOF_NORMALS_VTP/REEF3D-6DOF-NORMALS-%i-0%i.vtp",n6DOF,num);
 
             if(num>99999)
-            sprintf(path,"./REEF3D_CFD_6DOF_VTP/REEF3D-6DOF-%i-%i.vtp",n6DOF,num);
+            sprintf(path,"./REEF3D_CFD_6DOF_NORMALS_VTP/REEF3D-6DOF-NORMALS-%i-%i.vtp",n6DOF,num);
         }
 
         ofstream result;
@@ -76,9 +84,9 @@ void sixdof_df_object::print_vtp(lexer *p, fdm *a, ghostcell *pgc)
 	offset[n]=0;
 	++n;
 
-    offset[n]=offset[n-1]+4*tricount*3*3 + 4;
+    offset[n]=offset[n-1]+4*tricount*3*2 + 4;
     ++n;
-    offset[n]=offset[n-1]+4*tricount*3 + 4;
+    offset[n]=offset[n-1]+4*tricount*2 + 4;
     ++n;
     offset[n]=offset[n-1]+4*tricount + 4;
     ++n;
@@ -112,27 +120,75 @@ void sixdof_df_object::print_vtp(lexer *p, fdm *a, ghostcell *pgc)
 
 
 //  XYZ
-	iin=4*tricount*3*3;
+	iin=4*tricount*3*2;
 	result.write((char*)&iin, sizeof (int));
     for(n=0;n<tricount;++n)
-	for(q=0;q<3;++q)
 	{
-	ffn=tri_x[n][q];
+        x0 = tri_x[n][0];
+        y0 = tri_y[n][0];
+        z0 = tri_z[n][0];
+        
+        x1 = tri_x[n][1];
+        y1 = tri_y[n][1];
+        z1 = tri_z[n][1];
+        
+        x2 = tri_x[n][2];
+        y2 = tri_y[n][2];
+        z2 = tri_z[n][2]; 
+        
+        nx = (y1 - y0)*(z2 - z0) - (y2 - y0)*(z1 - z0);
+        ny = (x2 - x0)*(z1 - z0) - (x1 - x0)*(z2 - z0); 
+        nz = (x1 - x0)*(y2 - y0) - (x2 - x0)*(y1 - y0);
+
+        norm = sqrt(nx*nx + ny*ny + nz*nz);
+			
+        nx /= norm > 1.0e-20 ? norm : 1.0e20;
+        ny /= norm > 1.0e-20 ? norm : 1.0e20;
+        nz /= norm > 1.0e-20 ? norm : 1.0e20;
+        
+        
+        // Center of triangle
+		xc = (x0 + x1 + x2)/3.0;
+		yc = (y0 + y1 + y2)/3.0;
+		zc = (z0 + z1 + z2)/3.0;
+        
+        i = p->posc_i(xc);
+        j = p->posc_j(yc);
+        k = p->posc_k(zc);
+        
+        
+                
+        
+	ffn=xc;
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=tri_y[n][q];
+	ffn=yc;
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=tri_z[n][q];
+	ffn=zc;
+	result.write((char*)&ffn, sizeof (float));
+    
+    
+        xc += nx*p->DXN[IP]*factor;
+        yc += ny*p->DYN[JP]*factor;
+        zc += nz*p->DZN[KP]*factor;
+    
+    ffn=xc;
+	result.write((char*)&ffn, sizeof (float));
+
+	ffn=yc;
+	result.write((char*)&ffn, sizeof (float));
+
+	ffn=zc;
 	result.write((char*)&ffn, sizeof (float));
 	}
     
-//  Connectivity POLYGON
+//  Connectivity LINE
 	int count=0;
-    iin=4*tricount*3;
+    iin=4*tricount*2;
     result.write((char*)&iin, sizeof (int));
     for(n=0;n<tricount;++n)
-	for(q=0;q<3;++q)
+	for(q=0;q<2;++q)
 	{
 	iin=count;
 	result.write((char*)&iin, sizeof (int));
@@ -145,7 +201,7 @@ void sixdof_df_object::print_vtp(lexer *p, fdm *a, ghostcell *pgc)
 	iin=0;
 	for(n=0;n<tricount;++n)
 	{
-	iin+= 3;
+	iin+= 2;
 	result.write((char*)&iin, sizeof (int));
 	}
 
@@ -154,7 +210,7 @@ void sixdof_df_object::print_vtp(lexer *p, fdm *a, ghostcell *pgc)
     result.write((char*)&iin, sizeof (int));
 	for(n=0;n<tricount;++n)
 	{
-	iin=7;
+	iin=3;
 	result.write((char*)&iin, sizeof (int));
 	}
 

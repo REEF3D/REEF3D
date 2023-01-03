@@ -68,6 +68,7 @@ public:
     void print_parameter(lexer*,fdm*,ghostcell*);
     void print_ini_vtp(lexer*,fdm*,ghostcell*);
 	void print_vtp(lexer*,fdm*,ghostcell*);
+    void print_normals_vtp(lexer*,fdm*,ghostcell*);
     void print_ini_stl(lexer*,fdm*,ghostcell*);
 	void print_stl(lexer*,fdm*,ghostcell*);
 	void interface(lexer*, bool);

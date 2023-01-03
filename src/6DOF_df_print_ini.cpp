@@ -32,6 +32,7 @@ void sixdof_df_object::print_ini_vtp(lexer *p, fdm *a, ghostcell *pgc)
 	if(p->mpirank==0 && p->P14==1)
     {
         mkdir("./REEF3D_CFD_6DOF_VTP", 0777);
+        mkdir("./REEF3D_CFD_6DOF_NORMALS_VTP", 0777);
         mkdir("./REEF3D_CFD_6DOF", 0777);
     }
 	
