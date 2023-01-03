@@ -58,7 +58,6 @@ public:
 	virtual void solve_eqmotion(lexer*,fdm*,ghostcell*,double,double,double,vrans*,vector<net*>&);
 	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
     
-
 	// Additional functions
     void updateFSI(lexer*, fdm*, ghostcell*, bool);
     void updateForcing(lexer*, fdm*, ghostcell*,double,field&,field&,field&,field1&,field2&,field3&);
@@ -74,7 +73,6 @@ public:
 	void interface(lexer*, bool);
     
     double Mass_fb;
-
 
 private:
 
@@ -110,7 +108,7 @@ private:
     void geometry_ls(lexer*, fdm*, ghostcell*);
     
     void iniPosition_RBM(lexer*, fdm*, ghostcell*);
-    void updatePosition(lexer*, fdm*, ghostcell*, bool);
+    void update_Position(lexer*, fdm*, ghostcell*, bool);
     void prescribedMotion(lexer*, fdm*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&);
     void quat_matrices(const Eigen::Vector4d&);
 

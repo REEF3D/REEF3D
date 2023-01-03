@@ -1570,6 +1570,8 @@
           <File Name="6DOF_sflow.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="DirectForcing">
+          <File Name="6DOF_df_forcing.cpp"/>
+          <File Name="6DOF_df_main.cpp"/>
           <VirtualDirectory Name="Print">
             <File Name="6DOF_df_print_normals_vtp.cpp"/>
             <File Name="6DOF_df_print_ini.cpp"/>
@@ -1592,7 +1594,7 @@
             <File Name="6DOF_df_forces_stl.cpp"/>
             <File Name="6DOF_df_forces.cpp"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="Objects">
+          <VirtualDirectory Name="Geometry">
             <File Name="6DOF_df_triangle_order.cpp"/>
             <File Name="6DOF_df_objects_refinement.cpp"/>
             <File Name="6DOF_df_STL.cpp"/>
@@ -1609,7 +1611,6 @@
           <File Name="6DOF_df_rotation.cpp"/>
           <File Name="6DOF_df_interface.cpp"/>
           <File Name="6DOF_df_ini.cpp"/>
-          <File Name="6DOF_df.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="GCIBM">
           <File Name="6DOF_gc_velsource.cpp"/>

@@ -25,7 +25,6 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-
 void sixdof_df_object::read_stl(lexer *p, fdm *a, ghostcell *pgc)
 {
 	string word;
