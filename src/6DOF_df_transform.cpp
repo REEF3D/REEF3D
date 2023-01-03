@@ -67,7 +67,7 @@ void sixdof_df_object::update_Position(lexer *p, fdm *a, ghostcell *pgc, bool fi
 	if(p->mpirank==0 && finalise == true)
     {
         cout<<"XG: "<<c_(0)<<" YG: "<<c_(1)<<" ZG: "<<c_(2)<<" phi: "<<phi*(180.0/PI)<<" theta: "<<theta*(180.0/PI)<<" psi: "<<psi*(180.0/PI)<<endl;
-		cout<<"Ue: "<<p_(0)/Mass_fb<<" Ve: "<<p_(1)/Mass_fb<<" We: "<<p_(2)/Mass_fb<<" Pe: "<<omega_I(0)<<" Qe: "<<omega_I(1)<<" Re: "<<omega_I(2)<<endl;
+        cout<<"Ue: "<<p_(0)/Mass_fb<<" Ve: "<<p_(1)/Mass_fb<<" We: "<<p_(2)/Mass_fb<<" Pe: "<<omega_I(0)<<" Qe: "<<omega_I(1)<<" Re: "<<omega_I(2)<<endl;
     }
 
 	// Update position of triangles 
@@ -99,10 +99,6 @@ void sixdof_df_object::update_Position(lexer *p, fdm *a, ghostcell *pgc, bool fi
 	reini_AB2(p,a,pgc,a->fb);
     pgc->start4a(p,a->fb,50);   
     
-    //triangle_order(p,a,pgc);
-    
-    if(p->mpirank==0)
-    print_normals_vtp(p,a,pgc);
 }
 
 void sixdof_df_object::quat_matrices(const Eigen::Vector4d& e)

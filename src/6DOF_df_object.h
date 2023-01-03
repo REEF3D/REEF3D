@@ -96,7 +96,7 @@ private:
     void wedge(lexer*, fdm*, ghostcell*,int);
     void hexahedron(lexer*, fdm*, ghostcell*,int);
     void read_stl(lexer*, fdm*, ghostcell*);
-    void triangle_order(lexer*, fdm*, ghostcell*);
+    void triangle_switch(lexer*, fdm*, ghostcell*);
    
     void ini_parallel(lexer*, fdm*, ghostcell*);
     
@@ -201,6 +201,8 @@ private:
     // Raycast
     fieldint5 cutl,cutr,fbio;
     double **tri_x,**tri_y,**tri_z,**tri_x0,**tri_y0,**tri_z0;
+    int *tri_switch;
+    int tricount_local,*tricount_local_list;
 	vector<vector<double> > tri_x_r;
 	vector<vector<double> > tri_y_r;
 	vector<vector<double> > tri_z_r;
@@ -222,7 +224,7 @@ private:
 
     // Print
     double curr_time;
-    double printtime;
+    double printtime,printtimenormal;
     int nCorr;
     int q,iin;
     float ffn;

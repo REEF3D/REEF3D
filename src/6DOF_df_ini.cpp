@@ -66,6 +66,9 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
     // Calculate geometrical properties
 	geometry(p,a,pgc);
     
+    // Order Triangles for correct inside/outside orientation
+    triangle_switch(p,a,pgc);
+    
     // Initialise position of bodies
     iniPosition_RBM(p,a,pgc);
 	
@@ -73,12 +76,6 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
 	ray_cast(p,a,pgc);
 	reini_AB2(p,a,pgc,a->fb);
     pgc->start4a(p,a->fb,50);
-    
-    // Order Triangles for correct inside/outside orientation
-    triangle_order(p,a,pgc);
-    
-    if(p->mpirank==0)
-    print_normals_vtp(p,a,pgc);
     
     // Initialise global variables
 	interface(p,true);
@@ -315,6 +312,7 @@ void sixdof_df_object::ini_parameter(lexer *p, fdm *a, ghostcell *pgc)
     
     // Printing
 	printtime = 0.0;
+    printtimenormal = 0.0;
     p->printcount_sixdof = 0;
 }
 

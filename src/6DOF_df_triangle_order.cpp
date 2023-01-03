@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_df_object::triangle_order(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_df_object::triangle_switch(lexer *p, fdm *a, ghostcell *pgc)
 {
     double x0,x1,x2,y0,y1,y2,z0,z1,z2;
 	double xc,yc,zc;
@@ -34,7 +34,20 @@ void sixdof_df_object::triangle_order(lexer *p, fdm *a, ghostcell *pgc)
     double n0,n1,n2;
     double fbval;
     
-    for (int n = 0; n < tricount; ++n)
+    // switch list allocate
+    p->Iarray(tri_switch,tricount);
+    p->Iarray(tricount_local_list,p->M10);
+    
+    for (int n=0;n<tricount;++n)
+    tri_switch[n]=0;
+    
+    tricount_local=0;
+    
+    
+    
+    
+    // start loop
+    for (int n=0;n<tricount;++n)
     {
         x0 = tri_x[n][0];
         y0 = tri_y[n][0];
@@ -73,6 +86,17 @@ void sixdof_df_object::triangle_order(lexer *p, fdm *a, ghostcell *pgc)
         zc += nz*p->DZN[KP];
         
         fbval = p->ccipol4_a(a->fb,xc,yc,zc);
+        
+        
+        // switch list
+        if( xc >= p->originx && xc < p->endx &&
+            yc >= p->originy && yc < p->endy &&
+            zc >= p->originz && zc < p->endz)
+            {
+            tri_switch[n] = 1;
+            ++tricount_local;
+            }
+        pgc->
         
         
         // Normal vector sign

@@ -36,39 +36,43 @@ void sixdof_df_object::print_normals_vtp(lexer *p, fdm *a, ghostcell *pgc)
 	double nx,ny,nz,norm;
     double n0,n1,n2;
     
-    double factor = 2.0;
+    double factor = 3.0;
     
 	int num=0;
     
+    if(p->P15==1)
     num = printnormal_count;
-    
+
+    if(p->P15==2)
+    num = p->count;
+	
 
 
     if(p->mpirank==0 && (((p->count%p->P20==0) && p->P30<0.0)  || (p->simtime>printtime && p->P30>0.0)   || p->count==0))
     {
-        printtime+=p->P30;
+        printtimenormal+=p->P30;
         
         char path[300];
         
         if(p->P14==1)
         {
             if(num<10)
-            sprintf(path,"./REEF3D_CFD_6DOF_NORMALS_VTP/REEF3D-6DOF-NORMALS-%i-00000%i.vtp",n6DOF,num);
+            sprintf(path,"./REEF3D_CFD_6DOF_Normals_VTP/REEF3D-6DOF-Normals-%i-00000%i.vtp",n6DOF,num);
 
             if(num<100&&num>9)
-            sprintf(path,"./REEF3D_CFD_6DOF_NORMALS_VTP/REEF3D-6DOF-NORMALS-%i-0000%i.vtp",n6DOF,num);
+            sprintf(path,"./REEF3D_CFD_6DOF_Normals_VTP/REEF3D-6DOF-Normals-%i-0000%i.vtp",n6DOF,num);
 
             if(num<1000&&num>99)
-            sprintf(path,"./REEF3D_CFD_6DOF_NORMALS_VTP/REEF3D-6DOF-NORMALS-%i-000%i.vtp",n6DOF,num);
+            sprintf(path,"./REEF3D_CFD_6DOF_Normals_VTP/REEF3D-6DOF-Normals-%i-000%i.vtp",n6DOF,num);
 
             if(num<10000&&num>999)
-            sprintf(path,"./REEF3D_CFD_6DOF_NORMALS_VTP/REEF3D-6DOF-NORMALS-%i-00%i.vtp",n6DOF,num);
+            sprintf(path,"./REEF3D_CFD_6DOF_Normals_VTP/REEF3D-6DOF-Normals-%i-00%i.vtp",n6DOF,num);
 
             if(num<100000&&num>9999)
-            sprintf(path,"./REEF3D_CFD_6DOF_NORMALS_VTP/REEF3D-6DOF-NORMALS-%i-0%i.vtp",n6DOF,num);
+            sprintf(path,"./REEF3D_CFD_6DOF_Normals_VTP/REEF3D-6DOF-Normals-%i-0%i.vtp",n6DOF,num);
 
             if(num>99999)
-            sprintf(path,"./REEF3D_CFD_6DOF_NORMALS_VTP/REEF3D-6DOF-NORMALS-%i-%i.vtp",n6DOF,num);
+            sprintf(path,"./REEF3D_CFD_6DOF_Normals_VTP/REEF3D-6DOF-Normals-%i-%i.vtp",n6DOF,num);
         }
 
         ofstream result;
@@ -217,9 +221,10 @@ void sixdof_df_object::print_normals_vtp(lexer *p, fdm *a, ghostcell *pgc)
     result<<"</VTKFile>"<<endl;
 
 	result.close();	
-    }
     
     ++printnormal_count;
+    }
+    
 }
 
 
