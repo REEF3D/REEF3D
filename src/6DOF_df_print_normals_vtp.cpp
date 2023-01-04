@@ -141,10 +141,13 @@ void sixdof_df_object::print_normals_vtp(lexer *p, fdm *a, ghostcell *pgc)
         nz = (x1 - x0)*(y2 - y0) - (x2 - x0)*(y1 - y0);
 
         norm = sqrt(nx*nx + ny*ny + nz*nz);
+        
+        cout<<"NORM: "<<norm<<" | nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<" | x0: "<<x0<<" y0: "<<y0<<" z0: "<<z0<<endl;
 			
         nx /= norm > 1.0e-20 ? norm : 1.0e20;
         ny /= norm > 1.0e-20 ? norm : 1.0e20;
         nz /= norm > 1.0e-20 ? norm : 1.0e20;
+        
         
         
         // Center of triangle
@@ -170,7 +173,7 @@ void sixdof_df_object::print_normals_vtp(lexer *p, fdm *a, ghostcell *pgc)
     
                         if(xc >= p->originx && xc < p->endx &&
                          yc >= p->originy && yc < p->endy &&
-                         zc >= p->originz && zc < p->endz && (p->j_dir==1 || fabs(ny)<0.001))
+                         zc >= p->originz && zc < p->endz)// && (p->j_dir==1 || fabs(ny)<0.001))
                          {
         xc += nx*p->DXN[IP]*factor;
         yc += ny*p->DYN[JP]*factor;

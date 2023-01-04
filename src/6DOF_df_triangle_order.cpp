@@ -55,7 +55,6 @@ void sixdof_df_object::triangle_switch(lexer *p, fdm *a, ghostcell *pgc)
     }
     
     
-    
     // start loop part 1: find local triangles
     for (int n=0;n<tricount;++n)
     {
@@ -105,10 +104,13 @@ void sixdof_df_object::triangle_switch(lexer *p, fdm *a, ghostcell *pgc)
     }
             
     
-    // Exchange switch list count
+    // Exchange 1: switch list count
     pgc->allgather_int(&tricount_local,1,tricount_local_list,1);
+    
+    //cout<<p->mpirank<<" tricount_local: "<<tricount_local<<" tricount_local_list[n]: "<<tricount_local_list[p->mpirank]<<endl;
         
-    p->Iarray(tri_switch_local,tricount_local_list[p->mpirank]);
+    p->Iarray(tri_switch_local,tricount_local);
+    p->Iarray(tri_switch_local_id,tricount_local);
     
     tricount_local_displ[0]=0;
     
@@ -116,8 +118,7 @@ void sixdof_df_object::triangle_switch(lexer *p, fdm *a, ghostcell *pgc)
     tricount_local_displ[q] = tricount_local_displ[q-1] + tricount_local_list[q-1];
 
     
-
-        
+   
         
     // start loop part 2: determine switch
     count=0;
@@ -179,42 +180,57 @@ void sixdof_df_object::triangle_switch(lexer *p, fdm *a, ghostcell *pgc)
             yc >= p->originy && yc < p->endy &&
             zc >= p->originz && zc < p->endz)
         {
+        
+        
+        if(fbval>=0.0)
+        tri_switch_local[count] = 0;
+        
+        if(fbval<0.0)
+        {
+        tri_switch_local[count] = 1;
+        
         cout<<"TRIANGLE SWITCH "<<fbval<<" | nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<" || n0: "<<n0<<" n1: "<<n1<<" n2: "<<n2;
         
         cout<<" | xc: "<<xc<<" yc: "<<yc<<" zc: "<<zc<<endl;
         
         if(triangle_token==1)
         cout<<"TRIANGLE SWITCH !!!!!!!!"<<endl;
-        
-        if(fbval>=0.0)
-        tri_switch_local[count] = 0;
-        
-        if(fbval<0.0)
-        tri_switch_local[count] = 1;
+        }
         
         tri_switch_local_id[count]=n;
 
         ++count;
         }
+    }
         
-        // Exchange switch list
+        // Exchange 2:  switch list
         pgc->allgatherv_int(tri_switch_local_id,tricount_local_list[p->mpirank],tri_switch_id,tricount_local_list,tricount_local_displ);
+        
         pgc->allgatherv_int(tri_switch_local,tricount_local_list[p->mpirank],tri_switch,tricount_local_list,tricount_local_displ);
         
         
         // start loop part 3: global switch
         for (int n=0;n<tricount;++n)
-        if(tri_switch[n]==1)
+        if(tri_switch[tri_switch_id[n]]==1)
         {   
-        tri_x[n][1] = x2;
-        tri_y[n][1] = y2;
-        tri_z[n][1] = z2;
+        x1 = tri_x[tri_switch_id[n]][1];
+        y1 = tri_y[tri_switch_id[n]][1];
+        z1 = tri_z[tri_switch_id[n]][1];
         
-        tri_x[n][2] = x1;
-        tri_y[n][2] = y1;
-        tri_z[n][2] = z1;
+        x2 = tri_x[tri_switch_id[n]][2];
+        y2 = tri_y[tri_switch_id[n]][2];
+        z2 = tri_z[tri_switch_id[n]][2];
+        
+        
+        tri_x[tri_switch_id[n]][1] = x2;
+        tri_y[tri_switch_id[n]][1] = y2;
+        tri_z[tri_switch_id[n]][1] = z2;
+        
+        tri_x[tri_switch_id[n]][2] = x1;
+        tri_y[tri_switch_id[n]][2] = y1;
+        tri_z[tri_switch_id[n]][2] = z1;
         }
-    }
+    
     ++triangle_token;
     
     
