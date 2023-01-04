@@ -229,8 +229,10 @@ public:
     double timer();
     //Collective Communication
     void gather_int(int *, int, int *, int);
+    void allgather_int(int *, int, int *, int);
     void gather_double(double *, int, double *, int);
 	void gatherv_int(int*, int, int*, int*, int*);
+    void allgatherv_int(int *, int, int *, int*, int*);
     void gatherv_double(double *, int, double *, int*, int*);
     void bcast_int(int*, int);
     void bcast_double(double *, int);
