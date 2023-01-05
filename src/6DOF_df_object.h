@@ -203,6 +203,7 @@ private:
     double **tri_x,**tri_y,**tri_z,**tri_x0,**tri_y0,**tri_z0;
     int *tri_switch,*tri_switch_id,*tri_switch_local,*tri_switch_local_id;
     int tricount_local,*tricount_local_list,*tricount_local_displ;
+    int tricount_switch_total;
 	vector<vector<double> > tri_x_r;
 	vector<vector<double> > tri_y_r;
 	vector<vector<double> > tri_z_r;

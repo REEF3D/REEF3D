@@ -115,12 +115,14 @@ void sixdof_df_object::triangle_switch(lexer *p, fdm *a, ghostcell *pgc)
     tricount_local_displ[0]=0;
     
     for(q=1;q<p->M10;++q)
+    {
     tricount_local_displ[q] = tricount_local_displ[q-1] + tricount_local_list[q-1];
-
     
-   
+    //cout<<p->mpirank<<" tricount_local: "<<tricount_local<<" tricount_local_list[q]: "<<tricount_local_list[q]<<" tricount_local_list[q]: "<<tricount_local_displ[q]<<endl;
+    }
+
         
-    // start loop part 2: determine switch
+    // start loop part 2: determine triangle switch
     count=0;
     for (int n=0;n<tricount;++n)
     {
@@ -145,7 +147,6 @@ void sixdof_df_object::triangle_switch(lexer *p, fdm *a, ghostcell *pgc)
         nx /= norm > 1.0e-20 ? norm : 1.0e20;
         ny /= norm > 1.0e-20 ? norm : 1.0e20;
         nz /= norm > 1.0e-20 ? norm : 1.0e20;
-        
         
         // Center of triangle
 		xc = (x0 + x1 + x2)/3.0;
@@ -182,34 +183,35 @@ void sixdof_df_object::triangle_switch(lexer *p, fdm *a, ghostcell *pgc)
         {
         
         
-        if(fbval>=0.0)
-        tri_switch_local[count] = 0;
-        
-        if(fbval<0.0)
-        {
-        tri_switch_local[count] = 1;
-        
-        cout<<"TRIANGLE SWITCH "<<fbval<<" | nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<" || n0: "<<n0<<" n1: "<<n1<<" n2: "<<n2;
-        
-        cout<<" | xc: "<<xc<<" yc: "<<yc<<" zc: "<<zc<<endl;
-        
-        if(triangle_token==1)
-        cout<<"TRIANGLE SWITCH !!!!!!!!"<<endl;
-        }
-        
-        tri_switch_local_id[count]=n;
+            if(fbval>=0.0)
+            tri_switch_local[count] = 0;
+            
+            if(fbval<0.0)
+            {
+            tri_switch_local[count] = 1;
+            
+            /*cout<<"TRIANGLE SWITCH "<<fbval<<" | nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<" || n0: "<<n0<<" n1: "<<n1<<" n2: "<<n2;
+            
+            cout<<" | xc: "<<xc<<" yc: "<<yc<<" zc: "<<zc<<endl;
+            
+            if(triangle_token==1)
+            cout<<"TRIANGLE SWITCH !!!!!!!!"<<endl;*/
+            }
+            
+            tri_switch_local_id[count]=n;
 
-        ++count;
+            ++count;
         }
     }
         
         // Exchange 2:  switch list
-        pgc->allgatherv_int(tri_switch_local_id,tricount_local_list[p->mpirank],tri_switch_id,tricount_local_list,tricount_local_displ);
+        pgc->allgatherv_int(tri_switch_local_id, tricount_local_list[p->mpirank], tri_switch_id, tricount_local_list, tricount_local_displ);
         
-        pgc->allgatherv_int(tri_switch_local,tricount_local_list[p->mpirank],tri_switch,tricount_local_list,tricount_local_displ);
+        pgc->allgatherv_int(tri_switch_local, tricount_local_list[p->mpirank], tri_switch, tricount_local_list, tricount_local_displ);
         
         
         // start loop part 3: global switch
+        tricount_switch_total=0;
         for (int n=0;n<tricount;++n)
         if(tri_switch[tri_switch_id[n]]==1)
         {   
@@ -229,9 +231,14 @@ void sixdof_df_object::triangle_switch(lexer *p, fdm *a, ghostcell *pgc)
         tri_x[tri_switch_id[n]][2] = x1;
         tri_y[tri_switch_id[n]][2] = y1;
         tri_z[tri_switch_id[n]][2] = z1;
+        
+        ++tricount_switch_total;
         }
     
     ++triangle_token;
+    
+    if(p->mpirank==0)
+    cout<<"6DOF STL triangle switch count: "<<tricount_switch_total<<endl;
     
     
 }

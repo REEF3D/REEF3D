@@ -32,7 +32,7 @@ void sixdof_df_object::geometry_refinement(lexer *p, ghostcell *pgc)
 	double at,bt,ct,st;
 	double nx_old,ny_old,nz_old;	
     double A_triang,A;
-    
+
     A=0.0;
     for (int n = 0; n < tricount; ++n)
     {
@@ -62,7 +62,7 @@ void sixdof_df_object::geometry_refinement(lexer *p, ghostcell *pgc)
     A = pgc->globalsum(A);
     
     if(p->mpirank==0)
-    cout<<endl<<"A_orig: "<<A<<endl<<endl;
+    cout<<endl<<"A_orig: "<<A<<endl;
     
     
 	
@@ -202,7 +202,7 @@ void sixdof_df_object::geometry_refinement(lexer *p, ghostcell *pgc)
     A = pgc->globalsum(A);
     
     if(p->mpirank==0)
-    cout<<"A_refined: "<<A<<endl<<endl;
+    cout<<"A_refined: "<<A<<endl;
 }
 
 
