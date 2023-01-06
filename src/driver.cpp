@@ -135,8 +135,8 @@ driver::driver(int& argc, char **argv)
 void driver::cfd_driver()
 {
     if(p->mpirank==0)
-	cout<<"initialize fdm"<<endl;
-    
+	cout<<"initialize fdm "<<endl;
+
     a=new fdm(p);
     
 	aa=a;
