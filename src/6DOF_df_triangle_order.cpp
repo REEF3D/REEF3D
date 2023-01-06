@@ -240,5 +240,11 @@ void sixdof_df_object::triangle_switch(lexer *p, fdm *a, ghostcell *pgc)
     if(p->mpirank==0)
     cout<<"6DOF STL triangle switch count: "<<tricount_switch_total<<endl;
     
-    
+    // free allocated arrays
+    p->del_Iarray(tri_switch,tricount);
+    p->del_Iarray(tri_switch_id,tricount);
+    p->del_Iarray(tricount_local_list,p->M10+1);
+    p->del_Iarray(tricount_local_displ,p->M10+1);
+    p->del_Iarray(tri_switch_local,tricount_local);
+    p->del_Iarray(tri_switch_local_id,tricount_local);
 }
