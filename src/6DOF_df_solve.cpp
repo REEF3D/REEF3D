@@ -25,7 +25,6 @@ Author: Tobias Martin
 #include"fdm.h"
 #include"ghostcell.h"
 
-
 void sixdof_df_object::solve_eqmotion(lexer *p, fdm *a, ghostcell *pgc, double alpha, double gamma, double zeta, vrans *pvrans, vector<net*>& pnet)
 {
     externalForces(p, a, pgc, alpha, pvrans, pnet);
@@ -51,16 +50,7 @@ void sixdof_df_object::rk3(lexer *p, fdm *a, ghostcell *pgc, double alpha, doubl
     ek_ = de_;
 }
 
-void sixdof_df_object::get_trans
-(
-    lexer *p,
-    fdm *a,
-    ghostcell *pgc,
-    Eigen::Vector3d& dp,
-    Eigen::Vector3d& dc, 
-    const Eigen::Vector3d& pp,
-    const Eigen::Vector3d& c
-)
+void sixdof_df_object::get_trans(lexer *p, fdm *a, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc, const Eigen::Vector3d& pp, const Eigen::Vector3d& c)
 {
     dp = Ffb_; 
     dc = pp/Mass_fb;
@@ -70,13 +60,7 @@ void sixdof_df_object::get_trans
 } 
 
 
-void sixdof_df_object::get_rot
-(
-    Eigen::Vector3d& dh, 
-    Eigen::Vector4d& de, 
-    const Eigen::Vector3d& h, 
-    const Eigen::Vector4d& e
-)
+void sixdof_df_object::get_rot(Eigen::Vector3d& dh, Eigen::Vector4d& de, const Eigen::Vector3d& h, const Eigen::Vector4d& e)
 {
     // Update Euler parameter matrices
     quat_matrices(e);
