@@ -40,7 +40,7 @@ driver::driver(int& argc, char **argv)
     {
     cout<<endl<<"REEF3D (c) 2008-2023 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    cout<<endl<<"v_230105" <<endl<<endl;
+    cout<<endl<<"v_230106" <<endl<<endl;
     }
 
 	p->lexer_read(pgc);
@@ -135,8 +135,8 @@ driver::driver(int& argc, char **argv)
 void driver::cfd_driver()
 {
     if(p->mpirank==0)
-	cout<<"initialize fdm"<<endl;
-    
+	cout<<"initialize fdm "<<endl;
+
     a=new fdm(p);
     
 	aa=a;

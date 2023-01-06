@@ -645,7 +645,7 @@ void lexer::ini_default()
 	X33=1;		// int boundary conditions for pressure on floating body
     X34=0;		// int boundary treatment for new solid velocity cells
     X40=3;		// int type of force calculation
-	X41=2.1;    // double eps for continuous forcing heaviside
+	X41=0.6;    // double eps for continuous forcing heaviside
 	X42=0.0;    // double distance for pressure force evaluation
 	X43=1.0;    // double distance for shear stress evaluation
 	X44=0.0;    // double viscosity in body

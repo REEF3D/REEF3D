@@ -290,8 +290,8 @@ void sixdof_df_object::forces_stl
 
 	// Add gravity force
 	
-    if(p->mpirank==0)
-    cout<<"Hydrodynamic Force Fz: "<<Ze<<" A: "<<A<<endl<<endl;
+    //if(p->mpirank==0)
+    //cout<<"Hydrodynamic Force Fz: "<<Ze<<" A: "<<A<<endl<<endl;
     
 	Xe += a->gi*Mass_fb;
 	Ye += a->gj*Mass_fb;

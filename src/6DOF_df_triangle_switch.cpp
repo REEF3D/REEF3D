@@ -29,6 +29,7 @@ void sixdof_df_object::triangle_switch(lexer *p, fdm *a, ghostcell *pgc)
 {
     double x0,x1,x2,y0,y1,y2,z0,z1,z2;
 	double xc,yc,zc;
+    double xc0,yc0,zc0;
 	double at,bt,ct,st;
 	double nx,ny,nz,norm;
     double n0,n1,n2;
@@ -80,24 +81,15 @@ void sixdof_df_object::triangle_switch(lexer *p, fdm *a, ghostcell *pgc)
         ny /= norm > 1.0e-20 ? norm : 1.0e20;
         nz /= norm > 1.0e-20 ? norm : 1.0e20;
         
-        
         // Center of triangle
 		xc = (x0 + x1 + x2)/3.0;
 		yc = (y0 + y1 + y2)/3.0;
 		zc = (z0 + z1 + z2)/3.0;
         
-        i = p->posc_i(xc);
-        j = p->posc_j(yc);
-        k = p->posc_k(zc);
-        
-        xc += nx*p->DXN[IP];
-        yc += ny*p->DYN[JP];
-        zc += nz*p->DZN[KP];
-        
         // switch list
-        if( xc >= p->originx && xc < p->endx &&
-            yc >= p->originy && yc < p->endy &&
-            zc >= p->originz && zc < p->endz)
+        if( xc >= p->originx && xc <= p->endx &&
+            ((yc >= p->originy && yc <= p->endy) || p->j_dir==0) &&
+            zc >= p->originz && zc <= p->endz)
             {
             ++tricount_local;
             }
@@ -107,7 +99,11 @@ void sixdof_df_object::triangle_switch(lexer *p, fdm *a, ghostcell *pgc)
     // Exchange 1: switch list count
     pgc->allgather_int(&tricount_local,1,tricount_local_list,1);
     
-    //cout<<p->mpirank<<" tricount_local: "<<tricount_local<<" tricount_local_list[n]: "<<tricount_local_list[p->mpirank]<<endl;
+    /*
+    for(q=0;q<p->M10;++q)
+    {
+    cout<<p->mpirank<<" tricount_local: "<<tricount_local<<" tricount_local_list: ["<<q<<"] "<<tricount_local_list[q]<<endl;
+    }*/
         
     p->Iarray(tri_switch_local,tricount_local);
     p->Iarray(tri_switch_local_id,tricount_local);
@@ -153,49 +149,54 @@ void sixdof_df_object::triangle_switch(lexer *p, fdm *a, ghostcell *pgc)
 		yc = (y0 + y1 + y2)/3.0;
 		zc = (z0 + z1 + z2)/3.0;
         
-        i = p->posc_i(xc);
-        j = p->posc_j(yc);
-        k = p->posc_k(zc);
-        
-        xc += nx*p->DXN[IP];
-        yc += ny*p->DYN[JP];
-        zc += nz*p->DZN[KP];
-        
-        fbval = p->ccipol4_a(a->fb,xc,yc,zc);
-        
-        
-            // Normal vector sign - debug info only
+        //if((p->j_dir==1 || fabs(ny)<0.001))
+        //cout<<"yc: "<<yc<<" j: "<<j<<" fbval: "<<fbval<<endl;
+   
+        if( xc >= p->originx && xc <= p->endx &&
+            ((yc >= p->originy && yc <= p->endy) || p->j_dir==0) &&
+            zc >= p->originz && zc <= p->endz)
+        {
+            i = p->posc_i(xc);
+            j = p->posc_j(yc);
+            k = p->posc_k(zc);
+            
+            xc += 0.1*nx*p->DXN[IP];
+            yc += 0.1*ny*p->DYN[JP];
+            zc += 0.1*nz*p->DZN[KP];
+            
+            fbval = p->ccipol4_a(a->fb,xc,yc,zc);
+            
+            // Normal vector sign
             n0 = (a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
             n1 = (a->fb(i,j+1,k) - a->fb(i,j-1,k))/(2.0*p->DYN[JP]);
             n2 = (a->fb(i,j,k+1) - a->fb(i,j,k-1))/(2.0*p->DZN[KP]);
-    
+
             norm = sqrt(n0*n0 + n1*n1 + n2*n2);
             
-            n0 /= norm>1.0e-20?norm:1.0e20;
-            n1 /= norm>1.0e-20?norm:1.0e20;
-            n2 /= norm>1.0e-20?norm:1.0e20;
-            
-            
-        
-        if( xc >= p->originx && xc < p->endx &&
-            yc >= p->originy && yc < p->endy &&
-            zc >= p->originz && zc < p->endz)
-        {
+             n0 /= norm > 1.0e-20 ? norm : 1.0e20;
+			n1 /= norm > 1.0e-20 ? norm : 1.0e20;
+			n2 /= norm > 1.0e-20 ? norm : 1.0e20;
+
+            if((n0>0.0 && nx<0.0 || n0<0.0 && nx>0.0) || (n2>0.0 && nz<0.0 || n2<0.0 && nz>0.0))
+            fbval=-1.0;
         
         
             if(fbval>=0.0)
+            {
             tri_switch_local[count] = 0;
+            
+            /*cout<<"TRIANGLE SWITCH "<<fbval<<" | nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz;
+            
+            cout<<" | xc: "<<xc<<" yc: "<<yc<<" zc: "<<zc<<endl;*/
+            }
             
             if(fbval<0.0)
             {
             tri_switch_local[count] = 1;
             
-            /*cout<<"TRIANGLE SWITCH "<<fbval<<" | nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<" || n0: "<<n0<<" n1: "<<n1<<" n2: "<<n2;
+            /*cout<<"TRIANGLE SWITCH "<<fbval<<" | nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz;
             
-            cout<<" | xc: "<<xc<<" yc: "<<yc<<" zc: "<<zc<<endl;
-            
-            if(triangle_token==1)
-            cout<<"TRIANGLE SWITCH !!!!!!!!"<<endl;*/
+            cout<<" | xc: "<<xc<<" yc: "<<yc<<" zc: "<<zc<<endl;*/
             }
             
             tri_switch_local_id[count]=n;
@@ -215,6 +216,7 @@ void sixdof_df_object::triangle_switch(lexer *p, fdm *a, ghostcell *pgc)
         for (int n=0;n<tricount;++n)
         if(tri_switch[tri_switch_id[n]]==1)
         {   
+        cout<<n<<" tri_switch_id[n]: "<<tri_switch_id[n]<<endl;
         x1 = tri_x[tri_switch_id[n]][1];
         y1 = tri_y[tri_switch_id[n]][1];
         z1 = tri_z[tri_switch_id[n]][1];

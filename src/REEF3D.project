@@ -1596,7 +1596,7 @@
             <File Name="6DOF_df_forces.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Geometry">
-            <File Name="6DOF_df_triangle_order.cpp"/>
+            <File Name="6DOF_df_triangle_switch.cpp"/>
             <File Name="6DOF_df_objects_refinement.cpp"/>
             <File Name="6DOF_df_STL.cpp"/>
             <File Name="6DOF_df_wedge_sym.cpp"/>

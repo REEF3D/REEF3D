@@ -153,13 +153,7 @@ void sixdof_df_object::print_normals_vtp(lexer *p, fdm *a, ghostcell *pgc)
 		xc = (x0 + x1 + x2)/3.0;
 		yc = (y0 + y1 + y2)/3.0;
 		zc = (z0 + z1 + z2)/3.0;
-        
-        i = p->posc_i(xc);
-        j = p->posc_j(yc);
-        k = p->posc_k(zc);
-        
-                
-        
+           
 	ffn=xc;
 	result.write((char*)&ffn, sizeof (float));
 
@@ -171,9 +165,9 @@ void sixdof_df_object::print_normals_vtp(lexer *p, fdm *a, ghostcell *pgc)
     
                         if((p->j_dir==1 || fabs(ny)<0.001))
                          {
-        xc += nx*p->DXN[IP]*factor;
-        yc += ny*p->DYN[JP]*factor;
-        zc += nz*p->DZN[KP]*factor;
+        xc += nx*p->DXM*factor;
+        yc += ny*p->DXM*factor;
+        zc += nz*p->DXM*factor;
                          }
     ffn=xc;
 	result.write((char*)&ffn, sizeof (float));
