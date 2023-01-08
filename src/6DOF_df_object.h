@@ -96,7 +96,8 @@ private:
     void wedge(lexer*, fdm*, ghostcell*,int);
     void hexahedron(lexer*, fdm*, ghostcell*,int);
     void read_stl(lexer*, fdm*, ghostcell*);
-    void triangle_switch(lexer*, fdm*, ghostcell*);
+    void triangle_switch_lsm(lexer*, fdm*, ghostcell*);
+    void triangle_switch_ray(lexer*, fdm*, ghostcell*);
    
     void ini_parallel(lexer*, fdm*, ghostcell*);
     
@@ -167,7 +168,6 @@ private:
     void ray_cast_x(lexer*, fdm*, ghostcell*,int,int);
 	void ray_cast_y(lexer*, fdm*, ghostcell*,int,int);
 	void ray_cast_z(lexer*, fdm*, ghostcell*,int,int);
-    void ray_cast_switch(lexer*, fdm*, ghostcell*,int,int);
     void reini_AB2(lexer*, fdm*, ghostcell*, field&);
     
     

@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"fieldint.h"
 
-void sixdof_df_object::ray_cast_switch(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
+void sixdof_df_object::triangle_switch_ray(lexer *p, fdm *a, ghostcell *pgc)
 {
 	double ys,ye,zs,ze;
 	double Px,Py,Pz;
@@ -44,7 +44,7 @@ void sixdof_df_object::ray_cast_switch(lexer *p, fdm *a, ghostcell *pgc, int ts,
 	double u,v,w;
 	double denom;	
 	int insidecheck;
-	double psi = 1.0e-8*p->DXM;
+	double psi = 1.0e-3*p->DXM;
     
     double x0,x1,x2,y0,y1,y2,z0,z1,z2;
 	double xc,yc,zc;
@@ -70,11 +70,12 @@ void sixdof_df_object::ray_cast_switch(lexer *p, fdm *a, ghostcell *pgc, int ts,
     sum = 0;
     for(q=0; q<p->M10-1; ++q)
     {
-    tricount_local_list[n]=tricount_local;
+    tricount_local_list[q]=tricount_local;
     sum += tricount_local;
     }
     
     tricount_local_list[p->M10-1] = tricount - sum;
+
     
     // displacemen
     tricount_local_displ[0]=0;
@@ -87,10 +88,19 @@ void sixdof_df_object::ray_cast_switch(lexer *p, fdm *a, ghostcell *pgc, int ts,
     tricount_local_max = MAX(tricount_local_list[q],tricount_local_max);
     
     p->Iarray(tri_switch_local,tricount_local_max);
+    
+    cout<<p->mpirank<<" tricount_local_displ[p->mpirank+1] - tricount_local_displ[p->mpirank] "<<tricount_local_displ[p->mpirank+1] - tricount_local_displ[p->mpirank]<<endl;
+    
+    
+    if(p->mpirank==1)
+    for(q=0;q<p->M10+1;++q)
+    cout<<"tricount_local_displ[q]: "<<tricount_local_displ[q]<<endl;
 
     // ray cast
-	for (q=tricount_local_displ[p->mpirank];q<tricount_local_displ[p->mpirank+1];++q)
+	for(q=tricount_local_displ[p->mpirank];q<tricount_local_displ[p->mpirank+1];++q)
 	{
+        //cout<<p->mpirank<<"q: "<<q<<endl;
+        
         // triangle points
         x0 = tri_x[q][0];
         y0 = tri_y[q][0];
@@ -133,6 +143,7 @@ void sixdof_df_object::ray_cast_switch(lexer *p, fdm *a, ghostcell *pgc, int ts,
             domdir=3;
         }
         
+        
         // Center of triangle
 		xc = (x0 + x1 + x2)/3.0;
 		yc = (y0 + y1 + y2)/3.0;
@@ -142,6 +153,7 @@ void sixdof_df_object::ray_cast_switch(lexer *p, fdm *a, ghostcell *pgc, int ts,
             cutnum=0;
             // ray cast loop
             for(n=0; n<tricount; ++n)
+            if(n!=q)
             {
             Ax = tri_x[n][0];
             Ay = tri_y[n][0];
@@ -166,10 +178,11 @@ void sixdof_df_object::ray_cast_switch(lexer *p, fdm *a, ghostcell *pgc, int ts,
             ze = MAX3(Az,Bz,Cz);
             
             if((yc>=ys&&yc<=ye && zc>=zs&&zc<=ze && domdir==1)
-            || (xc>=xs&&xc<=xe && zc>=zs&&zc<=ze && domdir==2) 
+            || (xc>=xs&&xc<=xe && zc>=zs&&zc<=ze && domdir==2 && p->y_dir==1) 
             || (xc>=xs&&xc<=xe && yc>=ys&&yc<=ye && domdir==3)) 
             {
-            
+            //cout<<"TRIANGLE SWITCH "<<domdir<<" | nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<endl;
+        
     
                 Px = xc;
                 Py = yc;
@@ -181,40 +194,40 @@ void sixdof_df_object::ray_cast_switch(lexer *p, fdm *a, ghostcell *pgc, int ts,
                 
                 if(domdir==1 && nx>0.0)
                 {
-                Px = xc;
+                Px = xc + psi;
                 Qx = p->global_xmax+10.0*p->DXM;
                 }
                 
                 if(domdir==1 && nx<0.0)
                 {
                 Px = p->global_xmin-10.0*p->DXM;
-                Qx = xc;
+                Qx = xc - psi;
                 }
                 
                 
                 if(domdir==2 && ny>0.0)
                 {
-                Py = yc;
+                Py = yc + psi;
                 Qy = p->global_ymax+10.0*p->DXM;
                 }
                 
                 if(domdir==2 && ny<0.0)
                 {
                 Py = p->global_ymin-10.0*p->DXM;
-                Qy = yc;
+                Qy = yc - psi;
                 }
                 
                 
                 if(domdir==3 && nz>0.0)
                 {
-                Pz = zc;
+                Pz = zc + psi;
                 Qz = p->global_zmax+10.0*p->DXM;
                 }
                 
                 if(domdir==3 && nz<0.0)
                 {
                 Pz = p->global_zmin-10.0*p->DXM;
-                Qz = zc;
+                Qz = zc - psi;
                 }
                 
                 
@@ -251,10 +264,10 @@ void sixdof_df_object::ray_cast_switch(lexer *p, fdm *a, ghostcell *pgc, int ts,
                 
                 
                 int check=1;
-                if(u==0.0 && v==0.0 && w==0.0)
+                if(fabs(u)<1.0e-15 && fabs(v)<1.0e-15 && fabs(w)<1.0e-15)
                 check = 0;
-                {
-                    if((u>=0.0 && v>=0.0 && w>=0.0) || (u<0.0 && v<0.0 && w<0.0) && check==1)
+                
+                    if((u>0.0 && v>0.0 && w>0.0) || (u<0.0 && v<0.0 && w<0.0) && check==1)
                     {
                     denom = 1.0/(u+v+w);
                     u *= denom;
@@ -262,20 +275,46 @@ void sixdof_df_object::ray_cast_switch(lexer *p, fdm *a, ghostcell *pgc, int ts,
                     w *= denom;
                     
                     Rx = u*Ax + v*Bx + w*Cx;
+                    
+                    Ry = u*Ay + v*By + w*Cy;
+                    
+                    Rz = u*Az + v*Bz + w*Cz;
+                    
+                    if((Rx>=Px && Rx<=Qx && domdir==1)
+                    || (Ry>=Py && Ry<=Qy && domdir==2)
+                    || (Rz>=Pz && Rz<=Qz && domdir==3))
+                    ++cutnum;
+                    
+                    //if(domdir==1)
+                    //cout<<"Rx: "<<Rx<<" Px: "<<Px<<" Qx: "<<Qx<<endl;
                     }
-            }
-            
-            if(cutnum%2==0) // outside poiting -> no switch
-            tri_switch_local[q-tricount_local_displ[p->mpirank]] = 0;
-            
                 
-            if(cutnum%2!=0) // inside poiting -> switch
-            tri_switch_local[q-tricount_local_displ[p->mpirank]] = 1;
         
             }
+                    
+            
         } // ray cast loop end
+        
+        if(cutnum%2==0 || cutnum==0) // outside poiting -> no switch
+        {
+        tri_switch_local[q-tricount_local_displ[p->mpirank]] = 0;
+        //cout<<"cutnum1: "<<cutnum<<endl;
+        }
+            
+                
+        if(cutnum%2!=0 && cutnum>0) // inside poiting -> switch
+        {
+        tri_switch_local[q-tricount_local_displ[p->mpirank]] = 1;
+    //cout<<p->mpirank<<" cutnum2: "<<cutnum<<endl;
+        }
 	}
     
+    count=0;
+    for (q=tricount_local_displ[p->mpirank];q<tricount_local_displ[p->mpirank+1];++q)
+    if(tri_switch_local[q-tricount_local_displ[p->mpirank]]==1)
+    ++count;
+    
+    cout<<p->mpirank<<"  LOCAL SWITCH: "<<count<<endl;
     
     pgc->allgatherv_int(tri_switch_local, tricount_local_list[p->mpirank], tri_switch, tricount_local_list, tricount_local_displ);
         
@@ -284,7 +323,6 @@ void sixdof_df_object::ray_cast_switch(lexer *p, fdm *a, ghostcell *pgc, int ts,
         for (int n=0;n<tricount;++n)
         if(tri_switch[n]==1)
         {   
-        //cout<<n<<" tri_switch_id[n]: "<<tri_switch_id[n]<<endl;
         x1 = tri_x[n][1];
         y1 = tri_y[n][1];
         z1 = tri_z[n][1];
