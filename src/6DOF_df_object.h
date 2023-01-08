@@ -167,6 +167,7 @@ private:
     void ray_cast_x(lexer*, fdm*, ghostcell*,int,int);
 	void ray_cast_y(lexer*, fdm*, ghostcell*,int,int);
 	void ray_cast_z(lexer*, fdm*, ghostcell*,int,int);
+    void ray_cast_switch(lexer*, fdm*, ghostcell*,int,int);
     void reini_AB2(lexer*, fdm*, ghostcell*, field&);
     
     

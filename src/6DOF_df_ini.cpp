@@ -115,6 +115,7 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
 	{
 		pmooring.push_back(new mooring_void());
 	}
+    
 	else
 	{
 		MPI_Bcast(&p->mooring_count,1,MPI_DOUBLE,0,pgc->mpi_comm);	

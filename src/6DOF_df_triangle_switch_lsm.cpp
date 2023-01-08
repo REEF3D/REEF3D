@@ -29,7 +29,6 @@ void sixdof_df_object::triangle_switch(lexer *p, fdm *a, ghostcell *pgc)
 {
     double x0,x1,x2,y0,y1,y2,z0,z1,z2;
 	double xc,yc,zc;
-    double xc0,yc0,zc0;
 	double at,bt,ct,st;
 	double nx,ny,nz,norm;
     double n0,n1,n2;
