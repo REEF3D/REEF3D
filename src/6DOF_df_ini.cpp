@@ -69,8 +69,6 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
     // Order Triangles for correct inside/outside orientation
     //triangle_switch_lsm(p,a,pgc);
     
-    triangle_switch_ray(p,a,pgc);
-    
     // Initialise position of bodies
     iniPosition_RBM(p,a,pgc);
 	

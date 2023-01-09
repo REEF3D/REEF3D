@@ -36,7 +36,7 @@ void sixdof_df_object::print_normals_vtp(lexer *p, fdm *a, ghostcell *pgc)
 	double nx,ny,nz,norm;
     double n0,n1,n2;
     
-    double factor = 1.6;
+    double factor = 2.1;
     
 	int num=0;
     

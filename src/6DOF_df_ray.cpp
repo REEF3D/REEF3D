@@ -78,6 +78,7 @@ void sixdof_df_object::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
 	}
     
 	pgc->start4a(p,a->fb,50);
+
 }
 
 

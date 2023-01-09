@@ -92,12 +92,11 @@ void sixdof_df_object::objects_create(lexer *p, fdm *a, ghostcell *pgc)
     if(p->mpirank==0)
 	cout<<"Surface triangles: "<<tricount<<endl;
     
+    // Order Triangles for correct inside/outside orientation
+    triangle_switch_ray(p,a,pgc);
 	
 	// Refine triangles
 	geometry_refinement(p,pgc);	
-    
-    // Order Triangles for correct inside/outside orientation
-    //triangle_switch(p,a,pgc);
 
     if(p->mpirank==0)
 	cout<<"Refined surface triangles: "<<tricount<<endl;
