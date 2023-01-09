@@ -65,7 +65,12 @@ levelset_void::levelset_void(lexer* p, fdm *a, ghostcell* pgc, heat *&pheat, con
     
     if(p->F300>0)
 	pupdate = new fluid_update_void();
+    
+    if(p->F30==0 || p->F80==0)
+    pupdate = new fluid_update_void();
 }
+
+
 
 levelset_void::~levelset_void()
 {
