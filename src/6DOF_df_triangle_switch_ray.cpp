@@ -324,7 +324,7 @@ void sixdof_df_object::triangle_switch_ray(lexer *p, fdm *a, ghostcell *pgc)
             
         } // ray cast loop end
         
-        if(cutnum%2==0 || cutnum==0) // outside poiting -> no switch
+        if(cutnum%2==0 || cutnum==0) // outside poiting -> no switch
         {
         tri_switch_local[q-tricount_local_displ[p->mpirank]] = 0;
         //cout<<"cutnum1: "<<cutnum<<endl;
