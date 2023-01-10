@@ -379,6 +379,5 @@ void sixdof_df_object::triangle_switch_ray(lexer *p, fdm *a, ghostcell *pgc)
     p->del_Iarray(tri_switch,tricount);
     p->del_Iarray(tricount_local_list,p->M10+1);
     p->del_Iarray(tricount_local_displ,p->M10+1);
-    p->del_Iarray(tri_switch_local,tricount_local);
-	
+    p->del_Iarray(tri_switch_local,tricount_local);	
 }
