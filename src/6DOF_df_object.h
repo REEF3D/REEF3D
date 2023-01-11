@@ -77,6 +77,7 @@ public:
 private:
 
 	void ini_parameter(lexer*, fdm*, ghostcell*);
+    void ini_fbvel(lexer*, fdm*, ghostcell*);
     void maxvel(lexer*, fdm*, ghostcell*);
     
     void externalForces(lexer*, fdm*, ghostcell*, double, vrans*, vector<net*>&);

@@ -81,19 +81,19 @@ void sixdof_df_object::prescribedMotion(lexer *p, fdm *a, ghostcell *pgc, Eigen:
     if (p->X11_u == 2)
     {
         dp(0) = 0.0; 
-        dc(0) = Uext;
+        dc(0) = Uext*Mass_fb;
     }
     
     if (p->X11_v == 2)
     {
         dp(1) = 0.0; 
-        dc(1) = Vext;
+        dc(1) = Vext*Mass_fb;
     }
 
     if (p->X11_w == 2)
     {
         dp(2) = 0.0; 
-        dc(2) = Wext;
+        dc(2) = Wext*Mass_fb;
     }
     
     if(p->X11_p==2)

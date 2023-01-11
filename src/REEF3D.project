@@ -1571,6 +1571,11 @@
           <File Name="6DOF_sflow.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="DirectForcing">
+          <VirtualDirectory Name="Initialize">
+            <File Name="6DOF_df_position.cpp"/>
+            <File Name="6DOF_df_ini_parameters.cpp"/>
+            <File Name="6DOF_df_ini.cpp"/>
+          </VirtualDirectory>
           <File Name="6DOF_df_transform.cpp"/>
           <File Name="6DOF_df_forcing.cpp"/>
           <File Name="6DOF_df_main.cpp"/>
@@ -1612,7 +1617,6 @@
           <File Name="6DOF_df_solve.cpp"/>
           <File Name="6DOF_df_rotation.cpp"/>
           <File Name="6DOF_df_interface.cpp"/>
-          <File Name="6DOF_df_ini.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="GCIBM">
           <File Name="6DOF_gc_velsource.cpp"/>
