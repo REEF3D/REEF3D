@@ -134,7 +134,12 @@ void ioflow_f::Qout(lexer *p, fdm* a, ghostcell* pgc)
     p->Qo=pgc->globalsum(p->Qo);
 	
 	if(p->B60==1)
+    {
 	p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);
+    
+    if(p->count==0 && p->I11==1)
+    p->Uo=p->W10/(Ao>1.0e-20?Ao:1.0e20);
+    }
 	
 	if(p->B60==2)
 	p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);
