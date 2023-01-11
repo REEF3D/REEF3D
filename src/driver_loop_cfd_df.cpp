@@ -108,8 +108,6 @@ void driver::loop_cfd_df(fdm* a)
         //timestep control
         p->simtime+=p->dt;
         ptstep->start(a,p,pgc,pturb);
-        
-
 
         // printer
         pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
@@ -138,6 +136,7 @@ void driver::loop_cfd_df(fdm* a)
             cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
             cout<<"timer per step: "<<setprecision(3)<<p->itertime<<endl;
             }
+            
         // Write log files
         mainlog(p);
         maxlog(p);

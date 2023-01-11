@@ -127,7 +127,6 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
 
         p->utime=pgc->timer()-starttime;
 
-
         // V
         starttime=pgc->timer();
 
@@ -206,7 +205,7 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         pgc->start2(p,fy,11);
         pgc->start3(p,fz,12);           
         
-        if (p->X10 > 0)
+        if (p->X10>0)
         p6dof_df->forcing(p,a,pgc,pvrans,pnet,2.0*alpha(loop),gamma(loop),zeta(loop),urk,vrk,wrk,fx,fy,fz,final);
         
         pfsi->forcing(p,a,pgc,2.0*alpha(loop),urk,vrk,wrk,fx,fy,fz,final);
@@ -235,7 +234,6 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         pgc->start2(p,a->v,gcval_v);
         pgc->start3(p,a->w,gcval_w);
     }
-
 }
 
 void momentum_RK3_df::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
@@ -266,7 +264,6 @@ void momentum_RK3_df::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uv
         }
     }
 }
-
 
 void momentum_RK3_df::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
@@ -326,16 +323,13 @@ void momentum_RK3_df::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uv
     }
 }
 
-
 void momentum_RK3_df::utimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-
 void momentum_RK3_df::vtimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
-
 
 void momentum_RK3_df::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
 {

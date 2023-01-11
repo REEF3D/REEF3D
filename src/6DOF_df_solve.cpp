@@ -59,7 +59,6 @@ void sixdof_df_object::get_trans(lexer *p, fdm *a, ghostcell *pgc, Eigen::Vector
 	prescribedMotion(p,a,pgc,dp,dc);
 } 
 
-
 void sixdof_df_object::get_rot(Eigen::Vector3d& dh, Eigen::Vector4d& de, const Eigen::Vector3d& h, const Eigen::Vector4d& e)
 {
     // Update Euler parameter matrices
@@ -76,7 +75,6 @@ void sixdof_df_object::get_rot(Eigen::Vector3d& dh, Eigen::Vector4d& de, const E
    
     dh = 2.0*Gdot_*G_.transpose()*h + Rinv_*Mfb_;
 } 
-
 
 void sixdof_df_object::prescribedMotion(lexer *p, fdm *a, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc)
 {
