@@ -111,5 +111,5 @@ void sixdof_df::forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<
     }
     
     // ghostcell update
-    pgc->gcdf_update(p,a);
+    //pgc->gcdf_update(p,a);
 }
