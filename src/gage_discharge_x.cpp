@@ -102,6 +102,26 @@ void gage_discharge_x::start(lexer *p, fdm *a, ghostcell *pgc)
             q[n]+=area*0.5*(a->u(i,j,k) + a->u(i-1,j,k));
 			}
         }
+        /*
+        if(flag[n]==1)
+        JLOOP
+        KLOOP
+        PCHECK
+        {
+            if(a->phi(i,j,k)>epsi)
+            H=1.0;
+
+            if(a->phi(i,j,k)<-epsi)
+            H=0.0;
+
+            if(fabs(a->phi(i,j,k))<=epsi)
+            H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
+
+            area=H*p->DYN[JP]*p->DZN[KP];
+
+            q[n]+=area*0.5*(a->u(i,j,k) + a->u(i-1,j,k));
+			}
+        }*/
 	
     }
 	
