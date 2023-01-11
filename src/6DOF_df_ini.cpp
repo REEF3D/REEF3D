@@ -52,15 +52,15 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
     // Initialise processor boundaries
     ini_parallel(p,a,pgc);
     
+    // Initialise parameters
+	ini_parameter(p,a,pgc);
+    
+    // Initialise objects
+	objects_create(p,a,pgc);
+    
     // Initialise fbvel
 	ini_fbvel(p,a,pgc);
     
-    // Initialise parameters
-	ini_parameter(p,a,pgc);
-	
-    // Initialise objects
-	objects_create(p,a,pgc);
-	
     // Level Set for floating body
     ray_cast(p,a,pgc);
 	reini_AB2(p,a,pgc,a->fb);
@@ -69,10 +69,8 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
     // Calculate geometrical properties
 	geometry(p,a,pgc);
     
-    
-    
-    // Order Triangles for correct inside/outside orientation
-    //triangle_switch_lsm(p,a,pgc);
+    // Initialise fbvel
+	//ini_fbvel(p,a,pgc);
     
     // Initialise position of bodies
     iniPosition_RBM(p,a,pgc);

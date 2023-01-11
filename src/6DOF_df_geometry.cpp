@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"6DOF_df_object.h"
@@ -78,7 +78,7 @@ void sixdof_df_object::geometry(lexer *p, fdm *a, ghostcell *pgc)
 			integ[9] += n2 * (x0 * g0z + x1 * g1z + x2 * g2z);	
 		}
 
-		double Vfb = integ[0]/6.0;
+        double Vfb = integ[0]/6.0;
         double Rfb = 0.0;
         
 		if (p->X22 == 1)
