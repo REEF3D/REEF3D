@@ -70,6 +70,7 @@ gage_discharge_x::~gage_discharge_x()
 
 void gage_discharge_x::start(lexer *p, fdm *a, ghostcell *pgc)
 {
+    double epsi,H;
 
     for(n=0;n<p->P67;++n)
     q[n]=0.0;
@@ -82,6 +83,7 @@ void gage_discharge_x::start(lexer *p, fdm *a, ghostcell *pgc)
 
     i=iloc[n];
 		
+        /*
         if(flag[n]==1)
         JLOOP
         KLOOP
@@ -101,13 +103,15 @@ void gage_discharge_x::start(lexer *p, fdm *a, ghostcell *pgc)
 
             q[n]+=area*0.5*(a->u(i,j,k) + a->u(i-1,j,k));
 			}
-        }
-        /*
+        }*/
+        
         if(flag[n]==1)
         JLOOP
         KLOOP
         PCHECK
         {
+            epsi = 1.6*p->DXN[KP];
+            
             if(a->phi(i,j,k)>epsi)
             H=1.0;
 
@@ -120,8 +124,8 @@ void gage_discharge_x::start(lexer *p, fdm *a, ghostcell *pgc)
             area=H*p->DYN[JP]*p->DZN[KP];
 
             q[n]+=area*0.5*(a->u(i,j,k) + a->u(i-1,j,k));
-			}
-        }*/
+			
+        }
 	
     }
 	
