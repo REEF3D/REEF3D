@@ -82,7 +82,7 @@ void sixdof_df::start_forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, v
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Calculate forces
-        //p_df_obj[nb]->forces_stl(p,a,pgc,alpha,uvel,vvel,wvel);
+        p_df_obj[nb]->forces_stl(p,a,pgc,alpha,uvel,vvel,wvel);
 
         // Advance body in time
         p_df_obj[nb]->solve_eqmotion(p,a,pgc,alpha,gamma,zeta,pvrans,pnet);
