@@ -69,8 +69,8 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
         if(p->j_dir==1)
         {
         u_fb(3) = omega_I(0);
-        u_fb(3) = omega_I(1);
-        u_fb(3) = omega_I(2);
+        u_fb(4) = omega_I(1);
+        u_fb(5) = omega_I(2);
         }
         
 
