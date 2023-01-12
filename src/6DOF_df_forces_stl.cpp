@@ -58,7 +58,6 @@ void sixdof_df_object::forces_stl
     for (int n = 0; n < tricount; ++n)
     {     
 		// Vertices of triangle
-	
         x0 = tri_x[n][0];
         y0 = tri_y[n][0];
         z0 = tri_z[n][0];
@@ -70,14 +69,8 @@ void sixdof_df_object::forces_stl
         x2 = tri_x[n][2];
         y2 = tri_y[n][2];
         z2 = tri_z[n][2];  
-        
-        /*
-        cout<<"x0: "<<x0<<" y0: "<<y0<<" z0: "<<z0<<endl;
-        cout<<"x1: "<<x1<<" y1: "<<y1<<" z1: "<<z1<<endl;
-        cout<<"x2: "<<x2<<" y2: "<<y2<<" z2: "<<z2<<endl;*/
 		   
 		// Center of triangle
-		
 		xc = (x0 + x1 + x2)/3.0;
 		yc = (y0 + y1 + y2)/3.0;
 		zc = (z0 + z1 + z2)/3.0;
@@ -102,7 +95,6 @@ void sixdof_df_object::forces_stl
 				
 
 			// Normal vectors (always pointing outwards)      
-				
             nx = (y1 - y0)*(z2 - z0) - (y2 - y0)*(z1 - z0);
             ny = (x2 - x0)*(z1 - z0) - (x1 - x0)*(z2 - z0); 
             nz = (x1 - x0)*(y2 - y0) - (x2 - x0)*(y1 - y0);
@@ -113,12 +105,7 @@ void sixdof_df_object::forces_stl
 			ny /= norm > 1.0e-20 ? norm : 1.0e20;
 			nz /= norm > 1.0e-20 ? norm : 1.0e20;
         
-        /*if(p->mpirank==1)
-        {
-        cout<<"p->originx: "<<p->originx<<" p->endx: "<<p->endx<<" p->originy: "<<p->originy<<" p->endy: "<<p->endy<<"p->originz: "<<p->originz<<" p->endz: "<<p->endz<<endl;
-        cout<<"xc: "<<xc<<" yc: "<<yc<<" zc: "<<zc<<" nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<" check: "<<check<<endl;
-        }*/
-            
+ 
 		if 
 		(
 			xc >= p->originx && xc < p->endx &&
@@ -168,29 +155,6 @@ void sixdof_df_object::forces_stl
              n0 /= norm > 1.0e-20 ? norm : 1.0e20;
 			n1 /= norm > 1.0e-20 ? norm : 1.0e20;
 			n2 /= norm > 1.0e-20 ? norm : 1.0e20;
-            
-            /*
-            if(fabs(ny)<0.00001)// && ((nx>0.0&& sgx<0.0) || (nx<0.0&&sgx>0.0) || (nz>0.0&&sgz<0.0) || (nz<0.0&& sgz>0.0)))
-            {
-            if( ((nx>0.0&& sgx<0.0) || (nx<0.0&&sgx>0.0) || (nz>0.0&&sgz<0.0) || (nz<0.0&& sgz>0.0)))
-            cout<<"*** ";
-            
-            cout<<"sgx: "<<n0<<" sgy: "<<n1<<" sgz: "<<n2<<" | nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<endl;
-            }*/
-           
-            /* 
-            nx = fabs(nx)*sgx;
-            ny = fabs(ny)*sgy;
-            nz = fabs(nz)*sgz;
-            */
-            
-            /*
-            norm = sqrt(n0*n0 + n0*n0 + n0*n0);
-            
-            nx = n0/(norm > 1.0e-20 ? norm : 1.0e20);
-            ny = n1/(norm > 1.0e-20 ? norm : 1.0e20);
-            nz = n2/(norm > 1.0e-20 ? norm : 1.0e20);*/
-            
 
 			// Add normal stress contributions
              xlocp = xc + p->X42*nx*p->DXP[IP];
@@ -206,9 +170,6 @@ void sixdof_df_object::forces_stl
 			Fp_y = -ny*p_int*A_triang;
              Fp_z = -nz*p_int*A_triang;
              
-             //if(p->mpirank==1)
-             //cout<<"z: "<<zlocp<<" PRESS: "<<p_int<<" nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<" A_tring: "<<A_triang<<" Fp_z: "<<Fp_z<<endl;
-		
 		   
              // Add tangential stress contributions
              

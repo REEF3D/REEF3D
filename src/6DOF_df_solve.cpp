@@ -69,31 +69,34 @@ void sixdof_df_object::get_rot(Eigen::Vector3d& dh, Eigen::Vector4d& de, const E
     
     // RHS of h
     // Transforming torsion into body fixed system (Shivarama and Schwab)
-    Gdot_ << -de(1), de(0), de(3), -de(2),
-            -de(2), -de(3), de(0), de(1),
-            -de(3), de(2), -de(1), de(0); 
+    Gdot_ << -de(1), de(0), de(3),-de(2),
+             -de(2),-de(3), de(0), de(1),
+             -de(3), de(2),-de(1), de(0); 
    
     dh = 2.0*Gdot_*G_.transpose()*h + Rinv_*Mfb_;
 } 
 
 void sixdof_df_object::prescribedMotion(lexer *p, fdm *a, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc)
 {
+   
+    
+    
     if (p->X11_u == 2)
     {
         dp(0) = 0.0; 
-        dc(0) = Uext*Mass_fb;
+        dc(0) = Uext;
     }
     
     if (p->X11_v == 2)
     {
         dp(1) = 0.0; 
-        dc(1) = Vext*Mass_fb;
+        dc(1) = Vext;
     }
 
     if (p->X11_w == 2)
     {
         dp(2) = 0.0; 
-        dc(2) = Wext*Mass_fb;
+        dc(2) = Wext;
     }
     
     if(p->X11_p==2)
@@ -113,6 +116,7 @@ void sixdof_df_object::prescribedMotion(lexer *p, fdm *a, ghostcell *pgc, Eigen:
         //Rext;
         cout<<"not implemented yet"<<endl;
     }
+    
 }
 
 

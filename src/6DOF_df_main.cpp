@@ -59,7 +59,7 @@ void sixdof_df::start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&)
 {
 }
 
-void sixdof_df::forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, double alpha, double gamma, double zeta, field& uvel, field& vvel, field& wvel, field1& fx, field2& fy, field3& fz, bool finalise)
+void sixdof_df::start_forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, double alpha, double gamma, double zeta, field& uvel, field& vvel, field& wvel, field1& fx, field2& fy, field3& fz, bool finalise)
 {
     // Reset heaviside field
     ULOOP
@@ -82,7 +82,7 @@ void sixdof_df::forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Calculate forces
-        p_df_obj[nb]->forces_stl(p,a,pgc,alpha,uvel,vvel,wvel);
+        //p_df_obj[nb]->forces_stl(p,a,pgc,alpha,uvel,vvel,wvel);
 
         // Advance body in time
         p_df_obj[nb]->solve_eqmotion(p,a,pgc,alpha,gamma,zeta,pvrans,pnet);

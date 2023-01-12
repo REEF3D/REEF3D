@@ -31,14 +31,48 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
     // Determine floating body velocities
     Eigen::Matrix<double, 6, 1> u_fb;
     
-    if (p->knoy == 1)
-    {
-        u_fb << p_(0)/Mass_fb, 0.0, p_(2)/Mass_fb, 0.0, omega_I(1), 0.0;
-    }
-    else
-    {
-        u_fb << p_(0)/Mass_fb, p_(1)/Mass_fb, p_(2)/Mass_fb, omega_I(0), omega_I(1), omega_I(2);
-    }
+        // U
+        if(p->X11_u==0)
+        u_fb(0) = 0.0;
+        
+        if(p->X11_u==1)
+        u_fb(0) = p_(0)/Mass_fb;
+        
+        if(p->X11_u==2)
+        u_fb(0) = Uext;
+        
+        // V
+        if(p->X11_v==0 || p->j_dir==0)
+        u_fb(1) = 0.0;
+        
+        if(p->X11_u==1 && p->j_dir==1)
+        u_fb(1) = p_(1)/Mass_fb;
+        
+        if(p->X11_u==2 && p->j_dir==1)
+        u_fb(1) = Vext;
+        
+        // W
+        if(p->X11_w==1)
+        u_fb(2) = p_(2)/Mass_fb;
+        
+        if(p->X11_w==2)
+        u_fb(2) = Wext;
+        
+        // rotation
+        if(p->j_dir==0)
+        {
+        u_fb(3) = 0.0;
+        u_fb(4) = omega_I(1);
+        u_fb(5) = 0.0;
+        }
+        
+        if(p->j_dir==1)
+        {
+        u_fb(3) = omega_I(0);
+        u_fb(3) = omega_I(1);
+        u_fb(3) = omega_I(2);
+        }
+        
 
 // Calculate forcing fields
     double H,Ht, uf, vf, wf;

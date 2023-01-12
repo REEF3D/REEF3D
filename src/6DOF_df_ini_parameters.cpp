@@ -29,7 +29,7 @@ Author: Tobias Martin
 
 void sixdof_df_object::ini_fbvel(lexer *p, fdm *a, ghostcell *pgc)
 {
-    double x0, x1, x2, y0, y1, y2, z0, z1, z2;
+         double x0, x1, x2, y0, y1, y2, z0, z1, z2;
 		double n0, n1, n2;
 		double f1x,f2x,f3x,g0x,g1x,g2x,f1y,f2y,f3y;
 		double g0y,g1y,g2y,f1z,f2z,f3z,g0z,g1z,g2z;
@@ -86,30 +86,6 @@ void sixdof_df_object::ini_fbvel(lexer *p, fdm *a, ghostcell *pgc)
             p->X22_m = Mass_fb;
 		}
         
-        
-    //Mass_fb=0.316187;
-    // Prescribed motions
-    Uext = Vext = Wext = Pext = Qext = Rext = 0.0; 
-    
-    if (p->X210 == 1)
-    {
-        Uext = p->X210_u;
-        Vext = p->X210_v;
-        Wext = p->X210_w;
-    }
-    if (p->X211 == 1)
-    {
-        Pext = p->X211_p;
-        Qext = p->X211_q;
-        Rext = p->X211_r;
-    }
-    if (p->X221==1)
-    {
-        //motion_vec(p,a,pgc);
-        cout<<"not implemented yet"<<endl;
-    }
-    
-    //cout<<"Mass_fb: "<<Mass_fb<<endl;
 
     // Rigid body motion
     
@@ -135,7 +111,6 @@ void sixdof_df_object::ini_fbvel(lexer *p, fdm *a, ghostcell *pgc)
 		h_(1) = p->X103_q;
 		h_(2) = p->X103_r;
 	}  
-    
 	
     // Velocities
 	p->ufb = p->vfb = p->wfb = 0.0;
@@ -169,6 +144,55 @@ void sixdof_df_object::ini_fbvel(lexer *p, fdm *a, ghostcell *pgc)
   
 void sixdof_df_object::ini_parameter(lexer *p, fdm *a, ghostcell *pgc)
 {
+        Uext = Vext = Wext = Pext = Qext = Rext = 0.0; 
+    
+    if (p->X210 == 1)
+    {
+        Uext = p->X210_u;
+        Vext = p->X210_v;
+        Wext = p->X210_w;
+    }
+    if (p->X211 == 1)
+    {
+        Pext = p->X211_p;
+        Qext = p->X211_q;
+        Rext = p->X211_r;
+    }
+    if (p->X221==1)
+    {
+        //motion_vec(p,a,pgc);
+        cout<<"not implemented yet"<<endl;
+    }
+    
+	
+    // Velocities
+	p->ufb = p->vfb = p->wfb = 0.0;
+	p->pfb = p->qfb = p->rfb = 0.0; 
+	p->ufbi = p->vfbi = p->wfbi = 0.0;
+	p->pfbi = p->qfbi = p->rfbi = 0.0; 
+    
+	if(p->X210==1)
+	{
+        p->ufbi = p->X210_u;
+        p->vfbi = p->X210_v;
+        p->wfbi = p->X210_w;
+	}
+	
+	if(p->X211==1)
+	{
+        p->pfbi = p->X211_p;
+        p->qfbi = p->X211_q;
+        p->rfbi = p->X211_r;
+	}
+
+    p->ufbn = p->ufbi;
+    p->vfbn = p->vfbi;
+    p->wfbn = p->wfbi;
+    p->pfbn = p->pfbi;   
+    p->qfbn = p->qfbi;   
+    p->rfbn = p->rfbi;
+    
+    //p->del_Darray(integ, 10);	
 
     // Positions
     phi = theta = psi = 0.0;
