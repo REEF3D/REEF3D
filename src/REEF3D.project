@@ -1572,7 +1572,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="DirectForcing">
           <VirtualDirectory Name="Initialize">
-            <File Name="6DOF_df_position.cpp"/>
+            <File Name="6DOF_df_ini_position.cpp"/>
             <File Name="6DOF_df_ini_parameters.cpp"/>
             <File Name="6DOF_df_ini.cpp"/>
           </VirtualDirectory>

@@ -78,8 +78,6 @@ void sixdof_df_object::get_rot(Eigen::Vector3d& dh, Eigen::Vector4d& de, const E
 
 void sixdof_df_object::prescribedMotion(lexer *p, fdm *a, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc)
 {
-   
-    
     
     if (p->X11_u == 2)
     {

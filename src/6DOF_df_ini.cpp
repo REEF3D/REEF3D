@@ -69,9 +69,6 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
     // Calculate geometrical properties
 	geometry(p,a,pgc);
     
-    // Initialise fbvel
-	//ini_fbvel(p,a,pgc);
-    
     // Initialise position of bodies
     iniPosition_RBM(p,a,pgc);
 	
