@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,9 +30,10 @@ Author: Hans Bihs
 #include"vorticity.h"
 #include"data.h"
 #include"concentration.h"
+#include"multiphase.h"
 #include"sediment.h"
 
-void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *pheat, data *pdata, concentration *pconc, sediment *psed)
+void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *pheat, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
     int num=0;
 
@@ -102,6 +103,8 @@ void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
 	result<<"<PDataArray type=\"Float32\" Name=\"phi\"/>"<<endl;
 
 	pheat->name_pvtu(p,a,pgc,result);
+    
+    pmp->name_vtu(p,a,pgc,result,offset,n);
 
     pvort->name_pvtu(p,a,pgc,result);
 
@@ -109,7 +112,7 @@ void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
 
 	pconc->name_pvtu(p,a,pgc,result);
 
-    if(p->P24==1)
+    if(p->P24==1 && p->F300==0)
     result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>"<<endl;
 
     if(p->P71==1)

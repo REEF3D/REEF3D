@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -40,12 +40,13 @@ public:
 	levelset_RK3(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
 	virtual ~levelset_RK3();
 	virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particlecorr*,field&);
-	virtual void ltimesave(lexer*,fdm*,field&);
     virtual void update(lexer*,fdm*,ghostcell*,field&);
 
 private:
     fluid_update *pupdate;
     picard *ppicard;
+    
+    void df_update(lexer*,field&);
     
     field4 ark1,ark2;
 

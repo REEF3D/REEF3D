@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,7 +23,7 @@ Author: Hans Bihs
 #include"sflow_state.h"
 #include"lexer.h"
 
-void sflow_state::filename(lexer *p, fdm2D *b, ghostcell *pgc, int num)
+void sflow_state::filename_single(lexer *p, fdm2D *b, ghostcell *pgc, int num)
 {
     if(p->P14==0)
     {
@@ -32,7 +32,19 @@ void sflow_state::filename(lexer *p, fdm2D *b, ghostcell *pgc, int num)
     
     if(p->P14==1)
     {
-    sprintf(name,"./REEF3D_SFLOW_STATE/REEF3D_FNPF-State-%08d-%05d.r3d",num,p->mpirank+1);
+    sprintf(name,"./REEF3D_SFLOW_STATE/REEF3D_SFLOW-State-%08d-%05d.r3d",num,p->mpirank+1);
+    }
+}
+void sflow_state::filename_continuous(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    if(p->P14==0)
+    {
+    sprintf(name,"REEF3D_SFLOW-State-%05d.r3d",p->mpirank+1);
+    }
+    
+    if(p->P14==1)
+    {
+    sprintf(name,"./REEF3D_FNPF_SFLOW/REEF3D_SFLOW-State-%05d.r3d",p->mpirank+1);
     }
 }
 
@@ -45,7 +57,7 @@ void sflow_state::filename_header(lexer *p, fdm2D *b, ghostcell *pgc)
     
     if(p->P14==1)
     {
-	sprintf(name,"./REEF3D_SFLOW_STATE/REEF3D-FNPF-State-Header-%05d.r3d",p->mpirank+1);
+	sprintf(name,"./REEF3D_SFLOW_STATE/REEF3D-SFLOW-State-Header-%05d.r3d",p->mpirank+1);
     }
 }
 

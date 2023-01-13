@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -38,7 +38,7 @@ public:
 	fnpf_vtp_fsf(lexer*,fdm_fnpf*,ghostcell*);
 	virtual ~fnpf_vtp_fsf();
 	
-    virtual void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*);
+    virtual void start(lexer*,fdm_fnpf*,ghostcell*);
     virtual void print2D(lexer*,fdm_fnpf*,ghostcell*);
 	
 private:

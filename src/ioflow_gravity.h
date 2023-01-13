@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -102,11 +102,14 @@ public:
     virtual void ini(lexer*,fdm*,ghostcell*);
     virtual void ini_fnpf(lexer*,fdm_fnpf*,ghostcell*);
     virtual void inflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,double*,double*,slice&,slice&);
+    virtual void rkinflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
     virtual void ini2D(lexer*,fdm2D*,ghostcell*);
     virtual void ini_ptf(lexer*,fdm*,ghostcell*);
     
-    virtual void ini_nhflow(lexer*,fdm*,ghostcell*);
-    virtual void nhflow_inflow(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    virtual void ini_nhflow(lexer*,fdm_nhf*,ghostcell*);
+    virtual void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*);
+    virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
+    virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
     
     virtual void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*);
 	

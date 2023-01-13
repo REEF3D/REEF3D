@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,8 +24,9 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"strain.h"
 
-LES_filter_v::LES_filter_v(lexer* p, fdm* a) 
+LES_filter_v::LES_filter_v(lexer* p, fdm* a) : strain(p,a)
 {
 
 }
@@ -36,6 +37,41 @@ LES_filter_v::~LES_filter_v()
 
 void LES_filter_v::start(lexer *p, fdm *a, ghostcell *pgc, field &uprime, field &vprime, field &wprime, int gcval)
 {
+	//    vel_label=veleval(p,gcv);
+
+
+	if(gcval==10)
+	{
+        
+        ULOOP
+        uprime(i,j,k) = a->u(i,j,k);
+        
+        pgc->start1(p,uprime,gcval);
+
+        
+	}
+
+	if(gcval==11)
+	{
+
+        VLOOP
+        vprime(i,j,k) = a->v(i,j,k);
+        
+        pgc->start2(p,vprime,gcval);
+
+        
+	}
+
+	if(gcval==12)
+	{
+
+        WLOOP
+        wprime(i,j,k) = a->w(i,j,k);
+        
+        pgc->start3(p,wprime,gcval);
+
+
+	}
  
 }
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -36,6 +36,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"concentration_header.h"
 #include"benchmark_header.h"
 #include"6DOF_header.h"
+#include"FSI_header.h"
 #include"waves_header.h"
 #include"lexer.h"
 #include"cart1.h"
@@ -46,7 +47,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void driver::driver_ini()
+void driver::driver_ini_cfd()
 {
     p->count=0;
 
@@ -60,6 +61,13 @@ void driver::driver_ini()
 
     if(p->mpirank==0)
     cout<<"starting driver_ini"<<endl;
+    
+    // 6DOF_df and FSI
+    if(((p->X10==1 && p->X13==2) || p->Z10!=0))
+    p6dof_df->initialize(p, a, pgc, pnet);
+     
+    if(p->Z10>0)
+    pfsi->initialize(p,a,pgc);
     
 	// Solid
     if(p->solidread==1)
@@ -120,6 +128,7 @@ void driver::driver_ini()
     pnse->ini(p,a,pgc,pflow);     
 	
     pheat->heat_ini(p,a,pgc,pheat);
+    pmp->ini(p,a,pgc,pflow,pprint,pconvec,psolv);
 	pconc->ini(p,a,pgc,pconc);
 
     ptstep->ini(a,p,pgc);
@@ -175,10 +184,11 @@ void driver::driver_ini()
     if(p->S10==1)
     psed->ini_cfd(p,a,pgc);
     }
-    
+
 	pgc->start4(p,a->press,40);
+    
 	
-    pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
+    pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
 
 // ini variables
     for(int qn=0; qn<2; ++qn)

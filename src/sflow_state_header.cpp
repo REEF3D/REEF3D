@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -48,7 +48,7 @@ void sflow_state::write_header(lexer *p, fdm2D *b, ghostcell *pgc)
     
     headout.write((char*)&iin, sizeof (int));
     
-    
+    // ---
     iin=p->origin_j-js_global;
     
     if(js_flag==1)
@@ -56,19 +56,18 @@ void sflow_state::write_header(lexer *p, fdm2D *b, ghostcell *pgc)
     
     headout.write((char*)&iin, sizeof (int));
     
-    
     iin=p->origin_k;
     headout.write((char*)&iin, sizeof (int));
 
 
-    ffn=float(p->originx);
-    headout.write((char*)&ffn, sizeof (float));
+    ddn=p->originx;
+    headout.write((char*)&ddn, sizeof (double));
     
-    ffn=float(p->originy);
-    headout.write((char*)&ffn, sizeof (float));
+    ddn=p->originy;
+    headout.write((char*)&ddn, sizeof (double));
     
-    ffn=float(p->originz);
-    headout.write((char*)&ffn, sizeof (float));
+    ddn=p->originz;
+    headout.write((char*)&ddn, sizeof (double));
   
     
     iin=ie-is;
@@ -77,8 +76,7 @@ void sflow_state::write_header(lexer *p, fdm2D *b, ghostcell *pgc)
     iin=je-js;
     headout.write((char*)&iin, sizeof (int));
     
-    
-    iin=p->knoz+1;
+    iin=1; //knoz
     headout.write((char*)&iin, sizeof (int));
     
     
@@ -98,22 +96,20 @@ void sflow_state::write_header(lexer *p, fdm2D *b, ghostcell *pgc)
     //
     for(i=is;i<ie;++i)
     {
-    ffn=float(p->XP[IP]);
-    headout.write((char*)&ffn, sizeof (float));
+    ddn=p->XP[IP];
+    headout.write((char*)&ddn, sizeof (double));
     } 
     
     for(j=js;j<je;++j)
     {
-    ffn=float(p->YP[JP]);
-    headout.write((char*)&ffn, sizeof (float));
+    ddn=p->YP[JP];
+    headout.write((char*)&ddn, sizeof (double));
     } 
     
-    FKLOOP
-    {
-    ffn=float(p->ZN[KP]);
-    headout.write((char*)&ffn, sizeof (float));
-    } 
-    
+    // ZN
+    ddn=0.0;
+    headout.write((char*)&ddn, sizeof (double));
+
     
     for(i=is;i<ie;++i)
     for(j=js;j<je;++j)

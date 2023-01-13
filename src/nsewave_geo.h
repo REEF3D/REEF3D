@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -47,7 +47,6 @@ public:
     virtual void start(lexer*, fdm*, ghostcell*, momentum*, diffusion*, turbulence*, convection*, 
                         pressure*, poisson*, solver*, solver*, ioflow*, vrans*);
     virtual void ini(lexer*, fdm*, ghostcell*, ioflow*);
-	void ltimesave(lexer*,fdm*,slice&);
     void update(lexer*,fdm*,ghostcell*,slice&);
     
 private: 

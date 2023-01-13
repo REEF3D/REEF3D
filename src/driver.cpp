@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"fdm2D.h"
 #include"fdm_fnpf.h"
+#include"fdm_nhf.h"
 #include"lexer.h"
 #include"waves_header.h"
 #include"patchBC.h"
@@ -37,9 +38,9 @@ driver::driver(int& argc, char **argv)
 
 	if(p->mpirank==0)
     {
-    cout<<endl<<"REEF3D (c) 2008-2022 Hans Bihs"<<endl;
+    cout<<endl<<"REEF3D (c) 2008-2023 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    cout<<endl<<"v_221110" <<endl<<endl;
+    cout<<endl<<"v_230112" <<endl<<endl;
     }
 
 	p->lexer_read(pgc);
@@ -134,14 +135,23 @@ driver::driver(int& argc, char **argv)
 void driver::cfd_driver()
 {
     if(p->mpirank==0)
-	cout<<"initialize fdm"<<endl;
-    
+	cout<<"initialize fdm "<<endl;
+
     a=new fdm(p);
     
 	aa=a;
     pgc->fdm_update(a);
     
-    logic();
+    logic_cfd();
+    
+    driver_ini_cfd();
+    
+    // Start MAINLOOP
+    if(((p->X10==0 || p->X13!=2) && p->Z10==0))
+    loop_cfd(a);
+    
+    if(((p->X10==1 && p->X13==2) || p->Z10!=0))
+    loop_cfd_df(a);
 }
 
 void driver::nsewave_driver()
@@ -154,7 +164,14 @@ void driver::nsewave_driver()
 	aa=a;
     pgc->fdm_update(a);
 
-    logic();
+    logic_cfd();
+    
+    driver_ini_nsewave();
+    
+	driver_ini_cfd();
+    
+    // Start MAINLOOP
+    loop_nsewave(a);
 }
 
 void driver::nhflow_driver()
@@ -162,14 +179,18 @@ void driver::nhflow_driver()
     if(p->mpirank==0)
 	cout<<"initialize fdm"<<endl;
 
-	a=new fdm(p);
+	d=new fdm_nhf(p);
 
-	aa=a;
     pgc->fdm_nhf_update(d);
     
     makegrid_sigma_cds(p,pgc);
 
     logic_nhflow();
+    
+    driver_ini_nhflow();
+    
+    // Start MAINLOOP
+    loop_nhflow();
 }
 
 void driver::fnpf_driver()
@@ -186,6 +207,11 @@ void driver::fnpf_driver()
     makegrid_sigma_cds(p,pgc);
 
     logic_fnpf();
+    
+    driver_ini_fnpf(); 
+    
+    // Start MAINLOOP
+    loop_fnpf();
 }
 
 void driver::ptf_driver()
@@ -199,6 +225,11 @@ void driver::ptf_driver()
     pgc->fdm_update(a);
 
     logic_ptf();
+    
+    driver_ini_ptf(); 
+    
+    // Start MAINLOOP
+    loop_ptf(a);
 }
 
 void driver::sflow_driver()
@@ -212,7 +243,8 @@ void driver::sflow_driver()
     psflow = new sflow_f(p,b,pgc,pBC);
 
     makegrid2D_cds(p,pgc,b);
-
+    
+    // Start SFLOW
 	psflow->start(p,b,pgc);
 }
 

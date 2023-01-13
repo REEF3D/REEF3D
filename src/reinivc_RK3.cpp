@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"picard_f.h"
 #include"picard_void.h"
 
-reinivc_RK3::reinivc_RK3(lexer* p):gradient(p),deltax(p->DXM),iflag(p),
+reinivc_RK3::reinivc_RK3(lexer* p):gradient(p),iflag(p),
 												epsi(p->F45*p->DXM)
 {
 	if(p->F50==1)
@@ -54,7 +54,7 @@ reinivc_RK3::reinivc_RK3(lexer* p):gradient(p),deltax(p->DXM),iflag(p),
     gcval_iniphi=52;
 
 	gcval_ro=1;
-	dt=p->F43*deltax;
+	dt=p->F43*p->DXM;
 
 	if(p->F46==1)
 	ppicard = new picard_f(p);
@@ -280,8 +280,8 @@ void reinivc_RK3::disc(lexer *p, fdm* a, field& b)
     lsSig=1.0;
 
 // x
-	xmin=(lsv-b(i-1,j,k))/deltax;
-	xplus=(b(i+1,j,k)-lsv)/deltax;
+	xmin=(lsv-b(i-1,j,k))/p->DXP[IM1];
+	xplus=(b(i+1,j,k)-lsv)/p->DXP[IP];
 	
 	if(xmin*lsSig>0.0 && xplus*lsSig>-xmin*lsSig)
 	dx=ddwenox(a,b,1.0);
@@ -293,8 +293,8 @@ void reinivc_RK3::disc(lexer *p, fdm* a, field& b)
 	dx=0.0;
 
 // y
-	ymin=(lsv-b(i,j-1,k))/deltax;
-	yplus=(b(i,j+1,k)-lsv)/deltax;
+	ymin=(lsv-b(i,j-1,k))/p->DYP[JM1];
+	yplus=(b(i,j+1,k)-lsv)/p->DYP[JP];
 	
 	if(ymin*lsSig>0.0 && yplus*lsSig>-ymin*lsSig)
 	dy=ddwenoy(a,b,1.0);
@@ -306,8 +306,8 @@ void reinivc_RK3::disc(lexer *p, fdm* a, field& b)
 	dy=0.0;
 
 // z
-	zmin=(lsv-b(i,j,k-1))/deltax;
-	zplus=(b(i,j,k+1)-lsv)/deltax;
+	zmin=(lsv-b(i,j,k-1))/p->DZP[KM1];
+	zplus=(b(i,j,k+1)-lsv)/p->DZP[KP];
 	
 	if(zmin*lsSig>0.0 && zplus*lsSig>-zmin*lsSig)
 	dz=ddwenoz(a,b,1.0);
@@ -320,6 +320,12 @@ void reinivc_RK3::disc(lexer *p, fdm* a, field& b)
 					
 
 	dnorm=sqrt(dx*dx + dy*dy + dz*dz);
+    
+    if(p->j_dir==0)
+    deltax = (1.0/2.0)*(p->DXN[IP] + p->DZN[KP]);
+	
+    if(p->j_dir==1)
+    deltax = (1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
 	
 	sign=lsv/sqrt(lsv*lsv+ dnorm*dnorm*deltax*deltax);
 

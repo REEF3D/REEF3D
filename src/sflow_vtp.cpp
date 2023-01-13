@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -122,8 +122,21 @@ void sflow_vtp::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sflow_t
     if(p->P124>0)
     pbedline_y->start(p,b,pgc,pflow,b->bed);
     }
+    
+    // Print state out based on iteration
+    if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && p->P41>0)
+    {
+    pstate->write(p,b,pgc);
+    }
 
+    // Print state out based on time
+    if((p->simtime>p->stateprinttime && p->P42>0.0 || (p->count==0 &&  p->P42>0.0)) && p->P40>0)
+    {
+    pstate->write(p,b,pgc);
 
+    p->stateprinttime+=p->P42;
+    }
+    
     if((p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0))
     p->probeprinttime+=p->P55;
 }

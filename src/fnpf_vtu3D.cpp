@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -141,13 +141,13 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
         // Print FSF
 		if(((p->count%p->P181==0 && p->P182<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
         {
-		pfsf->start(p,c,pgc,pflow);
+		pfsf->start(p,c,pgc);
         }
 
 
 		if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P180==1) || (p->count==0 &&  p->P182>0.0))
         {
-        pfsf->start(p,c,pgc,pflow);
+        pfsf->start(p,c,pgc);
         p->fsfprinttime+=p->P182;
         }
 
@@ -155,14 +155,14 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 		for(int qn=0; qn<p->P184; ++qn)
 		if(p->count%p->P184_dit[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]))
 		{
-		pfsf->start(p,c,pgc,pflow);
+		pfsf->start(p,c,pgc);
 		}
 
         if(p->P180==1 && p->P185>0)
 		for(int qn=0; qn<p->P185; ++qn)
 		if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P185_ts[qn] && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
 		{
-		pfsf->start(p,c,pgc,pflow);
+		pfsf->start(p,c,pgc);
 
 		printfsftime_wT[qn]+=p->P185_dt[qn];
 		}
@@ -186,7 +186,7 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     pstate->write(p,c,pgc);
     }
 
-    // Print sate out based on time
+    // Print state out based on time
     if((p->simtime>p->stateprinttime && p->P42>0.0 || (p->count==0 &&  p->P42>0.0)) && p->P40>0)
     {
     pstate->write(p,c,pgc);
@@ -211,6 +211,14 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
         for(n=0;n<p->P85;++n)
         pforce_ale[n]->start(p,c,pgc);
 		}
+}
+
+void fnpf_vtu3D::print_stop(lexer* p, fdm_fnpf *c, ghostcell* pgc)
+{
+    if(p->P180==1)
+    pfsf->start(p,c,pgc);
+    
+    print_vtu(p,c,pgc);
 }
 
 void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
@@ -416,7 +424,7 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	}
 	}
 
-//  solid
+//  breaking
 	if(p->P25==1)
 	{
     iin=4*(p->pointnum);

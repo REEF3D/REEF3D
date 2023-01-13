@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -26,6 +26,7 @@ Author: Tobias Martin
 
 class mooring;
 class net;
+class ddweno_f_nug;
 
 using namespace std;
 
@@ -40,7 +41,7 @@ public:
 	virtual void start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&);
 	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
     
-    void forcing(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,double,double,double,field&,field&,field&,field1&,field2&,field3&,bool);
+    void start_forcing(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,double,double,double,field&,field&,field&,field1&,field2&,field3&,bool);
     
     virtual void isource(lexer*,fdm*,ghostcell*);
     virtual void jsource(lexer*,fdm*,ghostcell*);
@@ -53,6 +54,8 @@ private:
    
     int number6DOF;
     vector<sixdof_df_object*> p_df_obj;
+    
+    ddweno_f_nug *pdx;
 };
 
 #endif

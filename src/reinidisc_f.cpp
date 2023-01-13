@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -134,6 +134,10 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *si
 
 	dnorm=sqrt(dx*dx + dy*dy + dz*dz);
 	
+    if(p->j_dir==0)
+    deltax = (1.0/2.0)*(p->DXN[IP] + p->DZN[KP]);
+	
+    if(p->j_dir==1)
     deltax = (1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
     
     sign=lsv/sqrt(lsv*lsv+ dnorm*dnorm*deltax*deltax);

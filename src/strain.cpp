@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -331,6 +331,8 @@ double strain::magSqrSd(lexer *p, fdm *a)
 {
 	double Sd=0.0;
 	double IV_SR=0.0;
+	double Strain=0.0;	
+	double Omega=0.0;
 	
 
 	if(p->j_dir==1)
@@ -380,18 +382,25 @@ double strain::magSqrSd(lexer *p, fdm *a)
 	ss13 = (0.5*s11*s13 + 0.25*s12*s23 + 0.5*s13*s33);
 	ss23 = (0.25*s12*s13 + 0.5*s22*s23 + 0.5*s23*s33);
 	
-	rr11 = 0.25*(r12*r12 + r13*r13);
-	rr22 = 0.25*(r12*r12 + r23*r23);
-	rr33 = 0.25*(r13*r13 + r23*r23);
-	rr12 = 0.25*r13*r23;
+	rr11 = -0.25*(r12*r12 + r13*r13);
+	rr22 = -0.25*(r12*r12 + r23*r23);
+	rr33 = -0.25*(r13*r13 + r23*r23);
+	rr12 = -0.25*r13*r23;
 	rr13 = 0.25*r12*r23;
-	rr23 = 0.25*r12*r13;
+	rr23 = -0.25*r12*r13;
 	
+	IV_SR = ss11*rr11 + 2.0*ss12*rr12 + 2.0*ss13*rr13 + ss22*rr22 + 2.0*ss23*rr23 + ss33*rr33;	
+/*	
 	IV_SR = ((ss11*rr11 + ss12*rr12 + ss13*rr13) + (ss11*rr12 + ss12*rr22 + ss13*rr23) + (ss11*rr13 + ss12*rr23 + ss13*rr33) +
 			(ss12*rr11 + ss22*rr12 + ss23*rr13) + (ss12*rr12 + ss22*rr22 + ss23*rr23) + (ss12*rr13 + ss22*rr23 + ss23*rr33) +
 			(ss13*rr11 + ss23*rr12 + ss33*rr13) + (ss13*rr12 + ss23*rr22 + ss33*rr23) + (ss13*rr13 + ss23*rr23 + ss33*rr33));
-			
-    Sd = ((1.0/6.0)*((pow(strainterm(p,a), 2.0)*pow(strainterm(p,a), 2.0)) + (pow(rotationterm(p,a), 2.0)*pow(rotationterm(p,a), 2.0)))) + ((2.0/3.0)*(pow(strainterm(p,a), 2.0)*pow(rotationterm(p,a), 2.0))) + (2.0*IV_SR);
+*/
+
+	Strain = strainterm(p,a);	
+	Omega = rotationterm(p,a);
+	
+    Sd = ((1.0/6.0)*((pow(Strain, 2.0)*pow(Strain, 2.0)) + (pow(Omega, 2.0)*pow(Omega, 2.0)))) + ((2.0/3.0)*(pow(Strain, 2.0)*pow(Omega, 2.0))) + (2.0*IV_SR);				
+//    Sd = ((1.0/6.0)*((pow(strainterm(p,a), 2.0)*pow(strainterm(p,a), 2.0)) + (pow(rotationterm(p,a), 2.0)*pow(rotationterm(p,a), 2.0)))) + ((2.0/3.0)*(pow(strainterm(p,a), 2.0)*pow(rotationterm(p,a), 2.0))) + (2.0*IV_SR);
 
 	return Sd;
 }
@@ -400,6 +409,8 @@ double strain::magSqrSd(lexer *p, field &u, field &v, field &w)
 {
 	double Sd=0.0;
 	double IV_SR=0.0;
+	double Strain=0.0;	
+	double Omega=0.0;
 	
 
 	if(p->j_dir==1)
@@ -449,18 +460,25 @@ double strain::magSqrSd(lexer *p, field &u, field &v, field &w)
 	ss13 = (0.5*s11*s13 + 0.25*s12*s23 + 0.5*s13*s33);
 	ss23 = (0.25*s12*s13 + 0.5*s22*s23 + 0.5*s23*s33);
 	
-	rr11 = 0.25*(r12*r12 + r13*r13);
-	rr22 = 0.25*(r12*r12 + r23*r23);
-	rr33 = 0.25*(r13*r13 + r23*r23);
-	rr12 = 0.25*r13*r23;
+	rr11 = -0.25*(r12*r12 + r13*r13);
+	rr22 = -0.25*(r12*r12 + r23*r23);
+	rr33 = -0.25*(r13*r13 + r23*r23);
+	rr12 = -0.25*r13*r23;
 	rr13 = 0.25*r12*r23;
-	rr23 = 0.25*r12*r13;
+	rr23 = -0.25*r12*r13;
 	
+	IV_SR = ss11*rr11 + 2.0*ss12*rr12 + 2.0*ss13*rr13 + ss22*rr22 + 2.0*ss23*rr23 + ss33*rr33;
+/*	
 	IV_SR = ((ss11*rr11 + ss12*rr12 + ss13*rr13) + (ss11*rr12 + ss12*rr22 + ss13*rr23) + (ss11*rr13 + ss12*rr23 + ss13*rr33) +
 			(ss12*rr11 + ss22*rr12 + ss23*rr13) + (ss12*rr12 + ss22*rr22 + ss23*rr23) + (ss12*rr13 + ss22*rr23 + ss23*rr33) +
 			(ss13*rr11 + ss23*rr12 + ss33*rr13) + (ss13*rr12 + ss23*rr22 + ss33*rr23) + (ss13*rr13 + ss23*rr23 + ss33*rr33));
-			
-    Sd = ((1.0/6.0)*((pow(strainterm(p,u,v,w), 2.0)*pow(strainterm(p,u,v,w), 2.0)) + (pow(rotationterm(p,u,v,w), 2.0)*pow(rotationterm(p,u,v,w), 2.0)))) + ((2.0/3.0)*(pow(strainterm(p,u,v,w), 2.0)*pow(rotationterm(p,u,v,w), 2.0))) + (2.0*IV_SR);
+*/	
+
+	Strain = strainterm(p,u,v,w);	
+	Omega = rotationterm(p,u,v,w);
+	
+	Sd = ((1.0/6.0)*((pow(Strain, 2.0)*pow(Strain, 2.0)) + (pow(Omega, 2.0)*pow(Omega, 2.0)))) + ((2.0/3.0)*(pow(Strain, 2.0)*pow(Omega, 2.0))) + (2.0*IV_SR);		
+//    Sd = ((1.0/6.0)*((pow(strainterm(p,u,v,w), 2.0)*pow(strainterm(p,u,v,w), 2.0)) + (pow(rotationterm(p,u,v,w), 2.0)*pow(rotationterm(p,u,v,w), 2.0)))) + ((2.0/3.0)*(pow(strainterm(p,u,v,w), 2.0)*pow(rotationterm(p,u,v,w), 2.0))) + (2.0*IV_SR);
 
 	return Sd;
 }

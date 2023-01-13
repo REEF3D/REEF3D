@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -89,6 +89,10 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     
 // Step 1
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,c->Fifsf,c->eta);
+    pflow->rkinflow_fnpf(p,c,pgc,frk1,c->Fifsf);
+    pflow->rkinflow_fnpf(p,c,pgc,frk2,c->Fifsf);
+    pflow->rkinflow_fnpf(p,c,pgc,erk1,c->eta);
+    pflow->rkinflow_fnpf(p,c,pgc,erk2,c->eta);
     
     // fsf eta
     pf->kfsfbc(p,c,pgc);

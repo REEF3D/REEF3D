@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -32,4 +32,18 @@ void iowave::inflow_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *Fi, doub
     
     if(p->B99==3||p->B99==4||p->B99==5)
 	active_beach_fnpf(p,c,pgc,Fi,Uin,Fifsf,eta);
+}
+
+void iowave::rkinflow_fnpf(lexer *p, fdm_fnpf*, ghostcell *pgc, slice &frk, slice &f)
+{
+    for(n=0;n<p->gcslin_count;n++)
+    {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
+        
+        frk(i-1,j) = f(i-1,j);
+        frk(i-2,j) = f(i-2,j);
+        frk(i-3,j) = f(i-3,j);
+    }
+    
 }

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -37,10 +37,9 @@ sflow_state::sflow_state(lexer *p, fdm2D *b, ghostcell *pgc)
 	
 	printcount=0;
     
-    file_version=1;
-    
-    if(p->P44==1)
     file_version=2;
+    
+    file_type=p->P45;
     
     ini_token=0;
     
@@ -99,6 +98,7 @@ sflow_state::sflow_state(lexer *p, fdm2D *b, ghostcell *pgc)
         je = p->posc_j(p->P43_ye);
         je_flag=1;
         }
+    
     }
     
     pgc->gather_int(&flag,1,flag_all,1);
@@ -118,7 +118,6 @@ sflow_state::sflow_state(lexer *p, fdm2D *b, ghostcell *pgc)
     }
     
     pgc->bcast_int(&is_global,1);
-
 
     // ie communication
     if(ie_flag==1)
@@ -169,6 +168,20 @@ sflow_state::sflow_state(lexer *p, fdm2D *b, ghostcell *pgc)
     
     pgc->bcast_int(&je_global,1);
     
+    if(p->P43==1 && p->j_dir==0)
+    {
+    js = js_global = 0;
+    je = 1;
+    je_global = 1;
+    }
+    
+    if(p->P45==2)
+    {
+    filename_continuous(p,b,pgc);
+	 
+	result.open(name, ios::binary);
+    }
+    
 
     p->del_Iarray(is_flag_all,p->M10);
     p->del_Iarray(ie_flag_all,p->M10);
@@ -182,6 +195,7 @@ sflow_state::sflow_state(lexer *p, fdm2D *b, ghostcell *pgc)
 
 sflow_state::~sflow_state()
 {
+    result.close();
 }
 
 void sflow_state::write(lexer *p, fdm2D *c, ghostcell *pgc)

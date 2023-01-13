@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -58,23 +58,26 @@ levelset_AB2::levelset_AB2(lexer* p, fdm *a, ghostcell* pgc, heat *&pheat, conce
 	if(p->F50==4)
 	gcval_phi=54;
 
-	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90==0)
+	if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90==0)
 	pupdate = new fluid_update_fsf(p,a,pgc);
 	
-	if(p->F30>0 && p->H10==0 && p->W30==1 && p->W90==0)
+	if(p->F30>0 && p->H10==0 && p->W30==1 && p->F300==0 && p->W90==0)
 	pupdate = new fluid_update_fsf_comp(p,a,pgc);
 	
-	if(p->F30>0 && p->H10>0 && p->W90==0 && p->H3==1)
+	if(p->F30>0 && p->H10>0 && p->W90==0 && p->F300==0 && p->H3==1)
 	pupdate = new fluid_update_fsf_heat(p,a,pgc,pheat);
     
-    if(p->F30>0 && p->H10>0 && p->W90==0 && p->H3==2)
+    if(p->F30>0 && p->H10>0 && p->W90==0 && p->F300==0 && p->H3==2)
 	pupdate = new fluid_update_fsf_heat_Bouss(p,a,pgc,pheat);
 	
-	if(p->F30>0 && p->C10>0 && p->W90==0)
+	if(p->F30>0 && p->C10>0 && p->W90==0 && p->F300==0)
 	pupdate = new fluid_update_fsf_concentration(p,a,pgc,pconc);
 	
-	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
+	if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90>0)
 	pupdate = new fluid_update_rheology(p,a);
+    
+    if(p->F300>0)
+	pupdate = new fluid_update_void();
 
 
 	if(p->F46==2)
@@ -132,10 +135,6 @@ void levelset_AB2::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 	if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"lsmtime: "<<setprecision(3)<<p->lsmtime<<endl;
 
-}
-
-void levelset_AB2::ltimesave(lexer* p, fdm *a, field &ls)
-{
 }
 
 void levelset_AB2::update(lexer *p, fdm *a, ghostcell *pgc, field &f)

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -40,10 +40,24 @@ void iowave::inflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, sl
     pBC->patchBC_ioflow2D(p,pgc,P,Q,bed,eta);
 }
 
-void iowave::rkinflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &bed, slice &eta)
+void iowave::rkinflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &U, slice &V)
 {
+    for(n=0;n<p->gcslin_count;n++)
+    {
+    i=p->gcslin[n][0];
+    j=p->gcslin[n][1];
+
+
+        P(i-1,j)=U(i-1,j);
+        P(i-2,j)=U(i-2,j);
+        P(i-3,j)=U(i-3,j);
+
+        Q(i-1,j)=V(i-1,j);
+        Q(i-2,j)=V(i-2,j);
+        Q(i-3,j)=V(i-3,j);
+    }
     
-    pBC->patchBC_ioflow2D(p,pgc,P,Q,bed,eta);
+    pBC->patchBC_rkioflow2D(p,pgc,P,Q,U,V);
 }
 
 void iowave::inflow2D_plain(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &eta)

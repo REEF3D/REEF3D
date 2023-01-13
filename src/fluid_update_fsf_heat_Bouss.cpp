@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -115,8 +115,6 @@ void fluid_update_fsf_heat_Bouss::start(lexer *p, fdm* a, ghostcell* pgc)
             
             if(p->H9==2)
             {
-            //cout<<" H4: "<<(temp - T0_1)<<" "<<(temp - T0_2)<<" "<<temp<<" "<<T0_1<<endl;
-            
             ro_1 = p->W3 - p->W3*p->H4_beta2*(temp - T0_2);
             ro_2 = p->W1 - p->W1*p->H4_beta1*(temp - T0_1);
 

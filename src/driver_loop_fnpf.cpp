@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -41,7 +41,6 @@ Author: Hans Bihs
 
 void driver::loop_fnpf()
 {
-   driver_ini_fnpf(); 
    
 //-----------MAINLOOP FNPF----------------------------
 
@@ -53,7 +52,7 @@ void driver::loop_fnpf()
 
         if(p->mpirank==0 && (p->count%p->P12==0))
         {
-        cout<<"------------------------------"<<endl;
+        cout<<"------------------------------------"<<endl;
         cout<<p->count<<endl;
         
         cout<<"simtime: "<<p->simtime<<endl;

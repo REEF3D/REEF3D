@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -129,5 +129,4 @@ void driver::logic_ptf()
     if(p->A310==4)
     pptf = new ptf_RK4(p,a,pgc);
     
-    loop_ptf(a);
 }

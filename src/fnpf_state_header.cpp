@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -119,7 +119,7 @@ void fnpf_state::write_header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     for(j=js;j<je;++j)
     PSLICECHECK4
     {
-    ffn=c->bed(i,j);
+    ddn=c->bed(i,j);
     headout.write((char*)&ddn, sizeof (double));
     } 
     

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -124,10 +124,6 @@ void VOF_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcel
 	
 	if(p->mpirank==0)
 	cout<<"voftime: "<<setprecision(3)<<p->lsmtime<<endl;
-}
-
-void VOF_RK3::ltimesave(lexer* p, fdm *a, field &F)
-{
 }
 
 void VOF_RK3::update(lexer *p, fdm *a, ghostcell *pgc, field &F)

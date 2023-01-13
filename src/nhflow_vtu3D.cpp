@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -216,6 +216,16 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* c,ghostcell* pgc, ioflow *pflow)
 
 void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 {
+    /*
+    - U, V, W
+    - P
+    - test
+    - breaking
+    
+    
+    */
+    
+    
     SLICELOOP4
     {
     if(d->breaking(i,j)==1)
@@ -226,11 +236,11 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     }
 
      //
-    pgc->start7V(p,d->Fi,d->bc,250);
+
     pgc->gcsl_start4(p,d->WL,50);
     pgc->gcsl_start4(p,d->bed,50);
     pgc->gcsl_start4(p,d->breaking_print,50);
-    pgc->start4(p,d->test,1);
+    //pgc->start4(p,d->test,1);
 
     pgc->dgcslpol(p,d->WL,p->dgcsl4,p->dgcsl4_count,14);
     pgc->dgcslpol(p,d->breaking_print,p->dgcsl4,p->dgcsl4_count,14);
@@ -267,7 +277,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 
 	// scalars
 
-    // Fi
+    // P
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 
@@ -277,13 +287,6 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     
     // test
     if(p->P23==1)
-	{
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	}
-    
-    // solid
-    if(p->P25==1)
 	{
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
@@ -313,11 +316,9 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     ++n;
 
 
-    if(p->A10==3)
-	{
-    result<<"<DataArray type=\"Float32\" Name=\"Fi\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"P\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-	}
+
 
     result<<"<DataArray type=\"Float32\" Name=\"elevation\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -328,11 +329,9 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     ++n;
 	}
 
-    if(p->P25==1)
-	{
-	result<<"<DataArray type=\"Float32\" Name=\"solid\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"breaking\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-	}
+	
 	result<<"</PointData>"<<endl;
 
 
@@ -383,16 +382,15 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 	result.write((char*)&ffn, sizeof (float));
 	}
 
-
-//  Fi
+//  P
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
-    ffn=float(d->Fi[FIJKp1]);
+    ffn=float(d->P[FIJKp1]);
 
     if(k==-1 && j==-1)
-	ffn=float(d->Fi[FIJp1Kp1]);
+	ffn=float(d->P[FIJp1Kp1]);
 	result.write((char*)&ffn, sizeof (float));
 	}
 
@@ -412,19 +410,19 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
-	ffn=float(p->ipol4_a(d->test));
+	ffn=float(d->test[FIJp1Kp1]);
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}
 
-//  solid
+//  breaking
 	if(p->P25==1)
 	{
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
-	ffn=float(1.0);
+	ffn=float(0.0);
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}

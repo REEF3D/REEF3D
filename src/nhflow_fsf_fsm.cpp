@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -108,10 +108,6 @@ void nhflow_fsf_fsm::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow)
     
     p->sigma_update(p,d,pgc,d->eta,d->eta_n,1.0);
     p->omega_update(p,d,pgc,d->U,d->V,d->W,d->eta,d->eta_n,1.0);
-}
-
-void nhflow_fsf_fsm::ltimesave(lexer* p, fdm_nhf* d, slice &ls)
-{
 }
 
 void nhflow_fsf_fsm::update(lexer *p, fdm_nhf* d, ghostcell *pgc, slice &f)

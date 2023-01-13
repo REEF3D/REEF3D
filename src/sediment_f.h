@@ -69,7 +69,7 @@ public:
 	
 
     virtual double qbeval(int,int);
-    virtual void qbeget(int,int,double);
+    virtual void qbeget(int,int,double);    virtual double bedzhval(int,int);
     
     void fill_bedk(lexer*,fdm*,ghostcell*);
 	void bedlevel(lexer*,fdm*,ghostcell*);    void waterlevel(lexer*,fdm*,ghostcell*);

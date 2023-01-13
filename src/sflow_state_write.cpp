@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -31,18 +31,18 @@ Author: Hans Bihs
 
 void sflow_state::write_result(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    // Open File
-	int num=0;
+    // Open result file single file
+    if(p->P45==1)
+    {
+    int num=0;
 
     if(p->P15>=1)
     num = printcount;
-
     
-    // result file
-    filename(p,b,pgc,num);
+    filename_single(p,b,pgc,num);
 	 
-	ofstream result;
 	result.open(name, ios::binary);
+    }
     
      
     // head section
@@ -84,6 +84,14 @@ void sflow_state::write_result(lexer *p, fdm2D *b, ghostcell *pgc)
     
     for(i=is;i<ie;++i)
     for(j=js;j<je;++j)
+    PSLICECHECK4
+    {
+    ffn=float(b->bed(i,j));
+    result.write((char*)&ffn, sizeof (float));
+    } 
+    
+    for(i=is;i<ie;++i)
+    for(j=js;j<je;++j)
     PSLICECHECK4 
     {
     ffn=float(b->P(i,j));
@@ -108,6 +116,7 @@ void sflow_state::write_result(lexer *p, fdm2D *b, ghostcell *pgc)
     
 	
 	
+	if(p->P45==1)
 	result.close();
 	
 	++printcount;

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -38,7 +38,8 @@ fluid_update_fsf::~fluid_update_fsf()
 
 void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
 {
-	double H=0.0, H_fb=0.0;
+	double H=0.0;
+    double H_fb=0.0;
 	p->volume1=0.0;
 	p->volume2=0.0;
     
@@ -66,6 +67,24 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
         // Construct floating body heaviside function if used
         if (p->X10 == 1 && p->X13 == 2)
         {
+            if(p->X15==1)
+            {
+            // direct forcing
+            chi = p->X41*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+
+            if (p->j_dir==0)
+            chi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]);
+            
+            /*
+            if(-a->fb(i,j,k)>chi)
+            H_fb=1.0;
+
+            if(-a->fb(i,j,k)<-chi)
+            H_fb=0.0;
+
+            if(fabs(a->fb(i,j,k))<=chi)
+            H_fb=0.5*(1.0 + -a->fb(i,j,k)/chi + (1.0/PI)*sin((PI*-a->fb(i,j,k))/chi));
+            */
             H_fb = a->fbh4(i,j,k);
 		
             a->ro(i,j,k)= p->W_fb*H_fb + (1.0 - H_fb)*(ro_water*H +   ro_air*(1.0-H));
@@ -73,7 +92,18 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
 
 		    p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));
 		    p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
+            }
+            
+            if(p->X15==2)
+            {
+            a->ro(i,j,k)=     ro_water*H +   ro_air*(1.0-H);
+            a->visc(i,j,k)= visc_water*H + visc_air*(1.0-H);
+
+            p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));
+            p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
+            }
         }
+        
         else
         {
             a->ro(i,j,k)=     ro_water*H +   ro_air*(1.0-H);

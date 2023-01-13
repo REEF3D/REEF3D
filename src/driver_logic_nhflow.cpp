@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -47,10 +47,10 @@ void driver::logic_nhflow()
     
 // nhflow
     if(p->A10!=55)
-    pnh=new nhflow_v(p,d,pgc);
+    pnhf=new nhflow_v(p,d,pgc);
     
     if(p->A10==55)
-    pnh=new nhflow_f(p,d,pgc);
+    pnhf=new nhflow_f(p,d,pgc);
     
     if(p->A10==55)
     {
@@ -62,14 +62,8 @@ void driver::logic_nhflow()
     }
     
 // time stepping
-    if(p->N48==0)
-	ptstep=new fixtimestep(p);
-
-    if((p->N48==1)  && (p->D20!=0&&p->D20!=2))
-	ptstep=new etimestep(p);
-	
-	if((p->N48==1) && (p->D20==0||p->D20>=2))
-	ptstep=new ietimestep(p);
+    // time stepping
+	pnhfstep=new nhflow_timestep(p);
 
 //discretization scheme
 
@@ -118,6 +112,9 @@ void driver::logic_nhflow()
     if(p->D30==10)
 	pnhpress = new nhflow_pjm_hs(p,d);
 
+//Turbulence
+    if(p->T10==0)
+	pturb = new kepsilon_void(p,a,pgc);
 
 //Solver
     if(p->j_dir==0)
@@ -151,6 +148,13 @@ void driver::logic_nhflow()
 	ppoissonsolv = new hypre_sstruct(p,a,pgc);
 	#endif
     
+//Printer
+    if(p->P150==0)
+	pdata = new data_void(p,a,pgc);
+
+	if(p->P150>0)
+	pdata = new data_f(p,a,pgc);
+    
 //IOFlow
 	if(p->B60==0 && p->B90==0 && p->B180==0)
 	pflow = new ioflow_v(p,pgc,pBC);
@@ -163,5 +167,9 @@ void driver::logic_nhflow()
 
 	if(p->B180==1||p->B191==1||p->B192==1)
 	pflow = new ioflow_gravity(p,pgc,pBC);
+    
+//Momentum
+    //if(p->N40==3)
+	pnhfmom = new nhflow_momentum_RK3(p,d,pgc);
     
 }

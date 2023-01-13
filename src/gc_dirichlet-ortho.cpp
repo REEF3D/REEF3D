@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -48,7 +48,6 @@ void ghostcell::dirichlet_ortho(lexer *p,field& f,double dist,int gcv, int bc, i
     if(dist>p->DXM*(1.0-1.0e-6) && dist<p->DXM*(1.0+1.0e-6))
     ys=0;
     
-    //cout<<" dist: "<<dist<<endl;
 
 //fill pos[]
 	for(m=0;m<=orderdir-3;m++)
@@ -95,7 +94,7 @@ void ghostcell::dirichlet_ortho(lexer *p,field& f,double dist,int gcv, int bc, i
     y[orderdir-2] = val_ip;
     }
 		
-/*
+
 	for(q=0; q<margin; ++q)
 	{
 	    y[orderdir+q]=0.0;
@@ -111,27 +110,6 @@ void ghostcell::dirichlet_ortho(lexer *p,field& f,double dist,int gcv, int bc, i
 		y[orderdir+q]+=weight*y[m];
 		}
 	}
-*/
-	
-	for(q=0; q<margin; ++q)
-	{
-	    y[orderdir+q]=0.0;
-
-		for(m=0;m<orderdir;m++)
-		{
-			weight=0.0;
-			for(n=0;n<orderdir;++n)
-			{
-			if(ys==0 && m==n && q+m==1)
-//			weight*=(x[q]-pos[n])/(pos[m]-pos[n]+1.0e-20);
-			weight = -1.0;
-			else if(ys==1 && m==n && q+m==2)
-			weight = -1.0;
-			}
-		y[orderdir+q]+=weight*y[m];
-		}
-	}
-
 
 // write extrapolated ghost cell values into f()
 
@@ -158,18 +136,4 @@ void ghostcell::dirichlet_ortho(lexer *p,field& f,double dist,int gcv, int bc, i
 	if(cs==6)
 	for(q=0;q<margin;++q)
 	f(i,j,k+q+1) = y[orderdir+q-1+ys];
-	
-/*    
-    if(p->mpirank==0)
-    if(cs==1 && gcv==10)
-    { 
-    cout<<"U: "<<f(i,j,k)<<" . ";
-	for(q=0;q<margin;++q)
-    cout<<y[orderdir+q-1+ys]<<" ";
- cout<<ys<<" ";
-    
-    cout<<endl;
-    }*/
-
 }
-

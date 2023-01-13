@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -50,7 +50,7 @@ Author: Hans Bihs
 
 momentum_FC3::momentum_FC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconvection, convection *ppfsfdisc, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
                                                     turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow,
-                                                    heat *&pheat, concentration *&pconc, nhflow *ppnh, reini *ppreini)
+                                                    heat *&pheat, concentration *&pconc, reini *ppreini)
                                                     :bcmom(p),udiff(p),vdiff(p),wdiff(p),urk1(p),urk2(p),vrk1(p),vrk2(p),wrk1(p),wrk2(p),ls(p),frk1(p),frk2(p)
 {
 	gcval_u=10;
@@ -78,27 +78,29 @@ momentum_FC3::momentum_FC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec
 	psolv=psolver;
     ppoissonsolv=ppoissonsolver;
 	pflow=pioflow;
-    pnh=ppnh;
     preini=ppreini;
     
     
-    if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90==0)
+    if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90==0)
 	pupdate = new fluid_update_fsf(p,a,pgc);
 	
-	if(p->F30>0 && p->H10==0 && p->W30==1 && p->W90==0)
+	if(p->F30>0 && p->H10==0 && p->W30==1 && p->F300==0 && p->W90==0)
 	pupdate = new fluid_update_fsf_comp(p,a,pgc);
 	
-	if(p->F30>0 && p->H10>0 && p->W90==0 && p->H3==1)
+	if(p->F30>0 && p->H10>0 && p->W90==0 && p->F300==0 && p->H3==1)
 	pupdate = new fluid_update_fsf_heat(p,a,pgc,pheat);
     
-    if(p->F30>0 && p->H10>0 && p->W90==0 && p->H3==2)
+    if(p->F30>0 && p->H10>0 && p->W90==0 && p->F300==0 && p->H3==2)
 	pupdate = new fluid_update_fsf_heat_Bouss(p,a,pgc,pheat);
 	
-	if(p->F30>0 && p->C10>0 && p->W90==0)
+	if(p->F30>0 && p->C10>0 && p->W90==0 && p->F300==0)
 	pupdate = new fluid_update_fsf_concentration(p,a,pgc,pconc);
 	
-	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
+	if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90>0)
 	pupdate = new fluid_update_rheology(p,a);
+    
+    if(p->F300>0)
+	pupdate = new fluid_update_void();
 
 	if(p->F46==2)
 	ppicard = new picard_f(p);

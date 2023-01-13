@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -22,13 +22,13 @@ Author: Hans Bihs
 
 #include"iowave.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
+void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W)
 {
         count=0;
-		for(n=0;n<p->gcin_count;n++)
+		for(n=0;n<p->gcin_count;++n)
 		{
 		i=p->gcin[n][0];
 		j=p->gcin[n][1];
@@ -38,18 +38,17 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u
         vvel=vval[count]*ramp(p);
         wvel=wval[count]*ramp(p);
         
-
-			u(i-1,j,k)=uvel+p->Ui;
-			u(i-2,j,k)=uvel+p->Ui;
-			u(i-3,j,k)=uvel+p->Ui;
+            U[Im1JK]=uvel+p->Ui;
+            U[Im2JK]=uvel+p->Ui;
+            U[Im3JK]=uvel+p->Ui;
             
-           v(i-1,j,k)=vvel;
-			v(i-2,j,k)=vvel;
-			v(i-3,j,k)=vvel;
-			
-			w(i-1,j,k)=wvel;
-			w(i-2,j,k)=wvel;
-			w(i-3,j,k)=wvel;
+            V[Im1JK]=vvel;
+            V[Im2JK]=vvel;
+            V[Im3JK]=vvel;
+            
+            W[Im1JK]=wvel;
+            W[Im2JK]=wvel;
+            W[Im3JK]=wvel;
             
         ++count;
 		}
@@ -63,34 +62,9 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u
             i=p->gcin[n][0]+q;
             j=p->gcin[n][1];
             k=p->gcin[n][2];
-
-            if(a->phi(i,j,k)<0.0)
-            a->eddyv(i,j,k)=MIN(a->eddyv(i,j,k),1.0e-4);
+            
+            d->eddyv[IJK]=MIN(d->eddyv[IJK],1.0e-4);
             }
-        pgc->start4(p,a->eddyv,24);
+        pgc->start4V(p,d->eddyv,d->bc,24);
 		}
-        
-        
-    // NSEWAVE
-    if(p->A10==55)
-    {
-        for(n=0;n<gcgen1_count;++n)
-		{
-		i=gcgen1[n][0];
-		j=gcgen1[n][1];
-            
-            a->P(i-1,j)=0.0;
-            double d=0.0;
-            
-            KULOOP
-            {
-                a->P(i-1,j) += a->u(i-1,j,k)*p->ZN[KP];
-                d+=p->ZN[KP];
-            }
-            a->P(i-1,j)/=d;
-            a->P(i-3,j)=a->P(i-2,j)=a->P(i-1,j);
-
-        }
-        
-    }
 }

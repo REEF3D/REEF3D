@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MEFCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -22,8 +22,10 @@ Author: Hans Bihs
 
 #include"momentum.h"
 #include"bcmom.h"
+#include"field1.h"
+#include"field2.h"
+#include"field3.h"
 #include"field4.h"
-#include"slice4.h"
 
 class convection;
 class diffusion;
@@ -33,31 +35,35 @@ class solver;
 class poisson;
 class fluid_update;
 class nhflow;
-class nhflow_fsf;
+class reini;
+class picard;
+class heat;
+class concentration;
 
 using namespace std;
 
-#ifndef NHFLOW_MOMENTUM_RK3co_H_
-#define NHFLOW_MOMENTUM_RK3co_H_
+#ifndef MOMENTUM_FCC3_H_
+#define MOMENTUM_FCC3_H_
 
-class nhflow_momentum_RK3co : public momentum, public bcmom
+class momentum_FCC3 : public momentum, public bcmom
 {
 public:
-	nhflow_momentum_RK3co(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*, nhflow*, nhflow_fsf*);
-	virtual ~nhflow_momentum_RK3co();
+	momentum_FCC3(lexer*, fdm*, ghostcell*, convection*, convection*, diffusion*, pressure*, poisson*, 
+                turbulence*, solver*, solver*, ioflow*, heat*&, concentration*&, reini*);
+	virtual ~momentum_FCC3();
 	virtual void start(lexer*, fdm*, ghostcell*, vrans*);
     virtual void utimesave(lexer*, fdm*, ghostcell*);
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);
 
-    field4 udiff,urk1,urk2;
-	field4 vdiff,vrk1,vrk2;
-	field4 wdiff,wrk1,wrk2;
-    
-    slice4 etark1,etark2;
+    field1 udiff,urk1,urk2;
+	field2 vdiff,vrk1,vrk2;
+	field3 wdiff,wrk1,wrk2;
+    field4 ls,frk1,frk2;
 
 private:
     fluid_update *pupdate;
+    picard *ppicard;
     
 	void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
@@ -66,9 +72,11 @@ private:
     void timecheck(lexer*,fdm*,ghostcell*,field&,field&,field&);
     
 	int gcval_u, gcval_v, gcval_w;
+    int gcval_phi;
 	double starttime;
 
 	convection *pconvec;
+    convection *pfsfdisc;
 	diffusion *pdiff;
 	pressure *ppress;
 	poisson *ppois;
@@ -77,7 +85,8 @@ private:
     solver *ppoissonsolv;
 	ioflow *pflow;
     nhflow *pnh;
-    nhflow_fsf *pnhfsf;
+    reini *preini;
+    
 };
 
 #endif

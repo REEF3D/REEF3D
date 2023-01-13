@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -65,9 +65,14 @@ class nhflow_pressure;
 class sflow;
 class fnpf_vtu3D;
 class fnpf_timestep;
+class nhflow_timestep;
 class grid;
 class patchBC_interface;
 class nhflow;
+class multiphase;
+class nhflow_momentum;
+class sixdof_df;
+class momentum_RK3_df;
 
 #include<iostream>
 #include<fstream>
@@ -102,7 +107,7 @@ public:
     void loop_ptf(fdm*);
     void loop_fnpf();
     
-	void logic();
+	void logic_cfd();
     void logic_ptf();
     void logic_fnpf();
     void logic_nhflow();
@@ -110,7 +115,7 @@ public:
     
     void patchBC_logic();
     
-	void driver_ini();
+	void driver_ini_cfd();
     void driver_ini_nhflow();
     void driver_ini_nsewave();
     void driver_ini_fnpf();
@@ -155,6 +160,7 @@ public:
 	convection* pconvec;
 	convection* pturbdisc;
 	convection* pfsfdisc;
+    convection* pmpconvec;
 	convection* pconcdisc;
     convection* pheatdisc;
 	turbulence* pturb;
@@ -185,12 +191,17 @@ public:
     nhflow_fsf *pnhfsf;
     sflow *psflow;
     fnpf_vtu3D *pfprint; 
-    fnpf_timestep* pftstep;
+    fnpf_timestep *pftstep;
     grid *pgrid;
     patchBC_interface *pBC;
-    nhflow *pnh;
+    nhflow *pnhf;
     nhflow_convection *pnhfconvec;
     nhflow_pressure *pnhpress;
+    multiphase *pmp;
+    nhflow_timestep *pnhfstep;
+    nhflow_momentum *pnhfmom;
+    sixdof_df *p6dof_df;
+    momentum_RK3_df *pmom_df;
 
 
 private:

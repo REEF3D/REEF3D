@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -55,10 +55,6 @@ nhflow_fsf_rk::~nhflow_fsf_rk()
 }
 
 void nhflow_fsf_rk::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow)
-{
-}
-
-void nhflow_fsf_rk::ltimesave(lexer* p, fdm_nhf* d, slice &ls)
 {
 }
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,18 +27,26 @@ Author: Hans Bihs
 
 ediff2::ediff2(lexer* p):gradient(p)
 {
+
     gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;
     
     if(p->B21==1)
     {
+    gcval_udiff=10;
+	gcval_vdiff=11;
+	gcval_wdiff=12;
+    }
+    
+    if(p->B21==2)
+    {
     gcval_udiff=117;
 	gcval_vdiff=118;
 	gcval_wdiff=119;
     }
     
-    if(p->B21==2)
+    if(p->B21==3)
     {
     gcval_udiff=110;
 	gcval_vdiff=111;

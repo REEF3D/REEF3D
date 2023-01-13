@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -121,11 +121,6 @@ double weno_hj_6DOF_nug::fx(lexer *p,fdm *a, field& b, field& uvel, int ipol, do
             a2 = cfx[IP][uf][1]/pow(is2x+psi,2.0); 
             a3 = cfx[IP][uf][2]/pow(is3x+psi,2.0); 
     
-/*
-     if(p->mpirank==0)
-     cout<<" w1x : "<<w1x<<"  w1 : "<<w3<<" | w2x : "<<w2x<<"  w2 : "<<w2<<" | w3x : "<<w3x<<"  w3 : "<<w1<<"  | is1x : "<<is3x<<"  is1 : "<<is3<<" | is2x : "<<is2x<<"  is2 : "<<is2<<" | is3x : "<<is1x<<"  is3 : "<<is1<<" | a1: "
-            <<a3<<" alpha1: "<<alpha1<<" a2: "<<a2<<" alpha2: "<<alpha2<<" a3: "<<a1<<" alpha3: "<<alpha3<<endl;
-*/
 	grad = w1x*(q4 + qfx[IP][uf][0][0]*(q3-q4) - qfx[IP][uf][0][1]*(q5-q4))
     
          + w2x*(q3 + qfx[IP][uf][1][0]*(q4-q3) - qfx[IP][uf][1][1]*(q2-q3))
@@ -334,6 +329,7 @@ void weno_hj_6DOF_nug::kqmax(lexer *p,fdm *a, field& f, field& wvel, int ipol)
     if(a->fbh4(i,j,k+3)  < 0.5 && a->fbh4(i,j,k+2)  < 0.5)
     q5 = (f(i,j,k+3)-f(i,j,k+2))/DZ[KP2];
 }
+
 
 void weno_hj_6DOF_nug::is()
 {

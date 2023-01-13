@@ -41,21 +41,7 @@ void sflow_state::ini_mainheader(lexer *p, fdm2D *b, ghostcell *pgc)
 	mainout.open("./REEF3D_SFLOW_STATE/REEF3D-SFLOW_State_Mainheader.r3d", ios::binary);
 
 
-    // ini write
-    iin=p->M10;
-    mainout.write((char*)&iin, sizeof (int));
-
-    iin=p->j_dir;
-    mainout.write((char*)&iin, sizeof (int));
-
-    iin=ie_global-is_global;
-    mainout.write((char*)&iin, sizeof (int));
-
-    iin=je_global-js_global;
-    mainout.write((char*)&iin, sizeof (int));
-
-    iin=file_version;
-    mainout.write((char*)&iin, sizeof (int));
+    // ini write    iin=p->M10;    mainout.write((char*)&iin, sizeof (int));    iin=p->j_dir;    mainout.write((char*)&iin, sizeof (int));    iin=ie_global-is_global;    mainout.write((char*)&iin, sizeof (int));    iin=je_global-js_global;    mainout.write((char*)&iin, sizeof (int));    iin=1;    mainout.write((char*)&iin, sizeof (int));    iin=file_version;    mainout.write((char*)&iin, sizeof (int));        iin=file_type;    mainout.write((char*)&iin, sizeof (int));
 
     // flag: is process within P43 bounds
     for(int qn=0;qn<p->M10;++qn)

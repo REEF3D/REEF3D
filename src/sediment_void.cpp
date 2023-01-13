@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -71,6 +71,13 @@ double sediment_void::qbeval(int ii, int jj)
 
 void sediment_void::qbeget(int ii, int jj, double val)
 {
+}
+
+double sediment_void::bedzhval(int ii, int jj)
+{
+    double val=0.0;
+
+    return val;
 }
 
 void sediment_void::print_2D_bedload(lexer* p, ghostcell *pgc, ofstream &result)

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,11 +23,10 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"lexer.h"
 
-fdm_nhf::fdm_nhf(lexer *p) : press(p),test(p),Fifsf(p),Fibed(p),
-                              nodeval(p),eta(p),etaloc(p),
+fdm_nhf::fdm_nhf(lexer *p) :  press(p),nodeval(p),eta(p),etaloc(p),
                               wet_n(p),breaking(p),breaklog(p),bc(p),
                               eta_n(p),WL(p),WL_n(p),
-                              bed(p),depth(p),Fz(p),K(p),
+                              bed(p),depth(p),K(p),
                               Fx(p),Fy(p),
                               Ex(p),Ey(p),Exx(p),Eyy(p),
                               Bx(p),By(p),Bxx(p),Byy(p),
@@ -41,8 +40,6 @@ fdm_nhf::fdm_nhf(lexer *p) : press(p),test(p),Fifsf(p),Fibed(p),
     p->Darray(V,p->imax*p->jmax*(p->kmax+2));
     p->Darray(W,p->imax*p->jmax*(p->kmax+2));
     p->Darray(omega,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Fi,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Uin,p->imax*p->jmax*(p->kmax+2));
     
     p->Darray(P,p->imax*p->jmax*(p->kmax+2));
     p->Darray(ro,p->imax*p->jmax*(p->kmax+2));
@@ -55,6 +52,7 @@ fdm_nhf::fdm_nhf(lexer *p) : press(p),test(p),Fifsf(p),Fibed(p),
     p->Darray(L,p->imax*p->jmax*(p->kmax+2));
     
     p->Darray(porosity,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(test,p->imax*p->jmax*(p->kmax+2));
 
     C4.allocate(p);
 }

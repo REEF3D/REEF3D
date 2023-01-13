@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -349,10 +349,118 @@ void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
 
 } 
 
+void patchBC::patchBC_rkioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
+{
+    // Velocity components
+    for(qq=0;qq<obj_count;++qq)
+    //if(patch[qq]->velcomp_flag==1)
+    for(n=0;n<patch[qq]->gcb_count;++n)
+    {
+    i=patch[qq]->gcb[n][0];
+    j=patch[qq]->gcb[n][1];
+    k=patch[qq]->gcb[n][2];
+    
+        if(patch[qq]->gcb[n][3]==1)
+        {
+        u(i-1,j,k) =  a->u(i-1,j,k);
+        u(i-2,j,k) =  a->u(i-2,j,k);
+        u(i-3,j,k) =  a->u(i-3,j,k);
+        
+        v(i-1,j,k) =  a->v(i-1,j,k);
+        v(i-2,j,k) =  a->v(i-2,j,k);
+        v(i-3,j,k) =  a->v(i-3,j,k);
+        
+        w(i-1,j,k) =  a->w(i-1,j,k);
+        w(i-2,j,k) =  a->w(i-2,j,k);
+        w(i-3,j,k) =  a->w(i-3,j,k);
+        }
+        
+        if(patch[qq]->gcb[n][3]==2)
+        {
+        u(i,j+1,k) =  a->u(i,j+1,k);
+        u(i,j+2,k) =  a->u(i,j+2,k);
+        u(i,j+3,k) =  a->u(i,j+3,k);
+        
+        v(i,j,k)   =  a->v(i,j,k);
+        v(i,j+1,k) =  a->v(i,j+1,k);
+        v(i,j+2,k) =  a->v(i,j+2,k);
+        
+        w(i,j+1,k) =  a->w(i,j+1,k);
+        w(i,j+2,k) =  a->w(i,j+2,k);
+        w(i,j+3,k) =  a->w(i,j+3,k);
+        }
+        
+        if(patch[qq]->gcb[n][3]==3)
+        {
+        u(i,j-1,k) =  a->u(i,j-1,k);
+        u(i,j-2,k) =  a->u(i,j-2,k);
+        u(i,j-3,k) =  a->u(i,j-3,k);
+        
+        v(i,j-1,k) =  a->v(i,j-1,k);
+        v(i,j-2,k) =  a->v(i,j-2,k);
+        v(i,j-3,k) =  a->v(i,j-3,k);
+        
+        w(i,j-1,k) =  a->w(i,j-1,k);
+        w(i,j-2,k) =  a->w(i,j-2,k);
+        w(i,j-3,k) =  a->w(i,j-3,k);
+        }
+        
+        if(patch[qq]->gcb[n][3]==4)
+        {
+        u(i,j,k)   =  a->u(i,j,k);
+        u(i+1,j,k) =  a->u(i+1,j,k);
+        u(i+2,j,k) =  a->u(i+2,j,k);
+        
+        v(i+1,j,k) =  a->v(i+1,j,k);
+        v(i+2,j,k) =  a->v(i+2,j,k);
+        v(i+3,j,k) =  a->v(i+3,j,k);
+        
+        w(i+1,j,k) =  a->w(i+1,j,k);
+        w(i+2,j,k) =  a->w(i+2,j,k);
+        w(i+3,j,k) =  a->w(i+3,j,k);
+        }
+        
+        if(patch[qq]->gcb[n][3]==5)
+        {
+        u(i,j,k-1) =  a->u(i,j,k-1);
+        u(i,j,k-2) =  a->u(i,j,k-2);
+        u(i,j,k-3) =  a->u(i,j,k-3);
+        
+        v(i,j,k-1) =  a->v(i,j,k-1);
+        v(i,j,k-2) =  a->v(i,j,k-2);
+        v(i,j,k-3) =  a->v(i,j,k-3);
+        
+        w(i,j,k-1) =  a->w(i,j,k-1);
+        w(i,j,k-2) =  a->w(i,j,k-2);
+        w(i,j,k-3) =  a->w(i,j,k-3);
+        }
+        
+        if(patch[qq]->gcb[n][3]==6)
+        {
+        u(i,j,k+1) =  a->u(i,j,k+1);
+        u(i,j,k+2) =  a->u(i,j,k+2);
+        u(i,j,k+3) =  a->u(i,j,k+3);
+        
+        v(i,j,k+1) =  a->v(i,j,k+1);
+        v(i,j,k+2) =  a->v(i,j,k+2);
+        v(i,j,k+3) =  a->v(i,j,k+3);
+        
+        w(i,j,k)   =  a->w(i,j,k);
+        w(i,j,k+1) =  a->w(i,j,k+1);
+        w(i,j,k+2) =  a->w(i,j,k+2);
+        }
+    
+    }
+
+}
 
 void patchBC::patchBC_ioflow2D(lexer *p, ghostcell*, slice&, slice&, slice&, slice&)
 {
     cout<<p->mpirank<<" patchBC_2D: inflow 3D "<<endl;
+}
+
+void patchBC::patchBC_rkioflow2D(lexer *p, ghostcell*, slice&, slice&, slice&, slice&)
+{
 }
 
 

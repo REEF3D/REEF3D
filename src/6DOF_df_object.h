@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -55,12 +55,11 @@ public:
     sixdof_df_object(lexer*, fdm*, ghostcell*, int);
 	virtual ~sixdof_df_object();
 	
-	virtual void start(lexer*,fdm*,ghostcell*,double,double,double,vrans*,vector<net*>&);
+	virtual void solve_eqmotion(lexer*,fdm*,ghostcell*,double,double,double,vrans*,vector<net*>&);
 	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
     
-
 	// Additional functions
-    void updateFSI(lexer*, fdm*, ghostcell*, bool);
+    void transform(lexer*, fdm*, ghostcell*, bool);
     void updateForcing(lexer*, fdm*, ghostcell*,double,field&,field&,field&,field1&,field2&,field3&);
 	void forces_stl(lexer*, fdm*, ghostcell*,double,field&,field&,field&);
     
@@ -68,16 +67,17 @@ public:
     void print_parameter(lexer*,fdm*,ghostcell*);
     void print_ini_vtp(lexer*,fdm*,ghostcell*);
 	void print_vtp(lexer*,fdm*,ghostcell*);
+    void print_normals_vtp(lexer*,fdm*,ghostcell*);
     void print_ini_stl(lexer*,fdm*,ghostcell*);
 	void print_stl(lexer*,fdm*,ghostcell*);
 	void interface(lexer*, bool);
     
     double Mass_fb;
 
-
 private:
 
 	void ini_parameter(lexer*, fdm*, ghostcell*);
+    void ini_fbvel(lexer*, fdm*, ghostcell*);
     void maxvel(lexer*, fdm*, ghostcell*);
     
     void externalForces(lexer*, fdm*, ghostcell*, double, vrans*, vector<net*>&);
@@ -85,9 +85,9 @@ private:
     void netForces(lexer*, fdm*, ghostcell*, double, vrans*, vector<net*>&);
     void updateForces(fdm*);
     
-    void objects(lexer*, fdm*, ghostcell*);
+    void objects_create(lexer*, fdm*, ghostcell*);
     void objects_allocate(lexer*, fdm*, ghostcell*);
-	void geometry_refinement(lexer*);
+	void geometry_refinement(lexer*,ghostcell*);
 	void create_triangle(double&,double&,double&,double&,double&,double&,double&,double&,double&,const double&,const double&,const double&);
 	void box(lexer*, fdm*, ghostcell*,int);
 	void cylinder_x(lexer*, fdm*, ghostcell*,int);
@@ -97,6 +97,8 @@ private:
     void wedge(lexer*, fdm*, ghostcell*,int);
     void hexahedron(lexer*, fdm*, ghostcell*,int);
     void read_stl(lexer*, fdm*, ghostcell*);
+    void triangle_switch_lsm(lexer*, fdm*, ghostcell*);
+    void triangle_switch_ray(lexer*, fdm*, ghostcell*);
    
     void ini_parallel(lexer*, fdm*, ghostcell*);
     
@@ -108,7 +110,7 @@ private:
     void geometry_ls(lexer*, fdm*, ghostcell*);
     
     void iniPosition_RBM(lexer*, fdm*, ghostcell*);
-    void updatePosition(lexer*, fdm*, ghostcell*, bool);
+    void update_Position(lexer*, fdm*, ghostcell*, bool);
     void prescribedMotion(lexer*, fdm*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&);
     void quat_matrices(const Eigen::Vector4d&);
 
@@ -201,6 +203,9 @@ private:
     // Raycast
     fieldint5 cutl,cutr,fbio;
     double **tri_x,**tri_y,**tri_z,**tri_x0,**tri_y0,**tri_z0;
+    int *tri_switch,*tri_switch_id,*tri_switch_local,*tri_switch_local_id;
+    int tricount_local,*tricount_local_list,*tricount_local_displ;
+    int tricount_switch_total;
 	vector<vector<double> > tri_x_r;
 	vector<vector<double> > tri_y_r;
 	vector<vector<double> > tri_z_r;
@@ -222,7 +227,7 @@ private:
 
     // Print
     double curr_time;
-    double printtime;
+    double printtime,printtimenormal;
     int nCorr;
     int q,iin;
     float ffn;
@@ -245,11 +250,8 @@ private:
 
     // Number
     int n6DOF;
-	
-
-		
-	
-
+    
+    int triangle_token,printnormal_count;
 };
 
 #endif

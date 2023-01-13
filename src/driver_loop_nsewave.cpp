@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -41,12 +41,6 @@ Author: Hans Bihs
 
 void driver::loop_nsewave(fdm* a)
 {
-    driver_ini_nsewave();
-    
-	driver_ini();
-    
-    
-    
     if(p->mpirank==0)
     cout<<"starting mainloop.NSEWAVE"<<endl;
     
@@ -58,7 +52,7 @@ void driver::loop_nsewave(fdm* a)
 
         if(p->mpirank==0 && (p->count%p->P12==0))
         {
-        cout<<"------------------------------"<<endl;
+        cout<<"------------------------------------"<<endl;
         cout<<p->count<<endl;
         
         cout<<"simtime: "<<p->simtime<<endl;
@@ -100,7 +94,6 @@ void driver::loop_nsewave(fdm* a)
         pbench->start(p,a,pgc,pconvec);
 		
         //save previous timestep
-        pfsf->ltimesave(p,a,a->phi);
         pturb->ktimesave(p,a,pgc);
         pturb->etimesave(p,a,pgc);
         pheat->ttimesave(p,a);
@@ -112,7 +105,7 @@ void driver::loop_nsewave(fdm* a)
         
         
         // printer
-        pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
+        pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
 
         // Shell-Printout
         if(p->mpirank==0)

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -40,10 +40,7 @@ Author: Hans Bihs
 
 void driver::loop_ptf(fdm* a)
 {
-   driver_ini_ptf(); 
-   
 //-----------MAINLOOP PTF----------------------------
-
     
 	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
 	{
@@ -52,7 +49,7 @@ void driver::loop_ptf(fdm* a)
 
         if(p->mpirank==0 && (p->count%p->P12==0))
         {
-        cout<<"------------------------------"<<endl;
+        cout<<"------------------------------------"<<endl;
         cout<<p->count<<endl;
         
         cout<<"simtime: "<<p->simtime<<endl;
@@ -76,7 +73,7 @@ void driver::loop_ptf(fdm* a)
         
         
         // printer
-        pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
+        pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
 
         // Shell-Printout
         if(p->mpirank==0)

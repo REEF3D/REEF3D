@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -129,6 +129,9 @@ public:
 	int *gcside4;
 	int gcside4_size;
 	int gcextra1,gcextra2,gcextra3,gcextra4,gcextra4a,gcextra6;
+    
+    int gcdf1_count,gcdf2_count,gcdf3_count,gcdf4_count;
+    int **gcdf1,**gcdf2,**gcdf3,**gcdf4;
 
 	int **dgc1,**dgc2,**dgc3,**dgc4;
 	int dgc1_count,dgc2_count,dgc3_count,dgc4_count;
@@ -356,7 +359,7 @@ public:
 	double *C75_x,*C75_z,*C75_a,*C75_s,*C75_l,*C75_v;
 
 	// discretization
-	int D10,D11,D20,D21,D30,D31,D37,D38,D39;
+	int D10,D11,D20,D21,D30,D31,D32,D37,D38,D39;
 
 	// Free Surface
 	int F10,F11,F30,F31,F32,F34,F35,F36,F40,F44,F46,F47,F49,F50,F150,F151;
@@ -377,6 +380,25 @@ public:
 	double *F72_xs, *F72_xe, *F72_ys, *F72_ye, *F72_h;
 	int F80,F85;
 	double F84;
+    
+    int F300,F305,F310,F350;
+	double F321,F322,F323,F360,F361,F362;
+	int F369,F370,F371,F374,F375,F378,F379;
+    double *F369_x,*F369_z,*F369_a,*F369_s,*F369_l,*F369_v;
+	double *F370_xs, *F370_xe, *F370_ys, *F370_ye, *F370_zs, *F370_ze;
+	double *F371_xs, *F371_xe, *F371_ys, *F371_ye, *F371_zs, *F371_ze;
+	double *F374_xc, *F374_zc, *F374_r;
+    double *F375_xc, *F375_zc, *F375_r;
+    double *F378_xc, *F378_yc,*F378_zc, *F378_r;
+    double *F379_xc, *F379_yc,*F379_zc, *F379_r;
+	double F380,F381,F382;
+	int F390,F391,F394,F395,F398,F399;
+	double *F390_xs, *F390_xe, *F390_ys, *F390_ye, *F390_zs, *F390_ze;
+	double *F391_xs, *F391_xe, *F391_ys, *F391_ye, *F391_zs, *F391_ze;
+    double *F394_xc, *F394_zc, *F394_r;
+    double *F395_xc, *F395_zc, *F395_r;
+    double *F398_xc, *F398_yc,*F398_zc, *F398_r;
+    double *F399_xc, *F399_yc,*F399_zc, *F399_r;
     
 	// Grid Options
     int G1,G2;
@@ -443,17 +465,17 @@ public:
 	double *P352_x,*P352_y;
 
 	// Sediment Transport
-	int S10,S11,S12,S15,S16,S17,S32,S33,S37,S41,S42,S43,S44,S50,S60,S73,S77,S80,S83,S84,S90,S91,S100,S101;
+	int S10,S11,S12,S15,S16,S17,S27,S32,S33,S37,S41,S42,S43,S44,S50,S60,S73,S77,S80,S83,S84,S90,S91,S100,S101;
 	double S13,S14,S19,S20,S21,S22,S23,S24,S26_a,S26_b,S30,S45,S46,S47,S48,S57,S71,S72,S81,S82,S92,S93,S116;
 	double *S73_val,*S73_dist,*S73_b,*S73_x,*S73_y;
     double S77_xs,S77_xe;
 
 	// Turbulence
 	int T10,T11,T12,T21,T33,T36,T41;
-	double T31,T32,T35,T37,T38,T42;
+	double T31,T32,T35,T37,T38,T42,T43;
 
 	// Waterflow
-	double W1,W2,W3,W4,W5,W10,W_fb;
+	double W1,W2,W3,W4,W5,W6,W7,W10,W_fb;
     int W11,W12,W13,W14,W15,W16;
     double W11_u,W11_v,W11_w,W12_u,W12_v,W12_w,W13_u,W13_v,W13_w,W14_u,W14_v,W14_w,W15_u,W15_v,W15_w,W16_u,W16_v,W16_w;
     double W20,W21,W22,W31,W29_x,W29_y,W29_z;
@@ -540,7 +562,7 @@ public:
 	double phi_fb,theta_fb,psi_fb;
 	double ufbmax, vfbmax, wfbmax;
 	//Eigen::Matrix3d quatRotMat;	
-    int X10,X12,X13,X18,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X31,X32,X33,X34,X38,X40,X50,X110,X120,X131,X132,X133;
+    int X10,X12,X13,X14,X15,X18,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X31,X32,X33,X34,X38,X40,X50,X110,X120,X131,X132,X133;
 	int X100,X101,X102,X103,X141,X142,X143,X153,X180,X181,X182,X183,X210,X211;
 	int X310, X311, X312, X313, X314, X315, X320, X321, mooring_count, net_count;
 	double X21_d,X22_m;
@@ -578,6 +600,7 @@ public:
     double X181_x,X181_y,X181_z;
     double X182_x,X182_y,X182_z;
     double X183_x,X183_y,X183_z,X183_phi,X183_theta,X183_psi;
+    double X184;
     
     int X205;
     int X206;

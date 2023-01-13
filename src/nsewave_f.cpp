@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -171,10 +171,6 @@ void nsewave_f::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusio
     
     pupdate->start(p,a,pgc);
     
-}
-
-void nsewave_f::ltimesave(lexer* p, fdm *a, slice &ls)
-{
 }
 
 void nsewave_f::update(lexer *p, fdm *a, ghostcell *pgc, slice &f)

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -102,4 +102,13 @@ double sediment_f::qbeval(int ii, int jj)
 void sediment_f::qbeget(int ii, int jj, double val)
 {
     s->qbe(ii,jj)=val;
+}
+
+double sediment_f::bedzhval(int ii, int jj)
+{
+    double val;
+
+    val=s->bedzh(ii,jj);
+
+    return val;
 }

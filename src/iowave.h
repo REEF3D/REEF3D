@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -134,7 +134,7 @@ public:
 	virtual void dirichlet_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&);
     
     virtual void ini(lexer*,fdm*,ghostcell*);
-    virtual void ini_nhflow(lexer*,fdm*,ghostcell*);
+    virtual void ini_nhflow(lexer*,fdm_nhf*,ghostcell*);
     virtual void ini_fnpf(lexer*,fdm_fnpf*,ghostcell*);
     virtual void ini2D(lexer*,fdm2D*,ghostcell*);
     virtual void ini_ptf(lexer*,fdm*,ghostcell*);
@@ -165,10 +165,12 @@ public:
     
     void wavegen_precalc_relax_func(lexer*,ghostcell*);
     void wavegen_precalc_relax_func_fnpf(lexer*,ghostcell*);
+    void wavegen_precalc_relax_func_nhflow(lexer*,ghostcell*);
     
     
     // FNPF
     virtual void inflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,double*,double*,slice&,slice&);
+    virtual void rkinflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
     void fnpf_precalc_relax(lexer*,ghostcell*);
     void fnpf_precalc_relax_ini(lexer*,ghostcell*);
     void fnpf_precalc_dirichlet(lexer*,ghostcell*);
@@ -183,16 +185,25 @@ public:
     void wavegen_precalc_decomp_dirichlet_fnpf(lexer*,ghostcell*);
     
     // NHFLOW
-    virtual void nhflow_inflow(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
+    virtual void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*);
+    virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
     void nhflow_precalc_relax(lexer*,ghostcell*);
     void nhflow_precalc_relax_ini(lexer*,ghostcell*);
     void nhflow_precalc_dirichlet(lexer*,ghostcell*);
     void nhflow_precalc_dirichlet_ini(lexer*,ghostcell*);
-    void nhflow_dirichlet_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&);
-    void nhflow_active_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&);
-    void nhflow_active_beach(lexer*,fdm*,ghostcell*,field&,field&,field&);
-    void nhflow_inflow_plain(lexer*,fdm*,ghostcell*,field&,field&,field&);
-    void full_initialize_nhflow(lexer*,fdm*,ghostcell*);
+    
+    void nhflow_dirichlet_wavegen(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
+    void nhflow_active_wavegen(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
+    void nhflow_active_beach(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
+    void nhflow_inflow_plain(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
+    void full_initialize_nhflow(lexer*,fdm_nhf*,ghostcell*);
+    
+    void nhflow_wavegen_precalc_decomp_space(lexer*,ghostcell*);
+    void nhflow_wavegen_precalc_decomp_space_dirichlet(lexer*,ghostcell*);
+    void nhflow_wavegen_precalc_decomp_time(lexer*,ghostcell*);
+    void nhflow_wavegen_precalc_decomp_relax(lexer*,ghostcell*);
+    void nhflow_wavegen_precalc_decomp_dirichlet(lexer*,ghostcell*);
 	
 private:
     slice4 eta;

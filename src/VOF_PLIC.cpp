@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -192,12 +192,6 @@ void VOF_PLIC::start
     }
 
 }
-
-
-void VOF_PLIC::ltimesave(lexer* p, fdm *a, field &F)
-{
-}
-
 
 void VOF_PLIC::update
 (

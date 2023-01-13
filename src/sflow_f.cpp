@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -75,7 +75,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 
         if(p->mpirank==0 && (p->count%p->P12==0))
         {
-        cout<<"------------------------------"<<endl;
+        cout<<"------------------------------------"<<endl;
         cout<<p->count<<endl;
         
         cout<<"simtime: "<<p->simtime<<endl;

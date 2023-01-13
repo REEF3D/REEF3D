@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -43,7 +43,7 @@ void iowave::nhflow_precalc_relax_ini(lexer *p, ghostcell *pgc)
     }
     
     // U ------------------------------------------------
-    UBASELOOP
+    BASELOOP
     {
         dg = distgen(p);
         
@@ -57,8 +57,8 @@ void iowave::nhflow_precalc_relax_ini(lexer *p, ghostcell *pgc)
     }
     
     
-    // U ------------------------------------------------
-    VBASELOOP
+    // V ------------------------------------------------
+    BASELOOP
     {
 		dg = distgen(p);
 
@@ -73,7 +73,7 @@ void iowave::nhflow_precalc_relax_ini(lexer *p, ghostcell *pgc)
     }
     
     // W ------------------------------------------------
-    WBASELOOP
+    BASELOOP
     {
 		dg = distgen(p); 
 

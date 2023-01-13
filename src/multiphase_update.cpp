@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -20,37 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"density.h"
-#include"increment.h"
+#include"multiphase_f.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"multiphase_fluid_update.h"
 
-class fdm;
-class lexer;
-
-#ifndef DENSITY_FSM_H_
-#define DENSITY_FSM_H_
-
-
-using namespace std;
-
-class density_fsm : public density, virtual public increment
+void multiphase_f::update(lexer *p, fdm *a, ghostcell *pgc)
 {
-
-public:
-    density_fsm(lexer*);
-	virtual ~density_fsm();
-
-	virtual double roface(lexer*,fdm*,int,int,int);
-	
-	double H,H_fb,roval,phival;
-	int ii,jj,kk;
-	const double epsi,eps;
-    double psi;
-    double r,s;
-
-};
-
-#endif
-
-
-
-
+	pupdate->start(p,a,pgc,ls1,ls2);
+}

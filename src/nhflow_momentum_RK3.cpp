@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -22,54 +22,34 @@ Author: Hans Bihs
 
 #include"nhflow_momentum_RK3.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"bcmom.h"
 #include"convection.h"
 #include"diffusion.h"
-#include"pressure.h"
-#include"poisson.h"
+#include"nhflow_pressure.h"
 #include"ioflow.h"
 #include"turbulence.h"
 #include"solver.h"
-#include"fluid_update_rheology.h"
-#include"fluid_update_void.h"
 #include"nhflow.h"
 #include"nhflow_fsf.h"
 
-nhflow_momentum_RK3::nhflow_momentum_RK3(lexer *p, fdm *a, convection *pconvection, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
-                                                    turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow,
-                                                    nhflow *ppnh, nhflow_fsf *ppnhfsf)
-                                                    :bcmom(p),udiff(p),vdiff(p),wdiff(p),urk1(p),urk2(p),vrk1(p),vrk2(p),wrk1(p),wrk2(p),
-                                                    etark1(p),etark2(p)
+nhflow_momentum_RK3::nhflow_momentum_RK3(lexer *p, fdm_nhf *d, ghostcell *pgc)
+                                                    :bcmom(p)
 {
 	gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;
-	
-	pconvec=pconvection;
-	pdiff=pdiffusion;
-	ppress=ppressure;
-	ppois=ppoisson;
-	pturb=pturbulence;
-	psolv=psolver;
-    ppoissonsolv=ppoissonsolver;
-	pflow=pioflow;
-    pnh=ppnh;
-    pnhfsf=ppnhfsf;
+
     
-    if(p->W90>0)
-	pupdate = new fluid_update_rheology(p,a);
-    
-    if(p->W90==0)
-	pupdate = new fluid_update_void();
 }
 
 nhflow_momentum_RK3::~nhflow_momentum_RK3()
 {
 }
 
-void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
+void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, convection *pconvec, diffusion *pdiff, 
+                                     nhflow_pressure *ppress, solver *psolv, nhflow *pnhf, nhflow_fsf *pfsf)
 {	/*
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
@@ -317,8 +297,9 @@ void nhflow_momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     pupdate->start(p,a,pgc);*/
 }
 
-void nhflow_momentum_RK3::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
+void nhflow_momentum_RK3::irhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
 {
+    /*
 	n=0;
 	ULOOP
 	{
@@ -326,11 +307,12 @@ void nhflow_momentum_RK3::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field
 	a->F(i,j,k) += (a->rhsvec.V[n])*PORVAL1;
 	a->rhsvec.V[n]=0.0;
 	++n;
-	}
+	}*/
 }
 
-void nhflow_momentum_RK3::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
+void nhflow_momentum_RK3::jrhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
 {
+    /*
 	n=0;
 	VLOOP
 	{
@@ -338,11 +320,12 @@ void nhflow_momentum_RK3::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field
 	a->G(i,j,k) += (a->rhsvec.V[n])*PORVAL2;
 	a->rhsvec.V[n]=0.0;
 	++n;
-	}
+	}*/
 }
 
-void nhflow_momentum_RK3::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
+void nhflow_momentum_RK3::krhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
 {
+    /*
 	n=0;
 	WLOOP
 	{
@@ -358,21 +341,8 @@ void nhflow_momentum_RK3::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field
 	a->rhsvec.V[n]=0.0;
 	++n;
 	}
+    */
 }
 
-void nhflow_momentum_RK3::timecheck(lexer *p,fdm *a,ghostcell *pgc,field &u,field &v,field &w)
-{
-}
 
-void nhflow_momentum_RK3::utimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void nhflow_momentum_RK3::vtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void nhflow_momentum_RK3::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
 

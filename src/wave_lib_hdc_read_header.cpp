@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -34,6 +34,10 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
     // open header
     header.open(name, ios::binary);
     
+        // file_version
+        header.read((char*)&iin, sizeof (int));
+        file_version=iin;
+        
         // file_type
         header.read((char*)&iin, sizeof (int));
         file_type=iin;
@@ -100,8 +104,7 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
         header.read((char*)&ffn, sizeof (float)); 
         B[i][j]=ffn;
         }  
-        
-        
+
         // numer of iterations
         header.read((char*)&iin, sizeof (int));
         numiter=iin;
@@ -121,7 +124,7 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
         
         t_start = simtime[0];
         t_end   = simtime[numiter-1];
-        
+
         
         if(Nx==0)
         {
@@ -148,7 +151,6 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
         Ystart = Y[0];
         Yend = Y[Ny-1];
         }
-        
         
         
     header.close();

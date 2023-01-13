@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -47,17 +47,19 @@ public:
     void write_header(lexer*,fdm2D*,ghostcell*);
 	
 private:
-    void filename(lexer*,fdm2D*,ghostcell*,int);
+    void filename_single(lexer*,fdm2D*,ghostcell*,int);
+    void filename_continuous(lexer*,fdm2D*,ghostcell*);
     void filename_header(lexer*,fdm2D*,ghostcell*);
-
+    
     char name[500];
     float ffn;
 	int iin;
 	double ddn;
 	int printcount;
     int ini_token;
-    int file_version;
+    int file_version,file_type;
     int qn;
+    ofstream result;
     
     
     int is,ie,js,je;

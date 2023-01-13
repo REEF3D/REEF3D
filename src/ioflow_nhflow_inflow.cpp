@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,27 +20,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sflow_printer.h"
+#include"ioflow_f.h"
 #include"lexer.h"
-#include"fdm2D.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
-#include"sflow_vtp.h"
 
-sflow_printer::sflow_printer(lexer *p, fdm2D *b, ghostcell *pgc)
+void ioflow_f::inflow_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U, double *V, double *W)
 {
-	pvts = new sflow_vtp(p,b,pgc);
+
 }
 
-sflow_printer::~sflow_printer()
+void ioflow_f::rkinflow_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U, double *V, double *W)
 {
-}
-
-void sflow_printer::start(lexer *p, fdm2D* b, ghostcell* pgc)
-{	
-
 
 }
-
-
-
-

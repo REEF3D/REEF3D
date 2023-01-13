@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -59,6 +59,8 @@ public:
     
     virtual double qbeval(int,int)=0;
     virtual void qbeget(int,int,double)=0;
+    
+    virtual double bedzhval(int,int)=0;
     
     virtual void print_2D_bedload(lexer*, ghostcell*,ofstream&)=0;
     virtual void print_3D_bedload(lexer*, ghostcell*,ofstream&)=0;

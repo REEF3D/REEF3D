@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -58,6 +58,7 @@ double wave_lib_hdc::wave_u(lexer *p, double x, double y, double z)
     
     if(endseries==0)
     vel = space_interpol(p,U,x,y,z);
+    
     
     return cosgamma*vel;
 }
@@ -129,7 +130,7 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
         {
         ++q1;
         
-        cout<<"HDC ++q1: "<<q1<<endl;
+        //cout<<"HDC ++q1: "<<q1<<endl;
         if(file_type==2)
         read_result_continuous(p,pgc,E1,U1,V1,W1,q1);
         }

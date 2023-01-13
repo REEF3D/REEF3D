@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -40,8 +40,6 @@ Author: Hans Bihs
 
 void driver::loop_nhflow()
 {
-    driver_ini_nhflow();
-    
     if(p->mpirank==0)
     cout<<"starting mainloop.NHFLOW"<<endl;
     
@@ -53,7 +51,7 @@ void driver::loop_nhflow()
 
         if(p->mpirank==0 && (p->count%p->P12==0))
         {
-        cout<<"------------------------------"<<endl;
+        cout<<"------------------------------------"<<endl;
         cout<<p->count<<endl;
         
         cout<<"simtime: "<<p->simtime<<endl;
@@ -66,34 +64,32 @@ void driver::loop_nhflow()
 		cout<<"t/T: "<<p->simtime/p->wTp<<endl;
         }
         
+
         pflow->flowfile(p,a,pgc,pturb);
         pflow->wavegen_precalc(p,pgc);
-
-			fill_vel(p,a,pgc);
         
+
         // Free Surface
         pnhfsf->start(p,d,pgc,pflow);
 			
-            //pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
-            //pheat->start(a,p,pconvec,pdiff,psolv,pgc,pflow);
-            //pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);            
+        pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);        
         
 		// Sediment Computation
-        psed->start_cfd(p,a,pgc,pflow,preto,psolv);
-		
-        pmom->start(p,a,pgc,pvrans); 
+        //psed->start_cfd(p,a,pgc,pflow,preto,psolv);
+
+        pnhfmom->start(p,d,pgc,pflow,pconvec,pdiff,pnhpress,psolv,pnhf,pnhfsf); 
 
         //save previous timestep
-        pturb->ktimesave(p,a,pgc);
-        pturb->etimesave(p,a,pgc);
-        pflow->veltimesave(p,a,pgc,pvrans);
-
+        //pturb->ktimesave(p,a,pgc);
+        //pturb->etimesave(p,a,pgc);
+        //pflow->veltimesave(p,a,pgc,pvrans);
+        
         //timestep control
         p->simtime+=p->dt;
-        ptstep->start(a,p,pgc,pturb);
+        pnhfstep->start(p,d,pgc);
         
         // printer
-        pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
+        //pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
 
         // Shell-Printout
         if(p->mpirank==0)

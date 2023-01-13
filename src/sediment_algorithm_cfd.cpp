@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -67,11 +67,16 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     pcbed->start(p,pgc,s);
     psusp->start(a,p,psuspdisc,psuspdiff,psolv,pgc,pflow,s);
     
+    for(int qqn=0;qqn<p->S27;++qqn)
+    {
     // Exner *******
     ptopo->start(p,pgc,s);
     
     // sandslide ********
     pslide->start(p,pgc,s);
+    
+    // control time step
+    }
     
     // relax bedzh *******
 	prelax->start(p,pgc,s);

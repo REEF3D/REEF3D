@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -66,6 +66,7 @@ private:
     // interpolation
     double ccpol3D(lexer*,double***,double,double,double);
     double ccpol2D(lexer*,double**,double,double);
+    double ccpol2DM(lexer*,double***,double,double);
     double space_interpol(lexer*,double***,double,double,double);
     double plane_interpol(lexer*,double**,double,double);
     
@@ -106,7 +107,7 @@ private:
 	char name[200];
     ifstream result;
     
-    int file_type;
+    int file_version,file_type;
     int ip1,jp1,kp1;
     int ii,jj,kk;
     int iii,jjj,kkk;

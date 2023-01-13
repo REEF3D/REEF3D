@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_df_object.h"
@@ -43,6 +44,8 @@ void sixdof_df_object::forces_stl
 	double xlocvel,ylocvel,zlocvel,xlocp,ylocp,zlocp;
 	double Fx,Fy,Fz,Fp_x,Fp_y,Fp_z,Fv_x,Fv_y,Fv_z;
     double Xe_p,Ye_p,Ze_p,Xe_v,Ye_v,Ze_v;
+    double n0,n1,n2;
+    double sgx,sgy,sgz;
 
     A=0.0;
     Xe=Ye=Ze=Ke=Me=Ne=0.0;
@@ -55,26 +58,54 @@ void sixdof_df_object::forces_stl
     for (int n = 0; n < tricount; ++n)
     {     
 		// Vertices of triangle
-	
-		x0 = tri_x[n][0];
-		x1 = tri_x[n][1];
-		x2 = tri_x[n][2];
-		
-		y0 = tri_y[n][0];
-		y1 = tri_y[n][1];
-		y2 = tri_y[n][2];
-		
-		z0 = tri_z[n][0];
-		z1 = tri_z[n][1];
-		z2 = tri_z[n][2];  
-           
+        x0 = tri_x[n][0];
+        y0 = tri_y[n][0];
+        z0 = tri_z[n][0];
+        
+        x1 = tri_x[n][1];
+        y1 = tri_y[n][1];
+        z1 = tri_z[n][1];
+        
+        x2 = tri_x[n][2];
+        y2 = tri_y[n][2];
+        z2 = tri_z[n][2];  
 		   
 		// Center of triangle
-		
 		xc = (x0 + x1 + x2)/3.0;
 		yc = (y0 + y1 + y2)/3.0;
 		zc = (z0 + z1 + z2)/3.0;
-            
+        
+        int check=0;
+        
+        if 
+		(
+			xc >= p->originx && xc < p->endx &&
+			yc >= p->originy && yc < p->endy &&
+			zc >= p->originz && zc < p->endz
+		)
+        check=1;
+        
+             at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
+			bt = sqrt(pow(x1-x2,2.0) + pow(y1-y2,2.0) + pow(z1-z2,2.0));
+			ct = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
+				
+			st = 0.5*(at+bt+ct);
+				
+			A_triang = sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
+				
+
+			// Normal vectors (always pointing outwards)      
+            nx = (y1 - y0)*(z2 - z0) - (y2 - y0)*(z1 - z0);
+            ny = (x2 - x0)*(z1 - z0) - (x1 - x0)*(z2 - z0); 
+            nz = (x1 - x0)*(y2 - y0) - (x2 - x0)*(y1 - y0);
+
+			norm = sqrt(nx*nx + ny*ny + nz*nz);
+			
+			nx /= norm > 1.0e-20 ? norm : 1.0e20;
+			ny /= norm > 1.0e-20 ? norm : 1.0e20;
+			nz /= norm > 1.0e-20 ? norm : 1.0e20;
+        
+ 
 		if 
 		(
 			xc >= p->originx && xc < p->endx &&
@@ -84,11 +115,10 @@ void sixdof_df_object::forces_stl
 		{
             // Position of triangle
             i = p->posc_i(xc);
-			j = p->posc_j(yc);
-			k = p->posc_k(zc);
+            j = p->posc_j(yc);
+            k = p->posc_k(zc);
 			
             // Area of triangle using Heron's formula
-
 			at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
 			bt = sqrt(pow(x1-x2,2.0) + pow(y1-y2,2.0) + pow(z1-z2,2.0));
 			ct = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
@@ -109,20 +139,37 @@ void sixdof_df_object::forces_stl
 			nx /= norm > 1.0e-20 ? norm : 1.0e20;
 			ny /= norm > 1.0e-20 ? norm : 1.0e20;
 			nz /= norm > 1.0e-20 ? norm : 1.0e20;
-
+            
+            
+            // Normal vector sign
+            n0 = (a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
+            n1 = (a->fb(i,j+1,k) - a->fb(i,j-1,k))/(2.0*p->DYN[JP]);
+            n2 = (a->fb(i,j,k+1) - a->fb(i,j,k-1))/(2.0*p->DZN[KP]);
+    
+            sgx = n0/(fabs(n0)>1.0e-20?fabs(n0):1.0e20);
+            sgy = n1/(fabs(n1)>1.0e-20?fabs(n1):1.0e20);
+            sgz = n2/(fabs(n2)>1.0e-20?fabs(n2):1.0e20);
+            
+            norm = sqrt(n0*n0 + n1*n1 + n2*n2);
+            
+             n0 /= norm > 1.0e-20 ? norm : 1.0e20;
+			n1 /= norm > 1.0e-20 ? norm : 1.0e20;
+			n2 /= norm > 1.0e-20 ? norm : 1.0e20;
 
 			// Add normal stress contributions
-
              xlocp = xc + p->X42*nx*p->DXP[IP];
 			ylocp = yc + p->X42*ny*p->DYP[JP];
 			zlocp = zc + p->X42*nz*p->DZP[KP];
 
 			p_int = p->ccipol4_a(a->press,xlocp,ylocp,zlocp);
+            
+            //p_int =1.0;
+            
 			
 			Fp_x = -nx*p_int*A_triang;
 			Fp_y = -ny*p_int*A_triang;
              Fp_z = -nz*p_int*A_triang;
-		
+             
 		   
              // Add tangential stress contributions
              
@@ -204,6 +251,9 @@ void sixdof_df_object::forces_stl
 
 	// Add gravity force
 	
+    //if(p->mpirank==0)
+    //cout<<"Hydrodynamic Force Fz: "<<Ze<<" A: "<<A<<endl<<endl;
+    
 	Xe += a->gi*Mass_fb;
 	Ye += a->gj*Mass_fb;
 	Ze += a->gk*Mass_fb;

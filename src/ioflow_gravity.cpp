@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -421,17 +421,31 @@ void ioflow_gravity::inflow_fnpf(lexer *p, fdm_fnpf*, ghostcell *pgc, double *Fi
 
 }
 
+void ioflow_gravity::rkinflow_fnpf(lexer *p, fdm_fnpf*, ghostcell *pgc, slice &frk, slice &f)
+{
+}
+
 void ioflow_gravity::vrans_sed_update(lexer *p,fdm *a,ghostcell *pgc, vrans *pvrans)
 {
     
 }
 
-void ioflow_gravity::nhflow_inflow(lexer *p,fdm *a,ghostcell *pgc, field &uvel, field &vvel, field &wvel)
+void ioflow_gravity::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 
 }
 
-void ioflow_gravity::ini_nhflow(lexer *p,fdm *a,ghostcell *pgc)
+void ioflow_gravity::discharge_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+
+}
+
+void ioflow_gravity::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W)
+{
+
+}
+
+void ioflow_gravity::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W)
 {
 
 }

@@ -1,6 +1,6 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
  *
 This file is part of REEF3D.
 
@@ -104,7 +104,7 @@ void lexer::ini_default()
 
     // Boundary Conditions
 	B10=0;			// int wall laws velocities on/off
-	B20=2;			// int slip or no-slip boundary condition for velocity    B21=2;			// int slip or no-slip boundary condition for velocity gradients    B22=2;			// int slip or no-slip boundary condition for level set convection    B23=1;            // int ghostcell extrapolation or refective
+	B20=2;			// int slip or no-slip boundary condition for velocity    B21=1;			// int slip or no-slip boundary condition for velocity gradients    B22=2;			// int slip or no-slip boundary condition for level set convection    B23=1;            // int ghostcell extrapolation or refective
 	B26=1;			// int boundary condition implementation level set method
 	B29=0.5;		// double gamma for gc image point
 	B30=0;			// int inflow crossection via cbc
@@ -266,7 +266,7 @@ void lexer::ini_default()
 	D11=2;			// int convection velocity scheme
 	D20=2;			// int diffusion scheme
 	D21=0;			// int print out implicit diffusion time and iterations
-	D30=1;			// int pressure scheme    D31=0;			// int normalize pressure to free surface
+	D30=1;			// int pressure scheme    D31=0;			// int normalize pressure to free surface    D32=1;			// int boundary treatment Poisson equation
     D37=0;          // int type of FSFBC for single fluid flow
     D38=0;          // int add hydrostatic pressure gradients to NSE
     D39=0;          // int activate 2nd-order pressure correction for PJM CORR
@@ -328,7 +328,7 @@ void lexer::ini_default()
 	F84=1.0;             // double cgamma for vof compression
     F85=0;             // int convection scheme VOF
 	F150=0;         // int benchmark
-	F151=0;         // int benchmark inverse sign of level set
+	F151=0;         // int benchmark inverse sign of level set    F300=0;			 // int multiphase flow level set	F305=5;			 // int multiphase flow lsm convection	F310=3;			 // int multiphase flow reini	F321=1.6;		 // double epsi12	F322=1.6;		 // double epsi13	F323=1.6;		 // double epsi23	F350=0;			 // int multiphase flow fix level set inflow/outflow	F360=-1.0e20;  // double ini x-dir ls1	F361=-1.0e20;  // double ini y-dir ls1	F362=-1.0e20;  // double ini z-dir ls1	F369=0;             // int number of phi 1 ini tiltboxes ls1	F370=0;             // int number of phi 1 ini boxes ls1	F371=0;             // int number of phi 2 ini boxes ls1    F374=0;             // int number of pos ls1 ycyl    F375=0;             // int number of neg ls1 ycyl    F378=0;             // int number of pos ls1 sphere    F379=0;             // int number of neg ls1 sphere	F380=-1.0e20;  // double ini x-dir ls2	F381=-1.0e20;  // double ini y-dir ls2	F382=-1.0e20;  // double ini z-dir ls2	F390=0;             // int number of phi 1 ini boxes ls2	F391=0;             // int number of phi 2 ini boxes ls2    F394=0;             // int number of pos ls2 ycyl    F395=0;             // int number of neg ls2 ycyl    F398=0;             // int number of pos ls2 sphere    F399=0;             // int number of neg ls2 sphere
 
     // Grid
     G2=0;          // int sigma grid
@@ -515,6 +515,7 @@ void lexer::ini_default()
     S24=0.5;               // double porosity of sediment layer
     S26_a=650.0;          // double alpha for VRANS sediment
     S26_b=2.2;            // double beta for VRANS sediment
+    S27=1;              // int number of inner iterations
     S30=0.047;          // double Shields parameter
     S32=4;              // int exner discretization
     S33=1;              // type of near bead velocity interpolation
@@ -563,13 +564,14 @@ void lexer::ini_default()
     T38=1.6;            // double epsi fsf turbulence damping
     T41=0;              // int RANS stabilization
     T42=0.05;           // double lambda1 factor
+    T43=1.0;            // double komega wall BC velocity factor
 
     // Water Properties
 	W1=998.2;		// double density water
 	W2=1.004e-6;	// double viscosity water
 	W3=1.205;		// double density air
 	W4=1.41e-5;		// double viscosity air
-	W5=0.0;			// double surface tension between phase 1 and phase 2
+	W5=0.0;			// double surface tension between phase 1 and phase 2    W6=840.0;			// double density oil	W7=3.0e-4;		// double viscosity oil
 	W10=0.0;		// double discharge
     W11=0;         // int velocity inlet face 1
     W11_u=0.0;     // double u-velocity inlet face 1
@@ -626,6 +628,8 @@ void lexer::ini_default()
 	X11_u=X11_v=X11_w=X11_p=X11_q=X11_r=1;		// int turn on degrees of freedom
     X12=1;      // int turn force calculation on
 	X13=2;      // int turn 6DOF algorithm with quaternions on
+    X14=1;      // int tangential velocity 
+    X15=2;      // int density treatment for direct forcing
 	X18=0;		// int relaxation method solid velocities
 	X19=1;		// int print out interval 6DOF log files
 	X21=1;		// int presribe homogeneous density floating body
@@ -641,7 +645,7 @@ void lexer::ini_default()
 	X33=1;		// int boundary conditions for pressure on floating body
     X34=0;		// int boundary treatment for new solid velocity cells
     X40=3;		// int type of force calculation
-	X41=2.1;    // double eps for continuous forcing heaviside
+	X41=0.6;    // double eps for continuous forcing heaviside
 	X42=0.0;    // double distance for pressure force evaluation
 	X43=1.0;    // double distance for shear stress evaluation
 	X44=0.0;    // double viscosity in body
@@ -673,7 +677,8 @@ void lexer::ini_default()
     X182=0;     // int translation on/off
     X182_x=X182_y=X182_z=0.0;  // double translation of stl geometry
     X183=0;
-    X183_x=X183_y=X183_z=X183_phi=X183_theta=X183_psi=0.0;    X205=1;     // type of ramp up function    X206=0;     // int ramp up     X206_T=0.0;   // double ramp up duration
+    X183_x=X183_y=X183_z=X183_phi=X183_theta=X183_psi=0.0;
+    X184=0.7;   // double refinement factor    X205=1;     // type of ramp up function    X206=0;     // int ramp up     X206_T=0.0;   // double ramp up duration
 	X210=0;		// int give fixed linear velocity
     X210_u=0.0; // double fixed u vel
     X210_v=0.0; // double fixed v vel

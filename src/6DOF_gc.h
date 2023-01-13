@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -86,7 +86,7 @@ private:
 	
 	void objects(lexer*, fdm*, ghostcell*);
     void objects_allocate(lexer*, fdm*, ghostcell*);
-	void geometry_refinement(lexer*);
+	void geometry_refinement(lexer*,ghostcell*);
 	void create_triangle(double&,double&,double&,double&,double&,double&,double&,double&,double&,const double&,const double&,const double&);
 	void box(lexer*, fdm*, ghostcell*,int);
 	void cylinder_x(lexer*, fdm*, ghostcell*,int);

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -22,11 +22,14 @@ Author: Hans Bihs
 
 #include"iowave.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void iowave::nhflow_active_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
+void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W)
 {
+    double eta_R,Uc,Un,Vc,Wc,eta_T,eta_M,wsf;
+    
+        // wavegen
         count=0;
 		for(n=0;n<p->gcin_count;n++)
 		{
@@ -37,60 +40,48 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, f
         uvel=uval[count]*ramp(p);
         vvel=vval[count]*ramp(p);
         wvel=wval[count]*ramp(p);
-        
 
-			u(i-1,j,k)=uvel+p->Ui;
-			u(i-2,j,k)=uvel+p->Ui;
-			u(i-3,j,k)=uvel+p->Ui;
+        U[Im1JK]=uvel+p->Ui;
+        U[Im2JK]=uvel+p->Ui;
+        U[Im3JK]=uvel+p->Ui;
             
-            v(i-1,j,k)=vvel;
-			v(i-2,j,k)=vvel;
-			v(i-3,j,k)=vvel;
-			
-			w(i-1,j,k)=wvel;
-			w(i-2,j,k)=wvel;
-			w(i-3,j,k)=wvel;
-    
+        V[Im1JK]=vvel;
+        V[Im2JK]=vvel;
+        V[Im3JK]=vvel;
+            
+        W[Im1JK]=wvel;
+        W[Im2JK]=wvel;
+        W[Im3JK]=wvel;
+            
+                
+                // fsf deviation
+                eta_T = wave_eta(p,pgc,x,0.0);
+                eta_M = d->eta(i,j); 
+                eta_R = eta_T-eta_M;
+				
+                if(p->B98==4)
+                Uc=eta_R*sqrt(9.81/p->wd);
+                
+                U[Im1JK] += Uc;
+                U[Im2JK] += Uc;
+                U[Im3JK] += Uc;
+ 
         ++count;
 		}
         
         
-        if(p->B98==3||p->B98==4||p->B99==3||p->B99==4||p->B99==5)
+         if(p->B98==3||p->B98==4||p->B99==3||p->B99==4||p->B99==5)
 		{
-		for(int q=0;q<4;++q)
-		for(n=0;n<p->gcin_count;++n)
-		{
-		i=p->gcin[n][0]+q;
-		j=p->gcin[n][1];
-		k=p->gcin[n][2];
-
-		if(a->phi(i,j,k)<0.0)
-		a->eddyv(i,j,k)=MIN(a->eddyv(i,j,k),1.0e-4);
-		}
-		pgc->start4(p,a->eddyv,24);
-		}
-        
-        
-    // NSEWAVE
-    if(p->A10==55)
-    {
-        for(n=0;n<gcgen1_count;++n)
-		{
-		i=gcgen1[n][0];
-		j=gcgen1[n][1];
-            
-            a->P(i-1,j)=0.0;
-            double d=0.0;
-            
-            KULOOP
+            for(int q=0;q<4;++q)
+            for(n=0;n<p->gcin_count;++n)
             {
-                a->P(i-1,j) += a->u(i-1,j,k)*p->ZN[KP];
-                d+=p->ZN[KP];
+            i=p->gcin[n][0]+q;
+            j=p->gcin[n][1];
+            k=p->gcin[n][2];
+            
+            d->eddyv[IJK]=MIN(d->eddyv[IJK],1.0e-4);
             }
-            a->P(i-1,j)/=d;
-            a->P(i-3,j)=a->P(i-2,j)=a->P(i-1,j);
-
-        }
+         pgc->start4V(p,d->eddyv,d->bc,24);
+		}
         
-    }
 }

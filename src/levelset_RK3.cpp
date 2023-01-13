@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -58,23 +58,27 @@ levelset_RK3::levelset_RK3(lexer* p, fdm *a, ghostcell* pgc, heat *&pheat, conce
 	if(p->F50==4)
 	gcval_phi=54;
 
-	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90==0)
+	if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90==0)
 	pupdate = new fluid_update_fsf(p,a,pgc);
 	
-	if(p->F30>0 && p->H10==0 && p->W30==1 && p->W90==0)
+	if(p->F30>0 && p->H10==0 && p->W30==1 && p->F300==0 && p->W90==0)
 	pupdate = new fluid_update_fsf_comp(p,a,pgc);
 	
-	if(p->F30>0 && p->H10>0 && p->W90==0 && p->H3==1)
+	if(p->F30>0 && p->H10>0 && p->W90==0 && p->F300==0 && p->H3==1)
 	pupdate = new fluid_update_fsf_heat(p,a,pgc,pheat);
     
-    if(p->F30>0 && p->H10>0 && p->W90==0 && p->H3==2)
+    if(p->F30>0 && p->H10>0 && p->W90==0 && p->F300==0 && p->H3==2)
 	pupdate = new fluid_update_fsf_heat_Bouss(p,a,pgc,pheat);
 	
-	if(p->F30>0 && p->C10>0 && p->W90==0)
+	if(p->F30>0 && p->C10>0 && p->W90==0 && p->F300==0)
 	pupdate = new fluid_update_fsf_concentration(p,a,pgc,pconc);
 	
-	if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
+	if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90>0)
 	pupdate = new fluid_update_rheology(p,a);
+    
+    if(p->F300>0)
+	pupdate = new fluid_update_void();
+    
 
 	if(p->F46==2)
 	ppicard = new picard_f(p);
@@ -84,6 +88,7 @@ levelset_RK3::levelset_RK3(lexer* p, fdm *a, ghostcell* pgc, heat *&pheat, conce
 
 	if(p->F46!=2 && p->F46!=3)
 	ppicard = new picard_void(p);
+    
     
     gcval_u=10;
 	gcval_v=11;
@@ -139,6 +144,8 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 	
 	pgc->start4(p,ark1,gcval_phi);
     
+    df_update(p,ark1);
+    
 // Step 2
     FLUIDLOOP
 	a->L(i,j,k)=0.0;
@@ -153,6 +160,8 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 	pflow->phi_relax(p,pgc,ark2);
 	
 	pgc->start4(p,ark2,gcval_phi);
+    
+    df_update(p,ark2);
 
 // Step 3
     FLUIDLOOP
@@ -167,6 +176,8 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 
     pflow->phi_relax(p,pgc,ls);
 	pgc->start4(p,ls,gcval_phi);
+    
+    df_update(p,ls);
 
     ppart->start(p,a,pgc,pflow);
     
@@ -174,6 +185,8 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 	p->lsmtime=pgc->timer()-starttime;
 
 	preini->start(a,p,ls, pgc, pflow);
+    
+    df_update(p,ls);
 	
 
     ppicard->correct_ls(p,a,pgc,ls);
@@ -189,12 +202,46 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 	pgc->start3(p,a->w,12);
 }
 
-void levelset_RK3::ltimesave(lexer* p, fdm *a, field &ls)
-{
-}
-
 void levelset_RK3::update(lexer *p, fdm *a, ghostcell *pgc, field &f)
 {
     pupdate->start(p,a,pgc);
 }
 
+void levelset_RK3::df_update(lexer *p, field &f)
+{
+    int margin=3;
+    int q;
+    /*
+    for(n=0;n<p->gcdf4_count;++n)
+    {
+    i = p->gcdf4[n][0];
+    j = p->gcdf4[n][1];
+    k = p->gcdf4[n][2];
+    
+    //cout<<p->mpirank<<" i: "<<i<<" j: "<<j<<" k: "<<k<<" cs: "<<p->gcdf4[n][3]<<endl;
+    
+    if(p->gcdf4[n][3]==1)
+	for(q=0;q<margin;++q)
+	f(i-q-1,j,k)=f(i,j,k);
+
+	if(p->gcdf4[n][3]==2)
+	for(q=0;q<margin;++q)
+	f(i,j+q+1,k)=f(i,j,k);
+
+	if(p->gcdf4[n][3]==3)
+	for(q=0;q<margin;++q)
+	f(i,j-q-1,k)=f(i,j,k);
+
+	if(p->gcdf4[n][3]==4)
+	for(q=0;q<margin;++q)
+	f(i+q+1,j,k)=f(i,j,k);
+
+	if(p->gcdf4[n][3]==5)
+	for(q=0;q<margin;++q)
+	f(i,j,k-q-1)=f(i,j,k);
+
+	if(p->gcdf4[n][3]==6)
+	for(q=0;q<margin;++q)
+	f(i,j,k+q+1)=f(i,j,k);
+    }*/
+}

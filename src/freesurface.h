@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -40,7 +40,6 @@ class freesurface
 public:
 
 	virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particlecorr*,field&)=0;
-	virtual void ltimesave(lexer*,fdm*,field&)=0;
     virtual void update(lexer*,fdm*,ghostcell*,field&)=0;
 
 };

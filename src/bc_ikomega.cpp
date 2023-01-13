@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -42,6 +42,9 @@ void bc_ikomega::bckeps_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
 		QGC4LOOP
 		if(p->gcb4[q][4]==5 || p->gcb4[q][4]==21 || p->gcb4[q][4]==22 || p->gcb4[q][4]==41 || p->gcb4[q][4]==42 || p->gcb4[q][4]==43)
 		wall_law_kin(a,p,kin,eps,p->gcb4[q][0], p->gcb4[q][1], p->gcb4[q][2], p->gcb4[q][3], p->gcb4[q][4], p->gcb4[q][5],  p->gcd4[q]);
+        
+        QGCDF4LOOP
+		wall_law_kin(a,p,kin,eps,p->gcdf4[q][0], p->gcdf4[q][1], p->gcdf4[q][2], p->gcdf4[q][3], p->gcdf4[q][4], p->gcdf4[q][5],  0.5*p->DXM);
         
         n=0;
         LOOP
@@ -93,6 +96,9 @@ void bc_ikomega::bckeps_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
 		if(p->gcb4[q][4]==5 || p->gcb4[q][4]==21 || p->gcb4[q][4]==22 || p->gcb4[q][4]==41 || p->gcb4[q][4]==42 || p->gcb4[q][4]==43) 
 		wall_law_omega(a,p,kin,eps,p->gcb4[q][0], p->gcb4[q][1], p->gcb4[q][2], p->gcb4[q][3], p->gcb4[q][4], p->gcb4[q][5],  p->gcd4[q]);
         
+        QGCDF4LOOP
+		wall_law_omega(a,p,kin,eps,p->gcdf4[q][0], p->gcdf4[q][1], p->gcdf4[q][2], p->gcdf4[q][3], p->gcdf4[q][4], p->gcdf4[q][5],  0.5*p->DXM);
+        
         n=0;
         LOOP
         {
@@ -136,11 +142,38 @@ void bc_ikomega::bckeps_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
         }
     
 	}
+    
+    // turn off inside direct forcing body
+    if(p->X10==1 && p->X13==2)
+    {
+    
+        n=0;
+        LOOP
+        if(a->fb(i,j,k)<0.0)
+        {
+        a->M.p[n]  =   1.0;
+
+
+        a->M.n[n] = 0.0;
+        a->M.s[n] = 0.0;
+
+        a->M.w[n] = 0.0;
+        a->M.e[n] = 0.0;
+
+        a->M.t[n] = 0.0;
+        a->M.b[n] = 0.0;
+        
+        a->rhsvec.V[n] = 0.0;
+        
+        ++n;
+        }
+    }
 }
 
 void bc_ikomega::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj,int kk,int cs,int bc, int id, double dist)
 {
     double uvel,vvel,wvel;
+    double zval;
 	dist=0.5*p->DXM;
 
 	i=ii;
@@ -153,6 +186,15 @@ void bc_ikomega::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int j
         uvel=0.5*(a->u(i,j,k)+a->u(i-1,j,k));
         vvel=0.5*(a->v(i,j,k)+a->v(i,j-1,k));
         wvel=0.5*(a->w(i,j,k)+a->w(i,j,k-1));
+        
+        if(bc==5 && p->S10>0 && p->S16==4)
+        {
+        zval = a->bed(i,j) + p->T43*p->DZN[KP];
+        
+            uvel=p->ccipol1(a->u,p->XP[IP],p->YP[JP],zval);
+            vvel=p->ccipol2(a->v,p->XP[IP],p->YP[JP],zval);
+            wvel=p->ccipol3(a->w,p->XP[IP],p->YP[JP],zval);    
+        }
         
         u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
 

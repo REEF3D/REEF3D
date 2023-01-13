@@ -103,7 +103,6 @@
           <File Name="sflow_state.h"/>
           <File Name="sflow_vtp_bed.h"/>
           <File Name="sflow_vtp.h"/>
-          <File Name="sflow_printer.h"/>
           <File Name="sflow_print_wsfline_y.h"/>
           <File Name="sflow_print_wsfline.h"/>
           <File Name="sflow_print_wsf.h"/>
@@ -237,6 +236,9 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Initialize"/>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Timestep">
+            <File Name="nhflow_timestep.h"/>
+          </VirtualDirectory>
           <File Name="fdm_nhf.h"/>
         </VirtualDirectory>
         <File Name="nhflow_f.h"/>
@@ -252,7 +254,7 @@
           <File Name="nhflow_pressure.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
-          <File Name="nhflow_momentum_RK3co.h"/>
+          <File Name="nhflow_momentum.h"/>
           <File Name="nhflow_momentum_RK2.h"/>
           <File Name="nhflow_momentum_RK3.h"/>
         </VirtualDirectory>
@@ -312,7 +314,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
           <File Name="fdm_fnpf.h"/>
-          <VirtualDirectory Name="Time">
+          <VirtualDirectory Name="Timestep">
             <File Name="fnpf_timestep.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Discrete Weights">
@@ -351,6 +353,16 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
+      <VirtualDirectory Name="Multiphase">
+        <VirtualDirectory Name="Fluid Update">
+          <File Name="multiphase_fluid_update_rheology.h"/>
+          <File Name="multiphase_fluid_update_f.h"/>
+          <File Name="multiphase_fluid_update.h"/>
+        </VirtualDirectory>
+        <File Name="multiphase.h"/>
+        <File Name="multiphase_v.h"/>
+        <File Name="multiphase_f.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="FSI">
         <VirtualDirectory Name="Beam">
           <File Name="beam.h"/>
@@ -842,11 +854,6 @@
         <VirtualDirectory Name="Porous Geometry">
           <File Name="print_porous.h"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Print Interface">
-          <File Name="print_probepoint.h"/>
-          <File Name="print_probeline.h"/>
-          <File Name="print_parallel.h"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="VTU">
           <File Name="vtu3D.h"/>
         </VirtualDirectory>
@@ -865,6 +872,7 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
+      <File Name="momentum_FCC3.h"/>
       <File Name="momentum_FC3.h"/>
       <File Name="momentum_RK3_old.h"/>
       <File Name="momentum_IMEX.h"/>
@@ -890,7 +898,7 @@
       <File Name="pressure_void.h"/>
       <File Name="pjm.h"/>
       <VirtualDirectory Name="Density">
-        <File Name="density_fsm.h"/>
+        <File Name="density_df.h"/>
         <File Name="density_rheo.h"/>
         <File Name="density_conc.h"/>
         <File Name="density_vof.h"/>
@@ -1095,7 +1103,6 @@
             <File Name="sflow_state_filename.cpp"/>
             <File Name="sflow_state.cpp"/>
           </VirtualDirectory>
-          <File Name="sflow_printer.cpp"/>
           <VirtualDirectory Name="VTP bottom">
             <File Name="sflow_vtp_bed_pvtp.cpp"/>
             <File Name="sflow_vtp_bed_header.cpp"/>
@@ -1231,6 +1238,9 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Timestep">
+            <File Name="nhflow_timestep.cpp"/>
+          </VirtualDirectory>
           <File Name="fdm_nhf.cpp"/>
         </VirtualDirectory>
         <File Name="nhflow_v.cpp"/>
@@ -1245,7 +1255,6 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
-          <File Name="nhflow_momentum_RK3co.cpp"/>
           <File Name="nhflow_momentum_RK2.cpp"/>
           <File Name="nhflow_momentum_RK3.cpp"/>
         </VirtualDirectory>
@@ -1345,7 +1354,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
           <File Name="fdm_fnpf.cpp"/>
-          <VirtualDirectory Name="Time">
+          <VirtualDirectory Name="Timestep">
             <File Name="fnpf_timestep.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Discrete Weights">
@@ -1384,6 +1393,18 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
+      <VirtualDirectory Name="Multiphase">
+        <VirtualDirectory Name="Fluid Update">
+          <File Name="multiphase_fluid_update_rheology.cpp"/>
+          <File Name="multiphase_fluid_update_f.cpp"/>
+        </VirtualDirectory>
+        <File Name="multiphase_v.cpp"/>
+        <File Name="multiphase_update.cpp"/>
+        <File Name="multiphase_logic.cpp"/>
+        <File Name="multiphase_io.cpp"/>
+        <File Name="multiphase_ini.cpp"/>
+        <File Name="multiphase_f.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="FSI">
         <VirtualDirectory Name="Beam">
           <File Name="beam_solver_routines.cpp"/>
@@ -1505,7 +1526,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
         <VirtualDirectory Name="Common">
-          <VirtualDirectory Name="Objects"/>
+          <VirtualDirectory Name="Geometry"/>
           <VirtualDirectory Name="Ray Cast"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Precalc">
@@ -1550,8 +1571,16 @@
           <File Name="6DOF_sflow.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="DirectForcing">
+          <VirtualDirectory Name="Initialize">
+            <File Name="6DOF_df_position.cpp"/>
+            <File Name="6DOF_df_ini_parameters.cpp"/>
+            <File Name="6DOF_df_ini.cpp"/>
+          </VirtualDirectory>
+          <File Name="6DOF_df_transform.cpp"/>
+          <File Name="6DOF_df_forcing.cpp"/>
+          <File Name="6DOF_df_main.cpp"/>
           <VirtualDirectory Name="Print">
-            <File Name="6DOF_df_print_log.cpp"/>
+            <File Name="6DOF_df_print_normals_vtp.cpp"/>
             <File Name="6DOF_df_print_ini.cpp"/>
             <File Name="6DOF_df_print_stl.cpp"/>
             <File Name="6DOF_df_print_vtp.cpp"/>
@@ -1572,7 +1601,10 @@
             <File Name="6DOF_df_forces_stl.cpp"/>
             <File Name="6DOF_df_forces.cpp"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="Objects">
+          <VirtualDirectory Name="Geometry">
+            <File Name="6DOF_df_triangle_switch_lsm.cpp"/>
+            <File Name="6DOF_df_triangle_switch_ray.cpp"/>
+            <File Name="6DOF_df_objects_refinement.cpp"/>
             <File Name="6DOF_df_STL.cpp"/>
             <File Name="6DOF_df_wedge_sym.cpp"/>
             <File Name="6DOF_df_wedge.cpp"/>
@@ -1582,13 +1614,9 @@
             <File Name="6DOF_df_cylinder.cpp"/>
             <File Name="6DOF_df_box.cpp"/>
           </VirtualDirectory>
-          <File Name="6DOF_df_update.cpp"/>
-          <File Name="6DOF_df_solve_routines.cpp"/>
           <File Name="6DOF_df_solve.cpp"/>
           <File Name="6DOF_df_rotation.cpp"/>
           <File Name="6DOF_df_interface.cpp"/>
-          <File Name="6DOF_df_ini.cpp"/>
-          <File Name="6DOF_df.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="GCIBM">
           <File Name="6DOF_gc_velsource.cpp"/>
@@ -1981,6 +2009,9 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
+      <VirtualDirectory Name="DFupdate">
+        <File Name="gcdf_update.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Epol">
         <File Name="gc_dirichlet-para-reflect.cpp"/>
         <File Name="gc_dirichlet-ortho-reflect.cpp"/>
@@ -2383,9 +2414,6 @@
           <File Name="print_porous_vtp.cpp"/>
           <File Name="print_porous_obj.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Print Interface">
-          <File Name="print_interface.cpp"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="Export">
           <File Name="export.cpp"/>
           <File Name="export_filename.cpp"/>
@@ -2423,6 +2451,7 @@
       <File Name="ini.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
+      <File Name="momentum_FCC3.cpp"/>
       <File Name="momentum_FC3.cpp"/>
       <File Name="momentum_RK3_old.cpp"/>
       <File Name="momentum_IMEX.cpp"/>
@@ -2450,7 +2479,7 @@
       <File Name="pressure_void.cpp"/>
       <File Name="pjm.cpp"/>
       <VirtualDirectory Name="Density">
-        <File Name="density_fsm.cpp"/>
+        <File Name="density_df.cpp"/>
         <File Name="density_rheo.cpp"/>
         <File Name="density_vof.cpp"/>
         <File Name="density_conc.cpp"/>
@@ -2673,7 +2702,11 @@
             <File Name="iowave_2D_active-beach.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="NHFLOW">
-            <File Name="iowave_nhflow_precalc_relax.cpp"/>
+            <File Name="iowave_nhflow_precalc_decomp_time.cpp"/>
+            <File Name="iowave_nhflow_precalc_decomp_space_dirichlet.cpp"/>
+            <File Name="iowave_nhflow_precalc_decomp_space.cpp"/>
+            <File Name="iowave_nhflow_precalc_decomp_relax.cpp"/>
+            <File Name="iowave_nhflow_precalc_decomp_dirichlet.cpp"/>
             <File Name="iowave_nhflow_precalc_ini.cpp"/>
             <File Name="iowave_nhflow_precalc_inflow.cpp"/>
             <File Name="iowave_nhflow_precalc_dirichlet.cpp"/>
@@ -2698,6 +2731,11 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="ioFlow">
+          <VirtualDirectory Name="NHFLOW">
+            <File Name="ioflow_nhflow_ini.cpp"/>
+            <File Name="ioflow_nhflow_discharge.cpp"/>
+            <File Name="ioflow_nhflow_inflow.cpp"/>
+          </VirtualDirectory>
           <File Name="ioflow_2Dwaterlevel.cpp"/>
           <File Name="ioflow_waterlevel.cpp"/>
           <File Name="ioflow_velsource.cpp"/>
@@ -2708,7 +2746,6 @@
           <File Name="ioflow_pressure.cpp"/>
           <File Name="ioflow_periodic.cpp"/>
           <File Name="ioflow_outflow.cpp"/>
-          <File Name="ioflow_nhflow.cpp"/>
           <File Name="ioflow_ini.cpp"/>
           <File Name="ioflow_inflow.cpp"/>
           <File Name="ioflow_f.cpp"/>

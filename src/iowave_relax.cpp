@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -379,7 +379,6 @@ void iowave::turb_relax(lexer *p, fdm *a, ghostcell *pgc, field &f)
 
 		}
     }
-    
 }
 
 void iowave::U_relax(lexer *p, ghostcell *pgc, double *U)
@@ -414,6 +413,7 @@ void iowave::U_relax(lexer *p, ghostcell *pgc, double *U)
 void iowave::V_relax(lexer *p, ghostcell *pgc, double *V)
 {
     count=0;
+    if(p->j_dir==0)
     LOOP
     {
         dg = distgen(p);

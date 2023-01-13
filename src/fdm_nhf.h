@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -47,12 +47,11 @@ public:
 
     fdm_nhf(lexer*);
    
-    field4 press,test;
+    field4 press;
     fieldint5 nodeval;
     
     slice4 eta,eta_n,WL,WL_n;
     slice4 bed,depth;
-    slice4 Fifsf,Fibed,Fz;
     slice4 K;
     sliceint4 etaloc,wet_n,breaking,breaklog,bc;
     
@@ -77,9 +76,10 @@ public:
     vec2D xvec,rvec;
     
     // 3D array
-    double *Fi,*Uin,*Uout,*U,*V,*W,*omega,*P,*ro,*visc,*eddyv;
+    double *U,*V,*W,*omega,*P,*ro,*visc,*eddyv;
     double *F,*G,*H,*L;
     double *porosity;
+    double *test;
 
     matrix2D N;
 	matrix_diag M;    

@@ -100,7 +100,7 @@ void nhflow_pjm_ss::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pgc, io
 	if(p->mpirank==0 && p->count%p->P12==0)
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
     
-    pgc->start4(p,d->test,1);
+    //pgc->start4(p,d->test,1);
 }
 
 void nhflow_pjm_ss::ucorr(lexer* p, fdm_nhf *d, double *U, double alpha)

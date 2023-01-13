@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"6DOF_df_object.h"
@@ -77,7 +78,7 @@ void sixdof_df_object::geometry(lexer *p, fdm *a, ghostcell *pgc)
 			integ[9] += n2 * (x0 * g0z + x1 * g1z + x2 * g2z);	
 		}
 
-		double Vfb = integ[0]/6.0;
+        double Vfb = integ[0]/6.0;
         double Rfb = 0.0;
         
 		if (p->X22 == 1)
@@ -163,7 +164,6 @@ void sixdof_df_object::geometry(lexer *p, fdm *a, ghostcell *pgc)
 	}
 }
 
-
 void sixdof_df_object::geometry_f(double& w0, double& w1, double& w2, double& f1, double& f2, double& f3, double& g0, double& g1, double& g2)
 {
 	double temp0 = w0 + w1;
@@ -176,7 +176,6 @@ void sixdof_df_object::geometry_f(double& w0, double& w1, double& w2, double& f1
     g1 = f2 + w1 * (f1 + w1);
     g2 = f2 + w2 * (f1 + w2);
 }
-
 
 void sixdof_df_object::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
 {

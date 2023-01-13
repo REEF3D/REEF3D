@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_gc.h"
@@ -92,7 +93,7 @@ void sixdof_gc::objects(lexer *p, fdm *a, ghostcell *pgc)
 	cout<<"Surface triangles: "<<tricount<<endl;
 	
 	// Refine triangles
-	//geometry_refinement(p);	
+	//geometry_refinement(p,pgc);	
 
     if(p->mpirank==0)
 	cout<<"Refined surface triangles: "<<tricount<<endl;
@@ -157,7 +158,7 @@ void sixdof_gc::objects_allocate(lexer *p, fdm *a, ghostcell *pgc)
 }
 
 
-void sixdof_gc::geometry_refinement(lexer *p)
+void sixdof_gc::geometry_refinement(lexer *p, ghostcell *pgc)
 {
 	double x0,x1,x2,y0,y1,y2,z0,z1,z2;
 	double x01,x02,x12,y01,y02,y12,z01,z02,z12;

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -44,7 +44,7 @@ void LES_filter_f1::start(lexer *p, fdm *a, ghostcell *pgc, field &uprime, field
 	{
 
         ULOOP
-        etta_u1(i,j,k) = -0.25*(a->u(i+1,j,k) -2.0*a->u(i,j,k) + a->u(i-1,j,k));
+        etta_u1(i,j,k) = -0.5*(p->DXN[IP]*(a->u(i+1,j,k) - a->u(i,j,k)) - p->DXN[IP1]*(a->u(i,j,k) - a->u(i-1,j,k)))/(p->DXN[IP]+p->DXN[IP1]);
                 
         ULOOP
         etta_u1(i,j,k) = a->u(i,j,k) - etta_u1(i,j,k);
@@ -52,7 +52,7 @@ void LES_filter_f1::start(lexer *p, fdm *a, ghostcell *pgc, field &uprime, field
         pgc->start1(p,etta_u1,gcval);
         
         ULOOP
-        etta_u2(i,j,k) = -0.25*(etta_u1(i,j+1,k) -2.0*etta_u1(i,j,k) + etta_u1(i,j-1,k));
+        etta_u2(i,j,k) = -0.5*(p->DYP[JM1]*(etta_u1(i,j+1,k) - etta_u1(i,j,k)) - p->DYP[JP]*(etta_u1(i,j,k) - etta_u1(i,j-1,k)))/(p->DYP[JP]+p->DYP[JM1]);
                 
         ULOOP
         etta_u2(i,j,k) = etta_u1(i,j,k) - etta_u2(i,j,k);
@@ -60,7 +60,7 @@ void LES_filter_f1::start(lexer *p, fdm *a, ghostcell *pgc, field &uprime, field
         pgc->start1(p,etta_u2,gcval);
         
         ULOOP
-        ubar(i,j,k) = -0.25*(etta_u2(i,j,k+1) -2.0*etta_u2(i,j,k) + etta_u2(i,j,k-1));
+        ubar(i,j,k) = -0.5*(p->DZP[KM1]*(etta_u2(i,j,k+1) - etta_u2(i,j,k)) - p->DZP[KP]*(etta_u2(i,j,k) - etta_u2(i,j,k-1)))/(p->DZP[KP]+p->DZP[KM1]);
                 
         ULOOP
         ubar(i,j,k) = etta_u2(i,j,k) - ubar(i,j,k);
@@ -79,7 +79,7 @@ void LES_filter_f1::start(lexer *p, fdm *a, ghostcell *pgc, field &uprime, field
 	{
         
         VLOOP
-        etta_v1(i,j,k) = -0.25*(a->v(i+1,j,k) -2.0*a->v(i,j,k) + a->v(i-1,j,k));
+        etta_v1(i,j,k) = -0.5*(p->DXP[IM1]*(a->v(i+1,j,k) - a->v(i,j,k)) - p->DXP[IP]*(a->v(i,j,k) - a->v(i-1,j,k)))/(p->DXP[IP]+p->DXP[IM1]);
                 
         VLOOP
         etta_v1(i,j,k) = a->v(i,j,k) - etta_v1(i,j,k);
@@ -87,7 +87,7 @@ void LES_filter_f1::start(lexer *p, fdm *a, ghostcell *pgc, field &uprime, field
         pgc->start2(p,etta_v1,gcval);
         
         VLOOP
-        etta_v2(i,j,k) = -0.25*(etta_v1(i,j+1,k) -2.0*etta_v1(i,j,k) + etta_v1(i,j-1,k));
+        etta_v2(i,j,k) = -0.5*(p->DYN[JP]*(etta_v1(i,j+1,k) - etta_v1(i,j,k)) - p->DYN[JP1]*(etta_v1(i,j,k) - etta_v1(i,j-1,k)))/(p->DYN[JP]+p->DYN[JP1]);
                 
         VLOOP
         etta_v2(i,j,k) = etta_v1(i,j,k) - etta_v2(i,j,k);
@@ -95,7 +95,7 @@ void LES_filter_f1::start(lexer *p, fdm *a, ghostcell *pgc, field &uprime, field
         pgc->start2(p,etta_v2,gcval);
         
         VLOOP
-        vbar(i,j,k) = -0.25*(etta_v2(i,j,k+1) -2.0*etta_v2(i,j,k) + etta_v2(i,j,k-1));
+        vbar(i,j,k) = -0.5*(p->DZP[KM1]*(etta_v2(i,j,k+1) - etta_v2(i,j,k)) - p->DZP[KP]*(etta_v2(i,j,k) - etta_v2(i,j,k-1)))/(p->DZP[KP]+p->DZP[KM1]);
                 
         VLOOP
         vbar(i,j,k) = etta_v2(i,j,k) - vbar(i,j,k);
@@ -114,7 +114,7 @@ void LES_filter_f1::start(lexer *p, fdm *a, ghostcell *pgc, field &uprime, field
 	{
         
         WLOOP
-        etta_w1(i,j,k) = -0.25*(a->w(i+1,j,k) -2.0*a->w(i,j,k) + a->w(i-1,j,k));
+        etta_w1(i,j,k) = -0.5*(p->DXP[IM1]*(a->w(i+1,j,k) - a->w(i,j,k)) - p->DXP[IP]*(a->w(i,j,k) - a->w(i-1,j,k)))/(p->DXP[IP]+p->DXP[IM1]);
                 
         WLOOP
         etta_w1(i,j,k) = a->w(i,j,k) - etta_w1(i,j,k);
@@ -122,7 +122,7 @@ void LES_filter_f1::start(lexer *p, fdm *a, ghostcell *pgc, field &uprime, field
         pgc->start3(p,etta_w1,gcval);
         
         WLOOP
-        etta_w2(i,j,k) = -0.25*(etta_w1(i,j+1,k) -2.0*etta_w1(i,j,k) + etta_w1(i,j-1,k));
+        etta_w2(i,j,k) = -0.5*(p->DYP[JM1]*(etta_w1(i,j+1,k) - etta_w1(i,j,k)) - p->DYP[JP]*(etta_w1(i,j,k) - etta_w1(i,j-1,k)))/(p->DYP[JP]+p->DYP[JM1]);
                 
         WLOOP
         etta_w2(i,j,k) = etta_w1(i,j,k) - etta_w2(i,j,k);
@@ -130,7 +130,7 @@ void LES_filter_f1::start(lexer *p, fdm *a, ghostcell *pgc, field &uprime, field
         pgc->start3(p,etta_w2,gcval);
         
         WLOOP
-        wbar(i,j,k) = -0.25*(etta_w2(i,j,k+1) -2.0*etta_w2(i,j,k) + etta_w2(i,j,k-1));
+        wbar(i,j,k) = -0.5*(p->DZN[KP]*(etta_w2(i,j,k+1) - etta_w2(i,j,k)) - p->DZN[KP1]*(etta_w2(i,j,k) - etta_w2(i,j,k-1)))/(p->DZN[KP]+p->DZN[KP1]);
                 
         WLOOP
         wbar(i,j,k) = etta_w2(i,j,k) - wbar(i,j,k);

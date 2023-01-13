@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"iowave.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 
 void iowave::ini(lexer *p, fdm* a, ghostcell* pgc)
@@ -50,21 +51,26 @@ void iowave::ini(lexer *p, fdm* a, ghostcell* pgc)
 	full_initialize(p,a,pgc);
 }
 
-void iowave::ini_nhflow(lexer *p, fdm* a, ghostcell* pgc)
+void iowave::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc)
 {
     // relax_ini OR dirichlet_ini
     wavegen_precalc_ini(p,pgc);
-    wavegen_precalc_relax_func(p,pgc);
+    wavegen_precalc_relax_func_nhflow(p,pgc);
+    
+    /*if(p->B89==1 && p->B98==2)
+    nhflow_wavegen_precalc_decomp_space(p,pgc);
+    
+    if(p->B89==1 && p->B98==3)
+    nhflow_wavegen_precalc_decomp_space_dirichlet(p,pgc);*/
     
     wavegen_precalc(p,pgc);
     
-    u_relax(p,a,pgc,a->u);
-	v_relax(p,a,pgc,a->v);
-	w_relax(p,a,pgc,a->w);
+    U_relax(p,pgc,d->U);
+    V_relax(p,pgc,d->V);
+    W_relax(p,pgc,d->W);
 
-    
     if(p->I30==1)
-	full_initialize_nhflow(p,a,pgc);
+	full_initialize_nhflow(p,d,pgc);
 }
 
 void iowave::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
@@ -88,13 +94,12 @@ void iowave::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 void iowave::ini_ptf(lexer *p, fdm *a, ghostcell *pgc)
 {
     wavegen_precalc_ini(p,pgc);
-    wavegen_precalc_relax_func(p,pgc);
+    wavegen_precalc_relax_func_nhflow(p,pgc);
     
     //if(p->B89==1 && p->B98==2)
     //wavegen_precalc_decomp_space_fnpf(p,pgc);
 
     wavegen_precalc(p,pgc);
-
     
     if(p->I30==1)
 	full_initialize_ptf(p,a,pgc);

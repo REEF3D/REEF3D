@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -400,10 +400,6 @@ void nsewave_RK3::eta_disc(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v)
     SLICELOOP4
     L(i,j) = -(P(i,j)-P(i-1,j) + Q(i,j)-Q(i,j-1))/p->DXM;
     
-}
-
-void nsewave_RK3::ltimesave(lexer* p, fdm *a, slice &ls)
-{
 }
 
 void nsewave_RK3::update(lexer *p, fdm *a, ghostcell *pgc, slice &f)

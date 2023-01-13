@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -180,8 +180,10 @@ public:
 	void gctopo_pressureupdate(lexer*, fdm*, int **, int, field&);
 	void gctopo_scalarupdate(lexer*, fdm*, int **, int, field&);
 
-
-// 6DOF update
+// 6DOF update gcdf
+	void gcdf_update(lexer*,fdm*);
+    
+// 6DOF update gcfb
 	void gcfb_update(lexer*,fdm*);
 	void gcfb_buildflag(lexer*,fdm*, int**, int&);
 	void gcfb_velflag1(lexer*,fdm*, int **, int&);
@@ -227,8 +229,10 @@ public:
     double timer();
     //Collective Communication
     void gather_int(int *, int, int *, int);
+    void allgather_int(int *, int, int *, int);
     void gather_double(double *, int, double *, int);
 	void gatherv_int(int*, int, int*, int*, int*);
+    void allgatherv_int(int *, int, int *, int*, int*);
     void gatherv_double(double *, int, double *, int*, int*);
     void bcast_int(int*, int);
     void bcast_double(double *, int);

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -38,7 +38,7 @@ void ioflow_f::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, fiel
         inflow_plain(p,a,pgc,u,v,w);
 
             if((p->count==0&&p->I11==1)||p->B60==3||p->B60==4)
-            outflow_plain(p,a,pgc,u,v,w);
+            outflow_log(p,a,pgc,u,v,w);
         }
 
         if(p->B61==2 || p->B61==4 || p->B61==5)
@@ -147,10 +147,6 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
 
     depth=hmax-hmin;
     
-    //if(p->mpirank==0)
-    //cout<<"HMAX   "<<hmax<<endl;
-	
-	
     // bed shear stress and bed shear velocity
         if(p->S10==0)
         ks=p->B50;
@@ -205,10 +201,7 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
 
 	if(fabs(p->Qi)<1.0e-20)
 	ratio=1.0;
-	
-	//if(p->mpirank==0)
-	//cout<<"RATIO: "<<ratio<<" Ui: "<<p->Ui<<" Qi: "<<p->Qi<<endl;
-	
+
 
         for(n=0;n<p->gcin_count;++n)
         {
@@ -332,7 +325,22 @@ void ioflow_f::inflow_water(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
 
 void ioflow_f::rkinflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {
-    inflow(p,a,pgc,u,v,w);
+    for(n=0;n<p->gcin_count;n++)
+    {
+    i=p->gcin[n][0];
+    j=p->gcin[n][1];
+    k=p->gcin[n][2];
+    
+    u(i-1,j,k) = u(i-2,j,k) = u(i-3,j,k) = a->u(i-1,j,k);
+    v(i-1,j,k) = v(i-2,j,k) = v(i-3,j,k) = a->v(i-1,j,k);
+    w(i-1,j,k) = w(i-2,j,k) = w(i-3,j,k) = a->w(i-1,j,k);
+    
+    //u(i-1,j,k) = u(i-2,j,k) = u(i-3,j,k) = u(i,j,k);
+    //v(i-1,j,k) = v(i-2,j,k) = v(i-3,j,k) = v(i,j,k);
+    //w(i-1,j,k) = w(i-2,j,k) = w(i-3,j,k) = w(i,j,k);
+    }
+    
+    pBC->patchBC_rkioflow(p,a,pgc,u,v,w);
 }
 
 void ioflow_f::flowfile(lexer *p, fdm* a, ghostcell* pgc, turbulence *pturb)
@@ -342,4 +350,9 @@ void ioflow_f::flowfile(lexer *p, fdm* a, ghostcell* pgc, turbulence *pturb)
 void ioflow_f::inflow_fnpf(lexer *p, fdm_fnpf*, ghostcell *pgc, double *Fi, double *Uin,slice &Fifsf, slice &eta)
 {
 
+}
+
+void ioflow_f::rkinflow_fnpf(lexer *p, fdm_fnpf*, ghostcell *pgc, slice &frk, slice &f)
+{
+    
 }

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -38,11 +38,13 @@ public:
     
     // BC update
     virtual void patchBC_ioflow(lexer*, fdm*, ghostcell*, field&,field&,field&);
+    virtual void patchBC_rkioflow(lexer*, fdm*, ghostcell*, field&,field&,field&);
     virtual void patchBC_discharge(lexer*, fdm*, ghostcell*);
     virtual void patchBC_pressure(lexer*, fdm*, ghostcell*, field&);
     virtual void patchBC_waterlevel(lexer*, fdm*, ghostcell*, field&);
     
     virtual void patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&);
+    virtual void patchBC_rkioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&);
     virtual void patchBC_discharge2D(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&);
     virtual void patchBC_pressure2D(lexer*, ghostcell*, slice&);
     virtual void patchBC_pressure2D_ugrad(lexer*, fdm2D*, slice&,slice&);

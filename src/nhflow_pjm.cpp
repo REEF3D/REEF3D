@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -79,7 +79,7 @@ void nhflow_pjm::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, iofl
 	if(p->mpirank==0 && p->count%p->P12==0)
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
 
-    pgc->start4(p,d->test,1);
+    //pgc->start4(p,d->test,1);
 }
 
 void nhflow_pjm::ucorr(lexer* p, fdm_nhf *d, double *U, double alpha)

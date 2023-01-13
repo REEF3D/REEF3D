@@ -1,7 +1,6 @@
-
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -18,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"6DOF_df_object.h"
@@ -26,15 +26,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"reinidisc_fsf.h"
 
-sixdof_df_object::sixdof_df_object
-(
-	lexer *p, 
-	fdm *a, 
-	ghostcell *pgc,
-    int number
-) : gradient(p), dt(p), L(p), f(p), frk1(p), cutl(p), cutr(p), fbio(p),n6DOF(number),epsifb(1.6*p->DXM), epsi(1.6)
+sixdof_df_object::sixdof_df_object(lexer *p, fdm *a, ghostcell *pgc,int number) : gradient(p), dt(p), L(p), 
+                                                                                f(p), frk1(p), cutl(p), cutr(p), 
+                                                                                fbio(p),n6DOF(number),
+                                                                                epsifb(1.6*p->DXM), epsi(1.6)
 {
     prdisc = new reinidisc_fsf(p);
+    
+    triangle_token=0;
+    printnormal_count=0;
 }
 
 sixdof_df_object::~sixdof_df_object(){}

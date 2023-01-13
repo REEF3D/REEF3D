@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -38,10 +38,6 @@ nsewave_v::~nsewave_v()
 void nsewave_v::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusion *pdiff, turbulence *pturb,
                       convection* pconvec, pressure *ppress, poisson *ppois, solver *ppoissonsolv, solver *psolv, 
                       ioflow* pflow, vrans* pvrans)
-{
-}
-
-void nsewave_v::ltimesave(lexer* p, fdm *a, slice &ls)
 {
 }
 

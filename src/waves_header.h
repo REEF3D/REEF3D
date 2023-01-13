@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -34,6 +34,8 @@ Author: Hans Bihs
 #include"nhflow.h"
 #include"nhflow_f.h"
 #include"nhflow_v.h"
+#include"nhflow_timestep.h"
+#include"nhflow_momentum.h"
 #include"ptf_v.h"
 #include"fnpf_v.h"
 #include"ptf_RK3.h"

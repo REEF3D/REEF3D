@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -98,10 +98,6 @@ void VOF_AB::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell
 	if(p->mpirank==0)
 	cout<<"voftime: "<<setprecision(3)<<p->lsmtime<<endl;
 
-}
-
-void VOF_AB::ltimesave(lexer* p, fdm *a, field &F)
-{
 }
 
 void VOF_AB::update(lexer *p, fdm *a, ghostcell *pgc, field &F)

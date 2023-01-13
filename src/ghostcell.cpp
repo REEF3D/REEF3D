@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -128,6 +128,9 @@ void ghostcell::gcini(lexer* p)
 	p->Iarray(p->dgc2,p->dgc2_count,8);
 	p->Iarray(p->dgc3,p->dgc3_count,8);
 	p->Iarray(p->dgc4,p->dgc4_count,8);
+    
+    p->gcdf4_count=1;
+    p->Iarray(p->gcdf4,p->gcdf4_count,6);
 
     if(p->B20==1)
     {
@@ -180,7 +183,6 @@ void ghostcell::gcini(lexer* p)
     gclabel_u_orth=1;
     gclabel_v_orth=1;
     gclabel_w_orth=1;
-    gclabel_press=4;
 	gclabel_vel=5;    
 
     // for reflective BC
@@ -239,7 +241,6 @@ void ghostcell::gcini(lexer* p)
     gclabel_u_in=1;
     gclabel_v_in=1;
     gclabel_w_in=1;
-    gclabel_press_in=gclabel_press;
     gclabel_lsm_in=gclabel_lsm;
     
     if(p->I230>0 || p->B98>=3 || p->B60>0)
@@ -248,7 +249,6 @@ void ghostcell::gcini(lexer* p)
     gclabel_v_in=0;
     gclabel_w_in=0;
     gclabel_lsm_in=0;
-    //gclabel_press_in=0;
     }
     
     if(p->B98>=3)
@@ -257,16 +257,21 @@ void ghostcell::gcini(lexer* p)
     gclabel_v_in=0;
     gclabel_w_in=0;
     gclabel_lsm_in=0;
-    //gclabel_press_in=0;
     }
+    
+    // pressure bc labels
+    gclabel_press=4;
+    gclabel_press_in=gclabel_press;
     
     if(p->B76==2 || p->B76==3)
 	gclabel_press_in=0;
-
+    
+    // pressure inflow
     pressin_lable=0;
 	if(p->B76!=1)
-	pressout_lable=1;
+	pressin_lable=1;
     
+    // pressure outflow
     pressout_lable=0;
 	if(p->B77==-1 || p->B77==2)
 	pressout_lable=1;

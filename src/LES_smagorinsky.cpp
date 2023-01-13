@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -64,8 +64,9 @@ void LES_smagorinsky::start(fdm* a, lexer* p, convection* pconvec, diffusion* pd
 	
     
     LOOP
-    a->eddyv(i,j,k) = pow(p->DXM*c_sgs,2.0) * sqrt(2.0) * strainterm(p,uprime,vprime,wprime);
+    a->eddyv(i,j,k) = pow(c_sgs,2.0) * pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP],2.0/3.0) * sqrt(2.0) * strainterm(p,uprime,vprime,wprime);
 
+//		a->eddyv(i,j,k) = pow(p->DXM*c_sgs,2.0) * sqrt(2.0) * strainterm(p,uprime,vprime,wprime);
 //    a->eddyv(i,j,k) = pow(p->DXM*c_sgs,2.0) * sqrt(2.0) * strainterm(p,a);
 
     pgc->start4(p,a->eddyv,gcval_sgs);

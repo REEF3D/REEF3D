@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -141,6 +141,7 @@ void bc_ikepsilon::bckeps_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
 void bc_ikepsilon::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj,int kk,int cs,int bc, int id, double dist)
 {
     double uvel,vvel,wvel;
+    double zval;
     dist=0.5*p->DXM;
 
 	i=ii;
@@ -169,6 +170,8 @@ void bc_ikepsilon::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int
 		uplus = (1.0/kappa)*log(30.0*(dist/ks));
 
 	tau=(u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
+    
+    
 
 
 	a->M.p[id] += (pow(p->cmu,0.75)*pow(fabs(kin(i,j,k)),0.5)*uplus)/dist;

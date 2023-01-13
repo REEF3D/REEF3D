@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -89,12 +89,11 @@ void nhflow_vtu3D::pvtu(lexer *p, ghostcell* pgc)
 	
 	result<<"<PPointData>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"Fi\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"P\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
     if(p->P23==1)
 	result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
-    if(p->P25==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"solid\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"breaking\"/>"<<endl;
 	result<<"</PPointData>"<<endl;
 	
     result<<"<PPoints>"<<endl;

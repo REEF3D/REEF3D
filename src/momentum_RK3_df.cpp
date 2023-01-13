@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -28,7 +28,7 @@ Author: Tobias Martin, Hans Bihs
 #include"bcmom.h"
 #include"convection.h"
 #include"diffusion.h"
-#include"density_fsm.h"
+#include"density_df.h"
 #include"ediff2.h"
 #include"pressure.h"
 #include"poisson.h"
@@ -69,7 +69,7 @@ momentum_RK3_df::momentum_RK3_df
 
 	pdiff_e=new ediff2(p);
     
-    pdensity = new density_fsm(p);
+    pdensity = new density_df(p);
 
     alpha << 4.0/15.0, 1.0/15.0, 1.0/6.0;
     gamma << 8.0/15.0, 5.0/12.0, 3.0/4.0;
@@ -126,7 +126,6 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         Cu(i,j,k)=a->F(i,j,k);
 
         p->utime=pgc->timer()-starttime;
-
 
         // V
         starttime=pgc->timer();
@@ -206,8 +205,8 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         pgc->start2(p,fy,11);
         pgc->start3(p,fz,12);           
         
-        if (p->X10 > 0)
-        p6dof_df->forcing(p,a,pgc,pvrans,pnet,2.0*alpha(loop),gamma(loop),zeta(loop),urk,vrk,wrk,fx,fy,fz,final);
+        if (p->X10>0)
+        p6dof_df->start_forcing(p,a,pgc,pvrans,pnet,2.0*alpha(loop),gamma(loop),zeta(loop),urk,vrk,wrk,fx,fy,fz,final);
         
         pfsi->forcing(p,a,pgc,2.0*alpha(loop),urk,vrk,wrk,fx,fy,fz,final);
  
@@ -235,193 +234,6 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         pgc->start2(p,a->v,gcval_v);
         pgc->start3(p,a->w,gcval_w);
     }
-
-
-    // Second-order diffusion version
-    /*
-    for (int loop=0; loop<3; loop++)
-    {
-        // U
-        starttime=pgc->timer();
-
-        // Fill F
-        pturb->isource(p,a);
-        pflow->isource(p,a,pgc,pvrans); 
-        bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
-        ppress->upgrad(p,a);
-        irhs(p,a,pgc,a->u,a->u,a->v,a->w,2.0*alpha(loop));
-
-        ULOOP
-        urk(i,j,k) = a->u(i,j,k) + 2.0*alpha(loop)*p->dt*CPOR1*a->F(i,j,k);
-        
-        // Add diffusion
-        ULOOP
-        a->F(i,j,k)=0.0;
-        
-        pdiff_e->diff_u(p,a,pgc,psolv,a->u,a->v,a->w,2.0*alpha(loop));
-        
-        ULOOP
-        urk(i,j,k) += 2.0*alpha(loop)*p->dt*CPOR1*a->F(i,j,k);
-        
-        ULOOP
-        Du(i,j,k)=a->F(i,j,k);
-
-        // Add convection
-        ULOOP
-        a->F(i,j,k)=0.0;
-
-        udiscstart=pgc->timer();
-        pconvec->start(p,a,a->u,1,a->u,a->v,a->w);
-        udisctime=pgc->timer()-udiscstart;
-
-        ULOOP
-        urk(i,j,k) += gamma(loop)*p->dt*CPOR1*a->F(i,j,k) + zeta(loop)*p->dt*CPOR1*Cu(i,j,k);
-        
-        ULOOP
-        Cu(i,j,k)=a->F(i,j,k);
-
-        p->utime=pgc->timer()-starttime;
-
-
-        // V
-        starttime=pgc->timer();
-
-        // Add source
-        pturb->jsource(p,a);
-        pflow->jsource(p,a,pgc,pvrans);
-        bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
-        ppress->vpgrad(p,a);
-        jrhs(p,a,pgc,a->v,a->u,a->v,a->w,2.0*alpha(loop));
-        
-        VLOOP
-        vrk(i,j,k) = a->v(i,j,k) + 2.0*alpha(loop)*p->dt*CPOR2*a->G(i,j,k);
-        
-        // Add diffusion
-        VLOOP
-        a->G(i,j,k)=0.0;
-        
-        pdiff_e->diff_v(p,a,pgc,psolv,a->u,a->v,a->w,2.0*alpha(loop));
-        
-        VLOOP
-        vrk(i,j,k) += 2.0*alpha(loop)*p->dt*CPOR2*a->G(i,j,k);
-        
-        VLOOP
-        Dv(i,j,k)=a->G(i,j,k);
-
-
-        // Add convection
-        VLOOP
-        a->G(i,j,k)=0.0;
-
-        pconvec->start(p,a,a->v,2,a->u,a->v,a->w);
-        
-        VLOOP
-        vrk(i,j,k) += gamma(loop)*p->dt*CPOR2*a->G(i,j,k) + zeta(loop)*p->dt*CPOR2*Cv(i,j,k);
-        
-        VLOOP
-        Cv(i,j,k)=a->G(i,j,k);
-
-        p->vtime=pgc->timer()-starttime;
-
-
-        // W
-        starttime=pgc->timer();
-
-        // Add source
-        pturb->ksource(p,a);
-        pflow->ksource(p,a,pgc,pvrans);
-        bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
-        ppress->wpgrad(p,a);
-        krhs(p,a,pgc,a->w,a->u,a->v,a->w,2.0*alpha(loop));
-
-        WLOOP
-        wrk(i,j,k) = a->w(i,j,k) + 2.0*alpha(loop)*p->dt*CPOR3*a->H(i,j,k);
-        
-        // Add diffusion
-        WLOOP
-        a->H(i,j,k)=0.0;
-        
-        pdiff_e->diff_w(p,a,pgc,psolv,a->u,a->v,a->w,2.0*alpha(loop));
-        
-        WLOOP
-        wrk(i,j,k) += 2.0*alpha(loop)*p->dt*CPOR3*a->H(i,j,k);
-        
-        WLOOP
-        Dw(i,j,k)=a->H(i,j,k);
-
-        // Add convection
-        WLOOP
-        a->H(i,j,k)=0.0;
-
-        pconvec->start(p,a,a->w,3,a->u,a->v,a->w);
-        
-        WLOOP
-        wrk(i,j,k) += gamma(loop)*p->dt*CPOR3*a->H(i,j,k) + zeta(loop)*p->dt*CPOR3*Cw(i,j,k);
-        
-        WLOOP
-        Cw(i,j,k)=a->H(i,j,k);
-
-        p->wtime=pgc->timer()-starttime;
-
-        pgc->start1(p,urk,gcval_u);
-        pgc->start2(p,vrk,gcval_v);
-        pgc->start3(p,wrk,gcval_w);
-
-
-        // Forcing
-        ULOOP
-        fx(i,j,k) = 0.0;
-       
-        VLOOP
-        fy(i,j,k) = 0.0;
-      
-        WLOOP
-        fz(i,j,k) = 0.0;
-        
-        pgc->start1(p,fx,10);
-        pgc->start2(p,fy,11);
-        pgc->start3(p,fz,12);           
-        
-        if (p->X10 > 0)
-        p6dof_df->forcing(p,a,pgc,pvrans,pnet,2.0*alpha(loop),gamma(loop),zeta(loop),urk,vrk,wrk,fx,fy,fz,false);
-        
-        pfsi->forcing(p,a,pgc,2.0*alpha(loop),urk,vrk,wrk,fx,fy,fz,false);
- 
-        ULOOP
-        urk(i,j,k) += 2.0*alpha(loop)*p->dt*CPOR1*fx(i,j,k) - alpha(loop)*p->dt*CPOR1*Du(i,j,k);
-        VLOOP
-        vrk(i,j,k) += 2.0*alpha(loop)*p->dt*CPOR2*fy(i,j,k) - alpha(loop)*p->dt*CPOR2*Dv(i,j,k);
-        WLOOP
-        wrk(i,j,k) += 2.0*alpha(loop)*p->dt*CPOR3*fz(i,j,k) - alpha(loop)*p->dt*CPOR3*Dw(i,j,k);
-
-        pgc->start1(p,urk,gcval_u);
-        pgc->start2(p,vrk,gcval_v);
-        pgc->start3(p,wrk,gcval_w);
-        
-
-        // Second-order diffusion
-        pdiff->diff_u(p,a,pgc,psolv,a->u,urk,vrk,wrk,alpha(loop));
-        pdiff->diff_v(p,a,pgc,psolv,a->v,urk,vrk,wrk,alpha(loop));
-        pdiff->diff_w(p,a,pgc,psolv,a->w,urk,vrk,wrk,alpha(loop));
-        
-        pgc->start1(p,a->u,gcval_u);
-        pgc->start2(p,a->v,gcval_v);
-        pgc->start3(p,a->w,gcval_w);
-
-
-        // Pressure
-        pflow->pressure_io(p,a,pgc);
-        ppress->start(a,p,ppois,ppoissonsolv,pgc, pflow, a->u, a->v, a->w, 2.0*alpha(loop));
-        
-        pflow->u_relax(p,a,pgc,a->u);
-        pflow->v_relax(p,a,pgc,a->v);
-        pflow->w_relax(p,a,pgc,a->w);
-        pflow->p_relax(p,a,pgc,a->press);
-
-        pgc->start1(p,a->u,gcval_u);
-        pgc->start2(p,a->v,gcval_v);
-        pgc->start3(p,a->w,gcval_w);
-    }*/
 }
 
 void momentum_RK3_df::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
@@ -452,7 +264,6 @@ void momentum_RK3_df::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uv
         }
     }
 }
-
 
 void momentum_RK3_df::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
@@ -512,16 +323,13 @@ void momentum_RK3_df::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uv
     }
 }
 
-
 void momentum_RK3_df::utimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-
 void momentum_RK3_df::vtimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
-
 
 void momentum_RK3_df::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
 {

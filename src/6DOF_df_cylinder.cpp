@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_df_object.h"
@@ -46,7 +47,7 @@ void sixdof_df_object::cylinder_x(lexer *p, fdm *a, ghostcell *pgc, int id)
 	
 	U = 2.0 * PI * r;
 	
-	ds = 0.25*(U*p->dx);
+	ds = 0.5*(U*p->dx);
 	
 	snum = int(U/ds);
 	
@@ -150,7 +151,7 @@ void sixdof_df_object::cylinder_y(lexer *p, fdm *a, ghostcell *pgc, int id)
 	
 	U = 2.0 * PI * r;
 	
-	ds = 0.25*(U*p->dx);
+	ds = 0.5*(U*p->dx);
 	
 	snum = int(U/ds);
 	
@@ -162,9 +163,7 @@ void sixdof_df_object::cylinder_y(lexer *p, fdm *a, ghostcell *pgc, int id)
 	phi=0.0;
 
 	tstart[entity_count]=tricount;
-	
-	//cout<<p->mpirank<<" DISC: "<<tricount<<" . "<<xm<<" "<<ym<<" "<<zm<<" "<<y1<<" "<<y2<<" "<<r<<" "<<endl;
-	
+
 	for(n=0;n<snum;++n)
 	{
 	//bottom circle	
@@ -179,12 +178,7 @@ void sixdof_df_object::cylinder_y(lexer *p, fdm *a, ghostcell *pgc, int id)
 	tri_x[tricount][2] = xm + r*sin(phi+ds);
 	tri_y[tricount][2] = y1;
 	tri_z[tricount][2] = zm + r*cos(phi+ds);
-	
-	
-	
 	++tricount;
-		
-		
 		
 	//top circle
 	tri_x[tricount][0] = xm;
@@ -230,15 +224,12 @@ void sixdof_df_object::cylinder_y(lexer *p, fdm *a, ghostcell *pgc, int id)
 	tri_z[tricount][2] = zm + r*cos(phi);
 	++tricount;
 	
-	
 		
 	phi+=ds;
 	}
 		
 	tend[entity_count]=tricount;
-	
 }
-
 
 void sixdof_df_object::cylinder_z(lexer *p, fdm *a, ghostcell *pgc, int id)
 {
@@ -262,7 +253,7 @@ void sixdof_df_object::cylinder_z(lexer *p, fdm *a, ghostcell *pgc, int id)
 	
 	U = 2.0 * PI * r;
 	
-	ds = 0.25*(U*p->dx);
+	ds = 0.5*(U*p->dx);
 	
 	snum = int(U/ds);
 	

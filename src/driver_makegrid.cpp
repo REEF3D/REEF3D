@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -113,8 +113,6 @@ void driver::makegrid(lexer *p, ghostcell *pgc)
     m4.fill_dgc(p);
     
     p->vecsize(pgc);
-    
-    //cout<<p->mpirank<<" p->gcb4_count: "<<p->gcb4_count<<endl;
 }
 	
 void driver::makegrid_cds()

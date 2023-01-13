@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -33,6 +33,49 @@ void ioflow_f::pressure_io(lexer *p, fdm* a, ghostcell *pgc)
     
     pBC->patchBC_pressure(p,a,pgc,a->press);
 }
+
+void ioflow_f::pressure_inlet(lexer *p, fdm *a, ghostcell *pgc)
+{
+    double pval=0.0;
+
+    if(p->B76==0)
+    for(n=0;n<p->gcin_count;n++)
+    {
+    i=p->gcin[n][0];
+    j=p->gcin[n][1];
+    k=p->gcin[n][2];
+		
+		if(a->phi(i,j,k)>=0.0)
+        pval=(p->phimean - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
+		
+		if(a->phi(i,j,k)<0.0)
+        pval = a->press(i,j,k);
+
+        a->press(i-1,j,k)=pval;
+        a->press(i-2,j,k)=pval;
+        a->press(i-3,j,k)=pval;
+    }
+    
+    if(p->B76==3)
+    for(n=0;n<p->gcin_count;n++)
+    {
+    i=p->gcin[n][0];
+    j=p->gcin[n][1];
+    k=p->gcin[n][2];
+    
+		
+		if(a->phi(i,j,k)>=0.0)
+        pval=a->press(i,j,k) + p->Ui*p->DXP[IM1]; 
+		
+		if(a->phi(i,j,k)<0.0)
+        pval = a->press(i,j,k);
+    
+        a->press(i-1,j,k)=pval;
+        a->press(i-2,j,k)=pval;
+        a->press(i-3,j,k)=pval;
+    }
+}
+
 
 void ioflow_f::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
 {
@@ -77,48 +120,6 @@ void ioflow_f::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
 			}
 			
         }
-}
-
-void ioflow_f::pressure_inlet(lexer *p, fdm *a, ghostcell *pgc)
-{
-    double pval=0.0;
-
-    if(p->B76==0)
-    for(n=0;n<p->gcin_count;n++)
-    {
-    i=p->gcin[n][0];
-    j=p->gcin[n][1];
-    k=p->gcin[n][2];
-		
-		if(a->phi(i,j,k)>=0.0)
-        pval=(p->phimean - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
-		
-		if(a->phi(i,j,k)<0.0)
-        pval = a->press(i,j,k);
-
-        a->press(i-1,j,k)=pval;
-        a->press(i-2,j,k)=pval;
-        a->press(i-3,j,k)=pval;
-    }
-    
-    if(p->B76==3)
-    for(n=0;n<p->gcin_count;n++)
-    {
-    i=p->gcin[n][0];
-    j=p->gcin[n][1];
-    k=p->gcin[n][2];
-    
-		
-		if(a->phi(i,j,k)>=0.0)
-        pval=a->press(i,j,k) + p->Ui*p->DXP[IM1]; 
-		
-		if(a->phi(i,j,k)<0.0)
-        pval = a->press(i,j,k);
-    
-        a->press(i-1,j,k)=pval;
-        a->press(i-2,j,k)=pval;
-        a->press(i-3,j,k)=pval;
-    }
 }
 
 void ioflow_f::pressure_wall(lexer *p, fdm *a, ghostcell *pgc)

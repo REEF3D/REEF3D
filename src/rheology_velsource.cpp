@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,7 +19,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-
 #include"rheology_f.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -236,9 +235,9 @@ void rheology_f::u_source(lexer *p, fdm *a)
         // Try with u_x first instead: f = (a->u(i,j,k)/fabs(a->u(i,j,k)))
 
         // Velocity gradients at location of u(i,j,k):
-        dudx = (a->u(i+1,j,k) - a->u(i-1,j,k))/(2.0*p->DXM);
-        dudy = (a->u(i,j+1,k) - a->u(i,j-1,k))/(2.0*p->DXM);
-        dudz = (a->u(i,j,k+1) - a->u(i,j,k-1))/(2.0*p->DXM); 
+        dudx = (a->u(i+1,j,k) - a->u(i-1,j,k))/(p->DXN[IP]+p->DXN[IP1]);
+        dudy = (a->u(i,j+1,k) - a->u(i,j-1,k))/(p->DYN[JP]+p->DYN[JP1]);
+        dudz = (a->u(i,j,k+1) - a->u(i,j,k-1))/(p->DZN[KP]+p->DZN[KP1]); 
         
         // Sign of velocity gradients, which determines the sign of the deviatoric stress gradient contributions to the source term in x-direction
         fxx = fabs(dudx)>1.0e-20?(dudx/fabs(dudx)):0.0; // dudx
@@ -358,9 +357,9 @@ void rheology_f::v_source(lexer *p, fdm *a)
         H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi)); 
 
         // Velocity gradients at location of v(i,j,k):
-        dvdx = (a->v(i+1,j,k) - a->v(i-1,j,k))/(2*p->DXM);
-        dvdy = (a->v(i,j+1,k) - a->v(i,j-1,k))/(2*p->DXM);
-        dvdz = (a->v(i,j,k+1) - a->v(i,j,k-1))/(2*p->DXM); 
+        dvdx = (a->v(i+1,j,k) - a->v(i-1,j,k))/(p->DXN[IP]+p->DXN[IP1]);
+        dvdy = (a->v(i,j+1,k) - a->v(i,j-1,k))/(p->DYN[JP]+p->DYN[JP1]);
+        dvdz = (a->v(i,j,k+1) - a->v(i,j,k-1))/(p->DZN[KP]+p->DZN[KP1]);  
         
         // Sign of velocity gradients, which determines the sign of the deviatoric stress gradient contributions to the source term in y-direction
         fyx = fabs(dvdx)>1.0e-20?(dvdx/fabs(dvdx)):0.0; // dvdx
@@ -584,9 +583,10 @@ void rheology_f::w_source(lexer *p, fdm *a)
         H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi)); 
 
         // Velocity gradients at location of w(i,j,k):
-        dwdx = (a->w(i+1,j,k) - a->w(i-1,j,k))/(2*p->DXM);
-        dwdy = (a->w(i,j+1,k) - a->w(i,j-1,k))/(2*p->DXM);
-        dwdz = (a->w(i,j,k+1) - a->w(i,j,k-1))/(2*p->DXM); 
+        dwdx = (a->w(i+1,j,k) - a->w(i-1,j,k))/(p->DXN[IP]+p->DXN[IP1]);
+        dwdy = (a->w(i,j+1,k) - a->w(i,j-1,k))/(p->DYN[JP]+p->DYN[JP1]);
+        dwdz = (a->w(i,j,k+1) - a->w(i,j,k-1))/(p->DZN[KP]+p->DZN[KP1]);
+    
         
         // Sign of velocity gradients, which determines the sign of the deviatoric stress gradient contributions to the source term in w-direction
         fzx = fabs(dwdx)>1.0e-20?(dwdx/fabs(dwdx)):0.0; // dwdx

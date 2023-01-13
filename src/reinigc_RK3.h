@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -62,7 +62,8 @@ private:
 	field4 d0;
 	fieldint4 wallf;
 	int gcval_phi,gcval_ro,gcval_iniphi,reiniter;
-	const double deltax,epsi;
+	const double epsi;
+    double deltax;
 	double H,H0,grad,dT,dirac;
 	double lambda1,lambda2,dV,dval,Cs;
 	

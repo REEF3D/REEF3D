@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -40,7 +40,7 @@ Author: Hans Bihs
 #include"vrans_header.h"
 #include"waves_header.h"
 
-void driver::logic()
+void driver::logic_cfd()
 {
 	makegrid_cds();
 	pini = new initialize(p);
@@ -52,13 +52,6 @@ void driver::logic()
 	if(p->mpirank==0)
     cout<<"creating objects"<<endl;
 
-// nhflow
-    if(p->A10!=55)
-    pnh=new nhflow_v(p,d,pgc);
-
-    if(p->A10==55)
-    pnh=new nhflow_f(p,d,pgc);
-
 // time stepping
     if(p->N48==0)
 	ptstep=new fixtimestep(p);
@@ -68,9 +61,14 @@ void driver::logic()
 
 	if((p->N48==1) && (p->D20==0||p->D20>=2))
 	ptstep=new ietimestep(p);
+    
+// Multiphase
+	if(p->F300==0)
+	pmp = new multiphase_v();
+	
+	if(p->F300>0)
+	pmp = new multiphase_f(p,a,pgc);
 
-// Printer
-    //pfprint = new fnpf_vtu3D(p,c,pgc);
 
 //discretization scheme
 
@@ -155,6 +153,36 @@ void driver::logic()
 
 	if(p->F35>=40 && p->F35<50)
 	pfsfdisc=new hires(p,p->F35);
+    
+//  Convection Multiphase LSM
+	if(p->F305==0)
+	pmpconvec=new convection_void(p);
+	
+	if(p->F305==1)
+	pmpconvec=new fou(p);
+
+	if(p->F305==2)
+	pmpconvec=new cds2(p);
+
+	if(p->F305==3)
+	pmpconvec=new quick(p);
+
+	if(p->F305==4)
+	pmpconvec=new weno_flux_nug(p);
+
+	if(p->F305==5)
+	pmpconvec=new weno_hj_nug(p);
+	
+	if(p->F305==6)
+	pmpconvec=new cds4(p);
+	
+	if(p->F305>=10 && p->F305<30)
+	pmpconvec=new hires(p,p->F305);
+	
+	if(p->F305>=40 && p->F305<50)
+	pmpconvec=new hires(p,p->F305);
+
+
 
 //  Convection Concentration
 	if(p->C15==0)
@@ -400,7 +428,6 @@ void driver::logic()
 	preini = new directreini(p,a);
 
 
-
 	if(p->F31==0)
 	ppart = new particle_void();
 
@@ -432,10 +459,10 @@ void driver::logic()
 	pfsfdisc=new quick(p);
 
 	if(p->F85==4)
-	pfsfdisc=new weno_flux(p);
+	pfsfdisc=new weno_flux_nug(p);
 
 	if(p->F85==5)
-	pfsfdisc=new weno_hj(p);
+	pfsfdisc=new weno_hj_nug(p);
 
 	if(p->F85==6)
 	pfsfdisc=new cds4(p);
@@ -626,7 +653,7 @@ void driver::logic()
 	pmom = new momentum_RK2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
 
 	if(p->N40==3 && p->F11==0)
-	pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pnh);
+	pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
 
     if(p->N40==4 && p->F11==0)
 	pmom = new momentum_IMEX(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
@@ -635,18 +662,15 @@ void driver::logic()
 	pmom = new momentum_FS3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
 
     if(p->N40==7 && p->F11==0)
-	pmom = new momentum_RK3_old(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pnh);
+	pmom = new momentum_RK3_old(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
 
     if(p->N40==23)
-	pmom = new momentum_FC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,pnh,preini);
-
-    if(p->N40==32)
-	pmom = new nhflow_momentum_RK2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pnh,pnhfsf);
-
-    if(p->N40==33)
-	pmom = new nhflow_momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pnh,pnhfsf);
-
+	pmom = new momentum_FCC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini);
+    
 // 6DOF
+    if(((p->X10==1 && p->X13==2) || p->Z10!=0))
+    pmom_df = new momentum_RK3_df(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
+    
 	if(p->X10==0)
     p6dof = new sixdof_void();
 
@@ -655,30 +679,17 @@ void driver::logic()
 
 	if(p->X10==1 && p->X13==2)
     p6dof = new sixdof_void();
+    
+    if(((p->X10==1 && p->X13==2) || p->Z10!=0))
+    p6dof_df = new sixdof_df(p,a,pgc);
 
 // FSI
+    if(p->Z10==0)
     pfsi = new fsi_void(p,pgc);
+	
+    if(p->Z10==1)
+    pfsi = new fsi_strips(p,pgc);
 
-// Start MAINLOOP
-	if(p->A10==5)
-    {
-        loop_nsewave(a);
-    }
-
-    if(p->A10==6 && ((p->X10==1 && p->X13==2) || p->Z10!=0) )
-	{
-		loop_cfd_df(a);
-	}
-
-    else if(p->A10==6)
-	{
-		loop_cfd(a);
-	}
-
-    else if(p->A10==55)
-	{
-		loop_nhflow();
-	}
 }
 
 void driver::patchBC_logic()

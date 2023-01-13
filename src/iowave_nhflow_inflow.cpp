@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,28 +24,37 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
  
-void iowave::nhflow_inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
+void iowave::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, double *V, double *W)
 {
     if(p->I230==0)
     {
     if(p->B98==0)
-    nhflow_inflow_plain(p,a,pgc,u,v,w);
+    nhflow_inflow_plain(p,d,pgc,U,V,W);
     
 	if(p->B98==3)
-	nhflow_dirichlet_wavegen(p,a,pgc,u,v,w);
+	nhflow_dirichlet_wavegen(p,d,pgc,U,V,W);
 	
 	if(p->B98==4)
-	nhflow_active_wavegen(p,a,pgc,u,v,w);
+	nhflow_active_wavegen(p,d,pgc,U,V,W);
 	}
     
 	if(p->B99==3||p->B99==4||p->B99==5)
-	nhflow_active_beach(p,a,pgc,u,v,w);
+	nhflow_active_beach(p,d,pgc,U,V,W);
     
-    if(p->I230>0)
-    ff_inflow(p,a,pgc,u,v,w);
+    //if(p->I230>0)
+    //ff_inflow(p,d,pgc,U,V,W);
 }
 
-void iowave::nhflow_inflow_plain(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
+void iowave::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, double *V, double *W)
+{
+}
+
+void iowave::discharge_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+
+}
+
+void iowave::nhflow_inflow_plain(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, double *V, double *W)
 {
     for(n=0;n<p->gcin_count;n++)
     {
@@ -53,16 +62,16 @@ void iowave::nhflow_inflow_plain(lexer *p, fdm* a, ghostcell* pgc, field& u, fie
     j=p->gcin[n][1];
     k=p->gcin[n][2];
 
-        u(i-1,j,k)=p->Ui;
-        u(i-2,j,k)=p->Ui;
-        u(i-3,j,k)=p->Ui;
+        U[Im1JK]=p->Ui;
+        U[Im2JK]=p->Ui;
+        U[Im3JK]=p->Ui;
 		
-		v(i-1,j,k)=0.0;
-        v(i-2,j,k)=0.0;
-        v(i-3,j,k)=0.0;
+        V[Im1JK]=0.0;
+        V[Im2JK]=0.0;
+        V[Im3JK]=0.0;
 		
-		w(i-1,j,k)=0.0;
-        w(i-2,j,k)=0.0;
-        w(i-3,j,k)=0.0;
+        W[Im1JK]=0.0;
+        W[Im2JK]=0.0;
+        W[Im3JK]=0.0;
     }
 }
