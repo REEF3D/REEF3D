@@ -51,55 +51,27 @@ double density_df::roface(lexer *p, fdm *a, int aa, int bb, int cc)
     H=0.5*(1.0 + phival/psi + (1.0/PI)*sin((PI*phival)/psi));
     
     if(p->X15==1)
-    {
-    // direct forcing
-    /*
-    chi = p->X41*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
-
-    if (p->j_dir==0)
-    chi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
-
-    fbval = -0.5*(a->fb(i,j,k) + a->fb(i+aa,j+bb,k+cc));
-    
-    if(fbval>chi)
-    H_fb=1.0;
-
-    if(fbval<-chi)
-    H_fb=0.0;
-
-    if(fabs(fbval)<=chi)
-    H_fb=0.5*(1.0 + fbval/chi + (1.0/PI)*sin((PI*fbval)/chi));
-    */
-    
-    if (aa == 1)
-    {
+    {    
+        if (aa == 1)
         H_fb = a->fbh1(i,j,k);
-    }
-    else if (aa == -1)
-    {
+        
+        else if (aa == -1)
         H_fb = a->fbh1(i-1,j,k);
-    }
-    else if (bb == 1)
-    {
+
+        else if (bb == 1)
         H_fb = a->fbh2(i,j,k);
-    }
-    else if (bb == -1)
-    {
+
+        else if (bb == -1)
         H_fb = a->fbh2(i,j-1,k);
-    }
-    else if (cc == 1)
-    {
+
+        else if (cc == 1)
         H_fb = a->fbh3(i,j,k);
-    }
-    else if (cc == -1)
-    {
+
+        else if (cc == -1)
         H_fb = a->fbh3(i,j,k-1);
-    }
-    else
-    {
+
+        else
         H_fb = a->fbh4(i,j,k);
-    }
-    
      
     roval = p->W_fb*H_fb + (1.0 - H_fb)*(p->W1*H + p->W3*(1.0 - H));
     }

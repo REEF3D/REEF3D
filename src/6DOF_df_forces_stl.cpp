@@ -44,8 +44,6 @@ void sixdof_df_object::forces_stl
 	double xlocvel,ylocvel,zlocvel,xlocp,ylocp,zlocp;
 	double Fx,Fy,Fz,Fp_x,Fp_y,Fp_z,Fv_x,Fv_y,Fv_z;
     double Xe_p,Ye_p,Ze_p,Xe_v,Ye_v,Ze_v;
-    double n0,n1,n2;
-    double sgx,sgy,sgz;
 
     A=0.0;
     Xe=Ye=Ze=Ke=Me=Ne=0.0;
@@ -74,16 +72,6 @@ void sixdof_df_object::forces_stl
 		xc = (x0 + x1 + x2)/3.0;
 		yc = (y0 + y1 + y2)/3.0;
 		zc = (z0 + z1 + z2)/3.0;
-        
-        int check=0;
-        
-        if 
-		(
-			xc >= p->originx && xc < p->endx &&
-			yc >= p->originy && yc < p->endy &&
-			zc >= p->originz && zc < p->endz
-		)
-        check=1;
         
              at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
 			bt = sqrt(pow(x1-x2,2.0) + pow(y1-y2,2.0) + pow(z1-z2,2.0));
@@ -140,22 +128,6 @@ void sixdof_df_object::forces_stl
 			ny /= norm > 1.0e-20 ? norm : 1.0e20;
 			nz /= norm > 1.0e-20 ? norm : 1.0e20;
             
-            
-            // Normal vector sign
-            n0 = (a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
-            n1 = (a->fb(i,j+1,k) - a->fb(i,j-1,k))/(2.0*p->DYN[JP]);
-            n2 = (a->fb(i,j,k+1) - a->fb(i,j,k-1))/(2.0*p->DZN[KP]);
-    
-            sgx = n0/(fabs(n0)>1.0e-20?fabs(n0):1.0e20);
-            sgy = n1/(fabs(n1)>1.0e-20?fabs(n1):1.0e20);
-            sgz = n2/(fabs(n2)>1.0e-20?fabs(n2):1.0e20);
-            
-            norm = sqrt(n0*n0 + n1*n1 + n2*n2);
-            
-             n0 /= norm > 1.0e-20 ? norm : 1.0e20;
-			n1 /= norm > 1.0e-20 ? norm : 1.0e20;
-			n2 /= norm > 1.0e-20 ? norm : 1.0e20;
-
 			// Add normal stress contributions
              xlocp = xc + p->X42*nx*p->DXP[IP];
 			ylocp = yc + p->X42*ny*p->DYP[JP];
@@ -278,7 +250,5 @@ void sixdof_df_object::forces_stl
     }
 
 	if (p->mpirank == 0)
-	{
-		cout<<"Xe: "<<Xe<<" Ye: "<<Ye<<" Ze: "<<Ze<<" Ke: "<<Ke<<" Me: "<<Me<<" Ne: "<<Ne<<endl;
-	}
+	cout<<"Xe: "<<Xe<<" Ye: "<<Ye<<" Ze: "<<Ze<<" Ke: "<<Ke<<" Me: "<<Me<<" Ne: "<<Ne<<endl;
 }

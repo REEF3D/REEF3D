@@ -54,8 +54,7 @@ private:
    
     int number6DOF;
     vector<sixdof_df_object*> p_df_obj;
-    
-    ddweno_f_nug *pdx;
+
 };
 
 #endif

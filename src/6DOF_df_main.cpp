@@ -35,12 +35,7 @@ sixdof_df::sixdof_df(lexer *p, fdm *a, ghostcell *pgc)
     number6DOF = 1;
     
     for (int nb = 0; nb < number6DOF; nb++)
-    {
-        p_df_obj.push_back(new sixdof_df_object(p,a,pgc,nb));
-    }
-    
-    
-    pdx = new ddweno_f_nug(p);
+    p_df_obj.push_back(new sixdof_df_object(p,a,pgc,nb));
 }
     
 sixdof_df::~sixdof_df()
@@ -50,9 +45,7 @@ sixdof_df::~sixdof_df()
 void sixdof_df::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 {
     for (int nb = 0; nb < number6DOF; nb++)
-    {
-        p_df_obj[nb]->initialize(p, a, pgc, pnet);
-    }
+    p_df_obj[nb]->initialize(p, a, pgc, pnet);
 }
 	
 void sixdof_df::start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&)
