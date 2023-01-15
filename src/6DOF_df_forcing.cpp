@@ -223,7 +223,7 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
 		nz /= norm > 1.0e-20 ? norm : 1.0e20;
 
         
-        H = Hsolidface(p,a,0,0,1);
+         H = Hsolidface(p,a,0,0,1);
 		Ht = Hsolidface_t(p,a,0,0,1);
 
 
