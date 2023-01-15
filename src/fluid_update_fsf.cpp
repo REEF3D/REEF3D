@@ -58,6 +58,11 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
 	{
         factor = 1.0;
         
+        if(p->j_dir==0) 
+        if(a->fb(i,j,k) <- 0.5*(1.0/2.0)*(p->DRM+p->DTM))
+        factor = 2.0;
+        
+        if(p->j_dir==1) 
         if(a->fb(i,j,k) <- 0.5*(1.0/3.0)*(p->DRM+p->DSM+p->DTM))
         factor = 2.0;
     
