@@ -331,7 +331,7 @@ void weno_hj_6DOF_nug::kqmax(lexer *p,fdm *a, field& f, field& wvel, int ipol)
 }
 */
 
-
+/*
 void weno_hj_6DOF_nug::iqmin(lexer *p,fdm *a, field& f, field& uvel, int ipol)
 {	
 	q1 = (a->fbh5(i-3,j,k))*(f(i-2,j,k)-f(i-3,j,k))/DX[IM3];
@@ -385,9 +385,9 @@ void weno_hj_6DOF_nug::kqmax(lexer *p,fdm *a, field& f, field& wvel, int ipol)
 	q4 = (a->fbh5(i,j,k+2))*(f(i,j,k+2)-f(i,j,k+1))/DZ[KP1];
 	q5 = (a->fbh5(i,j,k+3))*(f(i,j,k+3)-f(i,j,k+2))/DZ[KP2];
 }
+*/
 
 
-/*
 void weno_hj_6DOF_nug::iqmin(lexer *p,fdm *a, field& f, field& uvel, int ipol)
 {	
 	q1 = 0.5*(a->fbh5(i-2,j,k)+a->fbh5(i-3,j,k))*(f(i-2,j,k)-f(i-3,j,k))/DX[IM3];
@@ -441,7 +441,7 @@ void weno_hj_6DOF_nug::kqmax(lexer *p,fdm *a, field& f, field& wvel, int ipol)
 	q4 = 0.5*(a->fbh5(i,j,k+2)+a->fbh5(i,j,k+1))*(f(i,j,k+2)-f(i,j,k+1))/DZ[KP1];
 	q5 = 0.5*(a->fbh5(i,j,k+3)+a->fbh5(i,j,k+2))*(f(i,j,k+3)-f(i,j,k+2))/DZ[KP2];
 }
-*/
+
 /*
 void weno_hj_6DOF_nug::iqmin(lexer *p,fdm *a, field& f, field& uvel, int ipol)
 {
