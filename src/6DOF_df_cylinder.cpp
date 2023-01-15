@@ -47,7 +47,7 @@ void sixdof_df_object::cylinder_x(lexer *p, fdm *a, ghostcell *pgc, int id)
 	
 	U = 2.0 * PI * r;
 	
-	ds = 0.5*(U*p->dx);
+	ds = 0.75*(U*p->dx);
 	
 	snum = int(U/ds);
 	
@@ -151,7 +151,7 @@ void sixdof_df_object::cylinder_y(lexer *p, fdm *a, ghostcell *pgc, int id)
 	
 	U = 2.0 * PI * r;
 	
-	ds = 0.5*(U*p->dx);
+	ds = 0.75*(U*p->dx);
 	
 	snum = int(U/ds);
 	
@@ -253,7 +253,7 @@ void sixdof_df_object::cylinder_z(lexer *p, fdm *a, ghostcell *pgc, int id)
 	
 	U = 2.0 * PI * r;
 	
-	ds = 0.5*(U*p->dx);
+	ds = 0.75*(U*p->dx);
 	
 	snum = int(U/ds);
 	

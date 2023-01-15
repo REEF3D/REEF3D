@@ -102,7 +102,6 @@ void sixdof_df_object::objects_create(lexer *p, fdm *a, ghostcell *pgc)
 	cout<<"Refined surface triangles: "<<tricount<<endl;
 }
 
-
 void sixdof_df_object::objects_allocate(lexer *p, fdm *a, ghostcell *pgc)
 {
     double U,ds,phi,r,snum,trisum;

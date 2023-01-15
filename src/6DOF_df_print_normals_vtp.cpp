@@ -36,7 +36,7 @@ void sixdof_df_object::print_normals_vtp(lexer *p, fdm *a, ghostcell *pgc)
 	double nx,ny,nz,norm;
     double n0,n1,n2;
     
-    double factor = 2.1;
+    double factor = 2.6;
     
 	int num=0;
     
@@ -45,8 +45,6 @@ void sixdof_df_object::print_normals_vtp(lexer *p, fdm *a, ghostcell *pgc)
 
     if(p->P15==2)
     num = p->count;
-	
-
 
     if(p->mpirank==0 && (((p->count%p->P20==0) && p->P30<0.0)  || (p->simtime>printtime && p->P30>0.0)   || p->count==0))
     {
@@ -142,11 +140,13 @@ void sixdof_df_object::print_normals_vtp(lexer *p, fdm *a, ghostcell *pgc)
 
         norm = sqrt(nx*nx + ny*ny + nz*nz);
         
-        //cout<<"NORM: "<<norm<<" | nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<" | x0: "<<x0<<" y0: "<<y0<<" z0: "<<z0<<endl;
-			
         nx /= norm > 1.0e-20 ? norm : 1.0e20;
         ny /= norm > 1.0e-20 ? norm : 1.0e20;
         nz /= norm > 1.0e-20 ? norm : 1.0e20;
+        
+        //if((p->j_dir==1 || fabs(ny)<0.001))
+        //cout<<"NORM: "<<norm<<" | nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<" | x0: "<<x0<<" x1: "<<x1<<" z0: "<<z0<<" z1: "<<z1<<endl;
+		
         
         
         // Center of triangle
@@ -163,12 +163,14 @@ void sixdof_df_object::print_normals_vtp(lexer *p, fdm *a, ghostcell *pgc)
 	ffn=zc;
 	result.write((char*)&ffn, sizeof (float));
     
-                        if((p->j_dir==1 || fabs(ny)<0.001))
-                         {
+        if((p->j_dir==1 || fabs(ny)<0.001))
+        {
         xc += nx*p->DXM*factor;
         yc += ny*p->DXM*factor;
         zc += nz*p->DXM*factor;
-                         }
+        }
+    
+    cout<<"NORM: "<<norm<<" | nx: "<<nx*p->DXM*factor<<" dxm: "<<p->DXM<<" nz: "<<nz*p->DXM*factor<<" | factor: "<<factor<<" x1: "<<x1<<" z0: "<<z0<<" z1: "<<z1<<endl;
     ffn=xc;
 	result.write((char*)&ffn, sizeof (float));
 
