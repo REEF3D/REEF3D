@@ -170,7 +170,6 @@ void sixdof_df_object::print_normals_vtp(lexer *p, fdm *a, ghostcell *pgc)
         zc += nz*p->DXM*factor;
         }
     
-    cout<<"NORM: "<<norm<<" | nx: "<<nx*p->DXM*factor<<" dxm: "<<p->DXM<<" nz: "<<nz*p->DXM*factor<<" | factor: "<<factor<<" x1: "<<x1<<" z0: "<<z0<<" z1: "<<z1<<endl;
     ffn=xc;
 	result.write((char*)&ffn, sizeof (float));
 
