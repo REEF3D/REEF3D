@@ -86,6 +86,7 @@ public:
     field2 fbh2;
     field3 fbh3;
     field4 fbh4;
+    field4 fbh5;
     
     
     // PTF

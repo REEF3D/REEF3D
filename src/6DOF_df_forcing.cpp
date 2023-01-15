@@ -78,6 +78,7 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
     double H,Ht, uf, vf, wf;
 	double nx, ny, nz,norm ;
 	double psi, phival_fb;
+    double dirac;
     
     if(p->X14==1)
     {
@@ -110,6 +111,23 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
     {
         H = Hsolidface(p,a,0,0,0);
         a->fbh4(i,j,k) = min(a->fbh4(i,j,k) + H, 1.0); 
+    }
+    
+    //double psi;
+	
+    psi = 1.1*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+
+    if (p->j_dir==0)
+    psi = 1.1*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
+
+    
+    LOOP
+    {
+        dirac = 0.0;
+        if(fabs(a->fb(i,j,k))<psi)
+        dirac = (0.5/psi)*(1.0 + cos((PI*(a->fb(i,j,k)))/psi));
+        
+        a->fbh5(i,j,k) = a->test(i,j,k) =  1.0-MIN(dirac,1.0);
     }
     
     }
