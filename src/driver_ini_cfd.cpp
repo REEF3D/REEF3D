@@ -202,6 +202,5 @@ void driver::driver_ini_cfd()
 	p->reinitime=0.0;
 	p->wavetime=0.0;
 	p->field4time=0.0;
-
 }
 

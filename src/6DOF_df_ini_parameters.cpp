@@ -29,6 +29,13 @@ Author: Tobias Martin
 
 void sixdof_df_object::ini_fbvel(lexer *p, fdm *a, ghostcell *pgc)
 {
+    /*if (p->X131 > 0 || p->X132 > 0 || p->X133 > 0 || p->X153 > 0)
+	{
+		geometry_ls(p,a,pgc);
+	}	
+    
+	else
+	{*/
          double x0, x1, x2, y0, y1, y2, z0, z1, z2;
 		double n0, n1, n2;
 		double f1x,f2x,f3x,g0x,g1x,g2x,f1y,f2y,f3y;
@@ -85,7 +92,8 @@ void sixdof_df_object::ini_fbvel(lexer *p, fdm *a, ghostcell *pgc)
 			Mass_fb = Vfb*Rfb;
             p->X22_m = Mass_fb;
 		}
-        
+        p->del_Darray(integ, 10);
+   // }
 
     // Rigid body motion
     
@@ -138,8 +146,6 @@ void sixdof_df_object::ini_fbvel(lexer *p, fdm *a, ghostcell *pgc)
     p->pfbn = p->pfbi;   
     p->qfbn = p->qfbi;   
     p->rfbn = p->rfbi;
-    
-    p->del_Darray(integ, 10);	
 }
   
 void sixdof_df_object::ini_parameter(lexer *p, fdm *a, ghostcell *pgc)

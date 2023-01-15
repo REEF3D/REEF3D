@@ -116,21 +116,21 @@ void sixdof_df_object::objects_allocate(lexer *p, fdm *a, ghostcell *pgc)
     // cylinder_x   
     r=p->X131_rad;
 	U = 2.0 * PI * r;
-	ds = 0.25*(U*p->dx);
+	ds = 0.75*(U*p->dx);
 	snum = int(U/ds);
 	trisum+=5*(snum+1)*p->X131;
     
     // cylinder_y
     r=p->X132_rad;
 	U = 2.0 * PI * r;
-	ds = 0.25*(U*p->dx);
+	ds = 0.75*(U*p->dx);
 	snum = int(U/ds);
 	trisum+=5*(snum+1)*p->X132;
     
     // cylinder_y
     r=p->X133_rad;
 	U = 2.0 * PI * r;
-	ds = 0.25*(U*p->dx);
+	ds = 0.75*(U*p->dx);
 	snum = int(U/ds);
     trisum+=5*(snum+1)*p->X133;
     

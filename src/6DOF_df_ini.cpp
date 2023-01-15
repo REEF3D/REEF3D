@@ -83,21 +83,17 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
    
     // Initialise floating fields
      ULOOP
-     {
-         a->fbh1(i,j,k) = Hsolidface(p,a,1,0,0);
-     }
+     a->fbh1(i,j,k) = Hsolidface(p,a,1,0,0);
+
      VLOOP
-     {
-         a->fbh2(i,j,k) = Hsolidface(p,a,0,1,0);
-     }
+     a->fbh2(i,j,k) = Hsolidface(p,a,0,1,0);
+
      WLOOP
-     {
-         a->fbh3(i,j,k) = Hsolidface(p,a,0,0,1);
-     }
+     a->fbh3(i,j,k) = Hsolidface(p,a,0,0,1);
+
      LOOP
-     {
-         a->fbh4(i,j,k) = Hsolidface(p,a,0,0,0);
-     }
+     a->fbh4(i,j,k) = Hsolidface(p,a,0,0,0);
+
      pgc->start1(p,a->fbh1,10);
      pgc->start2(p,a->fbh2,11);
      pgc->start3(p,a->fbh3,12);
@@ -219,7 +215,6 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
     // ghostcell update
     pgc->gcdf_update(p,a);
 }
-
 
 void sixdof_df_object::ini_parallel(lexer *p, fdm *a, ghostcell *pgc)
 {

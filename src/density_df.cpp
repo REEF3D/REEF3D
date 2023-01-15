@@ -39,16 +39,21 @@ density_df::~density_df()
 
 double density_df::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
+    double factor = 1.0;
+    
+    if(0.5*(a->fb(i,j,k) + a->fb(i+aa,j+bb,k+cc)) <- p->F45*(0.5)*(p->DRM+p->DSM+p->DTM))
+    factor = 2.0;
+    
     phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
 
-    if(phival>psi)
+    if(phival>factor*psi)
     H=1.0;
 
-    if(phival<-psi)
+    if(phival<-factor*psi)
     H=0.0;
 
-    if(fabs(phival)<=psi)
-    H=0.5*(1.0 + phival/psi + (1.0/PI)*sin((PI*phival)/psi));
+    if(fabs(phival)<=factor*psi)
+    H=0.5*(1.0 + phival/(factor*psi) + (1.0/PI)*sin((PI*phival)/(factor*psi)));
     
     if(p->X15==1)
     {    
