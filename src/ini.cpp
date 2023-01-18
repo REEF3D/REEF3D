@@ -649,7 +649,12 @@ void lexer::ini_default()
 	X42=0.0;    // double distance for pressure force evaluation
 	X43=1.0;    // double distance for shear stress evaluation
 	X44=0.0;    // double viscosity in body
-    X50=1;
+    X45=2;      // int type of lsm convection disc at fb
+    X46=1;      // int density smoothing inside fb
+    X47=1;      // int reini diffusion inside fb
+    X48=0;
+    X49=0;
+    X50=1;      // int type of print out format for 6DOF structure
 	X100=0;		// int delta x,y,z
 	X100_x=X100_y=X100_z=0.0;
 	X101=0;		// int ini Euler angles

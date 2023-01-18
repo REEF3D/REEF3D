@@ -41,11 +41,11 @@ double density_df::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
     double factor = 1.0;
     
-    if(p->j_dir==0)
+    if(p->j_dir==0 && p->X46==1) 
     if(0.5*(a->fb(i,j,k) + a->fb(i+aa,j+bb,k+cc)) <- 0.5*(1.0/2.0)*(p->DRM+p->DTM))
     factor = 2.0;
     
-    if(p->j_dir==1)
+    if(p->j_dir==1 && p->X46==1) 
     if(0.5*(a->fb(i,j,k) + a->fb(i+aa,j+bb,k+cc)) <- 0.5*(1.0/3.0)*(p->DRM+p->DSM+p->DTM))
     factor = 2.0;
     

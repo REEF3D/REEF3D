@@ -491,66 +491,8 @@ public:
     double W103,W104;
     int W110,W111;
     double W112;
-	
-	// Grid
-	int Y40,Y50,Y60,Y71,Y72,Y73,Y74;
-
-    // Test options
-    int Y1,Y2,Y3,Y4,Y5;
-
-	// time + iterations
-	int inneriter,count,solveriter,preconiter,count_statestart;
-    int solver_status;
-    int sediter;
-    double final_res;
-	double dt,dt_old,simtime,viscmax;
-	double mindt,maxdt;
-	double umax,vmax,wmax,epsmax,kinmax,pressmin,pressmax;
-	double presstime,veltime,reinitime,turbtime,plstime,itertime;
-	double sedsimtime,sedwavetime;
-	double wavetime;
-	double meantime,totaltime;
-	double gcmeantime,gctotaltime;
-	double Xmeantime,Xtotaltime;
-	double maxbed, minbed;
-	double susptime,maxtopovel;
-	double gctime, xtime;
-	double volume1,volume2,volume3;
-	double Qi,Qo;
-	double dtsed,sedtime,slidecells;
-	double bedmax,bedmin;
-	double field4time;
-    double printtime, sedprinttime,fsfprinttime,probeprinttime,stateprinttime,exportprinttime;
-
-	// solver watch
-	int uiter,viter,witer;
-	int kiniter,epsiter;
-	int poissoniter, laplaceiter;
-	int lsmiter;
-	int suspiter,topoiter;
-	int heatiter,concentrationiter;
-	int printcount, printcount_sixdof;
-	double utime,vtime,wtime;
-	double kintime,epstime;
-	double poissontime, laplacetime;
-	double lsmtime,heattime,concentrationtime;
-	double printouttime;
-	double phimean,phiout,phiin;
-	double pcnorm,ucnorm,vcnorm,wcnorm;
-    double alpha;
-
-	// maxcoor
-	double xcoormax,xcoormin,ycoormax,ycoormin,zcoormax,zcoormin;
-	double maxlength;
-
-
-	// wave coefficients
-	double wT,wV,wH,wA,wL,wd,ww,wk;
-	double wHs,wAs,wwp,ww_s,ww_e,wTp;
-	int wN;
-    double wts,wte;
-	
-	// 6DOF
+    
+    // 6DOF
 	double ufb,vfb,wfb;
 	double pfb,qfb,rfb;
 	double ufbi,vfbi,wfbi;
@@ -562,7 +504,8 @@ public:
 	double phi_fb,theta_fb,psi_fb;
 	double ufbmax, vfbmax, wfbmax;
 	//Eigen::Matrix3d quatRotMat;	
-    int X10,X12,X13,X14,X15,X18,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X31,X32,X33,X34,X38,X40,X50,X110,X120,X131,X132,X133;
+    int X10,X12,X13,X14,X15,X18,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X31,X32,X33,X34,X38;
+    int X40,X45,X46,X47,X48,X49,X50,X110,X120,X131,X132,X133;
 	int X100,X101,X102,X103,X141,X142,X143,X153,X180,X181,X182,X183,X210,X211;
 	int X310, X311, X312, X313, X314, X315, X320, X321, mooring_count, net_count;
 	double X21_d,X22_m;
@@ -627,6 +570,64 @@ public:
     int Z10,Z11,FSI_count;
     double *Z11_x,*Z11_y,*Z11_z,*Z11_l,*Z11_w,*Z11_t,*Z11_rho,*Z11_e,*Z11_ix,*Z11_iy,*Z11_iz,*Z11_nu,*Z11_n;
     double Z12_ckx,Z12_cky,Z12_ckz,Z12_cdx,Z12_cdy,Z12_cdz;
+	
+	// Grid
+	int Y40,Y50,Y60,Y71,Y72,Y73,Y74;
+
+    // Test options
+    int Y1,Y2,Y3,Y4,Y5;
+
+	// time + iterations
+	int inneriter,count,solveriter,preconiter,count_statestart;
+    int solver_status;
+    int sediter;
+    double final_res;
+	double dt,dt_old,simtime,viscmax;
+	double mindt,maxdt;
+	double umax,vmax,wmax,epsmax,kinmax,pressmin,pressmax;
+	double presstime,veltime,reinitime,turbtime,plstime,itertime;
+	double sedsimtime,sedwavetime;
+	double wavetime;
+	double meantime,totaltime;
+	double gcmeantime,gctotaltime;
+	double Xmeantime,Xtotaltime;
+	double maxbed, minbed;
+	double susptime,maxtopovel;
+	double gctime, xtime;
+	double volume1,volume2,volume3;
+	double Qi,Qo;
+	double dtsed,sedtime,slidecells;
+	double bedmax,bedmin;
+	double field4time;
+    double printtime, sedprinttime,fsfprinttime,probeprinttime,stateprinttime,exportprinttime;
+
+	// solver watch
+	int uiter,viter,witer;
+	int kiniter,epsiter;
+	int poissoniter, laplaceiter;
+	int lsmiter;
+	int suspiter,topoiter;
+	int heatiter,concentrationiter;
+	int printcount, printcount_sixdof;
+	double utime,vtime,wtime;
+	double kintime,epstime;
+	double poissontime, laplacetime;
+	double lsmtime,heattime,concentrationtime;
+	double printouttime;
+	double phimean,phiout,phiin;
+	double pcnorm,ucnorm,vcnorm,wcnorm;
+    double alpha;
+
+	// maxcoor
+	double xcoormax,xcoormin,ycoormax,ycoormin,zcoormax,zcoormin;
+	double maxlength;
+
+
+	// wave coefficients
+	double wT,wV,wH,wA,wL,wd,ww,wk;
+	double wHs,wAs,wwp,ww_s,ww_e,wTp;
+	int wN;
+    double wts,wte;
 
 
 

@@ -1275,7 +1275,7 @@ void lexer::ctrlrecv()
 	X43 = dctrl[dd];
 	dd++;
 	X44 = dctrl[dd];
-	dd++;
+	dd++;    X45 = ictrl[ii];	ii++;    X46 = ictrl[ii];	ii++;    X47 = ictrl[ii];	ii++;    X48 = ictrl[ii];	ii++;    X49 = ictrl[ii];	ii++;
     X50 = ictrl[ii];
 	ii++;
 	X100 = ictrl[ii];
