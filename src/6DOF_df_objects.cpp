@@ -93,7 +93,7 @@ void sixdof_df_object::objects_create(lexer *p, fdm *a, ghostcell *pgc)
 	cout<<"Surface triangles: "<<tricount<<endl;
     
     // Order Triangles for correct inside/outside orientation
-    //triangle_switch_ray(p,a,pgc);
+    triangle_switch_ray(p,a,pgc);
 	
 	// Refine triangles
 	geometry_refinement(p,pgc);	
