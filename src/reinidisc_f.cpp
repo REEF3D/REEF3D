@@ -146,7 +146,7 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *si
     sign= 1.0;
     
     double diffterm = 0.0;
-    double visc = 0.001;
+    double visc = 0.0005;
     if(a->fb(i,j,k)<-0.5*p->DXM && p->X47==1)
     {
         diffterm =   visc*((b.V[Ip1_J_K] - 2.0*b.V[I_J_K] + b.V[Im1_J_K])/(p->DXN[IP]*p->DXN[IP])
