@@ -59,6 +59,10 @@ void potential_f::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
     pgc->start1(p,a->u,10);
 	pgc->start2(p,a->v,11);
 	pgc->start3(p,a->w,12);
+    
+    LOOP
+    if(p->X10==1 && p->X13==2 && a->fb(i,j,k)<0.0)
+    psi(i,j,k) = 0.0;
 
     int itermem=p->N46;
     p->N46=2500;
@@ -105,6 +109,11 @@ void potential_f::ucalc(lexer *p, fdm *a, field &phi)
 	if(0.5*(a->phi(i,j,k)+a->phi(i+1,j,k))<-p->F45*p->DXP[IP])
 	a->u(i,j,k)=0.0;
     
+    if(p->X10==1 && p->X13==2)
+	ULOOP
+    if(a->fb(i+1,j,k)<0 || a->fb(i,j,k)<0)
+	a->u(i,j,k)=0.0;
+    
     if(p->S10==2)
 	ULOOP
 	if(0.5*(a->topo(i,j,k)+a->topo(i+1,j,k))<-p->F45*p->DXP[IP])
@@ -121,6 +130,11 @@ void potential_f::vcalc(lexer *p, fdm *a, field &phi)
 	if(a->phi(i,j,k)<-p->F45*p->DYP[JP])
 	a->v(i,j,k)=0.0;
     
+    if(p->X10==1 && p->X13==2)
+	VLOOP
+    if(a->fb(i,j+1,k)<0 || a->fb(i,j,k)<0)
+	a->v(i,j,k)=0.0;
+    
     if(p->S10==2)
 	VLOOP
 	if(0.5*(a->topo(i,j,k)+a->topo(i,j+1,k))<-p->F45*p->DYP[JP])
@@ -135,6 +149,11 @@ void potential_f::wcalc(lexer *p, fdm *a, field &phi)
     if(p->I21==1)
 	WLOOP
 	if(a->phi(i,j,k)<-p->F45*p->DZP[KP])
+	a->w(i,j,k)=0.0;
+    
+    if(p->X10==1 && p->X13==2)
+	WLOOP
+    if(a->fb(i,j,k+1)<0 || a->fb(i,j,k)<0)
 	a->w(i,j,k)=0.0;
     
     if(p->S10==2)
@@ -160,7 +179,6 @@ void potential_f::laplace(lexer *p, fdm *a, field &phi)
     {
     a->M.p[n]  =  1.0;
 
-
         a->M.n[n] = 0.0;
         a->M.s[n] = 0.0;
 
@@ -179,21 +197,24 @@ void potential_f::laplace(lexer *p, fdm *a, field &phi)
 	n=0;
     LOOP
 	{
-	a->M.p[n]  =  1.0/(p->DXP[IP]*p->DXN[IP]) + 1.0/(p->DXP[IM1]*p->DXN[IP])
-                + 1.0/(p->DYP[JP]*p->DYN[JP]) + 1.0/(p->DYP[JM1]*p->DYN[JP])
-                + 1.0/(p->DZP[KP]*p->DZN[KP]) + 1.0/(p->DZP[KM1]*p->DZN[KP]);
+    
+        if(p->X10==0 || p->X13!=2 || a->fb(i,j,k)>0.0)
+        {
+        a->M.p[n]  =  1.0/(p->DXP[IP]*p->DXN[IP]) + 1.0/(p->DXP[IM1]*p->DXN[IP])
+                    + 1.0/(p->DYP[JP]*p->DYN[JP]) + 1.0/(p->DYP[JM1]*p->DYN[JP])
+                    + 1.0/(p->DZP[KP]*p->DZN[KP]) + 1.0/(p->DZP[KM1]*p->DZN[KP]);
 
-   	a->M.n[n] = -1.0/(p->DXP[IP]*p->DXN[IP]);
-	a->M.s[n] = -1.0/(p->DXP[IM1]*p->DXN[IP]);
+        a->M.n[n] = -1.0/(p->DXP[IP]*p->DXN[IP]);
+        a->M.s[n] = -1.0/(p->DXP[IM1]*p->DXN[IP]);
 
-	a->M.w[n] = -1.0/(p->DYP[JP]*p->DYN[JP]);
-	a->M.e[n] = -1.0/(p->DYP[JM1]*p->DYN[JP]);
+        a->M.w[n] = -1.0/(p->DYP[JP]*p->DYN[JP]);
+        a->M.e[n] = -1.0/(p->DYP[JM1]*p->DYN[JP]);
 
-	a->M.t[n] = -1.0/(p->DZP[KP]*p->DZN[KP]);
-	a->M.b[n] = -1.0/(p->DZP[KM1]*p->DZN[KP]);
-	
-	a->rhsvec.V[n] = 0.0;
-	
+        a->M.t[n] = -1.0/(p->DZP[KP]*p->DZN[KP]);
+        a->M.b[n] = -1.0/(p->DZP[KM1]*p->DZN[KP]);
+        
+        a->rhsvec.V[n] = 0.0;
+        }
 	++n;
 	}
     
@@ -201,7 +222,7 @@ void potential_f::laplace(lexer *p, fdm *a, field &phi)
     n=0;
 	LOOP
 	{
-		if(p->flag4[Im1JK]<0 && bc(i-1,j,k)==0)
+		if((p->flag4[Im1JK]<0 && bc(i-1,j,k)==0) || (p->X10==1 && p->X13==2 && a->fb(i-1,j,k)<0.0))
 		{
 		a->M.p[n] += a->M.s[n];
 		a->M.s[n] = 0.0;
@@ -214,7 +235,7 @@ void potential_f::laplace(lexer *p, fdm *a, field &phi)
 		a->M.s[n] = 0.0;
 		}
 		
-		if(p->flag4[Ip1JK]<0 && bc(i+1,j,k)==0)
+		if((p->flag4[Ip1JK]<0 && bc(i+1,j,k)==0) || (p->X10==1 && p->X13==2 && a->fb(i+1,j,k)<0.0))
 		{
 		a->M.p[n] += a->M.n[n];
 		a->M.n[n] = 0.0;
@@ -227,25 +248,25 @@ void potential_f::laplace(lexer *p, fdm *a, field &phi)
 		a->M.n[n] = 0.0;
 		}
 		
-		if(p->flag4[IJm1K]<0)
+		if(p->flag4[IJm1K]<0 || (p->X10==1 && p->X13==2 && a->fb(i,j-1,k)<0.0))
 		{
 		a->M.p[n] += a->M.e[n];
 		a->M.e[n] = 0.0;
 		}
 		
-		if(p->flag4[IJp1K]<0)
+		if(p->flag4[IJp1K]<0 || (p->X10==1 && p->X13==2 && a->fb(i,j+1,k)<0.0))
 		{
 		a->M.p[n] += a->M.w[n];
 		a->M.w[n] = 0.0;
 		}
 		
-		if(p->flag4[IJKm1]<0)
+		if(p->flag4[IJKm1]<0 || (p->X10==1 && p->X13==2 && a->fb(i,j,k-1)<0.0))
 		{
 		a->M.p[n] += a->M.b[n];
 		a->M.b[n] = 0.0;
 		}
 		
-		if(p->flag4[IJKp1]<0)
+		if(p->flag4[IJKp1]<0 || (p->X10==1 && p->X13==2 && a->fb(i,j,k+1)<0.0))
 		{
 		a->M.p[n] += a->M.t[n];
 		a->M.t[n] = 0.0;
