@@ -36,6 +36,23 @@ bc_ikomega::~bc_ikomega()
 void bc_ikomega::bckeps_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
 {
 	int q;
+    
+    // set to zero inside direct forcing body
+    if(p->X10==1 && p->X13==2)
+    {
+    
+        n=0;
+        LOOP
+        {
+            if(a->fb(i,j,k)<0.0)
+            {
+            kin(i,j,k) =0.0;
+            eps(i,j,k)=0.0;
+            }
+
+        }
+    }
+    
 
 	if(gcval==20)
 	{
@@ -215,6 +232,9 @@ void bc_ikomega::wall_law_omega(fdm* a,lexer* p,field& kin,field& eps,int ii,int
 	i=ii;
 	j=jj;
 	k=kk;
+    
+    a->test(i,j,k) = 1.0;
+    
 	dist=0.5*p->DXM;
 
 	eps_star = pow((kin(i,j,k)>(0.0)?(kin(i,j,k)):(0.0)),0.5) / (0.4*dist*pow(p->cmu, 0.25));

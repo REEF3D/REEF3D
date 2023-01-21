@@ -37,6 +37,8 @@ void rans_io::ini(lexer* p, fdm*a, ghostcell* pgc)
 	if(p->B90>0)
 	uref=0.01;
 	
+    if(fabs(uref)<1.0e-6)
+    uref=0.01;
 
     plain_wallfunc(p,a,pgc);
 }

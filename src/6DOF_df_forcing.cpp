@@ -127,7 +127,7 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
         if(fabs(a->fb(i,j,k))<psi)
         dirac = (0.5/psi)*(1.0 + cos((PI*(a->fb(i,j,k)))/psi));
         
-        a->fbh5(i,j,k) = a->test(i,j,k) =  1.0-MIN(dirac,1.0);
+        a->fbh5(i,j,k) = 1.0-MIN(dirac,1.0);
     }
     
     }
@@ -275,7 +275,6 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
         H = Hsolidface(p,a,0,0,0);
 		Ht = Hsolidface_t(p,a,0,0,0);
         a->fbh4(i,j,k) = min(a->fbh4(i,j,k) + H, 1.0); 
-        a->test(i,j,k) = a->fbh4(i,j,k);
     }
     
     //double psi;
@@ -292,7 +291,7 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
         if(fabs(a->fb(i,j,k))<psi)
         dirac = (0.5/psi)*(1.0 + cos((PI*(a->fb(i,j,k)))/psi));
         
-        a->fbh5(i,j,k) = a->test(i,j,k) =  1.0-MIN(dirac,1.0);
+        a->fbh5(i,j,k) =   1.0-MIN(dirac,1.0);
     }
 	
 	}
