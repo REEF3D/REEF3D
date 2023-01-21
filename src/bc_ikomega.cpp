@@ -149,23 +149,24 @@ void bc_ikomega::bckeps_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
     
         n=0;
         LOOP
-        if(a->fb(i,j,k)<0.0)
         {
-        a->M.p[n]  =   1.0;
+            if(a->fb(i,j,k)<0.0)
+            {
+            a->M.p[n]  =   1.0;
 
 
-        a->M.n[n] = 0.0;
-        a->M.s[n] = 0.0;
+            a->M.n[n] = 0.0;
+            a->M.s[n] = 0.0;
 
-        a->M.w[n] = 0.0;
-        a->M.e[n] = 0.0;
+            a->M.w[n] = 0.0;
+            a->M.e[n] = 0.0;
 
-        a->M.t[n] = 0.0;
-        a->M.b[n] = 0.0;
-        
-        a->rhsvec.V[n] = 0.0;
-        
-        ++n;
+            a->M.t[n] = 0.0;
+            a->M.b[n] = 0.0;
+            
+            a->rhsvec.V[n] = 0.0;
+            }
+            ++n;
         }
     }
 }
