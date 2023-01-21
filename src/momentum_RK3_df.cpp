@@ -96,7 +96,8 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
     for (int loop=0; loop<3; loop++)
     {
         if (loop == 2) final = true;
-
+        
+    // -------------------
         // U
         starttime=pgc->timer();
 
@@ -126,7 +127,8 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         Cu(i,j,k)=a->F(i,j,k);
 
         p->utime=pgc->timer()-starttime;
-
+        
+    // -------------------
         // V
         starttime=pgc->timer();
 
@@ -156,7 +158,7 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
 
         p->vtime=pgc->timer()-starttime;
 
-
+    // -------------------
         // W
         starttime=pgc->timer();
 
@@ -190,7 +192,8 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         pgc->start2(p,vrk,gcval_v);
         pgc->start3(p,wrk,gcval_w);
 
-
+        
+    // -------------------
         // Forcing
         ULOOP
         fx(i,j,k) = 0.0;
@@ -212,8 +215,10 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
  
         ULOOP
         a->u(i,j,k) = urk(i,j,k) + 2.0*alpha(loop)*p->dt*CPOR1*fx(i,j,k);
+        
         VLOOP
         a->v(i,j,k) = vrk(i,j,k) + 2.0*alpha(loop)*p->dt*CPOR2*fy(i,j,k);
+        
         WLOOP
         a->w(i,j,k) = wrk(i,j,k) + 2.0*alpha(loop)*p->dt*CPOR3*fz(i,j,k);
 

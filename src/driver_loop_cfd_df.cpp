@@ -90,9 +90,9 @@ void driver::loop_cfd_df(fdm* a)
         psed->start_cfd(p,a,pgc,pflow,preto,psolv);
 
         pflow->u_relax(p,a,pgc,a->u);
-		pflow->v_relax(p,a,pgc,a->v);
-		pflow->w_relax(p,a,pgc,a->w);
-		pfsf->update(p,a,pgc,a->phi);
+        pflow->v_relax(p,a,pgc,a->v);
+        pflow->w_relax(p,a,pgc,a->w);
+        pfsf->update(p,a,pgc,a->phi);
 	
         // Momentum and 6DOF motion
         pmom_df->starti(p,a,pgc,p6dof_df,pvrans,pnet,pfsi);
