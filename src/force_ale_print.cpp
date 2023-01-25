@@ -32,7 +32,10 @@ void force_ale::print_force_ale(lexer* p, fdm_fnpf *c, ghostcell *pgc)
     cout<<"Fx"<<ID + 1<<": "<<Fx<<" Fy"<<ID + 1<<": "<<Fy<<endl;
     
     // write to force file
-    fout<<p->count<<" \t "<<setprecision(9)<<p->simtime<<" \t "<<Fx<<" \t "<<Fy<<endl;
+    if(p->P87==0)
+        fout<<p->count<<" \t "<<setprecision(9)<<p->simtime<<" \t "<<Fx<<" \t "<<Fy<<endl;
+    if(p->P87==1)
+        fout<<p->count<<","<<setprecision(9)<<p->simtime<<","<<Fx<<","<<Fy<<endl;
 }
 
 void force_ale::print_ini(lexer* p, fdm_fnpf *c, ghostcell *pgc)
@@ -45,11 +48,23 @@ void force_ale::print_ini(lexer* p, fdm_fnpf *c, ghostcell *pgc)
     {
         // open force_ale file
         if(p->P14==0)
-        sprintf(name,"REEF3D_ALE_Force-%i.dat",ID+1);
+        {
+            if(p->P87==0)
+                sprintf(name,"REEF3D_ALE_Force-%i.dat",ID+1);
+            if(p->P87==1)
+                sprintf(name,"REEF3D_ALE_Force-%i.csv",ID+1);
+        }
         
         if(p->P14==1)
-        sprintf(name,"./REEF3D_FNPF_Force_ALE/REEF3D_ALE_Force-%i.dat",ID+1);
+        {
+            if(p->P87==0)
+                sprintf(name,"./REEF3D_FNPF_Force_ALE/REEF3D_ALE_Force-%i.dat",ID+1);
+            if(p->P87==1)
+                sprintf(name,"./REEF3D_FNPF_Force_ALE/REEF3D_ALE_Force-%i.csv",ID+1);
+        }
         
+        if(p->P87==0)
+        {
         fout.open(name);
 
         fout<<"x \t y \t Cd \t Cm"<<endl;
@@ -60,5 +75,12 @@ void force_ale::print_ini(lexer* p, fdm_fnpf *c, ghostcell *pgc)
         fout<<"it \t time \t Fx \t Fy ";
 
         fout<<endl;
+        }
+        
+        if(p->P87==1)
+        {
+            fout<<"it,time,Fx,Fy";
+            fout<<endl;
+        }
 	}
 }
