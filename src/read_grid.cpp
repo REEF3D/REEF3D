@@ -311,8 +311,13 @@ void lexer::read_grid()
     assign_margin();
 	
 	Iarray(flag4,imax*jmax*kmax);
+    
+    if(solidread==1)
 	Darray(flag_solid,imax*jmax*kmax);
+    
+    if(toporead==1)
     Darray(flag_topo,imax*jmax*kmax);
+    
 	Iarray(mgflag,imax*jmax*kmax);
 	Darray(solidbed,imax*jmax);
     Darray(topobed,imax*jmax);
