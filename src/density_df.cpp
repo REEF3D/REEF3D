@@ -26,11 +26,6 @@ Author: Hans Bihs
 
 density_df::density_df(lexer* p) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
 {
-        if(p->j_dir==0)        
-        psi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
-        
-        if(p->j_dir==1)
-        psi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
 }
 
 density_df::~density_df()
@@ -51,14 +46,14 @@ double density_df::roface(lexer *p, fdm *a, int aa, int bb, int cc)
     
     phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
 
-    if(phival>factor*psi)
+    if(phival>factor*p->psi)
     H=1.0;
 
-    if(phival<-factor*psi)
+    if(phival<-factor*p->psi)
     H=0.0;
 
-    if(fabs(phival)<=factor*psi)
-    H=0.5*(1.0 + phival/(factor*psi) + (1.0/PI)*sin((PI*phival)/(factor*psi)));
+    if(fabs(phival)<=factor*p->psi)
+    H=0.5*(1.0 + phival/(factor*p->psi) + (1.0/PI)*sin((PI*phival)/(factor*p->psi)));
     
     if(p->X15==1)
     {    

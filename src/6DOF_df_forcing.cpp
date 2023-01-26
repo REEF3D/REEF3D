@@ -316,6 +316,12 @@ double sixdof_df_object::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
     {
         psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
     }
+    
+        if(p->j_dir==0)        
+        psi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
+        
+        if(p->j_dir==1)
+        psi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
 
     // Construct solid heaviside function
     phival_fb = 0.5*(a->fb(i,j,k) + a->fb(i+aa,j+bb,k+cc));

@@ -147,6 +147,7 @@ void driver::driver_ini_cfd()
         preini->start(a,p, a->phi, pgc, pflow);
         pfsf->update(p,a,pgc,a->phi);        
         pini->iniphi_surfarea(p,a,pgc);
+        pini->inipsi(p,a,pgc);
     }
 
 	ppart->setup(p,a,pgc);

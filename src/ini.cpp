@@ -730,5 +730,5 @@ void lexer::ini_default()
 	poissontime=0.0;
 	pressval=0;
     alpha=0.0;
-    solidread=toporead=0;
+    solidread=toporead=porousread=0;
 }

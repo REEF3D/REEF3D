@@ -48,12 +48,6 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
     iocheck=0;
 	iter=p->count;
     
-    if(p->j_dir==0)        
-    epsi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
-        
-    if(p->j_dir==1)
-    epsi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
-    
 	LOOP
 	{
         factor = 1.0;
@@ -66,14 +60,14 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
         if(a->fb(i,j,k) <- 0.5*(1.0/3.0)*(p->DRM+p->DSM+p->DTM))
         factor = 2.0;
     
-		if(a->phi(i,j,k)>(epsi*factor))
+		if(a->phi(i,j,k)>(p->psi*factor))
 		H=1.0;
 
-		if(a->phi(i,j,k)<-(epsi*factor))
+		if(a->phi(i,j,k)<-(p->psi*factor))
 		H=0.0;
 
-		if(fabs(a->phi(i,j,k))<=(epsi*factor))
-		H=0.5*(1.0 + a->phi(i,j,k)/(epsi*factor) + (1.0/PI)*sin((PI*a->phi(i,j,k))/(epsi*factor)));
+		if(fabs(a->phi(i,j,k))<=(p->psi*factor))
+		H=0.5*(1.0 + a->phi(i,j,k)/(p->psi*factor) + (1.0/PI)*sin((PI*a->phi(i,j,k))/(p->psi*factor)));
 
         // Construct floating body heaviside function if used
         if (p->X10==1 && p->X13==2)

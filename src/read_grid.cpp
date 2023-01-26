@@ -312,10 +312,10 @@ void lexer::read_grid()
 	
 	Iarray(flag4,imax*jmax*kmax);
     
-    if(solidread==1)
+    //if(solidread==1)
 	Darray(flag_solid,imax*jmax*kmax);
     
-    if(toporead==1)
+    //if(toporead==1)
     Darray(flag_topo,imax*jmax*kmax);
     
 	Iarray(mgflag,imax*jmax*kmax);
@@ -500,6 +500,9 @@ void lexer::read_grid()
     grid.read((char*)&ddn, sizeof (double));
     flag_topo[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin]=ddn;
     }
+    
+// Porous Structure
+    
 	
 //  GC Surfaces
     gcin_count=0;

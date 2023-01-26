@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,36 +20,41 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"density.h"
-#include"increment.h"
+#include"initialize.h"
+#include"fdm.h"
+#include"lexer.h"
+#include"ghostcell.h"
 
-class fdm;
-class lexer;
-
-#ifndef DENSITY_F_H_
-#define DENSITY_F_H_
-
-
-using namespace std;
-
-class density_f : public density, virtual public increment
+void initialize::inipsi(lexer* p, fdm *a, ghostcell* pgc)
 {
-
-public:
-    density_f(lexer*);
-	virtual ~density_f();
-
-	virtual double roface(lexer*,fdm*,int,int,int);
-	
-	double H,H_fb,roval,phival;
-	int ii,jj,kk;
-	const double epsi,eps;
-    double r,s;
-
-};
-
-#endif
-
-
-
-
+    double psim;
+    int count;
+    
+    if(p->j_dir==0)        
+    p->psi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
+        
+    if(p->j_dir==1)
+    p->psi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
+    
+    if(p->B90>0)
+    {
+    // psi
+        count=0;
+        psim=0.0;
+        LOOP
+        if(fabs(a->phi(i,j,k))<1.0*p->DTM)
+        {
+        psim += p->DZN[KP];
+        ++count;
+        }
+        
+        count=pgc->globalisum(count);
+        psim=pgc->globalsum(psim);
+        
+        p->psi = psim/double(count);
+        
+    }
+    
+    cout<<p->mpirank<<" PSI: "<<p->psi<<" DTM: "<<p->DTM<<endl;
+    
+}

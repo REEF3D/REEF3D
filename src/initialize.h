@@ -48,6 +48,7 @@ public:
 	void inivof_io(fdm*, lexer*,ghostcell*);
 	void iniphi_surfarea(lexer*,fdm*,ghostcell*);
 	void stateini(lexer*,fdm*,ghostcell*,turbulence*,sediment*);
+    void inipsi(lexer*,fdm*,ghostcell*);
 
 private:
 	void inifdm(fdm*, lexer*, ghostcell*);

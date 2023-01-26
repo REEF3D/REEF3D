@@ -93,7 +93,10 @@ void potential_f::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
 	cout<<"lapltime: "<<p->laplacetime<<"  lapiter: "<<p->laplaceiter<<endl<<endl;
 
     p->N46=itermem;
-
+    
+    // smoothen
+    if(p->X10==1 && p->X13==2)
+    smoothen(p,a,pgc);
     
     LOOP
     psi(i,j,k) = 0.0;
@@ -345,5 +348,74 @@ void potential_f::ini_bc(lexer *p, fdm *a, ghostcell *pgc)
  
         }
     }
+    
+}
+
+void potential_f::smoothen(lexer *p, fdm *a, ghostcell* pgc)
+{
+    int outer_iter = 150;
+    int inner_iter = 2;
+    
+
+    for(int qn=0;qn<outer_iter;++qn)
+    {
+    ULOOP
+    a->u(i,j,k) = 0.5*a->u(i,j,k) + (1.0/12.0)*(a->u(i-1,j,k) + a->u(i+1,j,k) + a->u(i,j-1,k) + a->u(i,j+1,k) + a->u(i,j,k-1) + a->u(i,j,k+1));
+    
+    pgc->start1(p,a->u,10);
+    }
+    
+    for(int qn=0;qn<outer_iter;++qn)
+    {
+    VLOOP
+    a->v(i,j,k) = 0.5*a->v(i,j,k) + (1.0/12.0)*(a->v(i-1,j,k) + a->v(i+1,j,k) + a->v(i,j-1,k) + a->v(i,j+1,k) + a->v(i,j,k-1) + a->v(i,j,k+1));
+    
+    pgc->start2(p,a->v,11);
+    }
+    
+    for(int qn=0;qn<outer_iter;++qn)
+    {
+    WLOOP
+    a->w(i,j,k) = 0.5*a->w(i,j,k) + (1.0/12.0)*(a->w(i-1,j,k) + a->w(i+1,j,k) + a->w(i,j-1,k) + a->w(i,j+1,k) + a->w(i,j,k-1) + a->w(i,j,k+1));
+    
+    pgc->start3(p,a->w,12);
+    }
+    
+    
+    /*field1 h1(p);
+    field2 h2(p);
+    field3 h3(p);
+    
+    
+    
+    for(int qn=0;qn<outer_iter;++qn)
+	{
+		ULOOP
+		h1(i,j,k) = f(i,j,k);
+		
+		pgc->gc_start1(p,h1,1);
+	
+        // predictor
+		ULOOP
+		f(i,j) = 0.5*h(i,j) + 0.125*(h(i-1,j) + h(i+1,j) + h(i,j-1) + h(i,j+1));
+		
+        // corrector
+		for(int qqn=0;qqn<inner_iter;++qqn)
+		{
+            ULOOP
+            if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
+            dh(i,j) = h(i,j) - f(i,j);
+            
+            
+            ULOOP
+            if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
+            dh(i,j) = 0.5*dh(i,j) + 0.125*(dh(i-1,j) + dh(i+1,j) + dh(i,j-1) + dh(i,j+1));
+            
+            ULOOP
+            if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
+            f(i,j) += dh(i,j);
+		}
+    }*/
+    
     
 }

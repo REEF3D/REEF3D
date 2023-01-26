@@ -1897,6 +1897,7 @@
         <File Name="gradient_dslweno.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Initialize">
+        <File Name="ini_psi.cpp"/>
         <File Name="ini_vof_plic.cpp"/>
         <File Name="ini_droplet.cpp"/>
         <File Name="ini_hydrostatic.cpp"/>

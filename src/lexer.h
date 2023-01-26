@@ -117,7 +117,7 @@ public:
 	int i_dir,j_dir,k_dir;
 	double x_dir,y_dir,z_dir;
     int gcbextra;
-    int solidread,toporead;
+    int solidread,toporead,porousread;
 
 
     //GHOSTCELL
@@ -628,7 +628,9 @@ public:
 	double wHs,wAs,wwp,ww_s,ww_e,wTp;
 	int wN;
     double wts,wte;
-
+    
+    // free surface
+    double psi;
 
 
 	int cctt;
