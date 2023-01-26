@@ -214,13 +214,25 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         pfsi->forcing(p,a,pgc,2.0*alpha(loop),urk,vrk,wrk,fx,fy,fz,final);
  
         ULOOP
+        {
         a->u(i,j,k) = urk(i,j,k) + 2.0*alpha(loop)*p->dt*CPOR1*fx(i,j,k);
         
+        a->maxF = MAX(fabs(2.0*alpha(loop)*CPOR1*fx(i,j,k)), a->maxF);
+        }
+        
         VLOOP
+        {
         a->v(i,j,k) = vrk(i,j,k) + 2.0*alpha(loop)*p->dt*CPOR2*fy(i,j,k);
         
+        a->maxG = MAX(fabs(2.0*alpha(loop)*CPOR2*fy(i,j,k)), a->maxG);
+        }
+        
         WLOOP
+        {
         a->w(i,j,k) = wrk(i,j,k) + 2.0*alpha(loop)*p->dt*CPOR3*fz(i,j,k);
+        
+        a->maxH = MAX(fabs(2.0*alpha(loop)*CPOR3*fz(i,j,k)), a->maxH);
+        }
 
         pgc->start1(p,a->u,gcval_u);
         pgc->start2(p,a->v,gcval_v);

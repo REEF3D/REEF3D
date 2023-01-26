@@ -51,7 +51,7 @@ void initialize::inipsi(lexer* p, fdm *a, ghostcell* pgc)
         count=pgc->globalisum(count);
         psim=pgc->globalsum(psim);
         
-        p->psi = psim/double(count);
+        p->psi = p->F45*psim/double(count);
         
     }
     

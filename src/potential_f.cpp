@@ -353,7 +353,7 @@ void potential_f::ini_bc(lexer *p, fdm *a, ghostcell *pgc)
 
 void potential_f::smoothen(lexer *p, fdm *a, ghostcell* pgc)
 {
-    int outer_iter = 150;
+    int outer_iter = 10;
     int inner_iter = 2;
     
 
