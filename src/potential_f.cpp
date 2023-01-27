@@ -95,8 +95,8 @@ void potential_f::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
     p->N46=itermem;
     
     // smoothen
-    if(p->X10==1 && p->X13==2)
-    smoothen(p,a,pgc);
+    //if(p->X10==1 && p->X13==2)
+    //smoothen(p,a,pgc);
     
     LOOP
     psi(i,j,k) = 0.0;
