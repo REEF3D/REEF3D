@@ -71,6 +71,8 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 	p->umax=MAX(p->umax,fabs(a->u(i,j,k)));
 
 	p->umax=pgc->globalmax(p->umax);
+    
+    
 
 
 	VLOOP
@@ -98,6 +100,11 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 	p->wmax=MAX(p->wmax,p->wfbmax);
 
     velmax=max(p->umax,p->vmax,p->wmax);
+    
+    // rhs globalmax
+    a->maxF=pgc->globalmax(a->maxF);
+    a->maxG=pgc->globalmax(a->maxG);
+    a->maxH=pgc->globalmax(a->maxH);
 
     // maximum viscosity
 	LOOP
