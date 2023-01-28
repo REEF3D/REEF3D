@@ -35,13 +35,23 @@ Author: Hans Bihs
 #include"nhflow_fsf.h"
 
 nhflow_momentum_RK3::nhflow_momentum_RK3(lexer *p, fdm_nhf *d, ghostcell *pgc)
-                                                    :bcmom(p)
+                                                    :bcmom(p), etark1(p), etark2(p)
 {
 	gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;
-
     
+    p->Darray(URK1,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(VRK1,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(WRK1,p->imax*p->jmax*(p->kmax+2));
+    
+    p->Darray(URK2,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(VRK2,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(WRK2,p->imax*p->jmax*(p->kmax+2));
+    
+    p->Darray(UDIFF,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(VDIFF,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(WDIFF,p->imax*p->jmax*(p->kmax+2));
 }
 
 nhflow_momentum_RK3::~nhflow_momentum_RK3()
@@ -50,20 +60,24 @@ nhflow_momentum_RK3::~nhflow_momentum_RK3()
 
 void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, convection *pconvec, diffusion *pdiff, 
                                      nhflow_pressure *ppress, solver *psolv, nhflow *pnhf, nhflow_fsf *pfsf)
-{	/*
-    pflow->discharge(p,a,pgc);
-    pflow->inflow(p,a,pgc,a->u,a->v,a->w);
-	pflow->rkinflow(p,a,pgc,urk1,vrk1,wrk1);
-	pflow->rkinflow(p,a,pgc,urk2,vrk2,wrk2);
+{	
+    pflow->discharge_nhflow(p,d,pgc);
+    pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W);
+    pflow->rkinflow_nhflow(p,d,pgc,URK1,VRK1,WRK1);
+    pflow->rkinflow_nhflow(p,d,pgc,URK2,VRK2,WRK2);
+    
+    
+    
 		
 //Step 1
 //--------------------------------------------------------
 
-    pnhfsf->step1(p, a, pgc, pflow, a->u, a->v, a->w, etark1, etark2, 1.0);
+    pfsf->step1(p, d, pgc, pflow, d->U, d->V, d->W, etark1, etark2, 1.0);
+    
 
 	// U
 	starttime=pgc->timer();
-
+/*
 	pturb->isource(p,a);
 	pflow->isource(p,a,pgc,pvrans); 
 	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);

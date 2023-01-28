@@ -64,11 +64,9 @@ void driver::loop_nhflow()
 		cout<<"t/T: "<<p->simtime/p->wTp<<endl;
         }
         
-
         pflow->flowfile(p,a,pgc,pturb);
         pflow->wavegen_precalc(p,pgc);
         
-
         // Free Surface
         pnhfsf->start(p,d,pgc,pflow);
 			

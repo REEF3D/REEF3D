@@ -2732,12 +2732,16 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="ioFlow">
+          <VirtualDirectory Name="SFLOW">
+            <File Name="ioflow_2Dwaterlevel.cpp"/>
+            <File Name="ioflow_2Ddischarge.cpp"/>
+            <File Name="inflow_2Dinflow.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="NHFLOW">
             <File Name="ioflow_nhflow_ini.cpp"/>
             <File Name="ioflow_nhflow_discharge.cpp"/>
             <File Name="ioflow_nhflow_inflow.cpp"/>
           </VirtualDirectory>
-          <File Name="ioflow_2Dwaterlevel.cpp"/>
           <File Name="ioflow_waterlevel.cpp"/>
           <File Name="ioflow_velsource.cpp"/>
           <File Name="ioflow_velini.cpp"/>
@@ -2751,9 +2755,7 @@
           <File Name="ioflow_inflow.cpp"/>
           <File Name="ioflow_f.cpp"/>
           <File Name="ioflow_discharge.cpp"/>
-          <File Name="ioflow_2Ddischarge.cpp"/>
           <File Name="inflow_hydrograph.cpp"/>
-          <File Name="inflow_2Dinflow.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Gravity">
           <File Name="ioflow_gravity.cpp"/>

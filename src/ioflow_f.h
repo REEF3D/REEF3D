@@ -107,6 +107,9 @@ public:
     virtual void jsource2D(lexer*,fdm2D*,ghostcell*);
 	virtual void full_initialize2D(lexer*,fdm2D*,ghostcell*);
     
+    virtual void Qin_nhf(lexer*,fdm_nhf*,ghostcell*);
+	virtual void Qout_nhf(lexer*,fdm_nhf*,ghostcell*);
+    
     virtual double wave_fsf(lexer*,ghostcell*,double);
 	virtual int iozonecheck(lexer*,fdm*);
     

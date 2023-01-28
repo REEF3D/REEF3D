@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_momentum.h"
+#include"slice4.h"
 #include"bcmom.h"
 
 
@@ -41,6 +42,8 @@ public:
     double *UDIFF,*URK1,*URK2;
     double *VDIFF,*VRK1,*VRK2;
     double *WDIFF,*WRK1,*WRK2;
+    
+    slice4 etark1,etark2;
 
 private:
 
