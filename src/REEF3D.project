@@ -2697,16 +2697,16 @@
           <File Name="iowave_active-beach.cpp"/>
           <File Name="iowave.cpp"/>
           <VirtualDirectory Name="SFLOW">
-            <File Name="iowave_2D_waterlevel.cpp"/>
-            <File Name="iowave_2D_wavegen.cpp"/>
-            <File Name="iowave_2D_relax.cpp"/>
-            <File Name="iowave_2D_precalc_ini.cpp"/>
-            <File Name="iowave_2D_precalc.cpp"/>
-            <File Name="iowave_2D_ini.cpp"/>
-            <File Name="iowave_2D_inflow.cpp"/>
-            <File Name="iowave_2D_fullini.cpp"/>
-            <File Name="iowave_2D_discharge.cpp"/>
-            <File Name="iowave_2D_active-beach.cpp"/>
+            <File Name="iowave_sflow_wavegen.cpp"/>
+            <File Name="iowave_sflow_waterlevel.cpp"/>
+            <File Name="iowave_sflow_relax.cpp"/>
+            <File Name="iowave_sflow_precalc_ini.cpp"/>
+            <File Name="iowave_sflow_precalc.cpp"/>
+            <File Name="iowave_sflow_ini.cpp"/>
+            <File Name="iowave_sflow_inflow.cpp"/>
+            <File Name="iowave_sflow_fullini.cpp"/>
+            <File Name="iowave_sflow_discharge.cpp"/>
+            <File Name="iowave_sflow_active-beach.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="NHFLOW">
             <File Name="iowave_nhflow_velsource.cpp"/>
@@ -2740,10 +2740,10 @@
         </VirtualDirectory>
         <VirtualDirectory Name="ioFlow">
           <VirtualDirectory Name="SFLOW">
-            <File Name="ioflow_2Dvelsource.cpp"/>
-            <File Name="ioflow_2Dwaterlevel.cpp"/>
-            <File Name="ioflow_2Ddischarge.cpp"/>
-            <File Name="inflow_2Dinflow.cpp"/>
+            <File Name="ioflow_sflow_waterlevel.cpp"/>
+            <File Name="ioflow_sflow_velsource.cpp"/>
+            <File Name="ioflow_sflow_discharge.cpp"/>
+            <File Name="inflow_sflow_inflow.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="NHFLOW">
             <File Name="ioflow_nhflow_velsource.cpp"/>
