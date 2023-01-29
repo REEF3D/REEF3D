@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -114,7 +114,7 @@ public:
     virtual void ini_nhflow(lexer*,fdm_nhf*,ghostcell*);
     virtual void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*);
     virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
-    virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
+    virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);    virtual void isource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);    virtual void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);    virtual void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
     
     virtual void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*);
 	

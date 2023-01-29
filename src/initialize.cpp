@@ -106,6 +106,7 @@ void initialize::inifdm(fdm* a, lexer* p, ghostcell* pgc)
     {
 	a->fb(i,j,k)=1.0;
     a->topo(i,j,k)=1.0;
+    a->porosity(i,j,k)=1.0;
     }
 
 	pgc->start4(p,a->ro,1);

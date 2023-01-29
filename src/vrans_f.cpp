@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-vrans_f::vrans_f(lexer *p, fdm *a, ghostcell *pgc) : Cval(p->B264), porpart(p), alpha(p), beta(p)
+vrans_f::vrans_f(lexer *p, ghostcell *pgc) : Cval(p->B264), porpart(p), alpha(p), beta(p)
 {
 	//initialize(p,a,pgc);
     

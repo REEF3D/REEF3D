@@ -36,6 +36,7 @@ Author: Hans Bihs
 #include"fluid_update_void.h"
 #include"nhflow.h"
 #include"nhflow_fsf.h"
+#include"vrans.h"
 
 nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm *a, convection *pconvection, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
                                                     turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow,

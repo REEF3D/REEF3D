@@ -254,6 +254,9 @@
           <File Name="nhflow_pressure.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
+          <VirtualDirectory Name="BC">
+            <File Name="nhflow_bcmom.h"/>
+          </VirtualDirectory>
           <File Name="nhflow_momentum.h"/>
           <File Name="nhflow_momentum_RK2.h"/>
           <File Name="nhflow_momentum_RK3.h"/>
@@ -1255,6 +1258,9 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
+          <VirtualDirectory Name="BC">
+            <File Name="nhflow_bcmom.cpp"/>
+          </VirtualDirectory>
           <File Name="nhflow_momentum_RK2.cpp"/>
           <File Name="nhflow_momentum_RK3.cpp"/>
         </VirtualDirectory>
@@ -2703,6 +2709,7 @@
             <File Name="iowave_2D_active-beach.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="NHFLOW">
+            <File Name="iowave_nhflow_velsource.cpp"/>
             <File Name="iowave_nhflow_precalc_decomp_time.cpp"/>
             <File Name="iowave_nhflow_precalc_decomp_space_dirichlet.cpp"/>
             <File Name="iowave_nhflow_precalc_decomp_space.cpp"/>
@@ -2733,11 +2740,13 @@
         </VirtualDirectory>
         <VirtualDirectory Name="ioFlow">
           <VirtualDirectory Name="SFLOW">
+            <File Name="ioflow_2Dvelsource.cpp"/>
             <File Name="ioflow_2Dwaterlevel.cpp"/>
             <File Name="ioflow_2Ddischarge.cpp"/>
             <File Name="inflow_2Dinflow.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="NHFLOW">
+            <File Name="ioflow_nhflow_velsource.cpp"/>
             <File Name="ioflow_nhflow_ini.cpp"/>
             <File Name="ioflow_nhflow_discharge.cpp"/>
             <File Name="ioflow_nhflow_inflow.cpp"/>

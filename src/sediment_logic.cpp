@@ -103,10 +103,10 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
     pslide=new sandslide_pde(p);
     
     if(p->S10!=2 && p->A10==6)
-	pvrans = new vrans_v(p,a,pgc);
+	pvrans = new vrans_v(p,pgc);
 	
 	if(p->S10==2 && p->A10==6)
-	pvrans = new vrans_f(p,a,pgc);
+	pvrans = new vrans_f(p,pgc);
     
     
     if(p->S80==0)

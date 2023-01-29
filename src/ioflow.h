@@ -111,11 +111,15 @@ public:
     
     virtual void ini_ptf(lexer*,fdm*,ghostcell*)=0;
     
+    // nhflow
     virtual void ini_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
     virtual void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
     virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*)=0;
     virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*)=0;
-    
+    virtual void isource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*)=0;
+    virtual void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*)=0;
+    virtual void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*)=0;
+
 
     virtual void ini2D(lexer*,fdm2D*,ghostcell*)=0;
 

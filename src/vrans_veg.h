@@ -35,7 +35,7 @@ using namespace std;
 class vrans_veg : public vrans, public increment
 {
 public:
-	vrans_veg(lexer*, fdm*, ghostcell*);
+	vrans_veg(lexer*, ghostcell*);
 	virtual ~vrans_veg();
 
 	virtual void initialize(lexer*, fdm*, ghostcell*);	

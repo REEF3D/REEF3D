@@ -32,7 +32,9 @@ Author: Hans Bihs
 #include"turbulence.h"
 #include"solver.h"
 #include"nhflow.h"
+#include"nhflow.h"
 #include"nhflow_fsf.h"
+#include"vrans.h"
 
 nhflow_momentum_RK3::nhflow_momentum_RK3(lexer *p, fdm_nhf *d, ghostcell *pgc)
                                                     :bcmom(p), etark1(p), etark2(p)
@@ -59,15 +61,12 @@ nhflow_momentum_RK3::~nhflow_momentum_RK3()
 }
 
 void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, convection *pconvec, diffusion *pdiff, 
-                                     nhflow_pressure *ppress, solver *psolv, nhflow *pnhf, nhflow_fsf *pfsf)
+                                     nhflow_pressure *ppress, solver *psolv, nhflow *pnhf, nhflow_fsf *pfsf, vrans *pvrans)
 {	
     pflow->discharge_nhflow(p,d,pgc);
     pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W);
     pflow->rkinflow_nhflow(p,d,pgc,URK1,VRK1,WRK1);
     pflow->rkinflow_nhflow(p,d,pgc,URK2,VRK2,WRK2);
-    
-    
-    
 		
 //Step 1
 //--------------------------------------------------------
@@ -77,10 +76,10 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 
 	// U
 	starttime=pgc->timer();
-/*
-	pturb->isource(p,a);
-	pflow->isource(p,a,pgc,pvrans); 
-	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
+
+	//pturb->isource(p,a);
+	pflow->isource_nhflow(p,d,pgc,pvrans); 
+/*	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,a,etark1,a->eta);
 	irhs(p,a,pgc,a->u,a->u,a->v,a->w,1.0);
 	pconvec->start(p,a,a->u,1,a->u,a->v,a->w);

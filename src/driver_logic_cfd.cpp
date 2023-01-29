@@ -553,16 +553,16 @@ void driver::logic_cfd()
 
 //VRANS
     if(p->B269==0)
-	pvrans = new vrans_v(p,a,pgc);
+	pvrans = new vrans_v(p,pgc);
 
 	if(p->B269==1)
-	pvrans = new vrans_f(p,a,pgc);
+	pvrans = new vrans_f(p,pgc);
 
     if(p->B269==2)
-	pvrans = new vrans_veg(p,a,pgc);
+	pvrans = new vrans_veg(p,pgc);
 
     if(p->B269==3)
-	pvrans = new vrans_net(p,a,pgc);
+	pvrans = new vrans_net(p,pgc);
 
 //IOFlow
 	if(p->B60==0 && p->B90==0 && p->B180==0)
