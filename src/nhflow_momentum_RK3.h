@@ -36,7 +36,7 @@ public:
 	nhflow_momentum_RK3(lexer*, fdm_nhf*, ghostcell*);
 	virtual ~nhflow_momentum_RK3();
     
-	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, convection*, diffusion*, nhflow_pressure*, solver*, nhflow*, nhflow_fsf*, vrans*);
+	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_convection*, diffusion*, nhflow_pressure*, solver*, nhflow*, nhflow_fsf*, vrans*);
 
 
     double *UDIFF,*URK1,*URK2;
@@ -47,9 +47,9 @@ public:
 
 private:
 
-	void irhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
-	void jrhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
-	void krhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
+	void irhs(lexer*,fdm_nhf*,ghostcell*);
+	void jrhs(lexer*,fdm_nhf*,ghostcell*);
+	void krhs(lexer*,fdm_nhf*,ghostcell*);
 	
 	int gcval_u, gcval_v, gcval_w;
 	double starttime;

@@ -23,7 +23,7 @@ Author: Hans Bihs
 class lexer;
 class fdm_nhf;
 class ghostcell;
-class convection;
+class nhflow_convection;
 class diffusion;
 class nhflow_pressure;
 class turbulence;
@@ -42,7 +42,7 @@ class nhflow_momentum
 {
 public:
 
-	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, convection*, diffusion*, nhflow_pressure*, solver*, nhflow*, nhflow_fsf*, vrans*)=0;
+	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_convection*, diffusion*, nhflow_pressure*, solver*, nhflow*, nhflow_fsf*, vrans*)=0;
 
 };
 
