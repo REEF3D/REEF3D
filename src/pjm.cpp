@@ -115,22 +115,34 @@ void pjm::start(fdm *a,lexer *p, poisson *ppois, solver *psolv, ghostcell *pgc, 
 void pjm::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 {	
 	ULOOP
+    {
 	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((a->press(i+1,j,k)-a->press(i,j,k))
 	/(p->DXP[IP]*pd->roface(p,a,1,0,0)));
+    
+    //a->maxF=MAX(fabs(alpha*CPOR1*PORVAL1*((a->press(i+1,j,k)-a->press(i,j,k))/(p->DXP[IP]*pd->roface(p,a,1,0,0)))),a->maxF);
+    }
 }
 
 void pjm::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
 {	
     VLOOP
+    {
     vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*((a->press(i,j+1,k)-a->press(i,j,k))
     /(p->DYP[JP]*pd->roface(p,a,0,1,0)));
+    
+    //a->maxG=MAX(fabs(alpha*CPOR2*PORVAL2*((a->press(i,j+1,k)-a->press(i,j,k))/(p->DYP[JP]*pd->roface(p,a,0,1,0)))),a->maxG);
+    }
 }
 
 void pjm::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
 {	
 	WLOOP
+    {
 	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))
 	/(p->DZP[KP]*pd->roface(p,a,0,0,1)));
+    
+    //a->maxH=MAX(fabs(alpha*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))),a->maxH);
+    }
 }
  
 void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, double alpha)
