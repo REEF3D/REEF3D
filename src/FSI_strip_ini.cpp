@@ -26,6 +26,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
 {
+    if(p->mpirank==0)
+    cout<<"FSI initialize"<<endl;
+    
 	// Initialise parameter
     double x_ini = p->Z11_x[nstrip]; // x-position of strip bottom
     double y_ini = p->Z11_y[nstrip]; // y-position of strip bottom

@@ -38,10 +38,18 @@ potential_f::~potential_f()
 
 void potential_f::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
 {
+    int itermem;
+    field4 psi(p);
+    
     if(p->mpirank==0 )
 	cout<<"potential flow solver..."<<endl<<endl;
     
-    field4 psi(p);
+    if(fabs(p->Ui)<1.0e-9)
+    {
+    if(p->mpirank==0)
+    cout<<"no inflow...potential flow stop"<<endl;
+    goto finalize;
+    }
     
     ini_bc(p,a,pgc);
 
@@ -64,7 +72,7 @@ void potential_f::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
     if(p->X10==1 && p->X13==2 && a->fb(i,j,k)<0.0)
     psi(i,j,k) = 0.0;
 
-    int itermem=p->N46;
+    itermem=p->N46;
     p->N46=2500;
 	
 
@@ -98,8 +106,13 @@ void potential_f::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
     //if(p->X10==1 && p->X13==2)
     //smoothen(p,a,pgc);
     
+    finalize:
+    
     LOOP
     psi(i,j,k) = 0.0;
+    
+    
+    
 }
 
 void potential_f::ucalc(lexer *p, fdm *a, field &phi)
@@ -220,7 +233,6 @@ void potential_f::laplace(lexer *p, fdm *a, field &phi)
         }
 	++n;
 	}
-    
     
     n=0;
 	LOOP
