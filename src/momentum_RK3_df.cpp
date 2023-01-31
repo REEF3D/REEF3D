@@ -126,7 +126,7 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         ULOOP
         Cu(i,j,k)=a->F(i,j,k);
 
-        p->utime=pgc->timer()-starttime;
+        p->utime+=pgc->timer()-starttime;
         
     // -------------------
         // V
@@ -156,7 +156,7 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         VLOOP
         Cv(i,j,k)=a->G(i,j,k);
 
-        p->vtime=pgc->timer()-starttime;
+        p->vtime+=pgc->timer()-starttime;
 
     // -------------------
         // W
@@ -186,7 +186,7 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         WLOOP
         Cw(i,j,k)=a->H(i,j,k);
 
-        p->wtime=pgc->timer()-starttime;
+        p->wtime+=pgc->timer()-starttime;
 
         pgc->start1(p,urk,gcval_u);
         pgc->start2(p,vrk,gcval_v);
@@ -194,6 +194,7 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
 
         
     // -------------------
+        starttime=pgc->timer();
         // Forcing
         ULOOP
         fx(i,j,k) = 0.0;
@@ -237,7 +238,9 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         pgc->start1(p,a->u,gcval_u);
         pgc->start2(p,a->v,gcval_v);
         pgc->start3(p,a->w,gcval_w);
-
+        
+        p->fbtime+=pgc->timer()-starttime;
+        
         // Pressure
         pflow->pressure_io(p,a,pgc);
         ppress->start(a,p,ppois,ppoissonsolv,pgc, pflow, a->u, a->v, a->w, 2.0*alpha(loop));
