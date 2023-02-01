@@ -136,9 +136,6 @@ void wave_lib_spectrum::wavepackets_parameters(lexer *p)
 	S0 = sqrt(k0*wD) * (1.0 + (k0*wD)/6.0 + (k0*k0*wD*wD)/30.0); 
 	Li[n] = wL0*tanh(S0);
         
-    if(p->mpirank==0)
-    cout<<"Li[n]: "<<Li[n]<<" wL0: "<<wL0<<" k0: "<<k0<<" S0: "<<S0<<" wD: "<<wD<<endl;
-    
     for(int qn=0; qn<100; ++qn)
     Li[n] = wL0*tanh(2.0*PI*wD/Li[n]);
 
@@ -160,13 +157,6 @@ void wave_lib_spectrum::wavepackets_parameters(lexer *p)
     
     cmin = sqrt((9.81/ki[0])*tanh(ki[0]/wD));
     cmax = sqrt((9.81/ki[p->wN-1])*tanh(ki[p->wN-1]/wD));
-    
-    if(p->mpirank==0)
-    cout<<"Wavepacket: "<<duration<<" ki[0]: "<<ki[0]<<" Li[0]: "<<Li[0]<<endl;
-    
-    if(p->mpirank==0)
-    cout<<"Wavepacket: "<<duration<<" cmin: "<<cmin<<" cmax: "<<cmax<<endl;
-    
     
     duration = 0.5*(p->B81_1/cmin + p->B81_1/cmax);
     
