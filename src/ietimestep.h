@@ -47,7 +47,7 @@ private:
 
 	double visccrit,sqd,wallu,wallv,wallw;
 	double uplus;
-	double cu,cv,cw,ck,ce;
+	double cu,cv,cw,ck,ce,cb;
 	double velmax;
 	const double epsi;
 	double isor,jsor,ksor;

@@ -613,6 +613,7 @@ public:
 	double kintime,epstime;
 	double poissontime, laplacetime;
     double fsitime,fbtime;
+    double fbdt,fbmax;
 	double lsmtime,heattime,concentrationtime;
 	double printouttime;
 	double phimean,phiout,phiin;

@@ -57,6 +57,8 @@ void driver::loop_cfd_df(fdm* a)
 
             cout<<"simtime: "<<p->simtime<<endl;
             cout<<"timestep: "<<p->dt<<endl;
+            cout<<"fbtimestep: "<<p->fbdt<<" fbmax: "<<p->fbmax<<endl;
+            
 
             if(p->B90>0 && p->B92<=11)
             cout<<"t/T: "<<p->simtime/p->wT<<endl;
@@ -64,6 +66,8 @@ void driver::loop_cfd_df(fdm* a)
             if(p->B90>0 && p->B92>11)
             cout<<"t/T: "<<p->simtime/p->wTp<<endl;
         }
+        
+        p->fbmax=0.0;
 
         pflow->flowfile(p,a,pgc,pturb);
 
