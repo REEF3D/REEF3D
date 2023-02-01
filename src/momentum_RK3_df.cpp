@@ -89,13 +89,15 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
     
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
-	pflow->rkinflow(p,a,pgc,urk,vrk,wrk);
+	//pflow->rkinflow(p,a,pgc,urk,vrk,wrk);
 		
     bool final = false;
 
     for (int loop=0; loop<3; loop++)
     {
         if (loop == 2) final = true;
+        
+        pflow->rkinflow(p,a,pgc,urk,vrk,wrk);
         
     // -------------------
         // U
@@ -143,7 +145,6 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         VLOOP
         vrk(i,j,k) += 2.0*alpha(loop)*p->dt*CPOR2*a->G(i,j,k);
 
-
         // Add convection
         VLOOP
         a->G(i,j,k)=0.0;
@@ -173,7 +174,6 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         WLOOP
         wrk(i,j,k) += 2.0*alpha(loop)*p->dt*CPOR3*a->H(i,j,k);
         
-
         // Add convection
         WLOOP
         a->H(i,j,k)=0.0;
