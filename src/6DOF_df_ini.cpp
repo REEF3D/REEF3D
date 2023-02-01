@@ -42,6 +42,7 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
 {
     if(p->mpirank==0)
     cout<<"6DOF_df_ini "<<endl;
+    
     // Initialise folder structure
     if(p->X50==1)
 	print_ini_vtp(p,a,pgc);

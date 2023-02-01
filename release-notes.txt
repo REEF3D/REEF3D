@@ -1,4 +1,75 @@
 
+23.01
+x reordered 6DOF direct forcing implementation (CFD)
+x improved free surface inside and around the 6DOF floating body (CFD)
+x fixed 6DOF force calculation problem due to surface normal orientation (CFD)
+x fixed external 6DOF velocity input (CFD)
+x added komega boundary conditions to 6DOF floating body (CFD)
+x added 6DOF STL normal vector vtp files (CFD)
+x added new 6DOF solid body density treatment (CFD)
+x added new 6DOF direct forcing tangential velocity treatment (CFD)
+x added 6DOF triangulation refinement factor (CFD)
+x added 6DOF floating body to potential flow initialization of current (CFD)
+x added 6DOF forcing term to timestep evaluation for improved stability (CFD)
+x added SFLOW to CFD hydrodynamic coupling HDC
+x improved density function for non-uniform mesh (CFD)
+x fixed wavepackets generation
+x fixed a crash for ioflow and single phase flow (CFD)
+x fixed global maximum source term estimation for CFL criterion
+x fixed a problem with hydrodynamic coupling HDC (FNPF to CFD)
+x fixed a problem with the Runge-Kutta velocities for the inflow (CFD)
+x fixed a crash for ioflow with plain inflow (CFD)
+x fixed 6DOF_df not working (CFD)
+x added immiscible three-phase flow (CFD)
+x added rheology to immiscible three-phase flow (CFD)
+x added fsf file to emergency print out (CFD and FNPF)
+x added potential flow solver ini stop for zero inflow (CFD)
+x improved level set vtu print out at parallel/solid interfaces (CFD)
+x improved turbulent kinetic energy based bed shear stress calclulation for sediment transport (CFD)
+x updated LES filter and SGS functions updated for non-uniform grid (CFD)
+x fixed a problem with RANS stabilization where the scheme was not turned on (CFD)
+x updated rheology to non-uniform mesh (CFD)
+
+22.11
+x added filtered SGS models for LES (CFD)
+x fixed diff_scalar in ediff (CFD)
+x added guard for 2D FNPF state files that prevents crashes when restricting the print out domain (FNPF)
+x fixed a problem with wetting-drying algorithm (FNPF)
+x improved hydrodynamic coupling file format 
+x added continuous file print out for hydrodynamic coupling 
+x updated discharge gage to non-uniform grids and fixed some bugs (CFD)
+x fixed density calculation for sediment transport in air phase (CFD)
+x added topo vtp print out (CFD)
+x merged CFD and SFLOW sediment algorithms
+x added explicit algebraic Reynolds stress model EARSM (CFD)
+x added k-omega stabilization (CFD)
+x added SFLOW breaking viscosity 
+x added PDE based sandslide algorithm (CFD)
+x added less conservative adaptive timestepping for non-uniform mesh (CFD)
+x updated sediment angle of repose calculation (CFD)
+x fixed sediment proﬁle print out  (CFD)
+x added STL support for SFLOW 6DOF
+x changed 6DOF geometry default print out to binary vtp
+x added sediment bed probes and lines to SFLOW
+x fixed time based 6DOF STL print out (SFLOW)
+x added ramp up function for 6DOF motion (SFLOW)
+x added sedimentlog to SFLOW
+x added mainlog to SFLOW
+
+22.04.1
+x fixed a critical bug (that seems to cause Ubuntu + Windows crashes for numerical wave tanks)
+
+*22.04*
+x added hydrostatic pressure in inlet for ioflow and iowave by default (CFD)
+x added coupled momentum-free surface Runge-Kutta scheme (CFD)
+x improved RAM usage optimization (CFD)
+x fixed a ghostcell extrapolation problem (CFD)
+x fixed a RK diffusion bug (CFD)
+x fixed hydrodynamic coupling for iteration offset
+x fixed a mooring line print bug for line breakage (CFD)
+x fixed a possible crash for free surface vtp print-out (CFD)
+x removed emergency stop for  pppsolver status
+
 22.03
 x added LES with WALE subgrid scale model (CFD)
 x added RAM usage optimizaiton for solid, topo and direct forcing floating (CFD)

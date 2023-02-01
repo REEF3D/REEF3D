@@ -55,6 +55,6 @@ void initialize::inipsi(lexer* p, fdm *a, ghostcell* pgc)
         
     }
     
-    cout<<p->mpirank<<" PSI: "<<p->psi<<" DTM: "<<p->DTM<<endl;
+    //cout<<p->mpirank<<" PSI: "<<p->psi<<" DTM: "<<p->DTM<<endl;
     
 }

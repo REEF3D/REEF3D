@@ -612,6 +612,7 @@ public:
 	double utime,vtime,wtime;
 	double kintime,epstime;
 	double poissontime, laplacetime;
+    double fsitime,fbtime;
 	double lsmtime,heattime,concentrationtime;
 	double printouttime;
 	double phimean,phiout,phiin;

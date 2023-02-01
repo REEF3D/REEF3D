@@ -38,7 +38,7 @@ wave_lib_spectrum::~wave_lib_spectrum()
 
 double wave_lib_spectrum::wave_spectrum(lexer *p, double w)
 {
-	  if(p->B85==1)
+    if(p->B85==1)
     Sval = PM(p,w);
 
     if(p->B85==2)
@@ -50,10 +50,10 @@ double wave_lib_spectrum::wave_spectrum(lexer *p, double w)
     if(p->B85==21)
     Sval = Goda_JONSWAP(p,w);
 
-		if(p->B85==22)
+    if(p->B85==22)
     Sval = TMA(p,w);
 
-	  if(p->B85==10)
+    if(p->B85==10)
     Sval = spectrum_file(p,w);
 
     return Sval;
@@ -62,9 +62,9 @@ double wave_lib_spectrum::wave_spectrum(lexer *p, double w)
 void wave_lib_spectrum::irregular_parameters(lexer *p)
 {
 
-  if(p->B94==0)
+    if(p->B94==0)
 	wD=p->phimean;
-
+    
 	if(p->B94==1)
 	wD=p->B94_wdt;
 

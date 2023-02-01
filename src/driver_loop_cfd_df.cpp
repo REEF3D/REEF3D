@@ -129,7 +129,7 @@ void driver::loop_cfd_df(fdm* a)
             {
             if(p->B90>0)
             cout<<"wavegentime: "<<setprecision(3)<<p->wavetime<<endl;
-
+            cout<<"fbtime: "<<setprecision(3)<<p->fbtime<<endl;
             cout<<"reinitime: "<<setprecision(3)<<p->reinitime<<endl;
             cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
             cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;
@@ -142,11 +142,14 @@ void driver::loop_cfd_df(fdm* a)
         maxlog(p);
         solverlog(p);
         }
+    p->utime=p->vtime=p->wtime=0.0;
     p->gctime=0.0;
     p->xtime=0.0;
 	p->reinitime=0.0;
 	p->wavetime=0.0;
 	p->field4time=0.0;
+    p->fsitime=0.0;
+    p->fbtime=0.0;
 
     stop(p,a,pgc);
 	}

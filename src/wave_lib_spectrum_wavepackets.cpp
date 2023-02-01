@@ -33,6 +33,12 @@ void wave_lib_spectrum::wavepackets_parameters(lexer *p)
 	double dd,w;
 	double fac,Asum;
     double cmin,cmax;
+    
+    if(p->B94==0)
+	wD=p->phimean;
+    
+	if(p->B94==1)
+	wD=p->B94_wdt;
 	
 	p->wN=p->B86;
 	
@@ -140,7 +146,6 @@ void wave_lib_spectrum::wavepackets_parameters(lexer *p)
 	}
 	
 	// Focused Phases
-
     for(int n=0;n<p->wN;++n)
     {
         ei[n]  = ki[n]*p->B81_1 - wi[n]*p->B81_2;
@@ -152,8 +157,6 @@ void wave_lib_spectrum::wavepackets_parameters(lexer *p)
     
     cmin = sqrt((9.81/ki[0])*tanh(ki[0]/wD));
     cmax = sqrt((9.81/ki[p->wN-1])*tanh(ki[p->wN-1]/wD));
-    
-    
     
     duration = 0.5*(p->B81_1/cmin + p->B81_1/cmax);
     
