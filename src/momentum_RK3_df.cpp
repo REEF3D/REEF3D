@@ -256,7 +256,7 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
 void momentum_RK3_df::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
-	if(p->D20 < 3)
+	if(p->D20<3)
     {
         ULOOP
         {
@@ -271,7 +271,7 @@ void momentum_RK3_df::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uv
     }
 	
 	n=0;
-	if(p->D20 == 3)
+	if(p->D20==3)
     {
         ULOOP
         {
@@ -285,7 +285,7 @@ void momentum_RK3_df::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uv
 void momentum_RK3_df::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
-	if(p->D20 < 3)
+	if(p->D20<3)
     {
         VLOOP
         {
@@ -300,7 +300,7 @@ void momentum_RK3_df::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uv
     }
 	
 	n=0;
-	if(p->D20 == 3)
+	if(p->D20==3)
     {
         VLOOP
         {
@@ -314,7 +314,7 @@ void momentum_RK3_df::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uv
 void momentum_RK3_df::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
-	if(p->D20 < 3)
+	if(p->D20<3)
     {
         WLOOP
         {
@@ -329,7 +329,7 @@ void momentum_RK3_df::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uv
     }
 	
 	n=0;
-	if(p->D20 == 3)
+	if(p->D20==3)
     {
         WLOOP
         {
