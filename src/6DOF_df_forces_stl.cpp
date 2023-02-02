@@ -143,8 +143,18 @@ void sixdof_df_object::forces_stl
              Fp_z = -nz*p_int*A_triang;
              
 		   
-             // Add tangential stress contributions
-             
+        // Add viscous stress contributions
+        
+            double ustar, uplus, dist, value;
+            double vstar,vplus,wstar,wplus;
+            double uval, vval, wval;
+            double kappa = 0.4;
+            double xip, yip, zip, zval;
+            double u_abs, tau, density;
+
+
+            if(p->X39==0)
+            {
             xlocvel = xc + p->X43*nx*p->DXP[IP];
             ylocvel = yc + p->X43*ny*p->DYP[JP];
             zlocvel = zc + p->X43*nz*p->DZP[KP];
@@ -172,6 +182,158 @@ void sixdof_df_object::forces_stl
             Fv_x = rho_int*(nu_int + enu_int)*A_triang*(2.0*dudx*nx + (dudy + dvdx)*ny + (dudz + dwdx)*nz);
             Fv_y = rho_int*(nu_int + enu_int)*A_triang*((dudy + dvdx)*nx + 2.0*dvdy*ny + (dvdz + dwdy)*nz);
             Fv_z = rho_int*(nu_int + enu_int)*A_triang*((dudz + dwdx)*nx + (dvdz + dwdy)*ny + 2.0*dwdz*nz);
+            }
+            
+            
+            if(p->X39==1)
+            {
+            xlocvel = xc + p->X43*nx*p->DXP[IP];
+            ylocvel = yc + p->X43*ny*p->DYP[JP];
+            zlocvel = zc + p->X43*nz*p->DZP[KP];
+            
+             nu_int  = p->ccipol4_a(a->visc,xlocvel,ylocvel,zlocvel);
+			enu_int = p->ccipol4_a(a->eddyv,xlocvel,ylocvel,zlocvel);
+			rho_int = p->ccipol4_a(a->ro,xlocvel,ylocvel,zlocvel);
+	        
+             i = p->posc_i(xlocvel);
+			j = p->posc_j(ylocvel);
+			k = p->posc_k(zlocvel);
+            
+            dudx = (uvel(i+1,j,k) - uvel(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1]);
+            dudy = (uvel(i,j+1,k) - uvel(i,j-1,k))/(p->DYP[JP] + p->DYP[JM1]);
+            dudz = (uvel(i,j,k+1) - uvel(i,j,k-1))/(p->DZP[KP] + p->DZP[KM1]);
+                                                                           
+            dvdx = (vvel(i+1,j,k) - vvel(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1]);
+            dvdy = (vvel(i,j+1,k) - vvel(i,j-1,k))/(p->DYP[JP] + p->DYP[JM1]);
+            dvdz = (vvel(i,j,k+1) - vvel(i,j,k-1))/(p->DZP[KP] + p->DZP[KM1]);
+                                                                            
+            dwdx = (wvel(i+1,j,k) - wvel(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1]);
+            dwdy = (wvel(i,j+1,k) - wvel(i,j-1,k))/(p->DYP[JP] + p->DYP[JM1]);
+            dwdz = (wvel(i,j,k+1) - wvel(i,j,k-1))/(p->DZP[KP] + p->DZP[KM1]);
+
+            Fv_x = rho_int*(nu_int + enu_int)*A_triang*(2.0*dudx*nx + (dudy + dvdx)*ny + (dudz + dwdx)*nz);
+            Fv_y = rho_int*(nu_int + enu_int)*A_triang*((dudy + dvdx)*nx + 2.0*dvdy*ny + (dvdz + dwdy)*nz);
+            Fv_z = rho_int*(nu_int + enu_int)*A_triang*((dudz + dwdx)*nx + (dvdz + dwdy)*ny + 2.0*dwdz*nz);
+            }
+            
+            
+            if(p->X39==2)
+            {
+            xlocvel = xc + p->X43*nx*p->DXP[IP];
+            ylocvel = yc + p->X43*ny*p->DYP[JP];
+            zlocvel = zc + p->X43*nz*p->DZP[KP];
+            
+            nu_int  = p->ccipol4_a(a->visc,xlocvel,ylocvel,zlocvel);
+            enu_int = p->ccipol4_a(a->eddyv,xlocvel,ylocvel,zlocvel);
+            rho_int = p->ccipol4_a(a->ro,xlocvel,ylocvel,zlocvel);
+	        
+            i = p->posc_i(xlocvel);
+            j = p->posc_j(ylocvel);
+            k = p->posc_k(zlocvel);
+            
+            uval=p->ccipol1(uvel,xlocvel,ylocvel,zlocvel);
+            vval=p->ccipol2(vvel,xlocvel,ylocvel,zlocvel);
+            wval=p->ccipol3(wvel,xlocvel,ylocvel,zlocvel);
+            
+            dist = fabs(p->ccipol4(a->fb,xlocvel,ylocvel,zlocvel));
+            
+            /*
+            if(p->B5==2)
+            {
+            ustar=sqrt(fabs((0.5*a->visc(i,j,k)+0.5*a->visc(i,j-1,k))*a->u(i,j,k)/dist));
+            value=((9.0*dist*ustar)/(0.5*a->visc(i,j,k)+0.5*a->visc(i,j-1,k)));
+            
+            if(value>1.0)
+            uplus=(1.0/kappa)*log(value);
+            
+            if(value<=1.0)
+            uplus=1.0e20;
+            }*/
+        
+            // x-dir
+            ustar = sqrt(fabs(nu_int*uval)/(dist>0.0?dist:1.0e20));
+            value=((9.0*dist*ustar)/(nu_int>0.0?nu_int:1.0e20));
+            
+            if(value>1.0)
+            uplus=(1.0/kappa)*log(value);
+            
+            if(value<=1.0)
+            uplus=1.0e20;
+  
+            Fv_x =  (ny + nz)*rho_int*(uval*uval)/pow((uplus>0.0?uplus:1.0e20),2.0);
+            
+            //cout<<"Fv_x: "<<Fv_x<<" ustar: "<<ustar<<" nx: "<<nx<<" uplus: "<<uplus<<" dist: "<<dist<<" value: "<<value<<" log(value): "<<log(value)<<endl;
+            
+            // y-dir
+            vstar = sqrt(fabs(nu_int*vval)/(dist>0.0?dist:1.0e20));
+            value=((9.0*dist*vstar)/(nu_int>0.0?nu_int:1.0e20));
+            
+            if(value>1.0)
+            vplus=(1.0/kappa)*log(value);
+            
+            if(value<=1.0)
+            vplus=1.0e20;
+  
+            Fv_y = 0.0;// (1.0-fabs(ny))*rho_int*(vval*vval)/pow((vplus>0.0?vplus:1.0e20),2.0);
+            
+            // z-dir
+            wstar = sqrt(fabs(nu_int*wval)/(dist>0.0?dist:1.0e20));
+            value=((9.0*dist*wstar)/(nu_int>0.0?nu_int:1.0e20));
+            
+            if(value>1.0)
+            wplus=(1.0/kappa)*log(value);
+            
+            if(value<=1.0)
+            wplus=1.0e20;
+  
+            Fv_z = (nx + ny)*rho_int*(wval*wval)/pow((wplus>0.0?wplus:1.0e20),2.0);
+            }
+            
+            if(p->X39==3)
+            {
+            double v_t,v_d;
+                
+            xip= p->XP[IP];
+            yip= p->YP[JP];
+
+            //zval = a->bed(i,j) + p->S116*p->DZN[KP];
+            
+                if(p->S33==1)
+                {
+                uval=p->ccipol1(a->u,xip,yip,zval);
+                vval=p->ccipol2(a->v,xip,yip,zval);
+                wval=p->ccipol3(a->w,xip,yip,zval);
+                
+                v_d=p->ccipol4(a->visc,xip,yip,zval);
+                v_t=p->ccipol4(a->eddyv,xip,yip,zval);
+                }
+                
+                if(p->S33==2)
+                {
+                uval=p->ccipol1_a(a->u,xip,yip,zval);
+                vval=p->ccipol2_a(a->v,xip,yip,zval);
+                wval=p->ccipol3_a(a->w,xip,yip,zval);
+                
+                v_d=p->ccipol4_a(a->visc,xip,yip,zval);
+                v_t=p->ccipol4_a(a->eddyv,xip,yip,zval);
+                }
+
+            u_abs = sqrt(uval*uval + vval*vval);
+            
+            tau=density*(v_d + v_t)*(u_abs/dist);
+            }
+            
+            
+            if(p->X39==4)
+            {
+            //zval = s->bedzh(i,j) + 0.5*p->DZN[KP];
+            
+           /* if(p->S33==1)
+            tau=density*pturb->ccipol_a_kinval(p,pgc,xip,yip,zval)*0.3;
+            
+            if(p->S33==2)
+            tau=density*pturb->ccipol_kinval(p,pgc,xip,yip,zval)*0.3;*/
+            }
 
 
             // Total forces
@@ -223,8 +385,8 @@ void sixdof_df_object::forces_stl
 
 	// Add gravity force
 	
-    //if(p->mpirank==0)
-    //cout<<"Hydrodynamic Force Fz: "<<Ze<<" A: "<<A<<endl<<endl;
+    if(p->mpirank==0)
+    cout<<"Hydrodynamic Force Fx_v: "<<Xe_v<<" A: "<<A<<endl<<endl;
     
 	Xe += a->gi*Mass_fb;
 	Ye += a->gj*Mass_fb;
