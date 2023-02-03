@@ -151,6 +151,7 @@ void sixdof_df_object::forces_stl
             double kappa = 0.4;
             double xip, yip, zip, zval;
             double u_abs, tau, density;
+            double ks;
 
 
             if(p->X39==0)
@@ -237,6 +238,8 @@ void sixdof_df_object::forces_stl
             
             dist = fabs(p->ccipol4(a->fb,xlocvel,ylocvel,zlocvel));
             
+            ks = 0.01*dist;
+            
             /*
             if(p->B5==2)
             {
@@ -251,8 +254,16 @@ void sixdof_df_object::forces_stl
             }*/
         
             // x-dir
-            ustar = sqrt(fabs(nu_int*uval)/(dist>0.0?dist:1.0e20));
-            value=((9.0*dist*ustar)/(nu_int>0.0?nu_int:1.0e20));
+            //ustar = sqrt(fabs(nu_int*uval)/(dist>0.0?dist:1.0e20));
+            
+            ustar = uval/((1.0/kappa)*log(30.0*(dist/ks)));
+            
+            //for(
+            
+            
+            
+            
+            value = ((9.0*dist*ustar)/(nu_int>0.0?nu_int:1.0e20));
             
             if(value>1.0)
             uplus=(1.0/kappa)*log(value);
@@ -262,7 +273,7 @@ void sixdof_df_object::forces_stl
   
             Fv_x =  (ny + nz)*rho_int*(uval*uval)/pow((uplus>0.0?uplus:1.0e20),2.0);
             
-            //cout<<"Fv_x: "<<Fv_x<<" ustar: "<<ustar<<" nx: "<<nx<<" uplus: "<<uplus<<" dist: "<<dist<<" value: "<<value<<" log(value): "<<log(value)<<endl;
+            cout<<"Fv_x: "<<Fv_x<<" ustar: "<<ustar<<" nx: "<<nx<<" uplus: "<<uplus<<" dist: "<<dist<<" value: "<<value<<" log(value): "<<log(value)<<endl;
             
             // y-dir
             vstar = sqrt(fabs(nu_int*vval)/(dist>0.0?dist:1.0e20));
@@ -277,8 +288,11 @@ void sixdof_df_object::forces_stl
             Fv_y = 0.0;// (1.0-fabs(ny))*rho_int*(vval*vval)/pow((vplus>0.0?vplus:1.0e20),2.0);
             
             // z-dir
-            wstar = sqrt(fabs(nu_int*wval)/(dist>0.0?dist:1.0e20));
-            value=((9.0*dist*wstar)/(nu_int>0.0?nu_int:1.0e20));
+            //wstar = sqrt(fabs(nu_int*wval)/(dist>0.0?dist:1.0e20));
+            
+            wstar = wval/((1.0/kappa)*log(30.0*(dist/ks)));
+            
+            value = ((9.0*dist*wstar)/(nu_int>0.0?nu_int:1.0e20));
             
             if(value>1.0)
             wplus=(1.0/kappa)*log(value);
@@ -386,7 +400,7 @@ void sixdof_df_object::forces_stl
 	// Add gravity force
 	
     if(p->mpirank==0)
-    cout<<"Hydrodynamic Force Fx_v: "<<Xe_v<<" A: "<<A<<endl<<endl;
+    cout<<"Viscous Force Fx_v: "<<Xe_v<<" Fz_v: "<<Ze_v<<endl<<endl;
     
 	Xe += a->gi*Mass_fb;
 	Ye += a->gj*Mass_fb;
