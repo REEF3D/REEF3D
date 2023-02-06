@@ -58,7 +58,6 @@ void driver::logic_ptf()
     
 // Printer
 	pprint = new vtu3D(p,a,pgc);
-
     
 //IOFlow
 	if(p->B60==0 && p->B90==0 && p->B180==0 )
@@ -121,6 +120,8 @@ void driver::logic_ptf()
     preini = new reini_void(p);
     
     pfsfdisc=new convection_void(p);
+    
+    pmp = new multiphase_v();
     
 //  Wave Models
     if(p->A310==3)
