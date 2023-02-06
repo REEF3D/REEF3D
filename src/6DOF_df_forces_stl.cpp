@@ -73,7 +73,7 @@ void sixdof_df_object::forces_stl
 		yc = (y0 + y1 + y2)/3.0;
 		zc = (z0 + z1 + z2)/3.0;
         
-             at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
+             /*at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
 			bt = sqrt(pow(x1-x2,2.0) + pow(y1-y2,2.0) + pow(z1-z2,2.0));
 			ct = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
 				
@@ -91,15 +91,12 @@ void sixdof_df_object::forces_stl
 			
 			nx /= norm > 1.0e-20 ? norm : 1.0e20;
 			ny /= norm > 1.0e-20 ? norm : 1.0e20;
-			nz /= norm > 1.0e-20 ? norm : 1.0e20;
+			nz /= norm > 1.0e-20 ? norm : 1.0e20;*/
         
  
-		if 
-		(
-			xc >= p->originx && xc < p->endx &&
+		if (xc >= p->originx && xc < p->endx &&
 			yc >= p->originy && yc < p->endy &&
-			zc >= p->originz && zc < p->endz
-		)
+			zc >= p->originz && zc < p->endz)
 		{
             // Position of triangle
             i = p->posc_i(xc);
@@ -128,22 +125,22 @@ void sixdof_df_object::forces_stl
 			ny /= norm > 1.0e-20 ? norm : 1.0e20;
 			nz /= norm > 1.0e-20 ? norm : 1.0e20;
             
-			// Add normal stress contributions
-             xlocp = xc + p->X42*nx*p->DXP[IP];
-			ylocp = yc + p->X42*ny*p->DYP[JP];
-			zlocp = zc + p->X42*nz*p->DZP[KP];
+            // Add normal stress contributions
+            xlocp = xc + p->X42*nx*p->DXP[IP];
+            ylocp = yc + p->X42*ny*p->DYP[JP];
+            zlocp = zc + p->X42*nz*p->DZP[KP];
 
-			p_int = p->ccipol4_a(a->press,xlocp,ylocp,zlocp);
+            p_int = p->ccipol4_a(a->press,xlocp,ylocp,zlocp);
             
-            //p_int =1.0;
-            
-			
-			Fp_x = -nx*p_int*A_triang;
-			Fp_y = -ny*p_int*A_triang;
-             Fp_z = -nz*p_int*A_triang;
+            Fp_x = -nx*p_int*A_triang;
+            Fp_y = -ny*p_int*A_triang;
+            Fp_z = -nz*p_int*A_triang;
+             
+            if(p->j_dir==0)
+            Fp_y = 0.0;
              
 		   
-        // Add viscous stress contributions
+    // Add viscous stress contributions
         
             double ustar, uplus, dist, value;
             double vstar,vplus,wstar,wplus;
@@ -152,6 +149,7 @@ void sixdof_df_object::forces_stl
             double xip, yip, zip, zval;
             double u_abs, tau, density;
             double ks;
+            double dir;
 
 
             if(p->X39==0)
@@ -192,25 +190,29 @@ void sixdof_df_object::forces_stl
             ylocvel = yc + p->X43*ny*p->DYP[JP];
             zlocvel = zc + p->X43*nz*p->DZP[KP];
             
-             nu_int  = p->ccipol4_a(a->visc,xlocvel,ylocvel,zlocvel);
-			enu_int = p->ccipol4_a(a->eddyv,xlocvel,ylocvel,zlocvel);
-			rho_int = p->ccipol4_a(a->ro,xlocvel,ylocvel,zlocvel);
-	        
-             i = p->posc_i(xlocvel);
-			j = p->posc_j(ylocvel);
-			k = p->posc_k(zlocvel);
+            nu_int  = p->ccipol4_a(a->visc,xlocvel,ylocvel,zlocvel);
+            enu_int = p->ccipol4_a(a->eddyv,xlocvel,ylocvel,zlocvel);
+            rho_int = p->ccipol4_a(a->ro,xlocvel,ylocvel,zlocvel);
             
-            dudx = (uvel(i+1,j,k) - uvel(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1]);
-            dudy = (uvel(i,j+1,k) - uvel(i,j-1,k))/(p->DYP[JP] + p->DYP[JM1]);
-            dudz = (uvel(i,j,k+1) - uvel(i,j,k-1))/(p->DZP[KP] + p->DZP[KM1]);
+            uval=p->ccipol1(uvel,xlocvel,ylocvel,zlocvel);
+            vval=p->ccipol2(vvel,xlocvel,ylocvel,zlocvel);
+            wval=p->ccipol3(wvel,xlocvel,ylocvel,zlocvel);
+	        
+            i = p->posc_i(xlocvel);
+            j = p->posc_j(ylocvel);
+            k = p->posc_k(zlocvel);
+            
+            dudx = (uval)/(p->DXP[IP]);
+            dudy = (uval)/(p->DYP[JP]);
+            dudz = (uval)/(p->DZP[KP]);
                                                                            
-            dvdx = (vvel(i+1,j,k) - vvel(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1]);
-            dvdy = (vvel(i,j+1,k) - vvel(i,j-1,k))/(p->DYP[JP] + p->DYP[JM1]);
-            dvdz = (vvel(i,j,k+1) - vvel(i,j,k-1))/(p->DZP[KP] + p->DZP[KM1]);
+            dvdx = (vval)/(p->DXP[IP]);
+            dvdy = (vval)/(p->DYP[JP]);
+            dvdz = (vval)/(p->DZP[KP]);
                                                                             
-            dwdx = (wvel(i+1,j,k) - wvel(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1]);
-            dwdy = (wvel(i,j+1,k) - wvel(i,j-1,k))/(p->DYP[JP] + p->DYP[JM1]);
-            dwdz = (wvel(i,j,k+1) - wvel(i,j,k-1))/(p->DZP[KP] + p->DZP[KM1]);
+            dwdx = (wval)/(p->DXP[IP]);
+            dwdy = (wval)/(p->DYP[JP]);
+            dwdz = (wval)/(p->DZP[KP]);
 
             Fv_x = rho_int*(nu_int + enu_int)*A_triang*(2.0*dudx*nx + (dudy + dvdx)*ny + (dudz + dwdx)*nz);
             Fv_y = rho_int*(nu_int + enu_int)*A_triang*((dudy + dvdx)*nx + 2.0*dvdy*ny + (dvdz + dwdy)*nz);
@@ -238,70 +240,34 @@ void sixdof_df_object::forces_stl
             
             dist = fabs(p->ccipol4(a->fb,xlocvel,ylocvel,zlocvel));
             
-            ks = 0.01*dist;
+            ks = 0.00001;
             
-            /*
-            if(p->B5==2)
-            {
-            ustar=sqrt(fabs((0.5*a->visc(i,j,k)+0.5*a->visc(i,j-1,k))*a->u(i,j,k)/dist));
-            value=((9.0*dist*ustar)/(0.5*a->visc(i,j,k)+0.5*a->visc(i,j-1,k)));
-            
-            if(value>1.0)
-            uplus=(1.0/kappa)*log(value);
-            
-            if(value<=1.0)
-            uplus=1.0e20;
-            }*/
         
-            // x-dir
-            //ustar = sqrt(fabs(nu_int*uval)/(dist>0.0?dist:1.0e20));
+        // x-dir            
+            uplus = (1.0/kappa)*log(30.0*(dist/ks));
             
-            ustar = uval/((1.0/kappa)*log(30.0*(dist/ks)));
-            
-            //for(
-            
-            
-            
-            
-            value = ((9.0*dist*ustar)/(nu_int>0.0?nu_int:1.0e20));
-            
-            if(value>1.0)
-            uplus=(1.0/kappa)*log(value);
-            
-            if(value<=1.0)
-            uplus=1.0e20;
+            dir = uval/(fabs(uval)>0.0?uval:1.0e20);
   
-            Fv_x =  (ny + nz)*rho_int*(uval*uval)/pow((uplus>0.0?uplus:1.0e20),2.0);
+            Fv_x =  dir*fabs(sqrt(ny*ny + nz*nz)*A_triang*rho_int*(uval*uval)/pow((uplus>0.0?uplus:1.0e20),2.0));
             
-            cout<<"Fv_x: "<<Fv_x<<" ustar: "<<ustar<<" nx: "<<nx<<" uplus: "<<uplus<<" dist: "<<dist<<" value: "<<value<<" log(value): "<<log(value)<<endl;
+            //cout<<"Fv_x: "<<Fv_x<<" ustar: "<<ustar<<" nx: "<<nx<<" uplus: "<<uplus<<" dist: "<<dist<<" value: "<<value<<" log(value): "<<log(value)<<endl;
             
-            // y-dir
-            vstar = sqrt(fabs(nu_int*vval)/(dist>0.0?dist:1.0e20));
-            value=((9.0*dist*vstar)/(nu_int>0.0?nu_int:1.0e20));
+        // y-dir
+            vplus = (1.0/kappa)*log(30.0*(dist/ks));
             
-            if(value>1.0)
-            vplus=(1.0/kappa)*log(value);
-            
-            if(value<=1.0)
-            vplus=1.0e20;
+            dir = vval/(fabs(vval)>0.0?uval:1.0e20);
   
-            Fv_y = 0.0;// (1.0-fabs(ny))*rho_int*(vval*vval)/pow((vplus>0.0?vplus:1.0e20),2.0);
+            Fv_y =  dir*fabs(sqrt(nx*nx + nz*nz)*A_triang*rho_int*(vval*vval)/pow((vplus>0.0?vplus:1.0e20),2.0));
             
-            // z-dir
-            //wstar = sqrt(fabs(nu_int*wval)/(dist>0.0?dist:1.0e20));
+        // z-dir
+            wplus = (1.0/kappa)*log(30.0*(dist/ks));
             
-            wstar = wval/((1.0/kappa)*log(30.0*(dist/ks)));
-            
-            value = ((9.0*dist*wstar)/(nu_int>0.0?nu_int:1.0e20));
-            
-            if(value>1.0)
-            wplus=(1.0/kappa)*log(value);
-            
-            if(value<=1.0)
-            wplus=1.0e20;
+            dir = wval/(fabs(wval)>0.0?wval:1.0e20);
   
-            Fv_z = (nx + ny)*rho_int*(wval*wval)/pow((wplus>0.0?wplus:1.0e20),2.0);
+            Fv_z = dir*fabs(sqrt(nx*nx + ny*ny)*A_triang*rho_int*(wval*wval)/pow((wplus>0.0?wplus:1.0e20),2.0));
             }
+            
+            
             
             if(p->X39==3)
             {
@@ -400,7 +366,7 @@ void sixdof_df_object::forces_stl
 	// Add gravity force
 	
     if(p->mpirank==0)
-    cout<<"Viscous Force Fx_v: "<<Xe_v<<" Fz_v: "<<Ze_v<<endl<<endl;
+    cout<<"Hydrodynamic Forces:  Fx_p: "<<Xe_p<<" Fy_p: "<<Ye_p<<" Fz_p: "<<Ze_p<<"  |  Fx_v: "<<Xe_v<<" Fy_v: "<<Ye_v<<" Fz_v: "<<Ze_v<<endl;
     
 	Xe += a->gi*Mass_fb;
 	Ye += a->gj*Mass_fb;

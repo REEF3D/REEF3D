@@ -32,6 +32,7 @@ void sixdof_df_object::geometry_refinement(lexer *p, ghostcell *pgc)
 	double at,bt,ct,st;
 	double nx_old,ny_old,nz_old;	
     double A_triang,A;
+    double l0,l1,l2;
 
     A=0.0;
     for (int n = 0; n < tricount; ++n)
@@ -49,12 +50,12 @@ void sixdof_df_object::geometry_refinement(lexer *p, ghostcell *pgc)
         z2 = tri_z[n][2]; 
         
             at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
-			bt = sqrt(pow(x1-x2,2.0) + pow(y1-y2,2.0) + pow(z1-z2,2.0));
-			ct = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
+            bt = sqrt(pow(x1-x2,2.0) + pow(y1-y2,2.0) + pow(z1-z2,2.0));
+            ct = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
 				
-			st = 0.5*(at+bt+ct);
+            st = 0.5*(at+bt+ct);
 				
-			A_triang = sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
+            A_triang = sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
             
             A+=A_triang;
     }
@@ -105,11 +106,11 @@ void sixdof_df_object::geometry_refinement(lexer *p, ghostcell *pgc)
 		at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
 		bt = sqrt(pow(x1-x2,2.0) + pow(y1-y2,2.0) + pow(z1-z2,2.0));
 		ct = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));   
-		   
-		
+        
 		// Check size of triangle and split into 4 triangles if too big
 		
-		if ((at + bt + ct)/3.0 > critL)
+		if((at + bt + ct)/3.0 > critL)
+        //if( at>critL || bt>critL || ct >critL)
 		{
 			// Half points
 			
