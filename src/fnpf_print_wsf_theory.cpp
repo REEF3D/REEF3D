@@ -49,11 +49,21 @@ fnpf_print_wsf_theory::fnpf_print_wsf_theory(lexer *p, fdm_fnpf* c, ghostcell *p
     {
     // open file
 	if(p->P14==0)
-    wsfout.open("REEF3D-FNPF-WSF-HG-THEORY.dat");
-
+    {
+        if(p->P87==0)
+            wsfout.open("REEF3D-FNPF-WSF-HG-THEORY.dat");
+        if(p->P87==1)
+            wsfout.open("REEF3D-FNPF-WSF-HG-THEORY.csv");
+    }
 	if(p->P14==1)
-	  wsfout.open("./REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG-THEORY.dat");
-
+    {
+        if(p->P87==0)
+            wsfout.open("./REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG-THEORY.dat");
+        if(p->P87==1)
+            wsfout.open("./REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG-THEORY.csv");
+    }
+    if(p->P87==0)
+    {
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
     wsfout<<"x_coord     y_coord"<<endl;
     for(n=0;n<gauge_num;++n)
@@ -66,6 +76,16 @@ fnpf_print_wsf_theory::fnpf_print_wsf_theory(lexer *p, fdm_fnpf* c, ghostcell *p
     wsfout<<"\t P"<<n+1;
 
     wsfout<<endl<<endl;
+    }
+    
+    if(p->P87==1)
+    {
+        wsfout<<"time";
+        for(n=0;n<gauge_num;++n)
+            wsfout<<",P_x"<<x[n]<<"_y"<<y[n];
+        wsfout<<endl;
+    }
+    
     }
 }
 
@@ -80,9 +100,19 @@ void fnpf_print_wsf_theory::height_gauge(lexer *p, fdm_fnpf *c, ghostcell *pgc, 
     // write to file
     if(p->mpirank==0)
     {
-    wsfout<<setprecision(9)<<p->simtime<<"\t";
-    for(n=0;n<gauge_num;++n)
-    wsfout<<setprecision(9)<<pflow->wave_fsf(p,pgc,x[n])-p->wd<<"  \t  ";
-    wsfout<<endl;
+    if(p->P87==0)
+    {
+        wsfout<<setprecision(9)<<p->simtime<<"\t";
+        for(n=0;n<gauge_num;++n)
+            wsfout<<setprecision(9)<<pflow->wave_fsf(p,pgc,x[n])-p->wd<<"  \t  ";
+        wsfout<<endl;
+    }
+    if(p->P87==1)
+    {
+        wsfout<<setprecision(9)<<p->simtime;
+        for(n=0;n<gauge_num;++n)
+            wsfout<<","<<setprecision(9)<<pflow->wave_fsf(p,pgc,x[n])-p->wd;
+        wsfout<<endl;
+    }
     }
 }

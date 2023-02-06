@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include"force_ale.h"
+#include"force_fit.h"
 #include"ioflow.h"
 #include"fnpf_print_wsf.h"
 #include"fnpf_print_wsf_theory.h"
@@ -95,9 +96,15 @@ fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 	
 	if(p->P85>0)
 	pforce_ale = new force_ale*[p->P85];
+    
+    if(p->P86>0)
+    pforce_fit = new force_fit*[p->P86];
 	
 	for(n=0;n<p->P85;++n)
 	pforce_ale[n]=new force_ale(p,c,pgc,n);
+    
+    for(n=0;n<p->P86;++n)
+    pforce_fit[n]=new force_fit(p,c,pgc,n);
 
 }
 
@@ -211,6 +218,18 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
         for(n=0;n<p->P85;++n)
         pforce_ale[n]->start(p,c,pgc);
 		}
+        
+    // FIT force
+        if((p->count==0 || p->count==p->count_statestart) && p->P86>0)
+        {
+            for(n=0;n<p->P86;++n)
+            pforce_fit[n]->ini(p,c,pgc);
+        }
+        if(p->count>0 && p->P86>0)
+        {
+            for(n=0;n<p->P86;++n)
+            pforce_fit[n]->start(p,c,pgc);
+        }
 }
 
 void fnpf_vtu3D::print_stop(lexer* p, fdm_fnpf *c, ghostcell* pgc)
