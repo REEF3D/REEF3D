@@ -90,7 +90,7 @@ void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
             {
             z=p->ZSN[FIJK]-p->phimean;
 
-            Uinval[count] = wave_u(p,pgc,xg,yg,z) + p->B95;
+            Uinval[count] = wave_u(p,pgc,xg,yg,z);
             ++count;
             }
         }

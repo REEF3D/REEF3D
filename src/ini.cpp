@@ -142,7 +142,6 @@ void lexer::ini_default()
 	B93_2=0.0;      // double wave period
     B94=0;     // int set water depth for wave theory
     B94_wdt=0.0;    // double water depth for wave theory
-    B95=0.0;        // double constant flow velocity in x-direction for numerical wave tanks
 	B96_1=0.0;      // double dist1 for wave relax
 	B96_2=0.0;      // double dist2 for wave relax
 	B98=0;          // int type of wave generation

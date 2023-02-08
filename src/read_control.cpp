@@ -420,9 +420,6 @@ void lexer::read_control()
                         B94=1;
 						 clear(c,numint);
 						 break;
-              case 95: control>>B95;
-						 clear(c,numint);
-						 break;
                case 96: {
                             control>>B96_1>>B96_2;
                             
