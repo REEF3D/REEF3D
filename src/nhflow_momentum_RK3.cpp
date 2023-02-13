@@ -93,13 +93,13 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 
 	// V
 	starttime=pgc->timer();
-/*
+
 	//pturb->jsource(p,a);
-	pflow->jsource(p,a,pgc,pvrans);
+	pflow->jsource_nhflow(p,d,pgc,pvrans); 
 	//bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
-	ppress->vpgrad(p,a,etark1,a->eta);
+    ppress->vpgrad(p,d,etark1,d->eta);
 	jrhs(p,d,pgc);
-	pconvec->start(p,a,a->v,2,a->u,a->v,a->w);
+    pconvec->start(p,d,d->V,2,d->U,d->V,d->W);
 	//pdiff->diff_v(p,a,pgc,psolv,vdiff,a->u,a->v,a->w,1.0);
 
 	LOOP
@@ -112,11 +112,11 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	starttime=pgc->timer();
 
 	//pturb->ksource(p,a);
-	pflow->ksource(p,a,pgc,pvrans);
+	pflow->ksource_nhflow(p,d,pgc,pvrans); 
 	//bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
-	ppress->wpgrad(p,a,etark1,a->eta);
+	ppress->wpgrad(p,d,etark1,d->eta);
 	krhs(p,d,pgc);
-	pconvec->start(p,a,a->w,3,a->u,a->v,a->w);
+	pconvec->start(p,d,d->W,3,d->U,d->V,d->W);
 	//pdiff->diff_w(p,a,pgc,psolv,wdiff,a->u,a->v,a->w,1.0);
 
 	LOOP
@@ -128,7 +128,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     pgc->start1(p,urk1,gcval_u);
 	pgc->start2(p,vrk1,gcval_v);
     pgc->start3(p,wrk1,gcval_w);
-    
+    /*
     pnh->kinematic_fsf(p,a,a->u,a->v,wrk1,etark1,a->eta,1.0);
     p->omega_update(p,a,pgc,a->u,a->v,wrk1,etark1,etark1,1.0);
 

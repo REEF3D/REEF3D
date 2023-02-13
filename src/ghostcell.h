@@ -65,7 +65,10 @@ public:
 	void start4vec(lexer*,vec&,int);
 	void start4avec(lexer*,vec&,int);
     void start6vec(lexer*,vec&,int);
-
+    
+    void start1V(lexer*,double*,sliceint&, int);
+    void start2V(lexer*,double*,sliceint&, int);
+    void start3V(lexer*,double*,sliceint&, int);
     void start4V(lexer*,double*,sliceint&, int);
     void start7V(lexer*,double*,sliceint&, int);
     void start7S(lexer*,double*, int);
@@ -331,7 +334,6 @@ public:
 
 
     int imin,imax,jmax,jmin,kmin,kmax;
-
 
 
 	void gcdistro1(lexer *p,field&,int, int, int, int, double, int, int, int);

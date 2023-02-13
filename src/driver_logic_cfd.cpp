@@ -375,17 +375,6 @@ void driver::logic_cfd()
     pnse = new nsewave_geo(p,a,pgc,pheat,pconc);
     }
 
-
-    if(p->A10==55)
-    {
-    if(p->A540==1)
-    pnhfsf = new nhflow_fsf_rk(p,d,pgc,pflow,pBC);
-
-    if(p->A540==2)
-    pnhfsf = new nhflow_fsf_fsm(p,d,pgc,pflow,pBC);
-    }
-
-
 // Free Surface
     if(p->F10==1)
     poneph = new onephase_f(p,a,pgc);
