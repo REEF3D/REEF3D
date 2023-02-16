@@ -37,7 +37,7 @@ void lexer::ctrlrecv()
 	A212 = ictrl[ii];
 	ii++;
     A214 = ictrl[ii];
-	ii++;
+	ii++;    A215 = ictrl[ii];	ii++;
     A216 = ictrl[ii];
 	ii++;
     A217 = ictrl[ii];
