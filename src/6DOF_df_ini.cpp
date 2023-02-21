@@ -53,9 +53,6 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
     // Initialise processor boundaries
     ini_parallel(p,a,pgc);
     
-    // Initialise parameters
-	ini_parameter(p,a,pgc);
-    
     // Initialise objects
 	objects_create(p,a,pgc);
     

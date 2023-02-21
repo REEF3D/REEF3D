@@ -110,7 +110,6 @@ void sixdof_df_object::geometry_refinement(lexer *p, ghostcell *pgc)
 		// Check size of triangle and split into 4 triangles if too big
 		
 		if((at + bt + ct)/3.0 > critL)
-        //if( at>critL || bt>critL || ct >critL)
 		{
 			// Half points
 			
