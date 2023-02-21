@@ -137,10 +137,6 @@ void sixdof_df_object::ini_fbvel(lexer *p, fdm *a, ghostcell *pgc)
     phi = theta = psi = 0.0;
     
     
-    // Mass
-    Mass_fb = 0.0;
-    
-    
     // Forces
     Xext = Yext = Zext = Kext = Mext = Next = 0.0;
     Ffb_ << 0.0, 0.0, 0.0;

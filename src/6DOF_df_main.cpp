@@ -83,8 +83,8 @@ void sixdof_df::start_forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, v
         
         endtime=pgc->timer();
         
-        if(p->mpirank==0)
-        cout<<"T0: "<<endtime-starttime<<endl;
+        //if(p->mpirank==0)
+        //cout<<"T0: "<<endtime-starttime<<endl;
         
         starttime=pgc->timer();
         
@@ -94,18 +94,18 @@ void sixdof_df::start_forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, v
         
         endtime=pgc->timer();
         
-        if(p->mpirank==0)
-        cout<<"T1: "<<endtime-starttime<<endl;
+        //if(p->mpirank==0)
+        //cout<<"T1: "<<endtime-starttime<<endl;
         
         starttime=pgc->timer();
 
         // Update position and fb level set
-        p_df_obj[nb]->transform(p,a,pgc,finalise);
+        p_df_obj[nb]->transform(p,a,pgc,finalise);  //----> main time consumer
         
         endtime=pgc->timer();
         
-        if(p->mpirank==0)
-        cout<<"T2: "<<endtime-starttime<<endl;
+        //if(p->mpirank==0)
+        //cout<<"T2: "<<endtime-starttime<<endl;
         
         starttime=pgc->timer();
 
@@ -114,8 +114,8 @@ void sixdof_df::start_forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, v
         
         endtime=pgc->timer();
         
-        if(p->mpirank==0)
-        cout<<"T3: "<<endtime-starttime<<endl;
+        //if(p->mpirank==0)
+        //cout<<"T3: "<<endtime-starttime<<endl;
         
         starttime=pgc->timer();
 
@@ -124,8 +124,8 @@ void sixdof_df::start_forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, v
         
         endtime=pgc->timer();
         
-        if(p->mpirank==0)
-        cout<<"T4: "<<endtime-starttime<<endl;
+        //if(p->mpirank==0)
+        //cout<<"T4: "<<endtime-starttime<<endl;
         
         starttime=pgc->timer();
 
@@ -143,8 +143,8 @@ void sixdof_df::start_forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, v
         }
         endtime=pgc->timer();
         
-        if(p->mpirank==0)
-        cout<<"T5: "<<endtime-starttime<<endl;
+        //if(p->mpirank==0)
+        //cout<<"T5: "<<endtime-starttime<<endl;
         
         starttime=pgc->timer();
     }

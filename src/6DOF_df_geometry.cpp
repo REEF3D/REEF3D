@@ -224,6 +224,19 @@ void sixdof_df_object::geometry_stl(lexer *p, fdm *a, ghostcell *pgc)
                 
             Vfb += (1.0/6.0)*(-x3*y2*z1 + x2*y3*z1 + x3*y1*z2 - x1*y3*z2 - x2*y1*z3 + x1*y2*z3);
         }
+        
+        if (p->X22 == 1)
+        {
+            Mass_fb = p->X22_m;
+            Rfb = Mass_fb/Vfb;
+        }	
+            
+        else if (p->X21 == 1)
+        {
+            Rfb = p->X21_d;
+            Mass_fb = Vfb*Rfb;
+            p->X22_m = Mass_fb;
+        }
     }
 }
 
