@@ -38,6 +38,7 @@ class force;
 class vorticity;
 class solver;
 class probe_point;
+class probe_pressure;
 class probe_line;
 class bedprobe_point;
 class bedprobe_max;
@@ -97,6 +98,7 @@ private:
     force **pforce;
     vorticity *pvort;
 	probe_point *pprobe;
+    probe_pressure *ppressprobe;
 	probe_line *pline;
 	bedprobe_point *pbedpt;
 	bedprobe_line_x *pbedlinex;

@@ -827,6 +827,7 @@
         </VirtualDirectory>
         <File Name="printer.h"/>
         <VirtualDirectory Name="Probes">
+          <File Name="probe_pressure.h"/>
           <File Name="probe_point.h"/>
           <File Name="probe_line.h"/>
         </VirtualDirectory>
@@ -2384,6 +2385,7 @@
         </VirtualDirectory>
         <File Name="vtu3D.cpp"/>
         <VirtualDirectory Name="Probes">
+          <File Name="probe_pressure.cpp"/>
           <File Name="probe_line.cpp"/>
           <File Name="probe_point.cpp"/>
         </VirtualDirectory>
