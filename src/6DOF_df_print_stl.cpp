@@ -31,6 +31,7 @@ Author: Hans Bihs
 void sixdof_df_object::print_stl(lexer *p, fdm *a, ghostcell *pgc)
 {
 	int num=0;
+    int printflag=0;
 	
 	if(p->P15==1)
     num = p->printcount_sixdof;
@@ -41,7 +42,19 @@ void sixdof_df_object::print_stl(lexer *p, fdm *a, ghostcell *pgc)
 	if(num<0)
 	num=0;
 
-    if(p->mpirank==0 && (((p->count%p->P20==0) && p->P30<0.0)  || (p->simtime>printtime && p->P30>0.0)   || p->count==0))
+    if(((p->count%p->P20==0) && p->P30<0.0)  || (p->simtime>printtime && p->P30>0.0)   || (p->count==0 && p->P35==0))
+    printflag=1;
+    
+    if(p->P35>0)
+    for(int qn=0; qn<p->P35; ++qn)
+    if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
+    {
+    printflag=1;
+    
+    printtime_wT[qn]+=p->P35_dt[qn];
+    }
+    
+    if(p->mpirank==0 && printflag==1)
     {
         printtime+=p->P30;
         

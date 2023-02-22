@@ -229,6 +229,7 @@ private:
     // Print
     double curr_time;
     double printtime,printtimenormal;
+    double *printtime_wT;
     int nCorr;
     int q,iin;
     float ffn;
