@@ -553,7 +553,7 @@ void wave_lib_spectrum::print_spectrum(lexer *p)
 
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_Log",0777);
+	mkdir("./REEF3D_Log-Wave",0777);
 
   if(p->mpirank==0)
   {
@@ -562,7 +562,7 @@ void wave_lib_spectrum::print_spectrum(lexer *p)
    	result.open("REEF3D_wave-spectrum.dat");
 
 	  if(p->P14==1)
-  	result.open("./REEF3D_Log/REEF3D_wave-spectrum.dat");
+  	result.open("./REEF3D_Log-Wave/REEF3D_wave-spectrum.dat");
 	}
 
 	for(int n=0;n<p->wN;++n)
@@ -583,7 +583,7 @@ void wave_lib_spectrum::print_components(lexer *p)
 
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_Log",0777);
+	mkdir("./REEF3D_Log-Wave",0777);
 
   if(p->mpirank==0)
   {
@@ -592,7 +592,7 @@ void wave_lib_spectrum::print_components(lexer *p)
     	result.open("REEF3D_wave-components.dat");
 
 		if(p->P14==1)
-			result.open("./REEF3D_Log/REEF3D_wave-components.dat");
+			result.open("./REEF3D_Log-Wave/REEF3D_wave-components.dat");
 	}
 
 	for(int n=0;n<p->wN;++n)
@@ -612,7 +612,7 @@ void wave_lib_spectrum::print_spreading(lexer *p)
 
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_Log",0777);
+	mkdir("./REEF3D_Log-Wave",0777);
 
   if(p->mpirank==0)
   {
@@ -621,7 +621,7 @@ void wave_lib_spectrum::print_spreading(lexer *p)
     	result.open("REEF3D_spreading-function.dat");
 
 		if(p->P14==1)
-			result.open("./REEF3D_Log/REEF3D_spreading-function.dat");
+			result.open("./REEF3D_Log-Wave/REEF3D_spreading-function.dat");
 	}
 
 	for(int n=0;n<p->B133;++n)
