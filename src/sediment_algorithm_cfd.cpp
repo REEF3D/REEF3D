@@ -65,7 +65,7 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     
     // suspended load -------
     pcbed->start(p,pgc,s);
-    psusp->start(a,p,psuspdisc,psuspdiff,psolv,pgc,pflow,s);
+    
     
     for(int qqn=0;qqn<p->S27;++qqn)
     {
@@ -97,12 +97,12 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
 	if(p->mpirank==0)
     cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl<<endl;
     
-    
-    
 }
 
-
-
+void sediment_f::start_susp(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, solver *psolv)
+{
+    psusp->start(a,p,psuspdisc,psuspdiff,psolv,pgc,pflow,s);
+}
 
 
 

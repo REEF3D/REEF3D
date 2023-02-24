@@ -80,7 +80,8 @@ void driver::loop_cfd(fdm* a)
             pheat->start(a,p,pheatdisc,pdiff,psolv,pgc,pflow);
             pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
             pmp->start(p,a,pgc,pmpconvec,psolv,pflow,preini,ppart,pprint);
-				
+        
+        psed->start_susp(p,a,pgc,pflow,psolv);
         psed->start_cfd(p,a,pgc,pflow,preto,psolv);
         pflow->u_relax(p,a,pgc,a->u);
         pflow->v_relax(p,a,pgc,a->v);

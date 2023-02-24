@@ -235,7 +235,6 @@ void driver::logic_cfd()
 	if((p->T10==1 || p->T10==21) && p->T11==12)
 	pturb = new kepsilon_IM2(p,a,pgc);
 
-
     //kw
 	if((p->T10==2 || p->T10==22) && p->T11==11)
 	pturb = new komega_IM1(p,a,pgc);

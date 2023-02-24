@@ -439,7 +439,6 @@
             <File Name="reinitopo_AB2.h"/>
           </VirtualDirectory>
           <File Name="topo.h"/>
-          <File Name="topo_void.h"/>
           <VirtualDirectory Name="Relaxation">
             <File Name="topo_relax.h"/>
           </VirtualDirectory>
@@ -1488,7 +1487,7 @@
           <File Name="suspended_void.cpp"/>
           <File Name="susprhs.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Topo">
+        <VirtualDirectory Name="Exner">
           <File Name="sediment_exner_noneq.cpp"/>
           <File Name="sediment_exner_topovel.cpp"/>
           <File Name="sediment_exner_timestep.cpp"/>
@@ -1505,7 +1504,6 @@
             <File Name="reinitopo_void.cpp"/>
             <File Name="reinitopo_AB2.cpp"/>
           </VirtualDirectory>
-          <File Name="topo_void.cpp"/>
           <VirtualDirectory Name="Relaxation">
             <File Name="topo_relax.cpp"/>
           </VirtualDirectory>

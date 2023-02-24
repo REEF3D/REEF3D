@@ -127,9 +127,17 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
     ptopo = new sediment_exner(p,pgc);
     
     // susepended diff
-    if(p->S60==0)
+    if(p->S60==0 || p->A10!=6)
 	psuspdiff=new diff_void();
     
+    if(p->S60==0 || p->A10!=6)
+    psusp = new suspended_void();
+    
+    if(p->S60==0 || p->A10!=6)
+	psuspdisc=new convection_void(p);
+    
+    if(p->A10==6)
+    {
 	if(p->D20==1 && p->S60<11 && p->S60>0)
 	psuspdiff=new ediff2(p);
     
@@ -143,18 +151,12 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
 	psuspdiff=new idiff2(p);
     
     // suspended conv
-	if(p->S60==0)
-	psuspdisc=new convection_void(p);
-
 	if(p->S60<11 && p->S60>0)
 	psuspdisc=new weno_hj_nug(p);
     
     if(p->S60>10)
 	psuspdisc=new iweno_hj_nug(p);
     
-    
-    if(p->S60==0)
-    psusp = new suspended_void();
 
     if(p->S60==2)
     psusp = new suspended_RK2(p,a);
@@ -167,6 +169,7 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
 
     if(p->S60==12)
     psusp = new suspended_IM2(p,a);
+    }
     
 	
 	p->gcin4a_count=p->gcin_count;

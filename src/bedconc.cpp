@@ -45,8 +45,6 @@ bedconc::~bedconc()
 
 void bedconc::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
-	
-    
     SLICELOOP4
     s->cbn(i,j) = s->cbe(i,j);
     
