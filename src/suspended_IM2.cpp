@@ -51,7 +51,7 @@ void suspended_IM2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
 	psolv->start(p,a,pgc,a->conc,a->rhsvec,4);
 	bcsusp_start(p,a,pgc,s,a->conc);
 	sedfsf(p,a,a->conc);
-	pgc->start4(p,a->conc,gcval_susp);
+	pgc->start4(p,a->conc,gcval_susp);    fillconc(p,a,s);
 	p->susptime=pgc->timer()-starttime;
 	p->suspiter=p->solveriter;
 	if(p->mpirank==0 && (p->count%p->P12==0) && (p->count%p->P12==0))
@@ -90,5 +90,5 @@ void suspended_IM2::fill_wvel(lexer *p, fdm* a, ghostcell *pgc, sediment_fdm *s)
     wvel(i,j,k) = a->w(i,j,k) + s->ws;
     
     pgc->start3(p,wvel,12);
-}void suspended_IM2::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s){/*    count=0;    LOOP    {	if(a->phi(i,j,k)>0.0)	a->rhsvec.V[count]  += -s->ws*(conc(i,j,k+1)-conc(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);		++count;    }*/}void suspended_IM2::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *s, field& conc){    GC4LOOP    if(p->gcb4[n][4]==5)    {        i=p->gcb4[n][0];        j=p->gcb4[n][1];        k=p->gcb4[n][2];                conc(i,j,k) =  s->cb(i,j);    }}void suspended_IM2::sedfsf(lexer* p,fdm* a,field& conc){    LOOP    if(a->phi(i,j,k)<0.0)    conc(i,j,k)=0.0;}void suspended_IM2::clearrhs(lexer* p, fdm* a){    count=0;    LOOP    {    a->rhsvec.V[count]=0.0;	++count;    }}
+}void suspended_IM2::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s){/*    count=0;    LOOP    {	if(a->phi(i,j,k)>0.0)	a->rhsvec.V[count]  += -s->ws*(conc(i,j,k+1)-conc(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);		++count;    }*/}void suspended_IM2::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *s, field& conc){    GC4LOOP    if(p->gcb4[n][4]==5)    {        i=p->gcb4[n][0];        j=p->gcb4[n][1];        k=p->gcb4[n][2];                conc(i,j,k) =  s->cb(i,j);    }}void suspended_IM2::fillconc(lexer* p, fdm* a, sediment_fdm *s){    GC4LOOP    if(p->gcb4[n][4]==5)    {        i=p->gcb4[n][0];        j=p->gcb4[n][1];        k=p->gcb4[n][2];                s->cb(i,j) = a->conc(i,j,k+1);    }}void suspended_IM2::sedfsf(lexer* p,fdm* a,field& conc){    LOOP    if(a->phi(i,j,k)<0.0)    conc(i,j,k)=0.0;}void suspended_IM2::clearrhs(lexer* p, fdm* a){    count=0;    LOOP    {    a->rhsvec.V[count]=0.0;	++count;    }}
 

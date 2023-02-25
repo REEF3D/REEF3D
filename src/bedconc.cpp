@@ -36,6 +36,7 @@ bedconc::bedconc(lexer *p)
     kappa=0.4;
     ks=2.5*d50;
     adist=2.0*d50;
+    deltab=2.0*d50;
     Rstar=(rhosed-rhowat)/rhowat;
 }
 
@@ -74,4 +75,7 @@ void bedconc::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
         s->cb(i,j) = s->cbe(i,j)*pow(((h-zdist)/zdist)*(adist/(h-adist)),zdist);
     }
 }
+
+
+
 

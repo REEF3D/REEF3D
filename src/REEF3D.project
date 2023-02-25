@@ -1475,7 +1475,6 @@
           <File Name="sandslide_pde.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Suspended">
-          <VirtualDirectory Name="BC"/>
           <VirtualDirectory Name="bedconc">
             <File Name="bedconc.cpp"/>
           </VirtualDirectory>

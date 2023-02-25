@@ -52,6 +52,7 @@ void suspended_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
 	bcsusp_start(p,a,pgc,s,a->conc);
 	sedfsf(p,a,a->conc);
 	pgc->start4(p,a->conc,gcval_susp);
+    fillconc(p,a,s);
 	p->susptime=pgc->timer()-starttime;
 	p->suspiter=p->solveriter;
 	if(p->mpirank==0 && (p->count%p->P12==0))
@@ -111,6 +112,19 @@ void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *
         k=p->gcb4[n][2];
         
         conc(i,j,k) =  s->cb(i,j);
+    }
+}
+
+void suspended_IM1::fillconc(lexer* p, fdm* a, sediment_fdm *s)
+{
+    GC4LOOP
+    if(p->gcb4[n][4]==5)
+    {
+        i=p->gcb4[n][0];
+        j=p->gcb4[n][1];
+        k=p->gcb4[n][2];
+        
+        s->cb(i,j) = a->conc(i,j,k+1);
     }
 }
 

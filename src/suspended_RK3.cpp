@@ -89,7 +89,7 @@ void suspended_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
 	pdiff->idiff_scalar(p,a,pgc,psolv,a->conc,a->eddyv,1.0,2.0/3.0);
     bcsusp_start(p,a,pgc,s,a->conc);
     sedfsf(p,a,a->conc);
-	pgc->start4(p,a->conc,gcval_susp);
+	pgc->start4(p,a->conc,gcval_susp);    fillconc(p,a,s);
 
 	p->susptime=pgc->timer()-starttime;
 }
@@ -119,7 +119,7 @@ void suspended_RK3::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
 
 void suspended_RK3::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *s, field& conc)
 {    GC4LOOP    if(p->gcb4[n][4]==5)    {        i=p->gcb4[n][0];        j=p->gcb4[n][1];        k=p->gcb4[n][2];                conc(i,j,k) =  s->cb(i,j);    }}
-
+void suspended_RK3::fillconc(lexer* p, fdm* a, sediment_fdm *s){    GC4LOOP    if(p->gcb4[n][4]==5)    {        i=p->gcb4[n][0];        j=p->gcb4[n][1];        k=p->gcb4[n][2];                s->cb(i,j) = a->conc(i,j,k+1);    }}
 void suspended_RK3::sedfsf(lexer* p,fdm* a,field& conc)
 {
     LOOP
