@@ -1008,7 +1008,9 @@ void lexer::ctrlsend()
 	dd++;
     dctrl[dd] = S22;
 	dd++;
-    dctrl[dd] = S23;
+    ictrl[ii] = S23;
+	ii++;
+    dctrl[dd] = S23_val;
 	dd++;
     dctrl[dd] = S24;
 	dd++;

@@ -88,6 +88,7 @@ void sediment_f::ini_parameters(lexer *p, ghostcell *pgc)
     
     //s->ws=1.1*(rhosed/rhowat-1.0)*g*d50*d50;
     
+    if(p->S23==0)
     s->ws = sqrt(4.0*(rhosed/rhowat-1.0)*g*d50/(3.0*cd));
     
     if(p->mpirank==0)

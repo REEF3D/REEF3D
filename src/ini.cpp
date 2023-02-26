@@ -515,7 +515,7 @@ void lexer::ini_default()
 	S20=0.001;          // double sediment d50
 	S21=3.0;          // double factor for d50 for calculation of ks in bedshear routine
     S22=2650.0;        // double sediment density
-    S23=0.000001;     // double sediment fall velocity
+    S23=0;     // int sediment fall velocity
     S24=0.5;               // double porosity of sediment layer
     S26_a=650.0;          // double alpha for VRANS sediment
     S26_b=2.2;            // double beta for VRANS sediment
