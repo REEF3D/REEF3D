@@ -1107,6 +1107,9 @@ void lexer::read_control()
                 case 44: control>>I44;
 						 clear(c,numint);
 						 break;
+                case 50: control>>I50;
+						 clear(c,numint);
+						 break;
                 case 55: control>>I55;
 						 clear(c,numint);
 						 break;

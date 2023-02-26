@@ -391,6 +391,7 @@ void lexer::ini_default()
 	I40=0;			// int ini from state file
 	I41=0;			// int ID of state file
     I44=1;          // int FNPF state with Fi
+    I50=0;			// double simtime ini
     I55=0.0;        // double reference pressure
 	I56=0;          // int pressure above F56 set to zero
 	I58_1=0.0;      // double vertical velocity for sphere initialization

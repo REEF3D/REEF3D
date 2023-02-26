@@ -417,7 +417,7 @@ public:
 	
 	// Initialize Options
 	int I10,I11,I12,I13,I30,I40,I41,I44,I56;
-	double I21,I55,I58_1,I58_2;
+	double I21,I50,I55,I58_1,I58_2;
     int I230;
     double I231,I232,I233;
     int I240;
