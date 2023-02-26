@@ -28,19 +28,16 @@ Author: Hans Bihs
 #include"sediment_exnerdisc.h"
 #include"sediment_fdm.h"
 
-void sediment_exner::susp_qb(lexer* p, ghostcell *pgc, sediment_fdm *s)
+double sediment_exner::susp_qb(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
-    double valx=0.0;
+    double val=0.0;
     
-    LOOP
-    {
-    valx += a->conc
-          
-          
-          
-          
-    }
     
+    if(p->S34==1)
+    val = s->ws*(s->conc(i,j) - s->cbe(i,j)); 
+    
+
+    return val;
     
     
     

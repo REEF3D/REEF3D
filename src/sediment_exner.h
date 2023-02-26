@@ -48,7 +48,7 @@ private:
     void  topovel(lexer*,ghostcell*,sediment_fdm*,double&,double&,double&);
     void  timestep(lexer*,ghostcell*,sediment_fdm*);
     void  non_equillibrium_solve(lexer*,ghostcell*,sediment_fdm*);
-    void  susp_qb(lexer*,ghostcell*,sediment_fdm*);
+    double  susp_qb(lexer*,ghostcell*,sediment_fdm*);
     
     bedconc *pcb;
     topo_relax *prelax;

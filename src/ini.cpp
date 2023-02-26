@@ -521,7 +521,8 @@ void lexer::ini_default()
     S27=1;              // int number of inner iterations
     S30=0.047;          // double Shields parameter
     S32=4;              // int exner discretization
-    S33=1;              // type of near bead velocity interpolation
+    S33=1;              // int type of near bead velocity interpolation
+    S34=1;              // int type of suspedned load D and E calculation
 	S37=2;		        // int number reini time step
 	S41=1;				// int type of sediment start criterion
 	S42=1;				// int type of sediment interval criterion
