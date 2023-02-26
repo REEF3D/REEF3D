@@ -996,7 +996,7 @@ void lexer::ctrlrecv()
 	S21 = dctrl[dd];
 	dd++;
     S22 = dctrl[dd];
-	dd++;    S23 = ictrl[ii];	ii++
+	dd++;    S23 = ictrl[ii];	ii++;
     S23_val = dctrl[dd];
 	dd++;
     S24 = dctrl[dd];
