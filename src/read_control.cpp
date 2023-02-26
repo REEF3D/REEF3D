@@ -1235,8 +1235,7 @@ void lexer::read_control()
 				case 20: control>>P20;
 						 clear(c,numint);
 						 break;
-				case 23: control>>P23_val;
-                            S23=1;
+				case 23: control>>P23;
 						 clear(c,numint);
 						 break;
                 case 24: control>>P24;
@@ -1496,7 +1495,8 @@ void lexer::read_control()
                 case 22: control>>S22;
 						 clear(c,numint);
 						 break;
-                case 23: control>>S23;
+                case 23: control>>S23_val;
+                           S23=1;
 						 clear(c,numint);
 						 break;
                 case 24: control>>S24;
