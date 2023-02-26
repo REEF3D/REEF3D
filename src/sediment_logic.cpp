@@ -137,17 +137,14 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
 	psuspdisc=new convection_void(p);
     
     if(p->A10==6)
-    {
-	if(p->D20==1 && p->S60<11 && p->S60>0)
-	psuspdiff=new ediff2(p);
-    
-    if(p->D20==1 && p->S60<11 && p->S60>0 && p->j_dir==0)
+    {    
+    if(p->S60<11 && p->S60>0 && p->j_dir==0)
 	psuspdiff=new idiff2_FS_2D(p);
     
-    if(p->D20==1 && p->S60<11 && p->S60>0 && p->j_dir==1)
+    if(p->S60<11 && p->S60>0 && p->j_dir==1)
 	psuspdiff=new idiff2_FS(p);
 	
-	if(p->D20>=2 || p->S60>10)
+	if(p->S60>10)
 	psuspdiff=new idiff2(p);
     
     // suspended conv

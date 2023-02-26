@@ -61,7 +61,7 @@ public:
     void update_sflow(lexer*,fdm2D*,ghostcell*,ioflow*);
     
     
-    // ---
+    // ---    virtual void ini_parameters(lexer*, ghostcell*);
 	
     virtual void relax(lexer*,ghostcell*);
 	virtual double bedshear_point(lexer*,fdm*,ghostcell*);

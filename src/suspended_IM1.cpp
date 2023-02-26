@@ -124,7 +124,7 @@ void suspended_IM1::fillconc(lexer* p, fdm* a, sediment_fdm *s)
         j=p->gcb4[n][1];
         k=p->gcb4[n][2];
         
-        s->cb(i,j) = a->conc(i,j,k+1);
+        s->conc(i,j) = a->conc(i,j,k+1);
     }
 }
 

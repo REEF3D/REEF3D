@@ -422,7 +422,7 @@
           <File Name="suspended_void.h"/>
           <File Name="susprhs.h"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Topo">
+        <VirtualDirectory Name="Exner">
           <File Name="sediment_exner.h"/>
           <VirtualDirectory Name="Exnerdisc">
             <File Name="sediment_cds_hj.h"/>
@@ -1487,6 +1487,7 @@
           <File Name="susprhs.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Exner">
+          <File Name="sediment_exner_susp_qb.cpp"/>
           <File Name="sediment_exner_noneq.cpp"/>
           <File Name="sediment_exner_topovel.cpp"/>
           <File Name="sediment_exner_timestep.cpp"/>

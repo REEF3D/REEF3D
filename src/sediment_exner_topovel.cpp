@@ -104,7 +104,8 @@ void sediment_exner::topovel(lexer* p, ghostcell *pgc, sediment_fdm *s, double& 
         // Exner equations
         // eq
         if(p->S17==0)
-        vz =  -prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy) + ws*(s->conc(i,j) - s->cbe(i,j)); 
+        vz =  -prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy) + s->ws*(s->conc(i,j) - s->cbe(i,j)); 
+        
         
         // non-eq
         if(p->S17==1)

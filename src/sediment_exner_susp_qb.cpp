@@ -20,60 +20,29 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sediment_f.h"
+#include"sediment_exner.h"
 #include"lexer.h"
-#include"fdm.h"
-#include"fdm2D.h"
 #include"ghostcell.h"
+#include"bedconc.h"
+#include"topo_relax.h"
+#include"sediment_exnerdisc.h"
 #include"sediment_fdm.h"
 
-void sediment_f::active_cfd(lexer *p, fdm *a,ghostcell *pgc)
+void sediment_exner::susp_qb(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
+    double valx=0.0;
     
-    SLICELOOP4
-    s->active(i,j)=0;
-    
-    // #define ALOOP ILOOP JLOOP KLOOP PSOLIDCHECK
-    ILOOP
-    JLOOP
+    LOOP
     {
-        KWLOOP
-        PSOLIDCHECK
-        {
-            
-        if(a->topo(i,j,k)<0.0 && a->topo(i,j,k+1)>=0.0)
-        s->active(i,j)=1;
-        }
-    }
-}
-
-void sediment_f::active_ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
-{
-    SLICELOOP4
-    s->active(i,j)=1;
-}
-
-void sediment_f::active_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
-{
-    SLICELOOP4
-    s->active(i,j)=1;
-    
-    SLICELOOP4
-    if(b->solidbed(i,j) >= s->bedzh(i,j))
-    {
-    b->test(i,j) = b->solidbed(i,j);
-
-    s->active(i,j)=0;
+    valx += a->conc
+          
+          
+          
+          
     }
     
-}
-
-void sediment_f::active_ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
-{
-    SLICELOOP4
-    s->active(i,j)=1;
     
-  
-  
+    
+    
     
 }

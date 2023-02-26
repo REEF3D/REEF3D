@@ -51,13 +51,13 @@ void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
     
     topo_zh_update(p,a,pgc,s);
     
+    ini_parameters(p,pgc);
     log_ini(p);
 }
 
 void sediment_f::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     //relax(p,b,pgc);
-    
     SLICELOOP4
     {
     s->ks(i,j) = p->S20;
@@ -71,5 +71,26 @@ void sediment_f::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     
     active_ini_sflow(p,b,pgc);
     
+    ini_parameters(p,pgc);
     log_ini(p);
+}
+
+void sediment_f::ini_parameters(lexer *p, ghostcell *pgc)
+{
+    // Fredsøe, p.199
+    double rhosed=p->S22;
+    double rhowat=p->W1;
+    double g=9.81;
+    double d50=p->S20;
+    double visc=p->W2;
+    double Ls = p->S20;
+    double cd = 1.5;
+    
+    //s->ws=1.1*(rhosed/rhowat-1.0)*g*d50*d50;
+    
+    s->ws = sqrt(4.0*(rhosed/rhowat-1.0)*g*d50/(3.0*cd));
+    
+    if(p->mpirank==0)
+    cout<<"ws: "<<s->ws<<endl;
+    
 }

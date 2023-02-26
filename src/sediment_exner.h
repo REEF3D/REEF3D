@@ -48,6 +48,7 @@ private:
     void  topovel(lexer*,ghostcell*,sediment_fdm*,double&,double&,double&);
     void  timestep(lexer*,ghostcell*,sediment_fdm*);
     void  non_equillibrium_solve(lexer*,ghostcell*,sediment_fdm*);
+    void  susp_qb(lexer*,ghostcell*,sediment_fdm*);
     
     bedconc *pcb;
     topo_relax *prelax;
@@ -63,7 +64,6 @@ private:
     double maxdh,maxvz;
 	double vx,vy,vz;
 	double vzmax;
-    double ws;
     double rhosed, rhowat, g, d50;
     double Ls;
     double tau_eff, shearvel_eff, shields_eff;
