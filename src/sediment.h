@@ -66,6 +66,8 @@ public:
     
     virtual double bedzhval(int,int)=0;
     
+    virtual void ctimesave(lexer*, fdm*)=0;
+    
     virtual void print_2D_bedload(lexer*, ghostcell*,ofstream&)=0;
     virtual void print_3D_bedload(lexer*, ghostcell*,ofstream&)=0;
 	virtual void name_pvtu_bedload(lexer*, ghostcell*,ofstream&)=0;

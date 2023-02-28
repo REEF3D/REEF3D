@@ -95,6 +95,7 @@ void driver::loop_cfd(fdm* a)
         pturb->ktimesave(p,a,pgc);
         pturb->etimesave(p,a,pgc);
         pflow->veltimesave(p,a,pgc,pvrans);
+        psed->ctimesave(p,a);
 
         //timestep control
         p->simtime+=p->dt;

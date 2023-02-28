@@ -52,7 +52,7 @@ void idiff2_FS::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fie
 					+   0.5*(visc_ijk+ev_ijk/sig + visc(i,j,k-1)+a->eddyv(i,j,k-1)/sig)/(p->DZN[KP]*p->DZP[KP])
 					+   1.0/(alpha*p->dt);
     
-    a->rhsvec.V[count] += b(i,j,k)/(alpha*p->dt); 
+     a->rhsvec.V[count] += b(i,j,k)/(alpha*p->dt); 
 	 
 	 a->M.s[count] = -0.5*(visc_ijk+ev_ijk/sig + visc(i-1,j,k)+a->eddyv(i-1,j,k)/sig)/(p->DXN[IP]*p->DXP[IM1]);
 	 a->M.n[count] = -0.5*(visc(i+1,j,k)+a->eddyv(i+1,j,k)/sig + visc_ijk+ev_ijk/sig)/(p->DXN[IP]*p->DXP[IP]);
@@ -113,7 +113,6 @@ void idiff2_FS::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fie
 	if(p->mpirank==0 && p->D21==1 && p->count%p->P12==0)
 	cout<<"scalar_diffiter: "<<p->solveriter<<"  scalar_difftime: "<<setprecision(3)<<time<<endl;
 }
-
 
 
 void idiff2_FS::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field& diff, field& b, field &visc, field &eddyv, double sig, double alpha)

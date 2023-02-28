@@ -43,13 +43,12 @@ suspended_RK3::~suspended_RK3()
 void suspended_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow, sediment_fdm *s)
 {
     field4 ark1(p),ark2(p);
-    fill_wvel(p,a,pgc,s);
+    fill_wvel(p,a,pgc,s);    bcsusp_start(p,a,pgc,s,a->conc);
     
 // Step 1
-    starttime=pgc->timer();
-
+    starttime=pgc->timer();    clearrhs(p,a);
     suspsource(p,a,a->conc,s);
-    pconvec->start(p,a,a->conc,4,a->u,a->v,wvel);    clearrhs(p,a);
+    pconvec->start(p,a,a->conc,4,a->u,a->v,wvel);
 	pdiff->diff_scalar(p,a,pgc,psolv,a->conc,a->visc,a->eddyv,1.0,1.0);
 
 	LOOP
@@ -60,9 +59,9 @@ void suspended_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
     sedfsf(p,a,ark1);
 	pgc->start4(p,ark1,gcval_susp);
 
-// Step 2
+// Step 2    clearrhs(p,a);
     suspsource(p,a,a->conc,s);
-    pconvec->start(p,a,ark1,4,a->u,a->v,wvel);    clearrhs(p,a);
+    pconvec->start(p,a,ark1,4,a->u,a->v,wvel);
 	pdiff->diff_scalar(p,a,pgc,psolv,ark1,a->visc,a->eddyv,1.0,0.25);
 
 	LOOP
@@ -74,9 +73,9 @@ void suspended_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
     sedfsf(p,a,ark2);
 	pgc->start4(p,ark2,gcval_susp);
 
-// Step 3
+// Step 3    clearrhs(p,a);
     suspsource(p,a,a->conc,s);
-    pconvec->start(p,a,ark2,4,a->u,a->v,wvel);    clearrhs(p,a);
+    pconvec->start(p,a,ark2,4,a->u,a->v,wvel);
 	pdiff->diff_scalar(p,a,pgc,psolv,ark2,a->visc,a->eddyv,1.0,2.0/3.0);
 
 	LOOP
@@ -98,7 +97,7 @@ void suspended_RK3::ctimesave(lexer *p, fdm* a)
 void suspended_RK3::fill_wvel(lexer *p, fdm* a, ghostcell *pgc, sediment_fdm *s)
 {
     WLOOP
-    wvel(i,j,k) = a->w(i,j,k) - s->ws;
+    wvel(i,j,k) = a->w(i,j,k) + s->ws;
     
     pgc->start3(p,wvel,12);
 }
@@ -109,14 +108,14 @@ void suspended_RK3::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
     {
     a->L(i,j,k)=0.0;
 
-    // if(a->phi(i,j,k)>0.0)
+    //if(a->phi(i,j,k)>0.0)
     //a->L(i,j,k)=-s->ws*(conc(i,j,k+1)-conc(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
     }
 }
 
 void suspended_RK3::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *s, field& conc)
 {    GC4LOOP    if(p->gcb4[n][4]==5)    {        i=p->gcb4[n][0];        j=p->gcb4[n][1];        k=p->gcb4[n][2];                conc(i,j,k) =  s->cb(i,j);        conc(i,j,k-1) =  s->cb(i,j);        conc(i,j,k-2) =  s->cb(i,j);        conc(i,j,k-3) =  s->cb(i,j);    }}
-void suspended_RK3::fillconc(lexer* p, fdm* a, sediment_fdm *s){    double dist;    double d50=p->S20;    double adist=0.5*d50;    double deltab=3.0*d50;    double cx,cy;        if(p->S34==1)    GC4LOOP    if(p->gcb4[n][4]==5)    {        i=p->gcb4[n][0];        j=p->gcb4[n][1];        k=p->gcb4[n][2];                //s->conc(i,j) = a->conc(i,j,k+1);                dist = p->ZP[KP1]-s->bedzh(i,j)-adist;                s->conc(i,j) = (s->cbe(i,j)*(dist-deltab+adist) + a->conc(i,j,k+1)*(deltab-adist))/(dist);    }        if(p->S34==2)    ILOOP    JLOOP    {        cx=0.0;        cy=0.0;            KLOOP        PCHECK        {        cx += 0.5*(a->u(i,j,k) + a->u(i-1,j,k))*a->conc(i,j,k)*p->DZN[KP];        cy += 0.5*(a->v(i,j,k) + a->v(i,j-1,k))*a->conc(i,j,k)*p->DZN[KP];        }    s->conc(i,j) = sqrt(cx*cx + cy*cy);    }}
+void suspended_RK3::fillconc(lexer* p, fdm* a, sediment_fdm *s){    double dist;    double d50=p->S20;    double adist=0.5*d50;    double deltab=3.0*d50;    double cx,cy;        if(p->S34==1)    GC4LOOP    if(p->gcb4[n][4]==5)    {        i=p->gcb4[n][0];        j=p->gcb4[n][1];        k=p->gcb4[n][2];                //s->conc(i,j) = a->conc(i,j,k+1);                dist = p->ZP[KP1]-s->bedzh(i,j)-adist;                s->conc(i,j) = (s->cbe(i,j)*(dist-deltab+adist) + a->conc(i,j,k+1)*(deltab-adist))/(dist);        //if(s->conc(i,j)>s->cbe(i,j))        //cout<<"conc: "<<s->conc(i,j)<<" cbe: "<<s->cbe(i,j)<<endl;    }        if(p->S34==2)    ILOOP    JLOOP    {        cx=0.0;        cy=0.0;            KLOOP        PCHECK        {        cx += 0.5*(a->u(i,j,k) + a->u(i-1,j,k))*a->conc(i,j,k)*p->DZN[KP];        cy += 0.5*(a->v(i,j,k) + a->v(i,j-1,k))*a->conc(i,j,k)*p->DZN[KP];        }    s->conc(i,j) = sqrt(cx*cx + cy*cy);    }}
 void suspended_RK3::sedfsf(lexer* p,fdm* a,field& conc)
 {
     LOOP
