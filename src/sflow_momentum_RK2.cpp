@@ -151,9 +151,10 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
     SLICELOOP4
     b->L(i,j)=0.0;
     
+    ppress->wpgrad(p,b,etark1,b->eta);
     if(p->A214==1)
     pconvec->start(p,b,b->ws,4,b->P,b->Q);
-    ppress->wpgrad(p,b,etark1,b->eta);
+    pdiff->diff_w(p,b,pgc,psolv,b->P,b->Q,b->ws,1.0);
     
     SLICELOOP4
 	wrk1(i,j) = b->ws(i,j)
@@ -240,9 +241,10 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
     SLICELOOP4
     b->L(i,j)=0.0;
     
+    ppress->wpgrad(p,b,b->eta,etark1);
     if(p->A214==1)
     pconvec->start(p,b,wrk1,4,Prk1,Qrk1);
-    ppress->wpgrad(p,b,b->eta,etark1);
+    pdiff->diff_w(p,b,pgc,psolv,Prk1,Qrk1,wrk1,0.5);
     
     SLICELOOP4
 	b->ws(i,j) = 0.5*b->ws(i,j) + 0.5*wrk1(i,j)
