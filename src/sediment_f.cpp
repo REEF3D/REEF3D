@@ -78,7 +78,7 @@ void sediment_f::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow,
 void sediment_f::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice &P, slice &Q)
 {
     
-    if((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47))
+    if((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47 && p->count>0))
 	{
 		if(p->S42==1 && p->count%p->S44==0)
 		sediment_algorithm_sflow(p,b,pgc,pflow,P,Q);
@@ -89,7 +89,7 @@ void sediment_f::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, 
 		p->sedsimtime = p->simtime + p->S46;
 		}
 		
-		if(p->S42==3  && p->simtime/p->wT>=p->sedwavetime)
+		if(p->S42==3  && p->simtime/p->wT>=p->sedwavetime )
 		{
 		sediment_algorithm_sflow(p,b,pgc,pflow,P,Q);
 		p->sedwavetime = p->simtime/p->wT + p->S48;
