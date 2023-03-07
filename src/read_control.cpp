@@ -1365,6 +1365,12 @@ void lexer::read_control()
 				case 85: ++P85;
 						 clear(c,numint);
 						 break;
+                case 86: ++P86;
+                            clear(c,numint);
+                            break;
+                case 87: control>>P87;
+                            clear(c,numint);
+                            break;
 				case 91: control>>P91;
 						 clear(c,numint);
 						 break;
@@ -2420,6 +2426,12 @@ void lexer::read_control()
 	Darray(P85_r,P85);
 	Darray(P85_cd,P85);
 	Darray(P85_cm,P85);
+    
+    Darray(P86_x,P86);
+	Darray(P86_y,P86);
+	Darray(P86_z,P86);
+	Darray(P86_r,P86);
+	Darray(P86_l,P86);
 
 	Darray(P121_x,P121);
 	Darray(P121_y,P121);
@@ -2673,6 +2685,7 @@ void lexer::read_control()
 	int countP67=0;
 	int countP81=0;
 	int countP85=0;
+    int countP86=0;
 	int countP121=0;
 	int countP123=0;
 	int countP124=0;
@@ -2940,6 +2953,10 @@ void lexer::read_control()
                         ++countP85;
 						 clear(c,numint);
 						 break;
+                case 86: control>>P86_x[countP86]>>P86_y[countP86]>>P86_z[countP86]>>P86_r[countP86]>>P86_l[countP86];
+                        ++countP86;
+                        clear(c,numint);
+                        break;
 				case 121: control>>P121_x[countP121]>>P121_y[countP121];
                         ++countP121;
 						 clear(c,numint);

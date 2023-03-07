@@ -43,23 +43,42 @@ fnpf_print_wsf::fnpf_print_wsf(lexer *p, fdm_fnpf *c)
     {
     // open WSF file
 	if(p->P14==0)
-    wsfout.open("REEF3D-FNPF-WSF-HG.dat");
-	
+    {
+        if(p->P87==0)
+            wsfout.open("REEF3D-FNPF-WSF-HG.dat");
+        if(p->P87==1)
+            wsfout.open("REEF3D-FNPF-WSF-HG.csv");
+	}
 	if(p->P14==1)
-	wsfout.open("./REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG.dat");
+    {
+        if(p->P87==0)
+            wsfout.open("./REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG.dat");
+        if(p->P87==1)
+            wsfout.open("./REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG.csv");
+    }
+    
+    if(p->P87==0)
+    {
+        wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
+        wsfout<<"x_coord     y_coord"<<endl;
+        for(n=0;n<gauge_num;++n)
+            wsfout<<n+1<<"\t "<<x[n]<<"\t "<<y[n]<<endl;
 
-    wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
-    wsfout<<"x_coord     y_coord"<<endl;
-    for(n=0;n<gauge_num;++n)
-    wsfout<<n+1<<"\t "<<x[n]<<"\t "<<y[n]<<endl;
+        wsfout<<endl<<endl;
 
-    wsfout<<endl<<endl;
+        wsfout<<"time";
+        for(n=0;n<gauge_num;++n)
+            wsfout<<"\t P"<<n+1;
 
-    wsfout<<"time";
-    for(n=0;n<gauge_num;++n)
-    wsfout<<"\t P"<<n+1;
-
-    wsfout<<endl<<endl;
+        wsfout<<endl<<endl;
+    }
+    if(p->P87==1)
+    {
+            wsfout<<"time";
+            for(n=0;n<gauge_num;++n)
+                wsfout<<",P_(x="<<x[n]<<",_y="<<y[n]<<")";
+            wsfout<<endl;
+    }
     
     
         if(p->P57==1 || p->P57==3)
@@ -135,10 +154,20 @@ void fnpf_print_wsf::height_gauge(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &
     // write to file
     if(p->mpirank==0)
     {
-    wsfout<<setprecision(9)<<p->simtime<<"\t";
-    for(n=0;n<gauge_num;++n)
-    wsfout<<setprecision(9)<<wsf[n]<<"  \t  ";
-    wsfout<<endl;
+        if(p->P87==0)
+        {
+            wsfout<<setprecision(9)<<p->simtime<<"\t";
+            for(n=0;n<gauge_num;++n)
+                wsfout<<setprecision(9)<<wsf[n]<<"  \t  ";
+            wsfout<<endl;
+        }
+        if(p->P87==1)
+        {
+            wsfout<<setprecision(9)<<p->simtime;
+            for(n=0;n<gauge_num;++n)
+                wsfout<<","<<setprecision(9)<<wsf[n];
+            wsfout<<endl;
+        }
     }
     
     // Rise Velocity
