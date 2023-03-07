@@ -45,8 +45,6 @@ void sediment_f::active_cfd(lexer *p, fdm *a,ghostcell *pgc)
         s->active(i,j)=1;
         }
     }
-    
-    
 }
 
 void sediment_f::active_ini_cfd(lexer *p, fdm *a,ghostcell *pgc)

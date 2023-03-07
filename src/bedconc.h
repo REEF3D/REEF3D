@@ -45,7 +45,7 @@ private:
 	double Rstar, g, visc;
 	double rhosed,rhowat;
 	double Ti,Ds;
-    double adist,zdist;
+    double adist,zdist,deltab;
 
 };
 #endif

@@ -63,6 +63,21 @@ void sflow_ediff::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
     }
 }
 
+void sflow_ediff::diff_w(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &u, slice &v, slice &w, double alpha)
+{
+    double visc=p->W2;
+    
+	SLICELOOP4
+    {
+	b->L(i,j) +=  ((visc+0.5*(b->eddyv(i,j) + b->eddyv(i,j+1)))/(p->DXM*p->DXM))*
+    
+                (     (v(i+1,j) - 2.0*v(i,j) + v(i-1,j))
+                + 2.0*(v(i,j+1) - 2.0*v(i,j) + v(i,j-1))
+                
+                + (u(i,j+1)-u(i,j)) - (u(i-1,j+1)-u(i-1,j)));
+    }
+}
+
 void sflow_ediff::diff_scalar(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &f, double sig, double alpha)
 {
     

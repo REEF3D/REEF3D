@@ -72,11 +72,11 @@ public:
 	void print_stl(lexer*,fdm*,ghostcell*);
 	void interface(lexer*, bool);
     
-    double Mass_fb;
+    double Mass_fb, Vfb, Rfb;
 
 private:
 
-	void ini_parameter(lexer*, fdm*, ghostcell*);
+	void ini_parameter_stl(lexer*, fdm*, ghostcell*);
     void ini_fbvel(lexer*, fdm*, ghostcell*);
     void maxvel(lexer*, fdm*, ghostcell*);
     
@@ -106,6 +106,7 @@ private:
 	double Hsolidface_t(lexer*, fdm*, int,int,int);
 	
 	void geometry(lexer*, fdm*, ghostcell*);
+    void geometry_stl(lexer*, fdm*, ghostcell*);
 	void geometry_f(double&,double&,double&,double&,double&,double&,double&,double&,double&);
     void geometry_ls(lexer*, fdm*, ghostcell*);
     
@@ -228,6 +229,7 @@ private:
     // Print
     double curr_time;
     double printtime,printtimenormal;
+    double *printtime_wT;
     int nCorr;
     int q,iin;
     float ffn;

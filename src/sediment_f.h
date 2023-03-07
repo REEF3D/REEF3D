@@ -48,7 +48,7 @@ public:
     
     // CFD interface
     virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*);
-    virtual void ini_cfd(lexer*,fdm*,ghostcell*);        void sediment_logic(lexer*,fdm*,ghostcell*,turbulence*);
+    virtual void ini_cfd(lexer*,fdm*,ghostcell*);    virtual void start_susp(lexer*, fdm*, ghostcell*, ioflow*, solver*);        void sediment_logic(lexer*,fdm*,ghostcell*,turbulence*);
     void sediment_algorithm_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*);    void prep_cfd(lexer*,fdm*,ghostcell*);    void fill_PQ_cfd(lexer*,fdm*,ghostcell*);    void active_cfd(lexer*,fdm*,ghostcell*);    void active_ini_cfd(lexer*,fdm*,ghostcell*);
     
     void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*);    void bedchange_update(lexer*, ghostcell*);
@@ -61,15 +61,13 @@ public:
     void update_sflow(lexer*,fdm2D*,ghostcell*,ioflow*);
     
     
-    // ---
+    // ---    virtual void ini_parameters(lexer*, ghostcell*);
 	
     virtual void relax(lexer*,ghostcell*);
 	virtual double bedshear_point(lexer*,fdm*,ghostcell*);
     
-	
-
     virtual double qbeval(int,int);
-    virtual void qbeget(int,int,double);    virtual double bedzhval(int,int);
+    virtual void qbeget(int,int,double);    virtual double bedzhval(int,int);    virtual void ctimesave(lexer*, fdm*);
     
     void fill_bedk(lexer*,fdm*,ghostcell*);
 	void bedlevel(lexer*,fdm*,ghostcell*);    void waterlevel(lexer*,fdm*,ghostcell*);

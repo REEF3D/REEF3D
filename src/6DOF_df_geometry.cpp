@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_df_object.h"
@@ -28,20 +28,22 @@ Author: Tobias Martin
 
 void sixdof_df_object::geometry(lexer *p, fdm *a, ghostcell *pgc)
 {
+    double x0, x1, x2, y0, y1, y2, z0, z1, z2;
+    double n0, n1, n2;
+    double f1x,f2x,f3x,g0x,g1x,g2x,f1y,f2y,f3y;
+    double g0y,g1y,g2y,f1z,f2z,f3z,g0z,g1z,g2z;
+    double *integ;
+    
     I_ = Eigen::Matrix3d::Zero();
 
 	if (p->X131 > 0 || p->X132 > 0 || p->X133 > 0 || p->X153 > 0)
 	{
 		geometry_ls(p,a,pgc);
 	}	
+        
 	else
 	{
-		double x0, x1, x2, y0, y1, y2, z0, z1, z2;
-		double n0, n1, n2;
-		double f1x,f2x,f3x,g0x,g1x,g2x,f1y,f2y,f3y;
-		double g0y,g1y,g2y,f1z,f2z,f3z,g0z,g1z,g2z;
-		double *integ;
-		
+
 		p->Darray(integ, 10);
 
 		for (int n = 0; n < tricount; ++n)
@@ -77,21 +79,55 @@ void sixdof_df_object::geometry(lexer *p, fdm *a, ghostcell *pgc)
 			integ[8] += n1 * (z0 * g0y + z1 * g1y + z2 * g2y);
 			integ[9] += n2 * (x0 * g0z + x1 * g1z + x2 * g2z);	
 		}
-
-        double Vfb = integ[0]/6.0;
-        double Rfb = 0.0;
         
-		if (p->X22 == 1)
-		{
-			Mass_fb = p->X22_m;
-			Rfb = Mass_fb/Vfb;
-		}	
-		else if (p->X21 == 1)
-		{
-			Rfb = p->X21_d;
-			Mass_fb = Vfb*Rfb;
-            p->X22_m = Mass_fb;
-		}
+        double Vol,Vol_ls,H;
+        Vol=0.0;
+        for (int n = 0; n < tricount; ++n)
+        {
+        double x1, x2, x3, y1, y2, y3, z1, z2, z3;
+        
+             x1 = tri_x[n][0];
+			x2 = tri_x[n][1];
+			x3 = tri_x[n][2];
+		
+			y1 = tri_y[n][0];
+			y2 = tri_y[n][1];
+			y3 = tri_y[n][2];
+		
+			z1 = tri_z[n][0];
+			z2 = tri_z[n][1];
+			z3 = tri_z[n][2];  
+            
+            Vol += (1.0/6.0)*(-x3*y2*z1 + x2*y3*z1 + x3*y1*z2 - x1*y3*z2 - x2*y1*z3 + x1*y2*z3);
+            
+        }
+        
+        Vol_ls=0.0;
+        ALOOP
+        {
+            H = Hsolidface(p,a,0,0,0);
+            Vol_ls+= p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*H;
+        }
+        Vol_ls=pgc->globalsum(Vol_ls);
+
+        if(p->X180==0)
+        {
+            Vfb = integ[0]/6.0;
+            Rfb = 0.0;
+            
+            if (p->X22 == 1)
+            {
+                Mass_fb = p->X22_m;
+                Rfb = Mass_fb/Vfb;
+            }	
+            
+            else if (p->X21 == 1)
+            {
+                Rfb = p->X21_d;
+                Mass_fb = Vfb*Rfb;
+                p->X22_m = Mass_fb;
+            }
+        }
 
 		integ[1] *= Rfb/24.0;
 		integ[2] *= Rfb/24.0;
@@ -154,7 +190,7 @@ void sixdof_df_object::geometry(lexer *p, fdm *a, ghostcell *pgc)
 		if(p->mpirank==0)
 		{
 			cout<<"Center of Gravity xg: "<<c_(0)<<" yg: "<<c_(1)<<" zg: "<<c_(2)<<endl;
-			cout<<"Volume Floating Body: "<<Vfb<<endl;
+			cout<<"Volume Floating Body: "<<Vfb<<" Vol_ls: "<<Vol_ls<<endl;
 			cout<<"Mass Floating Body: "<<Mass_fb<<endl;
 			cout<<"Density Floating Body: "<<Rfb<<endl;
 			cout<<"Moments of Inertia Tensor:\n"<<I_<<endl;
@@ -162,6 +198,46 @@ void sixdof_df_object::geometry(lexer *p, fdm *a, ghostcell *pgc)
 		
 		p->del_Darray(integ, 10);	
 	}
+}
+
+void sixdof_df_object::geometry_stl(lexer *p, fdm *a, ghostcell *pgc)
+{
+    if(p->X180==1)
+    {
+        double x1, x2, x3, y1, y2, y3, z1, z2, z3;
+        Vfb=0.0;
+        for (int n = 0; n < tricount; ++n)
+        {
+        
+            
+            x1 = tri_x[n][0];
+            x2 = tri_x[n][1];
+            x3 = tri_x[n][2];
+            
+            y1 = tri_y[n][0];
+            y2 = tri_y[n][1];
+            y3 = tri_y[n][2];
+            
+            z1 = tri_z[n][0];
+            z2 = tri_z[n][1];
+            z3 = tri_z[n][2];  
+                
+            Vfb += (1.0/6.0)*(-x3*y2*z1 + x2*y3*z1 + x3*y1*z2 - x1*y3*z2 - x2*y1*z3 + x1*y2*z3);
+        }
+        
+        if (p->X22 == 1)
+        {
+            Mass_fb = p->X22_m;
+            Rfb = Mass_fb/Vfb;
+        }	
+            
+        else if (p->X21 == 1)
+        {
+            Rfb = p->X21_d;
+            Mass_fb = Vfb*Rfb;
+            p->X22_m = Mass_fb;
+        }
+    }
 }
 
 void sixdof_df_object::geometry_f(double& w0, double& w1, double& w2, double& f1, double& f2, double& f3, double& g0, double& g1, double& g2)
@@ -180,8 +256,8 @@ void sixdof_df_object::geometry_f(double& w0, double& w1, double& w2, double& f1
 void sixdof_df_object::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
 {
 	// Total Volume
-	double Rfb, H;
-	double Vfb=0.0;
+	double H;
+	Vfb=0.0;
    
 	ALOOP
 	{

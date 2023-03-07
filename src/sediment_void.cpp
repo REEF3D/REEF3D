@@ -180,3 +180,12 @@ double sediment_void::bedshear_point(lexer *p, fdm *a,ghostcell *pgc)
 {
 	return 0.0;
 }
+
+void sediment_void::start_susp(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, solver *psolv)
+{
+}
+
+void sediment_void::ctimesave(lexer *p, fdm* a)
+{
+
+}

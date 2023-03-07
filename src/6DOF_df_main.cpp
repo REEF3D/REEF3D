@@ -71,23 +71,63 @@ void sixdof_df::start_forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, v
     pgc->start2(p,a->fbh2,11);
     pgc->start3(p,a->fbh3,12);
     pgc->start4(p,a->fbh4,40);
+    
+    double starttime,endtime;
  
     for (int nb=0; nb<number6DOF;++nb)
     {
+        starttime=pgc->timer();
+        
         // Calculate forces
         p_df_obj[nb]->forces_stl(p,a,pgc,alpha,uvel,vvel,wvel);
-
+        
+        endtime=pgc->timer();
+        
+        //if(p->mpirank==0)
+        //cout<<"T0: "<<endtime-starttime<<endl;
+        
+        starttime=pgc->timer();
+        
         // Advance body in time
         p_df_obj[nb]->solve_eqmotion(p,a,pgc,alpha,gamma,zeta,pvrans,pnet);
+        
+        
+        endtime=pgc->timer();
+        
+        //if(p->mpirank==0)
+        //cout<<"T1: "<<endtime-starttime<<endl;
+        
+        starttime=pgc->timer();
 
         // Update position and fb level set
-        p_df_obj[nb]->transform(p,a,pgc,finalise);
+        p_df_obj[nb]->transform(p,a,pgc,finalise);  //----> main time consumer
+        
+        endtime=pgc->timer();
+        
+        //if(p->mpirank==0)
+        //cout<<"T2: "<<endtime-starttime<<endl;
+        
+        starttime=pgc->timer();
 
         // Update forcing terms
         p_df_obj[nb]->updateForcing(p,a,pgc,alpha,uvel,vvel,wvel,fx,fy,fz);
+        
+        endtime=pgc->timer();
+        
+        //if(p->mpirank==0)
+        //cout<<"T3: "<<endtime-starttime<<endl;
+        
+        starttime=pgc->timer();
 
         // Save and print
         p_df_obj[nb]->interface(p,true);
+        
+        endtime=pgc->timer();
+        
+        //if(p->mpirank==0)
+        //cout<<"T4: "<<endtime-starttime<<endl;
+        
+        starttime=pgc->timer();
 
         if (finalise == true)
         {
@@ -101,6 +141,12 @@ void sixdof_df::start_forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, v
             
             p_df_obj[nb]->print_parameter(p, a, pgc);
         }
+        endtime=pgc->timer();
+        
+        //if(p->mpirank==0)
+        //cout<<"T5: "<<endtime-starttime<<endl;
+        
+        starttime=pgc->timer();
     }
     
     // ghostcell update

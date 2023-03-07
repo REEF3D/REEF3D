@@ -189,6 +189,10 @@
             <File Name="sflow_diffusion.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Convection">
+            <File Name="sflow_cweno_flux.h"/>
+            <File Name="sflow_chires.h"/>
+            <File Name="sflow_csfou.h"/>
+            <File Name="sflow_cfou.h"/>
             <File Name="sflow_weno_blend.h"/>
             <File Name="sflow_weno_hj.h"/>
             <File Name="sflow_weno_flux.h"/>
@@ -418,7 +422,7 @@
           <File Name="suspended_void.h"/>
           <File Name="susprhs.h"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Topo">
+        <VirtualDirectory Name="Exner">
           <File Name="sediment_exner.h"/>
           <VirtualDirectory Name="Exnerdisc">
             <File Name="sediment_cds_hj.h"/>
@@ -435,7 +439,6 @@
             <File Name="reinitopo_AB2.h"/>
           </VirtualDirectory>
           <File Name="topo.h"/>
-          <File Name="topo_void.h"/>
           <VirtualDirectory Name="Relaxation">
             <File Name="topo_relax.h"/>
           </VirtualDirectory>
@@ -826,6 +829,7 @@
         </VirtualDirectory>
         <File Name="printer.h"/>
         <VirtualDirectory Name="Probes">
+          <File Name="probe_pressure.h"/>
           <File Name="probe_point.h"/>
           <File Name="probe_line.h"/>
         </VirtualDirectory>
@@ -1198,6 +1202,10 @@
             <File Name="sflow_diffusion_void.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Convection">
+            <File Name="sflow_cweno_flux.cpp"/>
+            <File Name="sflow_chires.cpp"/>
+            <File Name="sflow_csfou.cpp"/>
+            <File Name="sflow_cfou.cpp"/>
             <File Name="sflow_weno_blend.cpp"/>
             <File Name="sflow_weno_hj.cpp"/>
             <File Name="sflow_weno_flux.cpp"/>
@@ -1470,7 +1478,6 @@
           <File Name="sandslide_pde.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Suspended">
-          <VirtualDirectory Name="BC"/>
           <VirtualDirectory Name="bedconc">
             <File Name="bedconc.cpp"/>
           </VirtualDirectory>
@@ -1482,7 +1489,8 @@
           <File Name="suspended_void.cpp"/>
           <File Name="susprhs.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Topo">
+        <VirtualDirectory Name="Exner">
+          <File Name="sediment_exner_susp_qb.cpp"/>
           <File Name="sediment_exner_noneq.cpp"/>
           <File Name="sediment_exner_topovel.cpp"/>
           <File Name="sediment_exner_timestep.cpp"/>
@@ -1499,7 +1507,6 @@
             <File Name="reinitopo_void.cpp"/>
             <File Name="reinitopo_AB2.cpp"/>
           </VirtualDirectory>
-          <File Name="topo_void.cpp"/>
           <VirtualDirectory Name="Relaxation">
             <File Name="topo_relax.cpp"/>
           </VirtualDirectory>
@@ -2384,6 +2391,7 @@
         </VirtualDirectory>
         <File Name="vtu3D.cpp"/>
         <VirtualDirectory Name="Probes">
+          <File Name="probe_pressure.cpp"/>
           <File Name="probe_line.cpp"/>
           <File Name="probe_point.cpp"/>
         </VirtualDirectory>
@@ -2676,6 +2684,7 @@
           <File Name="ioflow_void.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="ioWave">
+          <File Name="iowave_timeseries.cpp"/>
           <File Name="iowave_precalc_decomp_space_dirichlet.cpp"/>
           <File Name="iowave_precalc_relax_func.cpp"/>
           <File Name="iowave_waterlevel.cpp"/>

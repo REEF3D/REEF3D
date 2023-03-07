@@ -347,7 +347,6 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
 
     
     // 2D
-    
     pgc->gcsl_tpflag(p);    
     pgc->gcslflagx(p,p->flagslice4);
     
@@ -366,7 +365,6 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     pgc->gcsl_setbcio(p);
     
 	pgc->dgcslini4(p); 
-    
 }
 	
 void driver::makegrid_sigma_cds(lexer *p, ghostcell *pgc)

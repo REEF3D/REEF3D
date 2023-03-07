@@ -342,6 +342,21 @@ void ghostcell::start6vec(lexer *p, vec &x, int gcv)
     gcperiodicxvec(p,x,6);
 }
 
+void ghostcell::start1V(lexer *p, double *x, sliceint &bc, int gcv)
+{
+    
+}
+
+void ghostcell::start2V(lexer *p, double *x, sliceint &bc, int gcv)
+{
+    
+}
+
+void ghostcell::start3V(lexer *p, double *x, sliceint &bc, int gcv)
+{
+    
+}
+
 void ghostcell::start4V(lexer *p, double *x, sliceint &bc, int gcv)
 {
     if(p->M10>0)

@@ -35,7 +35,8 @@ bedconc::bedconc(lexer *p)
     visc=p->W2;
     kappa=0.4;
     ks=2.5*d50;
-    adist=2.0*d50;
+    adist=0.5*d50;
+    deltab=3.0*d50;
     Rstar=(rhosed-rhowat)/rhowat;
 }
 
@@ -45,8 +46,6 @@ bedconc::~bedconc()
 
 void bedconc::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
-	
-    
     SLICELOOP4
     s->cbn(i,j) = s->cbe(i,j);
     
@@ -71,9 +70,22 @@ void bedconc::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
         k=s->bedk(i,j);
         
         h=s->waterlevel(i,j);
-        zdist = 0.5*p->DZP[KP];
+        zdist = (p->ZP[KP]-s->bedzh(i,j));
 
         s->cb(i,j) = s->cbe(i,j)*pow(((h-zdist)/zdist)*(adist/(h-adist)),zdist);
+        
+        //cout<<"CB: "<<s->cbe(i,j)<<" "<<s->cb(i,j)<<endl;
+    }
+    
+    if(p->S34==2)
+    {
+    SLICELOOP4
+    s->qbe(i,j) += s->conc(i,j);
+    
+    pgc->gcsl_start4(p,s->qbe,1);
     }
 }
+
+
+
 

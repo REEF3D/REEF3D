@@ -208,6 +208,9 @@ public:
     void nhflow_wavegen_precalc_decomp_time(lexer*,ghostcell*);
     void nhflow_wavegen_precalc_decomp_relax(lexer*,ghostcell*);
     void nhflow_wavegen_precalc_decomp_dirichlet(lexer*,ghostcell*);
+    
+    
+    void timeseries(lexer*,ghostcell*);
 	
 private:
     slice4 eta;

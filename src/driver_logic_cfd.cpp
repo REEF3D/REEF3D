@@ -235,7 +235,6 @@ void driver::logic_cfd()
 	if((p->T10==1 || p->T10==21) && p->T11==12)
 	pturb = new kepsilon_IM2(p,a,pgc);
 
-
     //kw
 	if((p->T10==2 || p->T10==22) && p->T11==11)
 	pturb = new komega_IM1(p,a,pgc);
@@ -374,17 +373,6 @@ void driver::logic_cfd()
     if(p->A410==2)
     pnse = new nsewave_geo(p,a,pgc,pheat,pconc);
     }
-
-
-    if(p->A10==55)
-    {
-    if(p->A540==1)
-    pnhfsf = new nhflow_fsf_rk(p,d,pgc,pflow,pBC);
-
-    if(p->A540==2)
-    pnhfsf = new nhflow_fsf_fsm(p,d,pgc,pflow,pBC);
-    }
-
 
 // Free Surface
     if(p->F10==1)

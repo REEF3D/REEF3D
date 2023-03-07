@@ -26,76 +26,11 @@ Author: Tobias Martin
 #include"fdm.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
-
+  
 void sixdof_df_object::ini_fbvel(lexer *p, fdm *a, ghostcell *pgc)
 {
-    /*if (p->X131 > 0 || p->X132 > 0 || p->X133 > 0 || p->X153 > 0)
-	{
-		geometry_ls(p,a,pgc);
-	}	
-    
-	else
-	{*/
-         double x0, x1, x2, y0, y1, y2, z0, z1, z2;
-		double n0, n1, n2;
-		double f1x,f2x,f3x,g0x,g1x,g2x,f1y,f2y,f3y;
-		double g0y,g1y,g2y,f1z,f2z,f3z,g0z,g1z,g2z;
-		double *integ;
-		
-		p->Darray(integ, 10);
 
-		for (int n = 0; n < tricount; ++n)
-		{
-			x0 = tri_x[n][0];
-			x1 = tri_x[n][1];
-			x2 = tri_x[n][2];
-		
-			y0 = tri_y[n][0];
-			y1 = tri_y[n][1];
-			y2 = tri_y[n][2];
-		
-			z0 = tri_z[n][0];
-			z1 = tri_z[n][1];
-			z2 = tri_z[n][2];  
-			
-			n0 = (y1 - y0) * (z2 - z0) - (y2 - y0) * (z1 - z0);
-			n1 = (x2 - x0) * (z1 - z0) - (x1 - x0) * (z2 - z0); 
-			n2 = (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0);
-		
-			geometry_f(x0,x1,x2,f1x,f2x,f3x,g0x,g1x,g2x); 
-			geometry_f(y0,y1,y2,f1y,f2y,f3y,g0y,g1y,g2y); 
-			geometry_f(z0,z1,z2,f1z,f2z,f3z,g0z,g1z,g2z);	
-		
-			integ[0] += n0 * f1x;
-			integ[1] += n0 * f2x;
-			integ[2] += n1 * f2y;
-			integ[3] += n2 * f2z;
-			integ[4] += n0 * f3x;
-			integ[5] += n1 * f3y;
-			integ[6] += n2 * f3z;
-			integ[7] += n0 * (y0 * g0x + y1 * g1x + y2 * g2x);
-			integ[8] += n1 * (z0 * g0y + z1 * g1y + z2 * g2y);
-			integ[9] += n2 * (x0 * g0z + x1 * g1z + x2 * g2z);	
-		}
-
-        double Vfb = integ[0]/6.0;
-        double Rfb = 0.0;
-        
-		if (p->X22 == 1)
-		{
-			Mass_fb = p->X22_m;
-			Rfb = Mass_fb/Vfb;
-		}	
-		else if (p->X21 == 1)
-		{
-			Rfb = p->X21_d;
-			Mass_fb = Vfb*Rfb;
-            p->X22_m = Mass_fb;
-		}
-        p->del_Darray(integ, 10);
-   // }
-
-    // Rigid body motion
+    // Rigid body motion ini
     
     R_ << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
     e_ << 0.0, 0.0, 0.0, 0.0;
@@ -146,10 +81,8 @@ void sixdof_df_object::ini_fbvel(lexer *p, fdm *a, ghostcell *pgc)
     p->pfbn = p->pfbi;   
     p->qfbn = p->qfbi;   
     p->rfbn = p->rfbi;
-}
-  
-void sixdof_df_object::ini_parameter(lexer *p, fdm *a, ghostcell *pgc)
-{
+    
+    // external velocity
       Uext = Vext = Wext = Pext = Qext = Rext = 0.0; 
     
     if (p->X210 == 1)
@@ -204,10 +137,6 @@ void sixdof_df_object::ini_parameter(lexer *p, fdm *a, ghostcell *pgc)
     phi = theta = psi = 0.0;
     
     
-    // Mass
-    Mass_fb = 0.0;
-    
-    
     // Forces
     Xext = Yext = Zext = Kext = Mext = Next = 0.0;
     Ffb_ << 0.0, 0.0, 0.0;
@@ -217,5 +146,11 @@ void sixdof_df_object::ini_parameter(lexer *p, fdm *a, ghostcell *pgc)
 	printtime = 0.0;
     printtimenormal = 0.0;
     p->printcount_sixdof = 0;
+}
+
+void sixdof_df_object::ini_parameter_stl(lexer *p, fdm *a, ghostcell *pgc)
+{
+    
+    
 }
 

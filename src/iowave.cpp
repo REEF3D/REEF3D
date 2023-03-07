@@ -242,6 +242,9 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
 	}
     
     expinverse = 1.0/(exp(1.0)-1.0);
+    
+    if(p->mpirank==0 && p->P58>0)
+    timeseries(p,pgc);
 }
 
 iowave::~iowave()

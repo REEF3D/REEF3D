@@ -35,6 +35,7 @@ Author: Hans Bihs
 #include"vorticity_f.h"
 #include"vorticity_void.h"
 #include"probe_point.h"
+#include"probe_pressure.h"
 #include"probe_line.h"
 #include"bedprobe_point.h"
 #include"bedprobe_max.h"
@@ -112,6 +113,7 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
 	pwsfline_x=new print_wsfline_x(p,a,pgc);
 	pwsfline_y=new print_wsfline_y(p,a,pgc);
 	pprobe = new probe_point(p,a,pgc);
+    ppressprobe = new probe_pressure(p,a,pgc);
 	pline = new probe_line(p,a,pgc);
 	pq = new gage_discharge_x(p,a,pgc);
 
@@ -247,6 +249,9 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
 
 		if(p->P61>0)
         pprobe->start(p,a,pgc,pturb);
+        
+        if(p->P64>0)
+        ppressprobe->start(p,a,pgc,pturb);
 
 		if(p->P67>0)
 		pq->start(p,a,pgc);

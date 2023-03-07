@@ -342,6 +342,22 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
             b->hy(i+3,j) = MAX(p->F62 - b->bed(i,j),0.0);
             }
         }
+        
+        for(n=0;n<p->gcslout_count;n++)
+        {
+        i=p->gcslout[n][0];
+        j=p->gcslout[n][1];
+        
+        b->eta(i,j) = p->F62-p->wd;
+        b->eta(i+1,j) = p->F62-p->wd;
+        b->eta(i+2,j) = p->F62-p->wd;
+        b->eta(i+3,j) = p->F62-p->wd;
+
+        b->hp(i,j) = MAX(b->eta(i+1,j) + p->wd - b->bed(i,j),0.0);
+        b->hp(i+1,j) = MAX(b->eta(i+1,j) + p->wd - b->bed(i,j),0.0);
+        b->hp(i+2,j) = MAX(b->eta(i+2,j) + p->wd - b->bed(i,j),0.0);
+        b->hp(i+3,j) = MAX(b->eta(i+3,j) + p->wd - b->bed(i,j),0.0);
+        }
     }
       
 	pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);

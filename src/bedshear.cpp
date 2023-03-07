@@ -300,37 +300,47 @@ void bedshear::taucritbed(lexer*, fdm*, ghostcell*, double &tau_crit)
 // SFLOW
 void bedshear::taubed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
 {
-    double ux,vy,uabs,cf,manning,tau;
+    double uabs,cf,manning,tau;
     double U,V;
     
     SLICELOOP4
     {
-    ux = 0.5*(s->P(i,j) + s->P(i-1,j));
-    vy = 0.5*(s->Q(i,j) + s->Q(i,j-1));
-    
-    
-    if(ux>=0.0)
-    U = s->P(i-1,j);
-    
-    if(ux<0.0)
-    U = s->P(i,j);
-    
-    if(vy>=0.0)
-    V = s->Q(i,j);
-    
-    if(vy<0.0)
-    V = s->Q(i,j-1);
+    U = 0.5*(s->P(i,j) + s->P(i-1,j));
+    V = 0.5*(s->Q(i,j) + s->Q(i,j-1));
     
 
     uabs = sqrt(U*U + V*V);
     
-    manning = pow(p->S21*s->ks(i,j),1.0/6.0)/26.0;
+    
+    manning = pow(p->S21*s->ks(i,j),1.0/6.0)/20.0;
     
     //cout<<"MANNING: "<<manning<<" uabs: "<<uabs<<endl;
     
+    if(p->S16==1)
+    {
     cf = pow(manning,2.0)/pow(HP,1.0/3.0);
     
     tau = p->W1*9.81*cf*uabs*uabs; 
+    }
+    
+    if(p->S16==2)
+    {    
+    cf = 2.5*log(12.0*b->hp(i,j)/ p->S21*s->ks(i,j));
+    
+    tau = p->W1*9.81*uabs*uabs/(fabs(cf*cf)>1.0e-20?(cf*cf):1.0e20); 
+    }
+    
+    if(p->S16==3)
+    {    
+    cf = 2.5*log(12.0*b->hp(i,j)/ p->S21*s->ks(i,j));
+    
+    tau = p->W1*9.81*uabs*uabs/(fabs(cf*cf)>1.0e-20?(cf*cf):1.0e20); 
+    }
+    
+    if(p->S16==4)
+    {
+    tau=p->W1*b->kin(i,j)*0.3;
+    }
     
     s->tau_eff(i,j) = taueff_loc(i,j) = tau;
     s->shearvel_eff(i,j) = sqrt(tau/p->W1);

@@ -92,6 +92,9 @@ void sixdof_df_object::objects_create(lexer *p, fdm *a, ghostcell *pgc)
     if(p->mpirank==0)
 	cout<<"Surface triangles: "<<tricount<<endl;
     
+    // Initialise STL geometric parameters
+	geometry_stl(p,a,pgc);
+    
     // Order Triangles for correct inside/outside orientation
     triangle_switch_ray(p,a,pgc);
 	

@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 #include"bedshear.h"
+#include"suspended.h"
 
 double sediment_f::bedshear_point(lexer *p, fdm *a,ghostcell *pgc)
 {
@@ -111,4 +112,9 @@ double sediment_f::bedzhval(int ii, int jj)
     val=s->bedzh(ii,jj);
 
     return val;
+}
+
+void sediment_f::ctimesave(lexer *p, fdm* a)
+{
+    psusp->ctimesave(p,a);
 }

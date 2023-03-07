@@ -33,8 +33,12 @@ Author: Hans Bihs
 #include"sflow_etimestep.h"
 #include"sflow_fixtimestep.h"
 #include"sflow_fou.h"
+#include"sflow_cfou.h"
 #include"sflow_weno_flux.h"
+#include"sflow_cweno_flux.h"
 #include"sflow_weno_hj.h"
+#include"sflow_hires.h"
+#include"sflow_chires.h"
 #include"sflow_weno_blend.h"
 #include"sflow_hires.h"
 #include"sflow_voidconv.h"
@@ -42,6 +46,7 @@ Author: Hans Bihs
 #include"sflow_momentum_RK3.h"
 #include"sflow_momentum_RK2.h"
 #include"sflow_momentum_AB2.h"
+
 
 #include"sflow_turb_void.h"
 #include"sflow_turb_prandtl.h"

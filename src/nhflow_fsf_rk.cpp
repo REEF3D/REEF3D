@@ -69,28 +69,43 @@ void nhflow_fsf_rk::ini(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow)
 
 void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
 {
+    if(p->mpirank==0)
+    cout<<"NHF_FSF_001"<<endl;
+    
     SLICELOOP1
     P(i,j)=0.0;
     
     SLICELOOP2
     Q(i,j)=0.0;
+    
+    if(p->mpirank==0)
+    cout<<"NHF_FSF_002"<<endl;
 
-    ULOOP
+    LOOP
     P(i,j) += U[IJK]*p->DZN[KP];
 
-    VLOOP
+    LOOP
 	Q(i,j) += V[IJK]*p->DZN[KP];
+    
+    if(p->mpirank==0)
+    cout<<"NHF_FSF_003"<<endl;
     
     pgc->gcsl_start1(p,P,10);
     pgc->gcsl_start2(p,Q,11);
     
     phxy->start(p,d->hx,d->hy,d->depth,p->wet,d->eta,P,Q);
     
+    if(p->mpirank==0)
+    cout<<"NHF_FSF_004"<<endl;
+    
     SLICELOOP1
     P(i,j) *= d->hx(i,j);
 
     SLICELOOP2
 	Q(i,j) *= d->hy(i,j);
+    
+    if(p->mpirank==0)
+    cout<<"NHF_FSF_005"<<endl;
 
 	pgc->gcsl_start1(p,P,10);
     pgc->gcsl_start2(p,Q,11);
