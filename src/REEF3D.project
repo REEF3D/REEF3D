@@ -801,6 +801,9 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Printer">
+        <VirtualDirectory Name="Force FIT">
+          <File Name="force_fit.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Topo">
           <File Name="topo_vtp.h"/>
         </VirtualDirectory>
@@ -2346,6 +2349,11 @@
         <File Name="lexer_gridini2D.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Printer">
+        <VirtualDirectory Name="Force FIT">
+          <File Name="force_fit_force.cpp"/>
+          <File Name="force_fit_print.cpp"/>
+          <File Name="force_fit.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Topo">
           <File Name="topo_vtp_print.cpp"/>
           <File Name="topo_pvtp.cpp"/>

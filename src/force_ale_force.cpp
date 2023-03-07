@@ -89,7 +89,7 @@ void force_ale::force_ale_force(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 
 	Fx=Fy=0;
 	
-    for(k=0; k<p->knoz; ++k)
+    
 	{
         dudsig_= dudsig(p, c, pgc); 
      // double dudsig2_= dudsig(p, c, pgc); // cleanup alt ddsig. diff values, no change to force
