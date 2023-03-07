@@ -82,7 +82,7 @@ fnpf_print_wsf_theory::fnpf_print_wsf_theory(lexer *p, fdm_fnpf* c, ghostcell *p
     {
         wsfout<<"time";
         for(n=0;n<gauge_num;++n)
-            wsfout<<",P_x"<<x[n]<<"_y"<<y[n];
+            wsfout<<",P_(x="<<x[n]<<",_y="<<y[n]<<")";
         wsfout<<endl;
     }
     
