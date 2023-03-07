@@ -129,9 +129,13 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     pgc->start2V(p, VRK1, d->bc, gcval_v);
     pgc->start3V(p, WRK1, d->bc, gcval_w);
     
-/*
-    pnh->kinematic_fsf(p,a,a->u,a->v,wrk1,etark1,a->eta,1.0);
-    p->omega_update(p,a,pgc,a->u,a->v,wrk1,etark1,etark1,1.0);
+
+    pnhf->kinematic_fsf(p,d,d->U,d->V,WRK1,etark1,d->eta,1.0);
+    
+   
+    p->omega_update(p,d,pgc,d->U,d->V,WRK1,etark1,etark1,1.0);
+
+    /*
 
     pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, urk1, vrk1, wrk1, 1.0);
