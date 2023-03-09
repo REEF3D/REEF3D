@@ -217,7 +217,7 @@ void print_wsf::ini_location(lexer *p, fdm *a, ghostcell *pgc)
     if(check==1)
     flag[n]=1;
     
-    cout<<p->mpirank<<" n: "<<n<<" flag: "<<flag[n]<<" x: "<<x[n]<<" y: "<<y[n]<<" iloc: "<<iloc[n]<<" jloc: "<<jloc[n]<<endl;
+    //cout<<p->mpirank<<" n: "<<n<<" flag: "<<flag[n]<<" x: "<<x[n]<<" y: "<<y[n]<<" iloc: "<<iloc[n]<<" jloc: "<<jloc[n]<<endl;
     }
 }
 

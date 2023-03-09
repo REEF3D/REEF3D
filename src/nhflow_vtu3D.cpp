@@ -73,25 +73,25 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
     /*
     pwsf=new nhflow_print_wsf(p,c);
 
-    pwsf_theory=new nhflow_print_wsf_theory(p,c,pgc);
+    pwsf_theory=new nhflow_print_wsf_theory(p,d,pgc);
 
-    pwsfline=new nhflow_print_wsfline(p,c,pgc);
+    pwsfline=new nhflow_print_wsfline(p,d,pgc);
 
-    pwsfline_y=new nhflow_print_wsfline_y(p,c,pgc);
+    pwsfline_y=new nhflow_print_wsfline_y(p,d,pgc);
 
     if(p->P230>0)
-    ppotentialfile = new potentialfile_out(p,c,pgc);
+    ppotentialfile = new potentialfile_out(p,d,pgc);
 
     if(p->P180==1)
-	pfsf = new nhflow_vtp_fsf(p,c,pgc);
+	pfsf = new nhflow_vtp_fsf(p,d,pgc);
 
-    pbed = new nhflow_vtp_bed(p,c,pgc);
+    pbed = new nhflow_vtp_bed(p,d,pgc);
 
     if(p->P40>0)
-	pstate=new nhflow_state(p,c,pgc);
+	pstate=new nhflow_state(p,d,pgc);
 
     if(p->P59==1)
-    pbreaklog=new nhflow_breaking_log(p,c,pgc);
+    pbreaklog=new nhflow_breaking_log(p,d,pgc);
 	
 	if(p->P85>0)
 	pforce_ale = new force_ale*[p->P85];
@@ -105,7 +105,7 @@ nhflow_vtu3D::~nhflow_vtu3D()
 {
 }
 
-void nhflow_vtu3D::start(lexer* p, fdm_nhf* c,ghostcell* pgc, ioflow *pflow)
+void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
 {
     // Gages
 	/*if(p->P51>0)
@@ -117,13 +117,13 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* c,ghostcell* pgc, ioflow *pflow)
 		// Print out based on iteration
         if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)
 		{
-        print_vtu(p,c,pgc);
+        print_vtu(p,d,pgc);
 		}
 
 		// Print out based on time
         if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==1) || (p->count==0 &&  p->P30>0.0))
         {
-        print_vtu(p,c,pgc);
+        print_vtu(p,d,pgc);
 
         p->printtime+=p->P30;
         }
@@ -133,7 +133,7 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* c,ghostcell* pgc, ioflow *pflow)
 		for(int qn=0; qn<p->P35; ++qn)
 		if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
 		{
-		print_vtu(p,c,pgc);
+		print_vtu(p,d,pgc);
 
 		printtime_wT[qn]+=p->P35_dt[qn];
 		}
@@ -183,13 +183,13 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* c,ghostcell* pgc, ioflow *pflow)
     // Print state out based on iteration
     if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && p->P41>0)
     {
-    pstate->write(p,c,pgc);
+    pstate->write(p,d,pgc);
     }
 
     // Print sate out based on time
     if((p->simtime>p->stateprinttime && p->P42>0.0 || (p->count==0 &&  p->P42>0.0)) && p->P40>0)
     {
-    pstate->write(p,c,pgc);
+    pstate->write(p,d,pgc);
 
     p->stateprinttime+=p->P42;
     }
@@ -198,18 +198,18 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* c,ghostcell* pgc, ioflow *pflow)
     p->probeprinttime+=p->P55;
 
     if(p->P59==1)
-    pbreaklog->write(p,c,pgc);
+    pbreaklog->write(p,d,pgc);
 	
 	// ALE force
 	  if((p->count==0 || p->count==p->count_statestart) && p->P85>0)
 	  {
 		for(n=0;n<p->P85;++n)
-        pforce_ale[n]->ini(p,c,pgc);
+        pforce_ale[n]->ini(p,d,pgc);
 	  }
         if(p->count>0 && p->P85>0)
 		{
         for(n=0;n<p->P85;++n)
-        pforce_ale[n]->start(p,c,pgc);
+        pforce_ale[n]->start(p,d,pgc);
 		}
         */
 }
