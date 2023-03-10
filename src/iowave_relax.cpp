@@ -54,7 +54,7 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
 		G=H;
 		}
 		
-		if(p->B121==0)
+		if(p->B121==0 && phival>=-psi)
 		G=1.0;
         
         if(phival>=0.0)
@@ -75,7 +75,7 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
             // Zone 1
             if(dg<1.0e20)
             {
-            uvel(i,j,k) = (1.0-relax1_wg(i,j))*ramp(p)*uval[count] * H + relax1_wg(i,j)*H*uvel(i,j,k) + (1.0-G)*uvel(i,j,k) ;
+            uvel(i,j,k) = (1.0-relax1_wg(i,j))*ramp(p)*uval[count] * H + relax1_wg(i,j)*H*uvel(i,j,k) + (1.0-G)*uvel(i,j,k);
             uvel(i,j,k) += (1.0-relax1_wg(i,j))*ramp(p)*p->W50*(1.0-H) + relax1_wg(i,j)*(1.0-H) *p->W50;
             ++count;
             }
@@ -119,7 +119,7 @@ void iowave::v_relax(lexer *p, fdm *a, ghostcell *pgc, field& vvel)
 		G=H;
 		}
 		
-		if(p->B121==0)
+		if(p->B121==0 && phival>=-psi)
 		G=1.0;
         
         
@@ -185,7 +185,7 @@ void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
 		G=H;
 		}
 		
-		if(p->B121==0)
+		if(p->B121==0 && phival>=-psi)
 		G=1.0;
         
         
