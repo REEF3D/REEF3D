@@ -54,7 +54,7 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
 		G=H;
 		}
 		
-		if(p->B121==0 && phival>=-psi)
+		if(p->B121==0 && phival<-epsi)
 		G=1.0;
         
         if(phival>=0.0)
@@ -119,7 +119,7 @@ void iowave::v_relax(lexer *p, fdm *a, ghostcell *pgc, field& vvel)
 		G=H;
 		}
 		
-		if(p->B121==0 && phival>=-psi)
+		if(p->B121==0 && phival<-epsi)
 		G=1.0;
         
         
@@ -185,7 +185,7 @@ void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
 		G=H;
 		}
 		
-		if(p->B121==0 && phival>=-psi)
+		if(p->B121==0 && phival<-epsi)
 		G=1.0;
         
         
