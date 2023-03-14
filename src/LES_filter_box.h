@@ -32,11 +32,11 @@ using namespace std;
 #ifndef LES_FILTER_V_H_
 #define LES_FILTER_V_H_
 
-class LES_filter_v : public LES_filter, public strain
+class LES_filter_box : public LES_filter, public strain
 {
 public:
-	LES_filter_v(lexer *, fdm*);
-	virtual ~LES_filter_v();
+	LES_filter_box(lexer *, fdm*);
+	virtual ~LES_filter_box();
     
 	virtual void start(lexer*, fdm*, ghostcell*,field&,field&,field&,int);
 

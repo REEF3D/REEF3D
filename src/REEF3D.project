@@ -969,7 +969,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="LES">
         <VirtualDirectory Name="Filter">
-          <File Name="LES_filter_v.h"/>
+          <File Name="LES_filter_box.h"/>
           <File Name="LES_filter_f2.h"/>
           <File Name="LES_filter_f1.h"/>
           <File Name="LES_filter.h"/>
@@ -2610,7 +2610,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="LES">
         <VirtualDirectory Name="Filter">
-          <File Name="LES_filter_v.cpp"/>
+          <File Name="LES_filter_box.cpp"/>
           <File Name="LES_filter_f2.cpp"/>
           <File Name="LES_filter_f1.cpp"/>
         </VirtualDirectory>

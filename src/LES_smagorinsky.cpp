@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"LES_smagorinsky.h"
-#include"LES_filter_v.h"
+#include"LES_filter_box.h"
 #include"LES_filter_f1.h"
 #include"LES_filter_f2.h"
 #include"lexer.h"
@@ -43,7 +43,7 @@ LES_smagorinsky::LES_smagorinsky(lexer* p, fdm* a) : LES(p,a)
 	c_sgs=0.2;
     
     if(p->T21==0)
-    pfilter = new LES_filter_v(p,a);
+    pfilter = new LES_filter_box(p,a);
     
     if(p->T21==1)
     pfilter = new LES_filter_f1(p,a);

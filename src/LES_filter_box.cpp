@@ -20,22 +20,22 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"LES_filter_v.h"
+#include"LES_filter_box.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"strain.h"
 
-LES_filter_v::LES_filter_v(lexer* p, fdm* a) : strain(p,a)
+LES_filter_box::LES_filter_box(lexer* p, fdm* a) : strain(p,a)
 {
 
 }
 
-LES_filter_v::~LES_filter_v()
+LES_filter_box::~LES_filter_box()
 {
 }
 
-void LES_filter_v::start(lexer *p, fdm *a, ghostcell *pgc, field &uprime, field &vprime, field &wprime, int gcval)
+void LES_filter_box::start(lexer *p, fdm *a, ghostcell *pgc, field &uprime, field &vprime, field &wprime, int gcval)
 {
 	//    vel_label=veleval(p,gcv);
 
