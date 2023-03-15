@@ -181,7 +181,7 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 
 
     // Print state out based on iteration
-    if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && p->P41>0)
+    if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0)
     {
     pstate->write(p,c,pgc);
     }
