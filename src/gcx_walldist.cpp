@@ -30,6 +30,7 @@ Author: Hans Bihs
 void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pdisc, reini *preini, ioflow *pflow,  field& walldist)
 {
 	int ic,jc,kc;
+    double xc,yc,zc;
 	double xdist,ydist,zdist;
 	
 	MALOOP
@@ -60,7 +61,7 @@ void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pdisc
             {
             j=jc;
             k=kc;
-            xdist = fabs(xc - p->XP[IP])
+            xdist = fabs(xc - p->XP[IP]);
             PCHECK
             walldist(i,j,k)=MIN(walldist(i,j,k),xdist);
             }
