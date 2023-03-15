@@ -124,7 +124,7 @@ void sflow_vtp::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sflow_t
     }
     
     // Print state out based on iteration
-    if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && p->P41>0)
+    if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0)
     {
     pstate->write(p,b,pgc);
     }
