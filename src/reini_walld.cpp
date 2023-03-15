@@ -107,7 +107,7 @@ void reini_walld::start(fdm* a,lexer* p,field& b, ghostcell* pgc,ioflow* pflow)
     }
 
 	pgc->gcparaxvec(p,f,4);
-	dt=0.5*p->DXM;
+	dt=0.05*p->DXM;
 	reiniter=2*int(p->maxlength/(dt));
 
 	for(int q=0;q<reiniter;++q)

@@ -51,24 +51,32 @@ void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pdisc
 	{
 		
 		if(p->gcb4[n][3]==1)
-		for(i=ic;i<p->knox;++i)
-		{
-		j=jc;
-		k=kc;
-		xdist = fabs(double(i-ic)*p->DXM) + 0.5*p->DXM;
-		PCHECK
-		walldist(i,j,k)=MIN(walldist(i,j,k),xdist);
-		}
+        {
+        xc = p->XN[ic + marge];
+        yc = p->YP[jc + marge];
+        zc = p->ZP[kc + marge];
+        
+            for(i=ic;i<p->knox;++i)
+            {
+            j=jc;
+            k=kc;
+            xdist = fabs(xc - p->XP[IP])
+            PCHECK
+            walldist(i,j,k)=MIN(walldist(i,j,k),xdist);
+            }
+        }
 		
 		if(p->gcb4[n][3]==3)
-		for(j=jc;j<p->knoy;++j)
-		{
-		i=ic;
-		k=kc;
-		ydist = fabs(double(j-jc)*p->DXM) + 0.5*p->DXM;
-		PCHECK
-		walldist(i,j,k)=MIN(walldist(i,j,k),ydist);
-		}
+        {
+            for(j=jc;j<p->knoy;++j)
+            {
+            i=ic;
+            k=kc;
+            ydist = fabs(double(j-jc)*p->DXM) + 0.5*p->DXM;
+            PCHECK
+            walldist(i,j,k)=MIN(walldist(i,j,k),ydist);
+            }
+        }
 		
 		if(p->gcb4[n][3]==5)
 		for(k=kc;k<p->knoz;++k)
