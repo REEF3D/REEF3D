@@ -54,6 +54,8 @@ void fsi_strips::start(lexer*,fdm*,ghostcell*){}
 
 void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field& uvel, field& vvel, field& wvel, field1& fx, field2& fy, field3& fz, bool finalise)
 {
+    starttime=pgc->timer();
+    
     for (int num = 0; num < numberStrips; num++)
     {
         // Get velocity at Lagrangian points
@@ -84,4 +86,8 @@ void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field& 
             pstrip[num]->print_parameter(p, a, pgc);
         }
     }
+    
+
+    if(p->mpirank==0)
+    cout<<"FSI time: "<<pgc->timer()-starttime<<endl;
 };

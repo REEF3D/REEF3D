@@ -209,7 +209,7 @@ void momentum_RK3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         pgc->start2(p,fy,11);
         pgc->start3(p,fz,12);           
         
-        if (p->X10>0)
+        if(p->X10>0)
         p6dof_df->start_forcing(p,a,pgc,pvrans,pnet,2.0*alpha(loop),gamma(loop),zeta(loop),urk,vrk,wrk,fx,fy,fz,final);
         
         pfsi->forcing(p,a,pgc,2.0*alpha(loop),urk,vrk,wrk,fx,fy,fz,final);

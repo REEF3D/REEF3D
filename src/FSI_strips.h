@@ -49,6 +49,7 @@ public:
     
 private:
     int numberStrips;
+    double starttime, endtime;
 	
     vector<fsi_strip*> pstrip;
 };
