@@ -111,9 +111,6 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
     {
         deltaT = simtime[1]-simtime[0];
         
-        t1 = simtime[0];
-        t2 = simtime[1];
-        
         t1 = (simtime[1]-(p->simtime+p->I241))/deltaT;
         t2 = ((p->simtime+p->I241)-simtime[0])/deltaT;
         
