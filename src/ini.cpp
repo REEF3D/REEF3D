@@ -468,6 +468,7 @@ void lexer::ini_default()
     P71=0;           // int print viscosity to vtu
     P72=0;           // int print omega_sig to vtu
     P73=0;           // int print hx and hy for sflow vtp
+    P74=0;           
 	P75=0;            // int print out vorticity vec
     P76=0;            // int print out bedload
     P77=0;            // int print out sediment parameters: 1
@@ -479,6 +480,8 @@ void lexer::ini_default()
 	P91=0.25;		  // double factor used in force calculation algorithm
     P92=0;           // int force from water or from water+air
 	P101=0;			  // int print sloshing forces
+    P110=0;           // int print significant wave height
+    P111=0.0;         // double start averging after transients
     P120=1;          // int sediment log print out
 	P121=0;             // int bed level gages
 	P122=0;             // int max bed level gages

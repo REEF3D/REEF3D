@@ -131,6 +131,13 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
     }
+    
+    // Hs
+    if(p->P110==1)
+	{
+	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
+    }
 	
 	// Cells
     offset[n]=offset[n-1] + 4*p->polygon_sum*3+4;
@@ -169,6 +176,11 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     if(p->P23==1)
     {
     result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    }
+    if(p->P110==1)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\"Hs\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     }
     result<<"</PointData>"<<endl;
@@ -290,6 +302,18 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	TPSLICELOOP
 	{
 	ffn=float(p->sl_ipol4(c->test2D));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    }
+    
+    //  test
+    if(p->P110==1)
+    {
+	iin=4*(p->pointnum2D);
+	result.write((char*)&iin, sizeof (int));
+	TPSLICELOOP
+	{
+	ffn=float(p->sl_ipol4(c->Hs));
 	result.write((char*)&ffn, sizeof (float));
 	}
     }

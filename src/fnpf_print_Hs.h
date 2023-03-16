@@ -17,10 +17,11 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Dave Kelly
 --------------------------------------------------------------------*/
 
 #include"increment.h"
+#include"slice4.h"
 #include<iostream>
 #include<fstream>
 
@@ -41,23 +42,17 @@ public:
 	virtual ~fnpf_print_Hs();
 
 	void start(lexer*, fdm_fnpf*, ghostcell*,slice&);
-
+    
+    slice4 ETAsum, ETAmean; //DKAF
+    slice4 ETA2sum, ETAvar; //DKAF
 
 private:
-    void ini_location(lexer*, fdm_fnpf*);
-    void fill_eta(lexer*, fdm_fnpf*, ghostcell*,slice&);
-    void fill_deta(lexer*, fdm_fnpf*, ghostcell*,slice&);
-    void fill_Uhorz(lexer*, fdm_fnpf*, ghostcell*,slice&);
-    
-    int conv(double);
-	
-	double *x,*y;
-	int gauge_num;
-
-    int *iloc,*jloc,*flag;
-    double *wsf,*deta,*Uhorz;
-    int n;
-    ofstream wsfout,detaout,Uhorzout;
+    int NumDT1;      
+    double T_INTV_mean; // Averaging time for sig wave height
+    double T_sum,dT_sum; 
+    int wfcall;      
+    double wtime;
+    double stime;        // Start avreging after transients
     
 
 };
