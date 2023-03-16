@@ -53,7 +53,7 @@ void bedconc::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
     SLICELOOP4
     {
 	
-    Ti=MAX((s->tau_eff(i,j)-s->tau_crit(i,j)/s->tau_crit(i,j)),0.0);
+    Ti=MAX((s->tau_eff(i,j)-s->tau_crit(i,j))/s->tau_crit(i,j),0.0);
 
     Ds= d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
     
