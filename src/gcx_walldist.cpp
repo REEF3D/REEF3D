@@ -26,7 +26,6 @@ Author: Hans Bihs
 #include"reini.h"
 #include"reini_walld.h"
 
-
 void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pdisc, reini *preini, ioflow *pflow,  field& walldist)
 {
 	int ic,jc,kc;
@@ -159,7 +158,7 @@ void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pdisc
 	
 	// calculate global position of gcb cell
 	count=0;
-/*
+
     GC4LOOP
     if(p->gcb4[n][4]==5|| p->gcb4[n][4]==21 || p->gcb4[n][4]==22)
     {
@@ -168,28 +167,54 @@ void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pdisc
     k=p->gcb4[n][2];
 	
 	if(p->gcb4[n][3]==1)
-	walldist(i-1,j,k)=-0.5*p->DXM;  
+	walldist(i-1,j,k)=-0.5*p->DXN[IP];  
 
 	if(p->gcb4[n][3]==4)
-	walldist(i+1,j,k)=-0.5*p->DXM;   
+	walldist(i+1,j,k)=-0.5*p->DXN[IP];    
 
 	if(p->gcb4[n][3]==3)
-	walldist(i,j-1,k)=-0.5*p->DXM;   
+	walldist(i,j-1,k)=-0.5*p->DYN[JP];    
 	
 	if(p->gcb4[n][3]==2)
-	walldist(i,j+1,k)=-0.5*p->DXM; 
+	walldist(i,j+1,k)=-0.5*p->DYN[JP]; 
 	
 	if(p->gcb4[n][3]==5)
-	walldist(i,j,k-1)=-0.5*p->DXM; 
+	walldist(i,j,k-1)=-0.5*p->DZN[KP]; 
 	
 	if(p->gcb4[n][3]==6)
-	walldist(i,j,k+1)=-0.5*p->DXM; 
-    }*/
+	walldist(i,j,k+1)=-0.5*p->DZN[KP]; 
+    }
+    
+    GC4LOOP
+    if(p->gcb4[n][4]==1|| p->gcb4[n][4]==2 || p->gcb4[n][4]==3)
+    {
+    i=p->gcb4[n][0];
+    j=p->gcb4[n][1];
+    k=p->gcb4[n][2];
+	
+	if(p->gcb4[n][3]==1)
+	walldist(i-1,j,k)=walldist(i,j,k);  
+
+	if(p->gcb4[n][3]==4)
+	walldist(i+1,j,k)=walldist(i,j,k);    
+
+	if(p->gcb4[n][3]==3)
+	walldist(i,j-1,k)=walldist(i,j,k);    
+	
+	if(p->gcb4[n][3]==2)
+	walldist(i,j+1,k)=walldist(i,j,k);
+	
+	if(p->gcb4[n][3]==5)
+	walldist(i,j,k-1)=walldist(i,j,k);
+	
+	if(p->gcb4[n][3]==6)
+	walldist(i,j,k+1)=walldist(i,j,k); 
+    }
 	
 	
-	//reini_walld reini(p,a);
+	reini_walld reini(p,a);
 	
-	//reini.start(a,p,walldist,pgc,pflow);
+	reini.start(a,p,walldist,pgc,pflow);
 
 	pgc->gcparax(p,walldist,4);
 	gcparacox(p,walldist,4);
