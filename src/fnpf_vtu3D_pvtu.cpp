@@ -93,6 +93,8 @@ void fnpf_vtu3D::pvtu(lexer *p, ghostcell* pgc)
     result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
     if(p->P23==1)
 	result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
+    if(p->P110==1)
+	result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>"<<endl;
     if(p->P25==1)
         result<<"<PDataArray type=\"Float32\" Name=\"solid\"/>"<<endl;
 	result<<"</PPointData>"<<endl;

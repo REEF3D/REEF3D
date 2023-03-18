@@ -55,6 +55,7 @@ void bedconc::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
 	
     Ti=MAX((s->tau_eff(i,j)-s->tau_crit(i,j))/s->tau_crit(i,j),0.0);
 
+
     Ds= d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
     
     if(s->active(i,j)==1)

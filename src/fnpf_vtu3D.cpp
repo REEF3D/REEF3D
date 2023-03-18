@@ -33,6 +33,7 @@ Author: Hans Bihs
 #include"fnpf_vtp_fsf.h"
 #include"fnpf_vtp_bed.h"
 #include"fnpf_breaking_log.h"
+#include"fnpf_print_Hs.h"
 #include"potentialfile_out.h"
 #include"fnpf_state.h"
 #include<sys/stat.h>
@@ -98,6 +99,9 @@ fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 	
 	for(n=0;n<p->P85;++n)
 	pforce_ale[n]=new force_ale(p,c,pgc,n);
+    
+    if(p->P110==1)
+    phs = new fnpf_print_Hs(p,c);
 
 }
 
@@ -113,6 +117,9 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 
     if(p->P50>0)
     pwsf_theory->height_gauge(p,c,pgc,pflow);
+    
+    if(p->P110==1)
+    phs->start(p,c,pgc,c->eta);
 
 		// Print out based on iteration
         if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)
@@ -289,6 +296,13 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	++n;
 	}
     
+    // Hs
+    if(p->P110==1)
+	{
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
+	}
+    
     // solid
     if(p->P25==1)
 	{
@@ -332,6 +346,12 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     if(p->P23==1)
 	{
     result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+	}
+    
+    if(p->P110==1)
+	{
+    result<<"<DataArray type=\"Float32\" Name=\"Hs\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	}
 
@@ -420,6 +440,18 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	TPLOOP
 	{
 	ffn=float(p->ipol4_a(c->test));
+	result.write((char*)&ffn, sizeof (float));
+	}
+	}
+    
+//  Hs
+    if(p->P110==1)
+	{
+    iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	TPLOOP
+	{
+	ffn=float(p->sl_ipol4(c->Hs));
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}

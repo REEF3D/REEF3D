@@ -97,7 +97,7 @@ void suspended_RK3::ctimesave(lexer *p, fdm* a)
 void suspended_RK3::fill_wvel(lexer *p, fdm* a, ghostcell *pgc, sediment_fdm *s)
 {
     WLOOP
-    wvel(i,j,k) = a->w(i,j,k) + s->ws;
+    wvel(i,j,k) = a->w(i,j,k) - s->ws;
     
     pgc->start3(p,wvel,12);
 }
