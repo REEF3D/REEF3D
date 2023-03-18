@@ -634,7 +634,7 @@ public:
     double wts,wte;
     
     // free surface
-    double psi;
+    double psi,psi0;
 
 
 	int cctt;

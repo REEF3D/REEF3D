@@ -36,13 +36,14 @@ void initialize::inipsi(lexer* p, fdm *a, ghostcell* pgc)
     if(p->j_dir==1)
     p->psi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
     
+    
     if(p->B90>0 || p->B60>0)
     {
     // psi
         count=0;
         psim=0.0;
         LOOP
-        if(fabs(a->phi(i,j,k))<3.0*p->DTM)
+        if(fabs(a->phi(i,j,k))<5.0*p->DTM)
         {
         psim += p->DZN[KP];
         ++count;
@@ -52,9 +53,11 @@ void initialize::inipsi(lexer* p, fdm *a, ghostcell* pgc)
         psim=pgc->globalsum(psim);
         
         p->psi = p->F45*psim/double(count);
-        
+
     }
     
-    //cout<<p->mpirank<<" PSI: "<<p->psi<<" DTM: "<<p->DTM<<endl;
+    p->psi0=p->psi;
+    
+    //cout<<p->mpirank<<" PSI0: "<<p->psi0<<" PSI: "<<p->psi<<" DTM: "<<p->DTM<<endl;
     
 }

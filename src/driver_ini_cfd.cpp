@@ -146,12 +146,13 @@ void driver::driver_ini_cfd()
     else
     if(p->F30>0 || p->F40>0)
     {
+        pini->inipsi(p,a,pgc);
         for(int qn=0;qn<20;++qn)
         pflow->phi_relax(p,pgc,a->phi);
         preini->start(a,p, a->phi, pgc, pflow);
         pfsf->update(p,a,pgc,a->phi);        
         pini->iniphi_surfarea(p,a,pgc);
-        pini->inipsi(p,a,pgc);
+        
     }
 
 	ppart->setup(p,a,pgc);
