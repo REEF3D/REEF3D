@@ -221,10 +221,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     - P
     - test
     - breaking
-    
-    
     */
-    
     
     SLICELOOP4
     {
@@ -365,6 +362,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 
     if(k==-1 && j==-1)
 	ffn=float(d->U[FIJp1Kp1]);
+    ffn=0.0;
 	result.write((char*)&ffn, sizeof (float));
 
 
@@ -372,6 +370,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 
     if(k==-1 && j==-1)
 	ffn=float(d->V[FIJp1Kp1]);
+    ffn=0.0;
 	result.write((char*)&ffn, sizeof (float));
 
 
@@ -379,6 +378,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 
     if(k==-1 && j==-1)
 	ffn=float(d->W[FIJp1Kp1]);
+    ffn=0.0;
 	result.write((char*)&ffn, sizeof (float));
 	}
 
@@ -391,6 +391,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 
     if(k==-1 && j==-1)
 	ffn=float(d->P[FIJp1Kp1]);
+    ffn=0.0;
 	result.write((char*)&ffn, sizeof (float));
 	}
 
@@ -400,6 +401,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     TPLOOP
 	{
 	ffn=float(p->ZN[KP1]*d->WL(i,j) + d->bed(i,j));
+    ffn=0.0;
 	result.write((char*)&ffn, sizeof (float));
 	}
 

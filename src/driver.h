@@ -73,6 +73,7 @@ class multiphase;
 class nhflow_momentum;
 class sixdof_df;
 class momentum_RK3_df;
+class nhflow_vtu3D;
 
 #include<iostream>
 #include<fstream>
@@ -171,7 +172,7 @@ public:
 	timestep* ptstep;
 	freesurface* pfsf;
 	reini* preini;
-	particlecorr* ppart;
+	particlecorr* ppart; 
 	sediment* psed;
 	reinitopo* preto;
     reinitopo* preso;
@@ -200,16 +201,15 @@ public:
     multiphase *pmp;
     nhflow_timestep *pnhfstep;
     nhflow_momentum *pnhfmom;
+    nhflow_vtu3D *pnhfprint;
     sixdof_df *p6dof_df;
     momentum_RK3_df *pmom_df;
-
 
 private:
     double starttime, endtime;
     ofstream mainlogout;
     ofstream maxlogout;
     ofstream solvlogout;
-    
 	
 	double nom,val;
 };

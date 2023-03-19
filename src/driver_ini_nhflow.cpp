@@ -51,16 +51,37 @@ Author: Hans Bihs
 
 void driver::driver_ini_nhflow()
 {
+    // count cells
+    int count=0;
     p->count=0;
+	p->pointnum=0;
+	p->cellnum=0;
+	p->tpcellnum=0;
 
-    p->cellnumtot=pgc->globalisum(p->cellnum);
+	TPLOOP
+	{
+	++count;
+	++p->pointnum;
+    d->nodeval(i,j,k)=count;
+	}
+
+	LOOP
+	++p->cellnum;
     
+    LOOP
+    ++p->tpcellnum;
+    
+    p->count=0;
+    
+// --
+    p->cellnumtot=pgc->globalisum(p->cellnum);
     p->pointnumtot=pgc->globalisum(p->pointnum);
 
-	log_ini();
-    
+
     if(p->mpirank==0)
     cout<<"number of cells: "<<p->cellnumtot<<endl;
+
+	log_ini();
     
     if(p->mpirank==0)
     cout<<"starting driver_ini_NHFLOW"<<endl;
@@ -135,7 +156,7 @@ void driver::driver_ini_nhflow()
     SLICELOOP4
     d->WL(i,j) = MAX(0.0, d->eta(i,j) + p->wd - d->bed(i,j));
     
-    //pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
+    pnhfprint->start(p,d,pgc,pflow);
 
 // ini variables
     for(int qn=0; qn<2; ++qn)

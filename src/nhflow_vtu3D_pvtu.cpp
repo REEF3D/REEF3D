@@ -29,7 +29,6 @@ void nhflow_vtu3D::pvtu(lexer *p, ghostcell* pgc)
 {	
 	int num=0;
     
-
     if(p->P15==1)
     num = printcount;
 
@@ -84,8 +83,6 @@ void nhflow_vtu3D::pvtu(lexer *p, ghostcell* pgc)
 	result<<"<?xml version=\"1.0\"?>"<<endl;
 	result<<"<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
 	result<<"<PUnstructuredGrid GhostLevel=\"0\">"<<endl;
-	
-	
 	
 	result<<"<PPointData>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
