@@ -2937,6 +2937,10 @@ void lexer::read_control()
                         ++countP63;
 						 clear(c,numint);
 						 break;
+                case 64: control>>P64_x[countP64]>>P64_y[countP64]>>P64_z[countP64];
+                        ++countP64;
+						 clear(c,numint);
+						 break;
 				case 67: control>>P67_x[countP67];
                         ++countP67;
 						 clear(c,numint);
