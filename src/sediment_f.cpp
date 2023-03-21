@@ -45,8 +45,7 @@ sediment_f::~sediment_f()
 {
 }
 
-void sediment_f::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow,
-                                    reinitopo *preto, solver *psolv)
+void sediment_f::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo *preto, solver *psolv)
 {
     // bedshear stress
     sedcalc=0;
@@ -63,7 +62,7 @@ void sediment_f::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow,
 		}
 		
 		if(p->S42==3  && p->simtime/p->wT>=p->sedwavetime)
-		{
+		{            
 		sediment_algorithm_cfd(p,a,pgc,pflow,preto,psolv);
 		p->sedwavetime = p->simtime/p->wT + p->S48;
 		}
