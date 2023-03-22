@@ -70,6 +70,11 @@ void sixdof_df_object::print_ini_vtp(lexer *p, fdm *a, ghostcell *pgc)
     print.close();    
 
     curr_time = 0.0;
+    
+    p->Darray(printtime_wT,p->P35);
+
+    for(int qn=0; qn<p->P35; ++qn)
+	printtime_wT[qn]=p->P35_ts[qn];
 }
 
 void sixdof_df_object::print_ini_stl(lexer *p, fdm *a, ghostcell *pgc)
@@ -115,7 +120,7 @@ void sixdof_df_object::print_ini_stl(lexer *p, fdm *a, ghostcell *pgc)
     curr_time = 0.0;
     
     p->Darray(printtime_wT,p->P35);
-    
+
     for(int qn=0; qn<p->P35; ++qn)
 	printtime_wT[qn]=p->P35_ts[qn];
 }
