@@ -325,9 +325,6 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	}
-
-	result<<"<DataArray type=\"Float32\" Name=\"breaking\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
 	
 	result<<"</PointData>"<<endl;
 
@@ -413,18 +410,6 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 	TPLOOP
 	{
 	ffn=float(d->test[FIJp1Kp1]);
-	result.write((char*)&ffn, sizeof (float));
-	}
-	}
-
-//  breaking
-	if(p->P25==1)
-	{
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(0.0);
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}

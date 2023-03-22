@@ -90,7 +90,6 @@ void nhflow_vtu3D::pvtu(lexer *p, ghostcell* pgc)
     result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
     if(p->P23==1)
 	result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"breaking\"/>"<<endl;
 	result<<"</PPointData>"<<endl;
 	
     result<<"<PPoints>"<<endl;
@@ -113,7 +112,6 @@ void nhflow_vtu3D::pvtu(lexer *p, ghostcell* pgc)
 	result<<"</VTKFile>"<<endl;
 
 	result.close();
-
 }
 
 void nhflow_vtu3D::piecename(lexer *p, ghostcell *pgc, int n)

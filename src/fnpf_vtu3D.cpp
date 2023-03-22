@@ -456,7 +456,7 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	}
 	}
 
-//  breaking
+//  solid
 	if(p->P25==1)
 	{
     iin=4*(p->pointnum);
