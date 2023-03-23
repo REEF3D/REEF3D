@@ -110,31 +110,6 @@ void sflow_hxy_fou::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet
         hx(i,j) = MAX(eta(i,j),eta(i+1,j)) + MIN(depth(i,j), depth(i+1,j));
         }
     }
-    
-   /*
-    for(qq=0;qq<pBC->obj_count;++qq)
-    if(pBC->patch[qq]->waterlevel_flag==1)
-    for(n=0;n<pBC->patch[qq]->gcb_count;++n)
-    if(pBC->patch[qq]->gcb[n][3]==4)
-    {
-
-    i=pBC->patch[qq]->gcb[n][0];
-    
-    j=pBC->patch[qq]->gcb[n][1];
-    
-    if(j==25)
-    cout<<"i: "<<i+p->origin_i<<" j: "<<j<<" hx_i-2: "<<hx(i-2,j)<<" hx_i-1: "<<hx(i-1,j)<<" hx_i: "<<hx(i,j)<<" P_i-1: "<<b->P(i-1,j)<<" P_i: "<<b->P(i,j)<<" P_i+1: "<<b->P(i+1,j)<<" eta_i-1: "<<eta(i,j)<<" eta_i: "<<eta(i-1,j)<<" eta_i+1: "<<eta(i+1,j)<<endl;
-    }
-    
-    for(n=0;n<p->gcslout_count;n++)
-    {
-    i=p->gcslout[n][0];
-    j=p->gcslout[n][1];
-
-    
-    //cout<<"gcslout i: "<<i<<" j: "<<j<<" hx_i: "<<hx(i,j)<<" P_i-1: "<<b->P(i-1,j)<<" P_i: "<<b->P(i,j)<<" eta_i: "<<eta(i,j)<<" eta_i+1: "<<eta(i+1,j)<<endl;
-
-    }*/
 	
 	SLICELOOP2
 	{
