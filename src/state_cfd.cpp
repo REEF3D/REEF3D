@@ -20,42 +20,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"increment.h"
+#include "state_cfd.h"
+#include "lexer.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include<iostream>
+#include<fstream>
+#include<sys/stat.h>
+#include<sys/types.h>
 
-
-class lexer;
-class fdm;
-class ghostcell;
-class turbulence;
-class sediment;
-
-using namespace std;
-
-#ifndef STATE_H_
-#define STATE_H_
-
-class state : public increment
-{
-
-public:
-	state(lexer*,fdm*,ghostcell*);
-	virtual ~state();
-	virtual void write(lexer*,fdm*,ghostcell*,turbulence*,sediment*);
-    virtual void read(lexer*,fdm*,ghostcell*,turbulence*,sediment*);
+state_cfd::state_cfd(lexer *p, fdm *a, ghostcell *pgc)
+{	
+	// Create Folder
+	if(p->mpirank==0 && p->P14==1)
+	mkdir("./REEF3D_CFD_State",0777);
 	
-private:
-    virtual void filename(lexer*,fdm*,ghostcell*,int);
+	printcount=0;
+}
 
-    char name[200];
-    float ffn;
-	int iin;
-	double ddn;
-	int printcount;
-    
-    
-};
-
-#endif
-
-
-
+state_cfd::~state_cfd()
+{
+}

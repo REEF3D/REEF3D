@@ -859,7 +859,7 @@
           <File Name="nodefill.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="State">
-          <File Name="state.h"/>
+          <File Name="state_cfd.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sloshing">
           <File Name="sloshing_force.h"/>
@@ -2429,10 +2429,10 @@
           <File Name="nodefill.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="State">
-          <File Name="state.cpp"/>
-          <File Name="state_filename.cpp"/>
-          <File Name="state_write.cpp"/>
-          <File Name="state_read.cpp"/>
+          <File Name="state_cfd_write.cpp"/>
+          <File Name="state_cfd_read.cpp"/>
+          <File Name="state_cfd_filename.cpp"/>
+          <File Name="state_cfd.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sloshing">
           <File Name="sloshing_force.cpp"/>

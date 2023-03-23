@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"state.h"
+#include"state_cfd.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -43,7 +43,7 @@ Author: Hans Bihs
   * conc
  */
 
-void state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sediment *psed)
+void state_cfd::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sediment *psed)
 {
     // Open File
 	filename(p,a,pgc,p->I41);

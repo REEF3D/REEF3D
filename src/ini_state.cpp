@@ -26,11 +26,11 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"turbulence.h"
 #include"sediment.h"
-#include"state.h"
+#include"state_cfd.h"
 
 void initialize::stateini(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sediment *psed)
 {
-	state state_ini(p,a,pgc);
+	state_cfd state_ini(p,a,pgc);
 	
 	state_ini.read(p,a,pgc,pturb,psed);
 }

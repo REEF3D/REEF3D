@@ -20,10 +20,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"state.h"
+#include"state_cfd.h"
 #include"lexer.h"
 
-void state::filename(lexer *p, fdm *a, ghostcell *pgc, int num)
+void state_cfd::filename(lexer *p, fdm *a, ghostcell *pgc, int num)
 {
     
 if(p->P14==0)
