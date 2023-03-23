@@ -802,6 +802,11 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Printer">
+        <VirtualDirectory Name="Averaging">
+          <File Name="print_averaging_v.h"/>
+          <File Name="print_averaging.h"/>
+          <File Name="print_averaging_f.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Topo">
           <File Name="topo_vtp.h"/>
         </VirtualDirectory>
@@ -2350,6 +2355,10 @@
         <File Name="lexer_gridini2D.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Printer">
+        <VirtualDirectory Name="Averaging">
+          <File Name="print_averaging_v.cpp"/>
+          <File Name="print_averaging_f.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Topo">
           <File Name="topo_vtp_print.cpp"/>
           <File Name="topo_pvtp.cpp"/>

@@ -54,6 +54,7 @@ class bedprobe_line_x;
 class bedprobe_line_y;
 class exportfile;
 class flowfile_out;
+class print_averaging;
 
 #ifndef VTU3D_H_
 #define VTU3D_H_
@@ -114,6 +115,7 @@ private:
 	print_porous *ppor;
     exportfile *pexport;
     flowfile_out *pflowfile;
+    print_averaging *pmean;
 };
 
 #endif

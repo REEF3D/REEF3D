@@ -32,6 +32,7 @@ Author: Hans Bihs
 #include"concentration.h"
 #include"multiphase.h"
 #include"sediment.h"
+#include"print_averaging.h"
 
 void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *pheat, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
@@ -94,6 +95,8 @@ void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
 
 	result<<"<PPointData>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
+    
+    pmean->name_pvtu(p,a,pgc,result);
 
 	result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>"<<endl;
 

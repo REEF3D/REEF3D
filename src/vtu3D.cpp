@@ -56,6 +56,8 @@ Author: Hans Bihs
 #include"print_porous.h"
 #include"export.h"
 #include"flowfile_out.h"
+#include"print_averaging_f.h"
+#include"print_averaging_v.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -116,6 +118,12 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
     ppressprobe = new probe_pressure(p,a,pgc);
 	pline = new probe_line(p,a,pgc);
 	pq = new gage_discharge_x(p,a,pgc);
+    
+    if(p->P21==0)
+    pmean = new print_averaging_v(p,a,pgc);
+    
+    if(p->P21==1)
+    pmean = new print_averaging_f(p,a,pgc);
 
 	if(p->P180==1)
 	pfsf = new fsf_vtp(p,a,pgc);
@@ -192,6 +200,8 @@ void vtu3D::ini(lexer* p, fdm* a, ghostcell* pgc)
 void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
         pgc->gcparax4a(p,a->phi,5);
+        
+        pmean->averaging(p,a,pgc,pheat);
 
 		// Print out based on iteration
         if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)
@@ -451,6 +461,8 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	// velocity
 	offset[n]=offset[n-1]+4*(p->pointnum)*3+4;
 	++n;
+    
+    pmean->offset_vtu(p,a,pgc,result,offset,n);
 
 	// scalars
 
@@ -586,7 +598,8 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     result<<"<PointData >"<<endl;
     result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-
+    
+    pmean->name_vtu(p,a,pgc,result,offset,n);
 
     result<<"<DataArray type=\"Float32\" Name=\"pressure\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -719,6 +732,9 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	ffn=float(p->ipol3(a->w));
 	result.write((char*)&ffn, sizeof (float));
 	}
+
+//  time average flow parameters
+    pmean->print_3D(p,a,pgc,result);
 
 //  Pressure
 	iin=4*(p->pointnum);
