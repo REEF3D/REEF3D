@@ -86,7 +86,6 @@ void iowave::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     wavegen_precalc(p,pgc);
 
-    
     if(p->I30==1)
 	full_initialize_fnpf(p,c,pgc);
 }

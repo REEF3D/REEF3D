@@ -294,7 +294,7 @@ void nhflow_weno_flux::iqmax(lexer *p, double *B, double *U, int ipol)
 
 void nhflow_weno_flux::jqmax(lexer *p, double *B, double *V, int ipol)
 {
-	q1 = B[Im1JK];
+    q1 = B[Im1JK];
     q2 = B[IJK];
     q3 = B[IJp1K];
     q4 = B[Ip2JK];

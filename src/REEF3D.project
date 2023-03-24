@@ -2191,20 +2191,22 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
+      <VirtualDirectory Name="Ini">
+        <File Name="driver_ini_sflow.cpp"/>
+        <File Name="driver_ini_ptf.cpp"/>
+        <File Name="driver_ini_nsewave.cpp"/>
+        <File Name="driver_ini_nhflow.cpp"/>
+        <File Name="driver_ini_fnpf.cpp"/>
+        <File Name="driver_ini_cfd.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Driver">
         <File Name="driver_makegrid_sigma.cpp"/>
-        <File Name="driver_ini_nsewave.cpp"/>
-        <File Name="driver_ini_fnpf.cpp"/>
-        <File Name="driver_ini_ptf.cpp"/>
-        <File Name="driver_ini_nhflow.cpp"/>
         <File Name="driver_memory.cpp"/>
         <File Name="driver_log.cpp"/>
         <File Name="driver_test.cpp"/>
         <File Name="driver_makegrid.cpp"/>
-        <File Name="driver_ini_cfd.cpp"/>
         <File Name="driver_fillvec.cpp"/>
         <File Name="driver_makgrid_2D.cpp"/>
-        <File Name="driver_ini_sflow.cpp"/>
         <File Name="driver_stop.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
@@ -2731,6 +2733,7 @@
             <File Name="iowave_sflow_active-beach.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="NHFLOW">
+            <File Name="iowave_nhflow_precalc_relax.cpp"/>
             <File Name="iowave_nhflow_velsource.cpp"/>
             <File Name="iowave_nhflow_precalc_decomp_time.cpp"/>
             <File Name="iowave_nhflow_precalc_decomp_space_dirichlet.cpp"/>
@@ -2747,6 +2750,7 @@
             <File Name="iowave_nhflow_active-beach.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="FNPF">
+            <File Name="iowave_fnpf_fullini.cpp"/>
             <File Name="iowave_fnpf_precalc_decomp_space_dirichlet.cpp"/>
             <File Name="iowave_fnpf_precalc_relax.cpp"/>
             <File Name="iowave_fnpf_precalc_ini.cpp"/>

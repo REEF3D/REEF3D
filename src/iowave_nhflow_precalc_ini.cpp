@@ -24,7 +24,6 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 
-
 void iowave::nhflow_precalc_relax_ini(lexer *p, ghostcell *pgc)
 {
     // count number of relax points
@@ -39,7 +38,6 @@ void iowave::nhflow_precalc_relax_ini(lexer *p, ghostcell *pgc)
         
         if(p->B92==31 || p->B92==41 || p->B92==51)
         wave_comp = p->wN;
-        
     }
     
     // U ------------------------------------------------
@@ -122,6 +120,33 @@ void iowave::nhflow_precalc_relax_ini(lexer *p, ghostcell *pgc)
     p->Darray(vval,vpt_count);
     p->Darray(wval,wpt_count);
     p->Darray(etaval,ept_count);
+    
+    if(p->B89==1) 
+    {
+    p->Darray(uval_S_sin,upt_count,wave_comp);
+    p->Darray(vval_S_sin,vpt_count,wave_comp);
+    p->Darray(wval_S_sin,wpt_count,wave_comp);
+    p->Darray(etaval_S_sin,ept_count,wave_comp);
+    p->Darray(Fival_S_sin,ppt_count,wave_comp);
+    
+    p->Darray(uval_S_cos,upt_count,wave_comp);
+    p->Darray(vval_S_cos,vpt_count,wave_comp);
+    p->Darray(wval_S_cos,wpt_count,wave_comp);
+    p->Darray(etaval_S_cos,ept_count,wave_comp);
+    p->Darray(Fival_S_cos,ppt_count,wave_comp);
+    
+    p->Darray(uval_T_sin,wave_comp);
+    p->Darray(vval_T_sin,wave_comp);
+    p->Darray(wval_T_sin,wave_comp);
+    p->Darray(etaval_T_sin,wave_comp);
+    p->Darray(Fival_T_sin,wave_comp);
+    
+    p->Darray(uval_T_cos,wave_comp);
+    p->Darray(vval_T_cos,wave_comp);
+    p->Darray(wval_T_cos,wave_comp);
+    p->Darray(etaval_T_cos,wave_comp);
+    p->Darray(Fival_T_cos,wave_comp);
+    }
 }
 
 void iowave::nhflow_precalc_dirichlet_ini(lexer *p, ghostcell *pgc)

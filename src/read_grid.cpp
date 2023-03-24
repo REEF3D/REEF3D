@@ -447,7 +447,6 @@ void lexer::read_grid()
     {
     grid.read((char*)&ddn, sizeof (double));
     XN[IP]=ddn;
-    
     }
 
     for(j=-marge;j<knoy+1+marge;++j)

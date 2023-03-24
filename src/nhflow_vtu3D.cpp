@@ -232,8 +232,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     d->breaking_print(i,j)=0.0;
     }
 
-     //
-
+    //
     pgc->gcsl_start4(p,d->WL,50);
     pgc->gcsl_start4(p,d->bed,50);
     pgc->gcsl_start4(p,d->breaking_print,50);
@@ -313,7 +312,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     ++n;
 
 
-    result<<"<DataArray type=\"Float32\" Name=\"P\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"pressure\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 
 
@@ -355,27 +354,24 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPLOOP
 	{
-	ffn=float(d->U[FIJKp1]);
+	ffn=float(d->U[IJKp1]);
 
     if(k==-1 && j==-1)
-	ffn=float(d->U[FIJp1Kp1]);
-    ffn=0.0;
+	ffn=float(d->U[IJp1Kp1]);
 	result.write((char*)&ffn, sizeof (float));
 
 
-	ffn=float(d->V[FIJKp1]);
+	ffn=float(d->V[IJKp1]);
 
     if(k==-1 && j==-1)
-	ffn=float(d->V[FIJp1Kp1]);
-    ffn=0.0;
+	ffn=float(d->V[IJp1Kp1]);
 	result.write((char*)&ffn, sizeof (float));
 
 
-	ffn=float(d->W[FIJKp1]);
+	ffn=float(d->W[IJKp1]);
 
     if(k==-1 && j==-1)
-	ffn=float(d->W[FIJp1Kp1]);
-    ffn=0.0;
+	ffn=float(d->W[IJp1Kp1]);
 	result.write((char*)&ffn, sizeof (float));
 	}
 
@@ -388,7 +384,6 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 
     if(k==-1 && j==-1)
 	ffn=float(d->P[FIJp1Kp1]);
-    ffn=0.0;
 	result.write((char*)&ffn, sizeof (float));
 	}
 
@@ -398,7 +393,6 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     TPLOOP
 	{
 	ffn=float(p->ZN[KP1]*d->WL(i,j) + d->bed(i,j));
-    ffn=0.0;
 	result.write((char*)&ffn, sizeof (float));
 	}
 
@@ -409,7 +403,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
-	ffn=float(d->test[FIJp1Kp1]);
+	ffn=float(d->test[IJp1Kp1]);
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}

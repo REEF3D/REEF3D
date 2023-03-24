@@ -22,77 +22,62 @@ Author: Hans Bihs
 
 #include"iowave.h"
 #include"lexer.h"
-#include"fdm_nhf.h"
+#include"fdm.h"
+#include"fdm_fnpf.h"
 #include"ghostcell.h"
 
-void iowave::full_initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void iowave::full_initialize_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     if(p->mpirank==0)
     cout<<"full NWT initialize"<<endl;
     
     // eta
 	SLICELOOP4
+    if(p->wet[IJ]==1)
     {
         xg = xgen(p);
         yg = ygen(p);
 		dg = distgen(p);
 		db = distbeach(p);
 
-		d->eta(i,j) = wave_eta(p,pgc,xg,0.0);
+		c->eta(i,j) = wave_eta(p,pgc,xg,yg);
+
+    }
+    
+    // Fifsf
+    SLICELOOP4
+    if(p->wet[IJ]==1)
+    {
+        xg = xgen(p);
+        yg = ygen(p);
+		dg = distgen(p);
+		db = distbeach(p);
+        
+        z = c->eta(i,j);
+
+		c->Fifsf(i,j) = wave_fi(p,pgc,xg,yg,z);
+    }
+
+    
+    // Fi
+    FLOOP
+    if(p->wet[IJ]==1)
+    {
+        xg = xgen(p);
+        yg = ygen(p);
+        dg = distgen(p);
+		db = distbeach(p);
+        
+        z=p->ZSN[FIJK]-p->phimean;
+        
+        z = p->ZN[KP]*(c->eta(i,j) + p->wd - c->bed(i,j)) + c->bed(i,j)-p->phimean;
+        
+        c->Fi[FIJK] = wave_fi(p,pgc,xg,yg,z);
+      
     }
     
     SLICELOOP4
-    d->WL(i,j) = MAX(0.0, d->eta(i,j) + p->wd - d->bed(i,j));
-    
-    p->sigma_update(p,d,pgc,d->eta,d->eta,1.0);
-	
-	LOOP
-    {
-		xg = xgen(p);
-        yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p); 
-        
-        z=p->ZSP[IJK]-p->phimean;
+    c->WL(i,j) = c->eta(i,j) + p->wd - c->bed(i,j);
 
-		d->U[IJK] = wave_u(p,pgc,xg,yg,z);
-	}	
-	
-	LOOP
-    {
-        xg = xgen(p);
-        yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p); 
-        
-		z=p->ZSP[IJK]-p->phimean;
-		
-		d->V[IJK] = wave_v(p,pgc,xg,yg,z);
-	}
-	
-	LOOP
-    {
-        xg = xgen(p);
-        yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p); 
-        
-		z=p->ZSP[IJK]-p->phimean;
-		
-		d->W[IJK] = wave_w(p,pgc,xg,yg,z);
-	}
-	
-    //if(p->I10==1 || p->I12==1)
-	FLOOP
-    {
-        xg = xgen(p);
-        yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p); 
-		
-		d->P[FIJK] = 0.0;//(wave_h(p,pgc,xg,0.0,0.0) - p->ZN[KP])*a->ro(i,j,k)*fabs(p->W22);
-	}
-	
-	
-    
 }
+
