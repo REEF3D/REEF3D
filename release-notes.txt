@@ -1,4 +1,25 @@
 
+23.03
+x added time-averaged velocity, pressure and temperature to vtu (CFD)
+x fixed wave period based sediment start up 
+x fixed a problem for the initialization of the density thickness (CFD)
+x updated walldist calculation for NUG (CFD)
+x added significant wave height Hs print out to FNPF’s vtu and vtp files
+x fixed and improved HDC routine
+x updated User Guide
+x updated suspended load calculation (CFD)
+x added automatic sediment particle settling velocity calculation (CFD)
+x added simtime initialization
+x added diffusion to vertical velocity component (SFLOW)
+x added pressure probes (CFD)
+x addes a priori wave timeseries printout for iowave
+x added conservative convection discretization to SFLOW
+x updated SFLOW sediment transport
+x fixed 6DOF STL Volume calculation (CFD)
+x fixed a start up crash for PTF
+x added new macOS installation routine to User Guide
+x added new docker based installation routine to User Guide
+
 23.01
 x reordered 6DOF direct forcing implementation (CFD)
 x improved free surface inside and around the 6DOF floating body (CFD)
