@@ -222,6 +222,7 @@ public:
     void gcparax7co(lexer*, double*, int);
 	void gcparaxvec_sr(lexer*, vec&,cpt&,int);
     void gcparax4a(lexer*, field&, int);
+    void gcparaxV(lexer*, field&, int);
 	void gcparacox(lexer*, field&, int);
     void gcperiodicx(lexer*, field&, int);
     void gcperiodicxvec(lexer*, vec&, int);
@@ -342,9 +343,9 @@ public:
 	void gcdistro4(lexer *p,field&,int, int, int, int, double, int, int, int);
 	void gcdistro4a(lexer *p,field&,int, int, int, int, double, int, int, int);
 
-	void gcdistro4V(lexer *p,fdm*, vec&, int, int, int, double, int, int, int, int);
-    void gcdistro4aV(lexer *p,fdm*, vec&, int, int, int, double, int, int, int, int);
-    void gcdistro6V(lexer *p,fdm*, vec&, int, int, int, double, int, int, int, int);
+	void gcdistro4vec(lexer *p,fdm*, vec&, int, int, int, double, int, int, int, int);
+    void gcdistro4avec(lexer *p,fdm*, vec&, int, int, int, double, int, int, int, int);
+    void gcdistro6vec(lexer *p,fdm*, vec&, int, int, int, double, int, int, int, int);
 
 	int gceval1(lexer*,int,int,int);
 	int gceval2(lexer*,int,int,int);

@@ -379,7 +379,7 @@ void ghostcell::gcdistro4(lexer *p, field &f, int ii, int jj, int kk, int nn, do
 	gcb_debug(f,gcv,bc,cs);
 }
 
-void ghostcell::gcdistro4V(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, double dist,  int gcv, int bc, int cs, int id)
+void ghostcell::gcdistro4vec(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, double dist,  int gcv, int bc, int cs, int id)
 {
     i=ii;
 	j=jj;
