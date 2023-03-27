@@ -87,14 +87,14 @@ void ioflow_gravity::discharge(lexer *p, fdm* a, ghostcell* pgc)
 void ioflow_gravity::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {
 	
-    if(p->B181_1>0.0)
-    a->gi=  p->B181_1 * sin(2.0*PI*p->B181_2*p->simtime + p->B181_3) +  p->W20;
+    if(p->B181==1)
+    a->gi = p->B181_1*(2.0*PI*p->B181_2)*cos((2.0*PI*p->B181_2)*p->simtime + p->B181_3) +  p->W20;
+    
+    if(p->B182==1)
+    a->gj = p->B182_1*(2.0*PI*p->B182_2)*cos((2.0*PI*p->B182_2)*p->simtime + p->B182_3) +  p->W21;
 
-    if(p->B182_1>0.0)
-    a->gj=  p->B182_1 * sin(2.0*PI*p->B182_2*p->simtime + p->B182_3) +  p->W21;
-
-    if(p->B183_1>0.0)
-    a->gk=  p->B183_1 * sin(2.0*PI*p->B183_2*p->simtime + p->B183_3) +  p->W22;
+    if(p->B183==1)
+    a->gk = p->B183_1*(2.0*PI*p->B183_2)*cos((2.0*PI*p->B183_2)*p->simtime + p->B183_3) +  p->W22;
     
     pBC->patchBC_ioflow(p,a,pgc,u,v,w);
 }

@@ -184,12 +184,15 @@ void lexer::ini_default()
     B160=5;        // int number of vertical layers for 2D wave generation
     B170=1024;     // int number of Fourier modes for the generation of steady surface gravity waves
 	B180=0;           // int gravity waves
+    B181=0;         // int x-dir motion
 	B181_1=0.0;     // double x-acceleration amplitude
 	B181_2=0.0;      //double x-acceleration frequency
 	B181_3=0.0;     // double wave phase change
+    B182=0;         // int y-dir motion
 	B182_1=0.0;     // double y-acceleration amplitude
 	B182_2=0.0;      //double y-acceleration frequency
 	B182_3=0.0;     // double wave phase change
+    B183=0;         // int z-dir motion
 	B183_1=0.0;     // double z-acceleration amplitude
 	B183_2=0.0;      //double z-acceleration frequency
 	B183_3=0.0;     // double wave phase change

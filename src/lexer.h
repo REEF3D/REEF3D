@@ -299,6 +299,7 @@ public:
     double B131,B132_s,B132_e;
     double B134,B135;
     int B160, B170;
+    int B181,B182,B183;
 	double B181_1,B181_2,B181_3,B182_1,B182_2,B182_3,B183_1,B183_2,B183_3;
 	double B191_1,B191_2,B191_3,B191_4,B192_1,B192_2,B192_3,B192_4;
 	double B194_s,B194_e;

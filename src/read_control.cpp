@@ -537,12 +537,15 @@ void lexer::read_control()
 						 break;
                case 181: control>>B181_1>>B181_2>>B181_3;
 						 clear(c,numint);
+                           B181=1;
 						 break;
                case 182: control>>B182_1>>B182_2>>B182_3;
 						 clear(c,numint);
+                           B182=1;
 						 break;
                case 183: control>>B183_1>>B183_2>>B183_3;
 						 clear(c,numint);
+                           B183=1;
 						 break;
 			   case 191: control>>B191_1>>B191_2>>B191_3>>B191_4;
 						 clear(c,numint);
