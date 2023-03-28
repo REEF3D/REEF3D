@@ -149,7 +149,7 @@ void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pne
             if(p->P14==1)
             {
                 mkdir("./REEF3D_CFD_6DOF_Net",0777);
-                mkdir(“./REEF3D_CFD_6DOF”, 0777);
+                mkdir("./REEF3D_CFD_6DOF", 0777);
             }
         }
         else
