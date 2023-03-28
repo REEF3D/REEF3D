@@ -113,8 +113,8 @@ void force_ale::force_ale_force(lexer* p, fdm_fnpf *c, ghostcell *pgc)
         ay = ay1 + ay2 + ay3;
         
         // Force on current strip
-        Fx1 = (p->wd + c->eta(i,j))*((cm*ax*p->W1*PI*rc*rc*p->DZN[KP])+ (cd*c->U[FIJK]*fabs(c->U[FIJK])*0.5*p->W1*2*rc*p->DZN[KP]));
-        Fy1 = (p->wd + c->eta(i,j))*((cm*ay*p->W1*PI*rc*rc*p->DZN[KP])+ (cd*c->V[FIJK]*fabs(c->V[FIJK])*0.5*p->W1*2*rc*p->DZN[KP]));
+        Fx1 = c->WL(i,j)*((cm*ax*p->W1*PI*rc*rc*p->DZN[KP]) + (cd*c->U[FIJK]*fabs(c->U[FIJK])*0.5*p->W1*2.0*rc*p->DZN[KP]));
+        Fy1 = c->WL(i,j)*((cm*ay*p->W1*PI*rc*rc*p->DZN[KP]) + (cd*c->V[FIJK]*fabs(c->V[FIJK])*0.5*p->W1*2.0*rc*p->DZN[KP]));
         
         // Sum up forces
         Fx += Fx1;
