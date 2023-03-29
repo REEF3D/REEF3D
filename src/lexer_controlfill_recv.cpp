@@ -314,7 +314,7 @@ void lexer::ctrlrecv()
 	B122 = dctrl[dd];
 	dd++;
     B123 = dctrl[dd];
-	dd++;
+	dd++;    B125 = ictrl[ii];	ii++;    B125_y = dctrl[dd];	dd++;    B127 = ictrl[ii];	ii++;
     B130 = ictrl[ii];
 	ii++;
     B131 = dctrl[dd];

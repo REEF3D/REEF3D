@@ -169,6 +169,9 @@ void lexer::ini_default()
 	B121=1;        // int air velocity on/off in wave relaxation zone
     B122=1.0;        // int air velocity on/off for active wave generation
     B123=0.0;       // double flap AWA hinge location
+    B125=0;         // int take 2D slice input for HDC
+    B125_y=0.0;     // double 2D slice y-coor input for HDC
+    B127=0;         // int turn of y-dir velociteis for HDC 
     B130=0;         // int directional spreading for irregular waves
     B131=0.0;       // double main direction for multidirectional irregular waves
     B132_s=-90.0;  // double start directional spreading

@@ -499,6 +499,13 @@ void lexer::read_control()
                case 123: control>>B123;
 						 clear(c,numint);
 						 break;
+               case 125: control>>B125_y;
+                           B125=1;
+						 clear(c,numint);
+						 break;
+               case 127: control>>B127;
+						 clear(c,numint);
+						 break;
                case 130: control>>B130;
 						 clear(c,numint);
 						 break;

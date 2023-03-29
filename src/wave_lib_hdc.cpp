@@ -56,6 +56,9 @@ double wave_lib_hdc::wave_u(lexer *p, double x, double y, double z)
 {
     double vel=0.0;
     
+    if(p->B125==1)
+    y=p->B125_y;
+    
     if(endseries==0)
     vel = space_interpol(p,U,x,y,z);
     
@@ -67,7 +70,10 @@ double wave_lib_hdc::wave_v(lexer *p, double x, double y, double z)
 {
     double vel=0.0;
     
-    if(endseries==0)
+    if(p->B125==1)
+    y=p->B125_y;
+    
+    if(endseries==0 && p->B125==0 && p->B127==0)
     vel = space_interpol(p,V,x,y,z);
 
     return singamma*vel;
@@ -76,6 +82,9 @@ double wave_lib_hdc::wave_v(lexer *p, double x, double y, double z)
 double wave_lib_hdc::wave_w(lexer *p, double x, double y, double z)
 {
     double vel=0.0;
+    
+    if(p->B125==1)
+    y=p->B125_y;
     
     if(endseries==0)
     vel = space_interpol(p,W,x,y,z);
@@ -86,6 +95,9 @@ double wave_lib_hdc::wave_w(lexer *p, double x, double y, double z)
 double wave_lib_hdc::wave_eta(lexer *p, double x, double y)
 {
     double eta=0.0;
+    
+    if(p->B125==1)
+    y=p->B125_y;
     
     if(endseries==0)
     eta = plane_interpol(p,E,x,y);
