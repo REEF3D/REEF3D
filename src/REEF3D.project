@@ -286,6 +286,7 @@
           <File Name="fnpf_sigma.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <File Name="force_ale.h"/>
           <File Name="fnpf_print_Hs.h"/>
           <File Name="fnpf_breaking_log.h"/>
           <File Name="potentialfile_out.h"/>
@@ -810,9 +811,6 @@
         <VirtualDirectory Name="Topo">
           <File Name="topo_vtp.h"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Force ALE">
-          <File Name="force_ale.h"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="Flowfile Out">
           <File Name="flowfile_out.h"/>
         </VirtualDirectory>
@@ -1306,6 +1304,11 @@
           <File Name="fnpf_sigma.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Force ALE">
+            <File Name="force_ale_print.cpp"/>
+            <File Name="force_ale_force.cpp"/>
+            <File Name="force_ale.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Hs">
             <File Name="fnpf_print_Hs.cpp"/>
           </VirtualDirectory>
@@ -2368,11 +2371,6 @@
           <File Name="topo_pvtp.cpp"/>
           <File Name="topo_header.cpp"/>
           <File Name="topo_vtp.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Force ALE">
-          <File Name="force_ale_force.cpp"/>
-          <File Name="force_ale_print.cpp"/>
-          <File Name="force_ale.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FlowFile Out">
           <File Name="flowfile_out.cpp"/>

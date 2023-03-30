@@ -36,7 +36,6 @@ fnpf_breaking_log::fnpf_breaking_log(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 	
 	// result file
     filename(p,c,pgc);
-	 
 	
 	result.open(name);
 }
