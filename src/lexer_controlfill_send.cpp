@@ -917,6 +917,8 @@ void lexer::ctrlsend()
 	ii++;
 	ictrl[ii] = P67;
 	ii++;
+    ictrl[ii] = P68;
+	ii++;
     ictrl[ii] = P71;
 	ii++;
     ictrl[ii] = P72;
@@ -2080,6 +2082,16 @@ void lexer::ctrlsend()
 	for(n=0;n<P67;++n)
 	{
     dctrl[dd] = P67_x[n];
+	dd++;
+	}
+    
+    for(n=0;n<P68;++n)
+	{
+    dctrl[dd] = P68_x[n];
+	dd++;
+    dctrl[dd] = P68_zs[n];
+	dd++;
+    dctrl[dd] = P68_ze[n];
 	dd++;
 	}
 	

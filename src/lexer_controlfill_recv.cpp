@@ -888,7 +888,7 @@ void lexer::ctrlrecv()
 	P66 = ictrl[ii];
 	ii++;
 	P67 = ictrl[ii];
-	ii++;
+	ii++;    P68 = ictrl[ii];	ii++;
     P71 = ictrl[ii];
 	ii++;
     P72 = ictrl[ii];
@@ -1852,7 +1852,7 @@ void lexer::ctrlrecv()
 	}    if(P64>0)	{    Darray(P64_x,P64);  	Darray(P64_y,P64); 	Darray(P64_z,P64);  	}
 	
 	if(P67>0)
-	Darray(P67_x,P67);  
+	Darray(P67_x,P67);     if(P68>0)    {	Darray(P68_x,P68);    Darray(P68_zs,P68);    Darray(P68_ze,P68);    }
 	
 	if(P81>0)
 	{
@@ -2581,7 +2581,7 @@ void lexer::ctrlrecv()
     {
     P67_x[n] = dctrl[dd];
     dd++;
-    }
+    }    for(n=0;n<P68;++n)    {    P68_x[n] = dctrl[dd];    dd++;    P68_zs[n] = dctrl[dd];    dd++;    P68_ze[n] = dctrl[dd];    dd++;    }
 	
 	for(n=0;n<P81;++n)
     {

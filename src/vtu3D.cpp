@@ -43,6 +43,7 @@ Author: Hans Bihs
 #include"data.h"
 #include"concentration.h"
 #include"gage_discharge_x.h"
+#include"gage_discharge_window_x.h"
 #include"fsf_vtp.h"
 #include"topo_vtp.h"
 #include"state_cfd.h"
@@ -118,6 +119,7 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
     ppressprobe = new probe_pressure(p,a,pgc);
 	pline = new probe_line(p,a,pgc);
 	pq = new gage_discharge_x(p,a,pgc);
+    pqw = new gage_discharge_window_x(p,a,pgc);
     
     if(p->P21==0)
     pmean = new print_averaging_v(p,a,pgc);
@@ -265,6 +267,9 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
 
 		if(p->P67>0)
 		pq->start(p,a,pgc);
+        
+        if(p->P68>0)
+		pqw->start(p,a,pgc);
 
         if((p->count==0 || p->count==p->count_statestart) && p->P81>0)
         for(n=0;n<p->P81;++n)
