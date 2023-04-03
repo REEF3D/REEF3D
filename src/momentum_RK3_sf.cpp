@@ -211,7 +211,7 @@ void momentum_RK3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         pgc->start2(p,fy,11);
         pgc->start3(p,fz,12);           
         
-        pgc->updateForcing(p,a,2.0*alpha(loop),urk,vrk,wrk,fx,fy,fz);
+        pgc->solid_forcing(p,a,2.0*alpha(loop),urk,vrk,wrk,fx,fy,fz);
         
         
         LOOP

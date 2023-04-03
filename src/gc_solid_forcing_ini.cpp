@@ -17,47 +17,35 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Authors: Tobias Martin, Ahmet Soydan, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"solid.h"
+#include"ghostcell.h"
 #include"lexer.h"
 #include"fdm.h"
-#include"ghostcell.h"
-#include"reinitopo.h"
-#include"ioflow.h"
-#include"reinitopo_RK3.h"
 
-solid::solid(lexer* p, fdm *a, ghostcell* pgc)
+void ghostcell::solid_forcing_ini(lexer *p, fdm *a)
 {
-}
+    // Initialise floating fields
+     ULOOP
+     a->fbh1(i,j,k) = Hsolidface(p,a,1,0,0);
 
-solid::~solid()
-{
-}
+     VLOOP
+     a->fbh2(i,j,k) = Hsolidface(p,a,0,1,0);
 
-void solid::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection* pconvec, reinitopo* preso)
-{
+     WLOOP
+     a->fbh3(i,j,k) = Hsolidface(p,a,0,0,1);
 
-	solid_topo(p,a,pgc);
+     LOOP
+     a->fbh4(i,j,k) = Hsolidface(p,a,0,0,0);
+
+     start1(p,a->fbh1,10);
+     start2(p,a->fbh2,11);
+     start3(p,a->fbh3,12);
+     start4(p,a->fbh4,40);
+     
+     
+     // ghostcell update
+    gcdf_update(p,a);
     
-    preso->start(p,a,pgc,a->solid);
-    
-    if(p->G3==0)
-    {
-    pgc->solid_update(p,a);
-
-    pflow->gcio_update(p,a,pgc);
-    }
 }
-
-void solid::solid_topo(lexer* p, fdm* a, ghostcell* pgc)
-{
-    BASELOOP
-    {
-    a->solid(i,j,k) = p->flag_solid[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin];
-    }
-    
-    p->del_Darray(p->flag_solid,p->imax*p->jmax*p->kmax);
-}
-

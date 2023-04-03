@@ -90,6 +90,9 @@ void driver::driver_ini_cfd()
     gtopo.start(p,a,pgc,pflow,preto,pvrans);
     }
     
+    // Solid Forcing
+    if(p->G3==1)
+    pgc->solid_forcing_ini(p,a);
     
     
 	// 6DOF

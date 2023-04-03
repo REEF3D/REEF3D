@@ -2038,6 +2038,8 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
       <VirtualDirectory Name="Forcing">
+        <File Name="gc_solid_forcing_interface.cpp"/>
+        <File Name="gc_solid_forcing_ini.cpp"/>
         <File Name="gc_solid_forcing.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="DFupdate">

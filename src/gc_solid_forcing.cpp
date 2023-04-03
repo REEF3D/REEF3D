@@ -24,9 +24,12 @@ Authors: Tobias Martin, Ahmet Soydan, Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 
-void ghostcell::updateForcing(lexer *p, fdm *a, double alpha, field& uvel, field &vvel, field& wvel,
+void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field &vvel, field& wvel,
                               field& fx, field &fy, field &fz)
 {
+    // ghostcell update
+    gcdf_update(p,a);
+    
      // Reset heaviside field
     ULOOP
     a->fbh1(i,j,k) = 0.0;
@@ -271,68 +274,5 @@ void ghostcell::updateForcing(lexer *p, fdm *a, double alpha, field& uvel, field
     start1(p,fx,10);
     start2(p,fy,11);
     start3(p,fz,12);         
-};
-
-double ghostcell::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
-{
-    double psi, H, phival_sf,dirac;
-	
-    psi = p->X41*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
-
-    if (p->knoy == 1)
-    {
-        psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
-    }
-
-    // Construct solid heaviside function
-    phival_sf = MIN(0.5*(a->solid(i,j,k) + a->solid(i+aa,j+bb,k+cc)), a->topo(i,j,k) + a->topo(i+aa,j+bb,k+cc)); 
-    
-	
-    if (-phival_sf > psi)
-    {
-        H = 1.0;
-    }
-    else if (-phival_sf < -psi)
-    {
-        H = 0.0;
-    }
-    else
-    {
-        H = 0.5*(1.0 + -phival_sf/psi + (1.0/PI)*sin((PI*-phival_sf)/psi));
-    }
-	
-    return H;
 }
-
-double ghostcell::Hsolidface_t(lexer *p, fdm *a, int aa, int bb, int cc)
-{
-    double psi, H, phival_sf,dirac;
-	
-    psi = 0.5*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
-
-    if (p->knoy == 1)
-    {
-        psi = 0.5*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
-    }
-
-    // Construct solid heaviside function
-    phival_sf = MIN(0.5*(a->solid(i,j,k) + a->solid(i+aa,j+bb,k+cc)), a->topo(i,j,k) + a->topo(i+aa,j+bb,k+cc)); 
-	
-    if (-phival_sf > psi)
-    {
-        H = 1.0;
-    }
-    else if (-phival_sf < -psi)
-    {
-        H = 0.0;
-    }
-    else
-    {
-        H = 0.5*(1.0 + -phival_sf/psi + (1.0/PI)*sin((PI*-phival_sf)/psi));
-    }
-	
-    return H;
-}
-
-
 
