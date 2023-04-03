@@ -68,6 +68,7 @@ void driver::loop_cfd_sf(fdm* a)
         }
         
         p->fbmax=0.0;
+        p->sfmax=0.0;
 
         pflow->flowfile(p,a,pgc,pturb);
 

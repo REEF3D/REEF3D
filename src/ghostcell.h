@@ -153,6 +153,11 @@ public:
 // 2D CPT_
 
     void sizeS_update(lexer*);
+    
+// Forcing
+    void updateForcing(lexer*,fdm*,double,field&,field&,field&,field&,field&,field&);
+    double Hsolidface(lexer*, fdm*, int,int,int);
+	double Hsolidface_t(lexer*, fdm*, int,int,int);
 
 // solid update
 	void solid_update(lexer*,fdm*);

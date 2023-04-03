@@ -90,6 +90,8 @@ void driver::driver_ini_cfd()
     gtopo.start(p,a,pgc,pflow,preto,pvrans);
     }
     
+    
+    
 	// 6DOF
 	if((p->X10==1 && p->X13!=2) || p->X10==0)
     {

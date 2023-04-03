@@ -194,8 +194,10 @@ void momentum_RK3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
 
         
     // -------------------
+    // Forcing
+    
         starttime=pgc->timer();
-        // Forcing
+        
         ULOOP
         fx(i,j,k) = 0.0;
        
@@ -209,11 +211,12 @@ void momentum_RK3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         pgc->start2(p,fy,11);
         pgc->start3(p,fz,12);           
         
-        //if(p->X10>0)
-        //p6dof_df->start_forcing(p,a,pgc,pvrans,pnet,2.0*alpha(loop),gamma(loop),zeta(loop),urk,vrk,wrk,fx,fy,fz,final);
+        pgc->updateForcing(p,a,2.0*alpha(loop),urk,vrk,wrk,fx,fy,fz);
         
-        //pfsi->forcing(p,a,pgc,2.0*alpha(loop),urk,vrk,wrk,fx,fy,fz,final);
- 
+        
+        LOOP
+        a->test(i,j,k) = fx(i,j,k);
+
         ULOOP
         {
         a->u(i,j,k) = urk(i,j,k) + 2.0*alpha(loop)*p->dt*CPOR1*fx(i,j,k);
@@ -221,7 +224,7 @@ void momentum_RK3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         if(p->count<10)
         a->maxF = MAX(fabs(2.0*alpha(loop)*CPOR1*fx(i,j,k)), a->maxF);
         
-        p->fbmax = MAX(fabs(2.0*alpha(loop)*CPOR1*fx(i,j,k)), p->fbmax);
+        p->sfmax = MAX(fabs(2.0*alpha(loop)*CPOR1*fx(i,j,k)), p->sfmax);
         }
         
         VLOOP
@@ -231,7 +234,7 @@ void momentum_RK3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         if(p->count<10)
         a->maxG = MAX(fabs(2.0*alpha(loop)*CPOR2*fy(i,j,k)), a->maxG);
         
-        p->fbmax = MAX(fabs(2.0*alpha(loop)*CPOR2*fy(i,j,k)), p->fbmax);
+        p->sfmax = MAX(fabs(2.0*alpha(loop)*CPOR2*fy(i,j,k)), p->sfmax);
         }
         
         WLOOP
@@ -241,7 +244,7 @@ void momentum_RK3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         if(p->count<10)
         a->maxH = MAX(fabs(2.0*alpha(loop)*CPOR3*fz(i,j,k)), a->maxH);
         
-        p->fbmax = MAX(fabs(2.0*alpha(loop)*CPOR3*fz(i,j,k)), p->fbmax);
+        p->sfmax = MAX(fabs(2.0*alpha(loop)*CPOR3*fz(i,j,k)), p->sfmax);
         }
 
         pgc->start1(p,a->u,gcval_u);

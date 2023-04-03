@@ -67,7 +67,9 @@ void lexer::lexer_ini()
 	ufbmax=0.0;
 	vfbmax=0.0;
 	wfbmax=0.0;
-	
+	fbmax=0.0;
+    sfmax=0.0;
+    
 	ufbi=vfbi=wfbi=0.0;
 	pfbi=qfbi=rfbi=0.0;
     
