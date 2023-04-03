@@ -487,7 +487,7 @@ void driver::logic_cfd()
     if(p->D30==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2))
 	ppress = new pjm_fsm(p,a,pheat,pconc);
 
-    if((p->D30==3 || (p->X10==1 && p->X13==2) || p->Z10!=0 ) && p->N40!=4)
+    if((p->D30==3 || (p->X10==1 && p->X13==2) || p->Z10!=0 || p->G3==1) && p->N40!=4)
 	ppress = new pjm_corr(p,a,pheat,pconc);
 
     if(p->D30==10)
@@ -631,7 +631,7 @@ void driver::logic_cfd()
 
 
 // Velocities
-	if(p->N40==0 || p->Z10!=0 || (p->X10==1 && p->X13==2))
+	if(p->N40==0 || p->Z10!=0 || (p->X10==1 && p->X13==2) || p->G3==1)
 	pmom = new momentum_void();
 
     if(p->N40==1)
