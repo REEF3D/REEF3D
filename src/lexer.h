@@ -402,7 +402,7 @@ public:
     double *F399_xc, *F399_yc,*F399_zc, *F399_r;
     
 	// Grid Options
-    int G1,G2;
+    int G1,G2,G3;
 	int G10,G11,G12,G20,G21,G22,G30;
 	int G40;
 
@@ -618,8 +618,9 @@ public:
 	double utime,vtime,wtime;
 	double kintime,epstime;
 	double poissontime, laplacetime;
-    double fsitime,fbtime;
+    double sftime,fbtime,fsitime;
     double fbdt,fbmax;
+    double sfdt,sfmax;
 	double lsmtime,heattime,concentrationtime;
 	double printouttime;
 	double phimean,phiout,phiin;

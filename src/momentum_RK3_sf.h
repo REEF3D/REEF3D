@@ -44,8 +44,8 @@ class fsi;
 
 using namespace std;
 
-#ifndef MOMENTUM_RK3_DF_H_
-#define MOMENTUM_RK3_DF_H_
+#ifndef MOMENTUM_RK3_SF_H_
+#define MOMENTUM_RK3_SF_H_
 
 class momentum_RK3_sf : public momentum, public bcmom
 {

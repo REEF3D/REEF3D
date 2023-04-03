@@ -2474,6 +2474,7 @@
         <File Name="driver_logic_cfd.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Mainloop">
+        <File Name="driver_loop_cfd_sf.cpp"/>
         <File Name="driver_loop_fnpf.cpp"/>
         <File Name="driver_loop_cfd_df.cpp"/>
         <File Name="driver_loop_ptf.cpp"/>

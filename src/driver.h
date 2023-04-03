@@ -73,6 +73,7 @@ class multiphase;
 class nhflow_momentum;
 class sixdof_df;
 class momentum_RK3_df;
+class momentum_RK3_sf;
 class nhflow_vtu3D;
 
 #include<iostream>
@@ -103,6 +104,7 @@ public:
     
 	void loop_cfd(fdm*);
 	void loop_cfd_df(fdm*);
+    void loop_cfd_sf(fdm*);
     void loop_nsewave(fdm*);
     void loop_nhflow();
     void loop_ptf(fdm*);
@@ -204,6 +206,7 @@ public:
     nhflow_vtu3D *pnhfprint;
     sixdof_df *p6dof_df;
     momentum_RK3_df *pmom_df;
+    momentum_RK3_sf *pmom_sf;
 
 private:
     double starttime, endtime;
