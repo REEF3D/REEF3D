@@ -212,10 +212,6 @@ void momentum_RK3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         pgc->start3(p,fz,12);           
         
         pgc->solid_forcing(p,a,2.0*alpha(loop),urk,vrk,wrk,fx,fy,fz);
-        
-        
-        LOOP
-        a->test(i,j,k) = fx(i,j,k);
 
         ULOOP
         {
@@ -250,7 +246,6 @@ void momentum_RK3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         pgc->start1(p,a->u,gcval_u);
         pgc->start2(p,a->v,gcval_v);
         pgc->start3(p,a->w,gcval_w);
-        
         
         // Pressure
         pflow->pressure_io(p,a,pgc);
