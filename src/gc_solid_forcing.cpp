@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Authors: Tobias Martin, Ahmet Soydan, Hans Bihs
+Authors: Tobias Martin, Hans Bihs, Ahmet Soydan
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
@@ -152,7 +152,6 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
     VLOOP
     {
         vf = 0.0;
-        
     
 		// Normal vectors calculation 
 		nx = -(a->solid(i+1,j,k) - a->solid(i-1,j,k))/(2.0*p->DXN[IP]);
@@ -198,7 +197,6 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
     {
         wf = 0.0;
         
-
 		// Normal vectors calculation 
 		nx = -(a->solid(i+1,j,k) - a->solid(i-1,j,k))/(2.0*p->DXN[IP]);
 		ny = -(a->solid(i,j+1,k) - a->solid(i,j-1,k))/(2.0*p->DYN[JP]);
@@ -261,7 +259,7 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
         if(fabs(MIN(a->solid(i,j,k),a->topo(i,j,k)))<psi)
         dirac = (0.5/psi)*(1.0 + cos((PI*(MIN(a->solid(i,j,k),a->topo(i,j,k))))/psi));
         
-        a->fbh5(i,j,k) =   1.0-MIN(dirac,1.0);
+        a->fbh5(i,j,k) =  1.0-MIN(dirac,1.0);
     }
 	
 	}

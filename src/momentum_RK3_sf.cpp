@@ -195,7 +195,6 @@ void momentum_RK3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         
     // -------------------
     // Forcing
-    
         starttime=pgc->timer();
         
         ULOOP
