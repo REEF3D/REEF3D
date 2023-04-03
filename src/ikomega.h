@@ -46,6 +46,10 @@ public:
 
 	int count,q;
 	double starttime;
+    
+private:
+    double epsi;
+	double dirac;
 };
 
 #endif
