@@ -148,7 +148,7 @@ void bc_ikomega::bckin_matrix(fdm* a,lexer* p,field& kin,field& eps)
             a->M.n[n] = 0.0;
             }
             
-             if(p->j_dir==1)
+            if(p->j_dir==1)
             if(p->flag4[IJm1K]<0 || (p->X10==1 && p->X13==2 && a->fb(i,j-1,k)<0.0)
             || (p->G3==1 && (a->solid(i,j-1,k)<0.0 || a->topo(i,j-1,k)<0.0)))
             {
@@ -188,7 +188,7 @@ void bc_ikomega::bckin_matrix(fdm* a,lexer* p,field& kin,field& eps)
         n=0;
         LOOP
         {
-            if(a->fb(i,j,k)<0.0)
+            if(a->fb(i,j,k)<0.0 || a->solid(i,j,k)<0.0 || a->topo(i,j,k)<0.0)
             {
             a->M.p[n]  =   1.0;
 
@@ -229,37 +229,45 @@ void bc_ikomega::bcomega_matrix(fdm* a,lexer* p,field& kin,field& eps)
         n=0;
         LOOP
         {
-            if(p->flag4[Im1JK]<0)
+            if(p->flag4[Im1JK]<0 || (p->X10==1 && p->X13==2 && a->fb(i-1,j,k)<0.0)
+            || (p->G3==1 && (a->solid(i-1,j,k)<0.0 || a->topo(i-1,j,k)<0.0)))
             {
             a->rhsvec.V[n] -= a->M.s[n]*eps(i-1,j,k);
             a->M.s[n] = 0.0;
             }
             
-            if(p->flag4[Ip1JK]<0)
+            if(p->flag4[Ip1JK]<0 || (p->X10==1 && p->X13==2 && a->fb(i+1,j,k)<0.0)
+            || (p->G3==1 && (a->solid(i+1,j,k)<0.0 || a->topo(i+1,j,k)<0.0)))
             {
             a->rhsvec.V[n] -= a->M.n[n]*eps(i+1,j,k);
             a->M.n[n] = 0.0;
             }
             
-            if(p->flag4[IJm1K]<0 && p->j_dir==1)
+            if(p->j_dir==1)
+            if(p->flag4[IJm1K]<0 || (p->X10==1 && p->X13==2 && a->fb(i,j-1,k)<0.0)
+            || (p->G3==1 && (a->solid(i,j-1,k)<0.0 || a->topo(i,j-1,k)<0.0)))
             {
             a->rhsvec.V[n] -= a->M.e[n]*eps(i,j-1,k);
             a->M.e[n] = 0.0;
             }
             
-            if(p->flag4[IJp1K]<0 && p->j_dir==1)
+            if(p->j_dir==1)
+            if(p->flag4[IJp1K]<0 || (p->X10==1 && p->X13==2 && a->fb(i,j+1,k)<0.0)
+            || (p->G3==1 && (a->solid(i,j+1,k)<0.0 || a->topo(i,j+1,k)<0.0)))
             {
             a->rhsvec.V[n] -= a->M.w[n]*eps(i,j+1,k);
             a->M.w[n] = 0.0;
             }
             
-            if(p->flag4[IJKm1]<0)
+            if(p->flag4[IJKm1]<0 || (p->X10==1 && p->X13==2 && a->fb(i,j,k-1)<0.0)
+            || (p->G3==1 && (a->solid(i,j,k-1)<0.0 || a->topo(i,j,k-1)<0.0)))
             {
             a->rhsvec.V[n] -= a->M.b[n]*eps(i,j,k-1);
             a->M.b[n] = 0.0;
             }
             
-            if(p->flag4[IJKp1]<0)
+            if(p->flag4[IJKp1]<0  || (p->X10==1 && p->X13==2 && a->fb(i,j,k+1)<0.0)
+            || (p->G3==1 && (a->solid(i,j,k+1)<0.0 || a->topo(i,j,k+1)<0.0)))
             {
             a->rhsvec.V[n] -= a->M.t[n]*eps(i,j,k+1);
             a->M.t[n] = 0.0;
@@ -276,7 +284,7 @@ void bc_ikomega::bcomega_matrix(fdm* a,lexer* p,field& kin,field& eps)
         n=0;
         LOOP
         {
-            if(a->fb(i,j,k)<0.0)
+            if(a->fb(i,j,k)<0.0 || a->solid(i,j,k)<0.0 || a->topo(i,j,k)<0.0)
             {
             a->M.p[n]  =   1.0;
 
