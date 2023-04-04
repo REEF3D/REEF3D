@@ -48,7 +48,7 @@ void sediment_f::update_cfd(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow, rein
     // -------------
     p->sedtime+=p->dtsed;
     
-    if(p->S10==1)
+    if(p->S10==1 && p->G3==0)
     pgc->topo_update(p,a);
     
     if(p->S10==2)

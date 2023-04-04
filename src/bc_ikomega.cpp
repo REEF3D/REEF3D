@@ -56,9 +56,7 @@ void bc_ikomega::bckomega_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
         
         QGCDF4LOOP
 		wall_law_omega(a,p,kin,eps,p->gcdf4[q][0], p->gcdf4[q][1], p->gcdf4[q][2], p->gcdf4[q][3], p->gcdf4[q][4], p->gcdf4[q][5],  0.5*p->DXM);
-    
 	}
-
 }
 
 void bc_ikomega::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj,int kk,int cs,int bc, int id, double dist)
@@ -66,6 +64,12 @@ void bc_ikomega::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int j
     double uvel,vvel,wvel;
     double zval;
 	dist=0.5*p->DXM;
+    
+    if(p->j_dir==0)        
+    dist = 0.5*(1.0/2.0)*(p->DXN[IP]+p->DZN[KP]);
+        
+    if(p->j_dir==1)
+    dist = 0.5*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
 
 	i=ii;
 	j=jj;
@@ -78,7 +82,7 @@ void bc_ikomega::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int j
         vvel=0.5*(a->v(i,j,k)+a->v(i,j-1,k));
         wvel=0.5*(a->w(i,j,k)+a->w(i,j,k-1));
         
-        if(bc==5 && p->S10>0 && p->S16==4)
+        if((bc==5 || (a->topo(i-1,j,k)<0.0 || a->topo(i+1,j,k-1)<0.0 || a->topo(i,j-1,k)<0.0 || a->topo(i,j+1,k)<0.0 || a->topo(i,j,k-1)<0.0)) && p->S10>0 && p->S16==4)
         {
         zval = a->bed(i,j) + p->T43*p->DZN[KP];
         
@@ -106,9 +110,13 @@ void bc_ikomega::wall_law_omega(fdm* a,lexer* p,field& kin,field& eps,int ii,int
 	j=jj;
 	k=kk;
     
-    a->test(i,j,k) = 1.0;
-    
 	dist=0.5*p->DXM;
+    
+    if(p->j_dir==0)        
+    dist = 0.5*(1.0/2.0)*(p->DXN[IP]+p->DZN[KP]);
+        
+    if(p->j_dir==1)
+    dist = 0.5*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
 
 	eps_star = pow((kin(i,j,k)>(0.0)?(kin(i,j,k)):(0.0)),0.5) / (0.4*dist*pow(p->cmu, 0.25));
 
@@ -192,7 +200,6 @@ void bc_ikomega::bckin_matrix(fdm* a,lexer* p,field& kin,field& eps)
             {
             a->M.p[n]  =   1.0;
 
-
             a->M.n[n] = 0.0;
             a->M.s[n] = 0.0;
 
@@ -224,7 +231,6 @@ void bc_ikomega::bcomega_matrix(fdm* a,lexer* p,field& kin,field& eps)
     LOOP
     if(a->solid(i,j,k)<0.0 || a->topo(i,j,k)<0.0)
     eps(i,j,k)=0.0;
-        
         
         n=0;
         LOOP
@@ -280,14 +286,12 @@ void bc_ikomega::bcomega_matrix(fdm* a,lexer* p,field& kin,field& eps)
     // turn off inside direct forcing body
     if((p->X10==1 && p->X13==2) || (p->G3==1 && (a->solid(i,j,k)<0.0 || a->topo(i,j,k)<0.0)))
     {
-    
         n=0;
         LOOP
         {
             if(a->fb(i,j,k)<0.0 || a->solid(i,j,k)<0.0 || a->topo(i,j,k)<0.0)
             {
             a->M.p[n]  =   1.0;
-
 
             a->M.n[n] = 0.0;
             a->M.s[n] = 0.0;

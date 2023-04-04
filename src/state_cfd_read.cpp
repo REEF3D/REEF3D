@@ -88,6 +88,7 @@ void state_cfd::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sedime
     pgc->start4a(p,a->topo,150);
     
     // topoupdate
+    if(p->G3==0)
     pgc->topo_update(p,a);
     
     ULOOP
