@@ -120,6 +120,9 @@ double weno_hj_df_nug::fx(lexer *p,fdm *a, field& b, field& uvel, int ipol, doub
     if(p->X45==4)
 	iqmin_4(p,a,b,uvel,ipol);
     
+    if(p->X45==5)
+	iqmin_5(p,a,b,uvel,ipol);
+    
 	is_min_x();
 	weight_min_x();
     
@@ -159,6 +162,9 @@ double weno_hj_df_nug::fx(lexer *p,fdm *a, field& b, field& uvel, int ipol, doub
     if(p->X45==4)
 	iqmax_4(p,a,b,uvel,ipol);
     
+    if(p->X45==5)
+	iqmax_5(p,a,b,uvel,ipol);
+    
 	is_max_x();
 	weight_max_x();
     
@@ -193,6 +199,9 @@ double weno_hj_df_nug::fy(lexer *p,fdm *a, field& b, field& vvel, int ipol, doub
     if(p->X45==4)
 	jqmin_4(p,a,b,vvel,ipol);
     
+    if(p->X45==5)
+	jqmin_5(p,a,b,vvel,ipol);
+    
 	is_min_y();
 	weight_min_y();
 	
@@ -219,6 +228,9 @@ double weno_hj_df_nug::fy(lexer *p,fdm *a, field& b, field& vvel, int ipol, doub
     
     if(p->X45==4)
 	jqmax_4(p,a,b,vvel,ipol);
+    
+    if(p->X45==5)
+	jqmax_5(p,a,b,vvel,ipol);
     
 	is_max_y();
 	weight_max_y();
@@ -254,6 +266,9 @@ double weno_hj_df_nug::fz(lexer *p,fdm *a, field& b, field& wvel, int ipol, doub
     if(p->X45==4)
 	kqmin_4(p,a,b,wvel,ipol);
     
+    if(p->X45==5)
+	kqmin_5(p,a,b,wvel,ipol);
+    
 	is_min_z();
 	weight_min_z();
 	
@@ -280,6 +295,9 @@ double weno_hj_df_nug::fz(lexer *p,fdm *a, field& b, field& wvel, int ipol, doub
     
     if(p->X45==4)
 	kqmax_4(p,a,b,wvel,ipol);
+    
+    if(p->X45==5)
+	kqmax_5(p,a,b,wvel,ipol);
     
 	is_max_z();
 	weight_max_z();
@@ -698,6 +716,126 @@ void weno_hj_df_nug::kqmax_4(lexer *p,fdm *a, field& f, field& wvel, int ipol)
 	q3 = (a->fbh5(i,j,k+1))*(f(i,j,k+1)-f(i,j,k))/DZ[KP];
 	q4 = (a->fbh5(i,j,k+2))*(f(i,j,k+2)-f(i,j,k+1))/DZ[KP1];
 	q5 = (a->fbh5(i,j,k+3))*(f(i,j,k+3)-f(i,j,k+2))/DZ[KP2];
+}
+
+void weno_hj_df_nug::iqmin_5(lexer *p,fdm *a, field& f, field& uvel, int ipol)
+{	
+    q1=q2=q3=q4=q5=0.0;
+    
+    if(a->solid(i-2,j,k)>0.0 && a->topo(i-2,j,k)>0.0 && a->solid(i-3,j,k)>0.0 && a->topo(i-3,j,k)>0.0)
+	q1 = (f(i-2,j,k)-f(i-3,j,k))/DX[IM3];
+    
+    if(a->solid(i-1,j,k)>0.0 && a->topo(i-1,j,k)>0.0 && a->solid(i-2,j,k)>0.0 && a->topo(i-2,j,k)>0.0)
+	q2 = (f(i-1,j,k)-f(i-2,j,k))/DX[IM2];
+    
+    if(a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0 && a->solid(i-1,j,k)>0.0 && a->topo(i-1,j,k)>0.0)
+	q3 = (f(i,j,k)-f(i-1,j,k))/DX[IM1];
+    
+    if(a->solid(i+1,j,k)>0.0 && a->topo(i+1,j,k)>0.0 && a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0)
+	q4 = (f(i+1,j,k)-f(i,j,k))/DX[IP];
+    
+    if(a->solid(i+2,j,k)>0.0 && a->topo(i+2,j,k)>0.0 && a->solid(i+1,j,k)>0.0 && a->topo(i+1,j,k)>0.0)
+	q5 = (f(i+2,j,k)-f(i+1,j,k))/DX[IP1];
+}
+
+void weno_hj_df_nug::jqmin_5(lexer *p,fdm *a, field& f, field& vvel, int ipol)
+{
+    q1=q2=q3=q4=q5=0.0;
+    
+    if(a->solid(i,j-2,k)>0.0 && a->topo(i,j-2,k)>0.0 && a->solid(i,j-3,k)>0.0 && a->topo(i,j-3,k)>0.0)
+	q1 = (f(i,j-2,k)-f(i,j-3,k))/DY[JM3];
+    
+    if(a->solid(i,j-1,k)>0.0 && a->topo(i,j-1,k)>0.0 && a->solid(i,j-2,k)>0.0 && a->topo(i,j-2,k)>0.0)
+	q2 = (f(i,j-1,k)-f(i,j-2,k))/DY[JM2];
+    
+    if(a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0 && a->solid(i,j-1,k)>0.0 && a->topo(i,j-1,k)>0.0)
+	q3 = (f(i,j,k)-f(i,j-1,k))/DY[JM1];
+    
+    if(a->solid(i,j+1,k)>0.0 && a->topo(i,j+1,k)>0.0 && a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0)
+	q4 = (f(i,j+1,k)-f(i,j,k))/DY[JP];
+    
+    if(a->solid(i,j+2,k)>0.0 && a->topo(i,j+2,k)>0.0 && a->solid(i,j+1,k)>0.0 && a->topo(i,j+1,k)>0.0)
+	q5 = (f(i,j+2,k)-f(i,j+1,k))/DY[JP1];
+}
+
+void weno_hj_df_nug::kqmin_5(lexer *p,fdm *a, field& f, field& wvel, int ipol)
+{
+    q1=q2=q3=q4=q5=0.0;
+    
+    if(a->solid(i,j,k-2)>0.0 && a->topo(i,j,k-2)>0.0 && a->solid(i,j,k-3)>0.0 && a->topo(i,j,k-3)>0.0)
+	q1 = (f(i,j,k-2)-f(i,j,k-3))/DZ[KM3];
+    
+    if(a->solid(i,j,k-1)>0.0 && a->topo(i,j,k-1)>0.0 && a->solid(i,j,k-2)>0.0 && a->topo(i,j,k-2)>0.0)
+	q2 = (f(i,j,k-1)-f(i,j,k-2))/DZ[KM2];
+    
+    if(a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0 && a->solid(i,j,k-1)>0.0 && a->topo(i,j,k-1)>0.0)
+	q3 = (f(i,j,k)-f(i,j,k-1))/DZ[KM1];
+    
+    if(a->solid(i,j,k+1)>0.0 && a->topo(i,j,k+1)>0.0 && a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0)
+	q4 = (f(i,j,k+1)-f(i,j,k))/DZ[KP];
+    
+    if(a->solid(i,j,k+2)>0.0 && a->topo(i,j,k+2)>0.0 && a->solid(i,j,k+1)>0.0 && a->topo(i,j,k+1)>0.0)
+	q5 = (f(i,j,k+2)-f(i,j,k+1))/DZ[KP1];
+}
+
+void weno_hj_df_nug::iqmax_5(lexer *p,fdm *a, field& f, field& uvel, int ipol)
+{
+    q1=q2=q3=q4=q5=0.0;
+    
+    if(a->solid(i-1,j,k)>0.0 && a->topo(i-1,j,k)>0.0 && a->solid(i-2,j,k)>0.0 && a->topo(i-2,j,k)>0.0)
+    q1 = (f(i-1,j,k)-f(i-2,j,k))/DX[IM2];
+    
+    if(a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0 && a->solid(i-1,j,k)>0.0 && a->topo(i-1,j,k)>0.0)
+	q2 = (f(i,j,k)-f(i-1,j,k))/DX[IM1];
+    
+    if(a->solid(i+1,j,k)>0.0 && a->topo(i+1,j,k)>0.0 && a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0)
+	q3 = (f(i+1,j,k)-f(i,j,k))/DX[IP];
+    
+    if(a->solid(i+2,j,k)>0.0 && a->topo(i+2,j,k)>0.0 && a->solid(i+1,j,k)>0.0 && a->topo(i+1,j,k)>0.0)
+	q4 = (f(i+2,j,k)-f(i+1,j,k))/DX[IP1];
+    
+    if(a->solid(i+3,j,k)>0.0 && a->topo(i+3,j,k)>0.0 && a->solid(i+2,j,k)>0.0 && a->topo(i+2,j,k)>0.0)
+	q5 = (f(i+3,j,k)-f(i+2,j,k))/DX[IP2];
+}
+
+void weno_hj_df_nug::jqmax_5(lexer *p,fdm *a, field& f, field& vvel, int ipol)
+{
+    q1=q2=q3=q4=q5=0.0;
+    
+    if(a->solid(i,j-1,k)>0.0 && a->topo(i,j-1,k)>0.0 && a->solid(i,j-2,k)>0.0 && a->topo(i,j-2,k)>0.0)
+	q1 = (f(i,j-1,k)-f(i,j-2,k))/DY[JM2];
+    
+    if(a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0 && a->solid(i,j-1,k)>0.0 && a->topo(i,j-1,k)>0.0)
+	q2 = (f(i,j,k)-f(i,j-1,k))/DY[JM1];
+    
+    if(a->solid(i,j+1,k)>0.0 && a->topo(i,j+1,k)>0.0 && a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0)
+	q3 = (f(i,j+1,k)-f(i,j,k))/DY[JP];
+    
+    if(a->solid(i,j+2,k)>0.0 && a->topo(i,j+2,k)>0.0 && a->solid(i,j+1,k)>0.0 && a->topo(i,j+1,k)>0.0)
+	q4 = (f(i,j+2,k)-f(i,j+1,k))/DY[JP1];
+    
+    if(a->solid(i,j+3,k)>0.0 && a->topo(i,j+3,k)>0.0 && a->solid(i,j+2,k)>0.0 && a->topo(i,j+2,k)>0.0)
+	q5 = (f(i,j+3,k)-f(i,j+2,k))/DY[JP2];
+}
+
+void weno_hj_df_nug::kqmax_5(lexer *p,fdm *a, field& f, field& wvel, int ipol)
+{
+    q1=q2=q3=q4=q5=0.0;
+    
+    if(a->solid(i,j,k-1)>0.0 && a->topo(i,j,k-1)>0.0 && a->solid(i,j,k-2)>0.0 && a->topo(i,j,k-2)>0.0)
+	q1 = (f(i,j,k-1)-f(i,j,k-2))/DZ[KM2];
+    
+    if(a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0 && a->solid(i,j,k-1)>0.0 && a->topo(i,j,k-1)>0.0)
+	q2 = (f(i,j,k)-f(i,j,k-1))/DZ[KM1];
+    
+    if(a->solid(i,j,k+1)>0.0 && a->topo(i,j,k+1)>0.0 && a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0)
+	q3 = (f(i,j,k+1)-f(i,j,k))/DZ[KP];
+    
+    if(a->solid(i,j,k+2)>0.0 && a->topo(i,j,k+2)>0.0 && a->solid(i,j,k+1)>0.0 && a->topo(i,j,k+1)>0.0)
+	q4 = (f(i,j,k+2)-f(i,j,k+1))/DZ[KP1];
+    
+    if(a->solid(i,j,k+3)>0.0 && a->topo(i,j,k+3)>0.0 && a->solid(i,j,k+2)>0.0 && a->topo(i,j,k+2)>0.0)
+	q5 = (f(i,j,k+3)-f(i,j,k+2))/DZ[KP2];
 }
 
 void weno_hj_df_nug::is()

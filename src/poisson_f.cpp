@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"concentration.h"
 #include"density_f.h"
 #include"density_df.h"
+#include"density_sf.h"
 #include"density_comp.h"
 #include"density_conc.h"
 #include"density_heat.h"
@@ -58,6 +59,9 @@ poisson_f::poisson_f(lexer *p, heat *&pheat, concentration *&pconc)
     
     if(p->F300>=1)
     pd = new density_rheo(p);
+    
+    if(p->G3==1)  
+	pd = new density_sf(p);
 }
 
 poisson_f::~poisson_f()
@@ -181,8 +185,8 @@ void poisson_f::start(lexer* p, fdm *a, field &press)
 	}
     }
     
-    // solif forcing
-    if(p->G3==1)
+    // solig forcing
+    /*if(p->G3==1)
     {
     n=0;
 	LOOP
@@ -225,5 +229,5 @@ void poisson_f::start(lexer* p, fdm *a, field &press)
 		}
 	++n;
 	}
-    }
+    }*/
 }

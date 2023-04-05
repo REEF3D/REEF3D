@@ -29,6 +29,7 @@ Authors: Hans Bihs, Tobias Martin
 #include"convection.h"
 #include"diffusion.h"
 #include"density_df.h"
+#include"density_sf.h"
 #include"ediff2.h"
 #include"pressure.h"
 #include"poisson.h"
@@ -66,7 +67,7 @@ momentum_RK3_sf::momentum_RK3_sf
 
 	pdiff_e=new ediff2(p);
     
-    pdensity = new density_df(p);
+    pdensity = new density_sf(p);
 
     alpha << 4.0/15.0, 1.0/15.0, 1.0/6.0;
     gamma << 8.0/15.0, 5.0/12.0, 3.0/4.0;

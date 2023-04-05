@@ -79,6 +79,13 @@ private:
 	void iqmax_4(lexer*, fdm*, field&, field&, int);
 	void jqmax_4(lexer*, fdm*, field&, field&, int);
 	void kqmax_4(lexer*, fdm*, field&, field&, int);
+    
+    void iqmin_5(lexer*, fdm*, field&, field&, int);
+	void jqmin_5(lexer*, fdm*, field&, field&, int);
+	void kqmin_5(lexer*, fdm*, field&, field&, int);
+	void iqmax_5(lexer*, fdm*, field&, field&, int);
+	void jqmax_5(lexer*, fdm*, field&, field&, int);
+	void kqmax_5(lexer*, fdm*, field&, field&, int);
 
 
 	double L,grad;

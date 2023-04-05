@@ -21,6 +21,9 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"reinitopo_void.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
 reinitopo_void::reinitopo_void()
 {
@@ -30,6 +33,7 @@ reinitopo_void::~reinitopo_void()
 {
 }
 
-void reinitopo_void::start(lexer*, fdm*, ghostcell*, field&)
+void reinitopo_void::start(lexer *p, fdm *a, ghostcell *pgc, field &b)
 {
+    pgc->start4a(p,b,150);
 }
