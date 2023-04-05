@@ -169,7 +169,7 @@ void ikomega::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
         sgs_val = pow(c_sgs,2.0)*pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP],2.0/3.0)
                  *sqrt(2.0)*strainterm(p,a->u,a->v,a->w);
                  
-        dirac=MAX(dirac,1.0);
+        dirac=MIN(dirac,1.0);
                  
         a->eddyv(i,j,k) = MAX(a->eddyv(i,j,k),dirac*sgs_val);
         }
