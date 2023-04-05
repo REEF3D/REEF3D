@@ -77,7 +77,7 @@ reini_RK3::reini_RK3(lexer* p, int type) : epsi(p->F45*p->DXM),f(p),frk1(p),frk2
 	prdisc = new reinidisc_f(p);
     
     if(p->F49==1 && p->G3==1)
-	prdisc = new reinidisc_sf(p);
+	prdisc = new reinidisc_f(p);
     
     if(p->F49==2)
 	prdisc = new reinidisc_f2(p);
