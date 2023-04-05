@@ -161,6 +161,13 @@ double weno_hj_nug::fx(lexer *p,fdm *a, field& b, field& uvel, int ipol, double 
          + w3x*(q2 + qfx[IP][uf][5][0]*(q3-q2) - qfx[IP][uf][5][1]*(q1-q2));
 	}
     
+    /*
+    if(a->solid(i+1,j,k)<0.0 || a->topo(i+1,j,k)<0.0 || a->solid(i+2,j,k)<0.0 || a->topo(i+2,j,k)<0.0)
+    grad = (q2 + qfx[IP][uf][2][0]*(q1-q2) + qfx[IP][uf][2][1]*(q3-q2));
+    
+    if(a->solid(i-1,j,k)<0.0 || a->topo(i-1,j,k)<0.0 || a->solid(i-2,j,k)<0.0 || a->topo(i-2,j,k)<0.0)
+    grad = (q4 + qfx[IP][uf][3][0]*(q3-q4) + qfx[IP][uf][3][1]*(q5-q4));*/
+    
 	return grad;
 }
 

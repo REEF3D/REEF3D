@@ -46,13 +46,15 @@ public:
 	 double ddwenoy(fdm*, vec&, double, int, cpt&);
 	 double ddwenoz(fdm*, vec&, double, int, cpt&);
 
-
 	void iqmin(fdm*, vec&, cpt&);
 	void jqmin(fdm*, vec&, cpt&);
 	void kqmin(fdm*, vec&, cpt&);
 	void iqmax(fdm*, vec&, cpt&);
 	void jqmax(fdm*, vec&, cpt&);
 	void kqmax(fdm*, vec&, cpt&);
+    
+    void weight_min_sfcheck_x(fdm*);
+    void weight_max_sfcheck_x(fdm*);
 
     double grad;
     double *DX,*DY,*DZ;

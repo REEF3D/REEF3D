@@ -53,6 +53,8 @@ double ddweno_nug_sf::ddwenox(fdm* a, vec& b, double uw, int ipol, cpt &C)
 
 	is_min_x();
 	weight_min_x();
+    
+    //weight_min_sfcheck_x(a);
 
 
 	grad = w1x*(q4 + qfx[IP][uf][0][0]*(q3-q4) - qfx[IP][uf][0][1]*(q5-q4))
@@ -68,7 +70,7 @@ double ddweno_nug_sf::ddwenox(fdm* a, vec& b, double uw, int ipol, cpt &C)
 	is_max_x();
 	weight_max_x();
     
-    
+    //weight_max_sfcheck_x(a);
     
 	grad = w1x*(q4 + qfx[IP][uf][3][0]*(q3-q4) + qfx[IP][uf][3][1]*(q5-q4))
     
@@ -76,6 +78,14 @@ double ddweno_nug_sf::ddwenox(fdm* a, vec& b, double uw, int ipol, cpt &C)
           
          + w3x*(q2 + qfx[IP][uf][5][0]*(q3-q2) - qfx[IP][uf][5][1]*(q1-q2));
 	}
+    
+    /*
+    if(a->solid(i+1,j,k)<0.0 || a->topo(i+1,j,k)<0.0)
+    grad = (q2 + qfx[IP][uf][2][0]*(q1-q2) + qfx[IP][uf][2][1]*(q3-q2));
+    
+    if(a->solid(i-1,j,k)<0.0 || a->topo(i-1,j,k)<0.0)
+    grad = (q4 + qfx[IP][uf][3][0]*(q3-q4) + qfx[IP][uf][3][1]*(q5-q4));*/
+        
     
 	return grad;
 }
@@ -276,4 +286,69 @@ void ddweno_nug_sf::kqmax(fdm* a, vec& f, cpt &C)
     
     if(a->solid(i,j,k+3)>0.0 && a->topo(i,j,k+3)>0.0 && a->solid(i,j,k+2)>0.0 && a->topo(i,j,k+2)>0.0)
     q5 = (f.V[I_J_Kp3] - f.V[I_J_Kp2])/DZ[KP2];
+}
+
+void ddweno_nug_sf::weight_min_sfcheck_x(fdm *a)
+{
+    int check1,check2,check3;
+    
+    check1=check2=check3=0;
+    
+    // w1x*(q4 + qfx[IP][uf][0][0]*(q3-q4) - qfx[IP][uf][0][1]*(q5-q4))
+    // w2x*(q3 + qfx[IP][uf][1][0]*(q4-q3) - qfx[IP][uf][1][1]*(q2-q3))
+    // w3x*(q2 + qfx[IP][uf][2][0]*(q1-q2) + qfx[IP][uf][2][1]*(q3-q2));
+    
+    /*
+    q1 = (f.V[Im2_J_K] - f.V[Im3_J_K])/DX[IM3];
+	q2 = (f.V[Im1_J_K] - f.V[Im2_J_K])/DX[IM2];
+	q3 = (f.V[I_J_K]   - f.V[Im1_J_K])/DX[IM1];
+	q4 = (f.V[Ip1_J_K] - f.V[I_J_K]  )/DX[IP];
+	q5 = (f.V[Ip2_J_K] - f.V[Ip1_J_K])/DX[IP1];*/
+    
+    if(a->solid(i-1,j,k)<0.0 || a->topo(i-1,j,k)<0.0)
+    {
+    ++check1;
+    }
+    
+    if(a->solid(i,j,k)<0.0 || a->topo(i,j,k)<0.0)
+    {
+    ++check1;
+    }
+    
+    if(a->solid(i+1,j,k)<0.0 || a->topo(i+1,j,k)<0.0)
+    {
+    ++check1;
+    }
+    
+    if(a->solid(i+2,j,k)<0.0 || a->topo(i+2,j,k)<0.0)
+    {
+    ++check1;
+    }
+    
+    
+    if(a->solid(i-3,j,k)<0.0 || a->topo(i-3,j,k)<0.0)
+    ++check3;
+    
+    /*
+    if(a->solid(i-2,j,k)>0.0 && a->topo(i-2,j,k)>0.0 && a->solid(i-3,j,k)>0.0 && a->topo(i-3,j,k)>0.0)
+	q1 = (f.V[Im2_J_K] - f.V[Im3_J_K])/DX[IM3];
+    
+    if(a->solid(i-1,j,k)>0.0 && a->topo(i-1,j,k)>0.0 && a->solid(i-2,j,k)>0.0 && a->topo(i-2,j,k)>0.0)
+	q2 = (f.V[Im1_J_K] - f.V[Im2_J_K])/DX[IM2];
+    
+    if(a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0 && a->solid(i-1,j,k)>0.0 && a->topo(i-1,j,k)>0.0)
+	q3 = (f.V[I_J_K]   - f.V[Im1_J_K])/DX[IM1];
+    
+    if(a->solid(i+1,j,k)>0.0 && a->topo(i+1,j,k)>0.0 && a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0)
+	q4 = (f.V[Ip1_J_K] - f.V[I_J_K]  )/DX[IP];
+    
+    if(a->solid(i+2,j,k)>0.0 && a->topo(i+2,j,k)>0.0 && a->solid(i+1,j,k)>0.0 && a->topo(i+1,j,k)>0.0)*/
+
+    
+}
+
+void ddweno_nug_sf::weight_max_sfcheck_x(fdm *a)
+{
+    
+    
 }

@@ -391,7 +391,7 @@ void ghostcell::gcdistro4vec(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk,
 	gcV_lsm(p,vec,dist,gcv,bc,cs,id);
     
     if(bc_label==3)
-	gcV_lsm(p,vec,dist,gcv,bc,cs,id);
+	extendV(p,a,vec,dist,gcv,bc,cs);
     
 	if(bc_label==4)
 	gcV_neumann(vec,gcv,bc,cs,id);

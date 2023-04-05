@@ -377,6 +377,7 @@ public:
     void gcb_debug(field&,int,int,int);
 	void neumann_press(lexer*,field&,double,int,int,int);
 	void extend(lexer*,field&,double,int,int,int);
+    void extendV(lexer*,fdm*,vec&,double,int,int,int);
 	void largeval(field&,double,int,int,int);
 	void largevaladd(field&,double,int,int,int);
 	void outflow(lexer*,field&,int,int,int);
