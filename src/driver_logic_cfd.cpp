@@ -136,8 +136,8 @@ void driver::logic_cfd()
 	if(p->F35==5 && (p->X10==0 || p->X13!=2))
 	pfsfdisc=new weno_hj_nug(p);
 
-	if(p->F35==5 && p->X10==1 && p->X13==2)
-	pfsfdisc=new weno_hj_6DOF_nug(p);
+	if(p->F35==5 && ((p->X10==1 && p->X13==2) || p->G3==1))
+	pfsfdisc=new weno_hj_df_nug(p);
 
     if(p->F35==6)
 	pfsfdisc=new cds4(p);

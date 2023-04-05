@@ -533,6 +533,50 @@ void ioflow_v::ksource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvran
 
 void ioflow_v::pressure_io(lexer *p, fdm *a, ghostcell* pgc)
 {
+    double pval=0.0;
+
+        GC4LOOP
+        if(p->gcb4[n][4]==2)
+        {
+        i=p->gcb4[n][0];
+        j=p->gcb4[n][1];
+        k=p->gcb4[n][2];
+		pval=0.0;
+		
+			if(p->B77==0)
+			{
+			pval=(p->phiout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
+			
+			a->press(i+1,j,k)=pval;
+			a->press(i+2,j,k)=pval;
+			a->press(i+3,j,k)=pval;
+			}
+		
+			if(p->B77==2)
+			{
+			double eps,H;
+                
+            eps = 0.6*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
+        
+            if(a->phi(i,j,k)>eps)
+            H=1.0;
+
+            if(a->phi(i,j,k)<-eps)
+            H=0.0;
+
+            if(fabs(a->phi(i,j,k))<=eps)
+            H=0.5*(1.0 + a->phi(i,j,k)/eps + (1.0/PI)*sin((PI*a->phi(i,j,k))/eps));
+        
+            pval=(1.0-H)*a->press(i,j,k);
+            
+            a->press(i,j,k)=pval;
+			a->press(i+1,j,k)=pval;
+			a->press(i+2,j,k)=pval;
+			a->press(i+3,j,k)=pval;
+			}
+			
+        }
+        
     pBC->patchBC_pressure(p,a,pgc,a->press);
 }
 

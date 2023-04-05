@@ -180,4 +180,50 @@ void poisson_f::start(lexer* p, fdm *a, field &press)
 	++n;
 	}
     }
+    
+    // solif forcing
+    if(p->G3==1)
+    {
+    n=0;
+	LOOP
+    if(a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0)
+	{
+		if((a->solid(i-1,j,k)<0.0 || a->topo(i-1,j,k)<0.0) && (i+p->origin_i>0 || p->periodic1==0))
+		{
+		a->rhsvec.V[n] -= a->M.s[n]*press(i-1,j,k);
+		a->M.s[n] = 0.0;
+		}
+		
+		if((a->solid(i+1,j,k)<0.0 || a->topo(i+1,j,k)<0.0) && (i+p->origin_i<p->gknox-1 || p->periodic1==0))
+		{
+		a->rhsvec.V[n] -= a->M.n[n]*press(i+1,j,k);
+		a->M.n[n] = 0.0;
+		}
+		
+		if((a->solid(i,j-1,k)<0.0 || a->topo(i,j-1,k)<0.0) && (j+p->origin_j>0 || p->periodic2==0))
+		{
+		a->rhsvec.V[n] -= a->M.e[n]*press(i,j-1,k);
+		a->M.e[n] = 0.0;
+		}
+		
+		if((a->solid(i,j+1,k)<0.0 || a->topo(i,j+1,k)<0.0) && (j+p->origin_j<p->gknoy-1 || p->periodic2==0))
+		{
+		a->rhsvec.V[n] -= a->M.w[n]*press(i,j+1,k);
+		a->M.w[n] = 0.0;
+		}
+		
+		if((a->solid(i,j,k-1)<0.0 || a->topo(i,j,k-1)<0.0) && (k+p->origin_k>0 || p->periodic3==0))
+		{
+		a->rhsvec.V[n] -= a->M.b[n]*press(i,j,k-1);
+		a->M.b[n] = 0.0;
+		}
+		
+		if((a->solid(i,j,k+1)<0.0 || a->topo(i,j,k+1)<0.0) && (k+p->origin_k<p->gknoz-1 || p->periodic3==0))
+		{
+		a->rhsvec.V[n] -= a->M.t[n]*press(i,j,k+1);
+		a->M.t[n] = 0.0;
+		}
+	++n;
+	}
+    }
 }

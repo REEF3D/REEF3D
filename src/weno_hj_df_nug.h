@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Authors: Hans Bihs, Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"convection.h"
@@ -25,16 +25,16 @@ Author: Tobias Martin
 
 class flux;
 
-#ifndef WENO_HJ_6DOF_NUG_H_
-#define WENO_HJ_6DOF_NUG_H_
+#ifndef WENO_HJ_DF_NUG_H_
+#define WENO_HJ_DF_NUG_H_
 
 using namespace std;
 
-class weno_hj_6DOF_nug : public convection, public weno_nug_func
+class weno_hj_df_nug : public convection, public weno_nug_func
 {
 public:
-	weno_hj_6DOF_nug(lexer*);
-	virtual ~weno_hj_6DOF_nug();
+	weno_hj_df_nug(lexer*);
+	virtual ~weno_hj_df_nug();
 
 	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
 

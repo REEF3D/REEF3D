@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,41 +20,37 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"convection_void.h"
-#include"fou.h"
-#include"ifou.h"
-#include"cds2.h"
-#include"cds2_alt.h"
-#include"cds4.h"
-#include"quick.h"
-#include"lust.h"
-#include"weno_hj.h"
-#include"weno_hj_nug.h"
-#include"weno_hj_df_nug.h"
-#include"weno_flux.h"
-#include"weno_flux_nug.h"
-#include"iweno_hj.h"
-#include"iweno_hj_nug.h"
-#include"weno3_hj.h"
-#include"weno3_flux.h"
-#include"diff_void.h"
-#include"ediff2.h"
-#include"idiff2.h"
-#include"idiff2_FS.h"
-#include"idiff2_FS_v2.h"
-#include"idiff2_FS_2D.h"
-#include"idiff_IMEX.h"
-#include"idiff_IMEX_2D.h"
+#include"reinidisc.h"
+#include"ddweno_nug_sf.h"
+#include"vec.h"
 
-#include"nhflow_weno_flux.h"
+class picard;
+class cpt;
 
-#include"hires.h"
+using namespace std;
 
-#include"hric.h"
-#include"hric_mod.h"
-#include"cicsam.h"
+#ifndef REINIDISC_SF_H_
+#define REINIDISC_SF_H_
 
-#include"potential_v.h"
-#include"potential_f.h"
-#include"potential_water.h"
+class reinidisc_sf : public reinidisc, public ddweno_nug_sf
+{
+public:
+	reinidisc_sf(lexer* p);
+	virtual ~reinidisc_sf();
+	virtual void start(lexer*, fdm*, ghostcell*, vec&, vec&,int);
+	
+private:
+	void disc(lexer*, fdm*, ghostcell*, vec&, vec&, int*, int, cpt&);
+	
+	double xmin,xplus,ymin,yplus,zmin,zplus;
+	double dxmin,dxplus,dymin,dyplus,dzmin,dzplus;
+	double uwx,uwy,uwz,ddt;
+	double lsv,dv,lsSig;
+	
+	double dx, dy, dz, dnorm, sign;
+	double sx,sy,sz,snorm,op;
+	
+	double deltax,denom;
+};
 
+#endif

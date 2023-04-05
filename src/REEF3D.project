@@ -527,6 +527,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="FDM">
       <VirtualDirectory Name="DDWENO">
+        <File Name="ddweno_nug_sf.h"/>
         <File Name="ddweno3_f_nug.h"/>
         <File Name="ddweno_f_nug.h"/>
         <File Name="weno3_nug_func.h"/>
@@ -541,7 +542,7 @@
         <File Name="interpolation.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Convection">
-        <File Name="weno_hj_6DOF_nug.h"/>
+        <File Name="weno_hj_df_nug.h"/>
         <File Name="lust.h"/>
         <File Name="iweno3_hj.h"/>
         <File Name="convection_void.h"/>
@@ -663,6 +664,7 @@
         <File Name="particlecorr.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Reinitialization">
+        <File Name="reinidisc_sf.h"/>
         <File Name="reinidisc_fsf_rig.h"/>
         <File Name="reinifluid_RK3.h"/>
         <File Name="reini.h"/>
@@ -1801,6 +1803,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="FDM">
       <VirtualDirectory Name="DDWENO">
+        <File Name="ddweno_nug_sf.cpp"/>
         <File Name="ddweno3_f_nug.cpp"/>
         <File Name="ddweno_f_nug.cpp"/>
         <File Name="weno3_nug_func_precalc_weights.cpp"/>
@@ -1837,7 +1840,7 @@
         <File Name="interpolation_ipol.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Convection">
-        <File Name="weno_hj_6DOF_nug.cpp"/>
+        <File Name="weno_hj_df_nug.cpp"/>
         <File Name="lust.cpp"/>
         <File Name="ifou.cpp"/>
         <File Name="iweno3_hj.cpp"/>
@@ -2007,6 +2010,7 @@
         <File Name="pls_xupdate.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Reinitialization">
+        <File Name="reinidisc_sf.cpp"/>
         <File Name="reinidisc_fsf_rig.cpp"/>
         <File Name="reini_RK3.cpp"/>
         <File Name="reinifluid_RK3.cpp"/>

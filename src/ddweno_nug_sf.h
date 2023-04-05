@@ -20,41 +20,45 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"convection_void.h"
-#include"fou.h"
-#include"ifou.h"
-#include"cds2.h"
-#include"cds2_alt.h"
-#include"cds4.h"
-#include"quick.h"
-#include"lust.h"
-#include"weno_hj.h"
-#include"weno_hj_nug.h"
-#include"weno_hj_df_nug.h"
-#include"weno_flux.h"
-#include"weno_flux_nug.h"
-#include"iweno_hj.h"
-#include"iweno_hj_nug.h"
-#include"weno3_hj.h"
-#include"weno3_flux.h"
-#include"diff_void.h"
-#include"ediff2.h"
-#include"idiff2.h"
-#include"idiff2_FS.h"
-#include"idiff2_FS_v2.h"
-#include"idiff2_FS_2D.h"
-#include"idiff_IMEX.h"
-#include"idiff_IMEX_2D.h"
+#include"increment.h"
+#include"weno_nug_func.h"
 
-#include"nhflow_weno_flux.h"
+class fdm;
+class field;
+class lexer;
+class ghostcell;
+class vec;
+class cpt;
 
-#include"hires.h"
+#ifndef DDWENO_NUG_SF_H_
+#define DDWENO_NUG_SF_H_
 
-#include"hric.h"
-#include"hric_mod.h"
-#include"cicsam.h"
+using namespace std;
 
-#include"potential_v.h"
-#include"potential_f.h"
-#include"potential_water.h"
+class ddweno_nug_sf : public weno_nug_func
+{
+public:
 
+	 ddweno_nug_sf(lexer*);
+	 ~ddweno_nug_sf();
+
+	 double ddwenox(fdm*, vec&, double, int, cpt&);
+	 double ddwenoy(fdm*, vec&, double, int, cpt&);
+	 double ddwenoz(fdm*, vec&, double, int, cpt&);
+
+
+	void iqmin(vec&, cpt&);
+	void jqmin(vec&, cpt&);
+	void kqmin(vec&, cpt&);
+	void iqmax(vec&, cpt&);
+	void jqmax(vec&, cpt&);
+	void kqmax(vec&, cpt&);
+
+    double grad;
+    double *DX,*DY,*DZ;
+    
+private:
+    lexer *p;
+};
+
+#endif

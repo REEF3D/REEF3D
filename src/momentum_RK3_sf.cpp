@@ -98,6 +98,7 @@ void momentum_RK3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         if (loop == 2) final = true;
         
         pflow->rkinflow(p,a,pgc,urk,vrk,wrk);
+        pflow->pressure_io(p,a,pgc);
         
     // -------------------
         // U
