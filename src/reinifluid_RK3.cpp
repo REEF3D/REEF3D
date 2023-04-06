@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"picard_f.h"
 #include"picard_void.h"
 #include"reinidisc_f.h"
+#include"reinidisc_sf.h"
 #include"reinidisc_f2.h"
 #include"reinidisc_fsf.h"
 
@@ -72,8 +73,11 @@ reinifluid_RK3::reinifluid_RK3(lexer* p, int type) : epsi(p->F45*p->DXM),f(p),fr
 	if(p->F49==0)
 	prdisc = new reinidisc_fsf(p);
 
-	if(p->F49==1)
+	if(p->F49==1 && p->G3==0)
 	prdisc = new reinidisc_f(p);
+    
+    if(p->F49==1 && p->G3==1)
+	prdisc = new reinidisc_sf(p);
     
     if(p->F49==2)
 	prdisc = new reinidisc_f2(p);
@@ -187,7 +191,6 @@ void reinifluid_RK3::startV(fdm* a,lexer* p,vec &f, ghostcell* pgc,ioflow* pflow
     
     p->reinitime+=pgc->timer()-starttime;  
 }
-
 
 void reinifluid_RK3::step(fdm* a, lexer* p)
 {

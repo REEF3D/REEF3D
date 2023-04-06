@@ -46,18 +46,43 @@ public:
 	 double ddwenoy(fdm*, vec&, double, int, cpt&);
 	 double ddwenoz(fdm*, vec&, double, int, cpt&);
 
-	void iqmin(fdm*, vec&, cpt&);
-	void jqmin(fdm*, vec&, cpt&);
-	void kqmin(fdm*, vec&, cpt&);
-	void iqmax(fdm*, vec&, cpt&);
-	void jqmax(fdm*, vec&, cpt&);
-	void kqmax(fdm*, vec&, cpt&);
+	void iqmin0(fdm*, vec&, cpt&);
+	void jqmin0(fdm*, vec&, cpt&);
+	void kqmin0(fdm*, vec&, cpt&);
+	void iqmax0(fdm*, vec&, cpt&);
+	void jqmax0(fdm*, vec&, cpt&);
+	void kqmax0(fdm*, vec&, cpt&);
+    
+    void iqmin1(fdm*, vec&, cpt&);
+	void jqmin1(fdm*, vec&, cpt&);
+	void kqmin1(fdm*, vec&, cpt&);
+	void iqmax1(fdm*, vec&, cpt&);
+	void jqmax1(fdm*, vec&, cpt&);
+	void kqmax1(fdm*, vec&, cpt&);
+    
+    void iqmin2(fdm*, vec&, cpt&);
+	void jqmin2(fdm*, vec&, cpt&);
+	void kqmin2(fdm*, vec&, cpt&);
+	void iqmax2(fdm*, vec&, cpt&);
+	void jqmax2(fdm*, vec&, cpt&);
+	void kqmax2(fdm*, vec&, cpt&);
+    
+    void iqmin3(fdm*, vec&, cpt&);
+	void jqmin3(fdm*, vec&, cpt&);
+	void kqmin3(fdm*, vec&, cpt&);
+	void iqmax3(fdm*, vec&, cpt&);
+	void jqmax3(fdm*, vec&, cpt&);
+	void kqmax3(fdm*, vec&, cpt&);
     
     void weight_min_sfcheck_x(fdm*);
     void weight_max_sfcheck_x(fdm*);
 
     double grad;
     double *DX,*DY,*DZ;
+    
+    int check1,check2,check3;
+    
+    int modus;
     
 private:
     lexer *p;

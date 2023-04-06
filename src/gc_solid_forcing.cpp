@@ -99,6 +99,7 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
         dirac = (0.5/psi)*(1.0 + cos((PI*(MIN(a->solid(i,j,k),a->topo(i,j,k))))/psi));
         
         a->fbh5(i,j,k) = 1.0-MIN(dirac,1.0);
+        //a->test(i,j,k) = a->fbh5(i,j,k) ;
     }
     
     }

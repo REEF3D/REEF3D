@@ -36,7 +36,7 @@ double density_sf::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
     phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
     
-    /*if(a->solid(i+aa,j+bb,k+cc)>=0.0 && a->topo(i+aa,j+bb,k+cc)>=0.0)
+    if(a->solid(i+aa,j+bb,k+cc)>=0.0 && a->topo(i+aa,j+bb,k+cc)>=0.0)
     phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
     
     if(a->solid(i,j,k)>=0.0 && a->topo(i,j,k)>=0.0)
@@ -45,7 +45,7 @@ double density_sf::roface(lexer *p, fdm *a, int aa, int bb, int cc)
     
     if(a->solid(i+aa,j+bb,k+cc)>=0.0 && a->topo(i+aa,j+bb,k+cc)>=0.0)
     if(a->solid(i,j,k)<0.0 || a->topo(i,j,k)<0.0)
-    phival = a->phi(i+aa,j+bb,k+cc);*/
+    phival = a->phi(i+aa,j+bb,k+cc);
 
     if(phival>p->psi)
     H=1.0;

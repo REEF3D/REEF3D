@@ -486,9 +486,6 @@ void weno_hj_df_nug::kqmax_1(lexer *p,fdm *a, field& f, field& wvel, int ipol)
     q5 = (f(i,j,k+3)-f(i,j,k+2))/DZ[KP2];
 }
 
-
-
-
 void weno_hj_df_nug::iqmin_2(lexer *p,fdm *a, field& f, field& uvel, int ipol)
 {	
 	q1 = 0.5*(a->fbh5(i-2,j,k)+a->fbh5(i-3,j,k))*(f(i-2,j,k)-f(i-3,j,k))/DX[IM3];

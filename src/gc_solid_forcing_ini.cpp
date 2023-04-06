@@ -26,6 +26,8 @@ Authors: Tobias Martin, Ahmet Soydan, Hans Bihs
 
 void ghostcell::solid_forcing_ini(lexer *p, fdm *a)
 {
+    double dirac;
+    
     // Initialise floating fields
      ULOOP
      a->fbh1(i,j,k) = Hsolidface(p,a,1,0,0);
@@ -44,6 +46,23 @@ void ghostcell::solid_forcing_ini(lexer *p, fdm *a)
      start3(p,a->fbh3,12);
      start4(p,a->fbh4,40);
      
+    double psi;
+	
+    psi = 1.1*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+
+    if (p->j_dir==0)
+    psi = 1.1*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
+     
+     LOOP
+    {
+        dirac = 0.0;
+        if(fabs(MIN(a->solid(i,j,k),a->topo(i,j,k)))<psi)
+        dirac = (0.5/psi)*(1.0 + cos((PI*(MIN(a->solid(i,j,k),a->topo(i,j,k))))/psi));
+        
+        a->fbh5(i,j,k) =  1.0-MIN(dirac,1.0);
+        
+        //a->test(i,j,k) = a->fbh5(i,j,k) ;
+    }
      
      // ghostcell update
     gcdf_update(p,a);
