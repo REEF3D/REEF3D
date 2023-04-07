@@ -177,7 +177,6 @@ void ghostcell::extendV(lexer *p,fdm *a,vec &f,double dist,int gcv, int bc, int 
 	x[m]=dx*double(m+2);
 	
 	
-
 //fill y[]
 
 	//Inflow

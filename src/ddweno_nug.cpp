@@ -160,6 +160,26 @@ double ddweno_nug::ddwenoz(fdm* a, vec& b, double uw, int ipol, cpt &C)
          + w3z*(q2 + qfz[KP][wf][5][0]*(q3-q2) - qfz[KP][wf][5][1]*(q1-q2));
 	}
     
+    /*
+    if((a->solid(i,j,k-1)<0.0 || a->topo(i,j,k-1)<0.0))
+    {
+    grad = -1.0;
+    cout<<"DDZ"<<endl;
+    }
+    
+    if( (a->solid(i,j,k+1)<0.0 || a->topo(i,j,k+1)<0.0))
+    {
+    grad = -1.0;
+    cout<<"DDZ"<<endl;
+    }*/
+    
+    /*
+    if(a->solid(i,j,k)<1.0*p->DXM)
+    {
+    grad = -1.0;
+    cout<<"DDZ"<<endl;
+    }*/
+    
 	return grad;
 }
     
