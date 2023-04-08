@@ -58,29 +58,19 @@ void potential_f::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
 	pgc->start4(p,psi,gcval_pot);
 	
 	LOOP
-	psi(i,j,k) = (p->pos_x()-p->global_xmin)*p->Ui;
+	psi(i,j,k) = 0.0;
+    
+    pgc->start4(p,psi,gcval_pot);
 	
-    ucalc(p,a,psi);
-	vcalc(p,a,psi);
-	wcalc(p,a,psi);
-    
-    pgc->start1(p,a->u,10);
-	pgc->start2(p,a->v,11);
-	pgc->start3(p,a->w,12);
-    
-    LOOP
-    if(p->X10==1 && p->X13==2 && a->fb(i,j,k)<0.0)
-    psi(i,j,k) = 0.0;
-
     itermem=p->N46;
     p->N46=2500;
 	
-
-    pgc->start4(p,psi,gcval_pot);
-
-
-    laplace(p,a,psi);
+    for(int qn=0; qn<4;++qn)
+    {
+    laplace(p,a,pgc,psi);
 	psolv->start(p,a,pgc,psi,a->rhsvec,4);
+    }
+    
     pgc->start4(p,psi,gcval_pot);
 
     LOOP
@@ -127,7 +117,7 @@ void potential_f::ucalc(lexer *p, fdm *a, field &phi)
     if(a->fb(i+1,j,k)<0.0 || a->fb(i,j,k)<0.0)
 	a->u(i,j,k)=0.0;
     
-    if(p->G3==1)
+    //if(p->G3==1)
 	ULOOP
     if(a->solid(i+1,j,k)<0.0 || a->solid(i,j,k)<0.0 || a->topo(i+1,j,k)<0.0 || a->topo(i,j,k)<0.0)
 	a->u(i,j,k)=0.0;
@@ -153,7 +143,7 @@ void potential_f::vcalc(lexer *p, fdm *a, field &phi)
     if(a->fb(i,j+1,k)<0.0 || a->fb(i,j,k)<0.0)
 	a->v(i,j,k)=0.0;
     
-    if(p->G3==1)
+    //if(p->G3==1)
 	VLOOP
     if(a->solid(i,j+1,k)<0.0 || a->solid(i,j,k)<0.0 || a->topo(i,j+1,k)<0.0 || a->topo(i,j,k)<0.0)
 	a->v(i,j,k)=0.0;
@@ -179,7 +169,7 @@ void potential_f::wcalc(lexer *p, fdm *a, field &phi)
     if(a->fb(i,j,k+1)<0.0 || a->fb(i,j,k)<0.0)
 	a->w(i,j,k)=0.0;
     
-    if(p->G3==1)
+    //if(p->G3==1)
 	WLOOP
     if(a->solid(i,j,k+1)<0.0 || a->solid(i,j,k)<0.0 || a->topo(i,j,k+1)<0.0 || a->topo(i,j,k)<0.0)
 	a->w(i,j,k)=0.0;
@@ -188,6 +178,8 @@ void potential_f::wcalc(lexer *p, fdm *a, field &phi)
 	WLOOP
 	if(0.5*(a->topo(i,j,k)+a->topo(i,j,k+1))<-p->F45*p->DZP[KP])
 	a->w(i,j,k)=0.0;
+    
+    
 }
 
 void potential_f::rhs(lexer *p, fdm* a)
@@ -200,10 +192,10 @@ void potential_f::rhs(lexer *p, fdm* a)
     }
 }
 
-void potential_f::laplace(lexer *p, fdm *a, field &phi)
+void potential_f::laplace(lexer *p, fdm *a, ghostcell *pgc, field &phi)
 {
     n=0;
-    BASELOOP
+    LOOP
     {
     a->M.p[n]  =  1.0;
 
@@ -249,11 +241,16 @@ void potential_f::laplace(lexer *p, fdm *a, field &phi)
     n=0;
 	LOOP
 	{
+        if((p->X10==0 || p->X13!=2 || a->fb(i,j,k)>0.0) && (p->G3==0 || (a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0)))
+        {
+            
 		if((p->flag4[Im1JK]<0 && bc(i-1,j,k)==0) || (p->X10==1 && p->X13==2 && a->fb(i-1,j,k)<0.0)
            || (p->G3==1 && (a->solid(i-1,j,k)<0.0 || a->topo(i-1,j,k)<0.0)))
 		{
-		a->M.p[n] += a->M.s[n];
+        //a->test(i,j,k) = a->M.p[n];
+		//a->M.p[n] += a->M.s[n];
 		a->M.s[n] = 0.0;
+        
 		}
         
         if(p->flag4[Im1JK]<0 && bc(i-1,j,k)==1)
@@ -304,14 +301,41 @@ void potential_f::laplace(lexer *p, fdm *a, field &phi)
 		a->M.p[n] += a->M.t[n];
 		a->M.t[n] = 0.0;
 		}
+        }
 
 	++n;
 	}
+    
+    
+    
+    /*
+    n=0;
+	LOOP
+	{
+        if((p->X10==0 || p->X13!=2 || a->fb(i,j,k)>0.0) && (p->G3==0 || (a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0)))
+        {
+            
+		if(p->flag4[Im1JK]<0 && bc(i-1,j,k)==1)
+		{
+        a->test(i,j,k) = a->M.p[n];
+		//a->M.p[n] += a->M.s[n];
+        }
+        }
+
+	++n;
+	}*/
+    
+    n=0;
+    LOOP
+    {
+    a->test(i,j,k) = a->M.p[n];
+    ++n;
+    }
 }
 
 void potential_f::ini_bc(lexer *p, fdm *a, ghostcell *pgc)
 {
-    LOOP
+    BASELOOP
     bc(i,j,k)=0;
     
     LOOP
@@ -343,6 +367,9 @@ void potential_f::ini_bc(lexer *p, fdm *a, ghostcell *pgc)
             i=p->gcb4[n][0]; 
             j=p->gcb4[n][1];
             k=p->gcb4[n][2];  
+            
+            if((p->X10==0 || p->X13!=2 || a->fb(i,j,k)>0.0) && (p->G3==0 || (a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0)))
+            {
        
             if(p->gcb4[n][3]==1)
             bc(i-1,j,k)=1;
@@ -355,6 +382,7 @@ void potential_f::ini_bc(lexer *p, fdm *a, ghostcell *pgc)
             
             if(p->gcb4[n][3]==4)
             bc(i+1,j,k)=1;
+            }
  
         }
         
