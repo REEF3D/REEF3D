@@ -120,7 +120,6 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
 void pjm_corr::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 {	
 	ULOOP
-    //if(p->G3==0 || (a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0 && a->solid(i+1,j,k)>0.0 && a->topo(i+1,j,k)>0.0))
 	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((pcorr(i+1,j,k)-pcorr(i,j,k))
 	/(p->DXP[IP]*pd->roface(p,a,1,0,0)));
 }
@@ -128,7 +127,6 @@ void pjm_corr::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 void pjm_corr::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
 {	
 	VLOOP
-    //if(p->G3==0 || (a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0 && a->solid(i,j+1,k)>0.0 && a->topo(i,j+1,k)>0.0))
 	vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*((pcorr(i,j+1,k)-pcorr(i,j,k))
 	/(p->DYP[JP]*pd->roface(p,a,0,1,0)));
 }
@@ -136,7 +134,6 @@ void pjm_corr::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
 void pjm_corr::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
 {	
 	WLOOP
-    //if(p->G3==0 || (a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0 && a->solid(i,j,k+1)>0.0 && a->topo(i,j,k+1)>0.0))
 	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((pcorr(i,j,k+1)-pcorr(i,j,k))
 	/(p->DZP[KP]*pd->roface(p,a,0,0,1)));
 }
@@ -203,21 +200,18 @@ void pjm_corr::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, f
 void pjm_corr::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
     ULOOP
-    //if(p->G3==0 || (a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0 && a->solid(i+1,j,k)>0.0 && a->topo(i+1,j,k)>0.0))
     a->F(i,j,k)-=PORVAL1*(a->press(i+1,j,k)-a->press(i,j,k))/(p->DXP[IP]*pd->roface(p,a,1,0,0));
 }
 
 void pjm_corr::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
     VLOOP
-    //if(p->G3==0 || (a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0 && a->solid(i,j+1,k)>0.0 && a->topo(i,j+1,k)>0.0))
     a->G(i,j,k)-=PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))/(p->DYP[JP]*pd->roface(p,a,0,1,0));
 }
 
 void pjm_corr::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
     WLOOP
-    //if(p->G3==0 || (a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0 && a->solid(i,j,k+1)>0.0 && a->topo(i,j,k+1)>0.0))
     a->H(i,j,k)-=PORVAL3*(a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1));
 }
 

@@ -133,7 +133,7 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *si
 	dz=0.0;	
     
     // ----------------
-    double fac=1.1;
+    /*double fac=1.1;
     
     if((a->solid(i,j,k-1)<fac*p->DZN[KP] || a->topo(i,j,k-1)<fac*p->DZN[KP]) && fabs(a->phi(i,j,k)<fac*p->DZN[KP]))
     {
@@ -157,7 +157,7 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *si
     {
     dz = -1.0;
     dx=dy=0.0;
-    }
+    }*/
     // --------------
     
 	dnorm=sqrt(dx*dx + dy*dy + dz*dz);

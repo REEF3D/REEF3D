@@ -569,7 +569,7 @@ void ioflow_v::pressure_io(lexer *p, fdm *a, ghostcell* pgc)
         
             pval=(1.0-H)*a->press(i,j,k);
             
-            a->press(i,j,k)=pval;
+             a->press(i,j,k)=pval;
 			a->press(i+1,j,k)=pval;
 			a->press(i+2,j,k)=pval;
 			a->press(i+3,j,k)=pval;
