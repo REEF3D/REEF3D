@@ -55,6 +55,7 @@ void patchBC::patchBC_pressure(lexer *p, fdm *a, ghostcell *pgc, field &press)
     
         if(patch[qq]->gcb[n][3]==1)
         {
+        press(i,j,k)   =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
         press(i-1,j,k) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
         press(i-2,j,k) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
         press(i-3,j,k) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
@@ -62,6 +63,7 @@ void patchBC::patchBC_pressure(lexer *p, fdm *a, ghostcell *pgc, field &press)
         
         if(patch[qq]->gcb[n][3]==2)
         {
+        press(i,j,k)   =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
         press(i,j+1,k) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
         press(i,j+2,k) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
         press(i,j+3,k) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
@@ -69,6 +71,7 @@ void patchBC::patchBC_pressure(lexer *p, fdm *a, ghostcell *pgc, field &press)
         
         if(patch[qq]->gcb[n][3]==3)
         {
+        press(i,j,k)   =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
         press(i,j-1,k) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
         press(i,j-2,k) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
         press(i,j-3,k) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
@@ -76,6 +79,7 @@ void patchBC::patchBC_pressure(lexer *p, fdm *a, ghostcell *pgc, field &press)
         
         if(patch[qq]->gcb[n][3]==4)
         {
+        press(i,j,k)   =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
         press(i+1,j,k) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
         press(i+2,j,k) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
         press(i+3,j,k) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
@@ -83,6 +87,7 @@ void patchBC::patchBC_pressure(lexer *p, fdm *a, ghostcell *pgc, field &press)
         
         if(patch[qq]->gcb[n][3]==5)
         {
+        press(i,j,k)   =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
         press(i,j,k-1) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
         press(i,j,k-2) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
         press(i,j,k-3) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
@@ -90,6 +95,7 @@ void patchBC::patchBC_pressure(lexer *p, fdm *a, ghostcell *pgc, field &press)
         
         if(patch[qq]->gcb[n][3]==6)
         {
+        press(i,j,k)   =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
         press(i,j,k+1) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
         press(i,j,k+2) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
         press(i,j,k+3) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);

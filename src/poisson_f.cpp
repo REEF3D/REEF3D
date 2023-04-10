@@ -148,7 +148,7 @@ void poisson_f::start(lexer* p, fdm *a, field &press)
 	{
 		if(p->flag4[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0))
 		{
-        a->rhsvec.V[n] -= a->M.s[n]*press(i-1,j,k);
+        a->M.p[n] += a->M.s[n];
 		a->M.s[n] = 0.0;
 		}
 		
