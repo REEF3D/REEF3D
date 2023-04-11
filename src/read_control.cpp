@@ -1968,8 +1968,12 @@ void lexer::read_control()
                 case  205: control>>X205;
 						 clear(c,numint);
 						 break;
-                case  206: control>>X206_T;
+                case  206: control>>X206_ts>>X206_te;
                             X206=1;
+						 clear(c,numint);
+						 break;
+                case  207: control>>X207_ts>>X207_te;
+                            X207=1;
 						 clear(c,numint);
 						 break;
 				case  210: control>>X210_u>>X210_v>>X210_w;

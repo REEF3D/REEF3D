@@ -703,7 +703,11 @@ void lexer::ini_default()
     X182_x=X182_y=X182_z=0.0;  // double translation of stl geometry
     X183=0;
     X183_x=X183_y=X183_z=X183_phi=X183_theta=X183_psi=0.0;
-    X184=0.7;   // double refinement factor    X205=1;     // type of ramp up function    X206=0;     // int ramp up     X206_T=0.0;   // double ramp up duration
+    X184=0.7;   // double refinement factor    X205=1;     // type of ramp up function    X206=0;     // int ramp up velocity    X206_ts=0.0;   // double ramp start
+    X206_ts=0.0;   // double ramp start
+    X207=0;     // int ramp up draft
+    X207_ts=0.0;   // double ramp start
+    X207_ts=0.0;   // double ramp start
 	X210=0;		// int give fixed linear velocity
     X210_u=0.0; // double fixed u vel
     X210_v=0.0; // double fixed v vel

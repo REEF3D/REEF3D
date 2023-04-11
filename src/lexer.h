@@ -552,8 +552,8 @@ public:
     double X184;
     
     int X205;
-    int X206;
-    double X206_T;
+    int X206,X207;
+    double X206_ts,X206_te,X207_ts,X207_te;
 	double X210_u,X210_v,X210_w;
 	double X211_p,X211_q,X211_r;
     int X221;
