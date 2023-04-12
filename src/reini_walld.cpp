@@ -167,10 +167,11 @@ void reini_walld::start(fdm* a,lexer* p,field& b, ghostcell* pgc,ioflow* pflow)
     }
     
     reiniter=2*int(p->maxlength/(dt));
+    
+    reiniter = pgc->globalimax(reiniter);
   
 	pgc->gcparaxvec(p,f,4);
-	
-
+    
 	for(int q=0;q<reiniter;++q)
 	{
 
@@ -187,7 +188,7 @@ void reini_walld::start(fdm* a,lexer* p,field& b, ghostcell* pgc,ioflow* pflow)
 
 		dab.V[n]=L.V[n];
 		}
-	
+        
 	QQGC4LOOP
     if(p->gcb4[qq][4]==5|| p->gcb4[qq][4]==21|| p->gcb4[qq][4]==22)
     {
@@ -196,7 +197,14 @@ void reini_walld::start(fdm* a,lexer* p,field& b, ghostcell* pgc,ioflow* pflow)
     k=p->gcb4[qq][2];
     n=p->gcb4[qq][5];
     
-	f.V[I_J_K_4]=0.5*p->DXM;
+        if(p->gcb4[qq][3]==1 || p->gcb4[qq][3]==4)
+        f.V[I_J_K_4] = 0.5*p->DXN[IP];  
+        
+        if(p->gcb4[qq][3]==3 || p->gcb4[qq][3]==2)
+        f.V[I_J_K_4] = 0.5*p->DYN[JP];  
+        
+        if(p->gcb4[qq][3]==5 || p->gcb4[qq][3]==6)
+        f.V[I_J_K_4] = 0.5*p->DZN[KP];  
 	}
 	
 	pgc->gcparaxvec(p,f,4);

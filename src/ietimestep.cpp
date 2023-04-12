@@ -206,7 +206,7 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 }
 
 void ietimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
-{
+{  
     dx = p->DXM;
     
 	p->umax=p->vmax=p->wmax=p->viscmax=-1e19;
