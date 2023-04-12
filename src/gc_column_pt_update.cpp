@@ -51,3 +51,9 @@ void ghostcell::column_pt6_update(lexer* p, fdm* a)
     cval_gcb6(p,a,cval6);
     cval_gcpara6(p,a,cval6);
 }
+
+void ghostcell::column_pt9_update(lexer* p, fdm* a)
+{
+	//column_pt6(p,a);
+    //cval_gcpara6(p,a,cval6);
+}

@@ -659,3 +659,266 @@ void ghostcell::column_pt6(lexer* p, fdm* a, fieldint &cval6)
 	}
 }
 
+void ghostcell::column_pt9(lexer* p, fdm* a)
+{/*
+    fieldint5 cval(p);
+    
+    n=0;
+    LOOP
+    {
+    cval(i,j,k) = n;
+    ++n;
+    }
+    
+	n=0;
+    LOOP
+	{	
+	a->C9.p[n] = cval(i,j,k);
+    
+	
+    if(p->flag9[Ip1JK]>0)
+	a->C9.n[n] = cval(i+1,j,k);
+    
+    if(p->flag9[Im1JK]>0)
+	a->C9.s[n] = cval(i-1,j,k);
+    
+	
+    if(p->flag9[IJp1K]>0)
+	a->C9.w[n] = cval(i,j+1,k);
+    
+    if(p->flag9[IJm1K]>0)
+	a->C9.e[n] = cval(i,j-1,k);
+    
+	
+    if(p->flag9[IJKp1]>0)
+	a->C9.t[n] = cval(i,j,k+1);
+    
+    if(p->flag9[IJKm1]>0)
+	a->C9.b[n] = cval(i,j,k-1);
+	++n;
+	}
+    
+
+    LOOP
+	{	
+        // north
+        if(p->flag9[Ip1JK]<0)
+        {
+        a->C9.n[n] = n;
+        ++n;
+        
+        a->C9.p[n] = n;
+        a->C9.n[n] = n+1;
+        ++n;
+        
+        a->C9.p[n] = n;
+        a->C9.n[n] = n+1;
+        ++n;
+        
+        a->C9.p[n] = n;
+        ++n;
+        }
+        
+        // south
+        if(p->flag9[Im1JK]<0)
+        {
+        a->C9.s[n] = n;
+        ++n;
+        
+        a->C9.p[n] = n;
+        a->C9.s[n] = n+1;
+        ++n;
+        
+        a->C9.p[n] = n;
+        a->C9.s[n] = n+1;
+        ++n;
+        
+        a->C9.s[n] = n;
+        ++n;
+        }
+        
+        // east
+        if(p->flag9[IJm1K]<0)
+        {
+        a->C9.e[n] = n;
+        ++n;
+        
+        a->C9.p[n] = n;
+        a->C9.e[n] = n+1;
+        ++n;
+        
+        a->C9.p[n] = n;
+        a->C9.e[n] = n+1;
+        ++n;
+        
+        a->C9.e[n] = n;
+        ++n;
+        }
+        
+        // east
+        if(p->flag9[IJp1K]<0)
+        {
+        a->C9.w[n] = n;
+        ++n;
+        
+        a->C9.p[n] = n;
+        a->C9.w[n] = n+1;
+        ++n;
+        
+        a->C9.p[n] = n;
+        a->C9.w[n] = n+1;
+        ++n;
+        
+        a->C9.w[n] = n;
+        ++n;
+        }
+        
+        // bottom
+        if(p->flag9[IJKm1]<0)
+        {
+        a->C9.b[n] = n;
+        ++n;
+        
+        a->C9.p[n] = n;
+        a->C9.b[n] = n+1;
+        ++n;
+        
+        a->C9.p[n] = n;
+        a->C9.b[n] = n+1;
+        ++n;
+        
+        a->C9.b[n] = n;
+        ++n;
+        }
+        
+        // top
+        if(p->flag9[IJKp1]<0)
+        {
+        a->C9.t[n] = n;
+        ++n;
+        
+        a->C9.p[n] = n;
+        a->C9.t[n] = n+1;
+        ++n;
+        
+        a->C9.p[n] = n;
+        a->C9.t[n] = n+1;
+        ++n;
+        
+        a->C9.t[n] = n;
+        ++n;
+        }
+    
+    
+	}
+    
+
+	for(g=0;g<p->gcpara1_count;++g)
+    {
+    i=p->gcpara1[g][0];
+    j=p->gcpara1[g][1];
+    k=p->gcpara1[g][2];
+        
+		for(q=0;q<margin;++q)
+		{
+			if(q<margin-1)
+			{
+			a->C6.n[n] = cval6(i-q,j,k);
+			a->C6.s[n] = cval6(i-q-2,j,k);
+			}
+ 
+		++n;
+		}
+	}
+	
+	for(g=0;g<p->gcpara2_count;++g)
+    {
+    i=p->gcpara2[g][0];
+    j=p->gcpara2[g][1];
+    k=p->gcpara2[g][2];
+        
+		for(q=0;q<margin;++q)   
+		{
+			if(q<margin-1)
+			{
+			a->C6.e[n] = cval6(i,j+q,k);
+			a->C6.w[n] = cval6(i,j+q+2,k);
+			}
+		
+		++n;
+		}
+	}
+	
+	for(g=0;g<p->gcpara3_count;++g)
+    {
+    i=p->gcpara3[g][0];
+    j=p->gcpara3[g][1];
+    k=p->gcpara3[g][2];
+        
+		for(q=0;q<margin;++q)   
+		{
+			if(q<margin-1)
+			{
+			a->C6.e[n] = cval6(i,j-q-2,k);
+			a->C6.w[n] = cval6(i,j-q,k);
+			}
+		
+		++n;
+		}
+	}
+	
+	for(g=0;g<p->gcpara4_count;++g)
+    {
+    i=p->gcpara4[g][0];
+    j=p->gcpara4[g][1];
+    k=p->gcpara4[g][2];
+        
+		for(q=0;q<margin;++q)
+		{
+			if(q<margin-1)
+			{
+			a->C6.n[n] = cval6(i+q+2,j,k);
+			a->C6.s[n] = cval6(i+q,j,k);
+			}
+		
+		++n;
+		}
+	}
+	
+	for(g=0;g<p->gcpara5_count;++g)
+    {
+    i=p->gcpara5[g][0];
+    j=p->gcpara5[g][1];
+    k=p->gcpara5[g][2];
+        
+		for(q=0;q<margin;++q)
+		{
+			if(q<margin-1)
+			{
+			a->C6.b[n] = cval6(i,j,k-q-2);
+			a->C6.t[n] = cval6(i,j,k-q);
+			}
+		
+		++n;
+		}
+	}
+	
+	for(g=0;g<p->gcpara6_count;++g)
+    {
+    i=p->gcpara6[g][0];
+    j=p->gcpara6[g][1];
+    k=p->gcpara6[g][2];
+        
+		for(q=0;q<margin;++q)
+		{
+			if(q<margin-1)
+			{
+			a->C6.b[n] = cval6(i,j,k+q);
+			a->C6.t[n] = cval6(i,j,k+q+2);
+			}
+		
+		++n;
+		}
+	}*/
+}
+

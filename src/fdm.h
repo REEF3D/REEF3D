@@ -103,7 +103,7 @@ public:
 	vec rhsvec;
 
 	matrix_diag M;
-	cpt C4,C4a,C6;
+	cpt C4,C4a,C6,C9;
 
     double maxF,maxG,maxH;
     double wd_criterion;

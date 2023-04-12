@@ -132,14 +132,17 @@ public:
     void column_pt4_update(lexer*,fdm*);
     void column_pt4a_update(lexer*,fdm*);
     void column_pt6_update(lexer*,fdm*);
+    void column_pt9_update(lexer*,fdm*);
 
 	void column_pt4(lexer*,fdm*,fieldint&);
     void column_pt4a(lexer*,fdm*,fieldint&);
     void column_pt6(lexer*,fdm*,fieldint&);
+    void column_pt9(lexer*,fdm*);
 
 	int column_pt4_count(lexer*,fdm*);
     int column_pt4a_count(lexer*,fdm*);
     int column_pt6_count(lexer*,fdm*);
+    int column_pt9_count(lexer*,fdm*);
 
 
     void column_pt_resize(lexer*,fdm*);
