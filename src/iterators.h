@@ -26,6 +26,7 @@ Author: Hans Bihs
 #define NLOOP4 for(n=p->sizeM4[0]; n<p->sizeM4[1]; ++n)
 #define NLOOP4A for(n=p->sizeM4a[0]; n<p->sizeM4a[1]; ++n)	
 #define NLOOP6 for(n=p->sizeM6[0]; n<p->sizeM6[1]; ++n)
+#define NLOOP9 for(n=p->sizeM9[0]; n<p->sizeM9[1]; ++n)
 #define NLOOP for(n=sizeM[0]; n<sizeM[1]; ++n)
 #define VECLOOP for(n=0; n<p->veclength; ++n)
 

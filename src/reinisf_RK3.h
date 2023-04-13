@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,28 +20,51 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"levelset_AB2.h"
-#include"levelset_RK2.h"
-#include"levelset_RK3.h"
-#include"levelset_void.h"
+#include"reini.h"
+#include"ddweno.h"
+#include"vec.h"
+#include"increment.h"
 
-#include"reini_RK3.h"
-#include"reinigc_RK3.h"
-#include"reinivc_RK3.h"
-#include"reinifluid_RK3.h"
-#include"reinisf_RK3.h"
-#include"directreini.h"
-#include"reini_void.h"
+class reinidisc;
+class picard;
 
-#include"particle.h"
-#include"particle_void.h"
+using namespace std;
 
-#include"VOF_AB.h"
-#include"VOF_RK3.h"
-#include"VOF_PLIC.h"
+#ifndef REINISF_RK3_H_
+#define REINISF_RK3_H_
 
-#include"onephase_v.h"
-#include"onephase_f.h"
 
-#include"multiphase_v.h"
-#include"multiphase_f.h"
+class reinisf_RK3 : public reini, public increment
+{
+
+public:
+    reinisf_RK3(lexer* p,int);
+
+	virtual ~reinisf_RK3();
+    virtual void start(fdm*,lexer*,field&,ghostcell*,ioflow*);
+    virtual void startV(fdm*,lexer*,vec&,ghostcell*,ioflow*);
+
+	int *sizeM;
+	vec f,frk1,frk2,L,dt;
+
+
+private:
+    picard *ppicard;
+	reinidisc *prdisc;
+
+
+	void step(fdm*, lexer*);
+    void time_preproc(lexer*);
+
+
+	double starttime,endtime;
+
+
+	int gcval_phi,gcval_ro,gcval_iniphi,reiniter,n;
+
+	const double epsi;
+
+};
+
+#endif
+

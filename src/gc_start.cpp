@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"lexer.h"
+#include"fdm.h"
 #include"sliceint.h"
 #include"field.h"
 #include"ghostcell.h"
@@ -340,6 +341,29 @@ void ghostcell::start6vec(lexer *p, vec &x, int gcv)
     
     // periodic ghostcells
     gcperiodicxvec(p,x,6);
+}
+
+void ghostcell::start9vec(lexer *p, fdm *a, vec &x, int gcv)
+{
+    if(p->M10>0)
+    {
+    starttime=timer();
+	gcparaxvec(p,x,9);
+	endtime=timer();
+	p->xtime+=endtime-starttime;
+    }
+    
+    starttime=timer();
+    
+    gcV_neumann_gen(p,x,gcv,0,0,0, a->C9);
+    
+	/*QQGC6LOOP
+	gcdistro6vec(p,a,x,p->gcb4[qq][0],p->gcb4[qq][1], p->gcb4[qq][2], p->gcd4[qq], gcv, p->gcb4[qq][4], fabs(p->gcb4[qq][3]), p->gcb6[qq]);
+	endtime=timer();*/
+	p->gctime+=endtime-starttime;
+    
+    // periodic ghostcells
+    //gcperiodicxvec(p,x,6);
 }
 
 void ghostcell::start1V(lexer *p, double *X, sliceint &bc, int gcv)

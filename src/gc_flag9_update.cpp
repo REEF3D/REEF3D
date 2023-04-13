@@ -57,4 +57,6 @@ void ghostcell::flag9_update(lexer *p, fdm *a)
     
     sizeM_update(p,a);
     
+    column_pt9(p,a);
+    
 }

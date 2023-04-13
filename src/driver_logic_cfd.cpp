@@ -411,6 +411,9 @@ void driver::logic_cfd()
 
 	if(p->F40==7)
 	preini = new reinigc_RK3(p,a);
+    
+    if(p->F40==9)
+    preini = new reinisf_RK3(p,1);
 
 	if(p->F40==11)
 	preini = new directreini(p,a);

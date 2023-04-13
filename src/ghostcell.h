@@ -65,6 +65,7 @@ public:
 	void start4vec(lexer*,vec&,int);
 	void start4avec(lexer*,vec&,int);
     void start6vec(lexer*,vec&,int);
+    void start9vec(lexer*,fdm*,vec&,int);
     
     void start1V(lexer*,double*,sliceint&, int);
     void start2V(lexer*,double*,sliceint&, int);
@@ -413,6 +414,7 @@ public:
     void patchBC(lexer*,field&,double,int,int,int);
 
 	void gcV_neumann(vec&,int,int,int,int);
+    void gcV_neumann_gen(lexer*,vec&,int,int,int,int,cpt&);
 	void gcV_lsm(lexer*,vec&, double,int,int,int,int);
     void gcV_neumann_all(vec&, int,int,int,int);
     void gcV_neumann_6V(vec&, int,int,int,int);

@@ -664,6 +664,7 @@
         <File Name="particlecorr.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Reinitialization">
+        <File Name="reinisf_RK3.h"/>
         <File Name="reinidisc_sf.h"/>
         <File Name="reinidisc_fsf_rig.h"/>
         <File Name="reinifluid_RK3.h"/>
@@ -2011,6 +2012,7 @@
         <File Name="pls_xupdate.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Reinitialization">
+        <File Name="reinisf_RK3.cpp"/>
         <File Name="reinidisc_sf.cpp"/>
         <File Name="reinidisc_fsf_rig.cpp"/>
         <File Name="reini_RK3.cpp"/>

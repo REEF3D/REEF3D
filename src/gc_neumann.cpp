@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
+#include"lexer.h"
 #include"field.h"
 #include"vec.h"
 #include"fdm.h"
@@ -96,5 +97,54 @@ void ghostcell::gcV_neumann(vec &x, int gcv, int bc, int cs, int id)
     x.V[I_J_Kp1_4]=x.V[I_J_K_4];
     x.V[I_J_Kp2_4]=x.V[I_J_K_4];
     x.V[I_J_Kp3_4]=x.V[I_J_K_4];
+    }
+}
+
+void ghostcell::gcV_neumann_gen(lexer *p,vec &x, int gcv, int bc, int cs, int id, cpt &C)
+{
+    NLOOP9
+    {
+        
+        if(p->flag9[Ip1JK]<0)
+        {
+        x.V[Im1_J_K]=x.V[I_J_K];
+        x.V[Im2_J_K]=x.V[I_J_K];
+        x.V[Im3_J_K]=x.V[I_J_K];
+        }
+
+        if(cs==2)
+        {
+        x.V[I_Jp1_K]=x.V[I_J_K];
+        x.V[I_Jp2_K]=x.V[I_J_K];
+        x.V[I_Jp3_K]=x.V[I_J_K];
+        }
+        
+        if(cs==3)
+        {
+        x.V[I_Jm1_K]=x.V[I_J_K];
+        x.V[I_Jm2_K]=x.V[I_J_K];
+        x.V[I_Jm3_K]=x.V[I_J_K];
+        }
+
+        if(cs==4)
+        {
+        x.V[Ip1_J_K]=x.V[I_J_K];
+        x.V[Ip2_J_K]=x.V[I_J_K];
+        x.V[Ip3_J_K]=x.V[I_J_K];
+        }
+
+        if(cs==5)
+        {
+        x.V[I_J_Km1]=x.V[I_J_K];
+        x.V[I_J_Km2]=x.V[I_J_K];
+        x.V[I_J_Km3]=x.V[I_J_K];
+        }
+
+        if(cs==6)
+        {
+        x.V[I_J_Kp1]=x.V[I_J_K];
+        x.V[I_J_Kp2]=x.V[I_J_K];
+        x.V[I_J_Kp3]=x.V[I_J_K];
+        }
     }
 }
