@@ -24,52 +24,37 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 
-void ghostcell::sizeM_update(lexer* p, fdm* a)
+void ghostcell::flag9_update(lexer *p, fdm *a)
 {
-	count=0;
-	ULOOP
-	++count;
-	
-	p->sizeM1[0]=0;
-	p->sizeM1[1]=count;
-	
-	count=0;
-	VLOOP
-	++count;
-	
-	p->sizeM2[0]=0;
-	p->sizeM2[1]=count;
-	
-	count=0;
-	WLOOP
-	++count;
-	
-	p->sizeM3[0]=0;
-	p->sizeM3[1]=count;
-	
-	count=0;
-	LOOP
-	++count;
-	
-	p->sizeM4[0]=0;
-	p->sizeM4[1]=count;
     
-    count=0;
-	ALOOP
-	++count;
-	
-	p->sizeM4a[0]=0;
-	p->sizeM4a[1]=count;
+    for(i=0;i<p->imax*p->jmax*p->kmax; ++i)
+    p->flag9[i]=1;
+    
+    BASELOOP
+    if(a->solid(i,j,k)<0.0 || a->topo(i,j,k)<0.0)
+    p->flag9[IJK]=-1;
     
     
-    count=0;
-	BASELOOP
-	++count;
-	
-	p->sizeM6[0]=0;
-	p->sizeM6[1]=count;
     
-    p->sizeM9[0]=0;
-	p->sizeM9[1]=count;
-	
+    LOOP
+    {
+    if(a->phi(i,j,k)>0 && (a->solid(i,j,k-1)<0.0 || a->topo(i,j,k-1)<0.0))
+    {
+    p->flag9[IJKm1]=1;
+    p->flag9[IJKm2]=1;
+    p->flag9[IJKm3]=1;
+    }
+    
+    if(a->phi(i,j,k)>0 && a->phi(i,j,k-1)>0 && (a->solid(i,j,k-2)<0.0 || a->topo(i,j,k-2)<0.0))
+    {
+    p->flag9[IJKm2]=1;
+    p->flag9[IJKm3]=1;
+    }
+        
+        
+        
+    }
+    
+    sizeM_update(p,a);
+    
 }

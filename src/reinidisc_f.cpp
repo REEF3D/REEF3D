@@ -85,7 +85,7 @@ void reinidisc_f::start(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int ip
         n=0;
         BASELOOP
         {
-        disc(p,a,pgc,b,L,p->sizeM6,ipol,a->C6);
+        disc(p,a,pgc,b,L,p->sizeM6,ipol,a->C9);
         ++n;
         }
     }

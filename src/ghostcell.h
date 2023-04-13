@@ -217,6 +217,7 @@ public:
     void tpflagfield(lexer*);
 	void ndflag_update(lexer*);
     void flagbase(lexer*,fdm*);
+    void flag9_update(lexer*,fdm*);
 
 // PARALLEL
     void gcparax(lexer*, field&, int);

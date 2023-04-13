@@ -81,6 +81,9 @@ Author: Hans Bihs
 #define KBLOOP for(k=-1; k<p->knoz+1; ++k)
 #define BBASELOOP IBLOOP JBLOOP KBLOOP PBASECHECK
 
+#define CHECK9 if(p->flag9[IJK]>0)
+#define LOOP9 ILOOP JLOOP KLOOP CHECK9
+
 #define ITLOOP for(i=0; i<p->knox+1; ++i)
 #define JTLOOP for(j=0; j<p->knoy+1; ++j)
 #define KTLOOP for(k=0; k<p->knoz+1; ++k)

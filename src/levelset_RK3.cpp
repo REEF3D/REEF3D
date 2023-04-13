@@ -183,7 +183,7 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
     
 	
 	p->lsmtime=pgc->timer()-starttime;
-
+    
 	preini->start(a,p,ls, pgc, pflow);
     
     df_update(p,ls);
