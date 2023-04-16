@@ -354,6 +354,11 @@ public:
 	void gcdistro3(lexer *p,field&,int, int, int, int, double, int, int, int);
 	void gcdistro4(lexer *p,field&,int, int, int, int, double, int, int, int);
 	void gcdistro4a(lexer *p,field&,int, int, int, int, double, int, int, int);
+    
+    void gcdistro1V(lexer *p,double*,int, int, int, int, double, int, int, int);
+	void gcdistro2V(lexer *p,double*,int, int, int, int, double, int, int, int);
+	void gcdistro3V(lexer *p,double*,int, int, int, int, double, int, int, int);
+	void gcdistro4V(lexer *p,double*,int, int, int, int, double, int, int, int);
 
 	void gcdistro4vec(lexer *p,fdm*, vec&, int, int, int, double, int, int, int, int);
     void gcdistro4avec(lexer *p,fdm*, vec&, int, int, int, double, int, int, int, int);
@@ -418,6 +423,8 @@ public:
 	void gcV_lsm(lexer*,vec&, double,int,int,int,int);
     void gcV_neumann_all(vec&, int,int,int,int);
     void gcV_neumann_6V(vec&, int,int,int,int);
+    
+    void neumannV(double*,int,int,int);
 
 
 private:

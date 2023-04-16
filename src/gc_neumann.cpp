@@ -148,3 +148,50 @@ void ghostcell::gcV_neumann_gen(lexer *p,vec &x, int gcv, int bc, int cs, int id
         }
     }
 }
+
+void ghostcell::neumannV(double *f, int gcv, int bc, int cs)
+{
+	if(cs==1)
+    {
+	f[Im1JK]=f[IJK];
+    f[Im2JK]=f[IJK];
+    f[Im2JK]=f[IJK];
+    }
+    
+    if(cs==2)
+    {
+	f[IJp1K]=f[IJK];
+    f[IJp2K]=f[IJK];
+    f[IJp3K]=f[IJK];
+    }
+    
+    if(cs==3)
+    {
+	f[IJm1K]=f[IJK];
+    f[IJm2K]=f[IJK];
+    f[IJm3K]=f[IJK];
+    
+    cout<<"NEUMAN"<<endl;
+    }
+    
+    if(cs==4)
+    {
+	f[Ip1JK]=f[IJK];
+    f[Ip2JK]=f[IJK];
+    f[Ip3JK]=f[IJK];
+    }
+    
+    if(cs==5)
+    {
+	f[IJKm1]=f[IJK];
+    f[IJKm2]=f[IJK];
+    f[IJKm3]=f[IJK];
+    }
+    
+    if(cs==6)
+    {
+	f[IJKp1]=f[IJK];
+    f[IJKp2]=f[IJK];
+    f[IJKp3]=f[IJK];
+    }
+}

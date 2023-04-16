@@ -1252,10 +1252,10 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Initialize"/>
         <VirtualDirectory Name="Printer">
+          <File Name="nhflow_vtu3D.cpp"/>
           <VirtualDirectory Name="VTU">
             <File Name="nhflow_vtu3D_pvtu.cpp"/>
             <File Name="nhflow_vtu3D_header.cpp"/>
-            <File Name="nhflow_vtu3D.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">

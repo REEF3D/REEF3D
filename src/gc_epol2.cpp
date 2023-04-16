@@ -159,3 +159,4 @@ void ghostcell::gcdistro2(lexer *p,field& f, int ii, int jj, int kk, int nn, dou
 	gcb_debug(f,gcv,bc,cs);
 }
 
+void ghostcell::gcdistro2V(lexer *p, double *f, int ii, int jj, int kk, int nn, double dist,  int gcv, int bc, int cs){}

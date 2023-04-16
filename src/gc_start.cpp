@@ -366,11 +366,11 @@ void ghostcell::start9vec(lexer *p, fdm *a, vec &x, int gcv)
     //gcperiodicxvec(p,x,6);
 }
 
-void ghostcell::start1V(lexer *p, double *X, sliceint &bc, int gcv)
+void ghostcell::start1V(lexer *p, double *f, sliceint &bc, int gcv)
 {
-    /*
+    
     //  MPI Boundary Swap
-    if(p->M10>0)
+    /*if(p->M10>0)
     {
     starttime=timer();
 	gcparax(p,f,1);
@@ -382,17 +382,17 @@ void ghostcell::start1V(lexer *p, double *X, sliceint &bc, int gcv)
     }
     
     if(p->F10==1)
-    nse1(p,a,f,gcv);
+    nse1(p,a,f,gcv);*/
     
     // solid ghostcells
     starttime=timer();
 	QQGC1LOOP
-	gcdistro1(p,f,p->gcb1[qq][0], p->gcb1[qq][1], p->gcb1[qq][2], p->gcb1[qq][5], p->gcd1[qq], gcv, p->gcb1[qq][4], p->gcb1[qq][3]);
+	gcdistro1V(p,f,p->gcb1[qq][0], p->gcb1[qq][1], p->gcb1[qq][2], p->gcb1[qq][5], p->gcd1[qq], gcv, p->gcb1[qq][4], p->gcb1[qq][3]);
 	endtime=timer();
 	p->gctime+=endtime-starttime;
     
     // periodic ghostcells
-    gcperiodicx(p,f,1);
+    /*gcperiodicx(p,f,1);
     
     if(p->periodic1==1)
     gc_periodic(p, f, 1, 1);
@@ -413,8 +413,23 @@ void ghostcell::start1V(lexer *p, double *X, sliceint &bc, int gcv)
     f.ggcpol(p);
     
     if(p->M10>0)
-	gcparacox(p,f,gcv); 
-*/   
+	gcparacox(p,f,gcv); */
+    
+    
+    
+    
+    /*if(gcv==250)
+    fivec(p,x,bc);
+    
+    if(gcv==150)
+    fivec2D(p,x,bc);
+    
+    if(gcv==210)
+    fivec_vel(p,x,bc);
+    
+    if(gcv==110)
+    fivec2D_vel(p,x,bc);*/
+  
 }
 
 void ghostcell::start2V(lexer *p, double *X, sliceint &bc, int gcv)

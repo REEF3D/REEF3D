@@ -172,7 +172,7 @@ void driver::driver_ini_nhflow()
     SLICELOOP4
     d->eta_n(i,j) = d->eta(i,j);
 
-	pgc->start4V(p,d->U,d->bc,10);
+	pgc->start1V(p,d->U,d->bc,10);
     pgc->start4V(p,d->V,d->bc,11);
     pgc->start4V(p,d->W,d->bc,12);
     pgc->start4V(p,d->P,d->bc,540);
