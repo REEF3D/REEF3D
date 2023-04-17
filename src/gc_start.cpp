@@ -391,6 +391,39 @@ void ghostcell::start1V(lexer *p, double *f, sliceint &bc, int gcv)
 	endtime=timer();
 	p->gctime+=endtime-starttime;
     
+    LOOP
+    {  
+        if(p->B98!=3||bc(i-1,j)==0)
+        if(p->flag4[Im1JK]<0)
+        {
+        f[FIm1JK] = f[FIJK];
+        f[FIm2JK] = f[FIJK];
+        f[FIm3JK] = f[FIJK];
+        }
+          
+        if(p->B99!=3||bc(i+1,j)==0)
+        if(p->flag4[Ip1JK]<0)
+        {
+        f[FIp1JK] = f[FIJK];
+        f[FIp2JK] = f[FIJK];
+        f[FIp3JK] = f[FIJK];
+        }
+        
+        if(p->flag4[IJm1K]<0)
+        {
+        f[FIJm1K] = f[FIJK];
+        f[FIJm2K] = f[FIJK];
+        f[FIJm3K] = f[FIJK];
+        }
+        
+        if(p->flag4[IJp1K]<0)
+        {
+        f[FIJp1K] = f[FIJK];
+        f[FIJp2K] = f[FIJK];
+        f[FIJp3K] = f[FIJK];
+        }
+    }
+    
     // periodic ghostcells
     /*gcperiodicx(p,f,1);
     
@@ -453,6 +486,8 @@ void ghostcell::start4V(lexer *p, double *x, sliceint &bc, int gcv)
 	endtime=timer();
 	p->xtime+=endtime-starttime;
     }
+    
+    fivec_vel(p,x,bc);
     
     
     if(gcv==250)

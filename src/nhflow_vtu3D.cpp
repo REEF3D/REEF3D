@@ -348,6 +348,11 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 //----------------------------------------------------------------------------
     result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
 
+pgc->start1V(p,d->U,d->bc,10);
+
+    TPLOOP
+    if(p->mpirank==0)
+    cout<<j<<" "<<d->U[IJKp1]<<endl;
 
 //  Velocities
     iin=3*4*(p->pointnum);
