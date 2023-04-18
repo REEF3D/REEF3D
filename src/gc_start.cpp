@@ -385,44 +385,56 @@ void ghostcell::start1V(lexer *p, double *f, sliceint &bc, int gcv)
     nse1(p,a,f,gcv);*/
     
     // solid ghostcells
-    starttime=timer();
+    /*starttime=timer();
 	QQGC1LOOP
 	gcdistro1V(p,f,p->gcb1[qq][0], p->gcb1[qq][1], p->gcb1[qq][2], p->gcb1[qq][5], p->gcd1[qq], gcv, p->gcb1[qq][4], p->gcb1[qq][3]);
 	endtime=timer();
-	p->gctime+=endtime-starttime;
+	p->gctime+=endtime-starttime;*/
     
     LOOP
     {  
         if(p->B98!=3||bc(i-1,j)==0)
         if(p->flag4[Im1JK]<0)
         {
-        f[FIm1JK] = f[FIJK];
-        f[FIm2JK] = f[FIJK];
-        f[FIm3JK] = f[FIJK];
+        f[Im1JK] = f[IJK];
+        f[Im2JK] = f[IJK];
+        f[Im3JK] = f[IJK];
         }
           
         if(p->B99!=3||bc(i+1,j)==0)
         if(p->flag4[Ip1JK]<0)
         {
-        f[FIp1JK] = f[FIJK];
-        f[FIp2JK] = f[FIJK];
-        f[FIp3JK] = f[FIJK];
+        f[Ip1JK] = f[IJK];
+        f[Ip2JK] = f[IJK];
+        f[Ip3JK] = f[IJK];
         }
         
         if(p->flag4[IJm1K]<0)
         {
-        f[FIJm1K] = f[FIJK];
-        f[FIJm2K] = f[FIJK];
-        f[FIJm3K] = f[FIJK];
+        f[IJm1K] = f[IJK];
+        f[IJm2K] = f[IJK];
+        f[IJm3K] = f[IJK];
         }
         
         if(p->flag4[IJp1K]<0)
         {
-        f[FIJp1K] = f[FIJK];
-        f[FIJp2K] = f[FIJK];
-        f[FIJp3K] = f[FIJK];
+        f[IJp1K] = f[IJK];
+        f[IJp2K] = f[IJK];
+        f[IJp3K] = f[IJK];
+        }
+        
+        if(p->flag4[IJKp1]<0)
+        {
+        f[IJKp1] = f[IJK];
+        f[IJKp2] = f[IJK];
+        f[IJKp3] = f[IJK];
         }
     }
+    
+    gcparaxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
     
     // periodic ghostcells
     /*gcperiodicx(p,f,1);
@@ -447,7 +459,6 @@ void ghostcell::start1V(lexer *p, double *f, sliceint &bc, int gcv)
     
     if(p->M10>0)
 	gcparacox(p,f,gcv); */
-    
     
     
     

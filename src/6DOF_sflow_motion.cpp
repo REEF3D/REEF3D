@@ -33,18 +33,16 @@ double sixdof_sflow::ramp_vel(lexer *p)
     
     if(p->X205==1 && p->X206==1 && p->simtime>=p->X206_ts && p->simtime<p->X206_te)
     {
-    f = p->simtime/(p->X206_te-p->X206_ts);
+    f = (p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts);
     }
     
     if(p->X205==2 && p->X206==1 && p->simtime>=p->X206_ts && p->simtime<p->X206_te)
     {
-    f = p->simtime/(p->X206_te-p->X206_ts) - (1.0/PI)*sin(PI*(p->simtime/(p->X206_te-p->X206_ts)));
+    f = (p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts)-(1.0/PI)*sin(PI*(p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts));
     }
     
     if(p->X205==1 && p->X206==1 && p->simtime<p->X206_ts)
     f=0.0;
-    
-    //cout<<"RAMP F: "<<f<<endl;
 
     return f;
 }
