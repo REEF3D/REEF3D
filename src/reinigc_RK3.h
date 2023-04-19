@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"reini.h"
-#include"particlecorr.h"
+#include"particle_corr.h"
 #include"gradient.h"
 #include"field4.h"
 #include"fieldint4.h"

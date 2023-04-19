@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"particle.h"
+#include"particle_pls.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include<math.h>
 
-void particle::reseed(lexer* p, fdm* a, ghostcell* pgc, double pnum_coeff)
+void particle_pls::reseed(lexer* p, fdm* a, ghostcell* pgc, double pnum_coeff)
 {
 	double lsc, maxpos, maxneg;
 	double distfac=1.0;

@@ -663,9 +663,9 @@
         <File Name="levelset_AB2.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Particle">
-        <File Name="particle.h"/>
-        <File Name="particle_void.h"/>
-        <File Name="particlecorr.h"/>
+        <File Name="particle_corr.h"/>
+        <File Name="particle_pls_void.h"/>
+        <File Name="particle_pls.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Reinitialization">
         <File Name="reinisf_RK3.h"/>

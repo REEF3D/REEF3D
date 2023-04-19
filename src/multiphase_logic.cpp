@@ -80,10 +80,10 @@ void multiphase_f::logic(lexer *p, fdm *a, ghostcell *pgc)
 	
 
 	if(p->F31==0)
-	ppart = new particle_void();
+	ppart = new particle_pls_void();
 
 	if(p->F31==1 || p->F31==2)
-	ppart = new particle(p,a,pgc);
+	ppart = new particle_pls(p,a,pgc);
 	
 	if(p->W90==0)
 	pupdate = new multiphase_fluid_update_f(p,a,pgc);

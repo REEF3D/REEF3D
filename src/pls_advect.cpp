@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"particle.h"
+#include"particle_pls.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-void particle::advect(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag,int active)
+void particle_pls::advect(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag,int active)
 {
     for(n=0;n<active;++n)
     if(flag[n]>0)
@@ -63,7 +63,7 @@ void particle::advect(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag,int 
 
 
 /*
-void particle::advect(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag,int active)
+void particle_pls::advect(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag,int active)
 {
     for(n=0;n<active;++n)
     if(flag[n]>0)

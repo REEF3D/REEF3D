@@ -19,12 +19,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"particle.h"
+#include"particle_pls.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-double particle::hside(fdm* a)
+double particle_pls::hside(fdm* a)
 {
     phival=fabs(a->phi(i,j,k));
 
@@ -38,7 +38,7 @@ double particle::hside(fdm* a)
 }
 
 
-void particle::dgc_update(lexer* p,fdm* a,ghostcell* pgc)
+void particle_pls::dgc_update(lexer* p,fdm* a,ghostcell* pgc)
 {
 
     pgc->start1(p,a->u,14);
@@ -46,7 +46,7 @@ void particle::dgc_update(lexer* p,fdm* a,ghostcell* pgc)
 	pgc->start3(p,a->w,16);
 }
 
-void particle::vel_setback(lexer* p,fdm* a,ghostcell* pgc)
+void particle_pls::vel_setback(lexer* p,fdm* a,ghostcell* pgc)
 {/*
     pgc->start1(p,a->u,10);
 	pgc->start2(p,a->v,11);

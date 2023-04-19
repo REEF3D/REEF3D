@@ -31,7 +31,7 @@ using namespace std;
 #ifndef PARTICLECORR_H_
 #define PARTICLECORR_H_
 
-class particlecorr
+class particle_corr
 {
 public:
     virtual void start(lexer*,fdm*,ghostcell*,ioflow*)=0;

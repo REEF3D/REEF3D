@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"particle.h"
+#include"particle_pls.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -28,7 +28,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-particle::particle(lexer* p, fdm *a, ghostcell* pgc) : norm_vec(p), phimax(p),phimin(p),phiold(p),
+particle_pls::particle_pls(lexer* p, fdm *a, ghostcell* pgc) : norm_vec(p), phimax(p),phimin(p),phiold(p),
 							  posnum(p), negnum(p),
                              zero (0.0), epsi(1.5*p->DXM),dx(p->DXM),rmin(0.1*p->DXM),
                              rmax(0.5*p->DXM),pnum(p->F32),ipolval(p->F31), irand(100000), drand(100000.0),
@@ -57,11 +57,11 @@ particle::particle(lexer* p, fdm *a, ghostcell* pgc) : norm_vec(p), phimax(p),ph
 	mkdir("./REEF3D_PLS",0777);
 }
 
-particle::~particle()
+particle_pls::~particle_pls()
 {
 }
 
-void particle::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
+void particle_pls::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
 { 
 
 	starttime=pgc->timer();

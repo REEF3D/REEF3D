@@ -33,8 +33,8 @@ Author: Hans Bihs
 #include"directreini.h"
 #include"reini_void.h"
 
-#include"particle.h"
-#include"particle_void.h"
+#include"particle_pls.h"
+#include"particle_pls_void.h"
 
 #include"VOF_AB.h"
 #include"VOF_RK3.h"

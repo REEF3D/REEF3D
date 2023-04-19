@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"particle.h"
+#include"particle_pls.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-void particle::random_delete(lexer* p, fdm* a, ghostcell* pgc)
+void particle_pls::random_delete(lexer* p, fdm* a, ghostcell* pgc)
 {
 	double lsc, maxpos, maxneg;
 	double pnum_coeff=1.0;

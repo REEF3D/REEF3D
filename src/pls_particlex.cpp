@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"particle.h"
+#include"particle_pls.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-void particle::particlex(lexer* p, fdm* a, ghostcell* pgc)
+void particle_pls::particlex(lexer* p, fdm* a, ghostcell* pgc)
 {
     xchange=0;
 

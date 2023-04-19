@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"particle.h"
+#include"particle_pls.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include<math.h>
 
-void particle::normal(fdm* a, double& xp, double& yp, double& zp, double& value)
+void particle_pls::normal(fdm* a, double& xp, double& yp, double& zp, double& value)
 {
 
     ii=i;
@@ -97,7 +97,7 @@ void particle::normal(fdm* a, double& xp, double& yp, double& zp, double& value)
     k=kk;
 }
 
-void particle::normreg(fdm* a, int ii, int jj, int kk)
+void particle_pls::normreg(fdm* a, int ii, int jj, int kk)
 {
     i=ii;
     j=jj;

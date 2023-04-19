@@ -20,18 +20,18 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"particlecorr.h"
+#include"particle_corr.h"
 
 using namespace std;
 
-#ifndef PARTICLE_VOID_H_
-#define PARTICLE_VOID_H_
+#ifndef PARTICLE_PLS_VOID_H_
+#define PARTICLE_PLS_VOID_H_
 
-class particle_void : public particlecorr
+class particle_pls_void : public particle_corr
 {
 public:
-    particle_void();
-	virtual ~particle_void();
+    particle_pls_void();
+	virtual ~particle_pls_void();
 
     virtual void start(lexer*,fdm*,ghostcell*,ioflow*);
 	virtual void setup(lexer*,fdm*,ghostcell*);

@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"reini.h"
-#include"particlecorr.h"
+#include"particle_corr.h"
 #include"picard.h"
 #include"fluid_update_fsf.h"
 #include"fluid_update_fsf_heat.h"
@@ -95,7 +95,7 @@ levelset_RK2::~levelset_RK2()
 {
 }
 
-void levelset_RK2::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particlecorr* ppart, field &ls)
+void levelset_RK2::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particle_corr* ppart, field &ls)
 {
     field4 ark1(p);
     pflow->fsfinflow(p,a,pgc);

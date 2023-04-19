@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"particle.h"
+#include"particle_pls.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-void particle::setradius(lexer* p, fdm* a)
+void particle_pls::setradius(lexer* p, fdm* a)
 {
     for(n=0;n<posactive;++n)
     if(posflag[n]>0)
@@ -38,7 +38,7 @@ void particle::setradius(lexer* p, fdm* a)
 }
 
 
-void particle::posradius(lexer *p, fdm *a, int qx)
+void particle_pls::posradius(lexer *p, fdm *a, int qx)
 {
 	pos[qx][3]=phipol(p,a,pos[qx][0],pos[qx][1],pos[qx][2]);
 	
@@ -52,7 +52,7 @@ void particle::posradius(lexer *p, fdm *a, int qx)
 	pos[qx][4]=fabs(pos[qx][3]);
 }
 
-void particle::negradius(lexer *p, fdm *a, int qx)
+void particle_pls::negradius(lexer *p, fdm *a, int qx)
 {
 	neg[qx][3]=phipol(p,a,neg[qx][0],neg[qx][1],neg[qx][2]);
 

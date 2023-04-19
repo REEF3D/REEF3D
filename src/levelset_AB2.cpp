@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"reini.h"
-#include"particlecorr.h"
+#include"particle_corr.h"
 #include"fluid_update_fsf.h"
 #include"fluid_update_fsf_heat.h"
 #include"fluid_update_fsf_heat_Bouss.h"
@@ -94,7 +94,7 @@ levelset_AB2::~levelset_AB2()
 {
 }
 
-void levelset_AB2::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particlecorr* ppart, field &ls)
+void levelset_AB2::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particle_corr* ppart, field &ls)
 {
 
     pflow->fsfinflow(p,a,pgc);
