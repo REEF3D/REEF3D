@@ -362,6 +362,10 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
+      <VirtualDirectory Name="Particle">
+        <File Name="particle_v.h"/>
+        <File Name="particle_f.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Multiphase">
         <VirtualDirectory Name="Fluid Update">
           <File Name="multiphase_fluid_update_rheology.h"/>
@@ -1425,6 +1429,10 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
+      <VirtualDirectory Name="Particle">
+        <File Name="particle_v.cpp"/>
+        <File Name="particle_f.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Multiphase">
         <VirtualDirectory Name="Fluid Update">
           <File Name="multiphase_fluid_update_rheology.cpp"/>
