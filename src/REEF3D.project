@@ -225,6 +225,24 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
+        <VirtualDirectory Name="Turbulence">
+          <VirtualDirectory Name="Strain">
+            <File Name="nhflow_strain.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="LES">
+            <File Name="nhflow_LES_Smagorinsky.h"/>
+            <File Name="nhflow_LES.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Komega">
+            <File Name="nhflow_komega_void.h"/>
+            <File Name="nhflow_komega_IM1.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="IO">
+            <File Name="nhflow_rans_io.h"/>
+            <File Name="nhflow_les_io.h"/>
+          </VirtualDirectory>
+          <File Name="nhflow_turbulence.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Convect">
           <File Name="nhflow_weno_flux.h"/>
           <VirtualDirectory Name="Flux">
@@ -965,7 +983,6 @@
       </VirtualDirectory>
       <VirtualDirectory Name="IO">
         <File Name="rans_io.h"/>
-        <File Name="les_io.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Kepsilon">
         <File Name="ikepsilon.h"/>
@@ -975,8 +992,8 @@
         <File Name="bc_ikepsilon.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Komega">
-        <File Name="ikomega.h"/>
         <File Name="komega_IM1.h"/>
+        <File Name="ikomega.h"/>
         <File Name="komega_IM2.h"/>
         <File Name="bc_ikomega.h"/>
       </VirtualDirectory>
@@ -1245,6 +1262,23 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
+        <VirtualDirectory Name="Turbulence">
+          <VirtualDirectory Name="Strain">
+            <File Name="nhflow_strain.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="LES">
+            <File Name="nhflow_LES_Smagorinsky.cpp"/>
+            <File Name="nhflow_LES.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Komega">
+            <File Name="nhflow_komega_void.cpp"/>
+            <File Name="nhflow_komega_IM1.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="IO">
+            <File Name="nhflow_les_io.cpp"/>
+            <File Name="nhflow_rans_io.cpp"/>
+          </VirtualDirectory>
+        </VirtualDirectory>
         <VirtualDirectory Name="Convect">
           <VirtualDirectory Name="Flux">
             <File Name="nhflow_flux_face_cds2.cpp"/>
