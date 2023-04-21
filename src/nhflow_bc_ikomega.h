@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,33 +20,35 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"_nhflow_ikomega.h"
-#include"field4.h"
+#include"increment.h"
+#include"roughness.h"
+class fdm_nhf;
+class lexer;
+class field;
+
+#ifndef NHFLOW_BC_IKOMEGA_H_
+#define NHFLOW_BC_IKOMEGA_H_
 
 using namespace std;
 
-#ifndef NHFLOW_KOMEGA_IM1_H_
-#define NHFLOW_KOMEGA_IM1_H_
-
-class nhflow_komega_IM1 : public nhflow_ikomega
+class nhflow_bc_ikomega : public roughness
 {
 public:
-	komega_IM1(lexer *, fdm*, ghostcell*);
-	virtual ~komega_IM1();
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
-	virtual void ktimesave(lexer*, fdm*, ghostcell*);
-	virtual void etimesave(lexer*, fdm*, ghostcell*);
-	void timesource(lexer*,fdm*,field&);
-	void clearrhs(lexer*,fdm*);
-
-	double  *KN,*EN;
-
+	nhflow_bc_ikomega(lexer*);
+	virtual ~nhflow_bc_ikomega();
+	void bckomega_start(fdm_nhf*,lexer*,field&,field&, int);
+    void bckin_matrix(fdm_nhf*,lexer*,field&,field&);
+    void bcomega_matrix(fdm_nhf*,lexer*,field&,field&);
+	void wall_law_kin(fdm_nhf*,lexer*,field&,field&,int,int,int,int,int,int,double);
+	void wall_law_omega(fdm_nhf*,lexer*,field&,field&,int,int,int,int,int,int,double);
 
 private:
-    int gcval_kin, gcval_eps;
-    int count,q;
-    double aii;
-};
+	double uplus,ks_plus,dist,ks,ustar,u_abs,eps_star,tau;
+	int ii,jj,kk;
+	int count,q;
+	double fac,value;
+	double kappa;
 
+};
 #endif
 

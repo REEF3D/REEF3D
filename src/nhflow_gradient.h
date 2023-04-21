@@ -20,33 +20,59 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"_nhflow_ikomega.h"
-#include"field4.h"
+#include"increment.h"
+
+class fdm_nhf;
+class lexer;
+
+#ifndef NHFLOW_GRADIENT_H_
+#define NHFLOW_GRADIENT_H_
 
 using namespace std;
 
-#ifndef NHFLOW_KOMEGA_IM1_H_
-#define NHFLOW_KOMEGA_IM1_H_
-
-class nhflow_komega_IM1 : public nhflow_ikomega
+class nhflow_gradient : virtual public increment
 {
 public:
-	komega_IM1(lexer *, fdm*, ghostcell*);
-	virtual ~komega_IM1();
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
-	virtual void ktimesave(lexer*, fdm*, ghostcell*);
-	virtual void etimesave(lexer*, fdm*, ghostcell*);
-	void timesource(lexer*,fdm*,field&);
-	void clearrhs(lexer*,fdm*);
 
-	double  *KN,*EN;
+	nhflow_gradient(lexer*);
+	 ~_nhflow_gradient();
 
 
-private:
-    int gcval_kin, gcval_eps;
-    int count,q;
-    double aii;
+	//--------------------------------
+
+	//u
+	 double dudx(double*);
+	 double dudy(double*);
+	 double dudz(double*);
+
+	 double dudxx(double*);
+	 double dudyy(double*);
+	 double dudzz(double*);
+
+	//v
+	 double dvdx(double*);
+	 double dvdy(double*);
+	 double dvdz(double*);
+
+	 double dvdxx(double*);
+	 double dvdyy(double*);
+	 double dvdzz(double*);
+
+	//w
+	 double dwdx(double*);
+	 double dwdy(double*);
+	 double dwdz(double*);
+
+	 double dwdxx(double*);
+	 double dwdyy(double*);
+	 double dwdzz(double*);
+	 
+
+	double grad1,grad2;
+	double grad;
+	
+    
+    lexer *p;
 };
 
 #endif
-

@@ -234,6 +234,8 @@
             <File Name="nhflow_LES.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Komega">
+            <File Name="nhflow_bc_ikomega.h"/>
+            <File Name="nhflow_ikomega.h"/>
             <File Name="nhflow_komega_void.h"/>
             <File Name="nhflow_komega_IM1.h"/>
           </VirtualDirectory>
@@ -258,6 +260,9 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Initialize"/>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Gradient">
+            <File Name="nhflow_gradient.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Timestep">
             <File Name="nhflow_timestep.h"/>
           </VirtualDirectory>
@@ -1275,6 +1280,7 @@
             <File Name="nhflow_komega_IM1.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="IO">
+            <File Name="nhflow_rans_ini.cpp"/>
             <File Name="nhflow_les_io.cpp"/>
             <File Name="nhflow_rans_io.cpp"/>
           </VirtualDirectory>
@@ -1297,6 +1303,9 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Gradient">
+            <File Name="nhflow_gradient.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Timestep">
             <File Name="nhflow_timestep.cpp"/>
           </VirtualDirectory>

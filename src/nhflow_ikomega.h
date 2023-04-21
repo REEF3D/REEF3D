@@ -20,33 +20,38 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"_nhflow_ikomega.h"
-#include"field4.h"
+#include"rans_io.h"
+#include"bc_ikomega.h"
+#include"ghostcell.h"
+#include"vrans.h"
 
 using namespace std;
 
-#ifndef NHFLOW_KOMEGA_IM1_H_
-#define NHFLOW_KOMEGA_IM1_H_
+#ifndef NHFLOW_IKOMEGA_H_
+#define NHFLOW_IKOMEGA_H_
 
-class nhflow_komega_IM1 : public nhflow_ikomega
+class nhflow_ikomega : public nhflow_rans_io, public nhflow_bc_ikomega
 {
 public:
-	komega_IM1(lexer *, fdm*, ghostcell*);
-	virtual ~komega_IM1();
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
-	virtual void ktimesave(lexer*, fdm*, ghostcell*);
-	virtual void etimesave(lexer*, fdm*, ghostcell*);
-	void timesource(lexer*,fdm*,field&);
-	void clearrhs(lexer*,fdm*);
+	nhflow_ikomega(lexer *, fdm_nhf*, ghostcell*);
+	virtual ~nhflow_ikomega();
+	virtual void isource(lexer*,fdm_nhf*);
+	virtual void jsource(lexer*,fdm_nhf*);
+	virtual void ksource(lexer*,fdm_nhf*);
+	virtual void kinsource(lexer*,fdm_nhf*,vrans*);
+	virtual void epssource(lexer*,fdm_nhf*,vrans*);
+	virtual void epsfsf(lexer*,fdm_nhf*,ghostcell*);
+	virtual void eddyvisc(lexer*,fdm_nhf*,ghostcell*,vrans*);
+	virtual void clearfield(lexer*,fdm_nhf*,field&);
 
-	double  *KN,*EN;
-
-
+	int count,q;
+	double starttime;
+    
 private:
-    int gcval_kin, gcval_eps;
-    int count,q;
-    double aii;
+    double epsi;
+	double dirac;
 };
 
 #endif
+
 
