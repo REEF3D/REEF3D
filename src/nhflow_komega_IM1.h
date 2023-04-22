@@ -20,8 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"_nhflow_ikomega.h"
-#include"field4.h"
+#include"nhflow_ikomega.h"
 
 using namespace std;
 
@@ -31,13 +30,13 @@ using namespace std;
 class nhflow_komega_IM1 : public nhflow_ikomega
 {
 public:
-	komega_IM1(lexer *, fdm*, ghostcell*);
-	virtual ~komega_IM1();
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
-	virtual void ktimesave(lexer*, fdm*, ghostcell*);
-	virtual void etimesave(lexer*, fdm*, ghostcell*);
-	void timesource(lexer*,fdm*,field&);
-	void clearrhs(lexer*,fdm*);
+	nhflow_komega_IM1(lexer *, fdm_nhf*, ghostcell*);
+	virtual ~nhflow_komega_IM1();
+	virtual void start(fdm_nhf*, lexer*, nhflow_convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
+	virtual void ktimesave(lexer*, fdm_nhf*, ghostcell*);
+	virtual void etimesave(lexer*, fdm_nhf*, ghostcell*);
+	void timesource(lexer*,fdm_nhf*,double*);
+	void clearrhs(lexer*,fdm_nhf*);
 
 	double  *KN,*EN;
 

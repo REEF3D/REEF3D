@@ -24,7 +24,6 @@ Author: Hans Bihs
 #include"roughness.h"
 class fdm_nhf;
 class lexer;
-class field;
 
 #ifndef NHFLOW_BC_IKOMEGA_H_
 #define NHFLOW_BC_IKOMEGA_H_
@@ -36,11 +35,11 @@ class nhflow_bc_ikomega : public roughness
 public:
 	nhflow_bc_ikomega(lexer*);
 	virtual ~nhflow_bc_ikomega();
-	void bckomega_start(fdm_nhf*,lexer*,field&,field&, int);
-    void bckin_matrix(fdm_nhf*,lexer*,field&,field&);
-    void bcomega_matrix(fdm_nhf*,lexer*,field&,field&);
-	void wall_law_kin(fdm_nhf*,lexer*,field&,field&,int,int,int,int,int,int,double);
-	void wall_law_omega(fdm_nhf*,lexer*,field&,field&,int,int,int,int,int,int,double);
+	void bckomega_start(lexer*,fdm_nhf*,double*,double*, int);
+    void bckin_matrix(lexer*,fdm_nhf*,double*,double*);
+    void bcomega_matrix(lexer*,fdm_nhf*,double*,double*);
+	void wall_law_kin(lexer*,fdm_nhf*,double*,double*,int,int,int,int,int,int,double);
+	void wall_law_omega(lexer*,fdm_nhf*,double*,double*,int,int,int,int,int,int,double);
 
 private:
 	double uplus,ks_plus,dist,ks,ustar,u_abs,eps_star,tau;

@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"rans_io.h"
-#include"bc_ikomega.h"
+#include"nhflow_rans_io.h"
+#include"nhflow_bc_ikomega.h"
 #include"ghostcell.h"
 #include"vrans.h"
 
@@ -42,7 +42,7 @@ public:
 	virtual void epssource(lexer*,fdm_nhf*,vrans*);
 	virtual void epsfsf(lexer*,fdm_nhf*,ghostcell*);
 	virtual void eddyvisc(lexer*,fdm_nhf*,ghostcell*,vrans*);
-	virtual void clearfield(lexer*,fdm_nhf*,field&);
+	virtual void clearfield(lexer*,fdm_nhf*,double*);
 
 	int count,q;
 	double starttime;

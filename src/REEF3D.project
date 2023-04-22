@@ -234,7 +234,9 @@
             <File Name="nhflow_LES.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Komega">
-            <File Name="nhflow_bc_ikomega.h"/>
+            <VirtualDirectory Name="BC">
+              <File Name="nhflow_bc_ikomega.h"/>
+            </VirtualDirectory>
             <File Name="nhflow_ikomega.h"/>
             <File Name="nhflow_komega_void.h"/>
             <File Name="nhflow_komega_IM1.h"/>
@@ -1276,6 +1278,10 @@
             <File Name="nhflow_LES.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Komega">
+            <File Name="nhflow_ikomega.cpp"/>
+            <VirtualDirectory Name="BC">
+              <File Name="nhflow_bc_ikomega.cpp"/>
+            </VirtualDirectory>
             <File Name="nhflow_komega_void.cpp"/>
             <File Name="nhflow_komega_IM1.cpp"/>
           </VirtualDirectory>

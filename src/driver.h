@@ -61,6 +61,7 @@ class onephase;
 class nsewave;
 class nhflow_fsf;
 class nhflow_convection;
+class nhflow_turbulence;
 class nhflow_pressure;
 class sflow;
 class fnpf_vtu3D;
@@ -200,6 +201,7 @@ public:
     nhflow *pnhf;
     nhflow_convection *pnhfconvec;
     nhflow_pressure *pnhpress;
+    nhflow_turbulence *pnhfturb;
     multiphase *pmp;
     nhflow_timestep *pnhfstep;
     nhflow_momentum *pnhfmom;

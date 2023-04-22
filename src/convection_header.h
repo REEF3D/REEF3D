@@ -46,8 +46,6 @@ Author: Hans Bihs
 #include"idiff_IMEX.h"
 #include"idiff_IMEX_2D.h"
 
-#include"nhflow_weno_flux.h"
-
 #include"hires.h"
 
 #include"hric.h"

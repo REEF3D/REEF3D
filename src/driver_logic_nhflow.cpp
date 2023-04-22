@@ -115,7 +115,10 @@ void driver::logic_nhflow()
 
 //Turbulence
     if(p->T10==0)
-	pturb = new kepsilon_void(p,a,pgc);
+	pnhfturb = new nhflow_komega_void(p,d,pgc);
+    
+    if(p->T10==2)
+	pnhfturb = new nhflow_komega_IM1(p,d,pgc);
 
 //Solver
     if(p->j_dir==0)

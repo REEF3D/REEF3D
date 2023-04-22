@@ -22,7 +22,7 @@ Author: Hans Bihs
 
 class fdm_nhf;
 class lexer;
-class convection;
+class nhflow_convection;
 class diffusion;
 class solver;
 class ghostcell;

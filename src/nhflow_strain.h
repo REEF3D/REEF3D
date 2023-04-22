@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"gradient.h"
+#include"nhflow_gradient.h"
 #include"field1.h"
 #include"field2.h"
 #include"field3.h"
@@ -39,7 +39,7 @@ class nhflow_strain : public nhflow_gradient
 
 public:
 	nhflow_strain (lexer*,fdm_nhf*);
-	virtual ~_nhflowstrain();
+	virtual ~nhflow_strain();
 
 	double sij(lexer*,fdm_nhf*,int,int);
 	double qij(lexer*,fdm_nhf*,int,int);
@@ -47,13 +47,13 @@ public:
 	double pk_k(lexer*,fdm_nhf*);
 	double pk_w(lexer*,fdm_nhf*);
 	void Pk_update(lexer*,fdm_nhf*,ghostcell*);
-	void wallf_update(lexer*,fdm_nhf*,ghostcell*,fieldint&);
+	void wallf_update(lexer*,fdm_nhf*,ghostcell*,int*);
 	virtual double strainterm(lexer*,fdm_nhf*);
-    virtual double strainterm(lexer*,field&,field&,field&);
+    virtual double strainterm(lexer*,double*,double*,double*);
 	virtual double rotationterm(lexer*,fdm_nhf*);
-    virtual double rotationterm(lexer*,field&,field&,field&);
+    virtual double rotationterm(lexer*,double*,double*,double*);
 	virtual double magSqrSd(lexer*,fdm_nhf*);
-    virtual double magSqrSd(lexer*,field&,field&,field&);
+    virtual double magSqrSd(lexer*,double*,double*,double*);
 	double strainplain(lexer*,fdm_nhf*);
 	field4 Pk;
 
