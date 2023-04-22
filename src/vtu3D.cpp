@@ -46,7 +46,7 @@ Author: Hans Bihs
 #include"gage_discharge_window_x.h"
 #include"fsf_vtp.h"
 #include"topo_vtp.h"
-#include"state_cfd.h"
+#include"cfd_state.h"
 #include"bedshear_probe.h"
 #include"bedshear_max.h"
 #include"bedprobe_line_x.h"
@@ -167,7 +167,7 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
 	pforce[n]=new force(p,a,pgc,n);
 
 	if(p->P40>0)
-	pstate=new state_cfd(p,a,pgc);
+	pstate=new cfd_state(p,a,pgc);
 
     if(p->P101>0)
 	pslosh=new sloshing_force(p,a,pgc);

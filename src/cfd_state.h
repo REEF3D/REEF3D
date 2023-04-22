@@ -30,15 +30,15 @@ class sediment;
 
 using namespace std;
 
-#ifndef STATE_CFD_H_
-#define STATE_CFD_H_
+#ifndef CFD_STATE_H_
+#define CFD_STATE_H_
 
-class state_cfd : public increment
+class cfd_state : public increment
 {
 
 public:
-	state_cfd(lexer*,fdm*,ghostcell*);
-	virtual ~state_cfd();
+	cfd_state(lexer*,fdm*,ghostcell*);
+	virtual ~cfd_state();
 	virtual void write(lexer*,fdm*,ghostcell*,turbulence*,sediment*);
     virtual void read(lexer*,fdm*,ghostcell*,turbulence*,sediment*);
 	

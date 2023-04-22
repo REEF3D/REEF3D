@@ -46,7 +46,7 @@ class gage_discharge_x;
 class gage_discharge_window_x;
 class fsf_vtp;
 class topo_vtp;
-class state_cfd;
+class cfd_state;
 class bedshear_probe;
 class bedshear_max;
 class sloshing_force;
@@ -112,7 +112,7 @@ private:
     gage_discharge_window_x *pqw;
 	fsf_vtp *pfsf;
     topo_vtp *ptopo;
-	state_cfd *pstate;
+	cfd_state *pstate;
     sloshing_force *pslosh;
 	print_porous *ppor;
     exportfile *pexport;

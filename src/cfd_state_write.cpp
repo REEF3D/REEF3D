@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"state_cfd.h"
+#include"cfd_state.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -31,7 +31,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void state_cfd::write(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sediment *psed)
+void cfd_state::write(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sediment *psed)
 {
     // Open File
 	int num=0;

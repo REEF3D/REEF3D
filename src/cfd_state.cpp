@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"state_cfd.h"
+#include"cfd_state.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -29,7 +29,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-state_cfd::state_cfd(lexer *p, fdm *a, ghostcell *pgc)
+cfd_state::cfd_state(lexer *p, fdm *a, ghostcell *pgc)
 {	
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
@@ -38,6 +38,6 @@ state_cfd::state_cfd(lexer *p, fdm *a, ghostcell *pgc)
 	printcount=0;
 }
 
-state_cfd::~state_cfd()
+cfd_state::~cfd_state()
 {
 }
