@@ -48,7 +48,7 @@ public:
     
     void velcalc(lexer*, fdm_fnpf*, ghostcell *pgc, field&);
     
-    void restart(lexer*, fdm_fnpf*, ghostcell *pgc);
+    void fnpf_restart(lexer*, fdm_fnpf*, ghostcell *pgc);
     void filename(lexer*, fdm_fnpf*, ghostcell *pgc,int);
     
 private:

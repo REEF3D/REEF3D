@@ -2504,6 +2504,8 @@
           <File Name="nodefill.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="State">
+          <File Name="cfd_state_header.cpp"/>
+          <File Name="cfd_state_mainheader.cpp"/>
           <File Name="cfd_state_write.cpp"/>
           <File Name="cfd_state_read.cpp"/>
           <File Name="cfd_state_filename.cpp"/>

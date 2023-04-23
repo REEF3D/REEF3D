@@ -45,6 +45,7 @@ Author: Hans Bihs
 
 void cfd_state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sediment *psed)
 {
+    /*
     // Open File
 	filename(p,a,pgc,p->I41);
 	
@@ -192,6 +193,7 @@ void cfd_state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sedime
 	pgc->start4(p,a->conc,40);
 	
 	result.close();
+    */
 }
 
 

@@ -259,7 +259,7 @@ void fnpf_RK3::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, sol
 
     if(p->I40==1)
     {
-    restart(p,c,pgc);
+    fnpf_restart(p,c,pgc);
     
     
     sigma_update(p,c,pgc,pf,c->eta);

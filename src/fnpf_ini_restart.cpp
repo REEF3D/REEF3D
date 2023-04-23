@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"convection.h"
 #include"ioflow.h"
 
-void fnpf_ini::restart(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+void fnpf_ini::fnpf_restart(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
 
     float ffn;
