@@ -37,7 +37,7 @@ cfd_state::cfd_state(lexer *p, fdm *a, ghostcell *pgc)
 	
 	printcount=0;
     
-    file_version=4;
+    file_version=6;
     
     file_type=p->P45;
     

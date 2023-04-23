@@ -77,12 +77,6 @@ void cfd_state::write_result(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb
     
     // result section
     
-    ALOOP
-    {
-    ffn=a->topo(i,j,k);
-    result.write((char*)&ffn, sizeof (float));
-    } 
-    
     ULOOP
     {
     ffn=a->u(i,j,k);
@@ -128,6 +122,12 @@ void cfd_state::write_result(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb
 	LOOP
     {
     ffn=a->eddyv(i,j,k);
+    result.write((char*)&ffn, sizeof (float));
+    } 
+    
+    ALOOP
+    {
+    ffn=a->topo(i,j,k);
     result.write((char*)&ffn, sizeof (float));
     } 
 
