@@ -62,7 +62,7 @@ void driver::driver_ini_nhflow()
 	{
 	++count;
 	++p->pointnum;
-    d->nodeval(i,j,k)=count;
+    d->NODEVAL[IJK]=count;
 	}
 
 	LOOP
@@ -84,7 +84,7 @@ void driver::driver_ini_nhflow()
 	{
 	++count;
 	++p->pointnum2D;
-	d->nodeval2D(i,j)=count;
+	d->NODEVAL2D[IJ]=count;
     }
 	
 	SLICEBASELOOP
@@ -188,8 +188,8 @@ void driver::driver_ini_nhflow()
 // ini variables
     for(int qn=0; qn<2; ++qn)
     {
-    pturb->ktimesave(p,a,pgc);
-    pturb->etimesave(p,a,pgc);
+    pnhfturb->ktimesave(p,d,pgc);
+    pnhfturb->etimesave(p,d,pgc);
     }
 
     p->gctime=0.0;

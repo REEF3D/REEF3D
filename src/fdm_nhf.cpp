@@ -23,7 +23,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"lexer.h"
 
-fdm_nhf::fdm_nhf(lexer *p) :  press(p),nodeval(p),eta(p),etaloc(p),
+fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
                               wet_n(p),breaking(p),breaklog(p),bc(p),
                               eta_n(p),WL(p),WL_n(p),
                               bed(p),depth(p),K(p),
@@ -33,7 +33,7 @@ fdm_nhf::fdm_nhf(lexer *p) :  press(p),nodeval(p),eta(p),etaloc(p),
                               hx(p),hy(p),
                               wbed(p),dwdt(p),
                               coastline(p),vb(p),
-                              nodeval2D(p),breaking_print(p),
+                              breaking_print(p),
                               rhsvec(p),rvec(p),xvec(p),N(p),M(p)
 {    
     p->Darray(U,p->imax*p->jmax*(p->kmax+2));
@@ -41,6 +41,7 @@ fdm_nhf::fdm_nhf(lexer *p) :  press(p),nodeval(p),eta(p),etaloc(p),
     p->Darray(W,p->imax*p->jmax*(p->kmax+2));
     p->Darray(omega,p->imax*p->jmax*(p->kmax+2));
     
+
     p->Darray(P,p->imax*p->jmax*(p->kmax+2));
     p->Darray(ro,p->imax*p->jmax*(p->kmax+2));
     p->Darray(visc,p->imax*p->jmax*(p->kmax+2));
@@ -53,6 +54,9 @@ fdm_nhf::fdm_nhf(lexer *p) :  press(p),nodeval(p),eta(p),etaloc(p),
     
     p->Darray(porosity,p->imax*p->jmax*(p->kmax+2));
     p->Darray(test,p->imax*p->jmax*(p->kmax+2));
+    
+    p->Iarray(NODEVAL,p->imax*p->jmax*(p->kmax+2));
+    p->Iarray(NODEVAL2D,p->imax*p->jmax);
 
     C4.allocate(p);
 }

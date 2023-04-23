@@ -69,9 +69,9 @@ void driver::logic_nhflow()
 //discretization scheme
 
     //Convection	
-	/*if(p->D10==0)
-	pconvec=new convection_void(p);
-
+	if(p->D10==0)
+	pnhfconvec=new nhflow_convection_void(p);
+/*
 	if(p->D10==1)
 	pconvec=new fou(p);
 

@@ -53,6 +53,8 @@ nb 7
 nt 8 -
 */
 
+/*
+
 	n=0;
     KJILOOP
 	{
@@ -213,7 +215,7 @@ nt 8 -
         }
         
 	++n;
-	}
+	}*/
 }
 
 void nhflow_pjm_ss::poisson3D(lexer* p, fdm_nhf *d, field &f)

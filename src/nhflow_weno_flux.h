@@ -41,9 +41,9 @@ public:
 private:
     double aij(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);
     
-	virtual double fx(lexer*, fdm_nhf*, double*, double*, int, double);
-	virtual double fy(lexer*, fdm_nhf*, double*, double*, int, double);
-	virtual double fz(lexer*, fdm_nhf*, double*, double*, int, double);
+	double fx(lexer*, fdm_nhf*, double*, double*, int, double);
+	double fy(lexer*, fdm_nhf*, double*, double*, int, double);
+	double fz(lexer*, fdm_nhf*, double*, double*, int, double);
 	void iqmin(lexer*, double*, double*, int);
 	void jqmin(lexer*, double*, double*, int);
 	void kqmin(lexer*, double*, double*, int);

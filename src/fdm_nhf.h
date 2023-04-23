@@ -20,8 +20,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"field4.h"
-#include"fieldint5.h"
 #include"slice1.h"
 #include"slice2.h"
 #include"slice4.h"
@@ -47,8 +45,8 @@ public:
 
     fdm_nhf(lexer*);
    
-    field4 press;
-    fieldint5 nodeval;
+    int *NODEVAL;
+    int *NODEVAL2D;
     
     slice4 eta,eta_n,WL,WL_n;
     slice4 bed,depth;
@@ -64,7 +62,6 @@ public:
     slice4 coastline;
     slice4 vb;
     
-    sliceint5 nodeval2D;
     slice4 breaking_print;
     
     // NHFLOW

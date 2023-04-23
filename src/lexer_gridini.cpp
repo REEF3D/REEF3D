@@ -56,7 +56,6 @@ void lexer::flagini()
 	makeflag(tpflag);
 
 	
-
 	
 	x_dir=y_dir=z_dir=1.0;
 	

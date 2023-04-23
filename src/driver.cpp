@@ -102,6 +102,7 @@ driver::driver(int& argc, char **argv)
         pgc->flagfield(p);
         pgc->tpflagfield(p);
         makegrid_sigma(p,pgc);
+        //makegrid(p,pgc);
         makegrid2D(p,pgc);
         
         pgc->ndflag_update(p);

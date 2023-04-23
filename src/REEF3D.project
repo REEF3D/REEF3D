@@ -248,6 +248,7 @@
           <File Name="nhflow_turbulence.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="nhflow_convection_void.h"/>
           <File Name="nhflow_weno_flux.h"/>
           <VirtualDirectory Name="Flux">
             <File Name="nhflow_flux.h"/>
@@ -1289,6 +1290,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="nhflow_convection_void.cpp"/>
           <VirtualDirectory Name="Flux">
             <File Name="nhflow_flux_face_cds2.cpp"/>
           </VirtualDirectory>

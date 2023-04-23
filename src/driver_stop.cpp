@@ -72,8 +72,8 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
      if(p->A10==3)
      pfprint->print_stop(p,c,pgc);
     
-     if(p->A10==4 || p->A10==55 || p->A10==6)
-     pprint->print_stop(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
+     if(p->A10==4 || p->A10==6)
+     pprint->print_stop(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);        if(p->A10==55)    pnhfprint->start(p,d,pgc,pflow);
      
      pgc->final();
      exit(0);

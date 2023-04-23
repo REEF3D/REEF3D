@@ -231,12 +231,13 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     if(d->breaking(i,j)==0)
     d->breaking_print(i,j)=0.0;
     }
-
+    
     //
     pgc->gcsl_start4(p,d->WL,50);
     pgc->gcsl_start4(p,d->bed,50);
     pgc->gcsl_start4(p,d->breaking_print,50);
     //pgc->start4(p,d->test,1);
+
 
     pgc->dgcslpol(p,d->WL,p->dgcsl4,p->dgcsl4_count,14);
     pgc->dgcslpol(p,d->breaking_print,p->dgcsl4,p->dgcsl4_count,14);
@@ -348,7 +349,6 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 //----------------------------------------------------------------------------
     result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
 
-
 //  Velocities
     iin=3*4*(p->pointnum);
 	result.write((char*)&iin, sizeof (int));
@@ -415,7 +415,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 
     if(p->B192==1 && p->simtime>=p->B194_s && p->simtime<=p->B194_e)
     phase = omega_y*p->simtime;
-
+    
 	iin=4*(p->pointnum)*3;
 	result.write((char*)&iin, sizeof (int));
     TPLOOP
@@ -424,7 +424,8 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 
     zcoor = p->ZN[KP1]*waterlevel + p->sl_ipol4(d->bed);
 
-
+    
+    
     if(p->wet[IJ]==0)
     zcoor=d->bed(i,j);
 
@@ -440,38 +441,38 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 	ffn=float((p->XN[IP1]-p->B192_3)*sin(theta_y*sin(phase)) + (zcoor-p->B192_4)*cos(theta_y*sin(phase)) + p->B192_4);
 	result.write((char*)&ffn, sizeof (float));
 	}
-
+    
 //  Connectivity
     iin=4*(p->tpcellnum)*8;
     result.write((char*)&iin, sizeof (int));
     BASELOOP
     if(p->flag5[IJK]!=-20 && p->flag5[IJK]!=-30)
 	{
-	iin=int(d->nodeval(i-1,j-1,k-1)-1);
+    iin=int(d->NODEVAL[Im1Jm1Km1])-1;
 	result.write((char*)&iin, sizeof (int));
 
-	iin=int(d->nodeval(i,j-1,k-1))-1;
+    iin=int(d->NODEVAL[IJm1Km1])-1;
 	result.write((char*)&iin, sizeof (int));
 
-    iin= int(d->nodeval(i,j,k-1))-1;
+    iin= int(d->NODEVAL[IJKm1])-1;
 	result.write((char*)&iin, sizeof (int));
 
-	iin=int(d->nodeval(i-1,j,k-1))-1;
+	iin=int(d->NODEVAL[Im1JKm1])-1;
 	result.write((char*)&iin, sizeof (int));
 
-	iin=int(d->nodeval(i-1,j-1,k))-1;
+	iin=int(d->NODEVAL[Im1Jm1K])-1;
 	result.write((char*)&iin, sizeof (int));
 
-	iin=int(d->nodeval(i,j-1,k))-1;
+	iin=int(d->NODEVAL[IJm1K])-1;
 	result.write((char*)&iin, sizeof (int));
 
-	iin=int(d->nodeval(i,j,k))-1;
+	iin=int(d->NODEVAL[IJK])-1;
 	result.write((char*)&iin, sizeof (int));
 
-	iin=int(d->nodeval(i-1,j,k))-1;
+	iin=int(d->NODEVAL[Im1JK])-1;
 	result.write((char*)&iin, sizeof (int));
 	}
-
+    
 //  Offset of Connectivity
     iin=4*(p->tpcellnum);
     result.write((char*)&iin, sizeof (int));
