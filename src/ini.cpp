@@ -397,7 +397,7 @@ void lexer::ini_default()
 	I30=0;			// int Fully intialize NWT
 	I40=0;			// int ini from state file
 	I41=0;			// int ID of state file
-    I44=1;          // int FNPF state with Fi
+    I44=0;          // int FNPF state with Fi
     I50=0;			// double simtime ini
     I55=0.0;        // double reference pressure
 	I56=0;          // int pressure above F56 set to zero
@@ -507,9 +507,6 @@ void lexer::ini_default()
 	P182=-1.0;       // double time between fsf file printout in seconds
     P184=0;       // int time between file printout in iterations
 	P185=0;        	// int time between file printout in seconds    P190=0;			  // int print topo	P191=-10;		  // int ith iteration topo printed	P192=-1.0;       // double time between topo file printout in seconds    P194=0;       // int time between file printout in iterations	P195=0;        	// int time between file printout in seconds
-    P210=0;			  // int print exportfile
-	P211=1;		  // int ith iteration export printed
-	P212=-1.0;       // double time between export file printout in seconds
     P230=0;         // int print flowfile
     P240=0;         // int print potentialfile
 	P351=0;             // int print out wsf lsm1

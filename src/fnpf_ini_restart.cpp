@@ -23,82 +23,48 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
-#include"reini.h"
-#include"convection.h"
-#include"ioflow.h"
 
 void fnpf_ini::fnpf_restart(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
 
-    float ffn;
-	int iin;
-	double ddn;
-	int printcount;
-
 // Open File
+    // read mainheader, find file_type
+    fnpf_restart_mainheader(p,c,pgc);
+    
+    // if single file
+    if(file_type==1)
 	filename(p,c,pgc,p->I41);
+    
+    // if contiuous file
+    if(file_type==2)
+    {
+        if(p->P14==0)
+        sprintf(name,"REEF3D_FNPF-State-%05d.r3d",p->mpirank+1);
+        
+        if(p->P14==1)
+        sprintf(name,"./REEF3D_FNPF_STATE/REEF3D_FNPF-State-%05d.r3d",p->mpirank+1);
+    }
 	
-	
-	ifstream result;
+    // open file
 	result.open(name, ios::binary);
 	
+    // read single state file
+    if(file_type==1) 
+    fnpf_restart_read(p,c,pgc);
     
-    // head section
-    result.read((char*)&iin, sizeof (int));
-    
-    result.read((char*)&iin, sizeof (int));
-	p->count=p->count_statestart=iin;
-	
-    result.read((char*)&iin, sizeof (int));
-	p->printcount=iin;
-	
-    result.read((char*)&ddn, sizeof (double));
-	p->simtime=ddn;
-    
-    result.read((char*)&ddn, sizeof (double));
-	p->printtime=ddn;
-    
-    result.read((char*)&ddn, sizeof (double));
-	p->sedprinttime=ddn;
-    
-    result.read((char*)&ddn, sizeof (double));
-	p->fsfprinttime=ddn;
-    
-    result.read((char*)&ddn, sizeof (double));
-	p->probeprinttime=ddn;
-    
-    result.read((char*)&ddn, sizeof (double));
-	p->stateprinttime=ddn;
-    
-    // result section
-    SLICELOOP4
+    // read continuous state file
+    if(file_type==2)
+    do
     {
-    result.read((char*)&ffn, sizeof (float));
-    c->eta(i,j)=double(ffn);
-    } 
-    
-    SLICELOOP4
-    {
-    result.read((char*)&ffn, sizeof (float));
-    c->Fifsf(i,j)=double(ffn);
-    } 
-    
-    FLOOP
-    result.read((char*)&ffn, sizeof (float));
-    
-    FLOOP
-    result.read((char*)&ffn, sizeof (float));
-    
-    FLOOP
-    result.read((char*)&ffn, sizeof (float));
-    
-    if(p->I44==1)
-    FLOOP
-    result.read((char*)&ffn, sizeof (float));
+        fnpf_restart_read(p,c,pgc);
+         
+    }while(p->count_statestart<p->I41);
 
-	
+	result.close();
     
-    // ghostell update
+    
+    // ----------------------
+    // finish: ghostell update
 	int gcval,gcval_u,gcval_v,gcval_w;
     int gcval_eta,gcval_fifsf;
     
@@ -126,7 +92,5 @@ void fnpf_ini::fnpf_restart(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
 	
 
-	result.close();
-    
 }
 

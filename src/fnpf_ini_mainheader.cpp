@@ -20,30 +20,44 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"export.h"
+#include"fnpf_ini.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_fnpf.h"
 #include"ghostcell.h"
 
-void exportfile::preproc(lexer *p, fdm *a, ghostcell *pgc)
+
+void fnpf_ini::fnpf_restart_mainheader(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    xs = p->originx;
-    ys = p->originy;
-    zs = p->originz;
+    ifstream mainhead;
+    int ii1,ii2;
     
-    xe = (double(p->knox)+0.5)*p->DXM + p->originx;
-    ye = (double(p->knoy)+0.5)*p->DXM + p->originy;
-    ze = (double(p->knoz)+0.5)*p->DXM + p->originz;
-    /*
-    LOOP
-    eta[i][j]=p->global_zmin-1.0e20;
+    sprintf(name,"./REEF3D_FNPF_STATE/REEF3D-FNPF_State_Mainheader.r3d");
     
-    // eta 
-    LOOP
-    if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
-    eta[i][j] = MAX(eta[i][j], -(a->phi(i,j,k)*p->DXM)/(a->phi(i,j,k+1)-a->phi(i,j,k)) + p->pos_z());
+	mainhead.open(name, ios::binary);
     
-    pgc->verticalmax(p,a,eta);*/
+    // count numiter
+    mainhead.read((char*)&iin, sizeof (int));
+	//numprocs=iin;
     
+    mainhead.read((char*)&iin, sizeof (int));
+	//jdir=iin;
+    
+    mainhead.read((char*)&iin, sizeof (int));
+	//NGx=iin;
+    
+    mainhead.read((char*)&iin, sizeof (int));
+	//NGy=iin;
+    
+    mainhead.read((char*)&iin, sizeof (int));
+	//NGz=iin;
+    
+    mainhead.read((char*)&iin, sizeof (int));
+	//file_version=iin;
+    
+    mainhead.read((char*)&iin, sizeof (int));
+	file_type=iin;
+    
+    mainhead.close();
+
     
 }

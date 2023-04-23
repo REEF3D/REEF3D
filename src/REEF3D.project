@@ -902,9 +902,6 @@
           <File Name="vtu3D.h"/>
         </VirtualDirectory>
         <File Name="print_interface.h"/>
-        <VirtualDirectory Name="Export">
-          <File Name="export.h"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="Force">
           <File Name="force.h"/>
         </VirtualDirectory>
@@ -1418,6 +1415,8 @@
           <File Name="fnpf_laplace_cds2.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Initialize">
+          <File Name="fnpf_ini_restart_read.cpp"/>
+          <File Name="fnpf_ini_mainheader.cpp"/>
           <File Name="fnpf_ini_restart_filename.cpp"/>
           <File Name="fnpf_ini_restart.cpp"/>
           <File Name="fnpf_ini.cpp"/>
@@ -2518,11 +2517,6 @@
           <File Name="print_porous.cpp"/>
           <File Name="print_porous_vtp.cpp"/>
           <File Name="print_porous_obj.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Export">
-          <File Name="export.cpp"/>
-          <File Name="export_filename.cpp"/>
-          <File Name="export_preproc.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Force">
           <File Name="force_vtp.cpp"/>

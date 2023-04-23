@@ -55,7 +55,6 @@ Author: Hans Bihs
 #include"sediment.h"
 #include"sloshing_force.h"
 #include"print_porous.h"
-#include"export.h"
 #include"flowfile_out.h"
 #include"print_averaging_f.h"
 #include"print_averaging_v.h"
@@ -132,9 +131,6 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
     
     if(p->P190==1)
 	ptopo = new topo_vtp(p,a,pgc);
-
-    if(p->P210==1)
-	pexport = new exportfile(p,a,pgc);
 
 	if(p->P75==0)
 	pvort = new vorticity_void(p,a);
@@ -359,16 +355,6 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
 
 		printfsftime_wT[qn]+=p->P195_dt[qn];
 		}
-
-        // Print Export
-        if(p->count%p->P211==0 && p->P212<0.0 && p->P210==1)
-		pexport->start(p,a,pgc);
-
-		if((p->simtime>p->exportprinttime && p->P212>0.0 && p->P210==1) || (p->count==0 &&  p->P212>0.0))
-        {
-        pexport->start(p,a,pgc);
-        p->exportprinttime+=p->P212;
-        }
 
         if(p->P230>0)
         pflowfile->start(p,a,pgc,pturb);
