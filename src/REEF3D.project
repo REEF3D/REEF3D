@@ -292,6 +292,11 @@
           <File Name="nhflow_momentum_RK3.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <VirtualDirectory Name="Discretization">
+            <File Name="nhflow_hxy_flux.h"/>
+            <File Name="nhflow_hxy_disc.h"/>
+            <File Name="nhflow_hxy_fou.h"/>
+          </VirtualDirectory>
           <File Name="nhflow_fsf_rk.h"/>
           <File Name="nhflow_fsf_fsm.h"/>
           <File Name="nhflow_fsf_v.h"/>
@@ -1335,6 +1340,10 @@
           <File Name="nhflow_momentum_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <VirtualDirectory Name="Discretization">
+            <File Name="nhflow_hxy_flux.cpp"/>
+            <File Name="nhflow_hxy_fou.cpp"/>
+          </VirtualDirectory>
           <File Name="nhflow_fsf_rk.cpp"/>
           <File Name="nhflow_fsf_fsm.cpp"/>
           <File Name="nhflow_fsf_v.cpp"/>

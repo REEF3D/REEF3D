@@ -31,6 +31,7 @@ class solver;
 class ioflow;
 class nhflow;
 class nhflow_fsf;
+class nhflow_turbulence;
 class vrans;
 
 using namespace std;
@@ -42,7 +43,7 @@ class nhflow_momentum
 {
 public:
 
-	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_convection*, diffusion*, nhflow_pressure*, solver*, nhflow*, nhflow_fsf*, vrans*)=0;
+	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_convection*, diffusion*, nhflow_pressure*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*, vrans*)=0;
 
 };
 

@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,39 +20,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_momentum.h"
-#include"slice4.h"
-#include"bcmom.h"
+class lexer;
+class slice;
+class sliceint;
+class patchBC_interface;
 
+#ifndef NHFLOW_HX_DISC_H_
+#define NHFLOW_HX_DISC_H_
 
 using namespace std;
 
-#ifndef NHFLOW_MOMENTUM_RK3_H_
-#define NHFLOW_MOMENTUM_RK3_H_
-
-class nhflow_momentum_RK3 : public nhflow_momentum, public bcmom
+class nhflow_hxy_disc 
 {
 public:
-	nhflow_momentum_RK3(lexer*, fdm_nhf*, ghostcell*);
-	virtual ~nhflow_momentum_RK3();
-    
-	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_convection*, diffusion*, nhflow_pressure*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*,  vrans*);
+	virtual void start(lexer*,slice&,slice&,slice&,int*,slice&,slice&,slice&)=0;
 
-
-    double *UDIFF,*URK1,*URK2;
-    double *VDIFF,*VRK1,*VRK2;
-    double *WDIFF,*WRK1,*WRK2;
-    
-    slice4 etark1,etark2;
-
-private:
-
-	void irhs(lexer*,fdm_nhf*,ghostcell*);
-	void jrhs(lexer*,fdm_nhf*,ghostcell*);
-	void krhs(lexer*,fdm_nhf*,ghostcell*);
-	
-	int gcval_u, gcval_v, gcval_w;
-	double starttime;
 };
 
 #endif

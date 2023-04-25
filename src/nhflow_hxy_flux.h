@@ -20,39 +20,29 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_momentum.h"
-#include"slice4.h"
-#include"bcmom.h"
+#include"increment.h"
 
+class lexer;
+class slice;
+
+#ifndef NHFLOW_HXY_FLUX_H_
+#define NHFLOW_HXY_FLUX_H_
 
 using namespace std;
 
-#ifndef NHFLOW_MOMENTUM_RK3_H_
-#define NHFLOW_MOMENTUM_RK3_H_
-
-class nhflow_momentum_RK3 : public nhflow_momentum, public bcmom
+class nhflow_hxy_flux : public increment
 {
 public:
-	nhflow_momentum_RK3(lexer*, fdm_nhf*, ghostcell*);
-	virtual ~nhflow_momentum_RK3();
-    
-	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_convection*, diffusion*, nhflow_pressure*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*,  vrans*);
 
+	nhflow_hxy_flux (lexer *p);
+	virtual ~nhflow_hxy_flux();
 
-    double *UDIFF,*URK1,*URK2;
-    double *VDIFF,*VRK1,*VRK2;
-    double *WDIFF,*WRK1,*WRK2;
-    
-    slice4 etark1,etark2;
+	void u_flux(int,slice&,double&,double&);
+	void v_flux(int,slice&,double&,double&);
 
 private:
-
-	void irhs(lexer*,fdm_nhf*,ghostcell*);
-	void jrhs(lexer*,fdm_nhf*,ghostcell*);
-	void krhs(lexer*,fdm_nhf*,ghostcell*);
-	
-	int gcval_u, gcval_v, gcval_w;
-	double starttime;
+    lexer *p;
+    
 };
 
 #endif

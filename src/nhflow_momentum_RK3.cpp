@@ -34,6 +34,7 @@ Author: Hans Bihs
 #include"nhflow.h"
 #include"nhflow.h"
 #include"nhflow_fsf.h"
+#include"nhflow_turbulence.h"
 #include"vrans.h"
 
 nhflow_momentum_RK3::nhflow_momentum_RK3(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -61,7 +62,7 @@ nhflow_momentum_RK3::~nhflow_momentum_RK3()
 }
 
 void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_convection *pconvec, diffusion *pdiff, 
-                                     nhflow_pressure *ppress, solver *psolv, nhflow *pnhf, nhflow_fsf *pfsf, vrans *pvrans)
+                                     nhflow_pressure *ppress, solver *psolv, nhflow *pnhf, nhflow_fsf *pfsf, nhflow_turbulence *pnhfturb, vrans *pvrans)
 {	
     pflow->discharge_nhflow(p,d,pgc);
     pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W);
@@ -76,7 +77,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	// U
 	starttime=pgc->timer();
 
-	//pturb->isource(p,a);
+	pnhfturb->isource(p,d);
 	pflow->isource_nhflow(p,d,pgc,pvrans); 
 	//bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,d,etark1,d->eta);
@@ -93,7 +94,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	// V
 	starttime=pgc->timer();
 
-	//pturb->jsource(p,a);
+	pnhfturb->jsource(p,d);
 	pflow->jsource_nhflow(p,d,pgc,pvrans); 
 	//bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
     ppress->vpgrad(p,d,etark1,d->eta);
@@ -110,7 +111,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	// W
 	starttime=pgc->timer();
 
-	//pturb->ksource(p,a);
+	pnhfturb->ksource(p,d);
 	//pflow->ksource_nhflow(p,d,pgc,pvrans); 
 	//bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
 	ppress->wpgrad(p,d,etark1,d->eta);
@@ -159,7 +160,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	// U
 	starttime=pgc->timer();
 
-	//pturb->isource(p,a);
+	pnhfturb->isource(p,d);
 	//pflow->isource(p,a,pgc,pvrans);
 	//bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,d,etark2,etark1);
@@ -176,7 +177,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	// V
 	starttime=pgc->timer();
 
-	//pturb->jsource(p,a);
+	pnhfturb->jsource(p,d);
 	//pflow->jsource(p,a,pgc,pvrans);
 	//bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
 	ppress->vpgrad(p,d,etark2,etark1);
@@ -193,7 +194,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	// W
 	starttime=pgc->timer();
 
-	//pturb->ksource(p,a);
+	pnhfturb->ksource(p,d);
 	//pflow->ksource(p,a,pgc,pvrans);
 	//bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
 	ppress->wpgrad(p,d,etark2,etark1);
@@ -236,12 +237,12 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 //Step 3
 //--------------------------------------------------------
     
-    pfsf->step2(p, d, pgc, pflow, URK2, VRK2, WRK2, etark1, etark2, 2.0/3.0);
+    pfsf->step3(p, d, pgc, pflow, URK2, VRK2, WRK2, etark1, etark2, 2.0/3.0);
     
 	// U
 	starttime=pgc->timer();
 
-	//pturb->isource(p,a);
+	pnhfturb->isource(p,d);
 	//pflow->isource(p,a,pgc,pvrans);
 	//bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,d,d->eta,etark2);
@@ -258,7 +259,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	// V
 	starttime=pgc->timer();
 
-	//pturb->jsource(p,a);
+	pnhfturb->jsource(p,d);
 	//pflow->jsource(p,a,pgc,pvrans);
 	//bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
 	ppress->vpgrad(p,d,d->eta,etark2);
@@ -275,7 +276,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	// W
 	starttime=pgc->timer();
 
-	//pturb->ksource(p,a);
+	pnhfturb->ksource(p,d);
 	//pflow->ksource(p,a,pgc,pvrans);
 	//bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
 	ppress->wpgrad(p,d,d->eta,etark2);
