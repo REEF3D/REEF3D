@@ -184,9 +184,8 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *si
     
     sign=lsv/sqrt(lsv*lsv+ dnorm*dnorm*deltax*deltax);
     
-    
-    if(a->solid(i,j,k)<1.1*p->DXM)
-    sign=lsv/sqrt(lsv*lsv+ 20.0*dnorm*dnorm*deltax*deltax);
+    //if(a->solid(i,j,k)<1.1*p->DXM)
+    //sign=lsv/sqrt(lsv*lsv+ 20.0*dnorm*dnorm*deltax*deltax);
         
     if(sign!=sign)
     sign= 1.0;
@@ -204,5 +203,5 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *si
 
 	L.V[n] = -(sign*dnorm - sign) + diffterm;
     
-    a->test(i,j,k) = dz;
+    //a->test(i,j,k) = dz;
 }
