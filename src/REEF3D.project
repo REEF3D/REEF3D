@@ -263,6 +263,10 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Initialize"/>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Flux HLL">
+            <File Name="nhflow_flux_HLL.h"/>
+            <File Name="nhflow_flux_reconstruct.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Gradient">
             <File Name="nhflow_gradient.h"/>
           </VirtualDirectory>
@@ -1313,6 +1317,10 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Flux HLL">
+            <File Name="nhflow_flux_HLL.cpp"/>
+            <File Name="nhflow_flux_reconstruct.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Gradient">
             <File Name="nhflow_gradient.cpp"/>
           </VirtualDirectory>
