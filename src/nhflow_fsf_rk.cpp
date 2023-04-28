@@ -33,8 +33,9 @@ Author: Hans Bihs
 #include"sflow_hxy_cds.h"
 #include"sflow_hxy_fou.h"
 #include"patchBC_interface.h"
+#include"nhflow_flux_HLL.h"
 
-nhflow_fsf_rk::nhflow_fsf_rk(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow, patchBC_interface *ppBC) : epsi(p->A440*p->DXM),P(p),Q(p)
+nhflow_fsf_rk::nhflow_fsf_rk(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow, patchBC_interface *ppBC) : epsi(p->A440*p->DXM),P(p),Q(p),K(p)
 {
     pBC = ppBC;
     
@@ -48,6 +49,12 @@ nhflow_fsf_rk::nhflow_fsf_rk(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow
 	
 	if(p->A541==4)
 	phxy = new sflow_hxy_weno(p,pBC);
+    
+    pHLL = new nhflow_flux_HLL(p,pBC);
+    
+    p->Darray(Fx,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Fy,p->imax*p->jmax*(p->kmax+2));
+    
 }
 
 nhflow_fsf_rk::~nhflow_fsf_rk()
@@ -70,35 +77,22 @@ void nhflow_fsf_rk::ini(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow)
 void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
 {    
     SLICELOOP1
-    P(i,j)=0.0;
+    d->ETAx_n(i,j) = d->ETAx(i,j);
     
     SLICELOOP2
-    Q(i,j)=0.0;
-
-    LOOP
-    P(i,j) += U[IJK]*p->DZN[KP];
-
-    LOOP
-	Q(i,j) += V[IJK]*p->DZN[KP];
+    d->ETAy_n(i,j) = d->ETAy(i,j);
     
-    pgc->gcsl_start1(p,P,10);
-    pgc->gcsl_start2(p,Q,11);
+    pHLL->face_flux_3D(p,d,d->eta,U,V,Fx,Fy);
     
-    phxy->start(p,d->hx,d->hy,d->depth,p->wet,d->eta,P,Q);
-    
-    SLICELOOP1
-    P(i,j) *= d->hx(i,j);
-
-    SLICELOOP2
-	Q(i,j) *= d->hy(i,j);
-
-	pgc->gcsl_start1(p,P,10);
-    pgc->gcsl_start2(p,Q,11);
-
     SLICELOOP4
-    etark1(i,j) = d->eta(i,j)
-
-                - p->dt*((P(i,j)-P(i-1,j))/p->DXN[IP] + (Q(i,j)-Q(i,j-1))/p->DYN[JP]);
+    K(i,j) = 0.0;
+    
+    LOOP
+    K(i,j) += -p->DZN[KP]*d->WL(i,j)*((Fx[IJK] - Fx[Im1JK])/p->DXN[IP]  + 0.0*(Fy[IJK] - Fy[IJm1K])/p->DYN[JP]);
+    
+    SLICELOOP4
+    etark1(i,j) = d->eta(i,j) + p->dt*K(i,j);
+     
 
     pflow->eta_relax(p,pgc,etark1);
     pgc->gcsl_start4(p,etark1,1);
@@ -110,35 +104,21 @@ void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
 void nhflow_fsf_rk::step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
 {
     SLICELOOP1
-    P(i,j)=0.0;
+    d->ETAx_n(i,j) = d->ETAx(i,j);
     
     SLICELOOP2
-    Q(i,j)=0.0;
-
-    ULOOP
-    P(i,j) += U[IJK]*p->DZN[KP];
-
-    VLOOP
-	Q(i,j) += V[IJK]*p->DZN[KP];
+    d->ETAy_n(i,j) = d->ETAy(i,j);
     
-    pgc->gcsl_start1(p,P,10);
-    pgc->gcsl_start2(p,Q,11);
+    pHLL->face_flux_3D(p,d,etark1,U,V,Fx,Fy);
     
-    phxy->start(p,d->hx,d->hy,d->depth,p->wet,etark1,P,Q);
-    
-    SLICELOOP1
-    P(i,j) *= d->hx(i,j);
-
-    SLICELOOP2
-	Q(i,j) *= d->hy(i,j);
-
-	pgc->gcsl_start1(p,P,10);
-    pgc->gcsl_start2(p,Q,11);
-
     SLICELOOP4
-    etark2(i,j) = 0.75*d->eta(i,j) + 0.25*etark1(i,j)
-
-                - 0.25*p->dt*((P(i,j)-P(i-1,j))/p->DXN[IP] + (Q(i,j)-Q(i,j-1))/p->DYN[JP]);
+    K(i,j) = 0.0;
+    
+    LOOP
+    K(i,j) += -p->DZN[KP]*d->WL(i,j)*((Fx[IJK] - Fx[Im1JK])/p->DXN[IP]  + 0.0*(Fy[IJK] - Fy[IJm1K])/p->DYN[JP]);
+    
+    SLICELOOP4
+    etark2(i,j) = 0.75*d->eta(i,j) + 0.25*etark1(i,j) + 0.25*p->dt*K(i,j);
 
     pflow->eta_relax(p,pgc,etark2);
     pgc->gcsl_start4(p,etark2,1);
@@ -156,38 +136,27 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     d->WL_n(i,j) = d->WL(i,j);
     }
     
+    SLICELOOP1
+    d->ETAx_n(i,j) = d->ETAx(i,j);
+    
+    SLICELOOP2
+    d->ETAy_n(i,j) = d->ETAy(i,j);
+    
     pgc->gcsl_start4(p,d->eta_n,1);
     
-    SLICELOOP1
-    P(i,j)=0.0;
+    // ---
+    pHLL->face_flux_3D(p,d,etark2,U,V,Fx,Fy);
     
-    SLICELOOP2
-    Q(i,j)=0.0;
-
-    ULOOP
-    P(i,j) += U[IJK]*p->DZN[KP];
-
-    VLOOP
-	Q(i,j) += V[IJK]*p->DZN[KP];
-    
-    pgc->gcsl_start1(p,P,10);
-    pgc->gcsl_start2(p,Q,11);
-    
-    phxy->start(p,d->hx,d->hy,d->depth,p->wet,etark2,P,Q);
-    
-    SLICELOOP1
-    P(i,j) *= d->hx(i,j);
-
-    SLICELOOP2
-	Q(i,j) *= d->hy(i,j);
-
-	pgc->gcsl_start1(p,P,10);
-    pgc->gcsl_start2(p,Q,11);
-
     SLICELOOP4
-    d->eta(i,j) = (1.0-alpha)*d->eta(i,j) + alpha*etark2(i,j)
+    K(i,j) = 0.0;
+    
+    LOOP
+    K(i,j) += - p->DZN[KP]*d->WL(i,j)*((Fx[IJK] - Fx[Im1JK])/p->DXN[IP]  + 0.0*(Fy[IJK] - Fy[IJm1K])/p->DYN[JP]);
+    
+    SLICELOOP4
+    d->eta(i,j) = (1.0/3.0)*d->eta(i,j) + (2.0/3.0)*etark2(i,j) + (2.0/3.0)*p->dt*K(i,j);
 
-                - alpha*p->dt*((P(i,j)-P(i-1,j))/p->DXN[IP] + (Q(i,j)-Q(i,j-1))/p->DYN[JP]);
+
 
     pflow->eta_relax(p,pgc,d->eta);
     pgc->gcsl_start4(p,d->eta,1);

@@ -78,7 +78,12 @@ void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 {
     if(p->D38==1 && p->A540==1)
     LOOP
-	d->F[IJK] -= PORVALNH*fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j))/p->DXP[IP];
+    {
+	d->F[IJK] -= PORVALNH*fabs(p->W22)*(p->A223*dfdx(p,d,eta) + (1.0-p->A223)*dfdx(p,d,eta_n));
+    
+   // d->F[IJK] -= PORVALNH*fabs(p->W22)*
+     //           (p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) - p->A223*eta(i-1,j) - (1.0-p->A223)*eta_n(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+    }
     
     if(p->D38==1 && p->A540==2)
     LOOP
@@ -121,7 +126,26 @@ void nhflow_pjm_hs::wpgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 {
 }
 
+double nhflow_pjm_hs::dfdx(lexer*p, fdm_nhf *d, slice &f)
+{
+    dfdx_plus = (f(i+1,j) - f(i,j))/p->DXP[IP];
+    dfdx_min  = (f(i,j) - f(i-1,j))/p->DXP[IM1];
+    
+    
+    val = limiter(dfdx_plus,dfdx_min);
+    
+    return val;
 
+}
 
+double nhflow_pjm_hs::limiter(double v1, double v2)
+{
+    denom = fabs(v1) + fabs(v2);
+    
+    denom = fabs(denom)>1.0e-10?denom:1.0e10;
+    
+    val =  (v1*fabs(v2) + fabs(v1)*v2)/denom;
 
+    return val;	
+}
 

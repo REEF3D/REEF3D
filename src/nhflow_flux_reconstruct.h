@@ -40,7 +40,7 @@ public:
 	virtual ~nhflow_flux_reconstruct();
 
 	void reconstruct_2D(lexer*,fdm_nhf*,slice&,slice&,slice&,slice&,slice&);
-    void reconstruct_3D(lexer*,fdm_nhf*,double*,double*,double*,double*,double*);
+    void reconstruct_3D(lexer*,fdm_nhf*,double*,double*,double*,double*,double*,double*);
     
     slice4 dfdx,dfdy;
     double *DFDX, *DFDY;

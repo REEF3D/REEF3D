@@ -129,6 +129,11 @@ void driver::driver_ini_nhflow()
     
     pgc->gcsl_start4(p,d->eta,50);
     
+    ALOOP
+    {
+    d->porosity[IJK]=1.0;
+    }
+    
     SLICELOOP4
     d->WL(i,j) = MAX(0.0,d->eta(i,j) + p->wd - d->bed(i,j));
     

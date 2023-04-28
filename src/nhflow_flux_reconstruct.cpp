@@ -30,6 +30,8 @@ nhflow_flux_reconstruct::nhflow_flux_reconstruct(lexer* p, patchBC_interface *pp
     pBC = ppBC;
     
     p->Darray(DFDX,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(DFDY,p->imax*p->jmax*(p->kmax+2));
+
 }
 
 nhflow_flux_reconstruct::~nhflow_flux_reconstruct()
@@ -41,41 +43,39 @@ void nhflow_flux_reconstruct::reconstruct_2D(lexer* p, fdm_nhf*, slice& f, slice
     // gradient
     SLICELOOP4
     {
-    dfdx_plus = (f(i+1,i) - f(i,j))/p->DXP[IP];
-    dfdx_min  = (f(i,i) - f(i-1,j))/p->DXP[IM1];
+    dfdx_plus = (f(i+1,j) - f(i,j))/p->DXP[IP];
+    dfdx_min  = (f(i,j) - f(i-1,j))/p->DXP[IM1];
     
-    dfdy_plus = (f(i,i+1) - f(i,j))/p->DYP[JP];
-    dfdy_min  = (f(i,i) - f(i,j-1))/p->DYP[JM1];
+    dfdy_plus = (f(i,j+1) - f(i,j))/p->DYP[JP];
+    dfdy_min  = (f(i,j) - f(i,j-1))/p->DYP[JM1];
     
     dfdx(i,j) = limiter(dfdx_plus,dfdx_min);
     dfdy(i,j) = limiter(dfdy_plus,dfdy_min);
     }
-    
     // reconstruct
     SLICELOOP1  
     {
-    fs(i,j) = f(i-1,j) + 0.5*p->DXP[IM1]*dfdx(i,j); 
-    fn(i,j) = f(i,j) + 0.5*p->DXP[IP]*dfdx(i,j);
+    fs(i,j) = f(i,j) + 0.5*p->DXP[IP]*dfdx(i,j); 
+    fn(i,j) = f(i+1,j) + 0.5*p->DXP[IP1]*dfdx(i,j);
     }
-    
+
     SLICELOOP2 
     {
-    fe(i,j) = f(i,j-1) + 0.5*p->DYP[JM1]*dfdy(i,j); 
-    fw(i,j) = f(i,j) + 0.5*p->DYP[JP]*dfdy(i,j); 
+    fe(i,j) = f(i,j) + 0.5*p->DYP[JP]*dfdy(i,j); 
+    fw(i,j) = f(i+1,j) + 0.5*p->DYP[JP1]*dfdy(i,j); 
     }
-    
 }
 
-void nhflow_flux_reconstruct::reconstruct_3D(lexer* p, fdm_nhf*, double *F, double *Fs, double *Fn, double *Fe, double *Fw)
+void nhflow_flux_reconstruct::reconstruct_3D(lexer* p, fdm_nhf*, double *Fx, double *Fy, double *Fs, double *Fn, double *Fe, double *Fw)
 {
     // gradient
     LOOP
     {
-    dfdx_plus = (F[Im1JK] - F[IJK])/p->DXP[IP];
-    dfdx_min  = (F[IJK] - F[Im1JK])/p->DXP[IM1];
+    dfdx_plus = (Fx[Ip1JK] - Fx[IJK])/p->DXP[IP];
+    dfdx_min  = (Fx[IJK] - Fx[Im1JK])/p->DXP[IM1];
     
-    dfdy_plus = (F[IJm1K] - F[IJK])/p->DYP[JP];
-    dfdy_min  = (F[IJK] - F[IJm1K])/p->DYP[JM1];
+    dfdy_plus = (Fy[IJp1K] - Fy[IJK])/p->DYP[JP];
+    dfdy_min  = (Fy[IJK] - Fy[IJm1K])/p->DYP[JM1];
     
     DFDX[IJK] = limiter(dfdx_plus,dfdx_min);
     DFDY[IJK] = limiter(dfdy_plus,dfdy_min);
@@ -84,14 +84,14 @@ void nhflow_flux_reconstruct::reconstruct_3D(lexer* p, fdm_nhf*, double *F, doub
     // reconstruct
     ULOOP 
     {
-    Fs[IJK] = F[Im1JK] + 0.5*p->DXP[IM1]*DFDX[IJK]; 
-    Fn[IJK] = F[IJK]   + 0.5*p->DXP[IP]*DFDX[IJK];
+    Fs[IJK] = Fx[IJK] + 0.5*p->DXP[IP]*DFDX[IJK]; 
+    Fn[IJK] = Fx[Ip1JK]   + 0.5*p->DXP[IP1]*DFDX[IJK];
     }
     
     VLOOP
     {
-    Fe[IJK] = F[IJm1K] + 0.5*p->DYP[JM1]*DFDY[IJK]; 
-    Fw[IJK] = F[IJK]   + 0.5*p->DYP[JP]*DFDY[IJK];
+    Fe[IJK] = Fy[IJK] + 0.5*p->DYP[IP]*DFDY[IJK]; 
+    Fw[IJK] = Fy[IJp1K]   + 0.5*p->DYP[JP1]*DFDY[IJK];
     }
 	
 }
@@ -100,7 +100,7 @@ double nhflow_flux_reconstruct::limiter(double v1, double v2)
 {
     denom = fabs(v1) + fabs(v2);
     
-    denom = denom>1.0e-10?denom:1.0e10;
+    denom = fabs(denom)>1.0e-10?denom:1.0e10;
     
     val =  (v1*fabs(v2) + fabs(v1)*v2)/denom;
 

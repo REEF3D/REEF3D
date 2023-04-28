@@ -41,13 +41,13 @@ public:
 	virtual ~nhflow_flux_HLL();
 
 	void face_flux_2D(lexer*,fdm_nhf*,slice&,slice&,slice&,slice&,slice&);
-    void face_flux_3D(lexer*,fdm_nhf*,slice&,double*,double*,double*,double*,double*,double*,double*);
+    void face_flux_3D(lexer*,fdm_nhf*,slice&,double*,double*,double*,double*);
     
+    double *Fs,*Fn,*Fe,*Fw;
     
 
 private:
-    slice1 ETAs,ETAn;
-    slice2 ETAe,ETAw;
+    
 
     double ivel1,ivel2,jvel1,jvel2;
     int qq;

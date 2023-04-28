@@ -33,6 +33,7 @@ class concentration;
 class sflow_eta_disc;
 class sflow_hxy_disc;
 class patchBC_interface;
+class nhflow_flux_HLL;
 
 using namespace std;
 
@@ -59,9 +60,13 @@ private:
     sflow_eta_disc *peta;
 	sflow_hxy_disc *phxy;
     patchBC_interface *pBC;
+    nhflow_flux_HLL *pHLL;
     
     slice1 P;
     slice2 Q;
+    slice4 K;
+    
+    double *Fx,*Fy;
 
     int gcval_phi;
 	double starttime;

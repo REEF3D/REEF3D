@@ -25,10 +25,15 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"patchBC_interface.h"
 
-nhflow_flux_HLL::nhflow_flux_HLL(lexer* p, patchBC_interface *ppBC) : nhflow_flux_reconstruct(p,ppBC),
-                                                                    ETAs(p),ETAn(p),ETAe(p),ETAw(p)
+nhflow_flux_HLL::nhflow_flux_HLL(lexer* p, patchBC_interface *ppBC) : nhflow_flux_reconstruct(p,ppBC)
+                                                                    
 {
     pBC = ppBC;
+    
+    p->Darray(Fs,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Fn,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Fe,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Fw,p->imax*p->jmax*(p->kmax+2));
 }
 
 nhflow_flux_HLL::~nhflow_flux_HLL()
@@ -39,8 +44,7 @@ void nhflow_flux_HLL::face_flux_2D(lexer* p, fdm_nhf*, slice& f, slice &fs, slic
 {
 }
 
-void nhflow_flux_HLL::face_flux_3D(lexer *p, fdm_nhf *d, slice & eta, double *F, double *Fs, double *Fn, double *Fe, double *Fw,
-                                                                   double *Fx, double *Fy)
+void nhflow_flux_HLL::face_flux_3D(lexer *p, fdm_nhf *d, slice & eta, double *U, double *V, double *Fx, double *Fy)
 {
     double Ss,Sn,Se,Sw;
     double USx,USy;
@@ -50,28 +54,31 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, fdm_nhf *d, slice & eta, double *F,
 
          
     // reconstruct eta
-    reconstruct_2D(p, d, eta, ETAs, ETAn, ETAe, ETAw);
+    reconstruct_2D(p, d, eta, d->ETAs, d->ETAn, d->ETAe, d->ETAw);
     
     
     // reconstruct U and V
+    reconstruct_3D(p, d, U, V, Fs, Fn, Fe, Fw);
     
-    LOOP
+    // Boundary conditions are neede !!!
+
+    // HLL flux
+    ULOOP
     {
     // water level       
-    Ds = ETAs(i,j) + 0.5*(d->depth(i,j) + d->depth(i-1,j));
-    Dn = ETAn(i,j) + 0.5*(d->depth(i,j) + d->depth(i+1,j));
-    De = ETAe(i,j) + 0.5*(d->depth(i,j) + d->depth(i,j-1));
-    Dw = ETAw(i,j) + 0.5*(d->depth(i,j) + d->depth(i,j+1));
+    Ds = d->ETAs(i,j) + 0.5*(d->depth(i,j) + d->depth(i+1,j));
+    Dn = d->ETAn(i,j) + 0.5*(d->depth(i,j) + d->depth(i+1,j));
+    
+    
     
     USx = 0.5*(Fs[IJK]+Fn[IJK]) + sqrt(9.81*Ds) - sqrt(9.81*Dn);
-    USy = 0.5*(Fe[IJK]+Fw[IJK]) + sqrt(9.81*De) - sqrt(9.81*Dw);
+    DSx = 0.5*(sqrt(9.81*Ds) + sqrt(9.81*Dn)) + 0.25*(Fs[IJK] +- Fn[IJK]);
     
     // wave speed
-    Ss = MIN(Fs[IJK] - sqrt(9.81*Ds), USx - sqrt(9.81*DSx));
-    Sn = MIN(Fn[IJK] + sqrt(9.81*Dn), USx + sqrt(9.81*DSx));
+    Ss = MIN(Fs[IJK] - sqrt(9.81*Ds), USx - DSx);
+    Sn = MAX(Fn[IJK] + sqrt(9.81*Dn), USx + DSx);
     
-    Se = MIN(Fe[IJK] - sqrt(9.81*De), USy - sqrt(9.81*DSy));
-    Sw = MIN(Fw[IJK] + sqrt(9.81*Dw), USy + sqrt(9.81*DSy));
+    //cout<<Ds<<" "<<Ss<<endl;
     
     
         // final flux x-dir
@@ -85,10 +92,27 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, fdm_nhf *d, slice & eta, double *F,
         else
         {
         denom = Sn-Ss;
-        denom = denom>1.0e-10?denom:1.0e10;
+        denom = fabs(denom)>1.0e-10?denom:1.0e10;
         
-        Fx[IJK] = (Sn*Fs[IJK] - Ss*Fn[IJK] + Sn*Ss*(Fn[IJK] - Fs[IJK]))/denom;
+        Fx[IJK] = (Sn*Fs[IJK] - Ss*Fn[IJK] + Sn*Ss*(Dn - Ds))/denom;
         }
+    }
+    
+    
+    VLOOP
+    {
+    // water level       
+    De = d->ETAe(i,j) + 0.5*(d->depth(i,j) + d->depth(i,j+1));
+    Dw = d->ETAw(i,j) + 0.5*(d->depth(i,j) + d->depth(i,j+1));
+    
+    USy = 0.5*(Fe[IJK]+Fw[IJK]) + sqrt(9.81*De) - sqrt(9.81*Dw);
+    DSy = 0.5*(sqrt(9.81*De) + sqrt(9.81*Dw)) + 0.25*(Fe[IJK] - Fw[IJK]);
+    
+    // wave speed
+
+    Se = MIN(Fe[IJK] - sqrt(9.81*De), USy - DSy);
+    Sw = MAX(Fw[IJK] + sqrt(9.81*Dw), USy + DSy);
+
         
         // final flux y-dir
         if(Se>=0.0)
@@ -101,9 +125,9 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, fdm_nhf *d, slice & eta, double *F,
         else
         {
         denom = Sw-Se;
-        denom = denom>1.0e-10?denom:1.0e10;
+        denom = fabs(denom)>1.0e-10?denom:1.0e10;
         
-        Fy[IJK] = (Sw*Fe[IJK] - Se*Fw[IJK] + Sw*Se*(Fw[IJK] - Fw[IJK]))/denom;
+        Fy[IJK] = (Sw*Fe[IJK] - Se*Fw[IJK] + Sw*Se*(Dw - De))/denom;
         }
     }
 	
