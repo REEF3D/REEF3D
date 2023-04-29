@@ -76,6 +76,7 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	cout<<"umax: "<<setprecision(3)<<p->umax<<endl;
 	cout<<"vmax: "<<setprecision(3)<<p->vmax<<endl;
 	cout<<"wmax: "<<setprecision(3)<<p->wmax<<endl;
+    //cout<<"depthmax: "<<setprecision(3)<<depthmax<<endl;
     }
 	
 	p->umax=MAX(p->umax,p->ufbmax);

@@ -69,15 +69,19 @@ void nhflow_flux_reconstruct::reconstruct_2D(lexer* p, fdm_nhf*, slice& f, slice
 void nhflow_flux_reconstruct::reconstruct_3D(lexer* p, fdm_nhf*, double *Fx, double *Fy, double *Fs, double *Fn, double *Fe, double *Fw)
 {
     // gradient
-    LOOP
+    ULOOP
     {
     dfdx_plus = (Fx[Ip1JK] - Fx[IJK])/p->DXP[IP];
     dfdx_min  = (Fx[IJK] - Fx[Im1JK])/p->DXP[IM1];
     
+    DFDX[IJK] = limiter(dfdx_plus,dfdx_min);
+    }
+    
+    VLOOP
+    {
     dfdy_plus = (Fy[IJp1K] - Fy[IJK])/p->DYP[JP];
     dfdy_min  = (Fy[IJK] - Fy[IJm1K])/p->DYP[JM1];
-    
-    DFDX[IJK] = limiter(dfdx_plus,dfdx_min);
+
     DFDY[IJK] = limiter(dfdy_plus,dfdy_min);
     }
     

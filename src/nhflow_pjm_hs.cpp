@@ -82,7 +82,7 @@ void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 	d->F[IJK] -= PORVALNH*fabs(p->W22)*(p->A223*dfdx(p,d,eta) + (1.0-p->A223)*dfdx(p,d,eta_n));
     
    // d->F[IJK] -= PORVALNH*fabs(p->W22)*
-     //           (p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) - p->A223*eta(i-1,j) - (1.0-p->A223)*eta_n(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+               // (p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) - p->A223*eta(i-1,j) - (1.0-p->A223)*eta_n(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
     }
     
     if(p->D38==1 && p->A540==2)
