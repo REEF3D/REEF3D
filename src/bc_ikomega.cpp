@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-
+/*
 #include"bc_ikomega.h"
 #include"fdm.h"
 #include"lexer.h"
@@ -309,9 +309,9 @@ void bc_ikomega::bcomega_matrix(fdm* a,lexer* p,field& kin,field& eps)
         }
     }
 }
+*/
 
 
-/*
 #include"bc_ikomega.h"
 #include"fdm.h"
 #include"lexer.h"
@@ -520,4 +520,4 @@ void bc_ikomega::bckin_matrix(fdm* a,lexer* p,field& kin,field& eps)
 void bc_ikomega::bcomega_matrix(fdm* a,lexer* p,field& kin,field& eps)
 {
 }
-*/
+
