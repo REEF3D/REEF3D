@@ -27,7 +27,6 @@ Author: Hans Bihs
 #include"patchBC_interface.h"
 
 nhflow_flux_HLL::nhflow_flux_HLL(lexer* p, patchBC_interface *ppBC) : nhflow_flux_reconstruct(p,ppBC)
-                                                                    
 {
     pBC = ppBC;
     
@@ -57,11 +56,10 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
     // reconstruct eta
     reconstruct_2D(p, pgc, d, eta, d->ETAs, d->ETAn, d->ETAe, d->ETAw);
     
-    
     // reconstruct U and V
     reconstruct_3D(p, pgc, d, U, V, Fs, Fn, Fe, Fw);
     
-    // Boundary conditions are neede !!!
+    // Boundary conditions are needed !!!
 
     // HLL flux
     ULOOP
@@ -79,7 +77,6 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
     Sn = MAX(Fn[IJK] + sqrt(9.81*Dn), USx + DSx);
     
     //cout<<Ds<<" "<<Ss<<endl;
-    
     
         // final flux x-dir
         if(Ss>=0.0)
@@ -110,7 +107,6 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
     DSy = 0.5*(sqrt(9.81*De) + sqrt(9.81*Dw)) + 0.25*(Fe[IJK] - Fw[IJK]);
     
     // wave speed
-
     Se = MIN(Fe[IJK] - sqrt(9.81*De), USy - DSy);
     Sw = MAX(Fw[IJK] + sqrt(9.81*Dw), USy + DSy);
 
@@ -133,7 +129,7 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
     }
     
     pgc->start1V(p,Fx,10);
-    pgc->start1V(p,Fy,10);
+    pgc->start2V(p,Fy,10);
 	
 }
 

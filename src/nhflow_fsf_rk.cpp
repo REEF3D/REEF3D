@@ -34,6 +34,7 @@ Author: Hans Bihs
 #include"sflow_hxy_fou.h"
 #include"patchBC_interface.h"
 #include"nhflow_flux_HLL.h"
+#include"nhflow_flux_FOU.h"
 
 nhflow_fsf_rk::nhflow_fsf_rk(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow, patchBC_interface *ppBC) : epsi(p->A440*p->DXM),P(p),Q(p),K(p)
 {
@@ -50,7 +51,9 @@ nhflow_fsf_rk::nhflow_fsf_rk(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow
 	if(p->A541==4)
 	phxy = new sflow_hxy_weno(p,pBC);
     
-    pHLL = new nhflow_flux_HLL(p,pBC);
+    pfluxfsf = new nhflow_flux_HLL(p,pBC);
+    
+    //pfluxfsf = new nhflow_flux_FOU(p,pBC);
     
     p->Darray(Fx,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fy,p->imax*p->jmax*(p->kmax+2));
@@ -76,7 +79,7 @@ void nhflow_fsf_rk::ini(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow)
 
 void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
 {        
-    pHLL->face_flux_3D(p,pgc,d,d->eta,U,V,Fx,Fy);
+    pfluxfsf->face_flux_3D(p,pgc,d,d->eta,U,V,Fx,Fy);
     
     SLICELOOP4
     K(i,j) = 0.0;
@@ -91,13 +94,16 @@ void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     pflow->eta_relax(p,pgc,etark1);
     pgc->gcsl_start4(p,etark1,1);
     
+    SLICELOOP4
+    d->WL(i,j) = MAX(0.0, etark1(i,j) + p->wd - d->bed(i,j));
+    
     p->sigma_update(p,d,pgc,etark1,d->eta,1.0);
     p->omega_update(p,d,pgc,U,V,W,etark1,d->eta,1.0);
 }
 
 void nhflow_fsf_rk::step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
 {
-    pHLL->face_flux_3D(p,pgc,d,etark1,U,V,Fx,Fy);
+    pfluxfsf->face_flux_3D(p,pgc,d,etark1,U,V,Fx,Fy);
     
     SLICELOOP4
     K(i,j) = 0.0;
@@ -110,6 +116,9 @@ void nhflow_fsf_rk::step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
 
     pflow->eta_relax(p,pgc,etark2);
     pgc->gcsl_start4(p,etark2,1);
+    
+    SLICELOOP4
+    d->WL(i,j) = MAX(0.0, etark2(i,j) + p->wd - d->bed(i,j));
     
     p->sigma_update(p,d,pgc,etark2,etark1,0.25);
     p->omega_update(p,d,pgc,U,V,W,etark2,etark1,0.25);
@@ -127,7 +136,7 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     pgc->gcsl_start4(p,d->eta_n,1);
     
     // ---
-    pHLL->face_flux_3D(p,pgc,d,etark2,U,V,Fx,Fy);
+    pfluxfsf->face_flux_3D(p,pgc,d,etark2,U,V,Fx,Fy);
     
     SLICELOOP4
     K(i,j) = 0.0;
@@ -137,7 +146,6 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     
     SLICELOOP4
     d->eta(i,j) = (1.0/3.0)*d->eta(i,j) + (2.0/3.0)*etark2(i,j) + (2.0/3.0)*p->dt*K(i,j);
-
 
 
     pflow->eta_relax(p,pgc,d->eta);

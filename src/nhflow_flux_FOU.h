@@ -26,16 +26,16 @@ Author: Hans Bihs
 #include"slice2.h"
 
 
-#ifndef NHFLOW_FLUX_HLL_H_
-#define NHFLOW_FLUX_HLL_H_
+#ifndef NHFLOW_FLUX_FOU_H_
+#define NHFLOW_FLUX_FOU_H_
 
 using namespace std;
 
-class nhflow_flux_HLL : public nhflow_flux_fsf, public nhflow_flux_reconstruct
+class nhflow_flux_FOU : public nhflow_flux_fsf, public nhflow_flux_reconstruct
 {
 public:
-	nhflow_flux_HLL(lexer*,patchBC_interface*);
-	virtual ~nhflow_flux_HLL();
+	nhflow_flux_FOU(lexer*,patchBC_interface*);
+	virtual ~nhflow_flux_FOU();
 
 	virtual void face_flux_2D(lexer*,fdm_nhf*,slice&,slice&,slice&,slice&,slice&);
     virtual void face_flux_3D(lexer*,ghostcell*,fdm_nhf*,slice&,double*,double*,double*,double*);

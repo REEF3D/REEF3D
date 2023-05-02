@@ -264,6 +264,9 @@
         <VirtualDirectory Name="Initialize"/>
         <VirtualDirectory Name="FDM">
           <VirtualDirectory Name="Flux HLL">
+            <File Name="nhflow_flux_WENO.h"/>
+            <File Name="nhflow_flux_FOU.h"/>
+            <File Name="nhflow_flux_fsf.h"/>
             <File Name="nhflow_flux_HLL.h"/>
             <File Name="nhflow_flux_reconstruct.h"/>
           </VirtualDirectory>
@@ -1318,6 +1321,8 @@
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
           <VirtualDirectory Name="Flux HLL">
+            <File Name="nhflow_flux_WENO.cpp"/>
+            <File Name="nhflow_flux_FOU.cpp"/>
             <File Name="nhflow_flux_HLL.cpp"/>
             <File Name="nhflow_flux_reconstruct.cpp"/>
           </VirtualDirectory>

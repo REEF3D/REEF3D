@@ -20,36 +20,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_flux_fsf.h"
-#include"nhflow_flux_reconstruct.h"
-#include"slice1.h"
-#include"slice2.h"
+class lexer;
+class ghostcell;
+class fdm_nhf;
+class slice;
+class patchBC_interface;
 
-
-#ifndef NHFLOW_FLUX_HLL_H_
-#define NHFLOW_FLUX_HLL_H_
+#ifndef NHFLOW_FLUX_FSF_H_
+#define NHFLOW_FLUX_FSF_H_
 
 using namespace std;
 
-class nhflow_flux_HLL : public nhflow_flux_fsf, public nhflow_flux_reconstruct
+class nhflow_flux_fsf
 {
 public:
-	nhflow_flux_HLL(lexer*,patchBC_interface*);
-	virtual ~nhflow_flux_HLL();
 
-	virtual void face_flux_2D(lexer*,fdm_nhf*,slice&,slice&,slice&,slice&,slice&);
-    virtual void face_flux_3D(lexer*,ghostcell*,fdm_nhf*,slice&,double*,double*,double*,double*);
+	virtual void face_flux_2D(lexer*,fdm_nhf*,slice&,slice&,slice&,slice&,slice&)=0;
+    virtual void face_flux_3D(lexer*,ghostcell*,fdm_nhf*,slice&,double*,double*,double*,double*)=0;
     
-    double *Fs,*Fn,*Fe,*Fw;
-    
-
-private:
-    
-
-    double ivel1,ivel2,jvel1,jvel2;
-    int qq;
-    
-    patchBC_interface *pBC;
 };
 
 #endif
