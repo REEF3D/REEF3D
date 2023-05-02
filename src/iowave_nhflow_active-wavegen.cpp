@@ -81,7 +81,7 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
             
             d->eddyv[IJK]=MIN(d->eddyv[IJK],1.0e-4);
             }
-         pgc->start4V(p,d->eddyv,d->bc,24);
+         pgc->start4V(p,d->eddyv,24);
 		}
         
 }

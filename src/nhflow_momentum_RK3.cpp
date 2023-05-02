@@ -125,9 +125,9 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	
     p->wtime=pgc->timer()-starttime;
     
-    pgc->start1V(p, URK1, d->bc, gcval_u);
-    pgc->start2V(p, VRK1, d->bc, gcval_v);
-    pgc->start3V(p, WRK1, d->bc, gcval_w);
+    pgc->start1V(p, URK1, gcval_u);
+    pgc->start2V(p, VRK1, gcval_v);
+    pgc->start3V(p, WRK1, gcval_w);
     
 
     pnhf->kinematic_fsf(p,d,d->U,d->V,WRK1,etark1,d->eta,1.0);
@@ -143,9 +143,9 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 
 	pflow->P_relax(p,pgc,d->P);
 
-	pgc->start1V(p,URK1,d->bc,gcval_u);
-    pgc->start2V(p,VRK1,d->bc,gcval_v);
-    pgc->start3V(p,WRK1,d->bc,gcval_w);
+	pgc->start1V(p,URK1,gcval_u);
+    pgc->start2V(p,VRK1,gcval_v);
+    pgc->start3V(p,WRK1,gcval_w);
     
     pnhf->kinematic_fsf(p,d,URK1,VRK1,WRK1,etark1,d->eta,1.0);    
     p->omega_update(p,d,pgc,URK1,VRK1,WRK1,etark1,d->eta,1.0);
@@ -208,9 +208,9 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 
     p->wtime+=pgc->timer()-starttime;
     
-    pgc->start1V(p,URK2,d->bc,gcval_u);
-    pgc->start2V(p,VRK2,d->bc,gcval_v);
-    pgc->start3V(p,WRK2,d->bc,gcval_w);
+    pgc->start1V(p,URK2,gcval_u);
+    pgc->start2V(p,VRK2,gcval_v);
+    pgc->start3V(p,WRK2,gcval_w);
     
     pnhf->kinematic_fsf(p,d,URK1,VRK1,WRK2,etark2,etark1,0.25); 
     p->omega_update(p,d,pgc,URK1,VRK1,WRK2,etark2,etark1,0.25);
@@ -225,9 +225,9 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 
 	pflow->P_relax(p,pgc,d->P);
 
-	pgc->start1V(p,URK2,d->bc,gcval_u);
-    pgc->start2V(p,VRK2,d->bc,gcval_v);
-    pgc->start3V(p,WRK2,d->bc,gcval_w);
+	pgc->start1V(p,URK2,gcval_u);
+    pgc->start2V(p,VRK2,gcval_v);
+    pgc->start3V(p,WRK2,gcval_w);
     
     pnhf->kinematic_fsf(p,d,URK2,VRK2,WRK2,etark2,etark1,0.25); 
     p->omega_update(p,d,pgc,URK2,VRK2,WRK2,etark2,etark1,0.25);
@@ -290,9 +290,9 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	
     p->wtime+=pgc->timer()-starttime;
     
-    pgc->start1V(p,d->U,d->bc,gcval_u);
-    pgc->start2V(p,d->V,d->bc,gcval_v);
-    pgc->start3V(p,d->W,d->bc,gcval_w);
+    pgc->start1V(p,d->U,gcval_u);
+    pgc->start2V(p,d->V,gcval_v);
+    pgc->start3V(p,d->W,gcval_w);
     
     pnhf->kinematic_fsf(p,d,URK2,VRK2,d->W,d->eta,etark2,2.0/3.0);
     p->omega_update(p,d,pgc,URK2,VRK2,d->W,d->eta,etark2,2.0/3.0);
@@ -306,9 +306,9 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 
 	pflow->P_relax(p,pgc,d->P);
 
-	pgc->start1V(p,d->U,d->bc,gcval_u);
-    pgc->start2V(p,d->V,d->bc,gcval_v);
-    pgc->start3V(p,d->W,d->bc,gcval_w);
+	pgc->start1V(p,d->U,gcval_u);
+    pgc->start2V(p,d->V,gcval_v);
+    pgc->start3V(p,d->W,gcval_w);
     
     pnhf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta,etark2,2.0/3.0);
     p->omega_update(p,d,pgc,d->U,d->V,d->W,d->eta,etark2,2.0/3.0);

@@ -24,10 +24,7 @@ Author: Hans Bihs
 #include"slice1.h"
 #include"slice2.h"
 
-class lexer;
-class fdm_nhf;
-class slice;
-class patchBC_interface;
+
 
 #ifndef NHFLOW_FLUX_HLL_H_
 #define NHFLOW_FLUX_HLL_H_
@@ -41,7 +38,7 @@ public:
 	virtual ~nhflow_flux_HLL();
 
 	void face_flux_2D(lexer*,fdm_nhf*,slice&,slice&,slice&,slice&,slice&);
-    void face_flux_3D(lexer*,fdm_nhf*,slice&,double*,double*,double*,double*);
+    void face_flux_3D(lexer*,ghostcell*,fdm_nhf*,slice&,double*,double*,double*,double*);
     
     double *Fs,*Fn,*Fe,*Fw;
     

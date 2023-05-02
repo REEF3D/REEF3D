@@ -75,14 +75,8 @@ void nhflow_fsf_rk::ini(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow)
 }
 
 void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
-{    
-    SLICELOOP1
-    d->ETAx_n(i,j) = d->ETAx(i,j);
-    
-    SLICELOOP2
-    d->ETAy_n(i,j) = d->ETAy(i,j);
-    
-    pHLL->face_flux_3D(p,d,d->eta,U,V,Fx,Fy);
+{        
+    pHLL->face_flux_3D(p,pgc,d,d->eta,U,V,Fx,Fy);
     
     SLICELOOP4
     K(i,j) = 0.0;
@@ -103,13 +97,7 @@ void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
 
 void nhflow_fsf_rk::step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
 {
-    SLICELOOP1
-    d->ETAx_n(i,j) = d->ETAx(i,j);
-    
-    SLICELOOP2
-    d->ETAy_n(i,j) = d->ETAy(i,j);
-    
-    pHLL->face_flux_3D(p,d,etark1,U,V,Fx,Fy);
+    pHLL->face_flux_3D(p,pgc,d,etark1,U,V,Fx,Fy);
     
     SLICELOOP4
     K(i,j) = 0.0;
@@ -136,16 +124,10 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     d->WL_n(i,j) = d->WL(i,j);
     }
     
-    SLICELOOP1
-    d->ETAx_n(i,j) = d->ETAx(i,j);
-    
-    SLICELOOP2
-    d->ETAy_n(i,j) = d->ETAy(i,j);
-    
     pgc->gcsl_start4(p,d->eta_n,1);
     
     // ---
-    pHLL->face_flux_3D(p,d,etark2,U,V,Fx,Fy);
+    pHLL->face_flux_3D(p,pgc,d,etark2,U,V,Fx,Fy);
     
     SLICELOOP4
     K(i,j) = 0.0;

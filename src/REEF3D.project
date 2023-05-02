@@ -2128,6 +2128,7 @@
         <File Name="gcdf_update.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Epol">
+        <File Name="gc_startV.cpp"/>
         <File Name="gc_dirichlet-para-reflect.cpp"/>
         <File Name="gc_dirichlet-ortho-reflect.cpp"/>
         <File Name="gc_kinematic_fsf.cpp"/>

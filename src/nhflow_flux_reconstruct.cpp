@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"nhflow_flux_reconstruct.h"
 #include"lexer.h"
+#include"ghostcell.h"
 #include"fdm_nhf.h"
 #include"patchBC_interface.h"
 
@@ -38,7 +39,7 @@ nhflow_flux_reconstruct::~nhflow_flux_reconstruct()
 {
 }
 
-void nhflow_flux_reconstruct::reconstruct_2D(lexer* p, fdm_nhf*, slice& f, slice &fs, slice &fn, slice &fe, slice &fw)
+void nhflow_flux_reconstruct::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fs, slice &fn, slice &fe, slice &fw)
 {
     // gradient
     SLICELOOP4
@@ -56,17 +57,17 @@ void nhflow_flux_reconstruct::reconstruct_2D(lexer* p, fdm_nhf*, slice& f, slice
     SLICELOOP1  
     {
     fs(i,j) = f(i,j) + 0.5*p->DXP[IP]*dfdx(i,j); 
-    fn(i,j) = f(i+1,j) + 0.5*p->DXP[IP1]*dfdx(i,j);
+    fn(i,j) = f(i+1,j) - 0.5*p->DXP[IP1]*dfdx(i+1,j);
     }
 
     SLICELOOP2 
     {
     fe(i,j) = f(i,j) + 0.5*p->DYP[JP]*dfdy(i,j); 
-    fw(i,j) = f(i+1,j) + 0.5*p->DYP[JP1]*dfdy(i,j); 
+    fw(i,j) = f(i,j+1) - 0.5*p->DYP[JP1]*dfdy(i,j+1); 
     }
 }
 
-void nhflow_flux_reconstruct::reconstruct_3D(lexer* p, fdm_nhf*, double *Fx, double *Fy, double *Fs, double *Fn, double *Fe, double *Fw)
+void nhflow_flux_reconstruct::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf*, double *Fx, double *Fy, double *Fs, double *Fn, double *Fe, double *Fw)
 {
     // gradient
     ULOOP
@@ -85,19 +86,27 @@ void nhflow_flux_reconstruct::reconstruct_3D(lexer* p, fdm_nhf*, double *Fx, dou
     DFDY[IJK] = limiter(dfdy_plus,dfdy_min);
     }
     
+    pgc->start1V(p,DFDX,10);
+    pgc->start2V(p,DFDY,11);
+    
     // reconstruct
     ULOOP 
     {
-    Fs[IJK] = Fx[IJK] + 0.5*p->DXP[IP]*DFDX[IJK]; 
-    Fn[IJK] = Fx[Ip1JK]   + 0.5*p->DXP[IP1]*DFDX[IJK];
+    Fs[IJK] = Fx[IJK]     + 0.5*p->DXP[IP]*DFDX[IJK]; 
+    Fn[IJK] = Fx[Ip1JK]   - 0.5*p->DXP[IP1]*DFDX[Ip1JK];
     }
     
     VLOOP
     {
-    Fe[IJK] = Fy[IJK] + 0.5*p->DYP[IP]*DFDY[IJK]; 
-    Fw[IJK] = Fy[IJp1K]   + 0.5*p->DYP[JP1]*DFDY[IJK];
+    Fe[IJK] = Fy[IJK]     + 0.5*p->DYP[IP]*DFDY[IJK]; 
+    Fw[IJK] = Fy[IJp1K]   - 0.5*p->DYP[JP1]*DFDY[IJp1K];
     }
-	
+    
+    
+	pgc->start1V(p,Fs,10);
+    pgc->start1V(p,Fs,10);
+    pgc->start2V(p,Fe,11);
+    pgc->start2V(p,Fw,11);
 }
 
 double nhflow_flux_reconstruct::limiter(double v1, double v2)

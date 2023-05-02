@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"nhflow_flux_HLL.h"
 #include"lexer.h"
+#include"ghostcell.h"
 #include"fdm_nhf.h"
 #include"patchBC_interface.h"
 
@@ -44,7 +45,7 @@ void nhflow_flux_HLL::face_flux_2D(lexer* p, fdm_nhf*, slice& f, slice &fs, slic
 {
 }
 
-void nhflow_flux_HLL::face_flux_3D(lexer *p, fdm_nhf *d, slice & eta, double *U, double *V, double *Fx, double *Fy)
+void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice & eta, double *U, double *V, double *Fx, double *Fy)
 {
     double Ss,Sn,Se,Sw;
     double USx,USy;
@@ -54,11 +55,11 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, fdm_nhf *d, slice & eta, double *U,
 
          
     // reconstruct eta
-    reconstruct_2D(p, d, eta, d->ETAs, d->ETAn, d->ETAe, d->ETAw);
+    reconstruct_2D(p, pgc, d, eta, d->ETAs, d->ETAn, d->ETAe, d->ETAw);
     
     
     // reconstruct U and V
-    reconstruct_3D(p, d, U, V, Fs, Fn, Fe, Fw);
+    reconstruct_3D(p, pgc, d, U, V, Fs, Fn, Fe, Fw);
     
     // Boundary conditions are neede !!!
 
@@ -69,10 +70,9 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, fdm_nhf *d, slice & eta, double *U,
     Ds = d->ETAs(i,j) + 0.5*(d->depth(i,j) + d->depth(i+1,j));
     Dn = d->ETAn(i,j) + 0.5*(d->depth(i,j) + d->depth(i+1,j));
     
-    
-    
+    // Us
     USx = 0.5*(Fs[IJK]+Fn[IJK]) + sqrt(9.81*Ds) - sqrt(9.81*Dn);
-    DSx = 0.5*(sqrt(9.81*Ds) + sqrt(9.81*Dn)) + 0.25*(Fs[IJK] +- Fn[IJK]);
+    DSx = 0.5*(sqrt(9.81*Ds) + sqrt(9.81*Dn)) + 0.25*(Fs[IJK] - Fn[IJK]);
     
     // wave speed
     Ss = MIN(Fs[IJK] - sqrt(9.81*Ds), USx - DSx);
@@ -105,6 +105,7 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, fdm_nhf *d, slice & eta, double *U,
     De = d->ETAe(i,j) + 0.5*(d->depth(i,j) + d->depth(i,j+1));
     Dw = d->ETAw(i,j) + 0.5*(d->depth(i,j) + d->depth(i,j+1));
     
+    // Us
     USy = 0.5*(Fe[IJK]+Fw[IJK]) + sqrt(9.81*De) - sqrt(9.81*Dw);
     DSy = 0.5*(sqrt(9.81*De) + sqrt(9.81*Dw)) + 0.25*(Fe[IJK] - Fw[IJK]);
     
@@ -130,6 +131,9 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, fdm_nhf *d, slice & eta, double *U,
         Fy[IJK] = (Sw*Fe[IJK] - Se*Fw[IJK] + Sw*Se*(Dw - De))/denom;
         }
     }
+    
+    pgc->start1V(p,Fx,10);
+    pgc->start1V(p,Fy,10);
 	
 }
 

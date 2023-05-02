@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"slice4.h"
 
 class lexer;
+class ghostcell;
 class fdm_nhf;
 class slice;
 class patchBC_interface;
@@ -39,8 +40,8 @@ public:
 	nhflow_flux_reconstruct(lexer*,patchBC_interface*);
 	virtual ~nhflow_flux_reconstruct();
 
-	void reconstruct_2D(lexer*,fdm_nhf*,slice&,slice&,slice&,slice&,slice&);
-    void reconstruct_3D(lexer*,fdm_nhf*,double*,double*,double*,double*,double*,double*);
+	void reconstruct_2D(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&,slice&,slice&);
+    void reconstruct_3D(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*,double*,double*,double*);
     
     slice4 dfdx,dfdy;
     double *DFDX, *DFDY;

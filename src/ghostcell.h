@@ -67,10 +67,11 @@ public:
     void start6vec(lexer*,vec&,int);
     void start9vec(lexer*,fdm*,vec&,int);
     
-    void start1V(lexer*,double*,sliceint&, int);
-    void start2V(lexer*,double*,sliceint&, int);
-    void start3V(lexer*,double*,sliceint&, int);
-    void start4V(lexer*,double*,sliceint&, int);
+    void start1V(lexer*,double*,int);
+    void start2V(lexer*,double*,int);
+    void start3V(lexer*,double*,int);
+    void start4V(lexer*,double*,int);
+    
     void start7V(lexer*,double*,sliceint&, int);
     void start7S(lexer*,double*, int);
 

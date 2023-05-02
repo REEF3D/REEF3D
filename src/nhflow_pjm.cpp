@@ -66,7 +66,7 @@ void nhflow_pjm::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, iofl
 
         endtime=pgc->timer();
 
-	pgc->start4V(p,d->P,d->bc,gcval_press);
+	pgc->start4V(p,d->P,gcval_press);
 
 	ucorr(p,d,U,alpha);
 	vcorr(p,d,V,alpha);
