@@ -44,7 +44,7 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
     double sigxyz2;
    
 	n=0;
-    LOOP
+    FLOOP
 	{
         if(p->wet[IJ]==1)
         {
@@ -85,7 +85,7 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
 	}
     
     n=0;
-	LOOP
+	FLOOP
 	{
         if(p->wet[IJ]==1)
         {
@@ -127,11 +127,9 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             // FSFBC
             if(p->flag4[IJKp1]<0)
             {
-                if(p->D37==1)
-                {
-                d->rhsvec.V[n] -= d->M.t[n]*P[FIJKp1];
-                d->M.t[n] = 0.0;
-                }
+            
+            d->rhsvec.V[n] -= 0.0*d->M.t[n]*P[FIJKp1];
+            d->M.t[n] = 0.0;
             }
         }
 	++n;
