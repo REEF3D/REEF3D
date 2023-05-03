@@ -50,6 +50,7 @@ private:
 	void irhs(lexer*,fdm_nhf*,ghostcell*);
 	void jrhs(lexer*,fdm_nhf*,ghostcell*);
 	void krhs(lexer*,fdm_nhf*,ghostcell*);
+    void clearrhs(lexer*,fdm_nhf*,ghostcell*);
 	
 	int gcval_u, gcval_v, gcval_w;
 	double starttime;

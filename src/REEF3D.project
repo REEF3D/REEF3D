@@ -261,7 +261,6 @@
             <File Name="nhflow_vtu3D.h"/>
           </VirtualDirectory>
         </VirtualDirectory>
-        <VirtualDirectory Name="Initialize"/>
         <VirtualDirectory Name="FDM">
           <VirtualDirectory Name="Flux HLL">
             <File Name="nhflow_flux_WENO.h"/>
@@ -1311,7 +1310,6 @@
           <File Name="nhflow_weno_hj.cpp"/>
           <File Name="nhflow_weno_flux.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Initialize"/>
         <VirtualDirectory Name="Printer">
           <File Name="nhflow_vtu3D.cpp"/>
           <VirtualDirectory Name="VTU">

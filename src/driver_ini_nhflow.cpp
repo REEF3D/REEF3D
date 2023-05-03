@@ -51,91 +51,14 @@ Author: Hans Bihs
 
 void driver::driver_ini_nhflow()
 {
-    // count cells 3D
-    int count=0;
-    p->count=0;
-	p->pointnum=0;
-	p->cellnum=0;
-	p->tpcellnum=0;
-
-	TPLOOP
-	{
-	++count;
-	++p->pointnum;
-    d->NODEVAL[IJK]=count;
-	}
-
-	LOOP
-	++p->cellnum;
     
-    LOOP
-    ++p->tpcellnum;
-    
-    p->count=0;
-    
-    // 2D mesh
-    count=0;
-	p->pointnum2D=0;
-	p->cellnum2D=0;
-	p->polygon_sum=0;
-    
-   
-    TPSLICELOOP  
-	{
-	++count;
-	++p->pointnum2D;
-	d->NODEVAL2D[IJ]=count;
-    }
-	
-	SLICEBASELOOP
-	++p->polygon_sum;
-	
-	p->polygon_sum *=2;
-
-	SLICELOOP4
-	++p->cellnum2D;
-    
-    SLICELOOP4
-	++p->cellnum2D;
-
-    p->cellnumtot2D=pgc->globalisum(p->cellnum2D);
-    
-// --
-    p->cellnumtot=pgc->globalisum(p->cellnum);
-    p->pointnumtot=pgc->globalisum(p->pointnum);
-
-
-    if(p->mpirank==0)
-    cout<<"number of cells: "<<p->cellnumtot<<endl;
+    pnhf->ini(p,d,pgc,pflow);
 
 	log_ini();
     
     if(p->mpirank==0)
     cout<<"starting driver_ini_NHFLOW"<<endl;
     
-    // SIGMA grid
-     // bed ini
-    SLICELOOP4
-	d->bed(i,j) = p->bed[IJ];
-    
-    pgc->gcsl_start4(p,d->bed,50);
-    
-    // eta ini
-	SLICELOOP4
-    {
-	d->eta(i,j) = 0.0;
-    p->wet[IJ] = 1;
-    }
-    
-    pgc->gcsl_start4(p,d->eta,50);
-    
-    ALOOP
-    {
-    d->porosity[IJK]=1.0;
-    }
-    
-    SLICELOOP4
-    d->WL(i,j) = MAX(0.0,d->eta(i,j) + p->wd - d->bed(i,j));
     
     // sigma ini
     p->sigma_ini(p,d,pgc,d->eta);

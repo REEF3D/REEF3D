@@ -75,7 +75,7 @@ void driver::loop_nhflow()
 		// Sediment Computation
         //psed->start_cfd(p,a,pgc,pflow,preto,psolv);
 
-        pnhfmom->start(p,d,pgc,pflow,pnhfconvec,pdiff,pnhpress,psolv,pnhf,pnhfsf,pnhfturb,pvrans); 
+        pnhfmom->start(p,d,pgc,pflow,pnhfconvec,pdiff,pnhpress,ppoissonsolv,pnhf,pnhfsf,pnhfturb,pvrans); 
 
         //save previous timestep
         //pturb->ktimesave(p,a,pgc);

@@ -390,7 +390,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
-    ffn=float(d->P[IJKp1]);
+    ffn=float(d->P[FIJKp1]);
 
     if(k==-1 && j==-1)
 	ffn=float(d->P[FIJp1Kp1]);

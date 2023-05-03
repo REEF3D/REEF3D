@@ -87,27 +87,32 @@ void nhflow_pjm::ucorr(lexer* p, fdm_nhf *d, double *U, double alpha)
 	LOOP
 	U[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*
                 (0.5*((d->P[FIp1JKp1]-d->P[FIm1JKp1])/(p->DXP[IP]+p->DXP[IM1]) + (d->P[FIp1JK]-d->P[FIm1JK])/(p->DXP[IP]+p->DXP[IM1]))
-                + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(d->P[FIJKp1]-d->P[FIp1JK])/p->DZP[KP1]);
+                + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(d->P[FIJKp1]-d->P[FIJK])/p->DZP[KP1]);
 }
 
 void nhflow_pjm::vcorr(lexer* p, fdm_nhf *d, double *V,double alpha)
 {
     LOOP
-    V[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*((d->P[FIJp1K]-d->P[FIJK])/p->DYP[JP]
-                + 0.25*(p->sigy[FIJK]+p->sigy[FIJKp1]+p->sigy[FIJp1K]+p->sigy[FIJp1Kp1])*(0.5*(d->P[FIJKp1]+d->P[FIJp1Kp1])-0.5*(d->P[FIJKm1]+d->P[FIJp1Km1]))/(p->DZP[KP]+p->DZP[KP1]));
-}
+    V[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*
+                (0.5*((d->P[FIJp1Kp1]-d->P[FIJm1Kp1])/(p->DYP[JP]+p->DYP[JM1]) + (d->P[FIJp1K]-d->P[FIJm1K])/(p->DYP[JP]+p->DYP[JM1]))
+                + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(d->P[FIJKp1]-d->P[FIJK])/p->DZP[KP1]);
+    }
 
 void nhflow_pjm::wcorr(lexer* p, fdm_nhf *d, double *W, double alpha)
 {
     LOOP
-	W[IJK] -= alpha*p->dt*CPORNH*PORVALNH*((d->P[FIJKp1]-d->P[FIJK])/(p->DZP[KP]*p->W1))*p->sigz[IJ];
+	W[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*((d->P[FIJKp1]-d->P[FIJK])/(p->DZN[KP]))*p->sigz[IJ];
 }
 
 void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
 {
     double U1,U2,V1,V2,fac;
-    NLOOP4
+    n=0;
+    FLOOP
+    {
 	d->rhsvec.V[n]=0.0;
+    ++n;
+    }
 
     pip=p->Y50;
 
@@ -123,16 +128,14 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
     V2 = (1.0-fac)*V[IJp1K] + fac*V[IJp1Km1]; 
     
          
-    d->rhsvec.V[n] =      -  ((U2-U1)/(p->DXP[IP1] + p->DXP[IP])
+    d->rhsvec.V[n] =      -   ((U2-U1)/(p->DXP[IP1] + p->DXP[IP])
                             + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(U[IJK]-U[IJKm1])/p->DZP[KM1]
                             
-                            +(V2-V1)/(p->DYP[JP1] + p->DYP[JP])
+                            + (V2-V1)/(p->DYP[JP1] + p->DYP[JP])
                             + 0.5*(p->sigy[FIJK]+p->sigx[FIJKp1])*(V[IJK]-V[IJKm1])/p->DZP[KM1]
 
-                            //+ (V[IJK]-V[IJm1K])/p->DYN[JP]
-                            //+ 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(0.5*(V[IJKp1]+V[IJm1Kp1])-0.5*(V[IJKm1]+V[IJm1Km1]))/(p->DZP[KP]+p->DZP[KP1])
-
                             + p->sigz[IJ]*(W[IJK]-W[IJm1K])/p->DZN[KP])/(alpha*p->dt);
+                            
 
     ++n;
     }
