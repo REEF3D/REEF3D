@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,16 +17,17 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"particle.h"
+#include"particle_pls.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"ioflow.h"
 #include<math.h>
 
-void particle::correct(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
+void particle_pls::correct(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
 {
     corrected=0;
 	
@@ -71,7 +72,7 @@ void particle::correct(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
     finalcorr(p,a,pgc);
 }
 
-void particle::parcorr(lexer *p,fdm* a,ioflow *pflow,double sign,double* f,int i1,int j1,int k1,int i0, int j0, int k0)
+void particle_pls::parcorr(lexer *p,fdm* a,ioflow *pflow,double sign,double* f,int i1,int j1,int k1,int i0, int j0, int k0)
 {
     int check=0;
 	
@@ -132,7 +133,7 @@ void particle::parcorr(lexer *p,fdm* a,ioflow *pflow,double sign,double* f,int i
 	}
 }
 
-void particle::finalcorr(lexer* p, fdm* a, ghostcell* pgc)
+void particle_pls::finalcorr(lexer* p, fdm* a, ghostcell* pgc)
 {
 		
 	LOOP
@@ -155,7 +156,7 @@ void particle::finalcorr(lexer* p, fdm* a, ghostcell* pgc)
     }
 }
 
-void particle::inicorr(lexer* p, fdm* a, ghostcell* pgc)
+void particle_pls::inicorr(lexer* p, fdm* a, ghostcell* pgc)
 {
     LOOP
     {

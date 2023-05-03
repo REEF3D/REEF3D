@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,15 +17,16 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"particle.h"
+#include"particle_pls.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include<math.h>
 
-void particle::seed(lexer* p, fdm* a, ghostcell* pgc, double fraction,double fac)
+void particle_pls::seed(lexer* p, fdm* a, ghostcell* pgc, double fraction,double fac)
 {
     field4 partcount(p);
 
@@ -91,7 +92,7 @@ void particle::seed(lexer* p, fdm* a, ghostcell* pgc, double fraction,double fac
 }
 
 
-int particle::posseed(lexer* p, fdm* a, ghostcell* pgc, double factor)
+int particle_pls::posseed(lexer* p, fdm* a, ghostcell* pgc, double factor)
 {
 	int success=1;
 	
@@ -191,7 +192,7 @@ int particle::posseed(lexer* p, fdm* a, ghostcell* pgc, double factor)
 }
 
 
-int particle::negseed(lexer* p, fdm* a, ghostcell* pgc, double factor)
+int particle_pls::negseed(lexer* p, fdm* a, ghostcell* pgc, double factor)
 {	
 	int success=1;
 	

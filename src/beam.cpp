@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2021 Tobias Martin
+Copyright 2018-2023 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -20,9 +20,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"beam.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
 
 beam::beam(int number):nBeam(number),iout(0),imas(0),ijac(0)
 {

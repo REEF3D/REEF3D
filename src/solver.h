@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -40,8 +40,8 @@ class solver
 public:
 
 	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int)=0;
-    virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int)=0;
-    virtual void startM(lexer*, fdm*, ghostcell*, double*, double*, double*, int)=0;
+    virtual void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int)=0;
+    virtual void startM(lexer*, ghostcell*, double*, double*, double*, int)=0;
 	
 };
 

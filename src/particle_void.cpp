@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,38 +17,37 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"particle_void.h"
+#include"particle_pls_void.h"
 
-particle_void::particle_void()
+particle_pls_void::particle_pls_void()
 {
 
 }
 
-particle_void::~particle_void()
+particle_pls_void::~particle_pls_void()
 {
 
 }
 
-void particle_void::start(lexer *p, fdm *a, ghostcell * pgc, ioflow *pflow)
+void particle_pls_void::start(lexer *p, fdm *a, ghostcell * pgc, ioflow *pflow)
 {
 
 }
 
-void particle_void::setup(lexer *p, fdm *a, ghostcell * pgc)
+void particle_pls_void::setup(lexer *p, fdm *a, ghostcell * pgc)
 {
 
 }
 
-void particle_void::correct(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
+void particle_pls_void::correct(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
 {
-
 
 }
 
-void particle_void::picardmove(lexer *p, fdm *a, ghostcell *pgc)
+void particle_pls_void::picardmove(lexer *p, fdm *a, ghostcell *pgc)
 {
-
 
 }

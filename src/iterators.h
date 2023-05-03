@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -26,6 +26,7 @@ Author: Hans Bihs
 #define NLOOP4 for(n=p->sizeM4[0]; n<p->sizeM4[1]; ++n)
 #define NLOOP4A for(n=p->sizeM4a[0]; n<p->sizeM4a[1]; ++n)	
 #define NLOOP6 for(n=p->sizeM6[0]; n<p->sizeM6[1]; ++n)
+#define NLOOP9 for(n=p->sizeM9[0]; n<p->sizeM9[1]; ++n)
 #define NLOOP for(n=sizeM[0]; n<sizeM[1]; ++n)
 #define VECLOOP for(n=0; n<p->veclength; ++n)
 
@@ -204,6 +205,14 @@ Author: Hans Bihs
 #define CPOR1p   (1.0/(1.0+(p->B260*(PORVAL1p<1.0?1.0:0.0))))
 #define CPOR2p   (1.0/(1.0+(p->B260*(PORVAL2p<1.0?1.0:0.0))))
 #define CPOR3p   (1.0/(1.0+(p->B260*(PORVAL3p<1.0?1.0:0.0))))
+
+
+#define PORVALNH d->porosity[IJK]
+#define PORVALNHm d->porosity[IJK]
+#define PORVALNHp d->porosity[IJK]
+#define CPORNH  (1.0/(1.0+(p->B260*(PORVALNH<1.0?1.0:0.0))))
+#define CPORNHm (1.0/(1.0+(p->B260*(PORVALNHm<1.0?1.0:0.0))))
+#define CPORNHp (1.0/(1.0+(p->B260*(PORVALNHp<1.0?1.0:0.0))))
 
 //-----------------------------------------------------------
 

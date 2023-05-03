@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_etimestep.h"
@@ -65,8 +66,12 @@ void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
 
 	SLICELOOP4
 	depthmax=MAX(depthmax,b->depth(i,j));
+    
+    depthmax=MAX(depthmax,0.00001);
 	
 	depthmax=pgc->globalmax(depthmax);
+    
+    
 	
     if(p->mpirank==0 && (p->count%p->P12==0))
     {

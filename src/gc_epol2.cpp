@@ -1,6 +1,6 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2022 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -16,11 +16,11 @@ for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
--------------------------------------------------------------------
+--------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
-#include"fdm.h"
 
 int ghostcell::gceval2(lexer *p, int gcv, int bc, int cs)
 {
@@ -28,7 +28,7 @@ int ghostcell::gceval2(lexer *p, int gcv, int bc, int cs)
 
     // Parallel
 	//Wall
-	if((bc==21||bc==22||bc==7||bc==6)&&(cs==1||cs==4||cs==5||cs==6)&&(gcv==11||gcv==21||gcv==2))
+	if((bc==21||bc==22||bc==7||bc==6)&&(cs==1||cs==4||cs==5||cs==6)&&(gcv==11||gcv==2))
 	return gclabel_v;
 	
 	if((bc==21||bc==22||bc==7||bc==6)&&(cs==1||cs==4||cs==5||cs==6)&&(gcv==111))
@@ -37,8 +37,11 @@ int ghostcell::gceval2(lexer *p, int gcv, int bc, int cs)
 	if((bc==21||bc==22||bc==7||bc==6)&&(cs==1||cs==4||cs==5||cs==6)&&(gcv==115))
 	return gclabel_v;
     
+    if((bc==21||bc==22||bc==7||bc==6)&&(cs==1||cs==4||cs==5||cs==6)&&(gcv==118))
+	return 4;
+    
     // Topo
-    if((bc==5)&&(cs==1||cs==4||cs==5||cs==6)&&(gcv==11||gcv==21||gcv==2))
+    if((bc==5)&&(cs==1||cs==4||cs==5||cs==6)&&(gcv==11||gcv==2))
 	return gclabel_vtopo;
 	
 	if((bc==5)&&(cs==1||cs==4||cs==5||cs==6)&&(gcv==111))
@@ -46,6 +49,9 @@ int ghostcell::gceval2(lexer *p, int gcv, int bc, int cs)
 	
 	if((bc==5)&&(cs==1||cs==4||cs==5||cs==6)&&(gcv==115))
 	return gclabel_vtopo;
+    
+    if((bc==5)&&(cs==1||cs==4||cs==5||cs==6)&&(gcv==118))
+	return 4;
 	
 	else
 	if((bc==21||bc==22||bc==5) && gcv==15)
@@ -53,7 +59,7 @@ int ghostcell::gceval2(lexer *p, int gcv, int bc, int cs)
 	
     // Orthogonal
 	else
-	if((bc==21||bc==22||bc==5||bc==7)&&(cs==2||cs==3)&&(gcv==11||gcv==21||gcv==2))
+	if((bc==21||bc==22||bc==5||bc==7)&&(cs==2||cs==3)&&(gcv==11||gcv==2))
 	return gclabel_v_orth;
 
 	else
@@ -62,46 +68,42 @@ int ghostcell::gceval2(lexer *p, int gcv, int bc, int cs)
 	
 
 //Inflow
-	else
-	if(bc==1 && (gcv==21))
-	return 4;
-    
     else
-	if((bc==6  && (gcv==11||gcv==21||gcv==2||gcv==8)))
+	if((bc==6  && (gcv==11||gcv==2||gcv==8)))
 	return gclabel_v_in;
 	
 //Outflow
 	else
-	if((bc==2 && gclabel_outflow==1) && (gcv==11||gcv==21||gcv==2) && (cs==1||cs==4||cs==5||cs==6))
+	if((bc==2 && gclabel_outflow==1) && (gcv==11||gcv==2) && (cs==1||cs==4||cs==5||cs==6))
 	return 4;
 	
 	else
-	if((bc==2 && gclabel_outflow==1) && (gcv==11||gcv==21||gcv==2) && (cs==2||cs==3))
+	if((bc==2 && gclabel_outflow==1) && (gcv==11||gcv==2) && (cs==2||cs==3))
 	return gclabel_v_out;
     
 //Patch    
     else
-	if((bc==111 || bc==112 || bc==121 || bc==122) && (gcv==11||gcv==2||gcv==21||gcv==8))
+	if((bc==111 || bc==112 || bc==121 || bc==122) && (gcv==11||gcv==2||gcv==8))
 	return 4;
 
 
 //Free Surface
 	else
-	if(bc==3 && (cs==1||cs==4||cs==5||cs==6) && (gcv==11||gcv==21||gcv==18 || gcv==2))
+	if(bc==3 && (cs==1||cs==4||cs==5||cs==6) && (gcv==11||gcv==18 || gcv==2))
 	return 4;
 
 	else
-	if(bc==3 && (cs==2||cs==3)&&(gcv==11||gcv==21||gcv==18 || gcv==2))
+	if(bc==3 && (cs==2||cs==3)&&(gcv==11||gcv==18 || gcv==2))
 	return 1;
 	
 	else
-	if((bc==9) && cs==6 && (gcv==11||gcv==21||gcv==18 || gcv==2))
+	if((bc==9) && cs==6 && (gcv==11||gcv==18 || gcv==2))
 	return 4;
 	
 // 6DOF
 	else
 	if(bc==41||bc==42||bc==43)
-	return 11;
+	return 9;
 
 
      else
@@ -144,10 +146,17 @@ void ghostcell::gcdistro2(lexer *p,field& f, int ii, int jj, int kk, int nn, dou
     if(bc_label==7)
 	sommerfeld(p,f,gcv,bc,cs);
 	
-	if(bc_label==11)
+	if(bc_label==9)
 	fbvel2(p,f,dist,gcv,bc,cs);
+    
+    if(bc_label==11)
+	dirichlet_ortho_reflect(p,f,dist,gcv,bc,cs);
+
+	if(bc_label==12)
+	dirichlet_para_reflect(p,f,dist,gcv,bc,cs);
     
     if(bc_label==99)
 	gcb_debug(f,gcv,bc,cs);
 }
 
+void ghostcell::gcdistro2V(lexer *p, double *f, int ii, int jj, int kk, int nn, double dist,  int gcv, int bc, int cs){}

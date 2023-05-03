@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,7 +17,9 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
+
 #include"fnpf_RK2.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
@@ -207,7 +209,7 @@ void fnpf_RK2::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, sol
     
     if(p->I40==1)
     {
-    restart(p,c,pgc);
+    fnpf_restart(p,c,pgc);
     
     
     sigma_update(p,c,pgc,pf,c->eta);

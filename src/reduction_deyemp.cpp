@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -22,7 +22,6 @@ Author: Hans Bihs
 
 #include"reduction_deyemp.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
@@ -34,9 +33,10 @@ reduction_deyemp::~reduction_deyemp()
 {
 }
 
-void reduction_deyemp::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
+void reduction_deyemp::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     double r=1.0;
+    
 
     SLICELOOP4
     {
@@ -44,10 +44,17 @@ void reduction_deyemp::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 
 	r = 0.954*pow(1.0-s->teta(i,j)/s->phi(i,j), 0.745)*pow(1.0-s->alpha(i,j)/s->phi(i,j),0.372);
 
+    // limiter
 	if( 1.0-s->teta(i,j)/s->phi(i,j) < 0.0 || 1.0-s->alpha(i,j)/s->phi(i,j)< 0.0)
     {
-	r = cos(s->teta(i,j))*(1.0 - tan(s->teta(i,j)/tan(s->phi(i,j))));
-    r*= cos(s->alpha(i,j))*(1.0 - pow(tan(s->alpha(i,j)),2.0)/pow(tan(s->phi(i,j)),2.0));
+        if(p->S84==1)
+        {
+        r = cos(s->teta(i,j))*(1.0 - tan(s->teta(i,j)/tan(s->phi(i,j))));
+        r*= cos(s->alpha(i,j))*(1.0 - pow(tan(s->alpha(i,j)),2.0)/pow(tan(s->phi(i,j)),2.0));
+        }
+        
+        if(p->S84==2)
+        r = 0.1/(fabs(s->gamma(i,j)) + 0.0000001)+0.1;
     }
 
 

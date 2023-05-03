@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
@@ -40,7 +41,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void driver::loop_fnpf()
 {
-   driver_ini_fnpf(); 
    
 //-----------MAINLOOP FNPF----------------------------
 
@@ -52,7 +52,7 @@ void driver::loop_fnpf()
 
         if(p->mpirank==0 && (p->count%p->P12==0))
         {
-        cout<<"------------------------------"<<endl;
+        cout<<"------------------------------------"<<endl;
         cout<<p->count<<endl;
         
         cout<<"simtime: "<<p->simtime<<endl;
@@ -128,7 +128,6 @@ void driver::loop_fnpf()
     mainlogout.close();
     maxlogout.close();
     solvlogout.close();
-    sedlogout.close();
 	}
 
     pgc->final();

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_df_object.h"
@@ -178,12 +179,12 @@ void sixdof_df_object::ray_cast_io_x(lexer *p, fdm *a, ghostcell *pgc, int ts, i
 	/*
 	count=0;
 	ALOOP
-	if(a->fb(i,j,k)>0)
+	if(fbio(i,j,k)<0)
 	++count;
     
     count=pgc->globalisum(count);
     
     if(p->mpirank==0)
-    cout<<"Number of active cells after fb_ray_io_x: "<<count<<endl;*/
+    cout<<"Number of floating body cells after fb_ray_io_x: "<<count<<endl;*/
 	
 }

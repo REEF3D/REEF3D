@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,7 +17,9 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
+
 #include"patchBC_2D.h"
 #include"lexer.h"
 #include"fdm2D.h"
@@ -44,10 +46,15 @@ void patchBC_2D::patchBC_waterlevel2D(lexer *p, fdm2D *b, ghostcell *pgc, slice 
     
         if(patch[qq]->gcb[n][3]==1)
         {
-        eta(i,j)   =  patch[qq]->waterlevel-p->wd;
+        //if(p->count<=1)
+        //eta(i,j)   =  patch[qq]->waterlevel-p->wd;
+        
         eta(i-1,j) =  patch[qq]->waterlevel-p->wd;
         eta(i-2,j) =  patch[qq]->waterlevel-p->wd;
         eta(i-3,j) =  patch[qq]->waterlevel-p->wd;
+        
+        //if(p->count<=1)
+        //b->hp(i,j) =  patch[qq]->waterlevel-b->bed(i,j);
         
         b->hp(i-1,j) =  patch[qq]->waterlevel-b->bed(i,j);
         b->hp(i-2,j) =  patch[qq]->waterlevel-b->bed(i,j);
@@ -65,7 +72,7 @@ void patchBC_2D::patchBC_waterlevel2D(lexer *p, fdm2D *b, ghostcell *pgc, slice 
         
         if(patch[qq]->gcb[n][3]==2)
         {
-        eta(i,j) =  patch[qq]->waterlevel-p->wd;
+        //eta(i,j) =  patch[qq]->waterlevel-p->wd;
         eta(i,j+1) =  patch[qq]->waterlevel-p->wd;
         eta(i,j+2) =  patch[qq]->waterlevel-p->wd;
         eta(i,j+3) =  patch[qq]->waterlevel-p->wd;
@@ -86,7 +93,7 @@ void patchBC_2D::patchBC_waterlevel2D(lexer *p, fdm2D *b, ghostcell *pgc, slice 
         
         if(patch[qq]->gcb[n][3]==3)
         {
-        eta(i,j) =  patch[qq]->waterlevel-p->wd;
+        //eta(i,j) =  patch[qq]->waterlevel-p->wd;
         eta(i,j-1) =  patch[qq]->waterlevel-p->wd;
         eta(i,j-2) =  patch[qq]->waterlevel-p->wd;
         eta(i,j-3) =  patch[qq]->waterlevel-p->wd;
@@ -106,12 +113,12 @@ void patchBC_2D::patchBC_waterlevel2D(lexer *p, fdm2D *b, ghostcell *pgc, slice 
         
         if(patch[qq]->gcb[n][3]==4)
         {
-        eta(i,j) =  patch[qq]->waterlevel-p->wd;
+        //eta(i,j) =  patch[qq]->waterlevel-p->wd;
         eta(i+1,j) =  patch[qq]->waterlevel-p->wd;
         eta(i+2,j) =  patch[qq]->waterlevel-p->wd;
         eta(i+3,j) =  patch[qq]->waterlevel-p->wd;
         
-        b->hp(i+1,j)   =  patch[qq]->waterlevel-b->bed(i,j);
+        b->hp(i+1,j) =  patch[qq]->waterlevel-b->bed(i,j);
         b->hp(i+2,j) =  patch[qq]->waterlevel-b->bed(i,j);
         b->hp(i+3,j) =  patch[qq]->waterlevel-b->bed(i,j);
         

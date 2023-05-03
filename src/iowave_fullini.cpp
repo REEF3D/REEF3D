@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"iowave.h"
@@ -204,62 +205,6 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
     }
 }
 
-void iowave::full_initialize_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
-{
-    if(p->mpirank==0)
-    cout<<"full NWT initialize"<<endl;
-    
-    // eta
-	SLICELOOP4
-    if(c->wet(i,j)==1)
-    {
-        xg = xgen(p);
-        yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
-
-		c->eta(i,j) = wave_eta(p,pgc,xg,yg);
-
-    }
-    
-    // Fifsf
-    SLICELOOP4
-    if(c->wet(i,j)==1)
-    {
-        xg = xgen(p);
-        yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
-        
-        z = c->eta(i,j);
-
-		c->Fifsf(i,j) = wave_fi(p,pgc,xg,yg,z);
-    }
-
-    
-    // Fi
-    FLOOP
-    if(c->wet(i,j)==1)
-    {
-        xg = xgen(p);
-        yg = ygen(p);
-        dg = distgen(p);
-		db = distbeach(p);
-        
-        z=p->ZSN[FIJK]-p->phimean;
-        
-        z = p->ZN[KP]*(c->eta(i,j) + p->wd - c->bed(i,j)) + c->bed(i,j)-p->phimean;
-        
-        c->Fi[FIJK] = wave_fi(p,pgc,xg,yg,z);
-      
-    }
-    
-    SLICELOOP4
-    c->WL(i,j) = c->eta(i,j) + p->wd - c->bed(i,j);
-
-}
-
-
 void iowave::full_initialize_ptf(lexer *p, fdm *a, ghostcell *pgc)
 {
     if(p->mpirank==0)
@@ -267,7 +212,6 @@ void iowave::full_initialize_ptf(lexer *p, fdm *a, ghostcell *pgc)
     
     // eta
 	SLICELOOP4
-    //if(a->wet(i,j)==1)
     {
         xg = xgen(p);
         yg = ygen(p);
@@ -280,7 +224,6 @@ void iowave::full_initialize_ptf(lexer *p, fdm *a, ghostcell *pgc)
     
     // Fifsf
     SLICELOOP4
-    //if(a->wet(i,j)==1)
     {
         xg = xgen(p);
         yg = ygen(p);
@@ -295,7 +238,6 @@ void iowave::full_initialize_ptf(lexer *p, fdm *a, ghostcell *pgc)
     
     // Fi
     LOOP
-    //if(a->wet(i,j)==1)
     {
         xg = xgen(p);
         yg = ygen(p);
@@ -313,9 +255,7 @@ void iowave::full_initialize_ptf(lexer *p, fdm *a, ghostcell *pgc)
       
     }
     
-    SLICELOOP4
-    a->WL(i,j) = a->eta(i,j) + p->wd - a->bed(i,j);
-    
+
     pgc->start4(p,a->Fi,50);
 
 }

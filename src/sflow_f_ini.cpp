@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_f.h"
@@ -24,6 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"iowave.h"
+#include"sediment.h"
 #include"hypre_struct2D.h"
 #include"sflow_etimestep.h"
 #include"sflow_weno_flux.h"
@@ -32,7 +34,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_potential.h"
 #include"sflow_vtp.h"
 #include"sflow_vtp_bed.h"
-#include"sflow_sediment.h"
 #include"6DOF_sflow.h"
 
 void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
@@ -78,11 +79,20 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 	ILOOP
     JLOOP
 	b->bed(i,j) = p->bed[IJ];
+    
+    ILOOP
+    JLOOP
+	b->solidbed(i,j) = p->solidbed[IJ];
+
+    ILOOP
+    JLOOP
+	b->topobed(i,j) = p->topobed[IJ];
+
 
     pgc->gcsl_start4(p,b->bed,50);
-    pgc->gcsl_start4a(p,b->bed,50);
-    pgc->gcsl_start4(p,b->bed,50);
-    b->bed.ggcpol(p);
+    pgc->gcsl_start4(p,b->solidbed,50);
+    pgc->gcsl_start4(p,b->topobed,50);
+
     
 	for(int qn=0; qn<p->A209;++qn)
     {
@@ -97,11 +107,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     ini_fsf(p,b,pgc);
 
     SLICELOOP4
-    b->wet4(i,j)=1;
-
-
-    SLICELOOP4
-    b->zb(i,j) = 0.0;
+    p->wet[IJ]=1;
 
 
     SLICELOOP4
@@ -132,7 +138,6 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 	pgc->gcsl_start4(p,b->eta,50);
     pgc->gcsl_start4(p,b->hp,50);
     pgc->gcsl_start4(p,b->bed,50);
-    pgc->gcsl_start4(p,b->zb,50);
     
     pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
     
@@ -151,17 +156,18 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     pgc->gcsl_start4(p,b->ks,50);
 
     //sediment ini
-    psed->ini(p,b,pgc);
+    psed->ini_sflow(p,b,pgc);
 
     //6DOF ini
     if(p->X10==3)
     p6dof_sflow->ini(p,b,pgc);
 
     // print
+    log_ini(p);
 	print_debug(p,b,pgc);
-    pprint->start(p,b,pgc,pflow,pturb);
+    pprint->start(p,b,pgc,pflow,pturb,psed);
 
-	pprintbed->start(p,b,pgc);
+	pprintbed->start(p,b,pgc,psed);
 }
 
 void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
@@ -336,13 +342,27 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
             b->hy(i+3,j) = MAX(p->F62 - b->bed(i,j),0.0);
             }
         }
+        
+        for(n=0;n<p->gcslout_count;n++)
+        {
+        i=p->gcslout[n][0];
+        j=p->gcslout[n][1];
+        
+        b->eta(i,j) = p->F62-p->wd;
+        b->eta(i+1,j) = p->F62-p->wd;
+        b->eta(i+2,j) = p->F62-p->wd;
+        b->eta(i+3,j) = p->F62-p->wd;
+
+        b->hp(i,j) = MAX(b->eta(i+1,j) + p->wd - b->bed(i,j),0.0);
+        b->hp(i+1,j) = MAX(b->eta(i+1,j) + p->wd - b->bed(i,j),0.0);
+        b->hp(i+2,j) = MAX(b->eta(i+2,j) + p->wd - b->bed(i,j),0.0);
+        b->hp(i+3,j) = MAX(b->eta(i+3,j) + p->wd - b->bed(i,j),0.0);
+        }
     }
       
 	pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
 
 }
-
-
 
 void sflow_f::ini_fsf_2(lexer *p, fdm2D* b, ghostcell* pgc)
 {
@@ -353,4 +373,6 @@ void sflow_f::ini_fsf_2(lexer *p, fdm2D* b, ghostcell* pgc)
     // eta_n ini
     SLICELOOP4
     b->eta_n(i,j) = b->eta(i,j);
+    
+    pgc->gcsl_start4(p,b->eta_n,50);
 }

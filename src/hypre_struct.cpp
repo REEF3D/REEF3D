@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"hypre_struct.h"
@@ -28,7 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"field.h"
 #include"vec.h"
 
-hypre_struct::hypre_struct(lexer* p,fdm* a,ghostcell *pgc, int solve_input, int precon_input) : cval4(p),  
+hypre_struct::hypre_struct(lexer* p,ghostcell *pgc, int solve_input, int precon_input) : cval4(p),  
                                                                                                solve_type(solve_input), precon_type(precon_input)
 {	
     int vecsize=p->knox*p->knoy*p->knoz; 
@@ -41,10 +42,10 @@ hypre_struct::hypre_struct(lexer* p,fdm* a,ghostcell *pgc, int solve_input, int 
     p->Darray(values,vecsize*7);
     
     if(p->j_dir==1)
-    make_grid(p,a,pgc);	
+    make_grid(p,pgc);	
     
     if(p->j_dir==0)
-    make_grid_2Dvert(p,a,pgc);
+    make_grid_2Dvert(p,pgc);
     
     
     count=0;
@@ -68,16 +69,16 @@ void hypre_struct::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec,
     start_solver5(p,a,pgc,f,rhsvec,var);
 }
 
-void hypre_struct::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
+void hypre_struct::startF(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
 {
     if(var==7)
     start_solver7(p,pgc,f,rhs,M,var);
     
     if(var==8)
-    start_solver8(p,c,pgc,f,rhs,M,var);
+    start_solver8(p,pgc,f,rhs,M,var);
 }
 
-void hypre_struct::startM(lexer* p,fdm* a, ghostcell* pgc, double *x, double *rhs, double *M, int var)
+void hypre_struct::startM(lexer* p, ghostcell* pgc, double *x, double *rhs, double *M, int var)
 {
 }
 
@@ -185,7 +186,7 @@ void hypre_struct::start_solver7(lexer* p, ghostcell* pgc, double *f, vec& rhs, 
 	delete_solver5(p,pgc);
 }
 
-void hypre_struct::start_solver8(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
+void hypre_struct::start_solver8(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
 {
     numiter=0;
 	p->solveriter=0;
@@ -193,17 +194,17 @@ void hypre_struct::start_solver8(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *
     create_solver5(p,pgc);
 
     if(p->j_dir==1)
-    fill_matrix8(p,c,pgc,f,rhs,M);
+    fill_matrix8(p,pgc,f,rhs,M);
     
     if(p->j_dir==0)
-    fill_matrix8_2Dvert(p,c,pgc,f,rhs,M);
+    fill_matrix8_2Dvert(p,pgc,f,rhs,M);
 
     solve(p,pgc);
 
 	p->solveriter=num_iterations;
     p->final_res = final_res_norm;
         
-    fillbackvec8(p,c,f,var);
+    fillbackvec8(p,f,var);
 	
 	delete_solver5(p,pgc);
 }

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,61 +20,39 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"momentum.h"
+#include"nhflow_momentum.h"
+#include"slice4.h"
 #include"bcmom.h"
-#include"field1.h"
-#include"field2.h"
-#include"field3.h"
 
-class convection;
-class diffusion;
-class pressure;
-class turbulence;
-class solver;
-class poisson;
-class fluid_update;
 
 using namespace std;
 
 #ifndef NHFLOW_MOMENTUM_RK3_H_
 #define NHFLOW_MOMENTUM_RK3_H_
 
-class nhflow_momentum_RK3 : public momentum, public bcmom
+class nhflow_momentum_RK3 : public nhflow_momentum, public bcmom
 {
 public:
-	nhflow_momentum_RK3(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*);
+	nhflow_momentum_RK3(lexer*, fdm_nhf*, ghostcell*);
 	virtual ~nhflow_momentum_RK3();
-	virtual void start(lexer*, fdm*, ghostcell*, vrans*);
-	virtual void utimesave(lexer*, fdm*, ghostcell*);
-    virtual void vtimesave(lexer*, fdm*, ghostcell*);
-    virtual void wtimesave(lexer*, fdm*, ghostcell*);
-    virtual void fillaij1(lexer*, fdm*, ghostcell*, solver*);
-    virtual void fillaij2(lexer*, fdm*, ghostcell*, solver*);
-    virtual void fillaij3(lexer*, fdm*, ghostcell*, solver*);
+    
+	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_convection*, diffusion*, nhflow_pressure*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*,  vrans*);
 
-    field1 urk1,urk2;
-	field2 vrk1,vrk2;
-	field3 wrk1,wrk2;
+
+    double *UDIFF,*URK1,*URK2;
+    double *VDIFF,*VRK1,*VRK2;
+    double *WDIFF,*WRK1,*WRK2;
+    
+    slice4 etark1,etark2;
 
 private:
-    fluid_update *pupdate;
-    
-	void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
-	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
-	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
+
+	void irhs(lexer*,fdm_nhf*,ghostcell*);
+	void jrhs(lexer*,fdm_nhf*,ghostcell*);
+	void krhs(lexer*,fdm_nhf*,ghostcell*);
 	
 	int gcval_u, gcval_v, gcval_w;
-	int gcval_urk, gcval_vrk, gcval_wrk;
 	double starttime;
-
-	convection *pconvec;
-	diffusion *pdiff;
-	pressure *ppress;
-	poisson *ppois;
-	turbulence *pturb;
-	solver *psolv;
-    solver *ppoissonsolv;
-	ioflow *pflow;
 };
 
 #endif

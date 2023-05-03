@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ptf_laplace_cds2.h"
@@ -403,22 +404,16 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 }
             }
 
-
             // KBEDBC
             if(p->flag4[IJKm1]<AIR)
             {
             a->M.p[n] += a->M.b[n];
             a->M.b[n] = 0.0;
             }
-
         }
-
 	++n;
 	}
     
-    
-
-
     double starttime=pgc->timer();
     psolv->start(p,a,pgc,a->Fi,a->rhsvec,5);
     double endtime=pgc->timer();
@@ -428,5 +423,4 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
     p->poissontime=endtime-starttime;
 	if(p->mpirank==0 && p->count%p->P12==0)
 	cout<<"Fi_iter: "<<p->solveriter<<"  Fi_time: "<<setprecision(3)<<p->poissontime<<endl;
-
 }

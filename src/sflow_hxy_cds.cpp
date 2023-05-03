@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_hxy_cds.h"
@@ -28,7 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_flux_HJ_CDS.h"
 #include"patchBC_interface.h"
 
-sflow_hxy_cds::sflow_hxy_cds(lexer* p, fdm2D *bb, patchBC_interface *ppBC)  
+sflow_hxy_cds::sflow_hxy_cds(lexer* p, patchBC_interface *ppBC)  
 {
     pBC = ppBC;
     
@@ -38,28 +39,27 @@ sflow_hxy_cds::sflow_hxy_cds(lexer* p, fdm2D *bb, patchBC_interface *ppBC)
     if(p->A216==2)
     pflux = new sflow_flux_face_CDS(p);
     
-    b=bb;
 }
 
 sflow_hxy_cds::~sflow_hxy_cds()
 {
 }
 
-void sflow_hxy_cds::start(lexer* p, slice& hx, slice& hy, slice& depth, slice& eta, slice& uvel, slice& vvel)
+void sflow_hxy_cds::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet, slice& eta, slice& uvel, slice& vvel)
 {
 	double eps=0.0;
 
     SLICELOOP1
 	{
 	pflux->u_flux(4,uvel,ivel1,ivel2);
-
+/*
 	if(ivel1>eps)
     hx(i,j) = eta(i,j) +  MIN(depth(i,j), depth(i+1,j));
 	
 	if(ivel1<-eps)
     hx(i,j) = eta(i+1,j) +  MIN(depth(i,j), depth(i+1,j));
 	
-	if(fabs(ivel1)<=eps)
+	if(fabs(ivel1)<=eps)*/
     hx(i,j) = 0.5*(eta(i,j)+eta(i+1,j)) + 0.5*(depth(i,j)+depth(i+1,j));
 	}
     
@@ -70,7 +70,7 @@ void sflow_hxy_cds::start(lexer* p, slice& hx, slice& hy, slice& depth, slice& e
     i=p->gcslout[n][0];
     j=p->gcslout[n][1];
     
-        if(b->wet4(i,j)==1)
+        if(wet[IJ]==1)
         {
         pflux->u_flux(4,uvel,ivel1,ivel2);
 
@@ -97,7 +97,7 @@ void sflow_hxy_cds::start(lexer* p, slice& hx, slice& hy, slice& depth, slice& e
     j=pBC->patch[qq]->gcb[n][1];
 
         
-        if(b->wet4(i,j)==1)
+        if(wet[IJ]==1)
         {
         pflux->u_flux(4,uvel,ivel1,ivel2);
 
@@ -117,13 +117,13 @@ void sflow_hxy_cds::start(lexer* p, slice& hx, slice& hy, slice& depth, slice& e
 	{
 	pflux->v_flux(4,vvel,jvel1,jvel2);
 	
-	if(jvel1>eps)
+	/*if(jvel1>eps)
     hy(i,j) = eta(i,j) + MIN(depth(i,j), depth(i,j+1));
 	
 	if(jvel1<-eps)
     hy(i,j) = eta(i,j+1) + MIN(depth(i,j), depth(i,j+1));
 	
-	if(fabs(jvel1)<=eps)
+	if(fabs(jvel1)<=eps)*/
     hy(i,j) = 0.5*(eta(i,j)+eta(i,j+1)) + 0.5*(depth(i,j)+depth(i,j+1));
 	}
     
@@ -139,7 +139,7 @@ void sflow_hxy_cds::start(lexer* p, slice& hx, slice& hy, slice& depth, slice& e
     j=pBC->patch[qq]->gcb[n][1]-1;
 
         
-        if(b->wet4(i,j)==1)
+        if(wet[IJ]==1)
         {
         pflux->v_flux(4,vvel,jvel1,jvel2);
 	

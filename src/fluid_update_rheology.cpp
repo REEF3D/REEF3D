@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fluid_update_rheology.h"
@@ -31,8 +32,7 @@ fluid_update_rheology::fluid_update_rheology(lexer *p, fdm* a) : dx(p->DXM),
     gcval_ro=1;
 	gcval_visc=1;
 	
-	prheo = new rheology_f(p,a);
-	
+	prheo = new rheology_f(p,a);	
 }
 
 fluid_update_rheology::~fluid_update_rheology()
@@ -74,7 +74,7 @@ void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc)
 		a->ro(i,j,k)=      ro1*H +   ro2*(1.0-H);
 
         p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));
-		p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
+        p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
 	}
 	pgc->start4(p,a->ro,gcval_ro);
     
@@ -88,7 +88,10 @@ void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc)
 		}
 
 		if(a->phi(i,j,k)<-epsi)
+        {
 		H=0.0;
+        visc1 = 0.0;
+        }
 
 		if(fabs(a->phi(i,j,k))<=epsi)
 		{
@@ -110,7 +113,6 @@ void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc)
 	cout<<"Volume 2: "<<p->volume2<<endl;
     }
     ++iocheck;
-
 }
 
 int fluid_update_rheology::iocheck;

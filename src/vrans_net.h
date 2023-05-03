@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2020 Tobias Martin
+Copyright 2018-2023 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -44,7 +44,7 @@ public:
 	typedef Eigen::Matrix<double, 3, 3> Matrix3d;
     typedef vector<vector<double> > MatrixVd;    
     
-	vrans_net(lexer*, fdm*, ghostcell*);
+	vrans_net(lexer*, ghostcell*);
 	virtual ~vrans_net();
 
 	virtual void initialize(lexer*, fdm*, ghostcell*);	

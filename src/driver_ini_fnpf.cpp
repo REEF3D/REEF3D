@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -46,7 +46,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/stat.h>
 #include<sys/types.h>
 
-#define WLVL (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0-20)
+#define WLVL (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0e20)
 
 void driver::driver_ini_fnpf()
 {
@@ -118,7 +118,7 @@ void driver::driver_ini_fnpf()
     if(p->mpirank==0)
     cout<<"starting driver_ini_FNPF"<<endl;
 
-
+	
     // bed ini
     SLICELOOP4
 	c->bed(i,j) = p->bed[IJ];
@@ -130,7 +130,7 @@ void driver::driver_ini_fnpf()
 	c->bc(i,j) = 0;
     
     pgc->gcsl_start4int(p,c->bc,50);
-    
+   
     for(n=0;n<p->gcslin_count;n++)
     {
     i=p->gcslin[n][0];
@@ -146,14 +146,14 @@ void driver::driver_ini_fnpf()
     
     c->bc(i+1,j) = 2;
     }
-    
+   
     // 2D mesh
     count=0;
 	p->pointnum2D=0;
 	p->cellnum2D=0;
 	p->polygon_sum=0;
     
-    
+   
     TPSLICELOOP  
 	{
 	++count;
@@ -207,16 +207,16 @@ void driver::driver_ini_fnpf()
     pgc->start7V(p,c->Fi,c->bc,250);
     
     pftstep->ini(c,p,pgc);
-
+	
 	pfprint->start(p,c,pgc,pflow);
-
+	
     
 	p->gctime=0.0;
     p->xtime=0.0;
 	p->wavetime=0.0;
 	p->field4time=0.0;
 
-     
+    
      if(p->mpirank==0)
     cout<<"starting mainloop.FNPF"<<endl;
 

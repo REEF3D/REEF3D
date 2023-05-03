@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_pjm_lin.h"
@@ -233,7 +234,7 @@ void sflow_pjm_lin::poisson(lexer*p, fdm2D* b, double alpha)
     n=0;
     SLICELOOP4
 	{
-        if(b->wet4(i,j)==0 || b->breaking(i,j)==1)
+        if(p->wet[IJ]==0 || b->breaking(i,j)==1)
         {
         b->M.p[n]  = 1.0;
 
@@ -253,10 +254,10 @@ void sflow_pjm_lin::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 {
 
     SLICELOOP1
-    {
-        b->F(i,j) -= fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) 
+    WETDRY1
+    b->F(i,j) -= fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) 
                                      - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
-    }
+
         
         if(p->B77==2)
         for(n=0;n<p->gcslout_count;n++)
@@ -264,15 +265,17 @@ void sflow_pjm_lin::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
         i=p->gcslout[n][0]-1;
         j=p->gcslout[n][1];
         
+        WETDRY1
+        {
         b->F(i,j) += fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) 
                                      - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
                                      
         b->F(i,j) -= fabs(p->W22)*(p->A223*(b->bed(i,j)-p->wd) + (1.0-p->A223)*(b->bed(i,j)-p->wd)
                                      - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
+        }
                                      
         }  
 
-        
 
     pBC->patchBC_pressure2D_ugrad(p,b,eta,eta_n);
 }
@@ -280,6 +283,7 @@ void sflow_pjm_lin::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 void sflow_pjm_lin::vpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 {
         SLICELOOP2
+        WETDRY2
         b->G(i,j) -= fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) 
                                  - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM); 
                                  

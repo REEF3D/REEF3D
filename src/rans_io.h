@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -59,7 +59,7 @@ public:
     virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
     virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
     
-    field4 kin,eps;
+    field4 kin,eps,eddyv0;
 	fieldint4 wallf;
 	
 	double const ke_c_1e, ke_c_2e,ke_sigma_k,ke_sigma_e;

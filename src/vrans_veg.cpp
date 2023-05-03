@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -25,9 +25,9 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-vrans_veg::vrans_veg(lexer *p, fdm *a, ghostcell *pgc) : Cval(p->B264), N(p), D(p), Cd(p), un(p), vn(p), wn(p)
+vrans_veg::vrans_veg(lexer *p, ghostcell *pgc) : Cval(p->B264), N(p), D(p), Cd(p), un(p), vn(p), wn(p)
 {
-	initialize(p,a,pgc);
+	//initialize(p,a,pgc);
 }
 
 vrans_veg::~vrans_veg()

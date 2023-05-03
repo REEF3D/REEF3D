@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"force.h"
@@ -62,7 +63,6 @@ force::force(lexer* p, fdm *a, ghostcell *pgc, int qn):nodefill(p),vertice(p),no
 	ym = ys + (ye-ys)*0.5;
 	zm = zs + (ze-zs)*0.5;
 	
-
     gcval_press=40;  
 }
 
@@ -73,6 +73,8 @@ void force::ini(lexer *p, fdm *a, ghostcell *pgc)
 {
     triangulation(p,a,pgc,a->phi);
 	reconstruct(p,a,a->phi);
+    pgc->gcxsd_seed(p,a);
+    pgc->gcbsd_seed(p,a);
 	
 	print_vtp(p,a,pgc);
 } 
@@ -80,7 +82,9 @@ void force::ini(lexer *p, fdm *a, ghostcell *pgc)
 void force::start(lexer *p, fdm *a, ghostcell *pgc)
 {
     pgc->start4(p,a->press,gcval_press);
-
+    pgc->gcxsd_update(p, a, a->press);
+    pgc->gcbsd_update(p, a, a->press);
+    
 	// forcecalc
     force_calc(p,a,pgc);
     
@@ -93,6 +97,9 @@ void force::start(lexer *p, fdm *a, ghostcell *pgc)
 
         print_force(p,a,pgc);
         }
-
+    
+    pgc->gcxsd_update(p, a, a->test);
+    pgc->gcbsd_update(p, a, a->test);
+    pgc->start4(p,a->press,gcval_press);
 } 
 

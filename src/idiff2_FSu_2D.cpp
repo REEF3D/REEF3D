@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"idiff2_FS_2D.h"
@@ -29,7 +30,28 @@ idiff2_FS_2D::idiff2_FS_2D(lexer* p)
 {
 	gcval_u=10;
 	gcval_v=11;
-	gcval_w=12;	
+	gcval_w=12;
+    
+    if(p->B21==1)
+    {
+    gcval_udiff=10;
+	gcval_vdiff=11;
+	gcval_wdiff=12;
+    }
+    
+    if(p->B21==2)
+    {
+    gcval_udiff=117;
+	gcval_vdiff=118;
+	gcval_wdiff=119;
+    }
+    
+    if(p->B21==3)
+    {
+    gcval_udiff=110;
+	gcval_vdiff=111;
+	gcval_wdiff=112;
+    }
 }
 
 idiff2_FS_2D::~idiff2_FS_2D()
@@ -41,8 +63,10 @@ void idiff2_FS_2D::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 	starttime=pgc->timer();
 	double visc_ddy_p,visc_ddy_m,visc_ddz_p,visc_ddz_m;
 
-    
-    pgc->start1(p,u,gcval_u);
+    pgc->start1(p,u,gcval_udiff);
+	pgc->start2(p,v,gcval_vdiff);
+	pgc->start3(p,w,gcval_wdiff);
+
 
     count=0;
 
@@ -121,6 +145,10 @@ void idiff2_FS_2D::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 	
     pgc->start1(p,u,gcval_u);
     
+    pgc->start1(p,u,gcval_u);
+	pgc->start2(p,v,gcval_v);
+	pgc->start3(p,w,gcval_w);
+    
 	time=pgc->timer()-starttime;
 	p->uiter=p->solveriter;
 	if(p->mpirank==0 && p->D21==1 && p->count%p->P12==0)
@@ -133,8 +161,12 @@ void idiff2_FS_2D::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 	starttime=pgc->timer();
 	double visc_ddy_p,visc_ddy_m,visc_ddz_p,visc_ddz_m;
     
+    ULOOP
+    diff(i,j,k) = u(i,j,k);
     
-    pgc->start1(p,u,gcval_u);
+    pgc->start1(p,u,gcval_udiff);
+	pgc->start2(p,v,gcval_vdiff);
+	pgc->start3(p,w,gcval_wdiff);
 
     count=0;
 
@@ -212,6 +244,10 @@ void idiff2_FS_2D::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
     }
 	
     pgc->start1(p,diff,gcval_u);
+    
+    pgc->start1(p,u,gcval_u);
+	pgc->start2(p,v,gcval_v);
+	pgc->start3(p,w,gcval_w);
     
 	time=pgc->timer()-starttime;
 	p->uiter=p->solveriter;

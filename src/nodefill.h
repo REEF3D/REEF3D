@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -38,6 +38,7 @@ public:
 	nodefill(lexer*);
 	virtual ~nodefill();
 	virtual void nodefill4(lexer*,fdm*,ghostcell*,field&,field&);
+    virtual void nodefill4a(lexer*,fdm*,ghostcell*,field&,field&);
 
 private:
 

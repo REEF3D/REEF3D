@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -105,6 +105,19 @@ public:
 	 double pwdx(lexer*,fdm*);
 	 double pwdy(lexer*,fdm*);
 	 double pwdz(lexer*,fdm*);
+     
+     //
+     double pudx(lexer*,field&);
+	 double pudy(lexer*,field&);
+	 double pudz(lexer*,field&);
+
+	 double pvdx(lexer*,field&);
+	 double pvdy(lexer*,field&);
+	 double pvdz(lexer*,field&);
+
+	 double pwdx(lexer*,field&);
+	 double pwdy(lexer*,field&);
+	 double pwdz(lexer*,field&);
 	 
 
 	//--------------------------------

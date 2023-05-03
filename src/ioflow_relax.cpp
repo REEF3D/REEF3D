@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ioflow_f.h"
@@ -125,6 +126,22 @@ void ioflow_f::vof_relax(lexer *p, ghostcell *pgc, field &f)
 }
 
 void ioflow_f::turb_relax(lexer *p, fdm *a, ghostcell *pgc, field &f)
+{
+}
+
+void ioflow_f::U_relax(lexer *p, ghostcell *pgc, double *U)
+{
+}
+
+void ioflow_f::V_relax(lexer *p, ghostcell *pgc, double *V)
+{
+}
+
+void ioflow_f::W_relax(lexer *p, ghostcell *pgc, double *W)
+{
+}
+
+void ioflow_f::P_relax(lexer *p, ghostcell *pgc, double *P)
 {
 }
 

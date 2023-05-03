@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -58,7 +58,6 @@ private:
 	void krhs(lexer*,fdm*);
     
     int gcval_u, gcval_v, gcval_w;
-	int gcval_urk, gcval_vrk, gcval_wrk;
 	double starttime;
     double Cpor;
 

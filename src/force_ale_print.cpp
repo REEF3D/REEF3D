@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,30 +17,25 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"force_ale.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void force_ale::print_force_ale(lexer* p, fdm *a, ghostcell *pgc)
+void force_ale::print_force_ale(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 {
-    // write to surf file
-
-    fout<<p->count<<"\t";
-    fout<<setprecision(9)<<p->simtime<<"\t";
-    fout<<Fx<<" \t ";
-    fout<<Fy;
-
-	
-    fout<<endl;
-
+    //cout<<"Fx"<<ID + 1<<": "<<Fx<<" Fy"<<ID + 1<<": "<<Fy<<endl;
+    
+    // write to force file
+    fout<<p->count<<" \t "<<setprecision(9)<<p->simtime<<" \t "<<Fx<<" \t "<<Fy<<endl;
 }
 
-void force_ale::print_ini(lexer* p, fdm *a, ghostcell *pgc)
+void force_ale::print_ini(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 {
     // Create Folder
 	if(p->mpirank==0 && p->P14==1)
@@ -48,26 +43,22 @@ void force_ale::print_ini(lexer* p, fdm *a, ghostcell *pgc)
 	
     if(p->mpirank==0)
     {
-    // open force_ale surf file
-	if(p->P14==0)
-	sprintf(name,"REEF3D_ALE_Force-%i.dat",ID+1);
-    
-	if(p->P14==1)
-	sprintf(name,"./REEF3D_FNPF_Force_ALE/REEF3D_ALE_Force-%i.dat",ID+1);
-	
-	fout.open(name);
+        // open force_ale file
+        if(p->P14==0)
+        sprintf(name,"REEF3D_ALE_Force-%i.dat",ID+1);
+        
+        if(p->P14==1)
+        sprintf(name,"./REEF3D_FNPF_Force_ALE/REEF3D_ALE_Force-%i.dat",ID+1);
+        
+        fout.open(name);
 
-    fout<<"x          y"<<endl;
+        fout<<"x \t y \t Cd \t Cm"<<endl;
 
-    fout<<p->P85_x[ID]<<" "<<p->P85_y[ID]<<endl;
-    fout<<endl<<endl;
-    
- 
-    fout<<"it \t time \t Fx \t Fy ";
-    
+        fout<<p->P85_x[ID]<<" \t "<<p->P85_y[ID]<<" \t "<<p->P85_cd[ID]<<" \t "<<p->P85_cm[ID] <<endl;
+        fout<<endl<<endl;
+     
+        fout<<"it \t time \t Fx \t Fy ";
 
-    fout<<endl;
+        fout<<endl;
 	}
-
-    
 }

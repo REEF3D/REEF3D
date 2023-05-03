@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2020 Tobias Martin
+Copyright 2018-2023 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -26,10 +26,10 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"net.h"
 
-vrans_net::vrans_net(lexer *p, fdm *a, ghostcell *pgc) 
+vrans_net::vrans_net(lexer *p, ghostcell *pgc) 
 : Fx_net(p), Fy_net(p), Fz_net(p),kernel_x(p), kernel_y(p), kernel_z(p)
 {
-    initialize(p,a,pgc);
+    //initialize(p,a,pgc);
 }
 
 vrans_net::~vrans_net(){}

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"iowave.h"
@@ -26,10 +27,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void iowave::nhflow_precalc_relax(lexer *p, ghostcell *pgc)
 {
     double fsfloc;
-    int dbcount;
     
     // pre-calc every iteration
-    // eta
     count=0;
     SLICELOOP4
     {
@@ -52,76 +51,77 @@ void iowave::nhflow_precalc_relax(lexer *p, ghostcell *pgc)
     }
     pgc->gcsl_start4(p,eta,50);
     
-    
-    // U
     count=0;
-    ULOOP
+    LOOP
     {
-		xg = xgen1(p);
-        yg = ygen1(p);
+		xg = xgen(p);
+        yg = ygen(p);
         dg = distgen(p);
 		db = distbeach(p);
         
         z=p->ZSP[IJK]-p->phimean;
 		
 		// Wave Generation
-		if(p->B98==2 && u_switch==1)
+		if(p->B98==2)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             {
-            uval[count] = wave_u(p,pgc,xg,yg,z);
-            ++count;
-            }
-		}
-    }
-	
-    // V	
-    count=0;
-    VLOOP
-    {
-        xg = xgen2(p);
-        yg = ygen2(p);
-        dg = distgen(p);
-		db = distbeach(p);
+            uval[count] = wave_u(p,pgc,xg,yg,z) + p->Ui;
         
-        z=p->ZSP[IJK]-p->phimean;
-
-		// Wave Generation
-		if(p->B98==2 && v_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-            vval[count] = wave_v(p,pgc,xg,yg,z);
             ++count;
             }
 		}
     }
-    
-    // W
+		
     count=0;
-    WLOOP
+    LOOP
     {
         xg = xgen(p);
         yg = ygen(p);
         dg = distgen(p);
 		db = distbeach(p);
         
-        z=p->ZSN[(i-p->imin)*p->jmax*p->kmaxF + (j-p->jmin)*p->kmaxF + (k+1)-p->kmin]-p->phimean;
+        z=p->ZSP[IJK]-p->phimean;
+        
+		// Wave Generation
+		if(p->B98==2 && v_switch==1)
+        {
+            // Zone 1
+            if(dg<1.0e20)
+            {
+            vval[count] = wave_v(p,pgc,xg,yg,z);
+            
+            ++count;
+            }
+		}
+    }
+
+    count=0;
+    LOOP
+    {
+        xg = xgen(p);
+        yg = ygen(p);
+        dg = distgen(p);
+		db = distbeach(p);
+        
+        zloc3 = p->pos3_z();
+        fsfloc = eta(i,j) + p->phimean;
+
+        z=p->ZSP[IJK]-p->phimean;
 
 
 		// Wave Generation		
 		if(p->B98==2 && w_switch==1)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             {
             wval[count] = wave_w(p,pgc,xg,yg,z);
+
             ++count;
             }
 		}
     }	
-    
 }
     

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,15 +17,15 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"iowave.h"
 #include"lexer.h"
-#include"fdm.h"
-#include"fdm_fnpf.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void iowave::full_initialize_nhflow(lexer *p, fdm*a, ghostcell *pgc)
+void iowave::full_initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     if(p->mpirank==0)
     cout<<"full NWT initialize"<<endl;
@@ -38,46 +38,26 @@ void iowave::full_initialize_nhflow(lexer *p, fdm*a, ghostcell *pgc)
 		dg = distgen(p);
 		db = distbeach(p);
 
-		a->eta(i,j) = wave_eta(p,pgc,xg,0.0);
+		d->eta(i,j) = wave_eta(p,pgc,xg,0.0);
     }
+    
+    SLICELOOP4
+    d->WL(i,j) = MAX(0.0, d->eta(i,j) + p->wd - d->bed(i,j));
+    
+    p->sigma_update(p,d,pgc,d->eta,d->eta,1.0);
 	
-	ULOOP
+	LOOP
     {
-		xg = xgen1(p);
-        yg = ygen1(p);
+		xg = xgen(p);
+        yg = ygen(p);
 		dg = distgen(p);
 		db = distbeach(p); 
         
         z=p->ZSP[IJK]-p->phimean;
 
-		a->u(i,j,k) = wave_u(p,pgc,xg,yg,z);
+		d->U[IJK] = wave_u(p,pgc,xg,yg,z);
 	}	
 	
-	VLOOP
-    {
-        xg = xgen2(p);
-        yg = ygen2(p);
-		dg = distgen(p);
-		db = distbeach(p); 
-        
-		z=p->ZSP[IJK]-p->phimean;
-		
-		a->v(i,j,k) = wave_v(p,pgc,xg,yg,z);
-	}
-	
-	WLOOP
-    {
-        xg = xgen(p);
-        yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p); 
-        
-		z=p->ZSN[(i-p->imin)*p->jmax*p->kmaxF + (j-p->jmin)*p->kmaxF + (k+1)-p->kmin]-p->phimean;
-		
-		a->w(i,j,k) = wave_w(p,pgc,xg,yg,z);
-	}
-	
-    if(p->I10==1 || p->I12==1)
 	LOOP
     {
         xg = xgen(p);
@@ -87,7 +67,30 @@ void iowave::full_initialize_nhflow(lexer *p, fdm*a, ghostcell *pgc)
         
 		z=p->ZSP[IJK]-p->phimean;
 		
-		a->press(i,j,k) = (wave_h(p,pgc,xg,0.0,0.0) - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
+		d->V[IJK] = wave_v(p,pgc,xg,yg,z);
+	}
+	
+	LOOP
+    {
+        xg = xgen(p);
+        yg = ygen(p);
+		dg = distgen(p);
+		db = distbeach(p); 
+        
+		z=p->ZSP[IJK]-p->phimean;
+		
+		d->W[IJK] = wave_w(p,pgc,xg,yg,z);
+	}
+	
+    //if(p->I10==1 || p->I12==1)
+	FLOOP
+    {
+        xg = xgen(p);
+        yg = ygen(p);
+		dg = distgen(p);
+		db = distbeach(p); 
+		
+		d->P[FIJK] = 0.0;//(wave_h(p,pgc,xg,0.0,0.0) - p->ZN[KP])*a->ro(i,j,k)*fabs(p->W22);
 	}
 	
 	

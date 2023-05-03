@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,9 +17,9 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
-
-#include"sflow_momentum_RK2.h"
+#include"sflow_momentum_RK2.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
@@ -43,10 +43,6 @@ sflow_momentum_RK2::sflow_momentum_RK2(lexer *p, fdm2D *b, sflow_convection *pco
 	gcval_v=11;
     gcval_w=12;
 
-	gcval_urk=20;
-	gcval_vrk=21;
-    gcval_wrk=12;
-    
     if(p->F50==1)
 	gcval_eta = 51;
     
@@ -127,7 +123,7 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	Prk1(i,j) = b->P(i,j)
 				+ p->dt*b->F(i,j);
 	
-	pgc->gcsl_start1(p,Prk1,gcval_urk);
+	pgc->gcsl_start1(p,Prk1,gcval_u);
 
     p->utime=pgc->timer()-starttime;
 
@@ -147,7 +143,7 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	Qrk1(i,j) = b->Q(i,j)
 			  + p->dt*b->G(i,j);
 	
-	pgc->gcsl_start2(p,Qrk1,gcval_vrk);
+	pgc->gcsl_start2(p,Qrk1,gcval_v);
 	
     p->vtime=pgc->timer()-starttime;
 	
@@ -155,9 +151,10 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
     SLICELOOP4
     b->L(i,j)=0.0;
     
+    ppress->wpgrad(p,b,etark1,b->eta);
     if(p->A214==1)
     pconvec->start(p,b,b->ws,4,b->P,b->Q);
-    ppress->wpgrad(p,b,etark1,b->eta);
+    pdiff->diff_w(p,b,pgc,psolv,b->P,b->Q,b->ws,1.0);
     
     SLICELOOP4
 	wrk1(i,j) = b->ws(i,j)
@@ -176,9 +173,9 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	pflow->vm_relax(p,pgc,Qrk1,b->bed,b->eta);
     pflow->wm_relax(p,pgc,wrk1,b->bed,b->eta);
 
-	pgc->gcsl_start1(p,Prk1,gcval_urk);
-	pgc->gcsl_start2(p,Qrk1,gcval_vrk);
-    pgc->gcsl_start4(p,wrk1,gcval_wrk);
+	pgc->gcsl_start1(p,Prk1,gcval_u);
+	pgc->gcsl_start2(p,Qrk1,gcval_v);
+    pgc->gcsl_start4(p,wrk1,gcval_w);
         
 //Step 2
 //--------------------------------------------------------
@@ -244,9 +241,10 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
     SLICELOOP4
     b->L(i,j)=0.0;
     
+    ppress->wpgrad(p,b,b->eta,etark1);
     if(p->A214==1)
     pconvec->start(p,b,wrk1,4,Prk1,Qrk1);
-    ppress->wpgrad(p,b,b->eta,etark1);
+    pdiff->diff_w(p,b,pgc,psolv,Prk1,Qrk1,wrk1,0.5);
     
     SLICELOOP4
 	b->ws(i,j) = 0.5*b->ws(i,j) + 0.5*wrk1(i,j)
@@ -273,11 +271,12 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
     
     SLICELOOP4
     b->eta_n(i,j) = b->eta(i,j);
+    
+    pgc->gcsl_start4(p,b->eta_n,gcval_eta);
 }
 
 void sflow_momentum_RK2::irhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &f, double alpha)
 {
-
 	n=0;
 	if(p->D20<4)
 	SLICELOOP1
@@ -286,7 +285,6 @@ void sflow_momentum_RK2::irhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &f, doub
 	b->rhsvec.V[n]=0.0;
 	++n;
 	}
-	
 }
 
 void sflow_momentum_RK2::jrhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &f, double alpha)

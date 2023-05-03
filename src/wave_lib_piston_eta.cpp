@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"wave_lib_piston_eta.h"
@@ -65,9 +66,7 @@ double wave_lib_piston_eta::wave_v(lexer *p, double x, double y, double z)
 
 double wave_lib_piston_eta::wave_horzvel(lexer *p, double x, double y, double z)
 {
-    double vel,zcoor;
-    
-    zcoor=p->pos_z();
+    double vel;
 
     if(p->simtime<ts || p->simtime>te || timecount>=ptnum-1)
 	return 0.0;
@@ -76,6 +75,14 @@ double wave_lib_piston_eta::wave_horzvel(lexer *p, double x, double y, double z)
 	++timecount;
 	
 	vel = sqrt(9.81/wdt) * wave_eta(p,x,y);
+    
+    if(p->B110==1)
+    {
+    z+=p->wd;
+    
+    if(z<p->B110_zs || z>p->B110_ze)
+    vel=0.0;
+    }
 
     return vel;
 }

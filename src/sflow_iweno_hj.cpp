@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_iweno_hj.h"
@@ -25,7 +26,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_flux_face_FOU.h"
 #include"sflow_flux_face_CDS.h"
 #include"sflow_flux_face_HJ.h"
-
 
 sflow_iweno_hj::sflow_iweno_hj(lexer *p)
 			:tttw(13.0/12.0),fourth(1.0/4.0),third(1.0/3.0),

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"hypre_sstruct.h"
@@ -150,7 +151,7 @@ void hypre_sstruct::make_grid_13p(lexer* p,fdm* a, ghostcell* pgc)
 
 void hypre_sstruct::make_grid_15p(lexer* p,fdm* a, ghostcell* pgc)
 {
-     kend=0;
+    kend=0;
     numparts=1;
     part=0;
     dimensions = 3;
@@ -207,7 +208,7 @@ void hypre_sstruct::make_grid_15p(lexer* p,fdm* a, ghostcell* pgc)
 }
 
 void hypre_sstruct::make_grid_2Dvert_9p(lexer* p,fdm* a, ghostcell* pgc)
-{
+{ 
     kend=0;
     numparts=1;
     part=0;
@@ -218,12 +219,10 @@ void hypre_sstruct::make_grid_2Dvert_9p(lexer* p,fdm* a, ghostcell* pgc)
      
     // grid
     ilower[0] = p->origin_i;
-    ilower[1] = p->origin_j;
-    ilower[2] = p->origin_k;
+    ilower[1] = p->origin_k;
     
     iupper[0] = p->knox+p->origin_i-1;
-    iupper[1] = p->knoy+p->origin_j-1;
-    iupper[2] = p->knoz+p->origin_k-1+kend;
+    iupper[1] = p->knoz+p->origin_k-1+kend;
     
     vartypes[0] = HYPRE_SSTRUCT_VARIABLE_CELL;
     
@@ -231,7 +230,6 @@ void hypre_sstruct::make_grid_2Dvert_9p(lexer* p,fdm* a, ghostcell* pgc)
     HYPRE_SStructGridSetExtents(grid, part, ilower, iupper);
     HYPRE_SStructGridSetVariables(grid, part, numvar, vartypes);
     HYPRE_SStructGridAssemble(grid);
-    
     
     // stencil
     HYPRE_SStructStencilCreate(2, 9, &stencil);

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"pjm_corr.h"
@@ -30,7 +31,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"heat.h"
 #include"concentration.h"
 #include"density_f.h"
-#include"density_fsm.h"
+#include"density_df.h"
+#include"density_sf.h"
 #include"density_comp.h"
 #include"density_conc.h"
 #include"density_heat.h"
@@ -39,26 +41,32 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
  
 pjm_corr::pjm_corr(lexer* p, fdm *a, heat *&pheat, concentration *&pconc) : pcorr(p)
 {
-    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0 && p->W90==0 && (p->X10==0 || p->X13!=2))
+    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && (p->X10==0 || p->X13!=2))
 	pd = new density_f(p);
     
-    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0 && p->W90==0 && p->X10==1 && p->X13==2)
-	pd = new density_fsm(p);
-	
-	if(p->F80==0 && p->H10==0 && p->W30==1 && p->W90==0)
+    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && (p->X10==1 || p->X13!=2))  
+	pd = new density_df(p);
+    
+	if(p->F80==0 && p->H10==0 && p->W30==1  && p->F300==0 && p->W90==0)
 	pd = new density_comp(p);
 	
-	if(p->F80==0 && p->H10>0 && p->W90==0)
+	if(p->F80==0 && p->H10>0 && p->F300==0 && p->W90==0)
 	pd = new density_heat(p,pheat);
 	
-	if(p->F80==0 && p->C10>0 && p->W90==0)
+	if(p->F80==0 && p->C10>0 && p->F300==0 && p->W90==0)
 	pd = new density_conc(p,pconc);
     
-    if(p->F80>0 && p->H10==0 && p->W30==0 && p->W90==0)
+    if(p->F80>0 && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0)
 	pd = new density_vof(p);
     
-    if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
+    if(p->F30>0 && p->H10==0 && p->W30==0  && p->F300==0 && p->W90>0)
     pd = new density_rheo(p);
+    
+    if(p->F300>=1)
+    pd = new density_rheo(p);
+    
+    if(p->G3==1)  
+	pd = new density_sf(p);
     
 
     gcval_press=40;  
@@ -82,7 +90,7 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
     
     LOOP
     pcorr(i,j,k)=0.0;
-    pgc->start4(p,pcorr,40);
+    pgc->start4(p,pcorr,gcval_press);
 	
     ppois->start(p,a,pcorr);
 	
@@ -92,7 +100,7 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
 	
         endtime=pgc->timer();
     
-    pgc->start4(p,pcorr,40);
+    pgc->start4(p,pcorr,gcval_press);
     presscorr(p,a,uvel,vvel,wvel,pcorr,alpha);
 	pgc->start4(p,a->press,gcval_press);
 	
@@ -173,8 +181,8 @@ void pjm_corr::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &
     LOOP
     {
     a->rhsvec.V[count] =  -(u(i,j,k)-u(i-1,j,k))/(alpha*p->dt*p->DXN[IP])
-						   -(v(i,j,k)-v(i,j-1,k))/(alpha*p->dt*p->DYN[JP])
-						   -(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DZN[KP]);
+                          -(v(i,j,k)-v(i,j-1,k))/(alpha*p->dt*p->DYN[JP])
+                          -(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DZN[KP]);
                            
     ++count;
     }
@@ -182,7 +190,6 @@ void pjm_corr::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &
     pip=0;
 }
  
-
 void pjm_corr::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
 {
 	pgc->start1(p,u,gcval_u);
@@ -190,19 +197,19 @@ void pjm_corr::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, f
 	pgc->start3(p,w,gcval_w);
 }
 
-void pjm_corr::upgrad(lexer*p,fdm* a)
+void pjm_corr::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
     ULOOP
     a->F(i,j,k)-=PORVAL1*(a->press(i+1,j,k)-a->press(i,j,k))/(p->DXP[IP]*pd->roface(p,a,1,0,0));
 }
 
-void pjm_corr::vpgrad(lexer*p,fdm* a)
+void pjm_corr::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
     VLOOP
     a->G(i,j,k)-=PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))/(p->DYP[JP]*pd->roface(p,a,0,1,0));
 }
 
-void pjm_corr::wpgrad(lexer*p,fdm* a)
+void pjm_corr::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
     WLOOP
     a->H(i,j,k)-=PORVAL3*(a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1));

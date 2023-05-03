@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
@@ -39,10 +40,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void driver::loop_ptf(fdm* a)
 {
-   driver_ini_ptf(); 
-   
 //-----------MAINLOOP PTF----------------------------
-
     
 	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
 	{
@@ -51,7 +49,7 @@ void driver::loop_ptf(fdm* a)
 
         if(p->mpirank==0 && (p->count%p->P12==0))
         {
-        cout<<"------------------------------"<<endl;
+        cout<<"------------------------------------"<<endl;
         cout<<p->count<<endl;
         
         cout<<"simtime: "<<p->simtime<<endl;
@@ -75,7 +73,7 @@ void driver::loop_ptf(fdm* a)
         
         
         // printer
-        pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
+        pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
 
         // Shell-Printout
         if(p->mpirank==0)
@@ -125,7 +123,6 @@ void driver::loop_ptf(fdm* a)
     mainlogout.close();
     maxlogout.close();
     solvlogout.close();
-    sedlogout.close();
 	}
 
     pgc->final();

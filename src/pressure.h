@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,6 +27,7 @@ class ioflow;
 class poisson;
 class solver;
 class field;
+class slice;
 
 using namespace std;
 
@@ -38,9 +39,9 @@ class pressure
 public:
 
 	virtual void start(fdm*,lexer*, poisson*, solver*, ghostcell*,ioflow*,field&,field&,field&,double)=0;
-	virtual void upgrad(lexer*,fdm*)=0;
-	virtual void vpgrad(lexer*,fdm*)=0;
-	virtual void wpgrad(lexer*,fdm*)=0;
+	virtual void upgrad(lexer*,fdm*,slice&,slice&)=0;
+	virtual void vpgrad(lexer*,fdm*,slice&,slice&)=0;
+	virtual void wpgrad(lexer*,fdm*,slice&,slice&)=0;
     virtual void ucorr(lexer*p,fdm*,field&,double)=0;
 	virtual void vcorr(lexer*p,fdm*,field&,double)=0;
 	virtual void wcorr(lexer*p,fdm*,field&,double)=0;

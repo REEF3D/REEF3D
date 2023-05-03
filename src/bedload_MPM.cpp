@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -22,12 +22,10 @@ Author: Hans Bihs
 
 #include"bedload_MPM.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
-#include"turbulence.h"
 
-bedload_MPM::bedload_MPM(lexer* p, turbulence *pturb) : epsi(1.6*p->DXM)
+bedload_MPM::bedload_MPM(lexer* p) 
 {
     rhosed=p->S22;
     rhowat=p->W1;
@@ -38,15 +36,13 @@ bedload_MPM::bedload_MPM(lexer* p, turbulence *pturb) : epsi(1.6*p->DXM)
     visc=p->W2;
     kappa=0.4;
     ks=2.5*d50;
-    repose=p->S25*(PI/180.0);
-
 }
 
 bedload_MPM::~bedload_MPM()
 {
 }
 
-void bedload_MPM::start(lexer* p, fdm* a, ghostcell* pgc, sediment_fdm *s)
+void bedload_MPM::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {
     double qb;
 
@@ -54,13 +50,14 @@ void bedload_MPM::start(lexer* p, fdm* a, ghostcell* pgc, sediment_fdm *s)
     {
 
         if(s->shields_eff(i,j)>s->shields_crit(i,j))
+        if(s->active(i,j)==1)
         qb = 8.0*pow(MAX(s->shields_eff(i,j) - s->shields_crit(i,j),0.0),1.5)* p->S20*sqrt(((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
 
-        if(s->shields_eff(i,j)<=s->shields_crit(i,j))
+        if(s->shields_eff(i,j)<=s->shields_crit(i,j) || s->active(i,j)==0)
         qb=0.0;
 		
-        a->bedload(i,j) = qb;
+        s->qbe(i,j) = qb;
 	}
     
-    pgc->gcsl_start4(p,a->bedload,1);
+    pgc->gcsl_start4(p,s->qbe,1);
 }

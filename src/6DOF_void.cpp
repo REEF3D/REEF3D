@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -124,7 +124,7 @@ void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pne
 			{
                 pmooring.push_back(new mooring_Spring(i));
 			}
-		
+		 
 			pmooring[i]->initialize(p,a,pgc);
 		}
 	}
@@ -148,7 +148,8 @@ void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pne
         {
             if(p->P14==1)
             {
-                mkdir("./REEF3D_CFD_6DOF_Net",0777);	
+                mkdir("./REEF3D_CFD_6DOF_Net",0777);
+                mkdir("./REEF3D_CFD_6DOF", 0777);
             }
         }
         else

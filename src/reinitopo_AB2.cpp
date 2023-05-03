@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -25,7 +25,6 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"convection.h"
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"picard_f.h"
@@ -60,7 +59,7 @@ reinitopo_AB2::~reinitopo_AB2()
 {
 }
 
-void reinitopo_AB2::start(fdm* a,lexer* p,field& b, convection* pconvec, ghostcell* pgc)
+void reinitopo_AB2::start(lexer* p, fdm* a, ghostcell* pgc,field &b)
 {
 
 	sizeM=p->sizeM4;
@@ -72,7 +71,7 @@ void reinitopo_AB2::start(fdm* a,lexer* p,field& b, convection* pconvec, ghostce
 	++n;
 	}
     
-    pgc->start4aV(p,f,gcval_initopo);
+    pgc->start4avec(p,f,gcval_initopo);
 	
 	reiniter=p->S37;
 	gcval=gcval_topo;
@@ -84,7 +83,7 @@ void reinitopo_AB2::start(fdm* a,lexer* p,field& b, convection* pconvec, ghostce
 	cout<<endl<<"initializing topo..."<<endl<<endl;
     reiniter=2*int(p->maxlength/(p->F43*p->DXM));
 	gcval=gcval_initopo;
-	pgc->start4aV(p,f,gcval);
+	pgc->start4avec(p,f,gcval);
     
 	NLOOP4A
 	L.V[n]=frk1.V[n]=0.0;
@@ -107,7 +106,7 @@ void reinitopo_AB2::start(fdm* a,lexer* p,field& b, convection* pconvec, ghostce
 		frk1.V[n]=L.V[n];
 		}
 
-	pgc->start4aV(p,f,gcval);
+	pgc->start4avec(p,f,gcval);
 	}
 		
 	n=0;

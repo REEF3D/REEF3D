@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"increment.h"
 #include"fnpf_fsf_update.h"
 #include"fnpf_bed_update.h"
+#include<fstream>
 
 class lexer;
 class fdm_fnpf;
@@ -48,7 +49,9 @@ public:
     
     void velcalc(lexer*, fdm_fnpf*, ghostcell *pgc, field&);
     
-    void restart(lexer*, fdm_fnpf*, ghostcell *pgc);
+    void fnpf_restart(lexer*, fdm_fnpf*, ghostcell *pgc);
+    void fnpf_restart_mainheader(lexer*, fdm_fnpf*, ghostcell *pgc);
+    void fnpf_restart_read(lexer*, fdm_fnpf*, ghostcell *pgc);
     void filename(lexer*, fdm_fnpf*, ghostcell *pgc,int);
     
 private:
@@ -58,6 +61,12 @@ private:
     int gcval,gcval_u,gcval_v,gcval_w;
     
     char name[500];
+    
+    int iin,file_type;
+    float ffn;
+	double ddn;
+	int printcount;
+    ifstream result;
 
 };
 

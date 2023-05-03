@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"initialize.h"
@@ -99,16 +100,16 @@ void initialize::iniphi(fdm*a, lexer* p, ghostcell* pgc)
 
 	LOOP
 	{
-		if(a->phi(i,j,k)>=0)
+		if(a->phi(i,j,k)>(p->psi))
 		H=1.0;
 
-		if(a->phi(i,j,k)<0)
+		if(a->phi(i,j,k)<-(p->psi))
 		H=0.0;
 
-		if(fabs(a->phi(i,j,k))<=epsi)
-		H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
+		if(fabs(a->phi(i,j,k))<=(p->psi))
+		H=0.5*(1.0 + a->phi(i,j,k)/(p->psi) + (1.0/PI)*sin((PI*a->phi(i,j,k))/(p->psi)));
 
-		a->ro(i,j,k)= p->W1*H + p->W3*(1.0-H);
+		a->ro(i,j,k)= 0.0; p->W1*H + p->W3*(1.0-H);
 		a->visc(i,j,k)= p->W2*H + p->W4*(1.0-H);
 	}
 

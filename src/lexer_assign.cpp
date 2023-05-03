@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"lexer.h"
@@ -24,10 +25,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void lexer::control_calc()
 {
 	dt=dt_old=0.0;
-	simtime=0.0;
+	simtime=I50;
 	sedtime=0.0;
 	dtsed=0.0;
 	presstime=veltime=lsmtime=reinitime=reinitime=turbtime=0.0;
+    fsitime=fbtime=0.0;
+    fbdt=fbmax=0.0;
 	printouttime=0.0;
 	xtime=0.0;
 	gctime=0.0;
@@ -44,8 +47,6 @@ void lexer::assign_margin()
     if(A311==7)
 	margin=4;
     
-	
-
 	imax=knox+2*margin;
 	jmax=knoy+2*margin;
 	kmax=knoz+2*margin;

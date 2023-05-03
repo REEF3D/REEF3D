@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"etimestep.h"
@@ -40,6 +41,28 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     p->epsmax=p->kinmax=p->pressmax=0.0;
 
 	p->umax=p->vmax=p->wmax=p->viscmax=0.0;
+    
+    p->umax=MAX(p->W11_u,p->umax);
+    p->umax=MAX(p->W12_u,p->umax);
+    p->umax=MAX(p->W13_u,p->umax);
+    p->umax=MAX(p->W14_u,p->umax);
+    p->umax=MAX(p->W15_u,p->umax);
+    p->umax=MAX(p->W16_u,p->umax);
+    
+    p->vmax=MAX(p->W11_v,p->vmax);
+    p->vmax=MAX(p->W12_v,p->vmax);
+    p->vmax=MAX(p->W13_v,p->vmax);
+    p->vmax=MAX(p->W14_v,p->vmax);
+    p->vmax=MAX(p->W15_v,p->vmax);
+    p->vmax=MAX(p->W16_v,p->vmax);
+    
+    p->wmax=MAX(p->W11_w,p->wmax);
+    p->wmax=MAX(p->W12_w,p->wmax);
+    p->wmax=MAX(p->W13_w,p->wmax);
+    p->wmax=MAX(p->W14_w,p->wmax);
+    p->wmax=MAX(p->W15_w,p->wmax);
+    p->wmax=MAX(p->W16_w,p->wmax);
+    
 	sqd=1.0/(p->DXM*p->DXM);
 	
 // maximum velocities
@@ -74,6 +97,11 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 	p->wmax=MAX(p->wmax,p->wfbmax);
 
     velmax=max(p->umax,p->vmax,p->wmax);
+    
+     // rhs globalmax
+    a->maxF=pgc->globalmax(a->maxF);
+    a->maxG=pgc->globalmax(a->maxG);
+    a->maxH=pgc->globalmax(a->maxH);
 
 // maximum viscosity
 	LOOP
@@ -117,7 +145,10 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 	visccrit=p->viscmax*(6.0/pow(p->DXM,2.0));  
  
     cu=1.0e10;
+    cv=1.0e10;
+    cw=1.0e10;
     
+    if(p->N50==1)
     LOOP
     {
     dx = MIN3(p->DXP[IP],p->DYN[JP],p->DZN[KP]);
@@ -128,9 +159,38 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     
             +sqrt(pow(sqrt(p->umax*p->umax + p->vmax*p->vmax + p->wmax*p->wmax)/dx+visc,2.0)
             
-            + (4.0*fabs(fabs(a->gi) + MAX3(a->maxF,a->maxG,a->maxH)))/dx)));
+            + (4.0*fabs(MAX3(a->maxF,a->maxG,a->maxH)))/dx)));
     }
     
+    if(p->N50==2)
+    LOOP
+    {
+    dx = MIN3(p->DXP[IP],p->DYN[JP],p->DZN[KP]);
+    
+    visc = 0.5*(a->eddyv(i,j,k) + a->eddyv(i+1,j,k)) + 0.5*(a->visc(i,j,k) + a->visc(i+1,j,k));
+    
+	cu = MIN(cu, 2.0/((sqrt(p->umax*p->umax)/p->DXP[IP] +  visc*(6.0/pow(p->DXP[IP],2.0)))
+    
+            +sqrt(pow(sqrt(p->umax*p->umax)/p->DXP[IP]+visc,2.0)
+            
+            + (4.0*fabs(a->maxF))/p->DXN[IP])));
+            
+            
+    cv = MIN(cv, 2.0/((sqrt(p->vmax*p->vmax)/p->DYN[JP] +  visc*(6.0/pow(p->DYN[JP],2.0)))
+    
+            +sqrt(pow(sqrt(p->vmax*p->vmax)/p->DYN[JP]+visc,2.0)
+            
+            + (4.0*fabs(a->maxG))/p->DYN[JP])));
+            
+            
+    cw = MIN(cw, 2.0/((sqrt(p->wmax*p->wmax)/p->DZN[KP] +  visc*(6.0/pow(p->DZN[KP],2.0)))
+    
+            +sqrt(pow(sqrt(p->wmax*p->wmax)/p->DZN[KP]+visc,2.0)
+            
+            + (4.0*fabs(a->maxH))/p->DZN[KP])));
+    }
+    
+    cu = MIN3(cu,cv,cw);
 
 	p->dt=p->N47*cu;
     
@@ -149,6 +209,30 @@ void etimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 	p->umax=p->vmax=p->wmax=p->viscmax=-1e19;
 
 	p->umax=MAX(p->W10,p->umax);
+    p->viscmax = MAX(p->W2,p->W4);
+    
+    p->umax=MAX(p->W11_u,p->umax);
+    p->umax=MAX(p->W12_u,p->umax);
+    p->umax=MAX(p->W13_u,p->umax);
+    p->umax=MAX(p->W14_u,p->umax);
+    p->umax=MAX(p->W15_u,p->umax);
+    p->umax=MAX(p->W16_u,p->umax);
+    
+    p->vmax=MAX(p->W11_v,p->vmax);
+    p->vmax=MAX(p->W12_v,p->vmax);
+    p->vmax=MAX(p->W13_v,p->vmax);
+    p->vmax=MAX(p->W14_v,p->vmax);
+    p->vmax=MAX(p->W15_v,p->vmax);
+    p->vmax=MAX(p->W16_v,p->vmax);
+    
+    p->wmax=MAX(p->W11_w,p->wmax);
+    p->wmax=MAX(p->W12_w,p->wmax);
+    p->wmax=MAX(p->W13_w,p->wmax);
+    p->wmax=MAX(p->W14_w,p->wmax);
+    p->wmax=MAX(p->W15_w,p->wmax);
+    p->wmax=MAX(p->W16_w,p->wmax);
+    
+    
     
     ULOOP
 	p->umax=MAX(p->umax,fabs(a->u(i,j,k)));
@@ -175,6 +259,8 @@ void etimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 	p->umax=MAX(p->umax,2.0*p->X210_v);
 	p->umax=MAX(p->umax,2.0*p->X210_w);
     
+    p->umax=MAX(p->umax,2.0);
+    
     p->umax+=2.0;
 
 
@@ -188,10 +274,13 @@ void etimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 	dx = p->DXM;
     
     LOOP
-    dx = MIN(dx,MIN3(p->DXP[IP],p->DYN[JP],p->DZN[KP]));
-    
-    cu=2.0/((p->umax/dx+visccrit)+sqrt(pow(p->umax/dx+visccrit,2.0)+(4.0*sqrt(fabs(a->gi) + fabs(a->gj) +fabs(a->gk)))/dx));// + (8.0*p->maxkappa*p->W5)/(2.0*dx*dx*(p->W1+p->W3)));
+    {
+    dx = MIN3(p->DXN[IP],p->DYN[JP],p->DZN[KP]);
 
+	cu = MIN(cu, 2.0/((sqrt(p->umax*p->umax + p->vmax*p->vmax + p->wmax*p->wmax))/dx
+    
+            + sqrt((4.0*fabs(MAX3(a->maxF,a->maxG,a->maxH)))/dx)));
+    }
 	p->dt=p->N47*cu*0.25;
 	p->dt=pgc->timesync(p->dt);
 	p->dt_old=p->dt;

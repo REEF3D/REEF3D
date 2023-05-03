@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -37,8 +37,8 @@ public:
 	virtual ~bicgstab_ijk();
 
 	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
-    virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int);
-    virtual void startM(lexer*, fdm*, ghostcell*, double*, double*, double*, int);
+    virtual void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
+    virtual void startM(lexer*, ghostcell*, double*, double*, double*, int);
     
 	virtual void solve(lexer*,fdm*, ghostcell*, vec&, int, int&,int,double);
 	virtual void setup(lexer*,fdm*, ghostcell*,int);

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_momentum_RK3.h"
@@ -31,8 +32,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_rough_void.h"
 #include"ioflow.h"
 #include"solver2D.h"
-#include"sflow_sediment_RK3.h"
-#include"sflow_sediment_RKv.h"
 #include"sflow_rheology_f.h"
 #include"sflow_rheology_v.h"
 #include"6DOF.h"
@@ -44,10 +43,6 @@ sflow_momentum_RK3::sflow_momentum_RK3(lexer *p, fdm2D *b, sflow_convection *pco
 	gcval_u=10;
 	gcval_v=11;
     gcval_w=12;
-
-	gcval_urk=20;
-	gcval_vrk=21;
-    gcval_wrk=12;
 
     if(p->F50==1)
 	gcval_eta = 51;
@@ -71,7 +66,6 @@ sflow_momentum_RK3::sflow_momentum_RK3(lexer *p, fdm2D *b, sflow_convection *pco
 	pfsf=pfreesurf;
     p6dof=pp6dof;
     
-    psedstep = new sflow_sediment_RKv(p,b);
 
     if(p->A218==0)
     prough = new sflow_rough_void(p);
@@ -95,8 +89,8 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 {
     pflow->discharge2D(p,b,pgc);
     pflow->inflow2D(p,b,pgc,b->P,b->Q,b->bed,b->eta);
-    pflow->inflow2D(p,b,pgc,Prk1,Qrk1,b->bed,b->eta);
-    pflow->inflow2D(p,b,pgc,Prk2,Qrk2,b->bed,b->eta);
+    pflow->rkinflow2D(p,b,pgc,Prk1,Qrk1,b->P,b->Q);
+    pflow->rkinflow2D(p,b,pgc,Prk2,Qrk2,b->P,b->Q);
 
 //Step 1
 //--------------------------------------------------------
@@ -115,9 +109,6 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
     pflow->waterlevel2D(p,b,pgc,etark1);
     pflow->eta_relax(p,pgc,etark1);
     pgc->gcsl_start4(p,etark1,gcval_eta);
-    
-    // sed
-    psedstep->step1(p, b, pgc, b->P, b->Q, 1.0);
 
 
     // U
@@ -135,7 +126,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	Prk1(i,j) = b->P(i,j)
 				+ p->dt*b->F(i,j);
 
-	pgc->gcsl_start1(p,Prk1,gcval_urk);
+	pgc->gcsl_start1(p,Prk1,gcval_u);
 
 
     p->utime=pgc->timer()-starttime;
@@ -156,17 +147,18 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	Qrk1(i,j) = b->Q(i,j)
 			  + p->dt*b->G(i,j);
 
-	pgc->gcsl_start2(p,Qrk1,gcval_vrk);
+	pgc->gcsl_start2(p,Qrk1,gcval_v);
 
     p->vtime=pgc->timer()-starttime;
 
     // W
     SLICELOOP4
     b->L(i,j)=0.0;
-
+    
+    ppress->wpgrad(p,b,etark1,b->eta);
     if(p->A214==1)
     pconvec->start(p,b,b->ws,4,b->P,b->Q);
-    ppress->wpgrad(p,b,etark1,b->eta);
+    pdiff->diff_w(p,b,pgc,psolv,b->P,b->Q,b->ws,1.0);
 
     SLICELOOP4
 	wrk1(i,j) = b->ws(i,j)
@@ -184,9 +176,9 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	pflow->vm_relax(p,pgc,Qrk1,b->bed,b->eta);
     pflow->wm_relax(p,pgc,wrk1,b->bed,b->eta);
 
-	pgc->gcsl_start1(p,Prk1,gcval_urk);
-	pgc->gcsl_start2(p,Qrk1,gcval_vrk);
-    pgc->gcsl_start4(p,wrk1,gcval_wrk);
+	pgc->gcsl_start1(p,Prk1,gcval_u);
+	pgc->gcsl_start2(p,Qrk1,gcval_v);
+    pgc->gcsl_start4(p,wrk1,gcval_w);
 
 //Step 2
 //--------------------------------------------------------
@@ -208,8 +200,6 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
     pflow->eta_relax(p,pgc,etark2);
     pgc->gcsl_start4(p,etark2,gcval_eta);
     
-    // sed
-    psedstep->step2(p, b, pgc, Prk1, Qrk1, 0.25);
 
 	// U
 	starttime=pgc->timer();
@@ -228,7 +218,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 			  + 0.25*p->dt*b->F(i,j);
 
 
-	pgc->gcsl_start1(p,Prk2,gcval_urk);
+	pgc->gcsl_start1(p,Prk2,gcval_u);
 
     p->utime+=pgc->timer()-starttime;
 
@@ -248,7 +238,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	Qrk2(i,j) = 0.75*b->Q(i,j) + 0.25*Qrk1(i,j)
 			  + 0.25*p->dt*b->G(i,j);
 
-	pgc->gcsl_start2(p,Qrk2,gcval_vrk);
+	pgc->gcsl_start2(p,Qrk2,gcval_v);
 
 	p->vtime+=pgc->timer()-starttime;
 
@@ -256,9 +246,10 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
     SLICELOOP4
     b->L(i,j)=0.0;
 
+    ppress->wpgrad(p,b,etark2,etark1);
     if(p->A214==1)
     pconvec->start(p,b,wrk1,4,Prk1,Qrk1);
-    ppress->wpgrad(p,b,etark2,etark1);
+    pdiff->diff_w(p,b,pgc,psolv,Prk1,Qrk1,wrk1,0.25);
 
     SLICELOOP4
 	wrk2(i,j) = 0.75*b->ws(i,j) + 0.25*wrk1(i,j)
@@ -275,9 +266,9 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	pflow->vm_relax(p,pgc,Qrk2,b->bed,b->eta);
     pflow->wm_relax(p,pgc,wrk2,b->bed,b->eta);
 
-	pgc->gcsl_start1(p,Prk2,gcval_urk);
-	pgc->gcsl_start2(p,Qrk2,gcval_vrk);
-    pgc->gcsl_start4(p,wrk2,gcval_wrk);
+	pgc->gcsl_start1(p,Prk2,gcval_u);
+	pgc->gcsl_start2(p,Qrk2,gcval_v);
+    pgc->gcsl_start4(p,wrk2,gcval_w);
 
 //Step 3
 //--------------------------------------------------------
@@ -298,9 +289,6 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
     pflow->waterlevel2D(p,b,pgc,b->eta);
     pflow->eta_relax(p,pgc,b->eta);
     pgc->gcsl_start4(p,b->eta,gcval_eta);
-    
-    // sed
-    psedstep->step3(p, b, pgc, Prk2, Qrk2, (2.0/3.0));
 
 
 	// U
@@ -347,9 +335,10 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
     SLICELOOP4
     b->L(i,j)=0.0;
 
+    ppress->wpgrad(p,b,b->eta,etark2);
     if(p->A214==1)
     pconvec->start(p,b,wrk2,4,Prk2,Qrk2);
-    ppress->wpgrad(p,b,b->eta,etark2);
+    pdiff->diff_w(p,b,pgc,psolv,Prk2,Qrk2,wrk2,0.25);
 
     SLICELOOP4
 	b->ws(i,j) = (1.0/3.0)*b->ws(i,j) + (2.0/3.0)*wrk2(i,j)
@@ -376,7 +365,8 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 
     SLICELOOP4
     b->eta_n(i,j) = b->eta(i,j);
-
+    
+    pgc->gcsl_start4(p,b->eta_n,gcval_eta);
 }
 
 void sflow_momentum_RK3::irhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &f, double alpha)

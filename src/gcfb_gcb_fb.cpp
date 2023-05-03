@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
@@ -29,7 +30,7 @@ void ghostcell::gcfb_update_extra_gcb(lexer *p, fdm *a, field &f)
     //gcfb_x_paraseed(p,a);
     
     //gcparax_generic(a, p, f, gcxfb_count, gcxfb);
-    gcb_generic(p, f, gcbfb_count, gcbfb);
+    gcb_generic_fbpress(p, f, gcbfb_count, gcbfb);
 }
 
 void ghostcell::gcfb_b_paraseed(lexer *p, fdm *a)

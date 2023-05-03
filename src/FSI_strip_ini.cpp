@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2021 Tobias Martin
+Copyright 2018-2023 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -26,6 +26,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
 {
+    if(p->mpirank==0)
+    cout<<"FSI initialize"<<endl;
+    
 	// Initialise parameter
     double x_ini = p->Z11_x[nstrip]; // x-position of strip bottom
     double y_ini = p->Z11_y[nstrip]; // y-position of strip bottom
@@ -40,6 +43,9 @@ void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
 	double Iz = p->Z11_iz[nstrip];   // Z-moment of area [m^4]
 	double Nu = p->Z11_nu[nstrip];   // Poisson ratio [-]
 	Ne = p->Z11_n[nstrip];           // Number of elements
+
+    thinStrip = false;
+    if (p->Y2 == 1) thinStrip = true;
 
     gravity_vec << a->gi, a->gj, a->gk;
     rho_f = p->W1;

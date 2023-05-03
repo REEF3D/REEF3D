@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -35,7 +35,7 @@ using namespace std;
 class vrans_veg : public vrans, public increment
 {
 public:
-	vrans_veg(lexer*, fdm*, ghostcell*);
+	vrans_veg(lexer*, ghostcell*);
 	virtual ~vrans_veg();
 
 	virtual void initialize(lexer*, fdm*, ghostcell*);	

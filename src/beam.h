@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2021 Tobias Martin
+Copyright 2018-2023 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -28,12 +28,12 @@ Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"vec.h"
+#include"boundarycheck.h"
 #include<iostream>
 #include<vector>
 #include <Eigen/Dense>
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
+
+class lexer;
 
 using namespace std;
 

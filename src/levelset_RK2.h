@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -38,8 +38,7 @@ class levelset_RK2 : public freesurface, gradient
 public:
 	levelset_RK2(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
 	virtual ~levelset_RK2();
-	virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particlecorr*,field&);
-	virtual void ltimesave(lexer*,fdm*,field&);
+	virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&);
     virtual void update(lexer*,fdm*,ghostcell*,field&);
 
 private:

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -36,6 +36,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"concentration_header.h"
 #include"benchmark_header.h"
 #include"6DOF_header.h"
+#include"FSI_header.h"
 #include"waves_header.h"
 #include"lexer.h"
 #include"cart1.h"
@@ -46,20 +47,31 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void driver::driver_ini()
+void driver::driver_ini_cfd()
 {
-p->count=0;
+    p->count=0;
 
-p->cellnumtot=pgc->globalisum(p->cellnum);
-p->pointnumtot=pgc->globalisum(p->pointnum);
+    p->cellnumtot=pgc->globalisum(p->cellnum);
+    p->pointnumtot=pgc->globalisum(p->pointnum);
 
-if(p->mpirank==0)
-cout<<"number of cells: "<<p->cellnumtot<<endl;
+    if(p->mpirank==0)
+    cout<<"number of cells: "<<p->cellnumtot<<endl;
 
-	log_ini();
+        log_ini();
 
-if(p->mpirank==0)
-cout<<"starting driver_ini"<<endl;
+    if(p->mpirank==0)
+    cout<<"starting driver_ini"<<endl;
+    
+    // 6DOF_df and FSI
+    if(((p->X10==1 && p->X13==2)))
+    p6dof_df->initialize(p, a, pgc, pnet);
+     
+    if(p->mpirank==0)
+    if(((p->X10==1 && p->X13==2)) || p->Z10>0)
+    cout<<"driver FSI initialize"<<endl;
+    
+    if(p->Z10>0)
+    pfsi->initialize(p,a,pgc);
     
 	// Solid
     if(p->solidread==1)
@@ -68,12 +80,25 @@ cout<<"starting driver_ini"<<endl;
     solid_object.start(p,a,pgc,pflow,pconvec,preso);
     }
     
+    // VRANS ini
+    pvrans->initialize(p,a,pgc);
+    
     // Geotopo
     if(p->toporead>0)
     {
     geotopo gtopo(p,a,pgc);
-    gtopo.start(p,a,pgc,pflow,pconvec,preto,pvrans);
+    gtopo.start(p,a,pgc,pflow,preto,pvrans);
     }
+    
+    // Solid Forcing
+    if(p->G3==1)
+    {
+    if(p->mpirank==0)
+    cout<<"driver solid forcing initialize"<<endl;
+    
+    pgc->solid_forcing_ini(p,a);
+    }
+    
     
 	// 6DOF
 	if((p->X10==1 && p->X13!=2) || p->X10==0)
@@ -84,11 +109,11 @@ cout<<"starting driver_ini"<<endl;
     // Sediment
 	if(p->S10>0)
     {
-    psed->ini(p,a,pgc);
+    psed->ini_cfd(p,a,pgc);
     for(int qn=0;qn<5;++qn)
-    psed->relax(p,a,pgc);
-    preto->start(a,p,a->topo,pconvec,pgc);
-    psed->update(p,a,pgc,pflow);
+    psed->relax(p,pgc);
+    preto->start(p,a,pgc,a->topo);
+    psed->update_cfd(p,a,pgc,pflow,preto);
     pgc->start4a(p,a->topo,150);
     }
     
@@ -114,22 +139,23 @@ cout<<"starting driver_ini"<<endl;
 	pdata->start(p,a,pgc);
     
 
-    pnse->ini(p,a,pgc,pflow);     //*************************************************
+    pnse->ini(p,a,pgc,pflow);     
 	
     pheat->heat_ini(p,a,pgc,pheat);
+    pmp->ini(p,a,pgc,pflow,pprint,pconvec,psolv);
 	pconc->ini(p,a,pgc,pconc);
 
     ptstep->ini(a,p,pgc);
     pini->iniphi_io(a,p,pgc);
 	pflow->gcio_update(p,a,pgc);
 	pflow->pressure_io(p,a,pgc);
-    
     if (p->F80>0)
     pflow->vof_relax(p,pgc,a->vof);
 
     else
     if(p->F30>0 || p->F40>0)
     {
+        pini->inipsi(p,a,pgc);
         for(int qn=0;qn<20;++qn)
         pflow->phi_relax(p,pgc,a->phi);
         preini->start(a,p, a->phi, pgc, pflow);
@@ -146,7 +172,6 @@ cout<<"starting driver_ini"<<endl;
 	if(p->I12>=1)
 	pini->hydrostatic(p,a,pgc);
     
-    // Hard fix from Tobias so that 6DOF is running
     if(p->X10==0)
     ptstep->start(a,p,pgc,pturb);
     
@@ -168,15 +193,16 @@ cout<<"starting driver_ini"<<endl;
 
 	if(p->I40==1)
     {
-	pini->stateini(p,a,pgc,pturb);
+	pini->stateini(p,a,pgc,pturb,psed);
     
     if(p->S10==1)
-    psed->ini(p,a,pgc);
+    psed->ini_cfd(p,a,pgc);
     }
-    
+
 	pgc->start4(p,a->press,40);
+    
 	
-    pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
+    pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
 
 // ini variables
     for(int qn=0; qn<2; ++qn)
@@ -190,6 +216,5 @@ cout<<"starting driver_ini"<<endl;
 	p->reinitime=0.0;
 	p->wavetime=0.0;
 	p->field4time=0.0;
-
 }
 

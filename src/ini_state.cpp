@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"initialize.h"
@@ -24,11 +25,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"ghostcell.h"
 #include"turbulence.h"
-#include"state.h"
+#include"sediment.h"
+#include"cfd_state.h"
 
-void initialize::stateini(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
+void initialize::stateini(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sediment *psed)
 {
-	state state_ini(p,a,pgc);
+	cfd_state state_ini(p,a,pgc);
 	
-	state_ini.read(p,a,pgc,pturb);
+	state_ini.read(p,a,pgc,pturb,psed);
 }

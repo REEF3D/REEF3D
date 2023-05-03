@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -25,12 +25,11 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-vrans_f::vrans_f(lexer *p, fdm *a, ghostcell *pgc) : Cval(p->B264), porpart(p), alpha(p), beta(p)
+vrans_f::vrans_f(lexer *p, ghostcell *pgc) : Cval(p->B264), porpart(p), alpha(p), beta(p)
 {
-	initialize(p,a,pgc);
+	//initialize(p,a,pgc);
     
-    if(p->S10==2)
-    sed_update(p,a,pgc);
+    
 }
 
 vrans_f::~vrans_f()

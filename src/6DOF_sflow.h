@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -69,9 +69,15 @@ private:
 	void geometry_refinement(lexer*);
 	void create_triangle(double&,double&,double&,double&,double&,double&,double&,double&,double&,const double&,const double&,const double&);
     void ini_parameter(lexer*, fdm2D*, ghostcell*);
-    void print_ini(lexer*, fdm2D*, ghostcell*);
+    void print_ini_stl(lexer*, fdm2D*, ghostcell*);
     void print_parameter(lexer*,ghostcell*);
     void print_stl(lexer*,ghostcell*);
+    void print_ini_vtp(lexer*, fdm2D*, ghostcell*);
+    void print_vtp(lexer*,ghostcell*);
+    
+    void read_stl(lexer*, fdm2D*, ghostcell*);
+    void rotation_stl(lexer*,double&,double&,double&);
+    void rotation_stl_quaternion(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
     
     void iniPosition_RBM(lexer*, fdm2D*, ghostcell*);
     void rotation_tri(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
@@ -82,6 +88,7 @@ private:
 	void ray_cast_io_ycorr(lexer*, fdm2D*, ghostcell*,int,int);
     void ray_cast_x(lexer*, fdm2D*, ghostcell*,int,int);
 	void ray_cast_y(lexer*, fdm2D*, ghostcell*,int,int);
+    void ray_cast_z(lexer*, fdm2D*, ghostcell*,int,int);
     void reini(lexer*,ghostcell*,slice&);
     void disc(lexer*,ghostcell*,slice&);
     void time_preproc(lexer*);
@@ -90,15 +97,22 @@ private:
     void updateFSI(lexer*, fdm2D*, ghostcell*);
     void updatePosition(lexer*, fdm2D*, ghostcell*);
     void updateForcing_hemisphere(lexer*, fdm2D*, ghostcell*);
+    void updateForcing_box(lexer*, fdm2D*, ghostcell*);
     void updateForcing_ship(lexer*, fdm2D*, ghostcell*);
     void updateForcing_oned(lexer*, fdm2D*, ghostcell*);
+    
+    // motion
+    double ramp_vel(lexer*);
+    double ramp_draft(lexer*);
 
     double phi, theta, psi;
     double Uext, Vext, Wext, Pext, Qext, Rext;
     Eigen::Matrix3d quatRotMat;
-    int reiniter, tricount, n6DOF, printtime;
+    int reiniter, tricount, n6DOF;
+    double printtime;
+    int q;
 
-    slice4 press,frk1,frk2,L,dt,fb;
+    slice4 press,frk1,frk2,L,dt,fb,Ls,Bs,Rxmin,Rxmax,Rymin,Rymax,draft;
     
     Eigen::Vector4d e_;
     Eigen::Matrix<double, 3, 4> E_, G_;
@@ -107,14 +121,21 @@ private:
     // Raycast
     sliceint5 cutl,cutr,fbio;
     double **tri_x,**tri_y,**tri_z,**tri_x0,**tri_y0,**tri_z0;
+    double **tri_xn,**tri_yn,**tri_zn;
 	vector<vector<double> > tri_x_r;
 	vector<vector<double> > tri_y_r;
 	vector<vector<double> > tri_z_r;
     double xs,xe,ys,ye,zs,ze;
-    int entity_sum, count, rayiter;
+    int entity_sum,entity_count, count, rayiter;
     int *tstart,*tend;
+    int trisum;
     double epsifb;
     const double epsi; 
+    
+    // STL
+    double STL_xmin,STL_xmax,STL_ymin,STL_ymax;
+    int iin,offset[100];
+    float ffn;
 
 };
 

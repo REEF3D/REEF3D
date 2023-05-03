@@ -1,6 +1,6 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2022 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -38,7 +38,7 @@ class reinitopo_RK3 : public reinitopo, public increment
 public:
 	reinitopo_RK3(lexer* p);
 	virtual ~reinitopo_RK3();
-	virtual void start(fdm*,lexer*,field&, convection*,ghostcell*);
+	virtual void start(lexer*,fdm*,ghostcell*,field&);
 
 	int *sizeM;
 	vec f,frk1,frk2,L,dt;

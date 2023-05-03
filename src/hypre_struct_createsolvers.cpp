@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"hypre_struct.h"
@@ -164,11 +165,11 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
 	HYPRE_StructPFMGSetMaxIter(precond, 1);
 	HYPRE_StructPFMGSetTol(precond, 0.0);
 	HYPRE_StructPFMGSetZeroGuess(precond);		
-	HYPRE_StructPFMGSetRAPType(precond, p->N23);
-	HYPRE_StructPFMGSetRelaxType(precond, p->N22);
+	HYPRE_StructPFMGSetRAPType(precond, p->N23);    // now: 0; before: 0
+	HYPRE_StructPFMGSetRelaxType(precond, p->N22);  // now: 3; before: 1
 	HYPRE_StructPFMGSetNumPreRelax(precond, 1);
 	HYPRE_StructPFMGSetNumPostRelax(precond, 1);
-	HYPRE_StructPFMGSetSkipRelax(precond, p->N21);
+	HYPRE_StructPFMGSetSkipRelax(precond, p->N21);  // now: 0; before: 0
 	HYPRE_StructPFMGSetPrintLevel(precond, 0);
 	HYPRE_StructPFMGSetLogging(precond, 0);
     }

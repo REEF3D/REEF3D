@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_turb_ke_IM1.h"
@@ -81,7 +82,9 @@ void sflow_turb_ke_IM1::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convecti
 	eddyvisc(p,b,pgc);
 
     SLICELOOP4
-    b->test(i,j) = kin(i,j);
+    b->kin(i,j) = kin(i,j);
+    
+    pgc->gcsl_start4(p,b->kin,gcval_kin);
 }
 
 void sflow_turb_ke_IM1::ktimesave(lexer* p, fdm2D *b, ghostcell *pgc)
@@ -130,10 +133,9 @@ void sflow_turb_ke_IM1::eps_source(lexer* p, fdm2D *b)
 
     b->rhsvec.V[count] += ce1 * MAX(eps(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20))*Pk(i,j)
 
-                       + (ceg*ce2/pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,0.5)*pow(ustar(i,j),4.0)/(HP*HP*HP);
+                       + (ceg*ce2/pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,0.5)*pow(ustar(i,j),4.0)/(HP*HP);
     ++count;
     }
-
 }
 
 void sflow_turb_ke_IM1::Pk_update(lexer* p, fdm2D *b, ghostcell *pgc)

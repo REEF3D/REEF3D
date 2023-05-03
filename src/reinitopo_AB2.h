@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -36,7 +36,7 @@ class reinitopo_AB2 : public reinitopo, gradient
 public:
 	reinitopo_AB2(lexer* p);
 	virtual ~reinitopo_AB2();
-	virtual void start(fdm*,lexer*,field&, convection*,ghostcell*);
+	virtual void start(lexer*,fdm*,ghostcell*,field&);
 
 	int *sizeM;
 

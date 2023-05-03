@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,7 +30,6 @@ class sflow_convection;
 class sflow_fsf;
 class sflow_diffusion;
 class sflow_roughness;
-class sflow_sediment_RK;
 class sflow_rheology;
 
 using namespace std;
@@ -56,7 +55,7 @@ private:
 	void jrhs(lexer*,fdm2D*,ghostcell*,slice&,double);
 	
 	int gcval_u, gcval_v, gcval_w;
-	int gcval_urk, gcval_vrk, gcval_wrk,gcval_eta;
+	int gcval_eta;
 	double starttime;
 
 	sflow_convection *pconvec;
@@ -67,7 +66,6 @@ private:
 	ioflow *pflow;
 	sflow_fsf *pfsf;
     sflow_roughness *prough;
-    sflow_sediment_RK *psedstep;
     sflow_rheology *prheo;
     sixdof *p6dof;
 };

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -36,7 +36,7 @@ Author: Hans Bihs
 #include"slice2.h"
 #include"slice4.h"
 #include"sliceint4.h"
-#include"sliceint4.h"
+#include"sliceint5.h"
 #include"increment.h"
 #include"vec.h"
 #include"matrix_diag.h"
@@ -64,7 +64,7 @@ public:
 	field1 u,F;
 	field2 v,G;
 	field3 w,H;
-    field4 omega;
+    field3 omega;
 	field4 press;
     field4 Fi;
 	field4 eddyv;
@@ -79,42 +79,36 @@ public:
 	field5 walld;
 	 
 	fieldint5 nodeval,flag;
+    sliceint5 nodeval2D;
    
     // 6DOF
     field1 fbh1;
     field2 fbh2;
     field3 fbh3;
     field4 fbh4;
+    field4 fbh5;
     
-    slice1 P;
-    slice2 Q;
-    slice4 bed,bedzh,bedzh0;
-    slice4 dh,reduce;
-    sliceint4 bedk;
-    sliceint4 wet;
     
-    // fnpf
-    slice4 eta,eta_n,WL,WL_n,depth;
-    slice4 Bx,By;
-    slice4 Fifsf,Fz;
+    // PTF
+    slice4 eta,eta_n,depth;
+    slice4 Fifsf;
     slice4 K;
     sliceint4 etaloc;
     
-    slice4 bedload;
-
+    slice1 P;
+    slice2 Q;
     
+    slice4 bed;
     
 	vec rhsvec;
 
 	matrix_diag M;
-	cpt C4,C4a,C6;
+	cpt C4,C4a,C6,C9;
 
     double maxF,maxG,maxH;
     double wd_criterion;
 	
-	
 	double t1,t2,t3,t4,t5;
-    
 };
 
 #endif

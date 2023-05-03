@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"wave_lib_hdc.h"
@@ -33,6 +34,14 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
     // open header
     header.open(name, ios::binary);
     
+        // file_version
+        header.read((char*)&iin, sizeof (int));
+        file_version=iin;
+        
+        // file_type
+        header.read((char*)&iin, sizeof (int));
+        file_type=iin;
+        
         // jdir
         header.read((char*)&iin, sizeof (int));
         jdir=iin;
@@ -75,9 +84,6 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
         {
         header.read((char*)&ffn, sizeof (float)); 
         X[i]=ffn;
-        
-        //if(p->mpirank==0)
-        //cout<<i<<" "<<X[i]<<endl;
         }
             
         for(j=0; j<Ny; ++j)
@@ -90,8 +96,6 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
         {
         header.read((char*)&ffn, sizeof (float)); 
         Zsig[k]=ffn;
-        //if(p->mpirank==0)
-        //cout<<i<<" "<<Zsig[k]<<endl;
         }
         
         for(i=0; i<Nx; ++i)
@@ -100,11 +104,15 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
         header.read((char*)&ffn, sizeof (float)); 
         B[i][j]=ffn;
         }  
-        
-        
+
         // numer of iterations
         header.read((char*)&iin, sizeof (int));
         numiter=iin;
+        
+        // delta iterations
+        header.read((char*)&iin, sizeof (int));
+        diter=iin;
+        
         
         p->Darray(simtime,numiter);
         
@@ -116,7 +124,7 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
         
         t_start = simtime[0];
         t_end   = simtime[numiter-1];
-        
+
         
         if(Nx==0)
         {
@@ -132,7 +140,6 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
         
         
         
-        
         if(Ny==0)
         {
         Ystart=1.0;
@@ -144,7 +151,6 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
         Ystart = Y[0];
         Yend = Y[Ny-1];
         }
-        
         
         
     header.close();

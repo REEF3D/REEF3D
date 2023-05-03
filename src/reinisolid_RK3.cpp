@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -60,7 +60,7 @@ reinisolid_RK3::~reinisolid_RK3()
 {
 }
 
-void reinisolid_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostcell* pgc)
+void reinisolid_RK3::start(lexer *p, fdm *a, ghostcell *pgc,field& b)
 { 
     starttime=pgc->timer();
 	
@@ -77,7 +77,7 @@ void reinisolid_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostce
     
     gcval=gcval_topo;
 
-	pgc->start4aV(p,f,gcval);
+	pgc->start4avec(p,f,gcval);
 	
 	if(p->count==0)
 	{
@@ -85,7 +85,7 @@ void reinisolid_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostce
 	cout<<"initializing solid..."<<endl<<endl;
 	reiniter=2*int(p->maxlength/(p->F43*p->DXM));
     gcval=gcval_initopo;
-	pgc->start4aV(p,f,gcval);
+	pgc->start4avec(p,f,gcval);
     }
 
 	if(p->count>0)
@@ -100,7 +100,7 @@ void reinisolid_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostce
 	NLOOP4A
 	frk1.V[n] = f.V[n] + dt.V[n]*L.V[n];
 
-	pgc->start4aV(p,frk1,gcval);
+	pgc->start4avec(p,frk1,gcval);
     
     // Step 2
     prdisc->start(p,a,pgc,frk1,L,5);
@@ -108,7 +108,7 @@ void reinisolid_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostce
 	NLOOP4A
 	frk2.V[n]=  0.75*f.V[n] + 0.25*frk1.V[n] + 0.25*dt.V[n]*L.V[n];
 
-	pgc->start4aV(p,frk2,gcval);
+	pgc->start4avec(p,frk2,gcval);
     
 
     // Step 3
@@ -117,7 +117,7 @@ void reinisolid_RK3::start(fdm* a,lexer* p,field& b, convection* pconvec,ghostce
 	NLOOP4A
 	f.V[n] = (1.0/3.0)*f.V[n] + (2.0/3.0)*frk2.V[n] + (2.0/3.0)*dt.V[n]*L.V[n];
 
-	pgc->start4aV(p,f,gcval);
+	pgc->start4avec(p,f,gcval);
 	}
 	
 	// backfill

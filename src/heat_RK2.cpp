@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -50,7 +50,7 @@ void heat_RK2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, so
 
     clearrhs(p,a,pgc);
     pconvec->start(p,a,T,4,a->u,a->v,a->w);
-	pdiff->diff_scalar(p,a,pgc,psolv,T,thermdiff,p->sigT,1.0);
+	pdiff->diff_scalar(p,a,pgc,psolv,T,thermdiff,a->eddyv,p->sigT,1.0);
 
 	LOOP
 	ark1(i,j,k) = T(i,j,k)
@@ -63,7 +63,7 @@ void heat_RK2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, so
 // Step 2
     clearrhs(p,a,pgc);
     pconvec->start(p,a,ark1,4,a->u,a->v,a->w);
-	pdiff->diff_scalar(p,a,pgc,psolv,ark1,thermdiff,p->sigT,0.5);
+	pdiff->diff_scalar(p,a,pgc,psolv,ark1,thermdiff,a->eddyv,p->sigT,0.5);
 
 	LOOP
 	T(i,j,k) = 0.5*T(i,j,k)

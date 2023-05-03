@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -22,7 +22,6 @@ Author: Hans Bihs
 
 #include"reduction_deyana.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
@@ -34,7 +33,7 @@ reduction_deyana::~reduction_deyana()
 {
 }
 
-void reduction_deyana::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
+void reduction_deyana::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     double r=1.0;
     eta = 0.85;
@@ -46,18 +45,24 @@ void reduction_deyana::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     tetaval = s->teta(i,j);
     phival = s->phi(i,j);
     tanphi = tan(phival);
-
 	alphaval = fabs(alphaval);
 
 	r = (1.0/((1-eta*tanphi)*tanphi))*( -sin(tetaval)  - eta*tanphi*tanphi * sqrt(cos(tetaval)*cos(tetaval)-sin(alphaval)*sin(alphaval))
 		+ pow((pow(( sin(tetaval) + eta*tanphi*tanphi*sqrt(cos(tetaval)*cos(tetaval)-sin(alphaval)*sin(alphaval))),2.0) +(1.0 - eta*eta*tanphi*tanphi)
 		*(cos(tetaval)*cos(tetaval)*tanphi*tanphi - sin(alphaval)*sin(alphaval)*tanphi*tanphi - sin(tetaval)*sin(tetaval) - sin(alphaval)*sin(alphaval) ) ),0.5 ));
 
+    // limiter
 	if(  (pow(( sin(tetaval) + eta*tanphi*tanphi*sqrt(cos(tetaval)*cos(tetaval)-sin(alphaval)*sin(alphaval))),2.0) +(1.0 - eta*eta*tanphi*tanphi)
 		*(cos(tetaval)*cos(tetaval)*tanphi*tanphi - sin(alphaval)*sin(alphaval)*tanphi*tanphi - sin(tetaval)*sin(tetaval) - sin(alphaval)*sin(alphaval) ) )  < 0.0 || cos(tetaval)*cos(tetaval)-sin(alphaval)*sin(alphaval) < 0.0)
     {
+        if(p->S84==1)
+        {
         r = cos(tetaval)*(1.0 - tan(tetaval/tanphi));
         r*= cos(alphaval)*(1.0 - pow(tan(alphaval),2.0)/pow(tanphi,2.0));
+        }
+        
+        if(p->S84==2)
+        r = 0.1/(fabs(s->gamma(i,j)) + 0.0000001)+0.1;
     }
 
 

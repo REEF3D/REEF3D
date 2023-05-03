@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"patchBC_2D.h"
@@ -57,18 +58,18 @@ void patchBC_2D::patchBC_discharge2D(lexer *p, fdm2D* b, ghostcell *pgc, slice &
             
             
             // sides 1 & 4
-            if(patch[qq]->gcb[n][3]==1 && b->wet4(i,j)==1)
+            if(patch[qq]->gcb[n][3]==1 && p->wet[IJ]==1)
             {
             area = p->DYN[JP]*b->hp(i-1,j);
             
             Ai+=area;
-            Qi+=area*(patch[qq]->cosalpha*b->Q(i+1,j) + patch[qq]->sinalpha*b->P(i+1,j));
+            Qi+=area*(patch[qq]->cosalpha*b->Q(i-1,j) + patch[qq]->sinalpha*b->P(i-1,j));
             
             hval += b->hp(i-1,j);
             ++hcount;
             }
             
-            if(patch[qq]->gcb[n][3]==4 && b->wet4(i,j)==1)
+            if(patch[qq]->gcb[n][3]==4 && p->wet[IJ]==1)
             {
             area = p->DYN[JP]*b->hp(i+1,j);
             
@@ -80,7 +81,7 @@ void patchBC_2D::patchBC_discharge2D(lexer *p, fdm2D* b, ghostcell *pgc, slice &
             }
             
             // sides 3 & 2
-            if(patch[qq]->gcb[n][3]==3 && b->wet4(i,j)==1)
+            if(patch[qq]->gcb[n][3]==3 && p->wet[IJ]==1)
             {
             area = p->DXN[IP]*b->hp(i,j-1);
             
@@ -91,7 +92,7 @@ void patchBC_2D::patchBC_discharge2D(lexer *p, fdm2D* b, ghostcell *pgc, slice &
             ++hcount;
             }
             
-            if(patch[qq]->gcb[n][3]==2  && b->wet4(i,j)==1)
+            if(patch[qq]->gcb[n][3]==2  && p->wet[IJ]==1)
             {
             area = p->DXN[IP]*b->hp(i,j+1);
             

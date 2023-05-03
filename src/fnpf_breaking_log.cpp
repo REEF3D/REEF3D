@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,9 +17,9 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
-
-#include"fnpf_breaking_log.h"
+#include"fnpf_breaking_log.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
@@ -31,12 +31,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 fnpf_breaking_log::fnpf_breaking_log(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->P14==1)
 	mkdir("./REEF3D_FNPF_Breaking_Log",0777);
 	
 	// result file
     filename(p,c,pgc);
-	 
 	
 	result.open(name);
 }
@@ -54,7 +53,7 @@ void fnpf_breaking_log::write(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(c->breaklog(i,j)>0)
     {
     result<<p->simtime<<" "<<p->XP[IP]<<" "<<p->YP[JP]<<endl;
-    cout<<p->simtime<<" "<<p->XP[IP]<<" "<<p->YP[JP]<<endl;
+    //cout<<p->simtime<<" "<<p->XP[IP]<<" "<<p->YP[JP]<<endl;
     } 
 
 

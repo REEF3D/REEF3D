@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"VOF_RK3.h"
@@ -57,7 +58,7 @@ VOF_RK3::~VOF_RK3()
 {
 }
 
-void VOF_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particlecorr* ppart, field &F)
+void VOF_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particle_corr* ppart, field &F)
 {
     field4 ark1(p),ark2(p);
     
@@ -123,10 +124,6 @@ void VOF_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcel
 	
 	if(p->mpirank==0)
 	cout<<"voftime: "<<setprecision(3)<<p->lsmtime<<endl;
-}
-
-void VOF_RK3::ltimesave(lexer* p, fdm *a, field &F)
-{
 }
 
 void VOF_RK3::update(lexer *p, fdm *a, ghostcell *pgc, field &F)

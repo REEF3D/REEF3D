@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -21,6 +21,9 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"reinitopo_void.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
 reinitopo_void::reinitopo_void()
 {
@@ -30,8 +33,7 @@ reinitopo_void::~reinitopo_void()
 {
 }
 
-void reinitopo_void::start(fdm* a,lexer* p,field& b, convection* pconvec, ghostcell* pgc)
+void reinitopo_void::start(lexer *p, fdm *a, ghostcell *pgc, field &b)
 {
-    int test=0;
-    
+    pgc->start4a(p,b,150);
 }

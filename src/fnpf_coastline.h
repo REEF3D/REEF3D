@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -38,7 +38,7 @@ public:
     fnpf_coastline(lexer*);
 	virtual ~fnpf_coastline();
 
-   void start(lexer*,ghostcell*,slice&,sliceint&,sliceint&);
+   void start(lexer*,ghostcell*,slice&,int*,sliceint&);
    
 private:
    void reini(lexer*,ghostcell*,slice&);

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,10 +30,9 @@ Author: Hans Bihs
 #include"lust.h"
 #include"weno_hj.h"
 #include"weno_hj_nug.h"
-#include"weno_hj_6DOF_nug.h"
+#include"weno_hj_df_nug.h"
 #include"weno_flux.h"
 #include"weno_flux_nug.h"
-#include"weno_flux_nug_dir.h"
 #include"iweno_hj.h"
 #include"iweno_hj_nug.h"
 #include"weno3_hj.h"

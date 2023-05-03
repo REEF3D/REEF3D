@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -36,7 +36,9 @@ class bc_ikomega : public roughness
 public:
 	bc_ikomega(lexer*);
 	virtual ~bc_ikomega();
-	void bckeps_start(fdm*,lexer*,field&,field&, int);
+	void bckomega_start(fdm*,lexer*,field&,field&, int);
+    void bckin_matrix(fdm*,lexer*,field&,field&);
+    void bcomega_matrix(fdm*,lexer*,field&,field&);
 	void wall_law_kin(fdm*,lexer*,field&,field&,int,int,int,int,int,int,double);
 	void wall_law_omega(fdm*,lexer*,field&,field&,int,int,int,int,int,int,double);
 
@@ -45,7 +47,7 @@ private:
 	int ii,jj,kk;
 	int count,q;
 	double fac,value;
-	const double kappa;
+	double kappa;
 
 };
 #endif

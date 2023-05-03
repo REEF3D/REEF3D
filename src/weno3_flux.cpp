@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -103,9 +103,24 @@ void weno3_flux::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field&
 
 double weno3_flux::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, field& wvel, double *DX,double *DY, double *DZ)
 {
-		pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
+		if(p->G2==0)
+        {
+        pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
         pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
         pflux->w_flux(a,ipol,wvel,kvel1,kvel2);
+        }
+        
+        if(p->G2==1)
+        {
+        pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
+        pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
+        
+        if(p->A517==1)
+        pflux->w_flux(a,ipol,a->omega,kvel1,kvel2);
+        
+        if(p->A517==2)
+        pflux->omega_flux(p,a,ipol,uvel,vvel,wvel,kvel1,kvel2);
+        }
 
 		
 		i-=1;
@@ -114,13 +129,15 @@ double weno3_flux::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vv
 		
 		fu2 = fx(p,a,b,uvel,ipol,ivel2);
 
-
-		
+        fv1=fv2=0.0;
+		if(p->j_dir==1)
+        {
 		j-=1;
 		fv1 = fy(p,a,b,vvel,ipol,jvel1);
 		j+=1;
 		
 		fv2 = fy(p,a,b,vvel,ipol,jvel2);
+        }
 
 
 

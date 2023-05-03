@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"density_heat.h"
@@ -75,7 +76,6 @@ double density_heat::roface(lexer *p, fdm *a, int aa, int bb, int cc)
         visc_2 = material_ipol(water_viscosity,water_viscosity_num, temp);
         }
         
-        
     
         if(phival>psi)
         H=1.0;
@@ -88,7 +88,6 @@ double density_heat::roface(lexer *p, fdm *a, int aa, int bb, int cc)
         
         roval = ro_1*H + ro_2*(1.0-H);
 
-	
 	return roval;		
 }
 

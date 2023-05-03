@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fnpf_state.h"
@@ -60,14 +61,14 @@ void fnpf_state::write_header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     headout.write((char*)&iin, sizeof (int));
 
 
-    ffn=float(p->originx);
-    headout.write((char*)&ffn, sizeof (float));
+    ddn=p->originx;
+    headout.write((char*)&ddn, sizeof (double));
     
-    ffn=float(p->originy);
-    headout.write((char*)&ffn, sizeof (float));
+    ddn=p->originy;
+    headout.write((char*)&ddn, sizeof (double));
     
-    ffn=float(p->originz);
-    headout.write((char*)&ffn, sizeof (float));
+    ddn=p->originz;
+    headout.write((char*)&ddn, sizeof (double));
   
     
     iin=ie-is;
@@ -97,20 +98,20 @@ void fnpf_state::write_header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     //
     for(i=is;i<ie;++i)
     {
-    ffn=float(p->XP[IP]);
-    headout.write((char*)&ffn, sizeof (float));
+    ddn=p->XP[IP];
+    headout.write((char*)&ddn, sizeof (double));
     } 
     
     for(j=js;j<je;++j)
     {
-    ffn=float(p->YP[JP]);
-    headout.write((char*)&ffn, sizeof (float));
+    ddn=p->YP[JP];
+    headout.write((char*)&ddn, sizeof (double));
     } 
     
     FKLOOP
     {
-    ffn=float(p->ZN[KP]);
-    headout.write((char*)&ffn, sizeof (float));
+    ddn=p->ZN[KP];
+    headout.write((char*)&ddn, sizeof (double));
     } 
     
     
@@ -118,8 +119,8 @@ void fnpf_state::write_header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     for(j=js;j<je;++j)
     PSLICECHECK4
     {
-    ffn=float(c->bed(i,j));
-    headout.write((char*)&ffn, sizeof (float));
+    ddn=c->bed(i,j);
+    headout.write((char*)&ddn, sizeof (double));
     } 
     
     headout.close();

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -32,7 +32,7 @@ class reinitopo_void : public reinitopo
 public:
 	reinitopo_void();
 	virtual ~reinitopo_void();
-	virtual void start(fdm*,lexer*,field&, convection*,  ghostcell*);
+	virtual void start(lexer*,fdm*,ghostcell*,field&);
 };
 
 #endif

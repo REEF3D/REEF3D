@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
@@ -37,10 +38,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"waves_header.h"
 #include"lexer.h"
 
-void driver::loop_nhflow(fdm* a)
+void driver::loop_nhflow()
 {
-    driver_ini_nhflow();
-    
     if(p->mpirank==0)
     cout<<"starting mainloop.NHFLOW"<<endl;
     
@@ -52,7 +51,7 @@ void driver::loop_nhflow(fdm* a)
 
         if(p->mpirank==0 && (p->count%p->P12==0))
         {
-        cout<<"------------------------------"<<endl;
+        cout<<"------------------------------------"<<endl;
         cout<<p->count<<endl;
         
         cout<<"simtime: "<<p->simtime<<endl;
@@ -66,39 +65,29 @@ void driver::loop_nhflow(fdm* a)
         }
         
         pflow->flowfile(p,a,pgc,pturb);
-        
         pflow->wavegen_precalc(p,pgc);
-
-			fill_vel(p,a,pgc);
         
         // Free Surface
-        pnhfsf->start(p,a,pgc,pflow);
-        p->sigma_update(p,a,pgc,a->eta);
+        pnhfsf->start(p,d,pgc,pflow);
 			
-            pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
-            pheat->start(a,p,pconvec,pdiff,psolv,pgc,pflow);
-			 pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
-            psusp->start(a,p,pconcdisc,psuspdiff,psolv,pgc,pflow);
-            
+        //pnhfturb->start(d,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);        
         
 		// Sediment Computation
-        psed->start(p,a,pconvec,pgc,pflow,ptopo,preto,psusp,pbed);
-		
-		p6dof->start(p,a,pgc,1.0,pvrans,pnet);
-        pmom->start(p,a,pgc,pvrans); 
-        pbench->start(p,a,pgc,pconvec);
+        //psed->start_cfd(p,a,pgc,pflow,preto,psolv);
+
+        pnhfmom->start(p,d,pgc,pflow,pnhfconvec,pdiff,pnhpress,psolv,pnhf,pnhfsf,pnhfturb,pvrans); 
 
         //save previous timestep
-        pturb->ktimesave(p,a,pgc);
-        pturb->etimesave(p,a,pgc);
-        pflow->veltimesave(p,a,pgc,pvrans);
-
+        //pturb->ktimesave(p,a,pgc);
+        //pturb->etimesave(p,a,pgc);
+        //pflow->veltimesave(p,a,pgc,pvrans);
+        
         //timestep control
         p->simtime+=p->dt;
-        ptstep->start(a,p,pgc,pturb);
+        pnhfstep->start(p,d,pgc);
         
         // printer
-        pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
+        pnhfprint->start(p,d,pgc,pflow);
 
         // Shell-Printout
         if(p->mpirank==0)
@@ -129,8 +118,6 @@ void driver::loop_nhflow(fdm* a)
         mainlog(p);
         maxlog(p);
         solverlog(p);
-        if(p->count%p->S44==0 && p->count>=p->S43 && p->S10>0)
-        sedimentlog(p);
         }
     p->gctime=0.0;
     p->xtime=0.0;
@@ -151,7 +138,6 @@ void driver::loop_nhflow(fdm* a)
     mainlogout.close();
     maxlogout.close();
     solvlogout.close();
-    sedlogout.close();
 	}
 
     pgc->final();

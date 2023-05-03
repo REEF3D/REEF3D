@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -31,19 +31,22 @@ class bedload;
 class topo;
 class print_wsf;
 class print_wsf_theory;
-class print_wsfline;
+class print_wsfline_x;
 class print_wsfline_y;
 class force;
 class force;
 class vorticity;
 class solver;
 class probe_point;
+class probe_pressure;
 class probe_line;
 class bedprobe_point;
 class bedprobe_max;
-class gage_discharge;
+class gage_discharge_x;
+class gage_discharge_window_x;
 class fsf_vtp;
-class state;
+class topo_vtp;
+class cfd_state;
 class bedshear_probe;
 class bedshear_max;
 class sloshing_force;
@@ -52,6 +55,7 @@ class bedprobe_line_x;
 class bedprobe_line_y;
 class exportfile;
 class flowfile_out;
+class print_averaging;
 
 #ifndef VTU3D_H_
 #define VTU3D_H_
@@ -64,13 +68,14 @@ class vtu3D : public printer, public nodefill
 public:
 	vtu3D(lexer*,fdm*,ghostcell*);
 	virtual ~vtu3D();
-	virtual void start(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,sediment*);
-    virtual void print_vtu(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,sediment*);
+	virtual void start(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*);
+    virtual void print_vtu(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*);
+    virtual void print_stop(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*);
 	virtual void ini(lexer*,fdm*,ghostcell*);
 
 private:
-    void print3D(fdm*,lexer*,ghostcell*,turbulence*,heat*,solver*,data*,concentration*,sediment*);
-    void pvtu(fdm*,lexer*,ghostcell*,turbulence*,heat*,data*,concentration*,sediment*);
+    void print3D(fdm*,lexer*,ghostcell*,turbulence*,heat*,solver*,data*,concentration*,multiphase*,sediment*);
+    void pvtu(fdm*,lexer*,ghostcell*,turbulence*,heat*,data*,concentration*,multiphase*,sediment*);
     void header(fdm*,lexer*,ghostcell*);
     void name_iter(fdm*,lexer*,ghostcell*);
     void name_time(fdm*,lexer*,ghostcell*);
@@ -90,11 +95,12 @@ private:
 
     print_wsf *pwsf;
 	print_wsf_theory *pwsf_theory;
-    print_wsfline *pwsfline;
+    print_wsfline_x *pwsfline_x;
 	print_wsfline_y *pwsfline_y;
     force **pforce;
     vorticity *pvort;
 	probe_point *pprobe;
+    probe_pressure *ppressprobe;
 	probe_line *pline;
 	bedprobe_point *pbedpt;
 	bedprobe_line_x *pbedlinex;
@@ -102,13 +108,16 @@ private:
 	bedprobe_max *pbedmax;
 	bedshear_probe *pbedshear;
 	bedshear_max *pbedshearmax;
-	gage_discharge *pq;
+	gage_discharge_x *pq;
+    gage_discharge_window_x *pqw;
 	fsf_vtp *pfsf;
-	state *pstate;
+    topo_vtp *ptopo;
+	cfd_state *pstate;
     sloshing_force *pslosh;
 	print_porous *ppor;
     exportfile *pexport;
     flowfile_out *pflowfile;
+    print_averaging *pmean;
 };
 
 #endif

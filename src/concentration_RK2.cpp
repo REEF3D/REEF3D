@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -49,7 +49,7 @@ void concentration_RK2::start(fdm* a, lexer* p, convection* pconvec, diffusion* 
 
     clearrhs(p,a,pgc);
     pconvec->start(p,a,C,4,a->u,a->v,a->w);
-	pdiff->diff_scalar(p,a,pgc,psolv,C,a->visc,1.0,1.0);
+	pdiff->diff_scalar(p,a,pgc,psolv,C,a->visc,a->eddyv,1.0,1.0);
 
 	LOOP
 	ark1(i,j,k) = C(i,j,k)
@@ -62,7 +62,7 @@ void concentration_RK2::start(fdm* a, lexer* p, convection* pconvec, diffusion* 
 // Step 2
     clearrhs(p,a,pgc);
     pconvec->start(p,a,ark1,4,a->u,a->v,a->w);
-	pdiff->diff_scalar(p,a,pgc,psolv,ark1,a->visc,1.0,0.5);
+	pdiff->diff_scalar(p,a,pgc,psolv,ark1,a->visc,a->eddyv,1.0,0.5);
 
 	LOOP
 	C(i,j,k) = 0.5*C(i,j,k)

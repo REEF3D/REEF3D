@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -22,19 +22,19 @@ Author: Hans Bihs
 
 #include"sediment_exner.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
-#include"reinitopo.h"
 #include"bedconc.h"
 #include"topo_relax.h"
 #include"sediment_fou.h"
 #include"sediment_cds.h"
+#include"sediment_cds_hj.h"
 #include"sediment_wenoflux.h"
 #include"sediment_weno_hj.h"
+#include"sflow_bicgstab.h"
 #include<math.h>
 
-sediment_exner::sediment_exner(lexer* p, fdm *a, ghostcell* pgc, turbulence *pturb) :  bedshear(p,pturb), q0(p),dqx0(p),dqy0(p)
+sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),dqx0(p),dqy0(p), xvec(p),rhsvec(p),M(p)
 {
 	if(p->S50==1)
 	gcval_topo=151;
@@ -53,11 +53,11 @@ sediment_exner::sediment_exner(lexer* p, fdm *a, ghostcell* pgc, turbulence *ptu
     rhowat=p->W1;
     g=9.81;
     d50=p->S20;
-    ws=1.1*(rhosed/rhowat-1.0)*g*d50*d50;
+    
     Ls = p->S20;
     
     
-    pcb = new bedconc(p, pturb);
+    pcb = new bedconc(p);
     
     prelax = new topo_relax(p);
     
@@ -67,24 +67,29 @@ sediment_exner::sediment_exner(lexer* p, fdm *a, ghostcell* pgc, turbulence *ptu
     if(p->S32==2)
     pdx = new sediment_cds(p);
     
+    if(p->S32==3)
+    pdx = new sediment_cds_hj(p);
+    
     if(p->S32==4)
     pdx = new sediment_wenoflux(p);
     
     if(p->S32==5)
     pdx = new sediment_weno_hj(p);
+    
+    psolv = new sflow_bicgstab(p,pgc);
 }
 
 sediment_exner::~sediment_exner()
 {
 }
 
-void sediment_exner::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,reinitopo* preto, sediment_fdm *s)
+void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {   
-    //non_equillibrium_solve(p,a,pgc); 
+    non_equillibrium_solve(p,pgc,s); 
    
     SLICELOOP4
     {
-		topovel(p,a,pgc,vx,vy,vz);
+		topovel(p,pgc,s,vx,vy,vz);
         dqx0(i,j) = vx;
         dqy0(i,j) = vy;
 		s->vz(i,j) = vz;
@@ -92,14 +97,17 @@ void sediment_exner::start(fdm* a,lexer* p, convection* pconvec, ghostcell* pgc,
     
 	pgc->gcsl_start4(p,s->vz,1);
 	
-    timestep(p,a,pgc,s);
+    timestep(p,pgc,s);
     
     
 	
 	SLICELOOP4
-    a->bedzh(i,j) += p->dtsed*s->vz(i,j);
+    {
+    if(s->active(i,j)==1 || s->vz(i,j)>0.0)
+    s->bedzh(i,j) += p->dtsed*s->vz(i,j);
+    }
 
-	pgc->gcsl_start4(p,a->bedzh,1);
+	pgc->gcsl_start4(p,s->bedzh,1);
 }
 
 

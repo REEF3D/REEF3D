@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -41,8 +41,6 @@ public:
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
     
-    double aij_sig(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
-
 	virtual double fx(lexer*, fdm*, field&, field&, int, double);
 	virtual double fy(lexer*, fdm*, field&, field&, int, double);
 	virtual double fz(lexer*, fdm*, field&, field&, int, double);
@@ -53,7 +51,6 @@ private:
 	void jqmax(lexer*, field&, field&, int);
 	void kqmax(lexer*, field&, field&, int);
 
-    double sigmax1(lexer*,field&);
     
 	double L,grad;
     double sig;

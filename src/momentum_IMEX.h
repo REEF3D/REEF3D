@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -59,7 +59,7 @@ private:
     field2 vn, G0_ex, G1_ex, G2_ex, G1_im, G2_im;
     field3 wn, H0_ex, H1_ex, H2_ex, H1_im, H2_im;
     
-    int gcval_u, gcval_v, gcval_w,gcval_urk, gcval_vrk, gcval_wrk;
+    int gcval_u, gcval_v, gcval_w;
 	double starttime, gamma, a11,a21,a22,ahat10,ahat20,ahat21,b1,b2,bhat1,bhat2,twoD;
 
 	convection *pconvec;

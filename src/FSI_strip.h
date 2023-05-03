@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,6 +27,7 @@ Author: Tobias Martin
 class lexer;
 class fdm;
 class ghostcell;
+class field;
 
 using namespace std;
 
@@ -50,7 +51,7 @@ public:
     void update_points();
     void coupling_vel();
     void coupling_force(lexer*,double);
-    void distribute_forces(lexer*,fdm*,ghostcell*,field1&,field2&,field3&);
+    void distribute_forces(lexer*,fdm*,ghostcell*,field&,field&,field&);
     void store_variables(lexer*);
     void print_ini(lexer *p);
     void print_stl(lexer*,fdm*,ghostcell*);
@@ -80,6 +81,7 @@ private:
     vector<Eigen::VectorXd> lagrangeArea;
     double rho_s,rho_f,dx_body,t_strip,t_strip_n,l_el,A_el,W_el;
     Eigen::Vector3d gravity_vec;
+    bool thinStrip;
 
     // Print
     int printcount_fsi;

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_hydrostatic.h"
@@ -28,6 +29,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"momentum.h"
 #include"ioflow.h"
 #include"patchBC_interface.h"
+
+#define HX (fabs(b->hx(i,j))>1.0e-20?b->hx(i,j):1.0e20)
+#define HXP (fabs(0.5*(b->WL(i,j)+b->WL(i+1,j)))>1.0e-20?0.5*(b->WL(i,j)+b->WL(i+1,j)):1.0e20)
+#define HY (fabs(b->hy(i,j))>1.0e-20?b->hy(i,j):1.0e20)
  
 sflow_hydrostatic::sflow_hydrostatic(lexer* p, fdm2D *b, patchBC_interface *ppBC)
 {
@@ -61,11 +66,25 @@ void sflow_hydrostatic::wcalc(lexer* p, fdm2D* b,double alpha, slice &uvel, slic
 
 void sflow_hydrostatic::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 {
+        if(p->A221==1)
         SLICELOOP1
+        WETDRY1
         {
         b->F(i,j) -= fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) 
                                      - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
         }
+        
+        
+        if(p->A221==2)
+        SLICELOOP1
+        WETDRY1
+        b->F(i,j) -= fabs(p->W22)*(1.0/HX)*
+    
+                    (0.5*(pow(eta(i+1,j),2.0) - pow(eta(i,j),2.0))/p->DXP[IP]
+                    
+                    + ((p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j))*b->depth(i+1,j) - (p->A223*eta(i,j) + (1.0-p->A223)*eta_n(i,j))*b->depth(i,j))/p->DXP[IP]
+                    
+                    - 0.5*((p->A223*eta(i,j) + (1.0-p->A223)*eta_n(i,j)) + (p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j)))*(b->depth(i+1,j)-b->depth(i,j))/p->DXP[IP]);
         
         if(p->B77==2)
         for(n=0;n<p->gcslout_count;n++)
@@ -86,9 +105,22 @@ void sflow_hydrostatic::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 
 void sflow_hydrostatic::vpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 {
+        if(p->A221==1)
         SLICELOOP2
+        WETDRY2
         b->G(i,j) -= fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) 
                                  - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
+                                 
+        if(p->A221==2)
+        SLICELOOP1
+        WETDRY2
+        b->G(i,j) -= fabs(p->W22)*(1.0/HY)*
+    
+                    (0.5*(pow(eta(i,j+1),2.0) - pow(eta(i,j),2.0))/p->DYP[JP]
+                    
+                    + ((p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1))*b->depth(i,j+1) - (p->A223*eta(i,j) + (1.0-p->A223)*eta_n(i,j))*b->depth(i,j))/p->DYP[JP]
+                    
+                    - 0.5*((p->A223*eta(i,j) + (1.0-p->A223)*eta_n(i,j)) + (p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1)))*(b->depth(i,j+1)-b->depth(i,j))/p->DYP[JP]);
                                  
         pBC->patchBC_pressure2D_vgrad(p,b,eta,eta_n);
 }

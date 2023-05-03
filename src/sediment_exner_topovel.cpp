@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -22,13 +22,13 @@ Author: Hans Bihs
 
 #include"sediment_exner.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include"bedconc.h"
 #include"topo_relax.h"
 #include"sediment_exnerdisc.h"
+#include"sediment_fdm.h"
 
-void sediment_exner::topovel(lexer* p,fdm* a, ghostcell *pgc, double& vx, double& vy, double& vz)
+void sediment_exner::topovel(lexer* p, ghostcell *pgc, sediment_fdm *s, double& vx, double& vy, double& vz)
 {
 	double uvel,vvel,u_abs;
 	double signx,signy;
@@ -46,11 +46,11 @@ void sediment_exner::topovel(lexer* p,fdm* a, ghostcell *pgc, double& vx, double
 	if(p->pos_x()>=p->S71 && p->pos_x()<=p->S72)
 	{						
         pip=1;
-        uvel=0.5*(a->P(i,j)+a->P(i-1,j));
+        uvel=0.5*(s->P(i,j)+s->P(i-1,j));
         pip=0;
 
         pip=2;
-        vvel=0.5*(a->Q(i,j)+a->Q(i,j-1));
+        vvel=0.5*(s->Q(i,j)+s->Q(i,j-1));
         pip=0;
 		
 		u_abs = sqrt(uvel*uvel + vvel*vvel);
@@ -58,18 +58,18 @@ void sediment_exner::topovel(lexer* p,fdm* a, ghostcell *pgc, double& vx, double
 		signy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
 
     
-        ux1=a->P(i-1,j);
-        vx1=0.25*(a->Q(i,j)+a->Q(i-1,j)+a->Q(i,j-1)+a->Q(i-1,j-1)); 
+        ux1=s->P(i-1,j);
+        vx1=0.25*(s->Q(i,j)+s->Q(i-1,j)+s->Q(i,j-1)+s->Q(i-1,j-1)); 
         
-        ux2=a->P(i,j);
-        vx2=0.25*(a->Q(i,j)+a->Q(i+1,j)+a->Q(i,j-1)+a->Q(i+1,j-1)); 
+        ux2=s->P(i,j);
+        vx2=0.25*(s->Q(i,j)+s->Q(i+1,j)+s->Q(i,j-1)+s->Q(i+1,j-1)); 
         
         
-        uy1=0.25*(a->P(i,j-1)+a->P(i,j)+a->P(i-1,j-1)+a->P(i-1,j));
-        vy1=a->Q(i,j-1); 
+        uy1=0.25*(s->P(i,j-1)+s->P(i,j)+s->P(i-1,j-1)+s->P(i-1,j));
+        vy1=s->Q(i,j-1); 
         
-        uy2=0.25*(a->P(i,j)+a->P(i,j+1)+a->P(i-1,j)+a->P(i-1,j+1));
-        vy2=a->Q(i,j); 
+        uy2=0.25*(s->P(i,j)+s->P(i,j+1)+s->P(i-1,j)+s->P(i-1,j+1));
+        vy2=s->Q(i,j); 
         
         
         ux1_abs = sqrt(ux1*ux1 + vx1*vx1);
@@ -85,16 +85,37 @@ void sediment_exner::topovel(lexer* p,fdm* a, ghostcell *pgc, double& vx, double
         sgy2=fabs(uy2_abs)>1.0e-10?vy2/fabs(uy2_abs):0.0;
         
         
-        
         // complete q
-        dqx = pdx->sx(p,a->bedload,sgx1,sgx2);
-        dqy = pdx->sy(p,a->bedload,sgy1,sgy2);
+        if(p->S17==0)
+        {
+        dqx = pdx->sx(p,s->qbe,sgx1,sgx2);
+        dqy = pdx->sy(p,s->qbe,sgy1,sgy2);
+        }
+        
+        if(p->S17==1)
+        {
+        dqx = pdx->sx(p,s->qb,sgx1,sgx2);
+        dqy = pdx->sy(p,s->qb,sgy1,sgy2);
+        }
         
         vx=dqx;
         vy=dqy;
 		
-	// Exner equations
-    vz =  -prelax->rf(p,a,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy) + ws*(a->conc(i,j,k) - pcb->cbed(p,a,pgc,a->topo)); 
+        // Exner equations
+        // eq
+        if(p->S17==0)
+        vz =  -prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy) + susp_qb(p,pgc,s);
+        
+        
+        // non-eq
+        if(p->S17==1)
+        {
+        Ls = 4000.0*MAX(s->shields_eff(i,j)-s->shields_crit(i,j), 0.0)*d50;
+        
+        vz =  prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(1.0/(Ls>1.0e-10?Ls:1.0e10))*(s->qb(i,j)-s->qbe(i,j));// + ws*(s->conc(i,j,k) - pcb->cbed(p,pgc,s)); 
+        }
+        
 	}
+    
 }
 

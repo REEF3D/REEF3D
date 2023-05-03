@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"VOF_PLIC.h"
@@ -33,7 +34,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"hires.h"
 #include"weno_hj.h"
 #include"hric.h"
-
 
 void VOF_PLIC::reconstructPlane(fdm* a, lexer* p)
 {

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -26,7 +26,6 @@ class lexer;
 class fdm;
 class ghostcell;
 class reinitopo;
-class convection;
 class ioflow;
 class vrans;
 
@@ -40,7 +39,7 @@ class geotopo : public increment
 public:
 	geotopo(lexer*, fdm*, ghostcell*);
 	virtual ~geotopo();
-	virtual void start(lexer*, fdm*, ghostcell*, ioflow*, convection*, reinitopo*, vrans*);
+	virtual void start(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, vrans*);
 
 private:
     void dat(lexer*,fdm*,ghostcell*);

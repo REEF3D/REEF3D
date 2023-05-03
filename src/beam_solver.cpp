@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2018-2021 Tobias Martin
 
@@ -20,9 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
 #include"beam.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
+#include<iomanip>
 
 void beam::resetSolver()
 {

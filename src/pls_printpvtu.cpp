@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,16 +17,17 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"particle.h"
+#include"particle_pls.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void particle::pvtu_pos(fdm* a, lexer* p, ghostcell* pgc)
+void particle_pls::pvtu_pos(fdm* a, lexer* p, ghostcell* pgc)
 {
     int num=0;
 
@@ -108,7 +109,7 @@ void particle::pvtu_pos(fdm* a, lexer* p, ghostcell* pgc)
 }
 
 
-void particle::pvtu_neg(fdm* a, lexer* p, ghostcell* pgc)
+void particle_pls::pvtu_neg(fdm* a, lexer* p, ghostcell* pgc)
 {
     int num=0;
 
@@ -189,7 +190,7 @@ void particle::pvtu_neg(fdm* a, lexer* p, ghostcell* pgc)
 	result.close();
 }
 
-void particle::piecename_pos(fdm* a, lexer* p, ghostcell* pgc, int n)
+void particle_pls::piecename_pos(fdm* a, lexer* p, ghostcell* pgc, int n)
 {
     int num=0;
 
@@ -309,7 +310,7 @@ void particle::piecename_pos(fdm* a, lexer* p, ghostcell* pgc, int n)
 
 
 
-void particle::piecename_neg(fdm* a, lexer* p, ghostcell* pgc, int n)
+void particle_pls::piecename_neg(fdm* a, lexer* p, ghostcell* pgc, int n)
 {
     int num=0;
 
@@ -427,7 +428,7 @@ if(n>9998)
 }
 
 
-void particle::header_pos(fdm* a,lexer* p,ghostcell* pgc)
+void particle_pls::header_pos(fdm* a,lexer* p,ghostcell* pgc)
 {
     int num=0;
 
@@ -655,7 +656,7 @@ if(p->P14==1)
 }
 
 
-void particle::header_neg(fdm* a,lexer* p,ghostcell* pgc)
+void particle_pls::header_neg(fdm* a,lexer* p,ghostcell* pgc)
 {
     int num=0;
 

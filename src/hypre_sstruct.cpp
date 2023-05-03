@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"hypre_sstruct.h"
@@ -42,7 +43,7 @@ hypre_sstruct::hypre_sstruct(lexer* p,fdm* a,ghostcell *pgc)
     if(p->A320!=2 && p->D30!=4)
     make_grid_7p(p,a,pgc);	
     
-    if(p->A320==2)
+    if(p->A320==2 && p->D30!=4)
     make_grid_13p(p,a,pgc);	
     
     if(p->D30==4 && p->j_dir==0)
@@ -65,7 +66,7 @@ void hypre_sstruct::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec
     start_solver5(p,a,pgc,f,rhsvec,var);
 }
 
-void hypre_sstruct::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
+void hypre_sstruct::startF(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
 {
     if(var==7)
     start_solver7(p,pgc,f,rhs,M,var);
@@ -77,7 +78,7 @@ void hypre_sstruct::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec
     start_solver10(p,pgc,f,rhs,M,var);
 }
 
-void hypre_sstruct::startM(lexer* p,fdm* a, ghostcell* pgc, double *f, double *rhs, double *M, int var)
+void hypre_sstruct::startM(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M, int var)
 {
     start_solverM(p,pgc,f,rhs,M);
 }
@@ -216,7 +217,7 @@ void hypre_sstruct::start_solverM(lexer* p, ghostcell* pgc, double *f, double *r
     p->final_res = final_res_norm;
         
     fillbackvecM(p,f);
-	
+    
 	delete_solver5(p,pgc);
 }
 

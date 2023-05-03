@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,8 +17,8 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
-
 
 #include"sflow_eta.h"
 #include"lexer.h"
@@ -58,13 +58,13 @@ sflow_eta::sflow_eta(lexer *p, fdm2D *b , ghostcell *pgc, patchBC_interface *ppB
 	pconvec = new sflow_eta_weno(p);
 	
 	if(p->A241==1)
-	phxy = new sflow_hxy_fou(p,b,pBC);
+	phxy = new sflow_hxy_fou(p,pBC);
 	
 	if(p->A241==2)
-	phxy = new sflow_hxy_cds(p,b,pBC);
+	phxy = new sflow_hxy_cds(p,pBC);
 	
 	if(p->A241==4)
-	phxy = new sflow_hxy_weno(p,b,pBC);
+	phxy = new sflow_hxy_weno(p,pBC);
     
     wd_criterion=0.00005;
     
@@ -114,7 +114,7 @@ void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slic
     
     SLICELOOP4
     if(etark(i,j)< -p->wd  + b->bed(i,j)-factor*wd_criterion+1.0e-20)
-    etark(i,j) = -p->wd  + b->bed(i,j)-factor*wd_criterion - 1.0e-15;
+    etark(i,j) = -p->wd  + b->bed(i,j)-1.0*wd_criterion - 1.0e-15;
 
     if(p->A243>=2)
     {
@@ -148,7 +148,7 @@ void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slic
     
 	pgc->gcsl_start4(p,b->hp,gcval_eta);
 	
-	phxy->start(p,b->hx,b->hy,b->depth,etark,P,Q);
+	phxy->start(p,b->hx,b->hy,b->depth,p->wet,etark,P,Q);
     
     
     SLICELOOP1

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fnpf_sigma.h"
@@ -25,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"fnpf_fsf.h"
 
-#define WLVL (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0-20)
+#define WLVL (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0e-5) // keep as is for wetting-drying
 
 #define WLVLDRY (0.01*c->wd_criterion)
 
@@ -62,7 +63,6 @@ void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *pf, 
             p->sig[FIJKp1] = p->ZN[KP1];
             p->sig[FIJKp2] = p->ZN[KP2];
             p->sig[FIJKp3] = p->ZN[KP3];
-        
     }
     
     
@@ -140,7 +140,6 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *p
                     - p->sig[FIJK]*c->Exx(i,j) /WLVL;              
     }
     */
-    
 
     // sig BC
     SLICELOOP4
@@ -184,7 +183,7 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *p
             p->sigxx[FIJKp2] = p->sigxx[FIJK];
             p->sigxx[FIJKp3] = p->sigxx[FIJK];
     }
-    
+    /*
     k=p->knoz;
     SLICELOOP4
     {
@@ -199,14 +198,13 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *p
         
         if(p->flag7[FIJp1K]<0 || j==p->knoy-1)
         p->sigz[IJp1] = p->sigz[IJ];
-    }
+    }*/
     
     
     FLOOP
     {
     FPCHECK
-    p->ZSN[FIJK] = p->ZN[KP]*c->WL(i,j) + c->bed(i,j); // new
-    //p->ZSN[FIJK] = p->ZN[KP]*(eta(i,j) + p->wd);
+    p->ZSN[FIJK] = p->ZN[KP]*c->WL(i,j) + c->bed(i,j); 
     
     FSCHECK
     p->ZSN[FIJK] = p->ZN[KP]*(p->wd);

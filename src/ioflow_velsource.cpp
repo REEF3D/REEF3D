@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ioflow_f.h"
@@ -112,18 +113,6 @@ void  ioflow_f::ksource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     
     //VRANS
     pvrans->w_source(p,a);
-}
-
-void ioflow_f::isource2D(lexer *p, fdm2D* b, ghostcell* pgc)
-{
-	SLICELOOP1
-	b->F(i,j)=0.0;
-}
-
-void ioflow_f::jsource2D(lexer *p, fdm2D* b, ghostcell* pgc)
-{
-	SLICELOOP2
-	b->G(i,j)=0.0;
 }
 
 

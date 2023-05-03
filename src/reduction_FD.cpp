@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -21,7 +21,6 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 #include"reduction_FD.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
@@ -33,7 +32,7 @@ reduction_FD::~reduction_FD()
 {
 }
 
-void reduction_FD::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
+void reduction_FD::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     double r=1.0;
     
@@ -42,6 +41,11 @@ void reduction_FD::start(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     r = cos(s->teta(i,j))*(1.0 - tan(s->teta(i,j))/tan(s->phi(i,j)));
     
     r*= cos(s->alpha(i,j))*(1.0 - pow(tan(s->alpha(i,j)),2.0)/pow(tan(s->phi(i,j)),2.0));
+        
+        // limiter
+        if( 1.0-s->teta(i,j)/s->phi(i,j) < 0.0 || 1.0-s->alpha(i,j)/s->phi(i,j)< 0.0)
+        if(p->S84==2)
+        r = 0.1/(fabs(s->gamma(i,j)) + 0.0000001)+0.1;
     
     r=MIN(r,1.25);
     r=MAX(r,0.01);

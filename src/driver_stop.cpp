@@ -1,6 +1,6 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2022 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
@@ -55,7 +56,7 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
         if(p->mpirank==0)
         cout<<endl<<"EMERGENCY STOP  --  solver breaking down - NAN values"<<endl<<endl;
 
-     pprint->print_vtu(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
+     pprint->print_stop(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
      
      pgc->final();
      exit(0);
@@ -69,10 +70,10 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
         cout<<endl<<"EMERGENCY STOP  --  velocities exceeding critical value N 61"<<endl<<endl;
     
      if(p->A10==3)
-     pfprint->print_vtu(p,c,pgc);
+     pfprint->print_stop(p,c,pgc);
     
      if(p->A10==4 || p->A10==6)
-     pprint->print_vtu(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
+     pprint->print_stop(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);        if(p->A10==55)    pnhfprint->start(p,d,pgc,pflow);
      
      pgc->final();
      exit(0);
@@ -80,7 +81,7 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
     
     // Solver Status
     p->solver_status = pgc->globalimax(p->solver_status);
-    
+    /*
     if(p->solver_status>=1)
     {
     if(p->mpirank==0)
@@ -89,10 +90,10 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
     if(p->A10==3)
      pfprint->print_vtu(p,c,pgc);
     
-     if(p->A10==4 || p->A10==6)
+     if(p->A10==4 || p->A10==55 || p->A10==6)
      pprint->print_vtu(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
     
     pgc->final();
     exit(0);
-    }
+    }*/
 }

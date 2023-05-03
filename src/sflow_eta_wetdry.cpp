@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,8 +17,8 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
-
 
 #include"sflow_eta.h"
 #include"lexer.h"
@@ -33,32 +33,46 @@ void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, s
       {
           
           if(b->hp(i,j)>=wd_criterion)
-          b->wet4(i,j)=1;
+          p->wet[IJ]=1;
               
           if(b->hp(i,j)<wd_criterion)
           {
            ws(i,j)=0.0; 
            b->ws(i,j)=0.0;
-           b->wet4(i,j)=0;
+           p->wet[IJ]=0;
           }
       }
       
-      pgc->gcsl_start4int(p,b->wet4,50);
+      pgc->gcsl_start4Vint(p,p->wet,50);
       
       
       SLICELOOP1
-      if(b->hx(i,j)<wd_criterion)
       {
-       b->P(i,j)=0.0; 
-       P(i,j)=0.0; 
+          if(b->hx(i,j)>=wd_criterion)
+           b->wet1(i,j)=1;
+           
+          if(b->hx(i,j)<wd_criterion || (p->wet[IJ]==0 && p->wet[Ip1J]==0))
+          {
+           b->P(i,j)=0.0; 
+           P(i,j)=0.0; 
+           b->wet1(i,j)=0;
+          }
       }
       
       SLICELOOP2
-      if(b->hy(i,j)<wd_criterion)
       {
-       b->Q(i,j)=0.0; 
-       Q(i,j)=0.0; 
+          if(b->hy(i,j)>=wd_criterion)
+           b->wet2(i,j)=1;
+           
+          if(b->hy(i,j)<wd_criterion || (p->wet[IJ]==0 && p->wet[IJp1]==0))
+          {
+           b->Q(i,j)=0.0; 
+           Q(i,j)=0.0; 
+           b->wet2(i,j)=0;
+          }
       }
+    pgc->gcsl_start1int(p,b->wet1,50);
+    pgc->gcsl_start2int(p,b->wet2,50);
       
     // gcslin update
     if(p->count<=1)
@@ -68,10 +82,11 @@ void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, s
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
         
-        if(b->wet4(i,j)==0)
+        if(p->wet[IJ]==0)
         p->gcslin[n][5]=0;
         }
     }
     
     }
+    
 }

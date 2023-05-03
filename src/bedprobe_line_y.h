@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -50,7 +50,6 @@ private:
     void sort(double*, double*, int*, int,int);
     void remove_multientry(lexer*,double*, double*, int*, int&);
 
-    int conv(double);
     int *iloc,**flag,**flag_all,*rowflag,*wsfpoints;
     double **wsf,**wsf_all;
     double **yloc, **yloc_all;

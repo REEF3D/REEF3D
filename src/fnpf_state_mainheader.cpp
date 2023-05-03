@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,9 +17,9 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
-
-#include"fnpf_state.h"
+#include"fnpf_state.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
@@ -57,6 +57,9 @@ void fnpf_state::ini_mainheader(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     mainout.write((char*)&iin, sizeof (int));
 
     iin=file_version;
+    mainout.write((char*)&iin, sizeof (int));
+    
+    iin=file_type;
     mainout.write((char*)&iin, sizeof (int));
 
     // flag: is process within P43 bounds

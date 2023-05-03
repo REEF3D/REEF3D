@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -47,14 +47,14 @@ public:
 
     fdm_fnpf(lexer*);
    
-    field4 press;
+    field4 press,test;
     fieldint5 nodeval;
     
     slice4 eta,eta_n,WL;
     slice4 bed,depth;
     slice4 Fifsf,Fibed,Fz;
     slice4 K;
-    sliceint4 etaloc,wet,wet_n,breaking,breaklog,bc;
+    sliceint4 etaloc,wet_n,breaking,breaklog,bc;
     
     slice4 Fx,Fy;
     slice4 Ex,Ey;
@@ -64,6 +64,8 @@ public:
     slice4 Hx,Hy;
     slice4 coastline;
     slice4 vb;
+    slice4 test2D;
+    slice4 Hs;
     
     sliceint5 nodeval2D;
     slice4 breaking_print;

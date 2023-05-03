@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"pjm_hydrostatic.h"
@@ -30,6 +31,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"heat.h"
 #include"concentration.h"
 #include"density_f.h"
+#include"density_df.h"
 #include"density_comp.h"
 #include"density_conc.h"
 #include"density_heat.h"
@@ -40,22 +42,28 @@ pjm_hydrostatic::pjm_hydrostatic(lexer* p, fdm *a, heat *&pheat, concentration *
 {
     pconc = ppconc;
     
-    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0 && p->W90==0)
+    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && (p->X10==0 || p->X13!=2))
 	pd = new density_f(p);
-	
-	if(p->F80==0 && p->H10==0 && p->W30==1 && p->W90==0)
+    
+    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && (p->X10==1 || p->X13!=2))  
+	pd = new density_df(p);
+    
+	if(p->F80==0 && p->H10==0 && p->W30==1  && p->F300==0 && p->W90==0)
 	pd = new density_comp(p);
 	
-	if(p->F80==0 && p->H10>0 && p->W90==0)
+	if(p->F80==0 && p->H10>0 && p->F300==0 && p->W90==0)
 	pd = new density_heat(p,pheat);
 	
-	if(p->F80==0 && p->C10>0 && p->W90==0)
+	if(p->F80==0 && p->C10>0 && p->F300==0 && p->W90==0)
 	pd = new density_conc(p,pconc);
     
-    if(p->F80>0 && p->H10==0 && p->W30==0 && p->W90==0)
+    if(p->F80>0 && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0)
 	pd = new density_vof(p);
     
-    if(p->F30>0 && p->H10==0 && p->W30==0 && p->W90>0)
+    if(p->F30>0 && p->H10==0 && p->W30==0  && p->F300==0 && p->W90>0)
+    pd = new density_rheo(p);
+    
+    if(p->F300>=1)
     pd = new density_rheo(p);
     
     gcval_press=40;  
@@ -149,15 +157,15 @@ void pjm_hydrostatic::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, fiel
 	pgc->start3(p,w,gcval_w);
 }
 
-void pjm_hydrostatic::upgrad(lexer*p,fdm* a)
+void pjm_hydrostatic::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
 }
 
-void pjm_hydrostatic::vpgrad(lexer*p,fdm* a)
+void pjm_hydrostatic::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
 }
 
-void pjm_hydrostatic::wpgrad(lexer*p,fdm* a)
+void pjm_hydrostatic::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
 }
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"momentum_AB2.h"
@@ -68,7 +69,7 @@ void momentum_AB2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	pturb->isource(p,a);
 	pflow->isource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
-	ppress->upgrad(p,a);
+	ppress->upgrad(p,a,a->eta,a->eta_n);
 	irhs(p,a,pgc,a->u,a->u,a->v,a->w,1.0);
 	pconvec->start(p,a,a->u,1,a->u,a->v,a->w);
 	pdiff->diff_u(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
@@ -81,7 +82,7 @@ void momentum_AB2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	pturb->jsource(p,a);
 	pflow->jsource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
-	ppress->vpgrad(p,a);
+	ppress->vpgrad(p,a,a->eta,a->eta_n);
 	jrhs(p,a,pgc,a->v,a->u,a->v,a->w,1.0);
 	pconvec->start(p,a,a->v,2,a->u,a->v,a->w);
 	pdiff->diff_v(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
@@ -94,7 +95,7 @@ void momentum_AB2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	pturb->ksource(p,a);
 	pflow->ksource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
-	ppress->wpgrad(p,a);
+	ppress->wpgrad(p,a,a->eta,a->eta_n);
 	krhs(p,a,pgc,a->w,a->u,a->v,a->w,1.0);
 	pconvec->start(p,a,a->w,3,a->u,a->v,a->w);
 	pdiff->diff_w(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
@@ -175,7 +176,7 @@ void momentum_AB2::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel,
 	ULOOP
 	{
     a->maxF=MAX(fabs(a->rhsvec.V[n]+ a->gi),a->maxF);
-	a->F(i,j,k) += (a->rhsvec.V[n] + a->gi)*PORVAL1;
+	a->F(i,j,k) += (a->rhsvec.V[n] + a->gi + p->W29_x)*PORVAL1;
 	a->rhsvec.V[n]=0.0;
 	++n;
 	}
@@ -187,7 +188,7 @@ void momentum_AB2::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel,
 	VLOOP
 	{
     a->maxG=MAX(fabs(a->rhsvec.V[n]+ a->gj),a->maxG);
-	a->G(i,j,k) += (a->rhsvec.V[n] + a->gj)*PORVAL2;	
+	a->G(i,j,k) += (a->rhsvec.V[n] + a->gj + p->W29_y)*PORVAL2;	
 	a->rhsvec.V[n]=0.0;
 	++n;
 	}
@@ -199,7 +200,7 @@ void momentum_AB2::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel,
 	WLOOP
 	{
     a->maxH=MAX(fabs(a->rhsvec.V[n]+ a->gk),a->maxH);
-	a->H(i,j,k) += (a->rhsvec.V[n] + a->gk)*PORVAL3;
+	a->H(i,j,k) += (a->rhsvec.V[n] + a->gk + p->W29_z)*PORVAL3;
 	a->rhsvec.V[n]=0.0;
 	++n;
 	}

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -22,8 +22,8 @@ Author: Hans Bihs
 
 #include"topo_relax.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
+#include"sediment_fdm.h"
 
 topo_relax::topo_relax(lexer *p) 
 {
@@ -43,7 +43,7 @@ topo_relax::~topo_relax()
 {
 }
 
-void topo_relax::start(lexer *p, fdm * a, ghostcell *pgc)
+void topo_relax::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     
 	double relax,distot,distcount,zhval,qbval;
@@ -56,16 +56,14 @@ void topo_relax::start(lexer *p, fdm * a, ghostcell *pgc)
 		distcount=0;
 		for(n=0;n<p->S73;++n)
 		{
-		dist_S73[n] =  distcalc(p,a,p->S73_x[n],p->S73_y[n],tan_betaS73[n]);
+		dist_S73[n] =  distcalc(p,p->S73_x[n],p->S73_y[n],tan_betaS73[n]);
 		
 			if(dist_S73[n]<p->S73_dist[n])
 			{
-			val = a->topo(i,j,k);
-			zhval = a->bedzh(i,j);
-            qbval = a->bedload(i,j);
-			a->topo(i,j,k)=0.0;
-			a->bedzh(i,j)=0.0;
-            a->bedload(i,j)=0.0;
+			zhval = s->bedzh(i,j);
+            qbval = s->qbe(i,j);
+			s->bedzh(i,j)=0.0;
+            s->qbe(i,j)=0.0;
 			distot += dist_S73[n];
 			++distcount;
 			}
@@ -79,17 +77,15 @@ void topo_relax::start(lexer *p, fdm * a, ghostcell *pgc)
 			
 			if(distcount==1)
 			{
-            a->topo(i,j,k) += (1.0-relax)*(-p->S73_val[n]+p->pos_z()) + relax*val;
-			a->bedzh(i,j) += (1.0-relax)*p->S73_val[n] + relax*zhval;
-            a->bedload(i,j) +=  relax*qbval;
+			s->bedzh(i,j) += (1.0-relax)*p->S73_val[n] + relax*zhval;
+            s->qbe(i,j) +=  relax*qbval;
 			}
 			
 			
 			if(distcount>1)
 			{
-            a->topo(i,j,k) += ((1.0-relax)*(-p->S73_val[n]+p->pos_z()) + relax*val) * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
-			a->bedzh(i,j) += ((1.0-relax)*p->S73_val[n] + relax*zhval) * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
-            a->bedload(i,j) +=  relax*qbval * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
+			s->bedzh(i,j) += ((1.0-relax)*p->S73_val[n] + relax*zhval) * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
+            s->qbe(i,j) +=  relax*qbval * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
 			}
 			
 			}
@@ -98,7 +94,7 @@ void topo_relax::start(lexer *p, fdm * a, ghostcell *pgc)
 	
 }
 
-double topo_relax::rf(lexer *p, fdm * a, ghostcell *pgc)
+double topo_relax::rf(lexer *p, ghostcell *pgc)
 {
     double relax,distot,distcount;
     double val=1.0;
@@ -107,7 +103,7 @@ double topo_relax::rf(lexer *p, fdm * a, ghostcell *pgc)
 		distcount=0;
 		for(n=0;n<p->S73;++n)
 		{
-		dist_S73[n] =  distcalc(p,a,p->S73_x[n],p->S73_y[n],tan_betaS73[n]);
+		dist_S73[n] =  distcalc(p,p->S73_x[n],p->S73_y[n],tan_betaS73[n]);
 		
 			if(dist_S73[n]<p->S73_dist[n])
 			{
@@ -148,7 +144,7 @@ double topo_relax::r1(lexer *p, double x, double threshold)
     return r;
 }
 
-double topo_relax::distcalc(lexer *p, fdm *a,double x0, double y0, double tan_beta)
+double topo_relax::distcalc(lexer *p ,double x0, double y0, double tan_beta)
 {
 	double x1,y1;
 	double dist=1.0e20;

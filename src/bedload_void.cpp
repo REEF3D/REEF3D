@@ -1,6 +1,6 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2022 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -22,7 +22,6 @@ Author: Hans Bihs
 
 #include"bedload_void.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
 bedload_void::bedload_void()
@@ -33,7 +32,7 @@ bedload_void::~bedload_void()
 {
 }
 
-void bedload_void::start(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
+void bedload_void::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
 }
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,8 +17,8 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
-
 #include"bicgstab_ijk.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -94,11 +94,11 @@ void bicgstab_ijk::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec,
 	finalize(p,a,f);
 }
 
-void bicgstab_ijk::startM(lexer* p,fdm* a, ghostcell* pgc, double *x, double *rhs, double *M, int var)
+void bicgstab_ijk::startM(lexer* p, ghostcell* pgc, double *x, double *rhs, double *M, int var)
 {
 }
 
-void bicgstab_ijk::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var)
+void bicgstab_ijk::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var)
 {
 }
 	

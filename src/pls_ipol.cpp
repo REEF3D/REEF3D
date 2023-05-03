@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,13 +17,14 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"particle.h"
+#include"particle_pls.h"
 #include"fdm.h"
 #include<math.h>
 
-double particle::phipol(lexer *p,fdm* a, double& xp, double& yp, double& zp)
+double particle_pls::phipol(lexer *p,fdm* a, double& xp, double& yp, double& zp)
 {
     ii=i;
     jj=j;
@@ -56,7 +57,7 @@ double particle::phipol(lexer *p,fdm* a, double& xp, double& yp, double& zp)
     return value;
 }
 
-double particle::upol(lexer *p,fdm* a, double& xp, double& yp, double& zp)
+double particle_pls::upol(lexer *p,fdm* a, double& xp, double& yp, double& zp)
 {
     ii=i;
     jj=j;
@@ -91,7 +92,7 @@ double particle::upol(lexer *p,fdm* a, double& xp, double& yp, double& zp)
     return value;
 }
 
-double particle::vpol(lexer *p,fdm* a, double& xp, double& yp, double& zp)
+double particle_pls::vpol(lexer *p,fdm* a, double& xp, double& yp, double& zp)
 {
     ii=i;
     jj=j;
@@ -126,7 +127,7 @@ double particle::vpol(lexer *p,fdm* a, double& xp, double& yp, double& zp)
     return value;
 }
 
-double particle::wpol(lexer *p,fdm* a, double& xp, double& yp, double& zp)
+double particle_pls::wpol(lexer *p,fdm* a, double& xp, double& yp, double& zp)
 {
     ii=i;
     jj=j;
@@ -161,7 +162,7 @@ double particle::wpol(lexer *p,fdm* a, double& xp, double& yp, double& zp)
     return value;
 }
 
-double particle::lint(field& f, int& i,int& j, int& k, double wa, double wb, double wc)
+double particle_pls::lint(field& f, int& i,int& j, int& k, double wa, double wb, double wc)
 {
 pip=4;
 
@@ -181,7 +182,7 @@ pip=0;
 
 }
 
-double particle::cint(double wx, double f0, double f1, double f2, double f3)
+double particle_pls::cint(double wx, double f0, double f1, double f2, double f3)
 {
     di0 = (f2-f0)*0.5;
     di1 = (f3-f1)*0.5;
@@ -207,7 +208,7 @@ double particle::cint(double wx, double f0, double f1, double f2, double f3)
 return x1;
 }
 
-double particle::tricubic(lexer *p,fdm* a,field& f, int& i,int& j, int& k, double wx, double wy, double wz)
+double particle_pls::tricubic(lexer *p,fdm* a,field& f, int& i,int& j, int& k, double wx, double wy, double wz)
 {
 pip=4;
     i0=j0=k0=1;

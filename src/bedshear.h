@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -46,6 +46,9 @@ public:
     
     virtual void taubed(lexer*, fdm*, ghostcell*, double&);
     virtual void taucritbed(lexer*, fdm*, ghostcell*, double&);
+    
+    virtual void taubed(lexer*, fdm2D*,ghostcell*,sediment_fdm*);
+    virtual void taucritbed(lexer*, fdm2D*,ghostcell*,sediment_fdm*);
 
 	const double ks,kappa;
     

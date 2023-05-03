@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,6 +29,7 @@ class diffusion;
 class fdm;
 class fdm2D;
 class fdm_fnpf;
+class fdm_nhf;
 class lexer;
 class momentum;
 class ioflow;
@@ -41,11 +42,9 @@ class ghostcell;
 class timestep;
 class freesurface;
 class reini;
-class particlecorr;
+class particle_corr;
 class sediment;
 class bedload;
-class suspended;
-class topo;
 class reinitopo;
 class potential;
 class heat;
@@ -61,12 +60,22 @@ class fnpf;
 class onephase;
 class nsewave;
 class nhflow_fsf;
+class nhflow_convection;
+class nhflow_turbulence;
+class nhflow_pressure;
 class sflow;
 class fnpf_vtu3D;
 class fnpf_timestep;
+class nhflow_timestep;
 class grid;
 class patchBC_interface;
 class nhflow;
+class multiphase;
+class nhflow_momentum;
+class sixdof_df;
+class momentum_RK3_df;
+class momentum_RK3_sf;
+class nhflow_vtu3D;
 
 #include<iostream>
 #include<fstream>
@@ -96,21 +105,23 @@ public:
     
 	void loop_cfd(fdm*);
 	void loop_cfd_df(fdm*);
+    void loop_cfd_sf(fdm*);
     void loop_nsewave(fdm*);
-    void loop_nhflow(fdm*);
+    void loop_nhflow();
     void loop_ptf(fdm*);
     void loop_fnpf();
-    void loop_sflow(fdm*);
     
-	void logic();
+	void logic_cfd();
     void logic_ptf();
     void logic_fnpf();
+    void logic_nhflow();
     void logic_sflow();
     
     void patchBC_logic();
     
-	void driver_ini();
+	void driver_ini_cfd();
     void driver_ini_nhflow();
+    void driver_ini_nsewave();
     void driver_ini_fnpf();
     void driver_ini_ptf();
     void driver_ini_sflow();
@@ -119,15 +130,13 @@ public:
 	void mainlog(lexer*);
 	void maxlog(lexer*);
 	void solverlog(lexer*);
-	void sedimentlog(lexer*);
     
 	void makegrid(lexer*,ghostcell*);
 	void makegrid_cds();
     void makegrid2D(lexer*,ghostcell*);
     void makegrid2D_cds(lexer*,ghostcell*,fdm2D*);
-    void makegrid_fnpf(lexer*,ghostcell*);
-    void makegrid_fnpf_cds(lexer*,ghostcell*);
-    void makegrid_nhflow(lexer*,ghostcell*);    
+    void makegrid_sigma(lexer*,ghostcell*);
+    void makegrid_sigma_cds(lexer*,ghostcell*);  
     
 	void fill_vel(lexer*,fdm*,ghostcell*);
 	void vec_test(lexer*,fdm*,ghostcell*,field&);
@@ -146,6 +155,7 @@ public:
 	fdm* a;
     fdm2D* b;
     fdm_fnpf *c;
+    fdm_nhf *d;
 	lexer* p;
 	momentum* pmom;
 	ioflow* pflow;
@@ -154,6 +164,7 @@ public:
 	convection* pconvec;
 	convection* pturbdisc;
 	convection* pfsfdisc;
+    convection* pmpconvec;
 	convection* pconcdisc;
     convection* pheatdisc;
 	turbulence* pturb;
@@ -164,11 +175,8 @@ public:
 	timestep* ptstep;
 	freesurface* pfsf;
 	reini* preini;
-	particlecorr* ppart;
+	particle_corr* ppart; 
 	sediment* psed;
-	bedload* pbed;
-	suspended* psusp;
-	topo* ptopo;
 	reinitopo* preto;
     reinitopo* preso;
 	heat* pheat;
@@ -187,18 +195,26 @@ public:
     nhflow_fsf *pnhfsf;
     sflow *psflow;
     fnpf_vtu3D *pfprint; 
-    fnpf_timestep* pftstep;
+    fnpf_timestep *pftstep;
     grid *pgrid;
     patchBC_interface *pBC;
-    nhflow *pnh;
-
+    nhflow *pnhf;
+    nhflow_convection *pnhfconvec;
+    nhflow_pressure *pnhpress;
+    nhflow_turbulence *pnhfturb;
+    multiphase *pmp;
+    nhflow_timestep *pnhfstep;
+    nhflow_momentum *pnhfmom;
+    nhflow_vtu3D *pnhfprint;
+    sixdof_df *p6dof_df;
+    momentum_RK3_df *pmom_df;
+    momentum_RK3_sf *pmom_sf;
 
 private:
     double starttime, endtime;
     ofstream mainlogout;
     ofstream maxlogout;
     ofstream solvlogout;
-    ofstream sedlogout;
 	
 	double nom,val;
 };

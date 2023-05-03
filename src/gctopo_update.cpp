@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,9 +17,9 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
-
-#include"ghostcell.h"
+#include"ghostcell.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"mgc1.h"
@@ -145,5 +145,6 @@ void ghostcell::topo_update(lexer *p, fdm *a)
 	
 	if(p->mpirank==0)
 	cout<<"Topo: active number of cells: "<<count<<endl;
-    
+ 
+    //cout<<p->mpirank<<" p->gcb4_count_topo: "<<p->gcb4_count<<endl;
 }

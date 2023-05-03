@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"wave_lib_spectrum.h"
@@ -32,6 +33,12 @@ void wave_lib_spectrum::wavepackets_parameters(lexer *p)
 	double dd,w;
 	double fac,Asum;
     double cmin,cmax;
+    
+    if(p->B94==0)
+	wD=p->phimean;
+    
+	if(p->B94==1)
+	wD=p->B94_wdt;
 	
 	p->wN=p->B86;
 	
@@ -139,7 +146,6 @@ void wave_lib_spectrum::wavepackets_parameters(lexer *p)
 	}
 	
 	// Focused Phases
-
     for(int n=0;n<p->wN;++n)
     {
         ei[n]  = ki[n]*p->B81_1 - wi[n]*p->B81_2;
@@ -151,8 +157,6 @@ void wave_lib_spectrum::wavepackets_parameters(lexer *p)
     
     cmin = sqrt((9.81/ki[0])*tanh(ki[0]/wD));
     cmax = sqrt((9.81/ki[p->wN-1])*tanh(ki[p->wN-1]/wD));
-    
-    
     
     duration = 0.5*(p->B81_1/cmin + p->B81_1/cmax);
     
@@ -185,7 +189,7 @@ void wave_lib_spectrum::print_amplitude_spectrum(lexer *p)
 
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_Log",0777);
+	mkdir("./REEF3D_Log-Wave",0777);
 	
     if(p->mpirank==0)
     {
@@ -194,7 +198,7 @@ void wave_lib_spectrum::print_amplitude_spectrum(lexer *p)
     result.open("REEF3D_amplitude-spectrum.dat");
 	
 	if(p->P14==1)
-	result.open("./REEF3D_Log/REEF3D_amplitude-spectrum.dat");
+	result.open("./REEF3D_Log-Wave/REEF3D_amplitude-spectrum.dat");
 	}	
 
 	for(int n=0;n<p->wN;++n)

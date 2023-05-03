@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
@@ -76,11 +77,11 @@ cout<<"starting driver_ini_PTF"<<endl;
     if(p->toporead>0)
     {
     geotopo gtopo(p,a,pgc);
-    gtopo.start(p,a,pgc,pflow,pconvec,preto,pvrans);
+    gtopo.start(p,a,pgc,pflow,preto,pvrans);
     }
 
     SLICELOOP4
-    a->wet(i,j)=1;
+    p->wet[IJ]=1;
 
     SLICELOOP4
 	a->bed(i,j) = p->bed[IJ];
@@ -100,7 +101,7 @@ cout<<"starting driver_ini_PTF"<<endl;
 	pflow->inflow(p,a,pgc,a->u,a->v,a->w);
 
     pptf->inidisc(p,a,pgc);
-    pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
+    pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
 
 	p->gctime=0.0;
     p->xtime=0.0;

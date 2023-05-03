@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"interpolation.h"
@@ -326,6 +327,35 @@ pip=0;
     return value;
 }
 
+double interpolation::ipol4topo(fdm *a, field& b)
+{
+    double epphi=2.6*p->DXM;
 
+    v1=v2=v3=v4=v5=v6=v7=v8 = p->S57-p->pos_z()-0.5*p->DXM;
+
+	pip=4;
+    if(a->solid(i,j,k)>-epphi)
+    v1=b(i,j,k);
+    if(a->solid(i,j+1,k)>-epphi)
+    v2=b(i,j+1,k);
+    if(a->solid(i+1,j,k)>-epphi)
+    v3=b(i+1,j,k);
+    if(a->solid(i+1,j+1,k)>-epphi)
+    v4=b(i+1,j+1,k);
+    if(a->solid(i,j,k+1)>-epphi)
+    v5=b(i,j,k+1);
+    if(a->solid(i,j+1,k+1)>-epphi)
+    v6=b(i,j+1,k+1);
+    if(a->solid(i+1,j,k+1)>-epphi)
+    v7=b(i+1,j,k+1);
+    if(a->solid(i+1,j+1,k+1)>-epphi)
+    v8=b(i+1,j+1,k+1);
+    pip=0;
+	
+    value=0.125*(v1+v2+v3+v4+v5+v6+v7+v8);
+	 
+    return value;
+	
+}
 
 

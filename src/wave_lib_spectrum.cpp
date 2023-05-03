@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"wave_lib_spectrum.h"
@@ -37,7 +38,7 @@ wave_lib_spectrum::~wave_lib_spectrum()
 
 double wave_lib_spectrum::wave_spectrum(lexer *p, double w)
 {
-	  if(p->B85==1)
+    if(p->B85==1)
     Sval = PM(p,w);
 
     if(p->B85==2)
@@ -49,10 +50,10 @@ double wave_lib_spectrum::wave_spectrum(lexer *p, double w)
     if(p->B85==21)
     Sval = Goda_JONSWAP(p,w);
 
-		if(p->B85==22)
+    if(p->B85==22)
     Sval = TMA(p,w);
 
-	  if(p->B85==10)
+    if(p->B85==10)
     Sval = spectrum_file(p,w);
 
     return Sval;
@@ -61,9 +62,9 @@ double wave_lib_spectrum::wave_spectrum(lexer *p, double w)
 void wave_lib_spectrum::irregular_parameters(lexer *p)
 {
 
-  if(p->B94==0)
+    if(p->B94==0)
 	wD=p->phimean;
-
+    
 	if(p->B94==1)
 	wD=p->B94_wdt;
 
@@ -410,6 +411,33 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
             ki[n] = 2.0*PI/Li[n];
         }
 
+
+    // Uniform frequency distribution
+    if (p->B84==3)
+    {
+        double F, dF, delta_w;
+
+        ws=p->B87_1;
+        we=p->B87_2;
+        delta_w = we - ws;
+
+        for(n=0;n<p->wN;++n)
+        {
+            wi[n] = ws + n*delta_w/(p->wN-1);
+
+            ki[n] = (2.0*PI)/p->B91_2;
+
+            for (int it = 0; it < 10; it++)
+            {
+                F = 9.81*ki[n]*tanh(p->wd*ki[n]) - wi[n]*wi[n];
+                dF = 9.81*(tanh(p->wd*ki[n]) + p->wd*ki[n]*1.0/(cosh(p->wd*ki[n])*cosh(p->wd*ki[n])));
+                ki[n] -= F/dF;
+            }
+        }
+    }
+
+
+
         print_spectrum(p);
         // directional spreading
         directional_spreading(p);
@@ -460,31 +488,11 @@ void wave_lib_spectrum::amplitudes_focused(lexer *p)
 
 	if(p->B82==3 || p->B82==13)
     {
-        double F, dF, delta_w;
-
-        ws=p->B87_1;
-        we=p->B87_2;
-        delta_w = we - ws;
-
-        for(n=0;n<p->wN;++n)
-        {
-            wi[n] = ws + n*delta_w/(p->wN-1);
-
-            ki[n] = (2.0*PI)/p->B91_2;
-
-            for (int it = 0; it < 10; it++)
-            {
-                F = 9.81*ki[n]*tanh(p->wd*ki[n]) - wi[n]*wi[n];
-                dF = 9.81*(tanh(p->wd*ki[n]) + p->wd*ki[n]*1.0/(cosh(p->wd*ki[n])*cosh(p->wd*ki[n])));
-                ki[n] -= F/dF;
-            }
-        }
-
         for(n=0;n<p->wN;++n)
         {
             Ai[n] = p->B83/(ki[n]);
 
-            cout<<Ai[n]<<" "<<ki[n]<<endl;
+            if (p->mpirank == 0) cout<<Ai[n]<<" "<<ki[n]<<" "<<wi[n]<<endl;
         }
     }
 
@@ -545,7 +553,7 @@ void wave_lib_spectrum::print_spectrum(lexer *p)
 
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_Log",0777);
+	mkdir("./REEF3D_Log-Wave",0777);
 
   if(p->mpirank==0)
   {
@@ -554,7 +562,7 @@ void wave_lib_spectrum::print_spectrum(lexer *p)
    	result.open("REEF3D_wave-spectrum.dat");
 
 	  if(p->P14==1)
-  	result.open("./REEF3D_Log/REEF3D_wave-spectrum.dat");
+  	result.open("./REEF3D_Log-Wave/REEF3D_wave-spectrum.dat");
 	}
 
 	for(int n=0;n<p->wN;++n)
@@ -575,7 +583,7 @@ void wave_lib_spectrum::print_components(lexer *p)
 
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_Log",0777);
+	mkdir("./REEF3D_Log-Wave",0777);
 
   if(p->mpirank==0)
   {
@@ -584,7 +592,7 @@ void wave_lib_spectrum::print_components(lexer *p)
     	result.open("REEF3D_wave-components.dat");
 
 		if(p->P14==1)
-			result.open("./REEF3D_Log/REEF3D_wave-components.dat");
+			result.open("./REEF3D_Log-Wave/REEF3D_wave-components.dat");
 	}
 
 	for(int n=0;n<p->wN;++n)
@@ -604,7 +612,7 @@ void wave_lib_spectrum::print_spreading(lexer *p)
 
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_Log",0777);
+	mkdir("./REEF3D_Log-Wave",0777);
 
   if(p->mpirank==0)
   {
@@ -613,7 +621,7 @@ void wave_lib_spectrum::print_spreading(lexer *p)
     	result.open("REEF3D_spreading-function.dat");
 
 		if(p->P14==1)
-			result.open("./REEF3D_Log/REEF3D_spreading-function.dat");
+			result.open("./REEF3D_Log-Wave/REEF3D_spreading-function.dat");
 	}
 
 	for(int n=0;n<p->B133;++n)

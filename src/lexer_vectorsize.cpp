@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"lexer.h"
@@ -25,22 +26,37 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void lexer::vecsize(ghostcell *pgc)
 {
     int n;
-    gcbextra=0;
+    gcbextra=10;
 	int gcbnum=0;
-    int solid_gcb_est_max, geotopo_gcb_est_max, gcextra_max;
+    int safetymargin=0;
+    int solid_gcb_est_max, topo_gcb_est_max, gcextra_max;
+    
+    int gcbextra0;
 
     solid_gcb_est_max = pgc->globalimax(solid_gcb_est);
-    geotopo_gcb_est_max = pgc->globalimax(geotopo_gcb_est);
+    topo_gcb_est_max = pgc->globalimax(topo_gcb_est);
+    
     gcextra_max = pgc->globalimax(gcextra4);
 
 	gcb_sediment_est = gcb4_count*margin;	
+    
+    gcb_floating_est=0;
+    
+    if(X13==0 || X13==1)
 	gcb_floating_est = gcb4_count;
     
+// gcbextra
     gcbextra=gcextra_max*margin;
     
+    gcbextra0=gcbextra;
+    
+    safetymargin = 0.2*double(solid_gcbextra_est+topo_gcbextra_est+tot_gcbextra_est) + 100.0;
+    
+    
+
     // solid and topo
 	if(S10>0 || G1>0)
-	gcbextra+=(solid_gcb_est_max*4+geotopo_gcb_est_max*3);
+    gcbextra+=MAX(MAX(solid_gcbextra_est,topo_gcbextra_est),tot_gcbextra_est) + int(safetymargin);
     
     // floating 
 	if(X10>0)
@@ -64,10 +80,37 @@ void lexer::vecsize(ghostcell *pgc)
 	gcbnum+=500;
     
 
-    //cout<<mpirank<<" CELLNUM: "<<cellnum<<endl;
-    
     veclength = cellnum + gcbnum*margin + gcpara_sum*4  + gcbextra;
     
-    C1_size=C2_size=C3_size=C4_size=C4a_size=C6_size=M_size=veclength;
+    //cout<<mpirank<<" CELLNUM: "<<cellnum<<" veclength: "<<veclength<<" gcextra0: "<<gcbextra0<<" gcextra: "<<gcbextra<<" tot_gcbextra_est: "<<tot_gcbextra_est<<endl;
+    
+    //gcbextra=gcbextra0;
+    
+    C4_size=C4a_size=C6_size=M_size=veclength;
+    
+    
+    
+    
+    // 2D
+     slicenum= 0;
+    for(i=0; i<knox; ++i)
+    for(j=0; j<knoy; ++j)
+	if(flagslice4[(i-imin)*jmax + (j-jmin)]>0)
+    ++slicenum;
+    
+    gcpara_sum = gcslpara1_count + gcslpara2_count + gcslpara3_count + gcslpara4_count
+              + gcslparaco1_count + gcslparaco2_count + gcslparaco3_count + gcslparaco4_count;
+    
+    vec2Dlength = slicenum + gcbnum*3  + gcpara_sum*4;    
+    
+    C1_2D_size=C2_2D_size=C4_2D_size=M_2D_size=vec2Dlength;
 }
 
+void lexer::gcbextra_est(ghostcell *pgc)
+{
+    
+    
+    
+    
+    
+}

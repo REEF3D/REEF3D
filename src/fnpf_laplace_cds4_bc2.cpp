@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fnpf_laplace_cds4_bc2.h"
@@ -95,10 +96,10 @@ void fnpf_laplace_cds4_bc2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver 
         c->M.bb[n] = (sigxyz2*ckz[KP][0] )*p->z_dir; 
 
        
-        c->rhsvec.V[n] = 2.0*p->sigx[IJK]*(f[FIp1JKp1] - f[FIm1JKp1] - f[FIp1JKm1] + f[FIm1JKm1])
+        c->rhsvec.V[n] = 2.0*p->sigx[FIJK]*(f[FIp1JKp1] - f[FIm1JKp1] - f[FIp1JKm1] + f[FIm1JKm1])
                         /((p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir
                         
-                        +2.0*p->sigy[IJK]*(f[FIJp1Kp1] - f[FIJm1Kp1] - f[FIJp1Km1] + f[FIJm1Km1])
+                        +2.0*p->sigy[FIJK]*(f[FIJp1Kp1] - f[FIJm1Kp1] - f[FIJp1Km1] + f[FIJm1Km1])
                         /((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
         }
         
@@ -154,13 +155,13 @@ void fnpf_laplace_cds4_bc2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver 
 	{
             
             // south
-            if(p->flag7[FIm1JK]<0 && c->wet(i-1,j)==1 && c->bc(i-1,j)==0)
+            if(p->flag7[FIm1JK]<0 && p->wet[Im1J]==1 && c->bc(i-1,j)==0)
             {
             c->M.p[n] += -1.0/(p->DXP[IM1]*p->DXN[IM1])*p->x_dir;
             c->M.s[n] = 0.0;
             }
             
-            if(c->wet(i-1,j)==0)
+            if(p->wet[Im1J]==0)
             {
             c->rhsvec.V[n] -= c->M.s[n]*f[FIJK];
             c->M.s[n] = 0.0;
@@ -174,13 +175,13 @@ void fnpf_laplace_cds4_bc2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver 
             }
             
             // north
-            if(p->flag7[FIp1JK]<0 && c->wet(i+1,j)==1)
+            if(p->flag7[FIp1JK]<0 && p->wet[Ip1J]==1)
             {
             c->M.p[n] += -1.0/(p->DXP[IM1]*p->DXN[IP])*p->x_dir;
             c->M.n[n] = 0.0;
             }
             
-            if(c->wet(i+1,j)==0)
+            if(p->wet[Ip1J]==0)
             {
             c->rhsvec.V[n] -= c->M.n[n]*f[FIJK];
             c->M.n[n] = 0.0;
@@ -188,13 +189,13 @@ void fnpf_laplace_cds4_bc2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver 
             
 
             // est
-            if(p->flag7[FIJm1K]<0 && c->wet(i,j-1)==1)
+            if(p->flag7[FIJm1K]<0 && p->wet[IJm1]==1)
             {
             c->M.p[n] += -1.0/(p->DYP[JM1]*p->DYN[JM1])*p->y_dir;
             c->M.e[n] = 0.0;
             }
             
-            if(c->wet(i,j-1)==0)
+            if(p->wet[IJm1]==0)
             {
             c->rhsvec.V[n] -= c->M.e[n]*f[FIJK];
             c->M.e[n] = 0.0;
@@ -202,13 +203,13 @@ void fnpf_laplace_cds4_bc2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver 
             
             
             // west
-            if(p->flag7[FIJp1K]<0 && c->wet(i,j+1)==1)
+            if(p->flag7[FIJp1K]<0 && p->wet[IJp1]==1)
             {
             c->M.p[n] += -1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
             c->M.w[n] = 0.0;
             }
             
-            if(c->wet(i,j+1)==0)
+            if(p->wet[IJp1]==0)
             {
             c->rhsvec.V[n] -= c->M.w[n]*f[FIJK];
             c->M.w[n] = 0.0;
@@ -288,13 +289,13 @@ void fnpf_laplace_cds4_bc2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver 
             
             denom = p->sigz[IJ] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
 
-                    if(c->wet(i+1,j)==1 && c->wet(i-1,j)==1)
+                    if(p->wet[Ip1J]==1 && p->wet[Im1J]==1)
                     {
                     c->M.n[n] +=  ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     c->M.s[n] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     }
                     
-                    if(c->wet(i,j-1)==1 && c->wet(i,j+1)==1)
+                    if(p->wet[IJm1]==1 && p->wet[IJp1]==1)
                     {
                     c->M.w[n] +=  ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
                     c->M.e[n] += -ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
@@ -387,7 +388,7 @@ void fnpf_laplace_cds4_bc2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver 
 
 
     double starttime=pgc->timer();
-    psolv->startF(p,c,pgc,f,c->rhsvec,c->M,10);
+    psolv->startF(p,pgc,f,c->rhsvec,c->M,10);
     double endtime=pgc->timer();
     
     p->poissoniter=p->solveriter;

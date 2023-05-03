@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -147,5 +147,10 @@ void vrans_f::initialize(lexer *p, fdm *a, ghostcell *pgc)
 	pgc->start4a(p,porpart,1);
 	pgc->start4a(p,alpha,1);
 	pgc->start4a(p,beta,1);
+    
+    
+    // Sediment
+    if(p->S10==2)
+    sed_update(p,a,pgc);
 }
 

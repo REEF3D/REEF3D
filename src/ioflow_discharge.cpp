@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ioflow_f.h"
@@ -73,7 +74,7 @@ void ioflow_f::Qin(lexer *p, fdm* a, ghostcell* pgc)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i,j,k));
 			
 			if(a->phi(i,j,k)>=-0.5*p->DZN[KP] -1.0e-20 && a->phi(i,j,k)<=0.0)
-            area=p->DYN[JP]*(p->DZN[KP]*0.5 - a->phi(i,j,k));
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 - fabs(a->phi(i,j,k)));
 
 
             Ai+=area;
@@ -112,30 +113,33 @@ void ioflow_f::Qout(lexer *p, fdm* a, ghostcell* pgc)
     j=p->gcout[n][1];
     k=p->gcout[n][2];
 
-        if(a->phi(i,j,k)>-0.5*p->DZN[KP]-1.0e-20 && a->topo(i,j,k)>0.0)
+        if(a->phi(i+1,j,k)>-0.5*p->DZN[KP]-1.0e-20 && a->topo(i,j,k)>0.0)
         {
 
-            if(a->phi(i,j,k)>=0.5*p->DZN[KP])
+            if(a->phi(i+1,j,k)>=0.5*p->DZN[KP])
             area=p->DYN[JP]*p->DZN[KP];
 
-            if(a->phi(i,j,k)<0.5*p->DZN[KP] && a->phi(i,j,k)>0.0)
+            if(a->phi(i+1,j,k)<0.5*p->DZN[KP] && a->phi(i+1,j,k)>0.0)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i+1,j,k));
 			
-			if(a->phi(i,j,k)>=-0.5*p->DZN[KP]-1.0e-20 && a->phi(i,j,k)<=0.0)
-            area=p->DYN[JP]*(p->DZN[KP]*0.5 - a->phi(i,j,k));
+			if(a->phi(i+1,j,k)>=-0.5*p->DZN[KP]-1.0e-20 && a->phi(i+1,j,k)<=0.0)
+            area=p->DYN[JP]*(p->DZN[KP]*0.5 - fabs(a->phi(i+1,j,k)));
 
             Ao+=area;
-            p->Qo+=area*a->u(i+1,j,k);
+            p->Qo+=area*a->u(i,j,k);
         }
     }
-    
-    //cout<<p->mpirank<<" area_o: "<<Ao<<endl;
     
     Ao=pgc->globalsum(Ao);
     p->Qo=pgc->globalsum(p->Qo);
 	
 	if(p->B60==1)
-	p->Uo=p->W10/(Ao>1.0e-20?Ao:1.0e20);
+    {
+	p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);
+    
+    if(p->count==0 && p->I11==1)
+    p->Uo=p->W10/(Ao>1.0e-20?Ao:1.0e20);
+    }
 	
 	if(p->B60==2)
 	p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);

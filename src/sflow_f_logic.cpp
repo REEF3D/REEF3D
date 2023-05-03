@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,9 +17,9 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
-
-#include"sflow_f.h"
+#include"sflow_f.h"
 #include"sflow_header.h"
 
 void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
@@ -56,6 +56,58 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     
     if(p->A211==9)
     pconvec = new sflow_weno_blend(p);
+    
+    // convection
+    if(p->A215==0)
+    {
+        if(p->A211==0)
+        pconvec = new sflow_voidconv(p);
+        
+        if(p->A211==1)
+        pconvec = new sflow_fou(p);
+        
+        if(p->A211==4)
+        pconvec = new sflow_weno_flux(p);
+        
+        if(p->A211==5)
+        pconvec = new sflow_weno_hj(p);
+        
+        if(p->A211==6)
+        pconvec = new sflow_hires(p,6);
+        
+        if(p->A211==7)
+        pconvec = new sflow_hires(p,7);
+        
+        if(p->A211==8)
+        pconvec = new sflow_hires(p,8);
+        
+        if(p->A211==9)
+        pconvec = new sflow_weno_blend(p);
+    }
+    
+    if(p->A215==1)
+    {
+        if(p->A211==0)
+        pconvec = new sflow_voidconv(p);
+        
+        if(p->A211==1)
+        pconvec = new sflow_cfou(p,b);
+        
+        if(p->A211==4 ||p->A211==5)
+        pconvec = new sflow_cweno_flux(p,b);
+        
+        if(p->A211==6)
+        pconvec = new sflow_chires(p,b,6);
+        
+        if(p->A211==7)
+        pconvec = new sflow_chires(p,b,7);
+        
+        if(p->A211==8)
+        pconvec = new sflow_chires(p,b,8);
+        
+        if(p->A211==9)
+        pconvec = new sflow_weno_blend(p);
+    }
  
 
     // filter
@@ -109,10 +161,10 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     
     // Sediment
     if(p->S10==0)
-    psed = new sflow_sediment_v(p,b);
-    
-    if(p->S10>=1)
-    psed = new sflow_sediment_f(p,b);
+    psed = new sediment_void();
+
+    if(p->S10>0)
+    psed = new sediment_f(p,aa,pgc,pturbcfd);
 	
 	// solver
 	ppoissonsolv = new hypre_struct2D(p,pgc);

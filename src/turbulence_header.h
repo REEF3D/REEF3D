@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,10 +23,13 @@ Author: Hans Bihs
 #include"komega_IM1.h"
 #include"komega_IM2.h"
 
+#include"EARSM_kw_IM1.h"
+#include"EARSM_kw_IM2.h"
+
 #include"kepsilon_IM1.h"
 #include"kepsilon_IM2.h"
 #include"kepsilon_void.h"
 
 #include"LES_smagorinsky.h"
-#include"LES_germano.h"
+#include"LES_WALE.h"
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"lexer.h"
@@ -90,6 +91,7 @@ void lexer::read_grid()
     {
     cout<<endl;
     cout<<"!!! Inconsistent M 10 parameter, needs to be the same in REEF3D and DIVEMesh !"<<endl;
+    cout<<"mpi_size: "<<mpi_size<<" REEFD M10: "<<M10<<" DIVEMesh M10: "<<DM_M10<<endl;
     cout<<"!!! please check the manual!"<<endl<<endl<<endl<<endl;
     
     exit(0);
@@ -262,29 +264,43 @@ void lexer::read_grid()
     grid.read((char*)&iin, sizeof (int));
     periodicX6=iin;
     
-    
-    grid.read((char*)&iin, sizeof (int));
-    toporead=iin; // topo
-    grid.read((char*)&iin, sizeof (int));
-    P150=iin;
-    grid.read((char*)&iin, sizeof (int));
-    solidread=iin; // solid
-    grid.read((char*)&iin, sizeof (int));
-    solid_gcb_est=iin;
     grid.read((char*)&iin, sizeof (int));
     i_dir=iin;
     grid.read((char*)&iin, sizeof (int));
     j_dir=iin;
     grid.read((char*)&iin, sizeof (int));
     k_dir=iin;
-    grid.read((char*)&iin, sizeof (int));
-    geotopo_gcb_est=iin;
     
+    grid.read((char*)&iin, sizeof (int));
+    P150=iin;
+    
+    grid.read((char*)&iin, sizeof (int));
+    solidread=iin; // solid
+    grid.read((char*)&iin, sizeof (int));
+    toporead=iin; // topo
+    grid.read((char*)&iin, sizeof (int));
+    solid_gcb_est=iin;
+    grid.read((char*)&iin, sizeof (int));
+    topo_gcb_est=iin;
+    
+    grid.read((char*)&iin, sizeof (int));
+    solid_gcbextra_est=iin;
+    grid.read((char*)&iin, sizeof (int));
+    topo_gcbextra_est=iin;
+    grid.read((char*)&iin, sizeof (int));
+    tot_gcbextra_est=iin;
+    
+    grid.read((char*)&iin, sizeof (int));
+    grid.read((char*)&iin, sizeof (int));
+    grid.read((char*)&iin, sizeof (int));
+    grid.read((char*)&iin, sizeof (int));
+    grid.read((char*)&iin, sizeof (int));
+
     
 // ---------------------------------------------------------------------------------------------------------------------	
 // ---------------------------------------------------------------------------------------------------------------------	
    
-    geotopo_gcb_est*=4;
+    topo_gcb_est*=4;
 		
 	gcb1_count=gcb2_count=gcb3_count=gcb4_count=gcb4a_count=gcb_fix=gcb_solid=gcb_topo=gcb_fb=gcwall_count;
 	
@@ -295,12 +311,19 @@ void lexer::read_grid()
     assign_margin();
 	
 	Iarray(flag4,imax*jmax*kmax);
+    Iarray(flag9,imax*jmax*kmax);
+    
+    //if(solidread==1)
 	Darray(flag_solid,imax*jmax*kmax);
+    
+    //if(toporead==1)
     Darray(flag_topo,imax*jmax*kmax);
+    
 	Iarray(mgflag,imax*jmax*kmax);
 	Darray(solidbed,imax*jmax);
     Darray(topobed,imax*jmax);
     Darray(bed,imax*jmax);
+    Iarray(wet,imax*jmax);
     Darray(depth,imax*jmax);
 	Darray(data,imax*jmax);
     Iarray(flagslice1,imax*jmax);
@@ -353,12 +376,12 @@ void lexer::read_grid()
     Iarray(gc4aperiodic,6,gc4periodic_maxcount);
     }
 	
-    Iarray(gcpara1, gcpara1_count,15);
-    Iarray(gcpara2, gcpara2_count,15);
-    Iarray(gcpara3, gcpara3_count,15);
-    Iarray(gcpara4, gcpara4_count,15);
-    Iarray(gcpara5, gcpara5_count,15);
-    Iarray(gcpara6, gcpara6_count,15);
+    Iarray(gcpara1, gcpara1_count,16);
+    Iarray(gcpara2, gcpara2_count,16);
+    Iarray(gcpara3, gcpara3_count,16);
+    Iarray(gcpara4, gcpara4_count,16);
+    Iarray(gcpara5, gcpara5_count,16);
+    Iarray(gcpara6, gcpara6_count,16);
 
     Iarray(gcparaco1, gcparaco1_count,6);
     Iarray(gcparaco2, gcparaco2_count,6);
@@ -425,7 +448,6 @@ void lexer::read_grid()
     {
     grid.read((char*)&ddn, sizeof (double));
     XN[IP]=ddn;
-    
     }
 
     for(j=-marge;j<knoy+1+marge;++j)
@@ -478,6 +500,9 @@ void lexer::read_grid()
     grid.read((char*)&ddn, sizeof (double));
     flag_topo[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin]=ddn;
     }
+    
+// Porous Structure
+    
 	
 //  GC Surfaces
     gcin_count=0;
@@ -950,7 +975,7 @@ void lexer::read_grid()
     bed[(i-imin)*jmax + (j-jmin)]=ddn;
     }
     
-	if(toporead>0)
+	if(solidread>0)
 	for(i=0; i<knox; ++i)
     for(j=0; j<knoy; ++j)
     {

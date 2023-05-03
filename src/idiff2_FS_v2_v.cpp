@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"idiff2_FS_v2.h"
@@ -31,7 +32,10 @@ void idiff2_FS_v2::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 	
 	double visc;
     
-    pgc->start2(p,v,gcval_v);
+    pgc->start1(p,u,gcval_udiff);
+	pgc->start2(p,v,gcval_vdiff);
+	pgc->start3(p,w,gcval_wdiff);
+    
 	 
 	count=0;
     if(p->j_dir==1)
@@ -111,7 +115,9 @@ void idiff2_FS_v2::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 	psolv->start(p,a,pgc,v,a->rhsvec,2);
     }
 
-    pgc->start2(p,v,gcval_v);
+    pgc->start1(p,u,gcval_u);
+	pgc->start2(p,v,gcval_v);
+	pgc->start3(p,w,gcval_w);
 
 	time=pgc->timer()-starttime;
 	p->viter=p->solveriter;

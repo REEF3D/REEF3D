@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
@@ -34,6 +35,9 @@ void ghostcell::gcparaxvec(lexer* p, vec &x, int gcv)
     
     if(gcv==6)
 	gcparaxvec_sr(p,x,a->C6,6);
+    
+    if(gcv==9)
+	gcparaxvec_sr(p,x,a->C9,7);
 }
 	
 void ghostcell::gcparaxvec_sr(lexer* p, vec &x, cpt &C, int gcv)

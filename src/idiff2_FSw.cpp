@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"idiff2_FS.h"
@@ -33,7 +34,9 @@ void idiff2_FS::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 
 	count=0;
     
-    pgc->start3(p,w,gcval_w);
+    pgc->start1(p,u,gcval_udiff);
+	pgc->start2(p,v,gcval_vdiff);
+	pgc->start3(p,w,gcval_wdiff);
 
 	count=0;
     if(p->k_dir==1)
@@ -135,7 +138,9 @@ void idiff2_FS::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
     }
     
     
-    pgc->start3(p,w,gcval_w);
+    pgc->start1(p,u,gcval_u);
+	pgc->start2(p,v,gcval_v);
+	pgc->start3(p,w,gcval_w);
 	
 	time=pgc->timer()-starttime;
 	p->witer=p->solveriter;
@@ -152,7 +157,12 @@ void idiff2_FS::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
 
 	count=0;
     
-    pgc->start3(p,w,gcval_w);
+    WLOOP
+    diff(i,j,k) = w(i,j,k);
+    
+    pgc->start1(p,u,gcval_udiff);
+	pgc->start2(p,v,gcval_vdiff);
+	pgc->start3(p,w,gcval_wdiff);
 
 	count=0;
     if(p->k_dir==1)
@@ -254,7 +264,9 @@ void idiff2_FS::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
     }
     
     
-    pgc->start3(p,diff,gcval_w);
+    pgc->start1(p,u,gcval_u);
+	pgc->start2(p,v,gcval_v);
+	pgc->start3(p,w,gcval_w);
 	
 	time=pgc->timer()-starttime;
 	p->witer=p->solveriter;

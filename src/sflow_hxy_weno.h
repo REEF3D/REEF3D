@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -33,10 +33,10 @@ using namespace std;
 class sflow_hxy_weno : public sflow_hxy_disc, public increment
 {
 public:
-	sflow_hxy_weno(lexer*,fdm2D*,patchBC_interface*);
+	sflow_hxy_weno(lexer*,patchBC_interface*);
 	virtual ~sflow_hxy_weno();
 
-	virtual void start(lexer*,slice&,slice&,slice&,slice&,slice&,slice&);
+	virtual void start(lexer*,slice&,slice&,slice&,int*,slice&,slice&,slice&);
 
 private:
 
@@ -67,7 +67,6 @@ private:
     double ivel1,ivel2,jvel1,jvel2;
     int qq;
     
-    fdm2D *b;
     patchBC_interface *pBC;
 
 };

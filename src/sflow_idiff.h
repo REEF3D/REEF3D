@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -43,6 +43,7 @@ public:
 
 	virtual void diff_u(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, double);
 	virtual void diff_v(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, double);
+    virtual void diff_w(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, double);
     virtual void diff_scalar(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, double, double);
     
 private:

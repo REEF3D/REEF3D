@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
@@ -242,4 +243,13 @@ void ghostcell::gcsldistro4int(lexer *p, sliceint &f, int ii, int jj, int nn, do
 	n=nn;
 
 	gcsl_neumann_int(f,gcv,bc,cs);    
+}
+
+void ghostcell::gcsldistro4Vint(lexer *p, int *f, int ii, int jj, int nn, double dist,  int gcv, int bc, int cs)
+{
+    i=ii;
+	j=jj;
+	n=nn;
+
+	gcsl_neumann_V_int(p,f,gcv,bc,cs);    
 }

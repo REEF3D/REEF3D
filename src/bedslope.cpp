@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -39,7 +39,7 @@ bedslope::~bedslope()
 {
 }
 
-void bedslope::slope_weno(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
+void bedslope::slope_weno(lexer *p, ghostcell *pgc, sediment_fdm *s, field &topo)
 {
     double uvel,vvel;
     double nx,ny,nz,norm;
@@ -50,8 +50,8 @@ void bedslope::slope_weno(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     {
     
     // beta
-    uvel=0.5*(a->P(i,j)+a->P(i-1,j));
-    vvel=0.5*(a->Q(i,j)+a->Q(i,j-1));
+    uvel=0.5*(s->P(i,j)+s->P(i-1,j));
+    vvel=0.5*(s->Q(i,j)+s->Q(i,j-1));
 
 	// 1
 	if(uvel>0.0 && vvel>0.0 && fabs(uvel)>1.0e-10)
@@ -90,29 +90,29 @@ void bedslope::slope_weno(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     // ----
     
     // bed normal
-	nx0=-(a->topo(i+1,j,k)-a->topo(i-1,j,k))/(p->DXP[IP]+p->DXP[IM1]);
+	nx0=-(topo(i+1,j,k)-topo(i-1,j,k))/(p->DXP[IP]+p->DXP[IM1]);
     
     if(p->flag4[Im1JK]<=SOLID)
-    nx0=-(a->topo(i+1,j,k)-a->topo(i,j,k))/(p->DXP[IP]);
+    nx0=-(topo(i+1,j,k)-topo(i,j,k))/(p->DXP[IP]);
     
     if(p->flag4[Ip1JK]<=SOLID)
-    nx0=-(a->topo(i,j,k)-a->topo(i-1,j,k))/(p->DXP[IM1]);
+    nx0=-(topo(i,j,k)-topo(i-1,j,k))/(p->DXP[IM1]);
     
     
-	ny0=-(a->topo(i,j+1,k)-a->topo(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1]);
+	ny0=-(topo(i,j+1,k)-topo(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1]);
     
     if(p->flag4[IJm1K]<=SOLID)
-    ny0=-(a->topo(i,j+1,k)-a->topo(i,j,k))/(p->DYP[JP]);
+    ny0=-(topo(i,j+1,k)-topo(i,j,k))/(p->DYP[JP]);
     
     if(p->flag4[IJp1K]<=SOLID)
-    ny0=-(a->topo(i,j,k)-a->topo(i,j-1,k))/(p->DYP[JM1]);
+    ny0=-(topo(i,j,k)-topo(i,j-1,k))/(p->DYP[JM1]);
     
     
-	nz0 = (a->topo(i,j,k+1)-a->topo(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
+	nz0 = (topo(i,j,k+1)-topo(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
     
-    nx1 = -pdx->ddwenox(a->topo, nx0);
-    ny1 = -pdx->ddwenoy(a->topo, ny0);
-    nz1 =  pdx->ddwenoz(a->topo, nz0);
+    nx1 = -pdx->ddwenox(topo, nx0);
+    ny1 = -pdx->ddwenoy(topo, ny0);
+    nz1 =  pdx->ddwenoz(topo, nz0);
     
 
 	norm=sqrt(nx1*nx1 + ny1*ny1 + nz1*nz1);
@@ -140,14 +140,14 @@ void bedslope::slope_weno(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     s->gamma(i,j)=0.0;
 
 	if(fabs(nx)>=1.0e-10 || fabs(ny)>=1.0e-10)
-	s->gamma(i,j) = PI*0.5 - acos(	(nx*nx + ny*ny + nz*0.0)/( sqrt(nx*nx + ny*ny + nz*nz )*sqrt(nx*nx + ny*ny + nz*0.0))+1e-20);
+	s->gamma(i,j) = PI*0.5 - acos(	(nx1*nx1 + ny1*ny1 + nz1*0.0)/( sqrt(nx1*nx1 + ny1*ny1 + nz1*nz1 )*sqrt(nx1*nx1 + ny1*ny1 + nz1*0.0))+1e-20);
 	
     
-    s->phi(i,j) = midphi + (s->teta(i,j)/(fabs(s->gamma(i,j))>1.0e-20?fabs(s->gamma(i,j)):1.0e20))*delta; 
+    s->phi(i,j) = midphi + MIN(1.0,fabs(s->teta(i,j)/midphi))*(s->teta(i,j)/(fabs(s->gamma(i,j))>1.0e-20?fabs(s->gamma(i,j)):1.0e20))*delta; 
     }
 }
 
-void bedslope::slope_cds(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
+void bedslope::slope_cds(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     double uvel,vvel;
     double nx,ny,nz,norm;
@@ -158,9 +158,9 @@ void bedslope::slope_cds(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     {
     
     // beta
-    uvel=0.5*(a->P(i,j)+a->P(i-1,j));
+    uvel=0.5*(s->P(i,j)+s->P(i-1,j));
 
-    vvel=0.5*(a->Q(i,j)+a->Q(i,j-1));
+    vvel=0.5*(s->Q(i,j)+s->Q(i,j-1));
 
 
 	// 1
@@ -198,8 +198,8 @@ void bedslope::slope_cds(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
    
     // ----
     
-     bx0 = (a->bedzh(i+1,j)-a->bedzh(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
-     by0 = (a->bedzh(i,j+1)-a->bedzh(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+     bx0 = (s->bedzh(i+1,j)-s->bedzh(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+     by0 = (s->bedzh(i,j+1)-s->bedzh(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
      
      nx0 = bx0/sqrt(bx0*bx0 + by0*by0 + 1.0);
      ny0 = by0/sqrt(bx0*bx0 + by0*by0 + 1.0);
@@ -217,23 +217,19 @@ void bedslope::slope_cds(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     nx = (cos(beta)*nx0-sin(beta)*ny0);
 	ny = (sin(beta)*nx0+cos(beta)*ny0);
     nz = nz0;
-    
   
     s->beta(i,j) = -beta;
     
     s->teta(i,j)  = -atan(nx/(fabs(nz)>1.0e-15?nz:1.0e20));
     s->alpha(i,j) =  fabs(atan(ny/(fabs(nz)>1.0e-15?nz:1.0e20)));
     
-    
     //-----------
 
     if(fabs(nx)<1.0e-10 && fabs(ny)<1.0e-10)
     s->gamma(i,j)=0.0;
 
-	if(fabs(nx)>=1.0e-10 || fabs(ny)>=1.0e-10)
-	s->gamma(i,j) = PI*0.5 - acos(	(nx*nx + ny*ny + nz*0.0)/( sqrt(nx*nx + ny*ny + nz*nz )*sqrt(nx*nx + ny*ny + nz*0.0))+1e-20);
-	
-    
-    s->phi(i,j) = midphi + (s->teta(i,j)/(fabs(s->gamma(i,j))>1.0e-20?fabs(s->gamma(i,j)):1.0e20))*delta; 
+    s->gamma(i,j) = atan(sqrt(bx0*bx0 + by0*by0));
+
+    s->phi(i,j) = midphi + MIN(1.0,fabs(s->teta(i,j)/midphi))*(s->teta(i,j)/(fabs(s->gamma(i,j))>1.0e-20?fabs(s->gamma(i,j)):1.0e20))*delta; 
     }
 }

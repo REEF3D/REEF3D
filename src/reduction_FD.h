@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -18,13 +18,10 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
---------------------------------------------------------------------*/
-
-#include"bedshear_reduction.h"
+--------------------------------------------------------------------*/#include"bedshear_reduction.h"
 #include"bedslope.h"
 
 class lexer;
-class fdm;
 class ghostcell;
 class sediment_fdm;
 
@@ -39,10 +36,9 @@ public:
     reduction_FD(lexer*);
     virtual ~reduction_FD();
 
-	virtual void start(lexer*,fdm*,ghostcell*,sediment_fdm*);
+	virtual void start(lexer*,ghostcell*,sediment_fdm*);
 
 private:
-
     double u_abs,u_plus,dist;
     double uvel, vvel;
     double beta;

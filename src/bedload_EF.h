@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,8 +23,6 @@ Author: Hans Bihs
 #include"bedload.h"
 #include"increment.h"
 
-class turbulence;
-
 using namespace std;
 
 #ifndef BEDLOAD_EF_H_
@@ -34,17 +32,16 @@ class bedload_EF : public bedload, public increment
 {
 public:
 
-    bedload_EF(lexer*,turbulence*);
+    bedload_EF(lexer*);
     virtual ~bedload_EF();
 
-	virtual void start(lexer*, fdm*, ghostcell*, sediment_fdm*);
+	virtual void start(lexer*, ghostcell*, sediment_fdm*);
 
 private:
-    const double epsi;
     double rhosed,rhowat,Rstar,Ds;
     double g,d50;
     double visc;
-    double kappa,u_plus,ks,repose;
+    double kappa,u_plus,ks;
     double tau_eff, shearvel_eff, shields_eff;
     double tau_crit, shearvel_crit, shields_crit;
 };

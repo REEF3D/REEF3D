@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -49,7 +49,6 @@ private:
 	void jrhs(lexer*,fdm2D*,ghostcell*,slice&,double);
 	
 	int gcval_u, gcval_v;
-	int gcval_urk, gcval_vrk;
 	double starttime;
 
 	sflow_convection *pconvec;

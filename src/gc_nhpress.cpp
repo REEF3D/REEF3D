@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
@@ -28,5 +29,5 @@ void ghostcell::nhpress(lexer *p,field& f, double dist, int gcv, int bc, int cs)
 {
 	if(cs==6)
 	for(q=0;q<margin;++q)
-	f(i,j,k+q+1) = 0.0;//-f(i,j,k);
+	f(i,j,k+q+1) = 0.0;
 }

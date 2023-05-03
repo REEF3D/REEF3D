@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -76,7 +76,7 @@ double ddweno_nug::ddwenox(fdm* a, vec& b, double uw, int ipol, cpt &C)
           
          + w3x*(q2 + qfx[IP][uf][5][0]*(q3-q2) - qfx[IP][uf][5][1]*(q1-q2));
 	}
-    
+
 	return grad;
 }
 

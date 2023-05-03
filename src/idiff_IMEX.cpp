@@ -1,6 +1,6 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2022 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"idiff_IMEX.h"
@@ -24,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 #include"solver.h"
-#include"density_f.h"
+#include"density_f.h"#include"density_df.h"
 #include"density_comp.h"
 #include"density_conc.h"
 #include"density_heat.h"
@@ -35,8 +36,7 @@ idiff_IMEX::idiff_IMEX(lexer* p){}
 
 idiff_IMEX::idiff_IMEX(lexer* p, heat* pheat, concentration* pconc)
 {
-    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0 && p->W90==0)
-	pd = new density_f(p);
+    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && (p->X10==0 || p->X13!=2))	pd = new density_f(p);        if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && (p->X10==1 || p->X13!=2))  	pd = new density_df(p);
 
 	if(p->F80==0 && p->H10==0 && p->W30==1 && p->W90==0)
 	pd = new density_comp(p);
@@ -410,6 +410,6 @@ void idiff_IMEX::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &
 }
 
 
-void idiff_IMEX::diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double){}
+void idiff_IMEX::diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double, double){}
 void idiff_IMEX::idiff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double){}
 

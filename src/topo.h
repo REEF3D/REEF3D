@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -38,7 +38,7 @@ class topo
 {
 public:
 
-	virtual void start(fdm*,lexer*, convection*, ghostcell*,reinitopo*,sediment_fdm*)=0;
+	virtual void start(lexer*, ghostcell*, sediment_fdm*)=0;
 
 };
 

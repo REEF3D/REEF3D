@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fnpf_fsfbc.h"
@@ -198,9 +199,9 @@ void fnpf_fsfbc::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     pgc->gcsl_start4(p,c->By,1);
     
     SLICELOOP4
-    c->wet(i,j)=1;
+    p->wet[IJ]=1;
     
-    pgc->gcsl_start4int(p,c->wet,50);
+    pgc->gcsl_start4Vint(p,p->wet,50);
 }
 
 void fnpf_fsfbc::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
@@ -210,7 +211,7 @@ void fnpf_fsfbc::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slic
     {
     c->Fz(i,j) = p->sigz[IJ]*pconvec->sz(p,c->Fi);
     
-    if(c->wet(i,j)==0)
+    if(p->wet[IJ]==0)
     c->Fz(i,j) = 0.0;
     }
 }
@@ -235,7 +236,9 @@ void fnpf_fsfbc::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
 void fnpf_fsfbc::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf) 
 {   
     SLICELOOP4
-    c->wet(i,j)=1;
+    p->wet[IJ]=1;
+    
+    pgc->gcsl_start4Vint(p,p->wet,50);
 }
 
 void fnpf_fsfbc::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2020 Tobias Martin
+Copyright 2018-2023 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -513,7 +513,7 @@ void net_barDyn::wall_ini(lexer *p, fdm *a, ghostcell *pgc)
     if(p->mpirank==0 && p->P14==1)
     {
         char str[1000];
-        sprintf(str,"./REEF3D_CFD_6DOF_Net/REEF3D_6DOF_Net_Forces_%i.dat",nNet);
+        sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_Forces_%i.dat",nNet);
         ofstream header_out;
         header_out.open(str);
         header_out<<"time [s] \t Ttop [N] \t Fx [N] \t Fy [N] \t Fz [N]"<<endl;

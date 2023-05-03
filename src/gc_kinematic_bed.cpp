@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"lexer.h"
@@ -33,6 +34,7 @@ void ghostcell::kinematic_bed(lexer *p,field& f,double dist,int gcv, int bc, int
     
           -0.5*(a->v(i,j,k)+a->v(i,j-1,k))*((a->bed(i,j+1)-a->bed(i,j-1))/(2.0*p->DXM));
 
+    
 	if(cs==5)
 	for(q=0;q<margin;++q)
 	f(i,j,k-q-1)= wval;

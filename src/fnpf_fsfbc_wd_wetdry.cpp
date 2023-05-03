@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fnpf_fsfbc_wd.h"
@@ -28,21 +29,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf) 
 {   
       SLICELOOP4
-      c->wet_n(i,j)=c->wet(i,j);
+      c->wet_n(i,j)=p->wet[IJ];
       
       SLICELOOP4
       {     
-          c->wet(i,j)=1;
+          p->wet[IJ]=1;
           
           if(p->A343>=1)
           if(eta(i,j) + p->wd - c->bed(i,j) < c->wd_criterion)
-          c->wet(i,j)=0;
+          p->wet[IJ]=0;
 
       } 
       
-      pgc->gcsl_start4int(p,c->wet,50);
+      pgc->gcsl_start4Vint(p,p->wet,50);
       
-      pcoast->start(p,pgc,c->coastline,c->wet,c->wet_n);
+      pcoast->start(p,pgc,c->coastline,p->wet,c->wet_n);
 }
 
 void fnpf_fsfbc_wd::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -32,7 +32,6 @@ susprhs::susprhs(lexer* p)
     rhosed=2650.0;
     rhowat=p->W1;
     ws=1.1*(rhosed/rhowat-1.0)*gi*d50*d50;
-
 }
 
 susprhs::~susprhs()

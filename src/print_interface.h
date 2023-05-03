@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -31,7 +31,7 @@ class bedload;
 class topo;
 class print_wsf;
 class print_wsf_theory;
-class print_wsfline;
+class print_wsfline_x;
 class print_wsfline_y;
 class force;
 class vorticity;
@@ -40,7 +40,7 @@ class probe_point;
 class probe_line;
 class bedprobe_point;
 class bedprobe_max;
-class gage_discharge;
+class gage_discharge_x;
 class fsf_vtp;
 class state;
 class bedshear_probe;
@@ -81,7 +81,7 @@ private:
 
     print_wsf *pwsf;
 	print_wsf_theory *pwsf_theory;
-    print_wsfline *pwsfline;
+    print_wsfline_x *pwsfline_x;
 	print_wsfline_y *pwsfline_y;
 
     vorticity *pvort;
@@ -90,7 +90,7 @@ private:
 	bedprobe_point *pbedpt;
 	bedprobe_max *pbedmax;
 	bedshear_probe *pbedshear;
-	gage_discharge *pq;
+	gage_discharge_x *pq;
 	fsf_vtp *pfsf;
 	state *pstate;
     sloshing_force *pslosh;

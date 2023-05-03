@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -33,10 +33,10 @@ class flux
 {
 public:
 
-    virtual void u_flux(fdm* a,int,field&,double&,double&)=0;
-	virtual void v_flux(fdm* a,int,field&,double&,double&)=0;
-	virtual void w_flux(fdm* a,int,field&,double&,double&)=0;
-    virtual void omega_flux(fdm* a,int,field&,double&,double&)=0;
+    virtual void u_flux(fdm*,int,field&,double&,double&)=0;
+	virtual void v_flux(fdm*,int,field&,double&,double&)=0;
+	virtual void w_flux(fdm*,int,field&,double&,double&)=0;
+    virtual void omega_flux(lexer*,fdm*,int,field&,field&,field&,double&,double&)=0;
 
 };
 

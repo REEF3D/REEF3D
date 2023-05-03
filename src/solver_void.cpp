@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"solver_void.h"
@@ -33,11 +34,11 @@ void solver_void::start(lexer* p,fdm* a, ghostcell* pgc, field& xfield, vec& rhs
 {
 }
 
-void solver_void::startF(lexer* p, fdm_fnpf* c, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var)
+void solver_void::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var)
 {
 }
 
-void solver_void::startM(lexer* p,fdm* a, ghostcell* pgc, double *x, double *rhs, double *M, int var)
+void solver_void::startM(lexer* p, ghostcell* pgc, double *x, double *rhs, double *M, int var)
 {
 }
 

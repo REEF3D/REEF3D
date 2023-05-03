@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"poisson_nse.h"
@@ -25,6 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"heat.h"
 #include"concentration.h"
 #include"density_f.h"
+#include"density_df.h"
 #include"density_comp.h"
 #include"density_conc.h"
 #include"density_heat.h"
@@ -32,8 +34,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 poisson_nse::poisson_nse(lexer * p, heat *&pheat, concentration *&pconc)
 {
-    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0)
+    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && (p->X10==0 || p->X13!=2))
 	pd = new density_f(p);
+    
+    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && (p->X10==1 || p->X13!=2))  
+	pd = new density_df(p);
 	
 	if(p->F80==0 && p->H10==0 && p->W30==1)
 	pd = new density_comp(p);
@@ -130,7 +135,7 @@ void poisson_nse::start(lexer* p, fdm *a, field &press)
                 a->M.s[n] = 0.0;
                 }
                 
-                if(p->D37==3)
+                if(p->D37==2)
                 {
                 teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IM1]/(fabs(a->phi(i,j,k-1))+fabs(a->phi(i,j,k)));
                 
@@ -151,7 +156,7 @@ void poisson_nse::start(lexer* p, fdm *a, field &press)
                 a->M.n[n] = 0.0;
                 }
                 
-                if(p->D37==3)
+                if(p->D37==2)
                 {
                 teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
                 
@@ -200,7 +205,7 @@ void poisson_nse::start(lexer* p, fdm *a, field &press)
                 }
             
 
-                if(p->D37>=2)
+                if(p->D37==2)
                 {
                 teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
                 

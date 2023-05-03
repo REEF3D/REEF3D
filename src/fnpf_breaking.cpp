@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -124,7 +124,7 @@ void fnpf_breaking::breaking_algorithm(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
     
     if((p->A351==1 || p->A351==3) && p->count>1)
     SLICELOOP4
-    if(c->wet(i,j)==1)
+    if(p->wet[IJ]==1)
     {
             
             if((eta(i,j)-eta_n(i,j))/(alpha*p->dt) > p->A354*sqrt(9.81*c->WL(i,j)))

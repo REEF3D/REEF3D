@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"6DOF_sflow.h"
@@ -37,17 +38,28 @@ void sixdof_sflow::ini(lexer *p, fdm2D *b, ghostcell *pgc)
 	ini_parameter(p,b,pgc);
     
     // Initialise folder structure
-	print_ini(p,b,pgc);
+    if(p->X50==1)
+	print_ini_vtp(p,b,pgc);
+    
+    if(p->X50==2)
+    print_ini_stl(p,b,pgc);
     
     // Initialise object 
     if (p->X400 == 1)
     {
         cylinder(p,b,pgc);
     }
+    
     else if (p->X400 == 2)
     {
         box(p,b,pgc);
     }
+    
+    else if (p->X400 == 10)
+    {
+        read_stl(p,b,pgc);
+    }
+    
     else
     {
          cout<<"Missing object, define X 110 or X 133 according to X 401"<<endl;
@@ -64,15 +76,17 @@ void sixdof_sflow::ini(lexer *p, fdm2D *b, ghostcell *pgc)
 
     SLICELOOP4
     {
-        b->test(i,j) = fb(i,j);
+        b->test(i,j) = draft(i,j);
     }
     pgc->gcsl_start4(p,b->test,50);
     
     // Print initial body 
+    if(p->X50==1)
+    print_vtp(p,pgc);
+    
+    if(p->X50==2)
     print_stl(p,pgc);
 }
-
-
 
 void sixdof_sflow::ini_parameter(lexer *p, fdm2D *b, ghostcell *pgc)
 {
@@ -109,7 +123,9 @@ void sixdof_sflow::ini_parameter(lexer *p, fdm2D *b, ghostcell *pgc)
         p->yg = p->X23_y; 
         p->zg = p->X23_z; 
     }
+    
     else
+    if(p->X400 != 10)
     {
          cout<<"Please provide centre of floating body using X 23!"<<endl;
     }
@@ -170,299 +186,6 @@ void sixdof_sflow::iniPosition_RBM(lexer *p, fdm2D *b, ghostcell *pgc)
     // Initialise rotation matrices
     quat_matrices(e_);
 }
-
-
-void sixdof_sflow::cylinder(lexer *p, fdm2D *b, ghostcell *pgc)
-{
-	double U,ds,angle;
-	double xm,ym,zm,z1,z2,r;
-	int snum, trisum;
-	
-	xm = p->X133_xc;
-	ym = p->X133_yc;
-    zm = p->X133_zc;
-	z1 = zm - 0.5*p->X133_h;
-	z2 = zm + 0.5*p->X133_h;
-    r = p->X133_rad;
-
-    // Prepare fields
-    U = 2.0 * PI * r;
-	ds = p->DXM;
-	snum = int(U/ds);
-    trisum=5*(snum+1);
-    p->Darray(tri_x,trisum,3);
-	p->Darray(tri_y,trisum,3);
-	p->Darray(tri_z,trisum,3);
-    p->Darray(tri_x0,trisum,3);
-	p->Darray(tri_y0,trisum,3);
-	p->Darray(tri_z0,trisum,3);    	
-
-    // Vertices	
-	ds = (2.0*PI)/double(snum);
-	angle=0.0;
-    tricount = 0;
-
-	for(int n=0; n<snum; ++n)
-	{
-        //bottom circle	
-        tri_x[tricount][0] = xm;
-        tri_y[tricount][0] = ym;
-        tri_z[tricount][0] = z1;
-        
-        tri_x[tricount][1] = xm + r*cos(angle);
-        tri_y[tricount][1] = ym + r*sin(angle);
-        tri_z[tricount][1] = z1;
-        
-        tri_x[tricount][2] = xm + r*cos(angle+ds);
-        tri_y[tricount][2] = ym + r*sin(angle+ds);
-        tri_z[tricount][2] = z1;
-        ++tricount;
-            
-        //top circle
-        tri_x[tricount][0] = xm;
-        tri_y[tricount][0] = ym;
-        tri_z[tricount][0] = z2;
-        
-        tri_x[tricount][1] = xm + r*cos(angle);
-        tri_y[tricount][1] = ym + r*sin(angle);
-        tri_z[tricount][1] = z2;
-        
-        tri_x[tricount][2] = xm + r*cos(angle+ds);
-        tri_y[tricount][2] = ym + r*sin(angle+ds);
-        tri_z[tricount][2] = z2;
-        ++tricount;
-        
-        //side		
-        // 1st triangle
-        tri_x[tricount][0] = xm + r*cos(angle);
-        tri_y[tricount][0] = ym + r*sin(angle);
-        tri_z[tricount][0] = z1;
-        
-        tri_x[tricount][1] = xm + r*cos(angle+ds);
-        tri_y[tricount][1] = ym + r*sin(angle+ds);
-        tri_z[tricount][1] = z2;
-        
-        tri_x[tricount][2] = xm + r*cos(angle+ds);
-        tri_y[tricount][2] = ym + r*sin(angle+ds);
-        tri_z[tricount][2] = z1;
-        ++tricount;
-        
-        // 2nd triangle
-        tri_x[tricount][0] = xm + r*cos(angle);
-        tri_y[tricount][0] = ym + r*sin(angle);
-        tri_z[tricount][0] = z1;
-        
-        tri_x[tricount][1] = xm + r*cos(angle+ds);
-        tri_y[tricount][1] = ym + r*sin(angle+ds);
-        tri_z[tricount][1] = z2;
-        
-        tri_x[tricount][2] = xm + r*cos(angle);
-        tri_y[tricount][2] = ym + r*sin(angle);
-        tri_z[tricount][2] = z2;
-        ++tricount;
-            
-        angle+=ds;
-	}
-}
-
-void sixdof_sflow::box(lexer *p, fdm2D *b, ghostcell *pgc)
-{
-    // Prepare fields
-    int trisum=12*p->X110;
-    p->Darray(tri_x,trisum,3);
-	p->Darray(tri_y,trisum,3);
-	p->Darray(tri_z,trisum,3);
-    p->Darray(tri_x0,trisum,3);
-	p->Darray(tri_y0,trisum,3);
-	p->Darray(tri_z0,trisum,3);    	
-
-    tricount = 0;
-
-    xs = p->X110_xs[0];
-    xe = p->X110_xe[0];
-	
-    ys = p->X110_ys[0];
-    ye = p->X110_ye[0];
-
-    zs = p->X110_zs[0];
-    ze = p->X110_ze[0];    
-	
-	// Face 3
-	// Tri 1
-	
-	tri_x[tricount][0] = xs;
-	tri_x[tricount][1] = xe;
-	tri_x[tricount][2] = xe;
-
-	tri_y[tricount][0] = ys;
-	tri_y[tricount][1] = ys;
-	tri_y[tricount][2] = ys;
-
-	tri_z[tricount][0] = zs;
-	tri_z[tricount][1] = zs;
-	tri_z[tricount][2] = ze;
-	++tricount;
-
-	// Tri 2
-	tri_x[tricount][0] = xe;
-	tri_x[tricount][1] = xs;
-	tri_x[tricount][2] = xs;
-
-	tri_y[tricount][0] = ys;
-	tri_y[tricount][1] = ys;
-	tri_y[tricount][2] = ys;
-
-	tri_z[tricount][0] = ze;
-	tri_z[tricount][1] = ze;
-	tri_z[tricount][2] = zs;
-	++tricount;
-
-	// Face 4
-	// Tri 3
-	tri_x[tricount][0] = xe;
-	tri_x[tricount][1] = xe;
-	tri_x[tricount][2] = xe;
-
-	tri_y[tricount][0] = ye;
-	tri_y[tricount][1] = ys;
-	tri_y[tricount][2] = ys;
-
-	tri_z[tricount][0] = ze;
-	tri_z[tricount][1] = ze;
-	tri_z[tricount][2] = zs;
-	++tricount;
-
-	// Tri 4
-	tri_x[tricount][0] = xe;
-	tri_x[tricount][1] = xe;
-	tri_x[tricount][2] = xe;
-
-	tri_y[tricount][0] = ye;
-	tri_y[tricount][1] = ye;
-	tri_y[tricount][2] = ys;
-
-	tri_z[tricount][0] = zs;
-	tri_z[tricount][1] = ze;
-	tri_z[tricount][2] = zs;
-	++tricount;
-
-	// Face 1
-	// Tri 5
-	tri_x[tricount][0] = xs;
-	tri_x[tricount][1] = xs;
-	tri_x[tricount][2] = xs;
-
-	tri_y[tricount][0] = ye;
-	tri_y[tricount][1] = ye;
-	tri_y[tricount][2] = ys;
-
-	tri_z[tricount][0] = ze;
-	tri_z[tricount][1] = zs;
-	tri_z[tricount][2] = zs;
-	++tricount;
-
-	// Tri 6
-	tri_x[tricount][0] = xs;
-	tri_x[tricount][1] = xs;
-	tri_x[tricount][2] = xs;
-
-	tri_y[tricount][0] = ys;
-	tri_y[tricount][1] = ye;
-	tri_y[tricount][2] = ys;
-
-	tri_z[tricount][0] = ze;
-	tri_z[tricount][1] = ze;
-	tri_z[tricount][2] = zs;
-	++tricount;
-	
-	// Face 2
-	// Tri 7
-	tri_x[tricount][0] = xe;
-	tri_x[tricount][1] = xe;
-	tri_x[tricount][2] = xs;
-
-	tri_y[tricount][0] = ye;
-	tri_y[tricount][1] = ye;
-	tri_y[tricount][2] = ye;
-
-	tri_z[tricount][0] = ze;
-	tri_z[tricount][1] = zs;
-	tri_z[tricount][2] = zs;
-	++tricount;
-
-	// Tri 8
-	tri_x[tricount][0] = xs;
-	tri_x[tricount][1] = xe;
-	tri_x[tricount][2] = xs;
-
-	tri_y[tricount][0] = ye;
-	tri_y[tricount][1] = ye;
-	tri_y[tricount][2] = ye;
-
-	tri_z[tricount][0] = ze;
-	tri_z[tricount][1] = ze;
-	tri_z[tricount][2] = zs;
-	++tricount;
-
-	// Face 5
-	// Tri 9
-	tri_x[tricount][0] = xe;
-	tri_x[tricount][1] = xe;
-	tri_x[tricount][2] = xs;
-
-	tri_y[tricount][0] = ye;
-	tri_y[tricount][1] = ys;
-	tri_y[tricount][2] = ys;
-
-	tri_z[tricount][0] = zs;
-	tri_z[tricount][1] = zs;
-	tri_z[tricount][2] = zs;
-	++tricount;
-
-	// Tri 10
-	tri_x[tricount][0] = xs;
-	tri_x[tricount][1] = xe;
-	tri_x[tricount][2] = xs;
-
-	tri_y[tricount][0] = ye;
-	tri_y[tricount][1] = ye;
-	tri_y[tricount][2] = ys;
-
-	tri_z[tricount][0] = zs;
-	tri_z[tricount][1] = zs;
-	tri_z[tricount][2] = zs;
-	++tricount;
-
-	// Face 6
-	// Tri 11
-	tri_x[tricount][0] = xs;
-	tri_x[tricount][1] = xe;
-	tri_x[tricount][2] = xe;
-
-	tri_y[tricount][0] = ys;
-	tri_y[tricount][1] = ys;
-	tri_y[tricount][2] = ye;
-
-	tri_z[tricount][0] = ze;
-	tri_z[tricount][1] = ze;
-	tri_z[tricount][2] = ze;
-	++tricount;
-
-	// Tri 12
-	tri_x[tricount][0] = xs;
-	tri_x[tricount][1] = xe;
-	tri_x[tricount][2] = xs;
-
-	tri_y[tricount][0] = ys;
-	tri_y[tricount][1] = ye;
-	tri_y[tricount][2] = ye;
-
-	tri_z[tricount][0] = ze;
-	tri_z[tricount][1] = ze;
-	tri_z[tricount][2] = ze;
-	++tricount;
-}
-
 
 void sixdof_sflow::geometry_refinement(lexer *p)
 {

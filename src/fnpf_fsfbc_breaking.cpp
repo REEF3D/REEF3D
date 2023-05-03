@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fnpf_fsfbc.h"
@@ -49,7 +50,6 @@ void fnpf_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sli
     pgc->gcsl_start4int(p,bx,50);
     pgc->gcsl_start4int(p,by,50);
     
-    //cout<<p->mpirank<<" A351: "<<p->A351<<endl;
     if((p->A351==2 || p->A351==3) && p->count>1)
     {
     loopcount=0;

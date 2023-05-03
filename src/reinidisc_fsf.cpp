@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"lexer.h"
@@ -79,7 +80,7 @@ void reinidisc_fsf::start(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int 
 
 void reinidisc_fsf::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *sizeM, int ipol, cpt &C)
 {	
-
+    
 	if((b.V[I_J_K]>=0.0 && b.V[Ip1_J_K]>=0.0 && b.V[Im1_J_K]>=0.0 && b.V[I_Jp1_K]>=0.0 && b.V[I_Jm1_K]>=0.0 && b.V[I_J_Kp1]>=0.0 && b.V[I_J_Km1]>=0.0) 
 	|| (b.V[I_J_K]<0.0  && b.V[Ip1_J_K]<0.0  && b.V[Im1_J_K]<0.0  && b.V[I_Jp1_K]<0.0  && b.V[I_Jm1_K]<0.0   && b.V[I_J_Kp1]<0.0  && b.V[I_J_Km1]<0.0)
     || p->count==0) 
@@ -137,10 +138,14 @@ void reinidisc_fsf::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *
 					
 
 	dnorm=sqrt(dx*dx + dy*dy + dz*dz);
+    
+    if(p->j_dir==0)
+    deltax = (1.0/2.0)*(p->DXN[IP] + p->DZN[KP]);
 	
+    if(p->j_dir==1)
     deltax = (1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
 	
-	sign=lsv/sqrt(lsv*lsv+ dnorm*dnorm*deltax*deltax);
+	sign=lsv/sqrt(lsv*lsv + dnorm*dnorm*deltax*deltax);
     
     if(sign!=sign)
     sign= 1.0;

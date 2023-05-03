@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -46,9 +46,9 @@ public:
 	virtual void ucorr(lexer*p,fdm*,field&,double);
 	virtual void vcorr(lexer*p,fdm*,field&,double);
 	virtual void wcorr(lexer*p,fdm*,field&,double);
-	virtual void upgrad(lexer*,fdm*);
-	virtual void vpgrad(lexer*,fdm*);
-    virtual void wpgrad(lexer*,fdm*);
+	virtual void upgrad(lexer*,fdm*,slice&,slice&);
+	virtual void vpgrad(lexer*,fdm*,slice&,slice&);
+    virtual void wpgrad(lexer*,fdm*,slice&,slice&);
 
 private:
 	double starttime,endtime;

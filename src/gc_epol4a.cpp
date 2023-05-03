@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -40,6 +40,10 @@ int ghostcell::gceval4a(lexer *p, int gcv, int bc, int cs)
 	else
 	if(gcv==150 || gcv==154)
 	return 74;
+    
+    else
+	if(gcv==159)
+	return 79;
 
 	//topo for bedload
 	else
@@ -105,9 +109,12 @@ void ghostcell::gcdistro4a(lexer *p,field& f, int ii, int jj, int kk, int nn, do
 
 	if(bc_label==74 || bc_label==75)
 	neumann_all(f,gcv,bc,cs);
+    
+    if(bc_label==79)
+    extend(p,f,dist,gcv,bc,cs);
 }
 
-void ghostcell::gcdistro4aV(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, double dist,  int gcv, int bc, int cs, int id)
+void ghostcell::gcdistro4avec(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, double dist,  int gcv, int bc, int cs, int id)
 {
     i=ii;
 	j=jj;
@@ -121,7 +128,7 @@ void ghostcell::gcdistro4aV(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, 
 	gcV_neumann_all(vec,gcv,bc,cs,id);
 }
 
-void ghostcell::gcdistro6V(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, double dist,  int gcv, int bc, int cs, int id)
+void ghostcell::gcdistro6vec(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, double dist,  int gcv, int bc, int cs, int id)
 {
     i=ii;
 	j=jj;

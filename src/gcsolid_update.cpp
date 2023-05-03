@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
@@ -50,7 +51,6 @@ void ghostcell::solid_update(lexer *p, fdm *a)
     gcsolid_gcb_dist(p,a);
     
     p->gridini_patchBC();	
-
 
     gcsolid_velflag1(p,a,cellcount1);
     gcsolid_velflag2(p,a,cellcount2);
@@ -124,4 +124,7 @@ void ghostcell::solid_update(lexer *p, fdm *a)
 	
 	if(p->mpirank==0)
 	cout<<"Solid: active number of cells: "<<count<<endl;
+    
+    
+    //cout<<p->mpirank<<" p->gcb4_count_solid: "<<p->gcb4_count<<endl;
 }

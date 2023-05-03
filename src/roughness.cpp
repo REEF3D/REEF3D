@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"roughness.h"
@@ -56,6 +57,9 @@ double roughness::ks_val(lexer *p, fdm* a,int ii,int jj, int kk, int cs, int bc)
 	
 	if(bc==5)
 	ks=p->S21*p->S20;
+    
+    if(p->G3==1 && p->S10>0 && (a->topo(i-1,j,k)<0.0 || a->topo(i+1,j,k-1)<0.0 || a->topo(i,j-1,k)<0.0 || a->topo(i,j+1,k)<0.0 || a->topo(i,j,k-1)<0.0))
+    ks=p->S21*p->S20;
 			
 		
 	return ks;

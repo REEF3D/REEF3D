@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -43,7 +43,7 @@ using namespace std;
 class momentum_RK3 : public momentum, public bcmom
 {
 public:
-	momentum_RK3(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*, nhflow*);
+	momentum_RK3(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*);
 	virtual ~momentum_RK3();
 	virtual void start(lexer*, fdm*, ghostcell*, vrans*);
     virtual void utimesave(lexer*, fdm*, ghostcell*);
@@ -64,7 +64,6 @@ private:
     void timecheck(lexer*,fdm*,ghostcell*,field&,field&,field&);
     
 	int gcval_u, gcval_v, gcval_w;
-	int gcval_urk, gcval_vrk, gcval_wrk;
 	double starttime;
 
 	convection *pconvec;

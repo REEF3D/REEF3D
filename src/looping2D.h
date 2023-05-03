@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -65,6 +65,10 @@ Author: Hans Bihs
 #define SLICEFLEXLOOP IFLEXLOOP JFLEXLOOP SLICEFLEXCHECK
     
 #define SSLICECHECK4  if(p->flagslice4[IJ]<0)
+
+#define WETDRY1 if(b->wet1(i,j)==1)
+#define WETDRY2 if(b->wet2(i,j)==1)    
+#define WETDRY if(p->wet[IJ]==1)
 
 
 // GCBSL

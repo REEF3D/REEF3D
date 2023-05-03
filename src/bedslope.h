@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,7 +23,7 @@ Author: Hans Bihs
 #include"norm_vec.h"
 
 class lexer;
-class fdm;
+class field;
 class ghostcell;
 class ddweno_f_nug;
 class sediment_fdm;
@@ -39,8 +39,8 @@ public:
     bedslope(lexer*);
     virtual ~bedslope();
 
-	virtual void slope_weno(lexer*, fdm*,ghostcell*,sediment_fdm*);
-    virtual void slope_cds(lexer*, fdm*,ghostcell*,sediment_fdm*);
+	virtual void slope_weno(lexer*, ghostcell*,sediment_fdm*,field&);
+    virtual void slope_cds(lexer*,ghostcell*,sediment_fdm*);
 
 private:
 

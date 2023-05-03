@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_gc.h"
@@ -34,7 +35,7 @@ sixdof_gc::sixdof_gc(
 ) : gradient(p), cutl(p), cutr(p), fbio(p), epsifb(1.6*p->DXM), epsi(1.6),f(p),dt(p),frk1(p),frk2(p),L(p),eta(p),phin(p),vertice(p),nodeflag(p)
 {
     if(p->mpirank==0)
-    cout<<"6DOF GC startup ..."<<endl;
+    cout<<"6DOF_gc startup ..."<<endl;
 	p->printcount_sixdof=0;
 
 	prdisc = new reinidisc_fsf(p);
@@ -75,7 +76,6 @@ void sixdof_gc::start
     }
 }
 
-
 void sixdof_gc::start_Euler
 (
 	lexer *p, 
@@ -109,7 +109,12 @@ void sixdof_gc::start_Euler
     pgc->gcfb_update(p,a);
     double endtime1 = pgc->timer()-starttime1;
 
+    if(p->X50==1)
+    print_vtp(p,a,pgc);
+    
+    if(p->X50==2)
     print_stl(p,a,pgc);
+    
     print_E_position(p,a,pgc);
     print_E_velocity(p,a,pgc);
     print_E_force(p,a,pgc);
@@ -118,7 +123,6 @@ void sixdof_gc::start_Euler
     if(p->mpirank==0)
     cout<<"6DOF time: "<<setprecision(3)<<pgc->timer()-starttime<<"  update time: "<<endtime1<<endl;	
 }
-
 
 void sixdof_gc::start_Quaternion
 (
@@ -136,8 +140,13 @@ void sixdof_gc::start_Quaternion
     solve_quaternion();
 
     solidUpdate(p,a,pgc,e_);
-
+    
+    if(p->X50==1)
+    print_vtp(p,a,pgc);
+    
+    if(p->X50==2)
     print_stl(p,a,pgc);
+    
     print_E_position(p,a,pgc);
     print_E_velocity(p,a,pgc);
     print_E_force(p,a,pgc);

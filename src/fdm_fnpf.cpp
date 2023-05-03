@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,20 +17,21 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fdm_fnpf.h"
 #include"lexer.h"
 
-fdm_fnpf::fdm_fnpf(lexer *p) : press(p),Fifsf(p),Fibed(p),
+fdm_fnpf::fdm_fnpf(lexer *p) : press(p),test(p),Fifsf(p),Fibed(p),
                               nodeval(p),eta(p),etaloc(p),
-                              wet(p),wet_n(p),breaking(p),breaklog(p),bc(p),
+                              wet_n(p),breaking(p),breaklog(p),bc(p),
                               eta_n(p),WL(p),bed(p),depth(p),Fz(p),K(p),
                               Fx(p),Fy(p),
                               Ex(p),Ey(p),Exx(p),Eyy(p),
                               Bx(p),By(p),Bxx(p),Byy(p),
                               Hx(p),Hy(p),
-                              coastline(p),vb(p),
+                              coastline(p),vb(p),test2D(p),Hs(p),
                               nodeval2D(p),breaking_print(p),
                               rhsvec(p),rvec(p),xvec(p),N(p),M(p)
 {    

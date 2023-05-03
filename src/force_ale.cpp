@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,39 +17,78 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"force_ale.h"
 #include"gradient.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include"ioflow.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-force_ale::force_ale(lexer* p, fdm *a, ghostcell *pgc, int qn) : ID(qn)
+force_ale::force_ale(lexer* p, fdm_fnpf *c, ghostcell *pgc, int qn) : ID(qn){}
+
+force_ale::~force_ale(){}
+
+void force_ale::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-	
     force_aleprintcount=0;
-        
-    // open files
-    print_ini(p,a,pgc);
-    
-    is = p->posc_i(p->P85_x[ID]);
-    js = p->posc_j(p->P85_y[ID]);
+
+    // Read cylinder force input - xc,yc,rc,cd,cm
+    xc = p->P85_x[ID];
+	yc = p->P85_y[ID];
+    rc = p->P85_r[ID];
+	cd = p->P85_cd[ID];
+	cm = p->P85_cm[ID];
+
+    // Open files
+    print_ini(p,c,pgc);
+
+    // Ini arrays
+	p->Darray(un, p->knoz);
+	//p->Darray(u2n, p->knoz);
+	p->Darray(vn, p->knoz);
+
+    // Ini eta
+	etan=p->wd;
+	//eta2n=p->wd;
+
+    // Ini time
+    //dtn=0;
+
+    // Ini processor boundaries
+	xstart = p->originx;
+	ystart = p->originy;
+	xend = p->endx;
+	yend = p->endy;
 
 }
 
-force_ale::~force_ale()
+void force_ale::start(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
+    if (xc >= xstart && xc < xend && yc >= ystart && yc < yend) // cylinder in processor
+    {
+        i = p->posc_i(xc);
+        j = p->posc_j(yc);
+
+        // Calculate force
+        force_ale_force(p,c,pgc);
+    }
+    else
+    {
+        Fx = Fy = 0.0;
+    }
+
+    // Sum up to distribute forces
+    Fx = pgc->globalsum(Fx);
+    Fy = pgc->globalsum(Fy);
+
+    // Print
+    if(p->mpirank==0)
+    {
+        print_force_ale(p,c,pgc);
+    }
 }
-void force_ale::ini(lexer *p, fdm *a, ghostcell *pgc)
-{
-
-} 
-
-void force_ale::start(lexer *p, fdm *a, ghostcell *pgc)
-{
-} 
-

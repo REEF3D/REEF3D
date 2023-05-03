@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -40,17 +40,17 @@ class hypre_struct : public solver, public increment
 {
 public:
 
-	hypre_struct(lexer*,fdm*,ghostcell*,int,int);
+	hypre_struct(lexer*,ghostcell*,int,int);
 	virtual ~hypre_struct();
     
 	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
-    virtual void startF(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int);
-    virtual void startM(lexer*, fdm*, ghostcell*, double*, double*, double*, int);
+    virtual void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
+    virtual void startM(lexer*, ghostcell*, double*, double*, double*, int);
     
     void start_solver1234(lexer*,fdm*, ghostcell*, field&, vec&,int);
     void start_solver5(lexer*,fdm*, ghostcell*, field&, vec&, int);
     void start_solver7(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
-    void start_solver8(lexer*, fdm_fnpf*, ghostcell*, double*, vec&, matrix_diag&, int);
+    void start_solver8(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     
     void solve(lexer*,ghostcell*);
     void solve1234(lexer*);
@@ -62,8 +62,8 @@ public:
     
     
     
-    void make_grid(lexer*,fdm*, ghostcell*);
-    void make_grid_2Dvert(lexer*,fdm*, ghostcell*);
+    void make_grid(lexer*, ghostcell*);
+    void make_grid_2Dvert(lexer*, ghostcell*);
     
     void fill_matrix1(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix1_2Dvert(lexer*,fdm*, ghostcell*,field&);
@@ -74,8 +74,8 @@ public:
     void fill_matrix4(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix4_2Dvert(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix7(lexer*, ghostcell*,double*, vec&, matrix_diag&);
-    void fill_matrix8(lexer*, fdm_fnpf*, ghostcell*,double*, vec&, matrix_diag&);
-    void fill_matrix8_2Dvert(lexer*, fdm_fnpf*, ghostcell*,double*, vec&, matrix_diag&);
+    void fill_matrix8(lexer*, ghostcell*,double*, vec&, matrix_diag&);
+    void fill_matrix8_2Dvert(lexer*, ghostcell*,double*, vec&, matrix_diag&);
 
     virtual void fillbackvec1(lexer*,field&,int);
     virtual void fillbackvec2(lexer*,field&,int);
@@ -83,7 +83,7 @@ public:
     virtual void fillbackvec4(lexer*,field&,int);
 
     virtual void fillbackvec7(lexer*,double*,int);
-    virtual void fillbackvec8(lexer*,fdm_fnpf*,double*,int);
+    virtual void fillbackvec8(lexer*,double*,int);
 	
 	void create_solver1234(lexer*,ghostcell*);
     void delete_solver1234(lexer*,ghostcell*);

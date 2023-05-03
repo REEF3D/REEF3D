@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,7 +24,6 @@ Author: Hans Bihs
 #include"bedslope.h"
 
 class lexer;
-class fdm;
 class ghostcell;
 class sediment_fdm;
 
@@ -39,7 +38,7 @@ public:
     reduction_deyana(lexer*);
     virtual ~reduction_deyana();
 
-	virtual void start(lexer*,fdm*,ghostcell*,sediment_fdm*);
+	virtual void start(lexer*,ghostcell*,sediment_fdm*);
 
 private:
 

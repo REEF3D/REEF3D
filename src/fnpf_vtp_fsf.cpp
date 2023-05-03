@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fnpf_vtp_fsf.h"
@@ -58,7 +59,7 @@ fnpf_vtp_fsf::~fnpf_vtp_fsf()
 {
 }
 
-void fnpf_vtp_fsf::start(lexer *p, fdm_fnpf *c, ghostcell* pgc, ioflow *pflow)
+void fnpf_vtp_fsf::start(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 {	
     print2D(p,c,pgc);
 }
@@ -123,6 +124,20 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     // coastline
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
+    
+    // test
+    if(p->P23==1)
+	{
+	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
+    }
+    
+    // Hs
+    if(p->P110==1)
+	{
+	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
+    }
 	
 	// Cells
     offset[n]=offset[n-1] + 4*p->polygon_sum*3+4;
@@ -158,6 +173,16 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"coastline\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
+    if(p->P23==1)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    }
+    if(p->P110==1)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\"Hs\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    }
     result<<"</PointData>"<<endl;
 
     
@@ -190,7 +215,7 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	ffn=float(p->YN[JP1]);
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(p->sl_ipol4eta(c->eta,c->bed)+p->wd);
+	ffn=float(p->sl_ipol4eta(p->wet,c->eta,c->bed)+p->wd);
 	result.write((char*)&ffn, sizeof (float));
 	}
 	
@@ -268,6 +293,30 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	ffn=float(p->sl_ipol4(c->coastline));
 	result.write((char*)&ffn, sizeof (float));
 	}
+    
+    //  test
+    if(p->P23==1)
+    {
+	iin=4*(p->pointnum2D);
+	result.write((char*)&iin, sizeof (int));
+	TPSLICELOOP
+	{
+	ffn=float(p->sl_ipol4(c->test2D));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    }
+    
+    //  test
+    if(p->P110==1)
+    {
+	iin=4*(p->pointnum2D);
+	result.write((char*)&iin, sizeof (int));
+	TPSLICELOOP
+	{
+	ffn=float(p->sl_ipol4(c->Hs));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    }
 
     //  Connectivity
     iin=4*(p->polygon_sum)*3;

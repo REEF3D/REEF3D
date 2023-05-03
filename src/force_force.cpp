@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"force.h"
@@ -32,15 +33,22 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
     double du,dv,dw;
     double xloc,yloc,zloc;
 	double xlocvel,ylocvel,zlocvel;
+    double sgnx,sgny,sgnz;
     double Ax=0.0;
     double Ay=0.0;
+    double Px=0.0;
+    double xp1,xp2,yp1,yp2,zp1,zp2;
+    
 
     Fx=Fy=Fz=0.0;
     A_tot=0.0;
     
+    ALOOP
+    a->test(i,j,k)=0.0;
+    
     pgc->dgcpol(p,a->press,p->dgc4,p->dgc4_count,14);
     a->press.ggcpol(p);
-
+    
     for(n=0;n<polygon_num;++n)
     {       
             // triangle
@@ -115,21 +123,38 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
             A += sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
             }
             
-            //----
+            xp1 = x2-x1;
+            yp1 = y2-y1;
+            zp1 = z2-z1;
             
-            i = p->posc_i(xc);
-            j = p->posc_j(yc);
-            k = p->posc_k(zc);
+            xp2 = x3-x1;
+            yp2 = y3-y1;
+            zp2 = z3-z1;
+        
             
-            nx = (a->solid(i+1,j,k)-a->solid(i-1,j,k))/(p->DXP[IM1] + p->DXP[IP]);
-            ny = (a->solid(i,j+1,k)-a->solid(i,j-1,k))/(p->DYP[JM1] + p->DYP[JP]);
-            nz = (a->solid(i,j,k+1)-a->solid(i,j,k-1))/(p->DZP[KM1] + p->DZP[KP]);
+            nx=fabs(yp1*zp2 - zp1*yp2);
+            ny=fabs(zp1*xp2 - xp1*zp2);
+            nz=fabs(xp1*yp2 - yp1*xp2);
             
             norm = sqrt(nx*nx + ny*ny + nz*nz);
             
             nx/=norm>1.0e-20?norm:1.0e20;
             ny/=norm>1.0e-20?norm:1.0e20;
             nz/=norm>1.0e-20?norm:1.0e20;
+            //----
+
+            
+            i = p->posc_i(xc);
+            j = p->posc_j(yc);
+            k = p->posc_k(zc);
+            
+            sgnx = (a->solid(i+1,j,k)-a->solid(i-1,j,k))/(p->DXP[IM1] + p->DXP[IP]);
+            sgny = (a->solid(i,j+1,k)-a->solid(i,j-1,k))/(p->DYP[JM1] + p->DYP[JP]);
+            sgnz = (a->solid(i,j,k+1)-a->solid(i,j,k-1))/(p->DZP[KM1] + p->DZP[KP]);
+            
+            nx = nx*sgnx/fabs(fabs(sgnx)>1.0e-20?sgnx:1.0e20);
+            ny = ny*sgny/fabs(fabs(sgny)>1.0e-20?sgny:1.0e20);
+            nz = nz*sgnz/fabs(fabs(sgnz)>1.0e-20?sgnz:1.0e20);
             
             
             xloc = xc + nx*p->DXP[IP]*p->P91;
@@ -144,9 +169,9 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
             vval = p->ccipol2_a(a->v,xlocvel,ylocvel,zlocvel);
             wval = p->ccipol3_a(a->w,xlocvel,ylocvel,zlocvel);
             
-            du = uval/p->DXM;
-            dv = vval/p->DXM;
-            dw = wval/p->DXM;
+            du = uval/p->DXN[IP];
+            dv = vval/p->DYN[JP];
+            dw = wval/p->DZN[KP];
             
             pval =      p->ccipol4_a(a->press,xloc,yloc,zloc);
             density =   p->ccipol4_a(a->ro,xloc,yloc,zloc);
@@ -156,12 +181,28 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
             if(p->P82==1)
             viscosity += p->ccipol4_a(a->eddyv,xloc,yloc,zloc);   
                 
-
+            //if(k==5)
+            //cout<<pval<<endl;
+            
+            i = p->posc_i(xloc);
+            j = p->posc_j(yloc);
+            k = p->posc_k(zloc);
+            
+            //if(p->mpirank==5)
+            //if(i==0&&k==5)
+            //cout<<p->mpirank<<" xloc: "<<xloc<<" yloc: "<<yloc<<" zloc: "<<zloc<<" i: "<<i<<" j: "<<j<<" k: "<<k<<endl;
+            
+            //if(i==0&&k==5)
+            //cout<<p->mpirank<<" xloc: "<<xloc<<" xc: "<<xc<<" nx: "<<nx<<" nx*p->DXP[IP]*p->P91: "<<nx*p->DXP[IP]*p->P91<<" ny: "<<ny<<" pval: "<<pval<<endl;
+            
             // Force
             if(phival>-1.6*p->DXM || p->P92==1)
             {
             Fx += -(pval)*A*nx
                        + density*viscosity*A*(du*ny+du*nz);
+                       
+            /*a->test(i,j,k) += -(pval)*A*nx
+                           + density*viscosity*A*(du*ny+du*nz);*/
                        
             Fy += -(pval)*A*ny
                        + density*viscosity*A*(dv*nx+dv*nz);
@@ -172,17 +213,29 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
             }
     Ax+=A*nx;
     Ay+=A*ny;
-                       
+    
+    Px += pval*nx/fabs(nx);
+    
     A_tot+=A;
-        
     }
-        
-
+    
     Fx = pgc->globalsum(Fx);
     Fy = pgc->globalsum(Fy);
     Fz = pgc->globalsum(Fz);
     
+    Ax = pgc->globalsum(Ax);
+    Ay = pgc->globalsum(Ay);
     A_tot = pgc->globalsum(A_tot);
+    Px = pgc->globalsum(Px);
+    
+    //if(p->mpirank==0)
+    //cout<<"Ax : "<<Ax<<" Ay: "<<Ay<<" A_tot: "<<A_tot<<endl;
+    
+    LOOP
+    a->test(i,j,k) = a->press(i,j,k) - a->phi(i,j,k)*a->ro(i,j,k)*fabs(p->W22);
+    
+    pgc->start4(p,a->test,gcval_press);
+ 
 }
 
 

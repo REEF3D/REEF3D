@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"patchBC_void.h"
@@ -42,6 +43,10 @@ void patchBC_void::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, fi
 {
 } 
 
+void patchBC_void::patchBC_rkioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
+{
+} 
+
 void patchBC_void::patchBC_discharge(lexer *p, fdm *a, ghostcell *pgc)
 {
 } 
@@ -55,6 +60,9 @@ void patchBC_void::patchBC_waterlevel(lexer *p, fdm *a, ghostcell *pgc, field &p
 } 
 
 void patchBC_void::patchBC_ioflow2D(lexer *p, ghostcell*, slice&, slice&, slice&, slice&)
+{
+}
+void patchBC_void::patchBC_rkioflow2D(lexer *p, ghostcell*, slice&, slice&, slice&, slice&)
 {
 }
 

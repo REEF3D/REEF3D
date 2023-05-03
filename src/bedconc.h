@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -21,11 +21,9 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"increment.h"
-#include"bedshear.h"
 
 class lexer;
-class fdm;
-class sl;
+class sediment_fdm;
 class ghostcell;
 
 #ifndef BEDCONC_H_
@@ -33,25 +31,22 @@ class ghostcell;
 
 using namespace std;
 
-class bedconc : public bedshear
+class bedconc : public increment
 {
 public:
-	bedconc(lexer*,turbulence*);
+	bedconc(lexer*);
 	virtual ~bedconc();
-	double cbed(lexer*,fdm*,ghostcell*,field&);
-
+	void start(lexer*,ghostcell*,sediment_fdm*);
 
 private:
 	int ii,jj,kk;
-	int count,q;
-	double ws,d50,ks,shields,kappa;
+	
+	double d50,ks,shields,kappa;
 	double Rstar, g, visc;
 	double rhosed,rhowat;
-	double tau, taucrit;
-	double val;
 	double Ti,Ds;
-    double tau_eff, shearvel_eff, shields_eff;
-    double tau_crit, shearvel_crit, shields_crit;
+    double adist,zdist,deltab;
+
 };
 #endif
 

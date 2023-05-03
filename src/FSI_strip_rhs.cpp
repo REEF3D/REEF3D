@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2021 Tobias Martin
+Copyright 2018-2023 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -122,10 +122,13 @@ void fsi_strip::setVariableLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matri
     {
         Fext_.col(eI) = (1.0 - rho_f/rho_s)*gravity_vec + (F_el.col(eI) + F_el.col(eI+1))/(2.0*rho_s*A_el*l_el);
     }
-    
+
     // Assign external moments
-    for (int eI = 0; eI < Ne+2; eI++)
+    if (thinStrip == false)
     {
-        Mext_.col(eI) << 0.0, M_el.col(eI)/l_el;
+        for (int eI = 0; eI < Ne+2; eI++)
+        {
+            Mext_.col(eI) << 0.0, M_el.col(eI)/l_el;
+        }
     }
 }

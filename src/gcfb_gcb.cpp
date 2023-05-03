@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,12 +17,12 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
 #include"lexer.h"
 #include"fdm.h"
-
 
 void ghostcell::gcfb_seed(lexer *p, fdm *a)
 {
@@ -135,6 +135,7 @@ void ghostcell::gcfb_seed(lexer *p, fdm *a)
         ++count;
         }
     }
+    
     
     //if(p->mpirank==0)
 	//cout<<p->mpirank<<" 2. old gcb4: "<<p->gcb4_count<<" new gcb4: "<<count<<endl;

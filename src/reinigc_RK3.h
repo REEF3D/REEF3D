@@ -1,6 +1,6 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2022 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"reini.h"
-#include"particlecorr.h"
+#include"particle_corr.h"
 #include"gradient.h"
 #include"field4.h"
 #include"fieldint4.h"
@@ -62,7 +62,8 @@ private:
 	field4 d0;
 	fieldint4 wallf;
 	int gcval_phi,gcval_ro,gcval_iniphi,reiniter;
-	const double deltax,epsi;
+	const double epsi;
+    double deltax;
 	double H,H0,grad,dT,dirac;
 	double lambda1,lambda2,dV,dval,Cs;
 	

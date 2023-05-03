@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,6 +27,7 @@ class fdm;
 class lexer;
 class ghostcell;
 class turbulence;
+class sediment;
 
 #ifndef INITIALIZE_H_
 #define INITIALIZE_H_
@@ -46,7 +47,8 @@ public:
 	void iniphi_io(fdm*, lexer*,ghostcell*);
 	void inivof_io(fdm*, lexer*,ghostcell*);
 	void iniphi_surfarea(lexer*,fdm*,ghostcell*);
-	void stateini(lexer*,fdm*,ghostcell*,turbulence*);
+	void stateini(lexer*,fdm*,ghostcell*,turbulence*,sediment*);
+    void inipsi(lexer*,fdm*,ghostcell*);
 
 private:
 	void inifdm(fdm*, lexer*, ghostcell*);

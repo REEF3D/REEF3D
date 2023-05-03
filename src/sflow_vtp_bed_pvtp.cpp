@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,15 +17,15 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
-
-#include"sflow_vtp_bed.h"
+#include"sflow_vtp_bed.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
+#include"sediment.h"
 
-
-void sflow_vtp_bed::pvtu(lexer *p, fdm2D* b, ghostcell* pgc)
+void sflow_vtp_bed::pvtu(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
 {	
 	int num=0;
 
@@ -85,16 +85,26 @@ void sflow_vtp_bed::pvtu(lexer *p, fdm2D* b, ghostcell* pgc)
 	result<<"<PPolyData  GhostLevel=\"0\">"<<endl;
 	
 	result<<"<PPoints>"<<endl;
-	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>"<<endl;
+	result<<"<PDataArray type=\"Float64\" NumberOfComponents=\"3\"/>"<<endl;
 	result<<"</PPoints>"<<endl;
 	
 	result<<"<PPointData>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"depth\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"bedload\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"bedchange\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"sedactive\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
+    
+    if(p->P76==1)
+	psed->name_pvtu_bedload(p,pgc,result);
+    
+    if(p->P77==1)
+	psed->name_pvtu_parameter1(p,pgc,result);
+
+    if(p->P78==1)
+	psed->name_pvtu_parameter2(p,pgc,result);
+
+	if(p->P79>=1)
+	psed->name_pvtu_bedshear(p,pgc,result);
+    
     if(p->P23==1)
     result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
 	result<<"</PPointData>"<<endl;

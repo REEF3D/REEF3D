@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,8 +24,9 @@ Author: Hans Bihs
 class convection;
 class pressure;
 class solver;
-class fdm;
+class fdm_nhf;
 class lexer;
+class field;
 class ghostcell;
 class fluid_update;
 class heat;
@@ -45,8 +46,12 @@ using namespace std;
 class nhflow_fsf
 {
 public:    
-    virtual void start(lexer*, fdm*, ghostcell*, ioflow*)=0;
-    virtual void ini(lexer*, fdm*, ghostcell*, ioflow*)=0;
+    virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*)=0;
+    virtual void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*)=0;
+    
+    virtual void step1(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double)=0;
+    virtual void step2(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double)=0;
+    virtual void step3(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double)=0;
 
         
 

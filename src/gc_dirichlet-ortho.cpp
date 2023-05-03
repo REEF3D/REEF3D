@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"lexer.h"
@@ -24,7 +25,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"field.h"
 #include"math.h"
 #include"density_f.h"
-
 
 void ghostcell::dirichlet_ortho(lexer *p,field& f,double dist,int gcv, int bc, int cs)
 {
@@ -135,17 +135,4 @@ void ghostcell::dirichlet_ortho(lexer *p,field& f,double dist,int gcv, int bc, i
 	if(cs==6)
 	for(q=0;q<margin;++q)
 	f(i,j,k+q+1) = y[orderdir+q-1+ys];
-	
-    /*
-    if(p->mpirank==0)
-    if(cs==1 && gcv==10)
-    { 
-    cout<<"U: "<<f(i,j,k)<<" . ";
-	for(q=0;q<margin;++q)
-    cout<<y[orderdir+q-1+ys]<<" ";
-    
-    cout<<endl;
-    }*/
-
 }
-

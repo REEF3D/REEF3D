@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_f.h"
@@ -24,6 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"iowave.h"
+#include"sediment.h"
 #include"hypre_struct2D.h"
 #include"sflow_etimestep.h"
 #include"sflow_weno_flux.h"
@@ -34,7 +36,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"sflow_vtp_bed.h"
 #include"sflow_filter.h"
 #include"sflow_turbulence.h"
-#include"sflow_sediment.h"
 #include"6DOF_sflow.h"
 #include<iostream>
 #include<fstream>
@@ -74,7 +75,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 
         if(p->mpirank==0 && (p->count%p->P12==0))
         {
-        cout<<"------------------------------"<<endl;
+        cout<<"------------------------------------"<<endl;
         cout<<p->count<<endl;
         
         cout<<"simtime: "<<p->simtime<<endl;
@@ -115,7 +116,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         b->breaking(i,j)=0;
         
         // sediment transport
-        psed->start(p,b,pgc,b->P,b->Q,b->topovel);
+        psed->start_sflow(p,b,pgc,pflow,b->P,b->Q);
         pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
         
         // 6DOF
@@ -139,8 +140,8 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 		
 		double ptime=pgc->timer();
 		
-        pprint->start(p,b,pgc,pflow,pturb);
-		pprintbed->start(p,b,pgc);
+        pprint->start(p,b,pgc,pflow,pturb,psed);
+		pprintbed->start(p,b,pgc,psed);
 		
 		p->printouttime=pgc->timer()-ptime;
 
@@ -168,6 +169,8 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
             cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
             cout<<"timer per step: "<<setprecision(3)<<p->itertime<<endl;
             }
+            
+        mainlog(p);
         }
         
     p->gctime=0.0;
@@ -190,7 +193,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         if(p->mpirank==0)
         cout<<endl<<"EMERGENCY STOP  --  velocities exceeding critical value N 61"<<endl<<endl;
         
-        pprint->print2D(p,b,pgc,pturb);
+        pprint->print2D(p,b,pgc,pturb,psed);
     
     pgc->final();
     exit(0);
@@ -237,3 +240,36 @@ void sflow_f::print_debug(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 	debug.close();
 }
+
+void sflow_f::log_ini(lexer *p)
+{
+
+	// Create Folder
+	if(p->mpirank==0 && p->P14==1)
+	mkdir("./REEF3D_SFLOW_Log",0777);
+
+    if(p->mpirank==0)
+    {
+    if(p->P14==0)
+    mainlogout.open("REEF3D_SFLOW_mainlog.dat");
+    if(p->P14==1)
+    mainlogout.open("./REEF3D_SFLOW_Log/REEF3D_SFLOW_mainlog.dat");
+
+    mainlogout<<"number of cells:  "<<p->cellnumtot2D<<endl;
+    mainlogout<<"#iteration \t #timestep \t #simtime \t #itertime \t #piter \t #ptime "<<endl;
+    }
+
+    
+}
+
+void sflow_f::mainlog(lexer *p)
+{
+	 if(p->count%p->P12==0)
+	 {
+     mainlogout<<fixed<<p->count<<" \t "<<setprecision(5)<<p->dt<<" \t "<<setprecision(5)<<p->simtime<<" \t ";
+	 mainlogout<<fixed<<setprecision(4)<<p->itertime<<" \t ";
+	 mainlogout<<p->poissoniter<<" \t "<<setprecision(4)<<p->poissontime<<" \t ";
+	 mainlogout<<endl;
+	 }
+}
+

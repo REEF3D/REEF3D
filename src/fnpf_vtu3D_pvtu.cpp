@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fnpf_vtu3D.h"
@@ -90,6 +91,10 @@ void fnpf_vtu3D::pvtu(lexer *p, ghostcell* pgc)
 	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"Fi\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
+    if(p->P23==1)
+	result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
+    if(p->P110==1)
+	result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>"<<endl;
     if(p->P25==1)
         result<<"<PDataArray type=\"Float32\" Name=\"solid\"/>"<<endl;
 	result<<"</PPointData>"<<endl;

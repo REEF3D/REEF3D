@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"momentum_IMEX.h"
@@ -42,10 +43,6 @@ momentum_IMEX::momentum_IMEX(lexer *p, fdm *a, convection *pconvection, diffusio
 	gcval_v=11;
 	gcval_w=12;
 	
-    gcval_urk=20;
-	gcval_vrk=21;
-	gcval_wrk=22;
-
     // 2nd order scheme
     gamma = 1.0/6.0*(3.0 + sqrt(3.0));
     a11 = 0.5;
@@ -82,11 +79,11 @@ momentum_IMEX::momentum_IMEX(lexer *p, fdm *a, convection *pconvection, diffusio
     ppoissonsolv=ppoissonsolver;
 	pflow=pioflow;
     
-    if(p->W90>0)
-	pupdate = new fluid_update_rheology(p,a);
-    
-    if(p->W90==0)
+    if(p->W90==0  || p->F300>0)
 	pupdate = new fluid_update_void();
+    
+    if(p->W90==1 && p->F300==0)
+	pupdate = new fluid_update_rheology(p,a);
 }
 
 momentum_IMEX::~momentum_IMEX()
@@ -141,11 +138,11 @@ void momentum_IMEX::start(lexer *p, fdm* a, ghostcell* pgc, vrans *pvrans)
     {
         // Evaluate momentum predictor step in a->u,v,w 
         pdiff->diff_u(p,a,pgc,psolv,a->u,a->v,a->w,a11);                  
-        pgc->start1(p,a->u,gcval_urk);
+        pgc->start1(p,a->u,gcval_u);
         pdiff->diff_v(p,a,pgc,psolv,a->u,a->v,a->w,a11);
-        pgc->start2(p,a->v,gcval_vrk);
+        pgc->start2(p,a->v,gcval_v);
         pdiff->diff_w(p,a,pgc,psolv,a->u,a->v,a->w,a11);
-        pgc->start3(p,a->w,gcval_wrk);
+        pgc->start3(p,a->w,gcval_w);
 
         // Evaluate pressure in a->press
         pflow->pressure_io(p,a,pgc);
@@ -162,9 +159,9 @@ void momentum_IMEX::start(lexer *p, fdm* a, ghostcell* pgc, vrans *pvrans)
 	pflow->v_relax(p,a,pgc,a->v);
 	pflow->w_relax(p,a,pgc,a->w);
 	
-	pgc->start1(p,a->u,gcval_urk);
-	pgc->start2(p,a->v,gcval_vrk);
-	pgc->start3(p,a->w,gcval_wrk);
+	pgc->start1(p,a->u,gcval_u);
+	pgc->start2(p,a->v,gcval_v);
+	pgc->start3(p,a->w,gcval_w);
         
     pupdate->start(p,a,pgc);
 
@@ -265,9 +262,9 @@ void momentum_IMEX::start(lexer *p, fdm* a, ghostcell* pgc, vrans *pvrans)
         pflow->v_relax(p,a,pgc,a->v);
         pflow->w_relax(p,a,pgc,a->w);
         
-        pgc->start1(p,a->u,gcval_urk);
-        pgc->start2(p,a->v,gcval_vrk);
-        pgc->start3(p,a->w,gcval_wrk);
+        pgc->start1(p,a->u,gcval_u);
+        pgc->start2(p,a->v,gcval_v);
+        pgc->start3(p,a->w,gcval_w);
         
         pupdate->start(p,a,pgc);
 

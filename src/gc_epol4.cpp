@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
@@ -62,35 +63,37 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 
 // Pressure    
 	else
-	if((bc==21||bc==22||bc==5||bc==3||(bc==2&&pressout_lable==0)||bc==6||(bc==7&&awa_lable==0)||bc==211||bc==212||bc==112||bc==111) && gcv==40)
-	return gclabel_press;
-	
-	else
-	if((bc==21||bc==22||bc==5||bc==3||(bc==2&&pressout_lable==0)||(bc==7&&awa_lable==0)||bc==211||bc==212||bc==112||bc==111) && gcv==41)
-	return gclabel_press;
-	
-	else
-	if((bc==21||bc==22||bc==5||bc==3||bc==211||bc==212||bc==112||bc==111) && gcv==42)
-	return gclabel_press;
-	
-	else
-	if((bc==21||bc==22||bc==5||bc==3||bc==211||bc==212||bc==112||bc==111) && gcv==43)
-	return gclabel_press;
-	
-	else
-	if((bc==21||bc==22||bc==5||bc==3||(bc==2&&pressout_lable==0)||(bc==7&&awa_lable==0)||bc==211||bc==212||bc==112||bc==111) && (cs!=5) && gcv==44)
-	return gclabel_press;
-	
-	else
-	if((bc==21||bc==22||bc==5||bc==3||bc==211||bc==212||bc==112||bc==111) && (cs!=5)  && gcv==45)
+	if((bc==21||bc==22||bc==5||bc==3||bc==211||bc==212||bc==112||bc==111) && gcv==40)
 	return gclabel_press;
     
+    // wavegen
+    else
+	if(((bc==6&&pressin_lable==0)||bc==211||bc==212||bc==112||bc==111) && gcv==40)
+	return gclabel_press;
+    
+    // awa beach
+    else
+	if(((bc==7&&awa_lable==0)||bc==211||bc==212||bc==112||bc==111) && gcv==40)
+	return gclabel_press;
+    
+    // inflow
+    else
+	if(((bc==1&&pressin_lable==0)||bc==211||bc==212||bc==112||bc==111) && gcv==40)
+	return gclabel_press_in;
+    
+    // outflow
+    else
+	if(( (bc==2&&pressout_lable==0) ||bc==211||bc==212||bc==112||bc==111) && gcv==40)
+	return gclabel_press;
+	
+    
+    // pressure floating_gc
 	else
-	if((bc==41||bc==42||bc==43) && (gcv==40||gcv==41||gcv==42||gcv==43||gcv==44||gcv==45)&&(cs==2||cs==3||cs==1||cs==4))
+	if((bc==41||bc==42||bc==43) && gcv==40 && (cs==2||cs==3||cs==1||cs==4))
 	return 9;
     
 	else
-	if((bc==41||bc==42||bc==43) && (gcv==40||gcv==41||gcv==42||gcv==43||gcv==44||gcv==45)  && (cs==5||cs==6) )
+	if((bc==41||bc==42||bc==43) && gcv==40 && (cs==5||cs==6) )
 	return 9;
 	
 	else
@@ -101,88 +104,6 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	if((bc==41||bc==42||bc==43) && (cs==5||cs==6) && gcv==402)
 	return 9;
 	
-    // Inflow
-    else
-	if((bc==1||bc==211||bc==212||bc==112||bc==111) && (gcv==40||gcv==42||((cs!=5) && gcv==44)))
-	return gclabel_press_in;
-	
-	else
-	if((bc==6||bc==211||bc==212||bc==112||bc==111) && (gcv==42||gcv==44))
-	return gclabel_press_in;
-	
-// Solver Poisson
-	else
-	if(gcv==240)
-	return 4;
-	
-	else
-	if((bc==21||bc==22||bc==5||bc==1||bc==2||bc==6||bc==7||bc==8) && gcv==241)
-	return 4;
-	
-	
-// Presscorr
-	else
-	if((bc==21||bc==22||bc==5||bc==3||bc==1||bc==2||bc==6||bc==7||bc==8) && gcv==140)
-	return gclabel_press;
-	
-	
-	else
-	if((bc==21||bc==22||bc==5||bc==3||bc==2||bc==7||bc==8) && gcv==141)
-	return gclabel_press;
-	
-	else
-	if((bc==1||bc==6) && gcv==141)
-	return 5;
-	
-	
-	else
-	if((bc==21||bc==22||bc==5||bc==3||bc==1||bc==6) && gcv==142)
-	return gclabel_press;
-	
-	else
-	if((bc==2||bc==7||bc==8) && gcv==142)
-	return 5;
-	
-	
-	else
-	if((bc==21||bc==22||bc==5||bc==3) && gcv==143)
-	return gclabel_press;
-	
-	else
-	if((bc==2||bc==7||bc==8||bc==1||bc==6) && gcv==143)
-	return 5;
-	
-	
-	else
-	if((bc==21||bc==22||bc==5||bc==3||bc==1||bc==2||bc==6||bc==7||bc==8) && (cs!=5)  && gcv==144)
-	return gclabel_press;
-	
-	else
-	if(cs==5 && gcv==144)
-	return 5;
-	
-
-	else
-	if((bc==21||bc==22||bc==5||bc==3) && (cs!=5)  && gcv==145)
-	return gclabel_press;
-	
-	else
-	if((bc==1||bc==2||bc==6||bc==7||bc==8 || cs==5) && gcv==145)
-	return 5;
-
-	
-	else
-	if((bc==21||bc==22||bc==5||bc==3) && gcv==45)
-	return gclabel_press;
-	
-	else
-	if((bc==1||bc==6||(bc==2&&pressout_lable==0)||(bc==7&&awa_lable==0)) && gcv==45)
-	return gclabel_press;
-	
-	else
-	if((bc==9) && cs==6 && gcv==45)
-	return gclabel_press;
-    
 // ro
     else
 	if(gcv==1)
@@ -231,19 +152,61 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	else
 	if((bc==3||bc==2||bc==1)&&(gcv==24))
 	return 4;
-	
-	else
-	if((cs==6 && bc==3)&&(gcv==24))
+    
+    else
+	if(bc==1 && gcv==24)
 	return 5;
 	
 	else
-	if((cs!=6 || bc!=3)&&(gcv==24))
+	if((cs==6 && bc==3) && (gcv==24))
+	return 5;
+	
+	else
+	if((cs!=6 || bc!=3) && (gcv==24))
 	return 4;
 	
 	else
 	if((bc==6 || bc==7 || bc==8) && gcv==24)
 	return 5;
+    
+// omega (sigma coordinate)
+    // Parallel
+	// Wall
+	if((bc==21||bc==22||bc==5||(bc==7&&awa_lable==0))&&(cs==2||cs==3||cs==1||cs==4)&&(gcv==12))
+	return 4;
 
+    // Othogonal
+	else
+	if((bc==21||bc==22||bc==5||(bc==7&&awa_lable==0))&&(cs==6)&&(gcv==12))
+	return 5;
+
+    //Inflow	
+    else
+	if((bc==6 && gcv==12))
+	return 4;
+	
+    //Outflow
+	else
+	if((bc==2 && gclabel_outflow==1) && (gcv==12||gcv==3) && (cs==2||cs==3||cs==1||cs==4))
+	return 4;
+	
+	else
+	if((bc==2 && gclabel_outflow==1) && (gcv==12) && (cs==5||cs==6))
+	return 5;
+    
+    //Patch    
+    else
+	if((bc==111 || bc==112 || bc==121 || bc==122) && (gcv==12))
+	return 4;
+
+    //Free Surface
+	else
+	if((bc==3) && (cs==2||cs==3||cs==1||cs==4) && (gcv==12))
+	return 4;
+
+	else
+	if(bc==3 && (cs==5||cs==6)&&(gcv==12) && p->A10==55)
+	return 4;
 	
 // VOF
 	else
@@ -355,11 +318,11 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 // NHFLOW
     else
 	if((bc==21||bc==22||bc==5||bc==3||(bc==2&&pressout_lable==0)||bc==6||(bc==7&&awa_lable==0)||bc==211||bc==212||bc==112||bc==111) && cs!=6 && gcv==540)
-	return gclabel_press;
+	return 4;
     
     else
-	if((bc==21||bc==22||bc==5||bc==3||(bc==2&&pressout_lable==0)||bc==6||(bc==7&&awa_lable==0)||bc==211||bc==212||bc==112||bc==111) && cs==6 && gcv==540)
-	return gclabel_press;
+	if(bc==3 && cs==6 && gcv==540)
+	return 11;
     
     
 	else
@@ -416,7 +379,12 @@ void ghostcell::gcdistro4(lexer *p, field &f, int ii, int jj, int kk, int nn, do
 	gcb_debug(f,gcv,bc,cs);
 }
 
-void ghostcell::gcdistro4V(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, double dist,  int gcv, int bc, int cs, int id)
+void ghostcell::gcdistro4V(lexer *p, double *f, int ii, int jj, int kk, int nn, double dist,  int gcv, int bc, int cs)
+{
+    
+}
+
+void ghostcell::gcdistro4vec(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, double dist,  int gcv, int bc, int cs, int id)
 {
     i=ii;
 	j=jj;
@@ -428,7 +396,7 @@ void ghostcell::gcdistro4V(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, d
 	gcV_lsm(p,vec,dist,gcv,bc,cs,id);
     
     if(bc_label==3)
-	gcV_lsm(p,vec,dist,gcv,bc,cs,id);
+	extendV(p,a,vec,dist,gcv,bc,cs);
     
 	if(bc_label==4)
 	gcV_neumann(vec,gcv,bc,cs,id);

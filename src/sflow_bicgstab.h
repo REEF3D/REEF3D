@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -22,7 +22,6 @@ Author: Hans Bihs
 
 #include"solver2D.h"
 #include"increment.h"
-#include"slicegen.h"
 
 using namespace std;
 
@@ -41,17 +40,17 @@ public:
     void fillxvec(lexer*,slice&,vec2D&);
 	void finalize(lexer*,slice&);
 
-	double res_calc(lexer*, matrix2D&, ghostcell*, slice&);
-	void matvec_axb(lexer*, matrix2D&, slice&, slice&);
-	void matvec_std(lexer*, matrix2D&, slice&, slice&);
+	double res_calc(lexer*, matrix2D&, ghostcell*, double*);
+	void matvec_axb(lexer*, matrix2D&, double*, double*);
+	void matvec_std(lexer*, matrix2D&, double*, double*);
     
     void precon_setup(lexer*, matrix2D&,ghostcell*);
-    void precon_solve(lexer*,ghostcell*,slice&,slice&);
+    void precon_solve(lexer*,ghostcell*,double*,double*);
 	
     
 private:
 
-    slicegen sj,rj,r0,vj,tj,pj,ph,sh,x,rhs,aii;    
+    double *sj,*rj,*r0,*vj,*tj,*pj,*ph,*sh,*x,*rhs,*aii;
 
     int num_iterations;
     double final_res_norm;

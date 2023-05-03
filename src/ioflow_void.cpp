@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,12 +17,14 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ioflow_void.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"fdm2D.h"
+#include"fdm_nhf.h"
 #include"vrans_v.h"
 #include"vrans_f.h"
 #include"rheology_v.h"
@@ -231,7 +233,7 @@ void ioflow_v::velocity_inlet(lexer *p, fdm* a, ghostcell* pgc, field &u, field 
     
     
     
-    GC1LOOP
+    GC3LOOP
     {
         if(p->W11==1)
         if(p->gcb3[n][3]==1 && p->gcb3[n][4]==1)
@@ -441,8 +443,140 @@ void  ioflow_v::ksource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     prheo->w_source(p,a);
 }
 
+void ioflow_v::isource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
+{
+	NLOOP4
+	d->rhsvec.V[n]=0.0;
+	
+    double porousterm;
+
+	// Darcy Porosity
+	count=0;
+    if(p->B240>0 && p->B241==1)
+    LOOP
+	{
+		
+		porousterm=0.0;
+		for(n=0;n<p->B240;++n)
+		{
+			if(p->pos_x() >= p->B240_xs[n] && p->pos_x() < p->B240_xe[n])
+			if(p->pos_y() >= p->B240_ys[n] && p->pos_y() < p->B240_ye[n])
+			if(p->pos_z() >= p->B240_zs[n] && p->pos_z() < p->B240_ze[n])
+			porousterm=p->B240_D[n]*d->visc[IJK]*d->U[IJK] + 0.5*p->B240_C[n]*d->U[IJK]*fabs(d->U[IJK]);
+		}
+	
+    d->rhsvec.V[count] -= porousterm;
+	++count;
+	}
+	
+	//VRANS
+   //pvrans->u_source(p,a);
+}
+
+void ioflow_v::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
+{
+	NLOOP4
+	d->rhsvec.V[n]=0.0;
+	
+    double porousterm;
+
+	count=0;
+    if(p->B240>0 && p->B242==1)
+    VLOOP
+	{
+		// porous media
+		porousterm=0.0;
+		for(n=0;n<p->B240;++n)
+		{
+			if(p->pos_x() >= p->B240_xs[n] && p->pos_x() < p->B240_xe[n])
+			if(p->pos_y() >= p->B240_ys[n] && p->pos_y() < p->B240_ye[n])
+			if(p->pos_z() >= p->B240_zs[n] && p->pos_z() < p->B240_ze[n])
+			porousterm=p->B240_D[n]*d->visc[IJK]*d->V[IJK] + 0.5*p->B240_C[n]*d->V[IJK]*fabs(d->V[IJK]);
+		}
+	
+    d->rhsvec.V[count] -= porousterm;
+	++count;
+	}
+    
+    //VRANS
+    //pvrans->v_source(p,a);
+}
+
+void ioflow_v::ksource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
+{
+	NLOOP4
+	d->rhsvec.V[n]=0.0;
+	
+    double porousterm;
+	
+	count=0;
+    if(p->B240>0 && p->B243==1)
+    LOOP
+	{
+		// porous media
+		porousterm=0.0;
+		for(n=0;n<p->B240;++n)
+		{
+			if(p->pos_x() >= p->B240_xs[n] && p->pos_x() < p->B240_xe[n])
+			if(p->pos_y() >= p->B240_ys[n] && p->pos_y() < p->B240_ye[n])
+			if(p->pos_z() >= p->B240_zs[n] && p->pos_z() < p->B240_ze[n])
+			porousterm=p->B240_D[n]*d->visc[IJK]*d->W[IJK] + 0.5*p->B240_C[n]*d->W[IJK]*fabs(d->W[IJK]);
+		}
+
+    d->rhsvec.V[count] -= porousterm;
+	++count;
+	}
+    
+    //VRANS
+    //pvrans->w_source(p,a);
+}
+
 void ioflow_v::pressure_io(lexer *p, fdm *a, ghostcell* pgc)
 {
+    double pval=0.0;
+
+        GC4LOOP
+        if(p->gcb4[n][4]==2)
+        {
+        i=p->gcb4[n][0];
+        j=p->gcb4[n][1];
+        k=p->gcb4[n][2];
+		pval=0.0;
+		
+			if(p->B77==0)
+			{
+			pval=(p->phiout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
+			
+			a->press(i+1,j,k)=pval;
+			a->press(i+2,j,k)=pval;
+			a->press(i+3,j,k)=pval;
+			}
+		
+			if(p->B77==2)
+			{
+			double eps,H;
+                
+            eps = 0.6*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
+        
+            if(a->phi(i,j,k)>eps)
+            H=1.0;
+
+            if(a->phi(i,j,k)<-eps)
+            H=0.0;
+
+            if(fabs(a->phi(i,j,k))<=eps)
+            H=0.5*(1.0 + a->phi(i,j,k)/eps + (1.0/PI)*sin((PI*a->phi(i,j,k))/eps));
+        
+            pval=(1.0-H)*a->press(i,j,k);
+            
+             a->press(i,j,k)=pval;
+			a->press(i+1,j,k)=pval;
+			a->press(i+2,j,k)=pval;
+			a->press(i+3,j,k)=pval;
+			}
+			
+        }
+        
     pBC->patchBC_pressure(p,a,pgc,a->press);
 }
 
@@ -668,6 +802,22 @@ void ioflow_v::turb_relax(lexer *p, fdm *a, ghostcell *pgc, field &f)
 {
 }
 
+void ioflow_v::U_relax(lexer *p, ghostcell *pgc, double *U)
+{
+}
+
+void ioflow_v::V_relax(lexer *p, ghostcell *pgc, double *V)
+{
+}
+
+void ioflow_v::W_relax(lexer *p, ghostcell *pgc, double *W)
+{
+}
+
+void ioflow_v::P_relax(lexer *p, ghostcell *pgc, double *P)
+{
+}
+
 void ioflow_v::fi_relax(lexer *p, ghostcell *pgc, field &f, field &phi)
 {
 }
@@ -765,10 +915,10 @@ void ioflow_v::jsource2D(lexer *p, fdm2D* b, ghostcell* pgc)
 void ioflow_v::ini(lexer *p, fdm* a, ghostcell* pgc)
 {
     if(p->B269==0)
-	pvrans = new vrans_v(p,a,pgc);
+	pvrans = new vrans_v(p,pgc);
 	
 	if(p->B269==1 || p->S10==2)
-	pvrans = new vrans_f(p,a,pgc);
+	pvrans = new vrans_f(p,pgc);
     
     if(p->W90==0)
     prheo = new rheology_v(p,a);
@@ -828,17 +978,31 @@ void ioflow_v::inflow_fnpf(lexer *p, fdm_fnpf*, ghostcell *pgc, double *Fi, doub
 
 }
 
+void ioflow_v::rkinflow_fnpf(lexer *p, fdm_fnpf*, ghostcell *pgc, slice &frk, slice &f)
+{
+}
+
 void ioflow_v::vrans_sed_update(lexer *p,fdm *a,ghostcell *pgc,vrans *pvrans)
 {
     pvrans->sed_update(p,a,pgc);
 }
 
-void ioflow_v::nhflow_inflow(lexer *p,fdm *a,ghostcell *pgc, field &uvel, field &vvel, field &wvel)
+void ioflow_v::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 
 }
 
-void ioflow_v::ini_nhflow(lexer *p,fdm *a,ghostcell *pgc)
+void ioflow_v::discharge_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+
+}
+
+void ioflow_v::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W)
+{
+
+}
+
+void ioflow_v::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W)
 {
 
 }

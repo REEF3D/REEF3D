@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -39,8 +39,8 @@ public:
 	idiff2(lexer*);
 	virtual ~idiff2();
 
-	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double);
-	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double, double){};
+	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double, double);
+	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double, double){};
     virtual void idiff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double);
     
 	virtual void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);

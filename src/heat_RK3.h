@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -41,6 +41,7 @@ public:
     virtual void diff_update(lexer*, fdm*, ghostcell*);
     
     field4 thermdiff;
+    field4 ark1,ark2,Tdiff;
 
 private:
     void clearrhs(lexer*,fdm*,ghostcell*);

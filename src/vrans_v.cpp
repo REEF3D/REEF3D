@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -25,12 +25,8 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-vrans_v::vrans_v(lexer *p, fdm *a, ghostcell *pgc) 
+vrans_v::vrans_v(lexer *p, ghostcell *pgc) 
 {
-	ALOOP
-	a->porosity(i,j,k)=1.0;
-	
-	pgc->start4a(p,a->porosity,1);
 }
 
 vrans_v::~vrans_v()

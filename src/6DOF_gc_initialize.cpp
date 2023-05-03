@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_gc.h"
@@ -36,7 +37,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void sixdof_gc::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 {
-	print_ini(p,a,pgc);
+    if(p->mpirank==0)
+    cout<<"6DOF_gc_ini "<<endl;
+    
+    if(p->X50==1)
+	print_ini_vtp(p,a,pgc);
+    
+    if(p->X50==2)
+	print_ini_stl(p,a,pgc);
+    
 	ini_parameter(p,a,pgc);
 	
     objects(p,a,pgc);
@@ -60,7 +69,12 @@ void sixdof_gc::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 	interface(p,true);
 	maxvel(p,a,pgc);
 	pgc->gcfb_update(p,a);
-	print_stl(p,a,pgc);
+	
+    if(p->X50==1)
+    print_vtp(p,a,pgc);
+    
+    if(p->X50==2)
+    print_stl(p,a,pgc);
     
     if(p->X221==1)
     read_motionvec(p,a,pgc);

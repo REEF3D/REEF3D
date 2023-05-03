@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -43,9 +43,9 @@ public:
 
 	virtual void start(fdm*,lexer* , poisson*, solver*, ghostcell*, ioflow*, field&, field&, field&,double);
 	virtual void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	virtual void upgrad(lexer*,fdm*);
-	virtual void vpgrad(lexer*,fdm*);
-	virtual void wpgrad(lexer*,fdm*);
+	virtual void upgrad(lexer*,fdm*,slice&,slice&);
+	virtual void vpgrad(lexer*,fdm*,slice&,slice&);
+	virtual void wpgrad(lexer*,fdm*,slice&,slice&);
 	virtual void ucorr(lexer*,fdm*,field&,double);
 	virtual void vcorr(lexer*,fdm*,field&,double);
 	virtual void wcorr(lexer*,fdm*,field&,double);

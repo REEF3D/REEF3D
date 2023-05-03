@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"lexer.h"
@@ -108,28 +109,27 @@ void ghostcell::dirichlet_para(lexer *p,field& f,double dist,int gcv, int bc, in
 
 // write extrapolated ghost cell values into f()
 
-
 	if(cs==1)
 	for(q=0;q<margin;++q)
-	f(i-q-1,j,k)=y[orderdir+q-1+ys];
+	f(i-q-1,j,k) = y[orderdir+q-1+ys];
 
 	if(cs==2)
 	for(q=0;q<margin;++q)
-	f(i,j+q+1,k)=y[orderdir+q-1+ys];
+	f(i,j+q+1,k) = y[orderdir+q-1+ys];
 
 	if(cs==3)
 	for(q=0;q<margin;++q)
-	f(i,j-q-1,k)=y[orderdir+q-1+ys];
+	f(i,j-q-1,k) = y[orderdir+q-1+ys];
 
 	if(cs==4 )
 	for(q=0;q<margin;++q)
-	f(i+q+1,j,k)=y[orderdir+q-1+ys];
+	f(i+q+1,j,k) = y[orderdir+q-1+ys];
 
 	if(cs==5)
 	for(q=0;q<margin;++q)
-	f(i,j,k-q-1)=y[orderdir+q-1+ys];
+	f(i,j,k-q-1) = y[orderdir+q-1+ys];
 
 	if(cs==6)
 	for(q=0;q<margin;++q)
-	f(i,j,k+q+1)=y[orderdir+q-1+ys];
+	f(i,j,k+q+1) = y[orderdir+q-1+ys];
 }

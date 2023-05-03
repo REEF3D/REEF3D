@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"initialize.h"
@@ -105,9 +106,11 @@ void initialize::inifdm(fdm* a, lexer* p, ghostcell* pgc)
     {
 	a->fb(i,j,k)=1.0;
     a->topo(i,j,k)=1.0;
+    a->porosity(i,j,k)=1.0;
     }
 
 	pgc->start4(p,a->ro,1);
+    pgc->start4(p,a->ro,1);
 	pgc->start4(p,a->visc,1);
 	pgc->start4(p,a->eddyv,1);
     pgc->start4a(p,a->porosity,1);
@@ -124,7 +127,8 @@ void initialize::nodecalc(fdm* a, lexer* p)
 	p->pointnum=0;
 	p->cellnum=0;
 	i=0;
-
+    
+    // 3D
 	TPLOOP
 	{
 	++count;
@@ -137,6 +141,15 @@ void initialize::nodecalc(fdm* a, lexer* p)
     
     LOOP
     ++p->tpcellnum;
+    
+    // 2D
+    count=0;
+    TPSLICELOOP
+	{
+	++count;
+	++p->pointnum2D;
+	a->nodeval2D(i,j)=count;
+    }
 }
 
 void initialize::maxcoor(fdm* a, lexer* p, ghostcell* pgc)

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,7 +23,7 @@ Author: Hans Bihs
 #include"bedshear_reduction.h"
 
 class lexer;
-class fdm;
+class sediment_fdm;
 class ghostcell;
 
 using namespace std;
@@ -37,7 +37,7 @@ public:
     reduction_void(lexer*);
     virtual ~reduction_void();
 
-	virtual void start(lexer*, fdm*,ghostcell*,sediment_fdm*);
+	virtual void start(lexer*,ghostcell*,sediment_fdm*);
 
 };
 

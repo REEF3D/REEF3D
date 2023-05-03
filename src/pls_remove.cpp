@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,15 +17,16 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"particle.h"
+#include"particle_pls.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include<math.h>
 
-void particle::remove(lexer* p, fdm* a, ghostcell* pgc)
+void particle_pls::remove(lexer* p, fdm* a, ghostcell* pgc)
 {
     removed = 0;
 
@@ -40,7 +41,7 @@ void particle::remove(lexer* p, fdm* a, ghostcell* pgc)
 
             check=boundcheck(p,a,i,j,k,1);
 			
-			// remove particles too far away from ls
+			// remove particle_plss too far away from ls
             if(check==1)
             if(p->flag5[IJK]>0  || fabs(pos[n][3])>epsi)
             {
@@ -50,7 +51,7 @@ void particle::remove(lexer* p, fdm* a, ghostcell* pgc)
             removed++;
             }
 			
-			// remove out of bounds particles
+			// remove out of bounds particle_plss
             if(check==0)
             {
 			pcount++;

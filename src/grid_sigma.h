@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"increment.h"
 
 class lexer;
-class fdm;
+class fdm_nhf;
 class ghostcell;
 class field;
 class fnpf_convection;
@@ -44,22 +44,22 @@ public:
 	virtual ~grid_sigma();
     
     virtual void sigma_coord_ini(lexer*);
-    virtual void sigma_ini(lexer*, fdm*, ghostcell*, slice&);
-    virtual void sigma_update(lexer*, fdm*, ghostcell*, slice&);
+    virtual void sigma_ini(lexer*, fdm_nhf*, ghostcell*, slice&);
+    virtual void sigma_update(lexer*, fdm_nhf*, ghostcell*, slice&, slice&, double);
     
     
-    double sigmax(lexer*,field&,int);
-    double sigmay(lexer*,field&,int);
-    double sigmaz(lexer*,field&,int);
-    double sigmat(lexer*,field&,int);
+    double sigmax(lexer*,int);
+    double sigmay(lexer*,int);
+    double sigmaz(lexer*,int);
+    double sigmat(lexer*,int);
     
-    void omega_update(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    void omega_update(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,slice&,slice&,double);
 
         
 private:
     
-    void disc_bed(lexer*, fdm*, ghostcell*);
-    void disc_eta(lexer*, fdm*, ghostcell*);
+    void disc_bed(lexer*, fdm_nhf*, ghostcell*);
+    void disc_eta(lexer*, fdm_nhf*, ghostcell*);
     
     fnpf_convection *pdx;
     fnpf_ddx *pddx;

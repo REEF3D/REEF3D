@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"rans_io.h"
@@ -36,11 +37,10 @@ void rans_io::ini(lexer* p, fdm*a, ghostcell* pgc)
 	if(p->B90>0)
 	uref=0.01;
 	
+    if(fabs(uref)<1.0e-6)
+    uref=0.01;
 
     plain_wallfunc(p,a,pgc);
-	
-    inflow(p,a,pgc);
-	
 }
 
 
@@ -131,6 +131,22 @@ void rans_io::inflow(lexer* p, fdm*a, ghostcell* pgc)
 		kin(i-1,j,k)=kin(i,j,k);
 		kin(i-2,j,k)=kin(i,j,k);
 		kin(i-3,j,k)=kin(i,j,k);
+        }
+        
+        GC4LOOP
+        if(p->gcb4[n][4]==2)
+        {
+		i=p->gcb4[n][0];
+		j=p->gcb4[n][1];
+		k=p->gcb4[n][2];
+
+		eps(i+1,j,k)=eps(i,j,k);
+		eps(i+2,j,k)=eps(i,j,k);
+		eps(i+2,j,k)=eps(i,j,k);
+
+		kin(i+1,j,k)=kin(i,j,k);
+		kin(i+2,j,k)=kin(i,j,k);
+		kin(i+3,j,k)=kin(i,j,k);
         }
 }
 

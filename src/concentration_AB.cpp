@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -47,7 +47,7 @@ void concentration_AB::start(fdm* a, lexer* p, convection* pconvec, diffusion* p
     
     clearrhs(p,a,pgc);
 	pconvec->start(p,a,C,4,a->u,a->v,a->w);
-	pdiff->diff_scalar(p,a,pgc,psolv,C,a->visc,1.0,1.0);
+	pdiff->diff_scalar(p,a,pgc,psolv,C,a->visc,a->eddyv,1.0,1.0);
 
 	if(p->count==1)
 	LOOP

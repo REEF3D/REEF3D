@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -22,14 +22,17 @@ Author: Hans Bihs
 
 class lexer;
 class fdm;
+class fdm2D;
 class convection;
 class ghostcell;
 class ioflow;
 class reinitopo;
 class suspended;
-class bedload;
 class topo;
 class reinitopo;
+class field;
+class slice;
+class solver;
 
 #include<fstream>
 
@@ -42,26 +45,56 @@ class sediment
 {
 public:
 
-	virtual void start(lexer*, fdm*, convection*, ghostcell*, ioflow*, topo*, reinitopo*, suspended*, bedload*)=0;
-	virtual void update(lexer*,fdm*,ghostcell*,ioflow*)=0;
-    virtual void relax(lexer*,fdm*,ghostcell*)=0;
-    virtual void ini(lexer*,fdm*,ghostcell*)=0;
+	virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*)=0;
+    virtual void ini_cfd(lexer*,fdm*,ghostcell*)=0;
+    virtual void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*)=0;
+    
+    virtual void start_susp(lexer*, fdm*, ghostcell*, ioflow*, solver*)=0;
+    
+    virtual void start_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&)=0;
+    virtual void ini_sflow(lexer*, fdm2D*, ghostcell*)=0;
+    virtual void update_sflow(lexer*,fdm2D*,ghostcell*,ioflow*)=0;
+    
+    
+    
+    //
+    virtual void relax(lexer*,ghostcell*)=0;
 	virtual double bedshear_point(lexer*,fdm*,ghostcell*)=0;
     
-	virtual void print_3D_bedshear(lexer*, fdm*, ghostcell*,ofstream&)=0;
-	virtual void name_pvtu_bedshear(lexer*, fdm*, ghostcell*,ofstream&)=0;
-    virtual void name_vtu_bedshear(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)=0;
-    virtual void offset_vtu_bedshear(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)=0;
+    virtual double qbeval(int,int)=0;
+    virtual void qbeget(int,int,double)=0;
     
-    virtual void print_3D_parameter1(lexer*, fdm*, ghostcell*,ofstream&)=0;
-	virtual void name_pvtu_parameter1(lexer*, fdm*, ghostcell*,ofstream&)=0;
-    virtual void name_vtu_parameter1(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)=0;
-    virtual void offset_vtu_parameter1(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)=0;
+    virtual double bedzhval(int,int)=0;
     
-    virtual void print_3D_parameter2(lexer*, fdm*, ghostcell*,ofstream&)=0;
-	virtual void name_pvtu_parameter2(lexer*, fdm*, ghostcell*,ofstream&)=0;
-    virtual void name_vtu_parameter2(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)=0;
-    virtual void offset_vtu_parameter2(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)=0;
+    virtual void ctimesave(lexer*, fdm*)=0;
+    
+    virtual void print_2D_bedload(lexer*, ghostcell*,ofstream&)=0;
+    virtual void print_3D_bedload(lexer*, ghostcell*,ofstream&)=0;
+	virtual void name_pvtu_bedload(lexer*, ghostcell*,ofstream&)=0;
+    virtual void name_vtu_bedload(lexer*, ghostcell*,ofstream&, int*, int &)=0;
+    virtual void offset_vtp_bedload(lexer*, ghostcell*,ofstream&, int*, int &)=0;
+    virtual void offset_vtu_bedload(lexer*, ghostcell*,ofstream&, int*, int &)=0;
+    
+	virtual void print_2D_bedshear(lexer*, ghostcell*,ofstream&)=0;
+    virtual void print_3D_bedshear(lexer*, ghostcell*,ofstream&)=0;
+	virtual void name_pvtu_bedshear(lexer*, ghostcell*,ofstream&)=0;
+    virtual void name_vtu_bedshear(lexer*, ghostcell*,ofstream&, int*, int &)=0;
+    virtual void offset_vtp_bedshear(lexer*, ghostcell*,ofstream&, int*, int &)=0;
+    virtual void offset_vtu_bedshear(lexer*, ghostcell*,ofstream&, int*, int &)=0;
+    
+    virtual void print_2D_parameter1(lexer*, ghostcell*,ofstream&)=0;
+    virtual void print_3D_parameter1(lexer*, ghostcell*,ofstream&)=0;
+	virtual void name_pvtu_parameter1(lexer*, ghostcell*,ofstream&)=0;
+    virtual void name_vtu_parameter1(lexer*, ghostcell*,ofstream&, int*, int &)=0;
+    virtual void offset_vtp_parameter1(lexer*, ghostcell*,ofstream&, int*, int &)=0;
+    virtual void offset_vtu_parameter1(lexer*, ghostcell*,ofstream&, int*, int &)=0;
+    
+    virtual void print_2D_parameter2(lexer*, ghostcell*,ofstream&)=0;
+    virtual void print_3D_parameter2(lexer*, ghostcell*,ofstream&)=0;
+	virtual void name_pvtu_parameter2(lexer*, ghostcell*,ofstream&)=0;
+    virtual void name_vtu_parameter2(lexer*, ghostcell*,ofstream&, int*, int &)=0;
+    virtual void offset_vtp_parameter2(lexer*, ghostcell*,ofstream&, int*, int &)=0;
+    virtual void offset_vtu_parameter2(lexer*, ghostcell*,ofstream&, int*, int &)=0;
 
 };
 

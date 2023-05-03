@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -62,6 +62,7 @@ public:
     
 	double ipol4ro(fdm*,field&);
     double ipol4phi(fdm*,field&);
+    double ipol4topo(fdm*,field&);
     double ipol4press(field&);
     double ipol4_a(field&);
     
@@ -83,7 +84,9 @@ public:
 	double sl_ipol1a(slice&);
     double sl_ipol2a(slice&);
     double sl_ipol4(slice&);
-    double sl_ipol4eta(slice&,slice&);
+    double sl_ipol1eta(int*,slice&,slice&);
+    double sl_ipol2eta(int*,slice&,slice&);
+    double sl_ipol4eta(int*,slice&,slice&);
     double sl_ipolint(sliceint&);
     
     double ccslipol1(slice&,double,double);

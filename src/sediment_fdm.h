@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -22,6 +22,8 @@ Author: Hans Bihs
 
 
 #include"sliceint4.h"
+#include"slice1.h"
+#include"slice2.h"
 #include"slice4.h"
 #include"field4a.h"
 
@@ -36,24 +38,30 @@ public:
     sediment_fdm(lexer*);
 	virtual ~sediment_fdm();
     
-    slice4 bedzh,bedzh0;
+    slice1 P;
+    slice2 Q;
+    
+    slice4 bedzh,bedzh0,bedch,bedsole;
     slice4 vz,dh,reduce;
+    slice4 ks;
     
     slice4 tau_eff,tau_crit;
     slice4 shearvel_eff,shearvel_crit;
     slice4 shields_eff, shields_crit;
     
-    slice4 bedload;
-    
     slice4 alpha,teta,gamma,beta,phi;
+    slice4 active;
     
     
     sliceint4 bedk;
     slice4 slideflag;
     
+    slice4 qb,qbe;
+    slice4 cbe,cb,cbn,conc;
     
+    slice4 waterlevel;
     
-
+    double ws;
 
 };
 

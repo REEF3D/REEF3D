@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"VOF_PLIC.h"
@@ -79,7 +80,7 @@ void VOF_PLIC::start
     ghostcell* pgc,
     ioflow* pflow,
     reini* preini,
-    particlecorr* ppart,
+    particle_corr* ppart,
     field &F
 )
 {
@@ -191,12 +192,6 @@ void VOF_PLIC::start
     }
 
 }
-
-
-void VOF_PLIC::ltimesave(lexer* p, fdm *a, field &F)
-{
-}
-
 
 void VOF_PLIC::update
 (

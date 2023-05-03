@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"increment.h"
 
 class fdm_fnpf;
+class force_ale;
 class fnpf_print_wsf;
 class fnpf_print_wsf_theory;
 class fnpf_print_wsfline;
@@ -32,6 +33,7 @@ class fnpf_vtp_fsf;
 class fnpf_vtp_bed;
 class fnpf_state;
 class fnpf_breaking_log;
+class fnpf_print_Hs;
 class potentialfile_out;
 class ioflow;
 
@@ -47,6 +49,7 @@ public:
 	fnpf_vtu3D(lexer*,fdm_fnpf*,ghostcell*);
 	virtual ~fnpf_vtu3D();
 	virtual void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*);
+    virtual void print_stop(lexer*,fdm_fnpf*,ghostcell*);
     virtual void print_vtu(lexer*,fdm_fnpf*,ghostcell*);
     
 private:
@@ -76,6 +79,8 @@ private:
     fnpf_vtp_bed *pbed;
     fnpf_state *pstate;
     fnpf_breaking_log *pbreaklog;
+	force_ale **pforce_ale;
+    fnpf_print_Hs *phs;
 };
 
 #endif

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sliceint.h"
+#include"sliceint.h"
 #include"increment.h"
 
 #ifndef SLICEINT1_H_
@@ -43,7 +43,6 @@ public:
 	int di,dj;
 	int imin,imax,jmax,jmin;
 
-	int *V;
 	int ***gcfeld;
 
 private:

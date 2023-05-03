@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"geotopo.h"
@@ -34,20 +35,22 @@ geotopo::~geotopo()
 {
 }
 
-void geotopo::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection* pconvec, reinitopo* preto, vrans* pvrans)
+void geotopo::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, reinitopo* preto, vrans* pvrans)
 {
     dat(p,a,pgc);
     
-    preto->start(a,p,a->topo,pconvec,pgc);
+    preto->start(p,a,pgc,a->topo);
     
-    
-    if(p->S10!=2)
-    pgc->topo_update(p,a);
+    if(p->G3==0)
+    {
+        if(p->S10!=2)
+        pgc->topo_update(p,a);
+        
+        pflow->gcio_update(p,a,pgc);
+    }
     
     if(p->S10==2)
     pflow->vrans_sed_update(p,a,pgc,pvrans);
-    
-    pflow->gcio_update(p,a,pgc);
 }
 
 

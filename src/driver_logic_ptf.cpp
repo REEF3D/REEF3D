@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
@@ -57,7 +58,6 @@ void driver::logic_ptf()
     
 // Printer
 	pprint = new vtu3D(p,a,pgc);
-
     
 //IOFlow
 	if(p->B60==0 && p->B90==0 && p->B180==0 )
@@ -98,7 +98,7 @@ void driver::logic_ptf()
 	
 	#ifdef HYPRE_COMPILATION
 	if(p->N10>10 && p->N10<=20)
-    plapsolv = new hypre_struct(p,a,pgc,p->N10,p->N11);
+    plapsolv = new hypre_struct(p,pgc,p->N10,p->N11);
     #endif
     
     #ifdef HYPRE_COMPILATION
@@ -121,6 +121,8 @@ void driver::logic_ptf()
     
     pfsfdisc=new convection_void(p);
     
+    pmp = new multiphase_v();
+    
 //  Wave Models
     if(p->A310==3)
     pptf = new ptf_RK3(p,a,pgc);
@@ -128,5 +130,4 @@ void driver::logic_ptf()
     if(p->A310==4)
     pptf = new ptf_RK4(p,a,pgc);
     
-    loop_ptf(a);
 }

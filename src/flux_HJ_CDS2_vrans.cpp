@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2021 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,8 +17,8 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
-
 #include"flux_HJ_CDS2_vrans.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -122,34 +122,34 @@ void flux_HJ_CDS2_vrans::w_flux(fdm* a,int ipol,field& wvel, double &wflux1, dou
 }
 
 
-void flux_HJ_CDS2_vrans::omega_flux(fdm* a,int ipol,field& wvel, double &wflux1, double &wflux2)
+void flux_HJ_CDS2_vrans::omega_flux(lexer *p, fdm* a, int ipol, field &u, field &v, field& w, double &wflux1, double &wflux2)
 {
 
 	if(ipol==1)
 	{
 	pip=3;
-	wflux1 = 0.5*(wvel(i,j,k) + wvel(i+1,j,k));
+	wflux1 = 0.5*(w(i,j,k) + w(i+1,j,k));
 	pip=0;
 	}
 
 	if(ipol==2)
 	{
 	pip=3;
-	wflux1 = 0.5*(wvel(i,j,k) + wvel(i,j+1,k));
+	wflux1 = 0.5*(w(i,j,k) + w(i,j+1,k));
 	pip=0;
 	}
 
 	if(ipol==3)
 	{
     pip=3;
-	wflux1 = 0.5*(wvel(i,j,k) + wvel(i,j,k+1));
+	wflux1 = 0.5*(w(i,j,k) + w(i,j,k+1));
     pip=0;
 	}
 
 	if(ipol==4)
 	{
     pip=3;
-	wflux1 = wvel(i,j,k)*(1.0/a->porosity(i,j,k));
+	wflux1 = w(i,j,k)*(1.0/a->porosity(i,j,k));
     pip=0;
 	}
 }
