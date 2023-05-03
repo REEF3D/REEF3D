@@ -87,6 +87,7 @@ void nhflow_vtu3D::pvtu(lexer *p, ghostcell* pgc)
 	result<<"<PPointData>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"omega_sig\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
     if(p->P23==1)
 	result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;

@@ -141,21 +141,106 @@ void ghostcell::start2V(lexer *p, double *X, int gcv)
     
 }
 
-void ghostcell::start3V(lexer *p, double *X, int gcv)
-{
-    
-}
-
-void ghostcell::start4V(lexer *p, double *x, int gcv)
+void ghostcell::start3V(lexer *p, double *f, int gcv)
 {
     if(p->M10>0)
     {
-    starttime=timer();
-	gcparax7(p,x,7);
-    gcparax7co(p,x,7);
-    gcparax7co(p,x,7);
-	endtime=timer();
-	p->xtime+=endtime-starttime;
+    gcparaxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
+    }
+    
+    LOOP
+    {  
+        //if(p->B98!=3||bc(i-1,j)==0)
+        if(p->flag4[Im1JK]<0)
+        {
+        f[Im1JK] = f[IJK];
+        f[Im2JK] = f[IJK];
+        f[Im3JK] = f[IJK];
+        }
+          
+        //if(p->B99!=3||bc(i+1,j)==0)
+        if(p->flag4[Ip1JK]<0)
+        {
+        f[Ip1JK] = f[IJK];
+        f[Ip2JK] = f[IJK];
+        f[Ip3JK] = f[IJK];
+        }
+        
+        if(p->flag4[IJm1K]<0)
+        {
+        f[IJm1K] = f[IJK];
+        f[IJm2K] = f[IJK];
+        f[IJm3K] = f[IJK];
+        }
+        
+        if(p->flag4[IJp1K]<0)
+        {
+        f[IJp1K] = f[IJK];
+        f[IJp2K] = f[IJK];
+        f[IJp3K] = f[IJK];
+        }
+        /*
+        if(p->flag4[IJKp1]<0)
+        {
+        f[IJKp1] = f[IJK];
+        f[IJKp2] = f[IJK];
+        f[IJKp3] = f[IJK];
+        }*/
+    }
+    
+}
+
+void ghostcell::start4V(lexer *p, double *f, int gcv)
+{
+    if(p->M10>0)
+    {
+    gcparaxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
+    }
+    
+    LOOP
+    {  
+        //if(p->B98!=3||bc(i-1,j)==0)
+        if(p->flag4[Im1JK]<0)
+        {
+        f[Im1JK] = f[IJK];
+        f[Im2JK] = f[IJK];
+        f[Im3JK] = f[IJK];
+        }
+          
+        //if(p->B99!=3||bc(i+1,j)==0)
+        if(p->flag4[Ip1JK]<0)
+        {
+        f[Ip1JK] = f[IJK];
+        f[Ip2JK] = f[IJK];
+        f[Ip3JK] = f[IJK];
+        }
+        
+        if(p->flag4[IJm1K]<0)
+        {
+        f[IJm1K] = f[IJK];
+        f[IJm2K] = f[IJK];
+        f[IJm3K] = f[IJK];
+        }
+        
+        if(p->flag4[IJp1K]<0)
+        {
+        f[IJp1K] = f[IJK];
+        f[IJp2K] = f[IJK];
+        f[IJp3K] = f[IJK];
+        }
+        
+        if(p->flag4[IJKp1]<0)
+        {
+        f[IJKp1] = f[IJK];
+        f[IJKp2] = f[IJK];
+        f[IJKp3] = f[IJK];
+        }
     }
     
     /*fivec_vel(p,x,bc);

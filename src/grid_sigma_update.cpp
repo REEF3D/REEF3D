@@ -124,23 +124,6 @@ void grid_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, 
     FLOOP
     p->sigx[FIJK] = (1.0 - p->sig[FIJK])*(pd->Bx(i,j)/WLVL) - p->sig[FIJK]*(pd->Ex(i,j)/WLVL);
     
-    ULOOP
-    {
-    sigval = 0.25*(p->sig[FIJK]+p->sig[FIJKp1]+p->sig[FIp1JK]+p->sig[FIp1JKp1]);
-    
-    bx = (d->depth(i+1,j)-d->depth(i,j))/p->DXP[IP];
-    ex = (eta(i+1,j)-eta(i,j))/p->DXP[IP]; 
-    
-    p->sigx1[IJK] = (1.0 - sigval)*(bx/HX) - sigval*(ex/HX);
-    }
-    
-    LOOP
-    {
-    sigval = 0.5*(p->sig[FIJK]+p->sig[FIJKp1]);
-    
-    p->sigx4[IJK] = (1.0 - sigval)*(pd->Bx(i,j)/HXP) - sigval*(pd->Ex(i,j)/HXP);
-    }
-    
     // sigy
     FLOOP
     p->sigy[FIJK] = (1.0 - p->sig[FIJK])*(pd->By(i,j)/WLVL) - p->sig[FIJK]*(pd->Ey(i,j)/WLVL);
@@ -156,7 +139,7 @@ void grid_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, 
 
     // sigt
     FLOOP
-    p->sigt[FIJK] = -(p->sig[FIJK]/WLVL)*(d->WL(i,j)-d->WL_n(i,j))/(p->dt);
+    p->sigt[FIJK] = -(p->sig[FIJK]/WLVL)*(d->WL_n1(i,j)-d->WL_n0(i,j))/(p->dt);
 
     // sigxx
     FLOOP
@@ -260,53 +243,61 @@ void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
 { 
     double wval,Pval,Qval,Rval;
     
-    WLOOP
+    LOOP
     {
-    if(0.5*(U[Im1JKp1] + U[IJKp1])>=0.0)
-    Pval=0.5*(U[Im1JK] + U[Im1JKp1]);
+        if(p->A516==1)
+        {
+        if(0.5*(U[Im1JKp1] + U[IJKp1])>=0.0)
+        Pval=0.5*(U[Im1JK] + U[Im1JKp1]);
+            
+        if(0.5*(U[Im1JKp1] + U[IJKp1])<0.0)
+        Pval=0.5*(U[IJK] + U[IJKp1]);
         
-    if(0.5*(U[Im1JKp1] + U[IJKp1])<0.0)
-    Pval=0.5*(U[IJK] + U[IJK+1]);
-    
-    
-    if(0.5*(V[IJm1Kp1] + V[IJKp1])>=0.0)
-    Qval=0.5*(V[IJm1K] + V[IJm1Kp1]);
         
-    if(0.5*(V[IJm1Kp1] + V[IJKp1])<0.0)
-    Qval=0.5*(V[IJK] + V[IJKp1]);
-    
-    
-    
-    if(W[IJK]>=0.0)
-    Rval=0.5*(W[IJK] + W[IJKm1]);
+        if(0.5*(V[IJm1Kp1] + V[IJKp1])>=0.0)
+        Qval=0.5*(V[IJm1K] + V[IJm1Kp1]);
+            
+        if(0.5*(V[IJm1Kp1] + V[IJKp1])<0.0)
+        Qval=0.5*(V[IJK] + V[IJKp1]);
         
-    if(W[IJK]<0.0)
-    Rval=0.5*(W[IJK] + W[IJKp1]);
-    
-    
         
-    d->omega[IJK] =  p->sigt[FIJKp1]
+        if(W[IJK]>=0.0)
+        Rval=0.5*(W[IJK] + W[IJKm1]);
+            
+        if(W[IJK]<0.0)
+        Rval=0.5*(W[IJK] + W[IJKp1]);
+        }
+        
+        if(p->A516==2)
+        {
+        Pval = U[IJK];
+        Qval = V[IJK];
+        Rval = W[IJK];
+        }
+    
+    // omega
+    d->omega[IJK] =    0.5*(p->sigt[FIJK]+p->sigt[FIJKp1])
                     
-                    +  Pval*p->sigx[FIJKp1]
+                    +  Pval*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])
                     
-                    +  Qval*p->sigy[FIJKp1]
+                    +  Qval*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])
                     
                     +  Rval*p->sigz[IJ];
                     
     }
     
-    GC3LOOP
-    if(p->gcb3[n][3]==6 && p->gcb3[n][4]==3)
+    GC4LOOP
+    if(p->gcb4[n][3]==6 && p->gcb4[n][4]==3)
     {
-    i=p->gcb3[n][0];
-    j=p->gcb3[n][1];
-    k=p->gcb3[n][2];
+    i=p->gcb4[n][0];
+    j=p->gcb4[n][1];
+    k=p->gcb4[n][2];
     
+        d->omega[IJKp1] =  0.0;
+        d->omega[IJKp2] =  0.0;
+        d->omega[IJKp3] =  0.0;
         
-        if(p->A516==1)
-        for(int q=0;q<3;++q)
-        d->omega[IJKp1+q] =  0.0;
-        
+        /*
         if(p->A516==2)
         for(int q=0;q<3;++q)
         d->omega[IJKp1+q] =   p->sigt[FIJKp2]
@@ -337,21 +328,22 @@ void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
                     
         if(p->A516==4)
         for(int q=0;q<3;++q)
-        d->omega[IJKp1+q] =  d->omega[IJK];
+        d->omega[IJKp1+q] =  d->omega[IJK];*/
     }
     
-    GC3LOOP
-    if(p->gcb3[n][3]==5 && p->gcb3[n][4]==21)
+    GC4LOOP
+    if(p->gcb4[n][3]==5 && p->gcb4[n][4]==21)
     {
-    i=p->gcb3[n][0];
-    j=p->gcb3[n][1];
-    k=p->gcb3[n][2];
+    i=p->gcb4[n][0];
+    j=p->gcb4[n][1];
+    k=p->gcb4[n][2];
     
-        for(int q=0;q<3;++q)
-        d->omega[IJKm1-q] =  0.0;
+        d->omega[IJKm1] =  0.0;
+        d->omega[IJKm2] =  0.0;
+        d->omega[IJKm3] =  0.0;
     }
     
-    //pgc->start3(p,d->omega,17);
+    pgc->start3V(p,d->omega,17);
     //pgc->start3(p,d->omega,17);
 }
 

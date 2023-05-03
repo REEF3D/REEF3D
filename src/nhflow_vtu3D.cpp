@@ -277,6 +277,13 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     // P
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
+    
+    // omega_sig
+	if(p->P72==1)
+	{
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
+	}
 
     // elevation
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
@@ -314,6 +321,9 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 
 
     result<<"<DataArray type=\"Float32\" Name=\"pressure\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    
+    result<<"<DataArray type=\"Float32\" Name=\"omega_sig\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 
 
@@ -380,7 +390,19 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
-    ffn=float(d->P[FIJKp1]);
+    ffn=float(d->P[IJKp1]);
+
+    if(k==-1 && j==-1)
+	ffn=float(d->P[FIJp1Kp1]);
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
+//  Omega_sig
+    iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	TPLOOP
+	{
+    ffn=float(d->omega[IJKp1]);
 
     if(k==-1 && j==-1)
 	ffn=float(d->P[FIJp1Kp1]);

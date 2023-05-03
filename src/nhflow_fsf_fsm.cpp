@@ -63,7 +63,7 @@ void nhflow_fsf_fsm::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow)
     SLICELOOP4
     {
     d->eta_n(i,j) = d->eta(i,j);
-    d->WL_n(i,j) = d->WL(i,j);
+    d->WL_n0(i,j) = d->WL(i,j);
     }
 
     pgc->gcsl_start4(p,d->eta_n,gcval_phi);

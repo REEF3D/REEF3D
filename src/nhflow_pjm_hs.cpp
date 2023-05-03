@@ -30,6 +30,11 @@ Author: Hans Bihs
 #include"heat.h"
 #include"concentration.h"
 #include"density_f.h"
+#include"fnpf_cds2.h"
+#include"fnpf_cds4.h"
+#include"fnpf_cds6.h"
+#include"fnpf_weno3.h"
+#include"fnpf_weno5.h"
 
 #define HX (fabs(d->hx(i,j))>1.0e-20?d->hx(i,j):1.0e20)
 #define HXP (fabs(0.5*(d->WL(i,j)+d->WL(i+1,j)))>1.0e-20?0.5*(d->WL(i,j)+d->WL(i+1,j)):1.0e20)
@@ -38,6 +43,8 @@ Author: Hans Bihs
 nhflow_pjm_hs::nhflow_pjm_hs(lexer* p, fdm_nhf *d)
 {
 	pd = new density_f(p);
+    
+    pdx = new fnpf_cds2(p);
 
     gcval_press=540;  
 
@@ -76,13 +83,25 @@ void nhflow_pjm_hs::vel_setup(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
 
 void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 {
+    double ivel;
+    
+    
     if(p->D38==1 && p->A540==1)
     LOOP
     {
-	d->F[IJK] -= PORVALNH*fabs(p->W22)*(p->A223*dfdx(p,d,eta) + (1.0-p->A223)*dfdx(p,d,eta_n));
+	//d->F[IJK] -= PORVALNH*fabs(p->W22)*(p->A223*dfdx(p,d,eta) + (1.0-p->A223)*dfdx(p,d,eta_n));
     
-   // d->F[IJK] -= PORVALNH*fabs(p->W22)*
-               // (p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) - p->A223*eta(i-1,j) - (1.0-p->A223)*eta_n(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+    if((d->eta(i+1,j) - d->eta(i-1,j))>=0.0)
+    ivel = 1.0;
+    
+    if((d->eta(i+1,j) - d->eta(i-1,j))<0.0)
+    ivel = -1.0;
+    
+    
+    d->F[IJK] -= PORVALNH*fabs(p->W22)*(p->A223*pdx->sx(p,eta,ivel) + (1.0-p->A223)*pdx->sx(p,eta_n,ivel));
+    
+    //d->F[IJK] -= PORVALNH*fabs(p->W22)*
+   //             (p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) - p->A223*eta(i-1,j) - (1.0-p->A223)*eta_n(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
     }
     
     if(p->D38==1 && p->A540==2)

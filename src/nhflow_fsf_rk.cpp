@@ -130,7 +130,7 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     SLICELOOP4
     {
     d->eta_n(i,j) = d->eta(i,j);
-    d->WL_n(i,j) = d->WL(i,j);
+    d->WL_n0(i,j) = d->WL_n1(i,j);
     }
     
     pgc->gcsl_start4(p,d->eta_n,1);
@@ -153,6 +153,9 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     
     SLICELOOP4
     d->WL(i,j) = MAX(0.0, d->eta(i,j) + p->wd - d->bed(i,j));
+    
+    SLICELOOP4
+    d->WL_n1(i,j) = d->WL(i,j);
     
     p->sigma_update(p,d,pgc,d->eta,etark2,alpha);
     p->omega_update(p,d,pgc,U,V,W,d->eta,etark2,alpha);
