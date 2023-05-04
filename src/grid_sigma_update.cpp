@@ -344,7 +344,6 @@ void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
     }
     
     pgc->start3V(p,d->omega,17);
-    //pgc->start3(p,d->omega,17);
 }
 
 

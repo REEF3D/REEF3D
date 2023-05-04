@@ -405,7 +405,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     ffn=float(d->omega[IJKp1]);
 
     if(k==-1 && j==-1)
-	ffn=float(d->P[FIJp1Kp1]);
+	ffn=float(d->omega[FIJp1Kp1]);
 	result.write((char*)&ffn, sizeof (float));
 	}
 

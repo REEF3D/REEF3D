@@ -321,6 +321,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 
 void nhflow_momentum_RK3::irhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    /*
 	n=0;
 	LOOP
 	{
@@ -328,7 +329,7 @@ void nhflow_momentum_RK3::irhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	d->F[IJK] += (d->rhsvec.V[n])*PORVALNH;
 	d->rhsvec.V[n]=0.0;
 	++n;
-	}
+	}*/
 }
 
 void nhflow_momentum_RK3::jrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)

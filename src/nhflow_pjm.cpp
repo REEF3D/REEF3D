@@ -68,9 +68,9 @@ void nhflow_pjm::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, iofl
 
 	pgc->start5V(p,d->P,gcval_press);
 
-	//ucorr(p,d,U,alpha);
-	//vcorr(p,d,V,alpha);
-	//wcorr(p,d,W,alpha);
+	ucorr(p,d,U,alpha);
+	vcorr(p,d,V,alpha);
+	wcorr(p,d,W,alpha);
 
     p->poissoniter=p->solveriter;
 
@@ -84,16 +84,16 @@ void nhflow_pjm::ucorr(lexer* p, fdm_nhf *d, double *U, double alpha)
 {
 	LOOP
 	U[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*
-                (0.5*((d->P[FIp1JKp1]-d->P[FIm1JKp1])/(p->DXP[IP]+p->DXP[IM1]) + (d->P[FIp1JK]-d->P[FIm1JK])/(p->DXP[IP]+p->DXP[IM1]))
-                + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(d->P[FIJKp1]-d->P[FIJK])/p->DZP[KP1]);
+                (((0.5*(d->P[FIp1JKp1]+d->P[FIp1JK])-0.5*(d->P[FIm1JKp1]+d->P[FIm1JK]))/(p->DXN[IP]+p->DXN[IM1]))
+                + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZP[KP1]));
 }
 
 void nhflow_pjm::vcorr(lexer* p, fdm_nhf *d, double *V,double alpha)
 {
     LOOP
     V[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*
-                (0.5*((d->P[FIJp1Kp1]-d->P[FIJm1Kp1])/(p->DYP[JP]+p->DYP[JM1]) + (d->P[FIJp1K]-d->P[FIJm1K])/(p->DYP[JP]+p->DYP[JM1]))
-                + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(d->P[FIJKp1]-d->P[FIJK])/p->DZP[KP1]);
+                (((0.5*(d->P[FIJp1Kp1]+d->P[FIJp1K])-0.5*(d->P[FIJm1Kp1]+d->P[FIJm1K]))/(p->DYN[JP]+p->DYN[JM1]))
+                + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZP[KP1]));
 }
 
 void nhflow_pjm::wcorr(lexer* p, fdm_nhf *d, double *W, double alpha)
@@ -111,8 +111,6 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
 	d->rhsvec.V[n]=0.0;
     ++n;
     }
-
-    pip=p->Y50;
 
     n=0;
     LOOP
@@ -132,12 +130,10 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
                             + (V2-V1)/(p->DYP[JP1] + p->DYP[JP])
                             + 0.5*(p->sigy[FIJK]+p->sigx[FIJKp1])*(V[IJK]-V[IJKm1])/p->DZP[KM1]
 
-                            + p->sigz[IJ]*(W[IJK]-W[IJm1K])/p->DZN[KP])/(alpha*p->dt);
+                            + p->sigz[IJ]*(W[IJK]-W[IJKm1])/p->DZN[KP])/(alpha*p->dt);
                             
-
     ++n;
     }
-    pip=0;
 }
 
 void nhflow_pjm::bedbc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W,double alpha)

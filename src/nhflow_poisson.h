@@ -41,7 +41,6 @@ public:
 
 private:
 
-	double teta;
 	int count,n,q;
     
 };

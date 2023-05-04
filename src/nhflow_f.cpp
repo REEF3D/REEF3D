@@ -113,6 +113,8 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
     d->porosity[IJK]=1.0;
     }
     
+    pgc->start4V(p,d->porosity,1);
+    
     SLICELOOP4
     d->WL(i,j) = MAX(0.0,d->eta(i,j) + p->wd - d->bed(i,j));
     

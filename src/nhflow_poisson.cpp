@@ -31,7 +31,7 @@ Author: Hans Bihs
 #include"density_heat.h"
 #include"density_vof.h"
 
-nhflow_poisson::nhflow_poisson(lexer *p) : teta(0.5)  
+nhflow_poisson::nhflow_poisson(lexer *p) 
 {
 }
 

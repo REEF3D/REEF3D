@@ -157,8 +157,8 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     SLICELOOP4
     d->WL_n1(i,j) = d->WL(i,j);
     
-    p->sigma_update(p,d,pgc,d->eta,etark2,alpha);
-    p->omega_update(p,d,pgc,U,V,W,d->eta,etark2,alpha);
+    p->sigma_update(p,d,pgc,d->eta,etark2,2.0/3.0);
+    p->omega_update(p,d,pgc,U,V,W,d->eta,etark2,2.0/3.0);
 }
 
 

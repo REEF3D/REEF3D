@@ -28,7 +28,6 @@ Author: Hans Bihs
 
 void ghostcell::start1V(lexer *p, double *f, int gcv)
 {
-    
     //  MPI Boundary Swap
     /*if(p->M10>0)
     {
@@ -338,7 +337,6 @@ void ghostcell::start7V(lexer *p, double *x, sliceint &bc, int gcv)
 	endtime=timer();
 	p->xtime+=endtime-starttime;
     }
-    
     
     if(gcv==250)
     fivec(p,x,bc);
