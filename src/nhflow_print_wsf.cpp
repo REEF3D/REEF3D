@@ -43,10 +43,10 @@ nhflow_print_wsf::nhflow_print_wsf(lexer *p, fdm_nhf *d)
     {
     // open WSF file
 	if(p->P14==0)
-    wsfout.open("REEF3D-NHFLOW-WSF.dat");
+    wsfout.open("REEF3D-NHFLOW-WSF-HG.dat");
 	
 	if(p->P14==1)
-	wsfout.open("./REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF.dat");
+	wsfout.open("./REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG.dat");
 
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
     wsfout<<"x_coord     y_coord"<<endl;
