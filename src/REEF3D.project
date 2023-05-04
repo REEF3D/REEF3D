@@ -257,6 +257,9 @@
           <File Name="nhflow_convection.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="WSF">
+            <File Name="nhflow_print_wsf.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="VTU">
             <File Name="nhflow_vtu3D.h"/>
           </VirtualDirectory>
@@ -1311,6 +1314,9 @@
           <File Name="nhflow_weno_flux.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="WSF">
+            <File Name="nhflow_print_wsf.cpp"/>
+          </VirtualDirectory>
           <File Name="nhflow_vtu3D.cpp"/>
           <VirtualDirectory Name="VTU">
             <File Name="nhflow_vtu3D_pvtu.cpp"/>

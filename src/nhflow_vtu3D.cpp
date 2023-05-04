@@ -26,8 +26,8 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"force_ale.h"
 #include"ioflow.h"
-/*#include"nhflow_print_wsf.h"
-#include"nhflow_print_wsf_theory.h"
+#include"nhflow_print_wsf.h"
+/*#include"nhflow_print_wsf_theory.h"
 #include"nhflow_print_wsfline.h"
 #include"nhflow_print_wsfline_y.h"
 #include"nhflow_vtp_fsf.h"
@@ -69,10 +69,10 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
 	mkdir("./REEF3D_NHFLOW_VTU",0777);
+    
+    pwsf=new nhflow_print_wsf(p,d);
 
     /*
-    pwsf=new nhflow_print_wsf(p,c);
-
     pwsf_theory=new nhflow_print_wsf_theory(p,d,pgc);
 
     pwsfline=new nhflow_print_wsfline(p,d,pgc);
@@ -108,10 +108,10 @@ nhflow_vtu3D::~nhflow_vtu3D()
 void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
 {
     // Gages
-	/*if(p->P51>0)
-	pwsf->height_gauge(p,c,pgc,d->eta);
+	if(p->P51>0)
+	pwsf->height_gauge(p,d,pgc,d->eta);
 
-    if(p->P50>0)
+    /*if(p->P50>0)
     pwsf_theory->height_gauge(p,c,pgc,pflow);*/
 
 		// Print out based on iteration
