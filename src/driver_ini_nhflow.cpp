@@ -101,9 +101,9 @@ void driver::driver_ini_nhflow()
     d->eta_n(i,j) = d->eta(i,j);
 
 	pgc->start1V(p,d->U,10);
-    pgc->start4V(p,d->V,11);
-    pgc->start4V(p,d->W,12);
-    pgc->start4V(p,d->P,540);
+    pgc->start2V(p,d->V,11);
+    pgc->start3V(p,d->W,12);
+    pgc->start5V(p,d->P,540);
     
     pnhfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta,d->eta_n,1.0);
     p->sigma_update(p,d,pgc,d->eta,d->eta,1.0);

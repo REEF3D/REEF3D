@@ -350,10 +350,10 @@ void nhflow_momentum_RK3::krhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	n=0;
 	WLOOP
 	{
-    a->maxH=MAX(fabs(a->rhsvec.V[n] + a->gk),a->maxH);
+    a->maxH=MAX(fabs(a->rhsvec.V[n]),a->maxH);
     
     if(p->D38==0)
-    a->H[IJK] += (a->rhsvec.V[n] + a->gk)*PORVAL3;
+    a->H[IJK] += (a->rhsvec.V[n])*PORVAL3;
     
     if(p->D38>0)
 	a->H[IJK] += (a->rhsvec.V[n])*PORVAL3;

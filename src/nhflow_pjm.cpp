@@ -66,11 +66,11 @@ void nhflow_pjm::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, iofl
 
         endtime=pgc->timer();
 
-	pgc->start4V(p,d->P,gcval_press);
+	pgc->start5V(p,d->P,gcval_press);
 
-	ucorr(p,d,U,alpha);
-	vcorr(p,d,V,alpha);
-	wcorr(p,d,W,alpha);
+	//ucorr(p,d,U,alpha);
+	//vcorr(p,d,V,alpha);
+	//wcorr(p,d,W,alpha);
 
     p->poissoniter=p->solveriter;
 
@@ -78,8 +78,6 @@ void nhflow_pjm::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, iofl
 
 	if(p->mpirank==0 && p->count%p->P12==0)
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
-
-    //pgc->start4(p,d->test,1);
 }
 
 void nhflow_pjm::ucorr(lexer* p, fdm_nhf *d, double *U, double alpha)
@@ -96,7 +94,7 @@ void nhflow_pjm::vcorr(lexer* p, fdm_nhf *d, double *V,double alpha)
     V[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*
                 (0.5*((d->P[FIJp1Kp1]-d->P[FIJm1Kp1])/(p->DYP[JP]+p->DYP[JM1]) + (d->P[FIJp1K]-d->P[FIJm1K])/(p->DYP[JP]+p->DYP[JM1]))
                 + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(d->P[FIJKp1]-d->P[FIJK])/p->DZP[KP1]);
-    }
+}
 
 void nhflow_pjm::wcorr(lexer* p, fdm_nhf *d, double *W, double alpha)
 {
@@ -128,7 +126,7 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
     V2 = (1.0-fac)*V[IJp1K] + fac*V[IJp1Km1]; 
     
          
-    d->rhsvec.V[n] =      -   ((U2-U1)/(p->DXP[IP1] + p->DXP[IP])
+    d->rhsvec.V[n] =      -  ((U2-U1)/(p->DXP[IP1] + p->DXP[IP])
                             + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(U[IJK]-U[IJKm1])/p->DZP[KM1]
                             
                             + (V2-V1)/(p->DYP[JP1] + p->DYP[JP])
@@ -191,11 +189,11 @@ void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d, slice &eta, slice &eta_n)
 {
     if(p->D38==1 && p->A540==1)
-    VLOOP
+    LOOP
 	d->G[IJK] -= PORVALNH*fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j))/p->DYP[JP];
-
+    
     if(p->D38==1 && p->A540==2)
-    VLOOP
+    LOOP
 	d->G[IJK] -= PORVALNH*fabs(p->W22)*(d->eta(i,j+1) - d->eta(i,j))/p->DYP[JP];
 }
 
