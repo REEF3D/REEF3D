@@ -50,6 +50,18 @@ matrix_diag::matrix_diag(lexer *pp)
 	pp->Darray(bbb,pp->veclength);*/
     }
     
+    if(pp->D33==1)
+    {
+    pp->Darray(sb,pp->veclength);
+    pp->Darray(st,pp->veclength);
+    pp->Darray(nb,pp->veclength);
+    pp->Darray(nt,pp->veclength);
+    pp->Darray(eb,pp->veclength);
+    pp->Darray(et,pp->veclength);
+    pp->Darray(wb,pp->veclength);
+    pp->Darray(wt,pp->veclength);
+    }
+    
 }
 
 matrix_diag::~matrix_diag()

@@ -82,12 +82,20 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
         f[IJp3K] = f[IJK];
         }
         
+        if(p->flag4[IJKm1]<0)
+        {
+        f[IJKm1] = 0.0;
+        f[IJKm2] = 0.0;
+        f[IJKm3] = 0.0;
+        }
+        
         if(p->flag4[IJKp1]<0)
         {
         f[IJKp1] = f[IJK];
         f[IJKp2] = f[IJK];
         f[IJKp3] = f[IJK];
         }
+        
     }
     
     gcparaxV(p, f, gcv);

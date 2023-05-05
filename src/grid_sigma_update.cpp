@@ -298,38 +298,6 @@ void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
         d->omega[IJKp2] =  0.0;
         d->omega[IJKp3] =  0.0;
         
-        /*
-        if(p->A516==2)
-        for(int q=0;q<3;++q)
-        d->omega[IJKp1+q] =   p->sigt[FIJKp2]
-                    
-                    +  0.5*(U[Im1JKp1] + U[IJKp1])*p->sigx[FIJKp2]
-                    
-                    +  0.5*(V[IJm1Kp1] + V[IJKp1])*p->sigy[FIJKp2]
-                    
-                    +  W[IJKp1]*p->sigz[IJ];
-                    
-        if(p->A516==3)
-        for(int q=0;q<3;++q)
-        {
-        if(0.5*(U[Im1JKp1] + U[IJKp1])>=0.0)
-        Pval=U[Im1JKp1];
-        
-        if(0.5*(U[Im1JKp1] + U[IJKp1])<0.0)
-        Pval=U[IJKp1];
-        
-        d->omega[IJKp1+q] =   p->sigt[FIJKp2]
-                    
-                    +  Pval*p->sigx[FIJKp2]
-                    
-                    +  0.5*(V[IJm1Kp1] + V[IJKp1])*p->sigy[FIJKp2]
-                    
-                    +  W[IJKp1]*p->sigz[IJ];
-        }
-                    
-        if(p->A516==4)
-        for(int q=0;q<3;++q)
-        d->omega[IJKp1+q] =  d->omega[IJK];*/
     }
     
     GC4LOOP

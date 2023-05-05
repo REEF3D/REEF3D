@@ -42,6 +42,12 @@ nhflow_pjm::nhflow_pjm(lexer* p, fdm_nhf *d, ghostcell *pgc) : teta(1.0)
     ppois = new nhflow_poisson(p);
 
     gcval_press=540;
+    
+    if(p->D33==0)
+    solver_id = 8;
+    
+    if(p->D33==1)
+    solver_id = 9;
 }
 
 nhflow_pjm::~nhflow_pjm()
@@ -62,7 +68,7 @@ void nhflow_pjm::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, iofl
 
         starttime=pgc->timer();
 
-    psolv->startF(p,pgc,d->P,d->rhsvec,d->M,8);
+    psolv->startF(p,pgc,d->P,d->rhsvec,d->M,solver_id);
 
         endtime=pgc->timer();
 

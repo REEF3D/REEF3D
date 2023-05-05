@@ -44,8 +44,8 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
     
         if(p->A515==1)
         {
-        Pval = 0.5*(U[IJK]+U[Im1JK]);
-        Qval = 0.5*(V[IJK]+V[IJm1K]);
+        Pval = U[IJK];
+        Qval = V[IJK];
         
         wval = (d->eta(i,j) - d->eta_n(i,j))/(p->dt)
         
@@ -81,8 +81,8 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
     
-    Pval = 0.5*(U[IJK]+U[Im1JK]);
-    Qval = 0.5*(V[IJK]+V[IJm1K]);
+    Pval = U[IJK];
+    Qval = V[IJK];
     
     
     if(p->A518==1)

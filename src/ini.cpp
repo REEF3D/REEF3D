@@ -273,6 +273,7 @@ void lexer::ini_default()
 	D20=2;			// int diffusion scheme
 	D21=0;			// int print out implicit diffusion time and iterations
 	D30=1;			// int pressure scheme    D31=0;			// int normalize pressure to free surface    D32=1;			// int boundary treatment Poisson equation
+    D33=0;			// int corner cells sigma grid Poisson matrix
     D37=0;          // int type of FSFBC for single fluid flow
     D38=0;          // int add hydrostatic pressure gradients to NSE
     D39=0;          // int activate 2nd-order pressure correction for PJM CORR

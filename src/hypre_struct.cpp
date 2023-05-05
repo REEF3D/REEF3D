@@ -39,13 +39,24 @@ hypre_struct::hypre_struct(lexer* p,ghostcell *pgc, int solve_input, int precon_
     
     p->Iarray(ilower,3);
     p->Iarray(iupper,3);
+    
+    if(p->D33==0)
     p->Darray(values,vecsize*7);
     
-    if(p->j_dir==1)
+    if(p->D33==1)
+    p->Darray(values,vecsize*15);
+    
+    if(p->j_dir==1 && p->D33==0)
     make_grid(p,pgc);	
     
-    if(p->j_dir==0)
+    if(p->j_dir==0 && p->D33==0)
     make_grid_2Dvert(p,pgc);
+    
+    if(p->j_dir==1 && p->D33==1)
+    make_grid_15pt(p,pgc);	
+    
+    if(p->j_dir==0 && p->D33==1)
+    make_grid_2D_9pt(p,pgc);
     
     
     count=0;
@@ -76,6 +87,9 @@ void hypre_struct::startF(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_
     
     if(var==8)
     start_solver8(p,pgc,f,rhs,M,var);
+    
+    if(var==9)
+    start_solver9(p,pgc,f,rhs,M,var);
 }
 
 void hypre_struct::startM(lexer* p, ghostcell* pgc, double *x, double *rhs, double *M, int var)
@@ -205,6 +219,29 @@ void hypre_struct::start_solver8(lexer* p, ghostcell* pgc, double *f, vec& rhs, 
     p->final_res = final_res_norm;
         
     fillbackvec8(p,f,var);
+	
+	delete_solver5(p,pgc);
+}
+
+void hypre_struct::start_solver9(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
+{
+    numiter=0;
+	p->solveriter=0;
+	
+    create_solver5(p,pgc);
+
+    if(p->j_dir==1)
+    fill_matrix9(p,pgc,f,rhs,M);
+    
+    if(p->j_dir==0)
+    fill_matrix9_2Dvert(p,pgc,f,rhs,M);
+
+    solve(p,pgc);
+
+	p->solveriter=num_iterations;
+    p->final_res = final_res_norm;
+        
+    fillbackvec9(p,f,var);
 	
 	delete_solver5(p,pgc);
 }
