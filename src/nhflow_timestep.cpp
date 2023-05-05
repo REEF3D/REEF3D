@@ -86,16 +86,6 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     cu=cv=cw=1.0e10;
     
-    
-    // visc
-    /*SLICELOOP4
-	p->viscmax=MAX(p->viscmax, d->vb(i,j));
-
-	p->viscmax=pgc->globalmax(p->viscmax);
-    
-    if(p->mpirank==0 && (p->count%p->P12==0) && p->viscmax>0.0)
-	cout<<"viscmax: "<<p->viscmax<<endl;*/
-    
 
     LOOP
     {

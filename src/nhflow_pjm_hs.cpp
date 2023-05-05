@@ -44,7 +44,7 @@ nhflow_pjm_hs::nhflow_pjm_hs(lexer* p, fdm_nhf *d)
 {
 	pd = new density_f(p);
     
-    pdx = new fnpf_cds2(p);
+    pdx = new fnpf_cds4(p);
 
     gcval_press=540;  
 

@@ -263,7 +263,7 @@ void ghostcell::start5V(lexer *p, double *f, int gcv)
     if(p->M10>0)
     {
     starttime=timer();
-	gcparax7(p,x,7);
+	//gcparax7(p,x,7);
     gcparax7co(p,x,7);
     gcparax7co(p,x,7);
 	endtime=timer();

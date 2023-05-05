@@ -76,8 +76,6 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
     Ss = MIN(Fs[IJK] - sqrt(9.81*Ds), USx - DSx);
     Sn = MAX(Fn[IJK] + sqrt(9.81*Dn), USx + DSx);
     
-    //cout<<Ds<<" "<<Ss<<endl;
-    
         // final flux x-dir
         if(Ss>=0.0)
         Fx[IJK] = Fs[IJK];
