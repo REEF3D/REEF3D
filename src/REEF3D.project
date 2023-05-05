@@ -248,6 +248,7 @@
           <File Name="nhflow_turbulence.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="nhflow_fou.h"/>
           <File Name="nhflow_convection_void.h"/>
           <File Name="nhflow_weno_flux.h"/>
           <VirtualDirectory Name="Flux">

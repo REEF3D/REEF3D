@@ -247,18 +247,18 @@ void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
     {
         if(p->A516==1)
         {
-        if(0.5*(U[Im1JKp1] + U[IJKp1])>=0.0)
-        Pval=0.5*(U[Im1JK] + U[Im1JKp1]);
+        if(U[IJK]>=0.0)
+        Pval=0.5*(U[Im1JK] + U[Im1JK]);
             
-        if(0.5*(U[Im1JKp1] + U[IJKp1])<0.0)
-        Pval=0.5*(U[IJK] + U[IJKp1]);
+        if(U[IJK]<0.0)
+        Pval=0.5*(U[IJK] + U[Ip1JK]);
         
         
-        if(0.5*(V[IJm1Kp1] + V[IJKp1])>=0.0)
-        Qval=0.5*(V[IJm1K] + V[IJm1Kp1]);
+        if(V[IJK]>=0.0)
+        Qval=0.5*(V[IJm1K] + V[IJK]);
             
-        if(0.5*(V[IJm1Kp1] + V[IJKp1])<0.0)
-        Qval=0.5*(V[IJK] + V[IJKp1]);
+        if(V[IJK]<0.0)
+        Qval=0.5*(V[IJK] + V[IJp1K]);
         
         
         if(W[IJK]>=0.0)
@@ -293,6 +293,7 @@ void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
     
+        //d->omega[IJK] =  0.0;
         d->omega[IJKp1] =  0.0;
         d->omega[IJKp2] =  0.0;
         d->omega[IJKp3] =  0.0;
@@ -337,7 +338,8 @@ void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
     i=p->gcb4[n][0];
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
-    
+        
+        //d->omega[IJK] =  0.0;
         d->omega[IJKm1] =  0.0;
         d->omega[IJKm2] =  0.0;
         d->omega[IJKm3] =  0.0;

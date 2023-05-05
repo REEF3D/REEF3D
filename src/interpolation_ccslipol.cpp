@@ -125,6 +125,8 @@ double interpolation::ccslipol4(slice& f, double xp, double yp)
     
     i = p->posc_i(xp);
     j = p->posc_j(yp);
+    
+    
 		
     // wa
     wa = (p->XP[IP1]-xp)/p->DXN[IP];
@@ -158,11 +160,12 @@ double interpolation::ccslipol4(slice& f, double xp, double yp)
     }
     
     
-
     value =  lintsl4(f,i,j,wa,wb);
 
     i=ii;
     j=jj;
+    
+    //cout<<i<<" "<<j<<" "<<wa<<" "<<wb<<" | "<<value<<endl;
     
 
     return value;

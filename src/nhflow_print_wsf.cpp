@@ -111,9 +111,10 @@ void nhflow_print_wsf::fill_eta(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
 
     i=iloc[n];
     j=jloc[n];
-	
-			wsf[n] = f(i,j);
-
+    
+    wsf[n] = p->ccslipol4(f, x[n], y[n]);
+    
+    //wsf[n] = f(i,j);
     }
 	
     for(n=0;n<gauge_num;++n)
@@ -138,7 +139,11 @@ void nhflow_print_wsf::ini_location(lexer *p, fdm_nhf *d)
     iloc[n] = p->posc_i(x[n]); 
     
     if(p->j_dir==0)
-    jloc[n] = 0; 
+    {
+    jloc[n] = 0;
+    j=0;
+    y[n] = p->YP[JP];
+    }
     
     if(p->j_dir==1)
     jloc[n] = p->posc_j(y[n]); 

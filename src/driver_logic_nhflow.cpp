@@ -71,10 +71,10 @@ void driver::logic_nhflow()
     //Convection	
 	if(p->D10==0)
 	pnhfconvec=new nhflow_convection_void(p);
-/*
-	if(p->D10==1)
-	pconvec=new fou(p);
 
+	if(p->D10==1)
+	pnhfconvec=new nhflow_fou(p);
+/*
 	if(p->D10==2)
 	pconvec=new cds2(p);
 

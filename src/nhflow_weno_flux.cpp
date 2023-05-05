@@ -34,41 +34,28 @@ nhflow_weno_flux::~nhflow_weno_flux()
 {
 }
 
-void nhflow_weno_flux::start(lexer* p, fdm_nhf* d, double *B, int ipol, double *U, double *V, double *W)
+void nhflow_weno_flux::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W)
 {
     uf=vf=wf=0;
     
         if(ipol==1)
-        {
-        uf=0;
         LOOP
-        d->F[IJK]+=aij(p,d,B,1,U,V,W,p->DXP,p->DYN,p->DZN);
-        }
+        d->F[IJK]+=aij(p,d,F,1,U,V,W,p->DXN,p->DYN,p->DZN);
 
         if(ipol==2)
-        {
-        vf=0;
         LOOP
-        d->G[IJK]+=aij(p,d,B,2,U,V,W,p->DXN,p->DYP,p->DZN);
-        }
+        d->G[IJK]+=aij(p,d,F,2,U,V,W,p->DXN,p->DYN,p->DZN);
 
         if(ipol==3)
-        {
-        wf=0;
         LOOP
-        d->H[IJK]+=aij(p,d,B,3,U,V,W,p->DXN,p->DYN,p->DZP);
-        }
+        d->H[IJK]+=aij(p,d,F,3,U,V,W,p->DXN,p->DYN,p->DZN);
 
         if(ipol==4)
-        FLUIDLOOP
-        d->L[IJK]+=aij(p,d,B,4,U,V,W,p->DXN,p->DYN,p->DZN);
-        
-        if(ipol==5)
         LOOP
-        d->L[IJK]+=aij(p,d,B,5,U,V,W,p->DXN,p->DYN,p->DZN);
+        d->L[IJK]+=aij(p,d,F,4,U,V,W,p->DXN,p->DYN,p->DZN);
 }
 
-double nhflow_weno_flux::aij(lexer* p,fdm_nhf* d, double *B, int ipol, double *U, double *V, double *W, double *DX,double *DY, double *DZ)
+double nhflow_weno_flux::aij(lexer* p,fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W, double *DX,double *DY, double *DZ)
 {
         // convective flux
         pflux->u_flux(d,ipol,U,ivel1,ivel2);
@@ -88,50 +75,43 @@ double nhflow_weno_flux::aij(lexer* p,fdm_nhf* d, double *B, int ipol, double *U
         fv1=fv2=0.0;
 		
 		i-=1;
-		fu1 = fx(p,d,B,U,ipol,ivel1);
+		fu1 = fx(p,d,F,U,ipol,ivel1);
 		i+=1;
 		
-		fu2 = fx(p,d,B,U,ipol,ivel2);
+		fu2 = fx(p,d,F,U,ipol,ivel2);
 
 
 		if(p->j_dir==1)
          {
 		j-=1;
-		fv1 = fy(p,d,B,V,ipol,jvel1);
+		fv1 = fy(p,d,F,V,ipol,jvel1);
 		j+=1;
 		
-		fv2 = fy(p,d,B,V,ipol,jvel2);
+		fv2 = fy(p,d,F,V,ipol,jvel2);
          }
 
 
 		k-=1;
-		fw1 = fz(p,d,B,W,ipol,kvel1);
+		fw1 = fz(p,d,F,W,ipol,kvel1);
 		k+=1;
 		
-		fw2 = fz(p,d,B,W,ipol,kvel2);
+		fw2 = fz(p,d,F,W,ipol,kvel2);
     
 
         if(p->A517!=3)
 		L =   - ((ivel2*fu2-ivel1*fu1)/DX[IP]) 
 		      - ((jvel2*fv2-jvel1*fv1)/DY[JP]) 
 			  - ((kvel2*fw2-kvel1*fw1)/DZ[KP]);
-           
-       /* if(p->A517!=3 && (ipol==1 && k==p->knoz-1))
-        {
-		L =   - ((ivel2*fu2-ivel1*fu1)/DX[IP]) 
-		      - ((jvel2*fv2-jvel1*fv1)/DY[JP])
-              - 0.0*((kvel2*fw2-kvel1*fw1)/DZ[KP]);
-        }*/
         
        if(p->A517==3)
 		L =   - ((ivel2*fu2-ivel1*fu1)/DX[IP]) 
 		      - ((jvel2*fv2-jvel1*fv1)/DY[JP]) 
 			  - ((kvel2*fw2-kvel1*fw1)/DZ[KP])*p->sigmaz(p,ipol)
               
-              - ((B[IJKp1]-B[IJKm1])/(DZ[KP]+DZ[KM1]))*p->sigmat(p,ipol)
+              - ((F[IJKp1]-F[IJKm1])/(DZ[KP]+DZ[KM1]))*p->sigmat(p,ipol)
               
-              - 0.5*(ivel1+ivel2)*((B[IJKp1]-B[IJKm1])/(DZ[KP]+DZ[KM1]))*p->sigmax(p,ipol)
-              - 0.5*(jvel1+jvel2)*((B[IJKp1]-B[IJKm1])/(DZ[KP]+DZ[KM1]))*p->sigmay(p,ipol);
+              - 0.5*(ivel1+ivel2)*((F[IJKp1]-F[IJKm1])/(DZ[KP]+DZ[KM1]))*p->sigmax(p,ipol)
+              - 0.5*(jvel1+jvel2)*((F[IJKp1]-F[IJKm1])/(DZ[KP]+DZ[KM1]))*p->sigmay(p,ipol);
               
         if(p->A517==4)
         {
@@ -142,13 +122,13 @@ double nhflow_weno_flux::aij(lexer* p,fdm_nhf* d, double *B, int ipol, double *U
 		      - ((jvel2*fv2-jvel1*fv1)/DY[JP]) 
 			  - ((kvel2*fw2-kvel1*fw1)/DZ[KP])*p->sigmaz(p,ipol)
               
-              - ((B[IJKp1]-B[IJKm1])/(DZ[KP]+DZ[KM1]))*p->sigmat(p,ipol)
+              - ((F[IJKp1]-F[IJKm1])/(DZ[KP]+DZ[KM1]))*p->sigmat(p,ipol)
               
-              - MAX(0.0,Pval)*((0.5*(B[Im1JKp1]+B[IJKp1])-0.5*(B[Im1JKm1]+B[IJKm1]))/(DZ[KP]+DZ[KM1]))*p->sigmax(p,ipol)
-              - MIN(0.0,Pval)*((0.5*(B[Ip1JKp1]+B[IJKp1])-0.5*(B[Ip1JKm1]+B[IJKm1]))/(DZ[KP]+DZ[KM1]))*p->sigmax(p,ipol)
+              - MAX(0.0,Pval)*((0.5*(F[Im1JKp1]+F[IJKp1])-0.5*(F[Im1JKm1]+F[IJKm1]))/(DZ[KP]+DZ[KM1]))*p->sigmax(p,ipol)
+              - MIN(0.0,Pval)*((0.5*(F[Ip1JKp1]+F[IJKp1])-0.5*(F[Ip1JKm1]+F[IJKm1]))/(DZ[KP]+DZ[KM1]))*p->sigmax(p,ipol)
               
-              - MAX(0.0,Qval)*((0.5*(B[IJm1Kp1]+B[IJKp1])-0.5*(B[IJm1Km1]+B[IJKm1]))/(DZ[KP]+DZ[KM1]))*p->sigmay(p,ipol)
-              - MIN(0.0,Qval)*((0.5*(B[IJp1Kp1]+B[IJKp1])-0.5*(B[IJp1Km1]+B[IJKm1]))/(DZ[KP]+DZ[KM1]))*p->sigmay(p,ipol);
+              - MAX(0.0,Qval)*((0.5*(F[IJm1Kp1]+F[IJKp1])-0.5*(F[IJm1Km1]+F[IJKm1]))/(DZ[KP]+DZ[KM1]))*p->sigmay(p,ipol)
+              - MIN(0.0,Qval)*((0.5*(F[IJp1Kp1]+F[IJKp1])-0.5*(F[IJp1Km1]+F[IJKm1]))/(DZ[KP]+DZ[KM1]))*p->sigmay(p,ipol);
         }
         
 		return L;
@@ -257,58 +237,58 @@ double nhflow_weno_flux::fz(lexer *p, fdm_nhf *d, double *B, double *W, int ipol
 	return grad;
 }
 
-void nhflow_weno_flux::iqmin(lexer *p, double *B, double *U, int ipol)
+void nhflow_weno_flux::iqmin(lexer *p, double *F, double *U, int ipol)
 {	 
-    q1 = B[Im2JK];
-    q2 = B[Im1JK];
-    q3 = B[IJK];
-    q4 = B[Ip1JK];
-    q5 = B[Ip2JK];
+    q1 = F[Im2JK];
+    q2 = F[Im1JK];
+    q3 = F[IJK];
+    q4 = F[Ip1JK];
+    q5 = F[Ip2JK];
 }
 
-void nhflow_weno_flux::jqmin(lexer *p, double *B, double *V, int ipol)
+void nhflow_weno_flux::jqmin(lexer *p, double *F, double *V, int ipol)
 {
-    q1 = B[IJm2K];
-    q2 = B[IJm1K];
-    q3 = B[IJK];
-    q4 = B[IJp1K];
-    q5 = B[IJp2K];
+    q1 = F[IJm2K];
+    q2 = F[IJm1K];
+    q3 = F[IJK];
+    q4 = F[IJp1K];
+    q5 = F[IJp2K];
 }
 
-void nhflow_weno_flux::kqmin(lexer *p, double *B, double *W, int ipol)
+void nhflow_weno_flux::kqmin(lexer *p, double *F, double *W, int ipol)
 {
-    q1 = B[IJKm2];
-    q2 = B[IJKm1];
-    q3 = B[IJK];
-    q4 = B[IJKp1];
-    q5 = B[IJKp2];
+    q1 = F[IJKm2];
+    q2 = F[IJKm1];
+    q3 = F[IJK];
+    q4 = F[IJKp1];
+    q5 = F[IJKp2];
 }
 
-void nhflow_weno_flux::iqmax(lexer *p, double *B, double *U, int ipol)
+void nhflow_weno_flux::iqmax(lexer *p, double *F, double *U, int ipol)
 {
-    q1 = B[Im1JK];
-    q2 = B[IJK];
-    q3 = B[Ip1JK];
-    q4 = B[Ip2JK];
-    q5 = B[Ip3JK];
+    q1 = F[Im1JK];
+    q2 = F[IJK];
+    q3 = F[Ip1JK];
+    q4 = F[Ip2JK];
+    q5 = F[Ip3JK];
 }
 
-void nhflow_weno_flux::jqmax(lexer *p, double *B, double *V, int ipol)
+void nhflow_weno_flux::jqmax(lexer *p, double *F, double *V, int ipol)
 {
-    q1 = B[IJm1K];
-    q2 = B[IJK];
-    q3 = B[IJp1K];
-    q4 = B[IJp2K];
-    q5 = B[IJp3K];
+    q1 = F[IJm1K];
+    q2 = F[IJK];
+    q3 = F[IJp1K];
+    q4 = F[IJp2K];
+    q5 = F[IJp3K];
 }
 
-void nhflow_weno_flux::kqmax(lexer *p, double *B, double *W, int ipol)
+void nhflow_weno_flux::kqmax(lexer *p, double *F, double *W, int ipol)
 {
-	q1 = B[IJKm1];
-    q2 = B[IJK];
-    q3 = B[IJKp1];
-    q4 = B[IJKp2];
-    q5 = B[IJKp3];
+	q1 = F[IJKm1];
+    q2 = F[IJK];
+    q3 = F[IJKp1];
+    q4 = F[IJKp2];
+    q5 = F[IJKp3];
 }
 
 
