@@ -97,6 +97,7 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     }
     p->gcx7_count[0]=q;
     
+    
     //nb4
     q=0;
     if(p->nb4>=0)
@@ -120,6 +121,7 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     p->gcx7[1][q][0] = i;
     p->gcx7[1][q][1] = p->knoy-1;
     p->gcx7[1][q][2] = k;
+    
     ++q;
     }
     p->gcx7_count[1]=q;
@@ -133,6 +135,7 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     p->gcx7[2][q][0] = i;
     p->gcx7[2][q][1] = 0;
     p->gcx7[2][q][2] = k;
+    
     ++q;
     }
     p->gcx7_count[2]=q;
@@ -295,6 +298,7 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     }
     p->gcxco7_count[3]=q;
     
+
     // -----
     pgc->flagx7(p,p->flag7);
 

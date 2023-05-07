@@ -412,7 +412,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     {
     jj=j;
     j=0;
-	ffn=float(d->P[IJKp1]);
+	ffn=float(d->P[FIJKp1]);
     j=jj;
     }
 
@@ -455,7 +455,14 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
-	ffn=float(d->test[IJp1Kp1]);
+	if(p->j_dir==0)
+    {
+    jj=j;
+    j=0;
+	ffn=float(d->test[FIJKp1]);
+    j=jj;
+    }
+    
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}

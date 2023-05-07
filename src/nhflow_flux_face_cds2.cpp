@@ -53,13 +53,6 @@ void nhflow_flux_face_cds2::w_flux(fdm_nhf *d, int ipol, double *W, double &wflu
 
 void nhflow_flux_face_cds2::omega_flux(lexer *p, fdm_nhf *d, int ipol, double *U, double *V, double *W, double &wflux1, double &wflux2)
 {
-    /*{
-    a->omega[IJK] =  p->sigt[FIJKp1]
-                    +  0.25*(U[Im1JK] + U[Im1JKp1] + U[IJK] + U[IJKp1])*p->sigx[FIJKp1]
-                    +  0.25*(V[IJm1K] + V[IJm1Kp1] + V[IJK] + V[IJKp1])*p->sigy[FIJKp1]
-                    +  W[IJK]*p->sigz[IJ];
-    }*/
-    
     wflux1 =  p->sigt[FIJK]
             + 0.5*(U[IJK]+U[IJKm1])
             + 0.5*(V[IJK]+V[IJKm1])

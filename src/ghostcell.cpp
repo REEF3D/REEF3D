@@ -36,7 +36,6 @@ ghostcell::ghostcell(int& argc, char **argv,lexer* p):norm_vec(p),size(15),tag1(
     rank=p->mpirank;
 	
 	mpi_comm = MPI_COMM_WORLD;
-    
 }
 
 ghostcell::~ghostcell()
@@ -88,20 +87,20 @@ void ghostcell::gcini(lexer* p)
 	gcx_count[4] = p->gcpara5_count*paramargin + p->gcparaco5_count*paramargin;
 	gcx_count[5] = p->gcpara6_count*paramargin + p->gcparaco6_count*paramargin;
 	
-	p->Darray(send1,p->gcpara1_count*paramargin + p->gcparaco1_count*paramargin);
-	p->Darray(send2,p->gcpara2_count*paramargin + p->gcparaco2_count*paramargin);
-	p->Darray(send3,p->gcpara3_count*paramargin + p->gcparaco3_count*paramargin);
-	p->Darray(send4,p->gcpara4_count*paramargin + p->gcparaco4_count*paramargin);
+	p->Darray(send1,(p->gcpara1_count+p->flast)*paramargin + p->gcparaco1_count*paramargin);
+	p->Darray(send2,(p->gcpara2_count+p->flast)*paramargin + p->gcparaco2_count*paramargin);
+	p->Darray(send3,(p->gcpara3_count+p->flast)*paramargin + p->gcparaco3_count*paramargin);
+	p->Darray(send4,(p->gcpara4_count+p->flast)*paramargin + p->gcparaco4_count*paramargin);
 	p->Darray(send5,p->gcpara5_count*paramargin + p->gcparaco5_count*paramargin);
 	p->Darray(send6,p->gcpara6_count*paramargin + p->gcparaco6_count*paramargin);
 	
-	p->Darray(recv1,p->gcpara1_count*paramargin + p->gcparaco1_count*paramargin);
-	p->Darray(recv2,p->gcpara2_count*paramargin + p->gcparaco2_count*paramargin);
-	p->Darray(recv3,p->gcpara3_count*paramargin + p->gcparaco3_count*paramargin);
-	p->Darray(recv4,p->gcpara4_count*paramargin + p->gcparaco4_count*paramargin);
+	p->Darray(recv1,(p->gcpara1_count+p->flast)*paramargin + p->gcparaco1_count*paramargin);
+	p->Darray(recv2,(p->gcpara2_count+p->flast)*paramargin + p->gcparaco2_count*paramargin);
+	p->Darray(recv3,(p->gcpara3_count+p->flast)*paramargin + p->gcparaco3_count*paramargin);
+	p->Darray(recv4,(p->gcpara4_count+p->flast)*paramargin + p->gcparaco4_count*paramargin);
 	p->Darray(recv5,p->gcpara5_count*paramargin + p->gcparaco5_count*paramargin);
 	p->Darray(recv6,p->gcpara6_count*paramargin + p->gcparaco6_count*paramargin);
-	
+    
 	p->Darray(send,6,gcx_count);
 	p->Darray(recv,6,gcx_count);
 	

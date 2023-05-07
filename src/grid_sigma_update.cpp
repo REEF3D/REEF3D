@@ -128,6 +128,15 @@ void grid_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, 
     FLOOP
     p->sigy[FIJK] = (1.0 - p->sig[FIJK])*(pd->By(i,j)/WLVL) - p->sig[FIJK]*(pd->Ey(i,j)/WLVL);
     
+    // sigxy4
+    LOOP
+    {
+    sigval = 0.5*(p->sig[FIJK]+p->sig[FIJKp1]);
+    
+    p->sigx4[IJK] = (1.0 - sigval)*(pd->Bx(i,j)/WLVL) - sigval*(pd->Ex(i,j)/WLVL);
+    p->sigy4[IJK] = (1.0 - sigval)*(pd->By(i,j)/WLVL) - sigval*(pd->Ey(i,j)/WLVL);
+    }
+    
     // sigz
     SLICELOOP4
     {
@@ -228,6 +237,11 @@ void grid_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, 
     
     LOOP
     p->ZSP[IJK]  = p->ZP[KP]*d->WL(i,j) + d->bed(i,j);
+    
+    FLOOP
+    d->test[FIJK] = p->sigx[FIJK];
+    
+    pgc->start5V(p,d->test,1);
 
     
     pgc->start7S(p,p->sigx,1);
@@ -235,6 +249,8 @@ void grid_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, 
     pgc->start7S(p,p->sigxx,1);
     pgc->start7S(p,p->sigt,1);
     pgc->start7S(p,p->ZSN,1);
+    pgc->start5V(p,p->sigx4,1);
+    pgc->start5V(p,p->sigy4,1);
     pgc->gcslparaxijk(p, p->sigz, 1);
     
 }
@@ -248,7 +264,7 @@ void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
         if(p->A516==1)
         {
         if(U[IJK]>=0.0)
-        Pval=0.5*(U[Im1JK] + U[Im1JK]);
+        Pval=0.5*(U[Im1JK] + U[IJK]);
             
         if(U[IJK]<0.0)
         Pval=0.5*(U[IJK] + U[Ip1JK]);
@@ -262,7 +278,7 @@ void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
         
         
         if(W[IJK]>=0.0)
-        Rval=0.5*(W[IJK] + W[IJKm1]);
+        Rval=0.5*(W[IJKm1] + W[IJK]);
             
         if(W[IJK]<0.0)
         Rval=0.5*(W[IJK] + W[IJKp1]);
@@ -278,9 +294,9 @@ void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
     // omega
         d->omega[IJK] =    0.5*(p->sigt[FIJK]+p->sigt[FIJKp1])
                         
-                        +  Pval*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])
+                        +  Pval*p->sigx4[IJK]
                         
-                        +  Qval*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])
+                        +  Qval*p->sigy4[IJK]
                         
                         +  Rval*p->sigz[IJ];
                         
@@ -293,7 +309,7 @@ void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
     
-        //d->omega[IJK] =  0.0;
+        d->omega[IJK] =  0.0;
         d->omega[IJKp1] =  0.0;
         d->omega[IJKp2] =  0.0;
         d->omega[IJKp3] =  0.0;
@@ -307,7 +323,7 @@ void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
         
-        //d->omega[IJK] =  0.0;
+        d->omega[IJK] =  0.0;
         d->omega[IJKm1] =  0.0;
         d->omega[IJKm2] =  0.0;
         d->omega[IJKm3] =  0.0;

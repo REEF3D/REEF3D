@@ -91,7 +91,7 @@ void nhflow_pjm::ucorr(lexer* p, fdm_nhf *d, double *U, double alpha)
 	LOOP
 	U[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*
                 (((0.5*(d->P[FIp1JKp1]+d->P[FIp1JK])-0.5*(d->P[FIm1JKp1]+d->P[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1]))
-                + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
+                + p->sigx4[IJK]*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
 }
 
 void nhflow_pjm::vcorr(lexer* p, fdm_nhf *d, double *V,double alpha)
@@ -99,7 +99,7 @@ void nhflow_pjm::vcorr(lexer* p, fdm_nhf *d, double *V,double alpha)
     LOOP
     V[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*
                 (((0.5*(d->P[FIJp1Kp1]+d->P[FIJp1K])-0.5*(d->P[FIJm1Kp1]+d->P[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]))
-                + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
+                + p->sigy4[IJK]*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
 }
 
 void nhflow_pjm::wcorr(lexer* p, fdm_nhf *d, double *W, double alpha)
@@ -131,10 +131,10 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
     
          
     d->rhsvec.V[n] =      -  ((U2-U1)/(p->DXP[IP1] + p->DXP[IP])
-                            + p->sigx[FIJK]*(U[IJK]-U[IJKm1])/p->DZP[KM1]
+                            + 0.5*(p->sigx4[IJK]+p->sigx4[IJKm1])*(U[IJK]-U[IJKm1])/p->DZP[KM1]
                             
                             + (V2-V1)/(p->DYP[JP1] + p->DYP[JP])
-                            + p->sigy[FIJK]*(V[IJK]-V[IJKm1])/p->DZP[KM1]
+                            + 0.5*(p->sigy4[IJK]+p->sigy4[IJKm1])*(V[IJK]-V[IJKm1])/p->DZP[KM1]
 
                             + p->sigz[IJ]*(W[IJK]-W[IJKm1])/p->DZP[KM1])/(alpha*p->dt);
                             

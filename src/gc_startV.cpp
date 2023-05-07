@@ -256,16 +256,14 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
 
 void ghostcell::start5V(lexer *p, double *f, int gcv)
 {    
-    if(p->M10>0)
-    {
     starttime=timer();
-	gcparax7(p,x,7);
-    gcparax7co(p,x,7);
-    gcparax7co(p,x,7);
+	gcparax7(p,f,7);
+    gcparax7co(p,f,7);
+    gcparax7co(p,f,7);
 	endtime=timer();
 	p->xtime+=endtime-starttime;
-    }
-    
+
+    /*
     FLOOP
     {  
         if(p->flag7[FIm1JK]<0)
@@ -302,43 +300,43 @@ void ghostcell::start5V(lexer *p, double *f, int gcv)
         f[FIJKp2] = 0.0;
         f[FIJKp3] = 0.0;
         }
-    }
+    }*/
 }
 
-void ghostcell::start7V(lexer *p, double *x, sliceint &bc, int gcv)
+void ghostcell::start7V(lexer *p, double *f, sliceint &bc, int gcv)
 {
     if(p->M10>0)
     {
     starttime=timer();
-	gcparax7(p,x,7);
-    gcparax7co(p,x,7);
-    gcparax7co(p,x,7);
+	gcparax7(p,f,7);
+    gcparax7co(p,f,7);
+    gcparax7co(p,f,7);
 	endtime=timer();
 	p->xtime+=endtime-starttime;
     }
     
     if(gcv==250)
-    fivec(p,x,bc);
+    fivec(p,f,bc);
     
     if(gcv==150)
-    fivec2D(p,x,bc);
+    fivec2D(p,f,bc);
     
     if(gcv==210)
-    fivec_vel(p,x,bc);
+    fivec_vel(p,f,bc);
     
     if(gcv==110)
-    fivec2D_vel(p,x,bc);
+    fivec2D_vel(p,f,bc);
 }
 
-void ghostcell::start7S(lexer *p, double *x, int gcv)
+void ghostcell::start7S(lexer *p, double *f, int gcv)
 {
     if(p->M10>0)
     {
     starttime=timer();
-	gcparax7(p,x,7);
-    gcparax7co(p,x,7);
-    gcparax7co(p,x,7);
-    gcparax7co(p,x,7);
+	gcparax7(p,f,7);
+    gcparax7co(p,f,7);
+    gcparax7co(p,f,7);
+    gcparax7co(p,f,7);
 	endtime=timer();
 	p->xtime+=endtime-starttime;
     }
