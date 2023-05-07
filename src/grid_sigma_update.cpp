@@ -309,7 +309,7 @@ void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
     
-        d->omega[IJK] =  0.0;
+        //d->omega[IJK] =  0.0;
         d->omega[IJKp1] =  0.0;
         d->omega[IJKp2] =  0.0;
         d->omega[IJKp3] =  0.0;
@@ -323,7 +323,7 @@ void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
         
-        d->omega[IJK] =  0.0;
+        //d->omega[IJK] =  0.0;
         d->omega[IJKm1] =  0.0;
         d->omega[IJKm2] =  0.0;
         d->omega[IJKm3] =  0.0;
