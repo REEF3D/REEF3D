@@ -53,11 +53,9 @@ nhflow_fsf_rk::nhflow_fsf_rk(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow
     
     pfluxfsf = new nhflow_flux_HLL(p,pBC);
     
-    //pfluxfsf = new nhflow_flux_FOU(p,pBC);
     
     p->Darray(Fx,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fy,p->imax*p->jmax*(p->kmax+2));
-    
 }
 
 nhflow_fsf_rk::~nhflow_fsf_rk()
@@ -105,7 +103,7 @@ void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     K(i,j) = 0.0;
     
     LOOP
-    K(i,j) += -p->DZN[KP]*((Fx[IJK]*d->hx(i,j) - Fx[Im1JK]*d->hx(i-1,j))/p->DXN[IP]  + (Fy[IJK] - Fy[IJm1K])/p->DYN[JP]);
+    K(i,j) += -p->DZN[KP]*((Fx[IJK]*d->hx(i,j) - Fx[Im1JK]*d->hx(i-1,j))/p->DXN[IP]  + (Fy[IJK]*d->hy(i,j) - Fy[IJm1K]*d->hy(i,j-1))/p->DYN[JP]);
     
     SLICELOOP4
     etark1(i,j) = d->eta(i,j) + p->dt*K(i,j);
@@ -148,7 +146,7 @@ void nhflow_fsf_rk::step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     K(i,j) = 0.0;
     
     LOOP
-    K(i,j) += -p->DZN[KP]*((Fx[IJK]*d->hx(i,j) - Fx[Im1JK]*d->hx(i-1,j))/p->DXN[IP]  + (Fy[IJK] - Fy[IJm1K])/p->DYN[JP]);
+    K(i,j) += -p->DZN[KP]*((Fx[IJK]*d->hx(i,j) - Fx[Im1JK]*d->hx(i-1,j))/p->DXN[IP]  + (Fy[IJK]*d->hy(i,j) - Fy[IJm1K]*d->hy(i,j-1))/p->DYN[JP]);
     
     SLICELOOP4
     etark2(i,j) = 0.75*d->eta(i,j) + 0.25*etark1(i,j) + 0.25*p->dt*K(i,j);
@@ -201,7 +199,7 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     K(i,j) = 0.0;
     
     LOOP
-    K(i,j) += - p->DZN[KP]*((Fx[IJK]*d->hx(i,j) - Fx[Im1JK]*d->hx(i-1,j))/p->DXN[IP]  + (Fy[IJK] - Fy[IJm1K])/p->DYN[JP]);
+    K(i,j) += - p->DZN[KP]*((Fx[IJK]*d->hx(i,j) - Fx[Im1JK]*d->hx(i-1,j))/p->DXN[IP]  + (Fy[IJK]*d->hy(i,j) - Fy[IJm1K]*d->hy(i,j-1))/p->DYN[JP]);
     
     SLICELOOP4
     d->eta(i,j) = (1.0/3.0)*d->eta(i,j) + (2.0/3.0)*etark2(i,j) + (2.0/3.0)*p->dt*K(i,j);

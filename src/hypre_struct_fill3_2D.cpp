@@ -29,12 +29,11 @@ Author: Hans Bihs
 
 void hypre_struct::fill_matrix3_2Dvert(lexer* p,fdm* a, ghostcell* pgc, field &f)
 {
-    fieldint3 cval3(p);
     
     count=0;
     WFLUIDLOOP
     {
-    cval3(i,j,k)=count;
+    CVAL4[IJK]=count;
     ++count;
     }
     
@@ -48,7 +47,7 @@ void hypre_struct::fill_matrix3_2Dvert(lexer* p,fdm* a, ghostcell* pgc, field &f
     {
 		WCHECK
 		{
-		n=cval3(i,j,k);
+		n=CVAL4[IJK];
         
 		values[count]=a->M.p[n];
 		++count;
@@ -111,7 +110,7 @@ void hypre_struct::fill_matrix3_2Dvert(lexer* p,fdm* a, ghostcell* pgc, field &f
 	{
 		WCHECK
 		{
-		n=cval3(i,j,k);
+		n=CVAL4[IJK];
 		values[count] = a->rhsvec.V[n];
 		}
 		

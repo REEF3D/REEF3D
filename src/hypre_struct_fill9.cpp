@@ -34,7 +34,7 @@ void hypre_struct::fill_matrix9(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
     count=0;
     LOOP
     {
-    cval4(i,j,k)=count;
+    CVAL4[IJK]=count;
     ++count;
     }
     
@@ -48,7 +48,7 @@ void hypre_struct::fill_matrix9(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
     {
 		FPWDCHECK
 		{
-		n=cval4(i,j,k);
+		n=CVAL4[IJK];
         
 		values[count]=M.p[n];
 		++count;
@@ -171,7 +171,7 @@ void hypre_struct::fill_matrix9(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
 	{
 		FPWDCHECK
 		{
-		n=cval4(i,j,k);
+		n=CVAL4[IJK];
 		values[count] = rhs.V[n];
 		}
 		

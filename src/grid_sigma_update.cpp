@@ -276,14 +276,14 @@ void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
         }
     
     // omega
-    d->omega[IJK] =    0.5*(p->sigt[FIJK]+p->sigt[FIJKp1])
-                    
-                    +  Pval*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])
-                    
-                    +  Qval*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])
-                    
-                    +  Rval*p->sigz[IJ];
-                    
+        d->omega[IJK] =    0.5*(p->sigt[FIJK]+p->sigt[FIJKp1])
+                        
+                        +  Pval*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])
+                        
+                        +  Qval*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])
+                        
+                        +  Rval*p->sigz[IJ];
+                        
     }
     
     GC4LOOP

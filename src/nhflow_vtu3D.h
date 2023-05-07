@@ -59,6 +59,7 @@ private:
     char name[200],pname[200],epsvar[200];
     int n,iin,offset[200];
     float ffn;
+    int jj;
     int gcval_phi,gcval_phiext;
 	double *printtime_wT;
     double *printfsftime_wT;

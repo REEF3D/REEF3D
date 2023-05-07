@@ -364,24 +364,42 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPLOOP
 	{
-	ffn=float(d->U[IJKp1]);
+    if(p->j_dir==0)
+    {
+    jj=j;
+    j=0;
+	ffn=float(0.5*(d->U[IJK]+d->U[IJKp1]));
+    j=jj;
+    }
 
-    if(k==-1 && j==-1)
-	ffn=float(d->U[IJp1Kp1]);
+    //if(k==-1 && j==-1)
+	//ffn=float(d->U[IJp1Kp1]);
 	result.write((char*)&ffn, sizeof (float));
 
 
-	ffn=float(d->V[IJKp1]);
+	if(p->j_dir==0)
+    {
+    jj=j;
+    j=0;
+	ffn=float(0.5*(d->V[IJK]+d->V[IJKp1]));
+    j=jj;
+    }
 
-    if(k==-1 && j==-1)
-	ffn=float(d->V[IJp1Kp1]);
+    //if(k==-1 && j==-1)
+	//ffn=float(d->V[IJp1Kp1]);
 	result.write((char*)&ffn, sizeof (float));
 
 
-	ffn=float(d->W[IJKp1]);
+	if(p->j_dir==0)
+    {
+    jj=j;
+    j=0;
+	ffn=float(0.5*(d->W[IJK]+d->W[IJKp1]));
+    j=jj;
+    }
 
-    if(k==-1 && j==-1)
-	ffn=float(d->W[IJp1Kp1]);
+    //if(k==-1 && j==-1)
+	//ffn=float(d->W[IJp1Kp1]);
 	result.write((char*)&ffn, sizeof (float));
 	}
 
@@ -390,10 +408,16 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
-    ffn=float(d->P[FIJKp1]);
+    if(p->j_dir==0)
+    {
+    jj=j;
+    j=0;
+	ffn=float(d->P[IJKp1]);
+    j=jj;
+    }
 
-    if(k==-1 && j==-1)
-	ffn=float(d->P[FIJp1Kp1]);
+    //if(k==-1 && j==-1)
+	//ffn=float(d->P[FIJp1Kp1]);
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -402,10 +426,16 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
-    ffn=float(d->omega[IJKp1]);
+    if(p->j_dir==0)
+    {
+    jj=j;
+    j=0;
+	ffn=float(0.5*(d->omega[IJK]+d->omega[IJKp1]));
+    j=jj;
+    }
 
-    if(k==-1 && j==-1)
-	ffn=float(d->omega[FIJp1Kp1]);
+    //if(k==-1 && j==-1)
+	//ffn=float(d->omega[FIJp1Kp1]);
 	result.write((char*)&ffn, sizeof (float));
 	}
 

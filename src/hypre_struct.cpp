@@ -29,10 +29,11 @@ Author: Hans Bihs
 #include"field.h"
 #include"vec.h"
 
-hypre_struct::hypre_struct(lexer* p,ghostcell *pgc, int solve_input, int precon_input) : cval4(p),  
-                                                                                               solve_type(solve_input), precon_type(precon_input)
+hypre_struct::hypre_struct(lexer* p,ghostcell *pgc, int solve_input, int precon_input) : solve_type(solve_input), precon_type(precon_input)
 {	
     int vecsize=p->knox*p->knoy*p->knoz; 
+    
+    p->Iarray(CVAL4,p->imax*p->jmax*(p->kmax+2));
     
     if(p->A10==3)
     vecsize=p->knox*p->knoy*(p->knoz+1); 
@@ -62,7 +63,7 @@ hypre_struct::hypre_struct(lexer* p,ghostcell *pgc, int solve_input, int precon_
     count=0;
     FLUIDLOOP
     {
-    cval4(i,j,k)=count;
+    CVAL4[IJK]=count;
     ++count;
     }
 }

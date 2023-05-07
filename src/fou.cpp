@@ -105,12 +105,7 @@ double fou::aij(lexer* p,fdm* a,field& f,int ipol, field& uvel, field& vvel, fie
         {
         pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
         pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
-        
-        if(p->A517==1)
         pflux->w_flux(a,ipol,a->omega,kvel1,kvel2);
-        
-        if(p->A517==2)
-        pflux->omega_flux(p,a,ipol,uvel,vvel,wvel,kvel1,kvel2);
         }
     
     // x-dir

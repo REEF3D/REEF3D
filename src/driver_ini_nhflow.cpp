@@ -65,36 +65,36 @@ void driver::driver_ini_nhflow()
     p->sigma_update(p,d,pgc,d->eta,d->eta,1.0);
 
     //ioflow ini
-    pflow->ini_nhflow(p,d,pgc); // replace a with d
+    pflow->ini_nhflow(p,d,pgc); 
 
     pflow->eta_relax(p,pgc,d->eta);
     pgc->gcsl_start4(p,d->eta,50);
 
-    if(p->P150==0)
+    /*if(p->P150==0)
 	pdata = new data_void(p,a,pgc);
 	
 	if(p->P150>0)
 	pdata = new data_f(p,a,pgc);
 	
-	pdata->start(p,a,pgc);
+	pdata->start(p,a,pgc);*/
 
     pnhfstep->ini(p,d,pgc);
  
-	pflow->gcio_update(p,a,pgc); 
-	pflow->pressure_io(p,a,pgc);
+	//pflow->gcio_update(p,a,pgc); 
+	//pflow->pressure_io(p,a,pgc);
      
     // inflow ini
 	pflow->discharge_nhflow(p,d,pgc);
 
     pflow->wavegen_precalc(p,pgc);
 
-	if(p->I11==1)
-	ptstep->start(a,p,pgc,pturb);
+	//if(p->I11==1)
+	//ptstep->start(a,p,pgc,pturb);
     
-    if(p->I13==1)
-    pturb->ini(p,a,pgc);
+    //if(p->I13==1)
+    //pturb->ini(p,a,pgc);
 	
-	pflow->pressure_io(p,a,pgc);
+	//pflow->pressure_io(p,a,pgc);
 
     
     SLICELOOP4

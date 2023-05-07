@@ -60,15 +60,8 @@ double nhflow_weno_flux::aij(lexer* p,fdm_nhf* d, double *F, int ipol, double *U
         // convective flux
         pflux->u_flux(d,ipol,U,ivel1,ivel2);
         pflux->v_flux(d,ipol,V,jvel1,jvel2);
-        
-        if(p->A517==1)
         pflux->w_flux(d,ipol,d->omega,kvel1,kvel2);
         
-        if(p->A517==2)
-        pflux->omega_flux(p,d,ipol,U,V,W,kvel1,kvel2);
-        
-        if(p->A517>=3)
-        pflux->w_flux(d,ipol,W,kvel1,kvel2);
 
         
         // build stencils
@@ -98,38 +91,9 @@ double nhflow_weno_flux::aij(lexer* p,fdm_nhf* d, double *F, int ipol, double *U
 		fw2 = fz(p,d,F,W,ipol,kvel2);
     
 
-        if(p->A517!=3)
 		L =   - ((ivel2*fu2-ivel1*fu1)/DX[IP]) 
 		      - ((jvel2*fv2-jvel1*fv1)/DY[JP]) 
 			  - ((kvel2*fw2-kvel1*fw1)/DZ[KP]);
-        
-       if(p->A517==3)
-		L =   - ((ivel2*fu2-ivel1*fu1)/DX[IP]) 
-		      - ((jvel2*fv2-jvel1*fv1)/DY[JP]) 
-			  - ((kvel2*fw2-kvel1*fw1)/DZ[KP])*p->sigmaz(p,ipol)
-              
-              - ((F[IJKp1]-F[IJKm1])/(DZ[KP]+DZ[KM1]))*p->sigmat(p,ipol)
-              
-              - 0.5*(ivel1+ivel2)*((F[IJKp1]-F[IJKm1])/(DZ[KP]+DZ[KM1]))*p->sigmax(p,ipol)
-              - 0.5*(jvel1+jvel2)*((F[IJKp1]-F[IJKm1])/(DZ[KP]+DZ[KM1]))*p->sigmay(p,ipol);
-              
-        if(p->A517==4)
-        {
-        Pval = 0.5*(ivel1+ivel2);
-        Qval = 0.5*(jvel1+jvel2);
-
-		L =   - ((ivel2*fu2-ivel1*fu1)/DX[IP]) 
-		      - ((jvel2*fv2-jvel1*fv1)/DY[JP]) 
-			  - ((kvel2*fw2-kvel1*fw1)/DZ[KP])*p->sigmaz(p,ipol)
-              
-              - ((F[IJKp1]-F[IJKm1])/(DZ[KP]+DZ[KM1]))*p->sigmat(p,ipol)
-              
-              - MAX(0.0,Pval)*((0.5*(F[Im1JKp1]+F[IJKp1])-0.5*(F[Im1JKm1]+F[IJKm1]))/(DZ[KP]+DZ[KM1]))*p->sigmax(p,ipol)
-              - MIN(0.0,Pval)*((0.5*(F[Ip1JKp1]+F[IJKp1])-0.5*(F[Ip1JKm1]+F[IJKm1]))/(DZ[KP]+DZ[KM1]))*p->sigmax(p,ipol)
-              
-              - MAX(0.0,Qval)*((0.5*(F[IJm1Kp1]+F[IJKp1])-0.5*(F[IJm1Km1]+F[IJKm1]))/(DZ[KP]+DZ[KM1]))*p->sigmay(p,ipol)
-              - MIN(0.0,Qval)*((0.5*(F[IJp1Kp1]+F[IJKp1])-0.5*(F[IJp1Km1]+F[IJKm1]))/(DZ[KP]+DZ[KM1]))*p->sigmay(p,ipol);
-        }
         
 		return L;
 }

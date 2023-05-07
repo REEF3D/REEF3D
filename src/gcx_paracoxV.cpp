@@ -26,7 +26,7 @@ Author: Hans Bihs
 
 void ghostcell::gcparacoxV(lexer* p, double *f, int gcv)
 {
-    pip=4;
+    
 //  FILL SEND
     for(q=0;q<p->gcparaco1_count;++q)
     {
@@ -78,7 +78,6 @@ void ghostcell::gcparacoxV(lexer* p, double *f, int gcv)
 
 
 //  SEND / RECEIVE
-
     if(p->gcparaco1_count>0)
     {
 	MPI_Isend(send1,p->gcparaco1_count,MPI_DOUBLE,p->nb1,tag1,mpi_comm,&sreq1);
@@ -119,7 +118,6 @@ void ghostcell::gcparacoxV(lexer* p, double *f, int gcv)
     gcwait(p);
 
 //  FILL RECEIVE
-    //pip=4;
     for(q=0;q<p->gcparaco1_count;++q)
     {
     i=p->gcparaco1[q][0];
@@ -167,7 +165,5 @@ void ghostcell::gcparacoxV(lexer* p, double *f, int gcv)
     k=p->gcparaco6[q][2];
    	f[IJKp1]=recv6[q];
 	}
-    
-    pip=0;
 }
 

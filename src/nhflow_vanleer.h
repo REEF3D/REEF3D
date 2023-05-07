@@ -20,40 +20,30 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"nhflow_fluxlim.h"
+#include"increment.h"
 
-#include"sflow_v.h"
-#include"sflow_f.h"
-#include"nsewave_v.h"
-#include"nsewave_f.h"
-#include"nsewave_geo.h"
-#include"nsewave_RK3.h"
-#include"nhflow_fsf.h"
-#include"nhflow_fsf_rk.h"
-#include"nhflow_fsf_fsm.h"
-#include"nhflow_fsf_v.h"
-#include"nhflow.h"
-#include"nhflow_f.h"
-#include"nhflow_v.h"
-#include"nhflow_vtu3D.h"
-#include"nhflow_timestep.h"
-#include"nhflow_momentum.h"
-#include"nhflow_turbulence.h"
-#include"nhflow_komega_void.h"
-#include"nhflow_komega_IM1.h"
-#include"nhflow_fou.h"
-#include"nhflow_weno_flux.h"
-#include"nhflow_hires.h"
-#include"nhflow_cds2.h"
-#include"nhflow_convection_void.h"
-#include"ptf_v.h"
-#include"fnpf_v.h"
-#include"ptf_RK3.h"
-#include"ptf_RK4.h"
-#include"fnpf_RK2.h"
-#include"fnpf_RK3.h"
-#include"fnpf_RK4.h"
-#include"fnpf_vtu3D.h"
-#include"fnpf_timestep.h"
+#ifndef NHFLOW_VANLEER_H_
+#define NHFLOW_VANLEER_H_
 
+using namespace std;
 
+class nhflow_vanleer : public nhflow_fluxlim, public increment
+{
+public:
+	nhflow_vanleer (lexer *);
+	virtual ~nhflow_vanleer();
+
+	virtual double iphi(double*,int,int,int,int);
+	virtual double jphi(double*,int,int,int,int);
+	virtual double kphi(double*,int,int,int,int);
+
+private:
+    double r, phi,denom;
+	double dx,dy,dz;
+	double L;
+    lexer *p;
+};
+
+#endif
 

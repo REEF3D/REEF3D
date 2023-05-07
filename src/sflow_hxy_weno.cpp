@@ -57,10 +57,10 @@ void sflow_hxy_weno::start(lexer* p, slice& hx, slice& hy, slice& depth, int *we
 	{
 	pflux->u_flux(4,uvel,ivel1,ivel2);
     if(ivel1>=0.0)
-    hx(i,j) = fx(p,eta,1,ivel1) + 0.5*(depth(i,j)+depth(i+1,j));
+    hx(i,j) = fx(p,eta,1,ivel1) + MIN(depth(i,j), depth(i+1,j));
     
     if(ivel1<0.0)
-    hx(i,j) = fx(p,eta,1,ivel1) + 0.5*(depth(i,j)+depth(i+1,j));
+    hx(i,j) = fx(p,eta,1,ivel1) + MIN(depth(i,j), depth(i+1,j));
 	}
     
     
@@ -75,13 +75,13 @@ void sflow_hxy_weno::start(lexer* p, slice& hx, slice& hy, slice& depth, int *we
         pflux->u_flux(4,uvel,ivel1,ivel2);
 
         if(ivel1>eps)
-        hx(i,j) = eta(i,j) + 0.5*(depth(i,j)+depth(i+1,j));
+        hx(i,j) = eta(i,j) + depth(i,j);
         
         if(ivel1<-eps)
-        hx(i,j) = eta(i+1,j) + 0.5*(depth(i,j)+depth(i+1,j));
+        hx(i,j) = eta(i+1,j) + depth(i+1,j);
         
         if(fabs(ivel1)<=eps)
-        hx(i,j) = MAX(eta(i,j),eta(i+1,j)) + 0.5*(depth(i,j)+depth(i,j+1));
+        hx(i,j) = MAX(eta(i,j),eta(i+1,j)) + MIN(depth(i,j), depth(i+1,j));
         }
     }
     
@@ -102,10 +102,10 @@ void sflow_hxy_weno::start(lexer* p, slice& hx, slice& hy, slice& depth, int *we
         pflux->u_flux(4,uvel,ivel1,ivel2);
 
         if(ivel1>eps)
-        hx(i,j) = eta(i,j) + 0.5*(depth(i,j)+depth(i+1,j));
+        hx(i,j) = eta(i,j) + depth(i,j);
         
         if(ivel1<-eps)
-        hx(i,j) = eta(i+1,j) + 0.5*(depth(i,j)+depth(i+1,j));
+        hx(i,j) = eta(i+1,j) + depth(i+1,j);
         
         if(fabs(ivel1)<=eps)
         hx(i,j) = MAX(eta(i,j),eta(i+1,j)) + MIN(depth(i,j), depth(i+1,j));
@@ -116,10 +116,10 @@ void sflow_hxy_weno::start(lexer* p, slice& hx, slice& hy, slice& depth, int *we
 	{
 	pflux->v_flux(4,vvel,jvel1,jvel2);
     if(jvel1>=0.0)
-	hy(i,j) = fy(p,eta,2,jvel1) + 0.5*(depth(i,j)+depth(i,j+1));
+	hy(i,j) = fy(p,eta,2,jvel1) + MIN(depth(i,j), depth(i,j+1));
     
     if(jvel1<0.0)
-	hy(i,j) = fy(p,eta,2,jvel1) + 0.5*(depth(i,j)+depth(i,j+1));
+	hy(i,j) = fy(p,eta,2,jvel1) + MIN(depth(i,j), depth(i,j+1));
     }
 
     for(qq=0;qq<pBC->obj_count;++qq)
@@ -139,13 +139,13 @@ void sflow_hxy_weno::start(lexer* p, slice& hx, slice& hy, slice& depth, int *we
         pflux->v_flux(4,vvel,jvel1,jvel2);
 	
         if(jvel1>eps)
-        hy(i,j) = eta(i,j) + 0.5*(depth(i,j)+depth(i,j+1));
+        hy(i,j) = eta(i,j) + depth(i,j);
         
         if(jvel1<-eps)
-        hy(i,j) = eta(i,j+1) + 0.5*(depth(i,j)+depth(i,j+1));
+        hy(i,j) = eta(i,j+1) + depth(i,j+1);
         
         if(fabs(jvel1)<=eps)
-        hy(i,j) = MAX(eta(i,j),eta(i,j+1)) + 0.5*(depth(i,j)+depth(i,j+1));
+        hy(i,j) = MAX(eta(i,j),eta(i,j+1)) + MIN(depth(i,j), depth(i,j+1));
         }
     }
 	 

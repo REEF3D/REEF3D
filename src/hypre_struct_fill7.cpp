@@ -29,14 +29,11 @@ Author: Hans Bihs
 
 void hypre_struct::fill_matrix7(lexer* p, ghostcell* pgc, double *f, vec &rhs, matrix_diag &M)
 {
-    int *cval;
-    
-    p->Iarray(cval,p->imax*p->jmax*(p->kmax+2));
-    
+
     count=0;
     FLOOP
     {
-    cval[FIJK]=count;
+    CVAL4[FIJK]=count;
     ++count;
     }
     
@@ -50,7 +47,7 @@ void hypre_struct::fill_matrix7(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
     {
 		FPCHECK
 		{
-		n=cval[FIJK];
+		n=CVAL4[FIJK];
         
 		values[count]=M.p[n];
 		++count;
@@ -125,7 +122,7 @@ void hypre_struct::fill_matrix7(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
 	{
 		FPCHECK
 		{
-		n=cval[FIJK];
+		n=CVAL4[FIJK];
 		values[count] = rhs.V[n];
 		}
 		
@@ -138,7 +135,7 @@ void hypre_struct::fill_matrix7(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
     HYPRE_StructVectorSetBoxValues(b, ilower, iupper, values);
     HYPRE_StructVectorAssemble(b);
     
-    p->del_Iarray(cval,p->imax*p->jmax*(p->kmax+1));
+    p->del_Iarray(CVAL4,p->imax*p->jmax*(p->kmax+1));
 }
 
 void hypre_struct::fillbackvec7(lexer *p, double *f, int var)

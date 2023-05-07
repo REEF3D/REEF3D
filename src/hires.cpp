@@ -141,12 +141,7 @@ double hires::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, f
         {
         pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
         pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
-        
-        if(p->A517==1)
         pflux->w_flux(a,ipol,a->omega,kvel1,kvel2);
-        
-        if(p->A517==2)
-        pflux->omega_flux(p,a,ipol,uvel,vvel,wvel,kvel1,kvel2);
         }
 		
 		// x-dir
@@ -188,7 +183,7 @@ double hires::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, f
         
             + (1.0-wdir)*(kvel2*(b(i,j,k+1) - 0.5*plim->kphi(b,1,0,2,1)*(b(i,j,k+2)-b(i,j,k+1)))
           
-             -      kvel1*(b(i,j,k) - 0.5*plim->kphi(b,0,-1,1,0)*(b(i,j,k+1)-b(i,j,k))))/(p->DXM);
+             -      kvel1*(b(i,j,k) - 0.5*plim->kphi(b,0,-1,1,0)*(b(i,j,k+1)-b(i,j,k))))/DZ[KP];
 		
 
 		L = -dx-dy-dz;

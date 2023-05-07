@@ -248,6 +248,12 @@
           <File Name="nhflow_turbulence.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="nhflow_cds2.h"/>
+          <VirtualDirectory Name="Limiter">
+            <File Name="nhflow_vanleer.h"/>
+            <File Name="nhflow_fluxlim.h"/>
+          </VirtualDirectory>
+          <File Name="nhflow_hires.h"/>
           <File Name="nhflow_fou.h"/>
           <File Name="nhflow_convection_void.h"/>
           <File Name="nhflow_weno_flux.h"/>
@@ -1305,12 +1311,16 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="nhflow_cds2.cpp"/>
+          <VirtualDirectory Name="Limiter">
+            <File Name="nhflow_vanleer.cpp"/>
+          </VirtualDirectory>
+          <File Name="nhflow_hires.cpp"/>
           <File Name="nhflow_convection_void.cpp"/>
           <VirtualDirectory Name="Flux">
             <File Name="nhflow_flux_face_cds2.cpp"/>
           </VirtualDirectory>
           <File Name="nhflow_fou.cpp"/>
-          <File Name="nhflow_cds2.cpp"/>
           <File Name="nhflow_weno_hj.cpp"/>
           <File Name="nhflow_weno_flux.cpp"/>
         </VirtualDirectory>

@@ -74,10 +74,10 @@ void driver::logic_nhflow()
 
 	if(p->D10==1)
 	pnhfconvec=new nhflow_fou(p);
-/*
-	if(p->D10==2)
-	pconvec=new cds2(p);
 
+	if(p->D10==2)
+	pnhfconvec=new nhflow_cds2(p);
+/*
 	if(p->D10==3)
 	pconvec=new quick(p);
 
@@ -98,9 +98,9 @@ void driver::logic_nhflow()
     
     if(p->D10==8)
 	pconvec=new weno3_hj(p);
-	
+	*/
 	if(p->D10>=10 && p->D10<30)
-	pconvec=new hires(p,p->D10);*/
+	pnhfconvec=new nhflow_hires(p,p->D10);
     
     
 //pressure scheme
