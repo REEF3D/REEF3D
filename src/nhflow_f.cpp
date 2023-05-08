@@ -104,6 +104,7 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
     {
 	d->eta(i,j) = 0.0;
     p->wet[IJ] = 1;
+    d->breaking(i,j)=0;
     }
     
     pgc->gcsl_start4(p,d->eta,50);

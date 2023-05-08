@@ -44,7 +44,6 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	p->dt_old=p->dt;
 
 	p->umax=p->vmax=p->wmax=p->viscmax=0.0;
-	sqd=1.0/(p->DXM*p->DXM);
 
 // maximum velocities
 
@@ -60,7 +59,7 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 
 	LOOP
-	p->vmax=MAX(p->vmax,fabs(d->U[IJK]));
+	p->vmax=MAX(p->vmax,fabs(d->V[IJK]));
 
 	p->vmax=pgc->globalmax(p->vmax);
 
@@ -95,10 +94,10 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->j_dir==0 || p->knoy==1)
     dx = p->DXN[IP];
     
-    cu = MIN(cu, 1.0/((fabs(MAX(p->umax, sqrt(9.81*depthmax)))/dx)));
+    cu = MIN(cu, 1.0/((fabs((p->umax + sqrt(9.81*depthmax)))/dx)));
     
     if(p->j_dir==1 )
-    cv = MIN(cv, 1.0/((fabs(MAX(p->vmax, sqrt(9.81*depthmax)))/dx)));
+    cv = MIN(cv, 1.0/((fabs((p->vmax + sqrt(9.81*depthmax)))/dx)));
     
     }
 
@@ -118,8 +117,6 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     else
 	p->dt=MIN(p->dt,maxtimestep);
-    
-    
 }
 
 void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -144,7 +141,7 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 
 	LOOP
-	p->vmax=MAX(p->vmax,fabs(d->U[IJK]));
+	p->vmax=MAX(p->vmax,fabs(d->V[IJK]));
 
 	p->vmax=pgc->globalmax(p->vmax);
 
@@ -177,18 +174,16 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->j_dir==0 || p->knoy==1)
     dx = p->DXN[IP];
     
-    //if(p->mpirank==0)
-    //cout<<"dx: "<<dx<<" p->DXN[IP]: "<<p->DXN[IP]<<" p->DYN[JP]: "<<p->DYN[JP]<<endl;
     
-    cu = MIN(cu, 1.0/((fabs(MAX(p->umax, sqrt(9.81*depthmax)))/dx)));
-    cv = MIN(cv, 1.0/((fabs(MAX(p->vmax, sqrt(9.81*depthmax)))/dx)));
+    cu = MIN(cu, 1.0/((fabs((p->umax + sqrt(9.81*depthmax)))/dx)));
+    cv = MIN(cv, 1.0/((fabs((p->vmax + sqrt(9.81*depthmax)))/dx)));
     }
 
 	cu = MIN(cu,cv);
     
    	p->dt=p->N47*cu;
     
-	//p->dt=pgc->timesync(p->dt);
+	p->dt=pgc->timesync(p->dt);
     p->dt=pgc->globalmin(p->dt);
 	p->dt_old=p->dt;
 

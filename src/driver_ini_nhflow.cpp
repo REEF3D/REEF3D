@@ -105,9 +105,10 @@ void driver::driver_ini_nhflow()
     pgc->start3V(p,d->W,12);
     pgc->start5V(p,d->P,540);
     
-    pnhfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta,d->eta_n,1.0);
+    pnhfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta,d->eta,1.0);
     pnhfsf->wetdry(p,d,pgc,d->U,d->V,d->W,d->eta);
     p->sigma_update(p,d,pgc,d->eta,d->eta,1.0);
+    p->omega_update(p,d,pgc,d->U,d->V,d->W,d->eta,d->eta,1.0);
 
     SLICELOOP4
     d->WL(i,j) = MAX(0.0, d->eta(i,j) + p->wd - d->bed(i,j));

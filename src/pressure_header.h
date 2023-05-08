@@ -32,6 +32,5 @@ Author: Hans Bihs
 #include"poisson_nse.h"
 
 #include"nhflow_pjm.h"
-#include"nhflow_pjm_ss.h"
 #include"nhflow_pjm_hs.h"
 #include"nhflow_poisson.h"

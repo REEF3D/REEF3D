@@ -279,11 +279,9 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 	++n;
     
     // omega_sig
-	if(p->P72==1)
-	{
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
-	}
+
 
     // elevation
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
@@ -371,9 +369,11 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 	ffn=float(0.5*(d->U[IJK]+d->U[IJKp1]));
     j=jj;
     }
-
-    //if(k==-1 && j==-1)
-	//ffn=float(d->U[IJp1Kp1]);
+    
+    
+    if(p->j_dir==1)
+	ffn=float(0.25*(d->U[IJK]+d->U[IJKp1]+d->U[IJp1K]+d->U[IJp1Kp1]));
+    
 	result.write((char*)&ffn, sizeof (float));
 
 
@@ -385,8 +385,9 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     j=jj;
     }
 
-    //if(k==-1 && j==-1)
-	//ffn=float(d->V[IJp1Kp1]);
+    if(p->j_dir==1)
+	ffn=float(0.25*(d->V[IJK]+d->V[IJKp1]+d->V[IJp1K]+d->V[IJp1Kp1]));
+    
 	result.write((char*)&ffn, sizeof (float));
 
 
@@ -398,8 +399,9 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     j=jj;
     }
 
-    //if(k==-1 && j==-1)
-	//ffn=float(d->W[IJp1Kp1]);
+    if(p->j_dir==1)
+	ffn=float(0.25*(d->W[IJK]+d->W[IJKp1]+d->W[IJp1K]+d->W[IJp1Kp1]));
+    
 	result.write((char*)&ffn, sizeof (float));
 	}
 
@@ -416,8 +418,9 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     j=jj;
     }
 
-    //if(k==-1 && j==-1)
-	//ffn=float(d->P[FIJp1Kp1]);
+    if(p->j_dir==1)
+	ffn=float(0.5*(d->P[IJKp1]+d->P[IJp1Kp1]));
+    
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -434,8 +437,9 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     j=jj;
     }
 
-    //if(k==-1 && j==-1)
-	//ffn=float(d->omega[FIJp1Kp1]);
+    if(p->j_dir==1)
+	ffn=float(0.25*(d->omega[IJK]+d->omega[IJKp1]+d->omega[IJp1K]+d->omega[IJp1Kp1]));
+    
 	result.write((char*)&ffn, sizeof (float));
 	}
 
@@ -463,6 +467,9 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     j=jj;
     }
     
+    if(p->j_dir==1)
+	ffn=float(0.25*(d->test[IJK]+d->test[IJKp1]+d->test[IJp1K]+d->test[IJp1Kp1]));
+    
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}
@@ -478,12 +485,11 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 
     zcoor = p->ZN[KP1]*waterlevel + p->sl_ipol4(d->bed);
 
-    if(i+p->origin_i==-1 && j+p->origin_j==-1 && p->wet[(0-p->imin)*p->jmax + (0-p->jmin)]==1)
-    zcoor = p->ZN[KP1]*d->WL(i,j) + d->bed(i,j);
-    
     if(p->wet[IJ]==0)
     zcoor=d->bed(i,j);
     
+    if(i+p->origin_i==-1 && j+p->origin_j==-1 && p->wet[(0-p->imin)*p->jmax + (0-p->jmin)]==1)
+    zcoor = p->ZN[KP1]*d->WL(i,j) + d->bed(i,j);
     
     // -- 
     ffn=float(p->XN[IP1]);
