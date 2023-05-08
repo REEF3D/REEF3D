@@ -147,4 +147,7 @@ void nhflow_fsf_fsm::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, 
 
 }
 
-
+void nhflow_fsf_fsm::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *U, double *V, double *W, slice &eta)
+{
+    
+}

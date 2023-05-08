@@ -54,6 +54,7 @@ public:
     virtual void step3(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double)=0;
     
     virtual void kinematic_fsf(lexer*, fdm_nhf*, double*, double*, double*, slice&, slice&, double)=0;
+    virtual void wetdry(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&)=0;
 
 
 };

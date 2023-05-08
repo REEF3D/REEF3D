@@ -53,9 +53,16 @@ nhflow_fsf_rk::nhflow_fsf_rk(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow
     
     pfluxfsf = new nhflow_flux_HLL(p,pBC);
     
-    
     p->Darray(Fx,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fy,p->imax*p->jmax*(p->kmax+2));
+    
+    wd_criterion=0.00005;
+    
+    if(p->A244==1)
+    wd_criterion=p->A244_val;
+    
+    if(p->A245==1)
+    wd_criterion=p->A245_val*p->DXM;
 }
 
 nhflow_fsf_rk::~nhflow_fsf_rk()
@@ -76,7 +83,9 @@ void nhflow_fsf_rk::ini(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow)
 }
 
 void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
-{        
+{
+    wetdry(p,d,pgc,U,V,W,d->eta);
+    
     pfluxfsf->face_flux_3D(p,pgc,d,d->eta,U,V,Fx,Fy);
     
     SLICELOOP1
@@ -120,6 +129,8 @@ void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
 
 void nhflow_fsf_rk::step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
 {
+    wetdry(p,d,pgc,U,V,W,etark1);
+    
     pfluxfsf->face_flux_3D(p,pgc,d,etark1,U,V,Fx,Fy);
     
     SLICELOOP1
@@ -168,11 +179,12 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     {
     d->eta_n(i,j) = d->eta(i,j);
     d->WL_n0(i,j) = d->WL_n1(i,j);
-    }
-    
+    }    
     pgc->gcsl_start4(p,d->eta_n,1);
     
     // ---
+    wetdry(p,d,pgc,U,V,W,etark2);
+    
     pfluxfsf->face_flux_3D(p,pgc,d,etark2,U,V,Fx,Fy);
     
     SLICELOOP1

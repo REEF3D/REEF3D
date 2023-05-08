@@ -55,6 +55,9 @@ public:
     
     virtual void kinematic_fsf(lexer*, fdm_nhf*, double*, double*, double*, slice&, slice&, double);
     
+    virtual void wetdry(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&);
+    virtual void breaking(lexer*, fdm_nhf*, ghostcell*,slice&, slice&, double);
+    
     void update(lexer*,fdm_nhf*,ghostcell*,slice&);
     
 private: 
@@ -75,6 +78,7 @@ private:
     double phival,H;
 	double d;
     const double epsi;
+    double wd_criterion;
 	
 	
 

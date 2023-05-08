@@ -68,6 +68,9 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
     Ds = d->ETAs(i,j) + 0.5*(d->depth(i,j) + d->depth(i+1,j));
     Dn = d->ETAn(i,j) + 0.5*(d->depth(i,j) + d->depth(i+1,j));
     
+    Ds = MAX(0.0, Ds);
+    Dn = MAX(0.0, Dn);
+    
     // Us
     USx = 0.5*(Fs[IJK]+Fn[IJK]) + sqrt(9.81*Ds) - sqrt(9.81*Dn);
     DSx = 0.5*(sqrt(9.81*Ds) + sqrt(9.81*Dn)) + 0.25*(Fs[IJK] - Fn[IJK]);
@@ -99,6 +102,9 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
     // water level       
     De = d->ETAe(i,j) + 0.5*(d->depth(i,j) + d->depth(i,j+1));
     Dw = d->ETAw(i,j) + 0.5*(d->depth(i,j) + d->depth(i,j+1));
+    
+    De = MAX(0.0, De);
+    Dw = MAX(0.0, Dw);
     
     // Us
     USy = 0.5*(Fe[IJK]+Fw[IJK]) + sqrt(9.81*De) - sqrt(9.81*Dw);

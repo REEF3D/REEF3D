@@ -83,51 +83,13 @@ void nhflow_pjm_hs::vel_setup(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
 
 void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 {
-    double ivel;
-    
-    
     if(p->D38==1 && p->A540==1)
     LOOP
-    {
-	//d->F[IJK] -= PORVALNH*fabs(p->W22)*(p->A223*dfdx(p,d,eta) + (1.0-p->A223)*dfdx(p,d,eta_n));
-    
-    if((d->eta(i+1,j) - d->eta(i-1,j))>=0.0)
-    ivel = 1.0;
-    
-    if((d->eta(i+1,j) - d->eta(i-1,j))<0.0)
-    ivel = -1.0;
-    
-    
-    d->F[IJK] -= PORVALNH*fabs(p->W22)*(p->A223*pdx->sx(p,eta,ivel) + (1.0-p->A223)*pdx->sx(p,eta_n,ivel));
-    
-    //d->F[IJK] -= PORVALNH*fabs(p->W22)*
-   //             (p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) - p->A223*eta(i-1,j) - (1.0-p->A223)*eta_n(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
-    }
-    
+    d->F[IJK] -= PORVALNH*fabs(p->W22)*(p->A223*pdx->sx(p,eta,1.0) + (1.0-p->A223)*pdx->sx(p,eta_n,1.0));
+
     if(p->D38==1 && p->A540==2)
     LOOP
 	d->F[IJK] -= PORVALNH*fabs(p->W22)*(d->eta(i+1,j) - d->eta(i,j))/p->DXP[IP];
-    
-    if(p->D38==2 && p->A540==1)
-    LOOP
-	d->F[IJK] -= PORVALNH*fabs(p->W22)*(1.0/HX)*
-    
-                    (0.5*(pow(eta(i+1,j),2.0) - pow(eta(i,j),2.0))/p->DXP[IP]
-                    
-                    + ((p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j))*d->depth(i+1,j) - (p->A223*eta(i,j) + (1.0-p->A223)*eta_n(i,j))*d->depth(i,j))/p->DXP[IP]
-                    
-                    - 0.5*((p->A223*eta(i,j) + (1.0-p->A223)*eta_n(i,j)) + (p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j)))*(d->depth(i+1,j)-d->depth(i,j))/p->DXP[IP]);
-    
-    
-    if(p->D38==2 && p->A540==2)
-    LOOP
-	d->F[IJK] -= PORVALNH*fabs(p->W22)*(1.0/HX)*
-    
-                    (0.5*(pow(d->eta(i+1,j),2.0) - pow(d->eta(i,j),2.0))/p->DXP[IP]
-                    
-                    + (d->eta(i+1,j)*d->depth(i+1,j) - d->eta(i,j)*d->depth(i,j))/p->DXP[IP]
-                    
-                    - 0.5*(d->eta(i,j) + d->eta(i+1,j))*(d->depth(i+1,j)-d->depth(i,j))/p->DXP[IP]);
 }
 
 void nhflow_pjm_hs::vpgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
@@ -144,27 +106,3 @@ void nhflow_pjm_hs::vpgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 void nhflow_pjm_hs::wpgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 {
 }
-
-double nhflow_pjm_hs::dfdx(lexer*p, fdm_nhf *d, slice &f)
-{
-    dfdx_plus = (f(i+1,j) - f(i,j))/p->DXP[IP];
-    dfdx_min  = (f(i,j) - f(i-1,j))/p->DXP[IM1];
-    
-    
-    val = limiter(dfdx_plus,dfdx_min);
-    
-    return val;
-
-}
-
-double nhflow_pjm_hs::limiter(double v1, double v2)
-{
-    denom = fabs(v1) + fabs(v2);
-    
-    denom = fabs(denom)>1.0e-10?denom:1.0e10;
-    
-    val =  (v1*fabs(v2) + fabs(v1)*v2)/denom;
-
-    return val;	
-}
-

@@ -58,13 +58,6 @@ private:
 	double starttime,endtime;
 	int count, gcval_press;
 	int gcval_u, gcval_v, gcval_w;
-	
-	void debug(lexer*,fdm_nhf*);
-    double limiter(double, double);
-    double dfdx(lexer*,fdm_nhf*,slice&);
-    
-    double val,denom;
-    double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus;
     
     density *pd;
     fnpf_convection *pdx;
