@@ -49,8 +49,6 @@ public:
     int *NODEVAL2D;
     
     slice4 eta,eta_n,WL,WL_n0,WL_n1;
-    slice1 ETAs,ETAn;
-    slice2 ETAe,ETAw;
     slice1 ETAx,ETAx_n;
     slice2 ETAy,ETAy_n;
     slice4 bed,depth;

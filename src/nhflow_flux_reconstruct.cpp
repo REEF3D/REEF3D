@@ -56,13 +56,13 @@ void nhflow_flux_reconstruct::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf*,
     // reconstruct
     SLICELOOP1  
     {
-    fs(i,j) = f(i,j) + 0.5*p->DXP[IP]*dfdx(i,j); 
+    fs(i,j) = f(i,j)   + 0.5*p->DXP[IP]*dfdx(i,j); 
     fn(i,j) = f(i+1,j) - 0.5*p->DXP[IP1]*dfdx(i+1,j);
     }
 
     SLICELOOP2 
     {
-    fe(i,j) = f(i,j) + 0.5*p->DYP[JP]*dfdy(i,j); 
+    fe(i,j) = f(i,j)   + 0.5*p->DYP[JP]*dfdy(i,j); 
     fw(i,j) = f(i,j+1) - 0.5*p->DYP[JP1]*dfdy(i,j+1); 
     }
 }

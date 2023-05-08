@@ -26,21 +26,22 @@ Author: Hans Bihs
 #include"slice2.h"
 
 
-#ifndef NHFLOW_FLUX_HLL_H_
-#define NHFLOW_FLUX_HLL_H_
+#ifndef NHFLOW_HYDROSTATIC_HLL_H_
+#define NHFLOW_HYDROSTATOC_HLL_H_
 
 using namespace std;
 
-class nhflow_flux_HLL : public nhflow_flux_fsf, public nhflow_flux_reconstruct
+class nhflow_hydrostatic_HLL : public nhflow_flux_fsf, public nhflow_flux_reconstruct
 {
 public:
-	nhflow_flux_HLL(lexer*,patchBC_interface*);
-	virtual ~nhflow_flux_HLL();
+	nhflow_hydrostatic_HLL(lexer*,patchBC_interface*);
+	virtual ~nhflow_hydrostatic_HLL();
 
 	virtual void face_flux_2D(lexer*,fdm_nhf*,slice&,slice&,slice&,slice&,slice&);
     virtual void face_flux_3D(lexer*,ghostcell*,fdm_nhf*,slice&,double*,double*,double*,double*);
     
     double *Fs,*Fn,*Fe,*Fw;
+    double *Us,*Un,*Ve,*Vw;
     slice1 ETAs,ETAn;
     slice2 ETAe,ETAw;
     

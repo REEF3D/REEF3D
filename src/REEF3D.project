@@ -291,6 +291,9 @@
         <File Name="nhflow_v.h"/>
         <File Name="nhflow.h"/>
         <VirtualDirectory Name="Pressure">
+          <VirtualDirectory Name="Hydrostatic">
+            <File Name="nhflow_hydrostatic_HLL.h"/>
+          </VirtualDirectory>
           <File Name="nhflow_pjm_hs.h"/>
           <File Name="nhflow_pjm.h"/>
           <VirtualDirectory Name="Poisson">
@@ -1351,6 +1354,9 @@
         <File Name="nhflow_v.cpp"/>
         <File Name="nhflow_f.cpp"/>
         <VirtualDirectory Name="Pressure">
+          <VirtualDirectory Name="Hydrostatic">
+            <File Name="nhflow_hydrostatic_HLL.cpp"/>
+          </VirtualDirectory>
           <File Name="nhflow_pjm_hs.cpp"/>
           <File Name="nhflow_pjm.cpp"/>
           <VirtualDirectory Name="Poisson">

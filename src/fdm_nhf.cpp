@@ -26,8 +26,6 @@ Author: Hans Bihs
 fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
                               wet_n(p),breaking(p),breaklog(p),bc(p),
                               eta_n(p),WL(p),WL_n0(p),WL_n1(p),
-                              ETAs(p),ETAn(p),
-                              ETAe(p),ETAw(p),
                               ETAx(p),ETAx_n(p),
                               ETAy(p),ETAy_n(p),
                               bed(p),depth(p),K(p),
