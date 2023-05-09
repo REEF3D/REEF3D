@@ -46,14 +46,13 @@ public:
     fdm_nhf(lexer*);
    
     int *NODEVAL;
-    int *NODEVAL2D;
     
     slice4 eta,eta_n,WL,WL_n0,WL_n1;
     slice1 ETAx,ETAx_n;
     slice2 ETAy,ETAy_n;
     slice4 bed,depth;
     slice4 K;
-    sliceint4 etaloc,wet_n,breaking,breaklog,bc;
+    sliceint4 etaloc,wet_n,breaking,breaklog,bc,nodeval2D;
     
     slice4 Fx,Fy;
     slice4 Ex,Ey;
@@ -64,7 +63,7 @@ public:
     slice4 coastline;
     slice4 vb;
     
-    slice4 breaking_print;
+    slice4 breaking_print,Hs;
     
     // NHFLOW
     slice4 wbed,dwdt;

@@ -264,6 +264,12 @@
           <File Name="nhflow_convection.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="VTP FSF">
+            <File Name="nhflow_vtp_fsf.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="VTP BED">
+            <File Name="nhflow_vtp_bed.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="WSF">
             <File Name="nhflow_print_wsf.h"/>
           </VirtualDirectory>
@@ -1327,6 +1333,16 @@
           <File Name="nhflow_weno_flux.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="VTP BED">
+            <File Name="nhflow_vtp_bed_pvtp.cpp"/>
+            <File Name="nhflow_vtp_bed_header.cpp"/>
+            <File Name="nhflow_vtp_bed.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="VTP FSF">
+            <File Name="nhflow_vtp_fsf_pvtp.cpp"/>
+            <File Name="nhflow_vtp_fsf_header.cpp"/>
+            <File Name="nhflow_vtp_fsf.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="WSF">
             <File Name="nhflow_print_wsf.cpp"/>
           </VirtualDirectory>

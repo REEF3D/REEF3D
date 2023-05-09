@@ -25,6 +25,7 @@ Author: Hans Bihs
 
 fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
                               wet_n(p),breaking(p),breaklog(p),bc(p),
+                              nodeval2D(p),
                               eta_n(p),WL(p),WL_n0(p),WL_n1(p),
                               ETAx(p),ETAx_n(p),
                               ETAy(p),ETAy_n(p),
@@ -35,7 +36,7 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
                               hx(p),hy(p),
                               wbed(p),dwdt(p),
                               coastline(p),vb(p),
-                              breaking_print(p),
+                              breaking_print(p),Hs(p),
                               rhsvec(p),rvec(p),xvec(p),N(p),M(p)
 {    
     p->Darray(U,p->imax*p->jmax*(p->kmax+2));
@@ -58,7 +59,6 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
     p->Darray(test,p->imax*p->jmax*(p->kmax+2));
     
     p->Iarray(NODEVAL,p->imax*p->jmax*(p->kmax+3));
-    p->Iarray(NODEVAL2D,p->imax*p->jmax);
 
     //C4.allocate(p);
 }

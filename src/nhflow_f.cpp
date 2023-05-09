@@ -68,7 +68,7 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 	{
 	++count;
 	++p->pointnum2D;
-	d->NODEVAL2D[IJ]=count;
+	d->nodeval2D(i,j)=count;
     }
 	
 	SLICEBASELOOP
