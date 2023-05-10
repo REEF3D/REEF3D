@@ -120,7 +120,7 @@ void nhflow_fsf_fsm::update(lexer *p, fdm_nhf* d, ghostcell *pgc, slice &f)
 {
 }
 
-void nhflow_fsf_fsm::ini(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow)
+void nhflow_fsf_fsm::ini(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow, double *U, double *V, double *W)
 {
 }
 

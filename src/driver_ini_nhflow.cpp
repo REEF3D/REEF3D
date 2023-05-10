@@ -95,7 +95,9 @@ void driver::driver_ini_nhflow()
     //pturb->ini(p,a,pgc);
 	
 	//pflow->pressure_io(p,a,pgc);
-
+    
+    SLICELOOP4
+    d->WL(i,j) = MAX(0.0, d->eta(i,j) + p->wd - d->bed(i,j));
     
     SLICELOOP4
     d->eta_n(i,j) = d->eta(i,j);
@@ -107,11 +109,12 @@ void driver::driver_ini_nhflow()
     
     pnhfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta,d->eta,1.0);
     pnhfsf->wetdry(p,d,pgc,d->U,d->V,d->W,d->eta);
+    pnhfsf->ini(p,d,pgc,pflow,d->U,d->V,d->W);
     p->sigma_update(p,d,pgc,d->eta,d->eta,1.0);
     p->omega_update(p,d,pgc,d->U,d->V,d->W,d->eta,d->eta,1.0);
+    
+    pgc->start4V(p,d->W,12);
 
-    SLICELOOP4
-    d->WL(i,j) = MAX(0.0, d->eta(i,j) + p->wd - d->bed(i,j));
     
     pnhfprint->start(p,d,pgc,pflow);
 

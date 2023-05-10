@@ -35,22 +35,36 @@ Author: Hans Bihs
 #include"fnpf_cds6.h"
 #include"fnpf_weno3.h"
 #include"fnpf_weno5.h"
+#include"patchBC_interface.h"
+#include"nhflow_hydrostatic_HLL.h"
 
 #define HX (fabs(d->hx(i,j))>1.0e-20?d->hx(i,j):1.0e20)
 #define HXP (fabs(0.5*(d->WL(i,j)+d->WL(i+1,j)))>1.0e-20?0.5*(d->WL(i,j)+d->WL(i+1,j)):1.0e20)
 #define HY (fabs(d->hy(i,j))>1.0e-20?d->hy(i,j):1.0e20)
+#define WLVL (fabs(d->WL(i,j))>1.0e-20?d->WL(i,j):1.0e20)
  
-nhflow_pjm_hs::nhflow_pjm_hs(lexer* p, fdm_nhf *d)
+nhflow_pjm_hs::nhflow_pjm_hs(lexer* p, fdm_nhf *d, patchBC_interface *ppBC)
 {
+    pBC = ppBC;
+    
 	pd = new density_f(p);
     
     pdx = new fnpf_cds2(p);
-
+    
+    p->Darray(Fx,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Fy,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(dFx,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(dFy,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(dFx_n,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(dFy_n,p->imax*p->jmax*(p->kmax+2));
+    
     gcval_press=540;  
 
 	gcval_u=7;
 	gcval_v=8;
 	gcval_w=9;
+    
+    phs = new nhflow_hydrostatic_HLL(p,pBC);
 }
 
 nhflow_pjm_hs::~nhflow_pjm_hs()
@@ -93,6 +107,14 @@ void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
     LOOP
     if(p->wet[IJ]==1)
 	d->F[IJK] -= PORVALNH*fabs(p->W22)*(d->eta(i+1,j) - d->eta(i,j))/p->DXP[IP];
+    
+    
+    if(p->D38==2 && p->A540==1)
+    LOOP
+    if(p->wet[IJ]==1)
+    d->F[IJK] -= PORVALNH*(1.0/WLVL)*(p->A223*dFx[IJK] + (1.0-p->A223)*dFx_n[IJK]) 
+               - PORVALNH*fabs(p->W22)*(1.0/WLVL)*eta(i,j)*(d->depth(i+1,j) - d->depth(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+               
 }
 
 void nhflow_pjm_hs::vpgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
@@ -111,4 +133,26 @@ void nhflow_pjm_hs::vpgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 
 void nhflow_pjm_hs::wpgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 {
+}
+
+
+void nhflow_pjm_hs::hydrostatic_HLL(lexer*p, fdm_nhf *d, ghostcell* pgc, slice &eta, double *U, double *V)
+{
+    phs->face_flux_3D(p,pgc,d,eta,U,V,Fx,Fy);
+    
+    ULOOP
+    dFx_n[IJK] = dFx[IJK];
+    
+    VLOOP
+    dFy_n[IJK] = dFy[IJK];
+    
+    LOOP
+    dFx[IJK] = (Fx[IJK] - Fx[Im1JK])/p->DXN[IP];
+    
+    LOOP
+    dFy[IJK] = (Fy[IJK] - Fy[IJm1K])/p->DYN[JP];
+    
+    
+    
+    
 }

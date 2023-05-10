@@ -26,6 +26,8 @@ Author: Hans Bihs
 class density;
 class solver;
 class nhflow_poisson;
+class patchBC_interface;
+class nhflow_hydrostatic_HLL;
 
 using namespace std;
 
@@ -37,7 +39,7 @@ class nhflow_pjm : public nhflow_pressure, public increment
 
 public:
 
-	nhflow_pjm(lexer*, fdm_nhf*, ghostcell*);
+	nhflow_pjm(lexer*, fdm_nhf*, ghostcell*,patchBC_interface*);
 	virtual ~nhflow_pjm();
 
 	virtual void start(lexer*,fdm_nhf*,solver*,ghostcell*,ioflow*,double*,double*,double*,double);
@@ -47,6 +49,7 @@ public:
 	virtual void upgrad(lexer*,fdm_nhf*,slice&,slice&);
 	virtual void vpgrad(lexer*,fdm_nhf*,slice&,slice&);
     virtual void wpgrad(lexer*,fdm_nhf*,slice&,slice&);
+    virtual void hydrostatic_HLL(lexer*,fdm_nhf*,ghostcell*,slice&,double*,double*);
     
     void rhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 	void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
@@ -59,11 +62,17 @@ private:
 	int count, gcval_press;
 	int gcval_u, gcval_v, gcval_w;
     int solver_id;
+    
+    double *Fx,*Fy;
+    double *dFx,*dFy;
+    double *dFx_n,*dFy_n;
 	
 	void debug(lexer*,fdm_nhf*);
     
     density *pd;
     nhflow_poisson *ppois;
+    patchBC_interface *pBC;
+    nhflow_hydrostatic_HLL *phs;
 
 };
 

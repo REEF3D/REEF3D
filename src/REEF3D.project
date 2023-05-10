@@ -1387,6 +1387,7 @@
           <File Name="nhflow_momentum_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <File Name="nhflow_fsf_rk_ini.cpp"/>
           <File Name="nhflow_fsf_rk_breaking.cpp"/>
           <File Name="nhflow_fsf_rk_wetdry.cpp"/>
           <File Name="nhflow_fsf_fsm_kfsfbc.cpp"/>

@@ -61,9 +61,7 @@ double nhflow_weno_flux::aij(lexer* p,fdm_nhf* d, double *F, int ipol, double *U
         pflux->u_flux(d,ipol,U,ivel1,ivel2);
         pflux->v_flux(d,ipol,V,jvel1,jvel2);
         pflux->w_flux(d,ipol,d->omega,kvel1,kvel2);
-        
-
-        
+         
         // build stencils
         fv1=fv2=0.0;
 		

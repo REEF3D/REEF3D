@@ -47,7 +47,7 @@ class nhflow_fsf
 {
 public:    
     virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*)=0;
-    virtual void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*)=0;
+    virtual void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*)=0;
     
     virtual void step1(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double)=0;
     virtual void step2(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double)=0;

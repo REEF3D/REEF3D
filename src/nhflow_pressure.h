@@ -44,6 +44,7 @@ public:
     virtual void ucorr(lexer*,fdm_nhf*,double*,double)=0;
 	virtual void vcorr(lexer*,fdm_nhf*,double*,double)=0;
 	virtual void wcorr(lexer*,fdm_nhf*,double*,double)=0;
+    virtual void hydrostatic_HLL(lexer*,fdm_nhf*,ghostcell*,slice&,double*,double*)=0;
 };
 
 #endif

@@ -148,7 +148,7 @@ void grid_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, 
 
     // sigt
     FLOOP
-    p->sigt[FIJK] = -(p->sig[FIJK]/WLVL)*(d->WL_n1(i,j)-d->WL_n0(i,j))/(p->dt);
+    p->sigt[FIJK] = -(p->sig[FIJK]/WLVL)*d->detadt(i,j);
 
     // sigxx
     FLOOP
@@ -238,10 +238,10 @@ void grid_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, 
     LOOP
     p->ZSP[IJK]  = p->ZP[KP]*d->WL(i,j) + d->bed(i,j);
     
-    FLOOP
-    d->test[FIJK] = p->sigx[FIJK];
+    //FLOOP
+    //d->test[FIJK] = p->sigx[FIJK];
     
-    pgc->start5V(p,d->test,1);
+    //pgc->start5V(p,d->test,1);
 
     
     pgc->start7S(p,p->sigx,1);
@@ -299,7 +299,6 @@ void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
                         +  Qval*p->sigy4[IJK]
                         
                         +  Rval*p->sigz[IJ];
-                        
     }
     
     GC4LOOP

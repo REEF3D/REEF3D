@@ -105,10 +105,10 @@ void driver::logic_nhflow()
     
 //pressure scheme
 
-    if(p->D30==1)    pnhpress = new nhflow_pjm(p,d,pgc);
+    if(p->D30==1)    pnhpress = new nhflow_pjm(p,d,pgc,pBC);
 
     if(p->D30==10)
-	pnhpress = new nhflow_pjm_hs(p,d);
+	pnhpress = new nhflow_pjm_hs(p,d,pBC);
 
 //Turbulence
     if(p->T10==0)

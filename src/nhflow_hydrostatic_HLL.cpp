@@ -39,6 +39,7 @@ nhflow_hydrostatic_HLL::nhflow_hydrostatic_HLL(lexer* p, patchBC_interface *ppBC
     p->Darray(Un,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Ve,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Vw,p->imax*p->jmax*(p->kmax+2));
+    
 }
 
 nhflow_hydrostatic_HLL::~nhflow_hydrostatic_HLL()
@@ -57,7 +58,6 @@ void nhflow_hydrostatic_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, 
     double DSx,DSy;
     double denom;
 
-         
     // reconstruct eta
     reconstruct_2D(p, pgc, d, eta, ETAs, ETAn, ETAe, ETAw);
     
@@ -67,22 +67,22 @@ void nhflow_hydrostatic_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, 
     // build flux arrays
     ULOOP
     {
-    Fs[IJK] = 0.5*fabs(p->W22)*(ETAs(i,j)*ETAs(i,j) - 2.0*ETAs(i,j)*d->bed(i,j));
-    Fn[IJK] = 0.5*fabs(p->W22)*(ETAn(i,j)*ETAn(i,j) - 2.0*ETAn(i,j)*d->bed(i,j));
+    Fs[IJK] = 0.5*fabs(p->W22)*(ETAs(i,j)*ETAs(i,j) + 2.0*ETAs(i,j)*d->depth(i,j));
+    Fn[IJK] = 0.5*fabs(p->W22)*(ETAn(i,j)*ETAn(i,j) + 2.0*ETAn(i,j)*d->depth(i,j));
     }
     
     VLOOP
     {
-    Fe[IJK] = 0.5*fabs(p->W22)*(ETAe(i,j)*ETAe(i,j) - 2.0*ETAe(i,j)*d->bed(i,j));
-    Fw[IJK] = 0.5*fabs(p->W22)*(ETAw(i,j)*ETAw(i,j) - 2.0*ETAw(i,j)*d->bed(i,j));
+    Fe[IJK] = 0.5*fabs(p->W22)*(ETAe(i,j)*ETAe(i,j) + 2.0*ETAe(i,j)*d->depth(i,j));
+    Fw[IJK] = 0.5*fabs(p->W22)*(ETAw(i,j)*ETAw(i,j) + 2.0*ETAw(i,j)*d->depth(i,j));
     }
     
     // HLL flux
     ULOOP
     {
     // water level       
-    Ds = ETAs(i,j) + 0.5*(d->depth(i,j) + d->depth(i+1,j));
-    Dn = ETAn(i,j) + 0.5*(d->depth(i,j) + d->depth(i+1,j));
+    Ds = ETAs(i,j) + d->depth(i,j);
+    Dn = ETAn(i,j) + d->depth(i,j);
     
     Ds = MAX(0.00005, Ds);
     Dn = MAX(0.00005, Dn);
@@ -116,8 +116,8 @@ void nhflow_hydrostatic_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, 
     VLOOP
     {
     // water level       
-    De = ETAe(i,j) + 0.5*(d->depth(i,j) + d->depth(i,j+1));
-    Dw = ETAw(i,j) + 0.5*(d->depth(i,j) + d->depth(i,j+1));
+    De = ETAe(i,j) + d->depth(i,j);
+    Dw = ETAw(i,j) + d->depth(i,j);
     
     De = MAX(0.00005, De);
     Dw = MAX(0.00005, Dw);

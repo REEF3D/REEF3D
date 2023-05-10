@@ -66,6 +66,9 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 	LOOP
 	p->wmax=MAX(p->wmax,fabs(d->W[IJK]));
+    
+    LOOP
+	p->wmax=MAX(p->wmax,fabs(d->omega[IJK]));
 
 	p->wmax=pgc->globalmax(p->wmax);
 	
@@ -99,10 +102,13 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->j_dir==1 )
     cv = MIN(cv, 1.0/((fabs((p->vmax + sqrt(9.81*depthmax)))/dx)));
     
+    cw = MIN(cw, 1.0/((fabs(p->wmax)/dx)));
     }
 
     if(p->j_dir==1 )
     cu = MIN(cu,cv);
+    
+    cu = MIN(cu,cw);
     
    	p->dt=p->N47*cu;
     

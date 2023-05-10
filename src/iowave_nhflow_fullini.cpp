@@ -28,15 +28,15 @@ Author: Hans Bihs
 void iowave::full_initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     if(p->mpirank==0)
-    cout<<"full NWT initialize"<<endl;
+    cout<<"full NWT initialize "<<p->dt<<endl;
     
     // eta
 	SLICELOOP4
     {
         xg = xgen(p);
         yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
+        dg = distgen(p);
+        db = distbeach(p);
 
 		d->eta(i,j) = wave_eta(p,pgc,xg,0.0);
     }

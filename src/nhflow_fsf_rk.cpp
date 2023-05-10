@@ -78,10 +78,6 @@ void nhflow_fsf_rk::update(lexer *p, fdm_nhf* d, ghostcell *pgc, slice &f)
     //pupdate->start(p,a,pgc);
 }
 
-void nhflow_fsf_rk::ini(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow)
-{
-}
-
 void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
 {
     wetdry(p,d,pgc,U,V,W,d->eta);
@@ -227,6 +223,11 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     
     SLICELOOP4
     d->WL_n1(i,j) = d->WL(i,j);
+    
+    SLICELOOP4
+    {
+    d->detadt(i,j) = (d->eta(i,j)-d->eta_n(i,j))/p->dt;
+    }
     
     breaking(p,d,pgc,d->eta,etark2,2.0/3.0);
     p->sigma_update(p,d,pgc,d->eta,etark2,2.0/3.0);
