@@ -70,14 +70,6 @@ void driver::driver_ini_nhflow()
     pflow->eta_relax(p,pgc,d->eta);
     pgc->gcsl_start4(p,d->eta,50);
 
-    /*if(p->P150==0)
-	pdata = new data_void(p,a,pgc);
-	
-	if(p->P150>0)
-	pdata = new data_f(p,a,pgc);
-	
-	pdata->start(p,a,pgc);*/
-
     pnhfstep->ini(p,d,pgc);
  
 	//pflow->gcio_update(p,a,pgc); 
@@ -113,7 +105,7 @@ void driver::driver_ini_nhflow()
     p->sigma_update(p,d,pgc,d->eta,d->eta,1.0);
     p->omega_update(p,d,pgc,d->U,d->V,d->W,d->eta,d->eta,1.0);
     
-    pgc->start4V(p,d->W,12);
+    //pgc->start4V(p,d->W,12);
 
     
     pnhfprint->start(p,d,pgc,pflow);

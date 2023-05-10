@@ -463,7 +463,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     {
     jj=j;
     j=0;
-	ffn=float(d->test[FIJKp1]);
+	ffn=float(0.5*(d->test[IJK]+d->test[IJKp1]));
     j=jj;
     }
     

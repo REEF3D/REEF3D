@@ -53,6 +53,10 @@ void nhflow_flux_reconstruct::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf*,
     dfdx(i,j) = limiter(dfdx_plus,dfdx_min);
     dfdy(i,j) = limiter(dfdy_plus,dfdy_min);
     }
+    
+    pgc->gcsl_start1(p,dfdx,10);
+    pgc->gcsl_start2(p,dfdy,11);
+    
     // reconstruct
     SLICELOOP1  
     {
@@ -65,6 +69,11 @@ void nhflow_flux_reconstruct::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf*,
     fe(i,j) = f(i,j)   + 0.5*p->DYP[JP]*dfdy(i,j); 
     fw(i,j) = f(i,j+1) - 0.5*p->DYP[JP1]*dfdy(i,j+1); 
     }
+    
+    pgc->gcsl_start1(p,fs,10);
+    pgc->gcsl_start1(p,fn,10);
+    pgc->gcsl_start2(p,fe,11);
+    pgc->gcsl_start2(p,fw,11);
 }
 
 void nhflow_flux_reconstruct::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf*, double *Fx, double *Fy, double *Fs, double *Fn, double *Fe, double *Fw)

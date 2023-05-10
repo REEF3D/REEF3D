@@ -39,7 +39,7 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     double depthmax=0.0;
 
 
-    p->umax=p->vmax=p->wmax=p->viscmax=irsm=jrsm=krsm=0.0;
+    p->umax=p->vmax=p->wmax=p->viscmax=irsm=jrsm=krsm=p->omegamax=0.0;
     p->epsmax=p->kinmax=p->pressmax=0.0;
 	p->dt_old=p->dt;
 
@@ -67,10 +67,13 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	LOOP
 	p->wmax=MAX(p->wmax,fabs(d->W[IJK]));
     
+    p->wmax=pgc->globalmax(p->wmax);
+    
     LOOP
-	p->wmax=MAX(p->wmax,fabs(d->omega[IJK]));
+	p->omegamax=MAX(p->omegamax,fabs(d->omega[IJK]));
 
-	p->wmax=pgc->globalmax(p->wmax);
+	p->omegamax=pgc->globalmax(p->omegamax);
+    
 	
 
     if(p->mpirank==0 && (p->count%p->P12==0))
@@ -78,6 +81,7 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	cout<<"umax: "<<setprecision(3)<<p->umax<<endl;
 	cout<<"vmax: "<<setprecision(3)<<p->vmax<<endl;
 	cout<<"wmax: "<<setprecision(3)<<p->wmax<<endl;
+    cout<<"omegamax: "<<setprecision(3)<<p->omegamax<<endl;
     //cout<<"depthmax: "<<setprecision(3)<<depthmax<<endl;
     }
 	
@@ -86,7 +90,7 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	p->wmax=MAX(p->wmax,p->wfbmax);
 
 
-    cu=cv=cw=1.0e10;
+    cu=cv=cw=co=1.0e10;
     
 
     LOOP
@@ -103,12 +107,16 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     cv = MIN(cv, 1.0/((fabs((p->vmax + sqrt(9.81*depthmax)))/dx)));
     
     cw = MIN(cw, 1.0/((fabs(p->wmax)/dx)));
+    
+    co = MIN(cw, 1.0/((fabs(p->omegamax)/dx)));
     }
 
     if(p->j_dir==1 )
     cu = MIN(cu,cv);
     
     cu = MIN(cu,cw);
+    
+    cu = MIN(cu,co);
     
    	p->dt=p->N47*cu;
     
@@ -132,7 +140,7 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	p->umax = p->vmax = p->wmax = -1e19;
     depthmax = -1e19;
     
-    cu=cv=1.0e10;
+    cu=cv=cw=co=1.0e10;
     
     
     SLICELOOP4
@@ -183,9 +191,15 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     cu = MIN(cu, 1.0/((fabs((p->umax + sqrt(9.81*depthmax)))/dx)));
     cv = MIN(cv, 1.0/((fabs((p->vmax + sqrt(9.81*depthmax)))/dx)));
+    cw = MIN(cw, 1.0/((fabs(p->wmax)/dx)));
+    co = MIN(cw, 1.0/((fabs(p->omegamax)/dx)));
     }
 
 	cu = MIN(cu,cv);
+    
+    cu = MIN(cu,cw);
+    
+    cu = MIN(cu,co);
     
    	p->dt=p->N47*cu;
     

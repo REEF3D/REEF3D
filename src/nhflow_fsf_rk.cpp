@@ -110,6 +110,11 @@ void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     LOOP
     K(i,j) += -p->DZN[KP]*((Fx[IJK]*d->hx(i,j) - Fx[Im1JK]*d->hx(i-1,j))/p->DXN[IP]  + (Fy[IJK]*d->hy(i,j) - Fy[IJm1K]*d->hy(i,j-1))/p->DYN[JP]);
     
+    LOOP
+    d->test[IJK] = Fx[IJK]- Fx[Im1JK];
+    
+    pgc->start4V(p,d->test,10);
+    
     SLICELOOP4
     etark1(i,j) = d->eta(i,j) + p->dt*K(i,j);
      

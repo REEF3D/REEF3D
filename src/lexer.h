@@ -589,7 +589,7 @@ public:
     double final_res;
 	double dt,dt_old,simtime,viscmax;
 	double mindt,maxdt;
-	double umax,vmax,wmax,epsmax,kinmax,pressmin,pressmax;
+	double umax,vmax,wmax,epsmax,kinmax,pressmin,pressmax,omegamax;
 	double presstime,veltime,reinitime,turbtime,plstime,itertime;
 	double sedsimtime,sedwavetime;
 	double wavetime;

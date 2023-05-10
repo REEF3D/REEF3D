@@ -30,6 +30,11 @@ Author: Hans Bihs
 
 void nhflow_fsf_rk::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W)
 {
+    pgc->start1V(p,U,10);
+    pgc->start2V(p,V,11);
+    pgc->gcsl_start4(p,d->eta,50);
+    pgc->gcsl_start4(p,d->depth,50);
+    
     wetdry(p,d,pgc,U,V,W,d->eta);
     
     pfluxfsf->face_flux_3D(p,pgc,d,d->eta,U,V,Fx,Fy);
@@ -57,12 +62,22 @@ void nhflow_fsf_rk::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, dou
     SLICELOOP4
     d->detadt(i,j) = 0.0;
     
+    pgc->gcsl_start4(p,d->detadt,1);
+    pgc->start1V(p,Fx,10);
+    pgc->start2V(p,Fy,10);
+    
     LOOP
     d->detadt(i,j) += -p->DZN[KP]*((Fx[IJK]*d->hx(i,j) - Fx[Im1JK]*d->hx(i-1,j))/p->DXN[IP]  + (Fy[IJK]*d->hy(i,j) - Fy[IJm1K]*d->hy(i,j-1))/p->DYN[JP]);
     
-
+    pgc->gcsl_start4(p,d->detadt,1);
     
+    pgc->start4V(p,Fx,10);
     
+    LOOP    
+    d->test[IJK] = Fx[IJK] - Fx[Im1JK];
+    
+    pgc->start4V(p,d->test,10);
+     
     /*
     breaking(p,d,pgc,d->eta,d->eta,1.0);
     p->sigma_update(p,d,pgc,d->eta,d->eta,1.0);
