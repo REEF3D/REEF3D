@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_flux_fsf.h"
-#include"nhflow_flux_reconstruct.h"
+#include"nhflow_flux_weno.h"
 #include"slice1.h"
 #include"slice2.h"
 
@@ -31,7 +31,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class nhflow_flux_HLL : public nhflow_flux_fsf, public nhflow_flux_reconstruct
+class nhflow_flux_HLL : public nhflow_flux_fsf, public nhflow_flux_weno
 {
 public:
 	nhflow_flux_HLL(lexer*,patchBC_interface*);

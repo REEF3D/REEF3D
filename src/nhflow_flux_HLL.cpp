@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"patchBC_interface.h"
 
-nhflow_flux_HLL::nhflow_flux_HLL(lexer* p, patchBC_interface *ppBC) : nhflow_flux_reconstruct(p,ppBC),ETAs(p),ETAn(p),ETAe(p),ETAw(p)
+nhflow_flux_HLL::nhflow_flux_HLL(lexer* p, patchBC_interface *ppBC) : nhflow_flux_weno(p,ppBC),ETAs(p),ETAn(p),ETAe(p),ETAw(p)
 {
     pBC = ppBC;
     
@@ -76,6 +76,8 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
     // wave speed
     Ss = MIN(Fs[IJK] - sqrt(9.81*Ds), USx - DSx);
     Sn = MAX(Fn[IJK] + sqrt(9.81*Dn), USx + DSx);
+    
+    //cout<<Ss<<" "<<Sn<<" | "<<Fs[IJK]<<" "<<Fn[IJK]<<endl;
     
         // final flux x-dir
         if(Ss>=0.0)

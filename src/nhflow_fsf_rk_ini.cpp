@@ -29,12 +29,7 @@ Author: Hans Bihs
 #include"nhflow_flux_HLL.h"
 
 void nhflow_fsf_rk::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W)
-{
-    pgc->start1V(p,U,10);
-    pgc->start2V(p,V,11);
-    pgc->gcsl_start4(p,d->eta,50);
-    pgc->gcsl_start4(p,d->depth,50);
-    
+{    
     wetdry(p,d,pgc,U,V,W,d->eta);
     
     pfluxfsf->face_flux_3D(p,pgc,d,d->eta,U,V,Fx,Fy);

@@ -66,7 +66,8 @@ void driver::driver_ini_nhflow()
 
     //ioflow ini
     pflow->ini_nhflow(p,d,pgc); 
-
+    
+    for(int qn=0;qn<20;++qn)
     pflow->eta_relax(p,pgc,d->eta);
     pgc->gcsl_start4(p,d->eta,50);
 
