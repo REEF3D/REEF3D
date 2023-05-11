@@ -82,7 +82,7 @@ void nhflow_fsf_fsm::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, d
     Qval = 0.5*(V[IJK]+V[IJm1K]);
     
     
-    if(p->A518==1)
+    if(p->A516==1)
     {
     wval = - MAX(0.0,Pval)*((d->depth(i,j)-d->depth(i-1,j))/(p->DXP[IP]))
            - MIN(0.0,Pval)*((d->depth(i+1,j)-d->depth(i,j))/(p->DXP[IP1]))
@@ -92,7 +92,7 @@ void nhflow_fsf_fsm::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, d
     }
     
     
-    if(p->A518==2)
+    if(p->A516==2)
     {
     wval = - Pval*((d->depth(i+1,j)-d->depth(i-1,j))/(p->DXP[IP]+p->DXP[IP1]))
            - Qval*((d->depth(i,j+1)-d->depth(i,j-1))/(p->DYP[JP]+p->DYP[JP1]));

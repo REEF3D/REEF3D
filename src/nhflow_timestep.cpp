@@ -101,10 +101,10 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->j_dir==0 || p->knoy==1)
     dx = p->DXN[IP];
     
-    cu = MIN(cu, 1.0/((fabs((p->umax + sqrt(9.81*depthmax)))/dx)));
+    cu = MIN(cu, 1.0/(MAX(fabs(p->umax), sqrt(9.81*depthmax))/dx));
     
     if(p->j_dir==1 )
-    cv = MIN(cv, 1.0/((fabs((p->vmax + sqrt(9.81*depthmax)))/dx)));
+    cv = MIN(cv, 1.0/(MAX(fabs(p->vmax), sqrt(9.81*depthmax))/dx));
     
     cw = MIN(cw, 1.0/((fabs(p->wmax)/dx)));
     

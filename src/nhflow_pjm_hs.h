@@ -26,7 +26,6 @@ Author: Hans Bihs
 class density;
 class solver;
 class nhflow_poisson;
-class fnpf_convection;
 class patchBC_interface;
 
 using namespace std;
@@ -66,12 +65,8 @@ private:
     double detadx,detady;
     double detadx_n,detady_n;
     
-    double *Fx,*Fy;
-    double *dFx,*dFy;
-    double *dFx_n,*dFy_n;
     
     density *pd;
-    fnpf_convection *pdx;
     patchBC_interface *pBC;
 };
 

@@ -164,7 +164,7 @@ void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
     LOOP
     if(p->wet[IJ]==1)
     d->F[IJK] -= PORVALNH*fabs(p->W22)*
-                (p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) - p->A223*eta(i-1,j) - (1.0-p->A223)*eta_n(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+                (p->A523*eta(i+1,j) + (1.0-p->A523)*eta_n(i+1,j) - p->A523*eta(i-1,j) - (1.0-p->A523)*eta_n(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
 
     if(p->A521==1 && p->A540==2)
     LOOP
@@ -172,7 +172,7 @@ void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 	d->F[IJK] -= PORVALNH*fabs(p->W22)*(d->eta(i+1,j) - d->eta(i,j))/p->DXP[IP];
     
                
-    if(p->A521==3 && p->A540==1)
+    if(p->A521==2 && p->A540==1)
     LOOP
     if(p->wet[IJ]==1)
     {
@@ -187,7 +187,7 @@ void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
     detadx_n = limiter(dfdx_plus,dfdx_min);
         
     d->F[IJK] -= PORVALNH*fabs(p->W22)*
-                (p->A223*detadx + (1.0-p->A223)*detadx_n);
+                (p->A523*detadx + (1.0-p->A523)*detadx_n);
                 
     }
 }
@@ -198,7 +198,7 @@ void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d, slice &eta, slice &eta_n)
     LOOP
     if(p->wet[IJ]==1)
 	d->G[IJK] -= PORVALNH*fabs(p->W22)*
-                 (p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) - p->A223*eta(i,j-1) - (1.0-p->A223)*eta_n(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+                 (p->A523*eta(i,j+1) + (1.0-p->A523)*eta_n(i,j+1) - p->A523*eta(i,j-1) - (1.0-p->A523)*eta_n(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
     
     if(p->A521==1 && p->A540==2)
     LOOP
@@ -206,7 +206,7 @@ void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d, slice &eta, slice &eta_n)
 	d->G[IJK] -= PORVALNH*fabs(p->W22)*(d->eta(i,j+1) - d->eta(i,j))/p->DYP[JP];
     
     
-    if(p->A521==3 && p->A540==1)
+    if(p->A521==2 && p->A540==1)
     LOOP
     if(p->wet[IJ]==1)
     {
@@ -221,7 +221,7 @@ void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d, slice &eta, slice &eta_n)
     detady_n = limiter(dfdy_plus,dfdy_min);
         
     d->G[IJK] -= PORVALNH*fabs(p->W22)*
-                (p->A223*detady + (1.0-p->A223)*detady_n);
+                (p->A523*detady + (1.0-p->A523)*detady_n);
                 
     }
 }

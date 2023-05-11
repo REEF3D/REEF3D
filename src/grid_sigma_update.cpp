@@ -263,7 +263,7 @@ void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
     
     LOOP
     {
-        if(p->A516==1)
+        if(p->A517==1)
         {
         if(U[IJK]>=0.0)
         Pval=0.5*(U[Im1JK] + U[IJK]);
@@ -286,7 +286,7 @@ void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
         Rval=0.5*(W[IJK] + W[IJKp1]);
         }
         
-        if(p->A516==2)
+        if(p->A517==2)
         {
         Pval = U[IJK];
         Qval = V[IJK];

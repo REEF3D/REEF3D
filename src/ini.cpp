@@ -38,7 +38,7 @@ void lexer::ini_default()
     A219=1;      // int additional courant number constraint
     A220=1;		  // int non-hydrostatic pressure scheme for SFLOW
     A221=1;		  // int hydrostatic pressure scheme for SFLOW
-    A223=0.5;    // double blending factor pressure gradient
+    A223=0.5;    // double blending factor hydrostatic pressure gradient
     A230=0;      // int turn on Boussinesq wave model
     A240=1;      // int FSF algorithm SFLOW
     A241=1;		  // int discretization of water level SFLOW
@@ -99,11 +99,12 @@ void lexer::ini_default()
     A512=4;		// int NHFLOW diffusion
     
     A515=1;      // int NHFLOW KFSFBC scheme
-    A516=1;      // int NHFLOW omega_sig scheme
-    A517=1;      // int NFHLOW omega flux interpolation
-    A518=1;      // int NFHLOW deta/dt scheme
+    A516=2;      // int NFHLOW KFSFBED scheme
+    A517=2;      // int NHFLOW omega_sig scheme
+    
     A520=1;		// int NFHLOW non-hydrostatic pressure scheme
     A521=1;		// int NFHLOW hydrostatic pressure scheme
+    A523=0.5;    // double blending factor hydrostatic pressure gradient
     A540=1;      // int NFHLOW fsf scheme
     A541=1;      // int NFHLOW fsf hxy discretization
     A542=2;		// int NHFLOW fsf flux discretization 

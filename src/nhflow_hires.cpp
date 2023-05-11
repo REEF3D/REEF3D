@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"nhflow_flux_face_cds2.h"
 #include"nhflow_vanleer.h"
 
-nhflow_hires::nhflow_hires (lexer *p, int limiter) 
+nhflow_hires::nhflow_hires(lexer *p, int limiter) 
 {
     pflux = new nhflow_flux_face_cds2(p);
     
