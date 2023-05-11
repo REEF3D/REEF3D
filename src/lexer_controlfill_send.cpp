@@ -191,6 +191,14 @@ void lexer::ctrlsend()
 	ii++;
     ictrl[ii] = A543;
 	ii++;
+    ictrl[ii] = A550;
+	ii++;
+    ictrl[ii] = A551;
+	ii++;
+    ictrl[ii] = A552;
+	ii++;
+    ictrl[ii] = A553;
+	ii++;
 	
     ictrl[ii] = B10;
     ii++;

@@ -109,6 +109,11 @@ void lexer::ini_default()
     A541=1;      // int NFHLOW fsf hxy discretization
     A542=2;		// int NHFLOW fsf flux discretization 
     A543=2;		// int NHFLOW fsf flux reconstruction
+    
+    A550=0;      // int turn on breaking (which method)
+    A551=0;      // int type of breaking detection (deep / shallow)
+    A552=1;      // int additional filtering to viscosity based breaking
+    A553=1;      // int breaking in very shallow regions turned onf
 
     // Boundary Conditions
 	B10=0;			// int wall laws velocities on/off
