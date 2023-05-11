@@ -73,7 +73,6 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 //--------------------------------------------------------
 
     pfsf->step1(p, d, pgc, pflow, d->U, d->V, d->W, etark1, etark2, 1.0);
-    ppress->hydrostatic_HLL(p,d,pgc,etark1,d->U,d->V);
     
 	// U
 	starttime=pgc->timer();
@@ -160,7 +159,6 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 //--------------------------------------------------------
 	
     pfsf->step2(p, d, pgc, pflow, URK1, VRK1, WRK1, etark1, etark2, 0.25);
-    ppress->hydrostatic_HLL(p,d,pgc,etark2,URK1,VRK1);
     
 	// U
 	starttime=pgc->timer();
@@ -246,7 +244,6 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 //--------------------------------------------------------
     
     pfsf->step3(p, d, pgc, pflow, URK2, VRK2, WRK2, etark1, etark2, 2.0/3.0);
-    ppress->hydrostatic_HLL(p,d,pgc,d->eta,URK2,VRK2);
     
 	// U
 	starttime=pgc->timer();

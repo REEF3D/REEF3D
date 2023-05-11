@@ -25,11 +25,19 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"fdm_nhf.h"
 #include"patchBC_interface.h"
+#include"nhflow_reconstruct_hires.h"
+#include"nhflow_reconstruct_WENO.h"
 
-nhflow_flux_FOU::nhflow_flux_FOU(lexer* p, patchBC_interface *ppBC) : nhflow_flux_reconstruct(p,ppBC)
+nhflow_flux_FOU::nhflow_flux_FOU(lexer* p, patchBC_interface *ppBC) : ETAs(p),ETAn(p),ETAe(p),ETAw(p)
                                                                     
 {
     pBC = ppBC;
+    
+    if(p->A543==2)
+    precon = new nhflow_reconstruct_hires(p,ppBC);
+    
+    if(p->A543==4)
+    precon = new nhflow_reconstruct_weno(p,ppBC);
     
     p->Darray(Fs,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fn,p->imax*p->jmax*(p->kmax+2));
@@ -53,6 +61,12 @@ void nhflow_flux_FOU::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
     double DSx,DSy;
     double denom;
     
+    // reconstruct eta
+    precon->reconstruct_2D(p, pgc, d, eta, ETAs, ETAn, ETAe, ETAw);
+    
+    // reconstruct U and V
+    precon->reconstruct_3D(p, pgc, d, U, V, Fs, Fn, Fe, Fw);
+    
     // FOU flux
     ULOOP
     {
@@ -60,12 +74,11 @@ void nhflow_flux_FOU::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
 
         // final flux x-dir
         if(Ss>=0.0)
-        Fx[IJK] = U[IJK];
+        Fx[IJK] = Fs[IJK];
         
         if(Ss<0.0)
-        Fx[IJK] = U[Ip1JK];
+        Fx[IJK] = Fn[IJK];
     }
-    
     
     VLOOP
     {
@@ -73,10 +86,10 @@ void nhflow_flux_FOU::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
 
         // final flux y-dir
         if(Ss>=0.0)
-        Fy[IJK] = V[IJK];
+        Fy[IJK] = Fe[IJK];
         
         if(Ss<0.0)
-        Fy[IJK] = V[IJp1K];
+        Fy[IJK] = Fw[IJK];
     }
     
     pgc->start1V(p,Fx,10);

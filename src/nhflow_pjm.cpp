@@ -35,7 +35,6 @@ Author: Hans Bihs
 #include"nhflow_poisson.h"
 #include"density_f.h"
 #include"patchBC_interface.h"
-#include"nhflow_hydrostatic_HLL.h"
 
 nhflow_pjm::nhflow_pjm(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_interface *ppBC) : teta(1.0)
 {
@@ -47,20 +46,13 @@ nhflow_pjm::nhflow_pjm(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_interface *
 
     gcval_press=540;
     
-    p->Darray(Fx,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Fy,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(dFx,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(dFy,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(dFx_n,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(dFy_n,p->imax*p->jmax*(p->kmax+2));
     
     if(p->D33==0)
     solver_id = 8;
     
     if(p->D33==1)
     solver_id = 9;
-    
-    phs = new nhflow_hydrostatic_HLL(p,pBC);
+
 }
 
 nhflow_pjm::~nhflow_pjm()
@@ -168,62 +160,83 @@ void nhflow_pjm::vel_setup(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doub
 
 void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 {
-    if(p->D38==1 && p->A540==1)
+    if(p->A521==1 && p->A540==1)
     LOOP
     if(p->wet[IJ]==1)
     d->F[IJK] -= PORVALNH*fabs(p->W22)*
                 (p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) - p->A223*eta(i-1,j) - (1.0-p->A223)*eta_n(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
 
-    if(p->D38==1 && p->A540==2)
+    if(p->A521==1 && p->A540==2)
     LOOP
     if(p->wet[IJ]==1)
 	d->F[IJK] -= PORVALNH*fabs(p->W22)*(d->eta(i+1,j) - d->eta(i,j))/p->DXP[IP];
     
-    
-    if(p->D38==2 && p->A540==1)
+               
+    if(p->A521==3 && p->A540==1)
     LOOP
     if(p->wet[IJ]==1)
-    d->F[IJK] -= PORVALNH*(1.0/WLVL)*(p->A223*dFx[IJK] + (1.0-p->A223)*dFx_n[IJK]) 
-               - PORVALNH*fabs(p->W22)*(1.0/WLVL)*eta(i,j)*(d->depth(i+1,j) - d->depth(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+    {
+    dfdx_plus = (eta(i+1,j)-eta(i,j))/p->DXP[IP];
+    dfdx_min  = (eta(i,j)-eta(i-1,j))/p->DXP[IM1];
+    
+    detadx = limiter(dfdx_plus,dfdx_min);
+    
+    dfdx_plus = (eta_n(i+1,j)-eta_n(i,j))/p->DXP[IP];
+    dfdx_min  = (eta_n(i,j)-eta_n(i-1,j))/p->DXP[IM1];
+    
+    detadx_n = limiter(dfdx_plus,dfdx_min);
+        
+    d->F[IJK] -= PORVALNH*fabs(p->W22)*
+                (p->A223*detadx + (1.0-p->A223)*detadx_n);
+                
+    }
 }
 
 void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d, slice &eta, slice &eta_n)
 {
-    if(p->D38==1 && p->A540==1)
+    if(p->A521==1 && p->A540==1)
     LOOP
     if(p->wet[IJ]==1)
 	d->G[IJK] -= PORVALNH*fabs(p->W22)*
                  (p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) - p->A223*eta(i,j-1) - (1.0-p->A223)*eta_n(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
     
-    if(p->D38==1 && p->A540==2)
+    if(p->A521==1 && p->A540==2)
     LOOP
     if(p->wet[IJ]==1)
 	d->G[IJK] -= PORVALNH*fabs(p->W22)*(d->eta(i,j+1) - d->eta(i,j))/p->DYP[JP];
+    
+    
+    if(p->A521==3 && p->A540==1)
+    LOOP
+    if(p->wet[IJ]==1)
+    {
+    dfdy_plus = (eta(i,j+1)-eta(i,j))/p->DYP[JP];
+    dfdy_min  = (eta(i,j)-eta(i,j-1))/p->DYP[JM1];
+    
+    detady = limiter(dfdy_plus,dfdy_min);
+    
+    dfdy_plus = (eta_n(i,j+1)-eta_n(i,j))/p->DYP[JP];
+    dfdy_min  = (eta_n(i,j)-eta_n(i,j-1))/p->DYP[JM1];
+    
+    detady_n = limiter(dfdy_plus,dfdy_min);
+        
+    d->G[IJK] -= PORVALNH*fabs(p->W22)*
+                (p->A223*detady + (1.0-p->A223)*detady_n);
+                
+    }
 }
 
 void nhflow_pjm::wpgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 {
 }
 
-void nhflow_pjm::hydrostatic_HLL(lexer*p, fdm_nhf *d, ghostcell* pgc, slice &eta, double *U, double *V)
+double nhflow_pjm::limiter(double v1, double v2)
 {
-        phs->face_flux_3D(p,pgc,d,eta,U,V,Fx,Fy);
+    denom = fabs(v1) + fabs(v2);
     
-    ULOOP
-    dFx_n[IJK] = dFx[IJK];
+    denom = fabs(denom)>1.0e-10?denom:1.0e10;
     
-    VLOOP
-    dFy_n[IJK] = dFy[IJK];
-    
-    LOOP
-    dFx[IJK] = (Fx[IJK] - Fx[Im1JK])/p->DXN[IP];
-    
-    LOOP
-    dFy[IJK] = (Fy[IJK] - Fy[IJm1K])/p->DYN[JP];
-    
-    
-    
-    
-    
-    
+    val =  (v1*fabs(v2) + fabs(v1)*v2)/denom;
+
+    return val;	
 }

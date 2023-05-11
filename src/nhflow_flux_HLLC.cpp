@@ -20,69 +20,60 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_hydrostatic_HLL.h"
+#include"nhflow_flux_HLLC.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"fdm_nhf.h"
 #include"patchBC_interface.h"
+#include"nhflow_reconstruct_hires.h"
+#include"nhflow_reconstruct_WENO.h"
 
-nhflow_hydrostatic_HLL::nhflow_hydrostatic_HLL(lexer* p, patchBC_interface *ppBC) : nhflow_flux_reconstruct(p,ppBC),ETAs(p),ETAn(p),ETAe(p),ETAw(p)
+nhflow_flux_HLLC::nhflow_flux_HLLC(lexer* p, patchBC_interface *ppBC) : ETAs(p),ETAn(p),ETAe(p),ETAw(p)
 {
     pBC = ppBC;
+    
+    if(p->A543==2)
+    precon = new nhflow_reconstruct_hires(p,ppBC);
+    
+    if(p->A543==4)
+    precon = new nhflow_reconstruct_weno(p,ppBC);
     
     p->Darray(Fs,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fn,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fe,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fw,p->imax*p->jmax*(p->kmax+2));
-    
-    p->Darray(Us,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Un,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Ve,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Vw,p->imax*p->jmax*(p->kmax+2));
-    
 }
 
-nhflow_hydrostatic_HLL::~nhflow_hydrostatic_HLL()
+nhflow_flux_HLLC::~nhflow_flux_HLLC()
 {
 }
 
-void nhflow_hydrostatic_HLL::face_flux_2D(lexer* p, fdm_nhf*, slice& f, slice &fs, slice &fn, slice &fe, slice &fw)
+void nhflow_flux_HLLC::face_flux_2D(lexer* p, fdm_nhf*, slice& f, slice &fs, slice &fn, slice &fe, slice &fw)
 {
 }
 
-void nhflow_hydrostatic_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice & eta, double *U, double *V, double *Fx, double *Fy)
+void nhflow_flux_HLLC::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice & eta, double *U, double *V, double *Fx, double *Fy)
 {
-    double Ss,Sn,Se,Sw;
+    double Ss,Sn,Se,Sw,SS;
     double USx,USy;
     double Ds,Dn,De,Dw;
     double DSx,DSy;
     double denom;
+    double FsS,FnS;
 
+         
     // reconstruct eta
-    reconstruct_2D(p, pgc, d, eta, ETAs, ETAn, ETAe, ETAw);
+    precon->reconstruct_2D(p, pgc, d, eta, ETAs, ETAn, ETAe, ETAw);
     
     // reconstruct U and V
-    reconstruct_3D(p, pgc, d, U, V, Us, Un, Ve, Vw);
+    precon->reconstruct_3D(p, pgc, d, U, V, Fs, Fn, Fe, Fw);
     
-    // build flux arrays
-    ULOOP
-    {
-    Fs[IJK] = 0.5*fabs(p->W22)*(ETAs(i,j)*ETAs(i,j) + 2.0*ETAs(i,j)*d->depth(i,j));
-    Fn[IJK] = 0.5*fabs(p->W22)*(ETAn(i,j)*ETAn(i,j) + 2.0*ETAn(i,j)*d->depth(i,j));
-    }
-    
-    VLOOP
-    {
-    Fe[IJK] = 0.5*fabs(p->W22)*(ETAe(i,j)*ETAe(i,j) + 2.0*ETAe(i,j)*d->depth(i,j));
-    Fw[IJK] = 0.5*fabs(p->W22)*(ETAw(i,j)*ETAw(i,j) + 2.0*ETAw(i,j)*d->depth(i,j));
-    }
-    
-    // HLL flux
+    // HLLC flux
     ULOOP
     {
     // water level       
-    Ds = ETAs(i,j) + d->depth(i,j);
-    Dn = ETAn(i,j) + d->depth(i,j);
+    Ds = ETAs(i,j) + p->wd - d->bed(i,j);
+    Dn = ETAn(i,j) + p->wd - d->bed(i,j);
     
     Ds = MAX(0.00005, Ds);
     Dn = MAX(0.00005, Dn);
@@ -94,6 +85,13 @@ void nhflow_hydrostatic_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, 
     // wave speed
     Ss = MIN(Fs[IJK] - sqrt(9.81*Ds), USx - DSx);
     Sn = MAX(Fn[IJK] + sqrt(9.81*Dn), USx + DSx);
+    SS = USx;
+    
+    FsS = Ds*(Ss - Fs[IJK] + 1.0e-10)/(Ss - SS + 1.0e-10);
+    FnS = Dn*(Sn - Fn[IJK] + 1.0e-10)/(Sn - SS + 1.0e-10);
+ 
+    
+    //cout<<Ss<<" "<<Sn<<" | "<<Fs[IJK]<<" "<<Fn[IJK]<<endl;
     
         // final flux x-dir
         if(Ss>=0.0)
@@ -104,20 +102,19 @@ void nhflow_hydrostatic_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, 
         Fx[IJK] = Fn[IJK];
         
         else
-        {
-        denom = Sn-Ss;
-        denom = fabs(denom)>1.0e-10?denom:1.0e10;
+        if(SS>=0.0)
+        Fx[IJK] = Fs[IJK] + Ss*(FsS - Fs[IJK]);
         
-        Fx[IJK] = (Sn*Fs[IJK] - Ss*Fn[IJK] + Sn*Ss*(Un[IJK]  - Us[IJK]))/denom;
-        }
+        else
+        Fx[IJK] = Fn[IJK] + Sn*(FnS - Fn[IJK]);
     }
     
     
     VLOOP
     {
     // water level       
-    De = ETAe(i,j) + d->depth(i,j);
-    Dw = ETAw(i,j) + d->depth(i,j);
+    De = ETAe(i,j)  + p->wd - d->bed(i,j);
+    Dw = ETAw(i,j)  + p->wd - d->bed(i,j);
     
     De = MAX(0.00005, De);
     Dw = MAX(0.00005, Dw);
@@ -144,7 +141,7 @@ void nhflow_hydrostatic_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, 
         denom = Sw-Se;
         denom = fabs(denom)>1.0e-10?denom:1.0e10;
         
-        Fy[IJK] = (Sw*Fe[IJK] - Se*Fw[IJK] + Sw*Se*(Vw[IJK]  - Ve[IJK]))/denom;
+        Fy[IJK] = (Sw*Fe[IJK] - Se*Fw[IJK] + Sw*Se*(Dw - De))/denom;
         }
     }
     

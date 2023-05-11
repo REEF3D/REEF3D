@@ -22,7 +22,6 @@ Author: Hans Bihs
 
 #include"increment.h"
 #include"slice4.h"
-#include"weno_nug_func.h"
 
 class lexer;
 class ghostcell;
@@ -30,45 +29,18 @@ class fdm_nhf;
 class slice;
 class patchBC_interface;
 
-#ifndef NHFLOW_FLUX_WENO_H_
-#define NHFLOW_FLUX_WENO_H_
+#ifndef NHFLOW_RECONSTRUCT_H_
+#define NHFLOW_RECONSTRUCT_H_
 
 using namespace std;
 
-class nhflow_flux_weno : public weno_nug_func
+class nhflow_reconstruct
 {
 public:
-	nhflow_flux_weno(lexer*,patchBC_interface*);
-	virtual ~nhflow_flux_weno();
 
-	void reconstruct_2D(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&,slice&,slice&);
-    void reconstruct_3D(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*,double*,double*,double*);
-    
-    slice4 dfdx,dfdy;
-    double *DFDX, *DFDY;
+	virtual void reconstruct_2D(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&,slice&,slice&)=0;
+    virtual void reconstruct_3D(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*,double*,double*,double*)=0;
 
-
-private:
-    void iqmin(lexer*, double*);
-	void jqmin(lexer*, double*);
-	void kqmin(lexer*, double*);
-	void iqmax(lexer*, double*);
-	void jqmax(lexer*, double*);
-	void kqmax(lexer*, double*);
-    
-    void iqmin_sl(lexer*, slice&);
-    void iqmax_sl(lexer*, slice&);
-    void jqmin_sl(lexer*, slice&);
-    void jqmax_sl(lexer*, slice&);
-    
-    double limiter(double, double);
-
-    double ivel1,ivel2,jvel1,jvel2;
-    double val,denom;
-    double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus;
-    int qq;
-    
-    patchBC_interface *pBC;
 };
 
 #endif

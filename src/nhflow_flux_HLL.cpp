@@ -25,15 +25,24 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"fdm_nhf.h"
 #include"patchBC_interface.h"
+#include"nhflow_reconstruct_hires.h"
+#include"nhflow_reconstruct_WENO.h"
 
-nhflow_flux_HLL::nhflow_flux_HLL(lexer* p, patchBC_interface *ppBC) : nhflow_flux_weno(p,ppBC),ETAs(p),ETAn(p),ETAe(p),ETAw(p)
+nhflow_flux_HLL::nhflow_flux_HLL(lexer* p, patchBC_interface *ppBC) : ETAs(p),ETAn(p),ETAe(p),ETAw(p)
 {
     pBC = ppBC;
+    
+    if(p->A543==2)
+    precon = new nhflow_reconstruct_hires(p,ppBC);
+    
+    if(p->A543==4)
+    precon = new nhflow_reconstruct_weno(p,ppBC);
     
     p->Darray(Fs,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fn,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fe,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fw,p->imax*p->jmax*(p->kmax+2));
+    
 }
 
 nhflow_flux_HLL::~nhflow_flux_HLL()
@@ -54,10 +63,10 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
 
          
     // reconstruct eta
-    reconstruct_2D(p, pgc, d, eta, ETAs, ETAn, ETAe, ETAw);
+    precon->reconstruct_2D(p, pgc, d, eta, ETAs, ETAn, ETAe, ETAw);
     
     // reconstruct U and V
-    reconstruct_3D(p, pgc, d, U, V, Fs, Fn, Fe, Fw);
+    precon->reconstruct_3D(p, pgc, d, U, V, Fs, Fn, Fe, Fw);
     
     // HLL flux
     ULOOP

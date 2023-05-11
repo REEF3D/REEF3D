@@ -20,26 +20,27 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_flux_reconstruct.h"
+#include"nhflow_reconstruct_hires.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"fdm_nhf.h"
 #include"patchBC_interface.h"
 
-nhflow_flux_reconstruct::nhflow_flux_reconstruct(lexer* p, patchBC_interface *ppBC) : dfdx(p), dfdy(p)
+nhflow_reconstruct_hires::nhflow_reconstruct_hires(lexer* p, patchBC_interface *ppBC) : dfdx(p), dfdy(p)
 {
     pBC = ppBC;
+    
     
     p->Darray(DFDX,p->imax*p->jmax*(p->kmax+2));
     p->Darray(DFDY,p->imax*p->jmax*(p->kmax+2));
 
 }
 
-nhflow_flux_reconstruct::~nhflow_flux_reconstruct()
+nhflow_reconstruct_hires::~nhflow_reconstruct_hires()
 {
 }
 
-void nhflow_flux_reconstruct::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fs, slice &fn, slice &fe, slice &fw)
+void nhflow_reconstruct_hires::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fs, slice &fn, slice &fe, slice &fw)
 {
     // gradient
     SLICELOOP4
@@ -76,7 +77,7 @@ void nhflow_flux_reconstruct::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf*,
     pgc->gcsl_start2(p,fw,11);
 }
 
-void nhflow_flux_reconstruct::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf*, double *Fx, double *Fy, double *Fs, double *Fn, double *Fe, double *Fw)
+void nhflow_reconstruct_hires::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fx, double *Fy, double *Fs, double *Fn, double *Fe, double *Fw)
 {
     // gradient
     ULOOP
@@ -101,14 +102,14 @@ void nhflow_flux_reconstruct::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf*,
     // reconstruct
     ULOOP 
     {
-    Fs[IJK] = Fx[IJK]     + 0.5*p->DXP[IP]*DFDX[IJK]; 
-    Fn[IJK] = Fx[Ip1JK]   - 0.5*p->DXP[IP1]*DFDX[Ip1JK];
+    Fs[IJK] = d->hx(i,j)*(Fx[IJK]     + 0.5*p->DXP[IP]*DFDX[IJK]); 
+    Fn[IJK] = d->hx(i,j)*(Fx[Ip1JK]   - 0.5*p->DXP[IP1]*DFDX[Ip1JK]);
     }
     
     VLOOP
     {
-    Fe[IJK] = Fy[IJK]     + 0.5*p->DYP[IP]*DFDY[IJK]; 
-    Fw[IJK] = Fy[IJp1K]   - 0.5*p->DYP[JP1]*DFDY[IJp1K];
+    Fe[IJK] = d->hy(i,j)*(Fy[IJK]     + 0.5*p->DYP[IP]*DFDY[IJK]); 
+    Fw[IJK] = d->hy(i,j)*(Fy[IJp1K]   - 0.5*p->DYP[JP1]*DFDY[IJp1K]);
     }
     
     
@@ -118,7 +119,7 @@ void nhflow_flux_reconstruct::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf*,
     pgc->start2V(p,Fw,11);
 }
 
-double nhflow_flux_reconstruct::limiter(double v1, double v2)
+double nhflow_reconstruct_hires::limiter(double v1, double v2)
 {
     denom = fabs(v1) + fabs(v2);
     

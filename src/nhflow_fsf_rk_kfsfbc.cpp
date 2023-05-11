@@ -65,6 +65,26 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
              + V[IJK]*(eta1(i,j+1)-eta1(i,j-1))/(p->DYP[JP]+p->DYP[JP1]);
         }
         
+        if(p->A515==3)
+        {
+        dfdx_plus = (eta1(i+1,j)-eta1(i,j))/p->DXP[IP];
+        dfdx_min  = (eta1(i,j)-eta1(i-1,j))/p->DXP[IM1];
+    
+        detadx = limiter(dfdx_plus,dfdx_min);
+        
+        dfdy_plus = (eta1(i,j-1)-eta1(i,j))/p->DYP[JP];
+        dfdy_min  = (eta1(i,j)-eta1(i,j-1))/p->DYP[JM1];
+    
+        detady = limiter(dfdy_plus,dfdy_min);
+        
+        
+        wval = d->detadt(i,j)
+        
+             + U[IJK]*detadx
+
+             + V[IJK]*detady;
+        }
+        
         //W[IJK] = wval; 
         W[IJKp1] = wval;
         W[IJKp2] = wval;
@@ -112,6 +132,15 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
         
         d->dwdt(i,j) = (wval - w_n)/(alpha*p->dt);
     }
+}
 
+double nhflow_fsf_rk::limiter(double v1, double v2)
+{
+    denom = fabs(v1) + fabs(v2);
     
+    denom = fabs(denom)>1.0e-10?denom:1.0e10;
+    
+    val =  (v1*fabs(v2) + fabs(v1)*v2)/denom;
+
+    return val;	
 }

@@ -21,38 +21,37 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_flux_fsf.h"
-#include"nhflow_flux_reconstruct.h"
 #include"slice1.h"
 #include"slice2.h"
+#include"increment.h"
 
+class nhflow_reconstruct;
 
-#ifndef NHFLOW_HYDROSTATIC_HLL_H_
-#define NHFLOW_HYDROSTATOC_HLL_H_
+#ifndef NHFLOW_FLUX_HLLC_H_
+#define NHFLOW_FLUX_HLLC_H_
 
 using namespace std;
 
-class nhflow_hydrostatic_HLL : public nhflow_flux_fsf, public nhflow_flux_reconstruct
+class nhflow_flux_HLLC : public nhflow_flux_fsf, public increment
 {
 public:
-	nhflow_hydrostatic_HLL(lexer*,patchBC_interface*);
-	virtual ~nhflow_hydrostatic_HLL();
+	nhflow_flux_HLLC(lexer*,patchBC_interface*);
+	virtual ~nhflow_flux_HLLC();
 
 	virtual void face_flux_2D(lexer*,fdm_nhf*,slice&,slice&,slice&,slice&,slice&);
     virtual void face_flux_3D(lexer*,ghostcell*,fdm_nhf*,slice&,double*,double*,double*,double*);
     
     double *Fs,*Fn,*Fe,*Fw;
-    double *Us,*Un,*Ve,*Vw;
     slice1 ETAs,ETAn;
     slice2 ETAe,ETAw;
-    
 
 private:
     
-
     double ivel1,ivel2,jvel1,jvel2;
     int qq;
     
     patchBC_interface *pBC;
+    nhflow_reconstruct *precon;
 };
 
 #endif

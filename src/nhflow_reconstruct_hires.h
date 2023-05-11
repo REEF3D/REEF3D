@@ -20,40 +20,43 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_flux_fsf.h"
-#include"slice1.h"
-#include"slice2.h"
+#include"nhflow_reconstruct.h"
 #include"increment.h"
+#include"slice4.h"
 
-class nhflow_reconstruct;
+class lexer;
+class ghostcell;
+class fdm_nhf;
+class slice;
+class patchBC_interface;
 
-#ifndef NHFLOW_FLUX_FOU_H_
-#define NHFLOW_FLUX_FOU_H_
+#ifndef NHFLOW_RECONSTRUCT_HIRES_H_
+#define NHFLOW_RECONSTRUCT_HIRES_H_
 
 using namespace std;
 
-class nhflow_flux_FOU : public nhflow_flux_fsf, public increment
+class nhflow_reconstruct_hires : public nhflow_reconstruct, public increment
 {
 public:
-	nhflow_flux_FOU(lexer*,patchBC_interface*);
-	virtual ~nhflow_flux_FOU();
+	nhflow_reconstruct_hires(lexer*,patchBC_interface*);
+	virtual ~nhflow_reconstruct_hires();
 
-	virtual void face_flux_2D(lexer*,fdm_nhf*,slice&,slice&,slice&,slice&,slice&);
-    virtual void face_flux_3D(lexer*,ghostcell*,fdm_nhf*,slice&,double*,double*,double*,double*);
+	virtual void reconstruct_2D(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&,slice&,slice&);
+    virtual void reconstruct_3D(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*,double*,double*,double*);
     
-    double *Fs,*Fn,*Fe,*Fw;
-    slice1 ETAs,ETAn;
-    slice2 ETAe,ETAw;
-    
+    slice4 dfdx,dfdy;
+    double *DFDX, *DFDY;
+
 
 private:
-    
+    double limiter(double, double);
 
     double ivel1,ivel2,jvel1,jvel2;
+    double val,denom;
+    double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus;
     int qq;
     
     patchBC_interface *pBC;
-    nhflow_reconstruct *precon;
 };
 
 #endif

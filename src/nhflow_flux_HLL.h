@@ -21,9 +21,11 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_flux_fsf.h"
-#include"nhflow_flux_weno.h"
 #include"slice1.h"
 #include"slice2.h"
+#include"increment.h"
+
+class nhflow_reconstruct;
 
 
 #ifndef NHFLOW_FLUX_HLL_H_
@@ -31,7 +33,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class nhflow_flux_HLL : public nhflow_flux_fsf, public nhflow_flux_weno
+class nhflow_flux_HLL : public nhflow_flux_fsf, public increment
 {
 public:
 	nhflow_flux_HLL(lexer*,patchBC_interface*);
@@ -43,15 +45,14 @@ public:
     double *Fs,*Fn,*Fe,*Fw;
     slice1 ETAs,ETAn;
     slice2 ETAe,ETAw;
-    
 
 private:
     
-
     double ivel1,ivel2,jvel1,jvel2;
     int qq;
     
     patchBC_interface *pBC;
+    nhflow_reconstruct *precon;
 };
 
 #endif

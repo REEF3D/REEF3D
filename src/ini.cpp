@@ -95,12 +95,19 @@ void lexer::ini_default()
     A440=1.6;    // double epsi for depth integration
     
     A510=3;      // int NFHLOW time scheme
+    A511=4;		// int NHFLOW convection discretization
+    A512=4;		// int NHFLOW diffusion
+    
     A515=1;      // int NHFLOW KFSFBC scheme
     A516=1;      // int NHFLOW omega_sig scheme
     A517=1;      // int NFHLOW omega flux interpolation
     A518=1;      // int NFHLOW deta/dt scheme
+    A520=1;		// int NFHLOW non-hydrostatic pressure scheme
+    A521=1;		// int NFHLOW hydrostatic pressure scheme
     A540=1;      // int NFHLOW fsf scheme
-    A541=1;      // int NFHLOW fsf discretization
+    A541=1;      // int NFHLOW fsf hxy discretization
+    A542=2;		// int NHFLOW fsf flux discretization 
+    A543=2;		// int NHFLOW fsf flux reconstruction
 
     // Boundary Conditions
 	B10=0;			// int wall laws velocities on/off

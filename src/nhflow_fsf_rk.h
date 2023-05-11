@@ -61,6 +61,8 @@ public:
     void update(lexer*,fdm_nhf*,ghostcell*,slice&);
     
 private: 
+    double limiter(double, double);
+    
     fluid_update *pupdate;
     sflow_eta_disc *peta;
 	sflow_hxy_disc *phxy;
@@ -79,6 +81,9 @@ private:
 	double d;
     const double epsi;
     double wd_criterion;
+    double val, denom;
+    double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus;
+    double detadx,detady;
 	
 	
 

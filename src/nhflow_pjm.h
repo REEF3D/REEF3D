@@ -27,7 +27,6 @@ class density;
 class solver;
 class nhflow_poisson;
 class patchBC_interface;
-class nhflow_hydrostatic_HLL;
 
 using namespace std;
 
@@ -49,30 +48,29 @@ public:
 	virtual void upgrad(lexer*,fdm_nhf*,slice&,slice&);
 	virtual void vpgrad(lexer*,fdm_nhf*,slice&,slice&);
     virtual void wpgrad(lexer*,fdm_nhf*,slice&,slice&);
-    virtual void hydrostatic_HLL(lexer*,fdm_nhf*,ghostcell*,slice&,double*,double*);
     
     void rhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 	void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
     void bedbc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 
 private:
+    double limiter(double, double);
+    
 	double starttime,endtime;
     const double teta;
     int check;
 	int count, gcval_press;
 	int gcval_u, gcval_v, gcval_w;
     int solver_id;
+    double val, denom;
+    double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus;
+    double detadx,detady;
+    double detadx_n,detady_n;
     
-    double *Fx,*Fy;
-    double *dFx,*dFy;
-    double *dFx_n,*dFy_n;
-	
-	void debug(lexer*,fdm_nhf*);
-    
+
     density *pd;
     nhflow_poisson *ppois;
     patchBC_interface *pBC;
-    nhflow_hydrostatic_HLL *phs;
 
 };
 

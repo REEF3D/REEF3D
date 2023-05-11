@@ -20,8 +20,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"nhflow_reconstruct.h"
 #include"increment.h"
 #include"slice4.h"
+#include"weno_nug_func.h"
 
 class lexer;
 class ghostcell;
@@ -29,25 +31,37 @@ class fdm_nhf;
 class slice;
 class patchBC_interface;
 
-#ifndef NHFLOW_FLUX_RECONSTRUCT_H_
-#define NHFLOW_FLUX_RECONSTRUCT_H_
+#ifndef NHFLOW_RECONSTRUCT_WENO_H_
+#define NHFLOW_RECONSTRUCT_WENO_H_
 
 using namespace std;
 
-class nhflow_flux_reconstruct : public increment
+class nhflow_reconstruct_weno : public nhflow_reconstruct, public weno_nug_func
 {
 public:
-	nhflow_flux_reconstruct(lexer*,patchBC_interface*);
-	virtual ~nhflow_flux_reconstruct();
+	nhflow_reconstruct_weno(lexer*,patchBC_interface*);
+	virtual ~nhflow_reconstruct_weno();
 
-	void reconstruct_2D(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&,slice&,slice&);
-    void reconstruct_3D(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*,double*,double*,double*);
+	virtual void reconstruct_2D(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&,slice&,slice&);
+    virtual void reconstruct_3D(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*,double*,double*,double*);
     
     slice4 dfdx,dfdy;
     double *DFDX, *DFDY;
 
 
 private:
+    void iqmin(lexer*, double*);
+	void jqmin(lexer*, double*);
+	void kqmin(lexer*, double*);
+	void iqmax(lexer*, double*);
+	void jqmax(lexer*, double*);
+	void kqmax(lexer*, double*);
+    
+    void iqmin_sl(lexer*, slice&);
+    void iqmax_sl(lexer*, slice&);
+    void jqmin_sl(lexer*, slice&);
+    void jqmax_sl(lexer*, slice&);
+    
     double limiter(double, double);
 
     double ivel1,ivel2,jvel1,jvel2;
