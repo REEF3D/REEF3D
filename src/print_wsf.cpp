@@ -95,7 +95,7 @@ print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num)
     {
             wsfout<<"time";
             for(n=0;n<gauge_num;++n)
-                wsfout<<",P_(x="<<x[n]<<",_y="<<y[n]<<")";
+                wsfout<<",P_(x="<<x[n]<<"|y="<<y[n]<<")";
             wsfout<<endl;
     }
     }
@@ -141,7 +141,7 @@ print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num)
     {
        wsfout<<"time";
         for(n=0;n<gauge_num;++n)
-            wsfout<<",P_(x="<<x[n]<<",_y="<<y[n]<<")";
+            wsfout<<",P_(x="<<x[n]<<"|y="<<y[n]<<")";
         wsfout<<endl;     
     }
     }
@@ -186,7 +186,7 @@ print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num)
     {
         wsfout<<"time";
         for(n=0;n<gauge_num;++n)
-            wsfout<<",P_(x="<<x[n]<<",_y="<<y[n]<<")";
+            wsfout<<",P_(x="<<x[n]<<"|y="<<y[n]<<")";
         wsfout<<endl;
     }
     }
@@ -251,7 +251,7 @@ void print_wsf::height_gauge(lexer *p, fdm *a, ghostcell *pgc, field &f)
         {
             wsfout<<setprecision(9)<<p->simtime<<"\t";
             for(n=0;n<gauge_num;++n)
-            wsfout<<setprecision(9)<<wsf[n]<<"  \t  ";
+                wsfout<<setprecision(9)<<wsf[n]<<"  \t  ";
             wsfout<<endl;
         }
         if(p->P87==1)

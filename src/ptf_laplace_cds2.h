@@ -29,13 +29,17 @@ Author: Hans Bihs
 
 using namespace std;
 
+class fnpf_convection;
+
 class ptf_laplace_cds2 : public ptf_laplace, public increment
 {
 public:
     ptf_laplace_cds2(lexer*,fdm*,ghostcell*);
 	virtual ~ptf_laplace_cds2();
 
-    virtual void start(lexer *,fdm*,ghostcell*,solver*,field&,slice&);
+    virtual void start(lexer *,fdm*,ghostcell*,solver*,field&,slice&,slice&);
+    
+    fnpf_convection *sconvec;
     
 private:
     

@@ -104,6 +104,7 @@ void ptf_fsfbc::fsfwvel(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &Fif
     //if(p->A323<4)
     Fz(i,j) = pconvec->fz(p,a->Fi,kvel,kvel);
     
+    
     //if(p->A323==4)
     //Fz(i,j) = fz(p,a,a->Fi,Fifsf);
     
@@ -116,9 +117,10 @@ void ptf_fsfbc::fsfwvel(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &Fif
 void ptf_fsfbc::kfsfbc(lexer *p, fdm *a, ghostcell *pgc)
 {
     SLICELOOP4
-    a->K(i,j) = - Fx(i,j)*Ex(i,j) - Fy(i,j)*Ey(i,j) 
+    a->K(i,j) = - Fx(i,j)*Ex(i,j) + Fy(i,j)*Ey(i,j) 
     
                 + Fz(i,j)*(1.0 + pow(Ex(i,j),2.0) + pow(Ey(i,j),2.0));
+                
 }
 
 void ptf_fsfbc::dfsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &eta)

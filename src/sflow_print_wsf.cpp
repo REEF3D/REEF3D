@@ -76,7 +76,7 @@ sflow_print_wsf::sflow_print_wsf(lexer *p, fdm2D* b)
     {
         wsfout<<"time";
         for(n=0;n<gauge_num;++n)
-            wsfout<<",P_(x="<<x[n]<<",_y"<<y[n]<<")";
+            wsfout<<",P_(x="<<x[n]<<"|y="<<y[n]<<")";
         wsfout<<endl;
     }
     }

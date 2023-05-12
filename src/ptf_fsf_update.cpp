@@ -76,7 +76,7 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     double lsv0,lsv1,lsv2,lsv3;
     double fival,lsval,dx,dist;
 // ------
-    if(p->A323==1)
+    if(p->A323==1 || p->A323==6)
     FILOOP4
     {
     Fi(i,j,k+1) =  Fifsf(i,j);
@@ -152,6 +152,34 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     //if(i+p->origin_i==0)
     //Fi(i-1,j,k+1) = Fi(i,j,k+1);
     }
+    
+    if( p->A323==5 )
+    {
+    double x_1,x_2,x_3,y_1,y_2,y_3;
+    double a_fac,b_fac,c_const;
+    
+    FILOOP4
+    {   
+        
+        x_1=p->ZP[KM2];
+        x_2=p->ZP[KM1];
+        x_3=p->ZP[KP];
+        y_1=Fi[i,j,k-2];
+        y_2=Fi[i,j,k-1];
+        y_3=Fi[i,j,k];
+        a_fac=(y_3-y_1+(1/(x_2-x_1))*(y_1*x_3-y_2*x_3-y_1*x_1+y_2*x_1))/(x_3*x_3-x_1*x_1+(1/(x_2-x_1))*(x_1*x_1*x_3-x_2*x_2*x_3+x_2*x_2*x_1-x_1*x_1*x_1));
+        b_fac=(1/(x_2-x_1))*(a_fac*x_1*x_1-a_fac*x_2*x_2-y_1+y_2);
+        c_const=(y_1-a_fac*x_1*x_1-b_fac*x_1);
+        
+        Fi(i,j,k+1)=a_fac*p->ZP[KP1]*p->ZP[KP1]+b_fac*p->ZP[KP1]+c_const;
+        Fi(i,j,k+2)=a_fac*p->ZP[KP2]*p->ZP[KP2]+b_fac*p->ZP[KP2]+c_const;
+        Fi(i,j,k+3)=a_fac*p->ZP[KP3]*p->ZP[KP3]+b_fac*p->ZP[KP3]+c_const;
+        
+    }
+    
+    }
+    
+    
 }
 
 void ptf_fsf_update::fsfbc0(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field &Fi)
