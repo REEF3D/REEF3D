@@ -74,7 +74,7 @@ public:
     vec2D xvec,rvec;
     
     // 3D array
-    double *U,*V,*W,*omega,*P,*ro,*visc,*eddyv;
+    double *U,*V,*W,*omega,*omegaF,*P,*ro,*visc,*eddyv;
     double *F,*G,*H,*L;
     double *porosity;
     double *test;

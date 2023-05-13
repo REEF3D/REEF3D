@@ -49,6 +49,9 @@ void nhflow_flux_face_cds2::w_flux(fdm_nhf *d, int ipol, double *W, double &wflu
 {
 	wflux1= 0.5*(W[IJK]+W[IJKm1]);
 	wflux2= 0.5*(W[IJK]+W[IJKp1]);
+    
+    //wflux1= W[FIJK];
+	//wflux2= W[FIJKp1];
 }
 
 void nhflow_flux_face_cds2::omega_flux(lexer *p, fdm_nhf *d, int ipol, double *U, double *V, double *W, double &wflux1, double &wflux2)

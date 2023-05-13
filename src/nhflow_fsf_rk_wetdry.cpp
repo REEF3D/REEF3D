@@ -31,30 +31,43 @@ void nhflow_fsf_rk::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *U, doub
     
     SLICELOOP4
     {
-          
     wl =  eta(i,j) + p->wd - d->bed(i,j);
     
-          if(wl>=wd_criterion)
-          p->wet[IJ]=1;
+        if(wl>=wd_criterion)
+        p->wet[IJ]=1;
               
-          if(wl<wd_criterion)
-          {
-              p->wet[IJ]=0;
-              
-              KLOOP
-              PCHECK
-              {
-               U[IJK] = 0.0;
-               V[IJK] = 0.0;
-               W[IJK] = 0.0;
-              }
-          }
+        if(wl<wd_criterion)
+        p->wet[IJ]=0;
+      
+      /*
+        if(p->wet[IJ]==0 && wl<eta(i+1,j) + p->wd - d->bed(i+1,j))
+        p->wet[IJ]=1;
+        
+        if(p->wet[IJ]==0 && wl<eta(i-1,j) + p->wd - d->bed(i-1,j))
+        p->wet[IJ]=1;*/
+        
+        //if(d->WL(i,j)<10.0*wd_criterion)
+        //cout<<p->wet[IJ]<<" | "<<wl<<" "<<d->WL(i,j)<<" | "<<p->XP[IP]<<endl;
+    }
+          
+    LOOP
+    if(p->wet[IJ]==0)
+    {
+        U[IJK] = 0.0;
+        V[IJK] = 0.0;
+        W[IJK] = 0.0;
+        d->omega[IJK] = 0.0;
     }
     
-    SLICELOOP4
-    if(eta(i,j)< -p->wd  + d->bed(i,j) - wd_criterion+1.0e-20)
-    eta(i,j) = -p->wd  + d->bed(i,j) - wd_criterion - 1.0e-15;
+    FLOOP
+    if(p->wet[IJ]==0)
+    d->omegaF[FIJK] = 0.0;
     
+    
+   // SLICELOOP4
+   // if(eta(i,j)< -p->wd  + d->bed(i,j) - wd_criterion + 1.0e-20)
+   // eta(i,j) = -p->wd  + d->bed(i,j) - wd_criterion*5.0 - 1.0e-15;
+
     pgc->gcsl_start4Vint(p,p->wet,50);
     
 }

@@ -116,7 +116,7 @@ void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     K(i,j) = 0.0;
     
     LOOP
-    K(i,j) += -p->DZN[KP]*((Fx[IJK] - Fx[Im1JK])/p->DXN[IP]  + (Fy[IJK]*d->hy(i,j) - Fy[IJm1K]*d->hy(i,j-1))/p->DYN[JP]);
+    K(i,j) += -p->DZN[KP]*((Fx[IJK] - Fx[Im1JK])/p->DXN[IP]  + (Fy[IJK] - Fy[IJm1K])/p->DYN[JP]*p->y_dir);
     
     LOOP
     d->test[IJK] = Fx[IJK]- Fx[Im1JK];
@@ -131,6 +131,12 @@ void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     
     //SLICELOOP4
     //d->WL(i,j) = MAX(0.0, etark1(i,j) + p->wd - d->bed(i,j));
+    
+    //wetdry(p,d,pgc,U,V,W,etark1);
+    
+    
+    //SLICELOOP4
+    //d->detadt(i,j) = K(i,j);
     
     breaking(p,d,pgc,etark1,d->eta,1.0);
     p->sigma_update(p,d,pgc,etark1,d->eta,1.0);
@@ -167,7 +173,7 @@ void nhflow_fsf_rk::step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     K(i,j) = 0.0;
     
     LOOP
-    K(i,j) += -p->DZN[KP]*((Fx[IJK] - Fx[Im1JK])/p->DXN[IP]  + (Fy[IJK]*d->hy(i,j) - Fy[IJm1K]*d->hy(i,j-1))/p->DYN[JP]);
+    K(i,j) += -p->DZN[KP]*((Fx[IJK] - Fx[Im1JK])/p->DXN[IP]  + (Fy[IJK] - Fy[IJm1K])/p->DYN[JP]*p->y_dir);
     
     SLICELOOP4
     etark2(i,j) = 0.75*d->eta(i,j) + 0.25*etark1(i,j) + 0.25*p->dt*K(i,j);
@@ -177,6 +183,11 @@ void nhflow_fsf_rk::step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     
     //SLICELOOP4
     //d->WL(i,j) = MAX(0.0, etark2(i,j) + p->wd - d->bed(i,j));
+    
+    //wetdry(p,d,pgc,U,V,W,etark2);
+    
+    //SLICELOOP4
+    //d->detadt(i,j) = K(i,j);
     
     breaking(p,d,pgc,etark2,etark1,0.25);
     p->sigma_update(p,d,pgc,etark2,etark1,0.25);
@@ -222,7 +233,7 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     K(i,j) = 0.0;
     
     LOOP
-    K(i,j) += - p->DZN[KP]*((Fx[IJK] - Fx[Im1JK])/p->DXN[IP]  + (Fy[IJK]*d->hy(i,j) - Fy[IJm1K]*d->hy(i,j-1))/p->DYN[JP]);
+    K(i,j) += - p->DZN[KP]*((Fx[IJK] - Fx[Im1JK])/p->DXN[IP]  + (Fy[IJK] - Fy[IJm1K])/p->DYN[JP]*p->y_dir);
     
     SLICELOOP4
     d->eta(i,j) = (1.0/3.0)*d->eta(i,j) + (2.0/3.0)*etark2(i,j) + (2.0/3.0)*p->dt*K(i,j);
@@ -238,9 +249,9 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     d->WL_n1(i,j) = d->WL(i,j);
     
     SLICELOOP4
-    {
-    d->detadt(i,j) = (d->eta(i,j)-d->eta_n(i,j))/p->dt;
-    }
+    d->detadt(i,j) = (d->eta(i,j) -d->eta_n(i,j))/p->dt;
+    
+    //wetdry(p,d,pgc,U,V,W,d->eta);
     
     breaking(p,d,pgc,d->eta,etark2,2.0/3.0);
     p->sigma_update(p,d,pgc,d->eta,etark2,2.0/3.0);

@@ -303,6 +303,50 @@ void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
                         +  Rval*p->sigz[IJ];
     }
     
+    
+    FLOOP
+    {
+        if(p->A517==1)
+        {
+        if(U[IJK]>=0.0)
+        Pval=0.5*(U[Im1JK] + U[IJK]);
+            
+        if(U[IJK]<0.0)
+        Pval=0.5*(U[IJK] + U[Ip1JK]);
+        
+        
+        if(V[IJK]>=0.0)
+        Qval=0.5*(V[IJm1K] + V[IJK]);
+            
+        if(V[IJK]<0.0)
+        Qval=0.5*(V[IJK] + V[IJp1K]);
+        
+        
+        if(W[IJK]>=0.0)
+        Rval=0.5*(W[IJKm1] + W[IJK]);
+            
+        if(W[IJK]<0.0)
+        Rval=0.5*(W[IJK] + W[IJKp1]);
+        }
+        
+        if(p->A517==2)
+        {
+        Pval = 0.5*(U[IJK]+U[IJKm1]);
+        Qval = 0.5*(V[IJK]+V[IJKm1]);
+        Rval = 0.5*(W[IJK]+W[IJKm1]);
+        }
+    
+    // omega
+        d->omegaF[FIJK] =    p->sigt[FIJK]
+                        
+                        +  Pval*p->sigx[FIJK]
+                        
+                        +  Qval*p->sigy[FIJK]
+                        
+                        +  Rval*p->sigz[IJ];
+    }
+    
+    
     GC4LOOP
     if(p->gcb4[n][3]==6 && p->gcb4[n][4]==3)
     {
@@ -314,6 +358,12 @@ void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
         d->omega[IJKp1] =  0.0;
         d->omega[IJKp2] =  0.0;
         d->omega[IJKp3] =  0.0;
+        
+        k+=1;
+        
+        d->omegaF[FIJKp1] =  0.0;
+        d->omegaF[FIJKp2] =  0.0;
+        d->omegaF[FIJKp3] =  0.0;
         
     }
     
@@ -328,7 +378,20 @@ void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
         d->omega[IJKm1] =  0.0;
         d->omega[IJKm2] =  0.0;
         d->omega[IJKm3] =  0.0;
+        
+        
+        d->omegaF[FIJKm1] =  0.0;
+        d->omegaF[FIJKm2] =  0.0;
+        d->omegaF[FIJKm3] =  0.0;
     }
+    
+    LOOP
+    if(p->wet[IJ]==0)
+    d->omega[IJK] = 0.0;
+    
+    FLOOP
+    if(p->wet[IJ]==0)
+    d->omegaF[FIJK] = 0.0;
     
     pgc->start3V(p,d->omega,17);
 }

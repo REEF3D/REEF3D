@@ -121,6 +121,24 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
            - Qval*((d->depth(i,j+1)-d->depth(i,j-1))/(p->DYP[JP]+p->DYP[JP1]));
     }
     
+    if(p->A516==3)
+    {
+        dfdx_plus = (d->depth(i+1,j)-d->depth(i,j))/p->DXP[IP];
+        dfdx_min  = (d->depth(i,j)-d->depth(i-1,j))/p->DXP[IM1];
+    
+        detadx = limiter(dfdx_plus,dfdx_min);
+        
+        dfdy_plus = (d->depth(i,j-1)-d->depth(i,j))/p->DYP[JP];
+        dfdy_min  = (d->depth(i,j)-d->depth(i,j-1))/p->DYP[JM1];
+    
+        detady = limiter(dfdy_plus,dfdy_min);
+        
+        
+        wval = - Pval*detadx
+
+               - Pval*detady;
+    }
+    
         
         //W[IJK] = wval;
         W[IJKm1] = wval;

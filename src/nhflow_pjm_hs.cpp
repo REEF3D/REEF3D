@@ -84,19 +84,19 @@ void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 {
     if(p->A521==1 && p->A540==1)
     LOOP
-    if(p->wet[IJ]==1)
+    WETDRY
     d->F[IJK] -= PORVALNH*fabs(p->W22)*
                 (p->A523*eta(i+1,j) + (1.0-p->A523)*eta_n(i+1,j) - p->A523*eta(i-1,j) - (1.0-p->A523)*eta_n(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
 
     if(p->A521==1 && p->A540==2)
     LOOP
-    if(p->wet[IJ]==1)
+    WETDRY
 	d->F[IJK] -= PORVALNH*fabs(p->W22)*(d->eta(i+1,j) - d->eta(i,j))/p->DXP[IP];
     
                
     if(p->A521==2 && p->A540==1)
     LOOP
-    if(p->wet[IJ]==1)
+    WETDRY
     {
     dfdx_plus = (eta(i+1,j)-eta(i,j))/p->DXP[IP];
     dfdx_min  = (eta(i,j)-eta(i-1,j))/p->DXP[IM1];
@@ -119,19 +119,19 @@ void nhflow_pjm_hs::vpgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 {
     if(p->A521==1 && p->A540==1)
     LOOP
-    if(p->wet[IJ]==1)
+    WETDRY
 	d->G[IJK] -= PORVALNH*fabs(p->W22)*
                  (p->A523*eta(i,j+1) + (1.0-p->A523)*eta_n(i,j+1) - p->A523*eta(i,j-1) - (1.0-p->A523)*eta_n(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
     
     if(p->A521==1 && p->A540==2)
     LOOP
-    if(p->wet[IJ]==1)
+    WETDRY
 	d->G[IJK] -= PORVALNH*fabs(p->W22)*(d->eta(i,j+1) - d->eta(i,j))/p->DYP[JP];
     
     
     if(p->A521==2 && p->A540==1)
     LOOP
-    if(p->wet[IJ]==1)
+    WETDRY
     {
     dfdy_plus = (eta(i,j+1)-eta(i,j))/p->DYP[JP];
     dfdy_min  = (eta(i,j)-eta(i,j-1))/p->DYP[JM1];

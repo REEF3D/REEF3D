@@ -104,14 +104,31 @@ void nhflow_reconstruct_hires::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf 
     {
     Fs[IJK] = d->hx(i,j)*(Fx[IJK]     + 0.5*p->DXP[IP]*DFDX[IJK]); 
     Fn[IJK] = d->hx(i,j)*(Fx[Ip1JK]   - 0.5*p->DXP[IP1]*DFDX[Ip1JK]);
-    }
     
+        if(p->wet[IJ]==1 && p->wet[IJp1]==0)
+        {
+        Fs[Ip1JK] = 0.0; 
+        }
+        
+        else
+        if(p->wet[IJ]==1 && p->wet[IJm1]==0)
+        {
+        Fn[IJK] = 0.0;
+        }
+        
+        else
+        if(p->wet[IJ]==0)
+        {
+        Fs[Ip1JK] = 0.0;
+        Fn[IJK] = 0.0;
+        }
+    }
+
     VLOOP
     {
     Fe[IJK] = d->hy(i,j)*(Fy[IJK]     + 0.5*p->DYP[IP]*DFDY[IJK]); 
     Fw[IJK] = d->hy(i,j)*(Fy[IJp1K]   - 0.5*p->DYP[JP1]*DFDY[IJp1K]);
     }
-    
     
 	pgc->start1V(p,Fs,10);
     pgc->start1V(p,Fs,10);

@@ -87,6 +87,7 @@ void nhflow_flux_HLLC::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice 
     Sn = MAX(Fn[IJK] + sqrt(9.81*Dn), USx + DSx);
     SS = USx;
     
+      
     FsS = Ds*(Ss - Fs[IJK] + 1.0e-10)/(Ss - SS + 1.0e-10);
     FnS = Dn*(Sn - Fn[IJK] + 1.0e-10)/(Sn - SS + 1.0e-10);
  
