@@ -85,7 +85,7 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
     // wave speed
     Ss = MIN(Fs[IJK] - sqrt(9.81*Ds), USx - DSx);
     Sn = MAX(Fn[IJK] + sqrt(9.81*Dn), USx + DSx);
-    /*
+    
     if(p->wet[Ip1J]==0)
     {
     Ss = Fs[IJK] - sqrt(9.81*Ds);
@@ -96,7 +96,10 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
     {
     Ss = Fn[IJK] - 2.0*sqrt(9.81*Dn);
     Sn = Fn[IJK] + sqrt(9.81*Dn);
-    }*/
+    }
+    
+    if(p->wet[IJ]==0)
+    Ss=Sn=0.0;
     
     //cout<<Ss<<" "<<Sn<<" | "<<Fs[IJK]<<" "<<Fn[IJK]<<endl;
     
@@ -118,7 +121,6 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
     }
     
     
-    if(p->j_dir==1)
     VLOOP
     {
     // water level       
@@ -153,10 +155,7 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
         Fy[IJK] = (Sw*Fe[IJK] - Se*Fw[IJK] + Sw*Se*(Dw - De))/denom;
         }
     }
-    
-    if(p->j_dir==0)
-    VLOOP
-    Fy[IJK]=0.0;
+
     
     pgc->start1V(p,Fx,10);
     pgc->start2V(p,Fy,10);

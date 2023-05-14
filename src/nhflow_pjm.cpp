@@ -94,6 +94,7 @@ void nhflow_pjm::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, iofl
 void nhflow_pjm::ucorr(lexer* p, fdm_nhf *d, double *U, double alpha)
 {
 	LOOP
+    WETDRY
     if(d->breaking(i,j)==0 && d->breaking(i-1,j)==0 && d->breaking(i+1,j)==0)
 	U[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*
                 (((0.5*(d->P[FIp1JKp1]+d->P[FIp1JK])-0.5*(d->P[FIm1JKp1]+d->P[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1]))
@@ -103,6 +104,7 @@ void nhflow_pjm::ucorr(lexer* p, fdm_nhf *d, double *U, double alpha)
 void nhflow_pjm::vcorr(lexer* p, fdm_nhf *d, double *V,double alpha)
 {
     LOOP
+    WETDRY
     if(d->breaking(i,j)==0 && d->breaking(i,j-1)==0 && d->breaking(i,j-1)==0)
     V[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*
                 (((0.5*(d->P[FIJp1Kp1]+d->P[FIJp1K])-0.5*(d->P[FIJm1Kp1]+d->P[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]))
@@ -112,6 +114,7 @@ void nhflow_pjm::vcorr(lexer* p, fdm_nhf *d, double *V,double alpha)
 void nhflow_pjm::wcorr(lexer* p, fdm_nhf *d, double *W, double alpha)
 {
     LOOP
+    WETDRY
     if(d->breaking(i,j)==0)
 	W[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*((d->P[FIJKp1]-d->P[FIJK])/(p->DZN[KP]))*p->sigz[IJ];
 }

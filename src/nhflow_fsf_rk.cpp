@@ -118,8 +118,8 @@ void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     LOOP
     K(i,j) += -p->DZN[KP]*((Fx[IJK] - Fx[Im1JK])/p->DXN[IP]  + (Fy[IJK] - Fy[IJm1K])/p->DYN[JP]*p->y_dir);
     
-    LOOP
-    d->test[IJK] = Fx[IJK]- Fx[Im1JK];
+    //LOOP
+    //d->test[IJK] = Fx[IJK]- Fx[Im1JK];
     
     pgc->start4V(p,d->test,10);
     
@@ -129,8 +129,8 @@ void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     pflow->eta_relax(p,pgc,etark1);
     pgc->gcsl_start4(p,etark1,1);
     
-    //SLICELOOP4
-    //d->WL(i,j) = MAX(0.0, etark1(i,j) + p->wd - d->bed(i,j));
+    SLICELOOP4
+    d->WL(i,j) = MAX(0.0, etark1(i,j) + p->wd - d->bed(i,j));
     
     //wetdry(p,d,pgc,U,V,W,etark1);
     
@@ -181,8 +181,8 @@ void nhflow_fsf_rk::step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     pflow->eta_relax(p,pgc,etark2);
     pgc->gcsl_start4(p,etark2,1);
     
-    //SLICELOOP4
-    //d->WL(i,j) = MAX(0.0, etark2(i,j) + p->wd - d->bed(i,j));
+    SLICELOOP4
+    d->WL(i,j) = MAX(0.0, etark2(i,j) + p->wd - d->bed(i,j));
     
     //wetdry(p,d,pgc,U,V,W,etark2);
     
