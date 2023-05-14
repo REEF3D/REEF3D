@@ -54,7 +54,6 @@ public:
     slice4 K;
     sliceint4 etaloc,wet_n,breaking,breaklog,bc,nodeval2D;
     
-    slice4 Fx,Fy;
     slice4 Ex,Ey;
     slice4 Exx,Eyy;
     slice4 Bx,By;

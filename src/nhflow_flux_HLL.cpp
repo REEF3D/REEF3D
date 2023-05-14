@@ -99,7 +99,10 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
     }
     
     if(p->wet[IJ]==0)
+    {
     Ss=Sn=0.0;
+    USx=0.0;
+    }
     
     //cout<<Ss<<" "<<Sn<<" | "<<Fs[IJK]<<" "<<Fn[IJK]<<endl;
     

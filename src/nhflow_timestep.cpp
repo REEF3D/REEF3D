@@ -122,7 +122,7 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     cu = MIN(cu,cw);
     
-    cu = MIN(cu,co);
+    //cu = MIN(cu,co);
     
    	p->dt=p->N47*cu;
     

@@ -346,7 +346,7 @@ void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
                         +  Rval*p->sigz[IJ];
     }
     
-        
+      
     
     
     GC4LOOP

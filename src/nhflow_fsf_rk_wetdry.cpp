@@ -79,7 +79,7 @@ void nhflow_fsf_rk::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *U, doub
     pgc->gcsl_start4(p,d->eta,1);
     pgc->gcsl_start4Vint(p,p->wet,50);
     
-    LOOP
-    d->test[IJK] = p->wet[IJ];
+    //LOOP
+    ///d->test[IJK] = p->wet[IJ];
     
 }

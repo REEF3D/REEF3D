@@ -118,9 +118,6 @@ void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     LOOP
     K(i,j) += -p->DZN[KP]*((Fx[IJK] - Fx[Im1JK])/p->DXN[IP]  + (Fy[IJK] - Fy[IJm1K])/p->DYN[JP]*p->y_dir);
     
-    //LOOP
-    //d->test[IJK] = Fx[IJK]- Fx[Im1JK];
-    
     pgc->start4V(p,d->test,10);
     
     SLICELOOP4
@@ -251,7 +248,13 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     SLICELOOP4
     d->detadt(i,j) = (d->eta(i,j) -d->eta_n(i,j))/p->dt;
     
+    //SLICELOOP4
+    //d->detadt(i,j) = K(i,j);
+    
     //wetdry(p,d,pgc,U,V,W,d->eta);
+    
+    LOOP
+    d->test[IJK] = Fx[IJK];
     
     breaking(p,d,pgc,d->eta,etark2,2.0/3.0);
     p->sigma_update(p,d,pgc,d->eta,etark2,2.0/3.0);
