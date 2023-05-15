@@ -38,7 +38,7 @@ nhflow_vtp_fsf::nhflow_vtp_fsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_FNPF_VTP_FSF",0777);
+	mkdir("./REEF3D_NHFLOW_VTP_FSF",0777);
     
     
     // 3D
@@ -163,9 +163,9 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     result<<"<PointData >"<<endl;
     result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"Fifsf\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
     result<<"<DataArray type=\"Float32\" Name=\"eta\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"detadt\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	result<<"<DataArray type=\"Float32\" Name=\"depth\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -225,35 +225,46 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     TPSLICELOOP
 	{
     k = p->knoz-1;
-	
-	ffn=float(d->U[FIJKp1]);
     
-    if(k==-1 && j==-1)
-	ffn=float(d->U[FIJp1Kp1]);
+	if(p->j_dir==0)
+    {
+	jj=j;
+    j=0;
+	ffn=float(d->U[IJK]);
+    j=jj;
+    }
+    
+    if(p->j_dir==1)
+	ffn=float(0.5*(d->U[IJK]+d->U[IJp1K]));
+    
 	result.write((char*)&ffn, sizeof (float));
 
 
-	ffn=float(d->V[FIJKp1]);
+	if(p->j_dir==0)
+    {
+	jj=j;
+    j=0;
+	ffn=float(d->V[IJK]);
+    j=jj;
+    }
     
-    if(k==-1 && j==-1)
-	ffn=float(d->V[FIJp1Kp1]);
+    if(p->j_dir==1)
+	ffn=float(0.5*(d->V[IJK]+d->V[IJp1K]));
+    
 	result.write((char*)&ffn, sizeof (float));
 
 
-	ffn=float(d->W[FIJKp1]);
+	if(p->j_dir==0)
+    {
+	jj=j;
+    j=0;
+	ffn=float(d->W[IJK]);
+    j=jj;
+    }
     
-    if(k==-1 && j==-1)
-	ffn=float(d->W[FIJp1Kp1]);
-	result.write((char*)&ffn, sizeof (float));
-	}
+    if(p->j_dir==1)
+	ffn=float(0.5*(d->W[IJK]+d->W[IJp1K]));
     
-    //  Fifsf
-	iin=4*(p->pointnum2D);
-	result.write((char*)&iin, sizeof (int));
-	TPSLICELOOP
-	{
-        
-	//ffn=float(p->sl_ipol4(d->Fifsf));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -263,6 +274,15 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     TPSLICELOOP
 	{
 	ffn=float(p->sl_ipol4(d->eta));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
+    //  Detadt
+	iin=4*(p->pointnum2D);
+	result.write((char*)&iin, sizeof (int));
+    TPSLICELOOP
+	{
+	ffn=float(p->sl_ipol4(d->detadt));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -301,7 +321,7 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
 	TPSLICELOOP
 	{
-	//ffn=float(p->sl_ipol4(d->test2D));
+	ffn=float(p->sl_ipol4(d->test2D));
 	result.write((char*)&ffn, sizeof (float));
 	}
     }

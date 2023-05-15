@@ -38,16 +38,14 @@ nhflow_vtp_bed::nhflow_vtp_bed(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_FNPF_VTP_BED",0777);
-	
-	
+	mkdir("./REEF3D_NHFLOW_VTP_BED",0777);
 }
 
 nhflow_vtp_bed::~nhflow_vtp_bed()
 {
 }
 
-void nhflow_vtp_bed::start(lexer *p, fdm_nhf *d, ghostcell* pgc, ioflow *pflow)
+void nhflow_vtp_bed::start(lexer *p, fdm_nhf *d, ghostcell* pgc)
 {	
     print2D(p,d,pgc);
 }

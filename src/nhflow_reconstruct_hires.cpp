@@ -104,10 +104,11 @@ void nhflow_reconstruct_hires::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf 
     {
     Fs[IJK] = d->hx(i,j)*(Fx[IJK]     + 0.5*p->DXP[IP]*DFDX[IJK]); 
     Fn[IJK] = d->hx(i,j)*(Fx[Ip1JK]   - 0.5*p->DXP[IP1]*DFDX[Ip1JK]);
-    /*
+    
         if(p->wet[IJ]==1 && p->wet[IJp1]==0)
         {
         Fs[Ip1JK] = 0.0; 
+        FN[Ip1JK] = 0.0; 
         }
         
         else
@@ -121,7 +122,7 @@ void nhflow_reconstruct_hires::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf 
         {
         Fs[Ip1JK] = 0.0;
         Fn[IJK] = 0.0;
-        }*/
+        }
     }
 
     VLOOP

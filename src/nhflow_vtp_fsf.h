@@ -58,6 +58,7 @@ private:
     
     int gcval_eta, gcval_fifsf;
     int printcount;
+    int jj;
 	
 
 };
