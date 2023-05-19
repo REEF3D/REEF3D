@@ -108,7 +108,7 @@ void nhflow_reconstruct_hires::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf 
         if(p->wet[IJ]==1 && p->wet[IJp1]==0)
         {
         Fs[Ip1JK] = 0.0; 
-        FN[Ip1JK] = 0.0; 
+        Fn[Ip1JK] = 0.0; 
         }
         
         else

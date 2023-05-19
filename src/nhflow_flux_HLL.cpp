@@ -140,6 +140,24 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
     // wave speed
     Se = MIN(Fe[IJK] - sqrt(9.81*De), USy - DSy);
     Sw = MAX(Fw[IJK] + sqrt(9.81*Dw), USy + DSy);
+    
+    if(p->wet[IJp1]==0)
+    {
+    Se = Fe[IJK] - sqrt(9.81*De);
+    Sw = Fe[IJK] + 2.0*sqrt(9.81*De);
+    }
+    
+    if(p->wet[IJm1]==0)
+    {
+    Se = Fw[IJK] - 2.0*sqrt(9.81*Dw);
+    Sw = Fw[IJK] + sqrt(9.81*Dw);
+    }
+    
+    if(p->wet[IJ]==0)
+    {
+    Se=Sw=0.0;
+    USy=0.0;
+    }
 
         
         // final flux y-dir
