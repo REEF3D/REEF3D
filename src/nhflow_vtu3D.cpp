@@ -214,6 +214,15 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
         */
 }
 
+void nhflow_vtu3D::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
+{
+    print_vtu(p,d,pgc);
+    
+    if(p->P180==1)
+    pfsf->start(p,d,pgc);
+    
+}
+
 void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 {
     /*

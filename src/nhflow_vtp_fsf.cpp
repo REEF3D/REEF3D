@@ -215,7 +215,8 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	ffn=float(p->YN[JP1]);
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(p->sl_ipol4eta(p->wet,d->eta,d->bed)+p->wd);
+	//ffn=float(p->sl_ipol4eta(p->wet,d->eta,d->bed)+p->wd);
+    ffn=float(p->sl_ipol4(d->eta) + p->wd);
 	result.write((char*)&ffn, sizeof (float));
 	}
 	
