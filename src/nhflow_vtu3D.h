@@ -49,6 +49,7 @@ public:
 	virtual ~nhflow_vtu3D();
 	virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*);
     virtual void print_vtu(lexer*,fdm_nhf*,ghostcell*);
+    virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*);
     
 private:
     void pvtu(lexer*,ghostcell*);

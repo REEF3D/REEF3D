@@ -61,6 +61,8 @@ public:
     void update(lexer*,fdm_nhf*,ghostcell*,slice&);
     
 private: 
+    void filter(lexer*, fdm_nhf*, ghostcell*, slice&);
+    
     double limiter(double, double);
     
     fluid_update *pupdate;

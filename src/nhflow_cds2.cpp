@@ -60,7 +60,7 @@ double nhflow_cds2::aij(lexer* p,fdm_nhf* d, double *F, int ipol, double *U, dou
         // convective flux
         pflux->u_flux(d,ipol,U,ivel1,ivel2);
         pflux->v_flux(d,ipol,V,jvel1,jvel2);
-        pflux->w_flux(d,ipol,d->omega,kvel1,kvel2);
+        pflux->w_flux(d,ipol,d->omegaF,kvel1,kvel2);
     
         dx = (ivel2*0.5*(F[IJK] + F[Ip1JK])  -  ivel1*0.5*(F[Im1JK]  +  F[IJK]))/DX[IP];
 		

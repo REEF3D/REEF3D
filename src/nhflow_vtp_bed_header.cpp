@@ -41,105 +41,105 @@ if(p->P14==0)
 	if(p->mpirank<9)
 	{
 		if(num<10)
-		sprintf(name,"REEF3D-FNPF-BED-00000%i-0000%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-00000%i-0000%i.vtp",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"REEF3D-FNPF-BED-0000%i-0000%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-0000%i-0000%i.vtp",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"REEF3D-FNPF-BED-000%i-0000%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-000%i-0000%i.vtp",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"REEF3D-FNPF-BED-00%i-0000%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-00%i-0000%i.vtp",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"REEF3D-FNPF-BED-0%i-0000%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-0%i-0000%i.vtp",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"REEF3D-FNPF-BED-%i-0000%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-%i-0000%i.vtp",num,p->mpirank+1);
 	}
 
 	if(p->mpirank<99&&p->mpirank>8)
 	{
 		if(num<10)
-		sprintf(name,"REEF3D-FNPF-BED-00000%i-000%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-00000%i-000%i.vtp",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"REEF3D-FNPF-BED-0000%i-000%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-0000%i-000%i.vtp",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"REEF3D-FNPF-BED-000%i-000%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-000%i-000%i.vtp",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"REEF3D-FNPF-BED-00%i-000%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-00%i-000%i.vtp",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"REEF3D-FNPF-BED-0%i-000%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-0%i-000%i.vtp",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"REEF3D-FNPF-BED-%i-000%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-%i-000%i.vtp",num,p->mpirank+1);
 	}
 	if(p->mpirank<999&&p->mpirank>98)
 	{
 		if(num<10)
-		sprintf(name,"REEF3D-FNPF-BED-00000%i-00%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-00000%i-00%i.vtp",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"REEF3D-FNPF-BED-0000%i-00%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-0000%i-00%i.vtp",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"REEF3D-FNPF-BED-000%i-00%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-000%i-00%i.vtp",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"REEF3D-FNPF-BED-00%i-00%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-00%i-00%i.vtp",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"REEF3D-FNPF-BED-0%i-00%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-0%i-00%i.vtp",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"REEF3D-FNPF-BED-%i-00%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-%i-00%i.vtp",num,p->mpirank+1);
 	}
 
 	if(p->mpirank<9999&&p->mpirank>998)
 	{
 		if(num<10)
-		sprintf(name,"REEF3D-FNPF-BED-00000%i-0%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-00000%i-0%i.vtp",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"REEF3D-FNPF-BED-0000%i-0%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-0000%i-0%i.vtp",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"REEF3D-FNPF-BED-000%i-0%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-000%i-0%i.vtp",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"REEF3D-FNPF-BED-00%i-0%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-00%i-0%i.vtp",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"REEF3D-FNPF-BED-0%i-0%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-0%i-0%i.vtp",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"REEF3D-FNPF-BED-%i-0%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-%i-0%i.vtp",num,p->mpirank+1);
 	}
 
 	if(p->mpirank>9998)
 	{
 		if(num<10)
-		sprintf(name,"REEF3D-FNPF-BED-00000%i-%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-00000%i-%i.vtp",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"REEF3D-FNPF-BED-0000%i-%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-0000%i-%i.vtp",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"REEF3D-FNPF-BED-000%i-%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-000%i-%i.vtp",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"REEF3D-FNPF-BED-00%i-%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-00%i-%i.vtp",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"REEF3D-FNPF-BED-0%i-%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-0%i-%i.vtp",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"REEF3D-FNPF-BED-%i-%i.vtp",num,p->mpirank+1);
+		sprintf(name,"REEF3D-NHFLOW-BED-%i-%i.vtp",num,p->mpirank+1);
 	}
 }
 
@@ -148,105 +148,105 @@ if(p->P14==1)
 	if(p->mpirank<9)
 	{
 		if(num<10)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-00000%i-0000%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-00000%i-0000%i.vtp",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-0000%i-0000%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-0000%i-0000%i.vtp",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-000%i-0000%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-000%i-0000%i.vtp",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-00%i-0000%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-00%i-0000%i.vtp",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-0%i-0000%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-0%i-0000%i.vtp",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-%i-0000%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-%i-0000%i.vtp",num,p->mpirank+1);
 	}
 
 	if(p->mpirank<99&&p->mpirank>8)
 	{
 		if(num<10)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-00000%i-000%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-00000%i-000%i.vtp",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-0000%i-000%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-0000%i-000%i.vtp",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-000%i-000%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-000%i-000%i.vtp",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-00%i-000%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-00%i-000%i.vtp",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-0%i-000%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-0%i-000%i.vtp",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-%i-000%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-%i-000%i.vtp",num,p->mpirank+1);
 	}
 	if(p->mpirank<999&&p->mpirank>98)
 	{
 		if(num<10)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-00000%i-00%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-00000%i-00%i.vtp",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-0000%i-00%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-0000%i-00%i.vtp",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-000%i-00%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-000%i-00%i.vtp",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-00%i-00%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-00%i-00%i.vtp",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-0%i-00%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-0%i-00%i.vtp",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-%i-00%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-%i-00%i.vtp",num,p->mpirank+1);
 	}
 
 	if(p->mpirank<9999&&p->mpirank>998)
 	{
 		if(num<10)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-00000%i-0%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-00000%i-0%i.vtp",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-0000%i-0%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-0000%i-0%i.vtp",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-000%i-0%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-000%i-0%i.vtp",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-00%i-0%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-00%i-0%i.vtp",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-0%i-0%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-0%i-0%i.vtp",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-%i-0%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-%i-0%i.vtp",num,p->mpirank+1);
 	}
 
 	if(p->mpirank>9998)
 	{
 		if(num<10)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-00000%i-%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-00000%i-%i.vtp",num,p->mpirank+1);
 
 		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-0000%i-%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-0000%i-%i.vtp",num,p->mpirank+1);
 
 		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-000%i-%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-000%i-%i.vtp",num,p->mpirank+1);
 
 		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-00%i-%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-00%i-%i.vtp",num,p->mpirank+1);
 
 		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-0%i-%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-0%i-%i.vtp",num,p->mpirank+1);
 
 		if(num>99999)
-		sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-%i-%i.vtp",num,p->mpirank+1);
+		sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-%i-%i.vtp",num,p->mpirank+1);
 	}
 }
 

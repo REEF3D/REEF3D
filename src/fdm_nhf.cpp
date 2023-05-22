@@ -35,6 +35,7 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
                               hx(p),hy(p),
                               wbed(p),dwdt(p),
                               coastline(p),vb(p),
+                              test2D(p),
                               breaking_print(p),Hs(p),
                               rhsvec(p),rvec(p),xvec(p),N(p),M(p)
 {    
