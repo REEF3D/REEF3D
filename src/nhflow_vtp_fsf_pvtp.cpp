@@ -86,7 +86,7 @@ void nhflow_vtp_fsf::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	result<<"<PPolyData  GhostLevel=\"0\">"<<endl;
 	
 	result<<"<PPoints>"<<endl;
-	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>"<<endl;
+	result<<"<PDataArray type=\"Float64\" NumberOfComponents=\"3\"/>"<<endl;
 	result<<"</PPoints>"<<endl;
 	
 	result<<"<PPointData>"<<endl;
