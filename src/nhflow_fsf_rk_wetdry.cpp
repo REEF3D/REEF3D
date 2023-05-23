@@ -30,6 +30,10 @@ void nhflow_fsf_rk::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *U, doub
     double wl;
     
     SLICELOOP4
+    p->wet_n[IJ] = p->wet[IJ];
+    
+    
+    SLICELOOP4
     {
     //wl =  eta(i,j) + p->wd - d->bed(i,j);
     

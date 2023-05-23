@@ -69,13 +69,13 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     p->wmax=pgc->globalmax(p->wmax);
     
-    LOOP
-	p->omegamax=MAX(p->omegamax,fabs(d->omega[IJK]));
+    FLOOP
+	p->omegamax=MAX(p->omegamax,fabs(d->omegaF[FIJK]));
     
-    LOOP
+    FLOOP
     {
-	if(fabs(d->omega[IJK])>10.0)
-    cout<<"# "<<p->mpirank<<" | "<<p->XP[IP]<<" "<<d->WL(i,j)<<" | "<<d->U[IJK]<<" "<<d->V[IJK]<<" "<<0.5*(p->sigt[FIJK]+p->sigt[FIJKp1])<<endl;
+	if(fabs(d->omegaF[FIJK])>10.0)
+    cout<<"# "<<p->mpirank<<" "<<d->omegaF[FIJK]<<" | "<<d->WL(i,j)<<" "<<" | "<<d->detadt(i,j)<<" "<<p->sigx4[IJK]<<" "<<p->sigy4[IJK]<<" "<<d->W[IJK]*p->sigz[IJ]<<" "<<0.5*(p->sigt[FIJK]+p->sigt[FIJKp1])<<endl;
     }
 
 	p->omegamax=pgc->globalmax(p->omegamax);

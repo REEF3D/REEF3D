@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"fnpf_cds4.h"
 #include"grid_sigma_data.h"
 
-#define WLVL (fabs(d->WL(i,j))>1.0e-20?d->WL(i,j):1.0e20)
+#define WLVL (fabs(d->WL(i,j))>0.00005?d->WL(i,j):1.0e20)
 #define HX (fabs(d->hx(i,j))>1.0e-20?d->hx(i,j):1.0e20)
 #define HXP (fabs(0.5*(d->WL(i,j)+d->WL(i+1,j)))>1.0e-20?0.5*(d->WL(i,j)+d->WL(i+1,j)):1.0e20)
 #define HY (fabs(d->hy(i,j))>1.0e-20?d->hy(i,j):1.0e20)
@@ -344,6 +344,9 @@ void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
                         +  Qval*p->sigy[FIJK]
                         
                         +  Rval*p->sigz[IJ];
+                        
+        //if(p->wet[IJ] != p->wet_n[IJ])
+        //d->omegaF[FIJK]=0.0;
     }
     
       
@@ -396,6 +399,13 @@ void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
     d->omegaF[FIJK] = 0.0;
     
     pgc->start3V(p,d->omega,17);
+    
+    SLICELOOP4
+    d->test2D(i,j)=0.0;
+    
+    FLOOP
+    d->test2D(i,j) = MAX(d->test2D(i,j),fabs(d->omegaF[FIJK]));
+    
 }
 
 

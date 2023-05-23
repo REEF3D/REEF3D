@@ -77,6 +77,11 @@ void grid_sigma::sigma_ini(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta)
     
     pgc->gcsl_start4Vint(p,p->wet,50);
     
+    SLICELOOP4
+    p->wet_n[IJ]=1;
+    
+    pgc->gcsl_start4Vint(p,p->wet_n,50);
+    
     
     d->wd_criterion=0.00005;
     
