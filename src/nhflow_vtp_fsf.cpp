@@ -214,9 +214,9 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	ddn=p->YN[JP1];
 	result.write((char*)&ddn, sizeof (double));
 
-    //ddn=float(p->sl_ipol4(d->eta) + p->wd);
+    ddn=float(p->sl_ipol4(d->eta) + p->wd);
     
-    ddn=p->sl_ipol4eta(p->wet,d->eta, d->bed)+p->wd;
+    //ddn=p->sl_ipol4eta(p->wet,d->eta, d->bed)+p->wd;
 	result.write((char*)&ddn, sizeof (double));
 	}
 	
@@ -283,7 +283,7 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
 	{
-	ffn=float(p->sl_ipol4(d->detadt));
+	ffn=float(p->sl_ipol4(d->Ex));
 	result.write((char*)&ffn, sizeof (float));
 	}
     

@@ -73,8 +73,4 @@ void nhflow_fsf_rk::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, dou
     
     pgc->start4V(p,d->test,10);
      
-    /*
-    breaking(p,d,pgc,d->eta,d->eta,1.0);
-    p->sigma_update(p,d,pgc,d->eta,d->eta,1.0);
-    p->omega_update(p,d,pgc,U,V,W,d->eta,d->eta,1.0);*/
 }

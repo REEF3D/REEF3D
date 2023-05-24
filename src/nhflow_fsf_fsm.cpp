@@ -112,8 +112,8 @@ void nhflow_fsf_fsm::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow)
     SLICELOOP4
     d->WL(i,j) = MAX(0.0, d->eta(i,j) + p->wd - d->bed(i,j));
     
-    p->sigma_update(p,d,pgc,d->eta,d->eta_n,1.0);
-    p->omega_update(p,d,pgc,d->U,d->V,d->W,d->eta,d->eta_n,1.0);
+    //p->sigma_update(p,d,pgc,d->eta,d->eta_n,1.0);
+    //p->omega_update(p,d,pgc,d->U,d->V,d->W,d->eta,d->eta_n,1.0);
 }
 
 void nhflow_fsf_fsm::update(lexer *p, fdm_nhf* d, ghostcell *pgc, slice &f)
@@ -132,8 +132,8 @@ void nhflow_fsf_fsm::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, 
     pgc->gcsl_start4(p,etark1,1);
     pgc->gcsl_start4(p,etark2,1);
     
-    p->sigma_update(p,d,pgc,d->eta,d->eta_n,1.0);
-    p->omega_update(p,d,pgc,d->U,d->V,d->W,d->eta,d->eta_n,1.0);
+    //p->sigma_update(p,d,pgc,d->eta,d->eta_n,1.0);
+    //p->omega_update(p,d,pgc,d->U,d->V,d->W,d->eta,d->eta_n,1.0);
 
 }
 

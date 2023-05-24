@@ -44,6 +44,7 @@ class nhflow_momentum
 public:
 
 	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_convection*, diffusion*, nhflow_pressure*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*, vrans*)=0;
+    virtual void inidisc(lexer*, fdm_nhf*, ghostcell*)=0;
 
 };
 

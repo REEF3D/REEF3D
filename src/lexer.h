@@ -28,7 +28,6 @@ Author: Hans Bihs
 #include"increment.h"
 #include"position.h"
 #include"interpolation.h"
-#include"grid_sigma.h"
 #include<fstream>
 #include"looping.h"
 #include<vector>
@@ -41,7 +40,7 @@ class ghostcell;
 
 using namespace std;
 
-class lexer : public increment, public resize_class, public position, public interpolation, public grid_sigma
+class lexer : public increment, public resize_class, public position, public interpolation
 {
 public:
 
@@ -56,6 +55,7 @@ public:
     void gcd_ini(ghostcell*);
     void gridini_patchBC();
     void makeflag(int*);
+    void sigma_coord_ini();
 	
 	void read_grid();
 	void read_control();

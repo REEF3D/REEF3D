@@ -58,6 +58,7 @@ public:
     slice4 Exx,Eyy;
     slice4 Bx,By;
     slice4 Bxx,Byy;
+    
     slice4 hx,hy;
     slice4 coastline;
     slice4 vb;

@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"grid_sigma.h"
+#include"nhflow_sigma.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -28,14 +28,13 @@ Author: Hans Bihs
 #include"fnpf_ddx_cds4.h"
 #include"fnpf_cds2.h"
 #include"fnpf_cds4.h"
-#include"grid_sigma_data.h"
 
 #define WLVL (fabs(d->WL(i,j))>0.00005?d->WL(i,j):1.0e20)
 #define HX (fabs(d->hx(i,j))>1.0e-20?d->hx(i,j):1.0e20)
 #define HXP (fabs(0.5*(d->WL(i,j)+d->WL(i+1,j)))>1.0e-20?0.5*(d->WL(i,j)+d->WL(i+1,j)):1.0e20)
 #define HY (fabs(d->hy(i,j))>1.0e-20?d->hy(i,j):1.0e20)
 
-void grid_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, slice &eta_n, double alpha)
+void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, slice &eta_n, double alpha)
 {
     double wl,sigval;
     double bx,by,ex,ey;
@@ -45,19 +44,19 @@ void grid_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, 
     if(p->i_dir==1 && p->j_dir==1)
     SLICELOOP4
     {
-    pd->Ex(i,j) = pdx->sx(p,eta,1.0);
-    pd->Ey(i,j) = pdx->sy(p,eta,1.0);
+    d->Ex(i,j) = pdx->sx(p,eta,1.0);
+    d->Ey(i,j) = pdx->sy(p,eta,1.0);
     
-    pd->Exx(i,j) = pddx->sxx(p,eta);
-    pd->Eyy(i,j) = pddx->syy(p,eta);
+    d->Exx(i,j) = pddx->sxx(p,eta);
+    d->Eyy(i,j) = pddx->syy(p,eta);
     }
     
     // 2D
     if(p->j_dir==0 && p->A312!=1)
     SLICELOOP4
     {
-    pd->Ex(i,j) = pdx->sx(p,eta,1.0);    
-    pd->Exx(i,j) = pddx->sxx(p,eta);
+    d->Ex(i,j) = pdx->sx(p,eta,1.0);    
+    d->Exx(i,j) = pddx->sxx(p,eta);
     }
     
     double Pval,Qval;
@@ -70,35 +69,35 @@ void grid_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, 
     Qval = 0.5*(d->V[IJK]+d->V[IJm1K]);
     
     if(Pval>=0.0)
-    pd->Ex(i,j) = (eta(i,j)-eta(i-1,j))/(p->DXP[IP]);
+    d->Ex(i,j) = (eta(i,j)-eta(i-1,j))/(p->DXP[IP]);
     
     if(Pval<0.0)
-    pd->Ex(i,j) = (eta(i+1,j)-eta(i,j))/(p->DXP[IP]);
+    d->Ex(i,j) = (eta(i+1,j)-eta(i,j))/(p->DXP[IP]);
 
-    pd->Exx(i,j) = pddx->sxx(p,eta);
+    d->Exx(i,j) = pddx->sxx(p,eta);
     }
     
-    pgc->gcsl_start4(p,pd->Ex,1);
-    pgc->gcsl_start4(p,pd->Ey,1);
+    pgc->gcsl_start4(p,d->Ex,1);
+    pgc->gcsl_start4(p,d->Ey,1);
     
     // calculate: Bx,By,Bxx,Byy
     // 3D
     if(p->j_dir==1)
     SLICELOOP4
     {
-    pd->Bx(i,j) = pdx->sx(p,d->depth,1.0);
-    pd->By(i,j) = pdx->sy(p,d->depth,1.0);
+    d->Bx(i,j) = pdx->sx(p,d->depth,1.0);
+    d->By(i,j) = pdx->sy(p,d->depth,1.0);
     
-    pd->Bxx(i,j) = pddx->sxx(p,d->depth);
-    pd->Byy(i,j) = pddx->syy(p,d->depth);
+    d->Bxx(i,j) = pddx->sxx(p,d->depth);
+    d->Byy(i,j) = pddx->syy(p,d->depth);
     }
 
     // 2D
     if(p->j_dir==0 && p->A312!=1)
     SLICELOOP4
     {
-    pd->Bx(i,j) = pdx->sx(p,d->depth,1.0);    
-    pd->Bxx(i,j) = pddx->sxx(p,d->depth);
+    d->Bx(i,j) = pdx->sx(p,d->depth,1.0);    
+    d->Bxx(i,j) = pddx->sxx(p,d->depth);
     }
     
     if(p->j_dir==0 && p->A312==1)
@@ -108,33 +107,33 @@ void grid_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, 
     Pval = 0.5*(d->U[IJK]+d->U[Im1JK]);
     
     if(Pval>=0.0)
-    pd->Bx(i,j) = (d->depth(i,j)-d->depth(i-1,j))/(p->DXP[IP]);
+    d->Bx(i,j) = (d->depth(i,j)-d->depth(i-1,j))/(p->DXP[IP]);
     
     if(Pval<0.0)
-    pd->Bx(i,j) = (d->depth(i+1,j)-d->depth(i,j))/(p->DXP[IP]);
+    d->Bx(i,j) = (d->depth(i+1,j)-d->depth(i,j))/(p->DXP[IP]);
         
         
-    pd->Bxx(i,j) = pddx->sxx(p,d->depth);
+    d->Bxx(i,j) = pddx->sxx(p,d->depth);
     }
     
-    pgc->gcsl_start4(p,pd->Bx,1);
-    pgc->gcsl_start4(p,pd->By,1);
+    pgc->gcsl_start4(p,d->Bx,1);
+    pgc->gcsl_start4(p,d->By,1);
     
     // sigx
     FLOOP
-    p->sigx[FIJK] = (1.0 - p->sig[FIJK])*(pd->Bx(i,j)/WLVL) - p->sig[FIJK]*(pd->Ex(i,j)/WLVL);
+    p->sigx[FIJK] = (1.0 - p->sig[FIJK])*(d->Bx(i,j)/WLVL) - p->sig[FIJK]*(d->Ex(i,j)/WLVL);
     
     // sigy
     FLOOP
-    p->sigy[FIJK] = (1.0 - p->sig[FIJK])*(pd->By(i,j)/WLVL) - p->sig[FIJK]*(pd->Ey(i,j)/WLVL);
+    p->sigy[FIJK] = (1.0 - p->sig[FIJK])*(d->By(i,j)/WLVL) - p->sig[FIJK]*(d->Ey(i,j)/WLVL);
     
     // sigxy4
     LOOP
     {
     sigval = 0.5*(p->sig[FIJK]+p->sig[FIJKp1]);
     
-    p->sigx4[IJK] = (1.0 - sigval)*(pd->Bx(i,j)/WLVL) - sigval*(pd->Ex(i,j)/WLVL);
-    p->sigy4[IJK] = (1.0 - sigval)*(pd->By(i,j)/WLVL) - sigval*(pd->Ey(i,j)/WLVL);
+    p->sigx4[IJK] = (1.0 - sigval)*(d->Bx(i,j)/WLVL) - sigval*(d->Ex(i,j)/WLVL);
+    p->sigy4[IJK] = (1.0 - sigval)*(d->By(i,j)/WLVL) - sigval*(d->Ey(i,j)/WLVL);
     }
     
     // sigz
@@ -155,22 +154,22 @@ void grid_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, 
     // sigxx
     FLOOP
     {
-        p->sigxx[FIJK] = ((1.0 - p->sig[FIJK])/WLVL)*(pd->Bxx(i,j) - pow(pd->Bx(i,j),2.0)/WLVL) // xx
+        p->sigxx[FIJK] = ((1.0 - p->sig[FIJK])/WLVL)*(d->Bxx(i,j) - pow(d->Bx(i,j),2.0)/WLVL) // xx
         
-                      - (p->sig[FIJK]/WLVL)*(pd->Exx(i,j) - pow(pd->Ex(i,j),2.0)/WLVL)
+                      - (p->sig[FIJK]/WLVL)*(d->Exx(i,j) - pow(d->Ex(i,j),2.0)/WLVL)
                       
-                      - (p->sigx[FIJK]/WLVL)*(pd->Bx(i,j) + pd->Ex(i,j))
+                      - (p->sigx[FIJK]/WLVL)*(d->Bx(i,j) + d->Ex(i,j))
                       
-                      - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(pd->Bx(i,j)*pd->Ex(i,j))
+                      - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(d->Bx(i,j)*d->Ex(i,j))
                       
                       
-                      + ((1.0 - p->sig[FIJK])/WLVL)*(pd->Byy(i,j) - pow(pd->By(i,j),2.0)/WLVL) // yy
+                      + ((1.0 - p->sig[FIJK])/WLVL)*(d->Byy(i,j) - pow(d->By(i,j),2.0)/WLVL) // yy
         
-                      - (p->sig[FIJK]/WLVL)*(pd->Eyy(i,j) - pow(pd->Ey(i,j),2.0)/WLVL)
+                      - (p->sig[FIJK]/WLVL)*(d->Eyy(i,j) - pow(d->Ey(i,j),2.0)/WLVL)
                       
-                      - (p->sigy[FIJK]/WLVL)*(pd->By(i,j) + pd->Ey(i,j))
+                      - (p->sigy[FIJK]/WLVL)*(d->By(i,j) + d->Ey(i,j))
                       
-                      - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(pd->By(i,j)*pd->Ey(i,j));
+                      - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(d->By(i,j)*d->Ey(i,j));
     }
     
     
@@ -257,7 +256,7 @@ void grid_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, 
     
 }
 
-void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, slice &eta, slice &eta_n, double alpha)
+void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, slice &eta, slice &eta_n, double alpha)
 { 
     double wval,Pval,Qval,Rval;
     
@@ -403,8 +402,10 @@ void grid_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
     SLICELOOP4
     d->test2D(i,j)=0.0;
     
-    FLOOP
-    d->test2D(i,j) = MAX(d->test2D(i,j),fabs(d->omegaF[FIJK]));
+    k=p->knox;
+    SLICELOOP4
+    d->test2D(i,j)=p->sigy4[IJK];
+    //d->test2D(i,j) = MAX(d->test2D(i,j),fabs(d->omegaF[FIJK]));
     
 }
 

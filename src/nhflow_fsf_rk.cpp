@@ -136,8 +136,6 @@ void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     d->detadt(i,j) = K(i,j);
     
     breaking(p,d,pgc,etark1,d->eta,1.0);
-    p->sigma_update(p,d,pgc,etark1,d->eta,1.0);
-    p->omega_update(p,d,pgc,U,V,W,etark1,d->eta,1.0);
 }
 
 void nhflow_fsf_rk::step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
@@ -187,8 +185,6 @@ void nhflow_fsf_rk::step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     d->detadt(i,j) = K(i,j);
     
     breaking(p,d,pgc,etark2,etark1,0.25);
-    p->sigma_update(p,d,pgc,etark2,etark1,0.25);
-    p->omega_update(p,d,pgc,U,V,W,etark2,etark1,0.25);
 }
 
 void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
@@ -257,8 +253,6 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     d->test[IJK] = Fx[IJK];
     
     breaking(p,d,pgc,d->eta,etark2,2.0/3.0);
-    p->sigma_update(p,d,pgc,d->eta,etark2,2.0/3.0);
-    p->omega_update(p,d,pgc,U,V,W,d->eta,etark2,2.0/3.0);
 }
 
 

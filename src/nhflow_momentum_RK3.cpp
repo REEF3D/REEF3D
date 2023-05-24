@@ -38,7 +38,7 @@ Author: Hans Bihs
 #include"vrans.h"
 
 nhflow_momentum_RK3::nhflow_momentum_RK3(lexer *p, fdm_nhf *d, ghostcell *pgc)
-                                                    :bcmom(p), etark1(p), etark2(p)
+                                                    :bcmom(p), nhflow_sigma(p), etark1(p), etark2(p)
 {
 	gcval_u=10;
 	gcval_v=11;
@@ -73,6 +73,8 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 //--------------------------------------------------------
 
     pfsf->step1(p, d, pgc, pflow, d->U, d->V, d->W, etark1, etark2, 1.0);
+    sigma_update(p,d,pgc,etark1,d->eta,1.0);
+    omega_update(p,d,pgc,d->U,d->V,d->W,etark1,d->eta,1.0);
     
 	// U
 	starttime=pgc->timer();
@@ -131,7 +133,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
 
     pfsf->kinematic_fsf(p,d,d->U,d->V,WRK1,etark1,d->eta,1.0);
-    p->omega_update(p,d,pgc,d->U,d->V,WRK1,etark1,d->eta,1.0);
+    omega_update(p,d,pgc,d->U,d->V,WRK1,etark1,d->eta,1.0);
 
     //pflow->pressure_io(p,a,pgc);
 	ppress->start(p,d,psolv,pgc,pflow,URK1,VRK1,WRK1,1.0);
@@ -149,7 +151,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     clearrhs(p,d,pgc);
     
     pfsf->kinematic_fsf(p,d,URK1,VRK1,WRK1,etark1,d->eta,1.0);    
-    p->omega_update(p,d,pgc,URK1,VRK1,WRK1,etark1,d->eta,1.0);
+    omega_update(p,d,pgc,URK1,VRK1,WRK1,etark1,d->eta,1.0);
     
     //pfsf->step1(p, d, pgc, pflow, URK1, VRK1, WRK1, etark1, etark2, 1.0);
     
@@ -159,6 +161,8 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 //--------------------------------------------------------
 	
     pfsf->step2(p, d, pgc, pflow, URK1, VRK1, WRK1, etark1, etark2, 0.25);
+    sigma_update(p,d,pgc,etark2,etark1,0.25);
+    omega_update(p,d,pgc,URK1,VRK1,WRK1,etark2,etark1,0.25);
     
 	// U
 	starttime=pgc->timer();
@@ -216,7 +220,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     pgc->start3V(p,WRK2,gcval_w);
     
     pfsf->kinematic_fsf(p,d,URK1,VRK1,WRK2,etark2,etark1,0.25); 
-    p->omega_update(p,d,pgc,URK1,VRK1,WRK2,etark2,etark1,0.25);
+    omega_update(p,d,pgc,URK1,VRK1,WRK2,etark2,etark1,0.25);
 
     //pflow->pressure_io(p,a,pgc);
 	ppress->start(p,d,psolv,pgc,pflow,URK2,VRK2,WRK2,0.25);
@@ -234,7 +238,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     clearrhs(p,d,pgc);
     
     pfsf->kinematic_fsf(p,d,URK2,VRK2,WRK2,etark2,etark1,0.25); 
-    p->omega_update(p,d,pgc,URK2,VRK2,WRK2,etark2,etark1,0.25);
+    omega_update(p,d,pgc,URK2,VRK2,WRK2,etark2,etark1,0.25);
     
     //pfsf->step2(p, d, pgc, pflow, URK2, VRK2, WRK2, etark1, etark2, 0.25);
     
@@ -244,6 +248,8 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 //--------------------------------------------------------
     
     pfsf->step3(p, d, pgc, pflow, URK2, VRK2, WRK2, etark1, etark2, 2.0/3.0);
+    sigma_update(p,d,pgc,d->eta,etark2,2.0/3.0);
+    omega_update(p,d,pgc,URK2,VRK2,WRK2,d->eta,etark2,2.0/3.0);
     
 	// U
 	starttime=pgc->timer();
@@ -301,7 +307,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     pgc->start3V(p,d->W,gcval_w);
     
     pfsf->kinematic_fsf(p,d,URK2,VRK2,d->W,d->eta,etark2,2.0/3.0);
-    p->omega_update(p,d,pgc,URK2,VRK2,d->W,d->eta,etark2,2.0/3.0);
+    omega_update(p,d,pgc,URK2,VRK2,d->W,d->eta,etark2,2.0/3.0);
 
 	//pflow->pressure_io(p,a,pgc);
     ppress->start(p,d,psolv,pgc,pflow,d->U,d->V,d->W,2.0/3.0);
@@ -318,7 +324,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     clearrhs(p,d,pgc);
     
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta,etark2,2.0/3.0);
-    p->omega_update(p,d,pgc,d->U,d->V,d->W,d->eta,etark2,2.0/3.0);
+    omega_update(p,d,pgc,d->U,d->V,d->W,d->eta,etark2,2.0/3.0);
     
     //pfsf->step3(p, d, pgc, pflow, d->U, d->V, d->W, etark1, etark2, 2.0/3.0);
     //pupdate->start(p,a,pgc);
@@ -382,6 +388,13 @@ void nhflow_momentum_RK3::clearrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	}
     
 }
+
+void nhflow_momentum_RK3::inidisc(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    sigma_ini(p,d,pgc,d->eta);
+    sigma_update(p,d,pgc,d->eta,d->eta,1.0);
+}
+     
 
 
 

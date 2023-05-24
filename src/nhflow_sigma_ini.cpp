@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"grid_sigma.h"
+#include"nhflow_sigma.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -28,37 +28,11 @@ Author: Hans Bihs
 #include"fnpf_ddx_cds4.h"
 #include"fnpf_cds2.h"
 #include"fnpf_cds4.h"
-#include"grid_sigma_data.h"
 
 #define WLVL (fabs(d->WL(i,j))>1.0e-20?d->WL(i,j):1.0-20)
 
-grid_sigma::grid_sigma(lexer *p) 
-{
-}
-
-grid_sigma::~grid_sigma()
-{
-}
-
-void grid_sigma::sigma_coord_ini(lexer *p)
-{
-    double L, ZN0temp;
-    
-    L = p->ZN[p->knoz+marge] - p->ZN[0+marge];
-    
-    ZN0temp = p->ZN[0+marge];
-    
-    for(k=-marge;k<p->knoz+marge;++k)
-    {
-    p->ZN[KP] = (p->ZN[KP]-ZN0temp)/L;
-    }
-}
-    
-void grid_sigma::sigma_ini(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta)
+void nhflow_sigma::sigma_ini(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta)
 {	
-    // generate Ex,Bx slices
-    pd = new grid_sigma_data(p);
-    
     // generate discretization 
     if(p->A312==1||p->A312==2)
     {
@@ -149,74 +123,6 @@ void grid_sigma::sigma_ini(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta)
     SLICELOOP4
     p->sigt[FIJK] = 0.0;
 
-}
-
-double grid_sigma::sigmax(lexer *p, int ipol)
-{    
-    if(ipol==1)
-    sig = 0.25*(p->sigx[FIJK] + p->sigx[FIp1JK] + p->sigx[FIJKp1] + p->sigx[FIp1JKp1]);
-
-    if(ipol==2)
-    sig = 0.25*(p->sigx[FIJK] + p->sigx[FIJp1K] + p->sigx[FIJKp1] + p->sigx[FIJp1Kp1]);
-    
-    if(ipol==3)
-    sig = p->sigx[FIJKp1];
-
-    if(ipol==4)
-    sig = 0.5*(p->sigx[FIJK] + p->sigx[FIJKp1]);
-
-    return sig;
-}
-
-double grid_sigma::sigmay(lexer *p, int ipol)
-{  
-    if(ipol==1)
-    sig = 0.25*(p->sigy[FIJK] + p->sigy[FIp1JK] + p->sigy[FIJKp1] + p->sigy[FIp1JKp1]);
-
-    if(ipol==2)
-    sig = 0.25*(p->sigy[FIJK] + p->sigy[FIJp1K] + p->sigy[FIJKp1] + p->sigy[FIJp1Kp1]);
-    
-    if(ipol==3)
-    sig = p->sigy[FIJKp1];
-
-    if(ipol==4)
-    sig = 0.5*(p->sigy[FIJK] + p->sigy[FIJKp1]);
-
-    return sig;
-}
-
-double grid_sigma::sigmaz(lexer *p, int ipol)
-{    
-    if(ipol==1)
-    sig = 0.5*(p->sigz[IJ] + p->sigz[Ip1J]);
-
-    if(ipol==2)
-    sig = 0.5*(p->sigz[IJ] + p->sigz[IJp1]);
-
-    if(ipol==3)
-    sig = p->sigz[IJ];
-
-    if(ipol==4)
-    sig = p->sigz[IJ];
-
-    return sig;
-}
-
-double grid_sigma::sigmat(lexer *p, int ipol)
-{    
-    if(ipol==1)
-    sig = 0.25*(p->sigt[FIJK] + p->sigt[FIp1JK] + p->sigt[FIJKp1] + p->sigt[FIp1JKp1]);
-
-    if(ipol==2)
-    sig = 0.25*(p->sigt[FIJK] + p->sigt[FIJp1K] + p->sigt[FIJKp1] + p->sigt[FIJp1Kp1]);
-    
-    if(ipol==3)
-    sig = p->sigt[FIJKp1];
-
-    if(ipol==4)
-    sig = 0.5*(p->sigt[FIJK] + p->sigt[FIJKp1]);
-
-    return sig;
 }
 
 

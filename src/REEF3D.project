@@ -278,6 +278,9 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Sigma">
+            <File Name="nhflow_sigma.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Flux HLL">
             <File Name="nhflow_reconstruct.h"/>
             <File Name="nhflow_reconstruct_WENO.h"/>
@@ -777,10 +780,6 @@
         <VirtualDirectory Name="Grid Class">
           <File Name="grid2D.h"/>
           <File Name="grid.h"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Sigma">
-          <File Name="grid_sigma_data.h"/>
-          <File Name="grid_sigma.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Field">
           <File Name="fieldgen.h"/>
@@ -1352,6 +1351,11 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Sigma">
+            <File Name="nhflow_sigma_ini.cpp"/>
+            <File Name="nhflow_sigma_update.cpp"/>
+            <File Name="nhflow_sigma.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Flux HLL">
             <File Name="nhflow_reconstruct_WENO.cpp"/>
             <File Name="nhflow_reconstruct_hires.cpp"/>
@@ -2361,11 +2365,6 @@
             <File Name="grid_column_pt_count.cpp"/>
             <File Name="grid_column_pt_assign.cpp"/>
           </VirtualDirectory>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Sigma">
-          <File Name="grid_sigma_update.cpp"/>
-          <File Name="grid_sigma_data.cpp"/>
-          <File Name="grid_sigma.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Field">
           <File Name="fieldgen.cpp"/>

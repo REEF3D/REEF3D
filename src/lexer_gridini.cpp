@@ -26,7 +26,7 @@ Author: Hans Bihs
 void lexer::gridini(ghostcell *pgc)
 {        
     if(G2==1)
-    sigma_coord_ini(this);
+    sigma_coord_ini();
     
     lexer_gridspacing(pgc);
 	parse();	
@@ -117,8 +117,19 @@ void lexer::gcd_ini(ghostcell *pgc)
     
     if(gcb4[q][3]==5 || gcb4[q][3]==6)
     gcd4[q] = 0.5*DZP[KP];
-
-
 	}
+}
+
+void lexer::sigma_coord_ini()
+{
+    double L, ZN0temp;
     
+    L = ZN[knoz+marge] - ZN[0+marge];
+    
+    ZN0temp = ZN[0+marge];
+    
+    for(k=-marge;k<knoz+marge;++k)
+    {
+    ZN[KP] = (ZN[KP]-ZN0temp)/L;
+    }
 }

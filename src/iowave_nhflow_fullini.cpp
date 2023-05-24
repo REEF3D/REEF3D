@@ -43,8 +43,13 @@ void iowave::full_initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     SLICELOOP4
     d->WL(i,j) = MAX(0.0, d->eta(i,j) + p->wd - d->bed(i,j));
+
+    FLOOP
+    p->ZSN[FIJK] = p->ZN[KP]*d->WL(i,j) + d->bed(i,j);
     
-    p->sigma_update(p,d,pgc,d->eta,d->eta,1.0);
+    
+    LOOP
+    p->ZSP[IJK]  = p->ZP[KP]*d->WL(i,j) + d->bed(i,j);
 	
 	LOOP
     {

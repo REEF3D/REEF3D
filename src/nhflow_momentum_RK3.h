@@ -23,21 +23,21 @@ Author: Hans Bihs
 #include"nhflow_momentum.h"
 #include"slice4.h"
 #include"bcmom.h"
-
+#include"nhflow_sigma.h"
 
 using namespace std;
 
 #ifndef NHFLOW_MOMENTUM_RK3_H_
 #define NHFLOW_MOMENTUM_RK3_H_
 
-class nhflow_momentum_RK3 : public nhflow_momentum, public bcmom
+class nhflow_momentum_RK3 : public nhflow_momentum, public bcmom, public nhflow_sigma
 {
 public:
 	nhflow_momentum_RK3(lexer*, fdm_nhf*, ghostcell*);
 	virtual ~nhflow_momentum_RK3();
     
 	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_convection*, diffusion*, nhflow_pressure*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*,  vrans*);
-
+    virtual void inidisc(lexer*, fdm_nhf*, ghostcell*);
 
     double *UDIFF,*URK1,*URK2;
     double *VDIFF,*VRK1,*VRK2;

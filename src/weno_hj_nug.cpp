@@ -99,26 +99,6 @@ double weno_hj_nug::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& v
 		return L;
 }
 
-double weno_hj_nug::aij_sig(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, field& wvel, double *DXD,double *DYD, double *DZD)
-{
-        DX=DXD;
-        DY=DYD;
-        DZ=DZD;
-        
-		pflux->u_flux(a,ipol,uvel,iadvec,ivel2);
-        pflux->v_flux(a,ipol,vvel,jadvec,jvel2);
-        pflux->w_flux(a,ipol,wvel,kadvec,kvel2);
-		
-		L = -iadvec*fx(p,a,b,uvel,ipol,iadvec) + p->sigmax(p,ipol)*iadvec;
-        
-        if(p->j_dir==1)
-        L -= jadvec*fy(p,a,b,vvel,ipol,jadvec) + p->sigmay(p,ipol)*jadvec;
-        
-        L -= kadvec*fz(p,a,b,wvel,ipol,kadvec)*p->sigmaz(p,ipol);
-        
-		return L;
-}
-
 double weno_hj_nug::fx(lexer *p,fdm *a, field& b, field& uvel, int ipol, double advec)
 {
     grad = 0.0;

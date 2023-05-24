@@ -29,19 +29,19 @@ class ghostcell;
 class field;
 class fnpf_convection;
 class fnpf_ddx;
-class grid_sigma_data;
+class nhflow_sigma_data;
 class slice;
 
 using namespace std;
 
-#ifndef GRID_SIGMA_H_
-#define GRID_SIGMA_H_
+#ifndef NHFLOW_SIGMA_H_
+#define NHFLOW_SIGMA_H_
 
-class grid_sigma : public increment
+class nhflow_sigma : public increment
 {
 public:
-	grid_sigma(lexer*);
-	virtual ~grid_sigma();
+	nhflow_sigma(lexer*);
+	virtual ~nhflow_sigma();
     
     virtual void sigma_coord_ini(lexer*);
     virtual void sigma_ini(lexer*, fdm_nhf*, ghostcell*, slice&);
@@ -63,9 +63,6 @@ private:
     
     fnpf_convection *pdx;
     fnpf_ddx *pddx;
-    grid_sigma_data *pd;
-    
-    
     
     double sig;
 };
