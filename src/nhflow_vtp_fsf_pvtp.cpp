@@ -96,6 +96,7 @@ void nhflow_vtp_fsf::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	result<<"<PDataArray type=\"Float32\" Name=\"depth\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"breaking\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"coastline\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"wetdry\"/>"<<endl;
     if(p->P23==1)
     result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
     if(p->P110==1)

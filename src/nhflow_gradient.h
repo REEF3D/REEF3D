@@ -24,6 +24,7 @@ Author: Hans Bihs
 
 class fdm_nhf;
 class lexer;
+class slice;
 
 #ifndef NHFLOW_GRADIENT_H_
 #define NHFLOW_GRADIENT_H_
@@ -37,7 +38,12 @@ public:
 	nhflow_gradient(lexer*);
 	 ~nhflow_gradient();
 
-
+    double sx(slice&);
+    double sy(slice&);
+    double limiter(double, double);
+    
+    double sxx(slice&);
+    double syy(slice&);
 	//--------------------------------
 
 	//u
@@ -73,6 +79,10 @@ public:
 	
     
     lexer *p;
+    
+private:
+    double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus, dfdz_min, dfdz_plus;
+    double denom,val;
 };
 
 #endif

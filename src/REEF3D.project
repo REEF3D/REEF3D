@@ -1364,6 +1364,8 @@
             <File Name="nhflow_flux_HLL.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Gradient">
+            <File Name="nhflow_gradient_sxx.cpp"/>
+            <File Name="nhflow_gradient_sx.cpp"/>
             <File Name="nhflow_gradient.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Timestep">

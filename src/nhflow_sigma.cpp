@@ -31,7 +31,7 @@ Author: Hans Bihs
 
 #define WLVL (fabs(d->WL(i,j))>1.0e-20?d->WL(i,j):1.0-20)
 
-nhflow_sigma::nhflow_sigma(lexer *p) 
+nhflow_sigma::nhflow_sigma(lexer *p) : nhflow_gradient(p)
 {
 }
 

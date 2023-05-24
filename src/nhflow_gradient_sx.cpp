@@ -20,46 +20,38 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf.h"
 #include"nhflow_gradient.h"
+#include"fdm_nhf.h"
+#include"lexer.h"
+#include"slice.h"
 
-class lexer;
-class fdm_nhf;
-class ghostcell;
-class field;
-class nhflow_sigma_data;
-class slice;
-
-using namespace std;
-
-#ifndef NHFLOW_SIGMA_H_
-#define NHFLOW_SIGMA_H_
-
-class nhflow_sigma : public nhflow_gradient
+double nhflow_gradient::sx(slice &f)
 {
-public:
-	nhflow_sigma(lexer*);
-	virtual ~nhflow_sigma();
-    
-    virtual void sigma_coord_ini(lexer*);
-    virtual void sigma_ini(lexer*, fdm_nhf*, ghostcell*, slice&);
-    virtual void sigma_update(lexer*, fdm_nhf*, ghostcell*, slice&, slice&, double);
-    
-    
-    double sigmax(lexer*,int);
-    double sigmay(lexer*,int);
-    double sigmaz(lexer*,int);
-    double sigmat(lexer*,int);
-    
-    void omega_update(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,slice&,slice&,double);
-
+	dfdx_plus = (f(i+1,j)-f(i,j))/p->DXP[IP];
+    dfdx_min  = (f(i,j)-f(i-1,j))/p->DXP[IM1];
         
-private:
-    
-    void disc_bed(lexer*, fdm_nhf*, ghostcell*);
-    void disc_eta(lexer*, fdm_nhf*, ghostcell*);
-    
-    double sig;
-};
+    grad = limiter(dfdx_plus,dfdx_min);
 
-#endif
+	return grad;
+}
+
+double nhflow_gradient::sy(slice &f)
+{
+	dfdy_plus = (f(i,j+1)-f(i,j))/p->DYP[JP];
+    dfdy_min  = (f(i,j)-f(i,j-1))/p->DYP[JM1];
+        
+    grad = limiter(dfdy_plus,dfdy_min);
+
+	return grad;
+}
+
+double nhflow_gradient::limiter(double v1, double v2)
+{
+    denom = fabs(v1) + fabs(v2);
+    
+    denom = fabs(denom)>1.0e-10?denom:1.0e10;
+    
+    val =  (v1*fabs(v2) + fabs(v1)*v2)/denom;
+
+    return val;	
+}

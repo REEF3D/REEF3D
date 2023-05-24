@@ -257,10 +257,10 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
 void ghostcell::start5V(lexer *p, double *f, int gcv)
 {    
     starttime=timer();
-	gcparax7(p,f,7);
-    gcparax7co(p,f,7);
-    gcparax7co(p,f,7);
-	endtime=timer();
+	gcparaxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
 	p->xtime+=endtime-starttime;
 
     /*

@@ -44,39 +44,28 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta
     if(p->i_dir==1 && p->j_dir==1)
     SLICELOOP4
     {
-    d->Ex(i,j) = pdx->sx(p,eta,1.0);
-    d->Ey(i,j) = pdx->sy(p,eta,1.0);
+    d->Ex(i,j) = sx(eta);
+    d->Ey(i,j) = sy(eta);
     
-    d->Exx(i,j) = pddx->sxx(p,eta);
-    d->Eyy(i,j) = pddx->syy(p,eta);
+    d->Exx(i,j) = sxx(eta);
+    d->Eyy(i,j) = syy(eta);
     }
     
     // 2D
-    if(p->j_dir==0 && p->A312!=1)
+    if(p->j_dir==0)
     SLICELOOP4
     {
-    d->Ex(i,j) = pdx->sx(p,eta,1.0);    
-    d->Exx(i,j) = pddx->sxx(p,eta);
+    d->Ex(i,j) = sx(eta);    
+    d->Exx(i,j) = sxx(eta);
     }
     
-    double Pval,Qval;
-    // 2D
-    if(p->j_dir==0 && p->A312==1)
     SLICELOOP4
+    if(p->wet[IJ]==0 || p->wet[Im1J]==0 || p->wet[Ip1J]==0 || p->wet[IJm1]==0 || p->wet[IJp1]==0)
     {
-    k=p->knoz-1;
-    Pval = 0.5*(d->U[IJK]+d->U[Im1JK]);
-    Qval = 0.5*(d->V[IJK]+d->V[IJm1K]);
-    
-    if(Pval>=0.0)
-    d->Ex(i,j) = (eta(i,j)-eta(i-1,j))/(p->DXP[IP]);
-    
-    if(Pval<0.0)
-    d->Ex(i,j) = (eta(i+1,j)-eta(i,j))/(p->DXP[IP]);
-
-    d->Exx(i,j) = pddx->sxx(p,eta);
+    d->Ex(i,j)=0.0;
+    d->Ey(i,j)=0.0;
     }
-    
+        
     pgc->gcsl_start4(p,d->Ex,1);
     pgc->gcsl_start4(p,d->Ey,1);
     
@@ -85,55 +74,69 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta
     if(p->j_dir==1)
     SLICELOOP4
     {
-    d->Bx(i,j) = pdx->sx(p,d->depth,1.0);
-    d->By(i,j) = pdx->sy(p,d->depth,1.0);
+    d->Bx(i,j) = sx(d->depth);
+    d->By(i,j) = sy(d->depth);
     
-    d->Bxx(i,j) = pddx->sxx(p,d->depth);
-    d->Byy(i,j) = pddx->syy(p,d->depth);
+    d->Bxx(i,j) = sxx(d->depth);
+    d->Byy(i,j) = syy(d->depth);
     }
 
     // 2D
     if(p->j_dir==0 && p->A312!=1)
     SLICELOOP4
     {
-    d->Bx(i,j) = pdx->sx(p,d->depth,1.0);    
-    d->Bxx(i,j) = pddx->sxx(p,d->depth);
+    d->Bx(i,j) = sx(d->depth);    
+    d->Bxx(i,j) = sxx(d->depth);
     }
     
-    if(p->j_dir==0 && p->A312==1)
     SLICELOOP4
+    if(p->wet[IJ]==0 || p->wet[Im1J]==0 || p->wet[Ip1J]==0 || p->wet[IJm1]==0 || p->wet[IJp1]==0)
     {
-    k=0;
-    Pval = 0.5*(d->U[IJK]+d->U[Im1JK]);
-    
-    if(Pval>=0.0)
-    d->Bx(i,j) = (d->depth(i,j)-d->depth(i-1,j))/(p->DXP[IP]);
-    
-    if(Pval<0.0)
-    d->Bx(i,j) = (d->depth(i+1,j)-d->depth(i,j))/(p->DXP[IP]);
-        
-        
-    d->Bxx(i,j) = pddx->sxx(p,d->depth);
+    d->Bx(i,j)=0.0;
+    d->By(i,j)=0.0;
     }
-    
+
     pgc->gcsl_start4(p,d->Bx,1);
     pgc->gcsl_start4(p,d->By,1);
     
+    // -----------------------------------------------------
+    
     // sigx
     FLOOP
+    {
+    if(p->wet[IJ]==0)
+    p->sigx[FIJK] = 0.0;
+    
+    if(p->wet[IJ]==1)
     p->sigx[FIJK] = (1.0 - p->sig[FIJK])*(d->Bx(i,j)/WLVL) - p->sig[FIJK]*(d->Ex(i,j)/WLVL);
+    }
     
     // sigy
     FLOOP
+    {
+    if(p->wet[IJ]==0)
+    p->sigy[FIJK] = 0.0;
+    
+    if(p->wet[IJ]==1)
     p->sigy[FIJK] = (1.0 - p->sig[FIJK])*(d->By(i,j)/WLVL) - p->sig[FIJK]*(d->Ey(i,j)/WLVL);
+    }
     
     // sigxy4
     LOOP
     {
     sigval = 0.5*(p->sig[FIJK]+p->sig[FIJKp1]);
     
+    if(p->wet[IJ]==0)
+    {
+    p->sigx4[IJK] = 0.0;
+    p->sigy4[IJK] = 0.0;
+    }
+    
+    if(p->wet[IJ]==1)
+    {
     p->sigx4[IJK] = (1.0 - sigval)*(d->Bx(i,j)/WLVL) - sigval*(d->Ex(i,j)/WLVL);
     p->sigy4[IJK] = (1.0 - sigval)*(d->By(i,j)/WLVL) - sigval*(d->Ey(i,j)/WLVL);
+    }
     }
     
     // sigz
@@ -142,6 +145,10 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta
     wl = MAX(0.0, eta(i,j) + p->wd - d->bed(i,j));
     wl = (fabs(wl)>1.0e-20?wl:1.0e20);
     
+    if(p->wet[IJ]==0)
+    p->sigz[IJ] = 0.0;
+    
+    if(p->wet[IJ]==1)
     p->sigz[IJ] = 1.0/wl;
     }
 
@@ -398,14 +405,17 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     d->omegaF[FIJK] = 0.0;
     
     pgc->start3V(p,d->omega,17);
+    pgc->start7S(p,d->omegaF,17);
     
     SLICELOOP4
     d->test2D(i,j)=0.0;
     
-    k=p->knox;
+    k=p->knox-1;
     SLICELOOP4
-    d->test2D(i,j)=p->sigy4[IJK];
+    d->test2D(i,j)=p->sigx4[IJK];
     //d->test2D(i,j) = MAX(d->test2D(i,j),fabs(d->omegaF[FIJK]));
+    
+    pgc->gcsl_start4(p,d->test2D,1);
     
 }
 

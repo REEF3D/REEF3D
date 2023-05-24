@@ -24,28 +24,11 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
-#include"fnpf_ddx_cds2.h"
-#include"fnpf_ddx_cds4.h"
-#include"fnpf_cds2.h"
-#include"fnpf_cds4.h"
 
 #define WLVL (fabs(d->WL(i,j))>1.0e-20?d->WL(i,j):1.0-20)
 
 void nhflow_sigma::sigma_ini(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta)
 {	
-    // generate discretization 
-    if(p->A312==1||p->A312==2)
-    {
-    pddx = new fnpf_ddx_cds2(p);
-    pdx  = new fnpf_cds2(p);
-    }
-    
-    if(p->A312==3)
-    {
-    pddx = new fnpf_ddx_cds4(p);
-    pdx  = new fnpf_cds4(p);
-    }
-    
     SLICELOOP4
     p->wet[IJ]=1;
     

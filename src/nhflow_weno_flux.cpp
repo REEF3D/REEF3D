@@ -81,21 +81,21 @@ double nhflow_weno_flux::aij(lexer* p,fdm_nhf* d, double *F, int ipol, double *U
 		fv2 = fy(p,d,F,V,ipol,jvel2);
          }
         
-		k-=1;
-		fw1 = fz(p,d,F,W,ipol,kvel1);
+		/*k-=1;
+		fw1 = kvel1*fz(p,d,F,W,ipol,kvel1);
 		k+=1;
 		
-		fw2 = fz(p,d,F,W,ipol,kvel2);
+		fw2 = kvel2*fz(p,d,F,W,ipol,kvel2);*/
         
-        /*
+        
         fw1 = d->omegaF[FIJK]*0.5*(F[IJK] + F[IJKm1]);
         
-        fw2 = d->omegaF[FIJKp1]*0.5*(F[IJK] + F[IJKp1]);*/
+        fw2 = d->omegaF[FIJKp1]*0.5*(F[IJK] + F[IJKp1]);
     
 
 		L =   - ((ivel2*fu2-ivel1*fu1)/DX[IP]) 
 		      - ((jvel2*fv2-jvel1*fv1)/DY[JP]) 
-			  - ((kvel2*fw2-kvel1*fw1)/DZ[KP]);
+			  - ((fw2-fw1)/DZ[KP]);
         
 		return L;
 }

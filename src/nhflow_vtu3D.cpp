@@ -428,7 +428,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     }
 
     if(p->j_dir==1)
-	ffn=float(0.5*(d->P[IJKp1]+d->P[IJp1Kp1]));
+	ffn=float(0.5*(d->P[FIJKp1]+d->P[FIJp1Kp1]));
     
 	result.write((char*)&ffn, sizeof (float));
 	}
@@ -447,7 +447,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     }
 
     if(p->j_dir==1)
-	ffn=float(0.5*(d->omegaF[FIJKp1]+d->omegaF[IJp1Kp1]));
+	ffn=float(0.5*(d->omegaF[FIJKp1]+d->omegaF[FIJp1Kp1]));
     
 	result.write((char*)&ffn, sizeof (float));
 	}

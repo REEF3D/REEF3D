@@ -69,6 +69,8 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     //pgd->gcsl_start4(p,d->eta,gcval_eta);
     //pgd->gcsl_start4(p,d->Fifsf,gcval_fifsf);
     
+    pgc->gcsl_start4(p,d->test2D,1);
+    
     SLICELOOP4
     {
     if(d->breaking(i,j)>=1)
@@ -125,6 +127,10 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
     
+    // wetdry
+	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
+    
     // test
     if(p->P23==1)
 	{
@@ -173,6 +179,8 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"coastline\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"wetdry\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
     if(p->P23==1)
     {
     result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
@@ -214,9 +222,9 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	ddn=p->YN[JP1];
 	result.write((char*)&ddn, sizeof (double));
 
-    ddn=float(p->sl_ipol4(d->eta) + p->wd);
+    //ddn=float(p->sl_ipol4(d->eta) + p->wd);
     
-    //ddn=p->sl_ipol4eta(p->wet,d->eta, d->bed)+p->wd;
+    ddn=p->sl_ipol4eta(p->wet,d->eta, d->bed)+p->wd;
 	result.write((char*)&ddn, sizeof (double));
 	}
 	
@@ -279,11 +287,13 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	}
     
     //  Detadt
+    k=p->knoz-1;
 	iin=4*(p->pointnum2D);
 	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
 	{
-	ffn=float(p->sl_ipol4(d->Ex));
+    ffn = 0.25*float((p->sigx4[IJK]+p->sigx4[Ip1JK]+p->sigx4[IJp1K]+p->sigx4[Ip1Jp1K]));
+    //ffn=float(p->sl_ipol4(d->Ex));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -312,6 +322,15 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	TPSLICELOOP
 	{
 	ffn=float(p->sl_ipol4(d->coastline));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
+    //  Wetdry
+	iin=4*(p->pointnum2D);
+	result.write((char*)&iin, sizeof (int));
+	TPSLICELOOP
+	{
+    ffn = 0.25*float((p->wet[IJ]+p->wet[Ip1J]+p->wet[IJp1]+p->wet[Ip1Jp1]));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
