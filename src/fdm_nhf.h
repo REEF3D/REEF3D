@@ -79,6 +79,7 @@ public:
     double *F,*G,*H,*L;
     double *porosity;
     double *test;
+    double *Fx,*Fy;
 
     matrix2D N;
 	matrix_diag M;    

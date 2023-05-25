@@ -53,6 +53,8 @@ public:
     virtual void step2(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
     virtual void step3(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
     
+    virtual void flux_update(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
+    
     virtual void kinematic_fsf(lexer*, fdm_nhf*, double*, double*, double*, slice&, slice&, double);
     
     virtual void wetdry(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&);
@@ -74,8 +76,6 @@ private:
     slice1 P;
     slice2 Q;
     slice4 K;
-    
-    double *Fx,*Fy;
 
     int gcval_phi;
 	double starttime;

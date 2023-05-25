@@ -159,7 +159,6 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 	p->umax=pgc->globalmax(p->umax);
 
-
 	LOOP
 	p->vmax=MAX(p->vmax,fabs(d->V[IJK]));
 

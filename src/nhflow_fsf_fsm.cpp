@@ -151,3 +151,7 @@ void nhflow_fsf_fsm::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *U, dou
 {
     
 }
+
+void nhflow_fsf_fsm::flux_update(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
+{
+}

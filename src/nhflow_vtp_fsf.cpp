@@ -40,7 +40,6 @@ nhflow_vtp_fsf::nhflow_vtp_fsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	if(p->mpirank==0 && p->P14==1)
 	mkdir("./REEF3D_NHFLOW_VTP_FSF",0777);
     
-    
     // 3D
     gcval_eta = 55;
     gcval_fifsf = 60;
@@ -51,8 +50,6 @@ nhflow_vtp_fsf::nhflow_vtp_fsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
     gcval_eta = 155;
     gcval_fifsf = 160;
     }
-	
-	
 }
 
 nhflow_vtp_fsf::~nhflow_vtp_fsf()

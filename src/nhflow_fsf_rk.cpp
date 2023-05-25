@@ -61,8 +61,7 @@ nhflow_fsf_rk::nhflow_fsf_rk(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow
     if(p->A542==3)
     pfluxfsf = new nhflow_flux_HLLC(p,pBC);
     
-    p->Darray(Fx,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Fy,p->imax*p->jmax*(p->kmax+2));
+   
     
     wd_criterion=0.00005;
     
@@ -110,13 +109,13 @@ void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     pgc->gcsl_start1(p,d->hx,10);
     pgc->gcsl_start2(p,d->hy,11);
     
-    pfluxfsf->face_flux_3D(p,pgc,d,d->eta,U,V,Fx,Fy);
+    pfluxfsf->face_flux_3D(p,pgc,d,d->eta,U,V,d->Fx,d->Fy);
     
     SLICELOOP4
     K(i,j) = 0.0;
     
     LOOP
-    K(i,j) += -p->DZN[KP]*((Fx[IJK] - Fx[Im1JK])/p->DXN[IP]  + (Fy[IJK] - Fy[IJm1K])/p->DYN[JP]*p->y_dir);
+    K(i,j) += -p->DZN[KP]*((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
     
     pgc->start4V(p,d->test,10);
     
@@ -162,13 +161,13 @@ void nhflow_fsf_rk::step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     pgc->gcsl_start1(p,d->hx,10);
     pgc->gcsl_start2(p,d->hy,11);
     
-    pfluxfsf->face_flux_3D(p,pgc,d,etark1,U,V,Fx,Fy);
+    pfluxfsf->face_flux_3D(p,pgc,d,etark1,U,V,d->Fx,d->Fy);
     
     SLICELOOP4
     K(i,j) = 0.0;
     
     LOOP
-    K(i,j) += -p->DZN[KP]*((Fx[IJK] - Fx[Im1JK])/p->DXN[IP]  + (Fy[IJK] - Fy[IJm1K])/p->DYN[JP]*p->y_dir);
+    K(i,j) += -p->DZN[KP]*((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
     
     SLICELOOP4
     etark2(i,j) = 0.75*d->eta(i,j) + 0.25*etark1(i,j) + 0.25*p->dt*K(i,j);
@@ -220,13 +219,13 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     pgc->gcsl_start1(p,d->hx,10);
     pgc->gcsl_start2(p,d->hy,11);
     
-    pfluxfsf->face_flux_3D(p,pgc,d,etark2,U,V,Fx,Fy);
+    pfluxfsf->face_flux_3D(p,pgc,d,etark2,U,V,d->Fx,d->Fy);
     
     SLICELOOP4
     K(i,j) = 0.0;
     
     LOOP
-    K(i,j) += - p->DZN[KP]*((Fx[IJK] - Fx[Im1JK])/p->DXN[IP]  + (Fy[IJK] - Fy[IJm1K])/p->DYN[JP]*p->y_dir);
+    K(i,j) += - p->DZN[KP]*((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
     
     SLICELOOP4
     d->eta(i,j) = (1.0/3.0)*d->eta(i,j) + (2.0/3.0)*etark2(i,j) + (2.0/3.0)*p->dt*K(i,j);
@@ -250,9 +249,43 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     wetdry(p,d,pgc,U,V,W,d->eta);
     
     LOOP
-    d->test[IJK] = p->sigy4[IJK];
+    d->test[IJK] = d->Fx[IJK];
     
     breaking(p,d,pgc,d->eta,etark2,2.0/3.0);
+}
+
+
+void nhflow_fsf_rk::flux_update(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
+{
+
+    SLICELOOP1
+    P(i,j)=0.0;
+    
+    SLICELOOP2
+    Q(i,j)=0.0;
+
+    ULOOP
+    P(i,j) += 0.5*(U[IJK] + U[Ip1JK]);
+
+    VLOOP
+	Q(i,j) += 0.5*(V[IJK] + V[IJp1K]);
+    
+    pgc->gcsl_start1(p,P,10);
+    pgc->gcsl_start2(p,Q,11);
+    
+    phxy->start(p,d->hx,d->hy,d->depth,p->wet,etark2,P,Q);
+    
+    pgc->gcsl_start1(p,d->hx,10);
+    pgc->gcsl_start2(p,d->hy,11);
+    
+    pfluxfsf->face_flux_3D(p,pgc,d,etark2,U,V,d->Fx,d->Fy);
+    
+    SLICELOOP4
+    K(i,j) = 0.0;
+    
+    LOOP
+    K(i,j) += - p->DZN[KP]*((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
+    
 }
 
 

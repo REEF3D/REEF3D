@@ -142,7 +142,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta
     // sigz
     SLICELOOP4
     {
-    wl = MAX(0.0, eta(i,j) + p->wd - d->bed(i,j));
+    wl = MAX(0.00005, eta(i,j) + p->wd - d->bed(i,j));
     wl = (fabs(wl)>1.0e-20?wl:1.0e20);
     
     if(p->wet[IJ]==0)
@@ -242,7 +242,6 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta
     FLOOP
     p->ZSN[FIJK] = p->ZN[KP]*d->WL(i,j) + d->bed(i,j);
     
-    
     LOOP
     p->ZSP[IJK]  = p->ZP[KP]*d->WL(i,j) + d->bed(i,j);
     
@@ -310,6 +309,7 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     }
     
     
+    if(p->A517==1 || p->A517==2)
     FLOOP
     {
         if(p->A517==1)
@@ -355,9 +355,20 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
         //d->omegaF[FIJK]=0.0;
     }
     
+    if(p->A517==3)
+    {
+    FLOOP
+    d->omegaF[FIJK] = 0.0;
+    
+    LOOP
+    d->omegaF[FIJKp1] =    d->omegaF[FIJK]
+                        
+                        - p->DZN[KP]*(d->detadt(i,j) 
+                        
+                        + ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir) );
+                        
+    }
       
-    
-    
     GC4LOOP
     if(p->gcb4[n][3]==6 && p->gcb4[n][4]==3)
     {
@@ -416,7 +427,6 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     //d->test2D(i,j) = MAX(d->test2D(i,j),fabs(d->omegaF[FIJK]));
     
     pgc->gcsl_start4(p,d->test2D,1);
-    
 }
 
 
