@@ -102,8 +102,8 @@ void nhflow_reconstruct_hires::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf 
     // reconstruct
     ULOOP 
     {
-    Fs[IJK] = d->hx(i,j)*(Fx[IJK]     + 0.5*p->DXP[IP]*DFDX[IJK]); 
-    Fn[IJK] = d->hx(i,j)*(Fx[Ip1JK]   - 0.5*p->DXP[IP1]*DFDX[Ip1JK]);
+    Fs[IJK] = d->hx(i,j)*(Fx[IJK]    + 0.5*p->DXP[IP]*DFDX[IJK]); 
+    Fn[IJK] = d->hx(i,j)*(Fx[Ip1JK]  - 0.5*p->DXP[IP1]*DFDX[Ip1JK]);
     
         if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
         {
@@ -127,8 +127,8 @@ void nhflow_reconstruct_hires::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf 
 
     VLOOP
     {
-    Fe[IJK] = d->hy(i,j)*(Fy[IJK]     + 0.5*p->DYP[IP]*DFDY[IJK]); 
-    Fw[IJK] = d->hy(i,j)*(Fy[IJp1K]   - 0.5*p->DYP[JP1]*DFDY[IJp1K]);
+    Fe[IJK] = d->hy(i,j)*(Fy[IJK]    + 0.5*p->DYP[JP]*DFDY[IJK]); 
+    Fw[IJK] = d->hy(i,j)*(Fy[IJp1K]  - 0.5*p->DYP[JP1]*DFDY[IJp1K]);
     
         if(p->wet[IJ]==1 && p->wet[IJp1]==0)
         {
