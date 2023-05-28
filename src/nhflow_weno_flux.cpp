@@ -75,35 +75,35 @@ double nhflow_weno_flux::aij(lexer* p,fdm_nhf* d, double *F, int ipol, double *U
         fv1=fv2=0.0;
 		
 		i-=1;
-		fu1 = fx(p,d,F,U,ipol,ivel1);
+		fu1 = ivel1*fx(p,d,F,U,ipol,ivel1);
 		i+=1;
 		
-		fu2 = fx(p,d,F,U,ipol,ivel2);
+		fu2 = ivel2*fx(p,d,F,U,ipol,ivel2);
 
 
 		if(p->j_dir==1)
          {
 		j-=1;
-		fv1 = fy(p,d,F,V,ipol,jvel1);
+		fv1 = jvel1*fy(p,d,F,V,ipol,jvel1);
 		j+=1;
 		
-		fv2 = fy(p,d,F,V,ipol,jvel2);
+		fv2 = jvel2*fy(p,d,F,V,ipol,jvel2);
          }
         
-		/*k-=1;
+		k-=1;
 		fw1 = kvel1*fz(p,d,F,W,ipol,kvel1);
 		k+=1;
 		
-		fw2 = kvel2*fz(p,d,F,W,ipol,kvel2);*/
+		fw2 = kvel2*fz(p,d,F,W,ipol,kvel2);
         
         
-        fw1 = d->omegaF[FIJK]*0.5*(F[IJK] + F[IJKm1]);
+        //fw1 = d->omegaF[FIJK]*0.5*(F[IJK] + F[IJKm1]);
         
-        fw2 = d->omegaF[FIJKp1]*0.5*(F[IJK] + F[IJKp1]);
+        //fw2 = d->omegaF[FIJKp1]*0.5*(F[IJK] + F[IJKp1]);
     
 
-		L =   - ((ivel2*fu2-ivel1*fu1)/DX[IP]) 
-		      - ((jvel2*fv2-jvel1*fv1)/DY[JP]) 
+		L =   - ((fu2-fu1)/DX[IP]) 
+		      - ((fv2-fv1)/DY[JP]) 
 			  - ((fw2-fw1)/DZ[KP]);
         
 		return L;

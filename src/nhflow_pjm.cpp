@@ -93,27 +93,31 @@ void nhflow_pjm::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, iofl
 
 void nhflow_pjm::ucorr(lexer* p, fdm_nhf *d, double *U, double alpha)
 {
-	LOOP
+	ULOOP
     WETDRY
     if(d->breaking(i,j)==0 && d->breaking(i-1,j)==0 && d->breaking(i+1,j)==0)
 	U[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*
-                (((0.5*(d->P[FIp1JKp1]+d->P[FIp1JK])-0.5*(d->P[FIm1JKp1]+d->P[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1]))
-                + p->sigx4[IJK]*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
+    
+                (((0.5*(d->P[FIp1JKp1]+d->P[FIp1JK])-0.5*(d->P[FIJKp1]+d->P[FIJK]))/(p->DXP[IP]))
+                
+                + p->sigx4[IJK]*((0.5*(d->P[FIJKp1]+d->P[FIp1JKp1])-0.5*(d->P[FIJK]+d->P[FIp1JK]))/p->DZN[KP]));
 }
 
 void nhflow_pjm::vcorr(lexer* p, fdm_nhf *d, double *V,double alpha)
 {
-    LOOP
+    VLOOP
     WETDRY
     if(d->breaking(i,j)==0 && d->breaking(i,j-1)==0 && d->breaking(i,j-1)==0)
     V[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*
-                (((0.5*(d->P[FIJp1Kp1]+d->P[FIJp1K])-0.5*(d->P[FIJm1Kp1]+d->P[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]))
-                + p->sigy4[IJK]*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
+    
+                (((0.5*(d->P[FIJp1Kp1]+d->P[FIJp1K])-0.5*(d->P[FIJKp1]+d->P[FIJK]))/(p->DYP[JP]))
+                
+                + p->sigy4[IJK]*((0.5*(d->P[FIJKp1]+d->P[FIJp1Kp1])-0.5*(d->P[FIJK]+d->P[FIJp1K]))/p->DZN[KP]));
 }
 
 void nhflow_pjm::wcorr(lexer* p, fdm_nhf *d, double *W, double alpha)
 {
-    LOOP
+    WLOOP
     WETDRY
     if(d->breaking(i,j)==0)
 	W[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*((d->P[FIJKp1]-d->P[FIJK])/(p->DZN[KP]))*p->sigz[IJ];
@@ -135,19 +139,19 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
     fac = p->DZP[KM1]/(p->DZP[KP]+p->DZP[KM1]);
     
     U1 = (1.0-fac)*U[Im1JK] + fac*U[Im1JKm1]; 
-    U2 = (1.0-fac)*U[Ip1JK] + fac*U[Ip1JKm1]; 
+    U2 = (1.0-fac)*U[IJK] + fac*U[IJKm1]; 
     
     V1 = (1.0-fac)*V[IJm1K] + fac*V[IJm1Km1]; 
-    V2 = (1.0-fac)*V[IJp1K] + fac*V[IJp1Km1]; 
+    V2 = (1.0-fac)*V[IJK] + fac*V[IJKm1]; 
     
          
-    d->rhsvec.V[n] =      -  ((U2-U1)/(p->DXP[IP1] + p->DXP[IP])
-                            + 0.5*(p->sigx4[IJK]+p->sigx4[IJKm1])*(U[IJK]-U[IJKm1])/p->DZP[KM1]
+    d->rhsvec.V[n] =      -  ((U2-U1)/(p->DXP[IP])
+                            + 0.5*(p->sigx4[IJK]+p->sigx4[IJKm1])*(0.5*(U[IJK]+U[Im1JK])-0.5*(U[Im1JKm1]+U[IJKm1]))/p->DZP[KM1]
                             
-                            + (V2-V1)/(p->DYP[JP1] + p->DYP[JP])
-                            + 0.5*(p->sigy4[IJK]+p->sigy4[IJKm1])*(V[IJK]-V[IJKm1])/p->DZP[KM1]
+                            + (V2-V1)/(p->DYP[JP])
+                            + 0.5*(p->sigy4[IJK]+p->sigy4[IJKm1])*(0.5*(V[IJK]+V[IJm1K])-0.5*(V[IJm1Km1]+V[IJKm1]))/p->DZP[KM1]
 
-                            + p->sigz[IJ]*(W[IJK]-W[IJKm1])/p->DZP[KM1])/(alpha*p->dt);
+                            + p->sigz[IJ]*(W[IJKp1]-W[IJKm1])/(p->DZP[KP] + p->DZP[KM1]))/(alpha*p->dt);
                             
     ++n;
     }
@@ -164,18 +168,18 @@ void nhflow_pjm::vel_setup(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doub
 void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 {
     if(p->A521==1 && p->A540==1)
-    LOOP
+    ULOOP
     WETDRY
     d->F[IJK] -= PORVALNH*fabs(p->W22)*
-                (p->A523*eta(i+1,j) + (1.0-p->A523)*eta_n(i+1,j) - p->A523*eta(i-1,j) - (1.0-p->A523)*eta_n(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+                (p->A523*eta(i+1,j) + (1.0-p->A523)*eta_n(i+1,j) - p->A523*eta(i,j) - (1.0-p->A523)*eta_n(i,j))/(p->DXP[IP]);
 
     if(p->A521==1 && p->A540==2)
-    LOOP
+    ULOOP
     WETDRY
 	d->F[IJK] -= PORVALNH*fabs(p->W22)*(d->eta(i+1,j) - d->eta(i,j))/p->DXP[IP];
                
     if(p->A521==2 && p->A540==1)
-    LOOP
+    ULOOP
     WETDRY
     if(p->wet[Ip1J]==1 || p->wet[Im1J]==1)
     {
@@ -219,18 +223,18 @@ void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d, slice &eta, slice &eta_n)
 {
     if(p->A521==1 && p->A540==1)
-    LOOP
+    VLOOP
     WETDRY
 	d->G[IJK] -= PORVALNH*fabs(p->W22)*
-                 (p->A523*eta(i,j+1) + (1.0-p->A523)*eta_n(i,j+1) - p->A523*eta(i,j-1) - (1.0-p->A523)*eta_n(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+                 (p->A523*eta(i,j+1) + (1.0-p->A523)*eta_n(i,j+1) - p->A523*eta(i,j) - (1.0-p->A523)*eta_n(i,j))/(p->DYP[JP]);
     
     if(p->A521==1 && p->A540==2)
-    LOOP
+    VLOOP
     WETDRY
 	d->G[IJK] -= PORVALNH*fabs(p->W22)*(d->eta(i,j+1) - d->eta(i,j))/p->DYP[JP];
     
     if(p->A521==2 && p->A540==1)
-    LOOP
+    VLOOP
     WETDRY
     if(p->wet[IJp1]==1 || p->wet[IJm1]==1)
     {
