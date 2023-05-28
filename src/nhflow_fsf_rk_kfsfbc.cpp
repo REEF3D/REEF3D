@@ -44,8 +44,8 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
     
         if(p->A515==1)
         {
-        Pval = 0.25*(U[Im1JK] + U[IJK] + U[Im1JKp1] + U[IJKp1]);
-        Qval = 0.25*(V[IJm1K] + V[IJK] + V[IJm1Kp1] + V[IJKp1]);
+        Pval = 0.5*(U[Im1JK] + U[IJK]);
+        Qval = 0.5*(V[IJm1K] + V[IJK]);
         
         wval = d->detadt(i,j)
         
@@ -60,9 +60,9 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
         {
         wval = d->detadt(i,j)
         
-             + 0.25*(U[Im1JK] + U[IJK] + U[Im1JKp1] + U[IJKp1])*(eta1(i+1,j)-eta1(i-1,j))/(p->DXP[IP]+p->DXP[IP1])
+             + 0.5*(U[Im1JK] + U[IJK])*(eta1(i+1,j)-eta1(i-1,j))/(p->DXP[IP]+p->DXP[IP1])
 
-             + 0.25*(V[IJm1K] + V[IJK] + V[IJm1Kp1] + V[IJKp1])*(eta1(i,j+1)-eta1(i,j-1))/(p->DYP[JP]+p->DYP[JP1]);
+             + 0.5*(V[IJm1K] + V[IJK])*(eta1(i,j+1)-eta1(i,j-1))/(p->DYP[JP]+p->DYP[JP1]);
         }
         
         if(p->A515==3)
@@ -80,9 +80,9 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
         
         wval = d->detadt(i,j)
         
-             + 0.25*(U[Im1JK] + U[IJK] + U[Im1JKp1] + U[IJKp1])*detadx
+             + 0.5*(U[Im1JK] + U[IJK])*detadx
 
-             + 0.25*(V[IJm1K] + V[IJK] + V[IJm1Kp1] + V[IJKp1])*detady;
+             + 0.5*(V[IJm1K] + V[IJK])*detady;
         }
         
         W[IJKp1] = wval;

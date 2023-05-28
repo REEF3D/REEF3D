@@ -245,7 +245,7 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     wetdry(p,d,pgc,U,V,W,d->eta);
     
     LOOP
-    d->test[IJK] = (d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP];
+    d->test[IJK] = K(i,j);
     
     breaking(p,d,pgc,d->eta,etark2,2.0/3.0);
 }

@@ -24,6 +24,9 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
+#include"mgc1.h"
+#include"mgc2.h"
+#include"mgc3.h"
 #include"mgc4.h"
 #include"mgcslice4.h"
 
@@ -301,7 +304,30 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
 
     // -----
     pgc->flagx7(p,p->flag7);
+    
+    
+    
+    
+    mgc1 m1(p);
+	mgc2 m2(p);
+	mgc3 m3(p);
 
+    
+	pgc->flagx(p,p->flag1);
+    pgc->flagx(p,p->flag2);
+    pgc->flagx(p,p->flag3);
+	pgc->gcxupdate(p);
+    
+    m1.fillgcb(p);
+    m1.extragcb(p);
+
+    m2.fillgcb(p);
+    m2.extragcb(p);
+
+    m3.fillgcb(p);
+    m3.extragcb(p);
+
+    
     // ------
 	mgc4 m4(p);
 

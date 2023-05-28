@@ -404,12 +404,12 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     {
     jj=j;
     j=0;
-	ffn=float(0.5*(d->W[IJK]+d->W[IJKp1]));
+	ffn=float(0.5*(d->W[IJK]+d->W[Im1JK]));
     j=jj;
     }
 
     if(p->j_dir==1)
-	ffn=float(0.25*(d->W[IJK]+d->W[IJKp1]+d->W[IJp1K]+d->W[IJp1Kp1]));
+	ffn=float(0.25*(d->W[IJK]+d->W[Im1JK]+d->W[IJK]+d->W[IJm1K]));
     
 	result.write((char*)&ffn, sizeof (float));
 	}
