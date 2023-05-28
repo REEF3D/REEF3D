@@ -63,8 +63,8 @@ private:
 	int gcval_u, gcval_v, gcval_w;
     int solver_id;
     double val, denom;
-    double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus;
-    double detadx,detady;
+    double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus, dfdz_min, dfdz_plus;
+    double detadx,detady,detadz;
     double detadx_n,detady_n;
     
 

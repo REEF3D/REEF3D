@@ -75,6 +75,7 @@ public:
     
     void start7V(lexer*,double*,sliceint&, int);
     void start7S(lexer*,double*, int);
+    void start7P(lexer*,double*, int);
 
 
 	void final();

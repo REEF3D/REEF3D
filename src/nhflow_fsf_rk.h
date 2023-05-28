@@ -77,7 +77,7 @@ private:
     slice2 Q;
     slice4 K;
 
-    int gcval_phi;
+    int gcval_phi,gcval_eta;
 	double starttime;
     double phival,H;
 	double d;

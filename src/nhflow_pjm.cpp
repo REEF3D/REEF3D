@@ -46,13 +46,11 @@ nhflow_pjm::nhflow_pjm(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_interface *
 
     gcval_press=540;
     
-    
     if(p->D33==0)
     solver_id = 8;
     
     if(p->D33==1)
     solver_id = 9;
-
 }
 
 nhflow_pjm::~nhflow_pjm()
@@ -67,8 +65,6 @@ void nhflow_pjm::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, iofl
 
     rhs(p,d,pgc,U,V,W,alpha);
 
-    bedbc(p,d,pgc,U,V,W,alpha);
-
     ppois->start(p,d,d->P);
 
         starttime=pgc->timer();
@@ -77,7 +73,7 @@ void nhflow_pjm::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, iofl
 
         endtime=pgc->timer();
 
-	pgc->start7S(p,d->P,gcval_press);
+	pgc->start7P(p,d->P,gcval_press);
 
 	ucorr(p,d,U,alpha);
 	vcorr(p,d,V,alpha);
@@ -103,7 +99,7 @@ void nhflow_pjm::ucorr(lexer* p, fdm_nhf *d, double *U, double alpha)
                 + p->sigx4[IJK]*((0.5*(d->P[FIJKp1]+d->P[FIp1JKp1])-0.5*(d->P[FIJK]+d->P[FIp1JK]))/p->DZN[KP]));
 }
 
-void nhflow_pjm::vcorr(lexer* p, fdm_nhf *d, double *V,double alpha)
+void nhflow_pjm::vcorr(lexer* p, fdm_nhf *d, double *V, double alpha)
 {
     VLOOP
     WETDRY
@@ -120,7 +116,7 @@ void nhflow_pjm::wcorr(lexer* p, fdm_nhf *d, double *W, double alpha)
     WLOOP
     WETDRY
     if(d->breaking(i,j)==0)
-	W[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*((d->P[FIJKp1]-d->P[FIJK])/(p->DZN[KP]))*p->sigz[IJ];
+	W[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*((d->P[FIJK]-d->P[FIJKm1])/(p->DZN[KM1]))*p->sigz[IJ];
 }
 
 void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
@@ -144,14 +140,20 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
     V1 = (1.0-fac)*V[IJm1K] + fac*V[IJm1Km1]; 
     V2 = (1.0-fac)*V[IJK] + fac*V[IJKm1]; 
     
+    dfdz_plus = (W[IJKp1]-W[IJK])/p->DZN[KP];
+    dfdz_min  = (W[IJK]-W[IJKm1])/p->DZN[KM1];
+        
+    detadz = limiter(dfdz_plus,dfdz_min);
+    
+    detadz = (W[IJKp1]-W[IJKm1])/(p->DZN[KM1]+p->DZN[KP]);
          
-    d->rhsvec.V[n] =      -  ((U2-U1)/(p->DXP[IP])
-                            + 0.5*(p->sigx4[IJK]+p->sigx4[IJKm1])*(0.5*(U[IJK]+U[Im1JK])-0.5*(U[Im1JKm1]+U[IJKm1]))/p->DZP[KM1]
+    d->rhsvec.V[n] = d->test[IJK] =      -  ((U2-U1)/(p->DXP[IP])
+                            + p->sigx[FIJK]*(0.5*(U[IJK]+U[Im1JK]) - 0.5*(U[Im1JKm1]+U[IJKm1]))/p->DZP[KM1]
                             
                             + (V2-V1)/(p->DYP[JP])
-                            + 0.5*(p->sigy4[IJK]+p->sigy4[IJKm1])*(0.5*(V[IJK]+V[IJm1K])-0.5*(V[IJm1Km1]+V[IJKm1]))/p->DZP[KM1]
+                            + p->sigy[FIJK]*(0.5*(V[IJK]+V[IJm1K]) - 0.5*(V[IJm1Km1]+V[IJKm1]))/p->DZP[KM1]
 
-                            + p->sigz[IJ]*(W[IJKp1]-W[IJKm1])/(p->DZP[KP] + p->DZP[KM1]))/(alpha*p->dt);
+                            + p->sigz[IJ]*detadz)/(alpha*p->dt);
                             
     ++n;
     }

@@ -389,10 +389,11 @@ void nhflow_momentum_RK3::clearrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
 }
 
-void nhflow_momentum_RK3::inidisc(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void nhflow_momentum_RK3::inidisc(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_fsf *pfsf)
 {
     sigma_ini(p,d,pgc,d->eta);
     sigma_update(p,d,pgc,d->eta,d->eta,1.0);
+    pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta,d->eta,1.0);
 }
      
 

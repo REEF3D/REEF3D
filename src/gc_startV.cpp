@@ -34,10 +34,10 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
     gcparacoxV(p, f, gcv);
     gcparacoxV(p, f, gcv);
     
-    LOOP
+    ULOOP
     {  
         //if(p->B98!=3||bc(i-1,j)==0)
-        if(p->flag4[Im1JK]<0)
+        if(p->flag1[Im1JK]<0)
         {
         f[Im1JK] = f[IJK];
         f[Im2JK] = f[IJK];
@@ -45,35 +45,35 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
         }
           
         //if(p->B99!=3||bc(i+1,j)==0)
-        if(p->flag4[Ip1JK]<0)
+        if(p->flag1[Ip1JK]<0)
         {
-        f[Ip1JK] = f[IJK];
-        f[Ip2JK] = f[IJK];
-        f[Ip3JK] = f[IJK];
+        f[Ip1JK] = 0.0;
+        f[Ip2JK] = 0.0;
+        f[Ip3JK] = 0.0;
         }
         
-        if(p->flag4[IJm1K]<0)
+        if(p->flag1[IJm1K]<0)
         {
         f[IJm1K] = f[IJK];
         f[IJm2K] = f[IJK];
         f[IJm3K] = f[IJK];
         }
         
-        if(p->flag4[IJp1K]<0)
+        if(p->flag1[IJp1K]<0)
         {
         f[IJp1K] = f[IJK];
         f[IJp2K] = f[IJK];
         f[IJp3K] = f[IJK];
         }
         
-        if(p->flag4[IJKm1]<0)
+        if(p->flag1[IJKm1]<0)
         {
         f[IJKm1] = 0.0;
         f[IJKm2] = 0.0;
         f[IJKm3] = 0.0;
         }
         
-        if(p->flag4[IJKp1]<0)
+        if(p->flag1[IJKp1]<0)
         {
         f[IJKp1] = f[IJK];
         f[IJKp2] = f[IJK];
@@ -91,10 +91,10 @@ void ghostcell::start2V(lexer *p, double *f, int gcv)
     gcparacoxV(p, f, gcv);
     gcparacoxV(p, f, gcv);
     
-    LOOP
+    VLOOP
     {  
         //if(p->B98!=3||bc(i-1,j)==0)
-        if(p->flag4[Im1JK]<0)
+        if(p->flag2[Im1JK]<0)
         {
         f[Im1JK] = f[IJK];
         f[Im2JK] = f[IJK];
@@ -102,43 +102,41 @@ void ghostcell::start2V(lexer *p, double *f, int gcv)
         }
           
         //if(p->B99!=3||bc(i+1,j)==0)
-        if(p->flag4[Ip1JK]<0)
+        if(p->flag2[Ip1JK]<0)
         {
         f[Ip1JK] = f[IJK];
         f[Ip2JK] = f[IJK];
         f[Ip3JK] = f[IJK];
         }
         
-        if(p->flag4[IJm1K]<0)
+        if(p->flag2[IJm1K]<0)
         {
-        f[IJm1K] = f[IJK];
-        f[IJm2K] = f[IJK];
-        f[IJm3K] = f[IJK];
+        f[IJm1K] = 0.0;
+        f[IJm2K] = 0.0;
+        f[IJm3K] = 0.0;
         }
         
-        if(p->flag4[IJp1K]<0)
+        if(p->flag2[IJp1K]<0)
         {
-        f[IJp1K] = f[IJK];
-        f[IJp2K] = f[IJK];
-        f[IJp3K] = f[IJK];
+        f[IJp1K] = 0.0;
+        f[IJp2K] = 0.0;
+        f[IJp3K] = 0.0;
         }
         
-        if(p->flag4[IJKm1]<0)
+        if(p->flag2[IJKm1]<0)
         {
         f[IJKm1] = 0.0;
         f[IJKm2] = 0.0;
         f[IJKm3] = 0.0;
         }
         
-        if(p->flag4[IJKp1]<0)
+        if(p->flag2[IJKp1]<0)
         {
         f[IJKp1] = f[IJK];
         f[IJKp2] = f[IJK];
         f[IJKp3] = f[IJK];
         }
-        
     }
-    
 }
 
 void ghostcell::start3V(lexer *p, double *f, int gcv)
@@ -149,10 +147,10 @@ void ghostcell::start3V(lexer *p, double *f, int gcv)
     gcparacoxV(p, f, gcv);
 
     
-    LOOP
+    WLOOP
     {  
         //if(p->B98!=3||bc(i-1,j)==0)
-        if(p->flag4[Im1JK]<0)
+        if(p->flag3[Im1JK]<0)
         {
         f[Im1JK] = f[IJK];
         f[Im2JK] = f[IJK];
@@ -160,28 +158,28 @@ void ghostcell::start3V(lexer *p, double *f, int gcv)
         }
           
         //if(p->B99!=3||bc(i+1,j)==0)
-        if(p->flag4[Ip1JK]<0)
+        if(p->flag3[Ip1JK]<0)
         {
         f[Ip1JK] = f[IJK];
         f[Ip2JK] = f[IJK];
         f[Ip3JK] = f[IJK];
         }
         
-        if(p->flag4[IJm1K]<0)
+        if(p->flag3[IJm1K]<0)
         {
         f[IJm1K] = f[IJK];
         f[IJm2K] = f[IJK];
         f[IJm3K] = f[IJK];
         }
         
-        if(p->flag4[IJp1K]<0)
+        if(p->flag3[IJp1K]<0)
         {
         f[IJp1K] = f[IJK];
         f[IJp2K] = f[IJK];
         f[IJp3K] = f[IJK];
         }
         /*
-        if(p->flag4[IJKp1]<0)
+        if(p->flag3[IJKp1]<0)
         {
         f[IJKp1] = f[IJK];
         f[IJKp2] = f[IJK];
@@ -339,5 +337,58 @@ void ghostcell::start7S(lexer *p, double *f, int gcv)
     gcparax7co(p,f,7);
 	endtime=timer();
 	p->xtime+=endtime-starttime;
+    }
+}
+
+void ghostcell::start7P(lexer *p, double *f, int gcv)
+{    
+    if(p->M10>0)
+    {
+    starttime=timer();
+	gcparax7(p,f,7);
+    gcparax7co(p,f,7);
+    gcparax7co(p,f,7);
+    gcparax7co(p,f,7);
+	endtime=timer();
+	p->xtime+=endtime-starttime;
+    }
+
+    
+    FLOOP
+    {  
+        if(p->flag7[FIm1JK]<0)
+        {
+        f[FIm1JK] = f[FIJK];
+        f[FIm2JK] = f[FIJK];
+        f[FIm3JK] = f[FIJK];
+        }
+          
+        if(p->flag7[FIp1JK]<0)
+        {
+        f[FIp1JK] = f[FIJK];
+        f[FIp2JK] = f[FIJK];
+        f[FIp3JK] = f[FIJK];
+        }
+        
+        if(p->flag7[FIJm1K]<0)
+        {
+        f[FIJm1K] = f[FIJK];
+        f[FIJm2K] = f[FIJK];
+        f[FIJm3K] = f[FIJK];
+        }
+        
+        if(p->flag7[FIJp1K]<0)
+        {
+        f[FIJp1K] = f[FIJK];
+        f[FIJp2K] = f[FIJK];
+        f[FIJp3K] = f[FIJK];
+        }
+        
+        if(p->flag7[FIJKp1]<0)
+        {
+        f[FIJKp1] = 0.0;
+        f[FIJKp2] = 0.0;
+        f[FIJKp3] = 0.0;
+        }
     }
 }

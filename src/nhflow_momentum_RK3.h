@@ -37,7 +37,7 @@ public:
 	virtual ~nhflow_momentum_RK3();
     
 	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_convection*, diffusion*, nhflow_pressure*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*,  vrans*);
-    virtual void inidisc(lexer*, fdm_nhf*, ghostcell*);
+    virtual void inidisc(lexer*, fdm_nhf*, ghostcell*, nhflow_fsf*);
 
     double *UDIFF,*URK1,*URK2;
     double *VDIFF,*VRK1,*VRK2;

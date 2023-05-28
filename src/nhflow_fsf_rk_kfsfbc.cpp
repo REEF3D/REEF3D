@@ -49,11 +49,11 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
         
         wval = d->detadt(i,j)
         
-             + MAX(0.0,Pval)*(eta1(i+1,j)-eta1(i-1,j))/(p->DXP[IP]+p->DXP[IP1])
-             + MIN(0.0,Pval)*(eta1(i+1,j)-eta1(i-1,j))/(p->DXP[IP]+p->DXP[IP1])
+             + MAX(0.0,Pval)*(eta1(i,j)-eta1(i-1,j))/(p->DXP[IM1])
+             + MIN(0.0,Pval)*(eta1(i+1,j)-eta1(i,j))/(p->DXP[IP])
         
-             + MAX(0.0,Qval)*(eta1(i,j+1)-eta1(i,j-1))/(p->DYP[JP]+p->DYP[JP1])
-             + MIN(0.0,Qval)*(eta1(i,j+1)-eta1(i,j-1))/(p->DYP[JP]+p->DYP[JP1]);
+             + MAX(0.0,Qval)*(eta1(i,j)-eta1(i,j-1))/(p->DYP[JM1])
+             + MIN(0.0,Qval)*(eta1(i,j+1)-eta1(i,j))/(p->DYP[JP]);
         }
              
         if(p->A515==2)

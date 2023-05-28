@@ -70,6 +70,19 @@ nhflow_fsf_rk::nhflow_fsf_rk(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow
     
     if(p->A245==1)
     wd_criterion=p->A245_val*p->DXM;
+    
+    
+    if(p->F50==1)
+	gcval_eta = 51;
+    
+    if(p->F50==2)
+	gcval_eta = 52;
+    
+    if(p->F50==3)
+	gcval_eta = 53;
+    
+    if(p->F50==4)
+	gcval_eta = 54;
 }
 
 nhflow_fsf_rk::~nhflow_fsf_rk()
@@ -106,8 +119,8 @@ void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     
     phxy->start(p,d->hx,d->hy,d->depth,p->wet,d->eta,P,Q);
     
-    pgc->gcsl_start1(p,d->hx,10);
-    pgc->gcsl_start2(p,d->hy,11);
+    pgc->gcsl_start1(p,d->hx,gcval_eta);
+    pgc->gcsl_start2(p,d->hy,gcval_eta);
     
 
     SLICELOOP4
@@ -157,8 +170,8 @@ void nhflow_fsf_rk::step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     
     phxy->start(p,d->hx,d->hy,d->depth,p->wet,etark1,P,Q);
     
-    pgc->gcsl_start1(p,d->hx,10);
-    pgc->gcsl_start2(p,d->hy,11);
+    pgc->gcsl_start1(p,d->hx,gcval_eta);
+    pgc->gcsl_start2(p,d->hy,gcval_eta);
     
     SLICELOOP4
     K(i,j) = 0.0;
@@ -213,8 +226,8 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     
     phxy->start(p,d->hx,d->hy,d->depth,p->wet,etark2,P,Q);
     
-    pgc->gcsl_start1(p,d->hx,10);
-    pgc->gcsl_start2(p,d->hy,11);
+    pgc->gcsl_start1(p,d->hx,gcval_eta);
+    pgc->gcsl_start2(p,d->hy,gcval_eta);
     
     
     SLICELOOP4
@@ -245,7 +258,10 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     wetdry(p,d,pgc,U,V,W,d->eta);
     
     LOOP
-    d->test[IJK] = K(i,j);
+    d->test[IJK] = d->hx(i-1,j);
+    
+    //LOOP
+    //d->test[IJK] += -p->DZN[KP]*((U[IJK]*d->hx(i,j) - U[Im1JK]*d->hx(i-1,j))/p->DXN[IP]  + (V[IJK]*d->hy(i,j) - V[IJm1K]*d->hy(i,j-1))/p->DYN[JP]*p->y_dir);
     
     breaking(p,d,pgc,d->eta,etark2,2.0/3.0);
 }
