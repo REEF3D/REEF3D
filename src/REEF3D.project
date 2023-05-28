@@ -1352,6 +1352,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
           <VirtualDirectory Name="Sigma">
+            <File Name="nhflow_sigma_omega.cpp"/>
             <File Name="nhflow_sigma_ini.cpp"/>
             <File Name="nhflow_sigma_update.cpp"/>
             <File Name="nhflow_sigma.cpp"/>
@@ -2871,6 +2872,7 @@
             <File Name="iowave_sflow_active-beach.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="NHFLOW">
+            <File Name="iowave_nhflow_relax.cpp"/>
             <File Name="iowave_nhflow_precalc_relax.cpp"/>
             <File Name="iowave_nhflow_velsource.cpp"/>
             <File Name="iowave_nhflow_precalc_decomp_time.cpp"/>

@@ -33,36 +33,36 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
     double uvel1,uvel2;
     double zloc1,zloc2;
     
-    GC4LOOP
-    if(p->gcb4[n][3]==6 && p->gcb4[n][4]==3)
+    GC3LOOP
+    if(p->gcb3[n][3]==6 && p->gcb3[n][4]==3)
     {
-    i=p->gcb4[n][0];
-    j=p->gcb4[n][1];
-    k=p->gcb4[n][2];
+    i=p->gcb3[n][0];
+    j=p->gcb3[n][1];
+    k=p->gcb3[n][2];
     
     wval = 0.0;
     
         if(p->A515==1)
         {
-        Pval = U[IJK];
-        Qval = V[IJK];
+        Pval = 0.25*(U[Im1JK] + U[IJK] + U[Im1JKp1] + U[IJKp1]);
+        Qval = 0.25*(V[IJm1K] + V[IJK] + V[IJm1Kp1] + V[IJKp1]);
         
         wval = d->detadt(i,j)
         
-             + MAX(0.0,Pval)*((eta1(i,j)-eta1(i-1,j))/(p->DXP[IP]))
-             + MIN(0.0,Pval)*((eta1(i+1,j)-eta1(i,j))/(p->DXP[IP1]))
+             + MAX(0.0,Pval)*(eta1(i+1,j)-eta1(i-1,j))/(p->DXP[IP]+p->DXP[IP1])
+             + MIN(0.0,Pval)*(eta1(i+1,j)-eta1(i-1,j))/(p->DXP[IP]+p->DXP[IP1])
         
-             + MAX(0.0,Qval)*((eta1(i,j)-eta1(i,j-1))/(p->DYP[JP]))
-             + MIN(0.0,Qval)*((eta1(i,j+1)-eta1(i,j))/(p->DYP[JP1]));
+             + MAX(0.0,Qval)*(eta1(i,j+1)-eta1(i,j-1))/(p->DYP[JP]+p->DYP[JP1])
+             + MIN(0.0,Qval)*(eta1(i,j+1)-eta1(i,j-1))/(p->DYP[JP]+p->DYP[JP1]);
         }
              
         if(p->A515==2)
         {
         wval = d->detadt(i,j)
         
-             + U[IJK]*(eta1(i+1,j)-eta1(i-1,j))/(p->DXP[IP]+p->DXP[IP1])
+             + 0.25*(U[Im1JK] + U[IJK] + U[Im1JKp1] + U[IJKp1])*(eta1(i+1,j)-eta1(i-1,j))/(p->DXP[IP]+p->DXP[IP1])
 
-             + V[IJK]*(eta1(i,j+1)-eta1(i,j-1))/(p->DYP[JP]+p->DYP[JP1]);
+             + 0.25*(V[IJm1K] + V[IJK] + V[IJm1Kp1] + V[IJKp1])*(eta1(i,j+1)-eta1(i,j-1))/(p->DYP[JP]+p->DYP[JP1]);
         }
         
         if(p->A515==3)
@@ -80,29 +80,26 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
         
         wval = d->detadt(i,j)
         
-             + U[IJK]*detadx
+             + 0.25*(U[Im1JK] + U[IJK] + U[Im1JKp1] + U[IJKp1])*detadx
 
-             + V[IJK]*detady;
+             + 0.25*(V[IJm1K] + V[IJK] + V[IJm1Kp1] + V[IJKp1])*detady;
         }
         
-        //W[IJK] = wval; 
         W[IJKp1] = wval;
         W[IJKp2] = wval;
         W[IJKp3] = wval;
     }
-    
-    
-    
+
     // Kinematic Bed BC
-    GC4LOOP
-    if(p->gcb4[n][3]==5 && p->gcb4[n][4]==21)
+    GC3LOOP
+    if(p->gcb3[n][3]==5 && p->gcb3[n][4]==21)
     {
-    i=p->gcb4[n][0];
-    j=p->gcb4[n][1];
-    k=p->gcb4[n][2];
+    i=p->gcb3[n][0];
+    j=p->gcb3[n][1];
+    k=p->gcb3[n][2];
     
-    Pval = U[IJK];
-    Qval = V[IJK];
+    Pval = 0.25*(U[Im1JK] + U[IJK] + U[Im1JKp1] + U[IJKp1]);
+    Qval = 0.25*(V[IJm1K] + V[IJK] + V[IJm1Kp1] + V[IJKp1]);
     
     
     if(p->A516==1)
@@ -136,7 +133,7 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
         
         wval = - Pval*detadx
 
-               - Pval*detady;
+               - Qval*detady;
     }
     
         

@@ -22,67 +22,46 @@ Author: Hans Bihs
 
 #include"iowave.h"
 #include"lexer.h"
+#include"fdm.h"
 #include"ghostcell.h"
 
-void iowave::nhflow_precalc_relax(lexer *p, ghostcell *pgc)
+void iowave::U_relax(lexer *p, ghostcell *pgc, double *U)
 {
-    double fsfloc;
-    
-    // pre-calc every iteration
-    count=0;
-    SLICELOOP4
-    {
-        xg = xgen(p);
-        yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
-		
-		// Wave Generation
-        if(p->B98==2)
-        {
-            // Zone 1
-            if(dg<1.0e20)
-            {
-            eta(i,j) = wave_eta(p,pgc,xg,yg);
-            etaval[count] = eta(i,j);
-            ++count;
-            }
-		}
-    }
-    pgc->gcsl_start4(p,eta,50);
-    
     count=0;
     ULOOP
     {
-		xg = xgen(p);
-        yg = ygen(p);
         dg = distgen(p);
 		db = distbeach(p);
         
-        z=p->ZSP[IJK]-p->phimean;
-		
 		// Wave Generation
-		if(p->B98==2)
+		if(p->B98==2 && u_switch==1)
         {
             // Zone 1
             if(dg<1.0e20)
             {
-            uval[count] = wave_u(p,pgc,xg,yg,z) + p->Ui;
-        
+            U[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*uval[count] + relax4_wg(i,j)*U[IJK];
             ++count;
             }
 		}
-    }
 		
+		// Numerical Beach
+        if(p->B99==1||p->B99==2||beach_relax==1)
+		{
+            // Zone 2
+            if(db<1.0e20)
+            U[IJK] = relax4_nb(i,j)*U[IJK];
+        }
+    }
+}
+
+void iowave::V_relax(lexer *p, ghostcell *pgc, double *V)
+{
     count=0;
+    if(p->j_dir==0)
     VLOOP
     {
-        xg = xgen(p);
-        yg = ygen(p);
         dg = distgen(p);
 		db = distbeach(p);
-        
-        z=p->ZSP[IJK]-p->phimean;
         
 		// Wave Generation
 		if(p->B98==2 && v_switch==1)
@@ -90,38 +69,66 @@ void iowave::nhflow_precalc_relax(lexer *p, ghostcell *pgc)
             // Zone 1
             if(dg<1.0e20)
             {
-            vval[count] = wave_v(p,pgc,xg,yg,z);
-            
+            V[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*vval[count] + relax4_wg(i,j)*V[IJK];
             ++count;
             }
 		}
+		
+		// Numerical Beach
+		if(p->B99==1||p->B99==2||beach_relax==1)
+		{	
+            // Zone 2
+            if(db<1.0e20)
+            V[IJK] = relax4_nb(i,j)*V[IJK];
+        }
     }
+}
 
+void iowave::W_relax(lexer *p, ghostcell *pgc, double *W)
+{
     count=0;
     WLOOP
     {
-        xg = xgen(p);
-        yg = ygen(p);
         dg = distgen(p);
-		db = distbeach(p);
+        db = distbeach(p);
         
-        zloc3 = p->pos3_z();
-        fsfloc = eta(i,j) + p->phimean;
-
-        z=p->ZSN[FIJKp1]-p->phimean;
-
-
-		// Wave Generation		
+		// Wave Generation
 		if(p->B98==2 && w_switch==1)
         {
             // Zone 1
             if(dg<1.0e20)
             {
-            wval[count] = wave_w(p,pgc,xg,yg,z);
-
+            W[IJK] = (1.0-relax4_wg(i,j)) * ramp(p)* wval[count] + relax4_wg(i,j)*W[IJK];
             ++count;
             }
 		}
+		
+		// Numerical Beach
+        if(p->B99==1||p->B99==2||beach_relax==1)
+		{
+            // Zone 2
+            if(db<1.0e20)
+            W[IJK] = relax4_nb(i,j)*W[IJK];
+        }
+    }		
+}
+
+void iowave::P_relax(lexer *p, ghostcell *pgc, double *P)
+{
+    FLOOP
+    {
+        dg = distgen(p);
+        db = distbeach(p);
+        
+        // Numerical Beach
+        if(p->B99==1||p->B99==2||beach_relax==1)
+        {            
+            // Zone 2
+            if(db<1.0e20)
+
+            P[FIJK] = relax4_nb(i,j)*P[FIJK];
+        }
     }	
 }
-    
+
+

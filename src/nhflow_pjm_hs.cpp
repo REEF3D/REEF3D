@@ -86,7 +86,7 @@ void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
     LOOP
     WETDRY
     d->F[IJK] -= PORVALNH*fabs(p->W22)*
-                (p->A523*eta(i+1,j) + (1.0-p->A523)*eta_n(i+1,j) - p->A523*eta(i-1,j) - (1.0-p->A523)*eta_n(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+                (p->A523*eta(i+1,j) + (1.0-p->A523)*eta_n(i+1,j) - p->A523*eta(i,j) - (1.0-p->A523)*eta_n(i,j))/(p->DXP[IP]);
 
     if(p->A521==1 && p->A540==2)
     LOOP
@@ -142,7 +142,7 @@ void nhflow_pjm_hs::vpgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
     LOOP
     WETDRY
 	d->G[IJK] -= PORVALNH*fabs(p->W22)*
-                 (p->A523*eta(i,j+1) + (1.0-p->A523)*eta_n(i,j+1) - p->A523*eta(i,j-1) - (1.0-p->A523)*eta_n(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+                 (p->A523*eta(i,j+1) + (1.0-p->A523)*eta_n(i,j+1) - p->A523*eta(i,j) - (1.0-p->A523)*eta_n(i,j))/(p->DYP[JP]);
     
     if(p->A521==1 && p->A540==2)
     LOOP

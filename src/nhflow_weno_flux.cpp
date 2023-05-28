@@ -39,16 +39,25 @@ void nhflow_weno_flux::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *
     uf=vf=wf=0;
     
         if(ipol==1)
-        LOOP
+        {
+        uf=1;
+        ULOOP
         d->F[IJK]+=aij(p,d,F,1,U,V,W,p->DXN,p->DYN,p->DZN);
+        }
 
         if(ipol==2)
-        LOOP
+        {
+        vf=1;
+        VLOOP
         d->G[IJK]+=aij(p,d,F,2,U,V,W,p->DXN,p->DYN,p->DZN);
+        }
 
         if(ipol==3)
-        LOOP
+        WLOOP
+        {
+        wf=1;
         d->H[IJK]+=aij(p,d,F,3,U,V,W,p->DXN,p->DYN,p->DZN);
+        }
 
         if(ipol==4)
         LOOP
