@@ -302,9 +302,11 @@
         <File Name="nhflow_v.h"/>
         <File Name="nhflow.h"/>
         <VirtualDirectory Name="Pressure">
+          <File Name="nhflow_pjm_c.h"/>
           <File Name="nhflow_pjm_hs.h"/>
           <File Name="nhflow_pjm.h"/>
           <VirtualDirectory Name="Poisson">
+            <File Name="nhflow_poisson_c.h"/>
             <File Name="nhflow_poisson.h"/>
           </VirtualDirectory>
           <File Name="nhflow_pressure.h"/>
@@ -1377,9 +1379,11 @@
         <File Name="nhflow_v.cpp"/>
         <File Name="nhflow_f.cpp"/>
         <VirtualDirectory Name="Pressure">
+          <File Name="nhflow_pjm_c.cpp"/>
           <File Name="nhflow_pjm_hs.cpp"/>
           <File Name="nhflow_pjm.cpp"/>
           <VirtualDirectory Name="Poisson">
+            <File Name="nhflow_poisson_c.cpp"/>
             <File Name="nhflow_poisson.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
@@ -2711,6 +2715,7 @@
         <File Name="hypre_aij_solvers.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="HYPRE Struct">
+        <File Name="hypre_struct_fill7_2D.cpp"/>
         <File Name="hypre_struct_fill9_2D.cpp"/>
         <File Name="hypre_struct_fill9.cpp"/>
         <File Name="hypre_struct_fill3_2D.cpp"/>

@@ -110,6 +110,9 @@ void driver::logic_nhflow()
     
     if(p->A520==1)
     pnhpress = new nhflow_pjm(p,d,pgc,pBC);
+    
+    if(p->A520==2)
+    pnhpress = new nhflow_pjm_c(p,d,pgc,pBC);
 
 //Turbulence
     if(p->T10==0)

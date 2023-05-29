@@ -188,8 +188,12 @@ void hypre_struct::start_solver7(lexer* p, ghostcell* pgc, double *f, vec& rhs, 
 	p->solveriter=0;
 	
     create_solver5(p,pgc);
-
+    
+    if(p->j_dir==1)
     fill_matrix7(p,pgc,f,rhs,M);
+    
+    if(p->j_dir==0)
+    fill_matrix7_2Dvert(p,pgc,f,rhs,M);
 
     solve(p,pgc);
 

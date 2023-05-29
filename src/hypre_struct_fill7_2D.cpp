@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"matrix_diag.h"
 
-void hypre_struct::fill_matrix7(lexer* p, ghostcell* pgc, double *f, vec &rhs, matrix_diag &M)
+void hypre_struct::fill_matrix7_2Dvert(lexer* p, ghostcell* pgc, double *f, vec &rhs, matrix_diag &M)
 {
 
     count=0;
@@ -37,7 +37,7 @@ void hypre_struct::fill_matrix7(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
     ++count;
     }
     
-    nentries=7;
+    nentries=5;
     
     for (j = 0; j < nentries; j++)
     stencil_indices[j] = j;
@@ -58,12 +58,6 @@ void hypre_struct::fill_matrix7(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
 		values[count]=M.n[n];
 		++count;
 		
-		values[count]=M.e[n];
-		++count;
-		
-		values[count]=M.w[n];
-		++count;
-		
 		values[count]=M.b[n];
 		++count;
 		
@@ -74,12 +68,6 @@ void hypre_struct::fill_matrix7(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
 		SCHECK
 		{
 		values[count]=1.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
 		++count;
 		
 		values[count]=0.0;
@@ -120,13 +108,13 @@ void hypre_struct::fill_matrix7(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
     count=0; 
 	KJILOOP
 	{
-		FPCHECK
+		PCHECK
 		{
 		n=CVAL4[IJK];
 		values[count] = rhs.V[n];
 		}
 		
-		FSCHECK
+		SCHECK
 		values[count] = 0.0;
 
     ++count;
@@ -134,21 +122,9 @@ void hypre_struct::fill_matrix7(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
     
     HYPRE_StructVectorSetBoxValues(b, ilower, iupper, values);
     HYPRE_StructVectorAssemble(b);
-
+    
 }
 
-void hypre_struct::fillbackvec7(lexer *p, double *f, int var)
-{
-	HYPRE_StructVectorGetBoxValues(x, ilower, iupper, values);
-	
-        count=0;
-        KJILOOP
-        {
-		 PCHECK
-        f[IJK]=values[count];
-		
-        ++count;
-        }
-}
+
 
 #endif
