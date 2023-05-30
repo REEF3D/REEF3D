@@ -259,7 +259,6 @@ void nhflow_pjm_c::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
             
         d->F[IJK] -= PORVALNH*fabs(p->W22)*
                     (p->A523*detadx + (1.0-p->A523)*detadx_n);
-                    
         }
         
         if(p->wet[Ip1J]==0 && p->wet[Im1J]==1)

@@ -143,7 +143,7 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     double depthmax;
     
-	p->umax = p->vmax = p->wmax = -1e19;
+	p->umax = p->vmax = p->wmax = 0.0;
     depthmax = -1e19;
     
     cu=cv=cw=co=1.0e10;
@@ -163,6 +163,9 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	p->vmax=MAX(p->vmax,fabs(d->V[IJK]));
 
 	p->vmax=pgc->globalmax(p->vmax);
+    
+    if(p->j_dir==0)
+    p->vmax=0.0;
 
 
 	WLOOP
@@ -183,6 +186,7 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
 
     p->umax+=10.0;
+    
 
 
     LOOP
