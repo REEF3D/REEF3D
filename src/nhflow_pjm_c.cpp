@@ -75,12 +75,9 @@ void nhflow_pjm_c::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, io
 
 	pgc->start4V(p,d->P,gcval_press);
     
-    if(p->count>100)
-    {
 	ucorr(p,d,U,alpha);
 	vcorr(p,d,V,alpha);
 	wcorr(p,d,W,alpha);
-    }
 
     p->poissoniter=p->solveriter;
 
@@ -92,22 +89,13 @@ void nhflow_pjm_c::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, io
 
 void nhflow_pjm_c::ucorr(lexer* p, fdm_nhf *d, double *U, double alpha)
 {
-	ULOOP
-    WETDRY
-    if(d->breaking(i,j)==0 && d->breaking(i-1,j)==0 && d->breaking(i+1,j)==0)
-    {
-	U[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*
-    
-                (((0.5*(d->P[FIp1JKp1]+d->P[FIp1JK])-0.5*(d->P[FIJKp1]+d->P[FIJK]))/(p->DXP[IP]))
-                
-                + p->sigx4[IJK]*((0.5*(d->P[FIJKp1]+d->P[FIp1JKp1])-0.5*(d->P[FIJK]+d->P[FIp1JK]))/p->DZN[KP]));
-    }
-    
-    /*
     if(p->D37==1)
 	ULOOP
-	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*(1.0/pd->roface(p,a,1,0,0))*((a->press(i+1,j,k)-a->press(i,j,k))/p->DXP[IP]
-                + 0.25*(p->sigx[FIJK]+p->sigx[FIJKp1]+p->sigx[FIp1JK]+p->sigx[FIp1JKp1])*(0.5*(a->press(i,j,k+1)+a->press(i+1,j,k+1))-0.5*(a->press(i,j,k-1)+a->press(i+1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
+	U[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*((d->P[Ip1JK]-d->P[IJK])/p->DXP[IP]
+    
+                + 0.25*(p->sigx[FIJK]+p->sigx[FIJKp1]+p->sigx[FIp1JK]+p->sigx[FIp1JKp1])*
+                
+                (0.5*(d->P[IJKp1]+d->P[Ip1JKp1])-0.5*(d->P[IJKm1]+d->P[Ip1JKm1]))/(p->DZP[KP]+p->DZP[KP1]));
     
     if(p->D37>=2)
     ULOOP
@@ -118,13 +106,13 @@ void nhflow_pjm_c::ucorr(lexer* p, fdm_nhf *d, double *U, double alpha)
         check=1;        
     
     if(check==1)
-    uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*(1.0/pd->roface(p,a,1,0,0))*((a->press(i+1,j,k)-a->press(i,j,k))/p->DXP[IP]
-                + 0.25*(p->sigx[FIJK]+p->sigx[FIJKp1]+p->sigx[FIp1JK]+p->sigx[FIp1JKp1])*(0.5*((1.0 - 1.0/teta)*(a->press(i,j,k)+a->press(i+1,j,k)))-0.5*(a->press(i,j,k-1)+a->press(i+1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
+    U[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*((d->P[Ip1JK]-d->P[IJK])/p->DXP[IP]
+                + 0.25*(p->sigx[FIJK]+p->sigx[FIJKp1]+p->sigx[FIp1JK]+p->sigx[FIp1JKp1])*(0.5*((1.0 - 1.0/teta)*(d->P[IJK]+d->P[Ip1JK]))-0.5*(d->P[IJKm1]+d->P[Ip1JKm1]))/(p->DZP[KP]+p->DZP[KP1]));
     
     if(check==0)
-    uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*(1.0/pd->roface(p,a,1,0,0))*((a->press(i+1,j,k)-a->press(i,j,k))/p->DXP[IP]
-                + 0.25*(p->sigx[FIJK]+p->sigx[FIJKp1]+p->sigx[FIp1JK]+p->sigx[FIp1JKp1])*(0.5*(a->press(i,j,k+1)+a->press(i+1,j,k+1))-0.5*(a->press(i,j,k-1)+a->press(i+1,j,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
-    }*/
+    U[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*((d->P[Ip1JK]-d->P[IJK])/p->DXP[IP]
+                + 0.25*(p->sigx[FIJK]+p->sigx[FIJKp1]+p->sigx[FIp1JK]+p->sigx[FIp1JKp1])*(0.5*(d->P[IJKp1]+d->P[Ip1JKp1])-0.5*(d->P[IJKm1]+d->P[Ip1JKm1]))/(p->DZP[KP]+p->DZP[KP1]));
+    }
 }
 
 void nhflow_pjm_c::vcorr(lexer* p, fdm_nhf *d, double *V, double alpha)
@@ -142,8 +130,8 @@ void nhflow_pjm_c::vcorr(lexer* p, fdm_nhf *d, double *V, double alpha)
     
     //if(p->D37==1)
     /*VLOOP
-    vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(1.0/pd->roface(p,a,0,1,0))*((a->press(i,j+1,k)-a->press(i,j,k))/p->DYP[JP] 
-                + 0.25*(p->sigy[FIJK]+p->sigy[FIJKp1]+p->sigy[FIJp1K]+p->sigy[FIJp1Kp1])*(0.5*(a->press(i,j,k+1)+a->press(i,j+1,k+1))-0.5*(a->press(i,j,k-1)+a->press(i,j+1,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
+    vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(1.0/pd->roface(p,a,0,1,0))*((d->P[IJp1K]-d->P[IJK])/p->DYP[JP] 
+                + 0.25*(p->sigy[FIJK]+p->sigy[FIJKp1]+p->sigy[FIJp1K]+p->sigy[FIJp1Kp1])*(0.5*(d->P[IJKp1]+a->press(i,j+1,k+1))-0.5*(a->press(i,j,k-1)+a->press(i,j+1,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
        */         
                 
    /* if(p->D37>=2)
@@ -155,29 +143,38 @@ void nhflow_pjm_c::vcorr(lexer* p, fdm_nhf *d, double *V, double alpha)
         check=1;        
     
     if(check==1)
-    vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(1.0/pd->roface(p,a,0,1,0))*((a->press(i,j+1,k)-a->press(i,j,k))/p->DYP[JP] 
-                + 0.25*(p->sigy[FIJK]+p->sigy[FIJKp1]+p->sigy[FIJp1K]+p->sigy[FIJp1Kp1])*(0.5*(1.0 - 1.0/teta)*(a->press(i,j,k)+a->press(i,j+1,k))-0.5*(a->press(i,j,k-1)+a->press(i,j+1,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
+    vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(1.0/pd->roface(p,a,0,1,0))*((d->P[IJp1K]-d->P[IJK])/p->DYP[JP] 
+                + 0.25*(p->sigy[FIJK]+p->sigy[FIJKp1]+p->sigy[FIJp1K]+p->sigy[FIJp1Kp1])*(0.5*(1.0 - 1.0/teta)*(d->P[IJK]+d->P[IJp1K])-0.5*(a->press(i,j,k-1)+a->press(i,j+1,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
     
     if(check==0)
-    vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(1.0/pd->roface(p,a,0,1,0))*((a->press(i,j+1,k)-a->press(i,j,k))/p->DYP[JP] 
-                + 0.25*(p->sigy[FIJK]+p->sigy[FIJKp1]+p->sigy[FIJp1K]+p->sigy[FIJp1Kp1])*(0.5*(a->press(i,j,k+1)+a->press(i,j+1,k+1))-0.5*(a->press(i,j,k-1)+a->press(i,j+1,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
+    vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(1.0/pd->roface(p,a,0,1,0))*((d->P[IJp1K]-d->P[IJK])/p->DYP[JP] 
+                + 0.25*(p->sigy[FIJK]+p->sigy[FIJKp1]+p->sigy[FIJp1K]+p->sigy[FIJp1Kp1])*(0.5*(d->P[IJKp1]+a->press(i,j+1,k+1))-0.5*(a->press(i,j,k-1)+a->press(i,j+1,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
     }*/
 }
 
 void nhflow_pjm_c::wcorr(lexer* p, fdm_nhf *d, double *W, double alpha)
 {
+    
+    if(p->D37==1)
     WLOOP
-    WETDRY
-    if(d->breaking(i,j)==0)
+    WETDRY 	
+	W[IJK] -= alpha*p->dt*CPORNH*PORVALNH*((d->P[IJKp1]-d->P[IJK])/(p->DZP[KP]*p->W1))*p->sigz[IJ];
+    
+    
+    if(p->D37>=2)
+	WLOOP
     {
-	W[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*((d->P[FIJK]-d->P[FIJKm1])/(p->DZN[KM1]))*p->sigz[IJ];
+    check=0;
+    
+        if(p->flag3[IJKp1]<0)
+        check=1;
+
+    if(check==1)    
+    W[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(((1.0 - 1.0/teta)*d->P[IJK] - d->P[IJK])/(p->DZP[KP]*p->W1))*p->sigz[IJ];
+    
+    if(check==0)
+    W[IJK] -= alpha*p->dt*CPORNH*PORVALNH*((d->P[IJKp1]-d->P[IJK])/(p->DZP[KP]*p->W1))*p->sigz[IJ];
     }
-    
-    
-    
-    //(p->D37==1)
-    /*WLOOP 	
-	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];*/
     
     /*
     if(p->D37>=2)
@@ -189,16 +186,15 @@ void nhflow_pjm_c::wcorr(lexer* p, fdm_nhf *d, double *W, double alpha)
         check=1;
 
     if(check==1)    
-    wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*(((1.0 - 1.0/teta)*a->press(i,j,k)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
+    W[IJK] -= alpha*p->dt*CPOR3*PORVAL3*(((1.0 - 1.0/teta)*d->P[IJK]-d->P[IJK])/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
     
     if(check==0)
-    wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
+    W[IJK] -= alpha*p->dt*CPOR3*PORVAL3*((d->P[IJKp1]-d->P[IJK])/(p->DZP[KP]*pd->roface(p,a,0,0,1)))*p->sigz[IJ];
     }*/
 }
 
 void nhflow_pjm_c::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
 {
-
     n=0;
     FLOOP
     {
@@ -214,13 +210,13 @@ void nhflow_pjm_c::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *
                             + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(0.5*(U[IJKp1]+U[Im1JKp1])-0.5*(U[IJKm1]+U[Im1JKm1]))/(p->DZP[KP]+p->DZP[KP1])
                             
                             + (V[IJK]-V[IJm1K])/p->DYN[JP] 
-                            + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(0.5*(V[IJp1K]+V[IJm1Kp1])-0.5*(V[IJKm1]+V[IJm1Km1]))/(p->DZP[KP]+p->DZP[KP1])
+                            + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(0.5*(V[IJKp1]+V[IJm1Kp1])-0.5*(V[IJKm1]+V[IJm1Km1]))/(p->DZP[KP]+p->DZP[KP1])
                            
                             + p->sigz[IJ]*(W[IJK]-W[IJKm1])/p->DZN[KP])/(alpha*p->dt);
                            
     ++n;
     }
-    pip=0;
+    pip=0;    
 }
 
 void nhflow_pjm_c::bedbc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W,double alpha)

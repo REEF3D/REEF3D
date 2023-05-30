@@ -75,12 +75,9 @@ void nhflow_pjm::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, iofl
 
 	pgc->start7P(p,d->P,gcval_press);
     
-    if(p->count>100)
-    {
 	ucorr(p,d,U,alpha);
 	vcorr(p,d,V,alpha);
 	wcorr(p,d,W,alpha);
-    }
 
     p->poissoniter=p->solveriter;
 
@@ -149,17 +146,17 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
     V1 = (1.0-fac)*V[IJm1K] + fac*V[IJm1Km1]; 
     V2 = (1.0-fac)*V[IJK] + fac*V[IJKm1]; 
     
-    dfdz_plus = (W[IJKp1]-W[IJK])/p->DZN[KP];
-    dfdz_min  = (W[IJK]-W[IJKm1])/p->DZN[KM1];
+    dfdz_plus = (W[IJK]-W[IJKm1])/p->DZN[KP];
+    dfdz_min  = (W[IJKm1]-W[IJKm2])/p->DZN[KM1];
         
     detadz = limiter(dfdz_plus,dfdz_min);
     
-    detadz = (W[IJKp1]-W[IJK])/(p->DZN[KP]);
+    //detadz = (W[IJK]-W[IJKm1])/(p->DZN[KP]);
          
-    d->rhsvec.V[n] = d->test[IJK] =      -  ((U2-U1)/(p->DXP[IP])
+    d->rhsvec.V[n] = d->test[IJK] =      -  ((U2-U1)/(p->DXN[IP])
                             + p->sigx[FIJK]*(0.5*(U[IJK]+U[Im1JK]) - 0.5*(U[Im1JKm1]+U[IJKm1]))/p->DZP[KM1]
                             
-                            + (V2-V1)/(p->DYP[JP])
+                            + (V2-V1)/(p->DYN[JP])
                             + p->sigy[FIJK]*(0.5*(V[IJK]+V[IJm1K]) - 0.5*(V[IJm1Km1]+V[IJKm1]))/p->DZP[KM1]
 
                             + p->sigz[IJ]*detadz)/(alpha*p->dt);
