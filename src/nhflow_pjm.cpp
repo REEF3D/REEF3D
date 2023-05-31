@@ -123,12 +123,12 @@ void nhflow_pjm::wcorr(lexer* p, fdm_nhf *d, double *W, double alpha)
     WETDRY
     if(d->breaking(i,j)==0)
     {
-    dfdz_plus = (d->P[IJKp1]-d->P[IJK])/p->DZN[KP];
-    dfdz_min  = (d->P[IJK]-d->P[IJKm1])/p->DZN[KM1];
+    dfdz_plus = (d->P[IJKp2]-d->P[IJKp1])/p->DZN[KP1];
+    dfdz_min  = (d->P[IJKp1]-d->P[IJK])/p->DZN[KP];
         
-    detadz = limiter(dfdz_plus,dfdz_min);
+    //detadz = limiter(dfdz_plus,dfdz_min);
     
-    detadz = (d->P[IJKp1]-d->P[IJK])/(p->DZN[KP]);
+    detadz = (d->P[IJKp2]-d->P[IJKp1])/(p->DZN[KP1]);
     
 	W[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*detadz*p->sigz[IJ];
     //W[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*((d->P[FIJK]-d->P[FIJKm1])/(p->DZN[KM1]))*p->sigz[IJ];
@@ -156,12 +156,12 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
     V1 = (1.0-fac)*V[IJm1K] + fac*V[IJm1Km1]; 
     V2 = (1.0-fac)*V[IJK] + fac*V[IJKm1]; 
     
-    dfdz_plus = (W[IJK]-W[IJKm1])/p->DZN[KP];
-    dfdz_min  = (W[IJKm1]-W[IJKm2])/p->DZN[KM1];
+    dfdz_plus = (W[IJKp1]-W[IJK])/p->DZN[KP];
+    dfdz_min  = (W[IJK]-W[IJKm1])/p->DZN[KM1];
         
-    detadz = limiter(dfdz_plus,dfdz_min);
+    //detadz = limiter(dfdz_plus,dfdz_min);
     
-    //detadz = (W[IJK]-W[IJKm1])/(p->DZN[KP]);
+    detadz = (W[IJKp1]-W[IJK])/(p->DZN[KP]);
          
     d->rhsvec.V[n] =        -  ((U2-U1)/(p->DXN[IP])
                             + p->sigx[FIJK]*(0.5*(U[IJK]+U[Im1JK]) - 0.5*(U[Im1JKm1]+U[IJKm1]))/p->DZP[KM1]
