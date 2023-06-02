@@ -32,6 +32,7 @@ void sediment_f::name_pvtu_bedload(lexer *p, ghostcell *pgc, ofstream &result)
     result<<"<PDataArray type=\"Float32\" Name=\"ST_qbe\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"ST_qb\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"ST_cbe\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_cb\"/>"<<endl;
 }
 
 void sediment_f::name_vtu_bedload(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
@@ -41,6 +42,8 @@ void sediment_f::name_vtu_bedload(lexer *p, ghostcell *pgc, ofstream &result, in
     result<<"<DataArray type=\"Float32\" Name=\"ST_qb\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"ST_cbe\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"ST_cb\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 }
 
@@ -52,10 +55,14 @@ void sediment_f::offset_vtp_bedload(lexer *p, ghostcell *pgc, ofstream &result, 
 	++n;
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
+    offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
 }
 
 void sediment_f::offset_vtu_bedload(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
@@ -102,6 +109,18 @@ void sediment_f::print_3D_bedload(lexer* p, ghostcell *pgc, ofstream &result)
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->cbe));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
+    // cb
+    pgc->gcsl_start4(p,s->cbe,1);
+    
+	iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	
+	TPLOOP
+	{
+    ffn=float(p->sl_ipol4(s->cb));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
