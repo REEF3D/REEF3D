@@ -33,6 +33,7 @@ Author: Hans Bihs
 
 nhflow_poisson_c::nhflow_poisson_c(lexer *p) 
 {
+    teta=0.5;
 }
 
 nhflow_poisson_c::~nhflow_poisson_c()
@@ -81,7 +82,7 @@ void nhflow_poisson_c::start(lexer* p, fdm_nhf *d, double *P)
                             /((p->W1*p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
         }
         
-        if(p->wet[IJ]==0 || p->flag7[FIJK]<0 || d->breaking(i,j)==1)
+        if(p->wet[IJ]==0 || p->flag4[IJK]<0 || d->breaking(i,j)==1)
         {
         d->M.p[n]  =  1.0;
 

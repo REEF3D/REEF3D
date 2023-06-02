@@ -420,16 +420,34 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
-    if(p->j_dir==0)
+        
+    if(p->A520!=2)
     {
-    jj=j;
-    j=0;
-	ffn=float(d->P[FIJKp1]);
-    j=jj;
-    }
+        if(p->j_dir==0)
+        {
+        jj=j;
+        j=0;
+        ffn=float(d->P[FIJKp1]);
+        j=jj;
+        }
 
-    if(p->j_dir==1)
-	ffn=float(0.5*(d->P[FIJKp1]+d->P[FIJp1Kp1]));
+        if(p->j_dir==1)
+        ffn=float(0.5*(d->P[FIJKp1]+d->P[FIJKp1]));
+    }
+    
+    if(p->A520==2)
+    {
+        if(p->j_dir==0)
+        {
+        jj=j;
+        j=0;
+        ffn=float(d->P[FIJKp1]);
+        j=jj;
+        }
+
+        if(p->j_dir==1)
+        ffn=float(0.25*(d->P[IJK]+d->P[IJKp1]+d->P[IJp1K]+d->P[IJp1Kp1]));
+    }
     
 	result.write((char*)&ffn, sizeof (float));
 	}

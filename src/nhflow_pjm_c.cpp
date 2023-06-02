@@ -35,7 +35,7 @@ Author: Hans Bihs
 #include"density_f.h"
 #include"patchBC_interface.h"
 
-nhflow_pjm_c::nhflow_pjm_c(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_interface *ppBC) : teta(1.0)
+nhflow_pjm_c::nhflow_pjm_c(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_interface *ppBC) : teta(0.5)
 {
     pBC = ppBC;
     
@@ -75,9 +75,9 @@ void nhflow_pjm_c::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, io
 
 	pgc->start4V(p,d->P,gcval_press);
     
-	ucorr(p,d,U,alpha);
+	/*ucorr(p,d,U,alpha);
 	vcorr(p,d,V,alpha);
-	wcorr(p,d,W,alpha);
+	wcorr(p,d,W,alpha);*/
 
     p->poissoniter=p->solveriter;
 
@@ -117,22 +117,11 @@ void nhflow_pjm_c::ucorr(lexer* p, fdm_nhf *d, double *U, double alpha)
 
 void nhflow_pjm_c::vcorr(lexer* p, fdm_nhf *d, double *V, double alpha)
 {
-    VLOOP
-    WETDRY
-    if(d->breaking(i,j)==0 && d->breaking(i,j-1)==0 && d->breaking(i,j-1)==0)
-    {
-    V[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*
-    
-                (((0.5*(d->P[FIJp1Kp1]+d->P[FIJp1K])-0.5*(d->P[FIJKp1]+d->P[FIJK]))/(p->DYP[JP]))
-                
-                + p->sigy4[IJK]*((0.5*(d->P[FIJKp1]+d->P[FIJp1Kp1])-0.5*(d->P[FIJK]+d->P[FIJp1K]))/p->DZN[KP]));
-    }
-    
     //if(p->D37==1)
-    /*VLOOP
-    vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*(1.0/pd->roface(p,a,0,1,0))*((d->P[IJp1K]-d->P[IJK])/p->DYP[JP] 
-                + 0.25*(p->sigy[FIJK]+p->sigy[FIJKp1]+p->sigy[FIJp1K]+p->sigy[FIJp1Kp1])*(0.5*(d->P[IJKp1]+a->press(i,j+1,k+1))-0.5*(a->press(i,j,k-1)+a->press(i,j+1,k-1)))/(p->DZP[KP]+p->DZP[KP1]));
-       */         
+    VLOOP
+    V[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*((d->P[IJp1K]-d->P[IJK])/p->DYP[JP] 
+                + 0.25*(p->sigy[FIJK]+p->sigy[FIJKp1]+p->sigy[FIJp1K]+p->sigy[FIJp1Kp1])*(0.5*(d->P[IJKp1]+d->P[IJp1Kp1])-0.5*(d->P[IJKm1]+d->P[IJp1Km1]))/(p->DZP[KP]+p->DZP[KP1]));
+            
                 
    /* if(p->D37>=2)
     VLOOP
@@ -157,7 +146,6 @@ void nhflow_pjm_c::wcorr(lexer* p, fdm_nhf *d, double *W, double alpha)
     
     if(p->D37==1)
     WLOOP
-    WETDRY 	
 	W[IJK] -= alpha*p->dt*CPORNH*PORVALNH*((d->P[IJKp1]-d->P[IJK])/(p->DZP[KP]*p->W1))*p->sigz[IJ];
     
     
@@ -202,7 +190,6 @@ void nhflow_pjm_c::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *
     ++n;
     }
 
-
     n=0;
     LOOP
     {
@@ -216,7 +203,21 @@ void nhflow_pjm_c::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *
                            
     ++n;
     }
-    pip=0;    
+    
+    n=0;
+    LOOP
+    {
+    d->test[IJK] =      -  ((U[IJK]-U[Im1JK])/p->DXN[IP]
+                            + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(0.5*(U[IJKp1]+U[Im1JKp1])-0.5*(U[IJKm1]+U[Im1JKm1]))/(p->DZP[KP]+p->DZP[KP1])
+                            
+                            + (V[IJK]-V[IJm1K])/p->DYN[JP] 
+                            + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(0.5*(V[IJKp1]+V[IJm1Kp1])-0.5*(V[IJKm1]+V[IJm1Km1]))/(p->DZP[KP]+p->DZP[KP1])
+                           
+                            + p->sigz[IJ]*(W[IJK]-W[IJKm1])/p->DZN[KP])/(alpha*p->dt);
+                           
+    ++n;
+    }
+  
 }
 
 void nhflow_pjm_c::bedbc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W,double alpha)

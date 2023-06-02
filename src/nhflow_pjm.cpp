@@ -76,9 +76,9 @@ void nhflow_pjm::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, iofl
 	pgc->start7P(p,d->P,gcval_press);
     
     
-	ucorr(p,d,U,alpha);
+	/*ucorr(p,d,U,alpha);
 	vcorr(p,d,V,alpha);
-	wcorr(p,d,W,alpha);
+	wcorr(p,d,W,alpha);*/
 
 
     p->poissoniter=p->solveriter;
@@ -128,9 +128,9 @@ void nhflow_pjm::wcorr(lexer* p, fdm_nhf *d, double *W, double alpha)
         
     //detadz = limiter(dfdz_plus,dfdz_min);
     
-    detadz = (d->P[IJKp2]-d->P[IJKp1])/(p->DZN[KP1]);
+    detadz = (d->P[IJKp1]-d->P[IJK])/(p->DZN[KP]);
     
-	W[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*detadz*p->sigz[IJ];
+	W[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*2.0*detadz*p->sigz[IJ];
     //W[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*((d->P[FIJK]-d->P[FIJKm1])/(p->DZN[KM1]))*p->sigz[IJ];
     }
 }
@@ -161,7 +161,7 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
         
     //detadz = limiter(dfdz_plus,dfdz_min);
     
-    detadz = (W[IJKp1]-W[IJK])/(p->DZN[KP]);
+    detadz = (W[IJK]-W[IJKm1])/(p->DZN[KP]);
          
     d->rhsvec.V[n] =        -  ((U2-U1)/(p->DXN[IP])
                             + p->sigx[FIJK]*(0.5*(U[IJK]+U[Im1JK]) - 0.5*(U[Im1JKm1]+U[IJKm1]))/p->DZP[KM1]
@@ -221,7 +221,6 @@ void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
             
         d->F[IJK] -= PORVALNH*fabs(p->W22)*
                     (p->A523*detadx + (1.0-p->A523)*detadx_n);
-                    
         }
         
         if(p->wet[Ip1J]==0 && p->wet[Im1J]==1)

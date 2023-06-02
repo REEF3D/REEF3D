@@ -144,7 +144,7 @@ void hypre_struct::fillbackvec7(lexer *p, double *f, int var)
         count=0;
         KJILOOP
         {
-		 PCHECK
+        PCHECK
         f[IJK]=values[count];
 		
         ++count;
