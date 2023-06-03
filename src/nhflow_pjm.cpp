@@ -76,9 +76,9 @@ void nhflow_pjm::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, iofl
 	pgc->start7P(p,d->P,gcval_press);
     
     
-	/*ucorr(p,d,U,alpha);
+	ucorr(p,d,U,alpha);
 	vcorr(p,d,V,alpha);
-	wcorr(p,d,W,alpha);*/
+	wcorr(p,d,W,alpha);
 
 
     p->poissoniter=p->solveriter;

@@ -50,7 +50,7 @@ fnpf_laplace_cds2_v2::~fnpf_laplace_cds2_v2()
 {
 }
 
-void fnpf_laplace_cds2_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv_reg, fnpf_fsf *pf, double *f)
+void fnpf_laplace_cds2_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv_reg, fnpf_fsf *pf, double *f, slice &Fifsf)
 {
     if(p->j_dir==0)
     laplace2D(p, c, pgc, psolv_reg, pf, f);

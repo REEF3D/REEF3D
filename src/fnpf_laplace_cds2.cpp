@@ -36,7 +36,7 @@ fnpf_laplace_cds2::~fnpf_laplace_cds2()
 {
 }
 
-void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,fnpf_fsf *pf, double *f)
+void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, double *f, slice &Fifsf)
 {
     double sigxyz2;
     double ab,denom;
@@ -106,13 +106,13 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             if(p->wet[IJ]==1 && p->flag7[FIJK]>0)
             {
             // south
-            if((p->flag7[FIm1JK]<0 || p->wet[Im1J]==0) && c->bc(i-1,j)==0)
+            if((p->flag7[FIm1JK]<0 || p->wet[Im1J]==0) && (c->bc(i-1,j)==0 || k==0))
             {
             c->M.p[n] += c->M.s[n];
             c->M.s[n] = 0.0;
             }
             
-            if(p->flag7[FIm1JK]<0 && c->bc(i-1,j)==1  && p->A329==1)
+            if(p->flag7[FIm1JK]<0 && c->bc(i-1,j)==1  && p->A329==1 && k>0)
             {
             c->rhsvec.V[n] -=  2.0*p->sigx[FIJK]*(f[FIp1JKp1] - f[FIm1JKp1] - f[FIp1JKm1] + f[FIm1JKm1])
                         /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
@@ -125,7 +125,7 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             c->M.s[n] = 0.0;
             }
             
-            if(p->flag7[FIm1JK]<0 && c->bc(i-1,j)==1  && p->A329>=2)
+            if(p->flag7[FIm1JK]<0 && c->bc(i-1,j)==1  && p->A329>=2 && k>0)
             {
             denom = -1.5*p->XP[IM1] + 2.0*p->XP[IP] - 0.5*p->XP[IP1];
             

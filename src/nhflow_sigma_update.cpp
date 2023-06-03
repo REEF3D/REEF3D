@@ -160,6 +160,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta
 
     // sigxx
     FLOOP
+    if(p->wet[IJ]==1)
     {
         p->sigxx[FIJK] = ((1.0 - p->sig[FIJK])/WLVL)*(d->Bxx(i,j) - pow(d->Bx(i,j),2.0)/WLVL) // xx
         
@@ -179,6 +180,9 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta
                       - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(d->By(i,j)*d->Ey(i,j));
     }
     
+    FLOOP
+    if(p->wet[IJ]==0)
+    p->sigxx[FIJK]=0.0;
     
     // sig BC
     SLICELOOP4
