@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_poisson.h"
+#include"nhflow_poisson_nw.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"heat.h"
@@ -31,15 +31,15 @@ Author: Hans Bihs
 #include"density_heat.h"
 #include"density_vof.h"
 
-nhflow_poisson::nhflow_poisson(lexer *p) 
+nhflow_poisson_nw::nhflow_poisson_nw(lexer *p) 
 {
 }
 
-nhflow_poisson::~nhflow_poisson()
+nhflow_poisson_nw::~nhflow_poisson_nw()
 {
 }
 
-void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
+void nhflow_poisson_nw::start(lexer* p, fdm_nhf *d, double *P)
 {	
     double sigxyz2;
    
@@ -158,7 +158,7 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             // FSFBC
             if(p->flag7[FIJKp2]<0 && p->flag7[FIJKp1]>0)
             {
-            d->rhsvec.V[n] -= 0.0*d->M.t[n]*P[FIJKp1]; // fsf: p=0
+            d->rhsvec.V[n] -= 0.0*d->M.t[n]*P[FIJKp2]; // fsf: p=0
             d->M.t[n] = 0.0;
             }
             

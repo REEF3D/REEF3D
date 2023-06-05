@@ -94,6 +94,7 @@ void lexer::ini_default()
     A410=1;      // int scheme eta
     A440=1.6;    // double epsi for depth integration
     
+    A501=1;      // int nhf mode
     A510=3;      // int NFHLOW time scheme
     A511=4;		// int NHFLOW convection discretization
     A512=4;		// int NHFLOW diffusion

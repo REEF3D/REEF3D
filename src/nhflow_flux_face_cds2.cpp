@@ -120,6 +120,13 @@ void nhflow_flux_face_cds2::w_flux(fdm_nhf *d, int ipol, double *W, double &wflu
 	wflux2= W[FIJK];
     pip=0;
 	}
+    
+    if(p->A501==2)
+    {
+    wflux1= W[FIJK];
+	wflux2= W[FIJKp1];
+    
+    }
 }
 
 void nhflow_flux_face_cds2::omega_flux(lexer *p, fdm_nhf *d, int ipol, double *U, double *V, double *W, double &wflux1, double &wflux2)

@@ -35,7 +35,7 @@ Author: Hans Bihs
 #include"solver_header.h"
 #include"field_header.h"
 #include"6DOF_header.h"
-#include"waves_header.h"
+#include"nhflow_header.h"
 #include"lexer.h"
 
 void driver::loop_nhflow()

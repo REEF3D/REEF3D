@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"printer.h"
-#include"waves_header.h"
+#include"waves_header.h"#include"nhflow_header.h"
 
 void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
 {	 

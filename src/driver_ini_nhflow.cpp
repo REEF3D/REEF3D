@@ -37,7 +37,7 @@ Author: Hans Bihs
 #include"concentration_header.h"
 #include"benchmark_header.h"
 #include"6DOF_header.h"
-#include"waves_header.h"
+#include"nhflow_header.h"
 #include"lexer.h"
 #include"cart1.h"
 #include"cart2.h"

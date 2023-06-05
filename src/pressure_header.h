@@ -30,9 +30,3 @@ Author: Hans Bihs
 #include"pjm_hydrostatic.h"
 #include"poisson_f.h"
 #include"poisson_nse.h"
-
-#include"nhflow_pjm.h"
-#include"nhflow_pjm_c.h"
-#include"nhflow_pjm_cf.h"
-#include"nhflow_pjm_hs.h"
-#include"nhflow_poisson.h"

@@ -73,7 +73,7 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     }
     
     
-    if(p->A517==1 || p->A517==2)
+    if((p->A517==1 || p->A517==2)  && p->A501==1)
     FLOOP
     {
         if(p->A517==1)
@@ -112,7 +112,7 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
                         +  Rval*p->sigz[IJ];
     }
     
-    if(p->A517==3)
+    if(p->A517==3 && p->A501==1)
     {
     FLOOP
     d->omegaF[FIJK] = 0.0;
@@ -123,6 +123,66 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
                         - p->DZN[KP]*(d->detadt(i,j) 
                         
                         + (U[IJK]*d->hx(i,j) - U[Im1JK]*d->hx(i-1,j))/p->DXN[IP]  + (V[IJK]*d->hy(i,j) - V[IJm1K]*d->hy(i,j-1))/p->DYN[JP]*p->y_dir);
+                        
+    }
+    
+    if((p->A517==1 || p->A517==2)  && p->A501==2)
+    FLOOP
+    {
+        if(p->A517==1)
+        {
+        if(U[IJK]>=0.0)
+        Pval=0.5*(U[Im1JK] + U[IJK]);
+            
+        if(U[IJK]<0.0)
+        Pval=0.5*(U[IJK] + U[Ip1JK]);
+        
+        
+        if(V[IJK]>=0.0)
+        Qval=0.5*(V[IJm1K] + V[IJK]);
+            
+        if(V[IJK]<0.0)
+        Qval=0.5*(V[IJK] + V[IJp1K]);
+        
+        
+        if(W[IJK]>=0.0)
+        Rval=0.5*(W[IJKm1] + W[IJK]);
+            
+        if(W[IJK]<0.0)
+        Rval=0.5*(W[IJK] + W[IJKp1]);
+        }
+        
+        if(p->A517==2)
+        {
+        Pval = 0.5*(U[IJK]+U[IJKm1]);
+        Qval = 0.5*(V[IJK]+V[IJKm1]);
+        Rval = 0.5*(W[IJK]+W[IJKm1]);
+        }
+    
+    // omega
+        d->omegaF[FIJK] =    p->sigt[FIJK]
+                        
+                        +  Pval*p->sigx[FIJK]
+                        
+                        +  Qval*p->sigy[FIJK]
+                        
+                        +  Rval*p->sigz[IJ];
+                        
+        //if(p->wet[IJ] != p->wet_n[IJ])
+        //d->omegaF[FIJK]=0.0;
+    }
+    
+    if(p->A517==3 && p->A501==2)
+    {
+    FLOOP
+    d->omegaF[FIJK] = 0.0;
+    
+    LOOP
+    d->omegaF[FIJKp1] =    d->omegaF[FIJK]
+                        
+                        - p->DZN[KP]*(d->detadt(i,j) 
+                        
+                        + ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir));
                         
     }
       
