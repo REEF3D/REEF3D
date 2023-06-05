@@ -171,11 +171,11 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
 
                             + p->sigz[IJ]*detadz)/(alpha*p->dt);
                             
-    d->test[IJK] =      -  ((U2-U1)/(p->DXN[IP])
+    /*d->test[IJK] =      -  ((U2-U1)/(p->DXN[IP])
                             + p->sigx[FIJK]*(0.5*(U[IJK]+U[Im1JK]) - 0.5*(U[Im1JKm1]+U[IJKm1]))/p->DZP[KM1]
                             
 
-                            + p->sigz[IJ]*detadz)/(alpha*p->dt);
+                            + p->sigz[IJ]*detadz)/(alpha*p->dt);*/
                             
     ++n;
     }

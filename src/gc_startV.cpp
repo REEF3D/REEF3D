@@ -68,9 +68,9 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
         
         if(p->flag1[IJKm1]<0)
         {
-        f[IJKm1] = 0.0;
-        f[IJKm2] = 0.0;
-        f[IJKm3] = 0.0;
+        f[IJKm1] = f[IJK];
+        f[IJKm2] = f[IJK];
+        f[IJKm3] = f[IJK];
         }
         
         if(p->flag1[IJKp1]<0)
@@ -233,6 +233,95 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
         f[IJKp1] = f[IJK];
         f[IJKp2] = f[IJK];
         f[IJKp3] = f[IJK];
+        }
+        
+        if(p->flag4[IJKm1]<0)
+        {
+        f[IJKm1] = f[IJK];
+        f[IJKm2] = f[IJK];
+        f[IJKm3] = f[IJK];
+        }
+    }
+    
+    /*fivec_vel(p,x,bc);
+    
+    
+    if(gcv==250)
+    fivec(p,x,bc);
+    
+    if(gcv==150)
+    fivec2D(p,x,bc);
+    
+    if(gcv==210)
+    fivec_vel(p,x,bc);
+    
+    if(gcv==110)
+    fivec2D_vel(p,x,bc);*/
+}
+
+void ghostcell::start4S(lexer *p, double *f, int gcv)
+{
+    starttime=timer();
+	gcparaxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
+	p->xtime+=endtime-starttime;
+    
+
+}
+
+void ghostcell::start4P(lexer *p, double *f, int gcv)
+{
+    gcparaxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
+    
+    LOOP
+    {  
+        //if(p->B98!=3||bc(i-1,j)==0)
+        if(p->flag4[Im1JK]<0)
+        {
+        f[Im1JK] = f[IJK];
+        f[Im2JK] = f[IJK];
+        f[Im3JK] = f[IJK];
+        }
+          
+        //if(p->B99!=3||bc(i+1,j)==0)
+        if(p->flag4[Ip1JK]<0)
+        {
+        f[Ip1JK] = f[IJK];
+        f[Ip2JK] = f[IJK];
+        f[Ip3JK] = f[IJK];
+        }
+        
+        if(p->flag4[IJm1K]<0)
+        {
+        f[IJm1K] = f[IJK];
+        f[IJm2K] = f[IJK];
+        f[IJm3K] = f[IJK];
+        }
+        
+        if(p->flag4[IJp1K]<0)
+        {
+        f[IJp1K] = f[IJK];
+        f[IJp2K] = f[IJK];
+        f[IJp3K] = f[IJK];
+        }
+        
+        if(p->flag4[IJKp1]<0)
+        {
+        f[IJKp1] = 0.0;
+        f[IJKp2] = 0.0;
+        f[IJKp3] = 0.0;
+        }
+        
+        if(p->flag4[IJKm1]<0)
+        {
+        f[IJKm1] = f[IJK];
+        f[IJKm2] = f[IJK];
+        f[IJKm3] = f[IJK];
         }
     }
     

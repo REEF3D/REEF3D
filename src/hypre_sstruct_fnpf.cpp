@@ -58,7 +58,6 @@ void hypre_sstruct_fnpf::startF(lexer* p, ghostcell* pgc, double *f, double *rhs
     start_solver8(p,pgc,f,rhs,M);
 }
 
-
 void hypre_sstruct_fnpf::start_solver5(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M)
 {
     numiter=0;

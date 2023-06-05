@@ -81,6 +81,11 @@ void hypre_struct::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec,
     start_solver5(p,a,pgc,f,rhsvec,var);
 }
 
+void hypre_struct::startf(lexer* p, ghostcell* pgc, field &f, vec& rhs, matrix_diag &M, int var)
+{
+    
+}
+
 void hypre_struct::startF(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
 {
     if(var==7)
@@ -171,6 +176,28 @@ void hypre_struct::start_solver5(lexer* p,fdm* a, ghostcell* pgc, field &f, vec&
     
     if(p->j_dir==0)
     fill_matrix4_2Dvert(p,a,pgc,f);
+
+    solve(p,pgc);
+	
+	p->solveriter=num_iterations;
+        
+    fillbackvec4(p,f,var);
+	
+	delete_solver5(p,pgc);
+}
+
+void hypre_struct::start_solver4f(lexer* p, ghostcell* pgc, field &f, vec& rhs, matrix_diag &M, int var)
+{
+	numiter=0;
+	p->solveriter=0;
+	
+    create_solver5(p,pgc);
+    
+    if(p->j_dir==1)
+    fill_matrix4f(p,pgc,f,rhs,M);
+    
+    if(p->j_dir==0)
+    fill_matrix4f_2Dvert(p,pgc,f,rhs,M);
 
     solve(p,pgc);
 	

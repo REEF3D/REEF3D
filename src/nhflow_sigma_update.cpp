@@ -260,9 +260,13 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta
     pgc->start7S(p,p->sigxx,1);
     pgc->start7S(p,p->sigt,1);
     pgc->start7S(p,p->ZSN,1);
-    pgc->start5V(p,p->sigx4,1);
-    pgc->start5V(p,p->sigy4,1);
+    pgc->start4V(p,p->sigx4,1);
+    pgc->start4V(p,p->sigy4,1);
     pgc->gcslparaxijk(p, p->sigz, 1);
+    
+    
+    FLOOP
+    d->test[IJK] = 0.5*(p->sigx[FIJK] + p->sigx[FIJKp1]);
     
 }
 

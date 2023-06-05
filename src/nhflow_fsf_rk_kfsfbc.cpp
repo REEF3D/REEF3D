@@ -101,6 +101,7 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
     Pval = 0.25*(U[Im1JK] + U[IJK] + U[Im1JKp1] + U[IJKp1]);
     Qval = 0.25*(V[IJm1K] + V[IJK] + V[IJm1Kp1] + V[IJKp1]);
     
+    wval = 0.0;
     
     if(p->A516==1)
     {

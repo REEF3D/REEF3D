@@ -421,7 +421,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 	TPLOOP
 	{
         
-    if(p->A520!=2)
+    if(p->A520<2)
     {
         if(p->j_dir==0)
         {
@@ -435,7 +435,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
         ffn=float(0.5*(d->P[FIJKp1]+d->P[FIJKp1]));
     }
     
-    if(p->A520==2)
+    if(p->A520>=2)
     {
         if(p->j_dir==0)
         {

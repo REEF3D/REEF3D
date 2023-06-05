@@ -112,6 +112,11 @@ void hypre_aij::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, in
     delete_grid(p,pgc);
 }
 
+void hypre_aij::startf(lexer* p, ghostcell* pgc, field &f, vec& rhs, matrix_diag &M, int var)
+{
+    
+}
+
 void hypre_aij::startM(lexer* p, ghostcell* pgc, double *x, double *rhs, double *M, int var)
 {
 }
