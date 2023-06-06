@@ -64,7 +64,7 @@ void nhflow_weno_flux::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *
         if(ipol==4)
         LOOP
         d->L[IJK]+=aij(p,d,F,4,U,V,W,p->DXN,p->DYN,p->DZN);
-}
+        }
         
         if(p->A501==2)
         {

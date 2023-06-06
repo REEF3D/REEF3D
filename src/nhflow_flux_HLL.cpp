@@ -38,6 +38,9 @@ nhflow_flux_HLL::nhflow_flux_HLL(lexer* p, patchBC_interface *ppBC) : ETAs(p),ET
     if(p->A543==4)
     precon = new nhflow_reconstruct_weno(p,ppBC);
     
+    p->Darray(DU,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(DV,p->imax*p->jmax*(p->kmax+2));
+    
     p->Darray(Fs,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fn,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fe,p->imax*p->jmax*(p->kmax+2));
@@ -60,13 +63,22 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
     double Ds,Dn,De,Dw;
     double DSx,DSy;
     double denom;
-
+    
+    // velocity depth
+    LOOP
+    {
+    DU[IJK] = U[IJK]*d->WL[IJ];
+    DV[IJK] = V[IJK]*d->WL[IJ];
+    }
+    
+    pgc->start1V(p,DU,10);
+    pgc->start2V(p,DV,11);
          
     // reconstruct eta
     precon->reconstruct_2D(p, pgc, d, eta, ETAs, ETAn, ETAe, ETAw);
     
     // reconstruct U and V
-    precon->reconstruct_3D(p, pgc, d, U, V, Fs, Fn, Fe, Fw);
+    precon->reconstruct_3D(p, pgc, d, DU, DV, Fs, Fn, Fe, Fw);
     
     // HLL flux
     ULOOP
@@ -159,7 +171,6 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
     USy=0.0;
     }
 
-        
         // final flux y-dir
         if(Se>=0.0)
         Fy[IJK] = Fe[IJK];

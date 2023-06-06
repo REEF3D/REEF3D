@@ -42,6 +42,7 @@ public:
 	virtual void face_flux_2D(lexer*,fdm_nhf*,slice&,slice&,slice&,slice&,slice&);
     virtual void face_flux_3D(lexer*,ghostcell*,fdm_nhf*,slice&,double*,double*,double*,double*);
     
+    double *DU,*DV;
     double *Fs,*Fn,*Fe,*Fw;
     slice1 ETAs,ETAn;
     slice2 ETAe,ETAw;
