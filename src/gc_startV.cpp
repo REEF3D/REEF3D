@@ -68,9 +68,9 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
         
         if(p->flag4[IJKm1]<0)
         {
-        f[IJKm1] = f[IJK];
-        f[IJKm2] = f[IJK];
-        f[IJKm3] = f[IJK];
+        f[IJKm1] = 0.0;
+        f[IJKm2] = 0.0;
+        f[IJKm3] = 0.0;
         }
         
         if(p->flag4[IJKp1]<0)
