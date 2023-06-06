@@ -111,8 +111,11 @@ void driver::logic_nhflow()
     
 //pressure scheme
 
-    if(p->A520==0)
+    if(p->A520==0 && p->A501==1)
 	pnhpress = new nhflow_pjm_hs(p,d,pBC);
+    
+    if(p->A520==0 && p->A501==2)
+	pnhpress = new nhflow_pjm_hs_nw(p,d,pBC);
     
     if(p->A520==1 && p->A501==1)
     pnhpress = new nhflow_pjm(p,d,pgc,pBC);

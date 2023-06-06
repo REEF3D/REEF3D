@@ -281,15 +281,6 @@
           <VirtualDirectory Name="Sigma">
             <File Name="nhflow_sigma.h"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="Flux HLL">
-            <File Name="nhflow_reconstruct.h"/>
-            <File Name="nhflow_reconstruct_WENO.h"/>
-            <File Name="nhflow_reconstruct_hires.h"/>
-            <File Name="nhflow_flux_HLLC.h"/>
-            <File Name="nhflow_flux_FOU.h"/>
-            <File Name="nhflow_flux_fsf.h"/>
-            <File Name="nhflow_flux_HLL.h"/>
-          </VirtualDirectory>
           <VirtualDirectory Name="Gradient">
             <File Name="nhflow_gradient.h"/>
           </VirtualDirectory>
@@ -302,6 +293,7 @@
         <File Name="nhflow_v.h"/>
         <File Name="nhflow.h"/>
         <VirtualDirectory Name="Pressure">
+          <File Name="nhflow_pjm_hs_nw.h"/>
           <File Name="nhflow_pjm_nw.h"/>
           <File Name="nhflow_pjm_cf.h"/>
           <File Name="nhflow_pjm_c.h"/>
@@ -325,6 +317,15 @@
           <File Name="nhflow_momentum_RK3.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <VirtualDirectory Name="Flux HLL">
+            <File Name="nhflow_reconstruct_hires.h"/>
+            <File Name="nhflow_reconstruct.h"/>
+            <File Name="nhflow_flux_HLLC.h"/>
+            <File Name="nhflow_flux_HLL.h"/>
+            <File Name="nhflow_flux_fsf.h"/>
+            <File Name="nhflow_flux_FOU.h"/>
+            <File Name="nhflow_reconstruct_WENO.h"/>
+          </VirtualDirectory>
           <File Name="nhflow_fsf_rk_nw.h"/>
           <VirtualDirectory Name="Discretization">
             <File Name="nhflow_hxy_flux.h"/>
@@ -1366,13 +1367,6 @@
             <File Name="nhflow_sigma_update.cpp"/>
             <File Name="nhflow_sigma.cpp"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="Flux HLL">
-            <File Name="nhflow_reconstruct_WENO.cpp"/>
-            <File Name="nhflow_reconstruct_hires.cpp"/>
-            <File Name="nhflow_flux_HLLC.cpp"/>
-            <File Name="nhflow_flux_FOU.cpp"/>
-            <File Name="nhflow_flux_HLL.cpp"/>
-          </VirtualDirectory>
           <VirtualDirectory Name="Gradient">
             <File Name="nhflow_gradient_sxx.cpp"/>
             <File Name="nhflow_gradient_sx.cpp"/>
@@ -1386,6 +1380,7 @@
         <File Name="nhflow_v.cpp"/>
         <File Name="nhflow_f.cpp"/>
         <VirtualDirectory Name="Pressure">
+          <File Name="nhflow_pjm_hs_nw.cpp"/>
           <File Name="nhflow_pjm_nw.cpp"/>
           <File Name="nhflow_pjm_cf.cpp"/>
           <File Name="nhflow_pjm_c.cpp"/>
@@ -1407,6 +1402,13 @@
           <File Name="nhflow_momentum_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <VirtualDirectory Name="Flux_HLL">
+            <File Name="nhflow_reconstruct_WENO.cpp"/>
+            <File Name="nhflow_reconstruct_hires.cpp"/>
+            <File Name="nhflow_flux_HLLC.cpp"/>
+            <File Name="nhflow_flux_HLL.cpp"/>
+            <File Name="nhflow_flux_FOU.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="RK_nw">
             <File Name="nhflow_fsf_rk_nw_wetdry.cpp"/>
             <File Name="nhflow_fsf_rk_nw_kfsfbc.cpp"/>

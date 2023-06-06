@@ -51,4 +51,5 @@ Author: Hans Bihs
 #include"nhflow_pjm_c.h"
 #include"nhflow_pjm_cf.h"
 #include"nhflow_pjm_hs.h"
+#include"nhflow_pjm_hs_nw.h"
 #include"nhflow_poisson.h"
