@@ -46,6 +46,11 @@ nhflow_flux_HLL::nhflow_flux_HLL(lexer* p, patchBC_interface *ppBC) : ETAs(p),ET
     p->Darray(Fe,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fw,p->imax*p->jmax*(p->kmax+2));
     
+    p->Darray(Us,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Un,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Ve,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Vw,p->imax*p->jmax*(p->kmax+2));
+    
 }
 
 nhflow_flux_HLL::~nhflow_flux_HLL()
@@ -79,6 +84,7 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
     
     // reconstruct U and V
     precon->reconstruct_3D(p, pgc, d, DU, DV, Fs, Fn, Fe, Fw);
+    precon->reconstruct_3D(p, pgc, d, U, V, Us, Un, Ve, Vw);
     
     // HLL flux
     ULOOP
@@ -91,23 +97,23 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
     Dn = MAX(0.00005, Dn);
     
     // Us
-    USx = 0.5*(Fs[IJK]+Fn[IJK]) + sqrt(9.81*Ds) - sqrt(9.81*Dn);
-    DSx = 0.5*(sqrt(9.81*Ds) + sqrt(9.81*Dn)) + 0.25*(Fs[IJK] - Fn[IJK]);
+    USx = 0.5*(Us[IJK]+Un[IJK]) + sqrt(9.81*Ds) - sqrt(9.81*Dn);
+    DSx = 0.5*(sqrt(9.81*Ds) + sqrt(9.81*Dn)) + 0.25*(Us[IJK] - Un[IJK]);
     
     // wave speed
-    Ss = MIN(Fs[IJK] - sqrt(9.81*Ds), USx - DSx);
-    Sn = MAX(Fn[IJK] + sqrt(9.81*Dn), USx + DSx);
+    Ss = MIN(Us[IJK] - sqrt(9.81*Ds), USx - DSx);
+    Sn = MAX(Un[IJK] + sqrt(9.81*Dn), USx + DSx);
     
     if(p->wet[Ip1J]==0)
     {
-    Ss = Fs[IJK] - sqrt(9.81*Ds);
-    Sn = Fs[IJK] + 2.0*sqrt(9.81*Ds);
+    Ss = Us[IJK] - sqrt(9.81*Ds);
+    Sn = Us[IJK] + 2.0*sqrt(9.81*Ds);
     }
     
     if(p->wet[Im1J]==0)
     {
-    Ss = Fn[IJK] - 2.0*sqrt(9.81*Dn);
-    Sn = Fn[IJK] + sqrt(9.81*Dn);
+    Ss = Un[IJK] - 2.0*sqrt(9.81*Dn);
+    Sn = Un[IJK] + sqrt(9.81*Dn);
     }
     
     if(p->wet[IJ]==0)
@@ -146,23 +152,23 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
     Dw = MAX(0.00005, Dw);
     
     // Us
-    USy = 0.5*(Fe[IJK]+Fw[IJK]) + sqrt(9.81*De) - sqrt(9.81*Dw);
-    DSy = 0.5*(sqrt(9.81*De) + sqrt(9.81*Dw)) + 0.25*(Fe[IJK] - Fw[IJK]);
+    USy = 0.5*(Ve[IJK]+Vw[IJK]) + sqrt(9.81*De) - sqrt(9.81*Dw);
+    DSy = 0.5*(sqrt(9.81*De) + sqrt(9.81*Dw)) + 0.25*(Ve[IJK] - Vw[IJK]);
     
     // wave speed
-    Se = MIN(Fe[IJK] - sqrt(9.81*De), USy - DSy);
-    Sw = MAX(Fw[IJK] + sqrt(9.81*Dw), USy + DSy);
+    Se = MIN(Ve[IJK] - sqrt(9.81*De), USy - DSy);
+    Sw = MAX(Vw[IJK] + sqrt(9.81*Dw), USy + DSy);
     
     if(p->wet[IJp1]==0)
     {
-    Se = Fe[IJK] - sqrt(9.81*De);
-    Sw = Fe[IJK] + 2.0*sqrt(9.81*De);
+    Se = Ve[IJK] - sqrt(9.81*De);
+    Sw = Ve[IJK] + 2.0*sqrt(9.81*De);
     }
     
     if(p->wet[IJm1]==0)
     {
-    Se = Fw[IJK] - 2.0*sqrt(9.81*Dw);
-    Sw = Fw[IJK] + sqrt(9.81*Dw);
+    Se = Vw[IJK] - 2.0*sqrt(9.81*Dw);
+    Sw = Vw[IJK] + sqrt(9.81*Dw);
     }
     
     if(p->wet[IJ]==0)

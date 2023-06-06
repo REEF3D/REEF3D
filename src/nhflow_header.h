@@ -22,7 +22,6 @@ Author: Hans Bihs
 
 #include"nhflow_fsf.h"
 #include"nhflow_fsf_rk.h"
-#include"nhflow_fsf_rk_nw.h"
 #include"nhflow_fsf_fsm.h"
 #include"nhflow_fsf_v.h"
 
@@ -44,12 +43,7 @@ Author: Hans Bihs
 
 #include"nhflow_momentum_RK2.h"
 #include"nhflow_momentum_RK3.h"
-#include"nhflow_momentum_RK3_nw.h"
 
 #include"nhflow_pjm.h"
-#include"nhflow_pjm_nw.h"
-#include"nhflow_pjm_c.h"
-#include"nhflow_pjm_cf.h"
 #include"nhflow_pjm_hs.h"
-#include"nhflow_pjm_hs_nw.h"
 #include"nhflow_poisson.h"

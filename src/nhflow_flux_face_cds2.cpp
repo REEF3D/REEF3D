@@ -89,44 +89,8 @@ void nhflow_flux_face_cds2::v_flux(fdm_nhf *d, int ipol, double *V, double &vflu
 
 void nhflow_flux_face_cds2::w_flux(fdm_nhf *d, int ipol, double *W, double &wflux1, double &wflux2)
 {
-    if(ipol==1)
-	{
-	pip=3;
-	wflux1= 0.5*(W[FIJKm1]+W[FIp1JKm1]);
-	wflux2= 0.5*(W[FIJK]+W[FIp1JK]);
-	pip=0;
-	}
-
-	if(ipol==2)
-	{
-	pip=3;
-	wflux1= 0.5*(W[FIJKm1]+W[FIJp1Km1]);
-	wflux2= 0.5*(W[FIJK]+W[FIJp1K]);
-	pip=0;
-	}
-
-	if(ipol==3)
-	{
-    pip=3;
-	wflux1= 0.5*(W[FIJK]+W[FIJKm1]);
-	wflux2= 0.5*(W[FIJK]+W[FIJKp1]);
-	pip=0;
-	}
-
-	if(ipol==4)
-	{
-    pip=3;
-	wflux1= W[FIJKm1];
-	wflux2= W[FIJK];
-    pip=0;
-	}
-    
-    if(p->A501==2)
-    {
     wflux1= W[FIJK];
 	wflux2= W[FIJKp1];
-    
-    }
 }
 
 void nhflow_flux_face_cds2::omega_flux(lexer *p, fdm_nhf *d, int ipol, double *U, double *V, double *W, double &wflux1, double &wflux2)

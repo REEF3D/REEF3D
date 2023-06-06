@@ -293,22 +293,14 @@
         <File Name="nhflow_v.h"/>
         <File Name="nhflow.h"/>
         <VirtualDirectory Name="Pressure">
-          <File Name="nhflow_pjm_hs_nw.h"/>
-          <File Name="nhflow_pjm_nw.h"/>
-          <File Name="nhflow_pjm_cf.h"/>
-          <File Name="nhflow_pjm_c.h"/>
           <File Name="nhflow_pjm_hs.h"/>
           <File Name="nhflow_pjm.h"/>
           <VirtualDirectory Name="Poisson">
-            <File Name="nhflow_poisson_nw.h"/>
-            <File Name="nhflow_poisson_cf.h"/>
-            <File Name="nhflow_poisson_c.h"/>
             <File Name="nhflow_poisson.h"/>
           </VirtualDirectory>
           <File Name="nhflow_pressure.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
-          <File Name="nhflow_momentum_RK3_nw.h"/>
           <VirtualDirectory Name="BC">
             <File Name="nhflow_bcmom.h"/>
           </VirtualDirectory>
@@ -326,7 +318,6 @@
             <File Name="nhflow_flux_FOU.h"/>
             <File Name="nhflow_reconstruct_WENO.h"/>
           </VirtualDirectory>
-          <File Name="nhflow_fsf_rk_nw.h"/>
           <VirtualDirectory Name="Discretization">
             <File Name="nhflow_hxy_flux.h"/>
             <File Name="nhflow_hxy_disc.h"/>
@@ -1380,21 +1371,13 @@
         <File Name="nhflow_v.cpp"/>
         <File Name="nhflow_f.cpp"/>
         <VirtualDirectory Name="Pressure">
-          <File Name="nhflow_pjm_hs_nw.cpp"/>
-          <File Name="nhflow_pjm_nw.cpp"/>
-          <File Name="nhflow_pjm_cf.cpp"/>
-          <File Name="nhflow_pjm_c.cpp"/>
           <File Name="nhflow_pjm_hs.cpp"/>
           <File Name="nhflow_pjm.cpp"/>
           <VirtualDirectory Name="Poisson">
-            <File Name="nhflow_poisson_nw.cpp"/>
-            <File Name="nhflow_poisson_cf.cpp"/>
-            <File Name="nhflow_poisson_c.cpp"/>
             <File Name="nhflow_poisson.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
-          <File Name="nhflow_momentum_RK3_nw.cpp"/>
           <VirtualDirectory Name="BC">
             <File Name="nhflow_bcmom.cpp"/>
           </VirtualDirectory>
@@ -1409,22 +1392,15 @@
             <File Name="nhflow_flux_HLL.cpp"/>
             <File Name="nhflow_flux_FOU.cpp"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="RK_nw">
-            <File Name="nhflow_fsf_rk_nw_wetdry.cpp"/>
-            <File Name="nhflow_fsf_rk_nw_kfsfbc.cpp"/>
-            <File Name="nhflow_fsf_rk_nw_ini.cpp"/>
-            <File Name="nhflow_fsf_rk_nw_breaking.cpp"/>
-            <File Name="nhflow_fsf_rk_nw.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Void">
-            <File Name="nhflow_fsf_v.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="RK_st">
+          <VirtualDirectory Name="RK">
             <File Name="nhflow_fsf_rk_wetdry.cpp"/>
             <File Name="nhflow_fsf_rk_kfsfbc.cpp"/>
             <File Name="nhflow_fsf_rk_ini.cpp"/>
             <File Name="nhflow_fsf_rk_breaking.cpp"/>
             <File Name="nhflow_fsf_rk.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Void">
+            <File Name="nhflow_fsf_v.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="FSM">
             <File Name="nhflow_fsf_fsm_kfsfbc.cpp"/>

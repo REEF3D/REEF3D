@@ -53,20 +53,12 @@ void driver::logic_nhflow()
     pnhf=new nhflow_f(p,d,pgc);
     
 // FSF
-    if(p->A501==1)
-    {
+
     if(p->A540==1)
     pnhfsf = new nhflow_fsf_rk(p,d,pgc,pflow,pBC);
     
     if(p->A540==2)
     pnhfsf = new nhflow_fsf_fsm(p,d,pgc,pflow,pBC);
-    }
-    
-    if(p->A501==2)
-    {
-    if(p->A540==1)
-    pnhfsf = new nhflow_fsf_rk_nw(p,d,pgc,pflow,pBC);
-    }
     
 // time stepping
     // time stepping
@@ -111,23 +103,11 @@ void driver::logic_nhflow()
     
 //pressure scheme
 
-    if(p->A520==0 && p->A501==1)
+    if(p->A520==0)
 	pnhpress = new nhflow_pjm_hs(p,d,pBC);
     
-    if(p->A520==0 && p->A501==2)
-	pnhpress = new nhflow_pjm_hs_nw(p,d,pBC);
-    
-    if(p->A520==1 && p->A501==1)
+    if(p->A520==1)
     pnhpress = new nhflow_pjm(p,d,pgc,pBC);
-    
-    if(p->A520==1 && p->A501==2)
-    pnhpress = new nhflow_pjm_nw(p,d,pgc,pBC);
-    
-    if(p->A520==2)
-    pnhpress = new nhflow_pjm_c(p,d,pgc,pBC);
-    
-    if(p->A520==3)
-    pnhpress = new nhflow_pjm_cf(p,d,pgc,pBC);
 
 //Turbulence
     if(p->T10==0)
@@ -204,10 +184,8 @@ void driver::logic_nhflow()
 	pflow = new ioflow_gravity(p,pgc,pBC);
     
 //Momentum
-    if(p->A510==3 && p->A501==1)
+    if(p->A510==3)
 	pnhfmom = new nhflow_momentum_RK3(p,d,pgc);
     
-    if(p->A510==3 && p->A501==2)
-	pnhfmom = new nhflow_momentum_RK3_nw(p,d,pgc);
     
 }

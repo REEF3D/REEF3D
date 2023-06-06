@@ -87,7 +87,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	pconvec->start(p,d,d->U,1,d->U,d->V,d->W);
 	//pdiff->diff_u(p,a,pgc,psolv,udiff,a->u,a->v,a->w,1.0);
 
-	ULOOP
+	LOOP
 	URK1[IJK] = d->U[IJK]
 				+ p->dt*CPORNH*d->F[IJK];
 
@@ -104,7 +104,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     pconvec->start(p,d,d->V,2,d->U,d->V,d->W);
 	//pdiff->diff_v(p,a,pgc,psolv,vdiff,a->u,a->v,a->w,1.0);
 
-	VLOOP
+	LOOP
 	VRK1[IJK] = d->V[IJK]
 				+ p->dt*CPORNH*d->G[IJK];
 
@@ -121,7 +121,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	pconvec->start(p,d,d->W,3,d->U,d->V,d->W);
 	//pdiff->diff_w(p,a,pgc,psolv,wdiff,a->u,a->v,a->w,1.0);
 
-	WLOOP
+	LOOP
 	WRK1[IJK] = d->W[IJK]
 				+ p->dt*CPORNH*d->H[IJK];
 	
@@ -175,7 +175,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     pconvec->start(p,d,URK1,1,URK1,VRK1,WRK1);
 	//pdiff->diff_u(p,a,pgc,psolv,udiff,urk1,vrk1,wrk1,1.0);
 
-	ULOOP
+	LOOP
 	URK2[IJK] = 0.75*d->U[IJK] + 0.25*URK1[IJK]
 				+ 0.25*p->dt*CPORNH*d->F[IJK];
                 
@@ -192,7 +192,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	pconvec->start(p,d,VRK1,2,URK1,VRK1,WRK1);
 	//pdiff->diff_v(p,a,pgc,psolv,vdiff,urk1,vrk1,wrk1,1.0);
 
-	VLOOP
+	LOOP
 	VRK2[IJK] = 0.75*d->V[IJK] + 0.25*VRK1[IJK]
 				+ 0.25*p->dt*CPORNH*d->G[IJK];
 	
@@ -209,7 +209,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	pconvec->start(p,d,WRK1,2,URK1,VRK1,WRK1);
 	//pdiff->diff_w(p,a,pgc,psolv,wdiff,urk1,vrk1,wrk1,1.0);
 
-	WLOOP
+	LOOP
 	WRK2[IJK] = 0.75*d->W[IJK] + 0.25*WRK1[IJK]
 				+ 0.25*p->dt*CPORNH*d->H[IJK];
 
@@ -262,7 +262,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     pconvec->start(p,d,URK2,1,URK2,VRK2,WRK2);
 	//pdiff->diff_u(p,a,pgc,psolv,udiff,urk2,vrk2,wrk2,1.0);
 
-	ULOOP
+	LOOP
 	d->U[IJK] = (1.0/3.0)*d->U[IJK] + (2.0/3.0)*URK2[IJK]
 				+ (2.0/3.0)*p->dt*CPORNH*d->F[IJK];
 	
@@ -279,7 +279,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	pconvec->start(p,d,VRK2,2,URK2,VRK2,WRK2);
 	//pdiff->diff_v(p,a,pgc,psolv,vdiff,urk2,vrk2,wrk2,1.0);
 
-	VLOOP
+	LOOP
 	d->V[IJK] = (1.0/3.0)*d->V[IJK] + (2.0/3.0)*VRK2[IJK]
 				+ (2.0/3.0)*p->dt*CPORNH*d->G[IJK];
 	
@@ -296,7 +296,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	pconvec->start(p,d,WRK2,3,URK2,VRK2,WRK2);
 	//pdiff->diff_w(p,a,pgc,psolv,wdiff,urk2,vrk2,wrk2,1.0);
 
-	WLOOP
+	LOOP
 	d->W[IJK] = (1.0/3.0)*d->W[IJK] + (2.0/3.0)*WRK2[IJK]
 				+ (2.0/3.0)*p->dt*CPORNH*d->H[IJK];
 	

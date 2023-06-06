@@ -38,28 +38,32 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     {
         if(p->A517==1)
         {
-        if(Pval<0.5*(U[Im1JK] + U[IJK]))
-        Pval = U[Im1JK];
-        
-        if(Pval>=0.5*(U[Im1JK] + U[IJK]))
-        Pval = U[IJK];
-        
-        
-        if(Qval<0.5*(V[IJm1K] + V[IJK]))
-        Qval = V[IJm1K];
-        
-        if(Qval>=0.5*(V[IJm1K] + V[IJK]))
-        Qval = V[IJK];
+        if(U[IJK]>=0.0)
+        Pval=0.5*(U[Im1JK] + U[IJK]);
+            
+        if(U[IJK]<0.0)
+        Pval=0.5*(U[IJK] + U[Ip1JK]);
         
         
+        if(V[IJK]>=0.0)
+        Qval=0.5*(V[IJm1K] + V[IJK]);
+            
+        if(V[IJK]<0.0)
+        Qval=0.5*(V[IJK] + V[IJp1K]);
+        
+        
+        if(W[IJK]>=0.0)
         Rval=0.5*(W[IJKm1] + W[IJK]);
+            
+        if(W[IJK]<0.0)
+        Rval=0.5*(W[IJK] + W[IJKp1]);
         }
         
         if(p->A517==2)
         {
-        Pval = 0.5*(U[Im1JK] + U[IJK]);
-        Qval = 0.5*(V[IJm1K] + V[IJK]);
-        Rval = 0.5*(W[IJKm1] + W[IJK]);
+        Pval = U[IJK];
+        Qval = V[IJK];
+        Rval = W[IJK];
         }
     
     // omega
@@ -73,60 +77,7 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     }
     
     
-    if((p->A517==1 || p->A517==2)  && p->A501==1)
-    FLOOP
-    {
-        if(p->A517==1)
-        {
-        if(Pval<0.25*(U[Im1JK] + U[IJK] + U[Im1JKm1] + U[IJKm1]))
-        Pval = 0.5*(U[Im1JK] + U[Im1JKm1]);
-        
-        if(Pval>=0.25*(U[Im1JK] + U[IJK] + U[Im1JKm1] + U[IJKm1]))
-        Pval = 0.5*(U[IJK] + U[IJKm1]);
-        
-        
-        if(Qval<0.25*(V[IJm1K] + V[IJK] + V[IJm1Km1] + V[IJKm1]))
-        Qval = 0.5*(V[IJm1K] + V[IJm1Km1]);
-        
-        if(Qval>=0.25*(V[IJm1K] + V[IJK] + V[IJm1Km1] + V[IJKm1]))
-        Qval = 0.5*(V[IJK] + V[IJKm1]);
-        
-        
-        Rval= W[IJKp1];
-        }
-        
-        if(p->A517==2)
-        {
-        Pval = 0.25*(U[Im1JK] + U[IJK] + U[Im1JKp1] + U[IJKp1]);
-        Qval = 0.25*(V[IJm1K] + V[IJK] + V[IJm1Kp1] + V[IJKp1]);
-        Rval = W[IJK];
-        }
-    
-    // omega
-        d->omegaF[FIJK] =       p->sigt[FIJK]
-                        
-                        +  Pval*p->sigx[FIJK]
-                        
-                        +  Qval*p->sigy[FIJK]
-                        
-                        +  Rval*p->sigz[IJ];
-    }
-    
-    if(p->A517==3 && p->A501==1)
-    {
-    FLOOP
-    d->omegaF[FIJK] = 0.0;
-    
-    LOOP
-    d->omegaF[FIJKp1] =   d->omegaF[FIJK]
-                        
-                        - p->DZN[KP]*(d->detadt(i,j) 
-                        
-                        + (U[IJK]*d->hx(i,j) - U[Im1JK]*d->hx(i-1,j))/p->DXN[IP]  + (V[IJK]*d->hy(i,j) - V[IJm1K]*d->hy(i,j-1))/p->DYN[JP]*p->y_dir);
-                        
-    }
-    
-    if((p->A517==1 || p->A517==2)  && p->A501==2)
+    if(p->A517==1 || p->A517==2)
     FLOOP
     {
         if(p->A517==1)
@@ -172,7 +123,7 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
         //d->omegaF[FIJK]=0.0;
     }
     
-    if(p->A517==3 && p->A501==2)
+    if(p->A517==3)
     {
     FLOOP
     d->omegaF[FIJK] = 0.0;
@@ -193,7 +144,7 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
     
-        d->omega[IJK]   =  0.0;
+        d->omega[IJK] =  0.0;
         d->omega[IJKp1] =  0.0;
         d->omega[IJKp2] =  0.0;
         d->omega[IJKp3] =  0.0;
@@ -213,7 +164,7 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
         
-        d->omega[IJK]   =  0.0;
+        d->omega[IJK] =  0.0;
         d->omega[IJKm1] =  0.0;
         d->omega[IJKm2] =  0.0;
         d->omega[IJKm3] =  0.0;
@@ -245,6 +196,7 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     
     pgc->gcsl_start4(p,d->test2D,1);
 }
+
 
 
 

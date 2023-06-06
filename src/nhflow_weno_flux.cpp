@@ -38,36 +38,6 @@ void nhflow_weno_flux::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *
 {
     uf=vf=wf=0;
         
-        if(p->A501==1)
-        {
-        if(ipol==1)
-        {
-        uf=1;
-        ULOOP
-        d->F[IJK]+=aij(p,d,F,1,U,V,W,p->DXN,p->DYN,p->DZN);
-        }
-
-        if(ipol==2)
-        {
-        vf=1;
-        VLOOP
-        d->G[IJK]+=aij(p,d,F,2,U,V,W,p->DXN,p->DYN,p->DZN);
-        }
-
-        if(ipol==3)
-        WLOOP
-        {
-        wf=1;
-        d->H[IJK]+=aij(p,d,F,3,U,V,W,p->DXN,p->DYN,p->DZN);
-        }
-
-        if(ipol==4)
-        LOOP
-        d->L[IJK]+=aij(p,d,F,4,U,V,W,p->DXN,p->DYN,p->DZN);
-        }
-        
-        if(p->A501==2)
-        {
         if(ipol==1)
         LOOP
         d->F[IJK]+=aij(p,d,F,1,U,V,W,p->DXN,p->DYN,p->DZN);
@@ -83,7 +53,6 @@ void nhflow_weno_flux::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *
         if(ipol==4)
         LOOP
         d->L[IJK]+=aij(p,d,F,4,U,V,W,p->DXN,p->DYN,p->DZN);
-        }
 }
 
 double nhflow_weno_flux::aij(lexer* p,fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W, double *DX,double *DY, double *DZ)
