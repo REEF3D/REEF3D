@@ -99,12 +99,12 @@ void lexer::ini_default()
     A511=4;		// int NHFLOW convection discretization
     A512=4;		// int NHFLOW diffusion
     
-    A515=1;      // int NHFLOW KFSFBC scheme
+    A515=3;      // int NHFLOW KFSFBC scheme
     A516=2;      // int NFHLOW KFSFBED scheme
     A517=2;      // int NHFLOW omega_sig scheme
     
     A520=1;		// int NFHLOW non-hydrostatic pressure scheme
-    A521=1;		// int NFHLOW hydrostatic pressure scheme
+    A521=2;		// int NFHLOW hydrostatic pressure scheme
     A523=0.5;    // double blending factor hydrostatic pressure gradient
     A540=1;      // int NFHLOW fsf scheme
     A541=1;      // int NFHLOW fsf hxy discretization

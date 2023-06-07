@@ -52,7 +52,7 @@ void iowave::nhflow_precalc_relax(lexer *p, ghostcell *pgc)
     pgc->gcsl_start4(p,eta,50);
     
     count=0;
-    ULOOP
+    LOOP
     {
 		xg = xgen(p);
         yg = ygen(p);
@@ -75,7 +75,7 @@ void iowave::nhflow_precalc_relax(lexer *p, ghostcell *pgc)
     }
 		
     count=0;
-    VLOOP
+    LOOP
     {
         xg = xgen(p);
         yg = ygen(p);
@@ -98,7 +98,7 @@ void iowave::nhflow_precalc_relax(lexer *p, ghostcell *pgc)
     }
 
     count=0;
-    WLOOP
+    LOOP
     {
         xg = xgen(p);
         yg = ygen(p);
@@ -108,8 +108,7 @@ void iowave::nhflow_precalc_relax(lexer *p, ghostcell *pgc)
         zloc3 = p->pos3_z();
         fsfloc = eta(i,j) + p->phimean;
 
-        z=p->ZSN[FIJKp1]-p->phimean;
-
+        z=p->ZSP[IJK]-p->phimean;
 
 		// Wave Generation		
 		if(p->B98==2 && w_switch==1)

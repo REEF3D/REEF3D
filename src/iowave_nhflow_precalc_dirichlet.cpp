@@ -59,7 +59,7 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, ghostcell *pgc)
         
         
         z = p->ZSP[IJK]-p->phimean;
-        z3 = p->ZSN[(i-p->imin)*p->jmax*p->kmaxF + (j-p->jmin)*p->kmaxF + (k+1)-p->kmin]-p->phimean;
+        //z3 = p->ZSN[(i-p->imin)*p->jmax*p->kmaxF + (j-p->jmin)*p->kmaxF + (k+1)-p->kmin]-p->phimean;
         
         
         // U
@@ -77,10 +77,10 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, ghostcell *pgc)
         vval[count] = 0.0;
         
         // W
-        if(z3<=eta(i,j)+epsi)
-        wval[count] = wave_w(p,pgc,x,y,z3);
+        if(z<=eta(i,j)+epsi)
+        wval[count] = wave_w(p,pgc,x,y,z);
             
-        if(z3>eta(i,j)+epsi)
+        if(z>eta(i,j)+epsi)
         wval[count] = 0.0;
         
         ++count;
