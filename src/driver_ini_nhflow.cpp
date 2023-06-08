@@ -99,13 +99,12 @@ void driver::driver_ini_nhflow()
     pgc->start3V(p,d->W,12);
     pgc->start5V(p,d->P,540);
     
-    pnhfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta,d->eta,1.0);
     pnhfsf->wetdry(p,d,pgc,d->U,d->V,d->W,d->eta);
+    pnhfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta,d->eta,1.0);
     pnhfsf->ini(p,d,pgc,pflow,d->U,d->V,d->W);
+    pnhfsf->wetdry(p,d,pgc,d->U,d->V,d->W,d->eta);
     pnhfmom->inidisc(p,d,pgc,pnhfsf);
     
-    //pgc->start4V(p,d->W,12);
-
     
     pnhfprint->start(p,d,pgc,pflow);
 

@@ -122,8 +122,6 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
     USx=0.0;
     }
     
-    //cout<<Ss<<" "<<Sn<<" | "<<Fs[IJK]<<" "<<Fn[IJK]<<endl;
-    
         // final flux x-dir
         if(Ss>=0.0)
         Fx[IJK] = Fs[IJK];

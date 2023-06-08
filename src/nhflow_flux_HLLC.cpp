@@ -38,10 +38,18 @@ nhflow_flux_HLLC::nhflow_flux_HLLC(lexer* p, patchBC_interface *ppBC) : ETAs(p),
     if(p->A543==4)
     precon = new nhflow_reconstruct_weno(p,ppBC);
     
+    p->Darray(DU,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(DV,p->imax*p->jmax*(p->kmax+2));
+    
     p->Darray(Fs,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fn,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fe,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fw,p->imax*p->jmax*(p->kmax+2));
+    
+    p->Darray(Us,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Un,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Ve,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Vw,p->imax*p->jmax*(p->kmax+2));
 }
 
 nhflow_flux_HLLC::~nhflow_flux_HLLC()
@@ -60,13 +68,24 @@ void nhflow_flux_HLLC::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice 
     double DSx,DSy;
     double denom;
     double FsS,FnS;
-
-         
+    double FeS,FwS;
+    
+    // velocity depth
+    LOOP
+    {
+    DU[IJK] = U[IJK]*d->WL[IJ];
+    DV[IJK] = V[IJK]*d->WL[IJ];
+    }
+    
+    pgc->start1V(p,DU,10);
+    pgc->start2V(p,DV,11);
+    
     // reconstruct eta
     precon->reconstruct_2D(p, pgc, d, eta, ETAs, ETAn, ETAe, ETAw);
     
     // reconstruct U and V
-    precon->reconstruct_3D(p, pgc, d, U, V, Fs, Fn, Fe, Fw);
+    precon->reconstruct_3D(p, pgc, d, DU, DV, Fs, Fn, Fe, Fw);
+    precon->reconstruct_3D(p, pgc, d, U, V, Us, Un, Ve, Vw);
     
     // HLLC flux
     ULOOP
@@ -79,21 +98,35 @@ void nhflow_flux_HLLC::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice 
     Dn = MAX(0.00005, Dn);
     
     // Us
-    USx = 0.5*(Fs[IJK]+Fn[IJK]) + sqrt(9.81*Ds) - sqrt(9.81*Dn);
-    DSx = 0.5*(sqrt(9.81*Ds) + sqrt(9.81*Dn)) + 0.25*(Fs[IJK] - Fn[IJK]);
+    USx = 0.5*(Us[IJK]+Un[IJK]) + sqrt(9.81*Ds) - sqrt(9.81*Dn);
+    DSx = 0.5*(sqrt(9.81*Ds) + sqrt(9.81*Dn)) + 0.25*(Us[IJK] - Un[IJK]);
     
     // wave speed
-    Ss = MIN(Fs[IJK] - sqrt(9.81*Ds), USx - DSx);
-    Sn = MAX(Fn[IJK] + sqrt(9.81*Dn), USx + DSx);
+    Ss = MIN(Us[IJK] - sqrt(9.81*Ds), USx - DSx);
+    Sn = MAX(Un[IJK] + sqrt(9.81*Dn), USx + DSx);
     SS = USx;
     
-      
+    if(p->wet[Ip1J]==0)
+    {
+    Ss = Us[IJK] - sqrt(9.81*Ds);
+    Sn = Us[IJK] + 2.0*sqrt(9.81*Ds);
+    }
+    
+    if(p->wet[Im1J]==0)
+    {
+    Ss = Un[IJK] - 2.0*sqrt(9.81*Dn);
+    Sn = Un[IJK] + sqrt(9.81*Dn);
+    }
+    
+    if(p->wet[IJ]==0)
+    {
+    Ss=Sn=0.0;
+    USx=0.0;
+    }
+    
     FsS = Ds*(Ss - Fs[IJK] + 1.0e-10)/(Ss - SS + 1.0e-10);
     FnS = Dn*(Sn - Fn[IJK] + 1.0e-10)/(Sn - SS + 1.0e-10);
  
-    
-    //cout<<Ss<<" "<<Sn<<" | "<<Fs[IJK]<<" "<<Fn[IJK]<<endl;
-    
         // final flux x-dir
         if(Ss>=0.0)
         Fx[IJK] = Fs[IJK];
@@ -121,29 +154,50 @@ void nhflow_flux_HLLC::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice 
     Dw = MAX(0.00005, Dw);
     
     // Us
-    USy = 0.5*(Fe[IJK]+Fw[IJK]) + sqrt(9.81*De) - sqrt(9.81*Dw);
-    DSy = 0.5*(sqrt(9.81*De) + sqrt(9.81*Dw)) + 0.25*(Fe[IJK] - Fw[IJK]);
+    USy = 0.5*(Ve[IJK]+Vw[IJK]) + sqrt(9.81*De) - sqrt(9.81*Dw);
+    DSy = 0.5*(sqrt(9.81*De) + sqrt(9.81*Dw)) + 0.25*(Ve[IJK] - Vw[IJK]);
     
     // wave speed
-    Se = MIN(Fe[IJK] - sqrt(9.81*De), USy - DSy);
-    Sw = MAX(Fw[IJK] + sqrt(9.81*Dw), USy + DSy);
+    Se = MIN(Ve[IJK] - sqrt(9.81*De), USy - DSy);
+    Sw = MAX(Vw[IJK] + sqrt(9.81*Dw), USy + DSy);
+    SS = USy;
+    
+    if(p->wet[IJp1]==0)
+    {
+    Se = Ve[IJK] - sqrt(9.81*De);
+    Sw = Ve[IJK] + 2.0*sqrt(9.81*De);
+    }
+    
+    if(p->wet[IJm1]==0)
+    {
+    Se = Vw[IJK] - 2.0*sqrt(9.81*Dw);
+    Sw = Vw[IJK] + sqrt(9.81*Dw);
+    }
+    
+    if(p->wet[IJ]==0)
+    {
+    Se=Sw=0.0;
+    USy=0.0;
+    }
 
-        
-        // final flux y-dir
-        if(Se>=0.0)
+
+    FeS = De*(Se - Ve[IJK] + 1.0e-10)/(Se - SS + 1.0e-10);
+    FwS = Dw*(Sw - Vw[IJK] + 1.0e-10)/(Sw - SS + 1.0e-10);
+ 
+        // final flux x-dir
+        if(Ss>=0.0)
         Fy[IJK] = Fe[IJK];
         
         else
-        if(Sw<=0.0)
+        if(Sn<=0.0)
         Fy[IJK] = Fw[IJK];
         
         else
-        {
-        denom = Sw-Se;
-        denom = fabs(denom)>1.0e-10?denom:1.0e10;
+        if(SS>=0.0)
+        Fy[IJK] = Fe[IJK] + Ss*(FeS - Fe[IJK]);
         
-        Fy[IJK] = (Sw*Fe[IJK] - Se*Fw[IJK] + Sw*Se*(Dw - De))/denom;
-        }
+        else
+        Fy[IJK] = Fw[IJK] + Sn*(FwS - Fw[IJK]);
     }
     
     pgc->start1V(p,Fx,10);

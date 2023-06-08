@@ -79,7 +79,7 @@ void nhflow_fsf_rk::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *U, doub
     SLICELOOP4
     if(p->wet[IJ]==0 && p->wet[Im1J]==0 && p->wet[Ip1J]==0 && p->wet[IJm1]==0 && p->wet[IJp1]==0)
     if(eta(i,j)< -p->wd  + d->bed(i,j) - wd_criterion + 1.0e-20)
-    eta(i,j) = -p->wd  + d->bed(i,j) - wd_criterion - 1.0e-10;
+    eta(i,j) = -p->wd  + d->bed(i,j) - wd_criterion - 1.0e-15;
 
 
     

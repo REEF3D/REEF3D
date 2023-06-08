@@ -196,7 +196,7 @@ void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
                     
         }
         
-        if(p->wet[Ip1J]==0 && p->wet[Im1J]==1)
+        if(p->wet[Ip1J]==1 && p->wet[Im1J]==0)
         {
         detadx = (eta(i,j)-eta(i-1,j))/p->DXP[IM1];
         detadx_n = (eta_n(i,j)-eta_n(i-1,j))/p->DXP[IM1];

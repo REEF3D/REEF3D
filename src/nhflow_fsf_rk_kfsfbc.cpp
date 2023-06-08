@@ -91,7 +91,6 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
     }
     
     
-    
     // Kinematic Bed BC
     GC4LOOP
     if(p->gcb4[n][3]==5 && p->gcb4[n][4]==21)
@@ -127,7 +126,7 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
     
         detadx = limiter(dfdx_plus,dfdx_min);
         
-        dfdy_plus = (d->depth(i,j-1)-d->depth(i,j))/p->DYP[JP];
+        dfdy_plus = (d->depth(i,j+1)-d->depth(i,j))/p->DYP[JP];
         dfdy_min  = (d->depth(i,j)-d->depth(i,j-1))/p->DYP[JM1];
     
         detady = limiter(dfdy_plus,dfdy_min);
@@ -135,7 +134,7 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
         
         wval = - Pval*detadx
 
-               - Pval*detady;
+               - Qval*detady;
     }
     
         

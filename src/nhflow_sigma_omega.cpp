@@ -129,7 +129,7 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     d->omegaF[FIJK] = 0.0;
     
     LOOP
-    d->omegaF[FIJKp1] =    d->omegaF[FIJK]
+    d->omegaF[FIJKp1] =   d->omegaF[FIJK]
                         
                         - p->DZN[KP]*(d->detadt(i,j) 
                         
@@ -186,12 +186,12 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     pgc->start3V(p,d->omega,17);
     pgc->start7S(p,d->omegaF,17);
     
-    SLICELOOP4
+    /*SLICELOOP4
     d->test2D(i,j)=0.0;
     
     k=p->knox-1;
     SLICELOOP4
-    d->test2D(i,j)=p->sigx4[IJK];
+    d->test2D(i,j)=d->Ex(i,j);*/
     //d->test2D(i,j) = MAX(d->test2D(i,j),fabs(d->omegaF[FIJK]));
     
     pgc->gcsl_start4(p,d->test2D,1);

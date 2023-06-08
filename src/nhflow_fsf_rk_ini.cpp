@@ -29,7 +29,10 @@ Author: Hans Bihs
 #include"nhflow_flux_HLL.h"
 
 void nhflow_fsf_rk::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W)
-{    
+{   
+    SLICELOOP4
+    d->WL(i,j) = (d->eta(i,j) + p->wd - d->bed(i,j));
+    
     wetdry(p,d,pgc,U,V,W,d->eta);
     
     pfluxfsf->face_flux_3D(p,pgc,d,d->eta,U,V,d->Fx,d->Fy);
