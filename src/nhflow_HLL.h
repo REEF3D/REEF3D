@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,31 +20,36 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_fsf.h"
-#include"nhflow_fsf_rk.h"
-#include"nhflow_fsf_fsm.h"
-#include"nhflow_fsf_v.h"
+#include"nhflow_convection.h"
+#include"increment.h"
 
-#include"nhflow.h"
-#include"nhflow_f.h"
-#include"nhflow_v.h"
-#include"nhflow_vtu3D.h"
-#include"nhflow_timestep.h"
-#include"nhflow_momentum.h"
-#include"nhflow_turbulence.h"
-#include"nhflow_komega_void.h"
-#include"nhflow_komega_IM1.h"
+class nhflow_flux;
 
-#include"nhflow_fou.h"
-#include"nhflow_weno_flux.h"
-#include"nhflow_hires.h"
-#include"nhflow_cds2.h"
-#include"nhflow_HLL.h"
-#include"nhflow_convection_void.h"
+#ifndef NHFLOW_HLL_H_
+#define NHFLOW_HLL_H_
 
-#include"nhflow_momentum_RK2.h"
-#include"nhflow_momentum_RK3.h"
+using namespace std;
 
-#include"nhflow_pjm.h"
-#include"nhflow_pjm_hs.h"
-#include"nhflow_poisson.h"
+class nhflow_HLL : public nhflow_convection, public increment
+{
+
+public:
+
+	nhflow_HLL (lexer *);
+	virtual ~nhflow_HLL();
+
+    virtual void start(lexer*, fdm_nhf*, double*, int, double*, double*,double*);
+
+private:
+    double aij(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);
+
+	double dx,dy,dz;
+	double udir,vdir,wdir;
+	double L;
+
+    double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
+
+    nhflow_flux *pflux;
+};
+
+#endif

@@ -82,7 +82,6 @@ void nhflow_fsf_rk::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *U, doub
     eta(i,j) = -p->wd  + d->bed(i,j) - wd_criterion - 1.0e-15;
 
 
-    
     pgc->gcsl_start4(p,d->eta,1);
     pgc->gcsl_start4Vint(p,p->wet,50);
     
