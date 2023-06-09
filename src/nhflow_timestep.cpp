@@ -133,8 +133,8 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	cout<<"dt: "<<p->dt<<endl;
 
     
-    if (p->N48==0) 
-    p->dt=maxtimestep;
+    if(p->N48==0) 
+    p->dt=p->N49;
     
     else
 	p->dt=MIN(p->dt,maxtimestep);
@@ -225,5 +225,11 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	cout<<"wmax: "<<setprecision(3)<<p->wmax<<endl;
     cout<<"dmax: "<<setprecision(3)<<depthmax<<endl;
     }
+    
+    if(p->N48==0) 
+    p->dt=p->N49;
+    
+    else
+	p->dt=MIN(p->dt,maxtimestep);
 }
 

@@ -61,7 +61,6 @@ nhflow_fsf_rk::nhflow_fsf_rk(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow
     if(p->A542==3)
     pfluxfsf = new nhflow_flux_HLLC(p,pBC);
     
-   
     
     wd_criterion=0.00005;
     
@@ -95,7 +94,6 @@ void nhflow_fsf_rk::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow)
 
 void nhflow_fsf_rk::update(lexer *p, fdm_nhf* d, ghostcell *pgc, slice &f)
 {
-    //pupdate->start(p,a,pgc);
 }
 
 void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
@@ -196,8 +194,8 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     SLICELOOP4
     d->detadt(i,j) = K(i,j);
     
-    LOOP
-    d->test[IJK] = (d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP];
+    //LOOP
+    //d->test[IJK] = (d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP];
     
     wetdry(p,d,pgc,U,V,W,d->eta);
     breaking(p,d,pgc,d->eta,etark2,2.0/3.0);

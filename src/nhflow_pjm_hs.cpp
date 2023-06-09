@@ -37,7 +37,7 @@ Author: Hans Bihs
 #define HY (fabs(d->hy(i,j))>1.0e-20?d->hy(i,j):1.0e20)
 #define WLVL (fabs(d->WL(i,j))>1.0e-20?d->WL(i,j):1.0e20)
  
-nhflow_pjm_hs::nhflow_pjm_hs(lexer* p, fdm_nhf *d, patchBC_interface *ppBC)
+nhflow_pjm_hs::nhflow_pjm_hs(lexer* p, fdm_nhf *d, patchBC_interface *ppBC) : nhflow_gradient(p)
 {
     pBC = ppBC;
     
@@ -83,19 +83,19 @@ void nhflow_pjm_hs::vel_setup(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
 void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 {
     if(p->A521==1 && p->A540==1)
-    ULOOP
+    LOOP
     WETDRY
     d->F[IJK] -= PORVALNH*fabs(p->W22)*
                 (p->A523*eta(i+1,j) + (1.0-p->A523)*eta_n(i+1,j) - p->A523*eta(i,j) - (1.0-p->A523)*eta_n(i,j))/(p->DXP[IP]);
 
     if(p->A521==1 && p->A540==2)
-    ULOOP
+    LOOP
     WETDRY
 	d->F[IJK] -= PORVALNH*fabs(p->W22)*(d->eta(i+1,j) - d->eta(i,j))/p->DXP[IP];
     
                
     if(p->A521==2 && p->A540==1)
-    ULOOP
+    LOOP
     WETDRY
     if(p->wet[Ip1J]==1 || p->wet[Im1J]==1)
     {
@@ -167,24 +167,39 @@ void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
                     (p->A523*detadx + (1.0-p->A523)*detadx_n);
         }*/
     }
+    
+    if(p->A521==3 && p->A540==1)
+    LOOP
+    WETDRY
+    if(p->wet[Ip1J]==1 || p->wet[Im1J]==1)
+    {
+        detadx = dslwenox(eta, d->U[IJK]);
+        
+        detadx_n = dslwenox(eta_n, d->U[IJK]);
+            
+        d->F[IJK] -= PORVALNH*fabs(p->W22)*
+                    (p->A523*detadx + (1.0-p->A523)*detadx_n);
+                    
+    }
+        
 }
 
 void nhflow_pjm_hs::vpgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 {
     if(p->A521==1 && p->A540==1)
-    VLOOP
+    LOOP
     WETDRY
 	d->G[IJK] -= PORVALNH*fabs(p->W22)*
                  (p->A523*eta(i,j+1) + (1.0-p->A523)*eta_n(i,j+1) - p->A523*eta(i,j) - (1.0-p->A523)*eta_n(i,j))/(p->DYP[JP]);
     
     if(p->A521==1 && p->A540==2)
-    VLOOP
+    LOOP
     WETDRY
 	d->G[IJK] -= PORVALNH*fabs(p->W22)*(d->eta(i,j+1) - d->eta(i,j))/p->DYP[JP];
     
     
     if(p->A521==2 && p->A540==1)
-    VLOOP
+    LOOP
     WETDRY
     if(p->wet[IJp1]==1 || p->wet[IJm1]==1)
     {

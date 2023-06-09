@@ -110,12 +110,14 @@ void nhflow_flux_HLLC::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice 
     {
     Ss = Us[IJK] - sqrt(9.81*Ds);
     Sn = Us[IJK] + 2.0*sqrt(9.81*Ds);
+    SS = Ss;
     }
     
     if(p->wet[Im1J]==0)
     {
     Ss = Un[IJK] - 2.0*sqrt(9.81*Dn);
     Sn = Un[IJK] + sqrt(9.81*Dn);
+    SS = Sn;
     }
     
     if(p->wet[IJ]==0)
@@ -124,9 +126,9 @@ void nhflow_flux_HLLC::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice 
     USx=0.0;
     }
     
-    FsS = Ds*(Ss - Fs[IJK] + 1.0e-10)/(Ss - SS + 1.0e-10);
-    FnS = Dn*(Sn - Fn[IJK] + 1.0e-10)/(Sn - SS + 1.0e-10);
- 
+    FsS = Ds*(Ss - Us[IJK] + 1.0e-10)/(Ss - SS + 1.0e-10);
+    FnS = Dn*(Sn - Un[IJK] + 1.0e-10)/(Sn - SS + 1.0e-10);
+    
         // final flux x-dir
         if(Ss>=0.0)
         Fx[IJK] = Fs[IJK];
@@ -137,10 +139,10 @@ void nhflow_flux_HLLC::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice 
         
         else
         if(SS>=0.0)
-        Fx[IJK] = Fs[IJK] + Ss*(FsS - Fs[IJK]);
+        Fx[IJK] = Fs[IJK] + Ss*(FsS - Us[IJK]);
         
         else
-        Fx[IJK] = Fn[IJK] + Sn*(FnS - Fn[IJK]);
+        Fx[IJK] = Fn[IJK] + Sn*(FnS - Un[IJK]);
     }
     
     
@@ -194,10 +196,10 @@ void nhflow_flux_HLLC::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice 
         
         else
         if(SS>=0.0)
-        Fy[IJK] = Fe[IJK] + Ss*(FeS - Fe[IJK]);
+        Fy[IJK] = Fe[IJK] + Ss*(FeS - Ve[IJK]);
         
         else
-        Fy[IJK] = Fw[IJK] + Sn*(FwS - Fw[IJK]);
+        Fy[IJK] = Fw[IJK] + Sn*(FwS - Vw[IJK]);
     }
     
     pgc->start1V(p,Fx,10);

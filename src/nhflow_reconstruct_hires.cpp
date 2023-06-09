@@ -30,10 +30,8 @@ nhflow_reconstruct_hires::nhflow_reconstruct_hires(lexer* p, patchBC_interface *
 {
     pBC = ppBC;
     
-    
     p->Darray(DFDX,p->imax*p->jmax*(p->kmax+2));
     p->Darray(DFDY,p->imax*p->jmax*(p->kmax+2));
-
 }
 
 nhflow_reconstruct_hires::~nhflow_reconstruct_hires()

@@ -52,7 +52,7 @@ void nhflow_reconstruct_weno::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf *
     
             + w2x*(q3 + qfx[IP][uf][1][0]*(q4-q3) - qfx[IP][uf][1][1]*(q2-q3))
           
-         +   w3x*(q2 + qfx[IP][uf][2][0]*(q1-q2) + qfx[IP][uf][2][1]*(q3-q2)));
+            + w3x*(q2 + qfx[IP][uf][2][0]*(q1-q2) + qfx[IP][uf][2][1]*(q3-q2)));
 	
     // right
 	iqmax_sl(p,f);
@@ -105,7 +105,7 @@ void nhflow_reconstruct_weno::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf *
 	is_min_x();
 	weight_min_x();
 
-	Fs[IJK] = d->hx(i,j)*(w1x*(q4 + qfx[IP][uf][0][0]*(q3-q4) - qfx[IP][uf][0][1]*(q5-q4))
+	Fs[IJK] =        (w1x*(q4 + qfx[IP][uf][0][0]*(q3-q4) - qfx[IP][uf][0][1]*(q5-q4))
     
                     + w2x*(q3 + qfx[IP][uf][1][0]*(q4-q3) - qfx[IP][uf][1][1]*(q2-q3))
           
@@ -116,7 +116,7 @@ void nhflow_reconstruct_weno::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf *
 	is_max_x();
 	weight_max_x();
     
-	Fn[IJK] = d->hx(i,j)*(w1x*(q4 + qfx[IP][uf][3][0]*(q3-q4) + qfx[IP][uf][3][1]*(q5-q4))
+	Fn[IJK] =            (w1x*(q4 + qfx[IP][uf][3][0]*(q3-q4) + qfx[IP][uf][3][1]*(q5-q4))
     
                         + w2x*(q3 + qfx[IP][uf][4][0]*(q2-q3) - qfx[IP][uf][4][1]*(q4-q3))
           
@@ -130,7 +130,7 @@ void nhflow_reconstruct_weno::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf *
 	is_min_y();
 	weight_min_y();
 	
-	Fe[IJK] = d->hx(i,j)*(w1y*(q4 + qfy[JP][vf][0][0]*(q3-q4) - qfy[JP][vf][0][1]*(q5-q4))
+	Fe[IJK] =           (w1y*(q4 + qfy[JP][vf][0][0]*(q3-q4) - qfy[JP][vf][0][1]*(q5-q4))
     
                         + w2y*(q3 + qfy[JP][vf][1][0]*(q4-q3) - qfy[JP][vf][1][1]*(q2-q3))
           
@@ -140,7 +140,7 @@ void nhflow_reconstruct_weno::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf *
 	is_max_y();
 	weight_max_y();
 	
-	Fw[IJK] = d->hx(i,j)*(w1y*(q4 + qfy[JP][vf][3][0]*(q3-q4) + qfy[JP][vf][3][1]*(q5-q4))
+	Fw[IJK] =           (w1y*(q4 + qfy[JP][vf][3][0]*(q3-q4) + qfy[JP][vf][3][1]*(q5-q4))
     
                         + w2y*(q3 + qfy[JP][vf][4][0]*(q2-q3) - qfy[JP][vf][4][1]*(q4-q3))
           
@@ -165,8 +165,6 @@ double nhflow_reconstruct_weno::limiter(double v1, double v2)
 
     return val;	
 }
-
-
 
 void nhflow_reconstruct_weno::iqmin(lexer *p, double *F)
 {	 
@@ -221,8 +219,6 @@ void nhflow_reconstruct_weno::kqmax(lexer *p, double *F)
     q4 = F[IJKp2];
     q5 = F[IJKp3];
 }
-
-
 
 void nhflow_reconstruct_weno::iqmin_sl(lexer *p, slice& f)
 {	
