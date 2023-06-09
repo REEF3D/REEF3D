@@ -242,7 +242,7 @@ void print_wsf::height_gauge(lexer *p, fdm *a, ghostcell *pgc, field &f)
     }
 	
     for(n=0;n<gauge_num;++n)
-    wsf[n]=pgc->globalmax(wsf[n]);
+        wsf[n]=pgc->globalmax(wsf[n]);
 
     // write to file
     if(p->mpirank==0)
