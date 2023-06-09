@@ -110,7 +110,7 @@ void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *
         j=p->gcb4[n][1];
         k=p->gcb4[n][2];
         
-        conc(i,j,k) =  s->cb(i,j);
+        conc(i,j,k) =    s->cb(i,j);
         conc(i,j,k-1) =  s->cb(i,j);
         conc(i,j,k-2) =  s->cb(i,j);
         conc(i,j,k-3) =  s->cb(i,j);
@@ -178,9 +178,9 @@ void suspended_IM1::fillconc(lexer* p, fdm* a, sediment_fdm *s)
         
         //s->conc(i,j) = a->conc(i,j,k+1);
         
-        dist = p->ZP[KP1]-s->bedzh(i,j)-adist;
+        //dist = p->ZP[KP1]-s->bedzh(i,j)-adist;
         
-        s->conc(i,j) = (s->cbe(i,j)*(dist-deltab+adist) + a->conc(i,j,k+1)*(deltab-adist))/(dist);
+        //s->conc(i,j) = (s->cbe(i,j)*(dist-deltab+adist) + a->conc(i,j,k+1)*(deltab-adist))/(dist);
 
     }
 
