@@ -44,7 +44,7 @@ pip=4;
     v6=b(i,j+1,k+1);
     if(p->flag1[Ip1JKp1]>TOPO)
     v7=b(i+1,j,k+1);
-    if(p->flag1[Ip1JKp1]>TOPO)
+    if(p->flag1[Ip1Jp1Kp1]>TOPO)
     v8=b(i+1,j+1,k+1);
 pip=0;
 
@@ -81,7 +81,7 @@ pip=4;
     v6=b(i,j+1,k+1);
     if(p->flag2[Ip1JKp1]>TOPO)
     v7=b(i+1,j,k+1);
-    if(p->flag2[Ip1JKp1]>TOPO)
+    if(p->flag2[Ip1Jp1Kp1]>TOPO)
     v8=b(i+1,j+1,k+1);
 pip=0;
 
@@ -119,7 +119,7 @@ pip=4;
     v6=b(i,j+1,k+1);
     if(p->flag3[Ip1JKp1]>TOPO)
     v7=b(i+1,j,k+1);
-    if(p->flag3[Ip1JKp1]>TOPO)
+    if(p->flag3[Ip1Jp1Kp1]>TOPO)
     v8=b(i+1,j+1,k+1);
 pip=0;
 
@@ -156,7 +156,7 @@ double interpolation::lint4(field& f, int& i,int& j, int& k, double wa, double w
     v6=f(i,j+1,k+1);
     if(p->flag4[Ip1JKp1]>TOPO)
     v7=f(i+1,j,k+1);
-    if(p->flag4[Ip1JKp1]>TOPO)
+    if(p->flag4[Ip1Jp1Kp1]>TOPO)
     v8=f(i+1,j+1,k+1);
     pip=0;
 
@@ -185,7 +185,7 @@ double interpolation::lint4phi(fdm *a, field& b, int& i,int& j, int& k, double w
     v1=v2=v3=v4=v5=v6=v7=v8= p->phimean-p->pos_z();
 
 	pip=4;
-    if(a->topo(i,j,k)>-epphi && a->topo(i,j,k)>-epphi && a->fb(i,j,k)>-epphi2)
+    if(a->topo(i,j,k)>-epphi && a->fb(i,j,k)>-epphi2)
     v1=b(i,j,k);
     if(a->topo(i,j+1,k)>-epphi && a->fb(i,j+1,k)>-epphi2)
     v2=b(i,j+1,k);

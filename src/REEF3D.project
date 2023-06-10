@@ -1965,6 +1965,7 @@
         <File Name="position_xyz.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Interpolation">
+        <File Name="interpolation_lint_2D.cpp"/>
         <File Name="interpolation_slipol.cpp"/>
         <File Name="interpolation_lintsl.cpp"/>
         <File Name="interpolation_ccslipol.cpp"/>

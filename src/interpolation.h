@@ -75,6 +75,13 @@ public:
     double lint_a(field&,int&,int&,int&,double,double,double);
     double lint4b(field&,int&,int&,int&,double,double,double);
     
+    double lint1_2D(field&,int&,int&,int&,double,double,double);
+    double lint2_2D(field&,int&,int&,int&,double,double,double);
+    double lint3_2D(field&,int&,int&,int&,double,double,double);
+    double lint4_2D(field&,int&,int&,int&,double,double,double);
+    double lint_a_2D(field&,int&,int&,int&,double,double,double);
+    double lint4phi_2D(fdm*,field&,int&,int&,int&,double,double,double);
+    
     double tricubic4a(field&,int&,int&,int&,double,double,double);
     
     

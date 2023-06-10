@@ -82,6 +82,10 @@ double interpolation::ccipol1(field& f, double xp, double yp, double zp)
     --k;
     }
     
+    if(p->j_dir==0)
+    value = lint1_2D(f,i,j,k,wa,wb,wc);
+    
+    if(p->j_dir==1)
     value = lint1(f,i,j,k,wa,wb,wc);
 
     i=ii;
@@ -148,6 +152,10 @@ double interpolation::ccipol2(field& f, double xp, double yp, double zp)
     --k;
     }
 
+    if(p->j_dir==0)
+    value = lint2_2D(f,i,j,k,wa,wb,wc);
+    
+    if(p->j_dir==1)
     value = lint2(f,i,j,k,wa,wb,wc);
 
     i=ii;
@@ -214,6 +222,10 @@ double interpolation::ccipol3(field& f, double xp, double yp, double zp)
     --k;
     }
 
+    if(p->j_dir==0)
+    value = lint3_2D(f,i,j,k,wa,wb,wc);
+    
+    if(p->j_dir==1)
     value = lint3(f,i,j,k,wa,wb,wc);
 
     i=ii;
@@ -279,7 +291,11 @@ double interpolation::ccipol4(field& f, double xp, double yp, double zp)
     --k;
     }
 
-    value =  lint4(f,i,j,k,wa,wb,wc);
+    if(p->j_dir==0)
+    value = lint4_2D(f,i,j,k,wa,wb,wc);
+    
+    if(p->j_dir==1)
+    value = lint4(f,i,j,k,wa,wb,wc);
 
     i=ii;
     j=jj;
@@ -346,6 +362,10 @@ double interpolation::ccipol4phi(fdm *a,field& f, double xp, double yp, double z
     --k;
     }
 
+    if(p->j_dir==0)
+    value =  lint4phi_2D(a,f,i,j,k,wa,wb,wc);
+    
+    if(p->j_dir==1)
     value =  lint4phi(a,f,i,j,k,wa,wb,wc);
 
     i=ii;
@@ -635,8 +655,12 @@ double interpolation::ccipol4_a(field& f, double xp, double yp, double zp)
     --k;
     }
 
-
-    value =  lint_a(f,i,j,k,wa,wb,wc);
+    
+    if(p->j_dir==0)
+    value = lint_a_2D(f,i,j,k,wa,wb,wc);
+    
+    if(p->j_dir==1)
+    value = lint_a(f,i,j,k,wa,wb,wc);
 
     i=ii;
     j=jj;
