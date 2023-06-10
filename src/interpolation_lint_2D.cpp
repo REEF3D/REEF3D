@@ -29,6 +29,7 @@ double interpolation::lint1_2D(field& b, int& i,int& j, int& k, double wa, doubl
 {
     v1=v2=v3=v4=0.0;
     
+    jj=j;
     j=0;
 
 pip=4;
@@ -41,6 +42,7 @@ pip=4;
     if(p->flag1[Ip1JKp1]>TOPO)
     v4=b(i+1,j,k+1);
 pip=0;
+    j=jj;
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
@@ -54,6 +56,7 @@ double interpolation::lint2_2D(field& b, int& i,int& j, int& k, double wa, doubl
 {
     v1=v2=v3=v4=0.0;
     
+    jj=j;
     j=0;
 
 pip=4;
@@ -66,6 +69,7 @@ pip=4;
     if(p->flag2[Ip1JKp1]>TOPO)
     v4=b(i+1,j,k+1);
 pip=0;
+    j=jj;
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
@@ -79,6 +83,7 @@ double interpolation::lint3_2D(field& b, int& i,int& j, int& k, double wa, doubl
 {
     v1=v2=v3=v4=0.0;
     
+    jj=j;
     j=0;
 
 pip=4;
@@ -91,6 +96,7 @@ pip=4;
     if(p->flag3[Ip1JKp1]>TOPO)
     v4=b(i+1,j,k+1);
 pip=0;
+    j=jj;
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
@@ -104,6 +110,7 @@ double interpolation::lint4_2D(field& f, int& i,int& j, int& k, double wa, doubl
 {
     v1=v2=v3=v4=0.0;
     
+    jj=j;
     j=0;
 
     pip=4;
@@ -116,6 +123,7 @@ double interpolation::lint4_2D(field& f, int& i,int& j, int& k, double wa, doubl
     if(p->flag4[Ip1JKp1]>TOPO)
     v4=f(i+1,j,k+1);
     pip=0;
+    j=jj;
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
@@ -131,6 +139,7 @@ double interpolation::lint4phi_2D(fdm *a, field& b, int& i,int& j, int& k, doubl
 	double epphi2=0.6*p->DXM;
     v1=v2=v3=v4=p->phimean-p->pos_z();
     
+    jj=j;
     j=0;
 
 	pip=4;
@@ -143,6 +152,8 @@ double interpolation::lint4phi_2D(fdm *a, field& b, int& i,int& j, int& k, doubl
     if(a->topo(i+1,j,k+1)>-epphi && a->fb(i+1,j,k+1)>-epphi2)
     v4=b(i+1,j,k+1);
     pip=0;
+    
+    j=jj;
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
@@ -150,19 +161,20 @@ double interpolation::lint4phi_2D(fdm *a, field& b, int& i,int& j, int& k, doubl
     value = wc*x1 +(1.0-wc)*x2;
 
     return value;
-
 }
 
 double interpolation::lint_a_2D(field& f, int& i,int& j, int& k, double wa, double wb, double wc)
 {
+    jj=j;
     j=0;
-    
-pip=4;
+        
+    pip=4;
 
     x1 = wa*f(i,j,k)   + (1.0-wa)*f(i+1,j,k);
     x2 = wa*f(i,j,k+1) + (1.0-wa)*f(i+1,j,k+1);
 
-pip=0;
+    pip=0;
+    j=jj;
 
     value = wc*x1 +(1.0-wc)*x2;
 
