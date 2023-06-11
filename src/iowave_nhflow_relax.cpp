@@ -28,9 +28,9 @@ Author: Hans Bihs
 void iowave::U_relax(lexer *p, ghostcell *pgc, double *U)
 {
     count=0;
-    ULOOP
+    LOOP
     {
-        dg = distgen(p);
+         dg = distgen(p);
 		db = distbeach(p);
         
 		// Wave Generation
@@ -58,7 +58,7 @@ void iowave::V_relax(lexer *p, ghostcell *pgc, double *V)
 {
     count=0;
     if(p->j_dir==0)
-    VLOOP
+    LOOP
     {
         dg = distgen(p);
 		db = distbeach(p);
@@ -87,7 +87,7 @@ void iowave::V_relax(lexer *p, ghostcell *pgc, double *V)
 void iowave::W_relax(lexer *p, ghostcell *pgc, double *W)
 {
     count=0;
-    WLOOP
+    LOOP
     {
         dg = distgen(p);
         db = distbeach(p);

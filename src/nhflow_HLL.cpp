@@ -23,11 +23,22 @@ Author: Hans Bihs
 #include"nhflow_HLL.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
+#include"patchBC_interface.h"
 #include"nhflow_flux_face_cds2.h"
+#include"nhflow_reconstruct_hires.h"
+#include"nhflow_reconstruct_WENO.h"
 
-nhflow_HLL::nhflow_HLL (lexer *p)
+nhflow_HLL::nhflow_HLL (lexer *p, patchBC_interface *ppBC)
 {
+    pBC = ppBC;
+    
     pflux = new nhflow_flux_face_cds2(p);
+    
+    if(p->A543==2)
+    precon = new nhflow_reconstruct_hires(p,ppBC);
+    
+    if(p->A543==4)
+    precon = new nhflow_reconstruct_weno(p,ppBC);
 }
 
 nhflow_HLL::~nhflow_HLL()
@@ -52,6 +63,13 @@ void nhflow_HLL::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, dou
         LOOP
         d->L[IJK]+=aij(p,d,F,4,U,V,W,p->DXN,p->DYN,p->DZN);
 }
+
+double nhflow_HLL::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W, double *DX,double *DY, double *DZ)
+{
+    
+}
+
+
 
 double nhflow_HLL::aij(lexer* p,fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W, double *DX,double *DY, double *DZ)
 {

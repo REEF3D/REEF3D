@@ -24,6 +24,8 @@ Author: Hans Bihs
 #include"increment.h"
 
 class nhflow_flux;
+class nhflow_reconstruct;
+class patchBC_interface;
 
 #ifndef NHFLOW_HLL_H_
 #define NHFLOW_HLL_H_
@@ -35,13 +37,15 @@ class nhflow_HLL : public nhflow_convection, public increment
 
 public:
 
-	nhflow_HLL (lexer *);
+	nhflow_HLL (lexer*,patchBC_interface*);
 	virtual ~nhflow_HLL();
 
     virtual void start(lexer*, fdm_nhf*, double*, int, double*, double*,double*);
 
 private:
     double aij(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);
+    
+    double aij_U(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);
 
 	double dx,dy,dz;
 	double udir,vdir,wdir;
@@ -50,6 +54,8 @@ private:
     double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
 
     nhflow_flux *pflux;
+    patchBC_interface *pBC;
+    nhflow_reconstruct *precon;
 };
 
 #endif

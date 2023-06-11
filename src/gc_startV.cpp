@@ -244,7 +244,6 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
     
     /*fivec_vel(p,x,bc);
     
-    
     if(gcv==250)
     fivec(p,x,bc);
     
@@ -266,8 +265,6 @@ void ghostcell::start4S(lexer *p, double *f, int gcv)
     gcparacoxV(p, f, gcv);
     gcparacoxV(p, f, gcv);
 	p->xtime+=endtime-starttime;
-    
-
 }
 
 void ghostcell::start4P(lexer *p, double *f, int gcv)
