@@ -38,10 +38,10 @@ using namespace std;
 class fnpf_print_Hs : public increment
 {
 public:
-    fnpf_print_Hs(lexer*,fdm_fnpf*);
+    fnpf_print_Hs(lexer*,slice&);
 	virtual ~fnpf_print_Hs();
 
-	void start(lexer*, fdm_fnpf*, ghostcell*,slice&);
+	void start(lexer*, ghostcell*,slice&,slice&);
     
     slice4 ETAsum, ETAmean; //DKAF
     slice4 ETA2sum, ETAvar; //DKAF
@@ -53,7 +53,6 @@ private:
     int wfcall;      
     double wtime;
     double stime;        // Start avreging after transients
-    
 
 };
 

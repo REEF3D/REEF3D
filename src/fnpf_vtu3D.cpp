@@ -101,7 +101,7 @@ fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 	pforce_ale[n]=new force_ale(p,c,pgc,n);
     
     if(p->P110==1)
-    phs = new fnpf_print_Hs(p,c);
+    phs = new fnpf_print_Hs(p,c->Hs);
 
 }
 
@@ -119,7 +119,7 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     pwsf_theory->height_gauge(p,c,pgc,pflow);
     
     if(p->P110==1)
-    phs->start(p,c,pgc,c->eta);
+    phs->start(p,pgc,c->eta,c->Hs);
 
 		// Print out based on iteration
         if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)

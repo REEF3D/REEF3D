@@ -306,7 +306,7 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	}
     }
     
-    //  test
+    //  Hs
     if(p->P110==1)
     {
 	iin=4*(p->pointnum2D);
