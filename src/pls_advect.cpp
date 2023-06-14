@@ -50,11 +50,11 @@ void particle_pls::advect(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag,
 	coord3=f[n][2]+w2;
 	
 	
-	f[n][0]= f[n][0] + (2.0/3.0)*u2 + (2.0/3.0)*p->dt*upol(p,a,coord1,coord2,coord3);
+	f[n][0] = f[n][0] + (2.0/3.0)*u2 + (2.0/3.0)*p->dt*upol(p,a,coord1,coord2,coord3);
 
-    f[n][1]= f[n][1] + (2.0/3.0)*v2 + (2.0/3.0)*p->dt*vpol(p,a,coord1,coord2,coord3);
+    f[n][1] = f[n][1] + (2.0/3.0)*v2 + (2.0/3.0)*p->dt*vpol(p,a,coord1,coord2,coord3);
 	
-	f[n][2]= f[n][2] + (2.0/3.0)*w2 + (2.0/3.0)*p->dt*wpol(p,a,coord1,coord2,coord3);
+	f[n][2] = f[n][2] + (2.0/3.0)*w2 + (2.0/3.0)*p->dt*wpol(p,a,coord1,coord2,coord3);
 
 
     f[n][3]=phipol(p,a,f[n][0],f[n][1],f[n][2]);
