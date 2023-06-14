@@ -46,6 +46,8 @@ private:
     double aij(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);
     
     double aij_U(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);
+    double aij_V(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);
+    double aij_W(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);
 
 	double dx,dy,dz;
 	double udir,vdir,wdir;
