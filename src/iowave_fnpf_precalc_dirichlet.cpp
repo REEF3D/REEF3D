@@ -42,7 +42,13 @@ void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
         etaval[count] = eta(i,j);
         
         z = eta(i,j);
+        
+        time_1=time_0;
+        time_0=p->simtime;
+        time_n=p->simtime+p->dt;
+        Fifsfval1[count] = Fifsfval0[count];
         Fifsfval0[count] = Fifsfval[count];
+        
         Fifsfval[count] = wave_u(p,pgc,xg,yg,z);
         ++count;
         }

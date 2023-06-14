@@ -114,13 +114,7 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             
             if(p->flag7[FIm1JK]<0 && c->bc(i-1,j)==1  && p->A329==1 && k>0)
             {
-            c->rhsvec.V[n] -=  2.0*p->sigx[FIJK]*(f[FIp1JKp1] - f[FIm1JKp1] - f[FIp1JKm1] + f[FIm1JKm1])
-                        /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
-                        
-            c->rhsvec.V[n] +=  2.0*p->sigx[FIJK]*(c->Uin[FIm1JKp1] - c->Uin[FIm1JKm1])
-                        /((p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
-                        
-            c->rhsvec.V[n] += c->M.s[n]*c->Uin[FIm1JK]*1.01*p->DXP[IM1];
+            c->rhsvec.V[n] += c->M.s[n]*c->Uin[FIm1JK]*p->DXP[IM1];
             c->M.p[n] += c->M.s[n];
             c->M.s[n] = 0.0;
             }
