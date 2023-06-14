@@ -48,7 +48,7 @@ nhflow_HLL::~nhflow_HLL()
 void nhflow_HLL::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W)
 {
     // reconstruct eta
-    precon->reconstruct_2D(p, pgc, d, eta, ETAs, ETAn, ETAe, ETAw);
+   /* precon->reconstruct_2D(p, pgc, d, eta, ETAs, ETAn, ETAe, ETAw);
     
    
     
@@ -66,7 +66,7 @@ void nhflow_HLL::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, dou
 
         if(ipol==4)
         LOOP
-        d->L[IJK]+=aij(p,d,F,4,U,V,W,p->DXN,p->DYN,p->DZN);
+        d->L[IJK]+=aij(p,d,F,4,U,V,W,p->DXN,p->DYN,p->DZN);*/
 }
 
 double nhflow_HLL::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL, double *DX,double *DY, double *DZ)
@@ -109,7 +109,7 @@ double nhflow_HLL::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
     Fz(i,j,k) = 0.5*(Omega(i,j,k)*(UzL(i,j,k)+UzR(i,j,k))-abs(Omega(i,j,k))*(UzR(i,j,k)-UzL(i,j,k)))
     */
     
-    
+   /* 
     double Ss,Sn,Se,Sw;
     double USx,USy;
     double Ds,Dn,De,Dw;
@@ -244,7 +244,7 @@ double nhflow_HLL::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
     
     pgc->start1V(p,Fx,10);
     pgc->start2V(p,Fy,10);
-	
+	*/
     
 }
 

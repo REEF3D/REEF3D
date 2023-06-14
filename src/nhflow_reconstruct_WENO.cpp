@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_reconstruct_weno.h"
+#include"nhflow_reconstruct_WENO.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"fdm_nhf.h"
