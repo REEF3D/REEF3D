@@ -34,7 +34,7 @@ nhflow_weno_flux::~nhflow_weno_flux()
 {
 }
 
-void nhflow_weno_flux::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W)
+void nhflow_weno_flux::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W, slice &eta)
 {
     uf=vf=wf=0;
         

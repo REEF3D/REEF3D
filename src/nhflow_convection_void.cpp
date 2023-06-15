@@ -33,7 +33,7 @@ nhflow_convection_void::~nhflow_convection_void()
 {
 }
 
-void nhflow_convection_void::start(lexer* p, fdm_nhf* d, double *B, int ipol, double *U, double *V, double *W)
+void nhflow_convection_void::start(lexer* p, fdm_nhf* d, double *B, int ipol, double *U, double *V, double *W, slice &eta)
 {
     
 }

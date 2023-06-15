@@ -22,14 +22,18 @@ Author: Hans Bihs
 
 #include"nhflow_HLL.h"
 #include"lexer.h"
+#include"ghostcell.h"
 #include"fdm_nhf.h"
+#include"slice.h"
 #include"patchBC_interface.h"
 #include"nhflow_flux_face_cds2.h"
 #include"nhflow_reconstruct_hires.h"
 #include"nhflow_reconstruct_WENO.h"
 
-nhflow_HLL::nhflow_HLL (lexer *p, patchBC_interface *ppBC)
+nhflow_HLL::nhflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) : ETAs(p),ETAn(p),ETAe(p),ETAw(p),
+                                                                              Ds(p),Dn(p),De(p),Dw(p),Ss(p),Sn(p),Se(p),Sw(p)
 {
+    pgc = ppgc;
     pBC = ppBC;
     
     pflux = new nhflow_flux_face_cds2(p);
@@ -39,19 +43,56 @@ nhflow_HLL::nhflow_HLL (lexer *p, patchBC_interface *ppBC)
     
     if(p->A543==4)
     precon = new nhflow_reconstruct_weno(p,ppBC);
+    
+    
+    double *Fs,*Fn,*Fe,*Fw,*Fz,*DU,*DV;
+    double *Us,*Un,*Ue,*Uw,*Ub,*Ut;
+    double *DUs,*DUn,*DUe,*DUw;
+    
+    p->Darray(Fs,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Fn,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Fe,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Fw,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Fz,p->imax*p->jmax*(p->kmax+2));
+    
+    p->Darray(Us,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Un,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Ue,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Uw,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Ub,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Ut,p->imax*p->jmax*(p->kmax+2));
 }
 
 nhflow_HLL::~nhflow_HLL()
 {
 }
 
-void nhflow_HLL::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W)
+void nhflow_HLL::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W, slice &eta)
 {
     // reconstruct eta
-   /* precon->reconstruct_2D(p, pgc, d, eta, ETAs, ETAn, ETAe, ETAw);
+    precon->reconstruct_2D(p, pgc, d, eta, ETAs, ETAn, ETAe, ETAw);
+    
+    SLICELOOP1
+    {
+    // water level       
+    Ds(i,j) = ETAs(i,j) + p->wd - d->bed(i,j);
+    Dn(i,j) = ETAn(i,j) + p->wd - d->bed(i,j);
+    
+    Ds(i,j) = MAX(0.00005, Ds(i,j));
+    Dn(i,j) = MAX(0.00005, Dn(i,j));
+    }
+    
+    SLICELOOP2
+    {
+    De(i,j) = ETAe(i,j)  + p->wd - d->bed(i,j);
+    Dw(i,j) = ETAw(i,j)  + p->wd - d->bed(i,j);
+    
+    De(i,j) = MAX(0.00005, De(i,j));
+    Dw(i,j) = MAX(0.00005, Dw(i,j));
+    }
     
    
-    
+
         if(ipol==1)
         LOOP
         d->F[IJK]+=aij(p,d,F,1,U,V,W,p->DXN,p->DYN,p->DZN);
@@ -66,7 +107,7 @@ void nhflow_HLL::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, dou
 
         if(ipol==4)
         LOOP
-        d->L[IJK]+=aij(p,d,F,4,U,V,W,p->DXN,p->DYN,p->DZN);*/
+        d->L[IJK]+=aij(p,d,F,4,U,V,W,p->DXN,p->DYN,p->DZN);
 }
 
 double nhflow_HLL::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL, double *DX,double *DY, double *DZ)
@@ -76,29 +117,28 @@ double nhflow_HLL::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
     EtaxL
     EtaxR
     
-    UxL
-    UxR
-    DUxL
-    DUxR
+    UxL = Us
+    UxR = Un
+    DUxL = DUs
+    DUxR = DUn
     
-    UyL
-    UyR
-    DUyL
-    DUyR
+    UyL = Ue
+    UyR = Uw
+    DUyL = DUe
+    DUyR = DUw
     
-    UzL
-    UzR
-    DUxL
-    DUxR
-    
+    UzL = Ub
+    UzR = Ut
+   
     ----
     
-    FxL
-    FxR
-    FyL
-    FyR
-    Fz  
+    FxL = Fs
+    FxR = Fn
+    FyL = Fe
+    FyR = Fw
+    Fz  = Fz
     
+    ----
     
     FxL(i,j,k) = DUxL(i,j,k)*UxL(i,j,k)+0.5*Grav*(EtaxL(i,j)*EtaxL(i,j)+2.0*EtaxL(i,j)*hfx0(i,j))
     FxR(i,j,k) = DUxR(i,j,k)*UxR(i,j,k)+0.5*Grav*(EtaxR(i,j)*EtaxR(i,j)+2.0*EtaxR(i,j)*hfx0(i,j))
@@ -108,6 +148,8 @@ double nhflow_HLL::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
     
     Fz(i,j,k) = 0.5*(Omega(i,j,k)*(UzL(i,j,k)+UzR(i,j,k))-abs(Omega(i,j,k))*(UzR(i,j,k)-UzL(i,j,k)))
     */
+    
+    
     
    /* 
     double Ss,Sn,Se,Sw;

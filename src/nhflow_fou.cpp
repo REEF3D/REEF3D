@@ -34,7 +34,7 @@ nhflow_fou::~nhflow_fou()
 {
 }
 
-void nhflow_fou::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W)
+void nhflow_fou::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W, slice &eta)
 {
     if(ipol==1)
         LOOP

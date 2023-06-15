@@ -84,7 +84,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	//bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,d,etark1,d->eta);
 	irhs(p,d,pgc);
-	pconvec->start(p,d,d->U,1,d->U,d->V,d->W);
+	pconvec->start(p,d,d->U,1,d->U,d->V,d->W,etark1);
 	//pdiff->diff_u(p,a,pgc,psolv,udiff,a->u,a->v,a->w,1.0);
 
 	LOOP
@@ -101,7 +101,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	//bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
     ppress->vpgrad(p,d,etark1,d->eta);
 	jrhs(p,d,pgc);
-    pconvec->start(p,d,d->V,2,d->U,d->V,d->W);
+    pconvec->start(p,d,d->V,2,d->U,d->V,d->W,etark1);
 	//pdiff->diff_v(p,a,pgc,psolv,vdiff,a->u,a->v,a->w,1.0);
 
 	LOOP
@@ -118,7 +118,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	//bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
 	ppress->wpgrad(p,d,etark1,d->eta);
 	krhs(p,d,pgc);
-	pconvec->start(p,d,d->W,3,d->U,d->V,d->W);
+	pconvec->start(p,d,d->W,3,d->U,d->V,d->W,etark1);
 	//pdiff->diff_w(p,a,pgc,psolv,wdiff,a->u,a->v,a->w,1.0);
 
 	LOOP
@@ -172,7 +172,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	//bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,d,etark2,etark1);
 	irhs(p,d,pgc);
-    pconvec->start(p,d,URK1,1,URK1,VRK1,WRK1);
+    pconvec->start(p,d,URK1,1,URK1,VRK1,WRK1,etark2);
 	//pdiff->diff_u(p,a,pgc,psolv,udiff,urk1,vrk1,wrk1,1.0);
 
 	LOOP
@@ -189,7 +189,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	//bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
 	ppress->vpgrad(p,d,etark2,etark1);
 	jrhs(p,d,pgc);
-	pconvec->start(p,d,VRK1,2,URK1,VRK1,WRK1);
+	pconvec->start(p,d,VRK1,2,URK1,VRK1,WRK1,etark2);
 	//pdiff->diff_v(p,a,pgc,psolv,vdiff,urk1,vrk1,wrk1,1.0);
 
 	LOOP
@@ -206,7 +206,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	//bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
 	ppress->wpgrad(p,d,etark2,etark1);
 	krhs(p,d,pgc);
-	pconvec->start(p,d,WRK1,2,URK1,VRK1,WRK1);
+	pconvec->start(p,d,WRK1,2,URK1,VRK1,WRK1,etark2);
 	//pdiff->diff_w(p,a,pgc,psolv,wdiff,urk1,vrk1,wrk1,1.0);
 
 	LOOP
@@ -259,7 +259,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	//bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,d,d->eta,etark2);
 	irhs(p,d,pgc);
-    pconvec->start(p,d,URK2,1,URK2,VRK2,WRK2);
+    pconvec->start(p,d,URK2,1,URK2,VRK2,WRK2,d->eta);
 	//pdiff->diff_u(p,a,pgc,psolv,udiff,urk2,vrk2,wrk2,1.0);
 
 	LOOP
@@ -276,7 +276,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	//bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
 	ppress->vpgrad(p,d,d->eta,etark2);
 	jrhs(p,d,pgc);
-	pconvec->start(p,d,VRK2,2,URK2,VRK2,WRK2);
+	pconvec->start(p,d,VRK2,2,URK2,VRK2,WRK2,d->eta);
 	//pdiff->diff_v(p,a,pgc,psolv,vdiff,urk2,vrk2,wrk2,1.0);
 
 	LOOP
@@ -293,7 +293,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	//bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
 	ppress->wpgrad(p,d,d->eta,etark2);
 	krhs(p,d,pgc);
-	pconvec->start(p,d,WRK2,3,URK2,VRK2,WRK2);
+	pconvec->start(p,d,WRK2,3,URK2,VRK2,WRK2,d->eta);
 	//pdiff->diff_w(p,a,pgc,psolv,wdiff,urk2,vrk2,wrk2,1.0);
 
 	LOOP

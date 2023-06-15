@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 class lexer;
 class fdm_nhf;
+class slice;
 
 using namespace std;
 
@@ -32,7 +33,7 @@ class nhflow_convection
 {
 public:
 
-    virtual void start(lexer*, fdm_nhf*, double*, int, double*, double*,double*)=0;
+    virtual void start(lexer*, fdm_nhf*, double*, int, double*, double*, double*, slice&)=0;
 
 };
 

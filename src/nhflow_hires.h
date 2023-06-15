@@ -39,7 +39,7 @@ public:
 	nhflow_hires (lexer*,int);
 	virtual ~nhflow_hires();
 
-	virtual void start(lexer*, fdm_nhf*, double*, int, double*, double*,double*);
+	virtual void start(lexer*, fdm_nhf*, double*, int, double*, double*,double*, slice&);
 
 private:
     double aij(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);

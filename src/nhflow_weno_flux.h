@@ -36,7 +36,7 @@ public:
 	nhflow_weno_flux(lexer*);
 	virtual ~nhflow_weno_flux();
 
-	virtual void start(lexer*, fdm_nhf*, double*, int, double*, double*,double*);
+	virtual void start(lexer*, fdm_nhf*, double*, int, double*, double*,double*, slice&);
 
 private:
     double aij(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);

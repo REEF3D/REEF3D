@@ -38,7 +38,7 @@ public:
 	nhflow_fou (lexer *);
 	virtual ~nhflow_fou();
 
-    virtual void start(lexer*, fdm_nhf*, double*, int, double*, double*,double*);
+    virtual void start(lexer*, fdm_nhf*, double*, int, double*, double*,double*, slice&);
 
 private:
     double aij(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);

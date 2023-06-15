@@ -21,11 +21,14 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_convection.h"
+#include"slice1.h"
+#include"slice2.h"
 #include"increment.h"
 
 class nhflow_flux;
 class nhflow_reconstruct;
 class patchBC_interface;
+class ghostcell;
 
 #ifndef NHFLOW_HLL_H_
 #define NHFLOW_HLL_H_
@@ -37,10 +40,10 @@ class nhflow_HLL : public nhflow_convection, public increment
 
 public:
 
-	nhflow_HLL (lexer*,patchBC_interface*);
+	nhflow_HLL (lexer*,ghostcell*,patchBC_interface*);
 	virtual ~nhflow_HLL();
 
-    virtual void start(lexer*, fdm_nhf*, double*, int, double*, double*,double*);
+    virtual void start(lexer*, fdm_nhf*, double*, int, double*, double*,double*, slice&);
 
 private:
     double aij(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);
@@ -48,6 +51,19 @@ private:
     double aij_U(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);
     double aij_V(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);
     double aij_W(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);
+    
+    double *DU,*DV;
+    double *Fs,*Fn,*Fe,*Fw,*Fz;
+    double *Us,*Un,*Ue,*Uw,*Ub,*Ut;
+    double *DUs,*DUn,*DUe,*DUw;
+    slice1 ETAs,ETAn;
+    slice2 ETAe,ETAw;
+    slice1 Ds,Dn;
+    slice2 De,Dw;
+    slice1 Ss,Sn;
+    slice2 Se,Sw;
+    
+    
 
 	double dx,dy,dz;
 	double udir,vdir,wdir;
@@ -55,6 +71,7 @@ private:
 
     double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
 
+    ghostcell *pgc;
     nhflow_flux *pflux;
     patchBC_interface *pBC;
     nhflow_reconstruct *precon;

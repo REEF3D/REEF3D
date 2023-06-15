@@ -60,7 +60,7 @@ nhflow_hires::~nhflow_hires()
 
 }
 
-void nhflow_hires::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W)
+void nhflow_hires::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W, slice &eta)
 { 	
         if(ipol==1)
         LOOP
