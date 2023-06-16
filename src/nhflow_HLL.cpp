@@ -27,8 +27,8 @@ Author: Hans Bihs
 #include"slice.h"
 #include"patchBC_interface.h"
 #include"nhflow_flux_face_cds2.h"
-#include"nhflow_reconstruct_hires.h"
-#include"nhflow_reconstruct_WENO.h"
+#include"nhflow_fsf_reconstruct_hires.h"
+#include"nhflow_fsf_reconstruct_WENO.h"
 
 nhflow_HLL::nhflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) : ETAs(p),ETAn(p),ETAe(p),ETAw(p),
                                                                               Ds(p),Dn(p),De(p),Dw(p),Ss(p),Sn(p),Se(p),Sw(p)
@@ -38,11 +38,11 @@ nhflow_HLL::nhflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) : ET
     
     pflux = new nhflow_flux_face_cds2(p);
     
-    if(p->A543==2)
-    precon = new nhflow_reconstruct_hires(p,ppBC);
+    /*if(p->A543==2)
+    precon = new nhflow_fsf_reconstruct_hires(p,ppBC);
     
     if(p->A543==4)
-    precon = new nhflow_reconstruct_weno(p,ppBC);
+    precon = new nhflow_fsf_reconstruct_weno(p,ppBC);*/
     
     
     double *Fs,*Fn,*Fe,*Fw,*Fz,*DU,*DV;
@@ -70,7 +70,9 @@ nhflow_HLL::~nhflow_HLL()
 void nhflow_HLL::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W, slice &eta)
 {
     // reconstruct eta
-    precon->reconstruct_2D(p, pgc, d, eta, ETAs, ETAn, ETAe, ETAw);
+//    precon->reconstruct_2D(p, pgc, d, eta, ETAs, ETAn, ETAe, ETAw);
+    
+    
     
     SLICELOOP1
     {
@@ -112,43 +114,10 @@ void nhflow_HLL::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, dou
 
 double nhflow_HLL::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL, double *DX,double *DY, double *DZ)
 {
-    // reconstruct
-    /*
-    EtaxL
-    EtaxR
     
-    UxL = Us
-    UxR = Un
-    DUxL = DUs
-    DUxR = DUn
-    
-    UyL = Ue
-    UyR = Uw
-    DUyL = DUe
-    DUyR = DUw
-    
-    UzL = Ub
-    UzR = Ut
-   
-    ----
-    
-    FxL = Fs
-    FxR = Fn
-    FyL = Fe
-    FyR = Fw
-    Fz  = Fz
-    
-    ----
-    
-    FxL(i,j,k) = DUxL(i,j,k)*UxL(i,j,k)+0.5*Grav*(EtaxL(i,j)*EtaxL(i,j)+2.0*EtaxL(i,j)*hfx0(i,j))
-    FxR(i,j,k) = DUxR(i,j,k)*UxR(i,j,k)+0.5*Grav*(EtaxR(i,j)*EtaxR(i,j)+2.0*EtaxR(i,j)*hfx0(i,j))
-    
-    FyL(i,j,k) = DyL(i,j)*UyL(i,j,k)*VyL(i,j,k)
-    FyR(i,j,k) = DyR(i,j)*UyR(i,j,k)*VyR(i,j,k)
-    
-    Fz(i,j,k) = 0.5*(Omega(i,j,k)*(UzL(i,j,k)+UzR(i,j,k))-abs(Omega(i,j,k))*(UzR(i,j,k)-UzL(i,j,k)))
-    */
-    
+    // reconstruct U and V
+//    precon->reconstruct_3D(p, pgc, d, DU, DV, Fs, Fn, Fe, Fw);
+ //   precon->reconstruct_3D(p, pgc, d, U, U, Us, Un, Ue, Uw);
     
     
    /* 

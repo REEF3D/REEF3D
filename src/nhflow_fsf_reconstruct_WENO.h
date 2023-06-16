@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_reconstruct.h"
+#include"nhflow_fsf_reconstruct.h"
 #include"increment.h"
 #include"slice4.h"
 #include"weno_nug_func.h"
@@ -31,16 +31,16 @@ class fdm_nhf;
 class slice;
 class patchBC_interface;
 
-#ifndef NHFLOW_RECONSTRUCT_WENO_H_
-#define NHFLOW_RECONSTRUCT_WENO_H_
+#ifndef NHFLOW_FSF_RECONSTRUCT_WENO_H_
+#define NHFLOW_FSF_RECONSTRUCT_WENO_H_
 
 using namespace std;
 
-class nhflow_reconstruct_weno : public nhflow_reconstruct, public weno_nug_func
+class nhflow_fsf_reconstruct_weno : public nhflow_fsf_reconstruct, public weno_nug_func
 {
 public:
-	nhflow_reconstruct_weno(lexer*,patchBC_interface*);
-	virtual ~nhflow_reconstruct_weno();
+	nhflow_fsf_reconstruct_weno(lexer*,patchBC_interface*);
+	virtual ~nhflow_fsf_reconstruct_weno();
 
 	virtual void reconstruct_2D(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&,slice&,slice&);
     virtual void reconstruct_3D(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*,double*,double*,double*);

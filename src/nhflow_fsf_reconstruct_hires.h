@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"nhflow_fsf_reconstruct.h"
 #include"increment.h"
 #include"slice4.h"
 
@@ -29,18 +30,33 @@ class fdm_nhf;
 class slice;
 class patchBC_interface;
 
-#ifndef NHFLOW_RECONSTRUCT_H_
-#define NHFLOW_RECONSTRUCT_H_
+#ifndef NHFLOW_FSF_RECONSTRUCT_HIRES_H_
+#define NHFLOW_FSF_RECONSTRUCT_HIRES_H_
 
 using namespace std;
 
-class nhflow_reconstruct
+class nhflow_fsf_reconstruct_hires : public nhflow_fsf_reconstruct, public increment
 {
 public:
+	nhflow_fsf_reconstruct_hires(lexer*,patchBC_interface*);
+	virtual ~nhflow_fsf_reconstruct_hires();
 
-	virtual void reconstruct_2D(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&,slice&,slice&)=0;
-    virtual void reconstruct_3D(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*,double*,double*,double*)=0;
+	virtual void reconstruct_2D(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&,slice&,slice&);
+    virtual void reconstruct_3D(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*,double*,double*,double*);
+    
+    slice4 dfdx,dfdy;
+    double *DFDX, *DFDY;
 
+
+private:
+    double limiter(double, double);
+
+    double ivel1,ivel2,jvel1,jvel2;
+    double val,denom;
+    double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus;
+    int qq;
+    
+    patchBC_interface *pBC;
 };
 
 #endif

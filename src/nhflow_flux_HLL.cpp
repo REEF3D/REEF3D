@@ -25,18 +25,18 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"fdm_nhf.h"
 #include"patchBC_interface.h"
-#include"nhflow_reconstruct_hires.h"
-#include"nhflow_reconstruct_WENO.h"
+#include"nhflow_fsf_reconstruct_hires.h"
+#include"nhflow_fsf_reconstruct_WENO.h"
 
 nhflow_flux_HLL::nhflow_flux_HLL(lexer* p, patchBC_interface *ppBC) : ETAs(p),ETAn(p),ETAe(p),ETAw(p)
 {
     pBC = ppBC;
     
     if(p->A543==2)
-    precon = new nhflow_reconstruct_hires(p,ppBC);
+    precon = new nhflow_fsf_reconstruct_hires(p,ppBC);
     
     if(p->A543==4)
-    precon = new nhflow_reconstruct_weno(p,ppBC);
+    precon = new nhflow_fsf_reconstruct_weno(p,ppBC);
     
     p->Darray(DU,p->imax*p->jmax*(p->kmax+2));
     p->Darray(DV,p->imax*p->jmax*(p->kmax+2));

@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_reconstruct_hires.h"
+#include"nhflow_fsf_reconstruct_hires.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"fdm_nhf.h"
 #include"patchBC_interface.h"
 
-nhflow_reconstruct_hires::nhflow_reconstruct_hires(lexer* p, patchBC_interface *ppBC) : dfdx(p), dfdy(p)
+nhflow_fsf_reconstruct_hires::nhflow_fsf_reconstruct_hires(lexer* p, patchBC_interface *ppBC) : dfdx(p), dfdy(p)
 {
     pBC = ppBC;
     
@@ -34,11 +34,11 @@ nhflow_reconstruct_hires::nhflow_reconstruct_hires(lexer* p, patchBC_interface *
     p->Darray(DFDY,p->imax*p->jmax*(p->kmax+2));
 }
 
-nhflow_reconstruct_hires::~nhflow_reconstruct_hires()
+nhflow_fsf_reconstruct_hires::~nhflow_fsf_reconstruct_hires()
 {
 }
 
-void nhflow_reconstruct_hires::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fs, slice &fn, slice &fe, slice &fw)
+void nhflow_fsf_reconstruct_hires::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fs, slice &fn, slice &fe, slice &fw)
 {
     // gradient
     SLICELOOP4
@@ -75,7 +75,7 @@ void nhflow_reconstruct_hires::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf*
     pgc->gcsl_start2(p,fw,11);
 }
 
-void nhflow_reconstruct_hires::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fx, double *Fy, double *Fs, double *Fn, double *Fe, double *Fw)
+void nhflow_fsf_reconstruct_hires::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fx, double *Fy, double *Fs, double *Fn, double *Fe, double *Fw)
 {
     // gradient
     ULOOP
@@ -154,7 +154,7 @@ void nhflow_reconstruct_hires::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf 
     pgc->start2V(p,Fw,11);
 }
 
-double nhflow_reconstruct_hires::limiter(double v1, double v2)
+double nhflow_fsf_reconstruct_hires::limiter(double v1, double v2)
 {
     denom = fabs(v1) + fabs(v2);
     

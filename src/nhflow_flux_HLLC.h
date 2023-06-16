@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"slice2.h"
 #include"increment.h"
 
-class nhflow_reconstruct;
+class nhflow_fsf_reconstruct;
 
 #ifndef NHFLOW_FLUX_HLLC_H_
 #define NHFLOW_FLUX_HLLC_H_
@@ -52,7 +52,7 @@ private:
     int qq;
     
     patchBC_interface *pBC;
-    nhflow_reconstruct *precon;
+    nhflow_fsf_reconstruct *precon;
 };
 
 #endif

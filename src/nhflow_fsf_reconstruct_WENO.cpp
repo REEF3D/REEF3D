@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_reconstruct_WENO.h"
+#include"nhflow_fsf_reconstruct_WENO.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"fdm_nhf.h"
 #include"patchBC_interface.h"
 
-nhflow_reconstruct_weno::nhflow_reconstruct_weno(lexer* p, patchBC_interface *ppBC) : weno_nug_func(p), dfdx(p), dfdy(p)
+nhflow_fsf_reconstruct_weno::nhflow_fsf_reconstruct_weno(lexer* p, patchBC_interface *ppBC) : weno_nug_func(p), dfdx(p), dfdy(p)
 {
     pBC = ppBC;
     
@@ -35,11 +35,11 @@ nhflow_reconstruct_weno::nhflow_reconstruct_weno(lexer* p, patchBC_interface *pp
 
 }
 
-nhflow_reconstruct_weno::~nhflow_reconstruct_weno()
+nhflow_fsf_reconstruct_weno::~nhflow_fsf_reconstruct_weno()
 {
 }
 
-void nhflow_reconstruct_weno::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf *d, slice& f, slice &fs, slice &fn, slice &fe, slice &fw)
+void nhflow_fsf_reconstruct_weno::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf *d, slice& f, slice &fs, slice &fn, slice &fe, slice &fw)
 {
     ULOOP
     {
@@ -96,7 +96,7 @@ void nhflow_reconstruct_weno::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf *
     pgc->gcsl_start2(p,fw,11);
 }
 
-void nhflow_reconstruct_weno::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fx, double *Fy, double *Fs, double *Fn, double *Fe, double *Fw)
+void nhflow_fsf_reconstruct_weno::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fx, double *Fy, double *Fs, double *Fn, double *Fe, double *Fw)
 {
     ULOOP
     {
@@ -155,7 +155,7 @@ void nhflow_reconstruct_weno::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf *
     pgc->start2V(p,Fw,11);
 }
 
-double nhflow_reconstruct_weno::limiter(double v1, double v2)
+double nhflow_fsf_reconstruct_weno::limiter(double v1, double v2)
 {
     denom = fabs(v1) + fabs(v2);
     
@@ -166,7 +166,7 @@ double nhflow_reconstruct_weno::limiter(double v1, double v2)
     return val;	
 }
 
-void nhflow_reconstruct_weno::iqmin(lexer *p, double *F)
+void nhflow_fsf_reconstruct_weno::iqmin(lexer *p, double *F)
 {	 
     q1 = F[Im2JK];
     q2 = F[Im1JK];
@@ -175,7 +175,7 @@ void nhflow_reconstruct_weno::iqmin(lexer *p, double *F)
     q5 = F[Ip2JK];
 }
 
-void nhflow_reconstruct_weno::jqmin(lexer *p, double *F)
+void nhflow_fsf_reconstruct_weno::jqmin(lexer *p, double *F)
 {
     q1 = F[IJm2K];
     q2 = F[IJm1K];
@@ -184,7 +184,7 @@ void nhflow_reconstruct_weno::jqmin(lexer *p, double *F)
     q5 = F[IJp2K];
 }
 
-void nhflow_reconstruct_weno::kqmin(lexer *p, double *F)
+void nhflow_fsf_reconstruct_weno::kqmin(lexer *p, double *F)
 {
     q1 = F[IJKm2];
     q2 = F[IJKm1];
@@ -193,7 +193,7 @@ void nhflow_reconstruct_weno::kqmin(lexer *p, double *F)
     q5 = F[IJKp2];
 }
 
-void nhflow_reconstruct_weno::iqmax(lexer *p, double *F)
+void nhflow_fsf_reconstruct_weno::iqmax(lexer *p, double *F)
 {
     q1 = F[Im1JK];
     q2 = F[IJK];
@@ -202,7 +202,7 @@ void nhflow_reconstruct_weno::iqmax(lexer *p, double *F)
     q5 = F[Ip3JK];
 }
 
-void nhflow_reconstruct_weno::jqmax(lexer *p, double *F)
+void nhflow_fsf_reconstruct_weno::jqmax(lexer *p, double *F)
 {
     q1 = F[IJm1K];
     q2 = F[IJK];
@@ -211,7 +211,7 @@ void nhflow_reconstruct_weno::jqmax(lexer *p, double *F)
     q5 = F[IJp3K];
 }
 
-void nhflow_reconstruct_weno::kqmax(lexer *p, double *F)
+void nhflow_fsf_reconstruct_weno::kqmax(lexer *p, double *F)
 {
 	q1 = F[IJKm1];
     q2 = F[IJK];
@@ -220,7 +220,7 @@ void nhflow_reconstruct_weno::kqmax(lexer *p, double *F)
     q5 = F[IJKp3];
 }
 
-void nhflow_reconstruct_weno::iqmin_sl(lexer *p, slice& f)
+void nhflow_fsf_reconstruct_weno::iqmin_sl(lexer *p, slice& f)
 {	
 	q1 = f(i-2,j);
 	q2 = f(i-1,j);
@@ -229,7 +229,7 @@ void nhflow_reconstruct_weno::iqmin_sl(lexer *p, slice& f)
 	q5 = f(i+2,j);
 }
 
-void nhflow_reconstruct_weno::jqmin_sl(lexer *p, slice& f)
+void nhflow_fsf_reconstruct_weno::jqmin_sl(lexer *p, slice& f)
 {
 	q1 = f(i,j-2);
 	q2 = f(i,j-1);
@@ -238,7 +238,7 @@ void nhflow_reconstruct_weno::jqmin_sl(lexer *p, slice& f)
 	q5 = f(i,j+2);
 }
 
-void nhflow_reconstruct_weno::iqmax_sl(lexer *p, slice& f)
+void nhflow_fsf_reconstruct_weno::iqmax_sl(lexer *p, slice& f)
 {
 	q1 = f(i+3,j);
 	q2 = f(i+2,j);
@@ -247,7 +247,7 @@ void nhflow_reconstruct_weno::iqmax_sl(lexer *p, slice& f)
 	q5 = f(i-1,j);
 }
 
-void nhflow_reconstruct_weno::jqmax_sl(lexer *p, slice& f)
+void nhflow_fsf_reconstruct_weno::jqmax_sl(lexer *p, slice& f)
 {
 	q1 = f(i,j+3);
 	q2 = f(i,j+2);

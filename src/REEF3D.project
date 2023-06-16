@@ -248,6 +248,7 @@
           <File Name="nhflow_turbulence.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <VirtualDirectory Name="Reconstruct"/>
           <File Name="nhflow_HLL.h"/>
           <File Name="nhflow_cds2.h"/>
           <VirtualDirectory Name="Limiter">
@@ -311,13 +312,13 @@
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
           <VirtualDirectory Name="Flux HLL">
-            <File Name="nhflow_reconstruct_hires.h"/>
-            <File Name="nhflow_reconstruct.h"/>
+            <File Name="nhflow_fsf_reconstruct.h"/>
+            <File Name="nhflow_fsf_reconstruct_WENO.h"/>
+            <File Name="nhflow_fsf_reconstruct_hires.h"/>
             <File Name="nhflow_flux_HLLC.h"/>
             <File Name="nhflow_flux_HLL.h"/>
             <File Name="nhflow_flux_fsf.h"/>
             <File Name="nhflow_flux_FOU.h"/>
-            <File Name="nhflow_reconstruct_WENO.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Discretization">
             <File Name="nhflow_hxy_flux.h"/>
@@ -1319,6 +1320,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <VirtualDirectory Name="Reconstruct"/>
           <File Name="nhflow_HLL.cpp"/>
           <File Name="nhflow_cds2.cpp"/>
           <VirtualDirectory Name="Limiter">
@@ -1389,8 +1391,8 @@
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
           <VirtualDirectory Name="Flux_HLL">
-            <File Name="nhflow_reconstruct_WENO.cpp"/>
-            <File Name="nhflow_reconstruct_hires.cpp"/>
+            <File Name="nhflow_fsf_reconstruct_hires.cpp"/>
+            <File Name="nhflow_fsf_reconstruct_WENO.cpp"/>
             <File Name="nhflow_flux_HLLC.cpp"/>
             <File Name="nhflow_flux_HLL.cpp"/>
             <File Name="nhflow_flux_FOU.cpp"/>
