@@ -27,8 +27,7 @@ Author: Hans Bihs
 #include"slice.h"
 #include"patchBC_interface.h"
 #include"nhflow_flux_face_cds2.h"
-#include"nhflow_fsf_reconstruct_hires.h"
-#include"nhflow_fsf_reconstruct_WENO.h"
+#include"nhflow_reconstruct_hires.h"
 
 nhflow_HLL::nhflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) : ETAs(p),ETAn(p),ETAe(p),ETAw(p),
                                                                               Ds(p),Dn(p),De(p),Dw(p),Ss(p),Sn(p),Se(p),Sw(p)
@@ -38,11 +37,8 @@ nhflow_HLL::nhflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) : ET
     
     pflux = new nhflow_flux_face_cds2(p);
     
-    /*if(p->A543==2)
-    precon = new nhflow_fsf_reconstruct_hires(p,ppBC);
-    
-    if(p->A543==4)
-    precon = new nhflow_fsf_reconstruct_weno(p,ppBC);*/
+ 
+    precon = new nhflow_reconstruct_hires(p,ppBC);
     
     
     double *Fs,*Fn,*Fe,*Fw,*Fz,*DU,*DV;
@@ -70,7 +66,7 @@ nhflow_HLL::~nhflow_HLL()
 void nhflow_HLL::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W, slice &eta)
 {
     // reconstruct eta
-//    precon->reconstruct_2D(p, pgc, d, eta, ETAs, ETAn, ETAe, ETAw);
+    precon->reconstruct_2D(p, pgc, d, eta, ETAs, ETAn, ETAe, ETAw);
     
     
     
@@ -116,8 +112,8 @@ double nhflow_HLL::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
 {
     
     // reconstruct U and V
-//    precon->reconstruct_3D(p, pgc, d, DU, DV, Fs, Fn, Fe, Fw);
- //   precon->reconstruct_3D(p, pgc, d, U, U, Us, Un, Ue, Uw);
+    precon->reconstruct_3D_x(p, pgc, d, UVEL, Us, Un);
+    precon->reconstruct_3D_y(p, pgc, d, UVEL, Ue, Uw);
     
     
    /* 

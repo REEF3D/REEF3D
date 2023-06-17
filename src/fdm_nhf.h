@@ -68,6 +68,7 @@ public:
     
     // NHFLOW
     slice4 wbed,dwdt;
+    slice4 Ss,Sn,Se,Sw;
     
     cpt2D C4;
 	

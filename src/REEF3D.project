@@ -248,7 +248,13 @@
           <File Name="nhflow_turbulence.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
-          <VirtualDirectory Name="Reconstruct"/>
+          <VirtualDirectory Name="Wave Speed">
+            <File Name="nhflow_wave_speed.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Reconstruct">
+            <File Name="nhflow_reconstruct.h"/>
+            <File Name="nhflow_reconstruct_hires.h"/>
+          </VirtualDirectory>
           <File Name="nhflow_HLL.h"/>
           <File Name="nhflow_cds2.h"/>
           <VirtualDirectory Name="Limiter">
@@ -1320,7 +1326,12 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
-          <VirtualDirectory Name="Reconstruct"/>
+          <VirtualDirectory Name="Wave Speed">
+            <File Name="nhflow_wave_speed.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Reconstruct">
+            <File Name="nhflow_reconstruct_hires.cpp"/>
+          </VirtualDirectory>
           <File Name="nhflow_HLL.cpp"/>
           <File Name="nhflow_cds2.cpp"/>
           <VirtualDirectory Name="Limiter">
