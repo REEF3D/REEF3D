@@ -117,6 +117,9 @@ void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     pgc->gcsl_start4(p,etark1,1);
     
     SLICELOOP4
+    d->WL_n1(i,j) = d->WL(i,j);
+    
+    SLICELOOP4
     d->WL(i,j) = (etark1(i,j) + p->wd - d->bed(i,j));
     
     SLICELOOP4
@@ -143,6 +146,9 @@ void nhflow_fsf_rk::step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
 
     pflow->eta_relax(p,pgc,etark2);
     pgc->gcsl_start4(p,etark2,1);
+    
+    SLICELOOP4
+    d->WL_n1(i,j) = d->WL(i,j);
     
     SLICELOOP4
     d->WL(i,j) = (etark2(i,j) + p->wd - d->bed(i,j));
@@ -183,10 +189,12 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     pgc->gcsl_start4(p,d->eta,1);
     
     SLICELOOP4
-    d->WL(i,j) = (d->eta(i,j) + p->wd - d->bed(i,j));
+    d->WL_n1(i,j) = d->WL(i,j);
     
     SLICELOOP4
-    d->WL_n1(i,j) = d->WL(i,j);
+    d->WL(i,j) = (d->eta(i,j) + p->wd - d->bed(i,j));
+    
+    
     
     //SLICELOOP4
     //d->detadt(i,j) = (d->eta(i,j) -d->eta_n(i,j))/p->dt;

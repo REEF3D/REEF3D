@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"nhflow_reconstruct_hires.h"
 #include"nhflow_signal_speed.h"
 
-#define WLVL (fabs(d->WL(i,j))>1.0e-20?d->WL(i,j):1.0e20)
+#define WLVL (fabs(d->WL_n1(i,j))>1.0e-20?d->WL_n1(i,j):1.0e20)
 
 nhflow_HLL::nhflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) : ETAs(p),ETAn(p),ETAe(p),ETAw(p),
                                                                               Ds(p),Dn(p),De(p),Dw(p),Ss(p),Sn(p),Se(p),Sw(p)
@@ -87,8 +87,8 @@ void nhflow_HLL::precalc(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVEL
     SLICELOOP1
     {
     // water level       
-    Ds(i,j) = ETAs(i,j) + p->wd - d->bed(i,j);
-    Dn(i,j) = ETAn(i,j) + p->wd - d->bed(i,j);
+    Ds(i,j) = ETAs(i,j) + 0.5*(d->depth(i,j) + d->depth(i-1,j));
+    Dn(i,j) = ETAn(i,j) + 0.5*(d->depth(i,j) + d->depth(i+1,j));
     
     Ds(i,j) = MAX(0.00005, Ds(i,j));
     Dn(i,j) = MAX(0.00005, Dn(i,j));
@@ -96,8 +96,8 @@ void nhflow_HLL::precalc(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVEL
     
     SLICELOOP2
     {
-    De(i,j) = ETAe(i,j)  + p->wd - d->bed(i,j);
-    Dw(i,j) = ETAw(i,j)  + p->wd - d->bed(i,j);
+    De(i,j) = ETAe(i,j)  + 0.5*(d->depth(i,j) + d->depth(i,j-1));
+    Dw(i,j) = ETAw(i,j)  + 0.5*(d->depth(i,j) + d->depth(i,j+1));
     
     De(i,j) = MAX(0.00005, De(i,j));
     Dw(i,j) = MAX(0.00005, Dw(i,j));
@@ -106,7 +106,7 @@ void nhflow_HLL::precalc(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVEL
     // reconstruct U 
     precon->reconstruct_3D_x(p, pgc, d, UVEL, Us, Un);
     precon->reconstruct_3D_y(p, pgc, d, UVEL, Ue, Uw);
-    precon->reconstruct_3D_z(p, pgc, d, WVEL, Ub, Ut);
+    precon->reconstruct_3D_z(p, pgc, d, UVEL, Ub, Ut);
     
     // reconstruct  V
     precon->reconstruct_3D_x(p, pgc, d, VVEL, Vs, Vn);
@@ -120,9 +120,7 @@ void nhflow_HLL::precalc(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVEL
     
     // signal speed
     pss->signal_speed_update(p, pgc, d, Us, Un, Ve, Vw, Ds, Dn, De, Dw);
-    
 }
-
 
 void nhflow_HLL::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W, slice &eta)
 {
@@ -142,20 +140,18 @@ double nhflow_HLL::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
     ULOOP
     {
     Fs[IJK] = Ds(i,j)*Us[IJK]*Us[IJK] 
-            + 0.5*9.81*ETAs(i,j)*ETAs(i,j)*0.5*(d->depth(i,j) + d->depth(i+1,j)) + 9.81*ETAs(i,j)*0.5*(d->depth(i,j) + d->depth(i+1,j));
+            + 0.5*fabs(p->W22)*ETAs(i,j)*ETAs(i,j) + fabs(p->W22)*ETAs(i,j)*0.5*(d->depth(i,j) + d->depth(i-1,j));
     
     Fn[IJK] = Dn(i,j)*Un[IJK]*Un[IJK] 
-            + 0.5*9.81*ETAn(i,j)*ETAn(i,j)*0.5*(d->depth(i,j) + d->depth(i+1,j)) + 9.81*ETAn(i,j)*0.5*(d->depth(i,j) + d->depth(i+1,j));
+            + 0.5*fabs(p->W22)*ETAn(i,j)*ETAn(i,j) + fabs(p->W22)*ETAn(i,j)*0.5*(d->depth(i,j) + d->depth(i+1,j));
     }
     
     // flux y-dir
     VLOOP
     {
-    Fe[IJK] = De(i,j)*Ue[IJK]*Ve[IJK] 
-            + 0.5*9.81*ETAe(i,j)*ETAe(i,j)*0.5*(d->depth(i,j) + d->depth(i,j+1)) + 9.81*ETAe(i,j)*0.5*(d->depth(i,j) + d->depth(i,j+1));
+    Fe[IJK] = De(i,j)*Ue[IJK]*Ve[IJK];
     
-    Fw[IJK] = Dw(i,j)*Uw[IJK]*Vw[IJK] 
-            + 0.5*9.81*ETAw(i,j)*ETAw(i,j)*0.5*(d->depth(i,j) + d->depth(i,j+1)) + 9.81*ETAw(i,j)*0.5*(d->depth(i,j) + d->depth(i,j+1));
+    Fw[IJK] = Dw(i,j)*Uw[IJK]*Vw[IJK];
     }
     
     // flux z-dir
@@ -207,9 +203,9 @@ double nhflow_HLL::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
     
     LOOP
     {
-    d->F[IJK] -= (1.0/WLVL)*((Fx[IJK] - Fx[Im1JK])/p->DXN[IP] 
-                           + (Fy[IJK] - Fy[IJm1K])/p->DYN[JP]*p->y_dir)
-                           + (   Fz[IJK] -    Fz[IJKm1])/p->DZN[KP];
+    d->F[IJK] -= (1.0/(WLVL))*((Fx[IJK] - Fx[Im1JK])/p->DXN[IP] 
+                             + (Fy[IJK] - Fy[IJm1K])/p->DYN[JP]*p->y_dir)
+                             + (Fz[IJK] - Fz[IJKm1])/p->DZN[KP];
     }    
 }
 
@@ -218,21 +214,19 @@ double nhflow_HLL::aij_V(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
     // flux x-dir
     ULOOP
     {
-    Fs[IJK] = Ds(i,j)*Us[IJK]*Vs[IJK] 
-            + 0.5*9.81*ETAs(i,j)*ETAs(i,j)*0.5*(d->depth(i,j) + d->depth(i+1,j)) + 9.81*ETAs(i,j)*0.5*(d->depth(i,j) + d->depth(i+1,j));
+    Fs[IJK] = Ds(i,j)*Us[IJK]*Vs[IJK];
     
-    Fn[IJK] = Dn(i,j)*Un[IJK]*Vn[IJK] 
-            + 0.5*9.81*ETAn(i,j)*ETAn(i,j)*0.5*(d->depth(i,j) + d->depth(i+1,j)) + 9.81*ETAn(i,j)*0.5*(d->depth(i,j) + d->depth(i+1,j));
+    Fn[IJK] = Dn(i,j)*Un[IJK]*Vn[IJK];
     }
     
     // flux y-dir
     VLOOP
     {
     Fe[IJK] = De(i,j)*Ve[IJK]*Ve[IJK] 
-            + 0.5*9.81*ETAe(i,j)*ETAe(i,j)*0.5*(d->depth(i,j) + d->depth(i,j+1)) + 9.81*ETAe(i,j)*0.5*(d->depth(i,j) + d->depth(i,j+1));
+            + 0.5*fabs(p->W22)*ETAe(i,j)*ETAe(i,j) + fabs(p->W22)*ETAe(i,j)*0.5*(d->depth(i,j) + d->depth(i,j-1));
     
     Fw[IJK] = Dw(i,j)*Vw[IJK]*Vw[IJK] 
-            + 0.5*9.81*ETAw(i,j)*ETAw(i,j)*0.5*(d->depth(i,j) + d->depth(i,j+1)) + 9.81*ETAw(i,j)*0.5*(d->depth(i,j) + d->depth(i,j+1));
+            + 0.5*fabs(p->W22)*ETAw(i,j)*ETAw(i,j) + fabs(p->W22)*ETAw(i,j)*0.5*(d->depth(i,j) + d->depth(i,j+1));
     }
     
     // flux z-dir
@@ -286,7 +280,7 @@ double nhflow_HLL::aij_V(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
     {
     d->G[IJK] -= (1.0/WLVL)*((Fx[IJK] - Fx[Im1JK])/p->DXN[IP] 
                            + (Fy[IJK] - Fy[IJm1K])/p->DYN[JP]*p->y_dir)
-                           + (   Fz[IJK] -    Fz[IJKm1])/p->DZN[KP];
+                           + (Fz[IJK] - Fz[IJKm1])/p->DZN[KP];
     }    
 }
 
@@ -359,7 +353,7 @@ double nhflow_HLL::aij_W(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
     {
     d->H[IJK] -= (1.0/WLVL)*((Fx[IJK] - Fx[Im1JK])/p->DXN[IP] 
                            + (Fy[IJK] - Fy[IJm1K])/p->DYN[JP]*p->y_dir)
-                           + (   Fz[IJK] -    Fz[IJKm1])/p->DZN[KP];
+                           + (Fz[IJK] - Fz[IJKm1])/p->DZN[KP];
     }    
 }
 

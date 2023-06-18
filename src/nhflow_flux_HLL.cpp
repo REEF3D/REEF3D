@@ -90,8 +90,8 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
     ULOOP
     {
     // water level       
-    Ds = ETAs(i,j) + p->wd - d->bed(i,j);
-    Dn = ETAn(i,j) + p->wd - d->bed(i,j);
+    Ds = ETAs(i,j) + 0.5*(d->depth(i,j) + d->depth(i-1,j));
+    Dn = ETAn(i,j) + 0.5*(d->depth(i,j) + d->depth(i+1,j));
     
     Ds = MAX(0.00005, Ds);
     Dn = MAX(0.00005, Dn);
@@ -143,8 +143,8 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
     VLOOP
     {
     // water level       
-    De = ETAe(i,j)  + p->wd - d->bed(i,j);
-    Dw = ETAw(i,j)  + p->wd - d->bed(i,j);
+    De = ETAe(i,j)  + 0.5*(d->depth(i,j) + d->depth(i,j-1));
+    Dw = ETAw(i,j)  + 0.5*(d->depth(i,j) + d->depth(i,j+1));
     
     De = MAX(0.00005, De);
     Dw = MAX(0.00005, Dw);
