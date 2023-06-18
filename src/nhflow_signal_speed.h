@@ -29,22 +29,22 @@ class fdm_nhf;
 class slice;
 class patchBC_interface;
 
-#ifndef NHFLOW_WAVE_SPEED_H_
-#define NHFLOW_WAVE_SPEED_H_
+#ifndef NHFLOW_SIGNAL_SPEED_H_
+#define NHFLOW_SIGNAL_SPEED_H_
 
 using namespace std;
 
-class nhflow_wave_speed : public increment
+class nhflow_signal_speed : public increment
 {
 public:
-	nhflow_wave_speed(lexer*);
-	virtual ~nhflow_wave_speed();
+	nhflow_signal_speed(lexer*);
+	virtual ~nhflow_signal_speed();
 
-    virtual void wave_speed_update(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*);
+    virtual void wave_speed_update(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*,double*,slice&, slice&, slice&, slice&);
 
 
 private:
-    nhflow_reconstruct *precon;
+
 };
 
 #endif

@@ -20,24 +20,27 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_wave_speed.h"
+#include"nhflow_signal_speed.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"fdm_nhf.h"
 #include"patchBC_interface.h"
 
-nhflow_wave_speed::nhflow_wave_speed(lexer* p) 
+nhflow_signal_speed::nhflow_signal_speed(lexer* p) 
 {
 
 }
 
-nhflow_wave_speed::~nhflow_wave_speed()
+nhflow_signal_speed::~nhflow_signal_speed()
 {
 }
 
-void nhflow_wave_speed::wave_speed_update(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fs, slice &fn, slice &fe, slice &fw)
+void nhflow_signal_speed::wave_speed_update(lexer* p, ghostcell *pgc, fdm_nhf*, 
+                                        double *Us, double *Un, double *Ve, double *Vw, 
+                                        slice &Ds,slice &Dn, slice &De, slice &Dw)
 {
 
+    
 }
 
 

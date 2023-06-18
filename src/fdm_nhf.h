@@ -68,7 +68,6 @@ public:
     
     // NHFLOW
     slice4 wbed,dwdt;
-    slice4 Ss,Sn,Se,Sw;
     
     cpt2D C4;
 	
@@ -81,6 +80,7 @@ public:
     double *porosity;
     double *test;
     double *Fx,*Fy;
+    double *Ss,*Sn,*Se,*Sw;
 
     matrix2D N;
 	matrix_diag M;    

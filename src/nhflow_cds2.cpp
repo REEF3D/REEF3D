@@ -34,6 +34,10 @@ nhflow_cds2::~nhflow_cds2()
 {
 }
 
+void nhflow_cds2::precalc(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W, slice &eta)
+{
+}
+
 void nhflow_cds2::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W, slice &eta)
 {
     if(ipol==1)

@@ -248,8 +248,8 @@
           <File Name="nhflow_turbulence.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
-          <VirtualDirectory Name="Wave Speed">
-            <File Name="nhflow_wave_speed.h"/>
+          <VirtualDirectory Name="Signal Speed">
+            <File Name="nhflow_signal_speed.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Reconstruct">
             <File Name="nhflow_reconstruct.h"/>
@@ -1326,8 +1326,8 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
-          <VirtualDirectory Name="Wave Speed">
-            <File Name="nhflow_wave_speed.cpp"/>
+          <VirtualDirectory Name="Signal Speed">
+            <File Name="nhflow_signal_speed.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Reconstruct">
             <File Name="nhflow_reconstruct_hires.cpp"/>
@@ -1343,7 +1343,6 @@
             <File Name="nhflow_flux_face_cds2.cpp"/>
           </VirtualDirectory>
           <File Name="nhflow_fou.cpp"/>
-          <File Name="nhflow_weno_hj.cpp"/>
           <File Name="nhflow_weno_flux.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">

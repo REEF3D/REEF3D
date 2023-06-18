@@ -27,6 +27,7 @@ Author: Hans Bihs
 
 class nhflow_flux;
 class nhflow_reconstruct;
+class nhflow_signal_speed;
 class patchBC_interface;
 class ghostcell;
 
@@ -44,6 +45,7 @@ public:
 	virtual ~nhflow_HLL();
 
     virtual void start(lexer*, fdm_nhf*, double*, int, double*, double*,double*, slice&);
+    virtual void precalc(lexer*, fdm_nhf*, double*, int, double*, double*,double*, slice&);
 
 private:
     double aij(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);
@@ -52,10 +54,11 @@ private:
     double aij_V(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);
     double aij_W(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);
     
-    double *DU,*DV;
+
     double *Fs,*Fn,*Fe,*Fw,*Fz;
     double *Us,*Un,*Ue,*Uw,*Ub,*Ut;
-    double *DUs,*DUn,*DUe,*DUw;
+    double *Vs,*Vn,*Ve,*Vw,*Vb,*Vt;
+
     slice1 ETAs,ETAn;
     slice2 ETAe,ETAw;
     slice1 Ds,Dn;
@@ -75,6 +78,7 @@ private:
     nhflow_flux *pflux;
     patchBC_interface *pBC;
     nhflow_reconstruct *precon;
+    nhflow_signal_speed *pss;
 };
 
 #endif

@@ -34,6 +34,7 @@ public:
 	virtual ~nhflow_convection_void();
 
 	virtual void start(lexer*, fdm_nhf*, double*, int, double*, double*,double*, slice&);
+    virtual void precalc(lexer*, fdm_nhf*, double*, int, double*, double*,double*, slice&);
 
 };
 

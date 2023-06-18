@@ -40,6 +40,7 @@ public:
 	virtual ~nhflow_hires();
 
 	virtual void start(lexer*, fdm_nhf*, double*, int, double*, double*,double*, slice&);
+    virtual void precalc(lexer*, fdm_nhf*, double*, int, double*, double*,double*, slice&);
 
 private:
     double aij(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);

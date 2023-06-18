@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"patchBC_interface.h"
 #include"nhflow_flux_face_cds2.h"
 #include"nhflow_reconstruct_hires.h"
+#include"nhflow_signal_speed.h"
 
 nhflow_HLL::nhflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) : ETAs(p),ETAn(p),ETAe(p),ETAw(p),
                                                                               Ds(p),Dn(p),De(p),Dw(p),Ss(p),Sn(p),Se(p),Sw(p)
@@ -36,14 +37,11 @@ nhflow_HLL::nhflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) : ET
     pBC = ppBC;
     
     pflux = new nhflow_flux_face_cds2(p);
-    
  
     precon = new nhflow_reconstruct_hires(p,ppBC);
     
+    pss = new nhflow_signal_speed(p);
     
-    double *Fs,*Fn,*Fe,*Fw,*Fz,*DU,*DV;
-    double *Us,*Un,*Ue,*Uw,*Ub,*Ut;
-    double *DUs,*DUn,*DUe,*DUw;
     
     p->Darray(Fs,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fn,p->imax*p->jmax*(p->kmax+2));
@@ -57,18 +55,23 @@ nhflow_HLL::nhflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) : ET
     p->Darray(Uw,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Ub,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Ut,p->imax*p->jmax*(p->kmax+2));
+    
+    p->Darray(Vs,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Vn,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Ve,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Vw,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Vb,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Vt,p->imax*p->jmax*(p->kmax+2));
 }
 
 nhflow_HLL::~nhflow_HLL()
 {
 }
 
-void nhflow_HLL::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W, slice &eta)
+void nhflow_HLL::precalc(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL, slice &eta)
 {
     // reconstruct eta
     precon->reconstruct_2D(p, pgc, d, eta, ETAs, ETAn, ETAe, ETAw);
-    
-    
     
     SLICELOOP1
     {
@@ -89,8 +92,22 @@ void nhflow_HLL::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, dou
     Dw(i,j) = MAX(0.00005, Dw(i,j));
     }
     
-   
+    // reconstruct U 
+    precon->reconstruct_3D_x(p, pgc, d, UVEL, Us, Un);
+    precon->reconstruct_3D_y(p, pgc, d, UVEL, Ue, Uw);
+    
+    // reconstruct  V
+    precon->reconstruct_3D_x(p, pgc, d, VVEL, Vs, Vn);
+    precon->reconstruct_3D_y(p, pgc, d, VVEL, Ve, Vw);
+    
+    // signal speed
+    
+    
+}
 
+
+void nhflow_HLL::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W, slice &eta)
+{
         if(ipol==1)
         LOOP
         d->F[IJK]+=aij(p,d,F,1,U,V,W,p->DXN,p->DYN,p->DZN);
@@ -111,9 +128,7 @@ void nhflow_HLL::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, dou
 double nhflow_HLL::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL, double *DX,double *DY, double *DZ)
 {
     
-    // reconstruct U and V
-    precon->reconstruct_3D_x(p, pgc, d, UVEL, Us, Un);
-    precon->reconstruct_3D_y(p, pgc, d, UVEL, Ue, Uw);
+    
     
     
    /* 

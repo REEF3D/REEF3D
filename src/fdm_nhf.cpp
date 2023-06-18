@@ -34,7 +34,6 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
                               Bx(p),By(p),Bxx(p),Byy(p),
                               hx(p),hy(p),
                               wbed(p),dwdt(p),
-                              Ss(p),Sn(p),Se(p),Sw(p),
                               coastline(p),vb(p),
                               test2D(p),
                               breaking_print(p),Hs(p),
@@ -62,6 +61,12 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
     
     p->Darray(Fx,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fy,p->imax*p->jmax*(p->kmax+2));
+    
+    p->Darray(Ss,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Sn,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Se,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Sw,p->imax*p->jmax*(p->kmax+2));
+
     
     p->Iarray(NODEVAL,p->imax*p->jmax*(p->kmax+3));
 
