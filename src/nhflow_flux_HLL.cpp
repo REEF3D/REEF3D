@@ -100,7 +100,7 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
     USx = 0.5*(Us[IJK]+Un[IJK]) + sqrt(9.81*Ds) - sqrt(9.81*Dn);
     DSx = 0.5*(sqrt(9.81*Ds) + sqrt(9.81*Dn)) + 0.25*(Us[IJK] - Un[IJK]);
     
-    // wave speed
+    // signal speed
     Ss = MIN(Us[IJK] - sqrt(9.81*Ds), USx - DSx);
     Sn = MAX(Un[IJK] + sqrt(9.81*Dn), USx + DSx);
     
@@ -153,7 +153,7 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
     USy = 0.5*(Ve[IJK]+Vw[IJK]) + sqrt(9.81*De) - sqrt(9.81*Dw);
     DSy = 0.5*(sqrt(9.81*De) + sqrt(9.81*Dw)) + 0.25*(Ve[IJK] - Vw[IJK]);
     
-    // wave speed
+    // signal speed
     Se = MIN(Ve[IJK] - sqrt(9.81*De), USy - DSy);
     Sw = MAX(Vw[IJK] + sqrt(9.81*Dw), USy + DSy);
     

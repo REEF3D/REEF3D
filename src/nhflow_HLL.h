@@ -50,14 +50,15 @@ public:
 private:
     double aij(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);
     
-    double aij_U(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);
-    double aij_V(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);
-    double aij_W(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);
+    double aij_U(lexer*, fdm_nhf*, double*, int, double*, double*, double*);
+    double aij_V(lexer*, fdm_nhf*, double*, int, double*, double*, double*);
+    double aij_W(lexer*, fdm_nhf*, double*, int, double*, double*, double*);
     
-
-    double *Fs,*Fn,*Fe,*Fw,*Fz;
+    double *Fx,*Fy,*Fz;
+    double *Fs,*Fn,*Fe,*Fw;
     double *Us,*Un,*Ue,*Uw,*Ub,*Ut;
     double *Vs,*Vn,*Ve,*Vw,*Vb,*Vt;
+    double *Ws,*Wn,*We,*Ww,*Wb,*Wt;
 
     slice1 ETAs,ETAn;
     slice2 ETAe,ETAw;
@@ -71,6 +72,7 @@ private:
 	double dx,dy,dz;
 	double udir,vdir,wdir;
 	double L;
+    double denom;
 
     double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
 

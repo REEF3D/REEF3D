@@ -40,10 +40,11 @@ public:
 	nhflow_signal_speed(lexer*);
 	virtual ~nhflow_signal_speed();
 
-    virtual void wave_speed_update(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*,double*,slice&, slice&, slice&, slice&);
+    virtual void signal_speed_update(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*,double*,slice&, slice&, slice&, slice&);
 
 
 private:
+    double USx,DSx,USy,DSy;
 
 };
 

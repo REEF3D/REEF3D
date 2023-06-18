@@ -30,6 +30,8 @@ Author: Hans Bihs
 #include"nhflow_reconstruct_hires.h"
 #include"nhflow_signal_speed.h"
 
+#define WLVL (fabs(d->WL(i,j))>1.0e-20?d->WL(i,j):1.0e20)
+
 nhflow_HLL::nhflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) : ETAs(p),ETAn(p),ETAe(p),ETAw(p),
                                                                               Ds(p),Dn(p),De(p),Dw(p),Ss(p),Sn(p),Se(p),Sw(p)
 {
@@ -42,12 +44,14 @@ nhflow_HLL::nhflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) : ET
     
     pss = new nhflow_signal_speed(p);
     
+    p->Darray(Fx,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Fy,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Fz,p->imax*p->jmax*(p->kmax+2));
     
     p->Darray(Fs,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fn,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fe,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fw,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Fz,p->imax*p->jmax*(p->kmax+2));
     
     p->Darray(Us,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Un,p->imax*p->jmax*(p->kmax+2));
@@ -62,6 +66,13 @@ nhflow_HLL::nhflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) : ET
     p->Darray(Vw,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Vb,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Vt,p->imax*p->jmax*(p->kmax+2));
+    
+    p->Darray(Ws,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Wn,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(We,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Ww,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Wb,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Wt,p->imax*p->jmax*(p->kmax+2));
 }
 
 nhflow_HLL::~nhflow_HLL()
@@ -95,13 +106,20 @@ void nhflow_HLL::precalc(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVEL
     // reconstruct U 
     precon->reconstruct_3D_x(p, pgc, d, UVEL, Us, Un);
     precon->reconstruct_3D_y(p, pgc, d, UVEL, Ue, Uw);
+    precon->reconstruct_3D_z(p, pgc, d, WVEL, Ub, Ut);
     
     // reconstruct  V
     precon->reconstruct_3D_x(p, pgc, d, VVEL, Vs, Vn);
     precon->reconstruct_3D_y(p, pgc, d, VVEL, Ve, Vw);
+    precon->reconstruct_3D_z(p, pgc, d, VVEL, Vb, Vt);
+    
+    // reconstruct  W
+    precon->reconstruct_3D_x(p, pgc, d, WVEL, Ws, Wn);
+    precon->reconstruct_3D_y(p, pgc, d, WVEL, We, Ww);
+    precon->reconstruct_3D_z(p, pgc, d, WVEL, Wb, Wt);
     
     // signal speed
-    
+    pss->signal_speed_update(p, pgc, d, Us, Un, Ve, Vw, Ds, Dn, De, Dw);
     
 }
 
@@ -109,208 +127,246 @@ void nhflow_HLL::precalc(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVEL
 void nhflow_HLL::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W, slice &eta)
 {
         if(ipol==1)
-        LOOP
-        d->F[IJK]+=aij(p,d,F,1,U,V,W,p->DXN,p->DYN,p->DZN);
+        aij_U(p,d,F,1,U,V,W);
 
-        if(ipol==2)
-        LOOP
-        d->G[IJK]+=aij(p,d,F,2,U,V,W,p->DXN,p->DYN,p->DZN);
+        if(ipol==2 && p->j_dir==1)
+        aij_V(p,d,F,2,U,V,W);
 
         if(ipol==3)
-        LOOP
-        d->H[IJK]+=aij(p,d,F,3,U,V,W,p->DXN,p->DYN,p->DZN);
-
-        if(ipol==4)
-        LOOP
-        d->L[IJK]+=aij(p,d,F,4,U,V,W,p->DXN,p->DYN,p->DZN);
+        aij_W(p,d,F,3,U,V,W);
 }
 
-double nhflow_HLL::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL, double *DX,double *DY, double *DZ)
+double nhflow_HLL::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
 {
-    
-    
-    
-    
-   /* 
-    double Ss,Sn,Se,Sw;
-    double USx,USy;
-    double Ds,Dn,De,Dw;
-    double DSx,DSy;
-    double denom;
-    
-    LOOP
-    DV[IJK] = UVEL[IJK]*d->WL[IJ];
-    
-     // reconstruct U and V
-    precon->reconstruct_3D(p, pgc, d, DV, DV, Fs, Fn, Fe, Fw);
-    precon->reconstruct_3D(p, pgc, d, UVEL, UVEL, Us, Un, Ve, Vw);
-    
-    // velocity depth
-    LOOP
-    {
-    DU[IJK] = U[IJK]*d->WL[IJ];
-    DV[IJK] = V[IJK]*d->WL[IJ];
-    }
-    
-    pgc->start1V(p,DU,10);
-    pgc->start2V(p,DV,11);
-         
-    
-    
-    // HLL flux
+    // flux x-dir
     ULOOP
     {
-    // water level       
-    Ds = ETAs(i,j) + p->wd - d->bed(i,j);
-    Dn = ETAn(i,j) + p->wd - d->bed(i,j);
+    Fs[IJK] = Ds(i,j)*Us[IJK]*Us[IJK] 
+            + 0.5*9.81*ETAs(i,j)*ETAs(i,j)*0.5*(d->depth(i,j) + d->depth(i+1,j)) + 9.81*ETAs(i,j)*0.5*(d->depth(i,j) + d->depth(i+1,j));
     
-    Ds = MAX(0.00005, Ds);
-    Dn = MAX(0.00005, Dn);
-    
-    // Us
-    USx = 0.5*(Us[IJK]+Un[IJK]) + sqrt(9.81*Ds) - sqrt(9.81*Dn);
-    DSx = 0.5*(sqrt(9.81*Ds) + sqrt(9.81*Dn)) + 0.25*(Us[IJK] - Un[IJK]);
-    
-    // wave speed
-    Ss = MIN(Us[IJK] - sqrt(9.81*Ds), USx - DSx);
-    Sn = MAX(Un[IJK] + sqrt(9.81*Dn), USx + DSx);
-    
-    if(p->wet[Ip1J]==0)
-    {
-    Ss = Us[IJK] - sqrt(9.81*Ds);
-    Sn = Us[IJK] + 2.0*sqrt(9.81*Ds);
+    Fn[IJK] = Dn(i,j)*Un[IJK]*Un[IJK] 
+            + 0.5*9.81*ETAn(i,j)*ETAn(i,j)*0.5*(d->depth(i,j) + d->depth(i+1,j)) + 9.81*ETAn(i,j)*0.5*(d->depth(i,j) + d->depth(i+1,j));
     }
     
-    if(p->wet[Im1J]==0)
+    // flux y-dir
+    VLOOP
     {
-    Ss = Un[IJK] - 2.0*sqrt(9.81*Dn);
-    Sn = Un[IJK] + sqrt(9.81*Dn);
+    Fe[IJK] = De(i,j)*Ue[IJK]*Ve[IJK] 
+            + 0.5*9.81*ETAe(i,j)*ETAe(i,j)*0.5*(d->depth(i,j) + d->depth(i,j+1)) + 9.81*ETAe(i,j)*0.5*(d->depth(i,j) + d->depth(i,j+1));
+    
+    Fw[IJK] = Dw(i,j)*Uw[IJK]*Vw[IJK] 
+            + 0.5*9.81*ETAw(i,j)*ETAw(i,j)*0.5*(d->depth(i,j) + d->depth(i,j+1)) + 9.81*ETAw(i,j)*0.5*(d->depth(i,j) + d->depth(i,j+1));
     }
     
-    if(p->wet[IJ]==0)
+    // flux z-dir
+    WLOOP
+    Fz[IJK] = 0.5*(d->omegaF[FIJK]*(Ub[IJK] + Ut[IJK]) - fabs(d->omegaF[FIJK])*(Ub[IJK] - Ut[IJK]));
+
+
+    // HLL flux x-dir
+    ULOOP
     {
-    Ss=Sn=0.0;
-    USx=0.0;
-    }
-    
-        // final flux x-dir
-        if(Ss>=0.0)
+        if(d->Ss[IJK]>=0.0)
         Fx[IJK] = Fs[IJK];
         
         else
-        if(Sn<=0.0)
+        if(d->Sn[IJK]<=0.0)
         Fx[IJK] = Fn[IJK];
         
         else
         {
-        denom = Sn-Ss;
+        denom = d->Sn[IJK]-d->Ss[IJK];
         denom = fabs(denom)>1.0e-10?denom:1.0e10;
         
-        Fx[IJK] = (Sn*Fs[IJK] - Ss*Fn[IJK] + Sn*Ss*(Dn - Ds))/denom;
+        Fx[IJK] = (d->Sn[IJK]*Fs[IJK] - d->Ss[IJK]*Fn[IJK] + d->Sn[IJK]*d->Ss[IJK]*(Dn(i,j) - Ds(i,j)))/denom;
         }
     }
     
-    
+    // HLL flux y-dir
     VLOOP
     {
-    // water level       
-    De = ETAe(i,j)  + p->wd - d->bed(i,j);
-    Dw = ETAw(i,j)  + p->wd - d->bed(i,j);
-    
-    De = MAX(0.00005, De);
-    Dw = MAX(0.00005, Dw);
-    
-    // Us
-    USy = 0.5*(Ve[IJK]+Vw[IJK]) + sqrt(9.81*De) - sqrt(9.81*Dw);
-    DSy = 0.5*(sqrt(9.81*De) + sqrt(9.81*Dw)) + 0.25*(Ve[IJK] - Vw[IJK]);
-    
-    // wave speed
-    Se = MIN(Ve[IJK] - sqrt(9.81*De), USy - DSy);
-    Sw = MAX(Vw[IJK] + sqrt(9.81*Dw), USy + DSy);
-    
-    if(p->wet[IJp1]==0)
-    {
-    Se = Ve[IJK] - sqrt(9.81*De);
-    Sw = Ve[IJK] + 2.0*sqrt(9.81*De);
-    }
-    
-    if(p->wet[IJm1]==0)
-    {
-    Se = Vw[IJK] - 2.0*sqrt(9.81*Dw);
-    Sw = Vw[IJK] + sqrt(9.81*Dw);
-    }
-    
-    if(p->wet[IJ]==0)
-    {
-    Se=Sw=0.0;
-    USy=0.0;
-    }
-
-        // final flux y-dir
-        if(Se>=0.0)
+        if(d->Se[IJK]>=0.0)
         Fy[IJK] = Fe[IJK];
         
         else
-        if(Sw<=0.0)
+        if(d->Sw[IJK]<=0.0)
         Fy[IJK] = Fw[IJK];
         
         else
         {
-        denom = Sw-Se;
+        denom = d->Sw[IJK]-d->Se[IJK];
         denom = fabs(denom)>1.0e-10?denom:1.0e10;
         
-        Fy[IJK] = (Sw*Fe[IJK] - Se*Fw[IJK] + Sw*Se*(Dw - De))/denom;
+        Fy[IJK] = (d->Sw[IJK]*Fe[IJK] - d->Se[IJK]*Fw[IJK] + d->Sw[IJK]*d->Se[IJK]*(Dw(i,j) - De(i,j)))/denom;
         }
     }
-
     
     pgc->start1V(p,Fx,10);
-    pgc->start2V(p,Fy,10);
-	*/
+    pgc->start2V(p,Fy,11);
+    pgc->start3V(p,Fz,12);
     
+    LOOP
+    {
+    d->F[IJK] -= (1.0/WLVL)*((Fx[IJK] - Fx[Im1JK])/p->DXN[IP] 
+                           + (Fy[IJK] - Fy[IJm1K])/p->DYN[JP]*p->y_dir)
+                           + (   Fz[IJK] -    Fz[IJKm1])/p->DZN[KP];
+    }    
+}
+
+double nhflow_HLL::aij_V(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
+{
+    // flux x-dir
+    ULOOP
+    {
+    Fs[IJK] = Ds(i,j)*Us[IJK]*Vs[IJK] 
+            + 0.5*9.81*ETAs(i,j)*ETAs(i,j)*0.5*(d->depth(i,j) + d->depth(i+1,j)) + 9.81*ETAs(i,j)*0.5*(d->depth(i,j) + d->depth(i+1,j));
+    
+    Fn[IJK] = Dn(i,j)*Un[IJK]*Vn[IJK] 
+            + 0.5*9.81*ETAn(i,j)*ETAn(i,j)*0.5*(d->depth(i,j) + d->depth(i+1,j)) + 9.81*ETAn(i,j)*0.5*(d->depth(i,j) + d->depth(i+1,j));
+    }
+    
+    // flux y-dir
+    VLOOP
+    {
+    Fe[IJK] = De(i,j)*Ve[IJK]*Ve[IJK] 
+            + 0.5*9.81*ETAe(i,j)*ETAe(i,j)*0.5*(d->depth(i,j) + d->depth(i,j+1)) + 9.81*ETAe(i,j)*0.5*(d->depth(i,j) + d->depth(i,j+1));
+    
+    Fw[IJK] = Dw(i,j)*Vw[IJK]*Vw[IJK] 
+            + 0.5*9.81*ETAw(i,j)*ETAw(i,j)*0.5*(d->depth(i,j) + d->depth(i,j+1)) + 9.81*ETAw(i,j)*0.5*(d->depth(i,j) + d->depth(i,j+1));
+    }
+    
+    // flux z-dir
+    WLOOP
+    Fz[IJK] = 0.5*(d->omegaF[FIJK]*(Vb[IJK] + Vt[IJK]) - fabs(d->omegaF[FIJK])*(Vb[IJK] - Vt[IJK]));
+
+
+    // HLL flux x-dir
+    ULOOP
+    {
+        if(d->Ss[IJK]>=0.0)
+        Fx[IJK] = Fs[IJK];
+        
+        else
+        if(d->Sn[IJK]<=0.0)
+        Fx[IJK] = Fn[IJK];
+        
+        else
+        {
+        denom = d->Sn[IJK]-d->Ss[IJK];
+        denom = fabs(denom)>1.0e-10?denom:1.0e10;
+        
+        Fx[IJK] = (d->Sn[IJK]*Fs[IJK] - d->Ss[IJK]*Fn[IJK] + d->Sn[IJK]*d->Ss[IJK]*(Dn(i,j) - Ds(i,j)))/denom;
+        }
+    }
+    
+    // HLL flux y-dir
+    VLOOP
+    {
+        if(d->Se[IJK]>=0.0)
+        Fy[IJK] = Fe[IJK];
+        
+        else
+        if(d->Sw[IJK]<=0.0)
+        Fy[IJK] = Fw[IJK];
+        
+        else
+        {
+        denom = d->Sw[IJK]-d->Se[IJK];
+        denom = fabs(denom)>1.0e-10?denom:1.0e10;
+        
+        Fy[IJK] = (d->Sw[IJK]*Fe[IJK] - d->Se[IJK]*Fw[IJK] + d->Sw[IJK]*d->Se[IJK]*(Dw(i,j) - De(i,j)))/denom;
+        }
+    }
+    
+    pgc->start1V(p,Fx,10);
+    pgc->start2V(p,Fy,11);
+    pgc->start3V(p,Fz,12);
+    
+    LOOP
+    {
+    d->G[IJK] -= (1.0/WLVL)*((Fx[IJK] - Fx[Im1JK])/p->DXN[IP] 
+                           + (Fy[IJK] - Fy[IJm1K])/p->DYN[JP]*p->y_dir)
+                           + (   Fz[IJK] -    Fz[IJKm1])/p->DZN[KP];
+    }    
+}
+
+double nhflow_HLL::aij_W(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
+{
+    // flux x-dir
+    ULOOP
+    {
+    Fs[IJK] = Ds(i,j)*Us[IJK]*Ws[IJK];
+    
+    Fn[IJK] = Dn(i,j)*Un[IJK]*Wn[IJK];
+    }
+    
+    // flux y-dir
+    VLOOP
+    {
+    Fe[IJK] = De(i,j)*Ve[IJK]*We[IJK];
+    
+    Fw[IJK] = Dw(i,j)*Vw[IJK]*Ww[IJK];
+    }
+    
+    // flux z-dir
+    WLOOP
+    Fz[IJK] = 0.5*(d->omegaF[FIJK]*(Wb[IJK] + Wt[IJK]) - fabs(d->omegaF[FIJK])*(Wb[IJK] - Wt[IJK]));
+
+
+    // HLL flux x-dir
+    ULOOP
+    {
+        if(d->Ss[IJK]>=0.0)
+        Fx[IJK] = Fs[IJK];
+        
+        else
+        if(d->Sn[IJK]<=0.0)
+        Fx[IJK] = Fn[IJK];
+        
+        else
+        {
+        denom = d->Sn[IJK]-d->Ss[IJK];
+        denom = fabs(denom)>1.0e-10?denom:1.0e10;
+        
+        Fx[IJK] = (d->Sn[IJK]*Fs[IJK] - d->Ss[IJK]*Fn[IJK] + d->Sn[IJK]*d->Ss[IJK]*(Dn(i,j) - Ds(i,j)))/denom;
+        }
+    }
+    
+    // HLL flux y-dir
+    VLOOP
+    {
+        if(d->Se[IJK]>=0.0)
+        Fy[IJK] = Fe[IJK];
+        
+        else
+        if(d->Sw[IJK]<=0.0)
+        Fy[IJK] = Fw[IJK];
+        
+        else
+        {
+        denom = d->Sw[IJK]-d->Se[IJK];
+        denom = fabs(denom)>1.0e-10?denom:1.0e10;
+        
+        Fy[IJK] = (d->Sw[IJK]*Fe[IJK] - d->Se[IJK]*Fw[IJK] + d->Sw[IJK]*d->Se[IJK]*(Dw(i,j) - De(i,j)))/denom;
+        }
+    }
+    
+    pgc->start1V(p,Fx,10);
+    pgc->start2V(p,Fy,11);
+    pgc->start3V(p,Fz,12);
+    
+    LOOP
+    {
+    d->H[IJK] -= (1.0/WLVL)*((Fx[IJK] - Fx[Im1JK])/p->DXN[IP] 
+                           + (Fy[IJK] - Fy[IJm1K])/p->DYN[JP]*p->y_dir)
+                           + (   Fz[IJK] -    Fz[IJKm1])/p->DZN[KP];
+    }    
 }
 
 
 
 double nhflow_HLL::aij(lexer* p,fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W, double *DX,double *DY, double *DZ)
 {
-    udir=vdir=wdir=0.0;
-    
-        // convective flux
-        pflux->u_flux(d,ipol,U,ivel1,ivel2);
-        pflux->v_flux(d,ipol,V,jvel1,jvel2);
-        pflux->w_flux(d,ipol,d->omegaF,kvel1,kvel2);
-
-    
-    // x-dir
-    if(0.5*(ivel1+ivel2)>=0.0)
-    udir=1.0;
-    
-    dx =     udir*(ivel2*F[IJK] - ivel1*F[Im1JK])/DX[IM1] 
-    
-    +   (1.0-udir)*(ivel2*F[Ip1JK] - ivel1*F[IJK])/DX[IP]; 
-    
-    
-    // y-dir
-    if(0.5*(jvel1+jvel2)>=0.0)
-    vdir=1.0;
-    
-    dy =     vdir*(jvel2*F[IJK] - jvel1*F[IJm1K])/DY[JM1] 
-    
-    +   (1.0-vdir)*(jvel2*F[IJp1K] - jvel1*F[IJK])/DY[JP]; 
-    
-    
-    // z-dir
-    if(0.5*(kvel1+kvel2)>=0.0)
-    wdir=1.0;
-    
-    dz =     wdir*(kvel2*F[IJK] - kvel1*F[IJKm1])/DZ[KM1] 
-    
-    +   (1.0-wdir)*(kvel2*F[IJKp1] - kvel1*F[IJK])/DZ[KP]; 
-    
-    
-    L = -dx-dy-dz;
-    
-    return L;
+    return 0.0;
 }
 
