@@ -68,7 +68,7 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
     FLUIDLOOP
 	{
 
-    if(p->flag4[IJK]>0 && p->A323<10)
+    if(p->flag4[IJK]>0)
     {
 	a->M.p[n]  =  1.0/(p->DXP[IP]*p->DXN[IP])
                 + 1.0/(p->DXP[IM1]*p->DXN[IP])
@@ -91,28 +91,7 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
 	a->rhsvec.V[n] = 0.0;
     }
     
-    if(p->flag4[IJK]>0 && p->A323>=10)
-    {
-       a->M.p[n]  =  1.0/(p->DXN[IP]*p->DXN[IP])
-                + 1.0/(p->DXN[IP]*p->DXN[IP])
-
-                + 1.0/(p->DYN[JP]*p->DYN[JP])*p->y_dir
-                + 1.0/(p->DYN[JP]*p->DYN[JP])*p->y_dir
-
-                + 1.0/(p->DZN[KP]*p->DZN[KP])
-                + 1.0/(p->DZN[KP]*p->DZN[KP]);
-
-   	a->M.n[n] = -1.0/(p->DXP[IP]*p->DXN[IP]);
-	a->M.s[n] = -1.0/(p->DXP[IM1]*p->DXN[IP]);
-
-	a->M.w[n] = -1.0/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
-	a->M.e[n] = -1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
-
-	a->M.t[n] = -1.0/(p->DZP[KP]*p->DZN[KP]);
-	a->M.b[n] = -1.0/(p->DZP[KM1]*p->DZN[KP]);
-
-	a->rhsvec.V[n] = 0.0;
-    }
+    
 
     if(p->flag4[IJK]<0)
     {
@@ -212,23 +191,6 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 a->M.s[n] = 0.0;
                 }
                 
-                if(p->A323==22)
-                {
-                double lsv0,lsv1,Fival;
-
-                lsv0 = fabs(a->phi(i,j,k));
-                lsv1 = fabs(a->phi(i-1,j,k));
-
-                lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20;
-                
-                teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k)));
-                Fival = teta*Fifsf(i-1,j) + (1.0-teta)*Fifsf(i,j);
-
-                a->rhsvec.V[n] -= a->M.s[n]*Fival*(1.0 + lsv1/lsv0);
-                a->M.p[n] -= a->M.s[n]*lsv1/lsv0;
-                a->M.s[n] = 0.0;
-                }
-                
                 // -----------
                 if(p->A323==3)
                 {
@@ -277,72 +239,86 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 a->M.s[n] = 0.0;
                 }
                 
+              
                 if(p->A323==5)
                 {
-                    a->M.p[n]-=1.0/(p->DXP[IP]*p->DXN[IP]);
-                    a->M.p[n]-=1.0/(p->DXP[IM1]*p->DXN[IP]);
-                    
-                    a->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
-                    a->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                    
-                    double zpos_p,zpos_s, delta_x;
-                    double Fival,xpos_zero,teta;
-                    
-                    zpos_p=eta(i,j)-(p->ZP[KP]-p->F60);
-                    zpos_s=eta(i-1,j)-(p->ZP[KP]-p->F60);
-                    
-                    delta_x=p->DXP[IM1];
-                    xpos_zero=((-zpos_p)*(-delta_x))/(zpos_s-zpos_p);
-                    teta=xpos_zero/(-delta_x);
-                    
-                    
+                    double Fival,teta;
+
+                    teta = fabs(a->phi(i,j,k))/p->DXP[IM1];
                     Fival = teta*Fifsf(i-1,j) + (1.0-teta)*Fifsf(i,j);
-                    
-                    
-                    a->M.p[n] += 4.0/((teta*p->DXP[IM1])*(p->DXN[IP]) + p->DXP[IP]*p->DXN[IP]);
-                    a->M.s[n] -= 2.0/((teta*p->DXP[IM1])*(teta*p->DXN[IP]) + p->DXP[IM1]*p->DXN[IP]);
-                    a->M.n[n] -= 2.0/((p->DXP[IM1])*(p->DXN[IP]) + p->DXP[IP]*p->DXN[IP]);
+                
+                    teta = teta>1.0e-6?teta:1.0e20;
+                
+                    a->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                    a->M.p[n] += 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
+                           
+                    a->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                    a->M.s[n] -= 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
                 
                     a->rhsvec.V[n] -= a->M.s[n]*Fival;
                     a->M.s[n] = 0.0;
-                    
-                    
+                  
                 }
                 
                 if(p->A323==6)
                 {
-                    a->M.p[n]-=1.0/(p->DXP[IP]*p->DXN[IP]);
-                    a->M.p[n]-=1.0/(p->DXP[IM1]*p->DXN[IP]);
-                    
-                    a->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
-                    a->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                    
-                    double zpos_p,zpos_s, delta_x;
+                    double zpos_p,zpos_s,zpos_n;
                     double Fival,xpos_zero,teta;
+                    double Z_t,Z_b,M_p_num,M_b_num,denom;
+                    double a_quad,b_quad,b_quad_num,b_quad_denom,c_quad,x1_quad,x2_quad,x_quad,p_quad,q_quad;
+                    double a_fi,b_fi_b,b_fi_denom,b_fi_num,c_fi,b_fi;
+                    
                     
                     zpos_p=eta(i,j)-(p->ZP[KP]-p->F60);
                     zpos_s=eta(i-1,j)-(p->ZP[KP]-p->F60);
+                    zpos_n=eta(i+1,j)-(p->ZP[KP]-p->F60);
                     
-                    delta_x=p->DXP[IM1];
-                    xpos_zero=((-zpos_p)*(-delta_x))/(zpos_s-zpos_p);
-                    teta=xpos_zero/(-delta_x);
-                    if(teta < 0.95)
-                        teta=0.95;
-                    Fival = teta*Fifsf(i-1,j) + (1.0-teta)*Fifsf(i,j);
+                    b_quad_denom=p->DXP[IM1]*p->DXP[IM1]/p->DXP[IP]+p->DXP[IM1];
+                    b_quad_num=zpos_n*p->DXP[IM1]*p->DXP[IM1]/(p->DXP[IP]*p->DXP[IP])-zpos_s-zpos_p*(p->DXP[IM1]*p->DXP[IM1]/(p->DXP[IP]*p->DXP[IP])-1.0);
+                    b_quad=b_quad_num/b_quad_denom;
+                    a_quad=zpos_n/(p->DXP[IP]*p->DXP[IP])-zpos_p/(p->DXP[IP]*p->DXP[IP])-b_quad/p->DXP[IP];
+                    c_quad=zpos_p;
+                    p_quad=b_quad/a_quad;
+                    q_quad=c_quad/a_quad;
+                    x1_quad=(0.0-p_quad)/2.0+sqrt(((p_quad/2.0)*(p_quad/2.0)-q_quad));
+                    x2_quad=(0.0-p_quad)/2.0-sqrt(((p_quad/2.0)*(p_quad/2.0)-q_quad));
                     
+                    b_fi_denom=p->DXP[IM1]*p->DXP[IM1]/p->DXP[IP]+p->DXP[IM1];
+                    b_fi_num=Fifsf(i+1,j)*p->DXP[IM1]*p->DXP[IM1]/(p->DXP[IP]*p->DXP[IP])-Fifsf(i-1,j)-Fifsf(i,j)*(p->DXP[IM1]*p->DXP[IM1]/(p->DXP[IP]*p->DXP[IP])-1.0);
+                    b_fi=b_fi_num/b_fi_denom;
+                    a_fi=Fifsf(i+1,j)/(p->DXP[IP]*p->DXP[IP])-Fifsf(i,j)/(p->DXP[IP]*p->DXP[IP])-b_fi/p->DXP[IP];
+                    c_fi=Fifsf(i,j);
                     
-                    a->M.p[n] += 4.0/((teta*p->DXP[IM1])*(teta*p->DXN[IP]) + p->DXP[IP]*p->DXN[IP]);
-                    
-                    a->M.s[n] -= 2.0/((teta*p->DXP[IM1])*(teta*p->DXN[IP]) + p->DXP[IP]*p->DXN[IP]);
-                    a->M.s[n] -= 2.0/((teta*p->DXP[IM1])*(teta*p->DXN[IP]) + p->DXP[IP]*p->DXN[IP])*(p->DXP[IP]-teta*p->DXP[IM1])/(p->DXP[IP]+teta*p->DXP[IM1]);
-                    
-                    a->M.n[n] -= 2.0/((teta*p->DXP[IM1])*(teta*p->DXN[IP]) + p->DXP[IP]*p->DXN[IP]);
-                    a->M.n[n] += 2.0/((teta*p->DXP[IM1])*(teta*p->DXN[IP]) + p->DXP[IP]*p->DXN[IP])*(p->DXP[IP]-teta*p->DXP[IM1])/(p->DXP[IP]+teta*p->DXP[IM1]);
+                    if(x1_quad<=0.0 && x1_quad>=0.0-p->DXP[IM1] && !(x2_quad<=0.0 && x2_quad>=0.0-p->DXP[IM1]))
+                        x_quad=x1_quad;
+                    else if(x2_quad<=0.0 && x2_quad>=0.0-p->DXP[IM1] && !(x1_quad<=0.0 && x1_quad>=0.0-p->DXP[IM1]))
+                        x_quad=x2_quad;
+                    else if(x1_quad <= x2_quad+1.0e-06 && x1_quad >= x2_quad-1.0e-06)
+                    {
+                        cout<<"equal s"<< " x1:"<<x1_quad<<" x2:"<<x2_quad<<" zpos_s:" << zpos_s<<" zpos_p:"<<zpos_p<<" zpos_n:"<<zpos_n<<" DX_s:"<<p->DXP[IM1]<<" DX_n:"<<p->DXP[IP]<<endl;
+                        x_quad=x1_quad;
+                    }
+                    else
+                    {
+                        cout<<"mucho problemo s: "<< " x1:"<<x1_quad<<" x2:"<<x2_quad<<" zpos_s:" << zpos_s<<" zpos_p:"<<zpos_p<<" zpos_n:"<<zpos_n<<" DX_s:"<<p->DXP[IM1]<<" DX_n:"<<p->DXP[IP]<<endl;
+                        x_quad=-0.5*p->DXP[IM1];
+                    }
+                    teta=(0.0-x_quad)/p->DXP[IM1];
+                    teta = teta>1.0e-6?teta:1.0e20;
+                    Fival=a_fi*x_quad*x_quad+b_fi*x_quad+c_fi;
+                
+                    a->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                    a->M.p[n] += 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
+                           
+                    a->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                    a->M.s[n] -= 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
                 
                     a->rhsvec.V[n] -= a->M.s[n]*Fival;
                     a->M.s[n] = 0.0;
                 }
                 
+                    
+                    
                 if(p->A323==7)
                 {
                     double Fival,teta,Fival_b,teta_b;
@@ -353,12 +329,41 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                         teta=1e-06;
                     Fival = teta*Fifsf(i-1,j) + (1.0-teta)*Fifsf(i,j);
                     
-                    Z_t=DXP[IM1];
-                    Z_b=DXP[IP];
+                    Z_t=fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k));
+                    Z_b=fabs(a->phi(i+1,j,k))-fabs(a->phi(i,j,k));
                     
                     if(p->flag4[Ip1JK]==AIR)
                     {
-                    
+                        teta_b=fabs(a->phi(i,j,k))/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k)));
+                        Fival_b= teta_b*Fifsf(i+1,j) + (1.0-teta_b)*Fifsf(i,j);
+                        Z_b=fabs(a->phi(i,j,k));
+                        
+                        if(Z_b<1.0e-03)
+                        {
+                            a->M.s[n]=0.0;
+                            a->M.n[n]=0.0;
+                            a->M.w[n]=0.0;
+                            a->M.e[n]=0.0;
+                            a->M.t[n]=0.0;
+                            a->M.b[n]=0.0;
+                            a->rhsvec.V[n]=a->M.p[n]*Fifsf(i,j);
+                        }
+                        
+                        else
+                        {
+                            
+                            denom=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)-(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b);
+                        
+                            M_p_num=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b)+(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t);
+                        
+                            M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
+                        
+                            a->M.p[n]+=(M_p_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                            a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                            a->rhsvec.V[n]-=(Fival_b*M_b_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                            a->M.s[n]=0.0;
+                        }
+                        
                     }
                     else
                     {
@@ -369,14 +374,253 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                         M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
                         
                         a->M.p[n]+=(M_p_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
-                        a->M.b[n]+=(M_b_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                        a->M.n[n]+=(M_b_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
                         a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IM1]*p->DXN[IP]);
-                        a->M.s[n]=0.0
+                        a->M.s[n]=0.0;
+                    }
+                }
+                
+                if(p->A323==8)
+                {
+                    double zpos_p,zpos_s, delta_x;
+                    double Fival,xpos_zero,teta;
+                    double Z_t,Z_b,M_p_num,M_b_num,denom;
+                    
+                    zpos_p=eta(i,j)-(p->ZP[KP]-p->F60);
+                    zpos_s=eta(i-1,j)-(p->ZP[KP]-p->F60);
+                    
+                    delta_x=p->DXP[IM1];
+                    xpos_zero=((-zpos_p)*(-delta_x))/(zpos_s-zpos_p);
+                    teta=xpos_zero/(-delta_x);
+                    
+                    if(teta<1.0e-05)
+                        teta=1.0e-05;
+                    
+                    Fival = teta*Fifsf(i-1,j) + (1.0-teta)*Fifsf(i,j);
+                    
+                    Z_t=p->DXP[IM1];
+                    Z_b=p->DXP[IP];
+                    
+                    denom=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)-(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b);
+                        
+                    M_p_num=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b)+(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t);
+                        
+                    M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
+                        
+                    a->M.p[n]+=(M_p_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                    a->M.n[n]+=(M_b_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                    a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                    a->M.s[n]=0.0;
+                }
+                
+                if(p->A323==9)
+                {
+                    double zpos_p,zpos_s,zpos_n;
+                    double Fival,xpos_zero,teta;
+                    double Z_t,Z_b,M_p_num,M_b_num,denom;
+                    double a_quad,b_quad,b_quad_num,b_quad_denom,c_quad,x1_quad,x2_quad,x_quad,p_quad,q_quad;
+                    double a_fi,b_fi_b,b_fi_denom,b_fi_num,c_fi,b_fi;
+                    double x_quad_b,Fival_b;
+                    
+                    
+                    zpos_p=eta(i,j)-(p->ZP[KP]-p->F60);
+                    zpos_s=eta(i-1,j)-(p->ZP[KP]-p->F60);
+                    zpos_n=eta(i+1,j)-(p->ZP[KP]-p->F60);
+                    
+                    b_quad_denom=p->DXP[IM1]*p->DXP[IM1]/p->DXP[IP]+p->DXP[IM1];
+                    b_quad_num=zpos_n*p->DXP[IM1]*p->DXP[IM1]/(p->DXP[IP]*p->DXP[IP])-zpos_s-zpos_p*(p->DXP[IM1]*p->DXP[IM1]/(p->DXP[IP]*p->DXP[IP])-1.0);
+                    b_quad=b_quad_num/b_quad_denom;
+                    a_quad=zpos_n/(p->DXP[IP]*p->DXP[IP])-zpos_p/(p->DXP[IP]*p->DXP[IP])-b_quad/p->DXP[IP];
+                    c_quad=zpos_p;
+                    p_quad=b_quad/a_quad;
+                    q_quad=c_quad/a_quad;
+                    x1_quad=(0.0-p_quad)/2.0+sqrt(((p_quad/2.0)*(p_quad/2.0)-q_quad));
+                    x2_quad=(0.0-p_quad)/2.0-sqrt(((p_quad/2.0)*(p_quad/2.0)-q_quad));
+                    
+                    b_fi_denom=p->DXP[IM1]*p->DXP[IM1]/p->DXP[IP]+p->DXP[IM1];
+                    b_fi_num=Fifsf(i+1,j)*p->DXP[IM1]*p->DXP[IM1]/(p->DXP[IP]*p->DXP[IP])-Fifsf(i-1,j)-Fifsf(i,j)*(p->DXP[IM1]*p->DXP[IM1]/(p->DXP[IP]*p->DXP[IP])-1.0);
+                    b_fi=b_fi_num/b_fi_denom;
+                    a_fi=Fifsf(i+1,j)/(p->DXP[IP]*p->DXP[IP])-Fifsf(i,j)/(p->DXP[IP]*p->DXP[IP])-b_fi/p->DXP[IP];
+                    c_fi=Fifsf(i,j);
+                    
+                    if(x1_quad<=0.0 && x1_quad>=0.0-p->DXP[IM1] && !(x2_quad<=0.0 && x2_quad>=0.0-p->DXP[IM1]))
+                        x_quad=x1_quad;
+                    else if(x2_quad<=0.0 && x2_quad>=0.0-p->DXP[IM1] && !(x1_quad<=0.0 && x1_quad>=0.0-p->DXP[IM1]))
+                        x_quad=x2_quad;
+                    else if(x1_quad <= x2_quad+1.0e-06 && x1_quad >= x2_quad-1.0e-06)
+                    {
+                        cout<<"equal s"<< " x1:"<<x1_quad<<" x2:"<<x2_quad<<" zpos_s:" << zpos_s<<" zpos_p:"<<zpos_p<<" zpos_n:"<<zpos_n<<" DX_s:"<<p->DXP[IM1]<<" DX_n:"<<p->DXP[IP]<<endl;
+                        x_quad=x1_quad;
+                    }
+                    else
+                    {
+                        cout<<"mucho problemo s: "<< " x1:"<<x1_quad<<" x2:"<<x2_quad<<" zpos_s:" << zpos_s<<" zpos_p:"<<zpos_p<<" zpos_n:"<<zpos_n<<" DX_s:"<<p->DXP[IM1]<<" DX_n:"<<p->DXP[IP]<<endl;
+                        x_quad=-0.5*p->DXP[IM1];
+                    }
+                    
+                    teta=(0.0-x_quad)/p->DXP[IM1];
+                    
+                    if(teta<1.0e-05)
+                        teta=1.0e-05;
+                    
+                    if(p->flag4[Ip1JK]==AIR)
+                    {   
+                        if(p->flag4[IJKp1]==AIR)
+                            cout<<"Air s LRT x:"<<p->XP[IP]<<" z-FS:"<<p->ZP[KP]-p->F60<<" eta_s:" << eta(i-1,j)<<" eta_p:"<<eta(i,j)<<" eta_n:"<<eta(i+1,j)<<" DX_s:"<<p->DXP[IM1]<<" DX_n:"<<p->DXP[IP]<<endl;
+                        else
+                            cout<<"AIR s LR!!! x:"<<p->XP[IP]<<" z-FS:"<<p->ZP[KP]-p->F60<<" eta_s:" << eta(i-1,j)<<" eta_p:"<<eta(i,j)<<" eta_n:"<<eta(i+1,j)<<" DX_s:"<<p->DXP[IM1]<<" DX_n:"<<p->DXP[IP]<<endl;
+                        
+                        if(x_quad==x1_quad && (x2_quad>=0.0 && x2_quad<=p->DXP[IP]))
+                            x_quad_b=x2_quad;
+                        else if(x_quad==x2_quad && (x1_quad>=0.0 && x1_quad<=p->DXP[IP]))
+                            x_quad_b=x1_quad;
+                        else if (x1_quad <= x2_quad+1.0e-06 && x1_quad >= x2_quad-1.0e-06)
+                        {
+                            cout<<"equal_b s"<< " x1:"<<x1_quad<<" x2:"<<x2_quad<<" zpos_s:" << zpos_s<<" zpos_p:"<<zpos_p<<" zpos_n:"<<zpos_n<<" DX_s:"<<p->DXP[IM1]<<" DX_n:"<<p->DXP[IP]<<endl;
+                            x_quad_b=x1_quad;
+                        }
+                        else
+                        {
+                            cout<<"tja s: "<< " x1:"<<x1_quad<<" x2:"<<x2_quad<<" zpos_s:" << zpos_s<<" zpos_p:"<<zpos_p<<" zpos_n:"<<zpos_n<<" DX_s:"<<p->DXP[IM1]<<" DX_n:"<<p->DXP[IP]<<endl;
+                            x_quad_b=0.5*p->DXP[IP];
+                        }
+                        
+                        Fival=a_fi*x_quad*x_quad+b_fi*x_quad+c_fi;
+                        Fival_b=a_fi*x_quad_b*x_quad_b+b_fi*x_quad_b+c_fi;
+                        
+                        Z_t=0.0-p->DXP[IM1];
+                        Z_b=0.0-x_quad_b;
+                    
+                        denom=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)-(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b);
+                        
+                        M_p_num=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b)+(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t);
+                        
+                        M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
+                        
+                        a->M.p[n]+=(M_p_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                        a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                        a->rhsvec.V[n]-=(Fival_b*M_b_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                        a->M.n[n]=0.0;
+                        a->M.s[n]=0.0;
                         
                     }
                     
+                    else
+                    {
+                    
+                    Fival = a_fi*x_quad*x_quad+b_fi*x_quad+c_fi;
+                    
+                    Z_t=0.0-p->DXP[IM1];
+                    Z_b=0.0-p->DXP[IP];
+                    
+                    denom=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)-(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b);
+                        
+                    M_p_num=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b)+(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t);
+                        
+                    M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
+                        
+                    a->M.p[n]+=(M_p_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                    a->M.n[n]+=(M_b_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                    a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                    a->M.s[n]=0.0;
+                    }
+                }
+                
+                if(p->A323==10)
+                {
+                    double zpos_p,zpos_s,zpos_n;
+                    double Fival,xpos_zero,teta;
+                    double Z_t,Z_b,M_p_num,M_b_num,denom;
+                    double a_quad,b_quad,b_quad_num,b_quad_denom,c_quad,x1_quad,x2_quad,x_quad,p_quad,q_quad;
+                    double a_fi,b_fi_b,b_fi_denom,b_fi_num,c_fi,b_fi;
+                    double x_quad_b,Fival_b;
                     
                     
+                    zpos_p=eta(i,j)-(p->ZP[KP]-p->F60);
+                    zpos_s=eta(i-1,j)-(p->ZP[KP]-p->F60);
+                    zpos_n=eta(i+1,j)-(p->ZP[KP]-p->F60);
+                    
+                    b_quad_denom=p->DXP[IM1]*p->DXP[IM1]/p->DXP[IP]+p->DXP[IM1];
+                    b_quad_num=zpos_n*p->DXP[IM1]*p->DXP[IM1]/(p->DXP[IP]*p->DXP[IP])-zpos_s-zpos_p*(p->DXP[IM1]*p->DXP[IM1]/(p->DXP[IP]*p->DXP[IP])-1.0);
+                    b_quad=b_quad_num/b_quad_denom;
+                    a_quad=zpos_n/(p->DXP[IP]*p->DXP[IP])-zpos_p/(p->DXP[IP]*p->DXP[IP])-b_quad/p->DXP[IP];
+                    c_quad=zpos_p;
+                    p_quad=b_quad/a_quad;
+                    q_quad=c_quad/a_quad;
+                    x1_quad=(0.0-p_quad)/2.0+sqrt(((p_quad/2.0)*(p_quad/2.0)-q_quad));
+                    x2_quad=(0.0-p_quad)/2.0-sqrt(((p_quad/2.0)*(p_quad/2.0)-q_quad));
+                    
+                    b_fi_denom=p->DXP[IM1]*p->DXP[IM1]/p->DXP[IP]+p->DXP[IM1];
+                    b_fi_num=Fifsf(i+1,j)*p->DXP[IM1]*p->DXP[IM1]/(p->DXP[IP]*p->DXP[IP])-Fifsf(i-1,j)-Fifsf(i,j)*(p->DXP[IM1]*p->DXP[IM1]/(p->DXP[IP]*p->DXP[IP])-1.0);
+                    b_fi=b_fi_num/b_fi_denom;
+                    a_fi=Fifsf(i+1,j)/(p->DXP[IP]*p->DXP[IP])-Fifsf(i,j)/(p->DXP[IP]*p->DXP[IP])-b_fi/p->DXP[IP];
+                    c_fi=Fifsf(i,j);
+                    
+                    if(x1_quad<=0.0 && x1_quad>=0.0-p->DXP[IM1] && !(x2_quad<=0.0 && x2_quad>=0.0-p->DXP[IM1]))
+                        x_quad=x1_quad;
+                    else if(x2_quad<=0.0 && x2_quad>=0.0-p->DXP[IM1] && !(x1_quad<=0.0 && x1_quad>=0.0-p->DXP[IM1]))
+                        x_quad=x2_quad;
+                    else if(x1_quad <= x2_quad+1.0e-06 && x1_quad >= x2_quad-1.0e-06)
+                    {
+                        cout<<"equal s"<< " x1:"<<x1_quad<<" x2:"<<x2_quad<<" zpos_s:" << zpos_s<<" zpos_p:"<<zpos_p<<" zpos_n:"<<zpos_n<<" DX_s:"<<p->DXP[IM1]<<" DX_n:"<<p->DXP[IP]<<endl;
+                        x_quad=x1_quad;
+                    }
+                    else
+                    {
+                        cout<<"mucho problemo s: "<< " x1:"<<x1_quad<<" x2:"<<x2_quad<<" zpos_s:" << zpos_s<<" zpos_p:"<<zpos_p<<" zpos_n:"<<zpos_n<<" DX_s:"<<p->DXP[IM1]<<" DX_n:"<<p->DXP[IP]<<endl;
+                        x_quad=-0.5*p->DXP[IM1];
+                    }
+                    
+                    teta=(0.0-x_quad)/p->DXP[IM1];
+                    
+                    if(p->flag4[Ip1JK]==AIR)
+                    {   
+                        if(p->flag4[IJKp1]==AIR)
+                            cout<<"Air s LRT x:"<<p->XP[IP]<<" z-FS:"<<p->ZP[KP]-p->F60<<" eta_s:" << eta(i-1,j)<<" eta_p:"<<eta(i,j)<<" eta_n:"<<eta(i+1,j)<<" DX_s:"<<p->DXP[IM1]<<" DX_n:"<<p->DXP[IP]<<endl;
+                        else
+                            cout<<"AIR s LR!!! x:"<<p->XP[IP]<<" z-FS:"<<p->ZP[KP]-p->F60<<" eta_s:" << eta(i-1,j)<<" eta_p:"<<eta(i,j)<<" eta_n:"<<eta(i+1,j)<<" DX_s:"<<p->DXP[IM1]<<" DX_n:"<<p->DXP[IP]<<endl;
+                        
+                        Fival=a_fi*x_quad*x_quad+b_fi*x_quad+c_fi;
+                        
+                        teta = teta>1.0e-6?teta:1.0e20;
+                
+                        a->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                        a->M.p[n] += 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
+                           
+                        a->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                        a->M.s[n] -= 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
+                
+                        a->rhsvec.V[n] -= a->M.s[n]*Fival;
+                        a->M.s[n] = 0.0;
+                        
+                    }
+                    
+                     else
+                    {
+                    
+                    if(teta<1.0e-05)
+                        teta=1.0e-05;
+                    Fival=a_fi*x_quad*x_quad+b_fi*x_quad+c_fi;
+                    
+                    Z_t=p->DXP[IM1];
+                    Z_b=p->DXP[IP];
+                    
+                    denom=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)-(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b);
+                        
+                    M_p_num=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b)+(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t);
+                        
+                    M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
+                        
+                    a->M.p[n]+=(M_p_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                    a->M.n[n]+=(M_b_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                    a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                    a->M.s[n]=0.0;
+                    }
+                }
+                
+                if(p->A323==11)
+                {
+                    a->M.s[n]=0.0;
                 }
 
             }
@@ -410,23 +654,6 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 a->M.n[n] = 0.0;
                 }
                 
-                if(p->A323==22)
-                {
-                double lsv0,lsv1,Fival;
-
-                lsv0 = fabs(a->phi(i,j,k));
-                lsv1 = fabs(a->phi(i+1,j,k));
-
-                lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20;
-                
-                teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k)));
-                Fival = teta*Fifsf(i+1,j) + (1.0-teta)*Fifsf(i,j);
-
-
-                a->rhsvec.V[n] -= a->M.n[n]*Fival*(1.0 + lsv1/lsv0);
-                a->M.p[n] -= a->M.n[n]*lsv1/lsv0;
-                a->M.n[n] = 0.0;
-                }
                 
                 // -----------
                 if(p->A323==3)
@@ -479,43 +706,157 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 
                 if(p->A323==5)
                 {
+                    double Fival,teta;
+
+                    teta = fabs(a->phi(i,j,k))/p->DXP[IP];
+              
+                    Fival = teta*Fifsf(i+1,j) + (1.0-teta)*Fifsf(i,j);
+                
+                    teta = teta>1.0e-6?teta:1.0e20;
+            
                     a->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
-                    a->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                  
+                    a->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
+                
                     a->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
-                    a->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                  
-                    double zpos_p,zpos_n, delta_x;
-                    double Fival,xpos_zero,teta;
-                    
-                    zpos_p=eta(i,j)-(p->ZP[KP]-p->F60);
-                    zpos_n=eta(i+1,j)-(p->ZP[KP]-p->F60);
-                    
-                    delta_x=p->DXP[IP];
-                    xpos_zero=((-zpos_p)*delta_x)/(zpos_n-zpos_p);
-                    teta=xpos_zero/delta_x;
-                    
-                    Fival=teta*Fifsf(i+1,j)+(1.0-teta)*Fifsf(i,j);
-                    
-                    a->M.p[n] += 4.0/((teta*p->DXP[IP])*(p->DXN[IP])+p->DXP[IM1]*p->DXN[IP]);
-                    a->M.s[n] -= 2.0/((p->DXP[IM1])*(p->DXN[IP])+p->DXP[IM1]*p->DXN[IP]);
-                    a->M.n[n] -= 2.0/((teta*p->DXP[IP])*(teta*p->DXN[IP])+p->DXP[IP]*p->DXN[IP]);
+                    a->M.n[n] -= 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
                 
                     a->rhsvec.V[n] -= a->M.n[n]*Fival;
                     a->M.n[n] = 0.0;
                   
                 }
                 
-              if(p->A323==6)
+                if(p->A323==6)
                 {
+                    double zpos_p,zpos_n,zpos_s;
+                    double Fival,xpos_zero,teta;
+                    double Z_t,Z_b,M_p_num,M_b_num,denom;
+                    double a_quad,b_quad,b_quad_num,b_quad_denom,c_quad,x1_quad,x2_quad,x_quad,p_quad,q_quad;
+                    double a_fi,b_fi_b,b_fi_denom,b_fi_num,c_fi,b_fi;
+                    double x_quad_b,Fival_b;
+                    
+                    
+                    zpos_p=eta(i,j)-(p->ZP[KP]-p->F60);
+                    zpos_s=eta(i-1,j)-(p->ZP[KP]-p->F60);
+                    zpos_n=eta(i+1,j)-(p->ZP[KP]-p->F60);
+                    
+                    b_quad_denom=p->DXP[IM1]*p->DXP[IM1]/p->DXP[IP]+p->DXP[IM1];
+                    b_quad_num=zpos_n*p->DXP[IM1]*p->DXP[IM1]/(p->DXP[IP]*p->DXP[IP])-zpos_s-zpos_p*(p->DXP[IM1]*p->DXP[IM1]/(p->DXP[IP]*p->DXP[IP])-1.0);
+                    b_quad=b_quad_num/b_quad_denom;
+                    a_quad=zpos_n/(p->DXP[IP]*p->DXP[IP])-zpos_p/(p->DXP[IP]*p->DXP[IP])-b_quad/p->DXP[IP];
+                    c_quad=zpos_p;
+                    p_quad=b_quad/a_quad;
+                    q_quad=c_quad/a_quad;
+                    x1_quad=(0.0-p_quad)/2.0+sqrt(((p_quad/2.0)*(p_quad/2.0)-q_quad));
+                    x2_quad=(0.0-p_quad)/2.0-sqrt(((p_quad/2.0)*(p_quad/2.0)-q_quad));
+                    
+                    b_fi_denom=p->DXP[IM1]*p->DXP[IM1]/p->DXP[IP]+p->DXP[IM1];
+                    b_fi_num=Fifsf(i+1,j)*p->DXP[IM1]*p->DXP[IM1]/(p->DXP[IP]*p->DXP[IP])-Fifsf(i-1,j)-Fifsf(i,j)*(p->DXP[IM1]*p->DXP[IM1]/(p->DXP[IP]*p->DXP[IP])-1.0);
+                    b_fi=b_fi_num/b_fi_denom;
+                    a_fi=Fifsf(i+1,j)/(p->DXP[IP]*p->DXP[IP])-Fifsf(i,j)/(p->DXP[IP]*p->DXP[IP])-b_fi/p->DXP[IP];
+                    c_fi=Fifsf(i,j);
+                    
+                    if(x1_quad>=0.0 && x1_quad<=p->DXP[IP] && !(x2_quad>=0.0 && x2_quad<=p->DXP[IP]))
+                        x_quad=x1_quad;
+                    else if(x2_quad>=0.0 && x2_quad<=p->DXP[IP] && !(x1_quad>=0.0 && x1_quad<=p->DXP[IP]))
+                        x_quad=x2_quad;
+                    else if(x1_quad <= x2_quad+1.0e-06 && x1_quad >= x2_quad-1.0e-06)
+                    {
+                        cout<<"equal n"<< " x1:"<<x1_quad<<" x2:"<<x2_quad<<" zpos_s:" << zpos_s<<" zpos_p:"<<zpos_p<<" zpos_n:"<<zpos_n<<" DX_s:"<<p->DXP[IM1]<<" DX_n:"<<p->DXP[IP]<<endl;;
+                        x_quad=x1_quad;
+                    }
+                    else
+                    {
+                        cout<<"mucho problemo n: "<< " x1:"<<x1_quad<<" x2:"<<x2_quad<<" zpos_s:" << zpos_s<<" zpos_p:"<<zpos_p<<" zpos_n:"<<zpos_n<<" DX_s:"<<p->DXP[IM1]<<" DX_n:"<<p->DXP[IP]<<endl;
+                        x_quad=0.5*p->DXP[IP];
+                    }
+                    
+                    teta=(x_quad)/p->DXP[IP];
+                    Fival=a_fi*x_quad*x_quad+b_fi*x_quad+c_fi;
+                    
+                    teta = teta>1.0e-6?teta:1.0e20;
+            
                     a->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
-                    a->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                  
+                    a->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
+                
                     a->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
-                    a->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                  
+                    a->M.n[n] -= 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
+                
+                    a->rhsvec.V[n] -= a->M.n[n]*Fival;
+                    a->M.n[n] = 0.0;
+                    
+                }
+                
+
+                
+                if(p->A323==7)
+                {
+                    double Fival,teta,Fival_b,teta_b;
+                    double Z_t,Z_b,M_p_num,M_b_num,denom;
+                    
+                    teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k)));
+                    if(teta<1e-06)
+                        teta=1e-06;
+                    Fival = teta*Fifsf(i+1,j) + (1.0-teta)*Fifsf(i,j);
+                    
+                    Z_t=fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k));
+                    Z_b=fabs(a->phi(i-1,j,k))-fabs(a->phi(i,j,k));
+                    if(p->flag4[Im1JK]==AIR)
+                    {
+                        teta_b=fabs(a->phi(i,j,k))/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k)));
+                        Fival_b= teta_b*Fifsf(i-1,j) + (1.0-teta_b)*Fifsf(i,j);
+                        Z_b=fabs(a->phi(i,j,k));
+                        
+                        if(Z_b<1.0e-03)
+                        {
+                            a->M.s[n]=0.0;
+                            a->M.n[n]=0.0;
+                            a->M.w[n]=0.0;
+                            a->M.e[n]=0.0;
+                            a->M.t[n]=0.0;
+                            a->M.b[n]=0.0;
+                            a->rhsvec.V[n]=a->M.p[n]*Fifsf(i,j);
+                            
+                        }
+                        
+                        else
+                        {
+                            denom=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)-(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b);
+                        
+                            M_p_num=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b)+(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t);
+                        
+                            M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
+                        
+                            a->M.p[n]+=(M_p_num/denom)/(p->DXP[IP]*p->DXN[IP]);
+                            a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IP]*p->DXN[IP]);
+                            a->rhsvec.V[n]-=(Fival_b*M_b_num/denom)/(p->DXP[IP]*p->DXN[IP]);
+                            a->M.n[n]=0.0;
+                        }
+                        
+                    }
+                    else
+                    {
+                        denom=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)-(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b);
+                        
+                        M_p_num=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b)+(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t);
+                        
+                        M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
+                        
+                        a->M.p[n]+=(M_p_num/denom)/(p->DXP[IP]*p->DXN[IP]);
+                        a->M.s[n]+=(M_b_num/denom)/(p->DXP[IP]*p->DXN[IP]);
+                        a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IP]*p->DXN[IP]);
+                        a->M.n[n]=0.0;
+                        
+                    }
+                    
+                    
+                    
+                }
+                
+                if(p->A323==8)
+                {
                     double zpos_p,zpos_n, delta_x;
                     double Fival,xpos_zero,teta;
+                    double Z_t,Z_b,M_p_num,M_b_num,denom;
                     
                     zpos_p=eta(i,j)-(p->ZP[KP]-p->F60);
                     zpos_n=eta(i+1,j)-(p->ZP[KP]-p->F60);
@@ -524,23 +865,234 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                     xpos_zero=((-zpos_p)*delta_x)/(zpos_n-zpos_p);
                     teta=xpos_zero/delta_x;
                     
-                    if(teta < 0.95)
-                        teta=0.95;
+                    if(teta<1.0e-05)
+                        teta=1.0e-05;
                     
                     Fival=teta*Fifsf(i+1,j)+(1.0-teta)*Fifsf(i,j);
                     
-                    a->M.p[n] += 4.0/((teta*p->DXP[IP])*(teta*p->DXN[IP])+p->DXP[IM1]*p->DXN[IP]);
+                    Z_t=p->DXP[IP];
+                    Z_b=p->DXP[IM1];
                     
-                    a->M.s[n] -= 2.0/((teta*p->DXP[IP])*(teta*p->DXN[IP])+p->DXP[IM1]*p->DXN[IP]);
-                    a->M.s[n] -= 2.0/((teta*p->DXP[IP])*(teta*p->DXN[IP])+p->DXP[IM1]*p->DXN[IP])*(teta*p->DXP[IP]-p->DXP[IM1])/(teta*p->DXP[IP]+p->DXP[IM1]);
-                    
-                    a->M.n[n] -= 2.0/((teta*p->DXP[IP])*(teta*p->DXN[IP])+p->DXP[IM1]*p->DXN[IP]);
-                    a->M.n[n] += 2.0/((teta*p->DXP[IP])*(teta*p->DXN[IP])+p->DXP[IM1]*p->DXN[IP])*(teta*p->DXP[IP]-p->DXP[IM1])/(teta*p->DXP[IP]+p->DXP[IM1]);
-                    
-                
-                    a->rhsvec.V[n] -= a->M.n[n]*Fival;
-                    a->M.n[n] = 0.0;
+                    denom=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)-(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b);
+                        
+                    M_p_num=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b)+(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t);
+                        
+                    M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
+                        
+                    a->M.p[n]+=(M_p_num/denom)/(p->DXP[IP]*p->DXN[IP]);
+                    a->M.s[n]+=(M_b_num/denom)/(p->DXP[IP]*p->DXN[IP]);
+                    a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IP]*p->DXN[IP]);
+                    a->M.n[n]=0.0;
                 }
+                
+                if(p->A323==9)
+                {
+                    double zpos_p,zpos_n,zpos_s;
+                    double Fival,xpos_zero,teta;
+                    double Z_t,Z_b,M_p_num,M_b_num,denom;
+                    double a_quad,b_quad,b_quad_num,b_quad_denom,c_quad,x1_quad,x2_quad,x_quad,p_quad,q_quad;
+                    double a_fi,b_fi_b,b_fi_denom,b_fi_num,c_fi,b_fi;
+                    double x_quad_b,Fival_b;
+                    
+                    
+                    zpos_p=eta(i,j)-(p->ZP[KP]-p->F60);
+                    zpos_s=eta(i-1,j)-(p->ZP[KP]-p->F60);
+                    zpos_n=eta(i+1,j)-(p->ZP[KP]-p->F60);
+                    
+                    b_quad_denom=p->DXP[IM1]*p->DXP[IM1]/p->DXP[IP]+p->DXP[IM1];
+                    b_quad_num=zpos_n*p->DXP[IM1]*p->DXP[IM1]/(p->DXP[IP]*p->DXP[IP])-zpos_s-zpos_p*(p->DXP[IM1]*p->DXP[IM1]/(p->DXP[IP]*p->DXP[IP])-1.0);
+                    b_quad=b_quad_num/b_quad_denom;
+                    a_quad=zpos_n/(p->DXP[IP]*p->DXP[IP])-zpos_p/(p->DXP[IP]*p->DXP[IP])-b_quad/p->DXP[IP];
+                    c_quad=zpos_p;
+                    p_quad=b_quad/a_quad;
+                    q_quad=c_quad/a_quad;
+                    x1_quad=(0.0-p_quad)/2.0+sqrt(((p_quad/2.0)*(p_quad/2.0)-q_quad));
+                    x2_quad=(0.0-p_quad)/2.0-sqrt(((p_quad/2.0)*(p_quad/2.0)-q_quad));
+                    
+                    b_fi_denom=p->DXP[IM1]*p->DXP[IM1]/p->DXP[IP]+p->DXP[IM1];
+                    b_fi_num=Fifsf(i+1,j)*p->DXP[IM1]*p->DXP[IM1]/(p->DXP[IP]*p->DXP[IP])-Fifsf(i-1,j)-Fifsf(i,j)*(p->DXP[IM1]*p->DXP[IM1]/(p->DXP[IP]*p->DXP[IP])-1.0);
+                    b_fi=b_fi_num/b_fi_denom;
+                    a_fi=Fifsf(i+1,j)/(p->DXP[IP]*p->DXP[IP])-Fifsf(i,j)/(p->DXP[IP]*p->DXP[IP])-b_fi/p->DXP[IP];
+                    c_fi=Fifsf(i,j);
+                    
+                    if(x1_quad>=0.0 && x1_quad<=p->DXP[IP] && !(x2_quad>=0.0 && x2_quad<=p->DXP[IP]))
+                        x_quad=x1_quad;
+                    else if(x2_quad>=0.0 && x2_quad<=p->DXP[IP] && !(x1_quad>=0.0 && x1_quad<=p->DXP[IP]))
+                        x_quad=x2_quad;
+                    else if(x1_quad <= x2_quad+1.0e-06 && x1_quad >= x2_quad-1.0e-06)
+                    {
+                        cout<<"equal n"<< " x1:"<<x1_quad<<" x2:"<<x2_quad<<" zpos_s:" << zpos_s<<" zpos_p:"<<zpos_p<<" zpos_n:"<<zpos_n<<" DX_s:"<<p->DXP[IM1]<<" DX_n:"<<p->DXP[IP]<<endl;;
+                        x_quad=x1_quad;
+                    }
+                    else
+                    {
+                        cout<<"mucho problemo n: "<< " x1:"<<x1_quad<<" x2:"<<x2_quad<<" zpos_s:" << zpos_s<<" zpos_p:"<<zpos_p<<" zpos_n:"<<zpos_n<<" DX_s:"<<p->DXP[IM1]<<" DX_n:"<<p->DXP[IP]<<endl;
+                        x_quad=0.5*p->DXP[IP];
+                    }
+                    
+                    teta=(x_quad)/p->DXP[IP];
+                        
+                    if(p->flag4[Im1JK]==AIR)
+                    {
+                        if(p->flag4[IJKp1]==AIR)
+                            cout<<"Air n LRT x:"<<p->XP[IP]<<" z-FS:"<<p->ZP[KP]-p->F60<<" eta_s:" << eta(i-1,j)<<" eta_p:"<<eta(i,j)<<" eta_n:"<<eta(i+1,j)<<" DX_s:"<<p->DXP[IM1]<<" DX_n:"<<p->DXP[IP]<<endl;
+                        else
+                            cout<<"AIR n LR!!! x:"<<p->XP[IP]<<" z-FS:"<<p->ZP[KP]-p->F60<<" eta_s:" << eta(i-1,j)<<" eta_p:"<<eta(i,j)<<" eta_n:"<<eta(i+1,j)<<" DX_s:"<<p->DXP[IM1]<<" DX_n:"<<p->DXP[IP]<<endl;
+                        
+                        if(x_quad==x1_quad && (x2_quad<=0.0 && x2_quad>=(0.0-p->DXP[IM1])))
+                            x_quad_b=x2_quad;
+                        else if(x_quad==x2_quad && (x1_quad<=0.0 && x1_quad>=(0.0-p->DXP[IM1])))
+                            x_quad_b=x1_quad;
+                        else if (x1_quad <= x2_quad+1.0e-06 && x1_quad >= x2_quad-1.0e-06)
+                        {
+                            cout<<"equal_b n"<< " x1:"<<x1_quad<<" x2:"<<x2_quad<<" zpos_s:" << zpos_s<<" zpos_p:"<<zpos_p<<" zpos_n:"<<zpos_n<<" DX_s:"<<p->DXP[IM1]<<" DX_n:"<<p->DXP[IP]<<endl;
+                            x_quad_b=x1_quad;
+                        }
+                        else
+                        {
+                            cout<<"tja n: "<< " x1:"<<x1_quad<<" x2:"<<x2_quad<<" zpos_s:" << zpos_s<<" zpos_p:"<<zpos_p<<" zpos_n:"<<zpos_n<<" DX_s:"<<p->DXP[IM1]<<" DX_n:"<<p->DXP[IP]<<endl;
+                            x_quad_b=-0.5*p->DXP[IM1];
+                        }
+                        
+                        Fival=a_fi*x_quad*x_quad+b_fi*x_quad+c_fi;
+                        Fival_b=a_fi*x_quad_b*x_quad_b+b_fi*x_quad_b+c_fi;
+                        
+                        Z_t=p->DXP[IP];
+                        Z_b=(0.0-x_quad_b);
+                    
+                        denom=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)-(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b);
+                        
+                        M_p_num=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b)+(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t);
+                        
+                        M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
+                        
+                        a->M.p[n]+=(M_p_num/denom)/(p->DXP[IP]*p->DXN[IP]);
+                        a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IP]*p->DXN[IP]);
+                        a->rhsvec.V[n]-=(Fival_b*M_b_num/denom)/(p->DXP[IP]*p->DXN[IP]);
+                        a->M.n[n]=0.0;
+                        a->M.s[n]=0.0;
+                        
+                    }
+                    
+                    else
+                    {
+                    if(teta<1.0e-05)
+                        teta=1.0e-05;
+                    Fival=a_fi*x_quad*x_quad+b_fi*x_quad+c_fi;
+                    
+                    Z_t=p->DXP[IP];
+                    Z_b=p->DXP[IM1];
+                    
+                    denom=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)-(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b);
+                        
+                    M_p_num=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b)+(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t);
+                        
+                    M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
+                        
+                    a->M.p[n]+=(M_p_num/denom)/(p->DXP[IP]*p->DXN[IP]);
+                    a->M.s[n]+=(M_b_num/denom)/(p->DXP[IP]*p->DXN[IP]);
+                    a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IP]*p->DXN[IP]);
+                    a->M.n[n]=0.0;
+                    }
+                }
+                
+                if(p->A323==10)
+                {
+                    double zpos_p,zpos_n,zpos_s;
+                    double Fival,xpos_zero,teta;
+                    double Z_t,Z_b,M_p_num,M_b_num,denom;
+                    double a_quad,b_quad,b_quad_num,b_quad_denom,c_quad,x1_quad,x2_quad,x_quad,p_quad,q_quad;
+                    double a_fi,b_fi_b,b_fi_denom,b_fi_num,c_fi,b_fi;
+                    double x_quad_b,Fival_b;
+                    
+                    
+                    zpos_p=eta(i,j)-(p->ZP[KP]-p->F60);
+                    zpos_s=eta(i-1,j)-(p->ZP[KP]-p->F60);
+                    zpos_n=eta(i+1,j)-(p->ZP[KP]-p->F60);
+                    
+                    b_quad_denom=p->DXP[IM1]*p->DXP[IM1]/p->DXP[IP]+p->DXP[IM1];
+                    b_quad_num=zpos_n*p->DXP[IM1]*p->DXP[IM1]/(p->DXP[IP]*p->DXP[IP])-zpos_s-zpos_p*(p->DXP[IM1]*p->DXP[IM1]/(p->DXP[IP]*p->DXP[IP])-1.0);
+                    b_quad=b_quad_num/b_quad_denom;
+                    a_quad=zpos_n/(p->DXP[IP]*p->DXP[IP])-zpos_p/(p->DXP[IP]*p->DXP[IP])-b_quad/p->DXP[IP];
+                    c_quad=zpos_p;
+                    p_quad=b_quad/a_quad;
+                    q_quad=c_quad/a_quad;
+                    x1_quad=(0.0-p_quad)/2.0+sqrt(((p_quad/2.0)*(p_quad/2.0)-q_quad));
+                    x2_quad=(0.0-p_quad)/2.0-sqrt(((p_quad/2.0)*(p_quad/2.0)-q_quad));
+                    
+                    b_fi_denom=p->DXP[IM1]*p->DXP[IM1]/p->DXP[IP]+p->DXP[IM1];
+                    b_fi_num=Fifsf(i+1,j)*p->DXP[IM1]*p->DXP[IM1]/(p->DXP[IP]*p->DXP[IP])-Fifsf(i-1,j)-Fifsf(i,j)*(p->DXP[IM1]*p->DXP[IM1]/(p->DXP[IP]*p->DXP[IP])-1.0);
+                    b_fi=b_fi_num/b_fi_denom;
+                    a_fi=Fifsf(i+1,j)/(p->DXP[IP]*p->DXP[IP])-Fifsf(i,j)/(p->DXP[IP]*p->DXP[IP])-b_fi/p->DXP[IP];
+                    c_fi=Fifsf(i,j);
+                    
+                    if(x1_quad>=0.0 && x1_quad<=p->DXP[IP] && !(x2_quad>=0.0 && x2_quad<=p->DXP[IP]))
+                        x_quad=x1_quad;
+                    else if(x2_quad>=0.0 && x2_quad<=p->DXP[IP] && !(x1_quad>=0.0 && x1_quad<=p->DXP[IP]))
+                        x_quad=x2_quad;
+                    else if(x1_quad <= x2_quad+1.0e-06 && x1_quad >= x2_quad-1.0e-06)
+                    {
+                        cout<<"equal n"<< " x1:"<<x1_quad<<" x2:"<<x2_quad<<" zpos_s:" << zpos_s<<" zpos_p:"<<zpos_p<<" zpos_n:"<<zpos_n<<" DX_s:"<<p->DXP[IM1]<<" DX_n:"<<p->DXP[IP]<<endl;;
+                        x_quad=x1_quad;
+                    }
+                    else
+                    {
+                        cout<<"mucho problemo n: "<< " x1:"<<x1_quad<<" x2:"<<x2_quad<<" zpos_s:" << zpos_s<<" zpos_p:"<<zpos_p<<" zpos_n:"<<zpos_n<<" DX_s:"<<p->DXP[IM1]<<" DX_n:"<<p->DXP[IP]<<endl;
+                        x_quad=0.5*p->DXP[IP];
+                    }
+                    
+                    teta=(x_quad)/p->DXP[IP];
+                        
+                    if(p->flag4[Im1JK]==AIR)
+                    {
+                        if(p->flag4[IJKp1]==AIR)
+                            cout<<"Air n LRT x:"<<p->XP[IP]<<" z-FS:"<<p->ZP[KP]-p->F60<<" eta_s:" << eta(i-1,j)<<" eta_p:"<<eta(i,j)<<" eta_n:"<<eta(i+1,j)<<" DX_s:"<<p->DXP[IM1]<<" DX_n:"<<p->DXP[IP]<<endl;
+                        else
+                            cout<<"AIR n LR!!! x:"<<p->XP[IP]<<" z-FS:"<<p->ZP[KP]-p->F60<<" eta_s:" << eta(i-1,j)<<" eta_p:"<<eta(i,j)<<" eta_n:"<<eta(i+1,j)<<" DX_s:"<<p->DXP[IM1]<<" DX_n:"<<p->DXP[IP]<<endl;
+            
+                       Fival=a_fi*x_quad*x_quad+b_fi*x_quad+c_fi;
+                        
+                        teta = teta>1.0e-6?teta:1.0e20;
+            
+                        a->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
+                        a->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
+                
+                        a->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
+                        a->M.n[n] -= 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
+                
+                        a->rhsvec.V[n] -= a->M.n[n]*Fival;
+                        a->M.n[n] = 0.0;
+                        
+                        
+                    }
+                    
+                    else
+                    {
+                        
+                    if(teta<1.0e-05)
+                        teta=1.0e-05;
+                    Fival=a_fi*x_quad*x_quad+b_fi*x_quad+c_fi;
+                    Z_t=p->DXP[IP];
+                    Z_b=p->DXP[IM1];
+                    
+                    denom=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)-(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b);
+                        
+                    M_p_num=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b)+(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t);
+                        
+                    M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
+                        
+                    a->M.p[n]+=(M_p_num/denom)/(p->DXP[IP]*p->DXN[IP]);
+                    a->M.s[n]+=(M_b_num/denom)/(p->DXP[IP]*p->DXN[IP]);
+                    a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IP]*p->DXN[IP]);
+                    a->M.n[n]=0.0;
+                    }
+                }
+                
+                if(p->A323==11)
+                {
+                    a->M.n[n]=0.0;
+                }
+                
                 
             }
 
@@ -583,19 +1135,6 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 a->M.t[n] = 0.0;
                 }
                 
-                if(p->A323==22)
-                {
-                double lsv0,lsv1;
-
-                lsv0 = fabs(a->phi(i,j,k));
-                lsv1 = fabs(a->phi(i,j,k+1));
-
-                lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
-
-                a->rhsvec.V[n] -= a->M.t[n]*Fifsf(i,j)*(1.0 + lsv1/lsv0);
-                a->M.p[n] -= a->M.t[n]*lsv1/lsv0;
-                a->M.t[n] = 0.0;
-                }
                 
                 // -----------
                 if(p->A323==3)
@@ -655,21 +1194,18 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 
                 if(p->A323==5)
                 {
-                    a->M.p[n] -= 1.0/(p->DZP[KP]*p->DZN[KP]);
-                    a->M.p[n] -= 1.0/(p->DZP[KM1]*p->DZN[KP]);
-                    
-                    a->M.b[n] += 1.0/(p->DZP[KM1]*p->DZN[KP]);
-                    a->M.t[n] += 1.0/(p->DZP[KP]*p->DZN[KP]);
-                    
                     double teta;
-                    
-                    teta = (eta(i,j)-(p->ZP[KP]-p->F60))/p->DZP[KP];
-                    if(teta < 0.0 || teta > 1.0)
-                        cout<<"tetalarm_t: "<<teta;
-                 
-                    a->M.p[n] += 4.0/((teta*p->DZP[KP])*(p->DZN[KP])+p->DZP[KM1]*p->DZN[KP]);
-                    a->M.b[n] -= 2.0/((p->DZP[KM1])*(p->DZN[KP])+p->DZP[KM1]*p->DZN[KP]);
-                    a->M.t[n] -= 2.0/((teta*p->DZP[KP])*(teta*p->DZN[KP])+p->DZP[KP]*p->DZN[KP]);
+                    teta = fabs(a->phi(i,j,k))/p->DZN[IP];
+                
+                    teta = teta>1.0e-6?teta:1.0e20;
+                
+                //cout<<" Teta: "<<teta<<" a->phi(i,j,k): "<<a->phi(i,j,k)<<" a->phi(i+1,j,k): "<<a->phi(i+1,j,k)<<endl;
+                
+                    a->M.p[n] -= 1.0/(p->DZP[KP]*p->DZN[KP]);
+                    a->M.p[n] += 1.0/(teta*p->DZP[KP]*p->DZN[KP]);
+                           
+                    a->M.t[n] += 1.0/(p->DZP[KP]*p->DZN[KP]);
+                    a->M.t[n] -= 1.0/(teta*p->DZP[KP]*p->DZN[KP]);
                 
                     a->rhsvec.V[n] -= a->M.t[n]*Fifsf(i,j);
                     a->M.t[n] = 0.0;
@@ -678,30 +1214,99 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 if(p->A323==6)
                 {
                     
-                    a->M.p[n] -= 1.0/(p->DZP[KP]*p->DZN[KP]);
-                    a->M.p[n] -= 1.0/(p->DZP[KM1]*p->DZN[KP]);
+                double teta;
+                teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
+                teta = teta>1.0e-6?teta:1.0e20;
+                
+                a->M.p[n] -= 1.0/(p->DZP[KP]*p->DZN[KP]);
+                a->M.p[n] += 1.0/(teta*p->DZP[KP]*p->DZN[KP]);
+                           
+                a->M.t[n] += 1.0/(p->DZP[KP]*p->DZN[KP]);
+                a->M.t[n] -= 1.0/(teta*p->DZP[KP]*p->DZN[KP]);
+                
+                a->rhsvec.V[n] -= a->M.t[n]*Fifsf(i,j);
+                a->M.t[n] = 0.0;
+                }
+                
+                if(p->A323==7)
+                {
+                    double Fival,teta;
+                    double Z_t,Z_b,M_p_num,M_b_num,denom;
                     
-                    a->M.b[n] += 1.0/(p->DZP[KM1]*p->DZN[KP]);
-                    a->M.t[n] += 1.0/(p->DZP[KP]*p->DZN[KP]);
+                    teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
                     
-                    double teta;
+                    if(teta<1e-06)
+                        teta=1e-06;
+                    
+                    Fival = Fifsf(i,j);
+                    
+                    Z_t=fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k));
+                    Z_b=fabs(a->phi(i,j,k-1))-fabs(a->phi(i,j,k));
+                    
+                    denom=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)-(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b);
+                        
+                    M_p_num=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b)+(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t);
+                        
+                    M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
+                        
+                    a->M.p[n]+=(M_p_num/denom)/(p->DZP[KP]*p->DZN[KP]);
+                    a->M.b[n]+=(M_b_num/denom)/(p->DZP[KP]*p->DZN[KP]);
+                    a->rhsvec.V[n]+=(Fival/denom)/(p->DZP[KP]*p->DZN[KP]);
+                    a->M.t[n]=0.0;
+                    
+                        
+                }
+                
+                if(p->A323==8)
+                {
+                    double Fival,teta;
+                    double Z_t,Z_b,M_p_num,M_b_num,denom;
                     
                     teta = (eta(i,j)-(p->ZP[KP]-p->F60))/p->DZP[KP];
-                    if(teta < 0.95)
-                        teta=0.95;
-                 
-                    a->M.p[n] += 4.0/((teta*p->DZP[KP])*(teta*p->DZN[KP])+p->DZP[KM1]*p->DZN[KP]);
                     
-                    a->M.b[n] -= 2.0/((teta*p->DZP[KP])*(teta*p->DZN[KP])+p->DZP[KM1]*p->DZN[KP]);
-                    a->M.b[n] -= 2.0/((teta*p->DZP[KP])*(teta*p->DZN[KP])+p->DZP[KM1]*p->DZN[KP])*(teta*p->DZP[KP]-p->DZP[KM1])/(teta*p->DZP[KP]+p->DZP[KM1]);
+                    if(teta<1e-05)
+                        teta=1e-05;
+                    Fival = Fifsf(i,j);
                     
-                    a->M.t[n] -= 2.0/((teta*p->DZP[KP])*(teta*p->DZN[KP])+p->DZP[KM1]*p->DZN[KP]);
-                    a->M.t[n] += 2.0/((teta*p->DZP[KP])*(teta*p->DZN[KP])+p->DZP[KM1]*p->DZN[KP])*(teta*p->DZP[KP]-p->DZP[KM1])/(teta*p->DZP[KP]+p->DZP[KM1]);
+                    Z_t=p->DZP[KP];
+                    Z_b=p->DZP[KM1];
                     
+                    denom=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)-(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b);
+                        
+                    M_p_num=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b)+(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t);
+                        
+                    M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
+                        
+                    a->M.p[n]+=(M_p_num/denom)/(p->DZP[KP]*p->DZN[KP]);
+                    a->M.b[n]+=(M_b_num/denom)/(p->DZP[KP]*p->DZN[KP]);
+                    a->rhsvec.V[n]+=(Fival/denom)/(p->DZP[KP]*p->DZN[KP]);
+                    a->M.t[n]=0.0;
+                }
                 
-                    a->rhsvec.V[n] -= a->M.t[n]*Fifsf(i,j);
-                    a->M.t[n] = 0.0;
+                if(p->A323==9 || p->A323==10 || p->A323==11)
+                {
+                    double Fival,teta;
+                    double Z_t,Z_b,M_p_num,M_b_num,denom;
                     
+                    teta = (eta(i,j)-(p->ZP[KP]-p->F60))/p->DZP[KP];
+                    
+                    if(teta<1e-05)
+                        teta=1e-05;
+                    Fival = Fifsf(i,j);
+                    
+                    Z_t=p->DZP[KP];
+                    Z_b=p->DZP[KM1];
+                    
+                    denom=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)-(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b);
+                        
+                    M_p_num=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b)+(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t);
+                        
+                    M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
+                        
+                    a->M.p[n]+=(M_p_num/denom)/(p->DZP[KP]*p->DZN[KP]);
+                    a->M.b[n]+=(M_b_num/denom)/(p->DZP[KP]*p->DZN[KP]);
+                    a->rhsvec.V[n]+=(Fival/denom)/(p->DZP[KP]*p->DZN[KP]);
+                    a->M.t[n]=0.0;
                 }
                 
                 

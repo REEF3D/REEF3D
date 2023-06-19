@@ -45,7 +45,7 @@ public:
     void fsfepol(lexer*, fdm*, ghostcell*,slice&,field&);
 	void fsfupdate(lexer*, fdm*, ghostcell*,ioflow*,onephase*,slice&);
     void etaloc(lexer*, fdm*, ghostcell*);
-    void fsfbc(lexer*, fdm*, ghostcell*,slice&,field&);
+    void fsfbc(lexer*, fdm*, ghostcell*,slice&,field&,slice&);
     void fsfbc0(lexer*, fdm*, ghostcell*,slice&,field&);
     void fsfbc1(lexer*, fdm*, ghostcell*,slice&,field&);
     

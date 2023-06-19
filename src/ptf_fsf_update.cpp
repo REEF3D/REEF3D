@@ -68,7 +68,7 @@ void ptf_fsf_update::etaloc(lexer *p, fdm *a, ghostcell *pgc)
     a->etaloc(i,j) = MAX(a->etaloc(i,j),k);
 }
 
-void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field &Fi)
+void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field &Fi, slice &eta)
 {
     AIRLOOP
     Fi(i,j,k)=0.0;
@@ -76,110 +76,22 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     double lsv0,lsv1,lsv2,lsv3;
     double fival,lsval,dx,dist;
 // ------
-    if(p->A323==1 || p->A323==6)
+    if(p->A323==1)
     FILOOP4
     {
     Fi(i,j,k+1) =  Fifsf(i,j);
     Fi(i,j,k+2) =  Fifsf(i,j);
     Fi(i,j,k+3) =  Fifsf(i,j);
     }
-
-// ------
-    if(p->A323==2 || p->A323==4)
+    
+    if(p->A323>=2)
     FILOOP4
     {
-    lsv0 = fabs(a->phi(i,j,k));
-    lsv1 = fabs(a->phi(i,j,k+1));
-    lsv2 = fabs(a->phi(i,j,k+2));
-    lsv3 = fabs(a->phi(i,j,k+3));
-
-    lsv0 = (fabs(lsv0)>1.0e-6?lsv0:1.0e20);
-    //lsv0 += 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
-
-    fival = Fi(i,j,k);
-
-
-        Fi(i,j,k+1) =  ((Fifsf(i,j)-fival)/(lsv0))*lsv1 + Fifsf(i,j);
-        Fi(i,j,k+2) =  ((Fifsf(i,j)-fival)/(lsv0))*lsv2 + Fifsf(i,j);
-        Fi(i,j,k+3) =  ((Fifsf(i,j)-fival)/(lsv0))*lsv3 + Fifsf(i,j);
-
-        //if(p->mpirank==2)
-        //cout<<"F_k: "<<fival<<" Fifsf: "<<Fifsf(i,j)<<" F_k+1: "<<Fi(i,j,k+1)<<"  | lsv0: "<<lsv0<<" lsv1: "<<lsv1<<endl;
-    }
-   
-    double x0,x1,x2,y0,y1,y2;
-    double x,y;
-    double denom1,denom2,denom3,denom4,denom5,denom6;
-// ------
-    if(p->A323==3)
-    FILOOP4
-    {
-
-    x0 = -fabs(a->phi(i,j,k-1));
-    x1 = -fabs(a->phi(i,j,k));
-    x2 = 0.0;
-
-    y0 = Fi(i,j,k-1);
-    y1 = Fi(i,j,k);
-    y2 = Fifsf(i,j);
-    
-    denom1 = fabs(x0-x1)>1.0e-6?(x0-x1):1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
-    denom2 = fabs(x1-x0)>1.0e-6?(x1-x0):1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
-    denom3 = fabs(x2-x0)>1.0e-6?(x2-x0):1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
-    
-    denom4 = fabs(x0-x2)>1.0e-6?(x0-x2):1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
-    denom5 = fabs(x1-x2)>1.0e-6?(x1-x2):1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
-    denom6 = fabs(x2-x1)>1.0e-6?(x2-x1):1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
-    
-
-        x = fabs(a->phi(i,j,k+1));
-        Fi(i,j,k+1) =   ((x-x1)/denom1) * ((x-x2)/denom4) * y0
-                      + ((x-x0)/denom2) * ((x-x2)/denom5) * y1
-                      + ((x-x0)/denom3) * ((x-x1)/denom6) * y2;
-
-        x = fabs(a->phi(i,j,k+2));
-        Fi(i,j,k+2) =   ((x-x1)/denom1) * ((x-x2)/denom4) * y0
-                      + ((x-x0)/denom2) * ((x-x2)/denom5) * y1
-                      + ((x-x0)/denom3) * ((x-x1)/denom6) * y2;
-
-        x = fabs(a->phi(i,j,k+3));
-        Fi(i,j,k+3) =   ((x-x1)/denom1) * ((x-x2)/denom4) * y0
-                      + ((x-x0)/denom2) * ((x-x2)/denom5) * y1
-                      + ((x-x0)/denom3) * ((x-x1)/denom6) * y2;
-
-        //cout<<"F_k: "<<Fi(i,j,k)<<" Fifsf: "<<Fifsf(i,j)<<" F_k+1: "<<Fi(i,j,k+1)<<"  | x1: "<<x1<<" x: "<<x<<endl;
-        
-    //if(i+p->origin_i==0)
-    //Fi(i-1,j,k+1) = Fi(i,j,k+1);
-    }
-    
-    if( p->A323==5 )
-    {
-    double x_1,x_2,x_3,y_1,y_2,y_3;
-    double a_fac,b_fac,c_const;
-    
-    FILOOP4
-    {   
-        
-        x_1=p->ZP[KM2];
-        x_2=p->ZP[KM1];
-        x_3=p->ZP[KP];
-        y_1=Fi[i,j,k-2];
-        y_2=Fi[i,j,k-1];
-        y_3=Fi[i,j,k];
-        a_fac=(y_3-y_1+(1/(x_2-x_1))*(y_1*x_3-y_2*x_3-y_1*x_1+y_2*x_1))/(x_3*x_3-x_1*x_1+(1/(x_2-x_1))*(x_1*x_1*x_3-x_2*x_2*x_3+x_2*x_2*x_1-x_1*x_1*x_1));
-        b_fac=(1/(x_2-x_1))*(a_fac*x_1*x_1-a_fac*x_2*x_2-y_1+y_2);
-        c_const=(y_1-a_fac*x_1*x_1-b_fac*x_1);
-        
-        Fi(i,j,k+1)=a_fac*p->ZP[KP1]*p->ZP[KP1]+b_fac*p->ZP[KP1]+c_const;
-        Fi(i,j,k+2)=a_fac*p->ZP[KP2]*p->ZP[KP2]+b_fac*p->ZP[KP2]+c_const;
-        Fi(i,j,k+3)=a_fac*p->ZP[KP3]*p->ZP[KP3]+b_fac*p->ZP[KP3]+c_const;
-        
-    }
-    
+        double test=10.0;
     }
     
     
+
 }
 
 void ptf_fsf_update::fsfbc0(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field &Fi)
