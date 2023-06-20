@@ -108,44 +108,7 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
         //cout<<"F_k: "<<fival<<" Fifsf: "<<Fifsf(i,j)<<" F_k+1: "<<Fi(i,j,k+1)<<"  | lsv0: "<<lsv0<<" lsv1: "<<lsv1<<endl;
     }
     
-    double zpos_fs,zpos_1,zpos_2,zpos_3;
-    
-    if(p->A323==5 || p->A323==6)
-    FILOOP4
-    {
-        zpos_fs=eta(i,j)-(p->ZP[KP]-p->F60);
-        zpos_1=p->DZP[KP];
-        zpos_2=p->ZP[KP2]-p->ZP[KP];
-        zpos_3=p->ZP[KP3]-p->ZP[KP];
-        
-        zpos_fs = (fabs(zpos_fs)>1.0e-6?zpos_fs:1.0e20);
-        
-        Fi(i,j,k+1)=(Fifsf(i,j)-Fi(i,j,k))/zpos_fs*zpos_1+Fi(i,j,k);
-        Fi(i,j,k+2)=(Fifsf(i,j)-Fi(i,j,k))/zpos_fs*zpos_2+Fi(i,j,k);
-        Fi(i,j,k+3)=(Fifsf(i,j)-Fi(i,j,k))/zpos_fs*zpos_3+Fi(i,j,k);
-    }
-    
-    double teta,Z_t,Z_b,Fi_p,Fi_b,Fi_fsf,a_epol,b_epol,c_epol;
-    
-    if(p->A323==7)
-    {   
-        teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
-        lsv1 = fabs(a->phi(i,j,k+1));
-        lsv2 = fabs(a->phi(i,j,k+2));
-        lsv3 = fabs(a->phi(i,j,k+3));
-        Z_t=fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k));
-        Z_b=fabs(a->phi(i,j,k-1))-fabs(a->phi(i,j,k));
-        
-        Fi_p=Fi(i,j,k);
-        Fi_b=Fi(i,j,k-1);
-        Fi_fsf=Fifsf(i,j);
-
-    }
-    
-    
-    double x0,x1,x2,y0,y1,y2;
-    double x,y;
-    double denom1,denom2,denom3,denom4,denom5,denom6;
+    double x0,x1,x2,y0,y1,y2,denom1,denom2,denom3,denom4,denom5,denom6,x;
     
     if(p->A323==3)
     FILOOP4
@@ -189,93 +152,82 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     //Fi(i-1,j,k+1) = Fi(i,j,k+1);
     }
     
-    if(p->A323>=11)
+    double zpos_fs,zpos_1,zpos_2,zpos_3;
+    
+    if(p->A323==5 || p->A323==6)
     FILOOP4
     {
-            double dist_s_1,dist_s_2,dist_s_3,dist_s_4,dist_s_5;
-            double dist_n_1,dist_n_2,dist_n_3,dist_n_4,dist_n_5;
-            double dist_b_1,dist_b_2,dist_b_3,dist_b_4,dist_b_5;
-            double dist_tot_1,dist_tot_2,dist_tot_3,dist_tot_4,dist_tot_5;
-            
-            dist_s_1=sqrt(p->DXP[IM1]*p->DXP[IM1]+a->phi(i-1,j,k+1)*a->phi(i-1,j,k+1));
-            dist_s_2=sqrt(p->DXP[IM1]*p->DXP[IM1]+a->phi(i-1,j,k+2)*a->phi(i-1,j,k+2));
-            dist_s_3=sqrt(p->DXP[IM1]*p->DXP[IM1]+a->phi(i-1,j,k+3)*a->phi(i-1,j,k+3));
-            dist_s_4=sqrt(p->DXP[IM1]*p->DXP[IM1]+a->phi(i-1,j,k+4)*a->phi(i-1,j,k+4));
-            dist_s_5=sqrt(p->DXP[IM1]*p->DXP[IM1]+a->phi(i-1,j,k+5)*a->phi(i-1,j,k+5));
-            
-            dist_n_1=sqrt(p->DXP[IP]*p->DXP[IP]+a->phi(i+1,j,k+1)*a->phi(i-1,j,k+1));
-            dist_n_2=sqrt(p->DXP[IP]*p->DXP[IP]+a->phi(i+1,j,k+2)*a->phi(i-1,j,k+2));
-            dist_n_3=sqrt(p->DXP[IP]*p->DXP[IP]+a->phi(i+1,j,k+3)*a->phi(i-1,j,k+3));
-            dist_n_4=sqrt(p->DXP[IP]*p->DXP[IP]+a->phi(i+1,j,k+4)*a->phi(i-1,j,k+4));
-            dist_n_5=sqrt(p->DXP[IP]*p->DXP[IP]+a->phi(i+1,j,k+5)*a->phi(i-1,j,k+5));
-            
-            dist_b_1=fabs(a->phi(i,j,k+1));
-            dist_b_2=fabs(a->phi(i,j,k+2));
-            dist_b_3=fabs(a->phi(i,j,k+3));
-            dist_b_4=fabs(a->phi(i,j,k+4));
-            dist_b_5=fabs(a->phi(i,j,k+5));
-            
-            if(a->phi(i-1,j,k) > a->phi(i,j,k) && a->phi(i+1,j,k) > a->phi(i,j,k))
-            { 
-                dist_tot_1=dist_s_1+dist_n_1+dist_b_1;
-                dist_tot_2=dist_s_2+dist_n_2+dist_b_2;
-                dist_tot_3=dist_s_3+dist_n_3+dist_b_3;
-                dist_tot_4=dist_s_4+dist_n_4+dist_b_4;
-                dist_tot_5=dist_s_5+dist_n_5+dist_b_5;    
-            
-           Fi(i,j,k+1)=Fifsf(i-1,j)*dist_s_1/dist_tot_1+Fifsf(i,j)*dist_b_1/dist_tot_1+Fifsf(i+1,j)*dist_n_1/dist_tot_1;
-        Fi(i,j,k+2)=Fifsf(i-1,j)*dist_s_2/dist_tot_2+Fifsf(i,j)*dist_b_2/dist_tot_2+Fifsf(i+1,j)*dist_n_2/dist_tot_2;
-            Fi(i,j,k+3)=Fifsf(i-1,j)*dist_s_3/dist_tot_3+Fifsf(i,j)*dist_b_3/dist_tot_3+Fifsf(i+1,j)*dist_n_3/dist_tot_3;
-            Fi(i,j,k+4)=Fifsf(i-1,j)*dist_s_4/dist_tot_4+Fifsf(i,j)*dist_b_4/dist_tot_4+Fifsf(i+1,j)*dist_n_4/dist_tot_4;
-            Fi(i,j,k+5)=Fifsf(i-1,j)*dist_s_5/dist_tot_5+Fifsf(i,j)*dist_b_5/dist_tot_5+Fifsf(i+1,j)*dist_n_5/dist_tot_5;
-            
-                
-            }
-            
-            else if(a->phi(i-1,j,k) > a->phi(i,j,k) && a->phi(i+1,j,k) <= a->phi(i,j,k))
-            {
-                
-                dist_tot_1=dist_s_1+dist_b_1;
-                dist_tot_2=dist_s_2+dist_b_2;
-                dist_tot_3=dist_s_3+dist_b_3;
-                dist_tot_4=dist_s_4+dist_b_4;
-                dist_tot_5=dist_s_5+dist_b_5;
-                
-                Fi(i,j,k+1)=Fifsf(i-1,j)*dist_s_1/dist_tot_1+Fifsf(i,j)*dist_b_1/dist_tot_1;
-                Fi(i,j,k+2)=Fifsf(i-1,j)*dist_s_2/dist_tot_2+Fifsf(i,j)*dist_b_2/dist_tot_2;
-                Fi(i,j,k+3)=Fifsf(i-1,j)*dist_s_3/dist_tot_3+Fifsf(i,j)*dist_b_3/dist_tot_3;
-                Fi(i,j,k+4)=Fifsf(i-1,j)*dist_s_4/dist_tot_4+Fifsf(i,j)*dist_b_4/dist_tot_4;
-                Fi(i,j,k+5)=Fifsf(i-1,j)*dist_s_5/dist_tot_5+Fifsf(i,j)*dist_b_5/dist_tot_5;
-            }
-            
-            else if(a->phi(i-1,j,k) <= a->phi(i,j,k) && a->phi(i+1,j,k) > a->phi(i,j,k))
-            {
-                dist_tot_1=dist_n_1+dist_b_1;
-                dist_tot_2=dist_n_2+dist_b_2;
-                dist_tot_3=dist_n_3+dist_b_3;
-                dist_tot_4=dist_n_4+dist_b_4;
-                dist_tot_5=dist_n_5+dist_b_5;    
-                
-                Fi(i,j,k+1)=Fifsf(i,j)*dist_b_1/dist_tot_1+Fifsf(i+1,j)*dist_n_1/dist_tot_1;
-                Fi(i,j,k+2)=Fifsf(i,j)*dist_b_2/dist_tot_2+Fifsf(i+1,j)*dist_n_2/dist_tot_2;
-                Fi(i,j,k+3)=Fifsf(i,j)*dist_b_3/dist_tot_3+Fifsf(i+1,j)*dist_n_3/dist_tot_3;
-                Fi(i,j,k+4)=Fifsf(i,j)*dist_b_4/dist_tot_4+Fifsf(i+1,j)*dist_n_4/dist_tot_4;
-                Fi(i,j,k+5)=Fifsf(i,j)*dist_b_5/dist_tot_5+Fifsf(i+1,j)*dist_n_5/dist_tot_5;
-            }
-            
-            else if(a->phi(i-1,j,k) <= a->phi(i,j,k) && a->phi(i+1,j,k) <= a->phi(i,j,k))
-            {
-                Fi(i,j,k+1) =  Fifsf(i,j);
-                Fi(i,j,k+2) =  Fifsf(i,j);
-                Fi(i,j,k+3) =  Fifsf(i,j);
-            }
-            
-            else
-                cout<<"Confusion of da highest orda!"<<endl;
+        zpos_fs=eta(i,j)-(p->ZP[KP]-p->F60);
+        zpos_1=p->DZP[KP];
+        zpos_2=p->ZP[KP2]-p->ZP[KP];
+        zpos_3=p->ZP[KP3]-p->ZP[KP];
+        
+        zpos_fs = (fabs(zpos_fs)>1.0e-6?zpos_fs:1.0e20);
+        
+        Fi(i,j,k+1)=(Fifsf(i,j)-Fi(i,j,k))/zpos_fs*zpos_1+Fi(i,j,k);
+        Fi(i,j,k+2)=(Fifsf(i,j)-Fi(i,j,k))/zpos_fs*zpos_2+Fi(i,j,k);
+        Fi(i,j,k+3)=(Fifsf(i,j)-Fi(i,j,k))/zpos_fs*zpos_3+Fi(i,j,k);
     }
     
+    double teta_epol,Dz_t,Dz_b,FI_p,FI_b,FI_FS,a_epol,b_epol,c_epol,denom_b,num_b;
     
+    if(p->A323==7)
+    FILOOP4
+    {   
+        Dz_t=fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k));
+        Dz_b=fabs(a->phi(i,j,k-1))-fabs(a->phi(i,j,k));
+        
+        teta_epol=fabs(a->phi(i,j,k))/Dz_t;
+        if(teta_epol<1.0e-7)
+            teta_epol=1.0e-7;
+        zpos_1=fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k-1));
+        zpos_2=fabs(a->phi(i,j,k+2))+fabs(a->phi(i,j,k-1));
+        zpos_3=fabs(a->phi(i,j,k+3))+fabs(a->phi(i,j,k-1));
+    
+        FI_p=Fi(i,j,k);
+        FI_b=Fi(i,j,k-1);
+        FI_FS=Fifsf(i,j);
+        
+        c_epol=FI_b;
+        denom_b=(Dz_b+teta_epol*Dz_t)-(Dz_b+teta_epol*Dz_t)*(Dz_b+teta_epol*Dz_t)/Dz_b;
+        num_b=FI_FS-FI_b+FI_b*(Dz_b+teta_epol*Dz_t)*(Dz_b+teta_epol*Dz_t)/(Dz_b*Dz_b)-FI_p*(Dz_b+teta_epol*Dz_t)*(Dz_b+teta_epol*Dz_t)/(Dz_b*Dz_b);
+        b_epol=num_b/denom_b;
+        a_epol=FI_p/(Dz_b*Dz_b)-FI_b/(Dz_b*Dz_b)-b_epol/Dz_b;
+        
+        Fi(i,j,k+1)=a_epol*zpos_1*zpos_1+b_epol*zpos_1+c_epol;
+        Fi(i,j,k+2)=a_epol*zpos_2*zpos_2+b_epol*zpos_2+c_epol;
+        Fi(i,j,k+3)=a_epol*zpos_3*zpos_3+b_epol*zpos_3+c_epol;
 
+    }
+    
+    if(p->A323==8 || p->A323==9 || p->A323==10)
+    FILOOP4
+    {
+        teta_epol=(eta(i,j)-(p->ZP[KP]-p->F60))/p->DZP[KP];
+        if(teta_epol<1.0e-7)
+            teta_epol=1.0e-7;
+        zpos_1=p->ZP[KP1]-p->ZP[KM1];
+        zpos_2=p->ZP[KP2]-p->ZP[KM1];
+        zpos_3=p->ZP[KP3]-p->ZP[KM1];
+        
+        Dz_b=p->DZP[KM1];
+        Dz_t=p->DZP[KP];
+        FI_p=Fi(i,j,k);
+        FI_b=Fi(i,j,k-1);
+        FI_FS=Fifsf(i,j);
+        
+        c_epol=FI_b;
+        denom_b=(Dz_b+teta_epol*Dz_t)-(Dz_b+teta_epol*Dz_t)*(Dz_b+teta_epol*Dz_t)/Dz_b;
+        num_b=FI_FS-FI_b+FI_b*(Dz_b+teta_epol*Dz_t)*(Dz_b+teta_epol*Dz_t)/(Dz_b*Dz_b)-FI_p*(Dz_b+teta_epol*Dz_t)*(Dz_b+teta_epol*Dz_t)/(Dz_b*Dz_b);
+        b_epol=num_b/denom_b;
+        a_epol=FI_p/(Dz_b*Dz_b)-FI_b/(Dz_b*Dz_b)-b_epol/Dz_b;
+        
+        Fi(i,j,k+1)=a_epol*zpos_1*zpos_1+b_epol*zpos_1+c_epol;
+        Fi(i,j,k+2)=a_epol*zpos_2*zpos_2+b_epol*zpos_2+c_epol;
+        Fi(i,j,k+3)=a_epol*zpos_3*zpos_3+b_epol*zpos_3+c_epol;
+        
+    }
+    
 }
 
 void ptf_fsf_update::fsfbc0(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field &Fi)
