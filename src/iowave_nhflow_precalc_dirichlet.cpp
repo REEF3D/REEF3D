@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 
-void iowave::nhflow_precalc_dirichlet(lexer *p, ghostcell *pgc)
+void iowave::nhflow_precalc_dirichlet(lexer *p,fdm_nhf *d, ghostcell *pgc)
 {       
         count=0;
 		for(n=0;n<p->gcslin_count;n++)

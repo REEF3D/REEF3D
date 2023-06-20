@@ -20,27 +20,25 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"ioflow_f.h"
-#include"lexer.h"
+#include"iowave.h"
 #include"fdm_nhf.h"
+#include"lexer.h"
 #include"ghostcell.h"
 
-void ioflow_f::inflow_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U, double *V, double *W)
+void iowave::wavegen_precalc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-
+    if(p->B98==2)
+    nhflow_precalc_relax(p,d,pgc);
+            
+    if(p->B98==3 || p->B98==4)
+    nhflow_precalc_dirichlet(p,d,pgc);
 }
 
-void ioflow_f::rkinflow_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U, double *V, double *W)
+void iowave::wavegen_precalc_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-
-}
-
-void ioflow_f::wavegen_precalc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
-{
-    
-}
-
-void ioflow_f::wavegen_precalc_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
-{
-    
+    if(p->B98==2)
+    nhflow_precalc_relax_ini(p,d,pgc);
+        
+    if(p->B98==3 || p->B98==4)
+    nhflow_precalc_dirichlet_ini(p,d,pgc);
 }

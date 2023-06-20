@@ -139,11 +139,11 @@ double nhflow_HLL::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
     // flux x-dir
     ULOOP
     {
-    Fs[IJK] = Ds(i,j)*Us[IJK]*Us[IJK] 
-            + 0.5*fabs(p->W22)*ETAs(i,j)*ETAs(i,j) + fabs(p->W22)*ETAs(i,j)*0.5*(d->depth(i,j) + d->depth(i-1,j));
+    Fs[IJK] = Us[IJK]*Us[IJK] 
+            + (1.0/(Ds(i,j)))*(0.5*fabs(p->W22)*ETAs(i,j)*ETAs(i,j) + fabs(p->W22)*ETAs(i,j)*0.5*(d->depth(i,j) + d->depth(i-1,j)));
     
-    Fn[IJK] = Dn(i,j)*Un[IJK]*Un[IJK] 
-            + 0.5*fabs(p->W22)*ETAn(i,j)*ETAn(i,j) + fabs(p->W22)*ETAn(i,j)*0.5*(d->depth(i,j) + d->depth(i+1,j));
+    Fn[IJK] = Un[IJK]*Un[IJK] 
+            + (1.0/(Dn(i,j)))*(0.5*fabs(p->W22)*ETAn(i,j)*ETAn(i,j) + fabs(p->W22)*ETAn(i,j)*0.5*(d->depth(i,j) + d->depth(i+1,j)));
     }
     
     // flux y-dir
@@ -203,7 +203,7 @@ double nhflow_HLL::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
     
     LOOP
     {
-    d->F[IJK] -= (1.0/(WLVL))*((Fx[IJK] - Fx[Im1JK])/p->DXN[IP] 
+    d->F[IJK] -= ((Fx[IJK] - Fx[Im1JK])/p->DXN[IP] 
                              + (Fy[IJK] - Fy[IJm1K])/p->DYN[JP]*p->y_dir)
                              + (Fz[IJK] - Fz[IJKm1])/p->DZN[KP];
     }    

@@ -194,8 +194,6 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     SLICELOOP4
     d->WL(i,j) = (d->eta(i,j) + p->wd - d->bed(i,j));
     
-    
-    
     //SLICELOOP4
     //d->detadt(i,j) = (d->eta(i,j) -d->eta_n(i,j))/p->dt;
     

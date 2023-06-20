@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2022 Hans Bihs
 
@@ -110,7 +110,7 @@ public:
     virtual void rkinflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
     virtual void ini2D(lexer*,fdm2D*,ghostcell*);
     virtual void ini_ptf(lexer*,fdm*,ghostcell*);
-    
+        virtual void wavegen_precalc_nhflow(lexer*,fdm_nhf*,ghostcell*);    virtual void wavegen_precalc_ini_nhflow(lexer*,fdm_nhf*,ghostcell*);
     virtual void ini_nhflow(lexer*,fdm_nhf*,ghostcell*);
     virtual void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*);
     virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);

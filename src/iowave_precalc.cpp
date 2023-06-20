@@ -82,13 +82,6 @@ void iowave::wavegen_precalc(lexer *p, ghostcell *pgc)
     }
     
     
-    if(p->A10==55)
-    {
-        if(p->B98==2)
-        nhflow_precalc_relax(p,pgc);
-            
-        if(p->B98==3 || p->B98==4)
-        nhflow_precalc_dirichlet(p,pgc);
-    }
+    
 }
     

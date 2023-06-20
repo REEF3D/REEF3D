@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 
-void iowave::nhflow_precalc_relax_ini(lexer *p, ghostcell *pgc)
+void iowave::nhflow_precalc_relax_ini(lexer *p,fdm_nhf *d, ghostcell *pgc)
 {
     // count number of relax points
     // allocate double* array
@@ -149,7 +149,7 @@ void iowave::nhflow_precalc_relax_ini(lexer *p, ghostcell *pgc)
     }
 }
 
-void iowave::nhflow_precalc_dirichlet_ini(lexer *p, ghostcell *pgc)
+void iowave::nhflow_precalc_dirichlet_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     // count number of relax points
     // allocate double* array

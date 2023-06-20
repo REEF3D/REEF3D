@@ -112,6 +112,8 @@ public:
     virtual void ini_ptf(lexer*,fdm*,ghostcell*)=0;
     
     // nhflow
+    virtual void wavegen_precalc_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
+    virtual void wavegen_precalc_ini_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
     virtual void ini_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
     virtual void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
     virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*)=0;

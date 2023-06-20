@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 
-void iowave::nhflow_precalc_relax(lexer *p, ghostcell *pgc)
+void iowave::nhflow_precalc_relax(lexer *p,fdm_nhf *d, ghostcell *pgc)
 {
     double fsfloc;
     

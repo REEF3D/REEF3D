@@ -20,27 +20,29 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"ioflow_f.h"
+#include"iowave.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void ioflow_f::inflow_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U, double *V, double *W)
+void iowave::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc)
 {
-
-}
-
-void ioflow_f::rkinflow_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U, double *V, double *W)
-{
-
-}
-
-void ioflow_f::wavegen_precalc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
-{
+    // relax_ini OR dirichlet_ini
+    wavegen_precalc_ini(p,pgc);
+    wavegen_precalc_relax_func_nhflow(p,pgc);
     
-}
-
-void ioflow_f::wavegen_precalc_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
-{
+    /*if(p->B89==1 && p->B98==2)
+    nhflow_wavegen_precalc_decomp_space(p,pgc);
     
+    if(p->B89==1 && p->B98==3)
+    nhflow_wavegen_precalc_decomp_space_dirichlet(p,pgc);*/
+    
+    wavegen_precalc(p,pgc);
+    
+    U_relax(p,pgc,d->U);
+    V_relax(p,pgc,d->V);
+    W_relax(p,pgc,d->W);
+
+    if(p->I30==1)
+	full_initialize_nhflow(p,d,pgc);
 }

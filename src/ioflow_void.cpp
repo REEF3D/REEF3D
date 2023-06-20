@@ -1007,6 +1007,16 @@ void ioflow_v::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
 
 }
 
+void ioflow_v::wavegen_precalc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    
+}
+
+void ioflow_v::wavegen_precalc_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    
+}
+
 void ioflow_v::waterlevel2D(lexer *p, fdm2D *b, ghostcell* pgc, slice &eta)
 {
     pBC->patchBC_waterlevel2D(p,b,pgc,eta);

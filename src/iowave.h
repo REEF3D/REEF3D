@@ -185,6 +185,8 @@ public:
     void wavegen_precalc_decomp_dirichlet_fnpf(lexer*,ghostcell*);
     
     // NHFLOW
+    virtual void wavegen_precalc_nhflow(lexer*,fdm_nhf*,ghostcell*);
+    virtual void wavegen_precalc_ini_nhflow(lexer*,fdm_nhf*,ghostcell*);
     virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
     virtual void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*);
     virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
@@ -192,10 +194,10 @@ public:
     virtual void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
     virtual void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
     
-    void nhflow_precalc_relax(lexer*,ghostcell*);
-    void nhflow_precalc_relax_ini(lexer*,ghostcell*);
-    void nhflow_precalc_dirichlet(lexer*,ghostcell*);
-    void nhflow_precalc_dirichlet_ini(lexer*,ghostcell*);
+    void nhflow_precalc_relax(lexer*,fdm_nhf*,ghostcell*);
+    void nhflow_precalc_relax_ini(lexer*,fdm_nhf*,ghostcell*);
+    void nhflow_precalc_dirichlet(lexer*,fdm_nhf*,ghostcell*);
+    void nhflow_precalc_dirichlet_ini(lexer*,fdm_nhf*,ghostcell*);
     
     void nhflow_dirichlet_wavegen(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
     void nhflow_active_wavegen(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);

@@ -2896,6 +2896,8 @@
             <File Name="iowave_sflow_active-beach.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="NHFLOW">
+            <File Name="iowave_nhflow_ini.cpp"/>
+            <File Name="iowave_nhflow_precalc.cpp"/>
             <File Name="iowave_nhflow_relax.cpp"/>
             <File Name="iowave_nhflow_precalc_relax.cpp"/>
             <File Name="iowave_nhflow_velsource.cpp"/>

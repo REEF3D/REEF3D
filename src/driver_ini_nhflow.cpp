@@ -78,7 +78,7 @@ void driver::driver_ini_nhflow()
     // inflow ini
 	pflow->discharge_nhflow(p,d,pgc);
 
-    pflow->wavegen_precalc(p,pgc);
+    pflow->wavegen_precalc_ini_nhflow(p,d,pgc);
 
 	//if(p->I11==1)
 	//ptstep->start(a,p,pgc,pturb);
