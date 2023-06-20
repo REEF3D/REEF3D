@@ -81,11 +81,8 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
 {	
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
     
-// Step 1
-    pfsfupdate->etaloc(p,a,pgc);
-    pfsfupdate->fsfbc(p,a,pgc,a->Fifsf,a->Fi,a->eta);
-    fsfdisc(p,a,pgc,a->eta,a->Fifsf,a->Fi);
-    fsfwvel(p,a,pgc,a->eta,a->Fifsf);
+// Step
+
     // fsf eta
     kfsfbc(p,a,pgc);
 
@@ -115,7 +112,7 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     fsfdisc(p,a,pgc,erk1,frk1,a->Fi);
     
     // solve Fi
-    //pflow->fi_relax(p,pgc,a->Fi,a->phi);
+    pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,gcval);
     plap->start(p,a,pgc,psolv,a->Fi,frk1,erk1);
     pfsfupdate->fsfbc(p,a,pgc,frk1,a->Fi,erk1);
@@ -153,11 +150,11 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     fsfdisc(p,a,pgc,erk2,frk2,a->Fi);
     
     // solve Fi
-    //pflow->fi_relax(p,pgc,a->Fi,a->phi);
+    pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,gcval);
     plap->start(p,a,pgc,psolv,a->Fi,frk2,erk2);
-    pfsfupdate->fsfbc(p,a,pgc,frk2,a->Fi,erk2);
-    pgc->start4(p,a->Fi,gcval);
+   pfsfupdate->fsfbc(p,a,pgc,frk2,a->Fi,erk2);
+   pgc->start4(p,a->Fi,gcval);
     fsfwvel(p,a,pgc,erk2,frk2);
 
 // Step 3  
@@ -191,7 +188,7 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     fsfdisc(p,a,pgc,a->eta,a->Fifsf,a->Fi);
     
     // solve Fi
-   // pflow->fi_relax(p,pgc,a->Fi,a->phi);
+    pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,gcval);
     plap->start(p,a,pgc,psolv,a->Fi,a->Fifsf,a->eta);
     pfsfupdate->fsfbc(p,a,pgc,a->Fifsf,a->Fi,a->eta);
@@ -219,7 +216,7 @@ void ptf_RK3::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *preini
     pbedupdate->waterdepth(p,a,pgc);
     
     // potential ini
-    //pflow->fi_relax(p,pgc,a->Fi,a->phi);
+    pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pflow->fifsf_relax(p,pgc,a->Fifsf);
     pgc->start4(p,a->Fi,250);
     pgc->gcsl_start4(p,a->Fifsf,50);
