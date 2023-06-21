@@ -264,7 +264,7 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                   
                 }
                 
-                if(p->A323==6)
+                if(p->A323==6 || p->A323==7)
                 {
                     double zpos_p,zpos_s,zpos_n;
                     double Fival,xpos_zero,teta;
@@ -321,50 +321,6 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                     a->M.s[n] = 0.0;
                 }
                 
-                    
-                    
-                if(p->A323==7)
-                {
-                    double Fival,teta,Fival_b,teta_b;
-                    double Z_t,Z_b,M_p_num,M_b_num,denom;
-                    
-                    teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k)));
-
-                    Fival = teta*Fifsf(i-1,j) + (1.0-teta)*Fifsf(i,j);
-                    
-                    if(p->flag4[Ip1JK]==AIR)
-                    {
-                        teta = teta>1.0e-6?teta:1.0e20;
-                
-                        a->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                        a->M.p[n] += 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
-                           
-                        a->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                        a->M.s[n] -= 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
-                
-                        a->rhsvec.V[n] -= a->M.s[n]*Fival;
-                        a->M.s[n] = 0.0;
-                    }
-                    else
-                    {
-                        if(teta<1.0e-7)
-                            teta=1.0e-7;
-                            
-                        Z_t=fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k));
-                        Z_b=fabs(a->phi(i+1,j,k))-fabs(a->phi(i,j,k));
-                            
-                        denom=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)-(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b);
-                        
-                        M_p_num=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b)+(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t);
-                        
-                        M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
-                        
-                        a->M.p[n]+=(M_p_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
-                        a->M.n[n]+=(M_b_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
-                        a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IM1]*p->DXN[IP]);
-                        a->M.s[n]=0.0;
-                    }
-                }
                 
                 if(p->A323==8)
                 {
@@ -727,7 +683,7 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                   
                 }
                 
-                if(p->A323==6)
+                if(p->A323==6 || p->A323==7)
                 {
                     double zpos_p,zpos_n,zpos_s;
                     double Fival,xpos_zero,teta;
@@ -787,56 +743,7 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                     a->M.n[n] = 0.0;
                     
                 }
-                
-
-                
-                if(p->A323==7)
-                {
-                    double Fival,teta,Fival_b,teta_b;
-                    double Z_t,Z_b,M_p_num,M_b_num,denom;
-                    
-                    teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k)));
-                    
-                    Fival = teta*Fifsf(i+1,j) + (1.0-teta)*Fifsf(i,j);
-                    
-                    if(p->flag4[Im1JK]==AIR)
-                    {
-                        teta = teta>1.0e-6?teta:1.0e20;
             
-                        a->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
-                        a->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
-                
-                        a->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
-                        a->M.n[n] -= 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
-                
-                        a->rhsvec.V[n] -= a->M.n[n]*Fival;
-                        a->M.n[n] = 0.0;
-                    }
-                    else
-                    {
-                        if(teta<1.0e-7)
-                            teta=1.0e-7;
-                            
-                        Z_t=fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k));
-                        Z_b=fabs(a->phi(i-1,j,k))-fabs(a->phi(i,j,k));
-                        
-                        denom=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)-(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b);
-                        
-                        M_p_num=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b)+(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t);
-                        
-                        M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
-                        
-                        a->M.p[n]+=(M_p_num/denom)/(p->DXP[IP]*p->DXN[IP]);
-                        a->M.s[n]+=(M_b_num/denom)/(p->DXP[IP]*p->DXN[IP]);
-                        a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IP]*p->DXN[IP]);
-                        a->M.n[n]=0.0;
-                        
-                    }
-                    
-                    
-                    
-                }
-                
                 if(p->A323==8)
                 {
                     double zpos_p,zpos_n, delta_x;
@@ -1204,37 +1111,7 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 a->M.t[n] = 0.0;
                 }
                 
-                if(p->A323==7)
-                {
-                    double Fival,teta;
-                    double Z_t,Z_b,M_p_num,M_b_num,denom;
-                    
-                    teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
-                    
-                    if(teta<1.0e-7)
-                        teta=1.0e-7;
-                    
-                    Fival = Fifsf(i,j);
-                    
-                    Z_t=fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k));
-                    Z_b=fabs(a->phi(i,j,k-1))-fabs(a->phi(i,j,k));
-                    
-                    denom=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)-(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b);
-                        
-                    M_p_num=(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b)+(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t);
-                        
-                    M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
-                        
-                    a->M.p[n]+=(M_p_num/denom)/(p->DZP[KP]*p->DZN[KP]);
-                    a->M.b[n]+=(M_b_num/denom)/(p->DZP[KP]*p->DZN[KP]);
-                    a->rhsvec.V[n]+=(Fival/denom)/(p->DZP[KP]*p->DZN[KP]);
-                    a->M.t[n]=0.0;
-                    
-                        
-                }
-                
-                
-                if(p->A323==8 || p->A323==9 || p->A323==10)
+                if(p->A323==7 || p->A323==8 || p->A323==9 || p->A323==10)
                 {
                     double Fival,teta;
                     double Z_t,Z_b,M_p_num,M_b_num,denom;
