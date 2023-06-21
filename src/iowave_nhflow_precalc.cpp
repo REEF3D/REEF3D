@@ -27,6 +27,8 @@ Author: Hans Bihs
 
 void iowave::wavegen_precalc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    wave_prestep(p,pgc);
+    
     if(p->B98==2)
     nhflow_precalc_relax(p,d,pgc);
             
@@ -36,6 +38,8 @@ void iowave::wavegen_precalc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void iowave::wavegen_precalc_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    wave_prestep(p,pgc);
+    
     if(p->B98==2)
     nhflow_precalc_relax_ini(p,d,pgc);
         

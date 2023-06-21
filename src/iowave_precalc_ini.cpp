@@ -26,6 +26,9 @@ Author: Hans Bihs
 
 void iowave::wavegen_precalc_ini(lexer *p, ghostcell *pgc)
 {
+    // prestep
+    wave_prestep(p,pgc);
+    
     if(p->A10!=3)
     {
         if(p->B98==2)
@@ -47,6 +50,8 @@ void iowave::wavegen_precalc_ini(lexer *p, ghostcell *pgc)
 
 void iowave::wavegen_precalc_relax_ini(lexer *p, ghostcell *pgc)
 {
+    cout<<" PRECALC INI"<<endl;
+    
     // count number of relax points
     // allocate double* array
     

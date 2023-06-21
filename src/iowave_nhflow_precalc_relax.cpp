@@ -75,6 +75,7 @@ void iowave::nhflow_precalc_relax(lexer *p,fdm_nhf *d, ghostcell *pgc)
     }
 		
     count=0;
+    if(p->j_dir==1)
     LOOP
     {
         xg = xgen(p);

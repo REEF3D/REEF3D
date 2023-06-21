@@ -33,7 +33,7 @@ Author: Hans Bihs
 #define WLVL (fabs(d->WL_n1(i,j))>1.0e-20?d->WL_n1(i,j):1.0e20)
 
 nhflow_HLL::nhflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) : ETAs(p),ETAn(p),ETAe(p),ETAw(p),
-                                                                              Ds(p),Dn(p),De(p),Dw(p),Ss(p),Sn(p),Se(p),Sw(p)
+                                                                              Ds(p),Dn(p),De(p),Dw(p)
 {
     pgc = ppgc;
     pBC = ppBC;

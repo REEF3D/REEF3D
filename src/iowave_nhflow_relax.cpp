@@ -57,7 +57,7 @@ void iowave::U_relax(lexer *p, ghostcell *pgc, double *U)
 void iowave::V_relax(lexer *p, ghostcell *pgc, double *V)
 {
     count=0;
-    if(p->j_dir==0)
+    if(p->j_dir==1)
     LOOP
     {
         dg = distgen(p);

@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"sflow_eta_weno.h"
 #include"sflow_hxy_weno.h"
+#include"sflow_hxy_hires.h"
 #include"sflow_hxy_cds.h"
 #include"sflow_hxy_fou.h"
 #include"patchBC_interface.h"
@@ -65,6 +66,9 @@ sflow_eta::sflow_eta(lexer *p, fdm2D *b , ghostcell *pgc, patchBC_interface *ppB
 	
 	if(p->A241==4)
 	phxy = new sflow_hxy_weno(p,pBC);
+    
+    if(p->A241>=6)
+	phxy = new sflow_hxy_hires(p,pBC,p->A241);
     
     wd_criterion=0.00005;
     

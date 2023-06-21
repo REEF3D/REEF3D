@@ -75,12 +75,29 @@ public:
     vec2D xvec,rvec;
     
     // 3D array
-    double *U,*V,*W,*omega,*omegaF,*P,*ro,*visc,*eddyv;
+    double *U,*V,*W,*omega,*omegaF;
+    double *UH,*VH,*WH,*omegaH,*omegaFH;
+    
+    double *P,*ro,*visc,*eddyv;
     double *F,*G,*H,*L;
     double *porosity;
     double *test;
-    double *Fx,*Fy;
+    
+    double *Fx,*Fy,*Fz;
     double *Ss,*Sn,*Se,*Sw;
+    
+    double *Un,*Us,*Ue,*Uw,*Ub,*Ut;
+    double *Vn,*Vs,*Ve,*Vw,*Vb,*Vt;
+    double *Wn,*Ws,*We,*Ww,*Wb,*Wt;
+    
+    double *UHn,*UHs,*UHe,*UHw,*UHb,*UHt;
+    double *VHn,*VHs,*VHe,*VHw,*VHb,*VHt;
+    double *WHn,*WHs,*WHe,*WHw,*WHb,*WHt;
+    
+    slice1 ETAs,ETAn;
+    slice2 ETAe,ETAw;
+    slice1 Ds,Dn;
+    slice2 De,Dw;
 
     matrix2D N;
 	matrix_diag M;    

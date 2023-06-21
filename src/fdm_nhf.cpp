@@ -37,13 +37,21 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
                               coastline(p),vb(p),
                               test2D(p),
                               breaking_print(p),Hs(p),
-                              rhsvec(p),rvec(p),xvec(p),N(p),M(p)
+                              rhsvec(p),rvec(p),xvec(p),N(p),M(p),
+                              ETAs(p),ETAn(p),ETAe(p),ETAw(p),
+                              Ds(p),Dn(p),De(p),Dw(p)
 {    
     p->Darray(U,p->imax*p->jmax*(p->kmax+2));
     p->Darray(V,p->imax*p->jmax*(p->kmax+2));
     p->Darray(W,p->imax*p->jmax*(p->kmax+2));
     p->Darray(omega,p->imax*p->jmax*(p->kmax+2));
     p->Darray(omegaF,p->imax*p->jmax*(p->kmax+2));
+    
+    p->Darray(UH,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(VH,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(WH,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(omegaH,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(omegaFH,p->imax*p->jmax*(p->kmax+2));
     
 
     p->Darray(P,p->imax*p->jmax*(p->kmax+2));
@@ -61,6 +69,7 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
     
     p->Darray(Fx,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fy,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Fz,p->imax*p->jmax*(p->kmax+2));
     
     p->Darray(Ss,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Sn,p->imax*p->jmax*(p->kmax+2));

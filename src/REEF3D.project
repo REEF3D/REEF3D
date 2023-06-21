@@ -136,6 +136,7 @@
           <File Name="sflow_fsf.h"/>
           <File Name="sflow_eta.h"/>
           <VirtualDirectory Name="Discretization">
+            <File Name="sflow_hxy_hires.h"/>
             <File Name="sflow_hxy_weno.h"/>
             <File Name="sflow_hxy_fou.h"/>
             <File Name="sflow_hxy_disc.h"/>
@@ -1225,6 +1226,7 @@
           <File Name="sflow_eta_breaking.cpp"/>
           <File Name="sflow_eta.cpp"/>
           <VirtualDirectory Name="Discretization">
+            <File Name="sflow_hxy_hires.cpp"/>
             <File Name="sflow_hxy_weno.cpp"/>
             <File Name="sflow_hxy_fou.cpp"/>
             <File Name="sflow_hxy_cds.cpp"/>

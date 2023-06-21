@@ -64,8 +64,6 @@ private:
     slice2 ETAe,ETAw;
     slice1 Ds,Dn;
     slice2 De,Dw;
-    slice1 Ss,Sn;
-    slice2 Se,Sw;
     
     
 
