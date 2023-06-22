@@ -20,47 +20,53 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_fsf_reconstruct.h"
+#include"nhflow_convection.h"
+#include"slice1.h"
+#include"slice2.h"
 #include"increment.h"
-#include"slice4.h"
 
-class lexer;
-class ghostcell;
-class fdm_nhf;
-class slice;
+class nhflow_flux;
+class nhflow_reconstruct;
+class nhflow_signal_speed;
 class patchBC_interface;
+class ghostcell;
 
-#ifndef NHFLOW_FSF_RECONSTRUCT_HIRES_H_
-#define NHFLOW_FSF_RECONSTRUCT_HIRES_H_
+#ifndef NHFLOW_HLL_H_
+#define NHFLOW_HLL_H_
 
 using namespace std;
 
-class nhflow_fsf_reconstruct_hires : public nhflow_fsf_reconstruct, public increment
+class nhflow_HLL : public nhflow_convection, public increment
 {
+
 public:
-	nhflow_fsf_reconstruct_hires(lexer*,patchBC_interface*);
-	virtual ~nhflow_fsf_reconstruct_hires();
 
-	virtual void reconstruct_2D(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&,slice&,slice&);
-    virtual void reconstruct_3D(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*,double*,double*,double*);
-    virtual void reconstruct_3D_x(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*);
-    virtual void reconstruct_3D_y(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*);
-    
-    virtual void reconstruct_2D_WL(lexer*,ghostcell*,fdm_nhf*);
-    
-    slice4 dfdx,dfdy;
-    double *DFDX, *DFDY;
+	nhflow_HLL (lexer*,ghostcell*,patchBC_interface*);
+	virtual ~nhflow_HLL();
 
+    double start_E(lexer*, fdm_nhf*, double*, int, double*, double*, double*);
+    double start_U(lexer*, fdm_nhf*, double*, int, double*, double*, double*);
+    double start_V(lexer*, fdm_nhf*, double*, int, double*, double*, double*);
+    double start_W(lexer*, fdm_nhf*, double*, int, double*, double*, double*);
 
 private:
-    double limiter(double, double);
-
-    double ivel1,ivel2,jvel1,jvel2;
-    double val,denom;
-    double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus;
-    int qq;
+    double aij(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);
     
+    
+    
+    
+	double dx,dy,dz;
+	double udir,vdir,wdir;
+	double L;
+    double denom;
+
+    double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
+
+    ghostcell *pgc;
+    nhflow_flux *pflux;
     patchBC_interface *pBC;
+    nhflow_reconstruct *precon;
+    nhflow_signal_speed *pss;
 };
 
 #endif

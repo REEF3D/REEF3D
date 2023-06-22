@@ -49,6 +49,7 @@ Author: Hans Bihs
 #include"nhflow_pjm_hs.h"
 #include"nhflow_poisson.h"
 
+#include"nhflow_signal_speed.h"
 #include"nhflow_reconstruct_hires.h"
 #include"nhflow_fsf_reconstruct_hires.h"
 #include"nhflow_fsf_reconstruct_WENO.h"

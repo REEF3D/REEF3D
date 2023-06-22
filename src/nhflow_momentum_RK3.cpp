@@ -26,7 +26,9 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"bcmom.h"
 #include"nhflow_reconstruct.h"
+#include"nhflow_fsf_reconstruct.h"
 #include"nhflow_convection.h"
+#include"nhflow_signal_speed.h"
 #include"diffusion.h"
 #include"nhflow_pressure.h"
 #include"ioflow.h"
@@ -39,7 +41,7 @@ Author: Hans Bihs
 #include"vrans.h"
 
 nhflow_momentum_RK3::nhflow_momentum_RK3(lexer *p, fdm_nhf *d, ghostcell *pgc)
-                                                    :bcmom(p), nhflow_sigma(p), etark1(p), etark2(p)
+                                                    : bcmom(p), nhflow_sigma(p), etark1(p), etark2(p)
 {
 	gcval_u=10;
 	gcval_v=11;
@@ -62,7 +64,8 @@ nhflow_momentum_RK3::~nhflow_momentum_RK3()
 {
 }
 
-void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_reconstruct *precon, nhflow_convection *pconvec, diffusion *pdiff, 
+void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_signal_speed *pss, nhflow_fsf_reconstruct *pfsfrecon, 
+                                     nhflow_reconstruct *precon, nhflow_convection *pconvec, diffusion *pdiff, 
                                      nhflow_pressure *ppress, solver *psolv, nhflow *pnhf, nhflow_fsf *pfsf, nhflow_turbulence *pnhfturb, vrans *pvrans)
 {	
     pflow->discharge_nhflow(p,d,pgc);
@@ -73,7 +76,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 //Step 1
 //--------------------------------------------------------
     // reconstruct eta
-    precon->reconstruct_2D(p, pgc, d, d->eta, d->ETAs, d->ETAn, d->ETAe, d->ETAw);
+    pfsfrecon->reconstruct_2D(p, pgc, d, d->eta, d->ETAs, d->ETAn, d->ETAe, d->ETAw);
     
     // reconstruct U 
     precon->reconstruct_3D_x(p, pgc, d, d->U, d->Us, d->Un);
@@ -101,7 +104,11 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     // reconstruct  WH
     precon->reconstruct_3D_x(p, pgc, d, d->WH, d->WHs, d->WHn);
     precon->reconstruct_3D_y(p, pgc, d, d->WH, d->WHe, d->WHw);
-
+    
+    pss->signal_speed_update(p, pgc, d, d->Us, d->Un, d->Ve, d->Vw, d->Ds, d->Dn, d->De, d->Dw);
+    
+    
+    // FSF
     pfsf->step1(p, d, pgc, pflow, d->U, d->V, d->W, etark1, etark2, 1.0);
     sigma_update(p,d,pgc,etark1,d->eta,1.0);
     omega_update(p,d,pgc,d->U,d->V,d->W,etark1,d->eta,1.0);

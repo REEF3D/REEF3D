@@ -65,6 +65,9 @@ void driver::logic_nhflow()
 	pnhfstep=new nhflow_timestep(p);
 
 //discretization scheme
+    // signal speed
+    pss = new nhflow_signal_speed(p);
+    
     // reconstruction
     precon = new nhflow_reconstruct_hires(p,pBC);
     
