@@ -26,14 +26,7 @@ Author: Hans Bihs
 #include"slice2.h"
 #include"slice4.h"
 
-class picard;
-class fluid_update;
-class heat;
-class concentration;
-class sflow_eta_disc;
-class sflow_hxy_disc;
 class patchBC_interface;
-class nhflow_flux_fsf;
 
 using namespace std;
 
@@ -67,11 +60,7 @@ private:
     
     double limiter(double, double);
     
-    fluid_update *pupdate;
-    sflow_eta_disc *peta;
-	sflow_hxy_disc *phxy;
     patchBC_interface *pBC;
-    nhflow_flux_fsf *pfluxfsf;
     
     slice1 P;
     slice2 Q;
@@ -86,8 +75,6 @@ private:
     double val, denom;
     double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus;
     double detadx,detady;
-	
-	
 
 };
 

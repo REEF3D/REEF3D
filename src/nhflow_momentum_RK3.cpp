@@ -113,8 +113,6 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     sigma_update(p,d,pgc,etark1,d->eta,1.0);
     omega_update(p,d,pgc,d->U,d->V,d->W,etark1,d->eta,1.0);
     
-    pconvec->precalc(p,d,d->U,1,d->U,d->V,d->W,d->eta);
-    
 	// U
 	starttime=pgc->timer();
 

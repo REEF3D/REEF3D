@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"nhflow_reconstruct_hires.h"
 #include"nhflow_signal_speed.h"
 
-#define WLVL (fabs(d->WL_n1(i,j))>1.0e-20?d->WL_n1(i,j):1.0e20)
+#define WLVL (fabs(d->WL_n(i,j))>1.0e-20?d->WL_n(i,j):1.0e20)
 
 nhflow_flux_build_f::nhflow_flux_build_f (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) 
 {

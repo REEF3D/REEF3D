@@ -35,28 +35,6 @@ void nhflow_fsf_rk::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, dou
     
     wetdry(p,d,pgc,U,V,W,d->eta);
     
-    pfluxfsf->face_flux_3D(p,pgc,d,d->eta,U,V,d->Fx,d->Fy);
-    
-    SLICELOOP1
-    P(i,j)=0.0;
-    
-    SLICELOOP2
-    Q(i,j)=0.0;
-
-    ULOOP
-    P(i,j) += 0.5*(U[IJK] + U[Ip1JK]);
-
-    VLOOP
-	Q(i,j) += 0.5*(V[IJK] + V[IJp1K]);
-    
-    pgc->gcsl_start1(p,P,10);
-    pgc->gcsl_start2(p,Q,11);
-    
-    phxy->start(p,d->hx,d->hy,d->depth,p->wet,d->eta,P,Q);
-    
-    pgc->gcsl_start1(p,d->hx,10);
-    pgc->gcsl_start2(p,d->hy,11);
-    
     SLICELOOP4
     d->detadt(i,j) = 0.0;
     

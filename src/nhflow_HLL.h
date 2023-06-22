@@ -25,9 +25,6 @@ Author: Hans Bihs
 #include"slice2.h"
 #include"increment.h"
 
-class nhflow_flux;
-class nhflow_reconstruct;
-class nhflow_signal_speed;
 class patchBC_interface;
 class ghostcell;
 
@@ -48,25 +45,14 @@ public:
     virtual void precalc(lexer*, fdm_nhf*, double*, int, double*, double*,double*, slice&);
 
 private:
-    double aij(lexer*, fdm_nhf*, double*, int, double*, double*, double*, double*, double*, double*);
-    
+
     double aij_U(lexer*, fdm_nhf*, double*, int, double*, double*, double*);
     double aij_V(lexer*, fdm_nhf*, double*, int, double*, double*, double*);
     double aij_W(lexer*, fdm_nhf*, double*, int, double*, double*, double*);
+    double aij_E(lexer*, fdm_nhf*, double*, int, double*, double*, double*);
     
-    double *Fx,*Fy,*Fz;
-    double *Fs,*Fn,*Fe,*Fw;
-    double *Us,*Un,*Ue,*Uw,*Ub,*Ut;
-    double *Vs,*Vn,*Ve,*Vw,*Vb,*Vt;
-    double *Ws,*Wn,*We,*Ww,*Wb,*Wt;
-
-    slice1 ETAs,ETAn;
-    slice2 ETAe,ETAw;
-    slice1 Ds,Dn;
-    slice2 De,Dw;
+    double HLL(lexer*, fdm_nhf*);
     
-    
-
 	double dx,dy,dz;
 	double udir,vdir,wdir;
 	double L;
@@ -75,10 +61,7 @@ private:
     double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
 
     ghostcell *pgc;
-    nhflow_flux *pflux;
     patchBC_interface *pBC;
-    nhflow_reconstruct *precon;
-    nhflow_signal_speed *pss;
 };
 
 #endif

@@ -25,42 +25,11 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"ioflow.h"
-#include"fluid_update_void.h"
-#include"heat.h"
-#include"concentration.h"
-#include"momentum.h"
-#include"sflow_hxy_weno.h"
-#include"sflow_hxy_cds.h"
-#include"sflow_hxy_fou.h"
 #include"patchBC_interface.h"
-#include"nhflow_flux_HLL.h"
-#include"nhflow_flux_HLLC.h"
-#include"nhflow_flux_FOU.h"
 
 nhflow_fsf_rk::nhflow_fsf_rk(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow, patchBC_interface *ppBC) : epsi(p->A440*p->DXM),P(p),Q(p),K(p)
 {
     pBC = ppBC;
-    
-	pupdate = new fluid_update_void();
-    
-    if(p->A541==1)
-	phxy = new sflow_hxy_fou(p,pBC);
-	
-	if(p->A541==2)
-	phxy = new sflow_hxy_cds(p,pBC);
-	
-	if(p->A541==4)
-	phxy = new sflow_hxy_weno(p,pBC);
-    
-    if(p->A542==1)
-    pfluxfsf = new nhflow_flux_FOU(p,pBC);
-    
-    if(p->A542==2)
-    pfluxfsf = new nhflow_flux_HLL(p,pBC);
-    
-    if(p->A542==3)
-    pfluxfsf = new nhflow_flux_HLLC(p,pBC);
-    
     
     wd_criterion=0.00005;
     
@@ -100,8 +69,6 @@ void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
 {
     wetdry(p,d,pgc,U,V,W,d->eta);
     
-    pfluxfsf->face_flux_3D(p,pgc,d,d->eta,U,V,d->Fx,d->Fy);
-    
     SLICELOOP4
     K(i,j) = 0.0;
     
@@ -117,7 +84,7 @@ void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     pgc->gcsl_start4(p,etark1,1);
     
     SLICELOOP4
-    d->WL_n1(i,j) = d->WL(i,j);
+    d->WL_n(i,j) = d->WL(i,j);
     
     SLICELOOP4
     d->WL(i,j) = (etark1(i,j) + p->wd - d->bed(i,j));
@@ -131,10 +98,6 @@ void nhflow_fsf_rk::step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
 
 void nhflow_fsf_rk::step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
 {
-    wetdry(p,d,pgc,U,V,W,etark1);
-    
-    pfluxfsf->face_flux_3D(p,pgc,d,etark1,U,V,d->Fx,d->Fy);
-    
     SLICELOOP4
     K(i,j) = 0.0;
     
@@ -148,7 +111,7 @@ void nhflow_fsf_rk::step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     pgc->gcsl_start4(p,etark2,1);
     
     SLICELOOP4
-    d->WL_n1(i,j) = d->WL(i,j);
+    d->WL_n(i,j) = d->WL(i,j);
     
     SLICELOOP4
     d->WL(i,j) = (etark2(i,j) + p->wd - d->bed(i,j));
@@ -164,17 +127,12 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
 {
     // fill eta_n
     SLICELOOP4
-    {
     d->eta_n(i,j) = d->eta(i,j);
-    d->WL_n0(i,j) = d->WL_n1(i,j);
-    }    
+
     pgc->gcsl_start4(p,d->eta_n,1);
     
     // ---
-    wetdry(p,d,pgc,U,V,W,etark2);
-        
-    pfluxfsf->face_flux_3D(p,pgc,d,etark2,U,V,d->Fx,d->Fy);
-    
+
     SLICELOOP4
     K(i,j) = 0.0;
     
@@ -189,7 +147,7 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
     pgc->gcsl_start4(p,d->eta,1);
     
     SLICELOOP4
-    d->WL_n1(i,j) = d->WL(i,j);
+    d->WL_n(i,j) = d->WL(i,j);
     
     SLICELOOP4
     d->WL(i,j) = (d->eta(i,j) + p->wd - d->bed(i,j));
@@ -210,7 +168,6 @@ void nhflow_fsf_rk::step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, d
 
 void nhflow_fsf_rk::flux_update(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
 {    
-    pfluxfsf->face_flux_3D(p,pgc,d,etark2,U,V,d->Fx,d->Fy);
     
     SLICELOOP4
     K(i,j) = 0.0;

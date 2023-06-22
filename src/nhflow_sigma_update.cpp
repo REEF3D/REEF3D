@@ -155,7 +155,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta
     // sigt
     FLOOP
     p->sigt[FIJK] = -(p->sig[FIJK]/WLVL)*d->detadt(i,j);
-    // p->sigt[FIJK] = -(p->sig[FIJK]/WLVL)*(d->WL_n1(i,j)-d->WL_n0(i,j))/(p->dt);
+    // p->sigt[FIJK] = -(p->sig[FIJK]/WLVL)*(d->WL(i,j)-d->WL_n(i,j))/(p->dt);
     // p->sigt[FIJK] = -(p->sig[FIJK]/WLVL)*d->detadt(i,j);
 
     // sigxx
