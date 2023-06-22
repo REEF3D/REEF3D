@@ -20,31 +20,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_flux_build.h"
-#include"increment.h"
+class lexer;
+class fdm_nhf;
+class ghostcell;
 
-class patchBC_interface;
-
-#ifndef NHFLOW_FLUX_BUILD_F_H_
-#define NHFLOW_FLUX_BUILD_F_H_
+#ifndef NHFLOW_FLUX_BUILD_H_
+#define NHFLOW_FLUX_BUILD_H_
 
 using namespace std;
 
-class nhflow_flux_build_f : public nhflow_flux_build, public increment
+class nhflow_flux_build 
 {
 
 public:
 
-	nhflow_flux_build_f (lexer*,ghostcell*,patchBC_interface*);
-	virtual ~nhflow_flux_build_f();
-
-    virtual void start_E(lexer*, fdm_nhf*, ghostcell*);
-    virtual void start_U(lexer*, fdm_nhf*, ghostcell*);
-    virtual void start_V(lexer*, fdm_nhf*, ghostcell*);
-    virtual void start_W(lexer*, fdm_nhf*, ghostcell*);
-
-private:
-    patchBC_interface *pBC;
+    virtual void start_E(lexer*, fdm_nhf*, ghostcell*)=0;
+    virtual void start_U(lexer*, fdm_nhf*, ghostcell*)=0;
+    virtual void start_V(lexer*, fdm_nhf*, ghostcell*)=0;
+    virtual void start_W(lexer*, fdm_nhf*, ghostcell*)=0;
 
 };
 

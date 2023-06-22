@@ -84,6 +84,7 @@ public:
     double *test;
     
     double *Fx,*Fy,*Fz;
+    double *Fs,*Fn,*Fe,*Fw;
     double *Ss,*Sn,*Se,*Sw;
     
     double *Un,*Us,*Ue,*Uw,*Ub,*Ut;
