@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"bcmom.h"
+#include"nhflow_reconstruct.h"
 #include"nhflow_convection.h"
 #include"diffusion.h"
 #include"nhflow_pressure.h"
@@ -61,7 +62,7 @@ nhflow_momentum_RK3::~nhflow_momentum_RK3()
 {
 }
 
-void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_convection *pconvec, diffusion *pdiff, 
+void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_reconstruct *precon, nhflow_convection *pconvec, diffusion *pdiff, 
                                      nhflow_pressure *ppress, solver *psolv, nhflow *pnhf, nhflow_fsf *pfsf, nhflow_turbulence *pnhfturb, vrans *pvrans)
 {	
     pflow->discharge_nhflow(p,d,pgc);
@@ -71,6 +72,35 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 		
 //Step 1
 //--------------------------------------------------------
+    // reconstruct eta
+    precon->reconstruct_2D(p, pgc, d, d->eta, d->ETAs, d->ETAn, d->ETAe, d->ETAw);
+    
+    // reconstruct U 
+    precon->reconstruct_3D_x(p, pgc, d, d->U, d->Us, d->Un);
+    precon->reconstruct_3D_y(p, pgc, d, d->U, d->Ue, d->Uw);
+    precon->reconstruct_3D_z(p, pgc, d, d->U, d->Ub, d->Ut);
+    
+    // reconstruct  V
+    precon->reconstruct_3D_x(p, pgc, d, d->V, d->Vs, d->Vn);
+    precon->reconstruct_3D_y(p, pgc, d, d->V, d->Ve, d->Vw);
+    precon->reconstruct_3D_z(p, pgc, d, d->V, d->Vb, d->Vt);
+    
+    // reconstruct  W
+    precon->reconstruct_3D_x(p, pgc, d, d->W, d->Ws, d->Wn);
+    precon->reconstruct_3D_y(p, pgc, d, d->W, d->We, d->Ww);
+    precon->reconstruct_3D_z(p, pgc, d, d->W, d->Wb, d->Wt);
+    
+    // reconstruct UH
+    precon->reconstruct_3D_x(p, pgc, d, d->UH, d->UHs, d->UHn);
+    precon->reconstruct_3D_y(p, pgc, d, d->UH, d->UHe, d->UHw);
+    
+    // reconstruct  VH
+    precon->reconstruct_3D_x(p, pgc, d, d->VH, d->VHs, d->VHn);
+    precon->reconstruct_3D_y(p, pgc, d, d->VH, d->VHe, d->VHw);
+    
+    // reconstruct  WH
+    precon->reconstruct_3D_x(p, pgc, d, d->WH, d->WHs, d->WHn);
+    precon->reconstruct_3D_y(p, pgc, d, d->WH, d->WHe, d->WHw);
 
     pfsf->step1(p, d, pgc, pflow, d->U, d->V, d->W, etark1, etark2, 1.0);
     sigma_update(p,d,pgc,etark1,d->eta,1.0);

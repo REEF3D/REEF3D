@@ -96,6 +96,66 @@ void nhflow_fsf_reconstruct_weno::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_n
     pgc->gcsl_start2(p,fw,11);
 }
 
+void nhflow_fsf_reconstruct_weno::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fx, double *Fs, double *Fn)
+{
+    ULOOP
+    {
+    // left
+	iqmin(p,Fx);
+	is_min_x();
+	weight_min_x();
+
+	Fs[IJK] =        (w1x*(q4 + qfx[IP][uf][0][0]*(q3-q4) - qfx[IP][uf][0][1]*(q5-q4))
+    
+                    + w2x*(q3 + qfx[IP][uf][1][0]*(q4-q3) - qfx[IP][uf][1][1]*(q2-q3))
+          
+                    + w3x*(q2 + qfx[IP][uf][2][0]*(q1-q2) + qfx[IP][uf][2][1]*(q3-q2)));
+	
+    // right
+	iqmax(p,Fx);
+	is_max_x();
+	weight_max_x();
+    
+	Fn[IJK] =            (w1x*(q4 + qfx[IP][uf][3][0]*(q3-q4) + qfx[IP][uf][3][1]*(q5-q4))
+    
+                        + w2x*(q3 + qfx[IP][uf][4][0]*(q2-q3) - qfx[IP][uf][4][1]*(q4-q3))
+          
+                        + w3x*(q2 + qfx[IP][uf][5][0]*(q3-q2) - qfx[IP][uf][5][1]*(q1-q2)));
+	}
+    
+	pgc->start1V(p,Fs,10);
+    pgc->start1V(p,Fs,10);
+}
+
+void nhflow_fsf_reconstruct_weno::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fy, double *Fe, double *Fw)
+{
+    VLOOP
+	{
+	jqmin(p,Fy);
+	is_min_y();
+	weight_min_y();
+	
+	Fe[IJK] =           (w1y*(q4 + qfy[JP][vf][0][0]*(q3-q4) - qfy[JP][vf][0][1]*(q5-q4))
+    
+                        + w2y*(q3 + qfy[JP][vf][1][0]*(q4-q3) - qfy[JP][vf][1][1]*(q2-q3))
+          
+                        + w3y*(q2 + qfy[JP][vf][2][0]*(q1-q2) + qfy[JP][vf][2][1]*(q3-q2)));
+
+	jqmax(p,Fy);
+	is_max_y();
+	weight_max_y();
+	
+	Fw[IJK] =           (w1y*(q4 + qfy[JP][vf][3][0]*(q3-q4) + qfy[JP][vf][3][1]*(q5-q4))
+    
+                        + w2y*(q3 + qfy[JP][vf][4][0]*(q2-q3) - qfy[JP][vf][4][1]*(q4-q3))
+          
+                        + w3y*(q2 + qfy[JP][vf][5][0]*(q3-q2) - qfy[JP][vf][5][1]*(q1-q2)));
+	}
+    
+    pgc->start2V(p,Fe,11);
+    pgc->start2V(p,Fw,11);
+}
+
 void nhflow_fsf_reconstruct_weno::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fx, double *Fy, double *Fs, double *Fn, double *Fe, double *Fw)
 {
     ULOOP

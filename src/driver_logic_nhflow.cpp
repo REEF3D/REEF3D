@@ -65,6 +65,15 @@ void driver::logic_nhflow()
 	pnhfstep=new nhflow_timestep(p);
 
 //discretization scheme
+    // reconstruction
+    precon = new nhflow_reconstruct_hires(p,pBC);
+    
+    // fsf reconstruction
+    if(p->A543==2)
+    pfsfrecon = new nhflow_fsf_reconstruct_hires(p,pBC);
+    
+    if(p->A543==4)
+    pfsfrecon = new nhflow_fsf_reconstruct_weno(p,pBC);
 
     //Convection	
 	if(p->A511==0)
@@ -102,6 +111,9 @@ void driver::logic_nhflow()
     
 	if(p->A511>=10 && p->A511<30)
 	pnhfconvec=new nhflow_hires(p,p->A511);
+    
+    
+    
     
     
 //pressure scheme

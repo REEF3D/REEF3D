@@ -75,6 +75,92 @@ void nhflow_fsf_reconstruct_hires::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_
     pgc->gcsl_start2(p,fw,11);
 }
 
+void nhflow_fsf_reconstruct_hires::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fx, double *Fs, double *Fn)
+{
+    // gradient
+    ULOOP
+    {
+    dfdx_plus = (Fx[Ip1JK] - Fx[IJK])/p->DXP[IP];
+    dfdx_min  = (Fx[IJK] - Fx[Im1JK])/p->DXP[IM1];
+    
+    DFDX[IJK] = limiter(dfdx_plus,dfdx_min);
+    }
+    
+    pgc->start1V(p,DFDX,10);
+    
+    // reconstruct
+    ULOOP 
+    {
+    Fs[IJK] = (Fx[IJK]    + 0.5*p->DXP[IP]*DFDX[IJK]); 
+    Fn[IJK] = (Fx[Ip1JK]  - 0.5*p->DXP[IP1]*DFDX[Ip1JK]);
+    
+        if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
+        {
+        Fs[Ip1JK] = 0.0; 
+        Fn[Ip1JK] = 0.0; 
+        }
+        
+        else
+        if(p->wet[IJ]==1 && p->wet[Im1J]==0)
+        {
+        Fn[IJK] = 0.0;
+        }
+        
+        else
+        if(p->wet[IJ]==0)
+        {
+        Fs[Ip1JK] = 0.0;
+        Fn[IJK] = 0.0;
+        }
+    }
+    
+	pgc->start1V(p,Fs,10);
+    pgc->start1V(p,Fs,10);
+}
+
+void nhflow_fsf_reconstruct_hires::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fy, double *Fe, double *Fw)
+{
+    // gradient
+    VLOOP
+    {
+    dfdy_plus = (Fy[IJp1K] - Fy[IJK])/p->DYP[JP];
+    dfdy_min  = (Fy[IJK] - Fy[IJm1K])/p->DYP[JM1];
+
+    DFDY[IJK] = limiter(dfdy_plus,dfdy_min);
+    }
+    
+    pgc->start2V(p,DFDY,11);
+    
+    // reconstruct
+    VLOOP
+    {
+    Fe[IJK] = (Fy[IJK]    + 0.5*p->DYP[JP]*DFDY[IJK]); 
+    Fw[IJK] = (Fy[IJp1K]  - 0.5*p->DYP[JP1]*DFDY[IJp1K]);
+    
+        if(p->wet[IJ]==1 && p->wet[IJp1]==0)
+        {
+        Fe[IJp1K] = 0.0; 
+        Fw[IJp1K] = 0.0; 
+        }
+        
+        else
+        if(p->wet[IJ]==1 && p->wet[IJm1]==0)
+        {
+        Fw[IJK] = 0.0;
+        }
+        
+        else
+        if(p->wet[IJ]==0)
+        {
+        Fe[IJp1K] = 0.0;
+        Fw[IJK] = 0.0;
+        }
+    }
+    
+    pgc->start2V(p,Fe,11);
+    pgc->start2V(p,Fw,11);
+}
+
 void nhflow_fsf_reconstruct_hires::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fx, double *Fy, double *Fs, double *Fn, double *Fe, double *Fw)
 {
     // gradient

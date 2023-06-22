@@ -61,6 +61,8 @@ class onephase;
 class nsewave;
 class nhflow_fsf;
 class nhflow_convection;
+class nhflow_reconstruct;
+class nhflow_fsf_reconstruct;
 class nhflow_turbulence;
 class nhflow_pressure;
 class sflow;
@@ -200,6 +202,8 @@ public:
     patchBC_interface *pBC;
     nhflow *pnhf;
     nhflow_convection *pnhfconvec;
+    nhflow_reconstruct *precon;
+    nhflow_fsf_reconstruct *pfsfrecon;
     nhflow_pressure *pnhpress;
     nhflow_turbulence *pnhfturb;
     multiphase *pmp;

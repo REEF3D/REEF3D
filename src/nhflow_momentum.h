@@ -24,6 +24,7 @@ class lexer;
 class fdm_nhf;
 class ghostcell;
 class nhflow_convection;
+class nhflow_reconstruct;
 class diffusion;
 class nhflow_pressure;
 class turbulence;
@@ -43,7 +44,7 @@ class nhflow_momentum
 {
 public:
 
-	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_convection*, diffusion*, nhflow_pressure*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*, vrans*)=0;
+	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_reconstruct*, nhflow_convection*, diffusion*, nhflow_pressure*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*, vrans*)=0;
     virtual void inidisc(lexer*, fdm_nhf*, ghostcell*, nhflow_fsf*)=0;
 
 };
