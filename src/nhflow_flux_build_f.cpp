@@ -82,7 +82,7 @@ void nhflow_flux_build_f::start_U(lexer* p, fdm_nhf *d, ghostcell *pgc)
     
     // flux z-dir
     WLOOP
-    d->Fz[IJK] = 0.5*(d->omegaFH[FIJK]*(d->Ub[IJK] + d->Ut[IJK]) - fabs(d->omegaFH[FIJK])*(d->Ub[IJK] - d->Ut[IJK]));
+    d->Fz[IJK] = 0.5*(d->omegaF[FIJK]*(d->Ub[IJK] + d->Ut[IJK]) - fabs(d->omegaF[FIJK])*(d->Ub[IJK] - d->Ut[IJK]));
     
     pgc->start3V(p,d->Fz,12);
 }

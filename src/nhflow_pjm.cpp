@@ -60,14 +60,12 @@ nhflow_pjm::~nhflow_pjm()
 }
 
 void nhflow_pjm::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, ioflow *pflow,
-                        double *U, double *V, double *W, double alpha)
+                        double *UH, double *VH, double *WH, double alpha)
 {
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<".";
 
-    rhs(p,d,pgc,U,V,W,alpha);
-
-    bedbc(p,d,pgc,U,V,W,alpha);
+    rhs(p,d,pgc,d->U,d->V,d->W,alpha);
 
     ppois->start(p,d,d->P);
 
@@ -79,9 +77,9 @@ void nhflow_pjm::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, iofl
 
 	pgc->start7S(p,d->P,gcval_press);
 
-	ucorr(p,d,U,alpha);
-	vcorr(p,d,V,alpha);
-	wcorr(p,d,W,alpha);
+	ucorr(p,d,UH,alpha);
+	vcorr(p,d,VH,alpha);
+	wcorr(p,d,WH,alpha);
 
     p->poissoniter=p->solveriter;
 
@@ -91,32 +89,32 @@ void nhflow_pjm::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, iofl
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
 }
 
-void nhflow_pjm::ucorr(lexer* p, fdm_nhf *d, double *U, double alpha)
+void nhflow_pjm::ucorr(lexer* p, fdm_nhf *d, double *UH, double alpha)
 {
 	LOOP
     WETDRY
     if(d->breaking(i,j)==0 && d->breaking(i-1,j)==0 && d->breaking(i+1,j)==0)
-	U[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*
+	UH[IJK] -= alpha*p->dt*CPORNH*PORVALNH*d->WL(i,j)*(1.0/p->W1)*
                 (((0.5*(d->P[FIp1JKp1]+d->P[FIp1JK])-0.5*(d->P[FIm1JKp1]+d->P[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1]))
                 + p->sigx4[IJK]*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
 }
 
-void nhflow_pjm::vcorr(lexer* p, fdm_nhf *d, double *V,double alpha)
+void nhflow_pjm::vcorr(lexer* p, fdm_nhf *d, double *VH,double alpha)
 {
     LOOP
     WETDRY
     if(d->breaking(i,j)==0 && d->breaking(i,j-1)==0 && d->breaking(i,j-1)==0)
-    V[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*
+    VH[IJK] -= alpha*p->dt*CPORNH*PORVALNH*d->WL(i,j)*(1.0/p->W1)*
                 (((0.5*(d->P[FIJp1Kp1]+d->P[FIJp1K])-0.5*(d->P[FIJm1Kp1]+d->P[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]))
                 + p->sigy4[IJK]*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
 }
 
-void nhflow_pjm::wcorr(lexer* p, fdm_nhf *d, double *W, double alpha)
+void nhflow_pjm::wcorr(lexer* p, fdm_nhf *d, double *WH, double alpha)
 {
     LOOP
     WETDRY
     if(d->breaking(i,j)==0)
-	W[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*((d->P[FIJKp1]-d->P[FIJK])/(p->DZN[KP]))*p->sigz[IJ];
+	WH[IJK] -= alpha*p->dt*CPORNH*PORVALNH*d->WL(i,j)*(1.0/p->W1)*((d->P[FIJKp1]-d->P[FIJK])/(p->DZN[KP]))*p->sigz[IJ];
 }
 
 void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
@@ -166,13 +164,14 @@ void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
     if(p->A521==1 && p->A540==1 && p->A511!=9)
     LOOP
     WETDRY
-    d->F[IJK] -= PORVALNH*fabs(p->W22)*
-                (p->A523*eta(i+1,j) + (1.0-p->A523)*eta_n(i+1,j) - p->A523*eta(i-1,j) - (1.0-p->A523)*eta_n(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+    d->F[IJK] -= PORVALNH*eta(i,j)*fabs(p->W22)*
+                (p->A523*d->depth(i+1,j)  - p->A523*d->depth(i,j))/(p->DXP[IP]);
 
     if(p->A521==1 && p->A540==2 && p->A511!=9)
     LOOP
     WETDRY
-	d->F[IJK] -= PORVALNH*fabs(p->W22)*(d->eta(i+1,j) - d->eta(i,j))/p->DXP[IP];
+	d->F[IJK] -= PORVALNH*eta(i,j)*fabs(p->W22)*(d->depth(i+1,j) - d->depth(i,j))/p->DXP[IP];
+    
                
     if(p->A521==2 && p->A540==1 && p->A511!=9)
     LOOP
@@ -181,22 +180,37 @@ void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
     {
         if(p->wet[Ip1J]==1 && p->wet[Im1J]==1)
         {
-        dfdx_plus = (eta(i+1,j)-eta(i,j))/p->DXP[IP];
-        dfdx_min  = (eta(i,j)-eta(i-1,j))/p->DXP[IM1];
+        dfdx_plus = (d->depth(i+1,j)-d->depth(i,j))/p->DXP[IP];
+        dfdx_min  = (d->depth(i,j)-d->depth(i-1,j))/p->DXP[IM1];
         
         detadx = limiter(dfdx_plus,dfdx_min);
         
-        dfdx_plus = (eta_n(i+1,j)-eta_n(i,j))/p->DXP[IP];
-        dfdx_min  = (eta_n(i,j)-eta_n(i-1,j))/p->DXP[IM1];
+        d->F[IJK] -= PORVALNH*eta(i,j)*fabs(p->W22)*
+                    p->A523*detadx;
+        }
         
-        detadx_n = limiter(dfdx_plus,dfdx_min);
+        if(p->wet[Ip1J]==0 && p->wet[Im1J]==1)
+        {
+        dfdx_plus = (d->depth(i,j)-d->depth(i,j))/p->DXP[IP];
+        dfdx_min  = (d->depth(i,j)-d->depth(i-2,j))/p->DXP[IM1];
+        
+        detadx = limiter(dfdx_plus,dfdx_min);
             
-        d->F[IJK] -= PORVALNH*fabs(p->W22)*
-                    (p->A523*detadx + (1.0-p->A523)*detadx_n);
-                    
+        d->F[IJK] -= PORVALNH*eta(i,j)*fabs(p->W22)*p->A523*detadx;
         }
         
         if(p->wet[Ip1J]==1 && p->wet[Im1J]==0)
+        {
+        dfdx_plus = (d->depth(i+2,j)-d->depth(i,j))/p->DXP[IP];
+        dfdx_min  = (d->depth(i,j)-d->depth(i,j))/p->DXP[IM1];
+        
+        detadx = limiter(dfdx_plus,dfdx_min);
+        
+        d->F[IJK] -= PORVALNH*eta(i,j)*fabs(p->W22)*p->A523*detadx;
+        }
+                    
+        /*
+        if(p->wet[Ip1J]==0 && p->wet[Im1J]==1)
         {
         detadx = (eta(i,j)-eta(i-1,j))/p->DXP[IM1];
         detadx_n = (eta_n(i,j)-eta_n(i-1,j))/p->DXP[IM1];
@@ -205,15 +219,16 @@ void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
                     (p->A523*detadx + (1.0-p->A523)*detadx_n);
         }
         
-        if(p->wet[Ip1J]==0 && p->wet[Im1J]==1)
+        if(p->wet[Ip1J]==1 && p->wet[Im1J]==0)
         {
         detadx = (eta(i+1,j)-eta(i,j))/p->DXP[IP];
         detadx_n = (eta_n(i+1,j)-eta_n(i,j))/p->DXP[IP];
             
         d->F[IJK] -= PORVALNH*fabs(p->W22)*
                     (p->A523*detadx + (1.0-p->A523)*detadx_n);
-        }
+        }*/
     }
+    
 }
 
 void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d, slice &eta, slice &eta_n)
@@ -221,13 +236,14 @@ void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d, slice &eta, slice &eta_n)
     if(p->A521==1 && p->A540==1 && p->A511!=9)
     LOOP
     WETDRY
-	d->G[IJK] -= PORVALNH*fabs(p->W22)*
-                 (p->A523*eta(i,j+1) + (1.0-p->A523)*eta_n(i,j+1) - p->A523*eta(i,j-1) - (1.0-p->A523)*eta_n(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+	d->G[IJK] -= PORVALNH*eta(i,j)*fabs(p->W22)*
+                 (p->A523*d->depth(i,j+1) - p->A523*d->depth(i,j) )/(p->DYP[JP]);
     
     if(p->A521==1 && p->A540==2 && p->A511!=9)
     LOOP
     WETDRY
-	d->G[IJK] -= PORVALNH*fabs(p->W22)*(d->eta(i,j+1) - d->eta(i,j))/p->DYP[JP];
+	d->G[IJK] -= PORVALNH*eta(i,j)*fabs(p->W22)*(d->depth(i,j+1) - d->depth(i,j))/p->DYP[JP];
+    
     
     if(p->A521==2 && p->A540==1 && p->A511!=9)
     LOOP
@@ -236,26 +252,45 @@ void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d, slice &eta, slice &eta_n)
     {
         if(p->wet[IJm1]==1 && p->wet[IJm1]==1)
         {
-        dfdy_plus = (eta(i,j+1)-eta(i,j))/p->DYP[JP];
-        dfdy_min  = (eta(i,j)-eta(i,j-1))/p->DYP[JM1];
+        dfdy_plus = (d->depth(i,j+1)-d->depth(i,j))/p->DYP[JP];
+        dfdy_min  = (d->depth(i,j)-d->depth(i,j-1))/p->DYP[JM1];
         
         detady = limiter(dfdy_plus,dfdy_min);
         
-        dfdy_plus = (eta_n(i,j+1)-eta_n(i,j))/p->DYP[JP];
-        dfdy_min  = (eta_n(i,j)-eta_n(i,j-1))/p->DYP[JM1];
-        
-        detady_n = limiter(dfdy_plus,dfdy_min);
-            
-        d->G[IJK] -= PORVALNH*fabs(p->W22)*
-                    (p->A523*detady + (1.0-p->A523)*detady_n);
+        d->G[IJK] -= PORVALNH*eta(i,j)*fabs(p->W22)*p->A523*detady;
+
         }
         
+        if(p->wet[IJp1]==0 && p->wet[IJm1]==1)
+        {
+        dfdy_plus = (d->depth(i,j)-d->depth(i,j))/p->DYP[JP];
+        dfdy_min  = (d->depth(i,j)-d->depth(i,j-2))/p->DYP[JM1];
+        
+        detady = limiter(dfdy_plus,dfdy_min);
+
+        d->G[IJK] -= PORVALNH*eta(i,j)*fabs(p->W22)*p->A523*detady;
+        }
+        
+        if(p->wet[IJp1]==1 && p->wet[IJm1]==0)
+        {
+        dfdy_plus = (d->depth(i,j+2)-d->depth(i,j))/p->DYP[JP];
+        dfdy_min  = (d->depth(i,j)-d->depth(i,j))/p->DYP[JM1];
+        
+        detady = limiter(dfdy_plus,dfdy_min);
+        
+        d->G[IJK] -= PORVALNH*eta(i,j)*fabs(p->W22)*p->A523*detady;
+        }
+        
+        /*
         if(p->wet[IJp1]==0 && p->wet[IJm1]==1)
         {
         detady = (eta(i,j)-eta(i,j-1))/p->DYP[JM1];
         detady_n = (eta_n(i,j)-eta_n(i,j-1))/p->DYP[JM1];
             
         d->G[IJK] -= PORVALNH*fabs(p->W22)*
+                    (p->A523*detady + (1.0-p->A523)*detady_n);
+        
+        d->test2D(i,j)=PORVALNH*fabs(p->W22)*
                     (p->A523*detady + (1.0-p->A523)*detady_n);
         }
         
@@ -266,7 +301,10 @@ void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d, slice &eta, slice &eta_n)
             
         d->G[IJK] -= PORVALNH*fabs(p->W22)*
                     (p->A523*detady + (1.0-p->A523)*detady_n);
-        }
+                    
+        d->test2D(i,j)=PORVALNH*fabs(p->W22)*
+                    (p->A523*detady + (1.0-p->A523)*detady_n);
+        }*/
     }
 }
 

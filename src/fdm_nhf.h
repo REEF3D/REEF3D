@@ -76,7 +76,7 @@ public:
     
     // 3D array
     double *U,*V,*W,*omega,*omegaF;
-    double *UH,*VH,*WH,*omegaH,*omegaFH;
+    double *UH,*VH,*WH;
     
     double *P,*ro,*visc,*eddyv;
     double *F,*G,*H,*L;

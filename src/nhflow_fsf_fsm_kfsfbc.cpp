@@ -39,8 +39,8 @@ void nhflow_fsf_fsm::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, d
          
     if(p->A515==1)
     {
-    Pval = 0.5*(d->U[IJK]+d->U[Im1JK]);
-    Qval = 0.5*(d->V[IJK]+d->V[IJm1K]);
+    Pval = d->Ub[IJK];
+    Qval = d->Vb[IJK];
         
     wval = (d->eta(i,j) - d->eta_n(i,j))/p->dt
         
@@ -53,11 +53,14 @@ void nhflow_fsf_fsm::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, d
          
     if(p->A515==2)
     {
+    Pval = d->Ub[IJK];
+    Qval = d->Vb[IJK];
+    
     wval = (d->eta(i,j) - d->eta_n(i,j))/p->dt
     
-         + d->U[IJK]*(d->eta(i+1,j)-d->eta(i-1,j))/(p->DXP[IP]+p->DXP[IP1])
+         + Pval*(d->eta(i+1,j)-d->eta(i-1,j))/(p->DXP[IP]+p->DXP[IP1])
 
-         + d->V[IJK]*(d->eta(i,j+1)-d->eta(i,j-1))/(p->DYP[JP]+p->DYP[JP1]);
+         + Qval*(d->eta(i,j+1)-d->eta(i,j-1))/(p->DYP[JP]+p->DYP[JP1]);
     }
     
         
@@ -85,8 +88,8 @@ void nhflow_fsf_fsm::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, d
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
     
-    Pval = 0.5*(U[IJK]+U[Im1JK]);
-    Qval = 0.5*(V[IJK]+V[IJm1K]);
+    Pval = d->Ut[IJK];
+    Qval = d->Vt[IJK];
     
     
     if(p->A516==1)
