@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void iowave::U_relax(lexer *p, ghostcell *pgc, double *U)
+void iowave::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
 {
     count=0;
     LOOP
@@ -39,6 +39,7 @@ void iowave::U_relax(lexer *p, ghostcell *pgc, double *U)
             // Zone 1
             if(dg<1.0e20)
             {
+            U[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*uval[count] + relax4_wg(i,j)*U[IJK];
             U[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*uval[count] + relax4_wg(i,j)*U[IJK];
             ++count;
             }
@@ -54,7 +55,7 @@ void iowave::U_relax(lexer *p, ghostcell *pgc, double *U)
     }
 }
 
-void iowave::V_relax(lexer *p, ghostcell *pgc, double *V)
+void iowave::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
 {
     count=0;
     if(p->j_dir==1)
@@ -84,7 +85,7 @@ void iowave::V_relax(lexer *p, ghostcell *pgc, double *V)
     }
 }
 
-void iowave::W_relax(lexer *p, ghostcell *pgc, double *W)
+void iowave::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
 {
     count=0;
     LOOP

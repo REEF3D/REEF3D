@@ -802,15 +802,15 @@ void ioflow_v::turb_relax(lexer *p, fdm *a, ghostcell *pgc, field &f)
 {
 }
 
-void ioflow_v::U_relax(lexer *p, ghostcell *pgc, double *U)
+void ioflow_v::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
 {
 }
 
-void ioflow_v::V_relax(lexer *p, ghostcell *pgc, double *V)
+void ioflow_v::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
 {
 }
 
-void ioflow_v::W_relax(lexer *p, ghostcell *pgc, double *W)
+void ioflow_v::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
 {
 }
 
@@ -997,12 +997,12 @@ void ioflow_v::discharge_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 }
 
-void ioflow_v::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W)
+void ioflow_v::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
 
 }
 
-void ioflow_v::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W)
+void ioflow_v::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
 
 }

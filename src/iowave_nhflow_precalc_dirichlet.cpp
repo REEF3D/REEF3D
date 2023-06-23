@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"iowave.h"
 #include"lexer.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 
 void iowave::nhflow_precalc_dirichlet(lexer *p,fdm_nhf *d, ghostcell *pgc)
@@ -44,7 +45,6 @@ void iowave::nhflow_precalc_dirichlet(lexer *p,fdm_nhf *d, ghostcell *pgc)
         }
         
         
-        
         count=0;
 		for(n=0;n<p->gcin_count;n++)
 		{
@@ -56,29 +56,35 @@ void iowave::nhflow_precalc_dirichlet(lexer *p,fdm_nhf *d, ghostcell *pgc)
         y=ygen(p);
         x1=xgen1(p);
         y2=ygen2(p);
-        
-        
+                
         z = p->ZSP[IJK]-p->phimean;
-        //z3 = p->ZSN[(i-p->imin)*p->jmax*p->kmaxF + (j-p->jmin)*p->kmaxF + (k+1)-p->kmin]-p->phimean;
-        
-        
+
         // U
         if(z<=eta(i,j)+epsi)
+        {
         uval[count] = wave_u(p,pgc,x1,y,z);
+        UHval[count] = (eta(i,j) + d->depth(i,j))*(wave_u(p,pgc,xg,yg,z) + p->Ui);
+        }
         
         if(z>eta(i,j)+epsi)
         uval[count] = 0.0;
         
         // V
         if(z<=eta(i,j)+epsi)
+        {
         vval[count] = wave_v(p,pgc,x,y2,z);
+        VHval[count] = (eta(i,j) + d->depth(i,j))*wave_v(p,pgc,xg,yg,z);
+        }
             
         if(z>eta(i,j)+epsi)
         vval[count] = 0.0;
         
         // W
         if(z<=eta(i,j)+epsi)
+        {
         wval[count] = wave_w(p,pgc,x,y,z);
+        VHval[count] = (eta(i,j) + d->depth(i,j))*wave_v(p,pgc,xg,yg,z);
+        }
             
         if(z>eta(i,j)+epsi)
         wval[count] = 0.0;

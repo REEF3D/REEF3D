@@ -43,10 +43,16 @@ public:
     double *VDIFF,*VRK1,*VRK2;
     double *WDIFF,*WRK1,*WRK2;
     
+    double *UHRK1,*UHRK2;
+    double *VHRK1,*VHRK2;
+    double *WHRK1,*WHRK2;
+    
     slice4 etark1,etark2;
 
 private:
-
+    void reconstruct(lexer*, fdm_nhf*, ghostcell*, nhflow_signal_speed*, nhflow_fsf_reconstruct*, nhflow_reconstruct*,double*,double*,double*,double*,double*,double*);
+    void velcalc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
+    
 	void irhs(lexer*,fdm_nhf*,ghostcell*);
 	void jrhs(lexer*,fdm_nhf*,ghostcell*);
 	void krhs(lexer*,fdm_nhf*,ghostcell*);

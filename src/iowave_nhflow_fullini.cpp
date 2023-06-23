@@ -61,6 +61,7 @@ void iowave::full_initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         z=p->ZSP[IJK]-p->phimean;
 
 		d->U[IJK] = wave_u(p,pgc,xg,yg,z);
+        d->UH[IJK] = (d->eta(i,j)+d->depth(i,j))*wave_u(p,pgc,xg,yg,z);
 	}	
 	
 	LOOP
@@ -73,6 +74,7 @@ void iowave::full_initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 		z=p->ZSP[IJK]-p->phimean;
 		
 		d->V[IJK] = wave_v(p,pgc,xg,yg,z);
+        d->VH[IJK] = (d->eta(i,j)+d->depth(i,j))*wave_v(p,pgc,xg,yg,z);
 	}
 	
 	LOOP
@@ -85,6 +87,7 @@ void iowave::full_initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 		z=p->ZSP[IJK]-p->phimean;
 		
 		d->W[IJK] = wave_w(p,pgc,xg,yg,z);
+        d->WH[IJK] = (d->eta(i,j)+d->depth(i,j))*wave_w(p,pgc,xg,yg,z);
 	}
 	
     //if(p->I10==1 || p->I12==1)

@@ -119,6 +119,9 @@ void iowave::nhflow_precalc_relax_ini(lexer *p,fdm_nhf *d, ghostcell *pgc)
     p->Darray(uval,upt_count);
     p->Darray(vval,vpt_count);
     p->Darray(wval,wpt_count);
+    p->Darray(UHval,upt_count);
+    p->Darray(VHval,vpt_count);
+    p->Darray(WHval,wpt_count);
     p->Darray(etaval,ept_count);
     
     if(p->B89==1) 
@@ -169,5 +172,8 @@ void iowave::nhflow_precalc_dirichlet_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     p->Darray(uval,upt_count);
     p->Darray(vval,vpt_count);
     p->Darray(wval,wpt_count);
+    p->Darray(UHval,upt_count);
+    p->Darray(VHval,vpt_count);
+    p->Darray(WHval,wpt_count);
     p->Darray(etaval,ept_count);
 }

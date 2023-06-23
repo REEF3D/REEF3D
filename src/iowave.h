@@ -88,9 +88,9 @@ public:
 	virtual void phi_relax(lexer*,ghostcell*,field&);
     virtual void vof_relax(lexer*,ghostcell*,field&);
     virtual void turb_relax(lexer*,fdm*,ghostcell*,field&);
-    virtual void U_relax(lexer*,ghostcell*,double*);
-    virtual void V_relax(lexer*,ghostcell*,double*);
-    virtual void W_relax(lexer*,ghostcell*,double*);
+    virtual void U_relax(lexer*,ghostcell*,double*,double*);
+    virtual void V_relax(lexer*,ghostcell*,double*,double*);
+    virtual void W_relax(lexer*,ghostcell*,double*,double*);
     virtual void P_relax(lexer*,ghostcell*,double*);
     virtual void fi_relax(lexer*,ghostcell*,field&,field&);
     virtual void fivec_relax(lexer*, ghostcell*, double*);
@@ -187,9 +187,9 @@ public:
     // NHFLOW
     virtual void wavegen_precalc_nhflow(lexer*,fdm_nhf*,ghostcell*);
     virtual void wavegen_precalc_ini_nhflow(lexer*,fdm_nhf*,ghostcell*);
-    virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
+    virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
     virtual void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*);
-    virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
+    virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
     virtual void isource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
     virtual void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
     virtual void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
@@ -199,10 +199,10 @@ public:
     void nhflow_precalc_dirichlet(lexer*,fdm_nhf*,ghostcell*);
     void nhflow_precalc_dirichlet_ini(lexer*,fdm_nhf*,ghostcell*);
     
-    void nhflow_dirichlet_wavegen(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
-    void nhflow_active_wavegen(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
-    void nhflow_active_beach(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
-    void nhflow_inflow_plain(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
+    void nhflow_dirichlet_wavegen(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
+    void nhflow_active_wavegen(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
+    void nhflow_active_beach(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
+    void nhflow_inflow_plain(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
     void full_initialize_nhflow(lexer*,fdm_nhf*,ghostcell*);
     
     void nhflow_wavegen_precalc_decomp_space(lexer*,ghostcell*);
@@ -276,6 +276,8 @@ private:
     int upt_count,vpt_count,wpt_count,ppt_count,ept_count;
     double *uval,*vval,*wval,*etaval,*lsval,*Fival,*Fioutval,*Fifsfval,*Fifsfval0,*Fifsfval1,*Fifsfoutval,*Uinval,*Uoutval;
     double *rb1val,*rb3val;
+    
+    double *UHval,*VHval,*WHval;
     
     double **uval_S_sin,**vval_S_sin,**wval_S_sin,**etaval_S_sin,**Fival_S_sin,**Fifsfval_S_sin;
     double **uval_S_cos,**vval_S_cos,**wval_S_cos,**etaval_S_cos,**Fival_S_cos,**Fifsfval_S_cos;

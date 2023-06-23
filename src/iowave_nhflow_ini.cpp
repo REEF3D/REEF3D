@@ -39,9 +39,9 @@ void iowave::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc)
     
     wavegen_precalc(p,pgc);
     
-    U_relax(p,pgc,d->U);
-    V_relax(p,pgc,d->V);
-    W_relax(p,pgc,d->W);
+    U_relax(p,pgc,d->U,d->UH);
+    V_relax(p,pgc,d->V,d->VH);
+    W_relax(p,pgc,d->W,d->WH);
 
     if(p->I30==1)
 	full_initialize_nhflow(p,d,pgc);
