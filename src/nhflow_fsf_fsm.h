@@ -55,7 +55,9 @@ public:
     
     virtual void flux_update(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
     
-    virtual void kinematic_fsf(lexer*, fdm_nhf*, double*, double*, double*, slice&, slice&, double);
+    virtual void kinematic_fsf(lexer*, fdm_nhf*, double*, double*, double*,slice&);
+    virtual void kinematic_bed(lexer*, fdm_nhf*, double*, double*, double*);
+    
     virtual void wetdry(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&);
     
     void update(lexer*,fdm_nhf*,ghostcell*,slice&);

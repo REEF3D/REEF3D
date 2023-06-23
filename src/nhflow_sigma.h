@@ -51,7 +51,7 @@ public:
     double sigmaz(lexer*,int);
     double sigmat(lexer*,int);
     
-    void omega_update(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,slice&,slice&,double);
+    void omega_update(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
 
         
 private:

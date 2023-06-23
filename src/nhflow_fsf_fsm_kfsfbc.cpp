@@ -25,13 +25,10 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void nhflow_fsf_fsm::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, double *W, slice &eta1, slice &eta2, double alpha)
+void nhflow_fsf_fsm::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, double *W, slice &eta)
 {
-    double wval,w_n,udetax;
+    double wval,w_n;
     double Pval,Qval;
-    double detax;
-    double uvel1,uvel2;
-    double zloc1,zloc2;
     
     GC4LOOP
     if(p->gcb4[n][3]==6 && p->gcb4[n][4]==3)
@@ -64,11 +61,21 @@ void nhflow_fsf_fsm::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, d
     }
     
         
-        W[IJK] = wval; 
-        W[IJKp1] = wval;
-        W[IJKp2] = wval;
-        W[IJKp3] = wval;
+        d->Wb[IJKp1] = wval;
+        d->Wb[IJKp2] = wval;
+        d->Wb[IJKp3] = wval;
+        
+        d->Wt[IJKp1] = wval;
+        d->Wt[IJKp2] = wval;
+        d->Wt[IJKp3] = wval;
     }
+}
+    
+void nhflow_fsf_fsm::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, double *W)
+{
+    double wval,w_n;
+    double Pval,Qval;
+    double detax;
     
     // Kinematic Bed BC
     GC4LOOP
@@ -99,14 +106,13 @@ void nhflow_fsf_fsm::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, d
     }
     
         
-        W[IJKm1] = wval;
-        W[IJKm2] = wval;
-        W[IJKm3] = wval;
+        d->Wb[IJKm1] = wval;
+        d->Wb[IJKm2] = wval;
+        d->Wb[IJKm3] = wval;
         
-        w_n = d->wbed(i,j);
-        d->wbed(i,j) = wval;
-        
-        d->dwdt(i,j) = (wval - w_n)/(alpha*p->dt);
+        d->Wt[IJKm1] = wval;
+        d->Wt[IJKm2] = wval;
+        d->Wt[IJKm3] = wval;
     }
 
     

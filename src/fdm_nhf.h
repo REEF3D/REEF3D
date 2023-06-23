@@ -67,7 +67,7 @@ public:
     slice4 breaking_print,Hs;
     
     // NHFLOW
-    slice4 wbed,dwdt;
+    slice4 wbed;
     
     cpt2D C4;
 	

@@ -25,13 +25,10 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, double *W, slice &eta1, slice &eta2, double alpha)
+void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, double *W, slice &eta)
 {
-    double wval,w_n,udetax;
+    double wval,w_n;
     double Pval,Qval;
-    double detax;
-    double uvel1,uvel2;
-    double zloc1,zloc2;
     
     GC4LOOP
     if(p->gcb4[n][3]==6 && p->gcb4[n][4]==3)
@@ -49,31 +46,31 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
         
         wval = d->detadt(i,j)
         
-             + MAX(0.0,Pval)*((eta1(i,j)-eta1(i-1,j))/(p->DXP[IP]))
-             + MIN(0.0,Pval)*((eta1(i+1,j)-eta1(i,j))/(p->DXP[IP1]))
+             + MAX(0.0,Pval)*((eta(i,j)-eta(i-1,j))/(p->DXP[IP]))
+             + MIN(0.0,Pval)*((eta(i+1,j)-eta(i,j))/(p->DXP[IP1]))
         
-             + MAX(0.0,Qval)*((eta1(i,j)-eta1(i,j-1))/(p->DYP[JP]))
-             + MIN(0.0,Qval)*((eta1(i,j+1)-eta1(i,j))/(p->DYP[JP1]));
+             + MAX(0.0,Qval)*((eta(i,j)-eta(i,j-1))/(p->DYP[JP]))
+             + MIN(0.0,Qval)*((eta(i,j+1)-eta(i,j))/(p->DYP[JP1]));
         }
              
         if(p->A515==2)
         {
         wval = d->detadt(i,j)
         
-             + U[IJK]*(eta1(i+1,j)-eta1(i-1,j))/(p->DXP[IP]+p->DXP[IP1])
+             + U[IJK]*(eta(i+1,j)-eta(i-1,j))/(p->DXP[IP]+p->DXP[IP1])
 
-             + V[IJK]*(eta1(i,j+1)-eta1(i,j-1))/(p->DYP[JP]+p->DYP[JP1]);
+             + V[IJK]*(eta(i,j+1)-eta(i,j-1))/(p->DYP[JP]+p->DYP[JP1]);
         }
         
         if(p->A515==3)
         {
-        dfdx_plus = (eta1(i+1,j)-eta1(i,j))/p->DXP[IP];
-        dfdx_min  = (eta1(i,j)-eta1(i-1,j))/p->DXP[IM1];
+        dfdx_plus = (eta(i+1,j)-eta(i,j))/p->DXP[IP];
+        dfdx_min  = (eta(i,j)-eta(i-1,j))/p->DXP[IM1];
     
         detadx = limiter(dfdx_plus,dfdx_min);
         
-        dfdy_plus = (eta1(i,j-1)-eta1(i,j))/p->DYP[JP];
-        dfdy_min  = (eta1(i,j)-eta1(i,j-1))/p->DYP[JM1];
+        dfdy_plus = (eta(i,j-1)-eta(i,j))/p->DYP[JP];
+        dfdy_min  = (eta(i,j)-eta(i,j-1))/p->DYP[JM1];
     
         detady = limiter(dfdy_plus,dfdy_min);
         
@@ -85,12 +82,21 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
              + V[IJK]*detady;
         }
         
-        W[IJKp1] = wval;
-        W[IJKp2] = wval;
-        W[IJKp3] = wval;
+        d->Wb[IJKp1] = wval;
+        d->Wb[IJKp2] = wval;
+        d->Wb[IJKp3] = wval;
+        
+        d->Wt[IJKp1] = wval;
+        d->Wt[IJKp2] = wval;
+        d->Wt[IJKp3] = wval;
     }
-    
-    
+}   
+  
+void nhflow_fsf_rk::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, double *W)
+{
+    double wval,w_n;
+    double Pval,Qval;
+  
     // Kinematic Bed BC
     GC4LOOP
     if(p->gcb4[n][3]==5 && p->gcb4[n][4]==21)
@@ -138,14 +144,14 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
     }
     
         
-        W[IJKm1] = wval;
-        W[IJKm2] = wval;
-        W[IJKm3] = wval;
+        d->Wb[IJKm1] = wval;
+        d->Wb[IJKm2] = wval;
+        d->Wb[IJKm3] = wval;
         
-        w_n = d->wbed(i,j);
-        d->wbed(i,j) = wval;
+        d->Wt[IJKm1] = wval;
+        d->Wt[IJKm2] = wval;
+        d->Wt[IJKm3] = wval;
         
-        d->dwdt(i,j) = (wval - w_n)/(alpha*p->dt);
     }
 }
 
