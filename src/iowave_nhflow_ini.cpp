@@ -28,7 +28,7 @@ Author: Hans Bihs
 void iowave::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc)
 {
     // relax_ini OR dirichlet_ini
-    wavegen_precalc_ini(p,pgc);
+    wavegen_precalc_ini_nhflow(p,d,pgc);
     wavegen_precalc_relax_func_nhflow(p,pgc);
     
     /*if(p->B89==1 && p->B98==2)

@@ -77,7 +77,49 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
     p->Darray(Sn,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Se,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Sw,p->imax*p->jmax*(p->kmax+2));
+    
+    p->Darray(Us,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Un,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Ue,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Uw,p->imax*p->jmax*(p->kmax+2));  
+    p->Darray(Ub,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Ut,p->imax*p->jmax*(p->kmax+2));  
+    
+    p->Darray(Vs,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Vn,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Ve,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Vw,p->imax*p->jmax*(p->kmax+2));  
+    p->Darray(Vb,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Vt,p->imax*p->jmax*(p->kmax+2));  
+    
+    p->Darray(Ws,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Wn,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(We,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Ww,p->imax*p->jmax*(p->kmax+2));  
+    p->Darray(Wb,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Wt,p->imax*p->jmax*(p->kmax+2)); 
 
+
+    p->Darray(UHs,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(UHn,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(UHe,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(UHw,p->imax*p->jmax*(p->kmax+2));  
+    p->Darray(UHb,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(UHt,p->imax*p->jmax*(p->kmax+2));  
+    
+    p->Darray(VHs,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(VHn,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(VHe,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(VHw,p->imax*p->jmax*(p->kmax+2));  
+    p->Darray(VHb,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(VHt,p->imax*p->jmax*(p->kmax+2));  
+    
+    p->Darray(WHs,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(WHn,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(WHe,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(WHw,p->imax*p->jmax*(p->kmax+2));  
+    p->Darray(WHb,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(WHt,p->imax*p->jmax*(p->kmax+2)); 
     
     p->Iarray(NODEVAL,p->imax*p->jmax*(p->kmax+3));
 

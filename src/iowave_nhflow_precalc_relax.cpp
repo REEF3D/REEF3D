@@ -69,7 +69,7 @@ void iowave::nhflow_precalc_relax(lexer *p,fdm_nhf *d, ghostcell *pgc)
             if(dg<1.0e20)
             {
             uval[count] = wave_u(p,pgc,xg,yg,z) + p->Ui;
-            UHval[count] = (eta(i,j) + d->depth(i,j))*(wave_u(p,pgc,xg,yg,z) + p->Ui);
+            UHval[count] = (eta(i,j) + d->depth(i,j))*uval[count];
             ++count;
             }
 		}
@@ -93,7 +93,7 @@ void iowave::nhflow_precalc_relax(lexer *p,fdm_nhf *d, ghostcell *pgc)
             if(dg<1.0e20)
             {
             vval[count] = wave_v(p,pgc,xg,yg,z);
-            VHval[count] = (eta(i,j) + d->depth(i,j))*wave_v(p,pgc,xg,yg,z);
+            VHval[count] = (eta(i,j) + d->depth(i,j))*vval[count];
             ++count;
             }
 		}
@@ -119,7 +119,7 @@ void iowave::nhflow_precalc_relax(lexer *p,fdm_nhf *d, ghostcell *pgc)
             if(dg<1.0e20)
             {
             wval[count] = wave_w(p,pgc,xg,yg,z);
-            WHval[count] = (eta(i,j) + d->depth(i,j))*wave_w(p,pgc,xg,yg,z);
+            //WHval[count] = (eta(i,j) + d->depth(i,j))*wval[count];
             ++count;
             }
 		}
