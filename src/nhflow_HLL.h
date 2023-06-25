@@ -25,6 +25,8 @@ Author: Hans Bihs
 #include"slice2.h"
 #include"increment.h"
 
+class nhflow_flux_build;
+
 class patchBC_interface;
 class ghostcell;
 
@@ -62,6 +64,7 @@ private:
 
     ghostcell *pgc;
     patchBC_interface *pBC;
+    nhflow_flux_build *pflux;
 };
 
 #endif

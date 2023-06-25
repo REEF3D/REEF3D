@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"nhflow_flux_face_cds2.h"
 #include"nhflow_reconstruct_hires.h"
 #include"nhflow_signal_speed.h"
+#include"nhflow_flux_build_f.h"
 
 #define WLVL (fabs(d->WL_n(i,j))>1.0e-20?d->WL_n(i,j):1.0e20)
 
@@ -37,6 +38,7 @@ nhflow_HLL::nhflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC)
     pgc = ppgc;
     pBC = ppBC;
     
+    pflux = new nhflow_flux_build_f(p,pgc,pBC);
 }
 
 nhflow_HLL::~nhflow_HLL()
@@ -65,7 +67,8 @@ void nhflow_HLL::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, dou
 
 double nhflow_HLL::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
 {
-    // HLL flux x-dir
+    // HLL flux 
+    pflux->start_U(p,d,pgc);
     HLL(p,d);
     
     pgc->start1V(p,d->Fx,10);
@@ -82,7 +85,8 @@ double nhflow_HLL::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
 
 double nhflow_HLL::aij_V(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
 {
-    // HLL flux x-dir
+    // HLL flux 
+    pflux->start_V(p,d,pgc);
     HLL(p,d);
     
     pgc->start1V(p,d->Fx,10);
@@ -99,7 +103,8 @@ double nhflow_HLL::aij_V(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
 
 double nhflow_HLL::aij_W(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
 {
-    // HLL flux x-dir
+    // HLL flux 
+    pflux->start_W(p,d,pgc);
     HLL(p,d);
     
     pgc->start1V(p,d->Fx,10);
@@ -116,7 +121,8 @@ double nhflow_HLL::aij_W(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
 
 double nhflow_HLL::aij_E(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
 {
-    // HLL flux x-dir
+    // HLL flux 
+    pflux->start_E(p,d,pgc);
     HLL(p,d);
     
     pgc->start1V(p,d->Fx,10);
@@ -125,7 +131,7 @@ double nhflow_HLL::aij_E(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
 
 double nhflow_HLL::HLL(lexer* p,fdm_nhf* d)
 {
-    // HLL flux x-dir
+    // HLL flux
     ULOOP
     {
         if(d->Ss[IJK]>=0.0)

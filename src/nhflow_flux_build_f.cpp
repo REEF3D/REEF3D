@@ -26,13 +26,10 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"slice.h"
 #include"patchBC_interface.h"
-#include"nhflow_flux_face_cds2.h"
-#include"nhflow_reconstruct_hires.h"
-#include"nhflow_signal_speed.h"
 
 #define WLVL (fabs(d->WL_n(i,j))>1.0e-20?d->WL_n(i,j):1.0e20)
 
-nhflow_flux_build_f::nhflow_flux_build_f (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) 
+nhflow_flux_build_f::nhflow_flux_build_f(lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) 
 {
     pBC = ppBC;
 }
@@ -87,7 +84,7 @@ void nhflow_flux_build_f::start_U(lexer* p, fdm_nhf *d, ghostcell *pgc)
     pgc->start3V(p,d->Fz,12);
 }
 
-void nhflow_flux_build_f::start_V(lexer* p,fdm_nhf *d, ghostcell *pgc)
+void nhflow_flux_build_f::start_V(lexer* p, fdm_nhf *d, ghostcell *pgc)
 {
     // flux x-dir
     ULOOP
@@ -114,7 +111,7 @@ void nhflow_flux_build_f::start_V(lexer* p,fdm_nhf *d, ghostcell *pgc)
     pgc->start3V(p,d->Fz,12);
 }
 
-void nhflow_flux_build_f::start_W(lexer* p,fdm_nhf *d, ghostcell *pgc)
+void nhflow_flux_build_f::start_W(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     // flux x-dir
     ULOOP
