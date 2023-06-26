@@ -53,7 +53,8 @@ private:
     double aij_W(lexer*, fdm_nhf*, double*, int, double*, double*, double*);
     double aij_E(lexer*, fdm_nhf*, double*, int, double*, double*, double*);
     
-    double HLL(lexer*, fdm_nhf*);
+    double HLL(lexer*, fdm_nhf*, double*, double*, double*, double*);
+    double HLL_E(lexer*, fdm_nhf*);
     
 	double dx,dy,dz;
 	double udir,vdir,wdir;

@@ -162,7 +162,7 @@ void nhflow_reconstruct_hires::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nh
     }
 
 	pgc->start1V(p,Fs,10);
-    pgc->start1V(p,Fs,10);
+    pgc->start1V(p,Fn,10);
 }
 
 void nhflow_reconstruct_hires::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fy, double *Fe, double *Fw)
