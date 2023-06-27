@@ -39,9 +39,9 @@ public:
 	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_signal_speed*, nhflow_fsf_reconstruct*, nhflow_reconstruct*, nhflow_convection*, diffusion*, nhflow_pressure*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*,  vrans*);
     virtual void inidisc(lexer*, fdm_nhf*, ghostcell*, nhflow_fsf*);
 
-    double *UDIFF,*URK1,*URK2;
-    double *VDIFF,*VRK1,*VRK2;
-    double *WDIFF,*WRK1,*WRK2;
+    double *UDIFF;
+    double *VDIFF;
+    double *WDIFF;
     
     double *UHRK1,*UHRK2;
     double *VHRK1,*VHRK2;

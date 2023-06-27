@@ -210,11 +210,11 @@ void nhflow_reconstruct_hires::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nh
     LOOP 
     {
     Fb[IJK] = (Fz[IJK]    + 0.5*p->DZP[KP]*DFDX[IJK]); 
-    Ft[IJK] = (Fz[Ip1JK]  - 0.5*p->DZP[KP1]*DFDX[Ip1JK]);
+    Ft[IJK] = (Fz[IJKp1]  - 0.5*p->DZP[KP1]*DFDX[IJKp1]);
     
         if(p->wet[IJ]==0)
         {
-        Fb[Ip1JK] = 0.0;
+        Fb[IJKp1] = 0.0;
         Ft[IJK] = 0.0;
         }
     }
