@@ -171,8 +171,6 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     clearrhs(p,d,pgc);
     
-    pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,etark1);
-    pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
     
 //Step 2
 //--------------------------------------------------------
@@ -259,9 +257,6 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     pgc->start2V(p,VHRK2,gcval_v);
     pgc->start3V(p,WHRK2,gcval_w);
     clearrhs(p,d,pgc);
-    
-    pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,etark2);
-    pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
 
 //Step 3
 //--------------------------------------------------------

@@ -38,8 +38,20 @@ nhflow_fsf_reconstruct_hires::~nhflow_fsf_reconstruct_hires()
 {
 }
 
-void nhflow_fsf_reconstruct_hires::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fs, slice &fn, slice &fe, slice &fw)
+void nhflow_fsf_reconstruct_hires::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf *d, slice& f, slice &fs, slice &fn, slice &fe, slice &fw)
 {
+    SLICELOOP1  
+    {
+    d->ETAs_n(i,j) = d->ETAs(i,j);
+    d->ETAn_n(i,j) = d->ETAn(i,j);
+    }
+    
+    SLICELOOP2 
+    {
+    d->ETAe_n(i,j) = d->ETAe(i,j);
+    d->ETAw_n(i,j) = d->ETAw(i,j);
+    }
+    
     // gradient
     SLICELOOP4
     {
@@ -257,8 +269,8 @@ void nhflow_fsf_reconstruct_hires::reconstruct_2D_WL(lexer* p, ghostcell *pgc, f
 
     SLICELOOP1
     {
-    d->Ds(i,j) = d->ETAs(i,j) + 0.5*(d->depth(i,j) + d->depth(i-1,j));
-    d->Dn(i,j) = d->ETAn(i,j) + 0.5*(d->depth(i,j) + d->depth(i-1,j));
+    d->Ds(i,j) = d->ETAs(i,j) + 0.5*(d->depth(i,j) + d->depth(i+1,j));
+    d->Dn(i,j) = d->ETAn(i,j) + 0.5*(d->depth(i,j) + d->depth(i+1,j));
     
     d->Ds(i,j) = MAX(0.00005, d->Ds(i,j));
     d->Dn(i,j) = MAX(0.00005, d->Dn(i,j));
@@ -266,8 +278,8 @@ void nhflow_fsf_reconstruct_hires::reconstruct_2D_WL(lexer* p, ghostcell *pgc, f
     
     SLICELOOP2
     {
-    d->De(i,j) = d->ETAe(i,j)  + 0.5*(d->depth(i,j) + d->depth(i,j-1));
-    d->Dw(i,j) = d->ETAw(i,j)  + 0.5*(d->depth(i,j) + d->depth(i,j-1));
+    d->De(i,j) = d->ETAe(i,j)  + 0.5*(d->depth(i,j) + d->depth(i,j+1));
+    d->Dw(i,j) = d->ETAw(i,j)  + 0.5*(d->depth(i,j) + d->depth(i,j+1));
     
     d->De(i,j) = MAX(0.00005, d->De(i,j));
     d->Dw(i,j) = MAX(0.00005, d->Dw(i,j));
