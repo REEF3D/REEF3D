@@ -40,18 +40,6 @@ nhflow_fsf_reconstruct_hires::~nhflow_fsf_reconstruct_hires()
 
 void nhflow_fsf_reconstruct_hires::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf *d, slice& f, slice &fs, slice &fn, slice &fe, slice &fw)
 {
-    SLICELOOP1  
-    {
-    d->ETAs_n(i,j) = d->ETAs(i,j);
-    d->ETAn_n(i,j) = d->ETAn(i,j);
-    }
-    
-    SLICELOOP2 
-    {
-    d->ETAe_n(i,j) = d->ETAe(i,j);
-    d->ETAw_n(i,j) = d->ETAw(i,j);
-    }
-    
     // gradient
     SLICELOOP4
     {

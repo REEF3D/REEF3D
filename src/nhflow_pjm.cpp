@@ -228,7 +228,6 @@ void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
                     (p->A523*detadx + (1.0-p->A523)*detadx_n);
         }*/
     }
-    
 }
 
 void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d, slice &eta, slice &eta_n)

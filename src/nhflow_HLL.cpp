@@ -73,7 +73,7 @@ double nhflow_HLL::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
     
     pgc->start1V(p,d->Fx,10);
     pgc->start2V(p,d->Fy,11);
-    pgc->start3V(p,d->Fz,12);
+    //pgc->start3V(p,d->Fz,12);
     
     LOOP
     {
@@ -91,7 +91,7 @@ double nhflow_HLL::aij_V(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVEL
     
     pgc->start1V(p,d->Fx,10);
     pgc->start2V(p,d->Fy,11);
-    pgc->start3V(p,d->Fz,12);
+    //pgc->start3V(p,d->Fz,12);
     
     LOOP
     {
@@ -109,7 +109,7 @@ double nhflow_HLL::aij_W(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
     
     pgc->start1V(p,d->Fx,10);
     pgc->start2V(p,d->Fy,11);
-    pgc->start3V(p,d->Fz,12);
+    //pgc->start3V(p,d->Fz,12);
     
     LOOP
     {

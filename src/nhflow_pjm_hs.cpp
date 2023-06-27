@@ -87,7 +87,7 @@ void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
     LOOP
     WETDRY
     {
-    etaval = p->A523*0.5*(d->ETAs(i,j)+d->ETAn(i,j)) + (1.0-p->A523)*0.5*(d->ETAs_n(i,j)+d->ETAn_n(i,j));
+    etaval = 0.5*(d->ETAs(i,j)+d->ETAn(i,j));
     
     d->F[IJK] += PORVALNH*etaval*fabs(p->W22)*
                 (d->depth(i+1,j) - d->depth(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);

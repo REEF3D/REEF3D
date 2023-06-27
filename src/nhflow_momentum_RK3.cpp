@@ -387,6 +387,27 @@ void nhflow_momentum_RK3::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     
     pss->signal_speed_update(p, pgc, d, d->Us, d->Un, d->Ve, d->Vw, d->Ds, d->Dn, d->De, d->Dw);
     
+    /*pgc->start1V(p,d->Us,gcval_u);
+    pgc->start1V(p,d->Un,gcval_u);
+    pgc->start1V(p,d->Ue,gcval_u);
+    pgc->start1V(p,d->Uw,gcval_u);
+    pgc->start1V(p,d->Ub,gcval_u);
+    pgc->start1V(p,d->Ut,gcval_u);
+    
+    pgc->start2V(p,d->Vs,gcval_v);
+    pgc->start2V(p,d->Vn,gcval_v);
+    pgc->start2V(p,d->Ve,gcval_v);
+    pgc->start2V(p,d->Vw,gcval_v);
+    pgc->start2V(p,d->Vb,gcval_v);
+    pgc->start2V(p,d->Vt,gcval_v);
+    
+    pgc->start3V(p,d->Ws,gcval_w);
+    pgc->start3V(p,d->Wn,gcval_w);
+    pgc->start3V(p,d->We,gcval_w);
+    pgc->start3V(p,d->Ww,gcval_w);
+    pgc->start3V(p,d->Wb,gcval_w);
+    pgc->start3V(p,d->Wt,gcval_w);*/
+    
 }
 
 void nhflow_momentum_RK3::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *UH, double *VH, double *WH)

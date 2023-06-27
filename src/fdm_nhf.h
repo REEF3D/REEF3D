@@ -97,8 +97,6 @@ public:
     
     slice1 ETAs,ETAn;
     slice2 ETAe,ETAw;
-    slice1 ETAs_n,ETAn_n;
-    slice2 ETAe_n,ETAw_n;
     slice1 Ds,Dn;
     slice2 De,Dw;
 

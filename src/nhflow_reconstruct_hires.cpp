@@ -68,10 +68,6 @@ void nhflow_reconstruct_hires::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf*
     fw(i,j) = f(i,j+1) - 0.5*p->DYP[JP1]*dfdy(i,j+1); 
     }
     
-    pgc->gcsl_start1(p,fs,10);
-    pgc->gcsl_start1(p,fn,10);
-    pgc->gcsl_start2(p,fe,11);
-    pgc->gcsl_start2(p,fw,11);
 }
 
 void nhflow_reconstruct_hires::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fs, slice &fn)
@@ -93,9 +89,6 @@ void nhflow_reconstruct_hires::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nh
     fs(i,j) = f(i,j)   + 0.5*p->DXP[IP]*dfdx(i,j); 
     fn(i,j) = f(i+1,j) - 0.5*p->DXP[IP1]*dfdx(i+1,j);
     }
-
-    pgc->gcsl_start1(p,fs,10);
-    pgc->gcsl_start1(p,fn,10);
 }
 
 void nhflow_reconstruct_hires::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fe, slice &fw)
@@ -117,9 +110,7 @@ void nhflow_reconstruct_hires::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm_nh
     fe(i,j) = f(i,j)   + 0.5*p->DYP[JP]*dfdy(i,j); 
     fw(i,j) = f(i,j+1) - 0.5*p->DYP[JP1]*dfdy(i,j+1); 
     }
-    
-    pgc->gcsl_start2(p,fe,11);
-    pgc->gcsl_start2(p,fw,11);
+
 }
 
 void nhflow_reconstruct_hires::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fx, double *Fs, double *Fn)
@@ -160,9 +151,6 @@ void nhflow_reconstruct_hires::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nh
         Fn[IJK] = 0.0;
         }
     }
-
-	pgc->start1V(p,Fs,10);
-    pgc->start1V(p,Fn,10);
 }
 
 void nhflow_reconstruct_hires::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fy, double *Fe, double *Fw)
@@ -203,15 +191,12 @@ void nhflow_reconstruct_hires::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nh
         Fw[IJK] = 0.0;
         }
     }
-    
-    pgc->start2V(p,Fe,11);
-    pgc->start2V(p,Fw,11);
 }
 
 void nhflow_reconstruct_hires::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fz, double *Fb, double *Ft)
 {
     // gradient
-    WLOOP
+    LOOP
     {
     dfdz_plus = (Fz[IJKp1] - Fz[IJK])/p->DZP[KP];
     dfdz_min  = (Fz[IJK] - Fz[IJKm1])/p->DZP[KM1];
@@ -222,7 +207,7 @@ void nhflow_reconstruct_hires::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nh
     pgc->start3V(p,DFDX,12);
     
     // reconstruct
-    WLOOP 
+    LOOP 
     {
     Fb[IJK] = (Fz[IJK]    + 0.5*p->DZP[KP]*DFDX[IJK]); 
     Ft[IJK] = (Fz[Ip1JK]  - 0.5*p->DZP[KP1]*DFDX[Ip1JK]);
@@ -233,9 +218,6 @@ void nhflow_reconstruct_hires::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nh
         Ft[IJK] = 0.0;
         }
     }
-    
-	pgc->start3V(p,Fb,11);
-    pgc->start3V(p,Ft,11);
 }
 
 double nhflow_reconstruct_hires::limiter(double v1, double v2)

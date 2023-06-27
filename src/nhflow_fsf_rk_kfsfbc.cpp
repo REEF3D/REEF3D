@@ -67,8 +67,8 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
         
         if(p->A515==3)
         {
-        Pval = d->U[IJK];
-        Qval = d->V[IJK];
+        Pval = d->Ub[IJK];
+        Qval = d->Vb[IJK];
         
         dfdx_plus = (eta(i+1,j)-eta(i,j))/p->DXP[IP];
         dfdx_min  = (eta(i,j)-eta(i-1,j))/p->DXP[IM1];
@@ -88,9 +88,17 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
              + Qval*detady;
         }
         
+        
+        //if(Pval>0.01)
+        //if(p->mpirank==2)
+        //cout<<"KFSBC | Pval: "<<Pval<<" wval: "<<wval<<endl;
+        
         //wval=0.0;
-        if(Pval>0.01)
-        cout<<"KFSBC | Pval: "<<Pval<<" wval: "<<wval<<endl;
+        
+        //d->W[IJK] = wval;
+        d->W[IJKp1] = wval;
+        d->W[IJKp2] = wval;
+        d->W[IJKp3] = wval;
         
         d->Wb[IJK] = wval;
         d->Wb[IJKp1] = wval;
