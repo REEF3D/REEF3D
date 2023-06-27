@@ -148,9 +148,6 @@ void nhflow_flux_HLL::face_flux_3D(lexer *p, ghostcell *pgc, fdm_nhf *d, slice &
     De = MAX(0.0005, De);
     Dw = MAX(0.0005, Dw);
     
-    //Fe[IJK] *= De;
-    //Fw[IJK] *= Dw;
-    
     // Us
     USy = 0.5*(Ve[IJK]+Vw[IJK]) + sqrt(9.81*De) - sqrt(9.81*Dw);
     DSy = 0.5*(sqrt(9.81*De) + sqrt(9.81*Dw)) + 0.25*(Ve[IJK] - Vw[IJK]);
