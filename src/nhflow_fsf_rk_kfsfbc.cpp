@@ -88,10 +88,24 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
              + Qval*detady;
         }
         
+        
+        //if(Pval>0.01)
+        //if(p->mpirank==2)
+        //cout<<"KFSBC | Pval: "<<Pval<<" wval: "<<wval<<endl;
+        
+        //wval=0.0;
+        
+        //d->W[IJK] = wval;
+        d->W[IJKp1] = wval;
+        d->W[IJKp2] = wval;
+        d->W[IJKp3] = wval;
+        
+        d->Wb[IJK] = wval;
         d->Wb[IJKp1] = wval;
         d->Wb[IJKp2] = wval;
         d->Wb[IJKp3] = wval;
         
+        d->Wt[IJK] = wval;
         d->Wt[IJKp1] = wval;
         d->Wt[IJKp2] = wval;
         d->Wt[IJKp3] = wval;
@@ -150,10 +164,12 @@ void nhflow_fsf_rk::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, do
     }
     
         
+        d->Wb[IJK] = wval;
         d->Wb[IJKm1] = wval;
         d->Wb[IJKm2] = wval;
         d->Wb[IJKm3] = wval;
         
+        d->Wt[IJK] = wval;
         d->Wt[IJKm1] = wval;
         d->Wt[IJKm2] = wval;
         d->Wt[IJKm3] = wval;

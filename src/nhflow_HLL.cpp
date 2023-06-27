@@ -69,35 +69,35 @@ double nhflow_HLL::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
 {
     // HLL flux 
     pflux->start_U(p,d,pgc);
-    HLL(p,d);
+    HLL(p,d,d->UHs,d->UHn,d->UHe,d->UHw);
     
     pgc->start1V(p,d->Fx,10);
     pgc->start2V(p,d->Fy,11);
-    pgc->start3V(p,d->Fz,12);
+    //pgc->start3V(p,d->Fz,12);
     
     LOOP
     {
     d->F[IJK] -= ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
-                + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir)
-                + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP];
+                + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
+                + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
     }    
 }
 
-double nhflow_HLL::aij_V(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
+double nhflow_HLL::aij_V(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
 {
     // HLL flux 
     pflux->start_V(p,d,pgc);
-    HLL(p,d);
+    HLL(p,d,d->VHs,d->VHn,d->VHe,d->VHw);
     
     pgc->start1V(p,d->Fx,10);
     pgc->start2V(p,d->Fy,11);
-    pgc->start3V(p,d->Fz,12);
+    //pgc->start3V(p,d->Fz,12);
     
     LOOP
     {
     d->G[IJK] -= ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
-                + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir)
-                + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP];
+                + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
+                + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
     }    
 }
 
@@ -105,17 +105,17 @@ double nhflow_HLL::aij_W(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
 {
     // HLL flux 
     pflux->start_W(p,d,pgc);
-    HLL(p,d);
+    HLL(p,d,d->WHs,d->WHn,d->WHe,d->WHw);
     
     pgc->start1V(p,d->Fx,10);
     pgc->start2V(p,d->Fy,11);
-    pgc->start3V(p,d->Fz,12);
+    //pgc->start3V(p,d->Fz,12);
     
     LOOP
     {
     d->H[IJK] -= ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
-                + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir)
-                + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP];
+                + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
+                + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
     }    
 }
 
@@ -123,13 +123,54 @@ double nhflow_HLL::aij_E(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
 {
     // HLL flux 
     pflux->start_E(p,d,pgc);
-    HLL(p,d);
+    HLL_E(p,d);
     
     pgc->start1V(p,d->Fx,10);
     pgc->start2V(p,d->Fy,11); 
 }
 
-double nhflow_HLL::HLL(lexer* p,fdm_nhf* d)
+double nhflow_HLL::HLL(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue, double *Uw)
+{
+    // HLL flux
+    ULOOP
+    {
+        if(d->Ss[IJK]>=0.0)
+        d->Fx[IJK] = d->Fs[IJK];
+        
+        else
+        if(d->Sn[IJK]<=0.0)
+        d->Fx[IJK] = d->Fn[IJK];
+        
+        else
+        {
+        denom = d->Sn[IJK]-d->Ss[IJK];
+        denom = fabs(denom)>1.0e-10?denom:1.0e10;
+        
+        d->Fx[IJK] = (d->Sn[IJK]*d->Fs[IJK] - d->Ss[IJK]*d->Fn[IJK] + d->Sn[IJK]*d->Ss[IJK]*(Un[IJK] - Us[IJK]))/denom;
+        }
+    }
+    
+    // HLL flux y-dir
+    VLOOP
+    {
+        if(d->Se[IJK]>=0.0)
+        d->Fy[IJK] = d->Fe[IJK];
+        
+        else
+        if(d->Sw[IJK]<=0.0)
+        d->Fy[IJK] = d->Fw[IJK];
+        
+        else
+        {
+        denom = d->Sw[IJK]-d->Se[IJK];
+        denom = fabs(denom)>1.0e-10?denom:1.0e10;
+        
+        d->Fy[IJK] = (d->Sw[IJK]*d->Fe[IJK] - d->Se[IJK]*d->Fw[IJK] + d->Sw[IJK]*d->Se[IJK]*(Uw[IJK] - Ue[IJK]))/denom;
+        }
+    }
+}
+
+double nhflow_HLL::HLL_E(lexer* p,fdm_nhf* d)
 {
     // HLL flux
     ULOOP

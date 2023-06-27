@@ -40,7 +40,7 @@ void iowave::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
             if(dg<1.0e20)
             {
             U[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*uval[count] + relax4_wg(i,j)*U[IJK];
-            U[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*uval[count] + relax4_wg(i,j)*U[IJK];
+            UH[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*UHval[count] + relax4_wg(i,j)*UH[IJK];
             ++count;
             }
 		}
@@ -50,7 +50,10 @@ void iowave::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
 		{
             // Zone 2
             if(db<1.0e20)
+            {
             U[IJK] = relax4_nb(i,j)*U[IJK];
+            UH[IJK] = relax4_nb(i,j)*UH[IJK];
+            }
         }
     }
 }
@@ -71,6 +74,7 @@ void iowave::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
             if(dg<1.0e20)
             {
             V[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*vval[count] + relax4_wg(i,j)*V[IJK];
+            VH[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*VHval[count] + relax4_wg(i,j)*VH[IJK];
             ++count;
             }
 		}
@@ -80,7 +84,11 @@ void iowave::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
 		{	
             // Zone 2
             if(db<1.0e20)
+            {
             V[IJK] = relax4_nb(i,j)*V[IJK];
+            VH[IJK] = relax4_nb(i,j)*VH[IJK];
+            }
+            
         }
     }
 }
@@ -99,7 +107,8 @@ void iowave::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
             // Zone 1
             if(dg<1.0e20)
             {
-            W[IJK] = (1.0-relax4_wg(i,j)) * ramp(p)* wval[count] + relax4_wg(i,j)*W[IJK];
+            W[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*wval[count] + relax4_wg(i,j)*W[IJK];
+            WH[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*WHval[count] + relax4_wg(i,j)*WH[IJK];
             ++count;
             }
 		}
@@ -109,7 +118,10 @@ void iowave::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
 		{
             // Zone 2
             if(db<1.0e20)
+            {
             W[IJK] = relax4_nb(i,j)*W[IJK];
+            WH[IJK] = relax4_nb(i,j)*WH[IJK];
+            }
         }
     }		
 }

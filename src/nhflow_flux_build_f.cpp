@@ -38,35 +38,16 @@ nhflow_flux_build_f::~nhflow_flux_build_f()
 {
 }
 
-void nhflow_flux_build_f::start_E(lexer* p, fdm_nhf *d, ghostcell *pgc)
-{
-    // flux x-dir
-    ULOOP
-    {
-    d->Fs[IJK] = d->UHs[IJK];
-    
-    d->Fn[IJK] = d->UHn[IJK];
-    }
-    
-    // flux y-dir
-    VLOOP
-    {
-    d->Fe[IJK] = d->VHe[IJK];
-    
-    d->Fw[IJK] = d->VHw[IJK];
-    }
-}
-
 void nhflow_flux_build_f::start_U(lexer* p, fdm_nhf *d, ghostcell *pgc)
 {
     // flux x-dir
     ULOOP
     {
-    d->Fs[IJK] = d->UHs[IJK]*d->Us[IJK] 
-            + (0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*0.5*(d->depth(i,j) + d->depth(i-1,j)));
+    d->Fs[IJK] = d->UHs[IJK]*d->Us[IJK]
+            + 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*0.5*(d->depth(i,j) + d->depth(i+1,j));
     
-    d->Fn[IJK] = d->UHn[IJK]*d->Un[IJK] 
-            + (0.5*fabs(p->W22)*d->ETAn(i,j)*d->ETAn(i,j) + fabs(p->W22)*d->ETAn(i,j)*0.5*(d->depth(i,j) + d->depth(i+1,j)));
+    d->Fn[IJK] = d->UHn[IJK]*d->Un[IJK]
+            + 0.5*fabs(p->W22)*d->ETAn(i,j)*d->ETAn(i,j) + fabs(p->W22)*d->ETAn(i,j)*0.5*(d->depth(i,j) + d->depth(i+1,j));
     }
     
     // flux y-dir
@@ -79,13 +60,22 @@ void nhflow_flux_build_f::start_U(lexer* p, fdm_nhf *d, ghostcell *pgc)
     
     // flux z-dir
     WLOOP
-    d->Fz[IJK] = 0.5*(d->omegaF[FIJK]*(d->Ub[IJK] + d->Ut[IJK]) - fabs(d->omegaF[FIJK])*(d->Ub[IJK] - d->Ut[IJK]));
+    d->Fz[IJK] = 0.5*(d->omegaF[FIJKp1]*(d->Ub[IJK] + d->Ut[IJK]) - fabs(d->omegaF[FIJKp1])*(d->Ub[IJK] - d->Ut[IJK]));
     
-    pgc->start3V(p,d->Fz,12);
+    SLICELOOP4
+    {
+    k=0;
+    d->Fz[IJK] =0.0;
+    
+    k=p->knoz-1;
+    d->Fz[IJK] =0.0;
+    }
 }
 
 void nhflow_flux_build_f::start_V(lexer* p, fdm_nhf *d, ghostcell *pgc)
 {
+    if(p->j_dir==1)
+    {
     // flux x-dir
     ULOOP
     {
@@ -98,7 +88,7 @@ void nhflow_flux_build_f::start_V(lexer* p, fdm_nhf *d, ghostcell *pgc)
     VLOOP
     {
     d->Fe[IJK] = d->VHe[IJK]*d->Ve[IJK] 
-            + 0.5*fabs(p->W22)*d->ETAe(i,j)*d->ETAe(i,j) + fabs(p->W22)*d->ETAe(i,j)*0.5*(d->depth(i,j) + d->depth(i,j-1));
+            + 0.5*fabs(p->W22)*d->ETAe(i,j)*d->ETAe(i,j) + fabs(p->W22)*d->ETAe(i,j)*0.5*(d->depth(i,j) + d->depth(i,j+1));
     
     d->Fw[IJK] = d->VHw[IJK]*d->Vw[IJK] 
             + 0.5*fabs(p->W22)*d->ETAw(i,j)*d->ETAw(i,j) + fabs(p->W22)*d->ETAw(i,j)*0.5*(d->depth(i,j) + d->depth(i,j+1));
@@ -106,9 +96,17 @@ void nhflow_flux_build_f::start_V(lexer* p, fdm_nhf *d, ghostcell *pgc)
     
     // flux z-dir
     WLOOP
-    d->Fz[IJK] = 0.5*(d->omegaF[FIJK]*(d->Vb[IJK] + d->Vt[IJK]) - fabs(d->omegaF[FIJK])*(d->Vb[IJK] - d->Vt[IJK]));
+    d->Fz[IJK] = 0.5*(d->omegaF[FIJKp1]*(d->Vb[IJK] + d->Vt[IJK]) - fabs(d->omegaF[FIJKp1])*(d->Vb[IJK] - d->Vt[IJK]));
+    }
     
-    pgc->start3V(p,d->Fz,12);
+    SLICELOOP4
+    {
+    k=0;
+    d->Fz[IJK] =0.0;
+    
+    k=p->knoz-1;
+    d->Fz[IJK] =0.0;
+    }
 }
 
 void nhflow_flux_build_f::start_W(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -131,9 +129,35 @@ void nhflow_flux_build_f::start_W(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     // flux z-dir
     WLOOP
-    d->Fz[IJK] = 0.5*(d->omegaF[FIJK]*(d->Wb[IJK] + d->Wt[IJK]) - fabs(d->omegaF[FIJK])*(d->Wb[IJK] - d->Wt[IJK]));
+    d->Fz[IJK] = 0.5*(d->omegaF[FIJKp1]*(d->Wb[IJK] + d->Wt[IJK]) - fabs(d->omegaF[FIJKp1])*(d->Wb[IJK] - d->Wt[IJK]));
+    
+    SLICELOOP4
+    {
+    k=0;
+    d->Fz[IJK] =0.0;
+    
+    k=p->knoz-1;
+    d->Fz[IJK] =0.0;
+    }
+}
 
-    pgc->start3V(p,d->Fz,12);
+void nhflow_flux_build_f::start_E(lexer* p, fdm_nhf *d, ghostcell *pgc)
+{
+    // flux x-dir
+    ULOOP
+    {
+    d->Fs[IJK] = d->UHs[IJK];
+    
+    d->Fn[IJK] = d->UHn[IJK];
+    }
+    
+    // flux y-dir
+    VLOOP
+    {
+    d->Fe[IJK] = d->VHe[IJK];
+    
+    d->Fw[IJK] = d->VHw[IJK];
+    }
 }
 
 

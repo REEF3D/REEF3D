@@ -67,13 +67,13 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
         }
     
     // omega
-        d->omega[IJK] =    d->WL(i,j)*0.5*(p->sigt[FIJK]+p->sigt[FIJKp1])
+        d->omega[IJK] =    d->WL(i,j)*(0.5*(p->sigt[FIJK]+p->sigt[FIJKp1])
                         
                         +  Pval*p->sigx4[IJK]
                         
                         +  Qval*p->sigy4[IJK]
                         
-                        +  Rval*p->sigz[IJ];
+                        +  Rval*p->sigz[IJ]);
     }
     
     
