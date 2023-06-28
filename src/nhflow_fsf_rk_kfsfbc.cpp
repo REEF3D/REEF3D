@@ -75,7 +75,7 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
     
         detadx = limiter(dfdx_plus,dfdx_min);
         
-        dfdy_plus = (eta(i,j-1)-eta(i,j))/p->DYP[JP];
+        dfdy_plus = (eta(i,j+1)-eta(i,j))/p->DYP[JP];
         dfdy_min  = (eta(i,j)-eta(i,j-1))/p->DYP[JM1];
     
         detady = limiter(dfdy_plus,dfdy_min);
@@ -88,18 +88,10 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
              + Qval*detady;
         }
         
-        
-        //d->W[IJK] = wval;
-        /*d->W[IJKp1] = wval;
-        d->W[IJKp2] = wval;
-        d->W[IJKp3] = wval;*/
-        
-        //d->Wb[IJK] = wval;
         d->Wb[IJKp1] = wval;
         d->Wb[IJKp2] = wval;
         d->Wb[IJKp3] = wval;
         
-        //d->Wt[IJK] = wval;
         d->Wt[IJKp1] = wval;
         d->Wt[IJKp2] = wval;
         d->Wt[IJKp3] = wval;
@@ -122,6 +114,7 @@ void nhflow_fsf_rk::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, do
     Pval = d->Ut[IJK];
     Qval = d->Vt[IJK];
     
+    wval=0.0;    
     
     if(p->A516==1)
     {
