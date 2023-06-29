@@ -34,49 +34,6 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
 { 
     double wval,Pval,Qval,Rval;
     
-    LOOP
-    {
-        if(p->A517==1)
-        {
-        if(U[IJK]>=0.0)
-        Pval=0.5*(U[Im1JK] + U[IJK]);
-            
-        if(U[IJK]<0.0)
-        Pval=0.5*(U[IJK] + U[Ip1JK]);
-        
-        
-        if(V[IJK]>=0.0)
-        Qval=0.5*(V[IJm1K] + V[IJK]);
-            
-        if(V[IJK]<0.0)
-        Qval=0.5*(V[IJK] + V[IJp1K]);
-        
-        
-        if(W[IJK]>=0.0)
-        Rval=0.5*(W[IJKm1] + W[IJK]);
-            
-        if(W[IJK]<0.0)
-        Rval=0.5*(W[IJK] + W[IJKp1]);
-        }
-        
-        if(p->A517==2)
-        {
-        Pval = U[IJK];
-        Qval = V[IJK];
-        Rval = W[IJK];
-        }
-    
-    // omega
-        d->omega[IJK] =    d->WL(i,j)*(0.5*(p->sigt[FIJK]+p->sigt[FIJKp1])
-                        
-                        +  Pval*p->sigx4[IJK]
-                        
-                        +  Qval*p->sigy4[IJK]
-                        
-                        +  Rval*p->sigz[IJ]);
-    }
-    
-    
     if(p->A517==1 || p->A517==2)
     FLOOP
     {
@@ -144,10 +101,6 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
     
-        d->omega[IJK] =  0.0;
-        d->omega[IJKp1] =  0.0;
-        d->omega[IJKp2] =  0.0;
-        d->omega[IJKp3] =  0.0;
         
         k+=1;
         
@@ -164,26 +117,17 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
         
-        d->omega[IJK] =  0.0;
-        d->omega[IJKm1] =  0.0;
-        d->omega[IJKm2] =  0.0;
-        d->omega[IJKm3] =  0.0;
-        
-        
+
         d->omegaF[FIJKm1] =  0.0;
         d->omegaF[FIJKm2] =  0.0;
         d->omegaF[FIJKm3] =  0.0;
     }
     
-    LOOP
-    if(p->wet[IJ]==0)
-    d->omega[IJK] = 0.0;
-    
+
     FLOOP
     if(p->wet[IJ]==0)
     d->omegaF[FIJK] = 0.0;
     
-    pgc->start3V(p,d->omega,17);
     pgc->start7S(p,d->omegaF,17);
     
     pgc->gcsl_start4(p,d->test2D,1);

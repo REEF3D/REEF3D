@@ -85,6 +85,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     // FSF
     pconvec->start(p,d,d->U,4,d->U,d->V,d->W,d->eta);
     pfsf->rk3_step1(p, d, pgc, pflow, d->U, d->V, d->W, etark1, etark2, 1.0);
+    
     sigma_update(p,d,pgc,etark1,d->eta,1.0);
     omega_update(p,d,pgc,d->U,d->V,d->W);
     
@@ -172,6 +173,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     // FSF
     pconvec->start(p,d,UHRK1,4,d->U,d->V,d->W,etark1);
     pfsf->rk3_step2(p, d, pgc, pflow, d->U,d->V,d->W, etark1, etark2, 0.25);
+    
     sigma_update(p,d,pgc,etark2,etark1,0.25);
     omega_update(p,d,pgc,d->U,d->V,d->W);
     
@@ -258,6 +260,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     // FSF
     pconvec->start(p,d,UHRK2,4,d->U,d->V,d->W,etark2);
     pfsf->rk3_step3(p, d, pgc, pflow, d->U,d->V,d->W, etark1, etark2, 2.0/3.0);
+    
     sigma_update(p,d,pgc,d->eta,etark2,2.0/3.0);
     omega_update(p,d,pgc,d->U,d->V,d->W);
     

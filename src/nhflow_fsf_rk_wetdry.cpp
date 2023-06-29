@@ -68,7 +68,6 @@ void nhflow_fsf_rk::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *U, doub
         U[IJK] = 0.0;
         V[IJK] = 0.0;
         W[IJK] = 0.0;
-        d->omega[IJK] = 0.0;
     }
     
     FLOOP
