@@ -151,6 +151,8 @@ double nhflow_HLL::HLL(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue, 
     }
     
     // HLL flux y-dir
+    if(p->j_dir==1)
+    {
     VLOOP
     {
         if(d->Se[IJK]>=0.0)
@@ -167,6 +169,7 @@ double nhflow_HLL::HLL(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue, 
         
         d->Fy[IJK] = (d->Sw[IJK]*d->Fe[IJK] - d->Se[IJK]*d->Fw[IJK] + d->Sw[IJK]*d->Se[IJK]*(Uw[IJK] - Ue[IJK]))/denom;
         }
+    }
     }
 }
 
@@ -192,6 +195,8 @@ double nhflow_HLL::HLL_E(lexer* p,fdm_nhf* d)
     }
     
     // HLL flux y-dir
+    if(p->j_dir==1)
+    {
     VLOOP
     {
         if(d->Se[IJK]>=0.0)
@@ -208,5 +213,6 @@ double nhflow_HLL::HLL_E(lexer* p,fdm_nhf* d)
         
         d->Fy[IJK] = (d->Sw[IJK]*d->Fe[IJK] - d->Se[IJK]*d->Fw[IJK] + d->Sw[IJK]*d->Se[IJK]*(d->Dw(i,j) - d->De(i,j)))/denom;
         }
+    }
     }
 }

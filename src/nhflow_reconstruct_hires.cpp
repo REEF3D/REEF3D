@@ -161,6 +161,9 @@ void nhflow_reconstruct_hires::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nh
 void nhflow_reconstruct_hires::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fy, double *Fe, double *Fw)
 {
     // gradient
+    if(p->j_dir==1)
+    {
+        
     VLOOP
     {
     dfdy_plus = (Fy[IJp1K] - Fy[IJK])/p->DYP[JP];
@@ -195,6 +198,8 @@ void nhflow_reconstruct_hires::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nh
         Fe[IJp1K] = 0.0;
         Fw[IJK] = 0.0;
         }
+    }
+    
     }
 }
 
