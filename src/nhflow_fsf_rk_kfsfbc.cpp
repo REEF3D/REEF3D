@@ -88,7 +88,6 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
              + Qval*detady;
         }
 
-        //d->Wb[IJK] = wval;
         d->Wb[IJKp1] = wval;
         d->Wb[IJKp2] = wval;
         d->Wb[IJKp3] = wval;
@@ -96,6 +95,10 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
         d->Wt[IJKp1] = wval;
         d->Wt[IJKp2] = wval;
         d->Wt[IJKp3] = wval;
+        
+        d->W[IJKp1] = wval;
+        d->W[IJKp2] = wval;
+        d->W[IJKp3] = wval;
     }
 }   
   
@@ -159,6 +162,10 @@ void nhflow_fsf_rk::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, do
         d->Wt[IJKm1] = wval;
         d->Wt[IJKm2] = wval;
         d->Wt[IJKm3] = wval;
+        
+        d->W[IJKm1] = wval;
+        d->W[IJKm2] = wval;
+        d->W[IJKm3] = wval;
     }
 }
 

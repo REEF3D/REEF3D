@@ -71,6 +71,7 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
     }
     
     // signal speed y-dir
+    if(p->j_dir==1)
     VLOOP
     {
     USy = 0.5*(Ve[IJK]+Vw[IJK]) + sqrt(9.81*De(i,j)) - sqrt(9.81*Dw(i,j));

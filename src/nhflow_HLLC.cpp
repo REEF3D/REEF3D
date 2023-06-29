@@ -86,6 +86,8 @@ double nhflow_HLLC::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL
 double nhflow_HLLC::aij_V(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
 {
     // HLLC flux 
+    if(p->j_dir==1)
+    {
     pflux->start_V(p,d,pgc);
     HLLC(p,d,d->VHs,d->VHn,d->VHe,d->VHw,d->Vs,d->Vn,d->SSy,d->SSy);
     
@@ -98,7 +100,9 @@ double nhflow_HLLC::aij_V(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVE
     d->G[IJK] -= ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
                 + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
                 + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
-    }    
+    }  
+
+    }  
 }
 
 double nhflow_HLLC::aij_W(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
@@ -154,6 +158,7 @@ double nhflow_HLLC::HLLC(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue
     }
     
     // HLLC flux y-dir
+    if(p->j_dir==1)
     VLOOP
     {
         FeS = d->De(i,j)*(d->Se[IJK] - d->Ve[IJK] + 1.0e-10)/(d->Se[IJK] - d->SSy[IJK] + 1.0e-10)*SSye[IJK];
@@ -201,6 +206,7 @@ double nhflow_HLLC::HLLC_E(lexer* p,fdm_nhf* d)
     }
     
     // HLLC flux y-dir
+    if(p->j_dir==1)
     VLOOP
     {
         FeS = d->De(i,j)*(d->Se[IJK] - d->Ve[IJK] + 1.0e-10)/(d->Se[IJK] - d->SSy[IJK] + 1.0e-10);

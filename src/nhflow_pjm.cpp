@@ -101,6 +101,7 @@ void nhflow_pjm::ucorr(lexer* p, fdm_nhf *d, double *UH, double alpha)
 
 void nhflow_pjm::vcorr(lexer* p, fdm_nhf *d, double *VH,double alpha)
 {
+    if(p->j_dir==1)
     LOOP
     WETDRY
     if(d->breaking(i,j)==0 && d->breaking(i,j-1)==0 && d->breaking(i,j-1)==0)

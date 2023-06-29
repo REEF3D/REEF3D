@@ -178,7 +178,6 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     omega_update(p,d,pgc,d->U,d->V,d->W);
     
     
-    
 	// U
 	starttime=pgc->timer();
 
@@ -253,11 +252,6 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     pgc->start3V(p,d->WH,gcval_w);
     
     clearrhs(p,d,pgc);
-    
-    velcalc(p,d,pgc,d->UH,d->VH,d->WH);
-    
-    pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
-    pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
 }
 
 void nhflow_momentum_RK2::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_signal_speed *pss, nhflow_fsf_reconstruct *pfsfrecon, 
