@@ -98,6 +98,7 @@ void lexer::ini_default()
     A510=3;      // int NFHLOW time scheme
     A511=4;		// int NHFLOW convection discretization
     A512=4;		// int NHFLOW diffusion
+    A514=2;		// int NHFLOW reconstruction TVD limiter
     
     A515=3;      // int NHFLOW KFSFBC scheme
     A516=2;      // int NFHLOW KFSFBED scheme

@@ -39,6 +39,7 @@ Author: Hans Bihs
 #include"nhflow_hires.h"
 #include"nhflow_cds2.h"
 #include"nhflow_HLL.h"
+#include"nhflow_HLLC.h"
 #include"nhflow_convection_void.h"
 
 #include"nhflow_momentum_RK2.h"

@@ -108,7 +108,6 @@ void driver::loop_nhflow()
         {
 		cout<<"wavegentime: "<<setprecision(3)<<p->wavetime<<endl;
 		
-		cout<<"reinitime: "<<setprecision(3)<<p->reinitime<<endl;
         cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
         cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;		
 		cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;

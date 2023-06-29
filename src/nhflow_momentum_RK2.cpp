@@ -87,8 +87,6 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     sigma_update(p,d,pgc,etark1,d->eta,1.0);
     omega_update(p,d,pgc,d->U,d->V,d->W);
     
-    
-    
 	// U
 	starttime=pgc->timer();
 

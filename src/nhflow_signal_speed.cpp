@@ -47,23 +47,26 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
     
     d->Ss[IJK] = MIN(Us[IJK] - sqrt(9.81*Ds(i,j)), USx - DSx);
     d->Sn[IJK] = MAX(Un[IJK] + sqrt(9.81*Dn(i,j)), USx + DSx);
+    d->SSx[IJK] = USx;
     
     if(p->wet[Ip1J]==0)
     {
     d->Ss[IJK] = Us[IJK] - sqrt(9.81*Ds(i,j));
     d->Sn[IJK] = Us[IJK] + 2.0*sqrt(9.81*Ds(i,j));
+    d->SSx[IJK] = d->Sn[IJK];
     }
     
     if(p->wet[Im1J]==0)
     {
     d->Ss[IJK] = Un[IJK] - 2.0*sqrt(9.81*Dn(i,j));
     d->Sn[IJK] = Un[IJK] + sqrt(9.81*Dn(i,j));
+    d->SSx[IJK] = d->Ss[IJK];
     }
     
     if(p->wet[IJ]==0)
     {
     d->Ss[IJK]=d->Sn[IJK]=0.0;
-    USx=0.0;
+    d->SSx[IJK]=0.0;
     }
     }
     
@@ -75,23 +78,26 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
     
     d->Se[IJK] = MIN(Ve[IJK] - sqrt(9.81*De(i,j)), USy - DSy);
     d->Sw[IJK] = MAX(Vw[IJK] + sqrt(9.81*Dw(i,j)), USy + DSy);
+    d->SSy[IJK] = USy;
     
     if(p->wet[IJp1]==0)
     {
     d->Se[IJK] = Ve[IJK] - sqrt(9.81*De(i,j));
     d->Sw[IJK] = Ve[IJK] + 2.0*sqrt(9.81*De(i,j));
+    d->SSy[IJK] = d->Sw[IJK];
     }
     
     if(p->wet[IJm1]==0)
     {
     d->Se[IJK] = Vw[IJK] - 2.0*sqrt(9.81*Dw(i,j));
     d->Sw[IJK] = Vw[IJK] + sqrt(9.81*Dw(i,j));
+    d->SSy[IJK] = d->Se[IJK];
     }
     
     if(p->wet[IJ]==0)
     {
     d->Se[IJK]=d->Sw[IJK]=0.0;
-    USy=0.0;
+    d->SSy[IJK]=0.0;
     }
     }
     

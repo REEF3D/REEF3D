@@ -378,7 +378,6 @@ void nhflow_momentum_RK3::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     precon->reconstruct_3D_y(p, pgc, d, WH, d->WHe, d->WHw);
     
     pss->signal_speed_update(p, pgc, d, d->Us, d->Un, d->Ve, d->Vw, d->Ds, d->Dn, d->De, d->Dw);
-        
 }
 
 void nhflow_momentum_RK3::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *UH, double *VH, double *WH)
@@ -444,14 +443,12 @@ void nhflow_momentum_RK3::krhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void nhflow_momentum_RK3::clearrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    
 	n=0;
 	LOOP
 	{
 	d->rhsvec.V[n]=0.0;
 	++n;
 	}
-    
 }
 
 void nhflow_momentum_RK3::inidisc(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_fsf *pfsf)

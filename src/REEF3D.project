@@ -249,6 +249,7 @@
           <File Name="nhflow_turbulence.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="nhflow_HLLC.h"/>
           <File Name="nhflow_flux_build.h"/>
           <File Name="nhflow_flux_build_f.h"/>
           <VirtualDirectory Name="Signal Speed">
@@ -1329,6 +1330,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="nhflow_HLLC.cpp"/>
           <File Name="nhflow_flux_build_f.cpp"/>
           <VirtualDirectory Name="Signal Speed">
             <File Name="nhflow_signal_speed.cpp"/>

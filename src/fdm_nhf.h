@@ -86,6 +86,7 @@ public:
     double *Fx,*Fy,*Fz;
     double *Fs,*Fn,*Fe,*Fw;
     double *Ss,*Sn,*Se,*Sw;
+    double *SSx,*SSy;
     
     double *Un,*Us,*Ue,*Uw,*Ub,*Ut;
     double *Vn,*Vs,*Ve,*Vw,*Vb,*Vt;

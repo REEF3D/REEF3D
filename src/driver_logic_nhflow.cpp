@@ -104,8 +104,11 @@ void driver::logic_nhflow()
     if(p->A511==8)
 	pconvec=new weno3_hj(p);
 	*/
-    if(p->A511==9)
+    if(p->A511==8)
 	pnhfconvec=new nhflow_HLL(p,pgc,pBC);
+    
+    if(p->A511==9)
+	pnhfconvec=new nhflow_HLLC(p,pgc,pBC);
     
 	if(p->A511>=10 && p->A511<30)
 	pnhfconvec=new nhflow_hires(p,p->A511);

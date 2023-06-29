@@ -176,8 +176,8 @@ void nhflow_fsf_reconstruct_hires::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_
     // gradient
     ULOOP
     {
-    dfdx_plus = (Fx[Ip1JK] - Fx[IJK]);
-    dfdx_min  = (Fx[IJK] - Fx[Im1JK]);
+    dfdx_plus = (Fx[Ip1JK] - Fx[IJK])/p->DXP[IP];
+    dfdx_min  = (Fx[IJK] - Fx[Im1JK])/p->DXP[IM1];
     
     DFDX[IJK] = limiter(dfdx_plus,dfdx_min);
     }
@@ -196,11 +196,11 @@ void nhflow_fsf_reconstruct_hires::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_
     // reconstruct
     ULOOP 
     {
-    //Fs[IJK] = (Fx[IJK]    + 0.5*p->DXP[IP]*DFDX[IJK]); 
-    //Fn[IJK] = (Fx[Ip1JK]  - 0.5*p->DXP[IP1]*DFDX[Ip1JK]);
+    Fs[IJK] = (Fx[IJK]    + 0.5*p->DXP[IP]*DFDX[IJK]); 
+    Fn[IJK] = (Fx[Ip1JK]  - 0.5*p->DXP[IP1]*DFDX[Ip1JK]);
     
-    Fs[IJK] = Fx[IJK]    + (1.0/60.0)*(-2.0*DFDX[Im2JK] + 11.0*DFDX[Im1JK] + 24.0*DFDX[IJK]  - 3.0*DFDX[Ip1JK]); 
-    Fn[IJK] = Fx[Ip1JK]  - (1.0/60.0)*(-2.0*DFDX[Ip3JK] + 11.0*DFDX[Ip2JK] + 24.0*DFDX[Ip1JK]  - 3.0*DFDX[IJK]); 
+    //Fs[IJK] = Fx[IJK]    + (1.0/60.0)*(-2.0*DFDX[Im2JK] + 11.0*DFDX[Im1JK] + 24.0*DFDX[IJK]  - 3.0*DFDX[Ip1JK]); 
+    //Fn[IJK] = Fx[Ip1JK]  - (1.0/60.0)*(-2.0*DFDX[Ip3JK] + 11.0*DFDX[Ip2JK] + 24.0*DFDX[Ip1JK]  - 3.0*DFDX[IJK]); 
     
         if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
         {
@@ -255,34 +255,22 @@ void nhflow_fsf_reconstruct_hires::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_
 
 double nhflow_fsf_reconstruct_hires::limiter(double v1, double v2)
 {
-/*
+    val=0.0;
+    
+    if(p->A514==1)
+    {
     denom = fabs(v1) + fabs(v2);
     
     denom = fabs(denom)>1.0e-10?denom:1.0e10;
     
     val =  (v1*fabs(v2) + fabs(v1)*v2)/denom;
-
-    return val;	
-
-    */
-    /*
-    double r, phi;
+    }
     
+    
+    if(p->A514==2)
+    {
     r=v2/(fabs(v1)>1.0e-10?v1:1.0e20);
 
-    phi = MAX(0.0, MAX( MIN(2.0*r,1.0), MIN(r,2.0)));
-    
-    val = 0.5*phi*(v1+v2);
-    
-    return val;*/
-    
-    
-    double r, phi;
-    
-    r=v2/(fabs(v1)>1.0e-10?v1:1.0e20);
-
-    phi = MAX(0.0, MAX( MIN(2.0*r,1.0), MIN(r,2.0)));
-    
     if(r<0.0)
     phi = 0.0;
     
@@ -296,6 +284,16 @@ double nhflow_fsf_reconstruct_hires::limiter(double v1, double v2)
     phi = MIN(MIN(r,2.0), 2.0/(1.0+r));
     
     val = 0.5*phi*(v1+v2);
+    }
+    
+    if(p->A514==3)
+    {
+    r=v2/(fabs(v1)>1.0e-10?v1:1.0e20);
+    
+    phi = (r*r + r)/(r*r+1.0);
+    
+    val = 0.5*phi*(v1+v2);
+    }
     
     return val;
 }
@@ -306,8 +304,8 @@ void nhflow_fsf_reconstruct_hires::reconstruct_2D_WL(lexer* p, ghostcell *pgc, f
 
     SLICELOOP1
     {
-    d->Ds(i,j) = d->ETAs(i,j) + 0.5*(d->depth(i,j) + d->depth(i-1,j));
-    d->Dn(i,j) = d->ETAn(i,j) + 0.5*(d->depth(i,j) + d->depth(i-1,j));
+    d->Ds(i,j) = d->ETAs(i,j) + d->depth(i,j);
+    d->Dn(i,j) = d->ETAn(i,j) + d->depth(i,j);
     
     d->Ds(i,j) = MAX(0.00005, d->Ds(i,j));
     d->Dn(i,j) = MAX(0.00005, d->Dn(i,j));
@@ -315,8 +313,8 @@ void nhflow_fsf_reconstruct_hires::reconstruct_2D_WL(lexer* p, ghostcell *pgc, f
     
     SLICELOOP2
     {
-    d->De(i,j) = d->ETAe(i,j)  + 0.5*(d->depth(i,j) + d->depth(i,j-1));
-    d->Dw(i,j) = d->ETAw(i,j)  + 0.5*(d->depth(i,j) + d->depth(i,j-1));
+    d->De(i,j) = d->ETAe(i,j)  + d->depth(i,j);
+    d->Dw(i,j) = d->ETAw(i,j)  + d->depth(i,j);
     
     d->De(i,j) = MAX(0.00005, d->De(i,j));
     d->Dw(i,j) = MAX(0.00005, d->Dw(i,j));

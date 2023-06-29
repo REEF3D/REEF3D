@@ -75,9 +75,6 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
                         +  Qval*p->sigy[FIJK]
                         
                         +  Rval*p->sigz[IJ]);
-                        
-        //if(p->wet[IJ] != p->wet_n[IJ])
-        //d->omegaF[FIJK]=0.0;
     }
     
     if(p->A517==3)
@@ -103,7 +100,7 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     
         
         k+=1;
-        
+        d->omegaF[FIJK] =  0.0;
         d->omegaF[FIJKp1] =  0.0;
         d->omegaF[FIJKp2] =  0.0;
         d->omegaF[FIJKp3] =  0.0;
@@ -117,7 +114,8 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
         
-
+        
+        d->omegaF[FIJK] =  0.0;
         d->omegaF[FIJKm1] =  0.0;
         d->omegaF[FIJKm2] =  0.0;
         d->omegaF[FIJKm3] =  0.0;

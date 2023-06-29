@@ -59,6 +59,7 @@ private:
     double val,denom;
     double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus;
     int qq;
+    double r, phi,minphi;
     
     patchBC_interface *pBC;
 };

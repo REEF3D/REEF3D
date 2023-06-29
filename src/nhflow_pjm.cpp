@@ -161,11 +161,19 @@ void nhflow_pjm::vel_setup(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doub
 
 void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 {
+    
     if(p->A521==1)
     LOOP
     WETDRY
     d->F[IJK] += PORVALNH*0.5*(d->ETAs(i,j)+d->ETAn(i,j))*fabs(p->W22)*
                 (d->depth(i+1,j) - d->depth(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+            
+/*    
+    if(p->A521==1)
+    LOOP
+    WETDRY
+    d->F[IJK] -= d->WL(i,j)*PORVALNH*fabs(p->W22)*
+                (p->A523*eta(i+1,j) + (1.0-p->A523)*eta_n(i+1,j) - p->A523*eta(i-1,j) - (1.0-p->A523)*eta_n(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);*/
       
     if(p->A521==2)
     LOOP
