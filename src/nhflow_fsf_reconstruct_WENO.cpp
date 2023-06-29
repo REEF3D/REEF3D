@@ -323,7 +323,7 @@ void nhflow_fsf_reconstruct_weno::reconstruct_2D_WL(lexer* p, ghostcell *pgc, fd
     SLICELOOP1
     {
     d->Ds(i,j) = d->ETAs(i,j) + 0.5*(d->depth(i,j) + d->depth(i-1,j));
-    d->Dn(i,j) = d->ETAn(i,j) + 0.5*(d->depth(i,j) + d->depth(i+1,j));
+    d->Dn(i,j) = d->ETAn(i,j) + 0.5*(d->depth(i,j) + d->depth(i-1,j));
     
     d->Ds(i,j) = MAX(0.00005, d->Ds(i,j));
     d->Dn(i,j) = MAX(0.00005, d->Dn(i,j));
@@ -332,7 +332,7 @@ void nhflow_fsf_reconstruct_weno::reconstruct_2D_WL(lexer* p, ghostcell *pgc, fd
     SLICELOOP2
     {
     d->De(i,j) = d->ETAe(i,j)  + 0.5*(d->depth(i,j) + d->depth(i,j-1));
-    d->Dw(i,j) = d->ETAw(i,j)  + 0.5*(d->depth(i,j) + d->depth(i,j+1));
+    d->Dw(i,j) = d->ETAw(i,j)  + 0.5*(d->depth(i,j) + d->depth(i,j-1));
     
     d->De(i,j) = MAX(0.00005, d->De(i,j));
     d->Dw(i,j) = MAX(0.00005, d->Dw(i,j));

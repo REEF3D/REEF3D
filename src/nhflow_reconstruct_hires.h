@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_reconstruct.h"
-#include"increment.h"
+#include"nhflow_gradient.h"
 #include"slice4.h"
 
 class lexer;
@@ -35,7 +35,7 @@ class patchBC_interface;
 
 using namespace std;
 
-class nhflow_reconstruct_hires : public nhflow_reconstruct, public increment
+class nhflow_reconstruct_hires : public nhflow_reconstruct, public nhflow_gradient
 {
 public:
 	nhflow_reconstruct_hires(lexer*,patchBC_interface*);

@@ -22,7 +22,6 @@ Author: Hans Bihs
 
 #include"nhflow_fsf.h"
 #include"nhflow_fsf_rk.h"
-#include"nhflow_fsf_fsm.h"
 #include"nhflow_fsf_v.h"
 
 #include"nhflow.h"

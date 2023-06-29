@@ -84,7 +84,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     // FSF
     pconvec->start(p,d,d->U,4,d->U,d->V,d->W,d->eta);
-    pfsf->step1(p, d, pgc, pflow, d->U, d->V, d->W, etark1, etark2, 1.0);
+    pfsf->rk3_step1(p, d, pgc, pflow, d->U, d->V, d->W, etark1, etark2, 1.0);
     sigma_update(p,d,pgc,etark1,d->eta,1.0);
     omega_update(p,d,pgc,d->U,d->V,d->W);
     
@@ -171,7 +171,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     // FSF
     pconvec->start(p,d,UHRK1,4,d->U,d->V,d->W,etark1);
-    pfsf->step2(p, d, pgc, pflow, d->U,d->V,d->W, etark1, etark2, 0.25);
+    pfsf->rk3_step2(p, d, pgc, pflow, d->U,d->V,d->W, etark1, etark2, 0.25);
     sigma_update(p,d,pgc,etark2,etark1,0.25);
     omega_update(p,d,pgc,d->U,d->V,d->W);
     
@@ -257,7 +257,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     // FSF
     pconvec->start(p,d,UHRK2,4,d->U,d->V,d->W,etark2);
-    pfsf->step3(p, d, pgc, pflow, d->U,d->V,d->W, etark1, etark2, 2.0/3.0);
+    pfsf->rk3_step3(p, d, pgc, pflow, d->U,d->V,d->W, etark1, etark2, 2.0/3.0);
     sigma_update(p,d,pgc,d->eta,etark2,2.0/3.0);
     omega_update(p,d,pgc,d->U,d->V,d->W);
     
@@ -375,28 +375,7 @@ void nhflow_momentum_RK3::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     precon->reconstruct_3D_y(p, pgc, d, WH, d->WHe, d->WHw);
     
     pss->signal_speed_update(p, pgc, d, d->Us, d->Un, d->Ve, d->Vw, d->Ds, d->Dn, d->De, d->Dw);
-    
-    /*pgc->start1V(p,d->Us,gcval_u);
-    pgc->start1V(p,d->Un,gcval_u);
-    pgc->start1V(p,d->Ue,gcval_u);
-    pgc->start1V(p,d->Uw,gcval_u);
-    pgc->start1V(p,d->Ub,gcval_u);
-    pgc->start1V(p,d->Ut,gcval_u);
-    
-    pgc->start2V(p,d->Vs,gcval_v);
-    pgc->start2V(p,d->Vn,gcval_v);
-    pgc->start2V(p,d->Ve,gcval_v);
-    pgc->start2V(p,d->Vw,gcval_v);
-    pgc->start2V(p,d->Vb,gcval_v);
-    pgc->start2V(p,d->Vt,gcval_v);
-    
-    pgc->start3V(p,d->Ws,gcval_w);
-    pgc->start3V(p,d->Wn,gcval_w);
-    pgc->start3V(p,d->We,gcval_w);
-    pgc->start3V(p,d->Ww,gcval_w);
-    pgc->start3V(p,d->Wb,gcval_w);
-    pgc->start3V(p,d->Wt,gcval_w);*/
-    
+        
 }
 
 void nhflow_momentum_RK3::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *UH, double *VH, double *WH)

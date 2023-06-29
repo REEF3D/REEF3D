@@ -53,12 +53,7 @@ void driver::logic_nhflow()
     pnhf=new nhflow_f(p,d,pgc);
     
 // FSF
-
-    if(p->A540==1)
     pnhfsf = new nhflow_fsf_rk(p,d,pgc,pflow,pBC);
-    
-    if(p->A540==2)
-    pnhfsf = new nhflow_fsf_fsm(p,d,pgc,pflow,pBC);
     
 // time stepping
     // time stepping
@@ -202,6 +197,9 @@ void driver::logic_nhflow()
 	pflow = new ioflow_gravity(p,pgc,pBC);
     
 //Momentum
+    if(p->A510==2)
+	pnhfmom = new nhflow_momentum_RK2(p,d,pgc);
+    
     if(p->A510==3)
 	pnhfmom = new nhflow_momentum_RK3(p,d,pgc);
     

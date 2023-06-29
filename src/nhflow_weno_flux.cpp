@@ -98,8 +98,8 @@ double nhflow_weno_flux::aij(lexer* p,fdm_nhf* d, double *F, int ipol, double *U
         fw2 = d->omegaF[FIJKp1]*0.5*(F[IJK] + F[IJKp1]);
     
 
-		L =   - ((fu2-fu1)/DX[IP]) 
-		      - ((fv2-fv1)/DY[JP]) 
+		L =   - d->WL(i,j)*((fu2-fu1)/DX[IP]) 
+		      - d->WL(i,j)*((fv2-fv1)/DY[JP]) 
 			  - ((fw2-fw1)/DZ[KP]);
         
 		return L;

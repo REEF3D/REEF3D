@@ -82,21 +82,15 @@ void nhflow_pjm_hs::vel_setup(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
 
 void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 {
-    if(p->A521==1 && p->A540==1)
+    if(p->A521==1)
     LOOP
     WETDRY
     {
     d->F[IJK] += PORVALNH*0.5*(d->ETAs(i,j)+d->ETAn(i,j))*fabs(p->W22)*
                 (d->depth(i+1,j) - d->depth(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
     }
-
-    if(p->A521==1 && p->A540==2)
-    LOOP
-    WETDRY
-	d->F[IJK] += PORVALNH*eta(i,j)*fabs(p->W22)*(d->depth(i+1,j) - d->depth(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
-    
-               
-    if(p->A521==2 && p->A540==1)
+       
+    if(p->A521==2)
     LOOP
     WETDRY
     if(p->wet[Ip1J]==1 || p->wet[Im1J]==1)
@@ -152,7 +146,7 @@ void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
         }*/
     }
     
-    if(p->A521==3 && p->A540==1)
+    if(p->A521==3)
     LOOP
     WETDRY
     if(p->wet[Ip1J]==1 || p->wet[Im1J]==1)
@@ -168,19 +162,13 @@ void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 
 void nhflow_pjm_hs::vpgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
 {
-    if(p->A521==1 && p->A540==1)
+    if(p->A521==1)
     LOOP
     WETDRY
 	d->G[IJK] -= PORVALNH*eta(i,j)*fabs(p->W22)*
                  (d->depth(i,j+1) - d->depth(i,j) )/(p->DYP[JP]);
     
-    if(p->A521==1 && p->A540==2)
-    LOOP
-    WETDRY
-	d->G[IJK] -= PORVALNH*eta(i,j)*fabs(p->W22)*(d->depth(i,j+1) - d->depth(i,j))/p->DYP[JP];
-    
-    
-    if(p->A521==2 && p->A540==1)
+    if(p->A521==2)
     LOOP
     WETDRY
     if(p->wet[IJp1]==1 || p->wet[IJm1]==1)
