@@ -43,8 +43,8 @@ void nhflow_fsf_rk::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *U, doub
         if(d->WL(i,j)<wd_criterion)
         p->wet[IJ]=0;
       
-      /*
-        if(p->wet[IJ]==0 && d->eta(i,j)<d->eta(i+1,j))
+      
+        /*if(p->wet[IJ]==0 && d->eta(i,j)<d->eta(i+1,j))
         p->wet[IJ]=1;
         
         if(p->wet[IJ]==0 && d->eta(i,j)<d->eta(i-1,j))
@@ -61,7 +61,7 @@ void nhflow_fsf_rk::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *U, doub
     }
           
 
-          
+        /*  
     LOOP
     if(p->wet[IJ]==0)
     {
@@ -69,7 +69,7 @@ void nhflow_fsf_rk::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *U, doub
         V[IJK] = 0.0;
         W[IJK] = 0.0;
     }
-    
+    */
     FLOOP
     if(p->wet[IJ]==0)
     d->omegaF[FIJK] = 0.0;

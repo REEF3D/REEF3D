@@ -76,6 +76,7 @@ double nhflow_HLLC::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL
     pgc->start3V(p,d->Fz,12);
     
     LOOP
+    WETDRY
     {
     d->F[IJK] -= ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
                 + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
@@ -96,6 +97,7 @@ double nhflow_HLLC::aij_V(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVE
     pgc->start3V(p,d->Fz,12);
     
     LOOP
+    WETDRY
     {
     d->G[IJK] -= ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
                 + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
@@ -116,6 +118,7 @@ double nhflow_HLLC::aij_W(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL
     pgc->start3V(p,d->Fz,12);
     
     LOOP
+    WETDRY
     {
     d->H[IJK] -= ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
                 + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir

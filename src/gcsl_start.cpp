@@ -199,7 +199,41 @@ void ghostcell::gcsl_start4Vint(lexer *p, int *f, int gcv)
 	gcsldistro4Vint(p,f,p->gcbsl4[qq][0],p->gcbsl4[qq][1], p->gcbsl4[qq][5], p->gcdsl4[qq], gcv, p->gcbsl4[qq][4], p->gcbsl4[qq][3]);
 	endtime=timer();
 	p->gctime+=endtime-starttime;
-
+    
+    /*
+    SLICELOOP4
+    {  
+        //if(p->B98!=3||bc(i-1,j)==0)
+        if(p->flagslice4[Im1J]<0)
+        {
+        f[Im1J] = f[IJ];
+        f[Im2J] = f[IJ];
+        f[Im3J] = f[IJ];
+        }
+          
+        //if(p->B99!=3||bc(i+1,j)==0)
+        if(p->flagslice4[Ip1J]<0)
+        {
+        f[Ip1J] = f[IJ];
+        f[Ip2J] = f[IJ];
+        f[Ip3J] = f[IJ];
+        }
+        
+        if(p->flagslice4[IJm1]<0 && p->j_dir==1)
+        {
+        f[IJm1] = f[IJ];
+        f[IJm2] = f[IJ];
+        f[IJm3] = f[IJ];
+        }
+        
+        if(p->flagslice4[IJp1]<0 && p->j_dir==1)
+        {
+        f[IJp1] = f[IJ];
+        f[IJp2] = f[IJ];
+        f[IJp3] = f[IJ];
+        }
+    }
+*/
 	//  MPI Boundary Swap
     if(p->M10>0)
     {
