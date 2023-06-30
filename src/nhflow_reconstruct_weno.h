@@ -20,10 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_fsf_reconstruct.h"
-#include"increment.h"
-#include"slice4.h"
+#include"nhflow_reconstruct.h"
 #include"weno_nug_func.h"
+#include"slice4.h"
 
 class lexer;
 class ghostcell;
@@ -31,26 +30,28 @@ class fdm_nhf;
 class slice;
 class patchBC_interface;
 
-#ifndef NHFLOW_FSF_RECONSTRUCT_WENO_H_
-#define NHFLOW_FSF_RECONSTRUCT_WENO_H_
+#ifndef NHFLOW_RECONSTRUCT_WENO_H_
+#define NHFLOW_RECONSTRUCT_WENO_H_
 
 using namespace std;
 
-class nhflow_fsf_reconstruct_weno : public nhflow_fsf_reconstruct, public weno_nug_func
+class nhflow_reconstruct_weno : public nhflow_reconstruct, public weno_nug_func
 {
 public:
-	nhflow_fsf_reconstruct_weno(lexer*,patchBC_interface*);
-	virtual ~nhflow_fsf_reconstruct_weno();
+	nhflow_reconstruct_weno(lexer*,patchBC_interface*);
+	virtual ~nhflow_reconstruct_weno();
 
 	virtual void reconstruct_2D(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&,slice&,slice&);
-    virtual void reconstruct_3D(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*,double*,double*,double*);
+    virtual void reconstruct_2D_x(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&);
+    virtual void reconstruct_2D_y(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&);
+    
     virtual void reconstruct_3D_x(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*);
     virtual void reconstruct_3D_y(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*);
-    
-    virtual void reconstruct_2D_WL(lexer*,ghostcell*,fdm_nhf*);
+    virtual void reconstruct_3D_z(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*);
     
 
 private:
+
     void iqmin(lexer*, double*);
 	void jqmin(lexer*, double*);
 	void kqmin(lexer*, double*);
@@ -63,10 +64,12 @@ private:
     void jqmin_sl(lexer*, slice&);
     void jqmax_sl(lexer*, slice&);
 
+
     double ivel1,ivel2,jvel1,jvel2;
     double val,denom;
     double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus;
     int qq;
+
     
     patchBC_interface *pBC;
 };

@@ -46,9 +46,6 @@ void nhflow_fsf_reconstruct_hires::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_
     dfdx_plus = (f(i+1,j) - f(i,j))/p->DXP[IP];
     dfdx_min  = (f(i,j) - f(i-1,j))/p->DXP[IM1];
     
-    //dfdx_plus = (f(i+1,j) - f(i,j));
-    //dfdx_min  = (f(i,j) - f(i-1,j));
-    
     dfdy_plus = (f(i,j+1) - f(i,j))/p->DYP[JP];
     dfdy_min  = (f(i,j) - f(i,j-1))/p->DYP[JM1];
     
@@ -65,24 +62,13 @@ void nhflow_fsf_reconstruct_hires::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_
     fs(i,j) = f(i,j)   + 0.5*p->DXP[IP]*dfdx(i,j); 
     fn(i,j) = f(i+1,j) - 0.5*p->DXP[IP1]*dfdx(i+1,j);
     }
-
-    /*
-    SLICELOOP1  
-    {
-    fs(i,j) = f(i,j)    + (1.0/60.0)*(-2.0*dfdx(i-2,j) + 11.0*dfdx(i-1,j) + 24.0*dfdx(i,j)  - 3.0*dfdx(i+1,j)); 
-    fn(i,j) = f(i+1,j)  - (1.0/60.0)*(-2.0*dfdx(i+3,j) + 11.0*dfdx(i+2,j) + 24.0*dfdx(i+1,j)  - 3.0*dfdx(i,j)); 
-    }*/
-
+    
+    if(p->j_dir==1)
     SLICELOOP2 
     {
     fe(i,j) = f(i,j)   + 0.5*p->DYP[JP]*dfdy(i,j); 
     fw(i,j) = f(i,j+1) - 0.5*p->DYP[JP1]*dfdy(i,j+1); 
     }
-    
-    pgc->gcsl_start1(p,fs,10);
-    pgc->gcsl_start1(p,fn,10);
-    pgc->gcsl_start2(p,fe,11);
-    pgc->gcsl_start2(p,fw,11);
 }
 
 void nhflow_fsf_reconstruct_hires::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fx, double *Fs, double *Fn)
@@ -124,8 +110,6 @@ void nhflow_fsf_reconstruct_hires::reconstruct_3D_x(lexer* p, ghostcell *pgc, fd
         }
     }
     
-	pgc->start1V(p,Fs,10);
-    pgc->start1V(p,Fn,10);
 }
 
 void nhflow_fsf_reconstruct_hires::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fy, double *Fe, double *Fw)
@@ -166,9 +150,6 @@ void nhflow_fsf_reconstruct_hires::reconstruct_3D_y(lexer* p, ghostcell *pgc, fd
         Fw[IJK] = 0.0;
         }
     }
-    
-    pgc->start2V(p,Fe,11);
-    pgc->start2V(p,Fw,11);
 }
 
 void nhflow_fsf_reconstruct_hires::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fx, double *Fy, double *Fs, double *Fn, double *Fe, double *Fw)
@@ -199,9 +180,7 @@ void nhflow_fsf_reconstruct_hires::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_
     Fs[IJK] = (Fx[IJK]    + 0.5*p->DXP[IP]*DFDX[IJK]); 
     Fn[IJK] = (Fx[Ip1JK]  - 0.5*p->DXP[IP1]*DFDX[Ip1JK]);
     
-    //Fs[IJK] = Fx[IJK]    + (1.0/60.0)*(-2.0*DFDX[Im2JK] + 11.0*DFDX[Im1JK] + 24.0*DFDX[IJK]  - 3.0*DFDX[Ip1JK]); 
-    //Fn[IJK] = Fx[Ip1JK]  - (1.0/60.0)*(-2.0*DFDX[Ip3JK] + 11.0*DFDX[Ip2JK] + 24.0*DFDX[Ip1JK]  - 3.0*DFDX[IJK]); 
-    
+
         if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
         {
         Fs[Ip1JK] = 0.0; 
@@ -246,11 +225,6 @@ void nhflow_fsf_reconstruct_hires::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_
         Fw[IJK] = 0.0;
         }
     }
-    
-	pgc->start1V(p,Fs,10);
-    pgc->start1V(p,Fs,10);
-    pgc->start2V(p,Fe,11);
-    pgc->start2V(p,Fw,11);
 }
 
 double nhflow_fsf_reconstruct_hires::limiter(double v1, double v2)

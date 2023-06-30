@@ -51,5 +51,6 @@ Author: Hans Bihs
 
 #include"nhflow_signal_speed.h"
 #include"nhflow_reconstruct_hires.h"
+#include"nhflow_reconstruct_WENO.h"
 #include"nhflow_fsf_reconstruct_hires.h"
 #include"nhflow_fsf_reconstruct_WENO.h"

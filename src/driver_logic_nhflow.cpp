@@ -64,7 +64,11 @@ void driver::logic_nhflow()
     pss = new nhflow_signal_speed(p);
     
     // reconstruction
+    if(p->A514<=3)
     precon = new nhflow_reconstruct_hires(p,pBC);
+    
+    if(p->A514==4)
+    precon = new nhflow_reconstruct_weno(p,pBC);
     
     // fsf reconstruction
     if(p->A543==2)
