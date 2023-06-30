@@ -690,10 +690,8 @@ public:
     double *sig;
     double *sigx,*sigy,*sigz,*sigt;
     double *sigxx;
-    double *sigx4,*sigy4;
-
+    
 private:
-
 	void clear(char&, int&);
     
 };

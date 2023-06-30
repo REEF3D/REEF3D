@@ -121,23 +121,6 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta
     p->sigy[FIJK] = (1.0 - p->sig[FIJK])*(d->By(i,j)/WLVL) - p->sig[FIJK]*(d->Ey(i,j)/WLVL);
     }
     
-    // sigxy4
-    LOOP
-    {
-    sigval = 0.5*(p->sig[FIJK]+p->sig[FIJKp1]);
-    
-    if(p->wet[IJ]==0)
-    {
-    p->sigx4[IJK] = 0.0;
-    p->sigy4[IJK] = 0.0;
-    }
-    
-    if(p->wet[IJ]==1)
-    {
-    p->sigx4[IJK] = (1.0 - sigval)*(d->Bx(i,j)/WLVL) - sigval*(d->Ex(i,j)/WLVL);
-    p->sigy4[IJK] = (1.0 - sigval)*(d->By(i,j)/WLVL) - sigval*(d->Ey(i,j)/WLVL);
-    }
-    }
     
     // sigz
     SLICELOOP4
@@ -254,8 +237,6 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta
     pgc->start7S(p,p->sigxx,1);
     pgc->start7S(p,p->sigt,1);
     pgc->start7S(p,p->ZSN,1);
-    pgc->start4V(p,p->sigx4,1);
-    pgc->start4V(p,p->sigy4,1);
     pgc->gcslparaxijk(p, p->sigz, 1);
 }
 

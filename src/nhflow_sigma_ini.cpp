@@ -45,8 +45,6 @@ void nhflow_sigma::sigma_ini(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta)
     p->Darray(p->sig, p->imax*p->jmax*(p->kmax+2));
     p->Darray(p->sigx,p->imax*p->jmax*(p->kmax+2));
     p->Darray(p->sigy,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(p->sigx4,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(p->sigy4,p->imax*p->jmax*(p->kmax+2));
     p->Darray(p->sigz,p->imax*p->jmax);
     p->Darray(p->sigt,p->imax*p->jmax*(p->kmax+2));
 

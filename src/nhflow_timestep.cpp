@@ -72,17 +72,9 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     FLOOP
 	p->omegamax=MAX(p->omegamax,fabs(d->omegaF[FIJK]));
     
-    /*
-    FLOOP
-    {
-	if(fabs(d->omegaF[FIJK])>10.0)
-    cout<<"# "<<p->mpirank<<" "<<d->omegaF[FIJK]<<" | "<<d->WL(i,j)<<" "<<" | "<<d->detadt(i,j)<<" "<<p->sigx4[IJK]<<" "<<p->sigy4[IJK]<<" "<<d->W[IJK]*p->sigz[IJ]<<" "<<0.5*(p->sigt[FIJK]+p->sigt[FIJKp1])<<endl;
-    }*/
-
 	p->omegamax=pgc->globalmax(p->omegamax);
     
 	
-
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
 	cout<<"umax: "<<setprecision(3)<<p->umax<<endl;
@@ -108,10 +100,17 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->j_dir==0 || p->knoy==1)
     dx = p->DXN[IP];
     
-    cu = MIN(cu, 1.0/(MAX(fabs(p->umax), sqrt(9.81*depthmax))/dx));
+    /*cu = MIN(cu, 1.0/(MAX(fabs(p->umax), sqrt(9.81*depthmax))/dx));
     
     if(p->j_dir==1 )
     cv = MIN(cv, 1.0/(MAX(fabs(p->vmax), sqrt(9.81*depthmax))/dx));
+    
+    cw = MIN(cw, 1.0/((fabs(p->wmax)/dx)));*/
+    
+    cu = MIN(cu, dx/(p->umax + sqrt(9.81*depthmax)));
+    
+    if(p->j_dir==1 )
+    cv = MIN(cv, dx/(p->vmax + sqrt(9.81*depthmax)));
     
     cw = MIN(cw, 1.0/((fabs(p->wmax)/dx)));
     

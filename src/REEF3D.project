@@ -1423,7 +1423,6 @@
           <VirtualDirectory Name="Void">
             <File Name="nhflow_fsf_v.cpp"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="FSM"/>
           <VirtualDirectory Name="Discretization">
             <File Name="nhflow_hxy_flux.cpp"/>
             <File Name="nhflow_hxy_fou.cpp"/>
