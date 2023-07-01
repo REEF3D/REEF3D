@@ -51,6 +51,19 @@ void nhflow_fsf_reconstruct_hires::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_
     
     dfdx(i,j) = limiter(dfdx_plus,dfdx_min);
     dfdy(i,j) = limiter(dfdy_plus,dfdy_min);
+    
+    
+    if(dfdx_plus>0.0 && dfdx_min>0.0)
+    ivel1=1.0;
+    
+    if(dfdx_plus<0.0 && dfdx_min<0.0)
+    ivel1=-1.0;
+    
+    if((dfdx_plus<0.0 && dfdx_min>0.0) || (dfdx_plus>0.0 && dfdx_min<0.0))
+    ivel1=0.0;
+    
+    dfdx(i,j) = 0.5*(dslwenox(f,-1.0)+dslwenox(f,1.0));
+    //dfdx(i,j) = dslwenox(f,ivel1);
     }
     
     pgc->gcsl_start1(p,dfdx,10);

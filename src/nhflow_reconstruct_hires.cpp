@@ -115,15 +115,24 @@ void nhflow_reconstruct_hires::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm_nh
 void nhflow_reconstruct_hires::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fx, double *Fs, double *Fn)
 {
     // gradient
-    ULOOP
+    LOOP
     {
     dfdx_plus = (Fx[Ip1JK] - Fx[IJK])/p->DXP[IP];
     dfdx_min  = (Fx[IJK] - Fx[Im1JK])/p->DXP[IM1];
     
-    //dfdx_plus = (Fx[Ip1JK] - Fx[IJK]);
-    //dfdx_min  = (Fx[IJK] - Fx[Im1JK]);
+    //DFDX[IJK] = limiter(dfdx_plus,dfdx_min);
     
-    DFDX[IJK] = limiter(dfdx_plus,dfdx_min);
+    if(dfdx_plus>0.0 && dfdx_min>0.0)
+    ivel1=1.0;
+    
+    if(dfdx_plus<0.0 && dfdx_min<0.0)
+    ivel1=-1.0;
+    
+    if((dfdx_plus<0.0 && dfdx_min>0.0) || (dfdx_plus>0.0 && dfdx_min<0.0))
+    ivel1=0.0;
+    
+    DFDX[IJK] = 0.5*(dwenox(Fx,-1.0)+dwenox(Fx,1.0));
+    //DFDX[IJK] = dwenox(Fx,ivel1);
     }
 
     pgc->start1V(p,DFDX,10);
@@ -133,9 +142,6 @@ void nhflow_reconstruct_hires::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nh
     {
     Fs[IJK] = (Fx[IJK]    + 0.5*p->DXP[IP]*DFDX[IJK]); 
     Fn[IJK] = (Fx[Ip1JK]  - 0.5*p->DXP[IP1]*DFDX[Ip1JK]);
-    
-    //Fs[IJK] = Fx[IJK]    + (1.0/60.0)*(-2.0*DFDX[Im2JK] + 11.0*DFDX[Im1JK] + 24.0*DFDX[IJK]  - 3.0*DFDX[Ip1JK]); 
-    //Fn[IJK] = Fx[Ip1JK]  - (1.0/60.0)*(-2.0*DFDX[Ip3JK] + 11.0*DFDX[Ip2JK] + 24.0*DFDX[Ip1JK]  - 3.0*DFDX[IJK]); 
     
         if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
         {
@@ -163,7 +169,7 @@ void nhflow_reconstruct_hires::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nh
     if(p->j_dir==1)
     {
         
-    VLOOP
+    LOOP
     {
     dfdy_plus = (Fy[IJp1K] - Fy[IJK])/p->DYP[JP];
     dfdy_min  = (Fy[IJK] - Fy[IJm1K])/p->DYP[JM1];

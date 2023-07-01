@@ -25,13 +25,13 @@ Author: Hans Bihs
 #include"slice.h"
 #include<math.h>
 
-double nhflow_gradient::dwenox(double *F, double uw)
+double nhflow_gradient::dslwenox(slice& b, double uw)
 {
 	grad=0.0;
 
 	if(uw>=0.0)
 	{
-	iqmin(F,p->DXD);
+	iqminsl(b,p->DXD);
 	is();
 	alpha();
 	weight();
@@ -42,7 +42,7 @@ double nhflow_gradient::dwenox(double *F, double uw)
 
 	if(uw<0.0)
 	{
-	iqmax(F,p->DXD);
+	iqmaxsl(b,p->DXD);
 	is();
 	alpha();
 	weight();
@@ -54,13 +54,13 @@ double nhflow_gradient::dwenox(double *F, double uw)
 	return grad;
 }
 
-double nhflow_gradient::dwenoy(double *F, double uw)
+double nhflow_gradient::dslwenoy(slice& b, double uw)
 {
 	grad=0.0;
 
 	if(uw>=0.0)
 	{
-	jqmin(F,p->DYD);
+	jqminsl(b,p->DYD);
 	is();
 	alpha();
 	weight();
@@ -71,7 +71,7 @@ double nhflow_gradient::dwenoy(double *F, double uw)
 
 	if(uw<0.0)
 	{
-	jqmax(F,p->DYD);
+	jqmaxsl(b,p->DYD);
 	is();
 	alpha();
 	weight();
@@ -83,40 +83,59 @@ double nhflow_gradient::dwenoy(double *F, double uw)
 	return grad;
 }
 
-void nhflow_gradient::iqmin(double *F, double delta)
+void nhflow_gradient::iqminsl(slice& f, double delta)
 {
-    q1 = (F[Im2JK] - F[Im3JK])/delta;
-	q2 = (F[Im1JK] - F[Im2JK])/delta;
-	q3 = (F[IJK]  -  F[Im1JK])/delta;
-	q4 = (F[Ip1JK] - F[IJK]  )/delta;
-	q5 = (F[Ip2JK] - F[Ip1JK])/delta;
+	q1 = (f(i-2,j) - f(i-3,j))/delta;
+	q2 = (f(i-1,j) - f(i-2,j))/delta;
+	q3 = (f(i,j)   - f(i-1,j))/delta;
+	q4 = (f(i+1,j) - f(i,j)  )/delta;
+	q5 = (f(i+2,j) - f(i+1,j))/delta;
 }
 
-void nhflow_gradient::jqmin(double *F, double delta)
+void nhflow_gradient::jqminsl(slice& f, double delta)
 {
-	q1 = (F[IJm2K] - F[IJm3K])/delta;
-	q2 = (F[IJm1K] - F[IJm2K])/delta;
-	q3 = (F[IJK]  -  F[IJm1K])/delta;
-	q4 = (F[IJp1K] - F[IJK]  )/delta;
-	q5 = (F[IJp2K] - F[IJp1K])/delta;
+	q1 = (f(i,j-2) - f(i,j-3))/delta;
+	q2 = (f(i,j-1) - f(i,j-2))/delta;
+	q3 = (f(i,j)   - f(i,j-1))/delta;
+	q4 = (f(i,j+1) - f(i,j)  )/delta;
+	q5 = (f(i,j+2) - f(i,j+1))/delta;
 }
 
-void nhflow_gradient::iqmax(double *F, double delta)
+void nhflow_gradient::iqmaxsl(slice& f, double delta)
 {
-    q1 = (F[Ip3JK]  - F[Ip2JK])/delta;
-	q2 = (F[Ip2JK]  - F[Ip1JK])/delta;
-	q3 = (F[Ip1JK]  - F[IJK])/delta;
-	q4 = (F[IJK]    - F[Im1JK])/delta;
-	q5 = (F[Im1JK]  - F[Im2JK])/delta;
+	q1 = (f(i+3,j) - f(i+2,j))/delta;
+	q2 = (f(i+2,j) - f(i+1,j))/delta;
+	q3 = (f(i+1,j) - f(i,j)  )/delta;
+	q4 = (f(i,j)   - f(i-1,j))/delta;
+	q5 = (f(i-1,j) - f(i-2,j))/delta;
 }
 
-void nhflow_gradient::jqmax(double *F, double delta)
+void nhflow_gradient::jqmaxsl(slice& f, double delta)
 {
-	q1 = (F[IJp3K]  - F[IJp2K])/delta;
-	q2 = (F[IJp2K]  - F[IJp2K])/delta;
-	q3 = (F[IJp1K]  - F[IJK])/delta;
-	q4 = (F[IJK]    - F[IJm1K])/delta;
-	q5 = (F[IJm1K]  - F[IJm2K])/delta;
+	q1 = (f(i,j+3) - f(i,j+2))/delta;
+	q2 = (f(i,j+2) - f(i,j+1))/delta;
+	q3 = (f(i,j+1) - f(i,j)  )/delta;
+	q4 = (f(i,j)   - f(i,j-1))/delta;
+	q5 = (f(i,j-1) - f(i,j-2))/delta;
 }
 
+void nhflow_gradient::is()
+{
+	is1 = tttw*pow(q1-2.0*q2+q3,2.0) + fourth*pow((q1-4.0*q2+3.0*q3), 2.0);
+	is2 = tttw*pow(q2-2.0*q3+q4, 2.0) + fourth*pow((q2-q4), 2.0);
+	is3 = tttw*pow(q3-2.0*q4+q5, 2.0) + fourth*pow((3.0*q3-4.0*q4+q5), 2.0);
+}
 
+void nhflow_gradient::alpha()
+{
+	alpha1=tenth*pow(epsilon+is1,-2.0);
+	alpha2=sixten*pow(epsilon+is2,-2.0);
+	alpha3=treten*pow(epsilon+is3,-2.0);
+}
+
+void nhflow_gradient::weight()
+{
+	w1=alpha1/(alpha1+alpha2+alpha3);
+	w2=alpha2/(alpha1+alpha2+alpha3);
+	w3=alpha3/(alpha1+alpha2+alpha3);
+}

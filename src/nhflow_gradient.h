@@ -53,6 +53,15 @@ public:
 	void iqmaxsl(slice&, double);
 	void jqmaxsl(slice&, double);
 	//--------------------------------
+    
+    double dwenox(double*, double);
+    double dwenoy(double*, double);
+    
+    void iqmin(double*, double);
+	void jqmin(double*, double);
+	void iqmax(double*, double);
+	void jqmax(double*, double);
+    //--------------------------------
 
 	//u
 	 double dudx(double*);
