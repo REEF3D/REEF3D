@@ -120,23 +120,11 @@ void nhflow_reconstruct_hires::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nh
     dfdx_plus = (Fx[Ip1JK] - Fx[IJK])/p->DXP[IP];
     dfdx_min  = (Fx[IJK] - Fx[Im1JK])/p->DXP[IM1];
     
-    //DFDX[IJK] = limiter(dfdx_plus,dfdx_min);
-    
-    if(dfdx_plus>0.0 && dfdx_min>0.0)
-    ivel1=1.0;
-    
-    if(dfdx_plus<0.0 && dfdx_min<0.0)
-    ivel1=-1.0;
-    
-    if((dfdx_plus<0.0 && dfdx_min>0.0) || (dfdx_plus>0.0 && dfdx_min<0.0))
-    ivel1=0.0;
-    
-    DFDX[IJK] = 0.5*(dwenox(Fx,-1.0)+dwenox(Fx,1.0));
-    //DFDX[IJK] = dwenox(Fx,ivel1);
+    DFDX[IJK] = limiter(dfdx_plus,dfdx_min);
     }
 
     pgc->start1V(p,DFDX,10);
-    
+
     // reconstruct
     ULOOP 
     {

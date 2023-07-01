@@ -21,9 +21,8 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_fsf_reconstruct.h"
-#include"increment.h"
+#include"nhflow_gradient.h"
 #include"slice4.h"
-#include"weno_nug_func.h"
 
 class lexer;
 class ghostcell;
@@ -36,7 +35,7 @@ class patchBC_interface;
 
 using namespace std;
 
-class nhflow_fsf_reconstruct_weno : public nhflow_fsf_reconstruct, public weno_nug_func
+class nhflow_fsf_reconstruct_weno : public nhflow_fsf_reconstruct, public nhflow_gradient
 {
 public:
 	nhflow_fsf_reconstruct_weno(lexer*,patchBC_interface*);
@@ -49,24 +48,18 @@ public:
     
     virtual void reconstruct_2D_WL(lexer*,ghostcell*,fdm_nhf*);
     
+    slice4 dfdxs,dfdxn,dfdye,dfdyw;
+    double *DFDX, *DFDY;
+
 
 private:
-    void iqmin(lexer*, double*);
-	void jqmin(lexer*, double*);
-	void kqmin(lexer*, double*);
-	void iqmax(lexer*, double*);
-	void jqmax(lexer*, double*);
-	void kqmax(lexer*, double*);
-    
-    void iqmin_sl(lexer*, slice&);
-    void iqmax_sl(lexer*, slice&);
-    void jqmin_sl(lexer*, slice&);
-    void jqmax_sl(lexer*, slice&);
+    double limiter(double, double);
 
     double ivel1,ivel2,jvel1,jvel2;
     double val,denom;
     double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus;
     int qq;
+    double r, phi,minphi;
     
     patchBC_interface *pBC;
 };

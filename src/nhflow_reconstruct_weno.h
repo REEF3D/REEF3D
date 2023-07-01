@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_reconstruct.h"
-#include"weno_nug_func.h"
+#include"nhflow_gradient.h"
 #include"slice4.h"
 
 class lexer;
@@ -35,7 +35,7 @@ class patchBC_interface;
 
 using namespace std;
 
-class nhflow_reconstruct_weno : public nhflow_reconstruct, public weno_nug_func
+class nhflow_reconstruct_weno : public nhflow_reconstruct, public nhflow_gradient
 {
 public:
 	nhflow_reconstruct_weno(lexer*,patchBC_interface*);
@@ -49,27 +49,18 @@ public:
     virtual void reconstruct_3D_y(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*);
     virtual void reconstruct_3D_z(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*);
     
+    slice4 dfdx,dfdy;
+    double *DFDXs,*DFDXn;
+
 
 private:
-
-    void iqmin(lexer*, double*);
-	void jqmin(lexer*, double*);
-	void kqmin(lexer*, double*);
-	void iqmax(lexer*, double*);
-	void jqmax(lexer*, double*);
-	void kqmax(lexer*, double*);
-    
-    void iqmin_sl(lexer*, slice&);
-    void iqmax_sl(lexer*, slice&);
-    void jqmin_sl(lexer*, slice&);
-    void jqmax_sl(lexer*, slice&);
-
+    double limiter(double, double);
 
     double ivel1,ivel2,jvel1,jvel2;
     double val,denom;
-    double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus;
+    double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus, dfdz_min, dfdz_plus;
     int qq;
-
+    double r, phi,minphi;
     
     patchBC_interface *pBC;
 };

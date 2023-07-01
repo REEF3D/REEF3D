@@ -20,19 +20,18 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_fsf_reconstruct_WENO.h"
+#include"nhflow_fsf_reconstruct_weno.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"fdm_nhf.h"
 #include"patchBC_interface.h"
 
-nhflow_fsf_reconstruct_weno::nhflow_fsf_reconstruct_weno(lexer* p, patchBC_interface *ppBC) : weno_nug_func(p)
+nhflow_fsf_reconstruct_weno::nhflow_fsf_reconstruct_weno(lexer* p, patchBC_interface *ppBC) : nhflow_gradient(p), dfdxs(p), dfdxn(p), dfdye(p), dfdyw(p)
 {
     pBC = ppBC;
     
-
-    uf=0;
-    vf=0;
+    p->Darray(DFDX,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(DFDY,p->imax*p->jmax*(p->kmax+2));
 }
 
 nhflow_fsf_reconstruct_weno::~nhflow_fsf_reconstruct_weno()
@@ -41,255 +40,277 @@ nhflow_fsf_reconstruct_weno::~nhflow_fsf_reconstruct_weno()
 
 void nhflow_fsf_reconstruct_weno::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf *d, slice& f, slice &fs, slice &fn, slice &fe, slice &fw)
 {
-    
-    
-    SLICELOOP1
+    // gradient
+    SLICELOOP4
     {
-    // left
-	iqmin_sl(p,f);
-	is_min_x();
-	weight_min_x();
-
-	fs(i,j) = w1x*(q4 + qfx[IP][uf][0][0]*(q3-q4) - qfx[IP][uf][0][1]*(q5-q4))
+    dfdx_plus = (f(i+1,j) - f(i,j))/p->DXP[IP];
+    dfdx_min  = (f(i,j) - f(i-1,j))/p->DXP[IM1];
     
-            + w2x*(q3 + qfx[IP][uf][1][0]*(q4-q3) - qfx[IP][uf][1][1]*(q2-q3))
-          
-            + w3x*(q2 + qfx[IP][uf][2][0]*(q1-q2) + qfx[IP][uf][2][1]*(q3-q2));
-
-    // right
-	iqmax_sl(p,f);
-	is_max_x();
-	weight_max_x();
+    dfdy_plus = (f(i,j+1) - f(i,j))/p->DYP[JP];
+    dfdy_min  = (f(i,j) - f(i,j-1))/p->DYP[JM1];
     
-	fn(i,j) = w1x*(q4 + qfx[IP][uf][3][0]*(q3-q4) + qfx[IP][uf][3][1]*(q5-q4))
+    dfdxs(i,j) = dslwenox(f,1.0);
+    dfdxn(i,j) = dslwenox(f,-1.0);
     
-            + w2x*(q3 + qfx[IP][uf][4][0]*(q2-q3) - qfx[IP][uf][4][1]*(q4-q3))
-          
-            + w3x*(q2 + qfx[IP][uf][5][0]*(q3-q2) - qfx[IP][uf][5][1]*(q1-q2));
-	}
+    dfdye(i,j) = dslwenoy(f,1.0);
+    dfdyw(i,j) = dslwenoy(f,-1.0);
+    }
+    
+    pgc->gcsl_start1(p,dfdxs,10);
+    pgc->gcsl_start1(p,dfdxn,10);
+    pgc->gcsl_start2(p,dfdye,11);
+    pgc->gcsl_start2(p,dfdyw,11);
+    
+    // reconstruct
+    SLICELOOP1  
+    {
+    fs(i,j) = f(i,j)   + 0.5*p->DXP[IP]*dfdxs(i,j); 
+    fn(i,j) = f(i+1,j) - 0.5*p->DXP[IP1]*dfdxn(i+1,j);
+    
+        if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
+        {
+        fs(i,j) = f(i,j); 
+        }
+        
+        else
+        if(p->wet[IJ]==1 && p->wet[Im1J]==0)
+        {
+        fn(i-1,j) = f(i,j);
+        }
+        
+        else
+        if(p->wet[IJ]==0)
+        {
+        fs(i,j) = f(i,j);
+        fn(i-1,j) = f(i,j);
+        }
+    }
     
     if(p->j_dir==1)
-    SLICELOOP2
-	{
-	jqmin_sl(p,f);
-	is_min_y();
-	weight_min_y();
-	
-	fe(i,j) = w1y*(q4 + qfy[JP][vf][0][0]*(q3-q4) - qfy[JP][vf][0][1]*(q5-q4))
+    SLICELOOP2 
+    {
+    fe(i,j) = f(i,j)   + 0.5*p->DYP[JP]*dfdye(i,j); 
+    fw(i,j) = f(i,j+1) - 0.5*p->DYP[JP1]*dfdyw(i,j+1); 
     
-            + w2y*(q3 + qfy[JP][vf][1][0]*(q4-q3) - qfy[JP][vf][1][1]*(q2-q3))
-          
-            + w3y*(q2 + qfy[JP][vf][2][0]*(q1-q2) + qfy[JP][vf][2][1]*(q3-q2));
-
-	jqmax_sl(p,f);
-	is_max_y();
-	weight_max_y();
-	
-	fw(i,j) = w1y*(q4 + qfy[JP][vf][3][0]*(q3-q4) + qfy[JP][vf][3][1]*(q5-q4))
-    
-            + w2y*(q3 + qfy[JP][vf][4][0]*(q2-q3) - qfy[JP][vf][4][1]*(q4-q3))
-          
-            + w3y*(q2 + qfy[JP][vf][5][0]*(q3-q2) - qfy[JP][vf][5][1]*(q1-q2));
-	}
+        if(p->wet[IJ]==1 && p->wet[IJp1]==0)
+        {
+        fs(i,j) = f(i,j); 
+        }
+        
+        else
+        if(p->wet[IJ]==1 && p->wet[IJm1]==0)
+        {
+        fn(i,j-1) = f(i,j);
+        }
+        
+        else
+        if(p->wet[IJ]==0)
+        {
+        fs(i,j) = f(i,j);
+        fn(i,j-1) = f(i,j);
+        }
+    }
 }
 
 void nhflow_fsf_reconstruct_weno::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fx, double *Fs, double *Fn)
 {
+    // gradient
     ULOOP
     {
-    // left
-	iqmin(p,Fx);
-	is_min_x();
-	weight_min_x();
-
-	Fs[IJK] =        (w1x*(q4 + qfx[IP][uf][0][0]*(q3-q4) - qfx[IP][uf][0][1]*(q5-q4))
+    dfdx_plus = (Fx[Ip1JK] - Fx[IJK])/p->DXP[IP];
+    dfdx_min  = (Fx[IJK] - Fx[Im1JK])/p->DXP[IM1];
     
-                    + w2x*(q3 + qfx[IP][uf][1][0]*(q4-q3) - qfx[IP][uf][1][1]*(q2-q3))
-          
-                    + w3x*(q2 + qfx[IP][uf][2][0]*(q1-q2) + qfx[IP][uf][2][1]*(q3-q2)));
-	
-    // right
-	iqmax(p,Fx);
-	is_max_x();
-	weight_max_x();
+    DFDX[IJK] = limiter(dfdx_plus,dfdx_min);
+    }
     
-	Fn[IJK] =            (w1x*(q4 + qfx[IP][uf][3][0]*(q3-q4) + qfx[IP][uf][3][1]*(q5-q4))
+    pgc->start1V(p,DFDX,10);
     
-                        + w2x*(q3 + qfx[IP][uf][4][0]*(q2-q3) - qfx[IP][uf][4][1]*(q4-q3))
-          
-                        + w3x*(q2 + qfx[IP][uf][5][0]*(q3-q2) - qfx[IP][uf][5][1]*(q1-q2)));
-	}
-
+    // reconstruct
+    ULOOP 
+    {
+    Fs[IJK] = (Fx[IJK]    + 0.5*p->DXP[IP]*DFDX[IJK]); 
+    Fn[IJK] = (Fx[Ip1JK]  - 0.5*p->DXP[IP1]*DFDX[Ip1JK]);
+    
+        if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
+        {
+        Fs[Ip1JK] = 0.0; 
+        Fn[Ip1JK] = 0.0; 
+        }
+        
+        else
+        if(p->wet[IJ]==1 && p->wet[Im1J]==0)
+        {
+        Fn[IJK] = 0.0;
+        }
+        
+        else
+        if(p->wet[IJ]==0)
+        {
+        Fs[Ip1JK] = 0.0;
+        Fn[IJK] = 0.0;
+        }
+    }
+    
 }
 
 void nhflow_fsf_reconstruct_weno::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fy, double *Fe, double *Fw)
 {
+    // gradient
     VLOOP
-	{
-	jqmin(p,Fy);
-	is_min_y();
-	weight_min_y();
-	
-	Fe[IJK] =           (w1y*(q4 + qfy[JP][vf][0][0]*(q3-q4) - qfy[JP][vf][0][1]*(q5-q4))
-    
-                        + w2y*(q3 + qfy[JP][vf][1][0]*(q4-q3) - qfy[JP][vf][1][1]*(q2-q3))
-          
-                        + w3y*(q2 + qfy[JP][vf][2][0]*(q1-q2) + qfy[JP][vf][2][1]*(q3-q2)));
+    {
+    dfdy_plus = (Fy[IJp1K] - Fy[IJK])/p->DYP[JP];
+    dfdy_min  = (Fy[IJK] - Fy[IJm1K])/p->DYP[JM1];
 
-	jqmax(p,Fy);
-	is_max_y();
-	weight_max_y();
-	
-	Fw[IJK] =           (w1y*(q4 + qfy[JP][vf][3][0]*(q3-q4) + qfy[JP][vf][3][1]*(q5-q4))
+    DFDY[IJK] = limiter(dfdy_plus,dfdy_min);
+    }
     
-                        + w2y*(q3 + qfy[JP][vf][4][0]*(q2-q3) - qfy[JP][vf][4][1]*(q4-q3))
-          
-                        + w3y*(q2 + qfy[JP][vf][5][0]*(q3-q2) - qfy[JP][vf][5][1]*(q1-q2)));
-	}
+    pgc->start2V(p,DFDY,11);
     
+    // reconstruct
+    VLOOP
+    {
+    Fe[IJK] = (Fy[IJK]    + 0.5*p->DYP[JP]*DFDY[IJK]); 
+    Fw[IJK] = (Fy[IJp1K]  - 0.5*p->DYP[JP1]*DFDY[IJp1K]);
+    
+        if(p->wet[IJ]==1 && p->wet[IJp1]==0)
+        {
+        Fe[IJp1K] = 0.0; 
+        Fw[IJp1K] = 0.0; 
+        }
+        
+        else
+        if(p->wet[IJ]==1 && p->wet[IJm1]==0)
+        {
+        Fw[IJK] = 0.0;
+        }
+        
+        else
+        if(p->wet[IJ]==0)
+        {
+        Fe[IJp1K] = 0.0;
+        Fw[IJK] = 0.0;
+        }
+    }
 }
 
 void nhflow_fsf_reconstruct_weno::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fx, double *Fy, double *Fs, double *Fn, double *Fe, double *Fw)
 {
+    // gradient
     ULOOP
     {
-    // left
-	iqmin(p,Fx);
-	is_min_x();
-	weight_min_x();
-
-	Fs[IJK] =        (w1x*(q4 + qfx[IP][uf][0][0]*(q3-q4) - qfx[IP][uf][0][1]*(q5-q4))
+    dfdx_plus = (Fx[Ip1JK] - Fx[IJK])/p->DXP[IP];
+    dfdx_min  = (Fx[IJK] - Fx[Im1JK])/p->DXP[IM1];
     
-                    + w2x*(q3 + qfx[IP][uf][1][0]*(q4-q3) - qfx[IP][uf][1][1]*(q2-q3))
-          
-                    + w3x*(q2 + qfx[IP][uf][2][0]*(q1-q2) + qfx[IP][uf][2][1]*(q3-q2)));
-	
-    // right
-	iqmax(p,Fx);
-	is_max_x();
-	weight_max_x();
-    
-	Fn[IJK] =            (w1x*(q4 + qfx[IP][uf][3][0]*(q3-q4) + qfx[IP][uf][3][1]*(q5-q4))
-    
-                        + w2x*(q3 + qfx[IP][uf][4][0]*(q2-q3) - qfx[IP][uf][4][1]*(q4-q3))
-          
-                        + w3x*(q2 + qfx[IP][uf][5][0]*(q3-q2) - qfx[IP][uf][5][1]*(q1-q2)));
-	}
-    
+    DFDX[IJK] = limiter(dfdx_plus,dfdx_min);
+    }
     
     VLOOP
-	{
-	jqmin(p,Fy);
-	is_min_y();
-	weight_min_y();
-	
-	Fe[IJK] =           (w1y*(q4 + qfy[JP][vf][0][0]*(q3-q4) - qfy[JP][vf][0][1]*(q5-q4))
+    {
+    dfdy_plus = (Fy[IJp1K] - Fy[IJK])/p->DYP[JP];
+    dfdy_min  = (Fy[IJK] - Fy[IJm1K])/p->DYP[JM1];
+
+    DFDY[IJK] = limiter(dfdy_plus,dfdy_min);
+    }
     
-                        + w2y*(q3 + qfy[JP][vf][1][0]*(q4-q3) - qfy[JP][vf][1][1]*(q2-q3))
-          
-                        + w3y*(q2 + qfy[JP][vf][2][0]*(q1-q2) + qfy[JP][vf][2][1]*(q3-q2)));
-
-	jqmax(p,Fy);
-	is_max_y();
-	weight_max_y();
-	
-	Fw[IJK] =           (w1y*(q4 + qfy[JP][vf][3][0]*(q3-q4) + qfy[JP][vf][3][1]*(q5-q4))
+    pgc->start1V(p,DFDX,10);
+    pgc->start2V(p,DFDY,11);
     
-                        + w2y*(q3 + qfy[JP][vf][4][0]*(q2-q3) - qfy[JP][vf][4][1]*(q4-q3))
-          
-                        + w3y*(q2 + qfy[JP][vf][5][0]*(q3-q2) - qfy[JP][vf][5][1]*(q1-q2)));
-	}
+    // reconstruct
+    ULOOP 
+    {
+    Fs[IJK] = (Fx[IJK]    + 0.5*p->DXP[IP]*DFDX[IJK]); 
+    Fn[IJK] = (Fx[Ip1JK]  - 0.5*p->DXP[IP1]*DFDX[Ip1JK]);
     
+
+        if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
+        {
+        Fs[Ip1JK] = 0.0; 
+        Fn[Ip1JK] = 0.0; 
+        }
+        
+        else
+        if(p->wet[IJ]==1 && p->wet[Im1J]==0)
+        {
+        Fn[IJK] = 0.0;
+        }
+        
+        else
+        if(p->wet[IJ]==0)
+        {
+        Fs[Ip1JK] = 0.0;
+        Fn[IJK] = 0.0;
+        }
+    }
+
+    VLOOP
+    {
+    Fe[IJK] = (Fy[IJK]    + 0.5*p->DYP[JP]*DFDY[IJK]); 
+    Fw[IJK] = (Fy[IJp1K]  - 0.5*p->DYP[JP1]*DFDY[IJp1K]);
+    
+        if(p->wet[IJ]==1 && p->wet[IJp1]==0)
+        {
+        Fe[IJp1K] = 0.0; 
+        Fw[IJp1K] = 0.0; 
+        }
+        
+        else
+        if(p->wet[IJ]==1 && p->wet[IJm1]==0)
+        {
+        Fw[IJK] = 0.0;
+        }
+        
+        else
+        if(p->wet[IJ]==0)
+        {
+        Fe[IJp1K] = 0.0;
+        Fw[IJK] = 0.0;
+        }
+    }
 }
 
-void nhflow_fsf_reconstruct_weno::iqmin(lexer *p, double *F)
-{	 
-    q1 = F[Im2JK];
-    q2 = F[Im1JK];
-    q3 = F[IJK];
-    q4 = F[Ip1JK];
-    q5 = F[Ip2JK];
-}
-
-void nhflow_fsf_reconstruct_weno::jqmin(lexer *p, double *F)
+double nhflow_fsf_reconstruct_weno::limiter(double v1, double v2)
 {
-    q1 = F[IJm2K];
-    q2 = F[IJm1K];
-    q3 = F[IJK];
-    q4 = F[IJp1K];
-    q5 = F[IJp2K];
-}
+    val=0.0;
+    
+    if(p->A514==1)
+    {
+    denom = fabs(v1) + fabs(v2);
+    
+    denom = fabs(denom)>1.0e-10?denom:1.0e10;
+    
+    val =  (v1*fabs(v2) + fabs(v1)*v2)/denom;
+    }
+    
+    
+    if(p->A514==2)
+    {
+    r=v2/(fabs(v1)>1.0e-10?v1:1.0e20);
 
-void nhflow_fsf_reconstruct_weno::kqmin(lexer *p, double *F)
-{
-    q1 = F[IJKm2];
-    q2 = F[IJKm1];
-    q3 = F[IJK];
-    q4 = F[IJKp1];
-    q5 = F[IJKp2];
-}
-
-void nhflow_fsf_reconstruct_weno::iqmax(lexer *p, double *F)
-{
-    q1 = F[Im1JK];
-    q2 = F[IJK];
-    q3 = F[Ip1JK];
-    q4 = F[Ip2JK];
-    q5 = F[Ip3JK];
-}
-
-void nhflow_fsf_reconstruct_weno::jqmax(lexer *p, double *F)
-{
-    q1 = F[IJm1K];
-    q2 = F[IJK];
-    q3 = F[IJp1K];
-    q4 = F[IJp2K];
-    q5 = F[IJp3K];
-}
-
-void nhflow_fsf_reconstruct_weno::kqmax(lexer *p, double *F)
-{
-	q1 = F[IJKm1];
-    q2 = F[IJK];
-    q3 = F[IJKp1];
-    q4 = F[IJKp2];
-    q5 = F[IJKp3];
-}
-
-void nhflow_fsf_reconstruct_weno::iqmin_sl(lexer *p, slice& f)
-{	
-	q1 = f(i-2,j);
-	q2 = f(i-1,j);
-	q3 = f(i,j);
-	q4 = f(i+1,j);
-	q5 = f(i+2,j);
-}
-
-void nhflow_fsf_reconstruct_weno::jqmin_sl(lexer *p, slice& f)
-{
-	q1 = f(i,j-2);
-	q2 = f(i,j-1);
-	q3 = f(i,j);
-	q4 = f(i,j+1);
-	q5 = f(i,j+2);
-}
-
-void nhflow_fsf_reconstruct_weno::iqmax_sl(lexer *p, slice& f)
-{
-	q1 = f(i+3,j);
-	q2 = f(i+2,j);
-	q3 = f(i+1,j);
-	q4 = f(i,j);
-	q5 = f(i-1,j);
-}
-
-void nhflow_fsf_reconstruct_weno::jqmax_sl(lexer *p, slice& f)
-{
-	q1 = f(i,j+3);
-	q2 = f(i,j+2);
-	q3 = f(i,j+1);
-	q4 = f(i,j);
-	q5 = f(i,j-1);
+    if(r<0.0)
+    phi = 0.0;
+    
+    if(r>=0.0 && r<0.5)
+    phi = 2.0*r;
+    
+    if(r>=0.5 && r<1.0)
+    phi = 1.0;
+    
+    if(r>=1.0)
+    phi = MIN(MIN(r,2.0), 2.0/(1.0+r));
+    
+    val = 0.5*phi*(v1+v2);
+    }
+    
+    if(p->A514==3)
+    {
+    r=v2/(fabs(v1)>1.0e-10?v1:1.0e20);
+    
+    phi = (r*r + r)/(r*r+1.0);
+    
+    val = 0.5*phi*(v1+v2);
+    }
+    
+    return val;
 }
 
 void nhflow_fsf_reconstruct_weno::reconstruct_2D_WL(lexer* p, ghostcell *pgc, fdm_nhf *d)
@@ -303,6 +324,24 @@ void nhflow_fsf_reconstruct_weno::reconstruct_2D_WL(lexer* p, ghostcell *pgc, fd
     
     d->Ds(i,j) = MAX(0.00005, d->Ds(i,j));
     d->Dn(i,j) = MAX(0.00005, d->Dn(i,j));
+    
+        if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
+        {
+        d->Ds(i,j) = d->WL(i,j); 
+        }
+        
+        else
+        if(p->wet[IJ]==1 && p->wet[Im1J]==0)
+        {
+        d->Dn(i-1,j) = d->WL(i,j);
+        }
+        
+        else
+        if(p->wet[IJ]==0)
+        {
+        d->Ds(i,j) = d->WL(i,j);
+        d->Dn(i-1,j) = d->WL(i,j);
+        }
     }
     
     SLICELOOP2
@@ -312,6 +351,25 @@ void nhflow_fsf_reconstruct_weno::reconstruct_2D_WL(lexer* p, ghostcell *pgc, fd
     
     d->De(i,j) = MAX(0.00005, d->De(i,j));
     d->Dw(i,j) = MAX(0.00005, d->Dw(i,j));
+    
+        if(p->wet[IJ]==1 && p->wet[IJp1]==0)
+        {
+        d->De(i,j) = d->WL(i,j); 
+        }
+        
+        else
+        if(p->wet[IJ]==1 && p->wet[IJm1]==0)
+        {
+        d->Dw(i,j-1) = d->WL(i,j);
+        }
+        
+        else
+        if(p->wet[IJ]==0)
+        {
+        d->De(i,j) = d->WL(i,j);
+        d->Dw(i,j-1) = d->WL(i,j);
+        }
     }
+    
+        
 }
-
