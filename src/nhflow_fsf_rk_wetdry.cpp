@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void nhflow_fsf_rk::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *U, double *V, double *W, slice &eta)
+void nhflow_fsf_rk::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, double *VH, double *WH, slice &eta)
 {
     double wl;
     
@@ -37,10 +37,10 @@ void nhflow_fsf_rk::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *U, doub
     {
     //wl =  eta(i,j) + p->wd - d->bed(i,j);
     
-        if(d->WL(i,j)>=wd_criterion)
+        if(d->WL(i,j)>=p->A544)
         p->wet[IJ]=1;
               
-        if(d->WL(i,j)<wd_criterion)
+        if(d->WL(i,j)<p->A544)
         p->wet[IJ]=0;
       
       
@@ -56,20 +56,24 @@ void nhflow_fsf_rk::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *U, doub
         if(p->wet[IJ]==0 && d->eta(i,j)<d->eta(i,j-1))
         p->wet[IJ]=1;*/
         
-        //if(d->WL(i,j)<10.0*wd_criterion)
+        //if(d->WL(i,j)<10.0*p->A544)
         //cout<<p->wet[IJ]<<" | "<<wl<<" "<<d->WL(i,j)<<" | "<<p->XP[IP]<<endl;
     }
           
 
-        /*  
+          
     LOOP
     if(p->wet[IJ]==0)
     {
-        U[IJK] = 0.0;
-        V[IJK] = 0.0;
-        W[IJK] = 0.0;
+        d->U[IJK] = 0.0;
+        d->V[IJK] = 0.0;
+        d->W[IJK] = 0.0;
+        
+        UH[IJK] = 0.0;
+        VH[IJK] = 0.0;
+        WH[IJK] = 0.0;
     }
-    */
+    
     FLOOP
     if(p->wet[IJ]==0)
     d->omegaF[FIJK] = 0.0;
@@ -77,8 +81,8 @@ void nhflow_fsf_rk::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *U, doub
     
     SLICELOOP4
     if(p->wet[IJ]==0 && p->wet[Im1J]==0 && p->wet[Ip1J]==0 && p->wet[IJm1]==0 && p->wet[IJp1]==0)
-    if(eta(i,j)< -p->wd  + d->bed(i,j) - wd_criterion + 1.0e-20)
-    eta(i,j) = -p->wd  + d->bed(i,j) - wd_criterion - 1.0e-15;
+    if(eta(i,j)< -p->wd  + d->bed(i,j) - p->A544 + 1.0e-20)
+    eta(i,j) = -p->wd  + d->bed(i,j) - p->A544 - 1.0e-15;
 
 
     pgc->gcsl_start4(p,d->eta,1);

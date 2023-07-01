@@ -277,6 +277,7 @@ public:
     int A501,A510,A511,A512,A514,A515,A516,A517,A518;
     int A520,A521,A523;
     int A540,A541,A542,A543;
+    double A544;
     int A550,A551,A552,A553;
     
 	// boundary conditions

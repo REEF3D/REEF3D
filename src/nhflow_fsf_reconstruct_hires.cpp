@@ -63,25 +63,23 @@ void nhflow_fsf_reconstruct_hires::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_
     fs(i,j) = f(i,j)   + 0.5*p->DXP[IP]*dfdx(i,j); 
     fn(i,j) = f(i+1,j) - 0.5*p->DXP[IP1]*dfdx(i+1,j);
     
-        if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
-        {
-        //fs(i,j) = f(i,j); 
-        }
-        
-        else
-        if(p->wet[IJ]==1 && p->wet[Im1J]==0)
-        {
-        //fn(i-1,j) = f(i,j);
-        }
-        
-        else
         if(p->wet[IJ]==0)
         {
         fs(i,j) = -p->wd  + d->bed(i,j) - wd_criterion - 1.0e-15;
         fn(i,j) = -p->wd  + d->bed(i,j) - wd_criterion - 1.0e-15;
         
-        fs(i,j) = -p->wd  + d->bed(i,j) - wd_criterion - 1.0e-15;
+        //fs(i+1,j) = -p->wd  + d->bed(i,j) - wd_criterion - 1.0e-15;
+        //fn(i-1,j) = -p->wd  + d->bed(i,j) - wd_criterion - 1.0e-15;
+        }
+        
+        if(p->wet[Im1J]==0)
+        {
         fn(i-1,j) = -p->wd  + d->bed(i,j) - wd_criterion - 1.0e-15;
+        }
+        
+        if(p->wet[Ip1J]==0)
+        {
+        fs(i+1,j) = -p->wd  + d->bed(i,j) - wd_criterion - 1.0e-15;
         }
     }
     
@@ -321,25 +319,27 @@ void nhflow_fsf_reconstruct_hires::reconstruct_2D_WL(lexer* p, ghostcell *pgc, f
     d->Ds(i,j) = d->ETAs(i,j) + 0.5*(d->depth(i-1,j)+d->depth(i,j));
     d->Dn(i,j) = d->ETAn(i,j) + 0.5*(d->depth(i-1,j)+d->depth(i,j));
     
-    d->Ds(i,j) = MAX(0.00005, d->Ds(i,j));
-    d->Dn(i,j) = MAX(0.00005, d->Dn(i,j));
+    d->Ds(i,j) = MAX(p->A544, d->Ds(i,j));
+    d->Dn(i,j) = MAX(p->A544, d->Dn(i,j));
     
-        if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
-        {
-        d->Ds(i,j) = d->WL(i,j); 
-        }
-        
-        else
-        if(p->wet[IJ]==1 && p->wet[Im1J]==0)
-        {
-        d->Dn(i-1,j) = d->WL(i,j);
-        }
-        
-        else
+
         if(p->wet[IJ]==0)
         {
         d->Ds(i,j) = d->WL(i,j);
+        d->Dn(i,j) = d->WL(i,j);
+        
+        //d->Ds(i+1,j) = d->WL(i,j);
+        //d->Dn(i-1,j) = d->WL(i,j);
+        }
+        
+        if(p->wet[Im1J]==0)
+        {
         d->Dn(i-1,j) = d->WL(i,j);
+        }
+        
+        if(p->wet[Ip1J]==0)
+        {
+        d->Ds(i+1,j) = d->WL(i,j);
         }
     }
     
@@ -348,8 +348,8 @@ void nhflow_fsf_reconstruct_hires::reconstruct_2D_WL(lexer* p, ghostcell *pgc, f
     d->De(i,j) = d->ETAe(i,j)  + 0.5*(d->depth(i,j-1)+d->depth(i,j));
     d->Dw(i,j) = d->ETAw(i,j)  + 0.5*(d->depth(i,j-1)+d->depth(i,j));
     
-    d->De(i,j) = MAX(0.00005, d->De(i,j));
-    d->Dw(i,j) = MAX(0.00005, d->Dw(i,j));
+    d->De(i,j) = MAX(p->A544, d->De(i,j));
+    d->Dw(i,j) = MAX(p->A544, d->Dw(i,j));
     
         if(p->wet[IJ]==1 && p->wet[IJp1]==0)
         {
