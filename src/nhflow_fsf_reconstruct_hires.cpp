@@ -40,6 +40,7 @@ nhflow_fsf_reconstruct_hires::~nhflow_fsf_reconstruct_hires()
 
 void nhflow_fsf_reconstruct_hires::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf *d, slice& f, slice &fs, slice &fn, slice &fe, slice &fw)
 {
+    double wd_criterion=0.00005;
     // gradient
     SLICELOOP4
     {
@@ -64,20 +65,23 @@ void nhflow_fsf_reconstruct_hires::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_
     
         if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
         {
-        fs(i,j) = f(i,j); 
+        //fs(i,j) = f(i,j); 
         }
         
         else
         if(p->wet[IJ]==1 && p->wet[Im1J]==0)
         {
-        fn(i-1,j) = f(i,j);
+        //fn(i-1,j) = f(i,j);
         }
         
         else
         if(p->wet[IJ]==0)
         {
-        fs(i,j) = f(i,j);
-        fn(i-1,j) = f(i,j);
+        fs(i,j) = -p->wd  + d->bed(i,j) - wd_criterion - 1.0e-15;
+        fn(i,j) = -p->wd  + d->bed(i,j) - wd_criterion - 1.0e-15;
+        
+        fs(i,j) = -p->wd  + d->bed(i,j) - wd_criterion - 1.0e-15;
+        fn(i-1,j) = -p->wd  + d->bed(i,j) - wd_criterion - 1.0e-15;
         }
     }
     

@@ -139,13 +139,16 @@ void nhflow_reconstruct_hires::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nh
         else
         if(p->wet[IJ]==1 && p->wet[Im1J]==0)
         {
-        Fn[Im1JK] = 0.0;
+        //Fn[Im1JK] = 0.0;
         }
         
         else
         if(p->wet[IJ]==0)
         {
         Fs[IJK] = 0.0;
+        Fn[IJK] = 0.0;
+        
+        Fs[Ip1JK] = 0.0;
         Fn[Im1JK] = 0.0;
         }
     }
