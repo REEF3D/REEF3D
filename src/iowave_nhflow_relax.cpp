@@ -25,6 +25,40 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
+void iowave::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
+{
+	count=0;
+    SLICELOOP4
+    {
+		dg = distgen(p);
+		db = distbeach(p);
+        
+
+		// Wave Generation
+        if(p->B98==2 && h_switch==1)
+        {
+            // Zone 1
+            if(dg<1.0e20)
+            { 
+            WL(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*(etaval[count] + depth(i,j)) + relax4_wg(i,j) * WL(i,j);
+            ++count;
+            }
+		}
+        
+		
+		// Numerical Beach
+		if(p->B99==1 || p->B99==2)
+		{
+            // Zone 2
+            if(db<1.0e20)
+            {
+            if(p->wet[IJ]==1)
+            WL(i,j) = (1.0-relax4_nb(i,j))*depth(i,j) + relax4_nb(i,j)*WL(i,j);
+            }
+        }
+    }
+}
+
 void iowave::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
 {
     count=0;

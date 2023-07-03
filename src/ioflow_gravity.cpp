@@ -368,6 +368,10 @@ void ioflow_gravity::P_relax(lexer *p, ghostcell *pgc, double *P)
 {
 }
 
+void ioflow_gravity::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
+{
+}
+
 void ioflow_gravity::fi_relax(lexer *p, ghostcell *pgc, field &f, field &phi)
 {
 }

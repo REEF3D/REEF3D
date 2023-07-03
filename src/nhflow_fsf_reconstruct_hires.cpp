@@ -40,7 +40,6 @@ nhflow_fsf_reconstruct_hires::~nhflow_fsf_reconstruct_hires()
 
 void nhflow_fsf_reconstruct_hires::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf *d, slice& f, slice &fs, slice &fn, slice &fe, slice &fw)
 {
-    double wd_criterion=0.00005;
     // gradient
     SLICELOOP4
     {
@@ -62,25 +61,6 @@ void nhflow_fsf_reconstruct_hires::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_
     {
     fs(i,j) = f(i,j)   + 0.5*p->DXP[IP]*dfdx(i,j); 
     fn(i,j) = f(i+1,j) - 0.5*p->DXP[IP1]*dfdx(i+1,j);
-    
-        if(p->wet[IJ]==0)
-        {
-        fs(i,j) = -p->wd  + d->bed(i,j) - wd_criterion - 1.0e-15;
-        fn(i,j) = -p->wd  + d->bed(i,j) - wd_criterion - 1.0e-15;
-        
-        //fs(i+1,j) = -p->wd  + d->bed(i,j) - wd_criterion - 1.0e-15;
-        //fn(i-1,j) = -p->wd  + d->bed(i,j) - wd_criterion - 1.0e-15;
-        }
-        
-        if(p->wet[Im1J]==0)
-        {
-        fn(i-1,j) = -p->wd  + d->bed(i,j) - wd_criterion - 1.0e-15;
-        }
-        
-        if(p->wet[Ip1J]==0)
-        {
-        fs(i+1,j) = -p->wd  + d->bed(i,j) - wd_criterion - 1.0e-15;
-        }
     }
     
     if(p->j_dir==1)
@@ -88,24 +68,6 @@ void nhflow_fsf_reconstruct_hires::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_
     {
     fe(i,j) = f(i,j)   + 0.5*p->DYP[JP]*dfdy(i,j); 
     fw(i,j) = f(i,j+1) - 0.5*p->DYP[JP1]*dfdy(i,j+1); 
-    
-        if(p->wet[IJ]==1 && p->wet[IJp1]==0)
-        {
-        fs(i,j) = f(i,j); 
-        }
-        
-        else
-        if(p->wet[IJ]==1 && p->wet[IJm1]==0)
-        {
-        fn(i,j-1) = f(i,j);
-        }
-        
-        else
-        if(p->wet[IJ]==0)
-        {
-        fs(i,j) = f(i,j);
-        fn(i,j-1) = f(i,j);
-        }
     }
 }
 
@@ -127,25 +89,6 @@ void nhflow_fsf_reconstruct_hires::reconstruct_3D_x(lexer* p, ghostcell *pgc, fd
     {
     Fs[IJK] = (Fx[IJK]    + 0.5*p->DXP[IP]*DFDX[IJK]); 
     Fn[IJK] = (Fx[Ip1JK]  - 0.5*p->DXP[IP1]*DFDX[Ip1JK]);
-    
-        if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
-        {
-        Fs[Ip1JK] = 0.0; 
-        Fn[Ip1JK] = 0.0; 
-        }
-        
-        else
-        if(p->wet[IJ]==1 && p->wet[Im1J]==0)
-        {
-        Fn[IJK] = 0.0;
-        }
-        
-        else
-        if(p->wet[IJ]==0)
-        {
-        Fs[Ip1JK] = 0.0;
-        Fn[IJK] = 0.0;
-        }
     }
     
 }
@@ -168,25 +111,6 @@ void nhflow_fsf_reconstruct_hires::reconstruct_3D_y(lexer* p, ghostcell *pgc, fd
     {
     Fe[IJK] = (Fy[IJK]    + 0.5*p->DYP[JP]*DFDY[IJK]); 
     Fw[IJK] = (Fy[IJp1K]  - 0.5*p->DYP[JP1]*DFDY[IJp1K]);
-    
-        if(p->wet[IJ]==1 && p->wet[IJp1]==0)
-        {
-        Fe[IJp1K] = 0.0; 
-        Fw[IJp1K] = 0.0; 
-        }
-        
-        else
-        if(p->wet[IJ]==1 && p->wet[IJm1]==0)
-        {
-        Fw[IJK] = 0.0;
-        }
-        
-        else
-        if(p->wet[IJ]==0)
-        {
-        Fe[IJp1K] = 0.0;
-        Fw[IJK] = 0.0;
-        }
     }
 }
 
@@ -217,51 +141,12 @@ void nhflow_fsf_reconstruct_hires::reconstruct_3D(lexer* p, ghostcell *pgc, fdm_
     {
     Fs[IJK] = (Fx[IJK]    + 0.5*p->DXP[IP]*DFDX[IJK]); 
     Fn[IJK] = (Fx[Ip1JK]  - 0.5*p->DXP[IP1]*DFDX[Ip1JK]);
-    
-
-        if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
-        {
-        Fs[Ip1JK] = 0.0; 
-        Fn[Ip1JK] = 0.0; 
-        }
-        
-        else
-        if(p->wet[IJ]==1 && p->wet[Im1J]==0)
-        {
-        Fn[IJK] = 0.0;
-        }
-        
-        else
-        if(p->wet[IJ]==0)
-        {
-        Fs[Ip1JK] = 0.0;
-        Fn[IJK] = 0.0;
-        }
     }
 
     VLOOP
     {
     Fe[IJK] = (Fy[IJK]    + 0.5*p->DYP[JP]*DFDY[IJK]); 
     Fw[IJK] = (Fy[IJp1K]  - 0.5*p->DYP[JP1]*DFDY[IJp1K]);
-    
-        if(p->wet[IJ]==1 && p->wet[IJp1]==0)
-        {
-        Fe[IJp1K] = 0.0; 
-        Fw[IJp1K] = 0.0; 
-        }
-        
-        else
-        if(p->wet[IJ]==1 && p->wet[IJm1]==0)
-        {
-        Fw[IJK] = 0.0;
-        }
-        
-        else
-        if(p->wet[IJ]==0)
-        {
-        Fe[IJp1K] = 0.0;
-        Fw[IJK] = 0.0;
-        }
     }
 }
 
@@ -307,67 +192,32 @@ double nhflow_fsf_reconstruct_hires::limiter(double v1, double v2)
     val = 0.5*phi*(v1+v2);
     }
     
+    if(p->wet[IJ]==0)
+    val=0.0;
+    
     return val;
 }
 
 void nhflow_fsf_reconstruct_hires::reconstruct_2D_WL(lexer* p, ghostcell *pgc, fdm_nhf *d)
 {
-    // water level   
+    // water level  
+    SLICELOOP1
+    d->dfx(i,j) = 0.5*(d->depth(i+1,j)+d->depth(i,j));
+    
+    SLICELOOP2
+    d->dfy(i,j) = 0.5*(d->depth(i,j+1)+d->depth(i,j));
+    
 
     SLICELOOP1
     {
-    d->Ds(i,j) = d->ETAs(i,j) + 0.5*(d->depth(i-1,j)+d->depth(i,j));
-    d->Dn(i,j) = d->ETAn(i,j) + 0.5*(d->depth(i-1,j)+d->depth(i,j));
-    
-    d->Ds(i,j) = MAX(p->A544, d->Ds(i,j));
-    d->Dn(i,j) = MAX(p->A544, d->Dn(i,j));
-    
-
-        if(p->wet[IJ]==0)
-        {
-        d->Ds(i,j) = d->WL(i,j);
-        d->Dn(i,j) = d->WL(i,j);
-        
-        //d->Ds(i+1,j) = d->WL(i,j);
-        //d->Dn(i-1,j) = d->WL(i,j);
-        }
-        
-        if(p->wet[Im1J]==0)
-        {
-        d->Dn(i-1,j) = d->WL(i,j);
-        }
-        
-        if(p->wet[Ip1J]==0)
-        {
-        d->Ds(i+1,j) = d->WL(i,j);
-        }
+    d->Ds(i,j) = d->ETAs(i,j) + 0.5*(d->depth(i+1,j)+d->depth(i,j));
+    d->Dn(i,j) = d->ETAn(i,j) + 0.5*(d->depth(i+1,j)+d->depth(i,j));
     }
     
     SLICELOOP2
     {
-    d->De(i,j) = d->ETAe(i,j)  + 0.5*(d->depth(i,j-1)+d->depth(i,j));
-    d->Dw(i,j) = d->ETAw(i,j)  + 0.5*(d->depth(i,j-1)+d->depth(i,j));
-    
-    d->De(i,j) = MAX(p->A544, d->De(i,j));
-    d->Dw(i,j) = MAX(p->A544, d->Dw(i,j));
-    
-        if(p->wet[IJ]==1 && p->wet[IJp1]==0)
-        {
-        d->De(i,j) = d->WL(i,j); 
-        }
-        
-        else
-        if(p->wet[IJ]==1 && p->wet[IJm1]==0)
-        {
-        d->Dw(i,j-1) = d->WL(i,j);
-        }
-        
-        else
-        if(p->wet[IJ]==0)
-        {
-        d->De(i,j) = d->WL(i,j);
-        d->Dw(i,j-1) = d->WL(i,j);
-        }
+    d->De(i,j) = d->ETAe(i,j)  + 0.5*(d->depth(i,j+1)+d->depth(i,j));
+    d->Dw(i,j) = d->ETAw(i,j)  + 0.5*(d->depth(i,j+1)+d->depth(i,j));
     }
     
         

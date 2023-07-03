@@ -100,6 +100,8 @@ public:
     slice2 ETAe,ETAw;
     slice1 Ds,Dn;
     slice2 De,Dw;
+    slice1 dfx;
+    slice2 dfy;
 
     matrix2D N;
 	matrix_diag M;    
@@ -107,6 +109,7 @@ public:
     double gi,gj,gk;
     double maxF,maxG,maxH;
     double wd_criterion;
+    
 };
 
 #endif

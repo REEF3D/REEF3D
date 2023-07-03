@@ -60,7 +60,9 @@ public:
     
     virtual void kinematic_fsf(lexer*, fdm_nhf*, double*, double*, double*,slice&)=0;
     virtual void kinematic_bed(lexer*, fdm_nhf*, double*, double*, double*)=0;
+    
     virtual void wetdry(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&)=0;
+    virtual void wetdry_fluxes(lexer*, fdm_nhf*, ghostcell*,slice&,double*,double*,double*,double*,double*,double*)=0;
 
 
 };

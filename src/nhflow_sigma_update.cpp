@@ -12,7 +12,7 @@ the Free Software Foundation; either version 3 of the License, or
 This program is distributed in the hope that it will be useful, but WITHOUT
 ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
-for more details.
+for more dd->etails.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
@@ -34,7 +34,7 @@ Author: Hans Bihs
 #define HXP (fabs(0.5*(d->WL(i,j)+d->WL(i+1,j)))>1.0e-20?0.5*(d->WL(i,j)+d->WL(i+1,j)):1.0e20)
 #define HY (fabs(d->hy(i,j))>1.0e-20?d->hy(i,j):1.0e20)
 
-void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, slice &eta_n, double alpha)
+void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     double wl,sigval;
     double bx,by,ex,ey;
@@ -44,19 +44,19 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta
     if(p->i_dir==1 && p->j_dir==1)
     SLICELOOP4
     {
-    d->Ex(i,j) = sx(eta);
-    d->Ey(i,j) = sy(eta);
+    d->Ex(i,j) = sx(d->eta);
+    d->Ey(i,j) = sy(d->eta);
     
-    d->Exx(i,j) = sxx(eta);
-    d->Eyy(i,j) = syy(eta);
+    d->Exx(i,j) = sxx(d->eta);
+    d->Eyy(i,j) = syy(d->eta);
     }
     
     // 2D
     if(p->j_dir==0)
     SLICELOOP4
     {
-    d->Ex(i,j) = sx(eta);    
-    d->Exx(i,j) = sxx(eta);
+    d->Ex(i,j) = sx(d->eta);    
+    d->Exx(i,j) = sxx(d->eta);
     }
     
     SLICELOOP4
@@ -125,7 +125,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta
     // sigz
     SLICELOOP4
     {
-    wl = MAX(0.00005, eta(i,j) + p->wd - d->bed(i,j));
+    wl = MAX(0.00005, d->eta(i,j) + p->wd - d->bed(i,j));
     wl = (fabs(wl)>1.0e-20?wl:1.0e20);
     
     if(p->wet[IJ]==0)

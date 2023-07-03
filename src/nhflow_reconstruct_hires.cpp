@@ -130,25 +130,6 @@ void nhflow_reconstruct_hires::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nh
     {
     Fs[IJK] = (Fx[IJK]    + 0.5*p->DXP[IP]*DFDX[IJK]); 
     Fn[IJK] = (Fx[Ip1JK]  - 0.5*p->DXP[IP1]*DFDX[Ip1JK]);
-    
-        if(p->wet[IJ]==0)
-        {
-        Fs[IJK] = 0.0;
-        Fn[IJK] = 0.0;
-        
-        //Fs[Ip1JK] = 0.0;
-        //Fn[Im1JK] = 0.0;
-        }
-        
-        if(p->wet[Im1J]==0)
-        {
-        Fn[Im1JK] = 0.0;
-        }
-        
-        if(p->wet[Ip1J]==0)
-        {
-        Fs[Ip1JK] = 0.0;
-        }
     }
 }
 
@@ -157,7 +138,6 @@ void nhflow_reconstruct_hires::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nh
     // gradient
     if(p->j_dir==1)
     {
-        
     LOOP
     {
     dfdy_plus = (Fy[IJp1K] - Fy[IJK])/p->DYP[JP];
@@ -173,24 +153,6 @@ void nhflow_reconstruct_hires::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nh
     {
     Fe[IJK] = (Fy[IJK]    + 0.5*p->DYP[JP]*DFDX[IJK]); 
     Fw[IJK] = (Fy[IJp1K]  - 0.5*p->DYP[JP1]*DFDX[IJp1K]);
-    
-        if(p->wet[IJ]==1 && p->wet[IJp1]==0)
-        {
-        Fe[IJK] = 0.0; 
-        }
-        
-        else
-        if(p->wet[IJ]==1 && p->wet[IJm1]==0)
-        {
-        Fw[IJm1K] = 0.0;
-        }
-        
-        else
-        if(p->wet[IJ]==0)
-        {
-        Fe[IJK] = 0.0;
-        Fw[IJm1K] = 0.0;
-        }
     }
     
     }
@@ -214,12 +176,6 @@ void nhflow_reconstruct_hires::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nh
     {
     Fb[IJK] = (Fz[IJK]    + 0.5*p->DZP[KP]*DFDX[IJK]); 
     Ft[IJK] = (Fz[IJKp1]  - 0.5*p->DZP[KP1]*DFDX[IJKp1]);
-    
-        if(p->wet[IJ]==0)
-        {
-        Fb[IJKp1] = 0.0;
-        Ft[IJK] = 0.0;
-        }
     }
 }
 
@@ -264,6 +220,9 @@ double nhflow_reconstruct_hires::limiter(double v1, double v2)
     
     val = 0.5*phi*(v1+v2);
     }
+    
+    if(p->wet[IJ]==0)
+    val=0.0;
     
     return val;
 }

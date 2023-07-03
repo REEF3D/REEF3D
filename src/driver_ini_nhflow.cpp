@@ -67,7 +67,10 @@ void driver::driver_ini_nhflow()
     pflow->ini_nhflow(p,d,pgc); 
     
     for(int qn=0;qn<20;++qn)
+    {
     pflow->eta_relax(p,pgc,d->eta);
+    pflow->WL_relax(p,pgc,d->WL,d->depth);
+    }
     pgc->gcsl_start4(p,d->eta,50);
 
     pnhfstep->ini(p,d,pgc);
@@ -89,7 +92,7 @@ void driver::driver_ini_nhflow()
 	//pflow->pressure_io(p,a,pgc);
     
     SLICELOOP4
-    d->WL(i,j) = MAX(0.0, d->eta(i,j) + p->wd - d->bed(i,j));
+    d->WL(i,j) = MAX(p->A544, d->eta(i,j) + p->wd - d->bed(i,j));
     
     SLICELOOP4
     d->eta_n(i,j) = d->eta(i,j);

@@ -47,10 +47,10 @@ public:
     double *VHRK1;
     double *WHRK1;
     
-    slice4 etark1;
+    slice4 WLRK1;
 
 private:
-    void reconstruct(lexer*, fdm_nhf*, ghostcell*, nhflow_signal_speed*, nhflow_fsf_reconstruct*, nhflow_reconstruct*,slice&,double*,double*,double*,double*,double*,double*);
+    void reconstruct(lexer*, fdm_nhf*, ghostcell*, nhflow_fsf*, nhflow_signal_speed*, nhflow_fsf_reconstruct*, nhflow_reconstruct*,slice&,double*,double*,double*,double*,double*,double*);
     void velcalc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
     
 	void irhs(lexer*,fdm_nhf*,ghostcell*);

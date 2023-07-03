@@ -160,7 +160,7 @@ void nhflow_pjm::vel_setup(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doub
 {
 }
 
-void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
+void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d)
 {
     
     if(p->A521==1)
@@ -174,7 +174,7 @@ void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
     LOOP
     WETDRY
     d->F[IJK] -= d->WL(i,j)*PORVALNH*fabs(p->W22)*
-                (p->A523*eta(i+1,j) + (1.0-p->A523)*eta_n(i+1,j) - p->A523*eta(i-1,j) - (1.0-p->A523)*eta_n(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);*/
+                (p->A523*d->eta(i+1,j) + (1.0-p->A523)*d->eta_n(i+1,j) - p->A523*d->eta(i-1,j) - (1.0-p->A523)*d->eta_n(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);*/
       
     if(p->A521==2)
     LOOP
@@ -217,8 +217,8 @@ void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
         /*
         if(p->wet[Ip1J]==0 && p->wet[Im1J]==1)
         {
-        detadx = (eta(i,j)-eta(i-1,j))/p->DXP[IM1];
-        detadx_n = (eta_n(i,j)-eta_n(i-1,j))/p->DXP[IM1];
+        detadx = (d->eta(i,j)-d->eta(i-1,j))/p->DXP[IM1];
+        detadx_n = (d->eta_n(i,j)-d->eta_n(i-1,j))/p->DXP[IM1];
             
         d->F[IJK] -= PORVALNH*fabs(p->W22)*
                     (p->A523*detadx + (1.0-p->A523)*detadx_n);
@@ -226,8 +226,8 @@ void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
         
         if(p->wet[Ip1J]==1 && p->wet[Im1J]==0)
         {
-        detadx = (eta(i+1,j)-eta(i,j))/p->DXP[IP];
-        detadx_n = (eta_n(i+1,j)-eta_n(i,j))/p->DXP[IP];
+        detadx = (d->eta(i+1,j)-d->eta(i,j))/p->DXP[IP];
+        detadx_n = (d->eta_n(i+1,j)-d->eta_n(i,j))/p->DXP[IP];
             
         d->F[IJK] -= PORVALNH*fabs(p->W22)*
                     (p->A523*detadx + (1.0-p->A523)*detadx_n);
@@ -235,7 +235,7 @@ void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
     }
 }
 
-void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d, slice &eta, slice &eta_n)
+void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d)
 {
     if(p->A521==1)
     LOOP
@@ -284,8 +284,8 @@ void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d, slice &eta, slice &eta_n)
         /*
         if(p->wet[IJp1]==0 && p->wet[IJm1]==1)
         {
-        detady = (eta(i,j)-eta(i,j-1))/p->DYP[JM1];
-        detady_n = (eta_n(i,j)-eta_n(i,j-1))/p->DYP[JM1];
+        detady = (d->eta(i,j)-d->eta(i,j-1))/p->DYP[JM1];
+        detady_n = (d->eta_n(i,j)-d->eta_n(i,j-1))/p->DYP[JM1];
             
         d->G[IJK] -= PORVALNH*fabs(p->W22)*
                     (p->A523*detady + (1.0-p->A523)*detady_n);
@@ -296,8 +296,8 @@ void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d, slice &eta, slice &eta_n)
         
         if(p->wet[IJp1]==1 && p->wet[IJm1]==0)
         {
-        detady = (eta(i,j+1)-eta(i,j))/p->DYP[JP];
-        detady_n = (eta_n(i,j+1)-eta_n(i,j))/p->DYP[JP];
+        detady = (d->eta(i,j+1)-d->eta(i,j))/p->DYP[JP];
+        detady_n = (d->eta_n(i,j+1)-d->eta_n(i,j))/p->DYP[JP];
             
         d->G[IJK] -= PORVALNH*fabs(p->W22)*
                     (p->A523*detady + (1.0-p->A523)*detady_n);
@@ -308,7 +308,7 @@ void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d, slice &eta, slice &eta_n)
     }
 }
 
-void nhflow_pjm::wpgrad(lexer*p, fdm_nhf *d, slice &eta, slice &eta_n)
+void nhflow_pjm::wpgrad(lexer*p, fdm_nhf *d)
 {
 }
 

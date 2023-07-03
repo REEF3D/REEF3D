@@ -45,9 +45,9 @@ public:
 	virtual void ucorr(lexer*p,fdm_nhf*,double*,double);
 	virtual void vcorr(lexer*p,fdm_nhf*,double*,double);
 	virtual void wcorr(lexer*p,fdm_nhf*,double*,double);
-	virtual void upgrad(lexer*,fdm_nhf*,slice&,slice&);
-	virtual void vpgrad(lexer*,fdm_nhf*,slice&,slice&);
-    virtual void wpgrad(lexer*,fdm_nhf*,slice&,slice&);
+	virtual void upgrad(lexer*,fdm_nhf*);
+	virtual void vpgrad(lexer*,fdm_nhf*);
+    virtual void wpgrad(lexer*,fdm_nhf*);
     
 	void rhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 	void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);

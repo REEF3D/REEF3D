@@ -130,24 +130,6 @@ void nhflow_reconstruct_weno::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf
     {
     Fs[IJK] = (Fx[IJK]    + 0.5*p->DXP[IP]*DFDXs[IJK]); 
     Fn[IJK] = (Fx[Ip1JK]  - 0.5*p->DXP[IP1]*DFDXn[Ip1JK]);
-    
-        if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
-        {
-        //Fs[IJK] = 0.0; 
-        }
-        
-        else
-        if(p->wet[IJ]==1 && p->wet[Im1J]==0)
-        {
-        Fn[Im1JK] = 0.0;
-        }
-        
-        else
-        if(p->wet[IJ]==0)
-        {
-        Fs[IJK] = 0.0;
-        Fn[Im1JK] = 0.0;
-        }
     }
 }
 
@@ -172,24 +154,6 @@ void nhflow_reconstruct_weno::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf
     {
     Fe[IJK] = (Fy[IJK]    + 0.5*p->DYP[JP]*DFDXs[IJK]); 
     Fw[IJK] = (Fy[IJp1K]  - 0.5*p->DYP[JP1]*DFDXn[IJp1K]);
-    
-        if(p->wet[IJ]==1 && p->wet[IJp1]==0)
-        {
-        Fe[IJK] = 0.0; 
-        }
-        
-        else
-        if(p->wet[IJ]==1 && p->wet[IJm1]==0)
-        {
-        Fw[IJm1K] = 0.0;
-        }
-        
-        else
-        if(p->wet[IJ]==0)
-        {
-        Fe[IJK] = 0.0;
-        Fw[IJm1K] = 0.0;
-        }
     }
     
     }
@@ -213,12 +177,6 @@ void nhflow_reconstruct_weno::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nhf
     {
     Fb[IJK] = (Fz[IJK]    + 0.5*p->DZP[KP]*DFDXs[IJK]); 
     Ft[IJK] = (Fz[IJKp1]  - 0.5*p->DZP[KP1]*DFDXs[IJKp1]);
-    
-        if(p->wet[IJ]==0)
-        {
-        Fb[IJKp1] = 0.0;
-        Ft[IJK] = 0.0;
-        }
     }
 }
 

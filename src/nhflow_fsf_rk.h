@@ -55,6 +55,8 @@ public:
     virtual void kinematic_bed(lexer*, fdm_nhf*, double*, double*, double*);
     
     virtual void wetdry(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&);
+    virtual void wetdry_fluxes(lexer*, fdm_nhf*, ghostcell*,slice&,double*,double*,double*,double*,double*,double*);
+    
     virtual void breaking(lexer*, fdm_nhf*, ghostcell*,slice&, slice&, double);
     
     void update(lexer*,fdm_nhf*,ghostcell*,slice&);
@@ -69,16 +71,18 @@ private:
     slice1 P;
     slice2 Q;
     slice4 K;
+    int *temp;
 
     int gcval_phi,gcval_eta;
 	double starttime;
     double phival,H;
 	double d;
-    const double epsi;
     double wd_criterion;
     double val, denom;
     double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus;
     double detadx,detady;
+    
+    const double eps;
 
 };
 

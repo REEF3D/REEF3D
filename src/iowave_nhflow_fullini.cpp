@@ -42,7 +42,7 @@ void iowave::full_initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
     
     SLICELOOP4
-    d->WL(i,j) = MAX(0.0, d->eta(i,j) + p->wd - d->bed(i,j));
+    d->WL(i,j) = MAX(p->A544, d->eta(i,j) + p->wd - d->bed(i,j));
 
     FLOOP
     p->ZSN[FIJK] = p->ZN[KP]*d->WL(i,j) + d->bed(i,j);

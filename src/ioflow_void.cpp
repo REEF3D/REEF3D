@@ -818,6 +818,10 @@ void ioflow_v::P_relax(lexer *p, ghostcell *pgc, double *P)
 {
 }
 
+void ioflow_v::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
+{
+}
+
 void ioflow_v::fi_relax(lexer *p, ghostcell *pgc, field &f, field &phi)
 {
 }

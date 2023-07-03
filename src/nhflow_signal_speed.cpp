@@ -49,18 +49,18 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
     d->Sn[IJK] = MAX(Un[IJK] + sqrt(9.81*Dn(i,j)), USx + DSx);
     d->SSx[IJK] = USx;
     
-    if(p->wet[Ip1J]==0)
+    if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
     {
     d->Ss[IJK] = Us[IJK] - sqrt(9.81*Ds(i,j));
     d->Sn[IJK] = Us[IJK] + 2.0*sqrt(9.81*Ds(i,j));
     d->SSx[IJK] = d->Sn[IJK];
     }
     
-    if(p->wet[Im1J]==0)
+    if(p->wet[IJ]==1 && p->wet[Im1J]==0)
     {
-    d->Ss[IJK] = Un[IJK] - 2.0*sqrt(9.81*Dn(i,j));
-    d->Sn[IJK] = Un[IJK] + sqrt(9.81*Dn(i,j));
-    d->SSx[IJK] = d->Ss[IJK];
+    d->Ss[Im1JK] = Un[IJK] - 2.0*sqrt(9.81*Dn(i,j));
+    d->Sn[Im1JK] = Un[IJK] + sqrt(9.81*Dn(i,j));
+    d->SSx[Im1JK] = d->Ss[IJK];
     }
     
     if(p->wet[IJ]==0)
