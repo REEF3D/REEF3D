@@ -87,7 +87,7 @@ void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d)
     WETDRY
     {
     d->F[IJK] += PORVALNH*0.5*(d->ETAs(i,j)+d->ETAn(i,j))*fabs(p->W22)*
-                d->dfx(i,j)/(p->DXP[IP]+p->DXP[IM1]);
+                (d->depth(i+1,j) - d->depth(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
     }
        
     if(p->A521==2)

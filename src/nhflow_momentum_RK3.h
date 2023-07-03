@@ -47,7 +47,7 @@ public:
     double *VHRK1,*VHRK2;
     double *WHRK1,*WHRK2;
     
-    slice4 etark1,etark2;
+    slice4 WLRK1,WLRK2;
 
 private:
     void reconstruct(lexer*, fdm_nhf*, ghostcell*, nhflow_signal_speed*, nhflow_fsf_reconstruct*, nhflow_reconstruct*,slice&,double*,double*,double*,double*,double*,double*);

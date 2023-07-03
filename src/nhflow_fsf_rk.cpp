@@ -110,7 +110,7 @@ void nhflow_fsf_rk::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflo
     d->WL(i,j) = 0.5*d->WL(i,j) + 0.5*WLRK1(i,j) + 0.5*p->dt*K(i,j);
 
     pflow->WL_relax(p,pgc,d->WL,d->depth);
-    pgc->gcsl_start4(p,WLRK1,1);
+    pgc->gcsl_start4(p,d->WL,1);
     
     SLICELOOP4
     d->WL_n(i,j) = d->WL(i,j);
@@ -130,7 +130,7 @@ void nhflow_fsf_rk::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflo
 
 // ----------------------------------------
 
-void nhflow_fsf_rk::rk3_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
+void nhflow_fsf_rk::rk3_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& WLRK1, slice &WLRK2, double alpha)
 {
     wetdry(p,d,pgc,U,V,W,d->eta);
     
@@ -142,25 +142,25 @@ void nhflow_fsf_rk::rk3_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflo
     K(i,j) += -p->DZN[KP]*((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
     
     SLICELOOP4
-    etark1(i,j) = d->eta(i,j) + p->dt*K(i,j);
+    WLRK1(i,j) = d->WL(i,j) + p->dt*K(i,j);
      
-    pflow->eta_relax(p,pgc,etark1);
-    pgc->gcsl_start4(p,etark1,1);
+    pflow->WL_relax(p,pgc,WLRK1,d->depth);
+    pgc->gcsl_start4(p,WLRK1,1);
     
     SLICELOOP4
     d->WL_n(i,j) = d->WL(i,j);
     
     SLICELOOP4
-    d->WL(i,j) = (etark1(i,j) + p->wd - d->bed(i,j));
+    d->eta(i,j) = WLRK1(i,j) - d->depth(i,j);
     
     SLICELOOP4
     d->detadt(i,j) = K(i,j);
     
-    wetdry(p,d,pgc,U,V,W,etark1);
-    breaking(p,d,pgc,etark1,d->eta,1.0);
+    wetdry(p,d,pgc,U,V,W,WLRK1);
+    //breaking(p,d,pgc,etark1,d->eta,1.0);
 }
 
-void nhflow_fsf_rk::rk3_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
+void nhflow_fsf_rk::rk3_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& WLRK1, slice &WLRK2, double alpha)
 {
     SLICELOOP4
     K(i,j) = 0.0;
@@ -170,25 +170,25 @@ void nhflow_fsf_rk::rk3_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflo
     K(i,j) += -p->DZN[KP]*((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
     
     SLICELOOP4
-    etark2(i,j) = 0.75*d->eta(i,j) + 0.25*etark1(i,j) + 0.25*p->dt*K(i,j);
+    WLRK2(i,j) = 0.75*d->WL(i,j) + 0.25*WLRK1(i,j) + 0.25*p->dt*K(i,j);
 
-    pflow->eta_relax(p,pgc,etark2);
-    pgc->gcsl_start4(p,etark2,1);
+    pflow->WL_relax(p,pgc,WLRK2,d->depth);
+    pgc->gcsl_start4(p,WLRK2,1);
     
     SLICELOOP4
     d->WL_n(i,j) = d->WL(i,j);
     
     SLICELOOP4
-    d->WL(i,j) = (etark2(i,j) + p->wd - d->bed(i,j));
+    d->eta(i,j) = WLRK2(i,j) - d->depth(i,j);
     
     SLICELOOP4
     d->detadt(i,j) = K(i,j);
     
-    wetdry(p,d,pgc,U,V,W,etark2);
-    breaking(p,d,pgc,etark2,etark1,0.25);
+    wetdry(p,d,pgc,U,V,W,WLRK2);
+    //breaking(p,d,pgc,etark2,etark1,0.25);
 }
 
-void nhflow_fsf_rk::rk3_step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
+void nhflow_fsf_rk::rk3_step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& WLRK1, slice &WLRK2, double alpha)
 {
     // fill eta_n
     SLICELOOP4
@@ -206,17 +206,17 @@ void nhflow_fsf_rk::rk3_step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflo
     K(i,j) += - p->DZN[KP]*((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
     
     SLICELOOP4
-    d->eta(i,j) = (1.0/3.0)*d->eta(i,j) + (2.0/3.0)*etark2(i,j) + (2.0/3.0)*p->dt*K(i,j);
+    d->WL(i,j) = (1.0/3.0)*d->WL(i,j) + (2.0/3.0)*WLRK2(i,j) + (2.0/3.0)*p->dt*K(i,j);
 
 
-    pflow->eta_relax(p,pgc,d->eta);
-    pgc->gcsl_start4(p,d->eta,1);
+    pflow->WL_relax(p,pgc,d->WL,d->depth);
+    pgc->gcsl_start4(p,d->WL,1);
     
     SLICELOOP4
     d->WL_n(i,j) = d->WL(i,j);
     
     SLICELOOP4
-    d->WL(i,j) = (d->eta(i,j) + p->wd - d->bed(i,j));
+    d->eta(i,j) = d->WL(i,j) - d->depth(i,j);
     
     //SLICELOOP4
     //d->detadt(i,j) = (d->eta(i,j) -d->eta_n(i,j))/p->dt;
@@ -227,8 +227,8 @@ void nhflow_fsf_rk::rk3_step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflo
     LOOP
     d->test[IJK] = (d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP];
     
-    wetdry(p,d,pgc,U,V,W,d->eta);
-    breaking(p,d,pgc,d->eta,etark2,2.0/3.0);
+    wetdry(p,d,pgc,U,V,W,d->WL);
+    //breaking(p,d,pgc,d->eta,etark2,2.0/3.0);
 }
 
 
