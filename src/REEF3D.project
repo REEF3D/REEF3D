@@ -1417,11 +1417,12 @@
             <File Name="nhflow_flux_FOU.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="RK">
+            <File Name="nhflow_fsf_rk2.cpp"/>
+            <File Name="nhflow_fsf_rk3.cpp"/>
             <File Name="nhflow_fsf_rk_wetdry.cpp"/>
             <File Name="nhflow_fsf_rk_kfsfbc.cpp"/>
             <File Name="nhflow_fsf_rk_ini.cpp"/>
             <File Name="nhflow_fsf_rk_breaking.cpp"/>
-            <File Name="nhflow_fsf_rk.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Void">
             <File Name="nhflow_fsf_v.cpp"/>

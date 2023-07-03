@@ -53,8 +53,8 @@ void nhflow_fsf_reconstruct_hires::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_
     dfdy(i,j) = limiter(dfdy_plus,dfdy_min);
     }
     
-    pgc->gcsl_start1(p,dfdx,10);
-    pgc->gcsl_start2(p,dfdy,11);
+    pgc->gcsl_start1(p,dfdx,1);
+    pgc->gcsl_start2(p,dfdy,1);
     
     // reconstruct
     SLICELOOP1  

@@ -88,18 +88,6 @@ void nhflow_fsf_rk::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, dou
     FLOOP
     if(p->wet[IJ]==0)
     d->omegaF[FIJK] = 0.0;
-    
-    /*
-    SLICELOOP4
-    if(p->wet[IJ]==0)
-    //if(d->eta(i,j)< -p->wd  + d->bed(i,j) - p->A544 + 1.0e-20)
-    {
-    //d->eta(i,j) = -p->wd  + d->bed(i,j) - p->A544 - eps;
-    
-    d->eta(i,j) = p->A544 - d->depth(i,j) - eps;
-    d->WL(i,j) = d->eta(i,j) + d->depth(i,j) + eps;
-    }*/
-    
         
     pgc->gcsl_start4(p,d->eta,1);
     pgc->gcsl_start4Vint(p,p->wet,50);
@@ -113,8 +101,176 @@ void nhflow_fsf_rk::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &W
     {
         if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
         {
+        d->ETAs(i,j) = d->eta(i,j);
+
+        d->Ds(i,j) = WL(i,j);
+        
+        d->dfx(i,j) = d->depth(i,j);
+        }
+        
+        else
+        if(p->wet[IJ]==1 && p->wet[Im1J]==0)
+        {
+        d->ETAn(i-1,j) = d->eta(i,j);
+
+        d->Dn(i-1,j) = WL(i,j);
+        
+        d->dfx(i-1,j) = d->depth(i,j);
+        }
+        
+        else
+        if(p->wet[IJ]==0)
+        {
+        d->ETAs(i,j) = d->eta(i,j);
+
+        d->Ds(i,j) = WL(i,j);
+        
+        
+        d->ETAn(i-1,j) = d->eta(i,j);
+
+        d->Ds(i-1,j) = WL(i,j);
+        }
+    }
+    
+    if(p->j_dir==1)
+    SLICELOOP2 
+    {
+        if(p->wet[IJ]==1 && p->wet[IJp1]==0)
+        {
+        d->ETAe(i,j) = d->eta(i,j);
+
+        d->De(i,j) = WL(i,j);
+        
+        d->dfy(i,j) = d->depth(i,j);
+        }
+        
+        else
+        if(p->wet[IJ]==1 && p->wet[IJm1]==0)
+        {
+        d->ETAw(i,j-1) = d->eta(i,j);
+
+        d->Dw(i,j-1) = WL(i,j);
+        
+        d->dfy(i,j-1) = d->depth(i,j);
+        }
+        
+        else
+        if(p->wet[IJ]==0)
+        {
+        d->ETAe(i,j) = d->eta(i,j);
+
+        d->De(i,j) = WL(i,j);
+        
+        
+        d->ETAw(i,j-1) = d->eta(i,j);
+
+        d->Dw(i,j-1) = WL(i,j);
+        }
+    }
+    
+
+    // U,UH
+    ULOOP 
+    {
+        if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
+        {
+        d->Us[IJK] = 0.0;
+        d->Vs[IJK] = 0.0;
+        d->Ws[IJK] = 0.0;
+    
+        d->UHs[IJK] = 0.0;
+        d->VHs[IJK] = 0.0;
+        d->WHs[IJK] = 0.0;
+        }
+        
+        else
+        if(p->wet[IJ]==1 && p->wet[Im1J]==0)
+        {
+        d->Un[Im1JK] = 0.0;
+        d->Vn[Im1JK] = 0.0;
+        d->Wn[Im1JK] = 0.0;
+        
+        d->UHn[Im1JK] = 0.0;
+        d->VHn[Im1JK] = 0.0;
+        d->WHn[Im1JK] = 0.0;
+        }
+        
+        else
+        if(p->wet[IJ]==0)
+        {
+        d->Us[IJK] = 0.0;
+        d->Vs[IJK] = 0.0;
+        d->Ws[IJK] = 0.0;
+        
+        d->UHs[IJK] = 0.0;
+        d->VHs[IJK] = 0.0;
+        d->WHs[IJK] = 0.0;
+        
+        d->Un[Im1JK] = 0.0;
+        d->Vn[Im1JK] = 0.0;
+        d->Wn[Im1JK] = 0.0;
+        
+        d->UHn[Im1JK] = 0.0;
+        d->VHn[Im1JK] = 0.0;
+        d->WHn[Im1JK] = 0.0;
+        }
+    }
+    
+    VLOOP 
+    {
+        if(p->wet[IJ]==1 && p->wet[IJp1]==0)
+        {
+        d->Ue[IJK] = 0.0;
+        d->Ve[IJK] = 0.0;
+        d->We[IJK] = 0.0;
+    
+        d->UHe[IJK] = 0.0;
+        d->VHe[IJK] = 0.0;
+        d->WHe[IJK] = 0.0;
+        }
+        
+        else
+        if(p->wet[IJ]==1 && p->wet[IJm1]==0)
+        {
+        d->Uw[IJm1K] = 0.0;
+        d->Vw[IJm1K] = 0.0;
+        d->Ww[IJm1K] = 0.0;
+        
+        d->UHw[IJm1K] = 0.0;
+        d->VHw[IJm1K] = 0.0;
+        d->WHw[IJm1K] = 0.0;
+        }
+        
+        else
+        if(p->wet[IJ]==0)
+        {
+        d->Ue[IJK] = 0.0;
+        d->Ve[IJK] = 0.0;
+        d->We[IJK] = 0.0;
+        
+        d->UHe[IJK] = 0.0;
+        d->VHe[IJK] = 0.0;
+        d->WHe[IJK] = 0.0;
+        
+        d->Uw[IJm1K] = 0.0;
+        d->Vw[IJm1K] = 0.0;
+        d->Ww[IJm1K] = 0.0;
+        
+        d->UHw[IJm1K] = 0.0;
+        d->VHw[IJm1K] = 0.0;
+        d->WHw[IJm1K] = 0.0;
+        }
+    }
+    
+    
+    
+   /* 
+    // eta + WL
+    SLICELOOP1  
+    {
+        if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
+        {
         d->ETAn(i,j) = d->eta(i,j);
-        //d->ETAs(i,j) = d->eta(i,j);
 
         d->Dn(i,j) = WL(i,j);
         
@@ -125,7 +281,6 @@ void nhflow_fsf_rk::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &W
         if(p->wet[IJ]==1 && p->wet[Im1J]==0)
         {
         d->ETAs(i-1,j) = d->eta(i,j);
-        //d->ETAn(i-1,j) = d->eta(i,j);
 
         d->Ds(i-1,j) = WL(i,j);
         
@@ -184,7 +339,6 @@ void nhflow_fsf_rk::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &W
     
 
     // U,UH
-    // reconstruct
     ULOOP 
     {
         if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
@@ -275,54 +429,5 @@ void nhflow_fsf_rk::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &W
         d->VHe[IJm1K] = 0.0;
         d->WHe[IJm1K] = 0.0;
         }
-    }
-    
-    /*
-    ULOOP 
-    {
-        if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
-        {
-        d->Us[IJK] = 0.0;
-        d->Vs[IJK] = 0.0;
-        d->Ws[IJK] = 0.0;
-    
-        d->UHs[IJK] = 0.0;
-        d->VHs[IJK] = 0.0;
-        d->WHs[IJK] = 0.0;
-        }
-        
-        else
-        if(p->wet[IJ]==1 && p->wet[Im1J]==0)
-        {
-        d->Un[Im1JK] = 0.0;
-        d->Vn[Im1JK] = 0.0;
-        d->Wn[Im1JK] = 0.0;
-        
-        d->UHn[Im1JK] = 0.0;
-        d->VHn[Im1JK] = 0.0;
-        d->WHn[Im1JK] = 0.0;
-        }
-        
-        else
-        if(p->wet[IJ]==0)
-        {
-        d->Us[IJK] = 0.0;
-        d->Vs[IJK] = 0.0;
-        d->Ws[IJK] = 0.0;
-        
-        d->UHs[IJK] = 0.0;
-        d->VHs[IJK] = 0.0;
-        d->WHs[IJK] = 0.0;
-        
-        d->Un[Im1JK] = 0.0;
-        d->Vn[Im1JK] = 0.0;
-        d->Wn[Im1JK] = 0.0;
-        
-        d->UHn[Im1JK] = 0.0;
-        d->VHn[Im1JK] = 0.0;
-        d->WHn[Im1JK] = 0.0;
-        }
     }*/
-    
-    
 }

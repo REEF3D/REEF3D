@@ -67,10 +67,8 @@ void nhflow_fsf_rk::update(lexer *p, fdm_nhf* d, ghostcell *pgc, slice &f)
 {
 }
 
-void nhflow_fsf_rk::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& WLRK1, slice &WLRK2, double alpha)
+void nhflow_fsf_rk::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice &WLRK1, slice &WLRK2, double alpha)
 {
-    //wetdry(p,d,pgc,U,V,W,d->eta);
-    
     SLICELOOP4
     K(i,j) = 0.0;
     
@@ -97,7 +95,7 @@ void nhflow_fsf_rk::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflo
     //breaking(p,d,pgc,etark1,d->eta,1.0);
 }
 
-void nhflow_fsf_rk::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& WLRK1, slice &WLRK2, double alpha)
+void nhflow_fsf_rk::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice &WLRK1, slice &WLRK2, double alpha)
 {
     SLICELOOP4
     K(i,j) = 0.0;
@@ -127,110 +125,6 @@ void nhflow_fsf_rk::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflo
     wetdry(p,d,pgc,U,V,W,d->WL);
     //breaking(p,d,pgc,d->eta,etark1,0.25);
 }
-
-// ----------------------------------------
-
-void nhflow_fsf_rk::rk3_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& WLRK1, slice &WLRK2, double alpha)
-{
-    //wetdry(p,d,pgc,U,V,W,d->eta);
-    
-    SLICELOOP4
-    K(i,j) = 0.0;
-    
-    LOOP
-    WETDRY
-    K(i,j) += -p->DZN[KP]*((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
-    
-    SLICELOOP4
-    WLRK1(i,j) = d->WL(i,j) + p->dt*K(i,j);
-     
-    pflow->WL_relax(p,pgc,WLRK1,d->depth);
-    pgc->gcsl_start4(p,WLRK1,1);
-    
-    SLICELOOP4
-    d->WL_n(i,j) = d->WL(i,j);
-    
-    SLICELOOP4
-    d->eta(i,j) = WLRK1(i,j) - d->depth(i,j);
-    
-    SLICELOOP4
-    d->detadt(i,j) = K(i,j);
-    
-    wetdry(p,d,pgc,U,V,W,WLRK1);
-    //breaking(p,d,pgc,etark1,d->eta,1.0);
-}
-
-void nhflow_fsf_rk::rk3_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& WLRK1, slice &WLRK2, double alpha)
-{
-    SLICELOOP4
-    K(i,j) = 0.0;
-    
-    LOOP
-    WETDRY
-    K(i,j) += -p->DZN[KP]*((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
-    
-    SLICELOOP4
-    WLRK2(i,j) = 0.75*d->WL(i,j) + 0.25*WLRK1(i,j) + 0.25*p->dt*K(i,j);
-
-    pflow->WL_relax(p,pgc,WLRK2,d->depth);
-    pgc->gcsl_start4(p,WLRK2,1);
-    
-    SLICELOOP4
-    d->WL_n(i,j) = d->WL(i,j);
-    
-    SLICELOOP4
-    d->eta(i,j) = WLRK2(i,j) - d->depth(i,j);
-    
-    SLICELOOP4
-    d->detadt(i,j) = K(i,j);
-    
-    wetdry(p,d,pgc,U,V,W,WLRK2);
-    //breaking(p,d,pgc,etark2,etark1,0.25);
-}
-
-void nhflow_fsf_rk::rk3_step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& WLRK1, slice &WLRK2, double alpha)
-{
-    // fill eta_n
-    SLICELOOP4
-    d->eta_n(i,j) = d->eta(i,j);
-
-    pgc->gcsl_start4(p,d->eta_n,1);
-    
-    // ---
-
-    SLICELOOP4
-    K(i,j) = 0.0;
-    
-    LOOP
-    WETDRY
-    K(i,j) += - p->DZN[KP]*((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
-    
-    SLICELOOP4
-    d->WL(i,j) = (1.0/3.0)*d->WL(i,j) + (2.0/3.0)*WLRK2(i,j) + (2.0/3.0)*p->dt*K(i,j);
-
-
-    pflow->WL_relax(p,pgc,d->WL,d->depth);
-    pgc->gcsl_start4(p,d->WL,1);
-    
-    SLICELOOP4
-    d->WL_n(i,j) = d->WL(i,j);
-    
-    SLICELOOP4
-    d->eta(i,j) = d->WL(i,j) - d->depth(i,j);
-    
-    //SLICELOOP4
-    //d->detadt(i,j) = (d->eta(i,j) -d->eta_n(i,j))/p->dt;
-    
-    SLICELOOP4
-    d->detadt(i,j) = K(i,j);
-    
-    LOOP
-    d->test[IJK] = (d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP];
-    
-    wetdry(p,d,pgc,U,V,W,d->WL);
-    //breaking(p,d,pgc,d->eta,etark2,2.0/3.0);
-}
-
 
 void nhflow_fsf_rk::flux_update(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
 {    
