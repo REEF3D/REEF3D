@@ -194,12 +194,12 @@ void ghostcell::gcsl_start4int(lexer *p, sliceint &f, int gcv)
 
 void ghostcell::gcsl_start4Vint(lexer *p, int *f, int gcv)
 {
-    /*starttime=timer();
+    starttime=timer();
 	QQGCSL4LOOP
 	gcsldistro4Vint(p,f,p->gcbsl4[qq][0],p->gcbsl4[qq][1], p->gcbsl4[qq][5], p->gcdsl4[qq], gcv, p->gcbsl4[qq][4], p->gcbsl4[qq][3]);
 	endtime=timer();
 	p->gctime+=endtime-starttime;
-    */
+    
     /*
     SLICELOOP4
     {  
