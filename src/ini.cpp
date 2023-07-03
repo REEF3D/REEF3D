@@ -105,7 +105,7 @@ void lexer::ini_default()
     A517=3;      // int NHFLOW omega_sig scheme
     
     A520=1;		// int NFHLOW non-hydrostatic pressure scheme
-    A521=2;		// int NFHLOW hydrostatic pressure scheme
+    A521=1;		// int NFHLOW hydrostatic pressure scheme
     A523=0.5;    // double blending factor hydrostatic pressure gradient
     A540=1;      // int NFHLOW fsf scheme
     A541=1;      // int NFHLOW fsf hxy discretization

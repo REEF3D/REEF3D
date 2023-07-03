@@ -50,8 +50,8 @@ public:
     slice4 WLRK1,WLRK2;
 
 private:
-    void reconstruct(lexer*, fdm_nhf*, ghostcell*, nhflow_signal_speed*, nhflow_fsf_reconstruct*, nhflow_reconstruct*,slice&,double*,double*,double*,double*,double*,double*);
-    void velcalc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
+    void reconstruct(lexer*, fdm_nhf*, ghostcell*, nhflow_fsf*, nhflow_signal_speed*, nhflow_fsf_reconstruct*, nhflow_reconstruct*,slice&,double*,double*,double*,double*,double*,double*);
+    void velcalc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,slice&);
     
 	void irhs(lexer*,fdm_nhf*,ghostcell*);
 	void jrhs(lexer*,fdm_nhf*,ghostcell*);

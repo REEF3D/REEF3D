@@ -207,18 +207,22 @@ void nhflow_fsf_reconstruct_hires::reconstruct_2D_WL(lexer* p, ghostcell *pgc, f
     SLICELOOP2
     d->dfy(i,j) = 0.5*(d->depth(i,j+1)+d->depth(i,j));
     
+    pgc->gcsl_start1(p,d->dfx,1);
+    pgc->gcsl_start2(p,d->dfy,1);
 
     SLICELOOP1
     {
-    d->Ds(i,j) = d->ETAs(i,j) + 0.5*(d->depth(i+1,j)+d->depth(i,j));
-    d->Dn(i,j) = d->ETAn(i,j) + 0.5*(d->depth(i+1,j)+d->depth(i,j));
+    d->Ds(i,j) = MAX(d->ETAs(i,j) + 0.5*(d->depth(i+1,j)+d->depth(i,j)), p->A544);
+    d->Dn(i,j) = MAX(d->ETAn(i,j) + 0.5*(d->depth(i+1,j)+d->depth(i,j)), p->A544);
     }
     
     SLICELOOP2
     {
-    d->De(i,j) = d->ETAe(i,j)  + 0.5*(d->depth(i,j+1)+d->depth(i,j));
-    d->Dw(i,j) = d->ETAw(i,j)  + 0.5*(d->depth(i,j+1)+d->depth(i,j));
+    d->De(i,j) = MAX(d->ETAe(i,j)  + 0.5*(d->depth(i,j+1)+d->depth(i,j)), p->A544);
+    d->Dw(i,j) = MAX(d->ETAw(i,j)  + 0.5*(d->depth(i,j+1)+d->depth(i,j)), p->A544);
     }
+    
+    
     
         
 }

@@ -41,10 +41,10 @@ public:
 	nhflow_pjm(lexer*, fdm_nhf*, ghostcell*,patchBC_interface*);
 	virtual ~nhflow_pjm();
 
-	virtual void start(lexer*,fdm_nhf*,solver*,ghostcell*,ioflow*,double*,double*,double*,double);
-	virtual void ucorr(lexer*p,fdm_nhf*,double*,double);
-	virtual void vcorr(lexer*p,fdm_nhf*,double*,double);
-	virtual void wcorr(lexer*p,fdm_nhf*,double*,double);
+	virtual void start(lexer*,fdm_nhf*,solver*,ghostcell*,ioflow*,slice&,double*,double*,double*,double);
+	virtual void ucorr(lexer*p,fdm_nhf*,slice&,double*,double);
+	virtual void vcorr(lexer*p,fdm_nhf*,slice&,double*,double);
+	virtual void wcorr(lexer*p,fdm_nhf*,slice&,double*,double);
 	virtual void upgrad(lexer*,fdm_nhf*);
 	virtual void vpgrad(lexer*,fdm_nhf*);
     virtual void wpgrad(lexer*,fdm_nhf*);
