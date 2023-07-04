@@ -177,13 +177,3 @@ void nhflow_pjm::wpgrad(lexer*p, fdm_nhf *d)
 {
 }
 
-double nhflow_pjm::limiter(double v1, double v2)
-{
-    denom = fabs(v1) + fabs(v2);
-    
-    denom = fabs(denom)>1.0e-10?denom:1.0e10;
-    
-    val =  (v1*fabs(v2) + fabs(v1)*v2)/denom;
-
-    return val;	
-}

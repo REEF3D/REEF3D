@@ -33,14 +33,6 @@ nhflow_fsf_rk::nhflow_fsf_rk(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow
     
     p->Iarray(temp,p->imax*p->jmax);
     
-    wd_criterion=0.00005;
-    
-    if(p->A244==1)
-    wd_criterion=p->A244_val;
-    
-    if(p->A245==1)
-    wd_criterion=p->A245_val*p->DXM;
-    
     
     if(p->F50==1)
 	gcval_eta = 51;
@@ -88,6 +80,8 @@ void nhflow_fsf_rk::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflo
     SLICELOOP4
     d->eta(i,j) = WLRK1(i,j) - d->depth(i,j);
     
+    pgc->gcsl_start4(p,d->eta,1);
+    
     SLICELOOP4
     d->detadt(i,j) = K(i,j);
     
@@ -116,6 +110,8 @@ void nhflow_fsf_rk::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflo
     SLICELOOP4
     d->eta(i,j) = d->WL(i,j) - d->depth(i,j);
     
+    pgc->gcsl_start4(p,d->eta,1);
+    
     SLICELOOP4
     d->detadt(i,j) = K(i,j);
     
@@ -128,7 +124,6 @@ void nhflow_fsf_rk::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflo
 
 void nhflow_fsf_rk::flux_update(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
 {    
-    
     SLICELOOP4
     K(i,j) = 0.0;
     

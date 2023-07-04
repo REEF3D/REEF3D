@@ -45,10 +45,14 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
     USx = 0.5*(Us[IJK]+Un[IJK]) + sqrt(9.81*Ds(i,j)) - sqrt(9.81*Dn(i,j));
     DSx = 0.5*(sqrt(9.81*Ds(i,j)) + sqrt(9.81*Dn(i,j))) + 0.25*(Us[IJK] - Un[IJK]);
     
+    if(p->wet[IJ]==1 && p->wet[Ip1J]==1)
+    {
     d->Ss[IJK] = MIN(Us[IJK] - sqrt(9.81*Ds(i,j)), USx - DSx);
     d->Sn[IJK] = MAX(Un[IJK] + sqrt(9.81*Dn(i,j)), USx + DSx);
     d->SSx[IJK] = USx;
+    }
     
+    else
     if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
     {
     d->Ss[IJK] = Us[IJK] - sqrt(9.81*Ds(i,j));
@@ -56,18 +60,14 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
     d->SSx[IJK] = d->Sn[IJK];
     }
     
+    else
     if(p->wet[IJ]==1 && p->wet[Im1J]==0)
     {
-    d->Ss[Im1JK] = Un[IJK] - 2.0*sqrt(9.81*Dn(i,j));
-    d->Sn[Im1JK] = Un[IJK] + sqrt(9.81*Dn(i,j));
-    d->SSx[Im1JK] = d->Ss[IJK];
+    d->Ss[Im1JK] = Un[Im1JK] - 2.0*sqrt(9.81*Dn(i-1,j));
+    d->Sn[Im1JK] = Un[Im1JK] + sqrt(9.81*Dn(i-1,j));
+    d->SSx[Im1JK] = d->Ss[Im1JK];
     }
     
-    if(p->wet[IJ]==0)
-    {
-    d->Ss[IJK]=d->Sn[IJK]=0.0;
-    d->SSx[IJK]=0.0;
-    }
     }
     
     // signal speed y-dir
@@ -77,29 +77,29 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
     USy = 0.5*(Ve[IJK]+Vw[IJK]) + sqrt(9.81*De(i,j)) - sqrt(9.81*Dw(i,j));
     DSy = 0.5*(sqrt(9.81*De(i,j)) + sqrt(9.81*Dw(i,j))) + 0.25*(Ve[IJK] - Vw[IJK]);
     
+    if(p->wet[IJ]==1 && p->wet[IJp1]==1)
+    {
     d->Se[IJK] = MIN(Ve[IJK] - sqrt(9.81*De(i,j)), USy - DSy);
     d->Sw[IJK] = MAX(Vw[IJK] + sqrt(9.81*Dw(i,j)), USy + DSy);
     d->SSy[IJK] = USy;
+    }
     
-    if(p->wet[IJp1]==0)
+    else
+    if(p->wet[IJ]==1 && p->wet[IJp1]==0)
     {
     d->Se[IJK] = Ve[IJK] - sqrt(9.81*De(i,j));
     d->Sw[IJK] = Ve[IJK] + 2.0*sqrt(9.81*De(i,j));
     d->SSy[IJK] = d->Sw[IJK];
     }
     
-    if(p->wet[IJm1]==0)
+    else
+    if(p->wet[IJ]==1 && p->wet[IJm1]==0)
     {
-    d->Se[IJK] = Vw[IJK] - 2.0*sqrt(9.81*Dw(i,j));
-    d->Sw[IJK] = Vw[IJK] + sqrt(9.81*Dw(i,j));
-    d->SSy[IJK] = d->Se[IJK];
+    d->Se[IJm1K] = Vw[IJm1K] - 2.0*sqrt(9.81*Dw(i,j-1));
+    d->Sw[IJm1K] = Vw[IJm1K] + sqrt(9.81*Dw(i,j-1));
+    d->SSy[IJm1K] = d->Se[IJm1K];
     }
     
-    if(p->wet[IJ]==0)
-    {
-    d->Se[IJK]=d->Sw[IJK]=0.0;
-    d->SSy[IJK]=0.0;
-    }
     }
     
 }

@@ -55,15 +55,11 @@ public:
 
 
 private:
-    double limiter(double, double);
-    
+
 	double starttime,endtime;
 	int count, gcval_press;
 	int gcval_u, gcval_v, gcval_w;
     double val, denom;
-    double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus;
-    double detadx,detady;
-    double detadx_n,detady_n;
     
     
     density *pd;

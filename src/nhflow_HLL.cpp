@@ -72,8 +72,8 @@ double nhflow_HLL::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
     HLL(p,d,d->UHs,d->UHn,d->UHe,d->UHw);
     
     pgc->start1V(p,d->Fx,10);
-    pgc->start2V(p,d->Fy,11);
-    pgc->start3V(p,d->Fz,12);
+    pgc->start2V(p,d->Fy,10);
+    pgc->start3V(p,d->Fz,10);
     
     LOOP
     {
@@ -89,9 +89,9 @@ double nhflow_HLL::aij_V(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVEL
     pflux->start_V(p,d,pgc);
     HLL(p,d,d->VHs,d->VHn,d->VHe,d->VHw);
     
-    pgc->start1V(p,d->Fx,10);
+    pgc->start1V(p,d->Fx,11);
     pgc->start2V(p,d->Fy,11);
-    pgc->start3V(p,d->Fz,12);
+    pgc->start3V(p,d->Fz,11);
     
     LOOP
     {
@@ -107,8 +107,8 @@ double nhflow_HLL::aij_W(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
     pflux->start_W(p,d,pgc);
     HLL(p,d,d->WHs,d->WHn,d->WHe,d->WHw);
     
-    pgc->start1V(p,d->Fx,10);
-    pgc->start2V(p,d->Fy,11);
+    pgc->start1V(p,d->Fx,12);
+    pgc->start2V(p,d->Fy,12);
     pgc->start3V(p,d->Fz,12);
     
     LOOP
@@ -125,8 +125,8 @@ double nhflow_HLL::aij_E(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
     pflux->start_E(p,d,pgc);
     HLL_E(p,d);
     
-    pgc->start1V(p,d->Fx,10);
-    pgc->start2V(p,d->Fy,11); 
+    pgc->start1V(p,d->Fx,14);
+    pgc->start2V(p,d->Fy,14); 
 }
 
 double nhflow_HLL::HLL(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue, double *Uw)

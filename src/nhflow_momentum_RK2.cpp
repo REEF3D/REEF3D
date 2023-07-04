@@ -175,7 +175,6 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     sigma_update(p,d,pgc);
     omega_update(p,d,pgc,d->U,d->V,d->W);
     
-    
 	// U
 	starttime=pgc->timer();
 
@@ -299,6 +298,18 @@ void nhflow_momentum_RK2::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *
     d->U[IJK] = UH[IJK]/WL(i,j);
     d->V[IJK] = VH[IJK]/WL(i,j);
     d->W[IJK] = WH[IJK]/WL(i,j);       
+    }
+    
+    LOOP
+    if(p->wet[IJ]==0)
+    {
+        d->U[IJK] = 0.0;
+        d->V[IJK] = 0.0;
+        d->W[IJK] = 0.0;
+        
+        UH[IJK] = 0.0;
+        VH[IJK] = 0.0;
+        WH[IJK] = 0.0;
     }
     
     pgc->start4V(p,d->U,gcval_u);

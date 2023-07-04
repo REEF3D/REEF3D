@@ -54,8 +54,6 @@ public:
     void bedbc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 
 private:
-    double limiter(double, double);
-    
 	double starttime,endtime;
     const double teta;
     int check;
@@ -63,10 +61,6 @@ private:
 	int gcval_u, gcval_v, gcval_w;
     int solver_id;
     double val, denom;
-    double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus, dfdz_min, dfdz_plus;
-    double detadx,detady,detadz;
-    double detadx_n,detady_n;
-    
 
     density *pd;
     nhflow_poisson *ppois;

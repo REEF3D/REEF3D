@@ -64,8 +64,8 @@ void nhflow_fsf_rk::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, dou
         temp[IJ]=0;
         d->eta(i,j) = p->A544 - d->depth(i,j) - eps;
         //d->eta(i,j) = -p->wd  + d->bed(i,j) + p->A544 - eps;
-        //WL(i,j) = d->eta(i,j) + d->depth(i,j);//p->A544;
-        WL(i,j) = p->A544;
+        WL(i,j) = d->eta(i,j) + d->depth(i,j);//p->A544;
+        //WL(i,j) = p->A544;
         }
     }
     

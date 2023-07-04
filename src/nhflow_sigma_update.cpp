@@ -59,8 +59,9 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
     d->Exx(i,j) = sxx(d->eta);
     }
     
+    
     SLICELOOP4
-    if(p->wet[IJ]==0 || p->wet[Im1J]==0 || p->wet[Ip1J]==0 || p->wet[IJm1]==0 || p->wet[IJp1]==0)
+    if(p->wet[IJ]==0)
     {
     d->Ex(i,j)=0.0;
     d->Ey(i,j)=0.0;
@@ -90,7 +91,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
     
     SLICELOOP4
-    if(p->wet[IJ]==0 || p->wet[Im1J]==0 || p->wet[Ip1J]==0 || p->wet[IJm1]==0 || p->wet[IJp1]==0)
+    if(p->wet[IJ]==0)
     {
     d->Bx(i,j)=0.0;
     d->By(i,j)=0.0;
@@ -138,7 +139,6 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // sigt
     FLOOP
     p->sigt[FIJK] = -(p->sig[FIJK]/WLVL)*d->detadt(i,j);
-    // p->sigt[FIJK] = -(p->sig[FIJK]/WLVL)*(d->WL(i,j)-d->WL_n(i,j))/(p->dt);
 
     // sigxx
     FLOOP
@@ -230,7 +230,6 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     LOOP
     p->ZSP[IJK]  = p->ZP[KP]*d->WL(i,j) + d->bed(i,j);
-    
     
     pgc->start7S(p,p->sigx,1);
     pgc->start7S(p,p->sigy,1);
