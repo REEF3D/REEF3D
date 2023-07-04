@@ -173,7 +173,7 @@ void nhflow_reconstruct_weno::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nhf
     pgc->start3V(p,DFDXs,12);
     
     // reconstruct
-    LOOP 
+    WLOOP 
     {
     Fb[IJK] = (Fz[IJK]    + 0.5*p->DZP[KP]*DFDXs[IJK]); 
     Ft[IJK] = (Fz[IJKp1]  - 0.5*p->DZP[KP1]*DFDXs[IJKp1]);

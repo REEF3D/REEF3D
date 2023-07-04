@@ -123,7 +123,7 @@ void nhflow_reconstruct_hires::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nh
     DFDX[IJK] = limiter(dfdx_plus,dfdx_min);
     }
 
-    pgc->start1V(p,DFDX,10);
+    pgc->start1V(p,DFDX,1);
 
     // reconstruct
     ULOOP 
@@ -146,7 +146,7 @@ void nhflow_reconstruct_hires::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nh
     DFDX[IJK] = limiter(dfdy_plus,dfdy_min);
     }
     
-    pgc->start2V(p,DFDX,11);
+    pgc->start2V(p,DFDX,1);
     
     // reconstruct
     VLOOP
@@ -169,10 +169,10 @@ void nhflow_reconstruct_hires::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nh
     DFDX[IJK] = limiter(dfdz_plus,dfdz_min);
     }
     
-    pgc->start3V(p,DFDX,12);
+    pgc->start3V(p,DFDX,1);
     
     // reconstruct
-    LOOP 
+    WLOOP 
     {
     Fb[IJK] = (Fz[IJK]    + 0.5*p->DZP[KP]*DFDX[IJK]); 
     Ft[IJK] = (Fz[IJKp1]  - 0.5*p->DZP[KP1]*DFDX[IJKp1]);

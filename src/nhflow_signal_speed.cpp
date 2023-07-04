@@ -53,6 +53,74 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
     }
     
     else
+    if(p->wet[IJ]==1 && p->wet[Im1J]==0)
+    {
+    d->Ss[IJK] = Un[IJK] - 2.0*sqrt(9.81*Dn(i,j));
+    d->Sn[IJK] = Un[IJK] + sqrt(9.81*Dn(i,j));
+    d->SSx[IJK] = d->Ss[IJK];
+    }
+    
+    else
+    if(p->wet[IJ]==0 && p->wet[Im1J]==1)
+    {
+    d->Ss[IJK] = Us[Im1JK] - sqrt(9.81*Ds(i,j));
+    d->Sn[IJK] = Us[Im1JK] + 2.0*sqrt(9.81*Ds(i,j));
+    d->SSx[IJK] = d->Ss[Im1JK];
+    }
+    
+    }
+    
+    // signal speed y-dir
+    if(p->j_dir==1)
+    VLOOP
+    {
+    USy = 0.5*(Ve[IJK]+Vw[IJK]) + sqrt(9.81*De(i,j)) - sqrt(9.81*Dw(i,j));
+    DSy = 0.5*(sqrt(9.81*De(i,j)) + sqrt(9.81*Dw(i,j))) + 0.25*(Ve[IJK] - Vw[IJK]);
+    
+    if(p->wet[IJ]==1 && p->wet[IJp1]==1)
+    {
+    d->Se[IJK] = MIN(Ve[IJK] - sqrt(9.81*De(i,j)), USy - DSy);
+    d->Sw[IJK] = MAX(Vw[IJK] + sqrt(9.81*Dw(i,j)), USy + DSy);
+    d->SSy[IJK] = USy;
+    }
+    
+    else
+    if(p->wet[IJ]==1 && p->wet[IJm1]==0)
+    {
+    d->Se[IJK] = Vw[IJK] - 2.0*sqrt(9.81*Dw(i,j));
+    d->Sw[IJK] = Vw[IJK] + sqrt(9.81*Dw(i,j));
+    d->SSy[IJK] = d->Se[IJK];
+    }
+    
+    else
+    if(p->wet[IJ]==0 && p->wet[IJm1]==1)
+    {
+    d->Se[IJK] = Ve[IJm1K] - sqrt(9.81*De(i,j-1));
+    d->Sw[IJK] = Ve[IJm1K] + 2.0*sqrt(9.81*De(i,j-1));
+    d->SSy[IJK] = d->Sw[IJm1K];
+    }
+    
+    }
+    
+}
+
+
+
+/*
+// signal speed x-dir
+    ULOOP
+    {
+    USx = 0.5*(Us[IJK]+Un[IJK]) + sqrt(9.81*Ds(i,j)) - sqrt(9.81*Dn(i,j));
+    DSx = 0.5*(sqrt(9.81*Ds(i,j)) + sqrt(9.81*Dn(i,j))) + 0.25*(Us[IJK] - Un[IJK]);
+    
+    if(p->wet[IJ]==1 && p->wet[Ip1J]==1)
+    {
+    d->Ss[IJK] = MIN(Us[IJK] - sqrt(9.81*Ds(i,j)), USx - DSx);
+    d->Sn[IJK] = MAX(Un[IJK] + sqrt(9.81*Dn(i,j)), USx + DSx);
+    d->SSx[IJK] = USx;
+    }
+    
+    else
     if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
     {
     d->Ss[IJK] = Us[IJK] - sqrt(9.81*Ds(i,j));
@@ -102,7 +170,6 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
     
     }
     
-}
-
+    */
 
 
