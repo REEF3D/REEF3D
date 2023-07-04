@@ -47,7 +47,7 @@ void nhflow_fsf_rk::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, dou
     
     pgc->gcsl_start4(p,d->detadt,1);
     
-    pgc->start4V(p,d->Fx,10);
+    pgc->start1V(p,d->Fx,10);
     
     //LOOP    
     //d->test[IJK] = d->Fx[IJK] - d->Fx[Im1JK];

@@ -128,7 +128,7 @@ void nhflow_fsf_rk::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &W
         
         d->ETAn(i-1,j) = d->eta(i,j);
 
-        d->Ds(i-1,j) = WL(i,j);
+        d->Dn(i-1,j) = WL(i,j);
         }
     }
     

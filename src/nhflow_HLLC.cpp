@@ -72,8 +72,8 @@ double nhflow_HLLC::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL
     HLLC(p,d,d->UHs,d->UHn,d->UHe,d->UHw,d->SSx,d->SSx,d->Ue,d->Uw);
     
     pgc->start1V(p,d->Fx,10);
-    pgc->start2V(p,d->Fy,11);
-    pgc->start3V(p,d->Fz,12);
+    pgc->start2V(p,d->Fy,10);
+    pgc->start3V(p,d->Fz,10);
     
     LOOP
     WETDRY
@@ -92,9 +92,9 @@ double nhflow_HLLC::aij_V(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVE
     pflux->start_V(p,d,pgc);
     HLLC(p,d,d->VHs,d->VHn,d->VHe,d->VHw,d->Vs,d->Vn,d->SSy,d->SSy);
     
-    pgc->start1V(p,d->Fx,10);
+    pgc->start1V(p,d->Fx,11);
     pgc->start2V(p,d->Fy,11);
-    pgc->start3V(p,d->Fz,12);
+    pgc->start3V(p,d->Fz,11);
     
     LOOP
     WETDRY
@@ -113,8 +113,8 @@ double nhflow_HLLC::aij_W(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL
     pflux->start_W(p,d,pgc);
     HLLC(p,d,d->WHs,d->WHn,d->WHe,d->WHw,d->Ws,d->Wn,d->We,d->Ww);
     
-    pgc->start1V(p,d->Fx,10);
-    pgc->start2V(p,d->Fy,11);
+    pgc->start1V(p,d->Fx,12);
+    pgc->start2V(p,d->Fy,12);
     pgc->start3V(p,d->Fz,12);
     
     LOOP
@@ -132,8 +132,8 @@ double nhflow_HLLC::aij_E(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL
     pflux->start_E(p,d,pgc);
     HLLC_E(p,d);
     
-    pgc->start1V(p,d->Fx,10);
-    pgc->start2V(p,d->Fy,11); 
+    pgc->start1V(p,d->Fx,14);
+    pgc->start2V(p,d->Fy,14); 
 }
 
 double nhflow_HLLC::HLLC(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue, double *Uw, double *SSxs, double *SSxn, double *SSye, double *SSyw)
@@ -141,7 +141,6 @@ double nhflow_HLLC::HLLC(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue
     // HLLC flux
     ULOOP
     {
-        
         FsS = d->Ds(i,j)*(d->Ss[IJK] - d->Us[IJK] + 1.0e-10)/(d->Ss[IJK] - d->SSx[IJK] + 1.0e-10)*SSxs[IJK];
         FnS = d->Dn(i,j)*(d->Sn[IJK] - d->Un[IJK] + 1.0e-10)/(d->Sn[IJK] - d->SSx[IJK] + 1.0e-10)*SSxn[IJK];
  
