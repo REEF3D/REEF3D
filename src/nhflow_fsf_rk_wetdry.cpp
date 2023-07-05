@@ -102,28 +102,34 @@ void nhflow_fsf_rk::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &W
         if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
         {
         d->ETAs(i,j) = d->eta(i,j);
+        d->ETAn(i,j) = d->eta(i,j);
         d->Ds(i,j) = WL(i,j);
+        d->Dn(i,j) = WL(i,j);
         d->dfx(i,j) = d->depth(i,j);
-        //d->dfx(i-1,j) = d->depth(i,j);
         }
         
         else
         if(p->wet[IJ]==1 && p->wet[Im1J]==0)
         {
         d->ETAn(i-1,j) = d->eta(i,j);
+        d->ETAs(i-1,j) = d->eta(i,j);
         d->Dn(i-1,j) = WL(i,j);
+        d->Ds(i-1,j) = WL(i,j);
         d->dfx(i-1,j) = d->depth(i,j);
-        //d->dfx(i,j) = d->depth(i,j);
         }
         
         else
         if(p->wet[IJ]==0)
         {
         d->ETAs(i,j) = d->eta(i,j);
+        //d->ETAn(i,j) = d->eta(i,j);
         d->Ds(i,j) = WL(i,j);
+        //d->Dn(i,j) = WL(i,j);
         
         d->ETAn(i-1,j) = d->eta(i,j);
+        //d->ETAs(i-1,j) = d->eta(i,j);
         d->Dn(i-1,j) = WL(i,j);
+        //d->Ds(i-1,j) = WL(i,j);
         }
     }
     
@@ -133,28 +139,34 @@ void nhflow_fsf_rk::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &W
         if(p->wet[IJ]==1 && p->wet[IJp1]==0)
         {
         d->ETAe(i,j) = d->eta(i,j);
+        d->ETAw(i,j) = d->eta(i,j);
         d->De(i,j) = WL(i,j);
+        d->Dw(i,j) = WL(i,j);
         d->dfy(i,j) = d->depth(i,j);
-        //d->dfy(i,j-1) = d->depth(i,j);
         }
         
         else
         if(p->wet[IJ]==1 && p->wet[IJm1]==0)
         {
         d->ETAw(i,j-1) = d->eta(i,j);
+        d->ETAe(i,j-1) = d->eta(i,j);
         d->Dw(i,j-1) = WL(i,j);
+        d->De(i,j-1) = WL(i,j);
         d->dfy(i,j-1) = d->depth(i,j);
-        //d->dfy(i,j) = d->depth(i,j);
         }
         
         else
         if(p->wet[IJ]==0)
         {
         d->ETAe(i,j) = d->eta(i,j);
+        //d->ETAw(i,j) = d->eta(i,j);
         d->De(i,j) = WL(i,j);
+        //d->Dw(i,j) = WL(i,j);
         
         d->ETAw(i,j-1) = d->eta(i,j);
+        //d->ETAe(i,j-1) = d->eta(i,j);
         d->Dw(i,j-1) = WL(i,j);
+        //d->De(i,j-1) = WL(i,j);
         }
     }
     
