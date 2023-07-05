@@ -61,7 +61,7 @@ void nhflow_flux_build_f::start_U(lexer* p, fdm_nhf *d, ghostcell *pgc)
     
     // flux z-dir
     WLOOP
-    d->Fz[IJK] = 0.5*(d->omegaF[FIJKp1]*(d->Ub[IJK] + d->Ut[IJK]) - fabs(d->omegaF[FIJKp1])*(d->Ut[IJK] - d->Ub[IJK]));
+    d->Fz[IJK] = 0.5*(d->omegaF[FIJKp1]*(d->Ub[IJK] + d->Ut[IJK]) - 0.0*fabs(d->omegaF[FIJKp1])*(d->Ut[IJK] - d->Ub[IJK]));
 }
 
 void nhflow_flux_build_f::start_V(lexer* p, fdm_nhf *d, ghostcell *pgc)
@@ -88,7 +88,7 @@ void nhflow_flux_build_f::start_V(lexer* p, fdm_nhf *d, ghostcell *pgc)
     
     // flux z-dir
     WLOOP
-    d->Fz[IJK] = 0.5*(d->omegaF[FIJKp1]*(d->Vb[IJK] + d->Vt[IJK]) - fabs(d->omegaF[FIJKp1])*(d->Vt[IJK] - d->Vb[IJK]));
+    d->Fz[IJK] = 0.5*(d->omegaF[FIJKp1]*(d->Vb[IJK] + d->Vt[IJK]) - 0.0*fabs(d->omegaF[FIJKp1])*(d->Vt[IJK] - d->Vb[IJK]));
     }
 }
 
@@ -113,7 +113,7 @@ void nhflow_flux_build_f::start_W(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     // flux z-dir
     WLOOP
-    d->Fz[IJK] = 0.5*(d->omegaF[FIJKp1]*(d->Wb[IJK] + d->Wt[IJK]) - fabs(d->omegaF[FIJKp1])*(d->Wt[IJK] - d->Wb[IJK]));
+    d->Fz[IJK] = 0.5*(d->omegaF[FIJKp1]*(d->Wb[IJK] + d->Wt[IJK]) - 0.0*fabs(d->omegaF[FIJKp1])*(d->Wt[IJK] - d->Wb[IJK]));
 }
 
 void nhflow_flux_build_f::start_E(lexer* p, fdm_nhf *d, ghostcell *pgc)

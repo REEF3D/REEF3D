@@ -52,19 +52,19 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	
 	depthmax=pgc->globalmax(depthmax);
 
-	ULOOP
+	LOOP
 	p->umax=MAX(p->umax,fabs(d->U[IJK]));
 
 	p->umax=pgc->globalmax(p->umax);
 
 
-	VLOOP
+	LOOP
 	p->vmax=MAX(p->vmax,fabs(d->V[IJK]));
 
 	p->vmax=pgc->globalmax(p->vmax);
 
 
-	WLOOP
+	LOOP
 	p->wmax=MAX(p->wmax,fabs(d->W[IJK]));
     
     p->wmax=pgc->globalmax(p->wmax);

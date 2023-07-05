@@ -69,6 +69,11 @@ void nhflow_fsf_reconstruct_hires::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_
     fe(i,j) = f(i,j)   + 0.5*p->DYP[JP]*dfdy(i,j); 
     fw(i,j) = f(i,j+1) - 0.5*p->DYP[JP1]*dfdy(i,j+1); 
     }
+    
+    pgc->gcsl_start1(p,fs,1);
+    pgc->gcsl_start1(p,fn,1);
+    pgc->gcsl_start2(p,fe,1);
+    pgc->gcsl_start2(p,fw,1);
 }
 
 void nhflow_fsf_reconstruct_hires::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fx, double *Fs, double *Fn)

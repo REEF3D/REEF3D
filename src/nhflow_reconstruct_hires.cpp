@@ -67,7 +67,6 @@ void nhflow_reconstruct_hires::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf*
     fe(i,j) = f(i,j)   + 0.5*p->DYP[JP]*dfdy(i,j); 
     fw(i,j) = f(i,j+1) - 0.5*p->DYP[JP1]*dfdy(i,j+1); 
     }
-    
 }
 
 void nhflow_reconstruct_hires::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fs, slice &fn)
@@ -131,6 +130,9 @@ void nhflow_reconstruct_hires::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nh
     Fs[IJK] = (Fx[IJK]    + 0.5*p->DXP[IP]*DFDX[IJK]); 
     Fn[IJK] = (Fx[Ip1JK]  - 0.5*p->DXP[IP1]*DFDX[Ip1JK]);
     }
+    
+    pgc->start1V(p,Fs,1);
+    pgc->start1V(p,Fn,1);
 }
 
 void nhflow_reconstruct_hires::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fy, double *Fe, double *Fw)
@@ -155,6 +157,8 @@ void nhflow_reconstruct_hires::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nh
     Fw[IJK] = (Fy[IJp1K]  - 0.5*p->DYP[JP1]*DFDX[IJp1K]);
     }
     
+    pgc->start2V(p,Fe,1);
+    pgc->start2V(p,Fw,1);
     }
 }
 

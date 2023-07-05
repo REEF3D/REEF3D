@@ -39,11 +39,11 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
     
     wval = 0.0;
     
+    Pval = d->U[IJK];
+    Qval = d->V[IJK];
+    
         if(p->A515==1)
         {
-        Pval = d->Ub[IJK];
-        Qval = d->Vb[IJK];
-        
         wval = d->detadt(i,j)
         
              + MAX(0.0,Pval)*((eta(i,j)-eta(i-1,j))/(p->DXP[IP]))
@@ -55,9 +55,6 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
              
         if(p->A515==2)
         {
-        Pval = d->Ub[IJK];
-        Qval = d->Vb[IJK];
-        
         wval = d->detadt(i,j)
         
              + Pval*(eta(i+1,j)-eta(i-1,j))/(p->DXP[IP]+p->DXP[IP1])
@@ -67,9 +64,6 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
         
         if(p->A515>=3)
         {
-        Pval = d->Ub[IJK];
-        Qval = d->Vb[IJK];
-        
         dfdx_plus = (eta(i+1,j)-eta(i,j))/p->DXP[IP];
         dfdx_min  = (eta(i,j)-eta(i-1,j))/p->DXP[IM1];
     
@@ -96,12 +90,10 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
         d->Wt[IJKp1] = wval;
         d->Wt[IJKp2] = wval;
         
-        //if(p->A515==4)
-        //{
-        /*d->W[IJKp1] = wval;
+        d->W[IJKp1] = wval;
         d->W[IJKp2] = wval;
-        d->W[IJKp3] = wval;*/
-        //}
+        d->W[IJKp3] = wval;
+
     }
 }   
   
@@ -118,8 +110,8 @@ void nhflow_fsf_rk::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, do
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
     
-    Pval = d->Ut[IJK];
-    Qval = d->Vt[IJK];
+    Pval = d->U[IJK];
+    Qval = d->V[IJK];
     
     wval=0.0;    
     
@@ -157,17 +149,17 @@ void nhflow_fsf_rk::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, do
                - Qval*detady;
     }
     
-       /* d->Wb[IJKm1] = wval;
+        d->Wb[IJKm1] = wval;
         d->Wb[IJKm2] = wval;
-        d->Wb[IJKm3] = wval;*/
+        d->Wb[IJKm3] = wval;
 
         d->Wt[IJKm1] = wval;
         d->Wt[IJKm2] = wval;
         d->Wt[IJKm3] = wval;
         
-        /*->W[IJKm1] = wval;
+        d->W[IJKm1] = wval;
         d->W[IJKm2] = wval;
-        d->W[IJKm3] = wval;*/
+        d->W[IJKm3] = wval;
     }
 }
 
