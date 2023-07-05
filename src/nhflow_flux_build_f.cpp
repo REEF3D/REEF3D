@@ -80,10 +80,10 @@ void nhflow_flux_build_f::start_V(lexer* p, fdm_nhf *d, ghostcell *pgc)
     VLOOP
     {
     d->Fe[IJK] = d->VHe[IJK]*d->Ve[IJK] 
-            + 0.*fabs(p->W22)*d->ETAe(i,j)*d->ETAe(i,j) + fabs(p->W22)*d->ETAe(i,j)*d->dfy(i,j);
+            + 0.5*fabs(p->W22)*d->ETAe(i,j)*d->ETAe(i,j) + fabs(p->W22)*d->ETAe(i,j)*d->dfy(i,j);
     
     d->Fw[IJK] = d->VHw[IJK]*d->Vw[IJK] 
-            + 0.*fabs(p->W22)*d->ETAw(i,j)*d->ETAw(i,j) + fabs(p->W22)*d->ETAw(i,j)*d->dfy(i,j);
+            + 0.5*fabs(p->W22)*d->ETAw(i,j)*d->ETAw(i,j) + fabs(p->W22)*d->ETAw(i,j)*d->dfy(i,j);
     }
     
     // flux z-dir

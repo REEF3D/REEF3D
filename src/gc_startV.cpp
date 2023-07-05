@@ -37,7 +37,21 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
     ULOOP
     {  
         //if(p->B98!=3||bc(i-1,j)==0)
-        if(p->flag1[Im1JK]<0)
+        if(p->flag1[Im1JK]<0 && gcv==10)
+        {
+        f[Im1JK] = 0.5*fabs(p->W22)*d->ETAn(i,j)*d->ETAn(i,j) + fabs(p->W22)*d->ETAn(i,j)*d->dfx(i,j);
+        f[Im2JK] = 0.5*fabs(p->W22)*d->ETAn(i,j)*d->ETAn(i,j) + fabs(p->W22)*d->ETAn(i,j)*d->dfx(i,j);
+        f[Im3JK] = 0.5*fabs(p->W22)*d->ETAn(i,j)*d->ETAn(i,j) + fabs(p->W22)*d->ETAn(i,j)*d->dfx(i,j);
+        }
+        
+        if(p->flag1[Im1JK]<0 && gcv==14)
+        {
+        f[Im1JK] = 0.0;
+        f[Im2JK] = 0.0;
+        f[Im3JK] = 0.0;
+        }
+        
+        if(p->flag1[Im1JK]<0 && gcv!=10 && gcv!=14)
         {
         f[Im1JK] = f[IJK];
         f[Im2JK] = f[IJK];
@@ -45,12 +59,20 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
         }
           
         //if(p->B99!=3||bc(i+1,j)==0)
-        if(p->flag1[Ip1JK]<0 && (gcv==10 || gcv==14))
+        if(p->flag1[Ip1JK]<0 && gcv==10)
+        {
+        f[Ip1JK] = 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
+        f[Ip2JK] = 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
+        f[Ip3JK] = 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
+        }
+        
+        if(p->flag1[Ip1JK]<0 && gcv==14)
         {
         f[Ip1JK] = 0.0;
         f[Ip2JK] = 0.0;
         f[Ip3JK] = 0.0;
         }
+        
         
         if(p->flag1[Ip1JK]<0 && gcv!=10 && gcv!=14)
         {
@@ -115,7 +137,14 @@ void ghostcell::start2V(lexer *p, double *f, int gcv)
         f[Ip3JK] = f[IJK];
         }
         
-        if(p->flag2[IJm1K]<0 &&  (gcv==11 || gcv==14) && p->j_dir==1)
+        if(p->flag2[IJm1K]<0 &&  gcv==11 && p->j_dir==1)
+        {
+        f[IJm1K] = 0.5*fabs(p->W22)*d->ETAw(i,j)*d->ETAw(i,j) + fabs(p->W22)*d->ETAw(i,j)*d->dfy(i,j);
+        f[IJm2K] = 0.5*fabs(p->W22)*d->ETAw(i,j)*d->ETAw(i,j) + fabs(p->W22)*d->ETAw(i,j)*d->dfy(i,j);
+        f[IJm3K] = 0.5*fabs(p->W22)*d->ETAw(i,j)*d->ETAw(i,j) + fabs(p->W22)*d->ETAw(i,j)*d->dfy(i,j);
+        }
+        
+        if(p->flag2[IJm1K]<0 &&  gcv==14 && p->j_dir==1)
         {
         f[IJm1K] = 0.0;
         f[IJm2K] = 0.0;
@@ -129,7 +158,14 @@ void ghostcell::start2V(lexer *p, double *f, int gcv)
         f[IJm3K] = f[IJK];
         }
         
-        if(p->flag2[IJp1K]<0 &&  (gcv==11 || gcv==14) && p->j_dir==1)
+        if(p->flag2[IJp1K]<0 &&  gcv==11 && p->j_dir==1)
+        {
+        f[IJp1K] = 0.5*fabs(p->W22)*d->ETAe(i,j)*d->ETAe(i,j) + fabs(p->W22)*d->ETAe(i,j)*d->dfy(i,j);
+        f[IJp2K] = 0.5*fabs(p->W22)*d->ETAe(i,j)*d->ETAe(i,j) + fabs(p->W22)*d->ETAe(i,j)*d->dfy(i,j);
+        f[IJp3K] = 0.5*fabs(p->W22)*d->ETAe(i,j)*d->ETAe(i,j) + fabs(p->W22)*d->ETAe(i,j)*d->dfy(i,j);
+        }
+        
+        if(p->flag2[IJp1K]<0 &&  gcv==14 && p->j_dir==1)
         {
         f[IJp1K] = 0.0;
         f[IJp2K] = 0.0;
