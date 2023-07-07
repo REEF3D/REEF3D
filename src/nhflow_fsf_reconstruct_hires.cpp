@@ -95,7 +95,6 @@ void nhflow_fsf_reconstruct_hires::reconstruct_3D_x(lexer* p, ghostcell *pgc, fd
     Fs[IJK] = (Fx[IJK]    + 0.5*p->DXP[IP]*DFDX[IJK]); 
     Fn[IJK] = (Fx[Ip1JK]  - 0.5*p->DXP[IP1]*DFDX[Ip1JK]);
     }
-    
 }
 
 void nhflow_fsf_reconstruct_hires::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fy, double *Fe, double *Fw)

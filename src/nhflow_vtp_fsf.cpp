@@ -112,7 +112,7 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
 	
-	// depth
+	// WL
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
     
@@ -170,7 +170,7 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"detadt\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-	result<<"<DataArray type=\"Float32\" Name=\"depth\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"WL\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"breaking\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;

@@ -86,6 +86,10 @@ void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d)
     WETDRY
     d->F[IJK] += PORVALNH*0.5*(d->ETAs(i,j)+d->ETAn(i-1,j))*fabs(p->W22)*
                 (d->dfx(i,j) - d->dfx(i-1,j))/(p->DXP[IP]);
+                
+    SLICELOOP4
+    //WETDRY
+    d->test2D(i,j) = 0.5*(d->ETAs(i,j)+d->ETAn(i-1,j));
 }
 
 void nhflow_pjm_hs::vpgrad(lexer*p, fdm_nhf *d)

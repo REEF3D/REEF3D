@@ -93,7 +93,7 @@ void nhflow_vtp_fsf::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"eta\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"detadt\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"depth\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"WL\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"breaking\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"coastline\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"wetdry\"/>"<<endl;

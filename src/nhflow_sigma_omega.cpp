@@ -128,7 +128,7 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     
     pgc->start7S(p,d->omegaF,17);
     
-    pgc->gcsl_start4(p,d->test2D,1);
+    
 }
 
 

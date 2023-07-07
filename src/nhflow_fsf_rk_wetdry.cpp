@@ -91,11 +91,14 @@ void nhflow_fsf_rk::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, dou
         
     pgc->gcsl_start4(p,d->eta,1);
     pgc->gcsl_start4Vint(p,p->wet,50);
+    
+    wetdry_fluxes(p,d,pgc,WL,d->U,d->V,d->W,UH,VH,WH);
 }
 
 
 void nhflow_fsf_rk::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
+    
     // eta + WL
     SLICELOOP1  
     {
