@@ -88,7 +88,7 @@ void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d)
                 (d->dfx(i,j) - d->dfx(i-1,j))/(p->DXP[IP]);
                 
     SLICELOOP4
-    //WETDRY
+    WETDRY
     d->test2D(i,j) = 0.5*(d->ETAs(i,j)+d->ETAn(i-1,j));
 }
 
