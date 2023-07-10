@@ -67,24 +67,6 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
     d->Sn[IJK] = Us[IJK] + 2.0*sqrt(9.81*Ds(i,j));
     d->SSx[IJK] = d->Sn[IJK];
     }
-    
-    /*
-    else
-    if(p->wet[IJ]==1 && p->wet[Im1J]==0)
-    {
-    d->Ss[IJK] = Un[IJK] - 2.0*sqrt(9.81*Dn(i,j));
-    d->Sn[IJK] = Un[IJK] + sqrt(9.81*Dn(i,j));
-    d->SSx[IJK] = d->Ss[IJK];
-    }
-    
-    else
-    if(p->wet[IJ]==0 && p->wet[Im1J]==1)
-    {
-    d->Ss[IJK] = Us[Im1JK] - sqrt(9.81*Ds(i,j));
-    d->Sn[IJK] = Us[Im1JK] + 2.0*sqrt(9.81*Ds(i,j));
-    d->SSx[IJK] = d->Ss[Im1JK];
-    }*/
-    
     }
     
     // signal speed y-dir
@@ -118,9 +100,7 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
     }
     
     }
-    
 }
-
 
 
 /*
