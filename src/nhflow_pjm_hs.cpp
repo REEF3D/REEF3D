@@ -89,7 +89,7 @@ void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d)
                 
     SLICELOOP4
     WETDRY
-    d->test2D(i,j) = 0.5*(d->ETAs(i,j)+d->ETAn(i-1,j));
+    d->test2D(i,j) = 1.0/MAX(d->WL(i,j),p->A544*10.0);
 }
 
 void nhflow_pjm_hs::vpgrad(lexer*p, fdm_nhf *d)

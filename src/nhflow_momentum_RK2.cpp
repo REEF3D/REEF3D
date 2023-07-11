@@ -294,10 +294,11 @@ void nhflow_momentum_RK2::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
 void nhflow_momentum_RK2::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *UH, double *VH, double *WH, slice &WL)
 {
     LOOP
+    WETDRY
     {
-    d->U[IJK] = UH[IJK]/WL(i,j);
-    d->V[IJK] = VH[IJK]/WL(i,j);
-    d->W[IJK] = WH[IJK]/WL(i,j);       
+    d->U[IJK] = UH[IJK]/MAX(WL(i,j),p->A544*100.0);
+    d->V[IJK] = VH[IJK]/MAX(WL(i,j),p->A544*100.0);
+    d->W[IJK] = WH[IJK]/MAX(WL(i,j),p->A544*100.0);    
     }
     
     LOOP
