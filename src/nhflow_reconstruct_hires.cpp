@@ -52,8 +52,8 @@ void nhflow_reconstruct_hires::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf*
     dfdy(i,j) = limiter(dfdy_plus,dfdy_min);
     }
     
-    pgc->gcsl_start1(p,dfdx,10);
-    pgc->gcsl_start2(p,dfdy,11);
+    pgc->gcsl_start1(p,dfdx,1);
+    pgc->gcsl_start2(p,dfdy,1);
     
     // reconstruct
     SLICELOOP1  
@@ -61,12 +61,18 @@ void nhflow_reconstruct_hires::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf*
     fs(i,j) = f(i,j)   + 0.5*p->DXP[IP]*dfdx(i,j); 
     fn(i,j) = f(i+1,j) - 0.5*p->DXP[IP1]*dfdx(i+1,j);
     }
-
+    
+    if(p->j_dir==1)
     SLICELOOP2 
     {
     fe(i,j) = f(i,j)   + 0.5*p->DYP[JP]*dfdy(i,j); 
     fw(i,j) = f(i,j+1) - 0.5*p->DYP[JP1]*dfdy(i,j+1); 
     }
+    
+    pgc->gcsl_start1(p,fs,1);
+    pgc->gcsl_start1(p,fn,1);
+    pgc->gcsl_start2(p,fe,1);
+    pgc->gcsl_start2(p,fw,1);
 }
 
 void nhflow_reconstruct_hires::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fs, slice &fn)
@@ -115,6 +121,10 @@ void nhflow_reconstruct_hires::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nh
 {
     // gradient
     LOOP
+    DFDX[IJK] = 0.0;
+    
+    LOOP
+    WETDRY
     {
     dfdx_plus = (Fx[Ip1JK] - Fx[IJK])/p->DXP[IP];
     dfdx_min  = (Fx[IJK] - Fx[Im1JK])/p->DXP[IM1];
@@ -141,6 +151,10 @@ void nhflow_reconstruct_hires::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nh
     if(p->j_dir==1)
     {
     LOOP
+    DFDX[IJK] = 0.0;
+    
+    LOOP
+    WETDRY
     {
     dfdy_plus = (Fy[IJp1K] - Fy[IJK])/p->DYP[JP];
     dfdy_min  = (Fy[IJK] - Fy[IJm1K])/p->DYP[JM1];
@@ -166,6 +180,10 @@ void nhflow_reconstruct_hires::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nh
 {
     // gradient
     LOOP
+    DFDX[IJK] = 0.0;
+    
+    LOOP
+    WETDRY
     {
     dfdz_plus = (Fz[IJKp1] - Fz[IJK])/p->DZP[KP];
     dfdz_min  = (Fz[IJK] - Fz[IJKm1])/p->DZP[KM1];

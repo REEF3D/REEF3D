@@ -43,12 +43,7 @@ nhflow_pjm_hs::nhflow_pjm_hs(lexer* p, fdm_nhf *d, patchBC_interface *ppBC) : nh
     
 	pd = new density_f(p);
 
-    
     gcval_press=540;  
-
-	gcval_u=7;
-	gcval_v=8;
-	gcval_w=9;
     
 }
 
@@ -89,7 +84,7 @@ void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d)
                 
     SLICELOOP4
     WETDRY
-    d->test2D(i,j) = 1.0/MAX(d->WL(i,j),p->A544*10.0);
+    d->test2D(i,j) = 1.0/d->WL(i,j);
 }
 
 void nhflow_pjm_hs::vpgrad(lexer*p, fdm_nhf *d)

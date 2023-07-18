@@ -40,8 +40,15 @@ nhflow_fsf_reconstruct_hires::~nhflow_fsf_reconstruct_hires()
 
 void nhflow_fsf_reconstruct_hires::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf *d, slice& f, slice &fs, slice &fn, slice &fe, slice &fw)
 {
+    SLICELOOP4
+    {
+    dfdx(i,j) = 0.0;
+    dfdy(i,j) = 0.0;
+    }
+    
     // gradient
     SLICELOOP4
+    WETDRY
     {
     dfdx_plus = (f(i+1,j) - f(i,j))/p->DXP[IP];
     dfdx_min  = (f(i,j) - f(i-1,j))/p->DXP[IM1];

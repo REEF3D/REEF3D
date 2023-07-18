@@ -46,7 +46,6 @@ nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	gcval_v=11;
 	gcval_w=12;
     
-    
     p->Darray(UHRK1,p->imax*p->jmax*(p->kmax+2));
     p->Darray(VHRK1,p->imax*p->jmax*(p->kmax+2));
     p->Darray(WHRK1,p->imax*p->jmax*(p->kmax+2));
@@ -294,24 +293,30 @@ void nhflow_momentum_RK2::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
 void nhflow_momentum_RK2::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *UH, double *VH, double *WH, slice &WL)
 {
     LOOP
+    {
+    d->U[IJK] = UH[IJK]/WL(i,j);
+    d->V[IJK] = VH[IJK]/WL(i,j);
+    d->W[IJK] = WH[IJK]/WL(i,j);       
+    }
+    
+    /*
+    LOOP
+    WETDRY
+    if(p->wet[Ip1J]==0 || p->wet[Im1J]==0 || p->wet[IJp1]==0 || p->wet[IJm1]==0)
+    {
+    d->U[IJK] = 0.0;
+    d->V[IJK] = 0.0;
+    d->W[IJK] = 0.0;
+    }*/
+    /*
+    LOOP
     WETDRY
     {
     d->U[IJK] = UH[IJK]/MAX(WL(i,j),p->A544*100.0);
     d->V[IJK] = VH[IJK]/MAX(WL(i,j),p->A544*100.0);
     d->W[IJK] = WH[IJK]/MAX(WL(i,j),p->A544*100.0);    
-    }
+    }*/
     
-    LOOP
-    if(p->wet[IJ]==0)
-    {
-        d->U[IJK] = 0.0;
-        d->V[IJK] = 0.0;
-        d->W[IJK] = 0.0;
-        
-        UH[IJK] = 0.0;
-        VH[IJK] = 0.0;
-        WH[IJK] = 0.0;
-    }
     
     pgc->start4V(p,d->U,gcval_u);
     pgc->start4V(p,d->V,gcval_v);
