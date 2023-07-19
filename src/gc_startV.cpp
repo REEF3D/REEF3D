@@ -53,9 +53,9 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
         
         if(p->flag1[Im1JK]<0 && gcv!=10 && gcv!=14)
         {
-        f[Im1JK] = f[IJK];
-        f[Im2JK] = f[IJK];
-        f[Im3JK] = f[IJK];
+        f[Ip1JK] = 0.0;
+        f[Ip2JK] = 0.0;
+        f[Ip3JK] = 0.0;
         }
           
         //if(p->B99!=3||bc(i+1,j)==0)
@@ -76,9 +76,9 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
         
         if(p->flag1[Ip1JK]<0 && gcv!=10 && gcv!=14)
         {
-        f[Ip1JK] = f[IJK];
-        f[Ip2JK] = f[IJK];
-        f[Ip3JK] = f[IJK];
+        f[Ip1JK] = 0.0;
+        f[Ip2JK] = 0.0;
+        f[Ip3JK] = 0.0;
         }
         
         if(p->flag1[IJm1K]<0 && p->j_dir==1)
@@ -153,9 +153,9 @@ void ghostcell::start2V(lexer *p, double *f, int gcv)
         
         if(p->flag2[IJm1K]<0 && gcv!=11 && gcv!=14 && p->j_dir==1)
         {
-        f[IJm1K] = f[IJK];
-        f[IJm2K] = f[IJK];
-        f[IJm3K] = f[IJK];
+        f[IJm1K] = 0.0;
+        f[IJm2K] = 0.0;
+        f[IJm3K] = 0.0;
         }
         
         if(p->flag2[IJp1K]<0 &&  gcv==11 && p->j_dir==1)
@@ -174,9 +174,9 @@ void ghostcell::start2V(lexer *p, double *f, int gcv)
         
         if(p->flag2[IJp1K]<0 && gcv!=11 && gcv!=14 && p->j_dir==1)
         {
-        f[IJp1K] = f[IJK];
-        f[IJp2K] = f[IJK];
-        f[IJp3K] = f[IJK];
+        f[IJp1K] = 0.0;
+        f[IJp2K] = 0.0;
+        f[IJp3K] = 0.0;
         }
         
         if(p->flag2[IJKm1]<0 && p->j_dir==1)
