@@ -379,7 +379,6 @@ void nhflow_momentum_RK2::clearrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	d->rhsvec.V[n]=0.0;
 	++n;
 	}
-    
 }
 
 void nhflow_momentum_RK2::inidisc(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_fsf *pfsf)

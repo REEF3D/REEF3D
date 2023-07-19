@@ -78,24 +78,11 @@ void nhflow_sigma::sigma_ini(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta)
 
     
     SLICELOOP4
-	d->bed(i,j) = p->bed[IJ];
-    
-    SLICELOOP4
-    d->WL(i,j) = MAX(p->A544, d->eta(i,j) + p->wd - d->bed(i,j));
-    
-    //SLICELOOP4
-	//d->depth(i,j) = MAX(p->wd - d->bed(i,j), p->A544);
-    
-    SLICELOOP4
-	d->depth(i,j) = p->wd - d->bed(i,j);
-    
-    SLICELOOP4
     {
     d->Bx(i,j) = 0.0;
     d->By(i,j) = 0.0;
     }
     
-    pgc->gcsl_start4(p,d->depth,50);
     pgc->gcsl_start4(p,d->Bx,50);
     pgc->gcsl_start4(p,d->By,50);
     

@@ -57,9 +57,7 @@ void nhflow_fsf_rk::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, dou
         {
         temp[IJ]=0;
         d->eta(i,j) = p->A544 - d->depth(i,j) - eps;
-        //d->eta(i,j) = -p->wd  + d->bed(i,j) + p->A544 - eps;
         WL(i,j) = d->eta(i,j) + d->depth(i,j);//p->A544;
-        //WL(i,j) = p->A544;
         }
     }
     
@@ -85,7 +83,7 @@ void nhflow_fsf_rk::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, dou
     pgc->gcsl_start4(p,d->eta,1);
     pgc->gcsl_start4Vint(p,p->wet,50);
     
-    wetdry_fluxes(p,d,pgc,WL,d->U,d->V,d->W,UH,VH,WH);
+    //wetdry_fluxes(p,d,pgc,WL,d->U,d->V,d->W,UH,VH,WH);
 }
 
 
@@ -95,6 +93,37 @@ void nhflow_fsf_rk::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &W
     // eta + WL
     SLICELOOP1  
     {
+        if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
+        {
+        //d->ETAs(i,j) = d->eta(i,j);
+        d->ETAn(i,j) = d->eta(i,j);
+        //d->Ds(i,j) = WL(i,j);
+        d->Dn(i,j) = WL(i,j);
+        d->dfx(i,j) = d->depth(i,j);
+        }
+        
+        else
+        if(p->wet[IJ]==0 && p->wet[Ip1J]==1)
+        {
+        d->ETAs(i,j) = d->eta(i+1,j);
+        //d->ETAn(i,j) = d->eta(i+1,j);
+        d->Ds(i,j) = WL(i+1,j);
+        //d->Dn(i,j) = WL(i+1,j);
+        d->dfx(i,j) = d->depth(i+1,j);
+        }
+        
+        else
+        if(p->wet[IJ]==0 && p->wet[Ip1J]==0) 
+        {
+        d->ETAs(i,j) = d->eta(i,j);
+        d->Ds(i,j) = WL(i,j);
+        
+        d->ETAn(i,j) = d->eta(i+1,j);
+        d->Dn(i,j) = WL(i+1,j);
+        }
+        
+        
+        /*
         if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
         {
         d->ETAs(i,j) = d->eta(i,j);
@@ -122,12 +151,42 @@ void nhflow_fsf_rk::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &W
         
         d->ETAn(i,j) = d->eta(i+1,j);
         d->Dn(i,j) = WL(i+1,j);
-        }
+        }*/
     }
     
     if(p->j_dir==1)
     SLICELOOP2 
     {
+        if(p->wet[IJ]==1 && p->wet[IJp1]==0)
+        {
+        //d->ETAe(i,j) = d->eta(i,j);
+        d->ETAw(i,j) = d->eta(i,j);
+        //d->De(i,j) = WL(i,j);
+        d->Dw(i,j) = WL(i,j);
+        d->dfy(i,j) = d->depth(i,j);
+        }
+        
+        else
+        if(p->wet[IJ]==0 && p->wet[IJp1]==1)
+        {
+        d->ETAe(i,j) = d->eta(i,j+1);
+        //d->ETAw(i,j) = d->eta(i,j+1);
+        d->De(i,j) = WL(i,j+1);
+        //d->Dw(i,j) = WL(i,j+1);
+        d->dfy(i,j) = d->depth(i,j+1);
+        }
+        
+        else
+        if(p->wet[IJ]==0 && p->wet[IJp1]==0)
+        {
+        d->ETAe(i,j) = d->eta(i,j);
+        d->De(i,j) = WL(i,j);
+        
+        d->ETAw(i,j) = d->eta(i,j+1);
+        d->Dw(i,j) = WL(i,j+1);
+        }
+        
+        /*
         if(p->wet[IJ]==1 && p->wet[IJp1]==0)
         {
         d->ETAe(i,j) = d->eta(i,j);
@@ -155,7 +214,7 @@ void nhflow_fsf_rk::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &W
         
         d->ETAw(i,j) = d->eta(i,j+1);
         d->Dw(i,j) = WL(i,j+1);
-        }
+        }*/
     }
     
     // U,UH

@@ -162,7 +162,7 @@ void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d)
     LOOP
     WETDRY
     d->F[IJK] += PORVALNH*0.5*(d->ETAs(i,j)+d->ETAn(i-1,j))*fabs(p->W22)*
-                (d->dfx(i,j) - d->dfx(i-1,j))/(p->DXP[IP]);
+                (d->dfx(i,j) - d->dfx(i-1,j))/(p->DXN[IP]);
 }
 
 void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d)
@@ -170,7 +170,7 @@ void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d)
     LOOP
     WETDRY
 	d->G[IJK] += PORVALNH*0.5*(d->ETAe(i,j)+d->ETAw(i,j-1))*fabs(p->W22)*
-                (d->dfy(i,j) - d->dfy(i,j-1))/(p->DYP[JP]);
+                (d->dfy(i,j) - d->dfy(i,j-1))/(p->DYN[JP]);
 }
 
 void nhflow_pjm::wpgrad(lexer*p, fdm_nhf *d)

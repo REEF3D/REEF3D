@@ -99,6 +99,11 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
     
     pgc->gcsl_start4(p,d->bed,50);
     
+    SLICELOOP4
+	d->depth(i,j) = p->wd - d->bed(i,j);
+    
+    pgc->gcsl_start4(p,d->depth,50);
+    
     // eta ini
 	SLICELOOP4
     {
@@ -110,15 +115,13 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
     pgc->gcsl_start4(p,d->eta,50);
     
     ALOOP
-    {
     d->porosity[IJK]=1.0;
-    }
     
     pgc->start4V(p,d->porosity,1);
     
     SLICELOOP4
-    d->WL(i,j) = MAX(p->A544,d->eta(i,j) + p->wd - d->bed(i,j));
+    d->WL(i,j) = MAX(p->A544,d->eta(i,j) + d->depth(i,j));
     
-    //
+    pgc->gcsl_start4(p,d->WL,50);
 }
 
