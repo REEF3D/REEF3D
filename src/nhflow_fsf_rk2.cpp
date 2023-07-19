@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"patchBC_interface.h"
 
-nhflow_fsf_rk::nhflow_fsf_rk(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow, patchBC_interface *ppBC) : eps(1.0e-8),P(p),Q(p),K(p)
+nhflow_fsf_rk::nhflow_fsf_rk(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow, patchBC_interface *ppBC) : eps(1.0e-6),P(p),Q(p),K(p)
 {
     pBC = ppBC;
     
