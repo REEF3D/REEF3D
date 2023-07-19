@@ -80,10 +80,11 @@ void nhflow_fsf_rk::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflo
     SLICELOOP4
     d->eta(i,j) = WLRK1(i,j) - d->depth(i,j);
     
-    pgc->gcsl_start4(p,d->eta,1);
-    
     SLICELOOP4
     d->detadt(i,j) = K(i,j);
+    
+    pgc->gcsl_start4(p,d->eta,1);
+    pgc->gcsl_start4(p,d->detadt,1);
     
     wetdry(p,d,pgc,U,V,W,WLRK1);
     //breaking(p,d,pgc,etark1,d->eta,1.0);
@@ -110,10 +111,11 @@ void nhflow_fsf_rk::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflo
     SLICELOOP4
     d->eta(i,j) = d->WL(i,j) - d->depth(i,j);
     
-    pgc->gcsl_start4(p,d->eta,1);
-    
     SLICELOOP4
     d->detadt(i,j) = K(i,j);
+    
+    pgc->gcsl_start4(p,d->eta,1);
+    pgc->gcsl_start4(p,d->detadt,1);
     
     LOOP
     d->test[IJK] = -p->DZN[KP]*(d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP];

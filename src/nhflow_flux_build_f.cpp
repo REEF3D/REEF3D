@@ -52,9 +52,9 @@ void nhflow_flux_build_f::start_U(lexer* p, fdm_nhf *d, ghostcell *pgc)
     if(p->j_dir==1)
     VLOOP
     {
-    d->Fe[IJK] = d->De(i,j)*d->Ue[IJK]*d->Ve[IJK];
+    d->Fe[IJK] = d->UHe[IJK]*d->Ve[IJK];
     
-    d->Fw[IJK] = d->Dw(i,j)*d->Uw[IJK]*d->Vw[IJK];
+    d->Fw[IJK] = d->UHw[IJK]*d->Vw[IJK];
     }
     
     // flux z-dir
@@ -69,9 +69,9 @@ void nhflow_flux_build_f::start_V(lexer* p, fdm_nhf *d, ghostcell *pgc)
     // flux x-dir
     ULOOP
     {
-    d->Fs[IJK] = d->Ds(i,j)*d->Us[IJK]*d->Vs[IJK];
+    d->Fs[IJK] = d->Us[IJK]*d->VHs[IJK];
     
-    d->Fn[IJK] = d->Dn(i,j)*d->Un[IJK]*d->Vn[IJK];
+    d->Fn[IJK] = d->Un[IJK]*d->VHn[IJK];
     }
     
     // flux y-dir
