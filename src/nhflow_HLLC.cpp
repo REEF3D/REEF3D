@@ -47,7 +47,6 @@ nhflow_HLLC::~nhflow_HLLC()
 
 void nhflow_HLLC::precalc(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL, slice &eta)
 {
-   
 }
 
 void nhflow_HLLC::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W, slice &eta)

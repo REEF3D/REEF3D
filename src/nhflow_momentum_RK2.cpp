@@ -39,6 +39,8 @@ Author: Hans Bihs
 #include"vrans.h"
 #include"nhflow_weno_flux.h"
 
+#define WLVL (fabs(WL(i,j))>p->A544?WL(i,j):1.0e20)
+
 nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc)
                                                     : bcmom(p), nhflow_sigma(p), WLRK1(p)
 {
@@ -294,20 +296,19 @@ void nhflow_momentum_RK2::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *
 {
     LOOP
     {
-    d->U[IJK] = UH[IJK]/WL(i,j);
-    d->V[IJK] = VH[IJK]/WL(i,j);
-    d->W[IJK] = WH[IJK]/WL(i,j);       
+    d->U[IJK] = UH[IJK]/WLVL;
+    d->V[IJK] = VH[IJK]/WLVL;
+    d->W[IJK] = WH[IJK]/WLVL;       
     }
     
-    /*
+    
     LOOP
-    WETDRY
-    if(p->wet[Ip1J]==0 || p->wet[Im1J]==0 || p->wet[IJp1]==0 || p->wet[IJm1]==0)
+    if(p->wet[IJ]==0)
     {
     d->U[IJK] = 0.0;
     d->V[IJK] = 0.0;
     d->W[IJK] = 0.0;
-    }*/
+    }
     /*
     LOOP
     WETDRY
@@ -383,7 +384,7 @@ void nhflow_momentum_RK2::clearrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void nhflow_momentum_RK2::inidisc(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_fsf *pfsf)
 {
-    pfsf->wetdry(p,d,pgc,d->U,d->V,d->W,d->WL);
+    //pfsf->wetdry(p,d,pgc,d->U,d->V,d->W,d->WL);
     sigma_ini(p,d,pgc,d->eta);
     sigma_update(p,d,pgc);
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);

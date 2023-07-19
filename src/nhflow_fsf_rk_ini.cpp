@@ -30,8 +30,14 @@ Author: Hans Bihs
 
 void nhflow_fsf_rk::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W)
 {   
-    SLICELOOP4
-    d->WL(i,j) = (d->eta(i,j) + p->wd - d->bed(i,j));
+    if(d->WL(i,j)<=p->A544)
+    {
+        p->wet[IJ]=0;
+        d->eta(i,j) =  - d->depth(i,j) - eps;
+        d->WL(i,j) = 0.0;//d->eta(i,j) + d->depth(i,j);
+    }
+    
+    pgc->gcsl_start4Vint(p,p->wet,50);
     
     wetdry(p,d,pgc,U,V,W,d->eta);
     
