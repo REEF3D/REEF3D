@@ -39,7 +39,7 @@ Author: Hans Bihs
 #include"vrans.h"
 #include"nhflow_weno_flux.h"
 
-#define WLVL (fabs(WL(i,j))>p->A544?WL(i,j):1.0e20)
+#define WLVL (fabs(WL(i,j))>(10.0*p->A544)?WL(i,j):1.0e20)
 
 nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc)
                                                     : bcmom(p), nhflow_sigma(p), WLRK1(p)
