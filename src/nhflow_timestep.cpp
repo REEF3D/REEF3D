@@ -37,6 +37,8 @@ nhflow_timestep::~nhflow_timestep()
 void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     double depthmax=0.0;
+    double posx,posy,posz;
+    int posi,posj,posk;
 
 
     p->umax=p->vmax=p->wmax=p->viscmax=irsm=jrsm=krsm=p->omegamax=0.0;
@@ -53,7 +55,23 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	depthmax=pgc->globalmax(depthmax);
 
 	LOOP
-	p->umax=MAX(p->umax,fabs(d->U[IJK]));
+    if(fabs(d->U[IJK])>p->umax)
+    {
+	p->umax=fabs(d->U[IJK]);
+    posx=p->XP[IP];
+    posy=p->YP[JP];
+    posz=p->ZP[KP];
+    
+    posi = i + p->origin_i;
+    posj = j + p->origin_j;
+    posk = k + p->origin_k;
+    }
+    
+
+
+    //LOOP
+	//p->umax=MAX(p->umax,fabs(d->U[IJK]));
+
 
 	p->umax=pgc->globalmax(p->umax);
 
@@ -78,6 +96,8 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
 	cout<<"umax: "<<setprecision(3)<<p->umax<<endl;
+    cout<<"pos_ijk: "<<setprecision(3)<<posi<<" "<<posj<<" "<<posk<<endl;
+    cout<<"pos_xyz: "<<setprecision(3)<<posx<<" "<<posy<<" "<<posz<<endl;
 	cout<<"vmax: "<<setprecision(3)<<p->vmax<<endl;
 	cout<<"wmax: "<<setprecision(3)<<p->wmax<<endl;
     cout<<"omegamax: "<<setprecision(3)<<p->omegamax<<endl;
