@@ -96,8 +96,8 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
 	cout<<"umax: "<<setprecision(3)<<p->umax<<endl;
-    cout<<"pos_ijk: "<<setprecision(3)<<posi<<" "<<posj<<" "<<posk<<endl;
-    cout<<"pos_xyz: "<<setprecision(3)<<posx<<" "<<posy<<" "<<posz<<endl;
+    //cout<<"pos_ijk: "<<setprecision(3)<<posi<<" "<<posj<<" "<<posk<<endl;
+    //cout<<"pos_xyz: "<<setprecision(3)<<posx<<" "<<posy<<" "<<posz<<endl;
 	cout<<"vmax: "<<setprecision(3)<<p->vmax<<endl;
 	cout<<"wmax: "<<setprecision(3)<<p->wmax<<endl;
     cout<<"omegamax: "<<setprecision(3)<<p->omegamax<<endl;

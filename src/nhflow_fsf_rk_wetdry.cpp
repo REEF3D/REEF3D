@@ -92,7 +92,39 @@ void nhflow_fsf_rk::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &W
     
     // eta + WL
     SLICELOOP1  
-    {
+    {/*
+        if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
+        {
+        d->ETAn(i,j) = d->ETAn(i,j) - d->ETAs(i,j);
+        d->ETAs(i,j) = d->ETAs(i,j);
+        //d->Ds(i,j) = WL(i,j);
+        d->Dn(i,j) = WL(i,j);
+        d->dfx(i,j) = d->depth(i,j);
+        }
+        
+        else
+        if(p->wet[IJ]==0 && p->wet[Ip1J]==1)
+        {
+        d->ETAs(i,j) = d->ETAs(i,j) - d->ETAn(i,j);
+        d->ETAn(i,j) = d->ETAs(i,j);
+        //d->ETAn(i,j) = d->eta(i+1,j);
+        d->Ds(i,j) = WL(i+1,j);
+        //d->Dn(i,j) = WL(i+1,j);
+        d->dfx(i,j) = d->depth(i+1,j);
+        }
+        
+        else
+        if(p->wet[IJ]==0 && p->wet[Ip1J]==0) 
+        {
+        d->ETAs(i,j) = d->eta(i,j);
+        d->Ds(i,j) = WL(i,j);
+        
+        d->ETAn(i,j) = d->eta(i+1,j);
+        d->Dn(i,j) = WL(i+1,j);
+        }*/
+        
+        
+        
         if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
         {
         //d->ETAs(i,j) = d->eta(i,j);
@@ -152,7 +184,7 @@ void nhflow_fsf_rk::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &W
         
         d->ETAn(i,j) = d->eta(i+1,j);
         d->Dn(i,j) = WL(i+1,j);
-        }*/
+        }
     }
     
     if(p->j_dir==1)
