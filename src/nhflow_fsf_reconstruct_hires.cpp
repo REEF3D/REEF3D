@@ -203,7 +203,7 @@ double nhflow_fsf_reconstruct_hires::limiter(double v1, double v2)
     val = 0.5*phi*(v1+v2);
     }
     
-    if(p->wet[IJ]==0)
+    if(p->wet[IJ]==0 || p->wet[Ip1J]==0 || p->wet[Im1J]==0 || p->wet[IJp1]==0 || p->wet[IJm1]==0)
     val=0.0;
     
     return val;
@@ -233,19 +233,5 @@ void nhflow_fsf_reconstruct_hires::reconstruct_2D_WL(lexer* p, ghostcell *pgc, f
     d->De(i,j) = MAX(d->ETAe(i,j)  + 0.5*(d->depth(i,j+1)+d->depth(i,j)), p->A544);
     d->Dw(i,j) = MAX(d->ETAw(i,j)  + 0.5*(d->depth(i,j+1)+d->depth(i,j)), p->A544);
     }
-    
-    /*
-    SLICELOOP1
-    {
-    d->Ds(i,j) = MAX(d->ETAs(i,j) + 0.5*(d->depth(i+1,j)+d->depth(i,j)), p->A544);
-    d->Dn(i,j) = MAX(d->ETAn(i,j) + 0.5*(d->depth(i+1,j)+d->depth(i,j)), p->A544);
-    }
-    
-    SLICELOOP2
-    {
-    d->De(i,j) = MAX(d->ETAe(i,j)  + 0.5*(d->depth(i,j+1)+d->depth(i,j)), p->A544);
-    d->Dw(i,j) = MAX(d->ETAw(i,j)  + 0.5*(d->depth(i,j+1)+d->depth(i,j)), p->A544);
-    }*/
-    
         
 }

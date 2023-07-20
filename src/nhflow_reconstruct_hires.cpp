@@ -243,7 +243,7 @@ double nhflow_reconstruct_hires::limiter(double v1, double v2)
     val = 0.5*phi*(v1+v2);
     }
     
-    if(p->wet[IJ]==0)
+    if(p->wet[IJ]==0 || p->wet[Ip1J]==0 || p->wet[Im1J]==0 || p->wet[IJp1]==0 || p->wet[IJm1]==0)
     val=0.0;
     
     return val;
