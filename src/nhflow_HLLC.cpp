@@ -76,6 +76,17 @@ double nhflow_HLLC::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL
     LOOP
     WETDRY
     {
+    if(p->wet[Ip1J]==0)
+    d->Fx[IJK] = d->Fx[Im1JK];
+    
+    
+    if(p->wet[Im1J]==0)
+    d->Fx[Im1JK] = d->Fx[IJK];
+    }
+    
+    LOOP
+    WETDRY
+    {
     d->F[IJK] -= ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
                 + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
                 + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
@@ -130,6 +141,22 @@ double nhflow_HLLC::aij_E(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL
     pflux->start_E(p,d,pgc);
     HLLC_E(p,d);
     
+    LOOP
+    WETDRY
+    {
+    if(p->wet[Ip1J]==0)
+    d->Fx[IJK] = 0.0;
+    
+    if(p->wet[Im1J]==0)
+    d->Fx[Im1JK] = 0.0;
+    
+    if(p->wet[IJp1]==0)
+    d->Fy[IJK] = 0.0;
+    
+    if(p->wet[IJm1]==0)
+    d->Fy[IJm1K] = 0.0;
+    }
+    
     pgc->start1V(p,d->Fx,14);
     pgc->start2V(p,d->Fy,14); 
 }
@@ -139,44 +166,88 @@ double nhflow_HLLC::HLLC(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue
     // HLLC flux
     ULOOP
     {
-        FsS = d->Ds(i,j)*(d->Ss[IJK] - d->Us[IJK] + 1.0e-10)/(d->Ss[IJK] - d->SSx[IJK] + 1.0e-10)*SSxs[IJK];
-        FnS = d->Dn(i,j)*(d->Sn[IJK] - d->Un[IJK] + 1.0e-10)/(d->Sn[IJK] - d->SSx[IJK] + 1.0e-10)*SSxn[IJK];
- 
-        if(d->Ss[IJK]>=0.0)
-        d->Fx[IJK] = d->Fs[IJK];
+        if(p->wet[IJ]==1 && p->wet[Ip1J]==1 && p->wet[Im1J]==1 && p->wet[Ip2J]==1)
+        {
+            FsS = d->Ds(i,j)*(d->Ss[IJK] - d->Us[IJK] + 1.0e-10)/(d->Ss[IJK] - d->SSx[IJK] + 1.0e-10)*SSxs[IJK];
+            FnS = d->Dn(i,j)*(d->Sn[IJK] - d->Un[IJK] + 1.0e-10)/(d->Sn[IJK] - d->SSx[IJK] + 1.0e-10)*SSxn[IJK];
+     
+            if(d->Ss[IJK]>=0.0)
+            d->Fx[IJK] = d->Fs[IJK];
+            
+            else
+            if(d->Sn[IJK]<=0.0)
+            d->Fx[IJK] = d->Fn[IJK];
+            
+            else
+            if(d->SSx[IJK]>=0.0)
+            d->Fx[IJK] = d->Fs[IJK] + d->Ss[IJK]*(FsS - Us[IJK]);
+            
+            else
+            d->Fx[IJK] = d->Fn[IJK] + d->Sn[IJK]*(FnS - Un[IJK]);
+        }
         
-        else
-        if(d->Sn[IJK]<=0.0)
-        d->Fx[IJK] = d->Fn[IJK];
-        
-        else
-        if(d->SSx[IJK]>=0.0)
-        d->Fx[IJK] = d->Fs[IJK] + d->Ss[IJK]*(FsS - Us[IJK]);
-        
-        else
-        d->Fx[IJK] = d->Fn[IJK] + d->Sn[IJK]*(FnS - Un[IJK]);
+        if(p->wet[IJ]==0 || p->wet[Ip1J]==0 || p->wet[Im1J]==0 || p->wet[Ip2J]==0)
+        {
+            if(d->Ss[IJK]>=0.0)
+            d->Fx[IJK] = d->Fs[IJK];
+            
+            else
+            if(d->Sn[IJK]<=0.0)
+            d->Fx[IJK] = d->Fn[IJK];
+            
+            else
+            {
+            denom = d->Sn[IJK]-d->Ss[IJK];
+            denom = fabs(denom)>1.0e-10?denom:1.0e10;
+            
+            d->Fx[IJK] = (d->Sn[IJK]*d->Fs[IJK] - d->Ss[IJK]*d->Fn[IJK] + d->Sn[IJK]*d->Ss[IJK]*(Un[IJK] - Us[IJK]))/denom;
+            }
+        }
     }
-    
+        
     // HLLC flux y-dir
     if(p->j_dir==1)
     VLOOP
     {
-        FeS = d->De(i,j)*(d->Se[IJK] - d->Ve[IJK] + 1.0e-10)/(d->Se[IJK] - d->SSy[IJK] + 1.0e-10)*SSye[IJK];
-        FwS = d->Dw(i,j)*(d->Sw[IJK] - d->Vw[IJK] + 1.0e-10)/(d->Sw[IJK] - d->SSy[IJK] + 1.0e-10)*SSyw[IJK];
- 
-        if(d->Se[IJK]>=0.0)
-        d->Fy[IJK] = d->Fe[IJK];
+        if(p->wet[IJ]==1 && p->wet[IJp1]==1 && p->wet[IJm1]==1 && p->wet[IJp2]==1)
+        {
+            FeS = d->De(i,j)*(d->Se[IJK] - d->Ve[IJK] + 1.0e-10)/(d->Se[IJK] - d->SSy[IJK] + 1.0e-10)*SSye[IJK];
+            FwS = d->Dw(i,j)*(d->Sw[IJK] - d->Vw[IJK] + 1.0e-10)/(d->Sw[IJK] - d->SSy[IJK] + 1.0e-10)*SSyw[IJK];
+     
+            if(d->Se[IJK]>=0.0)
+            d->Fy[IJK] = d->Fe[IJK];
+            
+            else
+            if(d->Sw[IJK]<=0.0)
+            d->Fy[IJK] = d->Fw[IJK];
+            
+            else
+            if(d->SSy[IJK]>=0.0)
+            d->Fy[IJK] = d->Fe[IJK] + d->Se[IJK]*(FeS - Ue[IJK]);
+            
+            else
+            d->Fy[IJK] = d->Fw[IJK] + d->Sw[IJK]*(FwS - Uw[IJK]);
+        }
         
-        else
-        if(d->Sw[IJK]<=0.0)
-        d->Fy[IJK] = d->Fw[IJK];
-        
-        else
-        if(d->SSy[IJK]>=0.0)
-        d->Fy[IJK] = d->Fe[IJK] + d->Se[IJK]*(FeS - Ue[IJK]);
-        
-        else
-        d->Fy[IJK] = d->Fw[IJK] + d->Sw[IJK]*(FwS - Uw[IJK]);
+        if(p->wet[IJ]==0 || p->wet[IJp1]==0 || p->wet[IJm1]==0 || p->wet[IJp2]==0)
+        {
+            if(d->Se[IJK]>=0.0)
+            d->Fy[IJK] = d->Fe[IJK];
+            
+            else
+            if(d->Sw[IJK]<=0.0)
+            d->Fy[IJK] = d->Fw[IJK];
+            
+            else
+            {
+            denom = d->Sw[IJK]-d->Se[IJK];
+            denom = fabs(denom)>1.0e-10?denom:1.0e10;
+            
+            d->Fy[IJK] = (d->Sw[IJK]*d->Fe[IJK] - d->Se[IJK]*d->Fw[IJK] + d->Sw[IJK]*d->Se[IJK]*(Uw[IJK] - Ue[IJK]))/denom;
+            }
+        }
+
+
     }
 }
 
@@ -186,44 +257,87 @@ double nhflow_HLLC::HLLC_E(lexer* p,fdm_nhf* d)
     // HLLC flux
     ULOOP
     {
+        if(p->wet[IJ]==1 && p->wet[Ip1J]==1 && p->wet[Im1J]==1 && p->wet[Ip2J]==1)
+        {
+            
+            FsS = d->Ds(i,j)*(d->Ss[IJK] - d->Us[IJK] + 1.0e-10)/(d->Ss[IJK] - d->SSx[IJK] + 1.0e-10);
+            FnS = d->Dn(i,j)*(d->Sn[IJK] - d->Un[IJK] + 1.0e-10)/(d->Sn[IJK] - d->SSx[IJK] + 1.0e-10);
+     
+            if(d->Ss[IJK]>=0.0)
+            d->Fx[IJK] = d->Fs[IJK];
+            
+            else
+            if(d->Sn[IJK]<=0.0)
+            d->Fx[IJK] = d->Fn[IJK];
+            
+            else
+            if(d->SSx[IJK]>=0.0)
+            d->Fx[IJK] = d->Fs[IJK] + d->Ss[IJK]*(FsS - d->Ds(i,j));
+            
+            else
+            d->Fx[IJK] = d->Fn[IJK] + d->Sn[IJK]*(FnS - d->Dn(i,j));
+        }
         
-        FsS = d->Ds(i,j)*(d->Ss[IJK] - d->Us[IJK] + 1.0e-10)/(d->Ss[IJK] - d->SSx[IJK] + 1.0e-10);
-        FnS = d->Dn(i,j)*(d->Sn[IJK] - d->Un[IJK] + 1.0e-10)/(d->Sn[IJK] - d->SSx[IJK] + 1.0e-10);
- 
-        if(d->Ss[IJK]>=0.0)
-        d->Fx[IJK] = d->Fs[IJK];
-        
-        else
-        if(d->Sn[IJK]<=0.0)
-        d->Fx[IJK] = d->Fn[IJK];
-        
-        else
-        if(d->SSx[IJK]>=0.0)
-        d->Fx[IJK] = d->Fs[IJK] + d->Ss[IJK]*(FsS - d->Ds(i,j));
-        
-        else
-        d->Fx[IJK] = d->Fn[IJK] + d->Sn[IJK]*(FnS - d->Dn(i,j));
+        if(p->wet[IJ]==0 || p->wet[Ip1J]==0 || p->wet[Im1J]==0 || p->wet[Ip2J]==0)
+        {
+            
+            if(d->Ss[IJK]>=0.0)
+            d->Fx[IJK] = d->Fs[IJK];
+            
+            else
+            if(d->Sn[IJK]<=0.0)
+            d->Fx[IJK] = d->Fn[IJK];
+            
+            else
+            {
+            denom = d->Sn[IJK]-d->Ss[IJK];
+            denom = fabs(denom)>1.0e-10?denom:1.0e10;
+            
+            d->Fx[IJK] = (d->Sn[IJK]*d->Fs[IJK] - d->Ss[IJK]*d->Fn[IJK] + d->Sn[IJK]*d->Ss[IJK]*(d->Dn(i,j) - d->Ds(i,j)))/denom;
+            }
+        }
     }
     
     // HLLC flux y-dir
     if(p->j_dir==1)
     VLOOP
     {
-        FeS = d->De(i,j)*(d->Se[IJK] - d->Ve[IJK] + 1.0e-10)/(d->Se[IJK] - d->SSy[IJK] + 1.0e-10);
-        FwS = d->Dw(i,j)*(d->Sw[IJK] - d->Vw[IJK] + 1.0e-10)/(d->Sw[IJK] - d->SSy[IJK] + 1.0e-10);
- 
-        if(d->Se[IJK]>=0.0)
-        d->Fy[IJK] = d->Fe[IJK];
+        if(p->wet[IJ]==1 && p->wet[IJp1]==1 && p->wet[IJm1]==1 && p->wet[IJp2]==1)
+        {
+            FeS = d->De(i,j)*(d->Se[IJK] - d->Ve[IJK] + 1.0e-10)/(d->Se[IJK] - d->SSy[IJK] + 1.0e-10);
+            FwS = d->Dw(i,j)*(d->Sw[IJK] - d->Vw[IJK] + 1.0e-10)/(d->Sw[IJK] - d->SSy[IJK] + 1.0e-10);
+     
+            if(d->Se[IJK]>=0.0)
+            d->Fy[IJK] = d->Fe[IJK];
+            
+            else
+            if(d->Sw[IJK]<=0.0)
+            d->Fy[IJK] = d->Fw[IJK];
+            
+            else
+            if(d->SSy[IJK]>=0.0)
+            d->Fy[IJK] = d->Fe[IJK] + d->Se[IJK]*(FeS - d->De(i,j));
+            
+            else
+            d->Fy[IJK] = d->Fw[IJK] + d->Sw[IJK]*(FwS - d->Dw(i,j));
+        }
         
-        else
-        if(d->Sw[IJK]<=0.0)
-        d->Fy[IJK] = d->Fw[IJK];
-        
-        else
-        if(d->SSy[IJK]>=0.0)
-        d->Fy[IJK] = d->Fe[IJK] + d->Se[IJK]*(FeS - d->De(i,j));
-        
-        else
-        d->Fy[IJK] = d->Fw[IJK] + d->Sw[IJK]*(FwS - d->Dw(i,j));
+        if(p->wet[IJ]==0 || p->wet[IJp1]==0 || p->wet[IJm1]==0 || p->wet[IJp2]==0)
+        {
+            if(d->Se[IJK]>=0.0)
+            d->Fy[IJK] = d->Fe[IJK];
+            
+            else
+            if(d->Sw[IJK]<=0.0)
+            d->Fy[IJK] = d->Fw[IJK];
+            
+            else
+            {
+            denom = d->Sw[IJK]-d->Se[IJK];
+            denom = fabs(denom)>1.0e-10?denom:1.0e10;
+            
+            d->Fy[IJK] = (d->Sw[IJK]*d->Fe[IJK] - d->Se[IJK]*d->Fw[IJK] + d->Sw[IJK]*d->Se[IJK]*(d->Dw(i,j) - d->De(i,j)))/denom;
+            }
+        }
     }
 }

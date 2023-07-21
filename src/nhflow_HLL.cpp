@@ -127,6 +127,22 @@ double nhflow_HLL::aij_E(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
     pflux->start_E(p,d,pgc);
     HLL_E(p,d);
     
+    LOOP
+    WETDRY
+    {
+    if(p->wet[Ip1J]==0)
+    d->Fx[IJK] = 0.0;
+    
+    if(p->wet[Im1J]==0)
+    d->Fx[Im1JK] = 0.0;
+    
+    if(p->wet[IJp1]==0)
+    d->Fy[IJK] = 0.0;
+    
+    if(p->wet[IJm1]==0)
+    d->Fy[IJm1K] = 0.0;
+    }
+    
     pgc->start1V(p,d->Fx,14);
     pgc->start2V(p,d->Fy,14); 
 }
