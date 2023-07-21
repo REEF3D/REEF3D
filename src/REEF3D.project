@@ -323,11 +323,6 @@
           <File Name="nhflow_momentum_RK3.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
-          <VirtualDirectory Name="Discretization">
-            <File Name="nhflow_hxy_flux.h"/>
-            <File Name="nhflow_hxy_disc.h"/>
-            <File Name="nhflow_hxy_fou.h"/>
-          </VirtualDirectory>
           <File Name="nhflow_fsf_rk.h"/>
           <File Name="nhflow_fsf_v.h"/>
           <File Name="nhflow_fsf.h"/>
@@ -1402,20 +1397,14 @@
           <File Name="nhflow_momentum_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
-          <VirtualDirectory Name="RK">
-            <File Name="nhflow_fsf_rk2.cpp"/>
-            <File Name="nhflow_fsf_rk3.cpp"/>
-            <File Name="nhflow_fsf_rk_wetdry.cpp"/>
-            <File Name="nhflow_fsf_rk_kfsfbc.cpp"/>
-            <File Name="nhflow_fsf_rk_ini.cpp"/>
-            <File Name="nhflow_fsf_rk_breaking.cpp"/>
-          </VirtualDirectory>
+          <File Name="nhflow_fsf_rk_wetdry.cpp"/>
+          <File Name="nhflow_fsf_rk_kfsfbc.cpp"/>
+          <File Name="nhflow_fsf_rk_ini.cpp"/>
+          <File Name="nhflow_fsf_rk_breaking.cpp"/>
+          <File Name="nhflow_fsf_rk3.cpp"/>
+          <File Name="nhflow_fsf_rk2.cpp"/>
           <VirtualDirectory Name="Void">
             <File Name="nhflow_fsf_v.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Discretization">
-            <File Name="nhflow_hxy_flux.cpp"/>
-            <File Name="nhflow_hxy_fou.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Diffusion">
