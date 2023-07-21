@@ -308,13 +308,22 @@ void nhflow_momentum_RK2::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *
     d->W[IJK] = 0.0;
     }
     
+    // Fr nuber limiter
+    LOOP
+    WETDRY
+    {
+    d->U[IJK] = MIN(d->U[IJK], 5.0*sqrt(9.81*WL(i,j)));
+    d->V[IJK] = MIN(d->V[IJK], 5.0*sqrt(9.81*WL(i,j)));
+    d->W[IJK] = MIN(d->W[IJK], 5.0*sqrt(9.81*WL(i,j)));      
+    }
+    
     /*
     LOOP
     WETDRY
     {
-    d->U[IJK] = UH[IJK]/MAX(WL(i,j),p->A544*100.0);
-    d->V[IJK] = VH[IJK]/MAX(WL(i,j),p->A544*100.0);
-    d->W[IJK] = WH[IJK]/MAX(WL(i,j),p->A544*100.0);    
+    d->U[IJK] = UH[IJK]/MAX(WLVL,p->A544*100.0);
+    d->V[IJK] = VH[IJK]/MAX(WLVL,p->A544*100.0);
+    d->W[IJK] = WH[IJK]/MAX(WLVL,p->A544*100.0);    
     }*/
     
     pgc->start4V(p,d->U,gcval_u);

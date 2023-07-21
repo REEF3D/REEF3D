@@ -73,16 +73,6 @@ double nhflow_HLLC::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL
     pgc->start2V(p,d->Fy,10);
     pgc->start3V(p,d->Fz,10);
     
-    LOOP
-    WETDRY
-    {
-    if(p->wet[Ip1J]==0)
-    d->Fx[IJK] = d->Fx[Im1JK];
-    
-    
-    if(p->wet[Im1J]==0)
-    d->Fx[Im1JK] = d->Fx[IJK];
-    }
     
     LOOP
     WETDRY
