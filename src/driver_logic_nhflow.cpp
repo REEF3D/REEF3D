@@ -68,7 +68,7 @@ void driver::logic_nhflow()
     precon = new nhflow_reconstruct_hires(p,pBC);
     
     if(p->A514==4)
-    precon = new nhflow_reconstruct_weno(p,pBC);
+    precon = new nhflow_reconstruct_wenograd(p,pBC);
     
     //Convection	
 	if(p->A511==0)

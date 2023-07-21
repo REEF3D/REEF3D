@@ -51,4 +51,4 @@ Author: Hans Bihs
 
 #include"nhflow_signal_speed.h"
 #include"nhflow_reconstruct_hires.h"
-#include"nhflow_reconstruct_weno.h"
+#include"nhflow_reconstruct_wenograd.h"
