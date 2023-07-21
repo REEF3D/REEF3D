@@ -25,8 +25,6 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"ioflow.h"
-#include"sflow_hxy_weno.h"
-#include"nhflow_flux_HLL.h"
 
 void nhflow_fsf_rk::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W)
 {   

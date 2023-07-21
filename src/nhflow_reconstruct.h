@@ -38,9 +38,9 @@ class nhflow_reconstruct
 {
 public:
 
-	virtual void reconstruct_2D(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&,slice&,slice&)=0;
     virtual void reconstruct_2D_x(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&)=0;
     virtual void reconstruct_2D_y(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&)=0;
+    virtual void reconstruct_2D_WL(lexer*,ghostcell*,fdm_nhf*)=0;
     
     virtual void reconstruct_3D_x(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*)=0;
     virtual void reconstruct_3D_y(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*)=0;

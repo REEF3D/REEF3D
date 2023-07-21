@@ -70,13 +70,6 @@ void driver::logic_nhflow()
     if(p->A514==4)
     precon = new nhflow_reconstruct_weno(p,pBC);
     
-    // fsf reconstruction
-    if(p->A543==2)
-    pfsfrecon = new nhflow_fsf_reconstruct_hires(p,pBC);
-    
-    if(p->A543==4)
-    pfsfrecon = new nhflow_fsf_reconstruct_weno(p,pBC);
-
     //Convection	
 	if(p->A511==0)
 	pnhfconvec=new nhflow_convection_void(p);

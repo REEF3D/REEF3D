@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"patchBC_interface.h"
 
-nhflow_reconstruct_weno::nhflow_reconstruct_weno(lexer* p, patchBC_interface *ppBC) : nhflow_gradient(p),dfdx(p), dfdy(p)
+nhflow_reconstruct_weno::nhflow_reconstruct_weno(lexer* p, patchBC_interface *ppBC) : nhflow_gradient(p),dfdxs(p), dfdxn(p), dfdye(p), dfdyw(p)
 {
     pBC = ppBC;
     
@@ -37,39 +37,7 @@ nhflow_reconstruct_weno::nhflow_reconstruct_weno(lexer* p, patchBC_interface *pp
 nhflow_reconstruct_weno::~nhflow_reconstruct_weno()
 {
 }
-
-void nhflow_reconstruct_weno::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fs, slice &fn, slice &fe, slice &fw)
-{
-    // gradient
-    SLICELOOP4
-    {
-    dfdx_plus = (f(i+1,j) - f(i,j))/p->DXP[IP];
-    dfdx_min  = (f(i,j) - f(i-1,j))/p->DXP[IM1];
-    
-    dfdy_plus = (f(i,j+1) - f(i,j))/p->DYP[JP];
-    dfdy_min  = (f(i,j) - f(i,j-1))/p->DYP[JM1];
-    
-    dfdx(i,j) = limiter(dfdx_plus,dfdx_min);
-    dfdy(i,j) = limiter(dfdy_plus,dfdy_min);
-    }
-    
-    pgc->gcsl_start1(p,dfdx,10);
-    pgc->gcsl_start2(p,dfdy,11);
-    
-    // reconstruct
-    SLICELOOP1  
-    {
-    fs(i,j) = f(i,j)   + 0.5*p->DXP[IP]*dfdx(i,j); 
-    fn(i,j) = f(i+1,j) - 0.5*p->DXP[IP1]*dfdx(i+1,j);
-    }
-
-    SLICELOOP2 
-    {
-    fe(i,j) = f(i,j)   + 0.5*p->DYP[JP]*dfdy(i,j); 
-    fw(i,j) = f(i,j+1) - 0.5*p->DYP[JP1]*dfdy(i,j+1); 
-    }
-    
-}
+  
 
 void nhflow_reconstruct_weno::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fs, slice &fn)
 {
@@ -79,37 +47,69 @@ void nhflow_reconstruct_weno::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nhf
     dfdx_plus = (f(i+1,j) - f(i,j))/p->DXP[IP];
     dfdx_min  = (f(i,j) - f(i-1,j))/p->DXP[IM1];
     
-    dfdx(i,j) = limiter(dfdx_plus,dfdx_min);
+    dfdxs(i,j) = dslwenox(f,1.0);
+    dfdxn(i,j) = dslwenox(f,-1.0);
     }
     
-    pgc->gcsl_start1(p,dfdx,10);
+    pgc->gcsl_start1(p,dfdxs,10);
+    pgc->gcsl_start1(p,dfdxn,10);
     
     // reconstruct
     SLICELOOP1  
     {
-    fs(i,j) = f(i,j)   + 0.5*p->DXP[IP]*dfdx(i,j); 
-    fn(i,j) = f(i+1,j) - 0.5*p->DXP[IP1]*dfdx(i+1,j);
+    fs(i,j) = f(i,j)   + 0.5*p->DXP[IP]*dfdxs(i,j); 
+    fn(i,j) = f(i+1,j) - 0.5*p->DXP[IP1]*dfdxn(i+1,j);
     }
 }
 
 void nhflow_reconstruct_weno::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fe, slice &fw)
 {
+    if(p->j_dir==1)
+    {
     // gradient
     SLICELOOP4
-    {
+    {   
     dfdy_plus = (f(i,j+1) - f(i,j))/p->DYP[JP];
     dfdy_min  = (f(i,j) - f(i,j-1))/p->DYP[JM1];
     
-    dfdy(i,j) = limiter(dfdy_plus,dfdy_min);
+    dfdye(i,j) = dslwenoy(f,1.0);
+    dfdyw(i,j) = dslwenoy(f,-1.0);
     }
     
-    pgc->gcsl_start2(p,dfdy,11);
+    pgc->gcsl_start2(p,dfdye,11);
+    pgc->gcsl_start2(p,dfdyw,11);
     
     // reconstruct
     SLICELOOP2 
     {
-    fe(i,j) = f(i,j)   + 0.5*p->DYP[JP]*dfdy(i,j); 
-    fw(i,j) = f(i,j+1) - 0.5*p->DYP[JP1]*dfdy(i,j+1); 
+    fe(i,j) = f(i,j)   + 0.5*p->DYP[JP]*dfdye(i,j); 
+    fw(i,j) = f(i,j+1) - 0.5*p->DYP[JP1]*dfdyw(i,j+1); 
+    }
+    }
+}
+
+void nhflow_reconstruct_weno::reconstruct_2D_WL(lexer* p, ghostcell *pgc, fdm_nhf *d)
+{
+    // water level  
+    SLICELOOP1
+    d->dfx(i,j) = 0.5*(d->depth(i+1,j)+d->depth(i,j));
+    
+    SLICELOOP2
+    d->dfy(i,j) = 0.5*(d->depth(i,j+1)+d->depth(i,j));
+    
+    pgc->gcsl_start1(p,d->dfx,1);
+    pgc->gcsl_start2(p,d->dfy,1);
+
+    SLICELOOP1
+    {
+    d->Ds(i,j) = MAX(d->ETAs(i,j) + 0.5*(d->depth(i+1,j)+d->depth(i,j)), p->A544);
+    d->Dn(i,j) = MAX(d->ETAn(i,j) + 0.5*(d->depth(i+1,j)+d->depth(i,j)), p->A544);
+    }
+    
+    SLICELOOP2
+    {
+    d->De(i,j) = MAX(d->ETAe(i,j)  + 0.5*(d->depth(i,j+1)+d->depth(i,j)), p->A544);
+    d->Dw(i,j) = MAX(d->ETAw(i,j)  + 0.5*(d->depth(i,j+1)+d->depth(i,j)), p->A544);
     }
 }
 

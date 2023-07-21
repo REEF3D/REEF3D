@@ -41,9 +41,9 @@ public:
 	nhflow_reconstruct_hires(lexer*,patchBC_interface*);
 	virtual ~nhflow_reconstruct_hires();
 
-	virtual void reconstruct_2D(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&,slice&,slice&);
     virtual void reconstruct_2D_x(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&);
     virtual void reconstruct_2D_y(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&);
+    virtual void reconstruct_2D_WL(lexer*,ghostcell*,fdm_nhf*);
     
     virtual void reconstruct_3D_x(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*);
     virtual void reconstruct_3D_y(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*);

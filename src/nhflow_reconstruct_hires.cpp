@@ -37,69 +37,44 @@ nhflow_reconstruct_hires::~nhflow_reconstruct_hires()
 {
 }
 
-void nhflow_reconstruct_hires::reconstruct_2D(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fs, slice &fn, slice &fe, slice &fw)
+void nhflow_reconstruct_hires::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fs, slice &fn)
 {
+    SLICELOOP4
+    dfdx(i,j) = 0.0;
+    
     // gradient
     SLICELOOP4
+    WETDRY
     {
     dfdx_plus = (f(i+1,j) - f(i,j))/p->DXP[IP];
     dfdx_min  = (f(i,j) - f(i-1,j))/p->DXP[IM1];
     
-    dfdy_plus = (f(i,j+1) - f(i,j))/p->DYP[JP];
-    dfdy_min  = (f(i,j) - f(i,j-1))/p->DYP[JM1];
-    
     dfdx(i,j) = limiter(dfdx_plus,dfdx_min);
-    dfdy(i,j) = limiter(dfdy_plus,dfdy_min);
     }
     
     pgc->gcsl_start1(p,dfdx,1);
-    pgc->gcsl_start2(p,dfdy,1);
     
     // reconstruct
     SLICELOOP1  
     {
     fs(i,j) = f(i,j)   + 0.5*p->DXP[IP]*dfdx(i,j); 
     fn(i,j) = f(i+1,j) - 0.5*p->DXP[IP1]*dfdx(i+1,j);
-    }
-    
-    if(p->j_dir==1)
-    SLICELOOP2 
-    {
-    fe(i,j) = f(i,j)   + 0.5*p->DYP[JP]*dfdy(i,j); 
-    fw(i,j) = f(i,j+1) - 0.5*p->DYP[JP1]*dfdy(i,j+1); 
     }
     
     pgc->gcsl_start1(p,fs,1);
     pgc->gcsl_start1(p,fn,1);
-    pgc->gcsl_start2(p,fe,1);
-    pgc->gcsl_start2(p,fw,1);
-}
-
-void nhflow_reconstruct_hires::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fs, slice &fn)
-{
-    // gradient
-    SLICELOOP4
-    {
-    dfdx_plus = (f(i+1,j) - f(i,j))/p->DXP[IP];
-    dfdx_min  = (f(i,j) - f(i-1,j))/p->DXP[IM1];
-    
-    dfdx(i,j) = limiter(dfdx_plus,dfdx_min);
-    }
-    
-    pgc->gcsl_start1(p,dfdx,10);
-    
-    // reconstruct
-    SLICELOOP1  
-    {
-    fs(i,j) = f(i,j)   + 0.5*p->DXP[IP]*dfdx(i,j); 
-    fn(i,j) = f(i+1,j) - 0.5*p->DXP[IP1]*dfdx(i+1,j);
-    }
 }
 
 void nhflow_reconstruct_hires::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fe, slice &fw)
 {
+    if(p->j_dir==1)
+    {
+    SLICELOOP4
+    dfdy(i,j) = 0.0;
+    
     // gradient
     SLICELOOP4
+    WETDRY
     {
     dfdy_plus = (f(i,j+1) - f(i,j))/p->DYP[JP];
     dfdy_min  = (f(i,j) - f(i,j-1))/p->DYP[JM1];
@@ -107,14 +82,46 @@ void nhflow_reconstruct_hires::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm_nh
     dfdy(i,j) = limiter(dfdy_plus,dfdy_min);
     }
     
-    pgc->gcsl_start2(p,dfdy,11);
+    pgc->gcsl_start2(p,dfdy,1);
     
     // reconstruct
+    
     SLICELOOP2 
     {
     fe(i,j) = f(i,j)   + 0.5*p->DYP[JP]*dfdy(i,j); 
     fw(i,j) = f(i,j+1) - 0.5*p->DYP[JP1]*dfdy(i,j+1); 
     }
+    
+    pgc->gcsl_start2(p,fe,1);
+    pgc->gcsl_start2(p,fw,1);
+    }
+}
+
+void nhflow_reconstruct_hires::reconstruct_2D_WL(lexer* p, ghostcell *pgc, fdm_nhf *d)
+{
+    // water level  
+    SLICELOOP1
+    d->dfx(i,j) = 0.5*(d->depth(i+1,j)+d->depth(i,j));
+    
+    SLICELOOP2
+    d->dfy(i,j) = 0.5*(d->depth(i,j+1)+d->depth(i,j));
+    
+    pgc->gcsl_start1(p,d->dfx,1);
+    pgc->gcsl_start2(p,d->dfy,1);
+
+    
+    SLICELOOP1
+    {
+    d->Ds(i,j) = MAX(d->ETAs(i,j) + 0.5*(d->depth(i+1,j)+d->depth(i,j)), p->A544);
+    d->Dn(i,j) = MAX(d->ETAn(i,j) + 0.5*(d->depth(i+1,j)+d->depth(i,j)), p->A544);
+    }
+    
+    SLICELOOP2
+    {
+    d->De(i,j) = MAX(d->ETAe(i,j)  + 0.5*(d->depth(i,j+1)+d->depth(i,j)), p->A544);
+    d->Dw(i,j) = MAX(d->ETAw(i,j)  + 0.5*(d->depth(i,j+1)+d->depth(i,j)), p->A544);
+    }
+        
 }
 
 void nhflow_reconstruct_hires::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fx, double *Fs, double *Fn)

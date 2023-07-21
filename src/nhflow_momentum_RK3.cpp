@@ -26,7 +26,6 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"bcmom.h"
 #include"nhflow_reconstruct.h"
-#include"nhflow_fsf_reconstruct.h"
 #include"nhflow_convection.h"
 #include"nhflow_signal_speed.h"
 #include"diffusion.h"
@@ -65,7 +64,7 @@ nhflow_momentum_RK3::~nhflow_momentum_RK3()
 {
 }
 
-void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_signal_speed *pss, nhflow_fsf_reconstruct *pfsfrecon, 
+void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_signal_speed *pss,
                                      nhflow_reconstruct *precon, nhflow_convection *pconvec, diffusion *pdiff, 
                                      nhflow_pressure *ppress, solver *psolv, nhflow *pnhf, nhflow_fsf *pfsf, nhflow_turbulence *pnhfturb, vrans *pvrans)
 {	
@@ -77,7 +76,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 //Step 1
 //--------------------------------------------------------
     
-    reconstruct(p,d,pgc,pfsf,pss,pfsfrecon,precon,d->WL,d->U,d->V,d->W,d->UH,d->VH,d->WH);
+    reconstruct(p,d,pgc,pfsf,pss,precon,d->WL,d->U,d->V,d->W,d->UH,d->VH,d->WH);
     
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
     pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
@@ -165,7 +164,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 //Step 2
 //--------------------------------------------------------
 
-    reconstruct(p,d,pgc,pfsf,pss,pfsfrecon,precon,WLRK1,d->U,d->V,d->W,UHRK1,VHRK1,WHRK1);
+    reconstruct(p,d,pgc,pfsf,pss,precon,WLRK1,d->U,d->V,d->W,UHRK1,VHRK1,WHRK1);
 	
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
     pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
@@ -252,7 +251,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 //Step 3
 //--------------------------------------------------------
     
-    reconstruct(p,d,pgc,pfsf,pss,pfsfrecon,precon,WLRK2,d->U,d->V,d->W,UHRK2,VHRK2,WHRK2);
+    reconstruct(p,d,pgc,pfsf,pss,precon,WLRK2,d->U,d->V,d->W,UHRK2,VHRK2,WHRK2);
     
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
     pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
@@ -338,12 +337,13 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     clearrhs(p,d,pgc);
 }
 
-void nhflow_momentum_RK3::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_fsf *pfsf, nhflow_signal_speed *pss, nhflow_fsf_reconstruct *pfsfrecon, 
+void nhflow_momentum_RK3::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_fsf *pfsf, nhflow_signal_speed *pss,
                                      nhflow_reconstruct *precon, slice &WL, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
     // reconstruct eta
-    pfsfrecon->reconstruct_2D(p, pgc, d, d->eta, d->ETAs, d->ETAn, d->ETAe, d->ETAw);
-    pfsfrecon->reconstruct_2D_WL(p, pgc, d);
+    precon->reconstruct_2D_x(p, pgc, d, d->eta, d->ETAs, d->ETAn);
+    precon->reconstruct_2D_y(p, pgc, d, d->eta, d->ETAe, d->ETAw);
+    precon->reconstruct_2D_WL(p, pgc, d);
     
     // reconstruct U 
     precon->reconstruct_3D_x(p, pgc, d, U, d->Us, d->Un);

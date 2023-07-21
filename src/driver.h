@@ -205,7 +205,6 @@ public:
     nhflow_convection *pnhfconvec;
     nhflow_signal_speed *pss;
     nhflow_reconstruct *precon;
-    nhflow_fsf_reconstruct *pfsfrecon;
     nhflow_pressure *pnhpress;
     nhflow_turbulence *pnhfturb;
     multiphase *pmp;
