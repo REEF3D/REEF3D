@@ -60,6 +60,9 @@ void nhflow_reconstruct_wenograd::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm
     fs(i,j) = f(i,j)   + 0.5*p->DXP[IP]*dfdxs(i,j); 
     fn(i,j) = f(i+1,j) - 0.5*p->DXP[IP1]*dfdxn(i+1,j);
     }
+    
+    pgc->gcsl_start1(p,fs,1);
+    pgc->gcsl_start1(p,fn,1);
 }
 
 void nhflow_reconstruct_wenograd::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fe, slice &fw)
@@ -85,6 +88,9 @@ void nhflow_reconstruct_wenograd::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm
     fe(i,j) = f(i,j)   + 0.5*p->DYP[JP]*dfdye(i,j); 
     fw(i,j) = f(i,j+1) - 0.5*p->DYP[JP1]*dfdyw(i,j+1); 
     }
+    
+    pgc->gcsl_start2(p,fe,1);
+    pgc->gcsl_start2(p,fw,1);
     }
 }
 
@@ -111,6 +117,11 @@ void nhflow_reconstruct_wenograd::reconstruct_2D_WL(lexer* p, ghostcell *pgc, fd
     d->De(i,j) = MAX(d->ETAe(i,j)  + 0.5*(d->depth(i,j+1)+d->depth(i,j)), p->A544);
     d->Dw(i,j) = MAX(d->ETAw(i,j)  + 0.5*(d->depth(i,j+1)+d->depth(i,j)), p->A544);
     }
+    
+    pgc->gcsl_start1(p,d->Ds,1);
+    pgc->gcsl_start1(p,d->Dn,1);
+    pgc->gcsl_start2(p,d->De,1);
+    pgc->gcsl_start2(p,d->Dw,1);
 }
 
 void nhflow_reconstruct_wenograd::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fx, double *Fs, double *Fn)
@@ -184,18 +195,6 @@ double nhflow_reconstruct_wenograd::limiter(double v1, double v2)
 {
     val=0.0;
     
-    if(p->A514==1)
-    {
-    denom = fabs(v1) + fabs(v2);
-    
-    denom = fabs(denom)>1.0e-10?denom:1.0e10;
-    
-    val =  (v1*fabs(v2) + fabs(v1)*v2)/denom;
-    }
-
-    if(p->A514==2)
-    {
-    
     r=v2/(fabs(v1)>1.0e-10?v1:1.0e20);
 
     if(r<0.0)
@@ -211,16 +210,7 @@ double nhflow_reconstruct_wenograd::limiter(double v1, double v2)
     phi = MIN(MIN(r,2.0), 2.0/(1.0+r));
     
     val = 0.5*phi*(v1+v2);
-    }
-    
-    if(p->A514==3)
-    {
-    r=v2/(fabs(v1)>1.0e-10?v1:1.0e20);
-    
-    phi = (r*r + r)/(r*r+1.0);
-    
-    val = 0.5*phi*(v1+v2);
-    }
+
     
     return val;
 }

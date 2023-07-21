@@ -121,6 +121,11 @@ void nhflow_reconstruct_hires::reconstruct_2D_WL(lexer* p, ghostcell *pgc, fdm_n
     d->De(i,j) = MAX(d->ETAe(i,j)  + 0.5*(d->depth(i,j+1)+d->depth(i,j)), p->A544);
     d->Dw(i,j) = MAX(d->ETAw(i,j)  + 0.5*(d->depth(i,j+1)+d->depth(i,j)), p->A544);
     }
+    
+    pgc->gcsl_start1(p,d->Ds,1);
+    pgc->gcsl_start1(p,d->Dn,1);
+    pgc->gcsl_start2(p,d->De,1);
+    pgc->gcsl_start2(p,d->Dw,1);
         
 }
 

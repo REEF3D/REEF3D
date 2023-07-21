@@ -70,6 +70,9 @@ void driver::logic_nhflow()
     if(p->A514==4)
     precon = new nhflow_reconstruct_wenograd(p,pBC);
     
+    if(p->A514==5)
+    precon = new nhflow_reconstruct_weno(p,pBC);
+    
     //Convection	
 	if(p->A511==0)
 	pnhfconvec=new nhflow_convection_void(p);
