@@ -292,6 +292,15 @@ void nhflow_momentum_RK2::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
 
 void nhflow_momentum_RK2::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *UH, double *VH, double *WH, slice &WL)
 {
+    // Fr nuber limiter
+    LOOP
+    WETDRY
+    {
+    UH[IJK] = MIN(UH[IJK], 5.0*WL(i,j)*sqrt(9.81*WL(i,j)));
+    VH[IJK] = MIN(VH[IJK], 5.0*WL(i,j)*sqrt(9.81*WL(i,j)));
+    WH[IJK] = MIN(WH[IJK], 5.0*WL(i,j)*sqrt(9.81*WL(i,j)));      
+    }
+    
     LOOP
     {
     d->U[IJK] = UH[IJK]/WLVL;
@@ -380,7 +389,6 @@ void nhflow_momentum_RK2::krhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void nhflow_momentum_RK2::clearrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    
 	n=0;
 	LOOP
 	{
