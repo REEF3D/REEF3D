@@ -74,47 +74,11 @@ void driver::logic_nhflow()
     precon = new nhflow_reconstruct_weno(p,pBC);
     
     //Convection	
-	if(p->A511==0)
-	pnhfconvec=new nhflow_convection_void(p);
-
-	if(p->A511==1)
-	pnhfconvec=new nhflow_fou(p);
-
-	if(p->A511==2)
-	pnhfconvec=new nhflow_cds2(p);
-/*
-	if(p->A511==3)
-	pconvec=new quick(p);
-
-	if(p->A511==4 && p->G2==0)
-	pconvec=new weno_flux_nug(p);*/
-    
-    if(p->A511==4)
-	pnhfconvec=new nhflow_weno_flux(p);
-	
-	/*if(p->A511==5)
-	pconvec=new weno_hj_nug(p);
-	
-	if(p->A511==6)
-	pconvec=new cds4(p);
-    
-    if(p->A511==7)
-	pconvec=new weno3_flux(p);
-    
-    if(p->A511==8)
-	pconvec=new weno3_hj(p);
-	*/
     if(p->A511==8)
 	pnhfconvec=new nhflow_HLL(p,pgc,pBC);
     
     if(p->A511==9)
 	pnhfconvec=new nhflow_HLLC(p,pgc,pBC);
-    
-	if(p->A511>=10 && p->A511<30)
-	pnhfconvec=new nhflow_hires(p,p->A511);
-    
-    
-    
     
     
 //pressure scheme

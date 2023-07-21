@@ -262,19 +262,7 @@
             <File Name="nhflow_reconstruct_hires.h"/>
           </VirtualDirectory>
           <File Name="nhflow_HLL.h"/>
-          <File Name="nhflow_cds2.h"/>
-          <VirtualDirectory Name="Limiter">
-            <File Name="nhflow_vanleer.h"/>
-            <File Name="nhflow_fluxlim.h"/>
-          </VirtualDirectory>
-          <File Name="nhflow_hires.h"/>
-          <File Name="nhflow_fou.h"/>
           <File Name="nhflow_convection_void.h"/>
-          <File Name="nhflow_weno_flux.h"/>
-          <VirtualDirectory Name="Flux">
-            <File Name="nhflow_flux.h"/>
-            <File Name="nhflow_flux_face_cds2.h"/>
-          </VirtualDirectory>
           <File Name="nhflow_convection.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
@@ -1329,17 +1317,6 @@
             <File Name="nhflow_reconstruct_hires.cpp"/>
           </VirtualDirectory>
           <File Name="nhflow_HLL.cpp"/>
-          <File Name="nhflow_cds2.cpp"/>
-          <VirtualDirectory Name="Limiter">
-            <File Name="nhflow_vanleer.cpp"/>
-          </VirtualDirectory>
-          <File Name="nhflow_hires.cpp"/>
-          <File Name="nhflow_convection_void.cpp"/>
-          <VirtualDirectory Name="Flux">
-            <File Name="nhflow_flux_face_cds2.cpp"/>
-          </VirtualDirectory>
-          <File Name="nhflow_fou.cpp"/>
-          <File Name="nhflow_weno_flux.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
           <VirtualDirectory Name="VTP BED">

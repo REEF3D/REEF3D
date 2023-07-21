@@ -36,7 +36,6 @@ Author: Hans Bihs
 #include"nhflow_fsf.h"
 #include"nhflow_turbulence.h"
 #include"vrans.h"
-#include"nhflow_weno_flux.h"
 
 #define WLVL (fabs(WL(i,j))>(1.0*p->A544)?WL(i,j):1.0e20)
 
@@ -55,7 +54,6 @@ nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc)
     p->Darray(VDIFF,p->imax*p->jmax*(p->kmax+2));
     p->Darray(WDIFF,p->imax*p->jmax*(p->kmax+2));
     
-    pweno = new nhflow_weno_flux(p);
 }
 
 nhflow_momentum_RK2::~nhflow_momentum_RK2()

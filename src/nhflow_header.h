@@ -34,10 +34,6 @@ Author: Hans Bihs
 #include"nhflow_komega_void.h"
 #include"nhflow_komega_IM1.h"
 
-#include"nhflow_fou.h"
-#include"nhflow_weno_flux.h"
-#include"nhflow_hires.h"
-#include"nhflow_cds2.h"
 #include"nhflow_HLL.h"
 #include"nhflow_HLLC.h"
 #include"nhflow_convection_void.h"
