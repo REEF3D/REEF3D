@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -19,38 +19,40 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"nhflow_coastline.h"
-#include"lexer.h"
-#include"ghostcell.h"
-#include"slice.h"
-#include"sliceint.h"
 
-nhflow_coastline::nhflow_coastline(lexer* p) :  ddweno_f_nug(p), frk1(p),frk2(p),L(p),dt(p),wet_n(p)
-{
-    time_preproc(p); 
-}
+#include"ddweno_f_nug.h"
+#include"slice4.h"
+class lexer;
+class slice;
+class sliceint;
+class ghostcell;
 
-nhflow_coastline::~nhflow_coastline()
-{
-}
+#ifndef NHFLOW_COASTLINE_H_
+#define NHFLOW_COASTLINE_H_
 
-void nhflow_coastline::start(lexer *p, ghostcell *pgc, slice &coastline, int *wet, sliceint &wet_n)
+using namespace std;
+
+class nhflow_coastline :  public ddweno_f_nug
 {
-    if(p->count==0)
-    {
-        SLICELOOP4
-        {
-            if(wet[IJ]==0)
-            coastline(i,j)=-1.0;
-            
-            if(wet[IJ]==1)
-            coastline(i,j)=1.0;
+public:
+    nhflow_coastline(lexer*);
+	virtual ~nhflow_coastline();
+
+   void start(lexer*,ghostcell*,slice&,int*,sliceint&);
    
-        }
-        reini(p,pgc,coastline);
-    }
-}
+private:
+   void reini(lexer*,ghostcell*,slice&);
+   void disc(lexer*,ghostcell*,slice&);
+   
+   void step(lexer*);
+   void time_preproc(lexer*);
+   
+   slice4 frk1,frk2,L,dt,wet_n;
+   
+   
+   int reiniter,change;
+   
 
+};
 
-
-
+#endif

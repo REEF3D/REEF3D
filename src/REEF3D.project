@@ -280,6 +280,9 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Coastlline">
+            <File Name="nhflow_coastline.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Sigma">
             <File Name="nhflow_sigma.h"/>
           </VirtualDirectory>
@@ -1339,6 +1342,11 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Coastline">
+            <File Name="nhflow_coastline_reini.cpp"/>
+            <File Name="nhflow_coastline_disc.cpp"/>
+            <File Name="nhflow_coastline.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Sigma">
             <File Name="nhflow_sigma_omega.cpp"/>
             <File Name="nhflow_sigma_ini.cpp"/>
@@ -1492,9 +1500,9 @@
             <File Name="fnpf_discrete_weights.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Coastline">
+            <File Name="fnpf_coastline_disc.cpp"/>
             <File Name="fnpf_coastline_reini.cpp"/>
             <File Name="fnpf_coastline.cpp"/>
-            <File Name="fnpf_coastline_disc.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
