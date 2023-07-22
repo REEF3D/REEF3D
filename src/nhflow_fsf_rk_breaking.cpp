@@ -90,21 +90,21 @@ void nhflow_fsf_rk::breaking(lexer* p, fdm_nhf* d, ghostcell* pgc, slice& eta, s
         SLICELOOP4
         if(d->breaking(i,j)==2)
         {
-         filter(p,d,pgc,eta);
+         filter(p,d,pgc,d->WL);
         }   
         
         if(p->A552==2)
         SLICELOOP4
         if(d->breaking(i,j)==1)
         {
-         filter(p,d,pgc,eta);
+         filter(p,d,pgc,d->WL);
         }   
         
         if(p->A552==3)
         SLICELOOP4
         if(d->breaking(i,j)>=1)
         {
-         filter(p,d,pgc,eta);
+         filter(p,d,pgc,d->WL);
         } 
 }
 

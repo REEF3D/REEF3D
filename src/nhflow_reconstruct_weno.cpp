@@ -30,6 +30,8 @@ nhflow_reconstruct_weno::nhflow_reconstruct_weno(lexer* p, patchBC_interface *pp
 {
     pBC = ppBC;
     p->Darray(DFDX,p->imax*p->jmax*(p->kmax+2));
+    
+    uf=vf=wf=0;
 }
 
 nhflow_reconstruct_weno::~nhflow_reconstruct_weno()
@@ -94,7 +96,6 @@ void nhflow_reconstruct_weno::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm_nhf
     
     pgc->gcsl_start2(p,fe,11);
     pgc->gcsl_start2(p,fw,11);
-
 }
 
 void nhflow_reconstruct_weno::reconstruct_2D_WL(lexer* p, ghostcell *pgc, fdm_nhf *d)

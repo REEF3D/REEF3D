@@ -87,7 +87,7 @@ void nhflow_fsf_rk::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflo
     pgc->gcsl_start4(p,d->detadt,1);
     
     wetdry(p,d,pgc,U,V,W,WLRK1);
-    //breaking(p,d,pgc,etark1,d->eta,1.0);
+    //breaking(p,d,pgc,d->eta,d->eta_n,1.0);
 }
 
 void nhflow_fsf_rk::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice &WLRK1, slice &WLRK2, double alpha)
@@ -121,7 +121,7 @@ void nhflow_fsf_rk::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflo
     d->test[IJK] = -p->DZN[KP]*(d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP];
     
     wetdry(p,d,pgc,U,V,W,d->WL);
-    //breaking(p,d,pgc,d->eta,etark1,0.25);
+    //breaking(p,d,pgc,d->eta,d->eta_n,1.0);
     
     /*
     if(p->mpirank==7)
