@@ -48,7 +48,8 @@ public:
     virtual void reconstruct_3D_x(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*);
     virtual void reconstruct_3D_y(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*);
     virtual void reconstruct_3D_z(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*);
-
+    
+    slice4 dfdx;
 
 private:
     void iqmin(lexer*, double*);
