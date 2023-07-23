@@ -60,10 +60,10 @@ driver::driver(int& argc, char **argv)
     if(p->A10==4)
     cout<<endl<<"REEF3D::PTF" <<endl<<endl;
 
-    if(p->A10==5)
+    if(p->A10==51)
     cout<<endl<<"REEF3D::NSEWAVE"<<endl<<endl;
 
-    if(p->A10==55)
+    if(p->A10==5)
     cout<<endl<<"REEF3D::NHFLOW"<<endl<<endl;
 
     if(p->A10==6)
@@ -95,7 +95,7 @@ driver::driver(int& argc, char **argv)
         fnpf_driver();
     }
 
-    if(p->A10==55)
+    if(p->A10==5)
     {
         p->flagini();
         p->gridini_patchBC();
@@ -111,7 +111,7 @@ driver::driver(int& argc, char **argv)
     }
 
     // fixed grid - PTF & NSEWAVE & CFD
-    if(p->A10==4 || p->A10==5 || p->A10==6)
+    if(p->A10==4 || p->A10==51 || p->A10==6)
     {
         p->flagini();
         p->gridini_patchBC();
@@ -126,7 +126,7 @@ driver::driver(int& argc, char **argv)
         if(p->A10==4)
         ptf_driver();
 
-        if(p->A10==5)
+        if(p->A10==51)
         nsewave_driver();
 
         if(p->A10==6)

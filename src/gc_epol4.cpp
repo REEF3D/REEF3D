@@ -205,7 +205,7 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	return 4;
 
 	else
-	if(bc==3 && (cs==5||cs==6)&&(gcv==12) && p->A10==55)
+	if(bc==3 && (cs==5||cs==6)&&(gcv==12) && p->A10==5)
 	return 4;
 	
 // VOF

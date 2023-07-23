@@ -46,10 +46,10 @@ void driver::logic_nhflow()
     p->phimean = p->F60;
     
 // nhflow
-    if(p->A10!=55)
+    if(p->A10!=5)
     pnhf=new nhflow_v(p,d,pgc);
     
-    if(p->A10==55)
+    if(p->A10==5)
     pnhf=new nhflow_f(p,d,pgc);
     
 // FSF

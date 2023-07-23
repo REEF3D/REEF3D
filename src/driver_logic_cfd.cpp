@@ -365,7 +365,7 @@ void driver::logic_cfd()
     if(p->A10==6 || p->A10==0)
     pnse = new nsewave_v(p,a,pgc,pheat,pconc);
 
-    if(p->A10==5)
+    if(p->A10==51)
     {
     if(p->A410==1)
     pnse = new nsewave_f(p,a,pgc,pheat,pconc);

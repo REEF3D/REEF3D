@@ -168,7 +168,7 @@ void print_wsf::height_gauge(lexer *p, fdm *a, ghostcell *pgc, field &f)
         }
     }
     
-    if(p->A10==55 || p->A10==4)
+    if(p->A10==5 || p->A10==4)
     for(n=0;n<gauge_num;++n)
     if(flag[n]>0)
     {
