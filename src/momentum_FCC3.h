@@ -30,6 +30,7 @@ Author: Hans Bihs
 class convection;
 class diffusion;
 class pressure;
+class density;
 class turbulence;
 class solver;
 class poisson;
@@ -56,9 +57,22 @@ public:
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);
 
-    field1 udiff,urk1,urk2;
-	field2 vdiff,vrk1,vrk2;
-	field3 wdiff,wrk1,wrk2;
+    field1 ur,udiff,urk1,urk2;
+	field2 vr,vdiff,vrk1,vrk2;
+	field3 wr,wdiff,wrk1,wrk2;
+    
+    field1 Mx,rox;
+    field2 My,roy;
+    field3 Mz,roz;
+    
+    field1 Mx_rk1,Mx_rk2;
+	field2 My_rk1,My_rk2;
+	field3 Mz_rk1,Mz_rk2;
+    
+    field1 rox_rk1,rox_rk2;
+	field2 roy_rk1,roy_rk2;
+	field3 roz_rk1,roz_rk2;
+    
     field4 ls,frk1,frk2;
 
 private:
@@ -69,11 +83,19 @@ private:
 	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	
-    void timecheck(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    void clear_FGH(lexer*,fdm*);
+    void face_density(lexer*,fdm*);
+    
+    void velocity_reconstruction(lexer*,fdm*);
+    
+    double vel_limiter(lexer*,fdm*);
+    double ro_filter(lexer*,fdm*);
+
     
 	int gcval_u, gcval_v, gcval_w;
     int gcval_phi;
 	double starttime;
+    double ro_threshold;
 
 	convection *pconvec;
     convection *pfsfdisc;
@@ -86,6 +108,7 @@ private:
 	ioflow *pflow;
     nhflow *pnh;
     reini *preini;
+    density *pd;
     
 };
 

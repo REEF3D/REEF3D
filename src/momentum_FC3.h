@@ -69,8 +69,6 @@ private:
 	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	
-    void timecheck(lexer*,fdm*,ghostcell*,field&,field&,field&);
-    
 	int gcval_u, gcval_v, gcval_w;
     int gcval_phi;
 	double starttime;

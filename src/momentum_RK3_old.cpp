@@ -324,10 +324,6 @@ void momentum_RK3_old::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &u
 	}
 }
 
-void momentum_RK3_old::timecheck(lexer *p,fdm *a,ghostcell *pgc,field &u,field &v,field &w)
-{
-}
-
 void momentum_RK3_old::utimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
