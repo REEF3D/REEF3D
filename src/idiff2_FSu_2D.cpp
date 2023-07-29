@@ -156,13 +156,13 @@ void idiff2_FS_2D::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 }
 
 
-void idiff2_FS_2D::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &u, field &v, field &w, double alpha)
+void idiff2_FS_2D::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &u_in, field &u, field &v, field &w, double alpha)
 {
 	starttime=pgc->timer();
 	double visc_ddy_p,visc_ddy_m,visc_ddz_p,visc_ddz_m;
     
     ULOOP
-    diff(i,j,k) = u(i,j,k);
+    diff(i,j,k) = u_in(i,j,k);
     
     pgc->start1(p,u,gcval_udiff);
 	pgc->start2(p,v,gcval_vdiff);

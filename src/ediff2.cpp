@@ -218,13 +218,16 @@ void ediff2::idiff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 {	
 }
 
-void ediff2::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &u, field &v, field &w, double alpha)
+void ediff2::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &u_in, field &u, field &v, field &w, double alpha)
 {
 	double visc_ddy_p,visc_ddy_m,visc_ddz_p,visc_ddz_m;
 	
 	pgc->start1(p,u,gcval_udiff);
 	pgc->start2(p,v,gcval_vdiff);
 	pgc->start3(p,w,gcval_wdiff);
+    
+    ULOOP
+    diff(i,j,k) = u_in(i,j,k);
     
     ULOOP
 	{
@@ -252,8 +255,6 @@ void ediff2::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff
         + ((v(i+1,j,k)-v(i,j,k))*(visc_ddy_p/p->DXP[IP]) - (v(i+1,j-1,k)-v(i,j-1,k))*(visc_ddy_m/p->DXP[IP]))/p->DYN[JP]
 
         + ((w(i+1,j,k)-w(i,j,k))*(visc_ddz_p/p->DXP[IP]) - (w(i+1,j,k-1)-w(i,j,k-1))*(visc_ddz_m/p->DXP[IP]))/p->DZN[KP];
-	
-        diff(i,j,k) = u(i,j,k);
 	}
     
     pgc->start1(p,diff,gcval_u);
@@ -263,13 +264,16 @@ void ediff2::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff
 	pgc->start3(p,w,gcval_w);
 }
 
-void ediff2::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &u, field &v, field &w, double alpha)
+void ediff2::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &v_in, field &u, field &v, field &w, double alpha)
 {
 	double visc_ddx_p,visc_ddx_m,visc_ddz_p,visc_ddz_m;
 	
     pgc->start1(p,u,gcval_udiff);
 	pgc->start2(p,v,gcval_vdiff);
 	pgc->start3(p,w,gcval_wdiff);
+    
+    VLOOP
+    diff(i,j,k) = v_in(i,j,k);
     
     VLOOP
 	{
@@ -296,8 +300,6 @@ void ediff2::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff
 		+ ((u(i,j+1,k)-u(i,j,k))*(visc_ddx_p/p->DYP[JP]) - (u(i-1,j+1,k)-u(i-1,j,k))*(visc_ddx_m/p->DYP[JP]))/p->DXN[IP]
 
 		+ ((w(i,j+1,k)-w(i,j,k))*(visc_ddz_p/p->DYP[JP]) - (w(i,j+1,k-1)-w(i,j,k-1))*(visc_ddz_m/p->DYP[JP]))/p->DZN[KP];
-	
-        diff(i,j,k) = v(i,j,k);
 	}
     
     pgc->start2(p,diff,gcval_v);
@@ -307,13 +309,16 @@ void ediff2::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff
 	pgc->start3(p,w,gcval_w);
 }
 
-void ediff2::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &u, field &v, field &w, double alpha)
+void ediff2::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &w_in, field &u, field &v, field &w, double alpha)
 {
 	double visc_ddx_p,visc_ddx_m,visc_ddy_p,visc_ddy_m;
 	
     pgc->start1(p,u,gcval_udiff);
 	pgc->start2(p,v,gcval_vdiff);
 	pgc->start3(p,w,gcval_wdiff);
+    
+    WLOOP
+    diff(i,j,k) = w_in(i,j,k);
     
     WLOOP
 	{
@@ -341,7 +346,6 @@ void ediff2::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff
 
      	+ ((v(i,j,k+1)-v(i,j,k))*(visc_ddy_p/p->DZP[KP]) - (v(i,j-1,k+1)-v(i,j-1,k))*(visc_ddy_m/p->DZP[KP]))/p->DYN[JP];
 	
-        diff(i,j,k) = w(i,j,k);
 	}
     
     pgc->start3(p,diff,gcval_w);

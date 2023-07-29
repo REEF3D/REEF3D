@@ -149,14 +149,14 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 }
 
 
-void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &u, field &v, field &w, double alpha)
+void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &v_in, field &u, field &v, field &w, double alpha)
 {
 	starttime=pgc->timer();
 	
 	double visc_ddx_p,visc_ddx_m,visc_ddz_p,visc_ddz_m;
     
     VLOOP
-    diff(i,j,k) = v(i,j,k);
+    diff(i,j,k) = v_in(i,j,k);
     
     pgc->start1(p,u,gcval_udiff);
 	pgc->start2(p,v,gcval_vdiff);

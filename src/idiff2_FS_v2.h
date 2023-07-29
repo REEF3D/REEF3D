@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2023 Hans Bihs
 
@@ -47,9 +47,9 @@ public:
 	virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);
 	virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);
 	
-    virtual void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double){};
-	virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double){};
-	virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double){};
+    virtual void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double){};
+	virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double){};
+	virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double){};
 
 private:
     rheology *prheo;

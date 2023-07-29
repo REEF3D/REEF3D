@@ -197,7 +197,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     
     //-------------------------------------------
     // get vectorized face density from density_f
-    face_density(p,a);
+    face_density(p,a,rox,roy,roz);
     
     // advect U
     pconvec->start(p,a,a->u,1,a->u,a->v,a->w);
@@ -210,11 +210,11 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
                 
     VLOOP
 	vrk1(i,j,k) = a->v(i,j,k)
-				+ p->dt*CPOR1*a->G(i,j,k);
+				+ p->dt*CPOR2*a->G(i,j,k);
                 
     WLOOP
 	wrk1(i,j,k) = a->w(i,j,k)
-				+ p->dt*CPOR1*a->H(i,j,k);
+				+ p->dt*CPOR3*a->H(i,j,k);
                 
         // clear_FGH
     clear_FGH(p,a);
@@ -240,19 +240,19 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
                 
     VLOOP
 	My_rk1(i,j,k) = My(i,j,k)
-				+ p->dt*CPOR1*a->G(i,j,k);
+				+ p->dt*CPOR2*a->G(i,j,k);
                 
     WLOOP
 	Mz_rk1(i,j,k) = Mz(i,j,k)
-				+ p->dt*CPOR1*a->H(i,j,k);
+				+ p->dt*CPOR3*a->H(i,j,k);
     
         // clear_FGH
     clear_FGH(p,a);
     
     // advect rho
-    pconvec->start(p,a,Mx,1,a->u,a->v,a->w);
-    pconvec->start(p,a,My,2,a->u,a->v,a->w);
-    pconvec->start(p,a,Mz,3,a->u,a->v,a->w);
+    pconvec->start(p,a,rox,1,a->u,a->v,a->w);
+    pconvec->start(p,a,roy,2,a->u,a->v,a->w);
+    pconvec->start(p,a,roz,3,a->u,a->v,a->w);
     
     ULOOP
 	rox_rk1(i,j,k) = rox(i,j,k)
@@ -260,16 +260,24 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
                 
     VLOOP
 	roy_rk1(i,j,k) = roy(i,j,k)
-				+ p->dt*CPOR1*a->G(i,j,k);
+				+ p->dt*CPOR2*a->G(i,j,k);
                 
     WLOOP
 	roz_rk1(i,j,k) = roz(i,j,k)
-				+ p->dt*CPOR1*a->H(i,j,k);
+				+ p->dt*CPOR3*a->H(i,j,k);
     
         // clear_FGH
     clear_FGH(p,a);
     
     // reconstruct U
+    ULOOP
+    ur(i,j,k) = vel_limiter(p,a,urk1,Mx_rk1,rox_rk1,rox);
+    
+    VLOOP
+    vr(i,j,k) = vel_limiter(p,a,vrk1,My_rk1,roy_rk1,roy);
+    
+    WLOOP
+    wr(i,j,k) = vel_limiter(p,a,wrk1,Mz_rk1,roz_rk1,roz);
     
     
     //-------------------------------------------
@@ -278,11 +286,10 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 
 	pturb->isource(p,a);
 	pflow->isource(p,a,pgc,pvrans); 
-	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
+	bcmom_start(a,p,pgc,pturb,ur,gcval_u);
 	ppress->upgrad(p,a,a->eta,a->eta_n);
-	irhs(p,a,pgc,a->u,a->u,a->v,a->w,1.0);
-	//pconvec->start(p,a,a->u,1,a->u,a->v,a->w);
-	pdiff->diff_u(p,a,pgc,psolv,udiff,a->u,a->v,a->w,1.0);
+	irhs(p,a,pgc,ur,a->u,a->v,a->w,1.0);
+	pdiff->diff_u(p,a,pgc,psolv,udiff,ur,a->u,a->v,a->w,1.0);
 
 	ULOOP
 	urk1(i,j,k) = udiff(i,j,k)
@@ -299,8 +306,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
 	ppress->vpgrad(p,a,a->eta,a->eta_n);
 	jrhs(p,a,pgc,a->v,a->u,a->v,a->w,1.0);
-	//pconvec->start(p,a,a->v,2,a->u,a->v,a->w);
-	pdiff->diff_v(p,a,pgc,psolv,vdiff,a->u,a->v,a->w,1.0);
+	pdiff->diff_v(p,a,pgc,psolv,vdiff,vr,a->u,a->v,a->w,1.0);
 
 	VLOOP
 	vrk1(i,j,k) = vdiff(i,j,k)
@@ -317,8 +323,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
 	ppress->wpgrad(p,a,a->eta,a->eta_n);
 	krhs(p,a,pgc,a->w,a->u,a->v,a->w,1.0);
-	//pconvec->start(p,a,a->w,3,a->u,a->v,a->w);
-	pdiff->diff_w(p,a,pgc,psolv,wdiff,a->u,a->v,a->w,1.0);
+	pdiff->diff_w(p,a,pgc,psolv,wdiff,wr,a->u,a->v,a->w,1.0);
 
 	WLOOP
 	wrk1(i,j,k) = wdiff(i,j,k)
@@ -376,6 +381,91 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     pupdate->start(p,a,pgc);
     
     //-------------------------------------------
+    // get vectorized face density from density_f
+    face_density(p,a,rox_rk1,roy_rk1,roz_rk1);
+    
+    // advect U
+    pconvec->start(p,a,urk1,1,urk1,vrk1,wrk1);
+    pconvec->start(p,a,vrk1,2,urk1,vrk1,wrk1);
+    pconvec->start(p,a,wrk1,3,urk1,vrk1,wrk1);
+    
+    ULOOP
+	urk2(i,j,k) = 0.75*a->u(i,j,k) + 0.25*urk1(i,j,k)
+				+ 0.25*p->dt*CPOR1*a->F(i,j,k);
+                
+    VLOOP
+	vrk2(i,j,k) = 0.75*a->v(i,j,k) + 0.25*vrk1(i,j,k)
+				+ 0.25*p->dt*CPOR2*a->G(i,j,k);
+                
+    WLOOP
+	wrk2(i,j,k) = 0.75*a->w(i,j,k) + 0.25*wrk1(i,j,k)
+				+ 0.25*p->dt*CPOR3*a->H(i,j,k);
+                
+        // clear_FGH
+    clear_FGH(p,a);
+        
+    // get M form M = rho * U
+    ULOOP
+    Mx_rk1(i,j,k) = rox_rk1(i,j,k)*urk1(i,j,k);
+    
+    VLOOP
+    My_rk1(i,j,k) = roy_rk1(i,j,k)*vrk1(i,j,k);
+    
+    WLOOP
+    Mz_rk1(i,j,k) = roz_rk1(i,j,k)*wrk1(i,j,k);
+    
+    // advect M    
+    pconvec->start(p,a,Mx_rk1,1,urk1,vrk1,wrk1);
+    pconvec->start(p,a,My_rk1,2,urk1,vrk1,wrk1);
+    pconvec->start(p,a,Mz_rk1,3,urk1,vrk1,wrk1);
+    
+    ULOOP
+	Mx_rk2(i,j,k) = 0.75*Mx(i,j,k) + 0.25*Mx_rk1(i,j,k)
+				+ 0.25*p->dt*CPOR1*a->F(i,j,k);
+                
+    VLOOP
+	My_rk2(i,j,k) = 0.75*My(i,j,k) + 0.25*My_rk1(i,j,k)
+				+ 0.25*p->dt*CPOR2*a->G(i,j,k);
+                
+    WLOOP
+	Mz_rk2(i,j,k) = 0.75*Mz(i,j,k) + 0.25*Mz_rk1(i,j,k)
+				+ 0.25*p->dt*CPOR3*a->H(i,j,k);
+    
+        // clear_FGH
+    clear_FGH(p,a);
+    
+    // advect rho
+    pconvec->start(p,a,rox_rk1,1,urk1,vrk1,wrk1);
+    pconvec->start(p,a,roy_rk1,2,urk1,vrk1,wrk1);
+    pconvec->start(p,a,roz_rk1,3,urk1,vrk1,wrk1);
+    
+    ULOOP
+	rox_rk2(i,j,k) = 0.75*rox(i,j,k) + 0.25*rox_rk1(i,j,k)
+				+ 0.25*p->dt*CPOR1*a->F(i,j,k);
+                
+    VLOOP
+	roy_rk2(i,j,k) = 0.75*roy(i,j,k) + 0.25*roy_rk1(i,j,k)
+				+ 0.25*p->dt*CPOR1*a->G(i,j,k);
+                
+    WLOOP
+	roz_rk2(i,j,k) = 0.75*roz(i,j,k) + 0.25*roz_rk1(i,j,k)
+				+ 0.25*p->dt*CPOR1*a->H(i,j,k);
+    
+        // clear_FGH
+    clear_FGH(p,a);
+    
+    // reconstruct U
+    ULOOP
+    ur(i,j,k) = vel_limiter(p,a,urk2,Mx_rk2,rox_rk2,rox_rk1);
+    
+    VLOOP
+    vr(i,j,k) = vel_limiter(p,a,vrk2,My_rk2,roy_rk2,roy_rk1);
+    
+    WLOOP
+    wr(i,j,k) = vel_limiter(p,a,wrk2,Mz_rk2,roz_rk2,roz_rk1);
+    
+    
+    //-------------------------------------------
 	// U
 	starttime=pgc->timer();
 
@@ -384,8 +474,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,a,a->eta,a->eta_n);
 	irhs(p,a,pgc,urk1,urk1,vrk1,wrk1,0.25);
-	//pconvec->start(p,a,urk1,1,urk1,vrk1,wrk1);
-	pdiff->diff_u(p,a,pgc,psolv,udiff,urk1,vrk1,wrk1,1.0);
+	pdiff->diff_u(p,a,pgc,psolv,udiff,ur,urk1,vrk1,wrk1,1.0);
 
 	ULOOP
 	urk2(i,j,k) = 0.75*a->u(i,j,k) + 0.25*udiff(i,j,k)
@@ -402,8 +491,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
 	ppress->vpgrad(p,a,a->eta,a->eta_n);
 	jrhs(p,a,pgc,vrk1,urk1,vrk1,wrk1,0.25);
-	//pconvec->start(p,a,vrk1,2,urk1,vrk1,wrk1);
-	pdiff->diff_v(p,a,pgc,psolv,vdiff,urk1,vrk1,wrk1,1.0);
+	pdiff->diff_v(p,a,pgc,psolv,vdiff,vr,urk1,vrk1,wrk1,1.0);
 
 	VLOOP
 	vrk2(i,j,k) = 0.75*a->v(i,j,k) + 0.25*vdiff(i,j,k)
@@ -420,8 +508,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
 	ppress->wpgrad(p,a,a->eta,a->eta_n);
 	krhs(p,a,pgc,wrk1,urk1,vrk1,wrk1,0.25);
-	//pconvec->start(p,a,wrk1,3,urk1,vrk1,wrk1);
-	pdiff->diff_w(p,a,pgc,psolv,wdiff,urk1,vrk1,wrk1,1.0);
+	pdiff->diff_w(p,a,pgc,psolv,wdiff,wr,urk1,vrk1,wrk1,1.0);
 
 	WLOOP
 	wrk2(i,j,k) = 0.75*a->w(i,j,k) + 0.25*wdiff(i,j,k)
@@ -478,6 +565,90 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     pupdate->start(p,a,pgc);
     
     //-------------------------------------------
+    // get vectorized face density from density_f
+    face_density(p,a,rox_rk2,roy_rk2,roz_rk2);
+    
+    // advect U
+    pconvec->start(p,a,urk2,1,urk2,vrk2,wrk2);
+    pconvec->start(p,a,vrk2,2,urk2,vrk2,wrk2);
+    pconvec->start(p,a,wrk2,3,urk2,vrk2,wrk2);
+    
+    ULOOP
+	a->u(i,j,k) = (1.0/3.0)*a->u(i,j,k) + (2.0/3.0)*urk2(i,j,k)
+				+ (2.0/3.0)*p->dt*CPOR1*a->F(i,j,k);
+                
+    VLOOP
+	a->v(i,j,k) = (1.0/3.0)*a->v(i,j,k) + (2.0/3.0)*vrk2(i,j,k)
+				+ (2.0/3.0)*p->dt*CPOR2*a->G(i,j,k);
+                
+    WLOOP
+	a->w(i,j,k) = (1.0/3.0)*a->w(i,j,k) + (2.0/3.0)*wrk2(i,j,k)
+				+ (2.0/3.0)*p->dt*CPOR3*a->H(i,j,k);
+                
+        // clear_FGH
+    clear_FGH(p,a);
+        
+    // get M form M = rho * U
+    ULOOP
+    Mx_rk2(i,j,k) = rox_rk2(i,j,k)*urk2(i,j,k);
+    
+    VLOOP
+    My_rk2(i,j,k) = roy_rk2(i,j,k)*vrk2(i,j,k);
+    
+    WLOOP
+    Mz_rk2(i,j,k) = roz_rk2(i,j,k)*wrk2(i,j,k);
+    
+    // advect M    
+    pconvec->start(p,a,Mx_rk2,1,urk2,vrk2,wrk2);
+    pconvec->start(p,a,My_rk2,2,urk2,vrk2,wrk2);
+    pconvec->start(p,a,Mz_rk2,3,urk1,vrk1,wrk1);
+    
+    ULOOP
+    Mx(i,j,k) = (1.0/3.0)*Mx(i,j,k) + (2.0/3.0)*Mx_rk2(i,j,k)
+				+ (2.0/3.0)*p->dt*CPOR1*a->F(i,j,k);
+    
+    VLOOP
+    My(i,j,k) = (1.0/3.0)*My(i,j,k) + (2.0/3.0)*My_rk2(i,j,k)
+				+ (2.0/3.0)*p->dt*CPOR3*a->G(i,j,k);
+    
+    WLOOP
+    Mz(i,j,k) = (1.0/3.0)*Mz(i,j,k) + (2.0/3.0)*Mz_rk2(i,j,k)
+				+ (2.0/3.0)*p->dt*CPOR3*a->H(i,j,k);
+    
+        // clear_FGH
+    clear_FGH(p,a);
+    
+    // advect rho
+    pconvec->start(p,a,rox_rk2,1,urk2,vrk2,wrk2);
+    pconvec->start(p,a,roy_rk2,2,urk2,vrk2,wrk2);
+    pconvec->start(p,a,roz_rk2,3,urk2,vrk2,wrk2);
+    
+    ULOOP
+	rox(i,j,k) = (1.0/3.0)*rox(i,j,k) + (2.0/3.0)*rox_rk2(i,j,k)
+				+ (2.0/3.0)*p->dt*CPOR1*a->F(i,j,k);
+                
+    VLOOP
+	roy(i,j,k) = (1.0/3.0)*roy(i,j,k) + (2.0/3.0)*roy_rk2(i,j,k)
+				+ (2.0/3.0)*p->dt*CPOR2*a->G(i,j,k);
+                
+    WLOOP
+	roz(i,j,k) = (1.0/3.0)*roz(i,j,k) + (2.0/3.0)*roz_rk2(i,j,k)
+				+ (2.0/3.0)*p->dt*CPOR3*a->H(i,j,k);
+    
+        // clear_FGH
+    clear_FGH(p,a);
+    
+    // reconstruct U
+    ULOOP
+    ur(i,j,k) = vel_limiter(p,a,a->u,Mx,rox,rox_rk2);
+    
+    VLOOP
+    vr(i,j,k) = vel_limiter(p,a,a->v,My,roy,roy_rk2);
+    
+    WLOOP
+    wr(i,j,k) = vel_limiter(p,a,a->w,Mz,roz,roz_rk2);
+    
+    //-------------------------------------------
 	// U
 	starttime=pgc->timer();
 
@@ -486,8 +657,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,a,a->eta,a->eta_n);
 	irhs(p,a,pgc,urk2,urk2,vrk2,wrk2,2.0/3.0);
-	//pconvec->start(p,a,urk2,1,urk2,vrk2,wrk2);
-	pdiff->diff_u(p,a,pgc,psolv,udiff,urk2,vrk2,wrk2,1.0);
+	pdiff->diff_u(p,a,pgc,psolv,udiff,ur,urk2,vrk2,wrk2,1.0);
 
 	ULOOP
 	a->u(i,j,k) = (1.0/3.0)*a->u(i,j,k) + (2.0/3.0)*udiff(i,j,k)
@@ -504,8 +674,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
 	ppress->vpgrad(p,a,a->eta,a->eta_n);
 	jrhs(p,a,pgc,vrk2,urk2,vrk2,wrk2,2.0/3.0);
-	//pconvec->start(p,a,vrk2,2,urk2,vrk2,wrk2);
-	pdiff->diff_v(p,a,pgc,psolv,vdiff,urk2,vrk2,wrk2,1.0);
+	pdiff->diff_v(p,a,pgc,psolv,vdiff,vr,urk2,vrk2,wrk2,1.0);
 
 	VLOOP
 	a->v(i,j,k) = (1.0/3.0)*a->v(i,j,k) + (2.0/3.0)*vdiff(i,j,k)
@@ -522,8 +691,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
 	ppress->wpgrad(p,a,a->eta,a->eta_n);
 	krhs(p,a,pgc,wrk2,urk2,vrk2,wrk2,2.0/3.0);
-	//pconvec->start(p,a,wrk2,3,urk2,vrk2,wrk2);
-	pdiff->diff_w(p,a,pgc,psolv,wdiff,urk2,vrk2,wrk2,1.0);
+	pdiff->diff_w(p,a,pgc,psolv,wdiff,wr,urk2,vrk2,wrk2,1.0);
 
 	WLOOP
 	a->w(i,j,k) = (1.0/3.0)*a->w(i,j,k) + (2.0/3.0)*wdiff(i,j,k)
@@ -611,7 +779,7 @@ void momentum_FCC3::clear_FGH(lexer *p, fdm *a)
     a->H(i,j,k) = 0.0;
 }
 
-void momentum_FCC3::face_density(lexer *p, fdm *a)
+void momentum_FCC3::face_density(lexer *p, fdm *a, field &rox, field &roy, field &roz)
 {
     ULOOP
     rox(i,j,k) = pd->roface(p,a,1,0,0);
@@ -623,21 +791,30 @@ void momentum_FCC3::face_density(lexer *p, fdm *a)
     roz(i,j,k) = pd->roface(p,a,0,0,1);
 }
 
-void momentum_FCC3::velocity_reconstruction(lexer *p, fdm *a)
+
+double momentum_FCC3::vel_limiter(lexer *p, fdm *a, field &vel, field &M, field &ro,field &ro_n)
 {
+    if(ro(i,j,k)>ro_threshold)
+    val = M(i,j,k)/ro(i,j,k);
     
-
+    else
+    if(ro(i,j,k)>p->W3 && ro(i,j,k)<ro_threshold && ro(i,j,k)<ro_n(i,j,k))
+    val = (M(i,j,k)/ro(i,j,k))*(ro_filter(p,a,ro)/ro_threshold) + vel(i,j,k)*(ro_threshold-ro_filter(p,a,ro))/ro_threshold;
     
-} 
+    else
+    val = vel(i,j,k);  
 
-double momentum_FCC3::vel_limiter(lexer *p, fdm *a)
-{
-
-    
+    return val;
 }
 
-double momentum_FCC3::ro_filter(lexer *p, fdm *a)
+double momentum_FCC3::ro_filter(lexer *p, fdm *a, field &ro)
 {
-
+    if(ro(i,j,k)<p->W3)
+    val = p->W3;
     
+    else
+    if(ro(i,j,k)>=p->W3)
+    val = ro(i,j,k);
+
+    return val;
 }

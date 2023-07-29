@@ -46,9 +46,9 @@ public:
 	virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double)=0;
 	virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double)=0;
 	
-	virtual void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double)=0;
-	virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double)=0;
-	virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double)=0;
+	virtual void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double)=0;
+	virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double)=0;
+	virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double)=0;
 
 };
 

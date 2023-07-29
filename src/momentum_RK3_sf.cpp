@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2023 Hans Bihs
 
@@ -111,7 +111,7 @@ void momentum_RK3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
         ppress->upgrad(p,a,a->eta,a->eta_n);
         irhs(p,a,pgc,a->u,a->u,a->v,a->w,2.0*alpha(loop));
-        pdiff->diff_u(p,a,pgc,psolv,urk,a->u,a->v,a->w,2.0*alpha(loop));
+        pdiff->diff_u(p,a,pgc,psolv,urk,a->u,a->u,a->v,a->w,2.0*alpha(loop));
 
         ULOOP
         urk(i,j,k) += 2.0*alpha(loop)*p->dt*CPOR1*a->F(i,j,k);
@@ -142,7 +142,7 @@ void momentum_RK3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
         ppress->vpgrad(p,a,a->eta,a->eta_n);
         jrhs(p,a,pgc,a->v,a->u,a->v,a->w,2.0*alpha(loop));
-        pdiff->diff_v(p,a,pgc,psolv,vrk,a->u,a->v,a->w,2.0*alpha(loop));
+        pdiff->diff_v(p,a,pgc,psolv,vrk,a->v,a->v,a->v,a->w,2.0*alpha(loop));
         
         VLOOP
         vrk(i,j,k) += 2.0*alpha(loop)*p->dt*CPOR2*a->G(i,j,k);
@@ -171,7 +171,7 @@ void momentum_RK3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
         bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
         ppress->wpgrad(p,a,a->eta,a->eta_n);
         krhs(p,a,pgc,a->w,a->u,a->v,a->w,2.0*alpha(loop));
-        pdiff->diff_w(p,a,pgc,psolv,wrk,a->u,a->v,a->w,2.0*alpha(loop));
+        pdiff->diff_w(p,a,pgc,psolv,wrk,a->w,a->u,a->v,a->w,2.0*alpha(loop));
 
         WLOOP
         wrk(i,j,k) += 2.0*alpha(loop)*p->dt*CPOR3*a->H(i,j,k);

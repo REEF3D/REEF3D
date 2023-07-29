@@ -84,16 +84,16 @@ private:
 	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	
     void clear_FGH(lexer*,fdm*);
-    void face_density(lexer*,fdm*);
+    void face_density(lexer*,fdm*,field&,field&,field&);
     
-    void velocity_reconstruction(lexer*,fdm*);
     
-    double vel_limiter(lexer*,fdm*);
-    double ro_filter(lexer*,fdm*);
+    double vel_limiter(lexer*,fdm*,field&,field&,field&,field&);
+    double ro_filter(lexer*,fdm*,field&);
 
     
 	int gcval_u, gcval_v, gcval_w;
     int gcval_phi;
+    double val;
 	double starttime;
     double ro_threshold;
 

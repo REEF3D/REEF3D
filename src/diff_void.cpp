@@ -65,7 +65,7 @@ void diff_void::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 {
 }
 
-void diff_void::diff_u(lexer* p, fdm* a, ghostcell* pgc, solver* psolv, field &udiff, field &u, field &v, field &w, double alpha)
+void diff_void::diff_u(lexer* p, fdm* a, ghostcell* pgc, solver* psolv, field &udiff, field &u_in, field &u, field &v, field &w, double alpha)
 {
 	ULOOP
 	udiff(i,j,k) = u(i,j,k);
@@ -73,7 +73,7 @@ void diff_void::diff_u(lexer* p, fdm* a, ghostcell* pgc, solver* psolv, field &u
     pgc->start1(p,udiff,gcval_u);
 }
 
-void diff_void::diff_v(lexer* p, fdm* a, ghostcell* pgc, solver* psolv, field &vdiff, field &u, field &v, field &w, double alpha)
+void diff_void::diff_v(lexer* p, fdm* a, ghostcell* pgc, solver* psolv, field &vdiff, field &v_in, field &u, field &v, field &w, double alpha)
 {
 	VLOOP
 	vdiff(i,j,k) = v(i,j,k);
@@ -81,7 +81,7 @@ void diff_void::diff_v(lexer* p, fdm* a, ghostcell* pgc, solver* psolv, field &v
     pgc->start2(p,vdiff,gcval_v);
 }
 
-void diff_void::diff_w(lexer* p, fdm* a, ghostcell* pgc, solver* psolv, field &wdiff, field &u, field &v, field &w, double alpha)
+void diff_void::diff_w(lexer* p, fdm* a, ghostcell* pgc, solver* psolv, field &wdiff, field &w_in, field &u, field &v, field &w, double alpha)
 {
 	WLOOP
 	wdiff(i,j,k) = w(i,j,k);

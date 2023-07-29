@@ -31,7 +31,7 @@ void idiff2_FS_2D::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 }
 
 
-void idiff2_FS_2D::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &u, field &v, field &w, double alpha)
+void idiff2_FS_2D::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &v_in, field &u, field &v, field &w, double alpha)
 {
 }
 
