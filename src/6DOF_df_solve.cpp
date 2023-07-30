@@ -117,12 +117,6 @@ void sixdof_df_object::rk2(lexer *p, fdm *a, ghostcell *pgc, int iter)
         c_ = c_ + p->dt*dc_;
         h_ = h_ + p->dt*dh_;
         e_ = e_ + p->dt*de_;
-
-        // Store dp for abam4
-        dpk_ = dp_;
-        dck_ = dc_;
-        dhk_ = dh_;
-        dek_ = de_;
     }
     
     else
@@ -138,12 +132,6 @@ void sixdof_df_object::rk2(lexer *p, fdm *a, ghostcell *pgc, int iter)
             h_ = 0.5*hk_ + 0.5*h_ + 0.5*p->dt*dh_;
             e_ = 0.5*ek_ + 0.5*e_ + 0.5*p->dt*de_;         
         }
-
-        // Store dp for abam4
-        dp_ = dpk_;
-        dc_ = dck_;
-        dh_ = dhk_;
-        de_ = dek_;
     }
 }
 
