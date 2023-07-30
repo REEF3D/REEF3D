@@ -282,6 +282,10 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     WLOOP
     wr(i,j,k) = vel_limiter(p,a,wrk1,Mz_rk1,roz_rk1,roz);
     
+    pgc->start1(p,ur,gcval_u);
+	pgc->start2(p,vr,gcval_v);
+	pgc->start3(p,wr,gcval_w);
+    
     
     //-------------------------------------------
 	// U
@@ -471,6 +475,9 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     WLOOP
     wr(i,j,k) = vel_limiter(p,a,wrk2,Mz_rk2,roz_rk2,roz_rk1);
     
+    pgc->start1(p,ur,gcval_u);
+	pgc->start2(p,vr,gcval_v);
+	pgc->start3(p,wr,gcval_w);
     
     //-------------------------------------------
 	// U
@@ -658,6 +665,10 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     
     WLOOP
     wr(i,j,k) = vel_limiter(p,a,a->w,Mz,roz,roz_rk2);
+    
+    pgc->start1(p,ur,gcval_u);
+	pgc->start2(p,vr,gcval_v);
+	pgc->start3(p,wr,gcval_w);
     
     //-------------------------------------------
 	// U

@@ -161,7 +161,7 @@ void idiff2_FS_2D::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 				  
 	a->rhsvec.V[count] += ((w(i+1,j,k)-w(i,j,k))*visc_ddz_p - (w(i+1,j,k-1)-w(i,j,k-1))*visc_ddz_m)/(p->DXP[IP]*p->DZN[KP])
 
-						 + (CPOR1*u(i,j,k))/(alpha*p->dt);
+						 + (CPOR1*u_in(i,j,k))/(alpha*p->dt);
 
 	 
 	 a->M.s[count] = -2.0*(visc_ijk+ev_ijk)/(p->DXN[IP]*p->DXP[IP]);
