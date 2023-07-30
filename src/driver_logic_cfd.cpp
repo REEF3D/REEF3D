@@ -659,6 +659,9 @@ void driver::logic_cfd()
     
     if(p->X10==1 && p->X13==2)
     p6dof_df = new sixdof_df(p,a,pgc);
+    
+    if(p->X10==0 || p->X13!=2)
+    p6dof_df = new sixdof_df_void(p,a,pgc);
 
 // FSI
     if(p->Z10==0)

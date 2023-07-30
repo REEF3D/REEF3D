@@ -65,7 +65,7 @@ void sixdof_df::start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&)
 {
 }
 
-void sixdof_df::start_forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field& uvel, field& vvel, field& wvel, field1& fx, field2& fy, field3& fz, bool finalise)
+void sixdof_df::start_forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalise)
 {
     // Reset heaviside field
     ULOOP

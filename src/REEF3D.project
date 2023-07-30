@@ -523,6 +523,8 @@
         <File Name="benchmark_convection.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <File Name="6DOF_df_void.h"/>
+        <File Name="6DOF_df_base.h"/>
         <VirtualDirectory Name="Common">
           <VirtualDirectory Name="Objects"/>
           <VirtualDirectory Name="Ray Cast"/>
@@ -1661,6 +1663,10 @@
         <File Name="heat_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <VirtualDirectory Name="Void">
+          <File Name="6DOF_df_void.cpp"/>
+          <File Name="6DOF_void.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Common">
           <VirtualDirectory Name="Geometry"/>
           <VirtualDirectory Name="Ray Cast"/>
@@ -1834,7 +1840,6 @@
           </VirtualDirectory>
           <File Name="net_void.cpp"/>
         </VirtualDirectory>
-        <File Name="6DOF_void.cpp"/>
         <VirtualDirectory Name="Mooring">
           <VirtualDirectory Name="Spring">
             <File Name="mooring_Spring_print.cpp"/>
@@ -2591,6 +2596,7 @@
       <File Name="ini.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
+      <VirtualDirectory Name="Forcing"/>
       <File Name="momentum_RKLS3_df.cpp"/>
       <File Name="momentum_RKLS3_sf.cpp"/>
       <File Name="momentum_RKLS3.cpp"/>

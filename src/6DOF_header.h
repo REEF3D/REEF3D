@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"6DOF_gc.h"
 #include"6DOF_df.h"
+#include"6DOF_df_void.h"
 #include"6DOF_void.h"
 
 

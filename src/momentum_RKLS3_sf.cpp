@@ -82,7 +82,7 @@ void momentum_RKLS3_sf::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
 {
 }
 
-void momentum_RKLS3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_df, vrans* pvrans, vector<net*>& pnet, fsi* pfsi)
+void momentum_RKLS3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df_base* p6dof_df, vrans* pvrans, vector<net*>& pnet, fsi* pfsi)
 {	
     // Set inflow 
     double udisctime=0.0;

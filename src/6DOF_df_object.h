@@ -60,7 +60,7 @@ public:
     
 	// Additional functions
     void transform(lexer*, fdm*, ghostcell*, bool);
-    void updateForcing(lexer*, fdm*, ghostcell*,double,field&,field&,field&,field1&,field2&,field3&);
+    void updateForcing(lexer*, fdm*, ghostcell*,double,field&,field&,field&,field&,field&,field&);
 	void forces_stl(lexer*, fdm*, ghostcell*,double,field&,field&,field&);
     
     void saveTimeStep(lexer*,double);

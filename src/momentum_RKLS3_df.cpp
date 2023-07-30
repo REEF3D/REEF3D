@@ -35,7 +35,7 @@ Author: Tobias Martin, Hans Bihs
 #include"ioflow.h"
 #include"turbulence.h"
 #include"solver.h"
-#include"6DOF_df.h"
+#include"6DOF_df_base.h"
 #include"net.h"
 #include"FSI.h"
 
@@ -81,7 +81,7 @@ momentum_RKLS3_df::~momentum_RKLS3_df(){}
 
 void momentum_RKLS3_df::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans){}
 
-void momentum_RKLS3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_df, vrans* pvrans, vector<net*>& pnet, fsi* pfsi)
+void momentum_RKLS3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df_base* p6dof_df, vrans* pvrans, vector<net*>& pnet, fsi* pfsi)
 {	
     // Set inflow 
     double udisctime=0.0;
@@ -209,7 +209,7 @@ void momentum_RKLS3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6do
         pgc->start2(p,fy,11);
         pgc->start3(p,fz,12);           
         
-        if(p->X10>0)
+
         p6dof_df->start_forcing(p,a,pgc,pvrans,pnet,loop,urk,vrk,wrk,fx,fy,fz,final);
         
         pfsi->forcing(p,a,pgc,2.0*alpha(loop),urk,vrk,wrk,fx,fy,fz,final);

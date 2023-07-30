@@ -17,44 +17,43 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Authors: Hans Bihs, Tobias Martin
 --------------------------------------------------------------------*/
-
-#include"6DOF_df_base.h"
-#include"6DOF_df_object.h"
-#include<vector>
 
 class mooring;
 class net;
 class ddweno_f_nug;
+class lexer;
+class fdm;
+class fdm2D;
+class ghostcell;
+class field;
+class reinidisc;
+class mooring;
+class net;
+class vrans;
+#include<vector>
 
 using namespace std;
 
-#ifndef SIXDOF_DF_H_
-#define SIXDOF_DF_H_
+#ifndef SIXDOF_DF_BASE_H_
+#define SIXDOF_DF_BASE_H_
 
-class sixdof_df : public sixdof_df_base, public increment
+class sixdof_df_base
 {
 public:
-	sixdof_df(lexer*, fdm*, ghostcell*);
-	virtual ~sixdof_df();
-	virtual void start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&);
-	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
-    
-    void start_forcing(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool);
-    
-    virtual void isource(lexer*,fdm*,ghostcell*);
-    virtual void jsource(lexer*,fdm*,ghostcell*);
-    virtual void ksource(lexer*,fdm*,ghostcell*);
-    
-    virtual void isource2D(lexer*,fdm2D*,ghostcell*);
-    virtual void jsource2D(lexer*,fdm2D*,ghostcell*);
 
-private:
-   
-    int number6DOF;
-    vector<sixdof_df_object*> p_df_obj;
-    double alpha[3],gamma[3],zeta[3];
+    virtual void start_forcing(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool)=0;
+	
+    virtual void start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&)=0;
+	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&)=0;
+    
+    virtual void isource(lexer*,fdm*,ghostcell*)=0;
+    virtual void jsource(lexer*,fdm*,ghostcell*)=0;
+    virtual void ksource(lexer*,fdm*,ghostcell*)=0;
+    
+    virtual void isource2D(lexer*,fdm2D*,ghostcell*)=0;
+    virtual void jsource2D(lexer*,fdm2D*,ghostcell*)=0;
 
 };
 

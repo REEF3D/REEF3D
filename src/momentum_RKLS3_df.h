@@ -38,7 +38,7 @@ class turbulence;
 class solver;
 class density;
 class poisson;
-class sixdof_df;
+class sixdof_df_base;
 class net;
 class fsi;
 
@@ -63,7 +63,7 @@ public:
     virtual void fillaij2(lexer*, fdm*, ghostcell*, solver*);
     virtual void fillaij3(lexer*, fdm*, ghostcell*, solver*);
 
-	void starti(lexer*, fdm*, ghostcell*, sixdof_df*, vrans*, vector<net*>&, fsi*);
+	void starti(lexer*, fdm*, ghostcell*, sixdof_df_base*, vrans*, vector<net*>&, fsi*);
 
 private:
 
