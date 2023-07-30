@@ -25,6 +25,8 @@ Author: Hans Bihs
 int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
 {
 //	Velocities
+    if(gcv==50)
+	return 4;
     
     // Parallel
 	// Wall

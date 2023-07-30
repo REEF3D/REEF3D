@@ -147,7 +147,7 @@ momentum_FCC3::momentum_FCC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconv
 	if(p->F46!=2 && p->F46!=3)
 	ppicard = new picard_void(p);
     
-    ro_threshold = 0.5*(p->W1 + p->W3);
+    ro_threshold = 0.05*p->W1 + p->W3;
 }
 
 momentum_FCC3::~momentum_FCC3()
@@ -160,7 +160,6 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
 	pflow->rkinflow(p,a,pgc,urk1,vrk1,wrk1);
 	pflow->rkinflow(p,a,pgc,urk2,vrk2,wrk2);
-    
     
 //********************************************************
 //Step 1
@@ -185,7 +184,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	pgc->start4(p,frk1,gcval_phi);
     
     FLUIDLOOP
-    a->phi(i,j,k) =  frk1(i,j,k);
+    a->phi(i,j,k) = frk1(i,j,k);
     
     pgc->start4(p,a->phi,gcval_phi);
     
@@ -197,7 +196,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     
     //-------------------------------------------
     // get vectorized face density from density_f
-    face_density(p,a,rox,roy,roz);
+    face_density(p,a,pgc,rox,roy,roz);
     
     // advect U
     pconvec->start(p,a,a->u,1,a->u,a->v,a->w);
@@ -228,6 +227,10 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     
     WLOOP
     Mz(i,j,k) = roz(i,j,k)*a->w(i,j,k);
+    
+    pgc->start1(p,Mx,gcval_u);
+	pgc->start2(p,My,gcval_v);
+	pgc->start3(p,Mz,gcval_w);
     
     // advect M    
     pconvec->start(p,a,Mx,1,a->u,a->v,a->w);
@@ -382,7 +385,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     
     //-------------------------------------------
     // get vectorized face density from density_f
-    face_density(p,a,rox_rk1,roy_rk1,roz_rk1);
+    face_density(p,a,pgc,rox_rk1,roy_rk1,roz_rk1);
     
     // advect U
     pconvec->start(p,a,urk1,1,urk1,vrk1,wrk1);
@@ -413,6 +416,10 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     
     WLOOP
     Mz_rk1(i,j,k) = roz_rk1(i,j,k)*wrk1(i,j,k);
+    
+    pgc->start1(p,Mx_rk1,gcval_u);
+	pgc->start2(p,My_rk1,gcval_v);
+	pgc->start3(p,Mz_rk1,gcval_w);
     
     // advect M    
     pconvec->start(p,a,Mx_rk1,1,urk1,vrk1,wrk1);
@@ -477,7 +484,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	pdiff->diff_u(p,a,pgc,psolv,udiff,ur,urk1,vrk1,wrk1,1.0);
 
 	ULOOP
-	urk2(i,j,k) = 0.75*a->u(i,j,k) + 0.25*udiff(i,j,k)
+	urk2(i,j,k) = udiff(i,j,k)
 				+ 0.25*p->dt*CPOR1*a->F(i,j,k);
                 
     p->utime+=pgc->timer()-starttime;
@@ -494,7 +501,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	pdiff->diff_v(p,a,pgc,psolv,vdiff,vr,urk1,vrk1,wrk1,1.0);
 
 	VLOOP
-	vrk2(i,j,k) = 0.75*a->v(i,j,k) + 0.25*vdiff(i,j,k)
+	vrk2(i,j,k) = vdiff(i,j,k)
 				+ 0.25*p->dt*CPOR2*a->G(i,j,k);
 	
     p->vtime+=pgc->timer()-starttime;
@@ -511,7 +518,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	pdiff->diff_w(p,a,pgc,psolv,wdiff,wr,urk1,vrk1,wrk1,1.0);
 
 	WLOOP
-	wrk2(i,j,k) = 0.75*a->w(i,j,k) + 0.25*wdiff(i,j,k)
+	wrk2(i,j,k) = wdiff(i,j,k)
 				+ 0.25*p->dt*CPOR3*a->H(i,j,k);
 
     p->wtime+=pgc->timer()-starttime;
@@ -566,7 +573,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     
     //-------------------------------------------
     // get vectorized face density from density_f
-    face_density(p,a,rox_rk2,roy_rk2,roz_rk2);
+    face_density(p,a,pgc,rox_rk2,roy_rk2,roz_rk2);
     
     // advect U
     pconvec->start(p,a,urk2,1,urk2,vrk2,wrk2);
@@ -597,6 +604,10 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     
     WLOOP
     Mz_rk2(i,j,k) = roz_rk2(i,j,k)*wrk2(i,j,k);
+    
+    pgc->start1(p,Mx_rk2,gcval_u);
+	pgc->start2(p,My_rk2,gcval_v);
+	pgc->start3(p,Mz_rk2,gcval_w);
     
     // advect M    
     pconvec->start(p,a,Mx_rk2,1,urk2,vrk2,wrk2);
@@ -660,7 +671,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	pdiff->diff_u(p,a,pgc,psolv,udiff,ur,urk2,vrk2,wrk2,1.0);
 
 	ULOOP
-	a->u(i,j,k) = (1.0/3.0)*a->u(i,j,k) + (2.0/3.0)*udiff(i,j,k)
+	a->u(i,j,k) = udiff(i,j,k)
 				+ (2.0/3.0)*p->dt*CPOR1*a->F(i,j,k);
 	
     p->utime+=pgc->timer()-starttime;
@@ -677,7 +688,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	pdiff->diff_v(p,a,pgc,psolv,vdiff,vr,urk2,vrk2,wrk2,1.0);
 
 	VLOOP
-	a->v(i,j,k) = (1.0/3.0)*a->v(i,j,k) + (2.0/3.0)*vdiff(i,j,k)
+	a->v(i,j,k) = vdiff(i,j,k)
 				+ (2.0/3.0)*p->dt*CPOR2*a->G(i,j,k);
 	
     p->vtime+=pgc->timer()-starttime;
@@ -694,7 +705,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	pdiff->diff_w(p,a,pgc,psolv,wdiff,wr,urk2,vrk2,wrk2,1.0);
 
 	WLOOP
-	a->w(i,j,k) = (1.0/3.0)*a->w(i,j,k) + (2.0/3.0)*wdiff(i,j,k)
+	a->w(i,j,k) = wdiff(i,j,k)
 				+ (2.0/3.0)*p->dt*CPOR3*a->H(i,j,k);
 	
     p->wtime+=pgc->timer()-starttime;
@@ -779,7 +790,7 @@ void momentum_FCC3::clear_FGH(lexer *p, fdm *a)
     a->H(i,j,k) = 0.0;
 }
 
-void momentum_FCC3::face_density(lexer *p, fdm *a, field &rox, field &roy, field &roz)
+void momentum_FCC3::face_density(lexer *p, fdm *a, ghostcell *pgc, field &rox, field &roy, field &roz)
 {
     ULOOP
     rox(i,j,k) = pd->roface(p,a,1,0,0);
@@ -789,12 +800,15 @@ void momentum_FCC3::face_density(lexer *p, fdm *a, field &rox, field &roy, field
     
     WLOOP
     roz(i,j,k) = pd->roface(p,a,0,0,1);
+    
+    pgc->start1(p,rox,50);
+	pgc->start2(p,roy,50);
+	pgc->start3(p,roz,50);
 }
-
 
 double momentum_FCC3::vel_limiter(lexer *p, fdm *a, field &vel, field &M, field &ro,field &ro_n)
 {
-    if(ro(i,j,k)>ro_threshold)
+    if(ro(i,j,k)>=ro_threshold)
     val = M(i,j,k)/ro(i,j,k);
     
     else

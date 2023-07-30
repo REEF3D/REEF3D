@@ -393,7 +393,7 @@ void driver::logic_cfd()
 	if(p->F30==3 && p->F11==0 && p->N40!=23)
 	pfsf = new levelset_RK3(p,a,pgc,pheat,pconc);
 
-    if(p->N40==23)
+    if(p->N40==23 || p->N40==33)
 	pfsf = new levelset_void(p,a,pgc,pheat,pconc);
 
 

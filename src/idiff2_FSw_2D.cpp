@@ -126,17 +126,15 @@ void idiff2_FS_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 	
 	double visc_ddx_p,visc_ddx_m,visc_ddy_p,visc_ddy_m;
     
-    pgc->start1(p,u,gcval_udiff);
-	pgc->start2(p,v,gcval_vdiff);
-	pgc->start3(p,w,gcval_wdiff);
-	
-	count=0;
-    
     WLOOP
     diff(i,j,k) = w_in(i,j,k);
     
+    pgc->start1(p,u,gcval_udiff);
+	pgc->start2(p,v,gcval_vdiff);
+	pgc->start3(p,w,gcval_wdiff);
 
 	count=0;
+
 
     WLOOP
     {

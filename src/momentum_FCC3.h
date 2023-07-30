@@ -84,7 +84,7 @@ private:
 	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	
     void clear_FGH(lexer*,fdm*);
-    void face_density(lexer*,fdm*,field&,field&,field&);
+    void face_density(lexer*,fdm*,ghostcell*,field&,field&,field&);
     
     
     double vel_limiter(lexer*,fdm*,field&,field&,field&,field&);

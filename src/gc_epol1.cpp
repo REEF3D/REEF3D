@@ -26,6 +26,8 @@ Author: Hans Bihs
 int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
 {
     
+	if(gcv==50)
+	return 4;
 //	Velocities
 
     // Parallel
@@ -111,7 +113,7 @@ int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
 	return 9;
 
 
-     else
+    else
 	if(gcv==999)
 	return 99;
 
