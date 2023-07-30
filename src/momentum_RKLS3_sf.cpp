@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Tobias Martin
 --------------------------------------------------------------------*/
 
-#include"momentum_RK3_sf.h"
+#include"momentum_RKLS3_sf.h"
 #include"vrans.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -37,7 +37,7 @@ Authors: Hans Bihs, Tobias Martin
 #include"turbulence.h"
 #include"solver.h"
 
-momentum_RK3_sf::momentum_RK3_sf
+momentum_RKLS3_sf::momentum_RKLS3_sf
 (
     lexer *p, 
     fdm *a, 
@@ -74,15 +74,15 @@ momentum_RK3_sf::momentum_RK3_sf
     zeta << 0.0, -17.0/60.0, -5.0/12.0;
 }
 
-momentum_RK3_sf::~momentum_RK3_sf()
+momentum_RKLS3_sf::~momentum_RKLS3_sf()
 {
 }
 
-void momentum_RK3_sf::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
+void momentum_RKLS3_sf::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
 {
 }
 
-void momentum_RK3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_df, vrans* pvrans, vector<net*>& pnet, fsi* pfsi)
+void momentum_RKLS3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_df, vrans* pvrans, vector<net*>& pnet, fsi* pfsi)
 {	
     // Set inflow 
     double udisctime=0.0;
@@ -263,7 +263,7 @@ void momentum_RK3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df* p6dof_
     }
 }
 
-void momentum_RK3_sf::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
+void momentum_RKLS3_sf::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
 	if(p->D20<3)
@@ -292,7 +292,7 @@ void momentum_RK3_sf::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uv
     }
 }
 
-void momentum_RK3_sf::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
+void momentum_RKLS3_sf::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
 	if(p->D20<3)
@@ -321,7 +321,7 @@ void momentum_RK3_sf::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uv
     }
 }
 
-void momentum_RK3_sf::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
+void momentum_RKLS3_sf::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
 	if(p->D20<3)
@@ -350,18 +350,18 @@ void momentum_RK3_sf::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uv
     }
 }
 
-void momentum_RK3_sf::utimesave(lexer *p, fdm *a, ghostcell *pgc)
+void momentum_RKLS3_sf::utimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void momentum_RK3_sf::vtimesave(lexer *p, fdm *a, ghostcell *pgc)
+void momentum_RKLS3_sf::vtimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void momentum_RK3_sf::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
+void momentum_RKLS3_sf::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void momentum_RK3_sf::fillaij1(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}
-void momentum_RK3_sf::fillaij2(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}
-void momentum_RK3_sf::fillaij3(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}
+void momentum_RKLS3_sf::fillaij1(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}
+void momentum_RKLS3_sf::fillaij2(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}
+void momentum_RKLS3_sf::fillaij3(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}

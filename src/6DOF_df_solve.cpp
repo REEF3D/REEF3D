@@ -48,6 +48,43 @@ void sixdof_df_object::rk3(lexer *p, fdm *a, ghostcell *pgc, double alpha, doubl
     ck_ = dc_;
     hk_ = dh_;
     ek_ = de_;
+    
+    // old implementation
+    if (alpha == 1.0)
+    {
+        pk_ = p_;
+        ck_ = c_;
+        hk_ = h_;
+        ek_ = e_;
+
+        get_trans(p,a,pgc, dp_, dc_, p_, c_);    
+        get_rot(dh_, de_, h_, e_);
+
+        p_ = p_ + alpha*p->dt*dp_;
+        c_ = c_ + alpha*p->dt*dc_;
+        h_ = h_ + alpha*p->dt*dh_;
+        e_ = e_ + alpha*p->dt*de_;
+    }
+    else if (alpha == 0.25)
+    {
+        get_trans(p,a,pgc, dp_, dc_, p_, c_);    
+        get_rot(dh_, de_, h_, e_);        
+        
+        p_ = 0.75*pk_ + 0.25*p_ + alpha*p->dt*dp_;
+        c_ = 0.75*ck_ + 0.25*c_ + alpha*p->dt*dc_;
+        h_ = 0.75*hk_ + 0.25*h_ + alpha*p->dt*dh_;
+        e_ = 0.75*ek_ + 0.25*e_ + alpha*p->dt*de_;         
+    }  
+    else
+    {
+        get_trans(p,a,pgc, dp_, dc_, p_, c_);    
+        get_rot(dh_, de_, h_, e_);        
+        
+        p_ = (1.0/3.0)*pk_ + (2.0/3.0)*p_ + alpha*p->dt*dp_;
+        c_ = (1.0/3.0)*ck_ + (2.0/3.0)*c_ + alpha*p->dt*dc_;
+        h_ = (1.0/3.0)*hk_ + (2.0/3.0)*h_ + alpha*p->dt*dh_;
+        e_ = (1.0/3.0)*ek_ + (2.0/3.0)*e_ + alpha*p->dt*de_;         
+    }
 }
 
 void sixdof_df_object::get_trans(lexer *p, fdm *a, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc, const Eigen::Vector3d& pp, const Eigen::Vector3d& c)

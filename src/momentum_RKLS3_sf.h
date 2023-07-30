@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Authors: Hans Bihs, Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"momentum.h"
@@ -44,17 +44,17 @@ class fsi;
 
 using namespace std;
 
-#ifndef MOMENTUM_RK3_DF_H_
-#define MOMENTUM_RK3_DF_H_
+#ifndef MOMENTUM_RKLS3_SF_H_
+#define MOMENTUM_RKLS3_SF_H_
 
-class momentum_RK3_df : public momentum, public bcmom
+class momentum_RKLS3_sf : public momentum, public bcmom
 {
 public:
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
-	momentum_RK3_df(lexer*, fdm*, ghostcell*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*);
-	virtual ~momentum_RK3_df();
+	momentum_RKLS3_sf(lexer*, fdm*, ghostcell*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*);
+	virtual ~momentum_RKLS3_sf();
 	virtual void start(lexer*, fdm*, ghostcell*, vrans*);
 	virtual void utimesave(lexer*, fdm*, ghostcell*);
     virtual void vtimesave(lexer*, fdm*, ghostcell*);

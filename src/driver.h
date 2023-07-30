@@ -76,8 +76,8 @@ class nhflow;
 class multiphase;
 class nhflow_momentum;
 class sixdof_df;
-class momentum_RK3_df;
-class momentum_RK3_sf;
+class momentum_RKLS3_df;
+class momentum_RKLS3_sf;
 class nhflow_vtu3D;
 
 #include<iostream>
@@ -212,8 +212,8 @@ public:
     nhflow_momentum *pnhfmom;
     nhflow_vtu3D *pnhfprint;
     sixdof_df *p6dof_df;
-    momentum_RK3_df *pmom_df;
-    momentum_RK3_sf *pmom_sf;
+    momentum_RKLS3_df *pmom_df;
+    momentum_RKLS3_sf *pmom_sf;
 
 private:
     double starttime, endtime;

@@ -54,6 +54,7 @@ private:
    
     int number6DOF;
     vector<sixdof_df_object*> p_df_obj;
+    double alpha[3],gamma[3],zeta[3];
 
 };
 

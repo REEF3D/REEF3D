@@ -929,10 +929,10 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
-      <File Name="momentum_RK3_sf.h"/>
+      <File Name="momentum_RKLS3_sf.h"/>
+      <File Name="momentum_RKLS3_df.h"/>
       <File Name="momentum_FCC3.h"/>
       <File Name="momentum_FC3.h"/>
-      <File Name="momentum_RK3_df.h"/>
       <File Name="bcmom.h"/>
       <File Name="momentum.h"/>
       <File Name="momentum_FS3.h"/>
@@ -2591,10 +2591,11 @@
       <File Name="ini.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
-      <File Name="momentum_RK3_sf.cpp"/>
+      <File Name="momentum_RKLS3_df.cpp"/>
+      <File Name="momentum_RKLS3_sf.cpp"/>
+      <File Name="momentum_RKLS3.cpp"/>
       <File Name="momentum_FCC3.cpp"/>
       <File Name="momentum_FC3.cpp"/>
-      <File Name="momentum_RK3_df.cpp"/>
       <VirtualDirectory Name="BC">
         <File Name="bcmom.cpp"/>
       </VirtualDirectory>

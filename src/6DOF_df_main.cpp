@@ -36,6 +36,19 @@ sixdof_df::sixdof_df(lexer *p, fdm *a, ghostcell *pgc)
     
     for (int nb = 0; nb < number6DOF; nb++)
     p_df_obj.push_back(new sixdof_df_object(p,a,pgc,nb));
+    
+    
+    alpha[0] = 4.0/15.0;
+    alpha[1] = 1.0/15.0;
+    alpha[2] = 1.0/6.0;
+    
+    gamma[0] = 8.0/15.0;
+    gamma[1] = 5.0/12.0;
+    gamma[2] = 3.0/4.0;
+    
+    zeta[0] = 0.0;
+    zeta[1] = -17.0/60.0;
+    zeta[2] = -5.0/12.0;
 }
     
 sixdof_df::~sixdof_df()

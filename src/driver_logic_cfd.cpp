@@ -642,11 +642,11 @@ void driver::logic_cfd()
 	pmom = new momentum_FCC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini);
     
     if(p->G3==1)
-    pmom_sf = new momentum_RK3_sf(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
+    pmom_sf = new momentum_RKLS3_sf(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
     
 // 6DOF
     if(((p->X10==1 && p->X13==2) || p->Z10!=0))
-    pmom_df = new momentum_RK3_df(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
+    pmom_df = new momentum_RKLS3_df(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
     
 	if(p->X10==0)
     p6dof = new sixdof_void();
