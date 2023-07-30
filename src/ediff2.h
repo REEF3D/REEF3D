@@ -55,7 +55,6 @@ private:
     rheology *prheo;
     
 	int gcval_u,gcval_v,gcval_w,gcval_scalar;
-    int gcval_udiff,gcval_vdiff,gcval_wdiff;
 	double D;
 	double ga;
 	double u_ijk,v_ijk,w_ijk,ev_ijk,visc_ijk;

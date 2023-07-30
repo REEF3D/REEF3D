@@ -31,11 +31,6 @@ void idiff2_FS_v2::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 	starttime=pgc->timer();
 	
 	double visc;
-    
-    pgc->start1(p,u,gcval_udiff);
-	pgc->start2(p,v,gcval_vdiff);
-	pgc->start3(p,w,gcval_wdiff);
-    
 	 
 	count=0;
     if(p->j_dir==1)
@@ -115,9 +110,7 @@ void idiff2_FS_v2::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 	psolv->start(p,a,pgc,v,a->rhsvec,2);
     }
 
-    pgc->start1(p,u,gcval_u);
 	pgc->start2(p,v,gcval_v);
-	pgc->start3(p,w,gcval_w);
 
 	time=pgc->timer()-starttime;
 	p->viter=p->solveriter;

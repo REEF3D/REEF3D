@@ -33,12 +33,6 @@ void idiff2_FS::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 	double visc_ddx_p,visc_ddx_m,visc_ddy_p,visc_ddy_m;
 
 	count=0;
-    
-    pgc->start1(p,u,gcval_udiff);
-	pgc->start2(p,v,gcval_vdiff);
-	pgc->start3(p,w,gcval_wdiff);
-
-	count=0;
     if(p->k_dir==1)
     {
     WLOOP
@@ -137,9 +131,6 @@ void idiff2_FS::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 	psolv->start(p,a,pgc,w,a->rhsvec,3);
     }
     
-    
-    pgc->start1(p,u,gcval_u);
-	pgc->start2(p,v,gcval_v);
 	pgc->start3(p,w,gcval_w);
 	
 	time=pgc->timer()-starttime;
@@ -160,9 +151,7 @@ void idiff2_FS::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
     WLOOP
     diff(i,j,k) = w_in(i,j,k);
     
-    pgc->start1(p,u,gcval_udiff);
-	pgc->start2(p,v,gcval_vdiff);
-	pgc->start3(p,w,gcval_wdiff);
+	pgc->start3(p,diff,gcval_w);
 
 	count=0;
     if(p->k_dir==1)
@@ -264,9 +253,7 @@ void idiff2_FS::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
     }
     
     
-    pgc->start1(p,u,gcval_u);
-	pgc->start2(p,v,gcval_v);
-	pgc->start3(p,w,gcval_w);
+	pgc->start3(p,diff,gcval_w);
 	
 	time=pgc->timer()-starttime;
 	p->witer=p->solveriter;

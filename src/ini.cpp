@@ -120,7 +120,7 @@ void lexer::ini_default()
 
     // Boundary Conditions
 	B10=0;			// int wall laws velocities on/off
-	B20=2;			// int slip or no-slip boundary condition for velocity    B21=1;			// int slip or no-slip boundary condition for velocity gradients    B22=2;			// int slip or no-slip boundary condition for level set convection    B23=1;            // int ghostcell extrapolation or refective
+	B20=2;			// int slip or no-slip boundary condition for velocity    B23=1;            // int ghostcell extrapolation or refective
 	B26=1;			// int boundary condition implementation level set method
 	B29=0.5;		// double gamma for gc image point
 	B30=0;			// int inflow crossection via cbc
