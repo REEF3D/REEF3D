@@ -59,14 +59,13 @@ void sixdof_df_object::rkls3(lexer *p, fdm *a, ghostcell *pgc, int iter)
     
 void sixdof_df_object::rk3(lexer *p, fdm *a, ghostcell *pgc, int iter)
 {   
-    // old implementation
-    if (iter == 0)
+    if(iter==0)
     {
         pk_ = p_;
         ck_ = c_;
         hk_ = h_;
         ek_ = e_;
-
+        
         get_trans(p,a,pgc, dp_, dc_, p_, c_);    
         get_rot(dh_, de_, h_, e_);
 
@@ -77,7 +76,7 @@ void sixdof_df_object::rk3(lexer *p, fdm *a, ghostcell *pgc, int iter)
     }
     
     else 
-    if (iter==1)
+    if(iter==1)
     {
         get_trans(p,a,pgc, dp_, dc_, p_, c_);    
         get_rot(dh_, de_, h_, e_);        
@@ -99,6 +98,7 @@ void sixdof_df_object::rk3(lexer *p, fdm *a, ghostcell *pgc, int iter)
         h_ = (1.0/3.0)*hk_ + (2.0/3.0)*h_ + (2.0/3.0)*p->dt*dh_;
         e_ = (1.0/3.0)*ek_ + (2.0/3.0)*e_ + (2.0/3.0)*p->dt*de_;         
     }
+    
 }
 
 void sixdof_df_object::rk2(lexer *p, fdm *a, ghostcell *pgc, int iter)

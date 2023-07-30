@@ -617,37 +617,8 @@ void driver::logic_cfd()
 
     if(p->solidread==1 && p->G40>0)
     preso = new reinisolid_RK3(p);
-
-
-// Velocities
-	if(p->N40==0 || p->Z10!=0 || (p->X10==1 && p->X13==2) || p->G3==1)
-	pmom = new momentum_void();
-
-    if(p->N40==1)
-	pmom = new momentum_AB2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
-
-	if(p->N40==2)
-	pmom = new momentum_RK2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
-
-	if(p->N40==3 && p->F11==0)
-	pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
-
-	if(p->N40==6 && p->F11==0)
-	pmom = new momentum_FS3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
-
-    if(p->N40==23)
-	pmom = new momentum_FC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini);
-    
-    if(p->N40==33)
-	pmom = new momentum_FCC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini);
-    
-    if(p->G3==1)
-    pmom_sf = new momentum_RKLS3_sf(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
     
 // 6DOF
-    if(((p->X10==1 && p->X13==2) || p->Z10!=0))
-    pmom_df = new momentum_RKLS3_df(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
-    
 	if(p->X10==0)
     p6dof = new sixdof_void();
 
@@ -669,6 +640,35 @@ void driver::logic_cfd()
 	
     if(p->Z10==1)
     pfsi = new fsi_strips(p,pgc);
+
+
+// Velocities
+	if(p->N40==0 || p->Z10!=0 || (p->X10==1 && p->X13==2) || p->G3==1)
+	pmom = new momentum_void();
+
+    if(p->N40==1)
+	pmom = new momentum_AB2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
+
+	if(p->N40==2)
+	pmom = new momentum_RK2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
+
+	if(p->N40==3 && p->F11==0)
+	pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,p6dof_df,pnet,pfsi);
+
+	if(p->N40==6 && p->F11==0)
+	pmom = new momentum_FS3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
+
+    if(p->N40==23)
+	pmom = new momentum_FC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,p6dof_df,pnet,pfsi);
+    
+    if(p->N40==33)
+	pmom = new momentum_FCC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini);
+    
+    if(p->G3==1 && p->N40==4)
+    pmom_sf = new momentum_RKLS3_sf(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
+    
+    if(((p->X10==1 && p->X13==2) || p->Z10!=0)  && p->N40==4)
+    pmom_df = new momentum_RKLS3_df(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
 
 }
 

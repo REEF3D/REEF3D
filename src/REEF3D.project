@@ -931,6 +931,7 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
+      <File Name="momentum_forcing.h"/>
       <File Name="momentum_RKLS3_sf.h"/>
       <File Name="momentum_RKLS3_df.h"/>
       <File Name="momentum_FCC3.h"/>
@@ -2596,7 +2597,9 @@
       <File Name="ini.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
-      <VirtualDirectory Name="Forcing"/>
+      <VirtualDirectory Name="Forcing">
+        <File Name="momentum_forcing.cpp"/>
+      </VirtualDirectory>
       <File Name="momentum_RKLS3_df.cpp"/>
       <File Name="momentum_RKLS3_sf.cpp"/>
       <File Name="momentum_RKLS3.cpp"/>

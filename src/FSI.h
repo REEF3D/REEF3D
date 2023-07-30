@@ -40,7 +40,7 @@ public:
 
 	virtual void start(lexer*,fdm*,ghostcell*)=0;
 	virtual void initialize(lexer*,fdm*,ghostcell*)=0;
-    virtual void forcing(lexer*,fdm*,ghostcell*,double,field&,field&,field&,field1&,field2&,field3&,bool)=0;
+    virtual void forcing(lexer*,fdm*,ghostcell*,double,field&,field&,field&,field&,field&,field&,bool)=0;
 };
 
 #endif

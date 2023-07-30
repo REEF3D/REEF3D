@@ -35,7 +35,7 @@ Author: Hans Bihs
 
 momentum_RK2::momentum_RK2(lexer *p, fdm *a, convection *pconvection, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
                                                     turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow)
-                                                    :bcmom(p),udiff(p),vdiff(p),wdiff(p),urk1(p),vrk1(p),wrk1(p)
+                                                    :bcmom(p),udiff(p),vdiff(p),wdiff(p),urk1(p),vrk1(p),wrk1(p),fx(p),fy(p),fz(p)
 {
 	gcval_u=10;
 	gcval_v=11;

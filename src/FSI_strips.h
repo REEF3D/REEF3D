@@ -44,7 +44,7 @@ public:
 	virtual ~fsi_strips();
 	virtual void start(lexer*,fdm*,ghostcell*);
 	virtual void initialize(lexer*,fdm*,ghostcell*);
-    virtual void forcing(lexer*,fdm*,ghostcell*,double,field&,field&,field&,field1&,field2&,field3&,bool);
+    virtual void forcing(lexer*,fdm*,ghostcell*,double,field&,field&,field&,field&,field&,field&,bool);
     
     
 private:

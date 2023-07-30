@@ -37,8 +37,10 @@ Author: Hans Bihs
 #include"nhflow.h"
 
 momentum_RK3::momentum_RK3(lexer *p, fdm *a, convection *pconvection, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
-                                                    turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow)
-                                                    :bcmom(p),udiff(p),vdiff(p),wdiff(p),urk1(p),urk2(p),vrk1(p),vrk2(p),wrk1(p),wrk2(p)
+                                                    turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow,
+                                                    sixdof_df_base *pp6dof_df, vector<net*>&ppnet, fsi *ppfsi)
+                                                    :momentum_forcing(p),bcmom(p),udiff(p),vdiff(p),wdiff(p),urk1(p),urk2(p),vrk1(p),
+                                                    vrk2(p),wrk1(p),wrk2(p),fx(p),fy(p),fz(p)
 {
 	gcval_u=10;
 	gcval_v=11;
@@ -52,6 +54,9 @@ momentum_RK3::momentum_RK3(lexer *p, fdm *a, convection *pconvection, diffusion 
 	psolv=psolver;
     ppoissonsolv=ppoissonsolver;
 	pflow=pioflow;    
+    p6dof_df=pp6dof_df;
+    pnet=ppnet; 
+    pfsi=ppfsi;
 
     if(p->W90==0  || p->F300>0)
 	pupdate = new fluid_update_void();
@@ -129,6 +134,9 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	pgc->start2(p,vrk1,gcval_v);
     pgc->start3(p,wrk1,gcval_w);
     
+    momentum_forcing_start(a, p, pgc, p6dof_df, pvrans, pnet, pfsi,
+                           urk1, vrk1, wrk1, fx, fy, fz, 0, 1.0, false);
+    
     pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, urk1, vrk1, wrk1, 1.0);
 	
@@ -200,6 +208,9 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     pgc->start1(p,urk2,gcval_u);
 	pgc->start2(p,vrk2,gcval_v);
     pgc->start3(p,wrk2,gcval_w);
+    
+    momentum_forcing_start(a, p, pgc, p6dof_df, pvrans, pnet, pfsi,
+                           urk2, vrk2, wrk2, fx, fy, fz, 1, 0.25, false);
 
     pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, urk2, vrk2, wrk2, 0.25);
@@ -272,9 +283,12 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     pgc->start1(p,a->u,gcval_u);
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
+    
+    momentum_forcing_start(a, p, pgc, p6dof_df, pvrans, pnet, pfsi,
+                           a->u, a->v, a->w, fx, fy, fz, 2, 2.0/3.0, true);
 
 	pflow->pressure_io(p,a,pgc);
-	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, a->u, a->v,a->w,2.0/3.0);
+	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow,a->u,a->v,a->w,2.0/3.0);
 	
 	pflow->u_relax(p,a,pgc,a->u);
 	pflow->v_relax(p,a,pgc,a->v);

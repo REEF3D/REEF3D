@@ -40,7 +40,7 @@ driver::driver(int& argc, char **argv)
     {
     cout<<endl<<"REEF3D (c) 2008-2023 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    cout<<endl<<"v_230730" <<endl<<endl;
+    cout<<endl<<"v_230731" <<endl<<endl;
     }
 
 	p->lexer_read(pgc);
@@ -149,13 +149,13 @@ void driver::cfd_driver()
     driver_ini_cfd();
 
     // Start MAINLOOP
-    if(((p->X10==0 || p->X13!=2) && p->Z10==0) && p->G3==0)
+    if(p->N40!=4)
     loop_cfd(a);
 
-    if(((p->X10==0 || p->X13!=2) && p->Z10==0) && p->G3==1)
+    if(((p->X10==0 || p->X13!=2 && p->N40==4) && p->Z10==0) && p->G3==1)
     loop_cfd_sf(a);
 
-    if(((p->X10==1 && p->X13==2) || p->Z10!=0))
+    if(((p->X10==1 && p->X13==2 && p->N40==4) || p->Z10!=0))
     loop_cfd_df(a);
 }
 
