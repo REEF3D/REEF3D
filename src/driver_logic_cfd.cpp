@@ -336,12 +336,6 @@ void driver::logic_cfd()
     if(p->D20==3 && p->j_dir==0 && p->N40!=4)
 	pdiff=new idiff2_FS_2D(p);
 
-    if(p->N40==4 && p->j_dir==1)
-	pdiff=new idiff_IMEX(p,pheat,pconc);
-
-    if(p->N40==4 && p->j_dir==0)
-	pdiff=new idiff_IMEX_2D(p,pheat,pconc);
-
 	// turbulence
 	if(p->D20==0 || p->T10==0)
 	pturbdiff=new diff_void;
@@ -496,8 +490,6 @@ void driver::logic_cfd()
     if(p->D30==10)
 	ppress = new pjm_hydrostatic(p,a,pheat,pconc);
 
-    if(p->N40==4)
-	ppress = new pjm_IMEX(p,a,pheat,pconc);
 
 //poisson scheme for pressure
 	if(p->D30<5 && p->F10==2)
@@ -645,9 +637,6 @@ void driver::logic_cfd()
 
 	if(p->N40==3 && p->F11==0)
 	pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
-
-    if(p->N40==4 && p->F11==0)
-	pmom = new momentum_IMEX(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
 
 	if(p->N40==6 && p->F11==0)
 	pmom = new momentum_FS3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);

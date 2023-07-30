@@ -43,8 +43,6 @@ Author: Hans Bihs
 #include"idiff2_FS.h"
 #include"idiff2_FS_v2.h"
 #include"idiff2_FS_2D.h"
-#include"idiff_IMEX.h"
-#include"idiff_IMEX_2D.h"
 
 #include"hires.h"
 

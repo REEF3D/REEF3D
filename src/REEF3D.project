@@ -630,8 +630,6 @@
         <File Name="weno_flux.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Diffusion">
-        <File Name="idiff_IMEX_2D.h"/>
-        <File Name="idiff_IMEX.h"/>
         <File Name="idiff2_FS_v2.h"/>
         <File Name="idiff2_FS_2D.h"/>
         <File Name="diff_void.h"/>
@@ -936,7 +934,6 @@
       <File Name="momentum_FCC3.h"/>
       <File Name="momentum_FC3.h"/>
       <File Name="momentum_RK3_old.h"/>
-      <File Name="momentum_IMEX.h"/>
       <File Name="momentum_RK3_df.h"/>
       <File Name="bcmom.h"/>
       <File Name="momentum.h"/>
@@ -948,7 +945,6 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Pressure">
       <File Name="pjm_hydrostatic.h"/>
-      <File Name="pjm_IMEX.h"/>
       <File Name="pjm_corr.h"/>
       <VirtualDirectory Name="Poisson">
         <File Name="poisson_f.h"/>
@@ -1988,8 +1984,6 @@
         <File Name="weno_flux.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Diffusion">
-        <File Name="idiff_IMEX_2D.cpp"/>
-        <File Name="idiff_IMEX.cpp"/>
         <File Name="idiff2_FS_v2_u.cpp"/>
         <File Name="idiff2_FS_v2_w.cpp"/>
         <File Name="idiff2_FS_v2_v.cpp"/>
@@ -2607,7 +2601,6 @@
       <File Name="momentum_FCC3.cpp"/>
       <File Name="momentum_FC3.cpp"/>
       <File Name="momentum_RK3_old.cpp"/>
-      <File Name="momentum_IMEX.cpp"/>
       <File Name="momentum_RK3_df.cpp"/>
       <VirtualDirectory Name="BC">
         <File Name="bcmom.cpp"/>
@@ -2620,7 +2613,6 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Pressure">
       <File Name="pjm_hydrostatic.cpp"/>
-      <File Name="pjm_IMEX.cpp"/>
       <VirtualDirectory Name="Debug">
         <File Name="pjm_debug.cpp"/>
       </VirtualDirectory>
