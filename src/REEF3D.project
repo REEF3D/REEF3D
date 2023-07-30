@@ -630,7 +630,6 @@
         <File Name="weno_flux.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Diffusion">
-        <File Name="idiff2_FS_v2.h"/>
         <File Name="idiff2_FS_2D.h"/>
         <File Name="diff_void.h"/>
         <File Name="diffusion.h"/>
@@ -933,7 +932,6 @@
       <File Name="momentum_RK3_sf.h"/>
       <File Name="momentum_FCC3.h"/>
       <File Name="momentum_FC3.h"/>
-      <File Name="momentum_RK3_old.h"/>
       <File Name="momentum_RK3_df.h"/>
       <File Name="bcmom.h"/>
       <File Name="momentum.h"/>
@@ -1984,10 +1982,6 @@
         <File Name="weno_flux.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Diffusion">
-        <File Name="idiff2_FS_v2_u.cpp"/>
-        <File Name="idiff2_FS_v2_w.cpp"/>
-        <File Name="idiff2_FS_v2_v.cpp"/>
-        <File Name="idiff_FS_v2_scalar.cpp"/>
         <File Name="idiff_FS_2D-scalar.cpp"/>
         <File Name="idiff2_FSu_2D.cpp"/>
         <File Name="idiff2_FSw_2D.cpp"/>
@@ -2600,7 +2594,6 @@
       <File Name="momentum_RK3_sf.cpp"/>
       <File Name="momentum_FCC3.cpp"/>
       <File Name="momentum_FC3.cpp"/>
-      <File Name="momentum_RK3_old.cpp"/>
       <File Name="momentum_RK3_df.cpp"/>
       <VirtualDirectory Name="BC">
         <File Name="bcmom.cpp"/>

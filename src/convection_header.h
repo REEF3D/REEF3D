@@ -41,7 +41,6 @@ Author: Hans Bihs
 #include"ediff2.h"
 #include"idiff2.h"
 #include"idiff2_FS.h"
-#include"idiff2_FS_v2.h"
 #include"idiff2_FS_2D.h"
 
 #include"hires.h"

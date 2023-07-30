@@ -330,12 +330,6 @@ void driver::logic_cfd()
     if(p->D20==2 && p->j_dir==0 && p->N40!=4)
 	pdiff=new idiff2_FS_2D(p);
 
-    if(p->D20==3 && p->j_dir==1 && p->N40!=4)
-	pdiff=new idiff2_FS_v2(p);
-
-    if(p->D20==3 && p->j_dir==0 && p->N40!=4)
-	pdiff=new idiff2_FS_2D(p);
-
 	// turbulence
 	if(p->D20==0 || p->T10==0)
 	pturbdiff=new diff_void;
@@ -640,9 +634,6 @@ void driver::logic_cfd()
 
 	if(p->N40==6 && p->F11==0)
 	pmom = new momentum_FS3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
-
-    if(p->N40==7 && p->F11==0)
-	pmom = new momentum_RK3_old(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
 
     if(p->N40==23)
 	pmom = new momentum_FC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini);
