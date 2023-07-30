@@ -34,7 +34,7 @@ void sixdof_df_object::solve_eqmotion(lexer *p, fdm *a, ghostcell *pgc, int iter
     if(p->N40==2)
     rk2(p,a,pgc,iter);
     
-    if(p->N40==3)
+    if(p->N40==3 || p->N40==23 || p->N40==33)
     rk3(p,a,pgc,iter);
    
     if(p->N40==4)

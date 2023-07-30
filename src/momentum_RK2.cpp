@@ -34,8 +34,10 @@ Author: Hans Bihs
 #include"solver.h"
 
 momentum_RK2::momentum_RK2(lexer *p, fdm *a, convection *pconvection, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
-                                                    turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow)
-                                                    :bcmom(p),udiff(p),vdiff(p),wdiff(p),urk1(p),vrk1(p),wrk1(p),fx(p),fy(p),fz(p)
+                                                    turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow,
+                                                    sixdof_df_base *pp6dof_df, vector<net*>&ppnet, fsi *ppfsi)
+                                                    :momentum_forcing(p),bcmom(p),udiff(p),vdiff(p),wdiff(p),
+                                                    urk1(p),vrk1(p),wrk1(p),fx(p),fy(p),fz(p)
 {
 	gcval_u=10;
 	gcval_v=11;
@@ -49,6 +51,9 @@ momentum_RK2::momentum_RK2(lexer *p, fdm *a, convection *pconvection, diffusion 
 	psolv=psolver;
     ppoissonsolv=ppoissonsolver;
 	pflow=pioflow;
+    p6dof_df=pp6dof_df;
+    pnet=ppnet; 
+    pfsi=ppfsi;
 }
 
 momentum_RK2::~momentum_RK2()
@@ -114,6 +119,9 @@ void momentum_RK2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 				+ p->dt*CPOR3*a->H(i,j,k);
 	
     p->wtime=pgc->timer()-starttime;
+    
+    momentum_forcing_start(a, p, pgc, p6dof_df, pvrans, pnet, pfsi,
+                           urk1, vrk1, wrk1, fx, fy, fz, 0, 1.0, false);
 
     pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, urk1, vrk1, wrk1,1.0);
@@ -181,6 +189,9 @@ void momentum_RK2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 				+ 0.5*p->dt*CPOR3*a->H(i,j,k);
 	
     p->wtime+=pgc->timer()-starttime;
+    
+    momentum_forcing_start(a, p, pgc, p6dof_df, pvrans, pnet, pfsi,
+                           urk1, vrk1, wrk1, fx, fy, fz, 1, 0.5, true);
 
 	pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, a->u, a->v,a->w,0.5);

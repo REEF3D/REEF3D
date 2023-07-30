@@ -40,11 +40,17 @@ sixdof_df_object::sixdof_df_object(lexer *p, fdm *a, ghostcell *pgc,int number) 
     alpha[1] = 2.0/15.0;
     alpha[2] = 2.0/6.0;
     
-    if(p->N40==3)
+    if(p->N40==3 || p->N40==23 || p->N40==33)
     {
     alpha[0] = 1.0;
     alpha[1] = 0.25;
     alpha[2] = 2.0/3.0;
+    }
+    
+    if(p->N40==2)
+    {
+    alpha[0] = 1.0;
+    alpha[1] = 0.5;
     }
     
     gamma[0] = 8.0/15.0;
