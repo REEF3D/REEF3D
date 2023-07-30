@@ -41,7 +41,7 @@ public:
 	virtual void start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&);
 	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
     
-    void start_forcing(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,double,double,double,field&,field&,field&,field1&,field2&,field3&,bool);
+    void start_forcing(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field1&,field2&,field3&,bool);
     
     virtual void isource(lexer*,fdm*,ghostcell*);
     virtual void jsource(lexer*,fdm*,ghostcell*);

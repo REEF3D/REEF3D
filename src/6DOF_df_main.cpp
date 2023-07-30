@@ -38,9 +38,9 @@ sixdof_df::sixdof_df(lexer *p, fdm *a, ghostcell *pgc)
     p_df_obj.push_back(new sixdof_df_object(p,a,pgc,nb));
     
     
-    alpha[0] = 4.0/15.0;
-    alpha[1] = 1.0/15.0;
-    alpha[2] = 1.0/6.0;
+    alpha[0] = 8.0/15.0;
+    alpha[1] = 2.0/15.0;
+    alpha[2] = 2.0/6.0;
     
     gamma[0] = 8.0/15.0;
     gamma[1] = 5.0/12.0;
@@ -65,7 +65,7 @@ void sixdof_df::start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&)
 {
 }
 
-void sixdof_df::start_forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, double alpha, double gamma, double zeta, field& uvel, field& vvel, field& wvel, field1& fx, field2& fy, field3& fz, bool finalise)
+void sixdof_df::start_forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field& uvel, field& vvel, field& wvel, field1& fx, field2& fy, field3& fz, bool finalise)
 {
     // Reset heaviside field
     ULOOP
@@ -92,7 +92,7 @@ void sixdof_df::start_forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, v
         starttime=pgc->timer();
         
         // Calculate forces
-        p_df_obj[nb]->forces_stl(p,a,pgc,alpha,uvel,vvel,wvel);
+        p_df_obj[nb]->forces_stl(p,a,pgc,alpha[iter],uvel,vvel,wvel);
         
         endtime=pgc->timer();
         
@@ -102,7 +102,7 @@ void sixdof_df::start_forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, v
         starttime=pgc->timer();
         
         // Advance body in time
-        p_df_obj[nb]->solve_eqmotion(p,a,pgc,alpha,gamma,zeta,pvrans,pnet);
+        p_df_obj[nb]->solve_eqmotion(p,a,pgc,iter,pvrans,pnet);
         
         
         endtime=pgc->timer();
@@ -123,7 +123,7 @@ void sixdof_df::start_forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, v
         starttime=pgc->timer();
 
         // Update forcing terms
-        p_df_obj[nb]->updateForcing(p,a,pgc,alpha,uvel,vvel,wvel,fx,fy,fz);
+        p_df_obj[nb]->updateForcing(p,a,pgc,alpha[iter],uvel,vvel,wvel,fx,fy,fz);
         
         endtime=pgc->timer();
         
@@ -144,7 +144,7 @@ void sixdof_df::start_forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, v
 
         if (finalise == true)
         {
-            p_df_obj[nb]->saveTimeStep(p,alpha);
+            p_df_obj[nb]->saveTimeStep(p,alpha[iter]);
             
             if(p->X50==1)
             p_df_obj[nb]->print_vtp(p,a,pgc);

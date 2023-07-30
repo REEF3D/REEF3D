@@ -35,6 +35,18 @@ sixdof_df_object::sixdof_df_object(lexer *p, fdm *a, ghostcell *pgc,int number) 
     
     triangle_token=0;
     printnormal_count=0;
+    
+    alpha[0] = 8.0/15.0;
+    alpha[1] = 2.0/15.0;
+    alpha[2] = 2.0/6.0;
+    
+    gamma[0] = 8.0/15.0;
+    gamma[1] = 5.0/12.0;
+    gamma[2] = 3.0/4.0;
+    
+    zeta[0] = 0.0;
+    zeta[1] = -17.0/60.0;
+    zeta[2] = -5.0/12.0;
 }
 
 sixdof_df_object::~sixdof_df_object(){}

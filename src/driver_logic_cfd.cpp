@@ -318,16 +318,16 @@ void driver::logic_cfd()
 
 //Diffusion
 	// momentum and scalars
-	if(p->D20==0 && p->N40!=4)
+	if(p->D20==0)
 	pdiff=new diff_void;
 
-	if(p->D20==1 && p->N40!=4)
+	if(p->D20==1)
 	pdiff=new ediff2(p);
 
-	if(p->D20==2 && p->j_dir==1 && p->N40!=4)
+	if(p->D20==2 && p->j_dir==1)
 	pdiff=new idiff2_FS(p);
 
-    if(p->D20==2 && p->j_dir==0 && p->N40!=4)
+    if(p->D20==2 && p->j_dir==0)
 	pdiff=new idiff2_FS_2D(p);
 
 	// turbulence
@@ -466,19 +466,19 @@ void driver::logic_cfd()
 	if(p->D30==0)
 	ppress = new pressure_void(p);
 
-	if(p->D30==1 && p->W30==0 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2))
+	if(p->D30==1 && p->W30==0 && p->F10==2 && p->Z10==0 && (p->X10==0 || p->X13!=2))
 	ppress = new pjm(p,a,pheat,pconc);
 
-    if(p->D30==1 && p->W30==1 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2))
+    if(p->D30==1 && p->W30==1 && p->F10==2 && p->Z10==0 && (p->X10==0 || p->X13!=2))
 	ppress = new pjm_comp(p,a,pgc,pheat,pconc);
 
-    if(p->D30==1 && p->F10==1 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2))
+    if(p->D30==1 && p->F10==1 && p->Z10==0 && (p->X10==0 || p->X13!=2))
 	ppress = new pjm_nse(p,a,pheat,pconc);
 
-    if(p->D30==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2))
+    if(p->D30==2  && p->Z10==0 && (p->X10==0 || p->X13!=2))
 	ppress = new pjm_fsm(p,a,pheat,pconc);
 
-    if((p->D30==3 || (p->X10==1 && p->X13==2) || p->Z10!=0 || p->G3==1) && p->N40!=4)
+    if((p->D30==3 || (p->X10==1 && p->X13==2) || p->Z10!=0 || p->G3==1))
 	ppress = new pjm_corr(p,a,pheat,pconc);
 
     if(p->D30==10)
