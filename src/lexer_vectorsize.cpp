@@ -42,8 +42,6 @@ void lexer::vecsize(ghostcell *pgc)
     
     gcb_floating_est=0;
     
-    if(X13==0 || X13==1)
-	gcb_floating_est = gcb4_count;
     
 // gcbextra
     gcbextra=gcextra_max*margin;

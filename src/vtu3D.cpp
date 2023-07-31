@@ -899,7 +899,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
 	}
 
-	if(p->P28==1 && p->X13==2)
+	if(p->P28==1)
 	{
 //  floating
     iin=4*(p->pointnum);

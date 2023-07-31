@@ -20,7 +20,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"momentum_FS3.h"
 #include"momentum_RK2.h"
 #include"momentum_RK3.h"
 #include"momentum_FC3.h"

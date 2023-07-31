@@ -63,11 +63,11 @@ void driver::driver_ini_cfd()
     cout<<"starting driver_ini"<<endl;
     
     // 6DOF_df and FSI
-    if(((p->X10==1 && p->X13==2)))
+    if(p->X10==1)
     p6dof_df->initialize(p, a, pgc, pnet);
      
     if(p->mpirank==0)
-    if(((p->X10==1 && p->X13==2)) || p->Z10>0)
+    if(p->X10==1 || p->Z10>0)
     cout<<"driver FSI initialize"<<endl;
     
     if(p->Z10>0)
@@ -99,12 +99,6 @@ void driver::driver_ini_cfd()
     pgc->solid_forcing_ini(p,a);
     }
     
-    
-	// 6DOF
-	if((p->X10==1 && p->X13!=2) || p->X10==0)
-    {
-	    p6dof->initialize(p,a,pgc,pnet);
-    }
 
     // Sediment
 	if(p->S10>0)

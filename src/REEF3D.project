@@ -532,7 +532,6 @@
         <File Name="6DOF_precalc.h"/>
         <File Name="6DOF_sflow.h"/>
         <File Name="6DOF_df_object.h"/>
-        <File Name="6DOF_gc.h"/>
         <File Name="6DOF_df.h"/>
         <VirtualDirectory Name="Mooring">
           <File Name="mooring_dynamic.h"/>
@@ -938,7 +937,6 @@
       <File Name="momentum_FC3.h"/>
       <File Name="bcmom.h"/>
       <File Name="momentum.h"/>
-      <File Name="momentum_FS3.h"/>
       <File Name="momentum_RK3.h"/>
       <File Name="momentum_void.h"/>
       <File Name="momentum_RK2.h"/>
@@ -1762,53 +1760,10 @@
           <File Name="6DOF_df_interface.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="GCIBM">
-          <File Name="6DOF_gc_velsource.cpp"/>
-          <VirtualDirectory Name="Print">
-            <File Name="6DOF_gc_print_vtp.cpp"/>
-            <File Name="6DOF_gc_print_log.cpp"/>
-            <File Name="6DOF_gc_print_ini.cpp"/>
-            <File Name="6DOF_gc_print_stl.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="RayCast">
-            <File Name="6DOF_gc_reini_AB2.cpp"/>
-            <File Name="6DOF_gc_ray_z.cpp"/>
-            <File Name="6DOF_gc_ray_y.cpp"/>
-            <File Name="6DOF_gc_ray_x.cpp"/>
-            <File Name="6DOF_gc_ray_io_zcorr.cpp"/>
-            <File Name="6DOF_gc_ray_io_ycorr.cpp"/>
-            <File Name="6DOF_gc_ray_io_x.cpp"/>
-            <File Name="6DOF_gc_ray.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Forces">
-            <File Name="6DOF_gc_triang_triangulation.cpp"/>
-            <File Name="6DOF_gc_forces_triang_vtp.cpp"/>
-            <File Name="6DOF_gc_forces_triang_reconstruction.cpp"/>
-            <File Name="6DOF_gc_forces_triang_finalize.cpp"/>
-            <File Name="6DOF_gc_forces_triang.cpp"/>
-            <File Name="6DOF_gc_forces_stl.cpp"/>
-            <File Name="6DOF_gc_forces_lsm.cpp"/>
-            <File Name="6DOF_gc_forces.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Objects">
-            <File Name="6DOF_gc_wedge_sym.cpp"/>
-            <File Name="6DOF_gc_wedge.cpp"/>
-            <File Name="6DOF_gc_STL_read.cpp"/>
-            <File Name="6DOF_gc_objects.cpp"/>
-            <File Name="6DOF_gc_hexahedron.cpp"/>
-            <File Name="6DOF_gc_cylinder.cpp"/>
-            <File Name="6DOF_gc_box.cpp"/>
-            <File Name="6DOF_gc_geometry_ini.cpp"/>
-          </VirtualDirectory>
-          <File Name="6DOF_gc.cpp"/>
-          <File Name="6DOF_gc_update.cpp"/>
-          <File Name="6DOF_gc_transform.cpp"/>
-          <File Name="6DOF_gc_solve.cpp"/>
-          <File Name="6DOF_gc_rotation.cpp"/>
-          <File Name="6DOF_gc_position_ini.cpp"/>
-          <File Name="6DOF_gc_position.cpp"/>
-          <File Name="6DOF_gc_motion.cpp"/>
-          <File Name="6DOF_gc_interface.cpp"/>
-          <File Name="6DOF_gc_initialize.cpp"/>
+          <VirtualDirectory Name="Print"/>
+          <VirtualDirectory Name="RayCast"/>
+          <VirtualDirectory Name="Forces"/>
+          <VirtualDirectory Name="Objects"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Net">
           <VirtualDirectory Name="StaticSheet">
@@ -2612,7 +2567,6 @@
       <File Name="momentum_void.cpp"/>
       <File Name="momentum_RK2.cpp"/>
       <File Name="momentum_AB2.cpp"/>
-      <File Name="momentum_FS3.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Pressure">
       <File Name="pjm_hydrostatic.cpp"/>

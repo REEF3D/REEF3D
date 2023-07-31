@@ -1238,8 +1238,6 @@ void lexer::ctrlrecv()
 	X11_r = ictrl[ii];
 	ii++;
     X12 = ictrl[ii];
-	ii++;
-	X13 = ictrl[ii];
 	ii++;    X14 = ictrl[ii];	ii++;
     X15 = ictrl[ii];
 	ii++;

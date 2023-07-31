@@ -43,7 +43,7 @@ momentum_forcing::~momentum_forcing()
 void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, sixdof_df_base* p6dof_df, vrans* pvrans, vector<net*>& pnet, fsi* pfsi,
                                               field &u, field &v, field &w, field &fx, field &fy, field &fz, int iter, double alpha, bool final)
 {
-    if((p->X10==1 && p->X13==2) || p->Z10>0 || p->G3==1)
+    if(p->X10==1 || p->Z10>0 || p->G3==1)
     {
 	starttime=pgc->timer();
         // Forcing

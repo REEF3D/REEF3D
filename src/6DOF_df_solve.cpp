@@ -122,16 +122,15 @@ void sixdof_df_object::rk2(lexer *p, fdm *a, ghostcell *pgc, int iter)
     else
     if(iter==1)
     {
-        for (int iter = 1; iter < 3; iter++)
-        {
-            get_trans(p,a,pgc, dp_, dc_, p_, c_);    
-            get_rot(dh_, de_, h_, e_);        
+
+        get_trans(p,a,pgc, dp_, dc_, p_, c_);    
+        get_rot(dh_, de_, h_, e_);        
             
-            p_ = 0.5*pk_ + 0.5*p_ + 0.5*p->dt*dp_;
-            c_ = 0.5*ck_ + 0.5*c_ + 0.5*p->dt*dc_;
-            h_ = 0.5*hk_ + 0.5*h_ + 0.5*p->dt*dh_;
-            e_ = 0.5*ek_ + 0.5*e_ + 0.5*p->dt*de_;         
-        }
+        p_ = 0.5*pk_ + 0.5*p_ + 0.5*p->dt*dp_;
+        c_ = 0.5*ck_ + 0.5*c_ + 0.5*p->dt*dc_;
+        h_ = 0.5*hk_ + 0.5*h_ + 0.5*p->dt*dh_;
+        e_ = 0.5*ek_ + 0.5*e_ + 0.5*p->dt*de_;         
+
     }
 }
 

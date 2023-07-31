@@ -133,10 +133,10 @@ void driver::logic_cfd()
 	if(p->F35==4)
 	pfsfdisc=new weno_flux_nug(p);
 
-	if(p->F35==5 && (p->X10==0 || p->X13!=2))
+	if(p->F35==5 && p->X10==0)
 	pfsfdisc=new weno_hj_nug(p);
 
-	if(p->F35==5 && ((p->X10==1 && p->X13==2) || p->G3==1))
+	if(p->F35==5 && (p->X10==1 || p->G3==1))
 	pfsfdisc=new weno_hj_df_nug(p);
 
     if(p->F35==6)
@@ -466,19 +466,19 @@ void driver::logic_cfd()
 	if(p->D30==0)
 	ppress = new pressure_void(p);
 
-	if(p->D30==1 && p->W30==0 && p->F10==2 && p->Z10==0 && (p->X10==0 || p->X13!=2))
+	if(p->D30==1 && p->W30==0 && p->F10==2 && p->Z10==0 && p->X10==0)
 	ppress = new pjm(p,a,pheat,pconc);
 
-    if(p->D30==1 && p->W30==1 && p->F10==2 && p->Z10==0 && (p->X10==0 || p->X13!=2))
+    if(p->D30==1 && p->W30==1 && p->F10==2 && p->Z10==0 && p->X10==0)
 	ppress = new pjm_comp(p,a,pgc,pheat,pconc);
 
-    if(p->D30==1 && p->F10==1 && p->Z10==0 && (p->X10==0 || p->X13!=2))
+    if(p->D30==1 && p->F10==1 && p->Z10==0 && p->X10==0)
 	ppress = new pjm_nse(p,a,pheat,pconc);
 
-    if(p->D30==2  && p->Z10==0 && (p->X10==0 || p->X13!=2))
+    if(p->D30==2  && p->Z10==0 && p->X10==0)
 	ppress = new pjm_fsm(p,a,pheat,pconc);
 
-    if((p->D30==3 || (p->X10==1 && p->X13==2) || p->Z10!=0 || p->G3==1))
+    if((p->D30==3 || p->X10==1 || p->Z10!=0 || p->G3==1))
 	ppress = new pjm_corr(p,a,pheat,pconc);
 
     if(p->D30==10)
@@ -622,16 +622,14 @@ void driver::logic_cfd()
 	if(p->X10==0)
     p6dof = new sixdof_void();
 
-	if(p->X10==1 && p->X13!=2)
-    p6dof = new sixdof_gc(p,a,pgc);
 
-	if(p->X10==1 && p->X13==2)
+	if(p->X10==1)
     p6dof = new sixdof_void();
     
-    if(p->X10==1 && p->X13==2)
+    if(p->X10==1)
     p6dof_df = new sixdof_df(p,a,pgc);
     
-    if(p->X10==0 || p->X13!=2)
+    if(p->X10==0)
     p6dof_df = new sixdof_df_void(p,a,pgc);
 
 // FSI
@@ -643,7 +641,7 @@ void driver::logic_cfd()
 
 
 // Velocities
-	if(p->N40==0 || p->Z10!=0 || (p->X10==1 && p->X13==2) || p->G3==1)
+	if(p->N40==0 || p->Z10!=0 || p->X10==1 || p->G3==1)
 	pmom = new momentum_void();
 
     if(p->N40==1)
@@ -655,9 +653,6 @@ void driver::logic_cfd()
 	if(p->N40==3 && p->F11==0)
 	pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,p6dof_df,pnet,pfsi);
 
-	if(p->N40==6 && p->F11==0)
-	pmom = new momentum_FS3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
-
     if(p->N40==23)
 	pmom = new momentum_FC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,p6dof_df,pnet,pfsi);
     
@@ -667,7 +662,7 @@ void driver::logic_cfd()
     if(p->G3==1 && p->N40==4)
     pmom_sf = new momentum_RKLS3_sf(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
     
-    if(((p->X10==1 && p->X13==2) || p->Z10!=0)  && p->N40==4)
+    if((p->X10==1 || p->Z10!=0)  && p->N40==4)
     pmom_df = new momentum_RKLS3_df(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
 
 }
