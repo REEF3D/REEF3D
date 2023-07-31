@@ -46,8 +46,8 @@ void sediment_f::sedimentlog(lexer *p)
     if(p->mpirank==0)
     {
     sedlogout<<p->count<<"\t \t \t";
-    sedlogout<<setprecision(4)<<p->dtsed<<" \t ";
     sedlogout<<setprecision(5)<<p->simtime<<" \t ";
+    sedlogout<<setprecision(4)<<p->dtsed<<" \t ";
     sedlogout<<setprecision(4)<<p->sedtime<<" \t ";
     sedlogout<<setprecision(4)<<p->sediter<<" \t ";
     sedlogout<<setprecision(4)<<p->slidecells<<" \t ";
