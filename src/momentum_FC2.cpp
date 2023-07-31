@@ -51,7 +51,7 @@ Author: Hans Bihs
 momentum_FC2::momentum_FC2(lexer *p, fdm *a, ghostcell *pgc, convection *pconvection, convection *ppfsfdisc, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
                                                     turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow,
                                                     heat *&pheat, concentration *&pconc, reini *ppreini,
-                                                    sixdof_df_base *pp6dof_df, fsi *ppfsi)
+                                                    fsi *ppfsi)
                                                     :momentum_forcing(p),bcmom(p),udiff(p),vdiff(p),wdiff(p),urk1(p),vrk1(p),wrk1(p),
                                                     ls(p),frk1(p),fx(p),fy(p),fz(p)
 {
@@ -81,7 +81,6 @@ momentum_FC2::momentum_FC2(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec
     ppoissonsolv=ppoissonsolver;
 	pflow=pioflow;
     preini=ppreini;
-    p6dof_df=pp6dof_df;
     pfsi=ppfsi;
     
     
@@ -120,7 +119,7 @@ momentum_FC2::~momentum_FC2()
 {
 }
 
-void momentum_FC2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, vector<net*>& pnet)
+void momentum_FC2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof_df_base *p6dof_df, vector<net*>& pnet)
 {	
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);

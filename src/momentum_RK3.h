@@ -47,9 +47,9 @@ class momentum_RK3 : public momentum, public momentum_forcing, public bcmom
 {
 public:
 	momentum_RK3(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, 
-                turbulence*, solver*, solver*, ioflow*,sixdof_df_base*, fsi*);
+                turbulence*, solver*, solver*, ioflow*, fsi*);
 	virtual ~momentum_RK3();
-	virtual void start(lexer*, fdm*, ghostcell*, vrans*,vector<net*>&);
+	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof_df_base*,vector<net*>&);
     virtual void utimesave(lexer*, fdm*, ghostcell*);
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);

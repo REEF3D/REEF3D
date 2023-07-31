@@ -79,7 +79,7 @@ momentum_RKLS3_df::momentum_RKLS3_df
 momentum_RKLS3_df::~momentum_RKLS3_df(){}
 
 
-void momentum_RKLS3_df::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet){}
+void momentum_RKLS3_df::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, sixdof_df_base *p6dof_df, vector<net*>& pnet){}
 
 void momentum_RKLS3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df_base* p6dof_df, vrans* pvrans, vector<net*>& pnet, fsi* pfsi)
 {	

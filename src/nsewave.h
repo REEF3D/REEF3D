@@ -39,6 +39,7 @@ class poisson;
 class vrans;
 class turbulence;
 class net;
+class sixdof_df_base;
 
 using namespace std;
 
@@ -48,7 +49,8 @@ using namespace std;
 class nsewave 
 {
 public:    
-    virtual void start(lexer*, fdm*, ghostcell*, momentum*, diffusion*, turbulence*, convection*, pressure*, poisson*, solver*, solver*, ioflow*, vrans*, vector<net*>&)=0;
+    virtual void start(lexer*, fdm*, ghostcell*, momentum*, diffusion*, turbulence*, convection*, pressure*, 
+                       poisson*, solver*, solver*, ioflow*, vrans*, sixdof_df_base*, vector<net*>&)=0;
     
     virtual void ini(lexer*, fdm*, ghostcell*, ioflow*)=0;
 

@@ -33,7 +33,6 @@ momentum_forcing::momentum_forcing(lexer* p)
     gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;
-
 }
 
 momentum_forcing::~momentum_forcing()
