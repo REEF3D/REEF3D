@@ -55,7 +55,7 @@ momentum_AB2::~momentum_AB2()
 {
 }
 
-void momentum_AB2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
+void momentum_AB2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, vector<net*>& pnet)
 {
 		
 	pflow->discharge(p,a,pgc);

@@ -35,7 +35,7 @@ Author: Hans Bihs
 
 momentum_RK2::momentum_RK2(lexer *p, fdm *a, convection *pconvection, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
                                                     turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow,
-                                                    sixdof_df_base *pp6dof_df, vector<net*>&ppnet, fsi *ppfsi)
+                                                    sixdof_df_base *pp6dof_df, fsi *ppfsi)
                                                     :momentum_forcing(p),bcmom(p),udiff(p),vdiff(p),wdiff(p),
                                                     urk1(p),vrk1(p),wrk1(p),fx(p),fy(p),fz(p)
 {
@@ -52,7 +52,6 @@ momentum_RK2::momentum_RK2(lexer *p, fdm *a, convection *pconvection, diffusion 
     ppoissonsolv=ppoissonsolver;
 	pflow=pioflow;
     p6dof_df=pp6dof_df;
-    pnet=ppnet; 
     pfsi=ppfsi;
 }
 
@@ -60,7 +59,7 @@ momentum_RK2::~momentum_RK2()
 {
 }
 
-void momentum_RK2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
+void momentum_RK2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, vector<net*>& pnet)
 {
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);

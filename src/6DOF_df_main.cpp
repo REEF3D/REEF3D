@@ -117,7 +117,6 @@ void sixdof_df::start_forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, v
         // Advance body in time
         p_df_obj[nb]->solve_eqmotion(p,a,pgc,iter,pvrans,pnet);
         
-        
         endtime=pgc->timer();
         
         //if(p->mpirank==0)

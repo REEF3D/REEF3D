@@ -79,7 +79,7 @@ momentum_RKLS3_df::momentum_RKLS3_df
 momentum_RKLS3_df::~momentum_RKLS3_df(){}
 
 
-void momentum_RKLS3_df::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans){}
+void momentum_RKLS3_df::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet){}
 
 void momentum_RKLS3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df_base* p6dof_df, vrans* pvrans, vector<net*>& pnet, fsi* pfsi)
 {	
@@ -275,11 +275,8 @@ void momentum_RKLS3_df::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &
         ULOOP
         {
             a->maxF = MAX(fabs(a->rhsvec.V[n] + a->gi), a->maxF);
-            
             a->F(i,j,k) += (a->rhsvec.V[n] + a->gi + p->W29_x)*PORVAL1;
-            
             a->rhsvec.V[n] = 0.0;
-            
             ++n;
         }
     }
@@ -290,7 +287,6 @@ void momentum_RKLS3_df::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &
         ULOOP
         {
             a->rhsvec.V[n] += a->gi;
-            
             ++n;
         }
     }
@@ -304,11 +300,8 @@ void momentum_RKLS3_df::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &
         VLOOP
         {
             a->maxG = MAX(fabs(a->rhsvec.V[n] + a->gj), a->maxG);
-            
             a->G(i,j,k) += (a->rhsvec.V[n] + a->gj + p->W29_y)*PORVAL2;
-            
             a->rhsvec.V[n]=0.0;
-            
             ++n;
         }
     }
@@ -319,7 +312,6 @@ void momentum_RKLS3_df::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &
         VLOOP
         {
             a->rhsvec.V[n] += a->gj;
-            
             ++n;
         }
     }
@@ -333,11 +325,8 @@ void momentum_RKLS3_df::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &
         WLOOP
         {
             a->maxH = MAX(fabs(a->rhsvec.V[n] + a->gk), a->maxH);
-            
             a->H(i,j,k) += (a->rhsvec.V[n] + a->gk + p->W29_z)*PORVAL3;
-            
             a->rhsvec.V[n]=0.0;
-            
             ++n;
         }
     }
@@ -348,7 +337,6 @@ void momentum_RKLS3_df::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &
         WLOOP
         {
             a->rhsvec.V[n] += a->gk;
-            
             ++n;
         }
     }

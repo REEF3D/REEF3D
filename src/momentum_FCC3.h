@@ -54,9 +54,9 @@ class momentum_FCC3 : public momentum, public momentum_forcing, public bcmom
 public:
 	momentum_FCC3(lexer*, fdm*, ghostcell*, convection*, convection*, diffusion*, pressure*, poisson*, 
                 turbulence*, solver*, solver*, ioflow*, heat*&, concentration*&, reini*,
-                sixdof_df_base*, vector<net*>&, fsi*);
+                sixdof_df_base*, fsi*);
 	virtual ~momentum_FCC3();
-	virtual void start(lexer*, fdm*, ghostcell*, vrans*);
+	virtual void start(lexer*, fdm*, ghostcell*, vrans*,vector<net*>&);
     virtual void utimesave(lexer*, fdm*, ghostcell*);
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);
@@ -114,7 +114,6 @@ private:
     reini *preini;
     density *pd;
     sixdof_df_base *p6dof_df;
-    vector<net*>pnet; 
     fsi *pfsi;
     
 };

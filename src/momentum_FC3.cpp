@@ -51,7 +51,7 @@ Author: Hans Bihs
 momentum_FC3::momentum_FC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconvection, convection *ppfsfdisc, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
                                                     turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow,
                                                     heat *&pheat, concentration *&pconc, reini *ppreini,
-                                                    sixdof_df_base *pp6dof_df, vector<net*>&ppnet, fsi *ppfsi)
+                                                    sixdof_df_base *pp6dof_df, fsi *ppfsi)
                                                     :momentum_forcing(p),bcmom(p),udiff(p),vdiff(p),wdiff(p),urk1(p),urk2(p),vrk1(p),
                                                     vrk2(p),wrk1(p),wrk2(p),ls(p),frk1(p),frk2(p),fx(p),fy(p),fz(p)
 {
@@ -82,7 +82,6 @@ momentum_FC3::momentum_FC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec
 	pflow=pioflow;
     preini=ppreini;
     p6dof_df=pp6dof_df;
-    pnet=ppnet; 
     pfsi=ppfsi;
     
     
@@ -121,7 +120,7 @@ momentum_FC3::~momentum_FC3()
 {
 }
 
-void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
+void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, vector<net*>& pnet)
 {	
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);

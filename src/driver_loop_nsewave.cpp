@@ -73,7 +73,7 @@ void driver::loop_nsewave(fdm* a)
 			fill_vel(p,a,pgc);
         
         // Wave Models
-        pnse->start(p,a,pgc,pmom,pdiff,pturb,pconvec,ppress,ppois,ppoissonsolv,psolv,pflow,pvrans);
+        pnse->start(p,a,pgc,pmom,pdiff,pturb,pconvec,ppress,ppois,ppoissonsolv,psolv,pflow,pvrans,pnet);
         poneph->update(p,a,pgc,pflow);
 			
             pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
@@ -89,7 +89,6 @@ void driver::loop_nsewave(fdm* a)
         pflow->v_relax(p,a,pgc,a->v);
         pflow->w_relax(p,a,pgc,a->w);
         pfsf->update(p,a,pgc,a->phi);
-        p6dof->start(p,a,pgc,1.0,pvrans,pnet);
 
         pbench->start(p,a,pgc,pconvec);
 		

@@ -84,11 +84,11 @@ nsewave_f::~nsewave_f()
 
 void nsewave_f::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusion *pdiff, turbulence *pturb,
                       convection* pconvec, pressure *ppress, poisson *ppois, solver *ppoissonsolv, solver *psolv, 
-                      ioflow* pflow, vrans* pvrans)
+                      ioflow* pflow, vrans* pvrans, vector<net*>& pnet)
 {
     
     // Momentum
-    pmom->start(p,a,pgc,pvrans);
+    pmom->start(p,a,pgc,pvrans,pnet);
     
     
     

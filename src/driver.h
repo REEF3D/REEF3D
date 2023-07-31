@@ -185,7 +185,6 @@ public:
 	heat* pheat;
 	potential* potflow;
 	benchmark* pbench;
-	sixdof* p6dof;
 	fsi* pfsi;
 	vrans* pvrans;
     vector<net*> pnet;

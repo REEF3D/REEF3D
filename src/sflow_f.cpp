@@ -121,10 +121,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         
         // 6DOF
 		if (p->X10==3)
-        {
-            //p6dof->start(p,b,pgc,1.0,pvrans,pnet);
-            p6dof_sflow->start(p,b,pgc);
-        }
+        p6dof_sflow->start(p,b,pgc);
 
         // timesave
         pturb->ktimesave(p,b,pgc);
