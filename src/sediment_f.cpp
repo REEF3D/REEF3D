@@ -71,7 +71,10 @@ void sediment_f::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, rein
 	}
     
     if(sedcalc==0)
+    {
+    fill_bedk(p,a,pgc);
     pbedshear->taubed(p,a,pgc,s);
+    }
 }
 
 void sediment_f::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice &P, slice &Q)
