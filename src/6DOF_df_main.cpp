@@ -49,7 +49,7 @@ sixdof_df::sixdof_df(lexer *p, fdm *a, ghostcell *pgc)
     alpha[2] = 2.0/3.0;
     }
     
-    if(p->N40==2)
+    if(p->N40==2 || p->N40==22)
     {
     alpha[0] = 1.0;
     alpha[1] = 0.5;
@@ -57,7 +57,7 @@ sixdof_df::sixdof_df(lexer *p, fdm *a, ghostcell *pgc)
     
     gamma[0] = 8.0/15.0;
     gamma[1] = 5.0/12.0;
-    gamma[2] = 3.0/4.0;
+    gamma[2] = 3.0/4.0;
     
     zeta[0] = 0.0;
     zeta[1] = -17.0/60.0;
