@@ -29,7 +29,7 @@ void lexer::lexer_read(ghostcell *pgc)
     if(mpirank==0)
 	read_control();
 
-	ctrlsize=12500;
+	ctrlsize=22500;
 	
     Iarray(ictrl,ctrlsize);
     Darray(dctrl,ctrlsize);

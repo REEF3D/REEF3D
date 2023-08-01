@@ -47,13 +47,11 @@ probe_pressure::probe_pressure(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P
 		// open file
 		for(n=0;n<probenum;++n)
 		{
-		if(p->P14==0)
-		sprintf(name,"REEF3D-CFD-Probe-Pressure-%i.dat",n+1);
-		
-		if(p->P14==1)
-		sprintf(name,"./REEF3D_CFD_ProbePoint/REEF3D-CFD-Probe-Pressure-%i.dat",n+1);
-		
-		pout[n].open(name);
+        if(p->P14==0)
+		pout[n].open("REEF3D-CFD-Probe-Pressure-%i.dat");
+        
+        if(p->P14==1)
+		pout[n].open("./REEF3D_CFD_ProbePoint/REEF3D-CFD-Probe-Pressure-%i.dat", n+1);
 
 	    pout[n]<<"Point Probe ID:  "<<n<<endl<<endl;
 		pout[n]<<"x_coord     y_coord     z_coord"<<endl;
@@ -94,7 +92,7 @@ void probe_pressure::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 	
 	if(p->mpirank==0)
 	pout[n]<<setprecision(9)<<p->simtime<<" \t "<<pval<<endl;
-	}			
+	}		
 }
 
 void probe_pressure::write(lexer *p, fdm *a, ghostcell *pgc)
