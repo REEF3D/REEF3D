@@ -91,6 +91,7 @@ void fsi_strip::interpolate_vel(lexer* p, fdm* a, ghostcell* pgc, field& uvel, f
         }
     }
     
+    starttime=pgc->timer();
     for (int eI = 0; eI < Ne; eI++)
     {
         for (int pI = 0; pI < lagrangePoints[eI].cols(); pI++)
@@ -98,6 +99,9 @@ void fsi_strip::interpolate_vel(lexer* p, fdm* a, ghostcell* pgc, field& uvel, f
             lagrangeVel[eI].col(pI) << pgc->globalsum(lagrangeVel[eI](0,pI)), pgc->globalsum(lagrangeVel[eI](1,pI)), pgc->globalsum(lagrangeVel[eI](2,pI));
         }
     }
+    
+    if(p->mpirank==0)
+    cout<<"FSI_sync time: "<<pgc->timer()-starttime<<endl;
 }
     
 double fsi_strip::kernel_roma(const double& dist)

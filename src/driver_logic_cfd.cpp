@@ -644,6 +644,15 @@ void driver::logic_cfd()
 
 	if(p->N40==3 && p->F11==0)
 	pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
+    
+    if(p->N40==6)
+    {
+        if(p->mpirank==0)
+        cout<<"N 40 6 is no longer supported"<<endl;
+        
+        pgc->final();
+		exit(0);
+    }
 
     if(p->N40==22)
 	pmom = new momentum_FC2(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
