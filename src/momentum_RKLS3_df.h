@@ -79,10 +79,8 @@ private:
 
 	convection *pconvec;
 	diffusion *pdiff;
-	diffusion *pdiff_e;
 	pressure *ppress;
 	poisson *ppois;
-	density *pdensity;
     turbulence *pturb;
 	solver *psolv;
     solver *ppoissonsolv;

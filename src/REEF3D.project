@@ -930,6 +930,7 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
+      <File Name="momentum_RKLS3.h"/>
       <File Name="momentum_FC2.h"/>
       <File Name="momentum_forcing.h"/>
       <File Name="momentum_RKLS3_sf.h"/>

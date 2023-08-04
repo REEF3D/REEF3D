@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"momentum.h"
@@ -26,58 +26,71 @@ Author: Hans Bihs
 #include"field1.h"
 #include"field2.h"
 #include"field3.h"
+#include<vector>
+#include <Eigen/Dense>
+#include <Eigen/StdVector>
 
 class convection;
 class diffusion;
 class pressure;
 class turbulence;
 class solver;
+class density;
 class poisson;
-class fluid_update;
-class nhflow;
-class sixdof_df_base;
+class sixdof_base;
+class net;
 class fsi;
 
 using namespace std;
 
-#ifndef MOMENTUM_RK3_H_
-#define MOMENTUM_RK3_H_
+#ifndef MOMENTUM_RKLS3_H_
+#define MOMENTUM_RKLS3_H_
 
-class momentum_RK3 : public momentum, public momentum_forcing, public bcmom
+class momentum_RKLS3 : public momentum, public momentum_forcing, public bcmom
 {
 public:
-	momentum_RK3(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, 
-                turbulence*, solver*, solver*, ioflow*, fsi*);
-	virtual ~momentum_RK3();
+
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+
+	momentum_RKLS3(lexer*, fdm*, ghostcell*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*, fsi*);
+	virtual ~momentum_RKLS3();
 	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof_df_base*,vector<net*>&);
-    virtual void utimesave(lexer*, fdm*, ghostcell*);
+	virtual void utimesave(lexer*, fdm*, ghostcell*);
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);
+    virtual void fillaij1(lexer*, fdm*, ghostcell*, solver*);
+    virtual void fillaij2(lexer*, fdm*, ghostcell*, solver*);
+    virtual void fillaij3(lexer*, fdm*, ghostcell*, solver*);
 
-    field1 udiff,urk1,urk2,fx;
-	field2 vdiff,vrk1,vrk2,fy;
-	field3 wdiff,wrk1,wrk2,fz;
 
 private:
-    fluid_update *pupdate;
-    
-	void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
+
+    void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
-	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
+	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);    
     
-	int gcval_u, gcval_v, gcval_w;
-	double starttime;
+    field1 urk, Cu, Du, fx;
+	field2 vrk, Cv, Dv, fy;
+	field3 wrk, Cw, Dw, fz;
 
 	convection *pconvec;
 	diffusion *pdiff;
+	diffusion *pdiff_e;
 	pressure *ppress;
 	poisson *ppois;
-	turbulence *pturb;
+	density *pdensity;
+    turbulence *pturb;
 	solver *psolv;
     solver *ppoissonsolv;
-	ioflow *pflow;
-    nhflow *pnh;
-    fsi *pfsi;
+	ioflow *pflow; 
+    fsi *pfsi;   
+    
+	int gcval_u, gcval_v, gcval_w;
+
+    Eigen::Vector3d alpha, gamma, zeta;
+
+	double starttime;
 };
 
 #endif
+

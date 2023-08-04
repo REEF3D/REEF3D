@@ -67,10 +67,6 @@ momentum_RKLS3_df::momentum_RKLS3_df
     ppoissonsolv=ppoissonsolver;
 	pflow=pioflow;
 
-	pdiff_e=new ediff2(p);
-    
-    pdensity = new density_df(p);
-
     alpha << 4.0/15.0, 1.0/15.0, 1.0/6.0;
     gamma << 8.0/15.0, 5.0/12.0, 3.0/4.0;
     zeta << 0.0, -17.0/60.0, -5.0/12.0;
