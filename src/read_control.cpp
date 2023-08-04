@@ -800,9 +800,6 @@ void lexer::read_control()
 				case 10: control>>F10;
 						 clear(c,numint);
 						 break;
-               case 11: control>>F11;
-						 clear(c,numint);
-						 break;
 				case 19: control>>F19;
 						 clear(c,numint);
 						 break;

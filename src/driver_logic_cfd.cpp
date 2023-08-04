@@ -369,7 +369,7 @@ void driver::logic_cfd()
     if(p->F10==2)
     poneph = new onephase_v(p,a,pgc);
 
-    if((p->F30==0 && p->F80==0) || p->F11==1)
+    if(p->F30==0 && p->F80==0)
 	pfsf = new levelset_void(p,a,pgc,pheat,pconc);
 
 	if(p->F30==1)
@@ -378,7 +378,7 @@ void driver::logic_cfd()
 	if(p->F30==2)
 	pfsf = new levelset_RK2(p,a,pgc,pheat,pconc);
 
-	if(p->F30==3 && p->F11==0 && p->N40!=23)
+	if(p->F30==3 && p->N40!=23)
 	pfsf = new levelset_RK3(p,a,pgc,pheat,pconc);
 
     if(p->N40==22 || p->N40==23 || p->N40==33)
@@ -642,10 +642,10 @@ void driver::logic_cfd()
 	if(p->N40==2)
 	pmom = new momentum_RK2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
 
-	if(p->N40==3 && p->F11==0)
+	if(p->N40==3)
 	pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
     
-    if(p->N40==4 && p->X10==0 && p->F11==0)
+    if(p->N40==4 && p->X10==0)
 	pmom = new momentum_RKLS3(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
     
     if(p->N40==6)
