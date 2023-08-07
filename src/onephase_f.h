@@ -21,17 +21,19 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"onephase.h"
-#include"ddweno3_f_nug.h"
+#include"ddweno_f_nug.h"
 #include"field1.h"
 #include"field2.h"
 #include"field3.h"
+#include"field4.h"
+
 
 using namespace std;
 
 #ifndef ONEPHASE_F_H_
 #define ONEPHASE_F_H_
 
-class onephase_f : public onephase, public ddweno3_f_nug
+class onephase_f : public onephase, public ddweno_f_nug
 {
 public:
     onephase_f(lexer*, fdm*, ghostcell*);
@@ -48,6 +50,8 @@ public:
     field2 vrk1;
     field3 wrk1;
     
+    field4 xphi,yphi,zphi;
+    
 private: 
     void fsf_update(lexer*,fdm*,ghostcell*);
     void disc(lexer *p, fdm* a, field& b);
@@ -59,6 +63,7 @@ private:
     double dt;
     double lsv,lsSig;
     double xmin,xplus,ymin,yplus,zmin,zplus;
+    double nx,ny,nz;
 
 };
 

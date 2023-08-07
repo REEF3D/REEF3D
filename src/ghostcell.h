@@ -21,7 +21,6 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include <mpi.h>
-#include"norm_vec.h"
 #include"boundarycheck.h"
 
 
@@ -48,7 +47,7 @@ class ioflow;
 
 using namespace std;
 
-class ghostcell : public norm_vec, public boundarycheck
+class ghostcell : public boundarycheck
 {
 public:
 	ghostcell(int&,char**,lexer*);

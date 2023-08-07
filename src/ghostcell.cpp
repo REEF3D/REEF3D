@@ -27,17 +27,18 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"density_f.h"
 
-ghostcell::ghostcell(int& argc, char **argv,lexer *pp):norm_vec(p),size(15),tag1(1),tag2(2),tag3(3),tag4(4),tag5(5),tag6(6),eps(1.0e-10),
+ghostcell::ghostcell(int& argc, char **argv,lexer *pp):size(15),tag1(1),tag2(2),tag3(3),tag4(4),tag5(5),tag6(6),eps(1.0e-10),
 														gcx(1)
 {  
+    p=pp;
+    
 	MPI_Init(&argc,&argv);
+    
     MPI_Comm_rank(MPI_COMM_WORLD,&p->mpirank);
 	MPI_Comm_size(MPI_COMM_WORLD,&p->mpi_size);	
     rank=p->mpirank;
 	
 	mpi_comm = MPI_COMM_WORLD;
-    
-    p=pp;
 }
 
 ghostcell::~ghostcell()

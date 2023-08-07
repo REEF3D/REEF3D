@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 
-norm_vec::norm_vec(lexer* p) : ddweno_f_nug(p), dx(dx)
+norm_vec::norm_vec(lexer* p) : ddweno_f_nug(p), dx(p->DXM)
 {
 }
 

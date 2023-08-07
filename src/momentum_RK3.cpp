@@ -134,6 +134,10 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pgc->start2(p,vrk1,gcval_v);
     pgc->start3(p,wrk1,gcval_w);
     
+    poneph->uvel(p,a,pgc,urk1);
+    poneph->vvel(p,a,pgc,vrk1);
+    poneph->wvel(p,a,pgc,wrk1);
+    
     momentum_forcing_start(a, p, pgc, p6dof_df, pvrans, pnet, pfsi,
                            urk1, vrk1, wrk1, fx, fy, fz, 0, 1.0, false);
     
@@ -213,6 +217,10 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pgc->start2(p,vrk2,gcval_v);
     pgc->start3(p,wrk2,gcval_w);
     
+    poneph->uvel(p,a,pgc,urk2);
+    poneph->vvel(p,a,pgc,vrk2);
+    poneph->wvel(p,a,pgc,wrk2);
+    
     momentum_forcing_start(a, p, pgc, p6dof_df, pvrans, pnet, pfsi,
                            urk2, vrk2, wrk2, fx, fy, fz, 1, 0.25, false);
 
@@ -291,6 +299,10 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
     pgc->start1(p,a->u,gcval_u);
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
+    
+    poneph->uvel(p,a,pgc,a->u);
+    poneph->vvel(p,a,pgc,a->v);
+    poneph->wvel(p,a,pgc,a->w);
     
     momentum_forcing_start(a, p, pgc, p6dof_df, pvrans, pnet, pfsi,
                            a->u, a->v, a->w, fx, fy, fz, 2, 2.0/3.0, true);

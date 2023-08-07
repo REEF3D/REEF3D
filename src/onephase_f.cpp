@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"ioflow.h"
 
-onephase_f::onephase_f(lexer *p, fdm *a, ghostcell *pgc) : ddweno3_f_nug(p),urk1(p),vrk1(p),wrk1(p)
+onephase_f::onephase_f(lexer *p, fdm *a, ghostcell *pgc) : ddweno_f_nug(p),urk1(p),vrk1(p),wrk1(p),xphi(p),yphi(p),zphi(p)
 {
     gcval_u=10;
 	gcval_v=11;
@@ -36,7 +36,7 @@ onephase_f::onephase_f(lexer *p, fdm *a, ghostcell *pgc) : ddweno3_f_nug(p),urk1
     dt=1.0e8;
 	FLUIDLOOP
 	{
-	dt = MIN(dt,p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]));
+	dt = MIN(dt,0.1*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]));
 	}
 }
 
