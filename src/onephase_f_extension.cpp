@@ -26,18 +26,28 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"ioflow.h"
 
-void onephase_f::uvel(lexer *p, fdm*, ghostcell*, field &u)
+void onephase_f::uvel(lexer *p, fdm *a, ghostcell *pgc, field &u)
 {
-    AIRLOOP
-    {
-    //urk1(i,j,k) = u(i,j,k);// disc(phi)*disc(u)
-    }
+    UAIRLOOP
+    urk1(i,j,k) = u(i,j,k) + dt*ddwenox(a->phi,a->u(i,j,k))*ddwenox(u,a->u(i,j,k));
+    
+    pgc->start1(p,urk1,gcval_u);
+
+    UAIRLOOP
+    u(i,j,k) = 0.5*u(i,j,k) + 0.5*urk1(i,j,k) + 0.5*dt*ddwenox(a->phi,a->u(i,j,k))*ddwenox(urk1,a->u(i,j,k));
 }
 
-void onephase_f::vvel(lexer*, fdm*, ghostcell*, field&)
+void onephase_f::vvel(lexer *p, fdm *a, ghostcell*, field&)
 {
 }
 
-void onephase_f::wvel(lexer*, fdm*, ghostcell*, field&)
+void onephase_f::wvel(lexer *p, fdm *a, ghostcell *pgc, field &w)
 {
+    WAIRLOOP
+    wrk1(i,j,k) = w(i,j,k) + dt*ddwenox(a->phi,a->w(i,j,k))*ddwenox(w,a->w(i,j,k));
+    
+    pgc->start1(p,wrk1,gcval_w);
+
+    WAIRLOOP
+    w(i,j,k) = 0.5*w(i,j,k) + 0.5*wrk1(i,j,k) + 0.5*dt*ddwenox(a->phi,a->w(i,j,k))*ddwenox(wrk1,a->w(i,j,k));
 }

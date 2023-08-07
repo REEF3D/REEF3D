@@ -26,8 +26,18 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"ioflow.h"
 
-onephase_f::onephase_f(lexer *p, fdm *a, ghostcell *pgc) : ddweno_f_nug(p)
+onephase_f::onephase_f(lexer *p, fdm *a, ghostcell *pgc) : ddweno3_f_nug(p),urk1(p),vrk1(p),wrk1(p)
 {
+    gcval_u=10;
+	gcval_v=11;
+	gcval_w=12;
+    
+    
+    dt=1.0e8;
+	FLUIDLOOP
+	{
+	dt = MIN(dt,p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]));
+	}
 }
 
 onephase_f::~onephase_f()
