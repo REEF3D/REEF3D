@@ -26,8 +26,12 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"ioflow.h"
 
-void onephase_f::uvel(lexer*, fdm*, ghostcell*, field&)
+void onephase_f::uvel(lexer *p, fdm*, ghostcell*, field &u)
 {
+    AIRLOOP
+    {
+    //urk1(i,j,k) = u(i,j,k);// disc(phi)*disc(u)
+    }
 }
 
 void onephase_f::vvel(lexer*, fdm*, ghostcell*, field&)

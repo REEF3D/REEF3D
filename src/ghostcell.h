@@ -506,6 +506,7 @@ private:
     int ***gcxsd,*gcxsd_count;
 
     fdm *a;
+    lexer *p;
     fdm_fnpf *c;
     fdm_nhf *d;
 

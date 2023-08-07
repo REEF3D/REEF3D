@@ -394,15 +394,6 @@ void driver::logic_cfd()
 	if(p->F40==23)
 	preini = new reini_RK3(p,1);
 
-	if(p->F40==5)
-	preini = new reinivc_RK3(p);
-
-	if(p->F40==7)
-	preini = new reinigc_RK3(p,a);
-    
-    if(p->F40==9)
-    preini = new reinisf_RK3(p,1);
-
 	if(p->F40==11)
 	preini = new directreini(p,a);
 

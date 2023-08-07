@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"ioflow.h"
 
-onephase_f::onephase_f(lexer *p, fdm *a, ghostcell *pgc) : gradient(p)
+onephase_f::onephase_f(lexer *p, fdm *a, ghostcell *pgc) : ddweno_f_nug(p)
 {
 }
 

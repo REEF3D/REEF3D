@@ -713,15 +713,12 @@
         <File Name="particle_pls.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Reinitialization">
-        <File Name="reinisf_RK3.h"/>
         <File Name="reinidisc_sf.h"/>
         <File Name="reinidisc_fsf_rig.h"/>
         <File Name="reinifluid_RK3.h"/>
         <File Name="reini.h"/>
         <File Name="reini_RK3.h"/>
         <File Name="reini_void.h"/>
-        <File Name="reinigc_RK3.h"/>
-        <File Name="reinivc_RK3.h"/>
         <File Name="reinidisc.h"/>
         <File Name="reinidisc_f.h"/>
         <File Name="reinidisc_fsf.h"/>
@@ -1983,13 +1980,10 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Gradient">
         <File Name="gradient_momscalar_generic.cpp"/>
-        <File Name="gradient_dfweno.cpp"/>
         <File Name="gradient_curvddx.cpp"/>
         <File Name="gradient_momdx.cpp"/>
         <File Name="gradient_momscalar.cpp"/>
         <File Name="gradient.cpp"/>
-        <File Name="gradient_ddweno.cpp"/>
-        <File Name="gradient_dslweno.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Initialize">
         <File Name="ini_psi.cpp"/>
@@ -2075,14 +2069,11 @@
         <File Name="pls_xupdate.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Reinitialization">
-        <File Name="reinisf_RK3.cpp"/>
         <File Name="reinidisc_sf.cpp"/>
         <File Name="reinidisc_fsf_rig.cpp"/>
         <File Name="reini_RK3.cpp"/>
         <File Name="reinifluid_RK3.cpp"/>
         <File Name="reini_void.cpp"/>
-        <File Name="reinigc_RK3.cpp"/>
-        <File Name="reinivc_RK3.cpp"/>
         <File Name="reinidisc_f.cpp"/>
         <File Name="reinidisc_fsf.cpp"/>
         <File Name="reini_walld.cpp"/>
@@ -2102,6 +2093,7 @@
         <File Name="VOF_PLIC.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="One Phase">
+        <File Name="onephase_f_disc.cpp"/>
         <File Name="onephase_f_extension.cpp"/>
         <File Name="onephase_f.cpp"/>
         <File Name="onephase_v.cpp"/>

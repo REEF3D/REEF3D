@@ -21,14 +21,14 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"onephase.h"
-#include"gradient.h"
+#include"ddweno_f_nug.h"
 
 using namespace std;
 
 #ifndef ONEPHASE_F_H_
 #define ONEPHASE_F_H_
 
-class onephase_f : public onephase, public gradient
+class onephase_f : public onephase, public ddweno_f_nug
 {
 public:
     onephase_f(lexer*, fdm*, ghostcell*);
@@ -43,7 +43,14 @@ public:
     
 private: 
     void fsf_update(lexer*,fdm*,ghostcell*);
+    void disc(lexer *p, fdm* a, field& b);
     int activenum;
+    
+    double dx, dy, dz, dnorm, sign,deltax;
+	double sx,sy,sz,snorm,op;
+    double dt;
+    double lsv,lsSig;
+    double xmin,xplus,ymin,yplus,zmin,zplus;
 
 };
 
