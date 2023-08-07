@@ -21,14 +21,14 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"onephase.h"
-#include"increment.h"
+#include"gradient.h"
 
 using namespace std;
 
 #ifndef ONEPHASE_F_H_
 #define ONEPHASE_F_H_
 
-class onephase_f : public onephase, public increment
+class onephase_f : public onephase, public gradient
 {
 public:
     onephase_f(lexer*, fdm*, ghostcell*);
@@ -37,8 +37,13 @@ public:
 	virtual void update(lexer*, fdm*, ghostcell*, ioflow*);
     virtual void ini(lexer*, fdm*, ghostcell*, ioflow*);
     
+    virtual void uvel(lexer*, fdm*, ghostcell*, field&);
+    virtual void vvel(lexer*, fdm*, ghostcell*, field&);
+    virtual void wvel(lexer*, fdm*, ghostcell*, field&);
+    
 private: 
     void fsf_update(lexer*,fdm*,ghostcell*);
+    int activenum;
 
 };
 

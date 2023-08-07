@@ -35,7 +35,7 @@ probe_pressure::probe_pressure(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P
 	p->Iarray(kloc,probenum);
 	p->Iarray(flag,probenum);
 	
-    cout<<p->mpirank<<" pressure probepoint_num: "<<probenum<<endl;
+    //cout<<p->mpirank<<" pressure probepoint_num: "<<probenum<<endl;
     
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)

@@ -336,7 +336,6 @@ void momentum_RK3::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel,
 	}
 }
 
-
 void momentum_RK3::utimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }

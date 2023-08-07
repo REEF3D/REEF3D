@@ -144,7 +144,7 @@ void reini_RK3::start(fdm* a,lexer* p,field& b,ghostcell* pgc,ioflow* pflow)
         prdisc->start(p,a,pgc,frk1,L,6);
 
         NLOOP6
-        frk2.V[n]=  0.75*f.V[n] + 0.25*frk1.V[n] + 0.25*dt.V[n]*L.V[n];
+        frk2.V[n] = 0.75*f.V[n] + 0.25*frk1.V[n] + 0.25*dt.V[n]*L.V[n];
 
         if(p->count==0)
         pgc->start6vec(p,frk2,gcval_iniphi);
@@ -165,7 +165,6 @@ void reini_RK3::start(fdm* a,lexer* p,field& b,ghostcell* pgc,ioflow* pflow)
         pgc->start6vec(p,f,gcval_phi);
 	}
 	
-
     
 	// backfill
 	n=0;

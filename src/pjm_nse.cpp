@@ -261,8 +261,8 @@ void pjm_nse::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w
     FLUIDLOOP
     {
     a->rhsvec.V[count] =  -(u(i,j,k)-u(i-1,j,k))/(alpha*p->dt*p->DXN[IP])
-						   -(v(i,j,k)-v(i,j-1,k))/(alpha*p->dt*p->DYN[JP])
-						   -(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DZN[KP]);
+                          -(v(i,j,k)-v(i,j-1,k))/(alpha*p->dt*p->DYN[JP])
+                          -(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DZN[KP]);
                            
     ++count;
     }
@@ -329,11 +329,11 @@ void pjm_nse::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
     z2 = p->ZP[KP1];
 	a->H(i,j,k)-=PORVAL3*(-z2+z1)/p->DZP[KP];
     }*/
-    
+    /*
 	WLOOP
 	{
 	a->H(i,j,k) -= (a->gk)*PORVAL3;
-	}
+	}*/
 }
 
 

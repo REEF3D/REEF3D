@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"ioflow.h"
 
-onephase_f::onephase_f(lexer *p, fdm *a, ghostcell *pgc) 
+onephase_f::onephase_f(lexer *p, fdm *a, ghostcell *pgc) : gradient(p)
 {
 }
 
@@ -41,12 +41,20 @@ void onephase_f::update(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
     if(a->phi(i,j,k)<-0.0*p->DXM)
     p->flag4[IJK]=AIR;
 
-    
     if(a->phi(i,j,k)>=-0.0*p->DXM)
     p->flag4[IJK]=WATER;
     }
     
     pgc->flagx(p,p->flag4);
+    
+    activenum=0;
+    WLOOP
+	++activenum;
+    
+    activenum=pgc->globalisum(activenum);
+    
+    if(p->mpirank==0)
+    cout<<"active number of cells: "<<activenum<<endl;
     
     FLUIDLOOP
 	{
@@ -57,7 +65,6 @@ void onephase_f::update(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
     
     FLUIDLOOP
 	{
-	
     if(p->flag4[IJK]==WATER && p->flag4[Ip1JK]==AIR)
     p->flag1[UIJK]=AIR;
     
@@ -75,10 +82,9 @@ void onephase_f::update(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
 
 void onephase_f::fsf_update(lexer *p, fdm *a, ghostcell *pgc)
 {
-    
 }
 
 void onephase_f::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
 {
-    
 }
+

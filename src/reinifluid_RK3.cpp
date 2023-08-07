@@ -94,7 +94,6 @@ void reinifluid_RK3::start(fdm* a,lexer* p,field& b,ghostcell* pgc,ioflow* pflow
 { 
     pgc->flag9_update(p,a);
     
-    
 	sizeM=p->sizeM4;
 	
 	ppicard->volcalc(p,a,pgc,a->phi);
@@ -107,7 +106,6 @@ void reinifluid_RK3::start(fdm* a,lexer* p,field& b,ghostcell* pgc,ioflow* pflow
 	}
     
 	pgc->start4vec(p,f,gcval_iniphi);
-    
     
     startV(a,p,f,pgc,pflow);
     
@@ -127,7 +125,6 @@ void reinifluid_RK3::start(fdm* a,lexer* p,field& b,ghostcell* pgc,ioflow* pflow
 	pgc->start4(p,b,gcval_phi);
     
     ppicard->correct_ls(p,a,pgc,a->phi);
-     
 }
 
 void reinifluid_RK3::startV(fdm* a,lexer* p,vec &f, ghostcell* pgc,ioflow* pflow)
@@ -170,7 +167,7 @@ void reinifluid_RK3::startV(fdm* a,lexer* p,vec &f, ghostcell* pgc,ioflow* pflow
     prdisc->start(p,a,pgc,frk1,L,4);
 
 	NLOOP4
-	frk2.V[n]=  0.75*f.V[n] + 0.25*frk1.V[n] + 0.25*dt.V[n]*L.V[n];
+	frk2.V[n] = 0.75*f.V[n] + 0.25*frk1.V[n] + 0.25*dt.V[n]*L.V[n];
 
 	if(p->count==0)
 	pgc->start4vec(p,frk2,gcval_iniphi);
