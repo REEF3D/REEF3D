@@ -54,9 +54,12 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
         ++count;        
     }
     
+    if(p->gcdf4_count!=count)
+    {
     p->Iresize(p->gcdf4,p->gcdf4_count,count,6,6);
     
     p->gcdf4_count=count;
+    }
     
     
     // assign gcdf entries
