@@ -46,9 +46,9 @@ public:
     virtual void vvel(lexer*, fdm*, ghostcell*, field&);
     virtual void wvel(lexer*, fdm*, ghostcell*, field&);
     
-    field1 urk1;
-    field2 vrk1;
-    field3 wrk1;
+    field1 uf,urk1;
+    field2 vf,vrk1;
+    field3 wf,wrk1;
     
     field4 xphi,yphi,zphi;
     
@@ -64,6 +64,7 @@ private:
     double lsv,lsSig;
     double xmin,xplus,ymin,yplus,zmin,zplus;
     double nx,ny,nz;
+    double nx0,ny0,nz0;
 
 };
 

@@ -227,30 +227,6 @@ Author: Hans Bihs
 #define IJKm1  (i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-1
 #define IJKp1  (i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+1
 
-#define UIJK    (i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin
-#define UIm1JK  (i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin
-#define UIp1JK  (i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin
-#define UIJm1K  (i-p->imin)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin
-#define UIJp1K  (i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin
-#define UIJKm1  (i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-1
-#define UIJKp1  (i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+1
-
-#define VIJK    (i-p->imin)*(p->jmax)*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin
-#define VIm1JK  (i-p->imin-1)*(p->jmax)*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin
-#define VIp1JK  (i-p->imin+1)*(p->jmax)*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin
-#define VIJm1K  (i-p->imin)*(p->jmax)*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin
-#define VIJp1K  (i-p->imin)*(p->jmax)*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin
-#define VIJKm1  (i-p->imin)*(p->jmax)*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-1
-#define VIJKp1  (i-p->imin)*(p->jmax)*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+1
-
-#define WIJK    (i-p->imin)*p->jmax*(p->kmax) + (j-p->jmin)*(p->kmax) + k-p->kmin
-#define WIm1JK  (i-p->imin-1)*p->jmax*(p->kmax) + (j-p->jmin)*(p->kmax) + k-p->kmin
-#define WIp1JK  (i-p->imin+1)*p->jmax*(p->kmax) + (j-p->jmin)*(p->kmax) + k-p->kmin
-#define WIJm1K  (i-p->imin)*p->jmax*(p->kmax) + (j-p->jmin-1)*(p->kmax) + k-p->kmin
-#define WIJp1K  (i-p->imin)*p->jmax*(p->kmax) + (j-p->jmin+1)*(p->kmax) + k-p->kmin
-#define WIJKm1  (i-p->imin)*p->jmax*(p->kmax) + (j-p->jmin)*(p->kmax) + k-p->kmin-1
-#define WIJKp1  (i-p->imin)*p->jmax*(p->kmax) + (j-p->jmin)*(p->kmax) + k-p->kmin+1
-
 #define Ip1Jp1K  (i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin
 
 #define Ip1JKp1  (i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+1

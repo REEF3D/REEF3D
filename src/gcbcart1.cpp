@@ -115,27 +115,27 @@ void mgc1::extragcb(lexer *p)
 
 	ULOOP
     {
-        if(p->flag1[UIm1JK]<0)
+        if(p->flag1[Im1JK]<0)
         if(p->fgc[IJK][0]==0)
         ++count;
 		
-		if(p->flag1[UIJp1K]<0)
+		if(p->flag1[IJp1K]<0)
         if(p->fgc[IJK][1]==0)
         ++count;
 
-        if(p->flag1[UIJm1K]<0)
+        if(p->flag1[IJm1K]<0)
         if(p->fgc[IJK][2]==0)
         ++count;
 
-        if(p->flag1[UIp1JK]<0)
+        if(p->flag1[Ip1JK]<0)
         if(p->fgc[IJK][3]==0)
         ++count;
 
-        if(p->flag1[UIJKm1]<0)
+        if(p->flag1[IJKm1]<0)
         if(p->fgc[IJK][4]==0)
         ++count;
 
-        if(p->flag1[UIJKp1]<0)
+        if(p->flag1[IJKp1]<0)
         if(p->fgc[IJK][5]==0)
         ++count;
     }
@@ -147,7 +147,7 @@ void mgc1::extragcb(lexer *p)
     j=p->gcpara1[q][1];
     k=p->gcpara1[q][2];
         
-        if(p->flag1[UIJK]==0 && p->flag1[UIm1JK]==1)
+        if(p->flag1[IJK]==0 && p->flag1[Im1JK]==1)
         ++count;
     }
 
@@ -157,7 +157,7 @@ void mgc1::extragcb(lexer *p)
     j=p->gcpara3[q][1];
     k=p->gcpara3[q][2];
         
-        if(p->flag1[UIJK]==0 && p->flag1[UIJm1K]==1)
+        if(p->flag1[IJK]==0 && p->flag1[IJm1K]==1)
         ++count;
     }
 
@@ -167,7 +167,7 @@ void mgc1::extragcb(lexer *p)
     j=p->gcpara5[q][1];
     k=p->gcpara5[q][2];
         
-        if(p->flag1[UIJK]==0 && p->flag1[UIJKm1]==1)
+        if(p->flag1[IJK]==0 && p->flag1[IJKm1]==1)
         ++count;
 	}
 
@@ -177,7 +177,7 @@ void mgc1::extragcb(lexer *p)
     j=p->gcpara4[q][1];
     k=p->gcpara4[q][2];
         
-        if(p->flag1[UIJK]==0 && p->flag1[UIp1JK]==1)
+        if(p->flag1[IJK]==0 && p->flag1[Ip1JK]==1)
         ++count;
 	}
 
@@ -187,7 +187,7 @@ void mgc1::extragcb(lexer *p)
     j=p->gcpara2[q][1]+1;
     k=p->gcpara2[q][2];
         
-        if(p->flag1[UIJK]==0 && p->flag1[UIJp1K]==1)
+        if(p->flag1[IJK]==0 && p->flag1[IJp1K]==1)
         ++count;
 	}
 
@@ -197,7 +197,7 @@ void mgc1::extragcb(lexer *p)
     j=p->gcpara6[q][1];
     k=p->gcpara6[q][2]+1;
         
-        if(p->flag1[UIJK]==0 && p->flag1[UIJKp1]==1)
+        if(p->flag1[IJK]==0 && p->flag1[IJKp1]==1)
         ++count;
 	}
 	//cout<<p->mpirank<<" old gcb1: "<<p->gcb1_count<<" new gcb1: "<<count<<endl;
@@ -214,7 +214,7 @@ void mgc1::extragcb(lexer *p)
 	
     ULOOP
     {	
-        if(p->flag1[UIm1JK]<0)
+        if(p->flag1[Im1JK]<0)
         if(p->fgc[IJK][0]==0)
         {
         p->gcb1[count][0]=i;
@@ -222,21 +222,21 @@ void mgc1::extragcb(lexer *p)
         p->gcb1[count][2]=k;
         p->gcb1[count][3]=1;
 
-        if(p->flag1[UIm1JK]==TOPO)
+        if(p->flag1[Im1JK]==TOPO)
         p->gcb1[count][4]=5;
 
-        if(p->flag1[UIm1JK]==OBJ)
+        if(p->flag1[Im1JK]==OBJ)
         p->gcb1[count][4]=21;
         
-        if(p->flag1[UIm1JK]==SOLID)
+        if(p->flag1[Im1JK]==SOLID)
         p->gcb1[count][4]=22;
 		
-		if(p->flag1[UIm1JK]==FLT)
+		if(p->flag1[Im1JK]==FLT)
         p->gcb1[count][4]=41;
         ++count;
         }
 		
-		if(p->flag1[UIJp1K]<0)
+		if(p->flag1[IJp1K]<0)
         if(p->fgc[IJK][1]==0)
         {
         p->gcb1[count][0]=i;
@@ -244,21 +244,21 @@ void mgc1::extragcb(lexer *p)
         p->gcb1[count][2]=k;
         p->gcb1[count][3]=2;
 
-        if(p->flag1[UIJp1K]==TOPO)
+        if(p->flag1[IJp1K]==TOPO)
         p->gcb1[count][4]=5;
 
-        if(p->flag1[UIJp1K]==OBJ)
+        if(p->flag1[IJp1K]==OBJ)
         p->gcb1[count][4]=21;
         
-        if(p->flag1[UIJp1K]==SOLID)
+        if(p->flag1[IJp1K]==SOLID)
         p->gcb1[count][4]=22;
 		
-		if(p->flag1[UIJp1K]==FLT)
+		if(p->flag1[IJp1K]==FLT)
         p->gcb1[count][4]=41;
         ++count;
         }
 
-        if(p->flag1[UIJm1K]<0)
+        if(p->flag1[IJm1K]<0)
         if(p->fgc[IJK][2]==0)
         {
         p->gcb1[count][0]=i;
@@ -266,21 +266,21 @@ void mgc1::extragcb(lexer *p)
         p->gcb1[count][2]=k;
         p->gcb1[count][3]=3;
 
-        if(p->flag1[UIJm1K]==TOPO)
+        if(p->flag1[IJm1K]==TOPO)
         p->gcb1[count][4]=5;
 
-        if(p->flag1[UIJm1K]==OBJ)
+        if(p->flag1[IJm1K]==OBJ)
         p->gcb1[count][4]=21;
         
-        if(p->flag1[UIJm1K]==SOLID)
+        if(p->flag1[IJm1K]==SOLID)
         p->gcb1[count][4]=22;
 		
-		if(p->flag1[UIJm1K]==FLT)
+		if(p->flag1[IJm1K]==FLT)
         p->gcb1[count][4]=41;
         ++count;
         }
 
-        if(p->flag1[UIp1JK]<0)
+        if(p->flag1[Ip1JK]<0)
         if(p->fgc[IJK][3]==0)
         {
         p->gcb1[count][0]=i;
@@ -288,21 +288,21 @@ void mgc1::extragcb(lexer *p)
         p->gcb1[count][2]=k;
         p->gcb1[count][3]=4;
 
-        if(p->flag1[UIp1JK]==TOPO)
+        if(p->flag1[Ip1JK]==TOPO)
         p->gcb1[count][4]=5;
 
-        if(p->flag1[UIp1JK]==OBJ)
+        if(p->flag1[Ip1JK]==OBJ)
         p->gcb1[count][4]=21;
         
-        if(p->flag1[UIp1JK]==SOLID)
+        if(p->flag1[Ip1JK]==SOLID)
         p->gcb1[count][4]=22;
 		
-		if(p->flag1[UIp1JK]==FLT)
+		if(p->flag1[Ip1JK]==FLT)
         p->gcb1[count][4]=41;
         ++count;
         }
 
-        if(p->flag1[UIJKm1]<0)
+        if(p->flag1[IJKm1]<0)
         if(p->fgc[IJK][4]==0)
         {
         p->gcb1[count][0]=i;
@@ -310,22 +310,22 @@ void mgc1::extragcb(lexer *p)
         p->gcb1[count][2]=k;
         p->gcb1[count][3]=5;
 
-        if(p->flag1[UIJKm1]==TOPO)
+        if(p->flag1[IJKm1]==TOPO)
         p->gcb1[count][4]=5;
 
-        if(p->flag1[UIJKm1]==OBJ)
+        if(p->flag1[IJKm1]==OBJ)
         p->gcb1[count][4]=21;
         
-        if(p->flag1[UIJKm1]==SOLID)
+        if(p->flag1[IJKm1]==SOLID)
         p->gcb1[count][4]=22;
 		
-		if(p->flag1[UIJKm1]==FLT)
+		if(p->flag1[IJKm1]==FLT)
         p->gcb1[count][4]=41;
 
         ++count;
         }
 
-        if(p->flag1[UIJKp1]<0)
+        if(p->flag1[IJKp1]<0)
         if(p->fgc[IJK][5]==0)
         {
         p->gcb1[count][0]=i;
@@ -333,16 +333,16 @@ void mgc1::extragcb(lexer *p)
         p->gcb1[count][2]=k;
         p->gcb1[count][3]=6;
 
-        if(p->flag1[UIJKp1]==TOPO)
+        if(p->flag1[IJKp1]==TOPO)
         p->gcb1[count][4]=5;
 
-        if(p->flag1[UIJKp1]==OBJ)
+        if(p->flag1[IJKp1]==OBJ)
         p->gcb1[count][4]=21;
         
-        if(p->flag1[UIJKp1]==SOLID)
+        if(p->flag1[IJKp1]==SOLID)
         p->gcb1[count][4]=22;
 		
-		if(p->flag1[UIJKp1]==FLT)
+		if(p->flag1[IJKp1]==FLT)
         p->gcb1[count][4]=41;
         ++count;
         }
@@ -356,23 +356,23 @@ void mgc1::extragcb(lexer *p)
     j=p->gcpara1[q][1];
     k=p->gcpara1[q][2];
         
-        if(p->flag1[UIJK]==0 && p->flag1[UIm1JK]==1)
+        if(p->flag1[IJK]==0 && p->flag1[Im1JK]==1)
         {
         p->gcb1[count][0]=i-1;
         p->gcb1[count][1]=j;
         p->gcb1[count][2]=k;
         p->gcb1[count][3]=4;
 
-        if(p->flag1[UIJK]==TOPO)
+        if(p->flag1[IJK]==TOPO)
         p->gcb1[count][4]=5;
 
-        if(p->flag1[UIJK]==OBJ)
+        if(p->flag1[IJK]==OBJ)
         p->gcb1[count][4]=21;
         
-        if(p->flag1[UIJK]==SOLID)
+        if(p->flag1[IJK]==SOLID)
         p->gcb1[count][4]=22;
 		
-		if(p->flag1[UIJK]==FLT)
+		if(p->flag1[IJK]==FLT)
         p->gcb1[count][4]=41;
         ++count;
         }
@@ -384,23 +384,23 @@ void mgc1::extragcb(lexer *p)
     j=p->gcpara3[q][1];
     k=p->gcpara3[q][2];
         
-        if(p->flag1[UIJK]==0 && p->flag1[UIJm1K]==1)
+        if(p->flag1[IJK]==0 && p->flag1[IJm1K]==1)
         {
         p->gcb1[count][0]=i;
         p->gcb1[count][1]=j-1;
         p->gcb1[count][2]=k;
         p->gcb1[count][3]=2;
 
-        if(p->flag1[UIJK]==TOPO)
+        if(p->flag1[IJK]==TOPO)
         p->gcb1[count][4]=5;
 
-        if(p->flag1[UIJK]==OBJ)
+        if(p->flag1[IJK]==OBJ)
         p->gcb1[count][4]=21;
         
-        if(p->flag1[UIJK]==SOLID)
+        if(p->flag1[IJK]==SOLID)
         p->gcb1[count][4]=22;
 		
-		if(p->flag1[UIJK]==FLT)
+		if(p->flag1[IJK]==FLT)
         p->gcb1[count][4]=41;
         ++count;
         }
@@ -412,23 +412,23 @@ void mgc1::extragcb(lexer *p)
     j=p->gcpara5[q][1];
     k=p->gcpara5[q][2];
         
-        if(p->flag1[UIJK]==0 && p->flag1[UIJKm1]==1)
+        if(p->flag1[IJK]==0 && p->flag1[IJKm1]==1)
         {
         p->gcb1[count][0]=i;
         p->gcb1[count][1]=j;
         p->gcb1[count][2]=k-1;
         p->gcb1[count][3]=6;
 
-        if(p->flag1[UIJK]==TOPO)
+        if(p->flag1[IJK]==TOPO)
         p->gcb1[count][4]=5;
 
-        if(p->flag1[UIJK]==OBJ)
+        if(p->flag1[IJK]==OBJ)
         p->gcb1[count][4]=21;
         
-        if(p->flag1[UIJK]==SOLID)
+        if(p->flag1[IJK]==SOLID)
         p->gcb1[count][4]=22;
 		
-		if(p->flag1[UIJK]==FLT)
+		if(p->flag1[IJK]==FLT)
         p->gcb1[count][4]=41;
         ++count;
         }
@@ -440,23 +440,23 @@ void mgc1::extragcb(lexer *p)
     j=p->gcpara4[q][1];
     k=p->gcpara4[q][2];
         
-        if(p->flag1[UIJK]==0 && p->flag1[UIp1JK]==1)
+        if(p->flag1[IJK]==0 && p->flag1[Ip1JK]==1)
         {
         p->gcb1[count][0]=i+1;
         p->gcb1[count][1]=j;
         p->gcb1[count][2]=k;
         p->gcb1[count][3]=1;
 
-        if(p->flag1[UIJK]==TOPO)
+        if(p->flag1[IJK]==TOPO)
         p->gcb1[count][4]=5;
 
-        if(p->flag1[UIJK]==OBJ)
+        if(p->flag1[IJK]==OBJ)
         p->gcb1[count][4]=21;
         
-        if(p->flag1[UIJK]==SOLID)
+        if(p->flag1[IJK]==SOLID)
         p->gcb1[count][4]=22;
 		
-		if(p->flag1[UIJK]==FLT)
+		if(p->flag1[IJK]==FLT)
         p->gcb1[count][4]=41;
         ++count;
         }
@@ -468,23 +468,23 @@ void mgc1::extragcb(lexer *p)
     j=p->gcpara2[q][1]+1;
     k=p->gcpara2[q][2];
         
-        if(p->flag1[UIJK]==0 && p->flag1[UIJp1K]==1)
+        if(p->flag1[IJK]==0 && p->flag1[IJp1K]==1)
         {
         p->gcb1[count][0]=i;
         p->gcb1[count][1]=j+1;
         p->gcb1[count][2]=k;
         p->gcb1[count][3]=3;
 
-        if(p->flag1[UIJK]==TOPO)
+        if(p->flag1[IJK]==TOPO)
         p->gcb1[count][4]=5;
 
-        if(p->flag1[UIJK]==OBJ)
+        if(p->flag1[IJK]==OBJ)
         p->gcb1[count][4]=21;
         
-        if(p->flag1[UIJK]==SOLID)
+        if(p->flag1[IJK]==SOLID)
         p->gcb1[count][4]=22;
 		
-		if(p->flag1[UIJK]==FLT)
+		if(p->flag1[IJK]==FLT)
         p->gcb1[count][4]=41;
         ++count;
         }
@@ -496,23 +496,23 @@ void mgc1::extragcb(lexer *p)
     j=p->gcpara6[q][1];
     k=p->gcpara6[q][2]+1;
         
-        if(p->flag1[UIJK]==0 && p->flag1[UIJKp1]==1)
+        if(p->flag1[IJK]==0 && p->flag1[IJKp1]==1)
         {
         p->gcb1[count][0]=i;
         p->gcb1[count][1]=j;
         p->gcb1[count][2]=k+1;
         p->gcb1[count][3]=5;
 
-        if(p->flag1[UIJK]==TOPO)
+        if(p->flag1[IJK]==TOPO)
         p->gcb1[count][4]=5;
 
-        if(p->flag1[UIJK]==OBJ)
+        if(p->flag1[IJK]==OBJ)
         p->gcb1[count][4]=21;
         
-        if(p->flag1[UIJK]==SOLID)
+        if(p->flag1[IJK]==SOLID)
         p->gcb1[count][4]=22;
 		
-		if(p->flag1[UIJK]==FLT)
+		if(p->flag1[IJK]==FLT)
         p->gcb1[count][4]=41;
         ++count;
         }
@@ -537,7 +537,7 @@ void mgc1::extragcb(lexer *p)
 	    i=p->gcb1[q][0];
 		j=p->gcb1[q][1];
 		k=p->gcb1[q][2];
-        if(p->flag1[UIJK]<0)
+        if(p->flag1[IJK]<0)
         p->gcb1[q][3]=-fabs(p->gcb1[q][3]);
 	}
     

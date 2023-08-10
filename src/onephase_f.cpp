@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"ioflow.h"
 
-onephase_f::onephase_f(lexer *p, fdm *a, ghostcell *pgc) : ddweno_f_nug(p),urk1(p),vrk1(p),wrk1(p),xphi(p),yphi(p),zphi(p)
+onephase_f::onephase_f(lexer *p, fdm *a, ghostcell *pgc) : ddweno_f_nug(p),uf(p),vf(p),wf(p),urk1(p),vrk1(p),wrk1(p),xphi(p),yphi(p),zphi(p)
 {
     gcval_u=10;
 	gcval_v=11;
@@ -36,8 +36,10 @@ onephase_f::onephase_f(lexer *p, fdm *a, ghostcell *pgc) : ddweno_f_nug(p),urk1(
     dt=1.0e8;
 	FLUIDLOOP
 	{
-	dt = MIN(dt,0.1*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]));
+	dt = MIN(dt,0.5*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]));
 	}
+    
+    dt=pgc->timesync(dt);
 }
 
 onephase_f::~onephase_f()
@@ -48,17 +50,17 @@ void onephase_f::update(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
 {   
     FLUIDLOOP
     {
-    if(a->phi(i,j,k)<-0.0*p->DXM)
+    if(a->phi(i,j,k)<0.0)
     p->flag4[IJK]=AIR;
 
-    if(a->phi(i,j,k)>=-0.0*p->DXM)
+    if(a->phi(i,j,k)>=0.0)
     p->flag4[IJK]=WATER;
     }
     
     pgc->flagx(p,p->flag4);
     
     activenum=0;
-    WLOOP
+    LOOP
 	++activenum;
     
     activenum=pgc->globalisum(activenum);
@@ -68,21 +70,21 @@ void onephase_f::update(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
     
     FLUIDLOOP
 	{
-	p->flag1[UIJK]=p->flag4[IJK];
-	p->flag2[VIJK]=p->flag4[IJK];
-	p->flag3[WIJK]=p->flag4[IJK];
+	p->flag1[IJK]=p->flag4[IJK];
+	p->flag2[IJK]=p->flag4[IJK];
+	p->flag3[IJK]=p->flag4[IJK];
 	}
     
     FLUIDLOOP
 	{
     if(p->flag4[IJK]==WATER && p->flag4[Ip1JK]==AIR)
-    p->flag1[UIJK]=AIR;
+    p->flag1[IJK]=AIR;
     
     if(p->flag4[IJK]==WATER && p->flag4[IJp1K]==AIR)
-    p->flag2[VIJK]=AIR;
+    p->flag2[IJK]=AIR;
     
     if(p->flag4[IJK]==WATER && p->flag4[IJKp1]==AIR)
-    p->flag3[WIJK]=AIR;
+    p->flag3[IJK]=AIR;
 	}
     
     pgc->flagx(p,p->flag1);

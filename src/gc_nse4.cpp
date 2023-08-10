@@ -34,7 +34,7 @@ void ghostcell::nse4(lexer *p, fdm *a, field &f, int gcv)
     {
     AIRLOOP
     f(i,j,k)=0.0; 
-    
+    /*
     AIRLOOP
     {
     lsv = a->phi(i,j,k);
@@ -60,7 +60,7 @@ void ghostcell::nse4(lexer *p, fdm *a, field &f, int gcv)
         
         f(i,j,k) =  -val;
         }
-    }
+    }*/
     
     
     /*

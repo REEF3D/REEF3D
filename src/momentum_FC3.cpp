@@ -148,7 +148,7 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pgc->start4(p,frk1,gcval_phi);
     
     FLUIDLOOP
-    a->phi(i,j,k) =  frk1(i,j,k);
+    a->phi(i,j,k) = frk1(i,j,k);
     
     pgc->start4(p,a->phi,gcval_phi);
     
@@ -241,8 +241,8 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 
 	FLUIDLOOP
 	frk2(i,j,k) = 0.75*ls(i,j,k)
-				   + 0.25*frk1(i,j,k)
-				   + 0.25*p->dt*a->L(i,j,k);
+                + 0.25*frk1(i,j,k)
+                + 0.25*p->dt*a->L(i,j,k);
 				
 	pflow->phi_relax(p,pgc,frk2);
 	
@@ -341,9 +341,9 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pfsfdisc->start(p,a,frk2,4,urk2,vrk2,wrk2);
 
 	FLUIDLOOP
-	ls(i,j,k) =  (1.0/3.0)*ls(i,j,k)
-				  + (2.0/3.0)*frk2(i,j,k)
-				  + (2.0/3.0)*p->dt*a->L(i,j,k);
+	ls(i,j,k) =   (1.0/3.0)*ls(i,j,k)
+                + (2.0/3.0)*frk2(i,j,k)
+                + (2.0/3.0)*p->dt*a->L(i,j,k);
 
     pflow->phi_relax(p,pgc,ls);
 	pgc->start4(p,a->phi,gcval_phi);

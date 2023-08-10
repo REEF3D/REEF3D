@@ -47,13 +47,13 @@ void pjm::debug(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, 
     {
 
     
-    if(p->flag1[UIm1JK]<0 && fabs(u(i-1,j,k))==0.0)
+    if(p->flag1[Im1JK]<0 && fabs(u(i-1,j,k))==0.0)
     cout<<p->mpirank<<" U: "<<u(i-1,j,k)<<" i: "<<i<<" j: "<<j<<" k: "<<k<<" | x: "<<p->pos_x()<<" y: "<<p->pos_y()<<" z: "<<p->pos_z()<<endl;
     
-    if(p->flag2[VIJm1K]<0 && fabs(v(i,j-1,k))==0.0)
+    if(p->flag2[IJm1K]<0 && fabs(v(i,j-1,k))==0.0)
     cout<<p->mpirank<<" V: "<<v(i,j-1,k)<<" i: "<<i<<" j: "<<j<<" k: "<<k<<" | x: "<<p->pos_x()<<" y: "<<p->pos_y()<<" z: "<<p->pos_z()<<endl;
     
-    //if(p->flag3[WIJKm1]<0 && fabs(w(i,j,k-1))==0.0)
+    //if(p->flag3[IJKm1]<0 && fabs(w(i,j,k-1))==0.0)
     //cout<<p->mpirank<<" W: "<<w(i,j,k-1)<<" i: "<<i<<" j: "<<j<<" k: "<<k<<" | x: "<<p->pos_x()<<" y: "<<p->pos_y()<<" z: "<<p->pos_z()<<endl;
     }
     pip=0;

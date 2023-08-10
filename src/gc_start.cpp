@@ -191,8 +191,8 @@ void ghostcell::start4(lexer *p, field &f, int gcv)
     }
     
     
-    //if(p->F10==1)
-    //nse4(p,a,f,gcv);
+    if(p->F10==1)
+    nse4(p,a,f,gcv);
 	
 	starttime=timer();
 	QQGC4LOOP
@@ -200,8 +200,8 @@ void ghostcell::start4(lexer *p, field &f, int gcv)
 	endtime=timer();
 	p->gctime+=endtime-starttime;
     
-    //if(p->F10==1)
-    //nse4(p,a,f,gcv);
+    if(p->F10==1)
+    nse4(p,a,f,gcv);
     
     // periodic ghostcells
     gcperiodicx(p,f,4);

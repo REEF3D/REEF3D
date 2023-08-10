@@ -23,7 +23,6 @@ Author: Hans Bihs
 #include <mpi.h>
 #include"boundarycheck.h"
 
-
 class fdm;
 class fdm2D;
 class fdm_fnpf;

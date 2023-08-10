@@ -158,19 +158,19 @@ void ghostcell::gcb_velflag1(lexer *p, fdm *a, int **cellmem, int& cellcount)
     count=0;
     SOLIDLOOP
     {
-	cache = p->flag1[UIJK];
+	cache = p->flag1[IJK];
 		
     if(p->flag4[IJK]<0 
 	||(p->flag4[IJK]>0 && p->flag4[Ip1JK]<0))
 	{
        if(p->flag4[IJK]<0) 
-       p->flag1[UIJK]=p->flag4[IJK];
+       p->flag1[IJK]=p->flag4[IJK];
        
        if(p->flag4[IJK]>0 && p->flag4[Ip1JK]<0)
-       p->flag1[UIJK]=p->flag4[Ip1JK];
+       p->flag1[IJK]=p->flag4[Ip1JK];
 	   
        
-		if(cache>0 && p->flag1[UIJK]==TOPO)
+		if(cache>0 && p->flag1[IJK]==TOPO)
 		{
             cellmem[count][0]=i;
             cellmem[count][1]=j;
@@ -183,7 +183,7 @@ void ghostcell::gcb_velflag1(lexer *p, fdm *a, int **cellmem, int& cellcount)
 
     if(p->flag4[IJK]>0 && p->flag4[Ip1JK]>0)
     {
-		p->flag1[UIJK]=WATER;
+		p->flag1[IJK]=WATER;
 		
 			if(cache==TOPO)
 			{
@@ -208,18 +208,18 @@ void ghostcell::gcb_velflag2(lexer *p, fdm *a, int **cellmem, int& cellcount)
     count=0;
     SOLIDLOOP
     {
-	cache = p->flag2[VIJK];
+	cache = p->flag2[IJK];
 		
     if(p->flag4[IJK]<0 
 	|| (p->flag4[IJK]>0 && p->flag4[IJp1K]<0))
 	{
        if(p->flag4[IJK]<0) 
-       p->flag2[VIJK]=p->flag4[IJK];
+       p->flag2[IJK]=p->flag4[IJK];
        
        if(p->flag4[IJK]>0 && p->flag4[IJp1K]<0) 
-       p->flag2[VIJK]=p->flag4[IJp1K];
+       p->flag2[IJK]=p->flag4[IJp1K];
 	   
-		if(cache>0 && p->flag2[VIJK]==TOPO)
+		if(cache>0 && p->flag2[IJK]==TOPO)
 		{
             cellmem[count][0]=i;
             cellmem[count][1]=j;
@@ -232,7 +232,7 @@ void ghostcell::gcb_velflag2(lexer *p, fdm *a, int **cellmem, int& cellcount)
 
     if(p->flag4[IJK]>0 && p->flag4[IJp1K]>0)
     {
-		p->flag2[VIJK]=WATER;
+		p->flag2[IJK]=WATER;
 		
 			if(cache==TOPO)
 			{
@@ -256,18 +256,18 @@ void ghostcell::gcb_velflag3(lexer *p, fdm *a, int **cellmem, int& cellcount)
     count=0;
     SOLIDLOOP
     {
-	cache = p->flag3[WIJK];
+	cache = p->flag3[IJK];
 		
     if(p->flag4[IJK]<0 
 	|| (p->flag4[IJK]>0 && p->flag4[IJKp1]<0))
 	{
        if(p->flag4[IJK]<0) 
-       p->flag3[WIJK]=p->flag4[IJK];
+       p->flag3[IJK]=p->flag4[IJK];
        
        if(p->flag4[IJK]>0 && p->flag4[IJKp1]<0) 
-       p->flag3[WIJK]=p->flag4[IJKp1];
+       p->flag3[IJK]=p->flag4[IJKp1];
 	   
-		if(cache>0 && p->flag3[WIJK]==TOPO)
+		if(cache>0 && p->flag3[IJK]==TOPO)
 		{
             cellmem[count][0]=i;
             cellmem[count][1]=j;
@@ -279,7 +279,7 @@ void ghostcell::gcb_velflag3(lexer *p, fdm *a, int **cellmem, int& cellcount)
 	   
     if(p->flag4[IJK]>0 && p->flag4[IJKp1]>0)
     {
-		p->flag3[WIJK]=WATER;
+		p->flag3[IJK]=WATER;
 		
 			if(cache==TOPO)
 			{
