@@ -28,11 +28,43 @@ Author: Hans Bihs
 void ghostcell::gcdf_update(lexer *p, fdm *a)
 {
     
+    // FLAGSF
+    LOOP
+    {
+    if(a->fb(i,j,k)>0.0 && a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0)
+    p->flagsf4[IJK]=1;
+    
+    if(a->fb(i,j,k)<0.0 || a->solid(i,j,k)<0.0 || a->topo(i,j,k)<0.0)
+    p->flagsf4[IJK]=-1;
+    }
+    
+    flagx(p,p->flagsf4);
+    
+    LOOP
+    {
+    p->flagsf1[IJK]=p->flagsf4[IJK];
+    p->flagsf2[IJK]=p->flagsf4[IJK];
+    p->flagsf3[IJK]=p->flagsf4[IJK];
+    
+    if(p->flagsf4[IJK]>0 && p->flagsf4[Ip1JK]<0)
+    p->flagsf1[IJK]=-1;
+    
+    if(p->flagsf4[IJK]>0 && p->flagsf4[IJp1K]<0)
+    p->flagsf2[IJK]=-1;
+    
+    if(p->flagsf4[IJK]>0 && p->flagsf4[IJKp1]<0)
+    p->flagsf3[IJK]=-1;
+    }
+    
+    flagx(p,p->flagsf1);
+    flagx(p,p->flagsf2);
+    flagx(p,p->flagsf3);
+        
     // count gcdf entries
     count=0;
     
     LOOP
-    if(a->fb(i,j,k)>0.0 && a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0)
+    if(a->fb(i,j,k)>=0.0 && a->solid(i,j,k)>=0.0 && a->topo(i,j,k)>=0.0)
     {
      
         if(a->fb(i-1,j,k)<0.0 || a->solid(i-1,j,k)<0.0 || a->topo(i-1,j,k)<0.0)

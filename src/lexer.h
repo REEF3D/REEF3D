@@ -105,6 +105,7 @@ public:
 	int gknox,gknoy,gknoz;
 	int surf_tot;
 	int *flag1,*flag2,*flag3,*flag4,*flag5,*flag7,*flag9,*flag;
+    int *flagsf1,*flagsf2,*flagsf3,*flagsf4;
 	int*mgflag;
     double *flag_solid,*flag_topo;
     double *data;
