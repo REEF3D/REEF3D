@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_coastline.h"
+#include"nhflow_coastline.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"slice.h"
 
-void fnpf_coastline::disc(lexer *p, ghostcell *pgc, slice &f)
+void nhflow_coastline::disc(lexer *p, ghostcell *pgc, slice &f)
 {
     double dx,dy,xmin,xplus,ymin,yplus;
     double lsv,lsSig;

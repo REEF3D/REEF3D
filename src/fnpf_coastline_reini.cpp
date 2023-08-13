@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_coastline.h"
+#include"fnpf_coastline.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"slice.h"
 
-void nhflow_coastline::reini(lexer *p, ghostcell *pgc, slice &f)
+void fnpf_coastline::reini(lexer *p, ghostcell *pgc, slice &f)
 {
 	if(p->count==0)
 	{
@@ -71,12 +71,12 @@ void nhflow_coastline::reini(lexer *p, ghostcell *pgc, slice &f)
 }
 
 
-void nhflow_coastline::step(lexer* p)
+void fnpf_coastline::step(lexer* p)
 {
 	reiniter=p->S37;
 }
 
-void nhflow_coastline::time_preproc(lexer* p)
+void fnpf_coastline::time_preproc(lexer* p)
 {	
     n=0;
 	SLICELOOP4
