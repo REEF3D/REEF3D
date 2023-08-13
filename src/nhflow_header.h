@@ -20,13 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_fsf.h"
-#include"nhflow_fsf_rk.h"
-#include"nhflow_fsf_v.h"
-
 #include"nhflow.h"
 #include"nhflow_f.h"
 #include"nhflow_v.h"
+
+#include"nhflow_fsf.h"
+#include"nhflow_fsf_f.h"
+#include"nhflow_fsf_v.h"
+
 #include"nhflow_vtu3D.h"
 #include"nhflow_timestep.h"
 #include"nhflow_momentum.h"

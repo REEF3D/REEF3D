@@ -108,10 +108,11 @@ void lexer::ini_default()
     A521=1;		// int NFHLOW hydrostatic pressure scheme
     A523=0.5;    // double blending factor hydrostatic pressure gradient
     A540=1;      // int NFHLOW fsf scheme
-    A541=1;      // int NFHLOW fsf hxy discretization
-    A542=2;		// int NHFLOW fsf flux discretization 
-    A543=2;		// int NHFLOW fsf flux reconstruction
+    A541=0.0;    // double coastline damping distance factor for dxm
+    A542=0.0;    // double coastline damping absolute distance
+    A543=1;		// int NHFLOW wetting & drying or coastline
     A544=0.001; // double wetting & drying criterion
+    
     
     A550=0;      // int turn on breaking (which method)
     A551=0;      // int type of breaking detection (deep / shallow)

@@ -180,10 +180,10 @@ void lexer::ctrlrecv()
 	ii++;
     A540 = ictrl[ii];
 	ii++;
-    A541 = ictrl[ii];
-	ii++;
-    A542 = ictrl[ii];
-	ii++;
+    A541 = dctrl[dd];
+	dd++;
+    A542 = dctrl[dd];
+	dd++;
     A543 = ictrl[ii];
 	ii++;
     A544 = dctrl[dd];

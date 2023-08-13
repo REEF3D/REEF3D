@@ -53,7 +53,7 @@ void driver::logic_nhflow()
     pnhf=new nhflow_f(p,d,pgc);
     
 // FSF
-    pnhfsf = new nhflow_fsf_rk(p,d,pgc,pflow,pBC);
+    pnhfsf = new nhflow_fsf_f(p,d,pgc,pflow,pBC);
     
 // time stepping
     // time stepping

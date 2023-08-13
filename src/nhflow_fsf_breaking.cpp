@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_fsf_rk.h"
+#include"nhflow_fsf_f.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void nhflow_fsf_rk::breaking(lexer* p, fdm_nhf* d, ghostcell* pgc, slice& eta, slice &eta_n, double alpha)
+void nhflow_fsf_f::breaking(lexer* p, fdm_nhf* d, ghostcell* pgc, slice& eta, slice &eta_n, double alpha)
 {   
     
     SLICELOOP4
@@ -108,7 +108,7 @@ void nhflow_fsf_rk::breaking(lexer* p, fdm_nhf* d, ghostcell* pgc, slice& eta, s
         } 
 }
 
-void nhflow_fsf_rk::filter(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
+void nhflow_fsf_f::filter(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
 {
     double he,hw,hn,hs,hp;
     double dhe, dhw, dhn, dhs,dhp;

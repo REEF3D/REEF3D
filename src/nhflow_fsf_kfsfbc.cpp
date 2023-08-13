@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_fsf_rk.h"
+#include"nhflow_fsf_f.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, double *W, slice &eta)
+void nhflow_fsf_f::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, double *W, slice &eta)
 {
     double wval,w_n;
     double Pval,Qval;
@@ -97,7 +97,7 @@ void nhflow_fsf_rk::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, do
     }
 }   
   
-void nhflow_fsf_rk::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, double *W)
+void nhflow_fsf_f::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, double *W)
 {
     double wval,w_n;
     double Pval,Qval;
@@ -163,7 +163,7 @@ void nhflow_fsf_rk::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, do
     }
 }
 
-double nhflow_fsf_rk::limiter(double v1, double v2)
+double nhflow_fsf_f::limiter(double v1, double v2)
 {
     denom = fabs(v1) + fabs(v2);
     
