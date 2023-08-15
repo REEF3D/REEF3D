@@ -45,48 +45,6 @@ void bc_ikomega::bckomega_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
         
         QGCDF4LOOP
 		wall_law_kin(a,p,kin,eps,p->gcdf4[q][0], p->gcdf4[q][1], p->gcdf4[q][2], p->gcdf4[q][3], p->gcdf4[q][4], p->gcdf4[q][5],  0.5*p->DXM);
-        
-        n=0;
-        LOOP
-        {
-            if(p->flag4[Im1JK]<0 || p->flagsf4[Im1JK]<0)
-            {
-            a->rhsvec.V[n] -= a->M.s[n]*kin(i-1,j,k);
-            a->M.s[n] = 0.0;
-            }
-            
-            if(p->flag4[Ip1JK]<0 || p->flagsf4[Ip1JK]<0)
-            {
-            a->rhsvec.V[n] -= a->M.n[n]*kin(i+1,j,k);
-            a->M.n[n] = 0.0;
-            }
-            
-            if((p->flag4[IJm1K]<0 || p->flagsf4[IJm1K]<0) && p->j_dir==1)
-            {
-            a->rhsvec.V[n] -= a->M.e[n]*kin(i,j-1,k);
-            a->M.e[n] = 0.0;
-            }
-            
-            if((p->flag4[IJp1K]<0 || p->flagsf4[IJp1K]<0) && p->j_dir==1)
-            {
-            a->rhsvec.V[n] -= a->M.w[n]*kin(i,j+1,k);
-            a->M.w[n] = 0.0;
-            }
-            
-            if(p->flag4[IJKm1]<0 || p->flagsf4[IJKm1]<0)
-            {
-            a->rhsvec.V[n] -= a->M.b[n]*kin(i,j,k-1);
-            a->M.b[n] = 0.0;
-            }
-            
-            if(p->flag4[IJKp1]<0 || p->flagsf4[IJKp1]<0)
-            {
-            a->rhsvec.V[n] -= a->M.t[n]*kin(i,j,k+1);
-            a->M.t[n] = 0.0;
-            }
-
-        ++n;
-        }
 	}
 
 // ----------------- 
@@ -98,77 +56,9 @@ void bc_ikomega::bckomega_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
         
         QGCDF4LOOP
 		wall_law_omega(a,p,kin,eps,p->gcdf4[q][0], p->gcdf4[q][1], p->gcdf4[q][2], p->gcdf4[q][3], p->gcdf4[q][4], p->gcdf4[q][5],  0.5*p->DXM);
-        
-        n=0;
-        LOOP
-        {
-            if(p->flag4[Im1JK]<0 || p->flagsf4[Im1JK]<0)
-            {
-            a->rhsvec.V[n] -= a->M.s[n]*eps(i-1,j,k);
-            a->M.s[n] = 0.0;
-            }
-            
-            if(p->flag4[Ip1JK]<0 || p->flagsf4[Ip1JK]<0)
-            {
-            a->rhsvec.V[n] -= a->M.n[n]*eps(i+1,j,k);
-            a->M.n[n] = 0.0;
-            }
-            
-            if((p->flag4[IJm1K]<0 || p->flagsf4[IJm1K]<0) && p->j_dir==1)
-            {
-            a->rhsvec.V[n] -= a->M.e[n]*eps(i,j-1,k);
-            a->M.e[n] = 0.0;
-            }
-            
-            if((p->flag4[IJp1K]<0 || p->flagsf4[IJp1K]<0) && p->j_dir==1)
-            {
-            a->rhsvec.V[n] -= a->M.w[n]*eps(i,j+1,k);
-            a->M.w[n] = 0.0;
-            }
-            
-            if(p->flag4[IJKm1]<0 || p->flagsf4[IJKm1]<0)
-            {
-            a->rhsvec.V[n] -= a->M.b[n]*eps(i,j,k-1);
-            a->M.b[n] = 0.0;
-            }
-            
-            if(p->flag4[IJKp1]<0 || p->flagsf4[IJKp1]<0)
-            {
-            a->rhsvec.V[n] -= a->M.t[n]*eps(i,j,k+1);
-            a->M.t[n] = 0.0;
-            }
-
-        ++n;
-        }
-    
 	}
     
-    // turn off inside direct forcing body
-    if(p->X10==1 || p->G3==1)
-    {
     
-        n=0;
-        LOOP
-        {
-            if(p->flagsf4[IJK]<0)
-            {
-            a->M.p[n]  =   1.0;
-
-
-            a->M.n[n] = 0.0;
-            a->M.s[n] = 0.0;
-
-            a->M.w[n] = 0.0;
-            a->M.e[n] = 0.0;
-
-            a->M.t[n] = 0.0;
-            a->M.b[n] = 0.0;
-            
-            a->rhsvec.V[n] = 0.0;
-            }
-        ++n;
-        }
-    }
 }
 
 void bc_ikomega::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj,int kk,int cs,int bc, int id, double dist)
@@ -224,10 +114,147 @@ void bc_ikomega::wall_law_omega(fdm* a,lexer* p,field& kin,field& eps,int ii,int
 
 void bc_ikomega::bckin_matrix(fdm* a,lexer* p,field& kin,field& eps)
 {
+    // turn off inside direct forcing body
+    if(p->X10==1 || p->G3==1)
+    {
+    
+        n=0;
+        LOOP
+        {
+            if(p->flagsf4[IJK]<0)
+            {
+            a->M.p[n]  =   1.0;
+
+
+            a->M.n[n] = 0.0;
+            a->M.s[n] = 0.0;
+
+            a->M.w[n] = 0.0;
+            a->M.e[n] = 0.0;
+
+            a->M.t[n] = 0.0;
+            a->M.b[n] = 0.0;
+            
+            a->rhsvec.V[n] = 0.0;
+            }
+        ++n;
+        }
+    }
+    
+    n=0;
+        LOOP
+        {
+            if(p->flag4[Im1JK]<0 || p->flagsf4[Im1JK]<0)
+            {
+            a->rhsvec.V[n] -= a->M.s[n]*kin(i,j,k);
+            a->M.s[n] = 0.0;
+            }
+            
+            if(p->flag4[Ip1JK]<0 || p->flagsf4[Ip1JK]<0)
+            {
+            a->rhsvec.V[n] -= a->M.n[n]*kin(i,j,k);
+            a->M.n[n] = 0.0;
+            }
+            
+            if((p->flag4[IJm1K]<0 || p->flagsf4[IJm1K]<0) && p->j_dir==1)
+            {
+            a->rhsvec.V[n] -= a->M.e[n]*kin(i,j,k);
+            a->M.e[n] = 0.0;
+            }
+            
+            if((p->flag4[IJp1K]<0 || p->flagsf4[IJp1K]<0) && p->j_dir==1)
+            {
+            a->rhsvec.V[n] -= a->M.w[n]*kin(i,j,k);
+            a->M.w[n] = 0.0;
+            }
+            
+            if(p->flag4[IJKm1]<0 || p->flagsf4[IJKm1]<0)
+            {
+            a->rhsvec.V[n] -= a->M.b[n]*kin(i,j,k);
+            a->M.b[n] = 0.0;
+            }
+            
+            if(p->flag4[IJKp1]<0 || p->flagsf4[IJKp1]<0)
+            {
+            a->rhsvec.V[n] -= a->M.t[n]*kin(i,j,k);
+            a->M.t[n] = 0.0;
+            }
+
+        ++n;
+        }
 }
 
 void bc_ikomega::bcomega_matrix(fdm* a,lexer* p,field& kin,field& eps)
 {
+    // turn off inside direct forcing body
+    if(p->X10==1 || p->G3==1)
+    {
+    
+        n=0;
+        LOOP
+        {
+            if(p->flagsf4[IJK]<0)
+            {
+            a->M.p[n]  =   1.0;
+
+
+            a->M.n[n] = 0.0;
+            a->M.s[n] = 0.0;
+
+            a->M.w[n] = 0.0;
+            a->M.e[n] = 0.0;
+
+            a->M.t[n] = 0.0;
+            a->M.b[n] = 0.0;
+            
+            a->rhsvec.V[n] = 0.0;
+            }
+        ++n;
+        }
+    }
+    
+    // bc
+        n=0;
+        LOOP
+        {
+            if(p->flag4[Im1JK]<0 || p->flagsf4[Im1JK]<0)
+            {
+            a->rhsvec.V[n] -= a->M.s[n]*eps(i,j,k);
+            a->M.s[n] = 0.0;
+            }
+            
+            if(p->flag4[Ip1JK]<0 || p->flagsf4[Ip1JK]<0)
+            {
+            a->rhsvec.V[n] -= a->M.n[n]*eps(i,j,k);
+            a->M.n[n] = 0.0;
+            }
+            
+            if((p->flag4[IJm1K]<0 || p->flagsf4[IJm1K]<0) && p->j_dir==1)
+            {
+            a->rhsvec.V[n] -= a->M.e[n]*eps(i,j,k);
+            a->M.e[n] = 0.0;
+            }
+            
+            if((p->flag4[IJp1K]<0 || p->flagsf4[IJp1K]<0) && p->j_dir==1)
+            {
+            a->rhsvec.V[n] -= a->M.w[n]*eps(i,j,k);
+            a->M.w[n] = 0.0;
+            }
+            
+            if(p->flag4[IJKm1]<0 || p->flagsf4[IJKm1]<0)
+            {
+            a->rhsvec.V[n] -= a->M.b[n]*eps(i,j,k);
+            a->M.b[n] = 0.0;
+            }
+            
+            if(p->flag4[IJKp1]<0 || p->flagsf4[IJKp1]<0)
+            {
+            a->rhsvec.V[n] -= a->M.t[n]*eps(i,j,k);
+            a->M.t[n] = 0.0;
+            }
+
+        ++n;
+        }
 }
 
 /*
