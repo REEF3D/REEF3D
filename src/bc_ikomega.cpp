@@ -114,32 +114,7 @@ void bc_ikomega::wall_law_omega(fdm* a,lexer* p,field& kin,field& eps,int ii,int
 
 void bc_ikomega::bckin_matrix(fdm* a,lexer* p,field& kin,field& eps)
 {
-    // turn off inside direct forcing body
-    if(p->X10==1 || p->G3==1)
-    {
     
-        n=0;
-        LOOP
-        {
-            if(p->flagsf4[IJK]<0)
-            {
-            a->M.p[n]  =   1.0;
-
-
-            a->M.n[n] = 0.0;
-            a->M.s[n] = 0.0;
-
-            a->M.w[n] = 0.0;
-            a->M.e[n] = 0.0;
-
-            a->M.t[n] = 0.0;
-            a->M.b[n] = 0.0;
-            
-            a->rhsvec.V[n] = 0.0;
-            }
-        ++n;
-        }
-    }
     
     n=0;
         LOOP
@@ -182,11 +157,9 @@ void bc_ikomega::bckin_matrix(fdm* a,lexer* p,field& kin,field& eps)
 
         ++n;
         }
-}
-
-void bc_ikomega::bcomega_matrix(fdm* a,lexer* p,field& kin,field& eps)
-{
-    // turn off inside direct forcing body
+        
+        
+        // turn off inside direct forcing body
     if(p->X10==1 || p->G3==1)
     {
     
@@ -212,6 +185,10 @@ void bc_ikomega::bcomega_matrix(fdm* a,lexer* p,field& kin,field& eps)
         ++n;
         }
     }
+}
+
+void bc_ikomega::bcomega_matrix(fdm* a,lexer* p,field& kin,field& eps)
+{
     
     // bc
         n=0;
@@ -255,6 +232,33 @@ void bc_ikomega::bcomega_matrix(fdm* a,lexer* p,field& kin,field& eps)
 
         ++n;
         }
+        
+        // turn off inside direct forcing body
+    if(p->X10==1 || p->G3==1)
+    {
+    
+        n=0;
+        LOOP
+        {
+            if(p->flagsf4[IJK]<0)
+            {
+            a->M.p[n]  =   1.0;
+
+
+            a->M.n[n] = 0.0;
+            a->M.s[n] = 0.0;
+
+            a->M.w[n] = 0.0;
+            a->M.e[n] = 0.0;
+
+            a->M.t[n] = 0.0;
+            a->M.b[n] = 0.0;
+            
+            a->rhsvec.V[n] = 0.0;
+            }
+        ++n;
+        }
+    }
 }
 
 /*
