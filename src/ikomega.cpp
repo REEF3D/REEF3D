@@ -201,7 +201,7 @@ void ikomega::kinsource(lexer *p, fdm* a, vrans* pvrans)
     pvrans->kw_source(p,a,kin);
 }
 
-void ikomega::epssource(lexer *p, fdm* a, vrans* pvrans)
+void ikomega::epssource(lexer *p, fdm* a, vrans* pvrans, field &kin)
 {
     count=0;
     double dirac;

@@ -39,7 +39,7 @@ public:
 	virtual void jsource(lexer*,fdm*);
 	virtual void ksource(lexer*,fdm*);
 	virtual void kinsource(lexer*,fdm*,vrans*);
-	virtual void epssource(lexer*,fdm*,vrans*);
+	virtual void epssource(lexer*,fdm*,vrans*,field&);
 	virtual void epsfsf(lexer*,fdm*,ghostcell*);
 	virtual void eddyvisc(lexer*,fdm*,ghostcell*,vrans*);
 	virtual void clearfield(lexer*,fdm*,field&);

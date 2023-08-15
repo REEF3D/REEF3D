@@ -67,7 +67,7 @@ void komega_IM2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,s
 	clearrhs(p,a);
     pconvec->start(p,a,eps,4,a->u,a->v,a->w);
 	pdiff->idiff_scalar(p,a,pgc,psolv,eps,eddyv0,kw_sigma_w,1.0);
-	epssource(p,a,pvrans);
+	epssource(p,a,pvrans,kn);
 	timesource(p,a,en,enn);
     bcomega_matrix(a,p,kin,eps);
     psolv->start(p,a,pgc,eps,a->rhsvec,4);
