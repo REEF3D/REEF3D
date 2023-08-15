@@ -68,10 +68,10 @@ void komega_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,s
 	pdiff->idiff_scalar(p,a,pgc,psolv,eps,eddyv0,kw_sigma_w,1.0);
 	epssource(p,a,pvrans);
 	timesource(p,a,en);
+    bckomega_start(a,p,kin,eps,gcval_eps);
     bcomega_matrix(a,p,kin,eps);
 	psolv->start(p,a,pgc,eps,a->rhsvec,4);
 	epsfsf(p,a,pgc);
-	bckomega_start(a,p,kin,eps,gcval_eps);
 	pgc->start4(p,eps,gcval_eps);
 	p->epstime=pgc->timer()-starttime;
 	p->epsiter=p->solveriter;
