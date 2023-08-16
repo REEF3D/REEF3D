@@ -28,10 +28,13 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"topo.h"
 #include"bedshear.h"
+#include"patchBC_interface.h"
 
-sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb): bedslope(p)
+sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, patchBC_interface *ppBC): bedslope(p)
 {
 
+    pBC = ppBC;
+    
     sediment_logic(p,a,pgc,pturb);
 
 	p->gcin4a_count=p->gcin_count;

@@ -1623,6 +1623,12 @@ void lexer::read_control()
                           S77=1;
 						 clear(c,numint);
 						 break;
+                case 78: control>>S78;
+						 clear(c,numint);
+						 break;
+                case 79: control>>S79;
+						 clear(c,numint);
+						 break;
                 case 80: control>>S80;
 						 clear(c,numint);
 						 break;

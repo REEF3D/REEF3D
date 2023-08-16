@@ -1067,7 +1067,7 @@ void lexer::ctrlrecv()
     S77_xs = dctrl[dd];
 	dd++;
     S77_xe = dctrl[dd];
-	dd++;
+	dd++;    S78 = ictrl[ii];	ii++;    S79 = ictrl[ii];	ii++;
     S80 = ictrl[ii];
 	ii++;
     S81 = dctrl[dd];

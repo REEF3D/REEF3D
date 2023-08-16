@@ -60,6 +60,7 @@ public:
     slice4 cbe,cb,cbn,conc;
     
     slice4 waterlevel;
+    slice4 guard;
     
     double ws;
 

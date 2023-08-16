@@ -1111,6 +1111,10 @@ void lexer::ctrlsend()
 	dd++;
     dctrl[dd] = S77_xe;
 	dd++;
+    ictrl[ii] = S78;
+	ii++;
+    ictrl[ii] = S79;
+	ii++;
     ictrl[ii] = S80;
 	ii++;
     dctrl[dd] = S81;

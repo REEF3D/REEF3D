@@ -568,6 +568,8 @@ void lexer::ini_default()
     S77=0;          // int active sediment domain in x-direction
     S77_xs=-1.0e20; // double active sediment domain x_start
     S77_xe= 1.0e20; // double active sediment domain x_end
+    S78=1;          // int inflow guard
+    S79=0;          // int outflow guard
     S80=0;                  // int type of slope reduction
     S81=35.0;              // double midphi for slope reduction
     S82=5.0;              // double delta phi for slope reduction

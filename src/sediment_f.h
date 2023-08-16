@@ -34,7 +34,7 @@ class bedshear;
 class vrans;
 class turbulence;
 class sediment_fdm;
-class bedshear_reduction;class suspended;class diffusion;class convection;
+class bedshear_reduction;class suspended;class diffusion;class convection;class patchBC_interface;
 using namespace std;
 
 #ifndef SEDIMENT_F_H_
@@ -43,7 +43,7 @@ using namespace std;
 class sediment_f : public sediment, public bedslope
 {
 public:
-    sediment_f(lexer*,fdm*,ghostcell*,turbulence*);
+    sediment_f(lexer*,fdm*,ghostcell*,turbulence*, patchBC_interface*);
 	virtual ~sediment_f();
     
     // CFD interface
@@ -61,7 +61,7 @@ public:
     void update_sflow(lexer*,fdm2D*,ghostcell*,ioflow*);
     
     
-    // ---    virtual void ini_parameters(lexer*, ghostcell*);
+    // ---    virtual void ini_parameters(lexer*, ghostcell*);    virtual void ini_guard(lexer*, ghostcell*);
 	
     virtual void relax(lexer*,ghostcell*);
 	virtual double bedshear_point(lexer*,fdm*,ghostcell*);
@@ -86,7 +86,7 @@ private:        void log_ini(lexer*);    void sedimentlog(lexer*);
     topo_relax *prelax;
     vrans *pvrans;
     bedshear_reduction *preduce;    topo *ptopo;    suspended *psusp;    diffusion *psuspdiff;    convection *psuspdisc;
-	bedshear *pbedshear;    ofstream sedlogout;
+	bedshear *pbedshear;    patchBC_interface *pBC;    ofstream sedlogout;
     
     double starttime;
     

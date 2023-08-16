@@ -588,7 +588,7 @@ void driver::logic_cfd()
     psed = new sediment_void();
 
     if(p->S10>0)
-    psed = new sediment_f(p,a,pgc,pturb);
+    psed = new sediment_f(p,a,pgc,pturb,pBC);
 
 
     if(p->S10>=1 || p->G1==1 || p->toporead==1)
