@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"vrans.h"
+#include"patchBC_interface.h"
 
 int iowave::iozonecheck(lexer *p, fdm*a)
 {	
@@ -127,6 +128,86 @@ void iowave::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 	
 	if(p->B99==3||p->B99==4||p->B99==5)
 	awa_ini(p,a,pgc);
+    
+    
+    // BC update
+    MALOOP
+    p->BC[IJK] = 0;
+    
+    GC4LOOP
+    {
+        if(p->gcb4[n][4]==1 || p->gcb4[n][4]==6)
+        {
+        i = p->gcb4[n][0];
+        j = p->gcb4[n][1];
+        k = p->gcb4[n][2];
+        
+        // inflow
+        if(p->gcb4[n][3]==1 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
+        p->BC[Im1JK] = 1;
+        
+        if(p->gcb4[n][3]==4 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
+        p->BC[Ip1JK] = 1;
+        
+        if(p->gcb4[n][3]==3 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
+        p->BC[IJm1K] = 1;
+        
+        if(p->gcb4[n][3]==2 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
+        p->BC[IJp1K] = 1;
+        
+        if(p->gcb4[n][3]==5 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
+        p->BC[IJKm1] = 1;
+        
+        if(p->gcb4[n][3]==6 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
+        p->BC[IJKp1] = 1;
+        }
+
+        if(p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8)
+        {
+        // outflow
+        if(p->gcb4[n][3]==1 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
+        p->BC[Im1JK] = 2;
+        
+        if(p->gcb4[n][3]==4 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
+        p->BC[Ip1JK] = 2;
+        
+        if(p->gcb4[n][3]==3 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
+        p->BC[IJm1K] = 2;
+        
+        if(p->gcb4[n][3]==2 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
+        p->BC[IJp1K] = 2;
+        
+        if(p->gcb4[n][3]==5 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
+        p->BC[IJKm1] = 2;
+        
+        if(p->gcb4[n][3]==6 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
+        p->BC[IJKp1] = 2;
+        }
+    }
+       
+    for(int qq=0;qq<pBC->obj_count;++qq)
+    for(n=0;n<pBC->patch[qq]->gcb_count;++n)
+    {
+    
+    if(pBC->patch[qq]->gcb[n][3]==1)
+    p->BC[Im1JK] = 1;
+    
+    if(pBC->patch[qq]->gcb[n][3]==4)
+    p->BC[Ip1JK] = 1;
+    
+    if(pBC->patch[qq]->gcb[n][3]==3)
+    p->BC[IJm1K] = 1;
+    
+    if(pBC->patch[qq]->gcb[n][3]==2)
+    p->BC[IJp1K] = 1;
+    
+    if(pBC->patch[qq]->gcb[n][3]==5)
+    p->BC[IJKm1] = 1;
+    
+    if(pBC->patch[qq]->gcb[n][3]==6)
+    p->BC[IJKp1] = 1;
+    }
+    
 }
 
 void iowave::iogcb_update(lexer *p, fdm *a, ghostcell *pgc)
