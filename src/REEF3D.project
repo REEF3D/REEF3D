@@ -594,6 +594,7 @@
         <File Name="interpolation.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Convection">
+        <File Name="iweno_hj_df_nug.h"/>
         <File Name="weno_hj_df_nug.h"/>
         <File Name="lust.h"/>
         <File Name="iweno3_hj.h"/>
@@ -1908,6 +1909,7 @@
         <File Name="interpolation_ipol.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Convection">
+        <File Name="iweno_hj_df_nug.cpp"/>
         <File Name="weno_hj_df_nug.cpp"/>
         <File Name="lust.cpp"/>
         <File Name="ifou.cpp"/>

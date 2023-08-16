@@ -129,14 +129,16 @@ void bc_ikomega::bckin_matrix(fdm* a,lexer* p,field& kin,field& eps)
         LOOP
         {
 
-            if((p->flag4[Im1JK]<0 || p->flagsf4[Im1JK]<0) && p->BC[Im1JK]==0)
+            if(p->flag4[Im1JK]<0 || p->flagsf4[Im1JK]<0)
             {
+            if(p->BC[Im1JK]!=1)
             a->rhsvec.V[n] -= a->M.s[n]*kin(i,j,k);
             a->M.s[n] = 0.0;
             }
             
-            if((p->flag4[Ip1JK]<0 || p->flagsf4[Ip1JK]<0) && p->BC[Ip1JK]==0)
+            if(p->flag4[Ip1JK]<0 || p->flagsf4[Ip1JK]<0)
             {
+            if(p->BC[Ip1JK]!=1)
             a->rhsvec.V[n] -= a->M.n[n]*kin(i,j,k);
             a->M.n[n] = 0.0;
             }
@@ -203,14 +205,16 @@ void bc_ikomega::bcomega_matrix(fdm* a,lexer* p,field& kin,field& eps)
         LOOP
         {
 
-            if((p->flag4[Im1JK]<0 || p->flagsf4[Im1JK]<0) && p->BC[Im1JK]==0)
+            if((p->flag4[Im1JK]<0 || p->flagsf4[Im1JK]<0))
             {
+            if(p->BC[Im1JK]!=1)
             a->rhsvec.V[n] -= a->M.s[n]*eps(i,j,k);
             a->M.s[n] = 0.0;
             }
             
-            if((p->flag4[Ip1JK]<0 || p->flagsf4[Ip1JK]<0) && p->BC[Ip1JK]==0)
+            if((p->flag4[Ip1JK]<0 || p->flagsf4[Ip1JK]<0))
             {
+            if(p->BC[Ip1JK]!=1)
             a->rhsvec.V[n] -= a->M.n[n]*eps(i,j,k);
             a->M.n[n] = 0.0;
             }

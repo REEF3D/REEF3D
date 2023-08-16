@@ -111,8 +111,11 @@ void driver::logic_cfd()
 	if(p->T12==1)
 	pturbdisc=new ifou(p);
 
-	if(p->T12==5)
+	if(p->T12==5 && p->X10==0 && p->G3==0)
 	pturbdisc=new iweno_hj_nug(p);
+    
+    if(p->T12==5 && (p->X10==1 || p->G3==1))
+	pturbdisc=new iweno_hj_df_nug(p);
 
     if(p->T12==55)
 	pturbdisc=new iweno_hj(p);
