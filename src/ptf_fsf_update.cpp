@@ -176,7 +176,7 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     double teta_epol,Dz_t,Dz_b,FI_p,FI_b,FI_FS,a_epol,b_epol,c_epol,denom_b,num_b;
     
     
-    if(p->A323==7 || p->A323==8 || p->A323==9 || p->A323==10)
+    if(p->A323==7 || p->A323==77 || p->A323==8 || p->A323==9 || p->A323==10 || p->A323==11 || p->A323==12)
     FILOOP4
     {
         teta_epol=(eta(i,j)-(p->ZP[KP]-p->F60))/p->DZP[KP];

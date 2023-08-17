@@ -47,6 +47,9 @@
         <File Name="pic.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="PTF">
+        <VirtualDirectory Name="Breaking">
+          <File Name="ptf_breaking.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Update">
           <File Name="ptf_fsf_update.h"/>
           <File Name="ptf_bed_update.h"/>
@@ -1050,7 +1053,9 @@
         <File Name="pic_f.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="PTF">
-        <VirtualDirectory Name="Breaking"/>
+        <VirtualDirectory Name="Breaking">
+          <File Name="ptf_breaking.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Update">
           <File Name="ptf_fsf_update.cpp"/>
           <File Name="ptf_bed_update.cpp"/>

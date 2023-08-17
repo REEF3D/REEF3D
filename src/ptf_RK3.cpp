@@ -112,6 +112,7 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     fsfdisc(p,a,pgc,erk1,frk1,a->Fi);
     
     // solve Fi
+    // pflow->fivec_relax(p,pgc,a->Fi);
     pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,gcval);
     plap->start(p,a,pgc,psolv,a->Fi,frk1,erk1);
@@ -150,6 +151,7 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     fsfdisc(p,a,pgc,erk2,frk2,a->Fi);
     
     // solve Fi
+    // pflow->fivec_relax(p,pgc,a->Fi);
     pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,gcval);
     plap->start(p,a,pgc,psolv,a->Fi,frk2,erk2);
@@ -188,6 +190,7 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     fsfdisc(p,a,pgc,a->eta,a->Fifsf,a->Fi);
     
     // solve Fi
+   // pflow->fivec_relax(p,pgc,a->Fi);
     pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,gcval);
     plap->start(p,a,pgc,psolv,a->Fi,a->Fifsf,a->eta);
@@ -216,6 +219,7 @@ void ptf_RK3::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *preini
     pbedupdate->waterdepth(p,a,pgc);
     
     // potential ini
+    //pflow->fivec_relax(p,pgc,a->Fi);
     pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pflow->fifsf_relax(p,pgc,a->Fifsf);
     pgc->start4(p,a->Fi,250);
