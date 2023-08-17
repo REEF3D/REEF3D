@@ -57,8 +57,6 @@ void bc_ikomega::bckomega_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
         QGCDF4LOOP
 		wall_law_omega(a,p,kin,eps,p->gcdf4[q][0], p->gcdf4[q][1], p->gcdf4[q][2], p->gcdf4[q][3], p->gcdf4[q][4], p->gcdf4[q][5],  0.5*p->DXM);
 	}
-    
-    
 }
 
 void bc_ikomega::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj,int kk,int cs,int bc, int id, double dist)
@@ -124,7 +122,6 @@ void bc_ikomega::wall_law_omega(fdm* a,lexer* p,field& kin,field& eps,int ii,int
 
 void bc_ikomega::bckin_matrix(fdm* a,lexer* p,field& kin,field& eps)
 {
-    
         n=0;
         LOOP
         {
