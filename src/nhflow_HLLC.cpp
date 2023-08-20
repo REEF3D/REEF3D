@@ -67,6 +67,8 @@ double nhflow_HLLC::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL
     pflux->start_U(p,d,pgc);
     HLLC(p,d,d->UHs,d->UHn,d->UHe,d->UHw,d->SSx,d->SSx,d->Ue,d->Uw);
     
+    
+    
     pgc->start1V(p,d->Fx,10);
     pgc->start2V(p,d->Fy,10);
     pgc->start3V(p,d->Fz,10);
@@ -89,6 +91,16 @@ double nhflow_HLLC::aij_V(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVE
     pflux->start_V(p,d,pgc);
     HLLC(p,d,d->VHs,d->VHn,d->VHe,d->VHw,d->Vs,d->Vn,d->SSy,d->SSy);
     
+    LOOP
+    WETDRY
+    {
+    if(p->wet[IJp1]==0 && p->flag2[IJp1K]>0)
+    d->Fy[IJK] = 0.0;
+    
+    if(p->wet[IJm1]==0 && p->flag2[IJm1K]>0)
+    d->Fy[IJm1K] = 0.0;
+    }
+    
     pgc->start1V(p,d->Fx,11);
     pgc->start2V(p,d->Fy,11);
     pgc->start3V(p,d->Fz,11);
@@ -109,6 +121,16 @@ double nhflow_HLLC::aij_W(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL
     // HLLC flux 
     pflux->start_W(p,d,pgc);
     HLLC(p,d,d->WHs,d->WHn,d->WHe,d->WHw,d->Ws,d->Wn,d->We,d->Ww);
+    
+    LOOP
+    WETDRY
+    {
+    if(p->wet[Ip1J]==0 && p->flag1[Ip1JK]>0)
+    d->Fx[IJK] = 0.0;
+    
+    if(p->wet[Im1J]==0 && p->flag1[Im1JK]>0)
+    d->Fx[Im1JK] = 0.0;
+    }
     
     pgc->start1V(p,d->Fx,12);
     pgc->start2V(p,d->Fy,12);

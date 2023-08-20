@@ -34,27 +34,50 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
     gcparacoxV(p, f, gcv);
     gcparacoxV(p, f, gcv);
     
-    // 11 U
-    // 12 V
-    // 13 W
+    // 10 U
+    // 11 V
+    // 12 W
     // 14 E
     
     ULOOP
-    {  
-        //if(p->B98!=3||bc(i-1,j)==0)
-        if(p->flag1[Im1JK]<0 && gcv==10 && (p->BC[IJK]!=1 || p->B98<3))
+    {  /*
+        if(p->flag1[Im1JK]<0 && gcv==10)// && (p->BC[Im1JK]!=1 || p->B98<3))
         {
-        f[Im1JK] = 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
-        f[Im2JK] = 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
-        f[Im3JK] = 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
+        //cout<<d->U[Im1JK]<<" k: "<<k<<endl;
+        f[Im1JK] = d->UH[Im1JK]*d->U[Im1JK] + 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
+        f[Im2JK] = d->UH[Im2JK]*d->U[Im2JK] + 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
+        f[Im3JK] = d->UH[Im3JK]*d->U[Im3JK] + 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
+        }
+        */
+        if(p->flag1[Im1JK]<0 && gcv==10)// && (p->BC[Im1JK]!=1 || p->B98<3))
+        {
+        f[Im1JK] = d->UH[Im1JK]*d->U[Im1JK] + 0.5*fabs(p->W22)*d->eta(i-1,j)*d->eta(i-1,j) + fabs(p->W22)*d->eta(i-1,j)*d->dfx(i,j);
+        f[Im2JK] = d->UH[Im2JK]*d->U[Im2JK] + 0.5*fabs(p->W22)*d->eta(i-2,j)*d->eta(i-2,j) + fabs(p->W22)*d->eta(i-2,j)*d->dfx(i,j);
+        f[Im3JK] = d->UH[Im3JK]*d->U[Im3JK] + 0.5*fabs(p->W22)*d->eta(i-3,j)*d->eta(i-3,j) + fabs(p->W22)*d->eta(i-3,j)*d->dfx(i,j);
         }
         
-        if(p->flag1[Im1JK]<0 && gcv==10 && (p->BC[IJK]==1 && p->B98>=3))
+        if(p->flag1[Im1JK]<0 && gcv==11)
         {
-        f[Im1JK] = 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
-        f[Im2JK] = 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
-        f[Im3JK] = 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
+        f[Im1JK] = d->VH[Im1JK]*d->V[Im1JK];
+        f[Im2JK] = d->VH[Im2JK]*d->V[Im2JK];
+        f[Im3JK] = d->VH[Im3JK]*d->V[Im3JK];
         }
+        
+        if(p->flag1[Im1JK]<0 && gcv==12)
+        {
+        f[Im1JK] = d->WH[Im1JK]*d->W[Im1JK];
+        f[Im2JK] = d->WH[Im2JK]*d->W[Im2JK];
+        f[Im3JK] = d->WH[Im3JK]*d->W[Im3JK];
+        }
+          
+          
+        /*
+        if(p->flag1[Im1JK]<0 && gcv==10 && (p->BC[Im1JK]==1 && p->B98>=3))
+        {
+        f[Im1JK] = d->UH[Im1JK]*d->U[Im1JK] + 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
+        f[Im2JK] = d->UH[Im1JK]*d->U[Im1JK] + 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
+        f[Im3JK] = d->UH[Im1JK]*d->U[Im1JK] + 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
+        }*/
         
         if(p->flag1[Im1JK]<0 && gcv==14 && p->B98<3)
         {
@@ -63,20 +86,20 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
         f[Im3JK] = 0.0;
         }
         
-        if(p->flag1[Im1JK]<0 && gcv!=10 && gcv!=14)
-        {
-        f[Im1JK] = 0.0;
-        f[Im2JK] = 0.0;
-        f[Im3JK] = 0.0;
-        }
-          
-        //if(p->B99!=3||bc(i+1,j)==0)
-        if(p->flag1[Ip1JK]<0 && gcv==10)
+        
+        if(p->flag1[Ip1JK]<0 && gcv==10)// && (p->BC[Ip1JK]!=1 && p->B99<3))
         {
         f[Ip1JK] = 0.5*fabs(p->W22)*d->ETAn(i,j)*d->ETAn(i,j) + fabs(p->W22)*d->ETAn(i,j)*d->dfx(i,j);
         f[Ip2JK] = 0.5*fabs(p->W22)*d->ETAn(i,j)*d->ETAn(i,j) + fabs(p->W22)*d->ETAn(i,j)*d->dfx(i,j);
         f[Ip3JK] = 0.5*fabs(p->W22)*d->ETAn(i,j)*d->ETAn(i,j) + fabs(p->W22)*d->ETAn(i,j)*d->dfx(i,j);
         }
+        /*
+        if(p->flag1[Im1JK]<0 && gcv==10 && (p->BC[Ip1JK]==1 && p->B99>=3))
+        {
+        f[Im1JK] = d->UH[Ip1JK]*d->U[Ip1JK] + 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
+        f[Im2JK] = d->UH[Ip2JK]*d->U[Ip2JK] + 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
+        f[Im3JK] = d->UH[Ip3JK]*d->U[Ip3JK] + 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
+        }*/
         
         if(p->flag1[Ip1JK]<0 && gcv==14)
         {
@@ -217,32 +240,32 @@ void ghostcell::start3V(lexer *p, double *f, int gcv)
     
     WLOOP
     {  
-        if(p->flag3[Im1JK]<0 && p->B98<3)
+        if(p->flag3[Im1JK]<0)
         {
-        f[Im1JK] = f[IJK];
-        f[Im2JK] = f[IJK];
-        f[Im3JK] = f[IJK];
+        f[Im1JK] = 0.0;
+        f[Im2JK] = 0.0;
+        f[Im3JK] = 0.0;
         }
           
         if(p->flag3[Ip1JK]<0)
         {
-        f[Ip1JK] = f[IJK];
-        f[Ip2JK] = f[IJK];
-        f[Ip3JK] = f[IJK];
+        f[Ip1JK] = 0.0;
+        f[Ip2JK] = 0.0;
+        f[Ip3JK] = 0.0;
         }
         
         if(p->flag3[IJm1K]<0)
         {
-        f[IJm1K] = f[IJK];
-        f[IJm2K] = f[IJK];
-        f[IJm3K] = f[IJK];
+        f[IJm1K] = 0.0;
+        f[IJm2K] = 0.0;
+        f[IJm3K] = 0.0;
         }
         
         if(p->flag3[IJp1K]<0)
         {
-        f[IJp1K] = f[IJK];
-        f[IJp2K] = f[IJK];
-        f[IJp3K] = f[IJK];
+        f[IJp1K] = 0.0;
+        f[IJp2K] = 0.0;
+        f[IJp3K] = 0.0;
         }
         
         if(p->flag3[IJKm1]<0)
@@ -274,9 +297,9 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
     // xxxxxxx
         if(p->flag4[Im1JK]<0 && gcv==10 && p->B98<3)
         {
-        f[Im1JK] = f[IJK];
-        f[Im2JK] = f[IJK];
-        f[Im3JK] = f[IJK];
+        f[Im1JK] = 0.0;
+        f[Im2JK] = 0.0;
+        f[Im3JK] = 0.0;
         }
         
         if(p->flag4[Im1JK]<0 && gcv!=10 && p->B98<3)
@@ -287,14 +310,14 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
         }
           
         //if(p->B99!=3||bc(i+1,j)==0)
-        if(p->flag4[Ip1JK]<0 && gcv==10)
+        if(p->flag4[Ip1JK]<0 && gcv==10 && p->B99<3)
         {
         f[Ip1JK] = 0.0;
         f[Ip2JK] = 0.0;
         f[Ip3JK] = 0.0;
         }
         
-        if(p->flag4[Ip1JK]<0 && gcv!=10)
+        if(p->flag4[Ip1JK]<0 && gcv!=10 && p->B98<3)
         {
         f[Ip1JK] = 0.0;
         f[Ip2JK] = 0.0;
