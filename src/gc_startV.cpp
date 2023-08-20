@@ -42,7 +42,14 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
     ULOOP
     {  
         //if(p->B98!=3||bc(i-1,j)==0)
-        if(p->flag1[Im1JK]<0 && gcv==10)
+        if(p->flag1[Im1JK]<0 && gcv==10 && (p->BC[IJK]!=1 || p->B98<3))
+        {
+        f[Im1JK] = 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
+        f[Im2JK] = 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
+        f[Im3JK] = 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
+        }
+        
+        if(p->flag1[Im1JK]<0 && gcv==10 && (p->BC[IJK]==1 && p->B98>=3))
         {
         f[Im1JK] = 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
         f[Im2JK] = 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);

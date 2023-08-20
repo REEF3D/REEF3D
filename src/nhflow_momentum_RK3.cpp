@@ -40,7 +40,7 @@ Author: Hans Bihs
 #include"vrans.h"
 
 nhflow_momentum_RK3::nhflow_momentum_RK3(lexer *p, fdm_nhf *d, ghostcell *pgc)
-                                                    : bcmom(p), nhflow_sigma(p), WLRK1(p), WLRK2(p)
+                                                    : bcmom(p), nhflow_sigma(p), WLRK1(p), WLRK2(p), eta_temp(p)
 {
 	gcval_u=10;
 	gcval_v=11;
@@ -340,9 +340,14 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 void nhflow_momentum_RK3::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_fsf *pfsf, nhflow_signal_speed *pss,
                                      nhflow_reconstruct *precon, slice &WL, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
+    SLICELOOP4
+    eta_temp(i,j) = p->A523*d->eta(i,j) + (1.0-p->A523)*d->eta_n(i,j);
+    
+    pgc->gcsl_start4(p,eta_temp,1);
+    
     // reconstruct eta
-    precon->reconstruct_2D_x(p, pgc, d, d->eta, d->ETAs, d->ETAn);
-    precon->reconstruct_2D_y(p, pgc, d, d->eta, d->ETAe, d->ETAw);
+    precon->reconstruct_2D_x(p, pgc, d, eta_temp, d->ETAs, d->ETAn);
+    precon->reconstruct_2D_y(p, pgc, d, eta_temp, d->ETAe, d->ETAw);
     precon->reconstruct_2D_WL(p, pgc, d);
     
     // reconstruct U 

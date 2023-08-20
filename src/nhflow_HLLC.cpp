@@ -30,8 +30,6 @@ Author: Hans Bihs
 #include"nhflow_signal_speed.h"
 #include"nhflow_flux_build_f.h"
 
-#define WLVL (fabs(d->WL_n(i,j))>1.0e-20?d->WL_n(i,j):1.0e20)
-
 nhflow_HLLC::nhflow_HLLC (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) 
 {
     pgc = ppgc;

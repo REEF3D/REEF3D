@@ -106,7 +106,7 @@ void lexer::ini_default()
     
     A520=1;		// int NFHLOW non-hydrostatic pressure scheme
     A521=1;		// int NFHLOW hydrostatic pressure scheme
-    A523=0.5;    // double blending factor hydrostatic pressure gradient
+    A523=1.0;    // double blending factor hydrostatic pressure gradient
     A540=1;      // int NFHLOW fsf scheme
     A541=0.0;    // double coastline damping distance factor for dxm
     A542=0.0;    // double coastline damping absolute distance
