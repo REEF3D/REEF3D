@@ -29,8 +29,8 @@ Author: Hans Bihs
 #include"nhflow_print_wsf.h"
 #include"nhflow_vtp_fsf.h"
 #include"nhflow_vtp_bed.h"
-/*#include"nhflow_print_wsf_theory.h"
-#include"nhflow_print_wsfline.h"
+#include"nhflow_print_wsf_theory.h"
+/*#include"nhflow_print_wsfline.h"
 #include"nhflow_print_wsfline_y.h"
 #include"nhflow_breaking_log.h"
 #include"potentialfile_out.h"
@@ -72,9 +72,9 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
     
     pwsf=new nhflow_print_wsf(p,d);
 
-    /*
+    
     pwsf_theory=new nhflow_print_wsf_theory(p,d,pgc);
-
+/*
     pwsfline=new nhflow_print_wsfline(p,d,pgc);
 
     pwsfline_y=new nhflow_print_wsfline_y(p,d,pgc);
@@ -111,8 +111,8 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
 	if(p->P51>0)
 	pwsf->height_gauge(p,d,pgc,d->eta);
 
-    /*if(p->P50>0)
-    pwsf_theory->height_gauge(p,d,pgc,pflow);*/
+    if(p->P50>0)
+    pwsf_theory->height_gauge(p,d,pgc,pflow);
 
 		// Print out based on iteration
         if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)

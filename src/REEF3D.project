@@ -273,6 +273,7 @@
             <File Name="nhflow_vtp_bed.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="WSF">
+            <File Name="nhflow_print_wsf_theory.h"/>
             <File Name="nhflow_print_wsf.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTU">
@@ -1328,6 +1329,7 @@
             <File Name="nhflow_vtp_fsf.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="WSF">
+            <File Name="nhflow_print_wsf_theory.cpp"/>
             <File Name="nhflow_print_wsf.cpp"/>
           </VirtualDirectory>
           <File Name="nhflow_vtu3D.cpp"/>

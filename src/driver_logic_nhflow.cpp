@@ -80,9 +80,7 @@ void driver::logic_nhflow()
     if(p->A511==2 || p->A511==9)
 	pnhfconvec=new nhflow_HLLC(p,pgc,pBC);
     
-    
 //pressure scheme
-
     if(p->A520==0)
 	pnhpress = new nhflow_pjm_hs(p,d,pBC);
     

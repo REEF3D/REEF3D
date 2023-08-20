@@ -93,7 +93,6 @@ void nhflow_fsf_f::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, dou
         d->W[IJKp1] = wval;
         d->W[IJKp2] = wval;
         d->W[IJKp3] = wval;
-
     }
 }   
   
