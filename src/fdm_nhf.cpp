@@ -39,6 +39,7 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
                               breaking_print(p),Hs(p),
                               rhsvec(p),rvec(p),xvec(p),N(p),M(p),
                               ETAs(p),ETAn(p),ETAe(p),ETAw(p),
+                              ETAs_n(p),ETAn_n(p),ETAe_n(p),ETAw_n(p),
                               Ds(p),Dn(p),De(p),Dw(p),dfx(p),dfy(p)
 {    
     p->Darray(U,p->imax*p->jmax*(p->kmax+2));

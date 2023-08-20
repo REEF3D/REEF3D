@@ -340,7 +340,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 void nhflow_momentum_RK3::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_fsf *pfsf, nhflow_signal_speed *pss,
                                      nhflow_reconstruct *precon, slice &WL, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
-    SLICELOOP4
+    /*SLICELOOP4
     eta_temp(i,j) = p->A523*d->eta(i,j) + (1.0-p->A523)*d->eta_n(i,j);
     
     pgc->gcsl_start4(p,eta_temp,1);
@@ -348,6 +348,29 @@ void nhflow_momentum_RK3::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     // reconstruct eta
     precon->reconstruct_2D_x(p, pgc, d, eta_temp, d->ETAs, d->ETAn);
     precon->reconstruct_2D_y(p, pgc, d, eta_temp, d->ETAe, d->ETAw);
+    precon->reconstruct_2D_WL(p, pgc, d);*/
+    
+    SLICELOOP1
+    {
+    d->ETAs_n(i,j) = d->ETAs(i,j);
+    d->ETAn_n(i,j) = d->ETAn(i,j);
+    }
+    
+    SLICELOOP2
+    {
+    d->ETAe_n(i,j) = d->ETAe(i,j);
+    d->ETAw_n(i,j) = d->ETAw(i,j);
+    }
+    
+    pgc->gcsl_start1(p,d->ETAs_n,1);
+    pgc->gcsl_start1(p,d->ETAn_n,1);
+    
+    pgc->gcsl_start2(p,d->ETAe_n,1);
+    pgc->gcsl_start2(p,d->ETAw_n,1);
+    
+    // reconstruct eta
+    precon->reconstruct_2D_x(p, pgc, d, d->eta, d->ETAs, d->ETAn);
+    precon->reconstruct_2D_y(p, pgc, d, d->eta, d->ETAe, d->ETAw);
     precon->reconstruct_2D_WL(p, pgc, d);
     
     // reconstruct U 
