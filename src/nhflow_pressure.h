@@ -41,9 +41,9 @@ public:
 	virtual void upgrad(lexer*,fdm_nhf*)=0;
 	virtual void vpgrad(lexer*,fdm_nhf*)=0;
 	virtual void wpgrad(lexer*,fdm_nhf*)=0;
-    virtual void ucorr(lexer*,fdm_nhf*,slice&,double*,double)=0;
-	virtual void vcorr(lexer*,fdm_nhf*,slice&,double*,double)=0;
-	virtual void wcorr(lexer*,fdm_nhf*,slice&,double*,double)=0;
+    virtual void ucorr(lexer*,fdm_nhf*,slice&,double*,double*,double)=0;
+	virtual void vcorr(lexer*,fdm_nhf*,slice&,double*,double*,double)=0;
+	virtual void wcorr(lexer*,fdm_nhf*,slice&,double*,double*,double)=0;
 };
 
 #endif

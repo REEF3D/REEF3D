@@ -54,15 +54,15 @@ void nhflow_pjm_hs::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pgc, io
 {
 }
 
-void nhflow_pjm_hs::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *U, double alpha)
+void nhflow_pjm_hs::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *U, double *P, double alpha)
 {	
 }
 
-void nhflow_pjm_hs::vcorr(lexer* p, fdm_nhf *d, slice &WL, double *U, double alpha)
+void nhflow_pjm_hs::vcorr(lexer* p, fdm_nhf *d, slice &WL, double *V, double *P, double alpha)
 {	 
 }
 
-void nhflow_pjm_hs::wcorr(lexer* p, fdm_nhf *d, slice &WL, double *W, double alpha)
+void nhflow_pjm_hs::wcorr(lexer* p, fdm_nhf *d, slice &WL, double *W, double *P, double alpha)
 {
 }
  
@@ -78,7 +78,7 @@ void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d)
 {
     LOOP
     WETDRY
-    d->F[IJK] += PORVALNH*0.5*(d->ETAs(i,j)+d->ETAn(i-1,j))*fabs(p->W22)*
+    d->F[IJK] += PORVALNH*d->eta(i,j)*fabs(p->W22)*
                 (d->dfx(i,j) - d->dfx(i-1,j))/(p->DXN[IP]);
     
     SLICELOOP4

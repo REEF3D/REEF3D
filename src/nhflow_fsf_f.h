@@ -70,7 +70,7 @@ private:
     
     slice1 P;
     slice2 Q;
-    slice4 K;
+    slice4 K,K_n;
     int *temp;
 
     int gcval_phi,gcval_eta;

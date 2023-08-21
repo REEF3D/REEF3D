@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"patchBC_interface.h"
 
-nhflow_fsf_f::nhflow_fsf_f(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow, patchBC_interface *ppBC) : eps(1.0e-6),P(p),Q(p),K(p)
+nhflow_fsf_f::nhflow_fsf_f(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow, patchBC_interface *ppBC) : eps(1.0e-6),P(p),Q(p),K(p),K_n(p)
 {
     pBC = ppBC;
     
@@ -62,6 +62,9 @@ void nhflow_fsf_f::update(lexer *p, fdm_nhf* d, ghostcell *pgc, slice &f)
 void nhflow_fsf_f::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice &WLRK1, slice &WLRK2, double alpha)
 {
     SLICELOOP4
+    K_n(i,j) = K(i,j);
+    
+    SLICELOOP4
     K(i,j) = 0.0;
     
     LOOP
@@ -92,6 +95,9 @@ void nhflow_fsf_f::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
 
 void nhflow_fsf_f::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice &WLRK1, slice &WLRK2, double alpha)
 {
+    SLICELOOP4
+    K_n(i,j) = K(i,j);
+    
     SLICELOOP4
     K(i,j) = 0.0;
     
