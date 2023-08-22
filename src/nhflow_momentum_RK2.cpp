@@ -261,30 +261,7 @@ void nhflow_momentum_RK2::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     precon->reconstruct_2D_x(p, pgc, d, eta_temp, d->ETAs, d->ETAn);
     precon->reconstruct_2D_y(p, pgc, d, eta_temp, d->ETAe, d->ETAw);
     precon->reconstruct_2D_WL(p, pgc, d);
-    /*
-    SLICELOOP1
-    {
-    d->ETAs_n(i,j) = d->ETAs(i,j);
-    d->ETAn_n(i,j) = d->ETAn(i,j);
-    }
-    
-    SLICELOOP2
-    {
-    d->ETAe_n(i,j) = d->ETAe(i,j);
-    d->ETAw_n(i,j) = d->ETAw(i,j);
-    }
-    
-    pgc->gcsl_start1(p,d->ETAs_n,1);
-    pgc->gcsl_start1(p,d->ETAn_n,1);
-    
-    pgc->gcsl_start2(p,d->ETAe_n,1);
-    pgc->gcsl_start2(p,d->ETAw_n,1);
-    
-    // reconstruct eta
-    precon->reconstruct_2D_x(p, pgc, d, d->eta, d->ETAs, d->ETAn);
-    precon->reconstruct_2D_y(p, pgc, d, d->eta, d->ETAe, d->ETAw);
-    precon->reconstruct_2D_WL(p, pgc, d);*/
-    
+
     // reconstruct U 
     precon->reconstruct_3D_x(p, pgc, d, U, d->Us, d->Un);
     precon->reconstruct_3D_y(p, pgc, d, U, d->Ue, d->Uw);

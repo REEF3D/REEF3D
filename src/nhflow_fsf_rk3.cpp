@@ -91,14 +91,6 @@ void nhflow_fsf_f::rk3_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
 
 void nhflow_fsf_f::rk3_step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& WLRK1, slice &WLRK2, double alpha)
 {
-    // fill eta_n
-    SLICELOOP4
-    d->eta_n(i,j) = d->eta(i,j);
-
-    pgc->gcsl_start4(p,d->eta_n,1);
-    
-    // ---
-
     SLICELOOP4
     K(i,j) = 0.0;
     
@@ -118,9 +110,6 @@ void nhflow_fsf_f::rk3_step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     
     SLICELOOP4
     d->eta(i,j) = d->WL(i,j) - d->depth(i,j);
-    
-    //SLICELOOP4
-    //d->detadt(i,j) = (d->eta(i,j) -d->eta_n(i,j))/p->dt;
     
     SLICELOOP4
     d->detadt(i,j) = K(i,j);

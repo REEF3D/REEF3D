@@ -122,18 +122,6 @@ void nhflow_fsf_f::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     
     wetdry(p,d,pgc,U,V,W,d->WL);
     //breaking(p,d,pgc,d->eta,d->eta_n,1.0);
-    
-    /*
-    if(p->mpirank==7)
-    {
-    i=p->knox-2;
-    j=0;
-    k=2;
-    cout<<"WL(knox-2): "<<d->WL(i,j)<<"  WL(knox-1): "<<d->WL(i+1,j)<<"  WL(knox): "<<d->WL(i+2,j)<<endl;
-    cout<<"Fx(knox-3): "<<d->Fx[Im2JK]<<"  Fx(knox-2): "<<d->Fx[Im1JK]<<"  Fx(knox-1): "<<d->Fx[IJK]<<"  Fx(knox): "<<d->Fx[Ip1JK]<<endl;
-    cout<<"ETAs(knox-3): "<<d->ETAs(i-2,j)<<"  ETAs(knox-2): "<<d->ETAs(i-1,j)<<"  ETAs(knox-1): "<<d->ETAs(i,j)<<"  ETAs(knox): "<<d->ETAs(i+1,j)<<endl;
-    cout<<"ETAn(knox-3): "<<d->ETAn(i-2,j)<<"  ETAn(knox-2): "<<d->ETAn(i-1,j)<<"  ETAn(knox-1): "<<d->ETAn(i,j)<<"  ETAn(knox): "<<d->ETAn(i+1,j)<<endl;
-    }*/
 }
 
 void nhflow_fsf_f::flux_update(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)

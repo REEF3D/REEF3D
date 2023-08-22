@@ -48,8 +48,6 @@ public:
     int *NODEVAL;
     
     slice4 eta,eta_n,WL,detadt;
-    slice1 ETAx,ETAx_n;
-    slice2 ETAy,ETAy_n;
     slice4 bed,depth;
     slice4 K;
     sliceint4 etaloc,wet_n,breaking,breaklog,bc,nodeval2D;
@@ -98,8 +96,6 @@ public:
     
     slice1 ETAs,ETAn;
     slice2 ETAe,ETAw;
-    slice1 ETAs_n,ETAn_n;
-    slice2 ETAe_n,ETAw_n;
     slice1 Ds,Dn;
     slice2 De,Dw;
     slice1 dfx;

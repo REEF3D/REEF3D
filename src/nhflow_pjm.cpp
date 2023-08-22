@@ -164,12 +164,6 @@ void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d)
     WETDRY
     d->F[IJK] += PORVALNH*0.5*(d->ETAs(i,j)+d->ETAn(i-1,j))*fabs(p->W22)*
                 (d->dfx(i,j) - d->dfx(i-1,j))/(p->DXN[IP]);
-                
-    /*            
-    LOOP
-    WETDRY
-    d->F[IJK] += PORVALNH*0.5*((p->A523*d->ETAs(i,j) + (1.0-p->A523)*d->ETAs_n(i,j))+(p->A523*d->ETAn(i,j) + (1.0-p->A523)*d->ETAn_n(i,j)))*fabs(p->W22)*
-                (d->dfx(i,j) - d->dfx(i-1,j))/(p->DXN[IP]);*/
 }
 
 void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d)
@@ -178,12 +172,6 @@ void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d)
     WETDRY
 	d->G[IJK] += PORVALNH*0.5*(d->ETAe(i,j)+d->ETAw(i,j-1))*fabs(p->W22)*
                  (d->dfy(i,j) - d->dfy(i,j-1))/(p->DYN[JP]);
-                 
-    /*
-    LOOP
-    WETDRY
-	d->G[IJK] += PORVALNH*0.5*((p->A523*d->ETAe(i,j) + (1.0-p->A523)*d->ETAe_n(i,j))+(p->A523*d->ETAw(i,j) + (1.0-p->A523)*d->ETAw_n(i,j)))*fabs(p->W22)*
-                (d->dfy(i,j) - d->dfy(i,j-1))/(p->DYN[JP]);*/
 }
 
 void nhflow_pjm::wpgrad(lexer*p, fdm_nhf *d)
