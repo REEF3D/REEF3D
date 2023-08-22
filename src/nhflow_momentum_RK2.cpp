@@ -71,6 +71,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 //Step 1
 //--------------------------------------------------------
     
+    sigma_update(p,d,pgc,eta_temp);
     reconstruct(p,d,pgc,pfsf,pss,precon,d->WL,d->U,d->V,d->W,d->UH,d->VH,d->WH);
     
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
@@ -79,8 +80,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     // FSF
     pconvec->start(p,d,d->U,4,d->U,d->V,d->W,d->eta);
     pfsf->rk2_step1(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK1, 1.0);
-    
-    sigma_update(p,d,pgc);
+
     omega_update(p,d,pgc,d->U,d->V,d->W);
     
 	// U
@@ -138,9 +138,6 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     velcalc(p,d,pgc,UHRK1,VHRK1,WHRK1,WLRK1);
     
-    pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
-    pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
-    
     //pflow->pressure_io(p,a,pgc);
 	ppress->start(p,d,psolv,pgc,pflow,WLRK1,UHRK1,VHRK1,WHRK1,1.0);
 	
@@ -161,6 +158,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 //Step 2
 //--------------------------------------------------------
  
+    sigma_update(p,d,pgc,eta_temp);
     reconstruct(p,d,pgc,pfsf,pss,precon,WLRK1,d->U,d->V,d->W,UHRK1,VHRK1,WHRK1);
     
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
@@ -170,7 +168,6 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     pconvec->start(p,d,UHRK1,4,d->U,d->V,d->W,d->WL);
     pfsf->rk2_step2(p, d, pgc, pflow, UHRK1,VHRK1,WHRK1, WLRK1, WLRK1, 0.5);
     
-    sigma_update(p,d,pgc);
     omega_update(p,d,pgc,d->U,d->V,d->W);
     
 	// U
@@ -227,10 +224,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     p->wtime+=pgc->timer()-starttime;
     
     velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL);
-    
-    pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
-    pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
-    
+
 	//pflow->pressure_io(p,a,pgc);
     ppress->start(p,d,psolv,pgc,pflow,d->WL,d->UH,d->VH,d->WH,0.5);
     
@@ -407,7 +401,7 @@ void nhflow_momentum_RK2::inidisc(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_f
 {
     //pfsf->wetdry(p,d,pgc,d->U,d->V,d->W,d->WL);
     sigma_ini(p,d,pgc,d->eta);
-    sigma_update(p,d,pgc);
+    sigma_update(p,d,pgc,eta_temp);
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
     pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
 }

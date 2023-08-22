@@ -39,6 +39,8 @@ Author: Hans Bihs
 #include"nhflow_turbulence.h"
 #include"vrans.h"
 
+#define WLVL (fabs(WL(i,j))>(1.0*p->A544)?WL(i,j):1.0e20)
+
 nhflow_momentum_RK3::nhflow_momentum_RK3(lexer *p, fdm_nhf *d, ghostcell *pgc)
                                                     : bcmom(p), nhflow_sigma(p), WLRK1(p), WLRK2(p), eta_temp(p)
 {
@@ -76,6 +78,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 //Step 1
 //--------------------------------------------------------
     
+    sigma_update(p,d,pgc,eta_temp);
     reconstruct(p,d,pgc,pfsf,pss,precon,d->WL,d->U,d->V,d->W,d->UH,d->VH,d->WH);
     
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
@@ -85,7 +88,6 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     pconvec->start(p,d,d->U,4,d->U,d->V,d->W,d->eta);
     pfsf->rk3_step1(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK2, 1.0);
     
-    sigma_update(p,d,pgc);
     omega_update(p,d,pgc,d->U,d->V,d->W);
     
 	// U
@@ -141,8 +143,8 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     velcalc(p,d,pgc,UHRK1,VHRK1,WHRK1,WLRK1);
     
-    pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
-    pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
+    //pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
+    //pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
     
     //pflow->pressure_io(p,a,pgc);
 	ppress->start(p,d,psolv,pgc,pflow,WLRK1,UHRK1,VHRK1,WHRK1,1.0);
@@ -164,6 +166,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 //Step 2
 //--------------------------------------------------------
 
+    sigma_update(p,d,pgc,eta_temp);
     reconstruct(p,d,pgc,pfsf,pss,precon,WLRK1,d->U,d->V,d->W,UHRK1,VHRK1,WHRK1);
 	
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
@@ -173,7 +176,6 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     pconvec->start(p,d,UHRK1,4,d->U,d->V,d->W,WLRK1);
     pfsf->rk3_step2(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK2, 0.25);
     
-    sigma_update(p,d,pgc);
     omega_update(p,d,pgc,d->U,d->V,d->W);
     
 	// U
@@ -229,8 +231,8 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     velcalc(p,d,pgc,UHRK2,VHRK2,WHRK2,WLRK2);
     
-    pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,WLRK2);
-    pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
+    //pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,WLRK2);
+    //pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
  
     //pflow->pressure_io(p,a,pgc);
 	ppress->start(p,d,psolv,pgc,pflow,WLRK2,UHRK2,VHRK2,WHRK2,0.25);
@@ -251,6 +253,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 //Step 3
 //--------------------------------------------------------
     
+    sigma_update(p,d,pgc,eta_temp);
     reconstruct(p,d,pgc,pfsf,pss,precon,WLRK2,d->U,d->V,d->W,UHRK2,VHRK2,WHRK2);
     
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
@@ -260,7 +263,6 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     pconvec->start(p,d,UHRK2,4,d->U,d->V,d->W,WLRK2);
     pfsf->rk3_step3(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK2, 2.0/3.0);
     
-    sigma_update(p,d,pgc);
     omega_update(p,d,pgc,d->U,d->V,d->W);
     
 	// U
@@ -316,8 +318,8 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL);
     
-    pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
-    pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
+    //pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
+    //pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
     
 	//pflow->pressure_io(p,a,pgc);
     ppress->start(p,d,psolv,pgc,pflow,d->WL,d->UH,d->VH,d->WH,2.0/3.0);
@@ -385,12 +387,23 @@ void nhflow_momentum_RK3::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
 
 void nhflow_momentum_RK3::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *UH, double *VH, double *WH, slice &WL)
 {
+    // Fr nuber limiter
+    /*LOOP
+    WETDRY
+    {
+    UH[IJK] = MIN(UH[IJK], 4.0*WL(i,j)*sqrt(9.81*WL(i,j)));
+    VH[IJK] = MIN(VH[IJK], 4.0*WL(i,j)*sqrt(9.81*WL(i,j)));
+    WH[IJK] = MIN(WH[IJK], 4.0*WL(i,j)*sqrt(9.81*WL(i,j)));      
+    }
+    */
+    
     LOOP
     {
-    d->U[IJK] = UH[IJK]/WL(i,j);
-    d->V[IJK] = VH[IJK]/WL(i,j);
-    d->W[IJK] = WH[IJK]/WL(i,j);       
+    d->U[IJK] = UH[IJK]/WLVL;
+    d->V[IJK] = VH[IJK]/WLVL;
+    d->W[IJK] = WH[IJK]/WLVL;       
     }
+    
     
     LOOP
     if(p->wet[IJ]==0)
@@ -399,6 +412,24 @@ void nhflow_momentum_RK3::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *
     d->V[IJK] = 0.0;
     d->W[IJK] = 0.0;
     }
+    
+    // Fr nuber limiter
+    /*LOOP
+    WETDRY
+    {
+    d->U[IJK] = MIN(d->U[IJK], 4.0*sqrt(9.81*WL(i,j)));
+    d->V[IJK] = MIN(d->V[IJK], 4.0*sqrt(9.81*WL(i,j)));
+    d->W[IJK] = MIN(d->W[IJK], 4.0*sqrt(9.81*WL(i,j)));      
+    }*/
+    
+    /*
+    LOOP
+    WETDRY
+    {
+    d->U[IJK] = UH[IJK]/MAX(WLVL,p->A544*100.0);
+    d->V[IJK] = VH[IJK]/MAX(WLVL,p->A544*100.0);
+    d->W[IJK] = WH[IJK]/MAX(WLVL,p->A544*100.0);    
+    }*/
     
     pgc->start4V(p,d->U,gcval_u);
     pgc->start4V(p,d->V,gcval_v);
@@ -465,7 +496,7 @@ void nhflow_momentum_RK3::clearrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 void nhflow_momentum_RK3::inidisc(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_fsf *pfsf)
 {
     sigma_ini(p,d,pgc,d->eta);
-    sigma_update(p,d,pgc);
+    sigma_update(p,d,pgc,eta_temp);
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
     pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
 }
