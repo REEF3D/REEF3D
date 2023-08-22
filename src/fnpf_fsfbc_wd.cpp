@@ -160,6 +160,9 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     
     c->Exx(i,j) = pddx->sxx(p,eta);
     c->Eyy(i,j) = pddx->syy(p,eta);
+    
+    c->Bx(i,j) = pdx->sx(p,c->depth,1.0);
+    c->By(i,j) = pdx->sy(p,c->depth,1.0);
     }
     
     // 2D
@@ -172,6 +175,8 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     c->Ex(i,j) = pconeta->sx(p,eta,ivel);
     
     c->Exx(i,j) = pddx->sxx(p,eta);
+    
+    c->Bx(i,j) = pdx->sx(p,c->depth,1.0);
     }
 }
 
