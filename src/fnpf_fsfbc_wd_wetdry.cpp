@@ -66,8 +66,8 @@ void fnpf_fsfbc_wd::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &
         if(c->coastline(i,j)<0.0 && p->A343==1)
         f(i,j)=0.0;
         
-        //if(p->A343>=1 && p->wet[IJ]==1)
-        //f(i,j) = MAX(f(i,j), c->bed(i,j) - p->wd);
+        if(p->A343>=1 && p->wet[IJ]==1)
+        f(i,j) = MAX(f(i,j), c->bed(i,j) - p->wd);
     }
 }
 

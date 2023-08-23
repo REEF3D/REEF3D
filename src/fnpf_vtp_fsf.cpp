@@ -68,6 +68,7 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 {	
     pgc->gcsl_start4(p,c->eta,gcval_eta);
     pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
+    pgc->gcsl_start4(p,c->test2D,1);
     
     SLICELOOP4
     {

@@ -106,9 +106,14 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             if(p->wet[IJ]==1 && p->flag7[FIJK]>0)
             {
             // south
-            if((p->flag7[FIm1JK]<0 || p->wet[Im1J]==0) && (c->bc(i-1,j)==0 || k==0))
+            if((p->flag7[FIm1JK]<0) && (c->bc(i-1,j)==0 || k==0))
             {
             c->M.p[n] += c->M.s[n];
+            c->M.s[n] = 0.0;
+            }
+            
+            if((p->wet[Im1J]==0) && (c->bc(i-1,j)==0 || k==0))
+            {
             c->M.s[n] = 0.0;
             }
             
@@ -130,9 +135,14 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             }          
             
             // north
-            if((p->flag7[FIp1JK]<0 || p->wet[Ip1J]==0) && c->bc(i+1,j)==0)
+            if((p->flag7[FIp1JK]<0) && c->bc(i+1,j)==0)
             {
             c->M.p[n] += c->M.n[n];
+            c->M.n[n] = 0.0;
+            }
+            
+            if((p->wet[Ip1J]==0) && c->bc(i+1,j)==0)
+            {
             c->M.n[n] = 0.0;
             }
             
@@ -160,14 +170,28 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             }
 
             // east
-            if(p->flag7[FIJm1K]<0 || p->wet[IJm1]==0)
+            if(p->flag7[FIJm1K]<0)
             {
             c->M.p[n] += c->M.e[n];
             c->M.e[n] = 0.0;
             }
             
             // west
-            if(p->flag7[FIJp1K]<0 || p->wet[IJp1]==0)
+            if(p->flag7[FIJp1K]<0)
+            {
+            c->M.p[n] += c->M.w[n];
+            c->M.w[n] = 0.0;
+            }
+            
+            // east
+            if(p->wet[IJm1]==0)
+            {
+            c->M.p[n] += c->M.e[n];
+            c->M.e[n] = 0.0;
+            }
+            
+            // west
+            if(p->wet[IJp1]==0)
             {
             c->M.p[n] += c->M.w[n];
             c->M.w[n] = 0.0;
