@@ -84,6 +84,7 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
     LOOP
     {
         H = Hsolidface(p,a,0,0,0);
+        //a->test(i,j,k) = H;
         a->fbh4(i,j,k) = min(a->fbh4(i,j,k) + H, 1.0); 
     }
     	
@@ -166,7 +167,7 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
 		nz /= norm > 1.0e-20 ? norm : 1.0e20;
 
         
-        H = Hsolidface(p,a,0,1,0);
+         H = Hsolidface(p,a,0,1,0);
 		Ht = Hsolidface_t(p,a,0,1,0);
 		
       

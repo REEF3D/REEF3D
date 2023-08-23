@@ -61,7 +61,7 @@ void ghostcell::solid_forcing_ini(lexer *p, fdm *a)
         
         a->fbh5(i,j,k) =  1.0-MIN(dirac,1.0);
         
-        //a->test(i,j,k) = a->fbh5(i,j,k) ;
+        a->test(i,j,k) = a->fbh5(i,j,k) ;
     }
      
      // ghostcell update

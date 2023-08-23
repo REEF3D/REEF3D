@@ -98,8 +98,6 @@ void force::start(lexer *p, fdm *a, ghostcell *pgc)
         print_force(p,a,pgc);
         }
     
-    pgc->gcxsd_update(p, a, a->test);
-    pgc->gcbsd_update(p, a, a->test);
     pgc->start4(p,a->press,gcval_press);
 } 
 

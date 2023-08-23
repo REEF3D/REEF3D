@@ -36,7 +36,14 @@ double ghostcell::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
     }
 
     // Construct solid heaviside function
+    if(p->toporead>0 && p->solidread>0)
     phival_sf = MIN(0.5*(a->solid(i,j,k) + a->solid(i+aa,j+bb,k+cc)), 0.5*(a->topo(i,j,k) + a->topo(i+aa,j+bb,k+cc))); 
+    
+    if(p->toporead>0 && p->solidread==0)
+    phival_sf = 0.5*(a->topo(i,j,k) + a->topo(i+aa,j+bb,k+cc)); 
+    
+    if(p->toporead==0 && p->solidread>0)
+    phival_sf = 0.5*(a->solid(i,j,k) + a->solid(i+aa,j+bb,k+cc));
     
 	
     if (-phival_sf > psi)
@@ -51,6 +58,9 @@ double ghostcell::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
     {
         H = 0.5*(1.0 + -phival_sf/psi + (1.0/PI)*sin((PI*-phival_sf)/psi));
     }
+    
+    if(p->toporead==0 && p->solidread==0)
+    H = 0.0;
 	
     return H;
 }
