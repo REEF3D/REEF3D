@@ -30,7 +30,7 @@ patchBC::patchBC(lexer *p, ghostcell *pgc)
     obj_count=0;
     patchBC_IDcount(p,pgc);
     
-    // creat patch objects
+    // create patch objects
     patch = new patch_obj*[obj_count];
     
     for(qn=0; qn<obj_count;++qn)

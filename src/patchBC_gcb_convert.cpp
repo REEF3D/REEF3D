@@ -45,7 +45,7 @@ void patchBC::patchBC_gcb_convert(lexer *p, ghostcell *pgc)
             j=p->gcb1[n][1];
             k=p->gcb1[n][2];
             
-                if(i>=istart && i<iend && j>=jstart && j<jend && p->gcb4[n][3]==p->B440_face[qn] && (p->gcb1[n][4]==21||p->gcb1[n][4]==22))
+                if(i>=istart && i<iend && j>=jstart && j<jend && p->gcb1[n][3]==p->B440_face[qn] && (p->gcb1[n][4]==21||p->gcb1[n][4]==22))
                 {
                     
                     for(qq=0;qq<obj_count;++qq)
