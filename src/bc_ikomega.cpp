@@ -234,7 +234,7 @@ void bc_ikomega::bcomega_matrix(fdm* a,lexer* p,field& kin,field& eps)
             a->M.b[n] = 0.0;
             }
             
-            if((p->flag4[IJKp1]<0 || p->flagsf4[IJKp1]<0) && p->BC[IJKp1]==0)
+            if((p->flag4[IJKp1]<0 || p->flagsf4[IJKp1]<0) && p->BC[IJKp1]==0)
             {
             a->rhsvec.V[n] -= a->M.t[n]*eps(i,j,k);
             a->M.t[n] = 0.0;
