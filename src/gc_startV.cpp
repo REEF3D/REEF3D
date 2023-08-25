@@ -30,10 +30,10 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
 {
     //  MPI Boundary Swap
     starttime=timer();
-    gcparaxV(p, f, gcv);
-    gcparacoxV(p, f, gcv);
-    gcparacoxV(p, f, gcv);
-    gcparacoxV(p, f, gcv);
+    gcparaxV1(p, f, gcv);
+    gcparacoxV1(p, f, gcv);
+    gcparacoxV1(p, f, gcv);
+    gcparacoxV1(p, f, gcv);
     p->xtime+=timer()-starttime;
     
     // 10 U
@@ -54,22 +54,22 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
         if(p->flag1[Im1JK]<0 && gcv==10)// && (p->BC[Im1JK]!=1 || p->B98<3))
         {
         f[Im1JK] = d->UH[Im1JK]*d->U[Im1JK] + 0.5*fabs(p->W22)*d->eta(i-1,j)*d->eta(i-1,j) + fabs(p->W22)*d->eta(i-1,j)*d->dfx(i,j);
-        f[Im2JK] = d->UH[Im2JK]*d->U[Im2JK] + 0.5*fabs(p->W22)*d->eta(i-2,j)*d->eta(i-2,j) + fabs(p->W22)*d->eta(i-2,j)*d->dfx(i,j);
-        f[Im3JK] = d->UH[Im3JK]*d->U[Im3JK] + 0.5*fabs(p->W22)*d->eta(i-3,j)*d->eta(i-3,j) + fabs(p->W22)*d->eta(i-3,j)*d->dfx(i,j);
+        //f[Im2JK] = d->UH[Im2JK]*d->U[Im2JK] + 0.5*fabs(p->W22)*d->eta(i-2,j)*d->eta(i-2,j) + fabs(p->W22)*d->eta(i-2,j)*d->dfx(i,j);
+        //f[Im3JK] = d->UH[Im3JK]*d->U[Im3JK] + 0.5*fabs(p->W22)*d->eta(i-3,j)*d->eta(i-3,j) + fabs(p->W22)*d->eta(i-3,j)*d->dfx(i,j);
         }
         
         if(p->flag1[Im1JK]<0 && gcv==11)
         {
         f[Im1JK] = d->VH[Im1JK]*d->V[Im1JK];
-        f[Im2JK] = d->VH[Im2JK]*d->V[Im2JK];
-        f[Im3JK] = d->VH[Im3JK]*d->V[Im3JK];
+        //f[Im2JK] = d->VH[Im2JK]*d->V[Im2JK];
+        //f[Im3JK] = d->VH[Im3JK]*d->V[Im3JK];
         }
         
         if(p->flag1[Im1JK]<0 && gcv==12)
         {
         f[Im1JK] = d->WH[Im1JK]*d->W[Im1JK];
-        f[Im2JK] = d->WH[Im2JK]*d->W[Im2JK];
-        f[Im3JK] = d->WH[Im3JK]*d->W[Im3JK];
+        //f[Im2JK] = d->WH[Im2JK]*d->W[Im2JK];
+        //f[Im3JK] = d->WH[Im3JK]*d->W[Im3JK];
         }
           
           
@@ -84,16 +84,16 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
         if(p->flag1[Im1JK]<0 && gcv==14 && p->B98<3)
         {
         f[Im1JK] = 0.0;
-        f[Im2JK] = 0.0;
-        f[Im3JK] = 0.0;
+        //f[Im2JK] = 0.0;
+        //f[Im3JK] = 0.0;
         }
         
         
         if(p->flag1[Ip1JK]<0 && gcv==10)// && (p->BC[Ip1JK]!=1 && p->B99<3))
         {
         f[Ip1JK] = 0.5*fabs(p->W22)*d->ETAn(i,j)*d->ETAn(i,j) + fabs(p->W22)*d->ETAn(i,j)*d->dfx(i,j);
-        f[Ip2JK] = 0.5*fabs(p->W22)*d->ETAn(i,j)*d->ETAn(i,j) + fabs(p->W22)*d->ETAn(i,j)*d->dfx(i,j);
-        f[Ip3JK] = 0.5*fabs(p->W22)*d->ETAn(i,j)*d->ETAn(i,j) + fabs(p->W22)*d->ETAn(i,j)*d->dfx(i,j);
+        //f[Ip2JK] = 0.5*fabs(p->W22)*d->ETAn(i,j)*d->ETAn(i,j) + fabs(p->W22)*d->ETAn(i,j)*d->dfx(i,j);
+        //f[Ip3JK] = 0.5*fabs(p->W22)*d->ETAn(i,j)*d->ETAn(i,j) + fabs(p->W22)*d->ETAn(i,j)*d->dfx(i,j);
         }
         /*
         if(p->flag1[Im1JK]<0 && gcv==10 && (p->BC[Ip1JK]==1 && p->B99>=3))
@@ -106,44 +106,44 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
         if(p->flag1[Ip1JK]<0 && gcv==14)
         {
         f[Ip1JK] = 0.0;
-        f[Ip2JK] = 0.0;
-        f[Ip3JK] = 0.0;
+        //f[Ip2JK] = 0.0;
+        //f[Ip3JK] = 0.0;
         }
         
         
         if(p->flag1[Ip1JK]<0 && gcv!=10 && gcv!=14)
         {
         f[Ip1JK] = 0.0;
-        f[Ip2JK] = 0.0;
-        f[Ip3JK] = 0.0;
+        //f[Ip2JK] = 0.0;
+        //f[Ip3JK] = 0.0;
         }
         
         if(p->flag1[IJm1K]<0 && p->j_dir==1)
         {
         f[IJm1K] = f[IJK];
-        f[IJm2K] = f[IJK];
-        f[IJm3K] = f[IJK];
+        //f[IJm2K] = f[IJK];
+        //f[IJm3K] = f[IJK];
         }
         
         if(p->flag1[IJp1K]<0 && p->j_dir==1)
         {
         f[IJp1K] = f[IJK];
-        f[IJp2K] = f[IJK];
-        f[IJp3K] = f[IJK];
+        //f[IJp2K] = f[IJK];
+        //f[IJp3K] = f[IJK];
         }
         
         if(p->flag1[IJKm1]<0)
         {
         f[IJKm1] = 0.0;
-        f[IJKm2] = 0.0;
-        f[IJKm3] = 0.0;
+        //f[IJKm2] = 0.0;
+        //f[IJKm3] = 0.0;
         }
         
         if(p->flag1[IJKp1]<0)
         {
         f[IJKp1] = 0.0;
-        f[IJKp2] = 0.0;
-        f[IJKp3] = 0.0;
+        //f[IJKp2] = 0.0;
+        //f[IJKp3] = 0.0;
         }
     }
     p->gctime+=timer()-starttime;
@@ -153,10 +153,10 @@ void ghostcell::start2V(lexer *p, double *f, int gcv)
 {
     //  MPI Boundary Swap
     starttime=timer();
-    gcparaxV(p, f, gcv);
-    gcparacoxV(p, f, gcv);
-    gcparacoxV(p, f, gcv);
-    gcparacoxV(p, f, gcv);
+    gcparaxV1(p, f, gcv);
+    gcparacoxV1(p, f, gcv);
+    gcparacoxV1(p, f, gcv);
+    gcparacoxV1(p, f, gcv);
     p->xtime+=timer()-starttime;
     
     starttime=timer();
@@ -166,72 +166,72 @@ void ghostcell::start2V(lexer *p, double *f, int gcv)
         if(p->flag2[Im1JK]<0)
         {
         f[Im1JK] = f[IJK];
-        f[Im2JK] = f[IJK];
-        f[Im3JK] = f[IJK];
+        //f[Im2JK] = f[IJK];
+        //f[Im3JK] = f[IJK];
         }
           
         //if(p->B99!=3||bc(i+1,j)==0)
         if(p->flag2[Ip1JK]<0)
         {
         f[Ip1JK] = f[IJK];
-        f[Ip2JK] = f[IJK];
-        f[Ip3JK] = f[IJK];
+        //f[Ip2JK] = f[IJK];
+        //f[Ip3JK] = f[IJK];
         }
         
         if(p->flag2[IJm1K]<0 &&  gcv==11 && p->j_dir==1)
         {
         f[IJm1K] = 0.5*fabs(p->W22)*d->ETAe(i,j)*d->ETAe(i,j) + fabs(p->W22)*d->ETAe(i,j)*d->dfy(i,j);
-        f[IJm2K] = 0.5*fabs(p->W22)*d->ETAe(i,j)*d->ETAe(i,j) + fabs(p->W22)*d->ETAe(i,j)*d->dfy(i,j);
-        f[IJm3K] = 0.5*fabs(p->W22)*d->ETAe(i,j)*d->ETAe(i,j) + fabs(p->W22)*d->ETAe(i,j)*d->dfy(i,j);
+        //f[IJm2K] = 0.5*fabs(p->W22)*d->ETAe(i,j)*d->ETAe(i,j) + fabs(p->W22)*d->ETAe(i,j)*d->dfy(i,j);
+        //f[IJm3K] = 0.5*fabs(p->W22)*d->ETAe(i,j)*d->ETAe(i,j) + fabs(p->W22)*d->ETAe(i,j)*d->dfy(i,j);
         }
         
         if(p->flag2[IJm1K]<0 &&  gcv==14 && p->j_dir==1)
         {
         f[IJm1K] = 0.0;
-        f[IJm2K] = 0.0;
-        f[IJm3K] = 0.0;
+        //f[IJm2K] = 0.0;
+        //f[IJm3K] = 0.0;
         }
         
         if(p->flag2[IJm1K]<0 && gcv!=11 && gcv!=14 && p->j_dir==1)
         {
         f[IJm1K] = 0.0;
-        f[IJm2K] = 0.0;
-        f[IJm3K] = 0.0;
+        //f[IJm2K] = 0.0;
+        //f[IJm3K] = 0.0;
         }
         
         if(p->flag2[IJp1K]<0 &&  gcv==11 && p->j_dir==1)
         {
         f[IJp1K] = 0.5*fabs(p->W22)*d->ETAw(i,j)*d->ETAw(i,j) + fabs(p->W22)*d->ETAw(i,j)*d->dfy(i,j);
-        f[IJp2K] = 0.5*fabs(p->W22)*d->ETAw(i,j)*d->ETAw(i,j) + fabs(p->W22)*d->ETAw(i,j)*d->dfy(i,j);
-        f[IJp3K] = 0.5*fabs(p->W22)*d->ETAw(i,j)*d->ETAw(i,j) + fabs(p->W22)*d->ETAw(i,j)*d->dfy(i,j);
+        //f[IJp2K] = 0.5*fabs(p->W22)*d->ETAw(i,j)*d->ETAw(i,j) + fabs(p->W22)*d->ETAw(i,j)*d->dfy(i,j);
+        //f[IJp3K] = 0.5*fabs(p->W22)*d->ETAw(i,j)*d->ETAw(i,j) + fabs(p->W22)*d->ETAw(i,j)*d->dfy(i,j);
         }
         
         if(p->flag2[IJp1K]<0 &&  gcv==14 && p->j_dir==1)
         {
         f[IJp1K] = 0.0;
-        f[IJp2K] = 0.0;
-        f[IJp3K] = 0.0;
+        //f[IJp2K] = 0.0;
+        //f[IJp3K] = 0.0;
         }
         
         if(p->flag2[IJp1K]<0 && gcv!=11 && gcv!=14 && p->j_dir==1)
         {
         f[IJp1K] = 0.0;
-        f[IJp2K] = 0.0;
-        f[IJp3K] = 0.0;
+        //f[IJp2K] = 0.0;
+        //f[IJp3K] = 0.0;
         }
         
         if(p->flag2[IJKm1]<0 && p->j_dir==1)
         {
         f[IJKm1] = 0.0;
-        f[IJKm2] = 0.0;
-        f[IJKm3] = 0.0;
+        //f[IJKm2] = 0.0;
+        //f[IJKm3] = 0.0;
         }
         
         if(p->flag2[IJKp1]<0)
         {
         f[IJKp1] = 0.0;
-        f[IJKp2] = 0.0;
-        f[IJKp3] = 0.0;
+        //f[IJKp2] = 0.0;
+        //f[IJKp3] = 0.0;
         }
     }
     p->gctime+=timer()-starttime;
@@ -240,10 +240,10 @@ void ghostcell::start2V(lexer *p, double *f, int gcv)
 void ghostcell::start3V(lexer *p, double *f, int gcv)
 {
     starttime=timer();
-    gcparaxV(p, f, gcv);
-    gcparacoxV(p, f, gcv);
-    gcparacoxV(p, f, gcv);
-    gcparacoxV(p, f, gcv);
+    gcparaxV1(p, f, gcv);
+    gcparacoxV1(p, f, gcv);
+    gcparacoxV1(p, f, gcv);
+    gcparacoxV1(p, f, gcv);
     p->xtime+=timer()-starttime;
 
     starttime=timer();
@@ -252,43 +252,43 @@ void ghostcell::start3V(lexer *p, double *f, int gcv)
         if(p->flag3[Im1JK]<0)
         {
         f[Im1JK] = 0.0;
-        f[Im2JK] = 0.0;
-        f[Im3JK] = 0.0;
+        //f[Im2JK] = 0.0;
+        //f[Im3JK] = 0.0;
         }
           
         if(p->flag3[Ip1JK]<0)
         {
         f[Ip1JK] = 0.0;
-        f[Ip2JK] = 0.0;
-        f[Ip3JK] = 0.0;
+        //f[Ip2JK] = 0.0;
+        //f[Ip3JK] = 0.0;
         }
         
         if(p->flag3[IJm1K]<0)
         {
         f[IJm1K] = 0.0;
-        f[IJm2K] = 0.0;
-        f[IJm3K] = 0.0;
+        //f[IJm2K] = 0.0;
+        //f[IJm3K] = 0.0;
         }
         
         if(p->flag3[IJp1K]<0)
         {
         f[IJp1K] = 0.0;
-        f[IJp2K] = 0.0;
-        f[IJp3K] = 0.0;
+        //f[IJp2K] = 0.0;
+        //f[IJp3K] = 0.0;
         }
         
         if(p->flag3[IJKm1]<0)
         {
         f[IJKm1] = 0.0;
-        f[IJKm2] = 0.0;
-        f[IJKm3] = 0.0;
+        //f[IJKm2] = 0.0;
+        //f[IJKm3] = 0.0;
         }
         
         if(p->flag3[IJKp1]<0)
         {
         f[IJKp1] = 0.0;
-        f[IJKp2] = 0.0;
-        f[IJKp3] = 0.0;
+        //f[IJKp2] = 0.0;
+        //f[IJKp3] = 0.0;
         }
     }
     p->gctime+=timer()-starttime;

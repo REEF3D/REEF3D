@@ -237,8 +237,10 @@ public:
 	void gcparaxvec_sr(lexer*, vec&,cpt&,int);
     void gcparax4a(lexer*, field&, int);
     void gcparaxV(lexer*, double*, int);
+    void gcparaxV1(lexer*, double*, int);
 	void gcparacox(lexer*, field&, int);
     void gcparacoxV(lexer*, double*, int);
+    void gcparacoxV1(lexer*, double*, int);
     void gcperiodicx(lexer*, field&, int);
     void gcperiodicxvec(lexer*, vec&, int);
     void gcperiodicxvec_sr(lexer*, vec&,cpt&,int);

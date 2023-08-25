@@ -2169,6 +2169,8 @@
         <File Name="gc_ndflag.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Parallel">
+        <File Name="gcx_paracoxV1.cpp"/>
+        <File Name="gcx_paraxV1.cpp"/>
         <File Name="gcx_paracoxV.cpp"/>
         <File Name="gcx_paraxV.cpp"/>
         <File Name="gcx_periodicvec.cpp"/>
