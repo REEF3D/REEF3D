@@ -95,12 +95,12 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
-	cout<<"umax: "<<setprecision(3)<<p->umax<<endl;
-    //cout<<"pos_ijk: "<<setprecision(3)<<posi<<" "<<posj<<" "<<posk<<endl;
-    //cout<<"pos_xyz: "<<setprecision(3)<<posx<<" "<<posy<<" "<<posz<<endl;
-	cout<<"vmax: "<<setprecision(3)<<p->vmax<<endl;
-	cout<<"wmax: "<<setprecision(3)<<p->wmax<<endl;
+	cout<<"umax: "<<setprecision(3)<<p->umax<<" \t utime: "<<p->utime<<endl;
+	cout<<"vmax: "<<setprecision(3)<<p->vmax<<" \t vtime: "<<p->vtime<<endl;
+	cout<<"wmax: "<<setprecision(3)<<p->wmax<<" \t wtime: "<<p->wtime<<endl;
     cout<<"omegamax: "<<setprecision(3)<<p->omegamax<<endl;
+    cout<<"recontime: "<<p->recontime<<endl;
+    cout<<"fsftime: "<<p->fsftime<<endl;
     //cout<<"depthmax: "<<setprecision(3)<<depthmax<<endl;
     }
 	
@@ -148,15 +148,15 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
 	p->dt=pgc->timesync(p->dt);
     
-    if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"dt: "<<p->dt<<endl;
-
-    
     if(p->N48==0) 
     p->dt=p->N49;
     
     else
 	p->dt=MIN(p->dt,maxtimestep);
+    
+    // reini
+    p->recontime=0.0;
+    p->fsftime=0.0;
 }
 
 void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -250,5 +250,9 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     else
 	p->dt=MIN(p->dt,maxtimestep);
+    
+    // reini
+    p->recontime=0.0;
+    p->fsftime=0.0;
 }
 

@@ -66,9 +66,6 @@ void driver::loop_nhflow()
         
         pflow->flowfile(p,a,pgc,pturb);
         pflow->wavegen_precalc_nhflow(p,d,pgc);
-        
-        // Free Surface
-        pnhfsf->start(p,d,pgc,pflow);
 			
         //pnhfturb->start(d,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);        
         

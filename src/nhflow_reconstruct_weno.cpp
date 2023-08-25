@@ -67,32 +67,6 @@ void nhflow_reconstruct_weno::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nhf
     
     pgc->gcsl_start1(p,fs,10);
     pgc->gcsl_start1(p,fn,10);
-    
-    /*
-    SLICELOOP4
-    dfdx(i,j) = 0.0;
-    
-    // gradient
-    SLICELOOP4
-    WETDRY
-    {
-    dfdx_plus = (f(i+1,j) - f(i,j))/p->DXP[IP];
-    dfdx_min  = (f(i,j) - f(i-1,j))/p->DXP[IM1];
-    
-    dfdx(i,j) = limiter(dfdx_plus,dfdx_min);
-    }
-    
-    pgc->gcsl_start1(p,dfdx,1);
-    
-    // reconstruct
-    SLICELOOP1  
-    {
-    fs(i,j) = f(i,j)   + 0.5*p->DXP[IP]*dfdx(i,j); 
-    fn(i,j) = f(i+1,j) - 0.5*p->DXP[IP1]*dfdx(i+1,j);
-    }
-    
-    pgc->gcsl_start1(p,fs,1);
-    pgc->gcsl_start1(p,fn,1);*/
 }
 
 void nhflow_reconstruct_weno::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fe, slice &fw)

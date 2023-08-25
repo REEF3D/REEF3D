@@ -29,16 +29,18 @@ Author: Hans Bihs
 void ghostcell::start1V(lexer *p, double *f, int gcv)
 {
     //  MPI Boundary Swap
+    starttime=timer();
     gcparaxV(p, f, gcv);
     gcparacoxV(p, f, gcv);
     gcparacoxV(p, f, gcv);
     gcparacoxV(p, f, gcv);
+    p->xtime+=timer()-starttime;
     
     // 10 U
     // 11 V
     // 12 W
     // 14 E
-    
+    starttime=timer();
     ULOOP
     {  /*
         if(p->flag1[Im1JK]<0 && gcv==10)// && (p->BC[Im1JK]!=1 || p->B98<3))
@@ -144,16 +146,20 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
         f[IJKp3] = 0.0;
         }
     }
+    p->gctime+=timer()-starttime;
 }
 
 void ghostcell::start2V(lexer *p, double *f, int gcv)
 {
     //  MPI Boundary Swap
+    starttime=timer();
     gcparaxV(p, f, gcv);
     gcparacoxV(p, f, gcv);
     gcparacoxV(p, f, gcv);
     gcparacoxV(p, f, gcv);
+    p->xtime+=timer()-starttime;
     
+    starttime=timer();
     VLOOP
     {  
         //if(p->B98!=3||bc(i-1,j)==0)
@@ -228,16 +234,19 @@ void ghostcell::start2V(lexer *p, double *f, int gcv)
         f[IJKp3] = 0.0;
         }
     }
+    p->gctime+=timer()-starttime;
 }
 
 void ghostcell::start3V(lexer *p, double *f, int gcv)
 {
+    starttime=timer();
     gcparaxV(p, f, gcv);
     gcparacoxV(p, f, gcv);
     gcparacoxV(p, f, gcv);
     gcparacoxV(p, f, gcv);
+    p->xtime+=timer()-starttime;
 
-    
+    starttime=timer();
     WLOOP
     {  
         if(p->flag3[Im1JK]<0)
@@ -282,15 +291,20 @@ void ghostcell::start3V(lexer *p, double *f, int gcv)
         f[IJKp3] = 0.0;
         }
     }
+    p->gctime+=timer()-starttime;
 }
 
 void ghostcell::start4V(lexer *p, double *f, int gcv)
 {
+    starttime=timer();
     gcparaxV(p, f, gcv);
     gcparacoxV(p, f, gcv);
     gcparacoxV(p, f, gcv);
     gcparacoxV(p, f, gcv);
+    p->xtime+=timer()-starttime;
     
+    
+    starttime=timer();
     LOOP
     {  
         //if(p->B98!=3||bc(i-1,j)==0)
@@ -369,6 +383,7 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
         f[IJKm3] = 0.0;
         }
     }
+    p->gctime+=timer()-starttime;
 }
 
 void ghostcell::start5V(lexer *p, double *f, int gcv)
@@ -378,7 +393,7 @@ void ghostcell::start5V(lexer *p, double *f, int gcv)
     gcparacoxV(p, f, gcv);
     gcparacoxV(p, f, gcv);
     gcparacoxV(p, f, gcv);
-	p->xtime+=endtime-starttime;
+	p->xtime+=timer()-starttime;
 
 }
 
@@ -390,10 +405,10 @@ void ghostcell::start7V(lexer *p, double *f, sliceint &bc, int gcv)
 	gcparax7(p,f,7);
     gcparax7co(p,f,7);
     gcparax7co(p,f,7);
-	endtime=timer();
-	p->xtime+=endtime-starttime;
+	p->xtime+=timer()-starttime;
     }
     
+    starttime=timer();
     if(gcv==250)
     fivec(p,f,bc);
     
@@ -405,6 +420,7 @@ void ghostcell::start7V(lexer *p, double *f, sliceint &bc, int gcv)
     
     if(gcv==110)
     fivec2D_vel(p,f,bc);
+    p->gctime+=timer()-starttime;
 }
 
 void ghostcell::start7S(lexer *p, double *f, int gcv)
@@ -416,8 +432,7 @@ void ghostcell::start7S(lexer *p, double *f, int gcv)
     gcparax7co(p,f,7);
     gcparax7co(p,f,7);
     gcparax7co(p,f,7);
-	endtime=timer();
-	p->xtime+=endtime-starttime;
+	p->xtime+=timer()-starttime;
     }
 }
 

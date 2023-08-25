@@ -621,6 +621,7 @@ public:
 	int heatiter,concentrationiter;
 	int printcount, printcount_sixdof;
 	double utime,vtime,wtime;
+    double recontime,fsftime;
 	double kintime,epstime;
 	double poissontime, laplacetime;
     double sftime,fbtime,fsitime;

@@ -78,10 +78,12 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
     
     // FSF
+    starttime=pgc->timer();
     pconvec->start(p,d,d->U,4,d->U,d->V,d->W,d->eta);
     pfsf->rk2_step1(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK1, 1.0);
 
     omega_update(p,d,pgc,d->U,d->V,d->W);
+    p->fsftime+=pgc->timer()-starttime;
     
 	// U
 	starttime=pgc->timer();
@@ -165,10 +167,13 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
     
     // FSF
+    starttime=pgc->timer();
+    
     pconvec->start(p,d,UHRK1,4,d->U,d->V,d->W,d->WL);
     pfsf->rk2_step2(p, d, pgc, pflow, UHRK1,VHRK1,WHRK1, WLRK1, WLRK1, 0.5);
     
     omega_update(p,d,pgc,d->U,d->V,d->W);
+    p->fsftime+=pgc->timer()-starttime;
     
 	// U
 	starttime=pgc->timer();
@@ -246,6 +251,8 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 void nhflow_momentum_RK2::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_fsf *pfsf, nhflow_signal_speed *pss, 
                                      nhflow_reconstruct *precon, slice &WL, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
+    starttime=pgc->timer();
+    
     SLICELOOP4
     eta_temp(i,j) = p->A523*d->eta(i,j) + (1.0-p->A523)*d->eta_n(i,j);
     
@@ -287,6 +294,8 @@ void nhflow_momentum_RK2::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     pfsf->wetdry_fluxes(p,d,pgc,WL,U,V,W,UH,VH,WH);
     
     pss->signal_speed_update(p, pgc, d, d->Us, d->Un, d->Ve, d->Vw, d->Ds, d->Dn, d->De, d->Dw);
+    
+    p->recontime+=pgc->timer()-starttime;
 }
 
 void nhflow_momentum_RK2::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *UH, double *VH, double *WH, slice &WL)
