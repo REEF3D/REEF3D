@@ -209,7 +209,7 @@ void lexer::ctrlrecv()
 	B29 = dctrl[dd];
 	dd++;
     B30 = ictrl[ii];
-	ii++;
+	ii++;    B31 = dctrl[dd];	dd++;    B32 = ictrl[ii];	ii++;    B32_x = dctrl[dd];	dd++;    B32_y = dctrl[dd];	dd++;    B32_z = dctrl[dd];	dd++;
     B50 = dctrl[dd];
 	dd++;
 	B51 = dctrl[dd];

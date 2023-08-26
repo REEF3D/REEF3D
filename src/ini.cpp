@@ -124,7 +124,10 @@ void lexer::ini_default()
 	B20=2;			// int slip or no-slip boundary condition for velocity    B23=1;            // int ghostcell extrapolation or refective
 	B26=1;			// int boundary condition implementation level set method
 	B29=0.5;		// double gamma for gc image point
-	B30=0;			// int inflow crossection via cbc
+	B30=0;			// int type of pressure reference point
+    B31=0.0;         // double pressure reference value
+    B32=0;           // int pressure reference location
+    B32_x=B32_y=B32_z=0.0; // double pressure reference location
 	B50=0.001;		// double global wall roughness ks
 	B51=-1.0;		// double global wall roughness ks
 	B52=-1.0;		// double global wall roughness ks
