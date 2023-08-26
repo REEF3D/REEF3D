@@ -85,24 +85,11 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
     else
 	if(( (bc==2&&pressout_lable==0) ||bc==211||bc==212||bc==112||bc==111) && gcv==40)
 	return gclabel_press;
-	
     
-    // pressure floating_gc
-	else
-	if((bc==41||bc==42||bc==43) && gcv==40 && (cs==2||cs==3||cs==1||cs==4))
-	return 9;
-    
-	else
-	if((bc==41||bc==42||bc==43) && gcv==40 && (cs==5||cs==6) )
-	return 9;
-	
-	else
-	if((bc==41||bc==42||bc==43) && (cs==5||cs==6) && gcv==401)
-	return 10;
-    
-	else
-	if((bc==41||bc==42||bc==43) && (cs==5||cs==6) && gcv==402)
-	return 9;
+    // amtosphere
+    else
+	if(bc==9 && gcv==40)
+	return 21;
 	
 // ro
     else
