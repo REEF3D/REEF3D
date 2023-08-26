@@ -204,8 +204,6 @@ void lexer::ctrlrecv()
 	ii++;
     B23 = ictrl[ii];
 	ii++;
-	B26 = ictrl[ii];
-	ii++;
 	B29 = dctrl[dd];
 	dd++;
     B30 = ictrl[ii];
@@ -336,8 +334,6 @@ void lexer::ctrlrecv()
 	dd++;
     B120 = dctrl[dd];
 	dd++;
-	B121 = ictrl[ii];
-	ii++;
 	B122 = dctrl[dd];
 	dd++;
     B123 = dctrl[dd];
@@ -540,11 +536,6 @@ void lexer::ctrlrecv()
 	ii++;
     D37 = ictrl[ii];
 	ii++;
-    D38 = ictrl[ii];
-	ii++;
-    D39 = ictrl[ii];
-	ii++;
-	
 	
     F10 = ictrl[ii];
 	ii++;
@@ -803,14 +794,6 @@ void lexer::ctrlrecv()
 	N10 = ictrl[ii];
     ii++;
     N11 = ictrl[ii];
-    ii++;
-    N12 = ictrl[ii];
-    ii++;
-    N21 = ictrl[ii];
-    ii++;
-    N22 = ictrl[ii];
-    ii++;
-    N23 = ictrl[ii];
     ii++;
     N40 = ictrl[ii];
     ii++;

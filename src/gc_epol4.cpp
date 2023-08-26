@@ -29,13 +29,8 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 //Level Set
 
 	if((bc==21||bc==22||bc==5||bc==41||bc==42||bc==43||bc==7||bc==8||bc==9||bc==41||bc==221||bc==211||bc==121||bc==111) 
-        && (gcv==51 || gcv==52 || gcv==53 || gcv==54) && (p->B26<3 || cs!=5))
+        && (gcv==51 || gcv==52 || gcv==53 || gcv==54))
 	return gclabel_lsm;
-
-	else
-	if((bc==21||bc==22||bc==5||bc==41||bc==42||bc==43||bc==7||bc==8||bc==9||bc==41||bc==221||bc==211||bc==121||bc==111) 
-        && (gcv==51 || gcv==52 || gcv==53 || gcv==54) && (p->B26==3 && cs==5) && p->count>0)
-	return 3;
 	
 	else
 	if((bc==3||bc==221||bc==211||bc==121||bc==111) && (gcv==51 || gcv==52 || gcv==53 || gcv==54))

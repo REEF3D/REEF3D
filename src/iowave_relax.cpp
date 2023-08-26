@@ -53,9 +53,6 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
 		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
 		G=H;
 		}
-		
-		if(p->B121==0 && phival<-epsi)
-		G=1.0;
         
         if(phival>=0.0)
         {
@@ -119,10 +116,6 @@ void iowave::v_relax(lexer *p, fdm *a, ghostcell *pgc, field& vvel)
 		G=H;
 		}
 		
-		if(p->B121==0 && phival<-epsi)
-		G=1.0;
-        
-        
         if(phival>=0.0)
         {
         if(p->pos_z()<=p->phimean)
@@ -185,10 +178,6 @@ void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
 		G=H;
 		}
 		
-		if(p->B121==0 && phival<-epsi)
-		G=1.0;
-        
-        
         if(phival>=0.0)
         {
         if(p->pos_z()<=p->phimean)
@@ -235,13 +224,7 @@ void iowave::p_relax(lexer *p, fdm *a, ghostcell *pgc, field& press)
         {            
             // Zone 2
             if(db<1.0e20)
-			{
-            if(p->D38==0)
             press(i,j,k) = (1.0-relax4_nb(i,j))*((p->phimean - p->pos_z())*a->ro(i,j,k)*fabs(p->W22)) + relax4_nb(i,j)*press(i,j,k);
-            
-            if(p->D38>0)
-            press(i,j,k) = relax4_nb(i,j)*press(i,j,k);
-			}
         }
     }		
 }

@@ -199,15 +199,8 @@ void ghostcell::gcini(lexer* p)
     gclabel_w_orth=11;
     }
 	
-	
-	if(p->B26==1 || p->B26==3)
+
 	gclabel_lsm=4;
-	
-	if(p->B26==2)
-	gclabel_lsm=3;
-    
-    if(p->B26==0)
-	gclabel_lsm=22;
 	
 	
 	awa_lable=0;

@@ -284,11 +284,11 @@ public:
     int A550,A551,A552,A553;
     
 	// boundary conditions
-	int B10,B20,B23,B26;
+	int B10,B20,B23;
     int B30,B32;
     double B31,B32_x,B32_y,B32_z;    
     int B60,B61,B70,B71,B75,B76,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B94,B98,B99,B101,B105,B106,B107;
-	int B121,B136,B139,B180,B191,B192,B240,B241,B242,B243;
+	int B136,B139,B180,B191,B192,B240,B241,B242,B243;
 	double B29,B50,B51,B52,B53,B54,B55,B56,B81_1,B81_2,B81_3,B83,B117,B87_1,B87_2,B88;
 	double B91_1,B91_2,B93_1,B93_2,B94_wdt,B96_1,B96_2,B102,B105_1,B105_2,B105_3;
 	double *B70_val,*B70_dist,*B70_b,*B70_x,*B70_y;
@@ -369,7 +369,7 @@ public:
 	double *C75_x,*C75_z,*C75_a,*C75_s,*C75_l,*C75_v;
 
 	// discretization
-	int D10,D11,D20,D21,D30,D31,D32,D33,D37,D38,D39;
+	int D10,D11,D20,D21,D30,D31,D32,D33,D37;
 
 	// Free Surface
 	int F10,F30,F31,F32,F34,F35,F36,F40,F44,F46,F47,F49,F50,F150,F151;
@@ -434,7 +434,7 @@ public:
     double I241;
 
 	// Numerical Options
-	int N10,N11,N12,N21,N22,N23,N40,N45,N46,N48,N60;
+	int N10,N11,N40,N45,N46,N48,N60;
 	double N41,N43,N44,N47,N49,N50,N61;
 
 	// MPI Options

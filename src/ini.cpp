@@ -122,7 +122,6 @@ void lexer::ini_default()
     // Boundary Conditions
 	B10=0;			// int wall laws velocities on/off
 	B20=2;			// int slip or no-slip boundary condition for velocity    B23=1;            // int ghostcell extrapolation or refective
-	B26=1;			// int boundary condition implementation level set method
 	B29=0.5;		// double gamma for gc image point
 	B30=0;			// int type of pressure reference point
     B31=0.0;         // double pressure reference value
@@ -185,7 +184,6 @@ void lexer::ini_default()
     B116=1;         // int x or beta input for flap wavemaker theories
     B117=0.0;		  // double starting time shift for timeseries input
     B120=-90.0;       // doubel delta t for wave generation
-	B121=1;        // int air velocity on/off in wave relaxation zone
     B122=1.0;        // int air velocity on/off for active wave generation
     B123=0.0;       // double flap AWA hinge location
     B125=0;         // int take 2D slice input for HDC
@@ -295,8 +293,6 @@ void lexer::ini_default()
 	D30=1;			// int pressure scheme    D31=0;			// int normalize pressure to free surface    D32=1;			// int boundary treatment Poisson equation
     D33=0;			// int corner cells sigma grid Poisson matrix
     D37=0;          // int type of FSFBC for single fluid flow
-    D38=0;          // int add hydrostatic pressure gradients to NSE
-    D39=0;          // int activate 2nd-order pressure correction for PJM CORR
 
     // Free Surface
 	F10=2;			    // int free surface scheme
@@ -432,10 +428,6 @@ void lexer::ini_default()
     // Numerics
 	N10=14;			// int linear poisson solver
 	N11=11;         // int precondioner
-	N12=1;         //
-    N21=0;         // int PFMG skip relax
-    N22=3;         // int PFMG relax type
-    N23=0;         // int PFMG RAP type
 	N40=3;			// int time scheme
 	N41=1.0e+19; 	// double total time
 	N43=1.0e-5;     // double stopping criteria convection-diffusion
