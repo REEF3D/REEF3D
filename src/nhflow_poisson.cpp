@@ -147,11 +147,11 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             // BED
             if(p->flag7[FIJKm1]<0)
             {
-            d->rhsvec.V[n] -= d->M.b[n]*P[FIJK];
-            d->M.b[n] = 0.0;
-            
-            //d->M.p[n] += d->M.b[n];
+            //d->rhsvec.V[n] -= d->M.b[n]*P[FIJK];
             //d->M.b[n] = 0.0;
+            
+            d->M.p[n] += d->M.b[n];
+            d->M.b[n] = 0.0;
             }
             
             // FSFBC
@@ -187,7 +187,6 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             d->rhsvec.V[n] -= d->M.nt[n]*P[FIp1JKp1];
             d->M.nt[n] = 0.0;
             }
-            
             
             if(p->flag7[FIJm1Km1]<0)
             {

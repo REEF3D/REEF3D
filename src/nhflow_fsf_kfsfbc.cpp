@@ -155,6 +155,7 @@ void nhflow_fsf_f::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, dou
         /*d->W[IJKm1] = wval;
         d->W[IJKm2] = wval;
         d->W[IJKm3] = wval;*/
+
     }
 }
 
