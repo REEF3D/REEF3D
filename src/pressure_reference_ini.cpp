@@ -30,39 +30,54 @@ void pressure_reference::reference_ini(lexer*p, fdm* a, ghostcell *pgc)
     double xmin,ymin,zmax;
     int gcinglobal=0;
     
-    xmin=ymin=-1.0e10;
+    xmin=ymin=1.0e20;
+    zmax=-1.0e20;
     
     gcinglobal=pgc->globalisum(p->gcin_count);
     
+    //cout<<p->mpirank<<" gcinglobal: "<<gcinglobal<<endl;
+    
     // ini gage location
-    if(p->B32==0 && p->B30==1)
+    if((p->B32==0 && p->B30==1) || p->B30==2 || p->B30==3)
     {
-    //find active smallest xy inlet location
-    
-    
-    if(gcinglobal>0)
-    for(n=0;n<p->gcin_count;n++)
-    {
-    i=p->gcin[n][0];
-    j=p->gcin[n][1];
-    k=p->gcin[n][2];
-    
-    xmin = MIN(xmin,p->XP[IP]);
-    ymin = MIN(ymin,p->YP[JP]);
-    zmax = MAX(zmax,p->ZP[KP]);
+        //find active smallest xy inlet location
+        if(gcinglobal>0)
+        for(n=0;n<p->gcin_count;n++)
+        {
+        i=p->gcin[n][0];
+        j=p->gcin[n][1];
+        k=p->gcin[n][2];
+        
+        xmin = MIN(xmin,p->XP[IP]);
+        ymin = MIN(ymin,p->YP[JP]);
+        zmax = MAX(zmax,p->ZP[KP]);
+        }
+        
+        if(gcinglobal==0)
+        LOOP
+        {    
+        xmin = MIN(xmin,p->XP[IP]);
+        ymin = MIN(ymin,p->YP[JP]);
+        zmax = MAX(zmax,p->ZP[KP]);
+        }
+        
+        p->B32_x = pgc->globalmin(xmin);
+        p->B32_y = pgc->globalmin(ymin);
+        p->B32_z = pgc->globalmax(zmax);
     }
     
-    if(gcinglobal==0)
-    LOOP
-    {    
-    xmin = MIN(xmin,p->XP[IP]);
-    ymin = MIN(ymin,p->YP[JP]);
-    zmax = MAX(zmax,p->ZP[KP]);
-    }
     
-    p->B32_x = pgc->globalmin(xmin);
-    p->B32_y = pgc->globalmin(ymin);
-    p->B32_z = pgc->globalmax(zmax);
+    //atmospheric reference pressure
+    if(p->B30==3)
+    {
+    gageval = -1.0e20;
+    
+    if(p->B32_x>=p->originx && p->B32_x<p->endx)
+    if(p->B32_y>=p->originy && p->B32_y<p->endy)
+    if(p->B32_z>=p->originz && p->B32_z<p->endz)
+    gageval = p->ccipol4(a->press,p->B32_x,p->B32_y,p->B32_z);
+    
+    p->B31 = pgc->globalmax(gageval);
     }
     
 }

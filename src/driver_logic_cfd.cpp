@@ -461,7 +461,7 @@ void driver::logic_cfd()
 	ppress = new pressure_void(p);
 
 	if(p->D30==1 && p->W30==0 && p->F10==2 && p->Z10==0 && p->X10==0)
-	ppress = new pjm(p,a,pheat,pconc);
+	ppress = new pjm(p,a,pgc,pheat,pconc);
 
     if(p->D30==1 && p->W30==1 && p->F10==2 && p->Z10==0 && p->X10==0)
 	ppress = new pjm_comp(p,a,pgc,pheat,pconc);

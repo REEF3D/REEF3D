@@ -38,7 +38,7 @@ Author: Hans Bihs
 #include"density_vof.h"
 #include"density_rheo.h"
  
-pjm::pjm(lexer* p, fdm *a, heat *&pheat, concentration *&ppconc) : pressure_reference(p)
+pjm::pjm(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&ppconc) : pressure_reference(p)
 {
     pconc = ppconc;
     
@@ -65,6 +65,8 @@ pjm::pjm(lexer* p, fdm *a, heat *&pheat, concentration *&ppconc) : pressure_refe
     
     if(p->F300>=1)
     pd = new density_rheo(p);
+    
+    reference_ini(p,a,pgc);
     
     gcval_press=40;  
 	

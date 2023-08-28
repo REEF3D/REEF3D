@@ -48,6 +48,8 @@ private:
     void gage_fsf(lexer*,fdm*,ghostcell*);
     void fsf_normalize(lexer*,fdm*,ghostcell*);
     void atmosphere(lexer*,fdm*,ghostcell*);
+    
+    double gageval;
 	
 	double H,H_fb,roval,phival;
 	int ii,jj,kk;

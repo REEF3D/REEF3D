@@ -37,7 +37,7 @@ class pjm : public pressure, public pressure_reference
 
 public:
 
-	pjm(lexer* p, fdm *a, heat*&, concentration*&);
+	pjm(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
 	virtual ~pjm();
 
 	virtual void start(fdm*,lexer*, poisson*, solver*, ghostcell*, ioflow*, field&, field&, field&,double);

@@ -27,11 +27,50 @@ Author: Hans Bihs
 
 void pressure_reference::gage_fixed(lexer*p, fdm* a, ghostcell *pgc)
 {
+    gageval = -1.0e20;
     
+    if(p->B32_x>=p->originx && p->B32_x<p->endx)
+    if(p->B32_y>=p->originy && p->B32_y<p->endy)
+    if(p->B32_z>=p->originz && p->B32_z<p->endz)
+    gageval = p->ccipol4(a->press,p->B32_x,p->B32_y,p->B32_z);
+    
+    gageval = pgc->globalmax(gageval);
+    
+    if(gageval>-0.9e20)
+    LOOP
+    a->press(i,j,k) -= (gageval - p->B31);
+    
+    //cout<<p->mpirank<<" gage: "<<gageval<<" x: "<<p->B32_x<<" y: "<<p->B32_y<<" z: "<<p->B32_z<<endl;
     
 }
 
 void pressure_reference::gage_fsf(lexer*p, fdm* a, ghostcell *pgc)
 {
+    p->B32_z = gageval = -1.0e20;
+    
+    if(p->B32_x>=p->originx && p->B32_x<p->endx)
+    if(p->B32_y>=p->originy && p->B32_y<p->endy)
+    {
+    i =  p->posc_i(p->B32_x);
+    j =  p->posc_j(p->B32_y);
+    
+        for(k=0; k<p->knoz-1; ++k)
+        PCHECK
+        p->B32_z = MAX(p->B32_z,-(a->phi(i,j,k)*p->DZP[KP])/(a->phi(i,j,k+1)-a->phi(i,j,k) + 1.0e-8) + p->pos_z());
+        
+    cout<<p->mpirank<<" i: "<<i<<" j: "<<j<<" k: "<<k<<" z: "<<p->B32_z<<endl;
+        
+    gageval = p->ccipol4(a->press,p->B32_x,p->B32_y,p->B32_z);
+    }
+    
+    gageval = pgc->globalmax(gageval);
+    p->B32_z = pgc->globalmax(p->B32_z);
+    
+    if(gageval>-0.9e20)
+    LOOP
+    a->press(i,j,k) -= (gageval - p->B31);
+
+    
+     cout<<p->mpirank<<" gage: "<<gageval<<" x: "<<p->B32_x<<" y: "<<p->B32_y<<" z: "<<p->B32_z<<endl;
     
 }
