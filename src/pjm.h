@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"pressure.h"
-#include"increment.h"
+#include"pressure_reference.h"
 
 class heat;
 class concentration;
@@ -32,7 +32,7 @@ using namespace std;
 #ifndef PJM_H_
 #define PJM_H_
 
-class pjm : public pressure, public increment
+class pjm : public pressure, public pressure_reference
 {
 
 public:
@@ -51,7 +51,6 @@ public:
     virtual void wpgrad(lexer*,fdm*,slice&,slice&);
 
 private:    
-    void normalize(lexer*,fdm*,ghostcell*);
     void debug(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 	double starttime,endtime;
 	int count, gcval_press;

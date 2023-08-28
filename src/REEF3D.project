@@ -944,6 +944,9 @@
       <File Name="momentum_AB2.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Pressure">
+      <VirtualDirectory Name="Reference">
+        <File Name="pressure_reference.h"/>
+      </VirtualDirectory>
       <File Name="pjm_hydrostatic.h"/>
       <File Name="pjm_corr.h"/>
       <VirtualDirectory Name="Poisson">
@@ -2571,6 +2574,12 @@
       <File Name="momentum_AB2.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Pressure">
+      <VirtualDirectory Name="Reference">
+        <File Name="pressure_reference_ini.cpp"/>
+        <File Name="pressure_reference_gage.cpp"/>
+        <File Name="pressure_reference_fsf_norm.cpp"/>
+        <File Name="pressure_reference.cpp"/>
+      </VirtualDirectory>
       <File Name="pjm_hydrostatic.cpp"/>
       <VirtualDirectory Name="Debug">
         <File Name="pjm_debug.cpp"/>
