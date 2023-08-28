@@ -38,7 +38,7 @@ Author: Hans Bihs
 #include"density_vof.h"
 #include"density_rheo.h"
  
-pjm::pjm(lexer* p, fdm *a, heat *&pheat, concentration *&ppconc)
+pjm::pjm(lexer* p, fdm *a, heat *&pheat, concentration *&ppconc) : pressure_reference(p)
 {
     pconc = ppconc;
     
@@ -95,8 +95,7 @@ void pjm::start(fdm *a,lexer *p, poisson *ppois, solver *psolv, ghostcell *pgc, 
         endtime=pgc->timer();
         
         
-    if(p->D31>0)
-    normalize(p,a,pgc);
+    reference_start(p,a,pgc);
 
 	pgc->start4(p,a->press,gcval_press);
 
@@ -179,90 +178,4 @@ void pjm::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 void pjm::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
 }
-
-void pjm::normalize(lexer*p,fdm* a, ghostcell *pgc)
-{
-    double epsi;
-	double dirac;
-    double pressval;
-    double dirac_sum;
-
-    
-    // epsi
-    if(p->j_dir==0)        
-    epsi = 2.1*(1.0/2.0)*(p->DRM+p->DTM);
-        
-    if(p->j_dir==1)
-    epsi = 2.1*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
-
-
-    // pressval dirac
-    if(p->D31==1)
-    {
-    pressval=0.0;
-    dirac_sum=0.0;
-	LOOP
-	{
-        if(fabs(a->phi(i,j,k))<epsi)
-        dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
-            
-        if(fabs(a->phi(i,j,k))>=epsi)
-        dirac=0.0;
-        
-        if(dirac>1.0e-10 && a->phi(i,j,k)<0.0)
-        {
-        pressval += dirac*a->press(i,j,k);
-        dirac_sum += dirac;
-        }
-    }
-    
-    pressval = pgc->globalsum(pressval);
-    
-    
-    dirac_sum = pgc->globalsum(dirac_sum);
-    
-    if(dirac_sum>0)
-    pressval = pressval/dirac_sum;
-    
-    
-    LOOP
-    a->press(i,j,k) -= pressval;
-    }
-    
-    
-    
-    
-    // pressval orig
-    if(p->D31==2)
-    {
-    pressval=0.0;
-    count=0;
-	LOOP
-	{
-        if(fabs(a->phi(i,j,k))<epsi)
-        dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
-            
-        if(fabs(a->phi(i,j,k))>=epsi)
-        dirac=0.0;
-        
-        if(dirac>1.0e-10 && a->phi(i,j,k)<0.0)
-        {
-        pressval += a->press(i,j,k);
-        ++count;
-        }
-	}
-    
-    pressval = pgc->globalsum(pressval);
-    
-    count = pgc->globalisum(count);
-    
-    if(count>0)
-    pressval = pressval/double(count);
-    
-    LOOP
-    a->press(i,j,k) -= pressval;
-    }
-
-}
-
 
