@@ -21,8 +21,9 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"pressure.h"
-#include"increment.h"
+#include"pressure_reference.h"
 #include"field4.h"
+
 
 class heat;
 class concentration;
@@ -33,7 +34,7 @@ using namespace std;
 #ifndef PJM_CORR_H_
 #define PJM_CORR_H_
 
-class pjm_corr : public pressure, public increment
+class pjm_corr : public pressure, public pressure_reference
 {
 
 public:

@@ -39,7 +39,7 @@ Author: Hans Bihs
 #include"density_vof.h"
 #include"density_rheo.h"
  
-pjm_corr::pjm_corr(lexer* p, fdm *a, heat *&pheat, concentration *&pconc) : pcorr(p)
+pjm_corr::pjm_corr(lexer* p, fdm *a, heat *&pheat, concentration *&pconc) : pcorr(p), pressure_reference(p)
 {
     if((p->F80==0||p->A10==51) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==0)
 	pd = new density_f(p);
@@ -102,6 +102,7 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
     
     pgc->start4(p,pcorr,gcval_press);
     presscorr(p,a,uvel,vvel,wvel,pcorr,alpha);
+    reference_start(p,a,pgc);
 	pgc->start4(p,a->press,gcval_press);
 	
 	ucorr(p,a,uvel,alpha);

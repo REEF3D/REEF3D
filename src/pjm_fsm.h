@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"pressure.h"
-#include"increment.h"
+#include"pressure_reference.h"
 
 class heat;
 class concentration;
@@ -32,7 +32,7 @@ using namespace std;
 #ifndef PJM_FSM_H_
 #define PJM_FSM_H_
 
-class pjm_fsm : public pressure, public increment
+class pjm_fsm : public pressure, public pressure_reference
 {
 
 public:
