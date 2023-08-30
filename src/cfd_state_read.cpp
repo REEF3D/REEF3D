@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2023 Hans Bihs
 
@@ -45,7 +45,6 @@ Author: Hans Bihs
 
 void cfd_state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sediment *psed)
 {
-    /*
     // Open File
 	filename(p,a,pgc,p->I41);
 	
@@ -89,7 +88,6 @@ void cfd_state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sedime
     pgc->start4a(p,a->topo,150);
     
     // topoupdate
-    if(p->G3==0)
     pgc->topo_update(p,a);
     
     ULOOP
@@ -193,7 +191,6 @@ void cfd_state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sedime
 	pgc->start4(p,a->conc,40);
 	
 	result.close();
-    */
 }
 
 
