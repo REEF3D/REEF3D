@@ -41,9 +41,6 @@ wave_lib_hdc::wave_lib_hdc(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc
     cout<<" HDC simtime[0]: "<<simtime[0]<<" simtime[numiter-1]: "<<simtime[numiter-1]<<endl;
     }
     
-    singamma = sin((p->B105_1)*(PI/180.0));
-    cosgamma = cos((p->B105_1)*(PI/180.0));
-    
     startup=0;
     endseries=0;
 }
@@ -62,8 +59,7 @@ double wave_lib_hdc::wave_u(lexer *p, double x, double y, double z)
     if(endseries==0)
     vel = space_interpol(p,U,x,y,z);
     
-    
-    return cosgamma*vel;
+    return vel;
 }
 
 double wave_lib_hdc::wave_v(lexer *p, double x, double y, double z)
@@ -76,7 +72,7 @@ double wave_lib_hdc::wave_v(lexer *p, double x, double y, double z)
     if(endseries==0 && p->B125==0 && p->B127==0)
     vel = space_interpol(p,V,x,y,z);
 
-    return singamma*vel;
+    return vel;
 }
 
 double wave_lib_hdc::wave_w(lexer *p, double x, double y, double z)
