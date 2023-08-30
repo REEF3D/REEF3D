@@ -71,6 +71,6 @@ void pressure_reference::gage_fsf(lexer*p, fdm* a, ghostcell *pgc)
     a->press(i,j,k) -= (gageval - p->B31);
 
     if(p->mpirank==0)
-    cout<<p->mpirank<<" gage_fsf: "<<gageval<<" x: "<<p->B32_x<<" y: "<<p->B32_y<<" z: "<<p->B32_z<<endl;
+    cout<<" gage_fsf: "<<gageval<<" x: "<<p->B32_x<<" y: "<<p->B32_y<<" z: "<<p->B32_z<<endl;
     
 }
