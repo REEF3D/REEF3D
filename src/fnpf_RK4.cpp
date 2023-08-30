@@ -214,7 +214,7 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pgc->gcsl_start4(p,frk,gcval_fifsf);
     
     // fsfdisc and sigma update
-    pf->breaking(p,c,pgc,en,c->eta,frk,0.5);
+    pf->breaking(p,c,pgc,en,c->eta,frk,1.0);
     pf->wetdry(p,c,pgc,erk,frk);
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk,erk);
     pf->fsfdisc(p,c,pgc,erk,frk);
