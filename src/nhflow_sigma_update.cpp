@@ -59,7 +59,6 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta
     d->Exx(i,j) = sxx(eta);
     }
     
-    
     SLICELOOP4
     if(p->wet[IJ]==0)
     {

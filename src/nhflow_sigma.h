@@ -45,12 +45,6 @@ public:
     virtual void sigma_ini(lexer*, fdm_nhf*, ghostcell*, slice&);
     virtual void sigma_update(lexer*, fdm_nhf*, ghostcell*, slice&);
     
-    
-    double sigmax(lexer*,int);
-    double sigmay(lexer*,int);
-    double sigmaz(lexer*,int);
-    double sigmat(lexer*,int);
-    
     void omega_update(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
 
         

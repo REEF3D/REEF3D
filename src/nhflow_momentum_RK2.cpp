@@ -71,7 +71,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 //Step 1
 //--------------------------------------------------------
     
-    sigma_update(p,d,pgc,eta_temp);
+    sigma_update(p,d,pgc,d->eta);
     reconstruct(p,d,pgc,pfsf,pss,precon,d->WL,d->U,d->V,d->W,d->UH,d->VH,d->WH);
     
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
@@ -160,7 +160,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 //Step 2
 //--------------------------------------------------------
  
-    sigma_update(p,d,pgc,eta_temp);
+    sigma_update(p,d,pgc,d->eta);
     reconstruct(p,d,pgc,pfsf,pss,precon,WLRK1,d->U,d->V,d->W,UHRK1,VHRK1,WHRK1);
     
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
