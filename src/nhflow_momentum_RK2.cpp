@@ -326,7 +326,7 @@ void nhflow_momentum_RK2::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *
     d->W[IJK] = 0.0;
     }
     
-    // Fr nuber limiter
+    // Fr number limiter
     /*LOOP
     WETDRY
     {

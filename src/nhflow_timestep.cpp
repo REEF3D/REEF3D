@@ -140,7 +140,7 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->j_dir==1 )
     cu = MIN(cu,cv);
     
-    cu = MIN(cu,cw);
+    //cu = MIN(cu,cw);
     
     //cu = MIN(cu,co);
     

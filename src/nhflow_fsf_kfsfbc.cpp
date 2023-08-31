@@ -89,6 +89,10 @@ void nhflow_fsf_f::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, dou
         d->Wt[IJK] = wval;
         d->Wt[IJKp1] = wval;
         d->Wt[IJKp2] = wval;
+        
+        d->W[IJK] = wval;
+        d->W[IJKp1] = wval;
+        d->W[IJKp2] = wval;
     }
 }   
   
@@ -105,8 +109,8 @@ void nhflow_fsf_f::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, dou
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
     
-    Pval = d->Ut[IJK];
-    Qval = d->Vt[IJK];
+    Pval = d->U[IJK];
+    Qval = d->V[IJK];
     
     wval=0.0;    
     
@@ -126,7 +130,7 @@ void nhflow_fsf_f::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, dou
            - Qval*((d->depth(i,j+1)-d->depth(i,j-1))/(p->DYP[JP]+p->DYP[JP1]));
     }
     
-    if(p->A516==3)
+    if(p->A516>=3)
     {
         dfdx_plus = (d->depth(i+1,j)-d->depth(i,j))/p->DXP[IP];
         dfdx_min  = (d->depth(i,j)-d->depth(i-1,j))/p->DXP[IM1];
@@ -152,9 +156,12 @@ void nhflow_fsf_f::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, dou
         d->Wt[IJKm2] = wval;
         d->Wt[IJKm3] = wval;
         
-        /*d->W[IJKm1] = wval;
+        if(p->A516==4)
+        {
+        d->W[IJKm1] = wval;
         d->W[IJKm2] = wval;
-        d->W[IJKm3] = wval;*/
+        d->W[IJKm3] = wval;
+        }
 
     }
 }
