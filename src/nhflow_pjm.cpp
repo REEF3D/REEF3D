@@ -129,7 +129,7 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
     n=0;
     LOOP
     {
-    fac = p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
+    fac = p->DZN[KP]/(p->DZN[KP]+p->DZN[KM1]);
     
     U1 = (1.0-fac)*U[Im1JK] + fac*U[Im1JKm1]; 
     U2 = (1.0-fac)*U[Ip1JK] + fac*U[Ip1JKm1]; 
@@ -138,10 +138,10 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
     V2 = (1.0-fac)*V[IJp1K] + fac*V[IJp1Km1]; 
     
          
-    d->rhsvec.V[n] =      -  ((U2-U1)/(p->DXP[IP1] + p->DXP[IP])
+    d->rhsvec.V[n] =      -  ((U2-U1)/(p->DXP[IP] + p->DXP[IM1])
                             + p->sigx[FIJK]*(U[IJK]-U[IJKm1])/p->DZP[KM1]
                             
-                            + (V2-V1)/(p->DYP[JP1] + p->DYP[JP])
+                            + (V2-V1)/(p->DYP[JP] + p->DYP[JM1])
                             + p->sigy[FIJK]*(V[IJK]-V[IJKm1])/p->DZP[KM1]
 
                             + p->sigz[IJ]*(W[IJK]-W[IJKm1])/p->DZP[KM1])/(alpha*p->dt);

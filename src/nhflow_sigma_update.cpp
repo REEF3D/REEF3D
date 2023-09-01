@@ -29,12 +29,9 @@ Author: Hans Bihs
 #include"fnpf_cds2.h"
 #include"fnpf_cds4.h"
 
-#define WLVL (fabs(d->WL(i,j))>0.00005?d->WL(i,j):1.0e20)
-#define HX (fabs(d->hx(i,j))>1.0e-20?d->hx(i,j):1.0e20)
-#define HXP (fabs(0.5*(d->WL(i,j)+d->WL(i+1,j)))>1.0e-20?0.5*(d->WL(i,j)+d->WL(i+1,j)):1.0e20)
-#define HY (fabs(d->hy(i,j))>1.0e-20?d->hy(i,j):1.0e20)
+#define WLVL (fabs(WL(i,j))>0.00005?WL(i,j):1.0e20)
 
-void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta)
+void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
     double wl,sigval;
     double bx,by,ex,ey;
@@ -44,19 +41,19 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta
     if(p->i_dir==1 && p->j_dir==1)
     SLICELOOP4
     {
-    d->Ex(i,j) = sx(eta);
-    d->Ey(i,j) = sy(eta);
+    d->Ex(i,j) = sx(d->eta);
+    d->Ey(i,j) = sy(d->eta);
     
-    d->Exx(i,j) = sxx(eta);
-    d->Eyy(i,j) = syy(eta);
+    d->Exx(i,j) = sxx(d->eta);
+    d->Eyy(i,j) = syy(d->eta);
     }
     
     // 2D
     if(p->j_dir==0)
     SLICELOOP4
     {
-    d->Ex(i,j) = sx(eta);    
-    d->Exx(i,j) = sxx(eta);
+    d->Ex(i,j) = sx(d->eta);    
+    d->Exx(i,j) = sxx(d->eta);
     }
     
     SLICELOOP4
@@ -125,14 +122,11 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta
     // sigz
     SLICELOOP4
     {
-    wl = MAX(0.00005, eta(i,j) + p->wd - d->bed(i,j));
-    wl = (fabs(wl)>1.0e-20?wl:1.0e20);
-    
     if(p->wet[IJ]==0)
     p->sigz[IJ] = 0.0;
     
     if(p->wet[IJ]==1)
-    p->sigz[IJ] = 1.0/wl;
+    p->sigz[IJ] = 1.0/WLVL;
     }
 
     // sigt
