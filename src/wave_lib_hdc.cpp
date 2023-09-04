@@ -41,9 +41,6 @@ wave_lib_hdc::wave_lib_hdc(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc
     cout<<" HDC simtime[0]: "<<simtime[0]<<" simtime[numiter-1]: "<<simtime[numiter-1]<<endl;
     }
     
-    singamma = sin((p->B105_1)*(PI/180.0));
-    cosgamma = cos((p->B105_1)*(PI/180.0));
-    
     startup=0;
     endseries=0;
 }
@@ -56,26 +53,34 @@ double wave_lib_hdc::wave_u(lexer *p, double x, double y, double z)
 {
     double vel=0.0;
     
+    if(p->B125==1)
+    y=p->B125_y;
+    
     if(endseries==0)
     vel = space_interpol(p,U,x,y,z);
     
-    
-    return cosgamma*vel;
+    return vel;
 }
 
 double wave_lib_hdc::wave_v(lexer *p, double x, double y, double z)
 {
     double vel=0.0;
     
-    if(endseries==0)
+    if(p->B125==1)
+    y=p->B125_y;
+    
+    if(endseries==0 && p->B125==0 && p->B127==0)
     vel = space_interpol(p,V,x,y,z);
 
-    return singamma*vel;
+    return vel;
 }
 
 double wave_lib_hdc::wave_w(lexer *p, double x, double y, double z)
 {
     double vel=0.0;
+    
+    if(p->B125==1)
+    y=p->B125_y;
     
     if(endseries==0)
     vel = space_interpol(p,W,x,y,z);
@@ -86,6 +91,9 @@ double wave_lib_hdc::wave_w(lexer *p, double x, double y, double z)
 double wave_lib_hdc::wave_eta(lexer *p, double x, double y)
 {
     double eta=0.0;
+    
+    if(p->B125==1)
+    y=p->B125_y;
     
     if(endseries==0)
     eta = plane_interpol(p,E,x,y);
@@ -109,8 +117,11 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
     // only at startup
     if(startup==0)
     {
-        t1 = simtime[0];
-        t2 = simtime[1];
+        deltaT = simtime[1]-simtime[0];
+        
+        t1 = (simtime[1]-(p->simtime+p->I241))/deltaT;
+        t2 = ((p->simtime+p->I241)-simtime[0])/deltaT;
+        
         q1 = diter;
         q2 = diter+1;
         
@@ -201,14 +212,14 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
         deltaT = simtime[q2-diter]-simtime[q1-diter];
         
         if(p->mpirank==0)
-        cout<<"HDC  q1: "<<q1<<" q2: "<<q2<<" deltaT: "<<deltaT<<" simtime[q1]: "<<simtime[q1-diter]<<" simtime[q2]: "<<simtime[q2-diter]<<endl;
+        cout<<"HDC  q1: "<<q1<<" q2: "<<q2<<" t1: "<<t1<<" t2: "<<t2<<" deltaT: "<<deltaT<<" simtime[q1]: "<<simtime[q1-diter]<<" simtime[q2]: "<<simtime[q2-diter]<<endl;
 
         t1 = (simtime[q2-diter]-(p->simtime+p->I241))/deltaT;
         t2 = ((p->simtime+p->I241)-simtime[q1-diter])/deltaT;
         
         
     // time interpolation
-    if(q1!=q1n || q2!=q2n)
+    //if(q1!=q1n || q2!=q2n)
     time_interpol(p);
     
 }

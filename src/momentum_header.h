@@ -20,15 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"momentum_FS3.h"
 #include"momentum_RK2.h"
 #include"momentum_RK3.h"
-#include"momentum_RK3_old.h"
+#include"momentum_RKLS3.h"
+#include"momentum_FC2.h"
 #include"momentum_FC3.h"
 #include"momentum_FCC3.h"
 #include"momentum_AB2.h"
 #include"momentum_void.h"
-#include"momentum_RK3_df.h"
-#include"momentum_IMEX.h"
-#include"nhflow_momentum_RK2.h"
-#include"nhflow_momentum_RK3.h"
+#include"momentum_RKLS3_df.h"
+#include"momentum_RKLS3_sf.h"
+

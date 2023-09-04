@@ -1,4 +1,64 @@
 
+23.08
+x added momentum conservative velocity treatment (CFD)
+x added direct forcing support for all Runge-Kutta schemes (CFD)
+x added fully coupled RK2 scheme (CFD)
+x added low storage RK3 scheme (CFD)
+x added pressure reference gages (CFD)
+x fixed HDC for velocity in y-direction (CFD)
+x updated AWA numerical beach (CFD)
+x improved direct forcing k-omega boundary condition handling (CFD)
+x removed IMEX implicit-explicit Runge-Kutta scheme (CFD)
+x removed fractional step Runge-Kutta scheme (CFD)
+x removed GCIBM 6DOF (CFD)
+x added NHFLOW, an efficient 3D Navier-Stokes solver on a sigma grid
+x deprecated NSEWAVE
+x added TVD schemes to water level reconstruction (SFLOW)
+x added significant wave height Hs print out to SFLOW’s vtp file
+x fixed point probes for 2D simulations
+x fixed vtu print out for 2D grids for density and concentration (CFD)
+x fixed bed shear stress calculation before sediment transport start (CFD)
+x improved FNPF wetdry algorithm
+x improved solid forcing and sediment transport (CFD)
+x fixed a patchBC line crash (CFD)
+x improved zero-pressure contour mapping to free surface (CFD)
+x added continuous file support for FNPF restart
+x updated iogravity for sloshing (CFD)
+x added solid forcing (CFD)
+x updated CFD tutorial cases
+x added new ramp-up functions for 6DOF velocity and draft (SFLOW)
+x fixed potential flow ini for complex geometries (CFD)
+x updated free stream outflow for pressure correction methods (CFD)
+x added HDC option to use slices or convert to 1D
+x added discharge probe windows (CFD)
+x added linear sloshing motion (CFD)
+x Added SGS eddy-viscosity limiter for RANS FSF damping (CFD)
+x fixed ALE force calculation for variable bed elevation (FNPF)
+x fixed walldist related sediment transport crash (CFD)
+x added ramp up function to SFLOW 6DOF draft
+
+
+23.03
+x added time-averaged velocity, pressure and temperature to vtu (CFD)
+x fixed wave period based sediment start up 
+x fixed a problem for the initialization of the density thickness (CFD)
+x updated walldist calculation for NUG (CFD)
+x added significant wave height Hs print out to FNPF’s vtu and vtp files
+x fixed and improved HDC routine
+x updated User Guide
+x updated suspended load calculation (CFD)
+x added automatic sediment particle settling velocity calculation (CFD)
+x added simtime initialization
+x added diffusion to vertical velocity component (SFLOW)
+x added pressure probes (CFD)
+x addes a priori wave timeseries printout for iowave
+x added conservative convection discretization to SFLOW
+x updated SFLOW sediment transport
+x fixed 6DOF STL Volume calculation (CFD)
+x fixed a start up crash for PTF
+x added new macOS installation routine to User Guide
+x added new docker based installation routine to User Guide
+
 23.01
 x reordered 6DOF direct forcing implementation (CFD)
 x improved free surface inside and around the 6DOF floating body (CFD)

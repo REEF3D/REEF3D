@@ -58,7 +58,7 @@ VOF_RK3::~VOF_RK3()
 {
 }
 
-void VOF_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particlecorr* ppart, field &F)
+void VOF_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particle_corr* ppart, field &F)
 {
     field4 ark1(p),ark2(p);
     

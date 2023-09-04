@@ -102,7 +102,8 @@ private:
     void updateForcing_oned(lexer*, fdm2D*, ghostcell*);
     
     // motion
-    double ramp(lexer*);
+    double ramp_vel(lexer*);
+    double ramp_draft(lexer*);
 
     double phi, theta, psi;
     double Uext, Vext, Wext, Pext, Qext, Rext;

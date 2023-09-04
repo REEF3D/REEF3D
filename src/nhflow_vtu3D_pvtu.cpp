@@ -29,7 +29,6 @@ void nhflow_vtu3D::pvtu(lexer *p, ghostcell* pgc)
 {	
 	int num=0;
     
-
     if(p->P15==1)
     num = printcount;
 
@@ -85,15 +84,13 @@ void nhflow_vtu3D::pvtu(lexer *p, ghostcell* pgc)
 	result<<"<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
 	result<<"<PUnstructuredGrid GhostLevel=\"0\">"<<endl;
 	
-	
-	
 	result<<"<PPointData>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"P\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"omega_sig\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
     if(p->P23==1)
 	result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"breaking\"/>"<<endl;
 	result<<"</PPointData>"<<endl;
 	
     result<<"<PPoints>"<<endl;
@@ -116,7 +113,6 @@ void nhflow_vtu3D::pvtu(lexer *p, ghostcell* pgc)
 	result<<"</VTKFile>"<<endl;
 
 	result.close();
-
 }
 
 void nhflow_vtu3D::piecename(lexer *p, ghostcell *pgc, int n)

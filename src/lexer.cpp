@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 
-lexer::lexer() : cmu(0.09), position(this), interpolation(this), grid_sigma(this)
+lexer::lexer() : cmu(0.09), position(this), interpolation(this)
 {
     sigT=0.9;
     

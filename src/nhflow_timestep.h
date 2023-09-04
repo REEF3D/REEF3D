@@ -42,8 +42,8 @@ public:
 
 
 private:
-	double sqd,wallu,wallv,wallw;
-	double cu,cv,cw;
+	double wallu,wallv,wallw;
+	double cu,cv,cw,co;
 	const double epsi;
 	double isor,jsor,ksor;
 	double irsm,jrsm,krsm;

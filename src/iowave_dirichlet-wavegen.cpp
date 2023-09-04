@@ -127,7 +127,7 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
     }*/
     
     // NSEWAVE
-    if(p->A10==5)
+    if(p->A10==51)
     {
         for(n=0;n<gcgen4_count;++n)
 		{

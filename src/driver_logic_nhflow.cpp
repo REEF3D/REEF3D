@@ -35,9 +35,8 @@ Author: Hans Bihs
 #include"heat_header.h"
 #include"concentration_header.h"
 #include"benchmark_header.h"
-#include"6DOF_header.h"
 #include"vrans_header.h"
-#include"waves_header.h"
+#include"nhflow_header.h"
 
 void driver::logic_nhflow()
 {    
@@ -47,75 +46,53 @@ void driver::logic_nhflow()
     p->phimean = p->F60;
     
 // nhflow
-    if(p->A10!=55)
+    if(p->A10!=5)
     pnhf=new nhflow_v(p,d,pgc);
     
-    if(p->A10==55)
+    if(p->A10==5)
     pnhf=new nhflow_f(p,d,pgc);
     
-    if(p->A10==55)
-    {
-    if(p->A540==1)
-    pnhfsf = new nhflow_fsf_rk(p,d,pgc,pflow,pBC);
-    
-    if(p->A540==2)
-    pnhfsf = new nhflow_fsf_fsm(p,d,pgc,pflow,pBC);
-    }
+// FSF
+    pnhfsf = new nhflow_fsf_f(p,d,pgc,pflow,pBC);
     
 // time stepping
     // time stepping
 	pnhfstep=new nhflow_timestep(p);
 
 //discretization scheme
-
+    // signal speed
+    pss = new nhflow_signal_speed(p);
+    
+    // reconstruction
+    if(p->A514<=3)
+    precon = new nhflow_reconstruct_hires(p,pBC);
+    
+    if(p->A514==4)
+    precon = new nhflow_reconstruct_weno(p,pBC);
+    
+    if(p->A514==5)
+    precon = new nhflow_reconstruct_wenograd(p,pBC);
+    
     //Convection	
-	/*if(p->D10==0)
-	pconvec=new convection_void(p);
-
-	if(p->D10==1)
-	pconvec=new fou(p);
-
-	if(p->D10==2)
-	pconvec=new cds2(p);
-
-	if(p->D10==3)
-	pconvec=new quick(p);
-
-	if(p->D10==4 && p->G2==0)
-	pconvec=new weno_flux_nug(p);*/
+    if(p->A511==1 || p->A511==8)
+	pnhfconvec=new nhflow_HLL(p,pgc,pBC);
     
-    if(p->D10==4)
-	pnhfconvec=new nhflow_weno_flux(p);
-	
-	/*if(p->D10==5)
-	pconvec=new weno_hj_nug(p);
-	
-	if(p->D10==6)
-	pconvec=new cds4(p);
-    
-    if(p->D10==7)
-	pconvec=new weno3_flux(p);
-    
-    if(p->D10==8)
-	pconvec=new weno3_hj(p);
-	
-	if(p->D10>=10 && p->D10<30)
-	pconvec=new hires(p,p->D10);*/
-    
+    if(p->A511==2 || p->A511==9)
+	pnhfconvec=new nhflow_HLLC(p,pgc,pBC);
     
 //pressure scheme
-
-    if(p->D30==1)    pnhpress = new nhflow_pjm(p,d,pgc);
+    if(p->A520==0)
+	pnhpress = new nhflow_pjm_hs(p,d,pBC);
     
-    if(p->D30==4)
-	pnhpress = new nhflow_pjm_ss(p,d,pgc);
-
-    if(p->D30==10)
-	pnhpress = new nhflow_pjm_hs(p,d);
+    if(p->A520==1)
+    pnhpress = new nhflow_pjm(p,d,pgc,pBC);
 
 //Turbulence
     if(p->T10==0)
-	pturb = new kepsilon_void(p,a,pgc);
+	pnhfturb = new nhflow_komega_void(p,d,pgc);
+    
+    if(p->T10==2)
+	pnhfturb = new nhflow_komega_IM1(p,d,pgc);
 
 //Solver
     if(p->j_dir==0)
@@ -156,6 +133,8 @@ void driver::logic_nhflow()
 	if(p->P150>0)
 	pdata = new data_f(p,a,pgc);
     
+    pnhfprint = new nhflow_vtu3D(p,d,pgc);
+    
 //VRANS
     if(p->B269==0)
 	pvrans = new vrans_v(p,pgc);
@@ -183,7 +162,11 @@ void driver::logic_nhflow()
 	pflow = new ioflow_gravity(p,pgc,pBC);
     
 //Momentum
-    //if(p->N40==3)
+    if(p->A510==2)
+	pnhfmom = new nhflow_momentum_RK2(p,d,pgc);
+    
+    if(p->A510==3)
 	pnhfmom = new nhflow_momentum_RK3(p,d,pgc);
+    
     
 }

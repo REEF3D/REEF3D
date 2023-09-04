@@ -49,7 +49,7 @@ private:
     
     void smoothen(lexer*,fdm*,ghostcell*);
     
-    void laplace(lexer*,fdm*,field&);
+    void laplace(lexer*,fdm*,ghostcell*,field&);
     void ini_bc(lexer*,fdm*,ghostcell*);
     
     

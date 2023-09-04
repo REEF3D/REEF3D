@@ -66,6 +66,8 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     // suspended load -------
     pcbed->start(p,pgc,s);
     
+    // relax  *******
+	prelax->start(p,pgc,s);
     
     for(int qqn=0;qqn<p->S27;++qqn)
     {
@@ -78,7 +80,7 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     // control time step
     }
     
-    // relax bedzh *******
+    // relax  *******
 	prelax->start(p,pgc,s);
 	
     // filter bedzh *******
@@ -92,7 +94,7 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     sedimentlog(p);
     
     if(p->mpirank==0 && p->count>0)
-    cout<<"Sediment Iter: "<<p->sediter<<" Sediment Timestep: "<<p->dtsed<<"  Total Time: "<<setprecision(7)<<p->sedtime<<endl;
+    cout<<"Sediment Iter: "<<p->sediter<<" Sediment Timestep: "<<p->dtsed<<"  Sediment Time: "<<setprecision(7)<<p->sedtime<<endl;
 
 	if(p->mpirank==0)
     cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl<<endl;

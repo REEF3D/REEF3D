@@ -98,6 +98,10 @@ double wave_lib_deep::wave_fi(lexer *p, double x, double y, double z)
 {
     double fi;
     
+    teta = wk*x-ww*(p->simtime) + pshift;
+
+    fi = PI*wH/(wk*wT)*exp(wk*z) * sin(teta);
+    
     return fi;
 }
 

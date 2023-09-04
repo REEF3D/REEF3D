@@ -82,6 +82,10 @@ double interpolation::ccipol1(field& f, double xp, double yp, double zp)
     --k;
     }
     
+    if(p->j_dir==0)
+    value = lint1_2D(f,i,j,k,wa,wb,wc);
+    
+    if(p->j_dir==1)
     value = lint1(f,i,j,k,wa,wb,wc);
 
     i=ii;
@@ -148,6 +152,10 @@ double interpolation::ccipol2(field& f, double xp, double yp, double zp)
     --k;
     }
 
+    if(p->j_dir==0)
+    value = lint2_2D(f,i,j,k,wa,wb,wc);
+    
+    if(p->j_dir==1)
     value = lint2(f,i,j,k,wa,wb,wc);
 
     i=ii;
@@ -214,6 +222,10 @@ double interpolation::ccipol3(field& f, double xp, double yp, double zp)
     --k;
     }
 
+    if(p->j_dir==0)
+    value = lint3_2D(f,i,j,k,wa,wb,wc);
+    
+    if(p->j_dir==1)
     value = lint3(f,i,j,k,wa,wb,wc);
 
     i=ii;
@@ -279,7 +291,11 @@ double interpolation::ccipol4(field& f, double xp, double yp, double zp)
     --k;
     }
 
-    value =  lint4(f,i,j,k,wa,wb,wc);
+    if(p->j_dir==0)
+    value = lint4_2D(f,i,j,k,wa,wb,wc);
+    
+    if(p->j_dir==1)
+    value = lint4(f,i,j,k,wa,wb,wc);
 
     i=ii;
     j=jj;
@@ -346,6 +362,10 @@ double interpolation::ccipol4phi(fdm *a,field& f, double xp, double yp, double z
     --k;
     }
 
+    if(p->j_dir==0)
+    value =  lint4phi_2D(a,f,i,j,k,wa,wb,wc);
+    
+    if(p->j_dir==1)
     value =  lint4phi(a,f,i,j,k,wa,wb,wc);
 
     i=ii;
@@ -635,8 +655,12 @@ double interpolation::ccipol4_a(field& f, double xp, double yp, double zp)
     --k;
     }
 
-
-    value =  lint_a(f,i,j,k,wa,wb,wc);
+    
+    if(p->j_dir==0)
+    value = lint_a_2D(f,i,j,k,wa,wb,wc);
+    
+    if(p->j_dir==1)
+    value = lint_a(f,i,j,k,wa,wb,wc);
 
     i=ii;
     j=jj;
@@ -712,4 +736,70 @@ double interpolation::ccipol4_b(field& f, double xp, double yp, double zp)
     return value;
 }
 
+double interpolation::ccipol4_kin(field& f, double xp, double yp, double zp)
+{
+    ii=i;
+    jj=j;
+    kk=k;
+    
+    i = p->posc_i(xp);
+    j = p->posc_j(yp);
+    k = p->posc_k(zp);
+	
+    // wa
+    wa = (p->XP[IP1]-xp)/p->DXN[IP];
+    
+    if((p->XP[IP1]-xp)/p->DXN[IP]<0.0)
+    {
+    wa = (p->XP[IP2]-xp)/p->DXN[IP1];
+    ++i;
+    }
+    
+    if((p->XP[IP1]-xp)/p->DXN[IP]>1.0)
+    {
+    wa = (p->XP[IP]-xp)/p->DXN[IM1];
+    --i;
+    }
+    
+    
+    // wb
+    wb = (p->YP[JP1]-yp)/p->DYN[JP];
+    
+    if((p->YP[JP1]-yp)/p->DYN[JP]<0.0)
+    {
+    wb = (p->YP[JP2]-yp)/p->DYN[JP1];
+    ++j;
+    }
+    
+    if((p->YP[JP1]-yp)/p->DYN[JP]>1.0)
+    {
+    wb = (p->YP[JP]-yp)/p->DYN[JM1];
+    --j;
+    }
+    
+    
+    //wc
+    wc = (p->ZP[KP1]-zp)/p->DZN[KP];
+    
+    if((p->ZP[KP1]-zp)/p->DZN[KP]<0.0)
+    {
+    wc = (p->ZP[KP2]-zp)/p->DZN[KP1];
+    ++k;
+    }
+    
+    if((p->ZP[KP1]-zp)/p->DZN[KP]>1.0)
+    {
+    wc = (p->ZP[KP]-zp)/p->DZN[KM1];
+    --k;
+    }
+
+    
+    value = lint4kin(f,i,j,k,wa,wb,wc);
+
+    i=ii;
+    j=jj;
+    k=kk;
+
+    return value;
+}
 

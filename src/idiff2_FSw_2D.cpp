@@ -32,13 +32,6 @@ void idiff2_FS_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 	
 	double visc_ddx_p,visc_ddx_m,visc_ddy_p,visc_ddy_m;
     
-	
-	count=0;
-    
-    pgc->start1(p,u,gcval_udiff);
-	pgc->start2(p,v,gcval_vdiff);
-	pgc->start3(p,w,gcval_wdiff);
-
 	count=0;
 
     WLOOP
@@ -108,9 +101,6 @@ void idiff2_FS_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 	
 	psolv->start(p,a,pgc,w,a->rhsvec,3);
 
-    
-    pgc->start1(p,u,gcval_u);
-	pgc->start2(p,v,gcval_v);
 	pgc->start3(p,w,gcval_w);
 	
 	time=pgc->timer()-starttime;
@@ -120,23 +110,19 @@ void idiff2_FS_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 }
 
 
-void idiff2_FS_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &u, field &v, field &w, double alpha)
+void idiff2_FS_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &w_in, field &u, field &v, field &w, double alpha)
 {
 	starttime=pgc->timer();
 	
 	double visc_ddx_p,visc_ddx_m,visc_ddy_p,visc_ddy_m;
     
-    pgc->start1(p,u,gcval_udiff);
-	pgc->start2(p,v,gcval_vdiff);
-	pgc->start3(p,w,gcval_wdiff);
-	
-	count=0;
-    
     WLOOP
-    diff(i,j,k) = w(i,j,k);
+    diff(i,j,k) = w_in(i,j,k);
     
+	pgc->start3(p,diff,gcval_w);
 
 	count=0;
+
 
     WLOOP
     {
@@ -161,7 +147,7 @@ void idiff2_FS_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 				  
 	a->rhsvec.V[count] += ((u(i,j,k+1)-u(i,j,k))*visc_ddx_p - (u(i-1,j,k+1)-u(i-1,j,k))*visc_ddx_m)/(p->DZP[KP]*p->DXN[IP])
 
-						+ (CPOR3*w(i,j,k))/(alpha*p->dt);
+						+ (CPOR3*w_in(i,j,k))/(alpha*p->dt);
 	 
 	 a->M.s[count] = -visc_ddx_m/(p->DXP[IM1]*p->DXN[IP]);
 	 a->M.n[count] = -visc_ddx_p/(p->DXP[IP]*p->DXN[IP]);
@@ -206,9 +192,7 @@ void idiff2_FS_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 	psolv->start(p,a,pgc,diff,a->rhsvec,3);
 
     
-    pgc->start1(p,u,gcval_u);
-	pgc->start2(p,v,gcval_v);
-	pgc->start3(p,w,gcval_w);
+	pgc->start3(p,diff,gcval_w);
 	
 	time=pgc->timer()-starttime;
 	p->witer=p->solveriter;

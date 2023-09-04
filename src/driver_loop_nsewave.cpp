@@ -55,7 +55,7 @@ void driver::loop_nsewave(fdm* a)
         cout<<"------------------------------------"<<endl;
         cout<<p->count<<endl;
         
-        cout<<"simtime: "<<p->simtime<<endl;
+        cout<<"simtime: "<<setprecision(3)<<p->simtime<<endl;
 		cout<<"timestep: "<<p->dt<<endl;
         
 		if(p->B90>0 && p->B92<=11)
@@ -73,7 +73,7 @@ void driver::loop_nsewave(fdm* a)
 			fill_vel(p,a,pgc);
         
         // Wave Models
-        pnse->start(p,a,pgc,pmom,pdiff,pturb,pconvec,ppress,ppois,ppoissonsolv,psolv,pflow,pvrans);
+        pnse->start(p,a,pgc,pmom,pdiff,pturb,pconvec,ppress,ppois,ppoissonsolv,psolv,pflow,pvrans,p6dof_df,pnet);
         poneph->update(p,a,pgc,pflow);
 			
             pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
@@ -89,7 +89,6 @@ void driver::loop_nsewave(fdm* a)
         pflow->v_relax(p,a,pgc,a->v);
         pflow->w_relax(p,a,pgc,a->w);
         pfsf->update(p,a,pgc,a->phi);
-        p6dof->start(p,a,pgc,1.0,pvrans,pnet);
 
         pbench->start(p,a,pgc,pconvec);
 		

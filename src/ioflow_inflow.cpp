@@ -325,6 +325,8 @@ void ioflow_f::inflow_water(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
 
 void ioflow_f::rkinflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {
+    //inflow(p,a,pgc,u,v,w);
+    
     for(n=0;n<p->gcin_count;n++)
     {
     i=p->gcin[n][0];

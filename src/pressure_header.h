@@ -26,12 +26,6 @@ Author: Hans Bihs
 #include"pjm_corr.h"
 #include"pjm_comp.h"
 #include"pjm_nse.h"
-#include"pjm_IMEX.h"
 #include"pjm_hydrostatic.h"
 #include"poisson_f.h"
 #include"poisson_nse.h"
-
-#include"nhflow_pjm.h"
-#include"nhflow_pjm_ss.h"
-#include"nhflow_pjm_hs.h"
-#include"nhflow_poisson.h"

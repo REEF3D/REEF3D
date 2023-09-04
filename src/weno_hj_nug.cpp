@@ -99,26 +99,6 @@ double weno_hj_nug::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& v
 		return L;
 }
 
-double weno_hj_nug::aij_sig(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, field& wvel, double *DXD,double *DYD, double *DZD)
-{
-        DX=DXD;
-        DY=DYD;
-        DZ=DZD;
-        
-		pflux->u_flux(a,ipol,uvel,iadvec,ivel2);
-        pflux->v_flux(a,ipol,vvel,jadvec,jvel2);
-        pflux->w_flux(a,ipol,wvel,kadvec,kvel2);
-		
-		L = -iadvec*fx(p,a,b,uvel,ipol,iadvec) + p->sigmax(p,ipol)*iadvec;
-        
-        if(p->j_dir==1)
-        L -= jadvec*fy(p,a,b,vvel,ipol,jadvec) + p->sigmay(p,ipol)*jadvec;
-        
-        L -= kadvec*fz(p,a,b,wvel,ipol,kadvec)*p->sigmaz(p,ipol);
-        
-		return L;
-}
-
 double weno_hj_nug::fx(lexer *p,fdm *a, field& b, field& uvel, int ipol, double advec)
 {
     grad = 0.0;
@@ -160,6 +140,13 @@ double weno_hj_nug::fx(lexer *p,fdm *a, field& b, field& uvel, int ipol, double 
           
          + w3x*(q2 + qfx[IP][uf][5][0]*(q3-q2) - qfx[IP][uf][5][1]*(q1-q2));
 	}
+    
+    /*
+    if(a->solid(i+1,j,k)<0.0 || a->topo(i+1,j,k)<0.0 || a->solid(i+2,j,k)<0.0 || a->topo(i+2,j,k)<0.0)
+    grad = (q2 + qfx[IP][uf][2][0]*(q1-q2) + qfx[IP][uf][2][1]*(q3-q2));
+    
+    if(a->solid(i-1,j,k)<0.0 || a->topo(i-1,j,k)<0.0 || a->solid(i-2,j,k)<0.0 || a->topo(i-2,j,k)<0.0)
+    grad = (q4 + qfx[IP][uf][3][0]*(q3-q4) + qfx[IP][uf][3][1]*(q5-q4));*/
     
 	return grad;
 }

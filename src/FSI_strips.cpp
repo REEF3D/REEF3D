@@ -52,30 +52,81 @@ void fsi_strips::initialize(lexer *p, fdm *a, ghostcell *pgc)
 void fsi_strips::start(lexer*,fdm*,ghostcell*){}
 
 
-void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field& uvel, field& vvel, field& wvel, field1& fx, field2& fy, field3& fz, bool finalise)
+void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalise)
 {
+    starttime0=pgc->timer();
+    
     for (int num = 0; num < numberStrips; num++)
     {
         // Get velocity at Lagrangian points
         pstrip[num]->interpolate_vel(p,a,pgc,uvel,vvel,wvel);
+        
+        endtime=pgc->timer();
+        
+        if(p->mpirank==0)
+        cout<<"T0: "<<endtime-starttime<<endl;
+        
+        starttime=pgc->timer();
 
         // Advance strip in time
         pstrip[num]->start(p,a,pgc,alpha);
+        
+        endtime=pgc->timer();
+        
+        if(p->mpirank==0)
+        cout<<"T1: "<<endtime-starttime<<endl;
+        
+        starttime=pgc->timer();
 
         // Get coupling velocities at Lagrangian points
         pstrip[num]->coupling_vel();
+        
+        endtime=pgc->timer();
+        
+        if(p->mpirank==0)
+        cout<<"T2: "<<endtime-starttime<<endl;
+        
+        starttime=pgc->timer();
 
         // Get coupling forces at Lagrangian points
         pstrip[num]->coupling_force(p,alpha);
         
+        endtime=pgc->timer();
+        
+        if(p->mpirank==0)
+        cout<<"T3: "<<endtime-starttime<<endl;
+        
+        starttime=pgc->timer();
+        
         // Distribute coupling forces on Eulerian grid 
         pstrip[num]->distribute_forces(p,a,pgc,fx,fy,fz);
         
+        endtime=pgc->timer();
+        
+        if(p->mpirank==0)
+        cout<<"T4: "<<endtime-starttime<<endl;
+        
+        starttime=pgc->timer();
+        
         // Update Lagrangian points 
         pstrip[num]->update_points();
+        
+        endtime=pgc->timer();
+        
+        if(p->mpirank==0)
+        cout<<"T5: "<<endtime-starttime<<endl;
+        
+        starttime=pgc->timer();
 
         // Store variables
         pstrip[num]->store_variables(p);
+        
+        endtime=pgc->timer();
+        
+        if(p->mpirank==0)
+        cout<<"T6: "<<endtime-starttime<<endl;
+        
+        starttime=pgc->timer();
 
         // Print
         if (finalise == true)
@@ -83,5 +134,16 @@ void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field& 
             pstrip[num]->print_stl(p,a,pgc);
             pstrip[num]->print_parameter(p, a, pgc);
         }
+        
+        endtime=pgc->timer();
+        
+        if(p->mpirank==0)
+        cout<<"T2: "<<endtime-starttime<<endl;
+        
+        starttime=pgc->timer();
     }
+    
+
+    if(p->mpirank==0)
+    cout<<"FSI time: "<<pgc->timer()-starttime0<<endl;
 };

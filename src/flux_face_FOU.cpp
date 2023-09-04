@@ -40,7 +40,7 @@ void flux_face_FOU::u_flux(fdm *a, int ipol, field& uvel, double &uflux1, double
 	{
         pip=1;
         
-        if(p->flag1[UIm1JK]>0)
+        if(p->flag1[Im1JK]>0)
         {
         if(0.5*(uvel(i,j,k)+uvel(i-1,j,k)) >= 0.0)
         uflux1 = uvel(i-1,j,k);
@@ -49,11 +49,11 @@ void flux_face_FOU::u_flux(fdm *a, int ipol, field& uvel, double &uflux1, double
         uflux1 = uvel(i,j,k);
         }
         
-        if(p->flag1[UIm1JK]<0)
+        if(p->flag1[Im1JK]<0)
         uflux1= 0.5*(uvel(i,j,k)+uvel(i-1,j,k));
         
         
-        if(p->flag1[UIp1JK]>0)
+        if(p->flag1[Ip1JK]>0)
         {
         if(0.5*(uvel(i,j,k)+uvel(i+1,j,k)) >= 0.0)
         uflux2 = uvel(i,j,k);
@@ -62,7 +62,7 @@ void flux_face_FOU::u_flux(fdm *a, int ipol, field& uvel, double &uflux1, double
         uflux2 = uvel(i+1,j,k);
         }
         
-        if(p->flag1[UIp1JK]<0)
+        if(p->flag1[Ip1JK]<0)
         uflux2= 0.5*(uvel(i,j,k)+uvel(i+1,j,k));
 
         pip=0;
@@ -106,7 +106,7 @@ void flux_face_FOU::v_flux(fdm *a, int ipol, field& vvel, double &vflux1, double
 	{
         pip=2;
         
-        if(p->flag2[VIJm1K]>0)
+        if(p->flag2[IJm1K]>0)
         {
         if(0.5*(vvel(i,j,k)+vvel(i,j-1,k)) >= 0.0)
         vflux1 = vvel(i,j-1,k);
@@ -115,12 +115,12 @@ void flux_face_FOU::v_flux(fdm *a, int ipol, field& vvel, double &vflux1, double
         vflux1 = vvel(i,j,k);
         }
         
-        if(p->flag2[VIJm1K]<0)
+        if(p->flag2[IJm1K]<0)
         vflux1= 0.5*(vvel(i,j,k)+vvel(i,j-1,k));
             
             
             
-        if(p->flag2[VIJp1K]>0)
+        if(p->flag2[IJp1K]>0)
         {
         if(0.5*(vvel(i,j,k)+vvel(i,j+1,k)) >= 0.0)
         vflux2 = vvel(i,j,k);
@@ -129,7 +129,7 @@ void flux_face_FOU::v_flux(fdm *a, int ipol, field& vvel, double &vflux1, double
         vflux2 = vvel(i,j+1,k);
         }
         
-        if(p->flag2[VIJp1K]<0)
+        if(p->flag2[IJp1K]<0)
         vflux2= 0.5*(vvel(i,j,k)+vvel(i,j+1,k));
         
         pip=0;
@@ -175,7 +175,7 @@ void flux_face_FOU::w_flux(fdm *a, int ipol, field& wvel, double &wflux1, double
 	{
         pip=3;
         
-        if(p->flag3[WIJKm1]>0)
+        if(p->flag3[IJKm1]>0)
         {
         if(0.5*(wvel(i,j,k)+wvel(i,j,k-1))>=0.0)
         wflux1 = wvel(i,j,k-1);
@@ -184,10 +184,10 @@ void flux_face_FOU::w_flux(fdm *a, int ipol, field& wvel, double &wflux1, double
         wflux1 = wvel(i,j,k);
         }
         
-        if(p->flag3[WIJKm1]<0)
+        if(p->flag3[IJKm1]<0)
         wflux1= 0.5*(wvel(i,j,k)+wvel(i,j,k-1));
         
-        if(p->flag3[WIJKp1]>0)
+        if(p->flag3[IJKp1]>0)
         {
         if(0.5*(wvel(i,j,k)+wvel(i,j,k+1))>=0.0)
         wflux2 = wvel(i,j,k);
@@ -196,7 +196,7 @@ void flux_face_FOU::w_flux(fdm *a, int ipol, field& wvel, double &wflux1, double
         wflux2 = wvel(i,j,k+1);
         }
         
-        if(p->flag3[WIJKp1]<0)
+        if(p->flag3[IJKp1]<0)
         wflux2= 0.5*(wvel(i,j,k)+wvel(i,j,k+1));
 
         pip=0;

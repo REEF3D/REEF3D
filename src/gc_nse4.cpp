@@ -34,7 +34,7 @@ void ghostcell::nse4(lexer *p, fdm *a, field &f, int gcv)
     {
     AIRLOOP
     f(i,j,k)=0.0; 
-    
+    /*
     AIRLOOP
     {
     lsv = a->phi(i,j,k);
@@ -51,16 +51,16 @@ void ghostcell::nse4(lexer *p, fdm *a, field &f, int gcv)
         ny/=dnorm;
         nz/=dnorm;
         
-        xp = p->pos_x() + nx*(1.0*fabs(lsv)+0.5*dx);
-        yp = p->pos_y() + ny*(1.0*fabs(lsv)+0.5*dx);
-        zp = p->pos_z() + nz*(1.0*fabs(lsv)+0.5*dx);
+        xp = p->pos_x() + nx*(1.0*fabs(lsv)+0.5*p->DXM);
+        yp = p->pos_y() + ny*(1.0*fabs(lsv)+0.5*p->DXM);
+        zp = p->pos_z() + nz*(1.0*fabs(lsv)+0.5*p->DXM);
 
         
         val = 0.0;p->ccipol4(f, xp, yp, zp);
         
         f(i,j,k) =  -val;
         }
-    }
+    }*/
     
     
     /*

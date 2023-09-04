@@ -20,10 +20,11 @@ along with this program; if not, see <http://www.gnu.org/liceonephases/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"onephase.h"
 #include"increment.h"
 #include"slice4.h"
 
+class lexer;
+class ghostcell;
 class field;
 class vec;
 class fdm_fnpf;

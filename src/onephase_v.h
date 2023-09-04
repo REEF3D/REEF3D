@@ -35,6 +35,10 @@ public:
     
 	virtual void update(lexer*, fdm*, ghostcell*, ioflow*);
     virtual void ini(lexer*, fdm*, ghostcell*, ioflow*);
+    
+    virtual void uvel(lexer*, fdm*, ghostcell*, field&);
+    virtual void vvel(lexer*, fdm*, ghostcell*, field&);
+    virtual void wvel(lexer*, fdm*, ghostcell*, field&);
 
 };
 

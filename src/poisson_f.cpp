@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"concentration.h"
 #include"density_f.h"
 #include"density_df.h"
+#include"density_sf.h"
 #include"density_comp.h"
 #include"density_conc.h"
 #include"density_heat.h"
@@ -35,10 +36,10 @@ Author: Hans Bihs
 
 poisson_f::poisson_f(lexer *p, heat *&pheat, concentration *&pconc) 
 {
-    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && (p->X10==0 || p->X13!=2))
+    if((p->F80==0||p->A10==51) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==0)
 	pd = new density_f(p);
     
-    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && (p->X10==1 || p->X13!=2))  
+    if((p->F80==0||p->A10==51) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==1)  
 	pd = new density_df(p);
     
 	if(p->F80==0 && p->H10==0 && p->W30==1  && p->F300==0 && p->W90==0)
@@ -58,6 +59,9 @@ poisson_f::poisson_f(lexer *p, heat *&pheat, concentration *&pconc)
     
     if(p->F300>=1)
     pd = new density_rheo(p);
+    
+    if(p->G3==1)  
+	pd = new density_sf(p);
 }
 
 poisson_f::~poisson_f()
@@ -144,7 +148,7 @@ void poisson_f::start(lexer* p, fdm *a, field &press)
 	{
 		if(p->flag4[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0))
 		{
-        a->rhsvec.V[n] -= a->M.s[n]*press(i-1,j,k);
+        a->M.p[n] += a->M.s[n];
 		a->M.s[n] = 0.0;
 		}
 		
@@ -180,4 +184,50 @@ void poisson_f::start(lexer* p, fdm *a, field &press)
 	++n;
 	}
     }
+    
+    // solig forcing
+    /*if(p->G3==1)
+    {
+    n=0;
+	LOOP
+    if(a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0)
+	{
+		if((a->solid(i-1,j,k)<0.0 || a->topo(i-1,j,k)<0.0) && (i+p->origin_i>0 || p->periodic1==0))
+		{
+		a->rhsvec.V[n] -= a->M.s[n]*press(i-1,j,k);
+		a->M.s[n] = 0.0;
+		}
+		
+		if((a->solid(i+1,j,k)<0.0 || a->topo(i+1,j,k)<0.0) && (i+p->origin_i<p->gknox-1 || p->periodic1==0))
+		{
+		a->rhsvec.V[n] -= a->M.n[n]*press(i+1,j,k);
+		a->M.n[n] = 0.0;
+		}
+		
+		if((a->solid(i,j-1,k)<0.0 || a->topo(i,j-1,k)<0.0) && (j+p->origin_j>0 || p->periodic2==0))
+		{
+		a->rhsvec.V[n] -= a->M.e[n]*press(i,j-1,k);
+		a->M.e[n] = 0.0;
+		}
+		
+		if((a->solid(i,j+1,k)<0.0 || a->topo(i,j+1,k)<0.0) && (j+p->origin_j<p->gknoy-1 || p->periodic2==0))
+		{
+		a->rhsvec.V[n] -= a->M.w[n]*press(i,j+1,k);
+		a->M.w[n] = 0.0;
+		}
+		
+		if((a->solid(i,j,k-1)<0.0 || a->topo(i,j,k-1)<0.0) && (k+p->origin_k>0 || p->periodic3==0))
+		{
+		a->rhsvec.V[n] -= a->M.b[n]*press(i,j,k-1);
+		a->M.b[n] = 0.0;
+		}
+		
+		if((a->solid(i,j,k+1)<0.0 || a->topo(i,j,k+1)<0.0) && (k+p->origin_k<p->gknoz-1 || p->periodic3==0))
+		{
+		a->rhsvec.V[n] -= a->M.t[n]*press(i,j,k+1);
+		a->M.t[n] = 0.0;
+		}
+	++n;
+	}
+    }*/
 }

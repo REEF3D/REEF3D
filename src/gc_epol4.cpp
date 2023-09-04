@@ -29,13 +29,8 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 //Level Set
 
 	if((bc==21||bc==22||bc==5||bc==41||bc==42||bc==43||bc==7||bc==8||bc==9||bc==41||bc==221||bc==211||bc==121||bc==111) 
-        && (gcv==51 || gcv==52 || gcv==53 || gcv==54) && (p->B26<3 || cs!=5))
+        && (gcv==51 || gcv==52 || gcv==53 || gcv==54))
 	return gclabel_lsm;
-
-	else
-	if((bc==21||bc==22||bc==5||bc==41||bc==42||bc==43||bc==7||bc==8||bc==9||bc==41||bc==221||bc==211||bc==121||bc==111) 
-        && (gcv==51 || gcv==52 || gcv==53 || gcv==54) && (p->B26==3 && cs==5) && p->count>0)
-	return 3;
 	
 	else
 	if((bc==3||bc==221||bc==211||bc==121||bc==111) && (gcv==51 || gcv==52 || gcv==53 || gcv==54))
@@ -85,24 +80,11 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
     else
 	if(( (bc==2&&pressout_lable==0) ||bc==211||bc==212||bc==112||bc==111) && gcv==40)
 	return gclabel_press;
-	
     
-    // pressure floating_gc
-	else
-	if((bc==41||bc==42||bc==43) && gcv==40 && (cs==2||cs==3||cs==1||cs==4))
-	return 9;
-    
-	else
-	if((bc==41||bc==42||bc==43) && gcv==40 && (cs==5||cs==6) )
-	return 9;
-	
-	else
-	if((bc==41||bc==42||bc==43) && (cs==5||cs==6) && gcv==401)
-	return 10;
-    
-	else
-	if((bc==41||bc==42||bc==43) && (cs==5||cs==6) && gcv==402)
-	return 9;
+    // amtosphere
+    else
+	if(bc==9 && gcv==40)
+	return 21;
 	
 // ro
     else
@@ -205,7 +187,7 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	return 4;
 
 	else
-	if(bc==3 && (cs==5||cs==6)&&(gcv==12) && p->A10==55)
+	if(bc==3 && (cs==5||cs==6)&&(gcv==12) && p->A10==5)
 	return 4;
 	
 // VOF
@@ -379,7 +361,12 @@ void ghostcell::gcdistro4(lexer *p, field &f, int ii, int jj, int kk, int nn, do
 	gcb_debug(f,gcv,bc,cs);
 }
 
-void ghostcell::gcdistro4V(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, double dist,  int gcv, int bc, int cs, int id)
+void ghostcell::gcdistro4V(lexer *p, double *f, int ii, int jj, int kk, int nn, double dist,  int gcv, int bc, int cs)
+{
+    
+}
+
+void ghostcell::gcdistro4vec(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, double dist,  int gcv, int bc, int cs, int id)
 {
     i=ii;
 	j=jj;
@@ -391,7 +378,7 @@ void ghostcell::gcdistro4V(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, d
 	gcV_lsm(p,vec,dist,gcv,bc,cs,id);
     
     if(bc_label==3)
-	gcV_lsm(p,vec,dist,gcv,bc,cs,id);
+	extendV(p,a,vec,dist,gcv,bc,cs);
     
 	if(bc_label==4)
 	gcV_neumann(vec,gcv,bc,cs,id);

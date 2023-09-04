@@ -47,7 +47,7 @@ void multiphase_v::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, printer 
 {
 }
 
-void multiphase_v::start(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec, solver *psolv, ioflow *pflow, reini* preini, particlecorr* ppart, printer *pprint)
+void multiphase_v::start(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec, solver *psolv, ioflow *pflow, reini* preini, particle_corr* ppart, printer *pprint)
 {
 }
 

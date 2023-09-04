@@ -43,13 +43,13 @@ void solid::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection* p
     
     preso->start(p,a,pgc,a->solid);
     
-
+    if(p->G3==0)
+    {
     pgc->solid_update(p,a);
 
     pflow->gcio_update(p,a,pgc);
-
+    }
 }
-
 
 void solid::solid_topo(lexer* p, fdm* a, ghostcell* pgc)
 {

@@ -228,7 +228,7 @@ void print_wsf::height_gauge(lexer *p, fdm *a, ghostcell *pgc, field &f)
         }
     }
     
-    if(p->A10==55 || p->A10==4)
+    if(p->A10==5 || p->A10==4)
     for(n=0;n<gauge_num;++n)
     if(flag[n]>0)
     {
@@ -287,7 +287,7 @@ void print_wsf::ini_location(lexer *p, fdm *a, ghostcell *pgc)
     if(check==1)
     flag[n]=1;
     
-    cout<<p->mpirank<<" n: "<<n<<" flag: "<<flag[n]<<" x: "<<x[n]<<" y: "<<y[n]<<" iloc: "<<iloc[n]<<" jloc: "<<jloc[n]<<endl;
+    //cout<<p->mpirank<<" n: "<<n<<" flag: "<<flag[n]<<" x: "<<x[n]<<" y: "<<y[n]<<" iloc: "<<iloc[n]<<" jloc: "<<jloc[n]<<endl;
     }
 }
 

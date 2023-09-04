@@ -98,6 +98,8 @@ void fnpf_vtp_fsf::pvtu(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     result<<"<PDataArray type=\"Float32\" Name=\"coastline\"/>"<<endl;
     if(p->P23==1)
     result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
+    if(p->P110==1)
+    result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>"<<endl;
 	result<<"</PPointData>"<<endl;
 	
 	result<<"<Polys>"<<endl;

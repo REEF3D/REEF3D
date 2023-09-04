@@ -101,12 +101,12 @@ void ghostcell::gcfb_velflag1(lexer *p, fdm *a, int **cellmem, int& cellcount)
     count=0;
     UBASELOOP // U-grid loop over i,j,k: flag1 = -17 and cellmem[3] = 2 if solid, flag1 = 10 and cellmem[3] = 1 if fluid
     {
-	cache = p->flag1[UIJK];
+	cache = p->flag1[IJK];
 		
     if(p->flag4[IJK]<0 
 	|| (p->flag4[IJK]>0 && p->flag4[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]<0))
 	{
-       p->flag1[UIJK]=FLT;
+       p->flag1[IJK]=FLT;
 	   
 		if(cache>0)
 		{
@@ -121,7 +121,7 @@ void ghostcell::gcfb_velflag1(lexer *p, fdm *a, int **cellmem, int& cellcount)
 
     if(p->flag4[IJK]>0 && p->flag4[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]>0)
     {
-		p->flag1[UIJK]=WATER;
+		p->flag1[IJK]=WATER;
 		
 			if(cache==FLT)
 			{
@@ -146,12 +146,12 @@ void ghostcell::gcfb_velflag2(lexer *p, fdm *a, int **cellmem, int& cellcount)
     count=0;
     VBASELOOP
     {
-	cache = p->flag2[VIJK];
+	cache = p->flag2[IJK];
 		
     if(p->flag4[IJK]<0 
 	|| (p->flag4[IJK]>0 && p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin]<0))
 	{
-       p->flag2[VIJK]=FLT;
+       p->flag2[IJK]=FLT;
 	   
 		if(cache>0)
 		{
@@ -166,7 +166,7 @@ void ghostcell::gcfb_velflag2(lexer *p, fdm *a, int **cellmem, int& cellcount)
 
     if(p->flag4[IJK]>0 && p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin]>0)
     {
-		p->flag2[VIJK]=10;
+		p->flag2[IJK]=10;
 		
 			if(cache==FLT)
 			{
@@ -191,12 +191,12 @@ void ghostcell::gcfb_velflag3(lexer *p, fdm *a, int **cellmem, int& cellcount)
     count=0;
     WBASELOOP
     {
-	cache = p->flag3[WIJK];
+	cache = p->flag3[IJK];
 		
     if(p->flag4[IJK]<0 
 	|| (p->flag4[IJK]>0 && p->flag4[IJKp1]<0))
 	{
-       p->flag3[WIJK]=FLT;
+       p->flag3[IJK]=FLT;
 	   
 		if(cache>0)
 		{
@@ -211,7 +211,7 @@ void ghostcell::gcfb_velflag3(lexer *p, fdm *a, int **cellmem, int& cellcount)
 
     if(p->flag4[IJK]>0 && p->flag4[IJKp1]>0)
     {
-		p->flag3[WIJK]=10;
+		p->flag3[IJK]=10;
 		
 			if(cache==FLT)
 			{

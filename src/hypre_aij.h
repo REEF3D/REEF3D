@@ -44,6 +44,7 @@ public:
 	hypre_aij(lexer*,fdm*,ghostcell*);
 	virtual ~hypre_aij();
 	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
+    virtual void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int);
     virtual void startM(lexer*, ghostcell*, double*, double*, double*, int);
     
 	void solve(lexer*,fdm*, ghostcell*, vec&, vec&, int, int, int&);

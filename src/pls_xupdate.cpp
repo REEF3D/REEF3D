@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"particle.h"
+#include"particle_pls.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include<math.h>
 
-void particle::xupdate(lexer* p, fdm* a, ghostcell* pgc)
+void particle_pls::xupdate(lexer* p, fdm* a, ghostcell* pgc)
 {
     removed = 0;
 
@@ -41,7 +41,7 @@ void particle::xupdate(lexer* p, fdm* a, ghostcell* pgc)
 
             check=boundcheck(p,a,i,j,k,1);
 			
-			// remove particles, which have been sent off
+			// remove particle_plss, which have been sent off
 			if(check==1)
             if(posflag[n]==2)
             {
@@ -53,7 +53,7 @@ void particle::xupdate(lexer* p, fdm* a, ghostcell* pgc)
 			
 			check=boundcheck(p,a,i,j,k,0);
 			
-			// reinstate received particles, after they have left the para zone
+			// reinstate received particle_plss, after they have left the para zone
 			if(check==1)
             if(posflag[n]==3)
             posflag[n]=1;

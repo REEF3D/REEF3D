@@ -27,7 +27,6 @@ Author: Hans Bihs
 #include"solver.h"
 #include"increment.h"
 #include"vec.h"
-#include"fieldint4.h"
 #include"_hypre_utilities.h"
 #include"HYPRE_sstruct_ls.h"
  
@@ -44,13 +43,16 @@ public:
 	virtual ~hypre_struct();
     
 	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
+    virtual void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int);
     virtual void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     virtual void startM(lexer*, ghostcell*, double*, double*, double*, int);
     
     void start_solver1234(lexer*,fdm*, ghostcell*, field&, vec&,int);
+    void start_solver4f(lexer*, ghostcell*, field&, vec&, matrix_diag&, int);
     void start_solver5(lexer*,fdm*, ghostcell*, field&, vec&, int);
     void start_solver7(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     void start_solver8(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
+    void start_solver9(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     
     void solve(lexer*,ghostcell*);
     void solve1234(lexer*);
@@ -64,6 +66,8 @@ public:
     
     void make_grid(lexer*, ghostcell*);
     void make_grid_2Dvert(lexer*, ghostcell*);
+    void make_grid_15pt(lexer*, ghostcell*);
+    void make_grid_2D_9pt(lexer*, ghostcell*);
     
     void fill_matrix1(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix1_2Dvert(lexer*,fdm*, ghostcell*,field&);
@@ -73,9 +77,14 @@ public:
     void fill_matrix3_2Dvert(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix4(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix4_2Dvert(lexer*,fdm*, ghostcell*,field&);
+    void fill_matrix4f(lexer*, ghostcell*,field&, vec&, matrix_diag&);
+    void fill_matrix4f_2Dvert(lexer*, ghostcell*,field&, vec&, matrix_diag&);
     void fill_matrix7(lexer*, ghostcell*,double*, vec&, matrix_diag&);
+    void fill_matrix7_2Dvert(lexer*, ghostcell*,double*, vec&, matrix_diag&);
     void fill_matrix8(lexer*, ghostcell*,double*, vec&, matrix_diag&);
     void fill_matrix8_2Dvert(lexer*, ghostcell*,double*, vec&, matrix_diag&);
+    void fill_matrix9(lexer*, ghostcell*,double*, vec&, matrix_diag&);
+    void fill_matrix9_2Dvert(lexer*, ghostcell*,double*, vec&, matrix_diag&);
 
     virtual void fillbackvec1(lexer*,field&,int);
     virtual void fillbackvec2(lexer*,field&,int);
@@ -84,6 +93,7 @@ public:
 
     virtual void fillbackvec7(lexer*,double*,int);
     virtual void fillbackvec8(lexer*,double*,int);
+    virtual void fillbackvec9(lexer*,double*,int);
 	
 	void create_solver1234(lexer*,ghostcell*);
     void delete_solver1234(lexer*,ghostcell*);
@@ -118,7 +128,7 @@ private:
     const int solve_type,precon_type;
     
     
-    fieldint4 cval4;
+    int *CVAL4;
 
 };
 

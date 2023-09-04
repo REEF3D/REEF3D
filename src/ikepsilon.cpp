@@ -42,20 +42,35 @@ void  ikepsilon::clearfield(lexer *p, fdm*  a, field& b)
 
 void ikepsilon::isource(lexer *p, fdm* a)
 {
+    if(p->T33==0)
 	ULOOP
 	a->F(i,j,k)=0.0;
+    
+    if(p->T33==1)
+    ULOOP
+	a->F(i,j,k) = (2.0/3.0)*(kin(i+1,j,k)-kin(i,j,k))/p->DXP[IP];
 }
 
 void ikepsilon::jsource(lexer *p, fdm* a)
 {
+    if(p->T33==0)
 	VLOOP
 	a->G(i,j,k)=0.0;
+    
+    if(p->T33==1)
+    VLOOP
+	a->G(i,j,k) = (2.0/3.0)*(kin(i,j+1,k)-kin(i,j,k))/p->DYP[JP];
 }
 
 void ikepsilon::ksource(lexer *p, fdm* a)
 {
+    if(p->T33==0)
 	WLOOP
 	a->H(i,j,k)=0.0;
+    
+    if(p->T33==1)
+    WLOOP
+	a->H(i,j,k) = (2.0/3.0)*(kin(i,j,k+1)-kin(i,j,k))/p->DZP[KP];
 }
 
 void  ikepsilon::eddyvisc(fdm* a, lexer* p, ghostcell* pgc, vrans* pvrans)
@@ -77,7 +92,7 @@ void  ikepsilon::eddyvisc(fdm* a, lexer* p, ghostcell* pgc, vrans* pvrans)
 		
 		factor = H*p->T31 + (1.0-H)*p->T32;
 		
-	a->eddyv(i,j,k) = MAX(MIN(p->cmu*MAX(kin(i,j,k)*kin(i,j,k)
+        a->eddyv(i,j,k) = MAX(MIN(p->cmu*MAX(kin(i,j,k)*kin(i,j,k)
 					  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(factor*kin(i,j,k))/strainterm(p,a)),
 					  0.0001*a->visc(i,j,k));
 	}

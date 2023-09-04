@@ -202,6 +202,9 @@ void sixdof_df_object::forces_stl
             j = p->posc_j(ylocvel);
             k = p->posc_k(zlocvel);
             
+            double delta = sqrt(pow(xc-xlocvel,2.0) + pow(yc-ylocvel,2.0) + pow(zc-zlocvel,2.0));
+            
+            /*
             dudx = (uval)/(p->DXP[IP]);
             dudy = (uval)/(p->DYP[JP]);
             dudz = (uval)/(p->DZP[KP]);
@@ -213,10 +216,24 @@ void sixdof_df_object::forces_stl
             dwdx = (wval)/(p->DXP[IP]);
             dwdy = (wval)/(p->DYP[JP]);
             dwdz = (wval)/(p->DZP[KP]);
+            */
+            dudx = (uval)/delta;
+            dudy = (uval)/delta;
+            dudz = (uval)/delta;
+                                                                           
+            dvdx = (vval)/delta;
+            dvdy = (vval)/delta;
+            dvdz = (vval)/delta;
+                                                                            
+            dwdx = (wval)/delta;
+            dwdy = (wval)/delta;
+            dwdz = (wval)/delta;
+            
+            u_abs = sqrt(uval*uval + vval*vval + wval*wval);
 
-            Fv_x = rho_int*(nu_int + enu_int)*A_triang*(2.0*dudx*nx + (dudy + dvdx)*ny + (dudz + dwdx)*nz);
-            Fv_y = rho_int*(nu_int + enu_int)*A_triang*((dudy + dvdx)*nx + 2.0*dvdy*ny + (dvdz + dwdy)*nz);
-            Fv_z = rho_int*(nu_int + enu_int)*A_triang*((dudz + dwdx)*nx + (dvdz + dwdy)*ny + 2.0*dwdz*nz);
+            Fv_x = -rho_int*(nu_int + enu_int)*A_triang*(2.0*dudx*nx + (dudy + dvdx)*ny + (dudz + dwdx)*nz);
+            Fv_y = -rho_int*(nu_int + enu_int)*A_triang*((dudy + dvdx)*nx + 2.0*dvdy*ny + (dvdz + dwdy)*nz);
+            Fv_z = -rho_int*(nu_int + enu_int)*A_triang*((dudz + dwdx)*nx + (dvdz + dwdy)*ny + 2.0*dwdz*nz);
             }
             
             
@@ -271,36 +288,37 @@ void sixdof_df_object::forces_stl
             
             if(p->X39==3)
             {
-            double v_t,v_d;
-                
-            xip= p->XP[IP];
-            yip= p->YP[JP];
-
-            //zval = a->bed(i,j) + p->S116*p->DZN[KP];
+            xlocvel = xc + p->X43*nx*p->DXP[IP];
+            ylocvel = yc + p->X43*ny*p->DYP[JP];
+            zlocvel = zc + p->X43*nz*p->DZP[KP];
             
-                if(p->S33==1)
-                {
-                uval=p->ccipol1(a->u,xip,yip,zval);
-                vval=p->ccipol2(a->v,xip,yip,zval);
-                wval=p->ccipol3(a->w,xip,yip,zval);
-                
-                v_d=p->ccipol4(a->visc,xip,yip,zval);
-                v_t=p->ccipol4(a->eddyv,xip,yip,zval);
-                }
-                
-                if(p->S33==2)
-                {
-                uval=p->ccipol1_a(a->u,xip,yip,zval);
-                vval=p->ccipol2_a(a->v,xip,yip,zval);
-                wval=p->ccipol3_a(a->w,xip,yip,zval);
-                
-                v_d=p->ccipol4_a(a->visc,xip,yip,zval);
-                v_t=p->ccipol4_a(a->eddyv,xip,yip,zval);
-                }
-
-            u_abs = sqrt(uval*uval + vval*vval);
+            nu_int  = p->ccipol4_a(a->visc,xlocvel,ylocvel,zlocvel);
+            enu_int = p->ccipol4_a(a->eddyv,xlocvel,ylocvel,zlocvel);
+            rho_int = p->ccipol4_a(a->ro,xlocvel,ylocvel,zlocvel);
             
-            tau=density*(v_d + v_t)*(u_abs/dist);
+            uval=p->ccipol1(uvel,xlocvel,ylocvel,zlocvel);
+            vval=p->ccipol2(vvel,xlocvel,ylocvel,zlocvel);
+            wval=p->ccipol3(wvel,xlocvel,ylocvel,zlocvel);
+	        
+            i = p->posc_i(xlocvel);
+            j = p->posc_j(ylocvel);
+            k = p->posc_k(zlocvel);
+            
+            double delta = sqrt(pow(xc-xlocvel,2.0) + pow(yc-ylocvel,2.0) + pow(zc-zlocvel,2.0));
+            
+                
+            nu_int  = p->ccipol4_a(a->visc,xlocvel,ylocvel,zlocvel);
+            enu_int = p->ccipol4_a(a->eddyv,xlocvel,ylocvel,zlocvel);
+            rho_int = p->ccipol4_a(a->ro,xlocvel,ylocvel,zlocvel);
+
+
+            u_abs = sqrt(uval*uval + vval*vval + wval*wval);
+            
+            tau=density*(nu_int + enu_int)*(u_abs/delta);
+            
+            Fv_x = -rho_int*(nu_int + enu_int)*A_triang*(2.0*dudx*nx + (dudy + dvdx)*ny + (dudz + dwdx)*nz);
+            Fv_y = -rho_int*(nu_int + enu_int)*A_triang*((dudy + dvdx)*nx + 2.0*dvdy*ny + (dvdz + dwdy)*nz);
+            Fv_z = -rho_int*(nu_int + enu_int)*A_triang*((dudz + dwdx)*nx + (dvdz + dwdy)*ny + 2.0*dwdz*nz);
             }
             
             

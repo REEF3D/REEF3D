@@ -75,6 +75,20 @@ void reinidisc_f::start(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int ip
         ++n;
         }
     }
+    
+    if(ipol==9)
+    {
+
+        NLOOP9
+        L.V[n] = 0.0;
+
+        n=0;
+        BASELOOP
+        {
+        disc(p,a,pgc,b,L,p->sizeM9,ipol,a->C9);
+        ++n;
+        }
+    }
 }
 
 
@@ -131,7 +145,35 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *si
 
 	if(zplus*lsSig>0.0 && zmin*lsSig<0.0)
 	dz=0.0;	
-
+    
+    // ----------------
+    /*double fac=1.1;
+    
+    if((a->solid(i,j,k-1)<fac*p->DZN[KP] || a->topo(i,j,k-1)<fac*p->DZN[KP]) && fabs(a->phi(i,j,k)<fac*p->DZN[KP]))
+    {
+    dz = -1.0;
+    //dx=dy=0.0;
+    }
+    
+    if( (a->solid(i,j,k+1)<fac*p->DZN[KP] || a->topo(i,j,k+1)<fac*p->DZN[KP]) && fabs(a->phi(i,j,k)<fac*p->DZN[KP]))
+    {
+    dz = -1.0;
+    //dx=dy=0.0;
+    }
+    
+    if(a->solid(i,j,k)<fac*p->DZN[KP] && fabs(a->phi(i,j,k)<fac*p->DZN[KP]))
+    {
+    dz = -1.0;
+    //dx=dy=0.0;
+    }
+    
+    if(a->solid(i,j,k)<0.0)
+    {
+    dz = -1.0;
+    dx=dy=0.0;
+    }*/
+    // --------------
+    
 	dnorm=sqrt(dx*dx + dy*dy + dz*dz);
 	
     if(p->j_dir==0)
@@ -142,6 +184,9 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *si
     
     sign=lsv/sqrt(lsv*lsv+ dnorm*dnorm*deltax*deltax);
     
+    //if(a->solid(i,j,k)<1.1*p->DXM)
+    //sign=lsv/sqrt(lsv*lsv+ 20.0*dnorm*dnorm*deltax*deltax);
+        
     if(sign!=sign)
     sign= 1.0;
     
@@ -157,4 +202,6 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *si
     }
 
 	L.V[n] = -(sign*dnorm - sign) + diffterm;
+    
+    //a->test(i,j,k) = dz;
 }

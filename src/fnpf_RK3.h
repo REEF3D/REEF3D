@@ -45,7 +45,8 @@ public:
     virtual void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*);
     
 private:
-
+    void reference_gage(lexer*, fdm_fnpf*, ghostcell*, slice&);
+    
     int gcval,gcval_u,gcval_v,gcval_w;
     int gcval_eta,gcval_fifsf;
     int hypre_type;

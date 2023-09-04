@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"momentum.h"
+#include"momentum_forcing.h"
 #include"bcmom.h"
 #include"field1.h"
 #include"field2.h"
@@ -39,26 +40,28 @@ class reini;
 class picard;
 class heat;
 class concentration;
+class sixdof_df_base;
+class fsi;
 
 using namespace std;
 
 #ifndef MOMENTUM_FC3_H_
 #define MOMENTUM_FC3_H_
 
-class momentum_FC3 : public momentum, public bcmom
+class momentum_FC3 : public momentum, public momentum_forcing, public bcmom
 {
 public:
 	momentum_FC3(lexer*, fdm*, ghostcell*, convection*, convection*, diffusion*, pressure*, poisson*, 
-                turbulence*, solver*, solver*, ioflow*, heat*&, concentration*&, reini*);
+                turbulence*, solver*, solver*, ioflow*, heat*&, concentration*&, reini*, fsi*);
 	virtual ~momentum_FC3();
-	virtual void start(lexer*, fdm*, ghostcell*, vrans*);
+	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof_df_base*,vector<net*>&);
     virtual void utimesave(lexer*, fdm*, ghostcell*);
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);
 
-    field1 udiff,urk1,urk2;
-	field2 vdiff,vrk1,vrk2;
-	field3 wdiff,wrk1,wrk2;
+    field1 udiff,urk1,urk2,fx;
+	field2 vdiff,vrk1,vrk2,fy;
+	field3 wdiff,wrk1,wrk2,fz;
     field4 ls,frk1,frk2;
 
 private:
@@ -69,8 +72,6 @@ private:
 	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	
-    void timecheck(lexer*,fdm*,ghostcell*,field&,field&,field&);
-    
 	int gcval_u, gcval_v, gcval_w;
     int gcval_phi;
 	double starttime;
@@ -86,6 +87,8 @@ private:
 	ioflow *pflow;
     nhflow *pnh;
     reini *preini;
+    sixdof_df_base *p6dof_df;
+    fsi *pfsi;
     
 };
 

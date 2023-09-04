@@ -54,6 +54,8 @@ probe_point::probe_point(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P61)
 		sprintf(name,"./REEF3D_CFD_ProbePoint/REEF3D-CFD-Probe-Point-%i.dat",n+1);
 		
 		pout[n].open(name);
+        
+        //cout<<pout[n].is_open()<<" "<<n+1<<endl;
 
 	    pout[n]<<"Point Probe ID:  "<<n<<endl<<endl;
 		pout[n]<<"x_coord     y_coord     z_coord"<<endl;

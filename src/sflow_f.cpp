@@ -78,7 +78,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         cout<<"------------------------------------"<<endl;
         cout<<p->count<<endl;
         
-        cout<<"simtime: "<<p->simtime<<endl;
+        cout<<"simtime: "<<setprecision(3)<<p->simtime<<endl;
 		cout<<"timestep: "<<p->dt<<endl;
         
 		if(p->B90>0)
@@ -121,10 +121,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         
         // 6DOF
 		if (p->X10==3)
-        {
-            //p6dof->start(p,b,pgc,1.0,pvrans,pnet);
-            p6dof_sflow->start(p,b,pgc);
-        }
+        p6dof_sflow->start(p,b,pgc);
 
         // timesave
         pturb->ktimesave(p,b,pgc);

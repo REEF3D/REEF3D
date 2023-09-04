@@ -35,6 +35,7 @@ Author: Hans Bihs
 #include"sflow_print_bedline_y.h"
 #include"sflow_turbulence.h"
 #include"sflow_state.h"
+#include"fnpf_print_Hs.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -70,6 +71,9 @@ sflow_vtp::sflow_vtp(lexer *p, fdm2D *b, ghostcell *pgc)
     
     if(p->P40>0)
 	pstate=new sflow_state(p,b,pgc);
+    
+    if(p->P110==1)
+    phs = new fnpf_print_Hs(p,b->Hs);
 }
 
 sflow_vtp::~sflow_vtp()
@@ -109,6 +113,10 @@ void sflow_vtp::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sflow_t
     if(p->P63>0 && p->count%p->P54==0)
     pprobe->start(p,b,pgc);
     
+    // Hs
+    if(p->P110==1)
+    phs->start(p,pgc,b->eta,b->Hs);
+    
     // BED Gages
     if(((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47) ) && p->S10>0)
     if((p->S42==1 && p->count%p->S44==0 && p->sediter%p->P120==0) || (p->S42==2 && p->simtime>=p->sedsimtime && p->sediter%p->P120==0) || (p->S42==3  && p->simtime/p->wT>=p->sedwavetime && p->sediter%p->P120==0))
@@ -124,7 +132,7 @@ void sflow_vtp::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sflow_t
     }
     
     // Print state out based on iteration
-    if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && p->P41>0)
+    if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0)
     {
     pstate->write(p,b,pgc);
     }
@@ -225,6 +233,13 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pt
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
     }
+    
+    // Hs
+    if(p->P110==1)
+	{
+	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
+    }
 
 	// Cells
     offset[n]=offset[n-1] + 4*p->polygon_sum*3+4;
@@ -265,6 +280,11 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pt
     if(p->P23==1)
     {
     result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    }
+    if(p->P110==1)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\"Hs\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     }
     result<<"</PointData>"<<endl;
@@ -386,6 +406,18 @@ void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pt
 	TPSLICELOOP
 	{
 	ffn=float(p->sl_ipol4(b->test));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    }
+    
+    //  Hs
+    if(p->P110==1)
+    {
+	iin=4*(p->pointnum2D);
+	result.write((char*)&iin, sizeof (int));
+	TPSLICELOOP
+	{
+	ffn=float(p->sl_ipol4(b->Hs));
 	result.write((char*)&ffn, sizeof (float));
 	}
     }

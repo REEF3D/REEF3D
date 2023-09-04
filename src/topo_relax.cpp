@@ -46,10 +46,10 @@ topo_relax::~topo_relax()
 void topo_relax::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     
-	double relax,distot,distcount,zhval,qbval;
-	
+	double relax,distot,distcount,zhval,qbval,cbval;
+	double tauval, shearvelval, shieldsval;
 	if(p->S73>0)
-	ALOOP
+	SLICELOOP4
     if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
     {
 		distot = 0.0;
@@ -62,8 +62,16 @@ void topo_relax::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 			{
 			zhval = s->bedzh(i,j);
             qbval = s->qbe(i,j);
+            cbval =  s->cbe(i,j);
+            tauval = s->tau_eff(i,j);
+            shearvelval = s->shearvel_eff(i,j);
+            shieldsval = s->shields_eff(i,j);
 			s->bedzh(i,j)=0.0;
             s->qbe(i,j)=0.0;
+            s->cbe(i,j)=0.0;
+            s->tau_eff(i,j)=0.0;
+            s->shearvel_eff(i,j)=0.0;
+            s->shields_eff(i,j)=0.0;
 			distot += dist_S73[n];
 			++distcount;
 			}
@@ -79,6 +87,10 @@ void topo_relax::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 			{
 			s->bedzh(i,j) += (1.0-relax)*p->S73_val[n] + relax*zhval;
             s->qbe(i,j) +=  relax*qbval;
+            s->cbe(i,j) +=  relax*cbval;
+            s->tau_eff(i,j)=relax*tauval;
+            s->shearvel_eff(i,j)=relax*shearvelval;
+            s->shields_eff(i,j)=relax*shieldsval;
 			}
 			
 			
@@ -86,6 +98,10 @@ void topo_relax::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 			{
 			s->bedzh(i,j) += ((1.0-relax)*p->S73_val[n] + relax*zhval) * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
             s->qbe(i,j) +=  relax*qbval * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
+            s->cbe(i,j) +=  relax*cbval * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
+            s->tau_eff(i,j) +=  relax*tauval * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
+            s->shearvel_eff(i,j) +=  relax*shearvelval * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
+            s->shields_eff(i,j) +=  relax*shieldsval * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
 			}
 			
 			}
@@ -125,10 +141,13 @@ double topo_relax::rf(lexer *p, ghostcell *pgc)
                 
 			if(distcount>1)
             val += (relax) * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
+            
+            //cout<<p->XP[IP]<<" "<<val<<endl;
 			}
 		}
-
+        
     return val;
+    
 }
 
 double topo_relax::r1(lexer *p, double x, double threshold)

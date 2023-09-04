@@ -29,9 +29,11 @@ void lexer::lexer_ini()
     kinmax=0.0;
     epsmax=0.0;
     pressmax=0.0;
+    omegamax=0.0;
 
     utime=vtime=wtime=0.0;
     kintime=epstime=poissontime=lsmtime=susptime=printouttime=0.0;
+    recontime=fsftime=0.0;
 
     uiter=viter=witer=0;
     kiniter=epsiter=poissoniter=lsmiter=suspiter=topoiter=0;
@@ -67,14 +69,16 @@ void lexer::lexer_ini()
 	ufbmax=0.0;
 	vfbmax=0.0;
 	wfbmax=0.0;
-	
+	fbmax=0.0;
+    sfmax=0.0;
+    
 	ufbi=vfbi=wfbi=0.0;
 	pfbi=qfbi=rfbi=0.0;
     
     if(B98==1)
     B98=2;
     
-    if(A10==3 || A10==55)
+    if(A10==3 || A10==444)
     G2=1;
 		
 }

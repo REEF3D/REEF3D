@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"picard_f.h"
 #include"picard_void.h"
 #include"reinidisc_f.h"
+#include"reinidisc_sf.h"
 #include"reinidisc_f2.h"
 #include"reinidisc_fsf.h"
 
@@ -72,8 +73,11 @@ reini_RK3::reini_RK3(lexer* p, int type) : epsi(p->F45*p->DXM),f(p),frk1(p),frk2
 	if(p->F49==0)
 	prdisc = new reinidisc_fsf(p);
 
-	if(p->F49==1)
+	if(p->F49==1 && p->G3==0)
 	prdisc = new reinidisc_f(p);
+    
+    if(p->F49==1 && p->G3==1)
+	prdisc = new reinidisc_sf(p);
     
     if(p->F49==2)
 	prdisc = new reinidisc_f2(p);
@@ -140,7 +144,7 @@ void reini_RK3::start(fdm* a,lexer* p,field& b,ghostcell* pgc,ioflow* pflow)
         prdisc->start(p,a,pgc,frk1,L,6);
 
         NLOOP6
-        frk2.V[n]=  0.75*f.V[n] + 0.25*frk1.V[n] + 0.25*dt.V[n]*L.V[n];
+        frk2.V[n] = 0.75*f.V[n] + 0.25*frk1.V[n] + 0.25*dt.V[n]*L.V[n];
 
         if(p->count==0)
         pgc->start6vec(p,frk2,gcval_iniphi);
@@ -161,7 +165,6 @@ void reini_RK3::start(fdm* a,lexer* p,field& b,ghostcell* pgc,ioflow* pflow)
         pgc->start6vec(p,f,gcval_phi);
 	}
 	
-
     
 	// backfill
 	n=0;

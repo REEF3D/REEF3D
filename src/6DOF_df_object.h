@@ -55,12 +55,12 @@ public:
     sixdof_df_object(lexer*, fdm*, ghostcell*, int);
 	virtual ~sixdof_df_object();
 	
-	virtual void solve_eqmotion(lexer*,fdm*,ghostcell*,double,double,double,vrans*,vector<net*>&);
+	virtual void solve_eqmotion(lexer*,fdm*,ghostcell*,int,vrans*,vector<net*>&);
 	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
     
 	// Additional functions
     void transform(lexer*, fdm*, ghostcell*, bool);
-    void updateForcing(lexer*, fdm*, ghostcell*,double,field&,field&,field&,field1&,field2&,field3&);
+    void updateForcing(lexer*, fdm*, ghostcell*,double,field&,field&,field&,field&,field&,field&);
 	void forces_stl(lexer*, fdm*, ghostcell*,double,field&,field&,field&);
     
     void saveTimeStep(lexer*,double);
@@ -159,7 +159,10 @@ private:
     void rk2(lexer*, fdm*, ghostcell*,double);
     void rk4(lexer*, fdm*, ghostcell*,double);
     */
-    void rk3(lexer*, fdm*, ghostcell*,double,double,double);
+    
+    void rk2(lexer*, fdm*, ghostcell*,int);
+    void rk3(lexer*, fdm*, ghostcell*,int);
+    void rkls3(lexer*, fdm*, ghostcell*,int);
 
     void rotation_tri(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
    
@@ -254,6 +257,8 @@ private:
     int n6DOF;
     
     int triangle_token,printnormal_count;
+    
+    double alpha[3],gamma[3],zeta[3];
 };
 
 #endif

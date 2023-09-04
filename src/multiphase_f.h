@@ -49,7 +49,7 @@ class multiphase_f : public multiphase, public increment
 public:
 	multiphase_f(lexer*, fdm*, ghostcell*);
 	virtual ~multiphase_f();
-	virtual void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particlecorr*,printer*);
+	virtual void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particle_corr*,printer*);
 	virtual void ini(lexer*,fdm*,ghostcell*,ioflow*,printer*,convection*,solver*);
 	virtual void update(lexer*,fdm*,ghostcell*);
 	
@@ -74,7 +74,7 @@ public:
 	multiphase_fluid_update *pupdate;
 	heat *pheat;
 	concentration *pconc;
-	particlecorr *ppart;
+	particle_corr *ppart;
 	print_wsf *pwsf1;
 	print_wsf *pwsf2;
 	

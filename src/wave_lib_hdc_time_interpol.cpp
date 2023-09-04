@@ -28,7 +28,6 @@ void wave_lib_hdc::time_interpol(lexer *p)
     for(i=0; i<Nx; ++i)
     for(j=0; j<Ny; ++j)
     E[i][j] = E1[i][j]*t1 + E2[i][j]*t2;
-    
 
     for(i=0; i<Nx; ++i)
     for(j=0; j<Ny; ++j)
@@ -44,7 +43,6 @@ void wave_lib_hdc::time_interpol(lexer *p)
     for(j=0; j<Ny; ++j)
     for(k=0; k<Nz; ++k)
     W[i][j][k] = W1[i][j][k]*t1 + W2[i][j][k]*t2;
-    
     
     for(i=0; i<Nx; ++i)
     for(j=0; j<Ny; ++j)

@@ -75,10 +75,11 @@ public:
 	virtual void phi_relax(lexer*,ghostcell*,field&)=0;
     virtual void vof_relax(lexer*,ghostcell*,field&)=0;
     virtual void turb_relax(lexer*,fdm*,ghostcell*,field&)=0;
-    virtual void U_relax(lexer*,ghostcell*,double*)=0;
-    virtual void V_relax(lexer*,ghostcell*,double*)=0;
-    virtual void W_relax(lexer*,ghostcell*,double*)=0;
+    virtual void U_relax(lexer*,ghostcell*,double*,double*)=0;
+    virtual void V_relax(lexer*,ghostcell*,double*,double*)=0;
+    virtual void W_relax(lexer*,ghostcell*,double*,double*)=0;
     virtual void P_relax(lexer*,ghostcell*,double*)=0;
+    virtual void WL_relax(lexer*,ghostcell*,slice&,slice&)=0;
     virtual void fi_relax(lexer*,ghostcell*,field&,field&)=0;
     virtual void fivec_relax(lexer*, ghostcell*, double*)=0;
     virtual void fifsf_relax(lexer*, ghostcell*, slice&)=0;
@@ -112,10 +113,12 @@ public:
     virtual void ini_ptf(lexer*,fdm*,ghostcell*)=0;
     
     // nhflow
+    virtual void wavegen_precalc_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
+    virtual void wavegen_precalc_ini_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
     virtual void ini_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
     virtual void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
-    virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*)=0;
-    virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*)=0;
+    virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*)=0;
+    virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*)=0;
     virtual void isource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*)=0;
     virtual void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*)=0;
     virtual void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*)=0;

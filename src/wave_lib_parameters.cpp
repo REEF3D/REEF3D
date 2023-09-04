@@ -86,7 +86,8 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
 	    wC = ww/wk;
 	    ubar = (c0 + eps*eps*c2 + eps*eps*eps*eps*c4)/sqrt(wk/9.81);
 	   }
-
+       
+    p->wT = wT;
     }
 
 // Wave Period given
@@ -96,6 +97,7 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
 		wa = 0.5*p->B93_1;
 		wH = p->B93_1;
 		wT = p->B93_2;
+        p->wT = wT;
 
 		// define wave length
 		if(wtype==1)
@@ -184,7 +186,7 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
     p->ww = ww;
 
     if(p->B92>30 && p->B92!=70)
-	   {
+    {
        if(p->B91==1)
        {
          p->wHs = p->B91_1;
@@ -195,6 +197,7 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
          ww= sqrt(fabs(9.81*wk*tanh(wk*(wdt))));
          wf = ww/(2.0*PI);
          wT = 1.0/wf;
+         p->wT = wT;
          p->wTp = wT;
          p->wwp = 2.0*PI/p->wTp;
        }
@@ -206,6 +209,7 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
          p->wA = p->wAs;
          p->wTp = p->B93_2;
          wT = p->B93_2;
+         p->wT = wT;
          p->wwp = 2.0*PI/p->wTp;
        }
 	   }

@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W)
+void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
     double eta_R,Uc,Un,Vc,Wc,eta_T,eta_M,wsf;
     
@@ -41,17 +41,33 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
         vvel=vval[count]*ramp(p);
         wvel=wval[count]*ramp(p);
 
-        U[Im1JK]=uvel+p->Ui;
-        U[Im2JK]=uvel+p->Ui;
-        U[Im3JK]=uvel+p->Ui;
+            U[Im1JK]=uvel+p->Ui;
+            U[Im2JK]=uvel+p->Ui;
+            U[Im3JK]=uvel+p->Ui;
+                
+            V[Im1JK]=vvel;
+            V[Im2JK]=vvel;
+            V[Im3JK]=vvel;
+                
+            W[Im1JK]=wvel;
+            W[Im2JK]=wvel;
+            W[Im3JK]=wvel;
+        
+        uvel=UHval[count]*ramp(p);
+        vvel=VHval[count]*ramp(p);
+        wvel=WHval[count]*ramp(p);
             
-        V[Im1JK]=vvel;
-        V[Im2JK]=vvel;
-        V[Im3JK]=vvel;
+            UH[Im1JK]=uvel;
+            UH[Im2JK]=uvel;
+            UH[Im3JK]=uvel;
             
-        W[Im1JK]=wvel;
-        W[Im2JK]=wvel;
-        W[Im3JK]=wvel;
+            VH[Im1JK]=vvel;
+            VH[Im2JK]=vvel;
+            VH[Im3JK]=vvel;
+            
+            WH[Im1JK]=wvel;
+            WH[Im2JK]=wvel;
+            WH[Im3JK]=wvel;
             
                 
                 // fsf deviation
@@ -65,6 +81,10 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
                 U[Im1JK] += Uc;
                 U[Im2JK] += Uc;
                 U[Im3JK] += Uc;
+                
+                UH[Im1JK] += (d->eta(i,j)+d->depth(i,j))*Uc;
+                UH[Im2JK] += (d->eta(i,j)+d->depth(i,j))*Uc;
+                UH[Im3JK] += (d->eta(i,j)+d->depth(i,j))*Uc;
  
         ++count;
 		}
@@ -81,7 +101,7 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
             
             d->eddyv[IJK]=MIN(d->eddyv[IJK],1.0e-4);
             }
-         pgc->start4V(p,d->eddyv,d->bc,24);
+         pgc->start4V(p,d->eddyv,24);
 		}
         
 }

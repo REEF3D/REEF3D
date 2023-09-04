@@ -53,10 +53,10 @@ void sflow_hxy_fou::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet
 	pflux->u_flux(4,uvel,ivel1,ivel2);
 
 	if(ivel1>eps)
-    hx(i,j) = eta(i,j) + depth(i,j);
+    hx(i,j) = eta(i,j) + 0.5*(depth(i,j)+depth(i+1,j));
 	
 	if(ivel1<-eps)
-    hx(i,j) = eta(i+1,j) + depth(i+1,j);
+    hx(i,j) = eta(i+1,j) + 0.5*(depth(i,j)+depth(i+1,j));
 	
 	if(fabs(ivel1)<=eps)
     hx(i,j) = MAX(eta(i,j),eta(i+1,j)) + MIN(depth(i,j), depth(i+1,j));
@@ -74,10 +74,10 @@ void sflow_hxy_fou::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet
         pflux->u_flux(4,uvel,ivel1,ivel2);
 
         if(ivel1>eps)
-        hx(i,j) = eta(i,j) + depth(i,j);
+        hx(i,j) = eta(i,j) + 0.5*(depth(i,j)+depth(i+1,j));
         
         if(ivel1<-eps)
-        hx(i,j) = eta(i+1,j) + depth(i+1,j);
+        hx(i,j) = eta(i+1,j) + 0.5*(depth(i,j)+depth(i+1,j));
         
         if(fabs(ivel1)<=eps)
         hx(i,j) = MAX(eta(i,j),eta(i+1,j)) + MIN(depth(i,j), depth(i+1,j));
@@ -101,50 +101,25 @@ void sflow_hxy_fou::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet
         pflux->u_flux(4,uvel,ivel1,ivel2);
 
         if(ivel1>eps)
-        hx(i,j) = eta(i,j) + depth(i,j);
+        hx(i,j) = eta(i,j) + 0.5*(depth(i,j)+depth(i,j+1));
         
         if(ivel1<-eps)
-        hx(i,j) = eta(i+1,j) + depth(i+1,j);
+        hx(i,j) = eta(i+1,j) + 0.5*(depth(i,j)+depth(i,j+1));
         
         if(fabs(ivel1)<=eps)
         hx(i,j) = MAX(eta(i,j),eta(i+1,j)) + MIN(depth(i,j), depth(i+1,j));
         }
     }
-    
-   /*
-    for(qq=0;qq<pBC->obj_count;++qq)
-    if(pBC->patch[qq]->waterlevel_flag==1)
-    for(n=0;n<pBC->patch[qq]->gcb_count;++n)
-    if(pBC->patch[qq]->gcb[n][3]==4)
-    {
-
-    i=pBC->patch[qq]->gcb[n][0];
-    
-    j=pBC->patch[qq]->gcb[n][1];
-    
-    if(j==25)
-    cout<<"i: "<<i+p->origin_i<<" j: "<<j<<" hx_i-2: "<<hx(i-2,j)<<" hx_i-1: "<<hx(i-1,j)<<" hx_i: "<<hx(i,j)<<" P_i-1: "<<b->P(i-1,j)<<" P_i: "<<b->P(i,j)<<" P_i+1: "<<b->P(i+1,j)<<" eta_i-1: "<<eta(i,j)<<" eta_i: "<<eta(i-1,j)<<" eta_i+1: "<<eta(i+1,j)<<endl;
-    }
-    
-    for(n=0;n<p->gcslout_count;n++)
-    {
-    i=p->gcslout[n][0];
-    j=p->gcslout[n][1];
-
-    
-    //cout<<"gcslout i: "<<i<<" j: "<<j<<" hx_i: "<<hx(i,j)<<" P_i-1: "<<b->P(i-1,j)<<" P_i: "<<b->P(i,j)<<" eta_i: "<<eta(i,j)<<" eta_i+1: "<<eta(i+1,j)<<endl;
-
-    }*/
 	
 	SLICELOOP2
 	{
 	pflux->v_flux(4,vvel,jvel1,jvel2);
 	
 	if(jvel1>eps)
-    hy(i,j) = eta(i,j) + depth(i,j);
+    hy(i,j) = eta(i,j) + 0.5*(depth(i,j)+depth(i,j+1));
 	
 	if(jvel1<-eps)
-    hy(i,j) = eta(i,j+1) + depth(i,j+1);
+    hy(i,j) = eta(i,j+1) + 0.5*(depth(i,j)+depth(i,j+1));
 	
 	if(fabs(jvel1)<=eps)
     hy(i,j) = MAX(eta(i,j),eta(i,j+1)) + MIN(depth(i,j), depth(i,j+1));

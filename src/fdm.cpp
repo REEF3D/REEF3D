@@ -58,6 +58,7 @@ fdm::fdm(lexer *p)
     C4.allocate(p);
     C4a.allocate(p);
     C6.allocate(p);
+    C9.allocate(p);
 }
 
 

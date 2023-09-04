@@ -80,7 +80,7 @@ void VOF_PLIC::start
     ghostcell* pgc,
     ioflow* pflow,
     reini* preini,
-    particlecorr* ppart,
+    particle_corr* ppart,
     field &F
 )
 {

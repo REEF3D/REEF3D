@@ -30,7 +30,8 @@ void iowave::wavegen_precalc(lexer *p, ghostcell *pgc)
     // prestep
     wave_prestep(p,pgc);
     
-    if(p->A10!=3 && p->A10!=55)  /////
+
+    if(p->A10!=3 && p->A10!=5)
     {
         if(p->B89==0 )
         {
@@ -54,8 +55,8 @@ void iowave::wavegen_precalc(lexer *p, ghostcell *pgc)
         }
     }
     
-    
-    if(p->A10==3) ////
+
+    if(p->A10==3)
     {
         if(p->B89==0 )
         {
@@ -82,13 +83,7 @@ void iowave::wavegen_precalc(lexer *p, ghostcell *pgc)
         }
     }
     
-    if(p->A10==55)
-    {
-        /*if(p->B98==2)
-        nhflow_precalc_relax(p,pgc);
-            
-        if(p->B98==3 || p->B98==4)
-        nhflow_precalc_dirichlet(p,pgc);*/
-    }
+    
+    
 }
     

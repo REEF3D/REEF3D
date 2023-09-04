@@ -87,6 +87,8 @@ private:
     int printcount_fsi;
 	double printtime;
     Matrix3Xd tri_x, tri_y, tri_z;
+    
+    double starttime, endtime;
 };
 
 #endif

@@ -37,6 +37,7 @@ class sflow_print_bedline_y;
 class sflow_print_probe_da;
 class sflow_turbulence;
 class sflow_state;
+class fnpf_print_Hs;
 
 using namespace std;
 
@@ -77,6 +78,7 @@ private:
     sflow_print_bedline *pbedline;
     sflow_print_bedline_y *pbedline_y;
     sflow_state *pstate;
+    fnpf_print_Hs *phs;
 
 };
 

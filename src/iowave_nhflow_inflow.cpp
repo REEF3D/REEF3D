@@ -22,30 +22,31 @@ Author: Hans Bihs
 
 #include"iowave.h"
 #include"lexer.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
  
-void iowave::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, double *V, double *W)
+void iowave::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
     if(p->I230==0)
     {
     if(p->B98==0)
-    nhflow_inflow_plain(p,d,pgc,U,V,W);
+    nhflow_inflow_plain(p,d,pgc,U,V,W,UH,VH,WH);
     
 	if(p->B98==3)
-	nhflow_dirichlet_wavegen(p,d,pgc,U,V,W);
+	nhflow_dirichlet_wavegen(p,d,pgc,U,V,W,UH,VH,WH);
 	
 	if(p->B98==4)
-	nhflow_active_wavegen(p,d,pgc,U,V,W);
+	nhflow_active_wavegen(p,d,pgc,U,V,W,UH,VH,WH);
 	}
     
 	if(p->B99==3||p->B99==4||p->B99==5)
-	nhflow_active_beach(p,d,pgc,U,V,W);
+	nhflow_active_beach(p,d,pgc,U,V,W,UH,VH,WH);
     
     //if(p->I230>0)
     //ff_inflow(p,d,pgc,U,V,W);
 }
 
-void iowave::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, double *V, double *W)
+void iowave::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
 }
 
@@ -54,7 +55,7 @@ void iowave::discharge_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 }
 
-void iowave::nhflow_inflow_plain(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, double *V, double *W)
+void iowave::nhflow_inflow_plain(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
     for(n=0;n<p->gcin_count;n++)
     {
@@ -73,5 +74,17 @@ void iowave::nhflow_inflow_plain(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U
         W[Im1JK]=0.0;
         W[Im2JK]=0.0;
         W[Im3JK]=0.0;
+        
+        UH[Im1JK]=(d->eta(i,j)+d->depth(i,j))*p->Ui;
+        UH[Im2JK]=(d->eta(i,j)+d->depth(i,j))*p->Ui;
+        UH[Im3JK]=(d->eta(i,j)+d->depth(i,j))*p->Ui;
+		
+        VH[Im1JK]=0.0;
+        VH[Im2JK]=0.0;
+        VH[Im3JK]=0.0;
+		
+        WH[Im1JK]=0.0;
+        WH[Im2JK]=0.0;
+        WH[Im3JK]=0.0;
     }
 }

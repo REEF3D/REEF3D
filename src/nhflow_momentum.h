@@ -23,7 +23,10 @@ Author: Hans Bihs
 class lexer;
 class fdm_nhf;
 class ghostcell;
+class nhflow_signal_speed;
 class nhflow_convection;
+class nhflow_reconstruct;
+class nhflow_fsf_reconstruct;
 class diffusion;
 class nhflow_pressure;
 class turbulence;
@@ -31,6 +34,7 @@ class solver;
 class ioflow;
 class nhflow;
 class nhflow_fsf;
+class nhflow_turbulence;
 class vrans;
 
 using namespace std;
@@ -42,7 +46,8 @@ class nhflow_momentum
 {
 public:
 
-	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_convection*, diffusion*, nhflow_pressure*, solver*, nhflow*, nhflow_fsf*, vrans*)=0;
+	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_signal_speed*, nhflow_reconstruct*, nhflow_convection*, diffusion*, nhflow_pressure*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*, vrans*)=0;
+    virtual void inidisc(lexer*, fdm_nhf*, ghostcell*, nhflow_fsf*)=0;
 
 };
 

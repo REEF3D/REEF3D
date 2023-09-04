@@ -42,7 +42,7 @@ class ghostcell;
 class timestep;
 class freesurface;
 class reini;
-class particlecorr;
+class particle_corr;
 class sediment;
 class bedload;
 class reinitopo;
@@ -61,6 +61,10 @@ class onephase;
 class nsewave;
 class nhflow_fsf;
 class nhflow_convection;
+class nhflow_signal_speed;
+class nhflow_reconstruct;
+class nhflow_fsf_reconstruct;
+class nhflow_turbulence;
 class nhflow_pressure;
 class sflow;
 class fnpf_vtu3D;
@@ -71,8 +75,10 @@ class patchBC_interface;
 class nhflow;
 class multiphase;
 class nhflow_momentum;
-class sixdof_df;
-class momentum_RK3_df;
+class sixdof_df_base;
+class momentum_RKLS3_df;
+class momentum_RKLS3_sf;
+class nhflow_vtu3D;
 
 #include<iostream>
 #include<fstream>
@@ -102,6 +108,7 @@ public:
     
 	void loop_cfd(fdm*);
 	void loop_cfd_df(fdm*);
+    void loop_cfd_sf(fdm*);
     void loop_nsewave(fdm*);
     void loop_nhflow();
     void loop_ptf(fdm*);
@@ -171,14 +178,13 @@ public:
 	timestep* ptstep;
 	freesurface* pfsf;
 	reini* preini;
-	particlecorr* ppart;
+	particle_corr* ppart; 
 	sediment* psed;
 	reinitopo* preto;
     reinitopo* preso;
 	heat* pheat;
 	potential* potflow;
 	benchmark* pbench;
-	sixdof* p6dof;
 	fsi* pfsi;
 	vrans* pvrans;
     vector<net*> pnet;
@@ -196,20 +202,23 @@ public:
     patchBC_interface *pBC;
     nhflow *pnhf;
     nhflow_convection *pnhfconvec;
+    nhflow_signal_speed *pss;
+    nhflow_reconstruct *precon;
     nhflow_pressure *pnhpress;
+    nhflow_turbulence *pnhfturb;
     multiphase *pmp;
     nhflow_timestep *pnhfstep;
     nhflow_momentum *pnhfmom;
-    sixdof_df *p6dof_df;
-    momentum_RK3_df *pmom_df;
-
+    nhflow_vtu3D *pnhfprint;
+    sixdof_df_base *p6dof_df;
+    momentum_RKLS3_df *pmom_df;
+    momentum_RKLS3_sf *pmom_sf;
 
 private:
     double starttime, endtime;
     ofstream mainlogout;
     ofstream maxlogout;
     ofstream solvlogout;
-    
 	
 	double nom,val;
 };

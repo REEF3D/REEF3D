@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"momentum.h"
+#include"momentum_forcing.h"
 #include"bcmom.h"
 #include"field1.h"
 #include"field2.h"
@@ -32,25 +33,28 @@ class pressure;
 class turbulence;
 class solver;
 class poisson;
+class sixdof_df_base;
+class fsi;
 
 using namespace std;
 
 #ifndef MOMENTUM_RK2_H_
 #define MOMENTUM_RK2_H_
 
-class momentum_RK2 : public momentum, public bcmom
+class momentum_RK2 : public momentum, public momentum_forcing, public bcmom
 {
 public:
-	momentum_RK2(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*);
+	momentum_RK2(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, 
+                solver*, solver*, ioflow*, fsi*);
 	virtual ~momentum_RK2();
-	virtual void start(lexer*, fdm*, ghostcell*, vrans*);
+	virtual void start(lexer*, fdm*, ghostcell*,vrans*,sixdof_df_base*,vector<net*>&);
     virtual void utimesave(lexer*, fdm*, ghostcell*);
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);
 
-    field1 udiff, urk1;
-	field2 vdiff, vrk1;
-	field3 wdiff, wrk1;
+    field1 udiff, urk1, fx;
+	field2 vdiff, vrk1, fy;
+	field3 wdiff, wrk1, fz;
 
 private:
 	void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
@@ -68,6 +72,8 @@ private:
 	solver *psolv;
     solver *ppoissonsolv;
 	ioflow *pflow;
+    sixdof_df_base *p6dof_df;
+    fsi *pfsi;
 };
 
 #endif

@@ -92,7 +92,6 @@ private:
     
     
     // variables
-    double singamma,cosgamma;
     double t_start,t_end;
     int endseries;
     double val;

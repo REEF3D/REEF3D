@@ -49,7 +49,7 @@ fnpf_laplace_cds4_bc2::~fnpf_laplace_cds4_bc2()
 }
 
 
-void fnpf_laplace_cds4_bc2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, double *f)
+void fnpf_laplace_cds4_bc2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, double *f, slice &Fifsf)
 {
     // see p. 1130-1132
     

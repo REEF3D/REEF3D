@@ -53,7 +53,8 @@ void bedconc::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
     SLICELOOP4
     {
 	
-    Ti=MAX((s->tau_eff(i,j)-s->tau_crit(i,j)/s->tau_crit(i,j)),0.0);
+    Ti=MAX((s->tau_eff(i,j)-s->tau_crit(i,j))/s->tau_crit(i,j),0.0);
+
 
     Ds= d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
     
@@ -69,12 +70,12 @@ void bedconc::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
     {
         k=s->bedk(i,j);
         
-        h=s->waterlevel(i,j);
+
         zdist = (p->ZP[KP]-s->bedzh(i,j));
 
-        s->cb(i,j) = s->cbe(i,j)*pow(((h-zdist)/zdist)*(adist/(h-adist)),zdist);
+        s->cb(i,j) = s->cbe(i,j)*pow(((s->waterlevel(i,j)-zdist)/zdist)*(adist/(s->waterlevel(i,j)-adist)),zdist);
         
-        //cout<<"CB: "<<s->cbe(i,j)<<" "<<s->cb(i,j)<<endl;
+        //cout<<"CB: "<<s->cbe(i,j)<<" "<<s->cb(i,j)<<" "<<zdist<<" "<<adist<<" "<<s->waterlevel(i,j)<<endl;
     }
     
     if(p->S34==2)

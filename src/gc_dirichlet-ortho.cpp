@@ -26,7 +26,6 @@ Author: Hans Bihs
 #include"math.h"
 #include"density_f.h"
 
-
 void ghostcell::dirichlet_ortho(lexer *p,field& f,double dist,int gcv, int bc, int cs)
 {
 	wallvalue=0.0;

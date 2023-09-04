@@ -114,7 +114,7 @@ void ghostcell::gcdistro4a(lexer *p,field& f, int ii, int jj, int kk, int nn, do
     extend(p,f,dist,gcv,bc,cs);
 }
 
-void ghostcell::gcdistro4aV(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, double dist,  int gcv, int bc, int cs, int id)
+void ghostcell::gcdistro4avec(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, double dist,  int gcv, int bc, int cs, int id)
 {
     i=ii;
 	j=jj;
@@ -128,7 +128,7 @@ void ghostcell::gcdistro4aV(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, 
 	gcV_neumann_all(vec,gcv,bc,cs,id);
 }
 
-void ghostcell::gcdistro6V(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, double dist,  int gcv, int bc, int cs, int id)
+void ghostcell::gcdistro6vec(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, double dist,  int gcv, int bc, int cs, int id)
 {
     i=ii;
 	j=jj;

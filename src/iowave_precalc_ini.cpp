@@ -26,6 +26,9 @@ Author: Hans Bihs
 
 void iowave::wavegen_precalc_ini(lexer *p, ghostcell *pgc)
 {
+    // prestep
+    wave_prestep(p,pgc);
+    
     if(p->A10!=3)
     {
         if(p->B98==2)
@@ -35,22 +38,13 @@ void iowave::wavegen_precalc_ini(lexer *p, ghostcell *pgc)
         wavegen_precalc_dirichlet_ini(p,pgc);
     }
     
-    if(p->A10==3)
+    if(p->A10==3) // FNPF
     {
         if(p->B98==2)
         fnpf_precalc_relax_ini(p,pgc);
         
         if(p->B98==3 || p->B98==4)
         fnpf_precalc_dirichlet_ini(p,pgc);
-    }
-    
-    if(p->A10==55)
-    {
-        if(p->B98==2)
-        nhflow_precalc_relax_ini(p,pgc);
-        
-        if(p->B98==3 || p->B98==4)
-        nhflow_precalc_dirichlet_ini(p,pgc);
     }
 }
 
@@ -182,7 +176,6 @@ void iowave::wavegen_precalc_relax_ini(lexer *p, ghostcell *pgc)
     p->Darray(Fival_T_cos,wave_comp);
     }
 }
-
 void iowave::wavegen_precalc_dirichlet_ini(lexer *p, ghostcell *pgc)
 {
     // count number of relax points
@@ -234,5 +227,4 @@ void iowave::wavegen_precalc_dirichlet_ini(lexer *p, ghostcell *pgc)
     p->Darray(etaval_T_cos,wave_comp);
     p->Darray(Fival_T_cos,wave_comp);
     }
-    
 }

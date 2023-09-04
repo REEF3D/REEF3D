@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2023 Hans Bihs
 
@@ -20,66 +20,48 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"momentum.h"
-#include"bcmom.h"
-#include"field1.h"
-#include"field2.h"
-#include"field3.h"
+#include"nhflow_momentum.h"
 #include"slice4.h"
-
-class convection;
-class diffusion;
-class pressure;
-class turbulence;
-class solver;
-class poisson;
-class fluid_update;
-class nhflow;
-class nhflow_fsf;
+#include"bcmom.h"
+#include"nhflow_sigma.h"
 
 using namespace std;
 
 #ifndef NHFLOW_MOMENTUM_RK2_H_
 #define NHFLOW_MOMENTUM_RK2_H_
 
-class nhflow_momentum_RK2 : public momentum, public bcmom
+class nhflow_momentum_RK2 : public nhflow_momentum, public bcmom, public nhflow_sigma
 {
 public:
-	nhflow_momentum_RK2(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*, nhflow*, nhflow_fsf*);
+	nhflow_momentum_RK2(lexer*, fdm_nhf*, ghostcell*);
 	virtual ~nhflow_momentum_RK2();
-	virtual void start(lexer*, fdm*, ghostcell*, vrans*);
-    virtual void utimesave(lexer*, fdm*, ghostcell*);
-    virtual void vtimesave(lexer*, fdm*, ghostcell*);
-    virtual void wtimesave(lexer*, fdm*, ghostcell*);
-
-    field1 udiff,urk1;
-	field2 vdiff,vrk1;
-	field3 wdiff,wrk1;
     
-    slice4 etark1;
+	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_signal_speed*, nhflow_reconstruct*, nhflow_convection*, diffusion*, nhflow_pressure*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*,  vrans*);
+    virtual void inidisc(lexer*, fdm_nhf*, ghostcell*, nhflow_fsf*);
+
+    double *UDIFF;
+    double *VDIFF;
+    double *WDIFF;
+    
+    double *UHRK1;
+    double *VHRK1;
+    double *WHRK1;
+    
+    slice4 WLRK1;    slice4 eta_temp;
 
 private:
-    fluid_update *pupdate;
+    void reconstruct(lexer*, fdm_nhf*, ghostcell*, nhflow_fsf*, nhflow_signal_speed*, nhflow_reconstruct*,slice&,double*,double*,double*,double*,double*,double*);
+    void velcalc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,slice&);
     
-	void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
-	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
-	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
+	void irhs(lexer*,fdm_nhf*,ghostcell*);
+	void jrhs(lexer*,fdm_nhf*,ghostcell*);
+	void krhs(lexer*,fdm_nhf*,ghostcell*);
+    void clearrhs(lexer*,fdm_nhf*,ghostcell*);
 	
-    void timecheck(lexer*,fdm*,ghostcell*,field&,field&,field&);
-    
 	int gcval_u, gcval_v, gcval_w;
 	double starttime;
-
-	convection *pconvec;
-	diffusion *pdiff;
-	pressure *ppress;
-	poisson *ppois;
-	turbulence *pturb;
-	solver *psolv;
-    solver *ppoissonsolv;
-	ioflow *pflow;
-    nhflow *pnh;
-    nhflow_fsf *pnhfsf;
+    
+    nhflow_convection *pweno;
 };
 
 #endif

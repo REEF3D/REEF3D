@@ -47,6 +47,7 @@ void ghostcell::gcsolid_buildflag(lexer *p, fdm *a, int& cellcount)
         if(a->solid(i,j,k)>=0.0 && a->topo(i,j,k)>=0.0)
         p->flag[IJK]=1;
     }
+    
     flagx(p,p->flag);
     flagx(p,p->flag4);
 
@@ -107,14 +108,14 @@ void ghostcell::gcsolid_velflag1(lexer *p, fdm *a, int& cellcount)
     if(p->flag4[IJK]==SOLID || (p->flag4[IJK]==WATER && p->flag4[Ip1JK]==SOLID))
 	{
        if(p->flag4[IJK]==SOLID) 
-       p->flag1[UIJK]=SOLID;
+       p->flag1[IJK]=SOLID;
        
        if(p->flag4[IJK]==WATER && p->flag4[Ip1JK]==SOLID)
-       p->flag1[UIJK]=SOLID;
+       p->flag1[IJK]=SOLID;
 	}
 	   
     if(p->flag4[IJK]==WATER && p->flag4[Ip1JK]==WATER)
-    p->flag1[UIJK]=WATER;
+    p->flag1[IJK]=WATER;
     }
 }
 
@@ -126,14 +127,14 @@ void ghostcell::gcsolid_velflag2(lexer *p, fdm *a, int& cellcount)
     if(p->flag4[IJK]==SOLID || (p->flag4[IJK]==WATER && p->flag4[IJp1K]==SOLID))
 	{
        if(p->flag4[IJK]==SOLID) 
-       p->flag2[VIJK]=SOLID;
+       p->flag2[IJK]=SOLID;
        
        if(p->flag4[IJK]==WATER && p->flag4[IJp1K]==SOLID) 
-       p->flag2[VIJK]=SOLID;
+       p->flag2[IJK]=SOLID;
 	}
 
     if(p->flag4[IJK]==WATER && p->flag4[IJp1K]==WATER)
-    p->flag2[VIJK]=WATER;
+    p->flag2[IJK]=WATER;
     }
 
     cellcount=count;
@@ -147,14 +148,14 @@ void ghostcell::gcsolid_velflag3(lexer *p, fdm *a, int& cellcount)
     if(p->flag4[IJK]==SOLID || (p->flag4[IJK]==WATER && p->flag4[IJKp1]==SOLID))
 	{
        if(p->flag4[IJK]==SOLID) 
-       p->flag3[WIJK]=SOLID;
+       p->flag3[IJK]=SOLID;
        
        if(p->flag4[IJK]==WATER && p->flag4[IJKp1]==SOLID) 
-       p->flag3[WIJK]=SOLID;
+       p->flag3[IJK]=SOLID;
 	}
 	   
     if(p->flag4[IJK]==WATER && p->flag4[IJKp1]==WATER)
-    p->flag3[WIJK]=WATER;
+    p->flag3[IJK]=WATER;
     }
 
     cellcount=count;

@@ -109,7 +109,7 @@ void sixdof_sflow::updateForcing_hemisphere(lexer *p, fdm2D *b, ghostcell *pgc)
        
         if (dist < r*r)
         {
-            press(i,j) = -H*press0*sqrt(1.0 - dist/(r*r));
+            press(i,j) = -H*press0*sqrt(1.0 - dist/(r*r))*ramp_draft(p);
         }
         else
         {
@@ -142,7 +142,7 @@ void sixdof_sflow::updateForcing_box(lexer *p, fdm2D *b, ghostcell *pgc)
         
         if (xpos <= Ls/2.0 && xpos >= -Ls/2.0 && ypos <= Bs/2.0 && ypos >= -Bs/2.0)
         {
-            press(i,j) = -H*press0*(1.0 - cl*pow(xpos/Ls,4.0))*(1.0 - cb*pow(ypos/Bs,2.0))*exp(-as*pow(ypos/Bs,2.0));
+            press(i,j) = -H*press0*(1.0 - cl*pow(xpos/Ls,4.0))*(1.0 - cb*pow(ypos/Bs,2.0))*exp(-as*pow(ypos/Bs,2.0))*ramp_draft(p);
         }
         else
         {
@@ -167,7 +167,7 @@ void sixdof_sflow::updateForcing_ship(lexer *p, fdm2D *b, ghostcell *pgc)
     {
         H = Hsolidface(p,0,0);
 
-        press(i,j) = -H*fabs(p->W22)*p->W1*draft(i,j);
+        press(i,j) = -H*fabs(p->W22)*p->W1*draft(i,j)*ramp_draft(p);
     }
     
     pgc->gcsl_start4(p,press,50);

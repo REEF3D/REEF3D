@@ -28,6 +28,11 @@ Author: Hans Bihs
 
 ikomega::ikomega(lexer* p, fdm* a, ghostcell *pgc) : rans_io(p,a),bc_ikomega(p)
 {
+    if(p->j_dir==0)        
+    epsi = p->T38*(1.0/2.0)*(p->DRM+p->DTM);
+        
+    if(p->j_dir==1)
+    epsi = p->T38*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
 }
 
 ikomega::~ikomega()
@@ -143,6 +148,33 @@ void ikomega::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
 						  0.0001*a->visc(i,j,k));
 		}
     }
+    
+    // free surface eddyv minimum
+    if(p->T39==1)
+    {
+    double sgs_val;
+    double c_sgs=0.2;
+    double factor=1.0;
+    
+        LOOP
+        {
+        if(fabs(a->phi(i,j,k))<epsi)
+        dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
+            
+        if(fabs(a->phi(i,j,k))>=epsi)
+        dirac=0.0;
+        
+        if(dirac>0.0)
+        {
+        sgs_val = pow(c_sgs,2.0)*pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP],2.0/3.0)
+                 *sqrt(2.0)*strainterm(p,a->u,a->v,a->w);
+                 
+        dirac=MIN(dirac,1.0);
+                 
+        a->eddyv(i,j,k) = MAX(a->eddyv(i,j,k),dirac*sgs_val);
+        }
+        }
+    }
         
     pvrans->eddyv_func(p,a);
     
@@ -169,7 +201,7 @@ void ikomega::kinsource(lexer *p, fdm* a, vrans* pvrans)
     pvrans->kw_source(p,a,kin);
 }
 
-void ikomega::epssource(lexer *p, fdm* a, vrans* pvrans)
+void ikomega::epssource(lexer *p, fdm* a, vrans* pvrans, field &kin)
 {
     count=0;
     double dirac;
@@ -188,16 +220,6 @@ void ikomega::epssource(lexer *p, fdm* a, vrans* pvrans)
 
 void ikomega::epsfsf(lexer *p, fdm* a, ghostcell *pgc)
 {
-	double epsi;
-	double dirac;
-    
-        
-        if(p->j_dir==0)        
-        epsi = p->T38*(1.0/2.0)*(p->DRM+p->DTM);
-        
-        if(p->j_dir==1)
-        epsi = p->T38*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
-
 	
 	if(p->T36>0)
 	LOOP

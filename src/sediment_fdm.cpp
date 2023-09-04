@@ -33,7 +33,7 @@ sediment_fdm::sediment_fdm(lexer *p) : P(p),Q(p),
                                        active(p),
                                        bedk(p),slideflag(p),
                                        cbe(p),cb(p),cbn(p),conc(p),
-                                       waterlevel(p)
+                                       waterlevel(p),guard(p)
 {
 
 }

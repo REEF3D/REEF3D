@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
-#include"6DOF.h"
+#include"6DOF_df_base.h"
 #include"6DOF_df_object.h"
 #include<vector>
 
@@ -33,7 +33,7 @@ using namespace std;
 #ifndef SIXDOF_DF_H_
 #define SIXDOF_DF_H_
 
-class sixdof_df : public sixdof, public increment
+class sixdof_df : public sixdof_df_base, public increment
 {
 public:
 	sixdof_df(lexer*, fdm*, ghostcell*);
@@ -41,7 +41,7 @@ public:
 	virtual void start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&);
 	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
     
-    void start_forcing(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,double,double,double,field&,field&,field&,field1&,field2&,field3&,bool);
+    void start_forcing(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool);
     
     virtual void isource(lexer*,fdm*,ghostcell*);
     virtual void jsource(lexer*,fdm*,ghostcell*);
@@ -54,6 +54,7 @@ private:
    
     int number6DOF;
     vector<sixdof_df_object*> p_df_obj;
+    double alpha[3],gamma[3],zeta[3];
 
 };
 

@@ -29,7 +29,7 @@ Author: Hans Bihs
 
 void force_ale::print_force_ale(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 {
-    cout<<"Fx"<<ID + 1<<": "<<Fx<<" Fy"<<ID + 1<<": "<<Fy<<endl;
+    //cout<<"Fx"<<ID + 1<<": "<<Fx<<" Fy"<<ID + 1<<": "<<Fy<<endl;
     
     // write to force file
     if(p->P87==0)

@@ -43,6 +43,7 @@ int ii,jj;
 	Iarray(sizeM4, 5);
 	Iarray(sizeM4a, 5);
     Iarray(sizeM6, 5);
+    Iarray(sizeM9, 5);
 
     for(int n=0;n<5;++n)
     {
@@ -52,6 +53,7 @@ int ii,jj;
 	sizeM4[n]=0;
 	sizeM4a[n]=0;
     sizeM6[n]=0;
+    sizeM9[n]=0;
     }
 	
 	Iarray(range_row4, M10+5);
@@ -87,7 +89,7 @@ void lexer::vellast()
     
     flast=0;
     
-    if(A10==3)
+    if(A10==3 || A10==444)
     flast=1;
     
     

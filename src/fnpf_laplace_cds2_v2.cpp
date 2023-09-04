@@ -50,7 +50,7 @@ fnpf_laplace_cds2_v2::~fnpf_laplace_cds2_v2()
 {
 }
 
-void fnpf_laplace_cds2_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv_reg, fnpf_fsf *pf, double *f)
+void fnpf_laplace_cds2_v2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv_reg, fnpf_fsf *pf, double *f, slice &Fifsf)
 {
     if(p->j_dir==0)
     laplace2D(p, c, pgc, psolv_reg, pf, f);
@@ -199,8 +199,8 @@ nt 8
                 // wavegen
             if(p->flag7[FIm1JKp1]<0 && c->bc(i-1,j)==1)
             {
-            rhs[n] += M[n*9+6]*c->Uin[FIm1JKp1]*p->DXP[IM1];
-            M[n*9] += M[n*9+6];
+            rhs[n] += M[n*9+6]*c->Uin[FIm1JKp1]*p->DXP[IM1]/(p->DZN[KP]+p->DZN[KM1]);
+            M[n*9+8] += M[n*9+6];
             M[n*9+6] = 0.0;
             }
             
@@ -222,12 +222,12 @@ nt 8
                 // AWA
             if(p->flag7[FIp1JKp1]<0 && c->bc(i+1,j)==2)
             {
-            rhs[n] -= M[n*9+8]*c->Uin[FIp1JKp1]*p->DXP[IP1];
+            rhs[n] -= M[n*9+8]*c->Uin[FIp1JKp1]*p->DXP[IP1]/(p->DZN[KP]+p->DZN[KM1]);
             M[n*9] += M[n*9+8];
             M[n*9+8] = 0.0;
             }
             
-            // sb 
+            // sb -----
                 // wall
             if(((p->flag7[FIm1JKm1]<0 && p->flag7[FIJKm1]>0)|| p->wet[Im1J]==0) && c->bc(i-1,j)==0)
             {
@@ -238,8 +238,8 @@ nt 8
                 // wavegen
             if((p->flag7[FIm1JKm1]<0 && p->flag7[FIJKm1]>0) && c->bc(i-1,j)==1)
             {
-            rhs[n] += M[n*9+5]*c->Uin[FIm1JKm1]*p->DXP[IM1];
-            M[n*9] += M[n*9+5];
+            rhs[n] += M[n*9+5]*c->Uin[FIm1JKm1]*p->DXP[IM1]/(p->DZN[KP]+p->DZN[KM1]);
+            M[n*9+7] += M[n*9+5];
             M[n*9+5] = 0.0;
             //cout<<p->mpirank<<" SB i: "<<i<<" k: "<<k<<endl;   
             }
@@ -255,7 +255,7 @@ nt 8
                 // wavegen
             if((p->flag7[FIp1JKm1]<0 && p->flag7[FIJKm1]>0) && c->bc(i+1,j)==2)
             {
-            rhs[n] -= M[n*9+7]*c->Uin[FIp1JKm1]*p->DXP[IP1];
+            rhs[n] -= M[n*9+7]*c->Uin[FIp1JKm1]*p->DXP[IP1]/(p->DZN[KP]+p->DZN[KM1]);
             M[n*9] += M[n*9+7];
             M[n*9+7] = 0.0;
             }

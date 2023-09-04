@@ -57,8 +57,11 @@ void driver::loop_cfd(fdm* a)
         cout<<"------------------------------------"<<endl;
         cout<<p->count<<endl;
         
-        cout<<"simtime: "<<p->simtime<<endl;
+        cout<<"simtime: "<<setprecision(3)<<p->simtime<<endl;
 		cout<<"timestep: "<<p->dt<<endl;
+        
+        if(p->X10>0)
+        cout<<"fbtimestep: "<<p->fbdt<<" fbmax: "<<p->fbmax<<endl;
         
 		if(p->B90>0 && p->B92<=11)
 		cout<<"t/T: "<<p->simtime/p->wT<<endl;
@@ -87,8 +90,7 @@ void driver::loop_cfd(fdm* a)
         pflow->v_relax(p,a,pgc,a->v);
         pflow->w_relax(p,a,pgc,a->w);
         pfsf->update(p,a,pgc,a->phi);
-        p6dof->start(p,a,pgc,1.0,pvrans,pnet);
-        pmom->start(p,a,pgc,pvrans); 
+        pmom->start(p,a,pgc,pvrans,p6dof_df,pnet); 
         pbench->start(p,a,pgc,pconvec);
 		
         //save previous timestep
@@ -121,7 +123,8 @@ void driver::loop_cfd(fdm* a)
             {
             if(p->B90>0)
             cout<<"wavegentime: "<<setprecision(3)<<p->wavetime<<endl;
-            
+            if(p->X10>0)
+            cout<<"fbtime: "<<setprecision(3)<<p->fbtime<<endl;
             cout<<"reinitime: "<<setprecision(3)<<p->reinitime<<endl;
             cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
             cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;		

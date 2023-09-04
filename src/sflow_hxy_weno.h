@@ -40,8 +40,8 @@ public:
 
 private:
 
-	virtual double fx(lexer*, slice&, int, double);
-	virtual double fy(lexer*, slice&, int, double);
+	double fx(lexer*, slice&, int, double);
+	double fy(lexer*, slice&, int, double);
 	void iqmin(lexer*, slice&, int);
 	void jqmin(lexer*, slice&, int);
 	void iqmax(lexer*, slice&, int);

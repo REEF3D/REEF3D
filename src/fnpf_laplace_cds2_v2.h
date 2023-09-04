@@ -36,7 +36,7 @@ public:
     fnpf_laplace_cds2_v2 (lexer*,ghostcell*);
 	virtual ~fnpf_laplace_cds2_v2();
 
-    virtual void start(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_fsf*,double*);
+    virtual void start(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_fsf*,double*,slice&);
     
     void laplace2D(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_fsf*,double*);
     

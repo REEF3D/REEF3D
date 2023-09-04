@@ -533,6 +533,50 @@ void ioflow_v::ksource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvran
 
 void ioflow_v::pressure_io(lexer *p, fdm *a, ghostcell* pgc)
 {
+    double pval=0.0;
+
+        GC4LOOP
+        if(p->gcb4[n][4]==2)
+        {
+        i=p->gcb4[n][0];
+        j=p->gcb4[n][1];
+        k=p->gcb4[n][2];
+		pval=0.0;
+		
+			if(p->B77==0)
+			{
+			pval=(p->phiout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
+			
+			a->press(i+1,j,k)=pval;
+			a->press(i+2,j,k)=pval;
+			a->press(i+3,j,k)=pval;
+			}
+		
+			if(p->B77==2)
+			{
+			double eps,H;
+                
+            eps = 0.6*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
+        
+            if(a->phi(i,j,k)>eps)
+            H=1.0;
+
+            if(a->phi(i,j,k)<-eps)
+            H=0.0;
+
+            if(fabs(a->phi(i,j,k))<=eps)
+            H=0.5*(1.0 + a->phi(i,j,k)/eps + (1.0/PI)*sin((PI*a->phi(i,j,k))/eps));
+        
+            pval=(1.0-H)*a->press(i,j,k);
+            
+             a->press(i,j,k)=pval;
+			a->press(i+1,j,k)=pval;
+			a->press(i+2,j,k)=pval;
+			a->press(i+3,j,k)=pval;
+			}
+			
+        }
+        
     pBC->patchBC_pressure(p,a,pgc,a->press);
 }
 
@@ -758,19 +802,23 @@ void ioflow_v::turb_relax(lexer *p, fdm *a, ghostcell *pgc, field &f)
 {
 }
 
-void ioflow_v::U_relax(lexer *p, ghostcell *pgc, double *U)
+void ioflow_v::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
 {
 }
 
-void ioflow_v::V_relax(lexer *p, ghostcell *pgc, double *V)
+void ioflow_v::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
 {
 }
 
-void ioflow_v::W_relax(lexer *p, ghostcell *pgc, double *W)
+void ioflow_v::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
 {
 }
 
 void ioflow_v::P_relax(lexer *p, ghostcell *pgc, double *P)
+{
+}
+
+void ioflow_v::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
 {
 }
 
@@ -953,14 +1001,24 @@ void ioflow_v::discharge_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 }
 
-void ioflow_v::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W)
+void ioflow_v::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
 
 }
 
-void ioflow_v::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W)
+void ioflow_v::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
 
+}
+
+void ioflow_v::wavegen_precalc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    
+}
+
+void ioflow_v::wavegen_precalc_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    
 }
 
 void ioflow_v::waterlevel2D(lexer *p, fdm2D *b, ghostcell* pgc, slice &eta)

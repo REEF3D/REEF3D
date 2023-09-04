@@ -99,9 +99,11 @@ void sflow_vtp::pvtp(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb
 	result<<"<PDataArray type=\"Float32\" Name=\"waterlevel\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"breaking\"/>"<<endl;
     
-    
     if(p->P23==1)
     result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
+    if(p->P110==1)
+    result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>"<<endl;
+    
 	result<<"</PPointData>"<<endl;
 	
 	result<<"<Polys>"<<endl;

@@ -311,6 +311,7 @@ void lexer::read_grid()
     assign_margin();
 	
 	Iarray(flag4,imax*jmax*kmax);
+    Iarray(flag9,imax*jmax*kmax);
     
     //if(solidread==1)
 	Darray(flag_solid,imax*jmax*kmax);
@@ -323,6 +324,7 @@ void lexer::read_grid()
     Darray(topobed,imax*jmax);
     Darray(bed,imax*jmax);
     Iarray(wet,imax*jmax);
+    Iarray(wet_n,imax*jmax);
     Darray(depth,imax*jmax);
 	Darray(data,imax*jmax);
     Iarray(flagslice1,imax*jmax);
@@ -375,12 +377,12 @@ void lexer::read_grid()
     Iarray(gc4aperiodic,6,gc4periodic_maxcount);
     }
 	
-    Iarray(gcpara1, gcpara1_count,15);
-    Iarray(gcpara2, gcpara2_count,15);
-    Iarray(gcpara3, gcpara3_count,15);
-    Iarray(gcpara4, gcpara4_count,15);
-    Iarray(gcpara5, gcpara5_count,15);
-    Iarray(gcpara6, gcpara6_count,15);
+    Iarray(gcpara1, gcpara1_count,16);
+    Iarray(gcpara2, gcpara2_count,16);
+    Iarray(gcpara3, gcpara3_count,16);
+    Iarray(gcpara4, gcpara4_count,16);
+    Iarray(gcpara5, gcpara5_count,16);
+    Iarray(gcpara6, gcpara6_count,16);
 
     Iarray(gcparaco1, gcparaco1_count,6);
     Iarray(gcparaco2, gcparaco2_count,6);
@@ -447,7 +449,6 @@ void lexer::read_grid()
     {
     grid.read((char*)&ddn, sizeof (double));
     XN[IP]=ddn;
-    
     }
 
     for(j=-marge;j<knoy+1+marge;++j)

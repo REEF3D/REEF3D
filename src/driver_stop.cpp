@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"printer.h"
-#include"waves_header.h"
+#include"waves_header.h"#include"nhflow_header.h"
 
 void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
 {	 
@@ -72,8 +72,8 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
      if(p->A10==3)
      pfprint->print_stop(p,c,pgc);
     
-     if(p->A10==4 || p->A10==55 || p->A10==6)
-     pprint->print_stop(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
+     if(p->A10==4 || p->A10==6)
+     pprint->print_stop(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);        if(p->A10==5)    pnhfprint->print_stop(p,d,pgc,pflow);
      
      pgc->final();
      exit(0);
@@ -90,7 +90,7 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
     if(p->A10==3)
      pfprint->print_vtu(p,c,pgc);
     
-     if(p->A10==4 || p->A10==55 || p->A10==6)
+     if(p->A10==4 || p->A10==5 || p->A10==6)
      pprint->print_vtu(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
     
     pgc->final();

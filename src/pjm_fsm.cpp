@@ -38,12 +38,12 @@ Author: Hans Bihs
 #include"density_vof.h"
 #include"density_rheo.h"
  
-pjm_fsm::pjm_fsm(lexer* p, fdm *a, heat *&pheat, concentration *&pconc) 
+pjm_fsm::pjm_fsm(lexer* p, fdm *a, heat *&pheat, concentration *&pconc) : pressure_reference(p)
 {
-    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && (p->X10==0 || p->X13!=2))
+    if((p->F80==0||p->A10==51) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==0)
 	pd = new density_f(p);
     
-    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && (p->X10==1 || p->X13!=2))  
+    if((p->F80==0||p->A10==51) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==1)  
 	pd = new density_df(p);
     
 	if(p->F80==0 && p->H10==0 && p->W30==1  && p->F300==0 && p->W90==0)
@@ -91,7 +91,8 @@ void pjm_fsm::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc
     psolv->start(p,a,pgc,a->press,a->rhsvec,5);
 	
         endtime=pgc->timer();
-
+    
+    reference_start(p,a,pgc);
 	pgc->start4(p,a->press,gcval_press);
 	
 	ucorr(p,a,uvel,alpha);

@@ -35,166 +35,93 @@ nhflow_f::~nhflow_f()
 
 void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 {
+    // count cells 3D
+    int count=0;
+    p->count=0;
+	p->pointnum=0;
+	p->cellnum=0;
+	p->tpcellnum=0;
+
+	TPLOOP
+	{
+	++count;
+	++p->pointnum;
+    d->NODEVAL[IJK]=count;
+	}
+
+	LOOP
+	++p->cellnum;
+    
+    LOOP
+    ++p->tpcellnum;
+    
+    p->count=0;
+    
+    // 2D mesh
+    count=0;
+	p->pointnum2D=0;
+	p->cellnum2D=0;
+	p->polygon_sum=0;
+    
+   
+    TPSLICELOOP  
+	{
+	++count;
+	++p->pointnum2D;
+	d->nodeval2D(i,j)=count;
+    }
+	
+	SLICEBASELOOP
+	++p->polygon_sum;
+	
+	p->polygon_sum *=2;
+
+	SLICELOOP4
+	++p->cellnum2D;
+    
+    SLICELOOP4
+	++p->cellnum2D;
+
+    p->cellnumtot2D=pgc->globalisum(p->cellnum2D);
+    
+// --
+    p->cellnumtot=pgc->globalisum(p->cellnum);
+    p->pointnumtot=pgc->globalisum(p->pointnum);
+
+
+    if(p->mpirank==0)
+    cout<<"number of cells: "<<p->cellnumtot<<endl;
+    
+    // SIGMA grid
+     // bed ini
+    SLICELOOP4
+	d->bed(i,j) = p->bed[IJ];
+    
+    pgc->gcsl_start4(p,d->bed,50);
+    
+    SLICELOOP4
+	d->depth(i,j) = p->wd - d->bed(i,j);
+    
+    pgc->gcsl_start4(p,d->depth,50);
+    
+    // eta ini
+	SLICELOOP4
+    {
+	d->eta(i,j) = 0.0;
+    p->wet[IJ] = 1;
+    d->breaking(i,j)=0;
+    }
+    
+    pgc->gcsl_start4(p,d->eta,50);
+    
+    ALOOP
+    d->porosity[IJK]=1.0;
+    
+    pgc->start4V(p,d->porosity,1);
+    
+    SLICELOOP4
+    d->WL(i,j) = MAX(p->A544,d->eta(i,j) + d->depth(i,j));
+    
+    pgc->gcsl_start4(p,d->WL,50);
 }
-
-void nhflow_f::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, double *W, slice &eta1, slice &eta2, double alpha)
-{
-    double wval,w_n,udetax;
-    double Pval,Qval;
-    double detax;
-    double uvel1,uvel2;
-    double zloc1,zloc2;
-
-    
-    // Kinematic Free Surface BC
-    GC4LOOP
-    if(p->gcb4[n][3]==6 && p->gcb4[n][4]==3)
-    {
-    i=p->gcb4[n][0];
-    j=p->gcb4[n][1];
-    k=p->gcb4[n][2];
-    
-    if(p->A515==1 && p->A540==1)
-    {
-    Pval = 0.5*(U[IJK]+U[Im1JK]);
-    Qval = 0.5*(V[IJK]+V[IJm1K]);
-    
-    wval = (d->eta(i,j) - d->eta_n(i,j))/(p->dt)
-    
-         + MAX(0.0,Pval)*((eta1(i,j)-eta1(i-1,j))/(p->DXP[IP]))
-         + MIN(0.0,Pval)*((eta1(i+1,j)-eta1(i,j))/(p->DXP[IP1]))
-    
-         + MAX(0.0,Qval)*((eta1(i,j)-eta1(i,j-1))/(p->DYP[JP]))
-         + MIN(0.0,Qval)*((eta1(i,j+1)-eta1(i,j))/(p->DYP[JP1]));
-    }
-         
-    if(p->A515==1 && p->A540==2)
-    {
-    Pval = 0.5*(d->U[IJK]+d->U[Im1JK]);
-    Qval = 0.5*(d->V[IJK]+d->V[IJm1K]);
-        
-    wval = (d->eta(i,j) - d->eta_n(i,j))/p->dt
-        
-         + MAX(0.0,Pval)*((d->eta(i,j)-d->eta(i-1,j))/(p->DXP[IP]))
-         + MIN(0.0,Pval)*((d->eta(i+1,j)-d->eta(i,j))/(p->DXP[IP1]))
-         
-         + MAX(0.0,Qval)*((d->eta(i,j)-d->eta(i,j-1))/(p->DYP[JP]))
-         + MIN(0.0,Qval)*((d->eta(i,j+1)-d->eta(i,j))/(p->DYP[JP1]));
-    }
-    
-    if(p->A515==2 && p->A540==1)
-    {
-    wval = (d->eta(i,j) - d->eta_n(i,j))/p->dt
-    
-         + (eta1(i+1,j)-eta1(i-1,j))/(p->DXP[IP]+p->DXP[IP1])
-
-         + (eta1(i,j+1)-eta1(i,j-1))/(p->DYP[JP]+p->DYP[JP1]);
-    }
-         
-    if(p->A515==2 && p->A540==2)
-    {
-    wval = (d->eta(i,j) - d->eta_n(i,j))/p->dt
-    
-         + (d->eta(i+1,j)-d->eta(i-1,j))/(p->DXP[IP]+p->DXP[IP1])
-
-         + (d->eta(i,j+1)-d->eta(i,j-1))/(p->DYP[JP]+p->DYP[JP1]);
-    }
-    
-    if(p->A515==3 && p->A540==1)
-    {
-    Pval = 0.5*(U[IJK]+U[Im1JK]);
-    Qval = 0.5*(V[IJK]+V[IJm1K]);
-    
-    wval = (d->eta(i,j) - d->eta_n(i,j))/(p->dt)
-    
-         + MAX(0.0,Pval)*(((p->A223*eta1(i,j)+(1.0-p->A223)*eta2(i,j))-(p->A223*eta1(i-1,j)+(1.0-p->A223)*eta2(i-1,j)))/(p->DXP[IP]))
-         + MIN(0.0,Pval)*(((p->A223*eta1(i+1,j)+(1.0-p->A223)*eta2(i+1,j))-(p->A223*eta1(i+1,j)+(1.0-p->A223)*eta2(i+1,j)))/(p->DXP[IP1]))
-    
-         + MAX(0.0,Qval)*(((p->A223*eta1(i,j)+(1.0-p->A223)*eta2(i,j))-(p->A223*eta1(i,j-1)+(1.0-p->A223)*eta2(i,j-1)))/(p->DYP[JP]))
-         + MIN(0.0,Qval)*(((p->A223*eta1(i,j+1)+(1.0-p->A223)*eta2(i,j+1))-(p->A223*eta1(i,j)+(1.0-p->A223)*eta2(i,j)))/(p->DYP[JP1]));
-    }
-         
-
-    if(p->A515==11 && p->A540==1)
-    {
-    zloc1 = 0.5*p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[Ip1J]);
-    zloc2 = 0.5*p->DZN[KP]*0.5*(p->sigz[Im1J]+p->sigz[IJ]);
-    
-    uvel1 = U[Im1JK] + (U[Im1JK]-U[Im1JKm1])/(p->DZN[KP]*0.5*(p->sigz[Im1J]+p->sigz[IJ]))*zloc1;
-    uvel2 = U[IJK] + (U[IJK]-U[IJKm1])/(p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[Ip1J]))*zloc2;
-    
-    Pval = 0.5*(uvel1 + uvel2);
-    Qval = 0.5*(d->V[IJK]+d->V[IJm1K]);
-    
-    wval = (d->eta(i,j) - d->eta_n(i,j))/(p->dt)
-    
-         + MAX(0.0,Pval)*((eta1(i,j)-eta1(i-1,j))/(p->DXP[IP]))
-         + MIN(0.0,Pval)*((eta1(i+1,j)-eta1(i,j))/(p->DXP[IP1]))
-         
-         + MAX(0.0,Qval)*((eta1(i,j)-eta1(i,j-1))/(p->DYP[JP]))
-         + MIN(0.0,Qval)*((eta1(i,j+1)-eta1(i,j))/(p->DYP[JP1]));
-    }
-    
-    if(p->A515==11 && p->A540==2)
-    {
-    zloc1 = 0.5*p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[Ip1J]);
-    zloc2 = 0.5*p->DZN[KP]*0.5*(p->sigz[Im1J]+p->sigz[IJ]);
-    
-    uvel1 = U[Im1JK] + (U[Im1JK]-U[Im1JKm1])/(p->DZN[KP]*0.5*(p->sigz[Im1J]+p->sigz[IJ]))*zloc1;
-    uvel2 = U[IJK] + (U[IJK]-U[IJKm1])/(p->DZN[KP]*0.5*(p->sigz[IJ]+p->sigz[Ip1J]))*zloc2;
-    
-    Pval = 0.5*(uvel1 + uvel2);
-    Qval = 0.5*(d->V[IJK]+d->V[IJm1K]);
-    
-    wval = (d->eta(i,j) - d->eta_n(i,j))/(p->dt)
-    
-         + MAX(0.0,Pval)*((d->eta(i,j)-d->eta(i-1,j))/(p->DXP[IP]))
-         + MIN(0.0,Pval)*((d->eta(i+1,j)-d->eta(i,j))/(p->DXP[IP1]))
-         
-         + MAX(0.0,Qval)*((d->eta(i,j)-d->eta(i,j-1))/(p->DYP[JP]))
-         + MIN(0.0,Qval)*((d->eta(i,j+1)-d->eta(i,j))/(p->DYP[JP1]));
-    }
-         
-        W[IJKp1] = wval;
-        W[IJKp2] = wval;
-        W[IJKp3] = wval;
-    }
-    
-    // Kinematic Bed BC
-    GC4LOOP
-    if(p->gcb4[n][3]==5 && p->gcb4[n][4]==21)
-    {
-    i=p->gcb4[n][0];
-    j=p->gcb4[n][1];
-    k=p->gcb4[n][2];
-    
-    Pval = 0.5*(U[IJK]+U[Im1JK]);
-    Qval = 0.5*(V[IJK]+V[IJm1K]);
-    
-
-    wval = - MAX(0.0,Pval)*((d->depth(i,j)-d->depth(i-1,j))/(p->DXP[IP]))
-           - MIN(0.0,Pval)*((d->depth(i+1,j)-d->depth(i,j))/(p->DXP[IP1]))
-           
-           - MAX(0.0,Qval)*((d->depth(i,j)-d->depth(i,j-1))/(p->DYP[JP]))
-           - MIN(0.0,Qval)*((d->depth(i,j+1)-d->depth(i,j))/(p->DYP[JP1]));
-    
-       
-    /*wval = - Pval*((d->depth(i+1,j)-d->depth(i-1,j))/(p->DXP[IP]+p->DXP[IP1]))
-           - Qval*((d->depth(i,j+1)-d->depth(i,j-1))/(p->DYP[JP]+p->DYP[JP1]));*/
-    
-
-    //wval =0.0;
-        
-        W[IJKm1] = wval;
-        W[IJKm2] = wval;
-        W[IJKm3] = wval;
-        
-        w_n = d->wbed(i,j);
-        d->wbed(i,j) = wval;
-        
-        d->dwdt(i,j) = (wval - w_n)/(alpha*p->dt);
-    }
-    
-}
-
 

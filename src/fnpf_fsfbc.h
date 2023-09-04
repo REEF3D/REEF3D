@@ -67,9 +67,12 @@ private:
     double ivel,jvel,kvel;
     
     double visc;
+    const double eps;
 
 
     sliceint4 bx,by;
+    int *temp;
+    int gcval_eta,gcval_fifsf;
 
     
 };

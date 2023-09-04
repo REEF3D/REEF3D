@@ -20,6 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include<vector>
+
 class lexer;
 class fdm;
 class ghostcell;
@@ -33,7 +35,8 @@ class turbulence;
 class pressure;
 class poisson;
 class momentum;
-
+class net;
+class sixdof_df_base;
 
 using namespace std;
 
@@ -43,7 +46,7 @@ using namespace std;
 class momentum
 {
 public:
-	virtual void start(lexer*, fdm*, ghostcell*, vrans*)=0;
+	virtual void start(lexer*, fdm*, ghostcell*, vrans*, sixdof_df_base*, vector<net*>&)=0;
     virtual void utimesave(lexer*,fdm*, ghostcell*)=0;
     virtual void vtimesave(lexer*,fdm*, ghostcell*)=0;
     virtual void wtimesave(lexer*,fdm*, ghostcell*)=0;

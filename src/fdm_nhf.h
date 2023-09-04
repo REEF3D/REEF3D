@@ -20,8 +20,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"field4.h"
-#include"fieldint5.h"
 #include"slice1.h"
 #include"slice2.h"
 #include"slice4.h"
@@ -47,28 +45,27 @@ public:
 
     fdm_nhf(lexer*);
    
-    field4 press;
-    fieldint5 nodeval;
+    int *NODEVAL;
     
-    slice4 eta,eta_n,WL,WL_n;
+    slice4 eta,eta_n,WL,detadt;
     slice4 bed,depth;
     slice4 K;
-    sliceint4 etaloc,wet_n,breaking,breaklog,bc;
+    sliceint4 etaloc,wet_n,breaking,breaklog,bc,nodeval2D;
     
-    slice4 Fx,Fy;
     slice4 Ex,Ey;
     slice4 Exx,Eyy;
     slice4 Bx,By;
     slice4 Bxx,Byy;
+    
     slice4 hx,hy;
     slice4 coastline;
     slice4 vb;
+    slice4 test2D;
     
-    sliceint5 nodeval2D;
-    slice4 breaking_print;
+    slice4 breaking_print,Hs;
     
     // NHFLOW
-    slice4 wbed,dwdt;
+    slice4 wbed;
     
     cpt2D C4;
 	
@@ -76,10 +73,33 @@ public:
     vec2D xvec,rvec;
     
     // 3D array
-    double *U,*V,*W,*omega,*P,*ro,*visc,*eddyv;
+    double *U,*V,*W,*omegaF;
+    double *UH,*VH,*WH;
+    
+    double *P,*ro,*visc,*eddyv;
     double *F,*G,*H,*L;
     double *porosity;
     double *test;
+    
+    double *Fx,*Fy,*Fz;
+    double *Fs,*Fn,*Fe,*Fw;
+    double *Ss,*Sn,*Se,*Sw;
+    double *SSx,*SSy;
+    
+    double *Un,*Us,*Ue,*Uw,*Ub,*Ut;
+    double *Vn,*Vs,*Ve,*Vw,*Vb,*Vt;
+    double *Wn,*Ws,*We,*Ww,*Wb,*Wt;
+    
+    double *UHn,*UHs,*UHe,*UHw,*UHb,*UHt;
+    double *VHn,*VHs,*VHe,*VHw,*VHb,*VHt;
+    double *WHn,*WHs,*WHe,*WHw,*WHb,*WHt;
+    
+    slice1 ETAs,ETAn;
+    slice2 ETAe,ETAw;
+    slice1 Ds,Dn;
+    slice2 De,Dw;
+    slice1 dfx;
+    slice2 dfy;
 
     matrix2D N;
 	matrix_diag M;    
@@ -87,6 +107,7 @@ public:
     double gi,gj,gk;
     double maxF,maxG,maxH;
     double wd_criterion;
+    
 };
 
 #endif

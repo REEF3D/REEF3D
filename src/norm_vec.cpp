@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 
-norm_vec::norm_vec(lexer* p) : gradient(p), dx(dx)
+norm_vec::norm_vec(lexer* p) : ddweno_f_nug(p), dx(p->DXM)
 {
 }
 
@@ -50,15 +50,13 @@ double norm_vec::normvec_x(fdm *a, field &f)
 
 // x
 	if(xmin*lsSig>0.0 && xplus*lsSig>-xmin*lsSig)
-	nx=ddwenox(a,f,1.0);
+	nx=ddwenox(f,1.0);
 
 	if(xplus*lsSig<0.0 && xmin*lsSig<-xplus*lsSig)
-	nx=ddwenox(a,f,-1.0);
+	nx=ddwenox(f,-1.0);
 
 	if(xplus*lsSig>0.0 && xmin*lsSig<0.0)
-	nx=0.5*ddwenox(a,f,1.0) + 0.5*ddwenox(a,f,-1.0);
-
-    //nx=fabs(nx)>1.0e-5?nx:(0.5*ddwenox(a,f,1.0) + 0.5*ddwenox(a,f,-1.0));
+	nx=0.5*ddwenox(f,1.0) + 0.5*ddwenox(f,-1.0);
 
 	nx=fabs(nx)>1.0e-15?nx:1.0e-15;
 
@@ -83,17 +81,13 @@ double norm_vec::normvec_y(fdm *a, field &f)
 
 // y
 	if(ymin*lsSig>0.0 && yplus*lsSig>-ymin*lsSig)
-	ny=ddwenoy(a,f,1.0);
+	ny=ddwenoy(f,1.0);
 
 	if(yplus*lsSig<0.0 && ymin*lsSig<-yplus*lsSig)
-	ny=ddwenoy(a,f,-1.0);
+	ny=ddwenoy(f,-1.0);
 
 	if(yplus*lsSig>0.0 && ymin*lsSig<0.0)
-	ny=0.5*ddwenoy(a,f,1.0) + 0.5*ddwenoy(a,f,-1.0);
-
-
-
-	//ny=fabs(ny)>1.0e-5?ny:(0.5*ddwenoy(a,f,1.0) + 0.5*ddwenoy(a,f,-1.0));
+	ny=0.5*ddwenoy(f,1.0) + 0.5*ddwenoy(f,-1.0);
 
 	ny=fabs(ny)>1.0e-15?ny:1.0e-15;
 
@@ -116,15 +110,13 @@ double norm_vec::normvec_z(fdm *a, field &f)
 
 // z
 	if(zmin*lsSig>0.0 && zplus*lsSig>-zmin*lsSig)
-	nz=ddwenoz(a,f,1.0);
+	nz=ddwenoz(f,1.0);
 
 	if(zplus*lsSig<0.0 && zmin*lsSig<-zplus*lsSig)
-	nz=ddwenoz(a,f,-1.0);
+	nz=ddwenoz(f,-1.0);
 
 	if(zplus*lsSig>0.0 && zmin*lsSig<0.0)
-	nz=0.5*ddwenoz(a,f,1.0) + 0.5*ddwenoz(a,f,-1.0);
-
-	//nz=fabs(nz)>1.0e-5?nz:(0.5*ddwenoz(a,f,1.0) + 0.5*ddwenoz(a,f,-1.0));
+	nz=0.5*ddwenoz(f,1.0) + 0.5*ddwenoz(f,-1.0);
 
 	nz=fabs(nz)>1.0e-15?nz:1.0e-15;
 

@@ -197,7 +197,30 @@ double interpolation::ipol3( field& b)
 double interpolation::ipol4( field& b)
 {
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
-
+    
+    
+    
+    if(p->j_dir==0)
+    {
+    jj=j;
+    j=0;
+    pip=4;
+    if(p->flag4[IJK]>0)
+    v1=b(i,j,k);
+    if(p->flag4[Ip1JK]>0)
+    v2=b(i+1,j,k);
+    if(p->flag4[IJKp1]>0)
+    v3=b(i,j,k+1);
+    if(p->flag4[Ip1JKp1]>0)
+    v4=b(i+1,j,k+1);
+    pip=0;
+    j=jj;
+    
+    value=0.25*(v1+v2+v3+v4);
+    }
+    
+    if(p->j_dir==1)
+    {
     pip=4;
     if(p->flag4[IJK]>0)
     v1=b(i,j,k);
@@ -218,6 +241,7 @@ double interpolation::ipol4( field& b)
     pip=0;
 
     value=0.125*(v1+v2+v3+v4+v5+v6+v7+v8);
+    }
 
     return value;
 }

@@ -24,8 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 
 void ghostcell::tpflagfield(lexer *p)
-{
-    
+{    
     for(i=0;i<p->imax*p->jmax*p->kmax; ++i)
     p->tpflag[i]=1;
     

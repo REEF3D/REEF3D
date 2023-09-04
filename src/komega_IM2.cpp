@@ -52,7 +52,8 @@ void komega_IM2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,s
 	pdiff->idiff_scalar(p,a,pgc,psolv,kin,eddyv0,kw_sigma_k,1.0);
 	kinsource(p,a,pvrans);
 	timesource(p,a,kn,knn);
-    bckeps_start(a,p,kin,eps,gcval_kin);
+    bckomega_start(a,p,kin,eps,gcval_kin);
+    bckin_matrix(a,p,kin,eps);
 	psolv->start(p,a,pgc,kin,a->rhsvec,4);
 	pgc->start4(p,kin,gcval_kin);
 	p->kintime=pgc->timer()-starttime;
@@ -66,11 +67,12 @@ void komega_IM2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,s
 	clearrhs(p,a);
     pconvec->start(p,a,eps,4,a->u,a->v,a->w);
 	pdiff->idiff_scalar(p,a,pgc,psolv,eps,eddyv0,kw_sigma_w,1.0);
-	epssource(p,a,pvrans);
+	epssource(p,a,pvrans,kn);
 	timesource(p,a,en,enn);
+    bcomega_matrix(a,p,kin,eps);
     psolv->start(p,a,pgc,eps,a->rhsvec,4);
 	epsfsf(p,a,pgc);
-    bckeps_start(a,p,kin,eps,gcval_eps);
+    bckomega_start(a,p,kin,eps,gcval_eps);
 	pgc->start4(p,eps,gcval_eps);
 	p->epstime=pgc->timer()-starttime;
 	p->epsiter=p->solveriter;

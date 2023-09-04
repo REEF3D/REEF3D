@@ -43,9 +43,9 @@ Author: Hans Bihs
 #define FPCHECK  if(p->flag7[FIJK]>0)
 #define SCHECK  if(p->flag4[IJK]<0)
 #define SFLUIDCHECK  if(p->flag4[IJK]<AIR)
-#define USCHECK  if(p->flag1[UIJK]<0)
-#define VSCHECK  if(p->flag2[VIJK]<0)
-#define WSCHECK  if(p->flag3[WIJK]<0)
+#define USCHECK  if(p->flag1[IJK]<0)
+#define VSCHECK  if(p->flag2[IJK]<0)
+#define WSCHECK  if(p->flag3[IJK]<0)
 
 #define KJILOOP KLOOP JLOOP ILOOP
 #define UKJILOOP KLOOP JLOOP IULOOP
@@ -81,6 +81,9 @@ Author: Hans Bihs
 #define KBLOOP for(k=-1; k<p->knoz+1; ++k)
 #define BBASELOOP IBLOOP JBLOOP KBLOOP PBASECHECK
 
+#define CHECK9 if(p->flag9[IJK]>0)
+#define LOOP9 ILOOP JLOOP KLOOP CHECK9
+
 #define ITLOOP for(i=0; i<p->knox+1; ++i)
 #define JTLOOP for(j=0; j<p->knoy+1; ++j)
 #define KTLOOP for(k=0; k<p->knoz+1; ++k)
@@ -96,24 +99,24 @@ Author: Hans Bihs
 #define IULOOP	for(i=0; i<p->knox-p->ulast; ++i)
 #define JULOOP	for(j=0; j<p->knoy; ++j)
 #define KULOOP	for(k=0; k<p->knoz; ++k)
-#define UCHECK  if(p->flag1[UIJK]>0)
+#define UCHECK  if(p->flag1[IJK]>0)
 #define ULOOP IULOOP JULOOP KULOOP UCHECK
 
 #define IVLOOP	for(i=0; i<p->knox; ++i)
 #define JVLOOP	for(j=0; j<p->knoy-p->vlast; ++j)
 #define KVLOOP	for(k=0; k<p->knoz; ++k)
-#define VCHECK  if(p->flag2[VIJK]>0)
+#define VCHECK  if(p->flag2[IJK]>0)
 #define VLOOP IVLOOP JVLOOP KVLOOP VCHECK
 
 #define IWLOOP	for(i=0; i<p->knox; ++i)
 #define JWLOOP	for(j=0; j<p->knoy; ++j)
 #define KWLOOP	for(k=0; k<p->knoz-p->wlast; ++k)
-#define WCHECK  if(p->flag3[WIJK]>0)
+#define WCHECK  if(p->flag3[IJK]>0)
 #define WLOOP IWLOOP JWLOOP KWLOOP WCHECK
 
-#define UBASECHECK  if(p->flag1[UIJK]>OBJ)
-#define VBASECHECK  if(p->flag2[VIJK]>OBJ)
-#define WBASECHECK  if(p->flag3[WIJK]>OBJ)
+#define UBASECHECK  if(p->flag1[IJK]>OBJ)
+#define VBASECHECK  if(p->flag2[IJK]>OBJ)
+#define WBASECHECK  if(p->flag3[IJK]>OBJ)
 #define PBASECHECK  if(p->flag4[IJK]>OBJ)
 
 #define UBASELOOP IULOOP JULOOP KULOOP UBASECHECK
@@ -128,9 +131,9 @@ Author: Hans Bihs
 
 #define ALOOP ILOOP JLOOP KLOOP PSOLIDCHECK
 
-#define USOLIDCHECK  if(p->flag1[UIJK]>SOLID)
-#define VSOLIDCHECK  if(p->flag2[VIJK]>SOLID)
-#define WSOLIDCHECK  if(p->flag3[WIJK]>SOLID)
+#define USOLIDCHECK  if(p->flag1[IJK]>SOLID)
+#define VSOLIDCHECK  if(p->flag2[IJK]>SOLID)
+#define WSOLIDCHECK  if(p->flag3[IJK]>SOLID)
 #define PSOLIDCHECK  if(p->flag4[IJK]>SOLID)
 
 #define USOLIDLOOP IULOOP JULOOP KULOOP USOLIDCHECK
@@ -138,9 +141,9 @@ Author: Hans Bihs
 #define WSOLIDLOOP IWLOOP JWLOOP KWLOOP WSOLIDCHECK
 #define SOLIDLOOP ILOOP JLOOP KLOOP PSOLIDCHECK    
 
-#define UAIRCHECK  if(p->flag1[UIJK]==AIR)
-#define VAIRCHECK  if(p->flag2[VIJK]==AIR)
-#define WAIRCHECK  if(p->flag3[WIJK]==AIR)
+#define UAIRCHECK  if(p->flag1[IJK]==AIR)
+#define VAIRCHECK  if(p->flag2[IJK]==AIR)
+#define WAIRCHECK  if(p->flag3[IJK]==AIR)
 #define PAIRCHECK  if(p->flag4[IJK]==AIR)
 
 #define UAIRLOOP IULOOP JULOOP KULOOP UAIRCHECK
@@ -148,9 +151,9 @@ Author: Hans Bihs
 #define WAIRLOOP IWLOOP JWLOOP KWLOOP WAIRCHECK
 #define AIRLOOP ILOOP JLOOP KLOOP PAIRCHECK    
 
-#define UFLUIDCHECK  if(p->flag1[UIJK]>=AIR)
-#define VFLUIDCHECK  if(p->flag2[VIJK]>=AIR)
-#define WFLUIDCHECK  if(p->flag3[WIJK]>=AIR)
+#define UFLUIDCHECK  if(p->flag1[IJK]>=AIR)
+#define VFLUIDCHECK  if(p->flag2[IJK]>=AIR)
+#define WFLUIDCHECK  if(p->flag3[IJK]>=AIR)
 #define PFLUIDCHECK  if(p->flag4[IJK]>=AIR)
     
 #define PWDFLUIDCHECK  if(p->flag4[IJK]>=AIR && p->wet[IJ]>0)
