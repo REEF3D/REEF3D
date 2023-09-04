@@ -109,8 +109,8 @@ void nhflow_fsf_f::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, dou
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
     
-    Pval = d->U[IJK];
-    Qval = d->V[IJK];
+    Pval = 0.5*(d->U[IJK] + d->U[IJKm1]);
+    Qval = 0.5*(d->V[IJK] + d->V[IJKm1]);
     
     wval=0.0;    
     
