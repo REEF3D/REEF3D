@@ -47,9 +47,6 @@
         <File Name="pic.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="PTF">
-        <VirtualDirectory Name="Breaking">
-          <File Name="ptf_breaking.h"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="Update">
           <File Name="ptf_fsf_update.h"/>
           <File Name="ptf_bed_update.h"/>
@@ -337,6 +334,7 @@
           <File Name="fnpf_sigma.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <File Name="force_fit.h"/>
           <File Name="force_ale.h"/>
           <File Name="fnpf_print_Hs.h"/>
           <File Name="fnpf_breaking_log.h"/>
@@ -854,8 +852,6 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Printer">
-        <VirtualDirectory Name="Force FIT">
-          <File Name="force_fit.h"/>
         <VirtualDirectory Name="Averaging">
           <File Name="print_averaging_v.h"/>
           <File Name="print_averaging.h"/>
@@ -1105,9 +1101,7 @@
         <File Name="pic_f.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="PTF">
-        <VirtualDirectory Name="Breaking">
-          <File Name="ptf_breaking.cpp"/>
-        </VirtualDirectory>
+        <VirtualDirectory Name="Breaking"/>
         <VirtualDirectory Name="Update">
           <File Name="ptf_fsf_update.cpp"/>
           <File Name="ptf_bed_update.cpp"/>
@@ -1422,6 +1416,11 @@
           <File Name="fnpf_sigma.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Force FIT">
+            <File Name="force_fit.cpp"/>
+            <File Name="force_fit_print.cpp"/>
+            <File Name="force_fit_force.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Force ALE">
             <File Name="force_ale_print.cpp"/>
             <File Name="force_ale_force.cpp"/>
@@ -2445,15 +2444,9 @@
         <File Name="lexer_gridini2D.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Printer">
-
-        <VirtualDirectory Name="Force FIT">
-          <File Name="force_fit_force.cpp"/>
-          <File Name="force_fit_print.cpp"/>
-          <File Name="force_fit.cpp"/>
-          <VirtualDirectory Name="Averaging">
+        <VirtualDirectory Name="Averaging">
           <File Name="print_averaging_v.cpp"/>
           <File Name="print_averaging_f.cpp"/>
-
         </VirtualDirectory>
         <VirtualDirectory Name="Topo">
           <File Name="topo_vtp_print.cpp"/>
