@@ -68,7 +68,7 @@ void ptf_fsf_update::etaloc(lexer *p, fdm *a, ghostcell *pgc)
     a->etaloc(i,j) = MAX(a->etaloc(i,j),k);
 }
 
-void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field &Fi)
+void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field &Fi, slice &eta)
 {
     AIRLOOP
     Fi(i,j,k)=0.0;
@@ -76,6 +76,8 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     double lsv0,lsv1,lsv2,lsv3;
     double fival,lsval,dx,dist;
 // ------
+
+    
     if(p->A323==1)
     FILOOP4
     {
@@ -83,8 +85,7 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     Fi(i,j,k+2) =  Fifsf(i,j);
     Fi(i,j,k+3) =  Fifsf(i,j);
     }
-
-// ------
+    
     if(p->A323==2 || p->A323==4)
     FILOOP4
     {
@@ -106,11 +107,9 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
         //if(p->mpirank==2)
         //cout<<"F_k: "<<fival<<" Fifsf: "<<Fifsf(i,j)<<" F_k+1: "<<Fi(i,j,k+1)<<"  | lsv0: "<<lsv0<<" lsv1: "<<lsv1<<endl;
     }
-   
-    double x0,x1,x2,y0,y1,y2;
-    double x,y;
-    double denom1,denom2,denom3,denom4,denom5,denom6;
-// ------
+    
+    double x0,x1,x2,y0,y1,y2,denom1,denom2,denom3,denom4,denom5,denom6,x;
+    
     if(p->A323==3)
     FILOOP4
     {
@@ -152,6 +151,97 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     //if(i+p->origin_i==0)
     //Fi(i-1,j,k+1) = Fi(i,j,k+1);
     }
+    
+    double zpos_fs,zpos_1,zpos_2,zpos_3,zpos_4,zpos_5;
+    
+    if(p->A323==5 || p->A323==6)
+    FILOOP4
+    {
+        zpos_fs=eta(i,j)-(p->ZP[KP]-p->F60);
+        zpos_1=p->DZP[KP];
+        zpos_2=p->ZP[KP2]-p->ZP[KP];
+        zpos_3=p->ZP[KP3]-p->ZP[KP];
+        zpos_4=p->ZP[KP4]-p->ZP[KP];
+        zpos_5=p->ZP[KP5]-p->ZP[KP];
+        
+        zpos_fs = (fabs(zpos_fs)>1.0e-6?zpos_fs:1.0e20);
+        
+        Fi(i,j,k+1)=(Fifsf(i,j)-Fi(i,j,k))/zpos_fs*zpos_1+Fi(i,j,k);
+        Fi(i,j,k+2)=(Fifsf(i,j)-Fi(i,j,k))/zpos_fs*zpos_2+Fi(i,j,k);
+        Fi(i,j,k+3)=(Fifsf(i,j)-Fi(i,j,k))/zpos_fs*zpos_3+Fi(i,j,k);
+        Fi(i,j,k+4)=(Fifsf(i,j)-Fi(i,j,k))/zpos_fs*zpos_4+Fi(i,j,k);
+        Fi(i,j,k+5)=(Fifsf(i,j)-Fi(i,j,k))/zpos_fs*zpos_5+Fi(i,j,k);
+    }
+    
+    double teta_epol,Dz_t,Dz_b,FI_p,FI_b,FI_FS,a_epol,b_epol,c_epol,denom_b,num_b;
+    
+    
+    if(p->A323==7 || p->A323==77 || p->A323==8 || p->A323==9 || p->A323==10 || p->A323==11 || p->A323==12)
+    FILOOP4
+    {
+        teta_epol=(eta(i,j)-(p->ZP[KP]-p->F60))/p->DZP[KP];
+        if(teta_epol<1.0e-7)
+            teta_epol=1.0e-7;
+        zpos_1=p->ZP[KP1]-p->ZP[KM1];
+        zpos_2=p->ZP[KP2]-p->ZP[KM1];
+        zpos_3=p->ZP[KP3]-p->ZP[KM1];
+        zpos_4=p->ZP[KP4]-p->ZP[KM1];
+        zpos_5=p->ZP[KP5]-p->ZP[KM1];
+        
+        
+        Dz_b=p->DZP[KM1];
+        Dz_t=p->DZP[KP];
+        FI_p=Fi(i,j,k);
+        FI_b=Fi(i,j,k-1);
+        FI_FS=Fifsf(i,j);
+        
+        c_epol=FI_b;
+        denom_b=(Dz_b+teta_epol*Dz_t)-(Dz_b+teta_epol*Dz_t)*(Dz_b+teta_epol*Dz_t)/Dz_b;
+        num_b=FI_FS-FI_b+FI_b*(Dz_b+teta_epol*Dz_t)*(Dz_b+teta_epol*Dz_t)/(Dz_b*Dz_b)-FI_p*(Dz_b+teta_epol*Dz_t)*(Dz_b+teta_epol*Dz_t)/(Dz_b*Dz_b);
+        b_epol=num_b/denom_b;
+        a_epol=FI_p/(Dz_b*Dz_b)-FI_b/(Dz_b*Dz_b)-b_epol/Dz_b;
+        
+        Fi(i,j,k+1)=a_epol*zpos_1*zpos_1+b_epol*zpos_1+c_epol;
+        Fi(i,j,k+2)=a_epol*zpos_2*zpos_2+b_epol*zpos_2+c_epol;
+        Fi(i,j,k+3)=a_epol*zpos_3*zpos_3+b_epol*zpos_3+c_epol;
+        Fi(i,j,k+4)=a_epol*zpos_4*zpos_4+b_epol*zpos_4+c_epol;
+        Fi(i,j,k+5)=a_epol*zpos_5*zpos_5+b_epol*zpos_5+c_epol;
+        
+    }
+    
+    if(p->A323==78)
+    FILOOP4
+    {
+        teta_epol=(eta(i,j)-(p->ZP[KP]-p->F60))/p->DZP[KP];
+        if(teta_epol<1.0e-7)
+            teta_epol=1.0e-7;
+        zpos_1=p->ZP[KP1]-p->ZP[KM1];
+        zpos_2=p->ZP[KP2]-p->ZP[KM1];
+        zpos_3=p->ZP[KP3]-p->ZP[KM1];
+        zpos_4=p->ZP[KP4]-p->ZP[KM1];
+        zpos_5=p->ZP[KP5]-p->ZP[KM1];
+        
+        
+        Dz_b=p->DZP[KM1];
+        Dz_t=p->DZP[KP];
+        FI_p=Fi(i,j,k);
+        FI_b=Fi(i,j,k-1);
+        FI_FS=Fifsf(i,j);
+        
+        c_epol=FI_b;
+        denom_b=(Dz_b+teta_epol*Dz_t)-(Dz_b+teta_epol*Dz_t)*(Dz_b+teta_epol*Dz_t)/Dz_b;
+        num_b=FI_FS-FI_b+FI_b*(Dz_b+teta_epol*Dz_t)*(Dz_b+teta_epol*Dz_t)/(Dz_b*Dz_b)-FI_p*(Dz_b+teta_epol*Dz_t)*(Dz_b+teta_epol*Dz_t)/(Dz_b*Dz_b);
+        b_epol=num_b/denom_b;
+        a_epol=FI_p/(Dz_b*Dz_b)-FI_b/(Dz_b*Dz_b)-b_epol/Dz_b;
+        
+        Fi(i,j,k+1)=a_epol*zpos_1*zpos_1+b_epol*zpos_1+c_epol;
+        Fi(i,j,k+2)=a_epol*zpos_2*zpos_2+b_epol*zpos_2+c_epol;
+        Fi(i,j,k+3)=a_epol*zpos_3*zpos_3+b_epol*zpos_3+c_epol;
+        Fi(i,j,k+4)=a_epol*zpos_4*zpos_4+b_epol*zpos_4+c_epol;
+        Fi(i,j,k+5)=a_epol*zpos_5*zpos_5+b_epol*zpos_5+c_epol;
+        
+    }
+    
 }
 
 void ptf_fsf_update::fsfbc0(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field &Fi)

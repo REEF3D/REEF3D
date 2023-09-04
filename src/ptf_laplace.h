@@ -36,7 +36,7 @@ class ptf_laplace
 {
 public:
 
-    virtual void start(lexer *,fdm*,ghostcell*,solver*,field&,slice&)=0;
+    virtual void start(lexer *,fdm*,ghostcell*,solver*,field&,slice&,slice&)=0;
 
 };
 

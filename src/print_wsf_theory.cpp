@@ -49,11 +49,23 @@ print_wsf_theory::print_wsf_theory(lexer *p, fdm* a, ghostcell *pgc, int num)
     {
     // open file
 	if(p->P14==0)
-    wsfout.open("REEF3D-CFD-WSF-HG-THEORY.dat");
+    {
+        if(p->P87==0)
+            wsfout.open("REEF3D-CFD-WSF-HG-THEORY.dat");
+        if(p->P87==1)
+            wsfout.open("REEF3D-CFD-WSF-HG-THEORY.csv");
+    }
 	
 	if(p->P14==1)
-	wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG-THEORY.dat");
-
+    {
+        if(p->P87==0)
+            wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG-THEORY.dat");
+        if(p->P87==1)
+            wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG-THEORY.csv");
+    }
+    
+    if(p->P87==0)
+    {
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
     wsfout<<"x_coord     y_coord"<<endl;
     for(n=0;n<gauge_num;++n)
@@ -66,6 +78,15 @@ print_wsf_theory::print_wsf_theory(lexer *p, fdm* a, ghostcell *pgc, int num)
     wsfout<<"\t P"<<n+1;
 
     wsfout<<endl<<endl;
+    }
+    
+    if(p->P87==1)
+    {
+        wsfout<<"time";
+        for(n=0;n<gauge_num;++n)
+            wsfout<<",P_(x="<<x[n]<<"|y="<<y[n]<<")";
+        wsfout<<endl;
+    }
     }
 	
 	
@@ -82,10 +103,20 @@ void print_wsf_theory::height_gauge(lexer *p, fdm *a, ghostcell *pgc, ioflow *pf
     // write to file
     if(p->mpirank==0)
     {
-    wsfout<<setprecision(9)<<p->simtime<<"\t";
-    for(n=0;n<gauge_num;++n)
-    wsfout<<setprecision(9)<<pflow->wave_fsf(p,pgc,x[n])<<"  \t  ";
-    wsfout<<endl;
+        if(p->P87==0)
+        {
+            wsfout<<setprecision(9)<<p->simtime<<"\t";
+            for(n=0;n<gauge_num;++n)
+            wsfout<<setprecision(9)<<pflow->wave_fsf(p,pgc,x[n])<<"  \t  ";
+            wsfout<<endl;
+        }
+        if(p->P87==1)
+        {
+            wsfout<<setprecision(9)<<p->simtime;
+            for(n=0;n<gauge_num;++n)
+                wsfout<<","<<setprecision(9)<<wsf[n];
+            wsfout<<endl;
+        }
     }
 }
 

@@ -62,11 +62,22 @@ print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num)
     {
     // open file
 	if(p->P14==0)
-    wsfout.open("REEF3D-CFD-WSF-HG.dat");
-	
+    {
+        if(p->P87==0)
+            wsfout.open("REEF3D-CFD-WSF-HG.dat");
+        if(p->P87==1)
+            wsfout.open("REEF3D-CFD-WSF-HG.csv");
+    }
 	if(p->P14==1)
-	wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG.dat");
-
+    {
+        if(p->P87==0)
+            wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG.dat");
+        if(p->P87==1)
+            wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG.csv");
+    }
+    
+    if(p->P87==0)
+    {
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
     wsfout<<"x_coord     y_coord"<<endl;
     for(n=0;n<gauge_num;++n)
@@ -79,6 +90,14 @@ print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num)
     wsfout<<"\t P"<<n+1;
 
     wsfout<<endl<<endl;
+    }
+    if(p->P87==1)
+    {
+            wsfout<<"time";
+            for(n=0;n<gauge_num;++n)
+                wsfout<<",P_(x="<<x[n]<<"|y="<<y[n]<<")";
+            wsfout<<endl;
+    }
     }
 	
 	//-------------------
@@ -87,11 +106,23 @@ print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num)
     {
     // open file
 	if(p->P14==0)
-    wsfout.open("REEF3D-CFD-WSF-HG-1.dat");
+    {
+        if(p->P87==0)
+            wsfout.open("REEF3D-CFD-WSF-HG-1.dat");
+        if(p->P87==1)
+            wsfout.open("REEF3D-CFD-WSF-HG-1.csv");
+    }
 	
 	if(p->P14==1)
-	wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG-1.dat");
-
+    {
+        if(p->P87==0)
+            wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG-1.dat");
+        if(p->P87==1)
+            wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG-1.csv");
+    }
+    
+    if(p->P87==0)
+    {
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
     wsfout<<"x_coord     y_coord"<<endl;
     for(n=0;n<gauge_num;++n)
@@ -105,6 +136,15 @@ print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num)
 
     wsfout<<endl<<endl;
     }
+    
+    if(p->P87==1)
+    {
+       wsfout<<"time";
+        for(n=0;n<gauge_num;++n)
+            wsfout<<",P_(x="<<x[n]<<"|y="<<y[n]<<")";
+        wsfout<<endl;     
+    }
+    }
 	
 	//-------------------
 	
@@ -112,11 +152,22 @@ print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num)
     {
     // open file
 	if(p->P14==0)
-    wsfout.open("REEF3D-CFD-WSF-HG-2.dat");
-	
+    {
+        if(p->P87==0)
+            wsfout.open("REEF3D-CFD-WSF-HG-2.dat");
+        if(p->P87==1)
+            wsfout.open("REEF3D-CFD-WSF-HG-2.csv");
+    }
 	if(p->P14==1)
-	wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG-2.dat");
-
+    {
+        if(p->P87==0)
+            wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG-2.dat");
+        if(p->P87==1)
+            wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG-2.csv");
+    }
+    
+    if(p->P87==0)
+    {
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
     wsfout<<"x_coord     y_coord"<<endl;
     for(n=0;n<gauge_num;++n)
@@ -129,6 +180,15 @@ print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num)
     wsfout<<"\t P"<<n+1;
 
     wsfout<<endl<<endl;
+    }
+    
+    if(p->P87==1)
+    {
+        wsfout<<"time";
+        for(n=0;n<gauge_num;++n)
+            wsfout<<",P_(x="<<x[n]<<"|y="<<y[n]<<")";
+        wsfout<<endl;
+    }
     }
 	
 	p->Iarray(iloc,gauge_num);
@@ -182,15 +242,25 @@ void print_wsf::height_gauge(lexer *p, fdm *a, ghostcell *pgc, field &f)
     }
 	
     for(n=0;n<gauge_num;++n)
-    wsf[n]=pgc->globalmax(wsf[n]);
+        wsf[n]=pgc->globalmax(wsf[n]);
 
     // write to file
     if(p->mpirank==0)
     {
-    wsfout<<setprecision(9)<<p->simtime<<"\t";
-    for(n=0;n<gauge_num;++n)
-    wsfout<<setprecision(9)<<wsf[n]<<"  \t  ";
-    wsfout<<endl;
+        if(p->P87==0)
+        {
+            wsfout<<setprecision(9)<<p->simtime<<"\t";
+            for(n=0;n<gauge_num;++n)
+                wsfout<<setprecision(9)<<wsf[n]<<"  \t  ";
+            wsfout<<endl;
+        }
+        if(p->P87==1)
+        {
+            wsfout<<setprecision(9)<<p->simtime;
+            for(n=0;n<gauge_num;++n)
+                wsfout<<","<<setprecision(9)<<wsf[n];
+            wsfout<<endl;  
+        }
     }
 }
 

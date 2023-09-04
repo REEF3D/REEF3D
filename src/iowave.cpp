@@ -221,7 +221,7 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
     f_switch=1;
 	}
     
-    if(p->A10==3)
+    if(p->A10==3 || p->A10 ==4) //|| p->A10 ==4
 	{
         u_switch=0;
         v_switch=0;

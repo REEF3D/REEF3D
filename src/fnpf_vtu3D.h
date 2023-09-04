@@ -25,6 +25,7 @@ Author: Hans Bihs
 
 class fdm_fnpf;
 class force_ale;
+class force_fit;
 class fnpf_print_wsf;
 class fnpf_print_wsf_theory;
 class fnpf_print_wsfline;
@@ -80,7 +81,9 @@ private:
     fnpf_state *pstate;
     fnpf_breaking_log *pbreaklog;
 	force_ale **pforce_ale;
+    force_fit **pforce_fit;
     fnpf_print_Hs *phs;
+
 };
 
 #endif

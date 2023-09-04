@@ -93,6 +93,7 @@ public:
     slice4 eta,eta_n,depth;
     slice4 Fifsf;
     slice4 K;
+    slice4 Fz_global;
     sliceint4 etaloc;
     
     slice1 P;

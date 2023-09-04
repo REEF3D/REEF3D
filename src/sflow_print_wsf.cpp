@@ -43,11 +43,22 @@ sflow_print_wsf::sflow_print_wsf(lexer *p, fdm2D* b)
     {
     // open file
 	if(p->P14==0)
-    wsfout.open("REEF3D-SFLOW-WSF-HG.dat");
-	
+    {
+        if(p->P87==0)
+            wsfout.open("REEF3D-SFLOW-WSF-HG.dat");
+        if(p->P87==1)
+            wsfout.open("REEF3D-SFLOW-WSF-HG.csv");
+	}
 	if(p->P14==1)
-	wsfout.open("./REEF3D_SFLOW_WSF/REEF3D-SFLOW-WSF-HG.dat");
-
+    {
+        if(p->P87==0)
+            wsfout.open("./REEF3D_SFLOW_WSF/REEF3D-SFLOW-WSF-HG.dat");
+        if(p->P87==1)
+            wsfout.open("./REEF3D_SFLOW_WSF/REEF3D-SFLOW-WSF-HG.csv");
+    }
+    
+    if(p->P87==0)
+    {
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
     wsfout<<"x_coord     y_coord"<<endl;
     for(n=0;n<gauge_num;++n)
@@ -60,6 +71,14 @@ sflow_print_wsf::sflow_print_wsf(lexer *p, fdm2D* b)
     wsfout<<"\t P"<<n+1;
 
     wsfout<<endl<<endl;
+    }
+    if(p->P87==1)
+    {
+        wsfout<<"time";
+        for(n=0;n<gauge_num;++n)
+            wsfout<<",P_(x="<<x[n]<<"|y="<<y[n]<<")";
+        wsfout<<endl;
+    }
     }
 	
 	//-------------------
@@ -104,10 +123,21 @@ void sflow_print_wsf::height_gauge(lexer *p, fdm2D *b, ghostcell *pgc, slice &f)
     // write to file
     if(p->mpirank==0)
     {
-    wsfout<<setprecision(9)<<p->simtime<<"\t";
-    for(n=0;n<gauge_num;++n)
-    wsfout<<setprecision(9)<<wsf[n]<<"  \t  ";
-    wsfout<<endl;
+        if(p->P87==0)
+        {
+        wsfout<<setprecision(9)<<p->simtime<<"\t";
+        for(n=0;n<gauge_num;++n)
+        wsfout<<setprecision(9)<<wsf[n]<<"  \t  ";
+        wsfout<<endl;
+        }
+        
+        if(p->P87==1)
+        {
+            wsfout<<setprecision(9)<<p->simtime;
+            for(n=0;n<gauge_num;++n)
+                wsfout<<","<<setprecision(9)<<wsf[n];
+            wsfout<<endl;
+        }
     }
 }
 
