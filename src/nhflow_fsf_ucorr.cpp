@@ -29,12 +29,12 @@ Author: Hans Bihs
 
 void nhflow_fsf_f::ucorr(lexer* p, fdm_nhf* d, double *UH, slice &WL, double alpha)
 {
-    LOOP
-    UH[IJK] += 0.5*alpha*alpha*p->dt*p->dt*WL(i,j)*fabs(p->W22)*(d->detadt(i+1,j)-d->detadt(i-1,j))/(p->DXP[IM1]+p->DXP[IP]);
+    //LOOP
+    //UH[IJK] -= alpha*alpha*p->dt*p->dt*WL(i,j)*fabs(p->W22)*(d->detadt(i+1,j)-d->detadt(i-1,j))/(p->DXP[IM1]+p->DXP[IP]);
 }
 
 void nhflow_fsf_f::vcorr(lexer* p, fdm_nhf* d, double *VH, slice &WL, double alpha)
 {
-    LOOP
-    VH[IJK] += 0.5*alpha*alpha*p->dt*p->dt*WL(i,j)*fabs(p->W22)*(d->detadt(i,j+1)-d->detadt(i,j-1))/(p->DYP[JM1]+p->DYP[JP]);
+    //LOOP
+    //VH[IJK] -= alpha*alpha*p->dt*p->dt*WL(i,j)*fabs(p->W22)*(d->detadt(i,j+1)-d->detadt(i,j-1))/(p->DYP[JM1]+p->DYP[JP]);
 }
