@@ -74,7 +74,7 @@ void nhflow_pjm_hs::vel_setup(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
 {
 }
 
-void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d)
+void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
     LOOP
     WETDRY
@@ -102,7 +102,7 @@ void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d)
     //d->test2D(i,j) = (0.5*(d->ETAs(i,j)+d->ETAn(i,j)) - 0.5*(d->ETAs(i-1,j)+d->ETAn(i-1,j)))/(p->DXN[IP]);
 }
 
-void nhflow_pjm_hs::vpgrad(lexer*p, fdm_nhf *d)
+void nhflow_pjm_hs::vpgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
     LOOP
     WETDRY
@@ -110,6 +110,6 @@ void nhflow_pjm_hs::vpgrad(lexer*p, fdm_nhf *d)
                  (d->dfy(i,j) - d->dfy(i,j-1))/(p->DYN[JP]);
 }
 
-void nhflow_pjm_hs::wpgrad(lexer*p, fdm_nhf *d)
+void nhflow_pjm_hs::wpgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
 }

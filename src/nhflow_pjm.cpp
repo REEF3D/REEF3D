@@ -158,7 +158,7 @@ void nhflow_pjm::vel_setup(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doub
 {
 }
 
-void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d)
+void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
     LOOP
     WETDRY
@@ -166,7 +166,7 @@ void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d)
                 (d->dfx(i,j) - d->dfx(i-1,j))/(p->DXN[IP]);
 }
 
-void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d)
+void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d, slice &WL)
 {
     LOOP
     WETDRY
@@ -174,7 +174,7 @@ void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d)
                  (d->dfy(i,j) - d->dfy(i,j-1))/(p->DYN[JP]);
 }
 
-void nhflow_pjm::wpgrad(lexer*p, fdm_nhf *d)
+void nhflow_pjm::wpgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
 }
 

@@ -104,8 +104,8 @@ void lexer::ini_default()
     A516=3;      // int NFHLOW KFSFBED scheme
     A517=3;      // int NHFLOW omega_sig scheme
     
-    A520=1;		// int NFHLOW non-hydrostatic pressure scheme
-    A521=0;		// int NFHLOW Keller-box scheme
+    A520=2;		// int NFHLOW non-hydrostatic pressure scheme
+    A521=0;		// int NFHLOW fsf ucorr
     A523=1.0;    // double blending factor hydrostatic pressure gradient
     A540=1;      // int NFHLOW fsf scheme
     A541=0.0;    // double coastline damping distance factor for dxm

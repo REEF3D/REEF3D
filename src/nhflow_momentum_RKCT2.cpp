@@ -64,7 +64,7 @@ void nhflow_momentum_RKCT2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *
                                      nhflow_reconstruct *precon, nhflow_convection *pconvec, diffusion *pdiff, 
                                      nhflow_pressure *ppress, solver *psolv, nhflow *pnhf, nhflow_fsf *pfsf, nhflow_turbulence *pnhfturb, vrans *pvrans)
 {	
-    pflow->discharge_nhflow(p,d,pgc);
+    /*pflow->discharge_nhflow(p,d,pgc);
     pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W,d->UH,d->VH,d->WH);
     pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,UHRK1,VHRK1,WHRK1);
 		
@@ -253,7 +253,7 @@ void nhflow_momentum_RKCT2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *
     pgc->start4V(p,d->VH,gcval_v);
     pgc->start4V(p,d->WH,gcval_w);
     
-    clearrhs(p,d,pgc);
+    clearrhs(p,d,pgc);*/
 }
 
 void nhflow_momentum_RKCT2::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_fsf *pfsf, nhflow_signal_speed *pss, 
