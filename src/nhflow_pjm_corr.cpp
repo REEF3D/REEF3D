@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#define WLVL (fabs(d->WL(i,j))>1.0e-20?d->WL(i,j):1.0e20)
+#define WLVL (fabs(WL(i,j))>(1.0*p->A544)?WL(i,j):1.0e20)
 
 #include"nhflow_pjm_corr.h"
 #include"lexer.h"
@@ -77,6 +77,7 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
     presscorr(p,d,WL,d->P,PCORR,alpha);
     
     pgc->start7P(p,d->P,gcval_press);
+    pgc->start7P(p,PCORR,gcval_press);
     
 	ucorr(p,d,WL,UH,PCORR,alpha);
 	vcorr(p,d,WL,VH,PCORR,alpha);
