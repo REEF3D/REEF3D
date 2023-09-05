@@ -299,6 +299,7 @@
         <File Name="nhflow_v.h"/>
         <File Name="nhflow.h"/>
         <VirtualDirectory Name="Pressure">
+          <File Name="nhflow_pjm_corr.h"/>
           <File Name="nhflow_pjm_hs.h"/>
           <File Name="nhflow_pjm.h"/>
           <VirtualDirectory Name="Poisson">
@@ -307,6 +308,7 @@
           <File Name="nhflow_pressure.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
+          <File Name="nhflow_momentum_RKCT2.h"/>
           <VirtualDirectory Name="BC">
             <File Name="nhflow_bcmom.h"/>
           </VirtualDirectory>
@@ -1368,6 +1370,7 @@
         <File Name="nhflow_v.cpp"/>
         <File Name="nhflow_f.cpp"/>
         <VirtualDirectory Name="Pressure">
+          <File Name="nhflow_pjm_corr.cpp"/>
           <File Name="nhflow_pjm_hs.cpp"/>
           <File Name="nhflow_pjm.cpp"/>
           <VirtualDirectory Name="Poisson">
@@ -1375,6 +1378,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
+          <File Name="nhflow_momentum_RKCT2.cpp"/>
           <VirtualDirectory Name="BC">
             <File Name="nhflow_bcmom.cpp"/>
           </VirtualDirectory>
@@ -1382,6 +1386,7 @@
           <File Name="nhflow_momentum_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <File Name="nhflow_fsf_ucorr.cpp"/>
           <File Name="nhflow_fsf_wetdry.cpp"/>
           <File Name="nhflow_fsf_kfsfbc.cpp"/>
           <File Name="nhflow_fsf_ini.cpp"/>

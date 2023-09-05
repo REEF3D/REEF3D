@@ -63,6 +63,9 @@ public:
     
     virtual void wetdry(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&)=0;
     virtual void wetdry_fluxes(lexer*, fdm_nhf*, ghostcell*,slice&,double*,double*,double*,double*,double*,double*)=0;
+    
+    virtual void ucorr(lexer*, fdm_nhf*, double*, slice&, double)=0;
+    virtual void vcorr(lexer*, fdm_nhf*, double*, slice&, double)=0;
 
 
 };

@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_momentum_RK2.h"
+#include"nhflow_momentum_RKCT2.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -39,7 +39,7 @@ Author: Hans Bihs
 
 #define WLVL (fabs(WL(i,j))>(1.0*p->A544)?WL(i,j):1.0e20)
 
-nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc)
+nhflow_momentum_RKCT2::nhflow_momentum_RKCT2(lexer *p, fdm_nhf *d, ghostcell *pgc)
                                                     : bcmom(p), nhflow_sigma(p), WLRK1(p), eta_temp(p)
 {
 	gcval_u=10;
@@ -56,11 +56,11 @@ nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
 }
 
-nhflow_momentum_RK2::~nhflow_momentum_RK2()
+nhflow_momentum_RKCT2::~nhflow_momentum_RKCT2()
 {
 }
 
-void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_signal_speed *pss, 
+void nhflow_momentum_RKCT2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_signal_speed *pss, 
                                      nhflow_reconstruct *precon, nhflow_convection *pconvec, diffusion *pdiff, 
                                      nhflow_pressure *ppress, solver *psolv, nhflow *pnhf, nhflow_fsf *pfsf, nhflow_turbulence *pnhfturb, vrans *pvrans)
 {	
@@ -256,7 +256,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     clearrhs(p,d,pgc);
 }
 
-void nhflow_momentum_RK2::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_fsf *pfsf, nhflow_signal_speed *pss, 
+void nhflow_momentum_RKCT2::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_fsf *pfsf, nhflow_signal_speed *pss, 
                                      nhflow_reconstruct *precon, slice &WL, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
     starttime=pgc->timer();
@@ -306,7 +306,7 @@ void nhflow_momentum_RK2::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     p->recontime+=pgc->timer()-starttime;
 }
 
-void nhflow_momentum_RK2::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *UH, double *VH, double *WH, slice &WL)
+void nhflow_momentum_RKCT2::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *UH, double *VH, double *WH, slice &WL)
 {
     // Fr nuber limiter
     /*LOOP
@@ -357,7 +357,7 @@ void nhflow_momentum_RK2::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *
     pgc->start4V(p,d->W,gcval_w);
 }
 
-void nhflow_momentum_RK2::irhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void nhflow_momentum_RKCT2::irhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     /*
 	n=0;
@@ -370,7 +370,7 @@ void nhflow_momentum_RK2::irhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	}*/
 }
 
-void nhflow_momentum_RK2::jrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void nhflow_momentum_RKCT2::jrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     /*
 	n=0;
@@ -383,11 +383,11 @@ void nhflow_momentum_RK2::jrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	}*/
 }
 
-void nhflow_momentum_RK2::krhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void nhflow_momentum_RKCT2::krhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 }
 
-void nhflow_momentum_RK2::clearrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void nhflow_momentum_RKCT2::clearrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 	n=0;
 	LOOP
@@ -397,7 +397,7 @@ void nhflow_momentum_RK2::clearrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	}
 }
 
-void nhflow_momentum_RK2::inidisc(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_fsf *pfsf)
+void nhflow_momentum_RKCT2::inidisc(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_fsf *pfsf)
 {
     //pfsf->wetdry(p,d,pgc,d->U,d->V,d->W,d->WL);
     sigma_ini(p,d,pgc,d->eta);

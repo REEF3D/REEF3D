@@ -20,34 +20,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow.h"
-#include"nhflow_f.h"
-#include"nhflow_v.h"
-
-#include"nhflow_fsf.h"
 #include"nhflow_fsf_f.h"
-#include"nhflow_fsf_v.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include"ioflow.h"
+#include"patchBC_interface.h"
 
-#include"nhflow_vtu3D.h"
-#include"nhflow_timestep.h"
-#include"nhflow_momentum.h"
-#include"nhflow_turbulence.h"
-#include"nhflow_komega_void.h"
-#include"nhflow_komega_IM1.h"
+void nhflow_fsf_f::ucorr(lexer* p, fdm_nhf* d, double *UH, slice &WL, double alpha)
+{
+    LOOP
+    UH[IJK] += 0.5*alpha*alpha*p->dt*p->dt*WL(i,j)*fabs(p->W22)*(d->detadt(i+1,j)-d->detadt(i-1,j))/(p->DXP[IM1]+p->DXP[IP]);
+}
 
-#include"nhflow_HLL.h"
-#include"nhflow_HLLC.h"
-#include"nhflow_convection_void.h"
-
-#include"nhflow_momentum_RK2.h"
-#include"nhflow_momentum_RK3.h"
-
-#include"nhflow_pjm.h"
-#include"nhflow_pjm_corr.h"
-#include"nhflow_pjm_hs.h"
-#include"nhflow_poisson.h"
-
-#include"nhflow_signal_speed.h"
-#include"nhflow_reconstruct_hires.h"
-#include"nhflow_reconstruct_wenograd.h"
-#include"nhflow_reconstruct_weno.h"
+void nhflow_fsf_f::vcorr(lexer* p, fdm_nhf* d, double *VH, slice &WL, double alpha)
+{
+    LOOP
+    VH[IJK] += 0.5*alpha*alpha*p->dt*p->dt*WL(i,j)*fabs(p->W22)*(d->detadt(i,j+1)-d->detadt(i,j-1))/(p->DYP[JM1]+p->DYP[JP]);
+}
