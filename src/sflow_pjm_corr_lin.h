@@ -26,14 +26,14 @@ Author: Hans Bihs
 
 using namespace std;
 
-#ifndef SFLOW_PJM_LIN_H_
-#define SFLOW_PJM_LIN_H_
+#ifndef SFLOW_PJM_CORR_LIN_H_
+#define SFLOW_PJM_CORR_LIN_H_
 
-class sflow_pjm_lin : public sflow_pressure, public increment
+class sflow_pjm_corr_lin : public sflow_pressure, public increment
 {
 public:
-    sflow_pjm_lin(lexer*, fdm2D*,patchBC_interface*);
-	virtual ~sflow_pjm_lin();
+    sflow_pjm_corr_lin(lexer*, fdm2D*,patchBC_interface*);
+	virtual ~sflow_pjm_corr_lin();
     
 	virtual void start(lexer*, fdm2D*, ghostcell*, solver2D*, ioflow*, slice&, slice&, slice&, slice&, slice&, slice&, double);
 	virtual void upgrad(lexer*, fdm2D*, slice&, slice&);
@@ -47,9 +47,12 @@ public:
     
     void rhs(lexer*, fdm2D*, slice&, slice&, slice&, double);
     
+    void presscorr(lexer*,fdm2D*);
+    
     void poisson(lexer*,fdm2D*,double);
     
 private:
+    slice4 pcorr;
 	double starttime,endtime;
     int count, gcval_press;
 	int gcval_u, gcval_v, gcval_w;

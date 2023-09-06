@@ -221,6 +221,7 @@ private:
     ofstream solvlogout;
 	
 	double nom,val;
+    char version[100];
 };
 
 #endif
