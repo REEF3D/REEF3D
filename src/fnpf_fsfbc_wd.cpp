@@ -50,7 +50,7 @@ Author: Hans Bihs
 #include"fnpf_coastline.h"
 #include"sflow_bicgstab.h"
 
-fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p)
+fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p),eps(1.0e-6)
 {    
     if(p->A311==0)
     pconvec = pconeta = new fnpf_voiddisc(p);
@@ -132,6 +132,19 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p
     psolv = new sflow_bicgstab(p,pgc);
     
     count_n=0;
+    
+    p->Iarray(temp,p->imax*p->jmax);
+    
+    // 3D
+    gcval_eta = 55;
+    gcval_fifsf = 60;
+    
+    // 2D
+    if(p->j_dir==0)
+    {
+    gcval_eta = 155;
+    gcval_fifsf = 160;
+    }
 }
 
 fnpf_fsfbc_wd::~fnpf_fsfbc_wd()

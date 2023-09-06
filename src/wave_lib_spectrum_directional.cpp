@@ -102,7 +102,12 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
             // Yu's Single Summation Method frequency vector
             if (p->B136 == 3)
             {
-                srand((unsigned)time(NULL)*time(NULL));
+                if(p->B139>0)
+                srand(p->B139);
+
+                if(p->B139==0)
+                srand((unsigned)time(0));
+                
                 for(n = 0; n < p->wN; ++n)
                 {
                     for(q = 0; q < p->B133; ++q)
@@ -320,7 +325,12 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
 
             // randomly re-shuffle the angular array
 
-            srand((unsigned)time(NULL));
+            if(p->B139>0)
+            srand(p->B139);
+
+            if(p->B139==0)
+            srand((unsigned)time(0));
+            
             for(n = 0; n < p->wN; ++n)
             {
                 // introduce random index

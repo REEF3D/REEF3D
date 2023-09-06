@@ -114,6 +114,7 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             
             if((p->wet[Im1J]==0) && (c->bc(i-1,j)==0 || k==0))
             {
+            c->M.p[n] += c->M.s[n];
             c->M.s[n] = 0.0;
             }
             
@@ -143,6 +144,7 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             
             if((p->wet[Ip1J]==0) && c->bc(i+1,j)==0)
             {
+            c->M.p[n] += c->M.n[n];
             c->M.n[n] = 0.0;
             }
             
@@ -176,18 +178,18 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             c->M.e[n] = 0.0;
             }
             
-            // west
-            if(p->flag7[FIJp1K]<0)
-            {
-            c->M.p[n] += c->M.w[n];
-            c->M.w[n] = 0.0;
-            }
-            
             // east
             if(p->wet[IJm1]==0)
             {
             c->M.p[n] += c->M.e[n];
             c->M.e[n] = 0.0;
+            }
+            
+            // west
+            if(p->flag7[FIJp1K]<0)
+            {
+            c->M.p[n] += c->M.w[n];
+            c->M.w[n] = 0.0;
             }
             
             // west
@@ -213,13 +215,13 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             
             denom = p->sigz[IJ] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
 
-                    if(p->wet[Ip1J]==1 && p->wet[Im1J]==1)
+                    //if(p->wet[Ip1J]==1 && p->wet[Im1J]==1)
                     {
                     c->M.n[n] +=  ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     c->M.s[n] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     }
                     
-                    if(p->wet[IJp1]==1 && p->wet[IJm1]==1)
+                    //if(p->wet[IJp1]==1 && p->wet[IJm1]==1)
                     {
                     c->M.w[n] +=  ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
                     c->M.e[n] += -ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));

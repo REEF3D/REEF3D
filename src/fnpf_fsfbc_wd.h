@@ -74,6 +74,10 @@ private:
     
     double visc;
     
+    int *temp;
+    int gcval_eta,gcval_fifsf;
+    const double eps;
+    
     sliceint4 bx,by;
     int count_n;
     
