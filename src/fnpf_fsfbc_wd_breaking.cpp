@@ -406,8 +406,8 @@ void fnpf_fsfbc_wd::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     ++count;
     }
     
-    SLICELOOP4
-    c->test2D(i,j)=c->vb(i,j);
+    //SLICELOOP4
+    //c->test2D(i,j)=c->vb(i,j);
     
     count=pgc->globalisum(count);
     

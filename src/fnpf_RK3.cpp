@@ -103,6 +103,7 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
 	frk1(i,j) = c->Fifsf(i,j) + p->dt*c->K(i,j);
    
     pflow->eta_relax(p,pgc,erk1);
+    pf->wetdry(p,c,pgc,erk1,frk1);
     pgc->gcsl_start4(p,erk1,gcval_eta);
     pf->coastline_eta(p,c,pgc,erk1);
     pf->coastline_fi(p,c,pgc,frk1);
@@ -112,7 +113,6 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     
     // fsfdisc and sigma update
     pf->breaking(p, c, pgc, erk1, c->eta, frk1,1.0);
-    pf->wetdry(p,c,pgc,erk1,frk1);
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk1,erk1);
     pf->fsfdisc(p,c,pgc,erk1,frk1);
     sigma_update(p,c,pgc,pf,erk1);
@@ -145,6 +145,7 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
 	frk2(i,j) = 0.75*c->Fifsf(i,j) + 0.25*frk1(i,j) + 0.25*p->dt*c->K(i,j);
 
     pflow->eta_relax(p,pgc,erk2);
+    pf->wetdry(p,c,pgc,erk2,frk2);
     pgc->gcsl_start4(p,erk2,gcval_eta);
     pf->coastline_eta(p,c,pgc,erk2);
     pf->coastline_fi(p,c,pgc,frk2);
@@ -154,7 +155,6 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     
     // fsfdisc and sigma update
     pf->breaking(p, c, pgc, erk2, erk1, frk2, 0.25);
-    pf->wetdry(p,c,pgc,erk2,frk2);
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk2,erk2);
     pf->fsfdisc(p,c,pgc,erk2,frk2);
     sigma_update(p,c,pgc,pf,erk2);
@@ -187,6 +187,7 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
 	c->Fifsf(i,j) = (1.0/3.0)*c->Fifsf(i,j) + (2.0/3.0)*frk2(i,j) + (2.0/3.0)*p->dt*c->K(i,j);
     
     pflow->eta_relax(p,pgc,c->eta);
+    pf->wetdry(p,c,pgc,c->eta,c->Fifsf);
     pgc->gcsl_start4(p,c->eta,gcval_eta);
     pf->coastline_eta(p,c,pgc,c->eta);
     pf->coastline_fi(p,c,pgc,c->Fifsf);
@@ -196,7 +197,6 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     
     // fsfdisc and sigma update
     pf->breaking(p, c, pgc, c->eta, erk2,c->Fifsf,2.0/3.0);
-    pf->wetdry(p,c,pgc,c->eta,c->Fifsf);
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,c->Fifsf,c->eta);
     pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
     sigma_update(p,c,pgc,pf,c->eta);
@@ -229,6 +229,8 @@ void fnpf_RK3::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, sol
     sigma_ini(p,c,pgc,pf,c->eta);
     pf->fsfdisc_ini(p,c,pgc,c->eta,c->Fifsf);
     pf->wetdry(p,c,pgc,c->eta,c->Fifsf);   
+    pf->depthcheck(p,c,pgc,c->eta,c->Fifsf); 
+    sigma_ini(p,c,pgc,pf,c->eta);
     pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
     sigma_update(p,c,pgc,pf,c->eta);
     
