@@ -37,6 +37,20 @@ void iowave::timeseries(lexer *p, ghostcell* pgc)
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
 	mkdir("./REEF3D_Log-Wave",0777);
+    
+    if(p->P58==0)
+    {
+    p->P58=1;
+        
+    p->Darray(p->P58_x,p->P58);
+	p->Darray(p->P58_y,p->P58);
+    p->Darray(p->P58_T,p->P58);
+    
+    p->P58_x[0] = 0.0;
+    p->P58_y[0] = 0.0;
+    p->P58_T[0] = 12800.0;
+    }
+    
 	
 
     for(int n=0; n<p->P58; ++n)
