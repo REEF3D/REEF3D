@@ -78,28 +78,8 @@ void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
     LOOP
     WETDRY
-    d->F[IJK] += PORVALNH*d->eta(i,j)*fabs(p->W22)*
+    d->F[IJK] += PORVALNH*0.5*(d->ETAs(i,j)+d->ETAn(i-1,j))*fabs(p->W22)*
                 (d->dfx(i,j) - d->dfx(i-1,j))/(p->DXN[IP]);
-    
-    SLICELOOP4
-    d->test2D(i,j) = 0.0;
-    
-    SLICELOOP4
-    WETDRY
-    d->test2D(i,j) = d->detadt(i,j);
-    
-    /*
-    SLICELOOP4
-    {
-    if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
-    cout<<"right dry - eta(i-1): "<<d->eta(i-1,j)<<" eta: "<<d->eta(i,j)<<" ETAs: "<<d->ETAs(i,j)<<" ETAn: "<<d->ETAn(i,j)<<endl;
-    
-    if(p->wet[IJ]==0 && p->wet[Ip1J]==1)
-    cout<<"left dry - eta(i+2): "<<d->eta(i+2,j)<<" eta: "<<d->eta(i+1,j)<<" ETAs: "<<d->ETAs(i,j)<<" ETAn: "<<d->ETAn(i,j)<<endl<<endl;
-        
-    }*/
-    
-    //d->test2D(i,j) = (0.5*(d->ETAs(i,j)+d->ETAn(i,j)) - 0.5*(d->ETAs(i-1,j)+d->ETAn(i-1,j)))/(p->DXN[IP]);
 }
 
 void nhflow_pjm_hs::vpgrad(lexer*p, fdm_nhf *d, slice &WL)

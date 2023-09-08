@@ -34,11 +34,9 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
 { 
     double wval,Pval,Qval,Rval;
     
-    if(p->A517==1 || p->A517==2)
+    if(p->A517==1)
     FLOOP
     {
-        if(p->A517==1)
-        {
         if(U[IJK]>=0.0)
         Pval=0.5*(U[Im1JK] + U[IJK]);
             
@@ -58,15 +56,7 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
             
         if(W[IJK]<0.0)
         Rval=0.5*(W[IJK] + W[IJKp1]);
-        }
-        
-        if(p->A517==2)
-        {
-        Pval = 0.5*(U[IJK]+U[IJKm1]);
-        Qval = 0.5*(V[IJK]+V[IJKm1]);
-        Rval = 0.5*(W[IJK]+W[IJKm1]);
-        }
-    
+
     // omega
         d->omegaF[FIJK] =  d->WL(i,j)*(p->sigt[FIJK]
                         
@@ -75,6 +65,46 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
                         +  Qval*p->sigy[FIJK]
                         
                         +  Rval*p->sigz[IJ]);
+    }
+    
+    if(p->A517==2)
+    {
+        FLOOP
+        {
+            
+            Pval = 0.5*(U[IJK]+U[IJKm1]);
+            Qval = 0.5*(V[IJK]+V[IJKm1]);
+            Rval = 0.5*(W[IJK]+W[IJKm1]);
+        
+        // omega
+            d->omegaF[FIJK] =  d->WL(i,j)*(p->sigt[FIJK]
+                            
+                            +  Pval*p->sigx[FIJK]
+                            
+                            +  Qval*p->sigy[FIJK]
+                            
+                            +  Rval*p->sigz[IJ]);
+        }
+        
+        
+        ILOOP 
+        JLOOP
+        if(p->wet[IJ]==0 || p->wet[Im1J]==0 || p->wet[Ip1J]==0 || p->wet[IJm1]==0 || p->wet[IJp1]==0
+        || p->wet[Im2J]==0 || p->wet[Ip2J]==0 || p->wet[IJm2]==0 || p->wet[IJp2]==0)
+        {
+        FKLOOP 
+        FPCHECK 
+        d->omegaF[FIJK] = 0.0;  
+        
+        KLOOP 
+        PCHECK 
+        d->omegaF[FIJKp1] =   d->omegaF[FIJK]
+                        
+                        - p->DZN[KP]*(d->detadt(i,j) 
+                        
+                        + ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir));
+        }
+        
     }
     
     if(p->A517==3)
