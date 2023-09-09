@@ -285,7 +285,7 @@ public:
     
 	// boundary conditions
 	int B10,B20,B23;
-    int B30,B32;
+    int B30,B32,B33;
     double B31,B32_x,B32_y,B32_z;    
     int B60,B61,B70,B71,B75,B76,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B94,B98,B99,B101,B105,B106,B107;
 	int B136,B138,B138_1,B138_2,B139;
@@ -636,6 +636,7 @@ public:
 	double phimean,phiout,phiin;
 	double pcnorm,ucnorm,vcnorm,wcnorm;
     double alpha;
+    double pressgage;
 
 	// maxcoor
 	double xcoormax,xcoormin,ycoormax,ycoormin,zcoormax,zcoormin;

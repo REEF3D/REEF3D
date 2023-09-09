@@ -226,6 +226,8 @@ void lexer::ctrlsend()
     dd++;
     dctrl[dd] = B32_z;
     dd++;
+    ictrl[ii] = B33;
+    ii++;
     dctrl[dd] = B50;
     dd++;
 	dctrl[dd] = B51;

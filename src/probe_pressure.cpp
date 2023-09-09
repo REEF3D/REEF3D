@@ -95,7 +95,7 @@ void probe_pressure::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 		yp=p->P64_y[n];
 		zp=p->P64_z[n];
 		
-		pval = p->ccipol4_a(a->press, xp, yp, zp);
+		pval = p->ccipol4_a(a->press, xp, yp, zp) - p->pressgage;
 		}
 	
 	pval=pgc->globalmax(pval);

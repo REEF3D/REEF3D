@@ -128,6 +128,7 @@ void lexer::ini_default()
     B31=0.0;         // double pressure reference value
     B32=0;           // int pressure reference location
     B32_x=B32_y=B32_z=0.0; // double pressure reference location
+    B33=1;           // int pressure gage virtual or inline
 	B50=0.001;		// double global wall roughness ks
 	B51=-1.0;		// double global wall roughness ks
 	B52=-1.0;		// double global wall roughness ks

@@ -130,7 +130,7 @@ void sixdof_df_object::forces_stl
             ylocp = yc + p->X42*ny*p->DYP[JP];
             zlocp = zc + p->X42*nz*p->DZP[KP];
 
-            p_int = p->ccipol4_a(a->press,xlocp,ylocp,zlocp);
+            p_int = p->ccipol4_a(a->press,xlocp,ylocp,zlocp) - p->pressgage;
             
             Fp_x = -nx*p_int*A_triang;
             Fp_y = -ny*p_int*A_triang;

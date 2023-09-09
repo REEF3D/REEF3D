@@ -62,13 +62,16 @@ void pressure_reference::fsf_normalize(lexer*p, fdm* a, ghostcell *pgc)
     
     pressval = pgc->globalsum(pressval);
     
-    
     dirac_sum = pgc->globalsum(dirac_sum);
     
     if(dirac_sum>0)
     pressval = pressval/dirac_sum;
     
     
+    if(p->B33==1)
+    p->pressgage=pressval;
+    
+    if(p->B33==2)
     LOOP
     a->press(i,j,k) -= pressval;
     

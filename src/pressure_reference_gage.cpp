@@ -36,7 +36,10 @@ void pressure_reference::gage_fixed(lexer*p, fdm* a, ghostcell *pgc)
     
     gageval = pgc->globalmax(gageval);
     
-    if(gageval>-0.9e20)
+    if(p->B33==1)
+    p->pressgage = gageval - p->B31;
+    
+    if(p->B33==2 && gageval>-0.9e20)
     LOOP
     a->press(i,j,k) -= (gageval - p->B31);
     
@@ -65,10 +68,14 @@ void pressure_reference::gage_fsf(lexer*p, fdm* a, ghostcell *pgc)
     gageval = p->ccipol4(a->press,p->B32_x,p->B32_y,p->B32_z);
     }
     
-    gageval = pgc->globalmax(gageval);
     p->B32_z = pgc->globalmax(p->B32_z);
     
-    if(gageval>-0.9e20)
+    gageval = pgc->globalmax(gageval);
+    
+    if(p->B33==1)
+    p->pressgage = gageval - p->B31;
+    
+    if(p->B33==2 && gageval>-0.9e20)
     LOOP
     a->press(i,j,k) -= (gageval - p->B31);
 

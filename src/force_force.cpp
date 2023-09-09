@@ -171,7 +171,7 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
             dv = vval/p->DYN[JP];
             dw = wval/p->DZN[KP];
             
-            pval =      p->ccipol4_a(a->press,xloc,yloc,zloc);
+            pval =      p->ccipol4_a(a->press,xloc,yloc,zloc) - p->pressgage;
             density =   p->ccipol4_a(a->ro,xloc,yloc,zloc);
             viscosity = p->ccipol4_a(a->visc,xloc,yloc,zloc);
             phival =    p->ccipol4_a(a->phi,xloc,yloc,zloc);

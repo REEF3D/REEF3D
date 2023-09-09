@@ -46,25 +46,25 @@ void rheology_f::filltau(lexer *p, fdm *a, ghostcell *pgc)
         pval=phival*0.5*(a->ro(i,j,k)+a->ro(i+1,j,k))*fabs(p->W22);
         
         if(p->W111==2)
-        pval=0.5*(a->press(i,j,k)+a->press(i+1,j,k));
+        pval=0.5*((a->press(i,j,k)-p->pressgage)+(a->press(i+1,j,k)-p->pressgage));
         
         if(p->W111==3)
         {
             if(phival<p->W112*p->DXM)
-            pval=0.5*(a->press(i,j,k)+a->press(i+1,j,k));
+            pval=0.5*((a->press(i,j,k)-p->pressgage)+(a->press(i+1,j,k)-p->pressgage));
             
             if(phival>=p->W112*p->DXM)
-            pval=phival*0.5*(a->ro(i,j,k)+a->ro(i+1,j,k))*fabs(p->W22);
+            pval=phival*0.5*((a->press(i,j,k)-p->pressgage)+(a->press(i+1,j,k)-p->pressgage))*fabs(p->W22);
         }
         
         if(p->W111==4)
-        pval=0.25*(a->press(i,j,k)+a->press(i+1,j,k)) + 0.5*phival*0.5*(a->ro(i,j,k)+a->ro(i+1,j,k))*fabs(p->W22);
+        pval=0.25*((a->press(i,j,k)-p->pressgage)+(a->press(i+1,j,k)-p->pressgage)) + 0.5*phival*0.5*(a->ro(i,j,k)+a->ro(i+1,j,k))*fabs(p->W22);
         
         
         if(p->W111==5)
         {
             if(p->count>=10)
-            pval=0.5*(a->press(i,j,k)+a->press(i+1,j,k));
+            pval=0.5*((a->press(i,j,k)-p->pressgage)+(a->press(i+1,j,k)-p->pressgage));
             
             if(p->count<10)
             pval=phival*0.5*(a->ro(i,j,k)+a->ro(i+1,j,k))*fabs(p->W22);
