@@ -27,19 +27,23 @@ Author: Hans Bihs
 
 void pressure_reference::reference_ini(lexer*p, fdm* a, ghostcell *pgc)
 {
-    double xmin,ymin,zmax;
+    double xmin,xmax,ymin,zmax;
     int gcinglobal=0;
+    int gcoutglobal=0;
     
-    xmin=ymin=1.0e20;
-    zmax=-1.0e20;
+    
     
     gcinglobal=pgc->globalisum(p->gcin_count);
+    gcoutglobal=pgc->globalisum(p->gcout_count);
     
     //cout<<p->mpirank<<" gcinglobal: "<<gcinglobal<<endl;
     
     // ini gage location
-    if((p->B32==0 && p->B30==1) || p->B30==2 || p->B30==3)
+    if(((p->B32==0 && p->B30==1) || p->B30==2 || p->B30==3))// && p->B99<3)
     {
+        xmin=ymin=1.0e20;
+        zmax=-1.0e20;
+    
         //find active smallest xy inlet location
         if(gcinglobal>0)
         for(n=0;n<p->gcin_count;n++)
@@ -64,6 +68,44 @@ void pressure_reference::reference_ini(lexer*p, fdm* a, ghostcell *pgc)
         p->B32_x = pgc->globalmin(xmin);
         p->B32_y = pgc->globalmin(ymin);
         p->B32_z = pgc->globalmax(zmax);
+        
+        if(p->mpirank==0)
+        cout<<"pressure gage location  x: "<<p->B32_x<<" y: "<<p->B32_y<<" z: "<<p->B32_z<<endl;
+    }
+    
+    // ini gage location AWA beach
+    if(((p->B32==0 && p->B30==1) || p->B30==2 || p->B30==3) && p->B99>=3)
+    {
+        ymin=1.0e20;
+        xmax=zmax=-1.0e20;
+        
+        //find active smallest xy inlet location
+        if(gcoutglobal>0)
+        for(n=0;n<p->gcout_count;n++)
+        {
+        i=p->gcout[n][0];
+        j=p->gcout[n][1];
+        k=p->gcout[n][2];
+        
+        xmax = MAX(xmax,p->XP[IP]);
+        ymin = MIN(ymin,p->YP[JP]);
+        zmax = MAX(zmax,p->ZP[KP]);
+        }
+        
+        if(gcinglobal==0)
+        LOOP
+        {    
+        xmax = MAX(xmax,p->XP[IP]);
+        ymin = MIN(ymin,p->YP[JP]);
+        zmax = MAX(zmax,p->ZP[KP]);
+        }
+        
+        p->B32_x = pgc->globalmax(xmax);
+        p->B32_y = pgc->globalmin(ymin);
+        p->B32_z = pgc->globalmax(zmax);
+        
+        if(p->mpirank==0)
+        cout<<"pressure gage location  x: "<<p->B32_x<<" y: "<<p->B32_y<<" z: "<<p->B32_z<<endl;
     }
     
     

@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2023 Hans Bihs
 
@@ -39,6 +39,7 @@ class pressure
 public:
 
 	virtual void start(fdm*,lexer*, poisson*, solver*, ghostcell*,ioflow*,field&,field&,field&,double)=0;
+    virtual void ini(lexer*,fdm*,ghostcell*)=0;
 	virtual void upgrad(lexer*,fdm*,slice&,slice&)=0;
 	virtual void vpgrad(lexer*,fdm*,slice&,slice&)=0;
 	virtual void wpgrad(lexer*,fdm*,slice&,slice&)=0;

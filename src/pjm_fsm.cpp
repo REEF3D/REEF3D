@@ -184,7 +184,10 @@ void pjm_fsm::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
     a->H(i,j,k)-=PORVAL3*(a->press(i,j,k+1)-a->press(i,j,k))/(p->DXM*pd->roface(p,a,0,0,1));
 }
 
-
+void pjm_fsm::ini(lexer*p,fdm* a, ghostcell *pgc)
+{
+    reference_ini(p,a,pgc);
+}
 
 
 

@@ -66,8 +66,6 @@ pjm::pjm(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&ppconc)
     if(p->F300>=1)
     pd = new density_rheo(p);
     
-    reference_ini(p,a,pgc);
-    
     gcval_press=40;  
 	
 	gcval_u=7;
@@ -179,5 +177,10 @@ void pjm::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 
 void pjm::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
+}
+
+void pjm::ini(lexer*p,fdm* a, ghostcell *pgc)
+{
+    reference_ini(p,a,pgc);
 }
 

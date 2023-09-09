@@ -214,7 +214,9 @@ void pjm_comp::ptimesave(lexer *p, fdm *a, ghostcell *pgc)
     pgc->start4(p,ro_n,1);
 }
 
-
+void pjm_comp::ini(lexer*p,fdm* a, ghostcell *pgc)
+{
+}
 
 
 

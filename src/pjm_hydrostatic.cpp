@@ -169,4 +169,8 @@ void pjm_hydrostatic::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
 }
 
+void pjm_hydrostatic::ini(lexer*p,fdm* a, ghostcell *pgc)
+{
+
+}
 

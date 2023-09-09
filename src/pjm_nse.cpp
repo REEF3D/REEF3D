@@ -289,7 +289,6 @@ void pjm_nse::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
 }
 
-
-
+void pjm_nse::ini(lexer*p,fdm* a, ghostcell *pgc){}
 
 

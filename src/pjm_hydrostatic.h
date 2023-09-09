@@ -41,6 +41,7 @@ public:
 	virtual ~pjm_hydrostatic();
 
 	virtual void start(fdm*,lexer*, poisson*, solver*, ghostcell*, ioflow*, field&, field&, field&,double);
+    virtual void ini(lexer*,fdm*,ghostcell*);
 	virtual void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 	virtual void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 	virtual void ucorr(lexer*,fdm*,field&,double);

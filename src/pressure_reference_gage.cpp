@@ -56,7 +56,9 @@ void pressure_reference::gage_fsf(lexer*p, fdm* a, ghostcell *pgc)
     
         for(k=0; k<p->knoz-1; ++k)
         PCHECK
+        if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
         p->B32_z = MAX(p->B32_z,-(a->phi(i,j,k)*p->DZP[KP])/(a->phi(i,j,k+1)-a->phi(i,j,k) + 1.0e-8) + p->pos_z());
+        
         
     //cout<<p->mpirank<<" i: "<<i<<" j: "<<j<<" k: "<<k<<" z: "<<p->B32_z<<endl;
         
