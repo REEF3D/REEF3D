@@ -125,7 +125,6 @@ void bc_ikomega::bckin_matrix(fdm* a,lexer* p,field& kin,field& eps)
         n=0;
         LOOP
         {
-
             if(p->flag4[Im1JK]<0 || p->flagsf4[Im1JK]<0)
             {
             if(p->BC[Im1JK]!=1)

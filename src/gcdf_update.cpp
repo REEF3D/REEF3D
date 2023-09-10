@@ -31,7 +31,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     // FLAGSF
     LOOP
     {
-    if(a->fb(i,j,k)>0.0 && a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0)
+    if(a->fb(i,j,k)>0.0 && (a->solid(i,j,k)>0.0 || p->solidread==0) && (a->topo(i,j,k)>0.0 || p->toporead==0))
     p->flagsf4[IJK]=1;
     
     if(a->fb(i,j,k)<0.0 || a->solid(i,j,k)<0.0 || a->topo(i,j,k)<0.0)
@@ -64,7 +64,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     count=0;
     
     LOOP
-    if(a->fb(i,j,k)>=0.0 && a->solid(i,j,k)>=0.0 && a->topo(i,j,k)>=0.0)
+    if(a->fb(i,j,k)>=0.0 && (a->solid(i,j,k)>=0.0 || p->solidread==0) && (a->topo(i,j,k)>=0.0 || p->toporead==0))
     {
      
         if(a->fb(i-1,j,k)<0.0 || a->solid(i-1,j,k)<0.0 || a->topo(i-1,j,k)<0.0)
@@ -93,14 +93,14 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     p->gcdf4_count=count;
     }
     
+    //cout<<p->mpirank<<" p->gcdf4_count: "<<p->gcdf4_count<<endl;
     
     // assign gcdf entries
     count=0;
     
     LOOP
-    if(a->fb(i,j,k)>0.0 && a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0)
+    if(a->fb(i,j,k)>0.0 && (a->solid(i,j,k)>0.0 || p->solidread==0) && (a->topo(i,j,k)>0.0 || p->toporead==0))
     {
-     
         if(a->fb(i-1,j,k)<0.0 || a->solid(i-1,j,k)<0.0 || a->topo(i-1,j,k)<0.0)
         {
         p->gcdf4[count][0]=i;
@@ -180,6 +180,12 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
 	
 	p->gcdf4[n][5]=cval(i,j,k);
 	}
+    
+    //cout<<p->mpirank<<" p->gcdf4_count: "<<p->gcdf4_count<<endl;
+    
+    /*if(p->mpirank==2)
+    for(n=0;n<p->gcdf4_count;++n)
+    cout<<n<<" "<<p->gcdf4[n][3]<<" "<<p->gcdf4[n][5]<<endl;*/
     
     //delete cval();
 }

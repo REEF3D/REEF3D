@@ -39,7 +39,7 @@ driver::driver(int& argc, char **argv)
     {
     cout<<endl<<"REEF3D (c) 2008-2023 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    sprintf(version,"v_230909");
+    sprintf(version,"v_230910");
     cout<<endl<<version<<endl<<endl;
     }
 
@@ -149,14 +149,16 @@ void driver::cfd_driver()
     driver_ini_cfd();
 
     // Start MAINLOOP
-    if(p->N40!=4)
-    loop_cfd(a);
-
-    if(((p->X10==0 && p->N40==4) && p->Z10==0) && p->G3==1)
+    
+    if(p->X10==0 && p->Z10==0 && p->G3==1 && p->N40==4)
     loop_cfd_sf(a);
 
-    if(((p->X10==1 && p->N40==4) || p->Z10!=0))
+    else
+    if((p->X10==1  || p->Z10!=0) && p->N40==4)
     loop_cfd_df(a);
+    
+    else
+    loop_cfd(a);
 }
 
 void driver::nsewave_driver()
