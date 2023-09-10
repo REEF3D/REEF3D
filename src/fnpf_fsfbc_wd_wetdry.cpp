@@ -86,6 +86,7 @@ void fnpf_fsfbc_wd::depthcheck(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta
 
 void fnpf_fsfbc_wd::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 
 {
+    if(p->A347==1 || p->A347==2)
     SLICELOOP4
     {
         if(c->coastline(i,j)>=0.0)
@@ -111,6 +112,7 @@ void fnpf_fsfbc_wd::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &
 
 void fnpf_fsfbc_wd::coastline_fi(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 
 {
+    if(p->A347==1 || p->A347==3)
     SLICELOOP4
     {
         if(c->coastline(i,j)>=0.0)
