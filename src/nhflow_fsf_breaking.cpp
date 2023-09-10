@@ -49,6 +49,11 @@ void nhflow_fsf_f::breaking(lexer* p, fdm_nhf* d, ghostcell* pgc, slice& eta, sl
             }
     }
     
+    
+    SLICELOOP4
+    if(p->wet[Ip1J]==0 || p->wet[Im1J]==0 || p->wet[IJp1]==0 || p->wet[IJm1]==0)
+    d->breaking(i,j)=1;
+    
     if(p->A553==1)
     SLICELOOP4
     if(p->wet[IJ]==1)

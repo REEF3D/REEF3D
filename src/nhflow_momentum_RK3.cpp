@@ -79,7 +79,6 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 //--------------------------------------------------------
     
     sigma_update(p,d,pgc,d->WL);
-    omega_update(p,d,pgc,d->U,d->V,d->W);
     reconstruct(p,d,pgc,pfsf,pss,precon,d->WL,d->U,d->V,d->W,d->UH,d->VH,d->WH);
     
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
@@ -90,6 +89,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     pconvec->start(p,d,d->U,4,d->U,d->V,d->W,d->eta);
     pfsf->rk3_step1(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK2, 1.0);
+    omega_update(p,d,pgc,d->U,d->V,d->W);
     
     p->fsftime+=pgc->timer()-starttime;
     
@@ -170,7 +170,6 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 //--------------------------------------------------------
 
     sigma_update(p,d,pgc,WLRK1);
-    omega_update(p,d,pgc,d->U,d->V,d->W);
     reconstruct(p,d,pgc,pfsf,pss,precon,WLRK1,d->U,d->V,d->W,UHRK1,VHRK1,WHRK1);
 	
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
@@ -181,6 +180,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     pconvec->start(p,d,UHRK1,4,d->U,d->V,d->W,WLRK1);
     pfsf->rk3_step2(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK2, 0.25);
+    omega_update(p,d,pgc,d->U,d->V,d->W);
     
     p->fsftime+=pgc->timer()-starttime;
     
@@ -260,7 +260,6 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 //--------------------------------------------------------
     
     sigma_update(p,d,pgc,WLRK2);
-    omega_update(p,d,pgc,d->U,d->V,d->W);
     reconstruct(p,d,pgc,pfsf,pss,precon,WLRK2,d->U,d->V,d->W,UHRK2,VHRK2,WHRK2);
     
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
@@ -271,6 +270,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     pconvec->start(p,d,UHRK2,4,d->U,d->V,d->W,WLRK2);
     pfsf->rk3_step3(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK2, 2.0/3.0);
+    omega_update(p,d,pgc,d->U,d->V,d->W);
     
     p->fsftime+=pgc->timer()-starttime;
     
