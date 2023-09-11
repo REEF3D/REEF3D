@@ -539,8 +539,6 @@ void lexer::ctrlrecv()
 	
     F10 = ictrl[ii];
 	ii++;
-	F19 = dctrl[dd];
-	dd++;
     F30 = ictrl[ii];
 	ii++;
     F31 = ictrl[ii];

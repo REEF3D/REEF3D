@@ -583,8 +583,6 @@ void lexer::ctrlsend()
 
     ictrl[ii] = F10;
 	ii++;
-	dctrl[dd] = F19;
-	dd++;
     ictrl[ii] = F30;
 	ii++;
     ictrl[ii] = F31;

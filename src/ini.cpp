@@ -301,7 +301,6 @@ void lexer::ini_default()
 
     // Free Surface
 	F10=2;			    // int free surface scheme
-	F19=1.0e-5;     	// double stopping criteria level set
 	F30=0;			    // int level set scheme
 	F31=0;             // particle level set
 	F32=64;			// number of particles per cell
