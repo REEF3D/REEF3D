@@ -112,6 +112,7 @@ public:
     double *data;
 	double *topobed,*solidbed,*bed,*depth;
     int *wet,*wet_n;
+    int *deep;
 	int *tpflag,*ndbaseflag;
 	int *mgc1,*mgc2,*mgc3,*mgc4,*mgc4a,*mgc6;
 	int ***gcorig1,***gcorig2,***gcorig3,***gcorig4,***gcorig4a,***gcorig6;

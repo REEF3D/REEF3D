@@ -109,9 +109,12 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
     {
 	d->eta(i,j) = 0.0;
     p->wet[IJ] = 1;
+    p->deep[IJ] = 1;
     d->breaking(i,j)=0;
     }
     
+    pgc->gcsl_start4Vint(p,p->wet,50);
+    pgc->gcsl_start4Vint(p,p->deep,50);
     pgc->gcsl_start4(p,d->eta,50);
     
     ALOOP

@@ -321,6 +321,10 @@ void nhflow_momentum_RK2::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *
     d->W[IJK] = WH[IJK]/WLVL;       
     }
     
+    if(p->A520==0)
+    LOOP
+    d->W[IJK] = 0.0;       
+    
     
     LOOP
     if(p->wet[IJ]==0)

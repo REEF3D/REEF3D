@@ -69,6 +69,7 @@ Author: Hans Bihs
 #define WETDRY1 if(b->wet1(i,j)==1)
 #define WETDRY2 if(b->wet2(i,j)==1)    
 #define WETDRY if(p->wet[IJ]==1)
+#define WETDRYDEEP if(p->wet[IJ]==1 && p->deep[IJ]==1)
 
 
 // GCBSL
