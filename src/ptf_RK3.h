@@ -23,11 +23,12 @@ Author: Hans Bihs
 #include"ptf.h"
 #include"ptf_fsfbc.h"
 #include"slice4.h"
+#include"field4.h"
+
 
 class ptf_laplace;
 class ptf_fsf_update;
 class ptf_bed_update;
-class field;
 
 using namespace std;
 
@@ -52,6 +53,7 @@ private:
 
     slice4 erk1,erk2;
     slice4 frk1,frk2;
+    field4 Firk_0,Firk_1,Firk_2,Firk_3;
 
     ptf_laplace *plap;
     ptf_fsf_update *pfsfupdate;

@@ -90,7 +90,8 @@ void lexer::ini_default()
     A368=0;      // int breaking waves in numerical beach
     A369=1.86;   // double viscosity relaxation breaking wave
 
-
+    A401=0;      // pressure field calculation schme
+    A402=0;      // scheme for velcity n Bernoulli
     A410=1;      // int scheme eta
     A440=1.6;    // double epsi for depth integration
     
@@ -499,7 +500,7 @@ void lexer::ini_default()
     P82=0;            // int add eddyv to viscous force
 	P85=0;            // int ALE force print out for FNPF
     P86=0;             // int FIT force print out for FNPF
-    P87=0;             // toggle between output file format for ALE force P85 and FIT force P86
+    P87=0;             // toggle between output file format .dat or .csv
 	P91=0.25;		  // double factor used in force calculation algorithm
     P92=0;           // int force from water or from water+air
 	P101=0;			  // int print sloshing forces
@@ -524,6 +525,7 @@ void lexer::ini_default()
     P240=0;         // int print potentialfile
 	P351=0;             // int print out wsf lsm1
 	P352=0;             // int print out wsf lsm2
+    P401=0;         // int print out force on body ptf
 
 	// Sediment Transport
 	S10=0;                  // int sediment transport module

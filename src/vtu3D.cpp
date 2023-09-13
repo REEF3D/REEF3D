@@ -44,6 +44,7 @@ Author: Hans Bihs
 #include"concentration.h"
 #include"gage_discharge_x.h"
 #include"gage_discharge_window_x.h"
+#include"force_ptf.h"
 #include"fsf_vtp.h"
 #include"topo_vtp.h"
 #include"cfd_state.h"
@@ -167,6 +168,12 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
 
     if(p->P101>0)
 	pslosh=new sloshing_force(p,a,pgc);
+    
+    if(p->P401>0)
+	pforce_ptf = new force_ptf*[p->P401];
+    
+    for(n=0;n<p->P401;++n)
+    pforce_ptf[n]=new force_ptf(p,a,pgc,n);
 
 	if(p->B270>0 || p->B274>0 || p->B281>0 || p->B291>0 || p->B310>0 || p->B311>0)
 	{
@@ -372,6 +379,15 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
 
         p->stateprinttime+=p->P42;
         }
+        
+        //print out force_ptf
+        if((p->count==0 || p->count==p->count_statestart) && p->P401>0)
+        for(n=0;n<p->P401;++n)
+        pforce_ptf[n]->ini(p,a,pgc);
+
+        if(p->count>1 && p->P401>0)
+        for(n=0;n<p->P401;++n)
+        pforce_ptf[n]->start(p,a,pgc);
 
 }
 

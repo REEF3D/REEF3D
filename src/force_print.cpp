@@ -30,15 +30,21 @@ Author: Hans Bihs
 void force::print_force(lexer* p, fdm *a, ghostcell *pgc)
 {
     // write to surf file
-
+    if(p->P87==0)
+    {
     fout<<p->count<<"\t";
     fout<<setprecision(9)<<p->simtime<<"\t";
     fout<<Fx<<" \t ";
     fout<<Fy<<" \t ";
 	fout<<Fz;
     
-
     fout<<endl;
+    }
+    
+    if(p->P87==1)
+    {
+        fout<<p->count<<","<<setprecision(9)<<p->simtime<<","<<Fx<<","<<Fy<<","<<Fz<<endl;
+    }
 }
 
 void force::print_ini(lexer* p, fdm *a, ghostcell *pgc)
@@ -51,11 +57,22 @@ void force::print_ini(lexer* p, fdm *a, ghostcell *pgc)
     {
     // open force surf file
 	if(p->P14==0)
-	sprintf(name,"REEF3D_CFD_Force-%i.dat",ID+1);
-    
+    {
+        if(p->P87==0)
+            sprintf(name,"REEF3D_CFD_Force-%i.dat",ID+1);
+        if(p->P87==1)
+            sprintf(name,"REEF3D_CFD_Force-%i.csv",ID+1);
+    }
 	if(p->P14==1)
-	sprintf(name,"./REEF3D_CFD_Force/REEF3D_CFD_Force-%i.dat",ID+1);
-	
+    {
+        if(p->P87==0)
+            sprintf(name,"./REEF3D_CFD_Force/REEF3D_CFD_Force-%i.dat",ID+1);
+        if(p->P87==1)
+            sprintf(name,"./REEF3D_CFD_Force/REEF3D_CFD_Force-%i.dat",ID+1);
+    }
+    
+    if(p->P87==0)
+    {
 	fout.open(name);
 
     fout<<"x_start xend     y_start y_end     z_start z_end"<<endl;
@@ -68,7 +85,16 @@ void force::print_ini(lexer* p, fdm *a, ghostcell *pgc)
     
 
     fout<<endl;
-	}
-
+    }
     
+    if(p->P87==1)
+        {
+            fout.open(name);
+            
+            fout<<"it,time,Fx,Fy,Fz";
+            fout<<endl;
+        }
+    
+
+    }
 }

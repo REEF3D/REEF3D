@@ -47,6 +47,9 @@
         <File Name="pic.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="PTF">
+        <VirtualDirectory Name="Printer">
+          <File Name="force_ptf.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Update">
           <File Name="ptf_fsf_update.h"/>
           <File Name="ptf_bed_update.h"/>
@@ -1101,6 +1104,10 @@
         <File Name="pic_f.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="PTF">
+        <VirtualDirectory Name="Printer">
+          <File Name="force_ptf_print.cpp"/>
+          <File Name="force_ptf.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Breaking"/>
         <VirtualDirectory Name="Update">
           <File Name="ptf_fsf_update.cpp"/>

@@ -147,7 +147,7 @@ void lexer::ctrlrecv()
     A368 = ictrl[ii];
 	ii++;
     A369 = dctrl[dd];
-	dd++;
+	dd++;        A401 = ictrl[ii];    ii++;    A402 = ictrl[ii];    ii++;
     
     A410 = ictrl[ii];
 	ii++;
@@ -975,7 +975,7 @@ void lexer::ctrlrecv()
 	ii++;
 	P352 = ictrl[ii];
 	ii++;
-
+    P401 = ictrl[ii];    ii++;
 
     S10 = ictrl[ii];
 	ii++;

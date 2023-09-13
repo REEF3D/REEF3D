@@ -35,7 +35,7 @@ Author: Hans Bihs
 #include"ptf_fsf_update.h"
 #include"ptf_bed_update.h"
 
-ptf_RK3::ptf_RK3(lexer *p, fdm *a, ghostcell *pgc) : ptf_fsfbc(p,a,pgc),erk1(p),erk2(p),frk1(p),frk2(p)
+ptf_RK3::ptf_RK3(lexer *p, fdm *a, ghostcell *pgc) : ptf_fsfbc(p,a,pgc),erk1(p),erk2(p),frk1(p),frk2(p),Firk_0(p),Firk_1(p),Firk_2(p),Firk_3(p)
 {
     gcval=250;
     
@@ -81,8 +81,9 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
 {	
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
     
+    
 // Step
-
+    Firk_0=a->Fi;
     // fsf eta
     kfsfbc(p,a,pgc);
 
@@ -119,9 +120,10 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     pfsfupdate->fsfbc(p,a,pgc,frk1,a->Fi,erk1);
     pgc->start4(p,a->Fi,gcval);
     fsfwvel(p,a,pgc,erk1,frk1);
-
+    
 // Step 2
     
+    Firk_1=a->Fi;
     // fsf eta
     kfsfbc(p,a,pgc);
     
@@ -158,9 +160,10 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
    pfsfupdate->fsfbc(p,a,pgc,frk2,a->Fi,erk2);
    pgc->start4(p,a->Fi,gcval);
     fsfwvel(p,a,pgc,erk2,frk2);
-
+    
 // Step 3  
-
+    
+    Firk_2=a->Fi;
     // fsf eta
     kfsfbc(p,a,pgc);
     
@@ -197,6 +200,7 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     pfsfupdate->fsfbc(p,a,pgc,a->Fifsf,a->Fi,a->eta);
     pgc->start4(p,a->Fi,gcval);
     fsfwvel(p,a,pgc,a->eta,a->Fifsf);
+    Firk_3=a->Fi;
     
     FLUIDLOOP
     {
@@ -209,6 +213,11 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     }
     
     pfsfupdate->velcalc(p,a,pgc,a->Fi);
+    
+    if(p->A401>0)
+        pfsfupdate->presscalc(p,a,pgc,Firk_0,Firk_1,Firk_2,Firk_3,a->eta);
+    
+    
 }
 
 void ptf_RK3::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *preini, onephase *poneph)
@@ -236,6 +245,8 @@ void ptf_RK3::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *preini
     a->test(i,j,k) = a->Fifsf(i,j);
     
     pfsfupdate->velcalc(p,a,pgc,a->Fi);
+    if(p->A401>0)
+        pfsfupdate->presscalc(p,a,pgc,Firk_0,Firk_1,Firk_2,Firk_3,a->eta);
 }
 
 void ptf_RK3::inidisc(lexer *p, fdm *a, ghostcell *pgc)

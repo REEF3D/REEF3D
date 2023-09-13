@@ -362,3 +362,40 @@ void ptf_fsf_update::velcalc(lexer *p, fdm *a, ghostcell *pgc, field &f)
 	pgc->start3(p,a->w,gcval_w);
 
 }
+
+void ptf_fsf_update::presscalc(lexer *p, fdm *a, ghostcell *pgc, field &Firk_0, field &Firk_1, field &Firk_2, field &Firk_3, slice &eta)
+{   
+    double DFiDt;
+    if(p->A401==1)
+    {   
+        OFLUIDLOOP
+        {
+        DFiDt=(Firk_3(i,j,k)-Firk_0(i,j,k))/p->dt;
+        a->press(i,j,k)=p->W1*(-1.0)*
+                                    (DFiDt
+                                    +0.5*(a->u(i,j,k)*a->u(i,j,k)+a->v(i,j,k)*a->v(i,j,k)+a->w(i,j,k)*a->w(i,j,k))
+                                    +(p->W22*((a->eta(i,j)+p->F60)-p->ZP[KP])));
+        }
+        AIRLOOP
+        {
+        a->press(i,j,k)=0.0;
+        }
+    }
+    
+    if(p->A401==2)
+    {
+        OFLUIDLOOP
+        {
+        DFiDt=(Firk_3(i,j,k)-Firk_0(i,j,k))/p->dt;
+        a->press(i,j,k)=p->W1*(-1.0)*
+                                    (DFiDt
+                                    +0.5*(a->u(i,j,k)*a->u(i,j,k)+a->v(i,j,k)*a->v(i,j,k)+a->w(i,j,k)*a->w(i,j,k)));
+        }
+        AIRLOOP
+        {
+        a->press(i,j,k)=0.0;
+        }
+    }
+    
+}
+

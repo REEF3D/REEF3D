@@ -50,6 +50,7 @@ public:
     void fsfbc1(lexer*, fdm*, ghostcell*,slice&,field&);
     
     void velcalc(lexer*, fdm*, ghostcell *pgc, field&);
+    void presscalc(lexer*, fdm*, ghostcell *pgc, field&, field&, field&, field&, slice&);
     
 private: 
     int gcval,gcval_u,gcval_v,gcval_w;

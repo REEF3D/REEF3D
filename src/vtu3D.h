@@ -56,6 +56,7 @@ class bedprobe_line_y;
 class exportfile;
 class flowfile_out;
 class print_averaging;
+class force_ptf;
 
 #ifndef VTU3D_H_
 #define VTU3D_H_
@@ -118,6 +119,7 @@ private:
     exportfile *pexport;
     flowfile_out *pflowfile;
     print_averaging *pmean;
+    force_ptf **pforce_ptf;
 };
 
 #endif
