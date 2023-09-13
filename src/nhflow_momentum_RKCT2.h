@@ -50,7 +50,6 @@ public:
     double *WHRK1;
     
     slice4 WLRK1;
-    slice4 eta_temp;
 
 private:
     void reconstruct(lexer*, fdm_nhf*, ghostcell*, nhflow_fsf*, nhflow_signal_speed*, nhflow_reconstruct*,slice&,double*,double*,double*,double*,double*,double*);

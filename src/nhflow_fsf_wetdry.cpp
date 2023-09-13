@@ -120,7 +120,7 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     }
     
     SLICELOOP4
-    if(WL(i,j)<=5.0*p->A544)
+    if(WL(i,j)<=10.0*p->A544)
     p->deep[IJ]=0;
 
     pgc->gcsl_start4Vint(p,p->deep,50);
