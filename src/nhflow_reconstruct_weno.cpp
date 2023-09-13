@@ -64,7 +64,7 @@ void nhflow_reconstruct_weno::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nhf
     
     
     SLICELOOP1
-    if(p->deep[IJ]==1)
+    if(p->deep[IJ]==1 && p->deep[Ip1J]==1)
     {
     // left
 	iqmin_sl(p,f);
@@ -128,7 +128,7 @@ void nhflow_reconstruct_weno::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm_nhf
     
     if(p->j_dir==1)
     SLICELOOP2
-    if(p->deep[IJ]==1)
+    if(p->deep[IJ]==1 && p->deep[IJp1]==1)
 	{
 	jqmin_sl(p,f);
 	is_min_y();
@@ -213,7 +213,7 @@ void nhflow_reconstruct_weno::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf
     
     
     ULOOP
-    if(p->deep[IJ]==1)
+    if(p->deep[IJ]==1 && p->deep[Ip1J]==1)
     {
     // left
 	iqmin(p,Fx);
@@ -271,7 +271,7 @@ void nhflow_reconstruct_weno::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf
     
     if(p->j_dir==1)
     VLOOP
-    if(p->deep[IJ]==1)
+    if(p->deep[IJ]==1 && p->deep[IJp1]==1)
 	{
 	jqmin(p,Fy);
 	is_min_y();
