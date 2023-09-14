@@ -44,7 +44,7 @@ void nhflow_reconstruct_hires::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nh
     
     // gradient
     SLICELOOP4
-    WETDRY
+    //WETDRY
     {
     dfdx_plus = (f(i+1,j) - f(i,j))/p->DXP[IP];
     dfdx_min  = (f(i,j) - f(i-1,j))/p->DXP[IM1];
@@ -74,7 +74,7 @@ void nhflow_reconstruct_hires::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm_nh
     
     // gradient
     SLICELOOP4
-    WETDRY
+    //WETDRY
     {
     dfdy_plus = (f(i,j+1) - f(i,j))/p->DYP[JP];
     dfdy_min  = (f(i,j) - f(i,j-1))/p->DYP[JM1];
@@ -136,7 +136,7 @@ void nhflow_reconstruct_hires::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nh
     DFDX[IJK] = 0.0;
     
     LOOP
-    WETDRY
+    //WETDRY
     {
     dfdx_plus = (Fx[Ip1JK] - Fx[IJK])/p->DXP[IP];
     dfdx_min  = (Fx[IJK] - Fx[Im1JK])/p->DXP[IM1];
@@ -166,7 +166,7 @@ void nhflow_reconstruct_hires::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nh
     DFDX[IJK] = 0.0;
     
     LOOP
-    WETDRY
+    //WETDRY
     {
     dfdy_plus = (Fy[IJp1K] - Fy[IJK])/p->DYP[JP];
     dfdy_min  = (Fy[IJK] - Fy[IJm1K])/p->DYP[JM1];
@@ -195,7 +195,7 @@ void nhflow_reconstruct_hires::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nh
     DFDX[IJK] = 0.0;
     
     LOOP
-    WETDRY
+    //WETDRY
     {
     dfdz_plus = (Fz[IJKp1] - Fz[IJK])/p->DZP[KP];
     dfdz_min  = (Fz[IJK] - Fz[IJKm1])/p->DZP[KM1];

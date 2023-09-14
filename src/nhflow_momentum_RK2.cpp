@@ -142,6 +142,9 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     velcalc(p,d,pgc,UHRK1,VHRK1,WHRK1,WLRK1);
     
+    //pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
+    //pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
+    
     //pflow->pressure_io(p,a,pgc);
 	ppress->start(p,d,psolv,pgc,pflow,WLRK1,UHRK1,VHRK1,WHRK1,1.0);
 	
@@ -233,6 +236,9 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     pfsf->vcorr(p,d,d->VH,d->WL,0.5);
     
     velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL);
+    
+    //pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
+    //pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
 
 	//pflow->pressure_io(p,a,pgc);
     ppress->start(p,d,psolv,pgc,pflow,d->WL,d->UH,d->VH,d->WH,0.5);
@@ -318,7 +324,10 @@ void nhflow_momentum_RK2::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *
     
     if(p->A520==0)
     LOOP
-    d->W[IJK] = 0.0;       
+    {
+    d->W[IJK] = 0.0;  
+    //WH[IJK] = 0.0;
+    }
     
     
     LOOP

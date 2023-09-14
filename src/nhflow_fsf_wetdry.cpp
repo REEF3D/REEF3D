@@ -142,7 +142,7 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         //d->Ds(i,j) = WL(i,j);
         d->Dn(i,j) = WL(i,j);
         d->dfx(i,j) = d->depth(i,j);
-        d->dfx(i+1,j) = d->depth(i+1,j);
+        //d->dfx(i+1,j) = d->depth(i+1,j);
         }
         
         else
@@ -153,7 +153,7 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         d->Ds(i,j) = WL(i+1,j);
         //d->Dn(i,j) = WL(i+1,j);
         d->dfx(i,j) = d->depth(i+1,j);
-        d->dfx(i-1,j) = d->depth(i,j);
+        //d->dfx(i-1,j) = d->depth(i,j);
         }
         
         else
@@ -209,7 +209,7 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         //d->De(i,j) = WL(i,j);
         d->Dw(i,j) = WL(i,j);
         d->dfy(i,j) = d->depth(i,j);
-        d->dfy(i,j+1) = d->depth(i,j+1);
+        //d->dfy(i,j+1) = d->depth(i,j+1);
         }
         
         else
@@ -220,7 +220,7 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         d->De(i,j) = WL(i,j+1);
         //d->Dw(i,j) = WL(i,j+1);
         d->dfy(i,j) = d->depth(i,j+1);
-        d->dfy(i,j-1) = d->depth(i,j);
+        //d->dfy(i,j-1) = d->depth(i,j);
         }
         
         else
