@@ -90,9 +90,12 @@ void nhflow_fsf_f::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, dou
         d->Wt[IJKp1] = wval;
         d->Wt[IJKp2] = wval;
         
+        if(p->A516==4 && p->deep[IJ]==1)
+        {
         d->W[IJK] = wval;
         d->W[IJKp1] = wval;
         d->W[IJKp2] = wval;
+        }
     }
 }   
   
@@ -148,6 +151,9 @@ void nhflow_fsf_f::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, dou
                - Qval*detady;
     }
     
+    if(p->wet[IJ]==0)
+    wval=0.0;
+
         d->Wb[IJKm1] = wval;
         d->Wb[IJKm2] = wval;
         d->Wb[IJKm3] = wval;
@@ -156,7 +162,7 @@ void nhflow_fsf_f::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, dou
         d->Wt[IJKm2] = wval;
         d->Wt[IJKm3] = wval;
         
-        if(p->A516==4)
+        if(p->A516==4 && p->deep[IJ]==1)
         {
         d->W[IJKm1] = wval;
         d->W[IJKm2] = wval;
