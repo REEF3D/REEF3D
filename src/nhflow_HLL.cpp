@@ -264,6 +264,9 @@ double nhflow_HLL::HLL(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue, 
 
 double nhflow_HLL::HLL_E(lexer* p,fdm_nhf* d)
 {
+    if(p->mpirank==0)
+    cout<<"NHFLOW_HLL_E   001"<<endl;
+    
     // HLL flux
     ULOOP
     {
@@ -282,6 +285,9 @@ double nhflow_HLL::HLL_E(lexer* p,fdm_nhf* d)
         d->Fx[IJK] = (d->Sn[IJK]*d->Fs[IJK] - d->Ss[IJK]*d->Fn[IJK] + d->Sn[IJK]*d->Ss[IJK]*(d->Dn(i,j) - d->Ds(i,j)))/denom;
         }
     }
+    
+    if(p->mpirank==0)
+    cout<<"NHFLOW_HLL_E   002"<<endl;
     
     // HLL flux y-dir
     if(p->j_dir==1)
@@ -304,4 +310,7 @@ double nhflow_HLL::HLL_E(lexer* p,fdm_nhf* d)
         }
     }
     }
+    
+    if(p->mpirank==0)
+    cout<<"NHFLOW_HLL_E   003"<<endl;
 }
