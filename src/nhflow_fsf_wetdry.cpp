@@ -128,24 +128,6 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     SLICELOOP4
     d->test2D(i,j) = p->deep[IJ];
     
-    
-    SLICELOOP1
-    d->wet1(i,j) = 0.0;
-    
-    SLICELOOP2
-    d->wet2(i,j) = 0.0;
-    
-    
-    SLICELOOP1
-    if(p->wet[IJ]==1 && p->wet[Ip1J])
-    d->wet1(i,j) = 1.0;
-    
-    SLICELOOP2
-    if(p->wet[IJ]==1 && p->wet[IJp1])
-    d->wet2(i,j) = 1.0;
-    
-    pgc->gcsl_start1(p,d->wet1,1);
-    pgc->gcsl_start2(p,d->wet2,1);
 }
 
 void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL, double *U, double *V, double *W, double *UH, double *VH, double *WH)

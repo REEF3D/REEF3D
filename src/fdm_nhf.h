@@ -100,9 +100,6 @@ public:
     slice2 De,Dw;
     slice1 dfx;
     slice2 dfy;
-    
-    slice1 wet1;
-    slice2 wet2;
 
     matrix2D N;
 	matrix_diag M;    

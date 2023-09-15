@@ -306,14 +306,18 @@ void nhflow_momentum_RK2::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
 void nhflow_momentum_RK2::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *UH, double *VH, double *WH, slice &WL)
 {
     // Fr nuber limiter
-    /*LOOP
+    LOOP
     WETDRY
     {
-    UH[IJK] = MIN(UH[IJK], 4.0*WL(i,j)*sqrt(9.81*WL(i,j)));
-    VH[IJK] = MIN(VH[IJK], 4.0*WL(i,j)*sqrt(9.81*WL(i,j)));
-    WH[IJK] = MIN(WH[IJK], 4.0*WL(i,j)*sqrt(9.81*WL(i,j)));      
+    UH[IJK] = MIN(UH[IJK], p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
+    VH[IJK] = MIN(VH[IJK], p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
+    WH[IJK] = MIN(WH[IJK], p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));      
+    
+    UH[IJK] = MAX(UH[IJK], -p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
+    VH[IJK] = MAX(VH[IJK], -p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
+    WH[IJK] = MAX(WH[IJK], -p->A531*WL(i,j)*sqrt(9.81*WL(i,j))); 
     }
-    */
+    
     
     LOOP
     {
