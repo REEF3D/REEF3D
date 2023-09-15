@@ -49,9 +49,6 @@ void nhflow_HLL::precalc(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVEL
 
 void nhflow_HLL::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W, slice &eta)
 {
-    if(p->mpirank==0)
-    cout<<"NHFLOW_HLL   001"<<endl;
-    
         if(ipol==1)
         aij_U(p,d,F,1,U,V,W);
 
@@ -63,9 +60,6 @@ void nhflow_HLL::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, dou
         
         if(ipol==4)
         aij_E(p,d,F,4,U,V,W);
-        
-        if(p->mpirank==0)
-    cout<<"NHFLOW_HLL   final"<<endl;
 }
 
 double nhflow_HLL::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
@@ -180,17 +174,9 @@ double nhflow_HLL::aij_W(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
 double nhflow_HLL::aij_E(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
 {
     // HLL flux 
-    if(p->mpirank==0)
-    cout<<"NHFLOW_HLL   002"<<endl;
-    
     pflux->start_E(p,d,pgc);
-    
-    if(p->mpirank==0)
-    cout<<"NHFLOW_HLL   003"<<endl;
     HLL_E(p,d);
     
-    if(p->mpirank==0)
-    cout<<"NHFLOW_HLL   004"<<endl;
     
     LOOP
     WETDRY
@@ -208,14 +194,8 @@ double nhflow_HLL::aij_E(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
     d->Fy[IJm1K] = 0.0;
     }
     
-    if(p->mpirank==0)
-    cout<<"NHFLOW_HLL   005"<<endl;
-    
     pgc->start1V(p,d->Fx,14);
     pgc->start2V(p,d->Fy,14); 
-    
-    if(p->mpirank==0)
-    cout<<"NHFLOW_HLL   006"<<endl;
 }
 
 double nhflow_HLL::HLL(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue, double *Uw)
@@ -264,9 +244,6 @@ double nhflow_HLL::HLL(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue, 
 
 double nhflow_HLL::HLL_E(lexer* p,fdm_nhf* d)
 {
-    if(p->mpirank==0)
-    cout<<"NHFLOW_HLL_E   001"<<endl;
-    
     // HLL flux
     ULOOP
     {
@@ -286,11 +263,8 @@ double nhflow_HLL::HLL_E(lexer* p,fdm_nhf* d)
         }
     }
     
-    if(p->mpirank==0)
-    cout<<"NHFLOW_HLL_E   002"<<endl;
-    
     // HLL flux y-dir
-    /*if(p->j_dir==1)
+    if(p->j_dir==1)
     {
     VLOOP
     {
@@ -309,8 +283,5 @@ double nhflow_HLL::HLL_E(lexer* p,fdm_nhf* d)
         d->Fy[IJK] = (d->Sw[IJK]*d->Fe[IJK] - d->Se[IJK]*d->Fw[IJK] + d->Sw[IJK]*d->Se[IJK]*(d->Dw(i,j) - d->De(i,j)))/denom;
         }
     }
-    }*/
-    
-    if(p->mpirank==0)
-    cout<<"NHFLOW_HLL_E   003"<<endl;
+    }
 }
