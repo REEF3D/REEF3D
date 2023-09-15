@@ -113,9 +113,20 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
     d->breaking(i,j)=0;
     }
     
+    SLICELOOP1
+    d->wet1(i,j) = 1.0;
+    
+    SLICELOOP2
+    d->wet2(i,j) = 1.0;
+    
+    pgc->gcsl_start1(p,d->wet1,1);
+    pgc->gcsl_start2(p,d->wet2,1);
+    
     pgc->gcsl_start4Vint(p,p->wet,50);
     pgc->gcsl_start4Vint(p,p->deep,50);
     pgc->gcsl_start4(p,d->eta,50);
+    
+
     
     ALOOP
     d->porosity[IJK]=1.0;
