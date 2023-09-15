@@ -120,6 +120,9 @@ void nhflow_flux_build_f::start_W(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void nhflow_flux_build_f::start_E(lexer* p, fdm_nhf *d, ghostcell *pgc)
 {
+    if(p->mpirank==0)
+    cout<<"NHFLOW_FLUX   001"<<endl;
+    
     // flux x-dir
     ULOOP
     {
@@ -127,6 +130,9 @@ void nhflow_flux_build_f::start_E(lexer* p, fdm_nhf *d, ghostcell *pgc)
     
     d->Fn[IJK] = d->UHn[IJK];
     }
+    
+    if(p->mpirank==0)
+    cout<<"NHFLOW_FLUX   002"<<endl;
     
     // flux y-dir
     if(p->j_dir==1)
@@ -136,6 +142,9 @@ void nhflow_flux_build_f::start_E(lexer* p, fdm_nhf *d, ghostcell *pgc)
     
     d->Fw[IJK] = d->VHw[IJK];
     }
+    
+    if(p->mpirank==0)
+    cout<<"NHFLOW_FLUX   003"<<endl;
 }
 
 
