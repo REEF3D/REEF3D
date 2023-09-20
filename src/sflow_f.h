@@ -36,7 +36,7 @@ class sflow_pressure;
 class solver2D;
 class ioflow;
 class sflow_fsf;
-class sflow_vtp;
+class sflow_vtp_fsf;
 class sflow_vtp_bed;
 class sflow_convection;
 class sflow_diffusion;
@@ -82,7 +82,7 @@ private:
 	solver2D *ppoissonsolv;
 	ioflow *pflow;
 	sflow_fsf *pfsf;
-	sflow_vtp *pprint;
+	sflow_vtp_fsf *pprint;
 	sflow_vtp_bed *pprintbed;
 	sflow_convection *pconvec;
 	sflow_diffusion *pdiff;

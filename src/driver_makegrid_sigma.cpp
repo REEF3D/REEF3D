@@ -67,20 +67,24 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
 // gcx7 allocation
     xz=yz=0;
     
-    xz = (p->knox+1)*(p->knoz+1);
-    yz = (p->knoy+1)*(p->knoz+1);
+    xz = (p->knox+2)*(p->knoz+2);
+    yz = (p->knoy+2)*(p->knoz+2);
     
     maxnum = MAX(xz,yz);
+    
+    
     
     p->Iarray(p->gcx7,4,maxnum,3);
     
 // gcxco7 allocation
     xz=yz=0;
     
-    xz = 2*(p->knox+p->knoz+8);
-    yz = 2*(p->knoy+p->knoz+8);
+    xz = 2*(p->knox+p->knoz+18);
+    yz = 2*(p->knoy+p->knoz+18);
     
     maxnum = MAX(xz,yz);
+    
+    //cout<<p->mpirank<<" maxnum_gcx: "<<maxnum<<endl;
     
     p->Iarray(p->gcxco7,4,maxnum,3);
 
@@ -101,6 +105,8 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     p->gcx7_count[0]=q;
     
     
+    //cout<<p->mpirank<<" q1: "<<q<<endl;
+    
     //nb4
     q=0;
     if(p->nb4>=0)
@@ -114,6 +120,8 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     ++q;
     }
     p->gcx7_count[3]=q;
+    
+    //cout<<p->mpirank<<" q4: "<<q<<endl;
     
     //nb2
     q=0;
@@ -129,6 +137,8 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     }
     p->gcx7_count[1]=q;
     
+    //cout<<p->mpirank<<" q2: "<<q<<endl;
+    
     //nb3
     q=0;
     if(p->nb3>=0)
@@ -142,6 +152,8 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     ++q;
     }
     p->gcx7_count[2]=q;
+    
+    //cout<<p->mpirank<<" q3: "<<q<<endl;
 
     
 // ---------------
@@ -184,6 +196,8 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     }
     
     p->gcxco7_count[0]=q;
+    
+    //cout<<p->mpirank<<" q1: "<<q<<endl;
 
     //nb2
     q=0;
@@ -223,6 +237,8 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     }
     
     p->gcxco7_count[1]=q;
+    
+    //cout<<p->mpirank<<" q2: "<<q<<endl;
 
     //nb3
     q=0;
@@ -262,6 +278,8 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     }
     
     p->gcxco7_count[2]=q;
+    
+    //cout<<p->mpirank<<" q3: "<<q<<endl;
 
     //nb4
     q=0;
@@ -300,12 +318,10 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
         }
     }
     p->gcxco7_count[3]=q;
-    
+    //cout<<p->mpirank<<" q4: "<<q<<endl;
 
     // -----
     pgc->flagx7(p,p->flag7);
-    
-    
     
     
     mgc1 m1(p);

@@ -41,14 +41,14 @@ class fnpf_print_Hs;
 
 using namespace std;
 
-#ifndef SFLOW_VTU_H_
-#define SFLOW_VTU_H_
+#ifndef SFLOW_VTP_FSF_H_
+#define SFLOW_VTP_FSF_H_
 
-class sflow_vtp : public increment
+class sflow_vtp_fsf : public increment
 {
 public:
-	sflow_vtp(lexer*,fdm2D*,ghostcell*);
-	virtual ~sflow_vtp();
+	sflow_vtp_fsf(lexer*,fdm2D*,ghostcell*);
+	virtual ~sflow_vtp_fsf();
 
     virtual void start(lexer*,fdm2D*,ghostcell*,ioflow*,sflow_turbulence*,sediment*);
     virtual void print2D(lexer*,fdm2D*,ghostcell*,sflow_turbulence*,sediment*);

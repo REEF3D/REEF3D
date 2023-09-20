@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sflow_vtp.h"
+#include"sflow_vtp_fsf.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
@@ -39,7 +39,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-sflow_vtp::sflow_vtp(lexer *p, fdm2D *b, ghostcell *pgc)
+sflow_vtp_fsf::sflow_vtp_fsf(lexer *p, fdm2D *b, ghostcell *pgc)
 {
 	if(p->I40==0)
     {
@@ -76,11 +76,11 @@ sflow_vtp::sflow_vtp(lexer *p, fdm2D *b, ghostcell *pgc)
     phs = new fnpf_print_Hs(p,b->Hs);
 }
 
-sflow_vtp::~sflow_vtp()
+sflow_vtp_fsf::~sflow_vtp_fsf()
 {
 }
 
-void sflow_vtp::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sflow_turbulence *pturb, sediment *psed)
+void sflow_vtp_fsf::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sflow_turbulence *pturb, sediment *psed)
 {
 	// Print out based on iteration
     if((p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)  || (p->count==0 &&  p->P30<0.0))
@@ -149,7 +149,7 @@ void sflow_vtp::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sflow_t
     p->probeprinttime+=p->P55;
 }
 
-void sflow_vtp::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb, sediment *psed)
+void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb, sediment *psed)
 {
     b->eta.ggcpol(p);
 

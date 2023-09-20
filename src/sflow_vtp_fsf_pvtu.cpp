@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sflow_vtp.h"
+#include"sflow_vtp_fsf.h"
 #include"sflow_turbulence.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"sediment.h"
 
-void sflow_vtp::pvtp(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb, sediment *psed)
+void sflow_vtp_fsf::pvtp(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb, sediment *psed)
 {	
 	int num=0;
 
@@ -125,7 +125,7 @@ void sflow_vtp::pvtp(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb
 
 }
 
-void sflow_vtp::piecename(lexer *p, fdm2D *b, ghostcell *pgc, int n)
+void sflow_vtp_fsf::piecename(lexer *p, fdm2D *b, ghostcell *pgc, int n)
 {
     int num=0;
 

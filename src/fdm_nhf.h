@@ -67,8 +67,6 @@ public:
     // NHFLOW
     slice4 wbed;
     
-    cpt2D C4;
-	
     vec rhsvec;
     vec2D xvec,rvec;
     

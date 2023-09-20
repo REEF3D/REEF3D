@@ -62,7 +62,7 @@ void nhflow_HLL::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, dou
         aij_E(p,d,F,4,U,V,W);
 }
 
-double nhflow_HLL::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
+double nhflow_HLL::aij_U(lexer *p,fdm_nhf *d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
 {
     // HLL flux 
     pflux->start_U(p,d,pgc);
@@ -152,7 +152,7 @@ double nhflow_HLL::aij_V(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVEL
     }    
 }
 
-double nhflow_HLL::aij_W(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
+double nhflow_HLL::aij_W(lexer *p,fdm_nhf *d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
 {
     // HLL flux 
     pflux->start_W(p,d,pgc);
@@ -171,7 +171,7 @@ double nhflow_HLL::aij_W(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
     }    
 }
 
-double nhflow_HLL::aij_E(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
+double nhflow_HLL::aij_E(lexer *p,fdm_nhf *d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
 {
     // HLL flux 
     pflux->start_E(p,d,pgc);
@@ -198,7 +198,7 @@ double nhflow_HLL::aij_E(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL,
     pgc->start2V(p,d->Fy,14); 
 }
 
-double nhflow_HLL::HLL(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue, double *Uw)
+double nhflow_HLL::HLL(lexer *p,fdm_nhf *d, double *Us, double *Un, double *Ue, double *Uw)
 {
     // HLL flux
     ULOOP
@@ -242,7 +242,7 @@ double nhflow_HLL::HLL(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue, 
     }
 }
 
-double nhflow_HLL::HLL_E(lexer* p,fdm_nhf* d)
+double nhflow_HLL::HLL_E(lexer *p,fdm_nhf *d)
 {
     // HLL flux
     ULOOP

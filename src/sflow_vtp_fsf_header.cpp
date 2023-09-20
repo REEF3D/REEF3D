@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sflow_vtp.h"
+#include"sflow_vtp_fsf.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include<string>
 
-void sflow_vtp::name_iter(lexer *p, fdm2D* b, ghostcell* pgc)
+void sflow_vtp_fsf::name_iter(lexer *p, fdm2D* b, ghostcell* pgc)
 {	
     int num=0;
 

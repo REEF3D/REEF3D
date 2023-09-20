@@ -32,7 +32,7 @@ Author: Hans Bihs
 #include"sflow_eta.h"
 #include"sflow_hydrostatic.h"
 #include"sflow_potential.h"
-#include"sflow_vtp.h"
+#include"sflow_vtp_fsf.h"
 #include"sflow_vtp_bed.h"
 #include"6DOF_sflow.h"
 

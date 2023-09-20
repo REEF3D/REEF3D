@@ -97,12 +97,12 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Sediment"/>
         <VirtualDirectory Name="Print">
+          <File Name="sflow_vtp_fsf.h"/>
           <File Name="sflow_print_bed.h"/>
           <File Name="sflow_print_bedline_y.h"/>
           <File Name="sflow_print_bedline.h"/>
           <File Name="sflow_state.h"/>
           <File Name="sflow_vtp_bed.h"/>
-          <File Name="sflow_vtp.h"/>
           <File Name="sflow_print_wsfline_y.h"/>
           <File Name="sflow_print_wsfline.h"/>
           <File Name="sflow_print_wsf.h"/>
@@ -1171,10 +1171,10 @@
             <File Name="sflow_vtp_bed_header.cpp"/>
             <File Name="sflow_vtp_bed.cpp"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="VTP">
-            <File Name="sflow_vtp_pvtu.cpp"/>
-            <File Name="sflow_vtp_header.cpp"/>
-            <File Name="sflow_vtp.cpp"/>
+          <VirtualDirectory Name="VTP FSF">
+            <File Name="sflow_vtp_fsf_pvtu.cpp"/>
+            <File Name="sflow_vtp_fsf_header.cpp"/>
+            <File Name="sflow_vtp_fsf.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Probes">
             <File Name="sflow_print_probe_da.cpp"/>

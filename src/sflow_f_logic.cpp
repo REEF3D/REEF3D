@@ -187,7 +187,7 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 
 	
 	// printer
-	pprint = new sflow_vtp(p,b,pgc);
+	pprint = new sflow_vtp_fsf(p,b,pgc);
 	
 	pprintbed = new sflow_vtp_bed(p,b);
     

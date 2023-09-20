@@ -56,7 +56,7 @@ Author: Hans Bihs
 #include"sflow_turb_ke_IM1.h"
 
 #include"sflow_hydrostatic.h"
-#include"sflow_vtp.h"
+#include"sflow_vtp_fsf.h"
 #include"sflow_vtp_bed.h"
 #include"sflow_diffusion_void.h"
 #include"sflow_ediff.h"

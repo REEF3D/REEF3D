@@ -215,7 +215,7 @@ void resize_class::Iarray(int *****& field, int numi, int numj, int numk, int nu
 	for(r=0;r<numk;++r)
 	field[n][m][q][r]=new int[numh];
 	
-	for(n=0; n<numi;++n)
+	for(n=0;n<numi;++n)
 	for(m=0;m<numj;++m)
 	for(q=0;q<numk;++q)
 	for(r=0;r<numl;++r)
