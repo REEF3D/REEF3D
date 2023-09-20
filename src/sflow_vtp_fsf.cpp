@@ -50,7 +50,7 @@ sflow_vtp_fsf::sflow_vtp_fsf(lexer *p, fdm2D *b, ghostcell *pgc)
 
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_SFLOW_VTP",0777);
+	mkdir("./REEF3D_SFLOW_VTP_FSF",0777);
 
 
 	pwsf=new sflow_print_wsf(p,b);
