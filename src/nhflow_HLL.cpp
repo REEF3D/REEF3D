@@ -77,22 +77,6 @@ double nhflow_HLL::aij_U(lexer *p,fdm_nhf *d, double *F, int ipol, double *UVEL,
     if(p->wet[IJm1]==0 && p->flag2[IJm1K]>0)
     d->Fy[IJm1K] = 0.0;
     }
-    /*
-    LOOP
-    WETDRY
-    {
-    if(p->wet[Ip1J]==0)
-    d->Fx[IJK] = 0.0;
-    
-    if(p->wet[Im1J]==0)
-    d->Fx[Im1JK] = 0.0;
-    
-    if(p->wet[IJp1]==0)
-    d->Fy[IJK] = 0.0;
-    
-    if(p->wet[IJm1]==0)
-    d->Fy[IJm1K] = 0.0;
-    }*/
     
     pgc->start1V(p,d->Fx,10);
     pgc->start2V(p,d->Fy,10);
@@ -122,22 +106,6 @@ double nhflow_HLL::aij_V(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVEL
     if(p->wet[Im1J]==0 && p->flag1[Im1JK]>0)
     d->Fx[Im1JK] = 0.0;
     }
-    /*
-    LOOP
-    WETDRY
-    {
-    if(p->wet[Ip1J]==0)
-    d->Fx[IJK] = 0.0;
-    
-    if(p->wet[Im1J]==0)
-    d->Fx[Im1JK] = 0.0;
-    
-    if(p->wet[IJp1]==0)
-    d->Fy[IJK] = 0.0;
-    
-    if(p->wet[IJm1]==0)
-    d->Fy[IJm1K] = 0.0;
-    }*/
     
     pgc->start1V(p,d->Fx,11);
     pgc->start2V(p,d->Fy,11);
