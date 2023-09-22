@@ -54,6 +54,7 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         vvel=VHval[count]*ramp(p);
         wvel=WHval[count]*ramp(p);
             
+            
             UH[Im1JK]=uvel;
             UH[Im2JK]=uvel;
             UH[Im3JK]=uvel;
