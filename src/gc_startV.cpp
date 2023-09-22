@@ -54,6 +54,7 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
         if(p->flag1[Im1JK]<0 && gcv==10)// && (p->BC[Im1JK]!=1 || p->B98<3))
         {
         f[Im1JK] = d->UH[Im1JK]*d->U[Im1JK] + 0.5*fabs(p->W22)*d->eta(i-1,j)*d->eta(i-1,j) + fabs(p->W22)*d->eta(i-1,j)*d->dfx(i,j);
+        //cout<<"HALLO "<<f[Im1JK]<<" "<<d->UH[Im1JK]<<" "<<d->U[Im1JK]<<" "<<d->eta(i-1,j)<<endl;
         //f[Im2JK] = d->UH[Im2JK]*d->U[Im2JK] + 0.5*fabs(p->W22)*d->eta(i-2,j)*d->eta(i-2,j) + fabs(p->W22)*d->eta(i-2,j)*d->dfx(i,j);
         //f[Im3JK] = d->UH[Im3JK]*d->U[Im3JK] + 0.5*fabs(p->W22)*d->eta(i-3,j)*d->eta(i-3,j) + fabs(p->W22)*d->eta(i-3,j)*d->dfx(i,j);
         }
@@ -88,10 +89,17 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
         //f[Im3JK] = 0.0;
         }
         
+        if(p->flag1[Im1JK]<0 && gcv==14 && p->B98>=3)
+        {
+        f[Im1JK] = d->UH[Im1JK];
+        //f[Im2JK] = 0.0;
+        //f[Im3JK] = 0.0;
+        }
+        
         
         if(p->flag1[Ip1JK]<0 && gcv==10)// && (p->BC[Ip1JK]!=1 && p->B99<3))
         {
-        f[Ip1JK] = 0.5*fabs(p->W22)*d->ETAn(i,j)*d->ETAn(i,j) + fabs(p->W22)*d->ETAn(i,j)*d->dfx(i,j);
+        f[Ip1JK] = d->UH[Ip1JK]*d->U[Ip1JK] + 0.5*fabs(p->W22)*d->ETAn(i,j)*d->ETAn(i,j) + fabs(p->W22)*d->ETAn(i,j)*d->dfx(i,j);
         //f[Ip2JK] = 0.5*fabs(p->W22)*d->ETAn(i,j)*d->ETAn(i,j) + fabs(p->W22)*d->ETAn(i,j)*d->dfx(i,j);
         //f[Ip3JK] = 0.5*fabs(p->W22)*d->ETAn(i,j)*d->ETAn(i,j) + fabs(p->W22)*d->ETAn(i,j)*d->dfx(i,j);
         }
@@ -103,9 +111,16 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
         f[Im3JK] = d->UH[Ip3JK]*d->U[Ip3JK] + 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j) + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
         }*/
         
-        if(p->flag1[Ip1JK]<0 && gcv==14)
+        if(p->flag1[Ip1JK]<0 && gcv==14 && p->B98<3)
         {
         f[Ip1JK] = 0.0;
+        //f[Ip2JK] = 0.0;
+        //f[Ip3JK] = 0.0;
+        }
+        
+        if(p->flag1[Ip1JK]<0 && gcv==14 && p->B98>=3)
+        {
+        f[Ip1JK] = d->UH[Ip1JK];
         //f[Ip2JK] = 0.0;
         //f[Ip3JK] = 0.0;
         }

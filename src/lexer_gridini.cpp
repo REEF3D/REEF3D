@@ -47,6 +47,8 @@ void lexer::flagini()
 	Iarray(flag3,imax*jmax*kmax);
     Iarray(flag5,imax*jmax*kmax);
     Iarray(flag,imax*jmax*kmax);
+    
+    //cout<<mpirank<<" flagini: "<<imax*jmax*kmax<<endl;
 	
     Iarray(flagsf1,imax*jmax*kmax);
 	Iarray(flagsf2,imax*jmax*kmax);
@@ -63,8 +65,6 @@ void lexer::flagini()
 	makeflag(flag2);
 	makeflag(flag3);
 	makeflag(tpflag);
-
-	
 	
 	x_dir=y_dir=z_dir=1.0;
 	

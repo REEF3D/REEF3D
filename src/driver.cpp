@@ -39,7 +39,7 @@ driver::driver(int& argc, char **argv)
     {
     cout<<endl<<"REEF3D (c) 2008-2023 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    sprintf(version,"v_230919");
+    sprintf(version,"v_230922");
     cout<<endl<<version<<endl<<endl;
     }
 
@@ -94,7 +94,8 @@ driver::driver(int& argc, char **argv)
 
         fnpf_driver();
     }
-
+    
+    // sigma grid - NHFLOW
     if(p->A10==5)
     {
         p->flagini();
