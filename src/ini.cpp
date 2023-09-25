@@ -117,7 +117,6 @@ void lexer::ini_default()
     A543=1;		// int NHFLOW wetting & drying or coastline
     A544=0.001; // double wetting & drying criterion
     
-    
     A550=0;      // int turn on breaking (which method)
     A551=0;      // int type of breaking detection (deep / shallow)
     A552=1;      // int additional filtering to viscosity based breaking
