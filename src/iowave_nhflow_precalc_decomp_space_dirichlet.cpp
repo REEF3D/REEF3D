@@ -28,58 +28,119 @@ void iowave::nhflow_wavegen_precalc_decomp_space_dirichlet(lexer *p, ghostcell *
 {
     double fsfloc;
     int qn;
-    
-    
-    count=0;
-    for(n=0;n<p->gcin_count;n++)
-    {
-		i=p->gcin[n][0];
-		j=p->gcin[n][1];
-
-    // ETA
-        eta(i,j) = 0.0;
-        etaval[count] = 0.0;
-            
-        for(qn=0;qn<wave_comp;++qn)
-        {
-        eta(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
-        etaval[count] = eta(i,j);
-        }
-    }
 
     count=0;
     for(n=0;n<p->gcslin_count;n++)
     {
     i=p->gcslin[n][0];
     j=p->gcslin[n][1];
-    k=p->gcin[n][2];
     
-    // U
-        if(zloc4<=fsfloc+epsi)
-        for(qn=0;qn<wave_comp;++qn)
-        uval[count] += uval_S_cos[count][qn]*uval_T_cos[qn] - uval_S_sin[count][qn]*uval_T_sin[qn];
-                    
+        xg = xgen(p);
+        yg = ygen(p);
+		dg = distgen(p);
+		db = distbeach(p);
+		
+		// Wave Generation
+        if(p->B98==3 && h_switch==1)
+        {
+            // Zone 1
+            if(dg<1.0e20)
+            {
+                for(qn=0;qn<wave_comp;++qn)
+                {
+                etaval_S_sin[count][qn] = wave_eta_space_sin(p,pgc,xg,yg,qn);
+                etaval_S_cos[count][qn] = wave_eta_space_cos(p,pgc,xg,yg,qn);
+                }
+            ++count;
+            }
+		}
+    }
+    
+    
+    
+// U
+    count=0;
+    for(n=0;n<p->gcslin_count;n++)
+    {
+    i=p->gcslin[n][0];
+    j=p->gcslin[n][1];
+    
+    xg = xgen1(p);
+    yg = ygen1(p);
+        
+        KLOOP
+        PCHECK
+        {        
+        z=p->ZSP[IJK]-p->phimean;
 
-    // V
-        if(zloc4<=fsfloc+epsi)
-        for(qn=0;qn<wave_comp;++qn)
-            vval[count] += vval_S_cos[count][qn]*vval_T_cos[qn] - vval_S_sin[count][qn]*vval_T_sin[qn];
-            
-        if(zloc4>fsfloc+epsi)
-        vval[count] = 0.0;
-        
-        
-        
-    // W
-        if(zloc4<=fsfloc+epsi)
-        for(qn=0;qn<wave_comp;++qn)
-        wval[count] += wval_S_cos[count][qn]*wval_T_sin[qn] + wval_S_sin[count][qn]*wval_T_cos[qn];
-            
-        if(zloc4>fsfloc+epsi)
-        wval[count] = 0.0;
-        
+		// Wave Generation
+		if(p->B98>=3 && u_switch==1)
+        {
+                for(qn=0;qn<wave_comp;++qn)
+                {
+                uval_S_sin[count][qn] = wave_u_space_sin(p,pgc,xg,yg,z,qn);
+                uval_S_cos[count][qn] = wave_u_space_cos(p,pgc,xg,yg,z,qn);
+                }
+            ++count;
+		}
+        }
     }
 
 
+    count=0;
+    for(n=0;n<p->gcslin_count;n++)
+    {
+    i=p->gcslin[n][0];
+    j=p->gcslin[n][1];
+    
+    xg = xgen2(p);
+    yg = ygen2(p);
+        
+        KLOOP
+        PCHECK
+        {
+        z=p->ZSP[IJK]-p->phimean;
+        
+		// Wave Generation		
+		if(p->B98>=3 && v_switch==1)
+        {
+                for(qn=0;qn<wave_comp;++qn)
+                {
+                vval_S_sin[count][qn] = wave_v_space_sin(p,pgc,xg,yg,z,qn);
+                vval_S_cos[count][qn] = wave_v_space_cos(p,pgc,xg,yg,z,qn);
+                }
+            ++count;
+		}
+        }
+    }
+
+
+    
+    count=0;
+    for(n=0;n<p->gcslin_count;n++)
+    {
+    i=p->gcslin[n][0];
+    j=p->gcslin[n][1];
+    
+    xg = xgen(p);
+    yg = ygen(p);
+        
+        KLOOP
+        PCHECK
+        {
+        z=p->ZSP[IJK]-p->phimean;
+        
+		// Wave Generation
+		if(p->B98>=3 && w_switch==1)
+        {
+                for(qn=0;qn<wave_comp;++qn)
+                {
+                wval_S_sin[count][qn] = wave_w_space_sin(p,pgc,xg,yg,z,qn);
+                wval_S_cos[count][qn] = wave_w_space_cos(p,pgc,xg,yg,z,qn);
+                }
+            ++count;
+		}
+        }
+    }	
 
 }

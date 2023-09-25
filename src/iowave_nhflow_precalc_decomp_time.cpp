@@ -28,17 +28,10 @@ void iowave::nhflow_wavegen_precalc_decomp_time(lexer *p, ghostcell *pgc)
 {
     int qn;
     
-
     for(qn=0;qn<wave_comp;++qn)
     {
     etaval_T_sin[qn] = wave_eta_time_sin(p,pgc,qn);
     etaval_T_cos[qn] = wave_eta_time_cos(p,pgc,qn);
-    }
-
-    for(qn=0;qn<wave_comp;++qn)
-    {
-    Fival_T_sin[qn] = wave_fi_time_sin(p,pgc,qn);
-    Fival_T_cos[qn] = wave_fi_time_cos(p,pgc,qn);
     }
     
     for(qn=0;qn<wave_comp;++qn)
@@ -46,11 +39,16 @@ void iowave::nhflow_wavegen_precalc_decomp_time(lexer *p, ghostcell *pgc)
     uval_T_sin[qn] = wave_u_time_sin(p,pgc,qn);
     uval_T_cos[qn] = wave_u_time_cos(p,pgc,qn);
     }
-    
+
     for(qn=0;qn<wave_comp;++qn)
     {
-    Fifsfval_T_sin[qn] = wave_fi_time_sin(p,pgc,qn);
-    Fifsfval_T_cos[qn] = wave_fi_time_cos(p,pgc,qn);
+    vval_T_sin[qn] = wave_v_time_sin(p,pgc,qn);
+    vval_T_cos[qn] = wave_v_time_cos(p,pgc,qn);
     }
-    
+
+    for(qn=0;qn<wave_comp;++qn)
+    {
+    wval_T_sin[qn] = wave_w_time_sin(p,pgc,qn);
+    wval_T_cos[qn] = wave_w_time_cos(p,pgc,qn);
+    }
 }

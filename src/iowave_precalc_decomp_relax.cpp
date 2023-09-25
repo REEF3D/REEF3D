@@ -49,10 +49,7 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
     count=0;
     SLICELOOP4
     {
-        xg = xgen(p);
-        yg = ygen(p);
 		dg = distgen(p);
-		db = distbeach(p);
 		
 		// Wave Generation
         if(p->B98==2 && h_switch==1)
@@ -78,10 +75,7 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
     count=0;
     ULOOP
     {
-		xg = xgen1(p);
-        yg = ygen1(p);
         dg = distgen(p);
-		db = distbeach(p);
         
         zloc1 = p->pos1_z();
         fsfloc = 0.5*(eta(i,j)+eta(i+1,j)) + p->phimean;
@@ -125,10 +119,7 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
     count=0;
     VLOOP
     {
-        xg = xgen2(p);
-        yg = ygen2(p);
         dg = distgen(p);
-		db = distbeach(p);
         
         zloc2 = p->pos2_z();
         fsfloc = 0.5*(eta(i,j)+eta(i,j+1)) + p->phimean;
@@ -170,15 +161,11 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
     count=0;
     WLOOP
     {
-        xg = xgen(p);
-        yg = ygen(p);
         dg = distgen(p);
-		db = distbeach(p);
         
         zloc3 = p->pos3_z();
         fsfloc = eta(i,j) + p->phimean;
     
-
         if(zloc3<=fsfloc)
         {
         if(zloc3<=p->phimean)
@@ -215,10 +202,7 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
     count=0;
     LOOP
     {
-        xg = xgen(p);
-        yg = ygen(p);
 		dg = distgen(p);
-		db = distbeach(p);
         
 		if(p->pos_z()<=p->phimean)
         z=-(fabs(p->phimean-p->pos_z()));
@@ -243,11 +227,7 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
     count=0;
     LOOP
     {
-		
-        xg = xgen(p);
-        yg = ygen(p);
         dg = distgen(p);
-		db = distbeach(p);
         
         zloc4 = p->pos_z();
         fsfloc = eta(i,j) + p->phimean;

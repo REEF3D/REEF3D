@@ -28,9 +28,9 @@ void iowave::nhflow_wavegen_precalc_decomp_dirichlet(lexer *p, ghostcell *pgc)
 {
     int qn;
         
-        // eta and Fifsfval
+    // ETA
         count=0;
-		for(n=0;n<p->gcslin_count;n++)
+        for(n=0;n<p->gcslin_count;n++)
         {
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
@@ -44,67 +44,33 @@ void iowave::nhflow_wavegen_precalc_decomp_dirichlet(lexer *p, ghostcell *pgc)
         etaval[count] = eta(i,j);
         }
         
-        z = eta(i,j);
-        
-        time_1=time_0;
-        time_0=p->simtime;
-        time_n=p->simtime+p->dt;
-        Fifsfval1[count] = Fifsfval0[count];
-        Fifsfval0[count] = Fifsfval[count];
-        
-        
-        Fifsfval[count]=0.0;
-        
-        
-        for(qn=0;qn<wave_comp;++qn)
-        Fifsfval[count] += Fifsfval_S_cos[count][qn]*Fifsfval_T_cos[qn] - Fifsfval_S_sin[count][qn]*Fifsfval_T_sin[qn];
-        
         ++count;
         }
         
-        // Uin
+    // -------------
         count=0;
-		for(n=0;n<p->gcslin_count;n++)
-        {
-        i=p->gcslin[n][0];
-        j=p->gcslin[n][1];
+		for(n=0;n<p->gcin_count;n++)
+		{
+        uval[count] = 0.0;
+        vval[count] = 0.0;
+        wval[count] = 0.0;
         
-            Uinval[count]=0.0;
-        
-            FKLOOP
-            FPCHECK
-            {
-            for(qn=0;qn<wave_comp;++qn)
-            Uinval[count] += uval_S_cos[count][qn]*uval_T_cos[qn] - uval_S_sin[count][qn]*uval_T_sin[qn];
-            
-            ++count;
-            }
-        }
-        
-    
-    // beach
-    count=0;
-    FILOOP 
-    FJLOOP 
-    {
+    // U
+        for(qn=0;qn<wave_comp;++qn)
+        uval[count] += uval_S_cos[count][qn]*uval_T_cos[qn] - uval_S_sin[count][qn]*uval_T_sin[qn];
 
-		db = distbeach(p);
-        
-        FKLOOP 
-        FPCHECK
-        {
+    // V
+        for(qn=0;qn<wave_comp;++qn)
+        vval[count] += vval_S_cos[count][qn]*vval_T_cos[qn] - vval_S_sin[count][qn]*vval_T_sin[qn];
                     
-            if(p->B99==1||p->B99==2)
-            {
-                // Zone 2
-                if(db<dist2)
-                {
-                rb3val[count] = rb3(p,db);
-                ++count;
-                }
-            }
+    // W
+        for(qn=0;qn<wave_comp;++qn)
+        wval[count] += wval_S_cos[count][qn]*wval_T_sin[qn] + wval_S_sin[count][qn]*wval_T_cos[qn];
+        
+        ++count;
         }
-    }
-   
-
 }
+
+
+
+

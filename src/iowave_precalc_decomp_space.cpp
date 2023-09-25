@@ -166,8 +166,6 @@ void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
 		}
     }	
 
-
-    
     count=0;
     if(f_switch==1)
     LOOP

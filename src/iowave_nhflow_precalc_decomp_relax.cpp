@@ -22,9 +22,10 @@ Author: Hans Bihs
 
 #include"iowave.h"
 #include"lexer.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void iowave::nhflow_wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
+void iowave::nhflow_wavegen_precalc_decomp_relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
         /*
         a: space
@@ -41,17 +42,14 @@ void iowave::nhflow_wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
          ETA: cos()
         */
 
-    double fsfloc;
     int qn;
 
 
-    // pre-calc every iteration
+// ETA
     count=0;
     SLICELOOP4
     {
 		dg = distgen(p);
-		db = distbeach(p);
-
 
         if(p->B98==2 && h_switch==1)
         {
@@ -73,74 +71,82 @@ void iowave::nhflow_wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
     pgc->gcsl_start4(p,eta,50);
 
     
-    count=0;
     int dbcount=0;
     
-    FILOOP 
-    FJLOOP 
+// U
+    count=0;
+    LOOP
     {
         dg = distgen(p);
-		db = distbeach(p);
-        
-        FKLOOP 
-        FPCHECK
-        {
-        
-        z=p->ZSN[FIJK]-p->phimean;
-
-		
-		if(p->B98==2 && f_switch==1)
-        {  
-            // Zone 1
-            if(dg<dist1)
-            {
-            Fival[count]=0.0;
-                        
-            for(qn=0;qn<wave_comp;++qn)
-            Fival[count] += Fival_S_cos[count][qn]*Fival_T_sin[qn] + Fival_S_sin[count][qn]*Fival_T_cos[qn];
-            
-            rb1val[count] = rb1(p,dg);
-            
-            ++count;
-            }
-		}
-        
-        if(p->B99==1||p->B99==2)
-        {
-                // Zone 2
-                if(db<dist2)
-                {
-                rb3val[dbcount] = rb3(p,db);
-                ++dbcount;
-                }
-        }
-            
-        }
-    }
-     
-    
-    // pre-calc every iteration
-    count=0;
-    SLICELOOP4
-    {
-		dg = distgen(p);
-		db = distbeach(p);
 		
 		// Wave Generation
-        if(p->B98==2 && f_switch==1)
+		if(p->B98==2 && u_switch==1)
         {
+            
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             {
-                Fifsfval[count] = 0.0;
-                
-                for(qn=0;qn<wave_comp;++qn)
-                Fifsfval[count] += Fifsfval_S_cos[count][qn]*Fifsfval_T_sin[qn] + Fifsfval_S_sin[count][qn]*Fifsfval_T_cos[qn];
-
+            uval[count]=0.0;
+            
+            for(qn=0;qn<wave_comp;++qn)
+            uval[count] += uval_S_cos[count][qn]*uval_T_cos[qn] - uval_S_sin[count][qn]*uval_T_sin[qn];
+            
+            UHval[count] = (eta(i,j) + d->depth(i,j))*uval[count];
+            
             ++count;
             }
 		}
     }
+
+
+    count=0;
+    LOOP
+    {
+        dg = distgen(p);
+        
+		// Wave Generation
+		if(p->B98==2 && v_switch==1)
+        {
+            // Zone 1
+            if(dg<1.0e20)
+            {
+            vval[count]=0.0;
+            
+            for(qn=0;qn<wave_comp;++qn)
+            vval[count] += vval_S_cos[count][qn]*vval_T_cos[qn] - vval_S_sin[count][qn]*vval_T_sin[qn];
+            
+            VHval[count] = (eta(i,j) + d->depth(i,j))*vval[count];
+            
+            ++count;
+            }
+		}
+    }
+
+
+    count=0;
+    LOOP
+    {
+        dg = distgen(p);
+
+		// Wave Generation
+		if(p->B98==2 && w_switch==1)
+        {
+            // Zone 1
+            if(dg<1.0e20)
+            {
+            wval[count]=0.0;
+
+            for(qn=0;qn<wave_comp;++qn)
+            wval[count] += wval_S_cos[count][qn]*wval_T_sin[qn] + wval_S_sin[count][qn]*wval_T_cos[qn];
+            
+            WHval[count] = (eta(i,j) + d->depth(i,j))*wval[count];
+
+            ++count;
+            }
+		}
+    }	
+    
+
 
     
 }

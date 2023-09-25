@@ -25,11 +25,11 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void iowave::nhflow_precalc_relax(lexer *p,fdm_nhf *d, ghostcell *pgc)
+void iowave::nhflow_precalc_relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     double fsfloc;
     
-    // pre-calc every iteration
+// ETA
     count=0;
     SLICELOOP4
     {
@@ -52,6 +52,7 @@ void iowave::nhflow_precalc_relax(lexer *p,fdm_nhf *d, ghostcell *pgc)
     }
     pgc->gcsl_start4(p,eta,50);
     
+// U
     count=0;
     LOOP
     {
@@ -75,6 +76,7 @@ void iowave::nhflow_precalc_relax(lexer *p,fdm_nhf *d, ghostcell *pgc)
 		}
     }
 		
+// V
     count=0;
     if(p->j_dir==1)
     LOOP
@@ -98,7 +100,8 @@ void iowave::nhflow_precalc_relax(lexer *p,fdm_nhf *d, ghostcell *pgc)
             }
 		}
     }
-
+    
+// W
     count=0;
     LOOP
     {

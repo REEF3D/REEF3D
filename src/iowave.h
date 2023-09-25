@@ -209,7 +209,7 @@ public:
     void nhflow_wavegen_precalc_decomp_space(lexer*,ghostcell*);
     void nhflow_wavegen_precalc_decomp_space_dirichlet(lexer*,ghostcell*);
     void nhflow_wavegen_precalc_decomp_time(lexer*,ghostcell*);
-    void nhflow_wavegen_precalc_decomp_relax(lexer*,ghostcell*);
+    void nhflow_wavegen_precalc_decomp_relax(lexer*,fdm_nhf*,ghostcell*);
     void nhflow_wavegen_precalc_decomp_dirichlet(lexer*,ghostcell*);
     
     
