@@ -25,22 +25,12 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-#define WLVL (fabs(d->WL(i,j))>1.0e-20?d->WL(i,j):1.0-20)
+#define WLVL (fabs(d->WL(i,j))>(p->A544)?d->WL(i,j):1.0e20)
 
 void nhflow_sigma::sigma_ini(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta)
 {	
-    SLICELOOP4
-    p->wet[IJ]=1;
-    
-    pgc->gcsl_start4Vint(p,p->wet,50);
-    
-    SLICELOOP4
-    p->wet_n[IJ]=1;
-    
-    pgc->gcsl_start4Vint(p,p->wet_n,50);
-    
-    
-    d->wd_criterion=0.00005;
+
+    d->wd_criterion=p->A544;
     
     p->Darray(p->sig, p->imax*p->jmax*(p->kmax+2));
     p->Darray(p->sigx,p->imax*p->jmax*(p->kmax+2));

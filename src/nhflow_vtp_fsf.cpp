@@ -294,7 +294,7 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	result.write((char*)&ffn, sizeof (float));
 	}
     
-    //  Depth
+    //  WL
 	iin=4*(p->pointnum2D);
 	result.write((char*)&iin, sizeof (int));
 	TPSLICELOOP

@@ -28,13 +28,6 @@ Author: Hans Bihs
 
 void nhflow_fsf_f::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W)
 {   
-    if(d->WL(i,j)<=p->A544)
-    {
-        p->wet[IJ]=0;
-        d->eta(i,j) =  p->A544 - d->depth(i,j) - eps;
-        d->WL(i,j) = d->eta(i,j) + d->depth(i,j);
-    }
-    
     pgc->gcsl_start4Vint(p,p->wet,50);
     
     wetdry(p,d,pgc,U,V,W,d->WL);
@@ -52,9 +45,6 @@ void nhflow_fsf_f::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, doub
     pgc->gcsl_start4(p,d->detadt,1);
     
     pgc->start1V(p,d->Fx,10);
-    
-    //LOOP    
-    //d->test[IJK] = d->Fx[IJK] - d->Fx[Im1JK];
     
     pgc->start4V(p,d->test,1);
      

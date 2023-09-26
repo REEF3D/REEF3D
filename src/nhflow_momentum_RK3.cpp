@@ -496,6 +496,7 @@ void nhflow_momentum_RK3::inidisc(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_f
     sigma_update(p,d,pgc,d->WL);
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
     pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
+    velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL);
 }
      
 

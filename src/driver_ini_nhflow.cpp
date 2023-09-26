@@ -61,10 +61,12 @@ void driver::driver_ini_nhflow()
     
     
     // sigma ini
-    pnhfmom->inidisc(p,d,pgc,pnhfsf);
-
+    //pnhfmom->inidisc(p,d,pgc,pnhfsf);
+    
+    
     //ioflow ini
-    pflow->ini_nhflow(p,d,pgc); 
+    pflow->ini_nhflow(p,d,pgc);
+    pnhfsf->wetdry(p,d,pgc,d->U,d->V,d->W,d->WL); 
     
     for(int qn=0;qn<20;++qn)
     {
@@ -92,7 +94,7 @@ void driver::driver_ini_nhflow()
 	//pflow->pressure_io(p,a,pgc);
     
     SLICELOOP4
-    d->WL(i,j) = MAX(p->A544, d->eta(i,j) + p->wd - d->bed(i,j));
+    d->WL(i,j) = d->eta(i,j) + d->depth(i,j);
     
     SLICELOOP4
     d->eta_n(i,j) = d->eta(i,j);
@@ -105,6 +107,9 @@ void driver::driver_ini_nhflow()
     pnhfsf->ini(p,d,pgc,pflow,d->U,d->V,d->W);
     pnhfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
     pnhfmom->inidisc(p,d,pgc,pnhfsf);
+    
+    SLICELOOP4
+    d->WL(i,j) = MAX(p->A544,d->eta(i,j) + d->depth(i,j));
     
     pnhfprint->start(p,d,pgc,pflow);
 

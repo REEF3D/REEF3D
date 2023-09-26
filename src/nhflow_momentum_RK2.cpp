@@ -342,24 +342,6 @@ void nhflow_momentum_RK2::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *
     d->W[IJK] = 0.0;
     }
     
-    // Fr number limiter
-    /*LOOP
-    WETDRY
-    {
-    d->U[IJK] = MIN(d->U[IJK], 4.0*sqrt(9.81*WL(i,j)));
-    d->V[IJK] = MIN(d->V[IJK], 4.0*sqrt(9.81*WL(i,j)));
-    d->W[IJK] = MIN(d->W[IJK], 4.0*sqrt(9.81*WL(i,j)));      
-    }*/
-    
-    /*
-    LOOP
-    WETDRY
-    {
-    d->U[IJK] = UH[IJK]/MAX(WLVL,p->A544*100.0);
-    d->V[IJK] = VH[IJK]/MAX(WLVL,p->A544*100.0);
-    d->W[IJK] = WH[IJK]/MAX(WLVL,p->A544*100.0);    
-    }*/
-    
     pgc->start4V(p,d->U,gcval_u);
     pgc->start4V(p,d->V,gcval_v);
     pgc->start4V(p,d->W,gcval_w);
@@ -407,11 +389,12 @@ void nhflow_momentum_RK2::clearrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void nhflow_momentum_RK2::inidisc(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_fsf *pfsf)
 {
-    //pfsf->wetdry(p,d,pgc,d->U,d->V,d->W,d->WL);
+    pfsf->wetdry(p,d,pgc,d->U,d->V,d->W,d->WL);
     sigma_ini(p,d,pgc,d->eta);
     sigma_update(p,d,pgc,d->WL);
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
     pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
+    velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL);
 }
      
 

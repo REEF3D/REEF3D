@@ -32,6 +32,7 @@ void iowave::full_initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     // eta
 	SLICELOOP4
+    WETDRY
     {
         xg = xgen(p);
         yg = ygen(p);
@@ -40,7 +41,7 @@ void iowave::full_initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
     
     SLICELOOP4
-    d->WL(i,j) = MAX(p->A544, d->eta(i,j) + d->depth(i,j));
+    d->WL(i,j) = MAX(p->A544,d->eta(i,j) + d->depth(i,j));
 
     FLOOP
     p->ZSN[FIJK] = p->ZN[KP]*d->WL(i,j) + d->bed(i,j);
@@ -50,45 +51,43 @@ void iowave::full_initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	
     
 	LOOP
+    WETDRY
     {
         xg = xgen(p);
         yg = ygen(p);
         
         z=p->ZSP[IJK]-p->phimean;
 
-		d->U[IJK] = wave_u(p,pgc,xg,yg,z);
-        d->test[IJK] =d->U[IJK];
+        d->U[IJK] = wave_u(p,pgc,xg,yg,z);
         d->UH[IJK] = (d->eta(i,j)+d->depth(i,j))*d->U[IJK];
 	}	
 	
 	LOOP
+    WETDRY
     {
         xg = xgen(p);
         yg = ygen(p);
         
-		z=p->ZSP[IJK]-p->phimean;
+        z=p->ZSP[IJK]-p->phimean;
 		
-		d->V[IJK] = wave_v(p,pgc,xg,yg,z);
+        d->V[IJK] = wave_v(p,pgc,xg,yg,z);
         d->VH[IJK] = (d->eta(i,j)+d->depth(i,j))*d->V[IJK];
 	}
 	
 	LOOP
+    WETDRY
     {
         xg = xgen(p);
         yg = ygen(p);
         
-		z=p->ZSP[IJK]-p->phimean;
+        z=p->ZSP[IJK]-p->phimean;
 		
-		d->W[IJK] = wave_w(p,pgc,xg,yg,z);
+        d->W[IJK] = wave_w(p,pgc,xg,yg,z);
         d->WH[IJK] = (d->eta(i,j)+d->depth(i,j))*d->W[IJK];
 	}
 	
-    //if(p->I10==1 || p->I12==1)
 	FLOOP
-    {		
-		d->P[FIJK] = 0.0;//(wave_h(p,pgc,xg,0.0,0.0) - p->ZN[KP])*a->ro(i,j,k)*fabs(p->W22);
-	}
-	
+    d->P[FIJK] = 0.0;
 	
     pgc->start4V(p,d->U,10);
     pgc->start4V(p,d->V,11);

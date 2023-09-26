@@ -93,7 +93,7 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
     cout<<"number of cells: "<<p->cellnumtot<<endl;
     
     // SIGMA grid
-     // bed ini
+    // bed ini
     SLICELOOP4
 	d->bed(i,j) = p->bed[IJ];
     
@@ -108,16 +108,14 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 	SLICELOOP4
     {
 	d->eta(i,j) = 0.0;
-    p->wet[IJ] = 1;
     p->deep[IJ] = 1;
+    p->wet[IJ]=1;
     d->breaking(i,j)=0;
     }
-    
 
     pgc->gcsl_start4Vint(p,p->wet,50);
     pgc->gcsl_start4Vint(p,p->deep,50);
     pgc->gcsl_start4(p,d->eta,50);
-    
 
     
     ALOOP
@@ -126,8 +124,15 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
     pgc->start4V(p,d->porosity,1);
     
     SLICELOOP4
-    d->WL(i,j) = MAX(p->A544,d->eta(i,j) + d->depth(i,j));
+    d->WL(i,j) = d->eta(i,j) + d->depth(i,j);
     
+    SLICELOOP4
+    if(d->WL(i,j)<p->A544)
+    p->wet[IJ]=0;
+    
+    SLICELOOP4
+    d->WL(i,j) = MAX(p->A544,d->eta(i,j) + d->depth(i,j));
+
     pgc->gcsl_start4(p,d->WL,50);
 }
 
