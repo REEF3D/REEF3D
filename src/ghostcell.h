@@ -63,7 +63,6 @@ public:
 	void start4vec(lexer*,vec&,int);
 	void start4avec(lexer*,vec&,int);
     void start6vec(lexer*,vec&,int);
-    void start9vec(lexer*,fdm*,vec&,int);
     
     void start1V(lexer*,double*,int);
     void start2V(lexer*,double*,int);
@@ -221,7 +220,6 @@ public:
     void tpflagfield(lexer*);
 	void ndflag_update(lexer*);
     void flagbase(lexer*,fdm*);
-    void flag9_update(lexer*,fdm*);
 
 // PARALLEL
     void gcparax(lexer*, field&, int);
@@ -424,7 +422,6 @@ public:
     void patchBC(lexer*,field&,double,int,int,int);
 
 	void gcV_neumann(vec&,int,int,int,int);
-    void gcV_neumann_gen(lexer*,vec&,int,int,int,int,cpt&);
 	void gcV_lsm(lexer*,vec&, double,int,int,int,int);
     void gcV_neumann_all(vec&, int,int,int,int);
     void gcV_neumann_6V(vec&, int,int,int,int);

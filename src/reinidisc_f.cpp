@@ -75,20 +75,6 @@ void reinidisc_f::start(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int ip
         ++n;
         }
     }
-    
-    if(ipol==9)
-    {
-
-        NLOOP9
-        L.V[n] = 0.0;
-
-        n=0;
-        BASELOOP
-        {
-        disc(p,a,pgc,b,L,p->sizeM9,ipol,a->C9);
-        ++n;
-        }
-    }
 }
 
 

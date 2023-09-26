@@ -35,9 +35,6 @@ void ghostcell::gcparaxvec(lexer* p, vec &x, int gcv)
     
     if(gcv==6)
 	gcparaxvec_sr(p,x,a->C6,6);
-    
-    if(gcv==9)
-	gcparaxvec_sr(p,x,a->C9,7);
 }
 	
 void ghostcell::gcparaxvec_sr(lexer* p, vec &x, cpt &C, int gcv)

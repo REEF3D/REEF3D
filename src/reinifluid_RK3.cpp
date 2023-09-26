@@ -92,8 +92,6 @@ reinifluid_RK3::~reinifluid_RK3()
 
 void reinifluid_RK3::start(fdm* a,lexer* p,field& b,ghostcell* pgc,ioflow* pflow)
 { 
-    pgc->flag9_update(p,a);
-    
 	sizeM=p->sizeM4;
 	
 	ppicard->volcalc(p,a,pgc,a->phi);

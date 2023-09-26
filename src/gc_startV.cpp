@@ -352,14 +352,21 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
         }
         
     // zzzzz
-        if(p->flag4[IJKp1]<0 && gcv!=12)
+        if(p->flag4[IJKp1]<0 && (gcv==14))
         {
         f[IJKp1] = 0.0;
         f[IJKp2] = 0.0;
         f[IJKp3] = 0.0;
         }
         
-        if(p->flag4[IJKm1]<0 && gcv!=12)
+        if(p->flag4[IJKp1]<0 && (gcv==10||gcv==11))
+        {
+        f[IJKp1] = f[IJK];
+        f[IJKp2] = f[IJK];
+        f[IJKp3] = f[IJK];
+        }
+        
+        if(p->flag4[IJKm1]<0 && (gcv==10||gcv==11||gcv==14))
         {
         f[IJKm1] = 0.0;
         f[IJKm2] = 0.0;
