@@ -28,14 +28,15 @@ Author: Hans Bihs
 void iowave::full_initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     if(p->mpirank==0)
-    cout<<"full NWT initialize "<<p->dt<<endl;
+    cout<<"full NWT initialize "<<endl;
     
     // eta
 	SLICELOOP4
     {
         xg = xgen(p);
+        yg = ygen(p);
 
-		d->eta(i,j) = wave_eta(p,pgc,xg,0.0);
+		d->eta(i,j) = wave_eta(p,pgc,xg,yg);
     }
     
     SLICELOOP4
@@ -44,21 +45,19 @@ void iowave::full_initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     FLOOP
     p->ZSN[FIJK] = p->ZN[KP]*d->WL(i,j) + d->bed(i,j);
     
-    
     LOOP
     p->ZSP[IJK]  = p->ZP[KP]*d->WL(i,j) + d->bed(i,j);
 	
+    
 	LOOP
     {
         xg = xgen(p);
         yg = ygen(p);
         
         z=p->ZSP[IJK]-p->phimean;
-        
-        if(p->mpirank==0)
-        cout<<z<<endl;
 
 		d->U[IJK] = wave_u(p,pgc,xg,yg,z);
+        d->test[IJK] =d->U[IJK];
         d->UH[IJK] = (d->eta(i,j)+d->depth(i,j))*d->U[IJK];
 	}	
 	
@@ -94,4 +93,8 @@ void iowave::full_initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     pgc->start4V(p,d->U,10);
     pgc->start4V(p,d->V,11);
     pgc->start4V(p,d->W,12);
+    
+    pgc->start4V(p,d->UH,10);
+    pgc->start4V(p,d->VH,11);
+    pgc->start4V(p,d->WH,12);
 }

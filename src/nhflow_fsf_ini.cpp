@@ -37,7 +37,7 @@ void nhflow_fsf_f::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, doub
     
     pgc->gcsl_start4Vint(p,p->wet,50);
     
-    wetdry(p,d,pgc,U,V,W,d->eta);
+    wetdry(p,d,pgc,U,V,W,d->WL);
     
     SLICELOOP4
     d->detadt(i,j) = 0.0;

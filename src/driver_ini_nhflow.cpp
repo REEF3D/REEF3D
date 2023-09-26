@@ -97,17 +97,14 @@ void driver::driver_ini_nhflow()
     SLICELOOP4
     d->eta_n(i,j) = d->eta(i,j);
 
-	pgc->start1V(p,d->U,10);
-    pgc->start2V(p,d->V,11);
-    pgc->start3V(p,d->W,12);
+	pgc->start4V(p,d->U,10);
+    pgc->start4V(p,d->V,11);
+    pgc->start4V(p,d->W,12);
     pgc->start5V(p,d->P,540);
-    
+
     pnhfsf->ini(p,d,pgc,pflow,d->U,d->V,d->W);
-    pnhfsf->wetdry(p,d,pgc,d->U,d->V,d->W,d->eta);
     pnhfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
-    pnhfsf->wetdry(p,d,pgc,d->U,d->V,d->W,d->eta);
     pnhfmom->inidisc(p,d,pgc,pnhfsf);
-    
     
     pnhfprint->start(p,d,pgc,pflow);
 
