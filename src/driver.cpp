@@ -39,7 +39,7 @@ driver::driver(int& argc, char **argv)
     {
     cout<<endl<<"REEF3D (c) 2008-2023 Hans Bihs"<<endl;
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    sprintf(version,"v_230926");
+    sprintf(version,"v_230927");
     cout<<endl<<version<<endl<<endl;
     }
 

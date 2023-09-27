@@ -31,7 +31,7 @@ Author: Hans Bihs
 void sixdof_df_object::print_vtp(lexer *p, fdm *a, ghostcell *pgc)
 {
     // print normals
-    print_normals_vtp(p,a,pgc);
+    //print_normals_vtp(p,a,pgc);
     
     
 	int num=0;

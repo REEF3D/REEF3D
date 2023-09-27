@@ -46,6 +46,10 @@ nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	gcval_v=11;
 	gcval_w=12;
     
+    gcval_uh=20;
+	gcval_vh=21;
+	gcval_wh=22;
+    
     p->Darray(UHRK1,p->imax*p->jmax*(p->kmax+2));
     p->Darray(VHRK1,p->imax*p->jmax*(p->kmax+2));
     p->Darray(WHRK1,p->imax*p->jmax*(p->kmax+2));
@@ -156,9 +160,9 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 
 	pflow->P_relax(p,pgc,d->P);
 
-	pgc->start4V(p,UHRK1,gcval_u);
-    pgc->start4V(p,VHRK1,gcval_v);
-    pgc->start4V(p,WHRK1,gcval_w);
+	pgc->start4V(p,UHRK1,gcval_uh);
+    pgc->start4V(p,VHRK1,gcval_vh);
+    pgc->start4V(p,WHRK1,gcval_wh);
     
     clearrhs(p,d,pgc);
     
@@ -251,9 +255,9 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 
 	pflow->P_relax(p,pgc,d->P);
 
-	pgc->start4V(p,d->UH,gcval_u);
-    pgc->start4V(p,d->VH,gcval_v);
-    pgc->start4V(p,d->WH,gcval_w);
+	pgc->start4V(p,d->UH,gcval_uh);
+    pgc->start4V(p,d->VH,gcval_vh);
+    pgc->start4V(p,d->WH,gcval_wh);
     
     clearrhs(p,d,pgc);
 }

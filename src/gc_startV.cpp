@@ -293,28 +293,28 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
     {  
 
     // xxxxxxx
-        if(p->flag4[Im1JK]<0 && gcv==10 && p->B98<3)
+        if(p->flag4[Im1JK]<0 && (gcv==10 || gcv==20) && p->B98<3)
         {
         f[Im1JK] = 0.0;
         f[Im2JK] = 0.0;
         f[Im3JK] = 0.0;
         }
         
-        if(p->flag4[Im1JK]<0 && gcv!=10 && p->B98<3)
+        if(p->flag4[Im1JK]<0 && (gcv!=10 && gcv!=20) && p->B98<3)
         {
         f[Im1JK] = 0.0;
         f[Im2JK] = 0.0;
         f[Im3JK] = 0.0;
         }
           
-        if(p->flag4[Ip1JK]<0 && gcv==10 && p->B99<3)
+        if(p->flag4[Ip1JK]<0 && (gcv==10 || gcv==20) && p->B99<3)
         {
         f[Ip1JK] = 0.0;
         f[Ip2JK] = 0.0;
         f[Ip3JK] = 0.0;
         }
         
-        if(p->flag4[Ip1JK]<0 && gcv!=10 && p->B99<3)
+        if(p->flag4[Ip1JK]<0 && (gcv!=10 && gcv!=20) && p->B99<3)
         {
         f[Ip1JK] = 0.0;
         f[Ip2JK] = 0.0;
@@ -323,28 +323,28 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
         
         
     // yyyyy
-        if(p->flag4[IJm1K]<0 && p->j_dir==1 && gcv==11)
+        if(p->flag4[IJm1K]<0 && p->j_dir==1 && (gcv==11 || gcv==21))
         {
         f[IJm1K] = 0.0;
         f[IJm2K] = 0.0;
         f[IJm3K] = 0.0;
         }
         
-        if(p->flag4[IJm1K]<0 && p->j_dir==1 && gcv!=11)
+        if(p->flag4[IJm1K]<0 && p->j_dir==1 && (gcv!=11 && gcv!=21))
         {
         f[IJm1K] = 0.0;
         f[IJm2K] = 0.0;
         f[IJm3K] = 0.0;
         }
         
-        if(p->flag4[IJp1K]<0 && p->j_dir==1 && gcv==11)
+        if(p->flag4[IJp1K]<0 && p->j_dir==1 && (gcv==11 || gcv==21))
         {
         f[IJp1K] = 0.0;
         f[IJp2K] = 0.0;
         f[IJp3K] = 0.0;
         }
         
-        if(p->flag4[IJp1K]<0 && p->j_dir==1 && gcv!=11)
+        if(p->flag4[IJp1K]<0 && p->j_dir==1 && (gcv!=11 && gcv!=21))
         {
         f[IJp1K] = 0.0;
         f[IJp2K] = 0.0;
@@ -359,14 +359,21 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
         f[IJKp3] = 0.0;
         }
         
-        if(p->flag4[IJKp1]<0 && (gcv==10||gcv==11))
+        if(p->flag4[IJKp1]<0 && (gcv==10||gcv==11||gcv==20||gcv==21))
         {
         f[IJKp1] = f[IJK];
         f[IJKp2] = f[IJK];
         f[IJKp3] = f[IJK];
         }
         
-        if(p->flag4[IJKm1]<0 && (gcv==10||gcv==11||gcv==14))
+        if(p->flag4[IJKp1]<0 && gcv==12)
+        {
+        f[IJKp1] = f[IJK];
+        f[IJKp2] = f[IJK];
+        f[IJKp3] = f[IJK];
+        }
+        
+        if(p->flag4[IJKm1]<0 && (gcv==10||gcv==11||gcv==20||gcv==21||gcv==14))
         {
         f[IJKm1] = 0.0;
         f[IJKm2] = 0.0;

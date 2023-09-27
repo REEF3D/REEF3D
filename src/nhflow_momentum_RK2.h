@@ -58,7 +58,7 @@ private:
 	void krhs(lexer*,fdm_nhf*,ghostcell*);
     void clearrhs(lexer*,fdm_nhf*,ghostcell*);
 	
-	int gcval_u, gcval_v, gcval_w;
+	int gcval_u, gcval_v, gcval_w;    int gcval_uh, gcval_vh, gcval_wh;
 	double starttime;
     
     nhflow_convection *pweno;

@@ -1771,12 +1771,6 @@
           <File Name="6DOF_df_rotation.cpp"/>
           <File Name="6DOF_df_interface.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="GCIBM">
-          <VirtualDirectory Name="Print"/>
-          <VirtualDirectory Name="RayCast"/>
-          <VirtualDirectory Name="Forces"/>
-          <VirtualDirectory Name="Objects"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="Net">
           <VirtualDirectory Name="StaticSheet">
             <File Name="net_sheet_print.cpp"/>
