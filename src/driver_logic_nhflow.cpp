@@ -43,7 +43,7 @@ void driver::logic_nhflow()
 	if(p->mpirank==0)
     cout<<"creating objects"<<endl;
     
-    p->phimean = p->F60;
+    p->phimean = p->wd = p->F60;
     
 // nhflow
     if(p->A10!=5)

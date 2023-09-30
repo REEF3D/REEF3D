@@ -58,6 +58,8 @@ nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc)
     p->Darray(VDIFF,p->imax*p->jmax*(p->kmax+2));
     p->Darray(WDIFF,p->imax*p->jmax*(p->kmax+2));
     
+    sigma_ini(p,d,pgc,d->eta);
+    
 }
 
 nhflow_momentum_RK2::~nhflow_momentum_RK2()
@@ -394,7 +396,6 @@ void nhflow_momentum_RK2::clearrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 void nhflow_momentum_RK2::inidisc(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_fsf *pfsf)
 {
     pfsf->wetdry(p,d,pgc,d->U,d->V,d->W,d->WL);
-    sigma_ini(p,d,pgc,d->eta);
     sigma_update(p,d,pgc,d->WL);
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
     pfsf->kinematic_bed(p,d,d->U,d->V,d->W);

@@ -77,11 +77,10 @@ void nhflow_sigma::sigma_ini(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta)
     pgc->gcsl_start4(p,d->By,50);
     
     SLICELOOP4
-    p->sigz[IJ] = 1.0/WLVL;
+    p->sigz[IJ] = 0.0;
     
     SLICELOOP4
     p->sigt[FIJK] = 0.0;
 
 }
-
 

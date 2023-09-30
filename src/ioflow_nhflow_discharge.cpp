@@ -40,14 +40,13 @@ void ioflow_f::discharge_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc)
 	if(p->count>0)
 	if(p->mpirank==0 && (p->count%p->P12==0))
     {
-    cout<<"Inflow:  "<<setprecision(5)<<p->Qi<<" Ui: "<<p->Ua<<" Hi: "<<p->phimean<<endl;
+    cout<<"Inflow:  "<<setprecision(5)<<p->Qi<<" Ui: "<<p->Ua<<" Hi: "<<p->phimean<<" Ai: "<<Ai<<endl;
     cout<<"Outflow: "<<setprecision(5)<<p->Qo<<" Uo: "<<p->Uo<<" Ho: "<<p->phiout<<endl;
     }
     
     // patchBC
     //pBC->patchBC_discharge(p,a,pgc);
 }
-
 
 void ioflow_f::Qin_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
 {
@@ -66,6 +65,8 @@ void ioflow_f::Qin_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
         k=p->gcin[n][2];
         
         area=p->DYN[JP]*p->DZN[KP]*p->sigz[IJ];
+        
+        //cout<<"i: "<<i<<" j: "<<j<<" k: "<<k<<" area: "<<area<<" "<<p->sigz[IJ]<<endl;
 
         Ai+=area;
                 
@@ -77,6 +78,7 @@ void ioflow_f::Qin_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
     
     if(p->B60==1)
     p->Ui=p->W10/(Ai>1.0e-20?Ai:1.0e20); 
+    
     
     if(p->B60==2 || p->B60==4)
     p->Ui=hydrograph_ipol(p,pgc,hydro_in,hydro_in_count)/(Ai>1.0e-20?Ai:1.0e20);    
