@@ -56,6 +56,7 @@ void ioflow_f::Qin_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
     p->Ui=0.0;
 
     // in
+    count=0;
     for(n=0;n<p->gcin_count;n++)
     if(p->gcin[n][3]>0)
     {
@@ -64,13 +65,15 @@ void ioflow_f::Qin_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
         j=p->gcin[n][1];
         k=p->gcin[n][2];
         
-        area=p->DYN[JP]*p->DZN[KP]*p->sigz[IJ];
+        area=p->DYN[JP]*p->DZN[KP]*d->WL(i,j);
         
-        //cout<<"i: "<<i<<" j: "<<j<<" k: "<<k<<" area: "<<area<<" "<<p->sigz[IJ]<<endl;
+        //cout<<"i: "<<i<<" p->DYN[JP]: "<<p->DYN[JP]<<" k: "<<k<<" p->DZN[KP]*p->sigz[IJ]: "<<p->DZN[KP]*p->sigz[IJ]<<" "<<p->sigz[IJ]<<endl;
 
         Ai+=area;
                 
         p->Qi+=area*d->U[Im1JK];
+        
+        ++count;
     }
 
     Ai=pgc->globalsum(Ai);
@@ -96,6 +99,7 @@ void ioflow_f::Qout_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
     Ao=0.0;
     p->Qo=0.0;
     p->Uo=0.0;
+    
 
     // out
     for(n=0;n<p->gcout_count;n++)
@@ -106,7 +110,7 @@ void ioflow_f::Qout_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
         j=p->gcout[n][1];
         k=p->gcout[n][2];
 
-        area=p->DYN[JP]*p->DZN[KP]*p->sigz[IJ];
+        area=p->DYN[JP]*p->DZN[KP]*d->WL(i,j);
 
         Ao+=area;
         p->Qo+=area*d->U[IJK];
@@ -131,4 +135,5 @@ void ioflow_f::Qout_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	
 	if(p->mpirank==0 && (p->B60==3 || p->B60==4))
     cout<<"Qo_ipol: "<<hydrograph_ipol(p,pgc,hydro_out,hydro_out_count)<<endl;
+    
 }

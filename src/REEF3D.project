@@ -2864,6 +2864,7 @@
             <File Name="inflow_sflow_inflow.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="NHFLOW">
+            <File Name="ioflow_nhflow_waterlevel.cpp"/>
             <File Name="ioflow_nhflow_velsource.cpp"/>
             <File Name="ioflow_nhflow_ini.cpp"/>
             <File Name="ioflow_nhflow_discharge.cpp"/>

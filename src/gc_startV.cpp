@@ -145,7 +145,7 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
         
         if(p->flag1[Ip1JK]<0 && gcv==14 && outflow==1)
         {
-        f[Ip1JK] = d->UH[Ip1JK];
+        f[Ip1JK] = d->UH[IJK];
         }
         
     // e

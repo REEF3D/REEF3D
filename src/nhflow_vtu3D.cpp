@@ -242,7 +242,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     }
     
     //
-    pgc->gcsl_start4(p,d->WL,50);
+    //pgc->gcsl_start4(p,d->WL,50);
     pgc->gcsl_start4(p,d->bed,50);
     pgc->gcsl_start4(p,d->breaking_print,50);
     pgc->start4V(p,d->test,50);

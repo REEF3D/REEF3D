@@ -1025,3 +1025,8 @@ void ioflow_v::waterlevel2D(lexer *p, fdm2D *b, ghostcell* pgc, slice &eta)
 {
     pBC->patchBC_waterlevel2D(p,b,pgc,eta);
 }
+
+void ioflow_v::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
+{
+
+}

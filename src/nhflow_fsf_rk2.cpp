@@ -72,7 +72,8 @@ void nhflow_fsf_f::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     WLRK1(i,j) = d->WL(i,j) + p->dt*K(i,j);
      
     pflow->WL_relax(p,pgc,WLRK1,d->depth);
-    pgc->gcsl_start4(p,WLRK1,1);
+    pflow->fsfinflow_nhflow(p,d,pgc,WLRK1);
+    pgc->gcsl_start4(p,WLRK1,gcval_eta);
     
     SLICELOOP4
     {
@@ -86,7 +87,7 @@ void nhflow_fsf_f::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     SLICELOOP4
     d->detadt(i,j) = K(i,j);
     
-    pgc->gcsl_start4(p,d->eta,1);
+    pgc->gcsl_start4(p,d->eta,gcval_eta);
     pgc->gcsl_start4(p,d->detadt,1);
     
     wetdry(p,d,pgc,U,V,W,WLRK1);
@@ -106,7 +107,8 @@ void nhflow_fsf_f::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     d->WL(i,j) = 0.5*d->WL(i,j) + 0.5*WLRK1(i,j) + 0.5*p->dt*K(i,j);
 
     pflow->WL_relax(p,pgc,d->WL,d->depth);
-    pgc->gcsl_start4(p,d->WL,1);
+    pflow->fsfinflow_nhflow(p,d,pgc,d->WL);
+    pgc->gcsl_start4(p,d->WL,gcval_eta);
     
     //SLICELOOP4
     //d->eta_n(i,j) = d->eta(i,j);
@@ -120,7 +122,7 @@ void nhflow_fsf_f::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     SLICELOOP4
     d->detadt(i,j) = K(i,j);
     
-    pgc->gcsl_start4(p,d->eta,1);
+    pgc->gcsl_start4(p,d->eta,gcval_eta);
     pgc->gcsl_start4(p,d->detadt,1);
     
     LOOP

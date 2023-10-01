@@ -99,7 +99,7 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     if(p->wet[IJ]==0)
     d->omegaF[FIJK] = 0.0;
         
-    pgc->gcsl_start4(p,d->eta,1);
+    pgc->gcsl_start4(p,d->eta,gcval_eta);
     pgc->gcsl_start4Vint(p,p->wet,50);
     
     wetdry_fluxes(p,d,pgc,WL,d->U,d->V,d->W,UH,VH,WH);

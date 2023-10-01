@@ -63,8 +63,8 @@ void nhflow_vtp_fsf::start(lexer *p, fdm_nhf *d, ghostcell* pgc)
 
 void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 {	
-    //pgd->gcsl_start4(p,d->eta,gcval_eta);
-    //pgd->gcsl_start4(p,d->Fifsf,gcval_fifsf);
+    //pgc->gcsl_start4(p,d->eta,gcval_eta);
+    //pgc->gcsl_start4(p,d->Fifsf,gcval_fifsf);
     
     pgc->gcsl_start4(p,d->test2D,1);
     

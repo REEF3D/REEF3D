@@ -122,6 +122,7 @@ public:
     virtual void isource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*)=0;
     virtual void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*)=0;
     virtual void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*)=0;
+    virtual void fsfinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,slice&)=0;
 
 
     virtual void ini2D(lexer*,fdm2D*,ghostcell*)=0;

@@ -568,3 +568,8 @@ void ioflow_gravity::waterlevel2D(lexer *p, fdm2D *b, ghostcell* pgc, slice &eta
 {
     
 }
+
+void ioflow_gravity::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
+{
+
+}

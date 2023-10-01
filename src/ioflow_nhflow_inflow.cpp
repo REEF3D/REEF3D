@@ -57,10 +57,6 @@ void ioflow_f::inflow_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U, dou
         WH[Im2JK]=0.0;
         WH[Im3JK]=0.0;
     }
-    
-    if(p->mpirank==0)
-    cout<<"Ai: "<<Ai<<" p->Qi: "<<p->Qi<<" p->Ui: "<<p->Ui<<" W10: "<<p->W10<<endl;
-
 }
 
 void ioflow_f::rkinflow_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)

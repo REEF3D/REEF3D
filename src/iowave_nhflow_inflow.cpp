@@ -102,3 +102,11 @@ void iowave::nhflow_inflow_plain(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U
         WH[Im3JK]=0.0;
     }
 }
+
+void iowave::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
+{
+    
+    
+    
+    
+}
