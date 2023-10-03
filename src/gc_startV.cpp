@@ -496,60 +496,6 @@ void ghostcell::start7P(lexer *p, double *f, int gcv)
     gcparax7co(p,f,7);
 	p->xtime+=timer()-starttime;
     }
-    
-    /*
-    starttime=timer();
-    FLOOP
-    {  
-        //if(p->B98!=3||bc(i-1,j)==0)
-    // xxxxxxx
-        if(p->flag7[FIm1JK]<0)
-        {
-        f[FIm1JK] = f[FIJK];
-        f[FIm2JK] = f[FIJK];
-        f[FIm3JK] = f[FIJK];
-        }
-
-        if(p->flag7[FIp1JK]<0)
-        {
-        f[FIp1JK] = f[FIJK];
-        f[FIp2JK] = f[FIJK];
-        f[FIp3JK] = f[FIJK];
-        }
-        
-        
-    // yyyyy
-        if(p->flag7[FIJm1K]<0 && p->j_dir==1)
-        {
-        f[FIJm1K] = f[FIJK];
-        f[FIJm2K] = f[FIJK];
-        f[FIJm3K] = f[FIJK];
-        }
-        
-        if(p->flag7[FIJp1K]<0 && p->j_dir==1)
-        {
-        f[FIJp1K] = f[FIJK];
-        f[FIJp2K] = f[FIJK];
-        f[FIJp3K] = f[FIJK];
-        }
-        
-    // zzzzz
-        if(p->flag7[FIJKp1]<0)
-        {
-        f[FIJK] = 0.0;
-        f[FIJKp1] = 0.0;
-        f[FIJKp2] = 0.0;
-        f[FIJKp3] = 0.0;
-        }
-        
-        if(p->flag7[FIJKm1]<0)
-        {
-        f[FIJKm1] = f[FIJK];
-        f[FIJKm2] = f[FIJK];
-        f[FIJKm3] = f[FIJK];
-        }
-    }
-    p->gctime+=timer()-starttime;*/
 }
 
 void ghostcell::start7S(lexer *p, double *f, int gcv)
