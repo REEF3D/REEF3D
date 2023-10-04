@@ -62,7 +62,7 @@ void ioflow_f::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
         i=p->gcslout[n][0];
         j=p->gcslout[n][1];
         
-        if(p->F50==2 || p->F50==4)
+        if(p->F50==2 || p->F50==4)
         {
         WL(i,j) = wsfout-d->bed(i,j);
         WL(i+1,j) = wsfout-d->bed(i,j);
