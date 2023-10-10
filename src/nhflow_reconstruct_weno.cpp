@@ -417,23 +417,12 @@ inline double nhflow_reconstruct_weno::limiter(double v1, double v2)
 {
     val=0.0;
     
-    r=v2/(fabs(v1)>1.0e-10?v1:1.0e20);
+    denom = fabs(v1) + fabs(v2);
+    
+    denom = fabs(denom)>1.0e-10?denom:1.0e10;
+    
+    val =  (v1*fabs(v2) + fabs(v1)*v2)/denom;
 
-    if(r<0.0)
-    phi = 0.0;
-    
-    if(r>=0.0 && r<0.5)
-    phi = 2.0*r;
-    
-    if(r>=0.5 && r<1.0)
-    phi = 1.0;
-    
-    if(r>=1.0)
-    phi = MIN(MIN(r,2.0), 2.0/(1.0+r));
-    
-    val = 0.5*phi*(v1+v2);
-
-    
     return val;
 }
 
