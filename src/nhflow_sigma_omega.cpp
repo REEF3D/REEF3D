@@ -118,7 +118,7 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     
     d->omegaF[FIJKp1] =   d->omegaF[FIJK]
                         
-                        - p->DZN[KP]*(d->detadt_n(i,j) 
+                        - p->DZN[KP]*(d->detadt(i,j) 
                         
                         + fac*((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir)
                         
