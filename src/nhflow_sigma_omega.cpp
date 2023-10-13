@@ -112,6 +112,7 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     FLOOP
     d->omegaF[FIJK] = 0.0;
     
+    /*
     LOOP
     {
     fac = p->DZN[KP1]/(p->DZN[KP1]+p->DZN[KP]);
@@ -123,6 +124,15 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
                         + fac*((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir)
                         
                         + (1.0-fac)*((d->Fx[IJKp1] - d->Fx[Im1JKp1])/p->DXN[IP]  + (d->Fy[IJKp1] - d->Fy[IJm1Kp1])/p->DYN[JP]*p->y_dir));
+    }*/
+    
+    LOOP
+    {
+    d->omegaF[FIJKp1] =   d->omegaF[FIJK]
+                        
+                        - p->DZN[KP]*(d->detadt(i,j) 
+                        
+                        + (d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
     }
                         
     }
