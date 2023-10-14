@@ -418,7 +418,7 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
         
         
         // NSEWAVE
-        if(p->A10==51)
+        if(p->A10==55)
         for(n=0;n<p->gcslawa1_count;++n)
 		{
 		i=p->gcslawa1[n][0];

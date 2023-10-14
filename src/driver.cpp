@@ -38,7 +38,7 @@ driver::driver(int& argc, char **argv)
 	if(p->mpirank==0)
     {
     cout<<endl<<"REEF3D (c) 2008-2023 Hans Bihs"<<endl;
-    sprintf(version,"v_231013");
+    sprintf(version,"v_231014");
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
     cout<<endl<<version<<endl<<endl;
     }
@@ -60,7 +60,7 @@ driver::driver(int& argc, char **argv)
     if(p->A10==4)
     cout<<endl<<"REEF3D::PTF" <<endl<<endl;
 
-    if(p->A10==51)
+    if(p->A10==55)
     cout<<endl<<"REEF3D::NSEWAVE"<<endl<<endl;
 
     if(p->A10==5)
@@ -112,7 +112,7 @@ driver::driver(int& argc, char **argv)
     }
 
     // fixed grid - PTF & NSEWAVE & CFD
-    if(p->A10==4 || p->A10==51 || p->A10==6)
+    if(p->A10==4 || p->A10==55 || p->A10==6)
     {
         p->flagini();
         p->gridini_patchBC();
@@ -127,7 +127,7 @@ driver::driver(int& argc, char **argv)
         if(p->A10==4)
         ptf_driver();
 
-        if(p->A10==51)
+        if(p->A10==55)
         nsewave_driver();
 
         if(p->A10==6)
@@ -150,7 +150,6 @@ void driver::cfd_driver()
     driver_ini_cfd();
 
     // Start MAINLOOP
-    
     if(p->X10==0 && p->Z10==0 && p->G3==1 && p->N40==4)
     loop_cfd_sf(a);
 

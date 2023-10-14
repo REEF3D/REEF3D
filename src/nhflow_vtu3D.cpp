@@ -158,7 +158,7 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
 		pfsf->start(p,d,pgc);
 		}
 
-        if(p->P180==1 && p->P185>0)
+         if(p->P180==1 && p->P185>0)
 		for(int qn=0; qn<p->P185; ++qn)
 		if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P185_ts[qn] && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
 		{
