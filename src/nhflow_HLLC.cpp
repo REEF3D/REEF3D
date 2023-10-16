@@ -194,6 +194,7 @@ double nhflow_HLLC::HLLC(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue
             
             else
             d->Fx[IJK] = d->Fn[IJK] + d->Sn[IJK]*(FnS - Un[IJK]);
+            
         }
         
         if(p->wet[IJ]==0 || p->wet[Ip1J]==0 || p->wet[Im1J]==0 || p->wet[Ip2J]==0)

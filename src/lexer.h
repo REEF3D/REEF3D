@@ -653,10 +653,6 @@ public:
     
     // free surface
     double psi,psi0;
-
-
-	int cctt;
-	
 	int pressval;
 
 // Boundary

@@ -44,10 +44,7 @@ void nhflow_fsf_f::rk3_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     pgc->gcsl_start4(p,WLRK1,gcval_eta);
     
     SLICELOOP4
-    {
     d->eta_n(i,j) = d->eta(i,j);
-    d->detadt_n(i,j) = d->detadt(i,j);
-    }
     
     SLICELOOP4
     d->eta(i,j) = WLRK1(i,j) - d->depth(i,j);
@@ -77,12 +74,6 @@ void nhflow_fsf_f::rk3_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     pflow->WL_relax(p,pgc,WLRK2,d->depth);
     pflow->fsfinflow_nhflow(p,d,pgc,WLRK2);
     pgc->gcsl_start4(p,WLRK2,gcval_eta);
-    
-    //SLICELOOP4
-    //d->eta_n(i,j) = d->eta(i,j);
-    
-    SLICELOOP4
-    d->detadt_n(i,j) = d->detadt(i,j);
     
     SLICELOOP4
     d->eta(i,j) = WLRK2(i,j) - d->depth(i,j);
@@ -116,10 +107,7 @@ void nhflow_fsf_f::rk3_step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     
     //SLICELOOP4
     //d->eta_n(i,j) = d->eta(i,j);
-    
-    SLICELOOP4
-    d->detadt_n(i,j) = d->detadt(i,j);
-    
+
     SLICELOOP4
     d->eta(i,j) = d->WL(i,j) - d->depth(i,j);
     
