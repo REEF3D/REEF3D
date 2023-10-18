@@ -71,7 +71,7 @@ public:
     vec2D xvec,rvec;
     
     // 3D array
-    double *U,*V,*W,*omegaF;
+    double *U,*V,*W,*omegaF,*omegaF1;
     double *UH,*VH,*WH;
     
     double *P,*ro,*visc,*eddyv;

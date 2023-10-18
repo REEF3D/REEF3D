@@ -109,32 +109,37 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     
     if(p->A517==3)
     {
-    FLOOP
-    d->omegaF[FIJK] = 0.0;
-    
-    /*
-    LOOP
-    {
-    fac = p->DZN[KP1]/(p->DZN[KP1]+p->DZN[KP]);
-    
-    d->omegaF[FIJKp1] =   d->omegaF[FIJK]
-                        
-                        - p->DZN[KP]*(d->detadt(i,j) 
-                        
-                        + fac*((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir)
-                        
-                        + (1.0-fac)*((d->Fx[IJKp1] - d->Fx[Im1JKp1])/p->DXN[IP]  + (d->Fy[IJKp1] - d->Fy[IJm1Kp1])/p->DYN[JP]*p->y_dir));
-    }*/
-    
-    LOOP
-    {
-    d->omegaF[FIJKp1] =   d->omegaF[FIJK]
-                        
-                        - p->DZN[KP]*(d->detadt(i,j) 
-                        
-                        + (d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
+        FLOOP
+        d->omegaF[FIJK] = 0.0;
+        
+        
+        LOOP
+        {
+        d->omegaF[FIJKp1] =   d->omegaF[FIJK]
+                            
+                            - p->DZN[KP]*(d->detadt(i,j) 
+                            
+                            + (d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
+        }
     }
-                        
+    
+    if(p->A517==4)
+    {
+        FLOOP
+        {
+        d->omegaF[FIJK] = d->omegaF1[FIJK];
+        d->omegaF1[FIJK] = 0.0;
+        }
+        
+        
+        LOOP
+        {
+        d->omegaF1[FIJKp1] =   d->omegaF1[FIJK]
+                            
+                            - p->DZN[KP]*(d->detadt_n(i,j) 
+                            
+                            + (d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
+        }
     }
       
     GC4LOOP

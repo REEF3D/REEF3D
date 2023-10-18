@@ -41,8 +41,7 @@ public:
 
     double *UDIFF;
     double *VDIFF;
-    double *WDIFF;
-    
+    double *WDIFF;
     double *UHRK1;
     double *VHRK1;
     double *WHRK1;
