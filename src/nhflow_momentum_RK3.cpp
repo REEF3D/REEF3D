@@ -93,7 +93,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     pconvec->start(p,d,d->U,4,d->U,d->V,d->W,d->eta);
     pfsf->rk3_step1(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK2, 1.0);
-    omega_update(p,d,pgc,d->U,d->V,d->W);
+    omega_update(p,d,pgc,WLRK1,d->U,d->V,d->W);
     
     p->fsftime+=pgc->timer()-starttime;
     
@@ -184,7 +184,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     pconvec->start(p,d,UHRK1,4,d->U,d->V,d->W,WLRK1);
     pfsf->rk3_step2(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK2, 0.25);
-    omega_update(p,d,pgc,d->U,d->V,d->W);
+    omega_update(p,d,pgc,WLRK2,d->U,d->V,d->W);
     
     p->fsftime+=pgc->timer()-starttime;
     
@@ -274,7 +274,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     pconvec->start(p,d,UHRK2,4,d->U,d->V,d->W,WLRK2);
     pfsf->rk3_step3(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK2, 2.0/3.0);
-    omega_update(p,d,pgc,d->U,d->V,d->W);
+    omega_update(p,d,pgc,d->WL,d->U,d->V,d->W);
     
     p->fsftime+=pgc->timer()-starttime;
     

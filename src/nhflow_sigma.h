@@ -45,7 +45,7 @@ public:
     virtual void sigma_ini(lexer*, fdm_nhf*, ghostcell*, slice&);
     virtual void sigma_update(lexer*, fdm_nhf*, ghostcell*, slice&);
     
-    void omega_update(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
+    void omega_update(lexer*,fdm_nhf*,ghostcell*,slice&,double*,double*,double*);
 
         
 private:

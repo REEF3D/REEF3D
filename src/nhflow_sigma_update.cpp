@@ -116,8 +116,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     
     if(p->wet[IJ]==1)
     p->sigy[FIJK] = (1.0 - p->sig[FIJK])*(d->By(i,j)/WLVL) - p->sig[FIJK]*(d->Ey(i,j)/WLVL);
-    }
-    
+    }    
     
     // sigz
     SLICELOOP4

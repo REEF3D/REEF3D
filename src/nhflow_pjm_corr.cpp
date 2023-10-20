@@ -154,7 +154,7 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
     V1 = (1.0-fac)*V[IJm1K] + fac*V[IJm1Km1]; 
     V2 = (1.0-fac)*V[IJp1K] + fac*V[IJp1Km1]; 
     
-         
+    
     d->rhsvec.V[n] =      -  ((U2-U1)/(p->DXP[IP] + p->DXP[IM1])
                             + p->sigx[FIJK]*(U[IJK]-U[IJKm1])/p->DZP[KM1]
                             

@@ -233,8 +233,6 @@ double nhflow_HLL::HLL_E(lexer *p,fdm_nhf *d)
     ++q;
     }
     
-    //cout<<p->mpirank<<" q: "<<q<<endl;
-    
     // HLL flux y-dir
     if(p->j_dir==1)
     {

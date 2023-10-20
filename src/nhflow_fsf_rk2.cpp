@@ -113,7 +113,6 @@ void nhflow_fsf_f::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     //SLICELOOP4
     //d->eta_n(i,j) = d->eta(i,j);
     
-    
     SLICELOOP4
     d->eta(i,j) = d->WL(i,j) - d->depth(i,j);
     

@@ -30,7 +30,7 @@ Author: Hans Bihs
 #define HXP (fabs(0.5*(d->WL(i,j)+d->WL(i+1,j)))>1.0e-20?0.5*(d->WL(i,j)+d->WL(i+1,j)):1.0e20)
 #define HY (fabs(d->hy(i,j))>1.0e-20?d->hy(i,j):1.0e20)
 
-void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W)
+void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, double *U, double *V, double *W)
 { 
     double wval,Pval,Qval,Rval,fac;
     
@@ -76,8 +76,8 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
             Qval = 0.5*(V[IJK]+V[IJKm1]);
             Rval = 0.5*(W[IJK]+W[IJKm1]);
         
-        // omega
-            d->omegaF[FIJK] =  d->WL(i,j)*(p->sigt[FIJK]
+            // omega
+            d->omegaF[FIJK] =  WL(i,j)*(p->sigt[FIJK]
                             
                             +  Pval*p->sigx[FIJK]
                             
@@ -102,7 +102,7 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
                         
                         - p->DZN[KP]*(d->detadt(i,j) 
                         
-                        + ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir));
+                        + (d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
         }
         
     }
@@ -126,15 +126,11 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     if(p->A517==4)
     {
         FLOOP
-        {
-        d->omegaF[FIJK] = d->omegaF1[FIJK];
-        d->omegaF1[FIJK] = 0.0;
-        }
-        
+        d->omegaF[FIJK] = 0.0;
         
         LOOP
         {
-        d->omegaF1[FIJKp1] =   d->omegaF1[FIJK]
+        d->omegaF[FIJKp1] =   d->omegaF[FIJK]
                             
                             - p->DZN[KP]*(d->detadt_n(i,j) 
                             
@@ -149,13 +145,11 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
     
-        
         k+=1;
         d->omegaF[FIJK] =  0.0;
         d->omegaF[FIJKp1] =  0.0;
         d->omegaF[FIJKp2] =  0.0;
         d->omegaF[FIJKp3] =  0.0;
-        
     }
     
     GC4LOOP
@@ -164,7 +158,6 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     i=p->gcb4[n][0];
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
-        
         
         d->omegaF[FIJK] =  0.0;
         d->omegaF[FIJKm1] =  0.0;
