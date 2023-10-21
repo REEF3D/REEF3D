@@ -277,7 +277,7 @@ void nhflow_reconstruct_weno::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf
 	is_min_y();
 	weight_min_y();
 	
-	Fe[IJK] =    w1y*(q4 + qfy[JP][vf][0][0]*(q3-q4) - qfy[JP][vf][0][1]*(q5-q4))
+	Fe[IJK] =     w1y*(q4 + qfy[JP][vf][0][0]*(q3-q4) - qfy[JP][vf][0][1]*(q5-q4))
     
                 + w2y*(q3 + qfy[JP][vf][1][0]*(q4-q3) - qfy[JP][vf][1][1]*(q2-q3))
           
@@ -318,8 +318,8 @@ void nhflow_reconstruct_weno::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nhf
     // reconstruct
     WLOOP 
     {
-    Fb[IJK] = (Fz[IJK]    + 0.5*p->DZP[KP]*DFDX[IJK]); 
-    Ft[IJK] = (Fz[IJKp1]  - 0.5*p->DZP[KP1]*DFDX[IJKp1]);
+    Fb[IJK] = (Fz[IJK]    + 0.5*p->DZP[KM1]*DFDX[IJK]); 
+    Ft[IJK] = (Fz[IJKp1]  - 0.5*p->DZP[KP]*DFDX[IJKp1]);
     }
 }
 
