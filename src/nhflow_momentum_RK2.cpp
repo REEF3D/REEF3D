@@ -59,7 +59,6 @@ nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc)
     p->Darray(WDIFF,p->imax*p->jmax*(p->kmax+2));
     
     sigma_ini(p,d,pgc,d->eta);
-    
 }
 
 nhflow_momentum_RK2::~nhflow_momentum_RK2()
