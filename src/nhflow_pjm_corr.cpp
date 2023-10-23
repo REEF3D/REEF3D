@@ -130,6 +130,7 @@ void nhflow_pjm_corr::wcorr(lexer* p, fdm_nhf *d, slice &WL, double *WH, double 
 	WH[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*((PCORR[FIJKp1]-PCORR[FIJK])/(p->DZN[KP]));
 }
 
+/*
 void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
 {
     double U1,U2,V1,V2,fac;
@@ -164,15 +165,18 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
                             
     ++n;
     }
-}
+}*/
 
-/*
+
 void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
 {
     double U1,U2,V1,V2,fac;
     double Um1,Up,Up1;
+    double Vp;
     double dz1,dz2;
-    double dUdz;
+    double dUdz,dVdz;
+    double z,z0,z1,z2;
+    double f0,f1,f2;
     
     n=0;
     FLOOP
@@ -194,26 +198,61 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
     V1 = (1.0-fac)*V[IJm1K] + fac*V[IJm1Km1]; 
     V2 = (1.0-fac)*V[IJp1K] + fac*V[IJp1Km1];     
     
-    Um1 = U[IJKm1];
+    /*Um1 = U[IJKm1];
     Up1 = U[IJK];
     Up = (p->DZN[KP]*Um1 + p->DZN[KM1]*Up1)/(p->DZN[KM1]+p->DZN[KP]);
     
     dz1 = 0.5*p->DZN[KM1];
     dz2 = 0.5*p->DZN[KP];
     
-    dUdz = (Up1*dz1*dz1 - Um1*dz2*dz2 + Up*(dz2*dz2 - dz1*dz1))/(dz1*dz2*(dz1+dz2));
-         
+    dUdz = (Up1*dz1*dz1 - Um1*dz2*dz2 + Up*(dz2*dz2 - dz1*dz1))/(dz1*dz2*(dz1+dz2));*/
+    
+    z0 = p->ZP[KM2];
+    z1 = p->ZP[KM1];
+    z2 = p->ZP[KP];
+    z  = p->ZP[KP] - p->DZN[KP];
+    
+    f0 = U[IJKm2];
+    f1 = U[IJKm1];
+    f2 = U[IJK];
+    
+    Up = f0*(z-z1)*(z-z2)/((z0-z1)*(z0-z2)) + f1*(z-z0)*(z-z2)/((z1-z0)*(z1-z2)) + f2*(z-z0)*(z-z1)/((z2-z0)*(z2-z1));
+    
+    
+    f0 = V[IJKm2];
+    f1 = V[IJKm1];
+    f2 = V[IJK];
+    
+    Vp = f0*(z-z1)*(z-z2)/((z0-z1)*(z0-z2)) + f1*(z-z0)*(z-z2)/((z1-z0)*(z1-z2)) + f2*(z-z0)*(z-z1)/((z2-z0)*(z2-z1));
+    
+    /*
+    z0 = p->ZP[KM1];
+    z1 = p->ZP[KP];
+    z  = p->ZP[KP] - p->DZN[KP];
+    
+    f0 = U[IJKm1];
+    f1 = U[IJK];
+
+    
+    Up = f0*(z-z1)/(z0-z1) + f1*(z-z0)/(z1-z0);*/
+    
+    dUdz = (U[IJK] - Up)/p->DZN[KP];
+    
+    dVdz = (V[IJK] - Vp)/p->DZN[KP];
+    
+    //dUdz = (U[IJK] - U[IJKm1])/p->DZN[KP];
+     
     d->rhsvec.V[n] =      -  ((U2-U1)/(p->DXP[IP] + p->DXP[IM1])
                             + p->sigx[FIJK]*dUdz
                             
                             + (V2-V1)/(p->DYP[JP] + p->DYP[JM1])
-                            + p->sigy[FIJK]*(V[IJK]-V[IJKm1])/p->DZP[KM1]
+                            + p->sigy[FIJK]*dVdz
 
                             + p->sigz[IJ]*(W[IJK]-W[IJKm1])/p->DZP[KM1])/(alpha*p->dt);
                             
     ++n;
     }
-}*/
+}
 
 void nhflow_pjm_corr::bedbc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W,double alpha)
 {
