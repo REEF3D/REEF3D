@@ -209,7 +209,7 @@ double nhflow_HLL::HLL(lexer *p,fdm_nhf *d, double *Us, double *Un, double *Ue, 
     }
 }
 
-double nhflow_HLL::HLL_E(lexer *p,fdm_nhf *d)
+double nhflow_HLL::HLL_E(lexer *p, fdm_nhf *d)
 {
     int q=0;
     
