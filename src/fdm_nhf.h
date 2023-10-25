@@ -62,10 +62,11 @@ public:
     slice4 vb;
     slice4 test2D;
     
+    slice4 dwdt, wbed;
+    
     slice4 breaking_print,Hs;
     
     // NHFLOW
-    slice4 wbed;
     
     vec rhsvec;
     vec2D xvec,rvec;
