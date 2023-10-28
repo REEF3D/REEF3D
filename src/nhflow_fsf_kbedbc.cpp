@@ -95,11 +95,6 @@ void nhflow_fsf_f::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, dou
         d->W[IJKm3] = wval;
         }
         
-    w_n = d->wbed(i,j);
-    d->wbed(i,j) = wval;
-        
-    d->dwdt(i,j) = (wval - w_n)/(p->dt);
-        
     }
 }
 
