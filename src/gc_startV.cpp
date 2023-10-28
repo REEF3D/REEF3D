@@ -494,6 +494,27 @@ void ghostcell::start7V(lexer *p, double *f, sliceint &bc, int gcv)
 
 void ghostcell::start7P(lexer *p, double *f, int gcv)
 {
+    FLOOP
+    {  
+        if(p->flag7[FIm1JK]<0)
+        f[FIm1JK] = f[FIJK];
+
+        if(p->flag7[FIp1JK]<0)
+        f[FIp1JK] = f[FIJK];
+        
+        if(p->flag7[FIJm1K]<0)
+        f[FIJm1K] = f[FIJK];
+        
+        if(p->flag7[FIJp1K]<0)
+        f[FIJp1K] = f[FIJK];
+        
+        if(p->flag7[FIJKm1]<0)
+        f[FIJKm1] = f[FIJK];
+
+        if(p->flag7[FIJKp1]<0)
+        f[FIJKp1] = 0.0;
+    }
+    
     if(p->M10>0)
     {
     starttime=timer();

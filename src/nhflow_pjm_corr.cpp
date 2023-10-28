@@ -185,6 +185,8 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
     PCORR[FIJK]=0.0;
     ++n;
     }
+    
+    pgc->start7P(p,PCORR,gcval_press);
 
     n=0;
     LOOP
@@ -226,6 +228,16 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
 
     
     Up = f0*(z-z1)/(z0-z1) + f1*(z-z0)/(z1-z0);*/
+    
+    
+    /*Um1 = U[IJKm1];
+    Up1 = U[IJK];
+    Up = (p->DZN[KP]*Um1 + p->DZN[KM1]*Up1)/(p->DZN[KM1]+p->DZN[KP]);
+    
+    dz1 = 0.5*p->DZN[KM1];
+    dz2 = 0.5*p->DZN[KP];
+    
+    dUdz = (Up1*dz1*dz1 - Um1*dz2*dz2 + Up*(dz2*dz2 - dz1*dz1))/(dz1*dz2*(dz1+dz2));*/
     
     dUdz = (U[IJK] - Up)/p->DZN[KP];
     
