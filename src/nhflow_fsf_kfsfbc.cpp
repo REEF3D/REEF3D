@@ -90,7 +90,7 @@ void nhflow_fsf_f::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, dou
         d->Wt[IJKp1] = wval;
         d->Wt[IJKp2] = wval;
         
-        if(p->A516==4)
+        if(p->A515==4)
         {
         d->W[IJK] = wval;
         d->W[IJKp1] = wval;
