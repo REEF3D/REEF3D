@@ -315,7 +315,7 @@ void ghostcell::start3V(lexer *p, double *f, int gcv)
         
         if(p->flag3[IJKp1]<0 && gcv==10)
         {
-        f[IJKp1] = f[IJK];
+        f[IJKp1] = 0.0;//f[IJK];
         }
     }
     p->gctime+=timer()-starttime;
