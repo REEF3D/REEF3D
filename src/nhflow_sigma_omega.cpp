@@ -137,7 +137,8 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL,
                             + (d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
         }
     }
-      
+
+      /*
     GC4LOOP
     if(p->gcb4[n][3]==6 && p->gcb4[n][4]==3)
     {
@@ -150,6 +151,7 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL,
         d->omegaF[FIJKp1] =  0.0;
         d->omegaF[FIJKp2] =  0.0;
         d->omegaF[FIJKp3] =  0.0;
+        
     }
     
     GC4LOOP
@@ -163,7 +165,8 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL,
         d->omegaF[FIJKm1] =  0.0;
         d->omegaF[FIJKm2] =  0.0;
         d->omegaF[FIJKm3] =  0.0;
-    }
+        
+    }*/
     
 
     FLOOP

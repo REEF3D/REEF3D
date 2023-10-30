@@ -308,9 +308,14 @@ void ghostcell::start3V(lexer *p, double *f, int gcv)
         f[IJKm1] = 0.0;
         }
         
-        if(p->flag3[IJKp1]<0)
+        if(p->flag3[IJKp1]<0 && gcv!=10)
         {
         f[IJKp1] = 0.0;
+        }
+        
+        if(p->flag3[IJKp1]<0 && gcv==10)
+        {
+        f[IJKp1] = f[IJK];
         }
     }
     p->gctime+=timer()-starttime;
@@ -439,6 +444,15 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
         f[IJKp3] = f[IJK];
         }
         
+        if(p->A518==1)
+        if(p->flag4[IJKm1]<0 && (gcv==10||gcv==11||gcv==20||gcv==21||gcv==14))
+        {
+        f[IJKm1] = f[IJK];
+        f[IJKm2] = f[IJK];
+        f[IJKm3] = f[IJK];
+        }
+        
+        if(p->A518==2)
         if(p->flag4[IJKm1]<0 && (gcv==10||gcv==11||gcv==20||gcv==21||gcv==14))
         {
         f[IJKm1] = 0.0;
@@ -446,19 +460,34 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
         f[IJKm3] = 0.0;
         }
         
-        /*
-        if(p->flag4[IJKm1]<0 && (gcv==10||gcv==11||gcv==20||gcv==21||gcv==14))
-        {
-        f[IJKm1] = f[IJK];
-        f[IJKm2] = f[IJK];
-        f[IJKm3] = f[IJK];
-        }*/
+        
     }
     p->gctime+=timer()-starttime;
 }
 
 void ghostcell::start5V(lexer *p, double *f, int gcv)
 {    
+    LOOP
+    {  
+        if(p->flag4[Im1JK]<0)
+        f[Im1JK] = f[IJK];
+
+        if(p->flag4[Ip1JK]<0)
+        f[Ip1JK] = f[IJK];
+        
+        if(p->flag4[IJm1K]<0)
+        f[IJm1K] = f[IJK];
+        
+        if(p->flag4[IJp1K]<0)
+        f[IJp1K] = f[IJK];
+        
+        if(p->flag4[IJKm1]<0)
+        f[IJKm1] = f[IJK];
+
+        if(p->flag4[IJKp1]<0)
+        f[IJKp1] = f[IJK];
+    }
+    
     starttime=timer();
 	gcparaxV(p, f, gcv);
     gcparacoxV(p, f, gcv);
@@ -529,6 +558,27 @@ void ghostcell::start7P(lexer *p, double *f, int gcv)
 
 void ghostcell::start7S(lexer *p, double *f, int gcv)
 {
+    FLOOP
+    {  
+        if(p->flag7[FIm1JK]<0)
+        f[FIm1JK] = f[FIJK];
+
+        if(p->flag7[FIp1JK]<0)
+        f[FIp1JK] = f[FIJK];
+        
+        if(p->flag7[FIJm1K]<0)
+        f[FIJm1K] = f[FIJK];
+        
+        if(p->flag7[FIJp1K]<0)
+        f[FIJp1K] = f[FIJK];
+        
+        if(p->flag7[FIJKm1]<0)
+        f[FIJKm1] = f[FIJK];
+
+        if(p->flag7[FIJKp1]<0)
+        f[FIJKp1] = f[FIJK];
+    }
+    
     if(p->M10>0)
     {
     starttime=timer();

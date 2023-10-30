@@ -38,6 +38,15 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
                               ETAs(p),ETAn(p),ETAe(p),ETAw(p),
                               Ds(p),Dn(p),De(p),Dw(p),dfx(p),dfy(p)
 {    
+    p->Darray(p->sig, p->imax*p->jmax*(p->kmax+2));
+    p->Darray(p->sigx,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(p->sigy,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(p->sigz,p->imax*p->jmax);
+    p->Darray(p->sigt,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(p->sigxx,p->imax*p->jmax*(p->kmax+2));
+    
+    
+    
     p->Darray(U,p->imax*p->jmax*(p->kmax+2));
     p->Darray(V,p->imax*p->jmax*(p->kmax+2));
     p->Darray(W,p->imax*p->jmax*(p->kmax+2));

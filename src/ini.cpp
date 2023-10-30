@@ -106,6 +106,7 @@ void lexer::ini_default()
     A515=3;      // int NHFLOW KFSFBC scheme
     A516=3;      // int NFHLOW KFSFBED scheme
     A517=3;      // int NHFLOW omega_sig scheme
+    A518=2;      // int NHFLOW bed BC
     
     A520=2;		// int NFHLOW non-hydrostatic pressure scheme
     A521=0;		// int NFHLOW fsf ucorr
