@@ -280,7 +280,7 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
 	{
-	ffn=float(p->sl_ipol4(d->eta));
+	ffn=float(p->sl_ipol4eta_wd(p->wet,d->eta,d->bed));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -343,7 +343,7 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	}
     }
     
-    //  test
+    //  Hs
     if(p->P110==1)
     {
 	iin=4*(p->pointnum2D);
