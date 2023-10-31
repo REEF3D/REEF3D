@@ -129,20 +129,10 @@ double hires::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, f
 {
 
     udir=vdir=wdir=0.0;
-		
-        if(p->G2==0)
-        {
-        pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
-        pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
-        pflux->w_flux(a,ipol,wvel,kvel1,kvel2);
-        }
-        
-        if(p->G2==1)
-        {
-        pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
-        pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
-        pflux->w_flux(a,ipol,a->omega,kvel1,kvel2);
-        }
+
+    pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
+    pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
+    pflux->w_flux(a,ipol,wvel,kvel1,kvel2);
 		
 		// x-dir
         if(0.5*(ivel1+ivel2)>=0.0)

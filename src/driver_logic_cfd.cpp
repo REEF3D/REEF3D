@@ -676,6 +676,6 @@ void driver::patchBC_logic()
     if((p->B440>0 || p->B441>0 || p->B442>0) && p->A10==6)
     pBC = new patchBC(p,pgc);
 
-    if(p->B440==0 && p->B441==0 && p->B442==0)
+    if((p->B440==0 && p->B441==0 && p->B442==0) || (p->A10!=2 && p->A10!=6))
     pBC = new patchBC_void(p);
 }

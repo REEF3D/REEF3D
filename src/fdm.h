@@ -64,7 +64,6 @@ public:
 	field1 u,F;
 	field2 v,G;
 	field3 w,H;
-    field3 omega;
 	field4 press;
     field4 Fi;
 	field4 eddyv;

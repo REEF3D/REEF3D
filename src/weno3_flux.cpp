@@ -103,20 +103,9 @@ void weno3_flux::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field&
 
 double weno3_flux::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, field& wvel, double *DX,double *DY, double *DZ)
 {
-		if(p->G2==0)
-        {
         pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
         pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
         pflux->w_flux(a,ipol,wvel,kvel1,kvel2);
-        }
-        
-        if(p->G2==1)
-        {
-        pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
-        pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
-        pflux->w_flux(a,ipol,a->omega,kvel1,kvel2);
-        }
-
 		
 		i-=1;
 		fu1 = fx(p,a,b,uvel,ipol,ivel1);

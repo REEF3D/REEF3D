@@ -492,13 +492,6 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	++n;
 	}
 
-        // omega_sig
-	if(p->P72==1)
-	{
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	}
-
     // Fi
     if(p->A10==4)
 	{
@@ -621,12 +614,6 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     if(p->P71==1)
 	{
     result<<"<DataArray type=\"Float32\" Name=\"viscosity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	}
-
-    if(p->P72==1)
-	{
-    result<<"<DataArray type=\"Float32\" Name=\"omega_sig\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	}
 
@@ -800,18 +787,6 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
 	}
 
-//  omega_sig
-    if(p->P72==1)
-	{
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(p->ipol3(a->omega));
-	result.write((char*)&ffn, sizeof (float));
-	}
-	}
-
 //  Fi
     if(p->A10==4)
 	{
@@ -943,46 +918,12 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     phase = omega_y*p->simtime;
 
 
-/*
-    if(p->G2==1)
-    {
-    pgc->gcsl_start4(p,a->WL,50);
-    pgc->gcsl_start4(p,a->bed,50);
-
-    pgc->dgcslpol(p,a->WL,p->dgcsl4,p->dgcsl4_count,14);
-    pgc->dgcslpol(p,a->bed,p->dgcsl4,p->dgcsl4_count,14);
-
-    a->WL.ggcpol(p);
-    //a->test.ggcpol(p);
-
-    i=-1;
-    j=-1;
-    if(i+p->origin_i==-1 && j+p->origin_j==-1 )
-    a->WL(i,j) = a->WL(i+1,j+1);
-    }*/
-
-
 	iin=4*(p->pointnum)*3;
 	result.write((char*)&iin, sizeof (int));
     TPLOOP
 	{
-        if(p->G2==0)
-        zcoor=p->ZN[KP1];
-/*
-        if(p->G2==1)
-        {
-        zcoor = p->ZN[KP1]*a->WL(i,j) + a->bed(i,j);
-
-        if(p->wet[IJ]==0 && p->flagslice4[IJ]>0)
-        zcoor=a->bed(i,j);
-
-        if(i+p->origin_i==-1 && j+p->origin_j==-1 && p->wet[(0-p->imin)*p->jmax + (0-p->jmin)]==1)
-        zcoor = p->ZN[KP1]*a->WL(i,j) + a->bed(i,j);
-
-
-        //cout<<"ZN: "<<p->ZN[KP1]<<" WL: "<<a->WL(i,j)<<" eta: "<<a->eta(i,j)<<" zcoor: "<<zcoor<<endl;
-        }*/
-
+ 
+    zcoor=p->ZN[KP1];
 
     ffn=float( (p->XN[IP1]-p->B192_3)*cos(theta_y*sin(phase)) - (zcoor-p->B192_4)*sin(theta_y*sin(phase)) + p->B192_3 
                 + p->B181_1*sin((2.0*PI*p->B181_2)*p->simtime + p->B181_3));

@@ -89,7 +89,7 @@ void lexer::vellast()
     
     flast=0;
     
-    if(A10==3 || A10==444)
+    if(A10==3 || A10==5)
     flast=1;
     
     

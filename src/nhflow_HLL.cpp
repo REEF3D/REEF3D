@@ -48,17 +48,17 @@ void nhflow_HLL::precalc(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVEL
 
 void nhflow_HLL::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W, slice &eta)
 {
-        if(ipol==1)
-        aij_U(p,d,F,1,U,V,W);
+    if(ipol==1)
+    aij_U(p,d,F,1,U,V,W);
 
-        if(ipol==2 && p->j_dir==1)
-        aij_V(p,d,F,2,U,V,W);
+    if(ipol==2 && p->j_dir==1)
+    aij_V(p,d,F,2,U,V,W);
 
-        if(ipol==3)
-        aij_W(p,d,F,3,U,V,W);
+    if(ipol==3)
+    aij_W(p,d,F,3,U,V,W);
         
-        if(ipol==4)
-        aij_E(p,d,F,4,U,V,W);
+    if(ipol==4)
+    aij_E(p,d,F,4,U,V,W);
 }
 
 double nhflow_HLL::aij_U(lexer *p,fdm_nhf *d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
@@ -211,8 +211,6 @@ double nhflow_HLL::HLL(lexer *p,fdm_nhf *d, double *Us, double *Un, double *Ue, 
 
 double nhflow_HLL::HLL_E(lexer *p, fdm_nhf *d)
 {
-    int q=0;
-    
     // HLL flux
     ULOOP
     {
@@ -230,7 +228,6 @@ double nhflow_HLL::HLL_E(lexer *p, fdm_nhf *d)
         
         d->Fx[IJK] = (d->Sn[IJK]*d->Fs[IJK] - d->Ss[IJK]*d->Fn[IJK] + d->Sn[IJK]*d->Ss[IJK]*(d->Dn(i,j) - d->Ds(i,j)))/denom;
         }
-    ++q;
     }
     
     // HLL flux y-dir
