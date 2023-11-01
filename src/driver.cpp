@@ -38,7 +38,7 @@ driver::driver(int& argc, char **argv)
 	if(p->mpirank==0)
     {
     cout<<endl<<"REEF3D (c) 2008-2023 Hans Bihs"<<endl;
-    sprintf(version,"v_231031");
+    sprintf(version,"v_231101");
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
     cout<<endl<<version<<endl<<endl;
     }
@@ -89,7 +89,8 @@ driver::driver(int& argc, char **argv)
         pgc->flagfield(p);
         pgc->tpflagfield(p);
         makegrid_sigma(p,pgc);
-
+        makegrid2D_basic(p,pgc);
+        
         pgc->ndflag_update(p);
 
         fnpf_driver();
@@ -103,7 +104,6 @@ driver::driver(int& argc, char **argv)
         pgc->flagfield(p);
         pgc->tpflagfield(p);
         makegrid_sigma(p,pgc);
-        //makegrid(p,pgc);
         makegrid2D(p,pgc);
 
         pgc->ndflag_update(p);

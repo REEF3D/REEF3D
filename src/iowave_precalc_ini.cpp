@@ -65,6 +65,7 @@ void iowave::wavegen_precalc_relax_ini(lexer *p, ghostcell *pgc)
         
     }
     
+
     // U ------------------------------------------------
     BASELOOP
     {
@@ -80,7 +81,7 @@ void iowave::wavegen_precalc_relax_ini(lexer *p, ghostcell *pgc)
     }
     
     
-    // U ------------------------------------------------
+    // V ------------------------------------------------
     BASELOOP
     {
 		dg = distgen(p);

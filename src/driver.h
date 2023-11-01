@@ -137,6 +137,7 @@ public:
 	void makegrid(lexer*,ghostcell*);
 	void makegrid_cds();
     void makegrid2D(lexer*,ghostcell*);
+    void makegrid2D_basic(lexer*,ghostcell*);
     void makegrid2D_cds(lexer*,ghostcell*,fdm2D*);
     void makegrid_sigma(lexer*,ghostcell*);
     void makegrid_sigma_cds(lexer*,ghostcell*);  

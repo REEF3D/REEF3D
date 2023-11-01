@@ -345,25 +345,7 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
 
     
     // ------
-	mgc4 m4(p);
 
-    pgc->flagx(p,p->flag4);
-    pgc->flagx(p,p->flag);
-	pgc->gcxupdate(p);
-
-    m4.makemgc(p);
-    m4.mgcsetup(p);
-    m4.fillmgc(p);
-    m4.gcdirfill(p);
-	m4.gcsidefill(p);
-
-    m4.make_ggc(p);
-    m4.fill_ggc(p);
-    
-    m4.make_dgc(p);
-    m4.fill_dgc(p);
-    
-    // ---
     p->vecsize(pgc);
 
     p->xcoormax=-1.0e9;
@@ -391,6 +373,29 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
 	 p->ycoormin=pgc->globalmin(p->ycoormin);
 	 p->zcoormin=pgc->globalmin(p->zcoormin);
 
+}
+
+void driver::makegrid2D_basic(lexer *p, ghostcell *pgc)
+{
+    mgc4 m4(p);
+
+    pgc->flagx(p,p->flag4);
+    pgc->flagx(p,p->flag);
+	pgc->gcxupdate(p);
+
+    m4.makemgc(p);
+    m4.mgcsetup(p);
+    m4.fillmgc(p);
+    m4.gcdirfill(p);
+	m4.gcsidefill(p);
+
+    m4.make_ggc(p);
+    m4.fill_ggc(p);
+    
+    m4.make_dgc(p);
+    m4.fill_dgc(p);
+    
+    // ---
     
     // 2D
     pgc->gcsl_tpflag(p);    
@@ -411,6 +416,8 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     pgc->gcsl_setbcio(p);
     
 	pgc->dgcslini4(p); 
+    
+    
 }
 	
 void driver::makegrid_sigma_cds(lexer *p, ghostcell *pgc)
