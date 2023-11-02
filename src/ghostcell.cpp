@@ -82,7 +82,6 @@ void ghostcell::gcini(lexer* p)
 
     tag=0;    
 	
-    cout<<p->mpirank<<" "<<p->flast<<endl;
 	
 	gcx_count[0] = p->gcpara1_count*paramargin + p->gcparaco1_count*paramargin;
 	gcx_count[1] = p->gcpara2_count*paramargin + p->gcparaco2_count*paramargin;
