@@ -36,9 +36,8 @@ void lexer::gridini(ghostcell *pgc)
 void lexer::flagini()
 {
     control_calc();
-
 	gridsize();
-	vellast();
+	
     
     //cout<<mpirank<<" imax: "<<imax<<" jmax: "<<jmax<<" kmax: "<<kmax<<endl;
 	

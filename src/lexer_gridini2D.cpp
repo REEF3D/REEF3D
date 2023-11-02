@@ -27,7 +27,6 @@ void lexer::flagini2D()
     control_calc();
 
 	grid2Dsize();
-	vellast();
 
 	
 	x_dir=y_dir=z_dir=1.0;

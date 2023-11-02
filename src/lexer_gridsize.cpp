@@ -92,6 +92,8 @@ void lexer::vellast()
     if(A10==3 || A10==5)
     flast=1;
     
+    cout<<mpirank<<" lexer: "<<flast<<endl;
+    
     
     ulastsflow=1;
     

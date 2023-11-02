@@ -38,12 +38,13 @@ driver::driver(int& argc, char **argv)
 	if(p->mpirank==0)
     {
     cout<<endl<<"REEF3D (c) 2008-2023 Hans Bihs"<<endl;
-    sprintf(version,"v_231101");
+    sprintf(version,"v_231102");
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
     cout<<endl<<version<<endl<<endl;
     }
 
 	p->lexer_read(pgc);
+    p->vellast();
 	pgc->gcini(p);
     p->gridini(pgc);
     patchBC_logic();
