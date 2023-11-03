@@ -82,14 +82,15 @@ void ghostcell::gcini(lexer* p)
 
     tag=0;    
 	
-	
+
 	gcx_count[0] = p->gcpara1_count*paramargin + p->gcparaco1_count*paramargin;
 	gcx_count[1] = p->gcpara2_count*paramargin + p->gcparaco2_count*paramargin;
 	gcx_count[2] = p->gcpara3_count*paramargin + p->gcparaco3_count*paramargin;
 	gcx_count[3] = p->gcpara4_count*paramargin + p->gcparaco4_count*paramargin;
 	gcx_count[4] = p->gcpara5_count*paramargin + p->gcparaco5_count*paramargin;
 	gcx_count[5] = p->gcpara6_count*paramargin + p->gcparaco6_count*paramargin;
-	
+    
+
 	p->Darray(send1,(p->gcpara1_count+p->flast)*paramargin + p->gcparaco1_count*paramargin);
 	p->Darray(send2,(p->gcpara2_count+p->flast)*paramargin + p->gcparaco2_count*paramargin);
 	p->Darray(send3,(p->gcpara3_count+p->flast)*paramargin + p->gcparaco3_count*paramargin);

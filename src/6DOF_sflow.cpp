@@ -46,12 +46,17 @@ void sixdof_sflow::start(lexer *p, fdm *a, ghostcell *pgc,double alpha,vrans *pv
 
 void sixdof_sflow::start(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+
+// FB/Ship location
+
     // Move body
     p->xg += ramp_vel(p)*Uext*p->dt;
     p->yg += ramp_vel(p)*Vext*p->dt;
 
     // Update position
     updateFSI(p,b,pgc);
+    
+// --------------------------
 
     // Update pressure field
     if (p->X400 == 1)

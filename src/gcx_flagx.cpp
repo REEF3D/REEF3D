@@ -82,7 +82,7 @@ void ghostcell::flagx(lexer* p, int *flag)
         ++count;
         isend4[count]=flag[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin];
         ++count;
-        isend4[count]=flag[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin];
+        isend4[count]=flag[(i-p->imin-2)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin];
         ++count;
     }
 
