@@ -124,9 +124,6 @@ void nhflow_fsf_f::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     pgc->gcsl_start4(p,d->eta,gcval_eta);
     pgc->gcsl_start4(p,d->detadt,1);
     
-    LOOP
-    d->test[IJK] = -p->DZN[KP]*(d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP];
-    
     wetdry(p,d,pgc,U,V,W,d->WL);
     //breaking(p,d,pgc,d->eta,d->eta_n,1.0);
 }

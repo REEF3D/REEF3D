@@ -36,10 +36,11 @@ Author: Hans Bihs
 #include"nhflow_fsf.h"
 #include"nhflow_turbulence.h"
 #include"vrans.h"
+#include"6DOF.h"
 
 #define WLVL (fabs(WL(i,j))>(1.0*p->A544)?WL(i,j):1.0e20)
 
-nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc)
+nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *pp6dof)
                                                     : bcmom(p), nhflow_sigma(p), WLRK1(p)
 {
 	gcval_u=10;
@@ -59,6 +60,8 @@ nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc)
     p->Darray(WDIFF,p->imax*p->jmax*(p->kmax+2));
     
     sigma_ini(p,d,pgc,d->eta);
+    
+    p6dof = pp6dof;
 }
 
 nhflow_momentum_RK2::~nhflow_momentum_RK2()
@@ -98,6 +101,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	pflow->isource_nhflow(p,d,pgc,pvrans); 
 	//bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,d,WLRK1);
+    p6dof->isource(p,d,pgc);
 	irhs(p,d,pgc);
 	pconvec->start(p,d,d->UH,1,d->U,d->V,d->W,WLRK1);
 	//pdiff->diff_u(p,a,pgc,psolv,udiff,a->u,a->v,a->w,1.0);
@@ -115,6 +119,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	pflow->jsource_nhflow(p,d,pgc,pvrans); 
 	//bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
     ppress->vpgrad(p,d,WLRK1);
+    p6dof->jsource(p,d,pgc);
 	jrhs(p,d,pgc);
     pconvec->start(p,d,d->VH,2,d->U,d->V,d->W,WLRK1);
 	//pdiff->diff_v(p,a,pgc,psolv,vdiff,a->u,a->v,a->w,1.0);
@@ -194,6 +199,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	//pflow->isource(p,a,pgc,pvrans);
 	//bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,d,d->WL);
+    p6dof->isource(p,d,pgc);
 	irhs(p,d,pgc);
     pconvec->start(p,d,UHRK1,1,d->U,d->V,d->W,d->WL);
 	//pdiff->diff_u(p,a,pgc,psolv,udiff,urk2,vrk2,wrk2,1.0);
@@ -211,6 +217,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	//pflow->jsource(p,a,pgc,pvrans);
 	//bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
 	ppress->vpgrad(p,d,d->WL);
+    p6dof->jsource(p,d,pgc);
 	jrhs(p,d,pgc);
 	pconvec->start(p,d,VHRK1,2,d->U,d->V,d->W,d->WL);
 	//pdiff->diff_v(p,a,pgc,psolv,vdiff,urk2,vrk2,wrk2,1.0);

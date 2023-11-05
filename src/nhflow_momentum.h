@@ -36,6 +36,7 @@ class nhflow;
 class nhflow_fsf;
 class nhflow_turbulence;
 class vrans;
+class sixdof;
 
 using namespace std;
 

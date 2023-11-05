@@ -159,7 +159,6 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     psed->ini_sflow(p,b,pgc);
 
     //6DOF ini
-    if(p->X10==3)
     p6dof_sflow->ini(p,pgc);
 
     // print

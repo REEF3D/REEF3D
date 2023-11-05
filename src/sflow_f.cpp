@@ -120,7 +120,6 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
         
         // 6DOF
-		if (p->X10==3)
         p6dof_sflow->start(p,pgc);
 
         // timesave

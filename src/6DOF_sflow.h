@@ -104,6 +104,12 @@ private:
     void updateForcing_ship(lexer*, ghostcell*);
     void updateForcing_oned(lexer*, ghostcell*);
     
+    // hires gradient
+    double limiter(double v1, double v2);
+    
+    double denom,val,r,phival;
+    double dfdx_plus,dfdx_min,dfdy_plus,dfdy_min,dfdx,dfdy;
+    
     // motion
     double ramp_vel(lexer*);
     double ramp_draft(lexer*);
