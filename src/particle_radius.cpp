@@ -20,34 +20,48 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"particle_v.h"
+#include"particle_f.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
-particle_v::particle_v()
+void particle_f::setradius(lexer* p, fdm* a)
 {
+    for(n=0;n<posactive;++n)
+    if(posflag[n]>0)
+    posradius(p,a,n);
+
+    for(n=0;n<negactive;++n)
+    if(negflag[n]>0)
+    negradius(p,a,n);
 
 }
 
-particle_v::~particle_v()
-{
 
+void particle_f::posradius(lexer *p, fdm *a, int qx)
+{
+	pos[qx][3]=phipol(p,a,pos[qx][0],pos[qx][1],pos[qx][2]);
+	
+	if(pos[qx][3]<rmin)
+	pos[qx][4]=rmin;
+
+	if(pos[qx][3]>rmax)
+	pos[qx][4]=rmax;
+
+	if(pos[qx][3]>=rmin && pos[qx][3]<=rmax)
+	pos[qx][4]=fabs(pos[qx][3]);
 }
 
-void particle_v::start(lexer *p, fdm *a, ghostcell * pgc, ioflow *pflow)
+void particle_f::negradius(lexer *p, fdm *a, int qx)
 {
+	neg[qx][3]=phipol(p,a,neg[qx][0],neg[qx][1],neg[qx][2]);
 
-}
+	if(neg[qx][3]>-rmin)
+	neg[qx][4]=rmin;
 
-void particle_v::setup(lexer *p, fdm *a, ghostcell * pgc)
-{
+    if(neg[qx][3]<-rmax)
+	neg[qx][4]=rmax;
 
-}
-
-void particle_v::correct(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
-{
-
-}
-
-void particle_v::picardmove(lexer *p, fdm *a, ghostcell *pgc)
-{
-
+	if(neg[qx][3]<=-rmin && neg[qx][3]>=-rmax)
+	neg[qx][4]=fabs(neg[qx][3]);
 }

@@ -414,6 +414,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
       <VirtualDirectory Name="Particle">
+        <File Name="particle.h"/>
         <File Name="particle_v.h"/>
         <File Name="particle_f.h"/>
       </VirtualDirectory>
@@ -1541,6 +1542,25 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
       <VirtualDirectory Name="Particle">
+        <File Name="particle_updatex.cpp"/>
+        <File Name="particle_util.cpp"/>
+        <File Name="particle_setup.cpp"/>
+        <File Name="particle_seed.cpp"/>
+        <File Name="particle_reseed.cpp"/>
+        <File Name="particle_remove.cpp"/>
+        <File Name="particle_radius.cpp"/>
+        <File Name="particle_printpvtu.cpp"/>
+        <File Name="particle_printvtu.cpp"/>
+        <File Name="particle_printascii.cpp"/>
+        <File Name="particle_picard.cpp"/>
+        <File Name="particle_particlex.cpp"/>
+        <File Name="particle_normal.cpp"/>
+        <File Name="particle_ipol.cpp"/>
+        <File Name="particle_delete.cpp"/>
+        <File Name="particle_count.cpp"/>
+        <File Name="particle_correct.cpp"/>
+        <File Name="particle_allocate.cpp"/>
+        <File Name="particle_advect.cpp"/>
         <File Name="particle_v.cpp"/>
         <File Name="particle_f.cpp"/>
       </VirtualDirectory>

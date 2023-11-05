@@ -20,24 +20,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"particle.h"
+class lexer;
+class fdm;
+class ghostcell;
+class field;
+class ioflow;
 
 using namespace std;
 
-#ifndef PARTICLE_V_H_
-#define PARTICLE_V_H_
+#ifndef PARTICLEBASE_H_
+#define PARTICLEBASE_H_
 
-class particle_v : public particle_base
+class particle_base
 {
 public:
-    particle_v();
-	virtual ~particle_v();
-
-    virtual void start(lexer*,fdm*,ghostcell*,ioflow*);
-	virtual void setup(lexer*,fdm*,ghostcell*);
-	virtual void correct(lexer*, fdm*, ghostcell*,ioflow*);
-	virtual void picardmove(lexer*, fdm*, ghostcell*);
+    virtual void start(lexer*,fdm*,ghostcell*,ioflow*)=0;
+	virtual void setup(lexer*,fdm*,ghostcell*)=0;
+	virtual void correct(lexer*, fdm*, ghostcell*, ioflow*)=0;
+	virtual void picardmove(lexer*, fdm*, ghostcell*)=0;
 };
 
 #endif
-
