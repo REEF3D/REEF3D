@@ -21,12 +21,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"6DOF_sflow.h"
 #include"lexer.h"
-#include"fdm.h"
-#include"fdm2D.h"
 #include"ghostcell.h"
-#include"vrans.h"
    
-void sixdof_sflow::box(lexer *p, fdm2D *b, ghostcell *pgc)
+void sixdof_sflow::box(lexer *p, ghostcell *pgc)
 {
     // Prepare fields
     trisum=12*p->X110;

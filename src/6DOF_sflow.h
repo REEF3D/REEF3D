@@ -47,59 +47,62 @@ public:
 	
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
     
-    sixdof_sflow(lexer*, fdm2D*, ghostcell*);
-	void ini(lexer*,fdm2D*,ghostcell*);
-	
+    sixdof_sflow(lexer*, ghostcell*);
     virtual ~sixdof_sflow();
-	virtual void start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&);
-	void start(lexer*,fdm2D*,ghostcell*);
-	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
+    
+    virtual void start(lexer*,ghostcell*);
+	virtual void ini(lexer*,ghostcell*);
+	
     
     virtual void isource(lexer*,fdm*,ghostcell*);
     virtual void jsource(lexer*,fdm*,ghostcell*);
     virtual void ksource(lexer*,fdm*,ghostcell*);
+    
+    virtual void isource(lexer*,fdm_nhf*,ghostcell*);
+    virtual void jsource(lexer*,fdm_nhf*,ghostcell*);
+    virtual void ksource(lexer*,fdm_nhf*,ghostcell*);
     
     virtual void isource2D(lexer*,fdm2D*,ghostcell*);
     virtual void jsource2D(lexer*,fdm2D*,ghostcell*);
     
 private:
 	
-    void cylinder(lexer*,fdm2D*,ghostcell*);
-    void box(lexer*,fdm2D*,ghostcell*);
+    void cylinder(lexer*,ghostcell*);
+    void box(lexer*,ghostcell*);
 	void geometry_refinement(lexer*);
 	void create_triangle(double&,double&,double&,double&,double&,double&,double&,double&,double&,const double&,const double&,const double&);
-    void ini_parameter(lexer*, fdm2D*, ghostcell*);
-    void print_ini_stl(lexer*, fdm2D*, ghostcell*);
+    void ini_parameter(lexer*, ghostcell*);
+    void print_ini_stl(lexer*, ghostcell*);
     void print_parameter(lexer*,ghostcell*);
     void print_stl(lexer*,ghostcell*);
-    void print_ini_vtp(lexer*, fdm2D*, ghostcell*);
+    void print_ini_vtp(lexer*, ghostcell*);
     void print_vtp(lexer*,ghostcell*);
     
-    void read_stl(lexer*, fdm2D*, ghostcell*);
+    void read_stl(lexer*, ghostcell*);
     void rotation_stl(lexer*,double&,double&,double&);
     void rotation_stl_quaternion(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
     
-    void iniPosition_RBM(lexer*, fdm2D*, ghostcell*);
+    void iniPosition_RBM(lexer*, ghostcell*);
     void rotation_tri(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
     void quat_matrices(const Eigen::Vector4d&);
    
-    void ray_cast(lexer*, fdm2D*, ghostcell*);
-	void ray_cast_io_x(lexer*, fdm2D*, ghostcell*,int,int);
-	void ray_cast_io_ycorr(lexer*, fdm2D*, ghostcell*,int,int);
-    void ray_cast_x(lexer*, fdm2D*, ghostcell*,int,int);
-	void ray_cast_y(lexer*, fdm2D*, ghostcell*,int,int);
-    void ray_cast_z(lexer*, fdm2D*, ghostcell*,int,int);
+    void ray_cast(lexer*, ghostcell*);
+	void ray_cast_io_x(lexer*, ghostcell*,int,int);
+	void ray_cast_io_ycorr(lexer*, ghostcell*,int,int);
+    void ray_cast_x(lexer*, ghostcell*,int,int);
+	void ray_cast_y(lexer*, ghostcell*,int,int);
+    void ray_cast_z(lexer*, ghostcell*,int,int);
     void reini(lexer*,ghostcell*,slice&);
     void disc(lexer*,ghostcell*,slice&);
     void time_preproc(lexer*);
 
     double Hsolidface(lexer*, int,int);
-    void updateFSI(lexer*, fdm2D*, ghostcell*);
-    void updatePosition(lexer*, fdm2D*, ghostcell*);
-    void updateForcing_hemisphere(lexer*, fdm2D*, ghostcell*);
-    void updateForcing_box(lexer*, fdm2D*, ghostcell*);
-    void updateForcing_ship(lexer*, fdm2D*, ghostcell*);
-    void updateForcing_oned(lexer*, fdm2D*, ghostcell*);
+    void updateFSI(lexer*, ghostcell*);
+    void updatePosition(lexer*, ghostcell*);
+    void updateForcing_hemisphere(lexer*, ghostcell*);
+    void updateForcing_box(lexer*, ghostcell*);
+    void updateForcing_ship(lexer*, ghostcell*);
+    void updateForcing_oned(lexer*, ghostcell*);
     
     // motion
     double ramp_vel(lexer*);

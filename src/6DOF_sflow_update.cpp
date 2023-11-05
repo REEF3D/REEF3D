@@ -22,16 +22,15 @@ Author: Tobias Martin
 
 #include"6DOF_sflow.h"
 #include"lexer.h"
-#include"fdm2D.h"
 #include"ghostcell.h"
 
-void sixdof_sflow::updateFSI(lexer *p, fdm2D *b, ghostcell* pgc)
+void sixdof_sflow::updateFSI(lexer *p, ghostcell* pgc)
 {
     // Update transformation matrix (Shivarama PhD thesis, p. 19)
     quat_matrices(e_);
 
     // Calculate new position
-    updatePosition(p, b, pgc);
+    updatePosition(p,pgc);
       
     // Global body variables
     //interface(p,false);    
@@ -39,7 +38,7 @@ void sixdof_sflow::updateFSI(lexer *p, fdm2D *b, ghostcell* pgc)
 }
 
 
-void sixdof_sflow::updatePosition(lexer *p, fdm2D *b, ghostcell *pgc)
+void sixdof_sflow::updatePosition(lexer *p, ghostcell *pgc)
 {
 	// Calculate Euler angles from quaternion
 	
@@ -87,12 +86,12 @@ void sixdof_sflow::updatePosition(lexer *p, fdm2D *b, ghostcell *pgc)
 	}
 	
     // Update floating level set function
-	ray_cast(p,b,pgc);
+	ray_cast(p,pgc);
 	reini(p,pgc,fb);
 }
 
 
-void sixdof_sflow::updateForcing_hemisphere(lexer *p, fdm2D *b, ghostcell *pgc)
+void sixdof_sflow::updateForcing_hemisphere(lexer *p, ghostcell *pgc)
 {
     // Calculate hemisphere pressure field
     double H, press0, r, xpos, ypos, dist;
@@ -120,7 +119,7 @@ void sixdof_sflow::updateForcing_hemisphere(lexer *p, fdm2D *b, ghostcell *pgc)
     pgc->gcsl_start4(p,press,50);
 }
 
-void sixdof_sflow::updateForcing_box(lexer *p, fdm2D *b, ghostcell *pgc)
+void sixdof_sflow::updateForcing_box(lexer *p, ghostcell *pgc)
 {
     // Calculate ship-like pressure field
     double H, press0, xpos, ypos, Ls, Bs, as, cl, cb;
@@ -153,7 +152,7 @@ void sixdof_sflow::updateForcing_box(lexer *p, fdm2D *b, ghostcell *pgc)
     pgc->gcsl_start4(p,press,50);
 }
 
-void sixdof_sflow::updateForcing_ship(lexer *p, fdm2D *b, ghostcell *pgc)
+void sixdof_sflow::updateForcing_ship(lexer *p, ghostcell *pgc)
 {
     // Calculate ship-like pressure field
     double H, press0, xpos, ypos, as, cl, cb;
@@ -173,7 +172,7 @@ void sixdof_sflow::updateForcing_ship(lexer *p, fdm2D *b, ghostcell *pgc)
     pgc->gcsl_start4(p,press,50);
 }
 
-void sixdof_sflow::updateForcing_oned(lexer *p, fdm2D *b, ghostcell *pgc)
+void sixdof_sflow::updateForcing_oned(lexer *p, ghostcell *pgc)
 {
     // Calculate 1D pressure field
     double press0, xpos, as;

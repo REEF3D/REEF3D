@@ -38,12 +38,31 @@ void sixdof_sflow::ksource(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
+void sixdof_sflow::isource(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+}
+
+void sixdof_sflow::jsource(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+}
+
+void sixdof_sflow::ksource(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+}
+
 void sixdof_sflow::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
 	SLICELOOP1
     {
         b->F(i,j) += 1.0/p->W1*(press(i+1,j) - press(i,j))/p->DXP[IP];
     }
+    
+    
+    SLICELOOP4
+    {
+        b->test(i,j) = press(i,j);
+    }
+    pgc->gcsl_start4(p,b->test,50);
 }
 
 void sixdof_sflow::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)

@@ -79,6 +79,7 @@ class sixdof_df_base;
 class momentum_RKLS3_df;
 class momentum_RKLS3_sf;
 class nhflow_vtu3D;
+class sixdof;
 
 #include<iostream>
 #include<fstream>
@@ -214,6 +215,7 @@ public:
     sixdof_df_base *p6dof_df;
     momentum_RKLS3_df *pmom_df;
     momentum_RKLS3_sf *pmom_sf;
+    sixdof *p6dof_sflow;
 
 private:
     double starttime, endtime;

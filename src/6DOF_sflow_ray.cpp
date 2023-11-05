@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"slice.h"
 
 
-void sixdof_sflow::ray_cast(lexer *p, fdm2D *b, ghostcell *pgc)
+void sixdof_sflow::ray_cast(lexer *p, ghostcell *pgc)
 {
 	SLICELOOP4
 	{
@@ -46,17 +46,17 @@ void sixdof_sflow::ray_cast(lexer *p, fdm2D *b, ghostcell *pgc)
     {
         if(rayiter==0)
         {
-            ray_cast_io_x(p,b,pgc,0,tricount);
-            ray_cast_io_ycorr(p,b,pgc,0,tricount);
+            ray_cast_io_x(p,pgc,0,tricount);
+            ray_cast_io_ycorr(p,pgc,0,tricount);
         }
     
         if(rayiter==1)
         {
             pgc->gcslparax_int(p,fbio,1);
             
-            ray_cast_x(p,b,pgc,0,tricount);
-            ray_cast_y(p,b,pgc,0,tricount);
-            ray_cast_z(p,b,pgc,0,tricount);
+            ray_cast_x(p,pgc,0,tricount);
+            ray_cast_y(p,pgc,0,tricount);
+            ray_cast_z(p,pgc,0,tricount);
         }
     }
     
@@ -87,9 +87,6 @@ void sixdof_sflow::ray_cast(lexer *p, fdm2D *b, ghostcell *pgc)
     Bs(i,j) = Rymax(i,j)-Rymin(i,j);
     }
     
-    SLICELOOP4
-	b->test(i,j) = draft(i,j);
-	
 	pgc->gcsl_start4(p,fb,50);
     pgc->gcsl_start4(p,draft,50);
 }

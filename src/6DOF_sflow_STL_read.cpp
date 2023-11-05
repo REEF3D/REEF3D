@@ -21,10 +21,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"6DOF_sflow.h"
 #include"lexer.h"
-#include"fdm2D.h"
 #include"ghostcell.h"
 
-void sixdof_sflow::read_stl(lexer *p, fdm2D *b, ghostcell *pgc)
+void sixdof_sflow::read_stl(lexer *p, ghostcell *pgc)
 {
 	string word;
 	int count, vert_count;

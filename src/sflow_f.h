@@ -45,7 +45,7 @@ class sflow_turbulence;
 class sediment;
 class turbulence;
 class patchBC_interface;
-class sixdof_sflow;
+class sixdof;
 
 using namespace std;
 
@@ -96,7 +96,7 @@ private:
     
     patchBC_interface *pBC;
     
-    sixdof_sflow *p6dof_sflow;
+    sixdof *p6dof_sflow;
 	
 	double starttime, endtime;
     

@@ -25,11 +25,10 @@ Author: Hans Bihs
 #include<fstream>
 #include"6DOF_sflow.h"
 #include"lexer.h"
-#include"fdm2D.h"
 #include"ghostcell.h"
 
 
-void sixdof_sflow::print_ini_stl(lexer *p, fdm2D *b, ghostcell *pgc)
+void sixdof_sflow::print_ini_stl(lexer *p, ghostcell *pgc)
 {
 	if(p->mpirank==0 && p->P14==1)
     {

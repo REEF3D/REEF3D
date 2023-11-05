@@ -22,11 +22,10 @@ Author: Hans Bihs
 
 #include"6DOF_sflow.h"
 #include"lexer.h"
-#include"fdm2D.h"
 #include"ghostcell.h"
 #include"slice.h"
 
-void sixdof_sflow::ray_cast_io_x(lexer* p, fdm2D *b, ghostcell* pgc,int ts,int te)
+void sixdof_sflow::ray_cast_io_x(lexer* p, ghostcell* pgc,int ts,int te)
 {
 	double ys,ye,zs,ze;
 	double Px,Py,Pz;
@@ -100,11 +99,11 @@ void sixdof_sflow::ray_cast_io_x(lexer* p, fdm2D *b, ghostcell* pgc,int ts,int t
 		{
             Px = p->global_xmin-10.0*p->DXM;
             Py = p->YP[JP]+psi;
-            Pz = b->bed(i,j)+p->wd+psi;
+            Pz = p->wd+psi;
             
             Qx = p->global_xmax+10.0*p->DXM;
             Qy = p->YP[JP]+psi;
-            Qz = b->bed(i,j)+p->wd+psi;
+            Qz = p->wd+psi;
 		
             PQx = Qx-Px;
             PQy = Qy-Py;

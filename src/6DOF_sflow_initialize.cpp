@@ -28,36 +28,32 @@ Author: Tobias Martin
 #include"vrans.h"
    
 
-void sixdof_sflow::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
-{
-}
-    
-void sixdof_sflow::ini(lexer *p, fdm2D *b, ghostcell *pgc)
+void sixdof_sflow::ini(lexer *p, ghostcell *pgc)
 {
     // Initialise parameters
-	ini_parameter(p,b,pgc);
+	ini_parameter(p,pgc);
     
     // Initialise folder structure
     if(p->X50==1)
-	print_ini_vtp(p,b,pgc);
+	print_ini_vtp(p,pgc);
     
     if(p->X50==2)
-    print_ini_stl(p,b,pgc);
+    print_ini_stl(p,pgc);
     
     // Initialise object 
     if (p->X400 == 1)
     {
-        cylinder(p,b,pgc);
+        cylinder(p,pgc);
     }
     
     else if (p->X400 == 2)
     {
-        box(p,b,pgc);
+        box(p,pgc);
     }
     
     else if (p->X400 == 10)
     {
-        read_stl(p,b,pgc);
+        read_stl(p,pgc);
     }
     
     else
@@ -67,18 +63,12 @@ void sixdof_sflow::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     //geometry_refinement(p);
 
     // Initialise position of bodies
-    iniPosition_RBM(p,b,pgc);
+    iniPosition_RBM(p,pgc);
 
     // Initialise distance field
-	ray_cast(p,b,pgc);
+	ray_cast(p,pgc);
     time_preproc(p); 
 	reini(p,pgc,fb);
-
-    SLICELOOP4
-    {
-        b->test(i,j) = draft(i,j);
-    }
-    pgc->gcsl_start4(p,b->test,50);
     
     // Print initial body 
     if(p->X50==1)
@@ -88,7 +78,7 @@ void sixdof_sflow::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     print_stl(p,pgc);
 }
 
-void sixdof_sflow::ini_parameter(lexer *p, fdm2D *b, ghostcell *pgc)
+void sixdof_sflow::ini_parameter(lexer *p, ghostcell *pgc)
 {
     // Prescribed motions
     Uext = Vext = Wext = Pext = Qext = Rext = 0.0; 
@@ -138,7 +128,7 @@ void sixdof_sflow::ini_parameter(lexer *p, fdm2D *b, ghostcell *pgc)
     n6DOF = 0;
 }
 
-void sixdof_sflow::iniPosition_RBM(lexer *p, fdm2D *b, ghostcell *pgc)
+void sixdof_sflow::iniPosition_RBM(lexer *p, ghostcell *pgc)
 {
     // Store initial position of triangles
 	for(n=0; n<tricount; ++n)

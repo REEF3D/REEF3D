@@ -37,6 +37,8 @@ Author: Hans Bihs
 #include"benchmark_header.h"
 #include"vrans_header.h"
 #include"nhflow_header.h"
+#include"6DOF_void.h"
+#include"6DOF_sflow.h"
 
 void driver::logic_nhflow()
 {    
@@ -163,6 +165,14 @@ void driver::logic_nhflow()
 
 	if(p->B180==1||p->B191==1||p->B192==1)
 	pflow = new ioflow_gravity(p,pgc,pBC);
+    
+    
+//6DOF
+    if(p->X10!=3)
+    p6dof_sflow = new sixdof_void();
+    
+    if(p->X10==3)
+    p6dof_sflow = new sixdof_sflow(p,pgc);
     
 //Momentum
     if(p->A510==2)
