@@ -74,18 +74,16 @@ public:
 	
 	
 	field4 phimax,phimin,phiold;
-	field4 posnum, negnum;
+	field4 posnum;
 	
 	double **pos,**neg;
 	double **posxs;
-	double **negxs;
 	double **posxr;
-	double **negxr;
-	int *pxs,*nxs;
-	int *pxr,*nxr;
-	int *posflag,*negflag;
-	int *posmem,*negmem;
-	int pcount, ncount;
+	int *pxs;
+	int *pxr;
+	int *posflag;
+	int *posmem;
+	int pcount;
 	int n,nn,q,qq,count,check;
     double wa,wb,wc;
     double wx,wy,wz;

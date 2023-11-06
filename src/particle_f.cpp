@@ -28,16 +28,13 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-particle_f::particle_f(lexer* p, fdm *a, ghostcell* pgc) : norm_vec(p), phimax(p),phimin(p),phiold(p),
-							  posnum(p), negnum(p),
-                             zero (0.0), epsi(1.5*p->DXM),dx(p->DXM),rmin(0.1*p->DXM),
-                             rmax(0.5*p->DXM),pnum(p->F32),ipolval(p->F31), irand(100000), drand(100000.0),
+particle_f::particle_f(lexer* p, fdm *a, ghostcell* pgc) : norm_vec(p), phimax(p),phimin(p),phiold(p),posnum(p), 
+                                zero (0.0), epsi(1.5*p->DXM),dx(p->DXM),rmin(0.1*p->DXM),
+                                rmax(0.5*p->DXM),pnum(p->F32),ipolval(p->F31), irand(100000), drand(100000.0),
 							  nu(1.0e-10*p->DXM)
 {
     pcount=0;
-    ncount=0;
     posactive=0;
-    negactive=0;
 	printcount=0;
     
     if(p->F50==1)
@@ -54,7 +51,7 @@ particle_f::particle_f(lexer* p, fdm *a, ghostcell* pgc) : norm_vec(p), phimax(p
 	
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_PLS",0777);
+	mkdir("./REEF3D_CFD_PARTICLE",0777);
 }
 
 particle_f::~particle_f()
@@ -86,7 +83,6 @@ void particle_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
     pgc->start4(p,a->phi,gcval_phi);
 
 	posbalance = posactive - posactive_old;
-	negbalance = negactive - negactive_old;
 
     gposactive = pgc->globalisum(posactive);
     gpcount = pgc->globalisum(pcount);

@@ -115,86 +115,7 @@ void particle_f::particlex(lexer* p, fdm* a, ghostcell* pgc)
         }
     }
 
-    for(n=0;n<negactive;++n)
-    if(negflag[n]==1)
-    {
-
-        //NEG
-        i=int(neg[n][0]/dx);
-        j=int(neg[n][1]/dx);
-        k=int(neg[n][2]/dx);
-
-        if(p->flag5[IJK]<0 && p->flag5[IJK]>-10)
-        {
-        ++xchange;
-        negflag[n]=2;
-        //negmem[pcount]=n;
-        //ncount++;
-
-            if(p->flag5[IJK]==-1)
-            {
-            negxs[0][nxs[0]+0]=neg[n][0]+p->originx;
-            negxs[0][nxs[0]+1]=neg[n][1]+p->originy;
-            negxs[0][nxs[0]+2]=neg[n][2]+p->originz;
-            negxs[0][nxs[0]+3]=neg[n][3];
-            negxs[0][nxs[0]+4]=neg[n][4];
-            nxs[0]+=5;
-            }
-
-            if(p->flag5[IJK]==-2)
-            {
-            negxs[1][nxs[1]+0]=neg[n][0]+p->originx;
-            negxs[1][nxs[1]+1]=neg[n][1]+p->originy;
-            negxs[1][nxs[1]+2]=neg[n][2]+p->originz;
-            negxs[1][nxs[1]+3]=neg[n][3];
-            negxs[1][nxs[1]+4]=neg[n][4];
-            nxs[1]+=5;
-            }
-
-            if(p->flag5[IJK]==-3)
-            {
-            negxs[2][nxs[2]+0]=neg[n][0]+p->originx;
-            negxs[2][nxs[2]+1]=neg[n][1]+p->originy;
-            negxs[2][nxs[2]+2]=neg[n][2]+p->originz;
-            negxs[2][nxs[2]+3]=neg[n][3];
-            negxs[2][nxs[2]+4]=neg[n][4];
-            nxs[2]+=5;
-            }
-
-            if(p->flag5[IJK]==-4)
-            {
-            negxs[3][nxs[3]+0]=neg[n][0]+p->originx;
-            negxs[3][nxs[3]+1]=neg[n][1]+p->originy;
-            negxs[3][nxs[3]+2]=neg[n][2]+p->originz;
-            negxs[3][nxs[3]+3]=neg[n][3];
-            negxs[3][nxs[3]+4]=neg[n][4];
-            nxs[3]+=5;
-            }
-
-            if(p->flag5[IJK]==-5)
-            {
-            negxs[4][nxs[4]+0]=neg[n][0]+p->originx;
-            negxs[4][nxs[4]+1]=neg[n][1]+p->originy;
-            negxs[4][nxs[4]+2]=neg[n][2]+p->originz;
-            negxs[4][nxs[4]+3]=neg[n][3];
-            negxs[4][nxs[4]+4]=neg[n][4];
-            nxs[4]+=5;
-            }
-
-            if(p->flag5[IJK]==-6)
-            {
-            negxs[5][nxs[5]+0]=neg[n][0]+p->originx;
-            negxs[5][nxs[5]+1]=neg[n][1]+p->originy;
-            negxs[5][nxs[5]+2]=neg[n][2]+p->originz;
-            negxs[5][nxs[5]+3]=neg[n][3];
-            negxs[5][nxs[5]+4]=neg[n][4];
-            nxs[5]+=5;
-            }
-        }
-    }
-
     pgc->parapls(p,posxs,posxr,pxs,pxr);
-    pgc->parapls(p,negxs,negxr,nxs,nxr);
 
 // ---------------------------------------------------
 // FILL
@@ -241,52 +162,6 @@ void particle_f::particlex(lexer* p, fdm* a, ghostcell* pgc)
         }
 
         if(pxr[q]<=0)
-        ++q;
-
-        if(q>=6)
-        break;
-    }
-
-    // neg
-    q=0;
-    while(ncount>0)
-    {
-        if(nxr[q]>0)
-        {
-        neg[negmem[ncount]][0]=negxr[q][nxr[q]-5]-p->originx;
-        neg[negmem[ncount]][1]=negxr[q][nxr[q]-4]-p->originy;
-        neg[negmem[ncount]][2]=negxr[q][nxr[q]-3]-p->originz;
-        neg[negmem[ncount]][3]=negxr[q][nxr[q]-2];
-        neg[negmem[ncount]][4]=negxr[q][nxr[q]-1];
-        negflag[negmem[ncount]]=3;
-		--ncount;
-        nxr[q]-=5;
-        }
-
-        if(nxr[q]<=0)
-        ++q;
-
-        if(q>=6)
-        break;
-    }
-
-
-    q=0;
-    while(negactive<maxparticle && ncount<=0)
-    {
-        if(nxr[q]>0)
-        {
-        neg[negactive][0]=negxr[q][nxr[q]-5]-p->originx;
-        neg[negactive][1]=negxr[q][nxr[q]-4]-p->originy;
-        neg[negactive][2]=negxr[q][nxr[q]-3]-p->originz;
-        neg[negactive][3]=negxr[q][nxr[q]-2];
-        neg[negactive][4]=negxr[q][nxr[q]-1];
-        negflag[negactive]=3;
-        nxr[q]-=5;
-        ++negactive;
-        }
-
-        if(nxr[q]<=0)
         ++q;
 
         if(q>=6)

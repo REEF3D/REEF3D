@@ -35,35 +35,19 @@ void particle_f::print(lexer* p, fdm* a, ghostcell* pgc)
 
 void particle_f::print_ascii(lexer* p, fdm* a, ghostcell* pgc)
 {
-//pos
-if(posactive-pcount>0)
-{
-    char name[100];
-    sprintf(name,"./REEF3D_PLS/POS-%i-%i.dat",p->count,p->mpirank+1);
-	ofstream result;
-	result.open(name);
+    //pos
+    if(posactive-pcount>0)
+    {
+        char name[100];
+        sprintf(name,"./REEF3D_CFD_PARTICLE/POS-%i-%i.dat",p->count,p->mpirank+1);
+        ofstream result;
+        result.open(name);
 
-	for(n=0;n<posactive;++n)
-	if(posflag[n]>0)
-    result<<setprecision(5)<<pos[n][0]+p->originx<<",\t "<<pos[n][1]+p->originy<<",\t "<<pos[n][2]+p->originz<<endl;//",\t "<<pos[n][3]<<",\t "<<pos[n][4]<<endl;//
+        for(n=0;n<posactive;++n)
+        if(posflag[n]>0)
+        result<<setprecision(5)<<pos[n][0]+p->originx<<",\t "<<pos[n][1]+p->originy<<",\t "<<pos[n][2]+p->originz<<endl;//",\t "<<pos[n][3]<<",\t "<<pos[n][4]<<endl;//
 
-    result.close();
-}
-
-//neg
-if(negactive-ncount>0)
-{
-    char name[100];
-    sprintf(name,"./REEF3D_PLS/NEG-%i-%i.dat",p->count,p->mpirank+1);
-    ofstream result;
-	result.open(name);
-
-    for(n=0;n<negactive;++n)
-    if(negflag[n]>0)
-    result<<setprecision(5)<<neg[n][0]+p->originx<<",\t "<<neg[n][1]+p->originy<<",\t "<<neg[n][2]+p->originz<<endl;//",\t "<<neg[n][3]<<",\t "<<neg[n][4]<<endl;
-
-    result.close();
-}
-
+        result.close();
+    }
 }
 

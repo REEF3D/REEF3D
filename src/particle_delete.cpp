@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 void particle_f::random_delete(lexer* p, fdm* a, ghostcell* pgc)
 {
-	double lsc, maxpos, maxneg;
+	double lsc, maxpos;
 	double pnum_coeff=1.0;
 	
 	int qn;
@@ -66,43 +66,6 @@ void particle_f::random_delete(lexer* p, fdm* a, ghostcell* pgc)
         posmem[pcount]=n;
         ++removed;
 		posnum(i,j,k)-=1.0;
-		}    
-    }
-	
-	// NEG
-	for(qn=0;qn<2;++qn)
-    for(n=0;n<negactive;++n)
-    if(negflag[n]==1)
-    {
-		if(qn==0)
-		pnum_coeff = 1.25;
-		
-		if(qn==1)
-		pnum_coeff = 2.25;
-		
-        i=int((neg[n][0])/dx);
-        j=int((neg[n][1])/dx);
-        k=int((neg[n][2])/dx);
-		
-		lsc = a->phi(i,j,k);
-		
-		if(lsc>-0.5*p->DXM && lsc<0.5*p->DXM)
-		maxneg = (0.5 - lsc/p->DXM)*double(pnum)*pnum_coeff;
-		
-		if(lsc<=-0.5*p->DXM)
-		maxneg = double(pnum)*pnum_coeff;
-		
-		if(lsc>=0.5*p->DXM)
-		maxneg = 0.0;
-		
-		if(negnum(i,j,k)>maxneg)		
-		if(neg[n][3]<-neg[n][4]-0.1*rmin || qn==1)
-		{
-		++ncount;
-		negflag[n]=0;
-        negmem[ncount]=n;
-        ++removed;
-		negnum(i,j,k)-=1.0;
 		}    
     }
 }
