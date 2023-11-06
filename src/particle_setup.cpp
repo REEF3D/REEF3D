@@ -30,11 +30,9 @@ void particle_f::setup(lexer* p, fdm* a, ghostcell* pgc)
 	LOOP
 	{
 		posnum(i,j,k)=0.0;
-		negnum(i,j,k)=0.0;
 	}
 	
 	pgc->start4(p,posnum,1);
-	pgc->start4(p,negnum,1);
 	
     dgc_update(p,a,pgc);
     allocate(p,a,pgc);
@@ -45,7 +43,6 @@ void particle_f::setup(lexer* p, fdm* a, ghostcell* pgc)
 	if((p->count%p->F34==0 || p->count==0 )&& p->F34>0)
 	{
     print_vtu(p,a,pgc,pos,posflag,posactive,1);
-	print_vtu(p,a,pgc,neg,negflag,negactive,2);
 	++printcount;
 	}
 }

@@ -62,34 +62,4 @@ void particle_f::remove(lexer* p, fdm* a, ghostcell* pgc)
         }
     }
 
-    for(n=0;n<negactive;++n)
-    {
-
-        //NEG
-        if(negflag[n]>0)
-        {
-            i=int((neg[n][0])/dx);
-            j=int((neg[n][1])/dx);
-            k=int((neg[n][2])/dx);
-
-            check=boundcheck(p,a,i,j,k,1);
-
-            if(check==1)
-            if(p->flag5[IJK]>0 || fabs(neg[n][3])>epsi)
-            {
-			ncount++;
-            negflag[n]=0;
-            negmem[ncount]=n;
-            removed++;
-            }
-
-            if(check==0)
-            {
-			ncount++;
-            negflag[n]=0;
-            negmem[ncount]=n;
-            removed++;
-            }
-        }
-    }
 }

@@ -529,6 +529,17 @@ void lexer::ini_default()
     
     // Particles
     Q10=0;              // int particle algorithm
+    Q21=1.0;            // double particle density
+    Q31=0.001;          // double particle diameter
+    Q41=0.5;            // double porosity
+    Q101=0;             // int ini particle as topo
+    Q110=0;             // int ini particle as box
+    Q111=0;             // int ini particle x-dir
+    Q111_x=0.0;         // double ini particle x-dir
+    Q112=0;             // int ini particle y-dir
+    Q112_y=0.0;         // double ini particle y-dir
+    Q113=0;             // int ini particle z-dir
+    Q113_z=0.0;         // double ini particle z-dir
 
 	// Sediment Transport
 	S10=0;                  // int sediment transport module

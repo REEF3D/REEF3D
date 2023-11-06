@@ -32,9 +32,7 @@ void particle_f::particlex(lexer* p, fdm* a, ghostcell* pgc)
     for(n=0;n<6;++n)
     {
     pxs[n]=0;
-    nxs[n]=0;
     pxr[n]=0;
-    nxr[n]=0;
     }
 
     for(n=0;n<posactive;++n)

@@ -483,6 +483,17 @@ public:
     
     // Particles
     int Q10;
+    double Q21;
+    double Q31;
+    double Q41;
+    
+    int Q101,Q110;
+    double *Q110_xs,*Q110_xe,*Q110_ys,*Q110_ye,*Q110_zs,*Q110_ze;
+    int Q111,Q112,Q113;
+    double Q111_x,Q112_y,Q113_z;
+    
+    int Q180,Q181;
+    double Q182;
     
 
 	// Sediment Transport

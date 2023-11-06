@@ -60,32 +60,4 @@ void particle_f::xupdate(lexer* p, fdm* a, ghostcell* pgc)
         }
     }
 
-    for(n=0;n<negactive;++n)
-    {
-
-        //NEG
-        if(negflag[n]>0)
-        {
-            i=int((neg[n][0])/dx);
-            j=int((neg[n][1])/dx);
-            k=int((neg[n][2])/dx);
-
-            check=boundcheck(p,a,i,j,k,1);
-
-            if(check==1)
-            if(negflag[n]==2)
-            {
-			ncount++;
-            negflag[n]=0;
-            negmem[ncount]=n;
-            removed++;
-            }
-			
-			check=boundcheck(p,a,i,j,k,0);
-			
-			if(check==1)
-            if(negflag[n]==3)
-            negflag[n]=1;
-        }
-    }
 }
