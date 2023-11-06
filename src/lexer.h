@@ -480,6 +480,10 @@ public:
     double *P230_x,*P240_x;
 	double *P351_x,*P351_y;
 	double *P352_x,*P352_y;
+    
+    // Particles
+    int Q10;
+    
 
 	// Sediment Transport
 	int S10,S11,S12,S15,S16,S17,S23,S27,S32,S33,S34,S37,S41,S42,S43,S44,S50,S60,S73,S77,S78,S79,S80,S83,S84,S90,S91,S100,S101;

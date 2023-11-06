@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,23 +20,29 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"particle.h"
+#include"particle_f.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
-using namespace std;
-
-#ifndef PARTICLE_V_H_
-#define PARTICLE_V_H_
-
-class particle_v : public particle_base
+void particle_f::setradius(lexer* p, fdm* a)
 {
-public:
-    particle_v();
-	virtual ~particle_v();
+    for(n=0;n<posactive;++n)
+    if(posflag[n]>0)
+    posradius(p,a,n);
+}
 
-    virtual void start(lexer*,fdm*,ghostcell*,ioflow*);
-    virtual void ini(lexer*,fdm*,ghostcell*,ioflow*);
-	virtual void setup(lexer*,fdm*,ghostcell*);
-};
 
-#endif
+void particle_f::posradius(lexer *p, fdm *a, int qx)
+{
+	pos[qx][3]=phipol(p,a,pos[qx][0],pos[qx][1],pos[qx][2]);
+	
+	if(pos[qx][3]<rmin)
+	pos[qx][4]=rmin;
 
+	if(pos[qx][3]>rmax)
+	pos[qx][4]=rmax;
+
+	if(pos[qx][3]>=rmin && pos[qx][3]<=rmax)
+	pos[qx][4]=fabs(pos[qx][3]);
+}

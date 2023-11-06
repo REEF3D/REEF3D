@@ -402,10 +402,10 @@ void driver::logic_cfd()
 
 
 	if(p->F31==0)
-	ppart = new particle_pls_void();
+	ppls = new particle_pls_void();
 
 	if(p->F31==1 || p->F31==2)
-	ppart = new particle_pls(p,a,pgc);
+	ppls = new particle_pls(p,a,pgc);
 
 
 	if(p->F80==1)
@@ -625,6 +625,13 @@ void driver::logic_cfd()
 	
     if(p->Z10==1)
     pfsi = new fsi_strips(p,pgc);
+
+// Partciles
+    if(p->Q10==0)
+    ppart = new particle_v();
+	
+    if(p->Q10==1)
+    ppart = new particle_f(p,a,pgc);
 
 // Velocities
 	if(p->N40==0 || p->Z10!=0 || p->X10==1 || p->G3==1)

@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,23 +20,34 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"particle.h"
+#include"particle_f.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include<math.h>
+#include<sys/stat.h>
+#include<sys/types.h>
 
-using namespace std;
-
-#ifndef PARTICLE_V_H_
-#define PARTICLE_V_H_
-
-class particle_v : public particle_base
+void particle_f::print(lexer* p, fdm* a, ghostcell* pgc)
 {
-public:
-    particle_v();
-	virtual ~particle_v();
 
-    virtual void start(lexer*,fdm*,ghostcell*,ioflow*);
-    virtual void ini(lexer*,fdm*,ghostcell*,ioflow*);
-	virtual void setup(lexer*,fdm*,ghostcell*);
-};
+}
 
-#endif
+void particle_f::print_ascii(lexer* p, fdm* a, ghostcell* pgc)
+{
+    //pos
+    if(posactive-pcount>0)
+    {
+        char name[100];
+        sprintf(name,"./REEF3D_CFD_PARTICLE/POS-%i-%i.dat",p->count,p->mpirank+1);
+        ofstream result;
+        result.open(name);
+
+        for(n=0;n<posactive;++n)
+        if(posflag[n]>0)
+        result<<setprecision(5)<<pos[n][0]+p->originx<<",\t "<<pos[n][1]+p->originy<<",\t "<<pos[n][2]+p->originz<<endl;//",\t "<<pos[n][3]<<",\t "<<pos[n][4]<<endl;//
+
+        result.close();
+    }
+}
 

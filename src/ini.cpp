@@ -526,6 +526,9 @@ void lexer::ini_default()
     P240=0;         // int print potentialfile
 	P351=0;             // int print out wsf lsm1
 	P352=0;             // int print out wsf lsm2
+    
+    // Particles
+    Q10=0;              // int particle algorithm
 
 	// Sediment Transport
 	S10=0;                  // int sediment transport module

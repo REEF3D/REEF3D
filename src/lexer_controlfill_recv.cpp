@@ -970,7 +970,7 @@ void lexer::ctrlrecv()
 	P351 = ictrl[ii];
 	ii++;
 	P352 = ictrl[ii];
-	ii++;
+	ii++;    Q10 = ictrl[ii];	ii++;
 
 
     S10 = ictrl[ii];

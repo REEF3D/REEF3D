@@ -20,16 +20,52 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sediment_f.h"
-#include"sediment_void.h"
-
-#include"sediment_exner.h"
-
-#include"reinitopo_AB2.h"
-#include"reinitopo_RK3.h"
-#include"reinitopo_void.h"
-
-#include"particle_v.h"
 #include"particle_f.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
-
+void particle_f::random_delete(lexer* p, fdm* a, ghostcell* pgc)
+{
+	double lsc, maxpos;
+	double pnum_coeff=1.0;
+	
+	int qn;
+	
+	// POS
+	for(qn=0;qn<2;++qn)
+    for(n=0;n<posactive;++n)
+    if(posflag[n]==1)
+    {
+		if(qn==0)
+		pnum_coeff = 1.25;
+		
+		if(qn==1)
+		pnum_coeff = 2.25;
+		
+        i=int((pos[n][0])/dx);
+        j=int((pos[n][1])/dx);
+        k=int((pos[n][2])/dx);
+		
+		lsc = a->phi(i,j,k);
+		
+		if(lsc<0.5*p->DXM && lsc>-0.5*p->DXM)
+		maxpos = (0.5 + lsc/p->DXM)*double(pnum)*pnum_coeff;
+		
+		if(lsc>=0.5*p->DXM)
+		maxpos = double(pnum)*pnum_coeff;
+		
+		if(lsc<=-0.5*p->DXM)
+		maxpos = 0.0;
+		
+		if(posnum(i,j,k)>maxpos)		
+		if(pos[n][3]>pos[n][4]+0.1*rmin || qn==1)
+		{
+		++pcount;
+		posflag[n]=0;
+        posmem[pcount]=n;
+        ++removed;
+		posnum(i,j,k)-=1.0;
+		}    
+    }
+}
