@@ -67,43 +67,34 @@ void particle_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
 	starttime=pgc->timer();
 	
 	posactive_old=posactive;
-	negactive_old=negactive;
 
-    dgc_update(p,a,pgc);
     advect(p,a,pgc,pos,posflag,posactive);
-    advect(p,a,pgc,neg,negflag,negactive);
 	particlex(p,a,pgc);
     remove(p,a,pgc);
 	
 	if((p->count%p->F34==0 || p->count==0) && p->F34>0)
 	{
     print_vtu(p,a,pgc,pos,posflag,posactive,1);
-	print_vtu(p,a,pgc,neg,negflag,negactive,2);
 	++printcount;
 	}
 	
-    correct(p,a,pgc,pflow);
 	xupdate(p,a,pgc);
 	parcount(p,a,pgc);
 	random_delete(p,a,pgc);
-    reseed(p,a,pgc,0.5);
-	setradius(p,a);    
+    reseed(p,a,pgc,0.5);  
     vel_setback(p,a,pgc);
     pgc->start4(p,a->phi,gcval_phi);
 
 	posbalance = posactive - posactive_old;
 	negbalance = negactive - negactive_old;
 
-    gnegactive = pgc->globalisum(negactive);
     gposactive = pgc->globalisum(posactive);
     gpcount = pgc->globalisum(pcount);
-    gncount = pgc->globalisum(ncount);
     gcorrected = pgc->globalisum(corrected);
     gremoved = pgc->globalisum(removed);
     greseeded = pgc->globalisum(reseeded);
     gxchange = pgc->globalisum(xchange);
 	gposbalance = pgc->globalisum(posbalance);
-	gnegbalance = pgc->globalisum(negbalance);
 	
 	p->plstime=pgc->timer()-starttime;
 

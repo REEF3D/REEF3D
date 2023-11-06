@@ -1505,6 +1505,18 @@ void lexer::read_control()
 						 break;
 				}
 				break;
+                
+                
+         case 'Q': control>>numint;
+				switch(numint)
+				{
+				case 10: control>>Q10;
+						 clear(c,numint);
+						 break;
+
+				}
+				break;
+                
 
         case 'S': control>>numint;
 				switch(numint)

@@ -32,6 +32,11 @@ particle_v::~particle_v()
 
 }
 
+void particle_v::ini(lexer *p, fdm *a, ghostcell * pgc, ioflow *pflow)
+{
+
+}
+
 void particle_v::start(lexer *p, fdm *a, ghostcell * pgc, ioflow *pflow)
 {
 
@@ -42,12 +47,3 @@ void particle_v::setup(lexer *p, fdm *a, ghostcell * pgc)
 
 }
 
-void particle_v::correct(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
-{
-
-}
-
-void particle_v::picardmove(lexer *p, fdm *a, ghostcell *pgc)
-{
-
-}

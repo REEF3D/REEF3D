@@ -30,11 +30,6 @@ void particle_f::setradius(lexer* p, fdm* a)
     for(n=0;n<posactive;++n)
     if(posflag[n]>0)
     posradius(p,a,n);
-
-    for(n=0;n<negactive;++n)
-    if(negflag[n]>0)
-    negradius(p,a,n);
-
 }
 
 
@@ -50,18 +45,4 @@ void particle_f::posradius(lexer *p, fdm *a, int qx)
 
 	if(pos[qx][3]>=rmin && pos[qx][3]<=rmax)
 	pos[qx][4]=fabs(pos[qx][3]);
-}
-
-void particle_f::negradius(lexer *p, fdm *a, int qx)
-{
-	neg[qx][3]=phipol(p,a,neg[qx][0],neg[qx][1],neg[qx][2]);
-
-	if(neg[qx][3]>-rmin)
-	neg[qx][4]=rmin;
-
-    if(neg[qx][3]<-rmax)
-	neg[qx][4]=rmax;
-
-	if(neg[qx][3]<=-rmin && neg[qx][3]>=-rmax)
-	neg[qx][4]=fabs(neg[qx][3]);
 }

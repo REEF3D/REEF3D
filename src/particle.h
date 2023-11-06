@@ -35,9 +35,9 @@ class particle_base
 {
 public:
     virtual void start(lexer*,fdm*,ghostcell*,ioflow*)=0;
+    virtual void ini(lexer*,fdm*,ghostcell*,ioflow*)=0;
 	virtual void setup(lexer*,fdm*,ghostcell*)=0;
-	virtual void correct(lexer*, fdm*, ghostcell*, ioflow*)=0;
-	virtual void picardmove(lexer*, fdm*, ghostcell*)=0;
+
 };
 
 #endif

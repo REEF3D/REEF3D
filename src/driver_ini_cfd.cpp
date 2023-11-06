@@ -157,7 +157,7 @@ void driver::driver_ini_cfd()
         pini->iniphi_surfarea(p,a,pgc);
     }
 
-	ppart->setup(p,a,pgc);
+	ppls->setup(p,a,pgc);
 	pini->iniphi_io(a,p,pgc);
 	pflow->discharge(p,a,pgc);
 	pflow->inflow(p,a,pgc,a->u,a->v,a->w);

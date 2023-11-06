@@ -36,6 +36,9 @@ public:
 	particle_f(lexer*, fdm*, ghostcell*);
 	virtual ~particle_f();
 	virtual void start(lexer*,fdm*,ghostcell*,ioflow*);
+    virtual void ini(lexer*,fdm*,ghostcell*,ioflow*);
+	virtual void setup(lexer*,fdm*,ghostcell*);
+    
 	void advect(lexer*,fdm*,ghostcell*,double**,int*,int);
 	void seed(lexer*,fdm*,ghostcell*,double,double);
 	void reseed(lexer*,fdm*,ghostcell*,double);
@@ -44,18 +47,13 @@ public:
 	void parcount(lexer*,fdm*,ghostcell*);
 	void particlex(lexer*, fdm*, ghostcell*);
 	void xupdate(lexer*,fdm*,ghostcell*);
-	virtual void correct(lexer*, fdm*, ghostcell*,ioflow*);
-	void parcorr(lexer*,fdm*,ioflow*,double,double*,int,int,int,int,int,int);
-	virtual void picardmove(lexer*, fdm*, ghostcell*);
 
-	virtual void setup(lexer*,fdm*,ghostcell*);
+	
 	void setradius(lexer*,fdm*);
 	void posradius(lexer*,fdm*,int);
-	void negradius(lexer*,fdm*,int);
-	void inicorr(lexer*,fdm*,ghostcell*);
-	void finalcorr(lexer*,fdm*,ghostcell*);
+
 	int posseed(lexer*,fdm*,ghostcell*,double);
-	int negseed(lexer*,fdm*,ghostcell*,double);
+
 	
 
 	double hside(fdm*);

@@ -24,17 +24,15 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"ioflow.h"
 
-void particle_f::picardmove(lexer *p, fdm *a, ghostcell *pgc)
+void particle_f::ini(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
 {
-    if(p->F46>0)
-    {
-        for(n=0;n<posactive;++n)
-        if(posflag[n]>0)
-        pos[n][3]=phipol(p,a,pos[n][0],pos[n][1],pos[n][2]);
 
-        for(n=0;n<negactive;++n)
-        if(negflag[n]>0)
-        neg[n][3]=phipol(p,a,neg[n][0],neg[n][1],neg[n][2]);
-    }
-}
+
+
+
+
+
+
+} 

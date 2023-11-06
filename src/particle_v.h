@@ -34,9 +34,8 @@ public:
 	virtual ~particle_v();
 
     virtual void start(lexer*,fdm*,ghostcell*,ioflow*);
+    virtual void ini(lexer*,fdm*,ghostcell*,ioflow*);
 	virtual void setup(lexer*,fdm*,ghostcell*);
-	virtual void correct(lexer*, fdm*, ghostcell*,ioflow*);
-	virtual void picardmove(lexer*, fdm*, ghostcell*);
 };
 
 #endif

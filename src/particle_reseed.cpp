@@ -62,28 +62,5 @@ void particle_f::reseed(lexer* p, fdm* a, ghostcell* pgc, double pnum_coeff)
 		
 		++qn;
 		}    
-	
-		// NEG		
-		if(lsc>-0.5*p->DXM && lsc<0.5*p->DXM)
-		maxneg = (0.5 - lsc/p->DXM)*double(pnum)*pnum_coeff;
-		
-		if(lsc<=-0.5*p->DXM)
-		maxneg = double(pnum)*pnum_coeff;
-		
-		if(lsc>=0.5*p->DXM)
-		maxneg = 0.0;
-		
-		//cout<<"maxpos: "<<maxpos<<"  maxneg: "<<maxneg<<"      lsc: "<<lsc/p->DXM<<endl;
-		
-		qn=0;
-		while(negnum(i,j,k)<maxneg && qn<pnum)		
-		{
-		check=negseed(p,a,pgc,distfac);
-		
-		if(check==1)
-		negnum(i,j,k)+=1.0;
-		
-		++qn;
-		}    
     }	
 }
