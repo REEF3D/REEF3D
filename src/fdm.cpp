@@ -40,7 +40,7 @@ fdm::fdm(lexer *p)
 			fb(p),fbh1(p),fbh2(p),fbh3(p),fbh4(p),fbh5(p),porosity(p),
 			walld(p),
 			nodeval(p),flag(p),nodeval2D(p),etaloc(p),
-            eta(p),eta_n(p),depth(p),breaking(p),breaklog(p),breaking_print(p),
+            eta(p),eta_n(p),depth(p),breaking(p),breaklog(p),breaking_print(p),N(p),xvec(p),rvec(p),
             vb(p),
             Fifsf(p),Fz_global(p),K(p),
             P(p),Q(p),bed(p),
