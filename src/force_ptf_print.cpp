@@ -32,7 +32,7 @@ void force_ptf::print_force_ptf(lexer* p, fdm *a, ghostcell *pgc)
     if(p->P87==0)
         fout<<p->count<<" \t "<<setprecision(9)<<p->simtime<<" \t "<<F_x_tot<<" \t "<<F_y_tot<<" \t "<<F_z_tot<<endl;
     if(p->P87==1)
-        fout<<p->count<<","<<setprecision(9)<<p->simtime<<","<<F_x_tot<<","<<F_y_tot<<","<<F_z_tot<<endl;
+        fout<<setprecision(9)<<p->simtime<<","<<F_x_tot<<","<<F_y_tot<<","<<F_z_tot<<endl;
 }
 
 void force_ptf::print_ini_ptf(lexer* p, fdm *a, ghostcell *pgc)
@@ -72,7 +72,7 @@ void force_ptf::print_ini_ptf(lexer* p, fdm *a, ghostcell *pgc)
         if(p->P87==1)
         {
             fout.open(name);
-            fout<<"it,time,Fx,Fy,Fz";
+            fout<<"time,Fx,Fy,Fz";
             fout<<endl;
         }
 	}

@@ -40,6 +40,8 @@ Author: Hans Bihs
 #include"increment.h"
 #include"vec.h"
 #include"matrix_diag.h"
+#include"matrix2D.h"
+#include"vec2D.h"
 #include"cpt.h"
 #include"looping.h"
 #include"iterators.h"
@@ -92,9 +94,13 @@ public:
     // PTF
     slice4 eta,eta_n,depth;
     slice4 Fifsf;
+    slice4 vb;
     slice4 K;
     slice4 Fz_global;
-    sliceint4 etaloc;
+    sliceint4 etaloc,breaking,breaklog;
+    slice4 breaking_print;
+    matrix2D N;
+    vec2D xvec,rvec;
     
     slice1 P;
     slice2 Q;

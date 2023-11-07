@@ -34,6 +34,7 @@ Author: Hans Bihs
 #include"onephase.h"
 #include"ptf_fsf_update.h"
 #include"ptf_bed_update.h"
+#include"ptf_breaking.h"
 
 ptf_RK3::ptf_RK3(lexer *p, fdm *a, ghostcell *pgc) : ptf_fsfbc(p,a,pgc),erk1(p),erk2(p),frk1(p),frk2(p),Firk_0(p),Firk_1(p),Firk_2(p),Firk_3(p)
 {
@@ -71,6 +72,7 @@ ptf_RK3::ptf_RK3(lexer *p, fdm *a, ghostcell *pgc) : ptf_fsfbc(p,a,pgc),erk1(p),
     pfsfupdate = new ptf_fsf_update(p,a,pgc);
     
     pbedupdate = new ptf_bed_update(p,a,pgc);
+    
 }
 
 ptf_RK3::~ptf_RK3()
@@ -103,6 +105,8 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     // Set Boundary Conditions
     pflow->eta_relax(p,pgc,erk1);
     pflow->fifsf_relax(p,pgc,frk1);
+    if(p->A350>0)
+        breaking(p, a, pgc, erk1, a->eta, frk1,1.0);
     pfsfupdate->fsfupdate(p,a,pgc,pflow,poneph,erk1);
     pfsfupdate->etaloc(p,a,pgc);
     pfsfupdate->fsfbc(p,a,pgc,frk1,a->Fi,erk1);
@@ -143,6 +147,8 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     // Set Boundary Conditions
     pflow->eta_relax(p,pgc,erk2);
     pflow->fifsf_relax(p,pgc,frk2);
+    if(p->A350>0)
+        breaking(p, a, pgc, erk2, erk1, frk2, 0.25);
     pfsfupdate->fsfupdate(p,a,pgc,pflow,poneph,erk2);
     pfsfupdate->etaloc(p,a,pgc);
     pfsfupdate->fsfbc(p,a,pgc,frk2,a->Fi,erk2);
@@ -183,6 +189,8 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     // Set Boundary Conditions
     pflow->eta_relax(p,pgc,a->eta);
     pflow->fifsf_relax(p,pgc,a->Fifsf);
+    if(p->A350>0)
+        breaking(p, a, pgc, a->eta, erk2, a->Fifsf, 2.0/3.0);
     pfsfupdate->fsfupdate(p,a,pgc,pflow,poneph,a->eta);
     pfsfupdate->etaloc(p,a,pgc);
     pfsfupdate->fsfbc(p,a,pgc,a->Fifsf,a->Fi,a->eta);

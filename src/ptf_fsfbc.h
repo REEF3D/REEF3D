@@ -22,6 +22,8 @@ Author: Hans Bihs
 
 #include"ptf.h"
 #include"slice4.h"
+#include"sliceint4.h"
+#include"solver2D.h"
 
 class ptf_laplace;
 class field;
@@ -43,6 +45,9 @@ public:
     void kfsfbc(lexer*,fdm*,ghostcell*);
     void dfsfbc(lexer*,fdm*,ghostcell*,slice&);
     void fsfwvel(lexer*,fdm*,ghostcell*,slice&,slice&);
+    void breaking(lexer*,fdm*,ghostcell*,slice&,slice&,slice&,double);
+    void damping(lexer*, fdm*, ghostcell*, slice&,int,double);
+    void filter(lexer*, fdm*,ghostcell*, slice&);
     double fz(lexer*,fdm*,field&,slice&);
 
     fnpf_convection *pconvec;
@@ -53,6 +58,9 @@ public:
     slice4 Ex,Ey;
     
     double grad, teta;
+    sliceint4 bx,by;
+    double visc;
+    solver2D *psolv;
 
 };
 

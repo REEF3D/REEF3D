@@ -37,7 +37,7 @@ Author: Hans Bihs
 #include"fnpf_weno5.h"
 #include"fnpf_weno7.h"
 
-ptf_fsfbc::ptf_fsfbc(lexer *p, fdm *a, ghostcell *pgc) : Fx(p),Fy(p),Fz(p),Ex(p),Ey(p)
+ptf_fsfbc::ptf_fsfbc(lexer *p, fdm *a, ghostcell *pgc) : Fx(p),Fy(p),Fz(p),Ex(p),Ey(p),bx(p),by(p)
 {    
     if(p->A311==0)
         pconvec = new fnpf_voiddisc(p);

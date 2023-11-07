@@ -1,9 +1,10 @@
-#include"ptf_fsfcd.h"
+#include"ptf_fsfbc.h"
 #include"sliceint4.h"
 
 class ptf_laplace;
 class field;
 class fnpf_convection;
+
 
 using namespace std;
 
