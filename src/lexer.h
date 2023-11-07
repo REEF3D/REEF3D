@@ -482,7 +482,7 @@ public:
 	double *P352_x,*P352_y;
     
     // Particles
-    int Q10;
+    int Q10,Q24;
     double Q21,Q22,Q23;
     double Q31;
     double Q41;

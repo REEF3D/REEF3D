@@ -83,8 +83,8 @@ public:
 	int *pxr;
 	int *posflag;
 	int *posmem;
-	int pcount;
-	int n,nn,q,qq,count,check;
+	int pcount,cellcount;
+	int n,nn,q,qq,qn,count,check;
     double wa,wb,wc;
     double wx,wy,wz;
     double di,dj,dk,dnorm;
