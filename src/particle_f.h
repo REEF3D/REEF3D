@@ -73,7 +73,7 @@ public:
 	void print_ascii(lexer*,fdm*,ghostcell*);
 	
 	
-	field4 phimax,phimin,phiold;
+	field4 active;
 	field4 posnum;
 	
 	double **pos,**neg;
@@ -129,13 +129,8 @@ public:
 	void print_vtu(lexer*,fdm*,ghostcell*,double**,int*,int,int);
 	
 	void pvtu_pos(fdm*,lexer*,ghostcell*);
-	void pvtu_neg(fdm*,lexer*,ghostcell*);
-
     void header_pos(fdm*,lexer*,ghostcell*);
-	void header_neg(fdm*,lexer*,ghostcell*);
-
     void piecename_pos(fdm*,lexer*,ghostcell*, int);
-	void piecename_neg(fdm*,lexer*,ghostcell*, int);
 	
 	char name[100],pname[100],epsvar[100];
     int iin,offset[100];

@@ -29,7 +29,11 @@ Author: Hans Bihs
 void particle_f::ini(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
 {
 
-
+    // guess particle demand
+    
+    // allocated
+    
+    // seed: distribute
 
 
 

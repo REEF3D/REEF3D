@@ -28,7 +28,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-particle_f::particle_f(lexer* p, fdm *a, ghostcell* pgc) : norm_vec(p), phimax(p),phimin(p),phiold(p),posnum(p), 
+particle_f::particle_f(lexer* p, fdm *a, ghostcell* pgc) : norm_vec(p), active(p),posnum(p), 
                                 zero (0.0), epsi(1.5*p->DXM),dx(p->DXM),rmin(0.1*p->DXM),
                                 rmax(0.5*p->DXM),pnum(p->F32),ipolval(p->F31), irand(100000), drand(100000.0),
 							  nu(1.0e-10*p->DXM)

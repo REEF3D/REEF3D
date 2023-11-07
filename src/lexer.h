@@ -483,7 +483,7 @@ public:
     
     // Particles
     int Q10;
-    double Q21;
+    double Q21,Q22,Q23;
     double Q31;
     double Q41;
     

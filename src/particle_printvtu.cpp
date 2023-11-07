@@ -41,19 +41,11 @@ void particle_f::print_vtu(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag
 	
 	if(p->mpirank==0)
 	{
-		if(sign==1)
 		pvtu_pos(a,p,pgc);
-		
-		if(sign==2)
-		pvtu_neg(a,p,pgc);	
 	}
 	
-	if(sign==1)
-    header_pos(a,p,pgc);
-	
-	if(sign==2)
-    header_neg(a,p,pgc);
 
+    header_pos(a,p,pgc);
 
 	ofstream result;
 	result.open(name, ios::binary);
