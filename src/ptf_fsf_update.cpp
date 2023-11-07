@@ -154,7 +154,7 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     
     double zpos_fs,zpos_1,zpos_2,zpos_3,zpos_4,zpos_5;
     
-    if(p->A323==5 || p->A323==6)
+    if(p->A323==5||p->A323==6)
     FILOOP4
     {
         zpos_fs=eta(i,j)-(p->ZP[KP]-p->F60);
