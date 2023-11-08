@@ -78,7 +78,7 @@ void particle_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
 	xupdate(p,a,pgc);
 	parcount(p,a,pgc);
 	random_delete(p,a,pgc);
-    reseed(p,a,pgc,0.5);  
+    //reseed(p,a,pgc,0.5);  
     vel_setback(p,a,pgc);
     pgc->start4(p,a->phi,gcval_phi);
 
@@ -96,7 +96,7 @@ void particle_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
 
     if(p->mpirank==0 && (p->count%p->P12==0))
 	{
-    cout<<"PLS. neg: "<<gnegactive<<" pos: "<<gposactive<<" n: "<<gncount<<" p: "<<gpcount<<" nbal: "<<gnegbalance<<" pbal: "<<gposbalance<<endl;
+    cout<<"PLS. pos: "<<gposactive<<" p: "<<gpcount<<" pbal: "<<gposbalance<<endl;
 	cout<<"CORR: *"<<gcorrected<<"* rem: "<<gremoved<<" res: "<<greseeded<<" X: "<<gxchange<<" | plstime: "<<p->plstime<<endl;
 	}
 }

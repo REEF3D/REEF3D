@@ -1548,7 +1548,6 @@
         <File Name="particle_util.cpp"/>
         <File Name="particle_setup.cpp"/>
         <File Name="particle_seed.cpp"/>
-        <File Name="particle_reseed.cpp"/>
         <File Name="particle_remove.cpp"/>
         <File Name="particle_printpvtu.cpp"/>
         <File Name="particle_printvtu.cpp"/>

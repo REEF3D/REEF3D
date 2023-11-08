@@ -26,48 +26,56 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include<math.h>
 
-void particle_f::seed(lexer* p, fdm* a, ghostcell* pgc, double fraction,double fac)
+void particle_f::seed_ini(lexer* p, fdm* a, ghostcell* pgc)
 {
-    field4 partcount(p);
-
+    // ini
     LOOP
-    partcount(i,j,k)=0.0;
-
-    reseeded=0;
-
-    // POS
-    for(n=0;n<posactive;++n)
-    if(posflag[n]>0)
-    {
-        i=int((pos[n][0])/dx);
-        j=int((pos[n][1])/dx);
-        k=int((pos[n][2])/dx);
-
-    partcount(i,j,k)+=1.0;
-    }
-
+    active(i,j,k) = 0.0;
+    
+    ppcell = 0;
+    
+    // Box
+    cellcount=0;
+    for(qn=0;qn<p->Q110;++qn)
     LOOP
-    if(fabs(a->phi(i,j,k))<dx*fac)
-    {
-
-        // POS
-        if(partcount(i,j,k)<double(pnum)*fraction && a->phi(i,j,k)>0.0)
-        {
-			while(partcount(i,j,k)<double(pnum)*fraction)
-			{
-			check=posseed(p,a,pgc,1.0);
-			
-			if(check==1)
-			partcount(i,j,k)+=1.0;
-			}
-			
-		}	
+	if(p->XN[IP]>=p->Q110_xs[qn] && p->XN[IP]<p->Q110_xe[qn]
+	&& p->YN[JP]>=p->Q110_ys[qn] && p->YN[JP]<p->Q110_ye[qn]
+	&& p->ZN[KP]>=p->Q110_zs[qn] && p->ZN[KP]<p->Q110_ze[qn])
+	{
+	active(i,j,k) = 1.0;
+    ++cellcount;
 	}
+    
+    /*if(p->B139>0)
+    srand(p->B139);
+
+    if(p->B139==0)
+    srand((unsigned)time(0));
+
+    // make phases
+	for(int n=0;n<p->wN;++n)
+	ei[n]  = double(rand() % 628)/100.0;*/
+    
+    
+    // guess particle demand
+    if(p->Q24>0)
+    ppcell = p->Q24;
+    
+    partnum = cellcount * ppcell;
+    
+}
+
+void particle_f::seed(lexer* p, fdm* a, ghostcell* pgc)
+{
+	
+    if(p->Q110>0)
+    posseed(p,a,pgc);
+		
 
 }
 
 
-int particle_f::posseed(lexer* p, fdm* a, ghostcell* pgc, double factor)
+void particle_f::posseed(lexer* p, fdm* a, ghostcell* pgc)
 {
 	int success=1;
 	
@@ -80,10 +88,29 @@ int particle_f::posseed(lexer* p, fdm* a, ghostcell* pgc, double factor)
                 pos[posmem[pcount]][0] = (double(i) + (rand()%(irand))/drand)*dx;
                 pos[posmem[pcount]][1] = (double(j) + (rand()%(irand))/drand)*dx;
                 pos[posmem[pcount]][2] = (double(k) + (rand()%(irand))/drand)*dx;
+                pos[posmem[pcount]][3] = 0.0;
+                posflag[posmem[pcount]]=3;
+            }
+		
+}
+
+
+void particle_f::posseed_topo(lexer* p, fdm* a, ghostcell* pgc)
+{
+
+        // POS
+            if(pcount>0)
+            {
+                reseeded++;
+                pcount--;
+
+                pos[posmem[pcount]][0] = (double(i) + (rand()%(irand))/drand)*dx;
+                pos[posmem[pcount]][1] = (double(j) + (rand()%(irand))/drand)*dx;
+                pos[posmem[pcount]][2] = (double(k) + (rand()%(irand))/drand)*dx;
                 pos[posmem[pcount]][3] = phipol(p,a,pos[posmem[pcount]][0],pos[posmem[pcount]][1],pos[posmem[pcount]][2]);
                 posflag[posmem[pcount]]=3;
 
-                phival=MAX(((rand()%(irand))/drand)*epsi,rmin*factor);
+                phival=MAX(((rand()%(irand))/drand)*epsi,rmin);
 
                 lambda=1.0;
                 qq=0;
@@ -113,9 +140,8 @@ int particle_f::posseed(lexer* p, fdm* a, ghostcell* pgc, double factor)
                 if((pos[posmem[pcount]][3]>epsi || pos[posmem[pcount]][3]<rmin) || check==0)
                 {
                 posflag[posmem[pcount]]=0;
-				 pcount++;
+                pcount++;
                 reseeded--;
-				success=0;
                 }
             }
 			
@@ -127,7 +153,7 @@ int particle_f::posseed(lexer* p, fdm* a, ghostcell* pgc, double factor)
                 pos[posactive][3] = phipol(p,a,pos[posactive][0],pos[posactive][1],pos[posactive][2]);
                 posflag[posactive]=3;
 
-                phival=MAX(((rand()%(irand))/drand)*epsi,rmin*factor);
+                phival=MAX(((rand()%(irand))/drand)*epsi,rmin);
 
                 lambda=1.0;
                 qq=0;
@@ -157,12 +183,10 @@ int particle_f::posseed(lexer* p, fdm* a, ghostcell* pgc, double factor)
 				//posradius(p,a,posactive);
                 posactive++;
                 reseeded++;
-                success=1;
                 }
             }
 			
-			
-	return success;
+
 
 }
 

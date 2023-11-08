@@ -28,36 +28,13 @@ Author: Hans Bihs
 
 void particle_f::ini(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
 {
-    LOOP
-    active(i,j,k) = 0.0;
     
-    // Box
-    cellcount=0;
-    for(qn=0;qn<p->Q110;++qn)
-    LOOP
-	if(p->XN[IP]>=p->Q110_xs[qn] && p->XN[IP]<p->Q110_xe[qn]
-	&& p->YN[JP]>=p->Q110_ys[qn] && p->YN[JP]<p->Q110_ye[qn]
-	&& p->ZN[KP]>=p->Q110_zs[qn] && p->ZN[KP]<p->Q110_ze[qn])
-	{
-	active(i,j,k) = 1.0;
-    ++cellcount;
-	}
-    
-    /*if(p->B139>0)
-    srand(p->B139);
-
-    if(p->B139==0)
-    srand((unsigned)time(0));
-
-    // make phases
-	for(int n=0;n<p->wN;++n)
-	ei[n]  = double(rand() % 628)/100.0;*/
+    // seed
+    seed_ini(p,a,pgc);
+    allocate(p,a,pgc);
+    seed(p,a,pgc);
     
     
-    // guess particle demand
-    
-    
-    // allocated
     
     // seed: distribute
 

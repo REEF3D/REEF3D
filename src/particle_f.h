@@ -40,19 +40,26 @@ public:
 	virtual void setup(lexer*,fdm*,ghostcell*);
     
 	void advect(lexer*,fdm*,ghostcell*,double**,int*,int);
-	void seed(lexer*,fdm*,ghostcell*,double,double);
-	void reseed(lexer*,fdm*,ghostcell*,double);
+    
+    void seed_ini(lexer*,fdm*,ghostcell*);
+	void seed(lexer*,fdm*,ghostcell*);
+    void posseed(lexer*,fdm*,ghostcell*);
+    void posseed_topo(lexer*,fdm*,ghostcell*);
+    
 	void remove(lexer*,fdm*,ghostcell*);
 	void random_delete(lexer*,fdm*,ghostcell*);
 	void parcount(lexer*,fdm*,ghostcell*);
 	void particlex(lexer*, fdm*, ghostcell*);
 	void xupdate(lexer*,fdm*,ghostcell*);
-
+    
+    void allocate(lexer*,fdm*,ghostcell*);
+	void print(lexer*,fdm*,ghostcell*);
+	void print_ascii(lexer*,fdm*,ghostcell*);
 	
 	void setradius(lexer*,fdm*);
 	void posradius(lexer*,fdm*,int);
 
-	int posseed(lexer*,fdm*,ghostcell*,double);
+	
 
 	
 
@@ -68,9 +75,7 @@ public:
 	void vel_setback(lexer*,fdm*,ghostcell*);
 	void normal(fdm*, double&,double&,double&,double&);
 	void normreg(fdm*, int,int,int);
-	void allocate(lexer*,fdm*,ghostcell*);
-	void print(lexer*,fdm*,ghostcell*);
-	void print_ascii(lexer*,fdm*,ghostcell*);
+	
 	
 	
 	field4 active;
@@ -83,6 +88,7 @@ public:
 	int *pxr;
 	int *posflag;
 	int *posmem;
+    
 	int pcount,cellcount;
 	int n,nn,q,qq,qn,count,check;
     double wa,wb,wc;
@@ -90,11 +96,16 @@ public:
     double di,dj,dk,dnorm;
     double uvel,vvel,wvel;
     int posactive,negactive,maxparticle;
-	int posactive_old, negactive_old, posbalance, negbalance;
-	int gposactive_old, gnegactive_old, gposbalance, gnegbalance;
+	int posactive_old, posbalance;
+	int gposactive_old, gposbalance;
     int corrected,removed,xchange,reseeded;
     double val1,val2;
+    
+    // new parameters
+    int partnum;
+    int ppcell;
 
+    // old parameters
     double phix,phiy,phiz;
     double xs,ys,zs;
     double xp,yp,zp;
@@ -110,7 +121,8 @@ public:
 
     double di0,di1,a0,a1,a2,a3,df;
     int i0,j0,k0,i3,j3,k3;
-    int gnegactive,gposactive,gpcount,gncount,gcorrected,gremoved,greseeded,gxchange ;
+    int gnegactive,gposactive,gpcount,gncount,gcorrected,gremoved,greseeded,gxchange;
+    
 
 	double H,Hval,nvec[3],phival,lambda,value,cosinus;
 	const double zero,epsi,dx,rmin,rmax;

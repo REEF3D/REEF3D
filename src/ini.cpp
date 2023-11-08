@@ -532,7 +532,8 @@ void lexer::ini_default()
     Q21=1.0;            // double particle density
     Q22=1.0;            // double absolute spacing
     Q23=1.0;            // double relative spacing in terms of diameter
-    Q24=0;              // int seed number for random particle placement
+    Q24=0;              // int particles per cell
+    Q29=0;              // int seed number for random particle placement
     Q31=0.001;          // double particle diameter
     Q41=0.5;            // double porosity
     Q101=0;             // int ini particle as topo

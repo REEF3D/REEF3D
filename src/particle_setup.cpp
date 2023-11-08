@@ -36,7 +36,7 @@ void particle_f::setup(lexer* p, fdm* a, ghostcell* pgc)
 	
     dgc_update(p,a,pgc);
     allocate(p,a,pgc);
-    reseed(p,a,pgc,1.0);
+    seed(p,a,pgc);
     setradius(p,a);
     remove(p,a,pgc);
     
