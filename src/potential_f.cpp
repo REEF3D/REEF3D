@@ -178,7 +178,7 @@ void potential_f::wcalc(lexer *p, fdm *a, field &phi)
     
     if(p->G3==1)
 	WLOOP
-    if(p->flagsf4[IJp1K]<0 || p->flagsf4[IJK]<0.0)
+    if(p->flagsf4[IJKp1]<0 || p->flagsf4[IJK]<0.0)
 	a->w(i,j,k)=0.0;
     
     if(p->S10==2)
@@ -228,14 +228,14 @@ void potential_f::laplace(lexer *p, fdm *a, ghostcell *pgc, field &phi)
         if((p->X10==0 || a->fb(i,j,k)>0.0) && (p->G3==0 || p->flagsf4[IJK]>0))
         {
         a->M.p[n]  =  1.0/(p->DXP[IP]*p->DXN[IP]) + 1.0/(p->DXP[IM1]*p->DXN[IP])
-                    + 1.0/(p->DYP[JP]*p->DYN[JP]) + 1.0/(p->DYP[JM1]*p->DYN[JP])
+                    + (1.0/(p->DYP[JP]*p->DYN[JP]) + 1.0/(p->DYP[JM1]*p->DYN[JP]))*p->y_dir
                     + 1.0/(p->DZP[KP]*p->DZN[KP]) + 1.0/(p->DZP[KM1]*p->DZN[KP]);
 
         a->M.n[n] = -1.0/(p->DXP[IP]*p->DXN[IP]);
         a->M.s[n] = -1.0/(p->DXP[IM1]*p->DXN[IP]);
 
-        a->M.w[n] = -1.0/(p->DYP[JP]*p->DYN[JP]);
-        a->M.e[n] = -1.0/(p->DYP[JM1]*p->DYN[JP]);
+        a->M.w[n] = -1.0/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
+        a->M.e[n] = -1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
 
         a->M.t[n] = -1.0/(p->DZP[KP]*p->DZN[KP]);
         a->M.b[n] = -1.0/(p->DZP[KM1]*p->DZN[KP]);
