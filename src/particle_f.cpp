@@ -30,7 +30,7 @@ Author: Hans Bihs
 
 particle_f::particle_f(lexer* p, fdm *a, ghostcell* pgc) : norm_vec(p), active(p),posnum(p), 
                                 zero (0.0), epsi(1.5*p->DXM),dx(p->DXM),rmin(0.1*p->DXM),
-                                rmax(0.5*p->DXM),pnum(p->F32),ipolval(p->F31), irand(100000), drand(100000.0),
+                                rmax(0.5*p->DXM),ipolval(p->F31), irand(100000), drand(100000.0),
 							  nu(1.0e-10*p->DXM)
 {
     pcount=0;
@@ -51,7 +51,7 @@ particle_f::particle_f(lexer* p, fdm *a, ghostcell* pgc) : norm_vec(p), active(p
 	
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_CFD_PARTICLE",0777);
+	mkdir("./REEF3D_CFD_Particle",0777);
 }
 
 particle_f::~particle_f()
@@ -75,11 +75,10 @@ void particle_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
 	++printcount;
 	}
 	
+    
 	xupdate(p,a,pgc);
-	parcount(p,a,pgc);
-	random_delete(p,a,pgc);
-    //reseed(p,a,pgc,0.5);  
-    vel_setback(p,a,pgc);
+	parcount(p,a,pgc); 
+
     pgc->start4(p,a->phi,gcval_phi);
 
 	posbalance = posactive - posactive_old;

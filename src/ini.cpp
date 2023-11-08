@@ -533,6 +533,7 @@ void lexer::ini_default()
     Q22=1.0;            // double absolute spacing
     Q23=1.0;            // double relative spacing in terms of diameter
     Q24=0;              // int particles per cell
+    Q25=1.25;           // double safety factor particle allocate
     Q29=0;              // int seed number for random particle placement
     Q31=0.001;          // double particle diameter
     Q41=0.5;            // double porosity

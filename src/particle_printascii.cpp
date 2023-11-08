@@ -39,7 +39,7 @@ void particle_f::print_ascii(lexer* p, fdm* a, ghostcell* pgc)
     if(posactive-pcount>0)
     {
         char name[100];
-        sprintf(name,"./REEF3D_CFD_PARTICLE/POS-%i-%i.dat",p->count,p->mpirank+1);
+        sprintf(name,"./REEF3D_CFD_Particle/POS-%i-%i.dat",p->count,p->mpirank+1);
         ofstream result;
         result.open(name);
 

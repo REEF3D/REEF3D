@@ -34,12 +34,8 @@ void particle_f::ini(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
     allocate(p,a,pgc);
     seed(p,a,pgc);
     
-    
-    
-    // seed: distribute
-
-
-
+    // print
+    print_vtu(p,a,pgc,pos,posflag,posactive,1);
 
 
 } 

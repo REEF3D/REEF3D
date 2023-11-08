@@ -71,8 +71,6 @@ public:
 	double lint(field&,int&,int&,int&,double,double,double);
 	double cint(double,double,double,double,double);
 	double tricubic(lexer*,fdm*,field&,int&,int&,int&,double,double,double);
-	void dgc_update(lexer*,fdm*,ghostcell*);
-	void vel_setback(lexer*,fdm*,ghostcell*);
 	void normal(fdm*, double&,double&,double&,double&);
 	void normreg(fdm*, int,int,int);
 	
@@ -126,7 +124,7 @@ public:
 
 	double H,Hval,nvec[3],phival,lambda,value,cosinus;
 	const double zero,epsi,dx,rmin,rmax;
-	const int pnum;
+	//int pnum;
 	const int ipolval;
 	const int irand;
 	const double drand;

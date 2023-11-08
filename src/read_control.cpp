@@ -1525,6 +1525,9 @@ void lexer::read_control()
                  case 24: control>>Q24;
 						 clear(c,numint);
 						 break;
+                 case 25: control>>Q25;
+						 clear(c,numint);
+						 break;
                  case 29: control>>Q29;
 						 clear(c,numint);
 						 break;
@@ -2578,6 +2581,14 @@ void lexer::read_control()
 	Darray(P351_y,P351);
 	Darray(P352_x,P352);
 	Darray(P352_y,P352);
+    
+    // Q
+	Darray(Q110_xs,Q110);
+	Darray(Q110_ys,Q110);
+	Darray(Q110_zs,Q110);
+	Darray(Q110_xe,Q110);
+	Darray(Q110_ye,Q110);
+	Darray(Q110_ze,Q110);
 
 	// S
 	Darray(S73_val,S73);
@@ -2810,6 +2821,7 @@ void lexer::read_control()
     int countP240=0;
 	int countP351=0;
 	int countP352=0;
+    int countQ110=0;
 	int countS73=0;
     int countW41=0;
 	int countX110=0;
@@ -3119,6 +3131,17 @@ void lexer::read_control()
 						 break;
 				case 352: control>>P352_x[countP352]>>P352_y[countP352];
                         ++countP352;
+						 clear(c,numint);
+						 break;
+				}
+				break;
+                
+            case 'Q': control>>numint;
+				switch(numint)
+				{
+
+                case 110: control>>Q110_xs[countQ110]>>Q110_xe[countQ110]>>Q110_ys[countQ110]>>Q110_ye[countQ110]>>Q110_zs[countQ110]>>Q110_ze[countQ110];
+                        ++countQ110;
 						 clear(c,numint);
 						 break;
 				}

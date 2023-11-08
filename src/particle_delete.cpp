@@ -28,7 +28,7 @@ Author: Hans Bihs
 void particle_f::random_delete(lexer* p, fdm* a, ghostcell* pgc)
 {
 	double lsc, maxpos;
-	double pnum_coeff=1.0;
+	double ppcell_coeff=1.0;
 	
 	int qn;
 	
@@ -38,10 +38,10 @@ void particle_f::random_delete(lexer* p, fdm* a, ghostcell* pgc)
     if(posflag[n]==1)
     {
 		if(qn==0)
-		pnum_coeff = 1.25;
+		ppcell_coeff = 1.25;
 		
 		if(qn==1)
-		pnum_coeff = 2.25;
+		ppcell_coeff = 2.25;
 		
         i=int((pos[n][0])/dx);
         j=int((pos[n][1])/dx);
@@ -50,10 +50,10 @@ void particle_f::random_delete(lexer* p, fdm* a, ghostcell* pgc)
 		lsc = a->phi(i,j,k);
 		
 		if(lsc<0.5*p->DXM && lsc>-0.5*p->DXM)
-		maxpos = (0.5 + lsc/p->DXM)*double(pnum)*pnum_coeff;
+		maxpos = (0.5 + lsc/p->DXM)*double(ppcell)*ppcell_coeff;
 		
 		if(lsc>=0.5*p->DXM)
-		maxpos = double(pnum)*pnum_coeff;
+		maxpos = double(ppcell)*ppcell_coeff;
 		
 		if(lsc<=-0.5*p->DXM)
 		maxpos = 0.0;

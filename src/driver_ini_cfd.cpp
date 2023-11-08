@@ -180,6 +180,8 @@ void driver::driver_ini_cfd()
     poneph->update(p,a,pgc,pflow);
     
     ppress->ini(p,a,pgc);
+    
+    ppart->ini(p,a,pgc,pflow);
 
 	pgc->start1(p,a->u,10);
 	pgc->start2(p,a->v,11);

@@ -63,6 +63,8 @@ void particle_f::seed_ini(lexer* p, fdm* a, ghostcell* pgc)
     
     partnum = cellcount * ppcell;
     
+    pcount = partnum;
+    
 }
 
 void particle_f::seed(lexer* p, fdm* a, ghostcell* pgc)
@@ -77,21 +79,25 @@ void particle_f::seed(lexer* p, fdm* a, ghostcell* pgc)
 
 void particle_f::posseed(lexer* p, fdm* a, ghostcell* pgc)
 {
-	int success=1;
+	if(p->Q29>0)
+    srand(p->Q29);
+
+    if(p->Q29==0)
+    srand((unsigned)time(0));
 	
-        // POS
+    LOOP
+    if(active(i,j,k) >0.0)
+    {
             if(pcount>0)
             {
-                reseeded++;
                 pcount--;
-
-                pos[posmem[pcount]][0] = (double(i) + (rand()%(irand))/drand)*dx;
-                pos[posmem[pcount]][1] = (double(j) + (rand()%(irand))/drand)*dx;
-                pos[posmem[pcount]][2] = (double(k) + (rand()%(irand))/drand)*dx;
+                pos[posmem[pcount]][0] = p->XN[IP] + p->DXN[IP]*double(rand() % 1000)/1000.0;
+                pos[posmem[pcount]][0] = p->YN[JP] + p->DYN[JP]*double(rand() % 1000)/1000.0;
+                pos[posmem[pcount]][0] = p->ZN[KP] + p->DZN[KP]*double(rand() % 1000)/1000.0;
                 pos[posmem[pcount]][3] = 0.0;
                 posflag[posmem[pcount]]=3;
             }
-		
+    }
 }
 
 
