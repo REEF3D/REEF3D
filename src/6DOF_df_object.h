@@ -84,6 +84,7 @@ private:
     void mooringForces(lexer*, fdm*, ghostcell*, double);
     void netForces(lexer*, fdm*, ghostcell*, double, vrans*, vector<net*>&);
     void updateForces(fdm*);
+    double ramp_vel(lexer*);
     
     void objects_create(lexer*, fdm*, ghostcell*);
     void objects_allocate(lexer*, fdm*, ghostcell*);

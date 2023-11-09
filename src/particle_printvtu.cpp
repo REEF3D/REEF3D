@@ -35,15 +35,9 @@ void particle_f::print_vtu(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag
 	++numpt;
 	
 	
-	
-    if(p->count>0)
-    
-	
 	if(p->mpirank==0)
-	{
-		pvtu_pos(a,p,pgc);
-	}
-	
+	pvtu_pos(a,p,pgc);
+
 
     header_pos(a,p,pgc);
 
@@ -88,7 +82,6 @@ void particle_f::print_vtu(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag
 	result<<"<DataArray type=\"Float32\" Name=\"correction\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	result<<"</PointData>"<<endl;
-	
 	
 	
 

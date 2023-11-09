@@ -29,6 +29,7 @@ void particle_f::allocate(lexer* p,fdm* a,ghostcell* pgc)
 {
      maxparticle = int(p->Q25*double(partnum));
      pcount = maxparticle;
+     pactive = 0;
 	 
 	 p->Darray(pos,maxparticle,5);
 	 
@@ -38,9 +39,7 @@ void particle_f::allocate(lexer* p,fdm* a,ghostcell* pgc)
 
      for(n=0;n<maxparticle;++n)
      {
-
          posflag[n] = 0;
-
          posmem[n] = n;
      }
 

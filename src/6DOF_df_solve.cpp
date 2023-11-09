@@ -166,19 +166,19 @@ void sixdof_df_object::prescribedMotion(lexer *p, fdm *a, ghostcell *pgc, Eigen:
     if (p->X11_u == 2)
     {
         dp(0) = 0.0; 
-        dc(0) = Uext;
+        dc(0) = Uext*ramp_vel(p);
     }
     
     if (p->X11_v == 2)
     {
         dp(1) = 0.0; 
-        dc(1) = Vext;
+        dc(1) = Vext*ramp_vel(p);
     }
 
     if (p->X11_w == 2)
     {
         dp(2) = 0.0; 
-        dc(2) = Wext;
+        dc(2) = Wext*ramp_vel(p);
     }
     
     if(p->X11_p==2)
@@ -201,6 +201,25 @@ void sixdof_df_object::prescribedMotion(lexer *p, fdm *a, ghostcell *pgc, Eigen:
     
 }
 
+double sixdof_df_object::ramp_vel(lexer *p)
+{
+    double f=1.0;
+    
+    if(p->X205==1 && p->X206==1 && p->simtime>=p->X206_ts && p->simtime<p->X206_te)
+    {
+    f = (p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts);
+    }
+    
+    if(p->X205==2 && p->X206==1 && p->simtime>=p->X206_ts && p->simtime<p->X206_te)
+    {
+    f = (p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts)-(1.0/PI)*sin(PI*(p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts));
+    }
+    
+    if(p->X206==1 && p->simtime<p->X206_ts)
+    f=0.0;
+    
+    return f;
+}
 
 
 

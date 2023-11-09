@@ -46,30 +46,16 @@ void particle_f::seed_ini(lexer* p, fdm* a, ghostcell* pgc)
     ++cellcount;
 	}
     
-    /*if(p->B139>0)
-    srand(p->B139);
-
-    if(p->B139==0)
-    srand((unsigned)time(0));
-
-    // make phases
-	for(int n=0;n<p->wN;++n)
-	ei[n]  = double(rand() % 628)/100.0;*/
-    
-    
     // guess particle demand
     if(p->Q24>0)
     ppcell = p->Q24;
     
     partnum = cellcount * ppcell;
     
-    
-    
 }
 
 void particle_f::seed(lexer* p, fdm* a, ghostcell* pgc)
 {
-	
     if(p->Q110>0)
     posseed(p,a,pgc);
 		
@@ -90,12 +76,12 @@ void particle_f::posseed(lexer* p, fdm* a, ghostcell* pgc)
     {
             if(pcount>0)
             {
-                pcount--;
-                pos[PC][0] = p->XN[IP] + p->DXN[IP]*double(rand() % 1000)/1000.0;
-                pos[PC][0] = p->YN[JP] + p->DYN[JP]*double(rand() % 1000)/1000.0;
-                pos[PC][0] = p->ZN[KP] + p->DZN[KP]*double(rand() % 1000)/1000.0;
-                pos[PC][3] = 0.0;
-                posflag[PC]=1;
+                ++pactive;
+                pos[pactive][0] = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
+                pos[pactive][0] = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
+                pos[pactive][0] = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
+                pos[pactive][3] = 0.0;
+                posflag[pactive]=1;
             }
     }
 }

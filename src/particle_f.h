@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"boundarycheck.h"
 #include"field4.h"
 #define PC posmem[pcount]
+#define PARTLOOP for(n=maxparticle-1;n>=pcount;--n)
 
 using namespace std;
 
@@ -89,12 +90,13 @@ public:
 	int *posmem;
     
 	int pcount,cellcount;
+    int pactive;
 	int n,nn,q,qq,qn,count,check;
     double wa,wb,wc;
     double wx,wy,wz;
     double di,dj,dk,dnorm;
     double uvel,vvel,wvel;
-    int posactive,negactive,maxparticle;
+    int posactive,maxparticle;
 	int posactive_old, posbalance;
 	int gposactive_old, gposbalance;
     int corrected,removed,xchange,reseeded;
