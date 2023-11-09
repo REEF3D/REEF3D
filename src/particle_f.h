@@ -55,7 +55,7 @@ public:
 	void xupdate(lexer*,fdm*,ghostcell*);
     
     void allocate(lexer*,fdm*,ghostcell*);
-	void print(lexer*,fdm*,ghostcell*);
+	void print_particles(lexer*,fdm*,ghostcell*);
 	void print_ascii(lexer*,fdm*,ghostcell*);
 	
 	void setradius(lexer*,fdm*);

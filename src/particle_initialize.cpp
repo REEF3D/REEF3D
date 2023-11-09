@@ -35,7 +35,7 @@ void particle_f::ini(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
     seed(p,a,pgc);
     
     // print
-    print_vtu(p,a,pgc,pos,posflag,posactive,1);
+    print_vtu(p,a,pgc,pos,posflag,pactive,1);
 
 
 } 

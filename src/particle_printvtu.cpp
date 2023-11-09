@@ -25,6 +25,22 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
+void particle_f::print_particles(lexer* p, fdm* a, ghostcell* pgc)
+{
+    if(((p->count%p->Q181==0 && p->Q182<0.0 && p->Q180==1 )|| (p->count==0 &&  p->Q182<0.0 && p->Q180==1)) && p->Q181>0)
+	{
+    print_vtu(p,a,pgc,pos,posflag,pactive,1);
+	++printcount;
+	}
+    
+    if((p->simtime>p->fsfprinttime && p->Q182>0.0 && p->Q180==1) || (p->count==0 &&  p->Q182>0.0))
+    {
+    print_vtu(p,a,pgc,pos,posflag,pactive,1);
+    p->partprinttime+=p->Q182;
+    }
+    
+}
+
 void particle_f::print_vtu(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag,int active, int sign)
 {
 	int numpt=0;
@@ -34,6 +50,7 @@ void particle_f::print_vtu(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag
     if(flag[n]>0)
 	++numpt;
 	
+    cout<<"PACTIVE: "<<numpt<<" "<<active<<endl;
 	
 	if(p->mpirank==0)
 	pvtu_pos(a,p,pgc);
@@ -161,13 +178,13 @@ void particle_f::print_vtu(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag
     for(n=0;n<active;++n)
     if(flag[n]>0)
 	{
-	ffn=float(f[n][0]+p->originx);
+	ffn=float(f[n][0]);
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(f[n][1]+p->originy);
+	ffn=float(f[n][1]);
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(f[n][2]+p->originz);
+	ffn=float(f[n][2]);
 	result.write((char*)&ffn, sizeof (float));
 	}
 	

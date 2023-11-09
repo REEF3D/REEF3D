@@ -632,6 +632,7 @@ public:
 	double bedmax,bedmin;
 	double field4time;
     double printtime, sedprinttime,fsfprinttime,probeprinttime,stateprinttime,exportprinttime;
+    double partprinttime;
 
 	// solver watch
 	int uiter,viter,witer;

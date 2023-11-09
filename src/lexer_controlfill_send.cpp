@@ -2279,6 +2279,22 @@ void lexer::ctrlsend()
 	dd++;
     }
     
+    for(n=0;n<Q110;++n)
+    {
+    dctrl[dd] = Q110_xs[n];
+    dd++;
+    dctrl[dd] = Q110_xe[n];
+    dd++;
+    dctrl[dd] = Q110_ys[n];
+    dd++;
+    dctrl[dd] = Q110_ye[n];
+    dd++;
+    dctrl[dd] = Q110_zs[n];
+    dd++;
+    dctrl[dd] = Q110_ze[n];
+    dd++;
+    }
+    
     for(n=0;n<S73;++n)
     {
     dctrl[dd] = S73_val[n];

@@ -28,10 +28,6 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void particle_f::print(lexer* p, fdm* a, ghostcell* pgc)
-{
-
-}
 
 void particle_f::print_ascii(lexer* p, fdm* a, ghostcell* pgc)
 {
