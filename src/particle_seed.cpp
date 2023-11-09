@@ -63,7 +63,7 @@ void particle_f::seed_ini(lexer* p, fdm* a, ghostcell* pgc)
     
     partnum = cellcount * ppcell;
     
-    pcount = partnum;
+    
     
 }
 
@@ -91,11 +91,11 @@ void particle_f::posseed(lexer* p, fdm* a, ghostcell* pgc)
             if(pcount>0)
             {
                 pcount--;
-                pos[posmem[pcount]][0] = p->XN[IP] + p->DXN[IP]*double(rand() % 1000)/1000.0;
-                pos[posmem[pcount]][0] = p->YN[JP] + p->DYN[JP]*double(rand() % 1000)/1000.0;
-                pos[posmem[pcount]][0] = p->ZN[KP] + p->DZN[KP]*double(rand() % 1000)/1000.0;
-                pos[posmem[pcount]][3] = 0.0;
-                posflag[posmem[pcount]]=3;
+                pos[PC][0] = p->XN[IP] + p->DXN[IP]*double(rand() % 1000)/1000.0;
+                pos[PC][0] = p->YN[JP] + p->DYN[JP]*double(rand() % 1000)/1000.0;
+                pos[PC][0] = p->ZN[KP] + p->DZN[KP]*double(rand() % 1000)/1000.0;
+                pos[PC][3] = 0.0;
+                posflag[PC]=1;
             }
     }
 }
@@ -110,11 +110,11 @@ void particle_f::posseed_topo(lexer* p, fdm* a, ghostcell* pgc)
                 reseeded++;
                 pcount--;
 
-                pos[posmem[pcount]][0] = (double(i) + (rand()%(irand))/drand)*dx;
-                pos[posmem[pcount]][1] = (double(j) + (rand()%(irand))/drand)*dx;
-                pos[posmem[pcount]][2] = (double(k) + (rand()%(irand))/drand)*dx;
-                pos[posmem[pcount]][3] = phipol(p,a,pos[posmem[pcount]][0],pos[posmem[pcount]][1],pos[posmem[pcount]][2]);
-                posflag[posmem[pcount]]=3;
+                pos[PC][0] = (double(i) + (rand()%(irand))/drand)*dx;
+                pos[PC][1] = (double(j) + (rand()%(irand))/drand)*dx;
+                pos[PC][2] = (double(k) + (rand()%(irand))/drand)*dx;
+                pos[PC][3] = phipol(p,a,pos[PC][0],pos[PC][1],pos[PC][2]);
+                posflag[PC]=3;
 
                 phival=MAX(((rand()%(irand))/drand)*epsi,rmin);
 
@@ -123,29 +123,29 @@ void particle_f::posseed_topo(lexer* p, fdm* a, ghostcell* pgc)
 
                 do
                 {
-                normal(a,pos[posmem[pcount]][0],pos[posmem[pcount]][1],pos[posmem[pcount]][2],pos[posmem[pcount]][3]);
-                pos[posmem[pcount]][0] += lambda*(phival - pos[posmem[pcount]][3])*nvec[0];
-                pos[posmem[pcount]][1] += lambda*(phival - pos[posmem[pcount]][3])*nvec[1];
-                pos[posmem[pcount]][2] += lambda*(phival - pos[posmem[pcount]][3])*nvec[2];
+                normal(a,pos[PC][0],pos[PC][1],pos[PC][2],pos[PC][3]);
+                pos[PC][0] += lambda*(phival - pos[PC][3])*nvec[0];
+                pos[PC][1] += lambda*(phival - pos[PC][3])*nvec[1];
+                pos[PC][2] += lambda*(phival - pos[PC][3])*nvec[2];
 
-                ii=int((pos[posmem[pcount]][0])/dx);
-                jj=int((pos[posmem[pcount]][1])/dx);
-                kk=int((pos[posmem[pcount]][2])/dx);
+                ii=int((pos[PC][0])/dx);
+                jj=int((pos[PC][1])/dx);
+                kk=int((pos[PC][2])/dx);
                 check=boundcheck(p,a,ii,jj,kk,0);
                 if(check==0)
                 break;
 
-                pos[posmem[pcount]][3] = phipol(p,a,pos[posmem[pcount]][0],pos[posmem[pcount]][1],pos[posmem[pcount]][2]);
+                pos[PC][3] = phipol(p,a,pos[PC][0],pos[PC][1],pos[PC][2]);
 
                 lambda/=2.0;
                 ++qq;
-                }while((pos[posmem[pcount]][3]>epsi || pos[posmem[pcount]][3]<rmin)&& qq<15);
+                }while((pos[PC][3]>epsi || pos[PC][3]<rmin)&& qq<15);
 				
-				//posradius(p,a,posmem[pcount]);
+				//posradius(p,a,PC);
 
-                if((pos[posmem[pcount]][3]>epsi || pos[posmem[pcount]][3]<rmin) || check==0)
+                if((pos[PC][3]>epsi || pos[PC][3]<rmin) || check==0)
                 {
-                posflag[posmem[pcount]]=0;
+                posflag[PC]=0;
                 pcount++;
                 reseeded--;
                 }

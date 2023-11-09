@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"norm_vec.h"
 #include"boundarycheck.h"
 #include"field4.h"
+#define PC posmem[pcount]
 
 using namespace std;
 

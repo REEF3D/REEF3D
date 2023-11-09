@@ -28,6 +28,7 @@ Author: Hans Bihs
 void particle_f::allocate(lexer* p,fdm* a,ghostcell* pgc)
 {
      maxparticle = int(p->Q25*double(partnum));
+     pcount = maxparticle;
 	 
 	 p->Darray(pos,maxparticle,5);
 	 
@@ -40,7 +41,7 @@ void particle_f::allocate(lexer* p,fdm* a,ghostcell* pgc)
 
          posflag[n] = 0;
 
-         posmem[n] = 0;
+         posmem[n] = n;
      }
 
     // parallel
