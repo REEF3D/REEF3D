@@ -63,9 +63,9 @@ void sixdof_df_object::ini_fbvel(lexer *p, fdm *a, ghostcell *pgc)
     
 	if(p->X210==1)
 	{
-        p->ufbi = p->X210_u;
-        p->vfbi = p->X210_v;
-        p->wfbi = p->X210_w;
+        p->ufbi = p->X210_u*ramp_vel(p);
+        p->vfbi = p->X210_v*ramp_vel(p);
+        p->wfbi = p->X210_w*ramp_vel(p);
 	}
 	
 	if(p->X211==1)
@@ -87,9 +87,9 @@ void sixdof_df_object::ini_fbvel(lexer *p, fdm *a, ghostcell *pgc)
     
     if (p->X210 == 1)
     {
-        Uext = p->X210_u;
-        Vext = p->X210_v;
-        Wext = p->X210_w;
+        Uext = p->X210_u*ramp_vel(p);
+        Vext = p->X210_v*ramp_vel(p);
+        Wext = p->X210_w*ramp_vel(p);
     }
     if (p->X211 == 1)
     {
@@ -103,35 +103,6 @@ void sixdof_df_object::ini_fbvel(lexer *p, fdm *a, ghostcell *pgc)
         cout<<"not implemented yet"<<endl;
     }
     
-	
-    // Velocities
-	p->ufb = p->vfb = p->wfb = 0.0;
-	p->pfb = p->qfb = p->rfb = 0.0; 
-	p->ufbi = p->vfbi = p->wfbi = 0.0;
-	p->pfbi = p->qfbi = p->rfbi = 0.0; 
-    
-	if(p->X210==1)
-	{
-        p->ufbi = p->X210_u;
-        p->vfbi = p->X210_v;
-        p->wfbi = p->X210_w;
-	}
-	
-	if(p->X211==1)
-	{
-        p->pfbi = p->X211_p;
-        p->qfbi = p->X211_q;
-        p->rfbi = p->X211_r;
-	}
-
-    p->ufbn = p->ufbi;
-    p->vfbn = p->vfbi;
-    p->wfbn = p->wfbi;
-    p->pfbn = p->pfbi;   
-    p->qfbn = p->qfbi;   
-    p->rfbn = p->rfbi;
-    
-    //p->del_Darray(integ, 10);
 
     // Positions
     phi = theta = psi = 0.0;
