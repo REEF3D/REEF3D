@@ -43,7 +43,7 @@ public:
 private:
     static int iocheck,iter;
     int gcval_ro,gcval_visc;
-	const double dx,visc_air,visc_water,ro_air,ro_water;
+	const double dx,visc_air,visc_water,ro_air,ro_water,visc_body;
     double epsi;
 
 };
