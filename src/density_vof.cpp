@@ -39,7 +39,7 @@ density_vof::~density_vof()
 
 double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
-	H= 0.5*(a->vof(i,j,k) + a->vof(i+aa,j+bb,k+cc));
+	H= 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
 
 		H=MAX(H,0.0);
 		H=MIN(H,1.0);

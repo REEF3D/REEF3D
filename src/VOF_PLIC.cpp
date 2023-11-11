@@ -172,24 +172,22 @@ void VOF_PLIC::start
     if(p->mpirank==0)
     cout<<"vofplictime: "<<setprecision(3)<<p->lsmtime<<endl;
 
+
     LOOP
-    {
-        //a->test(i,j,k) = a->vof(i,j,k);
-
-        if (a->vof(i,j,k) > 0.5)
-        {
-            a->phi(i,j,k) = 1.0;
-        }
-        else
-        {
-            a->phi(i,j,k) = -1.0;
-        }
-    }
-
+    a->phi(i,j,k) = a->vof(i,j,k);
+    
+    pgc->start4(p,a->phi,50);
+    
+    for (int tt = 0; tt < 10; tt++)
+    LOOP
+    a->phi(i,j,k) = (1.0/7.0)*(a->phi(i,j,k) + a->phi(i+1,j,k) + a->phi(i-1,j,k) + a->phi(i,j-1,k) + a->phi(i,j+1,k) + a->phi(i,j,k-1) + a->phi(i,j,k+1));
+    
+    pgc->start4(p,a->phi,50);
+    /*
     for (int tt = 0; tt < 10; tt++)
     {
         reini_->start(a,p,a->phi,pgc,pflow);
-    }
+    }*/
 
 }
 
