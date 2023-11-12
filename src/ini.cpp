@@ -245,6 +245,7 @@ void lexer::ini_default()
     B270=0;         // int VRANS porous media box
     B274=0;         // int VRANS porous media vertical cylinder
     B281=0;         // int VRANS porous media wedge in x-direction
+    B282=0;         // int VRANS porous media wedge in y-direction
     B291=0;         // int VRANS porous media plate in x-direction
     B308=1;         // int porosity effects on fluid acceleration for vegetation
     B309=2.0;       // double Cm for vegetation

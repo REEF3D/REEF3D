@@ -476,6 +476,8 @@ void lexer::ctrlsend()
     ii++;
     ictrl[ii] = B281;
     ii++;
+    ictrl[ii] = B282;
+    ii++;
     ictrl[ii] = B291;
     ii++;
     ictrl[ii] = B295;
@@ -1814,6 +1816,30 @@ void lexer::ctrlsend()
 	dctrl[dd] = B281_alpha[n];
     dd++;
 	dctrl[dd] = B281_beta[n];
+    dd++;
+    }
+    
+    for(n=0;n<B282;++n)
+    {
+	dctrl[dd] = B282_xs[n];
+    dd++;
+    dctrl[dd] = B282_xe[n];
+    dd++;
+    dctrl[dd] = B282_ys[n];
+    dd++;
+    dctrl[dd] = B282_ye[n];
+    dd++;
+    dctrl[dd] = B282_zs[n];
+    dd++;
+    dctrl[dd] = B282_ze[n];
+    dd++;
+    dctrl[dd] = B282_n[n];
+    dd++;
+    dctrl[dd] = B282_d50[n];
+    dd++;
+	dctrl[dd] = B282_alpha[n];
+    dd++;
+	dctrl[dd] = B282_beta[n];
     dd++;
     }
     

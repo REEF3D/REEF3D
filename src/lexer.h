@@ -353,6 +353,8 @@ public:
     double *B274_xc,*B274_yc,*B274_zs,*B274_ze,*B274_r, *B274_n, *B274_d50, *B274_alpha, *B274_beta;
     int B281;
     double *B281_xs, *B281_xe, *B281_ys, *B281_ye, *B281_zs, *B281_ze, *B281_n, *B281_d50, *B281_alpha, *B281_beta;
+    int B282;
+    double *B282_xs, *B282_xe, *B282_ys, *B282_ye, *B282_zs, *B282_ze, *B282_n, *B282_d50, *B282_alpha, *B282_beta;
 	int B291;
     double *B291_xs, *B291_xe, *B291_ys, *B291_ye, *B291_zs, *B291_ze, *B291_d, *B291_n, *B291_d50, *B291_alpha, *B291_beta;
     int B295;

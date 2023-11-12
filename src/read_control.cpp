@@ -650,6 +650,10 @@ void lexer::read_control()
 						 B269=1;
 						 clear(c,numint);
 						 break;
+               case 282: ++B282;
+						 B269=1;
+						 clear(c,numint);
+						 break;
                case 291: ++B291;
 						 B269=1;
 						 clear(c,numint);
@@ -2262,6 +2266,17 @@ void lexer::read_control()
     Darray(B281_d50,B281);
 	Darray(B281_alpha,B281);
 	Darray(B281_beta,B281);
+    
+    Darray(B282_xs,B282);
+	Darray(B282_xe,B282);
+	Darray(B282_ys,B282);
+	Darray(B282_ye,B282);
+	Darray(B282_zs,B282);
+	Darray(B282_ze,B282);
+    Darray(B282_n,B282);
+    Darray(B282_d50,B282);
+	Darray(B282_alpha,B282);
+	Darray(B282_beta,B282);
 
     Darray(B291_xs,B291);
 	Darray(B291_xe,B291);
@@ -2766,6 +2781,7 @@ void lexer::read_control()
     int countB270=0;
     int countB274=0;
     int countB281=0;
+    int countB282=0;
     int countB291=0;
     int countB310=0;
     int countB411=0;
@@ -2881,6 +2897,10 @@ void lexer::read_control()
 						 break;
                 case 281: control>>B281_xs[countB281]>>B281_xe[countB281]>>B281_ys[countB281]>>B281_ye[countB281]>>B281_zs[countB281]>>B281_ze[countB281]>>B281_n[countB281]>>B281_d50[countB281]>>B281_alpha[countB281]>>B281_beta[countB281];
                         ++countB281;
+						 clear(c,numint);
+						 break;
+                case 282: control>>B282_xs[countB282]>>B282_xe[countB282]>>B282_ys[countB282]>>B282_ye[countB282]>>B282_zs[countB282]>>B282_ze[countB282]>>B282_n[countB282]>>B282_d50[countB282]>>B282_alpha[countB282]>>B282_beta[countB282];
+                        ++countB282;
 						 clear(c,numint);
 						 break;
                 case 291: control>>B291_xs[countB291]>>B291_xe[countB291]>>B291_ys[countB291]>>B291_ye[countB291]>>B291_zs[countB291]>>B291_ze[countB291]>>B291_d[countB291]>>B291_n[countB291]>>B291_d50[countB291]>>B291_alpha[countB291]>>B291_beta[countB291];

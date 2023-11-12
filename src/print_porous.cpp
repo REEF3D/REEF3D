@@ -33,8 +33,8 @@ print_porous::print_porous(lexer* p, fdm *a, ghostcell *pgc)
 	polygon_num=0;
 	polygon_sum=0;
 	
-	vertice_alloc = p->B270*8 + p->B281*8 + p->B291*8 + p->B310*8;
-	polygon_alloc = p->B270*6 + p->B281*6 + p->B291*6 + p->B310*6;
+	vertice_alloc = p->B270*8 + p->B281*8 + p->B282*6 + p->B291*8 + p->B310*8;
+	polygon_alloc = p->B270*6 + p->B281*6 + p->B282*6 + p->B291*6 + p->B310*6;
     
     for(n=0; n<p->B274;++n)
 	{
@@ -81,6 +81,9 @@ void print_porous::objects(lexer *p, fdm *a, ghostcell *pgc)
 	
 	for(qn=0;qn<p->B281;++qn)
 	wedge_x(p,a,pgc,qn);
+    
+    for(qn=0;qn<p->B282;++qn)
+	wedge_y(p,a,pgc,qn);
     
     for(qn=0;qn<p->B291;++qn)
 	plate_x(p,a,pgc,qn);
