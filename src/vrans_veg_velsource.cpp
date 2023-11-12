@@ -29,7 +29,7 @@ void vrans_veg::u_source(lexer *p, fdm *a)
 {	
 	// VRANS Vegetation porosity
     count=0;
-    if(p->B310>0)
+    if(p->B310>0 || p->B321>0 || p->B322>0)
     ULOOP
 	{
         Cd_val = 0.5*(Cd(i,j,k) + Cd(i+1,j,k));
@@ -50,7 +50,7 @@ void vrans_veg::v_source(lexer *p, fdm *a)
 {
 	// VRANS porosity
     count=0;
-    if(p->B310>0)
+    if(p->B310>0 || p->B321>0 || p->B322>0)
     VLOOP
 	{
         Cd_val = 0.5*(Cd(i,j,k) + Cd(i,j+1,k));
@@ -70,8 +70,8 @@ void vrans_veg::v_source(lexer *p, fdm *a)
 void vrans_veg::w_source(lexer *p, fdm *a)
 {
 	// VRANS porosity
-    /*count=0;
-    if(p->B310>0)
+    count=0;
+    if(p->B310>0 || p->B321>0 || p->B322>0)
     WLOOP
 	{
         Cd_val = 0.5*(Cd(i,j,k) + Cd(i,j,k+1));
@@ -85,6 +85,6 @@ void vrans_veg::w_source(lexer *p, fdm *a)
 	
     a->rhsvec.V[count] -= (-Fi -Fd);
 	++count;
-	}*/
+	}
 }
 

@@ -798,3 +798,323 @@ void print_porous::box_veg(lexer *p, fdm *a, ghostcell *pgc,int rank)
 	numvert[polygon_num] = 4;
 	++polygon_num;
 }
+
+void print_porous::wedge_x_veg(lexer *p, fdm *a, ghostcell *pgc,int rank)
+{	
+	double xs,ys,zs,xe,ye,ze;
+	int vertice_start=vertice_num;
+	
+
+	xs = p->B321_xs[rank];
+    xe = p->B321_xe[rank];
+
+    ys = p->B321_ys[rank];
+    ye = p->B321_ye[rank];
+
+    zs = p->B321_zs[rank];
+    ze = p->B321_ze[rank];  
+
+	if(zs<ze)
+	{
+	// Vertices	
+		vertice[vertice_num][0] = xs;
+		vertice[vertice_num][1] = ys;
+		vertice[vertice_num][2] = zs;
+		++vertice_num;
+		
+		vertice[vertice_num][0] = xe;
+		vertice[vertice_num][1] = ys;
+		vertice[vertice_num][2] = zs;
+		++vertice_num;
+		
+		vertice[vertice_num][0] = xe;
+		vertice[vertice_num][1] = ys;
+		vertice[vertice_num][2] = ze;
+		++vertice_num;
+		
+		vertice[vertice_num][0] = xs;
+		vertice[vertice_num][1] = ye;
+		vertice[vertice_num][2] = zs;
+		++vertice_num;
+		
+		vertice[vertice_num][0] = xe;
+		vertice[vertice_num][1] = ye;
+		vertice[vertice_num][2] = zs;
+		++vertice_num;
+		
+		vertice[vertice_num][0] = xe;
+		vertice[vertice_num][1] = ye;
+		vertice[vertice_num][2] = ze;
+		++vertice_num;
+		
+
+	}
+	
+	if(zs>=ze)
+	{
+	// Vertices	
+		vertice[vertice_num][0] = xs;
+		vertice[vertice_num][1] = ys;
+		vertice[vertice_num][2] = ze;
+		++vertice_num;
+		
+		vertice[vertice_num][0] = xe;
+		vertice[vertice_num][1] = ys;
+		vertice[vertice_num][2] = ze;
+		++vertice_num;
+		
+		vertice[vertice_num][0] = xs;
+		vertice[vertice_num][1] = ys;
+		vertice[vertice_num][2] = zs;
+		++vertice_num;
+		
+		vertice[vertice_num][0] = xs;
+		vertice[vertice_num][1] = ye;
+		vertice[vertice_num][2] = ze;
+		++vertice_num;
+		
+		vertice[vertice_num][0] = xe;
+		vertice[vertice_num][1] = ye;
+		vertice[vertice_num][2] = ze;
+		++vertice_num;
+		
+		vertice[vertice_num][0] = xs;
+		vertice[vertice_num][1] = ye;
+		vertice[vertice_num][2] = zs;
+		++vertice_num;
+	}
+	
+		
+// Polygon
+	if(zs<ze)
+	{
+	polygon[polygon_num][0] = 0 + vertice_start;
+	polygon[polygon_num][1] = 1 + vertice_start;
+	polygon[polygon_num][2] = 2 + vertice_start;
+	numvert[polygon_num] = 3;
+	++polygon_num;
+	
+	polygon[polygon_num][0] = 3 + vertice_start;
+	polygon[polygon_num][1] = 4 + vertice_start;
+	polygon[polygon_num][2] = 5 + vertice_start;
+	numvert[polygon_num] = 3;
+	++polygon_num;
+	
+	polygon[polygon_num][0] = 0 + vertice_start;
+	polygon[polygon_num][1] = 1 + vertice_start;
+	polygon[polygon_num][2] = 4 + vertice_start;
+	polygon[polygon_num][3] = 3 + vertice_start;
+	numvert[polygon_num] = 4;
+	++polygon_num;
+	
+	polygon[polygon_num][0] = 1 + vertice_start;
+	polygon[polygon_num][1] = 2 + vertice_start;
+	polygon[polygon_num][2] = 5 + vertice_start;
+	polygon[polygon_num][3] = 4 + vertice_start;
+	numvert[polygon_num] = 4;
+	++polygon_num;
+	
+	polygon[polygon_num][0] = 0 + vertice_start;
+	polygon[polygon_num][1] = 2 + vertice_start;
+	polygon[polygon_num][2] = 5 + vertice_start;
+	polygon[polygon_num][3] = 3 + vertice_start;
+	numvert[polygon_num] = 4;
+	++polygon_num;
+	}
+	
+	if(zs>=ze)
+	{
+	polygon[polygon_num][0] = 0 + vertice_start;
+	polygon[polygon_num][1] = 1 + vertice_start;
+	polygon[polygon_num][2] = 2 + vertice_start;
+	numvert[polygon_num] = 3;
+	++polygon_num;
+	
+	polygon[polygon_num][0] = 3 + vertice_start;
+	polygon[polygon_num][1] = 4 + vertice_start;
+	polygon[polygon_num][2] = 5 + vertice_start;
+	numvert[polygon_num] = 3;
+	++polygon_num;
+	
+	polygon[polygon_num][0] = 0 + vertice_start;
+	polygon[polygon_num][1] = 1 + vertice_start;
+	polygon[polygon_num][2] = 4 + vertice_start;
+	polygon[polygon_num][3] = 3 + vertice_start;
+	numvert[polygon_num] = 4;
+	++polygon_num;
+	
+	polygon[polygon_num][0] = 0 + vertice_start;
+	polygon[polygon_num][1] = 2 + vertice_start;
+	polygon[polygon_num][2] = 5 + vertice_start;
+	polygon[polygon_num][3] = 3 + vertice_start;
+	numvert[polygon_num] = 4;
+	++polygon_num;
+	
+	polygon[polygon_num][0] = 1 + vertice_start;
+	polygon[polygon_num][1] = 2 + vertice_start;
+	polygon[polygon_num][2] = 5 + vertice_start;
+	polygon[polygon_num][3] = 4 + vertice_start;
+	numvert[polygon_num] = 4;
+	++polygon_num;
+	}  
+}
+
+void print_porous::wedge_y_veg(lexer *p, fdm *a, ghostcell *pgc,int rank)
+{	
+	double xs,ys,zs,xe,ye,ze;
+	int vertice_start=vertice_num;
+	
+
+	xs = p->B322_xs[rank];
+    xe = p->B322_xe[rank];
+
+    ys = p->B322_ys[rank];
+    ye = p->B322_ye[rank];
+
+    zs = p->B322_zs[rank];
+    ze = p->B322_ze[rank];  
+
+	if(zs<ze)
+	{
+	// Vertices	
+		vertice[vertice_num][0] = xs;
+		vertice[vertice_num][1] = ys;
+		vertice[vertice_num][2] = zs;
+		++vertice_num;
+		
+		vertice[vertice_num][0] = xs;
+		vertice[vertice_num][1] = ye;
+		vertice[vertice_num][2] = zs;
+		++vertice_num;
+		
+		vertice[vertice_num][0] = xs;
+		vertice[vertice_num][1] = ye;
+		vertice[vertice_num][2] = ze;
+		++vertice_num;
+		
+		vertice[vertice_num][0] = xe;
+		vertice[vertice_num][1] = ys;
+		vertice[vertice_num][2] = zs;
+		++vertice_num;
+		
+		vertice[vertice_num][0] = xe;
+		vertice[vertice_num][1] = ye;
+		vertice[vertice_num][2] = zs;
+		++vertice_num;
+		
+		vertice[vertice_num][0] = xe;
+		vertice[vertice_num][1] = ye;
+		vertice[vertice_num][2] = ze;
+		++vertice_num;
+		
+
+	}
+	
+	if(zs>=ze)
+	{
+	// Vertices	
+		vertice[vertice_num][0] = xs;
+		vertice[vertice_num][1] = ys;
+		vertice[vertice_num][2] = ze;
+		++vertice_num;
+		
+		vertice[vertice_num][0] = xe;
+		vertice[vertice_num][1] = ys;
+		vertice[vertice_num][2] = ze;
+		++vertice_num;
+		
+		vertice[vertice_num][0] = xs;
+		vertice[vertice_num][1] = ys;
+		vertice[vertice_num][2] = zs;
+		++vertice_num;
+		
+		vertice[vertice_num][0] = xs;
+		vertice[vertice_num][1] = ye;
+		vertice[vertice_num][2] = ze;
+		++vertice_num;
+		
+		vertice[vertice_num][0] = xe;
+		vertice[vertice_num][1] = ye;
+		vertice[vertice_num][2] = ze;
+		++vertice_num;
+		
+		vertice[vertice_num][0] = xs;
+		vertice[vertice_num][1] = ye;
+		vertice[vertice_num][2] = zs;
+		++vertice_num;
+	}
+	
+		
+// Polygon
+	if(zs<ze)
+	{
+	polygon[polygon_num][0] = 0 + vertice_start;
+	polygon[polygon_num][1] = 1 + vertice_start;
+	polygon[polygon_num][2] = 2 + vertice_start;
+	numvert[polygon_num] = 3;
+	++polygon_num;
+	
+	polygon[polygon_num][0] = 3 + vertice_start;
+	polygon[polygon_num][1] = 4 + vertice_start;
+	polygon[polygon_num][2] = 5 + vertice_start;
+	numvert[polygon_num] = 3;
+	++polygon_num;
+	
+	polygon[polygon_num][0] = 0 + vertice_start;
+	polygon[polygon_num][1] = 1 + vertice_start;
+	polygon[polygon_num][2] = 4 + vertice_start;
+	polygon[polygon_num][3] = 3 + vertice_start;
+	numvert[polygon_num] = 4;
+	++polygon_num;
+	
+	polygon[polygon_num][0] = 1 + vertice_start;
+	polygon[polygon_num][1] = 2 + vertice_start;
+	polygon[polygon_num][2] = 5 + vertice_start;
+	polygon[polygon_num][3] = 4 + vertice_start;
+	numvert[polygon_num] = 4;
+	++polygon_num;
+	
+	polygon[polygon_num][0] = 0 + vertice_start;
+	polygon[polygon_num][1] = 2 + vertice_start;
+	polygon[polygon_num][2] = 5 + vertice_start;
+	polygon[polygon_num][3] = 3 + vertice_start;
+	numvert[polygon_num] = 4;
+	++polygon_num;
+	}
+	
+	if(zs>=ze)
+	{
+	polygon[polygon_num][0] = 0 + vertice_start;
+	polygon[polygon_num][1] = 1 + vertice_start;
+	polygon[polygon_num][2] = 2 + vertice_start;
+	numvert[polygon_num] = 3;
+	++polygon_num;
+	
+	polygon[polygon_num][0] = 3 + vertice_start;
+	polygon[polygon_num][1] = 4 + vertice_start;
+	polygon[polygon_num][2] = 5 + vertice_start;
+	numvert[polygon_num] = 3;
+	++polygon_num;
+	
+	polygon[polygon_num][0] = 0 + vertice_start;
+	polygon[polygon_num][1] = 1 + vertice_start;
+	polygon[polygon_num][2] = 4 + vertice_start;
+	polygon[polygon_num][3] = 3 + vertice_start;
+	numvert[polygon_num] = 4;
+	++polygon_num;
+	
+	polygon[polygon_num][0] = 0 + vertice_start;
+	polygon[polygon_num][1] = 2 + vertice_start;
+	polygon[polygon_num][2] = 5 + vertice_start;
+	polygon[polygon_num][3] = 3 + vertice_start;
+	numvert[polygon_num] = 4;
+	++polygon_num;
+	
+	polygon[polygon_num][0] = 1 + vertice_start;
+	polygon[polygon_num][1] = 2 + vertice_start;
+	polygon[polygon_num][2] = 5 + vertice_start;
+	polygon[polygon_num][3] = 4 + vertice_start;
+	numvert[polygon_num] = 4;
+	++polygon_num;
+	}  
+}

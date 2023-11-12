@@ -41,13 +41,15 @@ public:
     virtual void print_vtp(lexer*,fdm*,ghostcell*);
 	virtual void objects(lexer*,fdm*,ghostcell*);
 	
-    virtual void box(lexer*,fdm*,ghostcell*,int);
-    virtual void cylinder_z(lexer*,fdm*,ghostcell*,int);
-	virtual void wedge_x(lexer*,fdm*,ghostcell*,int);
-    virtual void wedge_y(lexer*,fdm*,ghostcell*,int);
-    virtual void plate_x(lexer*,fdm*,ghostcell*,int);
+    void box(lexer*,fdm*,ghostcell*,int);
+    void cylinder_z(lexer*,fdm*,ghostcell*,int);
+	void wedge_x(lexer*,fdm*,ghostcell*,int);
+    void wedge_y(lexer*,fdm*,ghostcell*,int);
+    void plate_x(lexer*,fdm*,ghostcell*,int);
     
-    virtual void box_veg(lexer*,fdm*,ghostcell*,int);
+    void box_veg(lexer*,fdm*,ghostcell*,int);
+    void wedge_x_veg(lexer*,fdm*,ghostcell*,int);
+    void wedge_y_veg(lexer*,fdm*,ghostcell*,int);
 
 private:
     char name[100];

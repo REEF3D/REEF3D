@@ -671,6 +671,12 @@ void lexer::read_control()
                case 310: ++B310;
 						 clear(c,numint);
 						 break;
+               case 321: ++B321;
+						 clear(c,numint);
+						 break;
+               case 322: ++B322;
+						 clear(c,numint);
+						 break;
                case 411: ++B411;
 						 clear(c,numint);
 						 break;
@@ -2299,6 +2305,26 @@ void lexer::read_control()
     Darray(B310_N,B310);
     Darray(B310_D,B310);
 	Darray(B310_Cd,B310);
+    
+    Darray(B321_xs,B321);
+	Darray(B321_xe,B321);
+	Darray(B321_ys,B321);
+	Darray(B321_ye,B321);
+	Darray(B321_zs,B321);
+	Darray(B321_ze,B321);
+    Darray(B321_N,B321);
+    Darray(B321_D,B321);
+	Darray(B321_Cd,B321);
+    
+    Darray(B322_xs,B322);
+	Darray(B322_xe,B322);
+	Darray(B322_ys,B322);
+	Darray(B322_ye,B322);
+	Darray(B322_zs,B322);
+	Darray(B322_ze,B322);
+    Darray(B322_N,B322);
+    Darray(B322_D,B322);
+	Darray(B322_Cd,B322);
 
 
     Iarray(B411_ID,B411);
@@ -2784,6 +2810,8 @@ void lexer::read_control()
     int countB282=0;
     int countB291=0;
     int countB310=0;
+    int countB321=0;
+    int countB322=0;
     int countB411=0;
     int countB412=0;
     int countB413=0;
@@ -2909,6 +2937,14 @@ void lexer::read_control()
 						 break;
                 case 310: control>>B310_xs[countB310]>>B310_xe[countB310]>>B310_ys[countB310]>>B310_ye[countB310]>>B310_zs[countB310]>>B310_ze[countB310]>>B310_N[countB310]>>B310_D[countB310]>>B310_Cd[countB310];
                         ++countB310;
+						 clear(c,numint);
+						 break;
+                case 321: control>>B321_xs[countB321]>>B321_xe[countB321]>>B321_ys[countB321]>>B321_ye[countB321]>>B321_zs[countB321]>>B321_ze[countB321]>>B321_N[countB321]>>B321_D[countB321]>>B321_Cd[countB321];
+                        ++countB321;
+						 clear(c,numint);
+						 break;
+                case 322: control>>B322_xs[countB322]>>B322_xe[countB322]>>B322_ys[countB322]>>B322_ye[countB322]>>B322_zs[countB322]>>B322_ze[countB322]>>B322_N[countB322]>>B322_D[countB322]>>B322_Cd[countB322];
+                        ++countB322;
 						 clear(c,numint);
 						 break;
                 case 411: control>>B411_ID[countB411]>>B411_Q[countB411];

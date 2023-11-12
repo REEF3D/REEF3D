@@ -250,6 +250,8 @@ void lexer::ini_default()
     B308=1;         // int porosity effects on fluid acceleration for vegetation
     B309=2.0;       // double Cm for vegetation
     B310=0;         // int VRANS vegetation box
+    B321=0;         // int VRANS vegetation wedge in x-direction
+    B322=0;         // int VRANS vegetation wedge in y-direction
     B411=0;        // int patchBC discharge
     B412=0;        // int patchBC pressure BC
     B413=0;        // int patchBC waterlevel
