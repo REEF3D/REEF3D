@@ -48,10 +48,14 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     
     // add solid structures
     BASELOOP
-    {
-        if(p->flagslice4[IJ]<0)
-        p->flag7[FIJK]=-10;
-    }
+    if(p->flagslice4[IJ]<0)
+    p->flag7[FIJK]=-10;
+    
+    // add solid structures
+    BASELOOP
+    if(p->flagslice4[IJ]<0)
+    p->flag4[IJK]=-10;
+
     
     k=p->knoz;
     SLICEBASELOOP

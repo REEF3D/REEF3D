@@ -76,8 +76,6 @@ void print_porous::objects(lexer *p, fdm *a, ghostcell *pgc)
     
     for(qn=0;qn<p->B274;++qn)
 	cylinder_z(p,a,pgc,qn);
-    
-    //cout<<vertice_num<<" "<<polygon_num<<endl;
 	
 	for(qn=0;qn<p->B281;++qn)
 	wedge_x(p,a,pgc,qn);

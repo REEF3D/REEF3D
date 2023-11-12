@@ -100,6 +100,10 @@ driver::driver(int& argc, char **argv)
     // sigma grid - NHFLOW
     if(p->A10==5)
     {
+        BASELOOP
+        if(p->flagslice4[IJ]<0)
+        p->flag4[IJK]=-10;
+    
         p->flagini();
         p->gridini_patchBC();
         pgc->flagfield(p);
