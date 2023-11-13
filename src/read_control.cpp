@@ -2886,8 +2886,12 @@ void lexer::read_control()
 	while(!control.eof())
 	{
 		control>>c;
-		switch(c)
+		if (c == '/')
+			control.ignore(1000, '\n');
+		else
 		{
+			switch(c)
+			{
 			case 'B': control>>numint;
 				switch(numint)
 				{
@@ -3302,8 +3306,8 @@ void lexer::read_control()
 						 break;
 				}
 				break;
+			}
 		}
-
         if(count>1e7)
         {
         cout<<endl;
