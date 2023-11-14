@@ -1156,9 +1156,9 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Print">
           <VirtualDirectory Name="Print Bed">
+            <File Name="sflow_print_bed.cpp"/>
             <File Name="sflow_print_bedline_y.cpp"/>
             <File Name="sflow_print_bedline.cpp"/>
-            <File Name="sflow_print.bed.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="State">
             <File Name="sflow_state_write.cpp"/>
