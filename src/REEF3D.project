@@ -1167,7 +1167,7 @@
             <File Name="sflow_state_filename.cpp"/>
             <File Name="sflow_state.cpp"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="VTP bottom">
+          <VirtualDirectory Name="VTP Bed">
             <File Name="sflow_vtp_bed_pvtp.cpp"/>
             <File Name="sflow_vtp_bed_header.cpp"/>
             <File Name="sflow_vtp_bed.cpp"/>
@@ -1198,7 +1198,7 @@
           <File Name="sflow_momentum_RK3.cpp"/>
           <File Name="sflow_momentum_RK2.cpp"/>
           <File Name="sflow_momentum_AB2.cpp"/>
-          <VirtualDirectory Name="sflow_roughness">
+          <VirtualDirectory Name="Roughness">
             <File Name="sflow_rough_void.cpp"/>
             <File Name="sflow_rough_manning.cpp"/>
           </VirtualDirectory>
