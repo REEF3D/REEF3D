@@ -38,7 +38,7 @@ driver::driver(int& argc, char **argv)
 	if(p->mpirank==0)
     {
     cout<<endl<<"REEF3D (c) 2008-2023 Hans Bihs"<<endl;
-    sprintf(version,"v_231109");
+    sprintf(version,"v_231112");
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
     cout<<endl<<version<<endl<<endl;
     }
@@ -100,6 +100,10 @@ driver::driver(int& argc, char **argv)
     // sigma grid - NHFLOW
     if(p->A10==5)
     {
+        BASELOOP
+        if(p->flagslice4[IJ]<0)
+        p->flag4[IJK]=-10;
+    
         p->flagini();
         p->gridini_patchBC();
         pgc->flagfield(p);

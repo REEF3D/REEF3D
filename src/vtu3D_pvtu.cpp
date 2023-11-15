@@ -121,6 +121,9 @@ void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
     if(p->P71==1)
     result<<"<PDataArray type=\"Float32\" Name=\"viscosity\"/>"<<endl;
     
+    if(p->P72==1)
+    result<<"<PDataArray type=\"Float32\" Name=\"VOF\"/>"<<endl;
+    
     if(p->A10==4)
     result<<"<PDataArray type=\"Float32\" Name=\"Fi\"/>"<<endl;
 

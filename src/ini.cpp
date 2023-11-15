@@ -245,10 +245,13 @@ void lexer::ini_default()
     B270=0;         // int VRANS porous media box
     B274=0;         // int VRANS porous media vertical cylinder
     B281=0;         // int VRANS porous media wedge in x-direction
+    B282=0;         // int VRANS porous media wedge in y-direction
     B291=0;         // int VRANS porous media plate in x-direction
     B308=1;         // int porosity effects on fluid acceleration for vegetation
     B309=2.0;       // double Cm for vegetation
     B310=0;         // int VRANS vegetation box
+    B321=0;         // int VRANS vegetation wedge in x-direction
+    B322=0;         // int VRANS vegetation wedge in y-direction
     B411=0;        // int patchBC discharge
     B412=0;        // int patchBC pressure BC
     B413=0;        // int patchBC waterlevel
@@ -492,6 +495,7 @@ void lexer::ini_default()
 	P67=0;			  // int discharge gages in x-direction
     P68=0;			  // int discharge gages in x-direction
     P71=0;           // int print viscosity to vtu
+    P72=0;           // int print vof function
     P73=0;           // int print hx and hy for sflow vtp
     P74=0;           
 	P75=0;            // int print out vorticity vec

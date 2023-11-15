@@ -650,6 +650,10 @@ void lexer::read_control()
 						 B269=1;
 						 clear(c,numint);
 						 break;
+               case 282: ++B282;
+						 B269=1;
+						 clear(c,numint);
+						 break;
                case 291: ++B291;
 						 B269=1;
 						 clear(c,numint);
@@ -665,6 +669,12 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
                case 310: ++B310;
+						 clear(c,numint);
+						 break;
+               case 321: ++B321;
+						 clear(c,numint);
+						 break;
+               case 322: ++B322;
 						 clear(c,numint);
 						 break;
                case 411: ++B411;
@@ -1386,6 +1396,9 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
                 case 71: control>>P71;
+						 clear(c,numint);
+						 break;
+                case 72: control>>P72;
 						 clear(c,numint);
 						 break;
                 case 73: control>>P73;
@@ -2259,6 +2272,17 @@ void lexer::read_control()
     Darray(B281_d50,B281);
 	Darray(B281_alpha,B281);
 	Darray(B281_beta,B281);
+    
+    Darray(B282_xs,B282);
+	Darray(B282_xe,B282);
+	Darray(B282_ys,B282);
+	Darray(B282_ye,B282);
+	Darray(B282_zs,B282);
+	Darray(B282_ze,B282);
+    Darray(B282_n,B282);
+    Darray(B282_d50,B282);
+	Darray(B282_alpha,B282);
+	Darray(B282_beta,B282);
 
     Darray(B291_xs,B291);
 	Darray(B291_xe,B291);
@@ -2281,6 +2305,26 @@ void lexer::read_control()
     Darray(B310_N,B310);
     Darray(B310_D,B310);
 	Darray(B310_Cd,B310);
+    
+    Darray(B321_xs,B321);
+	Darray(B321_xe,B321);
+	Darray(B321_ys,B321);
+	Darray(B321_ye,B321);
+	Darray(B321_zs,B321);
+	Darray(B321_ze,B321);
+    Darray(B321_N,B321);
+    Darray(B321_D,B321);
+	Darray(B321_Cd,B321);
+    
+    Darray(B322_xs,B322);
+	Darray(B322_xe,B322);
+	Darray(B322_ys,B322);
+	Darray(B322_ye,B322);
+	Darray(B322_zs,B322);
+	Darray(B322_ze,B322);
+    Darray(B322_N,B322);
+    Darray(B322_D,B322);
+	Darray(B322_Cd,B322);
 
 
     Iarray(B411_ID,B411);
@@ -2763,8 +2807,11 @@ void lexer::read_control()
     int countB270=0;
     int countB274=0;
     int countB281=0;
+    int countB282=0;
     int countB291=0;
     int countB310=0;
+    int countB321=0;
+    int countB322=0;
     int countB411=0;
     int countB412=0;
     int countB413=0;
@@ -2839,8 +2886,12 @@ void lexer::read_control()
 	while(!control.eof())
 	{
 		control>>c;
-		switch(c)
+		if (c == '/')
+			control.ignore(1000, '\n');
+		else
 		{
+			switch(c)
+			{
 			case 'B': control>>numint;
 				switch(numint)
 				{
@@ -2880,12 +2931,24 @@ void lexer::read_control()
                         ++countB281;
 						 clear(c,numint);
 						 break;
+                case 282: control>>B282_xs[countB282]>>B282_xe[countB282]>>B282_ys[countB282]>>B282_ye[countB282]>>B282_zs[countB282]>>B282_ze[countB282]>>B282_n[countB282]>>B282_d50[countB282]>>B282_alpha[countB282]>>B282_beta[countB282];
+                        ++countB282;
+						 clear(c,numint);
+						 break;
                 case 291: control>>B291_xs[countB291]>>B291_xe[countB291]>>B291_ys[countB291]>>B291_ye[countB291]>>B291_zs[countB291]>>B291_ze[countB291]>>B291_d[countB291]>>B291_n[countB291]>>B291_d50[countB291]>>B291_alpha[countB291]>>B291_beta[countB291];
                         ++countB291;
 						 clear(c,numint);
 						 break;
                 case 310: control>>B310_xs[countB310]>>B310_xe[countB310]>>B310_ys[countB310]>>B310_ye[countB310]>>B310_zs[countB310]>>B310_ze[countB310]>>B310_N[countB310]>>B310_D[countB310]>>B310_Cd[countB310];
                         ++countB310;
+						 clear(c,numint);
+						 break;
+                case 321: control>>B321_xs[countB321]>>B321_xe[countB321]>>B321_ys[countB321]>>B321_ye[countB321]>>B321_zs[countB321]>>B321_ze[countB321]>>B321_N[countB321]>>B321_D[countB321]>>B321_Cd[countB321];
+                        ++countB321;
+						 clear(c,numint);
+						 break;
+                case 322: control>>B322_xs[countB322]>>B322_xe[countB322]>>B322_ys[countB322]>>B322_ye[countB322]>>B322_zs[countB322]>>B322_ze[countB322]>>B322_N[countB322]>>B322_D[countB322]>>B322_Cd[countB322];
+                        ++countB322;
 						 clear(c,numint);
 						 break;
                 case 411: control>>B411_ID[countB411]>>B411_Q[countB411];
@@ -3243,8 +3306,8 @@ void lexer::read_control()
 						 break;
 				}
 				break;
+			}
 		}
-
         if(count>1e7)
         {
         cout<<endl;

@@ -29,7 +29,11 @@ Author: Hans Bihs
 
 void print_porous::print_vtp(lexer *p, fdm *a, ghostcell *pgc)
 {
-	sprintf(name,"REEF3D_Porous-Object.vtp");
+    // Create Folder
+	if(p->mpirank==0 && p->P14==1)
+	mkdir("./REEF3D_CFD_Porous",0777);
+    
+	sprintf(name,"./REEF3D_CFD_Porous/REEF3D_Porous-Object.vtp");
 
 	ofstream result;
 	result.open(name, ios::binary);

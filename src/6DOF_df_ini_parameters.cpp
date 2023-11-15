@@ -87,9 +87,9 @@ void sixdof_df_object::ini_fbvel(lexer *p, fdm *a, ghostcell *pgc)
     
     if (p->X210 == 1)
     {
-        Uext = p->X210_u*ramp_vel(p);
-        Vext = p->X210_v*ramp_vel(p);
-        Wext = p->X210_w*ramp_vel(p);
+        Uext = p->X210_u;
+        Vext = p->X210_v;
+        Wext = p->X210_w;
     }
     if (p->X211 == 1)
     {

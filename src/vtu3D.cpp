@@ -168,7 +168,7 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
     if(p->P101>0)
 	pslosh=new sloshing_force(p,a,pgc);
 
-	if(p->B270>0 || p->B274>0 || p->B281>0 || p->B291>0 || p->B310>0 || p->B311>0)
+	if(p->B270>0 || p->B274>0 || p->B281>0 || p->B282>0 || p->B291>0 || p->B310>0 || p->B321>0 || p->B322>0 || p->B311>0)
 	{
 	ppor=new print_porous(p,a,pgc);
 	ppor->start(p,a,pgc);
@@ -491,8 +491,15 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
+    
+        // VOF
+	if(p->P72==1)
+	{
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
+	}
 
-    // Fi
+        // Fi
     if(p->A10==4)
 	{
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
@@ -614,6 +621,12 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     if(p->P71==1)
 	{
     result<<"<DataArray type=\"Float32\" Name=\"viscosity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+	}
+    
+    if(p->P72==1)
+	{
+    result<<"<DataArray type=\"Float32\" Name=\"VOF\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	}
 
@@ -783,6 +796,18 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	TPLOOP
 	{
 	ffn=float(p->ipol4(a->visc));
+	result.write((char*)&ffn, sizeof (float));
+	}
+	}
+    
+//  VOF
+    if(p->P72==1)
+	{
+    iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	TPLOOP
+	{
+	ffn=float(p->ipol4(a->vof));
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}

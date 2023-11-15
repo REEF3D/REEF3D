@@ -476,6 +476,8 @@ void lexer::ctrlsend()
     ii++;
     ictrl[ii] = B281;
     ii++;
+    ictrl[ii] = B282;
+    ii++;
     ictrl[ii] = B291;
     ii++;
     ictrl[ii] = B295;
@@ -485,6 +487,10 @@ void lexer::ctrlsend()
     dctrl[dd] = B309;
     dd++;
     ictrl[ii] = B310;
+    ii++;
+    ictrl[ii] = B321;
+    ii++;
+    ictrl[ii] = B322;
     ii++;
     ictrl[ii] = B411;
     ii++;
@@ -957,6 +963,8 @@ void lexer::ctrlsend()
     ictrl[ii] = P68;
 	ii++;
     ictrl[ii] = P71;
+	ii++;
+    ictrl[ii] = P72;
 	ii++;
     ictrl[ii] = P73;
 	ii++;
@@ -1815,6 +1823,30 @@ void lexer::ctrlsend()
     dd++;
     }
     
+    for(n=0;n<B282;++n)
+    {
+	dctrl[dd] = B282_xs[n];
+    dd++;
+    dctrl[dd] = B282_xe[n];
+    dd++;
+    dctrl[dd] = B282_ys[n];
+    dd++;
+    dctrl[dd] = B282_ye[n];
+    dd++;
+    dctrl[dd] = B282_zs[n];
+    dd++;
+    dctrl[dd] = B282_ze[n];
+    dd++;
+    dctrl[dd] = B282_n[n];
+    dd++;
+    dctrl[dd] = B282_d50[n];
+    dd++;
+	dctrl[dd] = B282_alpha[n];
+    dd++;
+	dctrl[dd] = B282_beta[n];
+    dd++;
+    }
+    
     for(n=0;n<B291;++n)
     {
 	dctrl[dd] = B291_xs[n];
@@ -1860,6 +1892,50 @@ void lexer::ctrlsend()
     dctrl[dd] = B310_D[n];
     dd++;
 	dctrl[dd] = B310_Cd[n];
+    dd++;
+    }
+    
+    for(n=0;n<B321;++n)
+    {
+	dctrl[dd] = B321_xs[n];
+    dd++;
+    dctrl[dd] = B321_xe[n];
+    dd++;
+    dctrl[dd] = B321_ys[n];
+    dd++;
+    dctrl[dd] = B321_ye[n];
+    dd++;
+    dctrl[dd] = B321_zs[n];
+    dd++;
+    dctrl[dd] = B321_ze[n];
+    dd++;
+    dctrl[dd] = B321_N[n];
+    dd++;
+    dctrl[dd] = B321_D[n];
+    dd++;
+	dctrl[dd] = B321_Cd[n];
+    dd++;
+    }
+    
+    for(n=0;n<B322;++n)
+    {
+	dctrl[dd] = B322_xs[n];
+    dd++;
+    dctrl[dd] = B322_xe[n];
+    dd++;
+    dctrl[dd] = B322_ys[n];
+    dd++;
+    dctrl[dd] = B322_ye[n];
+    dd++;
+    dctrl[dd] = B322_zs[n];
+    dd++;
+    dctrl[dd] = B322_ze[n];
+    dd++;
+    dctrl[dd] = B322_N[n];
+    dd++;
+    dctrl[dd] = B322_D[n];
+    dd++;
+	dctrl[dd] = B322_Cd[n];
     dd++;
     }
     

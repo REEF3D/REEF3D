@@ -29,7 +29,7 @@ void vrans_f::u_source(lexer *p, fdm *a)
 {
 	// VRANS porosity
     count=0;
-    if(p->B270>0 || p->B274>0 || p->B281>1 || p->B291>1)
+    if(p->B270>0 || p->B274>0 || p->B281>1 || p->B282>1 || p->B291>1)
     ULOOP
 	{
         porval = 0.5*(a->porosity(i,j,k) + a->porosity(i+1,j,k));
@@ -56,7 +56,7 @@ void vrans_f::v_source(lexer *p, fdm *a)
 	
 	// VRANS porosity
     count=0;
-    if(p->B270>0 || p->B274>0 || p->B281>1 || p->B291>1)
+    if(p->B270>0 || p->B274>0 || p->B281>1 || p->B282>1 || p->B291>1)
     VLOOP
 	{
         porval = 0.5*(a->porosity(i,j,k) + a->porosity(i,j+1,k));
@@ -81,7 +81,7 @@ void vrans_f::w_source(lexer *p, fdm *a)
 {
 	// VRANS porosity
     count=0;
-    if(p->B270>0 || p->B274>0 || p->B281>1 || p->B291>1)
+    if(p->B270>0 || p->B274>0 || p->B281>1 || p->B282>1 || p->B291>1)
     WLOOP
 	{
         porval = 0.5*(a->porosity(i,j,k) + a->porosity(i,j,k+1));
