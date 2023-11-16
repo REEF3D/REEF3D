@@ -166,6 +166,7 @@ public:
     
     void wavegen_precalc_relax_func(lexer*,ghostcell*);
     void wavegen_precalc_relax_func_fnpf(lexer*,ghostcell*);
+    void wavegen_precalc_relax_func_ptf(lexer*,ghostcell*);
     void wavegen_precalc_relax_func_nhflow(lexer*,ghostcell*);
     
     
@@ -184,6 +185,22 @@ public:
     void wavegen_precalc_decomp_time_fnpf(lexer*,ghostcell*);
     void wavegen_precalc_decomp_relax_fnpf(lexer*,ghostcell*);
     void wavegen_precalc_decomp_dirichlet_fnpf(lexer*,ghostcell*);
+    
+    // PTF
+    virtual void inflow_ptf(lexer*,fdm*,ghostcell*,double*,double*,slice&,slice&);
+    virtual void rkinflow_ptf(lexer*,fdm*,ghostcell*,slice&,slice&);
+    void ptf_precalc_relax(lexer*,ghostcell*);
+    void ptf_precalc_relax_ini(lexer*,ghostcell*);
+    void ptf_precalc_dirichlet(lexer*,ghostcell*);
+    void ptf_precalc_dirichlet_ini(lexer*,ghostcell*);
+    void dirichlet_wavegen_ptf(lexer*,fdm*,ghostcell*,double*,double*,slice&,slice&);
+    void active_beach_ptf(lexer*, fdm*, ghostcell*, double*, double*, slice&, slice&);
+    
+    void wavegen_precalc_decomp_space_ptf(lexer*,ghostcell*);
+    void wavegen_precalc_decomp_space_dirichlet_ptf(lexer*,ghostcell*);
+    void wavegen_precalc_decomp_time_ptf(lexer*,ghostcell*);
+    void wavegen_precalc_decomp_relax_ptf(lexer*,ghostcell*);
+    void wavegen_precalc_decomp_dirichlet_ptf(lexer*,ghostcell*);
     
     // NHFLOW
     virtual void wavegen_precalc_nhflow(lexer*,fdm_nhf*,ghostcell*);

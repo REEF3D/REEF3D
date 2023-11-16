@@ -20,62 +20,37 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fdm.h"
+#include"iowave.h"
 #include"lexer.h"
+#include"ghostcell.h"
 
-fdm::fdm(lexer *p)
-			:u(p),F(p),
-			v(p),G(p),
-			w(p),H(p),
-            omega(p),
-			press(p),
-            Fi(p),
-			eddyv(p),
-			L(p),
-			ro(p),visc(p),
-			phi(p),vof(p),
-			conc(p),
-            topo(p),solid(p),
-            test(p),
-			fb(p),fbh1(p),fbh2(p),fbh3(p),fbh4(p),fbh5(p),porosity(p),
-			walld(p),
-			nodeval(p),flag(p),nodeval2D(p),etaloc(p),
-            eta(p),eta_n(p),depth(p),breaking(p),breaklog(p),breaking_print(p),N(p),xvec(p),rvec(p),
-            vb(p),
-            Fifsf(p),Fz_global(p),K(p),
-            P(p),Q(p),bed(p),
-            rhsvec(p),M(p),WL(p)
-            
+void iowave::wavegen_precalc_decomp_time_ptf(lexer *p, ghostcell *pgc)
 {
+    int qn;
     
-	maxF=0.0;
-	maxG=0.0; 
-	maxH=0.0;
+
+    for(qn=0;qn<wave_comp;++qn)
+    {
+    etaval_T_sin[qn] = wave_eta_time_sin(p,pgc,qn);
+    etaval_T_cos[qn] = wave_eta_time_cos(p,pgc,qn);
+    }
+
+    for(qn=0;qn<wave_comp;++qn)
+    {
+    Fival_T_sin[qn] = wave_fi_time_sin(p,pgc,qn);
+    Fival_T_cos[qn] = wave_fi_time_cos(p,pgc,qn);
+    }
     
-	gi=p->W20;
-	gj=p->W21;
-	gk=p->W22;
+    for(qn=0;qn<wave_comp;++qn)
+    {
+    uval_T_sin[qn] = wave_u_time_sin(p,pgc,qn);
+    uval_T_cos[qn] = wave_u_time_cos(p,pgc,qn);
+    }
     
-    C4.allocate(p);
-    C4a.allocate(p);
-    C6.allocate(p);
-    C9.allocate(p);
+    for(qn=0;qn<wave_comp;++qn)
+    {
+    Fifsfval_T_sin[qn] = wave_fi_time_sin(p,pgc,qn);
+    Fifsfval_T_cos[qn] = wave_fi_time_cos(p,pgc,qn);
+    }
+    
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -176,8 +176,13 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
         
         if(p->A10==3)
         H=1.0;
+        
+        if(p->A10==4)//new
+        H=1.0; 
 		
 		a->Fi(i,j,k) = wave_fi(p,pgc,xg,yg,z)*H;
+    
+        
 	}
     
     // eta
@@ -205,7 +210,7 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
     }
 }
 
-void iowave::full_initialize_ptf(lexer *p, fdm *a, ghostcell *pgc)
+/*void iowave::full_initialize_ptf(lexer *p, fdm *a, ghostcell *pgc)
 {
     if(p->mpirank==0)
     cout<<"full NWT initialize"<<endl;
@@ -259,3 +264,4 @@ void iowave::full_initialize_ptf(lexer *p, fdm *a, ghostcell *pgc)
     pgc->start4(p,a->Fi,50);
 
 }
+*/

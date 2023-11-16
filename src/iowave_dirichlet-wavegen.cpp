@@ -111,7 +111,7 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
 		}
         
     // PTF
-    /*if(p->A10==4)
+   /* if(pt->A10==4)
     {
         for(n=0;n<p->gcslin_count;n++)
         {
@@ -124,8 +124,8 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
         a->Fifsf(i-3,j) = a->Fifsf(i,j) - u(i-1,j,k)*3.0*p->DXP[IM1];
         }
          }
-    }*/
-    
+    }
+    */
     // NSEWAVE
     if(p->A10==51)
     {

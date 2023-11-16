@@ -20,62 +20,30 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fdm.h"
+#include"iowave.h"
 #include"lexer.h"
-
-fdm::fdm(lexer *p)
-			:u(p),F(p),
-			v(p),G(p),
-			w(p),H(p),
-            omega(p),
-			press(p),
-            Fi(p),
-			eddyv(p),
-			L(p),
-			ro(p),visc(p),
-			phi(p),vof(p),
-			conc(p),
-            topo(p),solid(p),
-            test(p),
-			fb(p),fbh1(p),fbh2(p),fbh3(p),fbh4(p),fbh5(p),porosity(p),
-			walld(p),
-			nodeval(p),flag(p),nodeval2D(p),etaloc(p),
-            eta(p),eta_n(p),depth(p),breaking(p),breaklog(p),breaking_print(p),N(p),xvec(p),rvec(p),
-            vb(p),
-            Fifsf(p),Fz_global(p),K(p),
-            P(p),Q(p),bed(p),
-            rhsvec(p),M(p),WL(p)
-            
+#include"ghostcell.h"
+#include"fdm.h"
+ 
+void iowave::inflow_ptf(lexer *p, fdm *a, ghostcell *pgc, double *Fi, double *Uin, slice &Fifsf, slice &eta)
 {
+    if(p->B98==3 || p->B98==4)
+	dirichlet_wavegen_ptf(p,a,pgc,Fi,Uin,Fifsf,eta);
     
-	maxF=0.0;
-	maxG=0.0; 
-	maxH=0.0;
-    
-	gi=p->W20;
-	gj=p->W21;
-	gk=p->W22;
-    
-    C4.allocate(p);
-    C4a.allocate(p);
-    C6.allocate(p);
-    C9.allocate(p);
+    if(p->B99==3||p->B99==4||p->B99==5)
+	active_beach_ptf(p,a,pgc,Fi,Uin,Fifsf,eta);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+void iowave::rkinflow_ptf(lexer *p, fdm *a, ghostcell *pgc, slice &frk, slice &f)
+{
+    for(n=0;n<p->gcslin_count;n++)
+    {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
+        
+        frk(i-1,j) = f(i-1,j);
+        frk(i-2,j) = f(i-2,j);
+        frk(i-3,j) = f(i-3,j);
+    }
+    
+}

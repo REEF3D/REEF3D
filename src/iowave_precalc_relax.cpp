@@ -203,6 +203,7 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
     }
     
     count=0;
+    
     if(p->A10==3)
     FLOOP
     {
@@ -230,6 +231,73 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
     
     count=0;
     if(p->A10==3)
+    FLUIDLOOP
+    {
+		
+        xg = xgen(p);
+        yg = ygen(p);
+        dg = distgen(p);
+		db = distbeach(p);
+        
+        zloc4 = p->pos_z();
+        fsfloc = eta(i,j) + p->phimean;
+    
+        if(zloc4<=fsfloc)
+        {
+        if(zloc4<=p->phimean)
+        z=-(fabs(p->phimean-zloc4));
+		
+		if(zloc4>p->phimean)
+        z=(fabs(p->phimean-zloc4));
+  
+        if(zloc4>fsfloc)
+        z = eta(i,j);
+        }
+		
+		// Wave Generation		
+		if(p->B98==2 && f_switch==1)
+        {
+            // Zone 1
+            if(dg<1.0e20)
+            { 
+            if(zloc4<=fsfloc+epsi)
+            Fival[count] = wave_fi(p,pgc,xg,yg,z);
+            
+            if(zloc4>fsfloc+epsi)
+            Fival[count] = 0.0;
+            
+            ++count;
+            }
+		}
+    }
+    
+    if(p->A10==4) // all new
+    FLOOP
+    {
+        xg = xgen(p);
+        yg = ygen(p);
+        dg = distgen(p);
+		db = distbeach(p);
+        
+        zloc4 = p->pos_z();
+        fsfloc = eta(i,j) + p->phimean;
+        
+        z=p->ZN[KP]-p->phimean; //changed from ZSN
+        
+		// Wave Generation
+		if(p->B98==2 && f_switch==1)
+        {
+            // Zone 1
+            if(dg<1.0e20)
+            { 
+            Fival[count] = wave_fi(p,pgc,xg,yg,z);
+            ++count;
+            }
+		}
+    }
+    
+    count=0;
+    if(p->A10==4) // all new
     FLUIDLOOP
     {
 		
