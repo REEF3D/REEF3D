@@ -159,7 +159,7 @@ void driver::cfd_driver()
     loop_cfd_sf(a);
 
     else
-    if((p->X10==1  || p->Z10!=0) && p->N40==4)
+    if((p->X10==1  || p->Z10!=0) && (p->N40==3 ||p->N40==4))
     loop_cfd_df(a);
     
     else

@@ -643,7 +643,7 @@ void driver::logic_cfd()
 	if(p->N40==2)
 	pmom = new momentum_RK2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
 
-	if(p->N40==3)
+	if(p->N40==3 && p->X10==0 && p->Z10==0 && p->G3==0)
 	pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,poneph,psolv,ppoissonsolv,pflow,pfsi);
     
     if(p->N40==4 && p->X10==0 && p->Z10==0 && p->G3==0)
@@ -670,7 +670,7 @@ void driver::logic_cfd()
     if(p->G3==1 && p->N40==4)
     pmom_sf = new momentum_RKLS3_sf(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
     
-    if((p->X10==1 || p->Z10>0)  && p->N40==4)
+    if((p->X10==1 || p->Z10>0)  && (p->N40==3 || p->N40==4))
     pmom_df = new momentum_RKLS3_df(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
 
 }
