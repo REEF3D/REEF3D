@@ -80,7 +80,7 @@ void sixdof_df_object::update_Position(lexer *p, fdm *a, ghostcell *pgc, bool fi
 	
     // Update floating level set function
 	ray_cast(p,a,pgc);
-	reini_AB2(p,a,pgc,a->fb);
+	reini_RK2(p,a,pgc,a->fb);
     pgc->start4a(p,a->fb,50);   
     
 }

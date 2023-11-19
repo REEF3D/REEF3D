@@ -1774,6 +1774,7 @@
           <File Name="6DOF_df_velsource.cpp"/>
           <File Name="6DOF_df_object.cpp"/>
           <VirtualDirectory Name="RayCast">
+            <File Name="6DOF_df_reini_RK2.cpp"/>
             <File Name="6DOF_df_reini_AB2.cpp"/>
             <File Name="6DOF_df_ray_z.cpp"/>
             <File Name="6DOF_df_ray_y.cpp"/>
