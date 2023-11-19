@@ -59,6 +59,9 @@ void sixdof_df_object::rkls3(lexer *p, fdm *a, ghostcell *pgc, int iter)
     
 void sixdof_df_object::rk3(lexer *p, fdm *a, ghostcell *pgc, int iter)
 {   
+    get_trans(p,a,pgc, dp_, dc_, p_, c_);    
+    get_rot(dh_, de_, h_, e_);
+        
     if(iter==0)
     {
         pk_ = p_;
@@ -66,9 +69,6 @@ void sixdof_df_object::rk3(lexer *p, fdm *a, ghostcell *pgc, int iter)
         hk_ = h_;
         ek_ = e_;
         
-        get_trans(p,a,pgc, dp_, dc_, p_, c_);    
-        get_rot(dh_, de_, h_, e_);
-
         p_ = p_ + p->dt*dp_;
         c_ = c_ + p->dt*dc_;
         h_ = h_ + p->dt*dh_;
@@ -77,20 +77,14 @@ void sixdof_df_object::rk3(lexer *p, fdm *a, ghostcell *pgc, int iter)
     
     if(iter==1)
     {
-        get_trans(p,a,pgc, dp_, dc_, p_, c_);    
-        get_rot(dh_, de_, h_, e_);        
-        
         p_ = 0.75*pk_ + 0.25*p_ + 0.25*p->dt*dp_;
         c_ = 0.75*ck_ + 0.25*c_ + 0.25*p->dt*dc_;
         h_ = 0.75*hk_ + 0.25*h_ + 0.25*p->dt*dh_;
-        e_ = 0.75*ek_ + 0.25*e_ + 0.25*p->dt*de_;         
+        e_ = 0.75*ek_ + 0.25*e_ + 0.25*p->dt*de_;    
     }  
     
     else
     {
-        get_trans(p,a,pgc, dp_, dc_, p_, c_);    
-        get_rot(dh_, de_, h_, e_);        
-        
         p_ = (1.0/3.0)*pk_ + (2.0/3.0)*p_ + (2.0/3.0)*p->dt*dp_;
         c_ = (1.0/3.0)*ck_ + (2.0/3.0)*c_ + (2.0/3.0)*p->dt*dc_;
         h_ = (1.0/3.0)*hk_ + (2.0/3.0)*h_ + (2.0/3.0)*p->dt*dh_;
@@ -100,15 +94,16 @@ void sixdof_df_object::rk3(lexer *p, fdm *a, ghostcell *pgc, int iter)
 
 void sixdof_df_object::rk2(lexer *p, fdm *a, ghostcell *pgc, int iter)
 {   
+    
+    get_trans(p,a,pgc, dp_, dc_, p_, c_);    
+    get_rot(dh_, de_, h_, e_);
+        
     if (iter==0)
     {
         pk_ = p_;
         ck_ = c_;
         hk_ = h_;
         ek_ = e_;
-
-        get_trans(p,a,pgc, dp_, dc_, p_, c_);    
-        get_rot(dh_, de_, h_, e_);
 
         p_ = p_ + p->dt*dp_;
         c_ = c_ + p->dt*dc_;
@@ -117,104 +112,13 @@ void sixdof_df_object::rk2(lexer *p, fdm *a, ghostcell *pgc, int iter)
     }
     
     else
-    {
-        get_trans(p,a,pgc, dp_, dc_, p_, c_);    
-        get_rot(dh_, de_, h_, e_);        
-            
+    {  
         p_ = 0.5*pk_ + 0.5*p_ + 0.5*p->dt*dp_;
         c_ = 0.5*ck_ + 0.5*c_ + 0.5*p->dt*dc_;
         h_ = 0.5*hk_ + 0.5*h_ + 0.5*p->dt*dh_;
         e_ = 0.5*ek_ + 0.5*e_ + 0.5*p->dt*de_;         
     }
 }
-
-void sixdof_df_object::get_trans(lexer *p, fdm *a, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc, const Eigen::Vector3d& pp, const Eigen::Vector3d& c)
-{
-    dp = Ffb_; 
-    dc = pp/Mass_fb;
-
-	// Prescribed motions
-	prescribedMotion(p,a,pgc,dp,dc);
-} 
-
-void sixdof_df_object::get_rot(Eigen::Vector3d& dh, Eigen::Vector4d& de, const Eigen::Vector3d& h, const Eigen::Vector4d& e)
-{
-    // Update Euler parameter matrices
-    quat_matrices(e);
-
-    // RHS of e
-    de = 0.5*G_.transpose()*I_.inverse()*h;
-    
-    // RHS of h
-    // Transforming torsion into body fixed system (Shivarama and Schwab)
-    Gdot_ << -de(1), de(0), de(3),-de(2),
-             -de(2),-de(3), de(0), de(1),
-             -de(3), de(2),-de(1), de(0); 
-   
-    dh = 2.0*Gdot_*G_.transpose()*h + Rinv_*Mfb_;
-} 
-
-void sixdof_df_object::prescribedMotion(lexer *p, fdm *a, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc)
-{
-    
-    if (p->X11_u == 2)
-    {
-        dp(0) = 0.0; 
-        dc(0) = Uext*ramp_vel(p);
-    }
-    
-    if (p->X11_v == 2)
-    {
-        dp(1) = 0.0; 
-        dc(1) = Vext*ramp_vel(p);
-    }
-
-    if (p->X11_w == 2)
-    {
-        dp(2) = 0.0; 
-        dc(2) = Wext*ramp_vel(p);
-    }
-    
-    if(p->X11_p==2)
-    {
-        //Pext;
-        cout<<"not implemented yet"<<endl;
-    }
-                
-    if(p->X11_q==2)
-    {
-        //Qext;
-        cout<<"not implemented yet"<<endl;
-    }
-    
-    if(p->X11_r==2)
-    {
-        //Rext;
-        cout<<"not implemented yet"<<endl;
-    }
-    
-}
-
-double sixdof_df_object::ramp_vel(lexer *p)
-{
-    double f=1.0;
-    
-    if(p->X205==1 && p->X206==1 && p->simtime>=p->X206_ts && p->simtime<p->X206_te)
-    {
-    f = (p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts);
-    }
-    
-    if(p->X205==2 && p->X206==1 && p->simtime>=p->X206_ts && p->simtime<p->X206_te)
-    {
-    f = (p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts)-(1.0/PI)*sin(PI*(p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts));
-    }
-    
-    if(p->X206==1 && p->simtime<p->X206_ts)
-    f=0.0;
-    
-    return f;
-}
-
 
 
 
