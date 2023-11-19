@@ -190,7 +190,7 @@ void momentum_RKLS3::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, sixd
 
         
             momentum_forcing_start(a, p, pgc, p6dof_df, pvrans, pnet, pfsi,
-                           a->u, a->v, a->w, fx, fy, fz, 2, 2.0*alpha(loop), true);
+                           a->u, a->v, a->w, fx, fy, fz, 2, 2.0*alpha(loop), final);
         
         // Pressure
         pflow->pressure_io(p,a,pgc);

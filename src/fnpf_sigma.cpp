@@ -40,11 +40,7 @@ fnpf_sigma::~fnpf_sigma()
 
 void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *pf, slice &eta)
 {	
-    p->Darray(p->sig,p->imax*p->jmax*(p->kmax+1));
-    p->Darray(p->sigx,p->imax*p->jmax*(p->kmax+1));
-    p->Darray(p->sigy,p->imax*p->jmax*(p->kmax+1));
     
-    p->Darray(p->sigxx,p->imax*p->jmax*(p->kmax+1));
     
     FLOOP
     p->sig[FIJK] =  p->ZN[KP];
