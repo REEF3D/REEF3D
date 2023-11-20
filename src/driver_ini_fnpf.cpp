@@ -184,7 +184,7 @@ void driver::driver_ini_fnpf()
      SLICELOOP4
     c->WL(i,j) = MAX(0.0,c->eta(i,j) + p->wd - c->bed(i,j));
     
-    p->Darray(p->sigz,p->imax*p->jmax);
+    
     
     SLICELOOP4
     p->sigz[IJ] = 1.0/WLVL;

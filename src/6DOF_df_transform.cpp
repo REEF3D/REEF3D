@@ -42,74 +42,41 @@ void sixdof_df_object::transform(lexer *p, fdm *a, ghostcell* pgc, bool finalise
     maxvel(p,a,pgc);
 }
 
-void sixdof_df_object::update_Position(lexer *p, fdm *a, ghostcell *pgc, bool finalise)
+void sixdof_df_object::get_trans(lexer *p, fdm *a, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc, const Eigen::Vector3d& pp, const Eigen::Vector3d& c)
 {
-	// Calculate Euler angles from quaternion
-	
-	// around z-axis
-	psi = atan2(2.0*(e_(1)*e_(2) + e_(3)*e_(0)), 1.0 - 2.0*(e_(2)*e_(2) + e_(3)*e_(3))); 
-	
-	// around new y-axis
-	double arg = 2.0*(e_(0)*e_(2) - e_(1)*e_(3));
-	
-	if (fabs(arg) >= 1.0)
-	{
-		theta = SIGN(arg)*PI/2.0;
-	}
-	else
-	{
-		theta = asin(arg);														
-	}	
-		
-	// around new x-axis
-	phi = atan2(2.0*(e_(2)*e_(3) + e_(1)*e_(0)), 1.0 - 2.0*(e_(1)*e_(1) + e_(2)*e_(2)));
+    dp = Ffb_; 
+    dc = pp/Mass_fb;
 
-	if(p->mpirank==0 && finalise == true)
-    {
-        cout<<"XG: "<<c_(0)<<" YG: "<<c_(1)<<" ZG: "<<c_(2)<<" phi: "<<phi*(180.0/PI)<<" theta: "<<theta*(180.0/PI)<<" psi: "<<psi*(180.0/PI)<<endl;
-        cout<<"Ue: "<<p_(0)/Mass_fb<<" Ve: "<<p_(1)/Mass_fb<<" We: "<<p_(2)/Mass_fb<<" Pe: "<<omega_I(0)<<" Qe: "<<omega_I(1)<<" Re: "<<omega_I(2)<<endl;
-    }
+	// Prescribed motions
+	prescribedMotion(p,a,pgc,dp,dc);
+} 
 
-	// Update position of triangles 
-	for(n=0; n<tricount; ++n)
-	{
-        for(int q=0; q<3; q++)
-        {
-            // Update coordinates of triangles 
-            // (tri_x0 is vector between tri_x and xg)
-  
-            Eigen::Vector3d point(tri_x0[n][q], tri_y0[n][q], tri_z0[n][q]);
-					
-            point = R_*point;
-        
-            tri_x[n][q] = point(0) + c_(0);
-            tri_y[n][q] = point(1) + c_(1);
-            tri_z[n][q] = point(2) + c_(2);
+void sixdof_df_object::get_rot(Eigen::Vector3d& dh, Eigen::Vector4d& de, const Eigen::Vector3d& h, const Eigen::Vector4d& e)
+{
+    // Update Euler parameter matrices
+    quat_matrices(e);
 
-			// 2D
-			if(p->X11_v != 1 && p->X11_p != 1 && p->X11_r != 1) 
-			{
-				tri_y[n][q] = tri_y0[n][q] + c_(1);	
-			}
-        }
-	}
-	
-    // Update floating level set function
-	ray_cast(p,a,pgc);
-	reini_AB2(p,a,pgc,a->fb);
-    pgc->start4a(p,a->fb,50);   
+    // RHS of e
+    de = 0.5*G_.transpose()*I_.inverse()*h;
     
-}
+    // RHS of h
+    // Transforming torsion into body fixed system (Shivarama and Schwab)
+    Gdot_ << -de(1), de(0), de(3),-de(2),
+             -de(2),-de(3), de(0), de(1),
+             -de(3), de(2),-de(1), de(0); 
+   
+    dh = 2.0*Gdot_*G_.transpose()*h + Rinv_*Mfb_;
+} 
 
 void sixdof_df_object::quat_matrices(const Eigen::Vector4d& e)
 {
     E_ << -e(1), e(0), -e(3), e(2),
-         -e(2), e(3), e(0), -e(1),
-         -e(3), -e(2), e(1), e(0); 
+          -e(2), e(3), e(0), -e(1),
+          -e(3), -e(2), e(1), e(0); 
 
     G_ << -e(1), e(0), e(3), -e(2),
-         -e(2), -e(3), e(0), e(1),
-         -e(3), e(2), -e(1), e(0); 
+          -e(2), -e(3), e(0), e(1),
+          -e(3), e(2), -e(1), e(0); 
 
     R_ = E_*G_.transpose(); 
     Rinv_ = R_.inverse();

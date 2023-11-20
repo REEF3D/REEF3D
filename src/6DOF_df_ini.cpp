@@ -61,7 +61,7 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
     
     // Level Set for floating body
     ray_cast(p,a,pgc);
-	reini_AB2(p,a,pgc,a->fb);
+	reini_RK2(p,a,pgc,a->fb);
     pgc->start4a(p,a->fb,50);
     
     // Calculate geometrical properties
@@ -72,7 +72,7 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
 	
 	// Recalculate distances
 	ray_cast(p,a,pgc);
-	reini_AB2(p,a,pgc,a->fb);
+	reini_RK2(p,a,pgc,a->fb);
     pgc->start4a(p,a->fb,50);
     
     // Initialise global variables

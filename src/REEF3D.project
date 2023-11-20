@@ -1755,6 +1755,8 @@
           <File Name="6DOF_sflow.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="DirectForcing">
+          <File Name="6DOF_df_externvel.cpp"/>
+          <File Name="6DOF_df_updatepos.cpp"/>
           <VirtualDirectory Name="Initialize">
             <File Name="6DOF_df_ini_position.cpp"/>
             <File Name="6DOF_df_ini_parameters.cpp"/>
@@ -1772,6 +1774,7 @@
           <File Name="6DOF_df_velsource.cpp"/>
           <File Name="6DOF_df_object.cpp"/>
           <VirtualDirectory Name="RayCast">
+            <File Name="6DOF_df_reini_RK2.cpp"/>
             <File Name="6DOF_df_reini_AB2.cpp"/>
             <File Name="6DOF_df_ray_z.cpp"/>
             <File Name="6DOF_df_ray_y.cpp"/>
@@ -1782,6 +1785,7 @@
             <File Name="6DOF_df_ray.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Forces">
+            <File Name="6DOF_df_forces.cpp"/>
             <File Name="6DOF_df_forces_external.cpp"/>
             <File Name="6DOF_df_forces_stl.cpp"/>
           </VirtualDirectory>

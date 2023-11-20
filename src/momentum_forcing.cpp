@@ -45,6 +45,7 @@ void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, 
     if(p->X10==1 || p->Z10>0 || p->G3==1)
     {
 	starttime=pgc->timer();
+    
         // Forcing
         ULOOP
         fx(i,j,k) = 0.0;

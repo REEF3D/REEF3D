@@ -189,7 +189,7 @@ void momentum_RK2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
     p->wtime+=pgc->timer()-starttime;
     
     momentum_forcing_start(a, p, pgc, p6dof_df, pvrans, pnet, pfsi,
-                           urk1, vrk1, wrk1, fx, fy, fz, 1, 0.5, true);
+                           a->u, a->v, a->w, fx, fy, fz, 1, 0.5, true);
 
 	pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow,a->u,a->v,a->w,0.5);
