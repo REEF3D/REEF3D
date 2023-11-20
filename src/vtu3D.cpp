@@ -911,18 +911,6 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
 	}
 
-    if(p->P28==1)
-	{
-//  floating
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(p->ipol4_a(a->fb));
-	result.write((char*)&ffn, sizeof (float));
-	}
-	}
-
 	if(p->P29==1)
 	{
 //  walldist
