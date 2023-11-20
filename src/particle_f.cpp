@@ -30,7 +30,7 @@ Author: Hans Bihs
 
 particle_f::particle_f(lexer* p, fdm *a, ghostcell* pgc) : norm_vec(p), active(p),posnum(p), 
                                 zero (0.0), epsi(1.5*p->DXM),dx(p->DXM),rmin(0.1*p->DXM),
-                                rmax(0.5*p->DXM),ipolval(p->F31), irand(100000), drand(100000.0),
+                                rmax(0.5*p->DXM),ipolval(1), irand(100000), drand(100000.0),
 							  nu(1.0e-10*p->DXM)
 {
     pcount=0;
