@@ -574,9 +574,9 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	// Cells
     offset[n]=offset[n-1] + 4*p->tpcellnum*8 + 4;
     ++n;
-    offset[n]=offset[n-1] + 4*(p->tpcellnum)+4;
+    offset[n]=offset[n-1] + 4*(p->tpcellnum) + 4;
     ++n;
-	offset[n]=offset[n-1] + 4*(p->tpcellnum)+4;
+	offset[n]=offset[n-1] + 4*(p->tpcellnum) + 4;
     ++n;
 	//---------------------------------------------
 
@@ -911,7 +911,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
 	}
 
-    else if (p->P28==1)
+    if(p->P28==1)
 	{
 //  floating
     iin=4*(p->pointnum);

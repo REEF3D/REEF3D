@@ -94,7 +94,6 @@ void sixdof_df_object::rk3(lexer *p, fdm *a, ghostcell *pgc, int iter)
 
 void sixdof_df_object::rk2(lexer *p, fdm *a, ghostcell *pgc, int iter)
 {   
-    
     get_trans(p,a,pgc, dp_, dc_, p_, c_);    
     get_rot(dh_, de_, h_, e_);
         
