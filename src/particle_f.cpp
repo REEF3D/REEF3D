@@ -70,7 +70,7 @@ void particle_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
 	
 	posactive_old=posactive;
 
-    advect(p,a,pgc,pos,posflag,posactive);
+    advect(p,a,pgc,pos,posflag,pactive);
 	particlex(p,a,pgc);
     //remove(p,a,pgc);
 	
