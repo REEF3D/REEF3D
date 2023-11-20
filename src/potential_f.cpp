@@ -79,9 +79,6 @@ void potential_f::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
     }
     
     pgc->start4(p,psi,gcval_pot);
-
-    LOOP
-    a->test(i,j,k) = psi(i,j,k);
     
     ucalc(p,a,psi);
 	vcalc(p,a,psi);

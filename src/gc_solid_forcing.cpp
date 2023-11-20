@@ -84,8 +84,8 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
     LOOP
     {
         H = Hsolidface(p,a,0,0,0);
-        //a->test(i,j,k) = H;
         a->fbh4(i,j,k) = min(a->fbh4(i,j,k) + H, 1.0); 
+        //a->test(i,j,k) = H ;
     }
     	
     psi = 1.1*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
@@ -100,7 +100,7 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
         dirac = (0.5/psi)*(1.0 + cos((PI*(MIN(a->solid(i,j,k),a->topo(i,j,k))))/psi));
         
         a->fbh5(i,j,k) = 1.0-MIN(dirac,1.0);
-        //a->test(i,j,k) = a->fbh5(i,j,k) ;
+        
     }
     
     }
