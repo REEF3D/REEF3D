@@ -125,39 +125,40 @@ void bc_ikomega::bckin_matrix(fdm* a,lexer* p,field& kin,field& eps)
         n=0;
         LOOP
         {
-            if(p->flag4[Im1JK]<0 || p->flagsf4[Im1JK]<0)
+            
+            if(p->flag4[Im1JK]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[Im1JK]<0))
             {
             if(p->BC[Im1JK]!=1)
             a->rhsvec.V[n] -= a->M.s[n]*kin(i,j,k);
             a->M.s[n] = 0.0;
             }
             
-            if(p->flag4[Ip1JK]<0 || p->flagsf4[Ip1JK]<0)
+            if(p->flag4[Ip1JK]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[Ip1JK]<0))
             {
             if(p->BC[Ip1JK]!=1)
             a->rhsvec.V[n] -= a->M.n[n]*kin(i,j,k);
             a->M.n[n] = 0.0;
             }
             
-            if((p->flag4[IJm1K]<0 || p->flagsf4[IJm1K]<0) && p->j_dir==1 && p->BC[IJm1K]==0)
+            if((p->flag4[IJm1K]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[IJm1K]<0)) && p->j_dir==1 && p->BC[IJm1K]==0)
             {
             a->rhsvec.V[n] -= a->M.e[n]*kin(i,j,k);
             a->M.e[n] = 0.0;
             }
             
-            if((p->flag4[IJp1K]<0 || p->flagsf4[IJp1K]<0) && p->j_dir==1 && p->BC[IJp1K]==0)
+            if((p->flag4[IJp1K]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[IJp1K]<0)) && p->j_dir==1 && p->BC[IJp1K]==0)
             {
             a->rhsvec.V[n] -= a->M.w[n]*kin(i,j,k);
             a->M.w[n] = 0.0;
             }
             
-            if((p->flag4[IJKm1]<0 || p->flagsf4[IJKm1]<0) && p->BC[IJKm1]==0)
+            if((p->flag4[IJKm1]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[IJKm1]<0)) && p->BC[IJKm1]==0)
             {
             a->rhsvec.V[n] -= a->M.b[n]*kin(i,j,k);
             a->M.b[n] = 0.0;
             }
             
-            if((p->flag4[IJKp1]<0 || p->flagsf4[IJKp1]<0) && p->BC[IJKp1]==0)
+            if((p->flag4[IJKp1]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[IJKp1]<0)) && p->BC[IJKp1]==0)
             {
             a->rhsvec.V[n] -= a->M.t[n]*kin(i,j,k);
             a->M.t[n] = 0.0;
@@ -201,39 +202,39 @@ void bc_ikomega::bcomega_matrix(fdm* a,lexer* p,field& kin,field& eps)
         LOOP
         {
 
-            if((p->flag4[Im1JK]<0 || p->flagsf4[Im1JK]<0))
+            if(p->flag4[Im1JK]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[Im1JK]<0))
             {
             if(p->BC[Im1JK]!=1)
             a->rhsvec.V[n] -= a->M.s[n]*eps(i,j,k);
             a->M.s[n] = 0.0;
             }
             
-            if((p->flag4[Ip1JK]<0 || p->flagsf4[Ip1JK]<0))
+            if(p->flag4[Ip1JK]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[Ip1JK]<0))
             {
             if(p->BC[Ip1JK]!=1)
             a->rhsvec.V[n] -= a->M.n[n]*eps(i,j,k);
             a->M.n[n] = 0.0;
             }
             
-            if((p->flag4[IJm1K]<0 || p->flagsf4[IJm1K]<0) && p->j_dir==1 && p->BC[IJm1K]==0)
+            if((p->flag4[IJm1K]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[IJm1K]<0)) && p->j_dir==1 && p->BC[IJm1K]==0)
             {
             a->rhsvec.V[n] -= a->M.e[n]*eps(i,j,k);
             a->M.e[n] = 0.0;
             }
             
-            if((p->flag4[IJp1K]<0 || p->flagsf4[IJp1K]<0) && p->j_dir==1 && p->BC[IJp1K]==0)
+            if((p->flag4[IJp1K]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[IJp1K]<0)) && p->j_dir==1 && p->BC[IJp1K]==0)
             {
             a->rhsvec.V[n] -= a->M.w[n]*eps(i,j,k);
             a->M.w[n] = 0.0;
             }
             
-            if((p->flag4[IJKm1]<0 || p->flagsf4[IJKm1]<0) && p->BC[IJKm1]==0)
+            if((p->flag4[IJKm1]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[IJKm1]<0)) && p->BC[IJKm1]==0)
             {
             a->rhsvec.V[n] -= a->M.b[n]*eps(i,j,k);
             a->M.b[n] = 0.0;
             }
             
-            if((p->flag4[IJKp1]<0 || p->flagsf4[IJKp1]<0) && p->BC[IJKp1]==0)
+            if((p->flag4[IJKp1]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[IJKp1]<0)) && p->BC[IJKp1]==0)
             {
             a->rhsvec.V[n] -= a->M.t[n]*eps(i,j,k);
             a->M.t[n] = 0.0;

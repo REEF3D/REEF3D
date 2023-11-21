@@ -2144,12 +2144,10 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
       <VirtualDirectory Name="Forcing">
+        <File Name="gcdf_update.cpp"/>
         <File Name="gc_solid_forcing_interface.cpp"/>
         <File Name="gc_solid_forcing_ini.cpp"/>
         <File Name="gc_solid_forcing.cpp"/>
-      </VirtualDirectory>
-      <VirtualDirectory Name="DFupdate">
-        <File Name="gcdf_update.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Epol">
         <File Name="gc_startV.cpp"/>

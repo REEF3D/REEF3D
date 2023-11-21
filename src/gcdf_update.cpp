@@ -183,7 +183,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     i=p->gcdf4[n][0];
     j=p->gcdf4[n][1];
     k=p->gcdf4[n][2];
-	a->test(i,j,k)=1.0;
+	//a->test(i,j,k)=1.0;
 	p->gcdf4[n][5]=cval(i,j,k);
 	}
     

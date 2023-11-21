@@ -587,33 +587,6 @@ void ioflow_v::turbulence_io(lexer *p, fdm* a, ghostcell* pgc)
 void ioflow_v::u_relax(lexer *p, fdm *a, ghostcell *pgc, field &uvel)
 {
 	double epsi,H,fbval;
-	double fbval_up,fbval_down;
-	
-	epsi = 2.1*p->DXM;
-	
-	if(p->X10==1 && p->X18==1)
-	ULOOP
-	{
-		fbval = 0.5*(a->fb(i-1,j,k)+a->fb(i,j,k));
-		
-		if(fbval>epsi)
-		H=1.0;
-
-		if(fbval<-epsi)
-		H=0.0;
-
-		if(fabs(fbval)<=epsi)
-		H=0.5*(1.0 + fbval/epsi + (1.0/PI)*sin((PI*fbval)/epsi));	
-		
-		fbval_up = 0.5*(a->fb(i,j,k)+a->fb(i+1,j,k));
-		fbval_down = 0.5*(a->fb(i-2,j,k)+a->fb(i-1,j,k));
-		
-		if(fbval_up<0.0 || fbval_down<0.0)
-		a->u(i,j,k) = H*a->u(i,j,k) + (1.0-H)*(p->ufbi + (p->pos_z()-p->zg)*p->qfbi - (p->pos_y()-p->yg)*p->rfbi);
-	}
-    
-    
-    // ---------
     double dist;
     double cosb,sinb;
 
@@ -646,34 +619,6 @@ void ioflow_v::u_relax(lexer *p, fdm *a, ghostcell *pgc, field &uvel)
 void ioflow_v::v_relax(lexer *p, fdm *a, ghostcell *pgc, field &vvel)
 {
 	double epsi,H,fbval;
-	double fbval_up,fbval_down;
-	
-	epsi = 2.1*p->DXM;
-	
-	if(p->X10==1 && p->X18==1)
-	VLOOP
-	{
-		fbval = 0.5*(a->fb(i,j-1,k)+a->fb(i,j,k));
-		
-		if(fbval>epsi)
-		H=1.0;
-
-		if(fbval<-epsi)
-		H=0.0;
-
-		if(fabs(fbval)<=epsi)
-		H=0.5*(1.0 + fbval/epsi + (1.0/PI)*sin((PI*fbval)/epsi));	
-		
-		fbval_up = 0.5*(a->fb(i,j,k)+a->fb(i,j+1,k));
-		fbval_down = 0.5*(a->fb(i,j-2,k)+a->fb(i,j-1,k));
-		
-		if(fbval_up<0.0 || fbval_down<0.0)
-		a->v(i,j,k) = H*a->v(i,j,k) + (1.0-H)*(p->vfbi + (p->pos_x()-p->xg)*p->rfbi - (p->pos_z()-p->zg)*p->pfbi);
-		
-	}
-    
-    
-    // ----------
     double dist;
     double cosb,sinb;
     
@@ -705,37 +650,6 @@ void ioflow_v::v_relax(lexer *p, fdm *a, ghostcell *pgc, field &vvel)
 void ioflow_v::w_relax(lexer *p, fdm *a, ghostcell *pgc, field &wvel)
 {
 	
-	double epsi,H,fbval;
-	double fbval_up,fbval_down;
-	
-	epsi = 2.1*p->DXM;
-	
-	if(p->X10==1 && p->X18==1)
-	WLOOP
-	{
-		fbval = 0.5*(a->fb(i,j,k-1)+a->fb(i,j,k));
-		
-		if(fbval>epsi)
-		H=1.0;
-
-		if(fbval<-epsi)
-		H=0.0;
-
-		if(fabs(fbval)<=epsi)
-		H=0.5*(1.0 + fbval/epsi + (1.0/PI)*sin((PI*fbval)/epsi));	
-		
-		fbval_up = 0.5*(a->fb(i,j,k)+a->fb(i,j,k+1));
-		fbval_down = 0.5*(a->fb(i,j,k-2)+a->fb(i,j,k-1));
-		
-		if(fbval_up<0.0 || fbval_down<0.0)
-		a->w(i,j,k) = H*a->w(i,j,k) + (1.0-H)*(p->wfbi + (p->pos_y()-p->yg)*p->pfbi - (p->pos_x()-p->xg)*p->qfbi);
-		
-	}
-    
-    
-    
-    
-    
 }
 
 void ioflow_v::p_relax(lexer *p, fdm *a, ghostcell *pgc, field &press)
