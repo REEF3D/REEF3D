@@ -22,14 +22,14 @@ Author: Hans Bihs
 
 #include"ptf_fsfbc.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_ptf.h"
 
-double ptf_fsfbc::fz(lexer *p, fdm *a, field &f, slice &Fifsf)
+double ptf_fsfbc::fz(lexer *p, fdm_ptf *e, field &f, slice &Fifsf)
 {
     grad=0.0;
     teta=0.0;
     
-    teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
+    teta = fabs(e->phi(i,j,k))/(fabs(e->phi(i,j,k+1))+fabs(e->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(e->phi(i,j,k+1))+fabs(e->phi(i,j,k)));
     
     //cout<<"TETA: "<<teta<<" p->ZP[KP]: "<<p->ZP[KP]<<" p->ZP[KP]+teta*p->DZN[KP]: "<<p->ZP[KP]+teta*p->DZN[KP]<<endl;
     

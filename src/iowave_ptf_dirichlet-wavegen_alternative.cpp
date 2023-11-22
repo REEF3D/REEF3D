@@ -22,11 +22,11 @@ Author: Hans Bihs
 
 #include"iowave.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_ptf.h"
 #include"ghostcell.h"
 
-
-void iowave::dirichlet_wavegen_ptf(lexer *p, fdm *a, ghostcell* pgc, double *Fi, double *Uin, slice &Fifsf, slice &eta)
+/*
+void iowave::dirichlet_wavegen_ptf(lexer *p, fdm_ptf *e, ghostcell* pgc, field4 *Fi, field4 *Uin, slice &Fifsf, slice &eta)
 {
     double etax;
     
@@ -86,9 +86,9 @@ void iowave::dirichlet_wavegen_ptf(lexer *p, fdm *a, ghostcell* pgc, double *Fi,
         KLOOP
         PFLUIDCHECK
         {
-        Fi[Im1JK] = Fi[IJK] - Uinval[count]*1.0*p->DXP[IM1];
-        Fi[Im2JK] = Fi[IJK] - Uinval[count]*2.0*p->DXP[IM1];
-        Fi[Im3JK] = Fi[IJK] - Uinval[count]*3.0*p->DXP[IM1];
+        Fi[Im1JK] = Fi[IJK] - Uin[IJK]*1.0*p->DXP[IM1];
+        Fi[Im2JK] = Fi[IJK] - Uin[IJK]*2.0*p->DXP[IM1];
+        Fi[Im3JK] = Fi[IJK] - Uin[IJK]*3.0*p->DXP[IM1];
         
         ++count;
         }
@@ -107,9 +107,10 @@ void iowave::dirichlet_wavegen_ptf(lexer *p, fdm *a, ghostcell* pgc, double *Fi,
         FKLOOP
         PFLUIDCHECK
         {// add eta guard
-        Uin[Im1JK] = Uinval[count]; 
+        //Uin[Im1JK] = Uinval[count]; 
         
         ++count;
         }
     }
 }
+ */

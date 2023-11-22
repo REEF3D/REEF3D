@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-
+/*
 #include"iowave.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -117,3 +117,4 @@ void iowave::wavegen_precalc_decomp_space_ptf(lexer *p, ghostcell *pgc)
 
 
 }
+*/

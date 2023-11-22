@@ -19,14 +19,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
+/*
 
 #include"ptf_fsfbc.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_ptf.h"
 #include"ghostcell.h"
 #include"solver2D.h"
 
-void ptf_fsfbc::damping(lexer *p, fdm *a, ghostcell *pgc, slice &f, int gcval, double alpha)
+void ptf_fsfbc::damping(lexer *p, fdm_ptf *e, ghostcell *pgc, slice &f, int gcval, double alpha)
 {
     double starttime=pgc->timer();
     
@@ -45,22 +46,22 @@ void ptf_fsfbc::damping(lexer *p, fdm *a, ghostcell *pgc, slice &f, int gcval, d
         n=0;
         SLICELOOP4
         {
-         visc = a->vb(i,j);
+         visc = e->vb(i,j);
             
-         a->N.p[n] =   visc/(p->DXP[IM1]*p->DXN[IP])*p->x_dir
+         e->N.p[n] =   visc/(p->DXP[IM1]*p->DXN[IP])*p->x_dir
                      + visc/(p->DXP[IP]*p->DXN[IP])*p->x_dir
                      + visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir
                      + visc/(p->DYP[JP]*p->DYN[JP])*p->y_dir
                        
                        + 1.0/(alpha*p->dt);
         
-         a->rvec.V[n] =   f(i,j)/(alpha*p->dt);
+         e->rvec.V[n] =   f(i,j)/(alpha*p->dt);
          
-         a->N.s[n] = -visc/(p->DXP[IM1]*p->DXN[IP])*p->x_dir;
-         a->N.n[n] = -visc/(p->DXP[IP]*p->DXN[IP])*p->x_dir;
+         e->N.s[n] = -visc/(p->DXP[IM1]*p->DXN[IP])*p->x_dir;
+         e->N.n[n] = -visc/(p->DXP[IP]*p->DXN[IP])*p->x_dir;
          
-         a->N.e[n] = -visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
-         a->N.w[n] = -visc/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
+         e->N.e[n] = -visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+         e->N.w[n] = -visc/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
      
          ++n;
         }
@@ -71,26 +72,26 @@ void ptf_fsfbc::damping(lexer *p, fdm *a, ghostcell *pgc, slice &f, int gcval, d
         {
             if(p->flagslice4[Im1J]<0)
             {
-            a->rvec.V[n] -= a->N.s[n]*f(i-1,j);
-            a->N.s[n] = 0.0;
+            e->rvec.V[n] -= e->N.s[n]*f(i-1,j);
+            e->N.s[n] = 0.0;
             }
             
             if(p->flagslice4[Ip1J]<0)
             {
-            a->rvec.V[n] -= a->N.n[n]*f(i+1,j);
-            a->N.n[n] = 0.0;
+            e->rvec.V[n] -= e->N.n[n]*f(i+1,j);
+            e->N.n[n] = 0.0;
             }
             
             if(p->flagslice4[IJm1]<0)
             {
-            a->rvec.V[n] -= a->N.e[n]*f(i,j-1);
-            a->N.e[n] = 0.0;
+            e->rvec.V[n] -= e->N.e[n]*f(i,j-1);
+            e->N.e[n] = 0.0;
             }
             
             if(p->flagslice4[IJp1]<0)
             {
-            a->rvec.V[n] -= a->N.w[n]*f(i,j+1);
-            a->N.w[n] = 0.0;
+            e->rvec.V[n] -= e->N.w[n]*f(i,j+1);
+            e->N.w[n] = 0.0;
             }
      
         ++n;
@@ -98,7 +99,7 @@ void ptf_fsfbc::damping(lexer *p, fdm *a, ghostcell *pgc, slice &f, int gcval, d
         
         pgc->gcsl_start4(p,f,gcval);
         
-        psolv->start(p,pgc,f,a->N,a->xvec,a->rvec,4);
+        psolv->start(p,pgc,f,e->N,e->xvec,e->rvec,4);
         
 
         double time=pgc->timer()-starttime;
@@ -107,3 +108,5 @@ void ptf_fsfbc::damping(lexer *p, fdm *a, ghostcell *pgc, slice &f, int gcval, d
         cout<<"fsfbc_damping: "<<p->solveriter<<"  fsfbc_damping_time: "<<setprecision(3)<<time<<endl;
     }
 }
+
+*/

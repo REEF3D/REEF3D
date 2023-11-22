@@ -26,7 +26,7 @@ Author: Fabian Knoblauch
 #include"fieldint4.h"
 
 class lexer;
-class fdm;
+class fdm_ptf;
 class ghostcell;
 
 #ifndef FORCE_PTF_H_
@@ -39,15 +39,15 @@ class force_ptf : public increment
     
 public:
 
-    force_ptf(lexer*,fdm*,ghostcell*,int);
+    force_ptf(lexer*,fdm_ptf*,ghostcell*,int);
     virtual ~force_ptf();
-    virtual void start(lexer*,fdm*,ghostcell*);
-    virtual void ini(lexer*,fdm*,ghostcell*);
+    virtual void start(lexer*,fdm_ptf*,ghostcell*);
+    virtual void ini(lexer*,fdm_ptf*,ghostcell*);
     
 private:
     
-	void print_force_ptf(lexer*,fdm*,ghostcell*);
-    void print_ini_ptf(lexer*,fdm*,ghostcell*);
+	void print_force_ptf(lexer*,fdm_ptf*,ghostcell*);
+    void print_ini_ptf(lexer*,fdm_ptf*,ghostcell*);
     
     // force ptf variabes
     double F_x_cell,F_y_cell,F_z_cell;

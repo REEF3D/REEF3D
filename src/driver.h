@@ -30,6 +30,7 @@ class fdm;
 class fdm2D;
 class fdm_fnpf;
 class fdm_nhf;
+class fdm_ptf;
 class lexer;
 class momentum;
 class ioflow;
@@ -79,6 +80,7 @@ class sixdof_df_base;
 class momentum_RKLS3_df;
 class momentum_RKLS3_sf;
 class nhflow_vtu3D;
+class onephase_ptf;
 
 #include<iostream>
 #include<fstream>
@@ -111,7 +113,7 @@ public:
     void loop_cfd_sf(fdm*);
     void loop_nsewave(fdm*);
     void loop_nhflow();
-    void loop_ptf(fdm*);
+    void loop_ptf(fdm_ptf*);
     void loop_fnpf();
     
 	void logic_cfd();
@@ -148,6 +150,7 @@ public:
 	double calc();
     
     void stop(lexer*,fdm*,ghostcell*);
+    void stop_ptf(lexer*,fdm_ptf*,ghostcell*);
 
 	printer* pprint;
 	initialize* pini;
@@ -159,6 +162,7 @@ public:
     fdm2D* b;
     fdm_fnpf *c;
     fdm_nhf *d;
+    fdm_ptf *e;
 	lexer* p;
 	momentum* pmom;
 	ioflow* pflow;
@@ -193,6 +197,7 @@ public:
     fnpf *ppfsg;
     ptf *pptf;
     onephase *poneph;
+    onephase_ptf *poneph_pft;
     nsewave *pnse;
     nhflow_fsf *pnhfsf;
     sflow *psflow;

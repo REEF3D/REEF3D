@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"iowave.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"fdm_ptf.h"
 #include"ghostcell.h"
 #include"turbulence.h"
 #include"patchBC_interface.h"
@@ -50,6 +51,29 @@ void iowave::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field&
     
     pBC->patchBC_ioflow(p,a,pgc,u,v,w);
 }
+
+/*
+void iowave::inflow_ptf(lexer *p, fdm_ptf* e, ghostcell* pgc, field& u, field& v, field& w)
+{
+    if(p->I230==0)
+    {
+    
+	if(p->B98==3)
+	dirichlet_wavegen_ptf(p,e,pgc,u,v,w);
+	
+	if(p->B98==4)
+	active_wavegen_ptf(p,e,pgc,u,v,w);
+	}
+    
+	if(p->B99==3||p->B99==4||p->B99==5)
+	active_beach_ptf(p,e,pgc,u,v,w);
+    
+    if(p->I230>0)
+    ff_inflow(p,e,pgc,u,v,w);
+    
+    pBC->patchBC_ioflow(p,e,pgc,u,v,w);
+}
+*/
 
 void iowave::rkinflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {

@@ -37,27 +37,36 @@ Author: Hans Bihs
 #include"benchmark_header.h"
 #include"6DOF_header.h"
 #include"waves_header.h"
-
+#include"initialise_ptf.h"
+#include"timestep_ptf.h"
+#include"solver_ptf.h"
+#include"bicgstab_ptf.h"
+#include"bicgstab_ptf_2D.h"
+#include"hypre_struct_ptf.h"
+#include"solver_void_ptf.h"
+#include"onephase_ptf.h"
+#include"onephase_ptf_f.h"
+#include"onephase_ptf_v.h"
 void driver::logic_ptf()
 {    
     if(p->mpirank==0)
     cout<<"creating objects"<<endl;
     
-    pini = new initialize(p);
+    pini = new initialise_ptf(p);
 
     if(p->mpirank==0)
 	cout<<"starting ini"<<endl;
-	pini->start(a,p,pgc);
+	pini->start(e,p,pgc);
 
 // time stepping
     if(p->N48==0)
-	ptstep=new fixtimestep(p);
+	ptstep=new fixtimestep_ptf(p);
 
 	if(p->N48==1)
-	ptstep=new pftimestep(p);
+	ptstep=new pftimestep_ptf(p);
     
 // Printer
-	pprint = new vtu3D(p,a,pgc);
+	pprint = new vtu3D_ptf(p,e,pgc);
     
 //IOFlow
 	if(p->B60==0 && p->B90==0 && p->B180==0 )
@@ -84,38 +93,31 @@ void driver::logic_ptf()
     
 //  Free Surface
     if(p->A10!=4)
-    poneph = new onephase_v(p,a,pgc);
+    poneph_ptf = new onephase_ptf_v(p,e,pgc);
     
     if(p->A10==4)
-    poneph = new onephase_f(p,a,pgc);
+    poneph_ptf = new onephase_ptf_f(p,e,pgc);
     
 //  Laplace Solver	
 	if(p->N10==0)
-	plapsolv = new solver_void(p,a,pgc);
+	plapsolv = new solver_void_ptf(p,e,pgc);
 	
 	if(p->N10==1)
-	plapsolv = new bicgstab_ijk(p,a,pgc);
+	plapsolv = new bicgstab_ptf(p,e,pgc);
 	
 	#ifdef HYPRE_COMPILATION
 	if(p->N10>10 && p->N10<=20)
-    plapsolv = new hypre_struct(p,pgc,p->N10,p->N11);
+    plapsolv = new hypre_struct_ptf(p,pgc,p->N10,p->N11);
     #endif
     
     #ifdef HYPRE_COMPILATION
 	if(p->N10>20 && p->N10<=30)
-	plapsolv = new hypre_aij(p,a,pgc);
+	plapsolv = new hypre_aij_ptf(p,e,pgc);
 	#endif
     
 //  Voids
-	pturb = new kepsilon_void(p,a,pgc);
     
-    pdata = new data_void(p,a,pgc);
-    
-    pconc = new concentration_void(p,a,pgc);
-    
-    pheat = new heat_void(p,a,pgc);
-    
-    psed = new sediment_void();
+    pdata = new data_void_ptf(p,e,pgc);
     
     preini = new reini_void(p);
     
@@ -125,9 +127,16 @@ void driver::logic_ptf()
     
 //  Wave Models
     if(p->A310==3)
-    pptf = new ptf_RK3(p,a,pgc);
+    pptf = new ptf_RK3(p,e,pgc);
         
     if(p->A310==4)
-    pptf = new ptf_RK4(p,a,pgc);
+    pptf = new ptf_RK4(p,e,pgc);
+    
+//Solver
+    if(p->j_dir==0)
+	psolv = new bicgstab_ptf_2D(p,e,pgc);
+
+    if(p->j_dir==1)
+	psolv = new bicgstab_ptf(p,e,pgc);
     
 }

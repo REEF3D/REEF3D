@@ -24,7 +24,9 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"fdm_fnpf.h"
+#include"fdm_ptf.h"
 #include"ghostcell.h"
+#include"fdm_ptf.h"
 
 void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
 {
@@ -210,7 +212,7 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
     }
 }
 
-/*void iowave::full_initialize_ptf(lexer *p, fdm *a, ghostcell *pgc)
+void iowave::full_initialize_ptf(lexer *p, fdm_ptf *e, ghostcell *pgc)
 {
     if(p->mpirank==0)
     cout<<"full NWT initialize"<<endl;
@@ -223,7 +225,7 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
 		dg = distgen(p);
 		db = distbeach(p);
 
-		a->eta(i,j) = wave_eta(p,pgc,xg,yg);
+		e->eta(i,j) = wave_eta(p,pgc,xg,yg);
 
     }
     
@@ -235,9 +237,9 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
 		dg = distgen(p);
 		db = distbeach(p);
         
-        z = a->eta(i,j);
+        z = e->eta(i,j);
 
-		a->Fifsf(i,j) = wave_fi(p,pgc,xg,yg,z);
+		e->Fifsf(i,j) = wave_fi(p,pgc,xg,yg,z);
     }
 
     
@@ -256,12 +258,11 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
         z=(fabs(p->phimean-p->pos_z()));
         
         
-        a->Fi(i,j,k) = wave_fi(p,pgc,xg,yg,z);
+        e->Fi(i,j,k) = wave_fi(p,pgc,xg,yg,z);
       
     }
     
 
-    pgc->start4(p,a->Fi,50);
+    pgc->start4(p,e->Fi,50);
 
 }
-*/

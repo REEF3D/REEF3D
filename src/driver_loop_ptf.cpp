@@ -37,8 +37,21 @@ Author: Hans Bihs
 #include"6DOF_header.h"
 #include"waves_header.h"
 #include"lexer.h"
+#include"fdm_ptf.h"
+#include"bicgstab_ptf.h"
+#include"bicgstab_ptf_2D.h"
+#include"initialise_ptf.h"
+#include"timestep_ptf.h"
+#include"solver_ptf.h"
+#include"bicgstab_ptf.h"
+#include"bicgstab_ptf_2D.h"
+#include"hypre_struct_ptf.h"
+#include"solver_void_ptf.h"
+#include"onephase_ptf.h"
+#include"onephase_ptf_f.h"
+#include"onephase_ptf_v.h"
 
-void driver::loop_ptf(fdm* a)
+void driver::loop_ptf(fdm_ptf* e)
 {
 //-----------MAINLOOP PTF----------------------------
     
@@ -65,15 +78,15 @@ void driver::loop_ptf(fdm* a)
         pflow->wavegen_precalc(p,pgc);
 
         // PFLOW
-		pptf->start(p,a,pgc,plapsolv,pfsfdisc,pflow,preini,poneph);
+		pptf->start(p,e,pgc,plapsolv,pfsfdisc,pflow,preini,poneph);
     
         //timestep control
         p->simtime+=p->dt;
-        ptstep->start(a,p,pgc,pturb);
+        ptstep->start(e,p,pgc,pturb);
         
         
         // printer
-        pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
+        pprint->start(e,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
 
         // Shell-Printout
         if(p->mpirank==0)
@@ -110,7 +123,7 @@ void driver::loop_ptf(fdm* a)
 	p->reinitime=0.0;
 	p->wavetime=0.0;
     
-    stop(p,a,pgc);
+    stop_ptf(p,e,pgc);
 	}
 
 	if(p->mpirank==0)

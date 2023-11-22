@@ -23,7 +23,7 @@ Author: Hans Bihs
 #include"driver.h"
 #include"ghostcell.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_ptf.h"
 #include"freesurface_header.h"
 #include"turbulence_header.h"
 #include"momentum_header.h"
@@ -64,44 +64,44 @@ cout<<"number of cells: "<<p->cellnumtot<<endl;
 if(p->mpirank==0)
 cout<<"starting driver_ini_PTF"<<endl;
 
-    pgc->start4(p,a->Fi,250);
+    pgc->start4(p,e->Fi,250);
     
     // Solid
     if(p->solidread==1)
     {
-    solid solid_object(p,a,pgc);
-    solid_object.start(p,a,pgc,pflow,pconvec,preto);
+    solid solid_object(p,e,pgc);
+    solid_object.start_ptf(p,e,pgc,pflow,pconvec,preto);
     }
     
     // Geotopo
     if(p->toporead>0)
     {
-    geotopo gtopo(p,a,pgc);
-    gtopo.start(p,a,pgc,pflow,preto,pvrans);
+    geotopo gtopo_ptf(p,e,pgc);
+    gtopo.start_ptf(p,e,pgc,pflow,preto,pvrans);
     }
 
     SLICELOOP4
     p->wet[IJ]=1;
 
     SLICELOOP4
-	a->bed(i,j) = p->bed[IJ];
+	e->bed(i,j) = p->bed[IJ];
     
-    pflow->ini_ptf(p,a,pgc);
-    pptf->ini(p,a,pgc,pflow,preini,poneph); 
-    pflow->ini_ptf(p,a,pgc);
+    pflow->ini_ptf(p,e,pgc);
+    pptf->ini(p,e,pgc,pflow,preini,poneph); 
+    pflow->ini_ptf(p,e,pgc);
 
-    ptstep->ini(a,p,pgc);
-    pptf->ini(p,a,pgc,pflow,preini,poneph);  // --- 
-    pflow->eta_relax(p,pgc,a->eta);
-    pflow->fi_relax(p,pgc,a->Fi,a->phi);
+    ptstep->ini_ptf(e,p,pgc);
+    pptf->ini_ptf(p,e,pgc,pflow,preini,poneph);  // --- 
+    pflow->eta_relax(p,pgc,e->eta);
+    pflow->fi_relax(p,pgc,e->Fi,e->phi);
 
     pgc->start4(p,a->Fi,250);
     
-    pflow->gcio_update(p,a,pgc);
-	pflow->inflow(p,a,pgc,a->u,a->v,a->w);
+    pflow->gcio_update_ptf(p,e,pgc);
+	pflow->inflow_ptf(p,e,pgc,a->u,a->v,a->w);
 
-    pptf->inidisc(p,a,pgc);
-    pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
+    pptf->inidisc_ptf(p,e,pgc);
+    pprint->start_ptf(e,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
 
 	p->gctime=0.0;
     p->xtime=0.0;

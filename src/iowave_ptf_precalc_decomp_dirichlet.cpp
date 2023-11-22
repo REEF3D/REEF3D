@@ -19,6 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
+/*
 
 #include"iowave.h"
 #include"lexer.h"
@@ -108,3 +109,5 @@ void iowave::wavegen_precalc_decomp_dirichlet_ptf(lexer *p, ghostcell *pgc)
    
 
 }
+
+*/

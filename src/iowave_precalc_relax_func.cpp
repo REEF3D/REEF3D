@@ -158,7 +158,7 @@ void iowave::wavegen_precalc_relax_func_nhflow(lexer *p, ghostcell *pgc)
     pgc->gcsl_start4(p,relax4_wg,50);
     pgc->gcsl_start4(p,relax4_nb,50);
 }
-
+/*
 void iowave::wavegen_precalc_relax_func_ptf(lexer *p, ghostcell *pgc) // all new
 {
     // ini fill
@@ -187,3 +187,4 @@ void iowave::wavegen_precalc_relax_func_ptf(lexer *p, ghostcell *pgc) // all new
     pgc->gcsl_start4(p,relax4_wg,50);
     pgc->gcsl_start4(p,relax4_nb,50);
 }
+*/

@@ -271,6 +271,7 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
 		}
     }
     
+    /*
     if(p->A10==4) // all new
     FLOOP
     {
@@ -295,7 +296,9 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
             }
 		}
     }
+     */
     
+    /*
     count=0;
     if(p->A10==4) // all new
     FLUIDLOOP
@@ -336,8 +339,9 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
             ++count;
             }
 		}
+         
     }
-    
+    */
 
     count=0;
     SLICELOOP4

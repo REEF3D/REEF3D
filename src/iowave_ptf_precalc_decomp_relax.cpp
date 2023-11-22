@@ -19,6 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
+/*
 
 #include"iowave.h"
 #include"lexer.h"
@@ -26,6 +27,8 @@ Author: Hans Bihs
 
 void iowave::wavegen_precalc_decomp_relax_ptf(lexer *p, ghostcell *pgc)
 {
+    */
+    
         /*
         a: space
         b: time
@@ -41,6 +44,9 @@ void iowave::wavegen_precalc_decomp_relax_ptf(lexer *p, ghostcell *pgc)
          ETA: cos()
         */
 
+
+
+/*
     double fsfloc;
     int qn;
 
@@ -144,4 +150,4 @@ void iowave::wavegen_precalc_decomp_relax_ptf(lexer *p, ghostcell *pgc)
 
     
 }
-    
+*/

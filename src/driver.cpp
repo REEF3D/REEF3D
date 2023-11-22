@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"fdm_fnpf.h"
 #include"fdm_nhf.h"
+#include"fdm_ptf.h"
 #include"lexer.h"
 #include"waves_header.h"
 #include"patchBC.h"
@@ -223,17 +224,16 @@ void driver::ptf_driver()
     if(p->mpirank==0)
 	cout<<"initialize fdm"<<endl;
 
-    a=new fdm(p);
+    e=new fdm_ptf(p);
 
-    aa=a;
-    pgc->fdm_update(a);
+    pgc->fdm_ptf_update(e);
 
     logic_ptf();
 
     driver_ini_ptf();
 
     // Start MAINLOOP
-    loop_ptf(a);
+    loop_ptf(e);
 }
 
 void driver::sflow_driver()

@@ -22,13 +22,13 @@ Author: Hans Bihs
 
 #include"ptf_laplace_cds2.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_ptf.h"
 #include"ghostcell.h"
-#include"solver.h"
+#include"solver_ptf.h"
 #include"convection.h"
 #include"fnpf_weno5.h"
 
-ptf_laplace_cds2::ptf_laplace_cds2(lexer *p, fdm *a, ghostcell *pgc) : bc(p)
+ptf_laplace_cds2::ptf_laplace_cds2(lexer *p, fdm_ptf *e, ghostcell *pgc) : bc(p)
 {
     // bc ini
     SLICELOOP4
@@ -59,7 +59,7 @@ ptf_laplace_cds2::~ptf_laplace_cds2()
 {
 }
 
-void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, field &f, slice &Fifsf, slice &eta)
+void ptf_laplace_cds2::start(lexer* p, fdm_ptf *e, ghostcell *pgc, solver_ptf *psolv, field &f, slice &Fifsf, slice &eta)
 {
     
 
@@ -70,7 +70,7 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
 
     if(p->flag4[IJK]>0)
     {
-	a->M.p[n]  =  1.0/(p->DXP[IP]*p->DXN[IP])
+	e->M.p[n]  =  1.0/(p->DXP[IP]*p->DXN[IP])
                 + 1.0/(p->DXP[IM1]*p->DXN[IP])
 
                 + 1.0/(p->DYP[JP]*p->DYN[JP])*p->y_dir
@@ -79,34 +79,34 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 + 1.0/(p->DZP[KP]*p->DZN[KP])
                 + 1.0/(p->DZP[KM1]*p->DZN[KP]);
 
-   	a->M.n[n] = -1.0/(p->DXP[IP]*p->DXN[IP]);
-	a->M.s[n] = -1.0/(p->DXP[IM1]*p->DXN[IP]);
+   	e->M.n[n] = -1.0/(p->DXP[IP]*p->DXN[IP]);
+	e->M.s[n] = -1.0/(p->DXP[IM1]*p->DXN[IP]);
 
-	a->M.w[n] = -1.0/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
-	a->M.e[n] = -1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+	e->M.w[n] = -1.0/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
+	e->M.e[n] = -1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
 
-	a->M.t[n] = -1.0/(p->DZP[KP]*p->DZN[KP]);
-	a->M.b[n] = -1.0/(p->DZP[KM1]*p->DZN[KP]);
+	e->M.t[n] = -1.0/(p->DZP[KP]*p->DZN[KP]);
+	e->M.b[n] = -1.0/(p->DZP[KM1]*p->DZN[KP]);
 
-	a->rhsvec.V[n] = 0.0;
+	e->rhsvec.V[n] = 0.0;
     }
     
     
 
     if(p->flag4[IJK]<0)
     {
-	a->M.p[n] =  1.0;
+	e->M.p[n] =  1.0;
 
-   	a->M.n[n] = 0.0;
-	a->M.s[n] = 0.0;
+   	e->M.n[n] = 0.0;
+	e->M.s[n] = 0.0;
 
-	a->M.w[n] = 0.0;
-	a->M.e[n] = 0.0;
+	e->M.w[n] = 0.0;
+	e->M.e[n] = 0.0;
 
-	a->M.t[n] = 0.0;
-	a->M.b[n] = 0.0;
+	e->M.t[n] = 0.0;
+	e->M.b[n] = 0.0;
 
-	a->rhsvec.V[n] = 0.0;
+	e->rhsvec.V[n] = 0.0;
     }
     
 	++n;
@@ -122,16 +122,16 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             // south
             if(p->flag4[Im1JK]<AIR && bc(i-1,j)==0)
             {        
-            a->M.p[n] += a->M.s[n];
-            a->M.s[n] = 0.0;
+            e->M.p[n] += e->M.s[n];
+            e->M.s[n] = 0.0;
             }
             
 
             if(p->flag4[Im1JK]<AIR && bc(i-1,j)==1)
             {
-            a->rhsvec.V[n] += a->M.s[n]*a->u(i-1,j,k)*p->DXP[IP];
-            a->M.p[n] += a->M.s[n];
-            a->M.s[n] = 0.0;
+            e->rhsvec.V[n] += e->M.s[n]*e->u(i-1,j,k)*p->DXP[IP];
+            e->M.p[n] += e->M.s[n];
+            e->M.s[n] = 0.0;
             }
 
             // north
@@ -141,15 +141,15 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
            //     cout<<"SW corner going north, eta S: "<<eta(i,j)<<" eta P: "<<eta(i+1,j)<<"eta W: "<<eta(i+1,j+1)<<" || Fifsf S: "<<Fifsf(i,j)<<" Fifsf P: "<<Fifsf(i+1,j)<<" Fifsf W: "<<Fifsf(i+1,j+1)<<endl;
               //  cout<<"eta S: "<<eta(i,j)<<" eta P: "<<eta(i+1,j)<<" || Fifsf S: "<<Fifsf(i,j)<<" Fifsf P: "<<Fifsf(i+1,j)<<endl;
                 
-            a->M.p[n] += a->M.n[n];
-            a->M.n[n] = 0.0;
+            e->M.p[n] += e->M.n[n];
+            e->M.n[n] = 0.0;
             }
 
             if(p->flag4[Ip1JK]<AIR && bc(i+1,j)==2)
             {
-            a->rhsvec.V[n] -= a->M.n[n]*a->u(i+1,j,k)*p->DXP[IP1];
-            a->M.p[n] += a->M.n[n];
-            a->M.n[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.n[n]*e->u(i+1,j,k)*p->DXP[IP1];
+            e->M.p[n] += e->M.n[n];
+            e->M.n[n] = 0.0;
             }
 
             // east
@@ -157,22 +157,22 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             {
             //if(p->A323==78 && p->flag4[Im1Jm1K]>AIR)
              //   cout<<"SW corner going east, eta W: "<<eta(i,j)<<" eta P: "<<eta(i,j-1)<<"eta S: "<<eta(i-1,j-1)<<" || Fifsf W: "<<Fifsf(i,j)<<" Fifsf P: "<<Fifsf(i,j-1)<<" Fifsf S: "<<Fifsf(i-1,j-1)<<endl;
-            a->M.p[n] += a->M.e[n];
-            a->M.e[n] = 0.0;
+            e->M.p[n] += e->M.e[n];
+            e->M.e[n] = 0.0;
             }
 
             // west
             if(p->flag4[IJp1K]<AIR)
             {
-            a->M.p[n] += a->M.w[n];
-            a->M.w[n] = 0.0;
+            e->M.p[n] += e->M.w[n];
+            e->M.w[n] = 0.0;
             }
             
             // top
             if(p->flag4[IJKp1]<AIR)
             {
-            a->M.p[n] += a->M.t[n];
-            a->M.t[n] = 0.0;
+            e->M.p[n] += e->M.t[n];
+            e->M.t[n] = 0.0;
             }
 
         // FSFBC
@@ -182,8 +182,8 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 // -----------
                 if(p->A323==1)
                 {
-                a->rhsvec.V[n] -= a->M.s[n]*f(i-1,j,k);
-                a->M.s[n] = 0.0;
+                e->rhsvec.V[n] -= e->M.s[n]*f(i-1,j,k);
+                e->M.s[n] = 0.0;
                 }
                 
                 // -----------
@@ -191,17 +191,17 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 {
                 double lsv0,lsv1,Fival;
 
-                lsv0 = fabs(a->phi(i,j,k));
-                lsv1 = fabs(a->phi(i-1,j,k));
+                lsv0 = fabs(e->phi(i,j,k));
+                lsv1 = fabs(e->phi(i-1,j,k));
 
                 lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20;
                 
-                teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k)));
+                teta = fabs(e->phi(i,j,k))/(fabs(e->phi(i-1,j,k))+fabs(e->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(e->phi(i-1,j,k))+fabs(e->phi(i,j,k)));
                 Fival = teta*Fifsf(i-1,j) + (1.0-teta)*Fifsf(i,j);
 
-                a->rhsvec.V[n] -= a->M.s[n]*Fival*(1.0 + lsv1/lsv0);
-                a->M.p[n] -= a->M.s[n]*lsv1/lsv0;
-                a->M.s[n] = 0.0;
+                e->rhsvec.V[n] -= e->M.s[n]*Fival*(1.0 + lsv1/lsv0);
+                e->M.p[n] -= e->M.s[n]*lsv1/lsv0;
+                e->M.s[n] = 0.0;
                 }
                 
                 // -----------
@@ -211,25 +211,25 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 double x,y,Fival;
                 double Lx0,Lx1,Lx2;
                 
-                teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k)));
+                teta = fabs(e->phi(i,j,k))/(fabs(e->phi(i-1,j,k))+fabs(e->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(e->phi(i-1,j,k))+fabs(e->phi(i,j,k)));
                 Fival = teta*Fifsf(i-1,j) + (1.0-teta)*Fifsf(i,j);
 
-                x0 = -fabs(a->phi(i+1,j,k));
-                x1 = -fabs(a->phi(i,j,k));
+                x0 = -fabs(e->phi(i+1,j,k));
+                x1 = -fabs(e->phi(i,j,k));
                 x2 = 0.0;
                 
                 y2 = Fival;
 
-                x = fabs(a->phi(i-1,j,k));
+                x = fabs(e->phi(i-1,j,k));
 
                 Lx0 = ((x-x1)/(x0-x1)) * ((x-x2)/(x0-x2));
                 Lx1 = ((x-x0)/(x1-x0)) * ((x-x2)/(x1-x2));
                 Lx2 = ((x-x0)/(x2-x0)) * ((x-x1)/(x2-x1));
 
-                a->rhsvec.V[n]  -= a->M.s[n]*Lx2*y2;
-                a->M.p[n]       += a->M.s[n]*Lx1;
-                a->M.n[n]       += a->M.s[n]*Lx0;
-                a->M.s[n]       = 0.0;
+                e->rhsvec.V[n]  -= e->M.s[n]*Lx2*y2;
+                e->M.p[n]       += e->M.s[n]*Lx1;
+                e->M.n[n]       += e->M.s[n]*Lx0;
+                e->M.s[n]       = 0.0;
                 }
                 
                 // -----------
@@ -237,19 +237,19 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 {
                 double Fival,teta;
 
-                teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k)));
+                teta = fabs(e->phi(i,j,k))/(fabs(e->phi(i-1,j,k))+fabs(e->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(e->phi(i-1,j,k))+fabs(e->phi(i,j,k)));
                 Fival = teta*Fifsf(i-1,j) + (1.0-teta)*Fifsf(i,j);
                 
                 teta = teta>1.0e-6?teta:1.0e20;
                 
-                a->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                a->M.p[n] += 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
+                e->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                e->M.p[n] += 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
                            
-                a->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                a->M.s[n] -= 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
+                e->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                e->M.s[n] -= 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
                 
-                a->rhsvec.V[n] -= a->M.s[n]*Fival;
-                a->M.s[n] = 0.0;
+                e->rhsvec.V[n] -= e->M.s[n]*Fival;
+                e->M.s[n] = 0.0;
                 }
                 
               
@@ -266,14 +266,14 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 
                     teta = teta>1.0e-6?teta:1.0e20;
                 
-                    a->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                    a->M.p[n] += 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
+                    e->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                    e->M.p[n] += 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
                            
-                    a->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                    a->M.s[n] -= 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
+                    e->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                    e->M.s[n] -= 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
                 
-                    a->rhsvec.V[n] -= a->M.s[n]*Fival;
-                    a->M.s[n] = 0.0;
+                    e->rhsvec.V[n] -= e->M.s[n]*Fival;
+                    e->M.s[n] = 0.0;
                   
                 }
                 
@@ -324,14 +324,14 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                     teta = teta>1.0e-6?teta:1.0e20;
                     Fival=a_fi*x_quad*x_quad+b_fi*x_quad+c_fi;
                 
-                    a->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                    a->M.p[n] += 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
+                    e->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                    e->M.p[n] += 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
                            
-                    a->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                    a->M.s[n] -= 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
+                    e->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                    e->M.s[n] -= 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
                 
-                    a->rhsvec.V[n] -= a->M.s[n]*Fival;
-                    a->M.s[n] = 0.0;
+                    e->rhsvec.V[n] -= e->M.s[n]*Fival;
+                    e->M.s[n] = 0.0;
                 }
                 
                 if(p->A323==78)
@@ -426,14 +426,14 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                     {   
                         teta = teta>1.0e-6?teta:1.0e20;
                 
-                        a->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                        a->M.p[n] += 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
+                        e->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                        e->M.p[n] += 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
                            
-                        a->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                        a->M.s[n] -= 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
+                        e->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                        e->M.s[n] -= 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
                 
-                        a->rhsvec.V[n] -= a->M.s[n]*Fival;
-                        a->M.s[n] = 0.0;
+                        e->rhsvec.V[n] -= e->M.s[n]*Fival;
+                        e->M.s[n] = 0.0;
                         
                     }
                     
@@ -451,10 +451,10 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                         
                     M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
                         
-                    a->M.p[n]+=(M_p_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
-                    a->M.n[n]+=(M_b_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
-                    a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IM1]*p->DXN[IP]);
-                    a->M.s[n]=0.0;
+                    e->M.p[n]+=(M_p_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                    e->M.n[n]+=(M_b_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                    e->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                    e->M.s[n]=0.0;
                     }
                     
                     
@@ -549,14 +549,14 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                     p_Fival=p_a_fi*x_quad*x_quad+p_b_fi*x_quad+p_c_fi;
                     Fival=(s_Fival+p_Fival)/2;
                 
-                    a->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                    a->M.p[n] += 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
+                    e->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                    e->M.p[n] += 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
                            
-                    a->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                    a->M.s[n] -= 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
+                    e->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                    e->M.s[n] -= 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
                 
-                    a->rhsvec.V[n] -= a->M.s[n]*Fival;
-                    a->M.s[n] = 0.0;
+                    e->rhsvec.V[n] -= e->M.s[n]*Fival;
+                    e->M.s[n] = 0.0;
                 }
                 
                 
@@ -578,14 +578,14 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                     {
                         teta = teta>1.0e-6?teta:1.0e20;
                 
-                        a->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                        a->M.p[n] += 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
+                        e->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                        e->M.p[n] += 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
                            
-                        a->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                        a->M.s[n] -= 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
+                        e->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                        e->M.s[n] -= 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
                 
-                        a->rhsvec.V[n] -= a->M.s[n]*Fival;
-                        a->M.s[n] = 0.0;
+                        e->rhsvec.V[n] -= e->M.s[n]*Fival;
+                        e->M.s[n] = 0.0;
                   
                     }
                     
@@ -602,10 +602,10 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                         
                         M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
                         
-                        a->M.p[n]+=(M_p_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
-                        a->M.n[n]+=(M_b_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
-                        a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IM1]*p->DXN[IP]);
-                        a->M.s[n]=0.0;
+                        e->M.p[n]+=(M_p_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                        e->M.n[n]+=(M_b_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                        e->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                        e->M.s[n]=0.0;
                         
                     }
                 }
@@ -693,11 +693,11 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                         
                         M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
                         
-                        a->M.p[n]+=(M_p_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
-                        a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IM1]*p->DXN[IP]);
-                        a->rhsvec.V[n]-=(Fival_b*M_b_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
-                        a->M.n[n]=0.0;
-                        a->M.s[n]=0.0;
+                        e->M.p[n]+=(M_p_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                        e->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                        e->rhsvec.V[n]-=(Fival_b*M_b_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                        e->M.n[n]=0.0;
+                        e->M.s[n]=0.0;
                         
                     }
                     
@@ -715,10 +715,10 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                         
                     M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
                         
-                    a->M.p[n]+=(M_p_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
-                    a->M.n[n]+=(M_b_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
-                    a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IM1]*p->DXN[IP]);
-                    a->M.s[n]=0.0;
+                    e->M.p[n]+=(M_p_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                    e->M.n[n]+=(M_b_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                    e->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                    e->M.s[n]=0.0;
                     }
                 }
                 
@@ -780,14 +780,14 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                         
                         teta = teta>1.0e-6?teta:1.0e20;
                 
-                        a->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                        a->M.p[n] += 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
+                        e->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                        e->M.p[n] += 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
                            
-                        a->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                        a->M.s[n] -= 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
+                        e->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                        e->M.s[n] -= 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
                 
-                        a->rhsvec.V[n] -= a->M.s[n]*Fival;
-                        a->M.s[n] = 0.0;
+                        e->rhsvec.V[n] -= e->M.s[n]*Fival;
+                        e->M.s[n] = 0.0;
                         
                     }
                     
@@ -808,10 +808,10 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                         
                     M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
                         
-                    a->M.p[n]+=(M_p_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
-                    a->M.n[n]+=(M_b_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
-                    a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IM1]*p->DXN[IP]);
-                    a->M.s[n]=0.0;
+                    e->M.p[n]+=(M_p_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                    e->M.n[n]+=(M_b_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                    e->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                    e->M.s[n]=0.0;
                     }
                 }
                 
@@ -905,14 +905,14 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                     Fi_plus=a_fi_plus*x_defin*x_defin+b_fi_plus*x_defin+c_fi_plus;
                     Fival=coeff_l*Fi_plus+coeff_r*Fi_quad;
                 
-                    a->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                    a->M.p[n] += 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
+                    e->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                    e->M.p[n] += 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
                            
-                    a->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                    a->M.s[n] -= 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
+                    e->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                    e->M.s[n] -= 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
                 
-                    a->rhsvec.V[n] -= a->M.s[n]*Fival;
-                    a->M.s[n] = 0.0;
+                    e->rhsvec.V[n] -= e->M.s[n]*Fival;
+                    e->M.s[n] = 0.0;
                 }
                 
                 if(p->A323==12)
@@ -1010,14 +1010,14 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                         
                         teta = teta>1.0e-6?teta:1.0e20;
                 
-                        a->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                        a->M.p[n] += 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
+                        e->M.p[n] -= 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                        e->M.p[n] += 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
                            
-                        a->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
-                        a->M.s[n] -= 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
+                        e->M.s[n] += 1.0/(p->DXP[IM1]*p->DXN[IP]);
+                        e->M.s[n] -= 1.0/(teta*p->DXP[IM1]*p->DXN[IP]);
                 
-                        a->rhsvec.V[n] -= a->M.s[n]*Fival;
-                        a->M.s[n] = 0.0;
+                        e->rhsvec.V[n] -= e->M.s[n]*Fival;
+                        e->M.s[n] = 0.0;
                         
                     }
                     
@@ -1038,10 +1038,10 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                         
                     M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
                         
-                    a->M.p[n]+=(M_p_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
-                    a->M.n[n]+=(M_b_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
-                    a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IM1]*p->DXN[IP]);
-                    a->M.s[n]=0.0;
+                    e->M.p[n]+=(M_p_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                    e->M.n[n]+=(M_b_num/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                    e->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IM1]*p->DXN[IP]);
+                    e->M.s[n]=0.0;
                     }
                 }
             
@@ -1053,8 +1053,8 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 // -----------
                 if(p->A323==1)
                 {
-                a->rhsvec.V[n] -= a->M.n[n]*f(i+1,j,k);
-                a->M.n[n] = 0.0;
+                e->rhsvec.V[n] -= e->M.n[n]*f(i+1,j,k);
+                e->M.n[n] = 0.0;
                 }
                 
                 // -----------
@@ -1062,18 +1062,18 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 {
                 double lsv0,lsv1,Fival;
 
-                lsv0 = fabs(a->phi(i,j,k));
-                lsv1 = fabs(a->phi(i+1,j,k));
+                lsv0 = fabs(e->phi(i,j,k));
+                lsv1 = fabs(e->phi(i+1,j,k));
 
                 lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20;
                 
-                teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k)));
+                teta = fabs(e->phi(i,j,k))/(fabs(e->phi(i+1,j,k))+fabs(e->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(e->phi(i+1,j,k))+fabs(e->phi(i,j,k)));
                 Fival = teta*Fifsf(i+1,j) + (1.0-teta)*Fifsf(i,j);
 
 
-                a->rhsvec.V[n] -= a->M.n[n]*Fival*(1.0 + lsv1/lsv0);
-                a->M.p[n] -= a->M.n[n]*lsv1/lsv0;
-                a->M.n[n] = 0.0;
+                e->rhsvec.V[n] -= e->M.n[n]*Fival*(1.0 + lsv1/lsv0);
+                e->M.p[n] -= e->M.n[n]*lsv1/lsv0;
+                e->M.n[n] = 0.0;
                 }
                 
                 
@@ -1084,25 +1084,25 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 double x,y,Fival;
                 double Lx0,Lx1,Lx2;
                 
-                teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k)));
+                teta = fabs(e->phi(i,j,k))/(fabs(e->phi(i+1,j,k))+fabs(e->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(e->phi(i+1,j,k))+fabs(e->phi(i,j,k)));
                 Fival = teta*Fifsf(i+1,j) + (1.0-teta)*Fifsf(i,j);
 
-                x0 = -fabs(a->phi(i-1,j,k));
-                x1 = -fabs(a->phi(i,j,k));
+                x0 = -fabs(e->phi(i-1,j,k));
+                x1 = -fabs(e->phi(i,j,k));
                 x2 = 0.0;
 
                 y2 = Fival;
 
-                x = fabs(a->phi(i+1,j,k));
+                x = fabs(e->phi(i+1,j,k));
 
                 Lx0 = ((x-x1)/(x0-x1)) * ((x-x2)/(x0-x2));
                 Lx1 = ((x-x0)/(x1-x0)) * ((x-x2)/(x1-x2));
                 Lx2 = ((x-x0)/(x2-x0)) * ((x-x1)/(x2-x1));
 
-                a->rhsvec.V[n]  -= a->M.n[n]*Lx2*y2;
-                a->M.p[n]       += a->M.n[n]*Lx1;
-                a->M.s[n]       += a->M.n[n]*Lx0;
-                a->M.n[n]       = 0.0;
+                e->rhsvec.V[n]  -= e->M.n[n]*Lx2*y2;
+                e->M.p[n]       += e->M.n[n]*Lx1;
+                e->M.s[n]       += e->M.n[n]*Lx0;
+                e->M.n[n]       = 0.0;
                 }
                 
                 // -----------
@@ -1110,20 +1110,20 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 {
                 double Fival,teta;
 
-                teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k)))+ 0.0001*p->DXN[IP]/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k)));
+                teta = fabs(e->phi(i,j,k))/(fabs(e->phi(i+1,j,k))+fabs(e->phi(i,j,k)))+ 0.0001*p->DXN[IP]/(fabs(e->phi(i+1,j,k))+fabs(e->phi(i,j,k)));
               
                 Fival = teta*Fifsf(i+1,j) + (1.0-teta)*Fifsf(i,j);
                 
                 teta = teta>1.0e-6?teta:1.0e20;
             
-                a->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
-                a->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
+                e->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
+                e->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
                 
-                a->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
-                a->M.n[n] -= 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
+                e->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
+                e->M.n[n] -= 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
                 
-                a->rhsvec.V[n] -= a->M.n[n]*Fival;
-                a->M.n[n] = 0.0;
+                e->rhsvec.V[n] -= e->M.n[n]*Fival;
+                e->M.n[n] = 0.0;
                 }
                 
                 if(p->A323==5)
@@ -1139,14 +1139,14 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 
                     teta = teta>1.0e-6?teta:1.0e20;
             
-                    a->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
-                    a->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
+                    e->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
+                    e->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
                 
-                    a->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
-                    a->M.n[n] -= 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
+                    e->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
+                    e->M.n[n] -= 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
                 
-                    a->rhsvec.V[n] -= a->M.n[n]*Fival;
-                    a->M.n[n] = 0.0;
+                    e->rhsvec.V[n] -= e->M.n[n]*Fival;
+                    e->M.n[n] = 0.0;
                   
                 }
                 
@@ -1200,14 +1200,14 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                     
                     teta = teta>1.0e-6?teta:1.0e20;
             
-                    a->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
-                    a->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
+                    e->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
+                    e->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
                 
-                    a->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
-                    a->M.n[n] -= 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
+                    e->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
+                    e->M.n[n] -= 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
                 
-                    a->rhsvec.V[n] -= a->M.n[n]*Fival;
-                    a->M.n[n] = 0.0;
+                    e->rhsvec.V[n] -= e->M.n[n]*Fival;
+                    e->M.n[n] = 0.0;
                     
                 }
                 
@@ -1303,14 +1303,14 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                        
                         teta = teta>1.0e-6?teta:1.0e20;
             
-                        a->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
-                        a->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
+                        e->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
+                        e->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
                 
-                        a->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
-                        a->M.n[n] -= 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
+                        e->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
+                        e->M.n[n] -= 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
                 
-                        a->rhsvec.V[n] -= a->M.n[n]*Fival;
-                        a->M.n[n] = 0.0;
+                        e->rhsvec.V[n] -= e->M.n[n]*Fival;
+                        e->M.n[n] = 0.0;
                         
                         
                     }
@@ -1330,10 +1330,10 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                         
                     M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
                         
-                    a->M.p[n]+=(M_p_num/denom)/(p->DXP[IP]*p->DXN[IP]);
-                    a->M.s[n]+=(M_b_num/denom)/(p->DXP[IP]*p->DXN[IP]);
-                    a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IP]*p->DXN[IP]);
-                    a->M.n[n]=0.0;
+                    e->M.p[n]+=(M_p_num/denom)/(p->DXP[IP]*p->DXN[IP]);
+                    e->M.s[n]+=(M_b_num/denom)/(p->DXP[IP]*p->DXN[IP]);
+                    e->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IP]*p->DXN[IP]);
+                    e->M.n[n]=0.0;
                     }
                 }
                 
@@ -1426,14 +1426,14 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                     
                     teta = teta>1.0e-6?teta:1.0e20;
             
-                    a->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
-                    a->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
+                    e->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
+                    e->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
                 
-                    a->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
-                    a->M.n[n] -= 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
+                    e->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
+                    e->M.n[n] -= 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
                 
-                    a->rhsvec.V[n] -= a->M.n[n]*Fival;
-                    a->M.n[n] = 0.0;
+                    e->rhsvec.V[n] -= e->M.n[n]*Fival;
+                    e->M.n[n] = 0.0;
                 }
             
                 if(p->A323==8)
@@ -1454,14 +1454,14 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                     {
                         teta = teta>1.0e-6?teta:1.0e20;
             
-                        a->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
-                        a->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
+                        e->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
+                        e->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
                 
-                        a->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
-                        a->M.n[n] -= 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
+                        e->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
+                        e->M.n[n] -= 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
                 
-                        a->rhsvec.V[n] -= a->M.n[n]*Fival;
-                        a->M.n[n] = 0.0;
+                        e->rhsvec.V[n] -= e->M.n[n]*Fival;
+                        e->M.n[n] = 0.0;
                     }
                     
                     else
@@ -1477,10 +1477,10 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                         
                         M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
                         
-                        a->M.p[n]+=(M_p_num/denom)/(p->DXP[IP]*p->DXN[IP]);
-                        a->M.s[n]+=(M_b_num/denom)/(p->DXP[IP]*p->DXN[IP]);
-                        a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IP]*p->DXN[IP]);
-                        a->M.n[n]=0.0;
+                        e->M.p[n]+=(M_p_num/denom)/(p->DXP[IP]*p->DXN[IP]);
+                        e->M.s[n]+=(M_b_num/denom)/(p->DXP[IP]*p->DXN[IP]);
+                        e->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IP]*p->DXN[IP]);
+                        e->M.n[n]=0.0;
                     }
                 }
                 
@@ -1567,11 +1567,11 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                         
                         M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
                         
-                        a->M.p[n]+=(M_p_num/denom)/(p->DXP[IP]*p->DXN[IP]);
-                        a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IP]*p->DXN[IP]);
-                        a->rhsvec.V[n]-=(Fival_b*M_b_num/denom)/(p->DXP[IP]*p->DXN[IP]);
-                        a->M.n[n]=0.0;
-                        a->M.s[n]=0.0;
+                        e->M.p[n]+=(M_p_num/denom)/(p->DXP[IP]*p->DXN[IP]);
+                        e->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IP]*p->DXN[IP]);
+                        e->rhsvec.V[n]-=(Fival_b*M_b_num/denom)/(p->DXP[IP]*p->DXN[IP]);
+                        e->M.n[n]=0.0;
+                        e->M.s[n]=0.0;
                         
                     }
                     
@@ -1589,10 +1589,10 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                         
                     M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
                         
-                    a->M.p[n]+=(M_p_num/denom)/(p->DXP[IP]*p->DXN[IP]);
-                    a->M.s[n]+=(M_b_num/denom)/(p->DXP[IP]*p->DXN[IP]);
-                    a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IP]*p->DXN[IP]);
-                    a->M.n[n]=0.0;
+                    e->M.p[n]+=(M_p_num/denom)/(p->DXP[IP]*p->DXN[IP]);
+                    e->M.s[n]+=(M_b_num/denom)/(p->DXP[IP]*p->DXN[IP]);
+                    e->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IP]*p->DXN[IP]);
+                    e->M.n[n]=0.0;
                     }
                 }
                 
@@ -1654,14 +1654,14 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                         
                         teta = teta>1.0e-6?teta:1.0e20;
             
-                        a->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
-                        a->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
+                        e->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
+                        e->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
                 
-                        a->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
-                        a->M.n[n] -= 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
+                        e->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
+                        e->M.n[n] -= 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
                 
-                        a->rhsvec.V[n] -= a->M.n[n]*Fival;
-                        a->M.n[n] = 0.0;
+                        e->rhsvec.V[n] -= e->M.n[n]*Fival;
+                        e->M.n[n] = 0.0;
                         
                         
                     }
@@ -1681,10 +1681,10 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                         
                     M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
                         
-                    a->M.p[n]+=(M_p_num/denom)/(p->DXP[IP]*p->DXN[IP]);
-                    a->M.s[n]+=(M_b_num/denom)/(p->DXP[IP]*p->DXN[IP]);
-                    a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IP]*p->DXN[IP]);
-                    a->M.n[n]=0.0;
+                    e->M.p[n]+=(M_p_num/denom)/(p->DXP[IP]*p->DXN[IP]);
+                    e->M.s[n]+=(M_b_num/denom)/(p->DXP[IP]*p->DXN[IP]);
+                    e->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IP]*p->DXN[IP]);
+                    e->M.n[n]=0.0;
                     }
                 }
                 
@@ -1781,14 +1781,14 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                     
                     teta = teta>1.0e-6?teta:1.0e20;
             
-                    a->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
-                    a->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
+                    e->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
+                    e->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
                 
-                    a->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
-                    a->M.n[n] -= 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
+                    e->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
+                    e->M.n[n] -= 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
                 
-                    a->rhsvec.V[n] -= a->M.n[n]*Fival;
-                    a->M.n[n] = 0.0;
+                    e->rhsvec.V[n] -= e->M.n[n]*Fival;
+                    e->M.n[n] = 0.0;
                 }
                 
                 if(p->A323==12)
@@ -1892,14 +1892,14 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                         
                         teta = teta>1.0e-6?teta:1.0e20;
             
-                        a->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
-                        a->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
+                        e->M.p[n] -= 1.0/(p->DXP[IP]*p->DXN[IP]);
+                        e->M.p[n] += 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
                 
-                        a->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
-                        a->M.n[n] -= 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
+                        e->M.n[n] += 1.0/(p->DXP[IP]*p->DXN[IP]);
+                        e->M.n[n] -= 1.0/(teta*p->DXP[IP]*p->DXN[IP]);
                 
-                        a->rhsvec.V[n] -= a->M.n[n]*Fival;
-                        a->M.n[n] = 0.0;
+                        e->rhsvec.V[n] -= e->M.n[n]*Fival;
+                        e->M.n[n] = 0.0;
                         
                         
                     }
@@ -1919,10 +1919,10 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                         
                     M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
                         
-                    a->M.p[n]+=(M_p_num/denom)/(p->DXP[IP]*p->DXN[IP]);
-                    a->M.s[n]+=(M_b_num/denom)/(p->DXP[IP]*p->DXN[IP]);
-                    a->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IP]*p->DXN[IP]);
-                    a->M.n[n]=0.0;
+                    e->M.p[n]+=(M_p_num/denom)/(p->DXP[IP]*p->DXN[IP]);
+                    e->M.s[n]+=(M_b_num/denom)/(p->DXP[IP]*p->DXN[IP]);
+                    e->rhsvec.V[n]+=(Fival/denom)/(p->DXP[IP]*p->DXN[IP]);
+                    e->M.n[n]=0.0;
                     }
                 }
             }
@@ -1932,8 +1932,8 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             {
                 if(p->A323<=21)
                 {
-                    a->rhsvec.V[n] -= a->M.e[n]*f(i,j-1,k);
-                    a->M.e[n] = 0.0;
+                    e->rhsvec.V[n] -= e->M.e[n]*f(i,j-1,k);
+                    e->M.e[n] = 0.0;
                 }
                 
                 if(p->A323==77)
@@ -1982,14 +1982,14 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                     teta = teta>1.0e-6?teta:1.0e20;
                     Fival=a_fi*y_quad*y_quad+b_fi*y_quad+c_fi;
                 
-                    a->M.p[n] -= 1.0/(p->DYP[JM1]*p->DYN[JP]);
-                    a->M.p[n] += 1.0/(teta*p->DYP[JM1]*p->DYN[JP]);
+                    e->M.p[n] -= 1.0/(p->DYP[JM1]*p->DYN[JP]);
+                    e->M.p[n] += 1.0/(teta*p->DYP[JM1]*p->DYN[JP]);
                            
-                    a->M.e[n] += 1.0/(p->DYP[JM1]*p->DYN[JP]);
-                    a->M.e[n] -= 1.0/(teta*p->DYP[JM1]*p->DYN[JP]);
+                    e->M.e[n] += 1.0/(p->DYP[JM1]*p->DYN[JP]);
+                    e->M.e[n] -= 1.0/(teta*p->DYP[JM1]*p->DYN[JP]);
                 
-                    a->rhsvec.V[n] -= a->M.e[n]*Fival;
-                    a->M.e[n] = 0.0;
+                    e->rhsvec.V[n] -= e->M.e[n]*Fival;
+                    e->M.e[n] = 0.0;
                 }
                 
                 if(p->A323==78)
@@ -2064,14 +2064,14 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                     teta = teta>1.0e-6?teta:1.0e20;
                     Fival=a_fi*y_quad*y_quad+b_fi*y_quad+c_fi;
                 
-                    a->M.p[n] -= 1.0/(p->DYP[JM1]*p->DYN[JP]);
-                    a->M.p[n] += 1.0/(teta*p->DYP[JM1]*p->DYN[JP]);
+                    e->M.p[n] -= 1.0/(p->DYP[JM1]*p->DYN[JP]);
+                    e->M.p[n] += 1.0/(teta*p->DYP[JM1]*p->DYN[JP]);
                            
-                    a->M.e[n] += 1.0/(p->DYP[JM1]*p->DYN[JP]);
-                    a->M.e[n] -= 1.0/(teta*p->DYP[JM1]*p->DYN[JP]);
+                    e->M.e[n] += 1.0/(p->DYP[JM1]*p->DYN[JP]);
+                    e->M.e[n] -= 1.0/(teta*p->DYP[JM1]*p->DYN[JP]);
                 
-                    a->rhsvec.V[n] -= a->M.e[n]*Fival;
-                    a->M.e[n] = 0.0;
+                    e->rhsvec.V[n] -= e->M.e[n]*Fival;
+                    e->M.e[n] = 0.0;
                 }
                 
                 if(p->A323==79)
@@ -2160,14 +2160,14 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                     p_Fival=p_a_fi*y_quad*y_quad+p_b_fi*y_quad+p_c_fi;
                     Fival=(e_Fival+p_Fival)/2;
                 
-                    a->M.p[n] -= 1.0/(p->DYP[JM1]*p->DYN[JP]);
-                    a->M.p[n] += 1.0/(teta*p->DYP[JM1]*p->DYN[JP]);
+                    e->M.p[n] -= 1.0/(p->DYP[JM1]*p->DYN[JP]);
+                    e->M.p[n] += 1.0/(teta*p->DYP[JM1]*p->DYN[JP]);
                            
-                    a->M.e[n] += 1.0/(p->DYP[JM1]*p->DYN[JP]);
-                    a->M.e[n] -= 1.0/(teta*p->DYP[JM1]*p->DYN[JP]);
+                    e->M.e[n] += 1.0/(p->DYP[JM1]*p->DYN[JP]);
+                    e->M.e[n] -= 1.0/(teta*p->DYP[JM1]*p->DYN[JP]);
                 
-                    a->rhsvec.V[n] -= a->M.e[n]*Fival;
-                    a->M.e[n] = 0.0;
+                    e->rhsvec.V[n] -= e->M.e[n]*Fival;
+                    e->M.e[n] = 0.0;
                 }
             }
 
@@ -2176,8 +2176,8 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             {
                 if(p->A323<=21)
                 {
-                    a->rhsvec.V[n] -= a->M.w[n]*f(i,j+1,k);
-                    a->M.w[n] = 0.0;
+                    e->rhsvec.V[n] -= e->M.w[n]*f(i,j+1,k);
+                    e->M.w[n] = 0.0;
                 }
                 
                 if(p->A323==77)
@@ -2228,14 +2228,14 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                     
                     teta = teta>1.0e-6?teta:1.0e20;
             
-                    a->M.p[n] -= 1.0/(p->DYP[JP]*p->DYN[JP]);
-                    a->M.p[n] += 1.0/(teta*p->DYP[JP]*p->DYN[JP]);
+                    e->M.p[n] -= 1.0/(p->DYP[JP]*p->DYN[JP]);
+                    e->M.p[n] += 1.0/(teta*p->DYP[JP]*p->DYN[JP]);
                 
-                    a->M.w[n] += 1.0/(p->DYP[JP]*p->DYN[JP]);
-                    a->M.w[n] -= 1.0/(teta*p->DYP[JP]*p->DYN[JP]);
+                    e->M.w[n] += 1.0/(p->DYP[JP]*p->DYN[JP]);
+                    e->M.w[n] -= 1.0/(teta*p->DYP[JP]*p->DYN[JP]);
                 
-                    a->rhsvec.V[n] -= a->M.w[n]*Fival;
-                    a->M.w[n] = 0.0;
+                    e->rhsvec.V[n] -= e->M.w[n]*Fival;
+                    e->M.w[n] = 0.0;
                 }
                 
                 if(p->A323==78)
@@ -2312,14 +2312,14 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                     
                     teta = teta>1.0e-6?teta:1.0e20;
             
-                    a->M.p[n] -= 1.0/(p->DYP[JP]*p->DYN[JP]);
-                    a->M.p[n] += 1.0/(teta*p->DYP[JP]*p->DYN[JP]);
+                    e->M.p[n] -= 1.0/(p->DYP[JP]*p->DYN[JP]);
+                    e->M.p[n] += 1.0/(teta*p->DYP[JP]*p->DYN[JP]);
                 
-                    a->M.w[n] += 1.0/(p->DYP[JP]*p->DYN[JP]);
-                    a->M.w[n] -= 1.0/(teta*p->DYP[JP]*p->DYN[JP]);
+                    e->M.w[n] += 1.0/(p->DYP[JP]*p->DYN[JP]);
+                    e->M.w[n] -= 1.0/(teta*p->DYP[JP]*p->DYN[JP]);
                 
-                    a->rhsvec.V[n] -= a->M.w[n]*Fival;
-                    a->M.w[n] = 0.0;
+                    e->rhsvec.V[n] -= e->M.w[n]*Fival;
+                    e->M.w[n] = 0.0;
                 }
                 
                 if(p->A323==79)
@@ -2410,14 +2410,14 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                     
                     teta = teta>1.0e-6?teta:1.0e20;
             
-                    a->M.p[n] -= 1.0/(p->DYP[JP]*p->DYN[JP]);
-                    a->M.p[n] += 1.0/(teta*p->DYP[JP]*p->DYN[JP]);
+                    e->M.p[n] -= 1.0/(p->DYP[JP]*p->DYN[JP]);
+                    e->M.p[n] += 1.0/(teta*p->DYP[JP]*p->DYN[JP]);
                 
-                    a->M.w[n] += 1.0/(p->DYP[JP]*p->DYN[JP]);
-                    a->M.w[n] -= 1.0/(teta*p->DYP[JP]*p->DYN[JP]);
+                    e->M.w[n] += 1.0/(p->DYP[JP]*p->DYN[JP]);
+                    e->M.w[n] -= 1.0/(teta*p->DYP[JP]*p->DYN[JP]);
                 
-                    a->rhsvec.V[n] -= a->M.w[n]*Fival;
-                    a->M.w[n] = 0.0;
+                    e->rhsvec.V[n] -= e->M.w[n]*Fival;
+                    e->M.w[n] = 0.0;
                 }
             }
 
@@ -2427,8 +2427,8 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 // -----------
                 if(p->A323==1)
                 {
-                a->rhsvec.V[n] -= a->M.t[n]*Fifsf(i,j);
-                a->M.t[n] = 0.0;
+                e->rhsvec.V[n] -= e->M.t[n]*Fifsf(i,j);
+                e->M.t[n] = 0.0;
                 }
                 
                 // -----------
@@ -2436,14 +2436,14 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 {
                 double lsv0,lsv1;
 
-                lsv0 = fabs(a->phi(i,j,k));
-                lsv1 = fabs(a->phi(i,j,k+1));
+                lsv0 = fabs(e->phi(i,j,k));
+                lsv1 = fabs(e->phi(i,j,k+1));
 
-                lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
+                lsv0 = fabs(lsv0)>1.0e-6?lsv0:1.0e20 + 0.0001*p->DZN[KP]/(fabs(e->phi(i,j,k+1))+fabs(e->phi(i,j,k)));
 
-                a->rhsvec.V[n] -= a->M.t[n]*Fifsf(i,j)*(1.0 + lsv1/lsv0);
-                a->M.p[n] -= a->M.t[n]*lsv1/lsv0;
-                a->M.t[n] = 0.0;
+                e->rhsvec.V[n] -= e->M.t[n]*Fifsf(i,j)*(1.0 + lsv1/lsv0);
+                e->M.p[n] -= e->M.t[n]*lsv1/lsv0;
+                e->M.t[n] = 0.0;
                 }
                 
                 
@@ -2455,31 +2455,31 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 double Lx0,Lx1,Lx2;
                 double denom1,denom2,denom3,denom4,denom5,denom6;
 
-                x0 = -fabs(a->phi(i,j,k-1));
-                x1 = -fabs(a->phi(i,j,k));
+                x0 = -fabs(e->phi(i,j,k-1));
+                x1 = -fabs(e->phi(i,j,k));
                 x2 = 0.0;
 
                 y2 = Fifsf(i,j);
                 
-                denom1 = fabs(x0-x1)>1.0e-6?(x0-x1):1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
-                denom2 = fabs(x1-x0)>1.0e-6?(x1-x0):1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
-                denom3 = fabs(x2-x0)>1.0e-6?(x2-x0):1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
+                denom1 = fabs(x0-x1)>1.0e-6?(x0-x1):1.0e20 + 0.0001*p->DZN[KP]/(fabs(e->phi(i,j,k+1))+fabs(e->phi(i,j,k))) + 0.000001;
+                denom2 = fabs(x1-x0)>1.0e-6?(x1-x0):1.0e20 + 0.0001*p->DZN[KP]/(fabs(e->phi(i,j,k+1))+fabs(e->phi(i,j,k))) + 0.000001;
+                denom3 = fabs(x2-x0)>1.0e-6?(x2-x0):1.0e20 + 0.0001*p->DZN[KP]/(fabs(e->phi(i,j,k+1))+fabs(e->phi(i,j,k))) + 0.000001;
                 
-                denom4 = fabs(x0-x2)>1.0e-6?(x0-x2):1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
-                denom5 = fabs(x1-x2)>1.0e-6?(x1-x2):1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
-                denom6 = fabs(x2-x1)>1.0e-6?(x2-x1):1.0e20 + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.000001;
+                denom4 = fabs(x0-x2)>1.0e-6?(x0-x2):1.0e20 + 0.0001*p->DZN[KP]/(fabs(e->phi(i,j,k+1))+fabs(e->phi(i,j,k))) + 0.000001;
+                denom5 = fabs(x1-x2)>1.0e-6?(x1-x2):1.0e20 + 0.0001*p->DZN[KP]/(fabs(e->phi(i,j,k+1))+fabs(e->phi(i,j,k))) + 0.000001;
+                denom6 = fabs(x2-x1)>1.0e-6?(x2-x1):1.0e20 + 0.0001*p->DZN[KP]/(fabs(e->phi(i,j,k+1))+fabs(e->phi(i,j,k))) + 0.000001;
     
 
-                x = fabs(a->phi(i,j,k+1));
+                x = fabs(e->phi(i,j,k+1));
 
                 Lx0 = ((x-x1)/denom1) * ((x-x2)/denom4);
                 Lx1 = ((x-x0)/denom2) * ((x-x2)/denom5);
                 Lx2 = ((x-x0)/denom3) * ((x-x1)/denom6);
 
-                a->rhsvec.V[n]  -= a->M.t[n]*Lx2*y2;
-                a->M.p[n]       += a->M.t[n]*Lx1;
-                a->M.b[n]       += a->M.t[n]*Lx0;
-                a->M.t[n]       = 0.0;
+                e->rhsvec.V[n]  -= e->M.t[n]*Lx2*y2;
+                e->M.p[n]       += e->M.t[n]*Lx1;
+                e->M.b[n]       += e->M.t[n]*Lx0;
+                e->M.t[n]       = 0.0;
                 }
                 
                 // -----------
@@ -2487,20 +2487,20 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 {
                     
                 double teta;
-                teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
+                teta = fabs(e->phi(i,j,k))/(fabs(e->phi(i,j,k+1))+fabs(e->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(e->phi(i,j,k+1))+fabs(e->phi(i,j,k)));
                 
                 teta = teta>1.0e-6?teta:1.0e20;
                 
-                //cout<<" Teta: "<<teta<<" a->phi(i,j,k): "<<a->phi(i,j,k)<<" a->phi(i+1,j,k): "<<a->phi(i+1,j,k)<<endl;
+                //cout<<" Teta: "<<teta<<" e->phi(i,j,k): "<<e->phi(i,j,k)<<" e->phi(i+1,j,k): "<<e->phi(i+1,j,k)<<endl;
                 
-                a->M.p[n] -= 1.0/(p->DZP[KP]*p->DZN[KP]);
-                a->M.p[n] += 1.0/(teta*p->DZP[KP]*p->DZN[KP]);
+                e->M.p[n] -= 1.0/(p->DZP[KP]*p->DZN[KP]);
+                e->M.p[n] += 1.0/(teta*p->DZP[KP]*p->DZN[KP]);
                            
-                a->M.t[n] += 1.0/(p->DZP[KP]*p->DZN[KP]);
-                a->M.t[n] -= 1.0/(teta*p->DZP[KP]*p->DZN[KP]);
+                e->M.t[n] += 1.0/(p->DZP[KP]*p->DZN[KP]);
+                e->M.t[n] -= 1.0/(teta*p->DZP[KP]*p->DZN[KP]);
                 
-                a->rhsvec.V[n] -= a->M.t[n]*Fifsf(i,j);
-                a->M.t[n] = 0.0;
+                e->rhsvec.V[n] -= e->M.t[n]*Fifsf(i,j);
+                e->M.t[n] = 0.0;
                 }
                 
                 
@@ -2511,14 +2511,14 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 teta = (eta(i,j)-(p->ZP[KP]-p->F60))/p->DZP[KP];
                 teta = teta>1.0e-6?teta:1.0e20;
                 
-                a->M.p[n] -= 1.0/(p->DZP[KP]*p->DZN[KP]);
-                a->M.p[n] += 1.0/(teta*p->DZP[KP]*p->DZN[KP]);
+                e->M.p[n] -= 1.0/(p->DZP[KP]*p->DZN[KP]);
+                e->M.p[n] += 1.0/(teta*p->DZP[KP]*p->DZN[KP]);
                            
-                a->M.t[n] += 1.0/(p->DZP[KP]*p->DZN[KP]);
-                a->M.t[n] -= 1.0/(teta*p->DZP[KP]*p->DZN[KP]);
+                e->M.t[n] += 1.0/(p->DZP[KP]*p->DZN[KP]);
+                e->M.t[n] -= 1.0/(teta*p->DZP[KP]*p->DZN[KP]);
                 
-                a->rhsvec.V[n] -= a->M.t[n]*Fifsf(i,j);
-                a->M.t[n] = 0.0;
+                e->rhsvec.V[n] -= e->M.t[n]*Fifsf(i,j);
+                e->M.t[n] = 0.0;
                 }
                 
                 if(p->A323==7 || p->A323==77 || p->A323==8 || p->A323==9 || p->A323==10 || p->A323==11 || p->A323==12 || p->A323==78 || p->A323==79)
@@ -2541,10 +2541,10 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                         
                     M_b_num=1.0-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_t+Z_t*Z_t)+(Z_b+teta*Z_t)*(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_b*Z_t+Z_b*Z_b*Z_t*Z_t)-(Z_b+teta*Z_t)*(Z_b+Z_t)*(Z_b+Z_t)/(Z_b*Z_b*Z_t+Z_b*Z_t*Z_t)+(Z_b+teta*Z_t)/(Z_t+Z_t*Z_t/Z_b)-(Z_b+teta*Z_t)*(Z_b+teta*Z_t)/(Z_b*Z_b);
                         
-                    a->M.p[n]+=(M_p_num/denom)/(p->DZP[KP]*p->DZN[KP]);
-                    a->M.b[n]+=(M_b_num/denom)/(p->DZP[KP]*p->DZN[KP]);
-                    a->rhsvec.V[n]+=(Fival/denom)/(p->DZP[KP]*p->DZN[KP]);
-                    a->M.t[n]=0.0;
+                    e->M.p[n]+=(M_p_num/denom)/(p->DZP[KP]*p->DZN[KP]);
+                    e->M.b[n]+=(M_b_num/denom)/(p->DZP[KP]*p->DZN[KP]);
+                    e->rhsvec.V[n]+=(Fival/denom)/(p->DZP[KP]*p->DZN[KP]);
+                    e->M.t[n]=0.0;
                 }
                 
   
@@ -2553,17 +2553,17 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             // KBEDBC
             if(p->flag4[IJKm1]<AIR)
             {
-            a->M.p[n] += a->M.b[n];
-            a->M.b[n] = 0.0;
+            e->M.p[n] += e->M.b[n];
+            e->M.b[n] = 0.0;
             }
         }
 	++n;
 	}
     
     double starttime=pgc->timer();
-    psolv->start(p,a,pgc,a->Fi,a->rhsvec,5);
+    psolv->start_ptf(p,e,pgc,e->Fi,e->rhsvec,5);
     double endtime=pgc->timer();
-    pgc->start4(p,a->Fi,250);
+    pgc->start4(p,e->Fi,250);
 
     p->poissoniter=p->solveriter;
     p->poissontime=endtime-starttime;

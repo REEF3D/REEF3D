@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"fdm2D.h"
+#include"fdm_ptf.h"
 #include"fdm_nhf.h"
 #include"vrans_v.h"
 #include"vrans_f.h"
@@ -967,7 +968,7 @@ void ioflow_v::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
 }
 
-void ioflow_v::ini_ptf(lexer *p, fdm* a, ghostcell* pgc)
+void ioflow_v::ini_ptf(lexer *p, fdm_ptf* e, ghostcell* pgc)
 {
     
 }

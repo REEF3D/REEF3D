@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"printer.h"
-#include"waves_header.h"#include"nhflow_header.h"
+#include"waves_header.h"#include"nhflow_header.h"#include"fdm_ptf.h"
 
 void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
 {	 
@@ -96,4 +96,5 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
     pgc->final();
     exit(0);
     }*/
-}
+}
+void driver::stop_ptf(lexer *p, fdm_ptf *e, ghostcell *pgc){	         int check=0;        ULOOP    if(e->u(i,j,k)!=e->u(i,j,k))    check=1;        VLOOP    if(e->v(i,j,k)!=e->v(i,j,k))    check=1;        WLOOP    if(e->w(i,j,k)!=e->w(i,j,k))    check=1;        LOOP    if(e->press(i,j,k)!=e->press(i,j,k))    check=1;        if(check==1)    {            if(p->mpirank==0)        cout<<endl<<"EMERGENCY STOP  --  solver breaking down - NAN values"<<endl<<endl;     pprint->print_stop_ptf(e,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);          pgc->final();     exit(0);    }            if(p->umax>p->N61 || p->vmax>p->N61 || p->wmax>p->N61)    {            if(p->mpirank==0)        cout<<endl<<"EMERGENCY STOP  --  velocities exceeding critical value N 61"<<endl<<endl;     pprint->print_stop_ptf(e,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);         pgc->final();     exit(0);    }        // Solver Status    p->solver_status = pgc->globalimax(p->solver_status);    /*    if(p->solver_status>=1)    {    if(p->mpirank==0)    cout<<endl<<" HYPRE solver broke down! Emergency Stop! "<<p->solver_status<<endl<<endl;        if(p->A10==3)     pfprint->print_vtu(p,c,pgc);         if(p->A10==4 || p->A10==5 || p->A10==6)     pprint->print_vtu(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);        pgc->final();    exit(0);    }*/}

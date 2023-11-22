@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-
+/*
+ 
 #include"iowave.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -188,3 +189,4 @@ void iowave::ptf_precalc_dirichlet_ini(lexer *p, ghostcell *pgc)
     p->Darray(uval_T_cos,wave_comp);
     }
 }
+*/

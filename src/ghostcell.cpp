@@ -360,6 +360,11 @@ void ghostcell::fdm_update(fdm *aa)
     a=aa;
 }
 
+void ghostcell::fdm_update_ptf(fdm_ptf *ee)
+{
+    e=ee;
+}
+
 void ghostcell::fdm_fnpf_update(fdm_fnpf *cc)
 {
     c=cc;

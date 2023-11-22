@@ -34,7 +34,7 @@ void ioflow_f::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
 }
 
-void ioflow_f::ini_ptf(lexer *p, fdm* a, ghostcell* pgc)
+void ioflow_f::ini_ptf(lexer *p, fdm_ptf* e, ghostcell* pgc)
 {
 }
 

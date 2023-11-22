@@ -1,4 +1,4 @@
-#include"ptf_fsfbc.h"
+/* #include"ptf_fsfbc.h"
 #include"sliceint4.h"
 
 class ptf_laplace;
@@ -14,10 +14,10 @@ using namespace std;
 class ptf_breaking : public ptf_fsfbc, public increment 
 {
 public:
-	ptf_breaking(lexer*, fdm*, ghostcell*);
+	ptf_breaking(lexer*, fdm_ptf*, ghostcell*);
 	virtual ~ptf_breaking();
     
-    virtual void breaking_algorithm(lexer*,fdm*,ghostcell*,slice&,slice&,slice&,double);
+    virtual void breaking_algorithm(lexer*,fdm_ptf*,ghostcell*,slice&,slice&,slice&,double);
 
     
     
@@ -39,3 +39,5 @@ private:
 };
 
 #endif
+
+*/

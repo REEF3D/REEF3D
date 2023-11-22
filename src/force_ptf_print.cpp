@@ -21,12 +21,12 @@ Author: Fabian Knoblauch
 --------------------------------------------------------------------*/
 #include"force_ptf.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_ptf.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void force_ptf::print_force_ptf(lexer* p, fdm *a, ghostcell *pgc)
+void force_ptf::print_force_ptf(lexer* p, fdm_ptf *e, ghostcell *pgc)
 {
     // write to force file
     if(p->P87==0)
@@ -35,7 +35,7 @@ void force_ptf::print_force_ptf(lexer* p, fdm *a, ghostcell *pgc)
         fout<<setprecision(9)<<p->simtime<<","<<F_x_tot<<","<<F_y_tot<<","<<F_z_tot<<endl;
 }
 
-void force_ptf::print_ini_ptf(lexer* p, fdm *a, ghostcell *pgc)
+void force_ptf::print_ini_ptf(lexer* p, fdm_ptf *e, ghostcell *pgc)
 {
     // Create Folder
 	if(p->mpirank==0 && p->P14==1)

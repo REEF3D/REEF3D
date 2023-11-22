@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 class fdm;
+class fdm_ptf;
 class lexer;
 class ghostcell;
 class field;
@@ -46,6 +47,10 @@ public:
     virtual void print_vtu(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*)=0;
     
     virtual void print_stop(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*)=0;
+    
+    virtual void start_ptf(fdm_ptf*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*)=0;
+    
+    virtual void print_stop_ptf(fdm_ptf*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*)=0;
 
 };
 

@@ -19,13 +19,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
+/*
 
 #include"iowave.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_ptf.h"
 #include"ghostcell.h"
 
-void iowave::full_initialize_ptf(lexer *p, fdm *a, ghostcell *pgc)
+void iowave::full_initialize_ptf(lexer *p, fdm_ptf *e, ghostcell *pgc)
 {
     if(p->mpirank==0)
     cout<<"full NWT initialize"<<endl;
@@ -39,7 +40,7 @@ void iowave::full_initialize_ptf(lexer *p, fdm *a, ghostcell *pgc)
 		dg = distgen(p);
 		db = distbeach(p);
 
-		a->eta(i,j) = wave_eta(p,pgc,xg,yg);
+		e->eta(i,j) = wave_eta(p,pgc,xg,yg);
 
     }
     
@@ -52,9 +53,9 @@ void iowave::full_initialize_ptf(lexer *p, fdm *a, ghostcell *pgc)
 		dg = distgen(p);
 		db = distbeach(p);
         
-        z = a->eta(i,j);
+        z = e->eta(i,j);
 
-		a->Fifsf(i,j) = wave_fi(p,pgc,xg,yg,z);
+		e->Fifsf(i,j) = wave_fi(p,pgc,xg,yg,z);
     }
 
     
@@ -69,14 +70,15 @@ void iowave::full_initialize_ptf(lexer *p, fdm *a, ghostcell *pgc)
         
         z=p->ZN[KP]-p->phimean;
         
-        z = p->ZN[KP]*(a->eta(i,j) + p->wd - a->bed(i,j)) + a->bed(i,j)-p->phimean;
+        z = p->ZN[KP]*(e->eta(i,j) + p->wd - e->bed(i,j)) + e->bed(i,j)-p->phimean;
         
-        a->Fi[IJK] = wave_fi(p,pgc,xg,yg,z);
+        e->Fi[IJK] = wave_fi(p,pgc,xg,yg,z);
       
     }
     
     SLICELOOP4
-    a->WL(i,j) = a->eta(i,j) + p->wd - a->bed(i,j);
+    e->WL(i,j) = e->eta(i,j) + p->wd - e->bed(i,j);
 
 }
 
+*/

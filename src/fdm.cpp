@@ -44,7 +44,7 @@ fdm::fdm(lexer *p)
             vb(p),
             Fifsf(p),Fz_global(p),K(p),
             P(p),Q(p),bed(p),
-            rhsvec(p),M(p),WL(p)
+            rhsvec(p),M(p)
             
 {
     

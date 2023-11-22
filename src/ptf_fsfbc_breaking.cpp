@@ -19,14 +19,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-
+/*
 #include"ptf_fsfbc.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"solver2D.h"
 
-void ptf_fsfbc::breaking(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &eta_n, slice &Fifsf, double alpha)
+void ptf_fsfbc::breaking(lexer *p, fdm_ptf *e, ghostcell *pgc, slice &eta, slice &eta_n, slice &Fifsf, double alpha)
 {
     int ii,jj;
     int count;
@@ -44,10 +44,10 @@ void ptf_fsfbc::breaking(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &et
     if(p->A350>=0)
     {
     SLICELOOP4
-    a->breaking(i,j)=0;
+    e->breaking(i,j)=0;
     }
     
-    pgc->gcsl_start4int(p,a->breaking,50);
+    pgc->gcsl_start4int(p,e->breaking,50);
     pgc->gcsl_start4int(p,bx,50);
     pgc->gcsl_start4int(p,by,50);
     
@@ -284,7 +284,7 @@ void ptf_fsfbc::breaking(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &et
         SLICELOOP4
         if(bx(i,j)>0 || by(i,j)>0)
         {
-        a->breaking(i,j)=1;
+        e->breaking(i,j)=1;
         }
     }
     
@@ -298,14 +298,14 @@ void ptf_fsfbc::breaking(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &et
             if((eta(i,j)-eta_n(i,j))/(alpha*p->dt) > p->A354*sqrt(9.81*(0.5)))
             {
 
-                a->breaking(i-1,j)=2;
-                a->breaking(i,j)=2;
-                a->breaking(i+1,j)=2;
+                e->breaking(i-1,j)=2;
+                e->breaking(i,j)=2;
+                e->breaking(i+1,j)=2;
                 
                 if(p->j_dir==1)
                 {
-                a->breaking(i,j-1)=2;
-                a->breaking(i,j+1)=2;
+                e->breaking(i,j-1)=2;
+                e->breaking(i,j+1)=2;
                 }
             }
     }
@@ -316,48 +316,48 @@ void ptf_fsfbc::breaking(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &et
     if(p->A350==1)
     {
         SLICELOOP4
-        a->vb(i,j) = 0.0;
+        e->vb(i,j) = 0.0;
         
         if(p->j_dir==0)
         SLICELOOP4
         {   
             
-            if(a->breaking(i,j)>=1 || a->breaking(i-1,j)>=1 || a->breaking(i+1,j)>=1)
-            a->vb(i,j) = p->A365*double(a->breaking(i,j));
+            if(a->breaking(i,j)>=1 || e->breaking(i-1,j)>=1 || e->breaking(i+1,j)>=1)
+            e->vb(i,j) = p->A365*double(e->breaking(i,j));
             
-            if(a->breaking(i,j)==0 &&(a->breaking(i-2,j)>=1 || a->breaking(i+2,j)>=1))
-            a->vb(i,j) = 0.5*p->A365;
+            if(a->breaking(i,j)==0 &&(e->breaking(i-2,j)>=1 || e->breaking(i+2,j)>=1))
+            e->vb(i,j) = 0.5*p->A365;
         }
 
         if(p->j_dir==1)
         SLICELOOP4
         {   
             
-            if(a->breaking(i,j)>=1 || a->breaking(i-1,j)>=1 || a->breaking(i+1,j)>=1 || a->breaking(i,j-1)>=1 || a->breaking(i,j+1)>=1)
-            a->vb(i,j) = p->A365*double(a->breaking(i,j));
+            if(e->breaking(i,j)>=1 || e->breaking(i-1,j)>=1 || e->breaking(i+1,j)>=1 || e->breaking(i,j-1)>=1 || e->breaking(i,j+1)>=1)
+            e->vb(i,j) = p->A365*double(e->breaking(i,j));
             
-            if(a->breaking(i,j)==0 &&( a->breaking(i-1,j-1)>=1 || a->breaking(i-1,j+1)>=1 || a->breaking(i+1,j-1)>=1 || a->breaking(i+1,j+1)>=1
-           || a->breaking(i-2,j)>=1 || a->breaking(i+2,j)>=1 || a->breaking(i,j-2)>=1 || a->breaking(i,j+2)>=1))
-            a->vb(i,j) = 0.5*p->A365;
+            if(e->breaking(i,j)==0 &&( e->breaking(i-1,j-1)>=1 || e->breaking(i-1,j+1)>=1 || e->breaking(i+1,j-1)>=1 || e->breaking(i+1,j+1)>=1
+           || e->breaking(i-2,j)>=1 || e->breaking(i+2,j)>=1 || e->breaking(i,j-2)>=1 || e->breaking(i,j+2)>=1))
+            e->vb(i,j) = 0.5*p->A365;
         }
         
         if(p->j_dir==0)
         for(int qn=0;qn<10;++qn)
         SLICELOOP4  
-        a->vb(i,j) = 0.5*a->vb(i,j) + 0.25*(a->vb(i-1,j) + a->vb(i+1,j));
+        e->vb(i,j) = 0.5*e->vb(i,j) + 0.25*(e->vb(i-1,j) + e->vb(i+1,j));
         
         
         if(p->j_dir==1)
         for(int qn=0;qn<10;++qn)
         SLICELOOP4  
-        a->vb(i,j) = 0.5*a->vb(i,j) + 0.125*(a->vb(i-1,j) + a->vb(i+1,j) + a->vb(i,j-1) + a->vb(i,j+1));
+        e->vb(i,j) = 0.5*e->vb(i,j) + 0.125*(e->vb(i-1,j) + e->vb(i+1,j) + e->vb(i,j-1) + e->vb(i,j+1));
         
-    pgc->gcsl_start4(p,a->vb,1);
+    pgc->gcsl_start4(p,e->vb,1);
     
     
         if(p->A352==1)
         SLICELOOP4
-        if(a->breaking(i,j)==2)
+        if(e->breaking(i,j)==2)
         {
          filter(p,a,pgc,eta);
          filter(p,a,pgc,Fifsf);
@@ -365,7 +365,7 @@ void ptf_fsfbc::breaking(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &et
         
         if(p->A352==2)
         SLICELOOP4
-        if(a->breaking(i,j)==1)
+        if(e->breaking(i,j)==1)
         {
          filter(p,a,pgc,eta);
          filter(p,a,pgc,Fifsf);
@@ -373,7 +373,7 @@ void ptf_fsfbc::breaking(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &et
         
         if(p->A352==3)
         SLICELOOP4
-        if(a->breaking(i,j)>=1)
+        if(e->breaking(i,j)>=1)
         {
          filter(p,a,pgc,eta);
          filter(p,a,pgc,Fifsf);
@@ -383,7 +383,7 @@ void ptf_fsfbc::breaking(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &et
     if(p->A350==2)
     SLICELOOP4
     {
-        if(a->breaking(i,j)==1 || a->breaking(i-1,j)==1 || a->breaking(i+1,j)==1 || a->breaking(i,j-1)==1 || a->breaking(i,j+1)==1)
+        if(e->breaking(i,j)==1 || e->breaking(i-1,j)==1 || e->breaking(i+1,j)==1 || e->breaking(i,j-1)==1 || e->breaking(i,j+1)==1)
         {
          filter(p,a,pgc,eta);
          filter(p,a,pgc,Fifsf);
@@ -391,15 +391,15 @@ void ptf_fsfbc::breaking(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &et
     }
     
     SLICELOOP4
-    a->breaklog(i,j)=0;
+    e->breaklog(i,j)=0;
     
     // breaklog
     count=0; 
     
     SLICELOOP4
-    if(a->breaking(i,j)>0)
+    if(e->breaking(i,j)>0)
     {
-    a->breaklog(i,j)=1;
+    e->breaklog(i,j)=1;
     ++count;
     }
     
@@ -409,7 +409,7 @@ void ptf_fsfbc::breaking(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &et
     cout<<"breaking: "<<count<<endl;
 }
 
-void ptf_fsfbc::filter(lexer *p, fdm *a,ghostcell *pgc, slice &f)
+void ptf_fsfbc::filter(lexer *p, fdm_ptf *e,ghostcell *pgc, slice &f)
 {
     double he,hw,hn,hs,hp;
     double dhe, dhw, dhn, dhs,dhp;
@@ -467,3 +467,4 @@ void ptf_fsfbc::filter(lexer *p, fdm *a,ghostcell *pgc, slice &f)
 		}
     }
 }
+ */

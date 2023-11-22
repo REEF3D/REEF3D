@@ -101,7 +101,7 @@ public:
     slice4 breaking_print;
     matrix2D N;
     vec2D xvec,rvec;
-    slice4 WL;
+    
     
     slice1 P;
     slice2 Q;

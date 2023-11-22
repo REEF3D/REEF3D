@@ -39,7 +39,6 @@ public:
     virtual void uvel(lexer*, fdm*, ghostcell*, field&)=0;
     virtual void vvel(lexer*, fdm*, ghostcell*, field&)=0;
     virtual void wvel(lexer*, fdm*, ghostcell*, field&)=0;
-
 };
 
 #endif

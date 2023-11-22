@@ -176,7 +176,7 @@ Author: Hans Bihs
 #define FBASELOOP FILOOP FJLOOP FKLOOP 
     
 
-#define ETALOC for(k=a->etaloc(i,j); k<a->etaloc(i,j)+1; ++k)
+#define ETALOC for(k=e->etaloc(i,j); k<e->etaloc(i,j)+1; ++k)
 #define FILOOP4 ILOOP JLOOP ETALOC PFLUIDCHECK 
 
 #define FETALOC for(k=c->etaloc(i,j); k<c->etaloc(i,j)+1; ++k)

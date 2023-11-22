@@ -22,8 +22,8 @@ Author: Hans Bihs
 
 #include"ptf_laplace_cds4.h"
 #include"lexer.h"
-#include"fdm.h"
-#include"solver.h"
+#include"fdm_ptf.h"
+#include"solver_ptf.h"
 #include"ghostcell.h"
 
 ptf_laplace_cds4::ptf_laplace_cds4() 
@@ -34,13 +34,13 @@ ptf_laplace_cds4::~ptf_laplace_cds4()
 {
 }
 
-void ptf_laplace_cds4::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, field &f, slice &Fifsf, slice&eta)
+void ptf_laplace_cds4::start(lexer* p, fdm_ptf *e, ghostcell *pgc, solver_ptf *psolv, field &f, slice &Fifsf, slice&eta)
 {
     // see p. 1130-1132
     n=0;
     LOOP
 	{
-	a->M.p[n]  =  1.0/(p->DXP[IP]*p->DXN[IP])*p->x_dir 
+	e->M.p[n]  =  1.0/(p->DXP[IP]*p->DXN[IP])*p->x_dir 
                 + 1.0/(p->DXP[IM1]*p->DXN[IP])*p->x_dir 
                 
                 + 1.0/(p->DYP[JP]*p->DYN[JP])*p->y_dir 
@@ -49,16 +49,16 @@ void ptf_laplace_cds4::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 + 1.0/(p->DZP[KP]*p->DZN[KP])*p->z_dir
                 + 1.0/(p->DZP[KM1]*p->DZN[KP])*p->z_dir;
 
-   	a->M.n[n] = -1.0/(p->DXP[IP]*p->DXN[IP])*p->x_dir;
-	a->M.s[n] = -1.0/(p->DXP[IM1]*p->DXN[IP])*p->x_dir;
+   	e->M.n[n] = -1.0/(p->DXP[IP]*p->DXN[IP])*p->x_dir;
+	e->M.s[n] = -1.0/(p->DXP[IM1]*p->DXN[IP])*p->x_dir;
 
-	a->M.w[n] = -1.0/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
-	a->M.e[n] = -1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+	e->M.w[n] = -1.0/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
+	e->M.e[n] = -1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
 
-	a->M.t[n] = -1.0/(p->DZP[KP]*p->DZN[KP])*p->z_dir;
-	a->M.b[n] = -1.0/(p->DZP[KM1]*p->DZN[KP])*p->z_dir;
+	e->M.t[n] = -1.0/(p->DZP[KP]*p->DZN[KP])*p->z_dir;
+	e->M.b[n] = -1.0/(p->DZP[KM1]*p->DZN[KP])*p->z_dir;
 
-	a->rhsvec.V[n] = 0.0;
+	e->rhsvec.V[n] = 0.0;
 	
 	++n;
 	}
@@ -72,45 +72,45 @@ void ptf_laplace_cds4::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
     
             if(p->flag4[Im1JK]<0)
             {
-            a->rhsvec.V[n] -= a->M.s[n]*f(i-1,j,k);
-            a->M.s[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.s[n]*f(i-1,j,k);
+            e->M.s[n] = 0.0;
             }
             
             if(p->flag4[Ip1JK]<0)
             {
-            a->rhsvec.V[n] -= a->M.n[n]*f(i+1,j,k);
-            a->M.n[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.n[n]*f(i+1,j,k);
+            e->M.n[n] = 0.0;
             }
             
             if(p->flag4[IJm1K]<0)
             {
-            a->rhsvec.V[n] -= a->M.e[n]*f(i,j-1,k);
-            a->M.e[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.e[n]*f(i,j-1,k);
+            e->M.e[n] = 0.0;
             }
             
             if(p->flag4[IJp1K]<0)
             {
-            a->rhsvec.V[n] -= a->M.w[n]*f(i,j+1,k);
-            a->M.w[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.w[n]*f(i,j+1,k);
+            e->M.w[n] = 0.0;
             }
             
             if(p->flag4[IJKm1]<0)
             {
-            a->rhsvec.V[n] -= a->M.b[n]*f(i,j,k-1);
-            a->M.b[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.b[n]*f(i,j,k-1);
+            e->M.b[n] = 0.0;
             }
             
             if(p->flag4[IJKp1]<0)
             {
-            a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1);
-            a->M.t[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.t[n]*f(i,j,k+1);
+            e->M.t[n] = 0.0;
             }
         }
 
 	++n;
 	}
-    psolv->start(p,a,pgc,a->Fi,a->rhsvec,5);
-    pgc->start4(p,a->Fi,250);
+    psolv->start_ptf(p,e,pgc,e->Fi,e->rhsvec,5);
+    pgc->start4(p,e->Fi,250);
     
     
     // 4th-order
@@ -136,47 +136,47 @@ void ptf_laplace_cds4::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
     Z4 = (-p->ZP[KP] + 27.0*p->ZP[KM1] -27.0*p->ZP[KM2] + p->ZP[KM3])*Z0;
     
 
-	a->M.p[n] = (1.0/X1 + 729.0/X2 + 729.0/X3 + 1.0/X4)*p->x_dir 
+	e->M.p[n] = (1.0/X1 + 729.0/X2 + 729.0/X3 + 1.0/X4)*p->x_dir 
              + (1.0/Y1 + 729.0/Y2 + 729.0/Y3 + 1.0/Y4)*p->y_dir 
              + (1.0/Z1 + 729.0/Z2 + 729.0/Z3 + 1.0/Z4)*p->z_dir;
     
     
-   	a->M.n[n] = -(27.0/X1 + 729.0/X2 + 27.0/X3)*p->x_dir;
-	a->M.s[n] = -(27.0/X2 + 729.0/X3 + 27.0/X4)*p->x_dir;
+   	e->M.n[n] = -(27.0/X1 + 729.0/X2 + 27.0/X3)*p->x_dir;
+	e->M.s[n] = -(27.0/X2 + 729.0/X3 + 27.0/X4)*p->x_dir;
 
-	a->M.w[n] = -(27.0/Y1 + 729.0/Y2 + 27.0/Y3)*p->y_dir;
-	a->M.e[n] = -(27.0/Y2 + 729.0/Y3 + 27.0/Y4)*p->y_dir;
+	e->M.w[n] = -(27.0/Y1 + 729.0/Y2 + 27.0/Y3)*p->y_dir;
+	e->M.e[n] = -(27.0/Y2 + 729.0/Y3 + 27.0/Y4)*p->y_dir;
 
-	a->M.t[n] = -(27.0/Z1 + 729.0/Z2 + 27.0/Z3)*p->z_dir;
-	a->M.b[n] = -(27.0/Z2 + 729.0/Z3 + 27.0/Z4)*p->z_dir;
+	e->M.t[n] = -(27.0/Z1 + 729.0/Z2 + 27.0/Z3)*p->z_dir;
+	e->M.b[n] = -(27.0/Z2 + 729.0/Z3 + 27.0/Z4)*p->z_dir;
     
     
-    a->M.nn[n] = (27.0/X1 + 27.0/X2)*p->x_dir; 
-    a->M.ss[n] = (27.0/X3 + 27.0/X4)*p->x_dir;
+    e->M.nn[n] = (27.0/X1 + 27.0/X2)*p->x_dir; 
+    e->M.ss[n] = (27.0/X3 + 27.0/X4)*p->x_dir;
     
-    a->M.ww[n] = (27.0/Y1 + 27.0/Y2)*p->y_dir;
-    a->M.ee[n] = (27.0/Y3 + 27.0/Y4)*p->y_dir;
+    e->M.ww[n] = (27.0/Y1 + 27.0/Y2)*p->y_dir;
+    e->M.ee[n] = (27.0/Y3 + 27.0/Y4)*p->y_dir;
      
-    a->M.tt[n] = (27.0/Z1 + 27.0/Z2)*p->z_dir; 
-    a->M.bb[n] = (27.0/Z3 + 27.0/Z4)*p->z_dir;
+    e->M.tt[n] = (27.0/Z1 + 27.0/Z2)*p->z_dir; 
+    e->M.bb[n] = (27.0/Z3 + 27.0/Z4)*p->z_dir;
      
      
-    a->M.nnn[n] = -(1.0/X1)*p->x_dir; 
-    a->M.sss[n] = -(1.0/X4)*p->x_dir;
+    e->M.nnn[n] = -(1.0/X1)*p->x_dir; 
+    e->M.sss[n] = -(1.0/X4)*p->x_dir;
     
-    a->M.www[n] = -(1.0/Y1)*p->y_dir;
-    a->M.eee[n] = -(1.0/Y4)*p->y_dir;
+    e->M.www[n] = -(1.0/Y1)*p->y_dir;
+    e->M.eee[n] = -(1.0/Y4)*p->y_dir;
      
-    a->M.ttt[n] = -(1.0/Z1)*p->z_dir; 
-    a->M.bbb[n] = -(1.0/Z4)*p->z_dir;
+    e->M.ttt[n] = -(1.0/Z1)*p->z_dir; 
+    e->M.bbb[n] = -(1.0/Z4)*p->z_dir;
     
 
-//cout<<a->M.p[n]<<" "<<a->M.n[n]<<" "<<a->M.s[n]<<" "<<a->M.t[n]<<" "<<a->M.b[n]<<endl;
-	a->rhsvec.V[n] = 0.0;//((f(i+2,j,k)*(-27.0/X1 - 27.0/X2) + f(i-2,j,k)*(-27.0/X3 - 27.0/X4))*p->x_dir
+//cout<<e->M.p[n]<<" "<<e->M.n[n]<<" "<<e->M.s[n]<<" "<<e->M.t[n]<<" "<<e->M.b[n]<<endl;
+	e->rhsvec.V[n] = 0.0;//((f(i+2,j,k)*(-27.0/X1 - 27.0/X2) + f(i-2,j,k)*(-27.0/X3 - 27.0/X4))*p->x_dir
                  // +  (f(i,j+2,k)*(-27.0/Y1 - 27.0/Y2) + f(i,j-2,k)*(-27.0/Y3 - 27.0/Y4))*p->y_dir
                  // +  (f(i,j,k+2)*(-27.0/Z1 - 27.0/Z2) + f(i,j,k-2)*(-27.0/Z3 - 27.0/Z4))*p->z_dir
                   
-    //a->rhsvec.V[n] =   (f(i+3,j,k)*(1.0/X1) + f(i-3,j,k)*(1.0/X4))*p->x_dir
+    //e->rhsvec.V[n] =   (f(i+3,j,k)*(1.0/X1) + f(i-3,j,k)*(1.0/X4))*p->x_dir
       //              +  (f(i,j+3,k)*(1.0/Y1) + f(i,j-3,k)*(1.0/Y4))*p->y_dir
         //            +  (f(i,j,k+3)*(1.0/Z1) + f(i,j,k-3)*(1.0/Z4))*p->z_dir;
 
@@ -191,75 +191,75 @@ void ptf_laplace_cds4::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
     
             if(p->flag4[Im1JK]<0)
             {
-            a->rhsvec.V[n] -= a->M.s[n]*f(i-1,j,k);
-            a->M.s[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.s[n]*f(i-1,j,k);
+            e->M.s[n] = 0.0;
             }
             
             if(p->flag4[Ip1JK]<0)
             {
-            a->rhsvec.V[n] -= a->M.n[n]*f(i+1,j,k);
-            a->M.n[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.n[n]*f(i+1,j,k);
+            e->M.n[n] = 0.0;
             }
             
             if(p->flag4[IJm1K]<0)
             {
-            a->rhsvec.V[n] -= a->M.e[n]*f(i,j-1,k);
-            a->M.e[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.e[n]*f(i,j-1,k);
+            e->M.e[n] = 0.0;
             }
             
             if(p->flag4[IJp1K]<0)
             {
-            a->rhsvec.V[n] -= a->M.w[n]*f(i,j+1,k);
-            a->M.w[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.w[n]*f(i,j+1,k);
+            e->M.w[n] = 0.0;
             }
             
             if(p->flag4[IJKm1]<0)
             {
-            a->rhsvec.V[n] -= a->M.b[n]*f(i,j,k-1);
-            a->M.b[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.b[n]*f(i,j,k-1);
+            e->M.b[n] = 0.0;
             }
             
             if(p->flag4[IJKp1]<0)
             {
-            a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1);
-            a->M.t[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.t[n]*f(i,j,k+1);
+            e->M.t[n] = 0.0;
             }
             
             //--
             if(p->flag4[Im2JK]<0)
             {
-            a->rhsvec.V[n] -= a->M.ss[n]*f(i-2,j,k);
-            a->M.ss[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.ss[n]*f(i-2,j,k);
+            e->M.ss[n] = 0.0;
             }
             
             if(p->flag4[Ip2JK]<0)
             {
-            a->rhsvec.V[n] -= a->M.nn[n]*f(i+2,j,k);
-            a->M.nn[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.nn[n]*f(i+2,j,k);
+            e->M.nn[n] = 0.0;
             }
             
             if(p->flag4[IJm2K]<0)
             {
-            a->rhsvec.V[n] -= a->M.ee[n]*f(i,j-2,k);
-            a->M.ee[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.ee[n]*f(i,j-2,k);
+            e->M.ee[n] = 0.0;
             }
             
             if(p->flag4[IJp2K]<0)
             {
-            a->rhsvec.V[n] -= a->M.ww[n]*f(i,j+2,k);
-            a->M.ww[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.ww[n]*f(i,j+2,k);
+            e->M.ww[n] = 0.0;
             }
             
             if(p->flag4[IJKm2]<0)
             {
-            a->rhsvec.V[n] -= a->M.bb[n]*f(i,j,k-2);
-            a->M.bb[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.bb[n]*f(i,j,k-2);
+            e->M.bb[n] = 0.0;
             }
             
             if(p->flag4[IJKp2]<0)
             {
-            a->rhsvec.V[n] -= a->M.tt[n]*f(i,j,k+2);
-            a->M.tt[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.tt[n]*f(i,j,k+2);
+            e->M.tt[n] = 0.0;
             }
             
             
@@ -267,38 +267,38 @@ void ptf_laplace_cds4::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             
             if(p->flag4[Im3JK]<0)
             {
-            a->rhsvec.V[n] -= a->M.sss[n]*f(i-3,j,k);
-            a->M.sss[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.sss[n]*f(i-3,j,k);
+            e->M.sss[n] = 0.0;
             }
             
             if(p->flag4[Ip3JK]<0)
             {
-            a->rhsvec.V[n] -= a->M.nnn[n]*f(i+3,j,k);
-            a->M.nnn[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.nnn[n]*f(i+3,j,k);
+            e->M.nnn[n] = 0.0;
             }
             
             if(p->flag4[IJm3K]<0)
             {
-            a->rhsvec.V[n] -= a->M.eee[n]*f(i,j-3,k);
-            a->M.eee[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.eee[n]*f(i,j-3,k);
+            e->M.eee[n] = 0.0;
             }
             
             if(p->flag4[IJp3K]<0)
             {
-            a->rhsvec.V[n] -= a->M.www[n]*f(i,j+3,k);
-            a->M.www[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.www[n]*f(i,j+3,k);
+            e->M.www[n] = 0.0;
             }
             
             if(p->flag4[IJKm3]<0)
             {
-            a->rhsvec.V[n] -= a->M.bbb[n]*f(i,j,k-3);
-            a->M.bbb[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.bbb[n]*f(i,j,k-3);
+            e->M.bbb[n] = 0.0;
             }
             
             if(p->flag4[IJKp3]<0)
             {
-            a->rhsvec.V[n] -= a->M.ttt[n]*f(i,j,k+3);
-            a->M.ttt[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.ttt[n]*f(i,j,k+3);
+            e->M.ttt[n] = 0.0;
             }
         }
 
@@ -307,9 +307,9 @@ void ptf_laplace_cds4::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
     
     
     double starttime=pgc->timer();
-    psolv->start(p,a,pgc,a->Fi,a->rhsvec,7);
+    psolv->start_ptf(p,e,pgc,e->Fi,e->rhsvec,7);
     double endtime=pgc->timer();
-    pgc->start4(p,a->Fi,250);
+    pgc->start4(p,e->Fi,250);
     
     p->poissoniter=p->solveriter;
     p->poissontime=endtime-starttime;
@@ -333,29 +333,29 @@ void ptf_laplace_cds4::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
     ddz = -2.0*pow(p->DZP[KP1],2.0) + 8.0*pow(p->DZP[KP],2.0) + 8.0*pow(p->DZP[KM1],2.0) - 2.0*pow(p->DZP[KM2],2.0);
     
     //cout<<ddx<<" "<<ddy<<" "<<ddz<<endl;
-	a->M.p[n] =  30.0/ddx*p->x_dir + 30.0/ddy*p->y_dir + 30.0/ddz*p->z_dir;
+	e->M.p[n] =  30.0/ddx*p->x_dir + 30.0/ddy*p->y_dir + 30.0/ddz*p->z_dir;
 
-   	a->M.n[n] = -16.0/ddx*p->x_dir;
-	a->M.s[n] = -16.0/ddx*p->x_dir;
+   	e->M.n[n] = -16.0/ddx*p->x_dir;
+	e->M.s[n] = -16.0/ddx*p->x_dir;
 
-	a->M.w[n] = -16.0/ddy*p->y_dir;
-	a->M.e[n] = -16.0/ddy*p->y_dir;
+	e->M.w[n] = -16.0/ddy*p->y_dir;
+	e->M.e[n] = -16.0/ddy*p->y_dir;
 
-	a->M.t[n] = -16.0/ddz*p->z_dir;
-	a->M.b[n] = -16.0/ddz*p->z_dir;
+	e->M.t[n] = -16.0/ddz*p->z_dir;
+	e->M.b[n] = -16.0/ddz*p->z_dir;
     
-    a->M.nn[n] = 1.0/ddx*p->x_dir;
-	a->M.ss[n] = 1.0/ddx*p->x_dir;
+    e->M.nn[n] = 1.0/ddx*p->x_dir;
+	e->M.ss[n] = 1.0/ddx*p->x_dir;
 
-	a->M.ww[n] = 1.0/ddy*p->y_dir;
-	a->M.ee[n] = 1.0/ddy*p->y_dir;
+	e->M.ww[n] = 1.0/ddy*p->y_dir;
+	e->M.ee[n] = 1.0/ddy*p->y_dir;
 
-	a->M.tt[n] = 1.0/ddz*p->z_dir;
-	a->M.bb[n] = 1.0/ddz*p->z_dir;
+	e->M.tt[n] = 1.0/ddz*p->z_dir;
+	e->M.bb[n] = 1.0/ddz*p->z_dir;
     
-    //cout<<a->M.p[n]<<" "<<a->M.n[n]<<" "<<a->M.s[n]<<" "<<a->M.t[n]<<" "<<a->M.b[n]<<endl;
+    //cout<<e->M.p[n]<<" "<<e->M.n[n]<<" "<<e->M.s[n]<<" "<<e->M.t[n]<<" "<<e->M.b[n]<<endl;
 	
-	a->rhsvec.V[n] = 0.0;//(f(i+2,j,k)/ddx*p->x_dir + f(i-2,j,k)/ddx*p->x_dir
+	e->rhsvec.V[n] = 0.0;//(f(i+2,j,k)/ddx*p->x_dir + f(i-2,j,k)/ddx*p->x_dir
                   //+   f(i,j+2,k)/ddy*p->y_dir + f(i,j-2,k)/ddy*p->y_dir
                   //+   f(i,j,k+2)/ddz*p->z_dir + f(i,j,k-2)/ddz*p->z_dir);
 	++n;
@@ -369,76 +369,76 @@ void ptf_laplace_cds4::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
     
             if(p->flag4[Im1JK]<0)
             {
-            a->rhsvec.V[n] -= a->M.s[n]*f(i-1,j,k);
-            a->M.s[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.s[n]*f(i-1,j,k);
+            e->M.s[n] = 0.0;
             }
             
             if(p->flag4[Ip1JK]<0)
             {
-            a->rhsvec.V[n] -= a->M.n[n]*f(i+1,j,k);
-            a->M.n[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.n[n]*f(i+1,j,k);
+            e->M.n[n] = 0.0;
             }
             
             if(p->flag4[IJm1K]<0)
             {
-            a->rhsvec.V[n] -= a->M.e[n]*f(i,j-1,k);
-            a->M.e[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.e[n]*f(i,j-1,k);
+            e->M.e[n] = 0.0;
             }
             
             if(p->flag4[IJp1K]<0)
             {
-            a->rhsvec.V[n] -= a->M.w[n]*f(i,j+1,k);
-            a->M.w[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.w[n]*f(i,j+1,k);
+            e->M.w[n] = 0.0;
             }
             
             if(p->flag4[IJKm1]<0)
             {
-            a->rhsvec.V[n] -= a->M.b[n]*f(i,j,k-1);
-            a->M.b[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.b[n]*f(i,j,k-1);
+            e->M.b[n] = 0.0;
             }
             
             if(p->flag4[IJKp1]<0)
             {
-            a->rhsvec.V[n] -= a->M.t[n]*f(i,j,k+1);
-            a->M.t[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.t[n]*f(i,j,k+1);
+            e->M.t[n] = 0.0;
             }
             
             
             //--
             if(p->flag4[Im2JK]<0)
             {
-            a->rhsvec.V[n] -= a->M.ss[n]*f(i-2,j,k);
-            a->M.ss[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.ss[n]*f(i-2,j,k);
+            e->M.ss[n] = 0.0;
             }
             
             if(p->flag4[Ip2JK]<0)
             {
-            a->rhsvec.V[n] -= a->M.nn[n]*f(i+2,j,k);
-            a->M.nn[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.nn[n]*f(i+2,j,k);
+            e->M.nn[n] = 0.0;
             }
             
             if(p->flag4[IJm2K]<0)
             {
-            a->rhsvec.V[n] -= a->M.ee[n]*f(i,j-2,k);
-            a->M.ee[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.ee[n]*f(i,j-2,k);
+            e->M.ee[n] = 0.0;
             }
             
             if(p->flag4[IJp2K]<0)
             {
-            a->rhsvec.V[n] -= a->M.ww[n]*f(i,j+2,k);
-            a->M.ww[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.ww[n]*f(i,j+2,k);
+            e->M.ww[n] = 0.0;
             }
             
             if(p->flag4[IJKm2]<0)
             {
-            a->rhsvec.V[n] -= a->M.bb[n]*f(i,j,k-2);
-            a->M.bb[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.bb[n]*f(i,j,k-2);
+            e->M.bb[n] = 0.0;
             }
             
             if(p->flag4[IJKp2]<0)
             {
-            a->rhsvec.V[n] -= a->M.tt[n]*f(i,j,k+2);
-            a->M.tt[n] = 0.0;
+            e->rhsvec.V[n] -= e->M.tt[n]*f(i,j,k+2);
+            e->M.tt[n] = 0.0;
             }
         }
 
@@ -448,9 +448,9 @@ void ptf_laplace_cds4::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
     
     
     double starttime=pgc->timer();
-    psolv->start(p,a,pgc,a->Fi,a->rhsvec,6);
+    psolv->start(p,a,pgc,e->Fi,e->rhsvec,6);
     double endtime=pgc->timer();
-    pgc->start4(p,a->Fi,250);
+    pgc->start4(p,e->Fi,250);
     
     p->poissoniter=p->solveriter;
     p->poissontime=endtime-starttime;

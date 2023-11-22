@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-
+/*
 #include"iowave.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -101,5 +101,5 @@ void iowave::ptf_precalc_dirichlet(lexer *p, ghostcell *pgc)
     }
         
 }
-
+*/
 

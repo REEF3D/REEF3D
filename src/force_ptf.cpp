@@ -22,22 +22,22 @@ Author: Fabian Knoblauch
 
 #include"force_ptf.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_ptf.h"
 #include"ghostcell.h"
 #include"iterators1D.h"
 
-force_ptf::force_ptf(lexer* p, fdm *a, ghostcell *pgc,int(qn)):ID(qn){}
+force_ptf::force_ptf(lexer* p, fdm_ptf *e, ghostcell *pgc,int(qn)):ID(qn){}
 
 force_ptf::~force_ptf(){}
 
-void force_ptf::ini(lexer *p, fdm *a, ghostcell *pgc)
+void force_ptf::ini(lexer *p, fdm_ptf *e, ghostcell *pgc)
 {
     force_ptfprintcount=0;
     
-    print_ini_ptf(p,a,pgc);
+    print_ini_ptf(p,e,pgc);
 }
 
-void force_ptf::start(lexer *p, fdm *a, ghostcell *pgc)
+void force_ptf::start(lexer *p, fdm_ptf *e, ghostcell *pgc)
 {
     F_x_tot=0.0;
     F_y_tot=0.0;
@@ -46,22 +46,22 @@ void force_ptf::start(lexer *p, fdm *a, ghostcell *pgc)
    OSOLIDLOOP
    {
         if(p->flag4[Im1JK]>0)
-           F_x_tot+=a->press(i-1,j,k)*p->DYN[JP]*p->DZN[KP];
+           F_x_tot+=e->press(i-1,j,k)*p->DYN[JP]*p->DZN[KP];
     
         if(p->flag4[Ip1JK]>0)
-           F_x_tot-=a->press(i+1,j,k)*p->DYN[JP]*p->DZN[KP];
+           F_x_tot-=e->press(i+1,j,k)*p->DYN[JP]*p->DZN[KP];
            
         if(p->flag4[IJm1K]>0)
-           F_y_tot+=a->press(i,j-1,k)*p->DXN[IP]*p->DZN[KP];
+           F_y_tot+=e->press(i,j-1,k)*p->DXN[IP]*p->DZN[KP];
            
         if(p->flag4[IJp1K]>0)
-           F_y_tot-=a->press(i,j+1,k)*p->DXN[IP]*p->DZN[KP];
+           F_y_tot-=e->press(i,j+1,k)*p->DXN[IP]*p->DZN[KP];
            
         if(p->flag4[IJKm1]>0)
-            F_z_tot+=a->press(i,j,k-1)*p->DXN[IP]*p->DYN[JP];
+            F_z_tot+=e->press(i,j,k-1)*p->DXN[IP]*p->DYN[JP];
             
         if(p->flag4[IJKp1]>0)
-            F_z_tot-=a->press(i,j,k+1)*p->DXN[IP]*p->DYN[JP];
+            F_z_tot-=e->press(i,j,k+1)*p->DXN[IP]*p->DYN[JP];
    }
     // Sum up to distribute forces
     F_x_tot = pgc->globalsum(F_x_tot);
@@ -71,7 +71,7 @@ void force_ptf::start(lexer *p, fdm *a, ghostcell *pgc)
     // Print
     if(p->mpirank==0)
     {
-        print_force_ptf(p,a,pgc);
+        print_force_ptf(p,e,pgc);
     }
 }
 

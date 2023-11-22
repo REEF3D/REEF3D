@@ -24,6 +24,7 @@ Author: Hans Bihs
 
 class lexer;
 class fdm;
+class fdm_ptf;
 class fdm2D;
 class ghostcell;
 class field;
@@ -44,6 +45,7 @@ public:
     
     // BC update
     virtual void patchBC_ioflow(lexer*, fdm*, ghostcell*, field&,field&,field&)=0;
+    virtual void patchBC_ioflow_ptf(lexer*, fdm_ptf*, ghostcell*, field&,field&,field&)=0;
     virtual void patchBC_rkioflow(lexer*, fdm*, ghostcell*, field&,field&,field&)=0;
     virtual void patchBC_discharge(lexer*, fdm*, ghostcell*)=0;
     virtual void patchBC_pressure(lexer*, fdm*, ghostcell*, field&)=0;

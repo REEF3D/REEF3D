@@ -24,8 +24,10 @@ Author: Hans Bihs
 #include"boundarycheck.h"
 
 class fdm;
+class fdm_ptf;
 class fdm2D;
 class fdm_fnpf;
+class fdm_ptf;
 class fdm_nhf;
 class lexer;
 class field;
@@ -155,6 +157,7 @@ public:
 
     void fdm_update(fdm*);
     void fdm_fnpf_update(fdm_fnpf*);
+    void fdm_ptf_update(fdm_ptf*);
     void fdm_nhf_update(fdm_nhf*);
 
 // 2D CPT_
@@ -221,6 +224,7 @@ public:
     void tpflagfield(lexer*);
 	void ndflag_update(lexer*);
     void flagbase(lexer*,fdm*);
+    void flagbase_ptf(lexer*,fdm_ptf*);
     void flag9_update(lexer*,fdm*);
 
 // PARALLEL
@@ -246,6 +250,7 @@ public:
     void gcperiodicxvec_sr(lexer*, vec&,cpt&,int);
     void gcsync();
 	void verticalmax(lexer*,fdm*,double**);
+    void verticalmax_ptf(lexer*,fdm_ptf*,double**);
     void verticalsum(lexer*,fdm*,double**);
     double timer();
     //Collective Communication

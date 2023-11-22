@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"increment.h"
 
 class fdm_fnpf;
+class fdm_ptf;
 
 using namespace std;
 
@@ -105,7 +106,7 @@ public:
     virtual void inflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,double*,double*,slice&,slice&);
     virtual void rkinflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
     virtual void ini2D(lexer*,fdm2D*,ghostcell*);
-    virtual void ini_ptf(lexer*,fdm*,ghostcell*);
+    virtual void ini_ptf(lexer*,fdm_ptf*,ghostcell*);
     
     // nhflow
     virtual void wavegen_precalc_nhflow(lexer*,fdm_nhf*,ghostcell*);

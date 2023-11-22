@@ -23,9 +23,9 @@ Author: Hans Bihs
 #include"increment.h"
 
 class lexer;
-class fdm;
+class fdm_ptf;
 class ghostcell;
-class onephase;
+class onephase_ptf;
 class ioflow;
 class slice;
 class field;
@@ -39,18 +39,18 @@ using namespace std;
 class ptf_fsf_update : public increment
 {
 public:
-    ptf_fsf_update(lexer*, fdm*, ghostcell*);
+    ptf_fsf_update(lexer*, fdm_ptf*, ghostcell*);
 	virtual ~ptf_fsf_update();
     
-    void fsfepol(lexer*, fdm*, ghostcell*,slice&,field&);
-	void fsfupdate(lexer*, fdm*, ghostcell*,ioflow*,onephase*,slice&);
-    void etaloc(lexer*, fdm*, ghostcell*);
-    void fsfbc(lexer*, fdm*, ghostcell*,slice&,field&,slice&);
-    void fsfbc0(lexer*, fdm*, ghostcell*,slice&,field&);
-    void fsfbc1(lexer*, fdm*, ghostcell*,slice&,field&);
+    void fsfepol(lexer*, fdm_ptf*, ghostcell*,slice&,field&);
+	void fsfupdate(lexer*, fdm_ptf*, ghostcell*,ioflow*,onephase_ptf*,slice&);
+    void etaloc(lexer*, fdm_ptf*, ghostcell*);
+    void fsfbc(lexer*, fdm_ptf*, ghostcell*,slice&,field&,slice&);
+    void fsfbc0(lexer*, fdm_ptf*, ghostcell*,slice&,field&);
+    void fsfbc1(lexer*, fdm_ptf*, ghostcell*,slice&,field&);
     
-    void velcalc(lexer*, fdm*, ghostcell *pgc, field&);
-    void presscalc(lexer*, fdm*, ghostcell *pgc, field&, field&, field&, field&, slice&);
+    void velcalc(lexer*, fdm_ptf*, ghostcell *pgc, field&);
+    void presscalc(lexer*, fdm_ptf*, ghostcell *pgc, field&, field&, field&, field&, slice&);
     
 private: 
     int gcval,gcval_u,gcval_v,gcval_w;

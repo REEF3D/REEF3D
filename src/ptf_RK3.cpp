@@ -22,21 +22,24 @@ Author: Hans Bihs
 
 #include"ptf_RK3.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_ptf.h"
 #include"ghostcell.h"
 #include"field4.h"
 #include"convection.h"
 #include"ioflow.h"
-#include"solver.h"
+#include"solver_ptf.h"
 #include"reini.h"
 #include"ptf_laplace_cds2.h"
 #include"ptf_laplace_cds4.h"
 #include"onephase.h"
+#include"onephase_ptf.h"
+#include"onephase_ptf_f.h"
+#include"onephase_ptf_v.h"
 #include"ptf_fsf_update.h"
 #include"ptf_bed_update.h"
 #include"ptf_breaking.h"
 
-ptf_RK3::ptf_RK3(lexer *p, fdm *a, ghostcell *pgc) : ptf_fsfbc(p,a,pgc),erk1(p),erk2(p),frk1(p),frk2(p),Firk_0(p),Firk_1(p),Firk_2(p),Firk_3(p)
+ptf_RK3::ptf_RK3(lexer *p, fdm_ptf *e, ghostcell *pgc) : ptf_fsfbc(p,e,pgc),erk1(p),erk2(p),frk1(p),frk2(p),Firk_0(p),Firk_1(p),Firk_2(p),Firk_3(p)
 {
     gcval=250;
     
@@ -64,14 +67,14 @@ ptf_RK3::ptf_RK3(lexer *p, fdm *a, ghostcell *pgc) : ptf_fsfbc(p,a,pgc),erk1(p),
     }
     
     if(p->A320==1)
-    plap = new ptf_laplace_cds2(p,a,pgc);
+    plap = new ptf_laplace_cds2(p,e,pgc);
     
     if(p->A320==2)
     plap = new ptf_laplace_cds4;
     
-    pfsfupdate = new ptf_fsf_update(p,a,pgc);
+    pfsfupdate = new ptf_fsf_update(p,e,pgc);
     
-    pbedupdate = new ptf_bed_update(p,a,pgc);
+    pbedupdate = new ptf_bed_update(p,e,pgc);
     
 }
 
@@ -79,26 +82,26 @@ ptf_RK3::~ptf_RK3()
 {
 }
 
-void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
+void ptf_RK3::start(lexer *p, fdm_ptf *e, ghostcell *pgc, solver_ptf *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph_ptf)
 {	
-    pflow->inflow(p,a,pgc,a->u,a->v,a->w);
+   // pflow->inflow(p,e,pgc,e->u,e->v,e->w);
     
     
 // Step
-    Firk_0=a->Fi;
+    Firk_0=e->Fi;
     // fsf eta
-    kfsfbc(p,a,pgc);
+    kfsfbc(p,e,pgc);
 
     SLICELOOP4
-	erk1(i,j) = a->eta(i,j) + p->dt*a->K(i,j);
+	erk1(i,j) = e->eta(i,j) + p->dt*e->K(i,j);
     
     pgc->gcsl_start4(p,erk1,gcval_eta);
 
     // fsf Fi
-    dfsfbc(p,a,pgc,a->eta);
+    dfsfbc(p,e,pgc,e->eta);
 
     SLICELOOP4
-	frk1(i,j) = a->Fifsf(i,j) + p->dt*a->K(i,j);
+	frk1(i,j) = e->Fifsf(i,j) + p->dt*e->K(i,j);
     
     pgc->gcsl_start4(p,frk1,gcval_fifsf);
 
@@ -106,41 +109,41 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     pflow->eta_relax(p,pgc,erk1);
     pflow->fifsf_relax(p,pgc,frk1);
     if(p->A350>0)
-        breaking(p, a, pgc, erk1, a->eta, frk1,1.0);
-    pfsfupdate->fsfupdate(p,a,pgc,pflow,poneph,erk1);
-    pfsfupdate->etaloc(p,a,pgc);
-    pfsfupdate->fsfbc(p,a,pgc,frk1,a->Fi,erk1);
-    pbedupdate->waterdepth(p,a,pgc);
-    pbedupdate->bedbc(p,a,pgc,a->Fi);
+    //breaking(p, a, pgc, erk1, e->eta, frk1,1.0);
+    pfsfupdate->fsfupdate(p,e,pgc,pflow,poneph_ptf,erk1);
+    pfsfupdate->etaloc(p,e,pgc);
+    pfsfupdate->fsfbc(p,e,pgc,frk1,e->Fi,erk1);
+    pbedupdate->waterdepth(p,e,pgc);
+    pbedupdate->bedbc(p,e,pgc,e->Fi);
     
     // fsfdisc
-    fsfdisc(p,a,pgc,erk1,frk1,a->Fi);
+    fsfdisc(p,e,pgc,erk1,frk1,e->Fi);
     
     // solve Fi
-    // pflow->fivec_relax(p,pgc,a->Fi);
-    pflow->fi_relax(p,pgc,a->Fi,a->phi);
-    pgc->start4(p,a->Fi,gcval);
-    plap->start(p,a,pgc,psolv,a->Fi,frk1,erk1);
-    pfsfupdate->fsfbc(p,a,pgc,frk1,a->Fi,erk1);
-    pgc->start4(p,a->Fi,gcval);
-    fsfwvel(p,a,pgc,erk1,frk1);
+    // pflow->fivec_relax(p,pgc,e->Fi);
+    pflow->fi_relax(p,pgc,e->Fi,e->phi);
+    pgc->start4(p,e->Fi,gcval);
+    plap->start(p,e,pgc,psolv,e->Fi,frk1,erk1);
+    pfsfupdate->fsfbc(p,e,pgc,frk1,e->Fi,erk1);
+    pgc->start4(p,e->Fi,gcval);
+    fsfwvel(p,e,pgc,erk1,frk1);
     
 // Step 2
     
-    Firk_1=a->Fi;
+    Firk_1=e->Fi;
     // fsf eta
-    kfsfbc(p,a,pgc);
+    kfsfbc(p,e,pgc);
     
     SLICELOOP4
-	erk2(i,j) = 0.75*a->eta(i,j) + 0.25*erk1(i,j) + 0.25*p->dt*a->K(i,j);
+	erk2(i,j) = 0.75*e->eta(i,j) + 0.25*erk1(i,j) + 0.25*p->dt*e->K(i,j);
     
     pgc->gcsl_start4(p,erk2,gcval_eta);
     
     // fsf Fi
-    dfsfbc(p,a,pgc,erk1);
+    dfsfbc(p,e,pgc,erk1);
     
     SLICELOOP4
-	frk2(i,j) = 0.75*a->Fifsf(i,j) + 0.25*frk1(i,j) + 0.25*p->dt*a->K(i,j);
+	frk2(i,j) = 0.75*e->Fifsf(i,j) + 0.25*frk1(i,j) + 0.25*p->dt*e->K(i,j);
     
     pgc->gcsl_start4(p,frk2,gcval_fifsf);
     
@@ -148,115 +151,115 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     pflow->eta_relax(p,pgc,erk2);
     pflow->fifsf_relax(p,pgc,frk2);
     if(p->A350>0)
-        breaking(p, a, pgc, erk2, erk1, frk2, 0.25);
-    pfsfupdate->fsfupdate(p,a,pgc,pflow,poneph,erk2);
-    pfsfupdate->etaloc(p,a,pgc);
-    pfsfupdate->fsfbc(p,a,pgc,frk2,a->Fi,erk2);
-    pbedupdate->waterdepth(p,a,pgc);
-    pbedupdate->bedbc(p,a,pgc,a->Fi);
+    //breaking(p, a, pgc, erk2, erk1, frk2, 0.25);
+    pfsfupdate->fsfupdate(p,e,pgc,pflow,poneph_ptf,erk2);
+    pfsfupdate->etaloc(p,e,pgc);
+    pfsfupdate->fsfbc(p,e,pgc,frk2,e->Fi,erk2);
+    pbedupdate->waterdepth(p,e,pgc);
+    pbedupdate->bedbc(p,e,pgc,e->Fi);
     
     // fsfdisc
-    fsfdisc(p,a,pgc,erk2,frk2,a->Fi);
+    fsfdisc(p,e,pgc,erk2,frk2,e->Fi);
     
     // solve Fi
-    // pflow->fivec_relax(p,pgc,a->Fi);
-    pflow->fi_relax(p,pgc,a->Fi,a->phi);
-    pgc->start4(p,a->Fi,gcval);
-    plap->start(p,a,pgc,psolv,a->Fi,frk2,erk2);
-   pfsfupdate->fsfbc(p,a,pgc,frk2,a->Fi,erk2);
-   pgc->start4(p,a->Fi,gcval);
-    fsfwvel(p,a,pgc,erk2,frk2);
+    // pflow->fivec_relax(p,pgc,e->Fi);
+    pflow->fi_relax(p,pgc,e->Fi,e->phi);
+    pgc->start4(p,e->Fi,gcval);
+    plap->start(p,e,pgc,psolv,e->Fi,frk2,erk2);
+   pfsfupdate->fsfbc(p,e,pgc,frk2,e->Fi,erk2);
+   pgc->start4(p,e->Fi,gcval);
+    fsfwvel(p,e,pgc,erk2,frk2);
     
 // Step 3  
     
-    Firk_2=a->Fi;
+    Firk_2=e->Fi;
     // fsf eta
-    kfsfbc(p,a,pgc);
+    kfsfbc(p,e,pgc);
     
     SLICELOOP4
-	a->eta(i,j) = (1.0/3.0)*a->eta(i,j) + (2.0/3.0)*erk2(i,j) + (2.0/3.0)*p->dt*a->K(i,j);
+	e->eta(i,j) = (1.0/3.0)*e->eta(i,j) + (2.0/3.0)*erk2(i,j) + (2.0/3.0)*p->dt*e->K(i,j);
     
-    pgc->gcsl_start4(p,a->eta,gcval_eta);
+    pgc->gcsl_start4(p,e->eta,gcval_eta);
     
     // fsf Fi
-    dfsfbc(p,a,pgc,erk2);
+    dfsfbc(p,e,pgc,erk2);
     
     SLICELOOP4
-	a->Fifsf(i,j) = (1.0/3.0)*a->Fifsf(i,j) + (2.0/3.0)*frk2(i,j) + (2.0/3.0)*p->dt*a->K(i,j);
+	e->Fifsf(i,j) = (1.0/3.0)*e->Fifsf(i,j) + (2.0/3.0)*frk2(i,j) + (2.0/3.0)*p->dt*e->K(i,j);
     
-    pgc->gcsl_start4(p,a->Fifsf,gcval_fifsf);
+    pgc->gcsl_start4(p,e->Fifsf,gcval_fifsf);
     
     // Set Boundary Conditions
-    pflow->eta_relax(p,pgc,a->eta);
-    pflow->fifsf_relax(p,pgc,a->Fifsf);
+    pflow->eta_relax(p,pgc,e->eta);
+    pflow->fifsf_relax(p,pgc,e->Fifsf);
     if(p->A350>0)
-        breaking(p, a, pgc, a->eta, erk2, a->Fifsf, 2.0/3.0);
-    pfsfupdate->fsfupdate(p,a,pgc,pflow,poneph,a->eta);
-    pfsfupdate->etaloc(p,a,pgc);
-    pfsfupdate->fsfbc(p,a,pgc,a->Fifsf,a->Fi,a->eta);
-    pbedupdate->waterdepth(p,a,pgc);
-    pbedupdate->bedbc(p,a,pgc,a->Fi);
+    //breaking(p, a, pgc, e->eta, erk2, e->Fifsf, 2.0/3.0);
+    pfsfupdate->fsfupdate(p,e,pgc,pflow,poneph_ptf,e->eta);
+    pfsfupdate->etaloc(p,e,pgc);
+    pfsfupdate->fsfbc(p,e,pgc,e->Fifsf,e->Fi,e->eta);
+    pbedupdate->waterdepth(p,e,pgc);
+    pbedupdate->bedbc(p,e,pgc,e->Fi);
     
     // fsfdisc
-    fsfdisc(p,a,pgc,a->eta,a->Fifsf,a->Fi);
+    fsfdisc(p,e,pgc,e->eta,e->Fifsf,e->Fi);
     
     // solve Fi
-   // pflow->fivec_relax(p,pgc,a->Fi);
-    pflow->fi_relax(p,pgc,a->Fi,a->phi);
-    pgc->start4(p,a->Fi,gcval);
-    plap->start(p,a,pgc,psolv,a->Fi,a->Fifsf,a->eta);
-    pfsfupdate->fsfbc(p,a,pgc,a->Fifsf,a->Fi,a->eta);
-    pgc->start4(p,a->Fi,gcval);
-    fsfwvel(p,a,pgc,a->eta,a->Fifsf);
-    Firk_3=a->Fi;
+   // pflow->fivec_relax(p,pgc,e->Fi);
+    pflow->fi_relax(p,pgc,e->Fi,e->phi);
+    pgc->start4(p,e->Fi,gcval);
+    plap->start(p,e,pgc,psolv,e->Fi,e->Fifsf,e->eta);
+    pfsfupdate->fsfbc(p,e,pgc,e->Fifsf,e->Fi,e->eta);
+    pgc->start4(p,e->Fi,gcval);
+    fsfwvel(p,e,pgc,e->eta,e->Fifsf);
+    Firk_3=e->Fi;
     
     FLUIDLOOP
     {
     if(p->flag4[IJK]<0)
-    a->test(i,j,k) = 0.0;
+    e->test(i,j,k) = 0.0;
     
     if(p->flag4[IJK]>0)
-    a->test(i,j,k) = 1.0;
+    e->test(i,j,k) = 1.0;
     
     }
     
-    pfsfupdate->velcalc(p,a,pgc,a->Fi);
+    pfsfupdate->velcalc(p,e,pgc,e->Fi);
     
     if(p->A401>0)
-        pfsfupdate->presscalc(p,a,pgc,Firk_0,Firk_1,Firk_2,Firk_3,a->eta);
+        pfsfupdate->presscalc(p,e,pgc,Firk_0,Firk_1,Firk_2,Firk_3,e->eta);
     
     
 }
 
-void ptf_RK3::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *preini, onephase *poneph)
+void ptf_RK3::ini(lexer *p, fdm_ptf *e, ghostcell *pgc, ioflow *pflow, reini *preini, onephase *poneph_ptf)
 {	
-    pfsfupdate->fsfupdate(p,a,pgc,pflow,poneph,a->eta);
-    pfsfupdate->etaloc(p,a,pgc);
+    pfsfupdate->fsfupdate(p,e,pgc,pflow,poneph_ptf,e->eta);
+    pfsfupdate->etaloc(p,e,pgc);
     
-    pbedupdate->waterdepth(p,a,pgc);
+    pbedupdate->waterdepth(p,e,pgc);
     
     // potential ini
-    //pflow->fivec_relax(p,pgc,a->Fi);
-    pflow->fi_relax(p,pgc,a->Fi,a->phi);
-    pflow->fifsf_relax(p,pgc,a->Fifsf);
-    pgc->start4(p,a->Fi,250);
-    pgc->gcsl_start4(p,a->Fifsf,50);
+    //pflow->fivec_relax(p,pgc,e->Fi);
+    pflow->fi_relax(p,pgc,e->Fi,e->phi);
+    pflow->fifsf_relax(p,pgc,e->Fifsf);
+    pgc->start4(p,e->Fi,250);
+    pgc->gcsl_start4(p,e->Fifsf,50);
     
-    pfsfupdate->fsfbc(p,a,pgc,a->Fifsf,a->Fi,a->eta);
+    pfsfupdate->fsfbc(p,e,pgc,e->Fifsf,e->Fi,e->eta);
     
-    pfsfupdate->fsfepol(p,a,pgc,a->eta,a->Fi);
+    pfsfupdate->fsfepol(p,e,pgc,e->eta,e->Fi);
     
     
-    pgc->gcsl_start4(p,a->eta,50);
+    pgc->gcsl_start4(p,e->eta,50);
     
     FLUIDLOOP
-    a->test(i,j,k) = a->Fifsf(i,j);
+    e->test(i,j,k) = e->Fifsf(i,j);
     
-    pfsfupdate->velcalc(p,a,pgc,a->Fi);
+    pfsfupdate->velcalc(p,e,pgc,e->Fi);
     if(p->A401>0)
-        pfsfupdate->presscalc(p,a,pgc,Firk_0,Firk_1,Firk_2,Firk_3,a->eta);
+        pfsfupdate->presscalc(p,e,pgc,Firk_0,Firk_1,Firk_2,Firk_3,e->eta);
 }
 
-void ptf_RK3::inidisc(lexer *p, fdm *a, ghostcell *pgc)
+void ptf_RK3::inidisc(lexer *p, fdm_ptf *e, ghostcell *pgc)
 {	
 }

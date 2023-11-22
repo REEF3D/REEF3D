@@ -21,13 +21,13 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 class lexer;
-class fdm;
+class fdm_ptf;
 class ghostcell;
-class solver;
+class solver_ptf;
 class convection;
 class ioflow;
 class reini;
-class onephase;
+class onephase_ptf;
 
 using namespace std;
 
@@ -37,9 +37,9 @@ using namespace std;
 class ptf
 {
 public:
-	virtual void start(lexer*, fdm*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*)=0;
-    virtual void ini(lexer*, fdm*, ghostcell*, ioflow*, reini*, onephase*)=0;
-    virtual void inidisc(lexer*, fdm*, ghostcell*)=0;
+	virtual void start(lexer*, fdm_ptf*, ghostcell*, solver_ptf*, convection*, ioflow*, reini*,onephase_ptf*)=0;
+    virtual void ini(lexer*, fdm_ptf*, ghostcell*, ioflow*, reini*, onephase_ptf*)=0;
+    virtual void inidisc(lexer*, fdm_ptf*, ghostcell*)=0;
 
 };
 
