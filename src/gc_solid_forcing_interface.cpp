@@ -84,10 +84,12 @@ double ghostcell::Hsolidface_t(lexer *p, fdm *a, int aa, int bb, int cc)
     {
         H = 1.0;
     }
+    
     else if (-phival_sf < -psi)
     {
         H = 0.0;
     }
+    
     else
     {
         H = 0.5*(1.0 + -phival_sf/psi + (1.0/PI)*sin((PI*-phival_sf)/psi));
