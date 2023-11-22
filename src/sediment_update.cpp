@@ -37,11 +37,7 @@ void sediment_f::update_cfd(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow, rein
     bedchange_update(p, pgc);
     
     volume_calc(p,a,pgc);
-    
-    pgc->start1(p,a->u,10);
-	pgc->start2(p,a->v,11);
-	pgc->start3(p,a->w,12);
-    
+
     if(p->mpirank==0)
     cout<<"Topo: update grid..."<<endl;
     

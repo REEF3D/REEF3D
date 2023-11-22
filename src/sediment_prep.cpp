@@ -28,12 +28,7 @@ Author: Hans Bihs
 #include"sediment_fdm.h"
 
 void sediment_f::prep_cfd(lexer *p, fdm *a,ghostcell *pgc)
-{
-    // vel prep --------
-    pgc->start1(p,a->u,14);
-	pgc->start2(p,a->v,15);
-	pgc->start3(p,a->w,16);
-    
+{    
     // find bedk -------
     fill_bedk(p,a,pgc);
     
