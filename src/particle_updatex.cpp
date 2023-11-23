@@ -36,8 +36,8 @@ void particle_f::xupdate(lexer* p, fdm* a, ghostcell* pgc)
         if(posflag[n]>0)
         {
             i=int((pos[n][0])/dx);
-            j=int((pos[n][1])/dx);
-            k=int((pos[n][2])/dx);
+            j=int((pos[n][1])/dy);
+            k=int((pos[n][2])/dz);
 
             check=boundcheck(p,a,i,j,k,1);
 			

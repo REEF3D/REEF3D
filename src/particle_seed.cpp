@@ -99,8 +99,8 @@ void particle_f::posseed_topo(lexer* p, fdm* a, ghostcell* pgc)
                 pcount--;
 
                 pos[PC][0] = (double(i) + (rand()%(irand))/drand)*dx;
-                pos[PC][1] = (double(j) + (rand()%(irand))/drand)*dx;
-                pos[PC][2] = (double(k) + (rand()%(irand))/drand)*dx;
+                pos[PC][1] = (double(j) + (rand()%(irand))/drand)*dy;
+                pos[PC][2] = (double(k) + (rand()%(irand))/drand)*dz;
                 pos[PC][3] = phipol(p,a,pos[PC][0],pos[PC][1],pos[PC][2]);
                 posflag[PC]=3;
 
@@ -117,8 +117,8 @@ void particle_f::posseed_topo(lexer* p, fdm* a, ghostcell* pgc)
                 pos[PC][2] += lambda*(phival - pos[PC][3])*nvec[2];
 
                 ii=int((pos[PC][0])/dx);
-                jj=int((pos[PC][1])/dx);
-                kk=int((pos[PC][2])/dx);
+                jj=int((pos[PC][1])/dy);
+                kk=int((pos[PC][2])/dz);
                 check=boundcheck(p,a,ii,jj,kk,0);
                 if(check==0)
                 break;
@@ -142,8 +142,8 @@ void particle_f::posseed_topo(lexer* p, fdm* a, ghostcell* pgc)
             if(pcount==0 && posactive<maxparticle)
             {	
                 pos[posactive][0] = (double(i)  + (rand()%(irand))/drand)*dx;
-                pos[posactive][1] = (double(j)  + (rand()%(irand))/drand)*dx;
-                pos[posactive][2] = (double(k)  + (rand()%(irand))/drand)*dx;
+                pos[posactive][1] = (double(j)  + (rand()%(irand))/drand)*dy;
+                pos[posactive][2] = (double(k)  + (rand()%(irand))/drand)*dz;
                 pos[posactive][3] = phipol(p,a,pos[posactive][0],pos[posactive][1],pos[posactive][2]);
                 posflag[posactive]=3;
 
@@ -160,8 +160,8 @@ void particle_f::posseed_topo(lexer* p, fdm* a, ghostcell* pgc)
                 pos[posactive][2] += lambda*(phival - pos[posactive][3])*nvec[2];
 
                 ii=int((pos[posactive][0])/dx);
-                jj=int((pos[posactive][1])/dx);
-                kk=int((pos[posactive][2])/dx);
+                jj=int((pos[posactive][1])/dy);
+                kk=int((pos[posactive][2])/dz);
                 check=boundcheck(p,a,ii,jj,kk,0);
                 if(check==0)
                 break;

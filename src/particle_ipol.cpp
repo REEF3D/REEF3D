@@ -33,16 +33,16 @@ double particle_f::phipol(lexer *p,fdm* a, double& xp, double& yp, double& zp)
     i=int((xp)/dx-0.5);
 		if(xp/dx-0.5<0.0)
 		--i;
-    j=int((yp)/dx-0.5);
-		if(yp/dx-0.5<0.0)
+    j=int((yp)/dy-0.5);
+		if(yp/dy-0.5<0.0)
 		--j;
-    k=int((zp)/dx-0.5);
-		if(zp/dx-0.5<0.0)
+    k=int((zp)/dz-0.5);
+		if(zp/dz-0.5<0.0)
 		--k;
 
     wa=((double(i) + 1.5)-xp/dx);
-    wb=((double(j) + 1.5)-yp/dx);
-    wc=((double(k) + 1.5)-zp/dx);
+    wb=((double(j) + 1.5)-yp/dy);
+    wc=((double(k) + 1.5)-zp/dz);
 
     if(ipolval==1)
     value =  lint(a->phi,i,j,k,wa,wb,wc);
@@ -67,17 +67,17 @@ double particle_f::upol(lexer *p,fdm* a, double& xp, double& yp, double& zp)
 		if(xp/dx-1.0<0.0)
 		--i;
 		
-    j=int((yp)/dx-0.5);
-		if(yp/dx-0.5<0.0)
+    j=int((yp)/dy-0.5);
+		if(yp/dy-0.5<0.0)
 		--j;
 		
-    k=int((zp)/dx-0.5);
-		if(zp/dx-0.5<0.0)
+    k=int((zp)/dz-0.5);
+		if(zp/dz-0.5<0.0)
 		--k;
 
     wa=((double(i) + 2.0)-xp/dx);
-    wb=((double(j) + 1.5)-yp/dx);
-    wc=((double(k) + 1.5)-zp/dx);
+    wb=((double(j) + 1.5)-yp/dy);
+    wc=((double(k) + 1.5)-zp/dz);
 
     if(ipolval==1)
     value =  lint(a->u,i,j,k,wa,wb,wc);
@@ -102,17 +102,17 @@ double particle_f::vpol(lexer *p,fdm* a, double& xp, double& yp, double& zp)
 		if(xp/dx-0.5<0.0)
 		--i;
 		
-    j=int((yp)/dx-1.0);
-		if(yp/dx-1.0<0.0)
+    j=int((yp)/dy-1.0);
+		if(yp/dy-1.0<0.0)
 		--j;
 		
-    k=int((zp)/dx-0.5);
-		if(zp/dx-0.5<0.0)
+    k=int((zp)/dz-0.5);
+		if(zp/dz-0.5<0.0)
 		--k;
 
     wa=((double(i) + 1.5)-xp/dx);
-    wb=((double(j) + 2.0)-yp/dx);
-    wc=((double(k) + 1.5)-zp/dx);
+    wb=((double(j) + 2.0)-yp/dz);
+    wc=((double(k) + 1.5)-zp/dz);
 
     if(ipolval==1)
     value =  lint(a->v,i,j,k,wa,wb,wc);
@@ -137,17 +137,17 @@ double particle_f::wpol(lexer *p,fdm* a, double& xp, double& yp, double& zp)
 		if(xp/dx-0.5<0.0)
 		--i;
 		
-    j=int((yp)/dx-0.5);
-		if(yp/dx-0.5<0.0)
+    j=int((yp)/dy-0.5);
+		if(yp/dy-0.5<0.0)
 		--j;
 		
-    k=int((zp)/dx-1.0);
-		if(zp/dx-1.0<0.0)
+    k=int((zp)/dz-1.0);
+		if(zp/dz-1.0<0.0)
 		--k;
 
     wa=((double(i) + 1.5)-xp/dx);
-    wb=((double(j) + 1.5)-yp/dx);
-    wc=((double(k) + 2.0)-zp/dx);
+    wb=((double(j) + 1.5)-yp/dy);
+    wc=((double(k) + 2.0)-zp/dz);
 
     if(ipolval==1)
     value =  lint(a->w,i,j,k,wa,wb,wc);
