@@ -44,8 +44,8 @@ void particle_f::random_delete(lexer* p, fdm* a, ghostcell* pgc)
 		ppcell_coeff = 2.25;
 		
         i=int((pos[n][0])/dx);
-        j=int((pos[n][1])/dx);
-        k=int((pos[n][2])/dx);
+        j=int((pos[n][1])/dy);
+        k=int((pos[n][2])/dz);
 		
 		lsc = a->phi(i,j,k);
 		
