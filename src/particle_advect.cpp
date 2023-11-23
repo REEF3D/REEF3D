@@ -30,31 +30,31 @@ void particle_f::advect(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag,in
     for(n=0;n<active;++n)
     if(flag[n]>0)
     {
-    u1=p->dt*upol(p,a,f[n][0],f[n][1],f[n][2]);
+    u1=p->dt*p->ccipol1(a->u,f[n][0],f[n][1],f[n][2]);
     coord1=f[n][0]+u1;
 	
-	v1=p->dt*vpol(p,a,f[n][0],f[n][1],f[n][2]);
+	v1=p->dt*p->ccipol2(a->v,f[n][0],f[n][1],f[n][2]);
     coord2=f[n][1]+v1;
 	
-	w1=p->dt*wpol(p,a,f[n][0],f[n][1],f[n][2]);
+	w1=p->dt*p->ccipol3(a->w,f[n][0],f[n][1],f[n][2]);
     coord3=f[n][2]+w1;
 	
 	
-	u2=0.25*u1 + 0.25*p->dt*upol(p,a,coord1,coord2,coord3);
+	u2=0.25*u1 + 0.25*p->dt*p->ccipol1(a->u,coord1,coord2,coord3);
     coord1=f[n][0]+u2;
 	
-	v2=0.25*v1 + 0.25*p->dt*vpol(p,a,coord1,coord2,coord3);
+	v2=0.25*v1 + 0.25*p->dt*p->ccipol2(a->v,coord1,coord2,coord3);
     coord2=f[n][1]+v2;
 	
-	w2=0.25*w1 + 0.25*p->dt*wpol(p,a,coord1,coord2,coord3);
+	w2=0.25*w1 + 0.25*p->dt*p->ccipol3(a->w,coord1,coord2,coord3);
 	coord3=f[n][2]+w2;
 	
 	
-	f[n][0] = f[n][0] + (2.0/3.0)*u2 + (2.0/3.0)*p->dt*upol(p,a,coord1,coord2,coord3);
+	f[n][0] = f[n][0] + (2.0/3.0)*u2 + (2.0/3.0)*p->dt*p->ccipol1(a->u,coord1,coord2,coord3);
 
-    f[n][1] = f[n][1] + (2.0/3.0)*v2 + (2.0/3.0)*p->dt*vpol(p,a,coord1,coord2,coord3);
+    f[n][1] = f[n][1] + (2.0/3.0)*v2 + (2.0/3.0)*p->dt*p->ccipol2(a->v,coord1,coord2,coord3);
 	
-	f[n][2] = f[n][2] + (2.0/3.0)*w2 + (2.0/3.0)*p->dt*wpol(p,a,coord1,coord2,coord3);
+	f[n][2] = f[n][2] + (2.0/3.0)*w2 + (2.0/3.0)*p->dt*p->ccipol3(a->w,coord1,coord2,coord3);
 
 
     f[n][3]=phipol(p,a,f[n][0],f[n][1],f[n][2]);
