@@ -50,7 +50,7 @@ void particle_f::print_vtu(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag
     if(flag[n]>0)
 	++numpt;
 	
-    cout<<"PACTIVE: "<<numpt<<" "<<active<<endl;
+    cout<<"PACTIVE-"<<p->mpirank<<": "<<numpt<<" "<<active<<endl;
 	
 	if(p->mpirank==0)
 	pvtu_pos(a,p,pgc);
