@@ -64,13 +64,15 @@ particle_f::~particle_f()
 }
 
 void particle_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
-{ 
+{
 
 	starttime=pgc->timer();
 	
 	posactive_old=posactive;
 
+	if (p->count>=p->Q43)
     advect(p,a,pgc,pos,posflag,posactive);
+
 	particlex(p,a,pgc);
     //remove(p,a,pgc);
 	
