@@ -1403,12 +1403,12 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Diffusion">
-          <File Name="idiff_w.cpp"/>
-          <File Name="idiff_w_2D.cpp"/>
-          <File Name="idiff_v.cpp"/>
-          <File Name="idiff_u.cpp"/>
-          <File Name="idiff_v_2D.cpp"/>
-          <File Name="idiff_u_2D.cpp"/>
+          <File Name="nhflow_idiff_w.cpp"/>
+          <File Name="nhflow_idiff_w_2D.cpp"/>
+          <File Name="nhflow_idiff_v.cpp"/>
+          <File Name="nhflow_idiff_v_2D.cpp"/>
+          <File Name="nhflow_idiff_u.cpp"/>
+          <File Name="nhflow_idiff_u_2D.cpp"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="FNPF">
