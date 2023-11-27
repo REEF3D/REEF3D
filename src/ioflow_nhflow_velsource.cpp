@@ -45,7 +45,7 @@ void  ioflow_f::isource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvra
 			if(p->pos_x() >= p->B240_xs[n] && p->pos_x() < p->B240_xe[n])
 			if(p->pos_y() >= p->B240_ys[n] && p->pos_y() < p->B240_ye[n])
 			if(p->pos_z() >= p->B240_zs[n] && p->pos_z() < p->B240_ze[n])
-			porousterm=p->B240_D[n]*d->visc[IJK]*d->U[IJK] + 0.5*p->B240_C[n]*d->U[IJK]*fabs(d->U[IJK]);
+			porousterm=p->B240_D[n]*d->VISC[IJK]*d->U[IJK] + 0.5*p->B240_C[n]*d->U[IJK]*fabs(d->U[IJK]);
 		}
 	
     d->rhsvec.V[count] -= porousterm;
@@ -74,7 +74,7 @@ void  ioflow_f::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvra
 			if(p->pos_x() >= p->B240_xs[n] && p->pos_x() < p->B240_xe[n])
 			if(p->pos_y() >= p->B240_ys[n] && p->pos_y() < p->B240_ye[n])
 			if(p->pos_z() >= p->B240_zs[n] && p->pos_z() < p->B240_ze[n])
-			porousterm=p->B240_D[n]*d->visc[IJK]*d->V[IJK] + 0.5*p->B240_C[n]*d->V[IJK]*fabs(d->V[IJK]);
+			porousterm=p->B240_D[n]*d->VISC[IJK]*d->V[IJK] + 0.5*p->B240_C[n]*d->V[IJK]*fabs(d->V[IJK]);
 		}
 	
     d->rhsvec.V[count] -= porousterm;
@@ -103,7 +103,7 @@ void  ioflow_f::ksource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvra
 			if(p->pos_x() >= p->B240_xs[n] && p->pos_x() < p->B240_xe[n])
 			if(p->pos_y() >= p->B240_ys[n] && p->pos_y() < p->B240_ye[n])
 			if(p->pos_z() >= p->B240_zs[n] && p->pos_z() < p->B240_ze[n])
-			porousterm=p->B240_D[n]*d->visc[IJK]*d->W[IJK] + 0.5*p->B240_C[n]*d->W[IJK]*fabs(d->W[IJK]);
+			porousterm=p->B240_D[n]*d->VISC[IJK]*d->W[IJK] + 0.5*p->B240_C[n]*d->W[IJK]*fabs(d->W[IJK]);
 		}
 
     d->rhsvec.V[count] -= porousterm;

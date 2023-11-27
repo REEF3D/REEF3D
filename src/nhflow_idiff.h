@@ -21,25 +21,28 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_diffusion.h"
+#include"increment.h"
 
-class lexer;
-class fdm_nhf;
-class ghostcell;
-class solver;
-
-#ifndef NHFLOW_DIFFUSION_H_
-#define NHFLOW_DIFFUSION_H_
+#ifndef NHFLOW_IDIFF_H_
+#define NHFLOW_IDIFF_H_
 
 using namespace std;
 
-class nhflow_idiff : public nhflow_diffusion
+class nhflow_idiff : public nhflow_diffusion, public increment
 {
 public:
+    nhflow_idiff(lexer*);
+	virtual ~nhflow_idiff();
 
-	virtual void diff_u(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double);
-	virtual void diff_v(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double);
-    virtual void diff_w(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double);
-    virtual void diff_scalar(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double);
+	virtual void diff_u(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, double);
+	virtual void diff_v(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, double);
+    virtual void diff_w(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, double);
+    virtual void diff_scalar(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, double);
+    
+private:
+    int gcval_u,gcval_v,gcval_w;
+    
+    double starttime,endtime;
 
 };
 

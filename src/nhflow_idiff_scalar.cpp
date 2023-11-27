@@ -26,21 +26,9 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"solver.h"
 
-nhflow_idiff::nhflow_idiff(lexer* p)
+void nhflow_idiff::diff_scalar(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *UHdiff, double *UH_in, double *UH, double *VH, double *WH, double alpha)
 {
-	gcval_u=10;
-	gcval_v=11;
-	gcval_w=12;
-}
-
-nhflow_idiff::~nhflow_idiff()
-{
-}
-
-
-void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *UHdiff, double *UH_in, double *UH, double *VH, double *WH, double alpha)
-{/*
-	starttime=pgc->timer();
+	/*starttime=pgc->timer();
 	double visc_ddy_p,visc_ddy_m,visc_ddz_p,visc_ddz_m;
     
     LOOP
@@ -99,85 +87,6 @@ void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
 	 
      ++count;
 	 }
-     
-    n=0;
-    LOOP
-	{
-        if(p->wet[IJ]==1 && p->deep[IJ]==1 && d->breaking(i,j)==0)
-        {
-            sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
-            
-            
-            d->M.p[n]  =  (CPORNH*PORVALNH)/(p->W1*p->DXP[IP]*p->DXN[IP])
-                        + (CPORNHm*PORVALNHm)/(p->W1*p->DXP[IM1]*p->DXN[IP])
-                        
-                        + (CPORNH*PORVALNH)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir
-                        + (CPORNHm*PORVALNHm)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir
-                        
-                        + (sigxyz2*CPORNH*PORVALNH)/(p->W1*p->DZP[KM1]*p->DZN[KP])
-                        + (sigxyz2*CPORNHm*PORVALNHm)/(p->W1*p->DZP[KM1]*p->DZN[KM1]);
-
-
-            d->M.n[n] = -(CPORNH*PORVALNH)/(p->W1*p->DXP[IP]*p->DXN[IP]);
-            d->M.s[n] = -(CPORNHm*PORVALNHm)/(p->W1*p->DXP[IM1]*p->DXN[IP]);
-
-            d->M.w[n] = -(CPORNH*PORVALNH)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir;
-            d->M.e[n] = -(CPORNHm*PORVALNHm)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
-
-            d->M.t[n] = -(sigxyz2*CPORNH*PORVALNH)/(p->W1*p->DZP[KM1]*p->DZN[KP])     
-                        - CPORNH*PORVALNH*p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
-                        
-            d->M.b[n] = -(sigxyz2*CPORNHm*PORVALNHm)/(p->W1*p->DZP[KM1]*p->DZN[KM1]) 
-                        + CPORNH*PORVALNH*p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
-            
-            
-            if(p->D33==0)
-            d->rhsvec.V[n] +=  CPORNH*PORVALNH*2.0*p->sigx[FIJK]*(P[FIp1JKp1] - P[FIm1JKp1] - P[FIp1JKm1] + P[FIm1JKm1])
-                            /(p->W1*(p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
-                        
-                            + CPORNH*PORVALNH*2.0*p->sigy[FIJK]*(P[FIJp1Kp1] - P[FIJm1Kp1] - P[FIJp1Km1] + P[FIJm1Km1])
-                            /(p->W1*(p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
-
-            if(p->D33==1)
-            {
-            d->M.sb[n] = -CPORNH*PORVALNH*2.0*p->sigx[FIJK]/(p->W1*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
-            d->M.st[n] =  CPORNH*PORVALNH*2.0*p->sigx[FIJK]/(p->W1*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
-            d->M.nb[n] =  CPORNH*PORVALNH*2.0*p->sigx[FIJK]/(p->W1*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
-            d->M.nt[n] = -CPORNH*PORVALNH*2.0*p->sigx[FIJK]/(p->W1*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
-            
-            d->M.eb[n] = -CPORNH*PORVALNH*2.0*p->sigy[FIJK]/(p->W1*(p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
-            d->M.et[n] =  CPORNH*PORVALNH*2.0*p->sigy[FIJK]/(p->W1*(p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
-            d->M.wb[n] =  CPORNH*PORVALNH*2.0*p->sigy[FIJK]/(p->W1*(p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
-            d->M.wt[n] = -CPORNH*PORVALNH*2.0*p->sigy[FIJK]/(p->W1*(p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
-            }
-        }
-        
-        if(p->wet[IJ]==0 || p->deep[IJ]==0 || p->flag7[FIJK]<0 || d->breaking(i,j)==1)
-        {
-        d->M.p[n]  =  1.0;
-
-
-        d->M.n[n] = 0.0;
-        d->M.s[n] = 0.0;
-
-        d->M.w[n] = 0.0;
-        d->M.e[n] = 0.0;
-
-        d->M.t[n] = 0.0;
-        d->M.b[n] = 0.0;
-        
-        d->rhsvec.V[n] =  0.0;
-        }
-	
-	++n;
-	}
-    
-    
-    
-    
-    
-    
-    
     
     n=0;
 	ULOOP
