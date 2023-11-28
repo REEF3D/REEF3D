@@ -41,8 +41,12 @@ public:
     
 private:
     int gcval_u,gcval_v,gcval_w;
+    int gcval_uh,gcval_vh,gcval_wh;
     
-    double starttime,endtime;
+    double time,starttime,endtime;
+    
+    double visc;
+    double sigxyz2;
 
 };
 
