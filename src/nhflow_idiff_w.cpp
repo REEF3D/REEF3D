@@ -26,118 +26,135 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"solver.h"
 
-void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *UHdiff, double *UH_in, double *UH, double *VH, double *WH, double alpha)
+void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *WHdiff, double *WHin, double *UH, double *VH, double *WH, double alpha)
 {
-	/*starttime=pgc->timer();
-	double visc_ddy_p,visc_ddy_m,visc_ddz_p,visc_ddz_m;
+	starttime=pgc->timer();
+
     
     LOOP
-    UHdiff[IJK] = UH_in[IJK];
+    WHdiff[IJK] = WHin[IJK];
     
-    pgc->start1(p,diff,gcval_u);
+    pgc->start4V(p,WHdiff,gcval_wh);
 
-    count=0;
-
-	LOOP // 
+    n=0;
+    LOOP
 	{
-	ev_ijk=a->eddyv(i,j,k);
-	ev_ip_j_k=a->eddyv(i+1,j,k);
-	ev_i_jm_k=a->eddyv(i,j-1,k);
-	ev_i_jp_k=a->eddyv(i,j+1,k);
-	ev_i_j_km=a->eddyv(i,j,k-1);
-	ev_i_j_kp=a->eddyv(i,j,k+1);
-	
-	visc_ijk=a->visc(i,j,k);
-	visc_ip_j_k=a->visc(i+1,j,k);
-	visc_i_jm_k=a->visc(i,j-1,k);
-	visc_i_jp_k=a->visc(i,j+1,k);
-	visc_i_j_km=a->visc(i,j,k-1);
-	visc_i_j_kp=a->visc(i,j,k+1);
-	
-	visc_ddy_p = 0.25*(visc_ijk+ev_ijk + visc_ip_j_k+ev_ip_j_k + visc_i_jp_k+ev_i_jp_k + a->visc(i+1,j+1,k)+a->eddyv(i+1,j+1,k));    
-    
-	visc_ddy_m = 0.25*(visc_i_jm_k+ev_i_jm_k  +a->visc(i+1,j-1,k)+a->eddyv(i+1,j-1,k) + visc_ijk+ev_ijk + visc_ip_j_k+ev_ip_j_k);
-    
-	visc_ddz_p = 0.25*(visc_ijk+ev_ijk + visc_ip_j_k+ev_ip_j_k + visc_i_j_kp+ev_i_j_kp + a->visc(i+1,j,k+1)+a->eddyv(i+1,j,k+1));
-    
-	visc_ddz_m = 0.25*(visc_i_j_km+ev_i_j_km + a->visc(i+1,j,k-1)+a->eddyv(i+1,j,k-1) + visc_ijk+ev_ijk + visc_ip_j_k+ev_ip_j_k);
+        if(p->wet[IJ]==1 && p->deep[IJ]==1 && d->breaking(i,j)==0)
+        {
+            sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
+            
+            
+            d->M.p[n]  =  visc/(p->DXP[IP]*p->DXN[IP])
+                        + visc/(p->DXP[IM1]*p->DXN[IP])
+                        
+                        + visc/(p->DYP[JP]*p->DYN[JP])*p->y_dir
+                        + visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir
+                        
+                        + 2.0*(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KP])
+                        + 2.0*(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KM1]);
 
-	a->M.p[count] =  2.0*(visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP1]*p->DXP[IP])
-				   + 2.0*(visc_ijk+ev_ijk)/(p->DXN[IP]*p->DXP[IP])
-				   + visc_ddy_p/(p->DYP[JP]*p->DYN[JP])
-				   + visc_ddy_m/(p->DYP[JM1]*p->DYN[JP])
-				   + visc_ddz_p/(p->DZP[KP]*p->DZN[KP])
-				   + visc_ddz_m/(p->DZP[KM1]*p->DZN[KP])
-				   + CPOR1/(alpha*p->dt);
-				  
-	a->rhsvec.V[count] +=  ((v(i+1,j,k)-v(i,j,k))*visc_ddy_p - (v(i+1,j-1,k)-v(i,j-1,k))*visc_ddy_m)/(p->DXP[IP]*p->DYN[JP])
-						 + ((w(i+1,j,k)-w(i,j,k))*visc_ddz_p - (w(i+1,j,k-1)-w(i,j,k-1))*visc_ddz_m)/(p->DXP[IP]*p->DZN[KP])
 
-						 + (CPOR1*u_in(i,j,k))/(alpha*p->dt);
-                         
-	 
-	 a->M.s[count] = -2.0*(visc_ijk+ev_ijk)/(p->DXN[IP]*p->DXP[IP]);
-	 a->M.n[count] = -2.0*(visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP1]*p->DXP[IP]);
-	 
-	 a->M.e[count] = -visc_ddy_m/(p->DYP[JM1]*p->DYN[JP]);
-	 a->M.w[count] = -visc_ddy_p/(p->DYP[JP]*p->DYN[JP]);
-	 
-	 a->M.b[count] = -visc_ddz_m/(p->DZP[KM1]*p->DZN[KP]);
-	 a->M.t[count] = -visc_ddz_p/(p->DZP[KP]*p->DZN[KP]);
-	 
-     ++count;
-	 }
+            d->M.n[n] = -visc/(p->DXP[IP]*p->DXN[IP]);
+            d->M.s[n] = -visc/(p->DXP[IM1]*p->DXN[IP]);
+
+            d->M.w[n] = -visc/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
+            d->M.e[n] = -visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+
+            d->M.t[n] = -2.0*(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KP])     
+                        - 2.0*p->sigxx[FIJK]/((p->DZN[KP]+p->DZN[KM1]));
+                        
+            d->M.b[n] = -2.0*(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KM1]) 
+                        + 2.0*p->sigxx[FIJK]/((p->DZN[KP]+p->DZN[KM1]));
+            
+            
+            d->rhsvec.V[n] += visc*((UH[Ip1JKp1]-UH[Ip1JKm1]) - (UH[Im1JKp1]-UH[Im1JKm1]))/((p->DZN[KP]+p->DZN[KM1])*(p->DXP[IP]+p->DXP[IM1]))
+						 +  visc*((VH[IJp1Kp1]-VH[IJp1Km1]) - (VH[IJp1Kp1]-VH[IJm1Km1]))/((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))
+
+						 + (CPORNH*WHin[IJK])/(alpha*p->dt)
+                            
+                            
+                            + visc*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(WH[FIp1JKp1] - WH[FIm1JKp1] - WH[FIp1JKm1] + WH[FIm1JKm1])
+                            /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
+                        
+                            + visc*2.0*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(WH[FIJp1Kp1] - WH[FIJm1Kp1] - WH[FIJp1Km1] + WH[FIJm1Km1])
+                            /((p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
+        }
+        
+        if(p->wet[IJ]==0 || p->deep[IJ]==0 || p->flag7[FIJK]<0 || d->breaking(i,j)==1)
+        {
+        d->M.p[n]  =  1.0;
+
+
+        d->M.n[n] = 0.0;
+        d->M.s[n] = 0.0;
+
+        d->M.w[n] = 0.0;
+        d->M.e[n] = 0.0;
+
+        d->M.t[n] = 0.0;
+        d->M.b[n] = 0.0;
+        
+        d->rhsvec.V[n] =  0.0;
+        }
+	
+	++n;
+	}
+    
+    
     
     n=0;
-	ULOOP
+	LOOP
 	{
-		if(p->flag1[Im1JK]<0)
-		{
-		a->rhsvec.V[n] -= a->M.s[n]*u(i-1,j,k);
-		a->M.s[n] = 0.0;
-		}
-		
-		if(p->flag1[Ip1JK]<0)
-		{
-		a->rhsvec.V[n] -= a->M.n[n]*u(i+1,j,k);
-		a->M.n[n] = 0.0;
-		}
-		
-		if(p->flag1[IJm1K]<0)
-		{
-		a->rhsvec.V[n] -= a->M.e[n]*u(i,j-1,k);
-		a->M.e[n] = 0.0;
-		}
-		
-		if(p->flag1[IJp1K]<0)
-		{
-		a->rhsvec.V[n] -= a->M.w[n]*u(i,j+1,k);
-		a->M.w[n] = 0.0;
-		}
-		
-		if(p->flag1[IJKm1]<0)
-		{
-		a->rhsvec.V[n] -= a->M.b[n]*u(i,j,k-1);
-		a->M.b[n] = 0.0;
-		}
-		
-		if(p->flag1[IJKp1]<0)
-		{
-		a->rhsvec.V[n] -= a->M.t[n]*u(i,j,k+1);
-		a->M.t[n] = 0.0;
-		}
-
+        if(p->wet[IJ]==1 && d->breaking(i,j)==0)
+        {
+            if(p->flag7[FIm1JK]<0)
+            {
+            d->rhsvec.V[n] -= d->M.s[n]*WH[FIm1JK];
+            d->M.s[n] = 0.0;
+            }
+            
+            if(p->flag7[FIp1JK]<0)
+            {
+            d->rhsvec.V[n] -= d->M.n[n]*WH[FIp1JK];
+            d->M.n[n] = 0.0;
+            }
+            
+            if(p->flag7[FIJm1K]<0)
+            {
+            d->rhsvec.V[n] -= d->M.e[n]*WH[FIJm1K]*p->y_dir;
+            d->M.e[n] = 0.0;
+            }
+            
+            if(p->flag7[FIJp1K]<0)
+            {
+            d->rhsvec.V[n] -= d->M.w[n]*WH[FIJp1K]*p->y_dir;
+            d->M.w[n] = 0.0;
+            }
+            
+            if(p->flag7[FIJKm1]<0)
+            {
+            d->rhsvec.V[n] -= d->M.b[n]*WH[FIJKm1];
+            d->M.b[n] = 0.0;
+            }
+            
+            if(p->flag7[FIJKp2]<0 && p->flag7[FIJKp1]>0)
+            {
+            d->rhsvec.V[n] -= d->M.t[n]*WH[FIJKp1];
+            d->M.t[n] = 0.0;
+            }
+  
+        }
 	++n;
 	}
 	
-	psolv->start(p,a,pgc,diff,a->rhsvec,1);
+    psolv->startF(p,pgc,WHdiff,d->rhsvec,d->M,8);
     
 	
-    pgc->start1(p,diff,gcval_u);
+    pgc->start4V(p,WHdiff,gcval_wh);
     
     
 	time=pgc->timer()-starttime;
 	p->uiter=p->solveriter;
 	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
-	cout<<"udiffiter: "<<p->uiter<<"  udifftime: "<<setprecision(3)<<time<<endl;*/
+	cout<<"udiffiter: "<<p->uiter<<"  udifftime: "<<setprecision(3)<<time<<endl;
 }
