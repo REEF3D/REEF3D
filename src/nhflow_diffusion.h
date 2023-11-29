@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,33 +20,25 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sediment_f.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"fdm2D.h"
-#include"ghostcell.h"
-#include"sediment_fdm.h"
+class lexer;
+class fdm_nhf;
+class ghostcell;
+class solver;
 
-void sediment_f::prep_cfd(lexer *p, fdm *a,ghostcell *pgc)
-{    
-    
-    // vel prep --------
-    pgc->start1(p,a->u,14);
-	pgc->start2(p,a->v,15);
-	pgc->start3(p,a->w,16);
-    
-    // find bedk -------
-    fill_bedk(p,a,pgc);
-    
-    fill_PQ_cfd(p,a,pgc);
-    
-    waterlevel(p,a,pgc);
-    
-}
+#ifndef NHFLOW_DIFFUSION_H_
+#define NHFLOW_DIFFUSION_H_
 
-void sediment_f::prep_sflow(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q)
+using namespace std;
+
+class nhflow_diffusion
 {
-    
-    fill_PQ_sflow(p,b,pgc,P,Q);
-    
-}
+public:
+
+	virtual void diff_u(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, double)=0;
+	virtual void diff_v(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, double)=0;
+    virtual void diff_w(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, double)=0;
+    virtual void diff_scalar(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, double)=0;
+
+};
+
+#endif
