@@ -83,8 +83,8 @@ void driver::logic_nhflow()
 	pnhfconvec=new nhflow_HLLC(p,pgc,pBC);
     
 //Diffusion
-    if(p->A512==2)
-    pnhfdiff = new nhflow_idiff(p);
+    //if(p->A512==2)
+    //pnhfdiff = new nhflow_idiff(p);
     
 //pressure scheme
     if(p->A520==0)
