@@ -41,6 +41,8 @@ void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
 	{
         if(p->wet[IJ]==1 && p->deep[IJ]==1 && d->breaking(i,j)==0)
         {
+            visc = d->VISC[IJK];
+            
             sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
             
             
