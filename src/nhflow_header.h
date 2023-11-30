@@ -39,6 +39,8 @@ Author: Hans Bihs
 #include"nhflow_HLLC.h"
 #include"nhflow_convection_void.h"
 
+#include"nhflow_idiff.h"
+
 #include"nhflow_momentum_RK2.h"
 #include"nhflow_momentum_RK3.h"
 

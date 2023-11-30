@@ -75,12 +75,16 @@ void driver::logic_nhflow()
     if(p->A514==5)
     precon = new nhflow_reconstruct_wenograd(p,pBC);
     
-    //Convection	
+//Convection	
     if(p->A511==1 || p->A511==8)
 	pnhfconvec=new nhflow_HLL(p,pgc,pBC);
     
     if(p->A511==2 || p->A511==9)
 	pnhfconvec=new nhflow_HLLC(p,pgc,pBC);
+    
+//Diffusion
+    if(p->A512==2)
+    pnhfdiff = new nhflow_idiff(p);
     
 //pressure scheme
     if(p->A520==0)
@@ -165,7 +169,6 @@ void driver::logic_nhflow()
 
 	if(p->B180==1||p->B191==1||p->B192==1)
 	pflow = new ioflow_gravity(p,pgc,pBC);
-    
     
 //6DOF
     if(p->X10!=3)
