@@ -29,8 +29,9 @@ Author: Hans Bihs
 #include<sys/types.h>
 
 particle_f::particle_f(lexer* p, fdm *a, ghostcell* pgc) : norm_vec(p), active(p),posnum(p), 
-                                epsi(1.5*p->DXM), dx(p->DXM), dy(p->DXM), dz(p->DXM),rmin(0.1*p->DXM),
-                                rmax(0.5*p->DXM), irand(100000), drand(100000.0)
+                                zero (0.0), epsi(1.5*p->DXM),dx(p->DXM),rmin(0.1*p->DXM),
+                                rmax(0.5*p->DXM),ipolval(1), irand(100000), drand(100000.0),
+							  nu(1.0e-10*p->DXM)
 {
     pcount=0;
     posactive=0;
@@ -65,8 +66,8 @@ particle_f::~particle_f()
 void particle_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
 {
 
-	if (p->count>=p->Q43)
-    	advect(p,a,pgc,pos,posflag,pactive);
+    advect(p,a,pgc,pos,posflag,pactive);
+
 	particlex(p,a,pgc);
     //remove(p,a,pgc);
 	
