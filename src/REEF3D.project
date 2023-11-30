@@ -323,8 +323,9 @@
           <File Name="nhflow_fsf.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Diffusion">
-          <File Name="idiff2_FS_sig.h"/>
-          <File Name="idiff2_FS_2D_sig.h"/>
+          <File Name="nhflow_idiff_2D.h"/>
+          <File Name="nhflow_idiff.h"/>
+          <File Name="nhflow_diffusion.h"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="FNPF">
@@ -1402,12 +1403,13 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Diffusion">
-          <File Name="idiff2_FSw_sig.cpp"/>
-          <File Name="idiff2_FSw_2D_sig.cpp"/>
-          <File Name="idiff2_FSv_sig.cpp"/>
-          <File Name="idiff2_FSv_2D_sig.cpp"/>
-          <File Name="idiff2_FSu_sig.cpp"/>
-          <File Name="idiff2_FSu_2D_sig.cpp"/>
+          <File Name="nhflow_idiff_scalar.cpp"/>
+          <File Name="nhflow_idiff_w.cpp"/>
+          <File Name="nhflow_idiff_w_2D.cpp"/>
+          <File Name="nhflow_idiff_v.cpp"/>
+          <File Name="nhflow_idiff_v_2D.cpp"/>
+          <File Name="nhflow_idiff_u.cpp"/>
+          <File Name="nhflow_idiff_u_2D.cpp"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="FNPF">
@@ -2144,12 +2146,10 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
       <VirtualDirectory Name="Forcing">
+        <File Name="gcdf_update.cpp"/>
         <File Name="gc_solid_forcing_interface.cpp"/>
         <File Name="gc_solid_forcing_ini.cpp"/>
         <File Name="gc_solid_forcing.cpp"/>
-      </VirtualDirectory>
-      <VirtualDirectory Name="DFupdate">
-        <File Name="gcdf_update.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Epol">
         <File Name="gc_startV.cpp"/>

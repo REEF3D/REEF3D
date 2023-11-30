@@ -79,9 +79,6 @@ void potential_f::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
     }
     
     pgc->start4(p,psi,gcval_pot);
-
-    LOOP
-    a->test(i,j,k) = psi(i,j,k);
     
     ucalc(p,a,psi);
 	vcalc(p,a,psi);
@@ -313,31 +310,6 @@ void potential_f::laplace(lexer *p, fdm *a, ghostcell *pgc, field &phi)
 	++n;
 	}
     
-    
-    
-    /*
-    n=0;
-	LOOP
-	{
-        if((p->X10==0 || a->fb(i,j,k)>0.0) && (p->G3==0 || (a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0)))
-        {
-            
-		if(p->flag4[Im1JK]<0 && bc(i-1,j,k)==1)
-		{
-        a->test(i,j,k) = a->M.p[n];
-		//a->M.p[n] += a->M.s[n];
-        }
-        }
-
-	++n;
-	}*/
-    
-    n=0;
-    LOOP
-    {
-    a->test(i,j,k) = a->M.p[n];
-    ++n;
-    }
 }
 
 void potential_f::ini_bc(lexer *p, fdm *a, ghostcell *pgc)
@@ -445,42 +417,4 @@ void potential_f::smoothen(lexer *p, fdm *a, ghostcell* pgc)
     
     pgc->start3(p,a->w,12);
     }
-    
-    
-    /*field1 h1(p);
-    field2 h2(p);
-    field3 h3(p);
-    
-    
-    
-    for(int qn=0;qn<outer_iter;++qn)
-	{
-		ULOOP
-		h1(i,j,k) = f(i,j,k);
-		
-		pgc->gc_start1(p,h1,1);
-	
-        // predictor
-		ULOOP
-		f(i,j) = 0.5*h(i,j) + 0.125*(h(i-1,j) + h(i+1,j) + h(i,j-1) + h(i,j+1));
-		
-        // corrector
-		for(int qqn=0;qqn<inner_iter;++qqn)
-		{
-            ULOOP
-            if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
-            dh(i,j) = h(i,j) - f(i,j);
-            
-            
-            ULOOP
-            if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
-            dh(i,j) = 0.5*dh(i,j) + 0.125*(dh(i-1,j) + dh(i+1,j) + dh(i,j-1) + dh(i,j+1));
-            
-            ULOOP
-            if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
-            f(i,j) += dh(i,j);
-		}
-    }*/
-    
-    
 }

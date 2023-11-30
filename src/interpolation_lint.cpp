@@ -59,7 +59,7 @@ pip=0;
 
     value = wc*y1 +(1.0-wc)*y2;
 
- return value;
+    return value;
 }
 
 double interpolation::lint2(field& b, int& i,int& j, int& k, double wa, double wb, double wc)

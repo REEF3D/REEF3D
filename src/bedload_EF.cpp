@@ -45,7 +45,6 @@ bedload_EF::~bedload_EF()
 
 void bedload_EF::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {
-
 	double qb,qbx,qby,Ts,Tb;
 	
 	SLICELOOP4

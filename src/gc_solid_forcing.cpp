@@ -65,6 +65,7 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
         fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha*p->dt);   
         a->fbh1(i,j,k) = min(a->fbh1(i,j,k) + H, 1.0); 
     }
+    
     VLOOP
     {
         vf = 0.0;
@@ -73,6 +74,7 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
         fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha*p->dt);
         a->fbh2(i,j,k) = min(a->fbh2(i,j,k) + H, 1.0); 
     }
+    
     WLOOP
     {
         wf = 0.0;
@@ -81,11 +83,12 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
         fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha*p->dt);
         a->fbh3(i,j,k) = min(a->fbh3(i,j,k) + H, 1.0); 
     }
+    
     LOOP
     {
         H = Hsolidface(p,a,0,0,0);
-        //a->test(i,j,k) = H;
         a->fbh4(i,j,k) = min(a->fbh4(i,j,k) + H, 1.0); 
+        a->test(i,j,k) = a->fbh4(i,j,k) ;
     }
     	
     psi = 1.1*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
@@ -100,7 +103,6 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
         dirac = (0.5/psi)*(1.0 + cos((PI*(MIN(a->solid(i,j,k),a->topo(i,j,k))))/psi));
         
         a->fbh5(i,j,k) = 1.0-MIN(dirac,1.0);
-        //a->test(i,j,k) = a->fbh5(i,j,k) ;
     }
     
     }
@@ -151,6 +153,7 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
 	
         a->fbh1(i,j,k) = min(a->fbh1(i,j,k) + H, 1.0); 
     }
+    
     VLOOP
     {
         vf = 0.0;

@@ -28,7 +28,8 @@ Author: Hans Bihs
 #include"sediment_fdm.h"
 
 void sediment_f::prep_cfd(lexer *p, fdm *a,ghostcell *pgc)
-{
+{    
+    
     // vel prep --------
     pgc->start1(p,a->u,14);
 	pgc->start2(p,a->v,15);
