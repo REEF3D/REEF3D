@@ -67,7 +67,7 @@ void lexer::ini_default()
     A322=5;      // int maxiter for 4th-order Laplace after 2nd-order solution
     A323=1;      // int PTF FSF extrapolation
     A329=1;      // int wave maker BC order
-    A341=1.0e20;    // double coastline damping distance factor for dxm
+    A340=1.0e20;    // double minimum water depth
     A341=0.0;    // double coastline damping distance factor for dxm
     A342=0.0;    // double coastline damping absolute distance
     A343=1;      // int turn on wetting-drying
@@ -688,7 +688,6 @@ void lexer::ini_default()
     X12=1;      // int turn force calculation on
     X14=1;      // int tangential velocity 
     X15=2;      // int density treatment for direct forcing
-	X18=0;		// int relaxation method solid velocities
 	X19=1;		// int print out interval 6DOF log files
 	X21=1;		// int presribe homogeneous density floating body
 	X21_d=900.0;		// double presribe homogeneous density floating body

@@ -20,28 +20,34 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"initialize.h"
-#include"fdm.h"
-#include"lexer.h"
-#include"ghostcell.h"
+#include"nhflow_diffusion.h"
+#include"increment.h"
 
-void initialize::topoini(lexer *p, fdm *a, ghostcell *pgc)
+#ifndef NHFLOW_IDIFF_H_
+#define NHFLOW_IDIFF_H_
+
+using namespace std;
+
+class nhflow_idiff : public nhflow_diffusion, public increment
 {
-    double dx=p->DXM;
+public:
+    nhflow_idiff(lexer*);
+	virtual ~nhflow_idiff();
 
-    ALOOP
-	a->topo(i,j,k)=1.0;
-
-
-    if(p->S57>-1.0e20)
-    {
-    ALOOP
-    a->topo(i,j,k)=-p->S57+p->ZP[KP];
+	virtual void diff_u(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, double);
+	virtual void diff_v(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, double);
+    virtual void diff_w(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, double);
+    virtual void diff_scalar(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, double);
     
-    if(p->G3==1)
-    p->toporead=1;
-    }
-	
-	pgc->start4a(p,a->topo,150);
+private:
+    int gcval_u,gcval_v,gcval_w;
+    int gcval_uh,gcval_vh,gcval_wh;
+    
+    double time,starttime,endtime;
+    
+    double visc;
+    double sigxyz2;
 
-}
+};
+
+#endif

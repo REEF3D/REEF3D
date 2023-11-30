@@ -109,6 +109,15 @@ void driver::driver_ini_cfd()
     preto->start(p,a,pgc,a->topo);
     psed->update_cfd(p,a,pgc,pflow,preto);
     pgc->start4a(p,a->topo,150);
+    
+        // Solid Forcing
+        if(p->G3==1)
+        {
+        if(p->mpirank==0)
+        cout<<"driver solid forcing initialize"<<endl;
+        
+        pgc->solid_forcing_ini(p,a);
+        }
     }
     
     // patchBC ini

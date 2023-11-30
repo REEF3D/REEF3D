@@ -188,6 +188,4 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *si
     }
 
 	L.V[n] = -(sign*dnorm - sign) + diffterm;
-    
-    //a->test(i,j,k) = dz;
 }

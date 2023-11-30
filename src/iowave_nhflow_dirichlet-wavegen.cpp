@@ -80,8 +80,8 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             j=p->gcin[n][1];
             k=p->gcin[n][2];
             
-            d->eddyv[IJK]=MIN(d->eddyv[IJK],1.0e-4);
+            d->EV[IJK]=MIN(d->EV[IJK],1.0e-4);
             }
-        pgc->start4V(p,d->eddyv,24);
+        pgc->start4V(p,d->EV,24);
 		}
 }

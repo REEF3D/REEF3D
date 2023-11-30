@@ -27,14 +27,13 @@ Author: Hans Bihs
 
 void ghostcell::gcdf_update(lexer *p, fdm *a)
 {
-    
     // FLAGSF
     LOOP
     {
-    if(a->fb(i,j,k)>0.0 && (a->solid(i,j,k)>0.0 || p->solidread==0) && (a->topo(i,j,k)>0.0 || p->toporead==0))
+    if((a->fb(i,j,k)>0.0 || p->X10==0) && (a->solid(i,j,k)>0.0 || p->solidread==0) && (a->topo(i,j,k)>0.0 || p->toporead==0))
     p->flagsf4[IJK]=1;
     
-    if(a->fb(i,j,k)<0.0 || a->solid(i,j,k)<0.0 || a->topo(i,j,k)<0.0)
+    if((a->fb(i,j,k)<0.0 && p->X10==1) || (a->solid(i,j,k)<0.0 && p->solidread==1) || (a->topo(i,j,k)<0.0 && p->toporead==1))
     p->flagsf4[IJK]=-1;
     }
     
@@ -64,25 +63,25 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     count=0;
     
     LOOP
-    if(a->fb(i,j,k)>=0.0 && (a->solid(i,j,k)>=0.0 || p->solidread==0) && (a->topo(i,j,k)>=0.0 || p->toporead==0))
+    if(p->flagsf4[IJK]>0)
     {
      
-        if(a->fb(i-1,j,k)<0.0 || a->solid(i-1,j,k)<0.0 || a->topo(i-1,j,k)<0.0)
+        if(p->flagsf4[Im1JK]<0)
         ++count;
         
-        if(a->fb(i+1,j,k)<0.0 || a->solid(i+1,j,k)<0.0 || a->topo(i+1,j,k)<0.0)
+        if(p->flagsf4[Ip1JK]<0)
         ++count;
         
-        if(a->fb(i,j-1,k)<0.0 || a->solid(i,j-1,k)<0.0 || a->topo(i,j-1,k)<0.0)
+        if(p->flagsf4[IJm1K]<0)
         ++count;
         
-        if(a->fb(i,j+1,k)<0.0 || a->solid(i,j+1,k)<0.0 || a->topo(i,j+1,k)<0.0)
+        if(p->flagsf4[IJp1K]<0)
         ++count;
 
-        if(a->fb(i,j,k-1)<0.0 || a->solid(i,j,k-1)<0.0 || a->topo(i,j,k-1)<0.0)
+        if(p->flagsf4[IJKm1]<0)
         ++count;
         
-        if(a->fb(i,j,k+1)<0.0 || a->solid(i,j,k+1)<0.0 || a->topo(i,j,k+1)<0.0)
+        if(p->flagsf4[IJKp1]<0)
         ++count;        
     }
     
@@ -99,9 +98,9 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     count=0;
     
     LOOP
-    if(a->fb(i,j,k)>0.0 && (a->solid(i,j,k)>0.0 || p->solidread==0) && (a->topo(i,j,k)>0.0 || p->toporead==0))
+    if(p->flagsf4[IJK]>0)
     {
-        if(a->fb(i-1,j,k)<0.0 || a->solid(i-1,j,k)<0.0 || a->topo(i-1,j,k)<0.0)
+        if(p->flagsf4[Im1JK]<0)
         {
         p->gcdf4[count][0]=i;
         p->gcdf4[count][1]=j;
@@ -111,7 +110,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
         ++count;
         }
         
-        if(a->fb(i+1,j,k)<0.0 || a->solid(i+1,j,k)<0.0 || a->topo(i+1,j,k)<0.0)
+        if(p->flagsf4[Ip1JK]<0)
         {
         p->gcdf4[count][0]=i;
         p->gcdf4[count][1]=j;
@@ -121,7 +120,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
         ++count;
         }
         
-        if(a->fb(i,j-1,k)<0.0 || a->solid(i,j-1,k)<0.0 || a->topo(i,j-1,k)<0.0)
+        if(p->flagsf4[IJm1K]<0)
         {
         p->gcdf4[count][0]=i;
         p->gcdf4[count][1]=j;
@@ -131,7 +130,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
         ++count;
         }
         
-        if(a->fb(i,j+1,k)<0.0 || a->solid(i,j+1,k)<0.0 || a->topo(i,j+1,k)<0.0)
+        if(p->flagsf4[IJp1K]<0)
         {
         p->gcdf4[count][0]=i;
         p->gcdf4[count][1]=j;
@@ -141,7 +140,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
         ++count;
         }
 
-        if(a->fb(i,j,k-1)<0.0 || a->solid(i,j,k-1)<0.0 || a->topo(i,j,k-1)<0.0)
+        if(p->flagsf4[IJKm1]<0)
         {
         p->gcdf4[count][0]=i;
         p->gcdf4[count][1]=j;
@@ -151,7 +150,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
         ++count;
         }
         
-        if(a->fb(i,j,k+1)<0.0 || a->solid(i,j,k+1)<0.0 || a->topo(i,j,k+1)<0.0)
+        if(p->flagsf4[IJKp1]<0)
         {
         p->gcdf4[count][0]=i;
         p->gcdf4[count][1]=j;
@@ -165,19 +164,26 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     fieldint4 cval(p);
     
     count=0;
+    
+    FLUIDLOOP
+    a->test(i,j,k)=0.0;
 
     FLUIDLOOP
 	{
     cval(i,j,k)=count;
+    
     ++count;
 	}
+    
+    //LOOP
+    //a->test(i,j,k) = double(p->flagsf4[IJK]);
     
     GCDF4LOOP
     {
     i=p->gcdf4[n][0];
     j=p->gcdf4[n][1];
     k=p->gcdf4[n][2];
-	
+	//a->test(i,j,k)=1.0;
 	p->gcdf4[n][5]=cval(i,j,k);
 	}
     

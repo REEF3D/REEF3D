@@ -213,9 +213,6 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
     pgc->start1(p,fx,10);
     pgc->start2(p,fy,11);
     pgc->start3(p,fz,12);
-
-    ULOOP
-    a->test(i,j,k) = fx(i,j,k); 
     
     pgc->start4(p,a->test,10);
 }

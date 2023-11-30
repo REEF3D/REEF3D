@@ -20,28 +20,25 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"initialize.h"
-#include"fdm.h"
-#include"lexer.h"
-#include"ghostcell.h"
+class lexer;
+class fdm_nhf;
+class ghostcell;
+class solver;
 
-void initialize::topoini(lexer *p, fdm *a, ghostcell *pgc)
+#ifndef NHFLOW_DIFFUSION_H_
+#define NHFLOW_DIFFUSION_H_
+
+using namespace std;
+
+class nhflow_diffusion
 {
-    double dx=p->DXM;
+public:
 
-    ALOOP
-	a->topo(i,j,k)=1.0;
+	virtual void diff_u(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, double)=0;
+	virtual void diff_v(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, double)=0;
+    virtual void diff_w(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, double)=0;
+    virtual void diff_scalar(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, double)=0;
 
+};
 
-    if(p->S57>-1.0e20)
-    {
-    ALOOP
-    a->topo(i,j,k)=-p->S57+p->ZP[KP];
-    
-    if(p->G3==1)
-    p->toporead=1;
-    }
-	
-	pgc->start4a(p,a->topo,150);
-
-}
+#endif
