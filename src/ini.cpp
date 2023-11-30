@@ -125,7 +125,8 @@ void lexer::ini_default()
 
     // Boundary Conditions
 	B10=0;			// int wall laws velocities on/off
-	B20=2;			// int slip or no-slip boundary condition for velocity    B23=1;            // int ghostcell extrapolation or refective
+	B20=2;			// int slip or no-slip boundary condition for velocity
+    B23=1;            // int ghostcell extrapolation or refective
 	B29=0.5;		// double gamma for gc image point
 	B30=0;			// int type of pressure reference point
     B31=0.0;         // double pressure reference value
@@ -299,7 +300,9 @@ void lexer::ini_default()
 	D11=2;			// int convection velocity scheme
 	D20=2;			// int diffusion scheme
 	D21=0;			// int print out implicit diffusion time and iterations
-	D30=1;			// int pressure scheme    D31=0;			// int normalize pressure to free surface    D32=1;			// int boundary treatment Poisson equation
+	D30=1;			// int pressure scheme
+    D31=0;			// int normalize pressure to free surface
+    D32=1;			// int boundary treatment Poisson equation
     D33=0;			// int corner cells sigma grid Poisson matrix
     D37=0;          // int type of FSFBC for single fluid flow
 
@@ -358,7 +361,33 @@ void lexer::ini_default()
 	F84=1.0;             // double cgamma for vof compression
     F85=0;             // int convection scheme VOF
 	F150=0;         // int benchmark
-	F151=0;         // int benchmark inverse sign of level set    F300=0;			 // int multiphase flow level set	F305=5;			 // int multiphase flow lsm convection	F310=3;			 // int multiphase flow reini	F321=1.6;		 // double epsi12	F322=1.6;		 // double epsi13	F323=1.6;		 // double epsi23	F350=0;			 // int multiphase flow fix level set inflow/outflow	F360=-1.0e20;  // double ini x-dir ls1	F361=-1.0e20;  // double ini y-dir ls1	F362=-1.0e20;  // double ini z-dir ls1	F369=0;             // int number of phi 1 ini tiltboxes ls1	F370=0;             // int number of phi 1 ini boxes ls1	F371=0;             // int number of phi 2 ini boxes ls1    F374=0;             // int number of pos ls1 ycyl    F375=0;             // int number of neg ls1 ycyl    F378=0;             // int number of pos ls1 sphere    F379=0;             // int number of neg ls1 sphere	F380=-1.0e20;  // double ini x-dir ls2	F381=-1.0e20;  // double ini y-dir ls2	F382=-1.0e20;  // double ini z-dir ls2	F390=0;             // int number of phi 1 ini boxes ls2	F391=0;             // int number of phi 2 ini boxes ls2    F394=0;             // int number of pos ls2 ycyl    F395=0;             // int number of neg ls2 ycyl    F398=0;             // int number of pos ls2 sphere    F399=0;             // int number of neg ls2 sphere
+	F151=0;         // int benchmark inverse sign of level set
+    F300=0;			 // int multiphase flow level set
+	F305=5;			 // int multiphase flow lsm convection
+	F310=3;			 // int multiphase flow reini
+	F321=1.6;		 // double epsi12
+	F322=1.6;		 // double epsi13
+	F323=1.6;		 // double epsi23
+	F350=0;			 // int multiphase flow fix level set inflow/outflow
+	F360=-1.0e20;  // double ini x-dir ls1
+	F361=-1.0e20;  // double ini y-dir ls1
+	F362=-1.0e20;  // double ini z-dir ls1
+	F369=0;             // int number of phi 1 ini tiltboxes ls1
+	F370=0;             // int number of phi 1 ini boxes ls1
+	F371=0;             // int number of phi 2 ini boxes ls1
+    F374=0;             // int number of pos ls1 ycyl
+    F375=0;             // int number of neg ls1 ycyl
+    F378=0;             // int number of pos ls1 sphere
+    F379=0;             // int number of neg ls1 sphere
+	F380=-1.0e20;  // double ini x-dir ls2
+	F381=-1.0e20;  // double ini y-dir ls2
+	F382=-1.0e20;  // double ini z-dir ls2
+	F390=0;             // int number of phi 1 ini boxes ls2
+	F391=0;             // int number of phi 2 ini boxes ls2
+    F394=0;             // int number of pos ls2 ycyl
+    F395=0;             // int number of neg ls2 ycyl
+    F398=0;             // int number of pos ls2 sphere
+    F399=0;             // int number of neg ls2 sphere
 
     // Grid
     G2=0;            // int sigma grid
@@ -476,7 +505,8 @@ void lexer::ini_default()
 	P41=1;			// int print state file each ith iteration
 	P42=-1.0;			// double print state file each ith sec
     P43=0;             // int state print out selected area
-    P44=0;             // int print out 3D potential for FNPF    P45=1;             // int print into single or continous state file
+    P44=0;             // int print out 3D potential for FNPF
+    P45=1;             // int print into single or continous state file
     P50=0;				// int wave theory wave gages
 	P51=0;             // int print out wsf
 	P52=0;            // int print out wsfline in x-dir
@@ -525,7 +555,12 @@ void lexer::ini_default()
 	P181=-10;		  // int ith iteration fsf printed
 	P182=-1.0;       // double time between fsf file printout in seconds
     P184=0;       // int time between file printout in iterations
-	P185=0;        	// int time between file printout in seconds    P190=0;			  // int print topo	P191=-10;		  // int ith iteration topo printed	P192=-1.0;       // double time between topo file printout in seconds    P194=0;       // int time between file printout in iterations	P195=0;        	// int time between file printout in seconds
+	P185=0;        	// int time between file printout in seconds
+    P190=0;			  // int print topo
+	P191=-10;		  // int ith iteration topo printed
+	P192=-1.0;       // double time between topo file printout in seconds
+    P194=0;       // int time between file printout in iterations
+	P195=0;        	// int time between file printout in seconds
     P230=0;         // int print flowfile
     P240=0;         // int print potentialfile
 	P351=0;             // int print out wsf lsm1
@@ -541,6 +576,7 @@ void lexer::ini_default()
     Q29=0;              // int seed number for random particle placement
     Q31=0.001;          // double particle diameter
     Q41=0.5;            // double porosity
+    Q43=0;              // int number of water iteration, before particle transport starts
     Q101=0;             // int ini particle as topo
     Q110=0;             // int ini particle as box
     Q111=0;             // int ini particle x-dir
@@ -630,7 +666,9 @@ void lexer::ini_default()
 	W2=1.004e-6;	// double viscosity water
 	W3=1.205;		// double density air
 	W4=1.41e-5;		// double viscosity air
-	W5=0.0;			// double surface tension between phase 1 and phase 2    W6=840.0;			// double density oil	W7=3.0e-4;		// double viscosity oil
+	W5=0.0;			// double surface tension between phase 1 and phase 2
+    W6=840.0;			// double density oil
+	W7=3.0e-4;		// double viscosity oil
 	W10=0.0;		// double discharge
     W11=0;         // int velocity inlet face 1
     W11_u=0.0;     // double u-velocity inlet face 1
@@ -741,7 +779,10 @@ void lexer::ini_default()
     X182_x=X182_y=X182_z=0.0;  // double translation of stl geometry
     X183=0;
     X183_x=X183_y=X183_z=X183_phi=X183_theta=X183_psi=0.0;
-    X184=0.7;   // double refinement factor    X205=1;     // type of ramp up function    X206=0;     // int ramp up velocity    X206_ts=0.0;   // double ramp start
+    X184=0.7;   // double refinement factor
+    X205=1;     // type of ramp up function
+    X206=0;     // int ramp up velocity
+    X206_ts=0.0;   // double ramp start
     X206_ts=0.0;   // double ramp start
     X207=0;     // int ramp up draft
     X207_ts=0.0;   // double ramp start
