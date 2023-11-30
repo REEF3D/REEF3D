@@ -61,7 +61,7 @@ nhflow_momentum_RKCT2::~nhflow_momentum_RKCT2()
 }
 
 void nhflow_momentum_RKCT2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_signal_speed *pss, 
-                                     nhflow_reconstruct *precon, nhflow_convection *pconvec, diffusion *pdiff, 
+                                     nhflow_reconstruct *precon, nhflow_convection *pconvec, nhflow_diffusion *pdiff, 
                                      nhflow_pressure *ppress, solver *psolv, nhflow *pnhf, nhflow_fsf *pfsf, nhflow_turbulence *pnhfturb, vrans *pvrans)
 {	
     /*pflow->discharge_nhflow(p,d,pgc);

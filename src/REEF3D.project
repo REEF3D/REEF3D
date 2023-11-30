@@ -323,6 +323,7 @@
           <File Name="nhflow_fsf.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Diffusion">
+          <File Name="nhflow_diff_void.h"/>
           <File Name="nhflow_idiff_2D.h"/>
           <File Name="nhflow_idiff.h"/>
           <File Name="nhflow_diffusion.h"/>
@@ -1403,6 +1404,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Diffusion">
+          <File Name="nhflow_diff_void.cpp"/>
           <File Name="nhflow_idiff_scalar.cpp"/>
           <File Name="nhflow_idiff_w.cpp"/>
           <File Name="nhflow_idiff_w_2D.cpp"/>

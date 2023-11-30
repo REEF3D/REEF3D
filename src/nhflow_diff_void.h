@@ -20,35 +20,27 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-class lexer;
-class fdm_nhf;
-class ghostcell;
-class nhflow_signal_speed;
-class nhflow_convection;
-class nhflow_reconstruct;
-class nhflow_fsf_reconstruct;
-class nhflow_diffusion;
-class nhflow_pressure;
-class turbulence;
-class solver;
-class ioflow;
-class nhflow;
-class nhflow_fsf;
-class nhflow_turbulence;
-class vrans;
-class sixdof;
+#include"nhflow_diffusion.h"
+#include"increment.h"
+
+#ifndef NHFLOW_DIFF_VOID_H_
+#define NHFLOW_DIFF_VOID_H_
 
 using namespace std;
 
-#ifndef NHFLOW_MOMENTUM_H_
-#define NHFLOW_MOMENTUM_H_
-
-class nhflow_momentum
+class nhflow_diff_void : public nhflow_diffusion, public increment
 {
 public:
+    nhflow_diff_void(lexer*);
+	virtual ~nhflow_diff_void();
 
-	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_signal_speed*, nhflow_reconstruct*, nhflow_convection*, nhflow_diffusion*, nhflow_pressure*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*, vrans*)=0;
-    virtual void inidisc(lexer*, fdm_nhf*, ghostcell*, nhflow_fsf*)=0;
+	virtual void diff_u(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, double);
+	virtual void diff_v(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, double);
+    virtual void diff_w(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, double);
+    virtual void diff_scalar(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, double);
+    
+private:
+
 
 };
 

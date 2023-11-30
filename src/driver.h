@@ -66,6 +66,7 @@ class nhflow_reconstruct;
 class nhflow_fsf_reconstruct;
 class nhflow_turbulence;
 class nhflow_pressure;
+class nhflow_diffusion;
 class sflow;
 class fnpf_vtu3D;
 class fnpf_timestep;
@@ -209,6 +210,7 @@ public:
     nhflow_reconstruct *precon;
     nhflow_pressure *pnhpress;
     nhflow_turbulence *pnhfturb;
+    nhflow_diffusion *pnhfdiff; 
     multiphase *pmp;
     nhflow_timestep *pnhfstep;
     nhflow_momentum *pnhfmom;

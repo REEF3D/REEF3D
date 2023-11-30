@@ -75,7 +75,7 @@ void driver::loop_nhflow()
         // 6DOF
         p6dof_sflow->start(p,pgc);
 
-        pnhfmom->start(p,d,pgc,pflow,pss,precon,pnhfconvec,pdiff,
+        pnhfmom->start(p,d,pgc,pflow,pss,precon,pnhfconvec,pnhfdiff,
                        pnhpress,ppoissonsolv,pnhf,pnhfsf,pnhfturb,pvrans); 
 
         //save previous timestep
