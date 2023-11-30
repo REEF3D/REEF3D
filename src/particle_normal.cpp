@@ -28,23 +28,23 @@ Author: Hans Bihs
 
 void particle_f::normal(fdm* a, double& xp, double& yp, double& zp, double& value)
 {
-    double wa, wb, wc, wx, wy, wz, val1, val2, di, dj, dk, dnorm;
+
     ii=i;
     jj=j;
     kk=k;
 
     i=int((xp)/dx-0.5);
-    j=int((yp)/dy-0.5);
-    k=int((zp)/dz-0.5);
+    j=int((yp)/dx-0.5);
+    k=int((zp)/dx-0.5);
 
 
     wa=((double(i) + 1.5)-xp/dx);
-    wb=((double(j) + 1.5)-yp/dy);
-    wc=((double(k) + 1.5)-zp/dz);
+    wb=((double(j) + 1.5)-yp/dx);
+    wc=((double(k) + 1.5)-zp/dx);
 
     wx = wa*dx;
-    wy = wb*dy;
-    wz = wc*dz;
+    wy = wb*dx;
+    wz = wc*dx;
 
 // i
     val1=wc*(wb*a->phi(i,j,k) + (1.0-wb)*a->phi(i,j+1,k))     + (1.0-wc)*(wb*a->phi(i,j,k+1) + (1.0-wb)*a->phi(i,j+1,k+1));
@@ -68,10 +68,10 @@ void particle_f::normal(fdm* a, double& xp, double& yp, double& zp, double& valu
     dj=(val2-value)/(wy);
 
     if(wb<0.2)
-    dj=(value-val1)/((dy-wy));
+    dj=(value-val1)/((dx-wy));
 
     if(wb>=0.2 && wb<=0.8)
-    dj=(val2*(dy-wy)*(dy-wy) -val1*wy*wy + value*(wy*wy-(dy-wy)*(dy-wy)))/(wy*(dy-wy)*(wy+(dy-wy)));
+    dj=(val2*(dx-wy)*(dx-wy) -val1*wy*wy + value*(wy*wy-(dx-wy)*(dx-wy)))/(wy*(dx-wy)*(wy+(dx-wy)));
 
 // k
     val1=wb*(wa*a->phi(i,j,k) + (1.0-wa)*a->phi(i+1,j,k))     + (1.0-wb)*(wa*a->phi(i,j+1,k) + (1.0-wa)*a->phi(i+1,j+1,k));
@@ -81,10 +81,10 @@ void particle_f::normal(fdm* a, double& xp, double& yp, double& zp, double& valu
     dk=(val2-value)/(wz);
 
     if(wc<0.2)
-    dk=(value-val1)/(dz-wz);
+    dk=(value-val1)/(dx-wz);
 
     if(wc>=0.2 && wc<=0.8)
-    dk=(val2*(dz-wz)*(dz-wz) -val1*wz*wz + value*(wz*wz-(dz-wz)*(dz-wz)))/(wz*(dz-wz)*(wz+(dz-wz)));
+    dk=(val2*(dx-wz)*(dx-wz) -val1*wz*wz + value*(wz*wz-(dx-wz)*(dx-wz)))/(wz*(dx-wz)*(wz+(dx-wz)));
 
     dnorm=sqrt(di*di + dj*dj + dk*dk);
 
@@ -99,14 +99,13 @@ void particle_f::normal(fdm* a, double& xp, double& yp, double& zp, double& valu
 
 void particle_f::normreg(fdm* a, int ii, int jj, int kk)
 {
-    double di, dj, dk, dnorm;
     i=ii;
     j=jj;
     k=kk;
 
     di = (a->phi(i+1,j,k)-a->phi(i-1,j,k))/(2.0*dx);
-    dj = (a->phi(i,j+1,k)-a->phi(i,j-1,k))/(2.0*dy);
-    dk = (a->phi(i,j,k+1)-a->phi(i,j,k-1))/(2.0*dz);
+    dj = (a->phi(i,j+1,k)-a->phi(i,j-1,k))/(2.0*dx);
+    dk = (a->phi(i,j,k+1)-a->phi(i,j,k-1))/(2.0*dx);
 
     dnorm=sqrt(di*di + dj*dj + dk*dk);
 

@@ -25,47 +25,17 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void particle_f::random_delete(lexer* p, fdm* a, ghostcell* pgc)
+double particle_f::hside(fdm* a)
 {
-	double lsc, maxpos;
-	double ppcell_coeff=1.0;
-	
-	int qn;
-	
-	// POS
-	for(qn=0;qn<2;++qn)
-    for(n=0;n<posactive;++n)
-    if(posflag[n]==1)
-    {
-		if(qn==0)
-		ppcell_coeff = 1.25;
-		
-		if(qn==1)
-		ppcell_coeff = 2.25;
-		
-        i=int((pos[n][0])/dx);
-        j=int((pos[n][1])/dx);
-        k=int((pos[n][2])/dx);
-		
-		lsc = a->phi(i,j,k);
-		
-		if(lsc<0.5*p->DXM && lsc>-0.5*p->DXM)
-		maxpos = (0.5 + lsc/p->DXM)*double(ppcell)*ppcell_coeff;
-		
-		if(lsc>=0.5*p->DXM)
-		maxpos = double(ppcell)*ppcell_coeff;
-		
-		if(lsc<=-0.5*p->DXM)
-		maxpos = 0.0;
-		
-		if(posnum(i,j,k)>maxpos)		
-		if(pos[n][3]>pos[n][4]+0.1*rmin || qn==1)
-		{
-		++pcount;
-		posflag[n]=0;
-        posmem[pcount]=n;
-        ++removed;
-		posnum(i,j,k)-=1.0;
-		}    
-    }
+    phival=fabs(a->phi(i,j,k));
+
+        if(phival>epsi)
+		Hval=0.0;
+
+		if(phival<=epsi)
+		Hval=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
+
+		return Hval;
 }
+
+

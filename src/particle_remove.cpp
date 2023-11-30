@@ -28,7 +28,6 @@ Author: Hans Bihs
 
 void particle_f::remove(lexer* p, fdm* a, ghostcell* pgc)
 {
-    int check;
     removed = 0;
 
     for(n=0;n<posactive;++n)
@@ -37,8 +36,8 @@ void particle_f::remove(lexer* p, fdm* a, ghostcell* pgc)
         if(posflag[n]>0)
         {
             i=int((pos[n][0])/dx);
-            j=int((pos[n][1])/dy);
-            k=int((pos[n][2])/dz);
+            j=int((pos[n][1])/dx);
+            k=int((pos[n][2])/dx);
 
             check=boundcheck(p,a,i,j,k,1);
 			
