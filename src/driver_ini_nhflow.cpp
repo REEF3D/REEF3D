@@ -98,6 +98,15 @@ void driver::driver_ini_nhflow()
     
     SLICELOOP4
     d->eta_n(i,j) = d->eta(i,j);
+    
+    LOOP
+    {
+    d->RO[IJK] = p->W1;
+    d->VISC[IJK] = p->W2;
+    }
+    
+    pgc->start4V(p,d->RO,1);
+    pgc->start4V(p,d->VISC,1);
 
 	pgc->start4V(p,d->U,10);
     pgc->start4V(p,d->V,11);
