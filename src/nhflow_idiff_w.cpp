@@ -139,7 +139,7 @@ void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
             d->M.b[n] = 0.0;
             }
             
-            if(p->flag4[IJKp2]<0 && p->flag4[IJKp1]>0)
+            if(p->flag4[IJKp1]<0 && p->flag4[IJKp1]>0)
             {
             d->rhsvec.V[n] -= d->M.t[n]*WH[IJKp1];
             d->M.t[n] = 0.0;

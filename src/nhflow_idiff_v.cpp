@@ -142,7 +142,7 @@ if(p->j_dir==1)
             d->M.b[n] = 0.0;
             }
             
-            if(p->flag4[IJKp2]<0 && p->flag4[IJKp1]>0)
+            if(p->flag4[IJKp1]<0 && p->flag4[IJKp1]>0)
             {
             d->rhsvec.V[n] -= d->M.t[n]*VH[IJKp1];
             d->M.t[n] = 0.0;

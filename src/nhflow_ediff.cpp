@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_idiff.h"
+#include"nhflow_ediff.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"solver.h"
 
-nhflow_idiff::nhflow_idiff(lexer* p)
+nhflow_ediff::nhflow_ediff(lexer* p)
 {
 	gcval_u=10;
 	gcval_v=11;
@@ -37,14 +37,34 @@ nhflow_idiff::nhflow_idiff(lexer* p)
 	gcval_wh=22;
 }
 
-nhflow_idiff::~nhflow_idiff()
+nhflow_ediff::~nhflow_ediff()
 {
 }
 
-
-void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *UHdiff, double *UHin, double *UH, double *VH, double *WH, double alpha)
+void nhflow_ediff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *UHdiff, double *UHin, double *UH, double *VH, double *WH, double alpha)
 {
+    /*
 	starttime=pgc->timer();
+    
+    ULOOP
+	{
+    d->F(i,j,k) += 2.0*((UH[IJK]-UH[IJK])*((a->visc(i+1,j,k)+a->eddyv(i+1,j,k))/p->DXN[IP1])
+                        -(u_ijk-u(i-1,j,k))*((visc_ijk+ev_ijk)/p->DXN[IP]))/p->DXP[IP]
+
+        +   ((u(i,j+1,k)-u_ijk)*(visc_ddy_p/p->DYP[JP])
+
+            -(u_ijk-u(i,j-1,k))*(visc_ddy_m/p->DYP[JM1]))/p->DYN[JP]
+
+        +   ((u(i,j,k+1)-u_ijk)*(visc_ddz_p/p->DZP[KP])
+
+            -(u_ijk-u(i,j,k-1))*(visc_ddz_m/p->DZP[KM1]))/p->DZN[KP]
+
+
+        + ((v(i+1,j,k)-v(i,j,k))*(visc_ddy_p/p->DXP[IP]) - (v(i+1,j-1,k)-v(i,j-1,k))*(visc_ddy_m/p->DXP[IP]))/p->DYN[JP]
+
+        + ((w(i+1,j,k)-w(i,j,k))*(visc_ddz_p/p->DXP[IP]) - (w(i+1,j,k-1)-w(i,j,k-1))*(visc_ddz_m/p->DXP[IP]))/p->DZN[KP];
+		
+	}
 
     
     LOOP
@@ -174,5 +194,17 @@ void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
 	time=pgc->timer()-starttime;
 	p->uiter=p->solveriter;
 	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
-	cout<<"udiffiter: "<<p->uiter<<"  udifftime: "<<setprecision(3)<<time<<endl;
+	cout<<"udiffiter: "<<p->uiter<<"  udifftime: "<<setprecision(3)<<time<<endl;*/
+}
+
+void nhflow_ediff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *VHdiff, double *VHin, double *UH, double *VH, double *WH, double alpha)
+{
+}
+
+void nhflow_ediff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *WHdiff, double *WHin, double *UH, double *VH, double *WH, double alpha)
+{
+}
+
+void nhflow_ediff::diff_scalar(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *UHdiff, double *UH_in, double *UH, double *VH, double *WH, double alpha)
+{
 }
