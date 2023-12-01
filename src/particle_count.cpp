@@ -37,9 +37,9 @@ void particle_f::parcount(lexer* p, fdm* a, ghostcell* pgc)
     for(n=0;n<posactive;++n)
     if(posflag[n]>0)
     {
-        i=int((pos[n][0])/dx);
-        j=int((pos[n][1])/dx);
-        k=int((pos[n][2])/dx);
+        i = p->posc_i(pos[n][0]);
+        j = p->posc_j(pos[n][1]);
+        k = p->posc_k(pos[n][2]);
 
     posnum(i,j,k)+=1.0;
     }

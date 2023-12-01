@@ -29,13 +29,13 @@ void particle_f::print_particles(lexer* p, fdm* a, ghostcell* pgc)
 {
     if(((p->count%p->Q181==0 && p->Q182<0.0 && p->Q180==1 )|| (p->count==0 &&  p->Q182<0.0 && p->Q180==1)) && p->Q181>0)
 	{
-    print_vtu(p,a,pgc,pos,posflag,pactive,1);
+    print_vtu(p,a,pgc,pos,posflag,posactive,1);
 	++printcount;
 	}
     
     if((p->simtime>p->fsfprinttime && p->Q182>0.0 && p->Q180==1) || (p->count==0 &&  p->Q182>0.0))
     {
-    print_vtu(p,a,pgc,pos,posflag,pactive,1);
+    print_vtu(p,a,pgc,pos,posflag,posactive,1);
     p->partprinttime+=p->Q182;
     }
     
@@ -50,7 +50,7 @@ void particle_f::print_vtu(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag
     if(flag[n]>0)
 	++numpt;
 	
-    cout<<"PACTIVE: "<<numpt<<" "<<active<<endl;
+    cout<<"PACTIVE-"<<p->mpirank<<": "<<numpt<<" "<<active<<endl;
 	
 	if(p->mpirank==0)
 	pvtu_pos(a,p,pgc);

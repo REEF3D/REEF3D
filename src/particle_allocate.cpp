@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 void particle_f::allocate(lexer* p,fdm* a,ghostcell* pgc)
 {
-     maxparticle = int(p->Q25*double(partnum));
+     maxparticle = int(p->Q25*double(gpartnum));
      pcount = maxparticle;
      pactive = 0;
 	 

@@ -1134,6 +1134,8 @@ void lexer::ctrlrecv()
 	dd++;
     Q41 = dctrl[dd];
 	dd++;
+    Q43 = ictrl[ii];
+    ii++;
     Q101 = ictrl[ii];
 	ii++;
     Q110 = ictrl[ii];
@@ -1149,6 +1151,12 @@ void lexer::ctrlrecv()
     Q113 = ictrl[ii];
 	ii++;
     Q113_z = dctrl[dd];
+	dd++;
+    Q180 = ictrl[ii];
+    ii++;
+    Q181 = ictrl[ii];
+    ii++;
+    Q182 = dctrl[dd];
 	dd++;
 
     S10 = ictrl[ii];

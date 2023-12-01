@@ -35,9 +35,9 @@ void particle_f::remove(lexer* p, fdm* a, ghostcell* pgc)
         // POS
         if(posflag[n]>0)
         {
-            i=int((pos[n][0])/dx);
-            j=int((pos[n][1])/dx);
-            k=int((pos[n][2])/dx);
+            i = p->posc_i(pos[n][0]);
+            j = p->posc_j(pos[n][1]);
+            k = p->posc_k(pos[n][2]);
 
             check=boundcheck(p,a,i,j,k,1);
 			

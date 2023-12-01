@@ -49,7 +49,7 @@ public:
     void posseed_topo(lexer*,fdm*,ghostcell*);
     
 	void remove(lexer*,fdm*,ghostcell*);
-	void random_delete(lexer*,fdm*,ghostcell*);
+	// void random_delete(lexer*,fdm*,ghostcell*);
 	void parcount(lexer*,fdm*,ghostcell*);
 	void particlex(lexer*, fdm*, ghostcell*);
 	void xupdate(lexer*,fdm*,ghostcell*);
@@ -58,30 +58,30 @@ public:
 	void print_particles(lexer*,fdm*,ghostcell*);
 	void print_ascii(lexer*,fdm*,ghostcell*);
 	
-	void setradius(lexer*,fdm*);
-	void posradius(lexer*,fdm*,int);
+	// void setradius(lexer*,fdm*);
+	// void posradius(lexer*,fdm*,int);
 
 	
 
 	
 
-	double hside(fdm*);
-	double phipol(lexer*,fdm*, double&,double&,double&);
-	double upol(lexer*,fdm*, double&,double&,double&);
-	double vpol(lexer*,fdm*, double&,double&,double&);
-	double wpol(lexer*,fdm*, double&,double&,double&);
-	double lint(field&,int&,int&,int&,double,double,double);
-	double cint(double,double,double,double,double);
-	double tricubic(lexer*,fdm*,field&,int&,int&,int&,double,double,double);
-	void normal(fdm*, double&,double&,double&,double&);
-	void normreg(fdm*, int,int,int);
+	// double hside(fdm*);
+	// double phipol(lexer*,fdm*, double&,double&,double&);
+	// double upol(lexer*,fdm*, double&,double&,double&);
+	// double vpol(lexer*,fdm*, double&,double&,double&);
+	// double wpol(lexer*,fdm*, double&,double&,double&);
+	// double lint(field&,int&,int&,int&,double,double,double);
+	// double cint(double,double,double,double,double);
+	// double tricubic(lexer*,fdm*,field&,int&,int&,int&,double,double,double);
+	// void normal(fdm*, double&,double&,double&,double&);
+	// void normreg(fdm*, int,int,int);
 	
 	
 	
 	field4 active;
 	field4 posnum;
 	
-	double **pos,**neg;
+	double **pos;
 	double **posxs;
 	double **posxr;
 	int *pxs;
@@ -122,16 +122,16 @@ public:
 
     double di0,di1,a0,a1,a2,a3,df;
     int i0,j0,k0,i3,j3,k3;
-    int gnegactive,gposactive,gpcount,gncount,gcorrected,gremoved,greseeded,gxchange;
+    int gnegactive,gposactive,gpcount,gncount,gcorrected,gremoved,greseeded,gxchange,gpartnum;
     
 
 	double H,Hval,nvec[3],phival,lambda,value,cosinus;
-	const double zero,epsi,dx,rmin,rmax;
+	const double epsi,dx,dy,dz,rmin,rmax;
 	//int pnum;
-	const int ipolval;
+	// const int ipolval;
 	const int irand;
 	const double drand;
-	const double nu;
+	// const double nu;
 	
 	double starttime;
 

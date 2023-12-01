@@ -1558,11 +1558,6 @@
           <File Name="particle_advect.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Util">
-          <File Name="particle_ipol.cpp"/>
-          <File Name="particle_util.cpp"/>
-          <File Name="particle_delete.cpp"/>
-          <File Name="particle_radius.cpp"/>
-          <File Name="particle_normal.cpp"/>
           <File Name="particle_count.cpp"/>
           <File Name="particle_remove.cpp"/>
         </VirtualDirectory>

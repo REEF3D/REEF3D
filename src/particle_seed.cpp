@@ -86,99 +86,101 @@ void particle_f::posseed(lexer* p, fdm* a, ghostcell* pgc)
                 ++pactive;
             }
     }
+    posactive=pactive;
+    pcount=pactive;
 }
 
 
 void particle_f::posseed_topo(lexer* p, fdm* a, ghostcell* pgc)
 {
 
-        // POS
-            if(pcount>0)
-            {
-                reseeded++;
-                pcount--;
+        // // POS
+        //     if(pcount>0)
+        //     {
+        //         reseeded++;
+        //         pcount--;
 
-                pos[PC][0] = (double(i) + (rand()%(irand))/drand)*dx;
-                pos[PC][1] = (double(j) + (rand()%(irand))/drand)*dx;
-                pos[PC][2] = (double(k) + (rand()%(irand))/drand)*dx;
-                pos[PC][3] = phipol(p,a,pos[PC][0],pos[PC][1],pos[PC][2]);
-                posflag[PC]=3;
+        //         pos[PC][0] = (double(i) + (rand()%(irand))/drand)*dx;
+        //         pos[PC][1] = (double(j) + (rand()%(irand))/drand)*dx;
+        //         pos[PC][2] = (double(k) + (rand()%(irand))/drand)*dx;
+        //         pos[PC][3] = phipol(p,a,pos[PC][0],pos[PC][1],pos[PC][2]);
+        //         posflag[PC]=3;
 
-                phival=MAX(((rand()%(irand))/drand)*epsi,rmin);
+        //         phival=MAX(((rand()%(irand))/drand)*epsi,rmin);
 
-                lambda=1.0;
-                qq=0;
+        //         lambda=1.0;
+        //         qq=0;
 
-                do
-                {
-                normal(a,pos[PC][0],pos[PC][1],pos[PC][2],pos[PC][3]);
-                pos[PC][0] += lambda*(phival - pos[PC][3])*nvec[0];
-                pos[PC][1] += lambda*(phival - pos[PC][3])*nvec[1];
-                pos[PC][2] += lambda*(phival - pos[PC][3])*nvec[2];
+        //         do
+        //         {
+        //         normal(a,pos[PC][0],pos[PC][1],pos[PC][2],pos[PC][3]);
+        //         pos[PC][0] += lambda*(phival - pos[PC][3])*nvec[0];
+        //         pos[PC][1] += lambda*(phival - pos[PC][3])*nvec[1];
+        //         pos[PC][2] += lambda*(phival - pos[PC][3])*nvec[2];
 
-                ii=int((pos[PC][0])/dx);
-                jj=int((pos[PC][1])/dx);
-                kk=int((pos[PC][2])/dx);
-                check=boundcheck(p,a,ii,jj,kk,0);
-                if(check==0)
-                break;
+        //         ii=int((pos[PC][0])/dx);
+        //         jj=int((pos[PC][1])/dx);
+        //         kk=int((pos[PC][2])/dx);
+        //         check=boundcheck(p,a,ii,jj,kk,0);
+        //         if(check==0)
+        //         break;
 
-                pos[PC][3] = phipol(p,a,pos[PC][0],pos[PC][1],pos[PC][2]);
+        //         pos[PC][3] = phipol(p,a,pos[PC][0],pos[PC][1],pos[PC][2]);
 
-                lambda/=2.0;
-                ++qq;
-                }while((pos[PC][3]>epsi || pos[PC][3]<rmin)&& qq<15);
+        //         lambda/=2.0;
+        //         ++qq;
+        //         }while((pos[PC][3]>epsi || pos[PC][3]<rmin)&& qq<15);
 				
-				//posradius(p,a,PC);
+		// 		//posradius(p,a,PC);
 
-                if((pos[PC][3]>epsi || pos[PC][3]<rmin) || check==0)
-                {
-                posflag[PC]=0;
-                pcount++;
-                reseeded--;
-                }
-            }
+        //         if((pos[PC][3]>epsi || pos[PC][3]<rmin) || check==0)
+        //         {
+        //         posflag[PC]=0;
+        //         pcount++;
+        //         reseeded--;
+        //         }
+        //     }
 			
-            if(pcount==0 && posactive<maxparticle)
-            {	
-                pos[posactive][0] = (double(i)  + (rand()%(irand))/drand)*dx;
-                pos[posactive][1] = (double(j)  + (rand()%(irand))/drand)*dx;
-                pos[posactive][2] = (double(k)  + (rand()%(irand))/drand)*dx;
-                pos[posactive][3] = phipol(p,a,pos[posactive][0],pos[posactive][1],pos[posactive][2]);
-                posflag[posactive]=3;
+        //     if(pcount==0 && posactive<maxparticle)
+        //     {	
+        //         pos[posactive][0] = (double(i)  + (rand()%(irand))/drand)*dx;
+        //         pos[posactive][1] = (double(j)  + (rand()%(irand))/drand)*dx;
+        //         pos[posactive][2] = (double(k)  + (rand()%(irand))/drand)*dx;
+        //         pos[posactive][3] = phipol(p,a,pos[posactive][0],pos[posactive][1],pos[posactive][2]);
+        //         posflag[posactive]=3;
 
-                phival=MAX(((rand()%(irand))/drand)*epsi,rmin);
+        //         phival=MAX(((rand()%(irand))/drand)*epsi,rmin);
 
-                lambda=1.0;
-                qq=0;
+        //         lambda=1.0;
+        //         qq=0;
 
-                do
-                {
-                normal(a,pos[posactive][0],pos[posactive][1],pos[posactive][2],pos[posactive][3]);
-                pos[posactive][0] += lambda*(phival - pos[posactive][3])*nvec[0];
-                pos[posactive][1] += lambda*(phival - pos[posactive][3])*nvec[1];
-                pos[posactive][2] += lambda*(phival - pos[posactive][3])*nvec[2];
+        //         do
+        //         {
+        //         normal(a,pos[posactive][0],pos[posactive][1],pos[posactive][2],pos[posactive][3]);
+        //         pos[posactive][0] += lambda*(phival - pos[posactive][3])*nvec[0];
+        //         pos[posactive][1] += lambda*(phival - pos[posactive][3])*nvec[1];
+        //         pos[posactive][2] += lambda*(phival - pos[posactive][3])*nvec[2];
 
-                ii=int((pos[posactive][0])/dx);
-                jj=int((pos[posactive][1])/dx);
-                kk=int((pos[posactive][2])/dx);
-                check=boundcheck(p,a,ii,jj,kk,0);
-                if(check==0)
-                break;
+        //         ii=int((pos[posactive][0])/dx);
+        //         jj=int((pos[posactive][1])/dx);
+        //         kk=int((pos[posactive][2])/dx);
+        //         check=boundcheck(p,a,ii,jj,kk,0);
+        //         if(check==0)
+        //         break;
 
-                pos[posactive][3] = phipol(p,a,pos[posactive][0],pos[posactive][1],pos[posactive][2]);
-                lambda/=2.0;
-                ++qq;
-                }while((pos[posactive][3]>epsi || pos[posactive][3]<rmin) && qq<15);
+        //         pos[posactive][3] = phipol(p,a,pos[posactive][0],pos[posactive][1],pos[posactive][2]);
+        //         lambda/=2.0;
+        //         ++qq;
+        //         }while((pos[posactive][3]>epsi || pos[posactive][3]<rmin) && qq<15);
 
 
-                if(pos[posactive][3]<=epsi && pos[posactive][3]>=rmin && check==1)
-                {
-				//posradius(p,a,posactive);
-                posactive++;
-                reseeded++;
-                }
-            }
+        //         if(pos[posactive][3]<=epsi && pos[posactive][3]>=rmin && check==1)
+        //         {
+		// 		//posradius(p,a,posactive);
+        //         posactive++;
+        //         reseeded++;
+        //         }
+        //     }
 			
 
 
