@@ -49,7 +49,7 @@ public:
     void posseed_topo(lexer*,fdm*,ghostcell*);
     
 	void remove(lexer*,fdm*,ghostcell*);
-	void random_delete(lexer*,fdm*,ghostcell*);
+	// void random_delete(lexer*,fdm*,ghostcell*);
 	void parcount(lexer*,fdm*,ghostcell*);
 	void particlex(lexer*, fdm*, ghostcell*);
 	void xupdate(lexer*,fdm*,ghostcell*);
