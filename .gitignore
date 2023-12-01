@@ -21,9 +21,4 @@ src/*.txt
 .DS_Store
 tags
 doxydoc*
-.DS_Store
-.DS_Store
-.DS_Store
-.DS_Store
-.DS_Store
-.DS_Store
+*.tmp
