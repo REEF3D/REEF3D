@@ -86,6 +86,8 @@ void particle_f::posseed(lexer* p, fdm* a, ghostcell* pgc)
                 ++pactive;
             }
     }
+    posactive=pactive;
+    pcount=pactive;
 }
 
 
