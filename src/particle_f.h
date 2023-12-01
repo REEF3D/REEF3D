@@ -66,13 +66,13 @@ public:
 	
 
 	double hside(fdm*);
-	double phipol(lexer*,fdm*, double&,double&,double&);
-	double upol(lexer*,fdm*, double&,double&,double&);
-	double vpol(lexer*,fdm*, double&,double&,double&);
-	double wpol(lexer*,fdm*, double&,double&,double&);
-	double lint(field&,int&,int&,int&,double,double,double);
-	double cint(double,double,double,double,double);
-	double tricubic(lexer*,fdm*,field&,int&,int&,int&,double,double,double);
+	// double phipol(lexer*,fdm*, double&,double&,double&);
+	// double upol(lexer*,fdm*, double&,double&,double&);
+	// double vpol(lexer*,fdm*, double&,double&,double&);
+	// double wpol(lexer*,fdm*, double&,double&,double&);
+	// double lint(field&,int&,int&,int&,double,double,double);
+	// double cint(double,double,double,double,double);
+	// double tricubic(lexer*,fdm*,field&,int&,int&,int&,double,double,double);
 	void normal(fdm*, double&,double&,double&,double&);
 	void normreg(fdm*, int,int,int);
 	
