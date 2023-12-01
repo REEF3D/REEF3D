@@ -41,17 +41,17 @@ particle_f::particle_f(lexer* p, fdm *a, ghostcell* pgc) : norm_vec(p), active(p
     p->partprinttime=0.0;
     }
     
-    if(p->F50==1)
-	gcval_phi=51;
+    // if(p->F50==1)
+	// gcval_phi=51;
 
-	if(p->F50==2)
-	gcval_phi=52;
+	// if(p->F50==2)
+	// gcval_phi=52;
 
-	if(p->F50==3)
-	gcval_phi=53;
+	// if(p->F50==3)
+	// gcval_phi=53;
 
-	if(p->F50==4)
-	gcval_phi=54;
+	// if(p->F50==4)
+	// gcval_phi=54;
 	
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
@@ -69,16 +69,17 @@ void particle_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
 	
 	posactive_old=posactive;
 
-    advect(p,a,pgc,pos,posflag,posactive);
+	if (p->count>=p->Q43)
+    	advect(p,a,pgc,pos,posflag,posactive);
 	particlex(p,a,pgc);
-    //remove(p,a,pgc);
+    remove(p,a,pgc);
 	
 	print_particles(p,a,pgc);
 	
     
 	xupdate(p,a,pgc);
 	parcount(p,a,pgc); 
-/*
+
     pgc->start4(p,a->phi,gcval_phi);
 
 	posbalance = posactive - posactive_old;
@@ -92,7 +93,7 @@ void particle_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
 	gposbalance = pgc->globalisum(posbalance);
 	
 	p->plstime=pgc->timer()-starttime;
-*/
+
     if(p->mpirank==0 && (p->count%p->P12==0))
 	{
     cout<<"PLS. pos: "<<gposactive<<" p: "<<gpcount<<" pbal: "<<gposbalance<<endl;
