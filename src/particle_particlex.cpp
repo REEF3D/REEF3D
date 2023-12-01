@@ -39,9 +39,9 @@ void particle_f::particlex(lexer* p, fdm* a, ghostcell* pgc)
     if(posflag[n]==1)
     {
         // POS
-        i=int(pos[n][0]/dx);
-        j=int(pos[n][1]/dx);
-        k=int(pos[n][2]/dx);
+        i = p->posc_i(pos[n][0]);
+        j = p->posc_j(pos[n][1]);
+        k = p->posc_k(pos[n][2]);
 
 
         if(p->flag5[IJK]<0 && p->flag5[IJK]>-10)
@@ -145,7 +145,7 @@ void particle_f::particlex(lexer* p, fdm* a, ghostcell* pgc)
 
 
     q=0;
-    while(posactive<maxparticle && pcount<=0)
+    while(posactive<maxparticle)
     {
         if(pxr[q]>0)
         {
