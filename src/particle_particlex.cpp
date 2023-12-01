@@ -120,27 +120,27 @@ void particle_f::particlex(lexer* p, fdm* a, ghostcell* pgc)
 // ---------------------------------------------------
 
 	//pos
-    q=0;
-    while(pcount>0)
-    {
-        if(pxr[q]>0)
-        {
-        pos[posmem[pcount]][0]=posxr[q][pxr[q]-5]-p->originx;
-        pos[posmem[pcount]][1]=posxr[q][pxr[q]-4]-p->originy;
-        pos[posmem[pcount]][2]=posxr[q][pxr[q]-3]-p->originz;
-        pos[posmem[pcount]][3]=posxr[q][pxr[q]-2];
-        pos[posmem[pcount]][4]=posxr[q][pxr[q]-1];
-		--pcount;
-        posflag[posmem[pcount]]=3;
-        pxr[q]-=5;
-        }
+    // q=0;
+    // while(pcount>0)
+    // {
+    //     if(pxr[q]>0)
+    //     {
+    //     pos[posmem[pcount]][0]=posxr[q][pxr[q]-5]-p->originx;
+    //     pos[posmem[pcount]][1]=posxr[q][pxr[q]-4]-p->originy;
+    //     pos[posmem[pcount]][2]=posxr[q][pxr[q]-3]-p->originz;
+    //     pos[posmem[pcount]][3]=posxr[q][pxr[q]-2];
+    //     pos[posmem[pcount]][4]=posxr[q][pxr[q]-1];
+	// 	--pcount;
+    //     posflag[posmem[pcount]]=3;
+    //     pxr[q]-=5;
+    //     }
 
-        if(pxr[q]<=0)
-        ++q;
+    //     if(pxr[q]<=0)
+    //     ++q;
 
-        if(q>=6)
-        break;
-    }
+    //     if(q>=6)
+    //     break;
+    // }
 
 
 
