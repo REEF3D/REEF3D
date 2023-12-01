@@ -36,7 +36,7 @@ void particle_f::setup(lexer* p, fdm* a, ghostcell* pgc)
 	
     allocate(p,a,pgc);
     seed(p,a,pgc);
-    setradius(p,a);
+    // setradius(p,a);
     remove(p,a,pgc);
     
 	if((p->count%p->F34==0 || p->count==0 )&& p->F34>0)
