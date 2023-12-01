@@ -73,8 +73,8 @@ public:
 	// double lint(field&,int&,int&,int&,double,double,double);
 	// double cint(double,double,double,double,double);
 	// double tricubic(lexer*,fdm*,field&,int&,int&,int&,double,double,double);
-	void normal(fdm*, double&,double&,double&,double&);
-	void normreg(fdm*, int,int,int);
+	// void normal(fdm*, double&,double&,double&,double&);
+	// void normreg(fdm*, int,int,int);
 	
 	
 	
