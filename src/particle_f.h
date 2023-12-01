@@ -81,7 +81,7 @@ public:
 	field4 active;
 	field4 posnum;
 	
-	double **pos,**neg;
+	double **pos;
 	double **posxs;
 	double **posxr;
 	int *pxs;
@@ -122,11 +122,11 @@ public:
 
     double di0,di1,a0,a1,a2,a3,df;
     int i0,j0,k0,i3,j3,k3;
-    int gnegactive,gposactive,gpcount,gncount,gcorrected,gremoved,greseeded,gxchange;
+    int gnegactive,gposactive,gpcount,gncount,gcorrected,gremoved,greseeded,gxchange,gpartnum;
     
 
 	double H,Hval,nvec[3],phival,lambda,value,cosinus;
-	const double zero,epsi,dx,rmin,rmax;
+	const double zero,epsi,dx,dy,dz,rmin,rmax;
 	//int pnum;
 	const int ipolval;
 	const int irand;
