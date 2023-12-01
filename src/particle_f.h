@@ -65,7 +65,7 @@ public:
 
 	
 
-	double hside(fdm*);
+	// double hside(fdm*);
 	// double phipol(lexer*,fdm*, double&,double&,double&);
 	// double upol(lexer*,fdm*, double&,double&,double&);
 	// double vpol(lexer*,fdm*, double&,double&,double&);
