@@ -58,8 +58,8 @@ public:
 	void print_particles(lexer*,fdm*,ghostcell*);
 	void print_ascii(lexer*,fdm*,ghostcell*);
 	
-	void setradius(lexer*,fdm*);
-	void posradius(lexer*,fdm*,int);
+	// void setradius(lexer*,fdm*);
+	// void posradius(lexer*,fdm*,int);
 
 	
 
