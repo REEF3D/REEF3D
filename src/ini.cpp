@@ -586,8 +586,8 @@ void lexer::ini_default()
     Q113=0;             // int ini particle z-dir
     Q113_z=0.0;         // double ini particle z-dir
     Q180=0;             // int print vtu
-    Q181=-10;          // int print vtu iter interval
-    Q182=-1.0;          // int print vtu time interval
+    Q181=-10;           // int print vtu iter interval
+    Q182=-1.0;          // double print vtu time interval
 
 	// Sediment Transport
 	S10=0;                  // int sediment transport module
