@@ -121,6 +121,11 @@ void hypre_aij::startM(lexer* p, ghostcell* pgc, double *x, double *rhs, double 
 {
 }
 
+void hypre_aij::startV(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
+{
+    
+}
+
 void hypre_aij::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsvec, int var, int gcv, int &solveriter)
 {
 	

@@ -88,6 +88,11 @@ void hypre_sstruct::startM(lexer* p, ghostcell* pgc, double *f, double *rhs, dou
     start_solverM(p,pgc,f,rhs,M);
 }
 
+void hypre_sstruct::startV(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
+{
+    
+}
+
 void hypre_sstruct::start_solver1234(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, int var)
 {
     numiter=0;

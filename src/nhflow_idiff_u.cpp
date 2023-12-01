@@ -55,7 +55,7 @@ void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
     n=0;
     LOOP
 	{
-        if(p->wet[IJ]==1 && p->deep[IJ]==1 && d->breaking(i,j)==0)
+        if(p->wet[IJ]==1  && d->breaking(i,j)==0)
         {
             visc = d->VISC[IJK];
             
@@ -85,20 +85,20 @@ void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
                         + p->sigxx[FIJK]/((p->DZN[KP]+p->DZN[KM1]));
             
             
-            d->rhsvec.V[n] += visc*((VH[Ip1Jp1K]-VH[Im1Jp1K]) - (VH[Ip1Jm1K]-VH[Im1Jm1K]))/((p->DXP[IP]+p->DXP[IM1])*(p->DYN[JP]+p->DYN[JM1]))
+            d->rhsvec.V[n] = visc*((VH[Ip1Jp1K]-VH[Im1Jp1K]) - (VH[Ip1Jm1K]-VH[Im1Jm1K]))/((p->DXP[IP]+p->DXP[IM1])*(p->DYN[JP]+p->DYN[JM1]))
 						 +  visc*((WH[Ip1JKp1]-WH[Im1JKp1]) - (WH[Ip1JKm1]-WH[Im1JKm1]))/((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
 
 						 + (CPORNH*UHin[IJK])/(alpha*p->dt)
                             
                             
-                            + visc*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(UH[FIp1JKp1] - UH[FIm1JKp1] - UH[FIp1JKm1] + UH[FIm1JKm1])
+                            + visc*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(UH[Ip1JKp1] - UH[Im1JKp1] - UH[Ip1JKm1] + UH[Im1JKm1])
                             /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
                         
-                            + visc*2.0*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(UH[FIJp1Kp1] - UH[FIJm1Kp1] - UH[FIJp1Km1] + UH[FIJm1Km1])
+                            + visc*2.0*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(UH[IJp1Kp1] - UH[IJm1Kp1] - UH[IJp1Km1] + UH[IJm1Km1])
                             /((p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
         }
         
-        if(p->wet[IJ]==0 || p->deep[IJ]==0 || p->flag7[FIJK]<0 || d->breaking(i,j)==1)
+        if(p->wet[IJ]==0  || p->flag4[IJK]<0 || d->breaking(i,j)==1)
         {
         d->M.p[n]  =  1.0;
 
@@ -114,7 +114,7 @@ void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
         
         d->rhsvec.V[n] =  0.0;
         }
-	
+        
 	++n;
 	}
     
@@ -125,39 +125,39 @@ void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
 	{
         if(p->wet[IJ]==1 && d->breaking(i,j)==0)
         {
-            if(p->flag7[FIm1JK]<0)
+            if(p->flag4[Im1JK]<0)
             {
-            d->rhsvec.V[n] -= d->M.s[n]*UH[FIm1JK];
+            d->rhsvec.V[n] -= d->M.s[n]*UH[Im1JK];
             d->M.s[n] = 0.0;
             }
             
-            if(p->flag7[FIp1JK]<0)
+            if(p->flag4[Ip1JK]<0)
             {
-            d->rhsvec.V[n] -= d->M.n[n]*UH[FIp1JK];
+            d->rhsvec.V[n] -= d->M.n[n]*UH[Ip1JK];
             d->M.n[n] = 0.0;
             }
             
-            if(p->flag7[FIJm1K]<0)
+            if(p->flag4[IJm1K]<0)
             {
-            d->rhsvec.V[n] -= d->M.e[n]*UH[FIJm1K]*p->y_dir;
+            d->rhsvec.V[n] -= d->M.e[n]*UH[IJm1K]*p->y_dir;
             d->M.e[n] = 0.0;
             }
             
-            if(p->flag7[FIJp1K]<0)
+            if(p->flag4[IJp1K]<0)
             {
-            d->rhsvec.V[n] -= d->M.w[n]*UH[FIJp1K]*p->y_dir;
+            d->rhsvec.V[n] -= d->M.w[n]*UH[IJp1K]*p->y_dir;
             d->M.w[n] = 0.0;
             }
             
-            if(p->flag7[FIJKm1]<0)
+            if(p->flag4[IJKm1]<0)
             {
-            d->rhsvec.V[n] -= d->M.b[n]*UH[FIJKm1];
+            d->rhsvec.V[n] -= d->M.b[n]*UH[IJKm1];
             d->M.b[n] = 0.0;
             }
             
-            if(p->flag7[FIJKp2]<0 && p->flag7[FIJKp1]>0)
+            if(p->flag4[IJKp2]<0 && p->flag4[IJKp1]>0)
             {
-            d->rhsvec.V[n] -= d->M.t[n]*UH[FIJKp1];
+            d->rhsvec.V[n] -= d->M.t[n]*UH[IJKp1];
             d->M.t[n] = 0.0;
             }
   
@@ -165,7 +165,7 @@ void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
 	++n;
 	}
 	
-    psolv->startF(p,pgc,UHdiff,d->rhsvec,d->M,8);
+    psolv->startV(p,pgc,UHdiff,d->rhsvec,d->M,4);
     
 	
     pgc->start4V(p,UHdiff,gcval_uh);

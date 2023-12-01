@@ -46,6 +46,7 @@ public:
 	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
     virtual void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int);
     virtual void startM(lexer*, ghostcell*, double*, double*, double*, int);
+    virtual void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     
 	void solve(lexer*,fdm*, ghostcell*, vec&, vec&, int, int, int&);
 

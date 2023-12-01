@@ -2695,6 +2695,8 @@
         <File Name="hypre_aij_solvers.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="HYPRE Struct">
+        <File Name="hypre_struct_fill4V_2D.cpp"/>
+        <File Name="hypre_struct_fill4V.cpp"/>
         <File Name="hypre_struct_fill4f_2D.cpp"/>
         <File Name="hypre_struct_fill4f.cpp"/>
         <File Name="hypre_struct_fill7_2D.cpp"/>

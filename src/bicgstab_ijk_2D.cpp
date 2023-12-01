@@ -105,6 +105,11 @@ void bicgstab_ijk_2D::startM(lexer* p, ghostcell* pgc, double *x, double *rhs, d
 void bicgstab_ijk_2D::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var)
 {
 }
+
+void bicgstab_ijk_2D::startV(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
+{
+    
+}
 	
 void bicgstab_ijk_2D::solve(lexer* p,fdm* a, ghostcell* pgc, vec& rhsvec, int var, int &solveriter, int maxiter, double stop_crit)
 {
