@@ -53,9 +53,9 @@ void particle_f::particlex(lexer* p, fdm* a, ghostcell* pgc)
 
             if(p->flag5[IJK]==-1)
             {
-            posxs[0][pxs[0]+0]=pos[n][0]+p->originx;
-            posxs[0][pxs[0]+1]=pos[n][1]+p->originy;
-            posxs[0][pxs[0]+2]=pos[n][2]+p->originz;
+            posxs[0][pxs[0]+0]=pos[n][0];
+            posxs[0][pxs[0]+1]=pos[n][1];
+            posxs[0][pxs[0]+2]=pos[n][2];
             posxs[0][pxs[0]+3]=pos[n][3];
             posxs[0][pxs[0]+4]=pos[n][4];
             pxs[0]+=5;
@@ -63,9 +63,9 @@ void particle_f::particlex(lexer* p, fdm* a, ghostcell* pgc)
 
             if(p->flag5[IJK]==-2)
             {
-            posxs[1][pxs[1]+0]=pos[n][0]+p->originx;
-            posxs[1][pxs[1]+1]=pos[n][1]+p->originy;
-            posxs[1][pxs[1]+2]=pos[n][2]+p->originz;
+            posxs[1][pxs[1]+0]=pos[n][0];
+            posxs[1][pxs[1]+1]=pos[n][1];
+            posxs[1][pxs[1]+2]=pos[n][2];
             posxs[1][pxs[1]+3]=pos[n][3];
             posxs[1][pxs[1]+4]=pos[n][4];
             pxs[1]+=5;
@@ -73,9 +73,9 @@ void particle_f::particlex(lexer* p, fdm* a, ghostcell* pgc)
 
             if(p->flag5[IJK]==-3)
             {
-            posxs[2][pxs[2]+0]=pos[n][0]+p->originx;
-            posxs[2][pxs[2]+1]=pos[n][1]+p->originy;
-            posxs[2][pxs[2]+2]=pos[n][2]+p->originz;
+            posxs[2][pxs[2]+0]=pos[n][0];
+            posxs[2][pxs[2]+1]=pos[n][1];
+            posxs[2][pxs[2]+2]=pos[n][2];
             posxs[2][pxs[2]+3]=pos[n][3];
             posxs[2][pxs[2]+4]=pos[n][4];
             pxs[2]+=5;
@@ -83,9 +83,9 @@ void particle_f::particlex(lexer* p, fdm* a, ghostcell* pgc)
 
             if(p->flag5[IJK]==-4)
             {
-            posxs[3][pxs[3]+0]=pos[n][0]+p->originx;
-            posxs[3][pxs[3]+1]=pos[n][1]+p->originy;
-            posxs[3][pxs[3]+2]=pos[n][2]+p->originz;
+            posxs[3][pxs[3]+0]=pos[n][0];
+            posxs[3][pxs[3]+1]=pos[n][1];
+            posxs[3][pxs[3]+2]=pos[n][2];
             posxs[3][pxs[3]+3]=pos[n][3];
             posxs[3][pxs[3]+4]=pos[n][4];
             pxs[3]+=5;
@@ -93,9 +93,9 @@ void particle_f::particlex(lexer* p, fdm* a, ghostcell* pgc)
 
             if(p->flag5[IJK]==-5)
             {
-            posxs[4][pxs[4]+0]=pos[n][0]+p->originx;
-            posxs[4][pxs[4]+1]=pos[n][1]+p->originy;
-            posxs[4][pxs[4]+2]=pos[n][2]+p->originz;
+            posxs[4][pxs[4]+0]=pos[n][0];
+            posxs[4][pxs[4]+1]=pos[n][1];
+            posxs[4][pxs[4]+2]=pos[n][2];
             posxs[4][pxs[4]+3]=pos[n][3];
             posxs[4][pxs[4]+4]=pos[n][4];
             pxs[4]+=5;
@@ -103,9 +103,9 @@ void particle_f::particlex(lexer* p, fdm* a, ghostcell* pgc)
 
             if(p->flag5[IJK]==-6)
             {
-            posxs[5][pxs[5]+0]=pos[n][0]+p->originx;
-            posxs[5][pxs[5]+1]=pos[n][1]+p->originy;
-            posxs[5][pxs[5]+2]=pos[n][2]+p->originz;
+            posxs[5][pxs[5]+0]=pos[n][0];
+            posxs[5][pxs[5]+1]=pos[n][1];
+            posxs[5][pxs[5]+2]=pos[n][2];
             posxs[5][pxs[5]+3]=pos[n][3];
             posxs[5][pxs[5]+4]=pos[n][4];
             pxs[5]+=5;
@@ -125,9 +125,9 @@ void particle_f::particlex(lexer* p, fdm* a, ghostcell* pgc)
     // {
     //     if(pxr[q]>0)
     //     {
-    //     pos[posmem[pcount]][0]=posxr[q][pxr[q]-5]-p->originx;
-    //     pos[posmem[pcount]][1]=posxr[q][pxr[q]-4]-p->originy;
-    //     pos[posmem[pcount]][2]=posxr[q][pxr[q]-3]-p->originz;
+    //     pos[posmem[pcount]][0]=posxr[q][pxr[q]-5];
+    //     pos[posmem[pcount]][1]=posxr[q][pxr[q]-4];
+    //     pos[posmem[pcount]][2]=posxr[q][pxr[q]-3];
     //     pos[posmem[pcount]][3]=posxr[q][pxr[q]-2];
     //     pos[posmem[pcount]][4]=posxr[q][pxr[q]-1];
 	// 	--pcount;
@@ -149,9 +149,9 @@ void particle_f::particlex(lexer* p, fdm* a, ghostcell* pgc)
     {
         if(pxr[q]>0)
         {
-        pos[posactive][0]=posxr[q][pxr[q]-5]-p->originx;
-        pos[posactive][1]=posxr[q][pxr[q]-4]-p->originy;
-        pos[posactive][2]=posxr[q][pxr[q]-3]-p->originz;
+        pos[posactive][0]=posxr[q][pxr[q]-5];
+        pos[posactive][1]=posxr[q][pxr[q]-4];
+        pos[posactive][2]=posxr[q][pxr[q]-3];
         pos[posactive][3]=posxr[q][pxr[q]-2];
         pos[posactive][4]=posxr[q][pxr[q]-1];
         posflag[posactive]=3;
