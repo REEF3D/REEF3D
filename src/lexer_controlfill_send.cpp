@@ -1139,6 +1139,8 @@ void lexer::ctrlsend()
 	dd++;
     dctrl[dd] = Q41;
 	dd++;
+    ictrl[ii] = Q43;
+    ii++;
     ictrl[ii] = Q101;
     ii++;
     ictrl[ii] = Q110;

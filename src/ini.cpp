@@ -576,6 +576,7 @@ void lexer::ini_default()
     Q29=0;              // int seed number for random particle placement
     Q31=0.001;          // double particle diameter
     Q41=0.5;            // double porosity
+    Q43=0;              // int number of water iteration, before particle transport starts
     Q101=0;             // int ini particle as topo
     Q110=0;             // int ini particle as box
     Q111=0;             // int ini particle x-dir
