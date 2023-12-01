@@ -126,12 +126,12 @@ public:
     
 
 	double H,Hval,nvec[3],phival,lambda,value,cosinus;
-	const double zero,epsi,dx,dy,dz,rmin,rmax;
+	const double epsi,dx,dy,dz,rmin,rmax;
 	//int pnum;
-	const int ipolval;
+	// const int ipolval;
 	const int irand;
 	const double drand;
-	const double nu;
+	// const double nu;
 	
 	double starttime;
 
