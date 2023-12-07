@@ -176,7 +176,7 @@ private:
     
     double Apor,Bpor,porval,partval;
     
-    double epsi1,epsi2;
+    double epsi1,epsi2;    int iter0;
     
     patchBC_interface *pBC;
 };

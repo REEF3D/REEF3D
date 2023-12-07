@@ -97,6 +97,8 @@ ioflow_f::ioflow_f(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)
     
     p->fsfoutval=p->fsfout;
     p->fsfinval=p->fsfin;
+    
+    iter0=-1;
 	
 }
 

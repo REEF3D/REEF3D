@@ -39,15 +39,13 @@ reinifluid_RK3::reinifluid_RK3(lexer* p, int type) : epsi(p->F45*p->DXM),f(p),fr
 	gcval_phi=51;
 
 	if(p->F50==2)
-	gcval_phi=52;
+	gcval_phi=54;
 
 	if(p->F50==3)
 	gcval_phi=53;
 
 	if(p->F50==4)
 	gcval_phi=54;
-    
-    gcval_phi=54;
 
     gcval_iniphi=50;
 

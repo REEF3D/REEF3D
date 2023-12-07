@@ -100,24 +100,21 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 	LOOP
 	{
         // inflow
-		if(p->flag4[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0) && p->BC[Im1JK]!=1)
+		if(p->flag4[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0))
 		{
 		a->rhsvec.V[n] -= a->M.s[n]*press(i-1,j,k);
 		a->M.s[n] = 0.0;
 		}
         
+        /*
         if(p->flag4[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0) && p->BC[Im1JK]==1)
 		{
-            
-            if(p->F50==1 || p->F50==3)
-             pval=(p->fsfinval - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
-             
-             if(p->F50==2 || p->F50==4)
              pval=a->press(i,j,k);
              
-		a->rhsvec.V[n] -= a->M.s[n]*(-a->press(i,j,k)+pval);
+		//a->rhsvec.V[n] -= a->M.s[n]*(-a->press(i,j,k)+pval);
+        a->rhsvec.V[n] -= a->M.s[n]*press(i-1,j,k);
 		a->M.s[n] = 0.0;
-		}
+		}*/
 		
         // outflow
 		if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && p->BC[Ip1JK]!=2)
