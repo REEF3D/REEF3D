@@ -543,7 +543,7 @@ void ioflow_v::pressure_io(lexer *p, fdm *a, ghostcell* pgc)
         k=p->gcb4[n][2];
 		pval=0.0;
 		
-			if(p->B77==0)
+			if(p->B77==1)
 			{
 			pval=(p->phiout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
 			

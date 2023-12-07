@@ -44,7 +44,6 @@ public:
 
 private:
 
-	double sqd;
 	int count,n,q;
     
     density *pd;

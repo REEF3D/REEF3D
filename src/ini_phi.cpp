@@ -124,13 +124,21 @@ void initialize::iniphi(fdm*a, lexer* p, ghostcell* pgc)
     {
     p->phimean=p->F60;
     p->phiout=p->F60;
+    p->fsfin=p->F60;
+    p->fsfout=p->F60;
+    }
+    
+    if(p->F61>-1.0e20)
+    {
+    p->phiin=p->F62;
+    p->fsfin=p->F61;
     }
 
     if(p->F62>-1.0e20)
+    {
     p->phiout=p->F62;
-
-    if(p->F61>-1.0e20)
-    p->phiin=p->F62;
+    p->fsfout=p->F62;
+    }
 	
 	
 	if(p->F64==1)
@@ -146,7 +154,7 @@ void initialize::iniphi(fdm*a, lexer* p, ghostcell* pgc)
 
 void initialize::iniphi_io(fdm*a, lexer* p, ghostcell* pgc)
 {
-    if(p->F61>-1.0e20)
+    /*if(p->F61>-1.0e20)
     GC4LOOP
     {
         if(p->gcb4[n][4]==1)
@@ -160,9 +168,9 @@ void initialize::iniphi_io(fdm*a, lexer* p, ghostcell* pgc)
         a->phi(i-3,j,k)=p->F61-p->pos_z();
         }
     p->phiin=p->F61;
-    }
+    }*/
 
-    if(p->F62>-1.0e20)
+    /*if(p->F62>-1.0e20)
     GC4LOOP
     {
         if(p->gcb4[n][4]==2)
@@ -175,7 +183,7 @@ void initialize::iniphi_io(fdm*a, lexer* p, ghostcell* pgc)
         a->phi(i+2,j,k)=p->F62-p->pos_z();
         a->phi(i+3,j,k)=p->F62-p->pos_z();
         }
-    } 
+    } */
 }
 
 void initialize::iniphi_box(lexer* p, fdm *a, ghostcell* pgc)

@@ -53,7 +53,6 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
     {
         if(p->gcb4[n][4]==1)
         {
-        //cout<<p->mpirank<<" ioflow  | "<<p->gcb4[n][0]<<" "<<p->gcb4[n][1]<<" "<<p->gcb4[n][2]<<" . "<<p->gcb4[n][3]<<" "<<p->gcb4[n][4]<<endl;
         p->gcin[count1][0]=p->gcb4[n][0];
         p->gcin[count1][1]=p->gcb4[n][1];
         p->gcin[count1][2]=p->gcb4[n][2];
@@ -137,44 +136,48 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
         k = p->gcb4[n][2];
         
         // inflow
-        if(p->gcb4[n][3]==1 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
+        if(p->gcb4[n][3]==1)
         p->BC[Im1JK] = 1;
         
-        if(p->gcb4[n][3]==4 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
+        if(p->gcb4[n][3]==4)
         p->BC[Ip1JK] = 1;
         
-        if(p->gcb4[n][3]==3 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
+        if(p->gcb4[n][3]==3)
         p->BC[IJm1K] = 1;
         
-        if(p->gcb4[n][3]==2 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
+        if(p->gcb4[n][3]==2)
         p->BC[IJp1K] = 1;
         
-        if(p->gcb4[n][3]==5 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
+        if(p->gcb4[n][3]==5)
         p->BC[IJKm1] = 1;
         
-        if(p->gcb4[n][3]==6 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
+        if(p->gcb4[n][3]==6)
         p->BC[IJKp1] = 1;
         }
 
         if(p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8)
         {
+        i = p->gcb4[n][0];
+        j = p->gcb4[n][1];
+        k = p->gcb4[n][2];
+        
         // outflow
-        if(p->gcb4[n][3]==1 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
+        if(p->gcb4[n][3]==1)
         p->BC[Im1JK] = 2;
         
-        if(p->gcb4[n][3]==4 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
+        if(p->gcb4[n][3]==4)
         p->BC[Ip1JK] = 2;
-        
-        if(p->gcb4[n][3]==3 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
+
+        if(p->gcb4[n][3]==3)
         p->BC[IJm1K] = 2;
         
-        if(p->gcb4[n][3]==2 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
+        if(p->gcb4[n][3]==2)
         p->BC[IJp1K] = 2;
         
-        if(p->gcb4[n][3]==5 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
+        if(p->gcb4[n][3]==5)
         p->BC[IJKm1] = 2;
         
-        if(p->gcb4[n][3]==6 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
+        if(p->gcb4[n][3]==6)
         p->BC[IJKp1] = 2;
         }
     }

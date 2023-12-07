@@ -94,6 +94,9 @@ ioflow_f::ioflow_f(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)
     
     epsi1 = 1.6;    
     epsi2 = 3.6;
+    
+    p->fsfoutval=p->fsfout;
+    p->fsfinval=p->fsfin;
 	
 }
 

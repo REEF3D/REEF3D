@@ -378,7 +378,7 @@ public:
 	double *C75_x,*C75_z,*C75_a,*C75_s,*C75_l,*C75_v;
 
 	// discretization
-	int D10,D11,D20,D21,D30,D31,D32,D33,D37;
+	int D10,D11,D20,D21,D30,D31,D33,D37;
 
 	// Free Surface
 	int F10,F30,F31,F32,F34,F35,F36,F40,F44,F46,F47,F49,F50,F150,F151;
@@ -658,6 +658,8 @@ public:
 	double lsmtime,heattime,concentrationtime;
 	double printouttime;
 	double phimean,phiout,phiin;
+    double fsfin,fsfout;
+    double fsfinval,fsfoutval;
 	double pcnorm,ucnorm,vcnorm,wcnorm;
     double alpha;
     double pressgage;

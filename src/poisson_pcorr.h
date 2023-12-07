@@ -20,48 +20,38 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"pressure.h"
-#include"pressure_reference.h"
+#include"poisson.h"
+#include"increment.h"
 
 class heat;
 class concentration;
 class density;
 
+#ifndef POISSON_PCORR_H_
+#define POISSON_PCORR_H_
+
 using namespace std;
 
-#ifndef PJM_FSM_H_
-#define PJM_FSM_H_
-
-class pjm_fsm : public pressure, public pressure_reference
+class poisson_pcorr : public poisson, public increment
 {
 
 public:
 
-	pjm_fsm(lexer* p, fdm *a, heat*&, concentration*&);
-	virtual ~pjm_fsm();
+	poisson_pcorr (lexer*, heat*&, concentration*&);
+	virtual ~poisson_pcorr();
 
-	virtual void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,ioflow*, field&, field&, field&,double);
-    virtual void ini(lexer*,fdm*,ghostcell*);
-	virtual void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	virtual void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	virtual void ucorr(lexer*p,fdm*,field&,double);
-	virtual void vcorr(lexer*p,fdm*,field&,double);
-	virtual void wcorr(lexer*p,fdm*,field&,double);
-	virtual void upgrad(lexer*,fdm*,slice&,slice&);
-	virtual void vpgrad(lexer*,fdm*,slice&,slice&);
-    virtual void wpgrad(lexer*,fdm*,slice&,slice&);
+	virtual void start(lexer *,fdm*,field&);
 
 private:
-	double starttime,endtime;
-	int count, gcval_press;
-	int gcval_u, gcval_v, gcval_w;
-	
-	void debug(lexer*,fdm*);
+
+	double pval;
+	int count,n,q;
     
     density *pd;
 };
 
 
-
 #endif
+
+
 

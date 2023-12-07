@@ -50,13 +50,15 @@ levelset_RK3::levelset_RK3(lexer* p, fdm *a, ghostcell* pgc, heat *&pheat, conce
 	gcval_phi=51;
 
 	if(p->F50==2)
-	gcval_phi=52;
+	gcval_phi=54;
 
 	if(p->F50==3)
 	gcval_phi=53;
 
 	if(p->F50==4)
 	gcval_phi=54;
+    
+    gcval_phi=54;
 
 	if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90==0)
 	pupdate = new fluid_update_fsf(p,a,pgc);

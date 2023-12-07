@@ -46,6 +46,8 @@ reini_RK3::reini_RK3(lexer* p, int type) : epsi(p->F45*p->DXM),f(p),frk1(p),frk2
 
 	if(p->F50==4)
 	gcval_phi=54;
+    
+    gcval_phi=54;
 
     gcval_iniphi=50;
 

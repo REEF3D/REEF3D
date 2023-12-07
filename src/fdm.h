@@ -77,7 +77,7 @@ public:
 	field4a porosity;
 	field5 walld;
 	 
-	fieldint5 nodeval,flag;
+	fieldint5 nodeval;
     sliceint5 nodeval2D;
    
     // 6DOF

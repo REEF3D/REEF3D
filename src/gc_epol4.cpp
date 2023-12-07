@@ -79,7 +79,7 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
     // outflow
     else
 	if(( (bc==2&&pressout_lable==0) ||bc==211||bc==212||bc==112||bc==111) && gcv==40)
-	return gclabel_press;
+    return gclabel_press;
     
     // amtosphere
     else

@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"poisson_f.h"
+#include"poisson_pcorr.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"heat.h"
@@ -34,7 +34,7 @@ Author: Hans Bihs
 #include"density_vof.h"
 #include"density_rheo.h"
 
-poisson_f::poisson_f(lexer *p, heat *&pheat, concentration *&pconc) 
+poisson_pcorr::poisson_pcorr(lexer *p, heat *&pheat, concentration *&pconc) 
 {
     if((p->F80==0||p->A10==55) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==0)
 	pd = new density_f(p);
@@ -64,11 +64,11 @@ poisson_f::poisson_f(lexer *p, heat *&pheat, concentration *&pconc)
 	pd = new density_sf(p);
 }
 
-poisson_f::~poisson_f()
+poisson_pcorr::~poisson_pcorr()
 {
 }
 
-void poisson_f::start(lexer* p, fdm *a, field &press)
+void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 {	
 	n=0;
     LOOP
@@ -99,18 +99,52 @@ void poisson_f::start(lexer* p, fdm *a, field &press)
     n=0;
 	LOOP
 	{
-		if(p->flag4[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0))
+        // inflow
+		if(p->flag4[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0) && p->BC[Im1JK]!=1)
 		{
 		a->rhsvec.V[n] -= a->M.s[n]*press(i-1,j,k);
 		a->M.s[n] = 0.0;
 		}
+        
+        if(p->flag4[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0) && p->BC[Im1JK]==1)
+		{
+            
+            if(p->F50==1 || p->F50==3)
+             pval=(p->fsfinval - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
+             
+             if(p->F50==2 || p->F50==4)
+             pval=a->press(i,j,k);
+             
+		a->rhsvec.V[n] -= a->M.s[n]*(-a->press(i,j,k)+pval);
+		a->M.s[n] = 0.0;
+		}
 		
-		if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0))
+        // outflow
+		if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && p->BC[Ip1JK]!=2)
 		{
 		a->rhsvec.V[n] -= a->M.n[n]*press(i+1,j,k);
 		a->M.n[n] = 0.0;
 		}
-		
+        
+        if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && p->BC[Ip1JK]==2)
+		{
+             if(p->B77==1)
+             {
+             if(p->F50==2 || p->F50==3)
+             pval=(p->fsfoutval - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
+             
+             if(p->F50==1 || p->F50==4)
+             pval=a->press(i,j,k);
+             }
+             
+             if(p->B77==2)
+             pval=0.0;
+        
+		a->rhsvec.V[n] -= a->M.n[n]*(-a->press(i,j,k)+pval);
+		a->M.n[n] = 0.0;
+		}
+        
+    
 		if(p->flag4[IJm1K]<0 && (j+p->origin_j>0 || p->periodic2==0))
 		{
 		a->rhsvec.V[n] -= a->M.e[n]*press(i,j-1,k);
