@@ -123,7 +123,7 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 		a->M.n[n] = 0.0;
 		}
         
-        if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && p->BC[Ip1JK]==2)
+         if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && p->BC[Ip1JK]==2)
 		{
              if(p->B77==1)
              {

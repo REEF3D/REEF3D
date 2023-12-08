@@ -91,11 +91,10 @@ void ioflow_f::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
     
     iter0=p->count;
     
-    cout<<p->mpirank<<" diff: "<<diff<<" fsfoutval: "<<p->fsfoutval<<" phiout: "<<p->phiout<<endl;
+    //cout<<p->mpirank<<" diff: "<<diff<<" fsfoutval: "<<p->fsfoutval<<" phiout: "<<p->phiout<<endl;
     }
     
     
-        if((p->D30==1 || p->F50==1 || p->F50==4) && p->G3==0)
         for(n=0;n<p->gcout_count;++n)
         {
         i=p->gcout[n][0];
@@ -138,7 +137,6 @@ void ioflow_f::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
 			a->press(i+2,j,k)=pval;
 			a->press(i+3,j,k)=pval;
 			}
-			
         }
 }
 
@@ -194,7 +192,7 @@ void ioflow_f::pressure_bed(lexer *p, fdm *a, ghostcell *pgc)
     double pval=0.0;
 
     GC4LOOP
-    if(p->gcb4[n][3] == 5 )
+    if(p->gcb4[n][3]==5)
     {
     i=p->gcb4[n][0];
     j=p->gcb4[n][1];
