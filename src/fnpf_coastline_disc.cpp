@@ -77,6 +77,9 @@ void fnpf_coastline::disc(lexer *p, ghostcell *pgc, slice &f)
     deltax = 0.5*(p->DXN[IP] + p->DYN[JP]);
     
 	sign=lsv/sqrt(lsv*lsv+ dnorm*dnorm*deltax*deltax);
+    
+    if(sign!=sign)
+    sign= 1.0;
 
 	L(i,j) = -(sign*dnorm - sign);
     }
