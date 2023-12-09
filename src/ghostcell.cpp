@@ -199,7 +199,7 @@ void ghostcell::gcini(lexer* p)
     gclabel_v_orth=11;
     gclabel_w_orth=11;
     }
-	
+
 
 	gclabel_lsm=4;
 	

@@ -189,7 +189,6 @@ void ioflow_f::outflow_corresponding(lexer *p, fdm* a, ghostcell* pgc, field& u,
     
     uout=MAX(uout,0.0);
     
-    //cout<<"factor: "<<factor<<endl;
 
         if(a->phi(i,j,k)>=-epsi1*p->DXM)
         {

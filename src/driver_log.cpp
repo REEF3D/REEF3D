@@ -98,8 +98,8 @@ void driver::mainlog(lexer *p)
 	 mainlogout<<fixed<<setprecision(4)<<p->itertime<<" \t ";
 	 mainlogout<<p->poissoniter<<" \t "<<setprecision(4)<<p->poissontime<<" \t ";
      mainlogout<<fixed<<setprecision(4)<<p->volume1<<" \t "<<setprecision(4)<<p->volume2<<" \t ";
-     mainlogout<<fixed<<setprecision(4)<<p->Qi<<" \t "<<setprecision(4)<<p->Qo<<" \t ";
-	 mainlogout<<fixed<<setprecision(4)<<p->Ui<<" \t "<<setprecision(4)<<p->phimean<<" \t "<<setprecision(4)<<p->phiout;
+     mainlogout<<fixed<<setprecision(6)<<p->Qi<<" \t "<<setprecision(6)<<p->Qo<<" \t ";
+	 mainlogout<<fixed<<setprecision(4)<<p->Ui<<" \t "<<setprecision(6)<<p->phimean<<" \t "<<setprecision(6)<<p->phiout;
 	 mainlogout<<endl;
 	 }
 }
