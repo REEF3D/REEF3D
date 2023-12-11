@@ -51,7 +51,7 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
       
     
     // check
-    /*SLICELOOP4
+    SLICELOOP4
     {
     eta(i,j) = MAX(eta(i,j), -p->wd + c->bed(i,j) + c->wd_criterion);
 
@@ -59,7 +59,7 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
     
     if(p->wet[IJ]==0)
     Fifsf(i,j) = 0.0;
-    }*/
+    }
     
     
     SLICELOOP4
