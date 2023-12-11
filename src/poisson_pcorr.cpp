@@ -117,13 +117,13 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 		}*/
 		
         // outflow
-		if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && p->BC[Ip1JK]!=2)
+		if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && (p->BC[Ip1JK]!=2 || p->B60!=1))
 		{
 		a->rhsvec.V[n] -= a->M.n[n]*press(i+1,j,k);
 		a->M.n[n] = 0.0;
 		}
         
-         if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && p->BC[Ip1JK]==2)
+         if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && (p->BC[Ip1JK]==2 && p->B60==1))
 		{
              if(p->B77==1)
              {
