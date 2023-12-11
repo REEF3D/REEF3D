@@ -192,10 +192,7 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
 
     p->umax+=10.0;
 
-	//cu= + 2.0/((p->umax/p->DXM)+sqrt(pow(p->umax/p->DXM,2.0)+(4.0*sqrt(fabs(c->gi) + fabs(c->gj) +fabs(c->gk)))/p->DXM));
-    
-    //cout<<p->mpirank<<" p->umax: "<<p->umax<<" depthmax: "<<depthmax<<endl;
-    
+ 
     FLOOP
     FPWDCHECK
     {
@@ -205,14 +202,10 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
     if(p->j_dir==0 || p->knoy==1)
     dx = p->DXN[IP];
     
-    //if(p->mpirank==0)
-    //cout<<"dx: "<<dx<<" p->DXN[IP]: "<<p->DXN[IP]<<" p->DYN[JP]: "<<p->DYN[JP]<<endl;
     
     cu = MIN(cu, 1.0/((fabs(MAX(p->umax, sqrt(9.81*depthmax)))/dx)));
     cv = MIN(cv, 1.0/((fabs(MAX(p->vmax, sqrt(9.81*depthmax)))/dx)));
     }
-
-//cout<<p->mpirank<<" p->umax: "<<p->umax<<" depthmax: "<<depthmax<<" cu: "<<cu<<" cv: "<<cv<<endl;
 
 	cu = MIN(cu,cv);
     
@@ -221,8 +214,6 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
 	//p->dt=pgc->timesync(p->dt);
     p->dt=pgc->globalmin(p->dt);
 	p->dt_old=p->dt;
-
-    
     
     
     if(p->mpirank==0 && (p->count%p->P12==0))
