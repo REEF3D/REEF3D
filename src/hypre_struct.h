@@ -106,6 +106,8 @@ public:
     void create_solver5(lexer*,ghostcell*);
     void delete_solver5(lexer*,ghostcell*);
     
+    void precon_switch(lexer*,ghostcell*);
+    
 
 private:
     
@@ -130,7 +132,7 @@ private:
    
 	int numiter,count,q;
     
-    const int solve_type,precon_type;
+    int solve_type,precon_type;
     
     
     int *CVAL4;

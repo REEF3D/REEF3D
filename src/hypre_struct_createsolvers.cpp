@@ -260,7 +260,17 @@ void hypre_struct::delete_solver5(lexer* p,ghostcell* pgc)
     
     if(precon_type==12)
     HYPRE_StructSMGDestroy(precond);
+}
+
+void hypre_struct::precon_switch(lexer* p,ghostcell* pgc)
+{
+    if(num_iterations>20 && precon_type==11)
+    {
+    precon_type=12;
     
+    if(p->mpirank==0)
+    cout<<"!!! Preconditioner switch !!!"<<endl;
+    }
 }
 
 #endif

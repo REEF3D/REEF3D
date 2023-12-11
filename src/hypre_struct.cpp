@@ -29,7 +29,7 @@ Author: Hans Bihs
 #include"field.h"
 #include"vec.h"
 
-hypre_struct::hypre_struct(lexer* p,ghostcell *pgc, int solve_input, int precon_input) : solve_type(solve_input), precon_type(precon_input)
+hypre_struct::hypre_struct(lexer* p,ghostcell *pgc, int solve_input, int precon_input)
 {	
     int vecsize=p->knox*p->knoy*p->knoz; 
     
@@ -66,6 +66,9 @@ hypre_struct::hypre_struct(lexer* p,ghostcell *pgc, int solve_input, int precon_
     CVAL4[IJK]=count;
     ++count;
     }
+    
+    solve_type = solve_input;
+    precon_type = precon_input;
 }
 
 hypre_struct::~hypre_struct()
@@ -190,6 +193,9 @@ void hypre_struct::start_solver5(lexer* p,fdm* a, ghostcell* pgc, field &f, vec&
     fillbackvec4(p,f,var);
 	
 	delete_solver5(p,pgc);
+    
+    precon_switch(p,pgc);
+    
 }
 
 void hypre_struct::start_solver4V(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
@@ -213,6 +219,8 @@ void hypre_struct::start_solver4V(lexer* p, ghostcell* pgc, double *f, vec& rhs,
     fillbackvec4V(p,f,var);
 	
 	delete_solver5(p,pgc);
+    
+    precon_switch(p,pgc);
 }
 
 void hypre_struct::start_solver4f(lexer* p, ghostcell* pgc, field &f, vec& rhs, matrix_diag &M, int var)
@@ -235,6 +243,8 @@ void hypre_struct::start_solver4f(lexer* p, ghostcell* pgc, field &f, vec& rhs, 
     fillbackvec4(p,f,var);
 	
 	delete_solver5(p,pgc);
+    
+    precon_switch(p,pgc);
 }
 
 
@@ -259,6 +269,8 @@ void hypre_struct::start_solver7(lexer* p, ghostcell* pgc, double *f, vec& rhs, 
     fillbackvec7(p,f,var);
 	
 	delete_solver5(p,pgc);
+    
+    precon_switch(p,pgc);
 }
 
 void hypre_struct::start_solver8(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
@@ -283,6 +295,8 @@ void hypre_struct::start_solver8(lexer* p, ghostcell* pgc, double *f, vec& rhs, 
     fillbackvec8(p,f,var);
 	
 	delete_solver5(p,pgc);
+    
+    precon_switch(p,pgc);
 }
 
 void hypre_struct::start_solver9(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
@@ -306,6 +320,8 @@ void hypre_struct::start_solver9(lexer* p, ghostcell* pgc, double *f, vec& rhs, 
     fillbackvec9(p,f,var);
 	
 	delete_solver5(p,pgc);
+    
+    precon_switch(p,pgc);
 }
 
 void hypre_struct::fillxvec1(lexer* p, fdm* a, field& f)
