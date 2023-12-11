@@ -296,8 +296,11 @@ void fnpf_RK4::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, sol
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
 
     
+    for(int qn=0; qn<10; ++qn)
+    {
     pf->coastline_eta(p,c,pgc,c->eta);
     pf->coastline_fi(p,c,pgc,c->Fifsf);
+    }
     
     
     velcalc_sig(p,c,pgc,c->Fi);
