@@ -77,19 +77,6 @@ void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *pf, 
 	c->depth(i,j) = p->wd - p->bed[IJ];
     }
     
-    
-    /*
-    if(p->A343==1)
-    {
-        SLICELOOP4
-        if(c->depth(i,j)<10.0)
-        {
-        c->bed(i,j) -= 10.0-c->depth(i,j);
-        p->bed[IJ] -= 10.0-c->depth(i,j);
-        c->depth(i,j) = p->wd - c->bed(i,j);
-        }
-    }*/
-    
     pgc->gcsl_start4(p,c->depth,50);
     
     SLICELOOP4
