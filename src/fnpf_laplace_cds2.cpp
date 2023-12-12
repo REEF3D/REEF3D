@@ -215,13 +215,13 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             
             denom = p->sigz[IJ] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
 
-                    //if(p->wet[Ip1J]==1 && p->wet[Im1J]==1)
+                    if(p->wet[Ip1J]==1 && p->wet[Im1J]==1)
                     {
                     c->M.n[n] +=  ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     c->M.s[n] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     }
                     
-                    //if(p->wet[IJp1]==1 && p->wet[IJm1]==1)
+                    if(p->wet[IJp1]==1 && p->wet[IJm1]==1)
                     {
                     c->M.w[n] +=  ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
                     c->M.e[n] += -ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
