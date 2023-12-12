@@ -28,10 +28,10 @@ Author: Hans Bihs
 #include"vrans.h"
 
 void iowave::isource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
-{	
+{
 	NLOOP4
 	a->rhsvec.V[n]=0.0;
-	
+
     double porousterm;
     double ep=1.0e-10*p->DXM;
 	count=0;
@@ -47,11 +47,11 @@ void iowave::isource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 			if(p->pos1_z() > p->B240_zs[n]+ep && p->pos1_z() <= p->B240_ze[n]+ep)
 			porousterm=p->B240_D[n]*a->visc(i,j,k)*a->u(i,j,k) + 0.5*p->B240_C[n]*a->u(i,j,k)*fabs(a->u(i,j,k));
 		}
-	
+
     a->rhsvec.V[count] -= porousterm;
 	++count;
 	}
-    
+
 	//VRANS
     pvrans->u_source(p,a);
 }
@@ -60,7 +60,7 @@ void iowave::jsource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
 	NLOOP4
 	a->rhsvec.V[n]=0.0;
-	
+
     double porousterm;
 	double ep=1.0e-10*p->DXM;
 	count=0;
@@ -76,11 +76,11 @@ void iowave::jsource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 			if(p->pos2_z() > p->B240_zs[n]+ep && p->pos2_z() <= p->B240_ze[n]+ep)
 			porousterm=p->B240_D[n]*a->visc(i,j,k)*a->v(i,j,k) + 0.5*p->B240_C[n]*a->v(i,j,k)*fabs(a->v(i,j,k));
 		}
-		
+
     a->rhsvec.V[count] -= porousterm;
 	++count;
 	}
-    
+
     //VRANS
     pvrans->v_source(p,a);
 }
@@ -89,10 +89,10 @@ void iowave::ksource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
 	NLOOP4
 	a->rhsvec.V[n]=0.0;
-	
+
     double porousterm;
 
-	
+
     double ep=1.0e-10*p->DXM;
 	count=0;
 	if(p->B240>0 && p->B243==1)
@@ -114,7 +114,7 @@ void iowave::ksource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     a->rhsvec.V[count] -= porousterm;
 	++count;
 	}
-    
+
     //VRANS
     pvrans->w_source(p,a);
 }
@@ -130,5 +130,3 @@ void iowave::jsource2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	SLICELOOP2
 	b->G(i,j)=0.0;
 }
-
-
