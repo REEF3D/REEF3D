@@ -33,7 +33,7 @@ void iowave::isource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	a->rhsvec.V[n]=0.0;
 	
     double porousterm;
-    double ep=1.0e-10*p->DXM;
+    double ep=1.0e-10*p->DXM; 
 	count=0;
 	if(p->B240>0 && p->B241==1)
     ULOOP
@@ -62,7 +62,7 @@ void iowave::jsource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 	a->rhsvec.V[n]=0.0;
 	
     double porousterm;
-	double ep=1.0e-10*p->DXM;
+	double ep=1.0e-10*p->DXM; 
 	count=0;
 	if(p->B240>0 && p->B242==1)
     VLOOP
