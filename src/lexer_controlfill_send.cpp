@@ -400,12 +400,6 @@ void lexer::ctrlsend()
     ii++;
     ictrl[ii] = B139;
     ii++;
-    dctrl[dd] = B140_1;
-    dd++;
-    dctrl[dd] = B140_2;
-    dd++;
-    dctrl[dd] = B140_3;
-    dd++;
     ictrl[ii] = B160;
     ii++;
     ictrl[ii] = B170;

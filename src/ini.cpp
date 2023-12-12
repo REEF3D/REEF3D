@@ -205,9 +205,6 @@ void lexer::ini_default()
     B136=1;         // int double summation method frequency vector
     B138=0;         // int seed number multidir waves
     B139=0;         // int seed number wave spectrum
-	B140_1=0.0;    // doube x1 numerical beach
-	B140_2=0.0;    // doube x2 numerical beach
-	B140_3=0.0;    // doube beta numerical beach
     B160=5;        // int number of vertical layers for 2D wave generation
     B170=1024;     // int number of Fourier modes for the generation of steady surface gravity waves
 	B180=0;           // int gravity waves

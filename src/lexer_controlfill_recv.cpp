@@ -397,12 +397,6 @@ void lexer::ctrlrecv()
 	ii++;
     B139 = ictrl[ii];
 	ii++;
-    B140_1 = dctrl[dd];
-	dd++;
-    B140_2 = dctrl[dd];
-	dd++;
-    B140_3 = dctrl[dd];
-	dd++;
     B160 = ictrl[ii];
 	ii++;
     B170 = ictrl[ii];

@@ -306,7 +306,6 @@ public:
     double B112_zs,B112_z2,B112_ze;
     int B115,B116,B125,B127;
     double B120,B122,B123,B125_y;
-	double B140_1,B140_2,B140_3;
     int B130,B133;
     double B131,B132_s,B132_e;
     double B134,B135;
