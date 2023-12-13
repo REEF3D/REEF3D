@@ -257,8 +257,6 @@ void lexer::ctrlsend()
     ii++;
     ictrl[ii] = B61;
     ii++;
-	ictrl[ii] = B70;
-    ii++;
 	ictrl[ii] = B71;
     ii++;
 	ictrl[ii] = B75;
@@ -1763,20 +1761,6 @@ void lexer::ctrlsend()
 	
 // --------------------------
 
-	
-	for(n=0;n<B70;++n)
-    {
-    dctrl[dd]   = B70_val[n];
-    dd++;
-	dctrl[dd] = B70_dist[n];
-    dd++;
-	dctrl[dd] = B70_b[n];
-    dd++;
-    dctrl[dd] = B70_x[n];
-    dd++;
-	dctrl[dd] = B70_y[n];
-    dd++;
-    }
 	
 	for(n=0;n<B71;++n)
     {
