@@ -405,7 +405,7 @@ void iowave::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
 
 void iowave::visc_relax(lexer *p, ghostcell *pgc, slice& f)
 {
-    count=0;
+    /*count=0;
     SLICELOOP4
     {
         dg = distgen(p);
@@ -416,8 +416,8 @@ void iowave::visc_relax(lexer *p, ghostcell *pgc, slice& f)
 		{
             // Zone 2
             if(db<1.0e20)
-            f(i,j) = relax4_nb(i,j)*f(i,j);
+            f(i,j) = relax4_nb(i,j)*f(i,j) + (1.0-relax4_nb(i,j))*1.86;
         }
-    }
+    }*/
 }
 

@@ -76,8 +76,8 @@ void lexer::ini_default()
     A345=0;      // int dx-based relative wetting citerion
     A345_val=0.01; // double dx-based relative wetting citerion value
     A346=1.86;    // double viscosity damping within the coastline
-    A347=1;     // int coastline relaxation for Fi and eta
-    A348=1;     // int beach relaxation for Fi and eta
+    A347=2;     // int coastline relaxation for Fi and eta
+    A348=2;     // int beach relaxation for Fi and eta
     A350=0;      // int turn on breaking (which method)
     A351=0;      // int type of breaking detection (deep / shallow)
     A352=1;      // int additional filtering to viscosity based breaking
@@ -91,7 +91,6 @@ void lexer::ini_default()
     A363=1;      // int breaking filter width
     A365=1.86;   // double viscosity breaking wave
     A368=0;      // int breaking waves in numerical beach
-    A369=1.86;   // double viscosity relaxation breaking wave
 
 
     A410=1;      // int scheme eta
