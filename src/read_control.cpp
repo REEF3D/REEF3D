@@ -376,9 +376,6 @@ void lexer::read_control()
                 case 61: control>>B61;
 						 clear(c,numint);
 						 break;
-			   case 70: ++B70;
-						 clear(c,numint);
-						 break;
 			   case 71: ++B71;
 						 clear(c,numint);
 						 break;
@@ -2195,12 +2192,6 @@ void lexer::read_control()
     // re-read
 
 	// B
-	Darray(B70_val,B70);
-	Darray(B70_dist,B70);
-	Darray(B70_b,B70);
-	Darray(B70_x,B70);
-	Darray(B70_y,B70);
-
 	Darray(B71_val,B71);
 	Darray(B71_dist,B71);
 	Darray(B71_b,B71);
@@ -2788,7 +2779,6 @@ void lexer::read_control()
         FSI_count = Z11;
     }
     
-	int countB70=0;
 	int countB71=0;
 	int countB106=0;
 	int countB107=0;
@@ -2887,10 +2877,6 @@ void lexer::read_control()
 			case 'B': control>>numint;
 				switch(numint)
 				{
-				case 70: control>>B70_val[countB70]>>B70_dist[countB70]>>B70_b[countB70]>>B70_x[countB70]>>B70_y[countB70];
-                        ++countB70;
-						 clear(c,numint);
-						 break;
 				case 71: control>>B71_val[countB71]>>B71_dist[countB71]>>B71_b[countB71]>>B71_x[countB71]>>B71_y[countB71];
                         ++countB71;
 						 clear(c,numint);

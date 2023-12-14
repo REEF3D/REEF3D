@@ -36,25 +36,14 @@ ioflow_f::ioflow_f(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)
 	p->Darray(walldin, walldin_size);
     p->Darray(walldout, walldout_size);
 
-	p->Darray(betaB70,p->B70);
 	p->Darray(betaB71,p->B71);
 
-	p->Darray(tan_betaB70,p->B70);
 	p->Darray(tan_betaB71,p->B71);
 
-	p->Darray(dist_B70,p->B70);
 	p->Darray(dist_B71,p->B71);
-	
-	
-	for(n=0;n<p->B70;++n)
-	betaB70[n] = (p->B70_b[n]+90.0)*(PI/180.0);
 	
 	for(n=0;n<p->B71;++n)
 	betaB71[n] = (p->B71_b[n]+90.0)*(PI/180.0);
-	
-	
-	for(n=0;n<p->B70;++n)
-	tan_betaB70[n] = tan(betaB70[n]);
 	
 	for(n=0;n<p->B71;++n)
 	tan_betaB71[n] = tan(betaB71[n]);

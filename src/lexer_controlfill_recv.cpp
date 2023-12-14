@@ -253,8 +253,6 @@ void lexer::ctrlrecv()
 	ii++;
     B61 = ictrl[ii];
 	ii++;
-	B70 = ictrl[ii];
-	ii++;
 	B71 = ictrl[ii];
 	ii++;
     B75 = ictrl[ii];
@@ -1756,16 +1754,6 @@ void lexer::ctrlrecv()
 
 // --------------------------	
 	
-	
-	if(B70>0)
-	{
-	Darray(B70_val,B70);
-	Darray(B70_dist,B70);
-	Darray(B70_b,B70);
-	Darray(B70_x,B70);
-	Darray(B70_y,B70);
-	}
-	
 	if(B71>0)
 	{
 	Darray(B71_val,B71);
@@ -2528,21 +2516,7 @@ void lexer::ctrlrecv()
 
 // --------------------------
 
-	
-	for(n=0;n<B70;++n)
-    {
-    B70_val[n]= dctrl[dd];
-    dd++;
-	B70_dist[n]= dctrl[dd];
-    dd++;
-	B70_b[n]  = dctrl[dd];
-    dd++;
-    B70_x[n]  = dctrl[dd];
-    dd++;
-	B70_y[n]  = dctrl[dd];
-    dd++;
-    }
-	
+
 	for(n=0;n<B71;++n)
     {
     B71_val[n]= dctrl[dd];
