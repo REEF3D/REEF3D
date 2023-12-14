@@ -308,9 +308,6 @@ void fnpf_fsfbc::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice
     c->test2D(i,j) = double (p->wet[IJ]);
 }
 
-void fnpf_fsfbc::depthcheck(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf) 
-{ 
-}
 
 void fnpf_fsfbc::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 
 {  

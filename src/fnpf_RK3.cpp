@@ -229,7 +229,6 @@ void fnpf_RK3::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, sol
     sigma_ini(p,c,pgc,pf,c->eta);
     pf->fsfdisc_ini(p,c,pgc,c->eta,c->Fifsf);
     pf->wetdry(p,c,pgc,c->eta,c->Fifsf);   
-    pf->depthcheck(p,c,pgc,c->eta,c->Fifsf); 
     sigma_ini(p,c,pgc,pf,c->eta);
     pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
     sigma_update(p,c,pgc,pf,c->eta);
