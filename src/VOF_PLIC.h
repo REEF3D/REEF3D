@@ -54,8 +54,8 @@ private:
     int conv(double);
 	
 	void reconstructPlane(fdm*, lexer*);
-	double calcAlpha(fdm*, double&,  double&,  double&);
-    double calcAlpha2(double&, double&, double&, double&, double&, double&, double&);
+	double calcAlpha(fdm*, lexer* ,double&,  double&,  double&);
+    double calcAlpha2(double, double, double, double, double&, double&, double&);
 
 	void ininorVecLS(lexer*);
 	void calcNormalFO(fdm*, lexer*);
@@ -65,18 +65,20 @@ private:
 	
 	void advectPlane(fdm*, lexer*, double, double, int);
 	void calcFlux(fdm*, lexer*, double&, double&, int);
-	double Volume_flow(double&, double&, double&, double&, int, int);
+	double Volume_flow(lexer*,double&, double&, double&, double&, int, int);
 	void updateVolumeFraction(fdm*, lexer*, double, double, int);
 	void updateVOF(fdm*, lexer*, int);
-	double calcV(const double&, const double&, const double&, const double&, double, double);
+	double calcV(double&, double&, double&, double&, double, double);
 	double calcV2(lexer*);
 	double F3(const double&);
+
 	
     void redistance(fdm*, lexer*, convection*, ghostcell*,ioflow*,int);
     int calcBoundaryPoint(fdm*, lexer*, int, int, int, field4&);
     int calcProjectionPoint(fdm*, lexer*, double&, double&, double&, int, int, int, field4&);
 	void calcSegmentPoint(fdm*, lexer*, double, double, double, int, int, int, field4&);
     double calcDistance(double, double, double, double);	
+    double Heavistep(double x);
 	
 	
     fluid_update *pupdate;

@@ -104,7 +104,7 @@ void VOF_PLIC::reconstructPlane(fdm* a, lexer* p)
 
 double VOF_PLIC::calcAlpha
 (
-	fdm* a,
+	fdm* a, lexer* p,
 	double& nnx,
 	double& nny,
 	double& nnz
@@ -237,7 +237,7 @@ double VOF_PLIC::calcAlpha
 	
 }
 
-double VOF_PLIC::calcAlpha( double Frac, double dx, double dy, double dz, double nx, double ny, double nz)
+double VOF_PLIC::calcAlpha2( double Frac, double dx, double dy, double dz, double& nx, double& ny, double& nz)
 {
     //making sure all vector components are positive
     double n_x,n_y,n_z,ret;
@@ -266,7 +266,7 @@ double VOF_PLIC::calcAlpha( double Frac, double dx, double dy, double dz, double
     if(n_z*dz>=n_b*d_b)
     {
         n_g=n_z;
-        d_g=dz
+        d_g=dz;
     }
     else if(n_z*dz<n_a*d_a)
     {
@@ -335,7 +335,8 @@ double VOF_PLIC::calcAlpha( double Frac, double dx, double dy, double dz, double
         c_ase=6;
         
     //calculate n_
-    
+    double n_tilde,p_cub,q_cub,D_cub,u1_cub,u2_cub;
+    double n_tilde_1,n_tilde_2,n_1,n_2,p_quad,q_quad;
     switch(c_ase)
     {
         case 0:
@@ -343,7 +344,6 @@ double VOF_PLIC::calcAlpha( double Frac, double dx, double dy, double dz, double
             break;
             
         case 1:
-            double n_1,n_2;
             n_1=-m_a*d_a/4+sqrt(m_a*m_a*d_a*d_a/16-m_a*m_a*d_a*d_a/3-2*m_b*Vol_/d_a);
             n_2=-m_a*d_a/4-sqrt(m_a*m_a*d_a*d_a/16-m_a*m_a*d_a*d_a/3-2*m_b*Vol_/d_a);
             
@@ -359,7 +359,6 @@ double VOF_PLIC::calcAlpha( double Frac, double dx, double dy, double dz, double
             break;
         
         case 2:
-            double n_tilde,p_cub,q_cub,D_cub,u1_cub,u2_cub;
             p_cub=-6*m_a*m_b*d_a*d_b;
             q_cub=3*m_a*m_a*m_b*d_a*d_a*d_b+3*m_a*m_b*m_b*d_a*d_b*d_b+6*m_a*m_b*Vol_;
             D_cub=q_cub*q_cub/4+p_cub*p_cub*p_cub/27;
@@ -379,7 +378,6 @@ double VOF_PLIC::calcAlpha( double Frac, double dx, double dy, double dz, double
             break;
             
         case 4:
-            double n_tilde,p_cub,q_cub,D_cub,u1_cub,u2_cub;
             p_cub=-6*m_a*m_b*d_a*d_b;
             q_cub=-3*m_a*m_a*m_b*d_a*d_a*d_b-3*m_a*m_b*m_b*d_a*d_b*d_b-6*m_a*m_b*d_a*d_b*d_g+6*m_a*m_b*Vol_;
             D_cub=q_cub*q_cub/4+p_cub*p_cub*p_cub/27;
@@ -395,7 +393,6 @@ double VOF_PLIC::calcAlpha( double Frac, double dx, double dy, double dz, double
             break;
             
         case 5:
-            double n_tilde_1,n_tilde_2,n_1,n_2,p_quad,q_quad;
             p_quad=0.5*m_a*d_a+2*m_b*d_b;
             q_quad=1/3*d_a*d_a*m_a*m_a+m_b*m_a*d_a+m_b*m_b*d_b*d_b-2*m_b/d_a*Vol_;
             n_tilde_1=-p_quad/2+sqrt(p_quad*p_quad/4-q_quad);
@@ -415,11 +412,10 @@ double VOF_PLIC::calcAlpha( double Frac, double dx, double dy, double dz, double
             break;
             
         case 6:
-            double n_tilde;
             n_tilde=cbrt(6*m_a*m_b*(d_a*d_b*d_g-Vol_));
             n_=d_g-m_a*d_a-m_b*d_b-n_tilde;
             break;
-            
+    }
     ret=n_*n_g;
-    return ret
+    return ret;
 }
