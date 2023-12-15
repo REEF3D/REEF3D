@@ -688,7 +688,7 @@ void wave_lib_Stokes_5th::parameters(lexer *p, ghostcell *pgc)
 
     c2 = (c0*(2.0 + 7.0*S*S)/(4.0*C*C));
 
-    c4 = (c0*(4.0 + 32.0*S -116.0*S*S - 400.0*S*S*S - 71.0*pow(S,4.0) + 146.0*pow(S,5.0)))/(32.0*pow(C,5.0));
+    c4 = (c0*(4.0 + 32.0*S - 116.0*S*S - 400.0*S*S*S - 71.0*pow(S,4.0) + 146.0*pow(S,5.0)))/(32.0*pow(C,5.0));
 
 
     e2 = (tanh(wk*wdt)*(2.0 + 2.0*S + 5.0*S*S))/(4.0*pow(1.0 - S,2.0));

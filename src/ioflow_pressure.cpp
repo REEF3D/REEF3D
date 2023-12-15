@@ -106,7 +106,7 @@ void ioflow_f::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
 			if(p->B77==1)
 			{
                 if(p->F50==2 || p->F50==3)
-                pval=(p->fsfoutval - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
+                pval=(p->fsfout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
                 
                 if(p->F50==1 || p->F50==4)
                 pval=a->press(i,j,k);

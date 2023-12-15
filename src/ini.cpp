@@ -302,7 +302,7 @@ void lexer::ini_default()
 
     // Free Surface
 	F10=2;			    // int free surface scheme
-	F30=0;			    // int level set scheme
+	F30=3;			    // int level set scheme
 	F31=0;             // particle level set
 	F32=64;			// number of particles per cell
 	F33=0.5;		// factor for pls vec allocation
@@ -310,7 +310,7 @@ void lexer::ini_default()
 	F35=5;			    // int convection scheme for fsf
 	F36=1;				// int RK3 scheme
 	F39=0.5;			    // double reini constraint relaxation factor
-	F40=0;			    // int reini scheme
+	F40=3;			    // int reini scheme
 	F42=-1.0;		// double maxlength
 	F43=0.55;		// double factor for reini timestep
 	F44=3;		        // int number reini time step

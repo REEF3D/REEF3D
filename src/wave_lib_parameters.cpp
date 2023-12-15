@@ -67,17 +67,18 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
   	wf = ww/(2.0*PI);
     wT = 1.0/wf;
 
-	  if(wtype==5)
-	   {
+        // 5th-order Stokes
+        if(wtype==5)
+        {
 	    eps = 0.5*wk*wH;
 	    S = 1.0/cosh(2*wk*wdt);
 	    C = 1.0 - S;
 
 	    c0 = sqrt(tanh(wk*wdt));
 
-      c2 = (c0*(2.0 + 7.0*S*S)/(4.0*C*C));
+        c2 = (c0*(2.0 + 7.0*S*S)/(4.0*C*C));
 
-      c4 = (c0*(4.0 + 32.0*S -116.0*S*S - 400.0*S*S*S - 71.0*pow(S,4.0) + 146.0*pow(S,5.0)))/(32.0*pow(C,5.0));
+        c4 = (c0*(4.0 + 32.0*S -116.0*S*S - 400.0*S*S*S - 71.0*pow(S,4.0) + 146.0*pow(S,5.0)))/(32.0*pow(C,5.0));
 
 	    wT= (2.0*PI)/(sqrt(9.81*wk)*(c0 + eps*eps*c2 + eps*eps*eps*eps*c4));
 	    wf = 1.0/wT;
@@ -85,6 +86,8 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
 
 	    wC = ww/wk;
 	    ubar = (c0 + eps*eps*c2 + eps*eps*eps*eps*c4)/sqrt(wk/9.81);
+        
+        //cout<<"C-Umean: "<<wC-ubar<<" C: "<<wC<<" Umean: "<<ubar<<endl;
 	   }
        
     p->wT = wT;
@@ -119,7 +122,9 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
     wL = wL0*tanh(2.0*PI*wdt/wL);
 		}
 
-    if(wtype==5)
+
+        // 5th-order Stokes
+        if(wtype==5)
 		{
 		wL0 = (9.81/(2.0*PI))*wT*wT;
 		k0 = (2.0*PI)/wL0;
@@ -127,8 +132,8 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
 
 		wL = wL0*tanh(S0);
 
-    for(int qn=0; qn<500; ++qn)
-    wL = wL0*tanh(2.0*PI*wdt/wL);
+        for(int qn=0; qn<500; ++qn)
+        wL = wL0*tanh(2.0*PI*wdt/wL);
 
         diff=10.0;
         int qn=0;
@@ -280,9 +285,7 @@ double wave_lib_parameters::cosfunc(double x)
 
 double wave_lib_parameters::coshfunc(double x)
 {
-
     f = 0.0;
-
 
     for(n=0; n<order; ++n)
     {
