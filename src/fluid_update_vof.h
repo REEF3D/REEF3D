@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fluid_update.h"
+#include"density_vof.h"#include"fluid_update.h"
 #include"increment.h"
 
 class fdm;

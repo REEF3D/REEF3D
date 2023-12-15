@@ -41,24 +41,24 @@ void VOF_PLIC::updateVOF(fdm* a, lexer* p, int sweep)
 	{
 		LOOP
 		{
-			a->vof(i,j,k) = 
-				max(0.0,min(vof3(i-1,j,k) + vof2(i,j,k) + vof1(i+1,j,k), 1.0));
+			a->vof(i,j,k) = vof2(i,j,k)+vof1(i+1,j,k)+vof3(i-1,j,k);
+			//	max(0.0,min(vof3(i-1,j,k) + vof2(i,j,k) + vof1(i+1,j,k), 1.0));
 		}
 	}
 	else if (sweep == 1)
 	{
 		LOOP
 		{
-			a->vof(i,j,k) = 
-				max(0.0,min(vof3(i,j-1,k) + vof2(i,j,k) + vof1(i,j+1,k), 1.0));
+			a->vof(i,j,k) = vof2(i,j,k)+vof1(i,j+1,k)+vof3(i,j-1,k);
+				//max(0.0,min(vof3(i,j-1,k) + vof2(i,j,k) + vof1(i,j+1,k), 1.0));
 		}
 	}
 	else
 	{
 		LOOP
 		{			
-			a->vof(i,j,k) = 
-				max(0.0,min(vof3(i,j,k-1) + vof2(i,j,k) + vof1(i,j,k+1), 1.0));			
+			a->vof(i,j,k) = vof2(i,j,k)+vof1(i,j,k+1)+vof3(i,j,k-1);
+				//max(0.0,min(vof3(i,j,k-1) + vof2(i,j,k) + vof1(i,j,k+1), 1.0));			
 		}
 
 	}
@@ -75,140 +75,59 @@ void VOF_PLIC::updateVolumeFraction
 )
 {
 	//- Calculate volume entering, leaving and staying in the cell
-	
-	double m1 = max(Q1, 0.0);
-	double m2 = 1.0 - m1 + min(0.0, Q2);
-
-	if (sweep == 0)
-	{
-		if (Q1 < 0.0)
-		{
-			vof1(i, j, k) = 
-				calcV
-				(
-					nx(i, j, k),
-					ny(i, j, k),
-					nz(i, j, k),
-					alpha(i, j, k),
-					Q1,
-					-Q1
-				);
-
-		}
-		if (Q2 > 0.0) 
-		{
-			vof3(i, j, k) = 
-				calcV
-				(
-					nx(i, j, k),
-					ny(i, j, k),
-					nz(i, j, k),
-					alpha(i, j, k),
-					1.0,
-					Q2
-				);
-		}
-		
-		vof2(i, j, k) = 
-				calcV
-				(
-					nx(i, j, k),
-					ny(i, j, k),
-					nz(i, j, k),
-					alpha(i, j, k),
-					m1,
-					m2
-				);
-	}
-	else if (sweep == 1)
-	{
-		if (Q1 < 0.0)
-		{
-			vof1(i, j, k) = 
-				calcV
-				(
-					ny(i, j, k),
-					nz(i, j, k),
-					nx(i, j, k),
-					alpha(i, j, k),
-					Q1,
-					-Q1
-				);
-		}
-		if (Q2 > 0.0) 
-		{
-			vof3(i, j, k) = 
-				calcV
-				(
-					ny(i, j, k),
-					nz(i, j, k),
-					nx(i, j, k),
-					alpha(i, j, k),
-					1.0,
-					Q2
-				);
-		}
-		
-		vof2(i, j, k) = 
-			calcV
-			(
-				ny(i, j, k),
-				nz(i, j, k),
-				nx(i, j, k),
-				alpha(i, j, k),
-				m1,
-				m2
-			);
-	}
-	else
-	{
-		if (Q1 < 0.0)
-		{
-			vof1(i,j,k) = 
-				calcV
-				(
-					nz(i, j, k),
-					nx(i, j, k),
-					ny(i, j, k),
-					alpha(i,j,k),
-					Q1,
-					-Q1
-				);
-		}
-		if (Q2 > 0.0) 
-		{
-			vof3(i,j,k) = 
-				calcV
-				(
-					nz(i, j, k),
-					nx(i, j, k),
-					ny(i, j, k),
-					alpha(i,j,k),
-					1.0,
-					Q2
-				);
-		}
-		
-		vof2(i,j,k) = 
-			calcV
-			(
-				nz(i, j, k),
-				nx(i, j, k),
-				ny(i, j, k),
-				alpha(i,j,k),
-				m1,
-				m2
-			);
-	}
+    if(sweep==0)
+    {
+	if(Q1<0.0)
+        vof1(i,j,k)=Volume_flow(nx(i,j,k),ny(i,j,k),nz(i,j,k),sweep,1)/(p->DXN[Im1]*p->DYN[JP]*p->DZN[KP]);
+    else
+        vof1(i,j,k)=0.0;
+        
+    if(Q2>0.0)
+        vof3(i,j,k)=Volume_flow(nx(i,j,k),ny(i,j,k),nz(i,j,k),sweep,3)/(p->DXN[IP1]*p->DYN[JP]*p->DZN[KP]);
+    else
+        vof3(i,j,k)=0.0;
+    
+    vof2(i,j,k)=a->vof(i,j,k)-vof1(i,j,k)-vof3(i,j,k);
+    }
+    
+    if(sweep==1)
+    {
+	if(Q1<0.0)
+        vof1(i,j,k)=Volume_flow(nx(i,j,k),ny(i,j,k),nz(i,j,k),sweep,1)/(p->DXN[IP]*p->DYN[Jm1]*p->DZN[KP]);
+    else
+        vof1(i,j,k)=0.0;
+        
+    if(Q2>0.0)
+        vof3(i,j,k)=Volume_flow(nx(i,j,k),ny(i,j,k),nz(i,j,k),sweep,3)/(p->DXN[IP]*p->DYN[JP1]*p->DZN[KP]);
+    else
+        vof3(i,j,k)=0.0;
+    
+    vof2(i,j,k)=a->vof(i,j,k)-vof1(i,j,k)-vof3(i,j,k);
+    }
+    
+    if(sweep==2)
+    {
+	if(Q1<0.0)
+        vof1(i,j,k)=Volume_flow(nx(i,j,k),ny(i,j,k),nz(i,j,k),sweep,1)/(p->DXN[IP]*p->DYN[JP]*p->DZN[Km1]);
+    else
+        vof1(i,j,k)=0.0;
+        
+    if(Q2>0.0)
+        vof3(i,j,k)=Volume_flow(nx(i,j,k),ny(i,j,k),nz(i,j,k),sweep,3)/(p->DXN[IP]*p->DYN[JP1]*p->DZN[KP1]);
+    else
+        vof3(i,j,k)=0.0;
+    
+    vof2(i,j,k)=a->vof(i,j,k)-vof1(i,j,k)-vof3(i,j,k);
+    }
+    
 }
-
 
 double VOF_PLIC::calcV
 (
-    const double& m1,
-    const double& m2,
-    const double& m3,
-    const double& alpha,
+     double& m1,
+     double& m2,
+     double& m3,
+     double& alpha,
 	double r0,
 	double dr0
 )
@@ -228,7 +147,7 @@ double VOF_PLIC::calcV
 	
 	//- Normalise plane equation: n1*x + n2*y + n3*z = al
 	
-	double tmp = fabs(m1)*dr0 + fabs(m2) + fabs(m3);
+	double tmp = sqrt(fabs(m1)*dr0*fabs(m1)*dr0 + fabs(m2)*fabs(m2) + fabs(m3)*fabs(m3));
 	if (tmp < 1e-10) return 0.0;	
 	
 	double n1 = fabs(m1)/(tmp + 1e-50);
@@ -346,3 +265,126 @@ double VOF_PLIC::F3(const double& x)
 {	
 	return (x <= 0.0) ? 0.0 : pow(x,3.0);
 }
+
+double VOF_PLIC::Volume_flow(double nnx, double nny, double nnz, double alpha, int sweepnum, int dirnum)
+{
+    double retval, al,alphamax,mx,my,mz;
+    
+    if(nnx<0.0)
+        mx=-nnx;
+    else
+        mx=nnx;
+    
+    if(nny<0.0)
+        my=-nny;
+    else
+        my=nny;
+        
+    if(nnz<0.0)
+        mz=-nnz;
+    else
+        mz=nnz;
+    
+    if (sweepnum==0 && dirnum==3)
+    {
+        al = alpha-nnx*p->DXN[IP];
+        
+        alphamax=mx*p->DXN[IP1]+my*p->DYN[JP]+mz*p->DZN[KP];
+        retval = 1/(6*mx+my+mz)
+                *(al*al*al
+                -Heavistep(al-mx*p->DXN[IP1])*(al-mx*p->DXN[IP1])*(al-mx*p->DXN[IP1])*(al-mx*p->DXN[IP1])
+                -Heavistep(al-my*p->DYN[JP])*(al-my*p->DYN[JP])*(al-my*p->DYN[JP])*(al-my*p->DYN[JP])
+                -Heavistep(al-mz*p->DZN[KP])*(al-mz*p->DZN[KP])*(al-mz*p->DZN[KP])*(al-mz*p->DZN[KP])
+                +Heavistep(al-alphamax+mx*DXN[IP1])*(al-alphamax+mx*p->DXN[IP1])*(al-alphamax+mx*p->DXN[IP1])*(al-alphamax+mx*p->DXN[IP1])
+                +Heavistep(al-alphamax+my*DYN[JP])*(al-alphamax+my*p->DYN[JP])*(al-alphamax+my*p->DYN[JP])*(al-alphamax+my*p->DYN[JP])
+                +Heavistep(al-alphamax+mz*DZN[KP])*(al-alphamax+mz*p->DZN[KP])*(al-alphamax+mz*p->DZN[KP])*(al-alphamax+mz*p->DZN[KP])
+                );
+    }
+    if (sweepnum==0 && dirnum==1)
+    {
+        al = alpha-nnx*(-1.0)*p->DXN[IP];
+        alphamax=mx*p->DXN[Im1]+my*p->DYN[JP]+mz*p->DZN[KP];
+        retval = 1/(6*mx+my+mz)
+                *(al*al*al
+                -Heavistep(al-mx*p->DXN[Im1])*(al-mx*p->DXN[Im1])*(al-mx*p->DXN[Im1])*(al-mx*p->DXN[Im1])
+                -Heavistep(al-my*p->DYN[JP])*(al-my*p->DYN[JP])*(al-my*p->DYN[JP])*(al-my*p->DYN[JP])
+                -Heavistep(al-mz*p->DZN[KP])*(al-mz*p->DZN[KP])*(al-mz*p->DZN[KP])*(al-mz*p->DZN[KP])
+                +Heavistep(al-alphamax+mx*DXN[Im1])*(al-alphamax+mx*p->DXN[Im1])*(al-alphamax+mx*p->DXN[Im1])*(al-alphamax+mx*p->DXN[Im1])
+                +Heavistep(al-alphamax+my*DYN[JP])*(al-alphamax+my*p->DYN[JP])*(al-alphamax+my*p->DYN[JP])*(al-alphamax+my*p->DYN[JP])
+                +Heavistep(al-alphamax+mz*DZN[KP])*(al-alphamax+mz*p->DZN[KP])*(al-alphamax+mz*p->DZN[KP])*(al-alphamax+mz*p->DZN[KP])
+                );
+    }
+    if (sweepnum==1 && dirnum==3)
+    {
+        al = alpha-nny*p->DYN[JP];
+        alphamax=mx*p->DXN[IP]+my*p->DYN[JP1]+mz*p->DZN[KP];
+        retval = 1/(6*mx+my+mz)
+                *(al*al*al
+                -Heavistep(al-mx*p->DXN[IP])*(al-mx*p->DXN[IP])*(al-mx*p->DXN[IP])*(al-mx*p->DXN[IP])
+                -Heavistep(al-my*p->DYN[JP1])*(al-my*p->DYN[JP1])*(al-my*p->DYN[JP1])*(al-my*p->DYN[JP1])
+                -Heavistep(al-mz*p->DZN[KP])*(al-mz*p->DZN[KP])*(al-mz*p->DZN[KP])*(al-mz*p->DZN[KP])
+                +Heavistep(al-alphamax+mx*DXN[IP])*(al-alphamax+mx*p->DXN[IP])*(al-alphamax+mx*p->DXN[IP])*(al-alphamax+mx*p->DXN[IP])
+                +Heavistep(al-alphamax+my*DYN[JP1])*(al-alphamax+my*p->DYN[JP1])*(al-alphamax+my*p->DYN[JP1])*(al-alphamax+my*p->DYN[JP1])
+                +Heavistep(al-alphamax+mz*DZN[KP])*(al-alphamax+mz*p->DZN[KP])*(al-alphamax+mz*p->DZN[KP])*(al-alphamax+mz*p->DZN[KP])
+                );
+    }
+    if (sweepnum==1 && dirnum==1)
+    {
+        al = alpha-nny*(-1.0)p->DYN[JP];
+        alphamax=mx*p->DXN[IP]+my*p->DYN[Jm1]+mz*p->DZN[KP];
+        retval = 1/(6*mx+my+mz)
+                *(al*al*al
+                -Heavistep(al-mx*p->DXN[IP])*(al-mx*p->DXN[IP])*(al-mx*p->DXN[IP])*(al-mx*p->DXN[IP])
+                -Heavistep(al-my*p->DYN[Jm1])*(al-my*p->DYN[Jm1])*(al-my*p->DYN[Jm1])*(al-my*p->DYN[Jm1])
+                -Heavistep(al-mz*p->DZN[KP])*(al-mz*p->DZN[KP])*(al-mz*p->DZN[KP])*(al-mz*p->DZN[KP])
+                +Heavistep(al-alphamax+mx*DXN[IP])*(al-alphamax+mx*p->DXN[IP])*(al-alphamax+mx*p->DXN[IP])*(al-alphamax+mx*p->DXN[IP])
+                +Heavistep(al-alphamax+my*DYN[Jm1])*(al-alphamax+my*p->DYN[Jm1])*(al-alphamax+my*p->DYN[Jm1])*(al-alphamax+my*p->DYN[Jm1])
+                +Heavistep(al-alphamax+mz*DZN[KP])*(al-alphamax+mz*p->DZN[KP])*(al-alphamax+mz*p->DZN[KP])*(al-alphamax+mz*p->DZN[KP])
+                );
+    }
+    if (sweepnum==2 && dirnum==3)
+    {
+        al = alpha-nnz*p->DZN[KP];
+        alphamax=mx*p->DXN[IP]+my*p->DYN[JP]+mz*p->DZN[KP1];
+        retval = 1/(6*mx+my+mz)
+                *(al*al*al
+                -Heavistep(al-mx*p->DXN[IP])*(al-mx*p->DXN[IP])*(al-mx*p->DXN[IP])*(al-mx*p->DXN[IP])
+                -Heavistep(al-my*p->DYN[JP])*(al-my*p->DYN[JP])*(al-my*p->DYN[JP])*(al-my*p->DYN[JP])
+                -Heavistep(al-mz*p->DZN[KP1])*(al-mz*p->DZN[KP1])*(al-mz*p->DZN[KP1])*(al-mz*p->DZN[KP1])
+                +Heavistep(al-alphamax+mx*DXN[IP])*(al-alphamax+mx*p->DXN[IP])*(al-alphamax+mx*p->DXN[IP])*(al-alphamax+mx*p->DXN[IP])
+                +Heavistep(al-alphamax+my*DYN[JP])*(al-alphamax+my*p->DYN[JP])*(al-alphamax+my*p->DYN[JP])*(al-alphamax+my*p->DYN[JP])
+                +Heavistep(al-alphamax+mz*DZN[KP1])*(al-alphamax+mz*p->DZN[KP1])*(al-alphamax+mz*p->DZN[KP1])*(al-alphamax+mz*p->DZN[KP1])
+                );
+    }
+    if (sweepnum==2 && dirnum==1)
+    {
+        al = alpha-nnz*(-1.0)*p->DZN[KP];
+        alphamax=mx*p->DXN[IP]+my*p->DYN[JP]+mz*p->DZN[Km1];
+        retval = 1/(6*mx+my+mz)
+                *(al*al*al
+                -Heavistep(al-mx*p->DXN[IP])*(al-mx*p->DXN[IP])*(al-mx*p->DXN[IP])*(al-mx*p->DXN[IP])
+                -Heavistep(al-my*p->DYN[JP])*(al-my*p->DYN[JP])*(al-my*p->DYN[JP])*(al-my*p->DYN[JP])
+                -Heavistep(al-mz*p->DZN[Km1])*(al-mz*p->DZN[Km1])*(al-mz*p->DZN[Km1])*(al-mz*p->DZN[Km1])
+                +Heavistep(al-alphamax+mx*DXN[IP])*(al-alphamax+mx*p->DXN[IP])*(al-alphamax+mx*p->DXN[IP])*(al-alphamax+mx*p->DXN[IP])
+                +Heavistep(al-alphamax+my*DYN[JP])*(al-alphamax+my*p->DYN[JP])*(al-alphamax+my*p->DYN[JP])*(al-alphamax+my*p->DYN[JP])
+                +Heavistep(al-alphamax+mz*DZN[Km1])*(al-alphamax+mz*p->DZN[Km1])*(al-alphamax+mz*p->DZN[Km1])*(al-alphamax+mz*p->DZN[Km1])
+                );
+    }
+    if(sqrt(mx*mx+my*my+mz*mz)<0.9 || sqrt(mx*mx+my*my+mz*mz)>1.1)
+        cout<<"Nonuniform normvec in Vol FLux!"<<endl;
+    if(al<0.0)
+        cout<<"Neg al problem in Vol Flux!"<<endl;
+    if(retval<0.0)
+        cout<<"Neg Vol Flux Alarm!: "<<"sweepnum: "<<sweepnum<<" dirnum: "<<dirnum<<endl;
+    return retval
+}
+
+double VOF_PLIC::Heavistep(double x)
+{
+    double retval;
+    if(x>0.0)
+        retval = 1.0;
+    else
+        retval = 0.0;
+    return retval
+} 

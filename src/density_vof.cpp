@@ -39,31 +39,54 @@ density_vof::~density_vof()
 
 double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
+    //version #1 & 4
+    /*
 	H= 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
+    
 
 		H=MAX(H,0.0);
 		H=MIN(H,1.0);
 
     roval = p->W1*H +   p->W3*(1.0-H);
+    */
     
+    
+    //version #2
     /*
     phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
-        
-        psi = p->F45*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+    psi = p->F45*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
     
-        if(phival>psi)
+    if(phival>psi)
         H=1.0;
 
-        if(phival<-psi)
+    if(phival<-psi)
         H=0.0;
 
-        if(fabs(phival)<=psi)
+    if(fabs(phival)<=psi)
         H=0.5*(1.0 + phival/psi + (1.0/PI)*sin((PI*phival)/psi));
-        
-            
-        roval = p->W1*H + p->W3*(1.0-H);
+
+    roval = p->W1*H + p->W3*(1.0-H);
     */
-	
+    
+    //version #3
+    /*
+    H= 0.5*(a->vof(i,j,k) + a->vof(i+aa,j+bb,k+cc));
+
+		H=MAX(H,0.0);
+		H=MIN(H,1.0);
+
+    roval = p->W1*H +   p->W3*(1.0-H);
+    */
+    
+    //Testversion
+    
+    H= 0.5*(a->vof(i,j,k) + a->vof(i+aa,j+bb,k+cc));
+
+		H=MAX(H,0.0);
+		H=MIN(H,1.0);
+    
+    roval = p->W1*H+p->W3*(1.0-H);
+    
 	return roval;		
 }
 

@@ -55,6 +55,7 @@ private:
 	
 	void reconstructPlane(fdm*, lexer*);
 	double calcAlpha(fdm*, double&,  double&,  double&);
+    double calcAlpha2(double&, double&, double&, double&, double&, double&, double&);
 
 	void ininorVecLS(lexer*);
 	void calcNormalFO(fdm*, lexer*);
@@ -64,7 +65,7 @@ private:
 	
 	void advectPlane(fdm*, lexer*, double, double, int);
 	void calcFlux(fdm*, lexer*, double&, double&, int);
-	
+	double Volume_flow(double&, double&, double&, double&, int, int);
 	void updateVolumeFraction(fdm*, lexer*, double, double, int);
 	void updateVOF(fdm*, lexer*, int);
 	double calcV(const double&, const double&, const double&, const double&, double, double);

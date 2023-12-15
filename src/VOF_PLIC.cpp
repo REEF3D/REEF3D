@@ -83,7 +83,8 @@ void VOF_PLIC::start
     particle_corr* ppls,
     field &F
 )
-{
+{   
+        
     pflow->fsfinflow(p,a,pgc);
 
     starttime=pgc->timer();
@@ -118,9 +119,9 @@ void VOF_PLIC::start
             if (a->vof(i, j, k) >= 0.999)
             {
                 // Fluxes leave and enter cell in a straight manner
-                vof1(i, j, k) = max(-Q1, 0.0);
-                vof2(i, j, k) = 1.0 - max(Q1, 0.0) + min(Q2, 0.0);
+                vof1(i, j, k) = min(Q1, 0.0);
                 vof3(i, j, k) = max(Q2, 0.0);
+                vof2(i, j, k) = a->vof(i,j,k)-vof1(i,j,k)-vof3(i,j,k);
             }
             else
             {
@@ -171,27 +172,69 @@ void VOF_PLIC::start
 
     if(p->mpirank==0)
     cout<<"vofplictime: "<<setprecision(3)<<p->lsmtime<<endl;
-
-    
+                    
+    /*changed in update
     pgc->start4(p,a->vof,50);
+     */
     
+    //version #1
+    /*
+    LOOP
+    {
+        if (a->vof(i,j,k) > 0.5)
+        {
+            a->phi(i,j,k) = 1.0;
+        }
+        else
+        {
+            a->phi(i,j,k) = -1.0;
+        }
+    }
+    */
+    
+    //version #2
+    /*
     LOOP
     a->phi(i,j,k) = a->vof(i,j,k);
     
     pgc->start4(p,a->phi,50);
     
-    for (int tt = 0; tt < 2; tt++)
-    {
+    for (int tt = 0; tt < 10; tt++)
     LOOP
     a->phi(i,j,k) = (1.0/7.0)*(a->phi(i,j,k) + a->phi(i+1,j,k) + a->phi(i-1,j,k) + a->phi(i,j-1,k) + a->phi(i,j+1,k) + a->phi(i,j,k-1) + a->phi(i,j,k+1));
     
     pgc->start4(p,a->phi,50);
-    }
+     */
+    
+    //version #3
     /*
+    LOOP
+    a->phi(i,j,k) = a->vof(i,j,k);
+    
+    pgc->start4(p,a->phi,50);
+    
     for (int tt = 0; tt < 10; tt++)
     {
-        reini_->start(a,p,a->phi,pgc,pflow);
-    }*/
+    LOOP
+    a->phi(i,j,k) = (1.0/7.0)*(a->phi(i,j,k) + a->phi(i+1,j,k) + a->phi(i-1,j,k) + a->phi(i,j-1,k) + a->phi(i,j+1,k) + a->phi(i,j,k-1) + a->phi(i,j,k+1));
+
+    pgc->start4(p,a->phi,50);
+    }
+     */
+    
+    //version #4LOOP
+    
+    pgc->start4(p,a->vof,50);
+    
+    LOOP
+    {
+        a->phi(i,j,k)=a->vof(i,j,k);
+        //if(a->vof(i,j,k)>0.001 && a->vof(i,j,k)<0.999)
+        //cout<<" a: "<<alpha(i,j,k)<<" nx: "<<nx(i,j,k)<<" ny: "<<ny(i,j,k)<<" nz: "<<nz(i,j,k)<<endl;
+    }
+
+    pgc->start4(p,a->phi,50);
+
 
 }
 

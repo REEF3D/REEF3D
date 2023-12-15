@@ -48,17 +48,17 @@ void VOF_PLIC::advectPlane
 	
 	if (sweep == 0)
 	{
-		nx(i, j, k) /= (1.0 + (Q2 - Q1));
+		nx(i, j, k) /= (1.0 + (Q2 - Q1)/p->DXN[IP]);
 		alpha(i, j, k) += nx(i, j, k)*Q1;
 	}
 	else if (sweep == 1)
 	{
-		ny(i, j, k) /= (1.0 + (Q2 - Q1));
+		ny(i, j, k) /= (1.0 + (Q2 - Q1)/p->DYN[JP]);
 		alpha(i, j, k) += ny(i, j, k)*Q1;
 	}
 	else
 	{
-		nz(i, j, k) /= (1.0 + (Q2 - Q1));
+		nz(i, j, k) /= (1.0 + (Q2 - Q1)/p->DZN[KP]);
 		alpha(i, j, k) += nz(i, j, k)*Q1;
 	}
 }
@@ -73,24 +73,24 @@ void VOF_PLIC::calcFlux(fdm* a, lexer* p, double& Q1, double& Q2, int sweep)
 		vell = a->u(i-1, j, k);
 		velr = a->u(i, j, k);
 
-		Q1 = ((velr - vell)*vell*p->dt*p->dt/(2.0*p->DXN[IP]) + vell*p->dt)/p->DXN[IP];
-		Q2 = ((velr - vell)*velr*p->dt*p->dt/(2.0*p->DXN[IP]) + velr*p->dt)/p->DXN[IP];			
+		Q1 = (velr - vell)*vell*p->dt*p->dt/(2.0*p->DXN[IP]) + vell*p->dt;
+		Q2 = (velr - vell)*velr*p->dt*p->dt/(2.0*p->DXN[IP]) + velr*p->dt;
 	}
 	else if (sweep == 1)
 	{
 		vell = a->v(i, j-1, k);
 		velr = a->v(i, j, k);
 		
-		Q1 = ((velr - vell)*vell*p->dt*p->dt/(2.0*p->DYN[JP]) + vell*p->dt)/p->DYN[JP];
-		Q2 = ((velr - vell)*velr*p->dt*p->dt/(2.0*p->DYN[JP]) + velr*p->dt)/p->DYN[JP];	
+		Q1 = (velr - vell)*vell*p->dt*p->dt/(2.0*p->DYN[JP]) + vell*p->dt;
+		Q2 = (velr - vell)*velr*p->dt*p->dt/(2.0*p->DYN[JP]) + velr*p->dt;
 	}
 	else
 	{
 		vell = a->w(i, j, k-1);
 		velr = a->w(i, j, k);
 
-		Q1 = ((velr - vell)*vell*p->dt*p->dt/(2.0*p->DZN[KP]) + vell*p->dt)/p->DZN[KP];
-		Q2 = ((velr - vell)*velr*p->dt*p->dt/(2.0*p->DZN[KP]) + velr*p->dt)/p->DZN[KP];
+		Q1 = (velr - vell)*vell*p->dt*p->dt/(2.0*p->DZN[KP]) + vell*p->dt;
+		Q2 = (velr - vell)*velr*p->dt*p->dt/(2.0*p->DZN[KP]) + velr*p->dt;
 	}
 }
 	
