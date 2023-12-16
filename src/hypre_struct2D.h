@@ -47,6 +47,8 @@ public:
     void make_grid(lexer*, ghostcell*);
 	void fill_matrix(lexer*, ghostcell*, matrix2D&, slice&, vec2D&);
 	
+    void solve(lexer*, ghostcell*);
+    
 	void create_solvers(lexer*,ghostcell*);
     void delete_solvers(lexer*,ghostcell*);
 

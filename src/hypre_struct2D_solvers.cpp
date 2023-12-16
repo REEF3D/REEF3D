@@ -188,8 +188,6 @@ void hypre_struct2D::create_solvers(lexer* p, ghostcell* pgc)
     if((p->N10==15 || p->N10==16 || p->N10==17) && p->N11==12)
     HYPRE_StructHybridSetPrecond(solver, HYPRE_StructSMGSolve, HYPRE_StructSMGSetup, precond);
 	
-	
-	
 }
 
 void hypre_struct2D::delete_solvers(lexer* p, ghostcell* pgc)

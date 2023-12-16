@@ -1148,6 +1148,7 @@
             <File Name="cpt2D.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="HYPRE Struct 2D">
+            <File Name="hypre_struct2D_solve.cpp"/>
             <File Name="hypre_struct2D_solvers.cpp"/>
             <File Name="hypre_struct2D_grid.cpp"/>
             <File Name="hypre_struct2D_fill.cpp"/>

@@ -631,7 +631,7 @@ void driver::logic_cfd()
     ppart = new particle_f(p,a,pgc);
 
 // Velocities
-	if(p->N40==0 || p->Z10!=0 || p->X10==1 || p->G3==1)
+	if(p->N40==0 || p->Z10!=0 || p->X10==1)
 	pmom = new momentum_void();
 
     if(p->N40==1)
