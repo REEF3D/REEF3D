@@ -48,10 +48,7 @@ void driver::loop_nhflow()
 	{		
         ++p->count;
         starttime=pgc->timer();
-        
-        if(p->mpirank==0)
-        cout<<"$$ NHFLOW  001"<<endl;
-        
+
         if(p->mpirank==0 && (p->count%p->P12==0))
         {
         cout<<"------------------------------------"<<endl;
@@ -67,17 +64,8 @@ void driver::loop_nhflow()
 		cout<<"t/T: "<<p->simtime/p->wTp<<endl;
         }
         
-        if(p->mpirank==0)
-        cout<<"$$ NHFLOW  002"<<endl;
-        
         pflow->flowfile(p,a,pgc,pturb);
-        
-        if(p->mpirank==0)
-        cout<<"$$ NHFLOW  003"<<endl;
         pflow->wavegen_precalc_nhflow(p,d,pgc);
-        
-        if(p->mpirank==0)
-        cout<<"$$ NHFLOW  004"<<endl;
 			
         //pnhfturb->start(d,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);        
         
@@ -86,15 +74,9 @@ void driver::loop_nhflow()
         
         // 6DOF
         p6dof_sflow->start(p,pgc);
-        
-        if(p->mpirank==0)
-        cout<<"$$ NHFLOW  005"<<endl;
 
         pnhfmom->start(p,d,pgc,pflow,pss,precon,pnhfconvec,pnhfdiff,
                        pnhpress,ppoissonsolv,pnhf,pnhfsf,pnhfturb,pvrans); 
-                       
-        if(p->mpirank==0)
-        cout<<"$$ NHFLOW  006"<<endl;
 
         //save previous timestep
         //pturb->ktimesave(p,a,pgc);
@@ -105,14 +87,8 @@ void driver::loop_nhflow()
         p->simtime+=p->dt;
         pnhfstep->start(p,d,pgc);
         
-        if(p->mpirank==0)
-        cout<<"$$ NHFLOW  007"<<endl;
-        
         // printer
         pnhfprint->start(p,d,pgc,pflow);
-        
-        if(p->mpirank==0)
-        cout<<"$$ NHFLOW  008"<<endl;
 
         // Shell-Printout
         if(p->mpirank==0)

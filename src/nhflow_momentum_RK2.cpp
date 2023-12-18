@@ -79,19 +79,39 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 //Step 1
 //--------------------------------------------------------
     
+    if(p->mpirank==0)
+    cout<<"$$ NHFLOW  001"<<endl;
+        
     sigma_update(p,d,pgc,d->WL);
+    if(p->mpirank==0)
+    cout<<"$$ NHFLOW  002"<<endl;
+    
     reconstruct(p,d,pgc,pfsf,pss,precon,d->WL,d->U,d->V,d->W,d->UH,d->VH,d->WH);
     
+    if(p->mpirank==0)
+    cout<<"$$ NHFLOW  003"<<endl;
+    
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
+    if(p->mpirank==0)
+    cout<<"$$ NHFLOW  004"<<endl;
+    
     pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
+    
+    if(p->mpirank==0)
+    cout<<"$$ NHFLOW  005"<<endl;
     
     // FSF
     starttime=pgc->timer();
     pconvec->start(p,d,d->U,4,d->U,d->V,d->W,d->eta);
+    if(p->mpirank==0)
+    cout<<"$$ NHFLOW  006"<<endl;
     pfsf->rk2_step1(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK1, 1.0);
     //sigma_update(p,d,pgc,WLRK1);
+    if(p->mpirank==0)
+    cout<<"$$ NHFLOW  006"<<endl;
     omega_update(p,d,pgc,WLRK1,d->U,d->V,d->W);
-    
+    if(p->mpirank==0)
+    cout<<"$$ NHFLOW  007"<<endl;
     p->fsftime+=pgc->timer()-starttime;
     
 	// U
@@ -106,7 +126,8 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	pconvec->start(p,d,d->UH,1,d->U,d->V,d->W,WLRK1);
 	pnhfdiff->diff_u(p,d,pgc,psolv,UHDIFF,d->UH,d->UH,d->VH,d->WH,1.0);
     
-
+if(p->mpirank==0)
+    cout<<"$$ NHFLOW  008"<<endl;
 	LOOP
 	UHRK1[IJK] = UHDIFF[IJK]
 				+ p->dt*CPORNH*d->F[IJK];
@@ -130,7 +151,8 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 				+ p->dt*CPORNH*d->G[IJK];
 
     p->vtime=pgc->timer()-starttime;
-
+if(p->mpirank==0)
+    cout<<"$$ NHFLOW  009"<<endl;
 	// W
 	starttime=pgc->timer();
 
@@ -147,32 +169,44 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 				+ p->dt*CPORNH*d->H[IJK];
 	
     p->wtime=pgc->timer()-starttime;
-    
+    if(p->mpirank==0)
+    cout<<"$$ NHFLOW  010"<<endl;
     // fsfcorr
     pfsf->ucorr(p,d,UHRK1,WLRK1,1.0);
     pfsf->vcorr(p,d,VHRK1,WLRK1,1.0);
-    
+    if(p->mpirank==0)
+    cout<<"$$ NHFLOW  011"<<endl;
     velcalc(p,d,pgc,UHRK1,VHRK1,WHRK1,WLRK1);
     
     //pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
     //pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
-    
+    if(p->mpirank==0)
+    cout<<"$$ NHFLOW  012"<<endl;
     //pflow->pressure_io(p,a,pgc);
 	ppress->start(p,d,psolv,pgc,pflow,WLRK1,UHRK1,VHRK1,WHRK1,1.0);
-	
+	if(p->mpirank==0)
+    cout<<"$$ NHFLOW  013"<<endl;
     velcalc(p,d,pgc,UHRK1,VHRK1,WHRK1,WLRK1);
 
+if(p->mpirank==0)
+    cout<<"$$ NHFLOW  014"<<endl;
     pflow->U_relax(p,pgc,d->U,UHRK1);
     pflow->V_relax(p,pgc,d->V,VHRK1);
     pflow->W_relax(p,pgc,d->W,WHRK1);
-
+if(p->mpirank==0)
+    cout<<"$$ NHFLOW  015"<<endl;
 	pflow->P_relax(p,pgc,d->P);
-
+if(p->mpirank==0)
+    cout<<"$$ NHFLOW  016"<<endl;
 	pgc->start4V(p,UHRK1,gcval_uh);
     pgc->start4V(p,VHRK1,gcval_vh);
     pgc->start4V(p,WHRK1,gcval_wh);
+    if(p->mpirank==0)
+    cout<<"$$ NHFLOW  017"<<endl;
     
     clearrhs(p,d,pgc);
+    if(p->mpirank==0)
+    cout<<"$$ NHFLOW  018"<<endl;
     
 //Step 2
 //--------------------------------------------------------
