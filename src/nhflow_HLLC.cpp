@@ -42,26 +42,26 @@ nhflow_HLLC::~nhflow_HLLC()
 {
 }
 
-void nhflow_HLLC::precalc(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL, slice &eta)
+void nhflow_HLLC::precalc(lexer* p, fdm_nhf* d, int ipol, slice &eta)
 {
 }
 
-void nhflow_HLLC::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W, slice &eta)
+void nhflow_HLLC::start(lexer* p, fdm_nhf* d, int ipol, slice &eta)
 {
-        if(ipol==1)
-        aij_U(p,d,F,1,U,V,W);
+    if(ipol==1)
+    aij_U(p,d,1);
 
-        if(ipol==2 && p->j_dir==1)
-        aij_V(p,d,F,2,U,V,W);
+    if(ipol==2 && p->j_dir==1)
+    aij_V(p,d,2);
 
-        if(ipol==3)
-        aij_W(p,d,F,3,U,V,W);
+    if(ipol==3)
+    aij_W(p,d,3);
         
-        if(ipol==4)
-        aij_E(p,d,F,4,U,V,W);
+    if(ipol==4)
+    aij_E(p,d,4);
 }
 
-double nhflow_HLLC::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
+double nhflow_HLLC::aij_U(lexer* p,fdm_nhf* d, int ipol)
 {
     // HLLC flux 
     pflux->start_U(p,d,pgc);
@@ -80,7 +80,7 @@ double nhflow_HLLC::aij_U(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL
     }    
 }
 
-double nhflow_HLLC::aij_V(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
+double nhflow_HLLC::aij_V(lexer* p, fdm_nhf* d, int ipol)
 {
     // HLLC flux 
     if(p->j_dir==1)
@@ -113,7 +113,7 @@ double nhflow_HLLC::aij_V(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVE
     }  
 }
 
-double nhflow_HLLC::aij_W(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
+double nhflow_HLLC::aij_W(lexer* p,fdm_nhf* d, int ipol)
 {
     // HLLC flux 
     pflux->start_W(p,d,pgc);
@@ -132,7 +132,7 @@ double nhflow_HLLC::aij_W(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL
     }    
 }
 
-double nhflow_HLLC::aij_E(lexer* p,fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
+double nhflow_HLLC::aij_E(lexer* p,fdm_nhf* d, int ipol)
 {
     // HLLC flux 
     pflux->start_E(p,d,pgc);

@@ -43,15 +43,15 @@ public:
 	nhflow_HLL (lexer*,ghostcell*,patchBC_interface*);
 	virtual ~nhflow_HLL();
 
-    virtual void start(lexer*, fdm_nhf*, double*, int, double*, double*,double*, slice&);
-    virtual void precalc(lexer*, fdm_nhf*, double*, int, double*, double*,double*, slice&);
+    virtual void start(lexer*, fdm_nhf*, int, slice&);
+    virtual void precalc(lexer*, fdm_nhf*, int, slice&);
 
 private:
 
-    double aij_U(lexer*, fdm_nhf*, double*, int, double*, double*, double*);
-    double aij_V(lexer*, fdm_nhf*, double*, int, double*, double*, double*);
-    double aij_W(lexer*, fdm_nhf*, double*, int, double*, double*, double*);
-    double aij_E(lexer*, fdm_nhf*, double*, int, double*, double*, double*);
+    double aij_U(lexer*, fdm_nhf*, int);
+    double aij_V(lexer*, fdm_nhf*, int);
+    double aij_W(lexer*, fdm_nhf*, int);
+    double aij_E(lexer*, fdm_nhf*, int);
     
     double HLL(lexer*, fdm_nhf*, double*, double*, double*, double*);
     double HLL_E(lexer*, fdm_nhf*);

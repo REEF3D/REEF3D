@@ -33,8 +33,8 @@ class nhflow_convection
 {
 public:
 
-    virtual void start(lexer*, fdm_nhf*, double*, int, double*, double*, double*, slice&)=0;
-    virtual void precalc(lexer*, fdm_nhf*, double*, int, double*, double*, double*, slice&)=0;
+    virtual void start(lexer*, fdm_nhf*, int, slice&)=0;
+    virtual void precalc(lexer*, fdm_nhf*, int, slice&)=0;
 
 };
 
