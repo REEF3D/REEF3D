@@ -212,7 +212,7 @@ void momentum_RKLS3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df_base*
         pgc->start2(p,fy,11);
         pgc->start3(p,fz,12);           
         
-        pgc->solid_forcing(p,a,2.0*alpha(loop),a->u,a->v,a->w,fx,fy,fz);
+        pgc->solid_forcing(p,a,2.0*alpha(loop),urk,vrk,wrk,fx,fy,fz);
 
         ULOOP
         {

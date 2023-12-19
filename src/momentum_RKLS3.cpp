@@ -188,9 +188,43 @@ void momentum_RKLS3::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, sixd
         pgc->start2(p,vrk,gcval_v);
         pgc->start3(p,wrk,gcval_w);
 
+        momentum_forcing_start(a, p, pgc, p6dof_df, pvrans, pnet, pfsi,
+                           urk,vrk,wrk, fx, fy, fz, 2, 2.0*alpha(loop), final);
+                           
+        // ------
+        ULOOP
+        {
+        a->u(i,j,k) = urk(i,j,k);
         
-            momentum_forcing_start(a, p, pgc, p6dof_df, pvrans, pnet, pfsi,
-                           a->u, a->v, a->w, fx, fy, fz, 2, 2.0*alpha(loop), final);
+        if(p->count<10)
+        a->maxF = MAX(fabs(2.0*alpha(loop)*CPOR1*fx(i,j,k)), a->maxF);
+        
+        p->sfmax = MAX(fabs(2.0*alpha(loop)*CPOR1*fx(i,j,k)), p->sfmax);
+        }
+        
+        VLOOP
+        {
+        a->v(i,j,k) = vrk(i,j,k);
+        
+        if(p->count<10)
+        a->maxG = MAX(fabs(2.0*alpha(loop)*CPOR2*fy(i,j,k)), a->maxG);
+        
+        p->sfmax = MAX(fabs(2.0*alpha(loop)*CPOR2*fy(i,j,k)), p->sfmax);
+        }
+        
+        WLOOP
+        {
+        a->w(i,j,k) = wrk(i,j,k);
+        
+        if(p->count<10)
+        a->maxH = MAX(fabs(2.0*alpha(loop)*CPOR3*fz(i,j,k)), a->maxH);
+        
+        p->sfmax = MAX(fabs(2.0*alpha(loop)*CPOR3*fz(i,j,k)), p->sfmax);
+        }
+
+        pgc->start1(p,a->u,gcval_u);
+        pgc->start2(p,a->v,gcval_v);
+        pgc->start3(p,a->w,gcval_w);
         
         // Pressure
         pflow->pressure_io(p,a,pgc);

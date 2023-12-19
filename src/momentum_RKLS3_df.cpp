@@ -206,9 +206,9 @@ void momentum_RKLS3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df_base*
         pgc->start3(p,fz,12);           
         
 
-        p6dof_df->start_forcing(p,a,pgc,pvrans,pnet,loop,a->u,a->v,a->w,fx,fy,fz,final);
+        p6dof_df->start_forcing(p,a,pgc,pvrans,pnet,loop,urk,vrk,wrk,fx,fy,fz,final);
         
-        pfsi->forcing(p,a,pgc,2.0*alpha(loop),a->u,a->v,a->w,fx,fy,fz,final);
+        pfsi->forcing(p,a,pgc,2.0*alpha(loop),urk,vrk,wrk,fx,fy,fz,final);
  
         ULOOP
         {

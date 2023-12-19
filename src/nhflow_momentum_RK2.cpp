@@ -78,11 +78,18 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 		
 //Step 1
 //--------------------------------------------------------
-       
+           if(p->mpirank==0)
+    cout<<"$$$$$ NHFLOW_mom  001"<<endl;
     sigma_update(p,d,pgc,d->WL);
+        if(p->mpirank==0)
+    cout<<"$$$$$ NHFLOW_mom  002"<<endl;
     reconstruct(p,d,pgc,pfsf,pss,precon,d->WL,d->U,d->V,d->W,d->UH,d->VH,d->WH);
     
-    pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);    
+        if(p->mpirank==0)
+    cout<<"$$$$$ NHFLOW_mom  003"<<endl;
+    pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);   
+    if(p->mpirank==0)
+    cout<<"$$$$$ NHFLOW_mom  004"<<endl; 
     pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
     
     if(p->mpirank==0)
@@ -90,7 +97,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     // FSF
     starttime=pgc->timer();
-    pconvec->start(p,d,4,d->eta);
+    pconvec->start(p,d,4,d->WL);
     if(p->mpirank==0)
     cout<<"$$$$$ NHFLOW_mom  006"<<endl;
     pfsf->rk2_step1(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK1, 1.0);
@@ -187,7 +194,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     // FSF
     starttime=pgc->timer();
     
-    pconvec->start(p,d,4,d->WL);
+    pconvec->start(p,d,4,WLRK1);
     pfsf->rk2_step2(p, d, pgc, pflow, UHRK1,VHRK1,WHRK1, WLRK1, WLRK1, 0.5);
     //sigma_update(p,d,pgc,d->WL);
     omega_update(p,d,pgc,d->WL,d->U,d->V,d->W);
@@ -238,7 +245,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	//bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
 	ppress->wpgrad(p,d,d->WL);
 	krhs(p,d,pgc);
-	pconvec->start(p,d,3,d->eta);
+	pconvec->start(p,d,3,d->WL);
 	pnhfdiff->diff_w(p,d,pgc,psolv,WHDIFF,WHRK1,UHRK1,VHRK1,WHRK1,0.5);
 
 	LOOP
