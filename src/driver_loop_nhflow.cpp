@@ -64,19 +64,37 @@ void driver::loop_nhflow()
 		cout<<"t/T: "<<p->simtime/p->wTp<<endl;
         }
         
+        if(p->mpirank==0)
+        cout<<"& NHFLOW_driver  001"<<endl;
         pflow->flowfile(p,a,pgc,pturb);
+        
+        if(p->mpirank==0)
+        cout<<"& NHFLOW_driver  002"<<endl;
+        
         pflow->wavegen_precalc_nhflow(p,d,pgc);
+        
+        if(p->mpirank==0)
+        cout<<"& NHFLOW_driver  003"<<endl;
 			
         //pnhfturb->start(d,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);        
         
 		// Sediment Computation
         //psed->start_cfd(p,a,pgc,pflow,preto,psolv);
         
+        if(p->mpirank==0)
+        cout<<"& NHFLOW_driver  004"<<endl;
+        
         // 6DOF
         p6dof_sflow->start(p,pgc);
+        
+        if(p->mpirank==0)
+        cout<<"& NHFLOW_driver  005"<<endl;
 
         pnhfmom->start(p,d,pgc,pflow,pss,precon,pnhfconvec,pnhfdiff,
                        pnhpress,ppoissonsolv,pnhf,pnhfsf,pnhfturb,pvrans); 
+                       
+        if(p->mpirank==0)
+        cout<<"& NHFLOW_driver  006"<<endl;
 
         //save previous timestep
         //pturb->ktimesave(p,a,pgc);

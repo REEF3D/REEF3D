@@ -144,7 +144,7 @@ double nhflow_HLL::aij_W(lexer *p,fdm_nhf *d, int ipol)
     }    
 }
 
-double nhflow_HLL::aij_E(lexer *p,fdm_nhf *d, int ipol)
+double nhflow_HLL::aij_E(lexer *p, fdm_nhf *d, int ipol)
 {
     // HLL flux 
     if(p->mpirank==0)
