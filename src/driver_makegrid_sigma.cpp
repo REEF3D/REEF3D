@@ -76,8 +76,6 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     
     maxnum = MAX(xz,yz);
     
-    
-    
     p->Iarray(p->gcx7,4,maxnum,3);
     
 // gcxco7 allocation
@@ -87,8 +85,6 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     yz = 2*(p->knoy+p->knoz+18);
     
     maxnum = MAX(xz,yz);
-    
-    //cout<<p->mpirank<<" maxnum_gcx: "<<maxnum<<endl;
     
     p->Iarray(p->gcxco7,4,maxnum,3);
 
@@ -108,9 +104,7 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     }
     p->gcx7_count[0]=q;
     
-    
-    //cout<<p->mpirank<<" q1: "<<q<<endl;
-    
+
     //nb4
     q=0;
     if(p->nb4>=0)
@@ -124,8 +118,6 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     ++q;
     }
     p->gcx7_count[3]=q;
-    
-    //cout<<p->mpirank<<" q4: "<<q<<endl;
     
     //nb2
     q=0;
@@ -141,8 +133,6 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     }
     p->gcx7_count[1]=q;
     
-    //cout<<p->mpirank<<" q2: "<<q<<endl;
-    
     //nb3
     q=0;
     if(p->nb3>=0)
@@ -156,10 +146,7 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     ++q;
     }
     p->gcx7_count[2]=q;
-    
-    //cout<<p->mpirank<<" q3: "<<q<<endl;
 
-    
 // ---------------
 // gcxco7 
     //nb1
@@ -201,7 +188,6 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     
     p->gcxco7_count[0]=q;
     
-    //cout<<p->mpirank<<" q1: "<<q<<endl;
 
     //nb2
     q=0;
@@ -242,7 +228,6 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     
     p->gcxco7_count[1]=q;
     
-    //cout<<p->mpirank<<" q2: "<<q<<endl;
 
     //nb3
     q=0;
@@ -327,7 +312,7 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     // -----
     pgc->flagx7(p,p->flag7);
     
-    
+/*
     mgc1 m1(p);
 	mgc2 m2(p);
 	mgc3 m3(p);
@@ -346,7 +331,7 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
 
     m3.fillgcb(p);
     m3.extragcb(p);
-
+*/
     
     // ------
 
@@ -381,6 +366,7 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
 
 void driver::makegrid2D_basic(lexer *p, ghostcell *pgc)
 {
+    /*
     mgc4 m4(p);
 
     pgc->flagx(p,p->flag4);
@@ -398,7 +384,7 @@ void driver::makegrid2D_basic(lexer *p, ghostcell *pgc)
     
     m4.make_dgc(p);
     m4.fill_dgc(p);
-    
+    */
     // ---
     
     // 2D

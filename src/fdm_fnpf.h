@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"field4.h"
+#include"field5.h"
 #include"fieldint5.h"
 #include"slice1.h"
 #include"slice2.h"
@@ -47,7 +47,7 @@ public:
 
     fdm_fnpf(lexer*);
    
-    field4 press,test;
+    field5 press,test;
     fieldint5 nodeval;
     
     slice4 eta,eta_n,WL;

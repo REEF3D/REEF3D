@@ -155,7 +155,7 @@ double nhflow_HLL::aij_E(lexer *p, fdm_nhf *&d, int ipol)
     if(p->mpirank==0)
     cout<<"+ HLL aij_E 002"<<endl;
     
-    HLL_E(p,d);
+    HLL_E(p,d);  // -----
     
     if(p->mpirank==0)
     cout<<"+ HLL aij_E 003"<<endl;

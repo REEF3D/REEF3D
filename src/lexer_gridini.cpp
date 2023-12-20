@@ -137,7 +137,5 @@ void lexer::sigma_coord_ini()
     ZN0temp = ZN[0+marge];
     
     for(k=-marge;k<knoz+marge;++k)
-    {
     ZN[KP] = (ZN[KP]-ZN0temp)/L;
-    }
 }
