@@ -39,7 +39,7 @@ void lexer::flagini()
 	gridsize();
 	
     
-    cout<<mpirank<<" imax: "<<imax<<" jmax: "<<jmax<<" kmax: "<<kmax<<endl;
+    //cout<<mpirank<<" imax: "<<imax<<" jmax: "<<jmax<<" kmax: "<<kmax<<endl;
 	
 	Iarray(flag1,imax*jmax*kmax);
 	Iarray(flag2,imax*jmax*kmax);
