@@ -39,8 +39,6 @@ void lexer::flagini2D()
 	
 	if(k_dir==0)
 	z_dir=0.0;
-	
-	
 }
 
 void lexer::gridini2D()

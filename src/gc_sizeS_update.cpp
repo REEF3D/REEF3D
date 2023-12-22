@@ -40,8 +40,7 @@ void ghostcell::sizeS_update(lexer* p)
 	
 	p->sizeS2[0]=0;
 	p->sizeS2[1]=count;
-    
-    
+
     
     count=0;
 	SLICELOOP4

@@ -39,7 +39,7 @@ void lexer::flagini()
 	gridsize();
 	
     
-    //cout<<mpirank<<" imax: "<<imax<<" jmax: "<<jmax<<" kmax: "<<kmax<<endl;
+    cout<<mpirank<<" imax: "<<imax<<" jmax: "<<jmax<<" kmax: "<<kmax<<endl;
 	
 	Iarray(flag1,imax*jmax*kmax);
 	Iarray(flag2,imax*jmax*kmax);
@@ -85,7 +85,6 @@ void lexer::flagini()
 
 void lexer::gridini_patchBC()
 {
-
 }
 
 int lexer::conv(double a)
@@ -104,7 +103,6 @@ int lexer::conv(double a)
 
 	if(diff<=-0.5)
 	b=c-1;
-
 
 	return b;
 }

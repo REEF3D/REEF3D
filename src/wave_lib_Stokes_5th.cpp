@@ -753,10 +753,6 @@ void wave_lib_Stokes_5th::wave_parameters(lexer *p, ghostcell *pgc)
         cout<<"wT_test: "<<wT_test<<endl;
     
     }
-        
-    
-
-
 
     p->wT = wT;
     p->wH = wH;

@@ -78,28 +78,17 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 		
 //Step 1
 //--------------------------------------------------------
-           if(p->mpirank==0)
-    cout<<"$$$$$ NHFLOW_mom  001"<<endl;
+
     sigma_update(p,d,pgc,d->WL);
-        if(p->mpirank==0)
-    cout<<"$$$$$ NHFLOW_mom  002"<<endl;
     reconstruct(p,d,pgc,pfsf,pss,precon,d->WL,d->U,d->V,d->W,d->UH,d->VH,d->WH);
     
-        if(p->mpirank==0)
-    cout<<"$$$$$ NHFLOW_mom  003"<<endl;
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);   
-    if(p->mpirank==0)
-    cout<<"$$$$$ NHFLOW_mom  004"<<endl; 
     pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
-    
-    if(p->mpirank==0)
-    cout<<"$$$$$ NHFLOW_mom  005"<<endl;
-    
+
     // FSF
     starttime=pgc->timer();
     pconvec->start(p,d,4,d->WL);
-    if(p->mpirank==0)
-    cout<<"$$$$$ NHFLOW_mom  006"<<endl;
+
     pfsf->rk2_step1(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK1, 1.0);
     //sigma_update(p,d,pgc,WLRK1);
     omega_update(p,d,pgc,WLRK1,d->U,d->V,d->W);

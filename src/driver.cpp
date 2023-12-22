@@ -128,7 +128,6 @@ driver::driver(int& argc, char **argv)
 
         pgc->ndflag_update(p);
 
-
         if(p->A10==4)
         ptf_driver();
 

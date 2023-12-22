@@ -49,7 +49,7 @@ void iowave::nhflow_precalc_relax_ini(lexer *p,fdm_nhf *d, ghostcell *pgc)
 		if(p->B98==2)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             ++upt_count;
 		}
     }
@@ -65,7 +65,7 @@ void iowave::nhflow_precalc_relax_ini(lexer *p,fdm_nhf *d, ghostcell *pgc)
 		if(p->B98==2)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             ++vpt_count;
 		}
     }
@@ -79,7 +79,7 @@ void iowave::nhflow_precalc_relax_ini(lexer *p,fdm_nhf *d, ghostcell *pgc)
 		if(p->B98==2)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             ++wpt_count;
 
 		}
@@ -94,7 +94,7 @@ void iowave::nhflow_precalc_relax_ini(lexer *p,fdm_nhf *d, ghostcell *pgc)
 		if(p->B98==2)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             ++ppt_count;
 
 		}
@@ -123,6 +123,8 @@ void iowave::nhflow_precalc_relax_ini(lexer *p,fdm_nhf *d, ghostcell *pgc)
     p->Darray(VHval,vpt_count);
     p->Darray(WHval,wpt_count);
     p->Darray(etaval,ept_count);
+    
+    
     
     if(p->B89==1) 
     {

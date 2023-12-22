@@ -42,9 +42,7 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     
     // flag4
     BASELOOP
-    {
-        p->flag7[FIJK]=p->flag4[IJK];
-    }
+    p->flag7[FIJK]=p->flag4[IJK];
     
     // add solid structures
     BASELOOP
@@ -307,31 +305,9 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
         }
     }
     p->gcxco7_count[3]=q;
-    //cout<<p->mpirank<<" q4: "<<q<<endl;
 
     // -----
     pgc->flagx7(p,p->flag7);
-    
-/*
-    mgc1 m1(p);
-	mgc2 m2(p);
-	mgc3 m3(p);
-
-    
-	pgc->flagx(p,p->flag1);
-    pgc->flagx(p,p->flag2);
-    pgc->flagx(p,p->flag3);
-	pgc->gcxupdate(p);
-    
-    m1.fillgcb(p);
-    m1.extragcb(p);
-
-    m2.fillgcb(p);
-    m2.extragcb(p);
-
-    m3.fillgcb(p);
-    m3.extragcb(p);
-*/
     
     // ------
 
@@ -366,27 +342,6 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
 
 void driver::makegrid2D_basic(lexer *p, ghostcell *pgc)
 {
-    /*
-    mgc4 m4(p);
-
-    pgc->flagx(p,p->flag4);
-    pgc->flagx(p,p->flag);
-	pgc->gcxupdate(p);
-
-    m4.makemgc(p);
-    m4.mgcsetup(p);
-    m4.fillmgc(p);
-    m4.gcdirfill(p);
-	m4.gcsidefill(p);
-
-    m4.make_ggc(p);
-    m4.fill_ggc(p);
-    
-    m4.make_dgc(p);
-    m4.fill_dgc(p);
-    */
-    // ---
-    
     // 2D
     pgc->gcsl_tpflag(p);    
     pgc->gcslflagx(p,p->flagslice4);
@@ -406,8 +361,6 @@ void driver::makegrid2D_basic(lexer *p, ghostcell *pgc)
     pgc->gcsl_setbcio(p);
     
 	pgc->dgcslini4(p); 
-    
-    
 }
 	
 void driver::makegrid_sigma_cds(lexer *p, ghostcell *pgc)

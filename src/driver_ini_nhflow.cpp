@@ -59,7 +59,7 @@ void driver::driver_ini_nhflow()
     if(p->mpirank==0)
     cout<<"starting driver_ini_NHFLOW"<<endl;
     
-    
+
     // sigma ini
     pnhfmom->inidisc(p,d,pgc,pnhfsf);
     
