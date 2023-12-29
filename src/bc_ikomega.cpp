@@ -27,6 +27,9 @@ Author: Hans Bihs
 bc_ikomega::bc_ikomega(lexer* p):roughness(p)
 {
     kappa=0.4;
+    
+    //if(p->G3==1)
+    //p->T43=1.6;
 }
 
 bc_ikomega::~bc_ikomega()
@@ -63,14 +66,18 @@ void bc_ikomega::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int j
 {
     double uvel,vvel,wvel;
     double zval;
-	dist=0.5*p->DXM;
-
+    
 	i=ii;
 	j=jj;
 	k=kk;
-	
+    
+    if(p->j_dir==0)
+	dist=(1.0/4.0)*(p->DXN[IP] + p->DZN[KP]);
+    
+    if(p->j_dir==1)
+    dist=(1.0/6.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
+    
 	ks=ks_val(p,a,ii,jj,kk,cs,bc);
-
 
         uvel=0.5*(a->u(i,j,k)+a->u(i-1,j,k));
         vvel=0.5*(a->v(i,j,k)+a->v(i,j-1,k));
@@ -112,7 +119,12 @@ void bc_ikomega::wall_law_omega(fdm* a,lexer* p,field& kin,field& eps,int ii,int
     i=ii;
 	j=jj;
 	k=kk;
-	dist=0.5*p->DXM;
+	
+    if(p->j_dir==0)
+	dist=(1.0/4.0)*(p->DXN[IP] + p->DZN[KP]);
+    
+    if(p->j_dir==1)
+    dist=(1.0/6.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
 
 	eps_star = pow((kin(i,j,k)>(0.0)?(kin(i,j,k)):(0.0)),0.5) / (0.4*dist*pow(p->cmu, 0.25));
     

@@ -437,7 +437,7 @@ void lexer::ini_default()
     // Initialize
     I10=0;          // int initialize all
 	I11=0;			// int initialize velocities with potential flow
-	I12=1;          // int initialize pressure
+	I12=0;          // int initialize pressure
 	I13=0;          // int initialize turbulence
 	I21=0;          // int set phase 2 velocities to zero after potential flow solver
 	I30=0;			// int Fully intialize NWT

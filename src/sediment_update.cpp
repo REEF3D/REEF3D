@@ -42,12 +42,9 @@ void sediment_f::update_cfd(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow, rein
 	pgc->start2(p,a->v,11);
 	pgc->start3(p,a->w,12);
     
-
     if(p->mpirank==0)
     cout<<"Topo: update grid..."<<endl;
     
-    // -------------
-    p->sedtime+=p->dtsed;
     
     if(p->S10==1 && p->G3==0)
     pgc->topo_update(p,a);

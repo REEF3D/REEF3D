@@ -77,7 +77,8 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     // sandslide ********
     pslide->start(p,pgc,s);
     
-    // control time step
+    // control time step ********
+    p->sedtime+=p->dtsed;
     }
     
     // relax  *******
@@ -98,6 +99,17 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
 
 	if(p->mpirank==0)
     cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl<<endl;
+    
+    
+    if(p->mpirank==7)
+    {
+     i= p->knox-1;
+     j=15;
+     
+     cout<<"!! qbe: "<<s->qbe(i-1,j)<<" "<<s->qbe(i,j)<<" "<<s->qbe(i+1,j)<<endl;
+        
+        
+    }
     
 }
 
