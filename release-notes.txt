@@ -11,7 +11,7 @@ x improved outflow waterlevel calculation (CFD)
 x improved inflow waterlevel calculation (CFD)
 x fixed hypre2D breakdown for newer hypre versions (SFLOW and FNPF)
 x fixed LSRK3 for fluid flow (CFD)
-x foxed sediment transport forcing outflow (CFD)
+x fixed sediment transport forcing outflow (CFD)
 
 23.11
 x fixed momentum_RK2 6DOF forcing (CFD)
