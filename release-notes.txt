@@ -1,4 +1,18 @@
 
+23.12
+x fixed FNPF coastline bug
+x improved FNPF coastline
+x improved FNPF wetting and drying interface
+x new ioflow outflow boundary condition
+x added automatic preconditioner switch for hypre_struct multigrid
+x removed B70 (CFD)
+x improved elevation vtu printout for NUG (CFD)
+x improved outflow waterlevel calculation (CFD)
+x improved inflow waterlevel calculation (CFD)
+x fixed hypre2D breakdown for newer hypre versions (SFLOW and FNPF)
+x fixed LSRK3 for fluid flow (CFD)
+x foxed sediment transport forcing outflow (CFD)
+
 23.11
 x fixed momentum_RK2 6DOF forcing (CFD)
 x added reini_RK2 to 6DOF fb (CFD)
