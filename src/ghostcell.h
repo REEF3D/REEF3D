@@ -163,6 +163,7 @@ public:
 // Forcing
     void solid_forcing(lexer*,fdm*,double,field&,field&,field&,field&,field&,field&);
     void solid_forcing_ini(lexer*,fdm*);
+    void solid_forcing_topo_update(lexer*,fdm*);
     double Hsolidface(lexer*, fdm*, int,int,int);
 	double Hsolidface_t(lexer*, fdm*, int,int,int);
 

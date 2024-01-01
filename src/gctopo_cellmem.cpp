@@ -74,10 +74,6 @@ void ghostcell::velcell_update(lexer *p, fdm *a, int **cellmem, int cellcount,do
 			}
     }
     
-    // NEW vertical interpolation update
-    
-    
-
 }
 
 void ghostcell::gctopo_scalarupdate(lexer *p, fdm *a, int **cellmem, int cellcount, field &f)
