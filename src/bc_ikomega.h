@@ -41,6 +41,8 @@ public:
     void bcomega_matrix(fdm*,lexer*,field&,field&);
 	void wall_law_kin(fdm*,lexer*,field&,field&,int,int,int,int,int,int,double);
 	void wall_law_omega(fdm*,lexer*,field&,field&,int,int,int,int,int,int,double);
+    void wall_law_kin_df(fdm*,lexer*,field&,field&);
+    void wall_law_omega_df(fdm*,lexer*,field&,field&);
 
 private:
 	double uplus,ks_plus,dist,ks,ustar,u_abs,eps_star,tau;
