@@ -63,10 +63,10 @@ private:
     void calcNormalWENO(fdm*, lexer*);
     void calcNormalPhi(fdm*, lexer*);
 	
-	void advectPlane(fdm*, lexer*, double, double, int);
-	void calcFlux(fdm*, lexer*, double&, double&, int);
+	void advectPlane(fdm*, lexer*, int);
+	void calcFlux(fdm*, lexer*, int);
 	double Volume_flow(lexer*,double&, double&, double&, double&, int, int);
-	void updateVolumeFraction(fdm*, lexer*, double, double, int);
+	void updateVolumeFraction(fdm*, lexer*, int);
 	void updateVOF(fdm*, lexer*, int);
 	double calcV(double&, double&, double&, double&, double, double);
 	double calcV2(lexer*);
@@ -100,8 +100,12 @@ private:
     field4 alpha;
     
     //- Volume fractions in the cell and its neighbours
-    field4 vof1;
+    field4 vof1w;
     field4 vof2;
-    field4 vof3;
+    field4 vof3w;
+    field4 vof1s;
+    field4 vof3s;
+    field4 Q1;
+    field4 Q2;
 };
 #endif

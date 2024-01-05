@@ -43,7 +43,7 @@ VOF_PLIC::VOF_PLIC
     fdm *a,
     ghostcell* pgc,
     heat *pheat
-):gradient(p),norm_vec(p),alpha(p),nx(p),ny(p),nz(p),vof1(p),vof2(p),vof3(p)
+):gradient(p),norm_vec(p),alpha(p),nx(p),ny(p),nz(p),vof1w(p),vof2(p),vof3w(p),vof1s(p),vof3s(p),Q1(p),Q2(p)
 {
     if(p->F50==1)
     gcval_frac=71;
@@ -99,29 +99,42 @@ void VOF_PLIC::start
     {
         sSweep = 0;
     }
-
-    double Q1, Q2;
-
+    
     // x-sweep (0), y-sweep (1), z-sweep (2)
     for (int nSweep = 0; nSweep < 3; nSweep++)
     {
         LOOP
         {
             //- Calculate left and right fluxes Q1 and Q2
-            calcFlux(a, p, Q1, Q2, sweep);
+            
+            Q1(i,j,k)=0.0;
+            Q2(i,j,k)=0.0;
+            calcFlux(a, p, sweep);
 
 
             //- PLIC loop
-            vof1(i, j, k) = 0.0;
+            vof1s(i, j, k) = 0.0;
             vof2(i, j, k) = 0.0;
-            vof3(i, j, k) = 0.0;
+            vof3s(i, j, k) = 0.0;
+            vof1w(i,j,k)=0.0;
+            vof3w(i,j,k)=0.0;
 
             if (a->vof(i, j, k) >= 0.999)
             {
                 // Fluxes leave and enter cell in a straight manner
-                vof1(i, j, k) = min(Q1, 0.0);
-                vof3(i, j, k) = max(Q2, 0.0);
-                vof2(i, j, k) = a->vof(i,j,k)-vof1(i,j,k)-vof3(i,j,k);
+                vof1w(i, j, k) = max(-Q1(i,j,k), 0.0)*p->DXN[IP]*p->DXN[IP];
+                vof3w(i, j, k) = max(Q2(i,j,k), 0.0)*p->DXN[IP]*p->DXN[IP];
+                vof2(i,j,k)=a->vof(i,j,k)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+                vof1s(i,j,k)=0.0;
+                vof3s(i,j,k)=0.0;
+            }
+            else if (a->vof(i,j,k)<=0.001)
+            {
+                vof2(i,j,k)=0.0;
+                vof1w(i,j,k)=0.0;
+                vof3w(i,j,k)=0.0;
+                vof1s(i,j,k)=0.0;
+                vof3s(i,j,k)=0.0;
             }
             else
             {
@@ -129,18 +142,31 @@ void VOF_PLIC::start
                 reconstructPlane(a, p);
 
                 // Advect interface using Lagrangian approach
-                advectPlane(a, p, Q1, Q2, sweep);
+                advectPlane(a, p, sweep);
 
                 // Update volume fraction
-                updateVolumeFraction(a, p, Q1, Q2, sweep);
+                updateVolumeFraction(a, p, sweep);
+
             }
+        if(vof1w(i,j,k)<0.0)
+            cout<<"check vof1w"<<endl;
+        if(vof1s(i,j,k)<0.0)
+            cout<<"check vof1s"<<endl;
+        if(vof3w(i,j,k)<0.0)
+            cout<<"check vof3w"<<endl;
+        if(vof3s(i,j,k)<0.0)
+            cout<<"check vof3s"<<endl;
         }
 
 
         //- Distribute volume fractions
-        pgc->start4(p,vof1,gcval_frac);
+        pgc->start4(p,vof1w,gcval_frac);
         pgc->start4(p,vof2,gcval_frac);
-        pgc->start4(p,vof3,gcval_frac);
+        pgc->start4(p,vof3w,gcval_frac);
+        pgc->start4(p,vof1s,gcval_frac);
+        pgc->start4(p,vof3s,gcval_frac);
+        pgc->start4(p,Q1,gcval_frac);
+        pgc->start4(p,Q2,gcval_frac);
 
 
         //- Calculate updated vof from volume fractions and distribute
@@ -163,7 +189,6 @@ void VOF_PLIC::start
     //redistance(a, p, pdisc, pgc, pflow, 20);
     //- Distribute ls function
     //pgc->start4(p,a->phi,gcval_frac);
-
     pflow->vof_relax(p,pgc,a->vof);
 	pgc->start4(p,a->vof,gcval_frac);
     pupdate->start(p,a,pgc);
@@ -171,7 +196,7 @@ void VOF_PLIC::start
     p->lsmtime=pgc->timer()-starttime;
 
     if(p->mpirank==0)
-    cout<<"vofplictime: "<<setprecision(3)<<p->lsmtime<<endl;
+        cout<<"vofplictime: "<<setprecision(3)<<p->lsmtime<<endl;
                     
     /*changed in update
     pgc->start4(p,a->vof,50);

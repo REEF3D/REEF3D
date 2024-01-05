@@ -87,7 +87,8 @@ void VOF_PLIC::reconstructPlane(fdm* a, lexer* p)
 	//-  Calculating alpha from n and vof according to Scardovelli p.234
 		
 	alpha(i, j, k) = calcAlpha2(a->vof(i,j,k),p->DXN[IP],p->DYN[JP],p->DZN[KP],nx(i, j, k), ny(i, j, k), nz(i, j, k));
-
+   // alpha(i, j, k) =calcAlpha(a,p,nx(i,j,k),ny(i,j,k),nz(i,j,k));
+	
 
 	//- Return to original plane
 	/*
@@ -331,9 +332,13 @@ double VOF_PLIC::calcAlpha2( double Frac, double dx, double dy, double dz, doubl
         c_ase=4;
     else if(Vol_<=Vol_fg)
         c_ase=5;
-    else
+    else if (Vol_<=d_a*d_b*d_g)
         c_ase=6;
-        
+    else
+    {
+        cout<<"volume too large"<<endl;
+        c_ase=6;
+    }
     //calculate n_
     double n_tilde,p_cub,q_cub,D_cub,u1_cub,u2_cub;
     double n_tilde_1,n_tilde_2,n_1,n_2,p_quad,q_quad;
@@ -362,6 +367,8 @@ double VOF_PLIC::calcAlpha2( double Frac, double dx, double dy, double dz, doubl
             p_cub=-6*m_a*m_b*d_a*d_b;
             q_cub=3*m_a*m_a*m_b*d_a*d_a*d_b+3*m_a*m_b*m_b*d_a*d_b*d_b+6*m_a*m_b*Vol_;
             D_cub=q_cub*q_cub/4+p_cub*p_cub*p_cub/27;
+            if(D_cub>-0.0000001&&D_cub<=0.0)
+                D_cub=0.000001;
             u1_cub=-q_cub/2+sqrt(D_cub);
             u2_cub=-q_cub/2-sqrt(D_cub);
             n_tilde=cbrt(u1_cub)+cbrt(u2_cub);
@@ -381,6 +388,8 @@ double VOF_PLIC::calcAlpha2( double Frac, double dx, double dy, double dz, doubl
             p_cub=-6*m_a*m_b*d_a*d_b;
             q_cub=-3*m_a*m_a*m_b*d_a*d_a*d_b-3*m_a*m_b*m_b*d_a*d_b*d_b-6*m_a*m_b*d_a*d_b*d_g+6*m_a*m_b*Vol_;
             D_cub=q_cub*q_cub/4+p_cub*p_cub*p_cub/27;
+            if(D_cub>-0.000001 && D_cub<=0.0)
+                D_cub=0.0000001;
             u1_cub=-q_cub/2+sqrt(D_cub);
             u2_cub=-q_cub/2-sqrt(D_cub);
             n_tilde=cbrt(u1_cub)+cbrt(u2_cub);

@@ -39,32 +39,36 @@ void VOF_PLIC::advectPlane
 (
 	fdm* a, 
 	lexer* p, 
-	const double Q1, 
-	const double Q2, 
 	int sweep
 )
 {
 	//- According to Wang (24,25)
-	
+	double N_sum;
 	if (sweep == 0)
 	{
-		nx(i, j, k) /= (1.0 + (Q2 - Q1)/p->DXN[IP]);
-		alpha(i, j, k) += nx(i, j, k)*Q1;
+		nx(i, j, k) /= (1.0 + (Q2(i,j,k) - Q1(i,j,k))/p->DXN[IP]);
+        N_sum=sqrt(nx(i,j,k)*nx(i,j,k)+ny(i,j,k)*ny(i,j,k)+nz(i,j,k)*nz(i,j,k));
+        nx(i,j,k)/=N_sum;
+		alpha(i, j, k) += nx(i, j, k)*Q1(i,j,k);
 	}
 	else if (sweep == 1)
 	{
-		ny(i, j, k) /= (1.0 + (Q2 - Q1)/p->DYN[JP]);
-		alpha(i, j, k) += ny(i, j, k)*Q1;
+		ny(i, j, k) /= (1.0 + (Q2(i,j,k) - Q1(i,j,k))/p->DYN[JP]);
+        N_sum=sqrt(nx(i,j,k)*nx(i,j,k)+ny(i,j,k)*ny(i,j,k)+nz(i,j,k)*nz(i,j,k));
+        ny(i,j,k)/=N_sum;
+		alpha(i, j, k) += ny(i, j, k)*Q1(i,j,k);
 	}
 	else
 	{
-		nz(i, j, k) /= (1.0 + (Q2 - Q1)/p->DZN[KP]);
-		alpha(i, j, k) += nz(i, j, k)*Q1;
+		nz(i, j, k) /= (1.0 + (Q2(i,j,k) - Q1(i,j,k))/p->DZN[KP]);
+        N_sum=sqrt(nx(i,j,k)*nx(i,j,k)+ny(i,j,k)*ny(i,j,k)+nz(i,j,k)*nz(i,j,k));
+        nz(i,j,k)/=N_sum;
+		alpha(i, j, k) += nz(i, j, k)*Q1(i,j,k);
 	}
 }
 
 
-void VOF_PLIC::calcFlux(fdm* a, lexer* p, double& Q1, double& Q2, int sweep)
+void VOF_PLIC::calcFlux(fdm* a, lexer* p, int sweep)
 {
 	double vell, velr;
 	
@@ -73,24 +77,24 @@ void VOF_PLIC::calcFlux(fdm* a, lexer* p, double& Q1, double& Q2, int sweep)
 		vell = a->u(i-1, j, k);
 		velr = a->u(i, j, k);
 
-		Q1 = (velr - vell)*vell*p->dt*p->dt/(2.0*p->DXN[IP]) + vell*p->dt;
-		Q2 = (velr - vell)*velr*p->dt*p->dt/(2.0*p->DXN[IP]) + velr*p->dt;
+		Q1(i,j,k) = (velr - vell)*vell*p->dt*p->dt/(2.0*p->DXN[IP]) + vell*p->dt;
+		Q2(i,j,k) = (velr - vell)*velr*p->dt*p->dt/(2.0*p->DXN[IP]) + velr*p->dt;
 	}
 	else if (sweep == 1)
 	{
 		vell = a->v(i, j-1, k);
 		velr = a->v(i, j, k);
 		
-		Q1 = (velr - vell)*vell*p->dt*p->dt/(2.0*p->DYN[JP]) + vell*p->dt;
-		Q2 = (velr - vell)*velr*p->dt*p->dt/(2.0*p->DYN[JP]) + velr*p->dt;
+		Q1(i,j,k) = (velr - vell)*vell*p->dt*p->dt/(2.0*p->DYN[JP]) + vell*p->dt;
+		Q2(i,j,k) = (velr - vell)*velr*p->dt*p->dt/(2.0*p->DYN[JP]) + velr*p->dt;
 	}
 	else
 	{
 		vell = a->w(i, j, k-1);
 		velr = a->w(i, j, k);
 
-		Q1 = (velr - vell)*vell*p->dt*p->dt/(2.0*p->DZN[KP]) + vell*p->dt;
-		Q2 = (velr - vell)*velr*p->dt*p->dt/(2.0*p->DZN[KP]) + velr*p->dt;
+		Q1(i,j,k) = (velr - vell)*vell*p->dt*p->dt/(2.0*p->DZN[KP]) + vell*p->dt;
+		Q2(i,j,k) = (velr - vell)*velr*p->dt*p->dt/(2.0*p->DZN[KP]) + velr*p->dt;
 	}
 }
 	
