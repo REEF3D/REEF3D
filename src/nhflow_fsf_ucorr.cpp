@@ -37,7 +37,7 @@ void nhflow_fsf_f::ucorr(lexer* p, fdm_nhf* d, double *UH, slice &WL, double alp
     
         detadx = limiter(dfdx_plus,dfdx_min);
         
-    UH[IJK] -= alpha*alpha*p->dt*p->dt*WL(i,j)*fabs(p->W22)*detadx;
+    UH[IJK] += 0.25*alpha*alpha*p->dt*p->dt*WL(i,j)*fabs(p->W22)*detadx;
     }
 }
 
@@ -51,6 +51,6 @@ void nhflow_fsf_f::vcorr(lexer* p, fdm_nhf* d, double *VH, slice &WL, double alp
     
         detady = limiter(dfdy_plus,dfdy_min);
         
-    VH[IJK] -= alpha*alpha*p->dt*p->dt*WL(i,j)*fabs(p->W22)*detady;
+    VH[IJK] += 0.25*alpha*alpha*p->dt*p->dt*WL(i,j)*fabs(p->W22)*detady;
     }
 }

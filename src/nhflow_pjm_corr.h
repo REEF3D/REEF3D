@@ -54,6 +54,7 @@ public:
     void rhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 	void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
     void bedbc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
+    void velcalc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,slice&);
 
 private:
     

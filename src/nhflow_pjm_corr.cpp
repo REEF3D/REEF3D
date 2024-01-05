@@ -87,6 +87,38 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
 
 	if(p->mpirank==0 && p->count%p->P12==0)
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
+    
+    
+    // 2nd step
+   /* velcalc(p,d,pgc,UH,VH,WH,WL);
+    
+    
+    
+    rhs(p,d,pgc,d->U,d->V,d->W,alpha);
+
+    ppois->start(p,d,PCORR);
+
+        starttime=pgc->timer();
+
+    psolv->startF(p,pgc,PCORR,d->rhsvec,d->M,solver_id);
+
+        endtime=pgc->timer();
+    
+    presscorr(p,d,WL,d->P,PCORR,alpha);
+    
+    pgc->start7P(p,d->P,gcval_press);
+    pgc->start7P(p,PCORR,gcval_press);
+    
+	ucorr(p,d,WL,UH,PCORR,alpha);
+	vcorr(p,d,WL,VH,PCORR,alpha);
+	wcorr(p,d,WL,WH,PCORR,alpha);
+
+    p->poissoniter=p->solveriter;
+
+	p->poissontime=endtime-starttime;
+
+	if(p->mpirank==0 && p->count%p->P12==0)
+	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;*/
 }
 
 void nhflow_pjm_corr::presscorr(lexer* p, fdm_nhf *d, slice &WL, double *P, double *PCORR, double alpha)
@@ -297,5 +329,49 @@ void nhflow_pjm_corr::wpgrad(lexer*p, fdm_nhf *d, slice &WL)
     WETDRYDEEP
     if(d->breaking(i,j)==0 && d->breaking(i-1,j)==0 && d->breaking(i+1,j)==0 && d->breaking(i,j-1)==0 && d->breaking(i,j+1)==0)
     d->H[IJK] -= PORVALNH*(1.0/p->W1)*((d->P[FIJKp1]-d->P[FIJK])/(p->DZN[KP]));
+}
+
+void nhflow_pjm_corr::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *UH, double *VH, double *WH, slice &WL)
+{
+    // Fr nuber limiter
+    LOOP
+    WETDRY
+    {
+    UH[IJK] = MIN(UH[IJK], p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
+    VH[IJK] = MIN(VH[IJK], p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
+    WH[IJK] = MIN(WH[IJK], p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));      
+    
+    UH[IJK] = MAX(UH[IJK], -p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
+    VH[IJK] = MAX(VH[IJK], -p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
+    WH[IJK] = MAX(WH[IJK], -p->A531*WL(i,j)*sqrt(9.81*WL(i,j))); 
+    }
+    
+    
+    LOOP
+    {
+    d->U[IJK] = UH[IJK]/WLVL;
+    d->V[IJK] = VH[IJK]/WLVL;
+    d->W[IJK] = WH[IJK]/WLVL;       
+    }
+    
+    if(p->A520==0)
+    LOOP
+    {
+    d->W[IJK] = 0.0;  
+    //WH[IJK] = 0.0;
+    }
+    
+    
+    LOOP
+    if(p->wet[IJ]==0)
+    {
+    d->U[IJK] = 0.0;
+    d->V[IJK] = 0.0;
+    d->W[IJK] = 0.0;
+    }
+    
+    pgc->start4V(p,d->U,gcval_u);
+    pgc->start4V(p,d->V,gcval_v);
+    pgc->start4V(p,d->W,gcval_w);
 }
 
