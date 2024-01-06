@@ -229,12 +229,13 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
     V1 = (1.0-fac)*V[IJm1K] + fac*V[IJm1Km1]; 
     V2 = (1.0-fac)*V[IJp1K] + fac*V[IJp1Km1];   
 
-/*
+
     if(k==0)
     {
-    U1 = U[Im1JK];
-    U2 = U[Ip1JK];
-    }*/
+    fac=0.8*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);  
+    U1 = (1.0-fac)*U[Im1JK] + fac*U[Im1JKm1]; 
+    U2 = (1.0-fac)*U[Ip1JK] + fac*U[Ip1JKm1]; 
+    }
 
  
     // dz
