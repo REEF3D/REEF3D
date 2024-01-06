@@ -43,10 +43,10 @@ void bc_ikomega::bckomega_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
 		if(p->gcb4[q][4]==5 || p->gcb4[q][4]==21 || p->gcb4[q][4]==22 || p->gcb4[q][4]==41 || p->gcb4[q][4]==42 || p->gcb4[q][4]==43)
 		wall_law_kin(a,p,kin,eps,p->gcb4[q][0], p->gcb4[q][1], p->gcb4[q][2], p->gcb4[q][3], p->gcb4[q][4], p->gcb4[q][5],  p->gcd4[q]);
         
-        //QGCDF4LOOP
-		//wall_law_kin(a,p,kin,eps,p->gcdf4[q][0], p->gcdf4[q][1], p->gcdf4[q][2], p->gcdf4[q][3], p->gcdf4[q][4], p->gcdf4[q][5],  0.5*p->DXM);
+        QGCDF4LOOP
+		wall_law_kin(a,p,kin,eps,p->gcdf4[q][0], p->gcdf4[q][1], p->gcdf4[q][2], p->gcdf4[q][3], p->gcdf4[q][4], p->gcdf4[q][5],  0.5*p->DXM);
         
-        wall_law_kin_df(a,p,kin,eps);
+        //wall_law_kin_df(a,p,kin,eps);
 	}
 
 // ----------------- 
@@ -56,10 +56,10 @@ void bc_ikomega::bckomega_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
 		if(p->gcb4[q][4]==5 || p->gcb4[q][4]==21 || p->gcb4[q][4]==22 || p->gcb4[q][4]==41 || p->gcb4[q][4]==42 || p->gcb4[q][4]==43  || (p->gcb4[q][4]==3 && p->gcb4[q][3]==6))
 		wall_law_omega(a,p,kin,eps,p->gcb4[q][0], p->gcb4[q][1], p->gcb4[q][2], p->gcb4[q][3], p->gcb4[q][4], p->gcb4[q][5],  p->gcd4[q]);
         
-        //QGCDF4LOOP
-		//wall_law_omega(a,p,kin,eps,p->gcdf4[q][0], p->gcdf4[q][1], p->gcdf4[q][2], p->gcdf4[q][3], p->gcdf4[q][4], p->gcdf4[q][5],  0.5*p->DXM);
+        QGCDF4LOOP
+		wall_law_omega(a,p,kin,eps,p->gcdf4[q][0], p->gcdf4[q][1], p->gcdf4[q][2], p->gcdf4[q][3], p->gcdf4[q][4], p->gcdf4[q][5],  0.5*p->DXM);
         
-        wall_law_omega_df(a,p,kin,eps);
+        //wall_law_omega_df(a,p,kin,eps);
 	}
 }
 
@@ -109,16 +109,7 @@ void bc_ikomega::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int j
 }
 
 void bc_ikomega::wall_law_omega(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj,int kk,int cs, int bc, int id, double dist)
-{
-	/*i=ii;
-	j=jj;
-	k=kk;
-	dist=0.5*p->DXM;
-
-	eps_star = pow((kin(i,j,k)>(0.0)?(kin(i,j,k)):(0.0)),0.5) / (0.4*dist*pow(p->cmu, 0.25));
-
-	eps(i,j,k) = eps_star;*/
-    
+{    
     i=ii;
 	j=jj;
 	k=kk;
@@ -133,6 +124,8 @@ void bc_ikomega::wall_law_omega(fdm* a,lexer* p,field& kin,field& eps,int ii,int
     
     a->M.p[id] += 1.0e20;
 	a->rhsvec.V[id] += eps_star*1.0e20;
+    
+    //eps(i,j,k) = eps_star;
 }
 
 void bc_ikomega::wall_law_kin_df(fdm* a,lexer* p,field& kin,field& eps)
@@ -141,19 +134,22 @@ void bc_ikomega::wall_law_kin_df(fdm* a,lexer* p,field& kin,field& eps)
     double zval;
     double dirac, psi;
     
-    psi = 1.1*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
-
-    if (p->j_dir==0)
-    psi = 1.1*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
-    
     n=0;
     LOOP
     {
+    if (p->j_dir==0)
+    psi = 1.1*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
+    
+    if(p->j_dir==1)
+    psi = 1.1*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+    
     if(p->j_dir==0)
 	dist = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]);
     
     if(p->j_dir==1)
     dist = p->X41*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
+    
+    //dist = MAX(0.1*dist, fabs(MIN(a->solid(i,j,k),a->topo(i,j,k))));
     
 	//ks=ks_val(p,a,i,j,k,cs,bc);
     ks=p->B50;
@@ -189,11 +185,11 @@ void bc_ikomega::wall_law_kin_df(fdm* a,lexer* p,field& kin,field& eps)
     if(fabs(MIN(a->solid(i,j,k),a->topo(i,j,k)))<psi)
     dirac = (0.5/psi)*(1.0 + cos((PI*(MIN(a->solid(i,j,k),a->topo(i,j,k))))/psi));
         
-	//a->M.p[n] += dirac*(pow(p->cmu,0.75)*pow(fabs(kin(i,j,k)),0.5)*uplus)/dist;
-	//a->rhsvec.V[n] += dirac*(tau*u_abs)/dist;
+    a->M.p[n]      += dirac*(pow(p->cmu,0.75)*pow(fabs(kin(i,j,k)),0.5)*uplus)/dist;
+    a->rhsvec.V[n] += dirac*(tau*u_abs)/dist;
     a->test(i,j,k) = dirac;
     
-    kin(i,j,k) = dirac*tau*tau/pow(p->cmu,2.0);
+    //kin(i,j,k) = dirac*tau*tau/pow(p->cmu,2.0);
     ++n;
     }
 }
@@ -202,20 +198,22 @@ void bc_ikomega::wall_law_omega_df(fdm* a,lexer* p,field& kin,field& eps)
 {
     double dirac, psi;
     
-    psi = 1.1*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
-
-    if (p->j_dir==0)
-    psi = 1.1*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
-    
     n=0;
     LOOP
     {
+    if (p->j_dir==0)
+    psi = 1.1*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
+    
+    if(p->j_dir==1)
+    psi = 1.1*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+    
     if(p->j_dir==0)
 	dist = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]);
     
     if(p->j_dir==1)
     dist = p->X41*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
     
+    //dist = MAX(0.1*dist, fabs(MIN(a->solid(i,j,k),a->topo(i,j,k))));
     
     dirac = 0.0;
     if(fabs(MIN(a->solid(i,j,k),a->topo(i,j,k)))<psi)
@@ -224,9 +222,10 @@ void bc_ikomega::wall_law_omega_df(fdm* a,lexer* p,field& kin,field& eps)
     
     eps_star = pow((kin(i,j,k)>(0.0)?(kin(i,j,k)):(0.0)),0.5)/(0.4*dist*pow(p->cmu, 0.25));
     
-    a->M.p[n] += dirac*1.0e20;
+    a->M.p[n]      += dirac*1.0e20;
 	a->rhsvec.V[n] += dirac*eps_star*1.0e20;
     
+    //eps(i,j,k) = dirac*eps_star;
     ++n;
     }
 }

@@ -284,7 +284,6 @@ void driver::mgc_test(lexer *p, fdm *a, ghostcell *pgc)
         
         ULOOP
         {
-        
         if(p->flag1[Im1JK]<0)
         if(u(i-1,j,k)<10.0 || u(i-2,j,k)<10.0 || u(i-3,j,k)<10.0)
         cout<<"!!! U mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 1"<<endl;
