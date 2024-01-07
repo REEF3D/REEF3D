@@ -118,8 +118,8 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
 
 		wL = wL0*tanh(S0);
 
-    for(int qn=0; qn<500; ++qn)
-    wL = wL0*tanh(2.0*PI*wdt/wL);
+        for(int qn=0; qn<500; ++qn)
+        wL = wL0*tanh(2.0*PI*wdt/wL);
 		}
 
 

@@ -31,8 +31,9 @@ wave_lib_cnoidal_shallow::wave_lib_cnoidal_shallow(lexer *p, ghostcell *pgc) : w
     
     if(p->mpirank==0)
     {
-    cout<<"Wave Tank: shallow cnoidal waves; ";
-    cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wdt: "<<wdt<<endl;
+    cout<<"Wave_Lib: shallow cnoidal waves"<<endl;
+    cout<<"k: "<<wk<<" w: "<<ww<<" f: "<<wf<<" T: "<<wT<<" L: "<<wL<<" d: "<<wdt<<" kd: "<<wdt*wk<<endl;
+    cout<<"d/gT^2: "<<wdt/(fabs(p->W22)*wT*wT)<<" H/gT^2: "<<wH/(fabs(p->W22)*wT*wT)<<endl;
     }
     
     singamma = sin((p->B105_1)*(PI/180.0));

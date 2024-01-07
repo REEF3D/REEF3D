@@ -30,8 +30,7 @@ wave_lib_piston_eta::wave_lib_piston_eta(lexer *p, ghostcell *pgc) : wave_lib_pa
 { 
     if(p->mpirank==0)
     {
-    cout<<"Wave Tank: piston_eta wavemaker theory; ";
-    cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wdt: "<<wdt<<endl;
+    cout<<"Wave_Lib: piston_eta wavemaker theory";
     }
 	
 	timecount=0;

@@ -106,7 +106,7 @@ wave_lib_ssgw::wave_lib_ssgw(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,p
 
     if(p->mpirank==0)
     {
-        cout<<"Wave Tank: steady surface gravity waves; ";
+        cout<<"Wave_Lib: steady surface gravity waves; ";
         cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wdt: "<<wdt<<" kd: "<<wdt*wk<<endl;
         writeResult(".");
     }
@@ -158,28 +158,28 @@ double wave_lib_ssgw::wave_fi(lexer *p, double x, double y, double z)
 double wave_lib_ssgw::wave_u(lexer *p, double x, double y, double z)
 {
     double vel = 0.0;
-    cout<<"Not implemented yet"<<endl;
+
     return cosgamma*vel;
 }
 
 double wave_lib_ssgw::wave_v(lexer *p, double x, double y, double z)
 {
     double vel = 0.0;
-    cout<<"Not implemented yet"<<endl;
+
     return singamma*vel;
 }
 
 double wave_lib_ssgw::wave_horzvel(lexer *p, double x, double y, double z)
 {
     double vel = 0.0;
-    cout<<"Not implemented yet"<<endl;
+
     return vel;
 }
 
 double wave_lib_ssgw::wave_w(lexer *p, double x, double y, double z)
 {
     double vel = 0.0;
-    cout<<"Not implemented yet"<<endl;
+
     return vel;
 }
 

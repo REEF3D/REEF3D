@@ -33,7 +33,7 @@ wave_lib_reconstruct::wave_lib_reconstruct(lexer *p, ghostcell *pgc)
 { 
     
     if(p->mpirank==0)
-    cout<<"Wave Tank: reconstruct water waves; "<<endl;
+    cout<<"Wave_Lib: reconstruct water waves; "<<endl;
 
     
     if(p->B92==51)

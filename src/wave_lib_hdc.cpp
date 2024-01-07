@@ -34,7 +34,7 @@ wave_lib_hdc::wave_lib_hdc(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc
     // time_interpol
     if(p->mpirank==0)
     {
-    cout<<"Wave Tank: wave coupling FNPF->CFD "<<endl;
+    cout<<"Wave_Lib: wave coupling FNPF->CFD "<<endl;
     cout<<" HDC Nx: "<<Nx<<" Ny: "<<Ny<<" Nz: "<<Nz<<" . jdir: "<<jdir<<endl;
     cout<<" HDC Xs: "<<Xstart<<" Xe: "<<Xend<<" Ys: "<<Ystart<<" Ye: "<<Yend<<endl;
     cout<<" HDC numiter: "<<numiter<<" t_start: "<<t_start<<" t_end: "<<t_end<<endl;

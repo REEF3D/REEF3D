@@ -65,6 +65,7 @@ private:
 	int gcval_u, gcval_v, gcval_w;
     int solver_id;
     double val, denom;
+    double gamma;
     double *PCORR;
 
     density *pd;

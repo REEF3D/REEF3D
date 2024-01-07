@@ -31,8 +31,9 @@ wave_lib_cnoidal_5th::wave_lib_cnoidal_5th(lexer *p, ghostcell *pgc) : wave_lib_
     
     if(p->mpirank==0)
     {
-    cout<<"Wave Tank: 5th-order cnoidal waves; ";
-    cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wdt: "<<wdt<<" kd: "<<wdt*wk<<endl;
+    cout<<"Wave_Lib: 5th-order cnoidal waves"<<endl;
+    cout<<"k: "<<wk<<" w: "<<ww<<" f: "<<wf<<" T: "<<wT<<" L: "<<wL<<" d: "<<wdt<<" kd: "<<wdt*wk<<endl;
+    cout<<"d/gT^2: "<<wdt/(fabs(p->W22)*wT*wT)<<" H/gT^2: "<<wH/(fabs(p->W22)*wT*wT)<<endl;
     }
     
     singamma = sin((p->B105_1)*(PI/180.0));

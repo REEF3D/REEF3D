@@ -63,11 +63,13 @@ wave_lib_irregular_1st::wave_lib_irregular_1st(lexer *p, ghostcell *pgc) : wave_
     
     if(p->mpirank==0)
     {
-    cout<<"Wave Tank: 1st-order irregular waves . ";
+    cout<<"Wave_Lib: 1st-order irregular waves . ";
     if(p->B92==51)
     cout<<"wave_recon ";
     
-    cout<<";  Hs: "<<p->wHs<<" Tp: "<<p->wTp<<" wp: "<<p->wwp<<endl;
+    cout<<endl;
+    
+    cout<<"Hs: "<<p->wHs<<" Tp: "<<p->wTp<<" wp: "<<p->wwp<<endl;
     if(p->B92>40 && p->B92<50)
     cout<<"Focused Wave   xF: "<< p->B81_1 << " yF: " << p->B81_3 <<" tF: "<<p->B81_2<<endl;
     }

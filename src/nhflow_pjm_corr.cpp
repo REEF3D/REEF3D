@@ -50,6 +50,8 @@ nhflow_pjm_corr::nhflow_pjm_corr(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_i
     
     if(p->D33==1)
     solver_id = 9;
+    
+    gamma=0.8;
 }
 
 nhflow_pjm_corr::~nhflow_pjm_corr()
@@ -232,7 +234,7 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
 
     if(k==0)
     {
-    fac=0.8*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);  
+    fac=gamma*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);  
     U1 = (1.0-fac)*U[Im1JK] + fac*U[Im1JKm1]; 
     U2 = (1.0-fac)*U[Ip1JK] + fac*U[Ip1JKm1]; 
     }

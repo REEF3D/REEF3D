@@ -30,8 +30,7 @@ wave_lib_piston::wave_lib_piston(lexer *p, ghostcell *pgc) : wave_lib_parameters
 { 
     if(p->mpirank==0)
     {
-    cout<<"Wave Tank: piston wavemaker theory; ";
-    cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wdt: "<<wdt<<endl;
+    cout<<"Wave_Lib: piston wavemaker theory";
     }
 	
     timecount_old=0;
