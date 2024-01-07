@@ -51,7 +51,7 @@ nhflow_pjm_corr::nhflow_pjm_corr(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_i
     if(p->D33==1)
     solver_id = 9;
     
-    gamma=0.8;
+    gamma=0.5;
 }
 
 nhflow_pjm_corr::~nhflow_pjm_corr()
@@ -231,13 +231,32 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
     V1 = (1.0-fac)*V[IJm1K] + fac*V[IJm1Km1]; 
     V2 = (1.0-fac)*V[IJp1K] + fac*V[IJp1Km1];   
 
-
+    
     if(k==0)
     {
+    fac = p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]); 
+    
+    if(fabs(d->Bx(i,j))>1.0e-3)
     fac=gamma*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);  
+    
     U1 = (1.0-fac)*U[Im1JK] + fac*U[Im1JKm1]; 
     U2 = (1.0-fac)*U[Ip1JK] + fac*U[Ip1JKm1]; 
+    
+    
+    fac = p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]); 
+    
+    if(fabs(d->By(i,j))>1.0e-3)
+    fac=gamma*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);  
+    
+    V1 = (1.0-fac)*V[IJm1K] + fac*V[IJm1Km1]; 
+    V2 = (1.0-fac)*V[IJp1K] + fac*V[IJp1Km1]; 
     }
+    
+    /*if(k==0)
+    {
+    U1 = U[Im1JK];
+    U2 = U[Ip1JK];
+    }*/
 
  
     // dz
@@ -251,7 +270,6 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
     f2 = U[IJK];
     
     Up = f0*(z-z1)*(z-z2)/((z0-z1)*(z0-z2)) + f1*(z-z0)*(z-z2)/((z1-z0)*(z1-z2)) + f2*(z-z0)*(z-z1)/((z2-z0)*(z2-z1));
-    
     
     f0 = V[IJKm2];
     f1 = V[IJKm1];
@@ -271,6 +289,9 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
     Up = f0*(z-z1)/(z0-z1) + f1*(z-z0)/(z1-z0);*/
     
     dUdz = (U[IJK] - Up)/p->DZN[KP];
+    
+    //if(k==0)
+    //dUdz = U[IJK]-U[IJKm1];
     
     dVdz = (V[IJK] - Vp)/p->DZN[KP];
     
