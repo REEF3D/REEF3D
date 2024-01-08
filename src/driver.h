@@ -81,6 +81,8 @@ class momentum_RKLS3_df;
 class momentum_RKLS3_sf;
 class nhflow_vtu3D;
 class onephase_ptf;
+class solver_ptf;
+class timestep_ptf;
 
 #include<iostream>
 #include<fstream>
@@ -178,8 +180,10 @@ public:
 	solver* psolv;
 	solver* ppoissonsolv;
     solver* plapsolv;
+    solver_ptf* plapsolv_ptf;
 	ghostcell* pgc;
 	timestep* ptstep;
+    timestep_ptf* ptstep_ptf;
 	freesurface* pfsf;
 	reini* preini;
 	particle_corr* ppart; 
@@ -197,7 +201,7 @@ public:
     fnpf *ppfsg;
     ptf *pptf;
     onephase *poneph;
-    onephase_ptf *poneph_pft;
+    onephase_ptf *poneph_ptf;
     nsewave *pnse;
     nhflow_fsf *pnhfsf;
     sflow *psflow;

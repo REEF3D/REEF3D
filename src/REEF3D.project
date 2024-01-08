@@ -1146,7 +1146,6 @@
           <File Name="Initialise_ptf.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Onephase">
-          <File Name="onephase_ptf_f_extension.cpp"/>
           <File Name="onephase_ptf_f_disc.cpp"/>
           <File Name="onephase_ptf_f.cpp"/>
           <File Name="onephase_ptf_v.cpp"/>

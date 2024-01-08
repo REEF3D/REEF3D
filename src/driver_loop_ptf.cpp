@@ -78,7 +78,7 @@ void driver::loop_ptf(fdm_ptf* e)
         pflow->wavegen_precalc(p,pgc);
 
         // PFLOW
-		pptf->start(p,e,pgc,plapsolv,pfsfdisc,pflow,preini,poneph);
+		pptf->start(p,e,pgc,plapsolv_ptf,pfsfdisc,pflow,preini,poneph_ptf);
     
         //timestep control
         p->simtime+=p->dt;

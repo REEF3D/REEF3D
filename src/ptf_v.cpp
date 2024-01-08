@@ -30,7 +30,7 @@ ptf_void::~ptf_void()
 {
 }
 
-void ptf_void::start(lexer *p, fdm_ptf *e, ghostcell *pgc, solver_ptf *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph_ptf)
+void ptf_void::start(lexer *p, fdm_ptf *e, ghostcell *pgc, solver_ptf *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase_ptf* poneph_ptf)
 {	
 	
 }

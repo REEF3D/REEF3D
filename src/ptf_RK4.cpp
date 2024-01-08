@@ -75,7 +75,7 @@ ptf_RK4::~ptf_RK4()
 {
 }
 
-void ptf_RK4::start(lexer *p, fdm_ptf *e, ghostcell *pgc, solver_ptf *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph_ptf)
+void ptf_RK4::start(lexer *p, fdm_ptf *e, ghostcell *pgc, solver_ptf *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase_ptf* poneph_ptf)
 {	
     //pflow->inflow(p,e,pgc,e->u,e->v,e->w);
 
@@ -255,7 +255,7 @@ void ptf_RK4::start(lexer *p, fdm_ptf *e, ghostcell *pgc, solver_ptf *psolv, con
     pfsfupdate->velcalc(p,e,pgc,e->Fi);
 }
 
-void ptf_RK4::ini(lexer *p, fdm_ptf *e, ghostcell *pgc, ioflow *pflow, reini *preini, onephase *poneph_ptf)
+void ptf_RK4::ini(lexer *p, fdm_ptf *e, ghostcell *pgc, ioflow *pflow, reini *preini, onephase_ptf *poneph_ptf)
 {	
     pfsfupdate->fsfupdate(p,e,pgc,pflow,poneph_ptf,e->eta);
     pfsfupdate->etaloc(p,e,pgc);

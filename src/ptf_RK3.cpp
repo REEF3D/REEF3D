@@ -31,7 +31,6 @@ Author: Hans Bihs
 #include"reini.h"
 #include"ptf_laplace_cds2.h"
 #include"ptf_laplace_cds4.h"
-#include"onephase.h"
 #include"onephase_ptf.h"
 #include"onephase_ptf_f.h"
 #include"onephase_ptf_v.h"
@@ -82,7 +81,7 @@ ptf_RK3::~ptf_RK3()
 {
 }
 
-void ptf_RK3::start(lexer *p, fdm_ptf *e, ghostcell *pgc, solver_ptf *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph_ptf)
+void ptf_RK3::start(lexer *p, fdm_ptf *e, ghostcell *pgc, solver_ptf *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase_ptf* poneph_ptf)
 {	
    // pflow->inflow(p,e,pgc,e->u,e->v,e->w);
     
@@ -231,7 +230,7 @@ void ptf_RK3::start(lexer *p, fdm_ptf *e, ghostcell *pgc, solver_ptf *psolv, con
     
 }
 
-void ptf_RK3::ini(lexer *p, fdm_ptf *e, ghostcell *pgc, ioflow *pflow, reini *preini, onephase *poneph_ptf)
+void ptf_RK3::ini(lexer *p, fdm_ptf *e, ghostcell *pgc, ioflow *pflow, reini *preini, onephase_ptf *poneph_ptf)
 {	
     pfsfupdate->fsfupdate(p,e,pgc,pflow,poneph_ptf,e->eta);
     pfsfupdate->etaloc(p,e,pgc);

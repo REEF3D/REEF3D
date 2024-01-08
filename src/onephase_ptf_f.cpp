@@ -92,11 +92,4 @@ void onephase_ptf_f::update(lexer *p, fdm_ptf *e, ghostcell *pgc, ioflow *pflow)
     pgc->flagx(p,p->flag3);
 }
 
-void onephase_ptf_f::fsf_update(lexer *p, fdm_ptf *e, ghostcell *pgc)
-{
-}
-
-void onephase_ptf_f::ini(lexer *p, fdm_ptf *e, ghostcell *pgc, ioflow *pflow)
-{
-}
 

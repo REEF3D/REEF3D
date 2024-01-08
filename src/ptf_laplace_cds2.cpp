@@ -2561,7 +2561,7 @@ void ptf_laplace_cds2::start(lexer* p, fdm_ptf *e, ghostcell *pgc, solver_ptf *p
 	}
     
     double starttime=pgc->timer();
-    psolv->start_ptf(p,e,pgc,e->Fi,e->rhsvec,5);
+    psolv->start(p,e,pgc,e->Fi,e->rhsvec,5);
     double endtime=pgc->timer();
     pgc->start4(p,e->Fi,250);
 

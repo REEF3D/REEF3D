@@ -34,9 +34,10 @@ using namespace std;
 class onephase_ptf
 {
 public:
+
 	virtual void update(lexer*, fdm_ptf*, ghostcell*, ioflow*)=0;
     virtual void ini(lexer*, fdm_ptf*, ghostcell*, ioflow*)=0;
 
 };
 
-#endif
+#endif 
