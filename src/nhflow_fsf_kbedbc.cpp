@@ -29,6 +29,7 @@ void nhflow_fsf_f::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, dou
 {
     double wval,w_n;
     double Pval,Qval;
+    double fac;
   
     // Kinematic Bed BC
     GC4LOOP
@@ -94,6 +95,29 @@ void nhflow_fsf_f::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, dou
         d->W[IJKm2] = wval;
         d->W[IJKm3] = wval;
         }
+        
+    if(p->A516==5)
+    {
+    Pval = U[IJK];
+    Qval = V[IJK];
+    
+    fac = (1.0 - p->A523*fabs(d->Bx(i,j)))*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]); 
+    
+    Pval = 0.25*(1.0-fac)*U[IJK] + 0.75*fac*U[IJKm1]; 
+    Qval = 0.25*(1.0-fac)*V[IJK] + 0.75*fac*V[IJKm1]; 
+        
+        d->Wb[IJKm1] = wval;
+        d->Wb[IJKm2] = wval;
+        d->Wb[IJKm3] = wval;
+
+        d->Wt[IJKm1] = wval;
+        d->Wt[IJKm2] = wval;
+        d->Wt[IJKm3] = wval;
+        
+        d->W[IJKm1] = wval;
+        d->W[IJKm2] = wval;
+        d->W[IJKm3] = wval;
+    }
         
     }
 }
