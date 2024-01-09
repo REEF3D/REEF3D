@@ -694,7 +694,14 @@ void wave_lib_Stokes_5th::wave_parameters(lexer *p, ghostcell *pgc)
         p->wT = wT;
 
         // ini
-		wL = (9.81/(2.0*PI))*wT*wT;
+		wL0 = (9.81/(2.0*PI))*wT*wT;
+		k0 = (2.0*PI)/wL0;
+		S0 = sqrt(k0*wdt) * (1.0 + (k0*wdt)/6.0 + (k0*k0*wdt*wdt)/30.0);
+
+		wL = wL0*tanh(S0);
+
+        for(int qn=0; qn<500; ++qn)
+        wL = wL0*tanh(2.0*PI*wdt/wL);
     
         int qn=0;
             do
@@ -757,48 +764,6 @@ void wave_lib_Stokes_5th::wave_parameters(lexer *p, ghostcell *pgc)
         cout<<"wT_test: "<<wT_test<<endl;
     
     }
-    /*
-    if(wtype==5)
-		{
-		wL0 = (9.81/(2.0*PI))*wT*wT;
-		k0 = (2.0*PI)/wL0;
-		S0 = sqrt(k0*wdt) * (1.0 + (k0*wdt)/6.0 + (k0*k0*wdt*wdt)/30.0);
-
-		wL = wL0*tanh(S0);
-
-        for(int qn=0; qn<500; ++qn)
-        wL = wL0*tanh(2.0*PI*wdt/wL);
-
-        diff=10.0;
-        int qn=0;
-            do
-            {
-            wk_temp = (2.0*PI)/(wL>1.0e-20?wL:1.0e20); // wk: wavenumber k
-
-            eps = 0.5*wk_temp*wH;
-            S = 1.0/cosh(2*wk_temp*wdt);
-            C = 1.0 - S;
-
-            c0 = sqrt(tanh(wk_temp*wdt));
-            c2 = (c0*(2.0 + 7.0*S*S)/(4.0*C*C));
-            c4 = (c0*(4.0 + 32.0*S -116.0*S*S - 400.0*S*S*S - 71.0*pow(S,4.0) + 146.0*pow(S,5.0)))/(32.0*pow(C,5.0));
-
-            wT_temp = (2.0*PI)/(sqrt(9.81*wk_temp)*(c0 + eps*eps*c2 + eps*eps*eps*eps*c4));
-
-            diff=wT_temp-wT;
-
-            //cout<<"wT_temp: "<<wT_temp<<" wT: "<<wT<<" wL: "<<wL<<" diff: "<<diff<<" qn: "<<qn<<endl;
-
-            if(diff>0.0001)
-            wL-=0.0005;
-
-            if(diff<-0.0001)
-            wL+=0.0005;
-                ++qn;
-            }while(fabs(diff)>0.0001 && qn<9000);
-
-		}*/
-    
 
     p->wT = wT;
     p->wH = wH;
