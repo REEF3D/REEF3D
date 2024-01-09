@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -62,6 +62,7 @@ private:
 	int gcval_u, gcval_v, gcval_w;
     int solver_id;
     double val, denom;
+    double gamma;
 
     density *pd;
     nhflow_poisson *ppois;

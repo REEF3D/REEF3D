@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -163,6 +163,7 @@ public:
 // Forcing
     void solid_forcing(lexer*,fdm*,double,field&,field&,field&,field&,field&,field&);
     void solid_forcing_ini(lexer*,fdm*);
+    void solid_forcing_topo_update(lexer*,fdm*);
     double Hsolidface(lexer*, fdm*, int,int,int);
 	double Hsolidface_t(lexer*, fdm*, int,int,int);
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -42,6 +42,8 @@ nhflow_pjm::nhflow_pjm(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_interface *
     ppois = new nhflow_poisson(p);
 
     gcval_press=540;
+    
+    gamma=0.8;
     
     
     if(p->D33==0)
@@ -183,6 +185,13 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
     
     V1 = (1.0-fac)*V[IJm1K] + fac*V[IJm1Km1]; 
     V2 = (1.0-fac)*V[IJp1K] + fac*V[IJp1Km1];     
+    
+    if(k==0)
+    {
+    fac=gamma*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);  
+    U1 = (1.0-fac)*U[Im1JK] + fac*U[Im1JKm1]; 
+    U2 = (1.0-fac)*U[Ip1JK] + fac*U[Ip1JKm1]; 
+    }
     
     /*Um1 = U[IJKm1];
     Up1 = U[IJK];

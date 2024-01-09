@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -153,9 +153,6 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 
     velcalc(p,d,pgc,UHRK1,VHRK1,WHRK1,WLRK1);
     
-    //pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
-    //pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
-
     //pflow->pressure_io(p,a,pgc);
 	ppress->start(p,d,psolv,pgc,pflow,WLRK1,UHRK1,VHRK1,WHRK1,1.0);
     velcalc(p,d,pgc,UHRK1,VHRK1,WHRK1,WLRK1);
@@ -249,9 +246,6 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL);
     
-    //pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
-    //pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
-
 	//pflow->pressure_io(p,a,pgc);
     ppress->start(p,d,psolv,pgc,pflow,d->WL,d->UH,d->VH,d->WH,0.5);
     

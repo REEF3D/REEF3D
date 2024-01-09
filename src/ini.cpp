@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
  *
 This file is part of REEF3D.
 
@@ -109,7 +109,8 @@ void lexer::ini_default()
     
     A520=2;		// int NFHLOW non-hydrostatic pressure scheme
     A521=0;		// int NFHLOW fsf ucorr
-    A523=1.0;    // double blending factor hydrostatic pressure gradient
+    A522=4.0;    // double p_alpha
+    A523=1.0;    // double p_gamma
     A531=3.0;    // double Fround number limiter
     A540=1;      // int NFHLOW fsf scheme
     A541=0.0;    // double coastline damping distance factor for dxm

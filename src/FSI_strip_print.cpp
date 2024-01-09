@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Tobias Martin
+Copyright 2008-2024 Tobias Martin
 
 This file is part of REEF3D.
 

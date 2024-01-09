@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -115,10 +115,6 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
 
 	if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
-    
-    
-    LOOP
-    a->test(i,j,k) = pcorr(i,j,k);
     
 }
 
