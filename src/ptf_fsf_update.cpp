@@ -19,7 +19,6 @@ along with this program; if not, see <http://www.gnu.org/liceonephases/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-
 #include"ptf_fsf_update.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -68,7 +67,7 @@ void ptf_fsf_update::etaloc(lexer *p, fdm *a, ghostcell *pgc)
     a->etaloc(i,j) = MAX(a->etaloc(i,j),k);
 }
 
-void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field &Fi)
+void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field &Fi, slice &eta)
 {
     AIRLOOP
     Fi(i,j,k)=0.0;
@@ -76,6 +75,8 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     double lsv0,lsv1,lsv2,lsv3;
     double fival,lsval,dx,dist;
 // ------
+
+    
     if(p->A323==1)
     FILOOP4
     {
@@ -83,8 +84,7 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     Fi(i,j,k+2) =  Fifsf(i,j);
     Fi(i,j,k+3) =  Fifsf(i,j);
     }
-
-// ------
+    
     if(p->A323==2 || p->A323==4)
     FILOOP4
     {
@@ -106,11 +106,9 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
         //if(p->mpirank==2)
         //cout<<"F_k: "<<fival<<" Fifsf: "<<Fifsf(i,j)<<" F_k+1: "<<Fi(i,j,k+1)<<"  | lsv0: "<<lsv0<<" lsv1: "<<lsv1<<endl;
     }
-   
-    double x0,x1,x2,y0,y1,y2;
-    double x,y;
-    double denom1,denom2,denom3,denom4,denom5,denom6;
-// ------
+    
+    double x0,x1,x2,y0,y1,y2,denom1,denom2,denom3,denom4,denom5,denom6,x;
+    
     if(p->A323==3)
     FILOOP4
     {
@@ -152,6 +150,64 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     //if(i+p->origin_i==0)
     //Fi(i-1,j,k+1) = Fi(i,j,k+1);
     }
+    
+    double zpos_fs,zpos_1,zpos_2,zpos_3,zpos_4,zpos_5;
+    
+    if(p->A323==5||p->A323==6)
+    FILOOP4
+    {
+        zpos_fs=eta(i,j)-(p->ZP[KP]-p->F60);
+        zpos_1=p->DZP[KP];
+        zpos_2=p->ZP[KP2]-p->ZP[KP];
+        zpos_3=p->ZP[KP3]-p->ZP[KP];
+        zpos_4=p->ZP[KP4]-p->ZP[KP];
+        zpos_5=p->ZP[KP5]-p->ZP[KP];
+        
+        zpos_fs = (fabs(zpos_fs)>1.0e-6?zpos_fs:1.0e20);
+        
+        Fi(i,j,k+1)=(Fifsf(i,j)-Fi(i,j,k))/zpos_fs*zpos_1+Fi(i,j,k);
+        Fi(i,j,k+2)=(Fifsf(i,j)-Fi(i,j,k))/zpos_fs*zpos_2+Fi(i,j,k);
+        Fi(i,j,k+3)=(Fifsf(i,j)-Fi(i,j,k))/zpos_fs*zpos_3+Fi(i,j,k);
+        Fi(i,j,k+4)=(Fifsf(i,j)-Fi(i,j,k))/zpos_fs*zpos_4+Fi(i,j,k);
+        Fi(i,j,k+5)=(Fifsf(i,j)-Fi(i,j,k))/zpos_fs*zpos_5+Fi(i,j,k);
+    }
+    
+    double teta_epol,Dz_t,Dz_b,FI_p,FI_b,FI_FS,a_epol,b_epol,c_epol,denom_b,num_b;
+    
+    
+    if(p->A323==7 || p->A323==77 || p->A323==8 || p->A323==9 || p->A323==10 || p->A323==11 || p->A323==12 || p->A323==78 || p->A323==79)
+    FILOOP4
+    {
+        teta_epol=(eta(i,j)-(p->ZP[KP]-p->F60))/p->DZP[KP];
+        if(teta_epol<1.0e-7)
+            teta_epol=1.0e-7;
+        zpos_1=p->ZP[KP1]-p->ZP[KM1];
+        zpos_2=p->ZP[KP2]-p->ZP[KM1];
+        zpos_3=p->ZP[KP3]-p->ZP[KM1];
+        zpos_4=p->ZP[KP4]-p->ZP[KM1];
+        zpos_5=p->ZP[KP5]-p->ZP[KM1];
+        
+        
+        Dz_b=p->DZP[KM1];
+        Dz_t=p->DZP[KP];
+        FI_p=Fi(i,j,k);
+        FI_b=Fi(i,j,k-1);
+        FI_FS=Fifsf(i,j);
+        
+        c_epol=FI_b;
+        denom_b=(Dz_b+teta_epol*Dz_t)-(Dz_b+teta_epol*Dz_t)*(Dz_b+teta_epol*Dz_t)/Dz_b;
+        num_b=FI_FS-FI_b+FI_b*(Dz_b+teta_epol*Dz_t)*(Dz_b+teta_epol*Dz_t)/(Dz_b*Dz_b)-FI_p*(Dz_b+teta_epol*Dz_t)*(Dz_b+teta_epol*Dz_t)/(Dz_b*Dz_b);
+        b_epol=num_b/denom_b;
+        a_epol=FI_p/(Dz_b*Dz_b)-FI_b/(Dz_b*Dz_b)-b_epol/Dz_b;
+        
+        Fi(i,j,k+1)=a_epol*zpos_1*zpos_1+b_epol*zpos_1+c_epol;
+        Fi(i,j,k+2)=a_epol*zpos_2*zpos_2+b_epol*zpos_2+c_epol;
+        Fi(i,j,k+3)=a_epol*zpos_3*zpos_3+b_epol*zpos_3+c_epol;
+        Fi(i,j,k+4)=a_epol*zpos_4*zpos_4+b_epol*zpos_4+c_epol;
+        Fi(i,j,k+5)=a_epol*zpos_5*zpos_5+b_epol*zpos_5+c_epol;
+        
+    }
+    
 }
 
 void ptf_fsf_update::fsfbc0(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field &Fi)
@@ -199,72 +255,66 @@ void ptf_fsf_update::fsfepol(lexer *p, fdm *a, ghostcell *pgc, slice &eta, field
 
 void ptf_fsf_update::velcalc(lexer *p, fdm *a, ghostcell *pgc, field &f)
 {
-    double H,phival;
-    double epsi = 0.6*p->DXM;
-
-    UFLUIDLOOP
+    
+    if(true)
     {
-        epsi = 1.6*p->DZP[KP];
+        double H,phival;
+        double epsi = 0.6*p->DXM;
 
-        phival = 0.5*(a->phi(i,j,k) + a->phi(i+1,j,k));
+        UFLUIDLOOP
+        {
+            epsi = 1.6*p->DZP[KP];
 
-        if(phival>epsi)
-		H=1.0;
+            phival = 0.5*(a->phi(i,j,k) + a->phi(i+1,j,k));
 
-		if(phival<-epsi)
-		H=0.0;
+            if(phival>epsi)
+            H=1.0;
 
-		if(fabs(phival)<=epsi)
-		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
+            if(phival<-epsi)
+            H=0.0;
 
-    a->u(i,j,k) = H*(f(i+1,j,k)-f(i,j,k))/p->DXP[IP];
+            if(fabs(phival)<=epsi)
+            H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
 
+            a->u(i,j,k) = H*(f(i+1,j,k)-f(i,j,k))/p->DXP[IP];
+        }
 
-    //if(i+p->origin_i==0)
-    //a->u(i,j,k)=0.0;
+        VFLUIDLOOP
+        {
+            epsi = 1.6*p->DZP[KP];
 
-    }
+            phival = 0.5*(a->phi(i,j,k) + a->phi(i,j+1,k));
 
-    VFLUIDLOOP
-    {
-        epsi = 1.6*p->DZP[KP];
+            if(phival>epsi)
+            H=1.0;
 
-        phival = 0.5*(a->phi(i,j,k) + a->phi(i,j+1,k));
+            if(phival<-epsi)
+            H=0.0;
 
-        if(phival>epsi)
-		H=1.0;
+            if(fabs(phival)<=epsi)
+            H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
 
-		if(phival<-epsi)
-		H=0.0;
+            a->v(i,j,k) = H*(f(i,j+1,k)-f(i,j,k))/p->DYP[JP];
+        }
 
-		if(fabs(phival)<=epsi)
-		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
+        WFLUIDLOOP
+        {
+            epsi = 1.6*p->DZP[KP];
 
-	a->v(i,j,k) = H*(f(i,j+1,k)-f(i,j,k))/p->DYP[JP];
+            phival = 0.5*(a->phi(i,j,k) + a->phi(i,j,k+1));
 
-    //if(i+p->origin_i==0)
-    //a->v(i,j,k)=0.0;
-    }
+            if(phival>epsi)
+            H=1.0;
 
-    WFLUIDLOOP
-    {
-        epsi = 1.6*p->DZP[KP];
+            if(phival<-epsi)
+            H=0.0;
 
-        phival = 0.5*(a->phi(i,j,k) + a->phi(i,j,k+1));
+            if(fabs(phival)<=epsi)
+            H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
 
-        if(phival>epsi)
-		H=1.0;
+            a->w(i,j,k) = H*(f(i,j,k+1)-f(i,j,k))/p->DZP[KP];
 
-		if(phival<-epsi)
-		H=0.0;
-
-		if(fabs(phival)<=epsi)
-		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
-
-	a->w(i,j,k) = H*(f(i,j,k+1)-f(i,j,k))/p->DZP[KP];
-
-    //if(i+p->origin_i==0)
-    //a->w(i,j,k)=0.0;
+        }
     }
 
     pgc->start1(p,a->u,gcval_u);
@@ -272,3 +322,57 @@ void ptf_fsf_update::velcalc(lexer *p, fdm *a, ghostcell *pgc, field &f)
 	pgc->start3(p,a->w,gcval_w);
 
 }
+/*
+void ptf_fsf_update::presscalc(lexer *p, fdm *a, ghostcell *pgc, field &Firk_0, field &Firk_1, field &Firk_2, field &Firk_3, slice &eta)
+{   
+    double DFiDt;
+    if(p->A401==1)
+    {   
+        OFLUIDLOOP
+        {
+        DFiDt=(Firk_3(i,j,k)-Firk_0(i,j,k))/p->dt;
+        a->press(i,j,k)=p->W1*(-1.0)*
+                                    (DFiDt
+                                    +0.5*(a->u(i,j,k)*a->u(i,j,k)+a->v(i,j,k)*a->v(i,j,k)+a->w(i,j,k)*a->w(i,j,k))
+                                    +(p->W22*((a->eta(i,j)+p->F60)-p->ZP[KP])));
+        }
+        AIRLOOP
+        {
+        a->press(i,j,k)=0.0;
+        }
+    }
+    
+    if(p->A401==2)
+    {
+        OFLUIDLOOP
+        {
+        DFiDt= (((1.0/3.0)*Firk_0(i,j,k) + (2.0/3.0)*Firk_2(i,j,k) + (2.0/3.0)*Firk_3(i,j,k))-Firk_0(i,j,k))/p->dt;
+        a->press(i,j,k)=p->W1*(-1.0)*
+                                    (DFiDt
+                                    +0.5*(a->u(i,j,k)*a->u(i,j,k)+a->v(i,j,k)*a->v(i,j,k)+a->w(i,j,k)*a->w(i,j,k))
+                                    +(p->W22*((a->eta(i,j)+p->F60)-p->ZP[KP])));
+        }
+        AIRLOOP
+        {
+        a->press(i,j,k)=0.0;
+        }
+    }
+    
+    if(p->A401==3)
+    {
+        OFLUIDLOOP
+        {
+        DFiDt= (((1.0/3.0)*Firk_0(i,j,k) + (2.0/3.0)*Firk_1(i,j,k) + (2.0/3.0)*Firk_2(i,j,k))-Firk_0(i,j,k))/p->dt;
+        a->press(i,j,k)=p->W1*(-1.0)*
+                                    (DFiDt
+                                    +0.5*(a->u(i,j,k)*a->u(i,j,k)+a->v(i,j,k)*a->v(i,j,k)+a->w(i,j,k)*a->w(i,j,k))
+                                    +(p->W22*((a->eta(i,j)+p->F60)-p->ZP[KP])));
+        }
+        AIRLOOP
+        {
+        a->press(i,j,k)=0.0;
+        }
+    }
+    
+}
+*/
