@@ -17,52 +17,31 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Fabian Knoblauch
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include<iostream>
-#include<fstream>
-#include"field4.h"
-#include"fieldint4.h"
-
-class lexer;
 class fdm_ptf;
+class lexer;
 class ghostcell;
+class field;
+class ioflow;
+class solver;
+class multiphase;
 
-#ifndef FORCE_PTF_H_
-#define FORCE_PTF_H_
+#ifndef PTF_PRINTER_H_
+#define PTF_PRINTER_H_
 
 using namespace std;
 
-class force_ptf : public increment
-{   
-    
+class ptf_printer
+{
 public:
-
-    force_ptf(lexer*,fdm_ptf*,ghostcell*,int);
-    virtual ~force_ptf();
-    virtual void start(lexer*,fdm_ptf*,ghostcell*);
-    virtual void ini(lexer*,fdm_ptf*,ghostcell*);
+	virtual void start(fdm_ptf*,lexer*,ghostcell*,ioflow*,solver*,multiphase*)=0;
     
-private:
+    virtual void print_vtu(fdm_ptf*,lexer*,ghostcell*,ioflow*,solver*,multiphase*)=0;
     
-	void print_force_ptf(lexer*,fdm_ptf*,ghostcell*);
-    void print_ini_ptf(lexer*,fdm_ptf*,ghostcell*);
+    virtual void print_stop(fdm_ptf*,lexer*,ghostcell*,ioflow*,solver*,multiphase*)=0;
     
-    // force ptf variabes
-    double F_x_cell,F_y_cell,F_z_cell;
-    double F_x_tot,F_y_tot,F_z_tot;
-    
-    // printing
-    char name[100],pname[100],epsvar[100];
-    int iin,offset[100];
-    float ffn;
-    int force_ptfprintcount;
-    ofstream fout;
-    const int ID;
-    
-    // parallelisation
-    double xstart,ystart,xend,yend,zstart,zend;
 };
 
 #endif

@@ -29,27 +29,26 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-
 void ptf_state::write_result(lexer *p, fdm_ptf *e, ghostcell *pgc)
 {
-    // Open File
-	int num=0;
+    // Open result file single file
+    if(p->P45==1)
+    {
+    int num=0;
 
-    if(p->P15==1)
+    if(p->P15>=1)
     num = printcount;
-
-    if(p->P15==2)
-    num = printcount;
-	
-	if(p->P40==1)
-	num=0;
     
-    filename(p,e,pgc,num);
+    filename_single(p,e,pgc,num);
 	 
-	ofstream result;
 	result.open(name, ios::binary);
-	
-	iin=p->count;
+    }
+     
+    // read head section
+    iin=file_version;
+    result.write((char*)&iin, sizeof (int));
+    
+    iin=p->count;
     result.write((char*)&iin, sizeof (int));
 	
 	iin=p->printcount;
@@ -60,10 +59,10 @@ void ptf_state::write_result(lexer *p, fdm_ptf *e, ghostcell *pgc)
     
     ddn=p->printtime;
     result.write((char*)&ddn, sizeof (double));
-    /*
+    
     ddn=p->sedprinttime;
     result.write((char*)&ddn, sizeof (double));
-    */
+    
     ddn=p->fsfprinttime;
     result.write((char*)&ddn, sizeof (double));
     
@@ -71,76 +70,63 @@ void ptf_state::write_result(lexer *p, fdm_ptf *e, ghostcell *pgc)
     result.write((char*)&ddn, sizeof (double));
     
     ddn=p->stateprinttime;
-    result.write((char*)&ddn, sizeof (double));   
+    result.write((char*)&ddn, sizeof (double)); 
     
-    ALOOP
+    // read result section
+    for(i=is;i<ie;++i)
+    for(j=js;j<je;++j)
+    PSLICECHECK4
     {
-    ffn=e->topo(i,j,k);
+    ffn=float(e->eta(i,j));
     result.write((char*)&ffn, sizeof (float));
     } 
     
-    ULOOP
+    for(i=is;i<ie;++i)
+    for(j=js;j<je;++j)
+    PSLICECHECK4
     {
-    ffn=e->u(i,j,k);
+    ffn=float(e->Fifsf(i,j));
+    result.write((char*)&ffn, sizeof (float));
+    } 
+    
+    for(i=is;i<ie;++i)
+    for(j=js;j<je;++j)
+    for(k=0; k<p->knoz+1; ++k)
+    FPCHECK  
+    {
+    ffn=float(e->U[FIJK]);
     result.write((char*)&ffn, sizeof (float));
     } 
 
-	VLOOP
+	for(i=is;i<ie;++i)
+    for(j=js;j<je;++j)
+    for(k=0; k<p->knoz+1; ++k)
+    FPCHECK 
     {
-    ffn=e->v(i,j,k);
+    ffn=float(e->V[FIJK]);
+    result.write((char*)&ffn, sizeof (float));
+    } 
+
+	for(i=is;i<ie;++i)
+    for(j=js;j<je;++j)
+    for(k=0; k<p->knoz+1; ++k)
+    FPCHECK 
+    {
+    ffn=float(e->W[FIJK]);
+    result.write((char*)&ffn, sizeof (float));
+    } 
+    
+    if(p->P44==1)
+    for(i=is;i<ie;++i)
+    for(j=js;j<je;++j)
+    for(k=0; k<p->knoz+1; ++k)
+    FPCHECK 
+    {
+    ffn=float(e->Fi[FIJK]);
     result.write((char*)&ffn, sizeof (float));
     } 
 	
-	WLOOP
-    {
-    ffn=e->w(i,j,k);
-    result.write((char*)&ffn, sizeof (float));
-    } 
-	
-	LOOP
-    {
-    ffn=e->press(i,j,k);
-    result.write((char*)&ffn, sizeof (float));
-    } 
-	
-	LOOP
-    {
-    ffn=e->phi(i,j,k);
-    result.write((char*)&ffn, sizeof (float));
-    } 
-	/*
-	LOOP
-    {
-    ffn=pturb->kinval(i,j,k);
-    result.write((char*)&ffn, sizeof (float));
-    } 
-	
-	LOOP
-    {
-    ffn=pturb->epsval(i,j,k);
-    result.write((char*)&ffn, sizeof (float));
-    } 
-	*/
-	LOOP
-    {
-    ffn=e->eddyv(i,j,k);
-    result.write((char*)&ffn, sizeof (float));
-    } 
-    /*
-	SLICELOOP4
-    {
-    ffn=psed->qbeval(i,j);
-    result.write((char*)&ffn, sizeof (float));
-    } 
-	*/
-	LOOP
-    {
-    ffn=e->conc(i,j,k);
-    result.write((char*)&ffn, sizeof (float));
-    } 
-	
-	
-	
+	if(p->P45==1)
 	result.close();
 	
 	++printcount;

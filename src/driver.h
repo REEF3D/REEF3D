@@ -155,6 +155,7 @@ public:
     void stop_ptf(lexer*,fdm_ptf*,ghostcell*);
 
 	printer* pprint;
+    printer_ptf* pprint_ptf;
 	initialize* pini;
 	diffusion* pdiff;
 	diffusion* pturbdiff;

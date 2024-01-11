@@ -33,11 +33,11 @@ ptf_state::ptf_state(lexer *p, fdm_ptf *e, ghostcell *pgc)
 {	
 	// Create Folder
 	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_ptf_STATE",0777);
+	mkdir("./REEF3D_FNPF_STATE",0777);
 	
 	printcount=0;
     
-    file_version=6;
+    file_version=4;
     
     file_type=p->P45;
     
@@ -200,7 +200,7 @@ ptf_state::~ptf_state()
 
 void ptf_state::write(lexer *p, fdm_ptf *e, ghostcell *pgc)
 {
-    /*// header file
+    // header file
     if(ini_token==0)
     {
     if(p->mpirank==0)
@@ -217,7 +217,6 @@ void ptf_state::write(lexer *p, fdm_ptf *e, ghostcell *pgc)
     
     
     // result file
-    if(flag==1)*/
-        
+    if(flag==1)
     write_result(p,e,pgc);
 }

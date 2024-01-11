@@ -35,10 +35,10 @@ void ptf_state::ini_mainheader(lexer *p, fdm_ptf *e, ghostcell *pgc)
     
     // open file
 	if(p->P14==0)
-    mainout.open("REEF3D-ptf_State_Mainheader.r3d", ios::binary);
+    mainout.open("REEF3D-FNPF_State_Mainheader.r3d", ios::binary);
 
 	if(p->P14==1)
-	mainout.open("./REEF3D_ptf_STATE/REEF3D-ptf_State_Mainheader.r3d", ios::binary);
+	mainout.open("./REEF3D_FNPF_STATE/REEF3D-FNPF_State_Mainheader.r3d", ios::binary);
 
 
     // ini write
@@ -54,7 +54,7 @@ void ptf_state::ini_mainheader(lexer *p, fdm_ptf *e, ghostcell *pgc)
     iin=je_global-js_global;
     mainout.write((char*)&iin, sizeof (int));
 
-    iin=p->gknoz;
+    iin=p->gknoz+1;
     mainout.write((char*)&iin, sizeof (int));
 
     iin=file_version;
@@ -79,10 +79,10 @@ void ptf_state::write_mainheader(lexer *p, fdm_ptf *e, ghostcell *pgc)
     
     // open file
 	if(p->P14==0)
-    mainout.open("REEF3D-ptf_State_Mainheader.r3d", ios::binary | ios::app);
+    mainout.open("REEF3D-FNPF_State_Mainheader.r3d", ios::binary | ios::app);
 
 	if(p->P14==1)
-	mainout.open("./REEF3D_ptf_STATE/REEF3D-ptf_State_Mainheader.r3d", ios::binary | ios::app);
+	mainout.open("./REEF3D_FNPF_STATE/REEF3D-FNPF_State_Mainheader.r3d", ios::binary | ios::app);
 
     iin=p->count;
     mainout.write((char*)&iin, sizeof (int));

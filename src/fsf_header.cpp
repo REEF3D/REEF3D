@@ -21,236 +21,34 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fsf_vtp.h"
-#include<string>
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"ioflow.h"
+#include<sys/stat.h>
+#include<sys/types.h>
 
-void fsf_vtp::name_iter(lexer* p,fdm* a,ghostcell* pgc)
+fsf_vtp::fsf_vtp(lexer* p, fdm *a, ghostcell *pgc):nodefill(p),vertice(p),nodeflag(p),eta(p),interfac(1.6),zero(0.0)
 {
-    int num=0;
-
-    if(p->P15==1)
-    num = fsfprintcount;
-
-    if(p->P15==2)
-    num = p->count;
-
-if(p->P14==0)
-{
-	if(p->mpirank<9)
-	{
-		if(num<10)
-		sprintf(name,"REEF3D-CFD-FSF-00000%i-0000%i.vtp",num,p->mpirank+1);
-
-		if(num<100&&num>9)
-		sprintf(name,"REEF3D-CFD-FSF-0000%i-0000%i.vtp",num,p->mpirank+1);
-
-		if(num<1000&&num>99)
-		sprintf(name,"REEF3D-CFD-FSF-000%i-0000%i.vtp",num,p->mpirank+1);
-
-		if(num<10000&&num>999)
-		sprintf(name,"REEF3D-CFD-FSF-00%i-0000%i.vtp",num,p->mpirank+1);
-
-		if(num<100000&&num>9999)
-		sprintf(name,"REEF3D-CFD-FSF-0%i-0000%i.vtp",num,p->mpirank+1);
-
-		if(num>99999)
-		sprintf(name,"REEF3D-CFD-FSF-%i-0000%i.vtp",num,p->mpirank+1);
-	}
-
-	if(p->mpirank<99&&p->mpirank>8)
-	{
-		if(num<10)
-		sprintf(name,"REEF3D-CFD-FSF-00000%i-000%i.vtp",num,p->mpirank+1);
-
-		if(num<100&&num>9)
-		sprintf(name,"REEF3D-CFD-FSF-0000%i-000%i.vtp",num,p->mpirank+1);
-
-		if(num<1000&&num>99)
-		sprintf(name,"REEF3D-CFD-FSF-000%i-000%i.vtp",num,p->mpirank+1);
-
-		if(num<10000&&num>999)
-		sprintf(name,"REEF3D-CFD-FSF-00%i-000%i.vtp",num,p->mpirank+1);
-
-		if(num<100000&&num>9999)
-		sprintf(name,"REEF3D-CFD-FSF-0%i-000%i.vtp",num,p->mpirank+1);
-
-		if(num>99999)
-		sprintf(name,"REEF3D-CFD-FSF-%i-000%i.vtp",num,p->mpirank+1);
-	}
-	if(p->mpirank<999&&p->mpirank>98)
-	{
-		if(num<10)
-		sprintf(name,"REEF3D-CFD-FSF-00000%i-00%i.vtp",num,p->mpirank+1);
-
-		if(num<100&&num>9)
-		sprintf(name,"REEF3D-CFD-FSF-0000%i-00%i.vtp",num,p->mpirank+1);
-
-		if(num<1000&&num>99)
-		sprintf(name,"REEF3D-CFD-FSF-000%i-00%i.vtp",num,p->mpirank+1);
-
-		if(num<10000&&num>999)
-		sprintf(name,"REEF3D-CFD-FSF-00%i-00%i.vtp",num,p->mpirank+1);
-
-		if(num<100000&&num>9999)
-		sprintf(name,"REEF3D-CFD-FSF-0%i-00%i.vtp",num,p->mpirank+1);
-
-		if(num>99999)
-		sprintf(name,"REEF3D-CFD-FSF-%i-00%i.vtp",num,p->mpirank+1);
-	}
-
-	if(p->mpirank<9999&&p->mpirank>998)
-	{
-		if(num<10)
-		sprintf(name,"REEF3D-CFD-FSF-00000%i-0%i.vtp",num,p->mpirank+1);
-
-		if(num<100&&num>9)
-		sprintf(name,"REEF3D-CFD-FSF-0000%i-0%i.vtp",num,p->mpirank+1);
-
-		if(num<1000&&num>99)
-		sprintf(name,"REEF3D-CFD-FSF-000%i-0%i.vtp",num,p->mpirank+1);
-
-		if(num<10000&&num>999)
-		sprintf(name,"REEF3D-CFD-FSF-00%i-0%i.vtp",num,p->mpirank+1);
-
-		if(num<100000&&num>9999)
-		sprintf(name,"REEF3D-CFD-FSF-0%i-0%i.vtp",num,p->mpirank+1);
-
-		if(num>99999)
-		sprintf(name,"REEF3D-CFD-FSF-%i-0%i.vtp",num,p->mpirank+1);
-	}
-
-	if(p->mpirank>9998)
-	{
-		if(num<10)
-		sprintf(name,"REEF3D-CFD-FSF-00000%i-%i.vtp",num,p->mpirank+1);
-
-		if(num<100&&num>9)
-		sprintf(name,"REEF3D-CFD-FSF-0000%i-%i.vtp",num,p->mpirank+1);
-
-		if(num<1000&&num>99)
-		sprintf(name,"REEF3D-CFD-FSF-000%i-%i.vtp",num,p->mpirank+1);
-
-		if(num<10000&&num>999)
-		sprintf(name,"REEF3D-CFD-FSF-00%i-%i.vtp",num,p->mpirank+1);
-
-		if(num<100000&&num>9999)
-		sprintf(name,"REEF3D-CFD-FSF-0%i-%i.vtp",num,p->mpirank+1);
-
-		if(num>99999)
-		sprintf(name,"REEF3D-CFD-FSF-%i-%i.vtp",num,p->mpirank+1);
-	}
+	// Create Folder
+	if(p->mpirank==0 && p->P14==1)
+	mkdir("./REEF3D_CFD_FSF",0777);
+	
+	fsfprintcount=0;
 }
 
-if(p->P14==1)
+fsf_vtp::~fsf_vtp()
 {
-	if(p->mpirank<9)
-	{
-		if(num<10)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-00000%i-0000%i.vtp",num,p->mpirank+1);
-
-		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-0000%i-0000%i.vtp",num,p->mpirank+1);
-
-		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-000%i-0000%i.vtp",num,p->mpirank+1);
-
-		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-00%i-0000%i.vtp",num,p->mpirank+1);
-
-		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-0%i-0000%i.vtp",num,p->mpirank+1);
-
-		if(num>99999)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-%i-0000%i.vtp",num,p->mpirank+1);
-	}
-
-	if(p->mpirank<99&&p->mpirank>8)
-	{
-		if(num<10)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-00000%i-000%i.vtp",num,p->mpirank+1);
-
-		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-0000%i-000%i.vtp",num,p->mpirank+1);
-
-		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-000%i-000%i.vtp",num,p->mpirank+1);
-
-		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-00%i-000%i.vtp",num,p->mpirank+1);
-
-		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-0%i-000%i.vtp",num,p->mpirank+1);
-
-		if(num>99999)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-%i-000%i.vtp",num,p->mpirank+1);
-	}
-	if(p->mpirank<999&&p->mpirank>98)
-	{
-		if(num<10)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-00000%i-00%i.vtp",num,p->mpirank+1);
-
-		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-0000%i-00%i.vtp",num,p->mpirank+1);
-
-		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-000%i-00%i.vtp",num,p->mpirank+1);
-
-		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-00%i-00%i.vtp",num,p->mpirank+1);
-
-		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-0%i-00%i.vtp",num,p->mpirank+1);
-
-		if(num>99999)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-%i-00%i.vtp",num,p->mpirank+1);
-	}
-
-	if(p->mpirank<9999&&p->mpirank>998)
-	{
-		if(num<10)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-00000%i-0%i.vtp",num,p->mpirank+1);
-
-		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-0000%i-0%i.vtp",num,p->mpirank+1);
-
-		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-000%i-0%i.vtp",num,p->mpirank+1);
-
-		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-00%i-0%i.vtp",num,p->mpirank+1);
-
-		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-0%i-0%i.vtp",num,p->mpirank+1);
-
-		if(num>99999)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-%i-0%i.vtp",num,p->mpirank+1);
-	}
-
-	if(p->mpirank>9998)
-	{
-		if(num<10)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-00000%i-%i.vtp",num,p->mpirank+1);
-
-		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-0000%i-%i.vtp",num,p->mpirank+1);
-
-		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-000%i-%i.vtp",num,p->mpirank+1);
-
-		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-00%i-%i.vtp",num,p->mpirank+1);
-
-		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-0%i-%i.vtp",num,p->mpirank+1);
-
-		if(num>99999)
-		sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-%i-%i.vtp",num,p->mpirank+1);
-	}
 }
 
+void fsf_vtp::start(lexer *p, fdm *a, ghostcell *pgc)
+{	
+	triangulation(p,a,pgc,a->phi);
+	reconstruct(p,a,a->phi);
+	
+	print(p,a,pgc);
+	++fsfprintcount;
+	
+	finalize(p,a);
+} 
 
-
-
-}

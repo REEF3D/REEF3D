@@ -40,7 +40,7 @@ void ptf_state::write_header(lexer *p, fdm_ptf *e, ghostcell *pgc)
     // open file
 	headout.open(name, ios::binary);
     
-    // ijk origin    
+    // ini write    
     iin=p->origin_i-is_global;
     
     if(is_flag==1)
@@ -60,7 +60,7 @@ void ptf_state::write_header(lexer *p, fdm_ptf *e, ghostcell *pgc)
     iin=p->origin_k;
     headout.write((char*)&iin, sizeof (int));
 
-    // xyz origin
+
     ddn=p->originx;
     headout.write((char*)&ddn, sizeof (double));
     
@@ -70,7 +70,7 @@ void ptf_state::write_header(lexer *p, fdm_ptf *e, ghostcell *pgc)
     ddn=p->originz;
     headout.write((char*)&ddn, sizeof (double));
   
-    // ijk length
+    
     iin=ie-is;
     headout.write((char*)&iin, sizeof (int));
     
@@ -78,10 +78,10 @@ void ptf_state::write_header(lexer *p, fdm_ptf *e, ghostcell *pgc)
     headout.write((char*)&iin, sizeof (int));
     
     
-    iin=p->knoz;
+    iin=p->knoz+1;
     headout.write((char*)&iin, sizeof (int));
     
-    // parallel neihbors
+    
     iin=p->nb1;
     headout.write((char*)&iin, sizeof (int));
     
@@ -95,16 +95,16 @@ void ptf_state::write_header(lexer *p, fdm_ptf *e, ghostcell *pgc)
     headout.write((char*)&iin, sizeof (int));
     
     
-    // grid coordinates
-    for(i=is;i<=ie;++i)
+    //
+    for(i=is;i<ie;++i)
     {
-    ddn=p->XN[IP];
+    ddn=p->XP[IP];
     headout.write((char*)&ddn, sizeof (double));
     } 
     
-    for(j=js;j<=je;++j)
+    for(j=js;j<je;++j)
     {
-    ddn=p->YN[JP];
+    ddn=p->YP[JP];
     headout.write((char*)&ddn, sizeof (double));
     } 
     
@@ -113,7 +113,15 @@ void ptf_state::write_header(lexer *p, fdm_ptf *e, ghostcell *pgc)
     ddn=p->ZN[KP];
     headout.write((char*)&ddn, sizeof (double));
     } 
-
+    
+    
+    for(i=is;i<ie;++i)
+    for(j=js;j<je;++j)
+    PSLICECHECK4
+    {
+    ddn=e->bed(i,j);
+    headout.write((char*)&ddn, sizeof (double));
+    } 
     
     headout.close();
 }

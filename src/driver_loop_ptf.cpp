@@ -82,11 +82,11 @@ void driver::loop_ptf(fdm_ptf* e)
     
         //timestep control
         p->simtime+=p->dt;
-        ptstep->start(e,p,pgc,pturb);
+        ptstep_ptf->start(e,p,pgc,pturb);
         
         
         // printer
-        pprint->start(e,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
+        pprint_ptf->start(e,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
 
         // Shell-Printout
         if(p->mpirank==0)
