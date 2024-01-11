@@ -20,81 +20,28 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"field1.h"
-#include"field2.h"
-#include"field3.h"
-#include"field4.h"
-#include"field4a.h"
-#include"field5.h"
-#include"fieldint5.h"
-#include"fieldint1.h"
-#include"fieldint2.h"
-#include"fieldint3.h"
-#include"fieldint4.h"
-#include"fieldint4a.h"
-#include"slice1.h"
-#include"slice2.h"
-#include"slice4.h"
-#include"sliceint4.h"
-#include"sliceint5.h"
-#include"increment.h"
-#include"vec.h"
-#include"matrix_diag.h"
-#include"cpt.h"
-#include"looping.h"
-#include"iterators.h"
-#include<iostream>
-#include<vector>
+
+#include"fdm.h"
 
 class lexer;
 
-#ifndef FDM_H_
-#define FDM_H_
+#ifndef FDM_PTF_H_
+#define FDM_PTF_H_
 
 using namespace std;
 
-class fdm : public increment
+class fdm_ptf : public fdm
 {
 public:
 
-    fdm(lexer*);
+    fdm_ptf(lexer*);
+    ~fdm_ptf();
 
-	double gi,gj,gk;
-
-	field1 u,F;
-	field2 v,G;
-	field3 w,H;
-	field4 press;
-    field4 Fi;
-	field4 eddyv;
-	field4 L;
-	field4 ro,visc;
-	field4 phi,vof;
-	field4 conc;
-    field4 test;
-	field4a topo,solid;
-	field4a fb;
-	field4a porosity;
-	field5 walld;
-	 
-	fieldint5 nodeval;
-    sliceint5 nodeval2D;
-   
-    // 6DOF
-    field1 fbh1;
-    field2 fbh2;
-    field3 fbh3;
-    field4 fbh4;
-    field4 fbh5;
-    slice4 eta;
-    
-    
     // PTF
-    /*
     slice4 eta,eta_n,depth;
     slice4 Fifsf;
     slice4 K;
-    sliceint4 etaloc; */
+    sliceint4 etaloc;
     
     slice1 P;
     slice2 Q;

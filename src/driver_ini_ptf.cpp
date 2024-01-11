@@ -23,7 +23,7 @@ Author: Hans Bihs
 #include"driver.h"
 #include"ghostcell.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_ptf.h"
 #include"freesurface_header.h"
 #include"turbulence_header.h"
 #include"momentum_header.h"

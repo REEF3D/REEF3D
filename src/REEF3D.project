@@ -66,6 +66,7 @@
           <File Name="ptf.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <File Name="fdm_ptf.h"/>
           <VirtualDirectory Name="Time"/>
         </VirtualDirectory>
       </VirtualDirectory>
@@ -1107,6 +1108,9 @@
         <File Name="pic_f.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="PTF">
+        <VirtualDirectory Name="FDM">
+          <File Name="fdm_ptf.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Breaking"/>
         <VirtualDirectory Name="Update">
           <File Name="ptf_fsf_update.cpp"/>

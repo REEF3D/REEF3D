@@ -30,6 +30,7 @@ class fdm;
 class fdm2D;
 class fdm_fnpf;
 class fdm_nhf;
+class fdm_ptf;
 class lexer;
 class momentum;
 class ioflow;
@@ -159,7 +160,10 @@ public:
 	diffusion* pturbdiff;
 	diffusion* pconcdiff;
 	diffusion* psuspdiff;
-	fdm* a;
+    if(p->A10==4)
+        fdm_ptf* a;
+    else
+        fdm* a;
     fdm2D* b;
     fdm_fnpf *c;
     fdm_nhf *d;
