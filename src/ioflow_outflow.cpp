@@ -159,7 +159,6 @@ void ioflow_f::outflow_water(lexer *p, fdm* a, ghostcell* pgc, field& u, field& 
         u(i+3,j,k)=p->Uo*fac;
         }
 
-
         if(a->phi(i-1,j,k)<-epsi2*p->DXM)
         {
         u(i+1,j,k)=0.0;

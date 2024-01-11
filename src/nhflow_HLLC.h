@@ -56,6 +56,8 @@ private:
     double HLLC(lexer*, fdm_nhf*, double*, double*, double*, double*, double*, double*, double*, double*);
     double HLLC_E(lexer*, fdm_nhf*);
     
+    double HLL(lexer*, fdm_nhf*&, double*, double*, double*, double*);
+    
 	double dx,dy,dz;
 	double udir,vdir,wdir;
 	double L;
