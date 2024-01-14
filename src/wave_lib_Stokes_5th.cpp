@@ -30,7 +30,6 @@ wave_lib_Stokes_5th::wave_lib_Stokes_5th(lexer *p, ghostcell *pgc) : pshift(p->B
     wave_parameters(p,pgc);
     parameters(p,pgc);
     
-    
     // ----------
     if(p->mpirank==0)
     {

@@ -41,6 +41,7 @@
   <Dependencies/>
   <VirtualDirectory Name="HEADERS">
     <VirtualDirectory Name="Hydrodynamics">
+      <VirtualDirectory Name="NGX"/>
       <VirtualDirectory Name="PIC">
         <File Name="pic_f.h"/>
         <File Name="pic_v.h"/>
@@ -1102,6 +1103,7 @@
   </VirtualDirectory>
   <VirtualDirectory Name="SOURCES">
     <VirtualDirectory Name="Hydrodynamics">
+      <VirtualDirectory Name="NGX"/>
       <VirtualDirectory Name="PIC">
         <File Name="pic_v.cpp"/>
         <File Name="pic_f.cpp"/>
