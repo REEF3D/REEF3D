@@ -45,6 +45,8 @@ void geotopo::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, reinitopo* 
     {
         if(p->S10!=2)
         pgc->topo_update(p,a);
+        else
+        pgc->gcb_velflagio(p,a);
         
         pflow->gcio_update(p,a,pgc);
     }
