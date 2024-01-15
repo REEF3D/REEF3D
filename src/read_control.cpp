@@ -1548,6 +1548,9 @@ void lexer::read_control()
                  case 101: control>>Q101;
 						 clear(c,numint);
 						 break;
+				 case 102: control>>Q102;
+						 clear(c,numint);
+						 break;
                  case 110: ++Q110;
 						 clear(c,numint);
 						 break;
