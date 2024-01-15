@@ -591,7 +591,7 @@ void driver::logic_cfd()
     psed = new sediment_f(p,a,pgc,pturb,pBC);
 
 
-    if(p->S10>=1 || p->G1==1 || p->toporead==1)
+    if(p->S10>0 || p->G1==1 || p->toporead==1)
     {
     if(p->G40==0)
     preto = new reinitopo_void();
