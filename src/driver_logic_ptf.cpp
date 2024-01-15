@@ -39,7 +39,7 @@ Author: Hans Bihs
 #include"6DOF_header.h"
 #include"waves_header.h"
 
-void driver::logic_ptf(fdm_ptf *a_tempo)
+void driver::logic_ptf(fdm_ptf *a)
 {    
     if(p->mpirank==0)
     cout<<"creating objects"<<endl;
@@ -55,8 +55,7 @@ void driver::logic_ptf(fdm_ptf *a_tempo)
 	//ptstep=new fixtimestep(p);
 
 	//if(p->N48==1)
-	pptf_timestep=
-    new ptf_timestep(p);
+	pptf_timestep= new ptf_timestep(p);
     
 // Printer
 	pprint = new vtu3D(p,a_tempo,pgc);

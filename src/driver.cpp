@@ -235,13 +235,15 @@ void driver::ptf_driver()
 
     aa=a_tempo;
     pgc->fdm_update(a_tempo);
-
+ 
     logic_ptf(a_tempo);
-
+   
     driver_ini_ptf(a_tempo);
 
     // Start MAINLOOP
     loop_ptf(a_tempo);
+    
+    
 }
 
 void driver::sflow_driver()

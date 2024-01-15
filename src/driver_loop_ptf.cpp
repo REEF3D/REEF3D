@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"freesurface_header.h"
 #include"turbulence_header.h"
+#include"ptf_timestep.h"
 #include"momentum_header.h"
 #include"pressure_header.h"
 #include"fdm_header.h"
@@ -70,7 +71,7 @@ void driver::loop_ptf(fdm_ptf* a)
     
         //timestep control
         p->simtime+=p->dt;
-        ptstep->start(a,p,pgc,pturb);
+        pptf_timestep->start(a,p,pgc,pturb);
         
         
         // printer

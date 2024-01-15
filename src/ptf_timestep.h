@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"increment.h"
+#include"timestep.h"
 
 class fdm_ptf;
 class lexer;
