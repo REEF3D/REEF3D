@@ -30,7 +30,7 @@ Author: Hans Bihs
 
 void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
 {
-	double h,h1;
+	double h=0;
 
 	ILOOP
     JLOOP
