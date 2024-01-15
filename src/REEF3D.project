@@ -1646,15 +1646,12 @@
           <File Name="particle_advect.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Util">
-          <File Name="particle_count.cpp"/>
           <File Name="particle_remove.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Parallel">
-          <File Name="particle_updatex.cpp"/>
           <File Name="particle_particlex.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Seed">
-          <File Name="particle_setup.cpp"/>
           <File Name="particle_initialize.cpp"/>
           <File Name="particle_seed.cpp"/>
           <File Name="particle_allocate.cpp"/>

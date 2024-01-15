@@ -29,28 +29,24 @@ void particle_f::print_particles(lexer* p, fdm* a, ghostcell* pgc)
 {
     if(((p->count%p->Q181==0 && p->Q182<0.0 && p->Q180==1 )|| (p->count==0 &&  p->Q182<0.0 && p->Q180==1)) && p->Q181>0)
 	{
-    print_vtu(p,a,pgc,pos,posflag,posactive,1);
+    print_vtu(p,a,pgc);
 	++printcount;
 	}
     
     if((p->simtime>p->fsfprinttime && p->Q182>0.0 && p->Q180==1) || (p->count==0 &&  p->Q182>0.0))
     {
-    print_vtu(p,a,pgc,pos,posflag,posactive,1);
+    print_vtu(p,a,pgc);
     p->partprinttime+=p->Q182;
     }
     
 }
 
-void particle_f::print_vtu(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag,int active, int sign)
+void particle_f::print_vtu(lexer* p, fdm* a, ghostcell* pgc)
 {
-	int numpt=0;
+    cout<<"PACTIVE-"<<p->mpirank<<": "<<PP.size<<endl;
+
+	int numpt=PP.size;
 	int count;
-	
-	for(n=0;n<active;++n)
-    if(flag[n]>0)
-	++numpt;
-	
-    cout<<"PACTIVE-"<<p->mpirank<<": "<<numpt<<" "<<active<<endl;
 	
 	if(p->mpirank==0)
 	pvtu_pos(a,p,pgc);
@@ -66,21 +62,21 @@ void particle_f::print_vtu(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag
 	offset[n]=0;
 	++n;
 	
-	offset[n]=offset[n-1]+4*(numpt)+4;
-	++n;
-	offset[n]=offset[n-1]+4*(numpt)+4;
-	++n;	
-	offset[n]=offset[n-1]+4*(numpt)+4;
-	++n;	
+	//offset[n]=offset[n-1]+4*(numpt)+4; //lsv
+	//++n;
+	// offset[n]=offset[n-1]+4*(numpt)+4; //radius
+	// ++n;
+	//offset[n]=offset[n-1]+4*(numpt)+4; //correction
+	//++n;	
 	
 	// end scalars
-    offset[n]=offset[n-1]+4*(numpt)*3+4;
+    offset[n]=offset[n-1]+4*(numpt)*3+4; //xyz
     ++n;
-    offset[n]=offset[n-1]+4*(numpt)*2+4;
+    offset[n]=offset[n-1]+4*(numpt)*2+4; //connectivitey
     ++n;
-	offset[n]=offset[n-1]+4*(numpt)+4;
+	offset[n]=offset[n-1]+4*(numpt)+4; //offset connectivity
     ++n;
-	offset[n]=offset[n-1]+4*(numpt)+4;
+	offset[n]=offset[n-1]+4*(numpt)+4; //cell type
     ++n;
 
 	//---------------------------------------------
@@ -91,14 +87,14 @@ void particle_f::print_vtu(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag
 	result<<"<Piece NumberOfPoints=\""<<numpt<<"\" NumberOfCells=\""<<numpt<<"\">"<<endl;
 	
 	
-	result<<"<PointData >"<<endl;
-	result<<"<DataArray type=\"Float32\" Name=\"phi\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"radius\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	result<<"<DataArray type=\"Float32\" Name=\"correction\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	result<<"</PointData>"<<endl;
+	// result<<"<PointData >"<<endl;
+	// //result<<"<DataArray type=\"Float32\" Name=\"phi\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    // //++n;
+    // // result<<"<DataArray type=\"Float32\" Name=\"radius\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    // // ++n;
+	// //result<<"<DataArray type=\"Float32\" Name=\"correction\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    // //++n;
+	// result<<"</PointData>"<<endl;
 	
 	
 
@@ -126,65 +122,65 @@ void particle_f::print_vtu(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag
 	
 
 //  lsv
-    iin=4*(numpt);
-    result.write((char*)&iin, sizeof (int));
-	for(n=0;n<active;++n)
-    if(flag[n]>0)
-	{
-	ffn=float(f[n][3]);
-	result.write((char*)&ffn, sizeof (float));
-	}
+    // iin=4*(numpt);
+    // result.write((char*)&iin, sizeof (int));
+	// PARTLOOP
+    // if(PP.Flag[n]>0)
+	// {
+	// ffn=float(f[n][3]);
+	// result.write((char*)&ffn, sizeof (float));
+	// }
 	
 //  radius
-    iin=4*(numpt);
-    result.write((char*)&iin, sizeof (int));
-	for(n=0;n<active;++n)
-    if(flag[n]>0)
-	{
-	ffn=float(f[n][4]);
-	result.write((char*)&ffn, sizeof (float));
-	}
+    // iin=4*(numpt);
+    // result.write((char*)&iin, sizeof (int));
+	// PARTLOOP
+	// 	if(PP.Flag[n]>0)
+	// 	{
+	// 		ffn=float(1);
+	// 		result.write((char*)&ffn, sizeof (float));
+	// 	}
 
 //  correction
-    iin=4*(numpt);
-    result.write((char*)&iin, sizeof (int));
-	for(n=0;n<active;++n)
-    if(flag[n]>0)
-	{
-		if(sign==1)
-		{
-		if(f[n][3]<=-f[n][4])
-		ffn=float(1.0);
+    // iin=4*(numpt);
+    // result.write((char*)&iin, sizeof (int));
+	// PARTLOOP
+    // if(PP.Flag[n]>0)
+	// {
+	// 	if(sign==1)
+	// 	{
+	// 	if(f[n][3]<=-f[n][4])
+	// 	ffn=float(1.0);
 		
-		if(f[n][3]>-f[n][4])
-		ffn=float(0.0);
-		}
+	// 	if(f[n][3]>-f[n][4])
+	// 	ffn=float(0.0);
+	// 	}
 		
-		if(sign==2)
-		{
-		if(f[n][3]>=f[n][4])
-		ffn=float(1.0);
+	// 	if(sign==2)
+	// 	{
+	// 	if(f[n][3]>=f[n][4])
+	// 	ffn=float(1.0);
 		
-		if(f[n][3]<f[n][4])
-		ffn=float(0.0);
-		}
+	// 	if(f[n][3]<f[n][4])
+	// 	ffn=float(0.0);
+	// 	}
 		
-	result.write((char*)&ffn, sizeof (float));
-	}
+	// result.write((char*)&ffn, sizeof (float));
+	// }
 
 //  XYZ
 	iin=4*(numpt)*3;
 	result.write((char*)&iin, sizeof (int));
-    for(n=0;n<active;++n)
-    if(flag[n]>0)
+    PARTLOOP
+    if(PP.Flag[n]>0)
 	{
-	ffn=float(f[n][0]);
+	ffn=float(PP.X[n]);
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(f[n][1]);
+	ffn=float(PP.Y[n]);
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(f[n][2]);
+	ffn=float(PP.Z[n]);
 	result.write((char*)&ffn, sizeof (float));
 	}
 	
@@ -192,8 +188,8 @@ void particle_f::print_vtu(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag
 	count=0;
     iin=4*(numpt)*2;
     result.write((char*)&iin, sizeof (int));
-	for(n=0;n<active;++n)
-	if(flag[n]>0)
+	PARTLOOP
+	if(PP.Flag[n]>0)
 	{
 	iin=int(0);
 	result.write((char*)&iin, sizeof (int));
@@ -207,8 +203,8 @@ void particle_f::print_vtu(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag
 	count=0;
     iin=4*(numpt);
     result.write((char*)&iin, sizeof (int));
-	for(n=0;n<active;++n)
-    if(flag[n]>0)
+	PARTLOOP
+    if(PP.Flag[n]>0)
 	{
 	iin=(count+1)*2;
 	result.write((char*)&iin, sizeof (int));
@@ -219,8 +215,8 @@ void particle_f::print_vtu(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag
 //  Cell types
     iin=4*(numpt);
     result.write((char*)&iin, sizeof (int));
-	for(n=0;n<active;++n)
-    if(flag[n]>0)
+	PARTLOOP
+    if(PP.Flag[n]>0)
 	{
 	iin=1;
 	result.write((char*)&iin, sizeof (int));
@@ -230,5 +226,5 @@ void particle_f::print_vtu(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag
     result<<"</VTKFile>"<<endl;
 
 	result.close();
-}
+	}
 

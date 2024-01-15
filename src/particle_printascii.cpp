@@ -32,18 +32,18 @@ Author: Hans Bihs
 void particle_f::print_ascii(lexer* p, fdm* a, ghostcell* pgc)
 {
     //pos
-    if(posactive-pcount>0)
-    {
-        char name[100];
-        sprintf(name,"./REEF3D_CFD_Particle/POS-%i-%i.dat",p->count,p->mpirank+1);
-        ofstream result;
-        result.open(name);
+    // if(posactive-pcount>0)
+    // {
+    //     char name[100];
+    //     sprintf(name,"./REEF3D_CFD_Particle/POS-%i-%i.dat",p->count,p->mpirank+1);
+    //     ofstream result;
+    //     result.open(name);
 
-        for(n=0;n<posactive;++n)
-        if(posflag[n]>0)
-        result<<setprecision(5)<<pos[n][0]+p->originx<<",\t "<<pos[n][1]+p->originy<<",\t "<<pos[n][2]+p->originz<<endl;//",\t "<<pos[n][3]<<",\t "<<pos[n][4]<<endl;//
+    //     PARTLOOP
+    //         if(posflag[n]>0)
+    //             result<<setprecision(5)<<pos[n][0]+p->originx<<",\t "<<pos[n][1]+p->originy<<",\t "<<pos[n][2]+p->originz<<endl;//",\t "<<pos[n][3]<<",\t "<<pos[n][4]<<endl;//
 
-        result.close();
-    }
+    //     result.close();
+    // }
 }
 

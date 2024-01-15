@@ -36,7 +36,11 @@ void particle_f::ini(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
     seed(p,a,pgc);
     
     // print
-    print_vtu(p,a,pgc,pos,posflag,posactive,1);
-
-
+    print_vtu(p,a,pgc);
+    printcount++;
+    gparticle_active = pgc->globalisum(PP.size);
+    if(p->mpirank==0)
+	{
+        cout<<"Particles: active: "<<gparticle_active<<endl;
+    }
 } 

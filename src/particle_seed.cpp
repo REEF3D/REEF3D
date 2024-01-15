@@ -30,160 +30,140 @@ void particle_f::seed_ini(lexer* p, fdm* a, ghostcell* pgc)
 {
     // ini
     LOOP
-    active(i,j,k) = 0.0;
-    
-    ppcell = 0;
+    {
+        active_box(i,j,k) = 0.0;
+        active_topo(i,j,k) = 0.0;
+    }
     
     // Box
-    cellcount=0;
-    for(qn=0;qn<p->Q110;++qn)
-    LOOP
-	if(p->XN[IP]>=p->Q110_xs[qn] && p->XN[IP]<p->Q110_xe[qn]
-	&& p->YN[JP]>=p->Q110_ys[qn] && p->YN[JP]<p->Q110_ye[qn]
-	&& p->ZN[KP]>=p->Q110_zs[qn] && p->ZN[KP]<p->Q110_ze[qn])
-	{
-	active(i,j,k) = 1.0;
-    ++cellcount;
-	}
-    
+    size_t cellcount=0;
+    for(int qn=0;qn<p->Q110;++qn)
+        LOOP
+            if(p->XN[IP]>=p->Q110_xs[qn] && p->XN[IP]<p->Q110_xe[qn]
+            && p->YN[JP]>=p->Q110_ys[qn] && p->YN[JP]<p->Q110_ye[qn]
+            && p->ZN[KP]>=p->Q110_zs[qn] && p->ZN[KP]<p->Q110_ze[qn])
+            {
+                active_box(i,j,k) = 1.0;
+                ++cellcount;
+            }
+
+    // Topo
+    PLAINLOOP
+        if((abs(a->topo(i,j,k))<(p->DZN[KP]*ceil(p->Q102)))&&(a->topo(i,j,k)<=0.25*p->DZN[KP])) //find better comparison to fix numerical drifts
+        {
+            active_topo(i,j,k) = 1.0;
+            if(1!=active_box(i,j,k))
+                cellcount++;
+        }
+
     // guess particle demand
     if(p->Q24>0)
-    ppcell = p->Q24;
+        ppcell = p->Q24;
+    else
+        ppcell = 0;
     
     partnum = cellcount * ppcell;
-    
 }
 
 void particle_f::seed(lexer* p, fdm* a, ghostcell* pgc)
 {
     if(p->Q110>0)
-    posseed(p,a,pgc);
-		
-
+        posseed_box(p,a,pgc);
+	if(p->Q101>0)
+        posseed_topo(p,a,pgc);
 }
 
 
-void particle_f::posseed(lexer* p, fdm* a, ghostcell* pgc)
+void particle_f::posseed_box(lexer* p, fdm* a, ghostcell* pgc)
 {
-	if(p->Q29>0)
-    srand(p->Q29);
+    if(p->Q29>0)
+        srand(p->Q29);
 
     if(p->Q29==0)
-    srand((unsigned)time(0));
+        srand((unsigned)time(0)*(p->mpirank+1));
 	
+    double x,y,z;
+    int flag;
+
     LOOP
-    if(active(i,j,k)>0.0)
-    {
-        
-            for(qn=0;qn<ppcell;++qn)
-            if(pactive<maxparticle)
-            {
-                pos[pactive][0] = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
-                pos[pactive][1] = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
-                pos[pactive][2] = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
-                pos[pactive][3] = 0.0;
-                posflag[pactive]=1;
-                ++pactive;
-            }
-    }
-    posactive=pactive;
-    pcount=pactive;
+        if(active_box(i,j,k)>0.0)
+            for(int qn=0;qn<ppcell;++qn)
+                {
+                    if(PP.size+1>0.9*PP.capacity)
+                        PP.reserve();
+                    
+                    x = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
+                    y = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
+                    z = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
+
+                    // pos[pactive][RADIUS] = p->Q31/2*double(rand() % int(drand/2) + int(drand/2))/drand;
+
+                    PP.add(x,y,z,1);
+                }
 }
 
 
 void particle_f::posseed_topo(lexer* p, fdm* a, ghostcell* pgc)
 {
+    if(p->Q29>0)
+        srand(p->Q29);
 
-        // // POS
-        //     if(pcount>0)
-        //     {
-        //         reseeded++;
-        //         pcount--;
+    if(p->Q29==0)
+        srand((unsigned)time(0)*(p->mpirank+1));
 
-        //         pos[PC][0] = (double(i) + (rand()%(irand))/drand)*dx;
-        //         pos[PC][1] = (double(j) + (rand()%(irand))/drand)*dx;
-        //         pos[PC][2] = (double(k) + (rand()%(irand))/drand)*dx;
-        //         pos[PC][3] = phipol(p,a,pos[PC][0],pos[PC][1],pos[PC][2]);
-        //         posflag[PC]=3;
+    double tolerance = 5e-18;
+    double x,y,z,ipolTopo,ipolSolid;
+    int flag;
 
-        //         phival=MAX(((rand()%(irand))/drand)*epsi,rmin);
+    PLAINLOOP
+        if(active_topo(i,j,k)>0.0)
+            {
+                if(PP.size+ppcell>0.9*PP.capacity)
+                    PP.reserve();
+                for(int qn=0;qn<ppcell;++qn)
+                {
 
-        //         lambda=1.0;
-        //         qq=0;
+                    x = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
+                    y = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
+                    z = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
 
-        //         do
-        //         {
-        //         normal(a,pos[PC][0],pos[PC][1],pos[PC][2],pos[PC][3]);
-        //         pos[PC][0] += lambda*(phival - pos[PC][3])*nvec[0];
-        //         pos[PC][1] += lambda*(phival - pos[PC][3])*nvec[1];
-        //         pos[PC][2] += lambda*(phival - pos[PC][3])*nvec[2];
+                    // tempPos[tempActive][RADIUS] = p->Q31/2*double(rand() % int(drand/2) + int(drand/2))/drand;
 
-        //         ii=int((pos[PC][0])/dx);
-        //         jj=int((pos[PC][1])/dx);
-        //         kk=int((pos[PC][2])/dx);
-        //         check=boundcheck(p,a,ii,jj,kk,0);
-        //         if(check==0)
-        //         break;
+                    ipolTopo = p->ccipol4_b(a->topo,x,y,z);
+                    ipolSolid = p->ccipol4_b(a->solid,x,y,z);
 
-        //         pos[PC][3] = phipol(p,a,pos[PC][0],pos[PC][1],pos[PC][2]);
-
-        //         lambda/=2.0;
-        //         ++qq;
-        //         }while((pos[PC][3]>epsi || pos[PC][3]<rmin)&& qq<15);
-				
-		// 		//posradius(p,a,PC);
-
-        //         if((pos[PC][3]>epsi || pos[PC][3]<rmin) || check==0)
-        //         {
-        //         posflag[PC]=0;
-        //         pcount++;
-        //         reseeded--;
-        //         }
-        //     }
-			
-        //     if(pcount==0 && posactive<maxparticle)
-        //     {	
-        //         pos[posactive][0] = (double(i)  + (rand()%(irand))/drand)*dx;
-        //         pos[posactive][1] = (double(j)  + (rand()%(irand))/drand)*dx;
-        //         pos[posactive][2] = (double(k)  + (rand()%(irand))/drand)*dx;
-        //         pos[posactive][3] = phipol(p,a,pos[posactive][0],pos[posactive][1],pos[posactive][2]);
-        //         posflag[posactive]=3;
-
-        //         phival=MAX(((rand()%(irand))/drand)*epsi,rmin);
-
-        //         lambda=1.0;
-        //         qq=0;
-
-        //         do
-        //         {
-        //         normal(a,pos[posactive][0],pos[posactive][1],pos[posactive][2],pos[posactive][3]);
-        //         pos[posactive][0] += lambda*(phival - pos[posactive][3])*nvec[0];
-        //         pos[posactive][1] += lambda*(phival - pos[posactive][3])*nvec[1];
-        //         pos[posactive][2] += lambda*(phival - pos[posactive][3])*nvec[2];
-
-        //         ii=int((pos[posactive][0])/dx);
-        //         jj=int((pos[posactive][1])/dx);
-        //         kk=int((pos[posactive][2])/dx);
-        //         check=boundcheck(p,a,ii,jj,kk,0);
-        //         if(check==0)
-        //         break;
-
-        //         pos[posactive][3] = phipol(p,a,pos[posactive][0],pos[posactive][1],pos[posactive][2]);
-        //         lambda/=2.0;
-        //         ++qq;
-        //         }while((pos[posactive][3]>epsi || pos[posactive][3]<rmin) && qq<15);
-
-
-        //         if(pos[posactive][3]<=epsi && pos[posactive][3]>=rmin && check==1)
-        //         {
-		// 		//posradius(p,a,posactive);
-        //         posactive++;
-        //         reseeded++;
-        //         }
-        //     }
-			
-
-
+                    if (!(ipolTopo>tolerance||ipolTopo<-p->Q102*p->DZN[KP]||ipolSolid<0))
+                        PP.add(x,y,z,1);
+                }
+            }
 }
 
+void particle_f::posseed_suspended(lexer* p, fdm* a, ghostcell* pgc)
+{
+    if(p->Q29>0)
+        srand(p->Q29);
 
+    if(p->Q29==0)
+        srand((unsigned)time(0)*(p->mpirank+1));
+    
+    double x,y,z;
+    for(int n=0;n<p->gcin_count;n++)
+        if(p->gcin[n][3]>0)
+        {
+            i=p->gcin[n][0];
+            j=p->gcin[n][1];
+            k=p->gcin[n][2];
+            if(a->topo(i,j,k)>=0.0)
+            {
+                if(PP.size+ppcell>0.9*PP.capacity)
+                    PP.reserve();
+                for(int qn=0;qn<ppcell;++qn)
+                {
+                    x = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
+                    y = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
+                    z = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
+                    PP.add(x,y,z,1);
+                }
+            }
+        }
+}

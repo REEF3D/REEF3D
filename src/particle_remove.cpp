@@ -28,38 +28,25 @@ Author: Hans Bihs
 
 void particle_f::remove(lexer* p, fdm* a, ghostcell* pgc)
 {
-    removed = 0;
+    bool inBounds=false;
+    removed=0;
 
-    for(n=0;n<posactive;++n)
-    {
-        // POS
-        if(posflag[n]>0)
+    PARTLOOP
+        if(PP.Flag[n]>0)
         {
-            i = p->posc_i(pos[n][0]);
-            j = p->posc_j(pos[n][1]);
-            k = p->posc_k(pos[n][2]);
+            i = p->posc_i(PP.X[n]);
+            j = p->posc_j(PP.Y[n]);
+            k = p->posc_k(PP.Z[n]);
 
-            check=boundcheck(p,a,i,j,k,1);
-			
-			// remove particle_fs too far away from ls
-            if(check==1)
-            if(p->flag5[IJK]>0  || fabs(pos[n][3])>epsi)
+            inBounds=minboundcheck(p,i,j,k,1);
+            if (inBounds)
+                inBounds=maxboundcheck(p,i,j,k,1);
+
+			// remove out of bounds particles
+            if(!inBounds)
             {
-			pcount++;
-            posflag[n]=0;
-            posmem[pcount]=n;
-            removed++;
-            }
-			
-			// remove out of bounds particle_fs
-            if(check==0)
-            {
-			pcount++;
-            posflag[n]=0;
-            posmem[pcount]=n;
-            removed++;
+                PP.erase(n);
+                removed++;
             }
         }
-    }
-
 }
