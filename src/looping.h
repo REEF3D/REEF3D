@@ -65,12 +65,6 @@ Author: Hans Bihs
 #define KMALOOP 	for(k=-p->margin; k<p->knoz+p->margin; ++k)
 #define MALOOP IMALOOP JMALOOP KMALOOP
 
-#define ILOOP	for(i=0; i<p->knox; ++i)
-#define JLOOP	for(j=0; j<p->knoy; ++j)
-#define KLOOP 	for(k=0; k<p->knoz; ++k)
-#define PCHECK  if(p->flag4[IJK]>0)
-#define LOOP ILOOP JLOOP KLOOP PCHECK
-
 #define IBLOOP	for(i=-1; i<p->knox+1; ++i)
 #define JBLOOP	for(j=-1; j<p->knoy+1; ++j)
 #define KBLOOP for(k=-1; k<p->knoz+1; ++k)

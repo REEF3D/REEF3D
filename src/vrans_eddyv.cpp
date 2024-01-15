@@ -28,9 +28,7 @@ Author: Hans Bihs
 void vrans_f::eddyv_func(lexer *p, fdm *a)
 {
 	if(p->B295==2)
-    LOOP
-    if(a->porosity(i,j,k)<1.0)
-    {
-	a->eddyv(i,j,k) = 0.001*a->visc(i,j,k);
-    }
+        LOOP
+            if(a->porosity(i,j,k)<1.0)
+                a->eddyv(i,j,k) = 0.001*a->visc(i,j,k);
 }

@@ -73,9 +73,8 @@ void driver::loop_cfd(fdm* a)
         pflow->flowfile(p,a,pgc,pturb);
         
         pflow->wavegen_precalc(p,pgc);
-
             
-        fill_vel(p,a,pgc);
+        // fill_vel(p,a,pgc);
         
         pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,ppls,a->phi);
         poneph->update(p,a,pgc,pflow);
