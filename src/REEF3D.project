@@ -2179,8 +2179,8 @@
         <File Name="levelset_AB2.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Particle">
-        <File Name="particle.cpp"/>
-        <File Name="particle_void.cpp"/>
+        <File Name="pls.cpp"/>
+        <File Name="pls_void.cpp"/>
         <File Name="pls_advect.cpp"/>
         <File Name="pls_allocate.cpp"/>
         <File Name="pls_correct.cpp"/>
