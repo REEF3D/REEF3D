@@ -59,6 +59,8 @@ nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc, s
     p->Darray(VHDIFF,p->imax*p->jmax*(p->kmax+2));
     p->Darray(WHDIFF,p->imax*p->jmax*(p->kmax+2));
     
+     p->Darray(WHDT,p->imax*p->jmax*(p->kmax+2));
+    
     sigma_ini(p,d,pgc,d->eta);
     
     p6dof = pp6dof;
@@ -141,9 +143,21 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	pconvec->start(p,d,3,WLRK1);
 	pnhfdiff->diff_w(p,d,pgc,psolv,WHDIFF,d->WH,d->UH,d->VH,d->WH,1.0);
 
+    if(p->A521==1)
 	LOOP
 	WHRK1[IJK] = WHDIFF[IJK]
 				+ p->dt*CPORNH*d->H[IJK];
+                
+    if(p->A521==2)
+    {
+    LOOP
+    WHDT[IJKm1]=0.0;
+
+	NHFWLOOP // bed + 1
+	WHRK1[IJK] = WHDIFF[IJK]
+				+ p->dt*CPORNH*d->H[IJK] - p->dt*CPORNH*d->H[IJKm1];
+                
+    }
 	
     p->wtime=pgc->timer()-starttime;
 

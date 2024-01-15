@@ -108,7 +108,7 @@ void lexer::ini_default()
     A518=2;      // int NHFLOW bed BC
     
     A520=2;		// int NFHLOW non-hydrostatic pressure scheme
-    A521=0;		// int NFHLOW fsf ucorr
+    A521=1;		// int NFHLOW KB scheme
     A522=4.0;    // double p_alpha
     A523=1.0;    // double p_gamma
     A531=3.0;    // double Fround number limiter

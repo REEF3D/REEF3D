@@ -67,6 +67,7 @@ private:
     double val, denom;
     double gamma;
     double *PCORR;
+    double wfac;
 
     density *pd;
     nhflow_poisson *ppois;

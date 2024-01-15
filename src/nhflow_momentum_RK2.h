@@ -45,6 +45,7 @@ public:
     double *UHRK1;
     double *VHRK1;
     double *WHRK1;
+    double *WHDT;
     
     slice4 WLRK1;
 
