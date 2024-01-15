@@ -102,7 +102,7 @@ int boundarycheck::positioncheck(lexer *p, fdm *a, double posx, double posy, dou
 
 int boundarycheck::minboundcheck(lexer *p, int ii, int jj, int kk, int margin)
 {
-    check=1;
+    check=0;
 
     if(ii>=0)
     if(jj>=0)
@@ -114,7 +114,7 @@ int boundarycheck::minboundcheck(lexer *p, int ii, int jj, int kk, int margin)
 
 int boundarycheck::maxboundcheck(lexer *p, int ii, int jj, int kk, int margin)
 {
-    check=1;
+    check=0;
 
     if(ii<p->knox)
     if(jj<p->knoy)
