@@ -285,8 +285,8 @@ double interpolation::lint4b(field& f, int& i,int& j, int& k, double wa, double 
     value = wc*y1 +(1.0-wc)*y2;
 
     pip=0;
- return value;
-
+    
+    return value;
 }
 
 
